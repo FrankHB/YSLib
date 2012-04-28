@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r1642;
+\version r1644;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 161 。
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2012-04-22 21:09 +0800;
+	2012-04-26 20:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,8 +55,9 @@ YSL_BEGIN
 YSL_END
 
 #else
-#	include <string>
+//#	include <string>
 #endif
+#include <ystdex/string.hpp>
 
 //包含标准库容器和容器适配器或代用品。
 #include <array>

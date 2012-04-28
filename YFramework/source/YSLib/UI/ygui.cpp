@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4233;
+\version r4238;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-10 17:39 +0800;
+	2012-04-24 21:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -166,7 +166,7 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, Components::VisualEvent op)
 		CallEvent<KeyHeld>(wgt, e);
 		break;
 	default:
-		YAssert(false, "Invalid operation found @ GUIState::ResponseKeyBase;");
+		YAssert(false, "Invalid operation found.");
 	}
 	return true;
 }
@@ -210,8 +210,7 @@ GUIState::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
 		CallEvent<TouchHeld>(*p_TouchDown, e);
 		break;
 	default:
-		YAssert(false, "Invalid operation found"
-			" @ GUIState::ResponseTouchBase;");
+		YAssert(false, "Invalid operation found.");
 	}
 	return true;
 }
@@ -241,7 +240,7 @@ GUIState::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 		p = t;
 	}
 
-	YAssert(p, "Null pointer found @ GUIState::ResponseKey");
+	YAssert(p, "Null pointer found.");
 
 	e.Strategy = Components::RoutedEventArgs::Direct;
 	e.SetSender(*p);
@@ -284,7 +283,7 @@ GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 		e -= GetLocationOf(*p);
 	};
 
-	YAssert(p, "Null pointer found @ GUIState::ResponseTouch");
+	YAssert(p, "Null pointer found.");
 
 	e.Strategy = Components::RoutedEventArgs::Direct;
 	e.SetSender(*p);

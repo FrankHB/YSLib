@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4346;
+\version r4347;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-22 21:19 +0800;
+	2012-04-23 13:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -314,8 +314,8 @@ SettingPanel::SettingPanel()
 	ddlEncoding(Rect(20, 128, 192, 22), share_raw(new
 		TextList::ListType(Encodings | ystdex::get_value, (Encodings
 		+ arrlen(Encodings)) | ystdex::get_value))),
-	chkSmoothScroll(Rect(20, 160, 16, 16)),
-	lblSmoothScroll(Rect(36, 160, 60, 20)),
+	chkSmoothScroll(Rect(20, 162, 13, 13)),
+	lblSmoothScroll(Rect(33, 160, 60, 20)),
 	ddlScrollTiming(Rect(96, 160, 128, 22)),
 	boxColor(Point(4, 80)), pColor(), current_encoding(),
 	scroll_duration(), smooth_scroll_duration()

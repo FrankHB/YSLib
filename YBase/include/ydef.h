@@ -19,14 +19,14 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2832;
+\version r2835;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-04-02 12:57 +0800;
-\par 字符集:
+	2012-04-28 15:13 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YDefinition;
@@ -66,7 +66,6 @@
 #include <cwchar>
 #include <utility> // for std::forward;
 #include <type_traits>
-#include <sys/types.h>
 
 
 /*!	\defgroup lang_impl_features Langrage Implementation Features
@@ -192,7 +191,6 @@ namespace ystdex
 	using std::ptrdiff_t;
 	using std::size_t;
 	using std::wint_t;
-	using ::ssize_t;
 
 #ifdef YCL_HAS_BUILTIN_NULLPTR
 

@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1474;
+\version r1490;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2012-03-18 20:09 +0800;
+	2012-04-24 21:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@ namespace
 	void
 	Diminish(Rect& r, SDst off1 = 1, SDst off2 = 2)
 	{
-		YAssert(r.Width > 2 && r.Height > 2, "err: @r is too small.");
+		YAssert(r.Width > 2 && r.Height > 2, "Boundary is too small.");
 
 		yunseq(r.X += off1, r.Y += off1,
 			r.Width -= off2, r.Height -= off2);
@@ -49,21 +49,21 @@ namespace
 	void
 	RectDrawCheckBox(const Graphics& g, const Rect& r,
 		bool is_pressed = false, bool is_locked = false,
-		bool is_ticked = false, Color c = Color(85, 184, 223))
+		bool is_ticked = false, bool is_focused = false,
+		Color c = Color(85, 184, 163))
 	{
-		YAssert(g.IsValid(), "err: @g is invalid.");
+		YAssert(g.IsValid(), "Invalid context found.");
 
-		DrawRect(g, r, c);
+		DrawRect(g, r, is_focused ? c : Color(85, 134, 223));
 		if(YCL_LIKELY(r.Width > 10 && r.Height > 10))
 		{
 			Rect rt(r);
-			Color cs[] = {Color(85, 134, 163), Color(222, 249, 250),
-				Color(177, 223, 253), Color(213, 254, 254)};
+			Color cs[]{{222, 249, 250}, {177, 223, 253}, {213, 254, 254}};
 			// color3 gradient: 207, 236, 253;
 		//	u16 h(rgb2hsl(Color2rgb(c)).h);
 
-			if(!is_locked)
-				for(int i(0); i < 4; ++i)
+			if(!(is_locked || is_focused))
+				for(size_t i(0); i < arrlen(cs); ++i)
 				{
 					hsl_t tmp(ColorToHSL(cs[i]));
 
@@ -75,15 +75,13 @@ namespace
 			Diminish(rt);
 			DrawRect(g, rt, cs[1]);
 			Diminish(rt);
-			DrawRect(g, rt, cs[2]);
-			Diminish(rt);
-			FillRect(g, rt, cs[3]);
+			FillRect(g, rt, cs[2]);
 		}
 		if(is_ticked)
 		{
 			const Color c1(4, 34, 113), c2(108, 166, 208);
-			Point p1(r.X + 4, r.Y + r.Height / 2), p2(r.X + r.Width / 2 - 2,
-				r.Y + r.Height - 5), p3(r.X + r.Width - 3, r.Y + 3);
+			Point p1(r.X + 2, r.Y + r.Height / 2), p2(r.X + r.Width / 2 - 1,
+				r.Y + r.Height - 3), p3(r.X + r.Width - 2, r.Y + 1);
 
 			p2 += Vec(0, -1);
 			DrawLineSeg(g, p1 + Vec(1, 0), p2, c2);
@@ -111,9 +109,7 @@ CheckBox::CheckBox(const Rect& r)
 			const auto& pt(e.Location);
 
 			RectDrawCheckBox(g, (e.ClipArea = Rect(pt, GetSizeOf(*this))),
-				bPressed, IsFocusedByShell(*this), bTicked);
-			if(IsFocused(*this))
-				DrawRect(g, pt, GetSizeOf(*this), ColorSpace::Aqua);
+				bPressed, IsFocusedByShell(*this), bTicked, IsFocused(*this));
 		},
 		FetchEvent<Click>(*this) += [this](TouchEventArgs&&){
 			bTicked ^= true;

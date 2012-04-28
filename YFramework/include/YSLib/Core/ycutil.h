@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2791;
+\version r2824;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-04-17 08:07 +0800;
+	2012-04-24 21:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -148,8 +148,7 @@ inline bool
 IsInInterval(_type i, _type b)
 {
 	YAssert(FetchZero<_type>() < b,
-		"Zero element as lower bound is not less than upper bound"
-		" @ IsInterval<_type>(_type, _type);");
+		"Zero element as lower bound is not less than upper bound.");
 
 	return !(i < FetchZero<_type>()) && i < b;
 }
@@ -162,8 +161,7 @@ PDefTmplH1(_type)
 inline bool
 IsInInterval(_type i, _type a, _type b)
 {
-	YAssert(a < b, "Lower bound is not less than upper bound"
-		" @ IsInInterval<_type>(_type, _type, _type);");
+	YAssert(a < b, "Lower bound is not less than upper bound.");
 
 	return !(i < a) && i < b;
 }
@@ -178,8 +176,7 @@ inline bool
 IsInOpenInterval(_type i, _type b)
 {
 	YAssert(FetchZero<_type>() < b,
-		"Zero element as lower bound is not less than upper bound"
-		" @ IsInOpenInterval<_type>(_type, _type);");
+		"Zero element as lower bound is not less than upper bound.");
 
 	return i > FetchZero<_type>() && i < b;
 }
@@ -193,8 +190,7 @@ inline bool
 IsInOpenInterval(_type i, _type a, _type b)
 {
 	YAssert(a < b,
-		"Lower bound is not less than upper bound"
-		" @ IsInOpenInterval<_type>(_type, type, _type);");
+		"Lower bound is not less than upper bound.");
 
 	return i > a && i < b;
 }
@@ -210,12 +206,9 @@ PDefTmplH1(_type)
 size_t
 SwitchInterval(_type v, const _type* a, size_t n)
 {
-	YAssert(a, "Null array pointer found"
-		" @ SwitchInterval<_type>(_type, const _type*, size_t);");
-	YAssert(n != 0, "Zero length of array found"
-		" @ SwitchInterval<_type>(_type, const _type*, size_t);");
-	YAssert(!(v < *a), "Value less than lower bound found"
-		" @ SwitchInterval<_type>(_type, const _type*, size_t);");
+	YAssert(a, "Null array pointer found."),
+	YAssert(n != 0, "Zero length of array found.");
+	YAssert(!(v < *a), "Value less than lower bound found.");
 
 	size_t i(0);
 
@@ -236,12 +229,9 @@ PDefTmplH1(_type)
 size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n)
 {
-	YAssert(a, "Null array pointer found"
-		" @ SwitchAddedInterval<_type>(_type, const _type*, size_t);");
-	YAssert(n != 0, "Zero length of array found"
-		" @ SwitchAddedInterval<_type>(_type, const _type*, size_t);");
-	YAssert(!(v < *a), "Value less than lower bound found"
-		" @ SwitchAddedInterval<_type>(_type, const _type*, size_t);");
+	YAssert(a, "Null array pointer found."),
+	YAssert(n != 0, "Zero length of array found.");
+	YAssert(!(v < *a), "Value less than lower bound found.");
 
 	_type s(*a);
 	size_t i(0);
@@ -261,8 +251,7 @@ PDefTmplH1(_type)
 void
 RestrictInClosedInterval(_type& i, int a, int b)
 {
-	YAssert(!(b < a), "Upper bound is less than lower bound"
-		" @ estrictInClosedInterval<_type>(_type&, int, int);");
+	YAssert(!(b < a), "Upper bound is less than lower bound.");
 
 	if(i < a)
 		i = a;
@@ -280,8 +269,7 @@ PDefTmplH1(_type)
 void
 RestrictInInterval(_type& i, int a, int b)
 {
-	YAssert(a < b, "Lower bound is not less than upper bound"
-		" @ RestrictInInterval<_type>(_type&, int, int);");
+	YAssert(a < b, "Lower bound is not less than upper bound.");
 
 	if(i < a)
 		i = a;
@@ -312,8 +300,7 @@ PDefTmplH1(_type)
 void
 RestrictUnsigned(_type& u, unsigned b)
 {
-	YAssert(b != FetchZero<_type>(), "Zero upper bound found"
-		" @ RestrictUnsigned<_type>(_type& u, unsigned b);");
+	YAssert(b != FetchZero<_type>(), "Zero upper bound found.");
 
 	if(!(u < b))
 		u = b - 1;
@@ -473,7 +460,7 @@ ClonePolymorphic(const _type& p) -> decltype(&*p)
 {
 	static_assert(std::is_polymorphic<typename
 		std::remove_reference<decltype(*p)>::type>::value,
-		"Non-polymorphic class type found @ ClonePolymorphic;");
+		"Non-polymorphic class type found.");
 
 	return p->Clone();
 }

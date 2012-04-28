@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1562;
+\version r1566;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2012-03-26 09:28 +0800;
+	2012-04-24 21:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,8 +36,7 @@ YSL_BEGIN_NAMESPACE(Components)
 Rect
 Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 {
-	YAssert(&e.GetSender().GetRenderer() == this,
-		"Invalid widget found @ Render::Paint;");
+	YAssert(&e.GetSender().GetRenderer() == this, "Invalid widget found.");
 
 	CallEvent<Components::Paint>(wgt, e);
 	return e.ClipArea;
@@ -66,8 +65,7 @@ BufferedRenderer::CommitInvalidation(const Rect& r)
 Rect
 BufferedRenderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 {
-	YAssert(&e.GetSender().GetRenderer() == this,
-		"Invalid widget found @ BufferedRenderer::Paint;");
+	YAssert(&e.GetSender().GetRenderer() == this, "Invalid widget found.");
 
 	Rect r(Validate(wgt, e.GetSender(), e));
 

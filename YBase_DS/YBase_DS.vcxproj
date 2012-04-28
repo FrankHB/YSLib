@@ -24,6 +24,7 @@
     <ClInclude Include="..\YBase\include\ystdex\memory.hpp" />
     <ClInclude Include="..\YBase\include\ystdex\operators.hpp" />
     <ClInclude Include="..\YBase\include\ystdex\rational.hpp" />
+    <ClInclude Include="..\YBase\include\ystdex\string.hpp" />
     <ClInclude Include="..\YBase\include\ystdex\type_op.hpp" />
     <ClInclude Include="..\YBase\include\ystdex\utility.hpp" />
   </ItemGroup>

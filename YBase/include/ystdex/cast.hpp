@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1743;
+\version r1755;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 175 。
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2012-04-23 10:27 +0800;
+	2012-04-26 20:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,8 +30,8 @@
 
 #include "type_op.hpp"
 #include <memory>
-#include <typeinfo> // for well-formedly using of dynamic_cast;
-#include <initializer_list> // for well-formedly using of std::initialize_list;
+#include <typeinfo> // for dynamic_cast;
+#include <initializer_list> // for std::initialize_list;
 
 namespace ystdex
 {
@@ -66,6 +66,18 @@ union_cast(_tSrc src) ynothrow
 		_tDst dst;
 	} u = {src};
 	return u.dst;
+}
+
+
+/*!
+\brief 初值符列表转换。
+\since build 304 。
+*/
+template<typename _tDst, typename... _tSrc>
+yconstfn std::initializer_list<_tDst>
+initializer_cast(_tSrc&&... src)
+{
+	return {_tDst(yforward(src))...};
 }
 
 

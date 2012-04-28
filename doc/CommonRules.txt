@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2335;
+\version r2342;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2012-02-03 16:44:56 +0800;
 \par 修改时间:
-	2012-03-21 08:40 +0800;
+	2012-04-25 13:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -785,11 +785,14 @@ $4.1.3.1.4 临时性例外：
 禁止接口行为依赖于未决定值。
 
 @5.1.5
-禁止使用 ISO/IEC 14882:2003 C++ Annex D 中的 deprecated 特性。
+禁止使用 ISO/IEC 14882:2003 C++ Annex D 中的 deprecated 特性，除以下有说明外；
 避免使用 ISO/IEC 14882:2011 C++ Annex D 中的 deprecated 特性。
+注意以下在前者在前者中作为 deprecated 特性，在后者中被删除（重新支持）的特性，应避免使用：
+ ISO/IEC 14882:2003 C++ Annex D.2 static keyword [depr.static] 。
+（参见 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3296.html#FI6 。）
 应特别注意禁止使用在前者中作为 deprecated 特性，在后者中不支持的特性：
- ISO/IEC 14882:2003 C++ Annex D.2 static keyword [depr.static] ；
  ISO/IEC 14882:2003 C++ Annex D.3 Access declarations [depr.access.dcl] ；
+（参见 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3296.html#US56 。）
  ISO/IEC 14882:2003 C++ Annex D.4 Implicit conversion from const strings [depr.string] 。
 
 @5.3 词法、预处理和内容无关的上下文编码规则：

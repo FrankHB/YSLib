@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2571;
+\version r2587;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:03:49 +0800;
 \par 修改时间:
-	2012-03-25 17:05 +0800;
+	2012-04-24 21:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -109,9 +109,7 @@ LocateForParentContainer(const IWidget& wgt)
 void
 MoveToLeft(IWidget& wgt)
 {
-	YAssert(FetchContainerPtr(wgt),
-		"In function \"void MoveToLeft(IWidget&)\": \n"
-		"Container pointer of the widget is null.");
+	YAssert(FetchContainerPtr(wgt), "Null pointer found.");
 
 	SetLocationOf(wgt, Point(0, GetLocationOf(wgt).Y));
 }
@@ -119,9 +117,7 @@ MoveToLeft(IWidget& wgt)
 void
 MoveToRight(IWidget& wgt)
 {
-	YAssert(FetchContainerPtr(wgt),
-		"In function \"void MoveToRight(IWidget&)\": \n"
-		"Container pointer of the widget is null.");
+	YAssert(FetchContainerPtr(wgt), "Null pointer found.");
 
 	SetLocationOf(wgt, Point(GetSizeOf(*FetchContainerPtr(wgt)).Width
 		- GetSizeOf(wgt).Width, GetLocationOf(wgt).Y));
@@ -130,9 +126,7 @@ MoveToRight(IWidget& wgt)
 void
 MoveToTop(IWidget& wgt)
 {
-	YAssert(FetchContainerPtr(wgt),
-		"In function \"void MoveToTop(IWidget&)\": \n"
-		"Container pointer of the widget is null.");
+	YAssert(FetchContainerPtr(wgt), "Null pointer found.");
 
 	SetLocationOf(wgt, Point(GetLocationOf(wgt).X, 0));
 }
@@ -140,9 +134,7 @@ MoveToTop(IWidget& wgt)
 void
 MoveToBottom(IWidget& wgt)
 {
-	YAssert(FetchContainerPtr(wgt),
-		"In function \"void MoveToBottom(IWidget&)\": \n"
-		"Container pointer of the widget is null.");
+	YAssert(FetchContainerPtr(wgt), "Null pointer found.");
 
 	SetLocationOf(wgt, Point(GetLocationOf(wgt).X,
 		GetSizeOf(*FetchContainerPtr(wgt)).Height - GetSizeOf(wgt).Height));
@@ -160,8 +152,7 @@ MUIContainer::operator-=(IWidget& wgt)
 		| get_value, &wgt);
 	t -= mWidgets.size();
 
-	YAssert(t <= 1, "Duplicate desktop object pointer found"
-		" @ bool MUIContainer::operator-=(IWidget&);");
+	YAssert(t <= 1, "Duplicate desktop object pointer found.");
 
 	return t != 0;
 }
@@ -173,8 +164,7 @@ MUIContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 
 	const auto i(std::find_if(mWidgets.rbegin() | get_value,
 		mWidgets.rend() | get_value, [&](const ItemType& pWgt){
-		YAssert(pWgt, "Null widget pointer found @"
-			" MUIContainer::GetTopWidgetPtr;");
+		YAssert(pWgt, "Null pointer found.");
 
 		return Components::Contains(*pWgt, pt) && f(*pWgt);
 	}));
@@ -204,8 +194,7 @@ MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 
 	std::for_each(mWidgets.begin() | get_value, mWidgets.end() | get_value,
 		[&](IWidget* const& pWgt){
-		YAssert(pWgt,
-			"Null pointer found @ MUIContainer::PaintVisibleChildren;");
+		YAssert(pWgt, "Null pointer found.");
 
 		auto& wgt(*pWgt);
 

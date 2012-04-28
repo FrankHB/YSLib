@@ -11,12 +11,12 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1928;
+\version r1930;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:45:32 +0800;
 \par 修改时间:
-	2012-03-17 20:03 +0800;
+	2012-04-24 21:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -119,8 +119,8 @@ void Blit<BlitBlendLoop, true, true>(BitmapPtr, const Size&,
 void
 CopyBuffer(const Graphics& dst, const Graphics& src)
 {
-	YAssert(dst.GetBufferPtr(), "Destination bitmap pointer is null.");
-	YAssert(src.GetBufferPtr(), "Source bitmap pointer is null.");
+	YAssert(dst.GetBufferPtr(), "Null pointer found.");
+	YAssert(src.GetBufferPtr(), "Null pointer found.");
 	YAssert(dst.GetSize() == src.GetSize(), "Source and destination sizes"
 		"are not same.");
 

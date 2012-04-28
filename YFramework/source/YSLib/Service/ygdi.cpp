@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3559;
+\version r3567;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-04-17 09:40 +0800;
+	2012-04-24 21:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -137,8 +137,7 @@ BitmapBuffer::SetSize(SDst w, SDst h)
 			throw LoggedEvent("Allocation failed @ BitmapBuffer::SetSize;", 1);
 		}
 
-	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied"
-		" @ BitmapBuffer::SetSize;");
+	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied.");
 
 	size.Width = w;
 	size.Height = h;
@@ -211,15 +210,13 @@ BitmapBufferEx::SetSize(SDst w, SDst h)
 		catch(std::bad_alloc&)
 		{
 			ydelete_array(pBufferNew);
-			throw LoggedEvent("Allocation failed"
-				" @ BitmapBufferEx::SetSize;", 1);
+			throw LoggedEvent("Allocation failed @ BitmapBufferEx::SetSize;",
+				1);
 		}
 	}
 
-	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied"
-		" @ BitmapBufferEx::SetSize;");
-	YAssert(!((pBufferAlpha != nullptr) ^ (s != 0)), "Buffer corruptied"
-		" @ BitmapBufferEx::SetSize;");
+	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied.");
+	YAssert(!((pBufferAlpha != nullptr) ^ (s != 0)), "Buffer corruptied.");
 
 	size.Width = w;
 	size.Height = h;

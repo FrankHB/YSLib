@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1956;
+\version r1974;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-04-19 14:59 +0800;
+	2012-04-24 21:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -128,8 +128,7 @@ Menu::operator-=(IndexType idx)
 bool
 Menu::IsItemEnabled(ListType::size_type idx) const
 {
-	YAssert(IsInInterval(idx, GetList().size()),
-		"Index out of range found @ Menu::IsItemEnabled;");
+	YAssert(IsInInterval(idx, GetList().size()), "Index is out of range.");
 
 	AdjustSize();
 	return !vDisabled[idx];
@@ -138,8 +137,7 @@ Menu::IsItemEnabled(ListType::size_type idx) const
 void
 Menu::SetItemEnabled(Menu::ListType::size_type idx, bool b)
 {
-	YAssert(IsInInterval(idx, GetList().size()),
-		"Index out of range found @ Menu::SetItemEnabled;");
+	YAssert(IsInInterval(idx, GetList().size()), "Index is out of range.");
 
 	AdjustSize();
 	vDisabled[idx] = !b;
@@ -240,7 +238,7 @@ MenuHost::~MenuHost()
 void
 MenuHost::operator+=(const ValueType& val)
 {
-	YAssert(val.second, "Null pointer found @ Menu::operator+=;");
+	YAssert(val.second, "Null pointer found.");
 
 	yunseq(mMenus[val.first] = val.second,
 		val.second->id = val.first, val.second->pHost = this);
@@ -305,7 +303,7 @@ MenuHost::Show(Menu::ID id, ZOrderType z)
 	{
 		auto pMenu(mMenus.at(id));
 
-		YAssert(pMenu, "Null pointer found @ MenuHost::Show;");
+		YAssert(pMenu, "Null pointer found.");
 
 		ShowRaw(*pMenu, z);
 	}
@@ -341,7 +339,7 @@ MenuHost::Hide(Menu::ID id)
 	{
 		auto pMenu(mMenus.at(id));
 
-		YAssert(pMenu, "Null pointer found @ MenuHost::Hide;");
+		YAssert(pMenu, "Null pointer found.");
 
 		HideRaw(*pMenu);
 	}
@@ -383,7 +381,7 @@ MenuHost::HideUnrelated(Menu& mnu, Menu& mnuParent)
 			{
 				auto pMenu(mMenus.at(pMnu->GetID()));
 
-				YAssert(pMenu, "Null pointer found @ MenuHost::HideUnrelated;");
+				YAssert(pMenu, "Null pointer found.");
 
 				HideRaw(*pMenu);
 			}

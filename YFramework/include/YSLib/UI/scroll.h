@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3448;
+\version r3450;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2012-04-13 19:57 +0800;
+	2012-04-24 21:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -351,8 +351,7 @@ public:
 inline ATrack&
 AScrollBar::GetTrack() const ynothrow
 {
-	YAssert(bool(pTrack),
-		"Null widget pointer found @ AScrollBar::GetTrack;");
+	YAssert(bool(pTrack), "Null pointer found.");
 
 	return *pTrack;
 }

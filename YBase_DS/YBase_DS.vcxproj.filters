@@ -61,6 +61,9 @@
     <ClInclude Include="..\YBase\include\ydef.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\YBase\include\ystdex\string.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\YBase\source\ystdex\cstdio.cpp">

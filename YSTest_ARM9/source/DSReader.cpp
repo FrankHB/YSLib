@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3775;
+\version r3788;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-04-12 21:09 +0800;
+	2011-04-24 21:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -153,14 +153,12 @@ namespace
 		size_t src_offset, YSL_ Components::BufferedTextArea& dst_area,
 		size_t dst_offset, ptrdiff_t offset, size_t n)
 	{
-		YAssert(n != 0, "Invalid number of lines found @ CopyScrollArea;");
-		YAssert(n <= size_t(std::abs(offset)), "Invalid offset found"
-			" @ CopyScrollArea;");
+		YAssert(n != 0, "Invalid number of lines found.");
+		YAssert(n <= size_t(std::abs(offset)), "Invalid offset found.");
 
 		const SDst w(src_area.GetWidth());
 
-		YAssert(w == dst_area.GetWidth(), "Unequal width found"
-			" @ CopyScrollArea;");
+		YAssert(w == dst_area.GetWidth(), "Distinct screen widths found.");
 
 		yunseq(src_offset *= w, dst_offset *= w, n *= w);
 		dst_area.Scroll(offset);
@@ -181,7 +179,7 @@ namespace
 		YSL_ Components::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
 	{
 		YAssert(area_up.GetHeight() - area_up.Margin.Bottom - n > 0,
-			"No enough space of areas found @ MoveScrollArea;");
+			"No enough space of areas found.");
 
 		SDst src_off(area_dn.Margin.Top),
 			dst_off(area_up.GetHeight() - area_up.Margin.Bottom - n);
@@ -315,8 +313,7 @@ DualScreenReader::Execute(Command cmd)
 	else if(YCL_UNLIKELY(IsTextBottom()))
 		return false;
 
-	YAssert(area_up.LineGap == area_dn.LineGap, "Unequal line gaps found"
-		" @ DualScreenReader::Execute;");
+	YAssert(area_up.LineGap == area_dn.LineGap, "Distinct line gaps found.");
 	// TODO: assert the fonts are same;
 
 	cmd &= ~Scroll;
@@ -347,8 +344,7 @@ DualScreenReader::Execute(Command cmd)
 			{
 				u16 n(area_dn.GetTextLineNEx());
 
-				YAssert(n != 0,
-					"No Enough height found @ DualScreenReader::Excute;");
+				YAssert(n != 0, "No Enough height.");
 
 				SetCurrentTextLineNOf(area_dn, --n);
 			}
@@ -443,8 +439,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 {
 	const FontSize ln_h_ex(GetTextLineHeightExOf(area_up));
 
-	YAssert(scroll_offset < ln_h_ex, "Invalid scroll offset found"
-		" @ DualScreenReader::AdjustScrollOffset");
+	YAssert(scroll_offset < ln_h_ex, "Invalid scroll offset found.");
 
 	if(YCL_UNLIKELY(i_btm == pText->GetEnd() || scroll_offset + h > ln_h_ex))
 		return 0;
@@ -452,8 +447,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 	{
 		u16 n(area_dn.GetTextLineNEx());
 
-		YAssert(n != 0,
-			"No Enough height found @ DualScreenReader::Excute;");
+		YAssert(n != 0, "No Enough height.");
 
 		SetCurrentTextLineNOf(area_dn, --n);
 	}

@@ -11,14 +11,14 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3958;
+\version r3961;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-04-19 14:59 +0800;
-\par 字符集:
+	2012-04-27 11:52 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::ComboList;
@@ -209,8 +209,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 		FetchEvent<LostFocus>(*this) += detacher,
 		FetchEvent<LostFocus>(boxList) += detacher,
 		boxList.GetConfirmed() += [this](IndexEventArgs&& e){
-			YAssert(e.Value < boxList.GetList().size(),
-				"Index error found @ event Confirmed @ DropDownList::boxList;");
+			YAssert(e.Value < boxList.GetList().size(), "Invalid index found.");
 
 			Text = boxList.GetList()[e.Value];
 			Invalidate(*this),

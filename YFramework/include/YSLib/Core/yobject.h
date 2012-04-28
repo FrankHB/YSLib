@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3377;
+\version r3391;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-13 19:10 +0800;
+	2012-04-24 21:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -99,14 +99,12 @@ private:
 				delete static_cast<_type*>(x);
 				return false;
 			case Clone:
-				YAssert(y, "Null pointer found"
-					" @ ValueObject::GManager::Do#Clone;");
+				YAssert(y, "Null pointer found.");
 
 				x = new _type(*static_cast<const _type*>(y));
 				return false;
 			case Equality:
-				YAssert(x && y, "Null pointer found"
-					" @ ValueObject::GManager::Do#Equlitiy;");
+				YAssert(x && y, "Null pointer found.");
 
 				return AreEqual(*static_cast<const _type*>(x),
 					*static_cast<const _type*>(y));
@@ -129,8 +127,7 @@ private:
 		static bool
 		CheckType(ManagerType m)
 		{
-			YAssert(m, "Null pointer found"
-				" @ ValueObject::GManager::CheckType;");
+			YAssert(m, "Null pointer found.");
 
 #ifdef YSL_DLL
 			const void *p(&typeid(GManager));
@@ -209,9 +206,8 @@ public:
 	const _type&
 	GetObject() const
 	{
-		YAssert(obj_ptr, "Null pointer found @ ValueObject::GetObject;");
-		YAssert(GManager<_type>::CheckType(manager), "Invalid type found"
-			" @ ValueObject::GetObject;");
+		YAssert(obj_ptr, "Null pointer found.");
+		YAssert(GManager<_type>::CheckType(manager), "Invalid type found.");
 
 		return *static_cast<const _type*>(obj_ptr);
 	}
@@ -219,9 +215,8 @@ public:
 	_type&
 	GetObject()
 	{
-		YAssert(obj_ptr, "Null pointer found @ ValueObject::GetObject;");
-		YAssert(GManager<_type>::CheckType(manager), "Invalid type found"
-			" @ ValueObject::GetObject;");
+		YAssert(obj_ptr, "Null pointer found.");
+		YAssert(GManager<_type>::CheckType(manager), "Invalid type found.");
 
 		return *static_cast<_type*>(obj_ptr);
 	}
@@ -324,8 +319,7 @@ public:
 		else if(!ptr.unique())
 			ptr = PointerType(CloneNonpolymorphic(ptr));
 
-		YAssert(bool(ptr),
-			"Null pointer found @ GDependency::GetCopyOnWritePtr;");
+		YAssert(bool(ptr), "Null pointer found.");
 
 		return ptr;
 	}

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2187;
+\version r2189;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-04-22 11:50 +0800;
+	2012-04-24 21:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -58,10 +58,8 @@ ShlDS::ShlDS(const shared_ptr<Desktop>& hUp, const shared_ptr<Desktop>& hDn)
 		FetchGlobalInstance().GetScreenDown())),
 	bUpdateUp(), bUpdateDown()
 {
-	YAssert(bool(desktop_up_ptr),
-		"Null up desktop handle found @ ShlDS::ShlDS;");
-	YAssert(bool(desktop_down_ptr),
-		"Null down desktop handle found @ ShlDS::ShlDS;");
+	YAssert(bool(desktop_up_ptr), "Null pointer found.");
+	YAssert(bool(desktop_down_ptr), "Null pointer found.");
 
 	YSL_ Components::FetchGUIState().Reset();
 }

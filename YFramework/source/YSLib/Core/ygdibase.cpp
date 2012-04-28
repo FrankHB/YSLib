@@ -11,12 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1495;
+\version r1500;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 206 。
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2012-03-25 16:56 +0800;
+	2012-04-24 21:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -117,8 +118,8 @@ const Graphics Graphics::Invalid;
 BitmapPtr
 Graphics::operator[](size_t r) const ynothrow
 {
-	YAssert(pBuffer, "Buffer pointer is null @ Graphics::operator[];");
-	YAssert(r < size.Height, "Access out of range @ Graphics::operator[];");
+	YAssert(pBuffer, "Null pointer found.");
+	YAssert(r < size.Height, "Access out of range.");
 
 	return pBuffer + r * size.Width;
 }
@@ -126,9 +127,9 @@ BitmapPtr
 Graphics::at(size_t r) const ythrow(GeneralEvent, std::out_of_range)
 {
 	if(YCL_UNLIKELY(!pBuffer))
-		throw GeneralEvent("Buffer pointer is null @ Graphics::operator[];");
+		throw GeneralEvent("Null pointer found.");
 	if(YCL_UNLIKELY(r >= size.Height))
-		throw std::out_of_range("Access out of range @ Graphics::operator[];");
+		throw std::out_of_range("Access out of range.");
 
 	return pBuffer + r * size.Width;
 }

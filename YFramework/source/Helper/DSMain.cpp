@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1909;
+\version r1920;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-04-22 22:33 +0800;
+	2012-04-24 21:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -333,7 +333,7 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg)
 	{
 	case WM_PAINT:
-		YAssert(hWnd == hWindow, "Wrong native main window found!");
+		YAssert(hWnd == hWindow, "Wrong native main window found.");
 
 		StartClock();
 		{
@@ -441,8 +441,7 @@ HostTask()
 DSApplication::DSApplication()
 	: pFontCache(), UIResponseLimit(0x40)
 {
-	YAssert(!YSL_ pApp, "Duplicate instance found"
-		" @ DSApplication::DSApplication;");
+	YAssert(!YSL_ pApp, "Duplicate instance found.");
 
 	//注册全局应用程序实例。
 	YSL_ pApp = this;
@@ -484,8 +483,7 @@ DSApplication::DSApplication()
 DSApplication::~DSApplication()
 {
 #ifdef YCL_MINGW32
-	YAssert(pHostThread, "Null thread pointer found"
-		" @ DSApplication::~DSApplication;");
+	YAssert(pHostThread, "Null pointer found.");
 
 	pHostThread->detach();
 	delete pHostThread;
@@ -514,24 +512,21 @@ FontCache&
 DSApplication::GetFontCache() const ythrow(LoggedEvent)
 {
 	if(YCL_UNLIKELY(!pFontCache))
-		throw LoggedEvent("Null font cache pointer found"
-			" @ Application::GetFontCache;");
+		throw LoggedEvent("Null pointer found.");
 	return *pFontCache;
 }
 
 Devices::Screen&
 DSApplication::GetScreenUp() const ynothrow
 {
-	YAssert(bool(pScreenUp), "Fatal error:"
-		" null screen pointer found @ DSApplication::GetScreenUp;");
+	YAssert(bool(pScreenUp), "Null pointer found.");
 
 	return *pScreenUp;
 }
 Devices::Screen&
 DSApplication::GetScreenDown() const ynothrow
 {
-	YAssert(bool(pScreenDown), "Fatal error:"
-		" null screen pointer found @ DSApplication::GetScreenDown;");
+	YAssert(bool(pScreenDown), "Null pointer found.");
 
 	return *pScreenDown;
 }
@@ -685,7 +680,7 @@ FetchAppInstance()
 DSApplication&
 FetchGlobalInstance() ynothrow
 {
-	YAssert(pApp, "Null pointer found @ FetchGlobalInstance;");
+	YAssert(pApp, "Null pointer found.");
 
 	return *pApp;
 }

@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2603;
+\version r2605;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2012-04-05 08:12 +0800;
+	2012-04-24 21:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ Application::~Application()
 {
 //	hShell = nullptr;
 	// NOTE: all shells must have been releasd;
-	YAssert(!hShell, "Active shell found @ Application::~Application");
+	YAssert(!hShell, "Active shell found.");
 
 	if(ApplicationExit)
 		ApplicationExit();
@@ -47,7 +47,7 @@ Application::Dispatch(const Message& msg)
 {
 	const auto hShl(GetShellHandle());
 
-	YAssert(bool(hShl), "Null shell handle found @ DispatchMessage;");
+	YAssert(bool(hShl), "Null handle found.");
 
 	return hShl->OnGotMessage(msg);
 }

@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11782;
+\version r11786;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-04-22 21:10 +0800;
+	2012-04-28 15:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -139,7 +139,7 @@ YSL_DEBUG_MSG
 }
 $header Base
 {
-_yJOIN
+yJOIN
 YSL_BEGIN
 YSL_END
 YSL_
@@ -582,7 +582,6 @@ $header YDefinition
 using std::ptrdiff_t;
 using std::size_t;
 using std::wint_t;
-using ::ssize_t;
 
 } //$header YDefinition;
 
@@ -768,7 +767,6 @@ using ystdex::arrlen;
 using ystdex::errno_t;
 using ystdex::ptrdiff_t;
 using ystdex::size_t;
-using ystdex::ssize_t;
 using ystdex::wint_t;
 
 //基本实用例程。
@@ -780,7 +778,7 @@ using platform::ufopen;
 using platform::ufexists;	
 using platform::direxists;
 using platform::chdir;
-using platform::getcwd_n;
+using platform::u16getcwd_n;
 
 //系统处理函数。
 using platform::terminate;

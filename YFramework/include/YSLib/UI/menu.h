@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1770;
+\version r1772;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2012-04-13 19:34 +0800;
+	2012-04-24 21:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -258,7 +258,7 @@ public:
 	void
 	Show(Menu& mnu, ZOrderType z = DefaultMenuZOrder)
 	{
-		YAssert(Contains(mnu), "Menu is not contained @ MenuHost::Show;");
+		YAssert(Contains(mnu), "Menu is not contained.");
 
 		ShowRaw(mnu, z);
 	}
@@ -289,7 +289,7 @@ public:
 	void
 	Hide(Menu& mnu)
 	{
-		YAssert(Contains(mnu), "Menu is not contained @ MenuHost::HideRaw;");
+		YAssert(Contains(mnu), "Menu is not contained.");
 
 		HideRaw(mnu);
 	}

@@ -11,13 +11,13 @@
 /*!	\file TextLayout.cpp
 \ingroup Service
 \brief 文本布局计算。
-\version r6895;
+\version r6899;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-01-27 07:02 +0800;
+	2012-04-24 21:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -40,8 +40,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 SDst
 FetchResizedBottomMargin(const TextState& ts, SDst h)
 {
-	YAssert(GetTextLineHeightExOf(ts) != 0,
-		"Zero line height found @ FetchResizedBottomMargin");
+	YAssert(GetTextLineHeightExOf(ts) != 0, "Zero line height found.");
 
 	return ts.Margin.Bottom + (h + ts.LineGap - GetVerticalOf(ts.Margin))
 		% GetTextLineHeightExOf(ts);
@@ -50,8 +49,7 @@ FetchResizedBottomMargin(const TextState& ts, SDst h)
 u16
 FetchResizedLineN(const TextState& ts, SDst h)
 {
-	YAssert(GetTextLineHeightExOf(ts) != 0,
-		"Zero line height found @ FetchResizedLineN");
+	YAssert(GetTextLineHeightExOf(ts) != 0, "Zero line height found.");
 
 	return (h + ts.LineGap - GetVerticalOf(ts.Margin))
 		/ GetTextLineHeightExOf(ts);

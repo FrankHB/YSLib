@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright (C) by Franksoft 2010 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3217;
+\version r3241;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2011-12-19 09:12 +0800;
-\par 字符集:
+	2012-04-27 11:51 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::Core::YBaseMacro;
@@ -31,6 +31,8 @@
 //! \todo 检查语言实现的必要支持：可变参数宏。
 
 /*
+\def yJOIN
+\brief 记号连接。
  ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
  GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，此宏不会被展开。
 详见：http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
@@ -39,7 +41,7 @@
  PRE05-CPP.+Understand+macro+replacement+when+concatenating \
  +tokens+or+performing+stringification 。
 */
-#define _yJOIN(x, y) x ## y
+#define yJOIN(x, y) x ## y
 
 
 // YSLib 命名空间宏。
@@ -243,44 +245,44 @@ _t type
 	DefCvt(_q, _t, (_m).operator _t())
 
 #define DefPred(_q, _n, ...) \
-	bool _yJOIN(Is, _n)() _q \
+	bool yJOIN(Is, _n)() _q \
 	ImplRet(__VA_ARGS__)
 #define DefPredBase(_q, _n, _b) \
-	DefPred(_q, _n, _b::_yJOIN(Is, _n)())
+	DefPred(_q, _n, _b::yJOIN(Is, _n)())
 #define DefPredMem(_q, _n, _m) \
-	DefPred(_q, _n, (_m)._yJOIN(Is, _n)())
+	DefPred(_q, _n, (_m).yJOIN(Is, _n)())
 
 #define DefGetter(_q, _t, _n, ...) \
-	_t _yJOIN(Get, _n)() _q \
+	_t yJOIN(Get, _n)() _q \
 	ImplRet(__VA_ARGS__)
 #define DefGetterBase(_q, _t, _n, _b) \
-	DefGetter(_q, _t, _n, _b::_yJOIN(Get, _n)())
+	DefGetter(_q, _t, _n, _b::yJOIN(Get, _n)())
 #define DefGetterMem(_q, _t, _n, _m) \
-	DefGetter(_q, _t, _n, (_m)._yJOIN(Get, _n)())
+	DefGetter(_q, _t, _n, (_m).yJOIN(Get, _n)())
 
 #define DefSetter(_t, _n, _m) \
-	void _yJOIN(Set, _n)(_t _tempArgName) \
+	void yJOIN(Set, _n)(_t _tempArgName) \
 	ImplExpr((_m) = _tempArgName)
 #define DefSetterDe(_t, _n, _m, _defv) \
-	void _yJOIN(Set, _n)(_t _tempArgName = _defv) \
+	void yJOIN(Set, _n)(_t _tempArgName = _defv) \
 	ImplExpr((_m) = _tempArgName)
 #define DefSetterBase(_t, _n, _b) \
-	void _yJOIN(Set, _n)(_t _tempArgName) \
-	ImplExpr(_b::_yJOIN(Set, _n)(_tempArgName))
+	void yJOIN(Set, _n)(_t _tempArgName) \
+	ImplExpr(_b::yJOIN(Set, _n)(_tempArgName))
 #define DefSetterBaseDe(_t, _n, _b, _defv) \
-	void _yJOIN(Set, _n)(_t _tempArgName = _defv) \
-	ImplExpr(_b::_yJOIN(Set, _n)(_tempArgName))
+	void yJOIN(Set, _n)(_t _tempArgName = _defv) \
+	ImplExpr(_b::yJOIN(Set, _n)(_tempArgName))
 #define DefSetterMem(_t, _n, _m) \
-	void _yJOIN(Set, _n)(_t _tempArgName) \
-	ImplExpr((_m)._yJOIN(Set, _n)(_tempArgName))
+	void yJOIN(Set, _n)(_t _tempArgName) \
+	ImplExpr((_m).yJOIN(Set, _n)(_tempArgName))
 #define DefSetterMemDe(_t, _n, _m, _defv) \
-	void _yJOIN(Set, _n)(_t _tempArgName = _defv) \
-	ImplExpr((_m)._yJOIN(Set, _n)(_tempArgName))
+	void yJOIN(Set, _n)(_t _tempArgName = _defv) \
+	ImplExpr((_m).yJOIN(Set, _n)(_tempArgName))
 #define DefSetterEx(_t, _n, _m, ...) \
-	void _yJOIN(Set, _n)(_t _tempArgName) \
+	void yJOIN(Set, _n)(_t _tempArgName) \
 	ImplExpr((_m) = (__VA_ARGS__))
 #define DefSetterDeEx(_t, _n, _m, _defv, ...) \
-	void _yJOIN(Set, _n)(_t _tempArgName = _defv) \
+	void yJOIN(Set, _n)(_t _tempArgName = _defv) \
 	ImplExpr((_m) = (__VA_ARGS__))
 
 

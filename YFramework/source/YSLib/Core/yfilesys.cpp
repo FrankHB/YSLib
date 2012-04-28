@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2312;
+\version r2317;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-04-03 15:57 +0800;
+	2012-04-28 15:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -355,13 +355,13 @@ ChangeDirectory(const Path& path)
 	return ChangeDirectory(p);
 }*/
 
-string
+String
 GetNowDirectory()
 {
-	PATHSTR buf;
+	ucs2_t buf[YCL_MAX_PATH_LENGTH];
 
-	return getcwd_n(buf, YCL_MAX_PATH_LENGTH - 1)
-		? string(buf) : string();
+	return u16getcwd_n(buf, YCL_MAX_PATH_LENGTH - 1)
+		? String(buf) : String();
 }
 
 bool
@@ -408,7 +408,7 @@ FileList::ListItems()
 
 	if(dir.IsValid())
 	{
-		YAssert(bool(hList), "Null handle found @ FileList::LoadSubItems;");
+		YAssert(bool(hList), "Null handle found.");
 
 		hList->clear();
 		while((++dir).LastError == 0)

@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4579;
+\version r4610;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2012-03-17 19:58 +0800;
+	2012-04-24 21:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -40,15 +40,12 @@ TextFileBuffer::Iterator::Iterator(TextFileBuffer* pBuf, size_t b, size_t idx)
 TextFileBuffer::Iterator&
 TextFileBuffer::Iterator::operator++() ynothrow
 {
-	YAssert(pBuffer, "Null buffer pointer found"
-		" @ TextFileBuffer::Iterator::operator++");
-	YAssert(block < pBuffer->nBlock, "End iterator found"
-		" @ TextFileBuffer::Iterator::operator++");
+	YAssert(pBuffer, "Null pointer found.");
+	YAssert(block < pBuffer->nBlock, "End iterator found.");
 
 	auto& vec((*pBuffer)[block].first);
 
-	YAssert(index < vec.size(), "Invalid index found"
-		" @ TextFileBuffer::Iterator::operator++");
+	YAssert(index < vec.size(), "Invalid index found.");
 
 	if(YCL_UNLIKELY(++index == vec.size()))
 		yunseq(++block, index = 0);
@@ -58,23 +55,19 @@ TextFileBuffer::Iterator::operator++() ynothrow
 TextFileBuffer::Iterator&
 TextFileBuffer::Iterator::operator--() ynothrow
 {
-	YAssert(pBuffer, "Null buffer pointer found"
-		" @ TextFileBuffer::Iterator::operator--");
-	YAssert(block != 0 || index != 0, "Begin iterator found"
-		" @ TextFileBuffer::Iterator::operator--"),
+	YAssert(pBuffer, "Null buffer pointer found.");
+	YAssert(block != 0 || index != 0, "Begin iterator found."),
 	YAssert(block < pBuffer->nBlock || *this == pBuffer->GetEnd(),
-		"Invalid iterator found @ TextFileBuffer::Iterator::operator--");
+		"Invalid iterator found.");
 
 	if(index == 0)
 	{
 		index = (*pBuffer)[--block].first.size();
 
-		YAssert(index != 0, "Invalid index found"
-			" @ TextFileBuffer::Iterator::operator--");
+		YAssert(index != 0, "Invalid index found.");
 	}
 	else
-		YAssert(index < (*pBuffer)[block].first.size(), "Invalid index found"
-		" @ TextFileBuffer::Iterator::operator--");
+		YAssert(index < (*pBuffer)[block].first.size(), "Invalid index found.");
 	--index;
 	return *this;
 }
@@ -82,15 +75,12 @@ TextFileBuffer::Iterator::operator--() ynothrow
 ucs2_t
 TextFileBuffer::Iterator::operator*() const ynothrow
 {
-	YAssert(pBuffer, "Null buffer pointer found"
-		" @ TextFileBuffer::Iterator::operator*");
+	YAssert(pBuffer, "Null pointer found.");
 
 	auto& vec((*pBuffer)[block].first);
 
-	YAssert(!vec.empty(), "Empty block found"
-		" @ TextFileBuffer::Iterator::operator*");
-	YAssert(index < vec.size(), "Invalid index found"
-		" @ TextFileBuffer::Iterator::operator*");
+	YAssert(!vec.empty(), "Empty block found.");
+	YAssert(index < vec.size(), "Invalid index found.");
 
 	return vec[index];
 }
@@ -99,8 +89,8 @@ bool
 operator==(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator& y)
 	ynothrow
 {
-	YAssert(x.pBuffer == y.pBuffer, "Iterators to different buffer"
-		" are not comparable @ operator== for type TextBuffer::Iterator");
+	YAssert(x.pBuffer == y.pBuffer, "Iterators to different buffer are not"
+		" comparable.");
 
 	return x.block == y.block && x.index == y.index;
 }
@@ -112,8 +102,7 @@ TextFileBuffer::TextFileBuffer(TextFile& file)
 	fixed_width(FetchFixedCharWidth(File.Encoding)), max_width(fixed_width
 	== 0 ? FetchMaxVariantCharWidth(File.Encoding) : fixed_width)
 {
-	YAssert(max_width != 0, "Unknown encoding found"
-		" @ TextFileBuffer::TextFileBuffer");
+	YAssert(max_width != 0, "Unknown encoding found.");
 
 	if(fixed_width == 0)
 		++fixed_width;
@@ -123,7 +112,7 @@ TextFileBuffer::TextFileBuffer(TextFile& file)
 TextFileBuffer::BlockType&
 TextFileBuffer::operator[](size_t idx)
 {
-	YAssert(idx < nBlock, "Invalid index found @ TextFileBuffer::operator[]");
+	YAssert(idx < nBlock, "Invalid index found.");
 
 	auto& b(Map[idx]);
 	auto& vec(b.first);
@@ -172,8 +161,7 @@ TextFileBuffer::GetIterator(size_t pos)
 		if(fixed_width == max_width)
 			return TextFileBuffer::Iterator(this, idx, pos / max_width);
 
-		YAssert(File.IsValid(), "Invalid file found"
-			" @ TextFileBuffer::GetIterator");
+		YAssert(File.IsValid(), "Invalid file found.");
 
 		File.Locate(idx * nBlockSize);
 
@@ -205,8 +193,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::Iterator i)
 
 	const auto& vec((*this)[idx].first);
 
-	YAssert(!vec.empty() && File.IsValid(), "Block loading failed"
-		" @ TextFileBuffer::GetIterator");
+	YAssert(!vec.empty() && File.IsValid(), "Block loading failed.");
 
 	File.Locate(idx *= nBlockSize);
 
@@ -214,8 +201,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::Iterator i)
 	const auto mid(vec.cbegin() + pos);
 	auto it(vec.begin());
 
-	YAssert(it <= mid && mid <= vec.cend(), "Wrong iterator found"
-		" @ TextFileBuffer::GetPosition");
+	YAssert(it <= mid && mid <= vec.cend(), "Wrong iterator found.");
 
 	while(it != mid)
 	{

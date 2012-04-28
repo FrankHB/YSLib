@@ -11,14 +11,14 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2204;
+\version r2206;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2012-04-13 20:27 +0800;
-\par 字符集:
+	2012-04-27 11:53 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YSLib::UI::YWidgetEvent;
@@ -412,7 +412,7 @@ public:
 	virtual AController*
 	Clone()
 	{
-		YAssert(false, "Invalid call @ AController::Clone;");
+		YAssert(false, "Invalid call.");
 
 		return nullptr;
 	}

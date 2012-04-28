@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3597;
+\version r3612;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-04-13 18:37 +0800;
+	2012-04-28 14:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -176,11 +176,24 @@ bool
 ufexists(const char*);
 
 /*!
-\brief 当 buf 非空时取当前工作目录复制至 buf 起始的长为 t 的缓冲区中。
-\return buf 。
+\brief 当第一参数非空时取当前工作目录复制至指定缓冲区中。
+\param buf 缓冲区起始指针。
+\param size 缓冲区长。
+\return 若成功为 buf ，否则为空指针。
+\deprecated 特定平台上的编码不保证是 UTF-8 。
 */
 char*
-getcwd_n(char* buf, std::size_t);
+getcwd_n(char* buf, std::size_t size);
+
+/*!
+\brief 当第一参数非空时取当前工作目录（ UCS2-LE 编码）复制至指定缓冲区中。
+\param buf 缓冲区起始指针。
+\param size 缓冲区长。
+\return 若成功为 buf ，否则为空指针。
+\since build 304 。
+*/
+char16_t*
+u16getcwd_n(char16_t* buf, std::size_t size);
 
 /*!
 \brief 判断指定目录是否存在。

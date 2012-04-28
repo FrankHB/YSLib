@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3035;
+\version r3088;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-04-07 19:59 +0800;
+	2012-04-28 15:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,14 +28,25 @@
 #include "YCLib/Debug.h"
 #include <cstring>
 #include <cerrno>
-#ifdef YCL_MINGW32
 #include <CHRLib/chrproc.h>
+#ifdef YCL_MINGW32
 #include <mmsystem.h> // for multimedia timers;
 #include <Shlwapi.h> // for ::PathIsRelative;
 #endif
 
 namespace platform
 {
+
+static_assert(std::is_same<CHRLib::ucs2_t, char16_t>::value,
+	"Wrong character type!");
+static_assert(std::is_same<CHRLib::ucs4_t, char32_t>::value,
+	"Wrong character type!");
+#ifdef YCL_MINGW32
+// TODO: assert %alignof equality;
+static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
+	"Wrong character type!");
+#endif
+
 void*
 mmbset(void* d, int v, std::size_t t)
 {
@@ -69,8 +80,6 @@ ufopen(const char* filename, const char* mode)
 	return std::fopen(filename, mode);
 #elif defined(YCL_MINGW32)
 	using namespace CHRLib;
-
-	static_assert(sizeof(wchar_t) == sizeof(ucs2_t), "Wrong character type!");
 
 	const auto wname(reinterpret_cast<wchar_t*>(ucsdup(filename)));
 	wchar_t tmp[5];
@@ -112,10 +121,53 @@ ufexists(const char* path)
 }
 
 char*
-getcwd_n(char* buf, std::size_t t)
+getcwd_n(char* buf, std::size_t size)
 {
 	if(YCL_LIKELY(buf))
-		return ::getcwd(buf, t);
+		return ::getcwd(buf, size);
+	return nullptr;
+}
+
+char16_t*
+u16getcwd_n(char16_t* buf, std::size_t size)
+{
+	if(size == 0)
+	//	last_err = EINVAL;
+		;
+	else
+	{
+		using namespace std;
+		using namespace CHRLib;
+
+		if(YCL_LIKELY(buf))
+#ifdef YCL_DS
+		{
+			const auto p(static_cast<ucs2_t*>(malloc((size + 1)
+				* sizeof(ucs2_t))));
+
+			if(YCL_LIKELY(p))
+			{
+				auto len(MBCSToUCS2(p,
+					::getcwd(reinterpret_cast<char*>(buf), size)));
+
+				if(size < len + 1)
+				{
+				//	last_err = ERANGE;
+					return nullptr;
+				}
+				memcpy(buf, p, ++len * sizeof(ucs2_t));
+				return buf;
+			}
+		//	else
+			//	last_err = ENOMEM;
+		}
+#elif defined(YCL_MINGW32)
+			return reinterpret_cast<ucs2_t*>(
+				::_wgetcwd(reinterpret_cast<wchar_t*>(buf), size));
+#else
+#	error Unsupported platform found!
+#endif
+	}
 	return nullptr;
 }
 
@@ -531,7 +583,7 @@ ScreenSynchronize(platform::PixelType* buf, const platform::PixelType* src)
 		ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT]; //!< 主显示屏缓冲区。
 
 //	YAssert(safe_dma_copy(buf, src, sizeof(ScreenBufferType)) == 0,
-//		"Screen sychronize failure;");
+//		"Screen sychronize failure.");
 	DC_FlushRange(src, sizeof(ScreenBufferType));
 	dmaCopyWordsAsynch(3, src, buf, sizeof(ScreenBufferType));
 //	std::memcpy(buf, src, sizeof(ScreenBufferType));

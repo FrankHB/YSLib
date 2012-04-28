@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4268;
+\version r4279;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-04-19 16:04 +0800;
+	2012-04-24 21:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -296,11 +296,7 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 	: ATrack(r, uMinThumbLength)
 {
-	YAssert(GetWidth() > GetHeight(),
-		"In constructor Components::\n"
-			"HorizontalTrack::HorizontalTrack"
-		"(const Rect& r, SDst uMinThumbLength) const\": \n"
-		"Width is not greater than height.");
+	YAssert(GetWidth() > GetHeight(), "Width is not greater than height.");
 
 	FetchEvent<TouchMove>(Thumb) +=[this](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
@@ -320,11 +316,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 	: ATrack(r, uMinThumbLength)
 {
-	YAssert(GetHeight() > GetWidth(),
-		"In constructor Components::\n"
-			"HorizontalTrack::HorizontalTrack"
-		"(const Rect& r, SDst uMinThumbLength) const\": \n"
-		"height is not greater than width.");
+	YAssert(GetHeight() > GetWidth(), "height is not greater than width.");
 
 	FetchEvent<TouchMove>(Thumb) += [this](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
@@ -388,8 +380,7 @@ AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 	if(auto p = CheckWidget(btnNext, pt, f))
 		return p;
 
-	YAssert(bool(pTrack),
-		"Null widget pointer found @ AScrollBar::GetTopWidgetPtr;");
+	YAssert(bool(pTrack), "Null pointer found.");
 
 	return f(*pTrack.get()) ? pTrack.get() : nullptr;
 }
@@ -397,7 +388,7 @@ AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 void
 AScrollBar::Refresh(PaintEventArgs&& e)
 {
-	YAssert(bool(pTrack), "Null widget pointer found @ AScrollBar::Draw;");
+	YAssert(bool(pTrack), "Null pointer found.");
 
 	Rect r(PaintChild(btnPrev, e));
 

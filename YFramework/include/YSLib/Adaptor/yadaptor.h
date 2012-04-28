@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2315;
+\version r2317;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-04-20 21:22 +0800;
+	2012-04-28 15:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -107,7 +107,6 @@ using ystdex::arrlen;
 using ystdex::errno_t;
 using ystdex::ptrdiff_t;
 using ystdex::size_t;
-using ystdex::ssize_t;
 using ystdex::wint_t;
 
 //基本实用例程。
@@ -119,7 +118,7 @@ using platform::ufopen;
 using platform::ufexists;
 using platform::direxists;
 using platform::chdir;
-using platform::getcwd_n;
+using platform::u16getcwd_n;
 
 //系统处理函数。
 using platform::terminate;

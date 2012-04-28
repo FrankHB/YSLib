@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2272;
+\version r2273;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-04-22 17:38 +0800;
+	2012-04-24 21:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -119,7 +119,7 @@ FetchShell()
 {
 	auto hShl(FetchShellHandle());
 
-	YAssert(bool(hShl), "Null handle found @ FetchShell;");
+	YAssert(bool(hShl), "Null handle found.");
 
 	return ystdex::polymorphic_downcast<_tShell&>(*hShl);
 }

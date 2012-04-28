@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1710;
+\version r1727;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:45:33 +0800;
 \par 修改时间:
-	2012-03-17 20:02 +0800;
+	2012-04-24 21:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,11 +35,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 bool
 DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)
 {
-	YAssert(g.IsValid(),
-		"In function \"void\n"
-		"DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)"
-		"\": \n"
-		"The graphics device context is invalid.");
+	YAssert(g.IsValid(), "Invalid graphics context found.");
 
 	if(IsInInterval<int>(y, g.GetHeight())
 		&& !((x1 < 0 && x2 < 0) || (x1 >= g.GetWidth() && x2 >= g.GetWidth())))
@@ -57,11 +53,7 @@ DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)
 bool
 DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c)
 {
-	YAssert(g.IsValid(),
-		"In function \"void\n"
-		"DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c)"
-		"\": \n"
-		"The graphics device context is invalid.");
+	YAssert(g.IsValid(), "Invalid graphics context found.");
 
 	if(IsInInterval<int>(x, g.GetWidth())
 		&& !((y1 < 0 && y2 < 0) || (y1 >= g.GetHeight()
@@ -89,15 +81,8 @@ namespace
 		Color c)
 	{
 		YAssert(y1 != y2,
-			"In function \"static void\n"
-			"DrawObliqueLine(const Graphics& g, SPos x1, SPos y1,"
-			" SPos x2, SPos y2, Color c)\": \n"
 			"Not drawing an oblique line: the line is horizontal.");
-		YAssert(x1 != x2,
-			"In function \"static void\n"
-			"DrawObliqueLine(const Graphics& g, SPos x1, SPos y1,"
-			" SPos x2, SPos y2, Color c)\": \n"
-			"Not drawing an oblique line: the line is vertical.");
+		YAssert(x1 != x2, "Not drawing an oblique line: the line is vertical.");
 
 		if(Rect(g.GetSize()).Contains(x1, y1)
 			&& Rect(g.GetSize()).Contains(x2, y2))

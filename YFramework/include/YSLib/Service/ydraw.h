@@ -11,12 +11,12 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1658;
+\version r1664;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:43:26 +0800;
 \par 修改时间:
-	2012-03-26 08:32 +0800;
+	2012-04-24 21:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,13 +42,8 @@ YSL_BEGIN_NAMESPACE(Drawing)
 inline void
 PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 {
-	YAssert(g.IsValid(),
-		"In function \"inline void\n"
-		"PutPixel(const Graphics& g, SPos x, SPos y, Color c)\": \n"
-		"The graphics device context is invalid.");
+	YAssert(g.IsValid(), "Invalid graphics context found.");
 	YAssert(Rect(g.GetSize()).Contains(x, y),
-		"In function \"inline void\n"
-		"PutPixel(const Graphics& g, SPos x, SPos y, Color c)\": \n"
 		"The pixel is not in the device context buffer.");
 
 	g.GetBufferPtr()[y * g.GetWidth() + x] = c;

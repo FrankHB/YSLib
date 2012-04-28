@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6518;
+\version r6520;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-19 15:37 +0800;
+	2012-04-24 21:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -350,8 +350,7 @@ public:
 		Background(SolidBrush(Drawing::ColorSpace::White)),
 		ForeColor(Drawing::ColorSpace::Black)
 	{
-		YAssert(bool(pView) && bool(pRenderer),
-			"Null pointer(s) found @ Widget::Widget#2;");
+		YAssert(bool(pView) && bool(pRenderer), "Null pointer found.");
 
 		InitializeEvents();
 	}

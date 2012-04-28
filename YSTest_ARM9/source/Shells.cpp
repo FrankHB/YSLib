@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6089;
+\version r6093;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-04-22 21:25 +0800;
+	2012-04-24 21:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -139,8 +139,7 @@ FetchGlobalImage(size_t idx)
 {
 	auto& spi(FetchGlobalResource<array<shared_ptr<Image>, 10>>(GR_BGs));
 
-	YAssert(IsInInterval(idx, 10u), "Array index out of range"
-		" @ FetchGlobalImage;");
+	YAssert(IsInInterval(idx, 10u), "Index is out of range.");
 	return spi[idx];
 }
 
@@ -318,7 +317,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
 	fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	chkFPS(Rect(208, 144, 16, 16)), chkHex(Rect(232, 144, 16, 16)),
+	chkFPS(Rect(210, 144, 13, 13)), chkHex(Rect(232, 144, 13, 13)),
 	pWndTest(make_unique<TFormTest>()), pWndExtra(make_unique<TFormExtra>()),
 	lblA(Rect(16, 44, 200, 22)), lblB(Rect(5, 120, 72, 22)),
 	mhMain(*GetDesktopDownHandle()), fpsCounter(500000000ULL)
@@ -359,7 +358,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
 		},
 		FetchEvent<Click>(btnTest) += [this](TouchEventArgs&&){
-			YAssert(bool(pWndTest), "err: pWndTest is null;");
+			YAssert(bool(pWndTest), "Null pointer found.");
 
 			SwitchVisible(*pWndTest);
 		},
@@ -641,7 +640,7 @@ ShlExplorer::OnClick_ShowWindow(TouchEventArgs&&)
 {
 	auto& pWnd(FetchShell<ShlExplorer>().pWndExtra);
 
-	YAssert(bool(pWnd), "err: pWndExtra is null;");
+	YAssert(bool(pWnd), "Null pointer found.");
 
 	SwitchVisible(*pWnd);
 }

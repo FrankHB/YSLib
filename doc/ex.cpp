@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3562; *build 303 rev 51;
+\version r3568; *build 304 rev 8;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-23 10:54 +0800;
+	2012-04-28 15:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -62,7 +62,7 @@ __unfold __iterators.for_labeled_paragraph
 );
 
 $script_preprocessor_escapse:
-//$Record prefix and abbrevations:
+//$Record prefix and abbreviations:
 $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 // $evaluating.structure;
 // semi-colon is used for remarking eval-order-sensitive expressions;
@@ -367,226 +367,84 @@ $using:
 
 $DONE:
 r1:
+/ @ \impl \u Selector $=
 (
-	/ @ \h TypeOperation $=
-	(
-		+ \stt variadic_sequence;
-		+ \stt make_natrual_sequence
-	);
-	/ @ \h Utilities $=
-	(
-		/ \inh \h YDefinition -> \h TypeOperation,
-		+ \inc \h <tuple>;
-		+ \clt unseq_dispatcher @ \ns details;
-		+ \ft unseq_apply @ \h Utilities
-	);
-	/ \ft seq_apply @ \h YFunc >> \h Utilities;
-	+ using ystdex::(seq_apply, unseq_apply) @ \h YAdaptor,
-	/ @ \h ShellHelper $=
-	(
-		/ @ \cl (ChildPainter, ContainerSetter) $=
-		(
-			/ \m ^ std::reference_wrapper ~ raw \ref,
-			- \tr 'yconstfn' @ \ctor,
-			/ \tr \impl @ \op()
-		),
-		/ \tr \impl @ \mf ContainerSetter::\op()
-	)
-);
-/ \a seq_apply @ \impl \u ShlReader -> unseq_apply;
+	/ \f RectDrawCheckBox @ \un \ns,
+	/ \tr \impl @ \ctor CheckBox,
+)
+/ size @ check box @ \ctor (SettingPanel @ \impl \u ShlReader,
+	ShlExplorer @ \impl \u Shells);
 
 r2:
-/= test 1 ^ \conf release;
+/ \simp \a \as \str;
 
 r3:
-/ \a make_natrual_sequence => make_natural_sequence,
+/ @ \h Algorithms $=
 (
-	+ \ft (AddWidgets, AddWidgetsZ, RemoveWidgets) @ \h YUIContainer;
-	/ \simp \impl @ \impl \u (ShlReader, ColorPicker, Shells) ^ \ft AddWidgets
-);
+	+ \ft (ltrim, rtrim; trim),
+	+ \ft<typename _fPred, typename _fInsert, typename _tIn> _tIn
+		split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert);
+	+ \ft template<typename _tString> \i _tString
+		get_mid(const _tString& str, typename _tString::size_type l = 1),
+	/ \param @ \ft pod_fill
+),
+* \ft raw for unique_ptr with array \tparam $since b206;
 
 r4:
-/= test 2 ^ \conf release;
+/= test 1 ^ \conf release;
 
 r5:
-/ @ \h Utilities $=
 (
-	/ \simp \impl @ \mf unseq_dispatcher::call @ \ns ystdex::details;
-	- \inc \h <tuple>
-);
+	(
+		+ \h String("string.hpp") @ \dir ystdex;
+		+ \stt string_traits @ \h String
+	),
+	/ @ \h Utilities $=
+	(
+		+ \inc \h <array>;
+		+ \ft make_array
+	);
+	* \impl @ \ft (trim, ltrim, rtrim) @ \h Algorithms $since r3;
+	/ \ft (trim, ltrim, rtrim, split, get_mid) @ \h Algorithms >> \h String,
+	+ \inc \h String @ \h YContainer
+),
+/ \inc guard \mac @ \h CString,
++ \ft initializer_cast @ \h Cast;
 
 r6:
-/ @ \h Utilities $=
-(
-	- typedef type @ \stt variadic_sequence
-	+ \stt make_successor,
-	/ \tr \impl @ \stt make_natural_sequence
-);
+/ \a _yJOIN => yJOIN;
 
 r7:
-/= test 3 ^ \conf release;
++ \f char16_t* u16getcwd_n(char16_t*, std::size_t) @ \u YCommon;
+/ \f string GetNowDirectory() -> String GetNowDirectory() @ \u YFileSystem;
+* $comp wrong non-ASCII shell path get @ defined YCL_MINGW32 $since b299;
+/ @ \h YAdaptor $=
+(
+	/ using platform::getcwd_n -> using platform::u16getcwd_n;
+	- using ystdex::ssize_t,
+);
+/ @ \h YDefinition $=
+(
+	- typedef ssize_t;
+	- \inc \h <sys/types.h>
+);
 
 r8:
-+ \i @ 3 \ft @ \h YUIContainer;
-/= test 4 ^ \conf release;
-
-r9:
-* $design @ \ft (parameterize_static_object, get_init) for ambiguous overloading
-	with \em \tp \arg \li $since b301;
-/ \f FetchCurrentSetting @ \un \ns \mg -> \ctor ShlTextReader
-	@ \impl \u ShlReader;
-
-r10:
-/ @ \impl \u ShlReader $=
-(
-	/ @ \un \ns $= (/ \f FetchScrollDurations \mg
-		-> \f UpdateScrollDropDownList)
-	/ \f FetchLastRead @ \un \ns \mg -> \ctor ShlTextReader
-);
-
-r11:
-/ @ \u ShlReader $=
-(
-	/ \simp \impl @ \ctor ShlTextReader ^ AddWidgets @ \impl \u,
-	- \dtor @ \cl ShlHexBrowser
-);
-
-r12:
-/= test 5 ^ \conf release;
-
-r13:
-/ @ \impl \u ShlReader $=
-(
-	/ \f FetchEncodingNames @ \un \ns \mg -> \ctor SettingPanel,
-	/ @ \un \ns $=
-	(
-		+ \en MNU_READER \inh Menu::IndexType,
-		/ \a 'MR_*' -> \m @ \en MNU_READER
-	),
-	(
-		/ \decl @ \ft SetBufferRendererAndText @ \un \ns,
-		/ \impl @ \cl ReaderBox
-	)
-);
-
-r14-r30:
-/ \impl @ \mf ShlTextReader::OnKeyDown \impl \u ShlReader,
-(
-	* $design / \mac YCL_KEY(X) @ \h Shells $since @ defined YCL_DS b299;
-	* key 'Y' no respond $since b299,
-	* wrong font size set when responding key ('X', 'Y') and boundary font size
-		reached $since b299
-),
-/= test 6,
-/ \simp \impl @ main \f @ \impl \u ARM9_Main ^ AddWidgets;
-
-r31:
-+ \mf void Delay(const Duration&) @ \cl (Timer; InputTimer);
-* %KeyDown responded more than once when the input waiting interval
-	is smaller than actual delay $since b300
-	$= (/\impl @ \mf ShlTextReader::OnKeyDown \impl \u ShlReader);
-
-r32:
-/= test 7 ^ \conf release;
-
-r33:
-/ @ \impl \u Shells $=
-(
-	/ \simp \impl @ \ctor ShlExplorer::TFormExtra;
-	- \cl TestObj @ \un \ns
-);
-
-r34:
-(
-	/ \dir Helper @ \dir YSLib -> \dir @ \proj YFramework;
-	/ \tr @ Makefile @ \proj YFramework_DS,
-	/ \tr \inc \h @ \h YSLib::Build,
-	/ \tr @ \proj YSTest_ARM9;
-),
-/ \mac @ \h YEvent;
-
-r35:
-/= test 8 ^ \conf release;
-
-r36:
-/ \simp \impl @ \ctor (ShlExplorer, ShlExplorer::TFormTest) @ \impl \u Shells
-	^ (AddWidgets, AddWidgetsZ, std::tie, std::forward_as_tuple);
-
-r37:
-* slash-ended item not recognized as directory @ file box @ defined YCL_MINGW32
-	$since b299 $= (\impl @ GetEntryType @ \un \ns @ \impl \u Shells),
-/ \a \mac YCL_KEY* @ \h Shells >> \h Input;
-
-r38-r40:
-/ \impl @ \ctor ShlExplorer @ \impl \u Shells;
-
-r41:
-/ \simp \impl @ \ctor DialogPanel,
-/ \simp \ctor SettingPanel @ \impl \u ShlReader
-	^ (std::tie, std::forward_as_tuple);
-
-r42:
-/ \impl @ \ctor ShlExplorer @ \impl \u ShlExplorer;
-/= test 9 ^ \conf release;
-
-r43:
-/ @ \u ShlExplorer $=
-(
-	/ \f RemoveGlobalTasks @ \ns YReader 
-		>> \ns YSLib @ \u ShellHelper,
-	- typedef ShlDS ParentType @ \cl ShlExplorer
-);
-
-r44:
-* \impl @ \ctor SettingPanel $since r41;
-
-r45-r46:
-/= test 10;
-
-r47:
-+ using std::(tie, forward_as_tuple, get, ignore, tuple_cat) @ \h YContainer,
-* \impl @ \ft RemoveWidgets @ \h YUIContainer;
-/ \simp \impl @ \impl \u (ShlReader, Shells);
-
-r48:
-/= test 11 ^ \conf release;
-
-r49:
-/ @ \u Initialization $=
-(
-	+ \f InitializeEnviornment,
-	/ \f (EpicFail, LibfatFail, CheckSystemFontCache)
-		@ \u Initialization >> \un \ns @ \impl \u
-),
-/ \simp \impl @ \ctor DSApplication;
-
-r50:
-/ @ \u Initialization $=
-(
-	/ \f CheckSystemFontCache @ \un \ns mg -> \f InitializeSystemFontCache;
-	/ \impl @ \f (InitializeSystemFontCache, InitializeEnviornment,
-		CheckInstall),
-	/ \f LibfatFail @ \un \ns -> \f libfatFail;
-	+ ynothrow @ \f (InitializeSystemFontCache, InitializeEnviornment,
-		CheckInstall)
-);
-
-r51:
-/= test 12 ^ \conf release;
+/= test 2 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-04-23:
--8.2d;
-//Mercurial rev1-rev175: r8314;
+2012-04-28:
+-10.2d;
+//Mercurial rev1-rev176: r8322;
 
 / ...
 
 
 $NEXT_TODO:
-b304-b332:
+b305-b332:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -632,7 +490,13 @@ b333-b384:
 );
 
 b385-b768:
-/ improving pedantic compatiblity $=
+/ @ CHRLib $=
+(
+	/ more accurate invalid conversion state handling,
+	/ placeholders when character conversion failed @ string conversion,
+	+ UTF-8 to GBK conversion
+);
+/ improving pedantic ISO C++ compatiblity $=
 (
 	/ \mac with no \arg
 ),
@@ -643,10 +507,12 @@ b385-b768:
 		/ \ac @ \inh touchPosition @ \cl CursorInfo,
 		+ \exp \init @ \m @ \cl KeysInfo
 	),
-	/ \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround' ~ '::llround',
+	/ \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
+		~ '::llround',
 	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7 later,
 	+ 'yconstexpr' @ \s \m Graphics::Invalid,
-	/ reconsidered 1st parameter type(without rvalue \ref) for %seq_apply
+	/ reconsidered 1st parameter type(without rvalue \ref) for %seq_apply,
+	+ error code with necessary %thread_local @ \u YCommon
 ),
 / completeness of core abstraction $=
 (
@@ -821,10 +687,10 @@ $KNOWN_ISSUE:
 // NOTE: obsolete issues all resolved are ignored.
 * "corrupted loading or fatal errors on loading font file with embedded \
 	bitmap glyph like simson.ttc" $since b185,
-* "g++ 4.6.1 internal error for closure object in constructors" $since b253,
-	// g++ 4.6.2 tested @ b293.
+	// freetype (2.4.6, 2.4.8, 2.4.9) tested.
 * "<cmath> cannot use 'std::*' names" @ "!defined %_GLIBCXX_USE_C99_MATH_TR1"
-	@ "libstdc++ with g++ 4.6";
+	@ "libstdc++ with g++ (4.6, 4.7)" $before $future;
+	// g++ 4.7.0 tested @ b301.
 * "g++ 4.6.1 ignores non-explicit conversion templates when there exists \
 	non-template explicit conversion function" $since b260,
 * "crashing after sleeping(default behavior of closing then reopening lid) on \
@@ -832,10 +698,14 @@ $KNOWN_ISSUE:
 	$since b279;
 * "sorry, unimplemented: use of 'type_pack_expansion' in template"
 	@ ^ "g++ (4.6, 4.7)" $before $future;
+	// g++ 4.7.0 tested @ b300.
 
 $RESOLVED_ENVIRONMENT_ISSUE:
 * "g++ 4.5.2 fails on compiling code with defaulted move assignment operator"
 	@ $interval([b207, b221));
+* "g++ 4.6.1 internal error for closure object in constructors"
+	@ $interval([b253, b300));
+	// g++ 4.6.2 tested @ b293. Fixed @ b301.
 
 
 $HISTORY:
@@ -890,7 +760,8 @@ $module_tree $=
 			'CStandardIO',
 			'Iterator',
 			'Algorithms',
-			'Utilities'
+			'Utilities',
+			'Memory'
 		)
 	),
 	'YFramework'
@@ -945,6 +816,52 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.,
+		(
+			/ %'GUI' $= "check box appearance",
+			(
+				$dep_from "u16getcwd";
+				/ "function %GetNowDirectory" @ %'core'
+					.'file system abstraction' "returning %String" ~ "%string";
+				$dep_to "non-ASCII path correction"
+			)
+		),
+		(
+			+ "function %u16getcwd_n" @ %'YCLib'.'common file system APIs';
+			/ $dep_to "u16getcwd"
+		)
+	),
+	/ %'YReader' $=
+	(
+		/ "size of check boxes",
+		(
+			$dep_from "non-ASCII path correction";
+			* $comp "wrong non-ASCII path get" @ %'file explorer' @
+				"defined %YCL_MINGW32" $since b299
+		)
+	)
+	/ $design "simplified assertion strings",
+	/ %'YBase' $=
+	(
+		/ $design "parameter" @ "function template %pod_fill" @ %'Algorithms',
+			// Using const lvalue reference to reduce probable unnecessary \
+				copy of instantiated template function.
+		* "wrong return type when instantiated with array version of \
+			%std::unique_ptr" @ "template function %raw" @ %'Memory',
+		+ "header %string.hpp" $=
+		(
+			+ "traits class template %string_traits",
+			+ "string algorithms function template %(ltrim, rtrim, trim, \
+				get_mid, split)"
+		),
+		- "header <sys/types.h> dependency" @ "header %ydef.h"
+	)
+),
+
+b303
 (
 	/ %'YBase' $=
 	(

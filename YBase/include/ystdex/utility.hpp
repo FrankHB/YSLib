@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1897;
+\version r1935;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-04-21 15:44 +0800;
+	2012-04-26 20:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,6 +33,8 @@
 #include <cstring>
 #include <utility>
 #include <functional>
+#include <array> // for std::array;
+#include <algorithm> // for std::copy_n;
 
 namespace ystdex
 {
@@ -143,6 +145,48 @@ yconstfn size_t
 arrlen(_type(&&)[_vN])
 {
 	return _vN;
+}
+//@}
+
+
+/*!
+\brief 取指定参数初始化的 std::array 对象。
+\since build 304 。
+*/
+//@{
+template<typename _type, size_t _vN, typename _tSrc>
+yconstfn std::array<_type, _vN>
+make_array(const _tSrc& src)
+{
+	return std::array<_type, _vN>(src);
+}
+template<typename _type, size_t _vN>
+yconstfn std::array<_type, _vN>
+make_array(const std::array<_type, _vN>& src)
+{
+	return src;
+}
+template<typename _type, size_t _vN, typename _tSrcElement>
+inline std::array<_type, _vN>
+make_array(const _tSrcElement(&src)[_vN])
+{
+	using namespace std;
+
+	array<_type, _vN> arr;
+
+	copy_n(addressof(src[0]), _vN, addressof(arr[0]));
+	return std::move(arr);
+}
+template<typename _type, size_t _vN, typename _tSrcElement>
+inline std::array<_type, _vN>
+make_array(_tSrcElement(&&src)[_vN])
+{
+	using namespace std;
+
+	array<_type, _vN> arr;
+
+	copy_n(make_move_iterator(addressof(src[0])), _vN, addressof(arr[0]));
+	return std::move(arr);
 }
 //@}
 

@@ -11,14 +11,14 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1460;
+\version r1461;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 202 。
 \par 创建时间:
 	2011-04-13 20:26:21 +0800;
 \par 修改时间:
-	2012-04-22 11:54 +0800;
-\par 字符集:
+	2012-04-27 11:54 +0800;
+\par 文本编码:
 	UTF-8;
 \par 模块名称:
 	YCLib::NativeAPI;
