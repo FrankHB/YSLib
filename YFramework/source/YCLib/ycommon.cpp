@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3088;
+\version r3132;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-04-28 15:36 +0800;
+	2012-04-30 22:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -100,16 +100,50 @@ ufopen(const char* filename, const char* mode)
 #	error Unsupported platform found!
 #endif
 }
+std::FILE*
+ufopen(const char16_t* filename, const char16_t* mode)
+{
+	yconstraint(filename),
+	yconstraint(mode);
+	yconstraint(*mode != '\0');
+
+#ifdef YCL_DS
+	using CHRLib::strdup;
+
+	std::FILE* fp(nullptr);
+
+	const auto nfilename(strdup(filename));
+
+	if(YCL_LIKELY(nfilename))
+	{
+		// TODO: small string local allocation optimization;
+		const auto nmode(strdup(mode));
+
+		if(YCL_LIKELY(nmode))
+		{
+			fp = std::fopen(nfilename, nmode);
+			std::free(nmode);
+		}
+		std::free(nfilename);
+	}
+	return fp;
+#elif defined(YCL_MINGW32)
+	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
+		reinterpret_cast<const wchar_t*>(mode));
+#else
+#	error Unsupported platform found!
+#endif
+}
 
 bool
-ufexists(const char* path)
+ufexists(const char* filename)
 {
 #ifdef YCL_DS
-	return ystdex::fexists(path);
+	return ystdex::fexists(filename);
 #elif defined(YCL_MINGW32)
-	yconstraint(path);
+	yconstraint(filename);
 
-	if(const auto file = ufopen(path, "rb"))
+	if(const auto file = ufopen(filename, "rb"))
 	{
 		std::fclose(file);
 		return true;
@@ -118,6 +152,18 @@ ufexists(const char* path)
 #else
 #	error Unsupported platform found!
 #endif
+}
+bool
+ufexists(const char16_t* filename)
+{
+	yconstraint(filename);
+
+	if(const auto file = ufopen(filename, u"rb"))
+	{
+		std::fclose(file);
+		return true;
+	}
+	return false;
 }
 
 char*

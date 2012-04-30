@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6093;
+\version r6094;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-04-24 21:51 +0800;
+	2012-04-30 22:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -368,7 +368,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 				const auto& path(fbMain.GetPath());
 				const string& s(path.GetNativeString());
 
-				if(!IO::ValidatePath(s) && ufexists(s.c_str()))
+				if(!IO::ValidatePath(s) && ufexists(s))
 				{
 					if(GetEntryType(s) == EnrtySpace::Text
 						&& !chkHex.IsTicked())

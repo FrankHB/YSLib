@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3612;
+\version r3642;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-04-28 14:59 +0800;
+	2012-04-30 22:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -159,21 +159,49 @@ mmbcpy(void*, const void*, std::size_t);
 /*!
 \brief 以 UTF-8 文件名打开文件。
 \param filename 文件名，意义同 std::fopen 。
-\param mode 打开模式，具体行为取决于实现。
+\param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
 \pre 断言检查：<tt>filename && mode && *mode != 0</tt> 。
 \since build 299 。
 */
 std::FILE*
 ufopen(const char* filename, const char* mode);
+/*!
+\brief 以 UCS-2LE 文件名打开文件。
+\param filename 文件名，意义同 std::fopen 。
+\param mode 打开模式，基本语义同 ISO C99，具体行为取决于实现。
+\pre 断言检查：<tt>filename && mode && *mode != 0</tt> 。
+\since build 305 。
+*/
+std::FILE*
+ufopen(const char16_t* filename, const char16_t* mode);
 
 /*!
-\brief 判断指定 UTF-8 路径的文件是否存在。
+\brief 判断指定 UTF-8 文件名的文件是否存在。
 \note 使用 ufopen 实现。
 \pre 断言检查：参数非空。
 \since build 299 。
 */
 bool
 ufexists(const char*);
+/*!
+\brief 判断指定 UCS-2 文件名的文件是否存在。
+\note 使用 ufopen 实现。
+\pre 断言检查：参数非空。
+\since build 305 。
+*/
+bool
+ufexists(const char16_t*);
+/*!
+\brief 判断指定字符串为文件名的文件是否存在。
+\note 使用 NTCTS 参数 ufexists 实现。
+\since build 305 。
+*/
+template<class _tString>
+inline bool
+ufexists(const _tString& s)
+{
+	return ufexists(s.c_str());
+}
 
 /*!
 \brief 当第一参数非空时取当前工作目录复制至指定缓冲区中。

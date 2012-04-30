@@ -11,13 +11,13 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r1720;
+\version r1726;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2012-03-28 20:50 +0800;
+	2012-04-29 04:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -67,6 +67,12 @@ public:
 	*/
 	explicit
 	TextFile(const_path_t);
+	/*!
+	\brief 构造：使用指定文件路径初始化对象。
+	\since build 305 。
+	*/
+	explicit
+	TextFile(const String&);
 
 	DefGetter(const ynothrow, u8, BOMSize, bl) //!< 取 BOM 大小。
 	DefGetter(const ynothrow, size_t, TextSize, GetSize() - GetBOMSize()) \

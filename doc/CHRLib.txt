@@ -1,0 +1,111 @@
+﻿/*
+	Copyright (C) by Franksoft 2012.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file CHRLib.txt
+\ingroup Documentation
+\brief CHRLib 说明。
+\version r1045;
+\author FrankHB<frankhb1989@gmail.com>
+\since build 305 。
+\par 创建时间:
+	2012-04-29 17:11:42 +0800;
+\par 修改时间:
+	2012-04-29 17:42 +0800;
+\par 文本编码:
+	UTF-8;
+\par 模块名称:
+	Documentation::CHRLib;
+*/
+
+
+/*
+
+@0 体例和适用范围：
+引用标记参见 [Documentation::CommonRules @@0.1] 。
+本文档适用于 CHRLib 。
+
+@1 设计：
+ CHRLib 是 Character Homomorphism Representation Library 的缩写，是一个字符表示结构支持库。
+
+@1.1 设计的基本原理和表达形式：
+支持基于字符的相关构造（编码和字符集等）的抽象。
+实现相关的同态(@1.4.1) 操作，包括特定编码字符串的转换。
+
+@1.2 理论背景、工具和依据：
+基本内容参见 [Documentation::CommonRules @@2.1] 。
+
+@1.4.1 字符同态(homomorphism) ：
+关于同态(homomorphism) ，参见基础数学。
+设有限集合 X ， x1 ∈ X ， x2∈ X ；
+设有限集合 Y ， y1 ∈ X ， y2∈ X 。
+设 X 上存在二元高阶函数 f ；
+设 Y 上存在二元高阶函数 g 。
+则可存在同构 h : X → Y 满足 h(f(x1, x2)) = g(h(y1), h(y2)) 。
+这里的 X 和 Y 是确定的集合，其中的元素可以表示编码、字符集或区域(locale) 等字符相关的概念之间的映射。
+ f 和 g 是在这些集合上的高阶转换函数，用于取得这些映射（例如取字符转换函数或字符串转换函数等）。
+ CHRLib 的实现抽象 f 、 g 和 h ，表达它们的一些典型具体实例（如接受迭代器的字符序列转换），并提供便于用户引入新的实例的接口。
+
+@1.3 构建原则：
+基本内容参见 [Documentation::CommonRules @@2.2] 。
+其它见 [Documentation::Designation @@1.3] 。
+
+@1.4 通用语义：
+基本内容参见 [Documentation::CommonRules @@2.3] 。
+
+@1.5 领域模型：
+
+@1.5.1 字符类型：
+基于 C++11 基本类型的 UCS-2/UCS-4 字符类型，以及 UCS 整数类型，参见 chrdef.h 。
+
+@1.5.2 编码：
+基于 MIBEnum 的字符编码定义，参见 encoding.h 。
+
+@1.5.3 字符映射：
+转换序列、转换结果和编码宽度等，参见 chrmap.h 。
+
+@1.5.4 静态编码映射：
+提供特定编码的转换 API ，参见 smap.hpp 。
+
+@1.5.5 字符编码处理：
+编码判断和编码转换 API ，参见 chrproc.h 。
+
+@1.6 存在问题：
+完备性。
+
+@2 实现概览：
+
+@2.1 领域模型实现：
+略。
+
+@2.2 存在问题：
+目前 Unicode 编码中仅支持基本多文种平面(BMP) 编码点。
+
+@3 API 设计和风格概述：
+参见 [Documentation::Designation @@3] 。
+
+@4 标识符命名规约(naming convention) ：
+参见 [Documentation::Designation @@4] 。
+
+@5 程序部署和配置：
+当前包含于 YFramework 中，作为专用支持库，参见 [Documentation::Designation @@5] 。
+
+@5.1 依赖项：
+仅依赖于标准库和 YBase 。
+
+@6 编码风格导引：
+参见 [Documentation::Designation @@6] 。
+
+@7 一般实现导引：
+暂略。
+接口使用方法参见注释和 YFramework 源代码。
+
+*/
+////
+

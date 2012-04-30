@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2084;
+\version r2095;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-04-08 08:56 +0800;
+	2012-04-30 22:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -93,10 +93,10 @@ MBCToUC(std::FILE* fp, Encoding enc, ConversionState&& st)
 	return ConversionResult::Unhandled;
 }
 
-byte
+size_t
 UCToMBC(char* d, const ucs2_t& s, Encoding enc)
 {
-	byte l(0);
+	size_t l(0);
 
 	if(const auto pfun = FetchMapperPtr<byte(char*, const ucs2_t&)>(enc))
 		l = pfun(d, s);
@@ -137,6 +137,16 @@ UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
 	return d - p;
 }
 
+
+char*
+strdup(const ucs2_t* s, Encoding enc)
+{
+	// FIXME: size for max MBC sequence length > 4;
+	auto str(static_cast<char*>(malloc((ystdex::sntctslen(s) << 2) + 1)));
+
+	UCS2ToMBCS(str, s, enc);
+	return str;
+}
 
 ucs2_t*
 ucsdup(const char* s, Encoding enc)

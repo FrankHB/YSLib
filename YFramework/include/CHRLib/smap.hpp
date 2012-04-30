@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2620;
+\version r2636;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-04-08 07:58 +0800;
+	2012-04-29 20:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -379,48 +379,48 @@ UCS2Mapper_Map(_tParams&&...)
 {
 	return ConversionResult::Unhandled;
 }
-template<Encoding enc, typename _tDst, typename _tSrc, typename _tState>
+template<Encoding _vEnc, typename _tDst, typename _tSrc, typename _tState>
 yconstfn ConversionResult
-UCS2Mapper_Map(_tDst&& d, _tSrc&& s, _tState&& st,
-	decltype(&GUCS2Mapper<enc>::template Map<_tDst, _tSrc, _tState>) = nullptr)
+UCS2Mapper_Map(_tDst&& d, _tSrc&& s, _tState&& st, decltype(
+	&GUCS2Mapper<_vEnc>::template Map<_tDst, _tSrc, _tState>) = nullptr)
 {
-	return GUCS2Mapper<enc>::Map(d, s, st);
+	return GUCS2Mapper<_vEnc>::Map(d, s, st);
 }
 
-template<Encoding enc, typename _tDst, typename _tSrc>
+template<Encoding _vEnc, typename _tDst, typename _tSrc>
 yconstfn byte
 UCS2Mapper_InverseMap(_tDst, _tSrc)
 {
 	return 0;
 }
-template<Encoding enc, typename _tDst>
+template<Encoding _vEnc, typename _tDst>
 yconstfn byte
 UCS2Mapper_InverseMap(_tDst&& d, const ucs2_t& s,
-	decltype(&GUCS2Mapper<enc>::template InverseMap<_tDst>) = nullptr)
+	decltype(&GUCS2Mapper<_vEnc>::template InverseMap<_tDst>) = nullptr)
 {
-	return GUCS2Mapper<enc>::InverseMap(d, s);
+	return GUCS2Mapper<_vEnc>::InverseMap(d, s);
 }
 
 
-template<Encoding enc, typename _tIn, typename _tState>
+template<Encoding _vEnc, typename _tIn, typename _tState>
 yconstexpr ConversionResult
 UCS2Mapper(ucs2_t& uc, _tIn&& i, _tState&& st)
 {
-	return UCS2Mapper_Map<enc>(uc, i, std::move(st));
+	return UCS2Mapper_Map<_vEnc>(uc, i, std::move(st));
 }
-template<Encoding enc, typename _tIn, typename _tState>
+template<Encoding _vEnc, typename _tIn, typename _tState>
 yconstexpr ConversionResult
 UCS2Mapper(_tIn&& i, _tState&& st)
 {
-	return UCS2Mapper_Map<enc>(ystdex::pseudo_output(), i, st);
+	return UCS2Mapper_Map<_vEnc>(ystdex::pseudo_output(), i, st);
 }
-template<Encoding enc>
+template<Encoding _vEnc>
 byte
 UCS2Mapper(char* d, const ucs2_t& s)
 {
 	yconstraint(d);
 
-	return UCS2Mapper_InverseMap<enc>(d, s);
+	return UCS2Mapper_InverseMap<_vEnc>(d, s);
 }
 
 /*!

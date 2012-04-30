@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3568; *build 304 rev 8;
+\version r3568; *build 305 rev 8;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-28 15:30 +0800;
+	2012-05-01 02:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -367,84 +367,83 @@ $using:
 
 $DONE:
 r1:
-/ @ \impl \u Selector $=
-(
-	/ \f RectDrawCheckBox @ \un \ns,
-	/ \tr \impl @ \ctor CheckBox,
-)
-/ size @ check box @ \ctor (SettingPanel @ \impl \u ShlReader,
-	ShlExplorer @ \impl \u Shells);
+* \impl @ \f @ \un \ns @ \impl \u ShlReader $since b301;
 
 r2:
-/ \simp \a \as \str;
+/ @ \cl File $=
+(
+	+ \exp \ctor File(const String&, bool = false),
+	+ \mf bool Open(const String&, bool = false)
+),
++ \inc \h YFileSystem @ \impl \u File_(Text);
++ \exp \ctor TextFile(const String&);
+/ \simp \impl @ \mf ShlTextReader::LoadFile @ \impl \u ShlReader;
 
 r3:
-/ @ \h Algorithms $=
-(
-	+ \ft (ltrim, rtrim; trim),
-	+ \ft<typename _fPred, typename _fInsert, typename _tIn> _tIn
-		split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert);
-	+ \ft template<typename _tString> \i _tString
-		get_mid(const _tString& str, typename _tString::size_type l = 1),
-	/ \param @ \ft pod_fill
-),
-* \ft raw for unique_ptr with array \tparam $since b206;
+/ \f LoadFontFileDirectory @ \un \ns \mg -> \f InitializeSystemFontCache
+	@ \impl \u Initialization;
 
 r4:
-/= test 1 ^ \conf release;
++ $doc "CHRLib.txt" for \lib CHRLib,
+(
+	/ @ \h CharacterProcessing $=
+	(
+		/ \ret \tp @ \f byte UCToMBC(char*, const ucs2_t&, Encoding) -> size_t,
+		+ \inc \h String
+		+ \ft GetMBCSOf
+	);
+	/ \simp \mf GetMBCS @ \cl String
+);
 
 r5:
++ \f char* strdup(const ucs2_t*, Encoding = CS_Default)
+	@ \u CharacterProcessing;
+/ @ \u YCommon $=
 (
-	(
-		+ \h String("string.hpp") @ \dir ystdex;
-		+ \stt string_traits @ \h String
-	),
-	/ @ \h Utilities $=
-	(
-		+ \inc \h <array>;
-		+ \ft make_array
-	);
-	* \impl @ \ft (trim, ltrim, rtrim) @ \h Algorithms $since r3;
-	/ \ft (trim, ltrim, rtrim, split, get_mid) @ \h Algorithms >> \h String,
-	+ \inc \h String @ \h YContainer
-),
-/ \inc guard \mac @ \h CString,
-+ \ft initializer_cast @ \h Cast;
+	+ \f std::FILE* ufopen(const char16_t*, const char16_t*),
+	+ \f bool ufexists(const char16_t*),
+	+ \ft<class _tString> ufexists(const String&)
+);
+/ \simp \impl @ \ctor ShlExplorer @ \impl \u Shells;
 
 r6:
-/ \a _yJOIN => yJOIN;
+/ @ \cl File $=
+(
+	+ private \mf \vt void CheckSize();
+	/ \simp \impl @ 2 \f Open
+);
 
 r7:
-+ \f char16_t* u16getcwd_n(char16_t*, std::size_t) @ \u YCommon;
-/ \f string GetNowDirectory() -> String GetNowDirectory() @ \u YFileSystem;
-* $comp wrong non-ASCII shell path get @ defined YCL_MINGW32 $since b299;
-/ @ \h YAdaptor $=
+/ @ \impl \u Initialization $=
 (
-	/ using platform::getcwd_n -> using platform::u16getcwd_n;
-	- using ystdex::ssize_t,
-);
-/ @ \h YDefinition $=
-(
-	- typedef ssize_t;
-	- \inc \h <sys/types.h>
+	/ @ \un \ns $= (/ \f \i fatalError \mg
+		-> \impl @ \f (libfatFail, defFontFail, installFail)),
+	(
+		/ \simp \impl @ \f InitializeEnviornment;
+		/ \f EpicFail \mg -> \impl @ \f printFailInfo
+	),
+	/ \f (libfatFail, CheckConfiguration) @ \un \ns \mg
+		-> \impl @ \f InitializeEnviornment,
+	/ \f defFontFail @ \un \ns \mg -> \impl @ \f InitializeSystemFontCache,
+	/ \f installFail @ \un \ns \mg -> \impl @ \f CheckInstall
 );
 
 r8:
-/= test 2 ^ \conf release;
+/= test 1 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-04-28:
--10.2d;
-//Mercurial rev1-rev176: r8322;
+2012-05-01:
+-11.1d;
+//Mercurial rev1-rev177: r8330;
 
 / ...
 
 
 $NEXT_TODO:
-b305-b332:
+b306-b332:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -512,7 +511,8 @@ b385-b768:
 	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7 later,
 	+ 'yconstexpr' @ \s \m Graphics::Invalid,
 	/ reconsidered 1st parameter type(without rvalue \ref) for %seq_apply,
-	+ error code with necessary %thread_local @ \u YCommon
+	+ error code with necessary %thread_local @ \u YCommon,
+	/ make \ns _impl \h Cast -> \ns details with public interfaces
 ),
 / completeness of core abstraction $=
 (
@@ -817,6 +817,21 @@ $module_tree $=
 
 $now
 (
+	* "wrong drop down list contents" @ "setting panel"
+		@ %'YReader'.'text reader' $since b301,
+	/ %'YFramework' $=
+	(
+		+ "string duplicate conversion function %strdup"
+			@ %'CHRLib'.'encoding conversion';
+		+ "UCS-2LE support for parameters" @ %'YCLib'.'common file system APIs';
+		+ "%String parameter support" %'YSLib'.'core'.'file system abstraction',
+		/ $design "simplified implementation" @ %'Helper'.'initialization'
+	),
+	+ $doc "file %YCLib.txt for library % YCLib"
+),
+
+b304
+(
 	/ %'YFramework' $=
 	(
 		/ %'YSLib'.,
@@ -840,7 +855,7 @@ $now
 		(
 			$dep_from "non-ASCII path correction";
 			* $comp "wrong non-ASCII path get" @ %'file explorer' @
-				"defined %YCL_MINGW32" $since b299
+				"platform %MinGW32" $since b299
 		)
 	)
 	/ $design "simplified assertion strings",
@@ -907,7 +922,7 @@ b303
 		$design "simplified implementation",
 		/ %'text reader' $=
 		(
-			* @ defined YCL_DS $since b299
+			* @ "platform %MinGW32" $since b299
 			(
 				* $design "wrong implementation" @ "macro %YCL_KEY(X)"
 					@ "header Shells.h";
@@ -925,8 +940,8 @@ b303
 		),
 		- "direct UI drawing test" @ %'shells test example',
 			// It has never been compatible on MinGW32.
-		* "slash-ended item not recognized as directory" @ defined YCL_MINGW32
-			@ %'file explorer' $since b299
+		* "slash-ended item not recognized as directory" @ %'file explorer' 
+			@ "platform %MinGW32" $since b299
 	)
 ),
 
@@ -1022,7 +1037,7 @@ b300
 			- "static const objects" @ "class %Application"
 				@ %'core'.'application abstraction'
 		),
-		* "key updating" @ "defined %YCL_MINGW32"
+		* "key updating" @ "platform %MinGW32"
 			@ %'YCLib'.'common input APIs' $since b299
 			// It seems that sometimes %GetAsyncKeyState reads unexpected \
 				virtual key value like '0xFF'.
@@ -1044,9 +1059,12 @@ b300
 	- "deprecated file %GBKEX.cpp";
 	/ $doc "directory %doc moved to top directory",
 	- $doc @ "Code::Blocks project file",
-	^ "updated devkitARM release 38" ~ "devkitARM release 37" @ "platform %DS",
-	^ "updated libnds 1.5.4 with default arm7 0.5.23"
-		~ "libnds 1.5.1 with default arm7 0.5.21" @ "platform %DS"
+	/ @ "platform %DS" $=
+	(
+		^ "updated devkitARM release 38" ~ "devkitARM release 37",
+		^ "updated libnds 1.5.4 with default arm7 0.5.23"
+			~ "libnds 1.5.1 with default arm7 0.5.21" 
+	)
 ),
 
 b299
@@ -1066,15 +1084,15 @@ b299
 					* "shells not destroyed before the application class \
 						destruction" $since b269,
 					* "wrong context buffer pointer initialized" @ "constructor"
-						@ "class %DSScreen" @ "defined %YCL_MINGW32" $since b298
+						@ "class %DSScreen" @ "platform %MinGW32" $since b298
 				)
 			),
 			/ "improved implementation" @ "function %IsAbsolute"
 				@ %'YCLib'.'common file system APIs' $=
 			(
 				+ "support for absolute path beginning with 'sd:/'"
-					@ "defined %YCL_DS",
-				+ "implementation" @ "defined %YCL_MINGW32"
+					@ "platform %DS",
+				+ "implementation" @ "platform %MinGW32"
 			),
 			* "destructor" @ "class %Shell" @ %'core'.'shell abstraction'
 				$since $before b132 $= (- "wrong assertion"),
@@ -1115,7 +1133,7 @@ b299
 			(
 				+ "wide character string path support"
 					^ %'CHRLib'.'encoding conversion'
-					@ %'common file system APIs' @ "defined %YCL_MINGW32"
+					@ %'common file system APIs' @ "platform %MinGW32"
 				$dep_to "wide character string path"
 			)
 		)
@@ -1123,7 +1141,7 @@ b299
 	/ %'YReader'.'shells test example' $=
 	(
 		$dep_from "wide character string path";
-		+ "wide character string path support" @ "defined %YCL_MINGW32"
+		+ "wide character string path support" @ "platform %MinGW32"
 	),
 	+ $design "MinGW32 projects" @ "Code::Blocks workspace"
 ),

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4347;
+\version r4350;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-23 13:20 +0800;
+	2012-04-29 04:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -117,8 +117,8 @@ UpdateScrollDropDownList(DropDownList& ddl, bool b, const milliseconds& d,
 		return share_raw(&lst);
 	});
 
-	ddl.SetList(b ? get_init<false>(fetch_scroll_durations, false)
-		: get_init<true>(fetch_scroll_durations, true));
+	ddl.SetList(b ? get_init<true>(fetch_scroll_durations, true)
+		: get_init<false>(fetch_scroll_durations, false));
 	ddl.Text = ddl.GetList()[(b ? d_s.count() / 20U : d.count() / 200U)
 		- 2U],
 	Invalidate(ddl);
@@ -742,7 +742,7 @@ void
 ShlTextReader::LoadFile(const IO::Path& pth)
 {
 	CurrentPath = pth;
-	pTextFile = make_unique<TextFile>(pth.GetNativeString().c_str());
+	pTextFile = make_unique<TextFile>(pth);
 	Reader.LoadText(*pTextFile);
 }
 

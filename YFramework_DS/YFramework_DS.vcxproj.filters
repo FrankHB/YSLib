@@ -20,6 +20,9 @@
     <None Include="..\doc\YSLib.txt">
       <Filter>文档</Filter>
     </None>
+    <None Include="..\doc\CHRLib.txt">
+      <Filter>文档</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="头文件">
