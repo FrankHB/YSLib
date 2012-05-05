@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3391;
+\version r3434;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-24 21:21 +0800;
+	2012-05-05 18:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -110,11 +110,11 @@ private:
 					*static_cast<const _type*>(y));
 				return false;
 			case TypeCheck:
-#ifdef YSL_DLL
-				return x ? *static_cast<const std::type_info*>(x)
-					== typeid(GManager): false;
-#else
+#ifdef YCL_FUNCTION_NO_EQUALITY_GUARANTEE
 				return false;
+#else
+				return x ? *static_cast<const std::type_info*>(x)
+					== typeid(GManager) : false;
 #endif
 			}
 			return false;
@@ -129,13 +129,13 @@ private:
 		{
 			YAssert(m, "Null pointer found.");
 
-#ifdef YSL_DLL
+#ifdef YCL_FUNCTION_NO_EQUALITY_GUARANTEE
+			return m == GManager::Do;
+#else
 			const void *p(&typeid(GManager));
 			void* q(nullptr);
 
 			return m(const_cast<void*&>(p), q, TypeCheck);
-#else
-			return m == GManager::Do;
 #endif
 		}
 	};
@@ -203,7 +203,16 @@ public:
 	DefPred(const ynothrow, Empty, !obj_ptr)
 
 	PDefTmplH1(_type)
-	const _type&
+	inline _type&
+	GetObject()
+	{
+		YAssert(obj_ptr, "Null pointer found.");
+		YAssert(GManager<_type>::CheckType(manager), "Invalid type found.");
+
+		return *static_cast<_type*>(obj_ptr);
+	}
+	PDefTmplH1(_type)
+	inline const _type&
 	GetObject() const
 	{
 		YAssert(obj_ptr, "Null pointer found.");
@@ -211,14 +220,32 @@ public:
 
 		return *static_cast<const _type*>(obj_ptr);
 	}
-	PDefTmplH1(_type)
-	_type&
-	GetObject()
-	{
-		YAssert(obj_ptr, "Null pointer found.");
-		YAssert(GManager<_type>::CheckType(manager), "Invalid type found.");
 
+	/*!
+	\brief 访问指定类型 const 对象。
+	\throw std::bad_cast 类型检查失败 。
+	\since build 306 。
+	*/
+	PDefTmplH1(_type)
+	inline const _type&
+	Access()
+	{
+		if(!GManager<_type>::CheckType(manager))
+			throw std::bad_cast();
 		return *static_cast<_type*>(obj_ptr);
+	}
+	/*!
+	\brief 访问指定类型 const 对象。
+	\throw std::bad_cast 类型检查失败 。
+	\since build 306 。
+	*/
+	PDefTmplH1(_type)
+	inline const _type&
+	Access() const
+	{
+		if(!GManager<_type>::CheckType(manager))
+			throw std::bad_cast();
+		return *static_cast<const _type*>(obj_ptr);
 	}
 
 private:

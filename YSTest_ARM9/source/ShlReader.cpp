@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4350;
+\version r4374;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-04-29 04:49 +0800;
+	2012-05-05 23:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -91,38 +91,6 @@ FetchFontFamilyNames()
 		| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
 }
 
-
-/*!
-\brief 更新列表。
-\since build 293 。
-*/
-void
-UpdateScrollDropDownList(DropDownList& ddl, bool b, const milliseconds& d,
-	const milliseconds& d_s)
-{
-	using ystdex::get_init;
-
-	static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
-	{
-		const auto postfix(is_smooth ? u"毫秒/像素行" : u"毫秒/文本行");
-		auto& lst(*new TextList::ListType(10U));
-		const u16 delta(is_smooth ? 20 : 200);
-		u16 t(delta);
-		char str[10];
-
-		std::generate(lst.begin(), lst.end(), [&, is_smooth, delta]{
-			std::sprintf(str, "%u", t += delta);
-			return String(str) + postfix;
-		});
-		return share_raw(&lst);
-	});
-
-	ddl.SetList(b ? get_init<true>(fetch_scroll_durations, true)
-		: get_init<false>(fetch_scroll_durations, false));
-	ddl.Text = ddl.GetList()[(b ? d_s.count() / 20U : d.count() / 200U)
-		- 2U],
-	Invalidate(ddl);
-}
 
 /*!
 \since build 293 。
@@ -223,8 +191,7 @@ ReaderBox::ReaderBox(const Rect& r)
 }
 
 IWidget*
-ReaderBox::GetTopWidgetPtr(const Point& pt,
-	bool(&f)(const IWidget&))
+ReaderBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
 	IWidget* const pWidgets[] = {&btnMenu, &btnInfo, &btnReturn, &btnPrev,
 		&btnNext, &pbReader};
@@ -251,7 +218,7 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 	if(YCL_LIKELY(ts != 0))
 	{
 		const auto tp(reader.GetTopPosition());
-		char str[4];
+		char str[5];
 
 		std::sprintf(str, "%2u%%", tp * 100 / ts);
 		yunseq(lblProgress.Text = str,
@@ -391,11 +358,30 @@ SettingPanel::SettingPanel()
 		},
 		chkSmoothScroll.GetTicked()
 			+= [this](CheckBox::TickedArgs&& e){
-			auto& ddl(ddlScrollTiming);
+			using ystdex::get_init;
 
-			UpdateScrollDropDownList(ddl, e.Value, scroll_duration,
-				smooth_scroll_duration);
-			Invalidate(ddl);
+			static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
+			{
+				const auto postfix(is_smooth ? u"毫秒/像素行" : u"毫秒/文本行");
+				auto& lst(*new TextList::ListType(10U));
+				const u16 delta(is_smooth ? 20 : 200);
+				u16 t(delta);
+				char str[10];
+
+				std::generate(lst.begin(), lst.end(), [&, is_smooth, delta]{
+					std::sprintf(str, "%u", t += delta);
+					return String(str) + postfix;
+				});
+				return share_raw(&lst);
+			});
+
+			ddlScrollTiming.SetList(e.Value ? get_init<true>(
+				fetch_scroll_durations, true) : get_init<false>(
+				fetch_scroll_durations, false));
+			ddlScrollTiming.Text = ddlScrollTiming.GetList()[(e.Value
+				? smooth_scroll_duration.count() / 20U : scroll_duration.count()
+				/ 200U) - 2U],
+			Invalidate(ddlScrollTiming);
 		},
 		ddlScrollTiming.GetConfirmed() += [this](IndexEventArgs&& e){
 			if(chkSmoothScroll.IsTicked())
@@ -422,9 +408,7 @@ SettingPanel::operator<<(const ReaderSetting& s)
 {
 	yunseq(scroll_duration = s.ScrollDuration,
 		smooth_scroll_duration = s.SmoothScrollDuration),
-	chkSmoothScroll.SetTicked(s.SmoothScroll);
-	UpdateScrollDropDownList(ddlScrollTiming, s.SmoothScroll, s.ScrollDuration,
-		s.SmoothScrollDuration);
+	Tick(chkSmoothScroll, s.SmoothScroll);
 	return *this;
 }
 

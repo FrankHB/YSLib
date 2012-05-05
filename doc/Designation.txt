@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7216;
+\version r7220;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-29 17:22 +0800;
+	2012-05-03 03:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -1061,14 +1061,16 @@
  libnds 1.5.1 / default arm7 0.5.21 。
  2011-07-05(build 223) 起：
  devkitARM release 34 。
- 2011-10-06(build 236) 起：
+ 2011-08-27(build 236) 起：
  libnds 1.5.4 / default arm7 0.5.23 。
  2011-10-13(build 252) 起：
- devkitARM release 35 / libnds 1.5.4 / default arm7 0.5.23 。
+ devkitARM release 35 。
  2012-03-06(build 291) 起：
  devkitARM release 37 。
  2012-04-12(build 300) 起：
  devkitARM release 38 / libnds 1.5.5 / default arm7 0.5.24 。
+ 2012-05-03(build 306) 起：
+ devkitARM release 39 / libnds 1.5.7 。
 
 @5.1.1.2 全局命名空间：
  ystdex ：从 std 扩充的平台无关的实用程序。 YSLib 本体直接依赖于此命名空间。

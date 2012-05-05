@@ -52,7 +52,7 @@
 					<Add option="-g" />
 					<Add option="-DDEBUG" />
 					<Add option="-D_GLIBCXX_DEBUG" />
-					<Add option="-DYSL_DLL" />
+					<Add option="-DYCL_DLL" />
 				</Compiler>
 				<Linker>
 					<Add library="..\YFramework_MinGW32\debug\YFramework.dll" />
@@ -73,6 +73,7 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-DNDEBUG" />
+					<Add option="-DYCL_DLL" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

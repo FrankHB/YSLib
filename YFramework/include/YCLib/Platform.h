@@ -41,6 +41,23 @@
 #ifndef YCL_INC_PLATFORM_H_
 #define YCL_INC_PLATFORM_H_
 
+/*!
+\def YCL_DLL
+\brief 使用动态链接库。
+\since build 306 。
+*/
+
+/*!
+\def YCL_DLL
+\brief 相同函数指针不保证相等。
+\since build 306 。
+*/
+
+//#define YCL_DLL
+
+#ifdef YCL_DLL
+#	define YCL_FUNCTION_NO_EQUALITY_GUARANTEE
+#endif
 
 /*!
 \ingroup Platforms

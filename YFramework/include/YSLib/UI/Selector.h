@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1236;
+\version r1243;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2012-03-18 20:10 +0800;
+	2012-05-03 03:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -75,19 +75,27 @@ public:
 	DefPred(const ynothrow, Ticked, bTicked)
 
 	/*!
-	\brief 设置选中状态。
+	\brief 复选框选中事件。
+	\since build 292 。
+	*/
+	DefEventGetter(ynothrow, HTickedEvent, Ticked, Ticked)
+
+	/*!
+	\brief 设置选中状态并检查复选框选中事件。
 	\note 若选中状态发生改变则引起复选框选中事件。
 	\since build 292 。
 	*/
 	void
 	SetTicked(bool);
-
-	/*!
-	\brief 复选框选中事件。
-	\since build 292 。
-	*/
-	DefEventGetter(ynothrow, HTickedEvent, Ticked, Ticked)
 };
+
+/*!
+\brief 设置选中状态并触发复选框选中事件。
+\note 不检查状态改变。
+\since build 306 。
+*/
+void
+Tick(CheckBox&, bool = true);
 
 YSL_END_NAMESPACE(Components)
 

@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1490;
+\version r1497;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2012-04-24 21:44 +0800;
+	2012-05-04 03:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -112,8 +112,8 @@ CheckBox::CheckBox(const Rect& r)
 				bPressed, IsFocusedByShell(*this), bTicked, IsFocused(*this));
 		},
 		FetchEvent<Click>(*this) += [this](TouchEventArgs&&){
-			bTicked ^= true;
-			Ticked(TickedArgs(*this, bTicked));
+			bTicked = !bTicked;
+			Tick(*this);
 		}
 	);
 }
@@ -126,6 +126,12 @@ CheckBox::SetTicked(bool b)
 	bTicked = b;
 	if(bTicked != old_tick)
 		Ticked(TickedArgs(*this, b));
+}
+
+void
+Tick(CheckBox& chk, bool b)
+{
+	chk.GetTicked()(CheckBox::TickedArgs(chk, chk.IsTicked()));
 }
 
 YSL_END_NAMESPACE(Components)

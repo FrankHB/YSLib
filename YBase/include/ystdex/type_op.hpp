@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1398;
+\version r1496;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-04-21 14:13 +0800;
+	2012-05-15 16:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 #ifndef YCL_INC_YSTDEX_TYPEOP_HPP_
 #define YCL_INC_YSTDEX_TYPEOP_HPP_
 
-#include "../ydef.h"
+#include "../ydef.h" // for <type_traits> and std::declval;
 
 namespace ystdex
 {
@@ -173,27 +173,80 @@ using std::result_of;
 \since build 288 。
 */
 
+/*!	\defgroup type_traits_operations Type Traits Operations
+\ingroup meta_operations
+\brief 类型特征操作。
+\since build 306 。
+*/
+
+/*!	\defgroup UnaryTypeTrait Unary Type Trait
+\ingroup type_traits_operations
+\brief 一元类型特征。
+\see ISO C++2011 20.9.1[meta.rqmts] 。
+\since build 306 。
+*/
+
+/*!	\defgroup BinaryTypeTrait Binary Type Trait
+\ingroup type_traits_operations
+\brief 二元类型特征。
+\see ISO C++2011 20.9.1[meta.rqmts] 。
+\since build 306 。
+*/
+
+
+namespace details
+{
+
+#ifdef YCL_IMPL_GNUCPP
+#	if YCL_IMPL_GNUCPP >= 40600
+#		pragma GCC diagnostic push
+#		pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
+#	else
+#		pragma GCC system_header
+//临时处理：关闭所有警告。
+/*
+关闭编译警告：(C++ only) Ambiguous virtual bases. ，
+参见 http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html 。
+*/
+#	endif
+#endif
 
 /*!
-\ingroup meta_operations
-\brief 移除指针和引用类型。
-\since build 175 。
+\since build 306 。
 */
-template<typename _type>
-struct remove_rp
+template<typename _type1, typename _type2>
+struct have_equality_operator
 {
-	typedef typename remove_pointer<typename remove_reference<_type>
-		::type>::type type;
+private:
+	template<typename _type>
+	static yconstfn bool
+	test_equal(int, typename enable_if<is_convertible<decltype(std::declval<
+		_type>() == std::declval<_type2>()), bool>::value, int>::type = 0)
+	{
+		return true;
+	}
+	template<typename>
+	static yconstfn bool
+	test_equal(...)
+	{
+		return false;
+	}
+
+public:
+	static yconstexpr bool value = test_equal();
 };
 
+#if defined(YCL_IMPL_GNUCPP) && YCL_IMPL_GNUCPP >= 40600
+//#	pragma GCC diagnostic warning "-Wctor-dtor-privacy"
+#	pragma GCC diagnostic pop
+#endif
+
 
 /*!
-\ingroup meta_operations
-\brief 判断指定类型是否有非空虚基类。
-\since build 175 。
+\since build 306 。
 */
 template<class _type>
-struct has_nonempty_virtual_base
+struct have_nonempty_virtual_base
 {
 	static_assert(std::is_class<_type>::value,
 		"Non-class type found @ ystdex::has_nonempty_virtual_base;");
@@ -221,12 +274,10 @@ public:
 
 
 /*!
-\ingroup meta_operations
-\brief 判断指定的两个类类型是否有非空虚基类。
-\since build 175 。
+\since build 306 。
 */
 template<class _type1, class _type2>
-struct has_common_nonempty_virtual_base
+struct have_common_nonempty_virtual_base
 {
 	static_assert(std::is_class<_type1>::value
 		&& std::is_class<_type2>::value,
@@ -239,17 +290,12 @@ private:
 		{}
 	};
 
-#ifdef __GNUC__
+#ifdef YCL_IMPL_GNUCPP
 #	if YCL_IMPL_GNUCPP >= 40600
 #		pragma GCC diagnostic push
 #		pragma GCC diagnostic ignored "-Wextra"
 #	else
 #		pragma GCC system_header
-//临时处理：关闭所有警告。
-/*
-关闭编译警告：(C++ only) Ambiguous virtual bases. ，
-参见 http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html 。
-*/
 #	endif
 #endif
 
@@ -271,6 +317,54 @@ private:
 
 public:
 	static yconstexpr bool value = sizeof(C) < sizeof(A) + sizeof(B);
+};
+
+} // namespace details;
+
+
+/*!
+\ingroup BinaryTypeTrait
+\brief 判断是否存在合式的结果可转换为 bool 类型的 == 操作符接受指定类型的表达式。
+\since build 306 。
+*/
+template<typename _type1, typename _type2>
+struct has_equality_operator : integral_constant<bool,
+	details::have_equality_operator<_type1, _type2>::value>
+{};
+
+
+/*!
+\ingroup BinaryTypeTrait
+\brief 判断指定类型是否有非空虚基类。
+\since build 175 。
+*/
+template<class _type>
+struct has_nonempty_virtual_base : integral_constant<bool,
+	details::have_nonempty_virtual_base<_type>::value>
+{};
+
+
+/*!
+\ingroup UnaryTypeTrait
+\brief 判断指定的两个类类型是否有非空虚基类。
+\since build 175 。
+*/
+template<class _type1, class _type2>
+struct has_common_nonempty_virtual_base : integral_constant<bool,
+	details::have_common_nonempty_virtual_base<_type1, _type2>::value>
+{};
+
+
+/*!
+\ingroup meta_operations
+\brief 移除指针和引用类型。
+\since build 175 。
+*/
+template<typename _type>
+struct remove_rp
+{
+	typedef typename remove_pointer<typename remove_reference<_type>
+		::type>::type type;
 };
 
 

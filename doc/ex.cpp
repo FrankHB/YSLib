@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3568; *build 305 rev 8;
+\version r3568; *build 306 rev 9;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-01 02:50 +0800;
+	2012-05-05 18:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -367,83 +367,74 @@ $using:
 
 $DONE:
 r1:
-* \impl @ \f @ \un \ns @ \impl \u ShlReader $since b301;
+/ @ "platform %DS" $=
+(
+	^ "updated devkitARM release 39" ~ "devkitARM release 38",
+	^ "updated libnds 1.5.7" ~ "libnds 1.5.5"
+);
 
 r2:
-/ @ \cl File $=
-(
-	+ \exp \ctor File(const String&, bool = false),
-	+ \mf bool Open(const String&, bool = false)
-),
-+ \inc \h YFileSystem @ \impl \u File_(Text);
-+ \exp \ctor TextFile(const String&);
-/ \simp \impl @ \mf ShlTextReader::LoadFile @ \impl \u ShlReader;
+/ \simp \impl @ \ctor SettingPanel @ \impl \u ShlReader;
 
 r3:
-/ \f LoadFontFileDirectory @ \un \ns \mg -> \f InitializeSystemFontCache
-	@ \impl \u Initialization;
+/ @ \u Selector $=
+(
+	+ \f void Tick(CheckBox&, bool = true);
+	/ \simp \impl @ \ctor CheckBox
+);
+/ @ \impl \u ShlReader $=
+(
+	/ \f UpdateScrollDropDownList @ \un \ns @ \impl \u \mg
+		-> \ctor SettingPanel;
+	/ \simp \impl @ \mf SettingPanel::operator<< ^ \f Tick
+);
 
 r4:
-+ $doc "CHRLib.txt" for \lib CHRLib,
-(
-	/ @ \h CharacterProcessing $=
-	(
-		/ \ret \tp @ \f byte UCToMBC(char*, const ucs2_t&, Encoding) -> size_t,
-		+ \inc \h String
-		+ \ft GetMBCSOf
-	);
-	/ \simp \mf GetMBCS @ \cl String
-);
+* access out of range when process of 100% reached @ \mf ReaderBox::UpdateData
+	@ \impl \u ShlReader $since b271;
 
 r5:
-+ \f char* strdup(const ucs2_t*, Encoding = CS_Default)
-	@ \u CharacterProcessing;
-/ @ \u YCommon $=
+/ @ \h TypeOperations $=
 (
-	+ \f std::FILE* ufopen(const char16_t*, const char16_t*),
-	+ \f bool ufexists(const char16_t*),
-	+ \ft<class _tString> ufexists(const String&)
+	+ $doc groups for traits,
+	+ \stt (have_nonempty_virtual_base, have_common_nonempty_virtual_base,
+		have_equality_operator) @ \ns details;
+	/ \impl @ \stt has_nonempty_virtual_base, has_common_nonempty_virtual_base,
+	+ \stt has_equality_operator
 );
-/ \simp \impl @ \ctor ShlExplorer @ \impl \u Shells;
 
 r6:
-/ @ \cl File $=
-(
-	+ private \mf \vt void CheckSize();
-	/ \simp \impl @ 2 \f Open
-);
++ \mac YCL_DLL @ \h Platform,
+/ \mac YSL_DLL -> YCL_FUNCTION_NO_EQUALITY_GUARANTEE;
+/ \tr \impl @ \h YObject,
+/ \tr @ Code::Blocks \proj files;
 
 r7:
-/ @ \impl \u Initialization $=
+/ @ \cl ValueObject @ \h YObject $=
 (
-	/ @ \un \ns $= (/ \f \i fatalError \mg
-		-> \impl @ \f (libfatFail, defFontFail, installFail)),
-	(
-		/ \simp \impl @ \f InitializeEnviornment;
-		/ \f EpicFail \mg -> \impl @ \f printFailInfo
-	),
-	/ \f (libfatFail, CheckConfiguration) @ \un \ns \mg
-		-> \impl @ \f InitializeEnviornment,
-	/ \f defFontFail @ \un \ns \mg -> \impl @ \f InitializeSystemFontCache,
-	/ \f installFail @ \un \ns \mg -> \impl @ \f CheckInstall
+	+ \i @ \a 2 \ft GetObject,
+	+ 2 \ft Access
 );
 
 r8:
 /= test 1 ^ \conf release;
 
+r9:
+* \impl @ \ft ValueObject::Access $since r7;
+
 
 $DOING:
 
 $relative_process:
-2012-05-01:
--11.1d;
-//Mercurial rev1-rev177: r8330;
+2012-05-05:
+-13.6d;
+//Mercurial rev1-rev178: r8339;
 
 / ...
 
 
 $NEXT_TODO:
-b306-b332:
+b307-b332:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -761,7 +752,8 @@ $module_tree $=
 			'Iterator',
 			'Algorithms',
 			'Utilities',
-			'Memory'
+			'Memory',
+			'TypeOperations'
 		)
 	),
 	'YFramework'
@@ -816,6 +808,38 @@ $module_tree $=
 );
 
 $now
+(
+	/ @ "platform %DS" $=
+	(
+		^ "updated devkitARM release 39" ~ "devkitARM release 38",
+		^ "updated libnds 1.5.7" ~ "libnds 1.5.5"
+	),
+	/ "class %ShlReader" @ %'YReader'.'text reader' $=
+	(
+		/ $design "simplified implementation",
+		* "access out of range when process of 100% reached"
+			@ "member function %ReaderBox::UpdateData" $since b271;
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			+ "member function %Tick" @ "class %CheckBox" @ %'GUI',
+			+ "member function template %Access" @ "class %ValueObject"
+				@ %'core abstraction'
+		),
+		/ "macro %YSL_DLL" -> "macro %(YCL_DLL; \
+			YCL_FUNCTION_NO_EQUALITY_GUARANTEE)"
+	),
+	/ %'YBase'.'YStandardEx'.'TypeOperations' $=
+	(
+		/ $doc "grouping",
+		/ "traits according to ISO C++11" ^ "%integral_constant",
+		+ "binary type trait %has_equality_operator"
+	)
+),
+
+b305
 (
 	* "wrong drop down list contents" @ "setting panel"
 		@ %'YReader'.'text reader' $since b301,
@@ -1062,8 +1086,8 @@ b300
 	/ @ "platform %DS" $=
 	(
 		^ "updated devkitARM release 38" ~ "devkitARM release 37",
-		^ "updated libnds 1.5.4 with default arm7 0.5.23"
-			~ "libnds 1.5.1 with default arm7 0.5.21" 
+		^ "updated libnds 1.5.5 with default arm7 0.5.24"
+			~ "libnds 1.5.4 with default arm7 0.5.23" 
 	)
 ),
 
