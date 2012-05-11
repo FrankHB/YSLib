@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3568; *build 306 rev 9;
+\version r3568; *build 307 rev 8;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-05 18:13 +0800;
+	2012-05-11 12:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -367,74 +367,83 @@ $using:
 
 $DONE:
 r1:
-/ @ "platform %DS" $=
+/= 7 test 1 ^ \a \conf @ platform MinGW32,
+* $doc @ \f (GetLocationOf, GetSizeOf) @ \h YWidget $since b263,
 (
-	^ "updated devkitARM release 39" ~ "devkitARM release 38",
-	^ "updated libnds 1.5.7" ~ "libnds 1.5.5"
+	+ \mf (GetLocationRef, GetSizeRef) @ \cl (Visual; View);
+	/ \impl @ \ctor AScrollBar
+),
+/ $doc Doxygen file $=
+(
+	* wrong Doxygen root output path $since b300,
+	/ input ignorance
 );
 
 r2:
-/ \simp \impl @ \ctor SettingPanel @ \impl \u ShlReader;
+/ @ \impl \u Selector $=
+(
+	* \impl @ \f Tick $since b306,
+	/ \f Tick -> \mf Tick @ \cl CheckBox;
+	/ \tr \impl @ \ctor CheckBox
+);
+/ \tr \impl @ \mf SettingPanel::operator<< @ \impl \u ShlReader;
+* $comp wrong check box state @ setting panel @ text reader $since b306;
 
 r3:
-/ @ \u Selector $=
+/= 4 test 2 ^ \a \conf @ platform MinGW32,
 (
-	+ \f void Tick(CheckBox&, bool = true);
-	/ \simp \impl @ \ctor CheckBox
+	+ raising event Resize @ \impl @ \mf ScrollableContainer::FixLayout,
+	* missing text list view updating @ \mf ListBox::ResizeForPreferred
+		$since b282;
+	* $comp missing scroll bars refreshing @ (ListBox resizing;
+		DropDownList showing) $since b282
 );
-/ @ \impl \u ShlReader $=
+/ \impl @ \ctor SettingPanel @ \impl \u ShlReader $=
 (
-	/ \f UpdateScrollDropDownList @ \un \ns @ \impl \u \mg
-		-> \ctor SettingPanel;
-	/ \simp \impl @ \mf SettingPanel::operator<< ^ \f Tick
+	/ scrolling interval value set,
+	* wrong displayed scrolling interval $since b301
 );
 
 r4:
-* access out of range when process of 100% reached @ \mf ReaderBox::UpdateData
-	@ \impl \u ShlReader $since b271;
+/ \cl FPSCounter @ \ns YReader @ \u Shells >> \ns YSLib @ \u ShellHelper;
 
 r5:
-/ @ \h TypeOperations $=
++ \inc \h TextList @ \h ShellHelper,
++ \inc \h <cstdio> @ \impl \u ShellHelper;
+/ @ \un \ns @ \ns YReader @ \impl \u ShllReader $=
 (
-	+ $doc groups for traits,
-	+ \stt (have_nonempty_virtual_base, have_common_nonempty_virtual_base,
-		have_equality_operator) @ \ns details;
-	/ \impl @ \stt has_nonempty_virtual_base, has_common_nonempty_virtual_base,
-	+ \stt has_equality_operator
+	(
+		/ yconstexpr \o DefaultTimeFormat >> \ns YSLib @ \h ShellHelper;
+		/ \f \i snftime >> \un \ns @ \ns YSLib @ \impl \u ShellHelper,
+		/ \a 2 \f TranslateTime >> \ns YSLib @ \u ShellHelper,
+	),
+	/ \f FetchFontFamilyNames >> \ns YSLib @ \u ShellHelper
 );
 
 r6:
-+ \mac YCL_DLL @ \h Platform,
-/ \mac YSL_DLL -> YCL_FUNCTION_NO_EQUALITY_GUARANTEE;
-/ \tr \impl @ \h YObject,
-/ \tr @ Code::Blocks \proj files;
+/ \ft \i SetBufferRendererAndText @ \un \ns @ \ns YReader @ \impl \u ShllReader
+	>> \ns YSLib::Components @ \h ShellHelper;
 
 r7:
-/ @ \cl ValueObject @ \h YObject $=
-(
-	+ \i @ \a 2 \ft GetObject,
-	+ 2 \ft Access
-);
+/ (EncodingInfoItem, Encodings) @ \un \ns @ \ns YReader @ \impl \u ShlReader
+	>> \ns YSLib::Text @ \h ShellHelper;
 
 r8:
-/= test 1 ^ \conf release;
-
-r9:
-* \impl @ \ft ValueObject::Access $since r7;
+/= test 3 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-05-05:
--13.6d;
-//Mercurial rev1-rev178: r8339;
+2012-05-11:
+-17.7d;
+//Mercurial rev1-rev179: r8347;
 
 / ...
 
 
 $NEXT_TODO:
-b307-b332:
+b308-b332:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -445,6 +454,16 @@ b307-b332:
 
 $TODO:
 b333-b384:
+/ services $=
+(
+	+ \impl @ images loading
+),
+/ @ "GUI" $=
+(
+	+ viewer models,
+	/ fully \impl @ \cl Form,
+	+ icons
+),
 / $design $low_prior robustness and cleanness $=
 (
 	/ noncopyable GUIState,
@@ -454,29 +473,19 @@ b333-b384:
 + $design $low_prior helpers $=
 (
 	+ noinstance base class,
-	+ nonmovable base class,
-),
-/ services $=
-(
-	+ \impl @ images loading
+	+ nonmovable base class
 ),
 / $low_prior YReader $=
 (
 	+ settings manager,
 	+ reading history,
 	+ improved smooth scrolling with lower limit of scrolling cycle supported,
-	/ improved tests and examples
-),
-/ @ "GUI" $=
-(
-	+ viewer models,
-	/ fully \impl @ \cl Form,
-	+ icons
 ),
 / project structure $=
 (
 	/ build command @ \a \conf proj YBase,
-	+ Microsoft Windows(MinGW32) port with free hosted window size
+	+ Microsoft Windows(MinGW32) port with free hosted window size,
+	/ improved tests and examples
 );
 
 b385-b768:
@@ -492,6 +501,7 @@ b385-b768:
 ),
 / $design $low_prior robustness and cleanness $=
 (
+	/ \m (\n, \ac) @ \cl ScrollableContainer,
 	/ @ \ns platform @ \u YCommon $=
 	(
 		/ \ac @ \inh touchPosition @ \cl CursorInfo,
@@ -534,8 +544,6 @@ b385-b768:
 ),
 / @ "GUI" $=
 (
-	+ generic timers multiplexing for input holding events,
-		// To resolve routed events repeating preemption.
 	+ formal abstraction of rectangular hit test,
 	+ key accelerators,
 	+ widgets for RTC,
@@ -544,12 +552,14 @@ b385-b768:
 		+ more base class templates,
 		+ transformations
 	),
-	/ long list test @ %DropDownList,
+	+ generic timers multiplexing for input holding events,
+		// To resolve routed events repeating preemption.
+	+ widget layout managers,
+	+ widget-based animation support,
 	* View position switch through scrall bar not accurate enough
 		@ class %ListBox,
 	+ synchronization of viewer length @ class %TextList,
-	+ widget layout managers,
-	+ widget-based animation support
+	/ $low_prior more long list tests @ %DropDownList
 );
 
 b769-b1256:
@@ -808,6 +818,39 @@ $module_tree $=
 );
 
 $now
+(
+	(
+		/ %'YFramework'.'YSLib'.'GUI' $=
+		(
+			* "%CheckBox tick interface" $since b306,
+			(
+				+ "member function %(GetLocationRef, GetSizeRef)"
+					@ "class %(Visual; View)";
+				+ "scroll bar resizing",
+				+ "raising event %Resize" @ "member function \
+					%ScrollableContainer::FixLayout",
+				* "missing text list view updating" @ "member function \
+					%ListBox::ResizeForPreferred" $since b282;
+				* $comp "missing scroll bars refreshing" @ "(%ListBox resizing; \
+					%DropDownList list showing)" $since b282
+			)
+		);
+		/ @ "setting panel" @ %'YReader'.'text reader' $=
+		(
+			/ scrolling interval value set,
+			* wrong displayed scrolling interval $since b301
+		)
+	),
+	/ $doc "Doxygen file" $=
+	(
+		* "wrong Doxygen root output path" $since b300,
+		/ "input ignorance"
+	),
+	/ $design "some implementations" @ "unit %(Shells, ShlReeader)" @ %'YReader'
+		>> ("unit %ShellHelper" @ "library %Helper")
+),
+
+b306
 (
 	/ @ "platform %DS" $=
 	(

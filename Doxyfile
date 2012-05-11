@@ -31,14 +31,14 @@ PROJECT_NAME           = YSTest
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = PreAlpha_b273_20111230
+PROJECT_NUMBER         = PreAlpha_b307_20120509
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
 # If a relative path is entered, it will be relative to the location 
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = ./YSTest/doc
+OUTPUT_DIRECTORY       = ./doc
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create 
 # 4096 sub-directories (in 2 levels) under the output directory of each output 
@@ -650,8 +650,9 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = ./.hg \
-                         YSTest/include/freetype
+EXCLUDE                = .hg \
+                         YFramework/include/freetype \
+                         YFramework/include/ft2build.h
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix filesystem feature) are excluded 

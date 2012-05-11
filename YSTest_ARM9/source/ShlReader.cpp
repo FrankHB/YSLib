@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4374;
+\version r4447;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-05-05 23:14 +0800;
+	2012-05-11 12:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,21 +41,7 @@ namespace
 {
 //	ResourceMap GlobalResourceMap;
 
-/*!
-\brief 编码信息项目。
-\since build 290 。
-*/
-typedef std::pair<Text::Encoding, const ucs2_t*> EncodingInfoItem;
-
-using namespace Text::CharSet;
-
-/*!
-\brief 编码信息。
-\since build 290 。
-*/
-yconstexpr EncodingInfoItem Encodings[] = {{UTF_8, u"UTF-8"}, {GBK, u"GBK"},
-	{UTF_16BE, u"UTF-16 Big Endian"}, {UTF_16LE, u"UTF-16 Little Endian"},
-	{UTF_32BE, u"UTF-32 Big Endian"}, {UTF_32LE, u"UTF-16 Little Endian"}};
+using namespace Text;
 
 /*!
 \brief 取编码字符串。
@@ -78,20 +64,6 @@ FetchEncodingString(MTextList::IndexType i)
 }
 
 
-shared_ptr<TextList::ListType>
-FetchFontFamilyNames()
-{
-	const auto& mFamilies(FetchGlobalInstance().GetFontCache()
-		.GetFamilyIndices());
-
-	// TODO: use g++ 4.7 later;
-//	return make_shared<TextList::ListType>(mFamilies.cbegin()
-//		| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
-	return share_raw(new TextList::ListType(mFamilies.cbegin()
-		| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
-}
-
-
 /*!
 \since build 293 。
 */
@@ -99,53 +71,6 @@ milliseconds
 FetchTimerSetting(const ReaderSetting& s)
 {
 	return s.SmoothScroll ? s.SmoothScrollDuration : s.ScrollDuration;
-}
-
-
-yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
-
-inline void
-snftime(char* buf, size_t n, const std::tm& tm,
-	const char* format = DefaultTimeFormat)
-{
-	// FIXME: correct behavior for time with BC date(i.e. tm_year < -1900);
-	// FIXME: snprintf shall be a member of namespace std;
-	/*std*/::snprintf(buf, n, format, tm.tm_year + 1900,
-		tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-}
-
-const char*
-TranslateTime(const std::tm& tm, const char* format = DefaultTimeFormat)
-{
-	static char str[80];
-
-	// NOTE: 'std::strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", &tm)'
-	//	is correct but make the object file too large;
-	snftime(str, 80, tm, format);
-	return str;
-}
-const char*
-TranslateTime(const std::time_t& t,
-	const char* format = DefaultTimeFormat) ythrow(GeneralEvent)
-{
-	auto p(std::localtime(&t));
-
-	if(YCL_UNLIKELY(!p))
-		throw GeneralEvent("Get broken-down time object failed"
-			" @ TranslateTime#2;");
-	return TranslateTime(*p, format);
-}
-
-
-/*!
-\since build 301 。
-*/
-template<class _tWidget>
-inline void
-SetBufferRendererAndText(_tWidget& wgt, const String& s)
-{
-	wgt.SetRenderer(make_unique<BufferedRenderer>()),
-	wgt.Text = s;
 }
 
 
@@ -363,9 +288,9 @@ SettingPanel::SettingPanel()
 			static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
 			{
 				const auto postfix(is_smooth ? u"毫秒/像素行" : u"毫秒/文本行");
-				auto& lst(*new TextList::ListType(10U));
-				const u16 delta(is_smooth ? 20 : 200);
-				u16 t(delta);
+				auto& lst(*new TextList::ListType(20U));
+				const u16 delta(is_smooth ? 10 : 100);
+				u16 t(0);
 				char str[10];
 
 				std::generate(lst.begin(), lst.end(), [&, is_smooth, delta]{
@@ -379,15 +304,15 @@ SettingPanel::SettingPanel()
 				fetch_scroll_durations, true) : get_init<false>(
 				fetch_scroll_durations, false));
 			ddlScrollTiming.Text = ddlScrollTiming.GetList()[(e.Value
-				? smooth_scroll_duration.count() / 20U : scroll_duration.count()
-				/ 200U) - 2U],
+				? smooth_scroll_duration.count() / 10U : scroll_duration.count()
+				/ 100U) - 1U],
 			Invalidate(ddlScrollTiming);
 		},
 		ddlScrollTiming.GetConfirmed() += [this](IndexEventArgs&& e){
 			if(chkSmoothScroll.IsTicked())
-				smooth_scroll_duration = milliseconds((e.Value + 2U) * 20);
+				smooth_scroll_duration = milliseconds((e.Value + 1U) * 10);
 			else
-				scroll_duration = milliseconds((e.Value + 2U) * 200);
+				scroll_duration = milliseconds((e.Value + 1U) * 100);
 		},
 		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
 		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
@@ -408,7 +333,7 @@ SettingPanel::operator<<(const ReaderSetting& s)
 {
 	yunseq(scroll_duration = s.ScrollDuration,
 		smooth_scroll_duration = s.SmoothScrollDuration),
-	Tick(chkSmoothScroll, s.SmoothScroll);
+	chkSmoothScroll.Tick(s.SmoothScroll);
 	return *this;
 }
 

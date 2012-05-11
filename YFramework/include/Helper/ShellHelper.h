@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2273;
+\version r2371;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-04-24 21:18 +0800;
+	2012-05-11 12:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,8 +30,30 @@
 
 #include "../ysbuild.h"
 #include <ystdex/cast.hpp>
+#include <YSLib/UI/textlist.h> // for Components::TextList::ListType;
 
 YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Text)
+
+/*!
+\brief 编码信息项目。
+\since build 290 。
+*/
+typedef std::pair<Encoding, const ucs2_t*> EncodingInfoItem;
+
+/*!
+\brief 编码信息。
+\since build 290 。
+*/
+yconstexpr EncodingInfoItem Encodings[] = {{CharSet::UTF_8, u"UTF-8"},
+	{CharSet::GBK, u"GBK"},
+	{CharSet::UTF_16BE, u"UTF-16 Big Endian"},
+	{CharSet::UTF_16LE, u"UTF-16 Little Endian"},
+	{CharSet::UTF_32BE, u"UTF-32 Big Endian"},
+	{CharSet::UTF_32LE, u"UTF-16 Little Endian"}};
+
+YSL_END_NAMESPACE(Text)
 
 YSL_BEGIN_NAMESPACE(Components)
 
@@ -83,6 +105,19 @@ public:
 		PaintChild(wgt, Context);
 	}
 };
+
+
+/*!
+\brief 设置部件渲染器为 BufferedRenderer 及部件的 Text 成员。
+\since build 301 。
+*/
+template<class _tWidget>
+inline void
+SetBufferRendererAndText(_tWidget& wgt, const String& s)
+{
+	wgt.SetRenderer(make_unique<BufferedRenderer>()),
+	wgt.Text = s;
+}
 
 YSL_END_NAMESPACE(Components)
 
@@ -309,6 +344,86 @@ YSL_END_NAMESPACE(Drawing)
 */
 void
 RemoveGlobalTasks(Shell&);
+
+
+/*!
+\brief 默认时间格式字符串。
+\since build 264 。
+*/
+yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
+
+/*!
+\brief 格式化时间字符串。
+\since build 264 。
+*/
+//@{
+const char*
+TranslateTime(const std::tm&, const char* = DefaultTimeFormat);
+const char*
+TranslateTime(const std::time_t&, const char* = DefaultTimeFormat)
+	ythrow(GeneralEvent);
+//@}
+
+
+/*!
+\brief 取字型家族名称。
+\since build 283 。
+*/
+shared_ptr<Components::TextList::ListType>
+FetchFontFamilyNames();
+
+
+/*!
+\brief 帧速率计数器。
+\since build 223 。
+*/
+class FPSCounter
+{
+private:
+	/*!
+	\brief 内部计数。
+	\note 单位为纳秒。
+	\since build 291 。
+	*/
+	//@{
+	u64 last_tick;
+	u64 now_tick;
+	//@}
+	/*!
+	\brief 刷新计数。
+	\since build 295 。
+	*/
+	u32 refresh_count;
+
+public:
+	/*!
+	\brief 计时间隔下界。
+	\since build 295 。
+	*/
+	u64 MinimalInterval;
+
+	/*!
+	\brief 构造：使用指定计时间隔下界。
+	\since build 295 。
+	*/
+	FPSCounter(u64 = 0);
+
+	/*!
+	\brief 取内部计数。
+	\since build 291 。
+	*/
+	//@{
+	DefGetter(const ynothrow, u64, LastTick, last_tick)
+	DefGetter(const ynothrow, u64, NowTick, now_tick)
+	//@}
+
+	/*!
+	\brief 刷新：更新计数器内部计数。
+	\return 内部计数差值大于计时间隔下界时的每秒毫计数次数；否则为 0 。
+	*/
+	u32
+	Refresh();
+};
 
 //@}
 

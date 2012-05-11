@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6094;
+\version r6114;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-04-30 22:18 +0800;
+	2012-05-11 11:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -185,32 +185,6 @@ FetchImage(size_t i)
 		ScrDraw(h->GetBufferPtr(), p_bg[i]);
 	}
 	return FetchGlobalImage(i);
-}
-
-
-FPSCounter::FPSCounter(u64 s)
-	: last_tick(GetHighResolutionTicks()), now_tick(), refresh_count(1),
-	MinimalInterval(s)
-{}
-
-u32
-FPSCounter::Refresh()
-{
-	const u64 tmp_tick(GetHighResolutionTicks());
-
-	if(YCL_UNLIKELY(last_tick + MinimalInterval < tmp_tick))
-	{
-		last_tick = now_tick;
-
-		const u32 r(1000000000000ULL * refresh_count
-			/ ((now_tick = tmp_tick) - last_tick));
-
-		refresh_count = 1;
-		return r;
-	}
-	else
-		++refresh_count;
-	return 0;
 }
 
 

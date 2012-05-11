@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4279;
+\version r4295;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-04-24 21:43 +0800;
+	2012-05-09 13:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -347,6 +347,21 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 	SetContainerPtrOf(btnNext, this);
 	yunseq(
 		Background = nullptr,
+		FetchEvent<Resize>(*this) += [this](UIEventArgs&&){
+			auto& track(GetTrack());
+			const bool is_h(track.IsHorizontal());
+			const SDst prev_metric(GetSizeOf(btnPrev).GetRef(is_h));
+			const SDst sum(prev_metric + GetSizeOf(btnNext).GetRef(is_h));
+
+			YAssert(GetSizeOf(*this).GetRef(is_h) - sum > 0,
+				"No enough space for track.");
+
+			const SDst tl(GetSizeOf(*this).GetRef(is_h) - sum);
+
+			yunseq(track.GetView().GetSizeRef().GetRef(is_h) = tl, btnNext
+				.GetView().GetLocationRef().GetRef(is_h) = tl + prev_metric);
+			// NOTE: no event %(Resize, Move) raised;
+		},
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchMove>(btnPrev) += OnTouchMove,
 		FetchEvent<TouchDown>(btnPrev) += [this](TouchEventArgs&&){
@@ -508,12 +523,14 @@ ScrollableContainer::FixLayout(const Size& s)
 		}
 		else if(p.first)
 		{
-			HorizontalScrollBar.SetWidth(GetWidth());
+			SetSizeOf(HorizontalScrollBar, Size(GetWidth(),
+				HorizontalScrollBar.GetHeight()));
 			MoveToBottom(HorizontalScrollBar);
 		}
 		else if(p.second)
 		{
-			VerticalScrollBar.SetHeight(GetHeight());
+			SetSizeOf(VerticalScrollBar, Size(VerticalScrollBar.GetWidth(),
+				GetHeight()));
 			MoveToRight(VerticalScrollBar);
 		}
 		SetVisibleOf(HorizontalScrollBar, p.first);

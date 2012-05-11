@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3961;
+\version r3962;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-04-27 11:52 +0800;
+	2012-05-09 13:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -119,6 +119,7 @@ ListBox::ResizeForPreferred(const Size& sup, Size s)
 	}
 	SetSizeOf(*this, s);
 	SetSizeOf(lstText, FixLayout(s));
+	lstText.UpdateView();
 }
 
 

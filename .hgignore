@@ -19,7 +19,8 @@ syntax: glob
 UpgradeLog.XML
 *UpgradeReport*
 */~AutoRecover*
-*/doc/html/*
+*doc/html/*
+*doc/rtf/*
 *.cccc/
 *.cscope_file_list
 *.depend

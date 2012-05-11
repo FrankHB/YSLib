@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6520;
+\version r6522;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-24 21:24 +0800;
+	2012-05-09 10:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -133,7 +133,6 @@ FetchFocusingPtr(IWidget& wgt)
 /*!
 \ingroup HelperFunctions
 \brief 取部件位置。
-\return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
 \since build 239 。
 */
 inline const Point&
@@ -145,7 +144,6 @@ GetLocationOf(const IWidget& wgt)
 /*!
 \ingroup HelperFunctions
 \brief 取部件大小。
-\return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
 \since build 259 。
 */
 inline const Size&

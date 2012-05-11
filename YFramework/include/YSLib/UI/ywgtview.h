@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r1479;
+\version r1487;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-13 19:48 +0800;
+	2012-05-09 11:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -80,6 +80,10 @@ public:
 	DefGetter(const ynothrow, SDst, Height, GetSize().Height)
 	DefGetter(const ynothrow, const Point&, Location, location)
 	DefGetter(const ynothrow, const Size&, Size, size)
+	//! \since build 307 。
+	DefGetter(ynothrow, Point&, LocationRef, location)
+	//! \since build 307 。
+	DefGetter(ynothrow, Size&, SizeRef, size)
 
 	DefSetter(bool, Visible, visible)
 	DefSetter(bool, Transparent, transparent) //!< 设置透明性。
@@ -202,6 +206,10 @@ public:
 	DefGetterMem(const ynothrow, SDst, Height, visual)
 	DefGetterMem(const ynothrow, const Point&, Location, visual)
 	DefGetterMem(const ynothrow, const Size&, Size, visual)
+	//! \since build 307 。
+	DefGetterMem(ynothrow, Point&, LocationRef, visual)
+	//! \since build 307 。
+	DefGetterMem(ynothrow, Size&, SizeRef, visual)
 
 	void
 	SetVisible(bool);

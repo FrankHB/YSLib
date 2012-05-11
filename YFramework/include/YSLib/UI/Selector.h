@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1243;
+\version r1250;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:17:17 +0800;
 \par 修改时间:
-	2012-05-03 03:26 +0800;
+	2012-05-09 13:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -87,15 +87,15 @@ public:
 	*/
 	void
 	SetTicked(bool);
-};
 
-/*!
-\brief 设置选中状态并触发复选框选中事件。
-\note 不检查状态改变。
-\since build 306 。
-*/
-void
-Tick(CheckBox&, bool = true);
+	/*!
+	\brief 设置选中状态并触发复选框选中事件。
+	\note 不检查状态改变。
+	\since build 307 。
+	*/
+	void
+	Tick(bool);
+};
 
 YSL_END_NAMESPACE(Components)
 

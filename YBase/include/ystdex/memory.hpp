@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1368;
+\version r1377;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 209 。
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2012-04-26 13:02 +0800;
+	2012-05-09 11:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -85,27 +85,21 @@ is_undereferencable(_type* p)
 \brief 取内建指针。
 */
 //@{
-/*
-\since build 204 。
-*/
+//! \since build 204 。
 template<typename _type>
 yconstfn _type*
 raw(_type* const& p)
 {
 	return p;
 }
-/*
-\since build 304 。
-*/
+//! \since build 304 。
 template<typename _type>
 yconstfn auto
 raw(const std::unique_ptr<_type>& p) -> decltype(p.get())
 {
 	return p.get();
 }
-/*
-\since build 204 。
-*/
+//! \since build 204 。
 template<typename _type>
 yconstfn _type*
 raw(const std::shared_ptr<_type>& p)

@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3358;
+\version r3359;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2012-04-27 11:55 +0800;
+	2012-05-08 23:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -164,7 +164,7 @@ public:
 
 /*!
 \brief 下拉列表。
-\note 顶层部件不可转换至 Panel 时忽略。
+\note 顶层容器不可转换至 Panel 时忽略列表。
 \since build 282 。
 */
 class DropDownList : public Button

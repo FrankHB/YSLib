@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3711;
+\version r3757;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-04-22 17:45 +0800;
+	2012-05-11 11:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -65,58 +65,6 @@ using platform::YDebugSetStatus;
 
 shared_ptr<Image>&
 FetchImage(size_t);
-
-
-/*!
-\brief 帧速率计数器。
-*/
-class FPSCounter
-{
-private:
-	/*!
-	\brief 内部计数。
-	\note 单位为纳秒。
-	\since build 291 。
-	*/
-	//@{
-	u64 last_tick;
-	u64 now_tick;
-	//@}
-	/*!
-	\brief 刷新计数。
-	\since build 295 。
-	*/
-	u32 refresh_count;
-
-public:
-	/*!
-	\brief 计时间隔下界。
-	\since build 295 。
-	*/
-	u64 MinimalInterval;
-
-	/*!
-	\brief 构造：使用指定计时间隔下界。
-	\since build 295 。
-	*/
-	FPSCounter(u64 = 0);
-
-	/*!
-	\brief 取内部计数。
-	\since build 291 。
-	*/
-	//@{
-	DefGetter(const ynothrow, u64, LastTick, last_tick)
-	DefGetter(const ynothrow, u64, NowTick, now_tick)
-	//@}
-
-	/*!
-	\brief 刷新：更新计数器内部计数。
-	\return 内部计数差值大于计时间隔下界时的每秒毫计数次数；否则为 0 。
-	*/
-	u32
-	Refresh();
-};
 
 
 class ShlExplorer : public ShlDS
