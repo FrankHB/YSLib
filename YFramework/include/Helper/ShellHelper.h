@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2371;
+\version r2391;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-05-11 12:41 +0800;
+	2012-05-14 21:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,6 +33,29 @@
 #include <YSLib/UI/textlist.h> // for Components::TextList::ListType;
 
 YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Drawing)
+
+/*!
+\brief 转换为字符串。
+\since build 308 。
+*/
+//@{
+PDefTmplH1(_type)
+string
+to_string(const GBinaryGroup<_type>& val)
+{
+	using YSL_ to_string;
+
+	return "(" + to_string(val.X) + ", " + to_string(val.Y) + ')';
+}
+string
+to_string(const Size&);
+string
+to_string(const Rect&);
+//@}
+
+YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Text)
 
@@ -427,7 +450,7 @@ public:
 
 //@}
 
-YSL_END;
+YSL_END
 
 #endif
 

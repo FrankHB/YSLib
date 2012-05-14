@@ -16,9 +16,15 @@
     </Filter>
     <Filter Include="源文件\ystdex">
       <UniqueIdentifier>{9ff3ddee-c333-4ca6-8a81-4b8b6bfa5b89}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="头文件\ystdex">
       <UniqueIdentifier>{fc99d73f-e7a7-4a76-b291-ce69e46c7fae}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="头文件\libdefect">
+      <UniqueIdentifier>{ddcb08c7-b6eb-41d3-82f5-e7b5d4ab0c75}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +69,9 @@
     </ClInclude>
     <ClInclude Include="..\YBase\include\ystdex\string.hpp">
       <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\libdefect\string.h">
+      <Filter>头文件\libdefect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

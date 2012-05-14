@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11792;
+\version r11799;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-05-05 17:29 +0800;
+	2012-05-14 23:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -765,6 +765,8 @@ using std::max;
 
 //助手功能。
 using ystdex::arrlen;
+using std::to_string;
+using ystdex::to_string;
 
 
 //非目标平台中立接口。
@@ -866,16 +868,16 @@ $header Adaptor::YReference
 	using std::dynamic_pointer_cast;
 	using std::enable_shared_from_this;
 	using std::get_deleter;
-	using std::make_shared;
-	using std::shared_ptr;
-	using std::static_pointer_cast;
-	using std::unique_ptr;
-	using std::weak_ptr;
+	using ystdex::make_shared;
 	using ystdex::make_unique;
 	using ystdex::raw;
 	using ystdex::reset;
 	using ystdex::share_raw;
+	using std::shared_ptr;
+	using std::static_pointer_cast;
+	using std::unique_ptr;
 	using ystdex::unique_raw;
+	using std::weak_ptr;
 } //$header Adaptor::YReference;
 
 $header Core::YShellDefinition : Adaptor::YAdaptor

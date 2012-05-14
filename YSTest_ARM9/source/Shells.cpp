@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6114;
+\version r6132;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-05-11 11:43 +0800;
+	2012-05-14 21:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -402,23 +402,15 @@ ShlExplorer::TFormTest::TFormTest()
 	yunseq(
 		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
 		FetchEvent<Enter>(btnEnterTest) += [](TouchEventArgs&& e){
-			char str[20];
-
-			std::sprintf(str, "Enter: (%d, %d)", e.GetX(), e.GetY());
-
 			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
-			btn.Text = str;
+			btn.Text = u"Enter: " + String(to_string(e));
 			Invalidate(btn);
 		},
 		FetchEvent<Leave>(btnEnterTest) += [](TouchEventArgs&& e){
-			char str[20];
-
-			std::sprintf(str, "Leave: (%d, %d)", e.GetX(), e.GetY());
-
 			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
-			btn.Text = str;
+			btn.Text = u"Leave: " + String(to_string(e));
 			Invalidate(btn);
 		},
 		FetchEvent<Click>(btnMenuTest) +=[this](TouchEventArgs&&){
@@ -432,11 +424,7 @@ ShlExplorer::TFormTest::TFormTest()
 			{
 				if(lst.size() > 4)
 					lst.clear();
-
-				char stra[4];
-
-				std::sprintf(stra, "%d", t);
-				lst.push_back(string("TMI") + stra);
+				lst.push_back("TMI" + to_string(t));
 			}
 			else
 			{
@@ -518,11 +506,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 		},
 		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
 		FetchEvent<Move>(btnDragTest) += [this](UIEventArgs&&){
-			char sloc[30];
-
-			std::sprintf(sloc, "(%d, %d);", btnDragTest.GetX(),
-				btnDragTest.GetY());
-			btnDragTest.Text = sloc;
+			btnDragTest.Text = to_string(GetLocationOf(btnDragTest)) + ';';
 			Invalidate(btnDragTest);
 		},
 		FetchEvent<TouchDown>(btnDragTest) += [this](TouchEventArgs&&){
@@ -551,12 +535,10 @@ ShlExplorer::TFormExtra::TFormExtra()
 	//	},
 		FetchEvent<KeyPress>(btnDragTest) += [](KeyEventArgs&& e){
 			const auto& k(e.GetKeys());
-			char strt[100];
 			auto& lbl(polymorphic_downcast<Label&>(e.GetSender()));
 
-			lbl.SetTransparent(!lbl.IsTransparent());
-			std::sprintf(strt, "%lu;\n", k.to_ulong());
-			lbl.Text = strt;
+			lbl.SetTransparent(!lbl.IsTransparent()),
+			lbl.Text = k.to_string() + ";\n";
 			Invalidate(lbl);
 		},
 		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){

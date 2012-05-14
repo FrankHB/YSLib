@@ -14,6 +14,7 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\YBase\include\libdefect\string.h" />
     <ClInclude Include="..\YBase\include\ydef.h" />
     <ClInclude Include="..\YBase\include\ystdex\algorithm.hpp" />
     <ClInclude Include="..\YBase\include\ystdex\any.h" />

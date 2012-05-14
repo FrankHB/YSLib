@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2342;
+\version r2345;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2012-02-03 16:44:56 +0800;
 \par 修改时间:
-	2012-04-25 13:44 +0800;
+	2012-05-12 02:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -794,6 +794,11 @@ $4.1.3.1.4 临时性例外：
  ISO/IEC 14882:2003 C++ Annex D.3 Access declarations [depr.access.dcl] ；
 （参见 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3296.html#US56 。）
  ISO/IEC 14882:2003 C++ Annex D.4 Implicit conversion from const strings [depr.string] 。
+
+@ 5.1.6
+注意规避当前语言标准未解决的问题。例如：
+ http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#232 ，截至 ISO C++11 出版仍是草案状态，通过内建下标操作访问（但不使用值） one-past-end 指针不能确定引起未定义行为（但 ISO C99 中已明确不是）。
+上述情况下应该使用指针加法代替下标操作。
 
 @5.3 词法、预处理和内容无关的上下文编码规则：
 

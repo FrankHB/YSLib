@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2317;
+\version r2381;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-04-28 15:13 +0800;
+	2012-05-14 21:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,6 +53,7 @@
 
 // 确保包含 C++ 标准库必要部分。
 #include <algorithm> // for std::min, std::max;
+#include <ystdex/string.hpp> // for std::to_string, ystdex::to_string;
 
 /*
 !\brief YSLib 命名空间。
@@ -62,7 +63,11 @@ YSL_BEGIN
 
 //目标平台中立接口。
 
-//通用数据类型。
+/*!
+\brief 通用数据类型。
+\since build 245 。
+*/
+//@{
 typedef std::uint8_t	u8;
 typedef std::uint16_t	u16;
 typedef std::uint32_t	u32;
@@ -79,46 +84,93 @@ typedef volatile s8		vs8;
 typedef volatile s16	vs16;
 typedef volatile s32	vs32;
 typedef volatile s64	vs64;
+//@}
 
-//调用分派。
+/*!
+\brief 调用分派。
+\since build 303 。
+*/
+//@{
 using ystdex::seq_apply;
 using ystdex::unseq_apply;
+//@}
 
-//实用类型。
+/*!
+\brief 实用类型。
+\since build 209 。
+*/
+//@{
 using ystdex::noncopyable;
 using ystdex::nullptr_t;
+//@}
 
-//数学库函数。
-// TODO: using std::round for libstd++ with g++ 4.7 later
-//	@ !defined _GLIBCXX_USE_C99_MATH_TR1;
+/*!
+\brief 数学库函数。
+\since build 301
+\todo 使用 <tt>std::round</tt> g++ 4.7 后的 libstdc++ ，
+	当 !defined _GLIBCXX_USE_C99_MATH_TR1 。
+*/
+//@{
 using ::round;
+//@}
 
-//算法。
+/*!
+\brief 算法。
+\since build 265 。
+*/
+//@{
 using std::min;
 using std::max;
+//}
 
-//助手功能。
+//! \brief 助手功能。
+//@{
+//! \since build 291 。
 using ystdex::arrlen;
+//! \since build 308 。
+using std::to_string;
+//! \since build 308 。
+using ystdex::to_string;
+//@}
 
 
 //非目标平台中立接口。
 
-//特殊数据类型。
+/*!
+\brief 平台通用数据类型。
+\since build 209 。
+*/
+//@{
 using ystdex::errno_t;
 using ystdex::ptrdiff_t;
 using ystdex::size_t;
+//! \since build 245 。
 using ystdex::wint_t;
+//@}
 
-//基本实用例程。
+/*!
+\brief 基本实用例程。
+\since build 177 。
+*/
+//@{
 using platform::mmbset;
 using platform::mmbcpy;
+//@}
 
-//文件系统例程。
+/*!
+\brief 文件系统例程。
+\since build 171 。
+*/
+//@{
+//! \since build 299 。
 using platform::ufopen;
+//! \since build 299 。
 using platform::ufexists;
 using platform::direxists;
 using platform::chdir;
+//! \since build 304 。
 using platform::u16getcwd_n;
+//@}
 
 //系统处理函数。
 using platform::terminate;

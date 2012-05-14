@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4447;
+\version r4486;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-05-11 12:39 +0800;
+	2012-05-14 21:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,12 +53,9 @@ FetchEncodingString(MTextList::IndexType i)
 	if(YCL_LIKELY(i < arrlen(Encodings)))
 	{
 		const auto& pr(Encodings[i]);
-		char str[32];
 
-		std::sprintf(str, "%d: %s", pr.first,
-			String(pr.second).GetMBCS().c_str());
-
-		return String(str);
+		return String(to_string(pr.first) + ": "
+			+ String(pr.second).GetMBCS().c_str());
 	}
 	return u"---";
 }
@@ -180,16 +177,12 @@ TextInfoBox::Refresh(PaintEventArgs&& e)
 void
 TextInfoBox::UpdateData(DualScreenReader& reader)
 {
-	char str[40];
-
-	std::sprintf(str, "Encoding: %d;", reader.GetEncoding());
-	lblEncoding.Text = str;
-	std::sprintf(str, "Size: %u B;", reader.GetTextSize());
-	lblSize.Text = str;
-	std::sprintf(str, "Top: %u B;", reader.GetTopPosition());
-	lblTop.Text = str;
-	std::sprintf(str, "Bottom: %u B;", reader.GetBottomPosition());
-	lblBottom.Text = str;
+	yunseq(lblEncoding.Text = "Encoding: " + to_string(reader.GetEncoding())
+		+ ';',
+		lblSize.Text = "Size: " + to_string(reader.GetTextSize()) + " B;",
+		lblTop.Text = "Top: " + to_string(reader.GetTopPosition()) + " B;",
+		lblBottom.Text = "Bottom: " + to_string(reader.GetBottomPosition())
+		+ " B;");
 	Invalidate(lblEncoding),
 	Invalidate(lblSize);
 }
@@ -291,11 +284,9 @@ SettingPanel::SettingPanel()
 				auto& lst(*new TextList::ListType(20U));
 				const u16 delta(is_smooth ? 10 : 100);
 				u16 t(0);
-				char str[10];
 
 				std::generate(lst.begin(), lst.end(), [&, is_smooth, delta]{
-					std::sprintf(str, "%u", t += delta);
-					return String(str) + postfix;
+					return String(to_string(t += delta)) + postfix;
 				});
 				return share_raw(&lst);
 			});
@@ -351,13 +342,8 @@ SettingPanel::operator>>(ReaderSetting& s)
 void
 SettingPanel::UpdateInfo()
 {
-	char str[20];
-
-	/*std*/::snprintf(str, 20, "%u 。", lblAreaUp.Font.GetSize());
-
-	String ustr(str);
-
-	lblAreaUp.Text = u"上屏文字大小: " + ustr;
+	lblAreaUp.Text = u"上屏文字大小: "
+		+ String(to_string(lblAreaUp.Font.GetSize()) + " 。");
 }
 
 
@@ -546,15 +532,9 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
 	);
 	{
-		auto hList(make_shared<Menu::ListType>());
-		auto& lst(*hList);
-
-		static yconstexpr const char* mnustr[] = {"返回", "设置...",
-			"文件信息...", "向上一行", "向下一行", "向上一屏", "向下一屏"};
-
-		ystdex::assign(lst, mnustr);
-
-		Menu& mnu(*(ynew Menu(Rect::Empty, std::move(hList), 1u)));
+		Menu& mnu(*(ynew Menu(Rect::Empty, shared_ptr<Menu::ListType>(new
+			Menu::ListType{"返回", "设置...", "文件信息...", "向上一行",
+			"向下一行", "向上一屏", "向下一屏"}), 1u)));
 
 		mnu.GetConfirmed() += [this](IndexEventArgs&& e){
 			Execute(e.Value);
@@ -846,11 +826,9 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth)
 			}
 		},
 		HexArea.ViewChanged += [this](HexViewArea::ViewArgs&&){
-			char str[80];
-
-			std::sprintf(str, "当前位置： %u / %u",
-				HexArea.GetModel().GetPosition(), HexArea.GetModel().GetSize());
-			pnlFileInfo.lblSize.Text = str;
+			pnlFileInfo.lblSize.Text = u"当前位置： "
+				+ String(to_string(HexArea.GetModel().GetPosition())
+				+ " / " + to_string(HexArea.GetModel().GetSize()));
 			Invalidate(pnlFileInfo.lblSize);
 		}
 	);

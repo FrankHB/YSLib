@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2835;
+\version r2840;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-04-28 15:13 +0800;
+	2012-05-14 20:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -179,147 +179,149 @@
 
 namespace ystdex
 {
-	/*!
-	\brief 字节类型。
-	\note ISO C++ 对访问存储的 glvalue 的类型有严格限制，当没有对象生存期保证时，
-		仅允许（可能 cv 修饰的） char 和 unsigned char 及其指针/引用或 void* ，
-		而不引起未定义行为(undefined behavior) 。
-	*/
-	typedef unsigned char byte;
 
-	typedef int errno_t;
-	using std::ptrdiff_t;
-	using std::size_t;
-	using std::wint_t;
+/*!
+\brief 字节类型。
+\note ISO C++ 对访问存储的 glvalue 的类型有严格限制，当没有对象生存期保证时，
+	仅允许（可能 cv 修饰的） char 和 unsigned char 及其指针/引用或 void* ，
+	而不引起未定义行为(undefined behavior) 。
+*/
+typedef unsigned char byte;
+
+typedef int errno_t;
+using std::ptrdiff_t;
+using std::size_t;
+using std::wint_t;
 
 #ifdef YCL_HAS_BUILTIN_NULLPTR
 
-	using std::nullptr_t;
+using std::nullptr_t;
 
 #else
 
-	/*!
-	\brief 空指针类。
-	\see 代码参考：http://topic.csdn.net/u/20100924/17/\
+/*!
+\brief 空指针类。
+\see 代码参考：http://topic.csdn.net/u/20100924/17/\
 BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
+*/
+const class nullptr_t
+{
+public:
+	/*
+	\brief 转换任意类型至空非成员或静态成员指针。
 	*/
-	const class nullptr_t
-	{
-	public:
-		/*
-		\brief 转换任意类型至空非成员或静态成员指针。
-		*/
-		template<typename T>
-		inline operator T*() const
-		{
-			return 0;
-		}
-
-		/*
-		\brief 转换任意类型至空非静态成员指针。
-		*/
-		template<typename C, typename T>
-		inline operator T C::*() const
-		{
-			return 0;
-		}
-		/*
-		\brief 支持关系运算符重载。
-		*/
-		template<typename T> bool
-		equals(T const& rhs) const
-		{
-			return rhs == 0;
-		}
-
-		/*
-		\brief 禁止取 nullptr 的指针。
-		*/
-		void operator&() const = delete;
-	} nullptr = {};
-
 	template<typename T>
-	inline bool
-	operator==(const nullptr_t& lhs, T const& rhs)
+	inline operator T*() const
 	{
-		return lhs.equals(rhs);
-	}
-	template<typename T>
-	inline bool
-	operator==(T const& lhs, const nullptr_t& rhs)
-	{
-		return rhs.equals(lhs);
+		return 0;
 	}
 
-	template<typename T>
-	inline bool
-	operator!=(const nullptr_t& lhs, T const& rhs)
+	/*
+	\brief 转换任意类型至空非静态成员指针。
+	*/
+	template<typename C, typename T>
+	inline operator T C::*() const
 	{
-		return !lhs.equals(rhs);
+		return 0;
 	}
-	template<typename T>
-	inline bool
-	operator!=(T const& lhs, const nullptr_t& rhs)
+	/*
+	\brief 支持关系运算符重载。
+	*/
+	template<typename T> bool
+	equals(T const& rhs) const
 	{
-		return !rhs.equals(lhs);
+		return rhs == 0;
 	}
+
+	/*
+	\brief 禁止取 nullptr 的指针。
+	*/
+	void operator&() const = delete;
+} nullptr = {};
+
+template<typename T>
+inline bool
+operator==(const nullptr_t& lhs, T const& rhs)
+{
+	return lhs.equals(rhs);
+}
+template<typename T>
+inline bool
+operator==(T const& lhs, const nullptr_t& rhs)
+{
+	return rhs.equals(lhs);
+}
+
+template<typename T>
+inline bool
+operator!=(const nullptr_t& lhs, T const& rhs)
+{
+	return !lhs.equals(rhs);
+}
+template<typename T>
+inline bool
+operator!=(T const& lhs, const nullptr_t& rhs)
+{
+	return !rhs.equals(lhs);
+}
 
 #endif
 
 
-	/*!
-	\brief 空基类模板。
-	\since build 260 。
-	*/
-	template<typename...>
-	struct empty_base
-	{};
+/*!
+\brief 空基类模板。
+\since build 260 。
+*/
+template<typename...>
+struct empty_base
+{};
 
 
-	/*!	\defgroup HelperFunctions Helper Functions
-	\brief 助手功能/函数。
+/*!	\defgroup HelperFunctions Helper Functions
+\brief 助手功能/函数。
 
-	仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
-	\since build 252 。
-	*/
+仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
+\since build 252 。
+*/
 
-	/*!
-	\ingroup HelperFunctions
-	\brief 根据参数类型使用 std::forward 传递对应参数。
-	\since build 245 。
+/*!
+\ingroup HelperFunctions
+\brief 根据参数类型使用 std::forward 传递对应参数。
+\since build 245 。
 
-	传递参数：按类型保持值类别(value catory) 和常量性。
-	当表达式类型为函数或函数引用类型时，结果为左值(lvalue) ，否则：
-	当且仅当左值引用类型时结果为左值（此时类型不变）；
-	否则结果为 xvalue （对应的右值引用类型）。
-	*/
-	#define yforward(_expr) std::forward<decltype(_expr)>(_expr)
+传递参数：按类型保持值类别(value catory) 和常量性。
+当表达式类型为函数或函数引用类型时，结果为左值(lvalue) ，否则：
+当且仅当左值引用类型时结果为左值（此时类型不变）；
+否则结果为 xvalue （对应的右值引用类型）。
+*/
+#define yforward(_expr) std::forward<decltype(_expr)>(_expr)
 
-	/*!
-	\brief 无序列依赖表达式组求值实现。
-	\return 第一个参数的引用。
-	\since build 296 。
-	*/
-	template<typename _type, typename... _tParams>
-	yconstfn auto
-	unsequenced(_type&& arg, _tParams&&...) -> decltype(yforward(arg))
-	{
-		return yforward(arg);
-	}
-
-	/*!
-	\brief 无序列依赖表达式组求值。
-	\note 由于实现限制，无法用于 void 类型表达式组。
-	\note 使用一元形式 %yunsequenced((_expr)) 的形式标记表达式组但不取消序列关系。
-	\note 支持嵌套使用。
-	\warning 非一元形式禁止用于产生对于同一对象的未序列化的(unsequenced) 副作用
-		的表达式，否则存在未定义行为。
-	\warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常且对抛出顺序
-		敏感（例如 std::bad_cast 处理顺序不同可能造成内存泄露）的表达式。
-	\since build 266 。
-	*/
-	#define yunseq ystdex::unsequenced
+/*!
+\brief 无序列依赖表达式组求值实现。
+\return 第一个参数的引用。
+\since build 296 。
+*/
+template<typename _type, typename... _tParams>
+yconstfn auto
+unsequenced(_type&& arg, _tParams&&...) -> decltype(yforward(arg))
+{
+	return yforward(arg);
 }
+
+/*!
+\brief 无序列依赖表达式组求值。
+\note 由于实现限制，无法用于 void 类型表达式组。
+\note 使用一元形式 %yunsequenced((_expr)) 的形式标记表达式组但不取消序列关系。
+\note 支持嵌套使用。
+\warning 非一元形式禁止用于产生对于同一对象的未序列化的(unsequenced) 副作用
+	的表达式，否则存在未定义行为。
+\warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常且对抛出顺序
+	敏感（例如 std::bad_cast 处理顺序不同可能造成内存泄露）的表达式。
+\since build 266 。
+*/
+#define yunseq ystdex::unsequenced
+
+} // namespace ystdex;
 
 #endif
 

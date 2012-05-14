@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3568; *build 307 rev 8;
+\version r3574; *build 308 rev 16;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-11 12:51 +0800;
+	2012-05-15 01:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -367,83 +367,75 @@ $using:
 
 $DONE:
 r1:
-/= 7 test 1 ^ \a \conf @ platform MinGW32,
-* $doc @ \f (GetLocationOf, GetSizeOf) @ \h YWidget $since b263,
+/ @ "platform %DS" $=
 (
-	+ \mf (GetLocationRef, GetSizeRef) @ \cl (Visual; View);
-	/ \impl @ \ctor AScrollBar
+	^ "updated devkitARM release 40" ~ "devkitARM release 39",
+	^ "updated libfat 1.0.10" ~ "libnds 1.0.11"
 ),
-/ $doc Doxygen file $=
-(
-	* wrong Doxygen root output path $since b300,
-	/ input ignorance
-);
+/= test 0 ^ @ platform MinGW32;
 
 r2:
-/ @ \impl \u Selector $=
-(
-	* \impl @ \f Tick $since b306,
-	/ \f Tick -> \mf Tick @ \cl CheckBox;
-	/ \tr \impl @ \ctor CheckBox
-);
-/ \tr \impl @ \mf SettingPanel::operator<< @ \impl \u ShlReader;
-* $comp wrong check box state @ setting panel @ text reader $since b306;
+/ \simp \impl @ \ctor ShlTextReader @ \impl \u ShlReader;
 
-r3:
-/= 4 test 2 ^ \a \conf @ platform MinGW32,
+r3-r8:
++ \lib LibDefect[\dir "libdefect"] @ \proj YBase;
++ \h String["string.h"] @ \dir libdefect;
+/ $design using \decl order @ \h YReference,
 (
-	+ raising event Resize @ \impl @ \mf ScrollableContainer::FixLayout,
-	* missing text list view updating @ \mf ListBox::ResizeForPreferred
-		$since b282;
-	* $comp missing scroll bars refreshing @ (ListBox resizing;
-		DropDownList showing) $since b282
-);
-/ \impl @ \ctor SettingPanel @ \impl \u ShlReader $=
-(
-	/ scrolling interval value set,
-	* wrong displayed scrolling interval $since b301
-);
-
-r4:
-/ \cl FPSCounter @ \ns YReader @ \u Shells >> \ns YSLib @ \u ShellHelper;
-
-r5:
-+ \inc \h TextList @ \h ShellHelper,
-+ \inc \h <cstdio> @ \impl \u ShellHelper;
-/ @ \un \ns @ \ns YReader @ \impl \u ShllReader $=
-(
+	/ @ \h YAdaptor $=
 	(
-		/ yconstexpr \o DefaultTimeFormat >> \ns YSLib @ \h ShellHelper;
-		/ \f \i snftime >> \un \ns @ \ns YSLib @ \impl \u ShellHelper,
-		/ \a 2 \f TranslateTime >> \ns YSLib @ \u ShellHelper,
+		+ \inc \h <libdefect/string.h>;
+		+ using std::to_string @ \h YAdaptor
 	),
-	/ \f FetchFontFamilyNames >> \ns YSLib @ \u ShellHelper
+	+ \f to_string @ \u ShellHelper;
+	/ \simp \impl ^ to_string @ \impl \u (Shells, ShlReader, ColorPicker)
+),
+/= 3 test 1 @ platform MinGW32;
+/= test 2 @ platform DS;
+
+r9:
+/ @ \h String @ \lib YStdandardEx $=
+(
+	/ \inc \h <string> -> <libdefect/string.h>;
+	+ \f \i to_string for (unsigned char, unsigned short)
 );
+/ @ \h YAdaptor $=
+(
+	/ \inc \h <libdefect/string.h> -> <ystdex/string.hpp>;
+	+ using ystdex::to_string
+),
+/= test 3 @ platform DS;
 
-r6:
-/ \ft \i SetBufferRendererAndText @ \un \ns @ \ns YReader @ \impl \u ShllReader
-	>> \ns YSLib::Components @ \h ShellHelper;
+r10:
++ \ft \i to_string for \en \tp @ \h String @ \lib YStandardEx,
+/= test 4 @ platform MinGW32;
 
-r7:
-/ (EncodingInfoItem, Encodings) @ \un \ns @ \ns YReader @ \impl \u ShlReader
-	>> \ns YSLib::Text @ \h ShellHelper;
+r11:
+/= test 5 @ platform DS;
 
-r8:
-/= test 3 ^ \conf release;
+r12-r13:
+* \impl @ \ft to_string @ \h String @ \lib YStandardEx,
+/ \simp @ \h String @ \lib LibDefect,
+/= test 6 @ platform MinGW32;
+
+r14-16:
+/= test 7 @ platform DS,
+/= test 8 @ platform DS ^ \conf release,
+/= test 9 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-05-11:
--17.7d;
-//Mercurial rev1-rev179: r8347;
+2012-05-15:
+-19.9d;
+//Mercurial rev1-rev180: r8363;
 
 / ...
 
 
 $NEXT_TODO:
-b308-b332:
+b309-b332:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -764,6 +756,10 @@ $module_tree $=
 			'Utilities',
 			'Memory',
 			'TypeOperations'
+		),
+		'LibDefect'
+		(
+			'String'
 		)
 	),
 	'YFramework'
@@ -818,6 +814,18 @@ $module_tree $=
 );
 
 $now
+(
+	/ @ "platform %DS" $=
+	(
+		^ "updated devkitARM release 40" ~ "devkitARM release 39",
+		^ "updated libfat 1.0.10" ~ "libnds 1.0.11"
+	),
+	/ $design %'YBase' $= (+ "library %LibDefect"
+		$= (+ "libstdc++ string conversion workaround %String"));
+	/ $design "simplified UI shells implementation" @ %'YReader'
+),
+
+b307
 (
 	(
 		/ %'YFramework'.'YSLib'.'GUI' $=
@@ -2372,8 +2380,7 @@ b274
 				@ "class template %GTextRendererBase" $since b267，
 			* "implementation" @ "function %FetchLastLineBasePosition"
 				$since $before b132 ^ "ascender" ~ "descender",
-			* "implementation" @ "function %FetchResizedLineN"
-				$since b252
+			* "implementation" @ "function %FetchResizedLineN" $since b252
 		),
 		/ $design "lessened header dependencies"
 	);
@@ -2873,6 +2880,7 @@ b252
 	/ "Doxygen file",
 	+ $design "nested-use support" @ "macro %yunsequenced implementation",
 	^ "updated devkitARM release 35" ~ "devkitARM release 34",
+	^ "updated libfat 1.0.10" ~ "libfat 1.0.9",
 	* "implementation" @ "installation checking" $since b245
 ),
 
@@ -3983,7 +3991,10 @@ b192
 	/ "class %IWindow as non-virtual inheritance" @ "class %AWindow"
 		@ "class %YWindow",
 	/ "arm9 makefile",
-	/ "scroll controls implementation"
+	/ "scroll controls implementation",
+	^ "updated libnds 1.4.9" ~ "libnds 1.5.0",
+	^ "updated default arm7 0.5.20" ~ "default arm7 0.5.18",
+	^ "updated libfat 1.0.9" ~ "libfat 1.0.7"
 ),
 
 b191

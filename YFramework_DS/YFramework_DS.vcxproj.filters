@@ -30,36 +30,47 @@
     </Filter>
     <Filter Include="头文件\YSLib">
       <UniqueIdentifier>{e36e383b-de46-4894-a24d-888ad3cf68a9}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Core">
       <UniqueIdentifier>{682a6edb-d385-4f63-8546-75f7ab0ec3f2}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\UI">
       <UniqueIdentifier>{b93f01f1-d47f-4c33-b8d1-41907021cb8e}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Service">
       <UniqueIdentifier>{8e995e23-d436-4c0e-9408-cfe948f869f8}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib\Adaptor">
       <UniqueIdentifier>{3cab8df1-34bf-4cb8-9165-9d58a8db1054}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YCLib">
       <UniqueIdentifier>{2a064573-7eb4-42c3-83a8-87d0c0b6afc2}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\CHRLib">
       <UniqueIdentifier>{e62c15e0-385a-4bde-828c-5281f50b8eee}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\freetype">
       <UniqueIdentifier>{2a2b0687-2f3d-41de-95b4-94f22ff0b19b}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\freetype\config">
       <UniqueIdentifier>{d9609d6d-f0f7-431d-9cba-490b9ffeef54}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\freetype\internal">
       <UniqueIdentifier>{5f8b4166-8edf-4693-a898-de169fde3d8b}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\freetype\internal\services">
       <UniqueIdentifier>{4e3db593-483d-4426-8590-fc86b590c985}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="资源文件">
       <UniqueIdentifier>{1cb47ae8-72cc-4f9e-82ec-46f636fa4dd7}</UniqueIdentifier>
@@ -69,33 +80,43 @@
     </Filter>
     <Filter Include="源文件">
       <UniqueIdentifier>{0001eb06-b6fe-492c-9f44-82a8c971d24c}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib">
       <UniqueIdentifier>{83d7aaf3-75dd-4ae2-bb46-88cd5943c041}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Adaptor">
       <UniqueIdentifier>{7c24dd14-09b9-4216-82bf-1abd2c172087}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Core">
       <UniqueIdentifier>{8d11eff1-e310-4f2f-aba6-f8690f09822e}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\UI">
       <UniqueIdentifier>{848ca160-59e1-4f36-a67d-70a1503031f3}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YSLib\Service">
       <UniqueIdentifier>{eaa2ff05-5128-4c80-9fc2-2308056d79d4}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\YCLib">
       <UniqueIdentifier>{fde094de-879d-4f51-91a2-ab96fac21188}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="源文件\CHRLib">
       <UniqueIdentifier>{5c668777-7615-4bfe-aea2-976e37bb5ded}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="头文件\Helper">
       <UniqueIdentifier>{258f7435-040a-49ee-8154-e98a36aa6097}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="源文件\Helper">
       <UniqueIdentifier>{3a0e79a5-ce22-4962-be2c-a0fa13a6730f}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>

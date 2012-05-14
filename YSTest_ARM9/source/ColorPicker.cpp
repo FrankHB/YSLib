@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r1226;
+\version r1241;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2012-01-06 21:37:51 +0800;
 \par 修改时间:
-	2012-04-21 18:32 +0800;
+	2012-05-14 22:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -81,17 +81,9 @@ ColorBox::SetColor(Color c)
 	trRed.SetValue(c.GetR()),
 	trGreen.SetValue(c.GetG()),
 	trBlue.SetValue(c.GetB());
-
-	char str[7];
-
-	// FIXME: snprintf shall be a member of namespace std;
-	/*std*/::snprintf(str, 7, "R: %d", c.GetR());
-	lblRed.Text = str;
-	/*std*/::snprintf(str, 7, "G: %d", c.GetG());
-	lblGreen.Text = str;
-	/*std*/::snprintf(str, 7, "B: %d", c.GetB());
-	lblBlue.Text = str;
-
+	yunseq(lblRed.Text = "R: " + to_string(c.GetR()),
+		lblGreen.Text = "G: " + to_string(c.GetG()),
+		lblBlue.Text = "B: " + to_string(c.GetB()));
 	Invalidate(ctlColorArea),
 	Invalidate(trRed), Invalidate(trGreen), Invalidate(trBlue),
 	Invalidate(lblRed), Invalidate(lblGreen), Invalidate(lblBlue);

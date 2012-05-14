@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r1147;
+\version r1175;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304 。
 \par 创建时间:
 	2012-04-26 20:12:19 +0800;
 \par 修改时间:
-	2012-04-26 20:30 +0800;
+	2012-05-15 00:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YCL_INC_STRING_HPP_
 
 #include "utility.hpp" // for ../ydef.h, ystdex::make_array;
-#include <string> // for std::char_traits and std::initializer_list;
+#include <libdefect/string.h> // for std::char_traits, std::initializer_list, 
+//	and std::to_string;
 
 namespace ystdex
 {
@@ -145,6 +146,36 @@ split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 		insert(i, b);
 	return i;
 }
+
+
+/*!
+\brief 转换为字符串。
+\note 可与 <tt>std::to_string</tt> 共用以避免某些类型转换警告，
+	如 g++ 的 [-Wsign-promo] 。
+\since build 308 。
+*/
+//@{
+inline std::string
+to_string(unsigned char val)
+{
+	return std::to_string(unsigned(val));
+}
+inline std::string
+to_string(unsigned short val)
+{
+	return std::to_string(unsigned(val));
+}
+template<typename _type>
+inline std::string
+to_string(_type val, typename
+	std::enable_if<std::is_enum<_type>::value, int>::type = 0)
+{
+	using std::to_string;
+	using ystdex::to_string;
+
+	return to_string(typename std::underlying_type<_type>::type(val));
+}
+//@}
 
 } // namespace ystdex;
 

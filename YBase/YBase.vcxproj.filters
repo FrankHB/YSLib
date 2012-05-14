@@ -22,6 +22,10 @@
       <UniqueIdentifier>{3eefbce0-b4c1-411d-9af0-b0d663b526db}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="头文件\libdefect">
+      <UniqueIdentifier>{929b4b30-f9e4-4c8f-9200-d0f7eaf535e6}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ydef.h">
@@ -62,6 +66,9 @@
     </ClInclude>
     <ClInclude Include="include\ystdex\string.hpp">
       <Filter>头文件\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libdefect\string.h">
+      <Filter>头文件\libdefect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
