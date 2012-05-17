@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4295;
+\version r4296;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-05-09 13:28 +0800;
+	2012-05-16 17:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -104,7 +104,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 
 #define YSL_UI_ATRACK_PARTIAL_INVALIDATION
 				// NOTE: partial invalidation made no efficiency improved here;
-				const Color& c(pal[Styles::Light]);
+				const auto c(pal[Styles::Light]);
 #ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
 				SPos x(pt.X);
 				SPos y(pt.Y);

@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1791;
+\version r1792;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-04-07 16:49 +0800;
+	2012-05-15 19:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -306,7 +306,7 @@ void
 TextList::PaintItem(const Graphics& g, const Rect& mask, const Rect&,
 	ListType::size_type i)
 {
-	DrawClippedText(g, mask, GetTextState(), GetList()[i]);
+	DrawClippedText(g, mask, GetTextState(), GetList()[i], false);
 }
 
 void

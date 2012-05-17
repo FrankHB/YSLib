@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6132;
+\version r6178;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-05-14 21:39 +0800;
+	2012-05-16 13:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -205,13 +205,6 @@ GenerateList(const String& str)
 	return share_raw(p);
 }
 
-void
-SwitchVisible(IWidget& wgt)
-{
-	SetVisibleOf(wgt, !IsVisible(wgt));
-	Invalidate(wgt);
-}
-
 
 namespace EnrtySpace
 {
@@ -288,31 +281,30 @@ CheckReaderEnability(FileBox& fb, CheckBox& hex)
 
 ShlExplorer::ShlExplorer(const IO::Path& path)
 	: ShlDS(),
-	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(12, 80, 240, 22)),
-	fbMain(Rect(4, 6, 248, 128)),
+	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(8, 48, 240, 48)),
+	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
 	chkFPS(Rect(210, 144, 13, 13)), chkHex(Rect(232, 144, 13, 13)),
 	pWndTest(make_unique<TFormTest>()), pWndExtra(make_unique<TFormExtra>()),
-	lblA(Rect(16, 44, 200, 22)), lblB(Rect(5, 120, 72, 22)),
 	mhMain(*GetDesktopDownHandle()), fpsCounter(500000000ULL)
 {
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	AddWidgets(dsk_up, lblTitle, lblPath, lblA, lblB),
+	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
 	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, chkFPS, chkHex),
 	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, *pWndTest, *pWndExtra),
 	//对 fbMain 启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
-	lblB.SetTransparent(true),
 	SetVisibleOf(*pWndTest, false),
 	SetVisibleOf(*pWndExtra, false),
 	yunseq(
-		tie(dsk_up.Background, dsk_dn.Background, lblTitle.Text, lblPath.Text,
-			btnTest.Text, btnOK.Text, lblA.Text, lblB.Text) = forward_as_tuple(
-			ImageBrush(FetchImage(1)), ImageBrush(FetchImage(2)),
-			u"YReader", path, u"测试(X)", u"确定(A)",
-			u"文件列表：请选择一个文件。", u"程序测试"),
+		tie(dsk_up.Background, dsk_dn.Background, lblTitle.Text,
+			lblPath.AutoWrapLine, lblPath.Text, lblInfo.AutoWrapLine,
+			lblInfo.Text, btnTest.Text, btnOK.Text)
+			= forward_as_tuple(ImageBrush(FetchImage(1)),
+			ImageBrush(FetchImage(2)), u"YReader", true, path, true,
+			u"文件列表：请选择一个文件。", u"测试(X)", u"确定(A)"),
 		fbMain.SetPath(path),
 		Enable(btnTest, true),
 		Enable(btnOK, false),
@@ -487,17 +479,12 @@ ShlExplorer::TFormExtra::TFormExtra()
 {
 	AddWidgets(*this, btnDragTest, btnTestEx, btnClose, btnExit),
 	yunseq(
-		btnDragTest.Text = u"测试拖放控件",
-		btnDragTest.HorizontalAlignment = TextAlignment::Left,
-		btnTestEx.Text = u"附加测试",
-		btnClose.Text = u"关闭",
-		btnExit.Text = u"退出",
-		Background = SolidBrush(Color(248, 120, 120)),
 		//	btnDragTest.Enabled = false,
-		btnClose.Background = SolidBrush(Color(176, 184, 192))
-	),
-	SetInvalidationOf(*this);
-	yunseq(
+		tie(btnDragTest.Text, btnDragTest.HorizontalAlignment, btnTestEx.Text,
+			btnClose.Text, btnExit.Text, Background, btnClose.Background)
+			= forward_as_tuple(u"测试拖放控件", TextAlignment::Left,
+			u"附加测试", u"关闭", u"退出",
+			SolidBrush(Color(248, 120, 120)), SolidBrush(Color(176, 184, 192))),
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			Background = SolidBrush(GenerateRandomColor());
 			SetInvalidationOf(*this);
@@ -516,10 +503,10 @@ ShlExplorer::TFormExtra::TFormExtra()
 
 			std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
 				t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
-			auto& lblA(FetchShell<ShlExplorer>().lblA);
+			auto& lblInfo(FetchShell<ShlExplorer>().lblInfo);
 
-			lblA.Text = strMemory;
-			Invalidate(lblA);
+			lblInfo.Text = strMemory;
+			Invalidate(lblInfo);
 #endif
 		},
 		FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging,
@@ -531,15 +518,17 @@ ShlExplorer::TFormExtra::TFormExtra()
 			Invalidate(*this);
 		//	Enable(btnClose);
 		},
-	//	FetchEvent<Click>(btnTestEx) += [this](TouchEventArgs&& e){
-	//	},
-		FetchEvent<KeyPress>(btnDragTest) += [](KeyEventArgs&& e){
+		FetchEvent<Click>(btnTestEx) += [](TouchEventArgs&& e){
 			const auto& k(e.GetKeys());
-			auto& lbl(polymorphic_downcast<Label&>(e.GetSender()));
+			auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
+			auto& shl(FetchShell<ShlExplorer>());
+			auto& lblTitle(shl.lblTitle);
+			auto& lblInfo(shl.lblInfo);
 
-			lbl.SetTransparent(!lbl.IsTransparent()),
-			lbl.Text = k.to_string() + ";\n";
-			Invalidate(lbl);
+			lblTitle.SetTransparent(!lblTitle.IsTransparent()),
+			lblInfo.Text = btn.Text + u";\n" + String(k.to_string());
+			Invalidate(lblTitle),
+			Invalidate(lblInfo);
 		},
 		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 			Hide(*this);
@@ -548,6 +537,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 			YSL_ PostQuitMessage(0);
 		}
 	);
+	SetInvalidationOf(*this);
 }
 
 
@@ -572,7 +562,7 @@ ShlExplorer::OnPaint()
 
 			std::sprintf(strt, "FPS: %u.%03u", t / 1000, t % 1000);
 			FillRect(g, r, Blue);
-			DrawText(g, r, strt, DefaultMargin, White);
+			DrawText(g, r, strt, DefaultMargin, White, false);
 			bUpdateDown = true;
 		}
 	}

@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1974;
+\version r1975;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-04-24 21:42 +0800;
+	2012-05-15 19:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -209,7 +209,7 @@ Menu::PaintItem(const Graphics& g, const Rect& mask, const Rect& r,
 
 	if(!IsItemEnabled(i))
 		GetTextState().Color = FetchGUIState().Colors[Styles::GrayText];
-	DrawClippedText(g, mask, GetTextState(), GetList()[i]);
+	DrawClippedText(g, mask, GetTextState(), GetList()[i], false);
 	GetTextState().Color = t;
 	if(YCL_LIKELY(r.Width > 16))
 		if(mSubMenus.find(i) != mSubMenus.end())

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2391;
+\version r2451;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-05-14 21:38 +0800;
+	2012-05-15 08:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -77,72 +77,6 @@ yconstexpr EncodingInfoItem Encodings[] = {{CharSet::UTF_8, u"UTF-8"},
 	{CharSet::UTF_32LE, u"UTF-16 Little Endian"}};
 
 YSL_END_NAMESPACE(Text)
-
-YSL_BEGIN_NAMESPACE(Components)
-
-/*!
-\brief 序列设置仿函数。
-\since build 278 。
-*/
-struct ContainerSetter
-{
-public:
-	/*!
-	\brief 容器。
-	\since build 302 。
-	*/
-	std::reference_wrapper<IWidget> Container;
-
-	ContainerSetter(IWidget& con)
-		: Container(con)
-	{}
-
-	void
-	operator()(IWidget& wgt)
-	{
-		SetContainerPtrOf(wgt, &Container.get());
-	}
-};
-
-
-/*!
-\brief 子部件绘制仿函数。
-\since build 278 。
-*/
-struct ChildPainter
-{
-public:
-	/*!
-	\brief 绘制上下文。
-	\since build 302 。
-	*/
-	std::reference_wrapper<const PaintContext> Context;
-
-	ChildPainter(const PaintContext& pc)
-		: Context(pc)
-	{}
-
-	void
-	operator()(IWidget& wgt)
-	{
-		PaintChild(wgt, Context);
-	}
-};
-
-
-/*!
-\brief 设置部件渲染器为 BufferedRenderer 及部件的 Text 成员。
-\since build 301 。
-*/
-template<class _tWidget>
-inline void
-SetBufferRendererAndText(_tWidget& wgt, const String& s)
-{
-	wgt.SetRenderer(make_unique<BufferedRenderer>()),
-	wgt.Text = s;
-}
-
-YSL_END_NAMESPACE(Components)
 
 
 /*!
@@ -449,6 +383,81 @@ public:
 };
 
 //@}
+
+YSL_BEGIN_NAMESPACE(Components)
+
+/*!
+\brief 切换部件显示状态并无效化。
+\since build 229 。
+*/
+void
+SwitchVisible(IWidget&);
+
+
+/*!
+\brief 序列设置仿函数。
+\since build 278 。
+*/
+struct ContainerSetter
+{
+public:
+	/*!
+	\brief 容器。
+	\since build 302 。
+	*/
+	std::reference_wrapper<IWidget> Container;
+
+	ContainerSetter(IWidget& con)
+		: Container(con)
+	{}
+
+	void
+	operator()(IWidget& wgt)
+	{
+		SetContainerPtrOf(wgt, &Container.get());
+	}
+};
+
+
+/*!
+\brief 子部件绘制仿函数。
+\since build 278 。
+*/
+struct ChildPainter
+{
+public:
+	/*!
+	\brief 绘制上下文。
+	\since build 302 。
+	*/
+	std::reference_wrapper<const PaintContext> Context;
+
+	ChildPainter(const PaintContext& pc)
+		: Context(pc)
+	{}
+
+	void
+	operator()(IWidget& wgt)
+	{
+		PaintChild(wgt, Context);
+	}
+};
+
+
+/*!
+\brief 设置部件渲染器为 BufferedRenderer 及部件的 Text 成员。
+\since build 301 。
+*/
+template<class _tWidget>
+inline void
+SetBufferRendererAndText(_tWidget& wgt, const String& s)
+{
+	wgt.SetRenderer(make_unique<BufferedRenderer>()),
+	wgt.Text = s;
+}
+
+YSL_END_NAMESPACE(Components)
+
 
 YSL_END
 

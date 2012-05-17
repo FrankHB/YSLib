@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r6900;
+\version r6925;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-03-17 20:00 +0800;
+	2012-05-15 21:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/Service/TextRenderer.h"
 #include "YSLib/Service/yblit.h"
+#include "YSLib/Service/TextLayout.h" // for FetchLastLineBasePosition;
 
 using namespace ystdex;
 
@@ -136,40 +137,47 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 
 void
 DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
-	const String& str)
+	const String& str, bool line_wrap)
 {
 	TextRenderer tr(ts, g, mask);
 
-	PrintLine(tr, str);
+	if(line_wrap)
+		PutString(tr, str);
+	else
+		PutLine(tr, str);
 }
 void
-DrawClippedText(const Graphics& g, const Rect& mask, const Rect& r,
-	const String& str, const Padding& m, Color color)
+DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
+	const String& str, const Padding& margin, Color color, bool line_wrap,
+	const Font& fnt)
 {
-	TextState ts;
+	TextState ts(fnt);
 
-	ts.Font = Font(); //设置默认字体。
-	ts.ResetForBounds(r, g.GetSize(), m);
+	ts.ResetForBounds(bounds, g.GetSize(), margin);
 	ts.Color = color;
-	DrawClippedText(g, mask, ts, str);
+	DrawClippedText(g, mask, ts, str, line_wrap);
 }
 
 void
-DrawText(const Graphics& g, TextState& ts, const String& str)
+DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap)
 {
-	DrawClippedText(g, Rect(Point::Zero, g.GetSize()), ts, str);
+	DrawClippedText(g, Rect(Point::Zero, g.GetSize()), ts, str, line_wrap);
 }
 void
-DrawText(const Graphics& g, const Rect& r, const String& str, const Padding& m,
-	Color color)
+DrawText(const Graphics& g, const Rect& bounds, const String& str,
+	const Padding& margin, Color color, bool line_wrap, const Font& fnt)
 {
-	DrawClippedText(g, Rect(Point::Zero, g.GetSize()), r, str, m, color);
+	DrawClippedText(g, Rect(Point::Zero, g.GetSize()), bounds, str, margin,
+		color, line_wrap, fnt);
 }
 void
 DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,
-	const String& str)
+	const String& str, bool line_wrap)
 {
-	PutLine(tr, str);
+	if(line_wrap)
+		PutString(tr, str);
+	else
+		PutLine(tr, str);
 	BlitTo(g.GetBufferPtr(), tr, g.GetSize(), Point::Zero, pt, s);
 }
 

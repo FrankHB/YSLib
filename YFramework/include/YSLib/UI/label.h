@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2203;
+\version r2217;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-04-13 20:28 +0800;
+	2012-05-16 05:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,8 +57,17 @@ class MLabel : private noncopyable
 public:
 	Drawing::Font Font; //!< 字体。
 	Drawing::Padding Margin; //!< 文本和容器的间距。
-	TextAlignment HorizontalAlignment, VerticalAlignment; \
-		//!< 文本水平和竖直对齐属性（只在可完整显示时有效）。
+	/*!
+	\brief 文本水平和竖直对齐属性。
+	\note 只在停用自动换行且可完整显示时有效。
+	\since build 208 。
+	*/
+	TextAlignment HorizontalAlignment, VerticalAlignment; 
+	/*!
+	\brief 启用自动换行。
+	\since build 308 。
+	*/
+	bool AutoWrapLine;
 //	bool AutoSize; //!< 启用根据字号自动调整大小。
 //	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
 	String Text; //!< 标签文本。
@@ -88,6 +97,8 @@ public:
 	using MLabel::Margin;
 	using MLabel::HorizontalAlignment;
 	using MLabel::VerticalAlignment;
+	//! \since build 308 。
+	using MLabel::AutoWrapLine;
 	using MLabel::Text;
 /*
 	YImage BackgroundImage; //!< 背景图像。

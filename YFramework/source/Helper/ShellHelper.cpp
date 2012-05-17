@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1365;
+\version r1373;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-04-04 13:42:15 +0800;
 \par 修改时间:
-	2012-05-14 21:38 +0800;
+	2012-05-15 08:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -139,6 +139,17 @@ FPSCounter::Refresh()
 		++refresh_count;
 	return 0;
 }
+
+YSL_BEGIN_NAMESPACE(Components)
+
+void
+SwitchVisible(IWidget& wgt)
+{
+	SetVisibleOf(wgt, !IsVisible(wgt));
+	Invalidate(wgt);
+}
+
+YSL_END_NAMESPACE(Components)
 
 YSL_END;
 

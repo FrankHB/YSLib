@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2189;
+\version r2246;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:32:34 +0800;
 \par 修改时间:
-	2012-03-18 13:40 +0800;
+	2012-05-16 05:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN_NAMESPACE(Components)
 MLabel::MLabel(const Drawing::Font& fnt, TextAlignment a)
 	: Font(fnt), Margin(Drawing::DefaultMargin),
 	HorizontalAlignment(a), VerticalAlignment(TextAlignment::Center),
-	/*AutoSize(false), AutoEllipsis(false),*/ Text()
+	AutoWrapLine(false), /*AutoSize(false), AutoEllipsis(false),*/ Text()
 {}
 
 void
@@ -48,49 +48,51 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 	yunseq(ts.Font = Font, ts.Color = c);
 	ts.ResetForBounds(bounds, e.Target.GetSize(), Margin);
 
-	switch(HorizontalAlignment)
-	{
-	case TextAlignment::Center:
-	case TextAlignment::Right:
+	if(!AutoWrapLine)
+		switch(HorizontalAlignment)
 		{
-			SPos horizontal_offset(bounds.Width - GetHorizontalOf(Margin)
-				- FetchStringWidth(ts.Font, Text));
-
-			if(horizontal_offset > 0)
+		case TextAlignment::Center:
+		case TextAlignment::Right:
 			{
-				if(HorizontalAlignment == TextAlignment::Center)
-					horizontal_offset /= 2;
-				ts.PenX += horizontal_offset;
+				SPos horizontal_offset(bounds.Width - GetHorizontalOf(Margin)
+					- FetchStringWidth(ts.Font, Text));
+
+				if(horizontal_offset > 0)
+				{
+					if(HorizontalAlignment == TextAlignment::Center)
+						horizontal_offset /= 2;
+					ts.PenX += horizontal_offset;
+				}
 			}
+		case TextAlignment::Left:
+		default:
+			break;
 		}
-	case TextAlignment::Left:
-	default:
-		break;
-	}
 
 	SPos vertical_offset(0);
 
-	switch(VerticalAlignment)
-	{
-	case TextAlignment::Center:
-	case TextAlignment::Down:
+	if(!AutoWrapLine)
+		switch(VerticalAlignment)
 		{
-			SPos vertical_offset(bounds.Height - GetVerticalOf(Margin)
-				- GetTextLineHeightOf(ts));
-
-			if(vertical_offset > 0)
+		case TextAlignment::Center:
+		case TextAlignment::Down:
 			{
-				if(VerticalAlignment == TextAlignment::Center)
-					vertical_offset /= 2;
-				ts.PenY += vertical_offset;
+				SPos vertical_offset(bounds.Height - GetVerticalOf(Margin)
+					- GetTextLineHeightOf(ts));
+
+				if(vertical_offset > 0)
+				{
+					if(VerticalAlignment == TextAlignment::Center)
+						vertical_offset /= 2;
+					ts.PenY += vertical_offset;
+				}
 			}
+		case TextAlignment::Up:
+		default:
+			break;
 		}
-	case TextAlignment::Up:
-	default:
-		break;
-	}
 	ts.PenY += vertical_offset;
-	DrawClippedText(e.Target, e.ClipArea, ts, Text);
+	DrawClippedText(e.Target, e.ClipArea, ts, Text, AutoWrapLine);
 }
 
 
@@ -129,25 +131,6 @@ MTextList::RefreshTextState()
 {
 	yunseq(text_state.LineGap = GetVerticalOf(Margin), text_state.Font = Font);
 }
-
-/*void
-MTextList::PaintTextList(Widget& wgt, const Point& pt)
-{
-	IWindow* pWnd(FetchDirectWindowPtr(
-		polymorphic_crosscast<IWidget&>(wgt)));
-
-	if(pWnd && wpTextRegion)
-	{
-		wpTextRegion->Font = Font;
-		wpTextRegion->Font.Update();
-		wpTextRegion->ResetPen();
-		wpTextRegion->Color = wgt.ForeColor;
-		wpTextRegion->SetSize(wgt.GetWidth(), wgt.GetHeight());
-		SetMarginsTo(*wpTextRegion, 2, 2, 2, 2);
-		DrawText(pWnd->GetContext(), pt);
-		wpTextRegion->SetSize(0, 0);
-	}
-}*/
 
 YSL_END_NAMESPACE(Components)
 

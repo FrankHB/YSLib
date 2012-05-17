@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3574; *build 308 rev 16;
+\version r3574; *build 309 rev 20;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-15 01:25 +0800;
+	2012-05-17 17:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -367,75 +367,93 @@ $using:
 
 $DONE:
 r1:
-/ @ "platform %DS" $=
-(
-	^ "updated devkitARM release 40" ~ "devkitARM release 39",
-	^ "updated libfat 1.0.10" ~ "libnds 1.0.11"
-),
-/= test 0 ^ @ platform MinGW32;
+/ \f SwitchVisible @ \un \ns @ \ns YReader @ \impl \u Shells
+	>> \ns YSLib::Drawing @ \u ShellHelper,
+/= test 1 @ platform MinGW32;
 
-r2:
-/ \simp \impl @ \ctor ShlTextReader @ \impl \u ShlReader;
-
-r3-r8:
-+ \lib LibDefect[\dir "libdefect"] @ \proj YBase;
-+ \h String["string.h"] @ \dir libdefect;
-/ $design using \decl order @ \h YReference,
+r2-r3:
+/ \simp \impl @ \ctor ATrack,
 (
-	/ @ \h YAdaptor $=
+	/ @ \u TextRenderer $=
 	(
-		+ \inc \h <libdefect/string.h>;
-		+ using std::to_string @ \h YAdaptor
+		+ \mf (GetHeight, GetWidth, GetSize) @ \cl TextRenderer,
+		+ \inc \h TextLayout @ \impl \u;
+		/ \f void DrawClippedText(const Graphics&, const Rect&, TextState&,
+			const String&) -> \f DrawClippedText(const Graphics&, const Rect&,
+			TextState&, const String&, bool),
+		/ \f void DrawClippedText(const Graphics&, const Rect&, const Rect&, const
+			String&, const Padding&, Color)
+			-> \f DrawClippedText(const Graphics&, const Rect&, const Rect&,
+			const String&, const Padding&, Color, bool, const Font& = Font()),
+		/ \f void DrawText(const Graphics&, TextState&, const String&) -> \f void
+			DrawText(const Graphics&, TextState&, const String&, bool),
+		/ \f void DrawText(const Graphics&, const Rect&, const String&,
+			const Padding&, Color) -> \f void DrawText(const Graphics&, const Rect&,
+			const String&, const Padding&, Color, bool, const Font& = Font()),
+		/ \f void DrawText(TextRegion&, const Graphics&, const Point&, const Size&,
+			const String&) -> void DrawText(TextRegion&, const Graphics&,
+			const Point&, const Size&, const String, bool)
+	);
+	(
+		/ @ \cl MLabel $=
+		(
+			+ \m bool AutoWrapLine;
+			/ \impl @ \ctor,
+			/ \impl @ \mf PaintText
+		);
+		+ using MLabel::AutoWrapLine @ \cl Label
 	),
-	+ \f to_string @ \u ShellHelper;
-	/ \simp \impl ^ to_string @ \impl \u (Shells, ShlReader, ColorPicker)
-),
-/= 3 test 1 @ platform MinGW32;
-/= test 2 @ platform DS;
-
-r9:
-/ @ \h String @ \lib YStdandardEx $=
-(
-	/ \inc \h <string> -> <libdefect/string.h>;
-	+ \f \i to_string for (unsigned char, unsigned short)
+	/ \tr \impl @ \mf (TextList, Menu)::PaintItem,
+	/ \tr \impl @ \mf ShlExplorer::OnPaint @ \impl \u Shells
 );
-/ @ \h YAdaptor $=
-(
-	/ \inc \h <libdefect/string.h> -> <ystdex/string.hpp>;
-	+ using ystdex::to_string
-),
+/= 2 test 2 @ platform MinGW32;
+
+r4:
 /= test 3 @ platform DS;
 
-r10:
-+ \ft \i to_string for \en \tp @ \h String @ \lib YStandardEx,
-/= test 4 @ platform MinGW32;
+r5-r11:
+/ \impl @ \ctor ShlExplorer @ \impl \u Shells,
+/ \impl @ \mf MLabel::PaintText;
+/= 7 test 4 @ platform MinGW32;
 
-r11:
+r12:
 /= test 5 @ platform DS;
 
-r12-r13:
-* \impl @ \ft to_string @ \h String @ \lib YStandardEx,
-/ \simp @ \h String @ \lib LibDefect,
-/= test 6 @ platform MinGW32;
+r13:
+/= test 6 @ platform DS ^ \conf release;
 
-r14-16:
-/= test 7 @ platform DS,
-/= test 8 @ platform DS ^ \conf release,
-/= test 9 @ platform MinGW32 ^ \conf release;
+r14-r17:
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	/ \m Label lblA -> Label lblInfo,
+	- \m Label lblB,
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \ctor TFormExtra
+),
+/= 4 test 7 @ platform MinGW32;
+
+r18:
+/= test 8 @ platform MinGW32 ^ \conf release;
+
+r19:
+/= test 9 @ platform DS;
+
+r20:
+/= test 10 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-05-15:
--19.9d;
-//Mercurial rev1-rev180: r8363;
+2012-05-17:
+-19.8d;
+//Mercurial rev1-rev181: r8383;
 
 / ...
 
 
 $NEXT_TODO:
-b309-b332:
+b310-b332:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -814,6 +832,30 @@ $module_tree $=
 );
 
 $now
+(
+	/ $design "function %SwitchVisible" @ 'YReader' >> %'YFramework'.'Helper',
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'services' $=
+		(
+			+ "getters" @ "class %TextRenderer";
+			/ "text drawing functions" $=
+			(
+				/ "support for line wrapping";
+				+ $doc "parameter descriptions"
+			)
+		);
+		/ @ %'GUI' $=
+		(
+			+ "member %AutoWrapLine" @ "class %MLabel";
+			/ $design "implementation" @ "member function %PaintItem"
+				@ "class %(TextList, Menu)"
+		)
+	);
+	/ "file information appearance" @ %'YReader'.'file explorer'
+),
+
+b308
 (
 	/ @ "platform %DS" $=
 	(

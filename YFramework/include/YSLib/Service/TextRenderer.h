@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r7427;
+\version r7479;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-04-13 19:18 +0800;
+	2012-05-15 21:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -335,6 +335,12 @@ public:
 	ImplS(GTextRendererBase) DefGetter(ynothrow, TextState&, TextState, State)
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const Graphics&, Context,
 		Buffer)
+	//! \since build 308 。
+	//@{
+	DefGetterMem(const ynothrow, SDst, Height, Buffer)
+	DefGetterMem(const ynothrow, SDst, Width, Buffer)
+	DefGetterMem(const ynothrow, const Size&, Size, Buffer)
+	//@}
 
 	/*!
 	\brief 清除缓冲区第 l 行起始的 n 行像素。
@@ -459,39 +465,70 @@ public:
 
 
 /*!
-\brief 绘制文本。
-\since build 265 。
+\brief 绘制剪切区域的文本。
+\param g 输出图形接口上下文。
+\param mask 相对于输出图形接口上下文矩形，限定输出边界。
+\param ts 输出时使用的文本状态。
+\param str 待绘制的字符串。
+\param line_wrap 自动换行。
+\since build 309 。
 */
 void
-DrawClippedText(const Graphics&, const Rect& mask, TextState&, const String&);
+DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
+	const String& str, bool line_wrap);
 /*!
-\brief 绘制文本。
-\since build 265 。
+\brief 绘制剪切区域的文本。
+\param g 输出图形接口上下文。
+\param mask 相对于输出图形接口上下文矩形，限定输出边界。
+\param bounds 绘制区域的外边界。
+\param str 待绘制的字符串。
+\param margin 绘制区域边界和外边界之间的边距。
+\param line_wrap 自动换行。
+\param fnt 输出时使用的字体。
+\since build 309 。
 */
 void
-DrawClippedText(const Graphics&, const Rect& mask, const Rect& bound,
-	const String&, const Padding&, Color);
+DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
+	const String& str, const Padding& margin, Color, bool line_wrap,
+	const Font& fnt = Font());
 
 /*!
 \brief 绘制文本。
-\since build 190 。
+\param g 输出图形接口上下文。
+\param ts 输出时使用的文本状态。
+\param str 待绘制的字符串。
+\param line_wrap 自动换行。
+\since build 309 。
 */
 void
-DrawText(const Graphics&, TextState&, const String&);
+DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap);
 /*!
 \brief 绘制文本。
-\since build 190 。
+\param g 输出图形接口上下文。
+\param bounds 绘制区域的外边界。
+\param str 待绘制的字符串。
+\param margin 绘制区域边界和外边界之间的边距。
+\param line_wrap 自动换行。
+\param fnt 输出时使用的字体。
+\since build 309 。
 */
 void
-DrawText(const Graphics&, const Rect&, const String&, const Padding&, Color);
+DrawText(const Graphics& g, const Rect& bounds, const String& str,
+	const Padding& margin, Color, bool line_wrap, const Font& fnt = Font());
 /*!
 \brief 绘制文本。
+\param r 文本区域。
+\param g 输出图形接口上下文。
+\param pt 绘制区域左上角相对于图形接口上下文的位置偏移。
+\param s 绘制区域大小。
+\param str 待绘制的字符串。
+\param line_wrap 自动换行。
 \note 间接绘制并贴图。
-\since build 188 。
+\since build 309 。
 */
 void
-DrawText(TextRegion&, const Graphics&, const Point&, const Size&,
-	const String&);
+DrawText(TextRegion& r, const Graphics& g, const Point& pt, const Size& s,
+	const String& str, bool line_wrap);
 
 YSL_END_NAMESPACE(Drawing)
 
