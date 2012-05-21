@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1525;
+\version r1527;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2012-04-18 19:24 +0800;
+	2012-05-21 12:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ public:
 	/*!
 	\brief 按参数绘制。
 	\pre 断言： <tt>&e.GetSender().GetRenderer() == this</tt> 。
-	\note 调用 wgt 的 Paint 事件绘制，仅适用于指定部件包含自身。
+	\note 调用 wgt 的 Paint 事件绘制。
 	\note 不调用 wgt.IsVisible() 检查可见性。
 	\note 派生类行为可能改变，不直接调用事件。
 	\since build 263 。
@@ -146,7 +146,7 @@ public:
 	\brief 按参数绘制。
 	\pre 断言： <tt>&e.GetSender().GetRenderer() == this</tt> 。
 	\pre 断言： <tt>GetContext().IsValid()</tt> 。
-	\note 在 Validate 后 Update ，仅适用于指定部件包含自身。
+	\note 在 Validate 后 Update 。
 	\note 不调用 wgt.IsVisible() 检查可见性。
 	\since build 263 。
 	*/

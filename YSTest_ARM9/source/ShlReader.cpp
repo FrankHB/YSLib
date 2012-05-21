@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4486;
+\version r4534;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-05-14 21:30 +0800;
+	2012-05-14 21:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -219,12 +219,12 @@ SettingPanel::SettingPanel()
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false);
 	yunseq(
-		std::tie(btnFontSizeDecrease.Text, btnFontSizeIncrease.Text,
-			btnSetUpBack.Text, btnSetDownBack.Text, btnTextColor.Text,
-			lblSmoothScroll.Text)
-		= std::forward_as_tuple(
-			u"减小字体", u"增大字体", u"上屏颜色...", u"下屏颜色...",
-			u"文字颜色...", u"平滑滚屏"),
+		btnFontSizeDecrease.Text = u"减小字体",
+		btnFontSizeIncrease.Text = u"增大字体",
+		btnSetUpBack.Text = u"上屏颜色...",
+		btnSetDownBack.Text = u"下屏颜色...",
+		btnTextColor.Text = u"文字颜色...",
+		lblSmoothScroll.Text = u"平滑滚屏",
 	//	FetchEvent<Paint>(lblColorAreaUp).Add(BorderBrush(BorderStyle),
 	//		BoundaryPriority),
 	//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
@@ -445,9 +445,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	const auto exit_setting([this](TouchEventArgs&&){
 		auto& dsk_up(GetDesktopUp());
 
-		tie(dsk_up.Background, GetDesktopDown().Background)
-			= forward_as_tuple(pnlSetting.lblAreaUp.Background,
-			pnlSetting.lblAreaDown.Background),
+		yunseq(dsk_up.Background = pnlSetting.lblAreaUp.Background,
+			GetDesktopDown().Background = pnlSetting.lblAreaDown.Background);
 		RemoveWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown),
 		Reader.SetVisible(true),
 		boxReader.UpdateData(Reader),
@@ -581,13 +580,13 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		break;
 	case MR_Setting:
 		Reader.SetVisible(false),
-		tie(pnlSetting.lblAreaUp.ForeColor, pnlSetting.lblAreaUp.Background,
-			pnlSetting.lblAreaUp.Font, pnlSetting.lblAreaDown.ForeColor,
-			pnlSetting.lblAreaDown.Background, pnlSetting.lblAreaDown.Font,
-			pnlSetting.ddlFont.Text) = forward_as_tuple(
-			Reader.GetColor(), GetDesktopUp().Background, Reader.GetFont(),
-			Reader.GetColor(), GetDesktopDown().Background, Reader.GetFont(),
-			Reader.GetFont().GetFamilyName());
+		yunseq(pnlSetting.lblAreaUp.ForeColor = Reader.GetColor(),
+			pnlSetting.lblAreaUp.Background = GetDesktopUp().Background,
+			pnlSetting.lblAreaUp.Font = Reader.GetFont(),
+			pnlSetting.lblAreaDown.ForeColor = Reader.GetColor(),
+			pnlSetting.lblAreaDown.Background = GetDesktopDown().Background,
+			pnlSetting.lblAreaDown.Font = Reader.GetFont(),
+			pnlSetting.ddlFont.Text = Reader.GetFont().GetFamilyName());
 		pnlSetting.UpdateInfo();
 		{
 			auto& dsk_up(GetDesktopUp());
@@ -600,9 +599,8 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 				(Encodings + arrlen(Encodings)) | get_key,
 				Reader.GetEncoding()) - Encodings);
 
-			tie(pnlSetting.lblAreaDown.Text, pnlSetting.ddlEncoding.Text)
-				= forward_as_tuple(FetchEncodingString(idx),
-				Encodings[idx].second);
+			yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
+				pnlSetting.ddlEncoding.Text = Encodings[idx].second);
 		}
 		StopAutoScroll(),
 		Hide(boxReader),
@@ -843,10 +841,10 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth)
 
 	//在 DeSmuMe 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
 	::stat(path_str.c_str(), &file_stat);
-	tie(pnlFileInfo.lblAccessTime.Text, pnlFileInfo.lblModifiedTime.Text)
-		= forward_as_tuple(u"访问时间："
+	yunseq(pnlFileInfo.lblAccessTime.Text = u"访问时间："
 		+ String(TranslateTime(file_stat.st_atime)),
-		u"修改时间：" + String(TranslateTime(file_stat.st_mtime)));
+		pnlFileInfo.lblModifiedTime.Text = u"修改时间："
+		+ String(TranslateTime(file_stat.st_mtime)));
 	dsk_up += pnlFileInfo;
 	HexArea.Load(path_str.c_str());
 	HexArea.UpdateData(0);

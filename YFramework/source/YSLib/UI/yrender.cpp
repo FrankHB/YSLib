@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1566;
+\version r1572;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2012-04-24 21:45 +0800;
+	2012-05-21 19:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -67,7 +67,7 @@ BufferedRenderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 {
 	YAssert(&e.GetSender().GetRenderer() == this, "Invalid widget found.");
 
-	Rect r(Validate(wgt, e.GetSender(), e));
+	const auto& r(Validate(wgt, e.GetSender(), e));
 
 	UpdateTo(e);
 	return r;
@@ -90,6 +90,10 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 	if(RequiresRefresh())
 	{
 		const auto& l(GetLocationOf(sender));
+
+		if(!IgnoreBackground && FetchContainerPtr(sender))
+			Invalidate(sender);
+
 		const Rect& clip(Intersect(pc.ClipArea, rInvalidated + l));
 
 		if(!IgnoreBackground && FetchContainerPtr(sender))

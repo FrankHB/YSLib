@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3574; *build 309 rev 20;
+\version r3574; *build 310 rev 52;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-17 17:11 +0800;
+	2012-05-21 19:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -366,94 +366,94 @@ $using:
 
 
 $DONE:
-r1:
-/ \f SwitchVisible @ \un \ns @ \ns YReader @ \impl \u Shells
-	>> \ns YSLib::Drawing @ \u ShellHelper,
-/= test 1 @ platform MinGW32;
-
-r2-r3:
-/ \simp \impl @ \ctor ATrack,
-(
-	/ @ \u TextRenderer $=
-	(
-		+ \mf (GetHeight, GetWidth, GetSize) @ \cl TextRenderer,
-		+ \inc \h TextLayout @ \impl \u;
-		/ \f void DrawClippedText(const Graphics&, const Rect&, TextState&,
-			const String&) -> \f DrawClippedText(const Graphics&, const Rect&,
-			TextState&, const String&, bool),
-		/ \f void DrawClippedText(const Graphics&, const Rect&, const Rect&, const
-			String&, const Padding&, Color)
-			-> \f DrawClippedText(const Graphics&, const Rect&, const Rect&,
-			const String&, const Padding&, Color, bool, const Font& = Font()),
-		/ \f void DrawText(const Graphics&, TextState&, const String&) -> \f void
-			DrawText(const Graphics&, TextState&, const String&, bool),
-		/ \f void DrawText(const Graphics&, const Rect&, const String&,
-			const Padding&, Color) -> \f void DrawText(const Graphics&, const Rect&,
-			const String&, const Padding&, Color, bool, const Font& = Font()),
-		/ \f void DrawText(TextRegion&, const Graphics&, const Point&, const Size&,
-			const String&) -> void DrawText(TextRegion&, const Graphics&,
-			const Point&, const Size&, const String, bool)
-	);
-	(
-		/ @ \cl MLabel $=
-		(
-			+ \m bool AutoWrapLine;
-			/ \impl @ \ctor,
-			/ \impl @ \mf PaintText
-		);
-		+ using MLabel::AutoWrapLine @ \cl Label
-	),
-	/ \tr \impl @ \mf (TextList, Menu)::PaintItem,
-	/ \tr \impl @ \mf ShlExplorer::OnPaint @ \impl \u Shells
-);
-/= 2 test 2 @ platform MinGW32;
-
-r4:
-/= test 3 @ platform DS;
-
-r5-r11:
-/ \impl @ \ctor ShlExplorer @ \impl \u Shells,
-/ \impl @ \mf MLabel::PaintText;
-/= 7 test 4 @ platform MinGW32;
-
-r12:
-/= test 5 @ platform DS;
-
-r13:
-/= test 6 @ platform DS ^ \conf release;
-
-r14-r17:
+r1-r5:
 / @ \cl ShlExplorer @ \u Shells $=
 (
-	/ \m Label lblA -> Label lblInfo,
-	- \m Label lblB,
+	/ \m unique_ptr<TFormTest> pWndTest -> \m DialogPanel pnlSetting,
+	/ \a \m @ \cl TFormTest >> \cl ShlExplorer,
 	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \ctor TFormExtra
+	/ \tr \impl @ \mf OnPaint;
+	- \cl TFormTest
 ),
-/= 4 test 7 @ platform MinGW32;
+/= 5 test 1 @ platform MinGW32;
+
+r6:
+* wrong margin threshold calculated @ character output routine @ services
+	$since $before b132;
+* $comp rightmost character not shown when using \f DrawClippedText
+	@ \u CharRenderer $since b309;
+* $comp rightmost charachter not shown when label text aligned to right
+	$since b309;
+/= test 2 @ platform MinGW32;
+
+r7:
+/= test 3 @ platform DS;
+
+r8:
+/= test 4 @ platform DS ^ \conf release;
+
+r9:
+/ \impl @ (\ctor (SettingPanel, ShlTextReader, ShlHexBrowser),
+	\mf ShlTextReader::Execute) @ \impl \u ShlReader;
+/= test 5 @ platform MinGW32;
+
+r10-r17:
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	+ \m Label (lblHex, lblFPS);
+	/ \tr \impl @ \ctor
+);
+/= 7 test 6 @ platform MinGW32;
 
 r18:
-/= test 8 @ platform MinGW32 ^ \conf release;
+/= test 7 @ platform DS;
 
 r19:
-/= test 9 @ platform DS;
+/= test 8 @ platform DS ^ \conf release;
 
-r20:
-/= test 10 @ platform DS ^ \conf release;
+r20-r21:
+/= 2 test 9 @ platform MinGW32;
+
+r22-r46:
+/ @ \cl BufferedRenderer $=
+(
+	/ \impl @ \mf Paint,
+	* \impl @ \mf Validate $since b278
+),
+/ \impl @ \mf BufferedTextArea::Refresh,
+/ \impl @ \f RenderChar @ \impl \u CharRenderer,
+/= 25 test 10 @ platform MinGW32;
+
+r47:
+/= test 11 @ platform DS;
+
+r48-r49:
+/ \impl @ \mf BufferedTextArea::Refresh;
+/= test 12 @ platform MinGW32;
+
+r50:
+/= test 13 @ platform DS;
+
+r51:
+/= test 14 @ platform MinGW32 ^ \conf release;
+
+r52:
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-05-17:
--19.8d;
-//Mercurial rev1-rev181: r8383;
+2012-05-21:
+-21.2d;
+//Mercurial rev1-rev182: r8435;
 
 / ...
 
 
 $NEXT_TODO:
-b310-b332:
+b311-b348:
++ memory mapping APIs @ YCommon;
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -463,7 +463,7 @@ b310-b332:
 
 
 $TODO:
-b333-b384:
+b349-b400:
 / services $=
 (
 	+ \impl @ images loading
@@ -498,7 +498,7 @@ b333-b384:
 	/ improved tests and examples
 );
 
-b385-b768:
+b401-b784:
 / @ CHRLib $=
 (
 	/ more accurate invalid conversion state handling,
@@ -523,7 +523,9 @@ b385-b768:
 	+ 'yconstexpr' @ \s \m Graphics::Invalid,
 	/ reconsidered 1st parameter type(without rvalue \ref) for %seq_apply,
 	+ error code with necessary %thread_local @ \u YCommon,
-	/ make \ns _impl \h Cast -> \ns details with public interfaces
+	/ make \ns _impl \h Cast -> \ns details with public interfaces,
+	/ confirm correctness @ stat() @ Win32
+		// See comments @ src/fccache.c @ fontconfig.
 ),
 / completeness of core abstraction $=
 (
@@ -572,7 +574,7 @@ b385-b768:
 	/ $low_prior more long list tests @ %DropDownList
 );
 
-b769-b1256:
+b785-b1272:
 ^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
 	when (^ g++),
 / memory fragment issues,
@@ -617,7 +619,7 @@ b769-b1256:
 	+ modal widget behavior
 );
 
-b1257-b1728:
+b1273-b1744:
 / platform dependent system functions $=
 (
 	+ correct DMA (copy & fill) @ DS
@@ -671,7 +673,7 @@ b1257-b1728:
 
 $LOW_PRIOR_TODO:
 ^ $low_prior $for_labeled_scope;
-b1729-b5312:
+b1745-b5328:
 + general monomorphic iterator abstraction,
 / partial invalidation support @ \f DrawRectRoundCorner,
 / user-defined bitmap buffer @ \cl Desktop,
@@ -833,6 +835,32 @@ $module_tree $=
 
 $now
 (
+	/ % 'YFramework'.'YSLib' $=
+	(
+		/ %'services' $=
+		(
+			* "wrong margin threshold calculated" @ "character output routine"
+				$since $before b132;
+			* $comp "rightmost character not shown when using function \
+				%DrawClippedText" @ "unit %CharRenderer" $since b309;
+			$dep_to rchar_margin
+		),
+		/ %'GUI' $=
+		(
+			(
+				$dep_from rchar_margin;
+				* $comp "rightmost character not shown when label text aligned to \
+					right" $since b309
+			),
+			* "missing cascaded buffer background redrawing"
+				@ "class %BufferedRenderer" $since b278
+		)
+	);
+	/ "appearance" @ %'YReader'.'shells test example'
+),
+
+b309
+(
 	/ $design "function %SwitchVisible" @ 'YReader' >> %'YFramework'.'Helper',
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -887,8 +915,8 @@ b307
 		);
 		/ @ "setting panel" @ %'YReader'.'text reader' $=
 		(
-			/ scrolling interval value set,
-			* wrong displayed scrolling interval $since b301
+			/ "scrolling interval value set",
+			* "wrong displayed scrolling interval" $since b301
 		)
 	),
 	/ $doc "Doxygen file" $=

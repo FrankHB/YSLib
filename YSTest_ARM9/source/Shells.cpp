@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6178;
+\version r6410;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-05-16 13:30 +0800;
+	2012-05-20 06:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -284,33 +284,55 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(8, 48, 240, 48)),
 	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	chkFPS(Rect(210, 144, 13, 13)), chkHex(Rect(232, 144, 13, 13)),
-	pWndTest(make_unique<TFormTest>()), pWndExtra(make_unique<TFormExtra>()),
-	mhMain(*GetDesktopDownHandle()), fpsCounter(500000000ULL)
+	pnlSetting(Rect(10, 40, 228, 100)), chkHex(Rect(142, 144, 13, 13)),
+	lblHex(Rect(155, 142, 90, 18)), chkFPS(Rect(10, 64, 13, 13)),
+	lblFPS(Rect(23, 62, 60, 18)), btnEnterTest(Rect(4, 4, 146, 22)),
+	btnMenuTest(Rect(152, 32, 60, 22)), btnShowWindow(Rect(8, 32, 104, 22)),
+	btnPrevBackground(Rect(95, 64, 30, 22)),
+	btnNextBackground(Rect(145, 64, 30, 22)),
+	pWndExtra(make_unique<TFormExtra>()), mhMain(*GetDesktopDownHandle()),
+	fpsCounter(500000000ULL)
 {
+	static int up_i(1);
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
+	AddWidgets(pnlSetting, chkFPS, lblFPS, btnEnterTest, btnMenuTest,
+		btnShowWindow, btnPrevBackground, btnNextBackground),
 	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
-	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, chkFPS, chkHex),
-	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, *pWndTest, *pWndExtra),
-	//对 fbMain 启用缓存。
+	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, chkHex, lblHex),
+	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pWndExtra),
+	//启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
-	SetVisibleOf(*pWndTest, false),
+	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
+	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(*pWndExtra, false),
+	lblFPS.SetTransparent(true),
+	Enable(btnPrevBackground, false),
 	yunseq(
-		tie(dsk_up.Background, dsk_dn.Background, lblTitle.Text,
-			lblPath.AutoWrapLine, lblPath.Text, lblInfo.AutoWrapLine,
-			lblInfo.Text, btnTest.Text, btnOK.Text)
-			= forward_as_tuple(ImageBrush(FetchImage(1)),
-			ImageBrush(FetchImage(2)), u"YReader", true, path, true,
-			u"文件列表：请选择一个文件。", u"测试(X)", u"确定(A)"),
+		dsk_up.Background = ImageBrush(FetchImage(1)),
+		dsk_dn.Background = ImageBrush(FetchImage(2)),
+		lblTitle.Text = u"YReader",
+		lblPath.AutoWrapLine = true, lblPath.Text = path,
+		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
+	// TODO: show current working directory properly;
+		btnTest.Text = u"设置(X)",
+		btnOK.Text = u"确定(A)",
+		lblHex.Text = u"显示十六进制",
+		lblFPS.Text = u"显示 FPS",
+		pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
+		btnEnterTest.Text = u"边界测试",
+		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
+		btnEnterTest.VerticalAlignment = TextAlignment::Up,
+		btnMenuTest.Text = u"菜单测试",
+		btnShowWindow.Text = u"显示/隐藏窗口",
+		btnShowWindow.HorizontalAlignment = TextAlignment::Left,
+		btnShowWindow.VerticalAlignment = TextAlignment::Down,
+		btnPrevBackground.Text = u"<<",
+		btnNextBackground.Text = u">>",
 		fbMain.SetPath(path),
 		Enable(btnTest, true),
 		Enable(btnOK, false),
-	// TODO: show current working directory properly;
-	//	lblTitle.Transparent = true,
-	//	lblPath.Transparent = true,
 		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
 			this, std::placeholders::_1),
 		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
@@ -324,9 +346,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
 		},
 		FetchEvent<Click>(btnTest) += [this](TouchEventArgs&&){
-			YAssert(bool(pWndTest), "Null pointer found.");
-
-			SwitchVisible(*pWndTest);
+			SwitchVisible(pnlSetting);
 		},
 		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
 			if(fbMain.IsSelected())
@@ -356,43 +376,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 		FetchEvent<Click>(chkHex) += [this](TouchEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
 			SetInvalidationOf(GetDesktopDown());
-		}
-	);
-	RequestFocusCascade(fbMain),
-	SetInvalidationOf(dsk_up),
-	SetInvalidationOf(dsk_dn);
-	// FIXME: memory leaks;
-	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"A:MenuItem"), 1u)),
-	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u));
-	mhMain[1u] += make_pair(1u, &mhMain[2u]);
-	ResizeForContent(mhMain[2u]);
-}
-
-
-ShlExplorer::TFormTest::TFormTest()
-	: Form(Rect(10, 40, 228, 100), shared_ptr<Image>()),
-	btnEnterTest(Rect(4, 4, 146, 22)), /*FetchImage(6)*/
-	btnMenuTest(Rect(152, 4, 60, 22)),
-	btnShowWindow(Rect(8, 32, 104, 22)),
-	btnPrevBackground(Rect(45, 64, 30, 22)),
-	btnNextBackground(Rect(95, 64, 30, 22))
-//Rect(120, 32, 96, 22)
-{
-	AddWidgets(*this, btnEnterTest, btnMenuTest, btnShowWindow,
-		btnPrevBackground, btnNextBackground),
-	tie(Background, btnEnterTest.Text, btnEnterTest.HorizontalAlignment,
-		btnEnterTest.VerticalAlignment, btnMenuTest.Text, btnShowWindow.Text,
-		btnShowWindow.HorizontalAlignment, btnShowWindow.VerticalAlignment,
-		btnPrevBackground.Text, btnNextBackground.Text) = forward_as_tuple(
-		SolidBrush(Color(248, 248, 120)), u"边界测试",
-		TextAlignment::Right, TextAlignment::Up, u"菜单测试", u"显示/隐藏窗口",
-		TextAlignment::Left, TextAlignment::Down, u"<<", u">>"),
-	SetInvalidationOf(*this);
-
-	static int up_i(1);
-
-	yunseq(
-		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
+		},
+		FetchEvent<TouchMove>(pnlSetting) += OnTouchMove_Dragging,
 		FetchEvent<Enter>(btnEnterTest) += [](TouchEventArgs&& e){
 			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
@@ -408,7 +393,6 @@ ShlExplorer::TFormTest::TFormTest()
 		FetchEvent<Click>(btnMenuTest) +=[this](TouchEventArgs&&){
 			static int t;
 
-			auto& mhMain(FetchShell<ShlExplorer>().mhMain);
 			auto& mnu(mhMain[1u]);
 			auto& lst(mnu.GetList());
 
@@ -433,9 +417,8 @@ ShlExplorer::TFormTest::TFormTest()
 		},
 		FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow,
 		FetchEvent<Click>(btnPrevBackground) += [this](TouchEventArgs&&){
-			auto& shl(FetchShell<ShlExplorer>());
-			auto& dsk_up(shl.GetDesktopUp());
-			auto& dsk_dn(shl.GetDesktopDown());
+			auto& dsk_up(GetDesktopUp());
+			auto& dsk_dn(GetDesktopDown());
 
 			if(up_i > 1)
 			{
@@ -444,15 +427,14 @@ ShlExplorer::TFormTest::TFormTest()
 			}
 			if(up_i == 1)
 				Enable(btnPrevBackground, false);
-			dsk_up.Background = ImageBrush(FetchImage(up_i));
-			dsk_dn.Background = ImageBrush(FetchImage(up_i + 1));
-			SetInvalidationOf(dsk_up);
+			yunseq(dsk_up.Background = ImageBrush(FetchImage(up_i)),
+				dsk_dn.Background = ImageBrush(FetchImage(up_i + 1)));
+			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);
 		},
 		FetchEvent<Click>(btnNextBackground) += [this](TouchEventArgs&&){
-			auto& shl(FetchShell<ShlExplorer>());
-			auto& dsk_up(shl.GetDesktopUp());
-			auto& dsk_dn(shl.GetDesktopDown());
+			auto& dsk_up(GetDesktopUp());
+			auto& dsk_dn(GetDesktopDown());
 
 			if(up_i < 5)
 			{
@@ -461,14 +443,22 @@ ShlExplorer::TFormTest::TFormTest()
 			}
 			if(up_i == 5)
 				Enable(btnNextBackground, false);
-			dsk_up.Background = ImageBrush(FetchImage(up_i));
-			dsk_dn.Background = ImageBrush(FetchImage(up_i + 1));
-			SetInvalidationOf(dsk_up);
+			yunseq(dsk_up.Background = ImageBrush(FetchImage(up_i)),
+				dsk_dn.Background = ImageBrush(FetchImage(up_i + 1)));
+			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);
 		}
 	);
-	Enable(btnPrevBackground, false);
+	RequestFocusCascade(fbMain),
+	SetInvalidationOf(dsk_up),
+	SetInvalidationOf(dsk_dn);
+	// FIXME: potential memory leaks;
+	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"A:MenuItem"), 1u)),
+	mhMain += *(ynew Menu(Rect::Empty, GenerateList(u"B:MenuItem"), 2u));
+	mhMain[1u] += make_pair(1u, &mhMain[2u]);
+	ResizeForContent(mhMain[2u]);
 }
+
 
 ShlExplorer::TFormExtra::TFormExtra()
 	: Form(Rect(5, 60, 208, 120), shared_ptr<Image>()), /*FetchImage(7)*/

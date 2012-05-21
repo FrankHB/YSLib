@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7228;
+\version r7234;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-14 02:58 +0800;
+	2012-05-19 11:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -1074,12 +1074,6 @@
  2012-05-14(build 308) 起：
  devkitARM release 40 / libfat 1.0.11 。
 
-@5.1.1.2 全局命名空间：
- ystdex ：从 std 扩充的平台无关的实用程序。 YSLib 本体直接依赖于此命名空间。
- platform ：平台中立：接口平台无关但实现平台相关的实用程序。 YSLib 本体间接依赖于此命名空间。
- platform_ex ：接口和实现都平台相关的实用程序。 YSLib 本体不依赖于此命名空间。
- CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖于此命名空间。
-
 @5.1.2 通用库：
 
 @5.1.2.1
@@ -1149,7 +1143,7 @@ BASE_EXTENSIONS += ftsynth.c
 
 @5.1.4 助手(Helper) 库：
 位于 "/Helper" 。
-平台相关的外部库，可以加入插件等，一般由库用户自行配置。
+可能平台相关的外部库，可以加入插件等，一般由库用户自行配置。
  YGlobal 是不可缺少的，它封装了必要的全局对象。
  main 函数由 Helper 的其它源文件封装，或由用户提供。
 
@@ -1185,6 +1179,12 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 平台设置在 <platform.h>(@5.2.1) 中。
 任何 YSLib 头文件，除了 "/Adaptor/" 路径下的文件以及仅包含宏定义的文件外，都直接或间接地包含 "/Core/ysdef.h" 文件。
 所有外部链接库为静态库。除了 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 中。这样有利于以子库为单位的移植。
+
+@5.4 全局命名空间：
+ ystdex ：从 std 扩充的平台无关的实用程序。 YSLib 本体直接依赖于此命名空间。
+ platform ：平台中立：接口平台无关但实现平台相关的实用程序。 YSLib 本体间接依赖于此命名空间。
+ platform_ex ：接口和实现都平台相关的实用程序。 YSLib 本体不依赖于此命名空间。
+ CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖于此命名空间。
 
 @6 编码风格导引：
 仅叙述之前章节未涉及的内容。

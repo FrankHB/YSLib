@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2217;
+\version r2218;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-05-16 05:05 +0800;
+	2012-05-19 17:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -65,7 +65,7 @@ public:
 	TextAlignment HorizontalAlignment, VerticalAlignment; 
 	/*!
 	\brief 启用自动换行。
-	\since build 308 。
+	\since build 309 。
 	*/
 	bool AutoWrapLine;
 //	bool AutoSize; //!< 启用根据字号自动调整大小。
