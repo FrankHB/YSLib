@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4280;
+\version r4285;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-04-13 19:56 +0800;
+	2012-05-25 13:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -266,8 +266,7 @@ public:
 	/*!
 	\brief 析构：释放资源。
 	*/
-	virtual
-	~BitmapBufferEx()
+	~BitmapBufferEx() override
 	{
 		ydelete_array(pBufferAlpha);
 	}
@@ -304,14 +303,14 @@ public:
 	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；
 		设置后清除缓冲区。
 	*/
-	virtual void
-	SetSize(SDst, SDst);
+	void
+	SetSize(SDst, SDst) override;
 
 	/*!
 	\brief 清除缓冲区。
 	*/
-	virtual void
-	ClearImage() const;
+	void
+	ClearImage() const override;
 
 	/*
 	\brief 交换。

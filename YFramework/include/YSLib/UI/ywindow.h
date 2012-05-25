@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4781;
+\version r4789;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2012-03-19 15:25 +0800;
+	2012-05-25 14:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,8 +53,8 @@ public:
 		const shared_ptr<Drawing::Image>& = make_shared<Drawing::Image>());
 	inline DefDeMoveCtor(Window)
 
-	virtual void
-	operator+=(IWidget&);
+	void
+	operator+=(IWidget&) override;
 	virtual void
 	operator+=(Window&);
 	template<class _type>
@@ -66,8 +66,8 @@ public:
 			Window&, IWidget&>::type(p));
 	}
 
-	virtual bool
-	operator-=(IWidget&);
+	bool
+	operator-=(IWidget&) override;
 	virtual bool
 	operator-=(Window&);
 	template<class _type>
@@ -81,12 +81,12 @@ public:
 
 	using MUIContainer::Contains;
 
-	virtual PDefH(IWidget*, GetTopWidgetPtr, const Point& pt,
-		bool(&f)(const IWidget&))
+	PDefH(IWidget*, GetTopWidgetPtr, const Point& pt,
+		bool(&f)(const IWidget&)) override
 		ImplBodyBase(MUIContainer, GetTopWidgetPtr, pt, f)
 
-	virtual void
-	Add(IWidget&, ZOrderType = DefaultZOrder);
+	void
+	Add(IWidget&, ZOrderType = DefaultZOrder) override;
 };
 
 YSL_END_NAMESPACE(Components)

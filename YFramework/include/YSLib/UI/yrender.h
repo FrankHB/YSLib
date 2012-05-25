@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1527;
+\version r1533;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2012-05-21 12:21 +0800;
+	2012-05-25 13:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -131,16 +131,16 @@ public:
 	/*!
 	\brief 设置缓冲区大小。
 	*/
-	virtual void
-	SetSize(const Size&);
+	void
+	SetSize(const Size&) override;
 
 	/*!
 	\brief 提交无效区域，使之合并至现有无效区域中。
 	\return 新的无效区域。
 	\note 由于无效区域的形状限制，可能会存在部分有效区域被合并。
 	*/
-	virtual Rect
-	CommitInvalidation(const Rect&);
+	Rect
+	CommitInvalidation(const Rect&) override;
 
 	/*!
 	\brief 按参数绘制。
@@ -150,8 +150,8 @@ public:
 	\note 不调用 wgt.IsVisible() 检查可见性。
 	\since build 263 。
 	*/
-	virtual Rect
-	Paint(IWidget& wgt, PaintEventArgs&&);
+	Rect
+	Paint(IWidget& wgt, PaintEventArgs&&) override;
 
 	/*!
 	\brief 更新至指定图形设备上下文的指定点。

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3574; *build 310 rev 52;
+\version r3575; *build 311 rev 16;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-21 19:42 +0800;
+	2012-05-25 21:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -316,7 +316,8 @@ $using:
 ),
 \u Selector
 (
-	\cl CheckBox
+	\cl CheckBox;
+	\cl CheckButton
 ),
 \u TextList
 (
@@ -366,100 +367,114 @@ $using:
 
 
 $DONE:
-r1-r5:
+r1:
++ \cl CheckButton @ \u Selector;
+/= test 1 @ platform MinGW32;
+
+r2:
+/ \impl @ (\ctor, \mf Refresh) @ \cl CheckButton,
 / @ \cl ShlExplorer @ \u Shells $=
 (
-	/ \m unique_ptr<TFormTest> pWndTest -> \m DialogPanel pnlSetting,
-	/ \a \m @ \cl TFormTest >> \cl ShlExplorer,
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf OnPaint;
-	- \cl TFormTest
-),
-/= 5 test 1 @ platform MinGW32;
-
-r6:
-* wrong margin threshold calculated @ character output routine @ services
-	$since $before b132;
-* $comp rightmost character not shown when using \f DrawClippedText
-	@ \u CharRenderer $since b309;
-* $comp rightmost charachter not shown when label text aligned to right
-	$since b309;
+	/ \m (CheckBox chkFPS, Label lblFPS) -> \m CheckButton cbFPS,
+	/ \impl @ \ctor;
+	/ \tr \impl @ \mf OnPaint
+);
 /= test 2 @ platform MinGW32;
 
+r3-r4:
+* \impl @ \ctor ShlExplorer @ \u Shells $since r2,
+/ \simp \impl @ \ctor (CheckBox, CheckButton);
+/= 2 test 3 @ platform MinGW32;
+
+r5:
+/= test 4 @ platform DS;
+
+r6-r7:
+(
+	/ @ \cl CheckBox $=
+	(
+		+ protected \m PaintBox;
+		+ \mf \vt Refresh;
+		/ \simp \impl @ \ctor
+	);
+	/ @ \cl CheckButton $=
+	(
+		/ \impl @ \mf Refresh,
+		/ \simp \impl @ \ctor
+	)
+),
+/= 2 test 5 @ platform MinGW32;
+
 r7:
-/= test 3 @ platform DS;
++ \em \st NoBackgroundTag @ \cl Widget;
+/ @ \cl Thumb $=
+(
+	+ protected \exp \ctor Thumb(const Rect&, NoBackgroundTag);
+	/ \simp \impl @ public \ctor
+);
+/ \impl @ \ctor CheckBox;
+/= test 6 @ platform MinGW32;
 
 r8:
-/= test 4 @ platform DS ^ \conf release;
-
-r9:
-/ \impl @ (\ctor (SettingPanel, ShlTextReader, ShlHexBrowser),
-	\mf ShlTextReader::Execute) @ \impl \u ShlReader;
-/= test 5 @ platform MinGW32;
-
-r10-r17:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	+ \m Label (lblHex, lblFPS);
-	/ \tr \impl @ \ctor
-);
-/= 7 test 6 @ platform MinGW32;
-
-r18:
 /= test 7 @ platform DS;
 
-r19:
+r9:
 /= test 8 @ platform DS ^ \conf release;
 
-r20-r21:
-/= 2 test 9 @ platform MinGW32;
+r10:
+^ 'override' ~ 'virtual' @ \a \m \vt overrider
+	@ \proj (YFramework, YSTest_ARM9),
+/ \dtor LoggedEvent @ \u YException -> \exp \de \dtor,
+/ $design order @ \mf \decl @ \cl TextList;
+/= test 9 @ platform MinGW32;
 
-r22-r46:
-/ @ \cl BufferedRenderer $=
+r11:
++ \exp \de \op= @ \cl HFileNode @ \h YCommon;
+/= test 10 @ platform MinGW32;
+
+r12:
+/ @ \cl ShlExplorer @ \u Shells $=
 (
-	/ \impl @ \mf Paint,
-	* \impl @ \mf Validate $since b278
-),
-/ \impl @ \mf BufferedTextArea::Refresh,
-/ \impl @ \f RenderChar @ \impl \u CharRenderer,
-/= 25 test 10 @ platform MinGW32;
+	/ \m (CheckBox chkHex, Label lblHex) -> \m CheckButton cbHex,
+	/ \impl @ \ctor;
+);
+/= test 11 @ platform MinGW32;
 
-r47:
-/= test 11 @ platform DS;
-
-r48-r49:
-/ \impl @ \mf BufferedTextArea::Refresh;
+r13:
+/ \a \s \c \m -> \s constexpr \m @ \clt GBinaryGroup @ \h YGDIBase;
 /= test 12 @ platform MinGW32;
 
-r50:
-/= test 13 @ platform DS;
+r14:
+/= test 13 @ platform MinGW32 ^ \conf release;
 
-r51:
-/= test 14 @ platform MinGW32 ^ \conf release;
+r15:
+/= test 14 @ platform DS;
 
-r52:
+r16:
 /= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-05-21:
--21.2d;
-//Mercurial rev1-rev182: r8435;
+2012-05-25:
+-22.5d;
+//Mercurial rev1-rev183: r8451;
 
 / ...
 
 
 $NEXT_TODO:
-b311-b348:
-+ memory mapping APIs @ YCommon;
+b312-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager
 ),
-+ dynamic character mapper loader for \u CharacterMapping;
+(
+	+ memory mapping APIs @ YCommon;
+	+ dynamic character mapper loader for \u CharacterMapping
+);
 
 
 $TODO:
@@ -478,7 +493,8 @@ b349-b400:
 (
 	/ noncopyable GUIState,
 	* (copy, move) @ \cl Menu,
-	/ access control @ \inh @ \clt deref_comp
+	/ access control @ \inh @ \clt deref_comp,
+	^ delegating \ctor as possible
 ),
 + $design $low_prior helpers $=
 (
@@ -517,6 +533,8 @@ b401-b784:
 		/ \ac @ \inh touchPosition @ \cl CursorInfo,
 		+ \exp \init @ \m @ \cl KeysInfo
 	),
+	+ recovery environment @ main \fn,
+		// Try-catch, then relaunch the message loop.
 	/ \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
 		~ '::llround',
 	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7 later,
@@ -525,7 +543,7 @@ b401-b784:
 	+ error code with necessary %thread_local @ \u YCommon,
 	/ make \ns _impl \h Cast -> \ns details with public interfaces,
 	/ confirm correctness @ stat() @ Win32
-		// See comments @ src/fccache.c @ fontconfig.
+		// See comments @ src/fccache.c @ \proj fontconfig.
 ),
 / completeness of core abstraction $=
 (
@@ -619,7 +637,7 @@ b785-b1272:
 	+ modal widget behavior
 );
 
-b1273-b1744:
+b1273-b1800:
 / platform dependent system functions $=
 (
 	+ correct DMA (copy & fill) @ DS
@@ -635,6 +653,11 @@ b1273-b1744:
 	(
 		- \a direct dereference operations of handle type,
 		+ real handle type with no \op*
+	),
+	+ meta $=
+	(
+		+ meta data,
+		+ meta language infrastructure
 	)
 ),
 / services $=
@@ -673,7 +696,7 @@ b1273-b1744:
 
 $LOW_PRIOR_TODO:
 ^ $low_prior $for_labeled_scope;
-b1745-b5328:
+b1801-b5384:
 + general monomorphic iterator abstraction,
 / partial invalidation support @ \f DrawRectRoundCorner,
 / user-defined bitmap buffer @ \cl Desktop,
@@ -835,7 +858,17 @@ $module_tree $=
 
 $now
 (
-	/ % 'YFramework'.'YSLib' $=
+	(
+		+ "class %CheckButton" @ %'YFramework'.'YSLib'.'GUI';
+		^ "%CheckButton" ~ "%CheckBox" @ 'shells test example'
+	),
+	^ $design "contextual keyword %override"
+		~ "keyword %virtual for overriders"
+),
+
+b310
+(
+	/ %'YFramework'.'YSLib' $=
 	(
 		/ %'services' $=
 		(

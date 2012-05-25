@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3642;
+\version r3649;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-04-30 22:21 +0800;
+	2012-05-25 18:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -670,6 +670,14 @@ public:
 	{
 		Close();
 	}
+
+	/*!
+	\brief 复制赋值：默认实现。
+	\note 浅复制。
+	\since build 311 。
+	*/
+	HFileNode&
+	operator=(const HFileNode&) = default;
 
 	/*!
 	\brief 迭代：向后遍历。

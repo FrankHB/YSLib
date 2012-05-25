@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1516;
+\version r1522;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-04-13 19:57 +0800;
+	2012-05-25 13:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -150,13 +150,6 @@ public:
 		SetSelected(pt.X, pt.Y);
 	}
 
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
-	*/
-	virtual void
-	Refresh(PaintEventArgs&&);
-
 private:
 	/*!
 	\brief 调整列表视图底项目（可能不完全）超出下边界以上的竖直偏移量为零。
@@ -241,6 +234,13 @@ protected:
 	PaintItems(const PaintContext&);
 
 public:
+	/*!
+	\brief 刷新：按指定参数绘制界面并更新状态。
+	\since build 294 。
+	*/
+	void
+	Refresh(PaintEventArgs&&) override;
+
 	using MTextList::RefreshTextState;
 
 	/*!

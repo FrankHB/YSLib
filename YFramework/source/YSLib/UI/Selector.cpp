@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1502;
+\version r1562;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2012-05-09 13:13 +0800;
+	2012-05-25 09:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -100,22 +100,13 @@ namespace
 
 
 CheckBox::CheckBox(const Rect& r)
-	: Thumb(r),
+	: Thumb(r, NoBackgroundTag()),
 	bTicked(false)
 {
-	yunseq(
-		Background = [this](PaintEventArgs&& e){
-			const auto& g(e.Target);
-			const auto& pt(e.Location);
-
-			RectDrawCheckBox(g, (e.ClipArea = Rect(pt, GetSizeOf(*this))),
-				bPressed, IsFocusedByShell(*this), bTicked, IsFocused(*this));
-		},
-		FetchEvent<Click>(*this) += [this](TouchEventArgs&&){
-			bTicked = !bTicked;
-			Ticked(TickedArgs(*this, bTicked));
-		}
-	);
+	FetchEvent<Click>(*this) += [this](TouchEventArgs&&){
+		bTicked = !bTicked;
+		Ticked(TickedArgs(*this, bTicked));
+	};
 }
 
 void
@@ -132,6 +123,38 @@ void
 CheckBox::Tick(bool b)
 {
 	Ticked(TickedArgs(*this, bTicked = b));
+}
+
+void
+CheckBox::PaintBox(const Graphics& g, const Rect& r)
+{
+	RectDrawCheckBox(g, r, bPressed, IsFocusedByShell(*this), bTicked,
+		IsFocused(*this));
+}
+
+void
+CheckBox::Refresh(PaintEventArgs&& e)
+{
+	PaintBox(e.Target, (e.ClipArea = Rect(e.Location, GetSizeOf(*this))));
+}
+
+
+CheckButton::CheckButton(const Rect& r)
+	: CheckBox(r)
+{
+	Margin.Top = 0;
+}
+
+void
+CheckButton::Refresh(PaintEventArgs&& e)
+{
+	const auto& pt(e.Location);
+
+	PaintBox(e.Target, Rect(pt, 13, 13));
+	Margin.Left += 13;
+	PaintText(GetSizeOf(*this), ForeColor, e);
+	Margin.Left -= 13;
+	e.ClipArea = Rect(pt, GetSizeOf(*this));
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4998;
+\version r5000;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-04-27 11:50 +0800;
+	2012-05-25 13:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -666,13 +666,13 @@ public:
 	typedef _tBaseArgs BaseArgsType;
 	typedef typename EventType::EventArgsType EventArgsType;
 
-	inline virtual DefClone(GEventWrapper, Clone)
+	inline ImplI(GIHEvent<_tBaseArgs>) DefClone(GEventWrapper, Clone)
 
 	/*!
 	\brief 委托调用。
 	\warning 需要确保 BaseArgsType&& 引用的对象能够转换至 EventArgsType&& 引用。
 	*/
-	inline virtual size_t
+	inline ImplI(GIHEvent<_tBaseArgs>) size_t
 	operator()(BaseArgsType&& e) const
 	{
 		return EventType::operator()(static_cast<EventArgsType&&>(

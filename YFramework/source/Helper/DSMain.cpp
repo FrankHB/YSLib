@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1920;
+\version r1922;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-04-24 21:26 +0800;
+	2012-05-25 14:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -174,8 +174,8 @@ public:
 	\note 无异常抛出。
 	\note 进行状态检查。
 	*/
-	virtual Drawing::BitmapPtr
-	GetCheckedBufferPtr() const ynothrow;
+	Drawing::BitmapPtr
+	GetCheckedBufferPtr() const ynothrow override;
 	DefGetter(const ynothrow, const BGType&, BgID, bg)
 
 	/*!

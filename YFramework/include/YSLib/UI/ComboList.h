@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3359;
+\version r3366;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2012-05-08 23:34 +0800;
+	2012-05-25 13:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -69,8 +69,8 @@ public:
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
-	virtual IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+	IWidget*
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, lstText)
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex,
 		lstText)
@@ -115,8 +115,8 @@ public:
 	\brief 刷新：按指定参数绘制界面并更新状态。
 	\since build 294 。
 	*/
-	virtual void
-	Refresh(PaintEventArgs&&);
+	void
+	Refresh(PaintEventArgs&&) override;
 
 	PDefH(void, ResetView)
 		ImplBodyMem(lstText, ResetView)
@@ -196,7 +196,7 @@ public:
 	\brief 析构：分离顶层子部件。
 	\since build 283 。
 	*/
-	virtual ~DropDownList();
+	~DropDownList() override;
 
 	DefGetterMem(const ynothrow, ListType&, List, boxList)
 	/*!
@@ -234,8 +234,8 @@ public:
 	\brief 刷新：按指定参数绘制界面并更新状态。
 	\since build 294 。
 	*/
-	virtual void
-	Refresh(PaintEventArgs&&);
+	void
+	Refresh(PaintEventArgs&&) override;
 };
 
 YSL_END_NAMESPACE(Components)

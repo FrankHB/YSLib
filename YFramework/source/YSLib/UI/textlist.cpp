@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1792;
+\version r1798;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-05-15 19:22 +0800;
+	2012-05-25 13:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -195,13 +195,6 @@ TextList::SetSelected(SPos x, SPos y)
 	SetSelected(CheckPoint(x, y));
 }
 
-void
-TextList::Refresh(PaintEventArgs&& e)
-{
-	PaintItems(e);
-	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
-}
-
 SDst
 TextList::AdjustBottomOffset()
 {
@@ -360,6 +353,13 @@ TextList::PaintItems(const PaintContext& pc)
 			}
 		}
 	}
+}
+
+void
+TextList::Refresh(PaintEventArgs&& e)
+{
+	PaintItems(e);
+	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 void

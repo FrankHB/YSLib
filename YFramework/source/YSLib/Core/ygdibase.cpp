@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1500;
+\version r1503;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2012-04-24 21:54 +0800;
+	2012-05-25 21:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,12 +33,12 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-const Size Size::Zero = Size();
-const Size Size::Invalid = Size(std::numeric_limits<SDst>::lowest(),
+const Size Size::Zero;
+const Size Size::Invalid(std::numeric_limits<SDst>::lowest(),
 		std::numeric_limits<SDst>::lowest());
 
 
-const Rect Rect::Empty = Rect();
+const Rect Rect::Empty;
 const Rect Rect::Invalid(Point::Zero, Size::Invalid);
 
 bool

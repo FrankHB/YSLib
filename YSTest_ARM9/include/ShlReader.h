@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2354;
+\version r2362;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-04-21 16:20 +0800;
+	2012-05-25 14:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -71,15 +71,15 @@ public:
 
 	ReaderBox(const Rect&);
 
-	virtual IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+	IWidget*
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
 	\since build 294 。
 	*/
-	virtual void
-	Refresh(PaintEventArgs&&);
+	void
+	Refresh(PaintEventArgs&&) override;
 
 	/*!
 	\brief 更新进度数据。
@@ -390,8 +390,8 @@ public:
 	\brief 处理输入消息：发送绘制消息，当处于滚屏状态时自动执行滚屏。
 	\since build 289 。
 	*/
-	virtual void
-	OnInput();
+	void
+	OnInput() override;
 
 	/*!
 	\brief 退出阅读器：停止后台任务并发送消息准备切换至 ShlExplorer 。
@@ -454,8 +454,7 @@ public:
 	\brief 析构：释放资源。
 	\since build 286 。
 	*/
-	virtual
-	~ShlTextReader();
+	~ShlTextReader() override;
 
 private:
 	/*!

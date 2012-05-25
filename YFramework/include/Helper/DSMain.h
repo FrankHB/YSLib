@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1231;
+\version r1233;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-04-22 11:48 +0800;
+	2012-05-25 13:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -94,8 +94,7 @@ public:
 	\brief 析构：释放资源。
 	\since build 269 。
 	*/
-	virtual
-	~DSApplication();
+	~DSApplication() override;
 
 	/*!
 	\brief 取字体缓存引用。

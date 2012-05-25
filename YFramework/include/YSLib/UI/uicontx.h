@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1279;
+\version r1281;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 08:59:34 +0800;
 \par 修改时间:
-	2012-04-18 22:25 +0800;
+	2012-05-25 13:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -52,15 +52,15 @@ public:
 	explicit
 	DialogBox(const Rect& = Rect::Empty);
 
-	virtual IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+	IWidget*
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
 	\since build 294 。
 	*/
-	virtual void
-	Refresh(PaintEventArgs&&);
+	void
+	Refresh(PaintEventArgs&&) override;
 };
 
 

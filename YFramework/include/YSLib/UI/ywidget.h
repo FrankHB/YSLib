@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6522;
+\version r6529;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-05-09 10:56 +0800;
+	2012-05-25 08:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -315,6 +315,14 @@ Show(IWidget&);
 */
 class Widget : implements IWidget
 {
+public:
+	/*!
+	\brief 无背景标记。
+	\since build 311 。
+	*/
+	struct NoBackgroundTag
+	{};
+
 private:
 	unique_ptr<View> pView; //!< 部件视图指针。
 	unique_ptr<Renderer> pRenderer; //!< 渲染器指针。

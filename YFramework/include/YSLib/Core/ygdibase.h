@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1962;
+\version r1970;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2012-04-17 09:01 +0800;
+	2012-05-25 21:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -50,8 +50,9 @@ PDefTmplH1(_type)
 class GBinaryGroup
 {
 public:
-	static const GBinaryGroup Zero; //!< 无参数构造参数构造的原点对象。
-	static const GBinaryGroup Invalid; //!< 无效（不在屏幕坐标系中）对象。
+	static yconstexpr GBinaryGroup Zero{}; //!< 无参数构造参数构造的原点对象。
+	static yconstexpr GBinaryGroup Invalid{std::numeric_limits<_type>::lowest(),
+		std::numeric_limits<_type>::lowest()}; //!< 无效（不在屏幕坐标系中）对象。
 
 	_type X, Y; //!< 分量。
 
@@ -149,11 +150,9 @@ public:
 };
 
 PDefTmplH1(_type)
-const GBinaryGroup<_type> GBinaryGroup<_type>::Zero = GBinaryGroup<_type>();
+yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Zero;
 PDefTmplH1(_type)
-const GBinaryGroup<_type> GBinaryGroup<_type>::Invalid
-	= GBinaryGroup<_type>(std::numeric_limits<_type>::lowest(),
-		std::numeric_limits<_type>::lowest());
+yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Invalid;
 
 
 //屏幕二元组二元运算。
@@ -235,14 +234,14 @@ typedef GBinaryGroup<SPos> Vec;
 class Size
 {
 public:
-	SDst Width, Height; //!< 宽和高。
-
 	static const Size Zero; //!< 无参数构造的零元素对象。
 	/*!
 	\brief 无效对象。
 	\since build 296 。
 	*/
 	static const Size Invalid;
+
+	SDst Width, Height; //!< 宽和高。
 
 	/*!
 	\brief 无参数构造。

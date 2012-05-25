@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2172;
+\version r2174;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-04-22 11:49 +0800;
+	2012-05-25 14:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -116,8 +116,8 @@ public:
 	绘制消息 SM_PAINT ，对桌面后 Validate 操作后调用 OnPaint ，再对桌面 Update 。
 	输入消息 SM_INPUT ，分发按键处理后调用 OnInput 。
 	*/
-	virtual int
-	OnGotMessage(const Message&);
+	int
+	OnGotMessage(const Message&) override;
 
 	/*!
 	\brief 处理输入消息：发送绘制消息。

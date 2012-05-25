@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5549;
+\version r5551;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-04-13 19:42 +0800;
+	2012-05-25 13:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -62,8 +62,8 @@ public:
 	ImplI(AController) PDefH(EventMapping::ItemType&, GetItem,
 		const VisualEvent& id)
 		ImplRet(EventMap.at(id))
-	virtual EventMapping::ItemType&
-	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)());
+	EventMapping::ItemType&
+	GetItemRef(const VisualEvent&, EventMapping::MappedType(&)()) override;
 	DefGetter(const ynothrow, EventMapping::MapType&, EventMap, EventMap) \
 		//!< 取事件映射表。
 

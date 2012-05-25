@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1772;
+\version r1776;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:17:38 +0800;
 \par 修改时间:
-	2012-04-24 21:23 +0800;
+	2012-05-25 13:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -126,8 +126,8 @@ public:
 	\brief 检查列表中的指定项是否可用。
 	\note 当且仅当可用时响应 Confirmed 事件。
 	*/
-	virtual bool
-	CheckConfirmed(ListType::size_type) const;
+	bool
+	CheckConfirmed(ListType::size_type) const override;
 
 	/*!
 	\brief 按指定 Z 顺序显示菜单。
@@ -157,9 +157,9 @@ protected:
 	\brief 绘制菜单项。
 	\since build 265 。
 	*/
-	virtual void
+	void
 	PaintItem(const Graphics&, const Rect& mask,
-		const Rect&, ListType::size_type);
+		const Rect&, ListType::size_type) override;
 };
 
 

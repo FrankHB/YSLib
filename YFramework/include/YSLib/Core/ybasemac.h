@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3241;
+\version r3244;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2012-04-27 11:51 +0800;
+	2012-05-25 18:37 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -91,8 +91,8 @@ _m member
 _n name
 _op operator
 _p parameter
-_plist paramaters list
-_q qulifier(s)
+_plist parameters list
+_q qualifier(s)
 _sig signature
 _t type
 \since 早于 build 132 。
@@ -287,6 +287,7 @@ _t type
 
 
 /*!
+\def DefClone
 \brief 动态复制。
 \note 需要在满足 \c CopyConstructible 的类的定义内。
 \since build 240 。

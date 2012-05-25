@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6410;
+\version r6429;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-05-20 06:06 +0800;
+	2012-05-25 18:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -284,9 +284,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(8, 48, 240, 48)),
 	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	pnlSetting(Rect(10, 40, 228, 100)), chkHex(Rect(142, 144, 13, 13)),
-	lblHex(Rect(155, 142, 90, 18)), chkFPS(Rect(10, 64, 13, 13)),
-	lblFPS(Rect(23, 62, 60, 18)), btnEnterTest(Rect(4, 4, 146, 22)),
+	pnlSetting(Rect(10, 40, 228, 100)), cbHex(Rect(142, 142, 103, 18)),
+	cbFPS(Rect(10, 62, 73, 18)), btnEnterTest(Rect(4, 4, 146, 22)),
 	btnMenuTest(Rect(152, 32, 60, 22)), btnShowWindow(Rect(8, 32, 104, 22)),
 	btnPrevBackground(Rect(95, 64, 30, 22)),
 	btnNextBackground(Rect(145, 64, 30, 22)),
@@ -297,17 +296,17 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	AddWidgets(pnlSetting, chkFPS, lblFPS, btnEnterTest, btnMenuTest,
-		btnShowWindow, btnPrevBackground, btnNextBackground),
+	AddWidgets(pnlSetting, cbFPS, btnEnterTest, btnMenuTest, btnShowWindow,
+		btnPrevBackground, btnNextBackground),
 	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
-	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, chkHex, lblHex),
+	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, cbHex),
 	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pWndExtra),
 	//启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(*pWndExtra, false),
-	lblFPS.SetTransparent(true),
+	cbFPS.SetTransparent(true),
 	Enable(btnPrevBackground, false),
 	yunseq(
 		dsk_up.Background = ImageBrush(FetchImage(1)),
@@ -318,8 +317,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	// TODO: show current working directory properly;
 		btnTest.Text = u"设置(X)",
 		btnOK.Text = u"确定(A)",
-		lblHex.Text = u"显示十六进制",
-		lblFPS.Text = u"显示 FPS",
+		cbHex.Text = u"显示十六进制",
+		cbFPS.Text = u"显示 FPS",
 		pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
@@ -343,7 +342,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 			Invalidate(lblPath);
 		},
 		fbMain.GetSelected() += [this](IndexEventArgs&&){
-			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
+			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
 		},
 		FetchEvent<Click>(btnTest) += [this](TouchEventArgs&&){
 			SwitchVisible(pnlSetting);
@@ -357,7 +356,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 				if(!IO::ValidatePath(s) && ufexists(s))
 				{
 					if(GetEntryType(s) == EnrtySpace::Text
-						&& !chkHex.IsTicked())
+						&& !cbHex.IsTicked())
 					// TODO: use g++ 4.7 later;
 					//	SetShellTo(make_shared<ShlTextReader>(path));
 						SetShellTo(share_raw(new ShlTextReader(path)));
@@ -370,11 +369,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 				}
 			}
 		},
-		FetchEvent<Click>(chkFPS) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(cbFPS) += [this](TouchEventArgs&&){
 			SetInvalidationOf(GetDesktopDown());
 		},
-		FetchEvent<Click>(chkHex) += [this](TouchEventArgs&&){
-			Enable(btnOK, CheckReaderEnability(fbMain, chkHex));
+		FetchEvent<Click>(cbHex) += [this](TouchEventArgs&&){
+			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
 			SetInvalidationOf(GetDesktopDown());
 		},
 		FetchEvent<TouchMove>(pnlSetting) += OnTouchMove_Dragging,
@@ -538,7 +537,7 @@ ShlExplorer::OnPaint()
 	//	to the SM_INPUT message is sent continuously, but with less efficiency.
 	auto& dsk_dn(GetDesktopDown());
 
-	if(chkFPS.IsTicked())
+	if(cbFPS.IsTicked())
 	{
 		using namespace ColorSpace;
 
