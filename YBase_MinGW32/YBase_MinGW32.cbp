@@ -67,6 +67,9 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-pedantic" />
+			<Add option="-std=c++0x" />
+			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-mthreads" />
 		</Compiler>

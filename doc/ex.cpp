@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3575; *build 311 rev 16;
+\version r3584; *build 312 rev 21;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-25 21:46 +0800;
+	2012-05-31 14:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -142,6 +142,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \inh ::= inherited
 \inv ::= invoke
 \k ::= keywords
+\li ::= lists
 \lib ::= library
 \lit ::= literals
 \ln ::= lines
@@ -197,6 +198,10 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \v ::= volatile
 \vt ::= virtual
 \val ::= values
+
+$macro_platform_mapping:
+\mac YCL_DS -> DS,
+\mac YCL_MINGW32 -> MinGW32;
 
 $using:
 \u YObject
@@ -367,105 +372,176 @@ $using:
 
 
 $DONE:
-r1:
-+ \cl CheckButton @ \u Selector;
-/= test 1 @ platform MinGW32;
-
-r2:
-/ \impl @ (\ctor, \mf Refresh) @ \cl CheckButton,
-/ @ \cl ShlExplorer @ \u Shells $=
+r1-r3:
+/ @ \lib YCLib $=
 (
-	/ \m (CheckBox chkFPS, Label lblFPS) -> \m CheckButton cbFPS,
-	/ \impl @ \ctor;
-	/ \tr \impl @ \mf OnPaint
+	+ \mac \def WIN32_LEAN_AND_MEAN @ platform MinGW32 @ \h NativeAPI,
+	/ @ \h YCommon $=
+	(
+		/ \a 's16' -> 'std::int16_t',
+		/ \a 'u8' -> 'std::uint8_t',
+		/ \a 'u16' -> 'std::uint16_t',
+		/ \a 'u32' -> 'std::uint32_t',
+		/ \a 'u64' -> 'std::uint64_t'
+	);
+	+ \u Video["Video.h", "Video.cpp"];
+	/ \f ((YConsoleInit, InitVideo) @ \ns platform), (ResetVideo, InitScrUp,
+		InitScrDown, ScreenSynchronize) @ \ns platform_ex) @ \u YCommon
+		>> \u Video,
+	/ \inc \h (NativeAPI, <initializer_list>) @ \h YCommon >> \h Video,
+	- typedef (s8, s16, s32, s64, u8, u16, u32, u64) @ \h NativeAPI,
+	+ \inc \h NativeAPI @ \impl \u YCommon,
+	/ \h YCommon $=
+	(
+		/ (typedef (SPos, SDst, PixelType), \mac (YCL_PIXEL_FORMAT_AXYZ1555,
+			DefColorH_), \f (FetchAlpha, FetchOpaque), \ns ColorSpace,
+			\cl (Color, CursorInfo)) @ \ns platform => \h Video,
+		+ \inc \h <sys/stat.h> @ \h YCommon,
+		+ \inc \h <WinUser.h> @ defined(YCL_MINGW32) @ \h YCommon,
+		+ \pre \decl \st (DIR, dirent) @ \g \ns,
+		/ \mf \i HFileNode::(GetName, Reset) -> \mf !\i @ \impl \u
+	),
+	/ \inc \h YCommon -> Video @ \h Input,
+	/ \f void YDebugBegin(Color fc = ColorSpace::White,
+		Color bc = ColorSpace::Blue) @ \h Debug -> \f void YDebugBegin()
 );
-/= test 2 @ platform MinGW32;
++ \inc \h Video @ \h YAdaptor;
+/= 2 test 1 @ platform MinGW32,
+/= test 2 @ platform DS;
 
-r3-r4:
-* \impl @ \ctor ShlExplorer @ \u Shells $since r2,
-/ \simp \impl @ \ctor (CheckBox, CheckButton);
-/= 2 test 3 @ platform MinGW32;
+r4:
+/ @ platform DS @ \h YCommon $=
+(
+	/ \inc \h <NativeAPI.h> -> \h <dirent.h>,
+	- using ::swiWaitForVBlank @ \ns platform_ex
+),
+/ \tr \impl @ \impl \u (YCommon, Input);
+/= test 3 @ platform DS;
 
 r5:
-/= test 4 @ platform DS;
-
-r6-r7:
+/ @ platform MinGW32 $=
 (
-	/ @ \cl CheckBox $=
+	/ @ \u NativeAPI $=
 	(
-		+ protected \m PaintBox;
-		+ \mf \vt Refresh;
-		/ \simp \impl @ \ctor
+		+ \inc \h <dirent.h>,
+		- \f (opendir, closedir, readdir, rewinddir),
+		- \f bool IsDirectory(::DIR&),
+		/ \impl @ \f bool IsDirectory(::dirent&),
+		- typedef \st (DIR, dirent);
+		+ \inc \h (<unistd.h>, <dirent.h>)
 	);
-	/ @ \cl CheckButton $=
-	(
-		/ \impl @ \mf Refresh,
-		/ \simp \impl @ \ctor
-	)
+	/ \inc \h (<sys/stat.h> -> (<unistd.h>, <dirent.h>)) @ \h YCommon,
+	+ '-Wextra' @ \a Code::Blocks \proj files
 ),
-/= 2 test 5 @ platform MinGW32;
+/ \a \f bool IsDirectory(::dirent&) @ \u NativeAPI
+	-> \f bool IsDirectory(const ::dirent&),
+* missing \a member initializers @ \impl @ \ctor PenStyle $since b301,
+/ $design @ (\h (YEvent, Iterator), \impl \u (Input, Video, ShellHelper, YBlit,
+	ColorPicker, Main_ARM9)) for unused \param warnings,
+/ \impl @ \impl \u DSMain for warnings,
+* wrongly ignoring Z order argument @ \impl @ \mf Menu::ShowSub $since b221,
+/ \simp \impl @ \mf FileBox::GetPath;
+/= test 4 @ platform MinGW32;
+
+r6:
+* \impl @ \impl \u NativeAPI $since r5,
++ '-Wextra' @ \a DS makefiles \exc (makefile @ \proj YSTest);
+/= test 5 @ platform DS;
 
 r7:
-+ \em \st NoBackgroundTag @ \cl Widget;
-/ @ \cl Thumb $=
-(
-	+ protected \exp \ctor Thumb(const Rect&, NoBackgroundTag);
-	/ \simp \impl @ public \ctor
-);
-/ \impl @ \ctor CheckBox;
-/= test 6 @ platform MinGW32;
+/= test 6 @ platform MinGW32 ^ \conf release;
 
 r8:
-/= test 7 @ platform DS;
+/ $design main \f @ \impl \u (Main_ARM9) @ platform DS for unused
+	\param warnings;
+/= test 7 @ platform DS ^ \conf release;
 
 r9:
-/= test 8 @ platform DS ^ \conf release;
+/ @ \h Input $=
+(
+	- using platform::CursorInfo,
+	- using platform::KeyInput
+),
+/ @ \lib YCLib $=
+(
+	+ \u FileSystem["FileSystem.h", "FileSystem.cpp"];
+	/ \a file system related interfaces @ \u YCommon >> \u FileSystem
+);
+/ \inc \h (<unistd.h>, <dirent.h>) @ \h YCommon >> \h FileSystem,
+/ \inc \h (<CHRLib/chrproc.h>, <Shlwapi.h> @ platform MinGW32)
+	@ \impl \u YCommon >> \impl \u FileSystem,
++ \inc \h "YCLib/NativeAPI.h" @ \impl \u FileSystem,
++ \inc \h FileSystem @ \h YAdaptor;
+/= test 8 @ platform MinGW32;
 
 r10:
-^ 'override' ~ 'virtual' @ \a \m \vt overrider
-	@ \proj (YFramework, YSTest_ARM9),
-/ \dtor LoggedEvent @ \u YException -> \exp \de \dtor,
-/ $design order @ \mf \decl @ \cl TextList;
+/ @ \u NativeAPI $=
+(
+	+ \u bool IsDirectory(const _wdirent&) @ \ns platform_ex,
+	- \inc \h "CHRLib/chrproc.h" @ \h
+);
+/ @ platform MinGW32 @ \cl HFileNode @ \u FileSystem
+	$= (^ wide dirent and DIR \st);
 /= test 9 @ platform MinGW32;
 
 r11:
-+ \exp \de \op= @ \cl HFileNode @ \h YCommon;
+* \tr \impl @ \impl \u Input $since r9;
 /= test 10 @ platform MinGW32;
 
-r12:
-/ @ \cl ShlExplorer @ \u Shells $=
+r12-r13:
+/= 2 test 11 @ platform MinGW32;
+
+r14-r16:
++ \f udirexists @ \u FileSystem;
++ using platform::udirexists @ \h YAdaptor;
+/ \tr \impl @ \f (CheckInstall @ \impl \u Initialization),
+	(\m Path::IsDirectory @ \impl \u YFileSystem);
+/= 3 test 12 @ platform MinGW32;
+
+r17:
+- \mac \def (NAME_MAX, S_IFMT, S_IFDIR, S_IFCHR, S_IFREG, S_IREAD, S_IWRITE,
+	S_IEXEC) @ \h NativeAPI;
+/= test 13 @ platform MinGW32;
+
+r18:
+/ @ \u NativeAPI $=
 (
-	/ \m (CheckBox chkHex, Label lblHex) -> \m CheckButton cbHex,
-	/ \impl @ \ctor;
-);
-/= test 11 @ platform MinGW32;
+	(
+		/ $undo r5;
+		+ \c @ \a \param @ \f IsDirectory
+	),
+	+ \mac NAME_MAX @ \h,
+	/ \impl @ \f opendir @ \impl \u for "missing field initializers" warnings 
+),
+/ @ \u FileSystem $=
+(
+	/ $undo r10,
+	+ \pre \decl \st (DIR, dirent) @ platform MinGW32 @ \h
+),
+/= test 14 @ platform MinGW32;
 
-r13:
-/ \a \s \c \m -> \s constexpr \m @ \clt GBinaryGroup @ \h YGDIBase;
-/= test 12 @ platform MinGW32;
+r19:
+/= test 15 @ platform DS;
 
-r14:
-/= test 13 @ platform MinGW32 ^ \conf release;
+r20:
+/= test 16 @ platform DS ^ \conf release;
 
-r15:
-/= test 14 @ platform DS;
-
-r16:
-/= test 15 @ platform DS ^ \conf release;
+r21:
+/= test 17 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-05-25:
--22.5d;
-//Mercurial rev1-rev183: r8451;
+2012-05-31:
+-25.8d;
+//Mercurial rev1-rev184: r8472;
 
 / ...
 
 
 $NEXT_TODO:
-b312-b348:
+b313-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -494,7 +570,8 @@ b349-b400:
 	/ noncopyable GUIState,
 	* (copy, move) @ \cl Menu,
 	/ access control @ \inh @ \clt deref_comp,
-	^ delegating \ctor as possible
+	^ delegating \ctor as possible,
+	/ strip away direct using @ Win32 types completely @ \h @ \lib YCLib
 ),
 + $design $low_prior helpers $=
 (
@@ -816,6 +893,7 @@ $module_tree $=
 		(
 			'native APIs',
 			'common input APIs',
+			'common video APIs',
 			'common file system APIs',
 			'debug helpers'
 		),
@@ -857,6 +935,27 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'
+	(
+		/ %'YCLib' $=
+		(
+			+ "separate unit %Video" @ 'common video APIs',
+			/ @ 'common file system APIs' $=
+			(
+				+ "separate unit %FileSystem";
+				+ "function %udirexists"
+			),
+			- "redundant types and macros definition" @ "header %NativeAPI.h",
+			/ $design "header including"
+				// Making less of directly including header %NativeAPI.h \
+					for less pollution in global namespace and macros.
+		);
+		/ %'YSLib'.'adaptors' $= ("new including and using declarations")
+	)
+),
+
+b311
 (
 	(
 		+ "class %CheckButton" @ %'YFramework'.'YSLib'.'GUI';
@@ -3922,11 +4021,12 @@ b206
 			@ "ISO C++0x(N3242 5.17/9)" ^ "explicit static_cast",
 		/ "character types" @ "header %platform.h"
 	),
-	/ "coding using limited C++0x features" $=
+	^ "limited C++0x features" $=
 	(
-		/ $design ^ "C++0x style nested template angle brackets",
-		/ $design ^ "keyword %auto",
-		/ ^ "C++2011 type_traits" @ "namespace std" ~ "std::tr1"
+		$design ^ "C++0x style nested template angle brackets",
+		$design ^ "keyword %auto",
+		^ "C++2011 type_traits" @ "namespace std" ~ "std::tr1",
+		^ "std::shared_ptr" ~ "std::tr1::shared_ptr"
 	),
 	- "Loki type operations",
 	/ ^ "namespace %ystdex" @ "namespace %YSLib"
@@ -3969,7 +4069,7 @@ b203
 	+ "class %MTextList",
 	/ "class %YSimpleText List using class %MTextList inheritance",
 	/ "class %YSimpleText renamed to %YMenu",
-	/ "using std::tr1::shared_ptr" ~ "smart pointers" @ "library %Loki"
+	^ "std::tr1::shared_ptr" ~ ("smart pointers" @ "library %Loki")
 ),
 
 b202

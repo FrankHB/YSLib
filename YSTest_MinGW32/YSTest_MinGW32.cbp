@@ -86,6 +86,8 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-std=c++0x" />
+			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-mthreads" />
 			<Add directory="..\YSTest_ARM9\include" />

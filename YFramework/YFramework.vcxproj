@@ -11,12 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\doc\CHRLib.txt" />
+    <None Include="..\doc\CommonRules.txt" />
+    <None Include="..\doc\Definitions.txt" />
+    <None Include="..\doc\Designation.txt" />
+    <None Include="..\doc\YSLib.txt" />
     <None Include="data\cp113.bin" />
     <None Include="data\default_font.bin" />
-    <None Include="doc\CommonRules.txt" />
-    <None Include="doc\Definitions.txt" />
-    <None Include="doc\Designation.txt" />
-    <None Include="doc\YSLib.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\CHRLib\chrdef.h" />
@@ -114,9 +115,11 @@
     <ClInclude Include="include\Helper\shlds.h" />
     <ClInclude Include="include\Helper\yglobal.h" />
     <ClInclude Include="include\YCLib\Debug.h" />
+    <ClInclude Include="include\YCLib\FileSystem.h" />
     <ClInclude Include="include\YCLib\Input.h" />
     <ClInclude Include="include\YCLib\NativeAPI.h" />
     <ClInclude Include="include\YCLib\Platform.h" />
+    <ClInclude Include="include\YCLib\Video.h" />
     <ClInclude Include="include\YCLib\ycommon.h" />
     <ClInclude Include="include\ysbuild.h" />
     <ClInclude Include="include\YSLib\Adaptor\config.h" />
@@ -183,7 +186,7 @@
     <ClInclude Include="include\YSLib\UI\ywindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="doc\ex.cpp" />
+    <ClCompile Include="..\doc\ex.cpp" />
     <ClCompile Include="source\CHRLib\chrmap.cpp" />
     <ClCompile Include="source\CHRLib\chrproc.cpp" />
     <ClCompile Include="source\Helper\DSMain.cpp" />
@@ -192,8 +195,10 @@
     <ClCompile Include="source\Helper\shlds.cpp" />
     <ClCompile Include="source\Helper\yglobal.cpp" />
     <ClCompile Include="source\YCLib\Debug.cpp" />
+    <ClCompile Include="source\YCLib\FileSystem.cpp" />
     <ClCompile Include="source\YCLib\Input.cpp" />
     <ClCompile Include="source\YCLib\NativeAPI.cpp" />
+    <ClCompile Include="source\YCLib\Video.cpp" />
     <ClCompile Include="source\YCLib\ycommon.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp" />
@@ -272,7 +277,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
     <NMakePreprocessorDefinitions>DEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.2\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.7.0\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.7.0;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.7.0\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
@@ -287,7 +292,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <NMakePreprocessorDefinitions>NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.2\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.7.0\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.7.0;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.7.0\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>

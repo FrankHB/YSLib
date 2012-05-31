@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright (C) by Franksoft 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r1078;
+\version r1087;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299 。
 \par 创建时间:
 	2012-04-07 13:38:36 +0800;
 \par 修改时间:
-	2012-04-10 13:24 +0800;
+	2012-05-30 23:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ WaitForInput()
 		platform_ex::UpdateKeyStates();
 		if(platform_ex::FetchKeyDownState().any())
 			break;
- 		platform_ex::swiWaitForVBlank();
+ 		::swiWaitForVBlank();
 	};
 #else
 	std::getchar();
@@ -55,9 +55,9 @@ namespace platform_ex
 {
 
 void
-WriteCursor(CursorInfo& tp)
-{
 #ifdef YCL_DS
+WriteCursor(platform::CursorInfo& tp)
+{
 	touchRead(&tp);
 	//修正触摸位置。
 	if(YCL_LIKELY(tp.px != 0 && tp.py != 0))
@@ -66,6 +66,8 @@ WriteCursor(CursorInfo& tp)
 		// NOTE: YSL_ Point::Invalid;
 		yunseq(tp.px = platform::SDst(-1), tp.py = platform::SDst(-1));
 #elif defined(YCL_MINGW32)
+WriteCursor(platform::CursorInfo&)
+{
 // TODO: impl;
 #else
 #	error Unsupported platform found!
@@ -73,7 +75,7 @@ WriteCursor(CursorInfo& tp)
 }
 
 
-KeyInput KeyState, OldKeyState;
+platform::KeyInput KeyState, OldKeyState;
 #ifdef YCL_MINGW32
 namespace
 {

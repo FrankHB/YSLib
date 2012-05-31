@@ -54,8 +54,9 @@ public:
 	\brief 构造：使用指定字体家族、字体大小和颜色。
 	*/
 	explicit
-	PenStyle(const Drawing::Font& font = FetchPrototype<Drawing::Font>(),
+	PenStyle(const Drawing::Font& fnt = FetchPrototype<Drawing::Font>(),
 		Drawing::Color c = Drawing::ColorSpace::White)
+		: Font(fnt), Color(c)
 	{}
 	/*!
 	\brief 析构：空实现。

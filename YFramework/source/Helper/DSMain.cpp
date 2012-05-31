@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1922;
+\version r1927;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-05-25 14:02 +0800;
+	2012-05-30 17:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -81,7 +81,7 @@ private:
 	InitializeDIB(void*& pBuffer, SDst w, SDst h)
 	{
 		::BITMAPINFO bmi{{sizeof(::BITMAPINFO::bmiHeader), w,
-			-h - 1, 1, 32, BI_RGB, sizeof(PixelType) * w * h}, {}};
+			-h - 1, 1, 32, BI_RGB, sizeof(PixelType) * w * h, 0, 0, 0, 0}, {}};
 
 		return ::CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, &pBuffer,
 			NULL, 0);
@@ -686,9 +686,9 @@ FetchGlobalInstance() ynothrow
 }
 
 bool
+#ifdef YCL_DS
 InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
-#ifdef YCL_DS
 	using namespace platform;
 
 	if(&FetchGlobalInstance().GetScreenUp() == &scr)
@@ -698,6 +698,8 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 	else
 		return false;
 #elif defined(YCL_MINGW32)
+InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType)
+{
 #else
 #	error Unsupported platform found!
 #endif

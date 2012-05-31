@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1461;
+\version r1479;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 202 。
 \par 创建时间:
 	2011-04-13 20:26:21 +0800;
 \par 修改时间:
-	2012-04-27 11:54 +0800;
+	2012-05-31 13:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -71,10 +71,10 @@ namespace platform_ex
 
 /*!
 \brief 判断 ::dirent 指定的节点是否为目录。
-\since build 298 。
+\since build 312 。
 */
 inline bool
-IsDirectory(::dirent& d)
+IsDirectory(const ::dirent& d)
 {
 	return d.d_type & DT_DIR;
 }
@@ -122,15 +122,7 @@ IsDirectory(::dirent& d)
 
 #define NAME_MAX 256
 
-
-#define S_IFMT		_S_IFMT
-#define S_IFDIR		_S_IFDIR
-#define S_IFCHR		_S_IFCHR
 #define S_IFIFO		_S_IFIFO
-#define S_IFREG		_S_IFREG
-#define S_IREAD		_S_IREAD
-#define S_IWRITE	_S_IWRITE
-#define S_IEXEC		_S_IEXEC
 
 #define	S_IRWXG		(S_IRGRP | S_IWGRP | S_IXGRP)
 #define		S_IRGRP	0
@@ -165,16 +157,6 @@ makedir(char const* dir, mode_t)
 
 extern "C"
 {
-
-typedef int8_t s8;
-typedef int16_t s16;
-typedef int32_t s32;
-typedef int64_t s64;
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-
 
 typedef struct dirent
 {
@@ -261,19 +243,19 @@ IsDirectory(const ::WIN32_FIND_DATAW& d)
 }
 /*!
 \brief 判断 ::dirent 指定的节点是否为目录。
-\since build 298 。
+\since build 312 。
 */
 inline bool
-IsDirectory(::dirent& d)
+IsDirectory(const ::dirent& d)
 {
 	return d.lpWinDir && IsDirectory(*d.lpWinDir);
 }
 /*!
 \brief 判断 ::DIR 指定的节点是否为目录。
-\since build 298 。
+\since build 312 。
 */
 inline bool
-IsDirectory(::DIR& d)
+IsDirectory(const ::DIR& d)
 {
 	return IsDirectory(d.WinDir);
 }

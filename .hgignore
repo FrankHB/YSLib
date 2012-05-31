@@ -25,3 +25,4 @@ UpgradeLog.XML
 *.cscope_file_list
 *.depend
 YSTest_MinGW32/config.txt
+*.cbTemp

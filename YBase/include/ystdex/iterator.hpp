@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1852;
+\version r1856;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2012-04-27 11:53 +0800;
+	2012-05-30 17:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -278,25 +278,25 @@ public:
 	}
 
 	pseudo_iterator&
-	operator+=(const difference_type& _n)
+	operator+=(const difference_type&)
 	{
 		return *this;
 	}
 
 	yconstfn pseudo_iterator
-	operator+(const difference_type& _n) const
+	operator+(const difference_type&) const
 	{
 		return *this;
 	}
 
 	yconstfn pseudo_iterator&
-	operator-=(const difference_type& _n)
+	operator-=(const difference_type&)
 	{
 		return *this;
 	}
 
 	yconstfn pseudo_iterator
-	operator-(const difference_type& _n) const
+	operator-(const difference_type&) const
 	{
 		return *this;
 	}

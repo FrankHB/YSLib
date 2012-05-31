@@ -56,7 +56,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
     <NMakePreprocessorDefinitions>DEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.2\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.7.0\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.7.0;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.7.0\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
@@ -71,7 +71,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <NMakePreprocessorDefinitions>NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.6.2\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.6.2\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-eabi\4.7.0\include;$(DKP_HOME)\devkitARM\arm-eabi\include;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.7.0;$(DKP_HOME)\devkitARM\arm-eabi\include\c++\4.7.0\arm-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright (C) by Franksoft 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r1039;
+\version r1043;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299 。
 \par 创建时间:
 	2012-04-07 14:20:49 +0800;
 \par 修改时间:
-	2012-04-07 14:28 +0800;
+	2012-05-26 21:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,10 +48,11 @@ bool
 YDebugGetStatus();
 
 /*!
-\brief 调试模式：显示控制台（fc 为前景色，bc 为背景色）。
+\brief 调试模式：显示控制台。
+\since build 312 。
 */
 void
-YDebugBegin(Color fc = ColorSpace::White, Color bc = ColorSpace::Blue);
+YDebugBegin();
 
 /*!
 \brief 调试模式：按键继续。

@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r1241;
+\version r1242;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2012-01-06 21:37:51 +0800;
 \par 修改时间:
-	2012-05-14 22:44 +0800;
+	2012-05-30 18:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -45,7 +45,7 @@ ColorBox::ColorBox(const Point& pt, Color c)
 	lblRed(Rect(120, 24, label_size)), lblGreen(Rect(120, 48, label_size)),
 	lblBlue(Rect(120, 72, label_size))
 {
-	const auto update_color([this](ScrollEventArgs&& e){
+	const auto update_color([this](ScrollEventArgs&&){
 		SetColor(Color(trRed.GetValue(), trGreen.GetValue(),
 			trBlue.GetValue()));
 	});

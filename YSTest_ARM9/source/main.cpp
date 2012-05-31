@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2670;
+\version r2673;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-04-21 20:05 +0800;
+	2012-05-30 18:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -227,9 +227,11 @@ YSL_END
 int
 #ifdef YCL_MINGW32
 WINAPI
-WinMain(HINSTANCE hThis, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmd)
+WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+//WinMain(HINSTANCE hThis, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmd)
 #else
-main(int argc, char* argv[])
+main()
+//main(int argc, char* argv[])
 #endif
 {
 	using namespace YSL;

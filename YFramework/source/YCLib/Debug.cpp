@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r1062;
+\version r1065;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299 。
 \par 创建时间:
 	2012-04-07 14:22:09 +0800;
 \par 修改时间:
-	2012-04-07 14:44 +0800;
+	2012-05-26 21:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -50,10 +50,10 @@ YDebugGetStatus()
 }
 
 void
-YDebugBegin(Color fc, Color bc)
+YDebugBegin()
 {
 	if(bDebugStatus)
-		YConsoleInit(false, fc, bc);
+		YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
 }
 
 void

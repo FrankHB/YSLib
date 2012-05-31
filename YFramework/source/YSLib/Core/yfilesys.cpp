@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2317;
+\version r2318;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-04-28 15:09 +0800;
+	2012-05-31 01:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -95,7 +95,7 @@ Path::operator/=(const Path& path)
 bool
 Path::IsDirectory() const
 {
-	return direxists(GetNativeString().c_str());
+	return udirexists(GetNativeString().c_str());
 }
 
 //路径分解。

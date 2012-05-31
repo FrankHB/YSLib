@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1381;
+\version r1382;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-26 13:36:28 +0800;
 \par 修改时间:
-	2012-04-07 19:09 +0800;
+	2012-05-31 13:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,7 @@ opendir(const char* name)
 
 		yassume(std::strlen(name) + 2 < sizeof(dir->Name));
 
-		dir->WinDir = {};
+		dir->WinDir = ::WIN32_FIND_DATAW();
 		yunseq(std::sprintf(dir->Name, "%s\\*", name), dir->hNode = NULL,
 			dir->POSIXDir.lpWinDir = &dir->WinDir);
 		return dir;

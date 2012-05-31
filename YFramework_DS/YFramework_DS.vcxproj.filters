@@ -606,6 +606,12 @@
     <ClInclude Include="..\YFramework\include\Helper\yglobal.h">
       <Filter>头文件\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="..\YFramework\include\YCLib\Video.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YFramework\include\YCLib\FileSystem.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\YFramework\source\YSLib\Adaptor\Font.cpp">
@@ -787,6 +793,12 @@
     </ClCompile>
     <ClCompile Include="..\YFramework\source\Helper\yglobal.cpp">
       <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\YCLib\Video.cpp">
+      <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\YCLib\FileSystem.cpp">
+      <Filter>源文件\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

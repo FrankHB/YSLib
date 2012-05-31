@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2115;
+\version r2117;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-05-01 02:41 +0800;
+	2012-05-31 01:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -269,9 +269,9 @@ CheckInstall() ynothrow
 			throw LoggedEvent("Loading configuration");
 		}
 		std::printf("Trying entering directory %s ...\n", def_dir);
-		if(!direxists(def_dir))
+		if(!udirexists(def_dir))
 			throw LoggedEvent("Default data directory");
-		if(!(fexists(font_path) || direxists(font_dir)))
+		if(!(fexists(font_path) || udirexists(font_dir)))
 			throw LoggedEvent("Default font");
 		puts("OK!");
 		return;

@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r1310;
+\version r1311;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2012-04-13 19:55 +0800;
+	2012-05-31 01:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,7 +48,7 @@ typedef const char* const_path_t;
 
 /*!
 \brief 判断指定路径的文件是否存在。
-\note 使用 std::fopen 标准库实现。
+\note 使用 std::fopen 实现。
 \pre 断言检查：参数非空。
 \since build 299 。
 */
