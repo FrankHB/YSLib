@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r1212;
+\version r1213;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2012-04-03 12:11 +0800;
+	2012-06-01 16:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -118,7 +118,7 @@ public:
 	void
 	SetContainer(ContainerType& con)
 	{
-		if(YCL_LIKELY(pContainer != &con))
+		if(YB_LIKELY(pContainer != &con))
 			yunseq(pContainer = &con, selected = 0, head = 0, length = 1);
 	}
 	/*!

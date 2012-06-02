@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1562;
+\version r1563;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2012-05-25 09:00 +0800;
+	2012-06-01 16:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ namespace
 		YAssert(g.IsValid(), "Invalid context found.");
 
 		DrawRect(g, r, is_focused ? c : Color(85, 134, 223));
-		if(YCL_LIKELY(r.Width > 10 && r.Height > 10))
+		if(YB_LIKELY(r.Width > 10 && r.Height > 10))
 		{
 			Rect rt(r);
 			Color cs[]{{222, 249, 250}, {177, 223, 253}, {213, 254, 254}};

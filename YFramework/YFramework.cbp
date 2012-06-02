@@ -64,8 +64,10 @@
 		<Unit filename="include\YCLib\Debug.h" />
 		<Unit filename="include\YCLib\FileSystem.h" />
 		<Unit filename="include\YCLib\Input.h" />
+		<Unit filename="include\YCLib\Keys.h" />
 		<Unit filename="include\YCLib\NativeAPI.h" />
 		<Unit filename="include\YCLib\Platform.h" />
+		<Unit filename="include\YCLib\Timer.h" />
 		<Unit filename="include\YCLib\Video.h" />
 		<Unit filename="include\YCLib\ycommon.h" />
 		<Unit filename="include\YSLib\Adaptor\Font.h" />
@@ -225,7 +227,9 @@
 		<Unit filename="source\YCLib\Debug.cpp" />
 		<Unit filename="source\YCLib\FileSystem.cpp" />
 		<Unit filename="source\YCLib\Input.cpp" />
+		<Unit filename="source\YCLib\Keys.cpp" />
 		<Unit filename="source\YCLib\NativeAPI.cpp" />
+		<Unit filename="source\YCLib\Timer.cpp" />
 		<Unit filename="source\YCLib\Video.cpp" />
 		<Unit filename="source\YCLib\ycommon.cpp" />
 		<Unit filename="source\YSLib\Adaptor\Font.cpp" />

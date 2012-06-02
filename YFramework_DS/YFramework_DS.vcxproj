@@ -122,8 +122,10 @@
     <ClInclude Include="..\YFramework\include\YCLib\Debug.h" />
     <ClInclude Include="..\YFramework\include\YCLib\FileSystem.h" />
     <ClInclude Include="..\YFramework\include\YCLib\Input.h" />
+    <ClInclude Include="..\YFramework\include\YCLib\Keys.h" />
     <ClInclude Include="..\YFramework\include\YCLib\NativeAPI.h" />
     <ClInclude Include="..\YFramework\include\YCLib\Platform.h" />
+    <ClInclude Include="..\YFramework\include\YCLib\Timer.h" />
     <ClInclude Include="..\YFramework\include\YCLib\Video.h" />
     <ClInclude Include="..\YFramework\include\YCLib\ycommon.h" />
     <ClInclude Include="..\YFramework\include\ysbuild.h" />
@@ -202,7 +204,9 @@
     <ClCompile Include="..\YFramework\source\YCLib\Debug.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\FileSystem.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\Input.cpp" />
+    <ClCompile Include="..\YFramework\source\YCLib\Keys.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\NativeAPI.cpp" />
+    <ClCompile Include="..\YFramework\source\YCLib\Timer.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\Video.cpp" />
     <ClCompile Include="..\YFramework\source\YCLib\ycommon.cpp" />
     <ClCompile Include="..\YFramework\source\YSLib\Adaptor\Font.cpp" />

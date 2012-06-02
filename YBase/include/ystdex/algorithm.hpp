@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1319;
+\version r1321;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-04-26 20:46 +0800;
+	2012-06-01 15:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YCL_INC_YSTDEX_ALGORITHM_HPP_
-#define YCL_INC_YSTDEX_ALGORITHM_HPP_
+#ifndef YB_INC_YSTDEX_ALGORITHM_HPP_
+#define YB_INC_YSTDEX_ALGORITHM_HPP_
 
 #include "../ydef.h"
 #include <algorithm>

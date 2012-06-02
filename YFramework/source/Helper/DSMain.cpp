@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1927;
+\version r1929;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-05-30 17:28 +0800;
+	2012-06-01 21:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -234,7 +234,7 @@ DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p)
 BitmapPtr
 DSScreen::GetCheckedBufferPtr() const ynothrow
 {
-	if(YCL_UNLIKELY(!GetBufferPtr()))
+	if(YB_UNLIKELY(!GetBufferPtr()))
 	{
 		InitVideo();
 
@@ -511,7 +511,7 @@ DSApplication::~DSApplication()
 FontCache&
 DSApplication::GetFontCache() const ythrow(LoggedEvent)
 {
-	if(YCL_UNLIKELY(!pFontCache))
+	if(YB_UNLIKELY(!pFontCache))
 		throw LoggedEvent("Null pointer found.");
 	return *pFontCache;
 }
@@ -594,7 +594,7 @@ DispatchInput(Desktop& dsk)
 #	define YCL_CURSOR_VALID
 	if(platform_ex::KeyState[YCL_KEY_Touch])
 	{
-		CursorInfo cursor;
+		platform::CursorInfo cursor;
 
 		platform_ex::WriteCursor(cursor);
 		yunseq(cursor_pos.X = cursor.GetX(),

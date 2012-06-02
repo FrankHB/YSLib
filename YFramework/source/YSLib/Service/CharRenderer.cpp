@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r6900;
+\version r6903;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-05-21 13:26 +0800;
+	2012-06-01 16:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -75,20 +75,20 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 	u8* alpha)
 {
 	//无缓冲区时无法绘图。
-	if(YCL_LIKELY(g.IsValid()))
+	if(YB_LIKELY(g.IsValid()))
 	{
 		using namespace ystdex;
 
 		CharBitmap sbit(ts.Font.GetGlyph(c));
 
 		//无法获取位图时无法绘图。
-		if(YCL_UNLIKELY(!sbit))
+		if(YB_UNLIKELY(!sbit))
 			return;
 		// TODO: Show a special glyph when no bitmap found;
 
 		const int tx(ts.PenX + ts.Font.GetAdvance(c, sbit));
 
-		if(YCL_LIKELY(std::iswgraph(c) && sbit.GetBuffer()))
+		if(YB_LIKELY(std::iswgraph(c) && sbit.GetBuffer()))
 		{
 			const auto& left(ts.Margin.Left);
 			const auto& top(ts.Margin.Top);

@@ -102,8 +102,10 @@
 		<Unit filename="..\YFramework\include\YCLib\Debug.h" />
 		<Unit filename="..\YFramework\include\YCLib\FileSystem.h" />
 		<Unit filename="..\YFramework\include\YCLib\Input.h" />
+		<Unit filename="..\YFramework\include\YCLib\Keys.h" />
 		<Unit filename="..\YFramework\include\YCLib\NativeAPI.h" />
 		<Unit filename="..\YFramework\include\YCLib\Platform.h" />
+		<Unit filename="..\YFramework\include\YCLib\Timer.h" />
 		<Unit filename="..\YFramework\include\YCLib\Video.h" />
 		<Unit filename="..\YFramework\include\YCLib\ycommon.h" />
 		<Unit filename="..\YFramework\include\YSLib\Adaptor\Font.h" />
@@ -263,7 +265,9 @@
 		<Unit filename="..\YFramework\source\YCLib\Debug.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\FileSystem.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Input.cpp" />
+		<Unit filename="..\YFramework\source\YCLib\Keys.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\NativeAPI.cpp" />
+		<Unit filename="..\YFramework\source\YCLib\Timer.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Video.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\ycommon.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\Adaptor\Font.cpp" />

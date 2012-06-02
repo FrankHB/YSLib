@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2385;
+\version r2391;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-05-31 01:27 +0800;
+	2012-06-01 22:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,6 +41,8 @@
 
 //包含 YCLib 公用部分。
 #include <YCLib/ycommon.h>
+#include <YCLib/Keys.h>
+#include <YCLib/Timer.h>
 #include <YCLib/FileSystem.h>
 #include <YCLib/Video.h>
 
@@ -171,9 +173,10 @@ using platform::ufexists;
 using platform::direxists;
 //! \since build 312 。
 using platform::udirexists;
-using platform::chdir;
 //! \since build 304 。
 using platform::u16getcwd_n;
+//! \since build 313 。
+using platform::uchdir;
 //@}
 
 //系统处理函数。
@@ -211,7 +214,6 @@ using platform::StartTicks;
 //输入类型。
 namespace KeyCodes = platform::KeyCodes;
 using platform::KeyInput;
-using platform::CursorInfo;
 
 //! \brief 设计模式。
 YSL_BEGIN_NAMESPACE(Pattern)

@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2722;
+\version r2723;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2012-04-22 21:21 +0800;
+	2012-06-01 16:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -86,7 +86,7 @@ template<class _tWidget, typename _fFetcher>
 Point
 LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 {
-	if(YCL_LIKELY(dynamic_cast<_tWidget*>(&wgt)))
+	if(YB_LIKELY(dynamic_cast<_tWidget*>(&wgt)))
 		return Point::Zero;
 
 	_tWidget* const pNode(fetch_ptr(wgt));

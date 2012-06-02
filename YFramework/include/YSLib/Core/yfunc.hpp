@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1820;
+\version r1824;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2012-04-20 21:10 +0800;
+	2012-06-01 16:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -174,7 +174,7 @@ public:
 	_tRet
 	operator()(_type& o, _tPara arg)
 	{
-		if(YCL_LIKELY(_pm))
+		if(YB_LIKELY(_pm))
 			return o.*_pm(arg);
 	}
 	/*!
@@ -185,7 +185,7 @@ public:
 	_tRet
 	operator()(_tNew& o, _tPara&& arg)
 	{
-		if(YCL_LIKELY(_pm))
+		if(YB_LIKELY(_pm))
 			try
 			{
 				return (dynamic_cast<_type&>(o).*_pm)(yforward(arg));
@@ -234,7 +234,7 @@ public:
 	_tRet
 	operator()(_tPara&& arg)
 	{
-		if(YCL_LIKELY(_po && _pm))
+		if(YB_LIKELY(_po && _pm))
 			return (_po->*_pm)(yforward(arg));
 	}
 	/*!
@@ -246,7 +246,7 @@ public:
 	_tRet
 	operator()(_tN&, _tPara&& arg)
 	{
-		if(YCL_LIKELY(_po && _pm))
+		if(YB_LIKELY(_po && _pm))
 			return (_po->*_pm)(yforward(arg));
 	}
 };

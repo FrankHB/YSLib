@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2305;
+\version r2308;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-03-28 19:57 +0800;
+	2012-06-01 16:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -93,7 +93,7 @@ struct SequenceTransformer
 	void
 	operator()(_tPixel* dst, size_t n, _fTransformPixel tp)
 	{
-		if(YCL_LIKELY(dst && n))
+		if(YB_LIKELY(dst && n))
 		{
 			_tPixel* p(dst + n);
 
@@ -116,7 +116,7 @@ struct VerticalLineTransfomer
 	void
 	operator()(_tPixel* dst, size_t n, SDst dw, _fTransformPixel tp)
 	{
-		if(YCL_LIKELY(dst && n))
+		if(YB_LIKELY(dst && n))
 			while(n--)
 			{
 				tp(dst);
@@ -190,7 +190,7 @@ Blit(_tOut dst, const Size& ds,
 {
 	int min_x, min_y, max_x, max_y;
 
-	if(YCL_LIKELY(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y, max_x, max_y)))
+	if(YB_LIKELY(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y, max_x, max_y)))
 	{
 		const int delta_x(max_x - min_x), delta_y(max_y - min_y),
 			src_off(min_y * ss.Width + min_x),

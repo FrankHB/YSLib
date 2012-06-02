@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1727;
+\version r1729;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:45:33 +0800;
 \par 修改时间:
-	2012-04-24 21:47 +0800;
+	2012-06-01 16:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -144,7 +144,7 @@ DrawRect(const Graphics& g, const Point& pt, const Size& s, Color c)
 {
 	const SPos x1(pt.X), y1(pt.Y), x2(x1 + s.Width - 1), y2(y1 + s.Height - 1);
 
-	if(YCL_LIKELY(x1 < x2 && y1 < y2))
+	if(YB_LIKELY(x1 < x2 && y1 < y2))
 	{
 		bool b(DrawVLineSeg(g, x1, y1, y2, c));
 
@@ -159,7 +159,7 @@ DrawRect(const Graphics& g, const Point& pt, const Size& s, Color c)
 bool
 FillRect(const Graphics& g, const Point& pt, const Size& s, Color c)
 {
-	if(YCL_LIKELY(g.IsValid()))
+	if(YB_LIKELY(g.IsValid()))
 	{
 		// TODO : 矩形跨立实验。
 		FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(), pt, s, c);

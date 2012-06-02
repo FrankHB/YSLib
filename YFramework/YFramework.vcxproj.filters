@@ -608,6 +608,12 @@
     <ClInclude Include="include\YCLib\FileSystem.h">
       <Filter>头文件\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\YCLib\Keys.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\Timer.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -794,6 +800,12 @@
       <Filter>文档</Filter>
     </ClCompile>
     <ClCompile Include="source\YCLib\FileSystem.cpp">
+      <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\Keys.cpp">
+      <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\Timer.cpp">
       <Filter>源文件\YCLib</Filter>
     </ClCompile>
   </ItemGroup>

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2451;
+\version r2453;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-05-15 08:57 +0800;
+	2012-06-01 16:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -96,7 +96,7 @@ HandleToReference(_tHandle h) ythrow(std::bad_cast)
 {
 	_type* _tmp(dynamic_cast<_type*>(raw(h)));
 
-	if(YCL_LIKELY(!_tmp))
+	if(YB_LIKELY(!_tmp))
 		throw std::bad_cast();
 	return *_tmp;
 }
@@ -282,7 +282,7 @@ PDefTmplH1(_tPixel)
 _tPixel*
 CreateRawBitmap(const _tPixel* s, size_t n)
 {
-	if(YCL_LIKELY(s && n))
+	if(YB_LIKELY(s && n))
 	{
 		size_t size(sizeof(_tPixel) * n);
 		_tPixel* d(new _tPixel[size]);

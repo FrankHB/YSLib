@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11799;
+\version r11812;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-05-14 23:01 +0800;
+	2012-06-01 22:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,15 +55,19 @@ $region $synopsis $begin
 
 $dir YBase
 {
+$header *
+{
+YB_INC_*
+}
 $header YDefinition
 {
-YCL_USE_YASSERT
-YCL_IMPL_CPP
-YCL_IMPL_MSCPP
-YCL_IMPL_GNUCPP
-YCL_HAS_BUILTIN_NULLPTR
-YCL_HAS_CONSTEXPR
-YCL_USE_EXCEPTION_SPECIFICATION
+YB_USE_YASSERT
+YB_IMPL_CPP
+YB_IMPL_MSCPP
+YB_IMPL_GNUCPP
+YB_HAS_BUILTIN_NULLPTR
+YB_HAS_CONSTEXPR
+YB_USE_EXCEPTION_SPECIFICATION
 ythrow(*)?
 yconstexpr
 yconstexprf
@@ -785,8 +789,9 @@ using platform::mmbcpy;
 using platform::ufopen;	
 using platform::ufexists;	
 using platform::direxists;
-using platform::chdir;
+using platform::udirexists;
 using platform::u16getcwd_n;
+using platform::uchdir;
 
 //系统处理函数。
 using platform::terminate;
@@ -819,7 +824,6 @@ using platform::StartTicks;
 //输入类型。
 namespace KeyCodes = platform::KeyCodes;
 using platform::KeyCode;
-using platform::CursorInfo;
 
 namespace Drawing
 {

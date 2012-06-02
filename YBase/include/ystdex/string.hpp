@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r1175;
+\version r1177;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304 。
 \par 创建时间:
 	2012-04-26 20:12:19 +0800;
 \par 修改时间:
-	2012-05-15 00:52 +0800;
+	2012-06-01 16:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YCL_INC_STRING_HPP_
-#define YCL_INC_STRING_HPP_
+#ifndef YB_INC_STRING_HPP_
+#define YB_INC_STRING_HPP_
 
 #include "utility.hpp" // for ../ydef.h, ystdex::make_array;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list, 

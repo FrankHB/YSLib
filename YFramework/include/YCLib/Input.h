@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r1139;
+\version r1174;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 299 。
 \par 创建时间:
 	2012-04-07 13:37:05 +0800;
 \par 修改时间:
-	2012-05-30 22:46 +0800;
+	2012-06-01 20:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,10 +28,46 @@
 #ifndef YCL_INC_INPUT_H_
 #define YCL_INC_INPUT_H_
 
-#include "Video.h"
+#include "Keys.h"
+#include "NativeAPI.h"
 
 namespace platform
 {
+
+#ifdef YCL_DS
+//! \brief 屏幕指针设备光标信息。
+typedef struct CursorInfo : public ::touchPosition
+{
+	/*!
+	\brief 取横坐标。
+	\since build 313 。
+	*/
+	std::uint16_t
+	GetX() const
+	{
+		return px;
+	}
+	/*!
+	\brief 取纵坐标。
+	\since build 313 。
+	*/
+	std::uint16_t
+	GetY() const
+	{
+		return py;
+	}
+} CursorInfo;
+
+#elif defined(YCL_MINGW32)
+/*!
+\brief 屏幕指针设备光标信息。
+\since build 296 。
+*/
+typedef ::CURSORINFO CursorInfo;
+#else
+#	error Unsupport platform found!
+#endif
+
 
 /*!
 \defgroup YCL_KEY_OVERRIDE YCLib Key Overridden Values

@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1503;
+\version r1507;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2012-05-25 21:25 +0800;
+	2012-06-01 16:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -101,9 +101,9 @@ Intersect(const Rect& a, const Rect& b)
 Rect
 Unite(const Rect& a, const Rect& b)
 {
-	if(YCL_UNLIKELY(a.IsEmpty()))
+	if(YB_UNLIKELY(a.IsEmpty()))
 		return b;
-	if(YCL_UNLIKELY(b.IsEmpty()))
+	if(YB_UNLIKELY(b.IsEmpty()))
 		return a;
 
 	auto mx(min(a.X, b.X)), my(min(a.Y, b.Y));
@@ -126,9 +126,9 @@ Graphics::operator[](size_t r) const ynothrow
 BitmapPtr
 Graphics::at(size_t r) const ythrow(GeneralEvent, std::out_of_range)
 {
-	if(YCL_UNLIKELY(!pBuffer))
+	if(YB_UNLIKELY(!pBuffer))
 		throw GeneralEvent("Null pointer found.");
-	if(YCL_UNLIKELY(r >= size.Height))
+	if(YB_UNLIKELY(r >= size.Height))
 		throw std::out_of_range("Access out of range.");
 
 	return pBuffer + r * size.Width;

@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2087;
+\version r2089;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2012-04-13 21:12 +0800;
+	2012-06-01 16:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YCL_INC_YSTDEX_RATIONAL_HPP_
-#define YCL_INC_YSTDEX_RATIONAL_HPP_
+#ifndef YB_INC_YSTDEX_RATIONAL_HPP_
+#define YB_INC_YSTDEX_RATIONAL_HPP_
 
 #include "../ydef.h"
 #include "type_op.hpp"

@@ -117,8 +117,10 @@
     <ClInclude Include="include\YCLib\Debug.h" />
     <ClInclude Include="include\YCLib\FileSystem.h" />
     <ClInclude Include="include\YCLib\Input.h" />
+    <ClInclude Include="include\YCLib\Keys.h" />
     <ClInclude Include="include\YCLib\NativeAPI.h" />
     <ClInclude Include="include\YCLib\Platform.h" />
+    <ClInclude Include="include\YCLib\Timer.h" />
     <ClInclude Include="include\YCLib\Video.h" />
     <ClInclude Include="include\YCLib\ycommon.h" />
     <ClInclude Include="include\ysbuild.h" />
@@ -197,7 +199,9 @@
     <ClCompile Include="source\YCLib\Debug.cpp" />
     <ClCompile Include="source\YCLib\FileSystem.cpp" />
     <ClCompile Include="source\YCLib\Input.cpp" />
+    <ClCompile Include="source\YCLib\Keys.cpp" />
     <ClCompile Include="source\YCLib\NativeAPI.cpp" />
+    <ClCompile Include="source\YCLib\Timer.cpp" />
     <ClCompile Include="source\YCLib\Video.cpp" />
     <ClCompile Include="source\YCLib\ycommon.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />

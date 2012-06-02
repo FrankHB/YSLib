@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2318;
+\version r2323;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-05-31 01:24 +0800;
+	2012-06-01 16:47 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -151,7 +151,7 @@ Path::MakeAbsolute(const Path&)
 bool
 Path::NormalizeTrailingSlash()
 {
-	if(YCL_UNLIKELY(empty()))
+	if(YB_UNLIKELY(empty()))
 		return false;
 
 	const bool has_trailing_slash(back() == Slash);
@@ -338,7 +338,7 @@ HaveSameExtensions(const string& a, const string& b)
 int
 ChangeDirectory(const string& path)
 {
-	if(YCL_UNLIKELY(path.length() > YCL_MAX_PATH_LENGTH))
+	if(YB_UNLIKELY(path.length() > YCL_MAX_PATH_LENGTH))
 		return -2;
 
 	return ChangeDirectory(path.c_str());
@@ -346,7 +346,7 @@ ChangeDirectory(const string& path)
 /*int //for String;
 ChangeDirectory(const Path& path)
 {
-	if(YCL_UNLIKELY(path.length() > YCL_MAX_PATH_LENGTH))
+	if(YB_UNLIKELY(path.length() > YCL_MAX_PATH_LENGTH))
 		return -2;
 
 	PATHSTR p;
@@ -412,12 +412,12 @@ FileList::ListItems()
 
 		hList->clear();
 		while((++dir).LastError == 0)
-			if(YCL_LIKELY(std::strcmp(dir.GetName(), FS_Now) != 0))
+			if(YB_LIKELY(std::strcmp(dir.GetName(), FS_Now) != 0))
 				++n;
 		hList->reserve(n);
 		dir.Reset();
 		while((++dir).LastError == 0)
-			if(YCL_LIKELY(std::strcmp(dir.GetName(), FS_Now) != 0))
+			if(YB_LIKELY(std::strcmp(dir.GetName(), FS_Now) != 0))
 				hList->push_back(std::strcmp(dir.GetName(), FS_Parent)
 					&& dir.IsDirectory() ? String(
 					string(dir.GetName()) + FS_Seperator, CP_Path)

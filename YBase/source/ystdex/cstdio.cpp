@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief YCLib C++ 标准库扩展。
-\version r1077;
+\version r1078;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:38:51 +0800;
 \par 修改时间:
-	2012-04-07 19:56 +0800;
+	2012-06-01 16:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -51,7 +51,7 @@ ifile_iterator::operator++()
 
 	const auto val(std::fgetc(stream));
 
-	if(YCL_UNLIKELY(val == EOF))
+	if(YB_UNLIKELY(val == EOF))
 		stream = nullptr;
 	else
 		value = val;

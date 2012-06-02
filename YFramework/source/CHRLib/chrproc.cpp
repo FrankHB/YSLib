@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2095;
+\version r2098;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-04-30 22:09 +0800;
+	2012-06-01 16:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -153,7 +153,7 @@ ucsdup(const char* s, Encoding enc)
 {
 	ucs2_t* const p(static_cast<ucs2_t*>(malloc((strlen(s) + 1) << 1)));
 
-	if(YCL_LIKELY(p))
+	if(YB_LIKELY(p))
 		MBCSToUCS2(p, s, enc);
 	return p;
 }
@@ -163,7 +163,7 @@ ucsdup(const ucs2_t* str)
 	const size_t n(sntctslen(str) * sizeof(ucs2_t));
 	ucs2_t* const p(static_cast<ucs2_t*>(malloc(n + sizeof(ucs2_t))));
 
-	if(YCL_LIKELY(p))
+	if(YB_LIKELY(p))
 		memcpy(p, str, n);
 	return p;
 }
@@ -173,7 +173,7 @@ ucsdup(const ucs4_t* s)
 	ucs2_t* const p(static_cast<ucs2_t*>(malloc((sntctslen(s) + 1)
 		* sizeof(ucs2_t))));
 
-	if(YCL_LIKELY(p))
+	if(YB_LIKELY(p))
 		UCS4ToUCS2(p, s);
 	return p;
 }

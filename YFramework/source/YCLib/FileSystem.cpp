@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1362;
+\version r1539;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:41:35 +0800;
 \par 修改时间:
-	2012-05-31 14:00 +0800;
+	2012-06-02 13:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -64,6 +64,42 @@ static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
 	"Wrong character type!");
 #endif
 
+namespace
+{
+
+#ifdef YCL_DS
+std::string
+u16_to_u(const char16_t* u16str)
+{
+	yconstraint(u16str);
+
+	static char* tstr;
+	std::string str;
+
+	str = std::string(tstr = CHRLib::strdup(u16str));
+	std::free(tstr);
+	return std::move(str);
+}
+#elif defined(YCL_MINGW32)
+std::wstring
+u_to_w(const char* str)
+{
+	yconstraint(str);
+
+	static CHRLib::ucs2_t* tstr;
+	std::wstring wstr;
+
+	wstr = std::wstring(reinterpret_cast<const wchar_t*>(
+		tstr = CHRLib::ucsdup(str)));
+	std::free(tstr);
+	return std::move(wstr);
+}
+#else
+#	error Unsupported platform found!
+#endif
+
+} // unnamed namespace;
+
 
 std::FILE*
 ufopen(const char* filename, const char* mode)
@@ -75,23 +111,7 @@ ufopen(const char* filename, const char* mode)
 #ifdef YCL_DS
 	return std::fopen(filename, mode);
 #elif defined(YCL_MINGW32)
-	using namespace CHRLib;
-
-	const auto wname(reinterpret_cast<wchar_t*>(ucsdup(filename)));
-	wchar_t tmp[5];
-	auto wmode(&tmp[0]);
-
-	if(YCL_UNLIKELY(std::strlen(mode) > 4))
-		wmode = reinterpret_cast<wchar_t*>(ucsdup(mode));
-	else
-		CHRLib::MBCSToUCS2(reinterpret_cast<ucs2_t*>(wmode), mode);
-
-	const auto fp(::_wfopen(wname, wmode));
-
-	if(wmode != tmp)
-		std::free(wmode);
-	std::free(wname);
-	return fp;
+	return ::_wfopen(u_to_w(filename).c_str(), u_to_w(mode).c_str());
 #else
 #	error Unsupported platform found!
 #endif
@@ -104,25 +124,7 @@ ufopen(const char16_t* filename, const char16_t* mode)
 	yconstraint(*mode != '\0');
 
 #ifdef YCL_DS
-	using CHRLib::strdup;
-
-	std::FILE* fp(nullptr);
-
-	const auto nfilename(strdup(filename));
-
-	if(YCL_LIKELY(nfilename))
-	{
-		// TODO: small string local allocation optimization;
-		const auto nmode(strdup(mode));
-
-		if(YCL_LIKELY(nmode))
-		{
-			fp = std::fopen(nfilename, nmode);
-			std::free(nmode);
-		}
-		std::free(nfilename);
-	}
-	return fp;
+	return std::fopen(u16_to_u(filename).c_str(), u16_to_u(mode).c_str());
 #elif defined(YCL_MINGW32)
 	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
 		reinterpret_cast<const wchar_t*>(mode));
@@ -162,10 +164,38 @@ ufexists(const char16_t* filename)
 	return false;
 }
 
+bool
+direxists(const_path_t path)
+{
+	const auto dir(::opendir(path));
+
+	::closedir(dir);
+	return dir;
+}
+
+bool
+udirexists(const_path_t path)
+{
+#ifdef YCL_MINGW32
+	using namespace CHRLib;
+
+	if(path)
+	{
+		const auto dir(::_wopendir(u_to_w(path).c_str()));
+
+		::_wclosedir(dir);
+		return dir;
+	}
+	return false;
+#else
+	return direxists(path);
+#endif
+}
+
 char*
 getcwd_n(char* buf, std::size_t size)
 {
-	if(YCL_LIKELY(buf))
+	if(YB_LIKELY(buf))
 		return ::getcwd(buf, size);
 	return nullptr;
 }
@@ -181,13 +211,13 @@ u16getcwd_n(char16_t* buf, std::size_t size)
 		using namespace std;
 		using namespace CHRLib;
 
-		if(YCL_LIKELY(buf))
+		if(YB_LIKELY(buf))
 #ifdef YCL_DS
 		{
 			const auto p(static_cast<ucs2_t*>(malloc((size + 1)
 				* sizeof(ucs2_t))));
 
-			if(YCL_LIKELY(p))
+			if(YB_LIKELY(p))
 			{
 				auto len(MBCSToUCS2(p,
 					::getcwd(reinterpret_cast<char*>(buf), size)));
@@ -213,37 +243,15 @@ u16getcwd_n(char16_t* buf, std::size_t size)
 	return nullptr;
 }
 
-bool
-direxists(const_path_t path)
+int
+uchdir(const_path_t path)
 {
-	const auto dir(::opendir(path));
-
-	::closedir(dir);
-	return dir;
-}
-
-bool
-udirexists(const_path_t path)
-{
-#ifdef YCL_MINGW32
-	using namespace CHRLib;
-
-	if(path)
-	{
-		static wchar_t* s_wstr;
-
-		std::free(s_wstr);
-		if((s_wstr = reinterpret_cast<wchar_t*>(ucsdup(path))))
-		{
-			const auto dir(::_wopendir(s_wstr));
-
-			::_wclosedir(dir);
-			return dir;
-		}
-	}
-	return false;
+#ifdef YCL_DS
+	return ::chdir(path);
+#elif defined(YCL_MINGW32)
+	return path ? ::_wchdir(u_to_w(path).c_str()) : -1;
 #else
-	return direxists(path);
+#	error Unsupported platform found!
 #endif
 }
 
@@ -272,7 +280,7 @@ HFileNode&
 HFileNode::operator++()
 {
 	LastError = 0;
-	if(YCL_LIKELY(IsValid()))
+	if(YB_LIKELY(IsValid()))
 	{
 		if(!(p_dirent = ::readdir(dir)))
 			LastError = 2;

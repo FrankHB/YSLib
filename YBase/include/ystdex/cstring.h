@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief YCLib ISO C 标准字符串扩展。
-\version r2430;
+\version r2432;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2009-12-27 17:31:14 +0800;
 \par 修改时间:
-	2012-04-26 20:17 +0800;
+	2012-06-01 16:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YCL_INC_CSTRING_H_
-#define YCL_INC_CSTRING_H_
+#ifndef YB_INC_YSTDEX_CSTRING_H_
+#define YB_INC_YSTDEX_CSTRING_H_
 
 #include "../ydef.h"
 #include <cstdlib>

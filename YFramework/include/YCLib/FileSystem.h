@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1342;
+\version r1362;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:38:37 +0800;
 \par 修改时间:
-	2012-05-31 13:35 +0800;
+	2012-06-01 22:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,6 @@
 #define YCL_INC_FILESYSTEM_H_
 
 #include "ycommon.h"
-#include <unistd.h>
 #ifdef YCL_MINGW32
 // NOTE: no use of MinGW32 ::dirent, ::DIR, ::opendir ...
 struct DIR;
@@ -174,6 +173,19 @@ ufexists(const _tString& s)
 }
 
 /*!
+\brief 判断指定路径的目录是否存在。
+*/
+bool
+direxists(const_path_t);
+
+/*!
+\brief 判断指定 UTF-8 路径的目录是否存在。
+\since build 312 。
+*/
+bool
+udirexists(const_path_t);
+
+/*!
 \brief 当第一参数非空时取当前工作目录复制至指定缓冲区中。
 \param buf 缓冲区起始指针。
 \param size 缓冲区长。
@@ -194,20 +206,11 @@ char16_t*
 u16getcwd_n(char16_t* buf, std::size_t size);
 
 /*!
-\brief 判断指定路径的目录是否存在。
+\brief 切换当前工作路径至指定的 UTF-8 字符串。
+\since build 313 。
 */
-bool
-direxists(const_path_t);
-
-/*!
-\brief 判断指定 UTF-8 路径的目录是否存在。
-\since build 312 。
-*/
-bool
-udirexists(const_path_t);
-
-using ::mkdir;
-using ::chdir;
+int
+uchdir(const_path_t);
 
 /*!
 \brief 按路径新建一个或多个目录。

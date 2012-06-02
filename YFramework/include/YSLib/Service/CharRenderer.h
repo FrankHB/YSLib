@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r7387;
+\version r7390;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-05-19 17:31 +0800;
+	2012-06-01 16:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ template<class _tRenderer>
 void
 PrintChar(_tRenderer& r, ucs4_t c)
 {
-	if(YCL_LIKELY(std::iswprint(c)))
+	if(YB_LIKELY(std::iswprint(c)))
 		r(c);
 }
 
@@ -78,7 +78,7 @@ PutChar(_tRenderer& r, ucs4_t c)
 		ts.PutNewline();
 		return 0;
 	}
-	if(YCL_UNLIKELY(!std::iswprint(c)))
+	if(YB_UNLIKELY(!std::iswprint(c)))
 		return 0;
 /*
 	const int max_w(GetBufferWidthN() - 1),
@@ -87,7 +87,7 @@ PutChar(_tRenderer& r, ucs4_t c)
 	if(max_w < spaceW)
 		return line_breaks_l = 1;
 */
-	if(YCL_UNLIKELY(ts.PenX + ts.Font.GetAdvance(c)
+	if(YB_UNLIKELY(ts.PenX + ts.Font.GetAdvance(c)
 		> r.GetContext().GetWidth() - ts.Margin.Right))
 	{
 		ts.PutNewline();

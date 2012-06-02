@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3918;
+\version r3919;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-05-25 08:59 +0800;
+	2012-06-01 16:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -60,7 +60,7 @@ namespace
 		DrawRectRoundCorner(g, pt, s, is_enabled ? HSLToColor(
 			{change_hue(base_hue, 25.640625F), 0.493671F, 0.462891F})
 			: FetchGUIState().Colors[Styles::Workspace]);
-		if(YCL_LIKELY(s.Width > 2 && s.Height > 2))
+		if(YB_LIKELY(s.Width > 2 && s.Height > 2))
 		{
 			yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
 			FillRect(g, pt, s, is_enabled ? HSLToColor({change_hue(base_hue,
@@ -140,7 +140,7 @@ DrawThumbBackground(PaintEventArgs&& e, Thumb& tmb, Hue base_hue)
 	RectDrawButton(g, pt, s, base_hue, tmb.IsPressed(), enabled);
 	if(enabled && IsFocused(tmb))
 	{
-		if(YCL_LIKELY(s.Width > 6 && s.Height > 6))
+		if(YB_LIKELY(s.Width > 6 && s.Height > 6))
 		{
 			yunseq(s.Width -= 6, s.Height -= 6);
 			DrawRect(g, pt + Vec(3, 3), s, HSLToColor({base_hue, 1, 0.5F}));

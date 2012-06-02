@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4534;
+\version r4540;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-05-14 21:39 +0800;
+	2012-06-01 16:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -50,7 +50,7 @@ using namespace Text;
 String
 FetchEncodingString(MTextList::IndexType i)
 {
-	if(YCL_LIKELY(i < arrlen(Encodings)))
+	if(YB_LIKELY(i < arrlen(Encodings)))
 	{
 		const auto& pr(Encodings[i]);
 
@@ -137,7 +137,7 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 {
 	const auto ts(reader.GetTextSize());
 
-	if(YCL_LIKELY(ts != 0))
+	if(YB_LIKELY(ts != 0))
 	{
 		const auto tp(reader.GetTopPosition());
 		char str[5];
@@ -234,14 +234,14 @@ SettingPanel::SettingPanel()
 			+= [this, set_font_size](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
-			if(YCL_LIKELY(size > Font::MinimalSize))
+			if(YB_LIKELY(size > Font::MinimalSize))
 				set_font_size(--size);
 		},
 		FetchEvent<Click>(btnFontSizeIncrease)
 			+= [this, set_font_size](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
-			if(YCL_LIKELY(size < Font::MaximalSize))
+			if(YB_LIKELY(size < Font::MaximalSize))
 				set_font_size(++size);
 		},
 		FetchEvent<Click>(btnTextColor) += [this](TouchEventArgs&&){
@@ -494,12 +494,12 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		{
 			const auto s(Reader.GetTextSize());
 
-			if(YCL_LIKELY(s != 0))
+			if(YB_LIKELY(s != 0))
 			{
 				const auto old_pos(Reader.GetTopPosition());
 
 				Reader.Locate(e.X * s / boxReader.pbReader.GetWidth());
-				if(YCL_LIKELY(old_pos != Reader.GetTopPosition()))
+				if(YB_LIKELY(old_pos != Reader.GetTopPosition()))
 				{
 					LastRead.Insert(CurrentPath, old_pos);
 					LastRead.DropSubsequent();
@@ -637,7 +637,7 @@ void
 ShlTextReader::Scroll()
 {
 	if(tmrScroll.IsActive())
-		if(YCL_UNLIKELY(tmrScroll.Refresh()))
+		if(YB_UNLIKELY(tmrScroll.Refresh()))
 		{
 			if(CurrentSetting.SmoothScroll)
 				Reader.ScrollByPixel(1U);
@@ -774,12 +774,12 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 			e.Handled = true;
 			if(k[YCL_KEY(X)])
 			{
-				if(YCL_LIKELY(size > Font::MinimalSize))
+				if(YB_LIKELY(size > Font::MinimalSize))
 					--size;
 				else
 					return;
 			}
-			else if(YCL_LIKELY(size < Font::MaximalSize))
+			else if(YB_LIKELY(size < Font::MaximalSize))
 				++size;
 			else
 				return;
@@ -788,12 +788,12 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 		}
 		else if(k[YCL_KEY(L)])
 		{
-			if(YCL_LIKELY(Reader.GetLineGap() != 0))
+			if(YB_LIKELY(Reader.GetLineGap() != 0))
 				Reader.SetLineGap(Reader.GetLineGap() - 1);
 		}
 		else if(k[YCL_KEY(R)])
 		{
-			if(YCL_LIKELY(Reader.GetLineGap() != 12))
+			if(YB_LIKELY(Reader.GetLineGap() != 12))
 				Reader.SetLineGap(Reader.GetLineGap() + 1);
 		}
 		else if(k[Left])

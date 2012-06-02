@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2840;
+\version r2875;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-05-14 20:45 +0800;
+	2012-06-01 16:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,21 +33,21 @@
 */
 
 
-#ifndef YCL_INC_YDEF_H_
-#define YCL_INC_YDEF_H_
+#ifndef YB_INC_YDEF_H_
+#define YB_INC_YDEF_H_
 
 #ifndef NDEBUG
-#	define YCL_USE_YASSERT
+#	define YB_USE_YASSERT
 #endif
 
 #ifdef __cplusplus
-#	define YCL_IMPL_CPP __cplusplus
+#	define YB_IMPL_CPP __cplusplus
 #	ifdef _MSC_VER
-#		undef YCL_IMPL_MSCPP
-#		define YCL_IMPL_MSCPP _MSC_VER
+#		undef YB_IMPL_MSCPP
+#		define YB_IMPL_MSCPP _MSC_VER
 #	elif defined(__GNUC__)
-#		undef YCL_IMPL_GNUCPP
-#		define YCL_IMPL_GNUCPP (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
+#		undef YB_IMPL_GNUCPP
+#		define YB_IMPL_GNUCPP (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
 			+ __GNUC_PATCHLEVEL__)
 #	else
 // TODO: complete version checking for compiler and library implementation;
@@ -75,25 +75,25 @@
 
 /*!
 \ingroup lang_impl_features
-\def YCL_HAS_BUILTIN_NULLPTR
+\def YB_HAS_BUILTIN_NULLPTR
 \brief 内建 nullptr 支持。
-\since build 245 。
+\since build 313 。
 */
-#undef YCL_HAS_BUILTIN_NULLPTR
-#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_GNUCPP >= 40600 \
-	|| YCL_IMPL_MSCPP >= 1600
-#	define YCL_HAS_BUILTIN_NULLPTR
+#undef YB_HAS_BUILTIN_NULLPTR
+#if YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600 \
+	|| YB_IMPL_MSCPP >= 1600
+#	define YB_HAS_BUILTIN_NULLPTR
 #endif
 
 /*!
 \ingroup lang_impl_features
-\def YCL_HAS_CONSTEXPR
+\def YB_HAS_CONSTEXPR
 \brief constexpr 支持。
-\since build 246 。
+\since build 313 。
 */
-#undef YCL_HAS_CONSTEXPR
-#if YCL_IMPL_CPP >= 201103L || YCL_IMPL_GNUCPP >= 40600
-#	define YCL_HAS_CONSTEXPR
+#undef YB_HAS_CONSTEXPR
+#if YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600
+#	define YB_HAS_CONSTEXPR
 #endif
 
 
@@ -105,31 +105,32 @@
 
 /*!
 \ingroup lang_impl_hints
-\def YCL_ATTRIBUTE
+\def YB_ATTRIBUTE
 \brief 属性。
+\since build 313 。
 */
-#if YCL_IMPL_GNUCPP >= 20500
-#	define YCL_ATTRIBUTE(attrs) __attribute__ (attrs)
+#if YB_IMPL_GNUCPP >= 20500
+#	define YB_ATTRIBUTE(attrs) __attribute__ (attrs)
 #else
-#	define YCL_ATTRIBUTE(attrs)
+#	define YB_ATTRIBUTE(attrs)
 #endif
 
 /*!
 \ingroup lang_impl_hints
-\def YCL_EXPECT(expr, constant)
-\def YCL_LIKELY(expr)
-\def YCL_UNLIKELY(expr)
+\def YB_EXPECT(expr, constant)
+\def YB_LIKELY(expr)
+\def YB_UNLIKELY(expr)
 \brief 分支预测提示。
-\since build 294 。
+\since build 313 。
 */
-#if YCL_IMPL_GNUCPP >= 29600
-#	define YCL_EXPECT(expr, constant) (__builtin_expect(expr, constant))
-#	define YCL_LIKELY(expr) (__builtin_expect(bool(expr), 1))
-#	define YCL_UNLIKELY(expr) (__builtin_expect(bool(expr), 0))
+#if YB_IMPL_GNUCPP >= 29600
+#	define YB_EXPECT(expr, constant) (__builtin_expect(expr, constant))
+#	define YB_LIKELY(expr) (__builtin_expect(bool(expr), 1))
+#	define YB_UNLIKELY(expr) (__builtin_expect(bool(expr), 0))
 #else
-#	define YCL_EXPECT(expr, constant) (expr)
-#	define YCL_LIKELY (expr) (expr)
-#	define YCL_UNLIKELY (expr) (expr)
+#	define YB_EXPECT(expr, constant) (expr)
+#	define YB_LIKELY (expr) (expr)
+#	define YB_UNLIKELY (expr) (expr)
 #endif
 
 
@@ -147,7 +148,7 @@
 #define ynothrow ythrow()
 
 
-#ifdef YCL_HAS_CONSTEXPR
+#ifdef YB_HAS_CONSTEXPR
 #define yconstexpr constexpr
 #define yconstfn constexpr
 #else
@@ -193,7 +194,7 @@ using std::ptrdiff_t;
 using std::size_t;
 using std::wint_t;
 
-#ifdef YCL_HAS_BUILTIN_NULLPTR
+#ifdef YB_HAS_BUILTIN_NULLPTR
 
 using std::nullptr_t;
 

@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3788;
+\version r3797;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2011-04-24 21:50 +0800;
+	2011-06-01 16:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -299,18 +299,18 @@ DualScreenReader::Detach()
 bool
 DualScreenReader::Execute(Command cmd)
 {
-	if(YCL_UNLIKELY(!pText || pText->GetTextSize() == 0))
+	if(YB_UNLIKELY(!pText || pText->GetTextSize() == 0))
 		return false;
-	if(YCL_UNLIKELY(~cmd & Scroll))
+	if(YB_UNLIKELY(~cmd & Scroll))
 		return false;
 	if(AdjustScrollOffset() != 0)
 		return false;
 	if(cmd & Up)
 	{
-		if(YCL_UNLIKELY(IsTextTop()))
+		if(YB_UNLIKELY(IsTextTop()))
 			return false;
 	}
-	else if(YCL_UNLIKELY(IsTextBottom()))
+	else if(YB_UNLIKELY(IsTextBottom()))
 		return false;
 
 	YAssert(area_up.LineGap == area_dn.LineGap, "Distinct line gaps found.");
@@ -410,7 +410,7 @@ DualScreenReader::Invalidate()
 void
 DualScreenReader::LoadText(TextFile& file)
 {
-	if(YCL_LIKELY(file.IsValid()))
+	if(YB_LIKELY(file.IsValid()))
 	{
 		pText = make_unique<Text::TextFileBuffer>(file);
 		i_top = pText->GetBegin();
@@ -441,7 +441,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 
 	YAssert(scroll_offset < ln_h_ex, "Invalid scroll offset found.");
 
-	if(YCL_UNLIKELY(i_btm == pText->GetEnd() || scroll_offset + h > ln_h_ex))
+	if(YB_UNLIKELY(i_btm == pText->GetEnd() || scroll_offset + h > ln_h_ex))
 		return 0;
 	MoveScrollArea(area_up, area_dn, -h, h);
 	{
@@ -453,7 +453,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 	}
 	//注意缓冲区不保证以 '\0' 结尾。
 	CarriageReturn(area_dn);
-	if(YCL_LIKELY((scroll_offset += h) < ln_h_ex))
+	if(YB_LIKELY((scroll_offset += h) < ln_h_ex))
 	{
 		area_dn.PenY += ln_h_ex - scroll_offset;
 
@@ -497,7 +497,7 @@ DualScreenReader::UnloadText()
 void
 DualScreenReader::UpdateView()
 {
-	if(YCL_UNLIKELY(!pText || pText->GetTextSize() == 0))
+	if(YB_UNLIKELY(!pText || pText->GetTextSize() == 0))
 		return;
 	Reset();
 	{
@@ -505,7 +505,7 @@ DualScreenReader::UpdateView()
 
 		IncreaseIfEqual(i_new, '\n');
 		i_new = PutString(area_up, i_new, pText->GetEnd());
-		if(YCL_UNLIKELY(i_new == pText->GetEnd()))
+		if(YB_UNLIKELY(i_new == pText->GetEnd()))
 		{
 			i_btm = i_new;
 
@@ -526,7 +526,7 @@ DualScreenReader::UpdateView()
 				/ GetTextLineHeightExOf(area_dn);
 		}
 	}
-	if(YCL_LIKELY(i_btm != pText->GetEnd() && *i_btm == '\n'))
+	if(YB_LIKELY(i_btm != pText->GetEnd() && *i_btm == '\n'))
 		--i_btm;
 	Invalidate();
 }

@@ -11,12 +11,12 @@
 /*!	\file yres.cpp
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r1242;
+\version r1243;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2012-03-17 20:05 +0800;
+	2012-06-01 16:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@ void
 Image::SetImage(ConstBitmapPtr s, SDst w, SDst h)
 {
 	SetSize(w, h);
-	if(YCL_LIKELY(pBuffer && s))
+	if(YB_LIKELY(pBuffer && s))
 		mmbcpy(pBuffer, s, GetSizeOfBuffer());
 }
 

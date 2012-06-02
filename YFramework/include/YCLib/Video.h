@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1362;
+\version r1436;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2011-05-26 19:41:08 +0800;
 \par 修改时间:
-	2012-05-26 21:28 +0800;
+	2012-06-01 20:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "ycommon.h"
 #include <initializer_list> // for well-formedly using of std::initialize_list;
-#include "NativeAPI.h"
 
 namespace platform
 {
@@ -52,13 +51,14 @@ typedef std::uint16_t SDst; //!< 屏幕坐标距离。
 typedef std::uint16_t PixelType;
 /*!
 \brief 取像素 Alpha 值。
-\since build 297 。
+\since build 313 。
 */
-yconstfn auto
-FetchAlpha(PixelType px) -> decltype(px & BIT(15))
+yconstfn std::uint8_t
+FetchAlpha(PixelType px)
 {
-	return px & BIT(15);
+	return px & 1 << 15 ? 0xFF : 0;
 }
+
 /*!
 \brief 取不透明像素。
 \since build 297 。
@@ -66,11 +66,22 @@ FetchAlpha(PixelType px) -> decltype(px & BIT(15))
 yconstfn PixelType
 FetchOpaque(PixelType px)
 {
-	return px | BIT(15);
+	return px | 1 << 15;
 }
+
+/*
+\brief 使用 8 位 RGB 构造本机类型像素。
+\since build 313 。
+*/
+yconstfn PixelType
+FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
+{
+	return r >> 3 | std::uint16_t(g >> 3) << 5 | std::uint16_t(b >> 3) << 10;
+}
+
 #	define DefColorH_(hex, name) name = \
-	RGB8((((hex) >> 16) & 0xFF), (((hex) >> 8) & 0xFF), ((hex) & 0xFF)) \
-	| BIT(15)
+	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
+	| 1 << 15)
 #elif defined(YCL_MINGW32)
 /*!
 \brief Windows DIB 格式兼容像素。
@@ -78,18 +89,26 @@ FetchOpaque(PixelType px)
 	即 ARGB8888 （考虑字节序为BGRA8888）。
 \warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
-\since build 296 。
+\since build 313 。
 */
-typedef ::RGBQUAD PixelType;
+typedef struct
+{
+	std::uint8_t rgbBlue;
+	std::uint8_t rgbGreen;
+	std::uint8_t rgbRed;
+	std::uint8_t rgbReserved;
+} PixelType;
+
 /*!
 \brief 取像素 Alpha 值。
 \since build 297 。
 */
-yconstfn ::BYTE
+yconstfn std::uint8_t
 FetchAlpha(PixelType px)
 {
 	return px.rgbReserved;
 }
+
 /*!
 \brief 取不透明像素。
 \since build 297 。
@@ -99,17 +118,29 @@ FetchOpaque(PixelType px)
 {
 	return {px.rgbBlue, px.rgbGreen, px.rgbRed, 0xFF};
 }
+
+/*
+\brief 使用 8 位 RGB 构造 std::uint32_t 像素。
+\since build 313 。
+*/
+yconstfn std::uint32_t
+FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
+{
+	return r | g << 8 | std::uint32_t(b) << 16;
+}
+
 /*!
 \brief 定义 Windows DIB 格式兼容像素。
 \note 得到的 32 位整数和 ::RGBQUAD 在布局上兼容。
 \note Alpha 值为 0xFF 。
 \since build 296 。
 */
-#	define DefColorH_(hex, name) name = (RGB((((hex) >> 16) & 0xFF), \
+#	define DefColorH_(hex, name) name = (FetchPixel((((hex) >> 16) & 0xFF), \
 	(((hex) >> 8) & 0xFF), ((hex) & 0xFF)) << 8 | 0xFF)
 #else
 #	error Unsupported platform found!
 #endif
+
 typedef PixelType* BitmapPtr;
 typedef const PixelType* ConstBitmapPtr;
 
@@ -125,7 +156,11 @@ namespace ColorSpace
 \brief 默认颜色集。
 \see http://www.w3schools.com/html/html_colornames.asp 。
 */
+#ifdef YCL_DS
+typedef enum : PixelType
+#else
 typedef enum : std::uint32_t
+#endif
 {
 	DefColorH(00FFFF, Aqua),
 	DefColorH(000000, Black),
@@ -202,8 +237,8 @@ public:
 	*/
 	yconstfn
 	Color(ColorSet cs)
-		: r(GetRValue(cs >> 8)), g(GetGValue(cs >> 8)), b(GetBValue(cs >> 8)),
-		a(0xFF)
+		: r((cs & 0xFF00) >> 8), g((cs & 0xFF0000) >> 16),
+		b((cs & 0xFF000000) >> 24), a(0xFF)
 	{}
 #endif
 	/*!
@@ -221,7 +256,7 @@ public:
 	operator PixelType() const
 	{
 	#ifdef YCL_DS
-		return ARGB16(int(a != 0), r >> 3, g >> 3, b >> 3);
+		return int(a != 0) << 15 | FetchPixel(r, g, b);
 	#elif defined(YCL_MINGW32)
 		return {b, g, r, a};
 	#else
@@ -264,39 +299,6 @@ public:
 };
 
 
-#ifdef YCL_DS
-//! \brief 屏幕指针设备光标信息。
-typedef struct CursorInfo : public ::touchPosition
-{
-	/*!
-	\brief 取横坐标。
-	*/
-	SDst
-	GetX() const
-	{
-		return px;
-	}
-	/*!
-	\brief 取纵坐标。
-	*/
-	SDst
-	GetY() const
-	{
-		return py;
-	}
-} CursorInfo;
-
-#elif defined(YCL_MINGW32)
-/*!
-\brief 屏幕指针设备光标信息。
-\since build 296 。
-*/
-typedef ::CURSORINFO CursorInfo;
-#else
-#	error Unsupport platform found!
-#endif
-
-
 /*!
 \brief 启动控制台。
 \note fc 为前景色，bc为背景色。
@@ -319,14 +321,6 @@ namespace platform_ex
 {
 
 #ifdef YCL_DS
-
-using ::lcdMainOnTop;
-using ::lcdMainOnBottom;
-using ::lcdSwap;
-using ::videoSetMode;
-using ::videoSetModeSub;
-
-using ::touchRead;
 
 /*!
 \brief 复位屏幕显示模式。

@@ -11,13 +11,13 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief 库编译配置。
-\version r1589;
+\version r1590;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 161 。
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2012-05-05 17:23 +0800;
+	2012-06-01 16:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -40,7 +40,7 @@
 #endif
 
 #ifndef NDEBUG
-#	define YCL_USE_YASSERT //!< 使用 YCLib 断言。
+#	define YB_USE_YASSERT //!< 使用 YCLib 断言。
 #	define YSL_USE_MEMORY_DEBUG //!< 使用 YSLib 内存调试设施。
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7238;
+\version r7239;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-05-25 23:12 +0800;
+	2012-06-01 20:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -208,7 +208,7 @@
 根据是否能被所有 Widget 类共用分为公用的和专用的。
 这些属性也适用于用于实现的构件。
 强化了编译期可配置性。
-基于性能考虑，底层不实现观察者模式。
+基于性能考虑，仅在少数必要处实现观察者模式。
 默认公共 UI 状态通过 YGUI 单元的 GUIState 类实现。
 
 @1.6.2.1 模型(model) ：

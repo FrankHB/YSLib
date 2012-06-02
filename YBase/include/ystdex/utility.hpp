@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1935;
+\version r1938;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-04-26 20:28 +0800;
+	2012-06-01 16:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YCL_INC_YSTDEX_UTILITY_HPP_
-#define YCL_INC_YSTDEX_UTILITY_HPP_
+#ifndef YB_INC_YSTDEX_UTILITY_HPP_
+#define YB_INC_YSTDEX_UTILITY_HPP_
 
 #include "type_op.hpp" // for ../ydef.h, ystdex::variadic_sequence,
 	// ystdex::make_natural_sequence;
@@ -458,7 +458,7 @@ struct deref_str_comp : _gfCompare
 
 } // namespace ystdex;
 
-#ifndef YCL_HAS_BUILTIN_NULLPTR
+#ifndef YB_HAS_BUILTIN_NULLPTR
 using ystdex::nullptr;
 #endif
 

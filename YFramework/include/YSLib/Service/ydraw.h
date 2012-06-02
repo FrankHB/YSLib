@@ -11,12 +11,12 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1664;
+\version r1665;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:43:26 +0800;
 \par 修改时间:
-	2012-04-24 21:47 +0800;
+	2012-06-01 16:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 inline bool
 DrawPoint(const Graphics& g, SPos x, SPos y, Color c)
 {
-	if(YCL_LIKELY(g.IsValid()))
+	if(YB_LIKELY(g.IsValid()))
 		if(Rect(g.GetSize()).Contains(x, y))
 		{
 			PutPixel(g, x, y, c);

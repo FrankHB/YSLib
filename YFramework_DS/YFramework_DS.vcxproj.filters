@@ -27,6 +27,7 @@
   <ItemGroup>
     <Filter Include="头文件">
       <UniqueIdentifier>{22b3ea3e-ca74-480d-af36-daae745f0024}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\YSLib">
       <UniqueIdentifier>{e36e383b-de46-4894-a24d-888ad3cf68a9}</UniqueIdentifier>
@@ -612,6 +613,12 @@
     <ClInclude Include="..\YFramework\include\YCLib\FileSystem.h">
       <Filter>头文件\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="..\YFramework\include\YCLib\Keys.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YFramework\include\YCLib\Timer.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\YFramework\source\YSLib\Adaptor\Font.cpp">
@@ -798,6 +805,12 @@
       <Filter>源文件\YCLib</Filter>
     </ClCompile>
     <ClCompile Include="..\YFramework\source\YCLib\FileSystem.cpp">
+      <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\YCLib\Keys.cpp">
+      <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\YFramework\source\YCLib\Timer.cpp">
       <Filter>源文件\YCLib</Filter>
     </ClCompile>
   </ItemGroup>

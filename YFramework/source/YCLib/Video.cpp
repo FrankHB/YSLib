@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1194;
+\version r1208;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-26 20:19:54 +0800;
 \par 修改时间:
-	2012-05-30 18:08 +0800;
+	2012-06-01 21:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,22 @@
 
 
 #include "YCLib/Video.h"
+#include "YCLib/NativeAPI.h"
+
+namespace platform_ex
+{
+
+#ifdef YCL_DS
+using ::lcdMainOnTop;
+using ::lcdMainOnBottom;
+using ::lcdSwap;
+using ::videoSetMode;
+using ::videoSetModeSub;
+
+using ::touchRead;
+#endif
+
+} // namespace platform_ex;
 
 namespace platform
 {
@@ -93,7 +109,7 @@ YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 #define BITALPHA BIT(15) //!<  Alpha 位。
 //	PrintConsole* p(dspIndex ? consoleMainInit() : consoleDemoInit());
 
-	if(YCL_LIKELY(dspIndex ? consoleMainInit() : consoleDemoInit()))
+	if(YB_LIKELY(dspIndex ? consoleMainInit() : consoleDemoInit()))
 	{
 		//使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
 		std::printf("\x1b[0;0H");

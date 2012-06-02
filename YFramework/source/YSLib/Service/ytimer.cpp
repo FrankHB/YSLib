@@ -11,12 +11,12 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r1712;
+\version r1717;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-04-10 17:34 +0800;
+	2012-06-01 16:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@ namespace
 	void
 	Init(Timer& tmr, bool b)
 	{
-		if(YCL_UNLIKELY(NotInitialized))
+		if(YB_UNLIKELY(NotInitialized))
 		{
 			StartTicks();
 			NotInitialized = false;
@@ -91,7 +91,7 @@ void
 Timer::SetInterval(const Duration& i)
 {
 	nInterval = i;
-	if(YCL_UNLIKELY(nInterval == Duration::zero()))
+	if(YB_UNLIKELY(nInterval == Duration::zero()))
 		Deactivate(*this);
 }
 
@@ -100,7 +100,7 @@ Timer::Refresh()
 {
 	const auto tick(HighResolutionClock::now());
 
-	if(YCL_LIKELY(tick < nBase + nInterval))
+	if(YB_LIKELY(tick < nBase + nInterval))
 		return false;
 	nBase = tick - (tick - nBase) % nInterval;
 	return true;
@@ -115,7 +115,7 @@ Timer::RefreshAll()
 
 	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
 		[&](Timer* const& pTmr){
-		if(YCL_LIKELY(pTmr))
+		if(YB_LIKELY(pTmr))
 			t |= pTmr->Refresh();
 	});
 	return t;
@@ -128,7 +128,7 @@ Timer::ResetAll()
 
 	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
 		[](Timer* const& pTmr){
-		if(YCL_LIKELY(pTmr))
+		if(YB_LIKELY(pTmr))
 			pTmr->Reset();
 	});
 }

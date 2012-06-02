@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2594;
+\version r2595;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-04-13 19:08 +0800;
+	2012-06-01 16:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -231,7 +231,7 @@ public:
 	void
 	Peek(Message& msg) const
 	{
-		if(YCL_LIKELY(!empty()))
+		if(YB_LIKELY(!empty()))
 			msg = *begin();
 	}
 	/*
@@ -253,7 +253,7 @@ public:
 	void
 	Pop()
 	{
-		if(YCL_LIKELY(!empty()))
+		if(YB_LIKELY(!empty()))
 			erase(begin());
 	}
 

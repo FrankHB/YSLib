@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1479;
+\version r1488;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 202 。
 \par 创建时间:
 	2011-04-13 20:26:21 +0800;
 \par 修改时间:
-	2012-05-31 13:22 +0800;
+	2012-06-01 20:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@
 #define YSL_YSBUILD_H <ysbuild.h>
 
 /*!
-\defgroup workaround Workarounds
+\defgroup workarounds Workarounds
 \brief 名称冲突解决。
 \since build 297 。
 */
@@ -98,7 +98,7 @@ IsDirectory(const ::dirent& d)
 #include <sys/stat.h>
 
 /*!
-\ingroup workaround
+\ingroup workarounds
 \brief 禁止使用 DialogBox 宏。
 \note 使用 ::DialogBoxA 或 ::DialogBoxW 代替。
 \since build 297 。
@@ -106,14 +106,21 @@ IsDirectory(const ::dirent& d)
 #undef DialogBox
 
 /*!
-\ingroup workaround
+\ingroup workarounds
 \brief 禁止使用 DrawText 宏。
 \since build 298 。
 */
 #undef DrawText
 
 /*!
-\ingroup workaround
+\ingroup workarounds
+\brief 禁止使用 GetObject 宏。
+\since build 313 。
+*/
+#undef GetObject
+
+/*!
+\ingroup workarounds
 \brief 禁止使用 PostMessage 宏。
 \since build 298 。
 */

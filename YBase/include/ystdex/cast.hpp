@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1755;
+\version r1768;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 175 。
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2012-04-26 20:33 +0800;
+	2012-06-01 16:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YCL_INC_YSTDEX_CAST_HPP_
-#define YCL_INC_YSTDEX_CAST_HPP_
+#ifndef YB_INC_YSTDEX_CAST_HPP_
+#define YB_INC_YSTDEX_CAST_HPP_
 
 #include "type_op.hpp"
 #include <memory>
@@ -155,74 +155,76 @@ polymorphic_crosscast(_tSrc& x)
 }
 
 
-namespace _impl
+namespace details
 {
-	template<typename _tFrom, typename _tTo, bool _bNonVirtualDownCast>
-	struct _general_polymorphic_cast_helper
-	{
-		static yconstfn _tTo
-		cast(_tFrom x)
-		{
-			return polymorphic_downcast<_tTo>(x);
-		}
-	};
-	template<typename _tFrom, typename _tTo>
-	struct _general_polymorphic_cast_helper<_tFrom, _tTo, false>
-	{
-		static yconstfn _tTo
-		cast(_tFrom x)
-		{
-			return dynamic_cast<_tTo>(x);
-		}
-	};
 
-	template<typename _tFrom, typename _tTo, bool _bUseStaticCast>
-	struct _general_cast_helper
+template<typename _tFrom, typename _tTo, bool _bNonVirtualDownCast>
+struct _general_polymorphic_cast_helper
+{
+	static yconstfn _tTo
+	cast(_tFrom x)
 	{
-		static yconstfn _tTo
-		cast(_tFrom x)
-		{
-			return _tTo(x);
-		}
-	};
-	template<typename _tFrom, typename _tTo>
-	struct _general_cast_helper<_tFrom, _tTo, false>
+		return polymorphic_downcast<_tTo>(x);
+	}
+};
+template<typename _tFrom, typename _tTo>
+struct _general_polymorphic_cast_helper<_tFrom, _tTo, false>
+{
+	static yconstfn _tTo
+	cast(_tFrom x)
 	{
-		static yconstfn _tTo
-		cast(_tFrom x)
-		{
-			return _general_polymorphic_cast_helper<_tFrom, _tTo,
-				(is_base_of<_tFrom, _tTo>::value
-				&& !has_common_nonempty_virtual_base<typename remove_rp<
-				_tFrom>::type, typename remove_rp<_tTo>::type>::value)
-			>::cast(x);
-		}
-	};
-	template<typename _type>
-	struct _general_cast_helper<_type, _type, true>
-	{
-		static inline _type
-		cast(_type x)
-		{
-			return x;
-		}
-	};
-	template<typename _type>
-	struct _general_cast_helper<_type, _type, false>
-	{
-		static yconstfn _type
-		cast(_type x)
-		{
-			return x;
-		}
-	};
+		return dynamic_cast<_tTo>(x);
+	}
+};
 
-	template<typename _tFrom, typename _tTo>
-	struct _general_cast_type_helper
-		: public integral_constant<bool, is_convertible<_tFrom, _tTo>
-			::value>
-	{};
-}
+template<typename _tFrom, typename _tTo, bool _bUseStaticCast>
+struct _general_cast_helper
+{
+	static yconstfn _tTo
+	cast(_tFrom x)
+	{
+		return _tTo(x);
+	}
+};
+template<typename _tFrom, typename _tTo>
+struct _general_cast_helper<_tFrom, _tTo, false>
+{
+	static yconstfn _tTo
+	cast(_tFrom x)
+	{
+		return _general_polymorphic_cast_helper<_tFrom, _tTo,
+			(is_base_of<_tFrom, _tTo>::value
+			&& !has_common_nonempty_virtual_base<typename remove_rp<
+			_tFrom>::type, typename remove_rp<_tTo>::type>::value)
+		>::cast(x);
+	}
+};
+template<typename _type>
+struct _general_cast_helper<_type, _type, true>
+{
+	static inline _type
+	cast(_type x)
+	{
+		return x;
+	}
+};
+template<typename _type>
+struct _general_cast_helper<_type, _type, false>
+{
+	static yconstfn _type
+	cast(_type x)
+	{
+		return x;
+	}
+};
+
+template<typename _tFrom, typename _tTo>
+struct _general_cast_type_helper
+	: public integral_constant<bool, is_convertible<_tFrom, _tTo>
+		::value>
+{};
+
+} // namespace details;
 
 /*!
 \ingroup cast
@@ -238,22 +240,22 @@ template<typename _tDst, typename _tSrc>
 yconstfn _tDst
 general_cast(_tSrc* x)
 {
-	return _impl::_general_cast_helper<_tSrc*, _tDst,
-		_impl::_general_cast_type_helper<_tSrc*, _tDst>::value>::cast(x);
+	return details::_general_cast_helper<_tSrc*, _tDst,
+		details::_general_cast_type_helper<_tSrc*, _tDst>::value>::cast(x);
 }
 template<typename _tDst, typename _tSrc>
 yconstfn _tDst
 general_cast(_tSrc& x)
 {
-	return _impl::_general_cast_helper<_tSrc&, _tDst,
-		_impl::_general_cast_type_helper<_tSrc&, _tDst>::value>::cast(x);
+	return details::_general_cast_helper<_tSrc&, _tDst,
+		details::_general_cast_type_helper<_tSrc&, _tDst>::value>::cast(x);
 }
 template<typename _tDst, typename _tSrc>
 yconstfn const _tDst
 general_cast(const _tSrc& x)
 {
-	return _impl::_general_cast_helper<const _tSrc&, _tDst,
-		_impl::_general_cast_type_helper<const _tSrc&, const _tDst>::value>
+	return details::_general_cast_helper<const _tSrc&, _tDst,
+		details::_general_cast_type_helper<const _tSrc&, const _tDst>::value>
 		::cast(x);
 }
 //@}

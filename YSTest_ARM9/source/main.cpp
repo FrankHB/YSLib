@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2673;
+\version r2674;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-05-30 18:31 +0800;
+	2012-06-01 16:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -284,7 +284,7 @@ main()
 				pb.SetValue(10);
 				Repaint(dsk_up);
 			}
-			if(YCL_UNLIKELY(!FetchAppInstance().Switch(
+			if(YB_UNLIKELY(!FetchAppInstance().Switch(
 				make_shared<YReader::ShlExplorer>())))
 				throw LoggedEvent("Failed launching the main shell;");
 			//主体：消息循环。

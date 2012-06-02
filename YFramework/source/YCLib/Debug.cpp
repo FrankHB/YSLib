@@ -17,7 +17,7 @@
 \par 创建时间:
 	2012-04-07 14:22:09 +0800;
 \par 修改时间:
-	2012-05-26 21:11 +0800;
+	2012-06-01 20:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YCLib/Debug.h"
 #include "YCLib/Input.h"
+#include "YCLib/Video.h" // for platform::ColorSpace;
 #include <cstdarg>
 
 namespace platform

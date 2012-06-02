@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1337;
+\version r1340;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:59:56 +0800;
 \par 修改时间:
-	2012-03-18 21:50 +0800;
+	2012-06-01 16:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -50,9 +50,9 @@ ProgressBar::ProgressBar(const Rect& r, ValueType m)
 void
 ProgressBar::SetMaxValue(ValueType m)
 {
-	if(YCL_LIKELY(m > 0))
+	if(YB_LIKELY(m > 0))
 	{
-		if(YCL_LIKELY(value > m))
+		if(YB_LIKELY(value > m))
 			value = m;
 		max_value = m;
 	}
@@ -66,7 +66,7 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 	Size s(GetSizeOf(*this));
 
 	e.ClipArea = Rect(pt, s);
-	if(YCL_LIKELY(s.Width > 2 && s.Height > 2))
+	if(YB_LIKELY(s.Width > 2 && s.Height > 2))
 	{
 		yunseq(s.Width -= 2, s.Height -= 2, pt.X += 1, pt.Y += 1);
 

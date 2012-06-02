@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1496;
+\version r1500;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-05-15 16:23 +0800;
+	2012-06-01 16:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -24,8 +24,8 @@
 */
 
 
-#ifndef YCL_INC_YSTDEX_TYPEOP_HPP_
-#define YCL_INC_YSTDEX_TYPEOP_HPP_
+#ifndef YB_INC_YSTDEX_TYPEOP_HPP_
+#define YB_INC_YSTDEX_TYPEOP_HPP_
 
 #include "../ydef.h" // for <type_traits> and std::declval;
 
@@ -197,8 +197,8 @@ using std::result_of;
 namespace details
 {
 
-#ifdef YCL_IMPL_GNUCPP
-#	if YCL_IMPL_GNUCPP >= 40600
+#ifdef YB_IMPL_GNUCPP
+#	if YB_IMPL_GNUCPP >= 40600
 #		pragma GCC diagnostic push
 #		pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
 #	else
@@ -236,7 +236,7 @@ public:
 	static yconstexpr bool value = test_equal();
 };
 
-#if defined(YCL_IMPL_GNUCPP) && YCL_IMPL_GNUCPP >= 40600
+#if defined(YB_IMPL_GNUCPP) && YB_IMPL_GNUCPP >= 40600
 //#	pragma GCC diagnostic warning "-Wctor-dtor-privacy"
 #	pragma GCC diagnostic pop
 #endif
@@ -290,8 +290,8 @@ private:
 		{}
 	};
 
-#ifdef YCL_IMPL_GNUCPP
-#	if YCL_IMPL_GNUCPP >= 40600
+#ifdef YB_IMPL_GNUCPP
+#	if YB_IMPL_GNUCPP >= 40600
 #		pragma GCC diagnostic push
 #		pragma GCC diagnostic ignored "-Wextra"
 #	else
@@ -310,7 +310,7 @@ private:
 		{}
 	};
 
-#if defined(YCL_IMPL_GNUCPP) && YCL_IMPL_GNUCPP >= 40600
+#if defined(YB_IMPL_GNUCPP) && YB_IMPL_GNUCPP >= 40600
 //#	pragma GCC diagnostic warning "-Wextra"
 #	pragma GCC diagnostic pop
 #endif
