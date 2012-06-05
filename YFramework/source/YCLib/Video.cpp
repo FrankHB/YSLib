@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1208;
+\version r1212;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-26 20:19:54 +0800;
 \par 修改时间:
-	2012-06-01 21:01 +0800;
+	2012-06-04 17:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@
 namespace platform_ex
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 using ::lcdMainOnTop;
 using ::lcdMainOnBottom;
 using ::lcdSwap;
@@ -48,7 +48,7 @@ namespace platform
 
 namespace
 {
-#ifdef YCL_DS
+#if YCL_DS
 	extern "C"
 	{
 		extern const u8 default_font[];
@@ -103,7 +103,7 @@ namespace
 
 
 void
-#ifdef YCL_DS
+#if YCL_DS
 YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 {
 #define BITALPHA BIT(15) //!<  Alpha 位。
@@ -119,7 +119,7 @@ YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 		bg_palette[0]	= bc | BITALPHA;
 		bg_palette[255]	= fc | BITALPHA;
 	}
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 YConsoleInit(std::uint8_t, Color, Color)
 {
 // TODO: impl;
@@ -132,7 +132,7 @@ YConsoleInit(std::uint8_t, Color, Color)
 bool
 InitVideo()
 {
-#ifdef YCL_DS
+#if YCL_DS
 	platform_ex::ResetVideo();
 	//设置显示模式。
 	::vramSetBankA(VRAM_A_MAIN_BG);
@@ -149,7 +149,7 @@ InitVideo()
 namespace platform_ex
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 void
 ResetVideo()
 {

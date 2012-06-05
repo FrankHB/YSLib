@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r1384;
+\version r1386;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2012-04-01 16:01 +0800;
+	2012-06-04 17:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -90,12 +90,12 @@
 
 
 #if YCL_PLATFORM == YCL_PLATFORM_DS
-#	define YCL_DS
+#	define YCL_DS 1
 #	define YCL_API_FILESYSTEM_POSIX //!< 文件系统 API 支持。
 #	define YCL_API_USE_UNISTD
 #	define YCL_API_USE_SYS_DIR
 #elif YCL_PLATFORM == YCL_PLATFORM_MINGW32
-#	define YCL_MINGW32
+#	define YCL_MINGW32 1
 #else
 #	error Unsupported platform found!
 #endif

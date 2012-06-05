@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1539;
+\version r1556;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:41:35 +0800;
 \par 修改时间:
-	2012-06-02 13:38 +0800;
+	2012-06-04 17:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YCLib/FileSystem.h"
 #include "YCLib/NativeAPI.h"
 #include <CHRLib/chrproc.h>
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 #include <Shlwapi.h> // for ::PathIsRelative;
 
 //! \since build 312 。
@@ -58,7 +58,7 @@ static_assert(std::is_same<CHRLib::ucs2_t, char16_t>::value,
 	"Wrong character type!");
 static_assert(std::is_same<CHRLib::ucs4_t, char32_t>::value,
 	"Wrong character type!");
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 // TODO: assert %alignof equality;
 static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
 	"Wrong character type!");
@@ -67,7 +67,7 @@ static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
 namespace
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 std::string
 u16_to_u(const char16_t* u16str)
 {
@@ -80,7 +80,7 @@ u16_to_u(const char16_t* u16str)
 	std::free(tstr);
 	return std::move(str);
 }
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 std::wstring
 u_to_w(const char* str)
 {
@@ -108,9 +108,9 @@ ufopen(const char* filename, const char* mode)
 	yconstraint(mode);
 	yconstraint(*mode != '\0');
 
-#ifdef YCL_DS
+#if YCL_DS
 	return std::fopen(filename, mode);
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	return ::_wfopen(u_to_w(filename).c_str(), u_to_w(mode).c_str());
 #else
 #	error Unsupported platform found!
@@ -123,9 +123,9 @@ ufopen(const char16_t* filename, const char16_t* mode)
 	yconstraint(mode);
 	yconstraint(*mode != '\0');
 
-#ifdef YCL_DS
+#if YCL_DS
 	return std::fopen(u16_to_u(filename).c_str(), u16_to_u(mode).c_str());
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
 		reinterpret_cast<const wchar_t*>(mode));
 #else
@@ -136,9 +136,9 @@ ufopen(const char16_t* filename, const char16_t* mode)
 bool
 ufexists(const char* filename)
 {
-#ifdef YCL_DS
+#if YCL_DS
 	return ystdex::fexists(filename);
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	yconstraint(filename);
 
 	if(const auto file = ufopen(filename, "rb"))
@@ -176,7 +176,7 @@ direxists(const_path_t path)
 bool
 udirexists(const_path_t path)
 {
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 	using namespace CHRLib;
 
 	if(path)
@@ -212,7 +212,7 @@ u16getcwd_n(char16_t* buf, std::size_t size)
 		using namespace CHRLib;
 
 		if(YB_LIKELY(buf))
-#ifdef YCL_DS
+#if YCL_DS
 		{
 			const auto p(static_cast<ucs2_t*>(malloc((size + 1)
 				* sizeof(ucs2_t))));
@@ -233,7 +233,7 @@ u16getcwd_n(char16_t* buf, std::size_t size)
 		//	else
 			//	last_err = ENOMEM;
 		}
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 			return reinterpret_cast<ucs2_t*>(
 				::_wgetcwd(reinterpret_cast<wchar_t*>(buf), size));
 #else
@@ -246,9 +246,9 @@ u16getcwd_n(char16_t* buf, std::size_t size)
 int
 uchdir(const_path_t path)
 {
-#ifdef YCL_DS
+#if YCL_DS
 	return ::chdir(path);
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	return path ? ::_wchdir(u_to_w(path).c_str()) : -1;
 #else
 #	error Unsupported platform found!
@@ -293,7 +293,7 @@ HFileNode::operator++()
 bool
 HFileNode::IsDirectory() const
 {
-#if defined(YCL_DS) || defined(YCL_MINGW32)
+#if YCL_DS || YCL_MINGW32
 	return p_dirent && platform_ex::IsDirectory(*p_dirent);
 #else
 #	error Unsupported platform found!
@@ -328,11 +328,11 @@ HFileNode::Reset()
 bool
 IsAbsolute(const_path_t path)
 {
-#ifdef YCL_DS
+#if YCL_DS
 	return std::strchr(path, '/') == path
 		|| std::strstr(path, "fat:/") == path
 		|| std::strstr(path, "sd:/");
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	// TODO: use PathIsRelativeW;
 	return !::PathIsRelativeA(path);
 	return false;

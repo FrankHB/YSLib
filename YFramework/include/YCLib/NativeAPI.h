@@ -54,7 +54,7 @@
 #endif
 
 
-#ifdef YCL_DS
+#if YCL_DS
 
 #include <nds.h>
 #include <fat.h>

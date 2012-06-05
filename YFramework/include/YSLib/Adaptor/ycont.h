@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r1644;
+\version r1647;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 161 。
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2012-04-26 20:34 +0800;
+	2012-06-04 17:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -121,7 +121,7 @@ template<typename _tChar,
 	class _tCharTrait = std::char_traits<_tChar>,
 	class _tAlloc = std::allocator<_tChar>,
 	class _tStorage =
-#	if defined(YSL_OPT_SMALL_STRING_LENGTH) && YSL_OPT_SMALL_STRING_LENGTH > 0
+#	if YSL_OPT_SMALL_STRING_LENGTH > 0
 		SmallStringOpt<
 #	endif
 #	ifdef YSL_USE_COPY_ON_WRITE
@@ -131,7 +131,7 @@ template<typename _tChar,
 #	ifdef YSL_USE_COPY_ON_WRITE
 		>
 #	endif
-#	if defined(YSL_OPT_SMALL_STRING_LENGTH) && YSL_OPT_SMALL_STRING_LENGTH > 0
+#	if YSL_OPT_SMALL_STRING_LENGTH > 0
 		, YSL_OPT_SMALL_STRING_LENGTH
 	>
 #endif

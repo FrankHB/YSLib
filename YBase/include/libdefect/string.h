@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup YBase
 \brief 标准库实现 <string> 修正。
-\version r1404;
+\version r1407;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 308 。
 \par 创建时间:
 	2012-05-14 20:41:08 +0800;
 \par 修改时间:
-	2012-06-01 15:38 +0800;
+	2012-06-04 17:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,9 +39,9 @@
 
 // TODO: confirm exact versions;
 
-#if (__GLIBCXX__ <= 20120322 && defined(__GXX_EXPERIMENTAL_CXX0X__))
-// && defined(_GLIBCXX_USE_C99)
-// && defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF)
+#if (__GLIBCXX__ <= 20120322 && __GXX_EXPERIMENTAL_CXX0X__)
+// && _GLIBCXX_USE_C99
+// && _GLIBCXX_HAVE_BROKEN_VSWPRINTF
 
 #include <ext/string_conversions.h>
 

@@ -1,7 +1,7 @@
 # DS Makefile for YBase -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-05-30 18:18 +0800;
+# UTime = 2012-06-05 03:12 +0800;
 # Version = r3942;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
@@ -71,7 +71,7 @@ ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -DNDEBUG
 else
 ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -DDEBUG -D_GLIBCXX_DEBUG
+CFLAGS	+=	-g -O0 -D_GLIBCXX_DEBUG
 LDFLAGS	+=	-g
 endif
 

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3606; *build 313 rev 1;
+\version r3613; *build 314 rev 16;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-02 13:39 +0800;
+	2012-06-05 12:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -99,6 +99,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \cb ::= catch blocks
 \cl ::= classes
 \clt ::= class templates
+\cmd ::= commands
 \conf ::= configuration
 \cp ::= copied
 \ctor ::= constructors
@@ -373,149 +374,101 @@ $using:
 
 $DONE:
 r1:
-/ @ \lib YCLib $=
+/ @ \h Platform $=
 (
-	(
-		+ \u Keys["Keys.h", "Keys.cpp"];
-		/ (\a key code (\decl, \ns), \inc \h <bitset>) @ \h YCommon -> \h Keys;
-		+ \inc \h Keys @ \h Input
-	),
-	(
-		+ \u Timer["Timer.h", "Timer.cpp"];
-		/ \u Timers (\decl, \ns) @ \u YCommon -> \u Timer,
-		/ \inc \h <mmsystem.h> @ platform MinGW32 @ \impl \u YCommon
-			-> \impl \u Timer
-	)
+	/ '#	define YCL_DS' -> '#	define YCL_DS 1',
+	/ '#	define YCL_MINGW32' -> '#	define YCL_MINGW32 1'
 );
-+ \inc \h (<YCLib/Keys.h>, <YCLib/Timer.h>) @ \h YAdaptor;
+/ \a \proj $=
+(
+	/ \a 'defined(YB_IMPL_GNUCPP)' -> 'YB_IMPL_GNUCPP',
+	/ \a '#elif defined(YCL_MINGW32)' -> '#elif YCL_MINGW32',
+	/ \a '#ifdef YCL_DS' -> '#if YCL_DS',
+	/ \a 'defined(__GXX_EXPERIMENTAL_CXX0X__)' -> '__GXX_EXPERIMENTAL_CXX0X__',
+	- \a 'defined(YSL_OPT_SMALL_STRING_LENGTH) && ' > 0',
+	/ \a '#if defined(YCL_MINGW32)' -> '#if YCL_MINGW32',
+	/ \a '#if defined(YCL_DS) || defined(YCL_MINGW32)'
+		-> '#if YCL_DS || YCL_MINGW32',
+	/ \a '#ifdef YCL_MINGW32' -> '#if YCL_MINGW32'
+);
 /= test 1 @ platform MinGW32;
 
 r2:
-/ \a ns ystdex::_impl => ystdex::details,
-(
-	/ \a \mac 'YCL_*' @ \proj YBase => 'YB_*';
-	/ \tr @ \a \proj;
-);
-/= test 2 @ platform MinGW32;
+/= test 2 @ platform DS;
 
 r3:
-/= test 3 @ platform DS;
+- \mac DEBUG \def test @ \h Configuration;
+/ \simp @ \mac \pre \def @ Code::Blocks \proj,
+/ \simp \mac \cmd @ \conf debug @ makefiles @ platform DS
+	@ \proj (YBase_DS, YFramework_DS, YSTest_ARM7, YSTest_ARM9);
+/= test 3 @ platform MinGW32;
 
-r4:
-/ @ \h Video $=
+r4-r6:
+/ \impl \u DSMain @ platform MinGW32 @ \conf debug $=
 (
-	/ @ platform DS $=
-	(
-		/ @ yconstfn \f FetchAlpha,
-		/ \impl @ yconstfn \f FetchOpaque,
-		+ yconstfn \f PixelType FetchPixel(std::uint8_t, std::uint8_t,
-			std::uint8_t);
-		/ \tr \impl @ \mac DefColorH_ ^ \f FetchPixel ~ \mac;
-		/ \inh @ \en ColorSet -> PixelType ~ std::uint32_t
-	),
-	/ @ platform MinGW32 $=
-	(
-		/ typedef ::RGBQUAD PixelType -> typedef \un \st PixelType;
-		/ \tr \ret \tp @ yconstfn \f FetchAlpha,
-		+ yconstfn \f std::uint32_t FetchPixel(std::uint8_t, std::uint8_t,
-			std::uint8_t);
-		/ \tr \impl @ \mac DefColorH_ ^ \f FetchPixel ~ \mac;
-		/ \impl @ \ctor yconstfn Color(ColorSet cs)
-	),
-	/ @ \st CursorInfo >> \h Input;
-	- \inc \h NativeAPI
+	+ \cl DebugTimer;
+	/ \impl @ \mf DSScreen::Update ^ \cl DebugTimer
 );
-/ \inc \h Video @ \h Input -> \h NativeAPI,
-+ undef \mac GetObject @ \h NativeAPI,
-- \tr using CursorInfo @ \h YAdaptor;
-/= test 4 @ platform MinGW32;
+/= 3 test 4 @ platform MinGW32;
 
-r5:
-* @ platform DS $since r4 $=
+r7:
+- old timers ^ Windows API directly @ \un \ns @ \impl \u DSMain
+	@ platform MinGW32 $=
 (
-	/ @ \h Video $=
-	(
-		/ \impl @ \op PixelType() @ \cl Color
-		/ \a using @ \ns platform_ex >> \impl \u
-	),
-	/ \a 'SDst' @ \u Input -> 'std::uint16_t',
-	+ \inc \h Video @ \impl \u Debug,
-	+ \inc \h NativeAPI @ \impl \u Video
+	/ \impl @ \f WndProc;
+	- \f StartClock,
+	- \f EndClock,
+	- \o ::LARGE_INTEGER liFrequency,
+	- \o ::LARGE_INTEGER liStart,
+	- \o ::LARGE_INTEGER liEnd
 );
 /= test 5 @ platform MinGW32;
 
-r6:
-/= test 6 @ platform MinGW32 ^ \conf release;
-
-r7:
-* \impl @ \f DispatchInput @ platform DS $since r4;
-/= test 7 @ platform DS;
-
-r8:
-/= test 8 @ platform DS ^ \conf release;
-
-r9:
-/ using (::chdir, ::mkdir) @ \h FileSystem -> \f (chdir, uchdir)
-	@ \u FileSystem;
-/ \a chdir @ \h YAdaptor -> uchdir;
-/= test 9 @ platform MinGW32;
-
-r10:
-- \inc \h <unistd.h> @ \h FileSystem;
-/= test 10 @ platform DS;
-
-r11-r48:
-/ @ \impl \u FileSystem $=
+r8-r13:
+/ @ \impl \u DSMain @ platform MinGW32 $=
 (
-	/ @ \un \ns @ \ns platform $=
-	(
-		+ \f u_to_w @ platform MinGW32,
-		+ \f u16_to_u @ platform DS
-	);
-	/ \simp \impl @ \f ^ \f u_to_w @ platform MinGW32
-);
-/= 38 test 11 @ platform MinGW32;
+	/ \impl @ \cl DebugTimer @ \un \ns;
+	+ \mac (YCL_DEBUG_PRINTF, YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER);
+	/ \impl @ \mf DSScreen::Update,
+	/ \impl @ \f WndProc
+),
+/= 6 test 6 @ platform MinGW32;
 
-r49:
-/ \simp \impl @ \f (ufopen#2) @ \impl \u FileSystem ^ \f u16_to_u
-	@ platform DS;
-/= test 12 @ platform DS;
+r14:
+/= test 7 @ platform MinGW32 ^ \conf release;
 
-r50:
-/= test 13 @ platform MinGW32;
+r15:
+/= test 8 @ platform DS;
 
-r51:
-/= test 14 @ platform DS ^ \conf release;
-
-r52:
-/= test 15 @ platform MinGW32 ^ \conf release;
+r16:
+/= test 9 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-06-02:
--23.8d;
-//Mercurial rev1-rev185: r8524;
+2012-06-05:
+-24.8d;
+//Mercurial rev1-rev186: r8540;
 
 / ...
 
 
 $NEXT_TODO:
-b314-b348:
+b315-b324:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager
 ),
 (
-	+ memory mapping APIs @ YCommon;
+	+ block file loading APIs @ YCommon;
 	+ dynamic character mapper loader for \u CharacterMapping
 );
 
 
 $TODO:
-b349-b400:
+b325-b376:
 / services $=
 (
 	+ \impl @ images loading
@@ -552,13 +505,14 @@ b349-b400:
 	/ improved tests and examples
 );
 
-b401-b784:
+b377-b784:
++ (memory mapping, shared memory) APIs @ YCommon,
 / @ CHRLib $=
 (
 	/ more accurate invalid conversion state handling,
 	/ placeholders when character conversion failed @ string conversion,
 	+ UTF-8 to GBK conversion
-);
+),
 / improving pedantic ISO C++ compatiblity $=
 (
 	/ \mac with no \arg
@@ -896,6 +850,18 @@ $module_tree $=
 );
 
 $now
+(
+	(
+		/ "platform macros definition";
+		/ $design "simplified platform macros conditional inclusion"
+	),
+	- "test of macro %DEBUG" @ %'YFramework',
+	/ "detailed debug output" @ "platform %MinGW32"
+	// Binaries of this version are strictly equal with b313 on platform %DS,
+	//	but some less size on platform %MinGW32.
+),
+
+b313
 (
 	/ %'YFramework'.'YCLib' $=
 	(

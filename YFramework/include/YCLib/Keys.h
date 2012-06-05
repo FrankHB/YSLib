@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r1139;
+\version r1143;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 313 。
 \par 创建时间:
 	2009-06-01 14:29:56 +0800;
 \par 修改时间:
-	2012-06-01 14:36 +0800;
+	2012-06-04 17:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,14 +34,14 @@
 namespace platform
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 /*!
 \brief 按键并行位宽。
 \note 不少于实际表示的 KeyPad 按键数。
 \since build 298 。
 */
 yconstexpr std::size_t KeyBitsetWidth(32);
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 /*!
 \brief 按键并行位宽。
 \note 不少于实际表示的键盘按键数。
@@ -69,7 +69,7 @@ typedef std::bitset<KeyBitsetWidth> KeyInput;
 namespace KeyCodes
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 typedef enum
 {
 	A		= 0,
@@ -94,7 +94,7 @@ const NativeSet
 	Esc = B,
 	PgUp = L,
 	PgDn = R;
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 #define VK_RETURN 0x0D
 #define VK_ESCAPE 0x1B
 #define VK_PRIOR 0x21

@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1436;
+\version r1444;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2011-05-26 19:41:08 +0800;
 \par 修改时间:
-	2012-06-01 20:51 +0800;
+	2012-06-04 17:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ namespace platform
 typedef std::int16_t SPos; //!< 屏幕坐标度量。
 typedef std::uint16_t SDst; //!< 屏幕坐标距离。
 
-#ifdef YCL_DS
+#if YCL_DS
 	/*!
 	\brief 标识 AXYZ1555 像素格式。
 	\since build 297 。
@@ -82,7 +82,7 @@ FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
 #	define DefColorH_(hex, name) name = \
 	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
 	| 1 << 15)
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 /*!
 \brief Windows DIB 格式兼容像素。
 \note MSDN 注明此处第 4 字节保留为 0 ，但此处使用作为 8 位 Alpha 值使用。
@@ -156,7 +156,7 @@ namespace ColorSpace
 \brief 默认颜色集。
 \see http://www.w3schools.com/html/html_colornames.asp 。
 */
-#ifdef YCL_DS
+#if YCL_DS
 typedef enum : PixelType
 #else
 typedef enum : std::uint32_t
@@ -221,16 +221,16 @@ public:
 	*/
 	yconstfn
 	Color(PixelType px)
-#ifdef YCL_DS
+#if YCL_DS
 		: r(px << 3 & 248), g(px >> 2 & 248), b(px >> 7 & 248),
 		a(FetchAlpha(px) ? 0xFF : 0x00)
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 		: r(px.rgbRed), g(px.rgbGreen), b(px.rgbBlue), a(px.rgbReserved)
 #else
 #	error Unsupport platform found!
 #endif
 	{}
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 	/*!
 	\brief 构造：使用默认颜色。
 	\since build 297 。
@@ -255,9 +255,9 @@ public:
 	yconstfn
 	operator PixelType() const
 	{
-	#ifdef YCL_DS
+	#if YCL_DS
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
-	#elif defined(YCL_MINGW32)
+	#elif YCL_MINGW32
 		return {b, g, r, a};
 	#else
 	#	error Unsupport platform found!
@@ -320,7 +320,7 @@ InitVideo();
 namespace platform_ex
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 
 /*!
 \brief 复位屏幕显示模式。

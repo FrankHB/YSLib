@@ -11,13 +11,13 @@
 /*!	\file Timer.cpp
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r1165;
+\version r1174;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 313 。
 \par 创建时间:
 	2012-06-01 14:44:52 +0800;
 \par 修改时间:
-	2012-06-01 15:33 +0800;
+	2012-06-04 17:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/Timer.h"
 #include "YCLib/NativeAPI.h"
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 #include <mmsystem.h> // for multimedia timers;
 #endif
 
@@ -37,7 +37,7 @@ namespace platform
 namespace
 {
 	bool bUninitializedTimers(true);
-#ifdef YCL_DS
+#if YCL_DS
 	volatile std::uint32_t system_tick;
 
 	void
@@ -45,7 +45,7 @@ namespace
 	{
 		++system_tick;
 	}
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	std::uint32_t(*p_tick_getter)(); //!< 计时器指针。
 	std::uint64_t(*p_tick_getter_nano)(); //!< 高精度计时器指针。
 	union
@@ -102,7 +102,7 @@ StartTicks()
 {
 	if(bUninitializedTimers)
 	{
-#ifdef YCL_DS
+#if YCL_DS
 		// f = 33.513982MHz;
 		// BUS_CLOCK = 33513982 = 2*311*53881;
 #if 0
@@ -113,7 +113,7 @@ StartTicks()
 #endif
 		::timerStart(2, ::ClockDivider_1, u16(TIMER_FREQ(1000)),
 			timer_callback);
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 		if(::QueryPerformanceFrequency(&g_ticks.hi.tps))
 		{
 			yunseq(p_tick_getter = get_ticks_hi_res,
@@ -139,9 +139,9 @@ std::uint32_t
 GetTicks()
 {
 	StartTicks();
-#ifdef YCL_DS
+#if YCL_DS
 	return system_tick;
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	return p_tick_getter();
 #else
 #	error Unsupported platform found!
@@ -152,10 +152,10 @@ std::uint64_t
 GetHighResolutionTicks()
 {
 	StartTicks();
-#ifdef YCL_DS
+#if YCL_DS
 	return system_tick * 1000000ULL
 		+ TIMER2_DATA * 1000000ULL / BUS_CLOCK;
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	return p_tick_getter_nano();
 #else
 #	error Unsupported platform found!

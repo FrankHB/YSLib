@@ -70,7 +70,7 @@ InitializeEnviornment() ynothrow
 	std::set_terminate(terminate);
 	try
 	{
-#ifdef YCL_DS
+#if YCL_DS
 		//启用设备。
 		::powerOn(POWER_ALL);
 
@@ -197,7 +197,7 @@ CheckInstall() ynothrow
 	{
 		try
 		{
-#ifdef YCL_DS
+#if YCL_DS
 #	define ROOTW
 #	define DEF_DIRECTORY ROOTW "/Data/"
 	//const char* DEF_FONT_NAME = ROOTW "方正姚体";

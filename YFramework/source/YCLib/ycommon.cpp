@@ -36,7 +36,7 @@ namespace platform
 void*
 mmbset(void* d, int v, std::size_t t)
 {
-#ifdef YCL_DS
+#if YCL_DS
 	// NOTE: DMA fill to main RAM is maybe slower;
 //	return safe_dma_fill(d, v, t) != 0 ? std::memset(d, v, t) : d;
 #endif
@@ -46,7 +46,7 @@ mmbset(void* d, int v, std::size_t t)
 void*
 mmbcpy(void* d, const void* s, std::size_t t)
 {
-#ifdef YCL_DS
+#if YCL_DS
 	// NOTE: DMA copy to main RAM is even slower;
 	// TODO: use ASM optimization, like using LDMIA instructions;
 //	return safe_dma_copy(d, s, t) != 0 ? std::memcpy(d, s, t) : d;
@@ -58,7 +58,7 @@ mmbcpy(void* d, const void* s, std::size_t t)
 void
 terminate()
 {
-#ifdef YCL_DS
+#if YCL_DS
 	for(;;)
 		::swiWaitForVBlank();
 #else
@@ -89,7 +89,7 @@ yassert(bool exp, const char* expstr, const char* message,
 namespace platform_ex
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 bool
 AllowSleep(bool b)
 {

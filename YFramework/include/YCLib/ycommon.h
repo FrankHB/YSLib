@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r4328;
+\version r4331;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-06-01 16:56 +0800;
+	2012-06-05 03:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -93,7 +93,7 @@ yassert(bool, const char*, const char*, int, const char*);
 
 #else
 
-#	include <cassert>
+#include <cassert>
 #	define YAssert(exp, message) assert(exp)
 
 #endif
@@ -125,7 +125,7 @@ GetHighResolutionTicks();
 namespace platform_ex
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 
 /*!
 \brief 设置允许设备进入睡眠的标识状态。
@@ -136,7 +136,7 @@ namespace platform_ex
 bool
 AllowSleep(bool);
 
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 // TODO: add WinAPIs;
 #else
 #	error Unsupport platform found!

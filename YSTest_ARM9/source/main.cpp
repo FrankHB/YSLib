@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2674;
+\version r2675;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-06-01 16:43 +0800;
+	2012-06-04 17:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -225,7 +225,7 @@ ReleaseShells();
 YSL_END
 
 int
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 WINAPI
 WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 //WinMain(HINSTANCE hThis, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmd)

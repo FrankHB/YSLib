@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r1089;
+\version r1096;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299 。
 \par 创建时间:
 	2012-04-07 13:38:36 +0800;
 \par 修改时间:
-	2012-06-01 20:57 +0800;
+	2012-06-04 17:38 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YCLib/Input.h"
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 #include <mutex>
 #endif
 
@@ -36,7 +36,7 @@ namespace platform
 void
 WaitForInput()
 {
-#ifdef YCL_DS
+#if YCL_DS
 	while(true)
  	{
 		platform_ex::UpdateKeyStates();
@@ -55,7 +55,7 @@ namespace platform_ex
 {
 
 void
-#ifdef YCL_DS
+#if YCL_DS
 WriteCursor(platform::CursorInfo& tp)
 {
 	touchRead(&tp);
@@ -65,7 +65,7 @@ WriteCursor(platform::CursorInfo& tp)
 	else
 		// NOTE: YSL_ Point::Invalid;
 		yunseq(tp.px = std::uint16_t(-1), tp.py = std::uint16_t(-1));
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 WriteCursor(platform::CursorInfo&)
 {
 // TODO: impl;
@@ -76,7 +76,7 @@ WriteCursor(platform::CursorInfo&)
 
 
 platform::KeyInput KeyState, OldKeyState;
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 namespace
 {
 	std::mutex KeyMutex;
@@ -86,21 +86,21 @@ namespace
 void
 UpdateKeyStates()
 {
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 	std::lock_guard<std::mutex> lck(KeyMutex);
 
 #endif
 	OldKeyState = KeyState;
-#ifdef YCL_DS
+#if YCL_DS
 	KeyState = ::keysCurrent();
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	// NOTE: 0x00 and 0xFF should be invalid;
 	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		KeyState.set(i, ::GetAsyncKeyState(i) & 0x8000);
 #endif
 }
 
-#ifdef YCL_DS
+#if YCL_DS
 void
 WaitForKey(platform::KeyInput mask)
 {

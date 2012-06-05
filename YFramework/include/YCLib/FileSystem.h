@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1362;
+\version r1364;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:38:37 +0800;
 \par 修改时间:
-	2012-06-01 22:53 +0800;
+	2012-06-04 17:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YCL_INC_FILESYSTEM_H_
 
 #include "ycommon.h"
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 // NOTE: no use of MinGW32 ::dirent, ::DIR, ::opendir ...
 struct DIR;
 struct dirent;
@@ -78,7 +78,7 @@ namespace platform
 \since build 286 。
 */
 typedef char NativePathCharType;
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 	/*!
 	\brief 文件路径分隔符。
 	\since build 296 。

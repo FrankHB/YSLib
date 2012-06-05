@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1929;
+\version r2025;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-06-01 21:08 +0800;
+	2012-06-05 12:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "Helper/shlds.h"
 #include <YSLib/UI/ygui.h>
 #include <YCLib/Debug.h>
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -51,7 +51,7 @@ using namespace Drawing;
 namespace
 {
 
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 
 yconstexpr double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
@@ -121,7 +121,7 @@ Idle()
 {
 	//指示等待图形用户界面输入。
 	PostMessage(FetchShellHandle(), SM_INPUT, 0x40);
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 	//	std::this_thread::yield();
 		std::this_thread::sleep_for(idle_sleep);
 #endif
@@ -139,6 +139,44 @@ DSScreen* pScreenUp;
 DSScreen* pScreenDown;
 //@}
 
+
+#ifndef NDEBUG
+/*!
+\brief 调试计时器。
+\since build 314 。
+*/
+class DebugTimer
+{
+protected:
+	std::string event_info;
+	Timers::HighResolutionClock::time_point base_tick;
+
+public:
+	DebugTimer(const std::string& str = "")
+		: event_info(str), base_tick()
+	{
+		std::printf("Start tick of [%s] :\n", event_info.c_str());
+		base_tick = Timers::HighResolutionClock::now();
+	}
+	~DebugTimer()
+	{
+		const double t((Timers::HighResolutionClock::now() - base_tick).count()
+			/ 1e6);
+
+		std::printf("Performed [%s] in: %f milliseconds.\n",
+			event_info.c_str(), t);
+	}
+};
+
+#define YCL_DEBUG_PRINTF(...) std::printf(__VA_ARGS__)
+#define YCL_DEBUG_PUTS(_arg) std::puts(_arg)
+#define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer name(__VA_ARGS__);
+#else
+#define YCL_DEBUG_PRINTF(...)
+#define YCL_DEBUG_PUTS(_arg)
+#define YSL_DEBUG_DECL_TIMER(...)
+#endif
+
 } // unnamed namespace;
 
 YSL_BEGIN_NAMESPACE(Devices)
@@ -149,7 +187,7 @@ YSL_BEGIN_NAMESPACE(Devices)
 */
 class DSScreen : public Screen
 {
-#ifdef YCL_DS
+#if YCL_DS
 public:
 	typedef int BGType;
 
@@ -190,7 +228,7 @@ public:
 	*/
 	void
 	Update(Drawing::Color = Drawing::Color());
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 public:
 	Point Offset;
 
@@ -225,7 +263,7 @@ public:
 #endif
 };
 
-#ifdef YCL_DS
+#if YCL_DS
 DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p)
 	: Devices::Screen(w, h, p),
 	bg(-1)
@@ -255,7 +293,7 @@ DSScreen::Update(Color c)
 {
 	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaOf(GetSize()), c);
 }
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 DSScreen::DSScreen(SDst w, SDst h)
 	: Devices::Screen(w, h),
 	Offset(), gbuf(Size(w, h)), pSrc()
@@ -268,10 +306,14 @@ DSScreen::Update(Drawing::BitmapPtr p)
 {
 	pSrc = p;
 //	std::this_thread::sleep_for(std::chrono::milliseconds(20));
-	std::printf("Screen updated.\n");
+	YCL_DEBUG_PUTS("Screen buffer pointer updated.");
 
 	if(hWindow)
 	{
+		YCL_DEBUG_PUTS("Found window handle.");
+
+		YSL_DEBUG_DECL_TIMER(tmr, "DSScreen::Update")
+
 		::HDC hDC(::GetDC(hWindow));
 		::HDC hMemDC(::CreateCompatibleDC(hDC));
 
@@ -303,40 +345,22 @@ DSScreen::UpdateToHost(::HDC hDC, ::HDC hMemDC)
 YSL_END_NAMESPACE(Devices)
 
 
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 namespace
 {
-
-::LARGE_INTEGER liFrequency;
-::LARGE_INTEGER liStart;
-::LARGE_INTEGER liEnd;
-
-void
-StartClock()
-{
-	::QueryPerformanceFrequency(&liFrequency);
-	::QueryPerformanceCounter(&liStart);
-}
-
-void
-EndClock()
-{
-	::QueryPerformanceCounter(&liEnd);
-	std::printf("Painted performed in: %f milliseconds.\n",
-		double(1000 * 1.0 / liFrequency.QuadPart
-		* (liEnd.QuadPart - liStart.QuadPart)));
-}
 
 LRESULT CALLBACK
 WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+//	YSL_DEBUG_DECL_TIMER(tmr, "WndProc");
 	switch(msg)
 	{
 	case WM_PAINT:
 		YAssert(hWnd == hWindow, "Wrong native main window found.");
 
-		StartClock();
+		YCL_DEBUG_PUTS("Handling of WM_PAINT.");
 		{
+			YSL_DEBUG_DECL_TIMER(tmr, "WM_PAINT");
 			::PAINTSTRUCT ps;
 			::HDC hDC(::BeginPaint(hWindow, &ps));
 			::HDC hMemDC(::CreateCompatibleDC(hDC));
@@ -346,18 +370,20 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			::DeleteDC(hMemDC);
 			::EndPaint(hWindow, &ps);
 		}
-		EndClock();
 		break;
 	case WM_KILLFOCUS:
+		YCL_DEBUG_PUTS("Handling of WM_KILLFOCUS.");
 		yunseq(platform_ex::KeyState.reset(), platform_ex::OldKeyState.reset());
 		break;
 	case WM_DESTROY:
+		YCL_DEBUG_PUTS("Handling of WM_DESTROY.");
 		::PostQuitMessage(0),
 		YSL_ PostQuitMessage(0);
 		// NOTE: make sure all shells are released before destructing the
 		//	instance of %DSApplication;
 		break;
 	default:
+	//	YCL_DEBUG_PUTS("Handling of default procedure.");
 		return ::DefWindowProc(hWnd, msg, wParam, lParam);
 	}
 	return 0;
@@ -448,7 +474,7 @@ DSApplication::DSApplication()
 
 	//全局初始化。
 	InitializeEnviornment();
-#if defined(YCL_MINGW32)
+#if YCL_MINGW32
 	//启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
 	pHostThread = new std::thread(HostTask);
 #endif
@@ -467,7 +493,7 @@ DSApplication::DSApplication()
 	}
 	//初始化系统字体资源。
 	InitializeSystemFontCache();
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 	pScreenDown->Offset.Y = MainScreenHeight;
 
 	//等待宿主环境就绪。
@@ -482,7 +508,7 @@ DSApplication::DSApplication()
 
 DSApplication::~DSApplication()
 {
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 	YAssert(pHostThread, "Null pointer found.");
 
 	pHostThread->detach();
@@ -567,7 +593,7 @@ DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
 void
 DispatchInput(Desktop& dsk)
 {
-#ifdef YCL_MINGW32
+#if YCL_MINGW32
 	if(hWindow != ::GetForegroundWindow())
 		return;
 #endif
@@ -589,7 +615,7 @@ DispatchInput(Desktop& dsk)
 
 	KeyInput keys(platform_ex::FetchKeyUpState());
 
-#ifdef YCL_DS
+#if YCL_DS
 #	define YCL_KEY_Touch KeyCodes::Touch
 #	define YCL_CURSOR_VALID
 	if(platform_ex::KeyState[YCL_KEY_Touch])
@@ -600,7 +626,7 @@ DispatchInput(Desktop& dsk)
 		yunseq(cursor_pos.X = cursor.GetX(),
 			cursor_pos.Y = cursor.GetY());
 	}
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_pos != Point::Invalid)
 	if(platform_ex::KeyState[VK_LBUTTON])
@@ -686,7 +712,7 @@ FetchGlobalInstance() ynothrow
 }
 
 bool
-#ifdef YCL_DS
+#if YCL_DS
 InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 {
 	using namespace platform;
@@ -697,7 +723,7 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType)
 {
 #else

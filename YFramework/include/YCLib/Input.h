@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r1174;
+\version r1177;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 299 。
 \par 创建时间:
 	2012-04-07 13:37:05 +0800;
 \par 修改时间:
-	2012-06-01 20:53 +0800;
+	2012-06-04 17:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@
 namespace platform
 {
 
-#ifdef YCL_DS
+#if YCL_DS
 //! \brief 屏幕指针设备光标信息。
 typedef struct CursorInfo : public ::touchPosition
 {
@@ -58,7 +58,7 @@ typedef struct CursorInfo : public ::touchPosition
 	}
 } CursorInfo;
 
-#elif defined(YCL_MINGW32)
+#elif YCL_MINGW32
 /*!
 \brief 屏幕指针设备光标信息。
 \since build 296 。
@@ -147,7 +147,7 @@ void
 UpdateKeyStates();
 
 
-#ifdef YCL_DS
+#if YCL_DS
 /*!
 \brief 等待掩码指定的按键。
 \since build 298 。
