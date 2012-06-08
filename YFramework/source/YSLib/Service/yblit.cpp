@@ -11,12 +11,12 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1939;
+\version r1948;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:45:32 +0800;
 \par 修改时间:
-	2012-06-01 16:55 +0800;
+	2012-06-06 16:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,35 +55,30 @@ BlitBounds(const Point& dp, const Point& sp,
 	yunseq(min_x = blit_min(sp.X, dp.X), min_y = blit_min(sp.Y, dp.Y),
 		max_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),
 		max_y = blit_max(sp.Y, dp.Y, ss.Height, ds.Height, sc.Height));
-
 	return min_x < max_x && min_y < max_y;
 }
 
 template<>
 int
-BlitScale<false, false>(const Point& dp, const Point&,
-	const Size& ds, const Size&, const Size&, int, int)
+BlitScale<false, false>(const Point& dp, const Size& ds, int, int)
 {
 	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X);
 }
 template<>
 int
-BlitScale<true, false>(const Point& dp, const Point&,
-	const Size& ds, const Size&, const Size&, int, int delta_y)
+BlitScale<true, false>(const Point& dp, const Size& ds, int, int delta_y)
 {
 	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width + max<int>(0, dp.X);
 }
 template<>
 int
-BlitScale<false, true>(const Point& dp, const Point&,
-	const Size& ds, const Size&, const Size&, int delta_x, int)
+BlitScale<false, true>(const Point& dp, const Size& ds, int delta_x, int)
 {
 	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X) + delta_x - 1;
 }
 template<>
 int
-BlitScale<true, true>(const Point& dp, const Point&,
-	const Size& ds, const Size&, const Size&, int delta_x, int delta_y)
+BlitScale<true, true>(const Point& dp, const Size& ds, int delta_x, int delta_y)
 {
 	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width
 		+ max<int>(0, dp.X) + delta_x - 1;

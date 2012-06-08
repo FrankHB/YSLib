@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3964;
+\version r3971;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-05-30 17:38 +0800;
+	2012-06-08 08:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -60,7 +60,7 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	lstText(Rect(Point::Zero, r.GetSize()), h)
 {
 	SetContainerPtrOf(lstText, this),
-	VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
+	vsbVertical.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
 		lstText.LocateViewPosition(SDst(round(e.GetValue())));
 	},
 	lstText.GetViewChanged() += [this](ViewArgs&& e){
@@ -72,11 +72,11 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 			SetSizeOf(lstText, FixLayout(view_arena));
 			if(view_arena.Height > lstText.GetHeight())
 			{
-				VerticalScrollBar.SetSmallDelta(lstText.GetItemHeight());
-				VerticalScrollBar.SetMaxValue(view_arena.Height
+				vsbVertical.SetSmallDelta(lstText.GetItemHeight());
+				vsbVertical.SetMaxValue(view_arena.Height
 					- lstText.GetHeight());
-				VerticalScrollBar.SetLargeDelta(lstText.GetHeight());
-				VerticalScrollBar.SetValue(lstText.GetViewPosition());
+				vsbVertical.SetLargeDelta(lstText.GetHeight());
+				vsbVertical.SetValue(lstText.GetViewPosition());
 			}
 		}
 	},
@@ -173,7 +173,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 				if(const auto p = dynamic_cast<Panel*>(
 					&FetchTopLevel(*this, pt)))
 				{
-					// NOTE: get height of top widget, top and bottom spaces;
+					// NOTE: Get height of top widget, top and bottom spaces.
 					const SDst h0(GetSizeOf(*p).Height);
 					const SDst h1(max<SPos>(pt.Y, 0)), h2(max<SPos>(h0 - pt.Y
 						- GetHeight(), 0));
@@ -185,7 +185,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 
 						const SDst h(boxList.GetHeight());
 
-						// NOTE: bottom space is preferred;
+						// NOTE: Bottom space is preferred.
 						pt.Y += h2 < h ? -h : GetHeight();
 						SetLocationOf(boxList, pt);
 						boxList.AdjustViewLength();

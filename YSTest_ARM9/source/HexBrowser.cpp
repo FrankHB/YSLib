@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1489;
+\version r1500;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2012-04-03 17:55 +0800;
+	2012-06-07 02:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,11 +46,11 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	model()
 {
 	SetTransparent(false);
-	SetVisibleOf(HorizontalScrollBar, false);
-	SetVisibleOf(VerticalScrollBar, true);
-	VerticalScrollBar.SetSmallDelta(1);
+	SetVisibleOf(hsbHorizontal, false);
+	SetVisibleOf(vsbVertical, true);
+	vsbVertical.SetSmallDelta(1);
 	yunseq(
-		VerticalScrollBar.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
+		vsbVertical.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
 			LocateViewPosition(round(e.GetValue()));
 		},
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
@@ -71,9 +71,8 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 				t = ScrollCategory::LargeIncrement;
 			else if(!k[Up])
 				return;
-			VerticalScrollBar.LocateThumb(k[Up] || k[Down]
-				? VerticalScrollBar.GetSmallDelta()
-				: VerticalScrollBar.GetLargeDelta(), t);
+			vsbVertical.LocateThumb(k[Up] || k[Down]
+				? vsbVertical.GetSmallDelta() : vsbVertical.GetLargeDelta(), t);
 			RequestFocus(*this);
 			e.Handled = true;
 		},
@@ -102,11 +101,11 @@ HexViewArea::Load(const_path_t path)
 
 	if(n_total_ln > GetItemNum())
 	{
-		VerticalScrollBar.SetMaxValue(n_total_ln - GetItemNum());
-		VerticalScrollBar.SetLargeDelta(GetItemNum());
+		vsbVertical.SetMaxValue(n_total_ln - GetItemNum());
+		vsbVertical.SetLargeDelta(GetItemNum());
 	}
 	else
-		SetVisibleOf(VerticalScrollBar, false);
+		SetVisibleOf(vsbVertical, false);
 }
 
 void
@@ -131,7 +130,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 	yconstexpr auto ItemPerLine(HexViewArea::ItemPerLine); // TODO: fix linkage;
 	auto& y(TextState.PenY);
 	const SDst lh(GetItemHeight()), h(GetHeight()),
-		w_all(GetWidth() - VerticalScrollBar.GetWidth()
+		w_all(GetWidth() - vsbVertical.GetWidth()
 			- GetHorizontalOf(TextState.Margin)),
 		w_blank(w_all / (10 + ItemPerLine * 3)),
 		w_ch((w_all - w_blank * (1 + ItemPerLine)) / (8 + ItemPerLine * 2)),
@@ -173,7 +172,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 void
 HexViewArea::Reset()
 {
-	VerticalScrollBar.SetValue(0);
+	vsbVertical.SetValue(0);
 	ClearData();
 	UpdateItemNum(GetHeight());
 	UpdateView();
@@ -201,7 +200,7 @@ HexViewArea::UpdateData(u32 pos)
 			*b++ = h > '9' ? h + 'A' - '9' - 1 : h;
 			*b++ = l > '9' ? l + 'A' - '9' - 1 : l;
 		}
-	//	VerticalScrollBar.SetValue(pos / ItemPerLine);
+	//	vsbVertical.SetValue(pos / ItemPerLine);
 		ResizeData(b - GetBegin());
 		model.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
 	}

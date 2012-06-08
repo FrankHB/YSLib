@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3244;
+\version r3246;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2012-05-25 18:37 +0800;
+	2012-06-05 21:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -183,8 +183,8 @@ _t type
 	{ \
 		return (__VA_ARGS__); \
 	}
-// NOTE: need 'ydef.h';
-// NOTE: GCC complains about 'void(yunseq(__VA_ARGS__))';
+// NOTE: Need 'ydef.h'.
+// NOTE: GCC complains about 'void(yunseq(__VA_ARGS__))'.
 #define ImplUnseq(...) \
 	{ \
 		static_cast<void>(yunseq(__VA_ARGS__)); \

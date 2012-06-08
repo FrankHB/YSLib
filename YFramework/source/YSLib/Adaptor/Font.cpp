@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7613;
+\version r7614;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-06-01 16:48 +0800;
+	2012-06-05 21:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -89,7 +89,7 @@ simpleFaceRequester(::FTC_FaceID face_id, ::FT_Library library,
 		}
 	}
 #if 0
-	// NOTE: wrong impl;
+	// FIXME: wrong impl;
 	::FT_GlyphSlot_Embolden(face->glyph);
 	::FT_GlyphSlot_Oblique(face->glyph);
 	::FT_Outline_Embolden(&face->glyph->outline, 64);

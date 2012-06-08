@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2875;
+\version r2922;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-06-01 16:43 +0800;
+	2012-06-06 12:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -72,6 +72,17 @@
 \brief 语言实现的特性。
 \since build 294 。
 */
+
+/*!
+\ingroup lang_impl_features
+\def YB_HAS_BUILTIN_NULLPTR
+\brief 内建 alignof 支持。
+\since build 315 。
+*/
+#undef YB_HAS_ALIGNOF
+#if YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40500
+#	define YB_HAS_ALIGNOF
+#endif
 
 /*!
 \ingroup lang_impl_features
@@ -134,27 +145,62 @@
 #endif
 
 
-//异常规范宏。
+/*!
+\def yalignof
+\brief 指定特定类型的对齐。
+\note 同 C++11 alignof 作用于类型时的语义。
+\since build 315 。
+\todo 判断是否可使用 TR1 的情形。
+*/
+#ifdef YB_HAS_ALIGNOF
+#	define yalignof alignof
+#else
+#	define yalignof(_type) std::alignment_of<_type>::value
+#endif
 
-#define YCL_USE_EXCEPTION_SPECIFICATION //!< 使用 YSLib 异常规范。
 
-// ythrow = "yielded throwing";
-#ifdef YCL_USE_EXCEPTION_SPECIFICATION
+/*!
+\def yconstexpr
+\brief 指定编译时常量表达式。
+\note 同 C++11 constepxr 作用于编译时常量的语义。
+*/
+/*!
+\def yconstfn
+\brief 指定编译时常量函数。
+\note 同 C++11 constepxr 作用于编译时常量函数的语义。
+*/
+#ifdef YB_HAS_CONSTEXPR
+#	define yconstexpr constexpr
+#	define yconstfn constexpr
+#else
+#	define yconstexpr const
+#	define yconstfn inline
+#endif
+
+
+/*!
+\def YCL_USE_EXCEPTION_SPECIFICATION
+\brief 使用 YSLib 异常规范。
+*/
+#define YCL_USE_EXCEPTION_SPECIFICATION 1
+
+/*!
+\def ythrow
+\brief YSLib 异常规范：根据是否使用异常规范宏指定或忽略异常规范。
+\note ythrow = "yielded throwing" 。
+*/
+#if YCL_USE_EXCEPTION_SPECIFICATION
 #	define ythrow throw
 #else
 #	define ythrow(...)
 #endif
 
+/*!
+\def ynothrow
+\brief YSLib 无异常抛出保证：指定特定的异常规范。
+\todo 使用 noexcept 关键字。
+*/
 #define ynothrow ythrow()
-
-
-#ifdef YB_HAS_CONSTEXPR
-#define yconstexpr constexpr
-#define yconstfn constexpr
-#else
-#define yconstexpr const
-#define yconstfn inline
-#endif
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2025;
+\version r2032;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-06-05 12:40 +0800;
+	2012-06-05 21:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -276,7 +276,7 @@ DSScreen::GetCheckedBufferPtr() const ynothrow
 	{
 		InitVideo();
 
-		// NOTE: assert(YSL_ pScreenUp && YSL_ pScreenDown);
+		//	assert(YSL_ pScreenUp && YSL_ pScreenDown);
 		yunseq(YSL_ pScreenUp->pBuffer = DS::InitScrUp(YSL_ pScreenUp->bg),
 			YSL_ pScreenDown->pBuffer = DS::InitScrDown(YSL_ pScreenDown->bg));
 	}
@@ -331,7 +331,7 @@ DSScreen::UpdateToHost(::HDC hDC, ::HDC hMemDC)
 		const auto& size(GetSize());
 
 		::SelectObject(hMemDC, gbuf.hBitmap);
-		// NOTE: unlocked intentionally for efficiency;
+		// NOTE: Unlocked intentionally for performance.
 		std::memcpy(gbuf.pBuffer, pSrc,
 			sizeof(PixelType) * size.Width * size.Height);
 		::BitBlt(hDC, Offset.X, Offset.Y, size.Width, size.Height,
@@ -379,8 +379,8 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		YCL_DEBUG_PUTS("Handling of WM_DESTROY.");
 		::PostQuitMessage(0),
 		YSL_ PostQuitMessage(0);
-		// NOTE: make sure all shells are released before destructing the
-		//	instance of %DSApplication;
+		// NOTE: Try to make sure all shells are released before destructing the
+		//	instance of %DSApplication.
 		break;
 	default:
 	//	YCL_DEBUG_PUTS("Handling of default procedure.");
@@ -430,7 +430,7 @@ InitializeMainWindow()
 		hWindow = ::CreateWindowEx(0, wnd_class_name, wnd_title,
 			wstyle, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
 			rect.bottom - rect.top, HWND_DESKTOP, NULL, hInstance, NULL);
-		// NOTE: currently only one client;
+		// NOTE: Currently there is only one client.
 		g_cond.notify_one();
 	//	g_cond.notify_all();
 	}
@@ -601,15 +601,15 @@ DispatchInput(Desktop& dsk)
 	using namespace platform::KeyCodes;
 	using namespace YSL_ Components;
 
-	// NOTE: no real necessity to put input content into message queue,
+	// NOTE: There is no real necessity to put input content into message queue,
 	//	for the content is serialized in form of exactly one instance
 	//	to be accepted at one time and no input signal is handled
 	//	through interrupt to be buffered.
 	static Drawing::Point cursor_pos;
 
 	// FIXME: [DS] crashing after sleeping(default behavior of closing then
-	// reopening lid) on real machine due to LibNDS default interrupt
-	// handler for power management;
+	//	reopening lid) on real machine due to LibNDS default interrupt
+	//	handler for power management.
 //	platform::AllowSleep(true);
 	platform_ex::UpdateKeyStates();
 

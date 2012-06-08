@@ -11,12 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2665;
+\version r2688;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 168 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-03-13 13:44 +0800;
+	2012-06-06 13:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,6 +39,23 @@ YSL_BEGIN_NAMESPACE(Components)
 */
 bool
 IsFocused(const IWidget&);
+
+/*!
+\brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
+\param release_event 是否在需要释放已有焦点时触发事件。
+\return 是否成功。
+\since build 315 。
+*/
+bool
+DoRequestFocus(IWidget&, bool release_event = false);
+
+/*!
+\brief 释放焦点，并指定 LostFocus 事件发送控件。
+\return 是否成功。
+\since build 315 。
+*/
+bool
+DoReleaseFocus(IWidget&);
 
 /*!
 \brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。

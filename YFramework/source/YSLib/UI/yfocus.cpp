@@ -11,12 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1490;
+\version r1541;
 \author FrankHB<frankhb1989@gmail.com>
+\since build 258 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-03-13 13:45 +0800;
+	2012-06-06 13:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,36 +39,57 @@ IsFocused(const IWidget& wgt)
 	return p ? FetchFocusingPtr(*p) == &wgt : false;
 }
 
-void
-RequestFocusFrom(IWidget& dst, IWidget& src)
+bool
+DoRequestFocus(IWidget& wgt, bool release_event)
 {
-	if(auto p = FetchContainerPtr(dst))
+	if(auto p = FetchContainerPtr(wgt))
 	{
 		auto& pFocusing(p->GetView().pFocusing);
 
-		if(pFocusing != &dst)
+		if(pFocusing != &wgt)
 		{
 			if(pFocusing && IsFocused(*pFocusing))
-				ReleaseFocusFrom(*pFocusing, dst);
-			pFocusing = &dst;
-			CallEvent<GotFocus>(dst, UIEventArgs(src));
+			{
+				if(release_event)
+					ReleaseFocusFrom(*pFocusing, wgt);
+				else
+					DoReleaseFocus(*pFocusing);
+			}
+			pFocusing = &wgt;
+			return true;
 		}
 	}
+	return false;
+}
+
+bool
+DoReleaseFocus(IWidget& wgt)
+{
+	if(auto p = FetchContainerPtr(wgt))
+	{
+		auto& pFocusing(p->GetView().pFocusing);
+
+		if(pFocusing == &wgt)
+		{
+			pFocusing = nullptr;
+			return true;
+		}
+	}
+	return false;
+}
+
+void
+RequestFocusFrom(IWidget& dst, IWidget& src)
+{
+	if(DoRequestFocus(dst), true)
+		CallEvent<GotFocus>(dst, UIEventArgs(src));
 }
 
 void
 ReleaseFocusFrom(IWidget& dst, IWidget& src)
 {
-	if(auto p = FetchContainerPtr(dst))
-	{
-		auto& pFocusing(p->GetView().pFocusing);
-
-		if(pFocusing == &dst)
-		{
-			pFocusing = nullptr;
-			CallEvent<LostFocus>(dst, UIEventArgs(src));
-		}
-	}
+	if(DoReleaseFocus(dst))
+		CallEvent<LostFocus>(dst, UIEventArgs(src));
 }
 
 void

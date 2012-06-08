@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2089;
+\version r2110;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2012-06-01 16:34 +0800;
+	2012-06-05 23:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -238,9 +238,9 @@ public:
 			+ std::is_signed<base_type>::value);
 
 		this->value = tmp < 0 ? -(-tmp >> shift_bit_n) : tmp >> shift_bit_n;
-	// NOTE: Code below only fit for unsigned type, due to there exists
+	// NOTE: Code below is only fit for unsigned type, due to there exists
 	//	implementation-defined in conversion and right shifting on
-	//	signed types;
+	//	operands of signed types.
 	//	this->value = (typename fixed_multiplicative<base_type>::type(
 	//		this->value) * f.value) >> shift_bit_n;
 		return *this;
@@ -268,14 +268,6 @@ public:
 		return *this;
 	}
 
-/*
-	// FIXME: g++ 4.6 has a bug to cast all type as bool;
-	explicit
-	operator bool() const ynothrow
-	{
-		return this->value;
-	}
-*/
 	template<typename _type>
 	inline
 	operator _type() const

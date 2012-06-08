@@ -11,13 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r3356;
+\version r3358;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2012-04-07 07:57 +0800;
+	2012-06-05 21:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,13 +37,13 @@ using namespace Messaging;
 Shell::~Shell()
 {
 	// TODO: using weak pointer in messages;
-	//FetchAppInstance().Queue.Remove(this, 0xFF);
+//	FetchAppInstance().Queue.Remove(this, 0xFF);
 }
 
 bool
 Shell::IsActive() const
 {
-	// NOTE: 'raw' used here for efficiency;
+	// NOTE: %raw used here for performance.
 	return raw(FetchAppInstance().GetShellHandle()) == this;
 }
 

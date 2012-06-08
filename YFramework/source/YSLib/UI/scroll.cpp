@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4296;
+\version r4319;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-05-16 17:52 +0800;
+	2012-06-07 02:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -103,7 +103,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 				FillRect(g, r, pal[Styles::Track]);
 
 #define YSL_UI_ATRACK_PARTIAL_INVALIDATION
-				// NOTE: partial invalidation made no efficiency improved here;
+				// NOTE: Partial invalidation made no efficiency improved here.
 				const auto c(pal[Styles::Light]);
 #ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
 				SPos x(pt.X);
@@ -360,7 +360,7 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 
 			yunseq(track.GetView().GetSizeRef().GetRef(is_h) = tl, btnNext
 				.GetView().GetLocationRef().GetRef(is_h) = tl + prev_metric);
-			// NOTE: no event %(Resize, Move) raised;
+			// NOTE: No event %(Resize, Move) is raised.
 		},
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchMove>(btnPrev) += OnTouchMove,
@@ -476,22 +476,22 @@ VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)
 
 ScrollableContainer::ScrollableContainer(const Rect& r)
 	: Control(r),
-	HorizontalScrollBar(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
-	VerticalScrollBar(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
+	hsbHorizontal(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
+	vsbVertical(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
 {
 	SetTransparent(true);
-	SetContainerPtrOf(HorizontalScrollBar, this),
-	SetContainerPtrOf(VerticalScrollBar, this);
-	MoveToBottom(HorizontalScrollBar);
-	MoveToRight(VerticalScrollBar);
+	SetContainerPtrOf(hsbHorizontal, this),
+	SetContainerPtrOf(vsbVertical, this);
+	MoveToBottom(hsbHorizontal);
+	MoveToRight(vsbVertical);
 }
 
 IWidget*
 ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(auto p = CheckWidget(HorizontalScrollBar, pt, f))
+	if(auto p = CheckWidget(hsbHorizontal, pt, f))
 		return p;
-	if(auto p = CheckWidget(VerticalScrollBar, pt, f))
+	if(auto p = CheckWidget(vsbVertical, pt, f))
 		return p;
 	return nullptr;
 }
@@ -499,10 +499,10 @@ ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 void
 ScrollableContainer::Refresh(PaintEventArgs&& e)
 {
-	if(IsVisible(HorizontalScrollBar))
-		e.ClipArea = Unite(e.ClipArea, PaintChild(HorizontalScrollBar, e));
-	if(IsVisible(VerticalScrollBar))
-		e.ClipArea = Unite(e.ClipArea, PaintChild(VerticalScrollBar, e));
+	if(IsVisible(hsbHorizontal))
+		e.ClipArea = Unite(e.ClipArea, PaintChild(hsbHorizontal, e));
+	if(IsVisible(vsbVertical))
+		e.ClipArea = Unite(e.ClipArea, PaintChild(vsbVertical, e));
 }
 
 Size
@@ -518,23 +518,23 @@ ScrollableContainer::FixLayout(const Size& s)
 		if(p.first && p.second && GetWidth() > defMinScrollBarWidth
 			&& GetHeight() > defMinScrollBarHeight)
 		{
-			HorizontalScrollBar.SetWidth(GetWidth() - defMinScrollBarWidth);
-			VerticalScrollBar.SetHeight(GetHeight() - defMinScrollBarHeight);
+			hsbHorizontal.SetWidth(GetWidth() - defMinScrollBarWidth);
+			vsbVertical.SetHeight(GetHeight() - defMinScrollBarHeight);
 		}
 		else if(p.first)
 		{
-			SetSizeOf(HorizontalScrollBar, Size(GetWidth(),
-				HorizontalScrollBar.GetHeight()));
-			MoveToBottom(HorizontalScrollBar);
+			SetSizeOf(hsbHorizontal, Size(GetWidth(),
+				hsbHorizontal.GetHeight()));
+			MoveToBottom(hsbHorizontal);
 		}
 		else if(p.second)
 		{
-			SetSizeOf(VerticalScrollBar, Size(VerticalScrollBar.GetWidth(),
+			SetSizeOf(vsbVertical, Size(vsbVertical.GetWidth(),
 				GetHeight()));
-			MoveToRight(VerticalScrollBar);
+			MoveToRight(vsbVertical);
 		}
-		SetVisibleOf(HorizontalScrollBar, p.first);
-		SetVisibleOf(VerticalScrollBar, p.second);
+		SetVisibleOf(hsbHorizontal, p.first);
+		SetVisibleOf(vsbVertical, p.second);
 	}
 	catch(GeneralEvent&)
 	{}

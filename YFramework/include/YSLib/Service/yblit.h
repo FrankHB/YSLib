@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2308;
+\version r2320;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-06-01 16:52 +0800;
+	2012-06-06 15:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -137,29 +137,24 @@ BlitBounds(const Point& dp, const Point& sp,
 
 /*!
 \brief 贴图偏移量计算器。
-\since build 182 。
+\since build 315 。
 */
 //@{
 template<bool _bSwapLR, bool _bSwapUD>
 int
-BlitScale(const Point& dp, const Point& sp,
-	const Size& ds, const Size& ss, const Size& sc, int delta_x, int delta_y);
+BlitScale(const Point& dp, const Size& ds, int delta_x, int delta_y);
 template<>
 int
-BlitScale<false, false>(const Point&, const Point&,
-	const Size&, const Size&, const Size&, int, int);
+BlitScale<false, false>(const Point&, const Size&, int, int);
 template<>
 int
-BlitScale<true, false>(const Point&, const Point&,
-	const Size&, const Size&, const Size&, int, int);
+BlitScale<true, false>(const Point&, const Size&, int, int);
 template<>
 int
-BlitScale<false, true>(const Point&, const Point&,
-	const Size&, const Size&, const Size&, int, int);
+BlitScale<false, true>(const Point&, const Size&, int, int);
 template<>
 int
-BlitScale<true, true>(const Point&, const Point&,
-	const Size&, const Size&, const Size&, int, int);
+BlitScale<true, true>(const Point&, const Size&, int, int);
 //@}
 
 
@@ -184,8 +179,7 @@ BlitScale<true, true>(const Point&, const Point&,
 template<template<bool> class _gBlitLoop, bool _bSwapLR, bool _bSwapUD,
 	typename _tOut, typename _tIn>
 void
-Blit(_tOut dst, const Size& ds,
-	_tIn src, const Size& ss,
+Blit(_tOut dst, const Size& ds, _tIn src, const Size& ss,
 	const Point& dp, const Point& sp, const Size& sc)
 {
 	int min_x, min_y, max_x, max_y;
@@ -194,8 +188,7 @@ Blit(_tOut dst, const Size& ds,
 	{
 		const int delta_x(max_x - min_x), delta_y(max_y - min_y),
 			src_off(min_y * ss.Width + min_x),
-			dst_off(BlitScale<_bSwapLR, _bSwapUD>(dp, sp, ds, ss, sc,
-				delta_x, delta_y));
+			dst_off(BlitScale<_bSwapLR, _bSwapUD>(dp, ds, delta_x, delta_y));
 
 		_gBlitLoop<!_bSwapLR>()(delta_x, delta_y, dst + dst_off, src + src_off,
 			(_bSwapLR != _bSwapUD ? -1 : 1) * ds.Width - delta_x,

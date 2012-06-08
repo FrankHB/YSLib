@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1364;
+\version r1365;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:38:37 +0800;
 \par 修改时间:
-	2012-06-04 17:40 +0800;
+	2012-06-05 21:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "ycommon.h"
 #if YCL_MINGW32
-// NOTE: no use of MinGW32 ::dirent, ::DIR, ::opendir ...
+// NOTE: Make sure ther is no use of MinGW32 ::dirent, ::DIR, ::opendir, etc.
 struct DIR;
 struct dirent;
 #else

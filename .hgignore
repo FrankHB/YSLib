@@ -26,3 +26,4 @@ UpgradeLog.XML
 *.depend
 YSTest_MinGW32/config.txt
 *.cbTemp
+*.idc

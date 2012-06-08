@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r1096;
+\version r1098;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299 。
 \par 创建时间:
 	2012-04-07 13:38:36 +0800;
 \par 修改时间:
-	2012-06-04 17:38 +0800;
+	2012-06-05 21:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -63,7 +63,7 @@ WriteCursor(platform::CursorInfo& tp)
 	if(YB_LIKELY(tp.px != 0 && tp.py != 0))
 		yunseq(--tp.px, --tp.py);
 	else
-		// NOTE: YSL_ Point::Invalid;
+		// NOTE: %YSL_ Point::Invalid.
 		yunseq(tp.px = std::uint16_t(-1), tp.py = std::uint16_t(-1));
 #elif YCL_MINGW32
 WriteCursor(platform::CursorInfo&)
@@ -94,7 +94,7 @@ UpdateKeyStates()
 #if YCL_DS
 	KeyState = ::keysCurrent();
 #elif YCL_MINGW32
-	// NOTE: 0x00 and 0xFF should be invalid;
+	// NOTE: 0x00 and 0xFF should be invalid.
 	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		KeyState.set(i, ::GetAsyncKeyState(i) & 0x8000);
 #endif

@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r2077;
+\version r2080;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-03-24 12:49 +0800;
+	2012-06-05 21:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -78,8 +78,8 @@ MessageQueue::Peek(Message& msg, const shared_ptr<Shell>& hShl, bool bRemoveMsg)
 		{
 			if(bRemoveMsg)
 			{
-				// NOTE: it's safe because the priority is not changed
-				//	and it should be removed immediately;
+				// NOTE: It's safe because the priority is not changed
+				//	and it should be removed immediately.
 				msg = std::move(const_cast<Message&>(m));
 				erase(i);
 			}
@@ -99,7 +99,7 @@ MessageQueue::Remove(Shell* pShl, Priority p)
 	if(pShl)
 		ystdex::erase_all_if<multiset<Message>>(*this, i, end(),
 			[pShl](const Message& msg){
-			// NOTE: 'raw' used here for efficiency;
+			// NOTE: %raw used here for performance.
 			return raw(msg.GetShellHandle()) == pShl;
 		});
 	else

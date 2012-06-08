@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r6928;
+\version r6932;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-06-01 16:44 +0800;
+	2012-06-06 14:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -148,13 +148,13 @@ DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 }
 void
 DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
-	const String& str, const Padding& margin, Color color, bool line_wrap,
+	const String& str, const Padding& margin, Color c, bool line_wrap,
 	const Font& fnt)
 {
 	TextState ts(fnt);
 
 	ts.ResetForBounds(bounds, g.GetSize(), margin);
-	ts.Color = color;
+	ts.Color = c;
 	DrawClippedText(g, mask, ts, str, line_wrap);
 }
 
@@ -165,10 +165,10 @@ DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap)
 }
 void
 DrawText(const Graphics& g, const Rect& bounds, const String& str,
-	const Padding& margin, Color color, bool line_wrap, const Font& fnt)
+	const Padding& margin, Color c, bool line_wrap, const Font& fnt)
 {
 	DrawClippedText(g, Rect(Point::Zero, g.GetSize()), bounds, str, margin,
-		color, line_wrap, fnt);
+		c, line_wrap, fnt);
 }
 void
 DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,

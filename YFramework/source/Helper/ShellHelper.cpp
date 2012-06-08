@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1376;
+\version r1377;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-04-04 13:42:15 +0800;
 \par 修改时间:
-	2012-06-01 16:44 +0800;
+	2012-06-05 21:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -85,7 +85,7 @@ TranslateTime(const std::tm& tm, const char* format)
 	static char str[80];
 
 	// NOTE: 'std::strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", &tm)'
-	//	is correct but make the object file too large;
+	//	is correct but it makes the object file too large.
 	snftime(str, 80, tm, format);
 	return str;
 }

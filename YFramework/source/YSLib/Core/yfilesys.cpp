@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2323;
+\version r2326;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-06-01 16:47 +0800;
+	2012-06-06 12:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -168,9 +168,7 @@ Path::NormalizeTrailingSlash()
 	{
 		if(!has_trailing_slash)
 			return false;
-		erase(size() - 1);
-	// TODO: use libstdc++ with g++ 4.7;
-	//	pop_back();
+		pop_back();
 	}
 	return true;
 }

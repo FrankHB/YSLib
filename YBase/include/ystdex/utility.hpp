@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1938;
+\version r1978;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-06-01 16:56 +0800;
+	2012-06-07 02:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include <utility>
 #include <functional>
 #include <array> // for std::array;
+#include <string> // for std::char_traits;
 #include <algorithm> // for std::copy_n;
 
 namespace ystdex
@@ -395,7 +396,7 @@ struct deref_op : std::unary_function<_type, _type*>
 
 /*!
 \ingroup Functors
-\brief 常量引用仿函数。
+\brief const 引用仿函数。
 */
 template<typename _type>
 struct const_deref_op : std::unary_function<const _type, const _type*>
@@ -415,21 +416,20 @@ struct const_deref_op : std::unary_function<const _type, const _type*>
 \ingroup Functors
 \brief 间接访问比较仿函数。
 \warning 非虚析构。
+\since build 315 。
 */
-template<
-	typename _type, typename _tPointer = _type*,
-	template<typename _type> class _gfCompare = std::less
->
-struct deref_comp : _gfCompare<_type>
+template<typename _type, typename _tPointer = _type*,
+	class _fCompare = std::less<_type>>
+struct deref_comp
 {
-	/*!
-	\brief 返回 _gfCompare<_type>::operator()(*_x, *_y) 。
-	\note 如有空指针则不进行判断，直接返回 false 。
+	/*
+	\brief 比较指针指向的对象。
+	\return 若参数有空指针则 false ，否则判断是否满足 _fCompare()(*_x, *_y) 。
 	*/
 	bool
 	operator()(const _tPointer& _x, const _tPointer& _y) const
 	{
-		return _x && _y && _gfCompare<_type>::operator()(*_x, *_y);
+		return _x && _y && _fCompare()(*_x, *_y);
 	}
 };
 
@@ -437,22 +437,23 @@ struct deref_comp : _gfCompare<_type>
 /*!
 \ingroup Functors
 \brief 间接访问字符串比较仿函数。
+\warning 非虚析构。
+\since build 315 。
 */
-template<
-	typename _tChar,
-	int (*_lexi_cmp)(const _tChar*, const _tChar*) = std::strcmp,
-	class _gfCompare = std::less<int>
->
-struct deref_str_comp : _gfCompare
+template<typename _tChar, class _fCompare = std::less<_tChar>>
+struct deref_str_comp
 {
 	/*!
-	\brief 返回 _gfCompare::operator()(_lexi_cmp(_x, _y), 0) 。
-	\note 如有空指针则不进行判断，直接返回 false 。
+	\brief 比较指定字符串首字符的指针。
+	\return 若参数有空指针则 false ，否则判断指定字符串是否满足字典序严格偏序关系。
 	*/
 	bool
-	operator()(const _tChar* _x, const _tChar* _y) const
+	operator()(const _tChar* x, const _tChar* y) const
 	{
-		return _x && _y && _gfCompare::operator()(_lexi_cmp(_x, _y), 0);
+		typedef std::char_traits<_tChar> traits_type;
+
+		return x && y && std::lexicographical_compare(x, x + traits_type
+			::length(x), y, y + traits_type::length(y), _fCompare());
 	}
 };
 

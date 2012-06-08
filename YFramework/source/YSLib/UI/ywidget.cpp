@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5429;
+\version r5438;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-19 15:38 +0800;
+	2012-06-06 13:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -179,15 +179,7 @@ Widget::Widget(const Widget& wgt)
 {}
 Widget::~Widget()
 {
-	// TODO: use ReleaseFocus without call event;
-	if(auto p = FetchContainerPtr(*this))
-	{
-		auto& pFocusing(p->GetView().pFocusing);
-
-		if(pFocusing == this)
-			pFocusing = nullptr;
-	}
-//	ReleaseFocus(*this);
+	DoReleaseFocus(*this);
 }
 
 void

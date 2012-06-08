@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1556;
+\version r1559;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:41:35 +0800;
 \par 修改时间:
-	2012-06-04 17:38 +0800;
+	2012-06-06 12:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,9 +59,10 @@ static_assert(std::is_same<CHRLib::ucs2_t, char16_t>::value,
 static_assert(std::is_same<CHRLib::ucs4_t, char32_t>::value,
 	"Wrong character type!");
 #if YCL_MINGW32
-// TODO: assert %alignof equality;
 static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
 	"Wrong character type!");
+static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
+	"Inconsist alignment between character types!");
 #endif
 
 namespace

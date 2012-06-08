@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3613; *build 314 rev 16;
+\version r3635; *build 315 rev 19;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-05 12:57 +0800;
+	2012-06-08 08:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,10 +46,10 @@ $parser.$ __pstate;
 $parser.unfold __unfold;
 $parser.$.iterators __iterators;
 
-$match_each m;
+$match_each __m;
 
-__unfold.(m($ctor, $dtor)) $= __pstate.behavior.ignore
-	$= m($true, $false);
+__unfold.(__m($ctor, $dtor)) $= __pstate.behavior.ignore
+	$= __m($true, $false);
 __unfold __iterators.for_labeled_paragraph
 (
 	$DONE,
@@ -373,89 +373,123 @@ $using:
 
 
 $DONE:
-r1:
-/ @ \h Platform $=
-(
-	/ '#	define YCL_DS' -> '#	define YCL_DS 1',
-	/ '#	define YCL_MINGW32' -> '#	define YCL_MINGW32 1'
-);
-/ \a \proj $=
-(
-	/ \a 'defined(YB_IMPL_GNUCPP)' -> 'YB_IMPL_GNUCPP',
-	/ \a '#elif defined(YCL_MINGW32)' -> '#elif YCL_MINGW32',
-	/ \a '#ifdef YCL_DS' -> '#if YCL_DS',
-	/ \a 'defined(__GXX_EXPERIMENTAL_CXX0X__)' -> '__GXX_EXPERIMENTAL_CXX0X__',
-	- \a 'defined(YSL_OPT_SMALL_STRING_LENGTH) && ' > 0',
-	/ \a '#if defined(YCL_MINGW32)' -> '#if YCL_MINGW32',
-	/ \a '#if defined(YCL_DS) || defined(YCL_MINGW32)'
-		-> '#if YCL_DS || YCL_MINGW32',
-	/ \a '#ifdef YCL_MINGW32' -> '#if YCL_MINGW32'
-);
-/= test 1 @ platform MinGW32;
-
-r2:
-/= test 2 @ platform DS;
+r1-r2:
+/ $design several \rem 'NOTE: ',
+- \rem @ \exp \cvt \mf bool @ \clt fixed_point @ \h Rational;
+/= 2 test 1 @ platform MinGW32;
 
 r3:
-- \mac DEBUG \def test @ \h Configuration;
-/ \simp @ \mac \pre \def @ Code::Blocks \proj,
-/ \simp \mac \cmd @ \conf debug @ makefiles @ platform DS
-	@ \proj (YBase_DS, YFramework_DS, YSTest_ARM7, YSTest_ARM9);
-/= test 3 @ platform MinGW32;
-
-r4-r6:
-/ \impl \u DSMain @ platform MinGW32 @ \conf debug $=
+/ @ \u YFocus $=
 (
-	+ \cl DebugTimer;
-	/ \impl @ \mf DSScreen::Update ^ \cl DebugTimer
+	+ \f (DoRequestFocusFrom, DoReleaseFocusFrom),
+	/ \impl @ \f (RequestFocusFrom, ReleaseFocusFrom);
 );
-/= 3 test 4 @ platform MinGW32;
+/ \simp @ \dtor Widget @ DoReleaseFocusFrom;
+/= test 2 @ platform MinGW32;
 
-r7:
-- old timers ^ Windows API directly @ \un \ns @ \impl \u DSMain
-	@ platform MinGW32 $=
+r4:
+/= test 3 @ platform DS ^ \conf release;
+
+r5:
+/ \simp \impl @ \mf Path::NormalizeTrailingSlash ^ basic_string::pop_back
+	~ basic_string::erase;
+/= test 4 @ platform MinGW32;
+
+r6:
+/ @ \h YDefinition $=
 (
-	/ \impl @ \f WndProc;
-	- \f StartClock,
-	- \f EndClock,
-	- \o ::LARGE_INTEGER liFrequency,
-	- \o ::LARGE_INTEGER liStart,
-	- \o ::LARGE_INTEGER liEnd
+	(
+		+ \mac YB_HAS_ALIGNOF;
+		+ \mac yalignof
+	),
+	+ \rem @ (yconstfn, yconstexpr)
+	/ \impl @ \mac YCL_USE_EXCEPTION_SPECIFICATION,
+	+ \rem @ (YCL_USE_EXCEPTION_SPECIFICATION, ythrow, ynothrow)
 );
++ static_assert of yalignof(wchar_t) == yalignof(CHRLib::ucs2_t)
+	@ platform MinGW32 @ \impl \u FileSystem;
 /= test 5 @ platform MinGW32;
 
-r8-r13:
-/ @ \impl \u DSMain @ platform MinGW32 $=
+r7:
+/ @ \u YFocus $=
 (
-	/ \impl @ \cl DebugTimer @ \un \ns;
-	+ \mac (YCL_DEBUG_PRINTF, YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER);
-	/ \impl @ \mf DSScreen::Update,
-	/ \impl @ \f WndProc
-),
-/= 6 test 6 @ platform MinGW32;
+	/ \f bool DoRequestFocusFrom(IWidget&, IWidget&)
+		-> bool DoRequestFocus(IWidget&, bool = false),
+	/ \f bool DoReleaseFocusFrom(IWidget&, IWidget&)
+		-> bool DoReleaseFocus(IWidget&);
+	/ \tr \impl @ \f (RequestFocusFrom, ReleaseFocusFrom)
+);
+/ \tr \impl @ \dtor Widget;
+/= test 6 @ platform MinGW32;
 
-r14:
+r8:
 /= test 7 @ platform MinGW32 ^ \conf release;
 
+r9:
+/= test 8 @ platform DS ^ \conf release;
+
+r10:
+/= test 9 @ platform DS;
+
+r11-r13:
+/= test 10 @ platform MinGW32;
+/= 2 test 11 @ platform DS;
+
+r14:
+/ \a (\ft, \f) int BlitScale(const Point&, const Point&,
+	const Size&, const Size&, const Size&, int, int) @ \u YBlit
+	-> int BlitScale(const Point&, const Size&, int, int);
+/ \simp \impl @ \ft Blit @ \h YBlit;
+/= test 12 @ platform MinGW32;
+
 r15:
-/= test 8 @ platform DS;
+/ @ \h Utilities $=
+(
+	+ \inc \h <string>,
+	+ \exp 'public' @ \inh @ \stt (deref_comp, deref_str_comp),
+	/ \stt<typename _tChar, int (*_lexi_cmp)(const _tChar*, const _tChar*)
+		= std::strcmp, class _gfCompare = std::less<int>> deref_str_comp
+		-> \stt<typename _tChar, class _fCompare = std::less<_tChar>>
+		deref_str_comp,
+	/ \stt<typename _type, typename _tPointer = _type*, template<typename _type>
+		class _gfCompare = std::less> deref_comp
+		-> \stt<typename _type, typename _tPointer = _type*,
+		class _fCompare = std::less<_type>> deref_comp
+);
+/= test 13 @ platform MinGW32;
 
 r16:
-/= test 9 @ platform DS ^ \conf release;
+/ @ \cl ScrollableContainer $=
+(
+	/ protected \m HorizontalScrollBar => hsbHorizontal,
+	/ protected \m VerticalScrollBar =>vsbVertical
+);
+/ \tr \impl @ \cl HexViewArea @ \impl \u HexBrowser,
+/ \tr \impl @ \ctor ListBox;
+/= test 14 @ platform MinGW32;
+
+r17:
+/= test 15 @ platform DS;
+
+r18:
+/= test 16 @ platform MinGW32 ^ \conf release;
+
+r19:
+/= test 17 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-06-05:
--24.8d;
-//Mercurial rev1-rev186: r8540;
+2012-06-08:
+-25.2d;
+//Mercurial rev1-rev187: r8559;
 
 / ...
 
 
 $NEXT_TODO:
-b315-b324:
+b316-b324:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -468,7 +502,7 @@ b315-b324:
 
 
 $TODO:
-b325-b376:
+b325-b378:
 / services $=
 (
 	+ \impl @ images loading
@@ -477,13 +511,13 @@ b325-b376:
 (
 	+ viewer models,
 	/ fully \impl @ \cl Form,
-	+ icons
+	+ icons,
+	/ $low_prior more long list tests @ %DropDownList
 ),
 / $design $low_prior robustness and cleanness $=
 (
 	/ noncopyable GUIState,
 	* (copy, move) @ \cl Menu,
-	/ access control @ \inh @ \clt deref_comp,
 	^ delegating \ctor as possible,
 	/ strip away direct using @ Win32 types completely @ \h @ \lib YCLib
 ),
@@ -496,7 +530,7 @@ b325-b376:
 (
 	+ settings manager,
 	+ reading history,
-	+ improved smooth scrolling with lower limit of scrolling cycle supported,
+	+ improved smooth scrolling with lower limit of scrolling cycle supported
 ),
 / project structure $=
 (
@@ -505,7 +539,7 @@ b325-b376:
 	/ improved tests and examples
 );
 
-b377-b784:
+b379-b784:
 + (memory mapping, shared memory) APIs @ YCommon,
 / @ CHRLib $=
 (
@@ -519,7 +553,6 @@ b377-b784:
 ),
 / $design $low_prior robustness and cleanness $=
 (
-	/ \m (\n, \ac) @ \cl ScrollableContainer,
 	/ @ \ns platform @ \u YCommon $=
 	(
 		/ \ac @ \inh touchPosition @ \cl CursorInfo,
@@ -580,8 +613,7 @@ b377-b784:
 	+ widget-based animation support,
 	* View position switch through scrall bar not accurate enough
 		@ class %ListBox,
-	+ synchronization of viewer length @ class %TextList,
-	/ $low_prior more long list tests @ %DropDownList
+	+ synchronization of viewer length @ class %TextList
 );
 
 b785-b1272:
@@ -688,7 +720,12 @@ b1273-b1800:
 
 $LOW_PRIOR_TODO:
 ^ $low_prior $for_labeled_scope;
-b1801-b5384:
+b1801-b5768:
++ advanced shell system $=
+(
+	+ dynamic loading and reloading,
+	+ runtime resource redifinition and linking
+),
 + general monomorphic iterator abstraction,
 / partial invalidation support @ \f DrawRectRoundCorner,
 / user-defined bitmap buffer @ \cl Desktop,
@@ -712,28 +749,29 @@ b1801-b5384:
 
 
 $KNOWN_ISSUE:
-// NOTE: obsolete issues all resolved are ignored.
+// NOTE: Obsolete issues all resolved are ignored.
 * "corrupted loading or fatal errors on loading font file with embedded \
 	bitmap glyph like simson.ttc" $since b185,
 	// freetype (2.4.6, 2.4.8, 2.4.9) tested.
 * "<cmath> cannot use 'std::*' names" @ "!defined %_GLIBCXX_USE_C99_MATH_TR1"
 	@ "libstdc++ with g++ (4.6, 4.7)" $before $future;
-	// g++ 4.7.0 tested @ b301.
-* "g++ 4.6.1 ignores non-explicit conversion templates when there exists \
-	non-template explicit conversion function" $since b260,
+	// G++ 4.7.0 tested @ b301.
 * "crashing after sleeping(default behavior of closing then reopening lid) on \
 	real machine due to libnds default interrupt handler for power management"
 	$since b279;
 * "sorry, unimplemented: use of 'type_pack_expansion' in template"
 	@ ^ "g++ (4.6, 4.7)" $before $future;
-	// g++ 4.7.0 tested @ b300.
+	// G++ 4.7.0 tested @ b300.
 
 $RESOLVED_ENVIRONMENT_ISSUE:
 * "g++ 4.5.2 fails on compiling code with defaulted move assignment operator"
 	@ $interval([b207, b221));
 * "g++ 4.6.1 internal error for closure object in constructors"
 	@ $interval([b253, b300));
-	// g++ 4.6.2 tested @ b293. Fixed @ b301.
+	// G++ 4.6.2 tested @ b293. Fixed @ b301.
+* "g++ 4.6.1 ignores non-explicit conversion templates when there exists \
+	non-template explicit conversion function" @ $interval([b260, b314));
+	// Fixed @ b315.
 
 
 $HISTORY:
@@ -790,7 +828,8 @@ $module_tree $=
 			'Algorithms',
 			'Utilities',
 			'Memory',
-			'TypeOperations'
+			'TypeOperations',
+			'Rational'
 		),
 		'LibDefect'
 		(
@@ -850,6 +889,42 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase' $=
+	(
+		/ $design "confirming no need for explicit conversion functions"
+			@ 'YStandardEx'.'Rational',
+		/ @ "header %ydef.h" $=
+		(
+			(
+				+ "macros for alignment" @ "header %ydef.h";
+				$dep_to align_macro
+			),
+			+ $doc "several comments on macros"
+		),
+		/ "implementation" @ "class template %(deref_comp, deref_str_comp)"
+			@ %'Utilities'
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'GUI' $=
+		(
+			+ "interfaces for raw focus requesting and releasing";
+				// Response focus behavior without calling events.
+		)
+		/ $design "simplified implementation" @ "destructor @ class %Widget",
+		(
+			$dep_from align_macro;
+			+ $design "static assertion of alignment equality between %wchar_t \
+				and %CHRLib::ucs2_t" @ "platform MinGW32"
+				@ %'YCLib'.'common file system APIs'
+		),
+		/ $design "simplified implementation" @ "function template %BlitScale"
+			@ %'services'
+	)
+),
+
+b314
 (
 	(
 		/ "platform macros definition";

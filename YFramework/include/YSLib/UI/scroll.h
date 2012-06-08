@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3456;
+\version r3466;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2012-05-25 13:49 +0800;
+	2012-06-07 02:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -405,14 +405,22 @@ protected:
 
 
 /*!
-\brief 带滚动条的容器基实现类。
+\brief 带滚动条的容器。
 \since build 192 。
 */
 class ScrollableContainer : public Control
 {
 protected:
-	Components::HorizontalScrollBar HorizontalScrollBar;
-	Components::VerticalScrollBar VerticalScrollBar;
+	/*!
+	\brief 控制水平可视区域的水平滚动条。
+	\since build 315 。
+	*/
+	HorizontalScrollBar hsbHorizontal;
+	/*!
+	\brief 控制竖直可视区域的竖直滚动条。
+	\since build 315 。
+	*/
+	VerticalScrollBar vsbVertical;
 
 public:
 	explicit

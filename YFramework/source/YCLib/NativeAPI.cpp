@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1384;
+\version r1387;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-26 13:36:28 +0800;
 \par 修改时间:
-	2012-06-04 17:25 +0800;
+	2012-06-05 21:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -84,7 +84,7 @@ readdir(DIR* dir)
 
 	if(dir->hNode == 0)
 	{
-		// NOTE: see MSDN "FindFirstFile function";
+		// NOTE: See MSDN "FindFirstFile function" for details.
 		yconstraint(dir->Name);
 		yconstraint(*dir->Name != '\0');
 		yconstraint(dir->Name[std::strlen(dir->Name) - 1] != '\\');
@@ -109,8 +109,8 @@ readdir(DIR* dir)
 
 		UCS2ToMBCS(str, reinterpret_cast<const ucs2_t*>(dir->WinDir.cFileName));
 
-		// NOTE: see http://pubs.opengroup.org/onlinepubs/009695399/basedefs/
-//dirent.hNode.html for details;
+		// NOTE: See http://pubs.opengroup.org/onlinepubs/009695399/basedefs/
+		//	dirent.hNode.html for details.
 		yassume(std::strlen(str) < sizeof(dir->POSIXDir.d_name));
 
 		std::strcpy(dir->POSIXDir.d_name, str);
