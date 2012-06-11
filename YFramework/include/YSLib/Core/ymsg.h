@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2595;
+\version r2627;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-01 16:54 +0800;
+	2012-06-09 01:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -64,7 +64,16 @@ class Message
 	friend class MessageQueue;
 
 private:
-	shared_ptr<Shell> hShl; //!< 目的 Shell 句柄。
+	/*!
+	\brief 目的 Shell 弱指针。
+	\since build 316 。
+	*/
+	weak_ptr<Shell> dest;
+	/*!
+	\brief 表示是否广播。
+	\since build 316 。
+	*/
+	bool to_all;
 	ID id; //!< 消息标识。
 	Priority prior; //!< 消息优先级。
 	ValueObject content; //消息内容句柄。
@@ -77,9 +86,10 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用 Shell 句柄、消息标识、消息优先级和消息内容。
+	\brief 构造：使用 Shell 弱指针、消息标识、消息优先级和消息内容。
+	\since build 316 。
 	*/
-	Message(const shared_ptr<Shell>& = shared_ptr<Shell>(), ID = 0,
+	Message(const weak_ptr<Shell>& = weak_ptr<Shell>(), ID = 0,
 		Priority = 0, const ValueObject& = ValueObject());
 
 	/*!
@@ -142,12 +152,20 @@ public:
 	friend bool
 	operator<(const Message&, const Message&);
 
+	/*!
+	\brief 判断是否广播。
+	\since build 316 。
+	*/
+	DefPred(const ynothrow, ToAll, to_all)
 	DefPred(const ynothrow, TimeOut, timestamp + timeout < std::clock()) \
 		//!< 判断消息是否过期。
 	DefPred(const ynothrow, Valid, id) //!< 判断消息是否有效。
 
-	DefGetter(const ynothrow, shared_ptr<Shell>, ShellHandle, hShl) \
-		//!< 取关联的 Shell 句柄。
+	/*!
+	\brief 取目的 Shell 弱指针。
+	\since build 316 。
+	*/
+	DefGetter(const ynothrow, weak_ptr<Shell>, Destination, dest)
 	DefGetter(const ynothrow, ID, MessageID, id) //!< 取消息标识。
 	DefGetter(const ynothrow, Priority, Priority, prior) //!< 取消息优先级。
 	DefGetter(const ynothrow, const ValueObject&, Content, content) \
@@ -265,6 +283,16 @@ public:
 	{
 		if(msg.IsValid())
 			insert(msg);
+	}
+	/*!
+	\brief 若消息 msg 有效，插入 msg 至消息队列中。
+	\since build 316 。
+	*/
+	void
+	Push(const Message&& msg)
+	{
+		if(msg.IsValid())
+			insert(std::move(msg));
 	}
 
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2110;
+\version r2119;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2012-06-05 23:30 +0800;
+	2012-06-10 04:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -363,21 +363,21 @@ public:
 	static yconstexpr bool is_specialized = true;
 
 	static yconstfn fp_type
-	min() throw()
+	min() ynothrow
 	{
 		return fp_type(std::numeric_limits<base_type>::min(),
 			fp_type::internal_construct_tag());
 	}
 
 	static yconstfn fp_type
-	max() throw()
+	max() ynothrow
 	{
 		return fp_type(std::numeric_limits<base_type>::max(),
 			fp_type::internal_construct_tag());
 	}
 
 	static yconstfn fp_type
-	lowest() throw()
+	lowest() ynothrow
 	{
 		return min();
 	}
@@ -391,13 +391,13 @@ public:
 	static yconstexpr int radix = 2;
 
 	static yconstfn fp_type
-	epsilon() throw()
+	epsilon() ynothrow
 	{
 		return fp_type(1, fp_type::internal_construct_tag());;
 	}
 
 	static yconstfn fp_type
-	round_error() throw()
+	round_error() ynothrow
 	{
 		return 0.5;
 	}
@@ -414,25 +414,25 @@ public:
 	static yconstexpr bool has_denorm_loss = false;
 
 	static yconstfn fp_type
-	infinity() throw()
+	infinity() ynothrow
 	{
 		return 0;
 	}
 
 	static yconstfn fp_type
-	quiet_NaN() throw()
+	quiet_NaN() ynothrow
 	{
 		return 0;
 	}
 
 	static yconstfn fp_type
-	signaling_NaN() throw()
+	signaling_NaN() ynothrow
 	{
 		return 0;
 	}
 
 	static yconstfn fp_type
-	denorm_min() throw()
+	denorm_min() ynothrow
 	{
 		return 0;
 	}

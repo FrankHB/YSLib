@@ -41,7 +41,7 @@
 SM_NULL					0x0000
 
 // Shell 设置消息。参考优先级 0x80 。
-//参数类型 shared_ptr<Shell>。
+//参数类型 shared_ptr<Shell> 。
 //指示 Shell 切换，控制权移交给目标 Shell 。参数是目标 Shell 句柄。
 SM_SET					0x0003
 

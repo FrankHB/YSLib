@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r4331;
+\version r4332;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-06-05 03:05 +0800;
+	2012-06-08 15:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -137,7 +137,7 @@ bool
 AllowSleep(bool);
 
 #elif YCL_MINGW32
-// TODO: add WinAPIs;
+// TODO: Add Windows specified APIs.
 #else
 #	error Unsupport platform found!
 #endif

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2456;
+\version r2457;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-06-05 22:13 +0800;
+	2012-06-09 01:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -193,7 +193,7 @@ SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority p = 0x80)
 {
 	// NOTE: It would make the message loop in dead lock when called more
 	//	than once specifying on same destination shell.
-	PostMessage<SM_SET>(nullptr, p, hShl);
+	PostMessage<SM_SET>(weak_ptr<Shell>(), p, hShl);
 }
 
 /*!

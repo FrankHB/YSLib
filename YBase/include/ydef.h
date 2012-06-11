@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2922;
+\version r2930;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-06-06 12:54 +0800;
+	2012-06-10 17:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -275,7 +275,7 @@ public:
 	\brief 支持关系运算符重载。
 	*/
 	template<typename T> bool
-	equals(T const& rhs) const
+	equals(const T& rhs) const
 	{
 		return rhs == 0;
 	}
@@ -286,31 +286,34 @@ public:
 	void operator&() const = delete;
 } nullptr = {};
 
+//! \since build 316 。
+//@{
 template<typename T>
 inline bool
-operator==(const nullptr_t& lhs, T const& rhs)
+operator==(nullptr_t lhs, const T& rhs)
 {
 	return lhs.equals(rhs);
 }
 template<typename T>
 inline bool
-operator==(T const& lhs, const nullptr_t& rhs)
+operator==(const T& lhs, nullptr_t rhs)
 {
 	return rhs.equals(lhs);
 }
 
 template<typename T>
 inline bool
-operator!=(const nullptr_t& lhs, T const& rhs)
+operator!=(nullptr_t lhs, const T& rhs)
 {
 	return !lhs.equals(rhs);
 }
 template<typename T>
 inline bool
-operator!=(T const& lhs, const nullptr_t& rhs)
+operator!=(const T& lhs, nullptr_t rhs)
 {
 	return !rhs.equals(lhs);
 }
+//@}
 
 #endif
 

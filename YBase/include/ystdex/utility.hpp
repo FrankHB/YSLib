@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1978;
+\version r1981;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-06-07 02:15 +0800;
+	2012-06-10 03:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -292,7 +292,7 @@ get_init(_fInit f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 \brief 引用相等关系仿函数。
 */
 template<typename _type>
-struct ref_eq : public std::binary_function<_type, _type, bool>
+struct ref_eq
 {
 	yconstfn bool
 	operator()(const _type& _x, const _type& _y) const
@@ -381,7 +381,7 @@ delta_assign(_tScalar1& _x, _tScalar2& _y)
 \brief 引用仿函数。
 */
 template<typename _type>
-struct deref_op : std::unary_function<_type, _type*>
+struct deref_op
 {
 	/*!
 	\brief 对指定对象使用 operator& 并返回结果。
@@ -399,7 +399,7 @@ struct deref_op : std::unary_function<_type, _type*>
 \brief const 引用仿函数。
 */
 template<typename _type>
-struct const_deref_op : std::unary_function<const _type, const _type*>
+struct const_deref_op
 {
 	/*!
 	\brief 对指定 const 对象使用 operator& 并返回结果。

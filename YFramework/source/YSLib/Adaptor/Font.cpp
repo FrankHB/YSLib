@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7614;
+\version r7709;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-06-05 21:20 +0800;
+	2012-06-11 09:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -84,7 +84,7 @@ simpleFaceRequester(::FTC_FaceID face_id, ::FT_Library library,
 					fontFace->fixSizes.push_back(
 						face->available_sizes[i].size >> 6);
 			}
-		
+
 #endif
 		}
 	}
@@ -191,7 +191,7 @@ FetchDefaultTypeface() ythrow(LoggedEvent)
 }
 
 
-FontCache::FontCache(const_path_t default_font_path, size_t cache_size)
+FontCache::FontCache(size_t cache_size)
 	: pDefaultFace()
 {
 	::FT_Error error;
@@ -202,9 +202,7 @@ FontCache::FontCache(const_path_t default_font_path, size_t cache_size)
 		&& (error = ::FTC_SBitCache_New(manager, &sbitCache)) == 0
 		&& (error = ::FTC_CMapCache_New(manager, &cmapCache)) == 0))
 	{
-		if(LoadFontFile(FontPath(default_font_path)))
-			LoadTypefaces();
-		InitializeDefaultTypeface();
+		// TODO: Write log on success.
 	}
 	else
 	{
@@ -228,14 +226,11 @@ FontCache::GetFontFamilyPtr(const FamilyName& family_name) const
 
 	return (i == mFamilies.cend()) ? nullptr : i->second;
 }
-/*Typeface* FontCache::GetTypefacePtr(u16 i) const
-{
-	return i < sFaces.size() ? sFaces[i] : nullptr;
-}*/
+
 const Typeface*
 FontCache::GetDefaultTypefacePtr() const ythrow(LoggedEvent)
 {
-	//默认字体缓存的默认字型指针由初始化保证为非空指针。
+	// NOTE: Guaranteed to be non-null for default typeface in default cache.
 	return pDefaultFace ? pDefaultFace
 		: FetchDefaultFontCache().GetDefaultTypefacePtr();
 }
@@ -291,62 +286,46 @@ FontCache::ClearCache()
 void
 FontCache::ClearContainers()
 {
-	//清除字体文件组。
-	mPaths.clear();
-	//清除字型组。
 	std::for_each(sFaces.begin(), sFaces.end(), delete_obj());
 	sFaces.clear();
-	//清除字型家族组。
 	std::for_each(mFamilies.begin(), mFamilies.end(), delete_second_mem());
 	mFamilies.clear();
 }
 
 void
-FontCache::LoadTypefaces()
+FontCache::LoadTypeface(const FontPath& path, size_t idx) ynothrow
 {
-	for(auto i(mPaths.begin()); i != mPaths.end(); ++i)
-		if(i->second > 0)
-			LoadTypefaces(i->first, i->second);
-}
-void
-FontCache::LoadTypefaces(const FontPath& path, size_t n)
-{
-	if(YB_UNLIKELY(mPaths.find(path) == mPaths.end() && !LoadFontFile(path)))
-		return;
-	for(size_t i(0); i < n; ++i)
+	try
 	{
-		try
-		{
-			Typeface* pFace;
-
-			*this += *(pFace = ynew Typeface(*this, path, i));
-		}
-		catch(...)
-		{}
+		*this += *(ynew Typeface(*this, path, idx));
 	}
-	InitializeDefaultTypeface();
+	catch(...)
+	{}
 }
 
-bool
-FontCache::LoadFontFile(const FontPath& path)
+size_t
+FontCache::LoadTypefaces(const FontPath& path)
 {
-	if(YB_LIKELY(GetFileNameOf(path.c_str()) && fexists(path.c_str())
-		&& mPaths.find(path) == mPaths.end()))
+	if(GetFileNameOf(path.c_str()) && fexists(path.c_str()))
 	{
-		::FT_Long face_n;
 		::FT_Face face(nullptr);
 
-		if(::FT_New_Face(library, path.c_str(), -1, &face))
-			face_n = -1;
-		else
-		{
-			face_n = face->num_faces;
-			::FT_Done_Face(face);
-		}
-		mPaths.insert(pair<const FontPath, ::FT_Long>(path, face_n));
-		return true;
+		if(::FT_New_Face(library, path.c_str(), -1, &face) != 0)
+			return 0;
+
+		const auto face_num(face->num_faces);
+
+		::FT_Done_Face(face);
+		if(face_num < 0)
+			return 0;
+
+		const size_t face_n(face_num);
+
+		for(size_t i(0); i < face_n; ++i)
+			LoadTypeface(path, i);
+		return face_n;
 	}
-	return false;
+	return 0;
 }
 
 void

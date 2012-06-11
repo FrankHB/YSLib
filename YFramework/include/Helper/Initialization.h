@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1594;
+\version r1597;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-04-23 10:33 +0800;
+	2012-06-11 08:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@ YSL_BEGIN
 
 /*!
 \brief 初始化环境。
-\note 无异常抛出。所有异常处理都在本函数内完成。
+\note 无异常抛出。
 \since build 303 。
 */
 void
@@ -42,7 +42,7 @@ InitializeEnviornment() ynothrow;
 
 /*!
 \brief 初始化系统字体缓存。
-\note 无异常抛出。所有异常处理都在本函数内完成。
+\note 无异常抛出。
 \since build 303 。
 
 以默认字型路径创建默认字体缓存并加载默认字型目录中的字体文件。
@@ -52,7 +52,7 @@ InitializeSystemFontCache() ynothrow;
 
 /*!
 \brief 检查安装完整性。
-\note 无异常抛出。所有异常处理都在本函数内完成。
+\note 无异常抛出。
 \since build 303 。
 */
 void

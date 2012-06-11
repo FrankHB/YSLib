@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1379;
+\version r1387;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 209 。
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2012-06-01 16:32 +0800;
+	2012-06-10 17:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -106,6 +106,13 @@ raw(const std::shared_ptr<_type>& p)
 {
 	return p.get();
 }
+//! \since build 316 。
+template<typename _type>
+yconstfn _type*
+raw(const std::weak_ptr<_type>& p)
+{
+	return p.lock().get();
+}
 //@}
 
 /*!	\defgroup reset Reset Pointers
@@ -173,10 +180,11 @@ unique_raw(_type* p)
 }
 /*!
 \note 使用空指针构造空实例。
+\since build 316 。
 */
 template<typename _type>
 yconstfn std::unique_ptr<_type>
-unique_raw(const nullptr_t& p)
+unique_raw(nullptr_t)
 {
 	return std::unique_ptr<_type>();
 }

@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3971;
+\version r3981;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-06-08 08:15 +0800;
+	2012-06-08 16:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -190,13 +190,10 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 						SetLocationOf(boxList, pt);
 						boxList.AdjustViewLength();
 						{
-							// TODO: move this block as a method of
-							//	%TextList or %MTextList;
-							const auto& lst(boxList.GetList());
-							auto i(std::find(lst.begin(), lst.end(), Text));
+							const auto idx(boxList.Find(Text));
 
-							if(i != lst.end())
-								boxList.SetSelected(i - lst.begin());
+							if(idx + 1 != 0)
+								boxList.SetSelected(idx);
 							else
 								boxList.ClearSelected();
 						}

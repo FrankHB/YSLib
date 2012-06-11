@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3366;
+\version r3378;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:30:40 +0800;
 \par 修改时间:
-	2012-05-25 13:45 +0800;
+	2012-06-08 16:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,6 +48,10 @@ public:
 	typedef TextList::ListType ListType;
 	typedef TextList::ViewArgs ViewArgs;
 	typedef TextList::HViewEvent HViewEvent;
+	//! \since build 316 。
+	typedef TextList::IndexType IndexType;
+	//! \since build 316 。
+	typedef TextList::ItemType ItemType;
 
 protected:
 	/*
@@ -106,10 +110,18 @@ public:
 	/*!
 	\brief 清除选中项。
 	\see TextList::ClearSelected 。
-	\since build 285。
+	\since build 285 。
 	*/
 	PDefH(void, ClearSelected)
 		ImplBodyMem(lstText, ClearSelected)
+
+	/*!
+	\brief 查找项。
+	\see TextList::Find 。
+	\since build 316 。
+	*/
+	PDefH(IndexType, Find, const ItemType& text)
+		ImplBodyMem(lstText, Find, text)
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

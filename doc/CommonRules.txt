@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2345;
+\version r2363;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2012-02-03 16:44:56 +0800;
 \par 修改时间:
-	2012-05-12 02:08 +0800;
+	2012-06-10 03:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -809,18 +809,28 @@ $4.1.3.1.4 临时性例外：
 
 @5.3.2 基本名称限制：
 本节“实现”指 C++ 核心语言和标准库实现。
-本节中引用的标号表示 ISO/IEC 14882:2003 对应章节。
+除非另有说明，本节中引用的标号分别表示 ISO/IEC 14882:2003 和 ISO/IEC 14882:2011 同时对应且内容一致的章节（若标号相同则只使用一个）。
 
-@5.3.2.1
-按 17.4.3.1.1 Marco Names [lib.extern.names] 规定，可能使用标准库头文件的用户程序翻译单元不得使用词法上等价于关键字的名称作为宏名。
+@5.3.2.1 命名空间使用：
 
-@5.3.2.2
-按 17.4.3.1.2 Global Names [lib.global.names] 规定，以下名称保留给（核心语言和标准库）实现使用：
+@5.3.2.1.1 namespace std ：
+按 ISO/IEC 14882:2003 17.4.3.1 Reserved names [lib.reserved.names] 和 ISO/IEC 14882:2011 17.6.4.2.1 Namespace std [namespace.std] 规定，对全局命名空间 std 的使用受限，仅允许在满足其它条款需求时添加模板的特化。
+
+@5.3.2.1.2 namespace posix ：
+按 ISO/IEC 14882:2011 17.6.4.2.2 Namespace posix [namespace.posix] 规定，全局命名空间 posix 及其中的名称保留给实现使用。
+
+@5.3.2.2 保留名称：
+
+@5.3.2.2.1
+按 17.4.3.1.1/17.6.4.3.1 Marco Names [lib.extern.names] 规定，可能使用标准库头文件的用户程序翻译单元不得使用词法上等价于关键字的名称作为宏名。
+
+@5.3.2.2.2
+按 17.4.3.1.2/17.6.4.3.2 Global Names [lib.global.names] 规定，以下名称保留给（核心语言和标准库）实现使用：
 包含连续双下划线 "__" 或以下划线 "_" 紧接大写字母起始的名称；
 在全局命名空间和 ::std 命名空间内以下划线 "_" 起始的名称。
 
-@5.3.2.3
-按 17.4.3.1.3 External linkage [lib.extern.names] 规定，以下名称保留给（核心语言和标准库）实现使用：
+@5.3.2.2.3
+按 17.4.3.1.3/17.6.4.3.3 External linkage [lib.extern.names] 规定，以下名称保留给（核心语言和标准库）实现使用：
 在头文件中，在 std 命名空间或在全局命名空间的具有外部链接的对象名称，例如 <cerrno> 中定义的 errno ；
 在头文件中，具有外部链接的全局函数签名；
 外部链接的全局命名空间的对象和函数以及 std 命名空间的对象；
@@ -828,8 +838,11 @@ $4.1.3.1.4 临时性例外：
  C 标准库(Standard C library) 使用的具有 extern "C" 链接，在 std 命名空间或在全局命名空间的名称；
  C 标准库(Standard C library) 声明的具有 extern "C" 或 extern "C++" 链接，在全局命名空间的函数签名。
 
-@5.3.2.4
-按 17.4.3.1.4 Types [lib.extern.types] 规定，对于 C 标准库的每一个类型名称 T ， ::T 和 std::T 保留给实现使用。
+@5.3.2.2.4
+按 17.4.3.1.4/17.6.4.3.4 Types [lib.extern.types] 规定，对于 C 标准库的每一个类型名称 T ， ::T 和 std::T 保留给实现使用。
+
+@5.3.2.2.5
+禁止使用 override 、 final 、 carries_dependency 和 noreturn 作为宏名，参见 ISO/IEC 14882:2011 C.2.7 Clause 17: library introduction [diff.cpp03.library] 。
 
 @5.3.3
 标识符命名风格参见 @4 。

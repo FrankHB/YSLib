@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1824;
+\version r1825;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2012-06-01 16:56 +0800;
+	2012-06-10 03:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,6 @@ YSL_BEGIN
 /* \brief 调用时动态类型检查仿函数模板。
 PDefTH3(_type, _tArg, _tRet)
 class GHDynamicFunction
-	: public std::binary_function<_type, _tArg, _tRet>
 {
 private:
 	const union Pointer

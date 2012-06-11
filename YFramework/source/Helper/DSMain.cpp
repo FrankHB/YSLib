@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2032;
+\version r2035;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-06-05 21:15 +0800;
+	2012-06-10 04:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -576,16 +576,16 @@ DSApplication::DealMessage()
 }
 
 void
-DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
+DSApplication::ResetFontCache() ythrow(LoggedEvent)
 {
 	try
 	{
 		ydelete(pFontCache);
-		pFontCache = ynew FontCache(path);
+		pFontCache = ynew FontCache();
 	}
 	catch(...)
 	{
-		throw LoggedEvent("Error occured @ YApplication::ResetFontCache;");
+		throw LoggedEvent("Error occured @ YApplication::ResetFontCache.");
 	}
 }
 

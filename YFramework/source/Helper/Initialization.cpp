@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2119;
+\version r2151;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-06-01 16:44 +0800;
+	2012-06-11 09:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -140,15 +140,18 @@ InitializeSystemFontCache() ynothrow
 	{
 		try
 		{
-			FetchGlobalInstance().ResetFontCache(font_path);
-			// TODO: 使用不依赖于 YGlobal 未确定接口的实现。
+			// TODO: Implement with no depencies on unspecified interfaces
+			//	of unit %YGlobal。
+			FetchGlobalInstance().ResetFontCache();
 
 			auto& fc(FetchDefaultFontCache());
+			const FontPath def_font_path(font_path);
+			size_t nFileLoaded(fc.LoadTypefaces(def_font_path) != 0);
 
-			if(*font_path &&fc.LoadFontFile(FontPath(font_path)))
-				fc.LoadTypefaces();
 			if(*font_dir)
 			{
+				set<FontPath> sPaths;
+
 				//读取字体文件目录并载入目录下指定后缀名的字体文件。
 				{
 					HFileNode dir(font_dir);
@@ -158,16 +161,19 @@ InitializeSystemFontCache() ynothrow
 							if(std::strcmp(dir.GetName(), FS_Now) != 0
 								&& !dir.IsDirectory()
 								/*&& IsExtendNameOf(ext, dir.GetName())*/)
-								fc.LoadFontFile((FontPath(font_dir)
-									+ dir.GetName()).c_str());
+								sPaths.insert(FontPath(font_dir)
+									+ dir.GetName());
 				}
-				fc.LoadTypefaces();
+				for(const FontPath& path : sPaths)
+					if(path != def_font_path)
+						nFileLoaded += fc.LoadTypefaces(path) != 0;
 			}
 			fc.InitializeDefaultTypeface();
-				if(FetchDefaultFontCache().GetFaces().size() == 0)
-					throw LoggedEvent("No font loaded.");
-			std::printf("%u font file(s) are loaded\nsuccessfully.\n",
-				fc.GetPaths().size());
+			if(const auto nFaces = FetchDefaultFontCache().GetFaces().size())
+				std::printf("%u face(s) in %u font file(s)"
+					" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
+			else
+				throw LoggedEvent("No font loaded.");
 			puts("Setting default font face...");
 			if(const auto* const pf = fc.GetDefaultTypefacePtr())
 				std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
@@ -183,7 +189,7 @@ InitializeSystemFontCache() ynothrow
 	}
 	catch(...)
 	{
-		printFailInfo("    Fontface Caching Failure    ",
+		printFailInfo("      Font Caching Failure      ",
 			" Please make sure the fonts are\n"
 			" stored in correct directory.\n");
 	}

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3635; *build 315 rev 19;
+\version r3637; *build 316 rev 30;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-08 08:20 +0800;
+	2012-06-11 09:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -108,10 +108,11 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \d ::= derived
 \dat ::= data
 \de ::= default/defaulted
+\decl ::= declations
 \def ::= definitions
 \del ::= deleted/deletion
 \dep ::= dependencies
-\decl ::= declations
+\depr ::= deprecated
 \dir ::= directories
 \doc ::= documents
 \dtor ::= destructors
@@ -373,123 +374,142 @@ $using:
 
 
 $DONE:
-r1-r2:
-/ $design several \rem 'NOTE: ',
-- \rem @ \exp \cvt \mf bool @ \clt fixed_point @ \h Rational;
-/= 2 test 1 @ platform MinGW32;
-
-r3:
-/ @ \u YFocus $=
+r1:
++ \mf MTextList::IndexType MTextList::Find(const ItemType&) const;
++ \decl using MTextList::Find @ \cl TextList;
+/ @ \cl ListBox $=
 (
-	+ \f (DoRequestFocusFrom, DoReleaseFocusFrom),
-	/ \impl @ \f (RequestFocusFrom, ReleaseFocusFrom);
+	+ typedef TextList::IndexType IndexType,
+	+ typedef TextList::ItemType ItemType;
+	+ \mf Find
 );
-/ \simp @ \dtor Widget @ DoReleaseFocusFrom;
-/= test 2 @ platform MinGW32;
+/ \simp \ctor DropDownList ^ \mf MTextList::Find;
+/= test 1 @ platform MinGW32;
 
-r4:
-/= test 3 @ platform DS ^ \conf release;
+r2-r3:
+/ \simp \impl @ \mf HexViewArea::Refresh !@ platform DS @ \impl \u HexBrowser,
+/= test 2 @ platform MinGW32,
+/= test 3 @ platform DS;
 
-r5:
-/ \simp \impl @ \mf Path::NormalizeTrailingSlash ^ basic_string::pop_back
-	~ basic_string::erase;
-/= test 4 @ platform MinGW32;
+r4-r5:
++ \ft<typename _type> yconstfn _type* raw(const std::weak_ptr<_type>&)
+	@ \h Memory;
+/ @ \cl Message $=
+(
+	/ private \m shared_ptr<Shell> hShl -> weak_ptr<Shell> dest;
+	/ \tr \ctor Message(const shared_ptr<Shell>& = shared_ptr<Shell>(), ID = 0,
+		Priority = 0, const ValueObject& = ValueObject())
+		-> Message(const weak_ptr<Shell>& = weak_ptr<Shell>(), ID = 0,
+		Priority = 0, const ValueObject& = ValueObject()),
+	/ \mf GetShellHandle -> \mf GetDestination,
+	+ private \m bool to_all,
+	+ \mf IsToAll,
+	/ \tr \impl @ \mf (Swap, \op==)
+);
+/ \tr \impl @ \mf MessageQueue::(Peek, Remove),
+/ \tr \impl @ \mf Application::Dispatch;
+/= 2 test 4 @ platform MinGW32;
 
 r6:
-/ @ \h YDefinition $=
-(
-	(
-		+ \mac YB_HAS_ALIGNOF;
-		+ \mac yalignof
-	),
-	+ \rem @ (yconstfn, yconstexpr)
-	/ \impl @ \mac YCL_USE_EXCEPTION_SPECIFICATION,
-	+ \rem @ (YCL_USE_EXCEPTION_SPECIFICATION, ythrow, ynothrow)
-);
-+ static_assert of yalignof(wchar_t) == yalignof(CHRLib::ucs2_t)
-	@ platform MinGW32 @ \impl \u FileSystem;
-/= test 5 @ platform MinGW32;
+/= test 5 @ platform DS;
 
-r7:
-/ @ \u YFocus $=
+r7-r8:
++ \mf void Push(Message&&) @ \cl MessageQueue,
+/ @ \u Yapplication $=
 (
-	/ \f bool DoRequestFocusFrom(IWidget&, IWidget&)
-		-> bool DoRequestFocus(IWidget&, bool = false),
-	/ \f bool DoReleaseFocusFrom(IWidget&, IWidget&)
-		-> bool DoReleaseFocus(IWidget&);
-	/ \tr \impl @ \f (RequestFocusFrom, ReleaseFocusFrom)
-);
-/ \tr \impl @ \dtor Widget;
-/= test 6 @ platform MinGW32;
-
-r8:
-/= test 7 @ platform MinGW32 ^ \conf release;
+	/ \impl @ \f PostMessage#1,
+	/ @ \f PostMessage#(2, 3),
+	/ \impl @ \f PostQuitMessage
+),
+/ \tr \impl @ \f SetShellTo @ \h ShellHelper,
+/= 2 test 6 @ platform MinGW32;
 
 r9:
-/= test 8 @ platform DS ^ \conf release;
+/= test 7 @ platform DS;
 
 r10:
-/= test 9 @ platform DS;
-
-r11-r13:
-/= test 10 @ platform MinGW32;
-/= 2 test 11 @ platform DS;
-
-r14:
-/ \a (\ft, \f) int BlitScale(const Point&, const Point&,
-	const Size&, const Size&, const Size&, int, int) @ \u YBlit
-	-> int BlitScale(const Point&, const Size&, int, int);
-/ \simp \impl @ \ft Blit @ \h YBlit;
-/= test 12 @ platform MinGW32;
-
-r15:
-/ @ \h Utilities $=
+- \a C++11 \depr \inh (std::unary_function, std::binary_function) $=
 (
-	+ \inc \h <string>,
-	+ \exp 'public' @ \inh @ \stt (deref_comp, deref_str_comp),
-	/ \stt<typename _tChar, int (*_lexi_cmp)(const _tChar*, const _tChar*)
-		= std::strcmp, class _gfCompare = std::less<int>> deref_str_comp
-		-> \stt<typename _tChar, class _fCompare = std::less<_tChar>>
-		deref_str_comp,
-	/ \stt<typename _type, typename _tPointer = _type*, template<typename _type>
-		class _gfCompare = std::less> deref_comp
-		-> \stt<typename _type, typename _tPointer = _type*,
-		class _fCompare = std::less<_type>> deref_comp
-);
+	- \inh std::unary_function<_type, _type*> @ \stt deref_op<_type>,
+	- \inh std::unary_function<const _type, const _type*>
+		@ \stt const_deref_op<_type>,
+	- \inh std::binary_function<_type, _type, bool> @ \stt ref_eq
+) @ \h Utilities;
+/= test 8 @ platform MinGW32;
+
+r11:
+/ \ctor \exp FontCache(const_path_t, size_t = DefaultGlyphCacheSize)
+	-> \exp FontCache(size_t DefaultGlyphCacheSize);
+/ \mf void DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
+	-> \mf void DSApplication::ResetFontCache() ythrow(LoggedEvent);
+/ \simp \impl @ \f InitializeSystemFontCache @ \impl \u Initialization;
+/= test 9 @ platform MinGW32;
+
+r12:
+/ \a 9 'throw()' @ \h Rational -> 'ynothrow';
+/= test 10 @ platform DS;
+
+r13:
+/= test 11 @ platform DS ^ \conf release;
+
+r14-r22:
+/ @ \cl FontCache $=
+(
+	/ \impl @ \mf LoadFontFile,
+	/ \simp \impl @ \mf LoadTypefaces#2
+),
+/ \ft<typename _type> yconstfn std::unique_ptr<_type>
+	unique_raw(const nullptr_t&) @ \h Memory
+	-> \ft<typename _type> yconstfn std::unique_ptr<_type>
+	unique_raw(nullptr_t),
+/ \decl @ \f @ !defined(YB_HAS_BUILTIN_NULLPTR) @ \h YDefinition;
+/= 9 test 12 @ platform MinGW32;
+
+r23:
+/= test 10 @ platform DS;
+
+r24:
+/ \impl @ \mf FontCache::LoadTypefaces;
 /= test 13 @ platform MinGW32;
 
-r16:
-/ @ \cl ScrollableContainer $=
+r25-r27:
+/ @ \cl FontCache $=
 (
-	/ protected \m HorizontalScrollBar => hsbHorizontal,
-	/ protected \m VerticalScrollBar =>vsbVertical
+	(
+		+ private \mf void LoadTypeface(const FontPath&, size_t) ynothrow;
+		/ 2 \mf LoadTypefaces -> LoadTypefaces(const FontPath&);
+		- \mf LoadFontFile
+	),
+	/ \impl @ \mf ClearContainers,
+	- \mf GetPaths;
+	- \m PathMap mPaths;
+	- typedef PathMap
 );
-/ \tr \impl @ \cl HexViewArea @ \impl \u HexBrowser,
-/ \tr \impl @ \ctor ListBox;
-/= test 14 @ platform MinGW32;
+/ \impl @ \f InitializeSystemFontCache @ \impl \u Initialization;
+/= 3 test 14 @ platform MinGW32;
 
-r17:
-/= test 15 @ platform DS;
+r28:
+/= test 15 @ platform MinGW32 ^ \conf release;
 
-r18:
-/= test 16 @ platform MinGW32 ^ \conf release;
+r29:
+/= test 16 @ platform DS;
 
-r19:
+r30:
 /= test 17 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-06-08:
--25.2d;
-//Mercurial rev1-rev187: r8559;
+2012-06-11:
+-23.7d;
+//Mercurial rev1-rev188: r8589;
 
 / ...
 
 
 $NEXT_TODO:
-b316-b324:
+b317-b324:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -889,6 +909,49 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx' $=
+	(
+		(
+			+ "function template %raw with parameter %weak_ptr" @ %'Memory';
+			$dep_to "weak_raw"
+		),
+		/ $design "no throw specification" ^ "%ynothrow" ~ "%throw()"
+			@ %"Rational",
+		/ $design "all parameter of type reference of %nullptr_t"
+			-> "raw %nullptr_t"
+	)
+	/ %'YFramework'.'YSLib' $=
+	(
+		+ "member function %Find" @ "class %MTextList" @ %'GUI',
+		/ %'messaging' $=
+		(
+			$dep_from "weak_raw";
+			/ "destination shell field" ^ "%weak_ptr<Shell>" 
+				~ "%shared_ptr<Shell>",
+			+ "field %bool %is_to_all designating broadcasting",
+			+ "member function %MessageQueue::Push(Message&&)";
+			/ "parameter designating destination shell" @ "APIs for posting \
+				messages" ^ "weak_ptr<Shell>" ~ "shared_ptr<Shell>"
+		),
+		(
+			/ @ "simplified class %FontCache" @ %'adaptors' $=
+			(
+				/ "simplified implementation" @ "constructor",
+					// Removed automatically default font path loading.
+				/ "simplified implementation" @ "member function %LoadFontFile",
+					// Ignored path when FreeType error occurs.
+				/ "member function %LoadTypefaces",
+					// Removed initialization default typeface on loading.
+				- "path map"
+					// Duty of paths management moved to initialization.
+			)
+			/ $design "simplified implementation" @ %'Helper'.'initialization'
+		)
+	),
+),
+
+b315
 (
 	/ %'YBase' $=
 	(

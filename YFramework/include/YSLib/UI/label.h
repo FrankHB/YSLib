@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2221;
+\version r2229;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-06-01 16:53 +0800;
+	2012-06-08 16:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -197,6 +197,14 @@ public:
 		if(YB_LIKELY(h))
 			hList = h;
 	}
+
+	/*!
+	\brief 查找项。
+	\return 若找到则返回对应索引，否则返回 <tt>IndexType(-1)</tt> 。
+	\since build 316 。
+	*/
+	IndexType
+	Find(const ItemType&) const;
 
 	/*!
 	\brief 刷新文本状态。

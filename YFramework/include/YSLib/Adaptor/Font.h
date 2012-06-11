@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7677;
+\version r7716;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-04-13 18:41 +0800;
+	2012-06-11 09:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -287,13 +287,6 @@ class FontCache : private noncopyable,
 	friend class Font;
 
 public:
-	/*!
-	\brief 字体文件路径组类型。
-
-	字体文件路径映射至此文件中的字型数。
-	\since build 277 。
-	*/
-	typedef map<FontPath, ::FT_Long> PathMap;
 	typedef set<Typeface*, ystdex::deref_comp<const Typeface>>
 		FaceSet; //!< 字型组类型。
 	typedef map<FamilyName, FontFamily*> FamilyMap; //!< 字型家族组索引类型。
@@ -312,11 +305,6 @@ private:
 	::FTC_SBitCache sbitCache;
 
 protected:
-	/*
-	\brief 字体文件路径映射。
-	\since build 277 。
-	*/
-	PathMap mPaths;
 	FaceSet sFaces; //!< 字型组。
 	FamilyMap mFamilies; //!< 字型家族组索引。
 
@@ -324,18 +312,17 @@ protected:
 
 public:
 	/*!
-	\brief 构造：读取指定路径的字体文件并分配指定大小的缓存空间。
+	\brief 构造：分配指定大小的字形缓存空间。
+	\since build 316 。
 	*/
 	explicit
-	FontCache(const_path_t, size_t = DefaultGlyphCacheSize);
+	FontCache(size_t = DefaultGlyphCacheSize);
 	/*!
 	\brief 析构：释放空间。
 	*/
 	~FontCache();
 
 public:
-	DefGetter(const ynothrow, const PathMap&, Paths, mPaths) \
-		//!< 取字体文件路径映射。
 	/*!
 	\brief 取字型组。
 	\since build 281 。
@@ -413,29 +400,24 @@ private:
 	void
 	ClearContainers();
 
+	/*!
+	\brief 从指定路径的字体文件中载入指定索引指定的字型信息。
+	\note 无异常抛出。
+	\since build 316 。
+	*/
+	void
+	LoadTypeface(const FontPath&, size_t) ynothrow;
+
 public:
 	/*!
 	\brief 从字体文件组中载入字型信息。
+	\return 成功载入的字型数。
+	\since build 316 。
 	*/
-	void
-	LoadTypefaces();
-
-private:
-	/*!
-	\brief 从路径指定的字体文件中的载入指定数量的字型信息。
-	\note 若指定字体文件不在字体文件组中则先按路径添加此文件。
-	\since build 277 。
-	*/
-	void
-	LoadTypefaces(const FontPath&, size_t);
+	size_t
+	LoadTypefaces(const FontPath&);
 
 public:
-	/*!
-	\brief 按路径添加字体文件并载入字型信息。
-	*/
-	bool
-	LoadFontFile(const FontPath&);
-
 	/*!
 	\brief 初始化默认字型。
 	*/

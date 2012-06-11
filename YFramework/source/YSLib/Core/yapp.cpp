@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2607;
+\version r2615;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2012-06-05 21:21 +0800;
+	2012-06-09 00:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -68,27 +68,19 @@ void
 PostMessage(const Message& msg) ynothrow
 {
 	FetchAppInstance().Queue.Push(msg);
-
-#if YSL_DEBUG_MSG & 1
-
-	void YSDebug_MSG_Insert(Message&);
-	YSDebug_MSG_Insert(msg);
-
-#endif
-
 }
 void
-PostMessage(const shared_ptr<Shell>& hShl, Messaging::ID id,
+PostMessage(const weak_ptr<Shell>& wp, Messaging::ID id,
 	Messaging::Priority prior, const ValueObject& c) ynothrow
 {
-	PostMessage(Message(hShl, id, prior, c));
+	PostMessage(Message(wp, id, prior, c));
 }
 
 void
 PostQuitMessage(int nExitCode, Messaging::Priority p)
 {
-	PostMessage<SM_SET>(shared_ptr<Shell>(), p, shared_ptr<Shell>());
-	PostMessage<SM_QUIT>(shared_ptr<Shell>(), p, nExitCode);
+	PostMessage<SM_SET>(weak_ptr<Shell>(), p, shared_ptr<Shell>());
+	PostMessage<SM_QUIT>(weak_ptr<Shell>(), p, nExitCode);
 }
 
 YSL_END

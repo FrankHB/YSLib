@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1522;
+\version r1524;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-05-25 13:52 +0800;
+	2012-06-08 16:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -202,6 +202,9 @@ public:
 
 	PDefH(void, ClearSelected)
 		ImplBodyMem(viewer, ClearSelected)
+
+	//! \since build 316 。
+	using MTextList::Find;
 
 private:
 	/*!
