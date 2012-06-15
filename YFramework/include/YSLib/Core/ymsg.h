@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2627;
+\version r2700;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-09 01:02 +0800;
+	2012-06-15 15:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -75,14 +75,7 @@ private:
 	*/
 	bool to_all;
 	ID id; //!< 消息标识。
-	Priority prior; //!< 消息优先级。
 	ValueObject content; //消息内容句柄。
-
-public:
-	std::clock_t timestamp; //!< 消息时间戳：消息产生的进程时间。
-
-private:
-	std::clock_t timeout; //!< 消息有效期。
 
 public:
 	/*!
@@ -97,9 +90,10 @@ public:
 	*/
 	DefDeCopyCtor(Message)
 	/*!
-	\brief 转移构造：默认实现。
+	\brief 转移构造。
+	\since build 317 。
 	*/
-	DefDeMoveCtor(Message)
+	Message(Message&&);
 
 	Message&
 	operator=(const ValueObject& c)
@@ -157,8 +151,6 @@ public:
 	\since build 316 。
 	*/
 	DefPred(const ynothrow, ToAll, to_all)
-	DefPred(const ynothrow, TimeOut, timestamp + timeout < std::clock()) \
-		//!< 判断消息是否过期。
 	DefPred(const ynothrow, Valid, id) //!< 判断消息是否有效。
 
 	/*!
@@ -167,38 +159,15 @@ public:
 	*/
 	DefGetter(const ynothrow, weak_ptr<Shell>, Destination, dest)
 	DefGetter(const ynothrow, ID, MessageID, id) //!< 取消息标识。
-	DefGetter(const ynothrow, Priority, Priority, prior) //!< 取消息优先级。
 	DefGetter(const ynothrow, const ValueObject&, Content, content) \
-		//!< 取消息内容句柄。
+		//!< 取消息内容。
 
 	/*
 	\brief 交换。
 	*/
 	void
 	Swap(Message&) ynothrow;
-
-	/*!
-	\brief 更新消息时间戳。
-	*/
-	void
-	UpdateTimestamp()
-	{
-		timestamp = std::clock();
-	}
 };
-
-/*!
-\brief 消息优先级比较函数。
-\since build 272 。
-*/
-inline bool
-operator<(const Message& x, const Message& y)
-{
-//	if(x.prior == y.prior)
-	//	return x.time > y.time;
-//		return x.GetObjectID() < y.GetObjectID();
-	return x.prior > y.prior;
-}
 
 
 /*!
@@ -207,10 +176,16 @@ operator<(const Message& x, const Message& y)
 \warning 非虚析构。
 \since build 211 。
 */
-class MessageQueue : private noncopyable, private multiset<Message>
+class MessageQueue : private noncopyable,
+	private multimap<Priority, Message, std::greater<Priority>>
 {
 public:
 	typedef size_type SizeType;
+	/*!
+	\brief 迭代器。
+	\since build 317 。
+	*/
+	typedef const_iterator Iterator;
 
 	/*!
 	\brief 无参数构造：默认实现。
@@ -222,18 +197,36 @@ public:
 
 	DefGetter(const ynothrow, SizeType, Size, size()) //!< 取队列中消息容量。
 	/*!
+	\brief 取队列起始迭代器。
+	\since build 317
+	*/
+	DefGetter(const ynothrow, Iterator, Begin, begin())
+	/*!
+	\brief 取队列终止迭代器。
+	\since build 317
+	*/
+	DefGetter(const ynothrow, Iterator, End, end())
+	/*!
 	\brief 取消息队列中消息的最大优先级。
 	\return 若消息队列为空则 0 ，否则为最大优先级。
 	\since build 288 。
 	*/
 	DefGetter(const ynothrow, Priority, MaxPriority,
-		empty() ? 0 : begin()->GetPriority())
+		empty() ? 0 : begin()->first)
 
 	/*!
 	\brief 清除消息队列。
 	*/
 	PDefH(void, Clear)
 		ImplRet(clear())
+
+	/*!
+	\brief 从队列中删除迭代器指定的消息。、
+	\pre 迭代器从属于本消息队列。
+	\since build 317 。
+	*/
+	PDefH(bool, Erase, Iterator i)
+		ImplRet(erase(i) != end())
 
 	/*!
 	\brief 合并消息队列：移动指定消息队列中的所有消息至此消息队列中。
@@ -250,19 +243,16 @@ public:
 	Peek(Message& msg) const
 	{
 		if(YB_LIKELY(!empty()))
-			msg = *begin();
+			msg = begin()->second;
 	}
 	/*
 	\brief 从消息队列中取消息。
-	\param lpMsg 接收消息信息的 Message 结构指针。
 	\param hShl 消息关联（发送目标）的 Shell 的句柄，
 		为 nullptr 时无限制（为全局消息）。
-	\param bRemoveMsg 确定取得的消息是否消息队列中清除。
-	\since build 271 。
+	\since build 317 。
 	*/
-	int
-	Peek(Message& msg, const shared_ptr<Shell>& hShl,
-		bool bRemoveMsg = false);
+	Iterator
+	Peek(const shared_ptr<Shell>& hShl);
 
 	/*!
 	\brief 丢弃消息队列中优先级最高的消息。
@@ -276,23 +266,24 @@ public:
 	}
 
 	/*!
-	\brief 若消息 msg 有效，插入 msg 至消息队列中。
+	\brief 若消息有效，以指定优先级插入至消息队列中。
+	\since build 317 。
 	*/
 	void
-	Push(const Message& msg)
+	Push(const Message& msg, Priority prior)
 	{
 		if(msg.IsValid())
-			insert(msg);
+			insert(make_pair(prior, msg));
 	}
 	/*!
-	\brief 若消息 msg 有效，插入 msg 至消息队列中。
-	\since build 316 。
+	\brief 若消息有效，以指定优先级插入至消息队列中。
+	\since build 317 。
 	*/
 	void
-	Push(const Message&& msg)
+	Push(const Message&& msg, Priority prior)
 	{
 		if(msg.IsValid())
-			insert(std::move(msg));
+			insert(make_pair(prior, std::move(msg)));
 	}
 
 	/*!

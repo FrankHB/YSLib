@@ -11,12 +11,13 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r2919;
+\version r2925;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2012-03-21 18:09 +0800;
+	2012-06-11 17:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +36,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Shells)
 
 //! \brief 外壳程序：实现运行期控制流映像语义。
-class Shell : private noncopyable
+class Shell : private noncopyable, public enable_shared_from_this<Shell>
 {
 public:
 	/*!
@@ -63,10 +64,11 @@ public:
 	DefShlProc(const Message&);
 
 	/*!
-	\brief 消息处理函数：响应线程的直接调用。
+	\brief 处理消息：响应线程的直接调用。
+	\since build 317 。
 	*/
-	virtual PDefH(int, OnGotMessage, const Message& msg)
-		ImplRet(DefShlProc(msg))
+	virtual PDefH(void, OnGotMessage, const Message& msg)
+		ImplExpr(DefShlProc(msg))
 };
 
 YSL_END_NAMESPACE(Shells)

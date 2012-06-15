@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1913;
+\version r1931;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:41 +0800;
 \par 修改时间:
-	2012-04-02 18:50 +0800;
+	2012-06-11 11:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -151,31 +151,24 @@ MemoryList::Unregister(const void* p, const char* f, int l)
 }
 
 void
-MemoryList::Print(MapType::const_iterator i, std::FILE* stream)
+MemoryList::Print(const MapType::value_type& val, std::FILE* stream)
 {
-	std::fprintf(stream, "@%p, [%u] @ %s: %d;\n", i->first,
-		i->second.size, i->second.file.c_str(), i->second.line);
-}
-void
-MemoryList::Print(ListType::const_iterator i, std::FILE* stream)
-{
-	std::fprintf(stream, "@%p, [%u] @ %s: %d;\n", i->first,
-		i->second.size, i->second.file.c_str(), i->second.line);
+	std::fprintf(stream, "@%p, [%u] @ %s: %d;\n", val.first,
+		val.second.size, val.second.file.c_str(), val.second.line);
 }
 
 void
 MemoryList::PrintAll(std::FILE* stream)
 {
-	for(auto i(Blocks.cbegin()); i != Blocks.cend(); ++i)
-		Print(i, stream);
+	std::for_each(Blocks.begin(), Blocks.end(),
+		std::bind(MemoryList::Print, std::placeholders::_1, stream));
 }
 
 void
 MemoryList::PrintAllDuplicate(std::FILE* stream)
 {
-	for(auto i(DuplicateDeletedBlocks.cbegin());
-		i != DuplicateDeletedBlocks.cend(); ++i)
-		Print(i, stream);
+	std::for_each(DuplicateDeletedBlocks.begin(), DuplicateDeletedBlocks.end(),
+		std::bind(MemoryList::Print, std::placeholders::_1, stream));
 }
 
 YSL_END

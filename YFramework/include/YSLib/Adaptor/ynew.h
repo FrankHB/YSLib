@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2097;
+\version r2105;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2012-04-13 18:45 +0800;
+	2012-06-11 11:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -94,7 +94,7 @@ GetDebugMemoryList();
 class MemoryList : private ystdex::noncopyable
 {
 public:
-	struct BlockInfo
+	struct BlockInfo final
 	{
 	public:
 		std::size_t size;
@@ -109,9 +109,8 @@ public:
 
 	/*
 	\brief new 表达式分配记录器。
-	\warning 非虚析构。
 	*/
-	class NewRecorder : private ystdex::noncopyable
+	class NewRecorder final : private ystdex::noncopyable
 	{
 	private:
 		MemoryList& blocks;
@@ -161,10 +160,9 @@ public:
 	void
 	Unregister(const void*, const char*, int);
 
+	//! \since build 317 。
 	static void
-	Print(MapType::const_iterator, std::FILE*);
-	static void
-	Print(ListType::const_iterator, std::FILE*);
+	Print(const MapType::value_type&, std::FILE*);
 
 	void
 	PrintAll(std::FILE*);

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3637; *build 316 rev 30;
+\version r3645; *build 317 rev 54;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-11 09:30 +0800;
+	2012-06-15 15:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -375,141 +375,207 @@ $using:
 
 $DONE:
 r1:
-+ \mf MTextList::IndexType MTextList::Find(const ItemType&) const;
-+ \decl using MTextList::Find @ \cl TextList;
-/ @ \cl ListBox $=
+/ @ \cl MemoryList @ \u YNew $=
 (
-	+ typedef TextList::IndexType IndexType,
-	+ typedef TextList::ItemType ItemType;
-	+ \mf Find
+	+ final @ \a \m (\st, \cl),
+	(
+		/ \smf void Print(MapType::const_iterator, std::FILE*)
+			-> void Print(const MapType::value_type&, std::FILE*),
+		- \smf void Print(ListType::const_iterator, std::FILE*);
+		/ \tr \simp \impl @ \mf PrintAll ^ std::for_each,
+		/ \tr \simp \impl @ \mf PrintAllDuplicate ^ std::for_each
+	)
 );
-/ \simp \ctor DropDownList ^ \mf MTextList::Find;
+/ \tr \impl @ \ft OnExit_DebugMemory_print @ \impl \u Main_ARM9;
 /= test 1 @ platform MinGW32;
 
-r2-r3:
-/ \simp \impl @ \mf HexViewArea::Refresh !@ platform DS @ \impl \u HexBrowser,
-/= test 2 @ platform MinGW32,
+r2:
+/ \simp \impl @ (\ft OnExit_DebugMemory_print @ \impl \u Main_ARM9,
+	\mf ReaderBox::GetTopWidgetPtr @ \impl \u ShellReader,
+	\f RectDrawCheckBox @ \un \ns @ \impl \u Selector) ^ range based for,
+/ \simp \impl @ \f InitializeSystemFontCache @ \impl \u Initialization ^ auto;
+/= test 2 @ platform MinGW32;
+
+r3:
 /= test 3 @ platform DS;
 
-r4-r5:
-+ \ft<typename _type> yconstfn _type* raw(const std::weak_ptr<_type>&)
-	@ \h Memory;
-/ @ \cl Message $=
+r4:
+/= test 4 @ platform DS ^ \conf release;
+
+r5-r6:
+/ \simp \impl @ \mf MessageQueue::(Peek, Remove);
+/= 2 test 5 @ platform DS;
+
+r7:
++ \inh public enable_shared_from_this<Shell> @ \cl Shell;
+/= test 6 @ platform MinGW32;
+
+r8:
+/ @ \cl Application $=
 (
-	/ private \m shared_ptr<Shell> hShl -> weak_ptr<Shell> dest;
-	/ \tr \ctor Message(const shared_ptr<Shell>& = shared_ptr<Shell>(), ID = 0,
-		Priority = 0, const ValueObject& = ValueObject())
-		-> Message(const weak_ptr<Shell>& = weak_ptr<Shell>(), ID = 0,
-		Priority = 0, const ValueObject& = ValueObject()),
-	/ \mf GetShellHandle -> \mf GetDestination,
-	+ private \m bool to_all,
-	+ \mf IsToAll,
-	/ \tr \impl @ \mf (Swap, \op==)
+	/ \inh private noncopyable -> \inh public Shell;
+	/ \tr \impl @ \ctor,
+	+ \mf int OnGotMessage override
 );
-/ \tr \impl @ \mf MessageQueue::(Peek, Remove),
-/ \tr \impl @ \mf Application::Dispatch;
-/= 2 test 4 @ platform MinGW32;
-
-r6:
-/= test 5 @ platform DS;
-
-r7-r8:
-+ \mf void Push(Message&&) @ \cl MessageQueue,
-/ @ \u Yapplication $=
-(
-	/ \impl @ \f PostMessage#1,
-	/ @ \f PostMessage#(2, 3),
-	/ \impl @ \f PostQuitMessage
-),
-/ \tr \impl @ \f SetShellTo @ \h ShellHelper,
-/= 2 test 6 @ platform MinGW32;
+/= test 7 platform MinGW32;
 
 r9:
-/= test 7 @ platform DS;
+/= test 8 @ platform DS;
 
 r10:
-- \a C++11 \depr \inh (std::unary_function, std::binary_function) $=
-(
-	- \inh std::unary_function<_type, _type*> @ \stt deref_op<_type>,
-	- \inh std::unary_function<const _type, const _type*>
-		@ \stt const_deref_op<_type>,
-	- \inh std::binary_function<_type, _type, bool> @ \stt ref_eq
-) @ \h Utilities;
-/= test 8 @ platform MinGW32;
+/ \mf DispatchMessage @ \cl Applicaton \mg -> \mf OnGotMessage,
+/ \a \ret \tp @ \mf OnGotMesssage -> void ~ int;
+/ \tr \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
+/= test 9 platform MinGW32;
 
 r11:
-/ \ctor \exp FontCache(const_path_t, size_t = DefaultGlyphCacheSize)
-	-> \exp FontCache(size_t DefaultGlyphCacheSize);
-/ \mf void DSApplication::ResetFontCache(const_path_t path) ythrow(LoggedEvent)
-	-> \mf void DSApplication::ResetFontCache() ythrow(LoggedEvent);
-/ \simp \impl @ \f InitializeSystemFontCache @ \impl \u Initialization;
-/= test 9 @ platform MinGW32;
+/= test 10 @ platform DS;
 
 r12:
-/ \a 9 'throw()' @ \h Rational -> 'ynothrow';
-/= test 10 @ platform DS;
-
-r13:
 /= test 11 @ platform DS ^ \conf release;
 
-r14-r22:
-/ @ \cl FontCache $=
+r13-r15:
+/= 3 test 12 platform MinGW32 ^ \conf release;
+
+r16-r17:
+/ @ \cl MessageQueue $=
 (
-	/ \impl @ \mf LoadFontFile,
-	/ \simp \impl @ \mf LoadTypefaces#2
-),
-/ \ft<typename _type> yconstfn std::unique_ptr<_type>
-	unique_raw(const nullptr_t&) @ \h Memory
-	-> \ft<typename _type> yconstfn std::unique_ptr<_type>
-	unique_raw(nullptr_t),
-/ \decl @ \f @ !defined(YB_HAS_BUILTIN_NULLPTR) @ \h YDefinition;
-/= 9 test 12 @ platform MinGW32;
-
-r23:
-/= test 10 @ platform DS;
-
-r24:
-/ \impl @ \mf FontCache::LoadTypefaces;
-/= test 13 @ platform MinGW32;
-
-r25-r27:
-/ @ \cl FontCache $=
-(
-	(
-		+ private \mf void LoadTypeface(const FontPath&, size_t) ynothrow;
-		/ 2 \mf LoadTypefaces -> LoadTypefaces(const FontPath&);
-		- \mf LoadFontFile
-	),
-	/ \impl @ \mf ClearContainers,
-	- \mf GetPaths;
-	- \m PathMap mPaths;
-	- typedef PathMap
+	+ typedef iterator Iterator;
+	/ \mf int Peek(Message&, const shared_ptr<Shell>&, bool = false)
+		-> \mf Iterator Peek(Message&, const shared_ptr<Shell>&),
+	+ \mf \i bool Erase(Iterator),
+	+ \mf \i Iterator GetBegin() cosnt,
+	+ \mf \i Iterator GetEnd() const
 );
-/ \impl @ \f InitializeSystemFontCache @ \impl \u Initialization;
-/= 3 test 14 @ platform MinGW32;
+/ \simp \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
+/= 2 test 13 platform MinGW32 ^ \conf release;
 
-r28:
-/= test 15 @ platform MinGW32 ^ \conf release;
+r18:
+/= test 14 @ platform DS;
+
+r19:
+/= test 15 @ platform DS ^ \conf release;
+
+r20:
+/ \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
+/= test 16 @ platform DS ^ \conf release;
+
+r21-r28:
+/= 8 test 17 @ platform MinGW32;
 
 r29:
-/= test 16 @ platform DS;
+* missing calling event %LostFocus when focus moved through requesting
+	$since b315 $=
+(
+	* \impl @ \f RequestFocusFrom @ \impl \u YFocus
+	* $comp menus behavior without expected hiding when lost focus
+);
+/= test 18 @ platform MinGW32;
 
 r30:
-/= test 17 @ platform DS ^ \conf release;
+/ \impl @ \mf MessageQueue::Peek;
+/= test 19 @ platform DS ^ \conf release;
+
+r31:
+/ \impl @ \f Idle @ \un \ns @ \impl \u DSMain;
+/= test 20 @ platform DS ^ \conf release;
+
+r32:
+/= test 21 @ platform DS;
+
+r33:
+/= test 22 @ platform DS ^ \conf release;
+
+r34:
+/ \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
+/ \simp @ \cl Application $=
+(
+	- \mf GetMessage,
+	/ \impl @ \ctor;
+	- \m msg
+);
+/= test 23 @ platform MinGW32;
+
+r35:
+/= test 24 @ platform DS ^ \conf release;
+
+r36:
+/ @ \u YMessage $=
+(
+	* missing non-implicit-deleted \impl @ move \ctor @ \cl Message $since b316;
+	/ @ \cl MessageQueue $=
+	(
+		/ private \inh multiset<Message> -> multimap<Priority, Message>,
+		/ typedef iterator Iterator -> typedef const_iterator Iterator,
+		/ \tr \impl @ \mf GetMaxPriority,
+		/ \tr \impl @ 2 \mf Peek,
+		/ \mf void Push(const Message& msg)
+			-> \mf void Push(const Message& msg, Priority prior),
+		/ \mf void Push(const Message&& msg)
+			-> \mf void Push(const Message&& msg, Priority prior),
+		/ \impl @ \mf Remove
+	);
+	- \op<(const Message&, const Message),
+);
+/ \tr \decl @ \f PostMessage @ \u YApplication,
+/ \tr \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
+/= test 25 @ platform MinGW32;
+
+r37-r39:
+/ \impl @ main \f @ \impl \u Main_ARM9 ^ (\f Activate ~ \mf Application::Switch)
+	@ \h YApplication;
+/= 3 test 26 @ platform MinGW32;
+
+r40-r41:
+/= 2 test 27 @ platform MinGW32;
+
+r42:
+* \impl @ \mf MessageQueue::Remove $since r36;
+/= test 28 @ platform MinGW32;
+
+r43-r49:
+/= 7 test 29 @ platform MinGW32;
+
+r50:
+* wrong \inh @ \cl MessageQueue $since r36 $=
+(
+	/ multiset<Priority, Message>
+		-> multiset<Priority, Message, std::greater<Priority>>,
+	/ \tr \impl @ \mf Remove
+);
+/= test 30 @ platform MinGW32;
+
+r51:
+/ @ \cl Message $=
+(
+	/ \impl @ (\a \ctor, \mf (\op=, Swap)),
+	- \mf (GetPriority, UpdateTimestamp, IsTimeOut);
+	- \m (prior, timestamp, timeout)
+);
+/= test 31 @ platform MinGW32;
+
+r52:
+/= test 32 @ platform DS;
+
+r53:
+/= test 33 @ platform MinGW32 ^ \conf release;
+
+r54:
+/= test 32 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-06-11:
--23.7d;
-//Mercurial rev1-rev188: r8589;
+2012-06-15:
+-23.4d;
+//Mercurial rev1-rev189: r8643;
 
 / ...
 
 
 $NEXT_TODO:
-b317-b324:
+b318-b324:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -559,7 +625,7 @@ b325-b378:
 	/ improved tests and examples
 );
 
-b379-b784:
+b379-b806:
 + (memory mapping, shared memory) APIs @ YCommon,
 / @ CHRLib $=
 (
@@ -587,8 +653,13 @@ b379-b784:
 	/ reconsidered 1st parameter type(without rvalue \ref) for %seq_apply,
 	+ error code with necessary %thread_local @ \u YCommon,
 	/ make \ns _impl \h Cast -> \ns details with public interfaces,
-	/ confirm correctness @ stat() @ Win32
+	/ confirm correctness @ stat() @ Win32,
 		// See comments @ src/fccache.c @ \proj fontconfig.
+	/ consideration of mutable member @ class %Message
+),
+/ performance $=
+(
+	/ implementation @ class %MessageQueue
 ),
 / completeness of core abstraction $=
 (
@@ -636,7 +707,7 @@ b379-b784:
 	+ synchronization of viewer length @ class %TextList
 );
 
-b785-b1272:
+b805-b1294:
 ^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
 	when (^ g++),
 / memory fragment issues,
@@ -681,7 +752,7 @@ b785-b1272:
 	+ modal widget behavior
 );
 
-b1273-b1800:
+b1295-b1822:
 / platform dependent system functions $=
 (
 	+ correct DMA (copy & fill) @ DS
@@ -740,7 +811,7 @@ b1273-b1800:
 
 $LOW_PRIOR_TODO:
 ^ $low_prior $for_labeled_scope;
-b1801-b5768:
+b1823-b5790:
 + advanced shell system $=
 (
 	+ dynamic loading and reloading,
@@ -910,6 +981,72 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ "simplified interface and implementation for message output"
+				@ "class %MemoryList" @ %'adaptor',
+			/ %'core' $=
+			(
+				/ @ "class %Shell" @ %'core utilities' $=
+				(
+					(
+						/ "return type discarded" @ "member function \
+							%OnGotMesssage";
+						$dep_to "got_msg_ret_tp"
+					),
+					+ "public inheritance %enabled_share_from_this"
+				),
+				/ @ "class %Application" %'application abstraction' $=
+				(
+					+ "public inheritance %Shell";
+					/ "member function %Dispatch merged"
+						-> "member function overrider %OnGotMessage"
+				)
+				/ @ "class %MessageQueue" @ %'messaging' $=
+				(
+					/ "iterator type exposed",
+					/ "implementation" @ "member function %Peek for better \
+						performance",
+					/ $design "implementation" @ "class %Message"
+						^ "%std::multimap" ~ "%std::multiset",
+						// It makes debug version significantly slower, \
+							but better performance for release.
+					- "redundant fields and interfaces of timing"
+						@ "class %Message",
+					* "missing non-implicit-deleted move constructor"
+						@ "class %Message" $since b316
+				)
+			),
+			* "missing calling event %LostFocus when focus moved through \
+				requesting" @ %'GUI' $since b315,
+		),
+		/ %'Helper' $=
+		(
+			(
+				$dep_from "got_msg_ret_tp";
+				/ "return type discarded" @ "member function %OnGotMesssage"
+					@ "class %ShlDS"
+			)
+			/ @ "unit %DSMain" $=
+			(
+				/ $design "implementation" @ "member function %DealMessage"
+					@ "class %DSApplication",
+				/ "implementation" @ "idle function"
+					// A little better performance for broadcasting message.
+			)
+		),
+		(
+			$dep_from "got_msg_ret_tp";
+			/ "return type discarded" @ "member function %OnGotMesssage"
+				@ "shell classes" @ %'YReader'
+		)
+	)
+),
+
+b316
+(
 	/ %'YBase'.'YStandardEx' $=
 	(
 		(
@@ -924,7 +1061,7 @@ $now
 	/ %'YFramework'.'YSLib' $=
 	(
 		+ "member function %Find" @ "class %MTextList" @ %'GUI',
-		/ %'messaging' $=
+		/ %'core'.'messaging' $=
 		(
 			$dep_from "weak_raw";
 			/ "destination shell field" ^ "%weak_ptr<Shell>" 

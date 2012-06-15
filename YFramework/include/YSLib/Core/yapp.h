@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2473;
+\version r2510;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-06-09 00:57 +0800;
+	2011-06-15 13:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@ using Messaging::MessageQueue;
 \brief 程序实例。
 \since build 243 。
 */
-class Application : private noncopyable
+class Application : public Shell
 {
 public:
 	MessageQueue Queue; //!< 主消息队列：在程序实例中实现以保证单线程。
@@ -50,13 +50,6 @@ protected:
 	\note 全局单线程，生存期与进程相同。
 	*/
 	shared_ptr<Shell> hShell;
-
-protected:
-	/*!
-	\brief 当前处理的消息。
-	\since build 289 。
-	*/
-	Message msg;
 
 public:
 	//标准程序实例事件。
@@ -70,7 +63,6 @@ public:
 
 	/*!
 	\brief 析构：释放 Shell 所有权和其它资源。
-	\pre 断言检查： <tt>!GetShellHandle()</tt> 。
 	*/
 	virtual
 	~Application();
@@ -80,27 +72,14 @@ public:
 	\note 无异常抛出。
 	*/
 	DefGetter(const ynothrow, shared_ptr<Shell>, ShellHandle, hShell)
-	/*!
-	\brief 取当前处理的消息。
-	\note 无异常抛出。
-	\since build 289 。
-	*/
-	DefGetter(const ynothrow, const Message&, Message, msg)
 
 	/*!
-	\brief 备份主消息队列中的消息。
-	\since build 272 。
-	*/
-	errno_t
-	BackupMessage(const Message&);
-
-	/*!
-	\brief 分发消息。
+	\brief 处理消息：分发消息。
 	\pre 断言检查：当前 Shell 句柄有效。
-	\since build 272 。
+	\since build 317 。
 	*/
-	int
-	Dispatch(const Message&);
+	void
+	OnGotMessage(const Message&) override;
 
 	/*!
 	\brief 从备份消息队列恢复所有消息。
@@ -172,8 +151,9 @@ Activate(const shared_ptr<Shell>& hShl)
 \since build 297 。
 */
 //@{
+//! \since build 317 。
 void
-PostMessage(const Message&) ynothrow;
+PostMessage(const Message&, Messaging::Priority) ynothrow;
 //! \since build 316 。
 void
 PostMessage(const weak_ptr<Shell>&, Messaging::ID, Messaging::Priority,

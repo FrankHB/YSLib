@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2675;
+\version r2680;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-06-04 17:39 +0800;
+	2012-06-15 13:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -156,10 +156,10 @@ OnExit_DebugMemory_print(_tContainer& con, const char* item_name)
 
 		typename _tContainer::size_type n(0);
 
-		for(auto i(con.cbegin()); i != con.cend(); ++i)
+		for(const auto& item : con)
 		{
 			if(n++ < _vN)
-				GetDebugMemoryList().Print(i, stderr);
+				GetDebugMemoryList().Print(item, stderr);
 			else
 			{
 				n = 0;
@@ -284,8 +284,7 @@ main()
 				pb.SetValue(10);
 				Repaint(dsk_up);
 			}
-			if(YB_UNLIKELY(!FetchAppInstance().Switch(
-				make_shared<YReader::ShlExplorer>())))
+			if(YB_UNLIKELY(!Activate(make_shared<YReader::ShlExplorer>())))
 				throw LoggedEvent("Failed launching the main shell;");
 			//主体：消息循环。
 			while(theApp.DealMessage())

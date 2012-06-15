@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2151;
+\version r2152;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-06-11 09:12 +0800;
+	2012-06-11 12:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -164,7 +164,7 @@ InitializeSystemFontCache() ynothrow
 								sPaths.insert(FontPath(font_dir)
 									+ dir.GetName());
 				}
-				for(const FontPath& path : sPaths)
+				for(const auto& path : sPaths)
 					if(path != def_font_path)
 						nFileLoaded += fc.LoadTypefaces(path) != 0;
 			}

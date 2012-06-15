@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2035;
+\version r2072;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-06-10 04:05 +0800;
+	2012-06-15 13:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -119,8 +119,11 @@ std::thread* pHostThread;
 void
 Idle()
 {
-	//指示等待图形用户界面输入。
-	PostMessage(FetchShellHandle(), SM_INPUT, 0x40);
+	// Note: Wait for GUI input of any shells. Post message for specific shell
+	//	would cause low performance when there are many candidate messages
+	//	of distinct shells. 
+	PostMessage(weak_ptr<Shell>(), SM_INPUT, 0x40);
+//	PostMessage(FetchShellHandle(), SM_INPUT, 0x40);
 #if YCL_MINGW32
 	//	std::this_thread::yield();
 		std::this_thread::sleep_for(idle_sleep);
@@ -562,16 +565,19 @@ DSApplication::DealMessage()
 {
 	using namespace Shells;
 
-	if(Queue.IsEmpty())
-		Idle();
-	else
+	const auto i(Queue.Peek(hShell));
+
+	if(i != Queue.GetEnd())
 	{
-		if(Queue.Peek(msg, hShell, true) == SM_QUIT)
+		if(YB_UNLIKELY(i->second.GetMessageID() == SM_QUIT))
 			return false;
-		if(msg.GetPriority() < UIResponseLimit)
+		if(i->first < UIResponseLimit)
 			Idle();
-		Dispatch(msg);
+		OnGotMessage(i->second);
+		Queue.Erase(i);
 	}
+	else
+		Idle();
 	return true;
 }
 

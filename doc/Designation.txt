@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7241;
+\version r7242;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-08 17:08 +0800;
+	2012-06-11 11:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -130,6 +130,7 @@
  Initializer lists (N2672) ；
  Rvalue references v2.1(N2844+, CWG defect 1138) ；
  Lambda expressions and closures v1.1(N2927) ；
+ Range-based for(N2930) ；
  Explicit virtual overrides v1.0(N3272) 。
 仅使用ISO/IEC C++ 2011 中头文件 <array> 、 <chrono> 、 <forward_list> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 

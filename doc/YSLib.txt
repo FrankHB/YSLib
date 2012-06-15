@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 说明。
-\version r2202;
+\version r2204;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-04-05 16:10 +0800;
+	2012-06-15 14:59 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@
 //全局系统消息。
 //除另有说明外，一般用作队列消息。
 
-//空消息。参考优先级 0xFF 。
+//空消息。参考优先级 0xF0 。
 //参数类型 void 。
 //通常除了对消息计数外，应被无条件忽略。
 SM_NULL					0x0000
@@ -76,7 +76,7 @@ SM_INPUT				0x00FF
 @2 当前非确定上层实现注意事项：
 
 @2.1 ShellHelper ：
-注意严格禁止 CallStore 在未生效前被调用多次以免破坏消息队列。
+注意严格禁止 CallStored 在未生效前被调用多次以免破坏消息队列。
 
 @2.2 后台任务：
 注意生存期。

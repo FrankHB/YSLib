@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1563;
+\version r1566;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-22 07:20:06 +0800;
 \par 修改时间:
-	2012-06-01 16:50 +0800;
+	2012-06-11 12:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -63,12 +63,12 @@ namespace
 		//	u16 h(rgb2hsl(Color2rgb(c)).h);
 
 			if(!(is_locked || is_focused))
-				for(size_t i(0); i < arrlen(cs); ++i)
+				for(auto& c : cs)
 				{
-					hsl_t tmp(ColorToHSL(cs[i]));
+					hsl_t tmp(ColorToHSL(c));
 
 					tmp.s /= 4;
-					cs[i] = HSLToColor(tmp);
+					c = HSLToColor(tmp);
 				}
 			Diminish(rt);
 			DrawRect(g, rt, cs[0]);
