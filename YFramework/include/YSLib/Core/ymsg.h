@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2700;
+\version r2701;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-15 15:08 +0800;
+	2012-06-16 14:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -80,10 +80,10 @@ private:
 public:
 	/*!
 	\brief 构造：使用 Shell 弱指针、消息标识、消息优先级和消息内容。
-	\since build 316 。
+	\since build 318 。
 	*/
 	Message(const weak_ptr<Shell>& = weak_ptr<Shell>(), ID = 0,
-		Priority = 0, const ValueObject& = ValueObject());
+		const ValueObject& = ValueObject());
 
 	/*!
 	\brief 复制构造：默认实现。

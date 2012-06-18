@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1799;
+\version r1999;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-06-10 04:03 +0800;
+	2012-06-19 00:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -63,82 +63,55 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 
 				if(k.count() != 1)
 					return;
-				if(viewer.IsSelected())
+				if(k[Up] || k[Down] || k[PgUp] || k[PgDn])
+				{
+					const auto old_sel(viewer.GetSelectedIndex());
+					const auto old_off(viewer.GetOffset());
+					const auto old_hid(viewer.GetHeadIndex());
+					const auto old_top(top_offset);
+
+					{
+						const bool up(k[Up] || k[PgUp]);
+
+						if(viewer.IsSelected())
+						{
+							viewer.IncreaseSelected((up ? -1 : 1) * (k[Up]
+								|| k[Down] ? 1 : GetHeight() / GetItemHeight()));
+							if(old_sel == viewer.GetSelectedIndex()
+								&& CyclicTraverse)
+								goto bound_select;
+							if(viewer.GetOffset() == (up ? 0 : ViewerType
+								::DifferenceType(viewer.GetLength() - 1)))
+								AdjustOffset(up);
+						}
+						else
+bound_select:
+							up ? SelectLast() : SelectFirst();
+					}
+
+					const auto new_off(viewer.GetOffset());
+
+					if(viewer.GetSelectedIndex() != old_sel)
+						CallSelected();
+					if(old_top != top_offset || viewer.GetHeadIndex()
+						!= old_hid)
+						UpdateView();
+					else if(old_off != new_off)
+						InvalidateSelected2(old_off, new_off);
+				}
+				else if(viewer.IsSelected())
 				{
 					// NOTE: Do not confuse with %Components::Enter.
 					if(k[KeyCodes::Enter])
 						InvokeConfirmed(viewer.GetSelectedIndex());
 					else if(k[Esc])
 					{
+						InvalidateSelected(viewer.GetOffset());
 						ClearSelected();
+					// TODO: Create new event for canceling selection.
 						CallSelected();
 					}
-					else if(k[Up] || k[Down] || k[PgUp] || k[PgDn])
-					{
-						const auto nOld(viewer.GetSelectedIndex());
-
-						if(k[Up])
-						{
-							if(viewer.GetSelectedIndex() == 0)
-							{
-								if(CyclicTraverse)
-								{
-									SelectLast();
-									goto end_switch;
-								}
-							}
-							else
-								--viewer;
-							if(viewer.GetOffset() == 0)
-								AdjustTopOffset();
-						}
-						else if(k[Down])
-						{
-							if(viewer.GetSelectedIndex() + 1
-								== GetList().size())
-							{
-								if(CyclicTraverse)
-								{
-									SelectFirst();
-									goto end_switch;
-								}
-							}
-							else
-								++viewer;
-							if(viewer.GetOffset() ==
-								ViewerType::DifferenceType(
-								viewer.GetLength() - 1))
-								AdjustBottomOffset();
-						}
-						else if(k[PgUp])
-						{
-							viewer.DecreaseSelected(
-								GetHeight() / GetItemHeight());
-							AdjustTopOffset();
-						}
-						else
-						{
-							viewer.IncreaseSelected(
-								GetHeight() / GetItemHeight());
-							AdjustBottomOffset();
-						}
-						if(viewer.GetSelectedIndex() != nOld)
-							CallSelected();
-					}
-					else
-						return;
 				}
-				else
-				{
-					if(k[Up] || k[PgUp])
-						SelectLast();
-					else if(k[Down] || k[PgDn])
-						SelectFirst();
-					else
-						return;
-				}
-end_switch:
-				UpdateView();
 			}
 		},
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
@@ -158,7 +131,7 @@ end_switch:
 		},
 		FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority)
 	);
-	AdjustViewLength(); //防止显示长度出错。
+	AdjustViewLength();
 }
 
 SDst
@@ -186,8 +159,16 @@ TextList::SetList(const shared_ptr<ListType>& h)
 void
 TextList::SetSelected(ListType::size_type i)
 {
-	if(viewer.Contains(i) && viewer.SetSelectedIndex(i))
-		CallSelected();
+	if(viewer.Contains(i))
+	{
+		const auto old_off(viewer.GetOffset());
+
+		if(viewer.SetSelectedIndex(i))
+		{
+			CallSelected();
+			InvalidateSelected2(old_off, viewer.GetOffset());
+		}
+	}
 }
 void
 TextList::SetSelected(SPos x, SPos y)
@@ -196,40 +177,35 @@ TextList::SetSelected(SPos x, SPos y)
 }
 
 SDst
-TextList::AdjustBottomOffset()
+TextList::AdjustOffset(bool is_top)
 {
 	if(GetFullViewHeight() > GetHeight())
 	{
 		viewer.RestrictSelected();
 
-		const SDst item_height(GetItemHeight());
-		const auto d((GetHeight() + top_offset) % item_height);
-
-		if(d != 0)
+		if(is_top)
 		{
-			const auto tmp(top_offset + item_height - d);
+			const auto d(top_offset);
 
-			top_offset = tmp % item_height;
+			top_offset = 0;
 			AdjustViewLength();
-			viewer.IncreaseHead(tmp / item_height);
+			return d;
 		}
-		return d;
-	}
-	return 0;
-}
+		else
+		{
+			const SDst item_height(GetItemHeight());
+			const auto d((GetHeight() + top_offset) % item_height);
 
-SDst
-TextList::AdjustTopOffset()
-{
-	if(GetFullViewHeight() > GetHeight())
-	{
-		viewer.RestrictSelected();
+			if(d != 0)
+			{
+				const auto tmp(top_offset + item_height - d);
 
-		const auto d(top_offset);
-
-		top_offset = 0;
-		AdjustViewLength();
-		return d;
+				top_offset = tmp % item_height;
+				AdjustViewLength();
+				viewer.IncreaseHead(tmp / item_height);
+			}
+			return d;
+		}
 	}
 	return 0;
 }
@@ -238,13 +214,17 @@ void
 TextList::AdjustViewLength()
 {
 	const auto h(GetHeight());
-	const auto ln_h(GetItemHeight());
 
-	viewer.SetLength(h / ln_h + (top_offset != 0 || h % ln_h != 0));
+	if(h != 0)
+	{
+		const auto ln_h(GetItemHeight());
+
+		viewer.SetLength(h / ln_h + (top_offset != 0 || h % ln_h != 0));
+	}
 }
 
 bool
-TextList::CheckConfirmed(TextList::ListType::size_type idx) const
+TextList::CheckConfirmed(ListType::size_type idx) const
 {
 	return viewer.IsSelected() && viewer.GetSelectedIndex() == idx;
 }
@@ -258,23 +238,30 @@ TextList::CheckPoint(SPos x, SPos y)
 }
 
 void
-TextList::InvalidateSelected(ListType::difference_type offset)
+TextList::InvalidateSelected(ListType::difference_type offset,
+	ListType::size_type n)
 {
-	if(offset >= 0)
+	if(offset >= 0 && n != 0)
 	{
 		const auto ln_h(GetItemHeight());
-		Rect r(0, -top_offset + ln_h * offset, GetWidth(), ln_h);
+		Rect r(0, -top_offset + ln_h * offset, GetWidth(), ln_h * n);
 
 		if(r.Y < GetHeight())
 		{
-			RestrictInInterval(r.Y, 0, GetHeight());
-			if(GetHeight() > r.Y)
-			{
-				RestrictUnsignedStrict(r.Height, GetHeight() - r.Y);
-				Invalidate(*this, r);
-			}
+			r.Y = max<int>(r.Y, 0);
+			RestrictUnsignedStrict(r.Height, GetHeight() - r.Y);
+			Invalidate(*this, r);
 		}
 	}
+}
+
+void
+TextList::InvalidateSelected2(ListType::difference_type x,
+	ListType::difference_type y)
+{
+	if(y < x)
+		std::swap(x, y);
+	InvalidateSelected(x < 0 ? 0 : x, y - x + 1);
 }
 
 void
@@ -378,30 +365,29 @@ void
 TextList::SelectFirst()
 {
 	viewer.SetSelectedIndex(0);
-	AdjustTopOffset();
+	AdjustOffset(true);
 }
 
 void
 TextList::SelectLast()
 {
 	viewer.SetSelectedIndex(GetList().size() - 1);
-	AdjustBottomOffset();
+	AdjustOffset(false);
 }
 
 void
-TextList::UpdateView(bool is_active)
+TextList::UpdateView(bool is_active, bool need_invalidation)
 {
 	GetViewChanged()(ViewArgs(*this, is_active));
 	AdjustViewLength();
-	Invalidate(*this);
+	if(need_invalidation)
+		Invalidate(*this);
 }
 
 void
 TextList::CallSelected()
 {
-	InvalidateSelected(viewer.GetOffset());
 	GetSelected()(IndexEventArgs(*this, viewer.GetSelectedIndex()));
-	InvalidateSelected(viewer.GetOffset());
 }
 
 void
@@ -417,6 +403,7 @@ ResizeForContent(TextList& tl)
 {
 	SetSizeOf(tl, Size(tl.GetMaxTextWidth() + GetHorizontalOf(tl.Margin),
 		tl.GetFullViewHeight()));
+	tl.AdjustViewLength();
 }
 
 YSL_END_NAMESPACE(Components)

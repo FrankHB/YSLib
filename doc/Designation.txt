@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7242;
+\version r7245;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-11 11:39 +0800;
+	2012-06-17 21:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -1137,6 +1137,9 @@ BASE_EXTENSIONS += ftsynth.c
 头文件版本： 2.4.8 ；
 库文件版本：使用 2.4.4 的 /src/cache 源文件代替 2.4.8 对应部分，用 devkitPro 编译的对应版本， modules.cfg 配置不变。
  build 292 起：
+头文件版本： 2.4.9 ；
+库文件版本： 2.4.9 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+ build 318 起：
 头文件版本： 2.4.9 ；
 库文件版本： 2.4.9 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
 

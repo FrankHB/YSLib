@@ -1,8 +1,8 @@
 # DS Makefile for YSTest -> ARM9 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-06-05 03:12 +0800;
-# Version = r3380;
+# UTime = 2012-06-17 20:44 +0800;
+# Version = r3382;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -102,7 +102,7 @@ LIBS	:=	-lfat -lnds9
 
 #---- User defined libraries.
 
-LIBPATHEX	:= -L$(TOPDIR)/../YFramework/lib
+LIBPATHEX	:= -L$(TOPDIR)/../YFramework_DS/lib
 LIBEX		:= -lfreetype #-lagg -lloki
 
 YBASE_A := $(TOPDIR)/../YBase_DS/$(RELEASE)/libYBase.a

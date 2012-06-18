@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2631;
+\version r2632;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:36 +0800;
 \par 修改时间:
-	2012-06-15 13:53 +0800;
+	2012-06-16 14:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -73,7 +73,7 @@ void
 PostMessage(const weak_ptr<Shell>& wp, Messaging::ID id,
 	Messaging::Priority prior, const ValueObject& c) ynothrow
 {
-	PostMessage(Message(wp, id, prior, c), prior);
+	PostMessage(Message(wp, id, c), prior);
 }
 
 void

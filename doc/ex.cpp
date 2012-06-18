@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3645; *build 317 rev 54;
+\version r3646; *build 318 rev 44;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-15 15:50 +0800;
+	2012-06-19 00:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -375,207 +375,141 @@ $using:
 
 $DONE:
 r1:
-/ @ \cl MemoryList @ \u YNew $=
-(
-	+ final @ \a \m (\st, \cl),
-	(
-		/ \smf void Print(MapType::const_iterator, std::FILE*)
-			-> void Print(const MapType::value_type&, std::FILE*),
-		- \smf void Print(ListType::const_iterator, std::FILE*);
-		/ \tr \simp \impl @ \mf PrintAll ^ std::for_each,
-		/ \tr \simp \impl @ \mf PrintAllDuplicate ^ std::for_each
-	)
-);
-/ \tr \impl @ \ft OnExit_DebugMemory_print @ \impl \u Main_ARM9;
-/= test 1 @ platform MinGW32;
+/= test 0 @ platform DS;
 
 r2:
-/ \simp \impl @ (\ft OnExit_DebugMemory_print @ \impl \u Main_ARM9,
-	\mf ReaderBox::GetTopWidgetPtr @ \impl \u ShellReader,
-	\f RectDrawCheckBox @ \un \ns @ \impl \u Selector) ^ range based for,
-/ \simp \impl @ \f InitializeSystemFontCache @ \impl \u Initialization ^ auto;
-/= test 2 @ platform MinGW32;
+/ \impl @ move \ctor @ \cl Message;
+/= test 1 @ platform MinGW32;
 
 r3:
-/= test 3 @ platform DS;
+/ \simp @ \ctor#1 @ \cl Message,
+/ \tr \simp \impl @ \f PostMessage#3 @ \impl \u YApplication;
+/= test 2 @ platform DS ^ \conf release;
 
-r4:
+r4-r5:
+/ \simp \impl @ \ctor TextList;
+/= 2 test 3 @ platform MinGW32;
+
+r6:
 /= test 4 @ platform DS ^ \conf release;
 
-r5-r6:
-/ \simp \impl @ \mf MessageQueue::(Peek, Remove);
-/= 2 test 5 @ platform DS;
-
-r7:
-+ \inh public enable_shared_from_this<Shell> @ \cl Shell;
-/= test 6 @ platform MinGW32;
-
-r8:
-/ @ \cl Application $=
+r7-r8:
+^ updated library freetype 2.4.10 ~ modified freetype 2.4.9;
 (
-	/ \inh private noncopyable -> \inh public Shell;
-	/ \tr \impl @ \ctor,
-	+ \mf int OnGotMessage override
+	/ \lib path \dir "lib" @ path \dir "YFramework" => \dir "YFramework_DS";
+	/ \tr @ Makefile @ \proj YSTest_ARM9
 );
-/= test 7 platform MinGW32;
+/= test 5 @ platform DS;
 
 r9:
-/= test 8 @ platform DS;
+/= test 6 @ platform MinGW32;
 
 r10:
-/ \mf DispatchMessage @ \cl Applicaton \mg -> \mf OnGotMessage,
-/ \a \ret \tp @ \mf OnGotMesssage -> void ~ int;
-/ \tr \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
-/= test 9 platform MinGW32;
+/= test 7 @ platform DS ^ \conf release;
 
 r11:
-/= test 10 @ platform DS;
+/= test 8 @ platform MinGW32 ^ \conf release;
 
 r12:
-/= test 11 @ platform DS ^ \conf release;
-
-r13-r15:
-/= 3 test 12 platform MinGW32 ^ \conf release;
-
-r16-r17:
-/ @ \cl MessageQueue $=
+/ @ \cl TextList $=
 (
-	+ typedef iterator Iterator;
-	/ \mf int Peek(Message&, const shared_ptr<Shell>&, bool = false)
-		-> \mf Iterator Peek(Message&, const shared_ptr<Shell>&),
-	+ \mf \i bool Erase(Iterator),
-	+ \mf \i Iterator GetBegin() cosnt,
-	+ \mf \i Iterator GetEnd() const
+	/ private \mf (AdjustTopOffset, AdjustBottomOffset)
+		-> private \mf AdjustOffset,
+	/ \tr \impl @ \mf (SelectFirst, SelectLast),
+	/ \tr \impl @ \ctor
 );
-/ \simp \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
-/= 2 test 13 platform MinGW32 ^ \conf release;
+/= test 9 @ platform MinGW32 ^ \conf release;
 
-r18:
-/= test 14 @ platform DS;
+r13:
+/= test 10 @ platform MinGW32;
 
-r19:
+r14:
+/ @ \cl TextList $=
+(
+	/ private \mf void InvalidateSelected(ListType::difference_type)
+		-> protected \mf void InvalidateSelected(ListType::difference_type,
+		ListType::difference_type = 0);
+	+ \mf void InvalidateSelected2(ListType::difference_type,
+		ListType::difference_type),
+	/ @ \mf void UpdateView(bool = false)
+		-> \mf void UpdateView(bool = false, bool = true);
+	/ \simp \impl @ \mf CallSelected,
+	/ \tr \impl @ \ctor,
+	/ \impl @ \mf TextList::SetSelected#1，
+);
+/ \tr \impl @ \mf ListBox::ResizeForPreferred;
+/= test 11 @ platform MinGW32;
+
+r15:
+/ \impl @ \ctor TextList;
+/= test 12 @ platform DS;
+
+r16:
+/= test 13 @ platform DS ^ \conf release;
+
+r17-r20:
+/ @ \cl TextList $=
+(
+	/ protected \mf void InvalidateSelected(ListType::difference_type,
+		ListType::difference_type = 0) -> void
+		InvalidateSelected(ListType::difference_type, ListType::size_type = 1),
+	/ \impl @ InvalidateSelected2
+);
+/= 4 test 14 @ platform MinGW32;
+
+r21:
 /= test 15 @ platform DS ^ \conf release;
 
-r20:
-/ \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
-/= test 16 @ platform DS ^ \conf release;
+r22-r23:
+* \impl @ \ctor TextList $since r17,
+/= 2 test 16 @ platform MinGW32;
 
-r21-r28:
-/= 8 test 17 @ platform MinGW32;
+r24-r26:
+/ \impl @ \ctor TextList,
+/= 3 test 17 @ platform MinGW32;
 
-r29:
-* missing calling event %LostFocus when focus moved through requesting
-	$since b315 $=
-(
-	* \impl @ \f RequestFocusFrom @ \impl \u YFocus
-	* $comp menus behavior without expected hiding when lost focus
-);
-/= test 18 @ platform MinGW32;
+r27:
+/= test 18 @ platform DS;
 
-r30:
-/ \impl @ \mf MessageQueue::Peek;
+r28:
++ '-j' @ \a Makefile command lines @ \a \conf @ \a VC++ \proj;
 /= test 19 @ platform DS ^ \conf release;
 
-r31:
-/ \impl @ \f Idle @ \un \ns @ \impl \u DSMain;
-/= test 20 @ platform DS ^ \conf release;
+r29-r40:
+/= 12 test 20 @ platform MinGW32;
 
-r32:
-/= test 21 @ platform DS;
-
-r33:
-/= test 22 @ platform DS ^ \conf release;
-
-r34:
-/ \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
-/ \simp @ \cl Application $=
+r41:
+* wrong length set @ \cl TextList $since b285 $=
 (
-	- \mf GetMessage,
-	/ \impl @ \ctor;
-	- \m msg
-);
-/= test 23 @ platform MinGW32;
-
-r35:
-/= test 24 @ platform DS ^ \conf release;
-
-r36:
-/ @ \u YMessage $=
-(
-	* missing non-implicit-deleted \impl @ move \ctor @ \cl Message $since b316;
-	/ @ \cl MessageQueue $=
-	(
-		/ private \inh multiset<Message> -> multimap<Priority, Message>,
-		/ typedef iterator Iterator -> typedef const_iterator Iterator,
-		/ \tr \impl @ \mf GetMaxPriority,
-		/ \tr \impl @ 2 \mf Peek,
-		/ \mf void Push(const Message& msg)
-			-> \mf void Push(const Message& msg, Priority prior),
-		/ \mf void Push(const Message&& msg)
-			-> \mf void Push(const Message&& msg, Priority prior),
-		/ \impl @ \mf Remove
-	);
-	- \op<(const Message&, const Message),
-);
-/ \tr \decl @ \f PostMessage @ \u YApplication,
-/ \tr \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
-/= test 25 @ platform MinGW32;
-
-r37-r39:
-/ \impl @ main \f @ \impl \u Main_ARM9 ^ (\f Activate ~ \mf Application::Switch)
-	@ \h YApplication;
-/= 3 test 26 @ platform MinGW32;
-
-r40-r41:
-/= 2 test 27 @ platform MinGW32;
+	* invalid height not ignored @ \f ResizeForContent,
+	* missing adjusting viewer length @ \impl @ \f ResizeForContent
+		@ \impl \u TextList
+)
+* $comp submenu test using right arrow key $since b285;
+/= test 21 @ platform MinGW32;
 
 r42:
-* \impl @ \mf MessageQueue::Remove $since r36;
-/= test 28 @ platform MinGW32;
+/= test 22 @ platform DS;
 
-r43-r49:
-/= 7 test 29 @ platform MinGW32;
+r43:
+/= test 23 @ platform MinGW32 ^ \conf release;
 
-r50:
-* wrong \inh @ \cl MessageQueue $since r36 $=
-(
-	/ multiset<Priority, Message>
-		-> multiset<Priority, Message, std::greater<Priority>>,
-	/ \tr \impl @ \mf Remove
-);
-/= test 30 @ platform MinGW32;
-
-r51:
-/ @ \cl Message $=
-(
-	/ \impl @ (\a \ctor, \mf (\op=, Swap)),
-	- \mf (GetPriority, UpdateTimestamp, IsTimeOut);
-	- \m (prior, timestamp, timeout)
-);
-/= test 31 @ platform MinGW32;
-
-r52:
-/= test 32 @ platform DS;
-
-r53:
-/= test 33 @ platform MinGW32 ^ \conf release;
-
-r54:
-/= test 32 @ platform DS ^ \conf release;
+r44:
+/= test 22 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-06-15:
--23.4d;
-//Mercurial rev1-rev189: r8643;
+2012-06-19:
+-24.6d;
+// Mercurial rev1-rev190: r8687;
 
 / ...
 
 
 $NEXT_TODO:
-b318-b324:
+b319-b324:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -980,6 +914,41 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramkework'.'YSLib' $=
+	(
+		/ %'core'.'messaging' $=
+		(
+			/ $design "improved performance of move constructor"
+				@ "class $Message",
+			- "redundant parameter" @ "function %PostMessage"
+		)
+		/ @ "unit %TextList" @ %'GUI' $=
+		(
+			/ $design "simplified implementation" @ "key event handler"
+				@ "class %TextList"
+				// Get better performance in scrolling.
+			* "wrong length set for class %TextList" $since b285 $=
+			(
+				* "invalid height not ignored"
+					@ "member function %TextList::AdjustViewLength",
+				* "missing adjusting viewer length"
+					@ "function %ResizeForContent";
+				$dep_to "wrong_textlist_length"
+			)
+		)
+	)
+	^ "updated library freetype 2.4.10" ~ "modified freetype 2.4.9",
+	^ $design "parallel command line option '-j'"
+		@ "all VC++ projects makefile command lines",
+	/ %'YReader'.'shells test example' $=
+	(
+		$dep_from "wrong_textlist_length";
+		* $comp "submenu test using right arrow key" $since b285
+	)
+),
+
+b317
 (
 	/ %'YFramework' $=
 	(
@@ -2433,8 +2402,7 @@ b285
 	/ %'YFramework'.'YSLib'.'GUI' $=
 	(
 		- "hosted menu referent pointer" @ "unit %Menu",
-		+ "member function %(SetSelected, ClearSelected)"
-			@ "class %ListBox";
+		+ "member function %(SetSelected, ClearSelected)" @ "class %ListBox";
 		+ "item text matching when list shown" @ "class %DropDownList",
 		* "viewer length of text list no synchronized when initialized"
 			$since b203

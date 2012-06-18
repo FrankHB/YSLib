@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r2140;
+\version r2145;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-15 15:06 +0800;
+	2012-06-16 14:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,14 +32,16 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
-Message::Message(const weak_ptr<Shell>& wp, ID m, Priority p,
-	const ValueObject& c)
+Message::Message(const weak_ptr<Shell>& wp, ID m, const ValueObject& c)
 	: dest(wp), to_all(wp.expired()), id(m), content(c)
 {}
 Message::Message(Message&& msg)
-	: dest(msg.dest), to_all(msg.to_all), id(msg.id),
+	: dest(), to_all(msg.to_all), id(msg.id),
 	content(std::move(msg.content))
-{}
+{
+	// NOTE: Better performance than directly copy.
+	std::swap(dest, msg.dest);
+}
 
 void
 Message::Swap(Message& msg) ynothrow

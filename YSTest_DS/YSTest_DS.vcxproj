@@ -41,12 +41,12 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(Configuration)\</IntDir>
-    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -r BUILD=$(Configuration)</NMakeBuildCommandLine>
-    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -r BUILD=$(Configuration)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -r BUILD=$(Configuration) rebuild</NMakeReBuildCommandLine>
-    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -r BUILD=$(Configuration) rebuild</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
-    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -j -r BUILD=$(Configuration)</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -j -r BUILD=$(Configuration)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -j -r BUILD=$(Configuration) rebuild</NMakeReBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -j -r BUILD=$(Configuration) rebuild</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
     <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
     <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
     <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>

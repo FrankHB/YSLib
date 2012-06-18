@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1524;
+\version r1590;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-19 22:59:02 +0800;
 \par 修改时间:
-	2012-06-08 16:32 +0800;
+	2012-06-19 00:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ public:
 	typedef GSequenceViewer<ListType> ViewerType; //!< 视图类型。
 	/*!
 	\brief 视图参数类型。
-	\note bool 参数表示主动定位视图。
+	\param 表示主动定位视图。
 	\since build 268 。
 	*/
 	typedef GValueEventArgs<bool> ViewArgs;
@@ -79,9 +79,24 @@ public:
 private:
 	ViewerType viewer; //!< 列表视图。
 	SDst top_offset; //!< 列表视图首项目超出上边界的竖直偏移量。
-	DeclEvent(HViewEvent, ViewChanged) //!< 视图变更事件。
-	DeclEvent(HIndexEvent, Selected) //!< 项目选择状态变更事件。
-	DeclEvent(HIndexEvent, Confirmed) //!< 项目选中确定事件。
+	/*!
+	\brief 视图变更事件。
+	
+	当视图长度或位置发生改变时触发的事件。
+	*/
+	DeclEvent(HViewEvent, ViewChanged)
+	/*!
+	\brief 项目选择状态变更事件。
+
+	当项目被选中或取消选中时触发的事件。
+	*/
+	DeclEvent(HIndexEvent, Selected)
+	/*!
+	\brief 项目选中确认事件。
+
+	当前选中项目被确定时触发的事件。
+	*/
+	DeclEvent(HIndexEvent, Confirmed)
 
 public:
 	/*!
@@ -152,25 +167,22 @@ public:
 
 private:
 	/*!
-	\brief 调整列表视图底项目（可能不完全）超出下边界以上的竖直偏移量为零。
-	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
-	\note 若没有底项目则不调整，返回 0 。
-	*/
-	SDst
-	AdjustBottomOffset();
-
-	/*!
-	\brief 调整列表视图首项目（可能不完全）超出上边界以上的竖直偏移量为零。
+	\brief 调整列表视图底项目的竖直偏移量为零。
 	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
 	\post 若调整则 <tt>top_offset == 0</tt> 。
+	\note 若没有底项目则不调整，返回 0 。
+
+	参数为 <tt>true</tt> 时，调整列表视图底项目（可能不完全）超出下边界以上的竖直
+	偏移量为零；否则，调整列表视图首项目（可能不完全）超出上边界以上的竖直偏移量为零。
 	*/
 	SDst
-	AdjustTopOffset();
+	AdjustOffset(bool);
 
 public:
 	/*!
 	\brief 调整视图长度。
 	\note 视图长为当项目数足够时所有在视图中显示的（可能不完全）项目总数。
+	\note 当部件高为 0 时忽略。
 	\warning 设置大小或列表内容后不调用此方法可能导致显示错误。
 	\since build 285 。
 	*/
@@ -206,13 +218,25 @@ public:
 	//! \since build 316 。
 	using MTextList::Find;
 
-private:
+protected:
 	/*!
 	\brief 无效化偏移量对应的列表项区域。
-	\since build 268 。
+	\param offset 起始偏移量。
+	\param diff 终止偏移量相对于起始偏移量的距离偏移量。
+	\since build 318 。
 	*/
 	void
-	InvalidateSelected(ListType::difference_type);
+	InvalidateSelected(ListType::difference_type offset,
+		ListType::size_type diff = 1);
+
+	/*!
+	\brief 无效化偏移量对应的列表项区域。
+	\note 若第二参数小于第一参数则交换它们的值。
+	\note 区域由参数组成的闭区间指定，若区间左端小于 0 则视为 0 。
+	\since build 318 。
+	*/
+	void
+	InvalidateSelected2(ListType::difference_type, ListType::difference_type);
 
 public:
 	/*!
@@ -269,13 +293,14 @@ public:
 
 	/*!
 	\brief 更新视图。
+	\param is_active 是否确定仅变更视图位置。
+	\param need_invalidation 更新后无效化自身。
+	\since build 318 。
 
-	调用视图变更事件、调整视图长度后无效化自身。
-	\note 参数表示是否确定仅变更视图位置。
-	\since build 268 。
+	调用视图变更事件并调整视图长度。
 	*/
 	void
-	UpdateView(bool = false);
+	UpdateView(bool is_active = false, bool need_invalidation = true);
 
 private:
 	/*!
@@ -294,6 +319,7 @@ private:
 
 /*!
 \brief 根据文本内容调整文本列表大小。
+\note 调整大小后自动调整视图长度。
 */
 void
 ResizeForContent(TextList&);
