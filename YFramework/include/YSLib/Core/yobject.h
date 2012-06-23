@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3435;
+\version r3458;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-05-25 08:51 +0800;
+	2012-06-23 19:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -62,9 +62,9 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 \brief 值类型对象类。
 \pre 满足 CopyConstructible 。
 \warning \c public 析构函数非虚实现。
+\since build 217 。
 
 具有值语义和深复制语义的对象。
-\since build 217 。
 */
 class ValueObject
 {
@@ -87,35 +87,35 @@ private:
 	PDefTmplH1(_type)
 	struct GManager
 	{
+		static_assert(std::is_object<_type>::value, "Non object type found.");
+
 		static bool
 		Do(void*& x, void*& y, OpType op)
 		{
 			switch(op)
 			{
-		//	case Create:
-		//		lhs = new _type();
-		//		return false;
 			case Destroy:
 				delete static_cast<_type*>(x);
-				return false;
+				break;
 			case Clone:
 				YAssert(y, "Null pointer found.");
 
 				x = new _type(*static_cast<const _type*>(y));
-				return false;
+				break;
 			case Equality:
 				YAssert(x && y, "Null pointer found.");
 
 				return AreEqual(*static_cast<const _type*>(x),
 					*static_cast<const _type*>(y));
-				return false;
 			case TypeCheck:
-#ifdef YCL_FUNCTION_NO_EQUALITY_GUARANTEE
-				return false;
-#else
+#if YCL_FUNCTION_NO_EQUALITY_GUARANTEE
 				return x ? *static_cast<const std::type_info*>(x)
 					== typeid(GManager) : false;
+#else
+				break;
 #endif
+			default:
+				YAssert(false, "Invalid operation found.");
 			}
 			return false;
 		}
@@ -129,13 +129,13 @@ private:
 		{
 			YAssert(m, "Null pointer found.");
 
-#ifdef YCL_FUNCTION_NO_EQUALITY_GUARANTEE
-			return m == GManager::Do;
-#else
-			const void *p(&typeid(GManager));
+#if YCL_FUNCTION_NO_EQUALITY_GUARANTEE
+			const void* p(&typeid(GManager));
 			void* q(nullptr);
 
 			return m(const_cast<void*&>(p), q, TypeCheck);
+#else
+			return m == GManager::Do;
 #endif
 		}
 	};
@@ -147,7 +147,6 @@ public:
 	/*!
 	\brief 无参数构造。
 	\note 得到空实例。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	yconstfn
@@ -174,7 +173,6 @@ public:
 	ValueObject(const ValueObject&);
 	/*!
 	\brief 转移构造。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	ValueObject(ValueObject&&) ynothrow;
@@ -191,7 +189,6 @@ public:
 	}
 	/*!
 	\brief 转移构造。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	ValueObject&
@@ -266,7 +263,6 @@ public:
 	/*
 	\brief 清除。
 	\post <tt>*this == ValueObject()</tt> 。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	void

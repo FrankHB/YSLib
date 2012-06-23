@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1825;
+\version r1852;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2012-06-10 03:22 +0800;
+	2012-06-23 01:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,8 +34,11 @@
 
 YSL_BEGIN
 
-/* \brief 调用时动态类型检查仿函数模板。
-PDefTH3(_type, _tArg, _tRet)
+#if 0
+/*
+\brief 调用时动态类型检查仿函数模板。
+*/
+PDefTmplH3(_type, _tArg, _tRet)
 class GHDynamicFunction
 {
 private:
@@ -45,16 +48,16 @@ private:
 		_tRet (*_f_ptr)(_type&, _tArg);
 		_tRet (_type::*_mf_ptr)(_tArg) const;
 
-		/!
+		/*!
 		\brief 构造：使用指定函数引用。
-		/
+		*/
 		explicit
 		Pointer(_tRet (&_f_)(_type&, _tArg))
 			: _f_ptr(&_f_)
 		{}
-		/!
+		/*!
 		\brief 构造：使用指定非静态成员函数指针。
-		/
+		*/
 		explicit
 		Pointer(_tRet(_type::*_mf_ptr_)(_tArg) const)
 			: _mf_ptr(_mf_ptr_)
@@ -67,25 +70,25 @@ private:
 	} _state;
 
 public:
-	/!
+	/*!
 	\brief 构造：使用指定函数引用。
-	/
+	*/
 	explicit
 	GHDynamicFunction(_tRet(&_f)(_type&, _tArg))
 		: _m_ptr(_f), _state(_func)
 	{}
-	/!
+	/*!
 	\brief 构造：使用指定非静态成员函数指针。
-	/
+	*/
 	explicit
 	GHDynamicFunction(_tRet(_type::*_pf)(_tArg) const)
 		: _m_ptr(_pf), _state(_mem_func)
 	{}
 
-	/!
+	/*!
 	\brief 调用：使用 _type 类型参数。
 	\note 无 dynamic_cast 。
-	/
+	*/
 	_tRet
 	operator()(_type& _r, _tArg _x) const
 	{
@@ -95,10 +98,10 @@ public:
 		else if(_m_ptr._mf_ptr)
 			return (_r.*_m_ptr._mf_ptr)(_x);
 	}
-	/!
+	/*!
 	\brief 调用：使用非 _type 类型参数。
 	\note 有 dynamic_cast 。
-	/
+	*/
 	template<class _tNew>
 	_tRet
 	operator()(const _tNew& _r, _tArg _x) const
@@ -116,26 +119,26 @@ public:
 };
 
 
-/!
-\brief 助手函数：使用指定函数引用构造
-	GHDynamicFunction<_type, _tArg, _tRet> 对象。。
-/
-PDefTH3(_type, _tArg, _tRet)
+/*!
+\brief 助手函数：使用指定函数引用构造 GHDynamicFunction<_type, _tArg, _tRet> 对象。
+*/
+PDefTmplH3(_type, _tArg, _tRet)
 inline GHDynamicFunction<_type, _tArg, _tRet>
 ConstructDynamicFunctionWith(_tRet (&_f)(_type&, _tArg))
 {
 	return GHDynamicFunction<_type, _tArg, _tRet>(_f);
 }
-/!
+/*!
 \brief 助手函数：使用指定非静态成员函数指针构造
 	GHDynamicFunction<_type, _tArg, _tRet> 对象。
-/
+*/
 template<typename _tRet, typename _type, typename _tArg>
 inline GHDynamicFunction<_tRet, _type, _tArg>
 ConstructDynamicFunctionWith(_tRet (_type::*_f)(_tArg) const)
 {
 	return GHDynamicFunction<_tRet, _type, _tArg>(_f);
-}*/
+}
+#endif
 
 
 /*!
@@ -159,9 +162,10 @@ public:
 
 	/*!
 	\brief 比较：相等关系。
+	\since build 319 。
 	*/
 	yconstfn bool
-	operator==(const ExpandMemberFirst& rhs) const
+	operator==(const ExpandMemberFirst& rhs) const ynothrow
 	{
 		return _pm == rhs._pm;
 	}
@@ -218,9 +222,10 @@ public:
 
 	/*!
 	\brief 比较：相等关系。
+	\since build 319 。
 	*/
 	yconstfn bool
-	operator==(const ExpandMemberFirstBinder& rhs) const
+	operator==(const ExpandMemberFirstBinder& rhs) const ynothrow
 	{
 		return _po == rhs._po && _pm == rhs._pm;
 	}

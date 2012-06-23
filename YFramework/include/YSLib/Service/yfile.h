@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1891;
+\version r1902;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2012-04-30 22:41 +0800;
+	2012-06-22 12:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,18 @@ public:
 	virtual
 	~File();
 
-	DefPred(const ynothrow, Valid, fp) //!< 判断文件指针是否有效。
+	/*!
+	\brief 判断无效性。
+	\since build 319 。
+	*/
+	PDefHOp(bool, !) const ynothrow
+		ImplRet(!bool(*this))
+
+	/*!
+	\brief 判断有效性。
+	\since build 319 。
+	*/
+	explicit DefCvt(const ynothrow, bool, fp)
 
 	DefGetter(const ynothrow, FILE*, Ptr, fp) //!< 取文件指针。
 	DefGetter(const ynothrow, size_t, Size, fsize) //!< 取文件大小。

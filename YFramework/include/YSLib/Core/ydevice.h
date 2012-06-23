@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2936;
+\version r2954;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:39:39 +0800;
 \par 修改时间:
-	2012-04-13 18:47 +0800;
+	2012-06-23 02:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,9 +41,10 @@ class GraphicDevice : private noncopyable, protected Drawing::Graphics
 public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
+	\since build 319 。
 	*/
 	inline
-	GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p = nullptr)
+	GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p = nullptr) ynothrow
 		: Graphics(p, Drawing::Size(w, h))
 	{}
 	/*!
@@ -52,12 +53,15 @@ public:
 	*/
 	virtual DefEmptyDtor(GraphicDevice)
 
-	/*!
-	\since build 296 。
-	*/
+	//! \since build 319 。
 	//@{
-	using Graphics::IsValid;
+	using Graphics::operator!;
 
+	using Graphics::operator bool;
+	//@}
+
+	//! \since build 296 。
+	//@{
 	using Graphics::GetBufferPtr;
 	using Graphics::GetHeight;
 	using Graphics::GetWidth;
@@ -74,14 +78,14 @@ class Screen : public GraphicDevice
 public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
+	\since build 319 。
 	*/
-	Screen(SDst w, SDst h, Drawing::BitmapPtr p = nullptr)
+	Screen(SDst w, SDst h, Drawing::BitmapPtr p = nullptr) ynothrow
 		: GraphicDevice(w, h, p)
 	{}
 
 	/*!
 	\brief 取指针。
-	\note 无异常抛出。
 	\note 进行状态检查。
 	*/
 	virtual Drawing::BitmapPtr
@@ -90,9 +94,10 @@ public:
 	/*!
 	\brief 更新。
 	\note 复制到屏幕。
+	\since build 319 。
 	*/
 	virtual void
-	Update(Drawing::BitmapPtr);
+	Update(Drawing::BitmapPtr) ynothrow;
 };
 
 YSL_END_NAMESPACE(Devices)

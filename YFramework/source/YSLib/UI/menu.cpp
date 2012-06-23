@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1977;
+\version r1978;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-06-01 16:53 +0800;
+	2012-06-23 10:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/UI/menu.h"
 #include "YSLib/UI/ywindow.h"
+#include "YSLib/UI/YBrush.h"
 #include "YSLib/Service/TextRenderer.h"
 
 YSL_BEGIN

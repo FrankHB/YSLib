@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3920;
+\version r3921;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-10-04 21:23:32 +0800;
 \par 修改时间:
-	2012-06-05 21:23 +0800;
+	2012-06-22 09:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,7 +55,7 @@ namespace
 	RectDrawButton(const Graphics& g, Point pt, Size s, Hue base_hue,
 		bool is_pressed = false, bool is_enabled = true)
 	{
-		YAssert(g.IsValid(), "Invalid graphics context found.");
+		YAssert(bool(g), "Invalid graphics context found.");
 
 		DrawRectRoundCorner(g, pt, s, is_enabled ? HSLToColor(
 			{change_hue(base_hue, 25.640625F), 0.493671F, 0.462891F})

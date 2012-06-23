@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2152;
+\version r2154;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-06-11 12:06 +0800;
+	2012-06-22 12:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -156,7 +156,7 @@ InitializeSystemFontCache() ynothrow
 				{
 					HFileNode dir(font_dir);
 
-					if(dir.IsValid())
+					if(dir)
 						while((++dir).LastError == 0)
 							if(std::strcmp(dir.GetName(), FS_Now) != 0
 								&& !dir.IsDirectory()
@@ -238,7 +238,7 @@ CheckInstall() ynothrow
 
 			TextFile tf(CONF_PATH);
 
-			if(YB_LIKELY(tf.IsValid()))
+			if(YB_LIKELY(tf))
 			{
 				if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
 					throw LoggedEvent("Wrong encoding of configuration file.");

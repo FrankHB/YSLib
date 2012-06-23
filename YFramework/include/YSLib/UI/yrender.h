@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1533;
+\version r1534;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:47:32 +0800;
 \par 修改时间:
-	2012-05-25 13:58 +0800;
+	2012-06-22 09:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -145,7 +145,6 @@ public:
 	/*!
 	\brief 按参数绘制。
 	\pre 断言： <tt>&e.GetSender().GetRenderer() == this</tt> 。
-	\pre 断言： <tt>GetContext().IsValid()</tt> 。
 	\note 在 Validate 后 Update 。
 	\note 不调用 wgt.IsVisible() 检查可见性。
 	\since build 263 。

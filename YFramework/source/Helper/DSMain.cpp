@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2072;
+\version r2089;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-06-15 13:17 +0800;
+	2012-06-23 10:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include <YSLib/UI/ydesktop.h>
 #include "Helper/shlds.h"
 #include <YSLib/UI/ygui.h>
+#include <YSLib/Service/YBlit.h>
 #include <YCLib/Debug.h>
 #if YCL_MINGW32
 #include <thread>
@@ -121,7 +122,7 @@ Idle()
 {
 	// Note: Wait for GUI input of any shells. Post message for specific shell
 	//	would cause low performance when there are many candidate messages
-	//	of distinct shells. 
+	//	of distinct shells.
 	PostMessage(weak_ptr<Shell>(), SM_INPUT, 0x40);
 //	PostMessage(FetchShellHandle(), SM_INPUT, 0x40);
 #if YCL_MINGW32
@@ -200,8 +201,9 @@ private:
 public:
 	/*!
 	\brief 构造：指定宽度和高度，从指定缓冲区指针。
+	\since build 319 。
 	*/
-	DSScreen(SDst, SDst, Drawing::BitmapPtr = nullptr);
+	DSScreen(SDst, SDst, Drawing::BitmapPtr = nullptr) ynothrow;
 
 	/*!
 	\brief 复位。
@@ -212,7 +214,6 @@ public:
 
 	/*!
 	\brief 取指针。
-	\note 无异常抛出。
 	\note 进行状态检查。
 	*/
 	Drawing::BitmapPtr
@@ -222,9 +223,10 @@ public:
 	/*!
 	\brief 更新。
 	\note 复制到屏幕。
+	\since build 319 。
 	*/
 	void
-	Update(Drawing::BitmapPtr);
+	Update(Drawing::BitmapPtr) ynothrow override;
 	/*!
 	\brief 更新。
 	\note 以纯色填充屏幕。
@@ -242,32 +244,33 @@ protected:
 	Drawing::BitmapPtr pSrc;
 
 public:
-	DSScreen(SDst, SDst);
+	//! \since build 319 。
+	DSScreen(SDst, SDst) ynothrow;
 
 	/*!
 	\brief 更新。
 	\note 复制到屏幕。
-	\since build 299 。
+	\since build 319 。
 	*/
 	void
-	Update(Drawing::BitmapPtr);
+	Update(Drawing::BitmapPtr) ynothrow;
 
 	/*!
 	\brief 更新到宿主。
 	\param hDC 宿主窗口设备上下文句柄。
 	\param hMemDC 内存设备上下文句柄。
 	\note 复制到宿主窗口。
-	\since build 299 。
+	\since build 319 。
 	*/
 	void
-	UpdateToHost(::HDC hDC, ::HDC hMemDC);
+	UpdateToHost(::HDC hDC, ::HDC hMemDC) ynothrow;
 #else
 #	error Unsupported platform found!
 #endif
 };
 
 #if YCL_DS
-DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p)
+DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p) ynothrow
 	: Devices::Screen(w, h, p),
 	bg(-1)
 {}
@@ -287,7 +290,7 @@ DSScreen::GetCheckedBufferPtr() const ynothrow
 }
 
 void
-DSScreen::Update(BitmapPtr buf)
+DSScreen::Update(BitmapPtr buf) ynothrow
 {
 	DS::ScreenSynchronize(GetCheckedBufferPtr(), buf);
 }
@@ -297,7 +300,7 @@ DSScreen::Update(Color c)
 	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaOf(GetSize()), c);
 }
 #elif YCL_MINGW32
-DSScreen::DSScreen(SDst w, SDst h)
+DSScreen::DSScreen(SDst w, SDst h) ynothrow
 	: Devices::Screen(w, h),
 	Offset(), gbuf(Size(w, h)), pSrc()
 {
@@ -305,7 +308,7 @@ DSScreen::DSScreen(SDst w, SDst h)
 }
 
 void
-DSScreen::Update(Drawing::BitmapPtr p)
+DSScreen::Update(Drawing::BitmapPtr p) ynothrow
 {
 	pSrc = p;
 //	std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -327,7 +330,7 @@ DSScreen::Update(Drawing::BitmapPtr p)
 }
 
 void
-DSScreen::UpdateToHost(::HDC hDC, ::HDC hMemDC)
+DSScreen::UpdateToHost(::HDC hDC, ::HDC hMemDC) ynothrow
 {
 	if(pSrc)
 	{

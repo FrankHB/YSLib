@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3569;
+\version r3581;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-06-01 16:45 +0800;
+	2012-06-22 23:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -115,6 +115,13 @@ BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
 }
 
 void
+BitmapBuffer::SetContent(ConstBitmapPtr s, SDst w, SDst h)
+{
+	SetSize(w, h);
+	if(YB_LIKELY(pBuffer && s))
+		mmbcpy(pBuffer, s, GetSizeOfBuffer());
+}
+void
 BitmapBuffer::SetSize(SDst w, SDst h)
 {
 	decltype(GetAreaOf(GetSize())) s(w * h);
@@ -139,8 +146,7 @@ BitmapBuffer::SetSize(SDst w, SDst h)
 
 	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied.");
 
-	size.Width = w;
-	size.Height = h;
+	yunseq(size.Width = w, size.Height = h);
 	ClearImage();
 }
 void
@@ -236,7 +242,7 @@ bool
 CopyTo(BitmapPtr dst, const Graphics& g, const Size& ds,
 	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
 {
-	if(~rot & 1 && dst && g.IsValid())
+	if(~rot & 1 && dst && bool(g))
 	{
 		(rot == RDeg0
 			? Blit<BlitLoop, false, false, BitmapPtr, ConstBitmapPtr>
@@ -250,7 +256,7 @@ bool
 CopyTo(BitmapPtr dst, const BitmapBufferEx& buf, const Size& ds,
 	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
 {
-	if(~rot & 1 && dst && buf.IsValid())
+	if(~rot & 1 && dst && bool(buf))
 	{
 		(rot == RDeg0
 			? Blit<BlitTransparentLoop, false, false, BitmapPtr, IteratorPair>
@@ -266,7 +272,7 @@ bool
 BlitTo(BitmapPtr dst, const BitmapBufferEx& buf, const Size& ds,
 	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
 {
-	if(~rot & 1 && dst && buf.IsValid())
+	if(~rot & 1 && dst && bool(buf))
 	{
 		(rot == RDeg0
 			? Blit<BlitBlendLoop, false, false, BitmapPtr, IteratorPair>

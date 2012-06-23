@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2510;
+\version r2511;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-06-15 13:03 +0800;
+	2011-06-22 09:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -69,7 +69,6 @@ public:
 
 	/*!
 	\brief 取得线程空间中当前运行的 Shell 的句柄。
-	\note 无异常抛出。
 	*/
 	DefGetter(const ynothrow, shared_ptr<Shell>, ShellHandle, hShell)
 

@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3246;
+\version r3259;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2012-06-05 21:13 +0800;
+	2012-06-22 11:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -104,6 +104,11 @@ _t type
 
 #define implements public
 
+/*!
+\def _yInterfaceHead
+\brief 定义接口类型头部。
+\see DefEmptyDtor
+*/
 #define _yInterfaceHead(_n) { \
 	virtual ~_n() {}
 
@@ -200,6 +205,13 @@ _t type
 
 //简单通用成员函数定义。
 //prefix "Def" = Define;
+/*!
+\def DefEmptyDtor
+\brief 定义空析构函数。
+\note 与显式 default 不同，允许虚函数。
+\note C++11 不需要显式使用异常规范，可自动推导（参见 ISO C++11 12.4/3 ）。
+	显式异常规范导致使用隐式继承需要保证成员函数的异常规范限制。
+*/
 #define DefEmptyDtor(_t) \
 	~_t() \
 	{}

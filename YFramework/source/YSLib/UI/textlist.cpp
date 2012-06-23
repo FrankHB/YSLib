@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1999;
+\version r2001;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214 。
 \par 创建时间:
 	2011-04-20 09:28:38 +0800;
 \par 修改时间:
-	2012-06-19 00:33 +0800;
+	2012-06-23 10:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "YSLib/UI/textlist.h"
 #include "YSLib/UI/ywindow.h"
 #include "YSLib/UI/YBrush.h"
+#include "YSLib/Service/YBlit.h"
 #include "YSLib/Service/TextLayout.h"
 
 YSL_BEGIN
@@ -76,7 +77,8 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 						if(viewer.IsSelected())
 						{
 							viewer.IncreaseSelected((up ? -1 : 1) * (k[Up]
-								|| k[Down] ? 1 : GetHeight() / GetItemHeight()));
+								|| k[Down] ? 1 : GetHeight()
+								/ GetItemHeight()));
 							if(old_sel == viewer.GetSelectedIndex()
 								&& CyclicTraverse)
 								goto bound_select;

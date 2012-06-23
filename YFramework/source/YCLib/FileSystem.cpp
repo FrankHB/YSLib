@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1559;
+\version r1567;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:41:35 +0800;
 \par 修改时间:
-	2012-06-06 12:55 +0800;
+	2012-06-23 04:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -278,10 +278,10 @@ mkdirs(const_path_t cpath)
 int HFileNode::LastError(0);
 
 HFileNode&
-HFileNode::operator++()
+HFileNode::operator++() ynothrow
 {
 	LastError = 0;
-	if(YB_LIKELY(IsValid()))
+	if(YB_LIKELY(*this))
 	{
 		if(!(p_dirent = ::readdir(dir)))
 			LastError = 2;
@@ -292,7 +292,7 @@ HFileNode::operator++()
 }
 
 bool
-HFileNode::IsDirectory() const
+HFileNode::IsDirectory() const ynothrow
 {
 #if YCL_DS || YCL_MINGW32
 	return p_dirent && platform_ex::IsDirectory(*p_dirent);
@@ -302,25 +302,26 @@ HFileNode::IsDirectory() const
 }
 
 const char*
-HFileNode::GetName() const
+HFileNode::GetName() const ynothrow
 {
 	return p_dirent ? p_dirent->d_name : ".";
 }
 
 void
-HFileNode::Open(const_path_t path)
+HFileNode::Open(const_path_t path) ynothrow
 {
 	dir = path ? ::opendir(path) : nullptr;
 }
 
 void
-HFileNode::Close()
+HFileNode::Close() ynothrow
 {
-	LastError = IsValid() ? ::closedir(dir) : 1;
+	LastError = *this ? ::closedir(dir) : 1;
+	dir = nullptr;
 }
 
 void
-HFileNode::Reset()
+HFileNode::Reset() ynothrow
 {
 	::rewinddir(dir);
 }

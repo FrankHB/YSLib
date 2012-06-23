@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r2145;
+\version r2146;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-16 14:11 +0800;
+	2012-06-22 09:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -64,7 +64,7 @@ void
 MessageQueue::Merge(MessageQueue& mq)
 {
 	std::for_each(mq.begin(), mq.end(), [this](decltype(*mq.begin())& pr){
-		if(pr.second.IsValid())
+		if(pr.second)
 			insert(std::move(pr));
 	});
 	mq.clear();

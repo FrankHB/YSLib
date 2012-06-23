@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5438;
+\version r5439;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-06-06 13:09 +0800;
+	2012-06-23 10:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "YSLib/UI/ydesktop.h"
+#include "YSLib/UI/YBrush.h"
 #include "YSLib/UI/ystyle.h"
 
 YSL_BEGIN

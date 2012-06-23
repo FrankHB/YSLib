@@ -25,6 +25,7 @@
     <ClInclude Include="include\ystdex\string.hpp" />
     <ClInclude Include="include\ystdex\type_op.hpp" />
     <ClInclude Include="include\ystdex\utility.hpp" />
+    <ClInclude Include="include\ytest\timing.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp" />

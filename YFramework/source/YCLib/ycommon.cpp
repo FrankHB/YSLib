@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3616;
+\version r3619;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:42 +0800;
 \par 修改时间:
-	2012-06-05 21:19 +0800;
+	2012-06-22 00:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@ namespace platform
 {
 
 void*
-mmbset(void* d, int v, std::size_t t)
+mmbset(void* d, int v, std::size_t t) ynothrow
 {
 #if YCL_DS
 	// NOTE: DMA fill to main RAM is slower.
@@ -44,7 +44,7 @@ mmbset(void* d, int v, std::size_t t)
 }
 
 void*
-mmbcpy(void* d, const void* s, std::size_t t)
+mmbcpy(void* d, const void* s, std::size_t t) ynothrow
 {
 #if YCL_DS
 	// NOTE: DMA copy to main RAM is even more slower.
@@ -56,7 +56,7 @@ mmbcpy(void* d, const void* s, std::size_t t)
 
 
 void
-terminate()
+terminate() ynothrow
 {
 #if YCL_DS
 	for(;;)

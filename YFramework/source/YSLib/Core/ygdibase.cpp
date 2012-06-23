@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1507;
+\version r1512;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2012-06-01 16:47 +0800;
+	2012-06-22 23:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,25 +42,25 @@ const Rect Rect::Empty;
 const Rect Rect::Invalid(Point::Zero, Size::Invalid);
 
 bool
-Rect::Contains(int px, int py) const
+Rect::Contains(int px, int py) const ynothrow
 {
 	return Width > 0 && Height > 0 && IsInInterval<int>(px - X, Width)
 		&& IsInInterval<int>(py - Y, Height);
 }
 bool
-Rect::Contains(const Rect& r) const
+Rect::Contains(const Rect& r) const ynothrow
 {
 	return Contains(r.GetPoint()) && Contains(r.GetPoint() + r.GetSize());
 }
 
 bool
-Rect::ContainsStrict(int px, int py) const
+Rect::ContainsStrict(int px, int py) const ynothrow
 {
 	return Width > 1 && Height > 1 && IsInOpenInterval<int>(px - X,
 		Width - 1) && IsInOpenInterval<int>(py - Y, Height - 1);
 }
 bool
-Rect::ContainsStrict(const Rect& r) const
+Rect::ContainsStrict(const Rect& r) const ynothrow
 {
 	return ContainsStrict(r.GetPoint())
 		&& ContainsStrict(r.GetPoint() + r.GetSize());
@@ -68,7 +68,7 @@ Rect::ContainsStrict(const Rect& r) const
 
 
 Rect
-Intersect(const Rect& a, const Rect& b)
+Intersect(const Rect& a, const Rect& b) ynothrow
 {
 	const SPos axm(a.X + a.Width);
 	const SPos bxm(b.X + b.Width);
@@ -99,7 +99,7 @@ Intersect(const Rect& a, const Rect& b)
 }
 
 Rect
-Unite(const Rect& a, const Rect& b)
+Unite(const Rect& a, const Rect& b) ynothrow
 {
 	if(YB_UNLIKELY(a.IsEmpty()))
 		return b;
@@ -133,7 +133,6 @@ Graphics::at(size_t r) const ythrow(GeneralEvent, std::out_of_range)
 
 	return pBuffer + r * size.Width;
 }
-
 
 YSL_END_NAMESPACE(Drawing)
 

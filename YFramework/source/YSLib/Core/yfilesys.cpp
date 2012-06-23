@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2326;
+\version r2328;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-06-06 12:27 +0800;
+	2012-06-22 09:43 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -365,7 +365,7 @@ GetNowDirectory()
 bool
 ValidatePath(const string& pathstr)
 {
-	return HFileNode(pathstr.c_str()).IsValid();
+	return bool(HFileNode(pathstr.c_str()));
 }
 
 
@@ -404,7 +404,7 @@ FileList::ListItems()
 	HFileNode dir(Directory.GetNativeString().c_str());
 	u32 n(0);
 
-	if(dir.IsValid())
+	if(dir)
 	{
 		YAssert(bool(hList), "Null handle found.");
 

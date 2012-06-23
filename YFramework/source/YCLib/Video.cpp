@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1212;
+\version r1213;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-26 20:19:54 +0800;
 \par 修改时间:
-	2012-06-04 17:25 +0800;
+	2012-06-23 02:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -191,6 +191,7 @@ InitScrDown(int& id)
 
 void
 ScreenSynchronize(platform::PixelType* buf, const platform::PixelType* src)
+	ynothrow
 {
 	typedef platform::PixelType
 		ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT]; //!< 主显示屏缓冲区。

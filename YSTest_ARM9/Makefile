@@ -1,8 +1,8 @@
 # DS Makefile for YSTest -> ARM9 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-06-17 20:44 +0800;
-# Version = r3382;
+# UTime = 2012-06-23 01:33 +0800;
+# Version = r3383;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -64,7 +64,7 @@ LDFLAGS	+=	-g
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit \
- 			-std=gnu++0x -Wctor-dtor-privacy -Wnoexcept -Wsign-promo
+ 			-std=gnu++0x -Wctor-dtor-privacy -Wsign-promo
 # 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 
 #CFLAGS	:=	-g -Wformat=2 -Winline -Wall \

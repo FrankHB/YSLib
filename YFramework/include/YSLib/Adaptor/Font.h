@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7716;
+\version r7718;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:02:40 +0800;
 \par 修改时间:
-	2012-06-11 09:03 +0800;
+	2012-06-22 09:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -93,7 +93,6 @@ DefBitmaskOperations(FontStyle, u8)
 /*!
 \brief 取样式名称。
 \post 返回值非空。
-\note 无异常抛出。
 \since build 277 。
 */
 yconstfn const char*
@@ -402,7 +401,6 @@ private:
 
 	/*!
 	\brief 从指定路径的字体文件中载入指定索引指定的字型信息。
-	\note 无异常抛出。
 	\since build 316 。
 	*/
 	void

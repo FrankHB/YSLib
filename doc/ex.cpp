@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r3646; *build 318 rev 44;
+\version r3660; *build 319 rev 39;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-19 00:54 +0800;
+	2012-06-24 00:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -100,6 +100,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \cl ::= classes
 \clt ::= class templates
 \cmd ::= commands
+\cond ::= conditions/conditional
 \conf ::= configuration
 \cp ::= copied
 \ctor ::= constructors
@@ -131,6 +132,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \expr ::= expressions
 \f ::= functions
 \fn ::= \f
+\fnl ::= final
 \ft ::= function templates
 \fw ::= forward
 \g ::= global
@@ -378,138 +380,271 @@ r1:
 /= test 0 @ platform DS;
 
 r2:
-/ \impl @ move \ctor @ \cl Message;
 /= test 1 @ platform MinGW32;
 
 r3:
-/ \simp @ \ctor#1 @ \cl Message,
-/ \tr \simp \impl @ \f PostMessage#3 @ \impl \u YApplication;
-/= test 2 @ platform DS ^ \conf release;
+^ i686-mingw-w64-gcc-4.7.1 ~ i686-mingw32-gcc-4.7.0 @ platform MinGW32;
+/ \tr @ \h String @ \lib libdefect @ \proj YBase;
+/= test 2 @ platform MinGW32;
 
-r4-r5:
-/ \simp \impl @ \ctor TextList;
-/= 2 test 3 @ platform MinGW32;
+r4:
+/= test 3 @ platform MinGW32 ^ \conf release;
+
+r5:
+/ @ \cl Graphics $=
+(
+	+ \mf \exp \op bool;
+	+ \mf \op!
+);
+/ using Graphics::IsValid -> using Graphics::(operator!, operator bool)
+	@ \cl GraphicDevice @ \h YDevice;
+/= test 4 @ platform MinGW32;
 
 r6:
-/= test 4 @ platform DS ^ \conf release;
-
-r7-r8:
-^ updated library freetype 2.4.10 ~ modified freetype 2.4.9;
+/ \a 'g.IsValid()' -> 'bool(g)' @ \h (YDraw, YBlit), \impl \u (CharRenderer,
+	TextRenderer, YDraw, YGDI, Button, Selector, YStyle),
 (
-	/ \lib path \dir "lib" @ path \dir "YFramework" => \dir "YFramework_DS";
-	/ \tr @ Makefile @ \proj YSTest_ARM9
+	/ using Graphics::IsValid -> using Graphics::(operator!, operator bool)
+		@ \cl BitmapBuffer @ \h YGDI;
+	/ \a 'buf.IsValid()' -> 'bool(buf)' @ \impl \u YGDI
 );
-/= test 5 @ platform DS;
+/ \mf IsValid \mg -> \mf \op bool @ \cl Graphics;
+/= test 5 @ platform MinGW32;
 
-r9:
+r7:
+/ @ \cl HFileNode @ \u FileSystem $=
+(
+	+ final @ \decl,
+	/ \mf IsValid() -> \exp \mf \op bool,
+	/ \tr \impl @ \mf (\op++, Close),
+	+ ynothrow @ \a \mf \exc (\exp \de \mf)
+),
+/ \tr \simp \impl @ \impl \u (Initialization, YFileSystem),
++ ynothrow @ \a \ctor @ \cl LoggedEvent @ \u YExcept;
 /= test 6 @ platform MinGW32;
 
+r8:
+/ @ \cl Message $=
+(
+	/ \mf IsValid -> \mf \exp \op bool,
+	/ \tr \impl @ \mf Push
+),
+/ \tr \impl @ \mf MessageQueue::Merge;
+/= test 7 @ platform MinGW32;
+
+r9:
+/ @ \h YDefinition $=
+(
+	+ \mac YB_HAS_NOEXCEPT,
+	/ \a \def @ \mac 'YB_HAS_*';
+	+ \mac ynoexcept,
+	(
+		/ \def @ \mac YCL_USE_EXCEPTION_SPECIFICATION
+			-> @ !defined(NDEBUG),
+		/ \impl @ \mac ^ \mac ynothrow as possible ~ ythrow()
+	)
+);
+/= test 8 @ platform MinGW32;
+
 r10:
-/= test 7 @ platform DS ^ \conf release;
++ \mf Message::\op!,
+/ \mf IsValid \mg -> \mf (\op bool; \op!) @ \cl File,
+/ \tr \impl @ \mf HexModel::IsValid @ \h HexBrowser,
+/ \tr \impl @ \impl \u (Initialization, TextManager, File, File_(Text),
+	DSReader, ShlReader);
+/= test 9 @ platform MinGW32;
 
 r11:
-/= test 8 @ platform MinGW32 ^ \conf release;
+/= test 10 @ platform DS;
 
 r12:
-/ @ \cl TextList $=
-(
-	/ private \mf (AdjustTopOffset, AdjustBottomOffset)
-		-> private \mf AdjustOffset,
-	/ \tr \impl @ \mf (SelectFirst, SelectLast),
-	/ \tr \impl @ \ctor
-);
-/= test 9 @ platform MinGW32 ^ \conf release;
+/= test 11 @ platform MinGW32 ^ \conf release;
 
 r13:
-/= test 10 @ platform MinGW32;
+/= test 12 @ platform DS ^ \conf release;
 
 r14:
-/ @ \cl TextList $=
-(
-	/ private \mf void InvalidateSelected(ListType::difference_type)
-		-> protected \mf void InvalidateSelected(ListType::difference_type,
-		ListType::difference_type = 0);
-	+ \mf void InvalidateSelected2(ListType::difference_type,
-		ListType::difference_type),
-	/ @ \mf void UpdateView(bool = false)
-		-> \mf void UpdateView(bool = false, bool = true);
-	/ \simp \impl @ \mf CallSelected,
-	/ \tr \impl @ \ctor,
-	/ \impl @ \mf TextList::SetSelected#1，
-);
-/ \tr \impl @ \mf ListBox::ResizeForPreferred;
-/= test 11 @ platform MinGW32;
+/ \impl @ \mf BitmapBuffer::SetSize @ \impl \u YGDI;
+/ \mf SetImage @ \cl Image @ \u YResource
+	>> \mf SetContent @ \cl BitmapBuffer @ \u YGDI;
+/= test 13 @ platform MinGW32;
 
 r15:
-/ \impl @ \ctor TextList;
-/= test 12 @ platform DS;
+/ \impl @ \def \mac ynoexcept,
++ ynothrow \es @ \a (\f, \ft) \exc (\exp \de, \dtor, with \es) @ \u YGDIBase;
+/= test 14 @ platform MinGW32 ^ \conf release;
 
 r16:
-/= test 13 @ platform DS ^ \conf release;
-
-r17-r20:
-/ @ \cl TextList $=
-(
-	/ protected \mf void InvalidateSelected(ListType::difference_type,
-		ListType::difference_type = 0) -> void
-		InvalidateSelected(ListType::difference_type, ListType::size_type = 1),
-	/ \impl @ InvalidateSelected2
-);
-/= 4 test 14 @ platform MinGW32;
-
-r21:
++ ynothrow \es @ \f (mmbcpy, mmbset, terminate) @ \u YCommon;
 /= test 15 @ platform DS ^ \conf release;
 
-r22-r23:
-* \impl @ \ctor TextList $since r17,
-/= 2 test 16 @ platform MinGW32;
+r17:
+/ @ \h YEvent $=
+(
+	/ @ \clt GHEvent $=
+	(
+		/ @ \stt GEquality $=
+		(
+			+ typedef ename std::decay<_tFunctor>::type decayed_type;
+			+ ynoexcept \es @ \smf AreEqual,
+			/ \simp @ \smf AreEqual
+		),
+		+ ynothrow \es @ \smf (GetComparer, AreAlwaysEqual)
+	),
+	+ ynoexcept \es @ \ctor \t GEventPointerWrapper
+);
+/= test 16 @ platform MinGW32;
 
-r24-r26:
-/ \impl @ \ctor TextList,
-/= 3 test 17 @ platform MinGW32;
+r18:
+/= test 17 @ platform DS ^ \conf release;
 
-r27:
-/= test 18 @ platform DS;
+r19:
++ ynothrow \es @ \mf (ExpandMemberFirstBinder, ExpandMemberFirst)::\op==
+	@ \h YFunc,
+- '-Wnoexcept' @ \mac CXXFLAGS @ Makefile @ \proj (YFramework_DS, YSTest_ARM9);
+/= test 18 @ platform DS ^ \conf release;
 
-r28:
-+ '-j' @ \a Makefile command lines @ \a \conf @ \a VC++ \proj;
+r20:
++ ynothrow \es @ \a \f \exc (\exp \de, \dtor, with \es) @ \clt GMCounter
+	@ \h YCounter,
++ ynothrow \es @ \a !\m \f @ \h YCoreUtilities,
++ ynothrow \es @ (\ctor (GraphicDevice, Screen), \mf Screen::Update) @ \u YDevice;
 /= test 19 @ platform DS ^ \conf release;
 
-r29-r40:
-/= 12 test 20 @ platform MinGW32;
-
-r41:
-* wrong length set @ \cl TextList $since b285 $=
+r21:
+/ @ \h Memory $=
 (
-	* invalid height not ignored @ \f ResizeForContent,
-	* missing adjusting viewer length @ \impl @ \f ResizeForContent
-		@ \impl \u TextList
-)
-* $comp submenu test using right arrow key $since b285;
+	+ ynothrow \es @ \a \ft raw,
+	+ ynothrow \es @ \ft yconstfn std::unique_ptr<_type>
+	unique_raw(nullptr_t) ynothrow
+	/ \ft yconstfn std::unique_ptr<_type> share_raw(const nullptr_t&)
+		-> yconstfn std::unique_ptr<_type> share_raw(nullptr_t) ynothrow
+),
+/ @ \h YStorage $=
+(
+	+ ynothrow \es @ \mf GetStaticPtrRef @ \clt GLocalStaticCache;
+	+ (\s \as for \pre \cond of \t \param _tp, ynothrow \es @ \mf Release)
+		@ \clt (GStaticCache, GLocalStaticCache)
+),
+/ @ \u Video $=
+(
+	+ \tr ynothrow \es @ \f ScreenSynchronize @ platform DS,
+	+ ynothrow \es @ \mf @ \cl Color
+),
++ \tr ynothrow \es @ (\ctor , \mf Update, \mf UpdateToHost @ platform MinGW32)
+	@ \cl DSScreen @ \impl \u DSMain;
+/= test 20 @ platform DS;
+
+r22:
 /= test 21 @ platform MinGW32;
 
-r42:
-/= test 22 @ platform DS;
+r23:
+/= test 22 @ platform DS ^ \conf release;
 
-r43:
+r24:
 /= test 23 @ platform MinGW32 ^ \conf release;
 
-r44:
-/= test 22 @ platform DS ^ \conf release;
+r25:
+* \impl @ \mf Close @ file node iterator $since b142
+	$= (/ \mf HFileNode::Close);
+/= test 24 @ platform MinGW32 ^ \conf release;
+
+r26:
++ \pre \decl \cl Image @ \h YComponents,
+/ \inc \h (YBlit, YBrush) @ \h YWindow -> \h YResource,
++ \tr \inc \h YBrush @ \impl \u (Menu, YWindow, YDesktop, YWidget),
++ \tr \inc \h YBlit @ \impl \u TextList,
++ \inc \h YBrush @ \h YSLib::Build;
+/= test 25 @ platform MinGW32;
+
+r27:
+/ @ \h Window $=
+(
+	/ \simp \de \arg @ \ctor Window;
+	- \inc \h YResource
+);
+/= test 26 @ platform MinGW32;
+
+r28:
+/= test 27 @ platform MinGW32 ^ \conf release;
+
+r29:
++ \inc \h YBlit @ \h YSLib::Build,
++ \tr \inc \h YBlit @ \impl \u DSMain;
+/= test 28 @ platform DS;
+
+r30:
+/= test 29 @ platform DS ^ \conf release;
+
+r31:
+/ \def @ \mac YCL_FUNCTION_NO_EQUALITY_GUARANTEE @ \h Platform,
+/ @ \clt GManager @ \cl ValueObject $=
+(
+	* \impl @ \smf Do, CheckType $since b306,
+	+ \s \as,
+);
+/= test 30 @ platform MinGW32;
+
+r32:
+/= test 31 @ platform MinGW32 ^ \conf release;
+
+r33:
++ \lib ytest @ \proj YBase;
++ \h Timing["timing.hpp"] @ \lib ytest;
+(
+	+ \ns ytest @ \h Timing;
+	+ \ft (once, (total, average)) @ \ns ytest
+),
+/ @ \impl \u Shells $=
+(
+	+ \h Timing;
+	+ \o double gfx_init_time @ \un \ns
+);
+/ @ \impl \u Shells $=
+(
+	/ \impl @ \f FetchImage;
+	+ \impl @ \ctor ShlExplorer::TFormExtra
+);
+/= test 32 @ platform MinGW32;
+
+r34:
+/= test 33 @ platform MinGW32;
+
+r35:
+/= test 34 @ platform DS;
+
+r36:
+/ @ \h Timing $=
+(
+	/ \ft (once, total) => (once_c, total_c);
+	+ \ft (once, total),
+	/ \impl @ \ft average
+),
+/ \tr \impl @ \impl \u Shells;
+/= test 35 @ platform MinGW32;
+
+r37:
+/= test 36 @ platform DS;
+
+r38:
+/= test 37 @ platform DS ^ \conf release;
+
+r39:
+/= test 38 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-06-19:
--24.6d;
-// Mercurial rev1-rev190: r8687;
+2012-06-24:
+-23.7d;
+// Mercurial rev1-rev191: r8726;
 
 / ...
 
 
 $NEXT_TODO:
-b319-b324:
+b320-b327:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -522,7 +657,7 @@ b319-b324:
 
 
 $TODO:
-b325-b378:
+b328-b381:
 / services $=
 (
 	+ \impl @ images loading
@@ -554,12 +689,12 @@ b325-b378:
 ),
 / project structure $=
 (
-	/ build command @ \a \conf proj YBase,
+	/ $low_prior build command @ \a \conf @ \proj YBase,
 	+ Microsoft Windows(MinGW32) port with free hosted window size,
 	/ improved tests and examples
 );
 
-b379-b806:
+b382-b806:
 + (memory mapping, shared memory) APIs @ YCommon,
 / @ CHRLib $=
 (
@@ -584,16 +719,15 @@ b379-b806:
 		~ '::llround',
 	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7 later,
 	+ 'yconstexpr' @ \s \m Graphics::Invalid,
-	/ reconsidered 1st parameter type(without rvalue \ref) for %seq_apply,
 	+ error code with necessary %thread_local @ \u YCommon,
 	/ make \ns _impl \h Cast -> \ns details with public interfaces,
 	/ confirm correctness @ stat() @ Win32,
 		// See comments @ src/fccache.c @ \proj fontconfig.
 	/ consideration of mutable member @ class %Message
 ),
-/ performance $=
+/ $low_prior performance $=
 (
-	/ implementation @ class %MessageQueue
+	/ implementation @ class %(Message, MessageQueue)
 ),
 / completeness of core abstraction $=
 (
@@ -636,9 +770,8 @@ b379-b806:
 		// To resolve routed events repeating preemption.
 	+ widget layout managers,
 	+ widget-based animation support,
-	* View position switch through scrall bar not accurate enough
-		@ class %ListBox,
-	+ synchronization of viewer length @ class %TextList
+	* View position switch through scroll bar not accurate enough
+		@ class %ListBox
 );
 
 b805-b1294:
@@ -777,7 +910,7 @@ $KNOWN_ISSUE:
 // NOTE: Obsolete issues all resolved are ignored.
 * "corrupted loading or fatal errors on loading font file with embedded \
 	bitmap glyph like simson.ttc" $since b185,
-	// freetype (2.4.6, 2.4.8, 2.4.9) tested.
+	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10) tested.
 * "<cmath> cannot use 'std::*' names" @ "!defined %_GLIBCXX_USE_C99_MATH_TR1"
 	@ "libstdc++ with g++ (4.6, 4.7)" $before $future;
 	// G++ 4.7.0 tested @ b301.
@@ -845,6 +978,7 @@ $module_tree $=
 (
 	'YBase',
 	(
+		'YDefinition',
 		'YStandardEx'
 		(
 			'Any',
@@ -859,6 +993,10 @@ $module_tree $=
 		'LibDefect'
 		(
 			'String'
+		),
+		'YTest'
+		(
+			'Timing'
 		)
 	),
 	'YFramework'
@@ -914,6 +1052,96 @@ $module_tree $=
 );
 
 $now
+(
+	^ "i686-mingw-w64-gcc-4.7.1" ~ "i686-mingw32-gcc-4.7.0" @ platform MinGW32,
+	/ %'YBase' $=
+	(
+		/ %'YDefinition' $=
+		(
+			+ "environment configuration macro for keyword %noexcept";
+			$dep_to noexcept_macro
+		),
+		+ "library %YTest" $=
+		(
+			+ "header %timing.hpp" $=
+			(
+				+ "test timing function templates %(once, once_c, total, \
+					total_c, average)";
+				$dep_to "test_timing"
+			)
+		)
+	),
+	/ %'YFramework' $=
+	(
+		/ $design "all member functions named %IsValid eliminated"
+			-> "operator (bool, !)",
+		/ %'YCLib' $=
+		(
+			/ %'common file system APIs' $=
+			(
+				+ $design "no throw exception specification"
+					@ "class %HFileNode",
+				* "missing iterator reset" @ "member function %Close" @ "file \
+					node iterator" @ %'common file system APIs' $since b142
+					// It causes double releasing file resources\
+						when manually called.
+			)
+			+ $design "no throw exception specification" @ (("class %Color",
+				("function %ScreenSynchronize" @ "platform %DS")
+				@ %'common video APIs'), "header %Memory")
+		),
+		/ %'YSLib'.'core' $=
+		(
+			/ %'core' $=
+			(
+				+ $design "no throw exception specification" @ "functions \
+					declarations" @ "unit %(YExceptionYGDIBase, YFunc, \
+					YCounter, YCoreUtilities, YDevice, YStorage)",
+					// Some minor performance improvement.
+				(
+					$dep_from noexcept_macro;
+					+ $design "no throw exception specification"
+						@ "functions declarations" @ "unit %YEvent"
+				),
+				* "type checking implementation" @ "class %ValueObject"
+					@ %'basic objects' $since b306
+					// Checking method of equality and type-id tests were \
+						wrongly swapped for %YCL_FUNCTION_NO_EQUALITY_GUARANTEE.
+			),
+			/ %'services' $=
+			(
+				/ $design "resource content setter" @ "class %Image"
+					>> ("class %BitmapBuffer" @ "unit %YGDI"),
+				/ $design "minor implementation" @ "unit %YGDI"
+			),
+			+ $design "no throw exception specification" @ "class %DSScreen"
+				@ %'Helper'.'DS main unit',
+			/ @ "header %YWindow" %'GUI' $=
+			(
+				/ "simplified default arguments" @ "constructor"
+					@ "class %Window";
+					// Nullptr is equal to empty instance of %Image \
+						for %ImageBrush.
+				- "unnecessary header dependencies"
+			)
+		)
+		/ %'YSLib'.'core' $=
+	),
+	- $design "-Wnoexcept" @ "macro %CXXFLAGS" @ "makefile"
+		@ "project %(YFramework_DS, YSTest_ARM9)",
+		// ISO C++11 5.1.2/6 doesn't specify conversion function for a closure \
+			object to a function pointer shall have exception specification. \
+			Thus G++ may complain when evaluating %noexcept expression. \
+			It seems a defect in the standard, but here just turn the warning \
+			off for convenience.
+	/ %'YReader'.'shell test example' $=
+	(
+		$dep_from "test_timing";
+		+ "total time measuring for images loading"
+	)
+),
+
+b318
 (
 	/ %'YFramkework'.'YSLib' $=
 	(
@@ -1101,8 +1329,8 @@ b314
 	),
 	- "test of macro %DEBUG" @ %'YFramework',
 	/ "detailed debug output" @ "platform %MinGW32"
-	// Binaries of this version are strictly equal with b313 on platform %DS,
-	//	but some less size on platform %MinGW32.
+	// Binaries of this version are strictly equal with b313 on platform %DS, \
+		but some less size on platform %MinGW32.
 ),
 
 b313
@@ -1483,7 +1711,7 @@ b301
 		* $doc @ "class template %safe_delete_obj" @ %'core utilities'
 			$since b263
 		/ "completed proper result type" @ "function %GetAreaOf"
-			@ "header ygdibase.h"
+			@ "header %ygdibase.h"
 	)
 ),
 

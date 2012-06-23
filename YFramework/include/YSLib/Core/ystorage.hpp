@@ -1,6 +1,6 @@
 ﻿
 /*
-	Copyright (C) by Franksoft 2011.
+	Copyright (C) by Franksoft 2011 - 2012.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r1368;
+\version r1381;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 195 。
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2011-12-04 12:40 +0800;
+	2012-06-23 02:33 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,11 +73,15 @@ FetchPrototype()
 
 /*!
 \brief 全局静态单态存储器。
+\pre <tt>std::is_nothrow_constructible<_tPointer>::value</tt> 。
 \since 早于 build 132 。
 */
 template<typename _type, typename _tPointer = _type*>
 class GStaticCache
 {
+	static_assert(std::is_nothrow_constructible<_tPointer>::value,
+		"Invalid pointer type found");
+
 public:
 	typedef _tPointer PointerType;
 
@@ -119,9 +123,10 @@ public:
 
 	/*!
 	\brief 删除对象并置指针为空值。
+	\since build 319 。
 	*/
 	static inline void
-	Release()
+	Release() ynothrow
 	{
 		safe_delete_obj()(_ptr);
 	}
@@ -134,11 +139,15 @@ typename GStaticCache<_type, _tPointer>::PointerType
 
 /*!
 \brief 全局局部静态单态存储器。
+\pre <tt>std::is_nothrow_constructible<_tPointer>::value</tt> 。
 \since build 205 。
 */
 template<typename _type, typename _tPointer = _type*>
 class GLocalStaticCache
 {
+	static_assert(std::is_nothrow_constructible<_tPointer>::value,
+		"Invalid pointer type found");
+
 public:
 	typedef _tPointer PointerType;
 
@@ -149,9 +158,10 @@ private:
 
 	/*!
 	\brief 取静态指针引用。
+	\since build 319 。
 	*/
 	static inline PointerType&
-	GetStaticPtrRef()
+	GetStaticPtrRef() ynothrow
 	{
 		static PointerType ptr;
 
@@ -193,9 +203,10 @@ public:
 
 	/*!
 	\brief 删除对象并置指针为空值。
+	\since build 319 。
 	*/
 	static inline void
-	Release()
+	Release() ynothrow
 	{
 		safe_delete_obj()(GetStaticPtrRef());
 	}

@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1730;
+\version r1733;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:45:33 +0800;
 \par 修改时间:
-	2012-06-06 14:50 +0800;
+	2012-06-22 09:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 bool
 DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)
 {
-	YAssert(g.IsValid(), "Invalid graphics context found.");
+	YAssert(bool(g), "Invalid graphics context found.");
 
 	if(IsInInterval<int>(y, g.GetHeight())
 		&& !((x1 < 0 && x2 < 0) || (x1 >= g.GetWidth() && x2 >= g.GetWidth())))
@@ -53,7 +53,7 @@ DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)
 bool
 DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c)
 {
-	YAssert(g.IsValid(), "Invalid graphics context found.");
+	YAssert(bool(g), "Invalid graphics context found.");
 
 	if(IsInInterval<int>(x, g.GetWidth())
 		&& !((y1 < 0 && y2 < 0) || (y1 >= g.GetHeight()
@@ -159,7 +159,7 @@ DrawRect(const Graphics& g, const Point& pt, const Size& s, Color c)
 bool
 FillRect(const Graphics& g, const Point& pt, const Size& s, Color c)
 {
-	if(YB_LIKELY(g.IsValid()))
+	if(YB_LIKELY(g))
 	{
 		FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(), pt, s, c);
 		return true;

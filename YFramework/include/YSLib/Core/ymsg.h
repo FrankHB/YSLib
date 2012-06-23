@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2701;
+\version r2717;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-16 14:10 +0800;
+	2012-06-23 02:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -103,7 +103,6 @@ public:
 	}
 	/*!
 	\brief 成员赋值：使用值类型对象。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	Message&
@@ -124,7 +123,6 @@ public:
 	}
 	/*
 	\brief 转移赋值。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	Message&
@@ -133,6 +131,13 @@ public:
 		msg.Swap(*this);
 		return *this;
 	}
+
+	/*!
+	\brief 判断无效性。
+	\since build 319 。
+	*/
+	PDefHOp(bool, !) const ynothrow
+		ImplRet(!bool(*this))
 
 	/*!
 	\brief 比较：相等关系。
@@ -147,11 +152,16 @@ public:
 	operator<(const Message&, const Message&);
 
 	/*!
+	\brief 判断有效性。
+	\since build 319 。
+	*/
+	explicit DefCvt(const ynothrow, bool, id)
+
+	/*!
 	\brief 判断是否广播。
 	\since build 316 。
 	*/
 	DefPred(const ynothrow, ToAll, to_all)
-	DefPred(const ynothrow, Valid, id) //!< 判断消息是否有效。
 
 	/*!
 	\brief 取目的 Shell 弱指针。
@@ -272,7 +282,7 @@ public:
 	void
 	Push(const Message& msg, Priority prior)
 	{
-		if(msg.IsValid())
+		if(msg)
 			insert(make_pair(prior, msg));
 	}
 	/*!
@@ -282,7 +292,7 @@ public:
 	void
 	Push(const Message&& msg, Priority prior)
 	{
-		if(msg.IsValid())
+		if(msg)
 			insert(make_pair(prior, std::move(msg)));
 	}
 

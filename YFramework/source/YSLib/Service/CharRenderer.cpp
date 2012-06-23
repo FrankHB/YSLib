@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r6903;
+\version r6904;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-06-01 16:46 +0800;
+	2012-06-01 09:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -75,7 +75,7 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 	u8* alpha)
 {
 	//无缓冲区时无法绘图。
-	if(YB_LIKELY(g.IsValid()))
+	if(YB_LIKELY(g))
 	{
 		using namespace ystdex;
 

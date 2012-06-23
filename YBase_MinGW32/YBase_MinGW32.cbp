@@ -71,6 +71,7 @@
 			<Add option="-Wall" />
 			<Add option="-mthreads" />
 		</Compiler>
+		<Unit filename="..\YBase\include\libdefect\string.h" />
 		<Unit filename="..\YBase\include\ydef.h" />
 		<Unit filename="..\YBase\include\ystdex\algorithm.hpp" />
 		<Unit filename="..\YBase\include\ystdex\any.h" />
@@ -84,6 +85,7 @@
 		<Unit filename="..\YBase\include\ystdex\string.hpp" />
 		<Unit filename="..\YBase\include\ystdex\type_op.hpp" />
 		<Unit filename="..\YBase\include\ystdex\utility.hpp" />
+		<Unit filename="..\YBase\include\ytest\timing.hpp" />
 		<Unit filename="..\YBase\source\ystdex\cstdio.cpp" />
 		<Unit filename="..\YBase\source\ystdex\cstring.cpp" />
 		<Extensions>

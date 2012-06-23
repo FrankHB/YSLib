@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1379;
+\version r1380;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2012-05-25 14:02 +0800;
+	2012-06-22 12:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ public:
 		return *this;
 	}
 
-	DefPredMem(const ynothrow, Valid, GetSource())
+	DefPred(const ynothrow, Valid, bool(GetSource()))
 
 private:
 	DefGetter(const ynothrow, File&, Source, *pSource)

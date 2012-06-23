@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2930;
+\version r2973;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-06-10 17:20 +0800;
+	2012-06-22 23:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -75,14 +75,12 @@
 
 /*!
 \ingroup lang_impl_features
-\def YB_HAS_BUILTIN_NULLPTR
+\def YB_HAS_BUILTIN_ALIGNOF
 \brief 内建 alignof 支持。
 \since build 315 。
 */
 #undef YB_HAS_ALIGNOF
-#if YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40500
-#	define YB_HAS_ALIGNOF
-#endif
+#define YB_HAS_ALIGNOF (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40500)
 
 /*!
 \ingroup lang_impl_features
@@ -91,10 +89,8 @@
 \since build 313 。
 */
 #undef YB_HAS_BUILTIN_NULLPTR
-#if YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600 \
-	|| YB_IMPL_MSCPP >= 1600
-#	define YB_HAS_BUILTIN_NULLPTR
-#endif
+#define YB_HAS_BUILTIN_NULLPTR (YB_IMPL_CPP >= 201103L \
+	|| YB_IMPL_GNUCPP >= 40600 || YB_IMPL_MSCPP >= 1600)
 
 /*!
 \ingroup lang_impl_features
@@ -103,9 +99,16 @@
 \since build 313 。
 */
 #undef YB_HAS_CONSTEXPR
-#if YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600
-#	define YB_HAS_CONSTEXPR
-#endif
+#define YB_HAS_CONSTEXPR (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
+
+/*!
+\ingroup lang_impl_features
+\def YB_HAS_NOEXCPT
+\brief noexcept 支持。
+\since build 319 。
+*/
+#undef YB_HAS_NOEXCEPT
+#define YB_HAS_NOEXCEPT (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
 
 
 /*!	\defgroup lang_impl_hints Langrage Implementation Hints
@@ -152,7 +155,7 @@
 \since build 315 。
 \todo 判断是否可使用 TR1 的情形。
 */
-#ifdef YB_HAS_ALIGNOF
+#if YB_HAS_ALIGNOF
 #	define yalignof alignof
 #else
 #	define yalignof(_type) std::alignment_of<_type>::value
@@ -169,7 +172,7 @@
 \brief 指定编译时常量函数。
 \note 同 C++11 constepxr 作用于编译时常量函数的语义。
 */
-#ifdef YB_HAS_CONSTEXPR
+#if YB_HAS_CONSTEXPR
 #	define yconstexpr constexpr
 #	define yconstfn constexpr
 #else
@@ -180,13 +183,15 @@
 
 /*!
 \def YCL_USE_EXCEPTION_SPECIFICATION
-\brief 使用 YSLib 异常规范。
+\brief 使用 YSLib 动态异常规范。
 */
-#define YCL_USE_EXCEPTION_SPECIFICATION 1
+#ifndef NDEBUG
+#	define YCL_USE_EXCEPTION_SPECIFICATION 1
+#endif
 
 /*!
 \def ythrow
-\brief YSLib 异常规范：根据是否使用异常规范宏指定或忽略异常规范。
+\brief YSLib 动态异常规范：根据是否使用异常规范宏指定或忽略动态异常规范。
 \note ythrow = "yielded throwing" 。
 */
 #if YCL_USE_EXCEPTION_SPECIFICATION
@@ -197,10 +202,24 @@
 
 /*!
 \def ynothrow
-\brief YSLib 无异常抛出保证：指定特定的异常规范。
-\todo 使用 noexcept 关键字。
+\brief YSLib 无异常抛出保证：若支持 noexcept 关键字，指定特定的 noexcept 异常规范。
 */
-#define ynothrow ythrow()
+#ifdef YB_HAS_NOEXCEPT
+#	define ynothrow ynoexcept
+#else
+#	define ynothrow(...)
+#endif
+
+/*!
+\def ynothrow
+\brief YSLib 无异常抛出保证：指定特定的异常规范。
+\since build 319 。
+*/
+#if YB_HAS_NOEXCEPT
+#	define ynoexcept noexcept
+#else
+#	define ynoexcept
+#endif
 
 
 /*!
@@ -240,7 +259,7 @@ using std::ptrdiff_t;
 using std::size_t;
 using std::wint_t;
 
-#ifdef YB_HAS_BUILTIN_NULLPTR
+#if YB_HAS_BUILTIN_NULLPTR
 
 using std::nullptr_t;
 

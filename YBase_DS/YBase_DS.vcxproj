@@ -28,6 +28,7 @@
     <ClInclude Include="..\YBase\include\ystdex\string.hpp" />
     <ClInclude Include="..\YBase\include\ystdex\type_op.hpp" />
     <ClInclude Include="..\YBase\include\ystdex\utility.hpp" />
+    <ClInclude Include="..\YBase\include\ytest\timing.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\YBase\source\ystdex\cstdio.cpp" />

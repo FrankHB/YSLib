@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1387;
+\version r1380;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 209 。
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2012-06-10 17:17 +0800;
+	2012-06-23 02:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -83,33 +83,30 @@ is_undereferencable(_type* p)
 
 /*!	\defgroup raw Get Raw Pointers
 \brief 取内建指针。
+\since build 319 。
 */
 //@{
-//! \since build 204 。
 template<typename _type>
 yconstfn _type*
-raw(_type* const& p)
+raw(_type* const& p) ynothrow
 {
 	return p;
 }
-//! \since build 304 。
 template<typename _type>
 yconstfn auto
-raw(const std::unique_ptr<_type>& p) -> decltype(p.get())
+raw(const std::unique_ptr<_type>& p) ynothrow -> decltype(p.get())
 {
 	return p.get();
 }
-//! \since build 204 。
 template<typename _type>
 yconstfn _type*
-raw(const std::shared_ptr<_type>& p)
+raw(const std::shared_ptr<_type>& p) ynothrow
 {
 	return p.get();
 }
-//! \since build 316 。
 template<typename _type>
 yconstfn _type*
-raw(const std::weak_ptr<_type>& p)
+raw(const std::weak_ptr<_type>& p) ynothrow
 {
 	return p.lock().get();
 }
@@ -180,11 +177,11 @@ unique_raw(_type* p)
 }
 /*!
 \note 使用空指针构造空实例。
-\since build 316 。
+\since build 319 。
 */
 template<typename _type>
 yconstfn std::unique_ptr<_type>
-unique_raw(nullptr_t)
+unique_raw(nullptr_t) ynothrow
 {
 	return std::unique_ptr<_type>();
 }
@@ -225,10 +222,11 @@ share_raw(_type* p)
 }
 /*!
 \note 使用空指针构造空实例。
+\since build 319 。
 */
 template<typename _type>
 yconstfn std::shared_ptr<_type>
-share_raw(const nullptr_t& p)
+share_raw(nullptr_t) ynothrow
 {
 	return std::shared_ptr<_type>();
 }

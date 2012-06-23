@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4789;
+\version r4793;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2012-05-25 14:06 +0800;
+	2012-06-23 10:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,6 @@
 #define YSL_INC_UI_YWINDOW_H_
 
 #include "ypanel.h"
-#include "../Service/yblit.h"
-#include "YBrush.h"
 
 YSL_BEGIN
 
@@ -47,10 +45,11 @@ class Window : public Panel
 public:
 	/*!
 	\brief 构造：使用指定边界和背景图像。
+	\since build 319 。
 	*/
 	explicit
 	Window(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = make_shared<Drawing::Image>());
+		const shared_ptr<Drawing::Image>& = nullptr);
 	inline DefDeMoveCtor(Window)
 
 	void

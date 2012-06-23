@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1444;
+\version r1456;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2011-05-26 19:41:08 +0800;
 \par 修改时间:
-	2012-06-04 17:40 +0800;
+	2012-06-23 02:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -209,18 +209,18 @@ private:
 public:
 	/*!
 	\brief 无参数构造：所有分量为 0 的默认颜色。
-	\since build 297 。
+	\since build 319 。
 	*/
 	yconstfn
-	Color()
+	Color() ynothrow
 		: r(0), g(0), b(0), a(0)
 	{}
 	/*!
 	\brief 构造：使用本机颜色对象。
-	\since build 297 。
+	\since build 319 。
 	*/
 	yconstfn
-	Color(PixelType px)
+	Color(PixelType px) ynothrow
 #if YCL_DS
 		: r(px << 3 & 248), g(px >> 2 & 248), b(px >> 7 & 248),
 		a(FetchAlpha(px) ? 0xFF : 0x00)
@@ -233,27 +233,29 @@ public:
 #if YCL_MINGW32
 	/*!
 	\brief 构造：使用默认颜色。
-	\since build 297 。
+	\since build 319 。
 	*/
 	yconstfn
-	Color(ColorSet cs)
+	Color(ColorSet cs) ynothrow
 		: r((cs & 0xFF00) >> 8), g((cs & 0xFF0000) >> 16),
 		b((cs & 0xFF000000) >> 24), a(0xFF)
 	{}
 #endif
 	/*!
 	\brief 使用 RGB 值和 alpha 位构造 Color 对象。
+	\since build 319 。
 	*/
 	yconstfn
-	Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_ = 0xFF)
+	Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_ = 0xFF) ynothrow
 		: r(r_), g(g_), b(b_), a(a_)
 	{}
 
 	/*!
 	\brief 转换：本机颜色对象。
+	\since build 319 。
 	*/
 	yconstfn
-	operator PixelType() const
+	operator PixelType() const ynothrow
 	{
 	#if YCL_DS
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
@@ -266,33 +268,37 @@ public:
 
 	/*!
 	\brief 取红色分量。
+	\since build 319 。
 	*/
 	yconstfn MonoType
-	GetR() const
+	GetR() const ynothrow
 	{
 		return r;
 	}
 	/*!
 	\brief 取绿色分量。
+	\since build 319 。
 	*/
 	yconstfn MonoType
-	GetG() const
+	GetG() const ynothrow
 	{
 		return g;
 	}
 	/*!
 	\brief 取蓝色分量。
+	\since build 319 。
 	*/
 	yconstfn MonoType
-	GetB() const
+	GetB() const ynothrow
 	{
 		return b;
 	}
 	/*!
 	\brief 取 alpha 分量。
+	\since build 319 。
 	*/
 	yconstfn AlphaType
-	GetA() const
+	GetA() const ynothrow
 	{
 		return a;
 	}
@@ -344,10 +350,10 @@ InitScrDown(int&);
 /*!
 \brief 快速刷新缓存映像到显示屏缓冲区。
 \note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
-\since build 184 。
+\since build 319 。
 */
 void
-ScreenSynchronize(platform::PixelType*, const platform::PixelType*);
+ScreenSynchronize(platform::PixelType*, const platform::PixelType*) ynothrow;
 #endif
 
 } // namespace platform_ex;

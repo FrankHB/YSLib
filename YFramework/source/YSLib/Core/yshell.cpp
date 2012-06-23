@@ -11,13 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r3358;
+\version r3359;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-13 21:09:15 +0800;
 \par 修改时间:
-	2012-06-05 21:22 +0800;
+	2012-06-23 13:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -58,13 +58,11 @@ Shell::DefShlProc(const Message& msg)
 
 			return -!FetchAppInstance().Switch(h);
 		}
-
 	case SM_QUIT:
 		std::exit(FetchTarget<SM_QUIT>(msg));
 		break;
 	case SM_TASK:
 		FetchTarget<SM_TASK>(msg)();
-
 	default:
 		break;
 	}

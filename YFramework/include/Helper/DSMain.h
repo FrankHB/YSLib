@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1236;
+\version r1239;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-06-10 04:05 +0800;
+	2012-06-22 09:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -106,7 +106,6 @@ public:
 	/*!
 	\brief 取上屏幕。
 	\pre 断言检查：句柄非空。
-	\note 无异常抛出。
 	\since build 297 。
 	*/
 	Devices::Screen&
@@ -114,7 +113,6 @@ public:
 	/*!
 	\brief 取下屏幕。
 	\pre 断言检查：句柄非空。
-	\note 无异常抛出。
 	\since build 297 。
 	*/
 	Devices::Screen&
@@ -155,7 +153,6 @@ DispatchInput(Desktop&);
 
 /*!
 \brief 取平台相关的全局资源。
-\note 无异常抛出。
 \pre 内部断言检查存在应用程序实例。
 \note 生存期未确定。需要手动初始化并注册应用程序实例后才能使用。
 \since build 211 。

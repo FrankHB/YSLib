@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r1386;
+\version r1388;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2012-06-04 17:49 +0800;
+	2012-06-23 19:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,7 +48,7 @@
 */
 
 /*!
-\def YCL_DLL
+\def YCL_FUNCTION_NO_EQUALITY_GUARANTEE
 \brief 相同函数指针不保证相等。
 \since build 306 。
 */
@@ -56,7 +56,7 @@
 //#define YCL_DLL
 
 #ifdef YCL_DLL
-#	define YCL_FUNCTION_NO_EQUALITY_GUARANTEE
+#	define YCL_FUNCTION_NO_EQUALITY_GUARANTEE 1
 #endif
 
 /*!

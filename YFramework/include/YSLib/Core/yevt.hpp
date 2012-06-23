@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5001;
+\version r5038;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-05-30 17:21 +0800;
+	2012-06-23 00:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,21 +55,28 @@ private:
 	template<class _tFunctor>
 	struct GEquality
 	{
+		//! \since build 319 。
+		//@{
+		typedef typename std::decay<_tFunctor>::type decayed_type;
+
+#if YB_HAS_NOEXCEPT
+		static yconstexpr bool except_helper = noexcept(std::declval<
+			const decayed_type>() == std::declval<const decayed_type>());
+#endif
+
 		static bool
 		AreEqual(const GHEvent& x, const GHEvent& y)
+#if YB_HAS_NOEXCEPT
+			// NOTE: Use helper to prevent constexpr checking fail.
+			ynoexcept(except_helper)
+#endif
 		{
-			auto p(x.template target<typename std::decay<_tFunctor>::type>());
-
-			if(p)
-			{
-				auto q(y.template target<typename std::decay<
-					_tFunctor>::type>());
-
-				if(q)
+			if(const auto p = x.template target<decayed_type>())
+				if(const auto q = y.template target<decayed_type>())
 					return p == q || *p == *q;
-			}
 			return false;
 		}
+		//@}
 	};
 
 	Comparer comp_eq; //!< 比较函数：相等关系。
@@ -126,24 +133,27 @@ public:
 	using BaseType::operator();
 
 private:
+	//! \since build 319 。
+	//@{
 	PDefTmplH1(_type)
 	static yconstfn Comparer
-	GetComparer(_type& x, _type& y, decltype(x == y) = false)
+	GetComparer(_type& x, _type& y, decltype(x == y) = false) ynothrow
 	{
 		return GEquality<_type>::AreEqual;
 	}
 	template<typename _type, typename _tUnused>
 	static yconstfn Comparer
-	GetComparer(_type&, _tUnused&)
+	GetComparer(_type&, _tUnused&) ynothrow
 	{
 		return GHEvent::AreAlwaysEqual;
 	}
 
 	static yconstfn bool
-	AreAlwaysEqual(const GHEvent&, const GHEvent&)
+	AreAlwaysEqual(const GHEvent&, const GHEvent&) ynothrow
 	{
 		return true;
 	}
+	//@}
 };
 
 
@@ -694,12 +704,26 @@ public:
 	typedef unique_ptr<ItemType> PointerType;
 
 private:
+#if YB_HAS_NOEXCEPT
+	template<typename _type>
+	struct except_helper_t
+	{
+		static yconstexpr bool value
+			= noexcept(PointerType(std::declval<_type>()));
+	};
+#endif
+
 	PointerType ptr;
 
 public:
+	//! \since build 319 。
 	template<typename _type>
 	inline
 	GEventPointerWrapper(_type&& p)
+#if YB_HAS_NOEXCEPT
+		// NOTE: Use helper to prevent constexpr checking fail.
+		ynoexcept(except_helper_t<_type>::value)
+#endif
 		: ptr(yforward(p))
 	{
 		YAssert(bool(p), "Null pointer found.");

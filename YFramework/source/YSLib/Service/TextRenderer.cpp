@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r6932;
+\version r6934;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-06-06 14:07 +0800;
+	2012-06-22 09:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ TextRenderer::ClearLine(u16 l, SDst n)
 	const auto& g(GetContext());
 	const auto h(g.GetHeight());
 
-	if(YB_LIKELY(g.IsValid() && l < h))
+	if(YB_LIKELY(bool(g) && l < h))
 	{
 		if(n == 0 || l + n > h)
 			n = h - l;
@@ -85,7 +85,7 @@ TextRegion::ClearLine(u16 l, SDst n)
 		return;
 	if(!n)
 		--n;
-	if(YB_LIKELY(g.IsValid() && pBufferAlpha))
+	if(YB_LIKELY(bool(g) && pBufferAlpha))
 	{
 		const u32 t((l + n > g.GetHeight() ? g.GetHeight() - l : n)
 			* g.GetWidth());

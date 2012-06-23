@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1768;
+\version r1769;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 175 。
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2012-06-01 16:38 +0800;
+	2012-06-22 09:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,7 +48,6 @@ namespace ystdex
 \tparam _tSrc 源类型。
 \tparam _tDst 目标类型。
 \pre <tt>is_pod<_tDst>::value && sizeof<_tSrc> == sizeof<_tDst></tt> 。
-\note 无异常抛出。
 \since build 297 。
 */
 template<typename _tDst, typename _tSrc>

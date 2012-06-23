@@ -26,6 +26,10 @@
       <UniqueIdentifier>{ddcb08c7-b6eb-41d3-82f5-e7b5d4ab0c75}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="头文件\ytest">
+      <UniqueIdentifier>{d8e0f34b-7dff-44f2-b81d-bf5cad81faf2}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
@@ -72,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="..\YBase\include\libdefect\string.h">
       <Filter>头文件\libdefect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\YBase\include\ytest\timing.hpp">
+      <Filter>头文件\ytest</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

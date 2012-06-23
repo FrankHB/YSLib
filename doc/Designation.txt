@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7245;
+\version r7253;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-17 21:17 +0800;
+	2012-06-23 10:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -952,7 +952,7 @@
  "yuicont.h" 依赖于 "ywidget.h" ；
  "ycontrol.h" 依赖于 "ywidget.h" 和 "ywgtevt.h" ；
  "ypanel.h" 依赖于 "ycontrol.h" 和 "yuicont.h" ；
- "ywindow.h" 依赖于 "ypanel.h" 、 "YBrush.h" 和 Service 的 "yblit.h" ；
+ "ywindow.h" 依赖于 "ypanel.h" 和 Service 的 "yres.h" ；
  "ydesktop.h" 依赖于 "ywindow.h" 、 "yrender.h" 和 Core 的 "ydevice.h" 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少的头文件。
 
@@ -1076,6 +1076,14 @@
  devkitARM release 39 / libnds 1.5.7 。
  2012-05-14(build 308) 起：
  devkitARM release 40 / libfat 1.0.11 。
+
+@5.1.1.2 MinGW32 平台库和标准库实现：
+ build 299 前：
+ 无（不支持的平台）。
+ 2011-04-09(build 299) 起：
+ 使用 http://code.google.com/p/mingw-builds 的 i686-mingw32-gcc-4.7.0-release-c,c++,fortran-sjlj 。
+ 2011-06-21(build 319) 起：
+ 使用 http://sourceforge.net/projects/mingwbuilds 的 i686-mingw-w64-gcc-4.7.1-release-c,c++,fortran-sjlj 。
 
 @5.1.2 通用库：
 

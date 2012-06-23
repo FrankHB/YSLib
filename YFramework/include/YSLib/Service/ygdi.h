@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r4285;
+\version r4308;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-05-25 13:57 +0800;
+	2012-06-23 02:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -151,7 +151,6 @@ public:
 	BitmapBuffer(const BitmapBuffer&);
 	/*!
 	\brief 转移构造：转移资源。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	BitmapBuffer(BitmapBuffer&&) ynothrow;
@@ -177,7 +176,6 @@ public:
 	}
 	/*
 	\brief 转移赋值：使用转移构造函数和交换函数。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	BitmapBuffer&
@@ -187,12 +185,15 @@ public:
 		return *this;
 	}
 
-	/*!
-	\since build 296 。
-	*/
+	//! \since build 319 。
 	//@{
-	using Graphics::IsValid;
+	using Graphics::operator!;
 
+	using Graphics::operator bool;
+	//@}
+
+	//! \since build 296 。
+	//@{
 	using Graphics::GetBufferPtr;
 	using Graphics::GetHeight;
 	using Graphics::GetWidth;
@@ -202,13 +203,19 @@ public:
 	//@}
 
 	/*!
+	\brief 设置内容。
+	\note 预先设置缓冲区大小。
+	\since build 319 。
+	*/
+	void
+	SetContent(ConstBitmapPtr, SDst, SDst);
+	/*!
 	\brief 重新设置缓冲区大小。
 	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；
 		设置后清除缓冲区。
 	*/
 	virtual void
 	SetSize(SDst, SDst);
-
 	/*!
 	\brief 交换宽和高；同时清除缓冲区。
 	*/
@@ -223,7 +230,6 @@ public:
 
 	/*
 	\brief 交换。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	void
@@ -283,7 +289,6 @@ public:
 	}
 	/*
 	\brief 转移赋值：使用转移构造函数和交换函数。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	BitmapBufferEx&
@@ -314,7 +319,6 @@ public:
 
 	/*
 	\brief 交换。
-	\note 无异常抛出。
 	\since build 296 。
 	*/
 	void

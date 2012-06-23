@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1970;
+\version r2073;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2012-05-25 21:26 +0800;
+	2012-06-23 02:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,9 +59,10 @@ public:
 	/*!
 	\brief 无参数构造。
 	\note 零初始化。
+	\since build 319 。
 	*/
 	yconstfn
-	GBinaryGroup()
+	GBinaryGroup() ynothrow
 		: X(0), Y(0)
 	{}
 	/*!
@@ -70,29 +71,32 @@ public:
 	yconstfn DefDeCopyCtor(GBinaryGroup)
 	/*!
 	\brief 构造：使用 Size 对象。
+	\since build 319 。
 	*/
 	explicit yconstfn
-	GBinaryGroup(const Size&);
+	GBinaryGroup(const Size&) ynothrow;
 	/*!
 	\brief 构造：使用 Rect 对象。
-	\since build 296 。
+	\since build 319 。
 	*/
 	explicit yconstfn
-	GBinaryGroup(const Rect&);
+	GBinaryGroup(const Rect&) ynothrow;
 	/*!
 	\brief 构造：使用两个标量。
+	\since build 319 。
 	*/
 	PDefTmplH2(_tScalar1, _tScalar2)
 	yconstfn
-	GBinaryGroup(_tScalar1 x, _tScalar2 y)
+	GBinaryGroup(_tScalar1 x, _tScalar2 y) ynothrow
 		: X(x), Y(y)
 	{}
 
 	/*!
 	\brief 负运算：取加法逆元。
+	\since build 319 。
 	*/
 	yconstfn GBinaryGroup
-	operator-()
+	operator-() ynothrow
 	{
 		return GBinaryGroup(-X, -Y);
 	}
@@ -130,20 +134,20 @@ public:
 	/*!
 	\brief 选择分量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 268 。
+	\since build 319 。
 	*/
 	_type&
-	GetRef(bool b = true)
+	GetRef(bool b = true) ynothrow
 	{
 		return b ? this->X : this->Y;
 	}
 	/*!
 	\brief 选择分量常量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 268 。
+	\since build 319 。
 	*/
 	const _type&
-	GetRef(bool b = true) const
+	GetRef(bool b = true) const ynothrow
 	{
 		return b ? this->X : this->Y;
 	}
@@ -159,55 +163,55 @@ yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Invalid;
 
 /*!
 \brief 比较：屏幕二元组相等关系。
-\since build 242 。
+\since build 319 。
 */
 PDefTmplH1(_type)
 yconstfn bool
-operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
+operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 {
 	return a.X == b.X && a.Y == b.Y;
 }
 
 /*!
 \brief 比较：屏幕二元组不等关系。
-\since build 242 。
+\since build 319 。
 */
 PDefTmplH1(_type)
 yconstfn bool
-operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
+operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 {
 	return !(a == b);
 }
 
 /*!
 \brief 加法：屏幕二元组。
-\since build 242 。
+\since build 319 。
 */
 PDefTmplH1(_type)
 yconstfn GBinaryGroup<_type>
-operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
+operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 {
 	return GBinaryGroup<_type>(a.X + b.X, a.Y + b.Y);
 }
 
 /*!
 \brief 减法：屏幕二元组。
-\since build 242 。
+\since build 319 。
 */
 PDefTmplH1(_type)
 yconstfn GBinaryGroup<_type>
-operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b)
+operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 {
 	return GBinaryGroup<_type>(a.X - b.X, a.Y - b.Y);
 }
 
 /*!
 \brief 数乘：屏幕二元组。
-\since build 242 。
+\since build 319 。
 */
 PDefTmplH2(_type, _tScalar)
 yconstfn GBinaryGroup<_type>
-operator*(const GBinaryGroup<_type>& val, _tScalar l)
+operator*(const GBinaryGroup<_type>& val, _tScalar l) ynothrow
 {
 	return GBinaryGroup<_type>(val.X * l, val.Y * l);
 }
@@ -246,38 +250,42 @@ public:
 	/*!
 	\brief 无参数构造。
 	\note 零初始化。
+	\since build 319 。
 	*/
 	yconstfn
-	Size()
+	Size() ynothrow
 		: Width(0), Height(0)
 	{}
 	/*!
 	\brief 复制构造。
+	\since build 319 。
 	*/
 	yconstfn
-	Size(const Size& s)
+	Size(const Size& s) ynothrow
 		: Width(s.Width), Height(s.Height)
 	{}
 	/*!
 	\brief 构造：使用 Rect 对象。
-	\since build 296 。
+	\since build 319 。
 	*/
 	explicit yconstfn
-	Size(const Rect&);
+	Size(const Rect&) ynothrow;
 	/*!
 	\brief 构造：使用屏幕二元组。
+	\since build 319 。
 	*/
 	PDefTmplH1(_type)
 	yconstfn explicit
-	Size(const GBinaryGroup<_type>& val)
+	Size(const GBinaryGroup<_type>& val) ynothrow
 		: Width(val.X), Height(val.Y)
 	{}
 	/*!
 	\brief 构造：使用两个标量。
+	\since build 319 。
 	*/
 	PDefTmplH2(_tScalar1, _tScalar2)
 	yconstfn
-	Size(_tScalar1 w, _tScalar2 h)
+	Size(_tScalar1 w, _tScalar2 h) ynothrow
 		: Width(w), Height(h)
 	{}
 
@@ -306,20 +314,20 @@ public:
 	/*!
 	\brief 选择分量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 268 。
+	\since build 319 。
 	*/
 	SDst&
-	GetRef(bool b = true)
+	GetRef(bool b = true) ynothrow
 	{
 		return b ? Width : Height;
 	}
 	/*!
 	\brief 选择分量常量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 268 。
+	\since build 319 。
 	*/
 	const SDst&
-	GetRef(bool b = true) const
+	GetRef(bool b = true) const ynothrow
 	{
 		return b ? Width : Height;
 	}
@@ -327,20 +335,20 @@ public:
 
 /*!
 \brief 比较：屏幕区域大小相等关系。
-\since build 161 。
+\since build 319 。
 */
 yconstfn bool
-operator==(const Size& a, const Size& b)
+operator==(const Size& a, const Size& b) ynothrow
 {
 	return a.Width == b.Width && a.Height == b.Height;
 }
 
 /*!
 \brief 比较：屏幕区域大小不等关系。
-\since build 161 。
+\since build 319 。
 */
 yconstfn bool
-operator!=(const Size& a, const Size& b)
+operator!=(const Size& a, const Size& b) ynothrow
 {
 	return !(a == b);
 }
@@ -348,11 +356,11 @@ operator!=(const Size& a, const Size& b)
 
 /*!
 \brief 加法：使用屏幕二元组和屏幕区域大小分量对应相加构造屏幕二元组。
-\since build 242 。
+\since build 319 。
 */
 PDefTmplH1(_type)
 yconstfn GBinaryGroup<_type>
-operator+(GBinaryGroup<_type> val, const Size& s)
+operator+(GBinaryGroup<_type> val, const Size& s) ynothrow
 {
 	return GBinaryGroup<_type>(val.X + s.Width, val.Y + s.Height);
 }
@@ -360,21 +368,21 @@ operator+(GBinaryGroup<_type> val, const Size& s)
 
 /*!
 \brief 二元对象转置。
-\since build 242 。
+\since build 319 。
 */
 template<class _tBinary>
 yconstfn _tBinary
-Transpose(_tBinary& obj)
+Transpose(_tBinary& obj) ynothrow
 {
 	return _tBinary(obj.Y, obj.X);
 }
 
 /*!
 \brief 取面积。
-\since build 231 。
+\since build 319 。
 */
 yconstfn auto
-GetAreaOf(const Size& s) -> decltype(s.Width * s.Height)
+GetAreaOf(const Size& s) ynothrow -> decltype(s.Width * s.Height)
 {
 	return s.Width * s.Height;
 }
@@ -425,9 +433,10 @@ public:
 	/*!
 	\brief 无参数构造。
 	\note 零初始化。
+	\since build 319 。
 	*/
 	yconstfn
-	Rect()
+	Rect() ynothrow
 		: Point(), Size()
 	{}
 	/*!
@@ -436,92 +445,107 @@ public:
 	yconstfn DefDeCopyCtor(Rect)
 	/*!
 	\brief 构造：使用屏幕二维点。
+	\since build 319 。
 	*/
 	explicit yconstfn
-	Rect(const Point& pt)
+	Rect(const Point& pt) ynothrow
 		: Point(pt), Size()
 	{}
 	/*!
 	\brief 构造：使用 Size 对象。
+	\since build 319 。
 	*/
 	explicit yconstfn
-	Rect(const Size& s)
+	Rect(const Size& s) ynothrow
 		: Point(), Size(s)
 	{}
 	/*!
 	\brief 构造：使用屏幕二维点和 Size 对象。
+	\since build 319 。
 	*/
 	yconstfn
-	Rect(const Point& pt, const Size& s)
+	Rect(const Point& pt, const Size& s) ynothrow
 		: Point(pt), Size(s)
 	{}
 	/*!
 	\brief 构造：使用屏幕二维点和表示长宽的两个 SDst 值。
+	\since build 319 。
 	*/
 	yconstfn
-	Rect(const Point& pt, SDst w, SDst h)
+	Rect(const Point& pt, SDst w, SDst h) ynothrow
 		: Point(pt.X, pt.Y), Size(w, h)
 	{}
 	/*!
 	\brief 构造：使用表示位置的两个 SPos 值和 Size 对象。
+	\since build 319 。
 	*/
 	yconstfn
-	Rect(SPos x, SPos y, const Size& s)
+	Rect(SPos x, SPos y, const Size& s) ynothrow
 		: Point(x, y), Size(s.Width, s.Height)
 	{}
 	/*!
 	\brief 构造：使用表示位置的两个 SPos 值和表示大小的两个 SDst 值。
+	\since build 319 。
 	*/
 	yconstfn
-	Rect(SPos x, SPos y, SDst w, SDst h)
+	Rect(SPos x, SPos y, SDst w, SDst h) ynothrow
 		: Point(x, y), Size(w, h)
 	{}
 
 	DefDeCopyAssignment(Rect)
+	//! \since build 319 。
+	//@{
 	Rect&
-	operator=(const Point& pt)
+	operator=(const Point& pt) ynothrow
 	{
 		yunseq(X = pt.X, Y = pt.Y);
 		return *this;
 	}
 	Rect&
-	operator=(const Size& s)
+	operator=(const Size& s) ynothrow
 	{
 		yunseq(Width = s.Width, Height = s.Height);
 		return *this;
 	}
+	//@}
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内或边上。
+	\since build 319 。
 	*/
 	bool
-	Contains(int px, int py) const;
+	Contains(int px, int py) const ynothrow;
 	/*!
 	\brief 判断点 pt 是否在矩形内或边上。
+	\since build 319 。
 	*/
-	PDefH(bool, Contains, const Point& pt) const
+	PDefH(bool, Contains, const Point& pt) const ynothrow
 		ImplRet(Contains(pt.X, pt.Y))
 	/*!
 	\brief 判断矩形 r 是否在矩形内或边上。
+	\since build 319 。
 	*/
 	bool
-	Contains(const Rect& r) const;
+	Contains(const Rect& r) const ynothrow;
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内。
+	\since build 319 。
 	*/
 	bool
-	ContainsStrict(int px, int py) const;
+	ContainsStrict(int px, int py) const ynothrow;
 	/*!
 	\brief 判断点 pt 是否在矩形内。
+	\since build 319 。
 	*/
-	PDefH(bool, ContainsStrict, const Point& pt) const
+	PDefH(bool, ContainsStrict, const Point& pt) const ynothrow
 		ImplRet(ContainsStrict(pt.X, pt.Y))
 	/*!
 	\brief 判断矩形 r 是否在矩形内或边上。
+	\since build 319 。
 	*/
 	bool
-	ContainsStrict(const Rect& r) const;
+	ContainsStrict(const Rect& r) const ynothrow;
 
 	/*!
 	\brief 判断矩形大小是否为空。
@@ -566,21 +590,20 @@ public:
 
 /*!
 \brief 比较：屏幕正则矩形相等关系。
-\since build 161 。
+\since build 319 。
 */
 yconstfn bool
-operator==(const Rect& x, const Rect& y)
+operator==(const Rect& x, const Rect& y) ynothrow
 {
 	return x.GetPoint() == y.GetPoint() && x.GetSize() == y.GetSize();
 }
 
 /*!
 \brief 比较：屏幕正则矩形不等关系。
-\since build 161 。
+\since build 319 。
 */
-
 yconstfn bool
-operator!=(const Rect& x, const Rect& y)
+operator!=(const Rect& x, const Rect& y) ynothrow
 {
 	return !(x == y);
 }
@@ -588,20 +611,20 @@ operator!=(const Rect& x, const Rect& y)
 
 /*!
 \brief 加法：使用正则矩形 r 和偏移向量 v 构造屏幕正则矩形。
-\since build 161 。
+\since build 319 。
 */
 yconstfn Rect
-operator+(const Rect& r, const Vec& v)
+operator+(const Rect& r, const Vec& v) ynothrow
 {
 	return Rect(r.GetPoint() + v, r.GetSize());
 }
 
 /*!
 \brief 减法：使用正则矩形 r 和偏移向量的加法逆元 v 构造屏幕正则矩形。
-\since build 161 。
+\since build 319 。
 */
 yconstfn Rect
-operator-(const Rect& r, const Vec& v)
+operator-(const Rect& r, const Vec& v) ynothrow
 {
 	return Rect(r.GetPoint() - v, r.GetSize());
 }
@@ -609,12 +632,12 @@ operator-(const Rect& r, const Vec& v)
 
 PDefTmplH1(_type)
 yconstfn
-GBinaryGroup<_type>::GBinaryGroup(const Rect& r)
+GBinaryGroup<_type>::GBinaryGroup(const Rect& r) ynothrow
 	: X(r.X), Y(r.Y)
 {}
 
 yconstfn
-Size::Size(const Rect& r)
+Size::Size(const Rect& r) ynothrow
 	: Width(r.Width), Height(r.Height)
 {}
 
@@ -622,18 +645,18 @@ Size::Size(const Rect& r)
 /*!
 \brief 求两个屏幕正则矩形的交。
 \return 若相离为 Rect::Empty ，否则为包含于两个参数中的最大矩形。
-\since build 225 。
+\since build 319 。
 */
 Rect
-Intersect(const Rect&, const Rect&);
+Intersect(const Rect&, const Rect&) ynothrow;
 
 /*!
 \brief 求两个屏幕正则矩形的并。
 \return 包含两个参数中的最小矩形。
-\since build 225 。
+\since build 319 。
 */
 Rect
-Unite(const Rect&, const Rect&);
+Unite(const Rect&, const Rect&) ynothrow;
 
 
 /*!
@@ -656,16 +679,18 @@ protected:
 public:
 	/*!
 	\brief 构造：使用指定位图指针和大小。
+	\since build 319 。
 	*/
 	explicit yconstfn
-	Graphics(BitmapPtr b = nullptr, const Size& s = Size::Zero)
+	Graphics(BitmapPtr b = nullptr, const Size& s = Size::Zero) ynothrow
 		: pBuffer(b), size(s)
 	{}
 	/*!
 	\brief 复制构造：浅复制。
+	\since build 319 。
 	*/
 	yconstfn
-	Graphics(const Graphics& g)
+	Graphics(const Graphics& g) ynothrow
 		: pBuffer(g.pBuffer), size(g.size)
 	{}
 	/*!
@@ -674,14 +699,24 @@ public:
 	DefEmptyDtor(Graphics)
 
 	/*!
+	\brief 判断无效性。
+	\since build 319 。
+	*/
+	PDefHOp(bool, !) const ynothrow
+		ImplRet(!bool(*this))
+
+	/*!
 	\brief 取指定行首元素指针。
 	\pre 断言：缓冲区指针非空；参数不越界。
-	\note 无异常抛出。
 	*/
 	BitmapPtr
 	operator[](size_t) const ynothrow;
 
-	DefPred(const ynothrow, Valid,
+	/*!
+	\brief 判断有效性。
+	\since build 319 。
+	*/
+	explicit DefCvt(const ynothrow, bool,
 		pBuffer && size.Width != 0 && size.Height != 0)
 
 	DefGetter(const ynothrow, BitmapPtr, BufferPtr, pBuffer)

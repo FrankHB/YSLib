@@ -54,6 +54,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="include\libdefect\string.h" />
 		<Unit filename="include\ydef.h" />
 		<Unit filename="include\ystdex\algorithm.hpp" />
 		<Unit filename="include\ystdex\any.h" />
@@ -62,9 +63,12 @@
 		<Unit filename="include\ystdex\cstring.h" />
 		<Unit filename="include\ystdex\iterator.hpp" />
 		<Unit filename="include\ystdex\memory.hpp" />
+		<Unit filename="include\ystdex\operators.hpp" />
+		<Unit filename="include\ystdex\rational.hpp" />
 		<Unit filename="include\ystdex\string.hpp" />
 		<Unit filename="include\ystdex\type_op.hpp" />
 		<Unit filename="include\ystdex\utility.hpp" />
+		<Unit filename="include\ytest\timing.hpp" />
 		<Unit filename="source\ystdex\cstdio.cpp" />
 		<Unit filename="source\ystdex\cstring.cpp" />
 		<Extensions>

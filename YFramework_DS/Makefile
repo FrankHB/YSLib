@@ -1,8 +1,8 @@
 # DS Makefile for YFramework -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-06-05 03:11 +0800;
-# Version = r4002;
+# UTime = 2012-06-23 01:32 +0800;
+# Version = r4003;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -82,7 +82,7 @@ LDFLAGS	+=	-g
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x \
- 			-Wctor-dtor-privacy -Wnoexcept -Wsign-promo
+ 			-Wctor-dtor-privacy -Wsign-promo
 # 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 
 endif

@@ -11,12 +11,12 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1665;
+\version r1670;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:43:26 +0800;
 \par 修改时间:
-	2012-06-01 16:53 +0800;
+	2012-06-22 09:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,12 +37,12 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 /*!
 \brief 绘制像素：(x, y) 。
-\pre 断言 g.IsValid && Rect(g.GetSize()).Contains(x, y) 。
+\pre 断言 <tt>bool(g) && Rect(g.GetSize()).Contains(x, y)</tt> 。
 */
 inline void
 PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 {
-	YAssert(g.IsValid(), "Invalid graphics context found.");
+	YAssert(bool(g), "Invalid graphics context found.");
 	YAssert(Rect(g.GetSize()).Contains(x, y),
 		"The pixel is not in the device context buffer.");
 
@@ -55,7 +55,7 @@ PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 inline bool
 DrawPoint(const Graphics& g, SPos x, SPos y, Color c)
 {
-	if(YB_LIKELY(g.IsValid()))
+	if(YB_LIKELY(g))
 		if(Rect(g.GetSize()).Contains(x, y))
 		{
 			PutPixel(g, x, y, c);
@@ -74,14 +74,14 @@ DrawPoint(const Graphics& g, const Point& pt, Color c)
 
 /*!
 \brief 绘制水平线段：指定端点水平坐标 x1 、 x2 - 1 ，竖直坐标 y 。
-\pre 断言：g.IsValid() 。
+\pre 断言： <tt>bool(g)</tt> 。
 */
 bool
 DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c);
 
 /*!
 \brief 绘制竖直线段：指定竖直水平坐标 x ，竖直坐标 y1 - 1 、 y2 。
-\pre 断言：g.IsValid() 。
+\pre 断言： <tt>bool(g)</tt> 。
 */
 bool
 DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c);

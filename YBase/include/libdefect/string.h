@@ -14,15 +14,15 @@
 */
 
 /*!	\file string.h
-\ingroup YBase
+\ingroup LibDefect
 \brief 标准库实现 <string> 修正。
-\version r1407;
+\version r1409;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 308 。
 \par 创建时间:
 	2012-05-14 20:41:08 +0800;
 \par 修改时间:
-	2012-06-04 17:29 +0800;
+	2012-06-23 20:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@
 
 // TODO: confirm exact versions;
 
-#if (__GLIBCXX__ <= 20120322 && __GXX_EXPERIMENTAL_CXX0X__)
+#if (__GLIBCXX__ <= 20120614 && __GXX_EXPERIMENTAL_CXX0X__)
 // && _GLIBCXX_USE_C99
 // && _GLIBCXX_HAVE_BROKEN_VSWPRINTF
 
@@ -150,12 +150,12 @@ YB_LIBDEFECT_TOSTRF(long double, "%f")
 
 #ifdef _GLIBCXX_USE_WCHAR_T
 
-inline int 
+inline int
 stoi(const wstring& __str, size_t* __idx = 0, int __base = 10)
 { return __gnu_cxx::__stoa<long, int>(&std::wcstol, "stoi", __str.c_str(),
 __idx, __base); }
 
-inline long 
+inline long
 stol(const wstring& __str, size_t* __idx = 0, int __base = 10)
 { return __gnu_cxx::__stoa(&std::wcstol, "stol", __str.c_str(),
 __idx, __base); }
@@ -190,7 +190,8 @@ stold(const wstring& __str, size_t* __idx = 0)
 
 #endif
 
-	_GLIBCXX_END_NAMESPACE_VERSION
+_GLIBCXX_END_NAMESPACE_VERSION
+
 } // namespace std;
 
 #endif /* __GXX_EXPERIMENTAL_CXX0X__ && _GLIBCXX_USE_C99 ... */

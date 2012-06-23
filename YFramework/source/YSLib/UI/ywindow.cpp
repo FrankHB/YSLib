@@ -17,7 +17,7 @@
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2012-03-19 15:24 +0800;
+	2012-06-23 10:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "YSLib/UI/ydesktop.h"
+#include "YSLib/UI/YBrush.h"
 
 YSL_BEGIN
 

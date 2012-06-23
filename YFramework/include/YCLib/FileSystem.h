@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1365;
+\version r1387;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:38:37 +0800;
 \par 修改时间:
-	2012-06-05 21:13 +0800;
+	2012-06-22 09:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -223,7 +223,7 @@ mkdirs(const_path_t);
 \brief 文件系统节点迭代器。
 \since build 298 。
 */
-class HFileNode
+class HFileNode final
 {
 public:
 	typedef ::DIR* IteratorType; //!< 本机迭代器类型。
@@ -241,9 +241,10 @@ private:
 public:
 	/*!
 	\brief 构造：使用路径字符串。
+	\since build 319 。
 	*/
 	explicit
-	HFileNode(const_path_t path = nullptr)
+	HFileNode(const_path_t path = nullptr) ynothrow
 		: dir(), p_dirent()
 	{
 		Open(path);
@@ -255,8 +256,9 @@ public:
 	HFileNode(const HFileNode&) = default;
 	/*!
 	\brief 析构。
+	\since build 319 。
 	*/
-	~HFileNode()
+	~HFileNode() ynothrow
 	{
 		Close();
 	}
@@ -271,58 +273,65 @@ public:
 
 	/*!
 	\brief 迭代：向后遍历。
+	\since build 319 。
 	*/
 	HFileNode&
-	operator++();
+	operator++() ynothrow;
 	/*!
 	\brief 迭代：向前遍历。
+	\since build 319 。
 	*/
 	HFileNode
-	operator++(int)
+	operator++(int) ynothrow
 	{
 		return ++HFileNode(*this);
 	}
 
 	/*!
 	\brief 判断文件系统节点有效性。
+	\since build 319 。
 	*/
-	bool
-	IsValid() const
+	explicit
+	operator bool() const ynothrow
 	{
 		return dir;
 	}
-	/*!
 
+	/*!
 	\brief 从节点状态信息判断是否为目录。
+	\since build 319 。
 	*/
 	bool
-	IsDirectory() const;
+	IsDirectory() const ynothrow;
 
 	/*!
 	\brief 取节点名称。
 	\post 返回值非空。
-	\since build 298 。
+	\since build 319 。
 	*/
 	const char*
-	GetName() const;
+	GetName() const ynothrow;
 
 	/*!
 	\brief 打开。
+	\since build 319 。
 	*/
 	void
-	Open(const_path_t);
+	Open(const_path_t) ynothrow;
 
 	/*!
 	\brief 关闭。
+	\since build 319 。
 	*/
 	void
-	Close();
+	Close() ynothrow;
 
 	/*!
 	\brief 复位。
+	\since build 319 。
 	*/
 	void
-	Reset();
+	Reset() ynothrow;
 };
 
 
