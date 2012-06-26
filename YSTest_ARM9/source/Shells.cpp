@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6442;
+\version r6443;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-06-23 23:23 +0800;
+	2012-06-23 09:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -134,7 +134,7 @@ template<typename _tTarget>
 _tTarget&
 FetchGlobalResource(ResourceIndex idx)
 {
-	if(GlobalResourceMap[idx].IsEmpty())
+	if(!GlobalResourceMap[idx])
 		GlobalResourceMap[idx] = MakeValueObjectByPtr(new _tTarget());
 	return GlobalResourceMap[GR_BGs].GetObject<_tTarget>();
 }

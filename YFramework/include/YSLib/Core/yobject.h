@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3458;
+\version r3468;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-06-23 19:20 +0800;
+	2012-06-23 09:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -194,10 +194,21 @@ public:
 	ValueObject&
 	operator=(ValueObject&&) ynothrow;
 
+	/*!
+	\brief 判断是否为空。
+	\since build 320 。
+	*/
+	PDefHOp(bool, !) const ynothrow
+		ImplRet(!obj_ptr)
+
 	bool
 	operator==(const ValueObject&) const;
 
-	DefPred(const ynothrow, Empty, !obj_ptr)
+	/*!
+	\brief 判断是否非空。
+	\since build 320 。
+	*/
+	explicit DefCvt(const ynothrow, bool, obj_ptr)
 
 	PDefTmplH1(_type)
 	inline _type&

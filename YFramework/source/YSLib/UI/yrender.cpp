@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r1572;
+\version r1575;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237 。
 \par 创建时间:
 	2011-09-03 23:46:22 +0800;
 \par 修改时间:
-	2012-05-21 19:22 +0800;
+	2012-06-23 11:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 bool
 BufferedRenderer::RequiresRefresh() const
 {
-	return !rInvalidated.IsEmpty();
+	return bool(rInvalidated);
 }
 
 void
@@ -59,7 +59,7 @@ BufferedRenderer::SetSize(const Size& s)
 Rect
 BufferedRenderer::CommitInvalidation(const Rect& r)
 {
-	return rInvalidated = Unite(rInvalidated, r);
+	return rInvalidated |= r;
 }
 
 Rect
@@ -94,7 +94,7 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 		if(!IgnoreBackground && FetchContainerPtr(sender))
 			Invalidate(sender);
 
-		const Rect& clip(Intersect(pc.ClipArea, rInvalidated + l));
+		const Rect& clip(pc.ClipArea & (rInvalidated + l));
 
 		if(!IgnoreBackground && FetchContainerPtr(sender))
 		{

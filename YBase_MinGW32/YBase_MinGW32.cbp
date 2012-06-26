@@ -70,6 +70,7 @@
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-mthreads" />
+			<Add directory="..\YBase\include" />
 		</Compiler>
 		<Unit filename="..\YBase\include\libdefect\string.h" />
 		<Unit filename="..\YBase\include\ydef.h" />

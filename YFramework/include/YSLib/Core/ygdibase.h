@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2073;
+\version r2131;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2012-06-23 02:19 +0800;
+	2012-06-23 10:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -290,15 +290,24 @@ public:
 	{}
 
 	/*!
+	\brief 判断是否为空。
+	\since build 320 。
+	*/
+	yconstfn PDefHOp(bool, !) const ynothrow
+		ImplRet(Width == 0 && Height == 0)
+
+	/*!
+	\brief 判断是否非空。
+	\since build 320 。
+	*/
+	explicit yconstfn DefCvt(const ynothrow, bool, Width != 0 || Height != 0)
+
+	/*!
 	\brief 转换：屏幕二维向量。
 	\note 以Width 和 Height 分量作为结果的 X 和 Y分量。
 	*/
 	yconstfn DefCvt(const ynothrow, Vec, Vec(Width, Height))
 
-	/*!
-	\brief 判断是否为空。
-	*/
-	yconstfn DefPred(const ynothrow, Empty, Width == 0 && Height == 0)
 	/*!
 	\brief 判断是否为线段：长或宽中有且一个数值等于 0 。
 	\since build 264 。
@@ -510,6 +519,36 @@ public:
 	//@}
 
 	/*!
+	\brief 求与另一个屏幕正则矩形的交。
+	\note 若相离结果为 Rect::Empty ，否则为包含于两个参数中的最大矩形。
+	\since build 320 。
+	*/
+	Rect&
+	operator&=(const Rect&) ynothrow;
+
+	/*!
+	\brief 求与另一个屏幕正则矩形的并。
+	\note 结果为包含两个参数中的最小矩形。
+	\since build 320 。
+	*/
+	Rect&
+	operator|=(const Rect&) ynothrow;
+
+	/*!
+	\brief 判断是否为空。
+	\see Size::operator! 。
+	\since build 320 。
+	*/
+	using Size::operator!;
+
+	/*!
+	\brief 判断是否非空。
+	\see Size::bool 。
+	\since build 320 。
+	*/
+	using Size::operator bool;
+
+	/*!
 	\brief 判断点 (px, py) 是否在矩形内或边上。
 	\since build 319 。
 	*/
@@ -548,20 +587,14 @@ public:
 	ContainsStrict(const Rect& r) const ynothrow;
 
 	/*!
-	\brief 判断矩形大小是否为空。
-	\see Size::IsEmpty 。
-	\since build 296 。
-	*/
-	using Size::IsEmpty;
-	/*!
-	\brief 判断矩形大小是否为线段：长或宽中有且一个数值等于 0 。
-	\see Size::IsEmpty 。
+	\brief 判断矩形是否为线段：长和宽中有且一个数值等于 0 。
+	\see Size::IsLineSegment 。
 	\since build 296 。
 	*/
 	using Size::IsLineSegment;
 	/*!
-	\brief 判断矩形大小是否为不严格的空矩形区域：包括空矩形和线段。
-	\see Size::IsEmpty 。
+	\brief 判断矩形是否为不严格的空矩形区域：包括空矩形和线段。
+	\see Size::IsUnstrictlyEmpty 。
 	\since build 296 。
 	*/
 	using Size::IsUnstrictlyEmpty;
@@ -629,6 +662,22 @@ operator-(const Rect& r, const Vec& v) ynothrow
 	return Rect(r.GetPoint() - v, r.GetSize());
 }
 
+/*!
+\brief 求两个屏幕正则矩形的交。
+\see Rect::operator&= 。
+\since build 320 。
+*/
+Rect
+operator&(const Rect&, const Rect&) ynothrow;
+
+/*!
+\brief 求两个屏幕正则矩形的并。
+\see Rect::operator|= 。
+\since build 320 。
+*/
+Rect
+operator|(const Rect&, const Rect&) ynothrow;
+
 
 PDefTmplH1(_type)
 yconstfn
@@ -640,23 +689,6 @@ yconstfn
 Size::Size(const Rect& r) ynothrow
 	: Width(r.Width), Height(r.Height)
 {}
-
-
-/*!
-\brief 求两个屏幕正则矩形的交。
-\return 若相离为 Rect::Empty ，否则为包含于两个参数中的最大矩形。
-\since build 319 。
-*/
-Rect
-Intersect(const Rect&, const Rect&) ynothrow;
-
-/*!
-\brief 求两个屏幕正则矩形的并。
-\return 包含两个参数中的最小矩形。
-\since build 319 。
-*/
-Rect
-Unite(const Rect&, const Rect&) ynothrow;
 
 
 /*!

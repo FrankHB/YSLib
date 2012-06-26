@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r6904;
+\version r6905;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-06-01 09:05 +0800;
+	2012-06-23 10:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -105,7 +105,7 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 			const Size sc(max<int>(min<int>(g.GetWidth() - ts.Margin.Right
 				- dx, sbw) - xmin, 0), max<int>(min<int>(g.GetHeight()
 				- ts.Margin.Bottom - dy, sbh) - ymin, 0));
-			const Rect& r(Intersect(mask, Rect(dp, sc)));
+			const Rect& r(mask & Rect(dp, sc));
 
 			sp += r.GetPoint() - dp;
 			if(alpha)

@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2717;
+\version r2755;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-23 02:17 +0800;
+	2012-06-25 23:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -64,26 +64,18 @@ class Message
 	friend class MessageQueue;
 
 private:
-	/*!
-	\brief 目的 Shell 弱指针。
-	\since build 316 。
-	*/
-	weak_ptr<Shell> dest;
-	/*!
-	\brief 表示是否广播。
-	\since build 316 。
-	*/
-	bool to_all;
 	ID id; //!< 消息标识。
 	ValueObject content; //消息内容句柄。
 
 public:
 	/*!
-	\brief 构造：使用 Shell 弱指针、消息标识、消息优先级和消息内容。
-	\since build 318 。
+	\brief 构造：使用消息标识和消息内容。
+	\since build 320 。
 	*/
-	Message(const weak_ptr<Shell>& = weak_ptr<Shell>(), ID = 0,
-		const ValueObject& = ValueObject());
+	//@{
+	Message(ID = 0, const ValueObject& = ValueObject());
+	Message(ID, ValueObject&&);
+	//@}
 
 	/*!
 	\brief 复制构造：默认实现。
@@ -157,17 +149,6 @@ public:
 	*/
 	explicit DefCvt(const ynothrow, bool, id)
 
-	/*!
-	\brief 判断是否广播。
-	\since build 316 。
-	*/
-	DefPred(const ynothrow, ToAll, to_all)
-
-	/*!
-	\brief 取目的 Shell 弱指针。
-	\since build 316 。
-	*/
-	DefGetter(const ynothrow, weak_ptr<Shell>, Destination, dest)
 	DefGetter(const ynothrow, ID, MessageID, id) //!< 取消息标识。
 	DefGetter(const ynothrow, const ValueObject&, Content, content) \
 		//!< 取消息内容。
@@ -255,14 +236,6 @@ public:
 		if(YB_LIKELY(!empty()))
 			msg = begin()->second;
 	}
-	/*
-	\brief 从消息队列中取消息。
-	\param hShl 消息关联（发送目标）的 Shell 的句柄，
-		为 nullptr 时无限制（为全局消息）。
-	\since build 317 。
-	*/
-	Iterator
-	Peek(const shared_ptr<Shell>& hShl);
 
 	/*!
 	\brief 丢弃消息队列中优先级最高的消息。
@@ -297,12 +270,11 @@ public:
 	}
 
 	/*!
-	\brief 移除指定 Shell 关联的不大于指定优先级的消息。
-	\note 若第一参数为空则移除所有 Shell 关联的消息。
-	\since build 289 。
+	\brief 移除不大于指定优先级的消息。
+	\since build 320 。
 	*/
 	void
-	Remove(Shell*, Priority);
+	Remove(Priority);
 };
 
 YSL_END_NAMESPACE(Messaging)

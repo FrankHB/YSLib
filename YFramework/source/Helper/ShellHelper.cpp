@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1377;
+\version r1379;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-04-04 13:42:15 +0800;
 \par 修改时间:
-	2012-06-05 21:16 +0800;
+	2012-06-25 22:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -51,11 +51,11 @@ to_string(const Rect& r)
 YSL_END_NAMESPACE(Drawing)
 
 void
-RemoveGlobalTasks(Shell& shl)
+RemoveGlobalTasks()
 {
 	auto& app(FetchGlobalInstance());
 
-	app.Queue.Remove(&shl, app.UIResponseLimit);
+	app.Queue.Remove(app.UIResponseLimit);
 }
 
 

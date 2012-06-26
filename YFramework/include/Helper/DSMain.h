@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1239;
+\version r1241;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-06-22 09:33 +0800;
+	2012-06-26 17:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -124,9 +124,9 @@ public:
 	\return 循环条件。
 	\since build 297 。
 
-	若主消息队列为空，调用后台消息处理程序，否则从主消息队列取出并分发消息。
+	若主消息队列为空，处理空闲消息，否则从主消息队列取出并分发消息。
 	当取出的消息的标识为 SM_QUIT 时视为终止循环。
-	对于后台消息，分发前调用后台消息处理程序。
+	对于后台消息，分发前调用后台消息处理程序：分发空闲消息并可进行时序控制。
 	*/
 	bool
 	DealMessage();

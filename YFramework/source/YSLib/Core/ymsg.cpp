@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r2146;
+\version r2180;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-22 09:54 +0800;
+	2012-06-25 23:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,22 +32,19 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
-Message::Message(const weak_ptr<Shell>& wp, ID m, const ValueObject& c)
-	: dest(wp), to_all(wp.expired()), id(m), content(c)
+Message::Message(ID m, const ValueObject& c)
+	: id(m), content(c)
+{}
+Message::Message(ID m, ValueObject&& c)
+	: id(m), content(std::move(c))
 {}
 Message::Message(Message&& msg)
-	: dest(), to_all(msg.to_all), id(msg.id),
-	content(std::move(msg.content))
-{
-	// NOTE: Better performance than directly copy.
-	std::swap(dest, msg.dest);
-}
+	: id(msg.id), content(std::move(msg.content))
+{}
 
 void
 Message::Swap(Message& msg) ynothrow
 {
-	std::swap(dest, msg.dest),
-	std::swap(to_all, msg.to_all),
 	std::swap(id, msg.id),
 	content.Swap(msg.content);
 }
@@ -55,8 +52,7 @@ Message::Swap(Message& msg) ynothrow
 bool
 operator==(const Message& x, const Message& y)
 {
-	return x.dest == y.dest && x.to_all == y.to_all && x.id == y.id
-		&& x.content == y.content;
+	return x.id == y.id && x.content == y.content;
 }
 
 
@@ -70,32 +66,10 @@ MessageQueue::Merge(MessageQueue& mq)
 	mq.clear();
 }
 
-MessageQueue::Iterator
-MessageQueue::Peek(const shared_ptr<Shell>& hShl)
-{
-	auto i(cbegin());
-
-	if(hShl)
-		for(; i != cend(); ++i)
-			if(i->second.IsToAll() || hShl == i->second.GetDestination().lock())
-				break;
-	return i;
-}
-
 void
-MessageQueue::Remove(Shell* pShl, Priority p)
+MessageQueue::Remove(Priority p)
 {
-	auto i(upper_bound(p));
-
-	if(pShl)
-		ystdex::erase_all_if<multimap<Priority, Message,
-			std::greater<Priority>>>(*this, i, end(),
-			[pShl](const pair<Priority, Message>& pr){
-			// NOTE: %raw used here for performance.
-			return raw(pr.second.GetDestination()) == pShl;
-		});
-	else
-		erase(i, end());
+	erase(upper_bound(p), end());
 }
 
 YSL_END_NAMESPACE(Messaging)

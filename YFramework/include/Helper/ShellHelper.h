@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2457;
+\version r2461;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-06-09 01:00 +0800;
+	2012-06-25 22:35 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -193,7 +193,7 @@ SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority p = 0x80)
 {
 	// NOTE: It would make the message loop in dead lock when called more
 	//	than once specifying on same destination shell.
-	PostMessage<SM_SET>(weak_ptr<Shell>(), p, hShl);
+	PostMessage<SM_SET>(p, hShl);
 }
 
 /*!
@@ -296,11 +296,11 @@ CreateRawBitmap(const _tPixel* s, size_t n)
 YSL_END_NAMESPACE(Drawing)
 
 /*!
-\brief 从全局消息队列中移除所有从属于指定 Shell 的后台 SM_TASK 消息。
-\since build 295 。
+\brief 从全局消息队列中移除所有后台消息。
+\since build 320 。
 */
 void
-RemoveGlobalTasks(Shell&);
+RemoveGlobalTasks();
 
 
 /*!

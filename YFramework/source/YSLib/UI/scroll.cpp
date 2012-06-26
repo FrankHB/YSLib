@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4319;
+\version r4325;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-06-07 02:28 +0800;
+	2012-06-23 11:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -408,13 +408,10 @@ AScrollBar::Refresh(PaintEventArgs&& e)
 	Rect r(PaintChild(btnPrev, e));
 
 	if(!r.IsUnstrictlyEmpty())
-		e.ClipArea = Unite(e.ClipArea, r);
+		e.ClipArea |= e.ClipArea;
 	if(!(r = PaintChild(btnNext, e)).IsUnstrictlyEmpty())
-	{
-		Unite(e.ClipArea, PaintChild(btnNext, e));
-		e.ClipArea = Unite(e.ClipArea, r);
-	}
-	e.ClipArea = Unite(e.ClipArea, PaintChild(*pTrack, e));
+		e.ClipArea |= e.ClipArea;
+	e.ClipArea |= PaintChild(*pTrack, e);
 }
 
 
@@ -500,9 +497,9 @@ void
 ScrollableContainer::Refresh(PaintEventArgs&& e)
 {
 	if(IsVisible(hsbHorizontal))
-		e.ClipArea = Unite(e.ClipArea, PaintChild(hsbHorizontal, e));
+		e.ClipArea = operator|(e.ClipArea, PaintChild(hsbHorizontal, e));
 	if(IsVisible(vsbVertical))
-		e.ClipArea = Unite(e.ClipArea, PaintChild(vsbVertical, e));
+		e.ClipArea = operator|(e.ClipArea, PaintChild(vsbVertical, e));
 }
 
 Size

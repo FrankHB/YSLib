@@ -79,6 +79,8 @@
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-mthreads" />
+			<Add directory="..\YFramework\include" />
+			<Add directory="..\YBase\include" />
 		</Compiler>
 		<Linker>
 			<Add library="user32" />

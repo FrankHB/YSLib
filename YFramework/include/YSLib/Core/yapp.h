@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r2511;
+\version r2529;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-27 17:12:27 +0800;
 \par 修改时间:
-	2011-06-22 09:34 +0800;
+	2011-06-25 23:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -153,17 +153,27 @@ Activate(const shared_ptr<Shell>& hShl)
 //! \since build 317 。
 void
 PostMessage(const Message&, Messaging::Priority) ynothrow;
-//! \since build 316 。
-void
-PostMessage(const weak_ptr<Shell>&, Messaging::ID, Messaging::Priority,
-	const ValueObject& = ValueObject()) ynothrow;
-//! \since build 316 。
+//! \since build 320 。
+inline void
+PostMessage(Messaging::ID id, Messaging::Priority prior,
+	const ValueObject& c = ValueObject()) ynothrow
+{
+	PostMessage(Message(id, c), prior);
+}
+//! \since build 320 。
+inline void
+PostMessage(Messaging::ID id, Messaging::Priority prior, ValueObject&& c)
+	ynothrow
+{
+	PostMessage(Message(id, std::move(c)), prior);
+}
+//! \since build 320 。
 template<Messaging::MessageID _vID>
 inline void
-PostMessage(const weak_ptr<Shell>& hShl, Messaging::Priority prior,
+PostMessage(Messaging::Priority prior,
 	const typename Messaging::SMessageMap<_vID>::TargetType& target) ynothrow
 {
-	PostMessage(hShl, _vID, prior, ValueObject(target));
+	PostMessage(_vID, prior, ValueObject(target));
 }
 //@}
 

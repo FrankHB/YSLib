@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2193;
+\version r2194;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-06-11 17:49 +0800;
+	2012-06-25 22:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -105,7 +105,7 @@ ShlDS::OnGotMessage(const Message& msg)
 void
 ShlDS::OnInput()
 {
-	PostMessage<SM_PAINT>(FetchShellHandle(), 0xE0, nullptr);
+	PostMessage<SM_PAINT>(0xE0, nullptr);
 }
 
 void

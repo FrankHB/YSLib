@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2089;
+\version r2143;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-06-23 10:41 +0800;
+	2012-06-27 04:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -113,23 +113,6 @@ std::condition_variable g_cond;
 std::thread* pHostThread;
 
 #endif
-
-/*!
-\brief 默认消息发生函数。
-*/
-void
-Idle()
-{
-	// Note: Wait for GUI input of any shells. Post message for specific shell
-	//	would cause low performance when there are many candidate messages
-	//	of distinct shells.
-	PostMessage(weak_ptr<Shell>(), SM_INPUT, 0x40);
-//	PostMessage(FetchShellHandle(), SM_INPUT, 0x40);
-#if YCL_MINGW32
-	//	std::this_thread::yield();
-		std::this_thread::sleep_for(idle_sleep);
-#endif
-}
 
 //注册的应用程序指针。
 DSApplication* pApp;
@@ -350,11 +333,10 @@ DSScreen::UpdateToHost(::HDC hDC, ::HDC hMemDC) ynothrow
 
 YSL_END_NAMESPACE(Devices)
 
-
-#if YCL_MINGW32
 namespace
 {
 
+#if YCL_MINGW32
 LRESULT CALLBACK
 WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -464,10 +446,36 @@ HostTask()
 			std::this_thread::sleep_for(host_sleep);
 	}
 }
+#endif
 
+/*!
+\brief 取空闲消息。
+\since build 320 。
+*/
+inline Message
+FetchIdleMessage()
+{
+	return Message(SM_INPUT);
+}
+
+/*!
+\brief 后台消息处理程序。
+\since build 320 。
+*/
+inline void
+Idle(Messaging::Priority prior)
+{
+	// Note: Wait for GUI input of any shells. Post message for specific shell
+	//	would cause low performance when there are many candidate messages
+	//	of distinct shells.
+	PostMessage(FetchIdleMessage(), prior);
+#if YCL_MINGW32
+	//	std::this_thread::yield();
+		std::this_thread::sleep_for(idle_sleep);
+#endif
+}
 
 } // unnamed namespace;
-#endif
 
 
 DSApplication::DSApplication()
@@ -568,19 +576,21 @@ DSApplication::DealMessage()
 {
 	using namespace Shells;
 
-	const auto i(Queue.Peek(hShell));
-
-	if(i != Queue.GetEnd())
+	if(Queue.IsEmpty())
+	//	Idle(UIResponseLimit);
+		OnGotMessage(FetchIdleMessage());
+	else
 	{
+		// TODO: Consider the application queue to be locked for thread safety.
+		const auto i(Queue.GetBegin());
+
 		if(YB_UNLIKELY(i->second.GetMessageID() == SM_QUIT))
 			return false;
 		if(i->first < UIResponseLimit)
-			Idle();
+			Idle(UIResponseLimit);
 		OnGotMessage(i->second);
 		Queue.Erase(i);
 	}
-	else
-		Idle();
 	return true;
 }
 
@@ -602,9 +612,16 @@ DSApplication::ResetFontCache() ythrow(LoggedEvent)
 void
 DispatchInput(Desktop& dsk)
 {
-#if YCL_MINGW32
+#if YCL_DS
+#	define YCL_KEY_Touch KeyCodes::Touch
+#	define YCL_CURSOR_VALID
+#elif YCL_MINGW32
+#	define YCL_KEY_Touch VK_LBUTTON
+#	define YCL_CURSOR_VALID if(cursor_pos != Point::Invalid)
 	if(hWindow != ::GetForegroundWindow())
 		return;
+#else
+#	error Unsupported platform found!
 #endif
 
 	using namespace platform::KeyCodes;
@@ -624,22 +641,15 @@ DispatchInput(Desktop& dsk)
 
 	KeyInput keys(platform_ex::FetchKeyUpState());
 
-#if YCL_DS
-#	define YCL_KEY_Touch KeyCodes::Touch
-#	define YCL_CURSOR_VALID
 	if(platform_ex::KeyState[YCL_KEY_Touch])
 	{
+#if YCL_DS
 		platform::CursorInfo cursor;
 
 		platform_ex::WriteCursor(cursor);
 		yunseq(cursor_pos.X = cursor.GetX(),
 			cursor_pos.Y = cursor.GetY());
-	}
 #elif YCL_MINGW32
-#	define YCL_KEY_Touch VK_LBUTTON
-#	define YCL_CURSOR_VALID if(cursor_pos != Point::Invalid)
-	if(platform_ex::KeyState[VK_LBUTTON])
-	{
 		::POINT pt;
 
 		::GetCursorPos(&pt);
@@ -649,10 +659,8 @@ DispatchInput(Desktop& dsk)
 		if(!Rect(Point::Zero, MainScreenWidth, MainScreenHeight)
 			.Contains(cursor_pos))
 			cursor_pos = Point::Invalid;
-	}
-#else
-#	error Unsupported platform found!
 #endif
+	}
 
 	auto& st(FetchGUIState());
 

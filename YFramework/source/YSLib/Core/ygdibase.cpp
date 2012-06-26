@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1512;
+\version r1554;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:23:44 +0800;
 \par 修改时间:
-	2012-06-22 23:46 +0800;
+	2012-06-23 11:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -66,50 +66,60 @@ Rect::ContainsStrict(const Rect& r) const ynothrow
 		&& ContainsStrict(r.GetPoint() + r.GetSize());
 }
 
-
-Rect
-Intersect(const Rect& a, const Rect& b) ynothrow
+Rect&
+Rect::operator&=(const Rect& r) ynothrow
 {
-	const SPos axm(a.X + a.Width);
-	const SPos bxm(b.X + b.Width);
-	const SPos aym(a.Y + a.Height);
-	const SPos bym(b.Y + b.Height);
-	const SDst dx(max(axm, bxm) - min(a.X, b.X)),
-		dy(max(aym, bym) - min(a.Y, b.Y));
+	const SPos xm(X + Width);
+	const SPos rxm(r.X + r.Width);
+	const SPos ym(Y + Height);
+	const SPos rym(r.Y + r.Height);
+	const SDst dx(max(xm, rxm) - min(X, r.X)),
+		dy(max(ym, rym) - min(Y, r.Y));
 
 	//相离。
-	if(a.Width + b.Width < dx || a.Height + b.Height < dy)
-		return Rect::Empty;
+	if(Width + r.Width < dx || Height + r.Height < dy)
+		return *this = Rect::Empty;
 
 	//优化：包含情况。
-	if(dx == a.Width && dy == a.Height)
-		return b;
-	if(dx == b.Width && dy == b.Height)
-		return a;
+	if(dx == Width && dy == Height)
+		return *this = r;
+	if(dx == r.Width && dy == r.Height)
+		return *this;
 
-	SPos x1(max(a.X, b.X)), x2(min(axm, bxm)),
-		y1(max(a.Y, b.Y)), y2(min(aym, bym));
+	SPos x1(max(X, r.X)), x2(min(xm, rxm)),
+		y1(max(Y, r.Y)), y2(min(ym, rym));
 
 	if(x2 < x1)
 		std::swap(x1, x2);
 	if(y2 < y1)
 		std::swap(y1, y2);
+	return *this = Rect(x1, y1, x2 - x1, y2 - y1);
+}
 
-	return Rect(x1, y1, x2 - x1, y2 - y1);
+Rect&
+Rect::operator|=(const Rect& r) ynothrow
+{
+	if(!*this)
+		return *this = r;
+	if(!r)
+		return *this;
+
+	const auto mx(min(X, r.X)), my(min(Y, r.Y));
+
+	return *this = Rect(mx, my, max<SPos>(X + Width, r.X + r.Width) - mx,
+		max<SPos>(Y + Height, r.Y + r.Height) - my);
 }
 
 Rect
-Unite(const Rect& a, const Rect& b) ynothrow
+operator&(const Rect& a, const Rect& b) ynothrow
 {
-	if(YB_UNLIKELY(a.IsEmpty()))
-		return b;
-	if(YB_UNLIKELY(b.IsEmpty()))
-		return a;
+	return Rect(a) &= b;
+}
 
-	auto mx(min(a.X, b.X)), my(min(a.Y, b.Y));
-
-	return Rect(mx, my, max<SPos>(a.X + a.Width, b.X + b.Width) - mx,
-		max<SPos>(a.Y + a.Height, b.Y + b.Height) - my);
+Rect
+operator|(const Rect& a, const Rect& b) ynothrow
+{
+	return Rect(a) |= b;
 }
 
 
