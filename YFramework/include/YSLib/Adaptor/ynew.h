@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2105;
+\version r2112;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2012-06-11 11:56 +0800;
+	2012-06-28 10:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -173,6 +173,13 @@ public:
 
 YSL_END
 
+/*
+\def ynew
+\def ynew_nothrow
+\def ydelete
+\def ydelete_array
+\bug 调试内存列表非线程安全。
+*/
 #	define ynew YSLib::MemoryList::NewRecorder(__FILE__, __LINE__)->*new
 #	define ynew_nothrow new(std::nothrow, __FILE__, __LINE__)
 #	define ydelete(p) (GetDebugMemoryList().Unregister(p, __FILE__, \

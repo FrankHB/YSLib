@@ -11,13 +11,13 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r1724;
+\version r1728;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-09 20:43:52 +0800;
 \par 修改时间:
-	2012-06-23 01:53 +0800;
+	2012-06-28 09:24 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -83,8 +83,11 @@ protected:
 	}
 
 public:
+	//! \warning 不保证线程安全性。
+	//@{
 	static DefGetter(ynothrow, count_t, Count, nCount)
 	static DefGetter(ynothrow, count_t, Total, nTotal)
+	//@}
 	yconstfn DefGetter(const ynothrow, count_t, ObjectID, nID)
 
 protected:

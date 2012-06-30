@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11812;
+\version r11846;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-06-01 22:25 +0800;
+	2012-06-28 10:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -322,7 +322,13 @@ $unit YCommon
 		{
 			static int LastError; //!< 上一次操作结果，0 为无错误。
 		};
+	}
+}
 
+$unit YDebug
+{
+	namespace platform
+	{
 $unit.impl:
 		static bool bDebugStatus;
 		static bool bUninitializedTimers;
@@ -384,7 +390,7 @@ $dir Adaptor
 
 $namespace.using YSLib:
 
-$unit YFont
+$unit Font
 {
 }
 
@@ -433,6 +439,18 @@ $unit YString
 	};
 }
 
+$header YStorage
+{
+	class template GStaticCache
+	{
+		static PointerType _ptr;
+	};
+	class template GLocalStaticCache
+	{
+		static PointerType _ptr;
+	};
+}
+
 $unit YFileSystem
 {
 	namespace IO
@@ -451,10 +469,6 @@ $unit YApplication
 class Application
 {
 //全局常量。
-static const IO::Path CommonAppDataPath; //!< 程序默认路径。
-static const String CompanyName; //!< 制作组织名称。
-static const String ProductName; //!< 产品名称。
-static const String ProductVersion; //!< 产品版本。
 };
 }
 
@@ -472,10 +486,13 @@ $unit YTimer
 {
 	namespace Timers
 	{
+		namespace
+		{
+			bool NotInitialized;
+		}
+
 		class Timer
 		{
-			static bool NotInitialized;
-			static vu32 SystemTick;
 			static TimerMap mTimers;
 		};
 	}

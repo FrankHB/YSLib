@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4547;
+\version r4548;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-06-25 22:37 +0800;
+	2012-06-30 18:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -420,7 +420,7 @@ ShlReader::Exit()
 void
 ShlReader::OnInput()
 {
-	ShlDS::OnInput();
+	PostMessage<SM_PAINT>(0xE0, nullptr);
 	if(fBackgroundTask)
 		PostMessage<SM_TASK>(0x20, fBackgroundTask);
 }

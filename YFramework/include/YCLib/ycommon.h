@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r4340;
+\version r4342;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 22:14:28 +0800;
 \par 修改时间:
-	2012-06-23 00:04 +0800;
+	2012-06-28 11:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -134,6 +134,7 @@ namespace platform_ex
 \brief 设置允许设备进入睡眠的标识状态。
 \return 旧状态。
 \note 默认状态为 true 。
+\warning 非线程安全。
 \since build 278 。
 */
 bool

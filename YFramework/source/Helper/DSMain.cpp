@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2143;
+\version r2271;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-06-27 04:06 +0800;
+	2012-06-30 17:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include <YSLib/UI/ygui.h>
 #include <YSLib/Service/YBlit.h>
 #include <YCLib/Debug.h>
-#if YCL_MINGW32
+#if YCL_MULTITHREAD == 1
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -361,7 +361,7 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_KILLFOCUS:
 		YCL_DEBUG_PUTS("Handling of WM_KILLFOCUS.");
-		yunseq(platform_ex::KeyState.reset(), platform_ex::OldKeyState.reset());
+		platform_ex::ClearKeyStates();
 		break;
 	case WM_DESTROY:
 		YCL_DEBUG_PUTS("Handling of WM_DESTROY.");
@@ -377,20 +377,18 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-void
+::HWND
 InitializeMainWindow()
 {
-	::HINSTANCE hInstance(::GetModuleHandleW(NULL));
+	yconstexpr auto wnd_class_name(L"YSTest_Class");
+	yconstexpr auto wnd_title(L"YSTest");
 	::WNDCLASSEX wCl;
-	const auto wnd_class_name(L"YSTest_Class");
-	const auto wnd_title(L"YSTest");
-	const u16 wnd_w(256), wnd_h(384);
 
-	yunseq(wCl.hInstance = hInstance,
+	yunseq(wCl.hInstance = ::GetModuleHandleW(NULL),
 		wCl.lpszClassName = wnd_class_name,
 		wCl.lpfnWndProc = WndProc,
 		wCl.style = CS_DBLCLKS,
-//		wCl.style = CS_HREDRAW | CS_VREDRAW,
+	//	wCl.style = CS_HREDRAW | CS_VREDRAW,
 		wCl.cbSize = sizeof(wCl),
 		wCl.hIcon = ::LoadIcon(NULL, IDI_APPLICATION),
 		wCl.hIconSm = ::LoadIcon(NULL, IDI_APPLICATION),
@@ -407,22 +405,15 @@ InitializeMainWindow()
 	//	::MessageBox(NULL, "This program requires Windows NT!",
 		//	wnd_title, MB_ICONERROR);
 
-	::RECT rect{0, 0, wnd_w, wnd_h};
-	const ::DWORD wstyle(WS_TILED | WS_CAPTION | WS_SYSMENU
+	yconstexpr ::DWORD wstyle(WS_TILED | WS_CAPTION | WS_SYSMENU
 		| WS_MINIMIZEBOX);
+	yconstexpr u16 wnd_w(256), wnd_h(384);
+	::RECT rect{0, 0, wnd_w, wnd_h};
 
 	::AdjustWindowRect(&rect, wstyle, FALSE);
-	{
-		std::lock_guard<std::mutex> lck(g_mutex);
-
-		hWindow = ::CreateWindowEx(0, wnd_class_name, wnd_title,
-			wstyle, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
-			rect.bottom - rect.top, HWND_DESKTOP, NULL, hInstance, NULL);
-		// NOTE: Currently there is only one client.
-		g_cond.notify_one();
-	//	g_cond.notify_all();
-	}
-	::ShowWindow(hWindow, SW_SHOWNORMAL);
+	return ::CreateWindowEx(0, wnd_class_name, wnd_title,
+		wstyle, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
+		rect.bottom - rect.top, HWND_DESKTOP, NULL, wCl.hInstance, NULL);
 }
 
 
@@ -433,7 +424,15 @@ InitializeMainWindow()
 void
 HostTask()
 {
-	YSL_ InitializeMainWindow();
+	{
+		std::lock_guard<std::mutex> lck(g_mutex);
+
+		hWindow = YSL_ InitializeMainWindow();
+		// NOTE: Currently there is only one client.
+		g_cond.notify_one();
+	//	g_cond.notify_all();
+	}
+	::ShowWindow(hWindow, SW_SHOWNORMAL);
 
 	::MSG host_msg; //!< 本机消息类型。
 
@@ -609,6 +608,59 @@ DSApplication::ResetFontCache() ythrow(LoggedEvent)
 }
 
 
+namespace
+{
+
+//! \since build 321 。
+//@{
+// NOTE: There is no real necessity to put input content into message queue,
+//	for the content is serialized in form of exactly one instance
+//	to be accepted at one time and no input signal is handled
+//	through interrupt to be buffered.
+Drawing::Point CursorState;
+#if YCL_MULTITHREAD == 1
+std::mutex CursorMutex;
+#endif
+
+void
+UpdateCursorPosition()
+{
+	platform::CursorInfo cursor;
+#if YCL_MULTITHREAD == 1
+	std::lock_guard<std::mutex> lck(CursorMutex);
+#endif
+
+	platform_ex::WriteCursor(cursor);
+#if YCL_DS
+	CursorState = cursor.operator Point();
+#elif YCL_MINGW32
+	::ScreenToClient(hWindow, &cursor);
+	yunseq(CursorState.X = cursor.x,
+		CursorState.Y = cursor.y - MainScreenHeight);
+	if(!Rect(Point::Zero, MainScreenWidth, MainScreenHeight)
+		.Contains(CursorState))
+		CursorState = Point::Invalid;
+#endif
+}
+
+#if YCL_MULTITHREAD == 1
+inline const Point&
+FetchCursorPosition()
+{
+	std::lock_guard<std::mutex> lck(CursorMutex);
+#elif !YCL_MULTITHREAD
+const Point&
+FetchCursorPosition()
+{
+#else
+#	error Unsupported multithread environment found!
+#endif
+	return CursorState;
+}
+//@}
+
+} // unnamed namespace;
+
 void
 DispatchInput(Desktop& dsk)
 {
@@ -627,12 +679,6 @@ DispatchInput(Desktop& dsk)
 	using namespace platform::KeyCodes;
 	using namespace YSL_ Components;
 
-	// NOTE: There is no real necessity to put input content into message queue,
-	//	for the content is serialized in form of exactly one instance
-	//	to be accepted at one time and no input signal is handled
-	//	through interrupt to be buffered.
-	static Drawing::Point cursor_pos;
-
 	// FIXME: [DS] crashing after sleeping(default behavior of closing then
 	//	reopening lid) on real machine due to LibNDS default interrupt
 	//	handler for power management.
@@ -641,75 +687,34 @@ DispatchInput(Desktop& dsk)
 
 	KeyInput keys(platform_ex::FetchKeyUpState());
 
-	if(platform_ex::KeyState[YCL_KEY_Touch])
-	{
-#if YCL_DS
-		platform::CursorInfo cursor;
+	if(platform_ex::FetchKeyState()[YCL_KEY_Touch])
+		UpdateCursorPosition();
 
-		platform_ex::WriteCursor(cursor);
-		yunseq(cursor_pos.X = cursor.GetX(),
-			cursor_pos.Y = cursor.GetY());
-#elif YCL_MINGW32
-		::POINT pt;
-
-		::GetCursorPos(&pt);
-		::ScreenToClient(hWindow, &pt);
-		yunseq(cursor_pos.X = pt.x,
-			cursor_pos.Y = pt.y - MainScreenHeight);
-		if(!Rect(Point::Zero, MainScreenWidth, MainScreenHeight)
-			.Contains(cursor_pos))
-			cursor_pos = Point::Invalid;
-#endif
-	}
-
+	const Drawing::Point cursor_pos(FetchCursorPosition());
 	auto& st(FetchGUIState());
-
-	if(keys[YCL_KEY_Touch])
-	{
-		YCL_CURSOR_VALID
+	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
+		VisualEvent touch_evt){
+		if(keyset[YCL_KEY_Touch])
 		{
-			TouchEventArgs e(dsk, cursor_pos);
+			YCL_CURSOR_VALID
+			{
+				TouchEventArgs e(dsk, cursor_pos);
 
-			st.ResponseTouch(e, TouchUp);
+				st.ResponseTouch(e, touch_evt);
+			}
 		}
-	}
-	else if(keys.any())
-	{
-		KeyEventArgs e(dsk, keys);
+		else if(keyset.any())
+		{
+			KeyEventArgs e(dsk, keys);
 
-		st.ResponseKey(e, KeyUp);
-	}
+			st.ResponseKey(e, key_evt);
+		}
+	});
+
+	disp(keys, KeyUp, TouchUp);
 	keys = platform_ex::FetchKeyDownState();
-	if(keys[YCL_KEY_Touch])
-	{
-		YCL_CURSOR_VALID
-		{
-			TouchEventArgs e(dsk, cursor_pos);
-
-			st.ResponseTouch(e, TouchDown);
-		}
-	}
-	else if(keys.any())
-	{
-		KeyEventArgs e(dsk, keys);
-
-		st.ResponseKey(e, KeyDown);
-	}
-	if(platform_ex::KeyState[YCL_KEY_Touch])
-	{
-		YCL_CURSOR_VALID
-		{
-			TouchEventArgs e(dsk, cursor_pos);
-
-			st.ResponseTouch(e, TouchHeld);
-		}
-	}
-	else if(platform_ex::KeyState.any())
-	{
-		KeyEventArgs e(dsk, platform_ex::KeyState);
-
-		st.ResponseKey(e, KeyHeld);
-	}
+	disp(keys, KeyDown, TouchDown);
+	disp(platform_ex::FetchKeyState(), KeyHeld, TouchHeld);
 #undef YCL_CURSOR_VALID
 #undef YCL_KEY_Touch
 }

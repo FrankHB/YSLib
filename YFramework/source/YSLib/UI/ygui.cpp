@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4239;
+\version r4243;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-06-01 16:47 +0800;
+	2012-06-30 18:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -248,8 +248,7 @@ GUIState::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 	e.Strategy = Components::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
-		p = pCon;
-		e.SetSender(*p);
+		e.SetSender(*(p = pCon));
 		r |= ResponseKeyBase(e, op);
 	}
 	return r;
@@ -292,8 +291,7 @@ GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e += GetLocationOf(*p);
-		p = pCon;
-		e.SetSender(*p);
+		e.SetSender(*(p = pCon));
 		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
 	}
 	return r;

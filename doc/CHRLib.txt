@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r1082;
+\version r1083;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 305 。
 \par 创建时间:
 	2012-04-29 17:11:42 +0800;
 \par 修改时间:
-	2012-05-09 23:46 +0800;
+	2012-05-09 10:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -97,6 +97,7 @@
 完备性。
 
 @2 实现概览：
+除非另有说明， CHRLib 仅保证非成员或静态成员函数的线程安全性。
 
 @2.1 领域模型实现：
 略。

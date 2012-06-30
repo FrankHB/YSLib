@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1503;
+\version r1505;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2012-06-07 16:51 +0800;
+	2012-06-29 11:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -127,10 +127,8 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 	ScrollableContainer::Refresh(std::move(e));
 	TextState.ResetPen();
 
-#if YCL_DS
 	// NOTE: It seems there is a bug in linker for checking odr-using.
 	yconstexpr auto ItemPerLine(HexViewArea::ItemPerLine);
-#endif
 	auto& y(TextState.PenY);
 	const SDst lh(GetItemHeight()), h(GetHeight()),
 		w_all(GetWidth() - vsbVertical.GetWidth()

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1981;
+\version r1986;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-06-10 03:22 +0800;
+	2012-06-28 11:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -194,7 +194,7 @@ make_array(_tSrcElement(&&src)[_vN])
 
 /*!
 \brief 按标识调用函数，保证调用一次。
-\note 类似 std::call_once ，但不保证线程安全性。
+\note 类似 std::call_once ，但多线程环境下失效。
 \since build 301 。
 	
 当标识为 true 时候无作用，否则调用函数。
@@ -213,6 +213,8 @@ call_once(bool& b, _fCallable f, _tParams&&... args)
 
 /*!
 \brief 类型参数化静态对象。
+\warning 不可重入。
+\warning 非线程安全。
 \since build 303 。
 */
 template<typename _type, typename, typename...>
@@ -225,6 +227,8 @@ parameterize_static_object()
 }
 /*!
 \brief 非类型参数化静态对象。
+\warning 不可重入。
+\warning 非线程安全。
 \since build 301 。
 */
 template<typename _type, size_t...>

@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1456;
+\version r1457;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2011-05-26 19:41:08 +0800;
 \par 修改时间:
-	2012-06-23 02:48 +0800;
+	2012-06-28 11:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -316,6 +316,7 @@ YConsoleInit(std::uint8_t dspIndex,
 
 /*!
 \brief 初始化视频输出。
+\warning 不保证线程安全性。
 */
 bool
 InitVideo();

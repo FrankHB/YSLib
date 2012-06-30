@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1241;
+\version r1243;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-06-26 17:33 +0800;
+	2012-06-30 13:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

@@ -12,13 +12,13 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r1381;
+\version r1385;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 195 。
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2012-06-23 02:33 +0800;
+	2012-06-28 10:22 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -46,6 +46,7 @@ FetchInstance()
 
 /*!
 \brief 取指定类型的静态默认对象。
+\warning 非线程安全。
 \since build 240 。
 */
 PDefTmplH1(_type)
@@ -59,6 +60,7 @@ FetchStaticRef()
 
 /*!
 \brief 取指定类型的静态原型对象。
+\warning 初始化前非线程安全。
 \since build 240 。
 */
 PDefTmplH1(_type)
@@ -74,6 +76,7 @@ FetchPrototype()
 /*!
 \brief 全局静态单态存储器。
 \pre <tt>std::is_nothrow_constructible<_tPointer>::value</tt> 。
+\warning 非线程安全。
 \since 早于 build 132 。
 */
 template<typename _type, typename _tPointer = _type*>
@@ -140,6 +143,7 @@ typename GStaticCache<_type, _tPointer>::PointerType
 /*!
 \brief 全局局部静态单态存储器。
 \pre <tt>std::is_nothrow_constructible<_tPointer>::value</tt> 。
+\warning 非线程安全。
 \since build 205 。
 */
 template<typename _type, typename _tPointer = _type*>

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1387;
+\version r1394;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:38:37 +0800;
 \par 修改时间:
-	2012-06-22 09:32 +0800;
+	2012-06-28 11:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -130,6 +130,7 @@ using ystdex::path_t;
 \param filename 文件名，意义同 std::fopen 。
 \param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
 \pre 断言检查：<tt>filename && mode && *mode != 0</tt> 。
+\bug MinGW32 环境下非线程安全。
 \since build 299 。
 */
 std::FILE*
@@ -180,6 +181,7 @@ direxists(const_path_t);
 
 /*!
 \brief 判断指定 UTF-8 路径的目录是否存在。
+\bug MinGW32 环境下非线程安全。
 \since build 312 。
 */
 bool
@@ -207,6 +209,7 @@ u16getcwd_n(char16_t* buf, std::size_t size);
 
 /*!
 \brief 切换当前工作路径至指定的 UTF-8 字符串。
+\bug MinGW32 环境下非线程安全。
 \since build 313 。
 */
 int
@@ -228,7 +231,12 @@ class HFileNode final
 public:
 	typedef ::DIR* IteratorType; //!< 本机迭代器类型。
 
-	static int LastError; //!< 上一次操作结果，0 为无错误。
+	/*!
+	\brief 上一次操作结果，0 为无错误。
+	\warning 不可重入。
+	\warning 非线程安全。
+	*/
+	static int LastError;
 
 private:
 	IteratorType dir;

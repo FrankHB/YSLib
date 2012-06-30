@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r1177;
+\version r1296;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 299 。
 \par 创建时间:
 	2012-04-07 13:37:05 +0800;
 \par 修改时间:
-	2012-06-04 17:24 +0800;
+	2012-06-30 12:33 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,39 +34,51 @@
 namespace platform
 {
 
-#if YCL_DS
 //! \brief 屏幕指针设备光标信息。
-typedef struct CursorInfo : public ::touchPosition
+struct CursorInfo final
+#if YCL_DS
+	 : public ::touchPosition
+#	define YCL_CURSOR_X px
+#	define YCL_CURSOR_Y py
+#elif YCL_MINGW32
+	 : public ::POINT
+#	define YCL_CURSOR_X x
+#	define YCL_CURSOR_Y y
+#else
+#	error Unsupport platform found!
+#endif
 {
+	/*!
+	\brief 转换为二元组。
+	\since build 321 。
+	*/
+	template<class _tBinary>
+	operator _tBinary() const
+	{
+		return _tBinary(YCL_CURSOR_X, YCL_CURSOR_Y);
+	}
+
 	/*!
 	\brief 取横坐标。
 	\since build 313 。
 	*/
-	std::uint16_t
+	yconstfn std::uint16_t
 	GetX() const
 	{
-		return px;
+		return YCL_CURSOR_X;
 	}
 	/*!
 	\brief 取纵坐标。
 	\since build 313 。
 	*/
-	std::uint16_t
+	yconstfn std::uint16_t
 	GetY() const
 	{
-		return py;
+		return YCL_CURSOR_Y;
 	}
-} CursorInfo;
-
-#elif YCL_MINGW32
-/*!
-\brief 屏幕指针设备光标信息。
-\since build 296 。
-*/
-typedef ::CURSORINFO CursorInfo;
-#else
-#	error Unsupport platform found!
-#endif
+#undef YCL_CURSOR_Y
+#undef YCL_CURSOR_X
+};
 
 
 /*!
@@ -96,48 +108,51 @@ namespace platform_ex
 {
 
 /*!
-\brief 写入当前指针设备信息。
-\since build 272 。
+\def 指定按键缓冲状态是否以外部对象直接定义。
+\note 单线程环境且 KeyBitsetWidth 较小时适合指定直接定义。
+\since build 321 。
 */
-void
-WriteCursor(platform::CursorInfo&);
+#if YCL_MULTITHREAD // || ...
+#	define YCL_KEYSTATE_DIRECT 0
+#elif defined(YCL_DS)
+#	define YCL_KEYSTATE_DIRECT 1
+#endif
 
 
 /*!
-\brief 按键缓冲。
-\since build 299 。
+\brief 取按键状态。
+\since build 321 。
 */
-extern platform::KeyInput KeyState, OldKeyState;
+const platform::KeyInput&
+FetchKeyState();
 
 /*!
-\brief 清除按键缓冲。
-\since build 299 。
+\brief 取上一次更新的按键状态。
+\since build 321 。
 */
-inline void
-ClearKeyStates()
-{
-	yunseq(KeyState = 0, OldKeyState = 0);
-}
+const platform::KeyInput&
+FetchOldKeyState();
 
 /*!
 \brief 取键按下状态。
 \since build 299 。
 */
-inline platform::KeyInput
-FetchKeyDownState()
-{
-	return KeyState &~ OldKeyState;
-}
+platform::KeyInput
+FetchKeyDownState();
 
 /*!
 \brief 取键释放状态。
 \since build 299 。
 */
-inline platform::KeyInput
-FetchKeyUpState()
-{
-	return (KeyState ^ OldKeyState) & ~KeyState;
-}
+platform::KeyInput
+FetchKeyUpState();
+
+/*!
+\brief 清除按键缓冲。
+\since build 299 。
+*/
+void
+ClearKeyStates();
 
 /*!
 \brief 更新按键状态。
@@ -145,6 +160,53 @@ FetchKeyUpState()
 */
 void
 UpdateKeyStates();
+
+#if YCL_KEYSTATE_DIRECT
+/*!
+\brief 按键缓冲。
+\since build 299 。
+*/
+extern platform::KeyInput KeyState, OldKeyState;
+
+inline const platform::KeyInput&
+FetchKeyState()
+{
+	return KeyState;
+}
+
+inline const platform::KeyInput&
+FetchOldKeyState()
+{
+	return OldKeyState;
+}
+
+inline void
+ClearKeyStates()
+{
+	yunseq(KeyState.reset(), OldKeyState.reset());
+}
+
+inline platform::KeyInput
+FetchKeyDownState()
+{
+	return FetchKeyState() &~ FetchOldKeyState();
+}
+
+inline platform::KeyInput
+FetchKeyUpState()
+{
+	return (FetchKeyState() ^ FetchOldKeyState()) & ~FetchKeyState();
+}
+
+#endif
+
+
+/*!
+\brief 写入当前指针设备信息。
+\since build 272 。
+*/
+void
+WriteCursor(platform::CursorInfo&);
 
 
 #if YCL_DS

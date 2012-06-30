@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1842;
+\version r1843;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-04-21 22:06 +0800;
+	2012-06-28 11:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -56,6 +56,7 @@ public:
 
 	static yconstexpr bool is_steady = false;
 
+	//! \warning 首次调用前非线程安全。
 	static time_point
 	now() ynothrow;
 };

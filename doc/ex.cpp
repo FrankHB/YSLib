@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4035; *build 320 rev 19;
+\version r4069; *build 321 rev 26;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-27 05:15 +0800;
+	2012-07-01 06:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -384,142 +384,139 @@ $using:
 
 $DONE:
 r1:
-/ \mf IsEmpty @ \cl ValueObject -> \mf \op (!, bool),
-/ \tr \impl @ \ft FetchGlobalResource @ \impl \u Shells;
-/= test 1 @ platform MinGW32;
++ $doc reentrancy and thread-safety @ \proj (YBase, YFramework);
+/= test 0 @ platform MinGW32;
 
 r2:
-/ @ \u YGDIBase $=
-(
-	(
-		/ yconstfn \mf IsEmpty @ \cl Size -> \mf \op (!, bool);
-		/ using Size::IsEmpty -> using Size::\op(!, bool),
-	),
-	/ \f Intersect => \op&,
-	/ \f Unite => \op|
-),
-/ \tr \impl @ \impl \u (YUIContainer, YRender, TextList, YWidget, Scroll,
-	CharRenderer),
-* \impl @ \mf AScrollBar::Refresh $since b295;
-/= test 2 @ platform MinGW32;
+/ \a \mac 'YCL_*' -> 'YB_*' @ \h Operators,
+/ DLP @ "platform %DS"
+	$= (^ "updated devkitARM release 41" ~ "devkitARM release 40");
+/= test 1 @ platform DS;
 
 r3:
-/= test 3 @ platform DS ^ \conf release;
+/= test 2 @ platform DS ^ \conf release;
 
 r4:
-/ @ \u YGDIBase $=
+/ @ \ns platform_ex @ \u Input $=
 (
-	+ \mf \op(&=, |=) @ \cl Rect;
-	/ \simp \impl @ \f \op(&, |)
-);
-/ \simp \impl @ \impl \u (Scroll, YUIContainer, YWidget);
-/= test 4 @ platform MinGW32;
+	+ \mac \def YCL_KEYSTATE_DIRECT;
+	/ @ YCL_KEYSTATE_DIRECT $=
+	(
+		/ \impl @ \f \i ClearKeyStates,
+		+ \f \i (FetchKeyState, FetchOldKeyState)
+	)
+	/ @ !YCL_KEYSTATE_DIRECT $=
+	(
+		/ \f \i ClearKeyStates -> \f !\i,
+		+ \f !\i (FetchKeyState, FetchOldKeyState)
+	),
+	/ \tr \impl @ \f (FetchKeyDownState, FetchKeyUpState),
+	/ \tr \impl @ \f pdateKeyStates;
+	* $comp thread-safety @ \f ClearKeyState $since b299
+),
+/ \tr \impl @ \f (DispatchInput, WndProc @ \un \ns) @ \impl \u DSMain,
+/ \impl @ \f HexViewArea::Refresh @ \impl \u HexBrowser,
+/ Code::Blocks \proj \conf 'std=c++0x' -> 'c++11' @ platform MinGW32; 
+/= test 3 @ platform MinGW32;
 
 r5:
-/= test 5 @ platform DS;
+/= test 4 @ platform DS ^ \conf release;
 
 r6:
-/= test 6 @ platform DS ^ \conf release;
++ \mac \def YCL_MULTITHREAD (0 @ platform DS, 1 @ platform MinGW32)
+	@ \h Platform;
+/ \impl @ \lib YCLib @ \mac YCL_MULTITHREAD;
+/= test 5 @ platform MinGW32 ^ \conf release;
 
 r7:
-/= test 7 @ platform MinGW32 ^ \conf release;
+/ @ \impl \u Input $=
+(
+	+ \mac \def YCL_DEF_LOCKGUARD;
+	* \impl @ \f (FetchKeyState, FetchOldKeyState) $since r4,
+	/ \simp \f (ClearKeyStates, UpdateKeyStates)
+		^ \mac YCL_DEF_LOCKGUARD,
+	* \impl @ \f (FetchKeyDownState, FetchKeyUpState)
+		@ platform MinGW32 $since r4
+);
+/= test 6 @ platform MinGW32;
 
 r8:
+/ @ \u Input $=
 (
-	/ \simp \impl @ \mf DSApplication::DealMessage, \f Idle @ \impl \u DSMain,
-	/ @ \u ShellHelper $=
+	- typedef ::CURSORINFO CursorInfo @ platform MinGW32;
+	/ \st CursorInfo @ platform DS -> \cl CursorInfo;
+	/ @ \cl CursorInfo $=
 	(
-		/ \f void RemoveGlobalTasks(Shell&)
-			-> void RemoveGlobalTasks(),
-		/ \simp \impl @ \f \i SetShellTo,
-	),
-	/ \simp \impl @ \mf OnInput @ \cl (ShlDS @ \impl \u Shell_DS,
-		ShlReader @ \impl \u ShlReader);
-	/ @ \u YApplication $=
-	(
-		/ \simp \f PostMessage#(2, 3),
-		/ \tr \simp \impl @ \f PostQuitMessage
-	)
+		/ \impl @ \mf (GetX, GetY);
+		+ \ft \op _tBinary
+	);
+	/ \impl @ \f WriteCursor
 );
-/ @ \cl MessageQueue $=
-(
-	- \mf Iterator Peek(const shared_ptr<Shell>&),
-	/ \mf void Remove(Shell*, Priority) -> void Remove(Priority)
-);
-/ @ \cl Message $=
-(
-	/ \simp \impl @ \mf (\op==, Swap),
-	- \mf (GetDestination, IsToAll)
-	/ \simp @ \ctor;
-	- private \m (weak_ptr<Shell> dest, bool to_all)
-);
-/= test 8 @ platform MinGW32;
+/ \simp \impl @ \f DispatchInput @ \impl \u DSMain;
+/= test 7 @ platform MinGW32;
 
 r9:
-/= test 9 @ platform DS;
+/= test 8 @ platform DS ^ \conf release;
 
 r10:
-/= test 10 @ platform MinGW32 ^ \conf release;
++ thread-safety @ \impl \u DSMain;
+/= test 9 @ platform MinGW32;
 
 r11:
-/= test 11 @ platform DS ^ \conf release;
+/= test 10 @ platform DS;
 
 r12:
-+ \ctor Message(ID, ValueObject&&);
-/ @ \u YApplication $=
-(
-	+ \i @ \f void PostMessage(Messaging::ID, Messaging::Priority,
-		const ValueObject& = ValueObject()) ynothrow;
-	+ \f \i void PostMessage(Messaging::ID, Messaging::Priority,
-		ValueObject&& = ValueObject())
-);
-/= test 12 @ platform DS ^ \conf release;
+/= test 11 @ platform MinGW32 ^ \conf release;
 
 r13:
-/ \simp \impl @ \mf DSApplication::DealMessage @ \impl \u DSMain;
-/= test 13 @ platform DS ^ \conf release;
+/= test 12 @ platform DS ^ \conf release;
 
 r14:
-/ @ \impl \u DSMain $=
-(
-	/ @ \un \ns $=
-	(
-		+ \f \i Message FetchIdleMessage();
-		/ \f !\i void Idle() -> \f \i void Idle(Messaging::Priority)
-	);
-	/ \impl @ \mf DSApplication::DealMessage
-);
-/= test 14 @ platform MinGW32;
+/ \impl @ \impl \u DSMain;
+/= test 13 @ platform MinGW32;
 
-r15:
-/= test 15 @ platform DS ^ \conf release;
-
-r16:
+r15-r16:
 / \simp \impl @ \f DispatchInput @ \impl \u DSMain;
-/= test 16 @ platform MinGW32;
+/= 2 test 14 @ platform DS ^ \conf release;
 
-r17:
-/= test 17 @ platform DS;
+r17-r20:
+/= 3 test 15 @ platform DS ^ \conf release;
 
-r18:
-/= test 18 @ platform MinGW32 ^ \conf release;
+r21:
+/ \simp \impl @ \f (ResponseKey, ResponseTouch) @ \cl GUIState @ \impl \u YGUI;
+/= test 16 @ platform DS ^ \conf release;
 
-r19:
-/= test 19 @ platform DS ^ \conf release;
+r22:
+/ \impl @ \mf ShlReader::OnInput @ \impl \u Shells;
+/ \impl @ \mf ShlDS::(OnInput, OnGotMessage) @ \impl \u Shell_DS;
+/= test 17 @ platform DS ^ \conf release;
+
+r23:
+/ \impl @ \mf ShlExplorer::OnClick_ShowWindow @ \impl \u Shells;
+/= test 18 @ platform MinGW32;
+
+r24:
+/= test 19 @ platform DS;
+
+r25:
+/= test 20 @ platform DS ^ \conf release;
+
+r26:
+/= test 21 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-06-27:
--23.8d;
-// Mercurial rev1-rev192: r8745;
+2012-06-30:
+-22.5d;
+// Mercurial rev1-rev193: r8771;
 
 / ...
 
 
 $NEXT_TODO:
-b321-b327:
+b322-b327:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -532,7 +529,7 @@ b321-b327:
 
 
 $TODO:
-b328-b381:
+b328-b382:
 / services $=
 (
 	+ \impl @ images loading
@@ -549,7 +546,8 @@ b328-b381:
 	/ noncopyable GUIState,
 	* (copy, move) @ \cl Menu,
 	^ delegating \ctor as possible,
-	/ strip away direct using @ Win32 types completely @ \h @ \lib YCLib
+	/ strip away direct using @ Win32 types completely @ \h @ \lib YCLib,
+	^ std::call_once to confirm thread-safe initialization
 ),
 + $design $low_prior helpers $=
 (
@@ -569,7 +567,7 @@ b328-b381:
 	/ improved tests and examples
 );
 
-b382-b806:
+b383-b804:
 + (memory mapping, shared memory) APIs @ YCommon,
 / @ CHRLib $=
 (
@@ -781,6 +779,14 @@ b1823-b5790:
 );
 
 
+$FURTHER_WORK:
++ documentation convention and modeling $=
+(
+	+ ISO directive or RFC2119 compliance,
+	+ documentation indexing tools
+);
+
+
 $KNOWN_ISSUE:
 // NOTE: Obsolete issues all resolved are ignored.
 * "corrupted loading or fatal errors on loading font file with embedded \
@@ -818,7 +824,7 @@ $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
 $dev; // issues concerned by developers, which end-users could ignore;
 $lib; // issues only concerned with library(usually only implementation, or \
-	interfaces modifying includeing no deletion, or some equivalance \
+	interfaces modifying includeing no deletion, or some equivalant \
 	interfaces provided, so no need fo library users to modify code using the \
 	library interface to adapt the upgrading), not the output targets;
 $build; // issues on build;
@@ -876,7 +882,8 @@ $module_tree $=
 			'Utilities',
 			'Memory',
 			'TypeOperations',
-			'Rational'
+			'Rational',
+			'Operators'
 		),
 		'LibDefect'
 		(
@@ -896,6 +903,7 @@ $module_tree $=
 		),
 		'YCLib' $=
 		(
+			'platform definition',
 			'native APIs',
 			'common input APIs',
 			'common video APIs',
@@ -941,6 +949,38 @@ $module_tree $=
 );
 
 $now
+(
+	+ $doc "comments about reentrancy and thread-safety"
+		@ "project %(YBase, YFramework)",
+	/ DLD "macro names" @ %'YBase'.'YStandardEx'.'Operators',
+	/ DLP "library using" @ "platform %DS"
+		$= (^ "updated devkitARM release 41" ~ "devkitARM release 40"),
+	/ DLP "all std=c++0x" -> "c++11" @ "platform %MinGW32"
+		@ "Code::Blocks project configuration";
+	/ %'YFramework' $=
+	(
+		/ %'YCLib' $=
+		(
+			+ "macro %YCL_MULTITHREAD" @ %'platform definition';
+			/ %'common input APIs' $=
+			(
+				* "thread-safety" @ "function %ClearKeyStates" $since b299,
+				+ "new implementation fit for large key states"
+					@ "platform %MinGW32",
+				/ $lib "declaration" @ "class %CursorInfo"
+			)
+		);
+		/ %'Helper' $=
+		(
+			+ "thread-safety" @ "function %DispatchInput" @ 'DS main unit',
+			^ "direct painting" ~ "asynchronous painting with message queue"
+				@ %'shells for DS'
+				// Great loop performance increased for empty input.
+		)
+	)
+),
+
+b320
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -1090,7 +1130,8 @@ b318
 			)
 		)
 	)
-	^ "updated library freetype 2.4.10" ~ "modified freetype 2.4.9",
+	/ DLP "library using"
+		$= (^ "updated library freetype 2.4.10" ~ "modified freetype 2.4.9"),
 	^ DLB "parallel command line option '-j'"
 		@ "all VC++ projects makefile command lines",
 	/ %'YReader'.'shells test example' $=
@@ -1360,7 +1401,7 @@ b309
 
 b308
 (
-	/ @ "platform %DS" $=
+	/ DLP "library using" @ "platform %DS" $=
 	(
 		^ "updated devkitARM release 40" ~ "devkitARM release 39",
 		^ "updated libfat 1.0.10" ~ "libnds 1.0.11"
@@ -1405,7 +1446,7 @@ b307
 
 b306
 (
-	/ @ "platform %DS" $=
+	/ DLP "library using" @ "platform %DS" $=
 	(
 		^ "updated devkitARM release 39" ~ "devkitARM release 38",
 		^ "updated libnds 1.5.7" ~ "libnds 1.5.5"
@@ -1679,7 +1720,7 @@ b300
 	- "deprecated file %GBKEX.cpp";
 	/ $doc "directory %doc moved to top directory",
 	- $doc @ "Code::Blocks project file",
-	/ @ "platform %DS" $=
+	/ DLP "library using" @ "platform %DS" $=
 	(
 		^ "updated devkitARM release 38" ~ "devkitARM release 37",
 		^ "updated libnds 1.5.5 with default arm7 0.5.24"
@@ -2232,7 +2273,8 @@ b292
 		+ "smooth scrolling mode",
 		+ "automatic scrolling duration settings"
 	),
-	^ "updated library freetype 2.4.9" ~ "modified freetype 2.4.8"
+	/ DLP "library using"
+		$=(^ "updated library freetype 2.4.9" ~ "modified freetype 2.4.8")
 ),
 
 b291
@@ -2264,7 +2306,8 @@ b291
 			^ "high resolution counter" ~ "milliseconds" @ "class %Timer"
 		)
 	),
-	^ "updated devkitARM release 37" ~ "devkitARM release 35",
+	/ DLP "library using"
+		$= (^ "updated devkitARM release 37" ~ "devkitARM release 35"),
 	/ %'YReader' $=
 	(
 		/ "more accurate FPS counter" @ %'shells test example',
@@ -3191,7 +3234,8 @@ b267
 
 b266
 (
-	^ "updated library modified freetype 2.4.8" ~ "modified freetype 2.4.5",
+	/ DLP "library using"
+		$=(^ "updated modified freetype 2.4.8" ~ "modified freetype 2.4.5"),
 	/ %'YFramework'.'YSLib' $=
 	(
 		/ %'GUI' $=
@@ -3433,8 +3477,11 @@ b252
 	+ "POD type operations" @ "library %YStandardEx",
 	/ "Doxygen file",
 	+ DLD "nested-use support" @ "implementation" @ "macro %yunsequenced",
-	^ "updated devkitARM release 35" ~ "devkitARM release 34",
-	^ "updated libfat 1.0.10" ~ "libfat 1.0.9",
+	/ DLP "libraries using" $=
+	(
+		^ "updated devkitARM release 35" ~ "devkitARM release 34",
+		^ "updated libfat 1.0.10" ~ "libfat 1.0.9"
+	),
 	* "implementation" @ "installation checking" $since b245
 ),
 
@@ -4028,7 +4075,7 @@ b223
 		/ "button enabling" ^ "file extension matching in the file box"
 	),
 	* "declaration of function %GetStemFrom" @ "header %yfilesys.h" $since b161,
-	/ "updated library freetype" $=
+	/ DLP "updated library freetype" @ "library using" $=
 	(
 		^ "updated freetype 2.4.5" ~ "freetype 2.4.4",
 		+ "exact bounding box calculation",
@@ -4038,7 +4085,8 @@ b223
 	),
 	^ "updated libnds 1.5.1 with default arm7 0.5.21"
 		~ "libnds 1.5.0 with default arm 7 0.5.20",
-	^ "updated devkitARM release 34" ~ "devkitARM release 33"
+	/ DLP "library using"
+		$=(^ "updated devkitARM release 34" ~ "devkitARM release 33")
 ),
 
 b222
@@ -4078,9 +4126,12 @@ b221
 		/ "simplified key-to-touch event mapping implementation"
 			@ "class %Control"
 	),
-	^ "updated devkitARM release 33" ~ "devkitARM release 32",
-	^ "updated libnds 1.5.0 with default arm7 0.5.20"
-		~ "libnds 1.4.8 with default arm 7 0.5.17",
+	/ DLP "library using" $=
+	(
+		^ "updated devkitARM release 33" ~ "devkitARM release 32",
+		^ "updated libnds 1.5.0 with default arm7 0.5.20"
+			~ "libnds 1.4.8 with default arm 7 0.5.17"
+	),
 	/ DLP "header search path of VS2010 projects",
 	/ "event map interfaces" $=
 	(
@@ -4602,7 +4653,8 @@ b186
 
 b185
 (
-	^ "updated freetype 2.4.4" ~ "freetype 2.3.12",
+	/ "library using"
+		$= (^ "updated freetype 2.4.4" ~ "freetype 2.3.12"),
 	/ "basic memory operations" $=
 	(
 		- "DMA implantation";
