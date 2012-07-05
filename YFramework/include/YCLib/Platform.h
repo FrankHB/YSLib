@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r1397;
+\version r1406;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2012-06-29 14:53 +0800;
+	2012-07-03 09:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,8 +57,16 @@
 \def YCL_MULTITHREAD
 \brief 多线程环境。
 \li 0 不支持多线程。
-\li 1 支持 C++11 多线程。
+\li 1 支持 ISO C++11 多线程。
 \since build 321 。
+*/
+
+/*!
+\def YCL_HOSTED
+\brief 宿主环境。
+\li 0 非宿主支持。
+\li 1 单一宿主支持。
+\since build 322 。
 */
 
 //#define YCL_DLL
@@ -99,13 +107,15 @@
 
 #if YCL_PLATFORM == YCL_PLATFORM_DS
 #	define YCL_DS 1
-#	define YCL_MULTITHREAD 0 //!< 非多线程。
+#	define YCL_HOSTED 0
+#	define YCL_MULTITHREAD 0
 #	define YCL_API_FILESYSTEM_POSIX //!< 文件系统 API 支持。
 #	define YCL_API_USE_UNISTD
 #	define YCL_API_USE_SYS_DIR
 #elif YCL_PLATFORM == YCL_PLATFORM_MINGW32
 #	define YCL_MINGW32 1
-#	define YCL_MULTITHREAD 1 //!< 多线程。
+#	define YCL_HOSTED 1
+#	define YCL_MULTITHREAD 1
 #else
 #	error Unsupported platform found!
 #endif

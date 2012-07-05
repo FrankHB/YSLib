@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11846;
+\version r11864;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-06-28 10:24 +0800;
+	2012-07-03 17:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -51,8 +51,8 @@ $dir //表示目录。
 
 $region $synopsis $begin
 
-// YBase 既定内部宏污染列表。
-
+// YBase 既定宏污染列表。
+// YB_* 保留给 YBase 使用。（可能使用后被 #undef 取消定义。）
 $dir YBase
 {
 $header *
@@ -84,11 +84,14 @@ $header Utilities
 } //$dir ystdex;
 } //$dir YBase;
 
-// YFramework 既定内部宏污染列表。
+// YFramework 既定宏污染列表。
+// YCL_* 和 YSL*_ 保留给 YFramework 使用。（可能使用后被 #undef 取消定义。）
 $herder *
 {
 YCL_INC_*
 YSL_INC_*
+YCL_DEBUG_*
+YSL_DEBUG_*
 }
 
 $dir YCLib
@@ -101,6 +104,8 @@ YCL_DLL
 YCL_FUNCTION_NO_EQUALITY_GUARANTEE
 YCL_PLATFORM_*
 YCL_API_*
+YCL_MUITITHREAD
+YCL_HOSTED
 YCL_DS
 YCL_MINGW32
 }
@@ -508,8 +513,16 @@ namespace std
 
 //命名空间单元分布。
 
-// YCLib 略。
+// YBase 。
+namespace std;
+namespace ystdex;
+namespace ytest;
 
+// YCLib 。
+namespace platform;
+namespace platform_ex;
+
+// YSLib 。
 namespace Components
 {
 $unit UI::YComponents;
@@ -602,7 +615,6 @@ std::numeric_limits<ystdex::fixed_point>;
 } //$header <rational.hpp>
 
 //既定 ystdex 命名空间污染列表。
-
 $header YDefinition
 {
 
@@ -734,7 +746,6 @@ using std::result_of;
 } //$header YStandardExtend::TypeOperation;
 
 //既定 platform 命名空间污染列表。
-
 $header "ycommon.h"
 {
 	// using ystdex;
@@ -744,7 +755,6 @@ $header "ycommon.h"
 
 
 //既定 YSLib 命名空间污染列表。
-
 $header Adaptor::YAdaptor
 {
 //目标平台中立接口。
@@ -799,8 +809,6 @@ using ystdex::size_t;
 using ystdex::wint_t;
 
 //基本实用例程。
-using platform::mmbset;
-using platform::mmbcpy;
 
 //文件系统例程。
 using platform::ufopen;	

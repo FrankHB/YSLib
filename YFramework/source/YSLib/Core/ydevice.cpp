@@ -11,13 +11,13 @@
 /*!	\file ydevice.cpp
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2749;
+\version r2750;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:39:51 +0800;
 \par 修改时间:
-	2012-06-23 02:05 +0800;
+	2012-07-03 17:23 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -44,7 +44,7 @@ Screen::GetCheckedBufferPtr() const ynothrow
 void
 Screen::Update(BitmapPtr buf) ynothrow
 {
-	mmbcpy(GetCheckedBufferPtr(), buf, GetSizeOfBuffer());
+	std::copy_n(buf, GetAreaOf(GetSize()), GetCheckedBufferPtr());
 }
 
 YSL_END_NAMESPACE(Devices)

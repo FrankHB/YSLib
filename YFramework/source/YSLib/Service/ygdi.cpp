@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3581;
+\version r3588;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-06-22 23:16 +0800;
+	2012-07-03 17:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -97,14 +97,14 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(i)
-		mmbcpy(pBuffer, i, GetSizeOfBuffer());
+		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
 }
 BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
 	: Graphics()
 {
 	SetSize(buf.GetWidth(), buf.GetHeight());
 	if(auto p = buf.GetBufferPtr())
-		mmbcpy(pBuffer, p, GetSizeOfBuffer());
+		std::copy_n(p, GetAreaOf(GetSize()), pBuffer);
 }
 BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
 	: Graphics(nullptr, buf.GetSize())
@@ -119,7 +119,7 @@ BitmapBuffer::SetContent(ConstBitmapPtr s, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(YB_LIKELY(pBuffer && s))
-		mmbcpy(pBuffer, s, GetSizeOfBuffer());
+		std::copy_n(s, GetAreaOf(GetSize()), pBuffer);
 }
 void
 BitmapBuffer::SetSize(SDst w, SDst h)
@@ -168,7 +168,7 @@ BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(i)
-		mmbcpy(pBuffer, i, GetSizeOfBuffer());
+		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
 }
 BitmapBufferEx::BitmapBufferEx(const BitmapBufferEx& buf)
 	: BitmapBuffer(), pBufferAlpha()
@@ -176,8 +176,9 @@ BitmapBufferEx::BitmapBufferEx(const BitmapBufferEx& buf)
 	SetSize(buf.GetWidth(), buf.GetHeight());
 	if(auto p = buf.GetBufferPtr())
 	{
-		mmbcpy(pBuffer, p, GetSizeOfBuffer());
-		mmbcpy(pBufferAlpha, buf.GetBufferAlphaPtr(), GetSizeOfBufferAlpha());
+		std::copy_n(p, GetAreaOf(GetSize()), pBuffer),
+		std::copy_n(buf.GetBufferAlphaPtr(), GetAreaOf(GetSize()),
+			pBufferAlpha);
 	}
 }
 BitmapBufferEx::BitmapBufferEx(BitmapBufferEx&& buf) ynothrow

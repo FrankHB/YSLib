@@ -11,26 +11,29 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r1177;
+\version r1205;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304 。
 \par 创建时间:
 	2012-04-26 20:12:19 +0800;
 \par 修改时间:
-	2012-06-01 16:35 +0800;
+	2012-07-03 17:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
-	YStandardEx::CString;
+	YStandardEx::String;
 */
 
 
 #ifndef YB_INC_STRING_HPP_
 #define YB_INC_STRING_HPP_
 
-#include "utility.hpp" // for ../ydef.h, ystdex::make_array;
-#include <libdefect/string.h> // for std::char_traits, std::initializer_list, 
+#include "utility.hpp" // for ../ydef.h, ystdex::make_array,
+//	std::underlying_type;
+#include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	and std::to_string;
+#include <cstdio> // for std::vsnprintf
+#include <cstdarg>
 
 namespace ystdex
 {
@@ -176,6 +179,33 @@ to_string(_type val, typename
 	return to_string(typename std::underlying_type<_type>::type(val));
 }
 //@}
+
+
+/*!
+\brief 以 C 标准输出格式的输出 std::basic_string 对象。
+\todo 提供 char 以外的模板参数的正确实现。
+\since build 322 。
+*/
+template<typename _tChar>
+#if defined _WIN32 && !defined __USE_MINGW_ANSI_STDIO
+YB_ATTRIBUTE((format (ms_printf, 1, 2)))
+#else
+YB_ATTRIBUTE((format (printf, 1, 2)))
+#endif
+std::basic_string<_tChar>
+sfmt(const _tChar* fmt, ...)
+{
+    std::va_list args;
+
+    va_start(args, fmt);
+
+    std::string str(static_cast<size_t>(std::vsnprintf(nullptr, 0, fmt, args)),
+		_tChar());
+
+    std::vsprintf(&str[0], fmt, args);
+    va_end(args);
+    return str;
+}
 
 } // namespace ystdex;
 

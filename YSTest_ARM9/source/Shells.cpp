@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6444;
+\version r6453;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-07-01 04:41 +0800;
+	2012-07-03 12:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -203,11 +203,7 @@ GenerateList(const String& str)
 	auto p(new TextList::ListType());
 
 	p->push_back(str);
-
-	char cstr[40];
-
-	std::sprintf(cstr, "%p;", p);
-	p->push_back(cstr);
+	p->push_back(ystdex::sfmt("%p;", p));
 	return share_raw(p);
 }
 
@@ -492,15 +488,12 @@ ShlExplorer::TFormExtra::TFormExtra()
 			Invalidate(btnDragTest);
 		},
 		FetchEvent<TouchDown>(btnDragTest) += [this](TouchEventArgs&&){
-#ifndef YCL_MINGW32
-			char strMemory[40];
-			struct mallinfo t(mallinfo());
-
-			std::sprintf(strMemory, "%d,%d,%d,%d,%d;",
-				t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
+#if YCL_DS
+			struct ::mallinfo t(::mallinfo());
 			auto& lblInfo(FetchShell<ShlExplorer>().lblInfo);
 
-			lblInfo.Text = strMemory;
+			lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
+				t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
 			Invalidate(lblInfo);
 #endif
 		},

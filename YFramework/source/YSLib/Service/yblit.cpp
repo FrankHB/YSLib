@@ -11,12 +11,12 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1948;
+\version r1950;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-06-16 19:45:32 +0800;
 \par 修改时间:
-	2012-06-06 16:08 +0800;
+	2012-07-03 17:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -120,7 +120,8 @@ CopyBuffer(const Graphics& dst, const Graphics& src)
 		"are not same.");
 
 	if(YB_LIKELY(dst.GetBufferPtr() != src.GetBufferPtr()))
-		mmbcpy(dst.GetBufferPtr(), src.GetBufferPtr(), src.GetSizeOfBuffer());
+		std::copy_n(src.GetBufferPtr(), GetAreaOf(src.GetSize()),
+			dst.GetBufferPtr());
 }
 
 void

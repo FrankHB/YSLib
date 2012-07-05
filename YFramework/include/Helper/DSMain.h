@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1243;
+\version r1251;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-06-30 13:10 +0800;
+	2012-07-04 17:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -130,15 +130,6 @@ public:
 	*/
 	bool
 	DealMessage();
-
-	/*!
-	\brief 复位默认字体缓存。
-	\throw LoggedEvent 记录异常事件。
-	\note 仅抛出以上异常。
-	\since build 316 。
-	*/
-	void
-	ResetFontCache() ythrow(LoggedEvent);
 };
 
 

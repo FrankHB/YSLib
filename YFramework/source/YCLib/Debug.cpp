@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r1065;
+\version r1066;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299 。
 \par 创建时间:
 	2012-04-07 14:22:09 +0800;
 \par 修改时间:
-	2012-06-01 20:55 +0800;
+	2012-07-03 14:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -86,7 +86,7 @@ yprintf(const char* str, ...)
 	{
 		YDebugBegin();
 
-		va_list list;
+		std::va_list list;
 
 		va_start(list, str);
 

@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2861;
+\version r2873;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-06-23 02:03 +0800;
+	2012-07-03 18:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -321,16 +321,26 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 
 
 /*!
-\brief 清除指定的连续区域。
+\brief 清除指定的连续对象。
+\pre 设类型 T 为 <tt>std::remove_reference<decltype(*dst)>::type</tt>， 则应满足
+	<tt>std::is_pod<T> || (std::is_nothrow_default_constructible<T>::value
+		&& std::is_nothrow_assignable<T, T>::value)</tt> 。
 \note 忽略空指针和零长度。
-\since build 319 。
+\since build 322 。
 */
-PDefTmplH1(_type)
+PDefTmplH1(_tOut)
 inline void
-ClearSequence(_type* dst, size_t n) ynothrow
+ClearSequence(_tOut dst, size_t n) ynothrow
 {
+	typedef typename std::remove_reference<decltype(*dst)>::type _type;
+
+	static_assert(std::is_pod<_type>::value
+		|| (std::is_nothrow_default_constructible<_type>::value
+		&& std::is_nothrow_assignable<_type, _type>::value),
+		"Invalid type found.");
+
 	if(YB_LIKELY(dst && n))
-		mmbset(dst, 0, sizeof(_type) * n);
+		std::fill_n(dst, n, _type());
 }
 
 

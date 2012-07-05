@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2321;
+\version r2323;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-06-22 09:01 +0800;
+	2012-07-03 17:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -258,11 +258,11 @@ struct RectTransformer
 
 /*!
 \brief 清除指定位置的 n 个连续像素。
-\since 早于 build 132 。
+\since build 322 。
 */
 PDefTmplH1(_tPixel)
 inline _tPixel*
-ClearPixel(_tPixel* dst, size_t n)
+ClearPixel(_tPixel* dst, size_t n) ynothrow
 {
 	ClearSequence(dst, n);
 	return dst;
@@ -341,7 +341,7 @@ BlitLine(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
 {
 	if(delta_x > 0)
 	{
-		mmbcpy(dst_iter, src_iter, delta_x * sizeof(PixelType));
+		std::copy_n(src_iter, delta_x, dst_iter);
 		src_iter += delta_x;
 		dst_iter += delta_x;
 	}

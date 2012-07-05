@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7283;
+\version r7284;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-06-28 11:35 +0800;
+	2012-07-03 10:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -325,7 +325,7 @@
 
 @2.1.4 名称引用限制：
 除 Adaptor 外， YSLib 命名空间下不直接使用 YSLib 、 std 和 ystdex 以外的根命名空间以及其中的名称；不直接使用 std::tr1 及其中的名称。
-不使用除了 main 以外的全局命名空间中的名称。
+不使用除了 operator new 、 operator new[] 、 operator delete 、 operator delete[] 和 main 以外的全局命名空间中的名称。
 
 @2.2 实体实现规则：
 

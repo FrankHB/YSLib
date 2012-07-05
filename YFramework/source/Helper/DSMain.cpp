@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2271;
+\version r2581;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-06-30 17:56 +0800;
+	2012-07-04 17:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,6 @@
 #if YCL_MULTITHREAD == 1
 #include <thread>
 #include <mutex>
-#include <atomic>
 #include <condition_variable>
 #endif
 
@@ -53,7 +52,6 @@ namespace
 {
 
 #if YCL_MINGW32
-
 yconstexpr double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 std::chrono::nanoseconds idle_sleep(u64(1000000000 / g_max_free_fps));
@@ -88,30 +86,6 @@ private:
 			NULL, 0);
 	}
 };
-
-
-/*!
-\brief 本机主窗口。
-\since build 299 。
-*/
-std::atomic< ::HWND> hWindow;
-/*!
-\brief 宿主环境互斥量。
-\since build 299 。
-*/
-std::mutex g_mutex;
-/*!
-\brief 宿主环境就绪条件。
-\since build 299 。
-*/
-std::condition_variable g_cond;
-
-/*!
-\brief 宿主背景线程指针。
-\since build 300 。
-*/
-std::thread* pHostThread;
-
 #endif
 
 //注册的应用程序指针。
@@ -154,13 +128,8 @@ public:
 			event_info.c_str(), t);
 	}
 };
-
-#define YCL_DEBUG_PRINTF(...) std::printf(__VA_ARGS__)
-#define YCL_DEBUG_PUTS(_arg) std::puts(_arg)
 #define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer name(__VA_ARGS__);
 #else
-#define YCL_DEBUG_PRINTF(...)
-#define YCL_DEBUG_PUTS(_arg)
 #define YSL_DEBUG_DECL_TIMER(...)
 #endif
 
@@ -188,19 +157,6 @@ public:
 	*/
 	DSScreen(SDst, SDst, Drawing::BitmapPtr = nullptr) ynothrow;
 
-	/*!
-	\brief 复位。
-	\note 无条件初始化。
-	*/
-	static void
-	Reset();
-
-	/*!
-	\brief 取指针。
-	\note 进行状态检查。
-	*/
-	Drawing::BitmapPtr
-	GetCheckedBufferPtr() const ynothrow override;
 	DefGetter(const ynothrow, const BGType&, BgID, bg)
 
 	/*!
@@ -220,23 +176,30 @@ public:
 public:
 	Point Offset;
 
+protected:
+	/*!
+	\brief 宿主窗口句柄。
+	\since build 322 。
+	*/
+	::HWND hHost;
+
 private:
 	ScreenBuffer gbuf;
-
-protected:
-	Drawing::BitmapPtr pSrc;
+	//! \since build 322 。
+	std::mutex update_mutex;
 
 public:
-	//! \since build 319 。
-	DSScreen(SDst, SDst) ynothrow;
+	//! \since build 322 。
+	DSScreen(SDst, SDst, ::HWND) ynothrow;
 
 	/*!
 	\brief 更新。
-	\note 复制到屏幕。
+	\note 复制到屏幕或屏幕缓冲区。
+	\note 线程安全。
 	\since build 319 。
 	*/
 	void
-	Update(Drawing::BitmapPtr) ynothrow;
+	Update(Drawing::BitmapPtr) ynothrow override;
 
 	/*!
 	\brief 更新到宿主。
@@ -250,6 +213,14 @@ public:
 #else
 #	error Unsupported platform found!
 #endif
+	/*!
+	\brief 复位。
+	\pre <tt>pScreenUp && pScreenDown</tt> 。
+	\note 无条件初始化。
+	\since build 322 。
+	*/
+	static void
+	Reset();
 };
 
 #if YCL_DS
@@ -258,18 +229,14 @@ DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p) ynothrow
 	bg(-1)
 {}
 
-BitmapPtr
-DSScreen::GetCheckedBufferPtr() const ynothrow
+void
+DSScreen::Reset()
 {
-	if(YB_UNLIKELY(!GetBufferPtr()))
-	{
-		InitVideo();
+	YAssert(pScreenUp && pScreenDown, "Null pointer found.");
 
-		//	assert(YSL_ pScreenUp && YSL_ pScreenDown);
-		yunseq(YSL_ pScreenUp->pBuffer = DS::InitScrUp(YSL_ pScreenUp->bg),
-			YSL_ pScreenDown->pBuffer = DS::InitScrDown(YSL_ pScreenDown->bg));
-	}
-	return Devices::Screen::GetCheckedBufferPtr();
+	InitVideo();
+	yunseq(YSL_ pScreenUp->pBuffer = DS::InitScrUp(YSL_ pScreenUp->bg),
+		YSL_ pScreenDown->pBuffer = DS::InitScrDown(YSL_ pScreenDown->bg));
 }
 
 void
@@ -283,49 +250,51 @@ DSScreen::Update(Color c)
 	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaOf(GetSize()), c);
 }
 #elif YCL_MINGW32
-DSScreen::DSScreen(SDst w, SDst h) ynothrow
+DSScreen::DSScreen(SDst w, SDst h, ::HWND hWnd) ynothrow
 	: Devices::Screen(w, h),
-	Offset(), gbuf(Size(w, h)), pSrc()
+	Offset(), hHost(hWnd), gbuf(Size(w, h)), update_mutex()
 {
+	YAssert(bool(hWnd), "Null handle found.");
+
 	pBuffer = gbuf.pBuffer;
 }
 
 void
-DSScreen::Update(Drawing::BitmapPtr p) ynothrow
+DSScreen::Reset()
 {
-	pSrc = p;
+	YAssert(pScreenUp && pScreenDown, "Null pointer found.");
+
+	pScreenDown->Offset.Y = MainScreenHeight;
+}
+
+void
+DSScreen::Update(Drawing::BitmapPtr buf) ynothrow
+{
+	std::lock_guard<std::mutex> lck(update_mutex);
+
+	std::memcpy(gbuf.pBuffer, buf,
+		sizeof(PixelType) * size.Width * size.Height);
 //	std::this_thread::sleep_for(std::chrono::milliseconds(20));
-	YCL_DEBUG_PUTS("Screen buffer pointer updated.");
+	YCL_DEBUG_PUTS("Screen buffer updated.");
+	YSL_DEBUG_DECL_TIMER(tmr, "DSScreen::Update")
 
-	if(hWindow)
-	{
-		YCL_DEBUG_PUTS("Found window handle.");
+	::HDC hDC(::GetDC(hHost));
+	::HDC hMemDC(::CreateCompatibleDC(hDC));
 
-		YSL_DEBUG_DECL_TIMER(tmr, "DSScreen::Update")
-
-		::HDC hDC(::GetDC(hWindow));
-		::HDC hMemDC(::CreateCompatibleDC(hDC));
-
-		UpdateToHost(hDC, hMemDC);
-		::DeleteDC(hMemDC);
-		::ReleaseDC(hWindow, hDC);
-	}
+	UpdateToHost(hDC, hMemDC);
+	::DeleteDC(hMemDC);
+	::ReleaseDC(hHost, hDC);
 }
 
 void
 DSScreen::UpdateToHost(::HDC hDC, ::HDC hMemDC) ynothrow
 {
-	if(pSrc)
-	{
-		const auto& size(GetSize());
+	const auto& size(GetSize());
 
-		::SelectObject(hMemDC, gbuf.hBitmap);
-		// NOTE: Unlocked intentionally for performance.
-		std::memcpy(gbuf.pBuffer, pSrc,
-			sizeof(PixelType) * size.Width * size.Height);
-		::BitBlt(hDC, Offset.X, Offset.Y, size.Width, size.Height,
-			hMemDC, 0, 0, SRCCOPY);
-	}
+	::SelectObject(hMemDC, gbuf.hBitmap);
+	// NOTE: Unlocked intentionally for performance.
+	::BitBlt(hDC, Offset.X, Offset.Y, size.Width, size.Height,
+		hMemDC, 0, 0, SRCCOPY);
 }
 #else
 #	error Unsupported platform found!
@@ -344,19 +313,17 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg)
 	{
 	case WM_PAINT:
-		YAssert(hWnd == hWindow, "Wrong native main window found.");
-
 		YCL_DEBUG_PUTS("Handling of WM_PAINT.");
 		{
 			YSL_DEBUG_DECL_TIMER(tmr, "WM_PAINT");
 			::PAINTSTRUCT ps;
-			::HDC hDC(::BeginPaint(hWindow, &ps));
+			::HDC hDC(::BeginPaint(hWnd, &ps));
 			::HDC hMemDC(::CreateCompatibleDC(hDC));
 
 			pScreenUp->UpdateToHost(hDC, hMemDC),
 			pScreenDown->UpdateToHost(hDC, hMemDC);
 			::DeleteDC(hMemDC);
-			::EndPaint(hWindow, &ps);
+			::EndPaint(hWnd, &ps);
 		}
 		break;
 	case WM_KILLFOCUS:
@@ -418,33 +385,114 @@ InitializeMainWindow()
 
 
 /*!
-\since build 300 。
-\todo 使用 g++ 4.7 之后版本直接创建线程。
+\brief 宿主守护任务。
+\since build 322 。
 */
-void
-HostTask()
+class HostDemon
 {
+protected:
+	static HostDemon* pInstance;
+
+	//! \brief 宿主背景线程。
+	std::thread thread;
+
+protected:
+	//! \brief 本机主窗口句柄。
+	::HWND hHost;
+
+private:
+	//! \brief 宿主环境互斥量。
+	std::mutex mtx;
+	//! \brief 宿主环境就绪条件。
+	std::condition_variable init;
+
+public:
+	// NOTE: G++ 4.7.1 complains: sorry, unimplemented: use of
+	//	'type_pack_expansion' in template, if HostDemon is not in
+	//	the unnamed namespace.
+	HostDemon()
+		: thread(std::mem_fn(&HostDemon::HostTask), this), hHost()
 	{
-		std::lock_guard<std::mutex> lck(g_mutex);
+		YAssert(!pInstance, "Duplicate instance found.");
 
-		hWindow = YSL_ InitializeMainWindow();
-		// NOTE: Currently there is only one client.
-		g_cond.notify_one();
-	//	g_cond.notify_all();
+		pInstance = this;
 	}
-	::ShowWindow(hWindow, SW_SHOWNORMAL);
-
-	::MSG host_msg; //!< 本机消息类型。
-
-	while(true)
+	~HostDemon()
 	{
-		if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
-			::DispatchMessage(&host_msg);
-		else
-		//	std::this_thread::yield();
-			std::this_thread::sleep_for(host_sleep);
+		thread.detach();
 	}
-}
+
+	static bool
+	IsForeground()
+	{
+		YAssert(pInstance, "Null pointer found.");
+
+		return pInstance->hHost == ::GetForegroundWindow();
+	}
+
+	//! \brief 宿主环境就绪后创建屏幕。
+	DSScreen*
+	CreateScreen()
+	{
+		WaitReady();
+		return new DSScreen(MainScreenWidth, MainScreenHeight, hHost);
+	}
+
+private:
+	//! \brief 初始化宿主资源和本机消息循环线程。
+	void
+	HostTask()
+	{
+		{
+			std::lock_guard<std::mutex> lck(mtx);
+
+			hHost = YSL_ InitializeMainWindow();
+			// NOTE: Currently there is only one client.
+			init.notify_one();
+		//	Initialized.notify_all();
+		}
+		::ShowWindow(hHost, SW_SHOWNORMAL);
+
+		::MSG host_msg; //!< 本机消息类型。
+
+		while(true)
+		{
+			if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
+				::DispatchMessage(&host_msg);
+			else
+			//	std::this_thread::yield();
+				std::this_thread::sleep_for(host_sleep);
+		}
+	}
+
+public:
+	static void
+	Release()
+	{
+		delete pInstance;
+	}
+
+	static void
+	Transform(platform::CursorInfo& cursor)
+	{
+		YAssert(pInstance, "Null pointer found.");
+
+		::ScreenToClient(pInstance->hHost, &cursor);
+	}
+
+	//! \brief 等待宿主环境就绪。
+	void
+	WaitReady()
+	{
+		std::unique_lock<std::mutex>lck(mtx);
+
+		init.wait(lck, [this]{return bool(hHost);});
+
+		YAssert(bool(hHost), "Null handle found.");
+	}
+};
+
+HostDemon* HostDemon::pInstance;
 #endif
 
 /*!
@@ -478,7 +526,7 @@ Idle(Messaging::Priority prior)
 
 
 DSApplication::DSApplication()
-	: pFontCache(), UIResponseLimit(0x40)
+	: UIResponseLimit(0x40)
 {
 	YAssert(!YSL_ pApp, "Duplicate instance found.");
 
@@ -489,7 +537,7 @@ DSApplication::DSApplication()
 	InitializeEnviornment();
 #if YCL_MINGW32
 	//启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
-	pHostThread = new std::thread(HostTask);
+	HostDemon& demon(*new HostDemon());
 #endif
 	//检查程序是否被正确安装。
 	CheckInstall();
@@ -497,35 +545,41 @@ DSApplication::DSApplication()
 	//初始化系统设备。
 	try
 	{
+#if YCL_DS
 		pScreenUp = new DSScreen(MainScreenWidth, MainScreenHeight);
 		pScreenDown = new DSScreen(MainScreenWidth, MainScreenHeight);
+#elif YCL_MINGW32
+		pScreenUp = demon.CreateScreen();
+		pScreenDown = demon.CreateScreen();
+#else
+#	error Unsupported platform found!
+#endif
 	}
 	catch(...)
 	{
 		throw LoggedEvent("Screen initialization failed.");
 	}
 	//初始化系统字体资源。
-	InitializeSystemFontCache();
-#if YCL_MINGW32
-	pScreenDown->Offset.Y = MainScreenHeight;
-
-	//等待宿主环境就绪。
+	try
 	{
-		std::unique_lock<std::mutex> lck(g_mutex);
-
-		while(!hWindow)
-			g_cond.wait(lck, []{return bool(hWindow);});
+		pFontCache = ynew FontCache();
 	}
+	catch(...)
+	{
+		throw LoggedEvent("Error occurred in creating font cache.");
+	}
+	InitializeSystemFontCache();
+	DSScreen::Reset();
+#if YCL_DS
+	pScreenUp->Update(ColorSpace::Blue),
+	pScreenDown->Update(ColorSpace::Green);
 #endif
 }
 
 DSApplication::~DSApplication()
 {
 #if YCL_MINGW32
-	YAssert(pHostThread, "Null pointer found.");
-
-	pHostThread->detach();
-	delete pHostThread;
+	HostDemon::Release();
 #endif
 
 	//等待并确保所有 Shell 被释放。
@@ -593,20 +647,6 @@ DSApplication::DealMessage()
 	return true;
 }
 
-void
-DSApplication::ResetFontCache() ythrow(LoggedEvent)
-{
-	try
-	{
-		ydelete(pFontCache);
-		pFontCache = ynew FontCache();
-	}
-	catch(...)
-	{
-		throw LoggedEvent("Error occured @ YApplication::ResetFontCache.");
-	}
-}
-
 
 namespace
 {
@@ -634,7 +674,7 @@ UpdateCursorPosition()
 #if YCL_DS
 	CursorState = cursor.operator Point();
 #elif YCL_MINGW32
-	::ScreenToClient(hWindow, &cursor);
+	HostDemon::Transform(cursor);
 	yunseq(CursorState.X = cursor.x,
 		CursorState.Y = cursor.y - MainScreenHeight);
 	if(!Rect(Point::Zero, MainScreenWidth, MainScreenHeight)
@@ -670,7 +710,7 @@ DispatchInput(Desktop& dsk)
 #elif YCL_MINGW32
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_pos != Point::Invalid)
-	if(hWindow != ::GetForegroundWindow())
+	if(!HostDemon::IsForeground())
 		return;
 #else
 #	error Unsupported platform found!
@@ -705,7 +745,7 @@ DispatchInput(Desktop& dsk)
 		}
 		else if(keyset.any())
 		{
-			KeyEventArgs e(dsk, keys);
+			KeyEventArgs e(dsk, keyset);
 
 			st.ResponseKey(e, key_evt);
 		}
@@ -764,7 +804,6 @@ ShowFatalError(const char* s)
 	std::printf("Fatal Error:\n%s\n", s);
 	terminate();
 }
-
 
 YSL_END
 

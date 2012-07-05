@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7709;
+\version r7714;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-06-11 09:13 +0800;
+	2012-07-03 12:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -206,10 +206,8 @@ FontCache::FontCache(size_t cache_size)
 	}
 	else
 	{
-		char strerr[30];
-
-		std::sprintf(strerr, "Font init failed: %08x\n;", error);
-		throw LoggedEvent(strerr, 1);
+		throw LoggedEvent(
+			ystdex::sfmt("Font init failed: %08x\n;", error).c_str(), 1);
 	}
 }
 FontCache::~FontCache()

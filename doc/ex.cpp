@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4069; *build 321 rev 26;
+\version r4073; *build 322 rev 34;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-01 06:09 +0800;
+	2012-07-05 21:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -383,140 +383,211 @@ $using:
 
 
 $DONE:
-r1:
-+ $doc reentrancy and thread-safety @ \proj (YBase, YFramework);
-/= test 0 @ platform MinGW32;
-
-r2:
-/ \a \mac 'YCL_*' -> 'YB_*' @ \h Operators,
-/ DLP @ "platform %DS"
-	$= (^ "updated devkitARM release 41" ~ "devkitARM release 40");
-/= test 1 @ platform DS;
+r1-r2:
+/= 2 test 1 @ platform MinGW32;
 
 r3:
+* "%KeyTouch not raised by key input" $since b321
+	$= (* \impl @ \f DispatchInput @ \impl \u DSMain);
 /= test 2 @ platform DS ^ \conf release;
 
 r4:
-/ @ \ns platform_ex @ \u Input $=
+/ @ \impl \u DSMain @ platform MinGW32 $=
 (
-	+ \mac \def YCL_KEYSTATE_DIRECT;
-	/ @ YCL_KEYSTATE_DIRECT $=
-	(
-		/ \impl @ \f \i ClearKeyStates,
-		+ \f \i (FetchKeyState, FetchOldKeyState)
-	)
-	/ @ !YCL_KEYSTATE_DIRECT $=
-	(
-		/ \f \i ClearKeyStates -> \f !\i,
-		+ \f !\i (FetchKeyState, FetchOldKeyState)
-	),
-	/ \tr \impl @ \f (FetchKeyDownState, FetchKeyUpState),
-	/ \tr \impl @ \f pdateKeyStates;
-	* $comp thread-safety @ \f ClearKeyState $since b299
-),
-/ \tr \impl @ \f (DispatchInput, WndProc @ \un \ns) @ \impl \u DSMain,
-/ \impl @ \f HexViewArea::Refresh @ \impl \u HexBrowser,
-/ Code::Blocks \proj \conf 'std=c++0x' -> 'c++11' @ platform MinGW32; 
+	+ \cl HostDemon;
+	/ \tr \impl @ (\ctor, \dtor) DSApplication;
+	- \f HostTask,
+	- \ns \o (g_cond, g_mutex, pHostThread)
+);
 /= test 3 @ platform MinGW32;
 
-r5:
-/= test 4 @ platform DS ^ \conf release;
+r5-r6:
+/= 2 test 4 @ platform MinGW32;
 
-r6:
-+ \mac \def YCL_MULTITHREAD (0 @ platform DS, 1 @ platform MinGW32)
-	@ \h Platform;
-/ \impl @ \lib YCLib @ \mac YCL_MULTITHREAD;
-/= test 5 @ platform MinGW32 ^ \conf release;
-
-r7:
-/ @ \impl \u Input $=
+r7-r8:
+/ @ \cl DSScreen @ \impl \u DSMain @ platform MinGW32 $=
 (
-	+ \mac \def YCL_DEF_LOCKGUARD;
-	* \impl @ \f (FetchKeyState, FetchOldKeyState) $since r4,
-	/ \simp \f (ClearKeyStates, UpdateKeyStates)
-		^ \mac YCL_DEF_LOCKGUARD,
-	* \impl @ \f (FetchKeyDownState, FetchKeyUpState)
-		@ platform MinGW32 $since r4
-);
-/= test 6 @ platform MinGW32;
-
-r8:
-/ @ \u Input $=
-(
-	- typedef ::CURSORINFO CursorInfo @ platform MinGW32;
-	/ \st CursorInfo @ platform DS -> \cl CursorInfo;
-	/ @ \cl CursorInfo $=
-	(
-		/ \impl @ \mf (GetX, GetY);
-		+ \ft \op _tBinary
-	);
-	/ \impl @ \f WriteCursor
-);
-/ \simp \impl @ \f DispatchInput @ \impl \u DSMain;
-/= test 7 @ platform MinGW32;
+	/ \impl @ \mf (UpdateToHost, Update);
+	- protected \m pSrc,
+	+ private \m std::mutex update_mutex,
+	/ \tr \simp \impl @ \ctor;
+	* thread-safety @ \mf Update $since b299
+),
+/= 2 test 5 @ platform MinGW32;
 
 r9:
-/= test 8 @ platform DS ^ \conf release;
+- \as @ \impl @ \f WndProc @ \impl \u DSMain @ platform MinGW32;
+/= test 6 @ platform MinGW32;
 
 r10:
-+ thread-safety @ \impl \u DSMain;
-/= test 9 @ platform MinGW32;
+/ @ \impl \u DSMain @ platform MinGW32 $=
+(
+	/ @ \cl DSScreen $=
+	(
+		+ protected \m hHost,		
+		/ \ctor DSScreen(SDst, SDst) -> DSScreen(SDst, SDst, ::HWND)
+		/ \impl @ \mf Update
+	),
+	/ \tr \impl @ \ctor DSApplication
+);
+/= test 7 @ platform MinGW32;
 
 r11:
-/= test 10 @ platform DS;
+/ @ \impl \u DSMain @ platform MinGW32 $=
+(
+	+ \mf CreateScreen @ \cl HostDemon,
+	/ \tr \simp \impl @ \ctor DSApplication
+);
+/= test 8 @ platform MinGW32;
 
 r12:
-/= test 11 @ platform MinGW32 ^ \conf release;
+/ @ \impl \u DSMain @ platform MinGW32 $=
+(
+	(
+		/ \ns \o std::atomic< ::HWND> hWindow -> protected \sm ::hWND hWindow
+			@ \cl HostDemon;
+		- \inc \h <atomic>
+	),
+	+ \smf (IsForeground, Transform) @ \cl HostDemon,
+	/ \tr \impl @ \f (UpdateCursorPosition @ \un \ns), DispatchInput
+);
+/= test 9 @ platform MinGW32;
 
 r13:
-/= test 12 @ platform DS ^ \conf release;
+/ @ \cl HostDemon @ \impl \u DSMain @ platform MinGW32 $=
+(
+	/ \sm ::HWND hWindow -> !\s \m ::HWND hHost,
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \smf (IsForeground, Transform),
+	/ \tr \impl @ \mf (CreateScreen, HostTask, WaitReady)
+);
+/= test 10 @ platform MinGW32;
 
 r14:
-/ \impl @ \impl \u DSMain;
-/= test 13 @ platform MinGW32;
+/= test 11 @ platform DS;
 
-r15-r16:
-/ \simp \impl @ \f DispatchInput @ \impl \u DSMain;
-/= 2 test 14 @ platform DS ^ \conf release;
+r15:
+/= test 12 @ platform MinGW32 ^ \conf release;
 
-r17-r20:
-/= 3 test 15 @ platform DS ^ \conf release;
+r16:
+/= test 13 @ platform DS ^ \conf release;
 
-r21:
-/ \simp \impl @ \f (ResponseKey, ResponseTouch) @ \cl GUIState @ \impl \u YGUI;
-/= test 16 @ platform DS ^ \conf release;
+r17:
+/ @ \cl HostDemon @ \impl \u DSMain @ platform MinGW32 $=
+(
+	/ public \m std::mutex Mutex -> private \m std::mutex mtx;
+	/ public \m std::condition_variable Initialized
+		-> private \m std::condition_variable init	
+);
+/= test 14 @ platform MinGW32;
 
-r22:
-/ \impl @ \mf ShlReader::OnInput @ \impl \u Shells;
-/ \impl @ \mf ShlDS::(OnInput, OnGotMessage) @ \impl \u Shell_DS;
+r18:
+/ @ \impl \u DSMain $=
+(
+	- \decl @ \smf DSScreen::Reset @ platform DS,
+	+ \smf DSScreen::Reset;
+	/ \simp \impl @ \ctor DSApplication;
+	- \mf DSScreen::GetCheckedBufferPtr @ platform DS
+);
+/= test 15 @ platform DS;
+
+r19:
+* \impl @ \ctor DSApplication @ \impl \u DSMain $since r18;
+/= test 16 @ platform DS;
+
+r20:
+/ \impl @ \ctor DSApplication @ \impl \u DSMain @ platform DS;
 /= test 17 @ platform DS ^ \conf release;
 
+r21:
+/= test 18 @ platform MinGW32 ^ \conf release;
+
+r22:
++ \mac \def YCL_HOSTED (0 @ platform DS, 1 @ platform MinGW32) @ \h Platform,
+/ \simp \impl @ \mf DSScreen::Update @ platform MinGW32;
+/= test 19 @ platform MinGW32;
+
 r23:
-/ \impl @ \mf ShlExplorer::OnClick_ShowWindow @ \impl \u Shells;
-/= test 18 @ platform MinGW32;
+/ \mac YCL_DEBUG_* @ \h DSMain >> \h Debug;
+/= test 20 @ platform MinGW32;
 
 r24:
-/= test 19 @ platform DS;
+/ @ \h String @ \lib YStandardEx $=
+(
+	+ \inc \h (<cstdio>, <cstdarg>);
+	+ \ft sfmt
+);
+/ \simp \impl @ \impl \u Shells,
+/ \simp \impl @ \ctor FontCache;
+/= test 21 @ platform DS ^ \conf release;
 
 r25:
-/= test 20 @ platform DS ^ \conf release;
+/= test 22 @ platform MinGW32;
 
 r26:
-/= test 21 @ platform MinGW32 ^ \conf release;
+/ '__format__' @ \h String @ \lib YStandardEx -> 'format';
++ 'ms_printf' attribute @ \f yprintf @ \h Debug @ platform MinGW32;
+/= test 23 @ platform MinGW32 ^ \conf Release;
+
+r27:
+(
+	/ \ft<_type> void ClearSequence(_type*, size_t) @ \h YCoreUtilities
+		-> \ft<_tOut> void ClearSequence(_tOut, siez_t) ^ std::fill_n ~ mmbset;
+	- using ystdex::mmbset @ \h YAdaptor;
+	- \f ystdex::mmbset @ \u YCommon
+),
++ 'ynothrow' @ \f ClearPixel @ \h YBlit,
+(
+	(
+		* \impl @ \ft CreateRawBitmap $since $before b132
+			@ \h ShellHelper,
+		/ \impl @ \ft BlitLine @ \h YBlit,
+		/ \impl @ \f CopyBuffer @ \impl \u YBlit,
+		/ \impl @ \mf Screen::Update @ \impl \u YDevice,
+		/ \impl @ \cl (BitmapBuffer, BitmapBufferEx) @ \impl \u YGDI,
+	) ^ std::copy_n ~ mmbcpy;
+	- using ystdex::mmbcpy @ \h YAdaptor;
+	- \f ystdex::mmbcpy @ \u YCommon
+);
+/= test 24 @ platform MinGW32;
+
+r28:
+/= test 25 @ platform DS;
+
+r29:
+/= test 26 @ platform MinGW32 ^ \conf release;
+
+r30:
+/= test 27 @ platform DS ^ \conf release;
+
+r31:
+/ \simp \impl @ \f InitializeSystemFontCache @ \impl \u Initialization,
+/ \simp \ctor DSApplication @ \impl \u DSMain;
+- \mf DSApplication::ResetFontCache @ \u DSMain;
+/= test 28 @ platform MinGW32;
+
+r32:
+/= test 29 @ platform DS;
+
+r33:
+/= test 30 @ platform MinGW32 ^ \conf release;
+
+r34:
+/= test 31 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-06-30:
--22.5d;
-// Mercurial rev1-rev193: r8771;
+2012-07-05:
+-23.4d;
+// Mercurial rev1-rev193: r8805;
 
 / ...
 
 
 $NEXT_TODO:
-b322-b327:
+b323-b327:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -596,7 +667,8 @@ b383-b804:
 	/ make \ns _impl \h Cast -> \ns details with public interfaces,
 	/ confirm correctness @ stat() @ Win32,
 		// See comments @ src/fccache.c @ \proj fontconfig.
-	/ consideration of mutable member @ class %Message
+	/ consideration of mutable member @ class %Message,
+	/ \n DSApplication::pFontCache
 ),
 / $low_prior performance $=
 (
@@ -759,7 +831,7 @@ b1823-b5790:
 ),
 + general monomorphic iterator abstraction,
 / partial invalidation support @ \f DrawRectRoundCorner,
-/ user-defined bitmap buffer @ \cl Desktop,
+/ user-defined bitmap(mainly, shared with screen) buffer @ \cl Desktop,
 + additional shared property,
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
 + more advanced console wrapper,
@@ -875,13 +947,14 @@ $module_tree $=
 		'YDefinition',
 		'YStandardEx'
 		(
+			'TypeOperations',
 			'Any',
 			'CStandardIO',
 			'Iterator',
 			'Algorithms',
 			'Utilities',
 			'Memory',
-			'TypeOperations',
+			'String',
 			'Rational',
 			'Operators'
 		),
@@ -905,6 +978,7 @@ $module_tree $=
 		(
 			'platform definition',
 			'native APIs',
+			'common utilities',
 			'common input APIs',
 			'common video APIs',
 			'common file system APIs',
@@ -949,6 +1023,65 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Helper'.'DS main unit' $=
+		(
+			* "%KeyTouch not raised by key input" $since b321,
+			/ @ "class %DSScreen" @ "platform %MinGW32" $=
+			(
+				/ DLD "direct copy" ~ "pointer buffering";
+				* DLD "thread-safety" @ "member function %Update" $since b299;
+				$dep_to screen_thread_safety;
+			),
+			- "screens checking and initialization UI",
+				// Dynamic null pointer check is eliminated. CLI interface \
+					is not held after screen initialization. \
+					There can be a logo.
+			/ $dev $lib "font cache initialization" $=
+				// Explicit cache initialization moved to application \
+					initialization.
+			(
+				/ @ "function %InitializeSystemFontCache" @ % 'initialization',
+				- "member function %DSApplication::ResetFontCache"
+			)
+		),
+		/ %'YCLib' $=
+		(
+			+ $dev $lib "macro %YCL_MULTITHREAD" @ %'platform definition',
+			^ DLD "attribute %format 'ms_printf'" @ "function %yprintf"
+				@ "platform %MinGW32" @ %'debug helpers',
+			(
+				$dep_from removal_dep_of_mmbcpy_and_mmbset;
+				- "function %ystdex::(mmbcpy, mmbset)" @ %'common utilities'
+			)
+		),
+		/ %'YSLib' $=
+		(
+			/ $lib "function template %ClearSequence"
+				@ "header %YCoreUtilities" ^ "%std::fill_n" ~ "%ystdex::mmbset",
+			+ "exception specification %ynothrow" @ "function template \
+				%ClearPixel" @ "header %YBlit",
+			/ DLD "several functions implementations" ^ "%std::copy_n"
+				~ "%ystdex::mmbcpy",
+			* "implementation" @ "function template %CreateRawBitmap"
+				@ "header %ShellHelper" $since $before b132;
+			- $dep "using %ystdex::(mmbcpy, mmbset)" @ %'adaptors'
+			$dep_to removal_dep_of_mmbcpy_and_mmbset;
+		)
+	),
+	(
+		$dep_from screen_thread_safety;
+		* $comp "screen content corrupted" @ "platform MinGW32" $since b299
+			// A serious bug though rarely occurred.
+	),
+	+ "template function %sfmt for format string output"
+		@ %'YBase'.'YStandardEx'.'String'
+		// Currently only %char output(%std::string) is supported.
+),
+
+b321
 (
 	+ $doc "comments about reentrancy and thread-safety"
 		@ "project %(YBase, YFramework)",

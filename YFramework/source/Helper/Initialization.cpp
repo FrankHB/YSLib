@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2154;
+\version r2157;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-06-22 12:12 +0800;
+	2012-07-04 16:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -140,10 +140,6 @@ InitializeSystemFontCache() ynothrow
 	{
 		try
 		{
-			// TODO: Implement with no depencies on unspecified interfaces
-			//	of unit %YGlobal。
-			FetchGlobalInstance().ResetFontCache();
-
 			auto& fc(FetchDefaultFontCache());
 			const FontPath def_font_path(font_path);
 			size_t nFileLoaded(fc.LoadTypefaces(def_font_path) != 0);
