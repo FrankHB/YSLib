@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4548;
+\version r4602;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-06-30 18:34 +0800;
+	2012-07-08 12:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -434,7 +434,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 				Color(), Font(FetchDefaultTypeface().GetFontFamily(), 14),
 				true, milliseconds(1000), milliseconds(80)};
 		})),
-	tmrScroll(FetchTimerSetting(CurrentSetting)), tmrInput(), Reader(),
+	tmrScroll(FetchTimerSetting(CurrentSetting)), tmrInput(), reader(),
 	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
 	pTextFile(), mhMain(GetDesktopDown())
 {
@@ -446,9 +446,9 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		yunseq(dsk_up.Background = pnlSetting.lblAreaUp.Background,
 			GetDesktopDown().Background = pnlSetting.lblAreaDown.Background);
 		RemoveWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown),
-		Reader.SetVisible(true),
-		boxReader.UpdateData(Reader),
-		boxTextInfo.UpdateData(Reader),
+		reader.SetVisible(true),
+		boxReader.UpdateData(reader),
+		boxTextInfo.UpdateData(reader),
 		Show(boxReader);
 	});
 
@@ -456,12 +456,12 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	SetVisibleOf(boxTextInfo, false),
 	SetVisibleOf(pnlSetting, false);
 	yunseq(
-		Reader.ViewChanged = [this]
+		reader.ViewChanged = [this]
 		{
 			if(IsVisible(boxReader))
-				boxReader.UpdateData(Reader);
+				boxReader.UpdateData(reader);
 			if(IsVisible(boxTextInfo))
-				boxTextInfo.UpdateData(Reader);
+				boxTextInfo.UpdateData(reader);
 		},
 		FetchEvent<TouchDown>(boxReader.btnMenu)
 			+= OnEvent_StopRouting<TouchEventArgs>, //阻止菜单失去焦点。
@@ -490,14 +490,14 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		},
 		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
 		{
-			const auto s(Reader.GetTextSize());
+			const auto s(reader.GetTextSize());
 
 			if(YB_LIKELY(s != 0))
 			{
-				const auto old_pos(Reader.GetTopPosition());
+				const auto old_pos(reader.GetTopPosition());
 
-				Reader.Locate(e.X * s / boxReader.pbReader.GetWidth());
-				if(YB_LIKELY(old_pos != Reader.GetTopPosition()))
+				reader.Locate(e.X * s / boxReader.pbReader.GetWidth());
+				if(YB_LIKELY(old_pos != reader.GetTopPosition()))
 				{
 					LastRead.Insert(CurrentPath, old_pos);
 					LastRead.DropSubsequent();
@@ -512,17 +512,17 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 			auto& pt(e.Location);
 
 			FillRect(e.Target, Point(pt.X + 1 + round(pb.GetValue() * w / mval),
-				pt.Y + 1), Size(round((Reader.GetBottomPosition()
-				- Reader.GetTopPosition()) * w / mval), pb.GetHeight() - 2),
+				pt.Y + 1), Size(round((reader.GetBottomPosition()
+				- reader.GetTopPosition()) * w / mval), pb.GetHeight() - 2),
 				ColorSpace::Yellow);
 		},
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_setting,
 		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](TouchEventArgs&&)
 		{
 			Switch(pnlSetting.current_encoding);
-			Reader.SetColor(pnlSetting.lblAreaUp.ForeColor),
-			Reader.SetFont(pnlSetting.lblAreaUp.Font);
-			Reader.UpdateView();
+			reader.SetColor(pnlSetting.lblAreaUp.ForeColor),
+			reader.SetFont(pnlSetting.lblAreaUp.Font);
+			reader.UpdateView();
 			pnlSetting >> CurrentSetting;
 			tmrScroll.SetInterval(FetchTimerSetting(CurrentSetting));
 		},
@@ -543,8 +543,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	Reader.SetColor(CurrentSetting.FontColor),
-	Reader.SetFont(CurrentSetting.Font),
+	reader.SetColor(CurrentSetting.FontColor),
+	reader.SetFont(CurrentSetting.Font),
 	yunseq(
 		dsk_up.Background = SolidBrush(CurrentSetting.UpColor),
 		dsk_dn.Background = SolidBrush(CurrentSetting.DownColor),
@@ -552,7 +552,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlTextReader::OnKeyDown),
 		FetchEvent<KeyHeld>(dsk_dn) += OnEvent_Call<KeyDown>
 	);
-	Reader.Attach(dsk_up, dsk_dn),
+	reader.Attach(dsk_up, dsk_dn),
 	AddWidgets(dsk_dn, boxReader, boxTextInfo, pnlSetting);
 	LoadFile(pth);
 	LastRead.DropSubsequent();
@@ -565,7 +565,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 
 ShlTextReader::~ShlTextReader()
 {
-	LastRead.Insert(CurrentPath, Reader.GetTopPosition());
+	LastRead.Insert(CurrentPath, reader.GetTopPosition());
 }
 
 void
@@ -577,14 +577,14 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		Exit();
 		break;
 	case MR_Setting:
-		Reader.SetVisible(false),
-		yunseq(pnlSetting.lblAreaUp.ForeColor = Reader.GetColor(),
+		reader.SetVisible(false),
+		yunseq(pnlSetting.lblAreaUp.ForeColor = reader.GetColor(),
 			pnlSetting.lblAreaUp.Background = GetDesktopUp().Background,
-			pnlSetting.lblAreaUp.Font = Reader.GetFont(),
-			pnlSetting.lblAreaDown.ForeColor = Reader.GetColor(),
+			pnlSetting.lblAreaUp.Font = reader.GetFont(),
+			pnlSetting.lblAreaDown.ForeColor = reader.GetColor(),
 			pnlSetting.lblAreaDown.Background = GetDesktopDown().Background,
-			pnlSetting.lblAreaDown.Font = Reader.GetFont(),
-			pnlSetting.ddlFont.Text = Reader.GetFont().GetFamilyName());
+			pnlSetting.lblAreaDown.Font = reader.GetFont(),
+			pnlSetting.ddlFont.Text = reader.GetFont().GetFamilyName());
 		pnlSetting.UpdateInfo();
 		{
 			auto& dsk_up(GetDesktopUp());
@@ -595,7 +595,7 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		{
 			const auto idx(std::find(Encodings | get_key,
 				(Encodings + arrlen(Encodings)) | get_key,
-				Reader.GetEncoding()) - Encodings);
+				reader.GetEncoding()) - Encodings);
 
 			yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
 				pnlSetting.ddlEncoding.Text = Encodings[idx].second);
@@ -605,20 +605,20 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		Show(pnlSetting << CurrentSetting);
 		break;
 	case MR_FileInfo:
-		boxTextInfo.UpdateData(Reader);
+		boxTextInfo.UpdateData(reader);
 		Show(boxTextInfo);
 		break;
 	case MR_LineUp:
-		Reader.Execute(DualScreenReader::LineUpScroll);
+		reader.Execute(DualScreenReader::LineUpScroll);
 		break;
 	case MR_LineDown:
-		Reader.Execute(DualScreenReader::LineDownScroll);
+		reader.Execute(DualScreenReader::LineDownScroll);
 		break;
 	case MR_ScreenUp:
-		Reader.Execute(DualScreenReader::ScreenUpScroll);
+		reader.Execute(DualScreenReader::ScreenUpScroll);
 		break;
 	case MR_ScreenDown:
-		Reader.Execute(DualScreenReader::ScreenDownScroll);
+		reader.Execute(DualScreenReader::ScreenDownScroll);
 		break;
 	}
 }
@@ -628,7 +628,7 @@ ShlTextReader::LoadFile(const IO::Path& pth)
 {
 	CurrentPath = pth;
 	pTextFile = make_unique<TextFile>(pth);
-	Reader.LoadText(*pTextFile);
+	reader.LoadText(*pTextFile);
 }
 
 void
@@ -638,9 +638,9 @@ ShlTextReader::Scroll()
 		if(YB_UNLIKELY(tmrScroll.Refresh()))
 		{
 			if(CurrentSetting.SmoothScroll)
-				Reader.ScrollByPixel(1U);
+				reader.ScrollByPixel(1U);
 			else
-				Reader.Execute(DualScreenReader::LineDownScroll);
+				reader.Execute(DualScreenReader::LineDownScroll);
 		}
 }
 
@@ -656,10 +656,10 @@ ShlTextReader::ShowMenu(Menu::ID id, const Point&)
 		switch(id)
 		{
 		case 1u:
-			mnu.SetItemEnabled(MR_LineUp, !Reader.IsTextTop());
-			mnu.SetItemEnabled(MR_LineDown, !Reader.IsTextBottom());
-			mnu.SetItemEnabled(MR_ScreenUp, !Reader.IsTextTop());
-			mnu.SetItemEnabled(MR_ScreenDown, !Reader.IsTextBottom());
+			mnu.SetItemEnabled(MR_LineUp, !reader.IsTextTop());
+			mnu.SetItemEnabled(MR_LineDown, !reader.IsTextBottom());
+			mnu.SetItemEnabled(MR_ScreenUp, !reader.IsTextTop());
+			mnu.SetItemEnabled(MR_ScreenDown, !reader.IsTextBottom());
 		}
 		mhMain.Show(id);
 	}
@@ -668,7 +668,7 @@ ShlTextReader::ShowMenu(Menu::ID id, const Point&)
 void
 ShlTextReader::StopAutoScroll()
 {
-	Reader.AdjustScrollOffset(),
+	reader.AdjustScrollOffset(),
 	fBackgroundTask = nullptr,
 	Deactivate(tmrScroll);
 }
@@ -680,20 +680,20 @@ ShlTextReader::Switch(Encoding enc)
 		&& pTextFile->Encoding != enc)
 	{
 		pTextFile->Encoding = enc;
-		Reader.LoadText(*pTextFile);
+		reader.LoadText(*pTextFile);
 	}
 }
 
 void
 ShlTextReader::UpdateReadingList(bool is_prev)
 {
-	LastRead.Insert(CurrentPath, Reader.GetTopPosition());
+	LastRead.Insert(CurrentPath, reader.GetTopPosition());
 
 	const auto& bm(LastRead.Switch(is_prev));
 
 	if(bm.Path != CurrentPath)
 		LoadFile(bm.Path);
-	Reader.Locate(bm.Position);
+	reader.Locate(bm.Position);
 	UpdateButtons();
 }
 
@@ -718,12 +718,12 @@ ShlTextReader::OnClick(TouchEventArgs&&)
 	if(IsVisible(boxReader))
 	{
 		Close(boxReader);
-		Reader.Stretch(0);
+		reader.Stretch(0);
 	}
 	else
 	{
 		Show(boxReader);
-		Reader.Stretch(boxReader.GetHeight());
+		reader.Stretch(boxReader.GetHeight());
 	}
 }
 
@@ -758,16 +758,16 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 			return;
 		}
 		if(k[KeyCodes::Enter])
-			Reader.UpdateView();
+			reader.UpdateView();
 		else if(k[Esc])
 			Exit();
 		else if(k[Up])
-			Reader.Execute(DualScreenReader::LineUpScroll);
+			reader.Execute(DualScreenReader::LineUpScroll);
 		else if(k[Down])
-			Reader.Execute(DualScreenReader::LineDownScroll);
+			reader.Execute(DualScreenReader::LineDownScroll);
 		else if(k[YCL_KEY(X)] || k[YCL_KEY(Y)])
 		{
-			auto size(Reader.GetFont().GetSize());
+			auto size(reader.GetFont().GetSize());
 
 			e.Handled = true;
 			if(k[YCL_KEY(X)])
@@ -781,25 +781,25 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 				++size;
 			else
 				return;
-			Reader.SetFontSize(size);
-			Reader.UpdateView();
+			reader.SetFontSize(size);
+			reader.UpdateView();
 		}
 		else if(k[YCL_KEY(L)])
 		{
-			if(YB_LIKELY(Reader.GetLineGap() != 0))
-				Reader.SetLineGap(Reader.GetLineGap() - 1);
+			if(YB_LIKELY(reader.GetLineGap() != 0))
+				reader.SetLineGap(reader.GetLineGap() - 1);
 		}
 		else if(k[YCL_KEY(R)])
 		{
-			if(YB_LIKELY(Reader.GetLineGap() != 12))
-				Reader.SetLineGap(Reader.GetLineGap() + 1);
+			if(YB_LIKELY(reader.GetLineGap() != 12))
+				reader.SetLineGap(reader.GetLineGap() + 1);
 		}
 		else if(k[Left])
 	//	else if(k[PgUp])
-			Reader.Execute(DualScreenReader::ScreenUpScroll);
+			reader.Execute(DualScreenReader::ScreenUpScroll);
 		else if(k[Right])
 	//	else if(k[PgDn])
-			Reader.Execute(DualScreenReader::ScreenDownScroll);
+			reader.Execute(DualScreenReader::ScreenDownScroll);
 		else
 			return;
 		tmrInput.Delay(HighResolutionClock::now() - ntick);

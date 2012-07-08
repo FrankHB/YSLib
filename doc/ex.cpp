@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4073; *build 322 rev 34;
+\version r4083; *build 323 rev 24;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-05 21:40 +0800;
+	2012-07-08 13:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -383,211 +383,152 @@ $using:
 
 
 $DONE:
-r1-r2:
-/= 2 test 1 @ platform MinGW32;
+r1:
+/ @ \u DSMain $=
+(
+	+ \cl InputManager @ \ns Devices,
+	- \f DispatchInput
+),
++ \pre \decl InputManager @ \ns Devices @ \h Shell_DS,
+/ @ \cl ShlDS @ \u Shell_DS $=
+(
+	+ private \m shared_ptr<Devices::InputManager> input_mgr_ptr,
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf OnGotMessage
+);
+/= test 1 @ platform MinGW32;
+
+r2:
+/ $dev $lib \simp DS \proj filters @ VC++,
+* $dev $lib wrong position for \dir Helper @ \proj YFramework @ Code::Blocks
+	$since b303,
+(
+	+ \u InputManager["InputManager.h", "InputManager.cpp"]
+		@ \lib Helper @ \proj YFramework;
+	/ \cl Devices::InputManager @ \u DSMain >> \u InputManager;
+	/ @ \u Shell_DS $=
+	(
+		+ \inc \h InputManager @ \h;
+		- \pre \decl \cl InputManager;
+		/ private \m shared_ptr<Devices::InputManager> input_mgr_ptr @ \cl ShlDS
+			-> Devices::InputManager input_mgr,
+		/ \tr \impl @ \ctor,
+		/ \tr \impl @ \mf OnGotMessage
+	),
+	/ @ \impl \u DSMain @ platform MinGW32
+);
+/= test 2 @ platform MinGW32;
 
 r3:
-* "%KeyTouch not raised by key input" $since b321
-	$= (* \impl @ \f DispatchInput @ \impl \u DSMain);
-/= test 2 @ platform DS ^ \conf release;
+/= test 3 @ platform MinGW32 ^ \conf release;
 
 r4:
-/ @ \impl \u DSMain @ platform MinGW32 $=
-(
-	+ \cl HostDemon;
-	/ \tr \impl @ (\ctor, \dtor) DSApplication;
-	- \f HostTask,
-	- \ns \o (g_cond, g_mutex, pHostThread)
-);
-/= test 3 @ platform MinGW32;
+* @ \impl \u DSMain $since r2;
+/= test 4 @ platform DS;
 
-r5-r6:
-/= 2 test 4 @ platform MinGW32;
+r5:
+/= test 5 @ platform DS ^ \conf release;
 
-r7-r8:
-/ @ \cl DSScreen @ \impl \u DSMain @ platform MinGW32 $=
-(
-	/ \impl @ \mf (UpdateToHost, Update);
-	- protected \m pSrc,
-	+ private \m std::mutex update_mutex,
-	/ \tr \simp \impl @ \ctor;
-	* thread-safety @ \mf Update $since b299
-),
-/= 2 test 5 @ platform MinGW32;
-
-r9:
-- \as @ \impl @ \f WndProc @ \impl \u DSMain @ platform MinGW32;
-/= test 6 @ platform MinGW32;
-
-r10:
-/ @ \impl \u DSMain @ platform MinGW32 $=
-(
-	/ @ \cl DSScreen $=
-	(
-		+ protected \m hHost,		
-		/ \ctor DSScreen(SDst, SDst) -> DSScreen(SDst, SDst, ::HWND)
-		/ \impl @ \mf Update
-	),
-	/ \tr \impl @ \ctor DSApplication
-);
-/= test 7 @ platform MinGW32;
-
-r11:
-/ @ \impl \u DSMain @ platform MinGW32 $=
-(
-	+ \mf CreateScreen @ \cl HostDemon,
-	/ \tr \simp \impl @ \ctor DSApplication
-);
-/= test 8 @ platform MinGW32;
-
-r12:
-/ @ \impl \u DSMain @ platform MinGW32 $=
-(
-	(
-		/ \ns \o std::atomic< ::HWND> hWindow -> protected \sm ::hWND hWindow
-			@ \cl HostDemon;
-		- \inc \h <atomic>
-	),
-	+ \smf (IsForeground, Transform) @ \cl HostDemon,
-	/ \tr \impl @ \f (UpdateCursorPosition @ \un \ns), DispatchInput
-);
-/= test 9 @ platform MinGW32;
-
-r13:
-/ @ \cl HostDemon @ \impl \u DSMain @ platform MinGW32 $=
-(
-	/ \sm ::HWND hWindow -> !\s \m ::HWND hHost,
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \smf (IsForeground, Transform),
-	/ \tr \impl @ \mf (CreateScreen, HostTask, WaitReady)
-);
-/= test 10 @ platform MinGW32;
-
-r14:
-/= test 11 @ platform DS;
-
-r15:
-/= test 12 @ platform MinGW32 ^ \conf release;
-
-r16:
-/= test 13 @ platform DS ^ \conf release;
-
-r17:
-/ @ \cl HostDemon @ \impl \u DSMain @ platform MinGW32 $=
-(
-	/ public \m std::mutex Mutex -> private \m std::mutex mtx;
-	/ public \m std::condition_variable Initialized
-		-> private \m std::condition_variable init	
-);
-/= test 14 @ platform MinGW32;
-
-r18:
+r6:
 / @ \impl \u DSMain $=
 (
-	- \decl @ \smf DSScreen::Reset @ platform DS,
-	+ \smf DSScreen::Reset;
-	/ \simp \impl @ \ctor DSApplication;
-	- \mf DSScreen::GetCheckedBufferPtr @ platform DS
+	/ \cl HostDemon @ \un \ns @ platform MinGW32 >> \ns Shells,
+	(
+		/ \a \inc \h @ (YCL_MULTITHREAD == 1) >> \h;
+		+ \cl HostDemon @ \ns Shells @ platform DS
+	),
+	/ \decl @ \cl (\pre DSScreen; HostDemon) >> \h;
+	/ \impl @ \ctor DSApplication
+),
+/ @ \impl \u InputManager;
+/= test 6 @ platform MinGW32;
+
+r7:
+/= test 7 @ platform DS;
+
+r8:
+/= test 8 @ platform DS ^ \conf release;
+
+r9:
+/ @ \u DSMain $=
+(
+	+ \smf CreateScreen() @ \cl HostDemon;
+	/ \simp \impl @ \ctor DSAppliation
 );
-/= test 15 @ platform DS;
+/= test 9 @ platform DS;
 
-r19:
-* \impl @ \ctor DSApplication @ \impl \u DSMain $since r18;
-/= test 16 @ platform DS;
+r10:
+/= test 10 @ platform MinGW32;
 
-r20:
-/ \impl @ \ctor DSApplication @ \impl \u DSMain @ platform DS;
+r11:
+- \inc \h Label @ \h DSMain,
+/ \inc \h (Blit, YGUI, Desktop, Shell_DS) @ \impl \u DSMain -> (Font, YTimer);
+/= test 11 @ platform MinGW32;
+
+r12:
+- \decl \f ResponseInput @ \h Shell_DS,
+/ \inc \h Shell_DS @ \h DSMain >> \impl \u Shell_DS,
+- \inc \h YGlobal @ \impl \u Shell_DS;
+/= test 12 @ platform MinGW32;
+
+r13:
++ \inc \h YBlit @ \h DSMain @ platform DS;
+/= test 13 @ platform DS ^ \conf release;
+
+r14:
+/ \mf UpdateCursorPosition @ \cl InputManager @ \u InputManager \mg
+	-> \mf DispatchInput;
+/= test 14 @ platform DS ^ \conf release;
+
+r15:
+/= test 15 @ platform DS ^ \conf release;
+
+r16:
++ $doc architecture document YFramework.vsd @ \dir /doc/vsd
+	^ Microsoft Visio 2010,
+/ \mf (Transform, IsForeground) @ \cl HostDemon @ \u DSMain @ platform MinGW32
+	-> \mf \i FetchWindowHandle;
+/ \tr \impl @ \impl \u InputManager;
+/= test 16 @ platform MinGW32;
+
+r17:
 /= test 17 @ platform DS ^ \conf release;
 
-r21:
-/= test 18 @ platform MinGW32 ^ \conf release;
+r18-r20:
+/ \impl @ \mf InputManager::DispatchInput,
+/= 3 test 18 @ platform DS ^ \conf release;
 
-r22:
-+ \mac \def YCL_HOSTED (0 @ platform DS, 1 @ platform MinGW32) @ \h Platform,
-/ \simp \impl @ \mf DSScreen::Update @ platform MinGW32;
+r21:
+/ @ \cl ShlTextReader @ \impl \u ShlReader $=
+(
+	/ \ac @ \m boxReader, boxTextInfo, pnlSetting, pTextFile, mhMain
+		-> protected ~ public,
+	/ public \m DualScreenReader Reader -> private \m DualScreenReader reader
+);
 /= test 19 @ platform MinGW32;
 
+r22:
+/= test 20 @ platform DS;
+
 r23:
-/ \mac YCL_DEBUG_* @ \h DSMain >> \h Debug;
-/= test 20 @ platform MinGW32;
+/= test 21 @ platform MinGW32 ^ \conf release;
 
 r24:
-/ @ \h String @ \lib YStandardEx $=
-(
-	+ \inc \h (<cstdio>, <cstdarg>);
-	+ \ft sfmt
-);
-/ \simp \impl @ \impl \u Shells,
-/ \simp \impl @ \ctor FontCache;
-/= test 21 @ platform DS ^ \conf release;
-
-r25:
-/= test 22 @ platform MinGW32;
-
-r26:
-/ '__format__' @ \h String @ \lib YStandardEx -> 'format';
-+ 'ms_printf' attribute @ \f yprintf @ \h Debug @ platform MinGW32;
-/= test 23 @ platform MinGW32 ^ \conf Release;
-
-r27:
-(
-	/ \ft<_type> void ClearSequence(_type*, size_t) @ \h YCoreUtilities
-		-> \ft<_tOut> void ClearSequence(_tOut, siez_t) ^ std::fill_n ~ mmbset;
-	- using ystdex::mmbset @ \h YAdaptor;
-	- \f ystdex::mmbset @ \u YCommon
-),
-+ 'ynothrow' @ \f ClearPixel @ \h YBlit,
-(
-	(
-		* \impl @ \ft CreateRawBitmap $since $before b132
-			@ \h ShellHelper,
-		/ \impl @ \ft BlitLine @ \h YBlit,
-		/ \impl @ \f CopyBuffer @ \impl \u YBlit,
-		/ \impl @ \mf Screen::Update @ \impl \u YDevice,
-		/ \impl @ \cl (BitmapBuffer, BitmapBufferEx) @ \impl \u YGDI,
-	) ^ std::copy_n ~ mmbcpy;
-	- using ystdex::mmbcpy @ \h YAdaptor;
-	- \f ystdex::mmbcpy @ \u YCommon
-);
-/= test 24 @ platform MinGW32;
-
-r28:
-/= test 25 @ platform DS;
-
-r29:
-/= test 26 @ platform MinGW32 ^ \conf release;
-
-r30:
-/= test 27 @ platform DS ^ \conf release;
-
-r31:
-/ \simp \impl @ \f InitializeSystemFontCache @ \impl \u Initialization,
-/ \simp \ctor DSApplication @ \impl \u DSMain;
-- \mf DSApplication::ResetFontCache @ \u DSMain;
-/= test 28 @ platform MinGW32;
-
-r32:
-/= test 29 @ platform DS;
-
-r33:
-/= test 30 @ platform MinGW32 ^ \conf release;
-
-r34:
-/= test 31 @ platform DS ^ \conf release;
+/= test 22 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-07-05:
--23.4d;
-// Mercurial rev1-rev193: r8805;
+2012-07-08:
+-23.1d;
+// Mercurial rev1-rev194: r8829;
 
 / ...
 
 
 $NEXT_TODO:
-b323-b327:
+b324-b327:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -638,7 +579,7 @@ b328-b382:
 	/ improved tests and examples
 );
 
-b383-b804:
+b383-b864:
 + (memory mapping, shared memory) APIs @ YCommon,
 / @ CHRLib $=
 (
@@ -679,7 +620,9 @@ b383-b804:
 	+ shell session;
 	+ UI scenes,
 	+ UI modes,
-	+ UI subsessions
+	+ UI subsessions,
+	+ shell framework for plugins and devices,
+	+ automatic shellizing,
 ),
 / services $=
 (
@@ -719,7 +662,7 @@ b383-b804:
 		@ class %ListBox
 );
 
-b805-b1294:
+b865-b1354:
 ^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
 	when (^ g++),
 / memory fragment issues,
@@ -764,7 +707,7 @@ b805-b1294:
 	+ modal widget behavior
 );
 
-b1295-b1822:
+b1355-b1882:
 / platform dependent system functions $=
 (
 	+ correct DMA (copy & fill) @ DS
@@ -823,7 +766,7 @@ b1295-b1822:
 
 $LOW_PRIOR_TODO:
 ^ $low_prior $for_labeled_scope;
-b1823-b5790:
+b1883-b5850:
 + advanced shell system $=
 (
 	+ dynamic loading and reloading,
@@ -865,14 +808,16 @@ $KNOWN_ISSUE:
 	bitmap glyph like simson.ttc" $since b185,
 	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10) tested.
 * "<cmath> cannot use 'std::*' names" @ "!defined %_GLIBCXX_USE_C99_MATH_TR1"
-	@ "libstdc++ with g++ (4.6, 4.7)" $before $future;
+	@ "libstdc++ with g++ (4.6, 4.7) on devkitARM" @ "platform $DS"
+	$before $future;
 	// G++ 4.7.0 tested @ b301.
 * "crashing after sleeping(default behavior of closing then reopening lid) on \
 	real machine due to libnds default interrupt handler for power management"
 	$since b279;
-* "sorry, unimplemented: use of 'type_pack_expansion' in template"
-	@ ^ "g++ (4.6, 4.7)" $before $future;
+* "sorry, unimplemented: use of 'type_pack_expansion' in template \
+	with libstdc++ std::thread" @ ^ "g++ (4.6, 4.7)" $before $future(g++4.7.2);
 	// G++ 4.7.0 tested @ b300.
+	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
 
 $RESOLVED_ENVIRONMENT_ISSUE:
 * "g++ 4.5.2 fails on compiling code with defaulted move assignment operator"
@@ -1008,7 +953,8 @@ $module_tree $=
 			'global helper unit',
 			'shells for DS';
 			'DS main unit',
-			'initialization'
+			'initialization',
+			'input manager'
 		),
 	),
 	'YReader'
@@ -1023,6 +969,27 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'Helper' $=
+	(
+		+ 'input manager'
+			$= (+ "class %Devices::InputManager" @ "unit %InputManager");
+		/ $dev $lib "implementation dispatching" ^ "class %InputManager"
+			@ "class %ShlDS" @ %'DS main unit',
+		/ DLD "host implementation" @ "platform %MinGW32" @ 'DS main unit',
+		/ DLD "several header dependencies improved"
+	),
+	/ $dev $lib "duplicate entries removed" @ "Visual C++ project filters"
+		@ "platform %DS",
+	* $dev $lib "wrong position for directory %Helper"
+		@ "Code::Blocks project %YFramework" $since b303,
+	+ $doc "architecture document YFramework.vsd" @ "directory /doc/vsd"
+		^ "Microsoft Visio 2010",
+	/ DLD "member access control" @ "class %ShlTextReader"
+		@ %'YReader'.'text reader'
+),
+
+b322
 (
 	/ %'YFramework' $=
 	(

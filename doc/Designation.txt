@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7284;
+\version r7287;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-03 10:44 +0800;
+	2012-07-07 23:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -895,7 +895,8 @@
  Adaptor 中的 config.h 可以被 Adaptor 中的头文件直接包含。
 任意 YFramework 文件可依赖 @2.9 余下部分指定的标准库头文件以及 YBase 头文件。
 必要文件不依赖非必要文件。
- Adaptor 头文件除了 Adaptor.h 外不依赖 Helper 头文件或 <YCLib/ycommon.h> 以外的 YCLib 文件。
+ Adaptor 头文件 Helper 。
+除了 Adaptor.h 外， Adaptor 头文件不依赖 <YCLib/ycommon.h> 以外的 YCLib 文件。
  Adaptor 文件可依赖 YFramework 文件或标准库实现的非标准头文件。
  Helper 文件和本体的非必要源文件可依赖 YCLib 文件。
 除上述文件外，本体头文件不依赖 YSLib 以外的文件。
@@ -967,7 +968,7 @@
  "ypanel.h" 依赖于 "ycontrol.h" 和 "yuicont.h" ；
  "ywindow.h" 依赖于 "ypanel.h" 和 Service 的 "yres.h" ；
  "ydesktop.h" 依赖于 "ywindow.h" 、 "yrender.h" 和 Core 的 "ydevice.h" 。
-在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少的头文件。
+在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
 
 @3 API 设计和风格概述：
 参见 [Documentation::CommonRules @@3] 。

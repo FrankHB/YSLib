@@ -68,6 +68,7 @@
     </Filter>
     <Filter Include="文档">
       <UniqueIdentifier>{13193de8-2c62-4701-b8d9-520168a94ed9}</UniqueIdentifier>
+      <Extensions>txt;htm;html;xml;doc;vsd</Extensions>
     </Filter>
     <Filter Include="头文件\freetype">
       <UniqueIdentifier>{e84ea4d1-fce8-4bb2-ac44-79d5a2876533}</UniqueIdentifier>
@@ -91,6 +92,11 @@
     <Filter Include="源文件\Helper">
       <UniqueIdentifier>{bb88fc0f-6597-4a43-aced-4c811b312370}</UniqueIdentifier>
     </Filter>
+    <Filter Include="文档\vsd">
+      <UniqueIdentifier>{c160437d-5ba1-4570-8711-6444f363e3e9}</UniqueIdentifier>
+      <Extensions>vsd</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="data\cp113.bin">
@@ -113,6 +119,9 @@
     </None>
     <None Include="..\doc\YSLib.txt">
       <Filter>文档</Filter>
+    </None>
+    <None Include="..\doc\vsd\YFramework.vsd">
+      <Filter>文档\vsd</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -614,6 +623,9 @@
     <ClInclude Include="include\YCLib\Timer.h">
       <Filter>头文件\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\Helper\InputManager.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -796,9 +808,6 @@
     <ClCompile Include="source\YCLib\Video.cpp">
       <Filter>源文件\YCLib</Filter>
     </ClCompile>
-    <ClCompile Include="..\doc\ex.cpp">
-      <Filter>文档</Filter>
-    </ClCompile>
     <ClCompile Include="source\YCLib\FileSystem.cpp">
       <Filter>源文件\YCLib</Filter>
     </ClCompile>
@@ -807,6 +816,12 @@
     </ClCompile>
     <ClCompile Include="source\YCLib\Timer.cpp">
       <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\InputManager.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\doc\ex.cpp">
+      <Filter>文档</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

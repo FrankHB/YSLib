@@ -96,6 +96,7 @@
 		<Unit filename="..\YFramework\include\CHRLib\smap.hpp" />
 		<Unit filename="..\YFramework\include\Helper\DSMain.h" />
 		<Unit filename="..\YFramework\include\Helper\Initialization.h" />
+		<Unit filename="..\YFramework\include\Helper\InputManager.h" />
 		<Unit filename="..\YFramework\include\Helper\ShellHelper.h" />
 		<Unit filename="..\YFramework\include\Helper\shlds.h" />
 		<Unit filename="..\YFramework\include\Helper\yglobal.h" />
@@ -259,6 +260,7 @@
 		<Unit filename="..\YFramework\source\CHRLib\chrproc.cpp" />
 		<Unit filename="..\YFramework\source\Helper\DSMain.cpp" />
 		<Unit filename="..\YFramework\source\Helper\Initialization.cpp" />
+		<Unit filename="..\YFramework\source\Helper\InputManager.cpp" />
 		<Unit filename="..\YFramework\source\Helper\ShellHelper.cpp" />
 		<Unit filename="..\YFramework\source\Helper\shlds.cpp" />
 		<Unit filename="..\YFramework\source\Helper\yglobal.cpp" />

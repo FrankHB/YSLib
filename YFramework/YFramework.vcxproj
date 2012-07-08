@@ -15,6 +15,7 @@
     <None Include="..\doc\CommonRules.txt" />
     <None Include="..\doc\Definitions.txt" />
     <None Include="..\doc\Designation.txt" />
+    <None Include="..\doc\vsd\YFramework.vsd" />
     <None Include="..\doc\YSLib.txt" />
     <None Include="data\cp113.bin" />
     <None Include="data\default_font.bin" />
@@ -111,6 +112,7 @@
     <ClInclude Include="include\ft2build.h" />
     <ClInclude Include="include\Helper\DSMain.h" />
     <ClInclude Include="include\Helper\Initialization.h" />
+    <ClInclude Include="include\Helper\InputManager.h" />
     <ClInclude Include="include\Helper\ShellHelper.h" />
     <ClInclude Include="include\Helper\shlds.h" />
     <ClInclude Include="include\Helper\yglobal.h" />
@@ -193,6 +195,7 @@
     <ClCompile Include="source\CHRLib\chrproc.cpp" />
     <ClCompile Include="source\Helper\DSMain.cpp" />
     <ClCompile Include="source\Helper\Initialization.cpp" />
+    <ClCompile Include="source\Helper\InputManager.cpp" />
     <ClCompile Include="source\Helper\ShellHelper.cpp" />
     <ClCompile Include="source\Helper\shlds.cpp" />
     <ClCompile Include="source\Helper\yglobal.cpp" />

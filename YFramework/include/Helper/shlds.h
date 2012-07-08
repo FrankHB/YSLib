@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2179;
+\version r2202;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-06-30 18:37 +0800;
+	2012-07-06 13:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,7 @@
 
 #include <YSLib/Core/yshell.h>
 #include <YSLib/Core/ystring.h>
+#include "Helper/InputManager.h"
 
 YSL_BEGIN
 
@@ -76,12 +77,15 @@ class ShlDS : public Shell
 {
 private:
 	/*!
+	\brief 输入管理器。
+	\since build 323 。
+	*/
+	Devices::InputManager input_mgr;
+	/*!
 	\brief 共享桌面指针：正常状态下应总是指向可用的桌面对象。
 	\since build 296 。
 	*/
-	//@{
 	shared_ptr<Desktop> desktop_up_ptr, desktop_down_ptr;
-	//@}
 
 protected:
 	/*!
@@ -137,13 +141,6 @@ public:
 	virtual void
 	OnPaint();
 };
-
-
-/*!
-\brief 响应输入。
-*/
-void
-ResponseInput(const Message&);
 
 
 /*!

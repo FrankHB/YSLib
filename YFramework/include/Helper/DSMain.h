@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1251;
+\version r1382;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-07-04 17:02 +0800;
+	2012-07-07 23:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,9 +30,12 @@
 
 #include <YSLib/Core/yapp.h>
 #include <YSLib/Core/ydevice.h>
-#include "shlds.h"
-#include <YSLib/UI/Label.h>
 #include <YCLib/Input.h>
+#if YCL_MULTITHREAD == 1
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#endif
 
 YSL_BEGIN
 
@@ -58,9 +61,85 @@ const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 
 
 //前向声明。
+YSL_BEGIN_NAMESPACE(Devices)
+class DSScreen;
+YSL_END_NAMESPACE(Drawing)
 YSL_BEGIN_NAMESPACE(Drawing)
 class FontCache;
 YSL_END_NAMESPACE(Drawing)
+
+
+YSL_BEGIN_NAMESPACE(Shells)
+
+/*!
+\brief 宿主守护任务。
+\since build 322 。
+*/
+class HostDemon
+{
+protected:
+	static HostDemon* pInstance;
+
+#if YCL_HOSTED && YCL_MULTITHREAD == 1
+	//! \brief 宿主背景线程。
+	std::thread thread;
+
+#if YCL_MINGW32
+protected:
+	//! \brief 本机主窗口句柄。
+	::HWND hHost;
+#endif
+
+private:
+	//! \brief 宿主环境互斥量。
+	std::mutex mtx;
+	//! \brief 宿主环境就绪条件。
+	std::condition_variable init;
+#endif
+
+public:
+	HostDemon();
+	~HostDemon();
+
+#if YCL_HOSTED
+	static ::HWND
+	FetchWindowHandle()
+	{
+		YAssert(pInstance, "Null pointer found.");
+
+		return pInstance->hHost;
+	}
+#endif
+
+	//! \brief 宿主环境就绪后创建屏幕。
+#if YCL_DS
+	static
+#endif
+	Devices::DSScreen*
+	CreateScreen();
+
+#if YCL_HOSTED
+private:
+	//! \brief 初始化宿主资源和本机消息循环线程。
+	void
+	HostTask();
+#endif
+
+public:
+	static void
+	Release()
+	{
+		delete pInstance;
+	}
+
+#if YCL_MINGW32
+	//! \brief 等待宿主环境就绪。
+	void
+	WaitReady();
+#endif
+};
+
+YSL_END_NAMESPACE(Shells)
 
 
 /*!
@@ -132,15 +211,6 @@ public:
 	DealMessage();
 };
 
-
-/*!
-\brief 向指定桌面分发响应输入状态。
-\since build 299 。
-
-指定平台相关的用户界面输入处理。
-*/
-void
-DispatchInput(Desktop&);
 
 /*!
 \brief 取平台相关的全局资源。

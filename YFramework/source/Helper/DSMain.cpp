@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2581;
+\version r2801;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-07-04 17:19 +0800;
+	2012-07-07 23:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,22 +28,14 @@
 #include "Helper/DSMain.h"
 #include "Helper/yglobal.h"
 #include "Helper/Initialization.h"
-#include <YSLib/UI/ydesktop.h>
-#include "Helper/shlds.h"
-#include <YSLib/UI/ygui.h>
-#include <YSLib/Service/YBlit.h>
+#include <YSLib/Adaptor/Font.h>
+#include <YSLib/Service/ytimer.h>
 #include <YCLib/Debug.h>
-#if YCL_MULTITHREAD == 1
-#include <thread>
-#include <mutex>
-#include <condition_variable>
+#ifdef YCL_DS
+#include <YSLib/Service/yblit.h> // for Drawing::FillPixel;
 #endif
 
 YSL_BEGIN
-
-YSL_BEGIN_NAMESPACE(Devices)
-class DSScreen;
-YSL_END_NAMESPACE(Devices)
 
 using Devices::DSScreen;
 using namespace Drawing;
@@ -382,117 +374,6 @@ InitializeMainWindow()
 		wstyle, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
 		rect.bottom - rect.top, HWND_DESKTOP, NULL, wCl.hInstance, NULL);
 }
-
-
-/*!
-\brief 宿主守护任务。
-\since build 322 。
-*/
-class HostDemon
-{
-protected:
-	static HostDemon* pInstance;
-
-	//! \brief 宿主背景线程。
-	std::thread thread;
-
-protected:
-	//! \brief 本机主窗口句柄。
-	::HWND hHost;
-
-private:
-	//! \brief 宿主环境互斥量。
-	std::mutex mtx;
-	//! \brief 宿主环境就绪条件。
-	std::condition_variable init;
-
-public:
-	// NOTE: G++ 4.7.1 complains: sorry, unimplemented: use of
-	//	'type_pack_expansion' in template, if HostDemon is not in
-	//	the unnamed namespace.
-	HostDemon()
-		: thread(std::mem_fn(&HostDemon::HostTask), this), hHost()
-	{
-		YAssert(!pInstance, "Duplicate instance found.");
-
-		pInstance = this;
-	}
-	~HostDemon()
-	{
-		thread.detach();
-	}
-
-	static bool
-	IsForeground()
-	{
-		YAssert(pInstance, "Null pointer found.");
-
-		return pInstance->hHost == ::GetForegroundWindow();
-	}
-
-	//! \brief 宿主环境就绪后创建屏幕。
-	DSScreen*
-	CreateScreen()
-	{
-		WaitReady();
-		return new DSScreen(MainScreenWidth, MainScreenHeight, hHost);
-	}
-
-private:
-	//! \brief 初始化宿主资源和本机消息循环线程。
-	void
-	HostTask()
-	{
-		{
-			std::lock_guard<std::mutex> lck(mtx);
-
-			hHost = YSL_ InitializeMainWindow();
-			// NOTE: Currently there is only one client.
-			init.notify_one();
-		//	Initialized.notify_all();
-		}
-		::ShowWindow(hHost, SW_SHOWNORMAL);
-
-		::MSG host_msg; //!< 本机消息类型。
-
-		while(true)
-		{
-			if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
-				::DispatchMessage(&host_msg);
-			else
-			//	std::this_thread::yield();
-				std::this_thread::sleep_for(host_sleep);
-		}
-	}
-
-public:
-	static void
-	Release()
-	{
-		delete pInstance;
-	}
-
-	static void
-	Transform(platform::CursorInfo& cursor)
-	{
-		YAssert(pInstance, "Null pointer found.");
-
-		::ScreenToClient(pInstance->hHost, &cursor);
-	}
-
-	//! \brief 等待宿主环境就绪。
-	void
-	WaitReady()
-	{
-		std::unique_lock<std::mutex>lck(mtx);
-
-		init.wait(lck, [this]{return bool(hHost);});
-
-		YAssert(bool(hHost), "Null handle found.");
-	}
-};
-
-HostDemon* HostDemon::pInstance;
 #endif
 
 /*!
@@ -525,9 +406,82 @@ Idle(Messaging::Priority prior)
 } // unnamed namespace;
 
 
+YSL_BEGIN_NAMESPACE(Shells)
+
+HostDemon* HostDemon::pInstance;
+
+// NOTE: libstdc++ @ G++ 4.7.1 bug,
+//	see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
+HostDemon::HostDemon()
+#if YCL_MINGW32
+	: thread(std::mem_fn(&HostDemon::HostTask), this), hHost()
+#endif
+{
+	YAssert(!pInstance, "Duplicate instance found.");
+
+	pInstance = this;
+}
+HostDemon::~HostDemon()
+{
+#if YCL_MINGW32
+	thread.detach();
+#endif
+}
+
+DSScreen*
+HostDemon::CreateScreen()
+{
+#if YCL_DS
+	return new DSScreen(MainScreenWidth, MainScreenHeight);
+#elif YCL_MINGW32
+	WaitReady();
+	return new DSScreen(MainScreenWidth, MainScreenHeight, hHost);
+#endif
+}
+
+#if YCL_MINGW32
+void
+HostDemon::HostTask()
+{
+	{
+		std::lock_guard<std::mutex> lck(mtx);
+
+		hHost = YSL_ InitializeMainWindow();
+		// NOTE: Currently there is only one client.
+		init.notify_one();
+	//	Initialized.notify_all();
+	}
+	::ShowWindow(hHost, SW_SHOWNORMAL);
+
+	::MSG host_msg; //!< 本机消息类型。
+
+	while(true)
+		if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
+			::DispatchMessage(&host_msg);
+		else
+		//	std::this_thread::yield();
+			std::this_thread::sleep_for(host_sleep);
+}
+
+void
+HostDemon::WaitReady()
+{
+	std::unique_lock<std::mutex>lck(mtx);
+
+	init.wait(lck, [this]{return bool(hHost);});
+
+	YAssert(bool(hHost), "Null handle found.");
+}
+#endif
+
+YSL_END_NAMESPACE(Shells)
+
+
 DSApplication::DSApplication()
 	: UIResponseLimit(0x40)
 {
+	using Shells::HostDemon;
+
 	YAssert(!YSL_ pApp, "Duplicate instance found.");
 
 	//注册全局应用程序实例。
@@ -535,25 +489,16 @@ DSApplication::DSApplication()
 
 	//全局初始化。
 	InitializeEnviornment();
-#if YCL_MINGW32
-	//启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
+	//若有必要，启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
 	HostDemon& demon(*new HostDemon());
-#endif
 	//检查程序是否被正确安装。
 	CheckInstall();
 
 	//初始化系统设备。
 	try
 	{
-#if YCL_DS
-		pScreenUp = new DSScreen(MainScreenWidth, MainScreenHeight);
-		pScreenDown = new DSScreen(MainScreenWidth, MainScreenHeight);
-#elif YCL_MINGW32
 		pScreenUp = demon.CreateScreen();
 		pScreenDown = demon.CreateScreen();
-#else
-#	error Unsupported platform found!
-#endif
 	}
 	catch(...)
 	{
@@ -578,9 +523,7 @@ DSApplication::DSApplication()
 
 DSApplication::~DSApplication()
 {
-#if YCL_MINGW32
-	HostDemon::Release();
-#endif
+	Shells::HostDemon::Release();
 
 	//等待并确保所有 Shell 被释放。
 //	hShell = nullptr;
@@ -647,117 +590,6 @@ DSApplication::DealMessage()
 	return true;
 }
 
-
-namespace
-{
-
-//! \since build 321 。
-//@{
-// NOTE: There is no real necessity to put input content into message queue,
-//	for the content is serialized in form of exactly one instance
-//	to be accepted at one time and no input signal is handled
-//	through interrupt to be buffered.
-Drawing::Point CursorState;
-#if YCL_MULTITHREAD == 1
-std::mutex CursorMutex;
-#endif
-
-void
-UpdateCursorPosition()
-{
-	platform::CursorInfo cursor;
-#if YCL_MULTITHREAD == 1
-	std::lock_guard<std::mutex> lck(CursorMutex);
-#endif
-
-	platform_ex::WriteCursor(cursor);
-#if YCL_DS
-	CursorState = cursor.operator Point();
-#elif YCL_MINGW32
-	HostDemon::Transform(cursor);
-	yunseq(CursorState.X = cursor.x,
-		CursorState.Y = cursor.y - MainScreenHeight);
-	if(!Rect(Point::Zero, MainScreenWidth, MainScreenHeight)
-		.Contains(CursorState))
-		CursorState = Point::Invalid;
-#endif
-}
-
-#if YCL_MULTITHREAD == 1
-inline const Point&
-FetchCursorPosition()
-{
-	std::lock_guard<std::mutex> lck(CursorMutex);
-#elif !YCL_MULTITHREAD
-const Point&
-FetchCursorPosition()
-{
-#else
-#	error Unsupported multithread environment found!
-#endif
-	return CursorState;
-}
-//@}
-
-} // unnamed namespace;
-
-void
-DispatchInput(Desktop& dsk)
-{
-#if YCL_DS
-#	define YCL_KEY_Touch KeyCodes::Touch
-#	define YCL_CURSOR_VALID
-#elif YCL_MINGW32
-#	define YCL_KEY_Touch VK_LBUTTON
-#	define YCL_CURSOR_VALID if(cursor_pos != Point::Invalid)
-	if(!HostDemon::IsForeground())
-		return;
-#else
-#	error Unsupported platform found!
-#endif
-
-	using namespace platform::KeyCodes;
-	using namespace YSL_ Components;
-
-	// FIXME: [DS] crashing after sleeping(default behavior of closing then
-	//	reopening lid) on real machine due to LibNDS default interrupt
-	//	handler for power management.
-//	platform::AllowSleep(true);
-	platform_ex::UpdateKeyStates();
-
-	KeyInput keys(platform_ex::FetchKeyUpState());
-
-	if(platform_ex::FetchKeyState()[YCL_KEY_Touch])
-		UpdateCursorPosition();
-
-	const Drawing::Point cursor_pos(FetchCursorPosition());
-	auto& st(FetchGUIState());
-	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
-		VisualEvent touch_evt){
-		if(keyset[YCL_KEY_Touch])
-		{
-			YCL_CURSOR_VALID
-			{
-				TouchEventArgs e(dsk, cursor_pos);
-
-				st.ResponseTouch(e, touch_evt);
-			}
-		}
-		else if(keyset.any())
-		{
-			KeyEventArgs e(dsk, keyset);
-
-			st.ResponseKey(e, key_evt);
-		}
-	});
-
-	disp(keys, KeyUp, TouchUp);
-	keys = platform_ex::FetchKeyDownState();
-	disp(keys, KeyDown, TouchDown);
-	disp(platform_ex::FetchKeyState(), KeyHeld, TouchHeld);
-#undef YCL_CURSOR_VALID
-#undef YCL_KEY_Touch
-}
 
 Application&
 FetchAppInstance()

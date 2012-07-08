@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2362;
+\version r2370;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-05-25 14:04 +0800;
+	2012-07-08 12:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -432,19 +432,18 @@ protected:
 	\since build 300 。
 	*/
 	InputTimer tmrInput;
-
-public:
-	DualScreenReader Reader;
+	//! \since build 323 。
+	//@{
+	DualScreenReader reader;
 	ReaderBox boxReader;
 	TextInfoBox boxTextInfo;
-	/*!
-	\brief 设置面板。
-	\since build 275 。
-	*/
+	//! \brief 设置面板。
 	SettingPanel pnlSetting;
 	unique_ptr<TextFile> pTextFile;
 	MenuHost mhMain;
+	//@}
 
+public:
 	/*!
 	\brief 构造：使用指定路径。
 	\since build 296 。
