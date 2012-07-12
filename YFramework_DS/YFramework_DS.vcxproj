@@ -11,9 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\YFramework\data\cp113.bin">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\YFramework\data\default_font.bin">
       <FileType>Document</FileType>
     </None>

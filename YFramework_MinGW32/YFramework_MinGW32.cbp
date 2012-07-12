@@ -89,6 +89,7 @@
 			<Add library="winmm" />
 			<Add library="Shlwapi" />
 		</Linker>
+		<Unit filename="..\YFramework\include\CHRLib\MapEx.h" />
 		<Unit filename="..\YFramework\include\CHRLib\chrdef.h" />
 		<Unit filename="..\YFramework\include\CHRLib\chrmap.h" />
 		<Unit filename="..\YFramework\include\CHRLib\chrproc.h" />
@@ -104,6 +105,7 @@
 		<Unit filename="..\YFramework\include\YCLib\FileSystem.h" />
 		<Unit filename="..\YFramework\include\YCLib\Input.h" />
 		<Unit filename="..\YFramework\include\YCLib\Keys.h" />
+		<Unit filename="..\YFramework\include\YCLib\MemoryMapping.h" />
 		<Unit filename="..\YFramework\include\YCLib\NativeAPI.h" />
 		<Unit filename="..\YFramework\include\YCLib\Platform.h" />
 		<Unit filename="..\YFramework\include\YCLib\Timer.h" />
@@ -256,6 +258,7 @@
 		<Unit filename="..\YFramework\include\freetype\ttunpat.h" />
 		<Unit filename="..\YFramework\include\ft2build.h" />
 		<Unit filename="..\YFramework\include\ysbuild.h" />
+		<Unit filename="..\YFramework\source\CHRLib\MapEx.cpp" />
 		<Unit filename="..\YFramework\source\CHRLib\chrmap.cpp" />
 		<Unit filename="..\YFramework\source\CHRLib\chrproc.cpp" />
 		<Unit filename="..\YFramework\source\Helper\DSMain.cpp" />
@@ -268,6 +271,7 @@
 		<Unit filename="..\YFramework\source\YCLib\FileSystem.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Input.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Keys.cpp" />
+		<Unit filename="..\YFramework\source\YCLib\MemoryMapping.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\NativeAPI.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Timer.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Video.cpp" />
@@ -320,10 +324,6 @@
 		<Unit filename="..\YFramework\source\YSLib\UI\ywgtview.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\UI\ywidget.cpp" />
 		<Unit filename="..\YFramework\source\YSLib\UI\ywindow.cpp" />
-		<Unit filename="cp113.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="cp113.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

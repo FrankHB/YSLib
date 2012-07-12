@@ -17,14 +17,13 @@
     <None Include="..\doc\Designation.txt" />
     <None Include="..\doc\vsd\YFramework.vsd" />
     <None Include="..\doc\YSLib.txt" />
-    <None Include="data\cp113.bin" />
-    <None Include="data\default_font.bin" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\CHRLib\chrdef.h" />
     <ClInclude Include="include\CHRLib\chrmap.h" />
     <ClInclude Include="include\CHRLib\chrproc.h" />
     <ClInclude Include="include\CHRLib\encoding.h" />
+    <ClInclude Include="include\CHRLib\MapEx.h" />
     <ClInclude Include="include\CHRLib\smap.hpp" />
     <ClInclude Include="include\freetype\config\ftconfig.h" />
     <ClInclude Include="include\freetype\config\ftheader.h" />
@@ -120,6 +119,7 @@
     <ClInclude Include="include\YCLib\FileSystem.h" />
     <ClInclude Include="include\YCLib\Input.h" />
     <ClInclude Include="include\YCLib\Keys.h" />
+    <ClInclude Include="include\YCLib\MemoryMapping.h" />
     <ClInclude Include="include\YCLib\NativeAPI.h" />
     <ClInclude Include="include\YCLib\Platform.h" />
     <ClInclude Include="include\YCLib\Timer.h" />
@@ -193,6 +193,7 @@
     <ClCompile Include="..\doc\ex.cpp" />
     <ClCompile Include="source\CHRLib\chrmap.cpp" />
     <ClCompile Include="source\CHRLib\chrproc.cpp" />
+    <ClCompile Include="source\CHRLib\MapEx.cpp" />
     <ClCompile Include="source\Helper\DSMain.cpp" />
     <ClCompile Include="source\Helper\Initialization.cpp" />
     <ClCompile Include="source\Helper\InputManager.cpp" />
@@ -203,6 +204,7 @@
     <ClCompile Include="source\YCLib\FileSystem.cpp" />
     <ClCompile Include="source\YCLib\Input.cpp" />
     <ClCompile Include="source\YCLib\Keys.cpp" />
+    <ClCompile Include="source\YCLib\MemoryMapping.cpp" />
     <ClCompile Include="source\YCLib\NativeAPI.cpp" />
     <ClCompile Include="source\YCLib\Timer.cpp" />
     <ClCompile Include="source\YCLib\Video.cpp" />

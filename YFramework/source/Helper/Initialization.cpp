@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2157;
+\version r2195;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-07-04 16:30 +0800;
+	2012-07-12 08:55 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,6 +31,8 @@
 #include "Helper/DSMain.h"
 #include <YCLib/Debug.h>
 #include <YSLib/Service/yftext.h> // for BOM_UTF8;
+#include <CHRLib/MapEx.h>
+#include <YCLib/MemoryMapping.h>
 //#include <clocale>
 
 using namespace ystdex;
@@ -59,6 +61,10 @@ printFailInfo(const char* t, const char* s)
 
 
 char def_dir[80], font_path[80], font_dir[80];
+#if !CHRLIB_NODYNAMIC_MAPPING
+//! \since build 324;
+platform::MappedFile* p_mapped;
+#endif
 
 } // unnamed namespace;
 
@@ -256,6 +262,16 @@ CheckInstall() ynothrow
 				}
 				else
 					throw LoggedEvent("Empty path loaded!");
+#if !CHRLIB_NODYNAMIC_MAPPING
+				std::puts("Load character mapping file...");
+				p_mapped = new
+					MappedFile((string(def_dir) + "cp113.bin").c_str());
+				if(p_mapped->GetSize() != 0)
+					CHRLib::cp113 = p_mapped->GetPtr();
+				else
+					throw LoggedEvent("CHRMapEx loading fail.");
+				std::puts("CHRMapEx loaded successfully.");
+#endif
 			}
 			else
 				throw LoggedEvent("Configuration file loading failed.");
@@ -285,6 +301,14 @@ CheckInstall() ynothrow
 			" Please make sure the data is\n"
 			" stored in correct directory.\n");
 	}
+}
+
+void
+Uninitialize() ynothrow
+{
+#if !CHRLIB_NODYNAMIC_MAPPING
+	delete p_mapped;
+#endif
 }
 
 YSL_END

@@ -2,9 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <None Include="Makefile" />
-    <None Include="..\YFramework\data\cp113.bin">
-      <Filter>资源文件</Filter>
-    </None>
     <None Include="..\YFramework\data\default_font.bin">
       <Filter>资源文件</Filter>
     </None>

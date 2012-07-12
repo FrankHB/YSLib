@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1394;
+\version r1456;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:38:37 +0800;
 \par 修改时间:
-	2012-06-28 11:12 +0800;
+	2012-07-12 10:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "ycommon.h"
 #if YCL_MINGW32
-// NOTE: Make sure ther is no use of MinGW32 ::dirent, ::DIR, ::opendir, etc.
+// NOTE: Make sure there are no uses of MinGW32 ::dirent, ::DIR, ::opendir, etc.
 struct DIR;
 struct dirent;
 #else
@@ -126,6 +126,47 @@ using ystdex::path_t;
 
 
 /*!
+\brief 以 UTF-8 文件名无缓冲打开文件。
+\param filename 文件名，意义同 POSIX ::open 。
+\param pflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\pre 断言检查：<tt>filename</tt> 。
+\bug MinGW32 环境下非线程安全。
+\since build 324 。
+*/
+int
+uopen(const char* filename, int oflag) ynothrow;
+/*!
+\brief 以 UTF-8 文件名无缓冲打开文件。
+\param filename 文件名，意义同 POSIX ::open 。
+\param pflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\pre 断言检查：<tt>filename</tt> 。
+\bug MinGW32 环境下非线程安全。
+\since build 324 。
+*/
+int
+uopen(const char* filename, int oflag, int pmode) ynothrow;
+/*!
+\brief 以 UCS-2LE 文件名无缓冲打开文件。
+\param filename 文件名，意义同 POSIX ::open 。
+\param pflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\pre 断言检查：<tt>filename</tt> 。
+\since build 324 。
+*/
+int
+uopen(const char16_t* filename, int oflag) ynothrow;
+/*!
+\brief 以 UCS-2LE 文件名无缓冲打开文件。
+\param filename 文件名，意义同 POSIX ::open 。
+\param pflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\pre 断言检查：<tt>filename</tt> 。
+\since build 324 。
+*/
+int
+uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
+
+/*!
 \brief 以 UTF-8 文件名打开文件。
 \param filename 文件名，意义同 std::fopen 。
 \param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
@@ -134,58 +175,59 @@ using ystdex::path_t;
 \since build 299 。
 */
 std::FILE*
-ufopen(const char* filename, const char* mode);
+ufopen(const char* filename, const char* mode) ynothrow;
 /*!
 \brief 以 UCS-2LE 文件名打开文件。
 \param filename 文件名，意义同 std::fopen 。
-\param mode 打开模式，基本语义同 ISO C99，具体行为取决于实现。
+\param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
 \pre 断言检查：<tt>filename && mode && *mode != 0</tt> 。
-\since build 305 。
+\since build 324 。
 */
 std::FILE*
-ufopen(const char16_t* filename, const char16_t* mode);
+ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 
 /*!
 \brief 判断指定 UTF-8 文件名的文件是否存在。
 \note 使用 ufopen 实现。
 \pre 断言检查：参数非空。
-\since build 299 。
+\since build 324 。
 */
 bool
-ufexists(const char*);
+ufexists(const char*) ynothrow;
 /*!
 \brief 判断指定 UCS-2 文件名的文件是否存在。
 \note 使用 ufopen 实现。
 \pre 断言检查：参数非空。
-\since build 305 。
+\since build 324 。
 */
 bool
-ufexists(const char16_t*);
+ufexists(const char16_t*) ynothrow;
 /*!
 \brief 判断指定字符串为文件名的文件是否存在。
 \note 使用 NTCTS 参数 ufexists 实现。
-\since build 305 。
+\since build 324 。
 */
 template<class _tString>
 inline bool
-ufexists(const _tString& s)
+ufexists(const _tString& s) ynothrow
 {
 	return ufexists(s.c_str());
 }
 
 /*!
 \brief 判断指定路径的目录是否存在。
+\since build 324 。
 */
 bool
-direxists(const_path_t);
+direxists(const_path_t) ynothrow;
 
 /*!
 \brief 判断指定 UTF-8 路径的目录是否存在。
 \bug MinGW32 环境下非线程安全。
-\since build 312 。
+\since build 324 。
 */
 bool
-udirexists(const_path_t);
+udirexists(const_path_t) ynothrow;
 
 /*!
 \brief 当第一参数非空时取当前工作目录复制至指定缓冲区中。
@@ -193,33 +235,35 @@ udirexists(const_path_t);
 \param size 缓冲区长。
 \return 若成功为 buf ，否则为空指针。
 \deprecated 特定平台上的编码不保证是 UTF-8 。
+\since build 324 。
 */
 char*
-getcwd_n(char* buf, std::size_t size);
+getcwd_n(char* buf, std::size_t size) ynothrow;
 
 /*!
 \brief 当第一参数非空时取当前工作目录（ UCS2-LE 编码）复制至指定缓冲区中。
 \param buf 缓冲区起始指针。
 \param size 缓冲区长。
 \return 若成功为 buf ，否则为空指针。
-\since build 304 。
+\since build 324 。
 */
 char16_t*
-u16getcwd_n(char16_t* buf, std::size_t size);
+u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 
 /*!
 \brief 切换当前工作路径至指定的 UTF-8 字符串。
 \bug MinGW32 环境下非线程安全。
-\since build 313 。
+\since build 324 。
 */
 int
-uchdir(const_path_t);
+uchdir(const_path_t) ynothrow;
 
 /*!
 \brief 按路径新建一个或多个目录。
+\since build 324 。
 */
 bool
-mkdirs(const_path_t);
+mkdirs(const_path_t) ynothrow;
 
 
 /*!

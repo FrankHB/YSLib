@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2801;
+\version r2802;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-07-07 23:24 +0800;
+	2012-07-11 23:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -542,6 +542,7 @@ DSApplication::~DSApplication()
 	//释放设备。
 	delete pScreenUp,
 	delete pScreenDown;
+	Uninitialize();
 }
 
 FontCache&

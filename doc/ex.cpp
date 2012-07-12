@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4083; *build 323 rev 24;
+\version r4101; *build 324 rev 18;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-08 13:22 +0800;
+	2012-07-12 10:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -384,167 +384,121 @@ $using:
 
 $DONE:
 r1:
-/ @ \u DSMain $=
-(
-	+ \cl InputManager @ \ns Devices,
-	- \f DispatchInput
-),
-+ \pre \decl InputManager @ \ns Devices @ \h Shell_DS,
-/ @ \cl ShlDS @ \u Shell_DS $=
-(
-	+ private \m shared_ptr<Devices::InputManager> input_mgr_ptr,
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf OnGotMessage
-);
++ \u MappingEx["MapEx.h", "MapEx.cpp"] @ \lib CHRLib;
+/ (\clt \spec for \t \arg !'CHRLib::U*', \ft FetchMapperPtr) @ \h StaticMapping
+	>> \u MappingEx;
+/ \inc \h "CHRLib/smap.hpp" @ \impl \u CharacterProcessing -> "CHRLib/smap.hpp";
 /= test 1 @ platform MinGW32;
 
 r2:
-/ $dev $lib \simp DS \proj filters @ VC++,
-* $dev $lib wrong position for \dir Helper @ \proj YFramework @ Code::Blocks
-	$since b303,
-(
-	+ \u InputManager["InputManager.h", "InputManager.cpp"]
-		@ \lib Helper @ \proj YFramework;
-	/ \cl Devices::InputManager @ \u DSMain >> \u InputManager;
-	/ @ \u Shell_DS $=
-	(
-		+ \inc \h InputManager @ \h;
-		- \pre \decl \cl InputManager;
-		/ private \m shared_ptr<Devices::InputManager> input_mgr_ptr @ \cl ShlDS
-			-> Devices::InputManager input_mgr,
-		/ \tr \impl @ \ctor,
-		/ \tr \impl @ \mf OnGotMessage
-	),
-	/ @ \impl \u DSMain @ platform MinGW32
-);
-/= test 2 @ platform MinGW32;
+/= test 2 @ platform DS;
 
 r3:
-/= test 3 @ platform MinGW32 ^ \conf release;
+/ @ \u MappingEx $=
+(
+	+ \mac CHRLIB_NODYNAMIC_MAPPING @ \h;
+	+ \o \decl @ \ns CHRLib @ !defined(CHRLIB_NODYNAMIC_MAPPING)
+);
+/ \impl @ \f CheckInstall @ \impl \u Initialization,
+/ \tr files 'cp113.bin' @ \dir '/YFramework/data' >> \dir 'Data' as user data;
+/= test 3 @ platform DS;
 
 r4:
-* @ \impl \u DSMain $since r2;
++ \as @ \mft GUCS2Mapper<CharSet::GBK>::Map @ \h MappingEx;
 /= test 4 @ platform DS;
 
 r5:
+/ MinGW32 files 'cp113.*' @ \dir 'YFramework_MinGW32'
+	>> \dir 'YFramework/alternative',
 /= test 5 @ platform DS ^ \conf release;
 
 r6:
-/ @ \impl \u DSMain $=
-(
-	/ \cl HostDemon @ \un \ns @ platform MinGW32 >> \ns Shells,
-	(
-		/ \a \inc \h @ (YCL_MULTITHREAD == 1) >> \h;
-		+ \cl HostDemon @ \ns Shells @ platform DS
-	),
-	/ \decl @ \cl (\pre DSScreen; HostDemon) >> \h;
-	/ \impl @ \ctor DSApplication
-),
-/ @ \impl \u InputManager;
-/= test 6 @ platform MinGW32;
+/= test 6 @ platform MinGW32 ^ \conf release;
 
 r7:
-/= test 7 @ platform DS;
+/= test 7 @ platform MinGW32 ^ \conf release;
 
 r8:
-/= test 8 @ platform DS ^ \conf release;
++ \u MemoryMapping["MemoryMapping.h", "MemoryMapping.cpp"] @ \lib YCLib;
+/ @ \impl \u Initialization $=
+(
+	+ \h MemoryMapping;
+	/ \impl @ \f CheckInstall
+);
+/= test 8 @ platform MinGW32;
 
 r9:
-/ @ \u DSMain $=
-(
-	+ \smf CreateScreen() @ \cl HostDemon;
-	/ \simp \impl @ \ctor DSAppliation
-);
-/= test 9 @ platform DS;
++ \f void Uninitialize() ynothrow @ \u Initialization;
+/ \impl @ \dtor DSApplication @ \impl \u DSMain ^ \f Uninitialize;
+/= test 9 @ platform MinGW32 ^ \conf release;
 
 r10:
-/= test 10 @ platform MinGW32;
+/ platform DS @ \impl \u MemoryMapping;
+/= test 10 @ platform DS;
 
 r11:
-- \inc \h Label @ \h DSMain,
-/ \inc \h (Blit, YGUI, Desktop, Shell_DS) @ \impl \u DSMain -> (Font, YTimer);
-/= test 11 @ platform MinGW32;
+/= test 11 @ platform DS ^ \conf release;
 
 r12:
-- \decl \f ResponseInput @ \h Shell_DS,
-/ \inc \h Shell_DS @ \h DSMain >> \impl \u Shell_DS,
-- \inc \h YGlobal @ \impl \u Shell_DS;
+/ optimization @ (defined CHRLIB_NODYNAMIC_MAPPING) @ \impl \u Initialization;
 /= test 12 @ platform MinGW32;
 
 r13:
-+ \inc \h YBlit @ \h DSMain @ platform DS;
-/= test 13 @ platform DS ^ \conf release;
+/ @ \u FileSystem $=
+(
+	+ 4 \f uopen,
+	+ ynothrow @ \a \f with \n ('u*', '*dir*', 'f*', 'getcwd*')
+);
+/ \impl @ \ctor MappedFile @ platform MinGW32 @ \impl \u MemoryMapping
+	^ \f uopen;
+/= test 13 @ platform MinGW32;
 
 r14:
-/ \mf UpdateCursorPosition @ \cl InputManager @ \u InputManager \mg
-	-> \mf DispatchInput;
-/= test 14 @ platform DS ^ \conf release;
+/= test 14 @ platform MinGW32 ^ \conf release;
 
 r15:
-/= test 15 @ platform DS ^ \conf release;
++ \inc \h <fcntl.h> @ platform DS @ \impl \u FileSyatem;
+/= test 15 @ platform DS;
 
 r16:
-+ $doc architecture document YFramework.vsd @ \dir /doc/vsd
-	^ Microsoft Visio 2010,
-/ \mf (Transform, IsForeground) @ \cl HostDemon @ \u DSMain @ platform MinGW32
-	-> \mf \i FetchWindowHandle;
-/ \tr \impl @ \impl \u InputManager;
 /= test 16 @ platform MinGW32;
 
 r17:
-/= test 17 @ platform DS ^ \conf release;
+/= test 17 @ platform MinGW32 ^ \conf release;
 
-r18-r20:
-/ \impl @ \mf InputManager::DispatchInput,
-/= 3 test 18 @ platform DS ^ \conf release;
-
-r21:
-/ @ \cl ShlTextReader @ \impl \u ShlReader $=
-(
-	/ \ac @ \m boxReader, boxTextInfo, pnlSetting, pTextFile, mhMain
-		-> protected ~ public,
-	/ public \m DualScreenReader Reader -> private \m DualScreenReader reader
-);
-/= test 19 @ platform MinGW32;
-
-r22:
-/= test 20 @ platform DS;
-
-r23:
-/= test 21 @ platform MinGW32 ^ \conf release;
-
-r24:
-/= test 22 @ platform DS ^ \conf release;
+r18:
+/= test 18 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-07-08:
--23.1d;
-// Mercurial rev1-rev194: r8829;
+2012-07-12:
+-23.0d;
+// Mercurial rev1-rev194: r8847;
 
 / ...
 
 
 $NEXT_TODO:
-b324-b327:
+b325-b328:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager
-),
-(
-	+ block file loading APIs @ YCommon;
-	+ dynamic character mapper loader for \u CharacterMapping
 );
 
 
 $TODO:
-b328-b382:
+b329-b394:
 / services $=
 (
 	+ \impl @ images loading
+),
+/ @ \lib YCLib $=
+(
+	+ fully implementation of memory mappaing APIs,
+	+ block file loading APIs @ YCommon
 ),
 / @ "GUI" $=
 (
@@ -579,7 +533,7 @@ b328-b382:
 	/ improved tests and examples
 );
 
-b383-b864:
+b395-b876:
 + (memory mapping, shared memory) APIs @ YCommon,
 / @ CHRLib $=
 (
@@ -662,7 +616,7 @@ b383-b864:
 		@ class %ListBox
 );
 
-b865-b1354:
+b877-b1366:
 ^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
 	when (^ g++),
 / memory fragment issues,
@@ -707,7 +661,8 @@ b865-b1354:
 	+ modal widget behavior
 );
 
-b1355-b1882:
+b1367-b1898:
+/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
 / platform dependent system functions $=
 (
 	+ correct DMA (copy & fill) @ DS
@@ -750,6 +705,7 @@ b1355-b1882:
 ),
 / @ "GUI" $=
 (
+	/ partial invalidation support @ \f DrawRectRoundCorner,
 	+ document-view models,
 	/ focusing $=
 	(
@@ -766,20 +722,17 @@ b1355-b1882:
 
 $LOW_PRIOR_TODO:
 ^ $low_prior $for_labeled_scope;
-b1883-b5850:
+b1899-b5412:
 + advanced shell system $=
 (
 	+ dynamic loading and reloading,
 	+ runtime resource redifinition and linking
 ),
 + general monomorphic iterator abstraction,
-/ partial invalidation support @ \f DrawRectRoundCorner,
 / user-defined bitmap(mainly, shared with screen) buffer @ \cl Desktop,
 + additional shared property,
-/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
-+ more advanced console wrapper,
-+ a series set of robust gfx APIs,
-+ (compressing & decompressing) @ gfx copying,
++ advanced console wrappers,
++ graphics APIs and adaptors,
 + general component operations $=
 (
 	+ serialization,
@@ -787,14 +740,16 @@ b1883-b5850:
 ),
 + automatic adaptors for look and feels,
 + networking,
-+ database interface,
++ database interface;
+
+
+$FURTHER_WORK:
 + other stuff to be considered to append $=
 (
 	+ design by contract: DbC for C/C++, GNU nana
 );
-
-
-$FURTHER_WORK:
++ (compressing & decompressing) @ resource copying,
++ resource allocation controlling;
 + documentation convention and modeling $=
 (
 	+ ISO directive or RFC2119 compliance,
@@ -927,7 +882,8 @@ $module_tree $=
 			'common input APIs',
 			'common video APIs',
 			'common file system APIs',
-			'debug helpers'
+			'debug helpers',
+			'memory mapping APIs'
 		),
 		'YSLib'
 		(
@@ -969,6 +925,43 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'CHRLib' $=
+		(
+			+ $dev "extended character encoding mapping unit %MappingEx",
+			/ $deploy "GBK mapping" ^ "runtime loading" ~ "statically linking"
+		),
+		@ %'YCLib' $=
+		(
+			/ %'common file system APIs' $=
+			(
+				(
+					+ "4 unbuffered file function %ufopen";
+					$dep_to ufopen
+				),
+				+ $dev "exception specification %ynothrow"
+					@ "free functions and function template %ufexists"
+			),
+			+ %'memory mapping APIs' $=
+			(
+				$dep_from ufopen;
+				+ "%unit MemoryMapping"
+				// Memory mapping can be used on Win32 or POSIX compliant \
+					systems, while DS and other systems use unbuffered read \
+					to simulate.
+			);
+		)
+		/ %'Helper'.'initialization' $=
+		(
+			/ "install checking implementation",
+			+ "uninitialization"
+		)
+	)
+),
+
+b323
 (
 	/ %'YFramework'.'Helper' $=
 	(
@@ -1028,7 +1021,7 @@ b322
 		(
 			/ $lib "function template %ClearSequence"
 				@ "header %YCoreUtilities" ^ "%std::fill_n" ~ "%ystdex::mmbset",
-			+ "exception specification %ynothrow" @ "function template \
+			+ $dev "exception specification %ynothrow" @ "function template \
 				%ClearPixel" @ "header %YBlit",
 			/ DLD "several functions implementations" ^ "%std::copy_n"
 				~ "%ystdex::mmbcpy",
@@ -2087,7 +2080,7 @@ b296
 			),
 			/ %'core' $=
 			(
-				+ DLD "exception specification %ynothrow"
+				+ $dev "exception specification %ynothrow"
 					@ "class %ValueObject" @ %'basic objects';
 				/ DLD @ "class %Message" @ %'message' $=
 				(

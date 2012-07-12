@@ -99,12 +99,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\cp113.bin">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="data\default_font.bin">
-      <Filter>资源文件</Filter>
-    </None>
     <None Include="..\doc\CHRLib.txt">
       <Filter>文档</Filter>
     </None>
@@ -626,6 +620,12 @@
     <ClInclude Include="include\Helper\InputManager.h">
       <Filter>头文件\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="include\CHRLib\MapEx.h">
+      <Filter>头文件\CHRLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\MemoryMapping.h">
+      <Filter>头文件\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -822,6 +822,12 @@
     </ClCompile>
     <ClCompile Include="..\doc\ex.cpp">
       <Filter>文档</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CHRLib\MapEx.cpp">
+      <Filter>源文件\CHRLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\MemoryMapping.cpp">
+      <Filter>源文件\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

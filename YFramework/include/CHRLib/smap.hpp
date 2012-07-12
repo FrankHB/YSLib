@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2652;
+\version r2807;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-06-01 16:58 +0800;
+	2012-07-09 09:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -33,21 +33,6 @@
 #include <ystdex/any.h> // for ystdex::pseudo_object;
 
 CHRLIB_BEGIN
-
-/*!
-\brief 编码转换表。
-\since 早于 build 132 。
-*/
-//@{
-yconstexpr byte cp17[] = {0};
-extern "C"
-{
-	extern const byte cp113[];
-	//extern const byte cp2026[13658];
-}
-yconstexpr byte cp2026[] = {0};
-//@}
-
 
 /*!
 \brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
@@ -73,56 +58,13 @@ FillByte(_tIn& i, _tState& st)
 
 
 /*!
-\brief 静态编码映射函数模板。
+\brief 静态编码映射模板及 Unicode 编码特化。
 \since build 245 。
 */
 //@{
 template<Encoding>
 class GUCS2Mapper
 {};
-
-template<>
-struct GUCS2Mapper<CharSet::SHIFT_JIS>
-{
-/*	template<typename _tObj, typename _tIn, typename _tState>
-	static byte
-	Map(_tObj& uc, _tIn&& i, _tState&& st)
-	{
-		uint_least16_t row(0), col(0), ln(188); // (7E-40 + 1 + FC-80 + 1)
-		const auto c(FillByte(i, st));
-
-		if((c >= 0xA1) && (c <= 0xC6))
-		{
-			const auto d(FillByte(i, st));
-
-			row = c - 0xA1 ;
-			if(d >= 0x40 && d <= 0x7E)
-				col = d - 0x40 ;
-			else if(d >= 0xA1 && d <= 0xFE)
-				col = d - 0x62;
-			uc = cp17[row * ln + col];
-		}
-		else if(c >= 0xC9 && c <= 0xF9)
-		{
-			const auto d(FillByte(i, st));
-
-			row = c - 0xA3;
-			if(d >= 0x40 && d <= 0x7E)
-				col = d - 0x40 ;
-			else if(d >= 0xA1 && d <= 0xFE)
-				col = d - 0x62;
-			uc = cp17[row * ln + col];
-		}
-		else if(c < 0x80)
-		{
-			uc = c;
-			return 1;
-		}
-		else
-			uc = 0xFFFE;
-		return 2;
-	}*/
-};
 
 template<>
 struct GUCS2Mapper<CharSet::UTF_8>
@@ -234,42 +176,6 @@ struct GUCS2Mapper<CharSet::UTF_8>
 };
 
 template<>
-struct GUCS2Mapper<CharSet::GBK>
-{
-	template<typename _tObj, typename _tIn, typename _tState>
-	static ConversionResult
-	Map(_tObj& uc, _tIn&& i, _tState&& st)
-	{
-		const auto seq(GetSequenceOf(st));
-
-		switch(GetCountOf(st))
-		{
-		case 0:
-			if(YB_UNLIKELY(!FillByte(i, st)))
-				return ConversionResult::BadSource;
-			if(cp113[seq[0]] != 0)
-			{
-				uc = seq[0];
-				break;
-			}
-		case 1:
-			if(YB_UNLIKELY(!FillByte(i, st)))
-				return ConversionResult::BadSource;
-			if(YB_LIKELY((seq[0] << 8 | seq[1]) < 0xFF7E))
-			{
-				uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[
-					seq[0] << 8 | seq[1]];
-				break;
-			}
-			return ConversionResult::Unhandled;
-		default:
-			return ConversionResult::BadState;
-		}
-		return ConversionResult::OK;
-	}
-};
-
-template<>
 struct GUCS2Mapper<CharSet::UTF_16BE>
 {
 	template<typename _tObj, typename _tIn, typename _tState>
@@ -319,51 +225,6 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 		}
 		return ConversionResult::OK;
 	}
-};
-
-template<>
-struct GUCS2Mapper<CharSet::Big5>
-{
-/*	template<typename _tObj, typename _tIn, typename _tState>
-	static byte
-	Map(_tObj& uc, _tIn&& i, _tState&& st)
-	{
-		uint_least16_t row(0), col(0), ln(157); // (7E-40 + FE-A1)
-		const auto c(FillByte(i, st));
-
-		if(c >= 0xA1 && c <= 0xC6)
-		{
-			const auto d(FillByte(i, st));
-
-			row = c - 0xA1;
-			if(d >= 0x40 && d <= 0x7E)
-				col = d - 0x40;
-			else if(d >= 0xA1 && d <= 0xFE)
-				col = d - 0x62;
-			uc = cp2026[row * ln + col];
-			return 2;
-		}
-		else if(c >= 0xC9 && c <= 0xF9)
-		{
-			const auto d(FillByte(i, st));
-
-			row = c - 0xA3;
-			if(d >= 0x40 && d <= 0x7E)
-				col = c - 0x40;
-			else if(d >= 0xA1 && d <= 0xFE)
-				col = d - 0x62;
-			uc = cp2026[row * ln + col];
-			return 2;
-		}
-		else if(c < 0x80)
-		{
-			uc = c;
-			return 1;
-		}
-		else
-			uc = 0xFFFE;
-		return 2;
-	}*/
 };
 //@}
 
@@ -421,37 +282,6 @@ UCS2Mapper(char* d, const ucs2_t& s)
 	yconstraint(d);
 
 	return UCS2Mapper_InverseMap<_vEnc>(d, s);
-}
-
-/*!
-\brief 取指定编码映射的转换函数指针。
-\since build 291 。
-*/
-template<typename _fCodemapTransform>
-_fCodemapTransform*
-FetchMapperPtr(Encoding enc)
-{
-	using namespace CharSet;
-
-#define CHR_MapItem(enc) \
-case enc: \
-	return UCS2Mapper<enc>;
-
-	switch(enc)
-	{
-	CHR_MapItem(SHIFT_JIS)
-	CHR_MapItem(UTF_8)
-	CHR_MapItem(GBK)
-	CHR_MapItem(UTF_16BE)
-	CHR_MapItem(UTF_16LE)
-	CHR_MapItem(Big5)
-	default:
-		break;
-	}
-
-#undef CHR_MapItem
-
-	return nullptr;
 }
 //@}
 

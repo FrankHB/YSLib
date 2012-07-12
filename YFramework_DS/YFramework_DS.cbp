@@ -56,6 +56,7 @@
 		</Compiler>
 		<Unit filename="..\YFramework\data\cp113.bin" />
 		<Unit filename="..\YFramework\data\default_font.bin" />
+		<Unit filename="..\YFramework\include\CHRLib\MapEx.h" />
 		<Unit filename="..\YFramework\include\CHRLib\chrdef.h" />
 		<Unit filename="..\YFramework\include\CHRLib\chrmap.h" />
 		<Unit filename="..\YFramework\include\CHRLib\chrproc.h" />
@@ -71,6 +72,7 @@
 		<Unit filename="..\YFramework\include\YCLib\FileSystem.h" />
 		<Unit filename="..\YFramework\include\YCLib\Input.h" />
 		<Unit filename="..\YFramework\include\YCLib\Keys.h" />
+		<Unit filename="..\YFramework\include\YCLib\MemoryMapping.h" />
 		<Unit filename="..\YFramework\include\YCLib\NativeAPI.h" />
 		<Unit filename="..\YFramework\include\YCLib\Platform.h" />
 		<Unit filename="..\YFramework\include\YCLib\Timer.h" />
@@ -223,6 +225,7 @@
 		<Unit filename="..\YFramework\include\freetype\ttunpat.h" />
 		<Unit filename="..\YFramework\include\ft2build.h" />
 		<Unit filename="..\YFramework\include\ysbuild.h" />
+		<Unit filename="..\YFramework\source\CHRLib\MapEx.cpp" />
 		<Unit filename="..\YFramework\source\CHRLib\chrmap.cpp" />
 		<Unit filename="..\YFramework\source\CHRLib\chrproc.cpp" />
 		<Unit filename="..\YFramework\source\Helper\DSMain.cpp" />
@@ -235,6 +238,7 @@
 		<Unit filename="..\YFramework\source\YCLib\FileSystem.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Input.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Keys.cpp" />
+		<Unit filename="..\YFramework\source\YCLib\MemoryMapping.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\NativeAPI.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Timer.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Video.cpp" />

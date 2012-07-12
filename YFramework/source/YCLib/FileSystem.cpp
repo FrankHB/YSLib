@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1567;
+\version r1691;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:41:35 +0800;
 \par 修改时间:
-	2012-06-23 04:04 +0800;
+	2012-07-12 10:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,9 @@
 #include "YCLib/FileSystem.h"
 #include "YCLib/NativeAPI.h"
 #include <CHRLib/chrproc.h>
-#if YCL_MINGW32
+#if YCL_DS
+#include <fcntl.h>
+#elif YCL_MINGW32
 #include <Shlwapi.h> // for ::PathIsRelative;
 
 //! \since build 312 。
@@ -48,7 +50,6 @@ _wclosedir(_WDIR*);
 
 } // extern "C";
 //@}
-
 #endif
 
 namespace platform
@@ -102,8 +103,85 @@ u_to_w(const char* str)
 } // unnamed namespace;
 
 
+int
+uopen(const char* filename, int oflag) ynothrow
+{
+	yconstraint(filename);
+
+#if YCL_DS
+	return ::open(filename, oflag);
+#elif YCL_MINGW32
+	try
+	{
+		return ::_wopen(u_to_w(filename).c_str(), oflag);
+	}
+	catch(...)
+	{}
+	return -1;
+#else
+#	error Unsupported platform found!
+#endif
+}
+int
+uopen(const char* filename, int oflag, int pmode) ynothrow
+{
+	yconstraint(filename);
+
+#if YCL_DS
+	return ::open(filename, oflag, pmode);
+#elif YCL_MINGW32
+	try
+	{
+		return ::_wopen(u_to_w(filename).c_str(), oflag, pmode);
+	}
+	catch(...)
+	{}
+	return -1;
+#else
+#	error Unsupported platform found!
+#endif
+}
+int
+uopen(const char16_t* filename, int oflag) ynothrow
+{
+	yconstraint(filename);
+
+#if YCL_DS
+	try
+	{
+		return ::open(u16_to_u(filename).c_str(), oflag);
+	}
+	catch(...)
+	{}
+	return -1;
+#elif YCL_MINGW32
+	return ::_wopen(reinterpret_cast<const wchar_t*>(filename), oflag);
+#else
+#	error Unsupported platform found!
+#endif
+}
+int
+uopen(const char16_t* filename, int oflag, int pmode) ynothrow
+{
+	yconstraint(filename);
+
+#if YCL_DS
+	try
+	{
+		return ::open(u16_to_u(filename).c_str(), oflag, pmode);
+	}
+	catch(...)
+	{}
+	return -1;
+#elif YCL_MINGW32
+	return ::_wopen(reinterpret_cast<const wchar_t*>(filename), oflag, pmode);
+#else
+#	error Unsupported platform found!
+#endif
+}
+
 std::FILE*
-ufopen(const char* filename, const char* mode)
+ufopen(const char* filename, const char* mode) ynothrow
 {
 	yconstraint(filename),
 	yconstraint(mode);
@@ -112,20 +190,32 @@ ufopen(const char* filename, const char* mode)
 #if YCL_DS
 	return std::fopen(filename, mode);
 #elif YCL_MINGW32
-	return ::_wfopen(u_to_w(filename).c_str(), u_to_w(mode).c_str());
+	try
+	{
+		return ::_wfopen(u_to_w(filename).c_str(), u_to_w(mode).c_str());
+	}
+	catch(...)
+	{}
+	return nullptr;
 #else
 #	error Unsupported platform found!
 #endif
 }
 std::FILE*
-ufopen(const char16_t* filename, const char16_t* mode)
+ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 {
 	yconstraint(filename),
 	yconstraint(mode);
 	yconstraint(*mode != '\0');
 
 #if YCL_DS
-	return std::fopen(u16_to_u(filename).c_str(), u16_to_u(mode).c_str());
+	try
+	{
+		return std::fopen(u16_to_u(filename).c_str(), u16_to_u(mode).c_str());
+	}
+	catch(...)
+	{}
+	return nullptr;
 #elif YCL_MINGW32
 	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
 		reinterpret_cast<const wchar_t*>(mode));
@@ -135,7 +225,7 @@ ufopen(const char16_t* filename, const char16_t* mode)
 }
 
 bool
-ufexists(const char* filename)
+ufexists(const char* filename) ynothrow
 {
 #if YCL_DS
 	return ystdex::fexists(filename);
@@ -153,7 +243,7 @@ ufexists(const char* filename)
 #endif
 }
 bool
-ufexists(const char16_t* filename)
+ufexists(const char16_t* filename) ynothrow
 {
 	yconstraint(filename);
 
@@ -166,7 +256,7 @@ ufexists(const char16_t* filename)
 }
 
 bool
-direxists(const_path_t path)
+direxists(const_path_t path) ynothrow
 {
 	const auto dir(::opendir(path));
 
@@ -175,18 +265,21 @@ direxists(const_path_t path)
 }
 
 bool
-udirexists(const_path_t path)
+udirexists(const_path_t path) ynothrow
 {
 #if YCL_MINGW32
 	using namespace CHRLib;
 
 	if(path)
-	{
-		const auto dir(::_wopendir(u_to_w(path).c_str()));
+		try
+		{
+			const auto dir(::_wopendir(u_to_w(path).c_str()));
 
-		::_wclosedir(dir);
-		return dir;
-	}
+			::_wclosedir(dir);
+			return dir;
+		}
+		catch(...)
+		{}
 	return false;
 #else
 	return direxists(path);
@@ -194,7 +287,7 @@ udirexists(const_path_t path)
 }
 
 char*
-getcwd_n(char* buf, std::size_t size)
+getcwd_n(char* buf, std::size_t size) ynothrow
 {
 	if(YB_LIKELY(buf))
 		return ::getcwd(buf, size);
@@ -202,7 +295,7 @@ getcwd_n(char* buf, std::size_t size)
 }
 
 char16_t*
-u16getcwd_n(char16_t* buf, std::size_t size)
+u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 {
 	if(size == 0)
 	//	last_err = EINVAL;
@@ -245,19 +338,25 @@ u16getcwd_n(char16_t* buf, std::size_t size)
 }
 
 int
-uchdir(const_path_t path)
+uchdir(const_path_t path) ynothrow
 {
 #if YCL_DS
 	return ::chdir(path);
 #elif YCL_MINGW32
-	return path ? ::_wchdir(u_to_w(path).c_str()) : -1;
+	try
+	{
+		return path ? ::_wchdir(u_to_w(path).c_str()) : -1;
+	}
+	catch(...)
+	{}
+	return -1;
 #else
 #	error Unsupported platform found!
 #endif
 }
 
 bool
-mkdirs(const_path_t cpath)
+mkdirs(const_path_t cpath) ynothrow
 {
 	PATHSTR path;
 

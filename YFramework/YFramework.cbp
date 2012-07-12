@@ -56,6 +56,7 @@
 		</Compiler>
 		<Unit filename="data\cp113.bin" />
 		<Unit filename="data\default_font.bin" />
+		<Unit filename="include\CHRLib\MapEx.h" />
 		<Unit filename="include\CHRLib\chrdef.h" />
 		<Unit filename="include\CHRLib\chrmap.h" />
 		<Unit filename="include\CHRLib\chrproc.h" />
@@ -71,6 +72,7 @@
 		<Unit filename="include\YCLib\FileSystem.h" />
 		<Unit filename="include\YCLib\Input.h" />
 		<Unit filename="include\YCLib\Keys.h" />
+		<Unit filename="include\YCLib\MemoryMapping.h" />
 		<Unit filename="include\YCLib\NativeAPI.h" />
 		<Unit filename="include\YCLib\Platform.h" />
 		<Unit filename="include\YCLib\Timer.h" />
@@ -223,6 +225,7 @@
 		<Unit filename="include\freetype\ttunpat.h" />
 		<Unit filename="include\ft2build.h" />
 		<Unit filename="include\ysbuild.h" />
+		<Unit filename="source\CHRLib\MapEx.cpp" />
 		<Unit filename="source\CHRLib\chrmap.cpp" />
 		<Unit filename="source\CHRLib\chrproc.cpp" />
 		<Unit filename="source\Helper\DSMain.cpp" />
@@ -235,6 +238,7 @@
 		<Unit filename="source\YCLib\FileSystem.cpp" />
 		<Unit filename="source\YCLib\Input.cpp" />
 		<Unit filename="source\YCLib\Keys.cpp" />
+		<Unit filename="source\YCLib\MemoryMapping.cpp" />
 		<Unit filename="source\YCLib\NativeAPI.cpp" />
 		<Unit filename="source\YCLib\Timer.cpp" />
 		<Unit filename="source\YCLib\Video.cpp" />
