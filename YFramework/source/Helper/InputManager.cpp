@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r1156;
+\version r1158;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 323 。
 \par 创建时间:
 	2012-07-06 11:23:21 +0800;
 \par 修改时间:
-	2012-07-08 09:07 +0800;
+	2012-07-15 14:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,7 +48,7 @@ InputManager::DispatchInput(Desktop& dsk)
 #elif YCL_MINGW32
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
-	if(::GetForegroundWindow() != Shells::HostDemon::FetchWindowHandle())
+	if(::GetForegroundWindow() != FetchGlobalInstance().GetWindowHandle())
 		return;
 #else
 #	error Unsupported platform found!
@@ -75,7 +75,7 @@ InputManager::DispatchInput(Desktop& dsk)
 #if YCL_DS
 		cursor_state = cursor.operator Point();
 #elif YCL_MINGW32
-		::ScreenToClient(Shells::HostDemon::FetchWindowHandle(), &cursor);
+		::ScreenToClient(FetchGlobalInstance().GetWindowHandle(), &cursor);
 		yunseq(cursor_state.X = cursor.x,
 			cursor_state.Y = cursor.y - MainScreenHeight);
 		if(!Rect(Point::Zero, MainScreenWidth, MainScreenHeight)

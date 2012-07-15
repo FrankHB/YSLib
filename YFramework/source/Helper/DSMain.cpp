@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2802;
+\version r3003;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-07-11 23:44 +0800;
+	2012-07-15 23:40 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,11 +31,16 @@
 #include <YSLib/Adaptor/Font.h>
 #include <YSLib/Service/ytimer.h>
 #include <YCLib/Debug.h>
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #ifdef YCL_DS
 #include <YSLib/Service/yblit.h> // for Drawing::FillPixel;
 #endif
 
 YSL_BEGIN
+
+YSL_BEGIN_NAMESPACE(Devices)
+class DSScreen;
+YSL_END_NAMESPACE(Drawing)
 
 using Devices::DSScreen;
 using namespace Drawing;
@@ -83,14 +88,19 @@ private:
 //注册的应用程序指针。
 DSApplication* pApp;
 
-/*
-\brief 全局生存期屏幕。
-\since build 297 。
-*/
-//@{
-DSScreen* pScreenUp;
-DSScreen* pScreenDown;
-//@}
+#if YCL_HOSTED && YCL_MULTITHREAD == 1
+//! \since build 325 。
+void(DSApplication::*g_pm)();
+
+//! \since build 325 。
+void
+HostThreadFunc()
+{
+	YAssert(pApp && g_pm, "Null pointer found.");
+
+	(pApp->*g_pm)();
+}
+#endif
 
 
 #ifndef NDEBUG
@@ -144,10 +154,10 @@ private:
 
 public:
 	/*!
-	\brief 构造：指定宽度和高度，从指定缓冲区指针。
-	\since build 319 。
+	\brief 构造：指定是否为下屏。
+	\since build 325 。
 	*/
-	DSScreen(SDst, SDst, Drawing::BitmapPtr = nullptr) ynothrow;
+	DSScreen(bool) ynothrow;
 
 	DefGetter(const ynothrow, const BGType&, BgID, bg)
 
@@ -181,8 +191,8 @@ private:
 	std::mutex update_mutex;
 
 public:
-	//! \since build 322 。
-	DSScreen(SDst, SDst, ::HWND) ynothrow;
+	//! \since build 325 。
+	DSScreen(bool, ::HWND) ynothrow;
 
 	/*!
 	\brief 更新。
@@ -205,30 +215,13 @@ public:
 #else
 #	error Unsupported platform found!
 #endif
-	/*!
-	\brief 复位。
-	\pre <tt>pScreenUp && pScreenDown</tt> 。
-	\note 无条件初始化。
-	\since build 322 。
-	*/
-	static void
-	Reset();
 };
 
 #if YCL_DS
-DSScreen::DSScreen(SDst w, SDst h, BitmapPtr p) ynothrow
-	: Devices::Screen(w, h, p),
-	bg(-1)
-{}
-
-void
-DSScreen::Reset()
+DSScreen::DSScreen(bool b) ynothrow
+	: Devices::Screen(MainScreenWidth, MainScreenHeight)
 {
-	YAssert(pScreenUp && pScreenDown, "Null pointer found.");
-
-	InitVideo();
-	yunseq(YSL_ pScreenUp->pBuffer = DS::InitScrUp(YSL_ pScreenUp->bg),
-		YSL_ pScreenDown->pBuffer = DS::InitScrDown(YSL_ pScreenDown->bg));
+	pBuffer = (b ? DS::InitScrDown : DS::InitScrUp)(bg);
 }
 
 void
@@ -242,21 +235,16 @@ DSScreen::Update(Color c)
 	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaOf(GetSize()), c);
 }
 #elif YCL_MINGW32
-DSScreen::DSScreen(SDst w, SDst h, ::HWND hWnd) ynothrow
-	: Devices::Screen(w, h),
-	Offset(), hHost(hWnd), gbuf(Size(w, h)), update_mutex()
+DSScreen::DSScreen(bool b, ::HWND hWnd) ynothrow
+	: Devices::Screen(MainScreenWidth, MainScreenHeight),
+	Offset(), hHost(hWnd), gbuf(Size(MainScreenWidth, MainScreenHeight)),
+	update_mutex()
 {
 	YAssert(bool(hWnd), "Null handle found.");
 
 	pBuffer = gbuf.pBuffer;
-}
-
-void
-DSScreen::Reset()
-{
-	YAssert(pScreenUp && pScreenDown, "Null pointer found.");
-
-	pScreenDown->Offset.Y = MainScreenHeight;
+	if(b)
+		Offset.Y = MainScreenHeight;
 }
 
 void
@@ -312,8 +300,10 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			::HDC hDC(::BeginPaint(hWnd, &ps));
 			::HDC hMemDC(::CreateCompatibleDC(hDC));
 
-			pScreenUp->UpdateToHost(hDC, hMemDC),
-			pScreenDown->UpdateToHost(hDC, hMemDC);
+			ystdex::polymorphic_downcast<DSScreen&>(FetchGlobalInstance()
+				.GetScreenUp()).UpdateToHost(hDC, hMemDC),
+			ystdex::polymorphic_downcast<DSScreen&>(FetchGlobalInstance()
+				.GetScreenDown()).UpdateToHost(hDC, hMemDC);
 			::DeleteDC(hMemDC);
 			::EndPaint(hWnd, &ps);
 		}
@@ -406,82 +396,17 @@ Idle(Messaging::Priority prior)
 } // unnamed namespace;
 
 
-YSL_BEGIN_NAMESPACE(Shells)
-
-HostDemon* HostDemon::pInstance;
-
-// NOTE: libstdc++ @ G++ 4.7.1 bug,
-//	see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
-HostDemon::HostDemon()
-#if YCL_MINGW32
-	: thread(std::mem_fn(&HostDemon::HostTask), this), hHost()
-#endif
-{
-	YAssert(!pInstance, "Duplicate instance found.");
-
-	pInstance = this;
-}
-HostDemon::~HostDemon()
-{
-#if YCL_MINGW32
-	thread.detach();
-#endif
-}
-
-DSScreen*
-HostDemon::CreateScreen()
-{
-#if YCL_DS
-	return new DSScreen(MainScreenWidth, MainScreenHeight);
-#elif YCL_MINGW32
-	WaitReady();
-	return new DSScreen(MainScreenWidth, MainScreenHeight, hHost);
-#endif
-}
-
-#if YCL_MINGW32
-void
-HostDemon::HostTask()
-{
-	{
-		std::lock_guard<std::mutex> lck(mtx);
-
-		hHost = YSL_ InitializeMainWindow();
-		// NOTE: Currently there is only one client.
-		init.notify_one();
-	//	Initialized.notify_all();
-	}
-	::ShowWindow(hHost, SW_SHOWNORMAL);
-
-	::MSG host_msg; //!< 本机消息类型。
-
-	while(true)
-		if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
-			::DispatchMessage(&host_msg);
-		else
-		//	std::this_thread::yield();
-			std::this_thread::sleep_for(host_sleep);
-}
-
-void
-HostDemon::WaitReady()
-{
-	std::unique_lock<std::mutex>lck(mtx);
-
-	init.wait(lck, [this]{return bool(hHost);});
-
-	YAssert(bool(hHost), "Null handle found.");
-}
-#endif
-
-YSL_END_NAMESPACE(Shells)
-
-
 DSApplication::DSApplication()
-	: UIResponseLimit(0x40)
+	:
+#if YCL_HOSTED && YCL_MULTITHREAD == 1
+	thread(), 
+#if YCL_MINGW32
+	hHost(),
+#endif
+	mtx(), init(), full_init(),
+#endif
+	pFontCache(), pScreenUp(), pScreenDown(), UIResponseLimit(0x40)
 {
-	using Shells::HostDemon;
-
 	YAssert(!YSL_ pApp, "Duplicate instance found.");
 
 	//注册全局应用程序实例。
@@ -490,40 +415,68 @@ DSApplication::DSApplication()
 	//全局初始化。
 	InitializeEnviornment();
 	//若有必要，启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
-	HostDemon& demon(*new HostDemon());
+// NOTE: libstdc++ @ G++ 4.7.1 bug,
+//	see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
+#if YCL_HOSTED && YCL_MULTITHREAD == 1
+	g_pm = &DSApplication::HostTask;
+	thread = std::thread(HostThreadFunc);
+#endif
+
+
 	//检查程序是否被正确安装。
 	CheckInstall();
-
-	//初始化系统设备。
-	try
-	{
-		pScreenUp = demon.CreateScreen();
-		pScreenDown = demon.CreateScreen();
-	}
-	catch(...)
-	{
-		throw LoggedEvent("Screen initialization failed.");
-	}
 	//初始化系统字体资源。
 	try
 	{
-		pFontCache = ynew FontCache();
+		pFontCache = unique_raw(new FontCache());
 	}
 	catch(...)
 	{
 		throw LoggedEvent("Error occurred in creating font cache.");
 	}
 	InitializeSystemFontCache();
-	DSScreen::Reset();
+	//初始化系统设备。
 #if YCL_DS
-	pScreenUp->Update(ColorSpace::Blue),
-	pScreenDown->Update(ColorSpace::Green);
+	InitVideo();
+	try
+	{
+		pScreenUp = unique_raw(new DSScreen(false));
+		pScreenDown = unique_raw(new DSScreen(true));
+	}
+#elif YCL_MINGW32
+	{
+		std::unique_lock<std::mutex>lck(mtx);
+
+		init.wait(lck, [this]{return bool(hHost);});
+
+		YAssert(bool(hHost), "Null handle found.");
+	}
+	try
+	{
+		pScreenUp = unique_raw(new DSScreen(false, hHost));
+		pScreenDown = unique_raw(new DSScreen(true, hHost));
+	}
+#endif
+	catch(...)
+	{
+		throw LoggedEvent("Screen initialization failed.");
+	}
+
+#if YCL_DS
+	ystdex::polymorphic_downcast<DSScreen&>(*pScreenUp)
+		.Update(ColorSpace::Blue),
+	ystdex::polymorphic_downcast<DSScreen&>(*pScreenDown)
+		.Update(ColorSpace::Green);
+#elif YCL_MINGW32
+	full_init.notify_one();
 #endif
 }
 
 DSApplication::~DSApplication()
 {
-	Shells::HostDemon::Release();
+#if YCL_MINGW32
+	thread.detach();
+#endif
 
 	//等待并确保所有 Shell 被释放。
 //	hShell = nullptr;
@@ -536,20 +489,19 @@ DSApplication::~DSApplication()
 	//当主 Shell 句柄为静态存储期对象时需要通过 reset 释放。
 
 	//释放默认字体资源。
-	ydelete(pFontCache);
-	pFontCache = nullptr;
+	reset(pFontCache);
 
 	//释放设备。
-	delete pScreenUp,
-	delete pScreenDown;
+	reset(pScreenUp),
+	reset(pScreenDown);
 	Uninitialize();
 }
 
 FontCache&
-DSApplication::GetFontCache() const ythrow(LoggedEvent)
+DSApplication::GetFontCache() const ynothrow
 {
-	if(YB_UNLIKELY(!pFontCache))
-		throw LoggedEvent("Null pointer found.");
+	YAssert(bool(pFontCache), "Null pointer found.");
+
 	return *pFontCache;
 }
 
@@ -590,6 +542,39 @@ DSApplication::DealMessage()
 	}
 	return true;
 }
+
+#if YCL_MINGW32
+void
+DSApplication::HostTask()
+{
+	{
+		std::lock_guard<std::mutex> lck(mtx);
+
+		hHost = YSL_ InitializeMainWindow();
+		// NOTE: Currently there is only one client.
+		init.notify_one();
+	//	Initialized.notify_all();
+	}
+	::ShowWindow(hHost, SW_SHOWNORMAL);
+	{
+		std::unique_lock<std::mutex>lck(mtx);
+
+		full_init.wait(lck,
+			[this]{return bool(pScreenUp) && bool (pScreenDown);});
+
+		YAssert(bool(pScreenUp) && bool(pScreenDown), "Null pointer found.");
+	}
+
+	::MSG host_msg; //!< 本机消息类型。
+
+	while(true)
+		if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
+			::DispatchMessage(&host_msg);
+		else
+		//	std::this_thread::yield();
+			std::this_thread::sleep_for(host_sleep);
+}
+#endif
 
 
 Application&

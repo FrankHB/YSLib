@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r1382;
+\version r1495;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:49:27 +0800;
 \par 修改时间:
-	2012-07-07 23:29 +0800;
+	2012-07-15 23:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -61,26 +61,20 @@ const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 
 
 //前向声明。
-YSL_BEGIN_NAMESPACE(Devices)
-class DSScreen;
-YSL_END_NAMESPACE(Drawing)
 YSL_BEGIN_NAMESPACE(Drawing)
 class FontCache;
 YSL_END_NAMESPACE(Drawing)
 
 
-YSL_BEGIN_NAMESPACE(Shells)
-
 /*!
-\brief 宿主守护任务。
-\since build 322 。
+\brief 平台相关的应用程序类。
+\note 含默认接口。
+\since build 215 。
 */
-class HostDemon
+class DSApplication : public Application
 {
-protected:
-	static HostDemon* pInstance;
-
 #if YCL_HOSTED && YCL_MULTITHREAD == 1
+private:
 	//! \brief 宿主背景线程。
 	std::thread thread;
 
@@ -95,62 +89,27 @@ private:
 	std::mutex mtx;
 	//! \brief 宿主环境就绪条件。
 	std::condition_variable init;
+	/*!
+	\brief 初始化条件。
+	\since build 325 。
+	*/
+	std::condition_variable full_init;
 #endif
 
-public:
-	HostDemon();
-	~HostDemon();
-
-#if YCL_HOSTED
-	static ::HWND
-	FetchWindowHandle()
-	{
-		YAssert(pInstance, "Null pointer found.");
-
-		return pInstance->hHost;
-	}
-#endif
-
-	//! \brief 宿主环境就绪后创建屏幕。
-#if YCL_DS
-	static
-#endif
-	Devices::DSScreen*
-	CreateScreen();
-
-#if YCL_HOSTED
-private:
-	//! \brief 初始化宿主资源和本机消息循环线程。
-	void
-	HostTask();
-#endif
-
-public:
-	static void
-	Release()
-	{
-		delete pInstance;
-	}
-
-#if YCL_MINGW32
-	//! \brief 等待宿主环境就绪。
-	void
-	WaitReady();
-#endif
-};
-
-YSL_END_NAMESPACE(Shells)
-
-
-/*!
-\brief 平台相关的应用程序类。
-\note 含默认接口。
-\since build 215 。
-*/
-class DSApplication : public Application
-{
-private:
-	Drawing::FontCache* pFontCache; //!< 默认字体缓存。
+protected:
+	/*!
+	\brief 默认字体缓存。
+	\since build 325 。
+	*/
+	unique_ptr<Drawing::FontCache> pFontCache;
+	/*!
+	\brief 屏幕。
+	\since build 325 。
+	*/
+	//@{
+	unique_ptr<Devices::Screen> pScreenUp;
+	unique_ptr<Devices::Screen> pScreenDown;
+	//@}
 
 public:
 	/*!
@@ -177,21 +136,21 @@ public:
 
 	/*!
 	\brief 取字体缓存引用。
-	\throw LoggedEvent 记录异常事件。
-	\note 仅抛出以上异常。
+	\pre 断言检查：指针非空。
+	\since build 325 。
 	*/
 	Drawing::FontCache&
-	GetFontCache() const ythrow(LoggedEvent);
+	GetFontCache() const ynothrow;
 	/*!
 	\brief 取上屏幕。
-	\pre 断言检查：句柄非空。
+	\pre 断言检查：内部指针非空。
 	\since build 297 。
 	*/
 	Devices::Screen&
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
-	\pre 断言检查：句柄非空。
+	\pre 断言检查：内部指针非空。
 	\since build 297 。
 	*/
 	Devices::Screen&
@@ -209,6 +168,23 @@ public:
 	*/
 	bool
 	DealMessage();
+
+#if YCL_HOSTED
+	//! \since build 325 。
+	::HWND
+	GetWindowHandle()
+	{
+		return hHost;
+	}
+
+private:
+	/*!
+	\brief 初始化宿主资源和本机消息循环线程。
+	\since build 325 。
+	*/
+	void
+	HostTask();
+#endif
 };
 
 

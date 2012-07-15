@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4101; *build 324 rev 18;
+\version r4102; *build 325 rev 26;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-12 10:29 +0800;
+	2012-07-16 00:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -383,105 +383,123 @@ $using:
 
 
 $DONE:
-r1:
-+ \u MappingEx["MapEx.h", "MapEx.cpp"] @ \lib CHRLib;
-/ (\clt \spec for \t \arg !'CHRLib::U*', \ft FetchMapperPtr) @ \h StaticMapping
-	>> \u MappingEx;
-/ \inc \h "CHRLib/smap.hpp" @ \impl \u CharacterProcessing -> "CHRLib/smap.hpp";
-/= test 1 @ platform MinGW32;
-
-r2:
-/= test 2 @ platform DS;
+r1-r2:
+/ @ \ns ystdex @ \h YDefinition $=
+(
+	+ \clt offsetof_check;
+	+ \mac yoffsetof;
+),
+/ @ \cl DSApplication @ \u DSMain $=
+(
+	/ private Drawing::FontCache* pFontCache
+		-> protected unique_ptr<Drawing::FontCache> pFontCache,
+	/ \es @ \mf GetFontCache,
+	+ \as @ \mf GetFontCache,
+	/ \impl @ (\ctor, \dtor)
+),
+/= 2 test 1 @ platform MinGW32;
 
 r3:
-/ @ \u MappingEx $=
-(
-	+ \mac CHRLIB_NODYNAMIC_MAPPING @ \h;
-	+ \o \decl @ \ns CHRLib @ !defined(CHRLIB_NODYNAMIC_MAPPING)
-);
-/ \impl @ \f CheckInstall @ \impl \u Initialization,
-/ \tr files 'cp113.bin' @ \dir '/YFramework/data' >> \dir 'Data' as user data;
-/= test 3 @ platform DS;
+/= test 2 @ platform DS;
 
 r4:
-+ \as @ \mft GUCS2Mapper<CharSet::GBK>::Map @ \h MappingEx;
-/= test 4 @ platform DS;
+/= test 3 @ platform MinGW32 ^ \conf release;
 
 r5:
-/ MinGW32 files 'cp113.*' @ \dir 'YFramework_MinGW32'
-	>> \dir 'YFramework/alternative',
-/= test 5 @ platform DS ^ \conf release;
+/= test 4 @ platform DS ^ \conf release;
 
-r6:
-/= test 6 @ platform MinGW32 ^ \conf release;
-
-r7:
-/= test 7 @ platform MinGW32 ^ \conf release;
+r6-r7:
+/ @ \u DSMain $=
+(
+	/ @ \ctor DSScreen,
+	- \mf HostDemon::CreateScreen,
+	+ \smf HostDemon::FetchInstance @ defined(YCL_HOSTED),
+	/ \impl @ \ctor DSApplication;
+	- \smf DSScreen::Reset
+),
+/= 2 test 5 @ platform MinGW32;
 
 r8:
-+ \u MemoryMapping["MemoryMapping.h", "MemoryMapping.cpp"] @ \lib YCLib;
-/ @ \impl \u Initialization $=
-(
-	+ \h MemoryMapping;
-	/ \impl @ \f CheckInstall
-);
-/= test 8 @ platform MinGW32;
+/= test 6 @ platform DS;
 
 r9:
-+ \f void Uninitialize() ynothrow @ \u Initialization;
-/ \impl @ \dtor DSApplication @ \impl \u DSMain ^ \f Uninitialize;
-/= test 9 @ platform MinGW32 ^ \conf release;
+/ @ \u DSMain $=
+(
+	/ @ \cl HostDemon $=
+	(
+		- protected \m pInstance,
+		- \smf Release, FetchInstance, FetchWindowHandle
+	);
+	/ \cl HostDemon @ \u DSMain \mg -> \cl DSApplication,
+	+ \mf GetWindowHandle @ \cl DSApplication,
+	/ \pre \decl @ \cl DSScreen @ \h -> \impl \u
+);
+/ \tr \impl @ \mf InputManager::DispatchInput @ \impl \u InputManager;
+/= test 7 @ platform MinGW32;
 
 r10:
-/ platform DS @ \impl \u MemoryMapping;
-/= test 10 @ platform DS;
+/= test 8 @ platform DS;
 
 r11:
-/= test 11 @ platform DS ^ \conf release;
+/= test 9 @ platform MinGW32 ^ \conf release;
 
 r12:
-/ optimization @ (defined CHRLIB_NODYNAMIC_MAPPING) @ \impl \u Initialization;
-/= test 12 @ platform MinGW32;
+/= test 10 @ platform DS ^ \conf release;
 
-r13:
-/ @ \u FileSystem $=
+r13-r19:
+/ @ \u DSMain $=
 (
-	+ 4 \f uopen,
-	+ ynothrow @ \a \f with \n ('u*', '*dir*', 'f*', 'getcwd*')
+	/ @ \cl DSApplication $=
+	(
+		+ protected \m unique_ptr<Devices::Screen> pScreenUp,
+		+ protected \m unique_ptr<Devices::Screen> pScreenDown,
+		+ private \m std::conditional_variable full_init @ platform MinGW32,
+		/ \impl @ \ctor,
+		/ \simp \impl @ \dtor
+	),
+	+ \h <ystdex/cast.hpp> @ \impl \u;
+	/ \impl @ \f WndProc @ \un \ns @ platform MinGW32
 );
-/ \impl @ \ctor MappedFile @ platform MinGW32 @ \impl \u MemoryMapping
-	^ \f uopen;
-/= test 13 @ platform MinGW32;
+* $comp host window procedure for painting not synchronized
+	with application initialization $since b299;
+/= 7 test 11 @ platform MinGW32;
 
-r14:
-/= test 14 @ platform MinGW32 ^ \conf release;
+r20:
+* \impl @ \ctor DSApplication @ r19;
+/= test 12 @ platform DS;
 
-r15:
-+ \inc \h <fcntl.h> @ platform DS @ \impl \u FileSyatem;
-/= test 15 @ platform DS;
+r21:
+/= test 13 @ platform MinGW32 ^ \conf release;
 
-r16:
-/= test 16 @ platform MinGW32;
+r22:
+/= test 14 @ platform DS ^ \conf release;
 
-r17:
+r23:
+/ \mf WaitReady \mg -> \ctor @ platform MinGW32 @ \cl DSApplication @ \u DSMain;
+/= test 15 @ platform MinGW32;
+
+r24:
+/= test 16 @ platform DS;
+
+r25:
 /= test 17 @ platform MinGW32 ^ \conf release;
 
-r18:
+r26:
 /= test 18 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-07-12:
--23.0d;
-// Mercurial rev1-rev194: r8847;
+2012-07-16:
+-24.4d;
+// Mercurial rev1-rev194: r8873;
 
 / ...
 
 
 $NEXT_TODO:
-b325-b328:
+b326-b328:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -495,7 +513,7 @@ b329-b394:
 (
 	+ \impl @ images loading
 ),
-/ @ \lib YCLib $=
+/ $low_prior @ \lib YCLib $=
 (
 	+ fully implementation of memory mappaing APIs,
 	+ block file loading APIs @ YCommon
@@ -925,6 +943,17 @@ $module_tree $=
 );
 
 $now
+(
+	+ $dev $lib "macro %yoffsetof" @ %'YBase'.'YDefinition',
+	/ %'YFramework'.'Helper'.'DS main unit' $=
+	(
+		/ DLD "simplified host environment and screen implementation",
+		* "host window procedure for painting not synchronized \
+			with application initialization" $since b299
+	)
+),
+
+b324
 (
 	/ %'YFramework' $=
 	(

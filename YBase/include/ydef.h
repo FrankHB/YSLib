@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2973;
+\version r3007;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-06-22 23:21 +0800;
+	2012-07-16 00:41 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,13 +59,13 @@
 #	error This header is only for C++!
 #endif
 
-#include <cstddef>
+#include <cstddef> // for std::nullptr_t, std::size_t, std::ptrdiff_t, offsetof;
 #include <climits>
-#include <cassert>
+#include <cassert> // for assert;
 #include <cstdint>
-#include <cwchar>
+#include <cwchar> // for std::wint_t;
 #include <utility> // for std::forward;
-#include <type_traits>
+#include <type_traits> // for std::is_class, std::is_standard_layout;
 
 
 /*!	\defgroup lang_impl_features Langrage Implementation Features
@@ -354,7 +354,35 @@ struct empty_base
 */
 
 /*!
-\ingroup HelperFunctions
+\brief 成员偏移计算静态类型检查。
+\see ISO C++ 18.2/4 。
+\since build 325 。
+*/
+template<bool _bMemObjPtr, bool _bNoExcept, class _type>
+class offsetof_check
+{
+	static_assert(std::is_class<_type>::value, "Non class type found.");
+	static_assert(std::is_standard_layout<_type>::value,
+		"Non standard layout type found.");
+	static_assert(_bMemObjPtr, "Non-static member object violation found.");
+	static_assert(_bNoExcept, "Exception guarantee violation found.");
+};
+
+/*!
+\def yoffsetof
+\brief 带有静态类型检查的成员偏移计算。
+\see ISO C++ 18.2/4 。
+\note 某些 G++ 和 Clang++ 版本可使用 __builtin_offsetof 及 -Winvalid-offsetof ，
+	但可移植性较差。
+\since build 325 。
+*/
+#define yoffsetof(_type, _member) \
+	(decltype(sizeof(ystdex::offsetof_check<std::is_member_object_pointer< \
+	decltype(&_type::_member)>::value, ynoexcept(offsetof(_type, _member)), \
+	_type>))(offsetof(_type, _member)))
+
+
+/*!
 \brief 根据参数类型使用 std::forward 传递对应参数。
 \since build 245 。
 

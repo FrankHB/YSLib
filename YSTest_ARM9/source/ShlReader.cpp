@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4602;
+\version r4603;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-07-08 12:16 +0800;
+	2012-07-14 14:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -272,8 +272,7 @@ SettingPanel::SettingPanel()
 				lblAreaDown.Text = FetchEncodingString(e.Value)),
 			Invalidate(lblAreaDown);
 		},
-		chkSmoothScroll.GetTicked()
-			+= [this](CheckBox::TickedArgs&& e){
+		chkSmoothScroll.GetTicked() += [this](CheckBox::TickedArgs&& e){
 			using ystdex::get_init;
 
 			static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
