@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r1315;
+\version r1344;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2012-06-05 21:08 +0800;
+	2012-07-16 20:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,9 +30,10 @@
 
 #include "../ydef.h"
 #include <cstdio>
+#include <ios> // for std::ios_base;
 #include <iterator>
-#include <utility>
-#include "memory.hpp"
+#include "memory.hpp" \
+	// for ystdex::is_dereferencable, ystdex::is_undereferencable;
 
 namespace ystdex
 {
@@ -50,10 +51,30 @@ typedef const char* const_path_t;
 \brief 判断指定路径的文件是否存在。
 \note 使用 std::fopen 实现。
 \pre 断言检查：参数非空。
-\since build 299 。
+\since build 326 。
 */
 bool
-fexists(const char*);
+fexists(const char*) ynothrow;
+
+
+/*
+\brief ISO C/C++ 标准输入输出接口打开模式转换。
+\see ISO C++11 Table 132 。
+\note 忽略 std::ios_base::ate 。
+\since build 326 。
+*/
+const char*
+openmode_conv(std::ios_base::openmode) ynothrow;
+/*
+\brief ISO C/C++ 标准输入输出接口打开模式转换。
+\return 若失败（包括空参数情形）为 std::ios_base::openmode() ，否则为对应的值。
+\see ISO C11 7.21.5.3/3 。
+\note 顺序严格限定。
+\note 支持 x 转换。
+\since build 326 。
+*/
+std::ios_base::openmode
+openmode_conv(const char*) ynothrow;
 
 
 /*!

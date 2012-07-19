@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r1074;
+\version r1082;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 324 。
 \par 创建时间:
 	2012-07-11 21:48:15 +0800;
 \par 修改时间:
-	2012-07-11 23:20 +0800;
+	2012-07-17 01:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -47,8 +47,16 @@ private:
 
 public:
 	//! \throw std::runtime_error 映射失败。
+	//@{
 	explicit
 	MappedFile(const_path_t);
+	//! \since build 326 。
+	template<class _tString>
+	explicit
+	MappedFile(const _tString& filename)
+		: MappedFile(filename.c_str())
+	{}
+	//@}
 	~MappedFile();
 
 	ystdex::byte*

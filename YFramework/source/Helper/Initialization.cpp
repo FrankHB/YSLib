@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2195;
+\version r2240;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-07-12 08:55 +0800;
+	2012-07-17 01:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -60,7 +60,8 @@ printFailInfo(const char* t, const char* s)
 }
 
 
-char def_dir[80], font_path[80], font_dir[80];
+//! \since build 326 。
+string def_dir, font_path, font_dir;
 #if !CHRLIB_NODYNAMIC_MAPPING
 //! \since build 324;
 platform::MappedFile* p_mapped;
@@ -147,29 +148,21 @@ InitializeSystemFontCache() ynothrow
 		try
 		{
 			auto& fc(FetchDefaultFontCache());
-			const FontPath def_font_path(font_path);
-			size_t nFileLoaded(fc.LoadTypefaces(def_font_path) != 0);
+			size_t nFileLoaded(fc.LoadTypefaces(font_path) != 0);
 
-			if(*font_dir)
-			{
-				set<FontPath> sPaths;
-
+			if(!font_dir.empty())
 				//读取字体文件目录并载入目录下指定后缀名的字体文件。
-				{
-					HFileNode dir(font_dir);
+				if(HFileNode dir{font_dir.c_str()})
+					while((++dir).LastError == 0)
+						if(std::strcmp(dir.GetName(), FS_Now) != 0
+							&& !dir.IsDirectory()
+							/*&& IsExtensionOf(ext, dir.GetName())*/)
+						{
+							FontPath path(font_dir + dir.GetName());
 
-					if(dir)
-						while((++dir).LastError == 0)
-							if(std::strcmp(dir.GetName(), FS_Now) != 0
-								&& !dir.IsDirectory()
-								/*&& IsExtendNameOf(ext, dir.GetName())*/)
-								sPaths.insert(FontPath(font_dir)
-									+ dir.GetName());
-				}
-				for(const auto& path : sPaths)
-					if(path != def_font_path)
-						nFileLoaded += fc.LoadTypefaces(path) != 0;
-			}
+							if(path != font_path)
+								nFileLoaded += fc.LoadTypefaces(path) != 0;
+						}
 			fc.InitializeDefaultTypeface();
 			if(const auto nFaces = FetchDefaultFontCache().GetFaces().size())
 				std::printf("%u face(s) in %u font file(s)"
@@ -245,27 +238,17 @@ CheckInstall() ynothrow
 				if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
 					throw LoggedEvent("Wrong encoding of configuration file.");
 
-				const auto fp(tf.GetPtr());
-
-				std::fgets(def_dir, 80, fp);
-				std::fgets(font_path, 80, fp);
-				std::fgets(font_dir, 80, fp);
-				if(*def_dir && *font_path && *font_dir)
-				{
-					def_dir[std::strlen(def_dir) - 1] = '\0';
-					font_path[std::strlen(font_path) - 1] = '\0';
-					font_dir[std::strlen(font_dir) - 1] = '\0';
+				tf >> def_dir >> font_path >> font_dir;
+				if(!def_dir.empty() && !font_path.empty() && !font_dir.empty())
 					std::printf("Loaded default directory:\n%s\n"
 						"Loaded default font path:\n%s\n"
 						"Loaded default font directory:\n%s\n",
-						def_dir, font_path, font_dir);
-				}
+						def_dir.c_str(), font_path.c_str(), font_dir.c_str());
 				else
 					throw LoggedEvent("Empty path loaded!");
 #if !CHRLIB_NODYNAMIC_MAPPING
 				std::puts("Load character mapping file...");
-				p_mapped = new
-					MappedFile((string(def_dir) + "cp113.bin").c_str());
+				p_mapped = new MappedFile(def_dir + "cp113.bin");
 				if(p_mapped->GetSize() != 0)
 					CHRLib::cp113 = p_mapped->GetPtr();
 				else
@@ -278,7 +261,7 @@ CheckInstall() ynothrow
 		}
 		catch(LoggedEvent& e)
 		{
-			std::puts("Error occured:");
+			std::puts("Error occurred: ");
 			std::puts(e.what());
 			throw;
 		}
@@ -286,10 +269,10 @@ CheckInstall() ynothrow
 		{
 			throw LoggedEvent("Loading configuration");
 		}
-		std::printf("Trying entering directory %s ...\n", def_dir);
+		std::printf("Trying entering directory %s ...\n", def_dir.c_str());
 		if(!udirexists(def_dir))
 			throw LoggedEvent("Default data directory");
-		if(!(fexists(font_path) || udirexists(font_dir)))
+		if(!(ufexists(font_path) || udirexists(font_dir)))
 			throw LoggedEvent("Default font");
 		puts("OK!");
 		return;

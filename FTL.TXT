@@ -1,4 +1,4 @@
-                    The FreeType Project LICENSE
+ï»¿                    The FreeType Project LICENSE
                     ----------------------------
 
                             2006-Jan-27
@@ -48,7 +48,7 @@ Introduction
   encourage you to use the following text:
 
    """
-    Portions of this software are copyright © <year> The FreeType
+    Portions of this software are copyright ?<year> The FreeType
     Project (www.freetype.org).  All rights reserved.
    """
 

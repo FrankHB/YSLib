@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2323;
+\version r2324;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-07-03 17:20 +0800;
+	2012-07-17 01:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -606,7 +606,7 @@ bool
 TransformRect(const Graphics& g, const Point& pt, const Size& s,
 	_fTransformPixel tp)
 {
-	if(g)
+	if(YB_LIKELY(g))
 	{
 		RectTransformer()(g.GetBufferPtr(), g.GetSize(), pt, s, tp,
 			SequenceTransformer());

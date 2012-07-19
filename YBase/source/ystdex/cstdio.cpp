@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief YCLib C++ 标准库扩展。
-\version r1078;
+\version r1169;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:38:51 +0800;
 \par 修改时间:
-	2012-06-01 16:50 +0800;
+	2012-07-18 22:30 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,16 +31,106 @@ namespace ystdex
 {
 
 bool
-fexists(const char* path)
+fexists(const char* path) ynothrow
 {
 	yconstraint(path);
 
-	if(const auto file = std::fopen(path, "rb"))
+	if(const auto fp = std::fopen(path, "rb"))
 	{
-		std::fclose(file);
+		std::fclose(fp);
 		return true;
 	}
 	return false;
+}
+
+
+const char*
+openmode_conv(std::ios_base::openmode mode) ynothrow
+{
+	using namespace std;
+
+	switch(unsigned((mode &= ~ios_base::ate) & ~ios_base::binary))
+	{
+	case ios_base::out:
+	case ios_base::out | ios_base::trunc:
+		return mode & ios_base::binary ? "w" : "wb";
+	case ios_base::out | ios_base::app:
+	case ios_base::app:
+		return mode & ios_base::binary ? "a" : "ab";
+	case ios_base::in:
+		return mode & ios_base::binary ? "r" : "rb";
+	case ios_base::in | ios_base::out:
+		return mode & ios_base::binary ? "r+" : "r+b";
+	case ios_base::in | ios_base::out | ios_base::trunc:
+		return mode & ios_base::binary ? "w+" : "w+b";
+	case ios_base::in | ios_base::out | ios_base::app:
+	case ios_base::in | ios_base::app:
+		return mode & ios_base::binary ? "a+" : "a+b";
+	default:
+		break;
+	}
+	return nullptr;
+}
+std::ios_base::openmode
+openmode_conv(const char* str) ynothrow
+{
+	using namespace std;
+
+	if(!str)
+	{
+		ios_base::openmode mode;
+
+		switch(*str)
+		{
+		case 'w':
+			mode = ios_base::out | ios_base::trunc;
+			break;
+		case 'r':
+			mode = ios_base::in;
+			break;
+		case 'a':
+			mode = ios_base::app;
+			break;
+		default:
+			goto invalid;
+		}
+		if(str[1] != '\0')
+		{
+			auto l(strlen(str));
+
+			if(str[l - 1] == 'x')
+			{
+				if(mode & ios_base::out)
+					mode &= ~ios_base::out;
+				else
+					goto invalid;
+				--l;
+			}
+
+			bool b(str[1] == 'b'), p(str[1] == '+');
+
+			switch(l)
+			{
+			case 2:
+				if(b ^ p)
+					break;
+				goto invalid;
+			case 3:
+				yunseq(b ^= str[2] == 'b', p ^= str[2] == '+');
+				if(b && p)
+					break;
+			default:
+				goto invalid;
+			}
+			if(p)
+				mode |= *str == 'r' ? ios::out : ios::in;
+			if(b)
+				mode |= ios::binary;
+		}
+		return mode;
+	}
+invalid:
+	return ios_base::openmode();
 }
 
 

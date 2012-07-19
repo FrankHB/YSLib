@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3003;
+\version r3011;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-07-15 23:40 +0800;
+	2012-07-17 01:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -387,10 +387,6 @@ Idle(Messaging::Priority prior)
 	//	would cause low performance when there are many candidate messages
 	//	of distinct shells.
 	PostMessage(FetchIdleMessage(), prior);
-#if YCL_MINGW32
-	//	std::this_thread::yield();
-		std::this_thread::sleep_for(idle_sleep);
-#endif
 }
 
 } // unnamed namespace;
@@ -399,7 +395,7 @@ Idle(Messaging::Priority prior)
 DSApplication::DSApplication()
 	:
 #if YCL_HOSTED && YCL_MULTITHREAD == 1
-	thread(), 
+	thread(),
 #if YCL_MINGW32
 	hHost(),
 #endif
@@ -526,8 +522,14 @@ DSApplication::DealMessage()
 	using namespace Shells;
 
 	if(Queue.IsEmpty())
+	{
 	//	Idle(UIResponseLimit);
 		OnGotMessage(FetchIdleMessage());
+#if YCL_MINGW32
+	//	std::this_thread::yield();
+		std::this_thread::sleep_for(idle_sleep);
+#endif
+	}
 	else
 	{
 		// TODO: Consider the application queue to be locked for thread safety.
@@ -536,7 +538,12 @@ DSApplication::DealMessage()
 		if(YB_UNLIKELY(i->second.GetMessageID() == SM_QUIT))
 			return false;
 		if(i->first < UIResponseLimit)
+		{
 			Idle(UIResponseLimit);
+#if YCL_MINGW32
+			std::this_thread::sleep_for(idle_sleep);
+#endif
+		}
 		OnGotMessage(i->second);
 		Queue.Erase(i);
 	}

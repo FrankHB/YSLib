@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4102; *build 325 rev 26;
+\version r4106; *build 326 rev 22;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-16 00:00 +0800;
+	2012-07-19 21:39 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -384,131 +384,146 @@ $using:
 
 $DONE:
 r1-r2:
-/ @ \ns ystdex @ \h YDefinition $=
+/ @ \h YFile $=
 (
-	+ \clt offsetof_check;
-	+ \mac yoffsetof;
+	+ \ft<_tChar> File& operator>>(File&, typename
+		std::char_traits<_tChar>::char_type&),
+	+ \ft<_tString> File& operator>>(File&, _tString&)
 ),
-/ @ \cl DSApplication @ \u DSMain $=
-(
-	/ private Drawing::FontCache* pFontCache
-		-> protected unique_ptr<Drawing::FontCache> pFontCache,
-	/ \es @ \mf GetFontCache,
-	+ \as @ \mf GetFontCache,
-	/ \impl @ (\ctor, \dtor)
-),
++ \ft<_tString> \i bool udirexists(const _tString& str) ynothrow
+	@ \h FileSystem;
+/ \simp \impl @ \impl \u Initialization;
 /= 2 test 1 @ platform MinGW32;
 
 r3:
-/= test 2 @ platform DS;
+/ @ \h YFile $=
+(
+	+ \inc \h <cwctype>;
+	/ \impl @ \ft \op>>#2
+);
+/= test 2 @ platform MinGW32;
 
 r4:
-/= test 3 @ platform MinGW32 ^ \conf release;
+/= test 3 @ platform DS;
 
 r5:
-/= test 4 @ platform DS ^ \conf release;
+/= test 4 @ platform MinGW32 ^ \conf release;
 
-r6-r7:
-/ @ \u DSMain $=
+r6:
+/= test 5 @ platform DS ^ \conf release;
+
+r7:
+/ @ \h CStandardIO $=
 (
-	/ @ \ctor DSScreen,
-	- \mf HostDemon::CreateScreen,
-	+ \smf HostDemon::FetchInstance @ defined(YCL_HOSTED),
-	/ \impl @ \ctor DSApplication;
-	- \smf DSScreen::Reset
+	/ \inc \h <utility> -> <ios>;
+	+ \f const char* openmode_conv(std::ios_base::openmode),
+	+ \f std::ios_base::openmode openmode_conv(const char*);
+	+ 'ynothrow' @ \a free \f
+);
+/ @ \cl File @ \u YFile $=
+(
+	/ \ctor \exp File(const_path_t, bool = false)
+		-> \exp File(const_path_t, const char* = "rb"),
+	+ \ctor File(const_path_t, std::ios_base::openmode),
+	/ \ctor \exp File(const String&, bool = false)
+		-> \exp File(const String&, const ucs2_t* = u"rb"),
+	+ \ctor File(const String&, std::ios_base::openmode)
+	/ \mf bool Open(const_path_t, bool = false)
+		-> \mf bool Open(const_path_t, const char* = "rb"),
+	+ \mf bool Open(const_path_t, std::ios_base::openmode),
+	/ \mf bool Open(const String&, bool = false)
+		-> \mf bool Open(const String&, const ucs2_t* = "rb")
+	+ \mf bool Open(const String&, std::ios_base::openmode)
 ),
-/= 2 test 5 @ platform MinGW32;
+/ \tr \impl @ \ctor TextFile @ \impl \u YFile_(Text);
+/= test 6 @ platform MinGW32;
 
 r8:
-/= test 6 @ platform DS;
+/= test 7 @ platform DS ^ \conf release;
 
 r9:
-/ @ \u DSMain $=
-(
-	/ @ \cl HostDemon $=
-	(
-		- protected \m pInstance,
-		- \smf Release, FetchInstance, FetchWindowHandle
-	);
-	/ \cl HostDemon @ \u DSMain \mg -> \cl DSApplication,
-	+ \mf GetWindowHandle @ \cl DSApplication,
-	/ \pre \decl @ \cl DSScreen @ \h -> \impl \u
-);
-/ \tr \impl @ \mf InputManager::DispatchInput @ \impl \u InputManager;
-/= test 7 @ platform MinGW32;
-
-r10:
 /= test 8 @ platform DS;
 
-r11:
+r10:
 /= test 9 @ platform MinGW32 ^ \conf release;
 
-r12:
+r11:
 /= test 10 @ platform DS ^ \conf release;
 
-r13-r19:
-/ @ \u DSMain $=
+r12-r13:
+/= 2 test 11 @ platform MinGW32 ^ \conf release;
+
+r14:
+* invalid FPS controlling @ platform MinGW32 @ \impl \u DSMain $since b320 $=
 (
-	/ @ \cl DSApplication $=
-	(
-		+ protected \m unique_ptr<Devices::Screen> pScreenUp,
-		+ protected \m unique_ptr<Devices::Screen> pScreenDown,
-		+ private \m std::conditional_variable full_init @ platform MinGW32,
-		/ \impl @ \ctor,
-		/ \simp \impl @ \dtor
-	),
-	+ \h <ystdex/cast.hpp> @ \impl \u;
-	/ \impl @ \f WndProc @ \un \ns @ platform MinGW32
+	/ \impl @ \f \i Idle,
+	/ \impl @ \mf DSApplication::DealMessage
 );
-* $comp host window procedure for painting not synchronized
-	with application initialization $since b299;
-/= 7 test 11 @ platform MinGW32;
+/= test 12 @ platform MinGW32;
 
-r20:
-* \impl @ \ctor DSApplication @ r19;
-/= test 12 @ platform DS;
+r15:
++ \ft<_tString> \exp \ctor MappedFile(const _tString&) @ \h MemoryMapping;
+/ \simp \impl @ \f (InitializeSystemFontCache, CheckInstall)
+	@ \impl \u Initialization,
+/= test 13 @ platform MinGW32;
 
-r21:
-/= test 13 @ platform MinGW32 ^ \conf release;
-
-r22:
+r16:
+/ \impl @ \ft TransformRect @ \h YBlit ^ \mac YB_LIKELY;
 /= test 14 @ platform DS ^ \conf release;
 
-r23:
-/ \mf WaitReady \mg -> \ctor @ platform MinGW32 @ \cl DSApplication @ \u DSMain;
+r17:
+* \impl @ \f std::ios_base::openmode openmode_conv(const char*) ynothrow
+	@ \impl \u CStandardIO $since r7,
+/ $doc licenses $=
+(
+	/ overall license "LICENSE.txt",
+	+ license for old version "LICENSE_HISTORY.txt",
+	/ "GPL.txt" => "gpl-2.0.txt",
+	+ "gpl-3.0.txt",
+	+ "CC BY-SA 3.0 legalcode.txt"
+);
 /= test 15 @ platform MinGW32;
 
-r24:
-/= test 16 @ platform DS;
+r18:
+/= test 16 @ platform MinGW32 ^ \conf;
 
-r25:
-/= test 17 @ platform MinGW32 ^ \conf release;
+r19-r20:
+* \impl @ \f std::ios_base::openmode openmode_conv(const char*) ynothrow
+	@ \impl \u CStandardIO $since r7;
+/= 2 test 17 @ platform DS;
 
-r26:
+r20:
 /= test 18 @ platform DS ^ \conf release;
+
+r21:
+/= test 19 @ platform MinGW32;
+
+r22:
+/= test 20 @ platform MinGW32 ^ \conf;
 
 
 $DOING:
 
 $relative_process:
-2012-07-16:
--24.4d;
-// Mercurial rev1-rev194: r8873;
+2012-07-19:
+-24.7d;
+// Mercurial rev1-rev194: r8895;
 
 / ...
 
 
 $NEXT_TODO:
-b326-b328:
+b326-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
-	+ bookmarks manager
+	+ bookmarks manager,
+	+ configuration (serialization, unserialization)
 );
 
 
 $TODO:
-b329-b394:
+b349-b413:
 / services $=
 (
 	+ \impl @ images loading
@@ -551,7 +566,7 @@ b329-b394:
 	/ improved tests and examples
 );
 
-b395-b876:
+b414-b895:
 + (memory mapping, shared memory) APIs @ YCommon,
 / @ CHRLib $=
 (
@@ -634,7 +649,7 @@ b395-b876:
 		@ class %ListBox
 );
 
-b877-b1366:
+b896-b1366:
 ^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
 	when (^ g++),
 / memory fragment issues,
@@ -943,6 +958,50 @@ $module_tree $=
 );
 
 $now
+(
+	(
+		+ "ISO C/C++ standard input/output open mode conversion function \
+			%openmode_conv" @ %'YBase'.'YStandardEx'.'CStandardIO';
+		$dep_to openmode_conv;
+	)
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'services' $=
+		(
+			+ "string input operators for class %File",
+			(
+				$dep_from openmode_conv;
+				+ "ISO C/C++ standard input/output open mode arguments"
+					@ "(constructor, member function %Open)"
+					@ "class %(File, TextFile)";
+				$dep_to open_file
+			),
+			/ DLD "implementation" @ "function template %TransformRect"
+				@ "header %YBlit" ^ "macro %YB_LIKELY"
+		),
+		/ %'Helper' $=
+		(
+			* "invalid FPS controlling" @ "platform %MinGW32"
+				@ %'DS main unit' $since b320,
+			(
+				$dep_from open_file;
+				/ DLD "simplified implementation" @ %'initialization'
+			)
+		)
+		+ "constructor template with string argument" @ "class %MappedFile"
+			@ %'YCLib'.'memory mapping APIs'
+	),
+	/ $doc "licenses" $=
+	(
+		/ "overall license %LICENSE.txt",
+		+ "license for old version %LICENSE_HISTORY.txt",
+		/ "%GPL.txt" => "%gpl-2.0.txt",
+		+ "%gpl-3.0.txt",
+		+ "%CC BY-SA 3.0 legalcode.txt"
+	)
+),
+
+b325
 (
 	+ $dev $lib "macro %yoffsetof" @ %'YBase'.'YDefinition',
 	/ %'YFramework'.'Helper'.'DS main unit' $=

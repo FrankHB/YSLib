@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1902;
+\version r1964;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2012-06-22 12:10 +0800;
+	2012-07-16 20:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YSL_INC_CORE_YFILE_H_
 
 #include "../Core/ycutil.h"
+#include <cwctype>
 
 YSL_BEGIN
 
@@ -51,18 +52,16 @@ public:
 	/*!
 	\brief 构造：使用指定文件路径初始化对象。
 	\note 自动打开文件。
-	\param is_text 文本方式。
+	\since build 326 。
 	*/
+	//@
 	explicit
-	File(const_path_t, bool is_text = false);
-	/*!
-	\brief 构造：使用指定文件路径初始化对象。
-	\note 自动打开文件。
-	\param is_text 文本方式。
-	\since build 305 。
-	*/
+	File(const_path_t, const char* = "rb");
+	File(const_path_t, std::ios_base::openmode);
 	explicit
-	File(const String&, bool is_text = false);
+	File(const String&, const ucs2_t* = u"rb");
+	File(const String&, std::ios_base::openmode);
+	//@}
 	/*!
 	\brief 析构。
 	\note 自动关闭文件。
@@ -123,17 +122,18 @@ public:
 
 	/*!
 	\brief 以指定方式打开指定路径的文件。
-	\param is_text 文本方式。
+	\since build 326 。
 	*/
+	//@{
 	bool
-	Open(const_path_t, bool is_text = false);
-	/*!
-	\brief 以指定方式打开指定路径的文件。
-	\param is_text 文本方式。
-	\since build 305 。
-	*/
+	Open(const_path_t, const char* = "rb");
 	bool
-	Open(const String&, bool is_text = false);
+	Open(const_path_t, std::ios_base::openmode);
+	bool
+	Open(const String&, const ucs2_t* = u"rb");
+	bool
+	Open(const String&, std::ios_base::openmode);
+	//@}
 
 	/*!
 	\brief 连续读 nmemb 个大小为 size 文件块到 ptr 中，语义同 std::fread 。
@@ -149,6 +149,44 @@ public:
 	PDefH(void, Rewind) const
 		ImplRet(std::rewind(fp))
 };
+
+/*!
+\brief 从指定文件读字符。
+\param f 文件。
+\pre <tt>bool(f)</tt> 。
+\since build 326 。
+*/
+template<typename _tChar>
+File&
+operator>>(File& f, typename std::char_traits<_tChar>::char_type& c)
+{
+	YAssert(bool(f), "Invalid file found.");
+
+	const auto fp(f.GetPtr());
+
+	if(!std::feof(fp))
+		c = std::fgetc(fp);
+	return f;
+}
+/*!
+\brief 从指定文件读空白符分隔的字符串。
+\param f 文件。
+\pre <tt>bool(f)</tt> 。
+\since build 326 。
+*/
+template<typename _tString>
+File&
+operator>>(File& f, _tString& str)
+{
+	YAssert(bool(f), "Invalid file found.");
+
+	const auto fp(f.GetPtr());
+	int c;
+
+	while((c = std::fgetc(fp)) > 0 && !std::iswspace(c))
+		str += c;
+	return f;
+}
 
 YSL_END
 

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1456;
+\version r1469;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:38:37 +0800;
 \par 修改时间:
-	2012-07-12 10:05 +0800;
+	2012-07-16 16:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -209,9 +209,9 @@ ufexists(const char16_t*) ynothrow;
 */
 template<class _tString>
 inline bool
-ufexists(const _tString& s) ynothrow
+ufexists(const _tString& str) ynothrow
 {
-	return ufexists(s.c_str());
+	return ufexists(str.c_str());
 }
 
 /*!
@@ -228,6 +228,17 @@ direxists(const_path_t) ynothrow;
 */
 bool
 udirexists(const_path_t) ynothrow;
+/*!
+\brief 判断指定字符串为文件名的文件是否存在。
+\note 使用 NTCTS 参数 udirexists 实现。
+\since build 326 。
+*/
+template<class _tString>
+inline bool
+udirexists(const _tString& str) ynothrow
+{
+	return udirexists(str.c_str());
+}
 
 /*!
 \brief 当第一参数非空时取当前工作目录复制至指定缓冲区中。

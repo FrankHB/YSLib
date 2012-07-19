@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7325;
+\version r7332;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-15 23:58 +0800;
+	2012-07-16 17:44 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -896,6 +896,7 @@
  Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
 因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在外部的 Helper 库(@5.2.4) 而不是 Adaptor 中。
 除非另有说明，仅保证非成员函数和静态成员函数的线程安全性。
+以下节指定 YFramework 中明确或明确禁止依赖的文件。关于 YBase 的文件依赖性参见 @5.1.1.1.1 。
 
 @2.9.1 基本代码依赖性（适用于 YFramework 内部）：
  YSLib 文件中，文件名以 y 或 Y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
@@ -927,8 +928,8 @@
  "ydaptor.h" 需要保证 <bitset> 和 <initializer_list> 被包含。
 
 @2.9.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
-基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件（但 Adaptor 可能会间接依赖）：
- <fstream> 、 <iomanip> 、 <ios> 、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
+基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件及唯一在其中声明的接口（但 Adaptor 可能会间接依赖）：
+ <fstream> 、 <iomanip> 、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
 
 @2.9.1.5 本体的头文件中显式包含的 C++ 标准库依赖项：
  "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
@@ -1056,6 +1057,11 @@
 @5.1.1.1 YBase ：
  YBase 的 LibDefect 不保证可重入性和线程安全性由 ISO C++11 规范。
 除非另有说明， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
+
+@5.1.1.1.1 文件依赖性：
+以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
+ ydef.h 仅依赖标准库头文件。
+ YBase 依赖且仅依赖 YBase 文件和标准库头文件。
 
 @5.1.1.2 YCLib ：
  YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.1.3.1 ）。
