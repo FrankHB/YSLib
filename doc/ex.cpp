@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4106; *build 326 rev 22;
+\version r4120; *build 327 rev 30;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-19 21:39 +0800;
+	2012-07-24 16:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -383,137 +383,97 @@ $using:
 
 
 $DONE:
-r1-r2:
-/ @ \h YFile $=
+r1:
+/ \inc \h <bitset> @ \h YCommon -> \h <string>;
++ 2 \f (UTF8ToMBCS, WCSToMBCS) @ \u YCommon @ platform MinGW32;
+/= test 1 @ platform MinGW32;
+
+r2:
+/= test 2 @ platform MinGW32 ^ \conf release;
+
+r3-r11:
+/ \t \param \n '_tFunc' => '_fCallable',
++ support for non CopyConstructible functor parameter on call wrapper types
+	@ \lib YBase $=
 (
-	+ \ft<_tChar> File& operator>>(File&, typename
-		std::char_traits<_tChar>::char_type&),
-	+ \ft<_tString> File& operator>>(File&, _tString&)
+	/ \impl @ \ft @ \h Timing,
+	/ \impl @ \ft @ \h Utilities
 ),
-+ \ft<_tString> \i bool udirexists(const _tString& str) ynothrow
-	@ \h FileSystem;
-/ \simp \impl @ \impl \u Initialization;
-/= 2 test 1 @ platform MinGW32;
-
-r3:
-/ @ \h YFile $=
 (
-	+ \inc \h <cwctype>;
-	/ \impl @ \ft \op>>#2
+	/= test 3 @ platform DS;
+	/= test 4 @ platform MinGW32;
+	/= test 5 @ platform DS ^ \conf release;
+	/= test 6 @ platform MinGW32 ^ \conf release;
+	/= test 7 @ platform DS;
+	/= test 8 @ platform DS ^ \conf release;
+	/= 2 test 9 @ platform DS;
+	/= test 10 @ platform DS
 );
-/= test 2 @ platform MinGW32;
 
-r4:
-/= test 3 @ platform DS;
+r12:
+/= test 11 @ platform DS ^ \conf release;
 
-r5:
-/= test 4 @ platform MinGW32 ^ \conf release;
-
-r6:
-/= test 5 @ platform DS ^ \conf release;
-
-r7:
-/ @ \h CStandardIO $=
-(
-	/ \inc \h <utility> -> <ios>;
-	+ \f const char* openmode_conv(std::ios_base::openmode),
-	+ \f std::ios_base::openmode openmode_conv(const char*);
-	+ 'ynothrow' @ \a free \f
-);
-/ @ \cl File @ \u YFile $=
-(
-	/ \ctor \exp File(const_path_t, bool = false)
-		-> \exp File(const_path_t, const char* = "rb"),
-	+ \ctor File(const_path_t, std::ios_base::openmode),
-	/ \ctor \exp File(const String&, bool = false)
-		-> \exp File(const String&, const ucs2_t* = u"rb"),
-	+ \ctor File(const String&, std::ios_base::openmode)
-	/ \mf bool Open(const_path_t, bool = false)
-		-> \mf bool Open(const_path_t, const char* = "rb"),
-	+ \mf bool Open(const_path_t, std::ios_base::openmode),
-	/ \mf bool Open(const String&, bool = false)
-		-> \mf bool Open(const String&, const ucs2_t* = "rb")
-	+ \mf bool Open(const String&, std::ios_base::openmode)
-),
-/ \tr \impl @ \ctor TextFile @ \impl \u YFile_(Text);
-/= test 6 @ platform MinGW32;
-
-r8:
-/= test 7 @ platform DS ^ \conf release;
-
-r9:
-/= test 8 @ platform DS;
-
-r10:
-/= test 9 @ platform MinGW32 ^ \conf release;
-
-r11:
-/= test 10 @ platform DS ^ \conf release;
-
-r12-r13:
-/= 2 test 11 @ platform MinGW32 ^ \conf release;
-
-r14:
-* invalid FPS controlling @ platform MinGW32 @ \impl \u DSMain $since b320 $=
-(
-	/ \impl @ \f \i Idle,
-	/ \impl @ \mf DSApplication::DealMessage
-);
+r13:
 /= test 12 @ platform MinGW32;
 
+r14:
+/ \simp \impl @ \ctor \t<_fCallable> @ \clt GEvent @ \h YEvent;
+/= test 13 @ platform DS ^ \conf release;
+
 r15:
-+ \ft<_tString> \exp \ctor MappedFile(const _tString&) @ \h MemoryMapping;
-/ \simp \impl @ \f (InitializeSystemFontCache, CheckInstall)
-	@ \impl \u Initialization,
-/= test 13 @ platform MinGW32;
+/= test 14 @ platform MinGW32;
 
 r16:
-/ \impl @ \ft TransformRect @ \h YBlit ^ \mac YB_LIKELY;
-/= test 14 @ platform DS ^ \conf release;
+/= test 15 @ platform MinGW32 ^ \conf release;
 
 r17:
-* \impl @ \f std::ios_base::openmode openmode_conv(const char*) ynothrow
-	@ \impl \u CStandardIO $since r7,
-/ $doc licenses $=
+/ @ \h Utilities $=
 (
-	/ overall license "LICENSE.txt",
-	+ license for old version "LICENSE_HISTORY.txt",
-	/ "GPL.txt" => "gpl-2.0.txt",
-	+ "gpl-3.0.txt",
-	+ "CC BY-SA 3.0 legalcode.txt"
+	/ \simp \impl @ \ft make_array#(2, 3),
+	* YB_HAS_BUILTIN_NULLPTR checking when !YB_HAS_BUILTIN_NULLPTR $since b319,
+	+ \i @ \ft call_once
 );
-/= test 15 @ platform MinGW32;
+/= test 16 @ platform DS ^ \conf release;
 
-r18:
-/= test 16 @ platform MinGW32 ^ \conf;
+r18-r25:
+/ \impl @ \ft (seq_apply, unseq_dispatcher<variadic_sequence<_vSeq...>>::call,
+	unseq_apply) @ \h Utilities,
+/= 8 test 17 @ platform DS ^ \conf release;
 
-r19-r20:
-* \impl @ \f std::ios_base::openmode openmode_conv(const char*) ynothrow
-	@ \impl \u CStandardIO $since r7;
-/= 2 test 17 @ platform DS;
-
-r20:
+r26:
+/ \impl @ \ft (call_once, get_init) @ \h Utilities;
 /= test 18 @ platform DS ^ \conf release;
 
-r21:
-/= test 19 @ platform MinGW32;
+r27:
+/ @ \h Utilities $=
+(
+	/ \simp \impl @ \ft unseq_apply;
+	- \stt unseq_dispatcher @ \ns details
+);
+/= test 19 @ platform DS;
 
-r22:
-/= test 20 @ platform MinGW32 ^ \conf;
+r28:
+/= test 20 @ platform DS ^ \conf release;
+
+r29:
+/= test 21 @ platform MinGW32;
+
+r30:
+/= test 22 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-07-19:
--24.7d;
-// Mercurial rev1-rev194: r8895;
+2012-07-24:
+-27.6d;
+// Mercurial rev1-rev195: r8925;
 
 / ...
 
 
 $NEXT_TODO:
-b326-b348:
+b328-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -958,6 +918,29 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		+ "function %(UTF8ToMBCS, WCSToMBCS)" @ "platform %MinGW32"
+			@ %'YCLib''common utilities',
+		/ DLD "simplified constructor template for functor"
+			@ "class template %GEvent" @ %'core'.'events'
+	),
+	/ %'YBase' $=
+	(
+		+ "MoveConstructible only function object support" @ "parameter type"
+			@ "function templates"
+			@ %('YTest'.'Timing', 'YStandardEx'.'Utilities'),
+		/ %'Utilities' $=
+		(
+			* $dev $lib "macro %YB_HAS_BUILTIN_NULLPTR checking \
+				when !YB_HAS_BUILTIN_NULLPTR" $since b319,
+			* DLD "simplified implementation" @ "function template %unseq_apply"
+		)
+	)
+),
+
+b326
 (
 	(
 		+ "ISO C/C++ standard input/output open mode conversion function \
@@ -1868,11 +1851,8 @@ b300
 		(
 			/ %'GUI' $=
 			(
-				/ @ "unit %YGUI" $=
-				(
-					+ "input timer class %InputTimer";
-					+ "input timer API for repeating key input"
-				),
+				+ ("input timer class %InputTimer";
+					"input timer API for repeating key input") @ "unit %YGUI",
 				+ "function template %OnEvent_Call for forwarding event calling"
 					@ "unit %YControl"
 			),
@@ -1893,9 +1873,10 @@ b300
 	(
 		/ DLD "reduce several global objects";
 		/ $dev $lib "deprecated unit %GBKEX.cpp" >> "library %YSLib"
-			~ "project %YSTest_ARM9";
-		+ "dynamic linked library targets" @ "Code::Blocks projects for MinGW32"
+			~ "project %YSTest_ARM9"
 	),
+	+ "dynamic linked library targets" @ "Code::Blocks projects"
+		@ "platform %MinGW32",
 	/ "directory configurations" >> "unit %Initialization" @ "directory %Helper"
 		~ "file %GBKEX.cpp";
 	- "deprecated file %GBKEX.cpp";
@@ -1985,7 +1966,8 @@ b299
 		$dep_from "wide character string path";
 		+ "wide character string path support" @ "platform %MinGW32"
 	),
-	+ DLP "MinGW32 projects" @ "Code::Blocks workspace"
+	+ "statically linked target" @ "platform %MinGW32" $=
+		(+ $deploy "projects" @ "Code::Blocks workspace");
 ),
 
 b298
@@ -2233,7 +2215,7 @@ b296
 			- "unused macro %_ATTRIBUTE" @ "header Platform.h",
 			/ ("several APIs" @ "namespace %platform"
 				>> "namespace %platform_ex") @ "unit %YCommon",
-			+ "file system interface adaptors for MinGW32"
+			+ "file system interface adaptors for platform %MinGW32"
 		)
 	),
 	/ $design @ %'YReader' $=
@@ -3730,8 +3712,8 @@ b248
 	(
 		* "wrong return value" @ "member function %Refresh" @ "class %(Widget,
 			Label, Progress, TextArea, Control, AWindow)" $since b226,
-		* wrong overlapping condition @ (function %RenderChild,
-			member function %Frame::DrawContents) $since b226;
+		* "wrong overlapping condition" @ "(function %RenderChild, \
+			member function %Frame::DrawContents)" $since b226;
 		* "wrong invalidation on thumb of tracks after performing small \
 			increase/decrease" $since b240
 	)
@@ -4438,7 +4420,7 @@ b216
 	/ "focused boundary for controls",
 	^ DLD "using unnamed namespace" ~ "keyword static" @ "unit %YApplication",
 	/ "more efficient message queue implementation" ^ "%multiset"
-		~ %priority_queue",
+		~ "%priority_queue",
 	/ "simplified shell example",
 	+ "default windows Z order",
 	+ "message fetching automatically calling %Idle \
@@ -4453,7 +4435,7 @@ b215
 	+ "visible arrow indicating multi-level menus",
 	/ "creating list" @ ("constructor of class %MTextList"
 		~ "member function %GetList"),
-	+ "event handler supporting for types not met EqualityComparable
+	+ "event handler supporting for types not met EqualityComparable \
 		requirement interface including closure types",
 	* DLD "access of interitance of class std::function"
 		@ "class template %GHEvent" $since b207,

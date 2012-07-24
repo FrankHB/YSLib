@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5038;
+\version r5046;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-06-23 00:59 +0800;
+	2012-07-23 20:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -93,14 +93,14 @@ public:
 		: std::function<FuncType>(f), comp_eq(GEquality<FuncType>::AreEqual)
 	{}
 	/*!
-	\brief 使用函数对象引用。
-	\since build 294 。
+	\brief 使用函数对象。
+	\since build 327 。
 	*/
-	template<class _tFunc>
+	template<class _fCallable>
 	yconstfn
-	GHEvent(_tFunc&& f, typename std::enable_if<std::is_object<typename
-		std::remove_reference<_tFunc>::type>::value, int>::type = 0)
-		: std::function<FuncType>(yforward(f)),
+	GHEvent(_fCallable f, typename std::enable_if<std::is_object<_fCallable>
+		::value, int>::type = 0)
+		: std::function<FuncType>(std::move(f)),
 		comp_eq(GetComparer(f, f))
 	{}
 	/*!

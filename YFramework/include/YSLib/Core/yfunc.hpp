@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1852;
+\version r1861;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2012-06-23 01:22 +0800;
+	2012-07-23 20:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -256,7 +256,8 @@ public:
 };
 
 
-/*! \brief 逆向柯里化：在参数列表起始添加一个形式参数。
+#if 0
+//! \brief 逆向柯里化：在参数列表起始添加一个形式参数。
 template<class _fCallable, typename _tParm>
 struct InversedCurrying
 {
@@ -265,9 +266,9 @@ struct InversedCurrying
 
 	_fCallable f;
 
-	/!
+	/*!
 	\brief 构造：使用函数对象。
-	/
+	*/
 	InversedCurrying(_fCallable f_)
 		: f(f_)
 	{}
@@ -275,29 +276,29 @@ struct InversedCurrying
 	PDefHOp(bool, ==, const InversedCurrying& r) const
 		ImplRet(f == r.f)
 
-	/!
+	/*!
 	\brief 调用：忽略第一个参数。
-	/
+	*/
 	Result
 	operator()(_tParm, Parm1 arg1) const
 	{
 		return f(arg1);
 	}
-};*/
+};
 
 
-/* \brief 多态函数对象基类。
+//! \brief 多态函数对象基类。
 struct PolymorphicFunctorBase
 {
 	DefDeDtor(PolymorphicFunctorBase)
-};*/
+};
 
 
 /*
 \brief 多态仿函数模板。
 \note 继承其它仿函数。
 */
-/*template<class _tFunctor>
+template<class _tFunctor>
 class GFunctor : public PolymorphicFunctorBase, public _tFunctor
 {
 public:
@@ -310,7 +311,8 @@ public:
 		: PolymorphicFunctorBase(),
 		_tFunctor(yforward(_args)...)
 	{}
-};*/
+};
+#endif
 
 YSL_END
 

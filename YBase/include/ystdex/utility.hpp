@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r1986;
+\version r2047;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-06-28 11:09 +0800;
+	2012-07-24 15:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,51 +42,31 @@ namespace ystdex
 
 /*!
 \brief 顺序递归调用。
-\since build 303 。
+\since build 327 。
 */
 //@{
 template<typename _fCallable>
 inline void
-seq_apply(_fCallable)
+seq_apply(_fCallable&&)
 {}
 template<typename _fCallable, typename _type, typename... _tParams>
 inline void
-seq_apply(_fCallable f, _type&& arg, _tParams&&... args)
+seq_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
 {
-	f(arg), seq_apply(f, yforward(args)...);
+	f(yforward(arg)), seq_apply(f, yforward(args)...);
 }
 //@}
 
 
-namespace details
-{
-
-template<class>
-struct unseq_dispatcher;
-
-template<size_t... _vSeq>
-struct unseq_dispatcher<variadic_sequence<_vSeq...>>
-{
-	template<typename _fCallable, typename... _tParams>
-	static inline void
-	call(_fCallable f, _tParams&&... args)
-	{
-		yunseq((f(yforward(args)), 0)...);
-	}
-};
-
-} // namespace details;
-
 /*!
-\brief 非顺序调用。
-\since build 303 。
+\brief 无序调用。
+\since build 327 。
 */
 template<typename _fCallable, typename... _tParams>
 inline void
-unseq_apply(_fCallable f, _tParams&&... args)
+unseq_apply(_fCallable&& f, _tParams&&... args)
 {
-	details::unseq_dispatcher<typename make_natural_sequence<
-		sizeof...(_tParams)>::type>::call(f, yforward(args)...);
+	yunseq((f(yforward(args)), 0)...);
 }
 
 
@@ -176,7 +156,7 @@ make_array(const _tSrcElement(&src)[_vN])
 	array<_type, _vN> arr;
 
 	copy_n(addressof(src[0]), _vN, addressof(arr[0]));
-	return std::move(arr);
+	return move(arr);
 }
 template<typename _type, size_t _vN, typename _tSrcElement>
 inline std::array<_type, _vN>
@@ -187,7 +167,7 @@ make_array(_tSrcElement(&&src)[_vN])
 	array<_type, _vN> arr;
 
 	copy_n(make_move_iterator(addressof(src[0])), _vN, addressof(arr[0]));
-	return std::move(arr);
+	return move(arr);
 }
 //@}
 
@@ -195,13 +175,14 @@ make_array(_tSrcElement(&&src)[_vN])
 /*!
 \brief 按标识调用函数，保证调用一次。
 \note 类似 std::call_once ，但多线程环境下失效。
-\since build 301 。
+\note ISO C++11（至 N3376 ） 30.4 synopsis 处的声明存在错误。
+\since build 327 。
 	
 当标识为 true 时候无作用，否则调用函数。
 */
 template<typename _fCallable, typename... _tParams>
-void
-call_once(bool& b, _fCallable f, _tParams&&... args)
+inline void
+call_once(bool& b, _fCallable&& f, _tParams&&... args)
 {
 	if(!b)
 	{
@@ -248,12 +229,12 @@ parameterize_static_object()
 \tparam _fInit 初始化调用类型。
 \tparam _tParams 初始化参数类型。
 \return 初始化后的对象的左值引用。
-\since build 303 。
+\since build 327 。
 */
 template<typename _tKey, typename... _tKeys, typename _fInit,
 	typename... _tParams>
 inline auto
-get_init(_fInit f, _tParams&&... args) -> decltype(f(yforward(args)...))&
+get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 {
 	typedef decltype(f(yforward(args)...)) obj_type;
 
@@ -269,11 +250,11 @@ get_init(_fInit f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 \tparam _fInit 初始化调用类型。
 \tparam _tParams 初始化参数类型。
 \return 初始化后的对象的左值引用。
-\since build 301 。
+\since build 327 。
 */
 template<size_t... _vKeys, typename _fInit, typename... _tParams>
 inline auto
-get_init(_fInit f, _tParams&&... args) -> decltype(f(yforward(args)...))&
+get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 {
 	typedef decltype(f(yforward(args)...)) obj_type;
 
@@ -463,7 +444,7 @@ struct deref_str_comp
 
 } // namespace ystdex;
 
-#ifndef YB_HAS_BUILTIN_NULLPTR
+#if !YB_HAS_BUILTIN_NULLPTR
 using ystdex::nullptr;
 #endif
 
