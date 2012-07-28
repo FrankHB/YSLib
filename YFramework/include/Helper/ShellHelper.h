@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2462;
+\version r2468;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-07-03 17:16 +0800;
+	2012-07-24 23:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -61,13 +61,13 @@ YSL_BEGIN_NAMESPACE(Text)
 
 /*!
 \brief 编码信息项目。
-\since build 290 。
+\since build 307 。
 */
 typedef std::pair<Encoding, const ucs2_t*> EncodingInfoItem;
 
 /*!
 \brief 编码信息。
-\since build 290 。
+\since build 307 。
 */
 yconstexpr EncodingInfoItem Encodings[] = {{CharSet::UTF_8, u"UTF-8"},
 	{CharSet::GBK, u"GBK"},
@@ -305,13 +305,13 @@ RemoveGlobalTasks();
 
 /*!
 \brief 默认时间格式字符串。
-\since build 264 。
+\since build 307 。
 */
 yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
 
 /*!
 \brief 格式化时间字符串。
-\since build 264 。
+\since build 307 。
 */
 //@{
 const char*
@@ -324,7 +324,7 @@ TranslateTime(const std::time_t&, const char* = DefaultTimeFormat)
 
 /*!
 \brief 取字型家族名称。
-\since build 283 。
+\since build 307 。
 */
 shared_ptr<Components::TextList::ListType>
 FetchFontFamilyNames();
@@ -332,7 +332,7 @@ FetchFontFamilyNames();
 
 /*!
 \brief 帧速率计数器。
-\since build 223 。
+\since build 307 。
 */
 class FPSCounter
 {

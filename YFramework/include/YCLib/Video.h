@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1457;
+\version r1497;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2011-05-26 19:41:08 +0800;
 \par 修改时间:
-	2012-06-28 11:22 +0800;
+	2012-07-24 17:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -304,6 +304,50 @@ public:
 	}
 };
 
+
+/*!
+\brief 控制台接口。
+\since build 328 。
+*/
+namespace Consoles
+{
+
+/*!
+\brief 控制台颜色枚举。
+\since build 328 。
+*/
+typedef enum
+{
+	Black = 0,
+	DarkBlue,
+	DarkGreen,
+	DarkCyan,
+	DarkRed,
+	DarkMagenta,
+	DarkYellow,
+	Gray,
+	DarkGray,
+	Blue,
+	Green,
+	Cyan,
+	Red,
+	Magenta,
+	Yellow,
+	White
+} Color;
+
+/*!
+\brief 控制台颜色。
+\note 顺序和 Consoles::Color 对应。
+\since build 328 。
+*/
+yconstexpr platform::Color ConsoleColors[]{ColorSpace::Black, ColorSpace::Navy,
+	ColorSpace::Green, ColorSpace::Teal, ColorSpace::Maroon, ColorSpace::Purple,
+	ColorSpace::Olive, ColorSpace::Silver, ColorSpace::Gray, ColorSpace::Blue,
+	ColorSpace::Lime, ColorSpace::Aqua, ColorSpace::Red, ColorSpace::Yellow,
+	ColorSpace::Fuchsia, ColorSpace::White};
+
+} // namespace Consoles;
 
 /*!
 \brief 启动控制台。

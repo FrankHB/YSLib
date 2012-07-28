@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4120; *build 327 rev 30;
+\version r4300; *build 328 rev 22;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-24 16:05 +0800;
+	2012-07-28 17:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -384,96 +384,105 @@ $using:
 
 $DONE:
 r1:
-/ \inc \h <bitset> @ \h YCommon -> \h <string>;
-+ 2 \f (UTF8ToMBCS, WCSToMBCS) @ \u YCommon @ platform MinGW32;
+/ @ \h Video $=
+(
+	+ \ns Consoles @ \ns platform;
+	+ typedef \en Color @ \ns Consoles;
+	+ \o yconstexpr platform::Color ConsoleColors[] @ \ns Consoles
+);
 /= test 1 @ platform MinGW32;
 
 r2:
 /= test 2 @ platform MinGW32 ^ \conf release;
 
-r3-r11:
-/ \t \param \n '_tFunc' => '_fCallable',
-+ support for non CopyConstructible functor parameter on call wrapper types
-	@ \lib YBase $=
+r3:
++ \u (ReaderSetting["ReaderSetting.h", "ReaderSetting.cpp"],
+	ReadingList["ReadingList.h", "ReadingList.cpp"]) @ \dir YSTest_ARM9;
+/ \cl (ReaderSetting, SettingPanel) @ \u ShlReader >> \u ReaderSetting,
 (
-	/ \impl @ \ft @ \h Timing,
-	/ \impl @ \ft @ \h Utilities
+	+ \inc \h Iterator @ \impl \u ReaderSetting;
+	/ \inc \h ColorPicker @ \h ShlReader >> \h ReaderSetting,
+	/ \f FetchEncodingString @ \un \ns @ \impl \u ShlReader
+		>> \ns YReader @ \u ReaderSetting
+	/ \cl (BookMark, ReadingList) @ \u ShlReader >> \u ReadingList
+);
++ \h (ReaderSetting, ReadingList) @ \impl \u ShlReader;
+/= test 3 @ platform MinGW32;
+
+r4:
+/= test 4 @ platform DS;
+
+r5:
+/= test 5 @ platform MinGW32 ^ \conf release;
+
+r6:
+/= test 6 @ platform DS ^ \conf release;
+
+r7:
++ \clt nifty_counter @ \h Utilities;
+/ @ \h Configuration $=
+(
+	+ \inc \h Platform;
+	/ @ \mac \def YSL_USE_COPY_ON_WRITE
+);
+/ @ \h YNew $=
+(
+	+ \inc \h <stdatomic> @ YCL_MULTITHREAD == 1;
+	/ @ defined YSL_USE_MEMORY_DEBUG $=
+	(
+		/ \ctor @ \cl MemoryList -> DefDeCtor(MemoryList),
+		- \de \arg @ \ctor MemoryList::NewRecorder;
+		+ \o DebugMemoryListManager @ \un \ns @ \ns YSLib;
+		- \f GetDebugMemoryList
+	)
 ),
-(
-	/= test 3 @ platform DS;
-	/= test 4 @ platform MinGW32;
-	/= test 5 @ platform DS ^ \conf release;
-	/= test 6 @ platform MinGW32 ^ \conf release;
-	/= test 7 @ platform DS;
-	/= test 8 @ platform DS ^ \conf release;
-	/= 2 test 9 @ platform DS;
-	/= test 10 @ platform DS
-);
+/ \tr \impl @ \impl \u Main_ARM9;
+/= test 7 @ platform MinGW32;
 
-r12:
-/= test 11 @ platform DS ^ \conf release;
+r8:
+/= test 8 @ platform DS;
 
-r13:
-/= test 12 @ platform MinGW32;
+r9:
+/= test 9 @ platform MinGW32 ^ \conf release;
 
-r14:
-/ \simp \impl @ \ctor \t<_fCallable> @ \clt GEvent @ \h YEvent;
-/= test 13 @ platform DS ^ \conf release;
+r10:
+/= test 10 @ platform DS ^ \conf release;
 
-r15:
-/= test 14 @ platform MinGW32;
+r11:
+/ \impl @ \ctor @ \clt nifty_counter @ \h Utilities;
+/= test 11 @ platform MinGW32;
 
-r16:
-/= test 15 @ platform MinGW32 ^ \conf release;
+r12-r15:
+/= 4 test 12 @ platform MinGW32;
 
-r17:
-/ @ \h Utilities $=
-(
-	/ \simp \impl @ \ft make_array#(2, 3),
-	* YB_HAS_BUILTIN_NULLPTR checking when !YB_HAS_BUILTIN_NULLPTR $since b319,
-	+ \i @ \ft call_once
-);
+r16-r19:
++ \clt call_once_init @ \ns ystdex @ \h Utilities,
+* wrong recodings ^ DLL @ platform MinGW32 @ $since r7 $=
+	($revert \u (YNew, Main_ARM9));
+/= 4 test 13 @ platform MinGW32;
+
+r20:
+/= test 14 @ platform MinGW32 ^ \conf release;
+
+r21:
+/= test 15 @ platform DS;
+
+r22:
 /= test 16 @ platform DS ^ \conf release;
-
-r18-r25:
-/ \impl @ \ft (seq_apply, unseq_dispatcher<variadic_sequence<_vSeq...>>::call,
-	unseq_apply) @ \h Utilities,
-/= 8 test 17 @ platform DS ^ \conf release;
-
-r26:
-/ \impl @ \ft (call_once, get_init) @ \h Utilities;
-/= test 18 @ platform DS ^ \conf release;
-
-r27:
-/ @ \h Utilities $=
-(
-	/ \simp \impl @ \ft unseq_apply;
-	- \stt unseq_dispatcher @ \ns details
-);
-/= test 19 @ platform DS;
-
-r28:
-/= test 20 @ platform DS ^ \conf release;
-
-r29:
-/= test 21 @ platform MinGW32;
-
-r30:
-/= test 22 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-07-24:
+2012-07-28:
 -27.6d;
-// Mercurial rev1-rev195: r8925;
+// Mercurial rev1-rev196: r8947;
 
 / ...
 
 
 $NEXT_TODO:
-b328-b348:
+b329-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -869,62 +878,73 @@ $module_tree $=
 		),
 		'YCLib' $=
 		(
-			'platform definition',
-			'native APIs',
-			'common utilities',
-			'common input APIs',
-			'common video APIs',
-			'common file system APIs',
-			'debug helpers',
-			'memory mapping APIs'
+			'Platform', // platform definition;
+			'NativeAPI', // native APIs;
+			'YCommon', // common utilities;
+			'Input', // common input APIs;
+			'Video', // common video APIs;
+			'FileSystem', // common file system APIs;
+			'Debug', // debug helpers;
+			'MemoryMapping' //memory mapping APIs;
 		),
 		'YSLib'
 		(
-			'adaptors',
-			'core'
+			'Adaptor', // adaptors;
+			'Core' // core;
 			(
-				'basic objects',
-				'core utilities',
-				'GDI base',
-				'devices',
-				'messaging',
-				'events',
-				'shell abstraction',
-				'file system abstraction',
-				'application abstraction'
+				'YObject', // basic objects;
+				'YCoreUtilities', // core utilities;
+				'YGDIBase', // GDI base;
+				'YDevice', // devices;
+				'YMessage', // messaging;
+				'YMessageDefinition', // message definitions;
+				'YEvent', // events;
+				'YShell', // shell abstraction;
+				'YFileSystem', // file system abstraction;
+				'YApplication' // application abstraction;
 			),
-			'services',
+			'Service', // services;
 			'GUI',
 			'UI styles'
 		)
 		'Helper'
 		(
-			'global helper unit',
-			'shells for DS';
-			'DS main unit',
-			'initialization',
-			'input manager'
+			'YGlobal', // global helper unit;
+			'Shell_DS'; // shells for DS;
+			'DSMain', // DS main unit;
+			'Initialization', // initialization;
+			'InputManager' // input manager;
 		),
 	),
 	'YReader'
 	(
 		'main',
-		'initialization',
 		'file explorer',
 		'shells test example',
-		'text reader',
+		(
+			'ReadingList',
+			'ReaderSetting';
+			'text reader'
+		),
 		'hexadecimal browser'
 	)
 );
 
 $now
 (
+	+ $lib "console color enum" @ 'YCLib'.'Video',
+	/ DLD "split unit" %'YReader',
+	+ "class template %(nifty_counter, call_once_init)" @ \h Utilities
+),
+
+b327
+(
 	/ %'YFramework' $=
 	(
 		+ "function %(UTF8ToMBCS, WCSToMBCS)" @ "platform %MinGW32"
-			@ %'YCLib''common utilities',
+			@ %'YCLib''YCommon',
 		/ DLD "simplified constructor template for functor"
-			@ "class template %GEvent" @ %'core'.'events'
+			@ "class template %GEvent" @ %'Core'.'YEvent'
 	),
 	/ %'YBase' $=
 	(
@@ -949,7 +969,7 @@ b326
 	)
 	/ %'YFramework' $=
 	(
-		/ %'YSLib'.'services' $=
+		/ %'YSLib'.'Service' $=
 		(
 			+ "string input operators for class %File",
 			(
@@ -965,14 +985,14 @@ b326
 		/ %'Helper' $=
 		(
 			* "invalid FPS controlling" @ "platform %MinGW32"
-				@ %'DS main unit' $since b320,
+				@ %'DSMain' $since b320,
 			(
 				$dep_from open_file;
-				/ DLD "simplified implementation" @ %'initialization'
+				/ DLD "simplified implementation" @ %'Initialization'
 			)
 		)
 		+ "constructor template with string argument" @ "class %MappedFile"
-			@ %'YCLib'.'memory mapping APIs'
+			@ %'YCLib'.'MemoryMapping'
 	),
 	/ $doc "licenses" $=
 	(
@@ -987,7 +1007,7 @@ b326
 b325
 (
 	+ $dev $lib "macro %yoffsetof" @ %'YBase'.'YDefinition',
-	/ %'YFramework'.'Helper'.'DS main unit' $=
+	/ %'YFramework'.'Helper'.'DSMain' $=
 	(
 		/ DLD "simplified host environment and screen implementation",
 		* "host window procedure for painting not synchronized \
@@ -1006,7 +1026,7 @@ b324
 		),
 		@ %'YCLib' $=
 		(
-			/ %'common file system APIs' $=
+			/ %'FileSystem' $=
 			(
 				(
 					+ "4 unbuffered file function %ufopen";
@@ -1015,7 +1035,7 @@ b324
 				+ $dev "exception specification %ynothrow"
 					@ "free functions and function template %ufexists"
 			),
-			+ %'memory mapping APIs' $=
+			+ %'MemoryMapping' $=
 			(
 				$dep_from ufopen;
 				+ "%unit MemoryMapping"
@@ -1024,7 +1044,7 @@ b324
 					to simulate.
 			);
 		)
-		/ %'Helper'.'initialization' $=
+		/ %'Helper'.'Initialization' $=
 		(
 			/ "install checking implementation",
 			+ "uninitialization"
@@ -1036,11 +1056,11 @@ b323
 (
 	/ %'YFramework'.'Helper' $=
 	(
-		+ 'input manager'
+		+ 'InputManager'
 			$= (+ "class %Devices::InputManager" @ "unit %InputManager");
 		/ $dev $lib "implementation dispatching" ^ "class %InputManager"
-			@ "class %ShlDS" @ %'DS main unit',
-		/ DLD "host implementation" @ "platform %MinGW32" @ 'DS main unit',
+			@ "class %ShlDS" @ %'DSMain',
+		/ DLD "host implementation" @ "platform %MinGW32" @ 'DSMain',
 		/ DLD "several header dependencies improved"
 	),
 	/ $dev $lib "duplicate entries removed" @ "Visual C++ project filters"
@@ -1057,7 +1077,7 @@ b322
 (
 	/ %'YFramework' $=
 	(
-		/ %'Helper'.'DS main unit' $=
+		/ %'Helper'.'DSMain' $=
 		(
 			* "%KeyTouch not raised by key input" $since b321,
 			/ @ "class %DSScreen" @ "platform %MinGW32" $=
@@ -1074,18 +1094,18 @@ b322
 				// Explicit cache initialization moved to application \
 					initialization.
 			(
-				/ @ "function %InitializeSystemFontCache" @ % 'initialization',
+				/ @ "function %InitializeSystemFontCache" @ % 'Initialization',
 				- "member function %DSApplication::ResetFontCache"
 			)
 		),
 		/ %'YCLib' $=
 		(
-			+ $dev $lib "macro %YCL_MULTITHREAD" @ %'platform definition',
+			+ $dev $lib "macro %YCL_MULTITHREAD" @ %'Platform',
 			^ DLD "attribute %format 'ms_printf'" @ "function %yprintf"
-				@ "platform %MinGW32" @ %'debug helpers',
+				@ "platform %MinGW32" @ %'Debug',
 			(
 				$dep_from removal_dep_of_mmbcpy_and_mmbset;
-				- "function %ystdex::(mmbcpy, mmbset)" @ %'common utilities'
+				- "function %ystdex::(mmbcpy, mmbset)" @ %'YCommon'
 			)
 		),
 		/ %'YSLib' $=
@@ -1098,7 +1118,7 @@ b322
 				~ "%ystdex::mmbcpy",
 			* "implementation" @ "function template %CreateRawBitmap"
 				@ "header %ShellHelper" $since $before b132;
-			- $dep "using %ystdex::(mmbcpy, mmbset)" @ %'adaptors'
+			- $dep "using %ystdex::(mmbcpy, mmbset)" @ %'Adaptor'
 			$dep_to removal_dep_of_mmbcpy_and_mmbset;
 		)
 	),
@@ -1125,8 +1145,8 @@ b321
 	(
 		/ %'YCLib' $=
 		(
-			+ "macro %YCL_MULTITHREAD" @ %'platform definition';
-			/ %'common input APIs' $=
+			+ "macro %YCL_MULTITHREAD" @ %'Platform';
+			/ %'Input' $=
 			(
 				* "thread-safety" @ "function %ClearKeyStates" $since b299,
 				+ "new implementation fit for large key states"
@@ -1136,9 +1156,9 @@ b321
 		);
 		/ %'Helper' $=
 		(
-			+ "thread-safety" @ "function %DispatchInput" @ 'DS main unit',
+			+ "thread-safety" @ "function %DispatchInput" @ 'DSMain',
 			^ "direct painting" ~ "asynchronous painting with message queue"
-				@ %'shells for DS'
+				@ %'Shell_DS'
 				// Great loop performance increased for empty input.
 		)
 	)
@@ -1150,15 +1170,15 @@ b320
 	(
 		/ DLD "all member functions named %IsEmpty eliminated"
 			-> "operator (bool, !)",
-		/ 'core' $=
+		/ 'Core' $=
 		(
-			/ %'GDI base' $=
+			/ %'YGDIBase' $=
 			(
 				+ "member function %operator(&=, |=)" @ "class %Rect";
 				/ "function %(Intersect, Unite)"
 					-> "function %operator(&, |) for class %Rect"
 			),
-			/ %'messaging' $=
+			/ %'YMessage' $=
 			(
 				- "message destination",
 					// Some performance improved. If need to specify \
@@ -1173,7 +1193,7 @@ b320
 			$since b295,
 			// Avoiding refreshing repainted bottom button unnecessarily.
 		/ "implementation" @ ("message loop", $design "input dispatching")
-			%'Helper'.'DS main unit'
+			%'Helper'.'DSMain'
 			// Significantly performance improved.
 	),
 	* $dev $build $lib "missing including path Code::Blocks project \
@@ -1206,22 +1226,22 @@ b319
 			-> "operator (bool, !)",
 		/ %'YCLib' $=
 		(
-			/ %'common file system APIs' $=
+			/ %'FileSystem' $=
 			(
 				+ DLD "no throw exception specification"
 					@ "class %HFileNode",
 				* "missing iterator reset" @ "member function %Close" @ "file \
-					node iterator" @ %'common file system APIs' $since b142
+					node iterator" @ %'FileSystem' $since b142
 					// It causes double releasing file resources\
 						when manually called.
 			)
 			+ DLD "no throw exception specification" @ (("class %Color",
 				("function %ScreenSynchronize" @ "platform %DS")
-				@ %'common video APIs'), "header %Memory")
+				@ %'Video'), "header %Memory")
 		),
-		/ %'YSLib'.'core' $=
+		/ %'YSLib'.'Core' $=
 		(
-			/ %'core' $=
+			/ %'Core' $=
 			(
 				+ DLD "no throw exception specification" @ "functions \
 					declarations" @ "unit %(YExceptionYGDIBase, YFunc, \
@@ -1233,18 +1253,18 @@ b319
 						@ "functions declarations" @ "unit %YEvent"
 				),
 				* "type checking implementation" @ "class %ValueObject"
-					@ %'basic objects' $since b306
+					@ %'YObject' $since b306
 					// Checking method of equality and type-id tests were \
 						wrongly swapped for %YCL_FUNCTION_NO_EQUALITY_GUARANTEE.
 			),
-			/ %'services' $=
+			/ %'Service' $=
 			(
 				/ DLD "resource content setter" @ "class %Image"
 					>> ("class %BitmapBuffer" @ "unit %YGDI"),
 				/ DLD "minor implementation" @ "unit %YGDI"
 			),
 			+ DLD "no throw exception specification" @ "class %DSScreen"
-				@ %'Helper'.'DS main unit',
+				@ %'Helper'.'DSMain',
 			/ @ "header %YWindow" %'GUI' $=
 			(
 				/ "simplified default arguments" @ "constructor"
@@ -1254,7 +1274,7 @@ b319
 				- "unnecessary header dependencies"
 			)
 		)
-		/ %'YSLib'.'core' $=
+		/ %'YSLib'.'Core' $=
 	),
 	- DLB "-Wnoexcept" @ "macro %CXXFLAGS" @ "makefile"
 		@ "project %(YFramework_DS, YSTest_ARM9)",
@@ -1274,7 +1294,7 @@ b318
 (
 	/ %'YFramkework'.'YSLib' $=
 	(
-		/ %'core'.'messaging' $=
+		/ %'Core'.'YMessage' $=
 		(
 			/ DLD "improved performance of move constructor" @ "class $Message",
 			- "redundant parameter" @ "function %PostMessage"
@@ -1313,9 +1333,9 @@ b317
 		(
 			/ "simplified interface and implementation for message output"
 				@ "class %MemoryList" @ %'adaptor',
-			/ %'core' $=
+			/ %'Core' $=
 			(
-				/ @ "class %Shell" @ %'core utilities' $=
+				/ @ "class %Shell" @ %'YCoreUtilities' $=
 				(
 					(
 						/ "return type discarded" @ "member function \
@@ -1324,13 +1344,13 @@ b317
 					),
 					+ "public inheritance %enabled_share_from_this"
 				),
-				/ @ "class %Application" %'application abstraction' $=
+				/ @ "class %Application" %'YApplication' $=
 				(
 					+ "public inheritance %Shell";
 					/ "member function %Dispatch merged"
 						-> "member function overrider %OnGotMessage"
 				)
-				/ @ "class %MessageQueue" @ %'messaging' $=
+				/ @ "class %MessageQueue" @ %'YMessage' $=
 				(
 					/ "iterator type exposed",
 					/ "implementation" @ "member function %Peek for better \
@@ -1386,7 +1406,7 @@ b316
 	/ %'YFramework'.'YSLib' $=
 	(
 		+ "member function %Find" @ "class %MTextList" @ %'GUI',
-		/ %'core'.'messaging' $=
+		/ %'Core'.'YMessage' $=
 		(
 			$dep_from "weak_raw";
 			/ "destination shell field" ^ "%weak_ptr<Shell>" 
@@ -1397,7 +1417,7 @@ b316
 				messages" ^ "weak_ptr<Shell>" ~ "shared_ptr<Shell>"
 		),
 		(
-			/ @ "simplified class %FontCache" @ %'adaptors' $=
+			/ @ "simplified class %FontCache" @ %'Adaptor' $=
 			(
 				/ "simplified implementation" @ "constructor",
 					// Removed automatically default font path loading.
@@ -1408,7 +1428,7 @@ b316
 				- "path map"
 					// Duty of paths management moved to initialization.
 			)
-			/ DLD "simplified implementation" @ %'Helper'.'initialization'
+			/ DLD "simplified implementation" @ %'Helper'.'Initialization'
 		)
 	),
 ),
@@ -1442,10 +1462,10 @@ b315
 			$dep_from align_macro;
 			+ DLD "static assertion of alignment equality between %wchar_t \
 				and %CHRLib::ucs2_t" @ "platform MinGW32"
-				@ %'YCLib'.'common file system APIs'
+				@ %'YCLib'.'FileSystem'
 		),
 		/ DLD "simplified implementation" @ "function template %BlitScale"
-			@ %'services'
+			@ %'Service'
 	)
 ),
 
@@ -1471,7 +1491,7 @@ b313
 			/ "header including",
 				// Making more loose coupling.
 		),
-		/ @ 'common file system APIs' $=
+		/ @ 'FileSystem' $=
 		(
 			- "using ::mkdir",
 			/ "using ::chdir" -> "function %uchdir which compatible with \
@@ -1488,8 +1508,8 @@ b312
 	(
 		/ %'YCLib' $=
 		(
-			+ "separate unit %Video" @ 'common video APIs',
-			/ @ 'common file system APIs' $=
+			+ "separate unit %Video" @ 'Video',
+			/ @ 'FileSystem' $=
 			(
 				+ "separate unit %FileSystem";
 				+ "function %udirexists"
@@ -1500,7 +1520,7 @@ b312
 					public headers for less pollution \
 					in global namespace and macros.
 		);
-		/ %'YSLib'.'adaptors' $= ("new including and using declarations")
+		/ %'YSLib'.'Adaptor' $= ("new including and using declarations")
 	)
 ),
 
@@ -1517,7 +1537,7 @@ b310
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'services' $=
+		/ %'Service' $=
 		(
 			* "wrong margin threshold calculated" @ "character output routine"
 				$since $before b132;
@@ -1544,7 +1564,7 @@ b309
 	/ DLD "function %SwitchVisible" @ 'YReader' >> %'YFramework'.'Helper',
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'services' $=
+		/ %'Service' $=
 		(
 			+ "getters" @ "class %TextRenderer";
 			/ "text drawing functions" $=
@@ -1648,9 +1668,9 @@ b305
 	(
 		+ "string duplicate conversion function %strdup"
 			@ %'CHRLib'.'encoding conversion';
-		+ "UCS-2LE support for parameters" @ %'YCLib'.'common file system APIs';
-		+ "%String parameter support" %'YSLib'.'core'.'file system abstraction',
-		/ DLD "simplified implementation" @ %'Helper'.'initialization'
+		+ "UCS-2LE support for parameters" @ %'YCLib'.'FileSystem';
+		+ "%String parameter support" %'YSLib'.'Core'.'YFileSystem',
+		/ DLD "simplified implementation" @ %'Helper'.'Initialization'
 	),
 	+ $doc "file %YCLib.txt for library % YCLib"
 ),
@@ -1664,13 +1684,13 @@ b304
 			/ %'GUI' $= "check box appearance",
 			(
 				$dep_from "u16getcwd";
-				/ "function %GetNowDirectory" @ %'core'
-					.'file system abstraction' "returning %String" ~ "%string";
+				/ "function %GetNowDirectory" @ %'Core'
+					.'YFileSystem' "returning %String" ~ "%string";
 				$dep_to "non-ASCII path correction"
 			)
 		),
 		(
-			+ "function %u16getcwd_n" @ %'YCLib'.'common file system APIs';
+			+ "function %u16getcwd_n" @ %'YCLib'.'FileSystem';
 			/ $dep_to "u16getcwd"
 		)
 	),
@@ -1728,7 +1748,7 @@ b303
 				)
 			),
 			(
-				+ "member function %Delay" @ "class %Timer" @ %'services'
+				+ "member function %Delay" @ "class %Timer" @ %'Service'
 				$dep_to "timer delay";
 			),
 			(
@@ -1736,10 +1756,10 @@ b303
 				$dep_to "helpers"
 			)
 		),
-		+ "adapting macros for DS and MinGW32" @ %'YCLib'.'common input APIs',
+		+ "adapting macros for DS and MinGW32" @ %'YCLib'.'Input',
 		(
 			$dep_from "helpers";
-			/ DLD "simplified interfaces" @ %'initialization'
+			/ DLD "simplified interfaces" @ %'Initialization'
 		)
 	);
 	/ %'YReader' $=
@@ -1834,9 +1854,9 @@ b301
 			/ "set shell path on exiting" @ "class %ShlReader"
 		)
 	)
-	/ %'YFramework'.'core' $=
+	/ %'YFramework'.'Core' $=
 	(
-		* $doc @ "class template %safe_delete_obj" @ %'core utilities'
+		* $doc @ "class template %safe_delete_obj" @ %'YCoreUtilities'
 			$since b263
 		/ "completed proper result type" @ "function %GetAreaOf"
 			@ "header %ygdibase.h"
@@ -1857,10 +1877,10 @@ b300
 					@ "unit %YControl"
 			),
 			- "static const objects" @ "class %Application"
-				@ %'core'.'application abstraction'
+				@ %'Core'.'YApplication'
 		),
 		* "key updating" @ "platform %MinGW32"
-			@ %'YCLib'.'common input APIs' $since b299
+			@ %'YCLib'.'Input' $since b299
 			// It seems that sometimes %GetAsyncKeyState reads unexpected \
 				virtual key value like '0xFF'.
 	);
@@ -1899,10 +1919,10 @@ b299
 			/ %'helpers' $=
 			(
 				/ DLD "input dispatching" @ "member function \
-					%ShlDS::OnGotMessage" >> %'DS main unit' ~ %'shells for DS',
-				/ "function %InitConsole" @ %'global helper unit'
-					>> 'DS main unit',
-				/ %'DS main unit' $=
+					%ShlDS::OnGotMessage" >> %'DSMain' ~ %'Shell_DS',
+				/ "function %InitConsole" @ %'YGlobal'
+					>> 'DSMain',
+				/ %'DSMain' $=
 				(
 					* "shells not destroyed before the application class \
 						destruction" $since b269,
@@ -1911,13 +1931,13 @@ b299
 				)
 			),
 			/ "improved implementation" @ "function %IsAbsolute"
-				@ %'YCLib'.'common file system APIs' $=
+				@ %'YCLib'.'FileSystem' $=
 			(
 				+ "support for absolute path beginning with 'sd:/'"
 					@ "platform %DS",
 				+ "implementation" @ "platform %MinGW32"
 			),
-			* "destructor" @ "class %Shell" @ %'core'.'shell abstraction'
+			* "destructor" @ "class %Shell" @ %'Core'.'YShell'
 				$since $before b132 $= (- "wrong assertion"),
 			* @ %GUI $since b298 $=
 			(
@@ -1943,12 +1963,12 @@ b299
 		),
 		/ %'YCLib' $=
 		(
-			/ %'common input APIs' $=
+			/ %'Input' $=
 			(
 				+ "header %Input.h for several input APIs";
 				/ "APIs moved"
 			),
-			/ %'debug helpers' $=
+			/ %'Debug' $=
 			(
 				+ "header %Debug.h for debugging and diagnose";
 				/ "APIs moved"
@@ -1956,7 +1976,7 @@ b299
 			(
 				+ "wide character string path support"
 					^ %'CHRLib'.'encoding conversion'
-					@ %'common file system APIs' @ "platform %MinGW32"
+					@ %'FileSystem' @ "platform %MinGW32"
 				$dep_to "wide character string path"
 			)
 		)
@@ -1976,14 +1996,14 @@ b298
 	(
 		/ %'YCLib' $=
 		(
-			/ "native key types" @ %'common input APIs',
-			/ "file system APIs" @ %'Native APIs' $=
+			/ "native key types" @ %'Input',
+			/ "file system APIs" @ %'NativeAPI' $=
 			(
 				+ DLD "assertions",
 				* "missing directory validation" @ "function %opendir"
 					@ "defined %YCL_MINGW32" $since b296
 			);
-			/% 'common file system APIs' $=
+			/% 'FileSystem' $=
 			(
 				/ "types and macros",
 				(
@@ -2015,7 +2035,7 @@ b298
 						Touch: (240ms, 60ms) -> (240ms, 80ms);
 			),
 			/ "key events response" @ "class %ShlDS" @ %'helpers'.'shells',
-			/ %'core'.'file system abstraction' $=
+			/ %'Core'.'YFileSystem' $=
 			(
 				/ @ "class %Path" $=
 				(
@@ -2042,7 +2062,7 @@ b298
 					files. Several implementations may cause access violation, \
 					see $ref b298.
 		),
-		* DLD "implementation" @ "unit %YNew" @ %'adaptors' $since b203
+		* DLD "implementation" @ "unit %YNew" @ %'Adaptor' $since b203
 	),
 	/ @ %'YBase' $=
 	(
@@ -2099,14 +2119,15 @@ b297
 		/ DLD "implementation" @ "class %Palette" ^ "initializer lists"
 			~ "assignments for efficiency" @ %'UI styles',
 		+ "blit algorithm implementation without pixel format dependency"
-			@ "unit YBlit" @ %'services',
+			@ "unit YBlit" @ %'Service',
 		* "using implicitly deleted copy constructor on events causing \
 			ill-formed program" @ "class %BorderBrush" @ %'GUI' $since b295,
-		/ %'core' $=
+		/ %'Core' $=
 		(
 			* "missing virtual destructor" @ "class %GraphicDevice"
-				@ %'devices' $since b296,
-			/ "message %SM_INPUT value and parameter type" @ %'messaging'
+				@ %'YDevice' $since b296,
+			/ "message %SM_INPUT value and parameter type"
+				@ %'YMessageDefinition'
 		),
 		* "accessing uninitialized member" @ "font cache" $since $before b132,
 		/ DLD "exposed message dealing interface" @ 'helpers',
@@ -2122,7 +2143,7 @@ b296
 	(
 		/ %'YSLib' $=
 		(
-			/ %'services' $=
+			/ %'Service' $=
 			(
 				/ @ "class %(BitmapBuffer; BitmapBufferEx)" $=
 				(
@@ -2148,10 +2169,10 @@ b296
 					assignment operators" @ "class %TextRegion",
 				- "member function %BitmapBuffer::BeFilledWith"
 			),
-			/ %'core' $=
+			/ %'Core' $=
 			(
 				+ $dev "exception specification %ynothrow"
-					@ "class %ValueObject" @ %'basic objects';
+					@ "class %ValueObject" @ %'YObject';
 				/ DLD @ "class %Message" @ %'message' $=
 				(
 					/ "unification operator" -> "copy assignment operator \
@@ -2203,9 +2224,9 @@ b296
 			),
 			/ %'helpers' $=
 			(
-				+ %'DS main unit';
+				+ %'DSMain';
 				/ "class (DSScreen, DSApplication, MainShell)"
-					>> %'DS main unit'
+					>> %'DSMain'
 			)
 		),
 		/ DLD %'YCLib' $=
@@ -2261,16 +2282,16 @@ b295
 				$= (+ "missing destructor" @ "class %AController"),
 			+ DLD "copy and move assignment operators" @ "class %View"
 		),
-		/ %'core'.'shell abstraction' $=
+		/ %'Core'.'YShell' $=
 		(
 			/ "interface of shell switching";
 			$dep_to "DS shell member functions",
-			- "message %(SM_ACTIVATED, SM_DEACTIVATED)" @ %'messaging'
+			- "message %(SM_ACTIVATED, SM_DEACTIVATED)" @ %'YMessageDefinition'
 		),
 		/ %'helpers' $=
 		(
-			- "global desktop" @ %'global helper unit',
-			/ %'shells for DS' $=
+			- "global desktop" @ %'YGlobal',
+			/ %'Shell_DS' $=
 			(
 				^ "dynamically allocated individual desktop objects"
 					~ "shared static desktop objects",
@@ -2300,7 +2321,7 @@ b294
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'core'.'events' $=
+		/ %'Core'.'YEvent' $=
 		(
 			+ "event priority type";
 			/ "event container" ^ "%multimap" ~ "list";
@@ -2331,7 +2352,7 @@ b294
 			+ "widget rendering state sharing between parent and children"
 		),
 		+ "protected boolean members to determine whether the desktops would \
-			be updated" @ %'helpers'.'shells for DS'
+			be updated" @ %'helpers'.'Shell_DS'
 	),
 	* $doc @ "function template %xcrease" @ %'YBase'.'YStandardEx'.'Utilities'
 		$since b243,
@@ -2362,10 +2383,10 @@ b293
 	);
 	/ %'YFramework' $=
 	(
-		/ DLD "helper function usings" @ "header yref.hpp" @ %'adaptors',
+		/ DLD "helper function usings" @ "header yref.hpp" @ %'Adaptor',
 			// Using of std::make_shared leads to code bloat for RTTI.
 		* "member function template parameter types missing '&&'"
-			@ "header %(yevent.hpp, yfunc.hpp)" @ %'core' $since b210,
+			@ "header %(yevent.hpp, yfunc.hpp)" @ %'Core' $since b210,
 		* "constructor template parameter type missing '&&'" @ "class %Widget"
 			@ 'GUI' $since b258,
 		/ %'GUI' $=
@@ -2390,7 +2411,7 @@ b293
 			+ "brush class %SolidBrush",
 			/ DLD "base controller methods" @ "class %AController"
 		),
-		/ "constructors" @ "class %Timer" @ %'services',
+		/ "constructors" @ "class %Timer" @ %'Service',
 		* DLD "missing 'const' when casting" @ "implementation"
 			@ "class %ValueObject" $since b217
 	),
@@ -2408,7 +2429,7 @@ b292
 		(
 			* "strict ISO C++ code compatibility" $since b273
 				$= (/ "assertion strings" @ "implementation unit %TextManager"
-					@ %'services' !^ "%__FUNCTION__"),
+					@ %'Service' !^ "%__FUNCTION__"),
 			/ %'GUI' $=
 			(
 				/ @ "class %DropDownList" $=
@@ -2462,7 +2483,7 @@ b291
 			$dep_to %'YReader'.'shells test example',
 			/ DLD "simplified implementation" @ "input functions"
 		);
-		/ "timers" @ '%YSLib'.'services'
+		/ "timers" @ '%YSLib'.'Service'
 		(
 			+ "class %HighResolutionClock" ^ "%std::(duration, time_point)",
 			+ "duration and time point types",
@@ -2508,7 +2529,7 @@ b290
 	/ %'YFramework'.'YSLib' $=
 	(
 		+ "stream encoding checking without BOM" @ "class %TextFile"
-			@ %'services',
+			@ %'Service',
 			// At most first 64 bytes would be read for checking, \
 				now only for UTF-8 and GBK.
 		$dep_to "no BOM checking";
@@ -2535,16 +2556,16 @@ b289
 		/ "return value" @ "overloading for sequence containers",
 		(
 			+ "overloading template for associative containers";
-			$dep_to %'YFramework'.'YSLib'.'core'.'messaging'
+			$dep_to %'YFramework'.'YSLib'.'Core'.'YMessage'
 		)
 	)
 	/ %'YFramework'.'YSLib' $=
 	(
 		+ DLD "protected member to expose current message"
-			@ "class %Application" @ %'core'.'application abstraction';
-		/ %'helpers'.'global helper unit' $=
+			@ "class %Application" @ %'Core'.'YApplication';
+		/ %'helpers'.'YGlobal' $=
 		(
-			/ %'global helper unit' $=
+			/ %'YGlobal' $=
 			(
 				+ "exposed const current message getter",
 				/ DLD "implementation" @ "main message loop"
@@ -2556,9 +2577,10 @@ b289
 				@ "class %Control" @ !^ "std::mem_fn" @ 'GUI';
 			$dep_to "class %ShlExplorer" @ %'shells test example'
 		),
-		/ @ %'core'.'messaging' $=
+		/ @ %'Core'.'YMessage' $=
 		(
-			+ "removing with specified bound and shell" @ "class %MessageQueue";
+			+ "removing operation with specified bound and shell"
+				@ "class %MessageQueue";
 			$dep_to %'YReader'.'text reader'
 		),
 		/ @ "class %ProgressBar" %'GUI' $=
@@ -2566,7 +2588,7 @@ b289
 			/ "refreshing efficiency improved",
 			/ "zero max value automatic set as 1" @ "constructor"
 		),
-		/ %'services' $=
+		/ %'Service' $=
 		(
 			/ @ "class %Timer" $=
 			(
@@ -2642,16 +2664,19 @@ b288
 		/ DLD "simplified implementation" @ "class %Thumb" @ %'GUI',
 		* DLD "comments" @ "header %ycutil.h" $since b281,
 		/ DLD "implementation" @ "idle handling",
-		/ %'core'.'messaging' $=
+		/ %'Core' $=
 		(
 			+ "member function %MessageQueue::GetMaxPriority"
-				@ "implementation" @ "message peeking",
+				@ "implementation" @ "message peeking" @ %'YMessage',
 			$dep_to "implementation" @ "main message loop";
-			- "shell message identifier %SM_DROP",
-			+ "shell message identifier %SM_TASK"
+			/ %'YMessageDefinition' $=
+			(
+				- "shell message identifier %SM_DROP",
+				+ "shell message identifier %SM_TASK"
+			)
 		),
 		/ DLD "implementation" @ "main message loop"
-			@ "member function %DSApplication::Run" @ %'global helper unit'
+			@ "member function %DSApplication::Run" @ %'YGlobal'
 	),
 	/ %'YReader' $=
 	(
@@ -2695,12 +2720,12 @@ b287
 			+ "member function %String::GetMBCS",
 			- "function %MBCSToString",
 			/ DLD "inheritance" @ "class %Path"
-				@ %'core'.'file system abstraction' ^ "class %String",
+				@ %'Core'.'YFileSystem' ^ "class %String",
 			- "local encoding alias %CP_Local"
 			/ "all pattern 'CP_*'" => "pattern 'CS_*'"
 		),
 		+ DLD "public inheritance %enabled_shared_from_this"
-			@ "class %Shell" @ %'core'.'shell abstraction'
+			@ "class %Shell" @ %'Core'.'YShell'
 	);
 	/ %'YReader'.'text reader' $=
 	(
@@ -2720,7 +2745,7 @@ b286
 		/ %'YSLib' $=
 		(
 			/ DLD "simplified inheritance" @ "class %Path"
-				@ %'core'.'file system abstraction',
+				@ %'Core'.'YFileSystem',
 			+ "constructor %String(ucs2string&&)" @ "class %String",
 			(
 				/ "class %Padding as literal type";
@@ -3115,7 +3140,7 @@ b274
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ "text rendering" @ %'services' $=
+		/ "text rendering" @ %'Service' $=
 		(
 			- DLD "all function %SetMarginOf",
 			* DLD "2 function template %PrintLine cannot used with \
@@ -3181,7 +3206,7 @@ b273
 		/ %'YSLib' $=
 		(
 			+ "mapping buffering" @ "class %TextFileBuffer"
-				@ "unit %TextManager" @ %'services',
+				@ "unit %TextManager" @ %'Service',
 			/ DLD "member functions and types" @ "class %(File, TextFile)"
 		),
 	),
@@ -3195,10 +3220,10 @@ b272
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'core' $=
+		/ %'Core' $=
 		(
-			/ "simplified implementation" @ %'messaging';
-			/ %'application abstraction' $=
+			/ "simplified implementation" @ %'YMessage';
+			/ %'YApplication' $=
 			(
 				- "messages producer calling" @ "function FetchMessage"
 				- "default log object" @ "class %Application",
@@ -3207,7 +3232,7 @@ b272
 					@ "directory %Helper"
 			)
 		);
-		/ %'global helper unit' $=
+		/ %'YGlobal' $=
 		(
 			/ "input message target type" ^ "class %InputContent"
 				~ "shared_ptr<InputContent>";
@@ -3250,7 +3275,7 @@ b271
 					/ "value type switched to float" ~ "u16"
 				)
 			),
-			/ %'messaging' $=
+			/ %'YMessage' $=
 			(
 				/ DLD "implementation of copying" @ "class %Message",
 				/ @ "class MessageQueue" $=

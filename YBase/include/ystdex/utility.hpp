@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r2047;
+\version r2238;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-07-24 15:58 +0800;
+	2012-07-26 16:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -264,6 +264,160 @@ get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 		p = new obj_type(f(yforward(args)...));
 	return *p;
 }
+
+
+/*!	\defgroup init_mgr Initialization Managers
+\brief 初始化管理器。
+\since build 328 。
+
+实现保存初始化和反初始化的状态的对象。不直接初始化对象，可以在头文件中直接定义。
+保证初始化满足特定条件。
+*/
+
+/*!
+\ingroup init_mgr
+\brief 使用引用计数的静态初始化管理器。
+\see http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter 。
+\warning 非线程安全。
+\since build 328 。
+
+静态初始化，通过引用计数保证所有在定义本类型的对象后已有静态对象被初始化。
+在所有翻译单元的本类型对象析构后自动反初始化。
+*/
+template<class _type, typename _tCount = size_t>
+class nifty_counter
+{
+public:
+	typedef _type object_type;
+	typedef _tCount count_type;
+
+	template<typename... _tParams>
+	nifty_counter(_tParams&&... args)
+	{
+		if(get_count()++ == 0)
+			get_object_ptr() = new _type(yforward(args)...);
+	}
+	~nifty_counter()
+	{
+		if(--get_count() == 0)
+			delete get_object_ptr();
+	}
+
+	static object_type&
+	get()
+	{
+		yassume(get_object_ptr());
+
+		return *get_object_ptr();
+	}
+
+private:
+	static count_type&
+	get_count()
+	{
+		static count_type count;
+
+		return count;
+	}
+	static object_type*&
+	get_object_ptr()
+	{
+		static object_type* ptr;
+
+		return ptr;
+	}
+
+public:
+	static count_type
+	use_count()
+	{
+		return get_count();
+	}
+};
+
+
+/*!
+\ingroup init_mgr
+\brief 使用 call_once 的静态初始化管理器。
+\tparam _tOnceFlag 初始化调用标识。
+\note 线程安全取决于 call_once 对 _tOnceFlag 的支持。
+	若对于支持 <mutex> 的实现，使用 std::once_flag ，对应 std::call_once ，
+	则是线程安全的；
+	若使用 bool ，对应 ystdex::call_once ，不保证线程安全。
+	其它类型可使用用户自行定义 call_once 。
+\since build 328 。
+\todo 使用支持 lambda pack 展开的实现构造模版。
+
+静态初始化，使用 _tOnceFlag 类型的静态对象表示初始化和反初始化状态，
+保证所有在定义本类型的对象后已有静态对象被初始化。
+在所有翻译单元的本类型对象析构后自动反初始化。
+初始化和反初始化调用没有限定符修饰的 call_once 初始化和反初始化。
+用户可以自定义 _tOnceFlag 实际参数对应的 call_once ，但声明
+	应与 std::call_once 和 ystdex::call_once 形式一致。
+*/
+template<typename _type, typename _tOnceFlag>
+class call_once_init
+{
+public:
+	typedef _type object_type;
+	typedef _tOnceFlag flag_type;
+
+	template<typename... _tParams>
+	call_once_init(_tParams&&... args)
+	{
+		call_once(get_init_flag(), init<_tParams...>, yforward(args)...);
+	}
+	~call_once_init()
+	{
+		call_once(get_uninit_flag(), uninit);
+	}
+
+	static object_type&
+	get()
+	{
+		yassume(get_object_ptr());
+
+		return *get_object_ptr();
+	}
+
+private:
+	static flag_type&
+	get_init_flag()
+	{
+		static flag_type flag;
+
+		return flag;
+	}
+
+	static object_type*&
+	get_object_ptr()
+	{
+		static object_type* ptr;
+
+		return ptr;
+	}
+
+	static flag_type&
+	get_uninit_flag()
+	{
+		static flag_type flag;
+
+		return flag;
+	}
+
+	template<typename... _tParams>
+	static void
+	init(_tParams&&... args)
+	{
+		get_object_ptr() = new object_type(yforward(args)...);
+	}
+
+	static void
+	uninit()
+	{
+		delete get_object_ptr();
+	}
+};
 
 
 /*!	\defgroup functors General Functors

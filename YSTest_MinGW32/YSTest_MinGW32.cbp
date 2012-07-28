@@ -103,11 +103,15 @@
 		<Unit filename="..\YSTest_ARM9\include\ColorPicker.h" />
 		<Unit filename="..\YSTest_ARM9\include\DSReader.h" />
 		<Unit filename="..\YSTest_ARM9\include\HexBrowser.h" />
+		<Unit filename="..\YSTest_ARM9\include\ReaderSetting.h" />
+		<Unit filename="..\YSTest_ARM9\include\ReadingList.h" />
 		<Unit filename="..\YSTest_ARM9\include\Shells.h" />
 		<Unit filename="..\YSTest_ARM9\include\ShlReader.h" />
 		<Unit filename="..\YSTest_ARM9\source\ColorPicker.cpp" />
 		<Unit filename="..\YSTest_ARM9\source\DSReader.cpp" />
 		<Unit filename="..\YSTest_ARM9\source\HexBrowser.cpp" />
+		<Unit filename="..\YSTest_ARM9\source\ReaderSetting.cpp" />
+		<Unit filename="..\YSTest_ARM9\source\ReadingList.cpp" />
 		<Unit filename="..\YSTest_ARM9\source\Shells.cpp" />
 		<Unit filename="..\YSTest_ARM9\source\ShlReader.cpp" />
 		<Unit filename="..\YSTest_ARM9\source\main.cpp" />

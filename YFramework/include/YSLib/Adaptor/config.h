@@ -10,14 +10,14 @@
 
 /*!	\file config.h
 \ingroup Adaptor
-\brief 库编译配置。
-\version r1598;
+\brief YSLib 库配置。
+\version r1611;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 161 。
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2012-06-05 03:07 +0800;
+	2012-07-26 02:48 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,6 +27,8 @@
 
 #ifndef YSL_INC_ADAPTOR_CONFIG_H_
 #define YSL_INC_ADAPTOR_CONFIG_H_
+
+#include <YCLib/Platform.h>
 
 //#define NDEBUG //!< 非调试模式。
 
@@ -39,10 +41,16 @@
 
 //#define YSL_MULTITHREAD //!< 多线程。
 
-#define YSL_USE_COPY_ON_WRITE //!< 写时复制。
-
-#ifdef YSL_MULTITHREAD
-#	undef YSL_USE_COPY_ON_WRITE
+/*!
+\def YSL_USE_COPY_ON_WRITE
+\brief 写时复制 。
+\since build 161 。
+*/
+#undef YSL_USE_COPY_ON_WRITE
+#if YCL_MULTITHREAD != 0
+#	define YSL_USE_COPY_ON_WRITE 0
+#else
+#	define YSL_USE_COPY_ON_WRITE 1
 #endif
 
 //#define YSL_USE_YASLI_VECTOR //!< 使用 yasli::vector 。

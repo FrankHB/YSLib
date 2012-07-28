@@ -58,11 +58,15 @@
 		<Unit filename="include\ColorPicker.h" />
 		<Unit filename="include\DSReader.h" />
 		<Unit filename="include\HexBrowser.h" />
+		<Unit filename="include\ReaderSetting.h" />
+		<Unit filename="include\ReadingList.h" />
 		<Unit filename="include\Shells.h" />
 		<Unit filename="include\ShlReader.h" />
 		<Unit filename="source\ColorPicker.cpp" />
 		<Unit filename="source\DSReader.cpp" />
 		<Unit filename="source\HexBrowser.cpp" />
+		<Unit filename="source\ReaderSetting.cpp" />
+		<Unit filename="source\ReadingList.cpp" />
 		<Unit filename="source\Shells.cpp" />
 		<Unit filename="source\ShlReader.cpp" />
 		<Unit filename="source\main.cpp" />
