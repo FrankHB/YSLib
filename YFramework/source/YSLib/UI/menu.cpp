@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1978;
+\version r1979;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-06-02 12:20:10 +0800;
 \par 修改时间:
-	2012-06-23 10:12 +0800;
+	2012-08-02 12:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -91,7 +91,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 			}
 		},
 		GetConfirmed() += [this](IndexEventArgs&& e){
-			if(this->Contains(e) && pHost && !ShowSub(e.Value))
+			if(Contains(e) && pHost && !ShowSub(e.Value))
 				pHost->HideAll();
 		}
 	);

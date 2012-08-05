@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2119;
+\version r2144;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2012-06-10 04:11 +0800;
+	2012-08-04 15:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -99,13 +99,11 @@ class fixed_point : operators::ordered_field_operators<
 	fixed_point<_tBase, _vInt, _vFrac>, operators::shiftable<fixed_point<
 	_tBase, _vInt, _vFrac>, std::size_t>>>
 {
-	static_assert(std::is_integral<_tBase>::value,
-		"Non-integral type found @ ystdex::fixed_point;");
+	static_assert(std::is_integral<_tBase>::value, "Non-integral type found.");
 	static_assert(_vInt < size_t(std::numeric_limits<_tBase>::digits),
-		"No sufficient fractional bits found @ ystdex::fixed_point;");
-	static_assert(_vInt + _vFrac
-		== size_t(std::numeric_limits<_tBase>::digits),
-		"Wrong total bits found @ ystdex::fixed_point;");
+		"No sufficient fractional bits found.");
+	static_assert(_vInt + _vFrac == size_t(std::numeric_limits<_tBase>::digits),
+		"Wrong total bits found.");
 
 	template<typename _OtherBase, size_t _vOtherInt, size_t _vOtherFrac>
 	friend class fixed_point;
@@ -177,19 +175,19 @@ public:
 	bool
 	operator<(const fixed_point& f) const ynothrow
 	{
-		return this->value < f.value;
+		return value < f.value;
 	}
 
 	bool
 	operator==(const fixed_point& f) const ynothrow
 	{
-		return this->value == f.value;
+		return value == f.value;
 	}
 
 	bool
 	operator!() const ynothrow
 	{
-		return this->value == 0;
+		return value == 0;
 	}
 
 	fixed_point
@@ -197,35 +195,35 @@ public:
 	{
 		fixed_point result;
 
-		result.value = -this->value;
+		result.value = -value;
 		return result;
 	}
 
 	fixed_point&
 	operator++() ynothrow
 	{
-		this->value += base_element();
+		value += base_element();
 		return *this;
 	}
 
 	fixed_point&
 	operator--() ynothrow
 	{
-		this->value -= base_element();
+		value -= base_element();
 		return *this;
 	}
 
 	fixed_point&
 	operator+=(const fixed_point& f) ynothrow
 	{
-		this->value += f.value;
+		value += f.value;
 		return *this;
 	}
 
 	fixed_point&
 	operator-=(const fixed_point& f) ynothrow
 	{
-		this->value -= f.value;
+		value -= f.value;
 		return *this;
 	}
 
@@ -233,38 +231,38 @@ public:
 	operator*=(const fixed_point& f) ynothrow
 	{
 		typename fixed_multiplicative<base_type>::type
-			tmp(this->value * f.value);
+			tmp(value * f.value);
 		yconstexpr size_t shift_bit_n(frac_bit_n
 			+ std::is_signed<base_type>::value);
 
-		this->value = tmp < 0 ? -(-tmp >> shift_bit_n) : tmp >> shift_bit_n;
+		value = tmp < 0 ? -(-tmp >> shift_bit_n) : tmp >> shift_bit_n;
 	// NOTE: Code below is only fit for unsigned type, due to there exists
 	//	implementation-defined in conversion and right shifting on
 	//	operands of signed types.
-	//	this->value = (typename fixed_multiplicative<base_type>::type(
-	//		this->value) * f.value) >> shift_bit_n;
+	//	value = (typename fixed_multiplicative<base_type>::type(value)
+	//		* f.value) >> shift_bit_n;
 		return *this;
 	}
 
 	fixed_point&
 	operator/=(const fixed_point& f) ynothrow
 	{
-		this->value = (typename fixed_multiplicative<base_type>::type(
-			this->value) << frac_bit_n) / f.value;
+		value = (typename fixed_multiplicative<base_type>::type(value)
+			<< frac_bit_n) / f.value;
 		return *this;
 	}
 
 	fixed_point&
 	operator>>=(size_t s) ynothrow
 	{
-		this->value >>= s;
+		value >>= s;
 		return *this;
 	}
 
 	fixed_point&
 	operator<<=(size_t s) ynothrow
 	{
-		this->value <<= s;
+		value <<= s;
 		return *this;
 	}
 
@@ -281,14 +279,14 @@ private:
 		_type>::type
 	cast() const
 	{
-		return this->value >> frac_bit_n;
+		return value >> frac_bit_n;
 	}
 	template<typename _type>
 	typename std::enable_if<std::is_floating_point<_type>::value,
 		_type>::type
 	cast() const
 	{
-		return _type(this->value) / base_element();
+		return _type(value) / base_element();
 	}
 
 public:

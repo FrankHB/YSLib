@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1502;
+\version r1503;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-06-04 17:13 +0800;
+	2012-08-03 22:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -583,6 +583,7 @@ struct make_natural_sequence
 	typedef typename make_successor<typename
 		make_natural_sequence<_vN - 1>::type>::type type;
 };
+
 template<>
 struct make_natural_sequence<0>
 {

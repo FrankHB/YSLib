@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2240;
+\version r2250;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-07-17 01:29 +0800;
+	2012-08-02 16:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -219,12 +219,11 @@ CheckInstall() ynothrow
 			{
 				std::puts("Creating configuration file...");
 
-				if(const auto fp = ufopen(CONF_PATH, "w"))
-				{
-					std::fprintf(fp, "%s%s\n%s\n%s\n", BOM_UTF_8,
-						DEF_DIRECTORY, DEF_FONT_PATH, DEF_FONT_DIRECTORY);
-					std::fclose(fp);
-				}
+				File tf(CONF_PATH, "w");
+
+				if(tf)
+					tf << BOM_UTF_8 << DEF_DIRECTORY << '\n'
+						<< DEF_FONT_PATH << '\n' << DEF_FONT_DIRECTORY << '\n';
 				else
 					throw LoggedEvent("Cannot create file.");
 			}

@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r1213;
+\version r1215;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203 。
 \par 创建时间:
 	2011-04-19 23:00:28 +0800;
 \par 修改时间:
-	2012-06-01 16:54 +0800;
+	2012-08-02 12:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -246,8 +246,7 @@ public:
 	void
 	Reset()
 	{
-		yunseq(this->head = 0, this->selected = 0, this->length = 1,
-			this->is_selected = false);
+		yunseq(head = 0, selected = 0, length = 1, is_selected = false);
 	}
 
 	/*!

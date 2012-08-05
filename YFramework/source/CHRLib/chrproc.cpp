@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r2099;
+\version r2103;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-07-09 09:27 +0800;
+	2012-08-04 08:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,7 @@ using std::tolower;
 using std::malloc;
 using std::strlen;
 using std::memcpy;
-using ystdex::sntctslen;
+using ystdex::ntctslen;
 using ystdex::input_monomorphic_iterator;
 
 
@@ -142,7 +142,7 @@ char*
 strdup(const ucs2_t* s, Encoding enc)
 {
 	// FIXME: size for max MBC sequence length > 4;
-	auto str(static_cast<char*>(malloc((ystdex::sntctslen(s) << 2) + 1)));
+	auto str(static_cast<char*>(malloc((ystdex::ntctslen(s) << 2) + 1)));
 
 	UCS2ToMBCS(str, s, enc);
 	return str;
@@ -160,7 +160,7 @@ ucsdup(const char* s, Encoding enc)
 ucs2_t*
 ucsdup(const ucs2_t* str)
 {
-	const size_t n(sntctslen(str) * sizeof(ucs2_t));
+	const size_t n(ntctslen(str) * sizeof(ucs2_t));
 	ucs2_t* const p(static_cast<ucs2_t*>(malloc(n + sizeof(ucs2_t))));
 
 	if(YB_LIKELY(p))
@@ -170,7 +170,7 @@ ucsdup(const ucs2_t* str)
 ucs2_t*
 ucsdup(const ucs4_t* s)
 {
-	ucs2_t* const p(static_cast<ucs2_t*>(malloc((sntctslen(s) + 1)
+	ucs2_t* const p(static_cast<ucs2_t*>(malloc((ntctslen(s) + 1)
 		* sizeof(ucs2_t))));
 
 	if(YB_LIKELY(p))

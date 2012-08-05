@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2131;
+\version r2133;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2012-06-23 10:51 +0800;
+	2012-08-02 12:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -139,7 +139,7 @@ public:
 	_type&
 	GetRef(bool b = true) ynothrow
 	{
-		return b ? this->X : this->Y;
+		return b ? X : Y;
 	}
 	/*!
 	\brief 选择分量常量引用。
@@ -149,7 +149,7 @@ public:
 	const _type&
 	GetRef(bool b = true) const ynothrow
 	{
-		return b ? this->X : this->Y;
+		return b ? X : Y;
 	}
 };
 

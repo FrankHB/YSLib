@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1964;
+\version r2038;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 23:14:41 +0800;
 \par 修改时间:
-	2012-07-16 20:27 +0800;
+	2012-08-04 08:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -91,7 +91,7 @@ public:
 
 	/*!
 	\brief 设置文件指针位置。
-	\note 参数和返回值语义同 std::fseek 。
+	\note 参数和返回值语义同 \c std::fseek 。
 	\since build 273 。
 	*/
 	PDefH(int, Seek, ptrdiff_t offset, int whence) const
@@ -99,7 +99,7 @@ public:
 
 	/*!
 	\brief 检测文件结束符。
-	\note 参数和返回值语义同 std::feof() 。
+	\note 参数和返回值语义同 \c std::feof() 。
 	*/
 	PDefH(int, CheckEOF) const
 		ImplRet(std::feof(fp))
@@ -115,13 +115,28 @@ private:
 public:
 	/*!
 	\brief 关闭文件。
+	\note 语义同 \c std::fclose 。
 	\note 清除文件指针。
 	*/
 	void
 	Close();
 
 	/*!
+	\brief 刷新流。
+	\return 若成功则为 0 ，否则为 \c EOF 。
+	\note 语义同 \c std::fflush 。
+	\warning 刷新输入流或最近操作为输入的流导致未定义行为。
+	\see ISO C11 7.21.5.2 。
+	\since build 329 。
+	*/
+	PDefH(int, Flush) const
+		ImplRet(std::fflush(fp))
+
+	/*!
 	\brief 以指定方式打开指定路径的文件。
+	\note 语义同 \c std::fopen 。
+	\note 对于输入 \c openmode ，使用 ystdex::openmode_conv 转换。
+	\see ISO C11 7.21.5.3 。
 	\since build 326 。
 	*/
 	//@{
@@ -136,8 +151,10 @@ public:
 	//@}
 
 	/*!
-	\brief 连续读 nmemb 个大小为 size 文件块到 ptr 中，语义同 std::fread 。
+	\brief 连续读 \c nmemb 个大小为 \c size 文件块到 \c ptr 中。
 	\return 返回成功读取的文件块数。
+	\note 语义同 \c std::fread 。
+	\see ISO C11 7.21.8.1 。
 	\since build 290 。
 	*/
 	PDefH(size_t, Read, void* ptr, size_t size = 1U, size_t nmemb = 1U) const
@@ -148,6 +165,16 @@ public:
 	*/
 	PDefH(void, Rewind) const
 		ImplRet(std::rewind(fp))
+
+	/*!
+	\brief 连续写 \c nmemb 个大小为 \c size 文件块到 \c ptr 中。
+	\return 返回成功写入的文件块数。
+	\note 语义同 \c std::fwrite 。
+	\see ISO C11 7.21.8.2 。
+	\since build 329 。
+	*/
+	PDefH(size_t, Write, void* ptr, size_t size = 1U, size_t nmemb = 1U) const
+		ImplRet(std::fwrite(ptr, size, nmemb, fp))
 };
 
 /*!
@@ -164,8 +191,7 @@ operator>>(File& f, typename std::char_traits<_tChar>::char_type& c)
 
 	const auto fp(f.GetPtr());
 
-	if(!std::feof(fp))
-		c = std::fgetc(fp);
+	c = std::fgetc(fp);
 	return f;
 }
 /*!
@@ -185,6 +211,52 @@ operator>>(File& f, _tString& str)
 
 	while((c = std::fgetc(fp)) > 0 && !std::iswspace(c))
 		str += c;
+	return f;
+}
+
+
+/*!
+\brief 向指定文件写字符。
+\param f 文件。
+\pre <tt>bool(f)</tt> 。
+\since build 326 。
+*/
+inline File&
+operator<<(File& f, char c)
+{
+	YAssert(bool(f), "Invalid file found.");
+
+	std::fputc(c, f.GetPtr());
+	return f;
+}
+/*!
+\brief 向指定文件写字符串。
+\param f 文件。
+\pre <tt>bool(f)</tt> 。
+\since build 326 。
+*/
+inline File&
+operator<<(File& f, const char* str)
+{
+	YAssert(bool(f), "Invalid file found.");
+
+	std::fputs(str, f.GetPtr());
+	return f;
+}
+/*!
+\brief 向指定文件写字符串。
+\param f 文件。
+\pre <tt>bool(f)</tt> 。
+\since build 326 。
+\todo 支持非 char 元素字符串。
+*/
+template<typename _tString>
+File&
+operator<<(File& f, const _tString& str)
+{
+	YAssert(bool(f), "Invalid file found.");
+
+	std::fputs(reinterpret_cast<const char*>(str.c_str()), f.GetPtr());
 	return f;
 }
 

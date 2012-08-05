@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.h
 \ingroup YReader
 \brief 阅读器设置数据。
-\version r1164;
+\version r1172;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328 。
 \par 创建时间:
 	2012-07-24 22:13:41 +0800;
 \par 修改时间:
-	2012-07-24 23:05 +0800;
+	2012-08-05 23:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -107,15 +107,10 @@ protected:
 	*/
 	DropDownList ddlEncoding;
 	/*!
-	\brief 复选框：选定自动光滑滚屏。
-	\since build 292 。
+	\brief 复选按钮：选定自动光滑滚屏。
+	\since build 329 。
 	*/
-	CheckBox chkSmoothScroll;
-	/*!
-	\brief 标签：选定自动光滑说明。
-	\since build 292 。
-	*/
-	Label lblSmoothScroll;
+	CheckButton cbSmoothScroll;
 	/*!
 	\brief 下拉列表：自动滚屏时间设置。
 	\since build 292 。

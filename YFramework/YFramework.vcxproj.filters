@@ -820,14 +820,14 @@
     <ClCompile Include="source\Helper\InputManager.cpp">
       <Filter>源文件\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="..\doc\ex.cpp">
-      <Filter>文档</Filter>
-    </ClCompile>
     <ClCompile Include="source\CHRLib\MapEx.cpp">
       <Filter>源文件\CHRLib</Filter>
     </ClCompile>
     <ClCompile Include="source\YCLib\MemoryMapping.cpp">
       <Filter>源文件\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\doc\ex.cpp">
+      <Filter>文档</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

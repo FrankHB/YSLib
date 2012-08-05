@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7338;
+\version r7368;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-25 20:16 +0800;
+	2012-08-04 15:31 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -101,6 +101,22 @@
 @1.2.3 设计意义：
 环境隔离：对特定领域相关的上层源代码提供一致的接口。
 抽象和封装：提供控制流实体语义的抽象；提供用于封装上层平台相关的模块的支持。
+
+@1.2.4 组织约定：
+
+@1.2.4.1 模块和模块目录：
+基本翻译单元或无源文件对应的头文件称为模块(module) 。一个模块目录是某个抽象路径中的模块的集合。
+一个模块仅可属于一个模块目录。
+模块和模块目录以类 C++ qualified-id 语法组成的名称表示，形式定义如下：
+module-name:
+	identifier
+module-directory:
+	identifier
+	module-directory :: identifier
+nested-module-name:
+	module-name
+	module-directory :: module-name
+如无特别指明，以下所指的模块名都是（简单）模块名 module-name 。
 
 @1.3 构建原则：
 基本内容参见 [Documentation::CommonRules @@2.2] 。
@@ -312,7 +328,7 @@
 
 @2.1.1 头文件附加准则：
 禁止在头文件中使用不具名命名空间(unnamed namespace) ，除非其中仅含 inline 函数和模板或需要和每一个翻译单元独立地相关的对象。
-禁止在头文件中使用全局 using 指示符，除非是有意的（例如减少别名个数；需在文档中说明）。
+禁止在头文件中使用全局 using 指示，除非是有意的（例如减少别名个数；需在文档中说明）。
 
 @2.1.2 全局名称：
  YSLib 库的根命名空间为 YSLib ，应置于全局命名空间中，即为 ::YSLib 。
@@ -334,6 +350,9 @@
 @2.1.4 名称引用限制：
 除 Adaptor 外， YSLib 命名空间下不直接使用 YSLib 、 std 和 ystdex 以外的根命名空间以及其中的名称；不直接使用 std::tr1 及其中的名称。
 不使用除了 operator new 、 operator new[] 、 operator delete 、 operator delete[] 和 main 以外的全局命名空间中的名称。
+
+@2.1.5 附加名称限制：
+不在 Adaptor 和 Helper 等确定可以使用平台相关的代码以外区域使用环境、编译器和版本判断宏。
 
 @2.2 实体实现规则：
 
@@ -899,9 +918,9 @@
 以下节指定 YFramework 中明确或明确禁止依赖的文件。关于 YBase 的文件依赖性参见 @5.1.1.1.1 。
 
 @2.9.1 基本代码依赖性（适用于 YFramework 内部）：
- YSLib 文件中，文件名以 y 或 Y 起始且模块名以 Y 起始的文件为必要文件，其它为非必要文件。
+ YSLib 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
- Adaptor 中的 config.h 不依赖 <YCLib/Platform.h> 以外的其它文件，可被 Adaptor 中的头文件直接包含。
+ Adaptor 中的 config.h 不依赖 <YCLib/Platform.h> 以外的其它文件，仅可被 Adaptor 中的头文件直接包含。
 任意 YFramework 文件可依赖 @2.9 余下部分指定的标准库头文件以及 YBase 头文件。
 必要文件不依赖非必要文件。
  YCLib 仅可被 YCLib 、 YSLib 和 Helper 依赖。
@@ -1056,13 +1075,27 @@
 基于 YBase 的平台隔离用库 YCLib ，包含于 YFramework 中。
 
 @5.1.1.1 YBase ：
- YBase 的 LibDefect 不保证可重入性和线程安全性由 ISO C++11 规范。
+ YBase 除了公用头文件 YDefinition(ydef.h) 外，由 YStandardEx 、 LibDefect 和 YTest 子库组成。
+ LibDefect 不保证可重入性和线程安全性由 ISO C++11 规范。
 除非另有说明， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
 
 @5.1.1.1.1 文件依赖性：
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
  ydef.h 仅依赖标准库头文件。
  YBase 依赖且仅依赖 YBase 文件和标准库头文件。
+
+@5.1.1.1.2 YStandardEx ：
+ YStandardEx 直接扩充标准库，包含仅依赖于标准库而非标准库的接口。
+实现的内容限制为以下两个部分：
+适用范围最广的基础设施（比标准库更严格），如序列/非序列调用、通用类型转换、元类型、函数对象、迭代器；
+直接基于标准库接口的抽象和封装，如输入/输出抽象。
+所有更具体应用问题领域相关的或特定于运行时表达形式相关的操作，如形式语言处理等，都不由 YStandardEx 直接提供接口。
+
+@5.1.1.1.3 LibDefect ：
+用于修正依赖的标准库实现因不完善或配置问题等与标准规定的接口的偏差。
+
+@5.1.1.1.4 YTest ：
+提供软件测试需要的一些功能的辅助库。
 
 @5.1.1.2 YCLib ：
  YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.1.3.1 ）。

@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1858;
+\version r1878;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2012-06-01 16:31 +0800;
+	2012-08-04 00:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "any.h"
 #include <iterator>
 #include <utility>
-#include <memory> // for std::addressof;
+#include "memory.hpp" // for std::addressof, ystdex::is_dereferencable,
+//	ystdex::is_undereferencable;
 #include "type_op.hpp" // for *_tag, remove_reference;
 #include <tuple>
 
@@ -91,75 +92,75 @@ public:
 	yconstfn reference
 	operator*() const
 	{
-		return *this->current;
+		return *current;
 	}
 
 	yconstfn pointer
 	operator->() const
 	{
-		return this->current;
+		return current;
 	}
 
 	inline pointer_iterator&
 	operator++()
 	{
-		++this->current;
+		++current;
 		return *this;
 	}
 	yconstfn pointer_iterator
 	operator++(int)
 	{
-		return this->current++;
+		return current++;
 	}
 
 	inline pointer_iterator&
 	operator--()
 	{
-		--this->current;
+		--current;
 		return *this;
 	}
 	yconstfn pointer_iterator
 	operator--(int)
 	{
-		return this->current--;
+		return current--;
 	}
 
 	yconstfn reference
 	operator[](const difference_type& n) const
 	{
-		return this->current[n];
+		return current[n];
 	}
 
 	inline pointer_iterator&
 	operator+=(const difference_type& n)
 	{
-		this->current += n;
+		current += n;
 		return *this;
 	}
 
 	yconstfn pointer_iterator
 	operator+(const difference_type& n) const
 	{
-		return pointer_iterator(this->current + n);
+		return pointer_iterator(current + n);
 	}
 
 	inline pointer_iterator&
 	operator-=(const difference_type& n)
 	{
-		this->current -= n;
+		current -= n;
 		return *this;
 	}
 
 	yconstfn pointer_iterator
 	operator-(const difference_type& n) const
 	{
-		return pointer_iterator(this->current - n);
+		return pointer_iterator(current - n);
 	}
 
 	yconstfn
 	operator pointer() const
 	{
-		return this->current;
+		return current;
 	}
 };
 
@@ -339,23 +340,23 @@ public:
 	inline result
 	operator*()
 	{
-		return this->transformer(this->get());
+		return transformer(get());
 	}
 	inline const_result
 	operator*() const
 	{
-		return this->transformer(this->get());
+		return transformer(get());
 	}
 
 	inline result*
 	operator->()
 	{
-		return std::addressof(this->operator*());
+		return std::addressof(operator*());
 	}
 	inline const_result*
 	operator->() const
 	{
-		return std::addressof(this->operator*());
+		return std::addressof(operator*());
 	}
 
 	/*!

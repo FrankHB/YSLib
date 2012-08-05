@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4300; *build 328 rev 22;
+\version r4303; *build 329 rev 1;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-07-28 17:21 +0800;
+	2012-08-05 23:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -384,105 +384,111 @@ $using:
 
 $DONE:
 r1:
-/ @ \h Video $=
-(
-	+ \ns Consoles @ \ns platform;
-	+ typedef \en Color @ \ns Consoles;
-	+ \o yconstexpr platform::Color ConsoleColors[] @ \ns Consoles
-);
+- redundant 'this->' for non-dependant \n @ \clt ((pointer_iterator,
+	transformed_iterator) @ \h Iterator, fixed_point @ \h Rational,
+	(GHEvent, GEvent) @ \h YEvent, GBinaryGroup @ \h YGDIBase,
+	GSequenceViewer @ \h Viewer,
+/ \simp \impl @ \ctor Menu;
 /= test 1 @ platform MinGW32;
 
 r2:
-/= test 2 @ platform MinGW32 ^ \conf release;
+/= test 2 @ platform DS;
 
-r3:
-+ \u (ReaderSetting["ReaderSetting.h", "ReaderSetting.cpp"],
-	ReadingList["ReadingList.h", "ReadingList.cpp"]) @ \dir YSTest_ARM9;
-/ \cl (ReaderSetting, SettingPanel) @ \u ShlReader >> \u ReaderSetting,
+r3-r5:
+/ @ \h YFile $=
 (
-	+ \inc \h Iterator @ \impl \u ReaderSetting;
-	/ \inc \h ColorPicker @ \h ShlReader >> \h ReaderSetting,
-	/ \f FetchEncodingString @ \un \ns @ \impl \u ShlReader
-		>> \ns YReader @ \u ReaderSetting
-	/ \cl (BookMark, ReadingList) @ \u ShlReader >> \u ReadingList
-);
-+ \h (ReaderSetting, ReadingList) @ \impl \u ShlReader;
-/= test 3 @ platform MinGW32;
-
-r4:
-/= test 4 @ platform DS;
-
-r5:
-/= test 5 @ platform MinGW32 ^ \conf release;
+	+ \mf File::Write;
+	+ (2 \f \i, \ft) \op<<,
+	/ ignore EOF check @ \impl @ \ft \op>>#1
+),
+/ \simp \impl @ \f CheckInstall @ \impl \u Initialization,
+/= 3 test 3 @ platform MinGW32;
 
 r6:
-/= test 6 @ platform DS ^ \conf release;
++ \mf File::Flush @ \h YFile,
+* missing \decl ystdex::(is_dereferencable, is_undereferencable) @ \h Iterator
+	$since b250 $= (/ \inc \h <memory> -> \h Memory);
+/= test 4 @ platform MinGW32 ^ \conf release;
 
 r7:
-+ \clt nifty_counter @ \h Utilities;
-/ @ \h Configuration $=
+/ @ \h CString $=
 (
-	+ \inc \h Platform;
-	/ @ \mac \def YSL_USE_COPY_ON_WRITE
-);
-/ @ \h YNew $=
-(
-	+ \inc \h <stdatomic> @ YCL_MULTITHREAD == 1;
-	/ @ defined YSL_USE_MEMORY_DEBUG $=
+	/ \ft sntctslen => \ft ntctslen,
 	(
-		/ \ctor @ \cl MemoryList -> DefDeCtor(MemoryList),
-		- \de \arg @ \ctor MemoryList::NewRecorder;
-		+ \o DebugMemoryListManager @ \un \ns @ \ns YSLib;
-		- \f GetDebugMemoryList
+		+ \inc \h <string>;
+		/ \ft<_tChar> wint_t sntctscmp(const _tChar*, const _tChar*)
+			-> \ft<_tChar> typename std::char_traits<_tChar>::int_type
+			ntctscmp(const _tChar*, const _tChar*),
+		/ \ft<_tChar> wint_t sntctsicmp(const _tChar*, const _tChar*)
+			-> \ft<_tChar> typename std::char_traits<_tChar>::int_type
+			ntctsicmp(const _tChar*, const _tChar*)
 	)
 ),
-/ \tr \impl @ \impl \u Main_ARM9;
-/= test 7 @ platform MinGW32;
+/ \tr \impl @ \impl \u CharacterProcessing;
+/= test 5 @ platform MinGW32;
 
 r8:
-/= test 8 @ platform DS;
++ \mac YB_ALLOW_RUNTIME_CONSTALGO @ \h YDefinition,
++ \ft<_tChar> yconstexpr bool is_null(_tChar) @ \h CString;
+/ @ (YB_HAS_CONSTEXPR || YB_ALLOW_RUNTIME_CONSTALGO) @ \h CString $=
+(
+	/ \simp \impl @ \ft (ntctslen, ntctscmp, ntctsicmp) ^ ystdex::is_null,
+	+ yconstexpr \ft const_ntctslen,
+	+ 2 yconstexpr \ft const_ntctscmp
+);
+/= test 6 @ platform MinGW32;
 
 r9:
-/= test 9 @ platform MinGW32 ^ \conf release;
+/ \simp \s \as \str @ \clt fixed_point @ \h Rational;
+/= test 7 @ platform DS ^ \conf release;
 
 r10:
-/= test 10 @ platform DS ^ \conf release;
+/ @ \h CString $=
+(
+	/ \a \ft @ (YB_HAS_CONSTEXPR || YB_ALLOW_RUNTIME_CONSTALGO) => \h;
+	+ \ft (const_ntctschr, const_ntctscnt)
+);
+- \f YB_ALLOW_RUNTIME_CONSTALGO @ \h YDefinition;
+/= test 8 @ platform MinGW32;
 
 r11:
-/ \impl @ \ctor @ \clt nifty_counter @ \h Utilities;
+/= test 9 @ platform MinGW32 ^ \conf release;
+
+r12:
++ \ft (const_ntctschrn, const_ntctsstr) @ \h CString;
+/= test 10 @ platform MinGW32;
+
+r13:
+/ @ \cl SettingPanel @ \u ReaderSetting $=
+(
+	/ \m CheckBox chkSmoothScroll -> CheckButton cbSmoothScroll,
+	- \m Label lblSmoothScroll,
+	/ \tr \impl @ \ctor
+);
 /= test 11 @ platform MinGW32;
 
-r12-r15:
-/= 4 test 12 @ platform MinGW32;
+r14:
+/= test 12 @ platform MinGW32 ^ \conf release;
 
-r16-r19:
-+ \clt call_once_init @ \ns ystdex @ \h Utilities,
-* wrong recodings ^ DLL @ platform MinGW32 @ $since r7 $=
-	($revert \u (YNew, Main_ARM9));
-/= 4 test 13 @ platform MinGW32;
+r15:
+/= test 13 @ platform DS;
 
-r20:
-/= test 14 @ platform MinGW32 ^ \conf release;
-
-r21:
-/= test 15 @ platform DS;
-
-r22:
-/= test 16 @ platform DS ^ \conf release;
+r16:
+/= test 14 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-07-28:
--27.6d;
-// Mercurial rev1-rev196: r8947;
+2012-08-05 +0800:
+-29.9d;
+// Mercurial rev1-rev201: r8963;
 
 / ...
 
 
 $NEXT_TODO:
-b329-b348:
+b330-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -852,6 +858,7 @@ $module_tree $=
 			'TypeOperations',
 			'Any',
 			'CStandardIO',
+			'CString',
 			'Iterator',
 			'Algorithms',
 			'Utilities',
@@ -931,6 +938,44 @@ $module_tree $=
 );
 
 $now
+(
+	- DLD "redundant 'this->' for non-dependant names" @ "templates",
+	/ $lib %'YFramework' $=
+	(
+		/ @ "unit %YFile" @ %'YSLib'.'Service' $=
+		(
+			+ "member function %(Write, Flush)" @ "class %File",
+			+ "2 operator<< for output",
+			/ "ignore EOF check" @ "implementation"
+				@ "1st operator<< for input";
+		);
+		/ DLD "simplified implementation" @ "function %CheckInstall"
+			@ %'Helper'.'Initialization'
+	)
+	/ $lib %'YBase'.'YStandardEx' $=
+	(
+		* "missing declaration %ystdex::(is_dereferencable, \
+			is_undereferencable)" %'Iterator' $since b250
+			$= (/ "including header %<memory>" -> "header %memory.hpp"),
+		/ %'CString' $=
+		(
+			/ "function template %sntctslen" => "%ntctslen",
+			(
+				(
+					+ "including header %<string>";
+					/ "returning types of function templates for NTCTS \
+						comparing" ^ "%std::char_traits::int_type" ~ "%wint_t",
+					/ "names of function templates for NTCTS",
+				),
+				+ "compile-time algorithm yconstexpr function template \
+					%(const_ntctschr, const_ntctscnt, const_ntctslen, \
+					const_ntctscmp, const_ntctschrn, const_ntctsstr)"
+			)
+		)
+	)
+),
+
+b328
 (
 	+ $lib "console color enum" @ 'YCLib'.'Video',
 	/ DLD "split unit" %'YReader',
@@ -2953,7 +2998,7 @@ b279
 	),
 	/ %'YReader'.'text reader' $=
 	(
-		/ $dev $design "simplefied color APIs" @ "class %DualScreenReader";
+		/ $dev $design "simplified color APIs" @ "class %DualScreenReader";
 		/ @ "setting panel" $=
 		(
 			/ "control appearance" !^ ("border", ^ "the top desktop")

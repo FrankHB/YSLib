@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5046;
+\version r5069;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-07-23 20:07 +0800;
+	2012-08-02 12:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -124,7 +124,7 @@ public:
 	yconstfn bool
 	operator==(const GHEvent& h) const
 	{
-		return this->comp_eq == h.comp_eq && (this->comp_eq(*this, h));
+		return comp_eq == h.comp_eq && (comp_eq(*this, h));
 	}
 
 	/*!
@@ -232,7 +232,7 @@ public:
 	inline GEvent&
 	operator=(const GEvent& e)
 	{
-		this->List = e.List;
+		List = e.List;
 		return *this;
 	}
 	/*!
@@ -273,7 +273,7 @@ public:
 	inline GEvent&
 	operator+=(const HandlerType& h)
 	{
-		return this->Add(h);
+		return Add(h);
 	}
 	/*!
 	\brief 添加事件响应：使用事件处理器。
@@ -282,7 +282,7 @@ public:
 	inline GEvent&
 	operator+=(HandlerType&& h)
 	{
-		return this->Add(std::move(h));
+		return Add(std::move(h));
 	}
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
@@ -292,7 +292,7 @@ public:
 	inline GEvent&
 	operator+=(_type&& _arg)
 	{
-		return this->Add(HandlerType(yforward(_arg)));
+		return Add(HandlerType(yforward(_arg)));
 	}
 
 	/*!
@@ -302,7 +302,7 @@ public:
 	operator-=(const HandlerType& h)
 	{
 		ystdex::erase_all_if<ContainerType>(List, List.begin(), List.end(),
-			[&](decltype(*this->List.begin())& pr){
+			[&](decltype(*List.begin())& pr){
 			return pr.second == h;
 		});
 		return *this;
@@ -335,7 +335,7 @@ public:
 	inline GEvent&
 	Add(const HandlerType& h, EventPriority prior = DefaultEventPriority)
 	{
-		this->List.insert(make_pair(prior, h));
+		List.insert(make_pair(prior, h));
 		return *this;
 	}
 	/*!
@@ -346,7 +346,7 @@ public:
 	inline GEvent&
 	Add(HandlerType&& h, EventPriority prior = DefaultEventPriority)
 	{
-		this->List.insert(make_pair(prior, std::move(h)));
+		List.insert(make_pair(prior, std::move(h)));
 		return *this;
 	}
 	/*!
@@ -358,7 +358,7 @@ public:
 	inline GEvent&
 	Add(_type&& _arg, EventPriority prior = DefaultEventPriority)
 	{
-		return this->Add(HandlerType(yforward(_arg)), prior);
+		return Add(HandlerType(yforward(_arg)), prior);
 	}
 	/*!
 	\brief 添加事件响应：使用对象引用、成员函数指针和优先级。
@@ -370,7 +370,7 @@ public:
 	Add(_tObj& obj, void(_type::*pm)(_tEventArgs&&),
 		EventPriority prior = DefaultEventPriority)
 	{
-		return this->Add(HandlerType(static_cast<_type&>(obj), std::move(pm)),
+		return Add(HandlerType(static_cast<_type&>(obj), std::move(pm)),
 			prior);
 	}
 
@@ -400,7 +400,7 @@ public:
 	inline GEvent&
 	AddUnique(_type&& _arg, EventPriority prior = DefaultEventPriority)
 	{
-		return this->AddUnique(HandlerType(yforward(_arg)), prior);
+		return AddUnique(HandlerType(yforward(_arg)), prior);
 	}
 	/*!
 	\brief 添加单一事件响应：使用对象引用和成员函数指针。
@@ -411,8 +411,8 @@ public:
 	AddUnique(_type& obj, void(_type::*pm)(_tEventArgs&&),
 		EventPriority prior = DefaultEventPriority)
 	{
-		return this->AddUnique(HandlerType(static_cast<_type&>(obj),
-			std::move(pm)), prior);
+		return AddUnique(HandlerType(static_cast<_type&>(obj), std::move(pm)),
+			prior);
 	}
 
 	/*!
@@ -434,8 +434,8 @@ public:
 	{
 		using ystdex::get_value;
 
-		return std::find(this->List.cbegin() | get_value,
-			this->List.cend() | get_value, h) != this->List.cend();
+		return std::find(List.cbegin() | get_value, List.cend() | get_value, h)
+			!= List.cend();
 	}
 	/*!
 	\brief 判断是否包含单一构造参数指定的事件响应。
@@ -445,7 +445,7 @@ public:
 	inline bool
 	Contains(_type&& _arg) const
 	{
-		return this->Contains(HandlerType(yforward(_arg)));
+		return Contains(HandlerType(yforward(_arg)));
 	}
 
 	/*!
@@ -460,8 +460,8 @@ public:
 
 		SizeType n(0);
 
-		std::for_each(this->List.cbegin(), this->List.cend(),
-			[&](decltype(*this->List.cbegin())& pr){
+		std::for_each(List.cbegin(), List.cend(),
+			[&](decltype(*List.cbegin())& pr){
 			try
 			{
 				pr.second(std::move(e));
@@ -476,19 +476,19 @@ public:
 	/*!
 	\brief 取列表中的响应数。
 	*/
-	inline DefGetter(const ynothrow, SizeType, Size, this->List.size())
+	inline DefGetter(const ynothrow, SizeType, Size, List.size())
 
 	/*!
 	\brief 清除：移除所有事件响应。
 	*/
 	inline PDefH(void, Clear)
-		ImplRet(this->List.clear())
+		ImplRet(List.clear())
 
 	/*
 	\brief 交换。
 	*/
 	inline PDefH(void, Swap, GEvent& e) ynothrow
-		ImplRet(this->List.swap(e))
+		ImplRet(List.swap(e))
 };
 
 

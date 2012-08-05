@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r1202;
+\version r1212;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328 。
 \par 创建时间:
 	2012-07-24 22:14:21 +0800;
 \par 修改时间:
-	2012-07-24 23:02 +0800;
+	2012-08-05 23:26 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -58,8 +58,7 @@ SettingPanel::SettingPanel()
 	ddlEncoding(Rect(20, 128, 192, 22), share_raw(new
 		TextList::ListType(Encodings | ystdex::get_value, (Encodings
 		+ arrlen(Encodings)) | ystdex::get_value))),
-	chkSmoothScroll(Rect(20, 162, 13, 13)),
-	lblSmoothScroll(Rect(33, 160, 60, 20)),
+	cbSmoothScroll(Rect(20, 160, 72, 18)),
 	ddlScrollTiming(Rect(96, 160, 128, 22)),
 	boxColor(Point(4, 80)), pColor(), current_encoding(),
 	scroll_duration(), smooth_scroll_duration()
@@ -73,8 +72,8 @@ SettingPanel::SettingPanel()
 	});
 
 	AddWidgets(*this, btnFontSizeDecrease, btnFontSizeIncrease, btnSetUpBack,
-		btnSetDownBack, btnTextColor, ddlFont, ddlEncoding, chkSmoothScroll,
-		lblSmoothScroll, ddlScrollTiming),
+		btnSetDownBack, btnTextColor, ddlFont, ddlEncoding, cbSmoothScroll,
+		ddlScrollTiming),
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false);
 	yunseq(
@@ -83,7 +82,7 @@ SettingPanel::SettingPanel()
 		btnSetUpBack.Text = u"上屏颜色...",
 		btnSetDownBack.Text = u"下屏颜色...",
 		btnTextColor.Text = u"文字颜色...",
-		lblSmoothScroll.Text = u"平滑滚屏",
+		cbSmoothScroll.Text = u"平滑滚屏",
 	//	FetchEvent<Paint>(lblColorAreaUp).Add(BorderBrush(BorderStyle),
 	//		BoundaryPriority),
 	//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
@@ -133,7 +132,7 @@ SettingPanel::SettingPanel()
 				lblAreaDown.Text = FetchEncodingString(e.Value)),
 			Invalidate(lblAreaDown);
 		},
-		chkSmoothScroll.GetTicked() += [this](CheckBox::TickedArgs&& e){
+		cbSmoothScroll.GetTicked() += [this](CheckBox::TickedArgs&& e){
 			using ystdex::get_init;
 
 			static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
@@ -158,7 +157,7 @@ SettingPanel::SettingPanel()
 			Invalidate(ddlScrollTiming);
 		},
 		ddlScrollTiming.GetConfirmed() += [this](IndexEventArgs&& e){
-			if(chkSmoothScroll.IsTicked())
+			if(cbSmoothScroll.IsTicked())
 				smooth_scroll_duration = milliseconds((e.Value + 1U) * 10);
 			else
 				scroll_duration = milliseconds((e.Value + 1U) * 100);
@@ -182,14 +181,14 @@ SettingPanel::operator<<(const ReaderSetting& s)
 {
 	yunseq(scroll_duration = s.ScrollDuration,
 		smooth_scroll_duration = s.SmoothScrollDuration),
-	chkSmoothScroll.Tick(s.SmoothScroll);
+	cbSmoothScroll.Tick(s.SmoothScroll);
 	return *this;
 }
 
 SettingPanel&
 SettingPanel::operator>>(ReaderSetting& s)
 {
-	yunseq(s.SmoothScroll = chkSmoothScroll.IsTicked(),
+	yunseq(s.SmoothScroll = cbSmoothScroll.IsTicked(),
 		s.ScrollDuration = scroll_duration,
 		s.SmoothScrollDuration = smooth_scroll_duration);
 	return *this;
