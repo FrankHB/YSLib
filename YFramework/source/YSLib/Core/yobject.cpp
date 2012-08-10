@@ -11,12 +11,13 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r1585;
+\version r1602;
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-03-22 22:09 +0800;
+	2012-08-09 03:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -73,6 +74,28 @@ ValueObject::Swap(ValueObject& c) ynothrow
 	std::swap(manager, c.manager);
 	std::swap(obj_ptr, c.obj_ptr);
 }
+
+
+namespace
+{
+
+//! \since build 330 。
+ValueNode::Container*
+CloneNodeContainer(const ValueNode::Container& cont)
+{
+	const auto p(new ValueNode::Container());
+
+	for(const auto& pr : cont)
+		p->insert(pr);
+	return p;
+}
+
+} // unnamed namespace;
+
+ValueNode::ValueNode(const ValueNode& n)
+	: ValueObject(static_cast<const ValueObject&>(n)), name(n),
+	pNodes(pNodes ? CloneNodeContainer(*pNodes) : nullptr)
+{}
 
 YSL_END
 

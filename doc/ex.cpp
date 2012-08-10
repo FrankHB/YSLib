@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4303; *build 329 rev 1;
+\version r4327; *build 330 rev 1;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-08-05 23:56 +0800;
+	2012-08-10 10:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -384,111 +384,100 @@ $using:
 
 $DONE:
 r1:
-- redundant 'this->' for non-dependant \n @ \clt ((pointer_iterator,
-	transformed_iterator) @ \h Iterator, fixed_point @ \h Rational,
-	(GHEvent, GEvent) @ \h YEvent, GBinaryGroup @ \h YGDIBase,
-	GSequenceViewer @ \h Viewer,
-/ \simp \impl @ \ctor Menu;
+/ @ \u ShlReader $=
+(
+	/ @ \cl ReaderBox $=
+	(
+		+ public \m Button btnSetting;
+		/ \impl @ \ctor,
+		/ \impl @ \mf (GetTopWidgetPtr, Refresh)
+	);
+	/ \impl @ \ctor ShlTextReader
+);
 /= test 1 @ platform MinGW32;
 
 r2:
-/= test 2 @ platform DS;
+/= test 2 @ platform DS ^ \conf release;
 
-r3-r5:
-/ @ \h YFile $=
+r3-r4:
+/ \impl @ 2 \mf Access @ \cl ValueObject,
+/= 2 test 3 @ platform MinGW32;
+
+r5:
 (
-	+ \mf File::Write;
-	+ (2 \f \i, \ft) \op<<,
-	/ ignore EOF check @ \impl @ \ft \op>>#1
+	/ \mac guard \n @ \h @ \dir Helper;
+	* $comp \mac guard \n @ \h Intiailzation $since b296
 ),
-/ \simp \impl @ \f CheckInstall @ \impl \u Initialization,
-/= 3 test 3 @ platform MinGW32;
+/ \mac guard \n @ \h @ \proj YSTest_ARM9;
+/= test 4 @ platform MinGW32;
 
 r6:
-+ \mf File::Flush @ \h YFile,
-* missing \decl ystdex::(is_dereferencable, is_undereferencable) @ \h Iterator
-	$since b250 $= (/ \inc \h <memory> -> \h Memory);
-/= test 4 @ platform MinGW32 ^ \conf release;
-
-r7:
-/ @ \h CString $=
+/ @ \u YObject $=
 (
-	/ \ft sntctslen => \ft ntctslen,
-	(
-		+ \inc \h <string>;
-		/ \ft<_tChar> wint_t sntctscmp(const _tChar*, const _tChar*)
-			-> \ft<_tChar> typename std::char_traits<_tChar>::int_type
-			ntctscmp(const _tChar*, const _tChar*),
-		/ \ft<_tChar> wint_t sntctsicmp(const _tChar*, const _tChar*)
-			-> \ft<_tChar> typename std::char_traits<_tChar>::int_type
-			ntctsicmp(const _tChar*, const _tChar*)
-	)
-),
-/ \tr \impl @ \impl \u CharacterProcessing;
+	+ \cl ValueNode;
+	+ 2 \f begin,
+	+ 2 \f end
+);
 /= test 5 @ platform MinGW32;
 
-r8:
-+ \mac YB_ALLOW_RUNTIME_CONSTALGO @ \h YDefinition,
-+ \ft<_tChar> yconstexpr bool is_null(_tChar) @ \h CString;
-/ @ (YB_HAS_CONSTEXPR || YB_ALLOW_RUNTIME_CONSTALGO) @ \h CString $=
+r7-r9:
+/ @ \u Shells $=
 (
-	/ \simp \impl @ \ft (ntctslen, ntctscmp, ntctsicmp) ^ ystdex::is_null,
-	+ yconstexpr \ft const_ntctslen,
-	+ 2 yconstexpr \ft const_ntctscmp
-);
-/= test 6 @ platform MinGW32;
-
-r9:
-/ \simp \s \as \str @ \clt fixed_point @ \h Rational;
-/= test 7 @ platform DS ^ \conf release;
+	+ \f CheckBackgroundPreview @ \un \ns @ \impl \u;
+	/ @ \cl ShlExplorer  $=
+	(
+		+ public \m CheckButton cbPreview @ \st TFormExtra;
+		/ \impl @ \ctor
+	)
+),
+/= 3 test 6 @ platform MinGW32;
 
 r10:
-/ @ \h CString $=
-(
-	/ \a \ft @ (YB_HAS_CONSTEXPR || YB_ALLOW_RUNTIME_CONSTALGO) => \h;
-	+ \ft (const_ntctschr, const_ntctscnt)
-);
-- \f YB_ALLOW_RUNTIME_CONSTALGO @ \h YDefinition;
-/= test 8 @ platform MinGW32;
+/ \impl @ \f WaitForInput @ \ns platform_ex @ \impl \u Input;
+/= test 7 @ platform MinGW32;
 
 r11:
-/= test 9 @ platform MinGW32 ^ \conf release;
+/ strict ISO C++11 compatibility $=
+(
+	* constexpr use @ derived \cl @ (\cl noncopyable @ \h Utilities) $since b246
+		$= (/ \impl @ (\ctor, \dtor) ^ \exp \de ~ \exp \em \impl);
+	* missing \n @ \decl @ scoped enumeration $since b261 $=
+	(
+		/ typedef \en \cl ScrollCategory @ \h Scroll !typedef \en \cl,
+		/ typedef \en \cl TextAlignment @ \h Label !typedef \en \cl
+	)
+);
+/= test 8 @ platform MinGW32;
 
 r12:
-+ \ft (const_ntctschrn, const_ntctsstr) @ \h CString;
-/= test 10 @ platform MinGW32;
+/= test 9 @ platform DS;
 
 r13:
-/ @ \cl SettingPanel @ \u ReaderSetting $=
-(
-	/ \m CheckBox chkSmoothScroll -> CheckButton cbSmoothScroll,
-	- \m Label lblSmoothScroll,
-	/ \tr \impl @ \ctor
-);
-/= test 11 @ platform MinGW32;
+/ \impl @ \mf ShlTextReader::Execute @ \impl \u ShlReader;
+/= test 10 @ platform MinGW32;
 
 r14:
-/= test 12 @ platform MinGW32 ^ \conf release;
+/= test 11 @ platform DS;
 
 r15:
-/= test 13 @ platform DS;
+/= test 12 @ platform MinGW32 ^ \conf release;
 
 r16:
-/= test 14 @ platform DS ^ \conf release;
+/= test 13 @ platform DS;
 
 
 $DOING:
 
 $relative_process:
-2012-08-05 +0800:
--29.9d;
-// Mercurial rev1-rev201: r8963;
+2012-08-10 +0800:
+-29.8d;
+// Mercurial rev1-rev202: r8979;
 
 / ...
 
 
 $NEXT_TODO:
-b330-b348:
+b331-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -498,15 +487,10 @@ b330-b348:
 
 
 $TODO:
-b349-b413:
+b349-b400:
 / services $=
 (
 	+ \impl @ images loading
-),
-/ $low_prior @ \lib YCLib $=
-(
-	+ fully implementation of memory mappaing APIs,
-	+ block file loading APIs @ YCommon
 ),
 / @ "GUI" $=
 (
@@ -541,8 +525,13 @@ b349-b413:
 	/ improved tests and examples
 );
 
-b414-b895:
-+ (memory mapping, shared memory) APIs @ YCommon,
+b401-b895:
+/ $low_prior @ \lib YCLib $=
+(
+	+ fully implementation of memory mappaing APIs,
+	+ block file loading APIs,
+	+ shared memory APIs
+),
 / @ CHRLib $=
 (
 	/ more accurate invalid conversion state handling,
@@ -567,7 +556,6 @@ b414-b895:
 	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7 later,
 	+ 'yconstexpr' @ \s \m Graphics::Invalid,
 	+ error code with necessary %thread_local @ \u YCommon,
-	/ make \ns _impl \h Cast -> \ns details with public interfaces,
 	/ confirm correctness @ stat() @ Win32,
 		// See comments @ src/fccache.c @ \proj fontconfig.
 	/ consideration of mutable member @ class %Message,
@@ -782,6 +770,7 @@ $KNOWN_ISSUE:
 	// G++ 4.7.0 tested @ b300.
 	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
 
+
 $RESOLVED_ENVIRONMENT_ISSUE:
 * "g++ 4.5.2 fails on compiling code with defaulted move assignment operator"
 	@ $interval([b207, b221));
@@ -939,6 +928,48 @@ $module_tree $=
 
 $now
 (
+	/ %'YReader' $=
+	(
+		+ "setting button" @ "reader box" @ %'text reader',
+		+ "full screen background preview" @ %'shells test example'
+		/ DLD "macro guard names"
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'Core'.'YObject' $=
+		(
+			/ %'Core'.'YObject' $=
+			(
+				/ "throwing %std::bad_cast when object pointer is null"
+					@ "member function template ValueObject::Access",
+				(
+					+ "class %ValueNode";
+					+ "inline function %(begin, end) for \
+						class %ValueNode parameter"
+				)
+			),
+			* DLD "strict ISO C++11 code compatibility" $since b261
+				$= (* "missing names" @ "declarations of scoped enumeration")
+		),
+		/ DLD %'Helper' $=
+		(
+			/ "macro guard names";
+			* $comp "wrong macro guard name" @ "header Initialization.h"
+				$since b296
+		),
+		/ "support for GUI input" @ "function %WaitForInput"
+			@ "platform %MinGW32" @ %'YCLib'.'Input'
+	),
+	(
+		/ $lib "implementation" @ "(constructor, destructor)"
+			@ "class %noncopyable" %'YBase'.'YStandardEx'.'Utilities'
+		* $comp $dld "constexpr use" @ "derived classes of class %noncopyable"
+			$since b246
+	)
+),
+
+b329
+(
 	- DLD "redundant 'this->' for non-dependant names" @ "templates",
 	/ $lib %'YFramework' $=
 	(
@@ -972,14 +1003,17 @@ $now
 					const_ntctscmp, const_ntctschrn, const_ntctsstr)"
 			)
 		)
-	)
+	),
+	^ "%CheckButton" ~ "%CheckBox"
+		@ %'YReader'.'shells test example'.'ReaderSetting'
 ),
 
 b328
 (
 	+ $lib "console color enum" @ 'YCLib'.'Video',
 	/ DLD "split unit" %'YReader',
-	+ "class template %(nifty_counter, call_once_init)" @ \h Utilities
+	+ "class template %(nifty_counter, call_once_init)"
+		@ %'YBase'.'YStandardEx'.'Utilities'
 ),
 
 b327
@@ -2472,7 +2506,7 @@ b292
 			@ "unit %YCommon" @ %'YCLib' $since b291,
 		/ %'YSLib' $=
 		(
-			* "strict ISO C++ code compatibility" $since b273
+			* DLD "strict ISO C++ code compatibility" $since b273
 				$= (/ "assertion strings" @ "implementation unit %TextManager"
 					@ %'Service' !^ "%__FUNCTION__"),
 			/ %'GUI' $=
@@ -4235,7 +4269,7 @@ b227
 		/ $dev $lib "implementation" ^ "class %IControl" ~ "class %IPanel",
 		- "class %IPanel"
 	),
-	* @ "strict ISO C++2003 code compatibility" $since b190
+	* $lib "strict ISO C++03 code compatibility" $since b190
 		$= (^ "fixed macros" ~ "variadic macros" @ "header %(YPanel, YWindow)"),
 	/ "simplified widget fetcher and locating interfaces"
 ),
@@ -4606,7 +4640,7 @@ b209
 	/ DLD "protected function inheritance" @ "class template %GHEvent",
 	/ "using directive of namespace %ystdex" @ "library %YSLib",
 	+ "lost %Rect operations",
-	* "strict ISO C++2003 code compatibility" $since b190
+	* $lib "strict ISO C++03 code compatibility" $since b190
 		$= (^ "fixed macros" ~ "variadic macros" @ "header %YFont"),
 	/ "renamed directory %Shell to %UI @ "library %YSLib",
 	/ "several memory utilities for std::shared_ptr and std::unique_ptr"
@@ -4643,9 +4677,9 @@ b206
 (
 	+ "menu test button",
 	/ "file API",
-	* "strict ISO C++2003 code compatibility" $since $before 132
+	* DLD "strict ISO C++03 code compatibility" $since $before 132
 		$= (+ "function %memcmp declaration" @ "namespace %ystdex"),
-	* "strict ISO C++0x code compatibility" $=
+	* DLD "strict ISO C++0x code compatibility" $=
 	(
 		* "implicit narrowing conversion(N3242 8.5.4/6)"
 			@ "ISO C++0x(N3242 5.17/9)" ^ "explicit static_cast",
@@ -4845,8 +4879,8 @@ b191
 
 b190
 (
-	* "fixed macros" ~ "variadic macros" @ "strict ISO C++2003 code \
-		compatibility" $since $before b132,
+	* $lib "strict ISO C++03 code compatibility" $since $before b132
+		$= (/ "fixed macros" ~ "variadic macros"),
 	/ "text region and renderers APIs implementation",
 	/ "widget, label and listbox APIs implementation"
 ),

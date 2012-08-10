@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r2238;
+\version r2244;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-07-26 16:03 +0800;
+	2012-08-10 06:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -82,17 +82,15 @@ struct noncopyable
 {
 protected:
 	/*!
-	\brief \c protected 构造：空实现。
+	\brief \c protected 构造：默认实现。
 	\note 保护非多态类。
 	*/
 	yconstfn
-	noncopyable()
-	{}
+	noncopyable() = default;
 	/*!
-	\brief \c protected 析构：空实现。
+	\brief \c protected 析构：默认实现。
 	*/
-	~noncopyable()
-	{}
+	~noncopyable() = default;
 
 public:
 	/*!

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r2202;
+\version r2204;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-13 14:17:14 +0800;
 \par 修改时间:
-	2012-07-06 13:22 +0800;
+	2012-08-09 03:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,8 +26,8 @@
 */
 
 
-#ifndef YSL_INC_HELPER_SHLDS_H_
-#define YSL_INC_HELPER_SHLDS_H_
+#ifndef INC_HELPER_SHLDS_H_
+#define INC_HELPER_SHLDS_H_
 
 #include <YSLib/Core/yshell.h>
 #include <YSLib/Core/ystring.h>

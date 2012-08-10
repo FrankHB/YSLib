@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4807;
+\version r4818;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-07-24 23:35 +0800;
+	2012-08-10 10:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -73,16 +73,17 @@ enum MNU_READER : Menu::IndexType
 
 ReaderBox::ReaderBox(const Rect& r)
 	: Control(r),
-	btnMenu(Rect(4, 12, 16, 16)),
-	btnInfo(Rect(24, 12, 16, 16)), btnReturn(Rect(44, 12, 16, 16)),
-	btnPrev(Rect(64, 12, 16, 16)), btnNext(Rect(84, 12, 16, 16)),
+	btnMenu(Rect(4, 12, 16, 16)), btnSetting(Rect(24, 12, 16, 16)),
+	btnInfo(Rect(44, 12, 16, 16)), btnReturn(Rect(64, 12, 16, 16)),
+	btnPrev(Rect(84, 12, 16, 16)), btnNext(Rect(104, 12, 16, 16)),
 	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
 {
 	SetTransparent(true),
 	SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(ContainerSetter(*this),
-		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
+	unseq_apply(ContainerSetter(*this), btnMenu, btnSetting,
+		btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
 	SetBufferRendererAndText(btnMenu, u"M"),
+	SetBufferRendererAndText(btnSetting, u"S"),
 	SetBufferRendererAndText(btnInfo, u"I"),
 	SetBufferRendererAndText(btnReturn, u"R"),
 	SetBufferRendererAndText(btnPrev, u"←"),
@@ -98,7 +99,7 @@ IWidget*
 ReaderBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
 	for(const auto pWidget : std::initializer_list<IWidget*>{&btnMenu,
-		&btnInfo, &btnReturn, &btnPrev, &btnNext, &pbReader})
+		&btnSetting, &btnInfo, &btnReturn, &btnPrev, &btnNext, &pbReader})
 		if(auto p = CheckWidget(*pWidget, pt, f))
 			return p;
 	return nullptr;
@@ -107,8 +108,8 @@ ReaderBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 void
 ReaderBox::Refresh(PaintEventArgs&& e)
 {
-	unseq_apply(ChildPainter(e),
-		btnMenu, btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
+	unseq_apply(ChildPainter(e), btnMenu, btnSetting,
+		btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
 	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
@@ -255,6 +256,10 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 			else
 				ShowMenu(1u, e);
 		},
+		FetchEvent<Click>(boxReader.btnSetting) += [this](TouchEventArgs&&)
+		{
+			Execute(MR_Setting);
+		},
 		FetchEvent<Click>(boxReader.btnInfo) += [this](TouchEventArgs&&)
 		{
 			Execute(MR_FileInfo);
@@ -385,6 +390,7 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		}
 		StopAutoScroll(),
 		Hide(boxReader),
+		Hide(boxTextInfo),
 		Show(pnlSetting << CurrentSetting);
 		break;
 	case MR_FileInfo:

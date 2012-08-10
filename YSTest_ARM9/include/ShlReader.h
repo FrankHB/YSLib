@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2579;
+\version r2586;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-07-24 23:35 +0800;
+	2012-08-09 03:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INCLUDED_SHLREADER_H_
-#define INCLUDED_SHLREADER_H_
+#ifndef INC_YREADER_SHLREADER_H_
+#define INC_YREADER_SHLREADER_H_
 
 #include "Shells.h"
 #include "DSReader.h"
@@ -47,6 +47,11 @@ public:
 	\since build 274 。
 	*/
 	Button btnMenu;
+	/*!
+	\brief 设置按钮。
+	\since build 330 。
+	*/
+	Button btnSetting;
 	/*!
 	\brief 显示信息框按钮。
 	\since build 274 。

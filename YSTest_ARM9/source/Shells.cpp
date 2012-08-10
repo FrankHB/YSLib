@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6453;
+\version r6474;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-07-03 12:28 +0800;
+	2012-08-09 10:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -278,6 +278,20 @@ CheckReaderEnability(FileBox& fb, CheckBox& hex)
 	return false;
 }
 
+//! \since build 330 。
+void
+CheckBackgroundPreview(CheckButton& cbPreview, size_t up_i, size_t dn_i)
+{
+	if(cbPreview.IsTicked())
+	{
+		auto& app(FetchGlobalInstance());
+
+		app.GetScreenUp().Update(FetchImage(up_i)->GetBufferPtr());
+		app.GetScreenDown().Update(FetchImage(dn_i)->GetBufferPtr());
+		platform::WaitForInput();
+	}
+}
+
 } // unnamed namespace;
 
 
@@ -286,11 +300,12 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(8, 48, 240, 48)),
 	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	pnlSetting(Rect(10, 40, 228, 100)), cbHex(Rect(142, 142, 103, 18)),
-	cbFPS(Rect(10, 62, 73, 18)), btnEnterTest(Rect(4, 4, 146, 22)),
+	pnlSetting(Rect(10, 40, 228, 108)), cbHex(Rect(142, 142, 103, 18)),
+	cbFPS(Rect(10, 62, 73, 18)), cbPreview(Rect(10, 82, 115, 18)),
+	btnEnterTest(Rect(4, 4, 146, 22)),
 	btnMenuTest(Rect(152, 32, 60, 22)), btnShowWindow(Rect(8, 32, 104, 22)),
-	btnPrevBackground(Rect(95, 64, 30, 22)),
-	btnNextBackground(Rect(145, 64, 30, 22)),
+	btnPrevBackground(Rect(110, 64, 30, 22)),
+	btnNextBackground(Rect(160, 64, 30, 22)),
 	pWndExtra(make_unique<TFormExtra>()), mhMain(*GetDesktopDownHandle()),
 	fpsCounter(500000000ULL)
 {
@@ -298,8 +313,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	AddWidgets(pnlSetting, cbFPS, btnEnterTest, btnMenuTest, btnShowWindow,
-		btnPrevBackground, btnNextBackground),
+	AddWidgets(pnlSetting, cbFPS, cbPreview, btnEnterTest, btnMenuTest,
+		btnShowWindow, btnPrevBackground, btnNextBackground),
 	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
 	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, cbHex),
 	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pWndExtra),
@@ -309,6 +324,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(*pWndExtra, false),
 	cbFPS.SetTransparent(true),
+	cbPreview.SetTransparent(true),
 	Enable(btnPrevBackground, false),
 	yunseq(
 		dsk_up.Background = ImageBrush(FetchImage(1)),
@@ -321,6 +337,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 		btnOK.Text = u"确定(A)",
 		cbHex.Text = u"显示十六进制",
 		cbFPS.Text = u"显示 FPS",
+		cbPreview.Text = u"切换背景时预览",
 		pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
@@ -430,6 +447,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 				Enable(btnPrevBackground, false);
 			yunseq(dsk_up.Background = ImageBrush(FetchImage(up_i)),
 				dsk_dn.Background = ImageBrush(FetchImage(up_i + 1)));
+			CheckBackgroundPreview(cbPreview, up_i, up_i + 1);
 			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);
 		},
@@ -446,6 +464,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 				Enable(btnNextBackground, false);
 			yunseq(dsk_up.Background = ImageBrush(FetchImage(up_i)),
 				dsk_dn.Background = ImageBrush(FetchImage(up_i + 1)));
+			CheckBackgroundPreview(cbPreview, up_i, up_i + 1);
 			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);
 		}

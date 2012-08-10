@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r2229;
+\version r2231;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 08:30:47 +0800;
 \par 修改时间:
-	2012-06-08 16:28 +0800;
+	2012-08-10 07:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,14 +38,14 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 //文本对齐样式。
-typedef enum class
+enum class TextAlignment
 {
 	Left = 0,
 	Up = 0,
 	Center = 1,
 	Right = 2,
 	Down = 2
-} TextAlignment;
+};
 
 
 /*!
@@ -62,7 +62,7 @@ public:
 	\note 只在停用自动换行且可完整显示时有效。
 	\since build 208 。
 	*/
-	TextAlignment HorizontalAlignment, VerticalAlignment; 
+	TextAlignment HorizontalAlignment, VerticalAlignment;
 	/*!
 	\brief 启用自动换行。
 	\since build 309 。

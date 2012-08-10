@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3466;
+\version r3468;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:10:35 +0800;
 \par 修改时间:
-	2012-06-07 02:25 +0800;
+	2012-08-10 07:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,7 +42,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 滚动类别。
 \since build 261 。
 */
-typedef enum class
+enum class ScrollCategory
 {
 	SmallDecrement = 0, //!< 滚动框小距离减量移动。
 	SmallIncrement = 1, //!< 滚动框小距离增量移动。
@@ -53,7 +53,7 @@ typedef enum class
 	First = 6, //!< 滚动框移动至最小位置。
 	Last = 7, //!< 滚动框移动至最大位置。
 	EndScroll = 8 //!< 滚动框移动停止。
-} ScrollCategory;
+};
 
 
 /*!

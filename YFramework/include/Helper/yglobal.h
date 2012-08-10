@@ -15,13 +15,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2791;
+\version r2793;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:14:57 +0800;
 \par 修改时间:
-	2012-04-22 11:51 +0800;
+	2012-08-09 03:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,8 @@
 */
 
 
-#ifndef YSL_INC_HELPER_YGLOBAL_H_
-#define YSL_INC_HELPER_YGLOBAL_H_
+#ifndef INC_HELPER_YGLOBAL_H_
+#define INC_HELPER_YGLOBAL_H_
 
 //包含 YCLib 公用部分。
 #include <YCLib/ycommon.h>

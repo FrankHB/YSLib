@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2491;
+\version r2496;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2012-02-03 16:44:56 +0800;
 \par 修改时间:
-	2012-08-04 15:42 +0800;
+	2012-08-10 07:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -1079,13 +1079,16 @@ using 关键字的使用参见 @5.5.7 。
 @5.7.2.2
 在位运算以外的上下文中尽可能不使用无符号整数。
 
-@5.7.3
+@5.7.2.3
 注意 sizeof(void*) == sizeof(int) 并不在所有平台上保证成立。
 需要使用和对象指针占用空间大小相同的整数类型时，使用 std::intptr_t 或 std::uintptr_t 。
 
+@5.7.3 枚举类型：
+注意带作用域枚举(scoped enumeration) 在声明时不能省略作为枚举名称的标识符（参见 ISO C++11 7.2/2 ）。
+ enum class 和 enum struct 语义等价（参见 ISO C++11 7.2/2 ），统一风格起见应尽可能使用 enum class 。
+
 @5.7.4 class-key ：
 根据基类和成员的可访问性(@5.11.5) 的需要适当选择 struct 或 class 。
- enum class 和 enum struct 语义等价（参见 ISO C++11 7.2/2 ），统一风格起见应尽可能使用 enum class 。
 
 @5.7.5 this ：
 注意 this 是实体（参见 ISO C++ 3 ）。

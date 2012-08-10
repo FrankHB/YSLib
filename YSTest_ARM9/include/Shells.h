@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r3796;
+\version r3803;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-05-25 18:47 +0800;
+	2012-08-09 10:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -29,8 +29,8 @@
 */
 
 
-#ifndef INCLUDED_SHELLS_H_
-#define INCLUDED_SHELLS_H_
+#ifndef INC_YREADER_SHELLS_H_
+#define INC_YREADER_SHELLS_H_
 
 #include <Helper/shlds.h>
 #include <Helper/ShellHelper.h>
@@ -89,6 +89,11 @@ public:
 	DialogPanel pnlSetting;
 	//! \since build 311 。
 	CheckButton cbHex, cbFPS;
+	/*!
+	\brief 复选按钮：指定开启切换背景时的预览。
+	\since build 330 。
+	*/
+	CheckButton cbPreview;
 	//! \since build 310 。
 	Button btnEnterTest, btnMenuTest, btnShowWindow,
 		btnPrevBackground, btnNextBackground;

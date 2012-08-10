@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3468;
+\version r3650;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-06-23 09:53 +0800;
+	2012-08-09 04:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -56,12 +56,10 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 {};
 
 
-//基本对象定义。
-
 /*!
 \brief 值类型对象类。
 \pre 满足 CopyConstructible 。
-\warning \c public 析构函数非虚实现。
+\warning 非虚析构。
 \since build 217 。
 
 具有值语义和深复制语义的对象。
@@ -231,27 +229,27 @@ public:
 
 	/*!
 	\brief 访问指定类型 const 对象。
-	\throw std::bad_cast 类型检查失败 。
+	\throw std::bad_cast 空实例或类型检查失败 。
 	\since build 306 。
 	*/
 	PDefTmplH1(_type)
 	inline const _type&
 	Access()
 	{
-		if(!GManager<_type>::CheckType(manager))
+		if(!obj_ptr || !GManager<_type>::CheckType(manager))
 			throw std::bad_cast();
 		return *static_cast<_type*>(obj_ptr);
 	}
 	/*!
 	\brief 访问指定类型 const 对象。
-	\throw std::bad_cast 类型检查失败 。
+	\throw std::bad_cast 空实例或类型检查失败 。
 	\since build 306 。
 	*/
 	PDefTmplH1(_type)
 	inline const _type&
 	Access() const
 	{
-		if(!GManager<_type>::CheckType(manager))
+		if(!obj_ptr || !GManager<_type>::CheckType(manager))
 			throw std::bad_cast();
 		return *static_cast<const _type*>(obj_ptr);
 	}
@@ -287,7 +285,6 @@ public:
 	Swap(ValueObject&) ynothrow;
 };
 
-
 /*!
 \ingroup HelperFunctions
 \brief 使用指针构造 ValueObject 实例。
@@ -299,6 +296,198 @@ MakeValueObjectByPtr(_type* p)
 {
 	return ValueObject(p, ValueObject::PointerConstructTag());
 }
+
+
+/*!
+\brief 值类型节点。
+\warning 非虚析构。
+\since build 330 。
+
+包含 ValueObject 对象和以 string 为键的子 ValueObject 容器的对象。
+*/
+class ValueNode : protected ValueObject
+{
+public:
+	typedef map<string, ValueNode> Container;
+
+private:
+	string name;
+	unique_ptr<Container> pNodes;
+
+public:
+	DefDeCtor(ValueNode)
+	template<typename _tString>
+	ValueNode(const ValueObject& vo, _tString&& str)
+		: ValueObject(vo), name(yforward(str))
+	{}
+	template<typename _tString>
+	ValueNode(ValueObject&& vo, _tString&& str)
+		: ValueObject(std::move(vo)), name(yforward(str))
+	{}
+	template<typename _tString, typename... _tParams>
+	ValueNode(_tString&& str, _tParams&&... args)
+		: ValueObject(yforward(args)...), name(yforward(str))
+	{}
+	ValueNode(const ValueNode&);
+	DefDeMoveCtor(ValueNode)
+
+	DefDeCopyAssignment(ValueNode)
+	DefDeMoveAssignment(ValueNode)
+
+	using ValueObject::operator!;
+
+	bool
+	operator+=(ValueNode& n)
+	{
+		return Add(n);
+	}
+	bool
+	operator+=(ValueNode&& n)
+	{
+		return Add(std::move(n));
+	}
+
+	bool
+	operator-=(const ValueNode& n)
+	{
+		return Remove(n);
+	}
+	bool
+	operator-=(const string& str)
+	{
+		return Remove(str);
+	}
+
+	bool
+	operator==(const ValueNode& n) const
+	{
+		return name == n.name;
+	}
+	bool
+	operator<(const ValueNode& n) const
+	{
+		return name < n.name;
+	}
+
+	ValueNode&
+	operator[](const string& name)
+	{
+		CheckNodes();
+		return (*pNodes)[name];
+	}
+
+	using ValueObject::operator bool;
+	DefCvt(const ynothrow, const string&, name);
+
+	Container::iterator
+	GetBegin()
+	{
+		if(pNodes)
+			return pNodes->begin();
+		throw std::out_of_range("ValueNode::GetBegin");
+	}
+	Container::const_iterator
+	GetBegin() const
+	{
+		if(pNodes)
+			return pNodes->begin();
+		throw std::out_of_range("const ValueNode::GetBegin");
+	}
+	Container::iterator
+	GetEnd()
+	{
+		if(pNodes)
+			return pNodes->end();
+		throw std::out_of_range("ValueNode::GetEnd");
+	}
+	Container::const_iterator
+	GetEnd() const
+	{
+		if(pNodes)
+			return pNodes->end();
+		throw std::out_of_range("const ValueNode::GetEnd");
+	}
+	DefGetter(const ynothrow, const string&, Name, name)
+	ValueNode&
+	GetNode(const string& name) const
+	{
+		if(pNodes)
+			return pNodes->at(name);
+		throw std::out_of_range(name);
+	}
+	DefGetter(const ynothrow, size_t, Size, pNodes ? pNodes->size() : 0)
+	using ValueObject::GetObject;
+	DefGetter(ynothrow, ValueObject&, Value, *this)
+
+	using ValueObject::Access;
+
+private:
+	void
+	CheckNodes()
+	{
+		if(!pNodes)
+			pNodes.reset(new Container);
+	}
+
+public:
+	void
+	Clear()
+	{
+		name.clear(), pNodes.reset();
+	}
+
+	bool
+	Add(ValueNode& n)
+	{
+		return Add(std::move(n));
+	}
+	bool
+	Add(ValueNode&& n)
+	{
+		CheckNodes();
+		return pNodes->insert(make_pair(n.name, std::move(n))).second;
+	}
+
+	bool
+	Remove(const ValueNode& n)
+	{
+		return pNodes ? pNodes->erase(n.name) != 0 : false;
+	}
+	bool
+	Remove(const string& str)
+	{
+		return pNodes ? pNodes->erase(str) != 0 : false;
+	}
+};
+
+/*!
+\ingroup HelperFunctions
+\brief 迭代器包装，用于 range-based for 。
+\since build 330 。
+*/
+//@{
+inline auto
+begin(ValueNode& node) -> decltype(node.GetBegin())
+{
+	return node.GetBegin();
+}
+inline auto
+begin(const ValueNode& node) -> decltype(node.GetBegin())
+{
+	return node.GetBegin();
+}
+
+inline auto
+end(ValueNode& node) -> decltype(node.GetEnd())
+{
+	return node.GetEnd();
+}
+inline auto
+end(const ValueNode& node) -> decltype(node.GetEnd())
+{
+	return node.GetEnd();
+}
+//@}
 
 
 /*!
