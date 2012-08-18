@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3007;
+\version r3009;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-07-16 00:41 +0800;
+	2012-08-17 13:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -207,7 +207,7 @@
 #ifdef YB_HAS_NOEXCEPT
 #	define ynothrow ynoexcept
 #else
-#	define ynothrow(...)
+#	define ynothrow ythrow()
 #endif
 
 /*!
@@ -218,7 +218,7 @@
 #if YB_HAS_NOEXCEPT
 #	define ynoexcept noexcept
 #else
-#	define ynoexcept
+#	define ynoexcept(...)
 #endif
 
 

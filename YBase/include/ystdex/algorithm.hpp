@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r1321;
+\version r1323;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-06-01 15:39 +0800;
+	2012-08-17 16:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -90,7 +90,7 @@ template <class _type>
 inline _type*
 pod_copy(const _type* first, const _type* last, _type* result)
 {
-	return pod_copy_n(first, last - first, result);
+	return ystdex::pod_copy_n(first, last - first, result);
 }
 
 template <class _type>
@@ -108,7 +108,7 @@ template <class _type>
 inline _type*
 pod_move(const _type* first, const _type* last, _type* result)
 {
-	return pod_move_n(first, last - first, result);
+	return ystdex::pod_move_n(first, last - first, result);
 }
 //@}
 

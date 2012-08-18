@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3650;
+\version r3663;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-08-09 04:02 +0800;
+	2012-08-17 14:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -174,23 +174,25 @@ public:
 	\since build 296 。
 	*/
 	ValueObject(ValueObject&&) ynothrow;
-	~ValueObject()
+	/*!
+	\brief 析构。
+	\since build 331 。
+	*/
+	~ValueObject() ynothrow
 	{
 		Clear();
 	}
 
-	ValueObject&
-	operator=(const ValueObject& c)
-	{
-		ValueObject(c).Swap(*this);
-		return *this;
-	}
-	/*!
-	\brief 转移构造。
-	\since build 296 。
+	/*
+	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\since build 331 。
 	*/
 	ValueObject&
-	operator=(ValueObject&&) ynothrow;
+	operator=(ValueObject vo) ynothrow
+	{
+		Swap(vo);
+		return *this;
+	}
 
 	/*!
 	\brief 判断是否为空。

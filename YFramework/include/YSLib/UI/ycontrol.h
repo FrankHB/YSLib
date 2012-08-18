@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5551;
+\version r5554;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-05-25 13:55 +0800;
+	2012-08-16 09:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -126,7 +126,7 @@ EventMapping::MappedType
 NewEvent()
 {
 	return EventMapping::MappedType(new GEventWrapper<EventT(typename
-		EventTypeMapping<_vID>::HandlerType), UIEventArgs>());
+		EventTypeMapping<_vID>::HandlerType), UIEventArgs&&>());
 }
 
 /*!
@@ -193,7 +193,8 @@ inline size_t
 CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
 	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
-		::type, typename EventTypeMapping<_vID>::HandlerType::EventArgsType>
+		::type, typename std::remove_reference<typename
+		EventTypeMapping<_vID>::HandlerType::EventArgsType>::type>
 		::value, "Invalid event argument type found @ CallEvent;");
 
 	try

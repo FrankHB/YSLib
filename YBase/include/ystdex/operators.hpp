@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载运算符。
-\version r2292;
+\version r2293;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-13 14:58:05 +0800;
 \par 修改时间:
-	2012-06-29 03:56 +0800;
+	2012-08-17 21:38 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -425,7 +425,7 @@ YB_OP_TEMPLATE_HEADER2(random_access_iteratable)
 
 /*!
 \note 用法同 boost.operators ，但迭代器相关部分参数有所删减。
-\note 参见 http://www.boost.org/doc/libs/1_47_0/boost/operators.hpp 。
+\see http://www.boost.org/doc/libs/1_47_0/boost/operators.hpp 。
 */
 namespace operators
 {

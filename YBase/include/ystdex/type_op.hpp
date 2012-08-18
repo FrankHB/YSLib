@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1503;
+\version r1509;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-08-03 22:12 +0800;
+	2012-08-17 13:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -254,17 +254,17 @@ struct have_nonempty_virtual_base
 private:
 	struct A : _type
 	{
-		~A() throw()
+		~A() ynothrow
 		{}
 	};
 	struct B : _type
 	{
-		~B() throw()
+		~B() ynothrow
 		{}
 	};
 	struct C : A, B
 	{
-		~C() throw()
+		~C() ynothrow
 		{}
 	};
 
@@ -286,7 +286,7 @@ struct have_common_nonempty_virtual_base
 private:
 	struct A : virtual _type1
 	{
-		~A() throw()
+		~A() ynothrow
 		{}
 	};
 
@@ -301,12 +301,12 @@ private:
 
 	struct B : virtual _type2
 	{
-		~B() throw()
+		~B() ynothrow
 		{}
 	};
 	struct C : A, B
 	{
-		~C() throw()
+		~C() ynothrow
 		{}
 	};
 

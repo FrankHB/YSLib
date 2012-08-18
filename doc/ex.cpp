@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4327; *build 330 rev 1;
+\version r4331; *build 331 rev 1;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-08-10 10:54 +0800;
+	2012-08-18 20:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -384,100 +384,127 @@ $using:
 
 $DONE:
 r1:
-/ @ \u ShlReader $=
-(
-	/ @ \cl ReaderBox $=
-	(
-		+ public \m Button btnSetting;
-		/ \impl @ \ctor,
-		/ \impl @ \mf (GetTopWidgetPtr, Refresh)
-	);
-	/ \impl @ \ctor ShlTextReader
-);
+/ typedef, (\p \tp @ \mf) @ \clt (GHEvent; GEvent)  @ \h YEvent,
+/ \tr \s \as @ \ft CallEvent @ \h YControl;
 /= test 1 @ platform MinGW32;
 
 r2:
-/= test 2 @ platform DS ^ \conf release;
+/ 'DeclDelegate(HUIEvent, *)' -> 'DeclDelegate(HUIEvent, *&&)'
+	@ \h YWidgetEvent,
+/ \tr \simp \impl @ (\clt GHEvent, \in \t GIHEvent, \clt GEventWrapper)
+	@ \h YEvent;
+/= test 2 @ platform MinGW32;
 
-r3-r4:
-/ \impl @ 2 \mf Access @ \cl ValueObject,
-/= 2 test 3 @ platform MinGW32;
+r3:
+/ \simp \impl @ \op() @ \clt GEventWrapper @ \h YEvent,
+/ \tr \impl @ \ft NewEvent @ \h YControl,
+/ \tr \impl @ \cl WidgetController @ \h YWidget,
+/ \tr \impl @ typedef EventMapping::(MappedType, ItemType) @ \h YWidgetEvent;
+/= test 3 @ platform MinGW32 ^ \conf release;
 
-r5:
-(
-	/ \mac guard \n @ \h @ \dir Helper;
-	* $comp \mac guard \n @ \h Intiailzation $since b296
-),
-/ \mac guard \n @ \h @ \proj YSTest_ARM9;
+r4:
+/ \m unsigned char plain_old_data[sizeof(no_copy_t)] @ union any_pod_t
+	-> \m byte char plain_old_data[sizeof(no_copy_t)];
 /= test 4 @ platform MinGW32;
 
-r6:
-/ @ \u YObject $=
+r5:
+/ \impl @ \mac (ynothrow, ynoexcept) @ \h YDefinition,
+/ \impl \es @ \clt (have_nonempty_virtual_base,
+	have_common_nonempty_virtual_base) @ \h TypeOperation ^ ynothrow ~ throw(),
+/ \impl \es @ \u YNew ^ (ythrow, ynothrow) ~ throw;
+/ \impl \es @ \cl LoggedEvent @ \h YExcept ^ (ythrow, ynothrow) ~ throw,
+/ @ \cl ValueObject $=
 (
-	+ \cl ValueNode;
-	+ 2 \f begin,
-	+ 2 \f end
-);
+	+ ynothrow @ \dtor,
+	/ \mg (copy, move) \ctor
+),
+/ \mg (copy, move) \ctor @ \cl Message @ \h YMessage,
++ \cl any_holder @ h Any;
 /= test 5 @ platform MinGW32;
 
-r7-r9:
-/ @ \u Shells $=
+r6:
+/= test 6 @ platform MinGW32 ^ \conf release;
+
+r7:
++ \clt value_holder @ \h Any;
+/= test 7 @ platform DS;
+
+r8:
+/= test 8 @ platform DS ^ \conf release;
+
+r9:
+/ @ \h Cast $=
 (
-	+ \f CheckBackgroundPreview @ \un \ns @ \impl \u;
-	/ @ \cl ShlExplorer  $=
-	(
-		+ public \m CheckButton cbPreview @ \st TFormExtra;
-		/ \impl @ \ctor
-	)
-),
-/= 3 test 6 @ platform MinGW32;
+	/ \simp \as \str @ \ft union_cast,
+	/ \impl @ \ft polymorphic_cast,
+	/ \impl @ \ft polymorphic_crosscast ^ std::addressof ~ \op&
+);
+^ qualified ~ unqualified (ystdex \f, \ft) \n @ \h (Algorithm, Cast, CString,
+	String, Utilities) to prevent wrong ADL;
+/= test 9 @ platform MinGW32;
 
 r10:
-/ \impl @ \f WaitForInput @ \ns platform_ex @ \impl \u Input;
-/= test 7 @ platform MinGW32;
-
-r11:
-/ strict ISO C++11 compatibility $=
+/ @ \h Any $=
 (
-	* constexpr use @ derived \cl @ (\cl noncopyable @ \h Utilities) $since b246
-		$= (/ \impl @ (\ctor, \dtor) ^ \exp \de ~ \exp \em \impl);
-	* missing \n @ \decl @ scoped enumeration $since b261 $=
-	(
-		/ typedef \en \cl ScrollCategory @ \h Scroll !typedef \en \cl,
-		/ typedef \en \cl TextAlignment @ \h Label !typedef \en \cl
-	)
+	+ \inc \h (<memory>, TypeOperations);
+	+ \cl (any, bad_any_cast);
+	+ 4 \ft any_cast,
+	+ 2 \ft unsafe_any_cast
 );
-/= test 8 @ platform MinGW32;
-
-r12:
-/= test 9 @ platform DS;
-
-r13:
-/ \impl @ \mf ShlTextReader::Execute @ \impl \u ShlReader;
 /= test 10 @ platform MinGW32;
 
-r14:
-/= test 11 @ platform DS;
+r11:
+/ @ \h Any $=
+(
+	+ \cl pointer_holder;
+	+ \ctor \t<_type> yconstfn any(_type*, int)
+);
+/= test 11 @ platform MinGW32;
 
-r15:
+r12:
+/ @ \h Any $=
+(
+	+ \amf get @ \cl any_holder;
+	+ \mf \vt get @ \cl (value_holder, pointer_holder);
+	/ \impl @ \mf \t any::get
+);
 /= test 12 @ platform MinGW32 ^ \conf release;
 
+r13:
+/ @ \h Any $=
+(
+	- \exp 'ynothrow' @ \dtor any_holder,
+	/ @ \cl any $=
+	(
+		+ \ctor any(any_holder*),
+		+ \mf any_holder* get_holder() const,
+		/ \m p_any -> p_holder
+	)
+);
+/= test 13 @ platform MinGW32;
+
+r14:
+/= test 14 @ platform MinGW32 ^ \conf release;
+
+r15:
+/= test 15 @ platform DS;
+
 r16:
-/= test 13 @ platform DS;
+/= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-08-10 +0800:
--29.8d;
-// Mercurial rev1-rev202: r8979;
+2012-08-18 +0800:
+-31.3d;
+// Mercurial rev1-rev203: r8995;
 
 / ...
 
 
 $NEXT_TODO:
-b331-b348:
+b332-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -792,10 +819,10 @@ $label; // label for locating in code portions;
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
 $dev; // issues concerned by developers, which end-users could ignore;
-$lib; // issues only concerned with library(usually only implementation, or \
-	interfaces modifying includeing no deletion, or some equivalant \
-	interfaces provided, so no need fo library users to modify code using the \
-	library interface to adapt the upgrading), not the output targets;
+$lib; // issues only concerned with library(only implementation changing, \
+	or interfaces modifying including no deletion unless some replacements \
+	are provided, so no need fo library users to modify code using the library \
+	interface to adapt to the upgrading), regaradless of the output targets;
 $build; // issues on build;
 $install; // issues on installing;
 $depoly; // issues on deployment(other than installing);
@@ -927,6 +954,44 @@ $module_tree $=
 );
 
 $now
+(
+	/ $lib %'YFramework'.'YSLib' $=
+	(
+		/ %'Core' $=
+		(
+			/ "removed reference of parameter type for events" @ %'YEvent',
+			/ "exception specifications" ^ "%(ythrow, ynothrow)" ~ "%throw",
+			/ "merged copy and move assignments as unifying assignment"
+				@ "class %(ValueObject, Message)"
+				// The no throw exception specification can be merged for \
+					the copy is out of the block.
+		)
+		/ "add explicit rvalue reference of parameter for UI delegates"
+			@ %'GUI',
+	),
+	/ %'YBase' $=
+	(
+		/ $lib "implementation" @ "macro %(ynothrow, ynoexcept)"
+			@ %'YDefinition',
+		/ "exception specifications" ^ "%ynothrow" ~ "%throw()"
+			@ %'TypeOperations',
+		/ %'YBase'.'Any' $=
+		(
+			(
+				+ "class %any_holder";
+				+ "class template %(value_holder, pointer_holder)";
+				+ "class %any"
+			),
+			+ "class bad_any_cast";
+			+ "function template %(any_cast, unsafe_any_cast)"
+		),
+		^ $dev $lib "qualified function and function template names"
+			~ "unqualified function and function template names" @ "header \
+			%(Algorithm, Cast, CString, String, Utilities) to prevent wrong ADL"
+	)
+),
+
+b330
 (
 	/ %'YReader' $=
 	(

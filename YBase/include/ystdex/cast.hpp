@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1769;
+\version r1783;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 175 。
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2012-06-22 09:32 +0800;
+	2012-08-17 16:45 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -54,10 +54,8 @@ template<typename _tDst, typename _tSrc>
 inline _tDst
 union_cast(_tSrc src) ynothrow
 {
-	static_assert(is_pod<_tDst>::value,
-		"Non-POD destination type found @ pod_cast;");
-	static_assert(sizeof(_tSrc) == sizeof(_tDst),
-		"Incompatible types found @ pod_cast;");
+	static_assert(is_pod<_tDst>::value, "Non-POD destination type found.");
+	static_assert(sizeof(_tSrc) == sizeof(_tDst), "Incompatible types found.");
 
 	union
 	{
@@ -90,7 +88,7 @@ template <class _tDst, class _tSrc>
 inline _tDst
 polymorphic_cast(_tSrc* x)
 {
-	auto tmp(dynamic_cast<_tDst>(x));
+	const auto tmp(dynamic_cast<_tDst>(x));
 
 	if(!tmp)
 		throw std::bad_cast();
@@ -120,8 +118,8 @@ template <class _tDst, class _tSrc>
 yconstfn _tDst&
 polymorphic_downcast(_tSrc& x)
 {
-	return *polymorphic_downcast<typename remove_reference<_tDst>
-		::type*>(std::addressof(x));
+	return *ystdex::polymorphic_downcast<typename remove_reference<
+		_tDst>::type*>(std::addressof(x));
 }
 
 /*!
@@ -149,8 +147,8 @@ template <class _tDst, class _tSrc>
 yconstfn _tDst&
 polymorphic_crosscast(_tSrc& x)
 {
-	return *polymorphic_crosscast<typename remove_reference<_tDst>
-		::type*>(&x);
+	return *ystdex::polymorphic_crosscast<typename remove_reference<
+		_tDst>::type*>(std::addressof(x));
 }
 
 
@@ -163,7 +161,7 @@ struct _general_polymorphic_cast_helper
 	static yconstfn _tTo
 	cast(_tFrom x)
 	{
-		return polymorphic_downcast<_tTo>(x);
+		return ystdex::polymorphic_downcast<_tTo>(x);
 	}
 };
 template<typename _tFrom, typename _tTo>
@@ -191,10 +189,9 @@ struct _general_cast_helper<_tFrom, _tTo, false>
 	static yconstfn _tTo
 	cast(_tFrom x)
 	{
-		return _general_polymorphic_cast_helper<_tFrom, _tTo,
-			(is_base_of<_tFrom, _tTo>::value
-			&& !has_common_nonempty_virtual_base<typename remove_rp<
-			_tFrom>::type, typename remove_rp<_tTo>::type>::value)
+		return _general_polymorphic_cast_helper<_tFrom, _tTo, (is_base_of<
+			_tFrom, _tTo>::value && !has_common_nonempty_virtual_base<typename
+			remove_rp<_tFrom>::type, typename remove_rp<_tTo>::type>::value)
 		>::cast(x);
 	}
 };
@@ -219,8 +216,7 @@ struct _general_cast_helper<_type, _type, false>
 
 template<typename _tFrom, typename _tTo>
 struct _general_cast_type_helper
-	: public integral_constant<bool, is_convertible<_tFrom, _tTo>
-		::value>
+	: public integral_constant<bool, is_convertible<_tFrom, _tTo>::value>
 {};
 
 } // namespace details;
@@ -253,9 +249,8 @@ template<typename _tDst, typename _tSrc>
 yconstfn const _tDst
 general_cast(const _tSrc& x)
 {
-	return details::_general_cast_helper<const _tSrc&, _tDst,
-		details::_general_cast_type_helper<const _tSrc&, const _tDst>::value>
-		::cast(x);
+	return details::_general_cast_helper<const _tSrc&, _tDst, details
+		::_general_cast_type_helper<const _tSrc&, const _tDst>::value>::cast(x);
 }
 //@}
 

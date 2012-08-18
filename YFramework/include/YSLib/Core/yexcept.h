@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r1320;
+\version r1321;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-06-15 20:30:14 +0800;
 \par 修改时间:
-	2012-06-22 09:36 +0800;
+	2012-08-17 13:58 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -66,7 +66,7 @@ public:
 	/*!
 	\brief 析构：默认实现。
 	*/
-	~LoggedEvent() throw() override = default;
+	~LoggedEvent() ynothrow override = default;
 
 	DefGetter(const ynothrow, LevelType, Level, level)
 };

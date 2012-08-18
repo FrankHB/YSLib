@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r1205;
+\version r1206;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304 。
 \par 创建时间:
 	2012-04-26 20:12:19 +0800;
 \par 修改时间:
-	2012-07-03 17:31 +0800;
+	2012-08-17 16:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -96,7 +96,7 @@ inline _tString&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &make_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
-	return ltrim(rtrim(str, t));
+	return ystdex::ltrim(ystdex::rtrim(str, t));
 }
 
 /*!

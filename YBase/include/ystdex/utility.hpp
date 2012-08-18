@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数对象和实用程序。
-\version r2244;
+\version r2257;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-08-10 06:24 +0800;
+	2012-08-17 17:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -53,7 +53,7 @@ template<typename _fCallable, typename _type, typename... _tParams>
 inline void
 seq_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
 {
-	f(yforward(arg)), seq_apply(f, yforward(args)...);
+	f(yforward(arg)), ystdex::seq_apply(f, yforward(args)...);
 }
 //@}
 
@@ -149,23 +149,20 @@ template<typename _type, size_t _vN, typename _tSrcElement>
 inline std::array<_type, _vN>
 make_array(const _tSrcElement(&src)[_vN])
 {
-	using namespace std;
+	std::array<_type, _vN> arr;
 
-	array<_type, _vN> arr;
-
-	copy_n(addressof(src[0]), _vN, addressof(arr[0]));
-	return move(arr);
+	std::copy_n(std::addressof(src[0]), _vN, std::addressof(arr[0]));
+	return std::move(arr);
 }
 template<typename _type, size_t _vN, typename _tSrcElement>
 inline std::array<_type, _vN>
 make_array(_tSrcElement(&&src)[_vN])
 {
-	using namespace std;
+	std::array<_type, _vN> arr;
 
-	array<_type, _vN> arr;
-
-	copy_n(make_move_iterator(addressof(src[0])), _vN, addressof(arr[0]));
-	return move(arr);
+	std::copy_n(std::make_move_iterator(std::addressof(src[0])), _vN,
+		std::addressof(arr[0]));
+	return std::move(arr);
 }
 //@}
 
@@ -236,7 +233,7 @@ get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 {
 	typedef decltype(f(yforward(args)...)) obj_type;
 
-	auto& p(parameterize_static_object<obj_type*, _tKey, _tKeys...>());
+	auto& p(ystdex::parameterize_static_object<obj_type*, _tKey, _tKeys...>());
 
 	if(!p)
 		p = new obj_type(f(yforward(args)...));
@@ -256,7 +253,7 @@ get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 {
 	typedef decltype(f(yforward(args)...)) obj_type;
 
-	auto& p(parameterize_static_object<obj_type*, _vKeys...>());
+	auto& p(ystdex::parameterize_static_object<obj_type*, _vKeys...>());
 
 	if(!p)
 		p = new obj_type(f(yforward(args)...));

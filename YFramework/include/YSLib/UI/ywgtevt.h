@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2206;
+\version r2217;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2012-04-27 11:53 +0800;
+	2012-08-16 09:59 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -247,13 +247,13 @@ struct PaintEventArgs : public UIEventArgs, public PaintContext
 
 
 //事件处理器类型。
-DeclDelegate(HUIEvent, UIEventArgs)
-DeclDelegate(HInputEvent, InputEventArgs)
-DeclDelegate(HKeyEvent, KeyEventArgs)
-DeclDelegate(HTouchEvent, TouchEventArgs)
-DeclDelegate(HPaintEvent, PaintEventArgs)
-//DefDelegate(HPointEvent, Drawing::Point)
-//DefDelegate(HSizeEvent, Size)
+DeclDelegate(HUIEvent, UIEventArgs&&)
+DeclDelegate(HInputEvent, InputEventArgs&&)
+DeclDelegate(HKeyEvent, KeyEventArgs&&)
+DeclDelegate(HTouchEvent, TouchEventArgs&&)
+DeclDelegate(HPaintEvent, PaintEventArgs&&)
+//DefDelegate(HPointEvent, Drawing::Point&&)
+//DefDelegate(HSizeEvent, Size&&)
 
 
 #define DefEventTypeMapping(_name, _tEventHandler) \
@@ -346,8 +346,8 @@ DefEventTypeMapping(Leave, HTouchEvent)
 */
 YSL_BEGIN_NAMESPACE(EventMapping)
 
-typedef GEventPointerWrapper<UIEventArgs> MappedType; //!< 映射项类型。
-typedef GIHEvent<UIEventArgs> ItemType;
+typedef GEventPointerWrapper<UIEventArgs&&> MappedType; //!< 映射项类型。
+typedef GIHEvent<UIEventArgs&&> ItemType;
 typedef pair<VisualEvent, MappedType> PairType;
 typedef map<VisualEvent, MappedType> MapType; //!< 映射表类型。
 typedef pair<typename MapType::iterator, bool> SearchResult; \
@@ -451,7 +451,8 @@ DoEvent(AController& controller, const VisualEvent& id,
 class WidgetController : public AController
 {
 public:
-	GEventWrapper<EventT(HPaintEvent), UIEventArgs> Paint;
+	//! \since build 331 。
+	GEventWrapper<EventT(HPaintEvent), UIEventArgs&&> Paint;
 
 	/*!
 	\brief 构造：使用指定可用性。

@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1932;
+\version r1944;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:41 +0800;
 \par 修改时间:
-	2012-06-10 11:16 +0800;
+	2012-08-17 13:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@ YSL_END
 using YSLib::GetDebugMemoryList;
 
 void*
-operator new(std::size_t s, const char* f, int l) throw (std::bad_alloc)
+operator new(std::size_t s, const char* f, int l) ythrow(std::bad_alloc)
 {
 	void* p(::operator new(s));
 
@@ -47,7 +47,7 @@ operator new(std::size_t s, const char* f, int l) throw (std::bad_alloc)
 	return p;
 }
 void*
-operator new[](std::size_t s, const char* f, int l) throw (std::bad_alloc)
+operator new[](std::size_t s, const char* f, int l) ythrow(std::bad_alloc)
 {
 	void* p(::operator new[](s));
 
@@ -55,8 +55,8 @@ operator new[](std::size_t s, const char* f, int l) throw (std::bad_alloc)
 	return p;
 }
 void*
-operator new(std::size_t s, const std::nothrow_t& unused,
-	const char* f, int l) throw()
+operator new(std::size_t s, const std::nothrow_t&, const char* f, int l)
+	ynothrow
 {
 	void* p(::operator new(s, std::nothrow));
 
@@ -64,9 +64,8 @@ operator new(std::size_t s, const std::nothrow_t& unused,
 	return p;
 }
 void*
-operator new[](std::size_t s, const std::nothrow_t& unused,
-	const char* f, int l)
-	throw()
+operator new[](std::size_t s, const std::nothrow_t&, const char* f, int l)
+	ynothrow
 {
 	void* p(::operator new[](s, std::nothrow));
 
@@ -75,27 +74,25 @@ operator new[](std::size_t s, const std::nothrow_t& unused,
 }
 
 void
-operator delete(void* p, const char* f, int l) throw()
+operator delete(void* p, const char* f, int l) ynothrow
 {
 	GetDebugMemoryList().Unregister(p, f, l);
 	::operator delete(p);
 }
 void
-operator delete[](void* p, const char* f, int l) throw()
+operator delete[](void* p, const char* f, int l) ynothrow
 {
 	GetDebugMemoryList().Unregister(p, f, l);
 	::operator delete[](p);
 }
 void
-operator delete(void* p, const std::nothrow_t& unused,
-	const char* f, int l) throw()
+operator delete(void* p, const std::nothrow_t&, const char* f, int l) ynothrow
 {
 	GetDebugMemoryList().Unregister(p, f, l);
 	::operator delete(p);
 }
 void
-operator delete[](void* p, const std::nothrow_t& unused,
-	const char* f, int l) throw()
+operator delete[](void* p, const std::nothrow_t&, const char* f, int l) ynothrow
 {
 	GetDebugMemoryList().Unregister(p, f, l);
 	::operator delete[](p);

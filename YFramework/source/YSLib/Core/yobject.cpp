@@ -11,13 +11,13 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r1602;
+\version r1639;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-08-09 03:57 +0800;
+	2012-08-17 14:44 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,36 +29,24 @@
 
 YSL_BEGIN
 
-ValueObject::ValueObject(const ValueObject& c)
-	: manager(c.manager), obj_ptr(nullptr)
+ValueObject::ValueObject(const ValueObject& vo)
+	: manager(vo.manager), obj_ptr(nullptr)
 {
-	if(manager && c.obj_ptr)
-		manager(obj_ptr, c.obj_ptr, Clone);
+	if(manager && vo.obj_ptr)
+		manager(obj_ptr, vo.obj_ptr, Clone);
 }
-ValueObject::ValueObject(ValueObject&& c) ynothrow
-	: manager(c.manager), obj_ptr(c.obj_ptr)
+ValueObject::ValueObject(ValueObject&& vo) ynothrow
+	: manager(vo.manager), obj_ptr(vo.obj_ptr)
 {
-	c.obj_ptr = nullptr;
+	vo.obj_ptr = nullptr;
 }
 
 bool
-ValueObject::operator==(const ValueObject& rhs) const
+ValueObject::operator==(const ValueObject& vo) const
 {
-	return (!manager && !rhs.manager) || (manager && rhs.manager
-		&& manager == rhs.manager && obj_ptr && rhs.obj_ptr
-		&& manager(obj_ptr, rhs.obj_ptr, Equality));
-}
-
-ValueObject&
-ValueObject::operator=(ValueObject&& c) ynothrow
-{
-	if(&c != this)
-	{
-		Clear();
-		manager = c.manager;
-		std::swap(obj_ptr, c.obj_ptr);
-	}
-	return *this;
+	return (!manager && !vo.manager) || (manager && vo.manager
+		&& manager == vo.manager && obj_ptr && vo.obj_ptr
+		&& manager(obj_ptr, vo.obj_ptr, Equality));
 }
 
 void
@@ -69,10 +57,10 @@ ValueObject::Clear() ynothrow
 }
 
 void
-ValueObject::Swap(ValueObject& c) ynothrow
+ValueObject::Swap(ValueObject& vo) ynothrow
 {
-	std::swap(manager, c.manager);
-	std::swap(obj_ptr, c.obj_ptr);
+	std::swap(manager, vo.manager);
+	std::swap(obj_ptr, vo.obj_ptr);
 }
 
 
@@ -92,8 +80,8 @@ CloneNodeContainer(const ValueNode::Container& cont)
 
 } // unnamed namespace;
 
-ValueNode::ValueNode(const ValueNode& n)
-	: ValueObject(static_cast<const ValueObject&>(n)), name(n),
+ValueNode::ValueNode(const ValueNode& node)
+	: ValueObject(static_cast<const ValueObject&>(node)), name(node),
 	pNodes(pNodes ? CloneNodeContainer(*pNodes) : nullptr)
 {}
 

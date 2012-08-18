@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2113;
+\version r2121;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2012-07-26 16:13 +0800;
+	2012-08-17 13:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -55,21 +55,21 @@
 \since build 173 。
 */
 void*
-operator new(std::size_t, const char*, int) throw (std::bad_alloc);
+operator new(std::size_t, const char*, int) ythrow(std::bad_alloc);
 void*
-operator new[](std::size_t, const char*, int) throw (std::bad_alloc);
+operator new[](std::size_t, const char*, int) ythrow(std::bad_alloc);
 void*
-operator new(std::size_t, const std::nothrow_t&, const char*, int) throw();
+operator new(std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
 void*
-operator new[](std::size_t, const std::nothrow_t&, const char*, int) throw();
+operator new[](std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
 void
-operator delete(void*, const char*, int) throw();
+operator delete(void*, const char*, int) ynothrow;
 void
-operator delete[](void*, const char*, int) throw();
+operator delete[](void*, const char*, int) ynothrow;
 void
-operator delete(void*, const std::nothrow_t&, const char*, int) throw();
+operator delete(void*, const std::nothrow_t&, const char*, int) ynothrow;
 void
-operator delete[](void*, const std::nothrow_t&, const char*, int) throw();
+operator delete[](void*, const std::nothrow_t&, const char*, int) ynothrow;
 //@}
 #endif
 

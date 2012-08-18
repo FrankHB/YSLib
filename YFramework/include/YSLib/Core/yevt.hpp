@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5069;
+\version r5097;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-08-02 12:19 +0800;
+	2012-08-16 09:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -43,11 +43,11 @@ YSL_BEGIN
 \since build 173 。
 */
 template<class _tEventArgs>
-class GHEvent : protected std::function<void(_tEventArgs&&)>
+class GHEvent : protected std::function<void(_tEventArgs)>
 {
 public:
 	typedef _tEventArgs EventArgsType;
-	typedef void FuncType(_tEventArgs&&);
+	typedef void FuncType(EventArgsType);
 	typedef std::function<FuncType> BaseType;
 
 private:
@@ -108,11 +108,11 @@ public:
 	*/
 	template<class _type>
 	yconstfn
-	GHEvent(_type& obj, void(_type::*pm)(_tEventArgs&&))
+	GHEvent(_type& obj, void(_type::*pm)(EventArgsType))
 		: std::function<FuncType>(ExpandMemberFirstBinder<
-			_type, void, _tEventArgs&&>(obj, pm)),
+			_type, void, EventArgsType>(obj, pm)),
 		comp_eq(GEquality<ExpandMemberFirstBinder<
-			_type, void, _tEventArgs&&>>::AreEqual)
+			_type, void, EventArgsType>>::AreEqual)
 	{}
 
 	DefDeCopyAssignment(GHEvent)
@@ -181,9 +181,9 @@ template<class _tEventArgs>
 class GEvent
 {
 public:
-	typedef _tEventArgs EventArgsType;
-	typedef void FuncType(_tEventArgs&&);
 	typedef GHEvent<_tEventArgs> HandlerType;
+	typedef typename HandlerType::EventArgsType EventArgsType;
+	typedef typename HandlerType::FuncType FuncType;
 	/*!
 	\brief 容器类型。
 	\since build 294 。
@@ -367,7 +367,7 @@ public:
 	*/
 	template<class _tObj, class _type>
 	inline GEvent&
-	Add(_tObj& obj, void(_type::*pm)(_tEventArgs&&),
+	Add(_tObj& obj, void(_type::*pm)(EventArgsType),
 		EventPriority prior = DefaultEventPriority)
 	{
 		return Add(HandlerType(static_cast<_type&>(obj), std::move(pm)),
@@ -408,7 +408,7 @@ public:
 	*/
 	template<class _tObj, class _type>
 	inline GEvent&
-	AddUnique(_type& obj, void(_type::*pm)(_tEventArgs&&),
+	AddUnique(_type& obj, void(_type::*pm)(EventArgsType),
 		EventPriority prior = DefaultEventPriority)
 	{
 		return AddUnique(HandlerType(static_cast<_type&>(obj), std::move(pm)),
@@ -421,7 +421,7 @@ public:
 	*/
 	template<class _tObj, class _type>
 	inline GEvent&
-	Remove(_tObj& obj, void(_type::*pm)(_tEventArgs&&))
+	Remove(_tObj& obj, void(_type::*pm)(EventArgsType))
 	{
 		return *this -= HandlerType(static_cast<_type&>(obj), std::move(pm));
 	}
@@ -454,7 +454,7 @@ public:
 	\exception std::bad_function_call 以外异常中立。
 	*/
 	SizeType
-	operator()(_tEventArgs&& e) const
+	operator()(EventArgsType e) const
 	{
 		using ystdex::get_value;
 
@@ -550,7 +550,7 @@ public:
 	*/
 	template<class _type>
 	inline ReferenceType
-	Add(_type& obj, void(_type::*pm)(EventArgsType&&))
+	Add(_type& obj, void(_type::*pm)(EventArgsType))
 	{
 		return this->GetNewRef().Add(obj, pm);
 	}
@@ -560,7 +560,7 @@ public:
 	*/
 	template<class _type>
 	inline ReferenceType
-	Remove(_type& obj, void(_type::*pm)(EventArgsType&&))
+	Remove(_type& obj, void(_type::*pm)(EventArgsType))
 	{
 		return this->GetNewRef().Remove(obj, pm);
 	}
@@ -592,8 +592,7 @@ public:
 \since build 188 。
 */
 //@{
-#define EventT(_tEventHandler) \
-	GEvent<_tEventHandler::EventArgsType>
+#define EventT(_tEventHandler) GEvent<_tEventHandler::EventArgsType>
 #define DepEventT(_tEventHandler) \
 	typename GDependencyEvent(EventT(_tEventHandler))
 //@}
@@ -658,7 +657,7 @@ public:
 */
 template<class _tEventArgs>
 DeclI(GIHEvent)
-	DeclIEntry(size_t operator()(_tEventArgs&&) const)
+	DeclIEntry(size_t operator()(_tEventArgs) const)
 	DeclIEntry(GIHEvent* Clone() const)
 EndDecl
 
@@ -680,13 +679,13 @@ public:
 
 	/*!
 	\brief 委托调用。
-	\warning 需要确保 BaseArgsType&& 引用的对象能够转换至 EventArgsType&& 引用。
+	\warning 需要确保 BaseArgsType 引用的对象能够转换至 EventArgsType 。
+	\since build 331 。
 	*/
 	inline ImplI(GIHEvent<_tBaseArgs>) size_t
-	operator()(BaseArgsType&& e) const
+	operator()(BaseArgsType e) const
 	{
-		return EventType::operator()(static_cast<EventArgsType&&>(
-			std::move(e)));
+		return EventType::operator()(EventArgsType(yforward(e)));
 	}
 };
 

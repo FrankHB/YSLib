@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2496;
+\version r2500;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2012-02-03 16:44:56 +0800;
 \par 修改时间:
-	2012-08-10 07:14 +0800;
+	2012-08-17 17:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -899,10 +899,12 @@ $4.1.3.1.4 临时性例外：
 
 @5.3.3 名称查找(name lookup) ：
 注意查找顺序。
-using 关键字的使用参见 @5.5.7 。
+ using 关键字的使用参见 @5.5.7 。
 
 @5.3.3.1 参数依赖查找(argument dependent lookup, ADL) ：
-注意正常查找成功则不进行 ADL 。不使用冗余的限定名。
+当需要禁止 ADL 时可以使用限定名称或带括号的名称代替非限定名称。
+注意当非限定名查找类成员、非 using 声明的块作用域名称或非函数（模版）名称后 ADL 查找关联名称为空。
+不使用冗余的限定名。
 
 @5.3.3.2 依赖名称：
 类模版中，显式使用 this 启用依赖名称(dependant name) 的名称查找。

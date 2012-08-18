@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief YCLib ISO C 标准字符串扩展。
-\version r2583;
+\version r2600;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2009-12-27 17:31:14 +0800;
 \par 修改时间:
-	2012-08-05 22:41 +0800;
+	2012-08-17 16:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -100,7 +100,7 @@ is_null(_tChar c)
 
 /*!
 \ingroup NTCTSUtil
-\brief 计算简单 NTCTS 长度。
+\brief 计算简单 NTCTS 长度。zz
 \pre 断言： <tt>s</tt> 。
 \note 语义同 std::char_traits<_tChar>::length 。
 \since build 329 。
@@ -113,7 +113,7 @@ ntctslen(const _tChar* s)
 
 	const _tChar* p(s);
 
-	while(!is_null(*p))
+	while(!ystdex::is_null(*p))
 		++p;
 	return p - s;
 }
@@ -134,7 +134,7 @@ ntctscmp(const _tChar* s1, const _tChar* s2)
 
 	typename std::char_traits<_tChar>::int_type d(0);
 
-	while(!is_null(d = *s1 - *s2))
+	while(!ystdex::is_null(d = *s1 - *s2))
 		yunseq(++s1, ++s2);
 	return d;
 }
@@ -155,7 +155,7 @@ ntctsicmp(const _tChar* s1, const _tChar* s2)
 
 	typename std::char_traits<_tChar>::int_type d(0);
 
-	while(!is_null(d = std::tolower(*s1) - std::tolower(*s2)))
+	while(!ystdex::is_null(d = std::tolower(*s1) - std::tolower(*s2)))
 		yunseq(++s1, ++s2);
 	return d;
 }
@@ -172,7 +172,7 @@ template<typename _tChar>
 yconstexpr size_t
 const_ntctslen(const _tChar* s)
 {
-	return is_null(*s) ? 0 : const_ntctslen(s + 1) + 1;
+	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctslen(s + 1) + 1;
 }
 
 /*!
@@ -185,7 +185,7 @@ template<typename _tChar>
 yconstexpr size_t
 const_ntctscnt(const _tChar* s, _tChar c)
 {
-	return is_null(*s) ? 0 : const_ntctscnt(s + 1, c)
+	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctscnt(s + 1, c)
 		+ std::char_traits<_tChar>::eq(*s, c);
 }
 
@@ -200,8 +200,9 @@ template<typename _tChar>
 yconstexpr typename std::char_traits<_tChar>::int_type
 const_ntctscmp(const _tChar* s1, const _tChar* s2)
 {
-	return !std::char_traits<_tChar>::eq(*s1, *s2) || is_null(*s1)
-		|| is_null(*s2) ? *s1 - *s2 : const_ntctscmp(s1 + 1, s2 + 1);
+	return !std::char_traits<_tChar>::eq(*s1, *s2) || ystdex::is_null(*s1)
+		|| ystdex::is_null(*s2) ? *s1 - *s2
+		: ystdex::const_ntctscmp(s1 + 1, s2 + 1);
 }
 /*!
 \ingroup constexpr_algorithms
@@ -215,8 +216,8 @@ yconstexpr typename std::char_traits<_tChar>::int_type
 const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 {
 	return n == 0 ? _tChar() : (!std::char_traits<_tChar>::eq(*s1, *s2)
-		|| is_null(*s1) || is_null(*s2) ? *s1 - *s2
-		: const_ntctscmp(s1 + 1, s2 + 1, n - 1));
+		|| ystdex::is_null(*s1) || ystdex::is_null(*s2) ? *s1 - *s2
+		: ystdex::const_ntctscmp(s1 + 1, s2 + 1, n - 1));
 }
 
 /*!
@@ -230,8 +231,8 @@ template<typename _tChar>
 yconstexpr size_t
 const_ntctschr(const _tChar* s, _tChar c)
 {
-	return is_null(*s) || std::char_traits<_tChar>::eq(*s, c)
-		? 0 : const_ntctschr(s + 1, c) + 1;
+	return ystdex::is_null(*s) || std::char_traits<_tChar>::eq(*s, c)
+		? 0 : ystdex::const_ntctschr(s + 1, c) + 1;
 }
 
 /*!
@@ -245,9 +246,9 @@ template<typename _tChar>
 yconstexpr size_t
 const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 {
-	return n == 0 || is_null(*s) ? 0 : (std::char_traits<_tChar>::eq(*s, c)
-		? const_ntctschrn(s + 1, c, n - 1) + (n != 1)
-		: const_ntctschrn(s + 1, c, n) + 1);
+	return n == 0 || ystdex::is_null(*s) ? 0 : (std::char_traits<_tChar>
+		::eq(*s, c) ? ystdex::const_ntctschrn(s + 1, c, n - 1) + (n != 1)
+		: ystdex::const_ntctschrn(s + 1, c, n) + 1);
 }
 
 /*!
@@ -261,8 +262,9 @@ template<typename _tChar>
 yconstexpr size_t
 const_ntctsstr(const _tChar* s1, const _tChar* s2)
 {
-	return is_null(*s1) ? 0 : (const_ntctscmp(s1, s2, const_ntctslen(s2))
-		== _tChar()? 0 : const_ntctsstr(s1 + 1, s2) + 1);
+	return ystdex::is_null(*s1) ? 0 : (ystdex::const_ntctscmp(s1, s2,
+		ystdex::const_ntctslen(s2)) == _tChar()? 0
+		: ystdex::const_ntctsstr(s1 + 1, s2) + 1);
 }
 
 } // namespace ystdex;

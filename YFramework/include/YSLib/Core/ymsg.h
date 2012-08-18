@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2755;
+\version r2769;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-06-25 23:24 +0800;
+	2012-08-17 14:42 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -104,23 +104,13 @@ public:
 		return *this;
 	}
 	/*
-	\brief 复制赋值。
-	\since build 296 。
+	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\since build 331 。
 	*/
 	Message&
-	operator=(const Message& msg)
+	operator=(Message msg) ynothrow
 	{
-		Message(msg).Swap(*this);
-		return *this;
-	}
-	/*
-	\brief 转移赋值。
-	\since build 296 。
-	*/
-	Message&
-	operator=(Message&& msg) ynothrow
-	{
-		msg.Swap(*this);
+		Swap(msg);
 		return *this;
 	}
 
