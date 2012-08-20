@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5097;
+\version r5159;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-08-16 09:53 +0800;
+	2012-08-20 12:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -227,34 +227,13 @@ private:
 
 public:
 	/*!
-	\brief 复制赋值：覆盖事件响应。
+	\brief 复制赋值：默认实现。
 	*/
-	inline GEvent&
-	operator=(const GEvent& e)
-	{
-		List = e.List;
-		return *this;
-	}
+	DefDeCopyAssignment(GEvent)
 	/*!
 	\brief 转移赋值：默认实现。
 	*/
 	DefDeMoveAssignment(GEvent)
-	/*!
-	\brief 赋值：覆盖事件响应：使用事件处理器。
-	*/
-	inline GEvent&
-	operator=(const HandlerType& h)
-	{
-		return *this = GEvent(h);
-	}
-	/*!
-	\brief 赋值：覆盖事件响应：使用事件处理器。
-	*/
-	inline GEvent&
-	operator=(HandlerType&& h)
-	{
-		return *this = GEvent(h);
-	}
 	/*!
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
 	\since build 293 。
@@ -370,49 +349,7 @@ public:
 	Add(_tObj& obj, void(_type::*pm)(EventArgsType),
 		EventPriority prior = DefaultEventPriority)
 	{
-		return Add(HandlerType(static_cast<_type&>(obj), std::move(pm)),
-			prior);
-	}
-
-	/*!
-	\brief 添加单一事件响应：使用事件处理器和优先级。
-	\since build 294 。
-	*/
-	inline GEvent&
-	AddUnique(const HandlerType& h, EventPriority prior = DefaultEventPriority)
-	{
-		return (*this -= h).Add(h, prior);
-	}
-	/*!
-	\brief 添加单一事件响应：使用事件处理器。
-	\since build 294 。
-	*/
-	inline GEvent&
-	AddUnique(HandlerType&& h, EventPriority prior = DefaultEventPriority)
-	{
-		return (*this -= h).Add(std::move(h), prior);
-	}
-	/*!
-	\brief 添加单一事件响应：使用为单一构造参数指定的事件处理器和优先级。
-	\since build 294 。
-	*/
-	PDefTmplH1(_type)
-	inline GEvent&
-	AddUnique(_type&& _arg, EventPriority prior = DefaultEventPriority)
-	{
-		return AddUnique(HandlerType(yforward(_arg)), prior);
-	}
-	/*!
-	\brief 添加单一事件响应：使用对象引用和成员函数指针。
-	\since build 294 。
-	*/
-	template<class _tObj, class _type>
-	inline GEvent&
-	AddUnique(_type& obj, void(_type::*pm)(EventArgsType),
-		EventPriority prior = DefaultEventPriority)
-	{
-		return AddUnique(HandlerType(static_cast<_type&>(obj), std::move(pm)),
-			prior);
+		return Add(HandlerType(static_cast<_type&>(obj), std::move(pm)), prior);
 	}
 
 	/*!
@@ -456,8 +393,6 @@ public:
 	SizeType
 	operator()(EventArgsType e) const
 	{
-		using ystdex::get_value;
-
 		SizeType n(0);
 
 		std::for_each(List.cbegin(), List.cend(),
@@ -490,6 +425,44 @@ public:
 	inline PDefH(void, Swap, GEvent& e) ynothrow
 		ImplRet(List.swap(e))
 };
+
+/*!
+\brief 添加单一事件响应：删除后添加。
+\since build 332 。
+*/
+//@{
+PDefTmplH1(_tEventArgs)
+inline GEvent<_tEventArgs>&
+AddUnique(GEvent<_tEventArgs>& evt,
+	const typename GEvent<_tEventArgs>::HandlerType& h,
+	EventPriority prior = DefaultEventPriority)
+{
+	return (evt -= h).Add(h, prior);
+}
+PDefTmplH1(_tEventArgs)
+inline GEvent<_tEventArgs>&
+AddUnique(GEvent<_tEventArgs>& evt, typename GEvent<_tEventArgs>::HandlerType&&
+	h, EventPriority prior = DefaultEventPriority)
+{
+	return (evt -= h).Add(std::move(h), prior);
+}
+PDefTmplH2(_tEventArgs, _type)
+inline GEvent<_tEventArgs>&
+AddUnique(GEvent<_tEventArgs>& evt, _type&& arg,
+	EventPriority prior = DefaultEventPriority)
+{
+	return AddUnique(evt, HandlerType(yforward(arg)), prior);
+}
+template<typename _tEventArgs, class _type>
+inline GEvent<_tEventArgs>&
+AddUnique(GEvent<_tEventArgs>& evt, _type& obj,
+	void(_type::*pm)(typename GEvent<_tEventArgs>::EventArgsType),
+	EventPriority prior = DefaultEventPriority)
+{
+	return AddUnique(evt, HandlerType(static_cast<_type&>(obj), std::move(pm)),
+		prior);
+}
+//@}
 
 
 /*!

@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3663;
+\version r3959;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-08-17 14:42 +0800;
+	2012-08-19 17:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "ycutil.h"
 #include "yexcept.h"
 #include "../Adaptor/ycont.h"
+#include <ystdex/any.h> // for ystdex::any_holder, ystdex::any;
 
 YSL_BEGIN
 
@@ -57,206 +58,14 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 
 
 /*!
-\brief 值类型对象类。
-\pre 满足 CopyConstructible 。
-\warning 非虚析构。
-\since build 217 。
-
-具有值语义和深复制语义的对象。
+\brief 带等于接口的动态泛型持有者接口。
+\see ystdex::any_holder 。
+\since build 332 。
 */
-class ValueObject
-{
-public:
-	typedef enum
-	{
-	//	Create = 0,
-		Destroy = 1,
-		Clone = 2,
-		Equality = 3,
-		TypeCheck = 4
-	} OpType;
-	typedef bool (*ManagerType)(void*&, void*&, OpType);
+DeclBasedI(IValueHolder, ystdex::any_holder)
+	DeclIEntry(bool operator==(const IValueHolder&) const)
 
-	//! \brief 指示指针构造的标记。
-	struct PointerConstructTag
-	{};
-
-private:
-	PDefTmplH1(_type)
-	struct GManager
-	{
-		static_assert(std::is_object<_type>::value, "Non object type found.");
-
-		static bool
-		Do(void*& x, void*& y, OpType op)
-		{
-			switch(op)
-			{
-			case Destroy:
-				delete static_cast<_type*>(x);
-				break;
-			case Clone:
-				YAssert(y, "Null pointer found.");
-
-				x = new _type(*static_cast<const _type*>(y));
-				break;
-			case Equality:
-				YAssert(x && y, "Null pointer found.");
-
-				return AreEqual(*static_cast<const _type*>(x),
-					*static_cast<const _type*>(y));
-			case TypeCheck:
-#if YCL_FUNCTION_NO_EQUALITY_GUARANTEE
-				return x ? *static_cast<const std::type_info*>(x)
-					== typeid(GManager) : false;
-#else
-				break;
-#endif
-			default:
-				YAssert(false, "Invalid operation found.");
-			}
-			return false;
-		}
-
-		/*!
-		\brief 检查类型是否相等。
-		\since build 300 。
-		*/
-		static bool
-		CheckType(ManagerType m)
-		{
-			YAssert(m, "Null pointer found.");
-
-#if YCL_FUNCTION_NO_EQUALITY_GUARANTEE
-			const void* p(&typeid(GManager));
-			void* q(nullptr);
-
-			return m(const_cast<void*&>(p), q, TypeCheck);
-#else
-			return m == GManager::Do;
-#endif
-		}
-	};
-
-	ManagerType manager;
-	mutable void* obj_ptr;
-
-public:
-	/*!
-	\brief 无参数构造。
-	\note 得到空实例。
-	\since build 296 。
-	*/
-	yconstfn
-	ValueObject() ynothrow
-		: manager(nullptr), obj_ptr(nullptr)
-	{}
-	/*!
-	\brief 构造：使用对象左值引用。
-	\pre obj 可被复制构造。
-	\note 得到包含指定对象副本的实例。
-	*/
-	PDefTmplH1(_type)
-	ValueObject(const _type& obj)
-		: manager(&GManager<_type>::Do), obj_ptr(new _type(obj))
-	{}
-	/*!
-	\brief 构造：使用对象指针。
-	\note 得到包含指针指向的指定对象的实例，并获得所有权。
-	*/
-	PDefTmplH1(_type)
-	ValueObject(_type* p, PointerConstructTag)
-		: manager(&GManager<_type>::Do), obj_ptr(p)
-	{}
-	ValueObject(const ValueObject&);
-	/*!
-	\brief 转移构造。
-	\since build 296 。
-	*/
-	ValueObject(ValueObject&&) ynothrow;
-	/*!
-	\brief 析构。
-	\since build 331 。
-	*/
-	~ValueObject() ynothrow
-	{
-		Clear();
-	}
-
-	/*
-	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
-	\since build 331 。
-	*/
-	ValueObject&
-	operator=(ValueObject vo) ynothrow
-	{
-		Swap(vo);
-		return *this;
-	}
-
-	/*!
-	\brief 判断是否为空。
-	\since build 320 。
-	*/
-	PDefHOp(bool, !) const ynothrow
-		ImplRet(!obj_ptr)
-
-	bool
-	operator==(const ValueObject&) const;
-
-	/*!
-	\brief 判断是否非空。
-	\since build 320 。
-	*/
-	explicit DefCvt(const ynothrow, bool, obj_ptr)
-
-	PDefTmplH1(_type)
-	inline _type&
-	GetObject()
-	{
-		YAssert(obj_ptr, "Null pointer found.");
-		YAssert(GManager<_type>::CheckType(manager), "Invalid type found.");
-
-		return *static_cast<_type*>(obj_ptr);
-	}
-	PDefTmplH1(_type)
-	inline const _type&
-	GetObject() const
-	{
-		YAssert(obj_ptr, "Null pointer found.");
-		YAssert(GManager<_type>::CheckType(manager), "Invalid type found.");
-
-		return *static_cast<const _type*>(obj_ptr);
-	}
-
-	/*!
-	\brief 访问指定类型 const 对象。
-	\throw std::bad_cast 空实例或类型检查失败 。
-	\since build 306 。
-	*/
-	PDefTmplH1(_type)
-	inline const _type&
-	Access()
-	{
-		if(!obj_ptr || !GManager<_type>::CheckType(manager))
-			throw std::bad_cast();
-		return *static_cast<_type*>(obj_ptr);
-	}
-	/*!
-	\brief 访问指定类型 const 对象。
-	\throw std::bad_cast 空实例或类型检查失败 。
-	\since build 306 。
-	*/
-	PDefTmplH1(_type)
-	inline const _type&
-	Access() const
-	{
-		if(!obj_ptr || !GManager<_type>::CheckType(manager))
-			throw std::bad_cast();
-		return *static_cast<const _type*>(obj_ptr);
-	}
-
-private:
+protected:
 	PDefTmplH1(_type)
 	static inline bool
 	AreEqual(_type& x, _type& y, decltype(x == y) = false)
@@ -269,22 +78,237 @@ private:
 	{
 		return true;
 	}
+EndDecl
+
+
+/*!
+\brief 带等于接口的值类型动态泛型持有者。
+\see ystdex::value_holder 。
+\since build 332 。
+*/
+PDefTmplH1(_type)
+class ValueHolder : implements IValueHolder
+{
+public:
+	_type held;
+
+	ValueHolder(const _type& value)
+		: held(value)
+	{}
+	DefDeCopyCtor(ValueHolder)
+	DefDeMoveCtor(ValueHolder)
+
+	DefDelCopyAssignment(ValueHolder)
+
+	ImplI(IValueHolder) bool
+	operator==(const IValueHolder& obj) const
+	{
+		return AreEqual(held, static_cast<const ValueHolder&>(obj).held);
+	}
+
+	ImplI(IValueHolder) DefClone(ValueHolder, clone)
+
+	ImplI(IValueHolder) void*
+	get() override 
+	{
+		return std::addressof(held);
+	}
+
+	ImplI(IValueHolder) const std::type_info&
+	type() const override
+	{
+		return typeid(_type);
+	}
+};
+
+
+/*!
+\brief 带等于接口的指针类型动态泛型持有者。
+\see ystdex::pointer_holder 。
+\since build 332 。
+*/
+PDefTmplH1(_type)
+class PointerHolder : implements IValueHolder
+{
+	static_assert(std::is_object<_type>::value, "Invalid type found.");
 
 public:
+	_type* p_held;
+
+	PointerHolder(_type* value)
+		: p_held(value)
+	{}
+	virtual
+	~PointerHolder() ynothrow
+	{
+		delete p_held;
+	}
+
+	DefDelCopyAssignment(PointerHolder)
+
+	ImplI(IValueHolder) PointerHolder*
+	clone() const override
+	{
+		return new PointerHolder(p_held ? new _type(*p_held) : nullptr);
+	}
+
+	ImplI(IValueHolder) bool
+	operator==(const IValueHolder& obj) const
+	{
+		return AreEqual(*p_held,
+			*static_cast<const PointerHolder&>(obj).p_held);
+	}
+
+	ImplI(IValueHolder) void*
+	get() override 
+	{
+		return p_held;
+	}
+
+	ImplI(IValueHolder) const std::type_info&
+	type() const override
+	{
+		return p_held ? typeid(_type) : typeid(void);
+	}
+};
+
+
+/*!
+\brief 值类型对象类。
+\pre 满足 CopyConstructible 。
+\warning 非虚析构。
+\since build 217 。
+
+具有值语义和深复制语义的对象。
+*/
+class ValueObject
+{
+public:
+	//! \brief 指示指针构造的标记。
+	struct PointerConstructTag
+	{};
+
+	//! \since build 332 。
+	ystdex::any content;
+
+public:
+	/*!
+	\brief 无参数构造。
+	\note 得到空实例。
+	\since build 296 。
+	*/
+	DefDeCtor(ValueObject)
+	/*!
+	\brief 构造：使用对象左值引用。
+	\pre obj 可被复制构造。
+	\note 得到包含指定对象副本的实例。
+	*/
+	PDefTmplH1(_type)
+	ValueObject(const _type& obj)
+		: content(new ValueHolder<_type>(obj), nullptr)
+	{}
+	/*!
+	\brief 构造：使用对象指针。
+	\note 得到包含指针指向的指定对象的实例，并获得所有权。
+	*/
+	PDefTmplH1(_type)
+	ValueObject(_type* p, PointerConstructTag)
+		: content(new PointerHolder<_type>(p), nullptr)
+	{}
+	/*!
+	\brief 复制构造：默认实现。
+	\since build 332 。
+	*/
+	DefDeCopyCtor(ValueObject)
+	/*!
+	\brief 转移构造：默认实现。
+	\since build 332 。
+	*/
+	DefDeMoveCtor(ValueObject)
+	/*!
+	\brief 析构：默认实现。
+	\since build 332 。
+	*/
+	DefDeDtor(ValueObject)
+
+	//! \since build 332 。
+	//@{
+	DefDeCopyAssignment(ValueObject)
+	DefDeMoveAssignment(ValueObject)
+	//@}
+
+	/*!
+	\brief 判断是否为空。
+	\since build 320 。
+	*/
+	PDefHOp(bool, !) const ynothrow
+		ImplRet(!content)
+
+	bool
+	operator==(const ValueObject&) const;
+
+	/*!
+	\brief 判断是否非空。
+	\since build 320 。
+	*/
+	explicit DefCvt(const ynothrow, bool, content.get_holder())
+
+	PDefTmplH1(_type)
+	inline _type&
+	GetObject()
+	{
+		YAssert(bool(content), "Null pointer found.");
+		YAssert(content.type() == typeid(_type), "Invalid type found.");
+
+		return *content.get<_type>();
+	}
+	PDefTmplH1(_type)
+	inline const _type&
+	GetObject() const
+	{
+		YAssert(bool(content), "Null pointer found.");
+		YAssert(content.type() == typeid(_type), "Invalid type found.");
+
+		return *content.get<_type>();
+	}
+
+	/*!
+	\brief 访问指定类型 const 对象。
+	\throw std::bad_cast 空实例或类型检查失败 。
+	\since build 306 。
+	*/
+	PDefTmplH1(_type)
+	inline const _type&
+	Access()
+	{
+		return ystdex::any_cast<_type&>(content);
+	}
+	/*!
+	\brief 访问指定类型 const 对象。
+	\throw std::bad_cast 空实例或类型检查失败 。
+	\since build 306 。
+	*/
+	PDefTmplH1(_type)
+	inline const _type&
+	Access() const
+	{
+		return ystdex::any_cast<_type&>(content);
+	}
+
 	/*
 	\brief 清除。
 	\post <tt>*this == ValueObject()</tt> 。
 	\since build 296 。
 	*/
-	void
-	Clear() ynothrow;
+	PDefH(void, Clear) ynothrow
+		ImplBodyMem(content, clear)
 
 	/*!
 	\brief 交换。
 	\since build 296 。
 	*/
-	void
-	Swap(ValueObject&) ynothrow;
+	PDefH(void, Swap, ValueObject& vo) ynothrow
+		ImplBodyMem(content, swap, vo.content)
 };
 
 /*!
@@ -338,38 +362,21 @@ public:
 
 	using ValueObject::operator!;
 
-	bool
-	operator+=(ValueNode& n)
-	{
-		return Add(n);
-	}
-	bool
-	operator+=(ValueNode&& n)
-	{
-		return Add(std::move(n));
-	}
+	PDefHOp(bool, +=, ValueNode& node)
+		ImplRet(Add(node))
+	PDefHOp(bool, +=, ValueNode&& node)
+		ImplRet(Add(std::move(node)))
 
-	bool
-	operator-=(const ValueNode& n)
-	{
-		return Remove(n);
-	}
-	bool
-	operator-=(const string& str)
-	{
-		return Remove(str);
-	}
+	PDefHOp(bool, -=, const ValueNode& node)
+		ImplRet(Remove(node))
+	PDefHOp(bool, -=, const string& str)
+		ImplRet(Remove(str))
 
-	bool
-	operator==(const ValueNode& n) const
-	{
-		return name == n.name;
-	}
-	bool
-	operator<(const ValueNode& n) const
-	{
-		return name < n.name;
-	}
+	PDefHOp(bool, ==, const ValueNode& node) const
+		ImplRet(name == node.name)
+
+	PDefHOp(bool, <, const ValueNode& node) const
+		ImplRet(name < node.name)
 
 	ValueNode&
 	operator[](const string& name)
@@ -425,24 +432,14 @@ public:
 
 private:
 	void
-	CheckNodes()
-	{
-		if(!pNodes)
-			pNodes.reset(new Container);
-	}
+	CheckNodes();
 
 public:
-	void
-	Clear()
-	{
-		name.clear(), pNodes.reset();
-	}
+	PDefH(void, Clear)
+		ImplExpr(name.clear(), pNodes.reset())
 
-	bool
-	Add(ValueNode& n)
-	{
-		return Add(std::move(n));
-	}
+	PDefH(bool, Add, ValueNode& node)
+		ImplRet(Add(std::move(node)))
 	bool
 	Add(ValueNode&& n)
 	{
@@ -450,16 +447,10 @@ public:
 		return pNodes->insert(make_pair(n.name, std::move(n))).second;
 	}
 
-	bool
-	Remove(const ValueNode& n)
-	{
-		return pNodes ? pNodes->erase(n.name) != 0 : false;
-	}
-	bool
-	Remove(const string& str)
-	{
-		return pNodes ? pNodes->erase(str) != 0 : false;
-	}
+	PDefH(bool, Remove, const ValueNode& node)
+		ImplRet(pNodes ? pNodes->erase(node.name) != 0 : false)
+	PDefH(bool, Remove, const string& str)
+		ImplRet(pNodes ? pNodes->erase(str) != 0 : false)
 };
 
 /*!

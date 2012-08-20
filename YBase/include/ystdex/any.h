@@ -10,14 +10,14 @@
 
 /*!	\file any.h
 \ingroup YStandardEx
-\brief 泛型类型对象。
-\version r1464;
+\brief 动态泛型类型。
+\version r1501;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2011-09-26 07:55:44 +0800;
 \par 修改时间:
-	2012-08-18 20:23 +0800;
+	2012-08-19 22:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "../ydef.h"
 #include <memory> // for std::addressof;
-#include "type_op.hpp" // for remove_reference;
+#include <typeinfo> // for typeid, std::bad_cast;
 
 namespace ystdex
 {
@@ -115,7 +115,7 @@ public:
 
 
 /*!
-\brief 抽象 any 持有对象。
+\brief 抽象动态泛型持有者接口。
 \since build 331 。
 */
 class any_holder
@@ -125,19 +125,19 @@ public:
 	~any_holder()
 	{}
 
-	virtual const std::type_info&
-	type() const = 0;
-
 	virtual void*
 	get() = 0;
 
 	virtual any_holder*
 	clone() const = 0;
+
+	virtual const std::type_info&
+	type() const = 0;
 };
 
 
 /*!
-\brief 值类型 any 持有对象。
+\brief 值类型动态泛型持有者。
 \since build 331 。
 */
 template<typename _type>
@@ -177,7 +177,7 @@ public:
 
 
 /*!
-\brief 指针类型 any 持有对象。
+\brief 指针类型动态泛型持有者。
 \tparam _type 对象类型。
 \pre <tt>is_object<_type>::value</tt> 。
 \since build 331 。
@@ -185,7 +185,7 @@ public:
 template<typename _type>
 class pointer_holder : public any_holder
 {
-	static_assert(is_object<_type>::value, "Invalid type found.");
+	static_assert(std::is_object<_type>::value, "Invalid type found.");
 
 public:
 	_type* p_held;
@@ -223,7 +223,7 @@ public:
 
 
 /*!
-\brief 任意对象类型。
+\brief 基于类型擦除的动态泛型对象。
 \note 值语义。基本接口和语义同 boost::any 。
 \warning 非虚析构。
 \see http://www.boost.org/doc/libs/1_50_0/doc/html/any/reference.html#\
@@ -240,7 +240,11 @@ public:
 	any() ynothrow
 		: p_holder(nullptr)
 	{}
-	any(any_holder* p)
+	/*!
+	\brief 构造：使用指定持有者。
+	\since build 332 。
+	*/
+	any(any_holder* p, std::nullptr_t)
 		: p_holder(p)
 	{}
 	template<typename _type>
@@ -274,10 +278,24 @@ public:
 		any(rhs).swap(*this);
 		return *this;
 	}
+	/*!
+	\brief 复制赋值：使用复制和交换。
+	\since build 332 。
+	*/
 	any&
-	operator=(any rhs) ynothrow
+	operator=(const any& a)
 	{
-		rhs.swap(*this);
+		any(a).swap(*this);
+		return *this;
+	}
+	/*!
+	\brief 转移赋值：使用复制和交换。
+	\since build 332 。
+	*/
+	any&
+	operator=(any&& a) ynothrow
+	{
+		swap(a);
 		return *this;
 	}
 
@@ -347,7 +365,7 @@ public:
 
 
 /*!
-\brief any_cast 转换失败异常。
+\brief 动态泛型转换失败异常。
 \note 基本接口和语义同 boost::bad_any_cast 。
 \see any_cast 。
 \since build 331 。
@@ -364,7 +382,7 @@ public:
 
 
 /*!
-\brief any 转换。
+\brief 动态泛型转换。
 \note 语义同 boost::any_cast 。
 \since build 331 。
 \todo 检验特定环境（如使用动态库时）比较 std::type_info::name() 的必要性。
@@ -388,7 +406,7 @@ template<typename _type>
 _type
 any_cast(const any& x)
 {
-	const auto tmp(any_cast<typename remove_reference<_type>::type>(
+	const auto tmp(any_cast<typename std::remove_reference<_type>::type>(
 		std::addressof(x)));
 
 	if(!tmp)
@@ -398,7 +416,7 @@ any_cast(const any& x)
 //@}
 
 /*!
-\brief 非安全 any 转换。
+\brief 非安全动态泛型转换。
 \note 语义同 boost::unsafe_any_cast 。
 \pre 断言检查 <tt>p</tt> 。
 \since build 331 。

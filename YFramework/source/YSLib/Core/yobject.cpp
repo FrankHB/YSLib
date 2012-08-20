@@ -11,13 +11,13 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r1639;
+\version r1675;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-08-17 14:44 +0800;
+	2012-08-19 11:09 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -29,38 +29,14 @@
 
 YSL_BEGIN
 
-ValueObject::ValueObject(const ValueObject& vo)
-	: manager(vo.manager), obj_ptr(nullptr)
-{
-	if(manager && vo.obj_ptr)
-		manager(obj_ptr, vo.obj_ptr, Clone);
-}
-ValueObject::ValueObject(ValueObject&& vo) ynothrow
-	: manager(vo.manager), obj_ptr(vo.obj_ptr)
-{
-	vo.obj_ptr = nullptr;
-}
-
 bool
 ValueObject::operator==(const ValueObject& vo) const
 {
-	return (!manager && !vo.manager) || (manager && vo.manager
-		&& manager == vo.manager && obj_ptr && vo.obj_ptr
-		&& manager(obj_ptr, vo.obj_ptr, Equality));
-}
+	const auto x(content.get_holder());
+	const auto y(vo.content.get_holder());
 
-void
-ValueObject::Clear() ynothrow
-{
-	if(manager)
-		manager(obj_ptr, obj_ptr, Destroy);
-}
-
-void
-ValueObject::Swap(ValueObject& vo) ynothrow
-{
-	std::swap(manager, vo.manager);
-	std::swap(obj_ptr, vo.obj_ptr);
+	return x && y && x->type() == y->type() ? static_cast<const IValueHolder&>(
+		*x) == static_cast<const IValueHolder&>(*y) : false;
 }
 
 
@@ -84,6 +60,13 @@ ValueNode::ValueNode(const ValueNode& node)
 	: ValueObject(static_cast<const ValueObject&>(node)), name(node),
 	pNodes(pNodes ? CloneNodeContainer(*pNodes) : nullptr)
 {}
+
+void
+ValueNode::CheckNodes()
+{
+	if(!pNodes)
+		pNodes.reset(new Container);
+}
 
 YSL_END
 

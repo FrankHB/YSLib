@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7411;
+\version r7412;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-08-17 13:47 +0800;
+	2012-08-19 22:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -962,7 +962,7 @@ nested-module-name:
 
 @2.9.1.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
  <algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
- "ydaptor.h" 需要保证 <bitset> 和 <initializer_list> 被包含。
+ "yadaptor.h" 需要保证 <bitset> 和 <initializer_list> 被包含。
 
 @2.9.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件及唯一在其中声明的接口（但 Adaptor 可能会间接依赖）：

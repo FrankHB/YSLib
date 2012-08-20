@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3259;
+\version r3261;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2012-06-22 11:58 +0800;
+	2012-08-18 22:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -121,8 +121,8 @@ _t type
 // ImplI = Implements Interface;
 //抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
 // ImplA = Implements Abstractly;
-#define DeclBasedI(_n, _b, ...) \
-	_yInterface _n : _b, __VA_ARGS__ \
+#define DeclBasedI(_n, ...) \
+	_yInterface _n : __VA_ARGS__ \
 	_yInterfaceHead(_n)
 #define ImplI(...) virtual
 #define ImplA(...)
