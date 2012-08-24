@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5159;
+\version r5251;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-08-20 12:52 +0800;
+	2012-08-24 17:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -36,18 +36,37 @@
 YSL_BEGIN
 
 /*!
+\brief 事件处理器接口模板。
+\since build 333 。
+*/
+template<typename... _tParams>
+DeclI(GIHEvent)
+	DeclIEntry(size_t operator()(_tParams...) const)
+	DeclIEntry(GIHEvent* Clone() const)
+EndDecl
+
+
+/*!
 \brief 标准事件处理器类模板。
 \note 若使用仿函数，可以不满足 \c EqualityComparable 的接口，即
 	可使用返回 \c bool 的 \c operator== ，但此模板类无法检查其语义正确性。
-\warning 非虚析构。
-\since build 173 。
+\since build 333 。
 */
-template<class _tEventArgs>
-class GHEvent : protected std::function<void(_tEventArgs)>
+//@{
+template<typename>
+class GHEvent;
+
+//! \warning 非虚析构。
+template<typename _tRet, typename... _tParams>
+class GHEvent<_tRet(_tParams...)>
+	: protected std::function<void(_tParams...)>
 {
 public:
-	typedef _tEventArgs EventArgsType;
-	typedef void FuncType(EventArgsType);
+	typedef tuple<_tParams...> TupleType;
+	typedef typename std::conditional<std::tuple_size<TupleType>::value == 0,
+		void, typename std::tuple_element<0, TupleType>::type>::type
+		EventArgsType;
+	typedef void FuncType(_tParams...);
 	typedef std::function<FuncType> BaseType;
 
 private:
@@ -90,7 +109,7 @@ public:
 	*/
 	yconstfn
 	GHEvent(const FuncType* f)
-		: std::function<FuncType>(f), comp_eq(GEquality<FuncType>::AreEqual)
+		: BaseType(f), comp_eq(GEquality<FuncType>::AreEqual)
 	{}
 	/*!
 	\brief 使用函数对象。
@@ -98,21 +117,19 @@ public:
 	*/
 	template<class _fCallable>
 	yconstfn
-	GHEvent(_fCallable f, typename std::enable_if<std::is_object<_fCallable>
-		::value, int>::type = 0)
-		: std::function<FuncType>(std::move(f)),
-		comp_eq(GetComparer(f, f))
+	GHEvent(_fCallable&& f, typename std::enable_if<std::is_constructible<
+		BaseType, _fCallable>::value, int>::type = 0)
+		: BaseType(yforward(f)), comp_eq(GetComparer(f, f))
 	{}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
 	*/
 	template<class _type>
 	yconstfn
-	GHEvent(_type& obj, void(_type::*pm)(EventArgsType))
-		: std::function<FuncType>(ExpandMemberFirstBinder<
-			_type, void, EventArgsType>(obj, pm)),
-		comp_eq(GEquality<ExpandMemberFirstBinder<
-			_type, void, EventArgsType>>::AreEqual)
+	GHEvent(_type& obj, void(_type::*pm)(_tParams...))
+		: BaseType(ExpandMemberFirstBinder<_type, void, _tParams...>(obj,
+		pm)), comp_eq(GEquality<ExpandMemberFirstBinder<_type, void,
+		_tParams...>>::AreEqual)
 	{}
 
 	DefDeCopyAssignment(GHEvent)
@@ -135,7 +152,7 @@ public:
 private:
 	//! \since build 319 。
 	//@{
-	PDefTmplH1(_type)
+	template<typename _type>
 	static yconstfn Comparer
 	GetComparer(_type& x, _type& y, decltype(x == y) = false) ynothrow
 	{
@@ -155,6 +172,7 @@ private:
 	}
 	//@}
 };
+//@}
 
 
 /*!
@@ -174,14 +192,18 @@ yconstexpr EventPriority DefaultEventPriority(0x80);
 /*!
 \brief 事件类模板。
 \note 支持顺序多播。
-\warning 非虚析构。
-\since 早于 build 132 。
+\since build 333 。
 */
-template<class _tEventArgs>
-class GEvent
+//@{
+template<typename>
+class GEvent;
+
+//! \warning 非虚析构。
+template<typename _tRet, typename... _tParams>
+class GEvent<_tRet(_tParams...)>
 {
 public:
-	typedef GHEvent<_tEventArgs> HandlerType;
+	typedef GHEvent<_tRet(_tParams...)> HandlerType;
 	typedef typename HandlerType::EventArgsType EventArgsType;
 	typedef typename HandlerType::FuncType FuncType;
 	/*!
@@ -218,7 +240,7 @@ private:
 	\brief \c private 构造：添加事件处理器。
 	\since build 293 。
 	*/
-	PDefTmplH1(_tHandler)
+	template<typename _tHandler>
 	GEvent(_tHandler&& h)
 		: List()
 	{
@@ -238,7 +260,7 @@ public:
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
 	\since build 293 。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline GEvent&
 	operator=(_type&& _arg)
 	{
@@ -267,7 +289,7 @@ public:
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
 	\note 不检查是否已经在列表中。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline GEvent&
 	operator+=(_type&& _arg)
 	{
@@ -299,7 +321,7 @@ public:
 	\brief 移除事件响应：目标为单一构造参数指定的指定事件处理器。
 	\since build 293 。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline GEvent&
 	operator-=(_type&& _arg)
 	{
@@ -333,7 +355,7 @@ public:
 	\note 不检查是否已经在列表中。
 	\since build 294 。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline GEvent&
 	Add(_type&& _arg, EventPriority prior = DefaultEventPriority)
 	{
@@ -378,7 +400,7 @@ public:
 	\brief 判断是否包含单一构造参数指定的事件响应。
 	\since build 293 。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline bool
 	Contains(_type&& _arg) const
 	{
@@ -391,20 +413,20 @@ public:
 	\exception std::bad_function_call 以外异常中立。
 	*/
 	SizeType
-	operator()(EventArgsType e) const
+	operator()(_tParams... args) const
 	{
 		SizeType n(0);
 
-		std::for_each(List.cbegin(), List.cend(),
-			[&](decltype(*List.cbegin())& pr){
+		for(const auto& pr : List)
+		{
 			try
 			{
-				pr.second(std::move(e));
+				pr.second(yforward(args)...);
 			}
 			catch(std::bad_function_call&)
 			{}
 			++n;
-		});
+		};
 		return n;
 	}
 
@@ -425,38 +447,39 @@ public:
 	inline PDefH(void, Swap, GEvent& e) ynothrow
 		ImplRet(List.swap(e))
 };
+//@}
 
 /*!
 \brief 添加单一事件响应：删除后添加。
-\since build 332 。
+\since build 333 。
 */
 //@{
-PDefTmplH1(_tEventArgs)
-inline GEvent<_tEventArgs>&
-AddUnique(GEvent<_tEventArgs>& evt,
-	const typename GEvent<_tEventArgs>::HandlerType& h,
+template<typename _tRet, typename... _tParams>
+inline GEvent<_tRet(_tParams...)>&
+AddUnique(GEvent<_tRet(_tParams...)>& evt,
+	const typename GEvent<_tRet(_tParams...)>::HandlerType& h,
 	EventPriority prior = DefaultEventPriority)
 {
 	return (evt -= h).Add(h, prior);
 }
-PDefTmplH1(_tEventArgs)
-inline GEvent<_tEventArgs>&
-AddUnique(GEvent<_tEventArgs>& evt, typename GEvent<_tEventArgs>::HandlerType&&
-	h, EventPriority prior = DefaultEventPriority)
+template<typename _tRet, typename... _tParams>
+inline GEvent<_tRet(_tParams...)>&
+AddUnique(GEvent<_tRet(_tParams...)>& evt, typename GEvent<_tRet(_tParams...)>
+	::HandlerType&& h, EventPriority prior = DefaultEventPriority)
 {
 	return (evt -= h).Add(std::move(h), prior);
 }
-PDefTmplH2(_tEventArgs, _type)
-inline GEvent<_tEventArgs>&
-AddUnique(GEvent<_tEventArgs>& evt, _type&& arg,
+template<typename _type, typename _tRet, typename... _tParams>
+inline GEvent<_tRet(_tParams...)>&
+AddUnique(GEvent<_tRet(_tParams...)>& evt, _type&& arg,
 	EventPriority prior = DefaultEventPriority)
 {
 	return AddUnique(evt, HandlerType(yforward(arg)), prior);
 }
-template<typename _tEventArgs, class _type>
-inline GEvent<_tEventArgs>&
-AddUnique(GEvent<_tEventArgs>& evt, _type& obj,
-	void(_type::*pm)(typename GEvent<_tEventArgs>::EventArgsType),
+template<class _type, typename _tRet, typename... _tParams>
+inline GEvent<_tRet(_tParams...)>&
+AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
+	void(_type::*pm)(typename GEvent<_tRet(_tParams...)>::EventArgsType),
 	EventPriority prior = DefaultEventPriority)
 {
 	return AddUnique(evt, HandlerType(static_cast<_type&>(obj), std::move(pm)),
@@ -469,7 +492,8 @@ AddUnique(GEvent<_tEventArgs>& evt, _type& obj,
 \brief 定义事件处理器委托类型。
 \since build 268 。
 */
-#define DeclDelegate(_name, _tEventArgs) typedef GHEvent<_tEventArgs> _name;
+#define DeclDelegate(_name, _tEventArgs) \
+	typedef GHEvent<void(_tEventArgs)> _name;
 
 
 /*!
@@ -501,7 +525,7 @@ public:
 	/*!
 	\brief 添加事件响应。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline ReferenceType
 	operator+=(_type _arg)
 	{
@@ -511,7 +535,7 @@ public:
 	/*!
 	\brief 移除事件响应。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline ReferenceType
 	operator-=(_type _arg)
 	{
@@ -565,7 +589,7 @@ public:
 \since build 188 。
 */
 //@{
-#define EventT(_tEventHandler) GEvent<_tEventHandler::EventArgsType>
+#define EventT(_tEventHandler) GEvent<void(_tEventHandler::EventArgsType)>
 #define DepEventT(_tEventHandler) \
 	typename GDependencyEvent(EventT(_tEventHandler))
 //@}
@@ -625,17 +649,6 @@ public:
 
 
 /*!
-\brief 事件处理器接口模板。
-\since build 188 。
-*/
-template<class _tEventArgs>
-DeclI(GIHEvent)
-	DeclIEntry(size_t operator()(_tEventArgs) const)
-	DeclIEntry(GIHEvent* Clone() const)
-EndDecl
-
-
-/*!
 \brief 事件处理器包装类模板。
 \since build 173 。
 */
@@ -668,7 +681,7 @@ public:
 \warning 非虚析构。
 \since build 242 。
 */
-PDefTmplH1(_tBaseArgs)
+template<typename _tBaseArgs>
 class GEventPointerWrapper
 {
 public:

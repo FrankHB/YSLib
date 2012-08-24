@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11868;
+\version r11873;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-08-09 03:20 +0800;
+	2012-08-20 21:51 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -167,7 +167,7 @@ _yInterface
 _yInterfaceHead(_n)
 PDeclI(_n)
 DeclI(_n)
-DeclBasedI(_n, ...)
+DeclDerivedI(_n, ...)
 ImplI(...)
 ImplA(...)
 DeclIEntry(_signature)
@@ -178,10 +178,6 @@ DefExtendClass1(_n, _b, _a)
 PDefH(_t, _n, ...)
 PDefHOp(_t, _op, ...)
 PDefCvt(_t)
-PDefTmplH1(_t1)
-PDefTmplH2(_t1, _t2)
-PDefTmplH3(_t1, _t2, _t3)
-PDefTmplH4(_t1, _t2, _t3, _t4)
 ImplExpr(...)
 ImplRet(...)
 ImplUnsequenced(_e)

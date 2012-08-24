@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1509;
+\version r1563;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-08-17 13:54 +0800;
+	2012-08-22 01:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -179,19 +179,77 @@ using std::result_of;
 \since build 306 。
 */
 
-/*!	\defgroup UnaryTypeTrait Unary Type Trait
+/*!	\defgroup unary_type_trait Unary Type Trait
 \ingroup type_traits_operations
 \brief 一元类型特征。
 \see ISO C++2011 20.9.1[meta.rqmts] 。
 \since build 306 。
 */
 
-/*!	\defgroup BinaryTypeTrait Binary Type Trait
+/*!	\defgroup binary_type_trait Binary Type Trait
 \ingroup type_traits_operations
 \brief 二元类型特征。
 \see ISO C++2011 20.9.1[meta.rqmts] 。
 \since build 306 。
 */
+
+/*!	\defgroup metafunctions Metafunctions
+\ingroup meta_operations
+\brief 元函数。
+\see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/\
+metafunction.html 。
+\since build 333 。
+*/
+
+
+/*!
+\ingroup unary_type_trait
+\brief 判断指定类型是否可作为返回值类型。
+\note 即排除数组和函数类型的所有类型。
+\since build 333 。
+*/
+template<typename _type>
+struct is_returnable : std::integral_constant<bool, !std::is_array<_type>::value
+	&& !std::is_function<_type>::value>
+{};
+
+
+/*!
+\ingroup unary_type_trait
+\brief 判断指定类型是否是指向类的指针。
+\note 即排除数组和函数类型的所有类型。
+\since build 333 。
+*/
+template<typename _type>
+struct is_class_pointer : std::integral_constant<bool, !std::is_pointer<_type>
+	::value && std::is_class<typename std::remove_pointer<_type>::type>::value>
+{};
+
+
+/*!
+\ingroup unary_type_trait
+\brief 判断指定类型是否是左值类类型引用。
+\note 即排除数组和函数类型的所有类型。
+\since build 333 。
+*/
+template<typename _type>
+struct is_lvalue_class_reference : std::integral_constant<bool,
+	!std::is_lvalue_reference<_type>::value && std::is_class<typename
+	std::remove_reference<_type>::type>::value>
+{};
+
+
+/*!
+\ingroup unary_type_trait
+\brief 判断指定类型是否是右值类类型引用。
+\note 即排除数组和函数类型的所有类型。
+\since build 333 。
+*/
+template<typename _type>
+struct is_rvalue_class_reference : std::integral_constant<bool,
+	!std::is_lvalue_reference<_type>::value && std::is_class<typename
+	std::remove_reference<_type>::type>::value>
+{};
 
 
 namespace details
@@ -323,7 +381,7 @@ public:
 
 
 /*!
-\ingroup BinaryTypeTrait
+\ingroup binary_type_trait
 \brief 判断是否存在合式的结果可转换为 bool 类型的 == 操作符接受指定类型的表达式。
 \since build 306 。
 */
@@ -334,7 +392,7 @@ struct has_equality_operator : integral_constant<bool,
 
 
 /*!
-\ingroup BinaryTypeTrait
+\ingroup binary_type_trait
 \brief 判断指定类型是否有非空虚基类。
 \since build 175 。
 */
@@ -345,7 +403,7 @@ struct has_nonempty_virtual_base : integral_constant<bool,
 
 
 /*!
-\ingroup UnaryTypeTrait
+\ingroup unary_type_trait
 \brief 判断指定的两个类类型是否有非空虚基类。
 \since build 175 。
 */

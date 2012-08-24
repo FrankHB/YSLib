@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r2470;
+\version r2472;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-03-14 14:07:22 +0800;
 \par 修改时间:
-	2012-08-09 03:19 +0800;
+	2012-08-20 18:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -41,7 +41,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \since build 308 。
 */
 //@{
-PDefTmplH1(_type)
+template<typename _type>
 string
 to_string(const GBinaryGroup<_type>& val)
 {
@@ -278,7 +278,7 @@ CreateSharedScreenImage(ConstBitmapPtr p)
 \brief 使用 new 分配空间并复制无压缩位图。
 \since build 213 。
 */
-PDefTmplH1(_tPixel)
+template<typename _tPixel>
 _tPixel*
 CreateRawBitmap(const _tPixel* s, size_t n)
 {

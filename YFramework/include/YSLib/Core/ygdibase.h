@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2133;
+\version r2145;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2012-08-02 12:24 +0800;
+	2012-08-20 18:36 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -46,7 +46,7 @@ class Rect;
 \brief 屏幕二元组。
 \since build 242 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 class GBinaryGroup
 {
 public:
@@ -85,7 +85,7 @@ public:
 	\brief 构造：使用两个标量。
 	\since build 319 。
 	*/
-	PDefTmplH2(_tScalar1, _tScalar2)
+	template<typename _tScalar1, typename _tScalar2>
 	yconstfn
 	GBinaryGroup(_tScalar1 x, _tScalar2 y) ynothrow
 		: X(x), Y(y)
@@ -153,9 +153,9 @@ public:
 	}
 };
 
-PDefTmplH1(_type)
+template<typename _type>
 yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Zero;
-PDefTmplH1(_type)
+template<typename _type>
 yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Invalid;
 
 
@@ -165,7 +165,7 @@ yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Invalid;
 \brief 比较：屏幕二元组相等关系。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn bool
 operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 {
@@ -176,7 +176,7 @@ operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 \brief 比较：屏幕二元组不等关系。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn bool
 operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 {
@@ -187,7 +187,7 @@ operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 \brief 加法：屏幕二元组。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn GBinaryGroup<_type>
 operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 {
@@ -198,7 +198,7 @@ operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 \brief 减法：屏幕二元组。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn GBinaryGroup<_type>
 operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 {
@@ -209,7 +209,7 @@ operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 \brief 数乘：屏幕二元组。
 \since build 319 。
 */
-PDefTmplH2(_type, _tScalar)
+template<typename _type, typename _tScalar>
 yconstfn GBinaryGroup<_type>
 operator*(const GBinaryGroup<_type>& val, _tScalar l) ynothrow
 {
@@ -274,7 +274,7 @@ public:
 	\brief 构造：使用屏幕二元组。
 	\since build 319 。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	yconstfn explicit
 	Size(const GBinaryGroup<_type>& val) ynothrow
 		: Width(val.X), Height(val.Y)
@@ -283,7 +283,7 @@ public:
 	\brief 构造：使用两个标量。
 	\since build 319 。
 	*/
-	PDefTmplH2(_tScalar1, _tScalar2)
+	template<typename _tScalar1, typename _tScalar2>
 	yconstfn
 	Size(_tScalar1 w, _tScalar2 h) ynothrow
 		: Width(w), Height(h)
@@ -367,7 +367,7 @@ operator!=(const Size& a, const Size& b) ynothrow
 \brief 加法：使用屏幕二元组和屏幕区域大小分量对应相加构造屏幕二元组。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn GBinaryGroup<_type>
 operator+(GBinaryGroup<_type> val, const Size& s) ynothrow
 {
@@ -679,7 +679,7 @@ Rect
 operator|(const Rect&, const Rect&) ynothrow;
 
 
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn
 GBinaryGroup<_type>::GBinaryGroup(const Rect& r) ynothrow
 	: X(r.X), Y(r.Y)

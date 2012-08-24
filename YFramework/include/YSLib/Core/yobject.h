@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3959;
+\version r3974;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-08-19 17:20 +0800;
+	2012-08-21 21:32 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,10 +39,10 @@ YSL_BEGIN
 //特征类策略：对象类型标签模版。
 
 /*!
-\brief 指定对于 _type 类型成员具有所有权的标签。
+\brief 指定对于参数指定类型的成员具有所有权的标签。
 \since build 218 。
 */
-PDefTmplH1(_type)
+template<typename>
 struct OwnershipTag
 {};
 
@@ -62,17 +62,17 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 \see ystdex::any_holder 。
 \since build 332 。
 */
-DeclBasedI(IValueHolder, ystdex::any_holder)
+DeclDerivedI(IValueHolder, ystdex::any_holder)
 	DeclIEntry(bool operator==(const IValueHolder&) const)
 
 protected:
-	PDefTmplH1(_type)
+	template<typename _type>
 	static inline bool
 	AreEqual(_type& x, _type& y, decltype(x == y) = false)
 	{
 		return x == y;
 	}
-	PDefTmplH2(_type, _tUnused)
+	template<typename _type, typename _tUnused>
 	static inline bool
 	AreEqual(_type&, _tUnused&)
 	{
@@ -86,7 +86,7 @@ EndDecl
 \see ystdex::value_holder 。
 \since build 332 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 class ValueHolder : implements IValueHolder
 {
 public:
@@ -127,7 +127,7 @@ public:
 \see ystdex::pointer_holder 。
 \since build 332 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 class PointerHolder : implements IValueHolder
 {
 	static_assert(std::is_object<_type>::value, "Invalid type found.");
@@ -203,7 +203,7 @@ public:
 	\pre obj 可被复制构造。
 	\note 得到包含指定对象副本的实例。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	ValueObject(const _type& obj)
 		: content(new ValueHolder<_type>(obj), nullptr)
 	{}
@@ -211,7 +211,7 @@ public:
 	\brief 构造：使用对象指针。
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	ValueObject(_type* p, PointerConstructTag)
 		: content(new PointerHolder<_type>(p), nullptr)
 	{}
@@ -253,7 +253,7 @@ public:
 	*/
 	explicit DefCvt(const ynothrow, bool, content.get_holder())
 
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline _type&
 	GetObject()
 	{
@@ -262,7 +262,7 @@ public:
 
 		return *content.get<_type>();
 	}
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline const _type&
 	GetObject() const
 	{
@@ -277,7 +277,7 @@ public:
 	\throw std::bad_cast 空实例或类型检查失败 。
 	\since build 306 。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline const _type&
 	Access()
 	{
@@ -288,7 +288,7 @@ public:
 	\throw std::bad_cast 空实例或类型检查失败 。
 	\since build 306 。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline const _type&
 	Access() const
 	{
@@ -316,7 +316,7 @@ public:
 \brief 使用指针构造 ValueObject 实例。
 \since build 233 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline ValueObject
 MakeValueObjectByPtr(_type* p)
 {
@@ -552,7 +552,7 @@ public:
 \warning 非虚析构。
 \since build 193 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 class GMRange
 {
 public:

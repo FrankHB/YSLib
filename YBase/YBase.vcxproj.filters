@@ -76,6 +76,9 @@
     <ClInclude Include="include\ytest\timing.hpp">
       <Filter>头文件\ytest</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\functional.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

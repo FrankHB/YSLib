@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r2121;
+\version r2125;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173 。
 \par 创建时间:
 	2010-12-02 19:49:40 +0800;
 \par 修改时间:
-	2012-08-17 13:56 +0800;
+	2012-08-20 17:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -130,11 +130,11 @@ public:
 		\note 此用法参考 nvwa 0.8.2 ：
 		http://sourceforge.net/projects/nvwa/files/nvwa/ 。
 		*/
-		template<typename T>
-		T*
-		operator->*(T* p)
+		template<typename _type>
+		_type*
+		operator->*(_type* p)
 		{
-			blocks.Register(p, sizeof(T), file, line);
+			blocks.Register(p, sizeof(_type), file, line);
 			return p;
 		}
 	};

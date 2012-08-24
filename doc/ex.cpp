@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4448; *build 332 rev 1;
+\version r4451; *build 333 rev 22;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-08-20 13:01 +0800;
+	2012-08-24 18:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -166,6 +166,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \or ::= overridden
 \param ::= parameters
 \param.de ::= default parameters
+\pos ::= position
 \post ::= postfix
 \pre ::= prepared
 \pref ::= prefix
@@ -384,108 +385,162 @@ $using:
 
 $DONE:
 r1:
-/ split (copy, move) \op= ~ unifying \op= @ \cl any @ \h Any,
-/ \simp \impl @ move \op= @ \cl (BitmapBuffer, BitmapBufferEx) @ \h YGDI,
-* \impl @ \mac for \decl base(currently \mac DeclBasedI) \in $since b240;
-/= test 1 @ platform MinGW32;
-
-r2-r6:
-/ @ \u YObject $=
+/ @ \proj YFramework $=
 (
-	+ \inc \h Any @ \h;
-	+ \in IValueHolder;
-	+ \clt (ValueHolder, PointerHolder);
-	/ @ \cl ValueObject $=
+	/ @ \h YEvent $=
 	(
-		/ \impl ^ (ValueHolder, PointerHolder, ystdex::any_holder) ~ GManager;
-		- \clt (GManager, OpType, ManagerType),
-		/ private \smf AreEqual >> \in IValueHolder as protected \m,
-		/ \mf !\i (Clear, Swap) -> \i ^ \mac (PDefH, ImplBodyMem)
+		/ \a 'template<class _tEventArgs>' -> 'PDefTmplH1(_tEventArgs)',
+		(
+			/ \pos @ \decl \in \t GIHEvent;
+			+ \clt<_tEventArgs> GHFunction
+		)
 	),
-	/ @ \cl ValueNode $=
 	(
-		/ \simp \impl @ \mf ^ \mac (PDefH, ImplRet, ImplExpr),
-		/ \mf \i CheckNodes -> \mf !\i
+		/ \t \decl \h @ \h !^ \mac;
+		- \mac (PDefTmplH*, DefFwdCtorTmpl*) @ \h YBaseMacro
 	)
 ),
-/= 5 test 2 @ platform MinGW32;
+/ \t \param \n (T -> _type, typename C -> class _tClass);
+/= test 1 @ platform MinGW32;
+
+r2:
+/ \a DeclBasedI @ \h YBaseMacro => DeclDerivedI,
+/ \clt GHFunction @ \h YEvent -> \clt GHAdpator;
+/= test 2 @ platform MinGW32;
+
+r3:
+/ @ \h TypeOperations $=
+(
+	/ $doc Doxygen \rem $=
+	(
+		+ group 'metafunctions',
+		/ \a 'UnaryTypeTrait' -> 'unary_type_trait',
+		/ \a 'BinaryTypeTrait' -> 'binary_type_trait'
+	)
+	+ unary type traits \ft (is_returnable, is_class_pointer,
+		is_lvalue_class_reference, is_rvalue_class_reference)
+);
+/= test 3 @ platform MinGW32;
+
+r4:
+\ctor t<_fCallable> yconstfn GHEvent(_fCallable, typename std::enable_if<
+	std::is_object<_fCallable>::value, int>::type = 0) @ \h YEvent
+	-> \mft<_fCallable> yconstfn GHEvent(_fCallable&&, typename std::enable_if<
+	std::is_constructible<BaseType, _fCallable>::value, int>::type = 0);
+/= test 4 @ platform MinGW32;
+
+r5:
+/ \simp \impl @ \f OnKey_Bound_Click @ \impl \u YControl,
+/ @ \lib YStandardEx $=
+(
+	+ \h Functional["functional.hpp"];
+	/ (\inc \h (<functional>, <string>), seq_apply, unseq_apply, ref_eq,
+		xcrease_t, delta_assignment, xcrease, delta_assign, deref_op,
+		const_deref_op, deref_comp, deref_str_comp) @ \h Utilities
+		>> \h Functional,
+	/ @ \h Functional $=
+	(
+		+ \inc \h <tuple>;
+		+ \ft (make_parameter_tuple, return_of, parameter_of, paramlist_size)
+	),
+	/ \inc \h (TypeOperations, <cstring>) @ \h Utilities -> \h YDefinition
+);
++ \inc \h Functional @ \h YAdaptor,
+- unnecessary \inc \h Utilities @ \h Font;
+/= test 5 @ platform MinGW32;
+
+r6:
+/= test 6 @ platform MinGW32 ^ \conf release;
 
 r7:
-/= test 3 @ platform MinGW32 ^ \conf release;
+/= test 7 @ platform DS;
 
 r8:
-/= test 4 @ platform DS;
+/= test 8 @ platform DS ^ \conf release;
 
 r9:
-/= test 5 @ platform DS ^ \conf release;
-
-r10:
-/ \ctor any(any_holder*) -> any(any_holder*, std::nullptr_t)
-	@ \cl any @ \h Any,
-/ \tr \impl @ \a 2 !\de \ctor @ \cl ValueObject;
-/= test 6 @ platform MinGW32;
-
-r11:
-/ @ \h Any $=
+/ @ \h YEvent $=
 (
-	(
-		/ \a 'remove_reference' -> 'std::remove_reference',
-		/ \a 'is_object' -> 'std::is_object';
-		- \inc \h TypeOperations
-	)
-	* strict ISO C++11 compatibility $since b331 $= (+ \inc \h <typeinfo>)
+	/ \impl @ \op() @ \clt GEvent ^ range-based for ~ std::for_each,
+	/ \in \t<_tEventArgs> GIHEvent -> \in \t<_tParams...>
 );
-/= test 7 @ platform MinGW32;
-
-r12:
-/ \simp @ \clt GEvent @ \h YEvent $=
-(
-	/ copy \ctor ^ \exp \de,
-	- \mf GEvent& operator=(const HandlerType&),
-	- \mf GEvent& operator=(HandlerType&&),
-	/ \impl @ \mf \op()
-);
-/= test 8 @ platform MinGW32;
-
-r13:
-/ \a (\mf, \mft) AddUnique @ \clt GEvent @ YEvent -> !\m;
 /= test 9 @ platform MinGW32;
 
+r10:
+/ \impl @ \mf (MenuHost::(ShowAll, HideAll) @ \impl \u Menu,
+	MUIContainer::PaintVisibleChildren) ^ range-based for ~ std::for_each;
+/= test 10 @ platform MinGW32;
+
+r11:
+/ @ \h YEvent $=
+(
+	(
+		/ \clt GHEvent<_tEventArgs> -> GHEvent<_tParams...>;
+		/ @ \clt GHEvent $=
+		(
+			+ typedef TupleType,
+			/ \impl @ typedef EventArgsType
+		)
+	),
+	/ \tr \impl @ \mac DeclDelegate,
+	/ typedef GHEvent<_tEventArgs> HandlerType @ \clt GEvent
+		-> typedef GHEvent<void(_tEventArgs)> HandlerType
+);
+/= test 11 @ platform MinGW32;
+
+r12:
+/ @ \h YEvent $=
+(
+	/ \clt GEvent<_tEventArgs> -> GEvent<_tParams...>,
+	/ \tr \impl @ \mac EventT
+);
+/= test 12 @ platform MinGW32;
+
+r13:
+- \clt GHAdaptor @ \h YEvent;
+/= test 13 @ platform MinGW32;
+
 r14:
-/= test 10 @ platform MinGW32 ^ \conf release;
-
-r15:
-/= test 11 @ platform DS;
-
-r16:
-/= test 12 @ platform DS ^ \conf release;
-
-r17-r20:
-* \impl @ \h YEvent $sicnce r12,
-/= 4 test 13 @ platform MinGW32;
-
-r21:
 /= test 14 @ platform MinGW32 ^ \conf release;
 
-r22:
+r15:
 /= test 15 @ platform DS;
 
-r23:
+r16:
 /= test 16 @ platform DS ^ \conf release;
+
+r17:
+/ test 17 @ platform DS ^ \conf release $= (/ undo r10);
+
+r18:
+/ \impl @ \op() @ \clt GEvent ^ std::for_each ~ range-based;
+/= test 18 @ platform DS ^ \conf release;
+
+r19:
+/= test 19 @ platform MinGW32;
+
+r20:
+/= test 20 @ platform MinGW32 ^ \conf release;
+
+r21:
+/= test 21 @ platform DS;
+
+r22:
+/= test 22 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-08-20 +0800:
--28.8d;
-// Mercurial rev1-rev204: r9018;
+2012-08-24 +0800:
+-28.1d;
+// Mercurial rev1-rev205: r9040;
 
 / ...
 
 
 $NEXT_TODO:
-b333-b348:
+b334-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -857,6 +912,7 @@ $module_tree $=
 			'CStandardIO',
 			'CString',
 			'Iterator',
+			'Functional',
 			'Algorithms',
 			'Utilities',
 			'Memory',
@@ -896,7 +952,7 @@ $module_tree $=
 			'Adaptor', // adaptors;
 			'Core' // core;
 			(
-				'YBaseMac', // basic macros,
+				'YBaseMacro', // basic macros,
 				'YObject', // basic objects;
 				'YCoreUtilities', // core utilities;
 				'YGDIBase', // GDI base;
@@ -937,6 +993,48 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework'.'YSLib' $=
+	(
+		- DLD "template declaration related macros %('PDefTmplH*', \
+			'DefFwdCtorTmpl*')" @ %'Core'.'YBaseMacro',
+		/ %'YEvent' $=
+		(
+			+ "support for variant handler for initialization"
+				@ "template class %GHEvent"
+				// As same as %std::function.
+			/ "improved template parameter declaration"
+				^ "function type and parameter pack",
+			/ "implementation" @ "macro %(DeclDelegate, EventT)"
+		)
+	),
+	/ %'YBase'.'YStandardEx'.'TypeOperations' $=
+	(
+		/ %'TypeOperations' $=
+		(
+			/ $doc "Doxygen comments" $=
+			(
+				+ "group %metafunctions",
+				/ 'UnaryTypeTrait' => 'unary_type_trait',
+				/ 'BinaryTypeTrait' => 'binary_type_trait'
+			)
+			+ "unary type traits function templates %(is_returnable, \
+				is_class_pointer, is_lvalue_class_reference, \
+				is_rvalue_class_reference)"
+		)
+		+ "header %functional.hpp as %Function" $=
+		(
+			+ $lib "including header (<tuple>, <functional>, <string>)";
+			+ "function templates %(make_parameter_tuple, return_of, \
+				parameter_of, paramlist_size)"
+		)
+		/ "%(seq_apply, unseq_apply, ref_eq, xcrease_t, delta_assignment, \
+			xcrease, delta_assign, deref_op, const_deref_op, deref_comp, \
+			deref_str_comp)" @ %'Utilities' >> "header %Functional"
+	)
+),
+
+b332
+(
 	/ %'YBase'.'YStandardEx'.'Any' $=
 	(
 		/ @ "class %any" $=
@@ -959,7 +1057,7 @@ $now
 	(
 		(
 			* "wrong implementation" @ "macro for derived interface declaration \
-				(currently %DeclBasedI)" @ %'YBaseMac' $since b240;
+				(currently %DeclBasedI)" @ %'YBaseMacro' $since b240;
 			$dep_to "interface declaration fix";
 		),
 		/ %'YObject' $=

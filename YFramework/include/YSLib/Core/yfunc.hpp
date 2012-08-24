@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1861;
+\version r1863;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-14 18:48:44 +0800;
 \par 修改时间:
-	2012-07-23 20:27 +0800;
+	2012-08-20 18:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN
 /*
 \brief 调用时动态类型检查仿函数模板。
 */
-PDefTmplH3(_type, _tArg, _tRet)
+template<typename _type, typename _tArg, typename _tRet>
 class GHDynamicFunction
 {
 private:
@@ -122,7 +122,7 @@ public:
 /*!
 \brief 助手函数：使用指定函数引用构造 GHDynamicFunction<_type, _tArg, _tRet> 对象。
 */
-PDefTmplH3(_type, _tArg, _tRet)
+template<typename _type, typename _tArg, typename _tRet>
 inline GHDynamicFunction<_type, _tArg, _tRet>
 ConstructDynamicFunctionWith(_tRet (&_f)(_type&, _tArg))
 {

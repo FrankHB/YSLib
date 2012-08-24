@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2873;
+\version r2894;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-07-03 18:00 +0800;
+	2012-08-20 18:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -81,7 +81,7 @@ FetchZero() ynothrow
 \brief 取指定类型的零元素。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn _type
 FetchZero() ynothrow
 {
@@ -103,7 +103,7 @@ FetchSign(int a, int b = 0) ynothrow
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn s8
 FetchSign(const _type& a, const _type& b = FetchZero<_type>()) ynothrow
 {
@@ -131,7 +131,7 @@ FetchSignFromInterval(int d, int a, int b) ynothrow
 \note 无精度修正。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn int
 FetchSignFromInterval(const _type& d, const _type& a, const _type& b) ynothrow
 {
@@ -143,7 +143,7 @@ FetchSignFromInterval(const _type& d, const _type& a, const _type& b) ynothrow
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline bool
 IsInInterval(_type i, _type b) ynothrow
 {
@@ -157,7 +157,7 @@ IsInInterval(_type i, _type b) ynothrow
 \pre 断言： <tt>a < b</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline bool
 IsInInterval(_type i, _type a, _type b) ynothrow
 {
@@ -171,7 +171,7 @@ IsInInterval(_type i, _type a, _type b) ynothrow
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline bool
 IsInOpenInterval(_type i, _type b) ynothrow
 {
@@ -185,7 +185,7 @@ IsInOpenInterval(_type i, _type b) ynothrow
 \pre 断言： <tt>a < b</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline bool
 IsInOpenInterval(_type i, _type a, _type b) ynothrow
 {
@@ -202,7 +202,7 @@ IsInOpenInterval(_type i, _type a, _type b) ynothrow
 \pre 断言： <tt>!(v < *a)</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 size_t
 SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 {
@@ -225,7 +225,7 @@ SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 \pre 断言： <tt>!(v < *a)</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 {
@@ -247,7 +247,7 @@ SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 \post <tt>!(i < a || b < i)</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 void
 RestrictInClosedInterval(_type& i, int a, int b) ynothrow
 {
@@ -265,7 +265,7 @@ RestrictInClosedInterval(_type& i, int a, int b) ynothrow
 \post <tt>!(i < a) && i < b</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 void
 RestrictInInterval(_type& i, int a, int b) ynothrow
 {
@@ -282,7 +282,7 @@ RestrictInInterval(_type& i, int a, int b) ynothrow
 \post <tt>!(b < u)</tt>。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 void
 RestrictUnsignedStrict(_type& u, unsigned b) ynothrow
 {
@@ -296,7 +296,7 @@ RestrictUnsignedStrict(_type& u, unsigned b) ynothrow
 \post <tt>!(u < FetchZero<_type>()) && u < b</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 void
 RestrictUnsigned(_type& u, unsigned b) ynothrow
 {
@@ -311,7 +311,7 @@ RestrictUnsigned(_type& u, unsigned b) ynothrow
 \post <tt>a <= b</tt> 。
 \since build 319 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline void
 RestrictLessEqual(_type& a, _type& b) ynothrow
 {
@@ -328,7 +328,7 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 \note 忽略空指针和零长度。
 \since build 322 。
 */
-PDefTmplH1(_tOut)
+template<typename _tOut>
 inline void
 ClearSequence(_tOut dst, size_t n) ynothrow
 {
@@ -353,7 +353,7 @@ struct delete_obj_ndebug
 	/*!
 	\brief 删除指针指向的对象。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline void
 	operator()(_type* _ptr) ynothrow
 	{
@@ -372,7 +372,7 @@ struct delete_second_mem_ndebug
 	/*!
 	\brief 删除第二成员指向的对象。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline void
 	operator()(const _type& _pr) ynothrow
 	{
@@ -392,7 +392,7 @@ struct delete_obj_debug
 	/*!
 	\brief 删除指针指向的对象。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline void
 	operator()(_type* _ptr) ynothrow
 	{
@@ -411,7 +411,7 @@ struct delete_second_mem_debug
 	/*!
 	\brief 删除第二成员指向的对象。
 	*/
-	PDefTmplH1(_type)
+	template<typename _type>
 	inline void
 	operator()(const _type& _pr) ynothrow
 	{
@@ -439,7 +439,7 @@ struct safe_delete_obj
 	/*!
 	\brief 删除指针指向的对象，并置指针为空值。
 	*/
-	PDefTmplH1(_tPointer)
+	template<typename _tPointer>
 	inline void
 	operator()(_tPointer& _ptr) ynothrow
 	{
@@ -452,7 +452,7 @@ struct safe_delete_obj
 \brief 使用 new 复制指定指针指向的对象。
 \since build 240 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 yconstfn auto
 CloneNonpolymorphic(const _type& p) -> decltype(&*p)
 {

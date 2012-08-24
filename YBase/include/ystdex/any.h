@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1501;
+\version r1502;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2011-09-26 07:55:44 +0800;
 \par 修改时间:
-	2012-08-19 22:14 +0800;
+	2012-08-21 21:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -227,7 +227,7 @@ public:
 \note 值语义。基本接口和语义同 boost::any 。
 \warning 非虚析构。
 \see http://www.boost.org/doc/libs/1_50_0/doc/html/any/reference.html#\
-any.ValueType
+any.ValueType 。
 \since build 331 。
 */
 class any

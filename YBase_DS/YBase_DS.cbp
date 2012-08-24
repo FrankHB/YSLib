@@ -61,6 +61,7 @@
 		<Unit filename="..\YBase\include\ystdex\cast.hpp" />
 		<Unit filename="..\YBase\include\ystdex\cstdio.h" />
 		<Unit filename="..\YBase\include\ystdex\cstring.h" />
+		<Unit filename="..\YBase\include\ystdex\functional.hpp" />
 		<Unit filename="..\YBase\include\ystdex\iterator.hpp" />
 		<Unit filename="..\YBase\include\ystdex\memory.hpp" />
 		<Unit filename="..\YBase\include\ystdex\operators.hpp" />

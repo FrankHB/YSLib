@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r3601;
+\version r3606;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 176 。
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2012-05-14 19:08 +0800;
+	2012-08-20 18:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -59,7 +59,7 @@ using std::weak_ptr;
 \since build 209 。
 */
 //@{
-PDefTmplH1(_type)
+template<typename _type>
 inline bool
 reset(_type*& p) ynothrow
 {
@@ -75,7 +75,7 @@ reset(_type*& p) ynothrow
 \brief 比较： shared_ptr 左值和内建指针类型的相等关系。
 \since build 209 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 bool
 operator==(const shared_ptr<_type>& sp, _type* p)
 {
@@ -85,7 +85,7 @@ operator==(const shared_ptr<_type>& sp, _type* p)
 \brief 比较： shared_ptr 右值和内建指针类型的相等关系。
 \since build 209 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 bool
 operator==(shared_ptr<_type>&& sp, _type* p)
 {
@@ -96,7 +96,7 @@ operator==(shared_ptr<_type>&& sp, _type* p)
 \brief 比较： shared_ptr 左值和内建指针类型的不等关系。
 \since build 209 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 bool
 operator!=(const shared_ptr<_type>& sp, _type* p)
 {
@@ -106,7 +106,7 @@ operator!=(const shared_ptr<_type>& sp, _type* p)
 \brief 比较： shared_ptr 右值和内建指针类型的不等关系。
 \since build 209 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 bool
 operator!=(shared_ptr<_type>&& sp, _type* p)
 {

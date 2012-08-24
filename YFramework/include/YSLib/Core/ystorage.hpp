@@ -12,13 +12,13 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r1385;
+\version r1388;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 195 。
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2012-06-28 10:22 +0800;
+	2012-08-20 18:07 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN
 \brief 取指定类型的无参数构造的对象。
 \since build 241 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline _type
 FetchInstance()
 {
@@ -49,7 +49,7 @@ FetchInstance()
 \warning 非线程安全。
 \since build 240 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline _type&
 FetchStaticRef()
 {
@@ -63,7 +63,7 @@ FetchStaticRef()
 \warning 初始化前非线程安全。
 \since build 240 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 inline const _type&
 FetchPrototype()
 {

@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r6529;
+\version r6530;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-05-25 08:49 +0800;
+	2012-08-20 18:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -346,7 +346,7 @@ public:
 	\param pController_ 控制器指针。
 	\pre <tt>bool(pView_) && bool(pRenderer_)</tt> 。
 	*/
-	PDefTmplH3(_tView, _tRenderer, _tController)
+	template<typename _tView, typename _tRenderer, typename _tController>
 	explicit inline
 	Widget(_tView&& pView_ = make_unique<View>(),
 		_tRenderer&& pRenderer_ = make_unique<Renderer>(),

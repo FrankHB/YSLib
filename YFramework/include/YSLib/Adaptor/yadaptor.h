@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r2393;
+\version r2394;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-22 20:16:21 +0800;
 \par 修改时间:
-	2012-07-03 17:14 +0800;
+	2012-08-22 13:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -37,6 +37,7 @@
 #include "ynew.h"
 
 //包含 YStandardEx 公用部分。
+#include <ystdex/functional.hpp>
 #include <ystdex/utility.hpp>
 
 //包含 YCLib 公用部分。

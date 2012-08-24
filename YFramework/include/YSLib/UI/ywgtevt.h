@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2217;
+\version r2218;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2012-08-16 09:59 +0800;
+	2012-08-20 18:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -191,7 +191,7 @@ public:
 \warning 非虚析构。
 \since build 268 。
 */
-PDefTmplH1(_type)
+template<typename _type>
 struct GValueEventArgs : public UIEventArgs
 {
 	//! \brief 值类型。

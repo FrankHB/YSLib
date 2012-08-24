@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3261;
+\version r3302;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2012-08-18 22:57 +0800;
+	2012-08-20 21:50 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -117,14 +117,22 @@ _t type
 #define DeclI(_n) _yInterface _n _yInterfaceHead(_n)
 
 //对于基接口需要显式指定访问权限和继承方式。
-//由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
-// ImplI = Implements Interface;
-//抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
-// ImplA = Implements Abstractly;
-#define DeclBasedI(_n, ...) \
+
+/*
+\def DeclDerivedI
+\brief 定义派生接口。
+\note 由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
+\since build 333 。
+*/
+#define DeclDerivedI(_n, ...) \
 	_yInterface _n : __VA_ARGS__ \
 	_yInterfaceHead(_n)
+
+// ImplI = Implements Interface;
 #define ImplI(...) virtual
+
+//抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
+// ImplA = Implements Abstractly;
 #define ImplA(...)
 
 #define DeclIEntry(_sig) virtual _sig = 0;
@@ -167,15 +175,6 @@ _t type
 
 #define PDefCvt(_t) \
 	operator _t()
-
-#define PDefTmplH1(_t1) \
-	template<typename _t1>
-#define PDefTmplH2(_t1, _t2) \
-	template<typename _t1, typename _t2>
-#define PDefTmplH3(_t1, _t2, _t3) \
-	template<typename _t1, typename _t2, typename _t3>
-#define PDefTmplH4(_t1, _t2, _t3, _t4) \
-	template<typename _t1, typename _t2, typename _t3, typename _t4>
 
 
 //简单通用函数实现。
@@ -313,30 +312,6 @@ _t type
 
 
 //成员函数和模板映射。
-
-//传递构造函数。
-#define DefFwdCtorTmpl1(_tClass, _t1, _m1) \
-	PDefTmplH1(_t1) \
-	_tClass(_t1&& _m1##a_) \
-		: _m1(yforward(_m1##a_)) \
-	{}
-#define DefFwdCtorTmpl2(_tClass, _t1, _m1, _t2, _m2) \
-	PDefTmplH2(_t1, _t2) \
-	_tClass(_t1&& _m1##a_, _t2&& _m2##a_) \
-		: _m1(yforward(_m1##a_)), _m2(yforward(_m2##a_)) \
-	{}
-#define DefFwdCtorTmpl3(_tClass, _t1, _m1, _t2, _m2, _t3, _m3) \
-	PDefTmplH3(_t1, _t2, _t3) \
-	_tClass(_t1&& _m1##a_, _t2&& _m2##a_, _t3&& _m3##a_) \
-		: _m1(yforward(_m1##a_)), _m2(yforward(_m2##a_)), \
-		_m3(yforward(_m3##a_)) \
-	{}
-#define DefFwdCtorTmpl4(_tClass, _t1, _m1, _t2, _m2, _t3, _m3, _t4, _m4) \
-	PDefTmplH4(_t1, _t2, _t3, _t4) \
-	_tClass(_t1&& _m1##a_, _t2&& _m2##a_, _t3&& _m3##a_, _t4&& _m4##a_) \
-		: _m1(yforward(_m1##a_)), _m2(yforward(_m2##a_)), \
-		_m3(yforward(_m3##a_)), _m4(yforward(_m4##a_)) \
-	{}
 
 
 /*!

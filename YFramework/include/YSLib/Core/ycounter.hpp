@@ -11,13 +11,13 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r1728;
+\version r1733;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-09 20:43:52 +0800;
 \par 修改时间:
-	2012-06-28 09:24 +0800;
+	2012-08-20 17:57 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN
 \brief 模板类实例计数器。
 \since 早于 build 132 。
 */
-template<class T, typename count_t = u32>
+template<class _type, typename count_t = u32>
 class GMCounter
 {
 private:
@@ -122,11 +122,11 @@ protected:
 	}
 };
 
-template<class T, typename count_t>
-count_t GMCounter<T, count_t>::nCount(0);
+template<class _type, typename count_t>
+count_t GMCounter<_type, count_t>::nCount(0);
 
-template<class T, typename count_t>
-count_t GMCounter<T, count_t>::nTotal(0);
+template<class _type, typename count_t>
+count_t GMCounter<_type, count_t>::nTotal(0);
 
 YSL_END
 

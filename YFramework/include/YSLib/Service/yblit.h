@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2324;
+\version r2333;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-16 19:43:24 +0800;
 \par 修改时间:
-	2012-07-17 01:36 +0800;
+	2012-08-20 18:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -57,7 +57,7 @@ typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
 \brief 像素填充器。
 \since build 182 。
 */
-PDefTmplH1(_tPixel)
+template<typename _tPixel>
 struct PixelFiller
 {
 	_tPixel Color;
@@ -260,7 +260,7 @@ struct RectTransformer
 \brief 清除指定位置的 n 个连续像素。
 \since build 322 。
 */
-PDefTmplH1(_tPixel)
+template<typename _tPixel>
 inline _tPixel*
 ClearPixel(_tPixel* dst, size_t n) ynothrow
 {
@@ -272,7 +272,7 @@ ClearPixel(_tPixel* dst, size_t n) ynothrow
 \brief 使用 n 个指定像素连续填充指定位置。
 \since 早于 build 132 。
 */
-PDefTmplH1(_tPixel)
+template<typename _tPixel>
 inline void
 FillPixel(_tPixel* dst, size_t n, _tPixel c)
 {
@@ -283,7 +283,7 @@ FillPixel(_tPixel* dst, size_t n, _tPixel c)
 \brief 使用 n 个指定像素竖直填充指定位置。
 \since build 182 。
 */
-PDefTmplH1(_tPixel)
+template<typename _tPixel>
 inline void
 FillVerticalLine(_tPixel* dst, size_t n, SDst dw, _tPixel c)
 {
@@ -294,7 +294,7 @@ FillVerticalLine(_tPixel* dst, size_t n, SDst dw, _tPixel c)
 \brief 使用指定像素填充指定的正则矩形区域。
 \since build 160 。
 */
-PDefTmplH1(_tPixel)
+template<typename _tPixel>
 inline void
 FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss,
 	_tPixel c)
@@ -306,7 +306,7 @@ FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss,
 \brief 使用指定像素填充指定的正则矩形区域。
 \since build 151 。
 */
-PDefTmplH1(_tPixel)
+template<typename _tPixel>
 inline void
 FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 {
@@ -317,7 +317,7 @@ FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 \brief 使用指定像素填充指定的正则矩形区域。
 \since build 160 。
 */
-PDefTmplH1(_tPixel)
+template<typename _tPixel>
 inline void
 FillRect(_tPixel* dst, SDst dw, SDst dh, SPos sx, SPos sy, SDst sw, SDst sh,
 	_tPixel c)
@@ -434,7 +434,7 @@ struct BlitTransparentLoop
 
 //测试用，不使用 Alpha 混合的快速算法。
 
-PDefTmplH2(_tOut, _tIn)
+template<typename _tOut, typename _tIn>
 void
 biltAlphaPoint(_tOut dst_iter, _tIn src_iter);
 template<>
@@ -542,7 +542,7 @@ blitAlphaBlend(PixelType d, PixelType s, u8 a)
 
 #endif
 
-PDefTmplH2(_tOut, _tIn)
+template<typename _tOut, typename _tIn>
 void
 biltAlphaPoint(_tOut dst_iter, _tIn src_iter);
 template<>
