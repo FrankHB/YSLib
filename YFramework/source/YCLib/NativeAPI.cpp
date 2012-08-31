@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r1387;
+\version r387;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-26 13:36:28 +0800;
 \par 修改时间:
-	2012-06-05 21:18 +0800;
+	2012-08-27 17:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

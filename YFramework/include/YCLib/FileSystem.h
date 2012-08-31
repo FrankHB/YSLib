@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1469;
+\version r471;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:38:37 +0800;
 \par 修改时间:
-	2012-07-16 16:08 +0800;
+	2012-08-30 20:06 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YCL_INC_FILESYSTEM_H_
-#define YCL_INC_FILESYSTEM_H_
+#define YCL_INC_FILESYSTEM_H_ 1
 
 #include "ycommon.h"
 #if YCL_MINGW32
@@ -400,6 +400,7 @@ public:
 
 /*!
 \brief 判断指定路径字符串是否表示一个绝对路径。
+\since build 152 。
 */
 bool
 IsAbsolute(const_path_t);

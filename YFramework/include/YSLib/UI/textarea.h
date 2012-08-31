@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1418;
+\version r419;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 222 。
 \par 创建时间:
 	2011-06-30 20:09:23 +0800;
 \par 修改时间:
-	2012-05-25 13:51 +0800;
+	2012-08-30 20:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_TEXTAREA_H_
-#define YSL_INC_UI_TEXTAREA_H_
+#define YSL_INC_UI_TEXTAREA_H_ 1
 
 #include "ywidget.h"
 //#include "../Core/yres.h"

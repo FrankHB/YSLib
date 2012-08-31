@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2328;
+\version r1333;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:36:30 +0800;
 \par 修改时间:
-	2012-06-22 09:43 +0800;
+	2012-08-29 15:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -144,7 +144,7 @@ Path::GetExtension() const
 Path&
 Path::MakeAbsolute(const Path&)
 {
-	// TODO: impl;
+	// TODO: Implementation.
 	return *this;
 }
 
@@ -176,7 +176,7 @@ Path::NormalizeTrailingSlash()
 Path&
 Path::RemoveFilename()
 {
-	// TODO: impl;
+	// TODO: Implementation;
 	return *this;
 }
 
@@ -299,7 +299,7 @@ IsExtensionOf(const char* str, const char* name)
 
 	if(!p)
 		return false;
-	// TODO: for non-case-sensitive file names;
+	// TODO: Implementation for non-case-sensitive file names.
 	return !strcmp(str, p);
 }
 bool
@@ -320,7 +320,7 @@ HaveSameExtensions(const char* a, const char* b)
 
 	if(!(pa && pb))
 		return false;
-	// TODO: for non-case-sensitive file names;
+	// TODO: Implementation for non-case-sensitive file names.
 	return std::strcmp(pa, pb) != 0;
 }
 bool
@@ -420,7 +420,7 @@ FileList::ListItems()
 					&& dir.IsDirectory() ? String(
 					string(dir.GetName()) + FS_Seperator, CP_Path)
 					: String(dir.GetName(), CP_Path));
-		// TODO: platform-dependent name converting;
+		// TODO: Platform-dependent name converting.
 	}
 	return n;
 }

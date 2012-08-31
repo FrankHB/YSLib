@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r1212;
+\version r250;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328 。
 \par 创建时间:
 	2012-07-24 22:14:21 +0800;
 \par 修改时间:
-	2012-08-05 23:26 +0800;
+	2012-08-31 16:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -45,6 +45,51 @@ FetchEncodingString(MTextList::IndexType i)
 	}
 	return u"---";
 }
+
+
+//! \since build 334 。
+//@{
+namespace
+{
+
+inline const string&
+FetchString(ValueNode& node, const string& name)
+{
+	return AccessChild<string>(node, name);
+}
+
+int
+FetchSToI(ValueNode& node, const string& name)
+{
+	return std::stoi(FetchString(node, name));
+}
+
+Color
+FetchSToColor(ValueNode& node, const string& name)
+{
+	const auto s(FetchString(node, name).c_str());
+	int r, g, b;
+
+	std::sscanf(s, "%d%d%d", &r, &g, &b);
+	return Color(r, g, b);
+}
+
+} // unnamed namespace;
+//@}
+
+ReaderSetting::ReaderSetting()
+	: UpColor(240, 216, 192), DownColor(192, 216, 240), FontColor(),
+	Font(FetchDefaultTypeface().GetFontFamily(), 14), SmoothScroll(true),
+	ScrollDuration(1000), SmoothScrollDuration(80)
+{}
+ReaderSetting::ReaderSetting(ValueNode& node)
+	: UpColor(FetchSToColor(node, "color_up")), DownColor(FetchSToColor(node,
+	"color_dn")), FontColor(FetchSToColor(node, "font_color")), Font(
+	FontFamily(FetchDefaultFontCache(), FetchString(node, "font_family")),
+	FetchSToI(node, "font_size")), SmoothScroll(FetchSToI(node, "smooth_scroll")
+	!= 0), ScrollDuration(FetchSToI(node, "scroll_duration")),
+	SmoothScrollDuration(FetchSToI(node, "smooth_scroll_duration"))
+{}
 
 
 SettingPanel::SettingPanel()

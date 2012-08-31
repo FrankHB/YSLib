@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r1367;
+\version r368;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201 。
 \par 创建时间:
 	2011-04-13 20:40:51 +0800;
 \par 修改时间:
-	2012-05-25 13:56 +0800;
+	2012-08-30 20:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_YPANEL_H_
-#define YSL_INC_UI_YPANEL_H_
+#define YSL_INC_UI_YPANEL_H_ 1
 
 #include "ycontrol.h"
 #include "yuicont.h"

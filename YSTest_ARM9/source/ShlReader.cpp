@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4818;
+\version r3837;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:13:41 +0800;
 \par 修改时间:
-	2012-08-10 10:25 +0800;
+	2012-08-31 16:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -42,16 +42,6 @@ namespace
 //	ResourceMap GlobalResourceMap;
 
 using namespace Text;
-
-/*!
-\since build 293 。
-*/
-milliseconds
-FetchTimerSetting(const ReaderSetting& s)
-{
-	return s.SmoothScroll ? s.SmoothScrollDuration : s.ScrollDuration;
-}
-
 
 /*
 \brief 文本阅读器菜单项。
@@ -196,7 +186,7 @@ ShlReader::Exit()
 		return;
 	bExit = true;
 	fBackgroundTask = nullptr;
-	// TODO: use template %SetShellToNew;
+	// TODO: Use template %SetShellToNew.
 //	SetShellToNew<ShlExplorer>();
 	SetShellTo(ystdex::make_shared<ShlExplorer>(CurrentPath / u".."));
 }
@@ -213,13 +203,8 @@ ShlReader::OnInput()
 ShlTextReader::ShlTextReader(const IO::Path& pth)
 	: ShlReader(pth),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
-	CurrentSetting(ystdex::get_init<>([]{
-			return ReaderSetting{Color(240, 216, 192), Color(192, 216, 240),
-				Color(), Font(FetchDefaultTypeface().GetFontFamily(), 14),
-				true, milliseconds(1000), milliseconds(80)};
-		})),
-	tmrScroll(FetchTimerSetting(CurrentSetting)), tmrInput(), reader(),
-	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
+	CurrentSetting(), tmrScroll(CurrentSetting.GetTimerSetting()), tmrInput(),
+	reader(), boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
 	pTextFile(), mhMain(GetDesktopDown())
 {
 	using ystdex::get_key;
@@ -312,7 +297,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 			reader.SetFont(pnlSetting.lblAreaUp.Font);
 			reader.UpdateView();
 			pnlSetting >> CurrentSetting;
-			tmrScroll.SetInterval(FetchTimerSetting(CurrentSetting));
+			tmrScroll.SetInterval(CurrentSetting.GetTimerSetting());
 		},
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
 	);
@@ -346,7 +331,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	LastRead.DropSubsequent();
 	UpdateButtons();
 	//置默认视图。
-	// TODO: 关联视图设置状态使用户可选。
+	// TODO: Associate view setting state for user selection.
 	OnClick(TouchEventArgs(dsk_dn));
 	RequestFocusCascade(dsk_dn);
 }

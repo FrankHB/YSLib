@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3981;
+\version r2982;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2011-03-07 20:33:05 +0800;
 \par 修改时间:
-	2012-06-08 16:30 +0800;
+	2012-08-29 16:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -197,7 +197,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 							else
 								boxList.ClearSelected();
 						}
-						p->Add(boxList, 224U); // TODO: use non-magic number;
+						p->Add(boxList, 224U); // TODO: Use non-magic number.
 						RequestFocus(boxList);
 						e.Handled = true;
 					}

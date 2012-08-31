@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r2680;
+\version r1681;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-06-15 13:24 +0800;
+	2012-08-29 16:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -305,7 +305,7 @@ main()
 	{
 		log.FatalError("Unhandled exception @ main function;");
 	}
-	// TODO: return exit code properly;
+	// TODO: Return exit code properly.
 	return 0;
 }
 

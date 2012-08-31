@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r2361;
+\version r1363;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-28 00:09:28 +0800;
 \par 修改时间:
-	2012-06-01 22:37 +0800;
+	2012-08-30 20:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_CORE_YFILESYS_H_
-#define YSL_INC_CORE_YFILESYS_H_
+#define YSL_INC_CORE_YFILESYS_H_ 1
 
 #include "ystring.h"
 #include <iterator>
@@ -562,7 +562,7 @@ ValidatePath(const Path& path)
 
 
 // \brief 文件名过滤器。
-// TODO: define & impl;
+// TODO: Definition & impl.
 
 
 //! \brief 文件列表模块。

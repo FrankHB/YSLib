@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r1230;
+\version r231;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293 。
 \par 创建时间:
 	2012-01-10 19:55:30 +0800;
 \par 修改时间:
-	2012-04-13 19:41 +0800;
+	2012-08-30 20:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_BORDER_H_
-#define YSL_INC_UI_BORDER_H_
+#define YSL_INC_UI_BORDER_H_ 1
 
 #include "ywgtevt.h"
 #include "../Service/yres.h"

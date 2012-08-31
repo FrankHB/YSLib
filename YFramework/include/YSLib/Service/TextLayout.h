@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r7410;
+\version r2594;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2009-11-13 00:06:05 +0800;
 \par 修改时间:
-	2012-02-01 17:17 +0800;
+	2012-08-30 20:12 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_SERVICE_TEXTLAYOUT_H_
-#define YSL_INC_SERVICE_TEXTLAYOUT_H_
+#define YSL_INC_SERVICE_TEXTLAYOUT_H_ 1
 
 #include "TextRenderer.h"
 

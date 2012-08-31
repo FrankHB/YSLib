@@ -11,13 +11,13 @@
 /*!	\file Console.h
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r1127;
+\version r128;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2011-04-19 23:00:29 +0800;
 \par 修改时间:
-	2012-04-13 19:58 +0800;
+	2012-08-30 20:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_YCONSOLE_H_
-#define YSL_INC_UI_YCONSOLE_H_
+#define YSL_INC_UI_YCONSOLE_H_ 1
 
 #include "ycomp.h"
 #include "../Core/ydevice.h"

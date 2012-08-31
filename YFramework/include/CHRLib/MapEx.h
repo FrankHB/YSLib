@@ -11,13 +11,13 @@
 /*!	\file MapEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r1235;
+\version r242;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 324 。
 \par 创建时间:
 	2012-07-09 09:04:36 +0800;
 \par 修改时间:
-	2012-07-11 21:03 +0800;
+	2012-08-30 20:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef CHRLIB_INC_MAPEX_H_
-#define CHRLIB_INC_MAPEX_H_
+#define CHRLIB_INC_MAPEX_H_ 1
 
 #include "CHRLib/smap.hpp"
 

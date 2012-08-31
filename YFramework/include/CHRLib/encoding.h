@@ -11,13 +11,13 @@
 /*!	\file encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r1576;
+\version r577;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 242 。
 \par 创建时间:
 	2009-11-17 17:52:35 +0800;
 \par 修改时间:
-	2012-02-21 14:29 +0800;
+	2012-08-30 20:03 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef CHRLIB_INC_ENCODING_H_
-#define CHRLIB_INC_ENCODING_H_
+#define CHRLIB_INC_ENCODING_H_ 1
 
 #include "chrdef.h"
 

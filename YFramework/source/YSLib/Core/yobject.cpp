@@ -11,13 +11,13 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r1675;
+\version r675;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-08-19 11:09 +0800;
+	2012-08-27 17:26 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

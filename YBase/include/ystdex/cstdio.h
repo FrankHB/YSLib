@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r1344;
+\version r345;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245 。
 \par 创建时间:
 	2011-09-21 08:30:08 +0800;
 \par 修改时间:
-	2012-07-16 20:16 +0800;
+	2012-08-30 20:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YB_INC_YSTDEX_CSTDIO_H_
-#define YB_INC_YSTDEX_CSTDIO_H_
+#define YB_INC_YSTDEX_CSTDIO_H_ 1
 
 #include "../ydef.h"
 #include <cstdio>

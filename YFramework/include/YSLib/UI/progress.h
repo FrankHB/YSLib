@@ -11,13 +11,13 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r1280;
+\version r281;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219 。
 \par 创建时间:
 	2011-06-20 08:57:48 +0800;
 \par 修改时间:
-	2012-05-25 13:48 +0800;
+	2012-08-30 20:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_PROGRESS_H_
-#define YSL_INC_UI_PROGRESS_H_
+#define YSL_INC_UI_PROGRESS_H_ 1
 
 #include "ycontrol.h"
 //#include "../Core/yres.h"

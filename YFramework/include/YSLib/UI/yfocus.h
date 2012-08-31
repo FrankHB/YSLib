@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r2688;
+\version r1689;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 168 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-06-06 13:10 +0800;
+	2012-08-30 20:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_YFOCUS_HPP_
-#define YSL_INC_UI_YFOCUS_HPP_
+#define YSL_INC_UI_YFOCUS_HPP_ 1
 
 #include "ycomp.h"
 

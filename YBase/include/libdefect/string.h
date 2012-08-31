@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 <string> 修正。
-\version r1409;
+\version r411;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 308 。
 \par 创建时间:
 	2012-05-14 20:41:08 +0800;
 \par 修改时间:
-	2012-06-23 20:59 +0800;
+	2012-08-30 19:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,13 +31,13 @@
 
 
 #ifndef YB_INC_LIBDEFECT_STRING_H_
-#define YB_INC_LIBDEFECT_STRING_H_
+#define YB_INC_LIBDEFECT_STRING_H_ 1
 
 #include <string>
 
 #ifdef __GLIBCXX__
 
-// TODO: confirm exact versions;
+// TODO: Confirm exact versions affected.
 
 #if (__GLIBCXX__ <= 20120614 && __GXX_EXPERIMENTAL_CXX0X__)
 // && _GLIBCXX_USE_C99

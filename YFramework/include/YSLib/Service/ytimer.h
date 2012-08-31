@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1843;
+\version r844;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-06-05 10:28:58 +0800;
 \par 修改时间:
-	2012-06-28 11:24 +0800;
+	2012-08-30 20:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 
 #ifndef YSL_INC_SERVICE_YTIMER_H_
-#define YSL_INC_SERVICE_YTIMER_H_
+#define YSL_INC_SERVICE_YTIMER_H_ 1
 
 #include "../Core/yobject.h"
 #include "../Adaptor/ycont.h"

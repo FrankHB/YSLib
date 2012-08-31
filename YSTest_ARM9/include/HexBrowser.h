@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1382;
+\version r383;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:13:04 +0800;
 \par 修改时间:
-	2012-08-09 03:23 +0800;
+	2012-08-30 20:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef INC_YREADER_HEXVIEWER_H_
-#define INC_YREADER_HEXVIEWER_H_
+#define INC_YREADER_HEXVIEWER_H_ 1
 
 #include <YSLib/UI/scroll.h>
 #include <YSLib/Service/yfile.h>

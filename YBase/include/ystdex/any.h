@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1502;
+\version r508;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2011-09-26 07:55:44 +0800;
 \par 修改时间:
-	2012-08-21 21:08 +0800;
+	2012-08-30 20:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YB_INC_YSTDEX_ANY_H_
-#define YB_INC_YSTDEX_ANY_H_
+#define YB_INC_YSTDEX_ANY_H_ 1
 
 #include "../ydef.h"
 #include <memory> // for std::addressof;
@@ -50,7 +50,7 @@ union no_copy_t
 
 /*
 \brief 任意 POD 类型。
-\note POD 含义参考 ISO C++ 2011 。
+\note POD 含义参考 ISO C++11 。
 \since build 207 。
 */
 union any_pod_t
@@ -392,14 +392,14 @@ template<typename _type>
 inline _type*
 any_cast(any* p)
 {
-	return p && p->target<_type>();
+	return p ? p->target<_type>() : nullptr;
 }
 
 template<typename _type>
 inline const _type*
 any_cast(const any* p)
 {
-	return p && p->target<_type>();
+	return p ? p->target<_type>() : nullptr;
 }
 
 template<typename _type>
@@ -407,11 +407,11 @@ _type
 any_cast(const any& x)
 {
 	const auto tmp(any_cast<typename std::remove_reference<_type>::type>(
-		std::addressof(x)));
+		std::addressof(const_cast<any&>(x))));
 
 	if(!tmp)
 		throw bad_any_cast();
-	return std::forward<_type>(*tmp);
+	return static_cast<_type>(*tmp);
 }
 //@}
 

@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-06-05 03:11 +0800;
-# Version = r3353;
+# UTime = 2012-08-28 19:50 +0800;
+# Version = r1152;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 

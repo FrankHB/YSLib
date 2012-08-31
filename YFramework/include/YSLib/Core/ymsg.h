@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r2769;
+\version r1770;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-06 02:44:31 +0800;
 \par 修改时间:
-	2012-08-17 14:42 +0800;
+	2012-08-30 20:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_CORE_YSMSG_H_
-#define YSL_INC_CORE_YSMSG_H_
+#define YSL_INC_CORE_YSMSG_H_ 1
 
 #include "yobject.h"
 #include "../Adaptor/ycont.h"

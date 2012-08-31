@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r1158;
+\version r158;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 323 。
 \par 创建时间:
 	2012-07-06 11:23:21 +0800;
 \par 修改时间:
-	2012-07-15 14:25 +0800;
+	2012-08-27 17:20 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

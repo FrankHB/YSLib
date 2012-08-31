@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2250;
+\version r1253;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-08-02 16:13 +0800;
+	2012-08-29 15:49 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -122,7 +122,7 @@ InitializeEnviornment() ynothrow
 #	endif
 #endif
 #if 0
-		// TODO: review locale APIs compatibility;
+		// TODO: Review locale APIs compatibility.
 		static yconstexpr char locale_str[]{"zh_CN.GBK"};
 
 		if(!setlocale(LC_ALL, locale_str))
@@ -174,7 +174,7 @@ InitializeSystemFontCache() ynothrow
 				std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
 					pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 			else
-				throw LoggedEvent("failed.");
+				throw LoggedEvent("Setting default font face failed.");
 		}
 		catch(LoggedEvent& e)
 		{
@@ -244,7 +244,7 @@ CheckInstall() ynothrow
 						"Loaded default font directory:\n%s\n",
 						def_dir.c_str(), font_path.c_str(), font_dir.c_str());
 				else
-					throw LoggedEvent("Empty path loaded!");
+					throw LoggedEvent("Empty path loaded.");
 #if !CHRLIB_NODYNAMIC_MAPPING
 				std::puts("Load character mapping file...");
 				p_mapped = new MappedFile(def_dir + "cp113.bin");

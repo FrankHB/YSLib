@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r1783;
+\version r784;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 175 。
 \par 创建时间:
 	2010-12-15 08:13:18 +0800;
 \par 修改时间:
-	2012-08-17 16:45 +0800;
+	2012-08-30 20:00 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YB_INC_YSTDEX_CAST_HPP_
-#define YB_INC_YSTDEX_CAST_HPP_
+#define YB_INC_YSTDEX_CAST_HPP_ 1
 
 #include "type_op.hpp"
 #include <memory>

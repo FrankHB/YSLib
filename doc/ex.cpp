@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4451; *build 333 rev 22;
+\version r4465; *build 334 rev 24;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-08-24 18:25 +0800;
+	2012-08-31 16:58 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -70,7 +70,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 ... ::= ellipse
 ; ::= sequenced seperater(statement termination)
 // $evaluating.content;
-= ::= equivalent
+= ::= equivalent/equal to
 + ::= added
 - ::= removed
 * ::= fixed
@@ -85,6 +85,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 >> ::= moved to
 => ::= renamed to
 <=> ::= swapped names
+:= assignment as/is
 @ ::= in / belonged to
 \a ::= all
 \ab ::= abstract
@@ -211,8 +212,12 @@ $macro_platform_mapping:
 $using:
 \u YObject
 (
-	\cl ValueObject,
-	\clt GDependency
+	(
+		\cl ValueObject;
+		\cl ValueNode,
+	)
+	\clt GDependency,
+	\clt GRange
 ),
 \u YGDIBase
 (
@@ -384,163 +389,125 @@ $using:
 
 
 $DONE:
-r1:
-/ @ \proj YFramework $=
-(
-	/ @ \h YEvent $=
-	(
-		/ \a 'template<class _tEventArgs>' -> 'PDefTmplH1(_tEventArgs)',
-		(
-			/ \pos @ \decl \in \t GIHEvent;
-			+ \clt<_tEventArgs> GHFunction
-		)
-	),
-	(
-		/ \t \decl \h @ \h !^ \mac;
-		- \mac (PDefTmplH*, DefFwdCtorTmpl*) @ \h YBaseMacro
-	)
-),
-/ \t \param \n (T -> _type, typename C -> class _tClass);
-/= test 1 @ platform MinGW32;
-
-r2:
-/ \a DeclBasedI @ \h YBaseMacro => DeclDerivedI,
-/ \clt GHFunction @ \h YEvent -> \clt GHAdpator;
-/= test 2 @ platform MinGW32;
-
-r3:
-/ @ \h TypeOperations $=
-(
-	/ $doc Doxygen \rem $=
-	(
-		+ group 'metafunctions',
-		/ \a 'UnaryTypeTrait' -> 'unary_type_trait',
-		/ \a 'BinaryTypeTrait' -> 'binary_type_trait'
-	)
-	+ unary type traits \ft (is_returnable, is_class_pointer,
-		is_lvalue_class_reference, is_rvalue_class_reference)
-);
-/= test 3 @ platform MinGW32;
+r1-r3:
++ \stt identity @ \h TypeOperations;
+/= 3 test 1 @ platform MinGW32;
 
 r4:
-\ctor t<_fCallable> yconstfn GHEvent(_fCallable, typename std::enable_if<
-	std::is_object<_fCallable>::value, int>::type = 0) @ \h YEvent
-	-> \mft<_fCallable> yconstfn GHEvent(_fCallable&&, typename std::enable_if<
-	std::is_constructible<BaseType, _fCallable>::value, int>::type = 0);
-/= test 4 @ platform MinGW32;
+* \impl @ \a 3 \ft any_cast @ \h Any $since b331;
+/= test 2 @ platform MinGW32;
 
 r5:
-/ \simp \impl @ \f OnKey_Bound_Click @ \impl \u YControl,
-/ @ \lib YStandardEx $=
-(
-	+ \h Functional["functional.hpp"];
-	/ (\inc \h (<functional>, <string>), seq_apply, unseq_apply, ref_eq,
-		xcrease_t, delta_assignment, xcrease, delta_assign, deref_op,
-		const_deref_op, deref_comp, deref_str_comp) @ \h Utilities
-		>> \h Functional,
-	/ @ \h Functional $=
-	(
-		+ \inc \h <tuple>;
-		+ \ft (make_parameter_tuple, return_of, parameter_of, paramlist_size)
-	),
-	/ \inc \h (TypeOperations, <cstring>) @ \h Utilities -> \h YDefinition
-);
-+ \inc \h Functional @ \h YAdaptor,
-- unnecessary \inc \h Utilities @ \h Font;
-/= test 5 @ platform MinGW32;
+/= $dev version number nomalized @ \proj (YBase, YFramework) \exc makefiles;
+	// Counted strictly as lines modified.
+/= test 3 @ platform MinGW32 ^ \conf release;
 
 r6:
-/= test 6 @ platform MinGW32 ^ \conf release;
+/= $dev version number nomalized @ \proj ((YSTest_ARM7, YSTest_ARM9, YSTest),
+	makefiles @ \proj (YBase, YFramework));
+/= test 4 @ platform DS;
 
 r7:
-/= test 7 @ platform DS;
+* missing mutable access method to \cl ValueObject $since b306
+	$= (/ \mft<_type> \i const _type& Access()
+	-> / \mft<_type> \i _type& Access()),
++ (1 getter, 3 setters) @ \cl ValueNode;
+/= test 5 @ platform MinGW32;
 
 r8:
-/= test 8 @ platform DS ^ \conf release;
+/ rem TODO @ (\mf (2 GetBegin, 2 GetEnd) @ \cl ValueNode, ((\mf GetInternalInfo,
+	\ctor) @ \cl Font, \f FetchDefaultTypeface) @ \impl \u Font, (\mf
+	BitmapBuffer::SetSize, \ctor BitmapBuffer#2) @ \impl \u YGDI, \f
+	(InitializeSystemFontCache, CheckInstall) @ \impl \u Initialization, \ctor
+	DropDownList @ \impl \u ComboList, \mf Menu::PaintItem @ \impl \u Menu, \f
+	OnTouchMove_Dragging @ \impl \u YControl, \mf DualScreenReader::Execute
+	@ \impl \u DSReader, \mf HexViewArea::Refresh @ \impl \u HexBrowser, main \f
+	@ \impl \u Main_ARM9, \ctor ShlExplorer @ \impl \u Shells, (\mf
+	ShlReader::Exit, \ctor ShlTextReader) @ \impl \u ShlReader);
+/= test 6 @ platform DS ^ \conf release;
 
 r9:
-/ @ \h YEvent $=
+/ \impl @ \f IsAbsolute @ \impl \u FileSystem $=
 (
-	/ \impl @ \op() @ \clt GEvent ^ range-based for ~ std::for_each,
-	/ \in \t<_tEventArgs> GIHEvent -> \in \t<_tParams...>
+	/ \impl @ platform DS $=
+	(
+		* missing checking for null pointer and duplicate ':/' 
+			$since b152,
+		/ treated prefix '*:/' other than 'fat:/' or 'sd:/' also valid
+	)
+	/ \impl @ platform MinGW32 ^ PathIsRelativeW, u_to_w ~ PathIsRelativeA
+);
+/= test 7 @ platform MinGW32;
+
+r10:
+/ \a guard \mac @ \h defined as integer literal '1';
+/= test 8 @ platform MinGW32;
+
+r11:
+/ \st ReaderSetting -> \cl ReaderSetting @ \cl ReaderSetting $=
+(
+	/ \ac @ \a \m := public,
+	+ \m
+	(
+		DefDeCtor(ReaderSetting)
+		DefDeCopyCtor(ReaderSetting)
+		DefDeMoveCtor(ReaderSetting)
+
+		DefDeCopyAssignment(ReaderSetting)
+		DefDeMoveAssignment(ReaderSetting)
+	)
 );
 /= test 9 @ platform MinGW32;
 
-r10:
-/ \impl @ \mf (MenuHost::(ShowAll, HideAll) @ \impl \u Menu,
-	MUIContainer::PaintVisibleChildren) ^ range-based for ~ std::for_each;
+r12:
++ 2 \ft \i AccessChild @ \h YObject;
+/ @ \cl ReaderSetting @ \u ReaderSetting $=
+(
+	/ \impl @ \de \ctor,
+	+ !\exp \ctor ReaderSetting(const ValueNode&)
+),
+/ @ \cl ShlTextReader @ \u ShlReader $=
+(
+	/ \m ReaderSetting& CurrentSetting -> ReaderSetting CurrentSetting,
+	/ \tr \simp \impl @ \ctor @ \cl ShlTextReader 
+);
 /= test 10 @ platform MinGW32;
 
-r11:
-/ @ \h YEvent $=
-(
-	(
-		/ \clt GHEvent<_tEventArgs> -> GHEvent<_tParams...>;
-		/ @ \clt GHEvent $=
-		(
-			+ typedef TupleType,
-			/ \impl @ typedef EventArgsType
-		)
-	),
-	/ \tr \impl @ \mac DeclDelegate,
-	/ typedef GHEvent<_tEventArgs> HandlerType @ \clt GEvent
-		-> typedef GHEvent<void(_tEventArgs)> HandlerType
-);
+r13:
+/ \f FetchTimerSetting @ \u ShlReader -> \mf \i ReaderSetting::GetTimerSetting
+	@ \h ReaderSetting,
+/ \tr \impl @ \ctor ShlTextReader @ \impl \u ShlReader;
 /= test 11 @ platform MinGW32;
 
-r12:
-/ @ \h YEvent $=
-(
-	/ \clt GEvent<_tEventArgs> -> GEvent<_tParams...>,
-	/ \tr \impl @ \mac EventT
-);
-/= test 12 @ platform MinGW32;
-
-r13:
-- \clt GHAdaptor @ \h YEvent;
-/= test 13 @ platform MinGW32;
-
 r14:
-/= test 14 @ platform MinGW32 ^ \conf release;
+/= test 12 @ platform MinGW32 ^ \conf release;
 
 r15:
-/= test 15 @ platform DS;
+/= test 13 @ platform DS;
 
 r16:
+/= test 14 @ platform DS ^ \conf release;
+
+r17-r23:
+* \impl @ \f IsAbsolute platform DS @ \impl \u FileSystem $since r9;
+/= 7 test 15 @ platform DS;
+
+r24:
 /= test 16 @ platform DS ^ \conf release;
-
-r17:
-/ test 17 @ platform DS ^ \conf release $= (/ undo r10);
-
-r18:
-/ \impl @ \op() @ \clt GEvent ^ std::for_each ~ range-based;
-/= test 18 @ platform DS ^ \conf release;
-
-r19:
-/= test 19 @ platform MinGW32;
-
-r20:
-/= test 20 @ platform MinGW32 ^ \conf release;
-
-r21:
-/= test 21 @ platform DS;
-
-r22:
-/= test 22 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-08-24 +0800:
--28.1d;
-// Mercurial rev1-rev205: r9040;
+2012-08-31 +0800:
+-26.8d;
+// Mercurial rev1-rev206: r9064;
 
 / ...
 
 
 $NEXT_TODO:
-b334-b348:
+b335-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -591,7 +558,7 @@ b349-b400:
 b401-b895:
 / $low_prior @ \lib YCLib $=
 (
-	+ fully implementation of memory mappaing APIs,
+	/ fully \impl @ memory mappaing APIs,
 	+ block file loading APIs,
 	+ shared memory APIs
 ),
@@ -626,7 +593,7 @@ b401-b895:
 ),
 / $low_prior performance $=
 (
-	/ implementation @ classes %(Message, MessageQueue)
+	/ \impl @ classes %(Message, MessageQueue)
 ),
 / completeness of core abstraction $=
 (
@@ -992,6 +959,41 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx' $=
+	(
+		+ "class template %identity" @ %'TypeOperations',
+			// Same to %boost::identity or previously standardized %std::identity.
+		* "implementation" @ "all 3 function template %any_cast"
+			@ %'Any' $since b331
+	),
+	/= $dev $lib "normalized version numbers and format of TODO comments",
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'Core'.'YObject' $=
+		(
+			* "missing mutable access method" @ "non-const member function \
+				template %ValueObject::Access" b306,
+			+ "1 getter, 3 setters" @ "class %ValueNode",
+			+ "2 function templates %AccessChild"
+		),
+		/ "function %IsAbsolute" @ %'YCLib'.'FileSystem' $=
+		(
+			/ @ "platform %DS" $=
+			(
+				* "missing checking for null pointer and duplicate ':/'"
+					$since b152,
+				/ "treated prefix '*:/' other than 'fat:/' or 'sd:/' also valid"
+			),
+			/ DLD ^ "%PathIsRelativeW" ~ "%PathIsRelativeA"
+				@ "implementation" @ "platform %MinGW32"
+		)
+	)
+	/ "all header macro guard defined as integer literal '1'" ~ "nothing",
+	/ DLD "improved reader setting constructing" @ %'YReader'.'text reader'
+),
+
+b333
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -2607,7 +2609,7 @@ b294
 				initialization of objects with class %Widget",
 			+ "brush class %ImageBrush";
 			/ "widget background painting" ^ ("new member %HBrush Background"
-				@ "class %Widget") ~ "function %Render",
+				@ "class %Widget") ~ "function %Components::Render",
 			(
 				$dep_from "event with priority";
 				(
@@ -2622,7 +2624,11 @@ b294
 				* $comp "border overlapping between widgets" $since b284
 				$dep_to %'YReader'.'text reader'
 			),
-			/ "widget refreshing interface",
+			/ "widget refreshing interface" $=
+			(
+				^ "event %Paint" ~ "function %Components::Render";
+				- "function %Components::Render"
+			),
 			+ "widget rendering state sharing between parent and children"
 		),
 		+ "protected boolean members to determine whether the desktops would \

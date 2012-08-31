@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r5554;
+\version r4556;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:24 +0800;
 \par 修改时间:
-	2012-08-16 09:45 +0800;
+	2012-08-30 20:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_YCONTROL_H_
-#define YSL_INC_UI_YCONTROL_H_
+#define YSL_INC_UI_YCONTROL_H_ 1
 
 #include "ywidget.h"
 #include "ywgtevt.h"

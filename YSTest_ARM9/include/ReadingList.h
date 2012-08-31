@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r1138;
+\version r139;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328 。
 \par 创建时间:
 	2012-07-24 22:13:46 +0800;
 \par 修改时间:
-	2012-08-09 03:24 +0800;
+	2012-08-30 20:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef INC_YREADER_READINGLIST_H_
-#define INC_YREADER_READINGLIST_H_
+#define INC_YREADER_READINGLIST_H_ 1
 
 #include "Shells.h"
 

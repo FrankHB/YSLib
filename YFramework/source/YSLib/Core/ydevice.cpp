@@ -11,13 +11,13 @@
 /*!	\file ydevice.cpp
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2750;
+\version r1750;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:39:51 +0800;
 \par 修改时间:
-	2012-07-03 17:23 +0800;
+	2012-08-27 17:25 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

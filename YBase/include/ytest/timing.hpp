@@ -16,13 +16,13 @@
 /*!	\file timing.h
 \ingroup YTest
 \brief 运行计时测试工具。
-\version r1262;
+\version r263;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 308 。
 \par 创建时间:
 	2012-06-23 20:01:09 +0800;
 \par 修改时间:
-	2012-07-23 20:24 +0800;
+	2012-08-30 20:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 
 #ifndef YB_INC_YTEST_TIMING_HPP_
-#define YB_INC_YTEST_TIMING_HPP_
+#define YB_INC_YTEST_TIMING_HPP_ 1
 
 #include "../ydef.h"
 #include <ctime>

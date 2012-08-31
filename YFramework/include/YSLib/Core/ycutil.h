@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2894;
+\version r1895;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-08-20 18:12 +0800;
+	2012-08-30 20:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_CORE_YCUTIL_H_
-#define YSL_INC_CORE_YCUTIL_H_
+#define YSL_INC_CORE_YCUTIL_H_ 1
 
 #include "ysdef.h"
 

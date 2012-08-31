@@ -11,13 +11,13 @@
 /*!	\file Timer.cpp
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r1174;
+\version r174;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 313 。
 \par 创建时间:
 	2012-06-01 14:44:52 +0800;
 \par 修改时间:
-	2012-06-04 17:38 +0800;
+	2012-08-27 17:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

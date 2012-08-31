@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r1107;
+\version r112;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 324 。
 \par 创建时间:
 	2012-07-11 21:59:21 +0800;
 \par 修改时间:
-	2012-07-12 10:05 +0800;
+	2012-08-27 17:24 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

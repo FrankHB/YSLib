@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r1380;
+\version r381;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 209 。
 \par 创建时间:
 	2011-05-14 12:25:13 +0800;
 \par 修改时间:
-	2012-06-23 02:39 +0800;
+	2012-08-30 20:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YB_INC_YSTDEX_MEMORY_HPP_
-#define YB_INC_YSTDEX_MEMORY_HPP_
+#define YB_INC_YSTDEX_MEMORY_HPP_ 1
 
 #include "../ydef.h"
 #include <memory>

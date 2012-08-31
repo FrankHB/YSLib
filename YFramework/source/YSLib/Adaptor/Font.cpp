@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r7714;
+\version r2892;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2009-11-12 22:06:13 +0800;
 \par 修改时间:
-	2012-07-03 12:24 +0800;
+	2012-08-29 15:46 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -185,8 +185,7 @@ FetchDefaultTypeface() ythrow(LoggedEvent)
 		FetchDefaultFontCache().GetDefaultTypefacePtr());
 
 	if(YB_UNLIKELY(!pDefaultTypeface))
-		throw LoggedEvent("Null default font face pointer found"
-			" @ FetchDefaultTypeface.");
+		throw LoggedEvent("Null default font face pointer found.");
 	return *pDefaultTypeface;
 }
 
@@ -206,6 +205,7 @@ FontCache::FontCache(size_t cache_size)
 	}
 	else
 	{
+		// TODO: Format without allocating memory.
 		throw LoggedEvent(
 			ystdex::sfmt("Font init failed: %08x\n;", error).c_str(), 1);
 	}
@@ -338,7 +338,7 @@ Font::Font(const FontFamily& family, const FontSize size, FontStyle fs)
 	: scaler{family.GetTypefacePtr(fs), size, size, 1, 0, 0}, style(fs)
 {
 	if(YB_UNLIKELY(!scaler.face_id))
-		throw LoggedEvent("Bad font;");
+		throw LoggedEvent("Bad font found.");
 }
 
 s8
@@ -386,7 +386,7 @@ Font::GetInternalInfo() const
 
 	if(YB_UNLIKELY(::FTC_Manager_LookupSize(GetCache().manager, &scaler, &size)
 		!= 0))
-		throw LoggedEvent("Error occured @ Font::GetInternalSize;");
+		throw LoggedEvent("Size lookup failed.");
 	return *size;
 }
 

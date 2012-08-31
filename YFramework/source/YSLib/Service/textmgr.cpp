@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r4618;
+\version r3619;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 17:48:09 +0800;
 \par 修改时间:
-	2012-06-22 12:12 +0800;
+	2012-08-29 15:52 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -106,7 +106,7 @@ TextFileBuffer::TextFileBuffer(TextFile& file)
 
 	if(fixed_width == 0)
 		++fixed_width;
-	// TODO: for non-fixed-width char streams;
+	// TODO: Implementation for non-fixed-width char streams.
 }
 
 TextFileBuffer::BlockType&

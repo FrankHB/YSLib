@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r2144;
+\version r1146;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-12 23:23:47 +0800;
 \par 修改时间:
-	2012-08-04 15:46 +0800;
+	2012-08-30 20:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YB_INC_YSTDEX_RATIONAL_HPP_
-#define YB_INC_YSTDEX_RATIONAL_HPP_
+#define YB_INC_YSTDEX_RATIONAL_HPP_ 1
 
 #include "../ydef.h"
 #include "type_op.hpp"
@@ -153,7 +153,7 @@ public:
 		_tFloat>::value, int>::type = 0) ynothrow
 		: value(::llround(base_element() * val))
 	{
-		// TODO: use std::llround;
+		// TODO: Use std::llround.
 	}
 	yconstfn
 	fixed_point(const fixed_point&) = default;

@@ -15,13 +15,13 @@
 /*!	\file ysbuild.h
 \ingroup YSLib
 \brief YSLib 库配置文件。
-\version r1718;
+\version r719;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-12 21:53:55 +0800;
 \par 修改时间:
-	2012-06-23 10:40 +0800;
+	2012-08-30 20:21 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 
 #ifndef YSL_INC_YSBUILD_H_
-#define YSL_INC_YSBUILD_H_
+#define YSL_INC_YSBUILD_H_ 1
 
 #include <YSLib/Core/ydevice.h>
 #include <YSLib/UI/ydesktop.h>

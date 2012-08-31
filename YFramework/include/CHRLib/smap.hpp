@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r2807;
+\version r1808;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2012-07-09 09:25 +0800;
+	2012-08-30 20:04 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef CHRLIB_INC_SMAP_HPP_
-#define CHRLIB_INC_SMAP_HPP_
+#define CHRLIB_INC_SMAP_HPP_ 1
 
 #include "chrmap.h"
 #include <ystdex/cstdio.h>

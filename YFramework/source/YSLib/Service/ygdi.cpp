@@ -11,12 +11,12 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3588;
+\version r2590;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-14 18:29:46 +0800;
 \par 修改时间:
-	2012-07-03 17:28 +0800;
+	2012-08-29 16:11 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -109,7 +109,7 @@ BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
 BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
 	: Graphics(nullptr, buf.GetSize())
 {
-	// TODO: change Graphics::SetSize interface;
+	// TODO: Change Graphics::SetSize interface.
 //	buf.SetSize(0, 0);
 	std::swap<Graphics>(*this, buf);
 }
@@ -141,7 +141,7 @@ BitmapBuffer::SetSize(SDst w, SDst h)
 		}
 		catch(std::bad_alloc&)
 		{
-			throw LoggedEvent("Allocation failed @ BitmapBuffer::SetSize;", 1);
+			throw LoggedEvent("Allocation failed.", 1);
 		}
 
 	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied.");
@@ -217,8 +217,7 @@ BitmapBufferEx::SetSize(SDst w, SDst h)
 		catch(std::bad_alloc&)
 		{
 			ydelete_array(pBufferNew);
-			throw LoggedEvent("Allocation failed @ BitmapBufferEx::SetSize;",
-				1);
+			throw LoggedEvent("Allocation failed.", 1);
 		}
 	}
 

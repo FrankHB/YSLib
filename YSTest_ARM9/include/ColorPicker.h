@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.h
 \ingroup YReader
 \brief 拾色器。
-\version r1124;
+\version r125;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275 。
 \par 创建时间:
 	2012-01-06 20:46:10 +0800;
 \par 修改时间:
-	2012-08-09 03:23 +0800;
+	2012-08-30 20:22 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef INC_YREADER_COLORPICKER_H_
-#define INC_YREADER_COLORPICKER_H_
+#define INC_YREADER_COLORPICKER_H_ 1
 
 #include <YSLib/UI/uicontx.h>
 #include <YSLib/UI/scroll.h>

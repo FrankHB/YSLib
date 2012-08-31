@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1691;
+\version r709;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312 。
 \par 创建时间:
 	2012-05-30 22:41:35 +0800;
 \par 修改时间:
-	2012-07-12 10:26 +0800;
+	2012-08-31 16:56 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -31,7 +31,7 @@
 #if YCL_DS
 #include <fcntl.h>
 #elif YCL_MINGW32
-#include <Shlwapi.h> // for ::PathIsRelative;
+#include <Shlwapi.h> // for ::PathIsRelativeW;
 
 //! \since build 312 。
 //@{
@@ -430,13 +430,18 @@ bool
 IsAbsolute(const_path_t path)
 {
 #if YCL_DS
-	return std::strchr(path, '/') == path
-		|| std::strstr(path, "fat:/") == path
-		|| std::strstr(path, "sd:/");
-#elif YCL_MINGW32
-	// TODO: use PathIsRelativeW;
-	return !::PathIsRelativeA(path);
+	if(path)
+	{
+		if(*path == '/')
+			return true;
+
+		const auto p(std::strstr(path, ":/"));
+
+		return p && p != path && !std::strstr(p, ":/");
+	}
 	return false;
+#elif YCL_MINGW32
+	return !::PathIsRelativeW(u_to_w(path).c_str());
 #else
 #	error Unsupported platform found!
 #endif

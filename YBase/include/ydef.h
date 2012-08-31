@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r3023;
+\version r2025;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 21:42:44 +0800;
 \par 修改时间:
-	2012-08-20 17:57 +0800;
+	2012-08-30 20:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -34,7 +34,7 @@
 
 
 #ifndef YB_INC_YDEF_H_
-#define YB_INC_YDEF_H_
+#define YB_INC_YDEF_H_ 1
 
 #ifndef NDEBUG
 #	define YB_USE_YASSERT
@@ -50,7 +50,7 @@
 #		define YB_IMPL_GNUCPP (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
 			+ __GNUC_PATCHLEVEL__)
 #	else
-// TODO: complete version checking for compiler and library implementation;
+// TODO: Complete version checking for compiler and library implementations.
 //#ifdef __GNUC__
 //#	include <tr1/type_traits>
 #		error This language implementation is not supported!

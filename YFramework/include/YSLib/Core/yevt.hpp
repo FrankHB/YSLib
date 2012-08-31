@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r5251;
+\version r4252;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-23 23:08:23 +0800;
 \par 修改时间:
-	2012-08-24 17:10 +0800;
+	2012-08-30 20:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_CORE_YEVT_HPP_
-#define YSL_INC_CORE_YEVT_HPP_
+#define YSL_INC_CORE_YEVT_HPP_ 1
 
 #include "yobject.h"
 #include "yfunc.hpp"

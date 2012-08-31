@@ -12,13 +12,13 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r1388;
+\version r389;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 195 。
 \par 创建时间:
 	2011-03-14 20:17:34 +0800;
 \par 修改时间:
-	2012-08-20 18:07 +0800;
+	2012-08-30 20:11 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 
 #ifndef INCLUDED_CORE_YSTORAGE_HPP_
-#define INCLUDED_CORE_YSTORAGE_HPP_
+#define INCLUDED_CORE_YSTORAGE_HPP_ 1
 
 #include "ycutil.h"
 

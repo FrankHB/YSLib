@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r2218;
+\version r1219;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241 。
 \par 创建时间:
 	2010-12-17 10:27:50 +0800;
 \par 修改时间:
-	2012-08-20 18:06 +0800;
+	2012-08-30 20:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef INCLUDED_YWGTEVT_H_
-#define INCLUDED_YWGTEVT_H_
+#define INCLUDED_YWGTEVT_H_ 1
 
 #include "ycomp.h"
 #include "../Core/yevt.hpp"

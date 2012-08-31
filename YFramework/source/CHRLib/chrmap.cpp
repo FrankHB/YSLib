@@ -11,13 +11,13 @@
 /*!	\file chrmap.cpp
 \ingroup CHRLib
 \brief 字符映射。
-\version r1747;
+\version r747;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-17 17:53:21 +0800;
 \par 修改时间:
-	2011-12-28 07:38 +0800;
+	2012-08-27 17:18 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

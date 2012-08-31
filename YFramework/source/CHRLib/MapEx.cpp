@@ -11,13 +11,13 @@
 /*!	\file MapEx.cpp
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r1041;
+\version r42;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 324 。
 \par 创建时间:
 	2012-07-09 09:04:43 +0800;
 \par 修改时间:
-	2012-07-10 16:39 +0800;
+	2012-08-27 17:19 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:

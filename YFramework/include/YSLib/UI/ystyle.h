@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r1364;
+\version r365;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2010-06-08 13:21:10 +0800;
 \par 修改时间:
-	2012-04-19 15:34 +0800;
+	2012-08-30 20:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_YSTYLE_H_
-#define YSL_INC_UI_YSTYLE_H_
+#define YSL_INC_UI_YSTYLE_H_ 1
 
 #include "ycomp.h"
 #include "../Service/ydraw.h"

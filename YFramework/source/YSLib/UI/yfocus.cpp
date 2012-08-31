@@ -11,13 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1542;
+\version r542;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258 。
 \par 创建时间:
 	2010-05-01 13:52:56 +0800;
 \par 修改时间:
-	2012-06-12 10:04 +0800;
+	2012-08-27 17:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

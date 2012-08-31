@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r2586;
+\version r1589;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263 。
 \par 创建时间:
 	2011-11-24 17:08:33 +0800;
 \par 修改时间:
-	2012-08-09 03:25 +0800;
+	2012-08-31 16:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef INC_YREADER_SHLREADER_H_
-#define INC_YREADER_SHLREADER_H_
+#define INC_YREADER_SHLREADER_H_ 1
 
 #include "Shells.h"
 #include "DSReader.h"
@@ -191,9 +191,9 @@ public:
 	ReadingList& LastRead;
 	/*!
 	\brief 当前阅读器设置。
-	\since build 296 。
+	\since build 334 。
 	*/
-	ReaderSetting& CurrentSetting;
+	ReaderSetting CurrentSetting;
 
 protected:
 	/*!

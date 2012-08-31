@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2514;
+\version r1441;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282 。
 \par 创建时间:
 	2012-02-03 16:44:56 +0800;
 \par 修改时间:
-	2012-08-18 22:56 +0800;
+	2012-08-30 07:53 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -197,7 +197,7 @@
 
 @2.3 通用语义：
 本节讨论和约定对于整个程序及其环境通用的描述和一般性结论，也包括契约和其它约束概念。
-关于“对象”的概念，参见 ISO/IEC 14882:2003 。
+关于“对象”的概念，参见 ISO/IEC 14882 Clause 3 。
 
 @2.3.1 可编程性和兼容性：
 可编程性是程序表达语义的基础。对于通用程序设计，可编程性受到底层实现（例如硬件驱动程序）的约束，仅能够使用有限的接口。
@@ -329,7 +329,7 @@
 任何非可迭代的源或引用关系是不可迭代的。
 
 @2.3.4.2 迭代器(iterator) ：
-关于“迭代器”的概念，参见 ISO/IEC 14882:2003 。
+关于“迭代器”的概念，参见 ISO/IEC 14882 Clause 24 。
 迭代器的引用目标是对象（集合，下同）。
 迭代器应是弱引用的、透明的和可迭代的。
 
@@ -1086,14 +1086,14 @@ $4.1.3.1.4 临时性例外：
 需要使用和对象指针占用空间大小相同的整数类型时，使用 std::intptr_t 或 std::uintptr_t 。
 
 @5.7.3 枚举类型：
-注意带作用域枚举(scoped enumeration) 在声明时不能省略作为枚举名称的标识符（参见 ISO C++11 7.2/2 ）。
- enum class 和 enum struct 语义等价（参见 ISO C++11 7.2/2 ），统一风格起见应尽可能使用 enum class 。
+注意带作用域枚举(scoped enumeration) 在声明时不能省略作为枚举名称的标识符（参见 ISO/IEC 14882 7.2/2 ）。
+ enum class 和 enum struct 语义等价（参见 ISO/IEC 14882 7.2/2 ），统一风格起见应尽可能使用 enum class 。
 
 @5.7.4 class-key ：
 根据基类和成员的可访问性(@5.11.5) 的需要适当选择 struct 或 class 。
 
 @5.7.5 this ：
-注意 this 是实体（参见 ISO C++ 3 ）。
+注意 this 是实体（参见 ISO/IEC 14882 Clause 3 ）。
 注意 this 的类型。
 关于类模版中的使用，参见 @5.7.6 。
 
@@ -1150,6 +1150,7 @@ $4.1.3.1.4 临时性例外：
 若有可能，使用 static_cast 代替 reinterpret_cast 。
 接口类型(@1.6.1) 转换可选 dynamic_cast ，但能保证类型安全且不被虚继承时首选 static_cast ，以提升性能。
 如果可能（对于 simple-type-specfier 和 typename-specifier ），一般应使用函数调用形式代替 static_cast ，以保持简洁。
+注意 const_cast 禁止用于转换 const 动态类型的对象，以免引起未定义行为。
 
 @5.10.5
 禁止对派生类的成员指针使用转换为基类成员指针的 static_cast ，以避免成员指针实现相关的错误。

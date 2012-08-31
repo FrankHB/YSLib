@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2451;
+\version r1452;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189 。
 \par 创建时间:
 	2010-05-23 06:10:59 +0800;
 \par 修改时间:
-	2012-08-22 13:30 +0800;
+	2012-08-30 20:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YB_INC_YSTDEX_UTILITY_HPP_
-#define YB_INC_YSTDEX_UTILITY_HPP_
+#define YB_INC_YSTDEX_UTILITY_HPP_ 1
 
 #include "../ydef.h"
 #include <utility>

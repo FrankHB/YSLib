@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r4325;
+\version r3325;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194 。
 \par 创建时间:
 	2011-03-07 20:12:02 +0800;
 \par 修改时间:
-	2012-06-23 11:02 +0800;
+	2012-08-27 17:28 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

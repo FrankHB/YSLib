@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r3302;
+\version r2303;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2012-08-20 21:50 +0800;
+	2012-08-30 20:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_ADAPTOR_YBASEMAC_H_
-#define YSL_INC_ADAPTOR_YBASEMAC_H_
+#define YSL_INC_ADAPTOR_YBASEMAC_H_ 1
 
 //! \todo 检查语言实现的必要支持：可变参数宏。
 

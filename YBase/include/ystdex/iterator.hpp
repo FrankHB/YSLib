@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r1878;
+\version r880;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189 。
 \par 创建时间:
 	2011-01-27 23:01:00 +0800;
 \par 修改时间:
-	2012-08-04 00:28 +0800;
+	2012-08-30 20:01 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YB_INC_YSTDEX_ITERATOR_HPP_
-#define YB_INC_YSTDEX_ITERATOR_HPP_
+#define YB_INC_YSTDEX_ITERATOR_HPP_ 1
 
 #include "any.h"
 #include <iterator>
@@ -527,7 +527,7 @@ public:
 	operator=(const pair_iterator&) = default;
 	inline pair_iterator&
 	operator=(pair_iterator&&) = default;
-	// TODO: allow iterator to const_iterator conversion;
+	// TODO: Allow iterator to const_iterator conversion.
 
 	//前向迭代器需求。
 	yconstfn reference

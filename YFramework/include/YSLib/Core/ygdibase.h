@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r2145;
+\version r1146;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206 。
 \par 创建时间:
 	2011-05-03 07:20:51 +0800;
 \par 修改时间:
-	2012-08-20 18:36 +0800;
+	2012-08-30 20:10 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_CORE_YGDIBASE_H_
-#define YSL_INC_CORE_YGDIBASE_H_
+#define YSL_INC_CORE_YGDIBASE_H_ 1
 
 #include "yexcept.h"
 #include <limits>

@@ -11,12 +11,12 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r1563;
+\version r663;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2011-04-14 08:54:25 +0800;
 \par 修改时间:
-	2012-08-22 01:18 +0800;
+	2012-08-30 20:02 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -25,7 +25,7 @@
 
 
 #ifndef YB_INC_YSTDEX_TYPEOP_HPP_
-#define YB_INC_YSTDEX_TYPEOP_HPP_
+#define YB_INC_YSTDEX_TYPEOP_HPP_ 1
 
 #include "../ydef.h" // for <type_traits> and std::declval;
 
@@ -182,14 +182,14 @@ using std::result_of;
 /*!	\defgroup unary_type_trait Unary Type Trait
 \ingroup type_traits_operations
 \brief 一元类型特征。
-\see ISO C++2011 20.9.1[meta.rqmts] 。
+\see ISO C++11 20.9.1[meta.rqmts] 。
 \since build 306 。
 */
 
 /*!	\defgroup binary_type_trait Binary Type Trait
 \ingroup type_traits_operations
 \brief 二元类型特征。
-\see ISO C++2011 20.9.1[meta.rqmts] 。
+\see ISO C++11 20.9.1[meta.rqmts] 。
 \since build 306 。
 */
 
@@ -414,7 +414,19 @@ struct has_common_nonempty_virtual_base : integral_constant<bool,
 
 
 /*!
-\ingroup meta_operations
+\ingroup metafunctions
+\brief 恒等元函数。
+\since build 334 。
+*/
+template<typename _type>
+struct identity
+{
+	typedef _type type;
+};
+
+
+/*!
+\ingroup metafunctions
 \brief 移除指针和引用类型。
 \since build 175 。
 */
@@ -427,7 +439,7 @@ struct remove_rp
 
 
 /*!
-\ingroup meta_operations
+\ingroup metafunctions
 \brief 数组类型退化。
 \since build 290 。
 
@@ -442,7 +454,7 @@ struct array_decay
 
 
 /*!
-\ingroup meta_operations
+\ingroup metafunctions
 \brief 保持修饰符的类型退化。
 \since build 290 。
 
@@ -462,7 +474,7 @@ public:
 
 
 /*!
-\ingroup meta_operations
+\ingroup metafunctions
 \brief 数组及数组引用类型退化。
 \since build 290 。
 

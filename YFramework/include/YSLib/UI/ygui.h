@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2866;
+\version r1867;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-04-21 22:08 +0800;
+	2012-08-30 20:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_YGUI_H_
-#define YSL_INC_UI_YGUI_H_
+#define YSL_INC_UI_YGUI_H_ 1
 
 #include "ywgtevt.h"
 #include "../Service/ytimer.h"

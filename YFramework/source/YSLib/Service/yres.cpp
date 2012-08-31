@@ -11,12 +11,12 @@
 /*!	\file yres.cpp
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r1250;
+\version r250;
 \author FrankHB<frankhb1989@gmail.com>
 \par 创建时间:
 	2009-12-22 17:28:28 +0800;
 \par 修改时间:
-	2012-06-22 23:15 +0800;
+	2012-08-27 17:27 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r3606;
+\version r2607;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 176 。
 \par 创建时间:
 	2010-03-21 23:09:06 +0800;
 \par 修改时间:
-	2012-08-20 18:09 +0800;
+	2012-08-30 20:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef INCLUDED_ADAPTOR_YREF_HPP_
-#define INCLUDED_ADAPTOR_YREF_HPP_
+#define INCLUDED_ADAPTOR_YREF_HPP_ 1
 
 #include "yadaptor.h"
 #include <utility>

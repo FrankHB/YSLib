@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r2723;
+\version r1724;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188 。
 \par 创建时间:
 	2011-01-22 07:59:47 +0800;
 \par 修改时间:
-	2012-06-01 16:54 +0800;
+	2012-08-30 20:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_YUICONT_H_
-#define YSL_INC_UI_YUICONT_H_
+#define YSL_INC_UI_YUICONT_H_ 1
 
 #include "ywidget.h"
 #include <ystdex/iterator.hpp>

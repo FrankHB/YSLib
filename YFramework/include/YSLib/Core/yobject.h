@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3974;
+\version r3011;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-16 20:06:58 +0800;
 \par 修改时间:
-	2012-08-21 21:32 +0800;
+	2012-08-31 15:34 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 
 #ifndef YSL_INC_CORE_YOBJECT_H_
-#define YSL_INC_CORE_YOBJECT_H_
+#define YSL_INC_CORE_YOBJECT_H_ 1
 
 #include "ycutil.h"
 #include "yexcept.h"
@@ -109,7 +109,7 @@ public:
 	ImplI(IValueHolder) DefClone(ValueHolder, clone)
 
 	ImplI(IValueHolder) void*
-	get() override 
+	get() override
 	{
 		return std::addressof(held);
 	}
@@ -160,7 +160,7 @@ public:
 	}
 
 	ImplI(IValueHolder) void*
-	get() override 
+	get() override
 	{
 		return p_held;
 	}
@@ -273,12 +273,12 @@ public:
 	}
 
 	/*!
-	\brief 访问指定类型 const 对象。
+	\brief 访问指定类型对象。
 	\throw std::bad_cast 空实例或类型检查失败 。
-	\since build 306 。
+	\since build 334 。
 	*/
 	template<typename _type>
-	inline const _type&
+	inline _type&
 	Access()
 	{
 		return ystdex::any_cast<_type&>(content);
@@ -393,28 +393,28 @@ public:
 	{
 		if(pNodes)
 			return pNodes->begin();
-		throw std::out_of_range("ValueNode::GetBegin");
+		throw std::out_of_range("No child value node found.");
 	}
 	Container::const_iterator
 	GetBegin() const
 	{
 		if(pNodes)
 			return pNodes->begin();
-		throw std::out_of_range("const ValueNode::GetBegin");
+		throw std::out_of_range("No child value node found.");
 	}
 	Container::iterator
 	GetEnd()
 	{
 		if(pNodes)
 			return pNodes->end();
-		throw std::out_of_range("ValueNode::GetEnd");
+		throw std::out_of_range("No child value node found.");
 	}
 	Container::const_iterator
 	GetEnd() const
 	{
 		if(pNodes)
 			return pNodes->end();
-		throw std::out_of_range("const ValueNode::GetEnd");
+		throw std::out_of_range("No child value node found.");
 	}
 	DefGetter(const ynothrow, const string&, Name, name)
 	ValueNode&
@@ -427,6 +427,14 @@ public:
 	DefGetter(const ynothrow, size_t, Size, pNodes ? pNodes->size() : 0)
 	using ValueObject::GetObject;
 	DefGetter(ynothrow, ValueObject&, Value, *this)
+	//! \since build 334 。
+	//@{
+	DefGetter(const ynothrow, const ValueObject&, Value, *this)
+
+	DefSetter(const string&, Name, name)
+	DefSetter(const ValueObject&, Value, GetValue())
+	DefSetter(ValueObject&&, Value, GetValue())
+	//@}
 
 	using ValueObject::Access;
 
@@ -481,6 +489,30 @@ end(const ValueNode& node) -> decltype(node.GetEnd())
 	return node.GetEnd();
 }
 //@}
+
+
+/*!
+\brief 访问指定名称的子节点的指定类型对象。
+\throw std::bad_cast 空实例或类型检查失败 。
+\since build 334 。
+*/
+template<typename _type>
+inline _type&
+AccessChild(ValueNode& node, const string& name)
+{
+	return node.GetNode(name).Access<_type>();
+}
+/*!
+\brief 访问指定名称的子节点的指定类型 const 对象。
+\throw std::bad_cast 空实例或类型检查失败 。
+\since build 334 。
+*/
+template<typename _type>
+inline const _type&
+AccessChild(const ValueNode& node, const string& name)
+{
+	return node.GetNode(name).Access<_type>();
+}
 
 
 /*!

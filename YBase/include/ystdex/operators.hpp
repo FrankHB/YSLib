@@ -10,14 +10,14 @@
 
 /*!	\file operators.hpp
 \ingroup YStandardEx
-\brief 重载运算符。
-\version r2293;
+\brief 重载操作符。
+\version r1295;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260 。
 \par 创建时间:
 	2011-11-13 14:58:05 +0800;
 \par 修改时间:
-	2012-08-17 21:38 +0800;
+	2012-08-30 20:01 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YB_INC_YSTDEX_OPERATORS_HPP_
-#define YB_INC_YSTDEX_OPERATORS_HPP_
+#define YB_INC_YSTDEX_OPERATORS_HPP_ 1
 
 #include "../ydef.h"
 

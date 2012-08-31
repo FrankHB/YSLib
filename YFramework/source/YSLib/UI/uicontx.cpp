@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r1193;
+\version r193;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192 。
 \par 创建时间:
 	2011-02-21 09:01:13 +0800;
 \par 修改时间:
-	2012-04-22 19:50 +0800;
+	2012-08-27 17:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

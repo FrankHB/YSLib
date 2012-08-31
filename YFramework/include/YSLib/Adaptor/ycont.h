@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r1647;
+\version r648;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 161 。
 \par 创建时间:
 	2010-10-09 09:25:26 +0800;
 \par 修改时间:
-	2012-06-04 17:31 +0800;
+	2012-08-30 20:08 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_ADAPTOR_YCONT_H_
-#define YSL_INC_ADAPTOR_YCONT_H_
+#define YSL_INC_ADAPTOR_YCONT_H_ 1
 
 #include "yadaptor.h"
 #include <utility>

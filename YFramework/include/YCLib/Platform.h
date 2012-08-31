@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r1406;
+\version r407;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-11-24 00:05:08 +0800;
 \par 修改时间:
-	2012-07-03 09:56 +0800;
+	2012-08-30 20:07 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -39,7 +39,7 @@
 
 
 #ifndef YCL_INC_PLATFORM_H_
-#define YCL_INC_PLATFORM_H_
+#define YCL_INC_PLATFORM_H_ 1
 
 /*!
 \def YCL_DLL

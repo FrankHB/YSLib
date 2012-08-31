@@ -11,13 +11,13 @@
 /*!	\file form.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version r1562;
+\version r563;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-04-30 00:51:36 +0800;
 \par 修改时间:
-	2012-03-12 09:22 +0800;
+	2012-08-30 20:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_FORM_H_
-#define YSL_INC_UI_FORM_H_
+#define YSL_INC_UI_FORM_H_ 1
 
 #include "ywindow.h"
 

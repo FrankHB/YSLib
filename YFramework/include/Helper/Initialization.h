@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1613;
+\version r614;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-08-09 03:15 +0800;
+	2012-08-30 20:05 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef INC_HELPER_INITIALZATION_H_
-#define INC_HELPER_INITIALZATION_H_
+#define INC_HELPER_INITIALZATION_H_ 1
 
 #include <YSLib/Core/ysdef.h>
 

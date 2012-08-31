@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6474;
+\version r5478;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-08-09 10:34 +0800;
+	2012-08-29 16:15 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -332,7 +332,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 		lblTitle.Text = u"YReader",
 		lblPath.AutoWrapLine = true, lblPath.Text = path,
 		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
-	// TODO: show current working directory properly;
+	// TODO: Show current working directory properly.
 		btnTest.Text = u"设置(X)",
 		btnOK.Text = u"确定(A)",
 		cbHex.Text = u"显示十六进制",
@@ -376,12 +376,12 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 				{
 					if(GetEntryType(s) == EnrtySpace::Text
 						&& !cbHex.IsTicked())
-					// TODO: use g++ 4.7 later;
+					// TODO: Use G++ 4.8 or later.
 					//	SetShellTo(make_shared<ShlTextReader>(path));
 						SetShellTo(share_raw(new ShlTextReader(path)));
 					//	SetShellToNew<ShlTextReader>(path);
 					else
-					// TODO: use g++ 4.7 later;
+					// TODO: Use G++ 4.8 or later.
 					//	SetShellTo(make_shared<ShlHexBrowser>(path));
 						SetShellTo(share_raw(new ShlHexBrowser(path)));
 					//	SetShellToNew<ShlHexBrowser>(path);
@@ -408,7 +408,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 			btn.Text = u"Leave: " + String(to_string(e));
 			Invalidate(btn);
 		},
-		FetchEvent<Click>(btnMenuTest) +=[this](TouchEventArgs&&){
+		FetchEvent<Click>(btnMenuTest) += [this](TouchEventArgs&&){
 			static int t;
 
 			auto& mnu(mhMain[1u]);

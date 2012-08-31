@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r1505;
+\version r506;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253 。
 \par 创建时间:
 	2011-10-14 18:12:20 +0800;
 \par 修改时间:
-	2012-06-29 11:03 +0800;
+	2012-08-29 16:14 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -120,7 +120,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 {
 	using namespace Text;
 
-	// TODO: refresh for 'rect' properly;
+	// TODO: Refresh for 'rect' properly.
 //	Background(PaintEventArgs(*this, e.Target, e.Location, Rect(e.Location,
 //		GetWidth(), GetHeight())));
 //	Background(PaintEventArgs(*this, e));

@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r4793;
+\version r3794;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-28 16:46:40 +0800;
 \par 修改时间:
-	2012-06-23 10:22 +0800;
+	2012-08-30 20:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #ifndef YSL_INC_UI_YWINDOW_H_
-#define YSL_INC_UI_YWINDOW_H_
+#define YSL_INC_UI_YWINDOW_H_ 1
 
 #include "ypanel.h"
 

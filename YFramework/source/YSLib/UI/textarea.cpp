@@ -11,13 +11,13 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r1421;
+\version r421;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 222 。
 \par 创建时间:
 	2011-06-30 20:10:27 +0800;
 \par 修改时间:
-	2012-05-21 13:22 +0800;
+	2012-08-27 17:29 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:

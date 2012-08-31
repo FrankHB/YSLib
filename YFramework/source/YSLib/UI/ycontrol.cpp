@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r4697;
+\version r3698;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-18 13:44:34 +0800;
 \par 修改时间:
-	2012-08-22 10:09 +0800;
+	2012-08-29 16:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -136,10 +136,10 @@ OnTouchMove_Dragging(TouchEventArgs&& e)
 		{
 			auto& wgt(*st.GetTouchDownPtr());
 
-		// TODO: analysis buffered coordinate delayed painting bug;
+		// TODO: Analysis buffered coordinate delayed painting bug.
 		//	if(st.LastControlLocation != st.ControlLocation)
 		//	{
-		// TODO: merge state to make a more efficient implementation;
+		// TODO: Merge state to make a more efficient implementation.
 			Invalidate(wgt);
 			SetLocationOf(wgt, st.LastControlLocation + st.DraggingOffset);
 		//	}

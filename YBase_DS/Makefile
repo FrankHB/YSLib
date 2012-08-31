@@ -1,8 +1,8 @@
 # DS Makefile for YBase -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK;
 # CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-06-05 03:12 +0800;
-# Version = r3942;
+# UTime = 2012-08-28 19:54 +0800;
+# Version = r1741;
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
