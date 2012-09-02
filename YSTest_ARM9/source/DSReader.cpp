@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2800;
+\version r2809;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:04:05 +0800;
 \par 修改时间:
-	2012-08-29 16:13 +0800;
+	2012-08-31 19:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -149,8 +149,8 @@ namespace
 	\since build 292 。
 	*/
 	void
-	CopyScrollArea(YSL_ Components::BufferedTextArea& src_area,
-		size_t src_offset, YSL_ Components::BufferedTextArea& dst_area,
+	CopyScrollArea(YSLib::Components::BufferedTextArea& src_area,
+		size_t src_offset, YSLib::Components::BufferedTextArea& dst_area,
 		size_t dst_offset, ptrdiff_t offset, size_t n)
 	{
 		YAssert(n != 0, "Invalid number of lines found.");
@@ -175,8 +175,8 @@ namespace
 	\since build 292 。
 	*/
 	void
-	MoveScrollArea(YSL_ Components::BufferedTextArea& area_up,
-		YSL_ Components::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
+	MoveScrollArea(YSLib::Components::BufferedTextArea& area_up,
+		YSLib::Components::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
 	{
 		YAssert(area_up.GetHeight() - area_up.Margin.Bottom - n > 0,
 			"No enough space of areas found.");
@@ -233,7 +233,7 @@ DualScreenReader::SetVisible(bool b)
 {
 	SetVisibleOf(area_up, b), SetVisibleOf(area_dn, b);
 
-	using YSL_ Components::Invalidate;
+	using YSLib::Components::Invalidate;
 
 	//强制刷新背景。
 	Invalidate(area_up);
@@ -278,8 +278,8 @@ DualScreenReader::AdjustScrollOffset()
 }
 
 void
-DualScreenReader::Attach(YSL_ Components::Window& wnd_up,
-	YSL_ Components::Window& wnd_dn)
+DualScreenReader::Attach(YSLib::Components::Window& wnd_up,
+	YSLib::Components::Window& wnd_dn)
 {
 	wnd_up += area_up,
 	wnd_dn += area_dn;
@@ -288,7 +288,7 @@ DualScreenReader::Attach(YSL_ Components::Window& wnd_up,
 void
 DualScreenReader::Detach()
 {
-	using YSL_ Components::Window;
+	using YSLib::Components::Window;
 
 	if(auto pCon = dynamic_cast<Window*>(FetchContainerPtr(area_up)))
 		*pCon -= area_up;
@@ -398,7 +398,7 @@ DualScreenReader::Locate(size_t pos)
 void
 DualScreenReader::Invalidate()
 {
-	using YSL_ Components::Invalidate;
+	using YSLib::Components::Invalidate;
 
 	//强制刷新背景。
 	Invalidate(area_up);

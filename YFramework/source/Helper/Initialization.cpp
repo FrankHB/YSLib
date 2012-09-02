@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1253;
+\version r1259;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-10-21 23:15:08 +0800;
 \par 修改时间:
-	2012-08-29 15:49 +0800;
+	2012-08-31 17:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,13 +26,13 @@
 
 
 #include "Helper/Initialization.h"
-#include <YSLib/Adaptor/Font.h>
-#include <YSLib/Core/yapp.h>
+#include "YSLib/Adaptor/Font.h"
+#include "YSLib/Core/yapp.h"
 #include "Helper/DSMain.h"
-#include <YCLib/Debug.h>
-#include <YSLib/Service/yftext.h> // for BOM_UTF8;
-#include <CHRLib/MapEx.h>
-#include <YCLib/MemoryMapping.h>
+#include "YCLib/Debug.h"
+#include "YSLib/Service/yftext.h" // for BOM_UTF8;
+#include "CHRLib/MapEx.h"
+#include "YCLib/MemoryMapping.h"
 //#include <clocale>
 
 using namespace ystdex;

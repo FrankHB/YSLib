@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5478;
+\version r5479;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-03-06 21:38:16 +0800;
 \par 修改时间:
-	2012-08-29 16:15 +0800;
+	2012-08-31 19:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -542,7 +542,7 @@ ShlExplorer::TFormExtra::TFormExtra()
 			Hide(*this);
 		},
 		FetchEvent<Click>(btnExit) += [](TouchEventArgs&&){
-			YSL_ PostQuitMessage(0);
+			YSLib::PostQuitMessage(0);
 		}
 	);
 	SetInvalidationOf(*this);

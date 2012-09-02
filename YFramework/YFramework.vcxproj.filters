@@ -72,6 +72,7 @@
     </Filter>
     <Filter Include="头文件\freetype">
       <UniqueIdentifier>{e84ea4d1-fce8-4bb2-ac44-79d5a2876533}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="头文件\freetype\config">
       <UniqueIdentifier>{913cab65-ebc0-4868-bb15-2ead85e739be}</UniqueIdentifier>
@@ -88,14 +89,24 @@
     </Filter>
     <Filter Include="头文件\Helper">
       <UniqueIdentifier>{cb17b9c9-4f0f-497c-9ada-56b9b2788d70}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="源文件\Helper">
       <UniqueIdentifier>{bb88fc0f-6597-4a43-aced-4c811b312370}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="文档\vsd">
       <UniqueIdentifier>{c160437d-5ba1-4570-8711-6444f363e3e9}</UniqueIdentifier>
       <Extensions>vsd</Extensions>
       <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="头文件\NPL">
+      <UniqueIdentifier>{be67399b-785e-40b9-94e5-56c0c67fa0fc}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="源文件\NPL">
+      <UniqueIdentifier>{78451625-4364-4518-a397-7a6c95f61a4a}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -626,6 +637,15 @@
     <ClInclude Include="include\YCLib\MemoryMapping.h">
       <Filter>头文件\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\NPL\Lexical.h">
+      <Filter>头文件\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NPL\SContext.h">
+      <Filter>头文件\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NPL\Configuration.h">
+      <Filter>头文件\NPL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -828,6 +848,15 @@
     </ClCompile>
     <ClCompile Include="..\doc\ex.cpp">
       <Filter>文档</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\Lexical.cpp">
+      <Filter>源文件\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\SContext.cpp">
+      <Filter>源文件\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\Configuration.cpp">
+      <Filter>源文件\NPL</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

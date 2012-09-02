@@ -115,6 +115,9 @@
     <ClInclude Include="include\Helper\ShellHelper.h" />
     <ClInclude Include="include\Helper\shlds.h" />
     <ClInclude Include="include\Helper\yglobal.h" />
+    <ClInclude Include="include\NPL\Configuration.h" />
+    <ClInclude Include="include\NPL\Lexical.h" />
+    <ClInclude Include="include\NPL\SContext.h" />
     <ClInclude Include="include\YCLib\Debug.h" />
     <ClInclude Include="include\YCLib\FileSystem.h" />
     <ClInclude Include="include\YCLib\Input.h" />
@@ -200,6 +203,9 @@
     <ClCompile Include="source\Helper\ShellHelper.cpp" />
     <ClCompile Include="source\Helper\shlds.cpp" />
     <ClCompile Include="source\Helper\yglobal.cpp" />
+    <ClCompile Include="source\NPL\Configuration.cpp" />
+    <ClCompile Include="source\NPL\Lexical.cpp" />
+    <ClCompile Include="source\NPL\SContext.cpp" />
     <ClCompile Include="source\YCLib\Debug.cpp" />
     <ClCompile Include="source\YCLib\FileSystem.cpp" />
     <ClCompile Include="source\YCLib\Input.cpp" />

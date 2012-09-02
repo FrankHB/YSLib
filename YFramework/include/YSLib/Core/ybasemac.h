@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2303;
+\version r2307;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204 。
 \par 创建时间:
 	2010-10-09 09:25:27 +0800;
 \par 修改时间:
-	2012-08-30 20:09 +0800;
+	2012-08-31 19:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -48,11 +48,9 @@
 
 #define YSL_BEGIN	namespace YSLib {
 #define YSL_END		}
-#define YSL_			::YSLib::
-#define YSL			::YSLib
 
-#define YSL_BEGIN_NAMESPACE(s)	namespace s {
-#define YSL_END_NAMESPACE(s)	}
+#define YSL_BEGIN_NAMESPACE(_n)	namespace _n {
+#define YSL_END_NAMESPACE(_n)	}
 
 
 /*	\defgroup cmacro Macros For Code Compressing

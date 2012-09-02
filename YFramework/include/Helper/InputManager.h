@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r89;
+\version r90;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 323 。
 \par 创建时间:
 	2012-07-06 11:22:04 +0800;
 \par 修改时间:
-	2012-08-30 20:05 +0800;
+	2012-08-31 17:57 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef INC_HELPER_INPUGMANAGER_H_
 #define INC_HELPER_INPUGMANAGER_H_ 1
 
-#include <YSLib/UI/ycomp.h>
+#include "YSLib/UI/ycomp.h"
 
 YSL_BEGIN
 

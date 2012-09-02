@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2951;
+\version r2952;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-22 15:28:52 +0800;
 \par 修改时间:
-	2012-08-27 17:20 +0800;
+	2012-08-31 17:54 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,8 +26,8 @@
 
 
 #include "Helper/yglobal.h"
-#include <YSLib/Core/yapp.h>
-#include <YSLib/UI/ydesktop.h>
+#include "YSLib/Core/yapp.h"
+#include "YSLib/UI/ydesktop.h"
 //#include <clocale>
 
 YSL_BEGIN

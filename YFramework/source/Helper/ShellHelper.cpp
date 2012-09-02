@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r380;
+\version r382;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278 。
 \par 创建时间:
 	2010-04-04 13:42:15 +0800;
 \par 修改时间:
-	2012-08-29 15:49 +0800;
+	2012-08-31 19:13 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -35,14 +35,14 @@ YSL_BEGIN_NAMESPACE(Drawing)
 string
 to_string(const Size& s)
 {
-	using YSL_ to_string;
+	using YSLib::to_string;
 
 	return "(" + to_string(s.Width) + ", " + to_string(s.Height) + ')';
 }
 string
 to_string(const Rect& r)
 {
-	using YSL_ to_string;
+	using YSLib::to_string;
 
 	return "(" + to_string(r.X) + ", " + to_string(r.Y) + ", "
 		+ to_string(r.Width) + ", " + to_string(r.Height) + ')';

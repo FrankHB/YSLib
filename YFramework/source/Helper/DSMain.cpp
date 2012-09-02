@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2011;
+\version r2019;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296 。
 \par 创建时间:
 	2012-03-25 12:48:49 +0800;
 \par 修改时间:
-	2012-08-27 17:19 +0800;
+	2012-08-31 19:16 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -28,12 +28,12 @@
 #include "Helper/DSMain.h"
 #include "Helper/yglobal.h"
 #include "Helper/Initialization.h"
-#include <YSLib/Adaptor/Font.h>
-#include <YSLib/Service/ytimer.h>
-#include <YCLib/Debug.h>
+#include "YSLib/Adaptor/Font.h"
+#include "YSLib/Service/ytimer.h"
+#include "YCLib/Debug.h"
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #ifdef YCL_DS
-#include <YSLib/Service/yblit.h> // for Drawing::FillPixel;
+#include "YSLib/Service/yblit.h" // for Drawing::FillPixel;
 #endif
 
 YSL_BEGIN
@@ -315,7 +315,7 @@ WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		YCL_DEBUG_PUTS("Handling of WM_DESTROY.");
 		::PostQuitMessage(0),
-		YSL_ PostQuitMessage(0);
+		YSLib::PostQuitMessage(0);
 		// NOTE: Try to make sure all shells are released before destructing the
 		//	instance of %DSApplication.
 		break;
@@ -403,10 +403,10 @@ DSApplication::DSApplication()
 #endif
 	pFontCache(), pScreenUp(), pScreenDown(), UIResponseLimit(0x40)
 {
-	YAssert(!YSL_ pApp, "Duplicate instance found.");
+	YAssert(!YSLib::pApp, "Duplicate instance found.");
 
 	//注册全局应用程序实例。
-	YSL_ pApp = this;
+	YSLib::pApp = this;
 
 	//全局初始化。
 	InitializeEnviornment();
@@ -557,7 +557,7 @@ DSApplication::HostTask()
 	{
 		std::lock_guard<std::mutex> lck(mtx);
 
-		hHost = YSL_ InitializeMainWindow();
+		hHost = YSLib::InitializeMainWindow();
 		// NOTE: Currently there is only one client.
 		init.notify_one();
 	//	Initialized.notify_all();

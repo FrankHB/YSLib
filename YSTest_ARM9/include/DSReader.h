@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1717;
+\version r1720;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-05 14:03:47 +0800;
 \par 修改时间:
-	2012-08-30 20:22 +0800;
+	2012-08-31 19:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -117,8 +117,8 @@ private:
 	\since build 273 。
 	*/
 	//@{
-	YSL_ Components::BufferedTextArea area_up;
-	YSL_ Components::BufferedTextArea area_dn;
+	YSLib::Components::BufferedTextArea area_up;
+	YSLib::Components::BufferedTextArea area_dn;
 	//@}
 
 public:
@@ -222,7 +222,7 @@ public:
 	\since build 273 。
 	*/
 	void
-	Attach(YSL_ Components::Window&, YSL_ Components::Window&);
+	Attach(YSLib::Components::Window&, YSLib::Components::Window&);
 
 	/*!
 	\brief 从窗口分离。

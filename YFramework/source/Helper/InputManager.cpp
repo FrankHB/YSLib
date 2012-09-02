@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r158;
+\version r162;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 323 。
 \par 创建时间:
 	2012-07-06 11:23:21 +0800;
 \par 修改时间:
-	2012-08-27 17:20 +0800;
+	2012-08-31 19:17 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -26,9 +26,9 @@
 
 
 #include "Helper/InputManager.h"
-#include <YCLib/Input.h>
-#include <YSLib/UI/ygui.h>
-#include <YSLib/UI/ydesktop.h>
+#include "YCLib/Input.h"
+#include "YSLib/UI/ygui.h"
+#include "YSLib/UI/ydesktop.h"
 #include "Helper/DSMain.h"
 
 YSL_BEGIN
@@ -55,7 +55,7 @@ InputManager::DispatchInput(Desktop& dsk)
 #endif
 
 	using namespace platform::KeyCodes;
-	using namespace YSL_ Components;
+	using namespace YSLib::Components;
 
 	// FIXME: [DS] crashing after sleeping(default behavior of closing then
 	//	reopening lid) on real machine due to LibNDS default interrupt

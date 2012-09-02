@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4465; *build 334 rev 24;
+\version r4471; *build 335 rev 16;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2009-12-02 05:14:30 +0800;
 \par 修改时间:
-	2012-08-31 16:58 +0800;
+	2012-09-02 21:18 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -389,125 +389,112 @@ $using:
 
 
 $DONE:
-r1-r3:
-+ \stt identity @ \h TypeOperations;
-/= 3 test 1 @ platform MinGW32;
+r1:
+/ @ \proj YFramework $=
+(
+	* \inc \h form @ \lib Helper @ \proj YFramework $since b303
+		$= (\a \inc \h @ (\a files \exc \impl \u ShellHelper ) ^ '""' ~ '<*>'),
+	+ \lib NPL["NPL"]
+		$= (+ \u LexicalAnalyzer["LexicalAnalyzer.h", "LexicalAnalyzer.cpp"]),
+	/ \mac INCLUDED_CORE_YCOUNTER_H_ @ \h YCounter @ \lib YSLib
+		=> YSL_INC_CORE_YCOUNTER_H_
+),
+(
+	- \mac (YSL_, YSL) @ \h YBaseMacro,
+	/ \a \mac 'YSL' -> 'YSLib',
+	/ \a \mac 'YSL_' -> 'YSLib::'
+);
+/= test 1 @ platform MinGW32;
+
+r2:
+/ @ \cl LexicalAnalyzer @ \impl \u LexicalAnalyzer $=
+(
+	/ \impl @ \mf ParseByte, // Add '\f' support;
+	/ \impl @ \mf HandleEscape, // Add ' ', '\f', '\r', '\t', '\v' support;
+	+ \as @ \mf HandleEscape
+);
+/= test 2 @ platform MinGW32 ^ \conf release;
+
+r3:
+/ @ \cl LexicalAnalyzer @ \impl \u LexicalAnalyzer $=
+(
+	/ \impl @ \mf ParseByte, // Forbid non-literal escaping;
+	/ \impl @ \mf HandleEscape, // Add '\a', '\b' support;
+	+ \as @ \mf HandleEscape
+);
+/= test 3 @ platform MinGW32;
 
 r4:
-* \impl @ \a 3 \ft any_cast @ \h Any $since b331;
-/= test 2 @ platform MinGW32;
++ \f (CheckLiteral, MakeEscape) @ \u LexicalAnalyzer;
+/= test 4 @ platform MinGW32 ^ \conf release;
 
 r5:
-/= $dev version number nomalized @ \proj (YBase, YFramework) \exc makefiles;
-	// Counted strictly as lines modified.
-/= test 3 @ platform MinGW32 ^ \conf release;
++ (\inc \h <cctype>; \f yconstfn (IsGraphicalDelimeter, IsDelimeter))
+	@ \h LexicalAnalyzer;
+/= test 5 @ platform DS;
 
 r6:
-/= $dev version number nomalized @ \proj ((YSTest_ARM7, YSTest_ARM9, YSTest),
-	makefiles @ \proj (YBase, YFramework));
-/= test 4 @ platform DS;
-
-r7:
-* missing mutable access method to \cl ValueObject $since b306
-	$= (/ \mft<_type> \i const _type& Access()
-	-> / \mft<_type> \i _type& Access()),
-+ (1 getter, 3 setters) @ \cl ValueNode;
-/= test 5 @ platform MinGW32;
-
-r8:
-/ rem TODO @ (\mf (2 GetBegin, 2 GetEnd) @ \cl ValueNode, ((\mf GetInternalInfo,
-	\ctor) @ \cl Font, \f FetchDefaultTypeface) @ \impl \u Font, (\mf
-	BitmapBuffer::SetSize, \ctor BitmapBuffer#2) @ \impl \u YGDI, \f
-	(InitializeSystemFontCache, CheckInstall) @ \impl \u Initialization, \ctor
-	DropDownList @ \impl \u ComboList, \mf Menu::PaintItem @ \impl \u Menu, \f
-	OnTouchMove_Dragging @ \impl \u YControl, \mf DualScreenReader::Execute
-	@ \impl \u DSReader, \mf HexViewArea::Refresh @ \impl \u HexBrowser, main \f
-	@ \impl \u Main_ARM9, \ctor ShlExplorer @ \impl \u Shells, (\mf
-	ShlReader::Exit, \ctor ShlTextReader) @ \impl \u ShlReader);
 /= test 6 @ platform DS ^ \conf release;
 
-r9:
-/ \impl @ \f IsAbsolute @ \impl \u FileSystem $=
-(
-	/ \impl @ platform DS $=
-	(
-		* missing checking for null pointer and duplicate ':/' 
-			$since b152,
-		/ treated prefix '*:/' other than 'fat:/' or 'sd:/' also valid
-	)
-	/ \impl @ platform MinGW32 ^ PathIsRelativeW, u_to_w ~ PathIsRelativeA
-);
+r7:
 /= test 7 @ platform MinGW32;
 
-r10:
-/ \a guard \mac @ \h defined as integer literal '1';
-/= test 8 @ platform MinGW32;
+r8:
+/= test 8 @ platform MinGW32 ^ \conf release;
 
-r11:
-/ \st ReaderSetting -> \cl ReaderSetting @ \cl ReaderSetting $=
-(
-	/ \ac @ \a \m := public,
-	+ \m
-	(
-		DefDeCtor(ReaderSetting)
-		DefDeCopyCtor(ReaderSetting)
-		DefDeMoveCtor(ReaderSetting)
-
-		DefDeCopyAssignment(ReaderSetting)
-		DefDeMoveAssignment(ReaderSetting)
-	)
-);
+r9:
++ \f (Decompose, Tokenize) @ \u LexicalAnalyzer;
 /= test 9 @ platform MinGW32;
 
-r12:
-+ 2 \ft \i AccessChild @ \h YObject;
-/ @ \cl ReaderSetting @ \u ReaderSetting $=
+r10:
+/ @ \lib NPL $=
 (
-	/ \impl @ \de \ctor,
-	+ !\exp \ctor ReaderSetting(const ValueNode&)
-),
-/ @ \cl ShlTextReader @ \u ShlReader $=
-(
-	/ \m ReaderSetting& CurrentSetting -> ReaderSetting CurrentSetting,
-	/ \tr \simp \impl @ \ctor @ \cl ShlTextReader 
+	/ \u LexicalAnalyzer["LexicalAnalyzer.h", "LexicalAnalyzer.cpp"]
+		=> \u Lexical["Lexical.h", "Lexical.cpp"],
+	+ \u SContext["SContext.h", "SContext.cpp"];
 );
 /= test 10 @ platform MinGW32;
 
+r11:
+/ @ \u SContext $=
+(
+	/ \a \f Translate => \f Analyze,
+	/ \a \f @ \un \ns @ \ns SContext @ \impl \u >> \f @ \ns SContext,
+	/ \f Check => Validate
+);
+/= test 11 @ platform MinGW32 ^ \conf release;
+
+r12:
++ \u Configuration["Configuration.h", "Configuration.cpp"] @ \lib NPL;
+/= test 12 @ platform MinGW32;
+
 r13:
-/ \f FetchTimerSetting @ \u ShlReader -> \mf \i ReaderSetting::GetTimerSetting
-	@ \h ReaderSetting,
-/ \tr \impl @ \ctor ShlTextReader @ \impl \u ShlReader;
-/= test 11 @ platform MinGW32;
+/ \simp \impl @ (\ctor Session, \f SContext::(Validate, Reduce))
+	@ \impl \u SContext;
+/= test 13 @ platform MinGW32;
 
 r14:
-/= test 12 @ platform MinGW32 ^ \conf release;
+/= test 14 @ platform MinGW32 ^ \conf release;
 
 r15:
-/= test 13 @ platform DS;
+/= test 15 @ platform DS;
 
 r16:
-/= test 14 @ platform DS ^ \conf release;
-
-r17-r23:
-* \impl @ \f IsAbsolute platform DS @ \impl \u FileSystem $since r9;
-/= 7 test 15 @ platform DS;
-
-r24:
 /= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-08-31 +0800:
--26.8d;
-// Mercurial rev1-rev206: r9064;
+2012-09-02 +0800:
+-21.2d;
+// Mercurial rev1-rev207: r9080;
 
 / ...
 
 
 $NEXT_TODO:
-b335-b348:
+b336-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -943,6 +930,12 @@ $module_tree $=
 			'Initialization', // initialization;
 			'InputManager' // input manager;
 		),
+		'NPL'
+		(
+			'Lexical';
+			'SContext';
+			'Configuration'
+		)
 	),
 	'YReader'
 	(
@@ -959,6 +952,17 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		* DLP "includ guard macros" @ %'Helper' $since b303,
+		+ "library %NPL" $= (+ "units %(Lexical; SContext; Configuration)")
+	)
+	// Release binary image(.nds) of this version are strictly equal with b334 \
+		on platform %DS.
+),
+
+b334
 (
 	/ %'YBase'.'YStandardEx' $=
 	(

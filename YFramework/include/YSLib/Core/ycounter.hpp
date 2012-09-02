@@ -11,13 +11,13 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r734;
+\version r735;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-02-09 20:43:52 +0800;
 \par 修改时间:
-	2012-08-30 20:09 +0800;
+	2012-08-31 18:51 +0800;
 \par 字符集:
 	UTF-8;
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INCLUDED_CORE_YCOUNTER_H_
-#define INCLUDED_CORE_YCOUNTER_H_ 1
+#ifndef YSL_INC_CORE_YCOUNTER_H_
+#define YSL_INC_CORE_YCOUNTER_H_ 1
 
 #include "ysdef.h"
 

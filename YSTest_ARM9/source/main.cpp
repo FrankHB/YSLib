@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1681;
+\version r1684;
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1 。
 \par 创建时间:
 	2009-11-12 21:26:30 +0800;
 \par 修改时间:
-	2012-08-29 16:14 +0800;
+	2012-08-31 19:19 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -234,7 +234,7 @@ main()
 //main(int argc, char* argv[])
 #endif
 {
-	using namespace YSL;
+	using namespace YSLib;
 
 	Log log;
 
@@ -246,7 +246,7 @@ main()
 
 			platform::YDebugSetStatus(true);
 			{
-				using namespace YSL_ Components;
+				using namespace YSLib::Components;
 
 				Desktop dsk_up(theApp.GetScreenUp()),
 					dsk_dn(theApp.GetScreenDown());
@@ -290,7 +290,7 @@ main()
 			while(theApp.DealMessage())
 				;
 			//释放 Shell （必要，保证释放 Shell 且避免资源泄漏）。
-			YSL_ ReleaseShells();
+			YSLib::ReleaseShells();
 		}
 
 	#ifdef YSL_USE_MEMORY_DEBUG

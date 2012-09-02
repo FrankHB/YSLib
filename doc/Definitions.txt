@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11874;
+\version r11876;
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132 。
 \par 创建时间:
 	2010-01-26 19:34:51 +0800;
 \par 修改时间:
-	2012-08-29 15:48 +0800;
+	2012-08-31 19:09 +0800;
 \par 文本编码:
 	UTF-8;
 \par 模块名称:
@@ -159,8 +159,6 @@ $header Base
 yJOIN
 YSL_BEGIN
 YSL_END
-YSL_
-YSL
 YSL_BEGIN_NAMESPACE(s)
 YSL_END_NAMESPACE(s)
 _yInterface

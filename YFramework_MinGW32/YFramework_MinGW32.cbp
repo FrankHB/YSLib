@@ -101,6 +101,9 @@
 		<Unit filename="..\YFramework\include\Helper\ShellHelper.h" />
 		<Unit filename="..\YFramework\include\Helper\shlds.h" />
 		<Unit filename="..\YFramework\include\Helper\yglobal.h" />
+		<Unit filename="..\YFramework\include\NPL\Configuration.h" />
+		<Unit filename="..\YFramework\include\NPL\Lexical.h" />
+		<Unit filename="..\YFramework\include\NPL\SContext.h" />
 		<Unit filename="..\YFramework\include\YCLib\Debug.h" />
 		<Unit filename="..\YFramework\include\YCLib\FileSystem.h" />
 		<Unit filename="..\YFramework\include\YCLib\Input.h" />
@@ -267,6 +270,9 @@
 		<Unit filename="..\YFramework\source\Helper\ShellHelper.cpp" />
 		<Unit filename="..\YFramework\source\Helper\shlds.cpp" />
 		<Unit filename="..\YFramework\source\Helper\yglobal.cpp" />
+		<Unit filename="..\YFramework\source\NPL\Configuration.cpp" />
+		<Unit filename="..\YFramework\source\NPL\Lexical.cpp" />
+		<Unit filename="..\YFramework\source\NPL\SContext.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Debug.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\FileSystem.cpp" />
 		<Unit filename="..\YFramework\source\YCLib\Input.cpp" />
