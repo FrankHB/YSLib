@@ -11,17 +11,17 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r83;
+\version r91
 \author FrankHB<frankhb1989@gmail.com>
-\since build 324 。
+\since build 324
 \par 创建时间:
-	2012-07-11 21:48:15 +0800;
+	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2012-08-30 20:06 +0800;
+	2012-09-04 12:27 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::MemoryMapping;
+	YCLib::MemoryMapping
 */
 
 
@@ -36,7 +36,7 @@ namespace platform
 
 /*!
 \brief 只读内存映射文件。
-\since build 324 。
+\since build 324
 */
 class MappedFile
 {
@@ -50,7 +50,7 @@ public:
 	//@{
 	explicit
 	MappedFile(const_path_t);
-	//! \since build 326 。
+	//! \since build 326
 	template<class _tString>
 	explicit
 	MappedFile(const _tString& filename)

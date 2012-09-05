@@ -11,17 +11,17 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r675;
+\version r697
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-16 20:06:58 +0800;
+	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-08-27 17:26 +0800;
+	2012-09-05 17:53 +0800
 \par 字符集:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YObject;
+	YSLib::Core::YObject
 */
 
 
@@ -43,7 +43,7 @@ ValueObject::operator==(const ValueObject& vo) const
 namespace
 {
 
-//! \since build 330 。
+//! \since build 330
 ValueNode::Container*
 CloneNodeContainer(const ValueNode::Container& cont)
 {
@@ -57,7 +57,7 @@ CloneNodeContainer(const ValueNode::Container& cont)
 } // unnamed namespace;
 
 ValueNode::ValueNode(const ValueNode& node)
-	: ValueObject(static_cast<const ValueObject&>(node)), name(node),
+	: name(node), value(node.GetValue()),
 	pNodes(pNodes ? CloneNodeContainer(*pNodes) : nullptr)
 {}
 
@@ -66,6 +66,20 @@ ValueNode::CheckNodes()
 {
 	if(!pNodes)
 		pNodes.reset(new Container);
+}
+
+bool
+ValueNode::Add(const ValueNode& n)
+{
+	CheckNodes();
+	return pNodes->insert(make_pair(n.name, n)).second;
+}
+bool
+ValueNode::Add(ValueNode&& n)
+{
+	CheckNodes();
+	// TODO: Use %emplace.
+	return pNodes->insert(make_pair(n.name, std::move(n))).second;
 }
 
 YSL_END

@@ -11,17 +11,17 @@
 /*!	\file form.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗体。
-\version r551;
+\version r557
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-04-30 00:51:36 +0800;
+	2010-04-30 00:51:36 +0800
 \par 修改时间:
-	2012-08-27 17:28 +0800;
+	2012-09-04 12:48 +0800
 \par 字符集:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::Form;
+	YSLib::UI::Form
 */
 
 

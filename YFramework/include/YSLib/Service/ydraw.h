@@ -11,16 +11,17 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r671;
+\version r677
 \author FrankHB<frankhb1989@gmail.com>
+\since build 219
 \par 创建时间:
-	2011-06-16 19:43:26 +0800;
+	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2012-08-30 20:13 +0800;
+	2012-09-04 13:00 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::YDraw;
+	YSLib::Service::YDraw
 */
 
 

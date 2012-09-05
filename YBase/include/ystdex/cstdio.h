@@ -11,17 +11,17 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r345;
+\version r358
 \author FrankHB<frankhb1989@gmail.com>
-\since build 245 。
+\since build 245
 \par 创建时间:
-	2011-09-21 08:30:08 +0800;
+	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2012-08-30 20:00 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::CStandardIO;
+	YStandardEx::CStandardIO
 */
 
 
@@ -40,7 +40,7 @@ namespace ystdex
 
 /*!
 \brief 路径类型定义。
-\since build 216 。
+\since build 216
 */
 //@{
 typedef char* path_t;
@@ -51,7 +51,7 @@ typedef const char* const_path_t;
 \brief 判断指定路径的文件是否存在。
 \note 使用 std::fopen 实现。
 \pre 断言检查：参数非空。
-\since build 326 。
+\since build 326
 */
 bool
 fexists(const char*) ynothrow;
@@ -61,7 +61,7 @@ fexists(const char*) ynothrow;
 \brief ISO C/C++ 标准输入输出接口打开模式转换。
 \see ISO C++11 Table 132 。
 \note 忽略 std::ios_base::ate 。
-\since build 326 。
+\since build 326
 */
 const char*
 openmode_conv(std::ios_base::openmode) ynothrow;
@@ -71,7 +71,7 @@ openmode_conv(std::ios_base::openmode) ynothrow;
 \see ISO C11 7.21.5.3/3 。
 \note 顺序严格限定。
 \note 支持 x 转换。
-\since build 326 。
+\since build 326
 */
 std::ios_base::openmode
 openmode_conv(const char*) ynothrow;
@@ -79,7 +79,7 @@ openmode_conv(const char*) ynothrow;
 
 /*!
 \brief 基于 ISO C 标准库的流只读迭代器。
-\since build 245 。
+\since build 245
 */
 class ifile_iterator : public std::iterator<std::input_iterator_tag,
 	byte, ptrdiff_t, const byte*, const byte&>
@@ -185,7 +185,7 @@ operator!=(const ifile_iterator& x, const ifile_iterator& y)
 /*!
 \ingroup is_dereferencable
 \brief 判断 ifile_iterator 实例是否确定为可解引用。
-\since build 249 。
+\since build 249
 */
 inline bool
 is_dereferencable(const ifile_iterator& i)
@@ -196,7 +196,7 @@ is_dereferencable(const ifile_iterator& i)
 /*!
 \ingroup is_undereferencable
 \brief 判断 ifile_iterator 实例是否确定为不可解引用。
-\since build 250 。
+\since build 250
 */
 inline bool
 is_undereferencable(const ifile_iterator& i)

@@ -11,17 +11,17 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1262;
+\version r1268
 \author FrankHB<frankhb1989@gmail.com>
-\since build 335 。
+\since build 335
 \par 创建时间:
-	2012-08-03 23:04:26 +0800;
+	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2012-09-02 18:50 +0800;
+	2012-09-04 11:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	NPL::Lexical;
+	NPL::Lexical
 */
 
 

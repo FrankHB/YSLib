@@ -11,17 +11,17 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r1180;
+\version r1186
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-06 02:44:31 +0800;
+	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-08-27 17:26 +0800;
+	2012-09-04 12:50 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YMessage;
+	YSLib::Core::YMessage
 */
 
 

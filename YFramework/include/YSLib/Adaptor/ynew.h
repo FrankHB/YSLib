@@ -11,17 +11,17 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1126;
+\version r1136
 \author FrankHB<frankhb1989@gmail.com>
-\since build 173 。
+\since build 173
 \par 创建时间:
-	2010-12-02 19:49:40 +0800;
+	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2012-08-30 20:08 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Adaptor::YNew;
+	YSLib::Adaptor::YNew
 */
 
 
@@ -52,7 +52,7 @@
 //@{
 /*	\defgroup YSLMemoryDebugFunctions YSLib Memory Debug Functions
 \brief 调试用重载 ::operator new 和 ::operator delete 。
-\since build 173 。
+\since build 173
 */
 void*
 operator new(std::size_t, const char*, int) ythrow(std::bad_alloc);
@@ -80,7 +80,7 @@ class MemoryList;
 
 /*!
 \brief 取调试用内存块列表。
-\since build 203 。
+\since build 203
 */
 MemoryList&
 GetDebugMemoryList();
@@ -89,7 +89,7 @@ GetDebugMemoryList();
 /*!
 \brief 内存块列表。
 \warning 非虚析构。
-\since build 173 。
+\since build 173
 */
 class MemoryList : private ystdex::noncopyable
 {
@@ -160,7 +160,7 @@ public:
 	void
 	Unregister(const void*, const char*, int);
 
-	//! \since build 317 。
+	//! \since build 317
 	static void
 	Print(const MapType::value_type&, std::FILE*);
 

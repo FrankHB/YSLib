@@ -11,17 +11,17 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1689;
+\version r1698
 \author FrankHB<frankhb1989@gmail.com>
-\since build 168 。
+\since build 168
 \par 创建时间:
-	2010-05-01 13:52:56 +0800;
+	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2012-08-30 20:19 +0800;
+	2012-09-04 12:00 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YFocus;
+	YSLib::UI::YFocus
 */
 
 
@@ -44,7 +44,7 @@ IsFocused(const IWidget&);
 \brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
 \param release_event 是否在需要释放已有焦点时触发事件。
 \return 是否成功。
-\since build 315 。
+\since build 315
 */
 bool
 DoRequestFocus(IWidget&, bool release_event = false);
@@ -52,7 +52,7 @@ DoRequestFocus(IWidget&, bool release_event = false);
 /*!
 \brief 释放焦点，并指定 LostFocus 事件发送控件。
 \return 是否成功。
-\since build 315 。
+\since build 315
 */
 bool
 DoReleaseFocus(IWidget&);
@@ -98,7 +98,7 @@ ReleaseFocus(IWidget& wgt)
 /*!
 \brief 清除焦点指针，同时以此部件作为事件源，调用被清除焦点部件的 LostFocus 事件。
 \note 若此部件非容器则无效。
-\since build 258 。
+\since build 258
 */
 void
 ClearFocusingOf(IWidget&);

@@ -11,17 +11,17 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1720;
+\version r1751
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-01-05 14:03:47 +0800;
+	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2012-08-31 19:17 +0800;
+	2012-09-04 12:58 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::DSReader;
+	YReader::DSReader
 */
 
 
@@ -46,14 +46,14 @@ using Drawing::PixelType;
 /*!
 \brief 双屏阅读器。
 \warning 非虚析构。
-\since build 251 。
+\since build 251
 */
 class DualScreenReader
 {
 public:
 	/*!
 	\brief 命令类型。
-	\since build 270 。
+	\since build 270
 	*/
 	typedef enum : u16
 	{
@@ -83,7 +83,7 @@ private:
 	
 	文本区域的起点和终点在文本缓冲区的迭代器，构成一个左闭右开区间。
 	\note 若因为读入换行符而换行，则迭代器指向的字符此换行符。
-	\since build 273 。
+	\since build 273
 	*/
 	//@{
 	Text::TextFileBuffer::Iterator i_top;
@@ -93,12 +93,12 @@ private:
 	\brief 读入文件结束后的空行数。
 
 	最近一次 UpdateView 操作时确认文件结束后的空行数。
-	\since build 272 。
+	\since build 272
 	*/
 	u16 overread_line_n;
 	/*!
 	\brief 滚屏像素偏移量。
-	\since build 292 。
+	\since build 292
 	*/
 	Drawing::FontSize scroll_offset;
 
@@ -107,14 +107,14 @@ public:
 	\brief 公用边距。
 
 	限制文本区域的文本边界的基准边距。
-	\since build 274 。
+	\since build 274
 	*/
 	Drawing::Padding Margin;
 
 private:
 	/*!
 	\brief 上下屏幕对应文本区域。
-	\since build 273 。
+	\since build 273
 	*/
 	//@{
 	YSLib::Components::BufferedTextArea area_up;
@@ -124,7 +124,7 @@ private:
 public:
 	/*!
 	\brief 视图变更回调函数。
-	\since build 271 。
+	\since build 271
 	*/
 	std::function<void()> ViewChanged;
 
@@ -147,12 +147,12 @@ public:
 	/*!
 	\brief 取文本区域的字体颜色。
 	\note 上下文本区域的字体颜色应该保持一致，否则滚屏时字体颜色错误。
-	\since build 279 。
+	\since build 279
 	*/
 	DefGetter(const ynothrow, Color, Color, area_up.Color)
 	/*!
 	\brief 取文本区域的字体。
-	\since build 283 。
+	\since build 283
 	*/
 	DefGetter(const ynothrow, const Drawing::Font&, Font, area_up.Font)
 	DefGetter(const ynothrow, u8, LineGap, area_up.LineGap) \
@@ -162,7 +162,7 @@ public:
 	/*!
 	\brief 取文本大小。
 	\note 单位为字节。
-	\since build 270 。
+	\since build 270
 	*/
 	DefGetter(const ynothrow, size_t, TextSize,
 		pText ? pText->GetTextSize() : 0)
@@ -171,7 +171,7 @@ public:
 
 	取文本区域起始位置的输入迭代器相对于文本缓冲区迭代器的偏移。
 	\note 单位为字节。
-	\since build 272 。
+	\since build 272
 	*/
 	//@{
 	DefGetter(const ynothrow, size_t, TopPosition,
@@ -185,7 +185,7 @@ public:
 	/*!
 	\brief 设置文本区域的字体。
 	\warning 边距必须在输出前被更新。
-	\since build 283 。
+	\since build 283
 	*/
 	void
 	SetFont(const Drawing::Font&);
@@ -196,7 +196,7 @@ public:
 	SetLineGap(u8 = 0); //!< 设置行距。
 	/*!
 	\brief 设置文本区域可见性。
-	\since build 275 。
+	\since build 275
 	*/
 	void
 	SetVisible(bool = true);
@@ -204,7 +204,7 @@ public:
 	/*!
 	\brief 调整边距：使用公用边距更新各文本显示区域的边距。
 	\note 保持顶端和底端边距均衡。
-	\since build 274 。
+	\since build 274
 	*/
 	void
 	AdjustMargins();
@@ -212,35 +212,35 @@ public:
 	/*!
 	\brief 调整滚屏像素偏移量：立即继续滚动至下一整文本行。
 	\return 实际滚动的像素行数。
-	\since build 292 。
+	\since build 292
 	*/
 	Drawing::FontSize
 	AdjustScrollOffset();
 
 	/*!
 	\brief 附加到窗口。
-	\since build 273 。
+	\since build 273
 	*/
 	void
 	Attach(YSLib::Components::Window&, YSLib::Components::Window&);
 
 	/*!
 	\brief 从窗口分离。
-	\since build 273 。
+	\since build 273
 	*/
 	void
 	Detach();
 
 	/*!
 	\brief 执行阅读器命令。
-	\since build 270 。
+	\since build 270
 	*/
 	bool
 	Execute(Command);
 
 	/*!
 	\brief 无效化文本区域，并调用 ViewChanged （仅当非空）。
-	\since build 233 。
+	\since build 233
 	*/
 	void
 	Invalidate();
@@ -248,7 +248,7 @@ public:
 	/*!
 	\brief 文本定位。
 	\note 自动转至最近行首。
-	\since build 271 。
+	\since build 271
 
 	以指定偏移量定位起始迭代器，若越界则忽略。
 	*/
@@ -268,7 +268,7 @@ public:
 	\param 像素数。
 	\return 实际滚动的像素行数。
 	\note 参数超过行高时无效。
-	\since build 292 。
+	\since build 292
 	*/
 	Drawing::FontSize
 	ScrollByPixel(Drawing::FontSize);
@@ -278,21 +278,21 @@ public:
 	\note 高的最大值为 MainScreenHeight 。
 	\note 调整后的高限制为 40 到 MainScreenHeight 的闭区间。
 	\note 顶端文本迭代器保持不变，底端文本迭代器可能改变。
-	\since build 274 。
+	\since build 274
 	*/
 	void
 	Stretch(SDst);
 
 	/*!
 	\brief 卸载文本。
-	\since build 154 。
+	\since build 154
 	*/
 	void
 	UnloadText();
 
 	/*!
 	\brief 更新视图。
-	\since build 270 。
+	\since build 270
 
 	根据文本起点迭代器和当前视图状态重新填充缓冲区文本并无效化文本区域。
 	*/

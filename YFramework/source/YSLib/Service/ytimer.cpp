@@ -11,16 +11,17 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r717;
+\version r723
 \author FrankHB<frankhb1989@gmail.com>
+\since 早于 build 132
 \par 创建时间:
-	2010-06-05 10:28:58 +0800;
+	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2012-08-27 17:28 +0800;
+	2012-09-04 13:02 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::YTimer;
+	YSLib::Service::YTimer
 */
 
 

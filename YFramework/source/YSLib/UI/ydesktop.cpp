@@ -11,17 +11,17 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r1393;
+\version r1399
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-05-02 12:00:08 +0800;
+	2010-05-02 12:00:08 +0800
 \par 修改时间:
-	2012-08-27 17:29 +0800;
+	2012-09-04 12:47 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::Desktop;
+	YSLib::UI::Desktop
 */
 
 

@@ -11,17 +11,17 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r3794;
+\version r3802
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-28 16:46:40 +0800;
+	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2012-08-30 20:17 +0800;
+	2012-09-04 11:59 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YWindow;
+	YSLib::UI::YWindow
 */
 
 
@@ -38,14 +38,14 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 窗口。
-\since build 264 。
+\since build 264
 */
 class Window : public Panel
 {
 public:
 	/*!
 	\brief 构造：使用指定边界和背景图像。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit
 	Window(const Rect& = Rect::Empty,

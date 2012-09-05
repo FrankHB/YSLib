@@ -11,17 +11,17 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM7 主源文件。
-\version r77;
+\version r83
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-18 12:27:40 +0800;
+	2009-12-18 12:27:40 +0800
 \par 修改时间:
-	2012-08-28 19:52 +0800;
+	2012-09-04 12:51 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	Main_ARM7;
+	Main_ARM7
 */
 
 

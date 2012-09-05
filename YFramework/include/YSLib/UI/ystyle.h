@@ -11,17 +11,17 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r365;
+\version r384
 \author FrankHB<frankhb1989@gmail.com>
-\since build 194 。
+\since build 194
 \par 创建时间:
-	2010-06-08 13:21:10 +0800;
+	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2012-08-30 20:18 +0800;
+	2012-09-04 12:00 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YStyle;
+	YSLib::UI::YStyle
 */
 
 
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 /*!
 \brief 绘制部件边框用空心正则矩形。
 \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
-\since build 215 。
+\since build 215
 */
 bool
 DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
@@ -47,7 +47,7 @@ DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
 
 /*!
 \brief 在指定图形接口上下文的矩形上画箭头。
-\since build 215 。
+\since build 215
 */
 void
 RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
@@ -55,7 +55,7 @@ RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
 
 /*!
 \brief 在指定图形接口上下文上画箭头。
-\since build 302 。
+\since build 302
 */
 void
 DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
@@ -64,7 +64,7 @@ DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
 /*!
 \brief 在指定图形接口上下文中的指定点为边框左上角使用指定颜色绘制交叉直线段（“×”）。
 \note 若不满足长和宽都大于 8 则忽略。
-\since build 302 。
+\since build 302
 */
 void
 DrawCross(const Graphics&, const Point&, const Size&, Color);
@@ -72,7 +72,7 @@ DrawCross(const Graphics&, const Point&, const Size&, Color);
 
 /*!
 \brief 矩形区域颜色转换。
-\since build 196 。
+\since build 196
 */
 template<Color::MonoType r, Color::MonoType g, Color::MonoType b>
 inline void
@@ -89,40 +89,40 @@ transform_pixel_ex(BitmapPtr dst)
 /*!
 \brief 色调。
 \note 角度制，值 360 对应一个圆周。
-\since build 302 。
+\since build 302
 */
 typedef ystdex::fixed_point<u16, 9> Hue;
 
 
 /*!
 \brief HSL 颜色。
-\since build 196 。
+\since build 196
 */
 typedef struct
 {
 	/*!
 	\brief 色调。
-	\since build 302 。
+	\since build 302
 	*/
 	Hue h;
 	/*!
 	\brief 饱和度和亮度。
 	\note 最大有效值为 1 。
-	\since build 276 。
+	\since build 276
 	*/
 	float s, l;
 } hsl_t;
 
 /*!
 \brief RGB 颜色转换为 HSL 颜色。
-\since build 276 。
+\since build 276
 */
 hsl_t
 ColorToHSL(Color);
 
 /*!
 \brief HSL 颜色转换为 RGB 颜色。
-\since build 276 。
+\since build 276
 */
 Color
 HSLToColor(hsl_t);
@@ -136,7 +136,7 @@ YSL_BEGIN_NAMESPACE(Styles)
 
 /*!
 \brief 样式区域类型。
-\since build 204 。
+\since build 204
 */
 typedef enum
 {
@@ -173,7 +173,7 @@ typedef enum
 
 /*!
 \brief 默认调色板。
-\since build 204 。
+\since build 204
 */
 class Palette
 {

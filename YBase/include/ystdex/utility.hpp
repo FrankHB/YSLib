@@ -11,17 +11,17 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1452;
+\version r1468
 \author FrankHB<frankhb1989@gmail.com>
-\since build 189 。
+\since build 189
 \par 创建时间:
-	2010-05-23 06:10:59 +0800;
+	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-08-30 20:02 +0800;
+	2012-09-04 12:31 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Utilities;
+	YStandardEx::Utilities
 */
 
 
@@ -76,7 +76,7 @@ public:
 /*!
 \ingroup helper_functions
 \brief 计算指定数组类型对象的长度。
-\since build 291 。
+\since build 291
 */
 //@{
 template<typename _type, size_t _vN>
@@ -96,7 +96,7 @@ arrlen(_type(&&)[_vN])
 
 /*!
 \brief 取指定参数初始化的 std::array 对象。
-\since build 304 。
+\since build 304
 */
 //@{
 template<typename _type, size_t _vN, typename _tSrc>
@@ -137,7 +137,7 @@ make_array(_tSrcElement(&&src)[_vN])
 \brief 按标识调用函数，保证调用一次。
 \note 类似 std::call_once ，但多线程环境下失效。
 \note ISO C++11（至 N3376 ） 30.4 synopsis 处的声明存在错误。
-\since build 327 。
+\since build 327
 	
 当标识为 true 时候无作用，否则调用函数。
 */
@@ -157,7 +157,7 @@ call_once(bool& b, _fCallable&& f, _tParams&&... args)
 \brief 类型参数化静态对象。
 \warning 不可重入。
 \warning 非线程安全。
-\since build 303 。
+\since build 303
 */
 template<typename _type, typename, typename...>
 inline _type&
@@ -171,7 +171,7 @@ parameterize_static_object()
 \brief 非类型参数化静态对象。
 \warning 不可重入。
 \warning 非线程安全。
-\since build 301 。
+\since build 301
 */
 template<typename _type, size_t...>
 inline _type&
@@ -190,7 +190,7 @@ parameterize_static_object()
 \tparam _fInit 初始化调用类型。
 \tparam _tParams 初始化参数类型。
 \return 初始化后的对象的左值引用。
-\since build 327 。
+\since build 327
 */
 template<typename _tKey, typename... _tKeys, typename _fInit,
 	typename... _tParams>
@@ -211,7 +211,7 @@ get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 \tparam _fInit 初始化调用类型。
 \tparam _tParams 初始化参数类型。
 \return 初始化后的对象的左值引用。
-\since build 327 。
+\since build 327
 */
 template<size_t... _vKeys, typename _fInit, typename... _tParams>
 inline auto
@@ -229,7 +229,7 @@ get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 
 /*!	\defgroup init_mgr Initialization Managers
 \brief 初始化管理器。
-\since build 328 。
+\since build 328
 
 实现保存初始化和反初始化的状态的对象。不直接初始化对象，可以在头文件中直接定义。
 保证初始化满足特定条件。
@@ -240,7 +240,7 @@ get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 \brief 使用引用计数的静态初始化管理器。
 \see http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter 。
 \warning 非线程安全。
-\since build 328 。
+\since build 328
 
 静态初始化，通过引用计数保证所有在定义本类型的对象后已有静态对象被初始化。
 在所有翻译单元的本类型对象析构后自动反初始化。
@@ -306,7 +306,7 @@ public:
 	则是线程安全的；
 	若使用 bool ，对应 ystdex::call_once ，不保证线程安全。
 	其它类型可使用用户自行定义 call_once 。
-\since build 328 。
+\since build 328
 \todo 使用支持 lambda pack 展开的实现构造模版。
 
 静态初始化，使用 _tOnceFlag 类型的静态对象表示初始化和反初始化状态，

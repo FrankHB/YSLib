@@ -11,17 +11,17 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r1895;
+\version r1928
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-05-23 06:10:59 +0800;
+	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-08-30 20:09 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YCoreUtilities;
+	YSLib::Core::YCoreUtilities
 */
 
 
@@ -37,7 +37,7 @@ YSL_BEGIN
 
 若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
 	否则 \c Result 为 \c _tWeak 。
-\since build 201 。
+\since build 201
 */
 template<typename _type, typename _tStrict, typename _tWeak>
 struct MoreConvertible
@@ -58,7 +58,7 @@ struct MoreConvertible
 
 若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
 	否则 \c Result 为 \c _type 。
-\since build 201 。
+\since build 201
 */
 template<typename _type, typename _tStrict>
 struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
@@ -70,7 +70,7 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 
 /*!
 \brief 取整数类型的零元素。
-\since build 319 。
+\since build 319
 */
 yconstfn int
 FetchZero() ynothrow
@@ -79,7 +79,7 @@ FetchZero() ynothrow
 }
 /*!
 \brief 取指定类型的零元素。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn _type
@@ -91,7 +91,7 @@ FetchZero() ynothrow
 /*!
 \brief 整数类型符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
-\since build 319 。
+\since build 319
 */
 yconstfn s8
 FetchSign(int a, int b = 0) ynothrow
@@ -101,7 +101,7 @@ FetchSign(int a, int b = 0) ynothrow
 /*!
 \brief 符号函数。
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn s8
@@ -116,7 +116,7 @@ FetchSign(const _type& a, const _type& b = FetchZero<_type>()) ynothrow
 \return = 0 ：d 在区间端点上；
 \return > 0 ：d 在区间内。
 \note 无精度修正。
-\since build 319 。
+\since build 319
 */
 yconstfn int
 FetchSignFromInterval(int d, int a, int b) ynothrow
@@ -129,7 +129,7 @@ FetchSignFromInterval(int d, int a, int b) ynothrow
 \return = 0 ：d 在区间端点上；
 \return > 0 ：d 在区间内。
 \note 无精度修正。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn int
@@ -141,7 +141,7 @@ FetchSignFromInterval(const _type& d, const _type& a, const _type& b) ynothrow
 /*!
 \brief 判断 i 是否在左闭右开区间 [<tt>FetchZero<_type>()</tt>, b) 中。
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 inline bool
@@ -155,7 +155,7 @@ IsInInterval(_type i, _type b) ynothrow
 /*!
 \brief 判断 i 是否在左闭右开区间 [a, b) 中。
 \pre 断言： <tt>a < b</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 inline bool
@@ -169,7 +169,7 @@ IsInInterval(_type i, _type a, _type b) ynothrow
 /*!
 \brief 判断 i 是否在开区间 (FetchZero<_type>(), b) 内。
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 inline bool
@@ -183,7 +183,7 @@ IsInOpenInterval(_type i, _type b) ynothrow
 /*!
 \brief 判断 i 是否在开区间 (a, b) 内。
 \pre 断言： <tt>a < b</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 inline bool
@@ -200,7 +200,7 @@ IsInOpenInterval(_type i, _type a, _type b) ynothrow
 \pre 断言： <tt>a</tt> 。
 \pre 断言： <tt>n != 0</tt> 。
 \pre 断言： <tt>!(v < *a)</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 size_t
@@ -223,7 +223,7 @@ SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 \pre 断言： <tt>a</tt> 。
 \pre 断言： <tt>n != 0</tt> 。
 \pre 断言： <tt>!(v < *a)</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 size_t
@@ -245,7 +245,7 @@ SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 \brief 约束整数 i 在闭区间 [a, b] 中。
 \pre 断言： <tt>!(b < a)</tt> 。
 \post <tt>!(i < a || b < i)</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 void
@@ -263,7 +263,7 @@ RestrictInClosedInterval(_type& i, int a, int b) ynothrow
 \brief 约束整数 i 在左闭右开区间 [a, b) 中。
 \pre 断言： <tt>a < b</tt> 。
 \post <tt>!(i < a) && i < b</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 void
@@ -280,7 +280,7 @@ RestrictInInterval(_type& i, int a, int b) ynothrow
 /*!
 \brief 约束无符号整数 u 在区间上界 b 内。
 \post <tt>!(b < u)</tt>。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 void
@@ -294,7 +294,7 @@ RestrictUnsignedStrict(_type& u, unsigned b) ynothrow
 \brief 约束无符号整数 u 在左闭右开区间 [0, b) 中。
 \pre 断言： <tt>b != FetchZero<_type>()</tt> 。
 \post <tt>!(u < FetchZero<_type>()) && u < b</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 void
@@ -309,7 +309,7 @@ RestrictUnsigned(_type& u, unsigned b) ynothrow
 /*!
 \brief 约束关系：a ≤ b 。
 \post <tt>a <= b</tt> 。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 inline void
@@ -326,7 +326,7 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 	<tt>std::is_pod<T> || (std::is_nothrow_default_constructible<T>::value
 		&& std::is_nothrow_assignable<T, T>::value)</tt> 。
 \note 忽略空指针和零长度。
-\since build 322 。
+\since build 322
 */
 template<typename _tOut>
 inline void
@@ -346,7 +346,7 @@ ClearSequence(_tOut dst, size_t n) ynothrow
 
 /*!
 \brief delete 仿函数。
-\since build 174 。
+\since build 174
 */
 struct delete_obj_ndebug
 {
@@ -364,7 +364,7 @@ struct delete_obj_ndebug
 
 /*!
 \brief delete 第二成员仿函数。
-\since build 281 。
+\since build 281
 \todo 删除数组成员。
 */
 struct delete_second_mem_ndebug
@@ -385,7 +385,7 @@ struct delete_second_mem_ndebug
 
 /*!
 \brief delete 仿函数（调试版本）。
-\since build 174 。
+\since build 174
 */
 struct delete_obj_debug
 {
@@ -403,7 +403,7 @@ struct delete_obj_debug
 
 /*!
 \brief delete 第二成员仿函数。
-\since build 281 。
+\since build 281
 \todo 删除数组成员。
 */
 struct delete_second_mem_debug
@@ -432,7 +432,7 @@ struct delete_second_mem_debug
 
 /*!
 \brief 带置空指针操作的 delete 仿函数。
-\since build 154 。
+\since build 154
 */
 struct safe_delete_obj
 {
@@ -450,7 +450,7 @@ struct safe_delete_obj
 
 /*!
 \brief 使用 new 复制指定指针指向的对象。
-\since build 240 。
+\since build 240
 */
 template<typename _type>
 yconstfn auto
@@ -462,7 +462,7 @@ CloneNonpolymorphic(const _type& p) -> decltype(&*p)
 /*!
 \brief 使用 Clone 成员函数复制指定指针指向的多态类类型对象。
 \pre 断言： std::is_polymorphic<decltype(*p)>::value 。
-\since build 240 。
+\since build 240
 */
 template<class _type>
 auto

@@ -11,17 +11,17 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1219;
+\version r1248
 \author FrankHB<frankhb1989@gmail.com>
-\since build 241 。
+\since build 241
 \par 创建时间:
-	2010-12-17 10:27:50 +0800;
+	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2012-08-30 20:18 +0800;
+	2012-09-04 11:59 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YWidgetEvent;
+	YSLib::UI::YWidgetEvent
 */
 
 
@@ -37,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 用户界面绘制优先级。
-\since build 294 。
+\since build 294
 */
 //@{
 yconstexpr EventPriority BackgroundPriority(0xC0);
@@ -49,7 +49,7 @@ yconstexpr EventPriority ForegroundPriority(0x40);
 /*!
 \brief 用户界面事件参数基类。
 \warning 非虚析构。
-\since build 255 。
+\since build 255
 */
 struct UIEventArgs
 {
@@ -63,13 +63,13 @@ public:
 	{}
 	/*!
 	\brief 复制构造：默认实现。
-	\since build 295 。
+	\since build 295
 	*/
 	inline DefDeCopyCtor(UIEventArgs)
 
 	/*!
 	\brief 复制赋值：默认实现。
-	\since build 295 。
+	\since build 295
 	*/
 	inline DefDeCopyAssignment(UIEventArgs)
 
@@ -82,7 +82,7 @@ public:
 /*!
 \brief 路由事件参数基类。
 \warning 非虚析构。
-\since build 195 。
+\since build 195
 */
 struct RoutedEventArgs : public UIEventArgs
 {
@@ -108,7 +108,7 @@ public:
 /*!
 \brief 屏幕（指针设备）输入事件参数模块类。
 \warning 非虚析构。
-\since build 160 。
+\since build 160
 */
 typedef Drawing::Point MScreenPositionEventArgs;
 
@@ -116,33 +116,33 @@ typedef Drawing::Point MScreenPositionEventArgs;
 /*!
 \brief 输入事件参数类。
 \warning 非虚析构。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 struct InputEventArgs : public RoutedEventArgs
 {
 public:
 	/*!
 	\brief 包含的按键代码。
-	\since build 298 。
+	\since build 298
 	*/
 	KeyInput Keys;
 
 	/*!
 	\brief 构造：使用本机键按下对象和路由事件类型。
-	\since build 298 。
+	\since build 298
 	*/
 	InputEventArgs(IWidget&, const KeyInput& = KeyInput(),
 		RoutingStrategy = Direct);
 
 	/*!
 	\brief 转换为按键代码类型。
-	\since build 298 。
+	\since build 298
 	*/
 	DefCvt(const ynothrow, const KeyInput&, Keys)
 
 	/*!
 	\brief 取按键代码。
-	\since build 298 。
+	\since build 298
 	*/
 	DefGetter(const ynothrow, const KeyInput&, Keys, Keys)
 };
@@ -151,7 +151,7 @@ public:
 /*!
 \brief 按键输入事件参数类。
 \warning 非虚析构。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 struct KeyEventArgs : public InputEventArgs
 {
@@ -169,7 +169,7 @@ public:
 /*!
 \brief 指针设备输入事件参数类。
 \warning 非虚析构。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 struct TouchEventArgs : public InputEventArgs, public MScreenPositionEventArgs
 {
@@ -189,7 +189,7 @@ public:
 
 保存部件引用和指定类型值的事件参数。
 \warning 非虚析构。
-\since build 268 。
+\since build 268
 */
 template<typename _type>
 struct GValueEventArgs : public UIEventArgs
@@ -215,7 +215,7 @@ struct GValueEventArgs : public UIEventArgs
 /*
 \brief 部件绘制上下文。
 \warning 非虚析构。
-\since build 255 。
+\since build 255
 */
 struct PaintContext
 {
@@ -235,7 +235,7 @@ struct PaintContext
 /*!
 \brief 部件绘制参数。
 \warning 非虚析构。
-\since build 242 。
+\since build 242
 */
 struct PaintEventArgs : public UIEventArgs, public PaintContext
 {
@@ -266,7 +266,7 @@ DeclDelegate(HPaintEvent, PaintEventArgs&&)
 
 /*!
 \brief 标准控件事件空间。
-\since build 192 。
+\since build 192
 */
 typedef enum
 {
@@ -342,7 +342,7 @@ DefEventTypeMapping(Leave, HTouchEvent)
 
 /*!
 \brief 事件映射命名空间。
-\since build 242 。
+\since build 242
 */
 YSL_BEGIN_NAMESPACE(EventMapping)
 
@@ -365,7 +365,7 @@ struct BadEvent
 
 /*!
 \brief 控制器抽象类。
-\since build 243 。
+\since build 243
 */
 class AController
 {
@@ -381,7 +381,7 @@ public:
 	{}
 	/*!
 	\brief 析构：空实现。
-	\since build 295 。
+	\since build 295
 	*/
 	virtual DefEmptyDtor(AController)
 
@@ -389,7 +389,7 @@ public:
 
 	/*!
 	\brief 取事件项。
-	\since build 293 。
+	\since build 293
 	*/
 	DeclIEntry(EventMapping::ItemType& GetItem(const VisualEvent&))
 	/*!
@@ -446,12 +446,12 @@ DoEvent(AController& controller, const VisualEvent& id,
 
 /*!
 \brief 部件控制器。
-\since build 236 。
+\since build 236
 */
 class WidgetController : public AController
 {
 public:
-	//! \since build 331 。
+	//! \since build 331
 	GEventWrapper<EventT(HPaintEvent), UIEventArgs&&> Paint;
 
 	/*!

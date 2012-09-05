@@ -11,17 +11,17 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1146;
+\version r1226
 \author FrankHB<frankhb1989@gmail.com>
-\since build 206 。
+\since build 206
 \par 创建时间:
-	2011-05-03 07:20:51 +0800;
+	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2012-08-30 20:10 +0800;
+	2012-09-04 12:15 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YGDIBase;
+	YSLib::Core::YGDIBase
 */
 
 
@@ -44,7 +44,7 @@ class Rect;
 
 /*!
 \brief 屏幕二元组。
-\since build 242 。
+\since build 242
 */
 template<typename _type>
 class GBinaryGroup
@@ -59,7 +59,7 @@ public:
 	/*!
 	\brief 无参数构造。
 	\note 零初始化。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	GBinaryGroup() ynothrow
@@ -71,19 +71,19 @@ public:
 	yconstfn DefDeCopyCtor(GBinaryGroup)
 	/*!
 	\brief 构造：使用 Size 对象。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit yconstfn
 	GBinaryGroup(const Size&) ynothrow;
 	/*!
 	\brief 构造：使用 Rect 对象。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit yconstfn
 	GBinaryGroup(const Rect&) ynothrow;
 	/*!
 	\brief 构造：使用两个标量。
-	\since build 319 。
+	\since build 319
 	*/
 	template<typename _tScalar1, typename _tScalar2>
 	yconstfn
@@ -93,7 +93,7 @@ public:
 
 	/*!
 	\brief 负运算：取加法逆元。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn GBinaryGroup
 	operator-() ynothrow
@@ -134,7 +134,7 @@ public:
 	/*!
 	\brief 选择分量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 319 。
+	\since build 319
 	*/
 	_type&
 	GetRef(bool b = true) ynothrow
@@ -144,7 +144,7 @@ public:
 	/*!
 	\brief 选择分量常量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 319 。
+	\since build 319
 	*/
 	const _type&
 	GetRef(bool b = true) const ynothrow
@@ -163,7 +163,7 @@ yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Invalid;
 
 /*!
 \brief 比较：屏幕二元组相等关系。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn bool
@@ -174,7 +174,7 @@ operator==(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 
 /*!
 \brief 比较：屏幕二元组不等关系。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn bool
@@ -185,7 +185,7 @@ operator!=(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 
 /*!
 \brief 加法：屏幕二元组。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn GBinaryGroup<_type>
@@ -196,7 +196,7 @@ operator+(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 
 /*!
 \brief 减法：屏幕二元组。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn GBinaryGroup<_type>
@@ -207,7 +207,7 @@ operator-(const GBinaryGroup<_type>& a, const GBinaryGroup<_type>& b) ynothrow
 
 /*!
 \brief 数乘：屏幕二元组。
-\since build 319 。
+\since build 319
 */
 template<typename _type, typename _tScalar>
 yconstfn GBinaryGroup<_type>
@@ -219,21 +219,21 @@ operator*(const GBinaryGroup<_type>& val, _tScalar l) ynothrow
 
 /*!
 \brief 屏幕二维点（直角坐标表示）。
-\since build 242 。
+\since build 242
 */
 typedef GBinaryGroup<SPos> Point;
 
 
 /*!
 \brief 屏幕二维向量（直角坐标表示）。
-\since build 242 。
+\since build 242
 */
 typedef GBinaryGroup<SPos> Vec;
 
 
 /*!
 \brief 屏幕区域大小。
-\since build 161 。
+\since build 161
 */
 class Size
 {
@@ -241,7 +241,7 @@ public:
 	static const Size Zero; //!< 无参数构造的零元素对象。
 	/*!
 	\brief 无效对象。
-	\since build 296 。
+	\since build 296
 	*/
 	static const Size Invalid;
 
@@ -250,7 +250,7 @@ public:
 	/*!
 	\brief 无参数构造。
 	\note 零初始化。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Size() ynothrow
@@ -258,7 +258,7 @@ public:
 	{}
 	/*!
 	\brief 复制构造。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Size(const Size& s) ynothrow
@@ -266,13 +266,13 @@ public:
 	{}
 	/*!
 	\brief 构造：使用 Rect 对象。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit yconstfn
 	Size(const Rect&) ynothrow;
 	/*!
 	\brief 构造：使用屏幕二元组。
-	\since build 319 。
+	\since build 319
 	*/
 	template<typename _type>
 	yconstfn explicit
@@ -281,7 +281,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用两个标量。
-	\since build 319 。
+	\since build 319
 	*/
 	template<typename _tScalar1, typename _tScalar2>
 	yconstfn
@@ -291,14 +291,14 @@ public:
 
 	/*!
 	\brief 判断是否为空。
-	\since build 320 。
+	\since build 320
 	*/
 	yconstfn PDefHOp(bool, !) const ynothrow
 		ImplRet(Width == 0 && Height == 0)
 
 	/*!
 	\brief 判断是否非空。
-	\since build 320 。
+	\since build 320
 	*/
 	explicit yconstfn DefCvt(const ynothrow, bool, Width != 0 || Height != 0)
 
@@ -310,20 +310,20 @@ public:
 
 	/*!
 	\brief 判断是否为线段：长或宽中有且一个数值等于 0 。
-	\since build 264 。
+	\since build 264
 	*/
 	yconstfn DefPred(const ynothrow, LineSegment,
 		!((Width == 0) ^ (Height == 0)))
 	/*!
 	\brief 判断是否为不严格的空矩形区域：包括空矩形和线段。
-	\since build 264 。
+	\since build 264
 	*/
 	yconstfn DefPred(const ynothrow, UnstrictlyEmpty, Width == 0 || Height == 0)
 
 	/*!
 	\brief 选择分量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 319 。
+	\since build 319
 	*/
 	SDst&
 	GetRef(bool b = true) ynothrow
@@ -333,7 +333,7 @@ public:
 	/*!
 	\brief 选择分量常量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 319 。
+	\since build 319
 	*/
 	const SDst&
 	GetRef(bool b = true) const ynothrow
@@ -344,7 +344,7 @@ public:
 
 /*!
 \brief 比较：屏幕区域大小相等关系。
-\since build 319 。
+\since build 319
 */
 yconstfn bool
 operator==(const Size& a, const Size& b) ynothrow
@@ -354,7 +354,7 @@ operator==(const Size& a, const Size& b) ynothrow
 
 /*!
 \brief 比较：屏幕区域大小不等关系。
-\since build 319 。
+\since build 319
 */
 yconstfn bool
 operator!=(const Size& a, const Size& b) ynothrow
@@ -365,7 +365,7 @@ operator!=(const Size& a, const Size& b) ynothrow
 
 /*!
 \brief 加法：使用屏幕二元组和屏幕区域大小分量对应相加构造屏幕二元组。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn GBinaryGroup<_type>
@@ -377,7 +377,7 @@ operator+(GBinaryGroup<_type> val, const Size& s) ynothrow
 
 /*!
 \brief 二元对象转置。
-\since build 319 。
+\since build 319
 */
 template<class _tBinary>
 yconstfn _tBinary
@@ -388,7 +388,7 @@ Transpose(_tBinary& obj) ynothrow
 
 /*!
 \brief 取面积。
-\since build 319 。
+\since build 319
 */
 yconstfn auto
 GetAreaOf(const Size& s) ynothrow -> decltype(s.Width * s.Height)
@@ -401,7 +401,7 @@ GetAreaOf(const Size& s) ynothrow -> decltype(s.Width * s.Height)
 \brief 屏幕正则矩形：表示屏幕矩形区域。
 \note 边平行于水平直线；使用左上点屏幕坐标、宽和高表示。
 \warning 非虚析构。
-\since build 161 。
+\since build 161
 */
 class Rect : private Point, private Size
 {
@@ -409,32 +409,32 @@ public:
 	static const Rect Empty; //!< 无参数构造的空矩形对象。
 	/*!
 	\brief 无效对象。
-	\since build 296 。
+	\since build 296
 	*/
 	static const Rect Invalid;
 
 	/*!
 	\brief 左上角横坐标。
 	\see Point::X 。
-	\since build 296 。
+	\since build 296
 	*/
 	using Point::X;
 	/*!
 	\brief 左上角纵坐标。
 	\see Point::Y 。
-	\since build 296 。
+	\since build 296
 	*/
 	using Point::Y;
 	/*!
 	\brief 长。
 	\see Size::Width 。
-	\since build 296 。
+	\since build 296
 	*/
 	using Size::Width;
 	/*!
 	\brief 宽。
 	\see Size::Height 。
-	\since build 296 。
+	\since build 296
 	*/
 	using Size::Height;
 
@@ -442,7 +442,7 @@ public:
 	/*!
 	\brief 无参数构造。
 	\note 零初始化。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Rect() ynothrow
@@ -454,7 +454,7 @@ public:
 	yconstfn DefDeCopyCtor(Rect)
 	/*!
 	\brief 构造：使用屏幕二维点。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit yconstfn
 	Rect(const Point& pt) ynothrow
@@ -462,7 +462,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用 Size 对象。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit yconstfn
 	Rect(const Size& s) ynothrow
@@ -470,7 +470,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用屏幕二维点和 Size 对象。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Rect(const Point& pt, const Size& s) ynothrow
@@ -478,7 +478,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用屏幕二维点和表示长宽的两个 SDst 值。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Rect(const Point& pt, SDst w, SDst h) ynothrow
@@ -486,7 +486,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用表示位置的两个 SPos 值和 Size 对象。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Rect(SPos x, SPos y, const Size& s) ynothrow
@@ -494,7 +494,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用表示位置的两个 SPos 值和表示大小的两个 SDst 值。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Rect(SPos x, SPos y, SDst w, SDst h) ynothrow
@@ -502,7 +502,7 @@ public:
 	{}
 
 	DefDeCopyAssignment(Rect)
-	//! \since build 319 。
+	//! \since build 319
 	//@{
 	Rect&
 	operator=(const Point& pt) ynothrow
@@ -521,7 +521,7 @@ public:
 	/*!
 	\brief 求与另一个屏幕正则矩形的交。
 	\note 若相离结果为 Rect::Empty ，否则为包含于两个参数中的最大矩形。
-	\since build 320 。
+	\since build 320
 	*/
 	Rect&
 	operator&=(const Rect&) ynothrow;
@@ -529,7 +529,7 @@ public:
 	/*!
 	\brief 求与另一个屏幕正则矩形的并。
 	\note 结果为包含两个参数中的最小矩形。
-	\since build 320 。
+	\since build 320
 	*/
 	Rect&
 	operator|=(const Rect&) ynothrow;
@@ -537,51 +537,51 @@ public:
 	/*!
 	\brief 判断是否为空。
 	\see Size::operator! 。
-	\since build 320 。
+	\since build 320
 	*/
 	using Size::operator!;
 
 	/*!
 	\brief 判断是否非空。
 	\see Size::bool 。
-	\since build 320 。
+	\since build 320
 	*/
 	using Size::operator bool;
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内或边上。
-	\since build 319 。
+	\since build 319
 	*/
 	bool
 	Contains(int px, int py) const ynothrow;
 	/*!
 	\brief 判断点 pt 是否在矩形内或边上。
-	\since build 319 。
+	\since build 319
 	*/
 	PDefH(bool, Contains, const Point& pt) const ynothrow
 		ImplRet(Contains(pt.X, pt.Y))
 	/*!
 	\brief 判断矩形 r 是否在矩形内或边上。
-	\since build 319 。
+	\since build 319
 	*/
 	bool
 	Contains(const Rect& r) const ynothrow;
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内。
-	\since build 319 。
+	\since build 319
 	*/
 	bool
 	ContainsStrict(int px, int py) const ynothrow;
 	/*!
 	\brief 判断点 pt 是否在矩形内。
-	\since build 319 。
+	\since build 319
 	*/
 	PDefH(bool, ContainsStrict, const Point& pt) const ynothrow
 		ImplRet(ContainsStrict(pt.X, pt.Y))
 	/*!
 	\brief 判断矩形 r 是否在矩形内或边上。
-	\since build 319 。
+	\since build 319
 	*/
 	bool
 	ContainsStrict(const Rect& r) const ynothrow;
@@ -589,13 +589,13 @@ public:
 	/*!
 	\brief 判断矩形是否为线段：长和宽中有且一个数值等于 0 。
 	\see Size::IsLineSegment 。
-	\since build 296 。
+	\since build 296
 	*/
 	using Size::IsLineSegment;
 	/*!
 	\brief 判断矩形是否为不严格的空矩形区域：包括空矩形和线段。
 	\see Size::IsUnstrictlyEmpty 。
-	\since build 296 。
+	\since build 296
 	*/
 	using Size::IsUnstrictlyEmpty;
 
@@ -606,7 +606,7 @@ public:
 		static_cast<const Point&>(*this))
 	/*!
 	\brief 取左上角位置引用。
-	\since build 296 。
+	\since build 296
 	*/
 	DefGetter(ynothrow, Point&, PointRef, static_cast<Point&>(*this))
 	/*!
@@ -616,14 +616,14 @@ public:
 		static_cast<const Size&>(*this))
 	/*!
 	\brief 取大小引用。
-	\since build 296 。
+	\since build 296
 	*/
 	DefGetter(ynothrow, Size&, SizeRef, static_cast<Size&>(*this))
 };
 
 /*!
 \brief 比较：屏幕正则矩形相等关系。
-\since build 319 。
+\since build 319
 */
 yconstfn bool
 operator==(const Rect& x, const Rect& y) ynothrow
@@ -633,7 +633,7 @@ operator==(const Rect& x, const Rect& y) ynothrow
 
 /*!
 \brief 比较：屏幕正则矩形不等关系。
-\since build 319 。
+\since build 319
 */
 yconstfn bool
 operator!=(const Rect& x, const Rect& y) ynothrow
@@ -644,7 +644,7 @@ operator!=(const Rect& x, const Rect& y) ynothrow
 
 /*!
 \brief 加法：使用正则矩形 r 和偏移向量 v 构造屏幕正则矩形。
-\since build 319 。
+\since build 319
 */
 yconstfn Rect
 operator+(const Rect& r, const Vec& v) ynothrow
@@ -654,7 +654,7 @@ operator+(const Rect& r, const Vec& v) ynothrow
 
 /*!
 \brief 减法：使用正则矩形 r 和偏移向量的加法逆元 v 构造屏幕正则矩形。
-\since build 319 。
+\since build 319
 */
 yconstfn Rect
 operator-(const Rect& r, const Vec& v) ynothrow
@@ -665,7 +665,7 @@ operator-(const Rect& r, const Vec& v) ynothrow
 /*!
 \brief 求两个屏幕正则矩形的交。
 \see Rect::operator&= 。
-\since build 320 。
+\since build 320
 */
 Rect
 operator&(const Rect&, const Rect&) ynothrow;
@@ -673,7 +673,7 @@ operator&(const Rect&, const Rect&) ynothrow;
 /*!
 \brief 求两个屏幕正则矩形的并。
 \see Rect::operator|= 。
-\since build 320 。
+\since build 320
 */
 Rect
 operator|(const Rect&, const Rect&) ynothrow;
@@ -693,7 +693,7 @@ Size::Size(const Rect& r) ynothrow
 
 /*!
 \brief 二维图形接口上下文。
-\since build 164 。
+\since build 164
 */
 class Graphics
 {
@@ -711,7 +711,7 @@ protected:
 public:
 	/*!
 	\brief 构造：使用指定位图指针和大小。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit yconstfn
 	Graphics(BitmapPtr b = nullptr, const Size& s = Size::Zero) ynothrow
@@ -719,7 +719,7 @@ public:
 	{}
 	/*!
 	\brief 复制构造：浅复制。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Graphics(const Graphics& g) ynothrow
@@ -732,7 +732,7 @@ public:
 
 	/*!
 	\brief 判断无效性。
-	\since build 319 。
+	\since build 319
 	*/
 	PDefHOp(bool, !) const ynothrow
 		ImplRet(!bool(*this))
@@ -746,7 +746,7 @@ public:
 
 	/*!
 	\brief 判断有效性。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit DefCvt(const ynothrow, bool,
 		pBuffer && size.Width != 0 && size.Height != 0)
@@ -771,7 +771,7 @@ public:
 
 /*!
 \brief 逆时针旋转角度指示输出指向。
-\since build 178 。
+\since build 178
 */
 typedef enum
 {
@@ -783,7 +783,7 @@ typedef enum
 
 /*!
 \brief 二元方向。
-\since build 170 。
+\since build 170
 */
 typedef enum
 {

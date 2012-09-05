@@ -11,17 +11,17 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r535;
+\version r549
 \author FrankHB<frankhb1989@gmail.com>
-\since build 237 。
+\since build 237
 \par 创建时间:
-	2011-09-03 23:47:32 +0800;
+	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2012-08-30 20:19 +0800;
+	2012-09-04 12:00 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YRenderer;
+	YSLib::UI::YRenderer
 */
 
 
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 部件渲染器。
 
 无缓冲渲染策略：不保存部件渲染状态和有效的图形接口上下文。
-\since build 237 。
+\since build 237
 */
 class Renderer
 {
@@ -73,7 +73,7 @@ public:
 	\note 调用 wgt 的 Paint 事件绘制。
 	\note 不调用 wgt.IsVisible() 检查可见性。
 	\note 派生类行为可能改变，不直接调用事件。
-	\since build 263 。
+	\since build 263
 	*/
 	virtual Rect
 	Paint(IWidget& wgt, PaintEventArgs&&);
@@ -82,7 +82,7 @@ public:
 
 /*!
 \brief 带缓冲的部件渲染器。
-\since build 237 。
+\since build 237
 
 缓冲渲染策略：保存部件渲染状态和有效的图形接口上下文。
 */
@@ -96,13 +96,13 @@ public:
 	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
 	/*!
 	\brief 指定验证时忽略上层缓冲区背景。
-	\since build 278 。
+	\since build 278
 	*/
 	bool IgnoreBackground;
 
 	/*!
 	\brief 构造：指定是否忽略上层缓冲区背景。
-	\since build 278 。
+	\since build 278
 	*/
 	BufferedRenderer(bool b = false)
 		: rInvalidated(), Buffer(), IgnoreBackground(b)
@@ -147,7 +147,7 @@ public:
 	\pre 断言： <tt>&e.GetSender().GetRenderer() == this</tt> 。
 	\note 在 Validate 后 Update 。
 	\note 不调用 wgt.IsVisible() 检查可见性。
-	\since build 263 。
+	\since build 263
 	*/
 	Rect
 	Paint(IWidget& wgt, PaintEventArgs&&) override;
@@ -162,7 +162,7 @@ public:
 	/*!
 	\brief 验证并按需绘制。
 	\return 验证中被刷新的区域边界。
-	\since build 293 。
+	\since build 293
 
 	验证 sender 的指定图形设备上下文的关联的缓冲区，
 	若存在无效区域则调用 wgt 的 Paint 事件绘制。

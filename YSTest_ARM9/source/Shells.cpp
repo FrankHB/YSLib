@@ -11,17 +11,17 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5479;
+\version r5486
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-03-06 21:38:16 +0800;
+	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-08-31 19:19 +0800;
+	2012-09-04 12:57 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::Shells;
+	YReader::Shells
 */
 
 
@@ -41,7 +41,7 @@ namespace
 {
 
 ResourceMap GlobalResourceMap;
-//! \since build 319 。
+//! \since build 319
 double gfx_init_time;
 
 } // unnamed namespace;
@@ -278,7 +278,7 @@ CheckReaderEnability(FileBox& fb, CheckBox& hex)
 	return false;
 }
 
-//! \since build 330 。
+//! \since build 330
 void
 CheckBackgroundPreview(CheckButton& cbPreview, size_t up_i, size_t dn_i)
 {

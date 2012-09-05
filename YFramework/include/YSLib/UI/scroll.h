@@ -11,17 +11,17 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2469;
+\version r2496
 \author FrankHB<frankhb1989@gmail.com>
-\since build 194 。
+\since build 194
 \par 创建时间:
-	2011-03-07 20:10:35 +0800;
+	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-08-30 20:15 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::Scroll;
+	YSLib::UI::Scroll
 */
 
 
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 滚动类别。
-\since build 261 。
+\since build 261
 */
 enum class ScrollCategory
 {
@@ -58,7 +58,7 @@ enum class ScrollCategory
 
 /*!
 \brief 滚动事件参数类。
-\since build 193 。
+\since build 193
 */
 struct ScrollEventArgs : public UIEventArgs, protected pair<float, float>
 {
@@ -67,7 +67,7 @@ public:
 
 	/*!
 	\brief 滚动事件类别。
-	\since build 271 。
+	\since build 271
 	*/
 	ScrollCategory Category;
 
@@ -90,23 +90,23 @@ public:
 
 	/*!
 	\brief 取值。
-	\since build 271 。
+	\since build 271
 	*/
 	DefGetter(const ynothrow, ValueType, Value, first)
 	/*!
 	\brief 取旧值。
-	\since build 271 。
+	\since build 271
 	*/
 	DefGetter(const ynothrow, ValueType, OldValue, second)
 
 	/*!
 	\brief 设置值。
-	\since build 271 。
+	\since build 271
 	*/
 	DefSetter(ValueType, Value, first)
 	/*!
 	\brief 设置旧值。
-	\since build 271 。
+	\since build 271
 	*/
 	DefSetter(ValueType, OldValue, first)
 };
@@ -116,7 +116,7 @@ DeclDelegate(HScrollEvent, ScrollEventArgs)
 
 /*!
 \brief 轨道。
-\since build 167 。
+\since build 167
 */
 class ATrack : public Control, public GMRange<ScrollEventArgs::ValueType>
 {
@@ -207,7 +207,7 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
@@ -235,7 +235,7 @@ public:
 
 /*!
 \brief 水平轨道。
-\since build 205 。
+\since build 205
 */
 class HorizontalTrack : public ATrack
 {
@@ -255,7 +255,7 @@ public:
 
 /*!
 \brief 竖直轨道。
-\since build 205 。
+\since build 205
 */
 class VerticalTrack : public ATrack
 {
@@ -275,7 +275,7 @@ public:
 
 /*!
 \brief 滚动条。
-\since build 162 。
+\since build 162
 */
 class AScrollBar : public Control
 {
@@ -289,13 +289,13 @@ protected:
 	/*!
 	\brief 前滚动条按钮。
 	\note 可响应按键持续。
-	\since build 276 。
+	\since build 276
 	*/
 	Thumb btnPrev;
 	/*!
 	\brief 后滚动条按钮。
 	\note 可响应按键持续。
-	\since build 276 。
+	\since build 276
 	*/
 	Thumb btnNext;
 
@@ -335,7 +335,7 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
@@ -365,7 +365,7 @@ AScrollBar::LocateThumb(ValueType val, ScrollCategory t)
 
 /*!
 \brief 水平滚动条。
-\since build 205 。
+\since build 205
 */
 class HorizontalScrollBar : public AScrollBar
 {
@@ -386,7 +386,7 @@ protected:
 
 /*!
 \brief 竖直滚动条。
-\since build 205 。
+\since build 205
 */
 class VerticalScrollBar : public AScrollBar
 {
@@ -406,19 +406,19 @@ protected:
 
 /*!
 \brief 带滚动条的容器。
-\since build 192 。
+\since build 192
 */
 class ScrollableContainer : public Control
 {
 protected:
 	/*!
 	\brief 控制水平可视区域的水平滚动条。
-	\since build 315 。
+	\since build 315
 	*/
 	HorizontalScrollBar hsbHorizontal;
 	/*!
 	\brief 控制竖直可视区域的竖直滚动条。
-	\since build 315 。
+	\since build 315
 	*/
 	VerticalScrollBar vsbVertical;
 
@@ -435,7 +435,7 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;

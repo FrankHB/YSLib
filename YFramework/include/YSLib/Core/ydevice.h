@@ -11,17 +11,17 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r1957;
+\version r1969
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-28 16:39:39 +0800;
+	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2012-08-30 20:09 +0800;
+	2012-09-04 12:13 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YDevice;
+	YSLib::Core::YDevice
 */
 
 
@@ -41,7 +41,7 @@ class GraphicDevice : private noncopyable, protected Drawing::Graphics
 public:
 	/*!
 	\brief 构造：指定宽度、高度和缓冲区指针。
-	\since build 319 。
+	\since build 319
 	*/
 	inline
 	GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p = nullptr) ynothrow
@@ -49,18 +49,18 @@ public:
 	{}
 	/*!
 	\brief 析构：默认实现。
-	\since build 297 。
+	\since build 297
 	*/
 	virtual DefEmptyDtor(GraphicDevice)
 
-	//! \since build 319 。
+	//! \since build 319
 	//@{
 	using Graphics::operator!;
 
 	using Graphics::operator bool;
 	//@}
 
-	//! \since build 296 。
+	//! \since build 296
 	//@{
 	using Graphics::GetBufferPtr;
 	using Graphics::GetHeight;
@@ -78,7 +78,7 @@ class Screen : public GraphicDevice
 public:
 	/*!
 	\brief 构造：指定宽度、高度和缓冲区指针。
-	\since build 319 。
+	\since build 319
 	*/
 	Screen(SDst w, SDst h, Drawing::BitmapPtr p = nullptr) ynothrow
 		: GraphicDevice(w, h, p)
@@ -94,7 +94,7 @@ public:
 	/*!
 	\brief 更新。
 	\note 复制到屏幕。
-	\since build 319 。
+	\since build 319
 	*/
 	virtual void
 	Update(Drawing::BitmapPtr) ynothrow;

@@ -19,17 +19,17 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2025;
+\version r2052
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-02 21:42:44 +0800;
+	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2012-08-30 20:02 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YDefinition;
+	YDefinition
 */
 
 
@@ -70,14 +70,14 @@
 
 /*!	\defgroup lang_impl_features Langrage Implementation Features
 \brief 语言实现的特性。
-\since build 294 。
+\since build 294
 */
 
 /*!
 \ingroup lang_impl_features
 \def YB_HAS_BUILTIN_ALIGNOF
 \brief 内建 alignof 支持。
-\since build 315 。
+\since build 315
 */
 #undef YB_HAS_ALIGNOF
 #define YB_HAS_ALIGNOF (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40500)
@@ -86,7 +86,7 @@
 \ingroup lang_impl_features
 \def YB_HAS_BUILTIN_NULLPTR
 \brief 内建 nullptr 支持。
-\since build 313 。
+\since build 313
 */
 #undef YB_HAS_BUILTIN_NULLPTR
 #define YB_HAS_BUILTIN_NULLPTR (YB_IMPL_CPP >= 201103L \
@@ -96,7 +96,7 @@
 \ingroup lang_impl_features
 \def YB_HAS_CONSTEXPR
 \brief constexpr 支持。
-\since build 313 。
+\since build 313
 */
 #undef YB_HAS_CONSTEXPR
 #define YB_HAS_CONSTEXPR (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
@@ -105,7 +105,7 @@
 \ingroup lang_impl_features
 \def YB_HAS_NOEXCPT
 \brief noexcept 支持。
-\since build 319 。
+\since build 319
 */
 #undef YB_HAS_NOEXCEPT
 #define YB_HAS_NOEXCEPT (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
@@ -114,14 +114,14 @@
 /*!	\defgroup lang_impl_hints Langrage Implementation Hints
 \brief 语言实现的提供的附加提示。
 \note 应保证忽略时不导致运行时语义差异。
-\since build 294 。
+\since build 294
 */
 
 /*!
 \ingroup lang_impl_hints
 \def YB_ATTRIBUTE
 \brief 属性。
-\since build 313 。
+\since build 313
 */
 #if YB_IMPL_GNUCPP >= 20500
 #	define YB_ATTRIBUTE(attrs) __attribute__ (attrs)
@@ -135,7 +135,7 @@
 \def YB_LIKELY(expr)
 \def YB_UNLIKELY(expr)
 \brief 分支预测提示。
-\since build 313 。
+\since build 313
 */
 #if YB_IMPL_GNUCPP >= 29600
 #	define YB_EXPECT(expr, constant) (__builtin_expect(expr, constant))
@@ -152,7 +152,7 @@
 \def yalignof
 \brief 指定特定类型的对齐。
 \note 同 C++11 alignof 作用于类型时的语义。
-\since build 315 。
+\since build 315
 \todo 判断是否可使用 TR1 的情形。
 */
 #if YB_HAS_ALIGNOF
@@ -213,7 +213,7 @@
 /*!
 \def ynothrow
 \brief YSLib 无异常抛出保证：指定特定的异常规范。
-\since build 319 。
+\since build 319
 */
 #if YB_HAS_NOEXCEPT
 #	define ynoexcept noexcept
@@ -226,7 +226,7 @@
 \def yconstraint
 \brief 约束：接口语义。
 \note 和普通断言相比强调接口契约。对于移植特定的平台实现时应予以特别注意。
-\since build 298 。
+\since build 298
 
 运行时检查的接口语义约束断言。不满足此断言的行为是接口明确地未定义的，行为不可预测。
 */
@@ -236,7 +236,7 @@
 \def yassume
 \brief 假定：环境语义。
 \note 和普通断言相比强调非接口契约。对于移植特定的平台实现时应予以特别注意。
-\since build 298 。
+\since build 298
 
 运行时检查的环境条件约束断言。用于明确地非 yconstraint 适用的情形。
 */
@@ -305,7 +305,7 @@ public:
 	void operator&() const = delete;
 } nullptr = {};
 
-//! \since build 316 。
+//! \since build 316
 //@{
 template<typename _type>
 inline bool
@@ -339,7 +339,7 @@ operator!=(const _type& lhs, nullptr_t rhs)
 
 /*!
 \brief 空基类模板。
-\since build 260 。
+\since build 260
 */
 template<typename...>
 struct empty_base
@@ -350,13 +350,13 @@ struct empty_base
 \brief 助手功能/函数。
 
 仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
-\since build 252 。
+\since build 252
 */
 
 /*!
 \brief 成员偏移计算静态类型检查。
 \see ISO C++ 18.2/4 。
-\since build 325 。
+\since build 325
 */
 template<bool _bMemObjPtr, bool _bNoExcept, class _type>
 class offsetof_check
@@ -374,7 +374,7 @@ class offsetof_check
 \see ISO C++ 18.2/4 。
 \note 某些 G++ 和 Clang++ 版本可使用 __builtin_offsetof 及 -Winvalid-offsetof ，
 	但可移植性较差。
-\since build 325 。
+\since build 325
 */
 #define yoffsetof(_type, _member) \
 	(decltype(sizeof(ystdex::offsetof_check<std::is_member_object_pointer< \
@@ -384,7 +384,7 @@ class offsetof_check
 
 /*!
 \brief 根据参数类型使用 std::forward 传递对应参数。
-\since build 245 。
+\since build 245
 
 传递参数：按类型保持值类别(value catory) 和常量性。
 当表达式类型为函数或函数引用类型时，结果为左值(lvalue) ，否则：
@@ -396,7 +396,7 @@ class offsetof_check
 /*!
 \brief 无序列依赖表达式组求值实现。
 \return 第一个参数的引用。
-\since build 296 。
+\since build 296
 */
 template<typename _type, typename... _tParams>
 yconstfn auto
@@ -414,7 +414,7 @@ unsequenced(_type&& arg, _tParams&&...) -> decltype(yforward(arg))
 	的表达式，否则存在未定义行为。
 \warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常且对抛出顺序
 	敏感（例如 std::bad_cast 处理顺序不同可能造成内存泄露）的表达式。
-\since build 266 。
+\since build 266
 */
 #define yunseq ystdex::unsequenced
 

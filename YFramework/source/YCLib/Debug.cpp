@@ -11,17 +11,17 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r104;
+\version r110
 \author FrankHB<frankhb1989@gmail.com>
-\since build 299 。
+\since build 299
 \par 创建时间:
-	2012-04-07 14:22:09 +0800;
+	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2012-08-27 17:22 +0800;
+	2012-09-04 11:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::Debug;
+	YCLib::Debug
 */
 
 

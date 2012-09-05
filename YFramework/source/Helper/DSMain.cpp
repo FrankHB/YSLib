@@ -11,17 +11,17 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2019;
+\version r2038
 \author FrankHB<frankhb1989@gmail.com>
-\since build 296 。
+\since build 296
 \par 创建时间:
-	2012-03-25 12:48:49 +0800;
+	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2012-08-31 19:16 +0800;
+	2012-09-04 11:55 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	Helper::DSMain;
+	Helper::DSMain
 */
 
 
@@ -56,7 +56,7 @@ std::chrono::nanoseconds idle_sleep(u64(1000000000 / g_max_free_fps));
 
 /*!
 \brief 虚拟屏幕缓存。
-\since build 299 。
+\since build 299
 */
 struct ScreenBuffer
 {
@@ -89,10 +89,10 @@ private:
 DSApplication* pApp;
 
 #if YCL_HOSTED && YCL_MULTITHREAD == 1
-//! \since build 325 。
+//! \since build 325
 void(DSApplication::*g_pm)();
 
-//! \since build 325 。
+//! \since build 325
 void
 HostThreadFunc()
 {
@@ -106,7 +106,7 @@ HostThreadFunc()
 #ifndef NDEBUG
 /*!
 \brief 调试计时器。
-\since build 314 。
+\since build 314
 */
 class DebugTimer
 {
@@ -155,7 +155,7 @@ private:
 public:
 	/*!
 	\brief 构造：指定是否为下屏。
-	\since build 325 。
+	\since build 325
 	*/
 	DSScreen(bool) ynothrow;
 
@@ -164,7 +164,7 @@ public:
 	/*!
 	\brief 更新。
 	\note 复制到屏幕。
-	\since build 319 。
+	\since build 319
 	*/
 	void
 	Update(Drawing::BitmapPtr) ynothrow override;
@@ -181,24 +181,24 @@ public:
 protected:
 	/*!
 	\brief 宿主窗口句柄。
-	\since build 322 。
+	\since build 322
 	*/
 	::HWND hHost;
 
 private:
 	ScreenBuffer gbuf;
-	//! \since build 322 。
+	//! \since build 322
 	std::mutex update_mutex;
 
 public:
-	//! \since build 325 。
+	//! \since build 325
 	DSScreen(bool, ::HWND) ynothrow;
 
 	/*!
 	\brief 更新。
 	\note 复制到屏幕或屏幕缓冲区。
 	\note 线程安全。
-	\since build 319 。
+	\since build 319
 	*/
 	void
 	Update(Drawing::BitmapPtr) ynothrow override;
@@ -208,7 +208,7 @@ public:
 	\param hDC 宿主窗口设备上下文句柄。
 	\param hMemDC 内存设备上下文句柄。
 	\note 复制到宿主窗口。
-	\since build 319 。
+	\since build 319
 	*/
 	void
 	UpdateToHost(::HDC hDC, ::HDC hMemDC) ynothrow;
@@ -368,7 +368,7 @@ InitializeMainWindow()
 
 /*!
 \brief 取空闲消息。
-\since build 320 。
+\since build 320
 */
 inline Message
 FetchIdleMessage()
@@ -378,7 +378,7 @@ FetchIdleMessage()
 
 /*!
 \brief 后台消息处理程序。
-\since build 320 。
+\since build 320
 */
 inline void
 Idle(Messaging::Priority prior)

@@ -11,17 +11,17 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r383;
+\version r398
 \author FrankHB<frankhb1989@gmail.com>
-\since build 253 。
+\since build 253
 \par 创建时间:
-	2011-10-14 18:13:04 +0800;
+	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2012-08-30 20:24 +0800;
+	2012-09-04 12:58 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::HexBrowser;
+	YReader::HexBrowser
 */
 
 
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 /*!
 \brief 十六进制模型：十六进制视图区域数据源。
 \warning 非虚析构。
-\since build 257 。
+\since build 257
 */
 class HexModel
 {
@@ -48,7 +48,7 @@ private:
 	/*!
 	\brief 文件数据源。
 	\note 保证非空。
-	\since build 270 。
+	\since build 270
 	*/
 	unique_ptr<File> pSource;
 
@@ -91,7 +91,7 @@ public:
 /*!
 \brief 十六进制视图。
 \warning 非虚析构。
-\since build 257 。
+\since build 257
 */
 class HexView
 {
@@ -138,7 +138,7 @@ protected:
 
 /*!
 \brief 十六进制视图区域。
-\since build 253 。
+\since build 253
 */
 class HexViewArea : public ScrollableContainer,
 	protected HexView
@@ -150,12 +150,12 @@ public:
 	/*!
 	\brief 视图参数类型。
 	\note bool 参数表示主动定位视图。
-	\since build 269 。
+	\since build 269
 	*/
 	typedef GValueEventArgs<bool> ViewArgs;
 	/*!
 	\brief 视图事件委托类型。
-	\since build 269 。
+	\since build 269
 	*/
 	DeclDelegate(HViewEvent, ViewArgs)
 
@@ -168,7 +168,7 @@ private:
 public:
 	/*!
 	\brief 视图变更事件。
-	\since build 269 。
+	\since build 269
 	*/
 	DeclEvent(HViewEvent, ViewChanged)
 
@@ -196,7 +196,7 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
@@ -212,7 +212,7 @@ public:
 
 	调用视图变更事件、调整视图长度后无效化自身。
 	\note 参数表示是否确定仅变更视图位置。
-	\since build 269 。
+	\since build 269
 	*/
 	void
 	UpdateView(bool = false);

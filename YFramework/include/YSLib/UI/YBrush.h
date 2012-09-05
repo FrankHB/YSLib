@@ -11,17 +11,17 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r231;
+\version r244
 \author FrankHB<frankhb1989@gmail.com>
-\since build 293 。
+\since build 293
 \par 创建时间:
-	2012-01-10 19:55:30 +0800;
+	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2012-08-30 20:20 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YBrush;
+	YSLib::UI::YBrush
 */
 
 
@@ -37,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 单色画刷。
-\since build 293 。
+\since build 293
 */
 class SolidBrush
 {
@@ -55,7 +55,7 @@ public:
 
 /*!
 \brief 图像画刷。
-\since build 294 。
+\since build 294
 */
 class ImageBrush
 {
@@ -83,7 +83,7 @@ public:
 /*!
 \brief 边框样式。
 \warning 非虚析构。
-\since build 276 。
+\since build 276
 */
 class BorderStyle
 {
@@ -97,26 +97,26 @@ public:
 /*!
 \brief 边框画刷。
 \warning 非虚析构。
-\since build 284 。
+\since build 284
 */
 class BorderBrush
 {
 public:
 	/*!
 	\brief 边框样式。
-	\since build 295 。
+	\since build 295
 	*/
 	BorderStyle Style;
 
 	DefDeCtor(BorderBrush)
 	/*!
 	\brief 复制构造：默认实现。
-	\since build 297 。
+	\since build 297
 	*/
 	DefDeCopyCtor(BorderBrush)
 	/*!
 	\brief 初始化；使用指定边框样式。
-	\since build 295 。
+	\since build 295
 	*/
 	BorderBrush(const BorderStyle& style)
 		: Style(style)

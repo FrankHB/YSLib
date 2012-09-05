@@ -11,17 +11,17 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r139;
+\version r150
 \author FrankHB<frankhb1989@gmail.com>
-\since build 328 。
+\since build 328
 \par 创建时间:
-	2012-07-24 22:13:46 +0800;
+	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2012-08-30 20:24 +0800;
+	2012-09-04 12:58 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::ReadingList;
+	YReader::ReadingList
 */
 
 
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(YReader)
 /*!
 \brief 书签。
 \warning 非虚析构。
-\since build 286 。
+\since build 286
 */
 class BookMark
 {
@@ -53,7 +53,7 @@ public:
 
 /*!
 \brief 判断书签是否相等。
-\since build 286 。
+\since build 286
 */
 inline bool
 operator==(const BookMark& x, const BookMark& y)
@@ -65,7 +65,7 @@ operator==(const BookMark& x, const BookMark& y)
 /*!
 \brief 阅读记录。
 \warning 非虚析构。
-\since build 286 。
+\since build 286
 */
 class ReadingList
 {
@@ -108,7 +108,7 @@ public:
 
 	/*!
 	\brief 清除当前迭代器之后的所有记录并使迭代器指向末尾。
-	\since build 288 。
+	\since build 288
 	*/
 	void
 	DropSubsequent();

@@ -16,17 +16,17 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1395;
+\version r1421
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-02-22 20:16:21 +0800;
+	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2012-08-30 20:08 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Adaptor::YAdaptor;
+	YSLib::Adaptor::YAdaptor
 */
 
 
@@ -62,7 +62,7 @@
 
 /*
 !\brief YSLib 命名空间。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 YSL_BEGIN
 
@@ -70,7 +70,7 @@ YSL_BEGIN
 
 /*!
 \brief 通用数据类型。
-\since build 245 。
+\since build 245
 */
 //@{
 typedef std::uint8_t	u8;
@@ -93,7 +93,7 @@ typedef volatile s64	vs64;
 
 /*!
 \brief 调用分派。
-\since build 303 。
+\since build 303
 */
 //@{
 using ystdex::seq_apply;
@@ -102,7 +102,7 @@ using ystdex::unseq_apply;
 
 /*!
 \brief 实用类型。
-\since build 209 。
+\since build 209
 */
 //@{
 using ystdex::noncopyable;
@@ -121,7 +121,7 @@ using ::round;
 
 /*!
 \brief 算法。
-\since build 265 。
+\since build 265
 */
 //@{
 using std::min;
@@ -130,11 +130,11 @@ using std::max;
 
 //! \brief 助手功能。
 //@{
-//! \since build 291 。
+//! \since build 291
 using ystdex::arrlen;
-//! \since build 308 。
+//! \since build 308
 using std::to_string;
-//! \since build 308 。
+//! \since build 308
 using ystdex::to_string;
 //@}
 
@@ -143,38 +143,38 @@ using ystdex::to_string;
 
 /*!
 \brief 平台通用数据类型。
-\since build 209 。
+\since build 209
 */
 //@{
 using ystdex::errno_t;
 using ystdex::ptrdiff_t;
 using ystdex::size_t;
-//! \since build 245 。
+//! \since build 245
 using ystdex::wint_t;
 //@}
 
 /*!
 \brief 基本实用例程。
-\since build 177 。
+\since build 177
 */
 //@{
 //@}
 
 /*!
 \brief 文件系统例程。
-\since build 171 。
+\since build 171
 */
 //@{
-//! \since build 299 。
+//! \since build 299
 using platform::ufopen;
-//! \since build 299 。
+//! \since build 299
 using platform::ufexists;
 using platform::direxists;
-//! \since build 312 。
+//! \since build 312
 using platform::udirexists;
-//! \since build 304 。
+//! \since build 304
 using platform::u16getcwd_n;
-//! \since build 313 。
+//! \since build 313
 using platform::uchdir;
 //@}
 
@@ -188,7 +188,7 @@ using platform::SDst;
 //文件系统抽象。
 /*!
 \brief 本机路径字符类型。
-\since build 286 。
+\since build 286
 */
 using platform::NativePathCharType;
 using platform::const_path_t;
@@ -225,7 +225,7 @@ using platform::PixelType;
 using platform::BitmapPtr;
 using platform::ConstBitmapPtr;
 /*!
-\since build 297 。
+\since build 297
 */
 //@{
 using platform::FetchAlpha;

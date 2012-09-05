@@ -11,16 +11,17 @@
 /*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version r1931;
+\version r1937
 \author FrankHB<frankhb1989@gmail.com>
+\since build 217
 \par 创建时间:
-	2009-12-08 12:05:26 +0800;
+	2009-12-08 12:05:26 +0800
 \par 修改时间:
-	2012-08-30 20:11 +0800;
+	2012-09-04 13:00 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YMessageDefinition;
+	YSLib::Core::YMessageDefinition
 */
 
 

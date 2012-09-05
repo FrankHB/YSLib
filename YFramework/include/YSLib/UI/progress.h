@@ -11,17 +11,17 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r281;
+\version r291
 \author FrankHB<frankhb1989@gmail.com>
-\since build 219 。
+\since build 219
 \par 创建时间:
-	2011-06-20 08:57:48 +0800;
+	2011-06-20 08:57:48 +0800
 \par 修改时间:
-	2012-08-30 20:15 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::Progress;
+	YSLib::UI::Progress
 */
 
 
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 进度条。
-\since build 219 。
+\since build 219
 */
 class ProgressBar : public Control, protected GMRange<float>
 {
@@ -58,18 +58,18 @@ public:
 
 	/*!
 	\brief 取最大值。
-	\since build 295 。
+	\since build 295
 	*/
 	using GMRange<float>::GetMaxValue;
 	/*!
 	\brief 取当前值。
-	\since build 295 。
+	\since build 295
 	*/
 	using GMRange<float>::GetValue;
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;

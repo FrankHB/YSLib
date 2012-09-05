@@ -11,17 +11,17 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1250;
+\version r1263
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-17 17:52:35 +0800;
+	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2012-08-30 20:03 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	CHRLib::CharacterMapping;
+	CHRLib::CharacterMapping
 */
 
 
@@ -37,7 +37,7 @@ using CharSet::Encoding;
 
 /*!
 \brief 默认字符编码。
-\since build 287 。
+\since build 287
 */
 yconstexpr Encoding CS_Default = CharSet::UTF_8;
 
@@ -69,7 +69,7 @@ FetchBiCharLE(const char* c_ptr)
 
 /*!
 \brief 编码转换结果。
-\since build 273 。
+\since build 273
 */
 enum class ConversionResult
 {
@@ -83,7 +83,7 @@ enum class ConversionResult
 
 /*!
 \brief 编码转换状态。
-\since build 249 。
+\since build 249
 */
 struct ConversionState
 {
@@ -122,7 +122,7 @@ GetSequenceOf(ConversionState& st)
 
 /*!
 \brief 一般类型计数。
-\since build 273 。
+\since build 273
 */
 template<typename _type>
 yconstfn _type&
@@ -136,7 +136,7 @@ GetCountOf(_type& st)
 \brief 取指定固定编码的固定字符宽度。
 \return 未定义编码或变长编码返回 0 ，否则为指定编码中每个字符占用的字节数。
 \note UTF-16 视为 UCS-2 。
-\since build 273 。
+\since build 273
 */
 size_t
 FetchFixedCharWidth(Encoding);
@@ -145,7 +145,7 @@ FetchFixedCharWidth(Encoding);
 \brief 取指定编码的最大字符宽度。
 \return 未定义编码返回 0 ，否则为指定编码中每个字符最大可能占用的字节数。
 \note UTF-16 视为 UCS-2 。
-\since build 273 。
+\since build 273
 */
 size_t
 FetchMaxCharWidth(Encoding);
@@ -154,7 +154,7 @@ FetchMaxCharWidth(Encoding);
 \brief 取指定变长编码的最大字符宽度。
 \return 未定义编码或固定编码返回 0 ，否则为指定编码中每个字符最大可能占用的字节数。
 \note UTF-16 视为 UCS-2 。
-\since build 273 。
+\since build 273
 */
 size_t
 FetchMaxVariantCharWidth(Encoding);

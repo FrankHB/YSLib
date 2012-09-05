@@ -16,17 +16,17 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r844;
+\version r862
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-06-05 10:28:58 +0800;
+	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2012-08-30 20:14 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::YTimer;
+	YSLib::Service::YTimer
 */
 
 
@@ -44,7 +44,7 @@ YSL_BEGIN_NAMESPACE(Timers)
 
 /*!
 \brief 高精度时钟。
-\since build 291 。
+\since build 291
 */
 class HighResolutionClock
 {
@@ -71,27 +71,27 @@ HighResolutionClock::now() ynothrow
 /*!
 \brief 高精度时间间隔。
 \note 单位为纳秒。
-\since build 291 。
+\since build 291
 */
 typedef HighResolutionClock::duration Duration;
 
 /*!
 \brief 时刻。
-\since build 291 。
+\since build 291
 */
 typedef HighResolutionClock::time_point TimePoint;
 
 /*!
 \brief 低精度时间间隔。
 \note 单位为毫秒。
-\since build 291 。
+\since build 291
 */
 typedef std::chrono::milliseconds TimeSpan;
 
 
 /*!
 \brief 延时。
-\since build 291 。
+\since build 291
 */
 void
 Delay(const TimeSpan&);
@@ -100,7 +100,7 @@ Delay(const TimeSpan&);
 /*!
 \brief 计时器。
 \warning 非虚析构。
-\since build 243 。
+\since build 243
 */
 class Timer : private noncopyable, protected GMCounter<Timer>
 {
@@ -116,19 +116,19 @@ protected:
 public:
 	/*!
 	\brief 构造：使用时间间隔和激活状态。
-	\since build 293 。
+	\since build 293
 	*/
 	explicit
 	Timer(const Duration& = Duration(), bool = false);
 	/*!
 	\brief 析构：自动停用。
-	\since build 289 。
+	\since build 289
 	*/
 	~Timer();
 
 	/*!
 	\brief 判断 Timer 是否处于激活状态。
-	\since build 289 。
+	\since build 289
 	*/
 	bool
 	IsActive() const;
@@ -138,7 +138,7 @@ public:
 
 	/*!
 	\brief 设置时间间隔。
-	\since build 300 。
+	\since build 300
 	*/
 	void
 	SetInterval(const TimeSpan& i)
@@ -147,14 +147,14 @@ public:
 	}
 	/*!
 	\brief 设置时间间隔。
-	\since build 300 。
+	\since build 300
 	*/
 	void
 	SetInterval(const Duration&);
 
 	/*!
 	\brief 延迟。
-	\since build 303 。
+	\since build 303
 	*/
 	void
 	Delay(const Duration& d)

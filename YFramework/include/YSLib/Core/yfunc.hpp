@@ -11,17 +11,17 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r864;
+\version r878
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-02-14 18:48:44 +0800;
+	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2012-08-30 20:10 +0800;
+	2012-09-04 12:14 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YFunc;
+	YSLib::Core::YFunc
 */
 
 
@@ -143,7 +143,7 @@ ConstructDynamicFunctionWith(_tRet (_type::*_f)(_tArg) const)
 
 /*!
 \brief 仿函数：替换非静态成员二元函数的第一个参数。
-\since build 167 。
+\since build 167
 */
 template<class _type, typename _tRet, typename _tPara, class _tNew = _type>
 struct ExpandMemberFirst
@@ -162,7 +162,7 @@ public:
 
 	/*!
 	\brief 比较：相等关系。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn bool
 	operator==(const ExpandMemberFirst& rhs) const ynothrow
@@ -183,7 +183,7 @@ public:
 	/*!
 	\brief 调用：使用非 _type 类型对象引用和参数。
 	\note 检测空指针；使用 dynamic_cast 测试类型。
-	\since build 293 。
+	\since build 293
 	*/
 	_tRet
 	operator()(_tNew& o, _tPara&& arg)
@@ -201,7 +201,7 @@ public:
 
 /*!
 \brief 仿函数：替换非静态成员二元函数的第一个参数并绑定到指定对象。
-\since build 171 。
+\since build 171
 */
 template<class _type, typename _tRet, typename _tPara, class _tNew = _type>
 struct ExpandMemberFirstBinder
@@ -222,7 +222,7 @@ public:
 
 	/*!
 	\brief 比较：相等关系。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn bool
 	operator==(const ExpandMemberFirstBinder& rhs) const ynothrow
@@ -233,7 +233,7 @@ public:
 	/*!
 	\brief 调用：使用替换对象引用和参数。
 	\note 检测空指针。
-	\since build 293 。
+	\since build 293
 	*/
 	_tRet
 	operator()(_tPara&& arg)
@@ -244,7 +244,7 @@ public:
 	/*!
 	\brief 调用：使用替换对象引用和参数。
 	\note 检测空指针。
-	\since build 293 。
+	\since build 293
 	*/
 	template<class _tN>
 	_tRet

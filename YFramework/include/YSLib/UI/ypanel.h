@@ -11,17 +11,17 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r368;
+\version r378
 \author FrankHB<frankhb1989@gmail.com>
-\since build 201 。
+\since build 201
 \par 创建时间:
-	2011-04-13 20:40:51 +0800;
+	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2012-08-30 20:19 +0800;
+	2012-09-04 12:00 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YPanel;
+	YSLib::UI::YPanel
 */
 
 
@@ -37,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 面板。
-\since build 201 。
+\since build 201
 */
 class Panel : public Control, protected MUIContainer
 {
@@ -64,7 +64,7 @@ public:
 	/*!
 	\brief 按指定 Z 顺序向部件组添加部件，并设置指针。
 	\see MUIContainer::Add 。
-	\since build 279 。
+	\since build 279
 	*/
 	virtual void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
@@ -81,14 +81,14 @@ public:
 	\brief 提升部件至顶端。
 
 	子部件组中查找指定部件并重新插入至顶端。
-	\since build 279 。
+	\since build 279
 	*/
 	bool
 	MoveToTop(IWidget&);
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;

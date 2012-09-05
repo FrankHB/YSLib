@@ -11,17 +11,17 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2982;
+\version r2989
 \author FrankHB<frankhb1989@gmail.com>
-\since build 282 。
+\since build 282
 \par 创建时间:
-	2011-03-07 20:33:05 +0800;
+	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2012-08-29 16:10 +0800;
+	2012-09-04 12:48 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::ComboList;
+	YSLib::UI::ComboList
 */
 
 
@@ -41,7 +41,7 @@ namespace
 
 	/*!
 	\brief 从容器分离指定部件并无效化部件区域。
-	\since build 282 。
+	\since build 282
 	*/
 	void
 	Detach(IWidget* pCon, IWidget& wgt)

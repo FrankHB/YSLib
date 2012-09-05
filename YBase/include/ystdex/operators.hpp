@@ -11,17 +11,17 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1295;
+\version r1301
 \author FrankHB<frankhb1989@gmail.com>
-\since build 260 。
+\since build 260
 \par 创建时间:
-	2011-11-13 14:58:05 +0800;
+	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2012-08-30 20:01 +0800;
+	2012-09-04 10:46 +0800
 \par 字符集:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Operators;
+	YStandardEx::Operators
 */
 
 

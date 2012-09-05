@@ -11,17 +11,17 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r1926;
+\version r1933
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-13 21:09:15 +0800;
+	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2012-08-30 20:11 +0800;
+	2012-09-04 12:15 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YShell;
+	YSLib::Core::YShell
 */
 
 
@@ -65,7 +65,7 @@ public:
 
 	/*!
 	\brief 处理消息：响应线程的直接调用。
-	\since build 317 。
+	\since build 317
 	*/
 	virtual PDefH(void, OnGotMessage, const Message& msg)
 		ImplExpr(DefShlProc(msg))

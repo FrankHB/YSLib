@@ -11,16 +11,17 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r950;
+\version r956
 \author FrankHB<frankhb1989@gmail.com>
+\since build 219
 \par 创建时间:
-	2011-06-16 19:45:32 +0800;
+	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2012-08-27 17:27 +0800;
+	2012-09-04 13:01 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::YBlit;
+	YSLib::Service::YBlit
 */
 
 

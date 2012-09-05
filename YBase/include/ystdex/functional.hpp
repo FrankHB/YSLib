@@ -11,17 +11,17 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r339;
+\version r355
 \author FrankHB<frankhb1989@gmail.com>
-\since build 333 。
+\since build 333
 \par 创建时间:
-	2010-08-22 13:04:29 +0800;
+	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2012-08-30 20:00 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Functional;
+	YStandardEx::Functional
 */
 
 
@@ -39,7 +39,7 @@ namespace ystdex
 
 /*!
 \brief 顺序递归调用。
-\since build 327 。
+\since build 327
 */
 //@{
 template<typename _fCallable>
@@ -57,7 +57,7 @@ seq_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
 
 /*!
 \brief 无序调用。
-\since build 327 。
+\since build 327
 */
 template<typename _fCallable, typename... _tParams>
 inline void
@@ -70,7 +70,7 @@ unseq_apply(_fCallable&& f, _tParams&&... args)
 /*!
 \ingroup metafunctions
 \brief 取参数列表元组。
-\since build 333 。
+\since build 333
 */
 //@{
 template<typename>
@@ -105,7 +105,7 @@ struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...)>
 /*!
 \ingroup metafunctions
 \brief 取返回类型。
-\since build 333 。
+\since build 333
 */
 //@{
 template<typename>
@@ -136,7 +136,7 @@ struct return_of<Res(_tClass::*)(_tParams...)> {
 /*!
 \ingroup metafunctions
 \brief 取指定索引的参数类型。
-\since build 333 。
+\since build 333
 */
 template<size_t _vIdx, typename _fCallable>
 struct parameter_of
@@ -149,7 +149,7 @@ struct parameter_of
 /*!
 \ingroup metafunctions
 \brief 取参数列表大小。
-\since build 333 。
+\since build 333
 */
 template<typename _fCallable>
 struct paramlist_size : std::integral_constant<size_t, std::tuple_size<typename
@@ -160,7 +160,7 @@ struct paramlist_size : std::integral_constant<size_t, std::tuple_size<typename
 /*!	\defgroup functors General Functors
 \brief 仿函数。
 \note 函数对象包含函数指针和仿函数。
-\since build 243 。
+\since build 243
 */
 
 /*!
@@ -205,7 +205,7 @@ struct xcrease_t<false, _tScalar>
 /*!
 \ingroup functors
 \brief 编译期选择加法/减法复合赋值运算仿函数。
-\since build 284 。
+\since build 284
 */
 //@{
 template<bool, typename _tScalar1, typename _tScalar2>
@@ -242,7 +242,7 @@ xcrease(_tScalar& _x)
 /*!
 \ingroup HelperFunctions
 \brief 编译期选择加法/减法复合赋值运算。
-\since build 284 。
+\since build 284
 */
 template<bool _bIsPositive, typename _tScalar1, typename _tScalar2>
 yconstfn _tScalar1&
@@ -292,7 +292,7 @@ struct const_deref_op
 \ingroup Functors
 \brief 间接访问比较仿函数。
 \warning 非虚析构。
-\since build 315 。
+\since build 315
 */
 template<typename _type, typename _tPointer = _type*,
 	class _fCompare = std::less<_type>>
@@ -314,7 +314,7 @@ struct deref_comp
 \ingroup Functors
 \brief 间接访问字符串比较仿函数。
 \warning 非虚析构。
-\since build 315 。
+\since build 315
 */
 template<typename _tChar, class _fCompare = std::less<_tChar>>
 struct deref_str_comp

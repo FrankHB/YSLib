@@ -11,16 +11,17 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r663;
+\version r707
 \author FrankHB<frankhb1989@gmail.com>
+\since build 201
 \par 创建时间:
-	2011-04-14 08:54:25 +0800;
+	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2012-08-30 20:02 +0800;
+	2012-09-04 12:59 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::TypeOperation;
+	YStandardEx::TypeOperation
 */
 
 
@@ -32,7 +33,7 @@
 namespace ystdex
 {
 
-/*
+#if 0
 using std::tr1::add_reference;
 
 using std::tr1::has_nothrow_assign;
@@ -42,7 +43,7 @@ using std::tr1::has_trivial_assign;
 using std::tr1::has_trivial_constructor;
 using std::tr1::has_trivial_copy;
 using std::tr1::has_trivial_destructor;
-*/
+#endif
 
 using std::integral_constant;
 using std::true_type;
@@ -85,7 +86,7 @@ using std::is_signed;
 using std::is_unsigned;
 
 using std::is_constructible;
-/*
+#if 0
 using std::is_default_constructible;
 using std::is_copy_constructible;
 using std::is_move_constructible;
@@ -116,7 +117,7 @@ using std::is_nothrow_copy_assignable;
 using std::is_nothrow_move_assignable;
 
 using std::is_nothrow_destructible;
-*/
+#endif
 using std::has_virtual_destructor;
 
 using std::alignment_of;
@@ -158,39 +159,39 @@ using std::result_of;
 
 /*!	\defgroup template_meta_programing Template Meta Programing
 \brief 模板元编程。
-\since build 288 。
+\since build 288
 */
 
 /*!	\defgroup meta_types Meta Types
 \ingroup template_meta_programing
 \brief 元类型。
-\since build 288 。
+\since build 288
 */
 
 /*!	\defgroup meta_operations Meta Operations
 \ingroup template_meta_programing
 \brief 元操作。
-\since build 288 。
+\since build 288
 */
 
 /*!	\defgroup type_traits_operations Type Traits Operations
 \ingroup meta_operations
 \brief 类型特征操作。
-\since build 306 。
+\since build 306
 */
 
 /*!	\defgroup unary_type_trait Unary Type Trait
 \ingroup type_traits_operations
 \brief 一元类型特征。
 \see ISO C++11 20.9.1[meta.rqmts] 。
-\since build 306 。
+\since build 306
 */
 
 /*!	\defgroup binary_type_trait Binary Type Trait
 \ingroup type_traits_operations
 \brief 二元类型特征。
 \see ISO C++11 20.9.1[meta.rqmts] 。
-\since build 306 。
+\since build 306
 */
 
 /*!	\defgroup metafunctions Metafunctions
@@ -198,7 +199,7 @@ using std::result_of;
 \brief 元函数。
 \see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/\
 metafunction.html 。
-\since build 333 。
+\since build 333
 */
 
 
@@ -206,7 +207,7 @@ metafunction.html 。
 \ingroup unary_type_trait
 \brief 判断指定类型是否可作为返回值类型。
 \note 即排除数组和函数类型的所有类型。
-\since build 333 。
+\since build 333
 */
 template<typename _type>
 struct is_returnable : std::integral_constant<bool, !std::is_array<_type>::value
@@ -218,7 +219,7 @@ struct is_returnable : std::integral_constant<bool, !std::is_array<_type>::value
 \ingroup unary_type_trait
 \brief 判断指定类型是否是指向类的指针。
 \note 即排除数组和函数类型的所有类型。
-\since build 333 。
+\since build 333
 */
 template<typename _type>
 struct is_class_pointer : std::integral_constant<bool, !std::is_pointer<_type>
@@ -230,7 +231,7 @@ struct is_class_pointer : std::integral_constant<bool, !std::is_pointer<_type>
 \ingroup unary_type_trait
 \brief 判断指定类型是否是左值类类型引用。
 \note 即排除数组和函数类型的所有类型。
-\since build 333 。
+\since build 333
 */
 template<typename _type>
 struct is_lvalue_class_reference : std::integral_constant<bool,
@@ -243,7 +244,7 @@ struct is_lvalue_class_reference : std::integral_constant<bool,
 \ingroup unary_type_trait
 \brief 判断指定类型是否是右值类类型引用。
 \note 即排除数组和函数类型的所有类型。
-\since build 333 。
+\since build 333
 */
 template<typename _type>
 struct is_rvalue_class_reference : std::integral_constant<bool,
@@ -270,7 +271,7 @@ namespace details
 #endif
 
 /*!
-\since build 306 。
+\since build 306
 */
 template<typename _type1, typename _type2>
 struct have_equality_operator
@@ -301,7 +302,7 @@ public:
 
 
 /*!
-\since build 306 。
+\since build 306
 */
 template<class _type>
 struct have_nonempty_virtual_base
@@ -332,7 +333,7 @@ public:
 
 
 /*!
-\since build 306 。
+\since build 306
 */
 template<class _type1, class _type2>
 struct have_common_nonempty_virtual_base
@@ -383,7 +384,7 @@ public:
 /*!
 \ingroup binary_type_trait
 \brief 判断是否存在合式的结果可转换为 bool 类型的 == 操作符接受指定类型的表达式。
-\since build 306 。
+\since build 306
 */
 template<typename _type1, typename _type2>
 struct has_equality_operator : integral_constant<bool,
@@ -394,7 +395,7 @@ struct has_equality_operator : integral_constant<bool,
 /*!
 \ingroup binary_type_trait
 \brief 判断指定类型是否有非空虚基类。
-\since build 175 。
+\since build 175
 */
 template<class _type>
 struct has_nonempty_virtual_base : integral_constant<bool,
@@ -405,7 +406,7 @@ struct has_nonempty_virtual_base : integral_constant<bool,
 /*!
 \ingroup unary_type_trait
 \brief 判断指定的两个类类型是否有非空虚基类。
-\since build 175 。
+\since build 175
 */
 template<class _type1, class _type2>
 struct has_common_nonempty_virtual_base : integral_constant<bool,
@@ -416,7 +417,7 @@ struct has_common_nonempty_virtual_base : integral_constant<bool,
 /*!
 \ingroup metafunctions
 \brief 恒等元函数。
-\since build 334 。
+\since build 334
 */
 template<typename _type>
 struct identity
@@ -428,7 +429,7 @@ struct identity
 /*!
 \ingroup metafunctions
 \brief 移除指针和引用类型。
-\since build 175 。
+\since build 175
 */
 template<typename _type>
 struct remove_rp
@@ -441,7 +442,7 @@ struct remove_rp
 /*!
 \ingroup metafunctions
 \brief 数组类型退化。
-\since build 290 。
+\since build 290
 
 参数为数组类型时同 std::decay ，否则结果类型为参数。
 */
@@ -456,7 +457,7 @@ struct array_decay
 /*!
 \ingroup metafunctions
 \brief 保持修饰符的类型退化。
-\since build 290 。
+\since build 290
 
 参数移除引用后为数组或函数类型时同 std::decay ，否则结果为参数。
 */
@@ -476,7 +477,7 @@ public:
 /*!
 \ingroup metafunctions
 \brief 数组及数组引用类型退化。
-\since build 290 。
+\since build 290
 
 参数为非引用类型时同 array_decay ，
 否则结果为被引用的类型的 array_decay 结果的引用。
@@ -507,7 +508,7 @@ struct array_ref_decay<_type&&>
 /*!
 \ingroup meta_operations
 \brief 取指定整数类型的位宽度。
-\since build 260 。
+\since build 260
 */
 template<typename _tInt>
 struct integer_width
@@ -518,7 +519,7 @@ struct integer_width
 /*!
 \ingroup meta_operations
 \brief 取指定整数类型和条件表达式对应的有符号或无符号整数类型。
-\since build 260 。
+\since build 260
 */
 //@{
 template<typename _type, bool>
@@ -538,7 +539,7 @@ struct make_signed_c<_type, false>
 /*!
 \ingroup meta_operations
 \brief 取按指定宽度的整数类型。
-\since build 260 。
+\since build 260
 */
 //@{
 template<size_t>
@@ -616,7 +617,7 @@ typedef n_tag<1> second_tag;
 /*!
 \ingroup meta_types
 \brief 变量参数标记。
-\since build 303 。
+\since build 303
 */
 template<size_t... _vSeq>
 struct variadic_sequence
@@ -627,7 +628,7 @@ struct variadic_sequence
 /*!
 \ingroup meta_operations
 \brief 取自然数变量标记后继。
-\since build 303 。
+\since build 303
 */
 //@{
 template<class>
@@ -644,7 +645,7 @@ struct make_successor<variadic_sequence<_vSeq...>>
 /*!
 \ingroup meta_operations
 \brief 取自然数变量标记序列。
-\since build 303 。
+\since build 303
 */
 //@{
 template<size_t _vN>

@@ -11,17 +11,17 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r489;
+\version r511
 \author FrankHB<frankhb1989@gmail.com>
-\since build 202 。
+\since build 202
 \par 创建时间:
-	2011-04-13 20:26:21 +0800;
+	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2012-08-30 20:06 +0800;
+	2012-09-04 12:27 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::NativeAPI;
+	YCLib::NativeAPI
 */
 
 
@@ -41,7 +41,7 @@
 /*!
 \defgroup workarounds Workarounds
 \brief 名称冲突解决。
-\since build 297 。
+\since build 297
 */
 
 
@@ -71,7 +71,7 @@ namespace platform_ex
 
 /*!
 \brief 判断 ::dirent 指定的节点是否为目录。
-\since build 312 。
+\since build 312
 */
 inline bool
 IsDirectory(const ::dirent& d)
@@ -101,28 +101,28 @@ IsDirectory(const ::dirent& d)
 \ingroup workarounds
 \brief 禁止使用 DialogBox 宏。
 \note 使用 ::DialogBoxA 或 ::DialogBoxW 代替。
-\since build 297 。
+\since build 297
 */
 #undef DialogBox
 
 /*!
 \ingroup workarounds
 \brief 禁止使用 DrawText 宏。
-\since build 298 。
+\since build 298
 */
 #undef DrawText
 
 /*!
 \ingroup workarounds
 \brief 禁止使用 GetObject 宏。
-\since build 313 。
+\since build 313
 */
 #undef GetObject
 
 /*!
 \ingroup workarounds
 \brief 禁止使用 PostMessage 宏。
-\since build 298 。
+\since build 298
 */
 #undef PostMessage
 
@@ -143,7 +143,7 @@ IsDirectory(const ::dirent& d)
 
 /*!
 \brief 平台替代命名空间。
-\since build 298 。
+\since build 298
 */
 namespace platform_replace
 {
@@ -173,7 +173,7 @@ typedef struct dirent
 	char d_name[NAME_MAX + 1];
 	/*!
 	\brief Win32 文件查找信息指针。
-	\since build 299 。
+	\since build 299
 	*/
 	::LPWIN32_FIND_DATAW lpWinDir;
 } dirent;
@@ -183,22 +183,22 @@ typedef struct DIR
 {
 	/*!
 	\brief 目录名称。
-	\since build 298 。
+	\since build 298
 	*/
 	char Name[NAME_MAX];
 	/*!
 	\brief 节点句柄。
-	\since build 298 。
+	\since build 298
 	*/
 	::HANDLE hNode;
 	/*!
 	\brief Win32 文件查找信息。
-	\since build 299 。
+	\since build 299
 	*/
 	::WIN32_FIND_DATAW WinDir;
 	/*!
 	\brief POSIX 目录信息。
-	\since build 298 。
+	\since build 298
 	*/
 	dirent POSIXDir;
 } DIR;
@@ -220,7 +220,7 @@ closedir(DIR*);
 \def mkdir
 \brief 修正 MinGW 中的 mkdir 参数问题。
 \see platform_replace::makedir
-\since build 298 。
+\since build 298
 */
 #define mkdir platform_replace::makedir
 
@@ -232,7 +232,7 @@ namespace platform_ex
 
 /*!
 \brief 判断 WIN32_FIND_DATAA 指定的节点是否为目录。
-\since build 298 。
+\since build 298
 */
 inline bool
 IsDirectory(const ::WIN32_FIND_DATAA& d)
@@ -241,7 +241,7 @@ IsDirectory(const ::WIN32_FIND_DATAA& d)
 }
 /*!
 \brief 判断 WIN32_FIND_DATAW 指定的节点是否为目录。
-\since build 299 。
+\since build 299
 */
 inline bool
 IsDirectory(const ::WIN32_FIND_DATAW& d)
@@ -250,7 +250,7 @@ IsDirectory(const ::WIN32_FIND_DATAW& d)
 }
 /*!
 \brief 判断 ::dirent 指定的节点是否为目录。
-\since build 312 。
+\since build 312
 */
 inline bool
 IsDirectory(const ::dirent& d)
@@ -259,7 +259,7 @@ IsDirectory(const ::dirent& d)
 }
 /*!
 \brief 判断 ::DIR 指定的节点是否为目录。
-\since build 312 。
+\since build 312
 */
 inline bool
 IsDirectory(const ::DIR& d)

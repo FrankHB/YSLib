@@ -11,17 +11,17 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief YSLib 库配置。
-\version r612;
+\version r619
 \author FrankHB<frankhb1989@gmail.com>
-\since build 161 。
+\since build 161
 \par 创建时间:
-	2010-10-09 09:25:26 +0800;
+	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2012-08-30 20:08 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Adaptor::Configuration;
+	YSLib::Adaptor::Configuration
 */
 
 
@@ -44,7 +44,7 @@
 /*!
 \def YSL_USE_COPY_ON_WRITE
 \brief 写时复制 。
-\since build 161 。
+\since build 161
 */
 #undef YSL_USE_COPY_ON_WRITE
 #if YCL_MULTITHREAD != 0

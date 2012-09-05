@@ -11,17 +11,17 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r340;
+\version r346
 \author FrankHB<frankhb1989@gmail.com>
-\since build 219 。
+\since build 219
 \par 创建时间:
-	2011-06-20 08:59:56 +0800;
+	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2012-08-27 17:28 +0800;
+	2012-09-04 12:47 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::Progress;
+	YSLib::UI::Progress
 */
 
 

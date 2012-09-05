@@ -11,17 +11,17 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r615;
+\version r625
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-10-21 23:15:08 +0800;
+	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-08-31 17:57 +0800;
+	2012-09-04 12:31 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	Helper::Initialization;
+	Helper::Initialization
 */
 
 
@@ -34,7 +34,7 @@ YSL_BEGIN
 
 /*!
 \brief 初始化环境。
-\since build 303 。
+\since build 303
 */
 void
 InitializeEnviornment() ynothrow;
@@ -42,7 +42,7 @@ InitializeEnviornment() ynothrow;
 /*!
 \brief 初始化系统字体缓存。
 \pre 默认字体缓存已初始化。
-\since build 303 。
+\since build 303
 
 加载默认字型路径和默认字型目录中的字体文件到默认字体缓存。
 */
@@ -52,7 +52,7 @@ InitializeSystemFontCache() ynothrow;
 /*!
 \brief 检查安装完整性。
 \warning 不保证线程安全性。
-\since build 303 。
+\since build 303
 */
 void
 CheckInstall() ynothrow;
@@ -60,7 +60,7 @@ CheckInstall() ynothrow;
 /*!
 \brief 反初始化。
 \warning 不保证线程安全性。
-\since build 324 。
+\since build 324
 
 释放初始化的资源。
 */

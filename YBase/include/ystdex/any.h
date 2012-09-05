@@ -11,17 +11,17 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r508;
+\version r528
 \author FrankHB<frankhb1989@gmail.com>
-\since build 247 。
+\since build 247
 \par 创建时间:
-	2011-09-26 07:55:44 +0800;
+	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-08-30 20:00 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Any;
+	YStandardEx::Any
 */
 
 
@@ -37,7 +37,7 @@ namespace ystdex
 
 /*
 \brief 任意非可复制构造的非聚集类型。
-\since build 207 。
+\since build 207
 */
 union no_copy_t
 {
@@ -51,7 +51,7 @@ union no_copy_t
 /*
 \brief 任意 POD 类型。
 \note POD 含义参考 ISO C++11 。
-\since build 207 。
+\since build 207
 */
 union any_pod_t
 {
@@ -86,7 +86,7 @@ union any_pod_t
 /*!
 \brief 任意对象引用类型。
 \warning 不检查 cv-qualifier 。
-\since build 247 。
+\since build 247
 */
 class void_ref
 {
@@ -116,7 +116,7 @@ public:
 
 /*!
 \brief 抽象动态泛型持有者接口。
-\since build 331 。
+\since build 331
 */
 class any_holder
 {
@@ -138,7 +138,7 @@ public:
 
 /*!
 \brief 值类型动态泛型持有者。
-\since build 331 。
+\since build 331
 */
 template<typename _type>
 class value_holder : public any_holder
@@ -180,7 +180,7 @@ public:
 \brief 指针类型动态泛型持有者。
 \tparam _type 对象类型。
 \pre <tt>is_object<_type>::value</tt> 。
-\since build 331 。
+\since build 331
 */
 template<typename _type>
 class pointer_holder : public any_holder
@@ -228,7 +228,7 @@ public:
 \warning 非虚析构。
 \see http://www.boost.org/doc/libs/1_50_0/doc/html/any/reference.html#\
 any.ValueType 。
-\since build 331 。
+\since build 331
 */
 class any
 {
@@ -242,7 +242,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用指定持有者。
-	\since build 332 。
+	\since build 332
 	*/
 	any(any_holder* p, std::nullptr_t)
 		: p_holder(p)
@@ -280,7 +280,7 @@ public:
 	}
 	/*!
 	\brief 复制赋值：使用复制和交换。
-	\since build 332 。
+	\since build 332
 	*/
 	any&
 	operator=(const any& a)
@@ -290,7 +290,7 @@ public:
 	}
 	/*!
 	\brief 转移赋值：使用复制和交换。
-	\since build 332 。
+	\since build 332
 	*/
 	any&
 	operator=(any&& a) ynothrow
@@ -368,7 +368,7 @@ public:
 \brief 动态泛型转换失败异常。
 \note 基本接口和语义同 boost::bad_any_cast 。
 \see any_cast 。
-\since build 331 。
+\since build 331
 */
 class bad_any_cast : public std::bad_cast
 {
@@ -384,7 +384,7 @@ public:
 /*!
 \brief 动态泛型转换。
 \note 语义同 boost::any_cast 。
-\since build 331 。
+\since build 331
 \todo 检验特定环境（如使用动态库时）比较 std::type_info::name() 的必要性。
 */
 //@{
@@ -419,7 +419,7 @@ any_cast(const any& x)
 \brief 非安全动态泛型转换。
 \note 语义同 boost::unsafe_any_cast 。
 \pre 断言检查 <tt>p</tt> 。
-\since build 331 。
+\since build 331
 */
 //@{
 template<typename _type>
@@ -445,7 +445,7 @@ unsafe_any_cast(const any* p)
 /*!
 \brief 伪输出对象。
 \note 吸收所有赋值操作。
-\since build 273 。
+\since build 273
 */
 struct pseudo_output
 {

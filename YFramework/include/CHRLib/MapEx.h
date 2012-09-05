@@ -11,17 +11,17 @@
 /*!	\file MapEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r242;
+\version r253
 \author FrankHB<frankhb1989@gmail.com>
-\since build 324 。
+\since build 324
 \par 创建时间:
-	2012-07-09 09:04:36 +0800;
+	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2012-08-30 20:03 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	CHRLib::MappingEx;
+	CHRLib::MappingEx
 */
 
 
@@ -34,7 +34,7 @@ CHRLIB_BEGIN
 
 /*!
 \def CHRLIB_NODYNAMIC_MAPPING
-\since build 324 。
+\since build 324
 
 无动态映射。
 */
@@ -44,7 +44,7 @@ CHRLIB_BEGIN
 #if CHRLIB_NODYNAMIC_MAPPING
 /*!
 \brief 编码转换表。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 //@{
 yconstexpr byte cp17[] = {0};
@@ -61,7 +61,7 @@ yconstexpr byte cp2026[] = {0};
 \brief 动态加载的编码转换表。
 \warning 使用转换映射算法前必须保证非空初始化，否则会断言失败或引起未定义行为。
 \warning 无线程安全保护。
-\since build 324 。
+\since build 324
 */
 //@{
 extern byte* cp17;
@@ -74,7 +74,7 @@ extern byte* cp2026;
 
 /*!
 \brief 非 Unicode 编码映射模板特化。
-\since build 245 。
+\since build 245
 */
 //@{
 template<>
@@ -207,7 +207,7 @@ struct GUCS2Mapper<CharSet::Big5>
 
 /*!
 \brief 取指定编码映射的转换函数指针。
-\since build 291 。
+\since build 291
 */
 template<typename _fCodemapTransform>
 _fCodemapTransform*

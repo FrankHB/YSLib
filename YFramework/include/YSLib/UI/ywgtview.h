@@ -11,17 +11,17 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r488;
+\version r502
 \author FrankHB<frankhb1989@gmail.com>
-\since build 258 。
+\since build 258
 \par 创建时间:
-	2009-11-16 20:06:58 +0800;
+	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-08-30 20:18 +0800;
+	2012-09-04 11:59 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YWidgetView;
+	YSLib::UI::YWidgetView
 */
 
 
@@ -36,7 +36,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 方向模块。
-\since build 170 。
+\since build 170
 */
 class MOriented
 {
@@ -55,7 +55,7 @@ protected:
 /*!
 \brief 可视状态。
 \warning 非虚析构。
-\since build 168 。
+\since build 168
 */
 class Visual
 {
@@ -80,9 +80,9 @@ public:
 	DefGetter(const ynothrow, SDst, Height, GetSize().Height)
 	DefGetter(const ynothrow, const Point&, Location, location)
 	DefGetter(const ynothrow, const Size&, Size, size)
-	//! \since build 307 。
+	//! \since build 307
 	DefGetter(ynothrow, Point&, LocationRef, location)
-	//! \since build 307 。
+	//! \since build 307
 	DefGetter(ynothrow, Size&, SizeRef, size)
 
 	DefSetter(bool, Visible, visible)
@@ -137,7 +137,7 @@ public:
 
 /*!
 \brief 部件视图。
-\since build 259 。
+\since build 259
 */
 class View
 {
@@ -150,7 +150,7 @@ public:
 	\brief 从属的部件指针。
 
 	逻辑依赖的部件指针，用于提供边界、容器和焦点以外属性的默认值。
-	\since build 283 。
+	\since build 283
 	*/
 	mutable IWidget* pDependency;
 	mutable IWidget* pFocusing; //!< 焦点指针。
@@ -176,7 +176,7 @@ public:
 
 	/*!
 	\brief 复制赋值：仅可视状态。
-	\since build 295 。
+	\since build 295
 	*/
 	View&
 	operator=(const View& v)
@@ -186,7 +186,7 @@ public:
 	}
 	/*!
 	\brief 转移赋值：仅可视状态。
-	\since build 295 。
+	\since build 295
 	*/
 	View&
 	operator=(View&& v)
@@ -206,9 +206,9 @@ public:
 	DefGetterMem(const ynothrow, SDst, Height, visual)
 	DefGetterMem(const ynothrow, const Point&, Location, visual)
 	DefGetterMem(const ynothrow, const Size&, Size, visual)
-	//! \since build 307 。
+	//! \since build 307
 	DefGetterMem(ynothrow, Point&, LocationRef, visual)
-	//! \since build 307 。
+	//! \since build 307
 	DefGetterMem(ynothrow, Size&, SizeRef, visual)
 
 	void

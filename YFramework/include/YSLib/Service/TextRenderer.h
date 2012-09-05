@@ -11,17 +11,17 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2663;
+\version r2697
 \author FrankHB<frankhb1989@gmail.com>
-\since build 275 。
+\since build 275
 \par 创建时间:
-	2009-11-13 00:06:05 +0800;
+	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-08-30 20:12 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::TextRenderer;
+	YSLib::Service::TextRenderer
 */
 
 
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \return 指向结束位置的迭代器。
-\since build 190 。
+\since build 190
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -57,7 +57,7 @@ PrintLine(_tRenderer& r, _tIn s)
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \return 指向结束位置的迭代器。
-\since build 251 。
+\since build 251
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -73,7 +73,7 @@ PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 /*!
 \brief 打印字符串，直至行尾或字符串结束。
 \return 打印字符数。
-\since build 190 。
+\since build 190
 */
 template<class _tRenderer>
 inline String::size_type
@@ -87,7 +87,7 @@ PrintLine(_tRenderer& r, const String& str)
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
-\since build 190 。
+\since build 190
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -106,7 +106,7 @@ PutLine(_tRenderer& r, _tIn s)
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
-\since build 251 。
+\since build 251
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -124,7 +124,7 @@ PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 \brief 打印字符串，直至行尾或字符串结束。
 \note 当行内无法容纳完整字符时换行。
 \return 打印字符数。
-\since build 190 。
+\since build 190
 */
 template<class _tRenderer>
 inline String::size_type
@@ -137,7 +137,7 @@ PutLine(_tRenderer& r, const String& str)
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \return 指向结束位置的迭代器。
-\since build 190 。
+\since build 190
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -151,7 +151,7 @@ PrintString(_tRenderer& r, _tIn s)
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \return 指向结束位置的迭代器。
-\since build 251 。
+\since build 251
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -164,7 +164,7 @@ PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 /*!
 \brief 打印字符串，直至区域末尾或字符串结束。
 \return 打印字符数。
-\since build 190 。
+\since build 190
 */
 template<class _tRenderer>
 inline String::size_type
@@ -178,7 +178,7 @@ PrintString(_tRenderer& r, const String& str)
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
-\since build 190 。
+\since build 190
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -197,7 +197,7 @@ PutString(_tRenderer& r, _tIn s)
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 当行内无法容纳完整字符时换行。
 \return 指向结束位置的迭代器。
-\since build 251 。
+\since build 251
 */
 template<typename _tIn, class _tRenderer>
 _tIn
@@ -215,7 +215,7 @@ PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
 \brief 打印字符串，直至区域末尾或字符串结束。
 \note 当行内无法容纳完整字符时换行。
 \return 打印字符数。
-\since build 190 。
+\since build 190
 */
 template<class _tRenderer>
 inline String::size_type
@@ -227,13 +227,13 @@ PutString(_tRenderer& r, const String& str)
 
 /*!	\defgroup TextRenderers Text Renderers
 \brief 文本渲染器。
-\since build 190 。
+\since build 190
 */
 
 /*!
 \ingroup TextRenderers
 \brief 空文本渲染器。
-\since build 196 。
+\since build 196
 */
 class EmptyTextRenderer
 {
@@ -263,7 +263,7 @@ public:
 /*!
 \brief 文本渲染器静态多态基类模版。
 \warning 非虚析构。
-\since build 266 。
+\since build 266
 */
 template<class _type>
 class GTextRendererBase
@@ -297,7 +297,7 @@ public:
 \ingroup TextRenderers
 \brief 文本渲染器。
 \warning 非虚析构。
-\since build 190 。
+\since build 190
 
 文本渲染器：简单实现。
 */
@@ -314,7 +314,7 @@ public:
 	{}
 	/*
 	\brief 构造：使用文本状态、图形接口上下文和指定区域边界。
-	\since build 265 。
+	\since build 265
 	*/
 	TextRenderer(TextState& ts, const Graphics& g, const Rect& mask)
 		: GTextRendererBase<TextRenderer>(),
@@ -335,7 +335,7 @@ public:
 	ImplS(GTextRendererBase) DefGetter(ynothrow, TextState&, TextState, State)
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const Graphics&, Context,
 		Buffer)
-	//! \since build 308 。
+	//! \since build 308
 	//@{
 	DefGetterMem(const ynothrow, SDst, Height, Buffer)
 	DefGetterMem(const ynothrow, SDst, Width, Buffer)
@@ -358,7 +358,7 @@ public:
 \brief 文本区域。
 
 自带缓冲区的文本渲染器，通过 Alpha 贴图刷新至位图缓冲区显示光栅化文本。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 class TextRegion : public GTextRendererBase<TextRegion>,
 	public TextState, public BitmapBufferEx
@@ -380,12 +380,12 @@ public:
 	TextRegion(FontCache&);
 	/*!
 	\brief 复制构造：默认实现。
-	\since build 296 。
+	\since build 296
 	*/
 	DefDeCopyCtor(TextRegion)
 	/*!
 	\brief 转移构造：默认实现。
-	\since build 296 。
+	\since build 296
 	*/
 	DefDeMoveCtor(TextRegion)
 
@@ -400,12 +400,12 @@ public:
 	}
 	/*!
 	\brief 复制赋值：默认实现。
-	\since build 296 。
+	\since build 296
 	*/
 	DefDeCopyAssignment(TextRegion)
 	/*!
 	\brief 转移赋值：默认实现。
-	\since build 296 。
+	\since build 296
 	*/
 	DefDeMoveAssignment(TextRegion)
 
@@ -471,7 +471,7 @@ public:
 \param ts 输出时使用的文本状态。
 \param str 待绘制的字符串。
 \param line_wrap 自动换行。
-\since build 309 。
+\since build 309
 */
 void
 DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
@@ -485,7 +485,7 @@ DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 \param margin 绘制区域边界和外边界之间的边距。
 \param line_wrap 自动换行。
 \param fnt 输出时使用的字体。
-\since build 309 。
+\since build 309
 */
 void
 DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
@@ -498,7 +498,7 @@ DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
 \param ts 输出时使用的文本状态。
 \param str 待绘制的字符串。
 \param line_wrap 自动换行。
-\since build 309 。
+\since build 309
 */
 void
 DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap);
@@ -510,7 +510,7 @@ DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap);
 \param margin 绘制区域边界和外边界之间的边距。
 \param line_wrap 自动换行。
 \param fnt 输出时使用的字体。
-\since build 309 。
+\since build 309
 */
 void
 DrawText(const Graphics& g, const Rect& bounds, const String& str,
@@ -524,7 +524,7 @@ DrawText(const Graphics& g, const Rect& bounds, const String& str,
 \param str 待绘制的字符串。
 \param line_wrap 自动换行。
 \note 间接绘制并贴图。
-\since build 309 。
+\since build 309
 */
 void
 DrawText(TextRegion& r, const Graphics& g, const Point& pt, const Size& s,

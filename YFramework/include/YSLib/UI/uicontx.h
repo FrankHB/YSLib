@@ -11,17 +11,17 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r282;
+\version r293
 \author FrankHB<frankhb1989@gmail.com>
-\since build 192 。
+\since build 192
 \par 创建时间:
-	2011-02-21 08:59:34 +0800;
+	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2012-08-30 20:16 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::UIContainerEx;
+	YSLib::UI::UIContainerEx
 */
 
 
@@ -37,14 +37,14 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 对话框。
-\since build 276 。
+\since build 276
 */
 class DialogBox : public Control
 {
 protected:
 	/*!
 	\brief 关闭按钮。
-	\since build 302 。
+	\since build 302
 	*/
 	Thumb btnClose;
 
@@ -57,7 +57,7 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
@@ -66,14 +66,14 @@ public:
 
 /*!
 \brief 对话面板。
-\since build 276 。
+\since build 276
 */
 class DialogPanel : public Panel
 {
 public:
 	/*!
 	\brief 关闭按钮。
-	\since build 302 。
+	\since build 302
 	*/
 	Thumb btnClose;
 	Button btnOK;

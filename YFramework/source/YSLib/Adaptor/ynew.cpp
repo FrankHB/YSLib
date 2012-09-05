@@ -11,17 +11,17 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r944;
+\version r951
 \author FrankHB<frankhb1989@gmail.com>
-\since build 173 。
+\since build 173
 \par 创建时间:
-	2010-12-02 19:49:41 +0800;
+	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2012-08-27 17:01 +0800;
+	2012-09-04 11:54 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Adaptor::YNew;
+	YSLib::Adaptor::YNew
 */
 
 
@@ -108,7 +108,7 @@ namespace
 \brief 调试内存列表。
 \warning 不可用于未确定初始化顺序的命名空间作用域对象。
 \bug 非线程安全。
-\since build 298 。
+\since build 298
 */
 static MemoryList DebugMemoryList(0);
 

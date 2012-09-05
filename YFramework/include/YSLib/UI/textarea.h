@@ -11,17 +11,17 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r419;
+\version r430
 \author FrankHB<frankhb1989@gmail.com>
-\since build 222 。
+\since build 222
 \par 创建时间:
-	2011-06-30 20:09:23 +0800;
+	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2012-08-30 20:16 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::TextArea;
+	YSLib::UI::TextArea
 */
 
 
@@ -47,13 +47,13 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界和默认字型缓存。
-	\since build 296 。
+	\since build 296
 	*/
 	explicit
 	TextArea(const Drawing::Rect& = Drawing::Rect::Empty);
 	/*!
 	\brief 构造：使用指定边界和字体缓存。
-	\since build 296 。
+	\since build 296
 	*/
 	TextArea(const Drawing::Rect&, Drawing::FontCache&);
 	inline DefDeMoveCtor(TextArea)
@@ -73,13 +73,13 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界和默认字型缓存。
-	\since build 296 。
+	\since build 296
 	*/
 	explicit
 	BufferedTextArea(const Drawing::Rect& = Drawing::Rect::Empty);
 	/*!
 	\brief 构造：使用指定边界和字体缓存。
-	\since build 296 。
+	\since build 296
 	*/
 	BufferedTextArea(const Drawing::Rect&, Drawing::FontCache&);
 	inline DefDeMoveCtor(BufferedTextArea)
@@ -89,7 +89,7 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;

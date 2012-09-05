@@ -11,29 +11,22 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3837;
+\version r3851
 \author FrankHB<frankhb1989@gmail.com>
-\since build 263 。
+\since build 263
 \par 创建时间:
-	2011-11-24 17:13:41 +0800;
+	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-08-31 16:22 +0800;
+	2012-09-05 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::ShlReader;
+	YReader::ShlReader
 */
 
 
 #include <ShlReader.h>
 #include <ystdex/iterator.hpp>
-
-////////
-//测试用声明：全局资源定义。
-//extern char gstr[128];
-
-using namespace ystdex;
-using std::chrono::milliseconds;
 
 YSL_BEGIN_NAMESPACE(YReader)
 
@@ -45,7 +38,7 @@ using namespace Text;
 
 /*
 \brief 文本阅读器菜单项。
-\since build 303 。
+\since build 303
 */
 enum MNU_READER : Menu::IndexType
 {
@@ -366,6 +359,8 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 			AddWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
 		}
 		{
+			using ystdex::get_key;
+
 			const auto idx(std::find(Encodings | get_key,
 				(Encodings + arrlen(Encodings)) | get_key,
 				reader.GetEncoding()) - Encodings);

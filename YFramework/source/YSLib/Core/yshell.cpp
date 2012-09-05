@@ -11,17 +11,17 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r2360;
+\version r2366
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-13 21:09:15 +0800;
+	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2012-08-30 19:13 +0800;
+	2012-09-04 12:50 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YShell;
+	YSLib::Core::YShell
 */
 
 

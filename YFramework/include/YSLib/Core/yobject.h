@@ -12,17 +12,17 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3011;
+\version r3093
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-16 20:06:58 +0800;
+	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-08-31 15:34 +0800;
+	2012-09-05 17:50 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YObject;
+	YSLib::Core::YObject
 */
 
 
@@ -40,7 +40,7 @@ YSL_BEGIN
 
 /*!
 \brief 指定对于参数指定类型的成员具有所有权的标签。
-\since build 218 。
+\since build 218
 */
 template<typename>
 struct OwnershipTag
@@ -49,7 +49,7 @@ struct OwnershipTag
 
 /*!
 \brief 标签类型元运算。
-\since build 218 。
+\since build 218
 */
 template<class _tOwner, typename _type>
 struct HasOwnershipOf : public std::integral_constant<bool,
@@ -60,7 +60,7 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 /*!
 \brief 带等于接口的动态泛型持有者接口。
 \see ystdex::any_holder 。
-\since build 332 。
+\since build 332
 */
 DeclDerivedI(IValueHolder, ystdex::any_holder)
 	DeclIEntry(bool operator==(const IValueHolder&) const)
@@ -84,7 +84,7 @@ EndDecl
 /*!
 \brief 带等于接口的值类型动态泛型持有者。
 \see ystdex::value_holder 。
-\since build 332 。
+\since build 332
 */
 template<typename _type>
 class ValueHolder : implements IValueHolder
@@ -125,7 +125,7 @@ public:
 /*!
 \brief 带等于接口的指针类型动态泛型持有者。
 \see ystdex::pointer_holder 。
-\since build 332 。
+\since build 332
 */
 template<typename _type>
 class PointerHolder : implements IValueHolder
@@ -177,7 +177,7 @@ public:
 \brief 值类型对象类。
 \pre 满足 CopyConstructible 。
 \warning 非虚析构。
-\since build 217 。
+\since build 217
 
 具有值语义和深复制语义的对象。
 */
@@ -188,14 +188,14 @@ public:
 	struct PointerConstructTag
 	{};
 
-	//! \since build 332 。
+	//! \since build 332
 	ystdex::any content;
 
 public:
 	/*!
 	\brief 无参数构造。
 	\note 得到空实例。
-	\since build 296 。
+	\since build 296
 	*/
 	DefDeCtor(ValueObject)
 	/*!
@@ -217,21 +217,21 @@ public:
 	{}
 	/*!
 	\brief 复制构造：默认实现。
-	\since build 332 。
+	\since build 332
 	*/
 	DefDeCopyCtor(ValueObject)
 	/*!
 	\brief 转移构造：默认实现。
-	\since build 332 。
+	\since build 332
 	*/
 	DefDeMoveCtor(ValueObject)
 	/*!
 	\brief 析构：默认实现。
-	\since build 332 。
+	\since build 332
 	*/
 	DefDeDtor(ValueObject)
 
-	//! \since build 332 。
+	//! \since build 332
 	//@{
 	DefDeCopyAssignment(ValueObject)
 	DefDeMoveAssignment(ValueObject)
@@ -239,7 +239,7 @@ public:
 
 	/*!
 	\brief 判断是否为空。
-	\since build 320 。
+	\since build 320
 	*/
 	PDefHOp(bool, !) const ynothrow
 		ImplRet(!content)
@@ -249,7 +249,7 @@ public:
 
 	/*!
 	\brief 判断是否非空。
-	\since build 320 。
+	\since build 320
 	*/
 	explicit DefCvt(const ynothrow, bool, content.get_holder())
 
@@ -275,7 +275,7 @@ public:
 	/*!
 	\brief 访问指定类型对象。
 	\throw std::bad_cast 空实例或类型检查失败 。
-	\since build 334 。
+	\since build 334
 	*/
 	template<typename _type>
 	inline _type&
@@ -286,7 +286,7 @@ public:
 	/*!
 	\brief 访问指定类型 const 对象。
 	\throw std::bad_cast 空实例或类型检查失败 。
-	\since build 306 。
+	\since build 306
 	*/
 	template<typename _type>
 	inline const _type&
@@ -298,14 +298,14 @@ public:
 	/*
 	\brief 清除。
 	\post <tt>*this == ValueObject()</tt> 。
-	\since build 296 。
+	\since build 296
 	*/
 	PDefH(void, Clear) ynothrow
 		ImplBodyMem(content, clear)
 
 	/*!
 	\brief 交换。
-	\since build 296 。
+	\since build 296
 	*/
 	PDefH(void, Swap, ValueObject& vo) ynothrow
 		ImplBodyMem(content, swap, vo.content)
@@ -314,7 +314,7 @@ public:
 /*!
 \ingroup HelperFunctions
 \brief 使用指针构造 ValueObject 实例。
-\since build 233 。
+\since build 233
 */
 template<typename _type>
 inline ValueObject
@@ -327,32 +327,34 @@ MakeValueObjectByPtr(_type* p)
 /*!
 \brief 值类型节点。
 \warning 非虚析构。
-\since build 330 。
+\since build 330
 
 包含 ValueObject 对象和以 string 为键的子 ValueObject 容器的对象。
 */
-class ValueNode : protected ValueObject
+class ValueNode
 {
 public:
 	typedef map<string, ValueNode> Container;
 
 private:
 	string name;
-	unique_ptr<Container> pNodes;
+	//! \since build 336
+	mutable ValueObject value;
+	mutable unique_ptr<Container> pNodes;
 
 public:
 	DefDeCtor(ValueNode)
 	template<typename _tString>
 	ValueNode(const ValueObject& vo, _tString&& str)
-		: ValueObject(vo), name(yforward(str))
+		: name(yforward(str)), value(vo)
 	{}
 	template<typename _tString>
 	ValueNode(ValueObject&& vo, _tString&& str)
-		: ValueObject(std::move(vo)), name(yforward(str))
+		: name(yforward(str)), value(std::move(vo))
 	{}
 	template<typename _tString, typename... _tParams>
 	ValueNode(_tString&& str, _tParams&&... args)
-		: ValueObject(yforward(args)...), name(yforward(str))
+		: name(yforward(str)), value(yforward(args)...)
 	{}
 	ValueNode(const ValueNode&);
 	DefDeMoveCtor(ValueNode)
@@ -360,10 +362,14 @@ public:
 	DefDeCopyAssignment(ValueNode)
 	DefDeMoveAssignment(ValueNode)
 
-	using ValueObject::operator!;
+	//! \since build 336
+	//@{
+	PDefHOp(bool, !) const ynothrow
+		ImplRet(!value)
 
-	PDefHOp(bool, +=, ValueNode& node)
+	PDefHOp(bool, +=, const ValueNode& node)
 		ImplRet(Add(node))
+	//@}
 	PDefHOp(bool, +=, ValueNode&& node)
 		ImplRet(Add(std::move(node)))
 
@@ -385,7 +391,8 @@ public:
 		return (*pNodes)[name];
 	}
 
-	using ValueObject::operator bool;
+	//! \since build 336
+	explicit DefCvt(const ynothrow, bool, bool(value))
 	DefCvt(const ynothrow, const string&, name);
 
 	Container::iterator
@@ -425,18 +432,15 @@ public:
 		throw std::out_of_range(name);
 	}
 	DefGetter(const ynothrow, size_t, Size, pNodes ? pNodes->size() : 0)
-	using ValueObject::GetObject;
-	DefGetter(ynothrow, ValueObject&, Value, *this)
-	//! \since build 334 。
+	DefGetter(ynothrow, ValueObject&, Value, value)
+	//! \since build 334
 	//@{
-	DefGetter(const ynothrow, const ValueObject&, Value, *this)
+	DefGetter(const ynothrow, const ValueObject&, Value, value)
 
 	DefSetter(const string&, Name, name)
 	DefSetter(const ValueObject&, Value, GetValue())
 	DefSetter(ValueObject&&, Value, GetValue())
 	//@}
-
-	using ValueObject::Access;
 
 private:
 	void
@@ -448,12 +452,11 @@ public:
 
 	PDefH(bool, Add, ValueNode& node)
 		ImplRet(Add(std::move(node)))
+	//! \since build 336
 	bool
-	Add(ValueNode&& n)
-	{
-		CheckNodes();
-		return pNodes->insert(make_pair(n.name, std::move(n))).second;
-	}
+	Add(const ValueNode&);
+	bool
+	Add(ValueNode&&);
 
 	PDefH(bool, Remove, const ValueNode& node)
 		ImplRet(pNodes ? pNodes->erase(node.name) != 0 : false)
@@ -464,7 +467,7 @@ public:
 /*!
 \ingroup HelperFunctions
 \brief 迭代器包装，用于 range-based for 。
-\since build 330 。
+\since build 330
 */
 //@{
 inline auto
@@ -490,28 +493,51 @@ end(const ValueNode& node) -> decltype(node.GetEnd())
 }
 //@}
 
+/*!
+\brief 访问节点的指定类型对象。
+\throw std::bad_cast 空实例或类型检查失败 。
+\since build 336
+*/
+template<typename _type>
+inline _type&
+Access(ValueNode& node)
+{
+	return node.GetValue().Access<_type>();
+}
+/*!
+\brief 访问节点的指定类型 const 对象。
+\throw std::bad_cast 空实例或类型检查失败 。
+\since build 336
+*/
+template<typename _type>
+inline const _type&
+Access(const ValueNode& node)
+{
+	return node.GetValue().Access<_type>();
+}
+
 
 /*!
 \brief 访问指定名称的子节点的指定类型对象。
 \throw std::bad_cast 空实例或类型检查失败 。
-\since build 334 。
+\since build 334
 */
 template<typename _type>
 inline _type&
 AccessChild(ValueNode& node, const string& name)
 {
-	return node.GetNode(name).Access<_type>();
+	return Access<_type>(node.GetNode(name));
 }
 /*!
 \brief 访问指定名称的子节点的指定类型 const 对象。
 \throw std::bad_cast 空实例或类型检查失败 。
-\since build 334 。
+\since build 334
 */
 template<typename _type>
 inline const _type&
 AccessChild(const ValueNode& node, const string& name)
 {
-	return node.GetNode(name).Access<_type>();
+	return Access<_type>(node.GetNode(name));
 }
 
 
@@ -523,7 +549,7 @@ AccessChild(const ValueNode& node, const string& name)
 \tparam _tOwnerPointer 依赖所有者指针类型。
 \warning 依赖所有者指针需要实现所有权语义，
 	否则出现无法释放资源导致内存泄漏或其它非预期行为。
-\since build 195 。
+\since build 195
 \todo 线程模型及安全性。
 */
 template<typename _type, class _tOwnerPointer = shared_ptr<_type>>
@@ -579,10 +605,11 @@ public:
 	}
 };
 
+
 /*!
 \brief 范围模块类。
 \warning 非虚析构。
-\since build 193 。
+\since build 193
 */
 template<typename _type>
 class GMRange

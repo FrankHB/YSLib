@@ -11,17 +11,17 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r381;
+\version r403
 \author FrankHB<frankhb1989@gmail.com>
-\since build 209 。
+\since build 209
 \par 创建时间:
-	2011-05-14 12:25:13 +0800;
+	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2012-08-30 20:01 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Memory;
+	YStandardEx::Memory
 */
 
 
@@ -40,7 +40,7 @@ namespace ystdex
 \tparam _tIterator 迭代器类型。
 \note 注意返回 \c false 不表示参数实际不可解引用。
 \note 默认实现对参数转换为 \c bool 类型判断是否为 true 。
-\since build 249 。
+\since build 249
 */
 //@{
 template<typename _tIterator>
@@ -63,7 +63,7 @@ is_dereferencable(_type* p)
 \tparam _tIterator 迭代器类型。
 \note 注意返回 \c false 不表示参数实际可解引用。
 \note 默认实现对参数转换为 \c bool 类型判断是否为 false 。
-\since build 250 。
+\since build 250
 */
 //@{
 template<typename _tIterator>
@@ -83,7 +83,7 @@ is_undereferencable(_type* p)
 
 /*!	\defgroup raw Get Raw Pointers
 \brief 取内建指针。
-\since build 319 。
+\since build 319
 */
 //@{
 template<typename _type>
@@ -115,7 +115,7 @@ raw(const std::weak_ptr<_type>& p) ynothrow
 /*!	\defgroup reset Reset Pointers
 \brief 安全删除指定引用的指针指向的对象。
 \post 指定引用的指针为空。
-\since build 209 。
+\since build 209
 */
 //@{
 template<typename _type>
@@ -148,7 +148,7 @@ reset(std::shared_ptr<_type>& p) ynothrow
 \brief 使用指定类型指针构造 std::unique_ptr 实例。
 \tparam _type 被指向类型。
 \note 不检查指针是否有效。
-\since build 212 。
+\since build 212
 */
 //@{
 /*!
@@ -177,7 +177,7 @@ unique_raw(_type* p)
 }
 /*!
 \note 使用空指针构造空实例。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn std::unique_ptr<_type>
@@ -193,7 +193,7 @@ unique_raw(nullptr_t) ynothrow
 \brief 使用指定类型指针构造 std::shared_ptr 实例。
 \tparam _type 被指向类型。
 \note 不检查指针是否有效。
-\since build 204 。
+\since build 204
 */
 //@{
 /*!
@@ -222,7 +222,7 @@ share_raw(_type* p)
 }
 /*!
 \note 使用空指针构造空实例。
-\since build 319 。
+\since build 319
 */
 template<typename _type>
 yconstfn std::shared_ptr<_type>
@@ -237,7 +237,7 @@ share_raw(nullptr_t) ynothrow
 \ingroup helper_functions
 \brief 使用全局 new 和指定参数构造指定类型的 std::unique_ptr 实例。
 \tparam _type 被指向类型。
-\since build 293 。
+\since build 293
 */
 template<typename _type, typename... _tParams>
 yconstfn std::unique_ptr<_type>
@@ -252,7 +252,7 @@ make_unique(_tParams&&... args)
 \tparam _type 被指向类型。
 \note 不同于 std::make_shared ，不依赖于具体 allocator 。
 \note std::make_shared 的具体实现一般会导致目标文件增大。
-\since build 298 。
+\since build 298
 */
 template<typename _type, typename... _tParams>
 yconstfn std::shared_ptr<_type>

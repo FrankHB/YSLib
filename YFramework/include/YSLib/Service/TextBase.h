@@ -11,17 +11,17 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2570;
+\version r2586
 \author FrankHB<frankhb1989@gmail.com>
-\since build 275 。
+\since build 275
 \par 创建时间:
-	2009-11-13 00:06:05 +0800;
+	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-08-30 20:12 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::TextBase;
+	YSLib::Service::TextBase
 */
 
 
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 /*!
 \brief 默认边距。
-\since build 286 。
+\since build 286
 */
 yconstexpr Padding DefaultMargin = Padding(2, 2, 2, 2);
 
@@ -78,7 +78,7 @@ public:
 显示区域为文本区域内部实际显示文本光栅化结果的区域。
 边距描述显示区域和文本区域的位置关系。
 文本状态不包含文本区域和显示区域的大小，应由外部图形接口上下文或缓冲区状态确定。
-\since build 145 。
+\since build 145
 */
 class TextState : public PenStyle
 {
@@ -90,7 +90,7 @@ public:
 public:
 	/*!
 	\brief 构造：使用指定字体。
-	\since build 277 。
+	\since build 277
 	*/
 	explicit
 	TextState(const Drawing::Font& = FetchPrototype<Drawing::Font>());
@@ -143,7 +143,7 @@ public:
 
 /*!
 \brief 取当前指定文本状态的字体设置对应的行高。
-\since build 231 。
+\since build 231
 */
 inline SDst
 GetTextLineHeightOf(const TextState& s)
@@ -153,7 +153,7 @@ GetTextLineHeightOf(const TextState& s)
 
 /*!
 \brief 取当前指定文本状态的字体设置对应的行高与行距之和。
-\since build 231 。
+\since build 231
 */
 inline SDst
 GetTextLineHeightExOf(const TextState& s)
@@ -163,7 +163,7 @@ GetTextLineHeightExOf(const TextState& s)
 
 /*!
 \brief 取笔所在的当前行数。
-\since build 231 。
+\since build 231
 */
 inline u16
 GetCurrentTextLineNOf(const TextState& s)
@@ -173,7 +173,7 @@ GetCurrentTextLineNOf(const TextState& s)
 
 /*!
 \brief 设置笔位置。
-\since build 231 。
+\since build 231
 */
 inline void
 SetPenOf(TextState& s, SPos x, SPos y)
@@ -184,7 +184,7 @@ SetPenOf(TextState& s, SPos x, SPos y)
 
 /*!
 \brief 设置笔的行位置。
-\since build 231 。
+\since build 231
 */
 void
 SetCurrentTextLineNOf(TextState&, u16);
@@ -193,7 +193,7 @@ SetCurrentTextLineNOf(TextState&, u16);
 \brief 回车。
 
 指定文本状态的笔的水平位置移至左端，竖直位置不变。
-\since build 270 。
+\since build 270
 */
 inline void
 CarriageReturn(TextState& ts)
@@ -203,7 +203,7 @@ CarriageReturn(TextState& ts)
 
 /*!
 \brief 按字符跨距移动笔。
-\since build 196 。
+\since build 196
 */
 void
 MovePen(TextState&, ucs4_t);

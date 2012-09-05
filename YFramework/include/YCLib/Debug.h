@@ -11,17 +11,17 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r102;
+\version r110
 \author FrankHB<frankhb1989@gmail.com>
-\since build 299 。
+\since build 299
 \par 创建时间:
-	2012-04-07 14:20:49 +0800;
+	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2012-08-30 20:06 +0800;
+	2012-09-04 12:27 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::Debug;
+	YCLib::Debug
 */
 
 
@@ -31,7 +31,7 @@
 #include "ycommon.h"
 
 /*!
-\since build 314 。
+\since build 314
 */
 //@{
 #ifndef NDEBUG
@@ -64,7 +64,7 @@ YDebugGetStatus();
 /*!
 \brief 调试模式：显示控制台。
 \warning 控制台显示状态不保证线程安全性。
-\since build 312 。
+\since build 312
 */
 void
 YDebugBegin();

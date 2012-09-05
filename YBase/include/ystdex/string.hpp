@@ -11,17 +11,17 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r214;
+\version r229
 \author FrankHB<frankhb1989@gmail.com>
-\since build 304 。
+\since build 304
 \par 创建时间:
-	2012-04-26 20:12:19 +0800;
+	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2012-08-30 20:01 +0800;
+	2012-09-04 12:31 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::String;
+	YStandardEx::String
 */
 
 
@@ -40,7 +40,7 @@ namespace ystdex
 
 /*!
 \brief 字符串特征。
-\since build 304 。
+\since build 304
 */
 template<typename _tString>
 struct string_traits
@@ -57,13 +57,13 @@ struct string_traits
 /*!	\defgroup string_algorithms String Algorithms
 \addtogroup algorithms
 \brief 字符串算法。
-\since build 304 。
+\since build 304
 */
 
 /*!
 \ingroup string_algorithms
 \brief 删除字符串中指定的连续前缀字符。
-\since build 304 。
+\since build 304
 */
 template<class _tString>
 inline _tString&
@@ -76,7 +76,7 @@ ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 /*!
 \ingroup string_algorithms
 \brief 删除字符串中指定的连续后缀字符。
-\since build 304 。
+\since build 304
 */
 template<class _tString>
 inline _tString&
@@ -89,7 +89,7 @@ rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 /*!
 \ingroup string_algorithms
 \brief 删除字符串中指定的连续前缀与后缀字符。
-\since build 304 。
+\since build 304
 */
 template<class _tString>
 inline _tString&
@@ -103,7 +103,7 @@ trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 \ingroup string_algorithms
 \brief 取删除前缀和后缀的子字符串。
 \pre 断言检查：删除的字符串不大于串长。
-\since build 304 。
+\since build 304
 */
 //@{
 template<typename _tString>
@@ -128,7 +128,7 @@ get_mid(const _tString& str, typename _tString::size_type l,
 /*!
 \ingroup string_algorithms
 \brief 以指定字符分割字符串。
-\since build 304 。
+\since build 304
 */
 template<typename _fPred, typename _fInsert, typename _tIn>
 _tIn
@@ -155,7 +155,7 @@ split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 \brief 转换为字符串。
 \note 可与 <tt>std::to_string</tt> 共用以避免某些类型转换警告，
 	如 g++ 的 [-Wsign-promo] 。
-\since build 308 。
+\since build 308
 */
 //@{
 inline std::string
@@ -184,7 +184,7 @@ to_string(_type val, typename
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 对象。
 \todo 提供 char 以外的模板参数的正确实现。
-\since build 322 。
+\since build 322
 */
 template<typename _tChar>
 #if defined _WIN32 && !defined __USE_MINGW_ANSI_STDIO

@@ -12,17 +12,17 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r389;
+\version r403
 \author FrankHB<frankhb1989@gmail.com>
-\since build 195 。
+\since build 195
 \par 创建时间:
-	2011-03-14 20:17:34 +0800;
+	2011-03-14 20:17:34 +0800
 \par 修改时间:
-	2012-08-30 20:11 +0800;
+	2012-09-04 12:14 +0800
 \par 字符集:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YStorage;
+	YSLib::Core::YStorage
 */
 
 
@@ -35,7 +35,7 @@ YSL_BEGIN
 
 /*!
 \brief 取指定类型的无参数构造的对象。
-\since build 241 。
+\since build 241
 */
 template<typename _type>
 inline _type
@@ -47,7 +47,7 @@ FetchInstance()
 /*!
 \brief 取指定类型的静态默认对象。
 \warning 非线程安全。
-\since build 240 。
+\since build 240
 */
 template<typename _type>
 inline _type&
@@ -61,7 +61,7 @@ FetchStaticRef()
 /*!
 \brief 取指定类型的静态原型对象。
 \warning 初始化前非线程安全。
-\since build 240 。
+\since build 240
 */
 template<typename _type>
 inline const _type&
@@ -77,7 +77,7 @@ FetchPrototype()
 \brief 全局静态单态存储器。
 \pre <tt>std::is_nothrow_constructible<_tPointer>::value</tt> 。
 \warning 非线程安全。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 template<typename _type, typename _tPointer = _type*>
 class GStaticCache
@@ -126,7 +126,7 @@ public:
 
 	/*!
 	\brief 删除对象并置指针为空值。
-	\since build 319 。
+	\since build 319
 	*/
 	static inline void
 	Release() ynothrow
@@ -144,7 +144,7 @@ typename GStaticCache<_type, _tPointer>::PointerType
 \brief 全局局部静态单态存储器。
 \pre <tt>std::is_nothrow_constructible<_tPointer>::value</tt> 。
 \warning 非线程安全。
-\since build 205 。
+\since build 205
 */
 template<typename _type, typename _tPointer = _type*>
 class GLocalStaticCache
@@ -162,7 +162,7 @@ private:
 
 	/*!
 	\brief 取静态指针引用。
-	\since build 319 。
+	\since build 319
 	*/
 	static inline PointerType&
 	GetStaticPtrRef() ynothrow
@@ -207,7 +207,7 @@ public:
 
 	/*!
 	\brief 删除对象并置指针为空值。
-	\since build 319 。
+	\since build 319
 	*/
 	static inline void
 	Release() ynothrow

@@ -11,17 +11,17 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r784;
+\version r761
 \author FrankHB<frankhb1989@gmail.com>
-\since build 175 。
+\since build 175
 \par 创建时间:
-	2010-12-15 08:13:18 +0800;
+	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2012-08-30 20:00 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Cast;
+	YStandardEx::Cast
 */
 
 
@@ -38,7 +38,7 @@ namespace ystdex
 
 /*!	\defgroup cast Cast
 \brief 显式类型转换。
-\since build 243 。
+\since build 243
 */
 
 
@@ -48,7 +48,7 @@ namespace ystdex
 \tparam _tSrc 源类型。
 \tparam _tDst 目标类型。
 \pre <tt>is_pod<_tDst>::value && sizeof<_tSrc> == sizeof<_tDst></tt> 。
-\since build 297 。
+\since build 297
 */
 template<typename _tDst, typename _tSrc>
 inline _tDst
@@ -68,7 +68,7 @@ union_cast(_tSrc src) ynothrow
 
 /*!
 \brief 初值符列表转换。
-\since build 304 。
+\since build 304
 */
 template<typename _tDst, typename... _tSrc>
 yconstfn std::initializer_list<_tDst>
@@ -82,7 +82,7 @@ initializer_cast(_tSrc&&... src)
 \ingroup cast
 \brief 多态类指针类型转换。
 \throw std::bad_cast dynamic_cast 失败。
-\since build 175 。
+\since build 175
 */
 template <class _tDst, class _tSrc>
 inline _tDst
@@ -99,7 +99,7 @@ polymorphic_cast(_tSrc* x)
 \ingroup cast
 \brief 多态类指针向派生类指针转换。
 \pre 断言： dynamic_cast 成功。
-\since build 175 。
+\since build 175
 */
 template <class _tDst, class _tSrc>
 inline _tDst
@@ -112,7 +112,7 @@ polymorphic_downcast(_tSrc* x)
 /*!
 \ingroup cast
 \brief 多态类引用向派生类引用转换。
-\since build 175 。
+\since build 175
 */
 template <class _tDst, class _tSrc>
 yconstfn _tDst&
@@ -126,7 +126,7 @@ polymorphic_downcast(_tSrc& x)
 \ingroup cast
 \brief 多态类指针交叉转换。
 \pre 断言： dynamic_cast 成功。
-\since build 179 。
+\since build 179
 */
 template <class _tDst, class _tSrc>
 inline _tDst
@@ -141,7 +141,7 @@ polymorphic_crosscast(_tSrc* x)
 \ingroup cast
 \brief 多态类引用交叉转换。
 \throw std::bad_cast dynamic_cast 失败。
-\since build 179 。
+\since build 179
 */
 template <class _tDst, class _tSrc>
 yconstfn _tDst&
@@ -228,7 +228,7 @@ struct _general_cast_type_helper
 能确保安全隐式转换时使用 static_cast ；
 除此之外非虚基类向派生类转换使用 polymophic_downcast；
 否则使用 dynamic_cast。
-\since build 175 。
+\since build 175
 */
 //@{
 template<typename _tDst, typename _tSrc>

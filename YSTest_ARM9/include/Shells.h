@@ -15,17 +15,17 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2804;
+\version r2817
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-03-06 21:38:16 +0800;
+	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-08-30 20:24 +0800;
+	2012-09-04 12:58 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::Shells;
+	YReader::Shells
 */
 
 
@@ -80,21 +80,21 @@ public:
 	Label lblTitle, lblPath;
 	/*!
 	\brief 信息标签：说明用户操作内容等。
-	\since build 309 。
+	\since build 309
 	*/
 	Label lblInfo;
 	FileBox fbMain;
 	Button btnTest, btnOK;
-	//! \since build 310 。
+	//! \since build 310
 	DialogPanel pnlSetting;
-	//! \since build 311 。
+	//! \since build 311
 	CheckButton cbHex, cbFPS;
 	/*!
 	\brief 复选按钮：指定开启切换背景时的预览。
-	\since build 330 。
+	\since build 330
 	*/
 	CheckButton cbPreview;
-	//! \since build 310 。
+	//! \since build 310
 	Button btnEnterTest, btnMenuTest, btnShowWindow,
 		btnPrevBackground, btnNextBackground;
 	unique_ptr<TFormExtra> pWndExtra;
@@ -104,13 +104,13 @@ public:
 	/*!
 	\brief 构造：使用指定路径。
 	\pre 参数为合法路径。
-	\since build 301 。
+	\since build 301
 	*/
 	ShlExplorer(const IO::Path& = IO::GetNowDirectory());
 
 	/*!
 	\brief 处理绘制消息：更新到屏幕并刷新 FPS 。
-	\since build 289 。
+	\since build 289
 	*/
 	void
 	OnPaint() override;

@@ -15,17 +15,17 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1798;
+\version r1805
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-22 15:14:57 +0800;
+	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2012-08-31 17:58 +0800;
+	2012-09-04 12:27 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	Helper::YGlobal;
+	Helper::YGlobal
 */
 
 
@@ -44,7 +44,7 @@ YSL_BEGIN
 /*!	\defgroup CustomGlobalVariables Custom Global Variables
 \ingroup GlobalObjects
 \brief 平台相关的全局变量。
-\since build 173 。
+\since build 173
 */
 //@{
 //@}

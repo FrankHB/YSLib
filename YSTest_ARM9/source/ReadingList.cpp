@@ -11,17 +11,17 @@
 /*!	\file ReadingList.cpp
 \ingroup YReader
 \brief 阅读列表。
-\version r71;
+\version r77
 \author FrankHB<frankhb1989@gmail.com>
-\since build 328 。
+\since build 328
 \par 创建时间:
-	2012-07-24 22:14:27 +0800;
+	2012-07-24 22:14:27 +0800
 \par 修改时间:
-	2012-08-28 19:46 +0800;
+	2012-09-04 12:57 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::ReadingList;
+	YReader::ReadingList
 */
 
 

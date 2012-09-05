@@ -11,17 +11,17 @@
 /*!	\file Timer.h
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r68;
+\version r75
 \author FrankHB<frankhb1989@gmail.com>
-\since build 313 。
+\since build 313
 \par 创建时间:
-	2012-06-01 14:42:34 +0800;
+	2012-06-01 14:42:34 +0800
 \par 修改时间:
-	2012-08-30 20:07 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::Timer;
+	YCLib::Timer
 */
 
 
@@ -54,7 +54,7 @@ GetTicks();
 \note 单位为纳秒。
 \note 调用 StartTicks 。
 \warning 首次调用 StartTicks 前非线程安全。
-\since build 291 。
+\since build 291
 */
 std::uint64_t
 GetHighResolutionTicks();

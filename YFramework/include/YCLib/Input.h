@@ -11,17 +11,17 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r297;
+\version r317
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 299 。
+\since build 299
 \par 创建时间:
-	2012-04-07 13:37:05 +0800;
+	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2012-08-30 20:06 +0800;
+	2012-09-04 13:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::Input;
+	YCLib::Input
 */
 
 
@@ -50,7 +50,7 @@ struct CursorInfo final
 {
 	/*!
 	\brief 转换为二元组。
-	\since build 321 。
+	\since build 321
 	*/
 	template<class _tBinary>
 	operator _tBinary() const
@@ -60,7 +60,7 @@ struct CursorInfo final
 
 	/*!
 	\brief 取横坐标。
-	\since build 313 。
+	\since build 313
 	*/
 	yconstfn std::uint16_t
 	GetX() const
@@ -69,7 +69,7 @@ struct CursorInfo final
 	}
 	/*!
 	\brief 取纵坐标。
-	\since build 313 。
+	\since build 313
 	*/
 	yconstfn std::uint16_t
 	GetY() const
@@ -84,7 +84,7 @@ struct CursorInfo final
 /*!
 \defgroup YCL_KEY_OVERRIDE YCLib Key Overridden Values
 \brief 覆盖键值。
-\since build 299 。
+\since build 299
 */
 //@{
 #ifndef YCL_DS
@@ -110,7 +110,7 @@ namespace platform_ex
 /*!
 \def 指定按键缓冲状态是否以外部对象直接定义。
 \note 单线程环境且 KeyBitsetWidth 较小时适合指定直接定义。
-\since build 321 。
+\since build 321
 */
 #if YCL_MULTITHREAD // || ...
 #	define YCL_KEYSTATE_DIRECT 0
@@ -121,42 +121,42 @@ namespace platform_ex
 
 /*!
 \brief 取按键状态。
-\since build 321 。
+\since build 321
 */
 const platform::KeyInput&
 FetchKeyState();
 
 /*!
 \brief 取上一次更新的按键状态。
-\since build 321 。
+\since build 321
 */
 const platform::KeyInput&
 FetchOldKeyState();
 
 /*!
 \brief 取键按下状态。
-\since build 299 。
+\since build 299
 */
 platform::KeyInput
 FetchKeyDownState();
 
 /*!
 \brief 取键释放状态。
-\since build 299 。
+\since build 299
 */
 platform::KeyInput
 FetchKeyUpState();
 
 /*!
 \brief 清除按键缓冲。
-\since build 299 。
+\since build 299
 */
 void
 ClearKeyStates();
 
 /*!
 \brief 更新按键状态。
-\since build 299 。
+\since build 299
 */
 void
 UpdateKeyStates();
@@ -164,7 +164,7 @@ UpdateKeyStates();
 #if YCL_KEYSTATE_DIRECT
 /*!
 \brief 按键缓冲。
-\since build 299 。
+\since build 299
 */
 extern platform::KeyInput KeyState, OldKeyState;
 
@@ -203,7 +203,7 @@ FetchKeyUpState()
 
 /*!
 \brief 写入当前指针设备信息。
-\since build 272 。
+\since build 272
 */
 void
 WriteCursor(platform::CursorInfo&);
@@ -212,7 +212,7 @@ WriteCursor(platform::CursorInfo&);
 #if YCL_DS
 /*!
 \brief 等待掩码指定的按键。
-\since build 298 。
+\since build 298
 */
 void
 WaitForKey(platform::KeyInput);

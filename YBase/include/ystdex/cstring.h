@@ -11,17 +11,17 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief YCLib ISO C 标准字符串扩展。
-\version r1601;
+\version r1618
 \author FrankHB<frankhb1989@gmail.com>
-\since build 245 。
+\since build 245
 \par 创建时间:
-	2009-12-27 17:31:14 +0800;
+	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2012-08-30 20:00 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::CString;
+	YStandardEx::CString
 */
 
 
@@ -79,7 +79,7 @@ strcatdup(const char*, const char*, void*(*)(std::size_t) = std::malloc);
 
 /*!
 \brief 使用 std::char_traits::eq 判断是否为空字符。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 yconstexpr bool
@@ -103,7 +103,7 @@ is_null(_tChar c)
 \brief 计算简单 NTCTS 长度。zz
 \pre 断言： <tt>s</tt> 。
 \note 语义同 std::char_traits<_tChar>::length 。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 size_t
@@ -123,7 +123,7 @@ ntctslen(const _tChar* s)
 \brief 按字典序比较简单 NTCTS 。
 \pre 断言： <tt>s1 && s2</tt> 。
 \note 语义同 std::char_traits<_tChar>::compare ，但忽略指定长度。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 typename std::char_traits<_tChar>::int_type
@@ -144,7 +144,7 @@ ntctscmp(const _tChar* s1, const _tChar* s2)
 \brief 按字典序比较简单 NTCTS （忽略大小写）。
 \pre 断言： <tt>s1 && s2</tt> 。
 \note 语义同 std::char_traits<_tChar>::compare ，但忽略指定长度和大小写。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 typename std::char_traits<_tChar>::int_type
@@ -166,7 +166,7 @@ ntctsicmp(const _tChar* s1, const _tChar* s2)
 \ingroup NTCTSUtil
 \brief 计算简单 NTCTS 长度。
 \note 语义同 std::char_traits<_tChar>::length 。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 yconstexpr size_t
@@ -179,7 +179,7 @@ const_ntctslen(const _tChar* s)
 \ingroup constexpr_algorithms
 \ingroup NTCTSUtil
 \brief 计算简单 NTCTS 中的指定字符数。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 yconstexpr size_t
@@ -194,7 +194,7 @@ const_ntctscnt(const _tChar* s, _tChar c)
 \ingroup NTCTSUtil
 \brief 比较简单 NTCTS 。
 \note 语义同 std::char_traits<_tChar>::compare ，但忽略指定长度。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 yconstexpr typename std::char_traits<_tChar>::int_type
@@ -209,7 +209,7 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2)
 \ingroup NTCTSUtil
 \brief 比较限制长度上限的简单 NTCTS 。
 \note 语义同 std::char_traits<_tChar>::compare 。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 yconstexpr typename std::char_traits<_tChar>::int_type
@@ -225,7 +225,7 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 \ingroup NTCTSUtil
 \brief 在简单 NTCTS 中顺序查找指定字符。
 \return 在查找结束时经过的字符数。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 yconstexpr size_t
@@ -240,7 +240,7 @@ const_ntctschr(const _tChar* s, _tChar c)
 \ingroup NTCTSUtil
 \brief 在简单 NTCTS 中顺序查找第指定次数出现的指定字符。
 \return 在查找结束时经过的字符数。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 yconstexpr size_t
@@ -256,7 +256,7 @@ const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 \ingroup NTCTSUtil
 \brief 在简单 NTCTS 中顺序查找作为子串的指定 NTCTS 。
 \return 在查找结束时经过的字符数。
-\since build 329 。
+\since build 329
 */
 template<typename _tChar>
 yconstexpr size_t

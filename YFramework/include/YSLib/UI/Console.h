@@ -11,15 +11,15 @@
 /*!	\file Console.h
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r128;
+\version r135
 \author FrankHB<frankhb1989@gmail.com>
-\since build 296 。
+\since build 296
 \par 创建时间:
-	2011-04-19 23:00:29 +0800;
+	2011-04-19 23:00:29 +0800
 \par 修改时间:
-	2012-08-30 20:14 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
 	YSLib::UI::Console
 */
@@ -43,7 +43,7 @@ public:
 
 	/*!
 	\brief 构造：使用指定屏幕、有效性、前景色和背景色。
-	\since build 296 。
+	\since build 296
 	*/
 	explicit
 	Console(Devices::Screen& scr, bool a = true,

@@ -11,17 +11,17 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1317;
+\version r1329
 \author FrankHB<frankhb1989@gmail.com>
-\since build 304 。
+\since build 304
 \par 创建时间:
-	2012-08-03 19:55:41 +0800;
+	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2012-09-02 19:37 +0800;
+	2012-09-04 11:29 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	NPL::SContext;
+	NPL::SContext
 */
 
 
@@ -34,7 +34,7 @@
 
 YSL_BEGIN_NAMESPACE(NPL)
 
-//! \since build 335 。
+//! \since build 335
 //@{
 using YSLib::TextFile;
 using YSLib::ValueNode;
@@ -47,7 +47,7 @@ typedef TokenList::const_iterator TLCIter;
 
 /*!
 \brief 会话：分析指定 NPL 代码。
-\since build 304 。
+\since build 304
 */
 class Session
 {
@@ -64,7 +64,7 @@ public:
 
 /*!
 \brief S 表达式上下文：处理 S 表达式。
-\since build 330 。
+\since build 330
 */
 YSL_BEGIN_NAMESPACE(SContext)
 
@@ -75,7 +75,7 @@ YSL_BEGIN_NAMESPACE(SContext)
 \return e 或指向冗余的 ')' 的迭代器。
 \throw LoggedEvent 找到冗余的 '(' 。
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
-\since build 335 。
+\since build 335
 */
 TLCIter
 Validate(TLCIter b, TLCIter e);
@@ -88,7 +88,7 @@ Validate(TLCIter b, TLCIter e);
 \return e 或指向冗余的 ')' 的迭代器。
 \throw LoggedEvent 找到冗余的 '(' 。
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
-\since build 330 。
+\since build 330
 */
 TLCIter
 Reduce(ValueNode& node, TLCIter b, TLCIter e);
@@ -96,7 +96,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e);
 
 /*!
 \brief 分析指定源，取抽象语法树储存至指定值类型节点。
-\since build 335 。
+\since build 335
 */
 //@{
 void

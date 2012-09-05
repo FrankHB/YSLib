@@ -16,17 +16,17 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 <string> 修正。
-\version r411;
+\version r417
 \author FrankHB<frankhb1989@gmail.com>
-\since build 308 。
+\since build 308
 \par 创建时间:
-	2012-05-14 20:41:08 +0800;
+	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2012-08-30 19:58 +0800;
+	2012-09-04 10:43 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	LibDefect::String;
+	LibDefect::String
 */
 
 

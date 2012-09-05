@@ -15,17 +15,17 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3380;
+\version r3390
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-12 22:14:28 +0800;
+	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2012-08-30 20:07 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::YCommon;
+	YCLib::YCommon
 */
 
 
@@ -50,7 +50,7 @@ namespace platform
 
 /*!
 \brief 异常终止函数。
-\since build 319 。
+\since build 319
 */
 void
 terminate() ynothrow;
@@ -95,7 +95,7 @@ GetTicks();
 /*!
 \brief 取高精度 tick 数。
 \note 单位为纳秒。
-\since build 291 。
+\since build 291
 */
 std::uint64_t
 GetHighResolutionTicks();
@@ -112,7 +112,7 @@ namespace platform_ex
 \return 旧状态。
 \note 默认状态为 true 。
 \warning 非线程安全。
-\since build 278 。
+\since build 278
 */
 bool
 AllowSleep(bool);
@@ -120,7 +120,7 @@ AllowSleep(bool);
 #elif YCL_MINGW32
 // TODO: Add more Windows specific APIs.
 
-//! \since build 327 。
+//! \since build 327
 //@{
 std::string
 UTF8ToMBCS(const char*, std::size_t, int);

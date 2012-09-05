@@ -11,17 +11,17 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r591;
+\version r608
 \author FrankHB<frankhb1989@gmail.com>
-\since build 214 。
+\since build 214
 \par 创建时间:
-	2011-04-19 22:59:02 +0800;
+	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2012-08-30 20:16 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::TextList;
+	YSLib::UI::TextList
 */
 
 
@@ -39,14 +39,14 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 索引事件。
-\since build 268 。
+\since build 268
 */
 typedef GValueEventArgs<MTextList::IndexType> IndexEventArgs;
 DeclDelegate(HIndexEvent, IndexEventArgs)
 
 /*!
 \brief 文本列表。
-\since build 212 。
+\since build 212
 */
 class TextList : public Control, protected MTextList
 {
@@ -58,12 +58,12 @@ public:
 	/*!
 	\brief 视图参数类型。
 	\param 表示主动定位视图。
-	\since build 268 。
+	\since build 268
 	*/
 	typedef GValueEventArgs<bool> ViewArgs;
 	/*!
 	\brief 视图事件委托类型。
-	\since build 268 。
+	\since build 268
 	*/
 	DeclDelegate(HViewEvent, ViewArgs)
 
@@ -142,7 +142,7 @@ public:
 	/*!
 	\brief 设置文本列表。
 	\note 若参数为空则忽略，否则设置列表并重置视图。
-	\since build 292 。
+	\since build 292
 	*/
 	void
 	SetList(const shared_ptr<ListType>&);
@@ -184,7 +184,7 @@ public:
 	\note 视图长为当项目数足够时所有在视图中显示的（可能不完全）项目总数。
 	\note 当部件高为 0 时忽略。
 	\warning 设置大小或列表内容后不调用此方法可能导致显示错误。
-	\since build 285 。
+	\since build 285
 	*/
 	void
 	AdjustViewLength();
@@ -215,7 +215,7 @@ public:
 	PDefH(void, ClearSelected)
 		ImplBodyMem(viewer, ClearSelected)
 
-	//! \since build 316 。
+	//! \since build 316
 	using MTextList::Find;
 
 protected:
@@ -223,7 +223,7 @@ protected:
 	\brief 无效化偏移量对应的列表项区域。
 	\param offset 起始偏移量。
 	\param diff 终止偏移量相对于起始偏移量的距离偏移量。
-	\since build 318 。
+	\since build 318
 	*/
 	void
 	InvalidateSelected(ListType::difference_type offset,
@@ -233,7 +233,7 @@ protected:
 	\brief 无效化偏移量对应的列表项区域。
 	\note 若第二参数小于第一参数则交换它们的值。
 	\note 区域由参数组成的闭区间指定，若区间左端小于 0 则视为 0 。
-	\since build 318 。
+	\since build 318
 	*/
 	void
 	InvalidateSelected2(ListType::difference_type, ListType::difference_type);
@@ -248,7 +248,7 @@ public:
 protected:
 	/*!
 	\brief 绘制列表项。
-	\since build 265 。
+	\since build 265
 	*/
 	virtual void
 	PaintItem(const Graphics&, const Rect& mask, const Rect&,
@@ -263,7 +263,7 @@ protected:
 public:
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
@@ -295,7 +295,7 @@ public:
 	\brief 更新视图。
 	\param is_active 是否确定仅变更视图位置。
 	\param need_invalidation 更新后无效化自身。
-	\since build 318 。
+	\since build 318
 
 	调用视图变更事件并调整视图长度。
 	*/

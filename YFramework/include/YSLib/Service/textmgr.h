@@ -11,17 +11,17 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3730;
+\version r3751
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-01-05 17:48:09 +0800;
+	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2012-08-30 20:12 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::TextManager;
+	YSLib::Service::TextManager
 */
 
 
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Text)
 
 /*
 \brief 文本文件块缓冲区。
-\since build 145 。
+\since build 145
 */
 class TextFileBuffer
 {
@@ -47,19 +47,19 @@ public:
 	\brief 缓冲区块类型。
 	
 	保存转换后的文本区块和初始转换偏移状态。
-	\since build 273 。
+	\since build 273
 	*/
 	typedef pair<vector<ucs2_t>, size_t> BlockType;
 	/*!
 	\brief 缓冲映射类型。
 
 	区块号到指定缓冲区快的映射。
-	\since build 273 。
+	\since build 273
 	*/
 	typedef map<size_t, BlockType> MapType;
 	/*!
 	\brief 目标编码迭代器类型。
-	\since build 273 。
+	\since build 273
 	*/
 	class Iterator : std::iterator<std::bidirectional_iterator_tag, ucs2_t,
 		ptrdiff_t, const ucs2_t, const ucs2_t&>
@@ -107,29 +107,29 @@ public:
 
 	/*!
 	\brief 默认文本区块大小。
-	\since build 273 。
+	\since build 273
 	*/
 	static yconstexpr size_t nBlockSize = 2048U;
 
 protected:
 	/*!
 	\brief 文本文件引用。
-	\since build 273 。
+	\since build 273
 	*/
 	TextFile& File;
 	/*!
 	\brief 文本大小。
-	\since build 273 。
+	\since build 273
 	*/
 	size_t nTextSize;
 	/*!
 	\brief 区块数。
-	\since build 273 。
+	\since build 273
 	*/
 	size_t nBlock;
 	/*!
 	\brief 缓冲映射。
-	\since build 273 。
+	\since build 273
 	*/
 	MapType Map;
 
@@ -159,14 +159,14 @@ public:
 
 	/*!
 	\brief 块随机访问。
-	\since build 273 。
+	\since build 273
 	*/
 	BlockType&
 	operator[](size_t);
 
 	/*!
 	\brief 取缓冲区块数。
-	\since build 273 。
+	\since build 273
 	*/
 	DefGetter(const ynothrow, size_t, BlockN, nBlock)
 	DefGetter(const ynothrow, Encoding, Encoding, File.Encoding)
@@ -175,26 +175,26 @@ public:
 	/*!
 	\brief 取文本缓冲区起始迭代器。
 	\note 指向起始字符。
-	\since build 273 。
+	\since build 273
 	*/
 	Iterator
 	GetBegin() ynothrow;
 	/*!
 	\brief 取文本缓冲区终止迭代器。
 	\note 指向终止字符后一位置。
-	\since build 273 。
+	\since build 273
 	*/
 	Iterator
 	GetEnd() ynothrow;
 	/*!
 	\brief 取文本字节位置对应的迭代器。
-	\since build 273 。
+	\since build 273
 	*/
 	Iterator
 	GetIterator(size_t);
 	/*!
 	\brief 取迭代器对应的文本字节位置。
-	\since build 273 。
+	\since build 273
 	*/
 	size_t
 	GetPosition(Iterator);

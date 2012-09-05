@@ -11,17 +11,17 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3311;
+\version r3339
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-14 18:29:46 +0800;
+	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-08-30 20:13 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::YGDI;
+	YSLib::Service::YGDI
 */
 
 
@@ -46,7 +46,7 @@ struct Padding
 
 	/*!
 	\brief 构造：使用 4 个 16 位无符号整数形式的边距。
-	\since build 286 。
+	\since build 286
 	*/
 	yconstfn explicit
 	Padding(SDst l = 0, SDst r = 0, SDst t = 0, SDst b = 0)
@@ -151,7 +151,7 @@ public:
 	BitmapBuffer(const BitmapBuffer&);
 	/*!
 	\brief 转移构造：转移资源。
-	\since build 296 。
+	\since build 296
 	*/
 	BitmapBuffer(BitmapBuffer&&) ynothrow;
 	virtual DefClone(BitmapBuffer, Clone)
@@ -166,7 +166,7 @@ public:
 
 	/*
 	\brief 复制赋值：使用复制构造函数和交换函数。
-	\since build 296 。
+	\since build 296
 	*/
 	BitmapBuffer&
 	operator=(const BitmapBuffer& buf)
@@ -176,7 +176,7 @@ public:
 	}
 	/*
 	\brief 转移赋值：使用转移构造函数和交换函数。
-	\since build 296 。
+	\since build 296
 	*/
 	BitmapBuffer&
 	operator=(BitmapBuffer&& buf) ynothrow
@@ -185,14 +185,14 @@ public:
 		return *this;
 	}
 
-	//! \since build 319 。
+	//! \since build 319
 	//@{
 	using Graphics::operator!;
 
 	using Graphics::operator bool;
 	//@}
 
-	//! \since build 296 。
+	//! \since build 296
 	//@{
 	using Graphics::GetBufferPtr;
 	using Graphics::GetHeight;
@@ -205,7 +205,7 @@ public:
 	/*!
 	\brief 设置内容。
 	\note 预先设置缓冲区大小。
-	\since build 319 。
+	\since build 319
 	*/
 	void
 	SetContent(ConstBitmapPtr, SDst, SDst);
@@ -230,7 +230,7 @@ public:
 
 	/*
 	\brief 交换。
-	\since build 296 。
+	\since build 296
 	*/
 	void
 	Swap(BitmapBuffer& buf) ynothrow
@@ -265,7 +265,7 @@ public:
 	BitmapBufferEx(const BitmapBufferEx&);
 	/*!
 	\brief 转移构造：转移资源。
-	\since build 296 。
+	\since build 296
 	*/
 	BitmapBufferEx(BitmapBufferEx&&) ynothrow;
 	virtual DefClone(BitmapBufferEx, Clone)
@@ -279,7 +279,7 @@ public:
 
 	/*
 	\brief 复制赋值：使用复制构造函数和交换函数。
-	\since build 296 。
+	\since build 296
 	*/
 	BitmapBufferEx&
 	operator=(const BitmapBufferEx& buf)
@@ -289,7 +289,7 @@ public:
 	}
 	/*
 	\brief 转移赋值：使用转移构造函数和交换函数。
-	\since build 296 。
+	\since build 296
 	*/
 	BitmapBufferEx&
 	operator=(BitmapBufferEx&& buf) ynothrow
@@ -319,7 +319,7 @@ public:
 
 	/*
 	\brief 交换。
-	\since build 296 。
+	\since build 296
 	*/
 	void
 	Swap(BitmapBufferEx& buf) ynothrow

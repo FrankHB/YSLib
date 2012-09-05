@@ -11,17 +11,17 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4252;
+\version r4290
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-04-23 23:08:23 +0800;
+	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2012-08-30 20:09 +0800;
+	2012-09-04 12:14 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YEvent;
+	YSLib::Core::YEvent
 */
 
 
@@ -37,7 +37,7 @@ YSL_BEGIN
 
 /*!
 \brief 事件处理器接口模板。
-\since build 333 。
+\since build 333
 */
 template<typename... _tParams>
 DeclI(GIHEvent)
@@ -50,7 +50,7 @@ EndDecl
 \brief 标准事件处理器类模板。
 \note 若使用仿函数，可以不满足 \c EqualityComparable 的接口，即
 	可使用返回 \c bool 的 \c operator== ，但此模板类无法检查其语义正确性。
-\since build 333 。
+\since build 333
 */
 //@{
 template<typename>
@@ -74,7 +74,7 @@ private:
 	template<class _tFunctor>
 	struct GEquality
 	{
-		//! \since build 319 。
+		//! \since build 319
 		//@{
 		typedef typename std::decay<_tFunctor>::type decayed_type;
 
@@ -105,7 +105,7 @@ public:
 	yconstfn DefDeMoveCtor(GHEvent)
 	/*!
 	\brief 构造：使用函数指针。
-	\since build 294 。
+	\since build 294
 	*/
 	yconstfn
 	GHEvent(const FuncType* f)
@@ -113,7 +113,7 @@ public:
 	{}
 	/*!
 	\brief 使用函数对象。
-	\since build 327 。
+	\since build 327
 	*/
 	template<class _fCallable>
 	yconstfn
@@ -150,7 +150,7 @@ public:
 	using BaseType::operator();
 
 private:
-	//! \since build 319 。
+	//! \since build 319
 	//@{
 	template<typename _type>
 	static yconstfn Comparer
@@ -177,14 +177,14 @@ private:
 
 /*!
 \brief 事件优先级。
-\since build 294 。
+\since build 294
 */
 typedef u8 EventPriority;
 
 
 /*!
 \brief 默认事件优先级。
-\since build 294 。
+\since build 294
 */
 yconstexpr EventPriority DefaultEventPriority(0x80);
 
@@ -192,7 +192,7 @@ yconstexpr EventPriority DefaultEventPriority(0x80);
 /*!
 \brief 事件类模板。
 \note 支持顺序多播。
-\since build 333 。
+\since build 333
 */
 //@{
 template<typename>
@@ -208,7 +208,7 @@ public:
 	typedef typename HandlerType::FuncType FuncType;
 	/*!
 	\brief 容器类型。
-	\since build 294 。
+	\since build 294
 	*/
 	typedef multimap<EventPriority, HandlerType, std::greater<EventPriority>>
 		ContainerType;
@@ -216,7 +216,7 @@ public:
 
 	/*!
 	\brief 响应列表。
-	\since build 294 。
+	\since build 294
 	*/
 	ContainerType List;
 
@@ -238,7 +238,7 @@ public:
 private:
 	/*!
 	\brief \c private 构造：添加事件处理器。
-	\since build 293 。
+	\since build 293
 	*/
 	template<typename _tHandler>
 	GEvent(_tHandler&& h)
@@ -258,7 +258,7 @@ public:
 	DefDeMoveAssignment(GEvent)
 	/*!
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
-	\since build 293 。
+	\since build 293
 	*/
 	template<typename _type>
 	inline GEvent&
@@ -319,7 +319,7 @@ public:
 	}
 	/*!
 	\brief 移除事件响应：目标为单一构造参数指定的指定事件处理器。
-	\since build 293 。
+	\since build 293
 	*/
 	template<typename _type>
 	inline GEvent&
@@ -331,7 +331,7 @@ public:
 	/*!
 	\brief 添加事件响应：使用 const 事件处理器和优先级。
 	\note 不检查是否已经在列表中。
-	\since build 294 。
+	\since build 294
 	*/
 	inline GEvent&
 	Add(const HandlerType& h, EventPriority prior = DefaultEventPriority)
@@ -342,7 +342,7 @@ public:
 	/*!
 	\brief 添加事件响应：使用非 const 事件处理器和优先级。
 	\note 不检查是否已经在列表中。
-	\since build 294 。
+	\since build 294
 	*/
 	inline GEvent&
 	Add(HandlerType&& h, EventPriority prior = DefaultEventPriority)
@@ -353,7 +353,7 @@ public:
 	/*!
 	\brief 添加事件响应：使用单一构造参数指定的事件处理器和优先级。
 	\note 不检查是否已经在列表中。
-	\since build 294 。
+	\since build 294
 	*/
 	template<typename _type>
 	inline GEvent&
@@ -364,7 +364,7 @@ public:
 	/*!
 	\brief 添加事件响应：使用对象引用、成员函数指针和优先级。
 	\note 不检查是否已经在列表中。
-	\since build 294 。
+	\since build 294
 	*/
 	template<class _tObj, class _type>
 	inline GEvent&
@@ -376,7 +376,7 @@ public:
 
 	/*!
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
-	\since build 276 。
+	\since build 276
 	*/
 	template<class _tObj, class _type>
 	inline GEvent&
@@ -398,7 +398,7 @@ public:
 	}
 	/*!
 	\brief 判断是否包含单一构造参数指定的事件响应。
-	\since build 293 。
+	\since build 293
 	*/
 	template<typename _type>
 	inline bool
@@ -451,7 +451,7 @@ public:
 
 /*!
 \brief 添加单一事件响应：删除后添加。
-\since build 333 。
+\since build 333
 */
 //@{
 template<typename _tRet, typename... _tParams>
@@ -490,7 +490,7 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
 
 /*!
 \brief 定义事件处理器委托类型。
-\since build 268 。
+\since build 268
 */
 #define DeclDelegate(_name, _tEventArgs) \
 	typedef GHEvent<void(_tEventArgs)> _name;
@@ -499,7 +499,7 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
 /*!
 \brief 依赖事件项类模板。
 \warning 非虚析构。
-\since build 195 。
+\since build 195
 */
 template<class _tEvent, class _tOwnerPointer = shared_ptr<_tEvent>>
 class GDependencyEvent : public GDependency<_tEvent, _tOwnerPointer>
@@ -586,7 +586,7 @@ public:
 
 /*!
 \brief 事件类型宏。
-\since build 188 。
+\since build 188
 */
 //@{
 #define EventT(_tEventHandler) GEvent<void(_tEventHandler::EventArgsType)>
@@ -596,7 +596,7 @@ public:
 
 /*!
 \brief 声明事件。
-\since build 188 。
+\since build 188
 */
 //@{
 #define DeclEvent(_tEventHandler, _name) \
@@ -607,7 +607,7 @@ public:
 
 /*!
 \brief 声明事件引用。
-\since build 188 。
+\since build 188
 */
 //@{
 #define DeclEventRef(_tEventHandler, _name) \
@@ -630,7 +630,7 @@ public:
 
 /*!
 \brief 定义事件访问器。
-\since build 188 。
+\since build 188
 */
 //@{
 #define DefEventGetter(_q, _tEventHandler, _name, _member) \
@@ -650,7 +650,7 @@ public:
 
 /*!
 \brief 事件处理器包装类模板。
-\since build 173 。
+\since build 173
 */
 template<class _tEvent, typename _tBaseArgs>
 class GEventWrapper : public _tEvent,
@@ -666,7 +666,7 @@ public:
 	/*!
 	\brief 委托调用。
 	\warning 需要确保 BaseArgsType 引用的对象能够转换至 EventArgsType 。
-	\since build 331 。
+	\since build 331
 	*/
 	inline ImplI(GIHEvent<_tBaseArgs>) size_t
 	operator()(BaseArgsType e) const
@@ -679,7 +679,7 @@ public:
 /*!
 \brief 事件项类型。
 \warning 非虚析构。
-\since build 242 。
+\since build 242
 */
 template<typename _tBaseArgs>
 class GEventPointerWrapper
@@ -701,7 +701,7 @@ private:
 	PointerType ptr;
 
 public:
-	//! \since build 319 。
+	//! \since build 319
 	template<typename _type>
 	inline
 	GEventPointerWrapper(_type&& p)
@@ -728,7 +728,7 @@ public:
 
 /*!
 \brief 定义扩展事件类。
-\since build 240 。
+\since build 240
 */
 #define DefExtendEventMap(_n, _b) \
 	DefExtendClass1(_n, _b, public)

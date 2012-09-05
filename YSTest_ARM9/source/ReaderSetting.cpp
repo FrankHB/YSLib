@@ -11,17 +11,17 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r250;
+\version r291
 \author FrankHB<frankhb1989@gmail.com>
-\since build 328 。
+\since build 328
 \par 创建时间:
-	2012-07-24 22:14:21 +0800;
+	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2012-08-31 16:12 +0800;
+	2012-09-04 12:57 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::ReaderSetting;
+	YReader::ReaderSetting
 */
 
 
@@ -47,35 +47,46 @@ FetchEncodingString(MTextList::IndexType i)
 }
 
 
-//! \since build 334 。
-//@{
+//! \since build 334
 namespace
 {
 
-inline const string&
-FetchString(ValueNode& node, const string& name)
+//! \since build 335
+//@{
+template<typename _type>
+_type
+FetchSetting(ValueNode&, const string&);
+
+template<>
+inline string
+FetchSetting<string>(ValueNode& node, const string& name)
 {
 	return AccessChild<string>(node, name);
 }
 
+template<>
 int
-FetchSToI(ValueNode& node, const string& name)
+FetchSetting<int>(ValueNode& node, const string& name)
 {
-	return std::stoi(FetchString(node, name));
+	return std::stoi(FetchSetting<string>(node, name));
 }
 
+template<>
 Color
-FetchSToColor(ValueNode& node, const string& name)
+FetchSetting<Color>(ValueNode& node, const string& name)
 {
-	const auto s(FetchString(node, name).c_str());
-	int r, g, b;
+	const auto s(FetchSetting<string>(node, name).c_str());
+	unsigned r, g, b;
 
-	std::sscanf(s, "%d%d%d", &r, &g, &b);
-	return Color(r, g, b);
+	if(std::sscanf(s, "%u%u%u", &r, &g, &b) != 3)
+		throw std::invalid_argument("Color components are not enough.");
+	if(r < 0x100 && g < 0x100 && b < 0x100)
+		return Color(r, g, b);
+	throw std::invalid_argument("Invalid color components found.");
 }
+//@}
 
 } // unnamed namespace;
-//@}
 
 ReaderSetting::ReaderSetting()
 	: UpColor(240, 216, 192), DownColor(192, 216, 240), FontColor(),
@@ -83,12 +94,13 @@ ReaderSetting::ReaderSetting()
 	ScrollDuration(1000), SmoothScrollDuration(80)
 {}
 ReaderSetting::ReaderSetting(ValueNode& node)
-	: UpColor(FetchSToColor(node, "color_up")), DownColor(FetchSToColor(node,
-	"color_dn")), FontColor(FetchSToColor(node, "font_color")), Font(
-	FontFamily(FetchDefaultFontCache(), FetchString(node, "font_family")),
-	FetchSToI(node, "font_size")), SmoothScroll(FetchSToI(node, "smooth_scroll")
-	!= 0), ScrollDuration(FetchSToI(node, "scroll_duration")),
-	SmoothScrollDuration(FetchSToI(node, "smooth_scroll_duration"))
+	: UpColor(FetchSetting<Color>(node, "color_up")), DownColor(
+	FetchSetting<Color>(node, "color_dn")), FontColor(FetchSetting<Color>(node,
+	"font_color")), Font(FontFamily(FetchDefaultFontCache(),
+	FetchSetting<string>(node, "font_family")), FetchSetting<int>(node,
+	"font_size")), SmoothScroll(FetchSetting<int>(node, "smooth_scroll") != 0),
+	ScrollDuration(FetchSetting<int>(node, "scroll_duration")),
+	SmoothScrollDuration(FetchSetting<int>(node, "smooth_scroll_duration"))
 {}
 
 

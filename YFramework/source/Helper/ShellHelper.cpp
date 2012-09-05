@@ -11,17 +11,17 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r382;
+\version r390
 \author FrankHB<frankhb1989@gmail.com>
-\since build 278 。
+\since build 278
 \par 创建时间:
-	2010-04-04 13:42:15 +0800;
+	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2012-08-31 19:13 +0800;
+	2012-09-04 11:55 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	Helper::ShellHelper;
+	Helper::ShellHelper
 */
 
 
@@ -62,7 +62,7 @@ RemoveGlobalTasks()
 namespace
 {
 
-//! \since build 264 。
+//! \since build 264
 inline void
 snftime(char* buf, size_t /*n*/, const std::tm& tm,
 	const char* format = DefaultTimeFormat)

@@ -11,17 +11,17 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1808;
+\version r1817
 \author FrankHB<frankhb1989@gmail.com>
-\since build 247 。
+\since build 247
 \par 创建时间:
-	2009-11-17 17:53:21 +0800;
+	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2012-08-30 20:04 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	CHRLib::StaticMapping;
+	CHRLib::StaticMapping
 */
 
 
@@ -36,7 +36,7 @@ CHRLIB_BEGIN
 
 /*!
 \brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
-\since build 273 。
+\since build 273
 */
 template<typename _tIn, typename _tState>
 inline bool
@@ -59,7 +59,7 @@ FillByte(_tIn& i, _tState& st)
 
 /*!
 \brief 静态编码映射模板及 Unicode 编码特化。
-\since build 245 。
+\since build 245
 */
 //@{
 template<Encoding>
@@ -231,7 +231,7 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 
 /*!
 \brief 取映射函数。
-\since build 273 。
+\since build 273
 */
 //@{
 template<Encoding, typename... _tParams>

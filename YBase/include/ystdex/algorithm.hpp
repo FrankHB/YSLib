@@ -11,17 +11,17 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r324;
+\version r339
 \author FrankHB<frankhb1989@gmail.com>
-\since build 254 。
+\since build 254
 \par 创建时间:
-	2010-05-23 06:10:59 +0800;
+	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-08-30 19:58 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Algorithms;
+	YStandardEx::Algorithms
 */
 
 
@@ -36,7 +36,7 @@ namespace ystdex
 
 /*!	\defgroup algorithms Gerneral Algorithms
 \brief 算法。
-\since build 189 。
+\since build 189
 */
 
 
@@ -47,7 +47,7 @@ namespace ystdex
 \pre 静态断言： <tt>std::is_pod<typename std::remove_reference<_type>::type>
 	::value</tt> 。
 \note 不检查指针是否有效。
-\since build 304 。
+\since build 304
 */
 //@{
 template <class _type>
@@ -121,7 +121,7 @@ pod_move(const _type* first, const _type* last, _type* result)
 \note 输入和输出范围的起始迭代器相同。
 \note 输出范围元素之间的相对顺序和输入的范围保持一致。
 \note 时间复杂度： O(n^2) ，其中 n 满足 std::advance(b, n) == e 。
-\since build 265 。
+\since build 265
 */
 template<typename _tForward>
 _tForward
@@ -142,7 +142,7 @@ stable_range_unique(_tForward first, _tForward last)
 /*!
 \ingroup algorithms
 \brief 插入参数指定的元素到容器。
-\since build 274 。
+\since build 274
 */
 //@{
 template<class _tContainer, typename... _tParams>
@@ -162,7 +162,7 @@ assign(_tContainer& con, const _type(&arr)[_vN])
 /*!
 \ingroup algorithms
 \brief 删除指定序列容器中和指定值的相等的元素。
-\since build 289 。
+\since build 289
 */
 template<typename _tContainer>
 void
@@ -174,7 +174,7 @@ erase_all(_tContainer& c, const typename _tContainer::value_type& val)
 \ingroup algorithms
 \brief 删除指定序列容器中迭代器区间中和指定值的相等的元素。
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
-\since build 289 。
+\since build 289
 */
 template<typename _tContainer, typename _tIn, typename _tValue>
 void
@@ -190,7 +190,7 @@ erase_all(_tContainer& c, _tIn first, _tIn last, const _tValue& value)
 /*!
 \ingroup algorithms
 \brief 删除指定序列容器中满足条件的元素。
-\since build 289 。
+\since build 289
 */
 template<typename _tContainer, typename _fPredicate>
 void
@@ -202,7 +202,7 @@ erase_all_if(_tContainer& c, _fPredicate pred)
 \ingroup algorithms
 \brief 删除指定序列容器中迭代器区间中满足条件的元素。
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
-\since build 289 。
+\since build 289
 */
 template<typename _tContainer, typename _tIn, typename _fPredicate>
 void
@@ -221,7 +221,7 @@ erase_all_if(_tContainer& c, _tIn first, _tIn last, _fPredicate pred)
 \return 一个用于表示结果的 std::pair 对象，其成员 first 为迭代器，
 	second 表示是否不存在而需要插入。
 \note 行为类似 std::map::operator[] 。
-\since build 173 。
+\since build 173
 */
 template<class _tMap>
 std::pair<typename _tMap::iterator, bool>

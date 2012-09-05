@@ -11,17 +11,17 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1363;
+\version r1376
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-03-28 00:09:28 +0800;
+	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2012-08-30 20:10 +0800;
+	2012-09-04 12:14 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YFileSystem;
+	YSLib::Core::YFileSystem
 */
 
 
@@ -39,7 +39,7 @@ const auto CP_Path(Text::CS_Default); //!< 路径编码。
 
 /*!
 \brief 文件系统常量：前缀 FS 表示文件系统 (File System) 。
-\since build 285 。
+\since build 285
 */
 //@{
 yconstexpr const_path_t FS_Root(YCL_PATH_ROOT);
@@ -53,7 +53,7 @@ yconstexpr const ucs2_t* FS_Parent_X(u"..");
 
 /*!
 \brief 本机字符串。
-\since build 285 。
+\since build 285
 */
 typedef GSStringTemplate<NativePathCharType>::basic_string NativeString;
 
@@ -197,12 +197,12 @@ public:
 
 	/*!
 	\brief 复制赋值：默认实现。
-	\since build 295 。
+	\since build 295
 	*/
 	inline DefDeCopyAssignment(Path)
 	/*!
 	\brief 转移赋值：默认实现。
-	\since build 295 。
+	\since build 295
 	*/
 	inline DefDeMoveAssignment(Path)
 
@@ -217,7 +217,7 @@ public:
 	/*!
 	\brief 判断是否表示目录。
 	\note 无视结尾分隔符。
-	\since build 298 。
+	\since build 298
 	*/
 	bool
 	IsDirectory() const;
@@ -360,7 +360,7 @@ public:
 	\brief 正规化结尾分隔符：根据路径表示的实体修正结尾 Slash 。
 	\return 原路径是否改变。
 	\note 忽略空路径或仅由一个分隔符组成的路径。
-	\since build 298 。
+	\since build 298
 
 	当路径表示目录时保证以 Slash 结尾，否则若存在结尾的 Slash 则删除。
 	*/
@@ -539,20 +539,20 @@ ChangeDirectory(const string&);
 /*!
 \brief 取当前工作目录。
 \note 不含结尾分隔符。
-\since build 304 。
+\since build 304
 */
 String
 GetNowDirectory();
 
 /*!
 \brief 验证绝对路径有效性。
-\since build 298 。
+\since build 298
 */
 bool
 ValidatePath(const string&);
 /*!
 \brief 验证绝对路径有效性。
-\since build 298 。
+\since build 298
 */
 inline bool
 ValidatePath(const Path& path)
@@ -597,14 +597,14 @@ public:
 	/*!
 	\brief 导航至绝对路径。
 	\note 若成功同时读取列表。
-	\since build 298 。
+	\since build 298
 	*/
 	bool
 	operator=(const Path&);
 	/*!
 	\brief 导航至相对路径。
 	\note 若成功同时读取列表。
-	\since build 298 。
+	\since build 298
 	*/
 	bool
 	operator/=(const Path&);

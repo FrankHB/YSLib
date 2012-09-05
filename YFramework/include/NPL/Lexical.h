@@ -15,17 +15,17 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1217;
+\version r1231
 \author FrankHB<frankhb1989@gmail.com>
-\since build 335 。
+\since build 335
 \par 创建时间:
-	2012-08-03 23:04:28 +0800;
+	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2012-09-02 18:47 +0800;
+	2012-09-04 11:29 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	NPL::Lexical;
+	NPL::Lexical
 */
 
 
@@ -38,7 +38,7 @@
 
 YSL_BEGIN_NAMESPACE(NPL)
 
-//! \since build 329 。
+//! \since build 329
 //@{
 using ystdex::byte;
 using YSLib::list;
@@ -49,7 +49,7 @@ using YSLib::string;
 \brief 词法分析器。
 \pre 输入兼容于单字节的基本字符集的编码，如基本字符集为 ASCII 时分析 UTF-8 文本。
 \post 解析中间结果除了字面量外不存在空格以外的空白符，但可能有连续的空格。
-\since build 329 。
+\since build 329
 
 以字节为基本单位的词法分析器。
 接受字节输入迭代器的输入，结果存放于 string 中。
@@ -141,7 +141,7 @@ public:
 /*!
 \brief 检查指定字符串是否为字面量。
 \return 若为字面量（首尾字符都为 '\'' 或 '"' 之一），则为首字符，否则为 char() 。
-\since build 304 。
+\since build 304
 \todo 实现 UTF-8 字符串末尾兼容性。
 */
 char
@@ -150,7 +150,7 @@ CheckLiteral(const string&);
 /*!
 \brief 转义字符串：替换指定字符串中的可转义字符。
 \see LexicalAnalyzer 。
-\since build 335 。
+\since build 335
 */
 string
 MakeEscape(const string&);
@@ -158,7 +158,7 @@ MakeEscape(const string&);
 
 /*!
 \brief 判断是否为 NPL 图形分隔符。
-\since build 331 。
+\since build 331
 */
 yconstfn bool
 IsGraphicalDelimeter(char c)
@@ -170,7 +170,7 @@ IsGraphicalDelimeter(char c)
 
 /*!
 \brief 判断是否为 NPL 分隔符。
-\since build 331 。
+\since build 331
 */
 yconstfn bool
 IsDelimeter(char c)
@@ -181,7 +181,7 @@ IsDelimeter(char c)
 
 /*!
 \brief 分解字符串为记号。
-\since build 335 。
+\since build 335
 */
 list<string>
 Decompose(const string&);
@@ -189,7 +189,7 @@ Decompose(const string&);
 /*!
 \brief 记号化：提取字符串列表中的记号。
 \note 排除字面量，分解其余字符串为记号列表。
-\since build 301 。
+\since build 301
 */
 list<string>
 Tokenize(const list<string>&);

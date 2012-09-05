@@ -11,17 +11,17 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r703;
+\version r718
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-17 17:52:35 +0800;
+	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2012-08-30 20:03 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	CHRLib::CharacterProcessing;
+	CHRLib::CharacterProcessing
 */
 
 
@@ -66,7 +66,7 @@ ToASCII(_tChar c)
 
 /*!
 \brief 按指定编码和转换状态转换字符串中字符为 UCS-2 字符，返回转换的字节数。
-\since build 291 。
+\since build 291
 */
 //@{
 ConversionResult
@@ -79,7 +79,7 @@ MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState& st)
 //@}
 /*!
 \brief 按指定编码和转换状态转换字符流中字符为 UCS-2 字符，返回转换的字节数。
-\since build 291 。
+\since build 291
 */
 //@{
 ConversionResult
@@ -92,7 +92,7 @@ MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState& st)
 //@}
 /*!
 \brief 按指定编码和转换状态返回转换字符为 UCS-2 字符的字节数。
-\since build 291 。
+\since build 291
 */
 //@{
 ConversionResult
@@ -113,7 +113,7 @@ MBCToUC(std::FILE* fp, Encoding enc, ConversionState& st)
 
 /*!
 \brief 按指定编码转换 UCS-2 字符中字符为字符串表示的多字节字符，返回转换的字节数。
-\since build 305 。
+\since build 305
 */
 size_t
 UCToMBC(char*, const ucs2_t&, Encoding);
@@ -121,14 +121,14 @@ UCToMBC(char*, const ucs2_t&, Encoding);
 
 /*!
 \brief 按指定编码转换 MBCS 字符串为 UTF-16LE 字符串，返回转换的串长。
-\since build 291 。
+\since build 291
 */
 size_t
 MBCSToUCS2(ucs2_t*, const char*, Encoding = CS_Default);
 
 /*!
 \brief 按指定编码转换 UTF-16LE 字符串为 MBCS 字符串，返回转换的串长。
-\since build 291 。
+\since build 291
 */
 size_t
 UCS2ToMBCS(char*, const ucs2_t*, Encoding = CS_Default);
@@ -141,7 +141,7 @@ UCS4ToUCS2(ucs2_t*, const ucs4_t*);
 
 /*!
 \brief 取指定编码的多字节字符串。
-\since build 305 。
+\since build 305
 */
 template<class _tDst, class _tSrc>
 _tDst
@@ -159,7 +159,7 @@ GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 /*!
 \brief 复制 UCS-2LE 字符串为多字节字符串。
 \note 空间由 std::free 释放。
-\since build 305 。
+\since build 305
 */
 char*
 strdup(const ucs2_t*, Encoding = CS_Default);
@@ -167,7 +167,7 @@ strdup(const ucs2_t*, Encoding = CS_Default);
 /*!
 \brief 复制多字节字符串为 UCS-2/UTF-16LE 字符串。
 \note 空间由 std::free 释放。
-\since build 291 。
+\since build 291
 */
 ucs2_t*
 ucsdup(const char*, Encoding = CS_Default);

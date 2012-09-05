@@ -11,15 +11,15 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r217;
+\version r228
 \author FrankHB<frankhb1989@gmail.com>
-\since build 203 。
+\since build 203
 \par 创建时间:
-	2011-04-19 23:00:28 +0800;
+	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2012-08-30 20:20 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
 	YSLib::UI::Viewer
 */
@@ -37,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 /*!
 \brief 序列视图类模板。
-\since build 147 。
+\since build 147
 */
 template<class _tContainer>
 class GSequenceViewer
@@ -45,7 +45,7 @@ class GSequenceViewer
 public:
 	/*!
 	\brief 容器类型。
-	\since build 292 。
+	\since build 292
 	*/
 	typedef _tContainer ContainerType;
 	typedef typename _tContainer::size_type SizeType; //!< 项目下标类型。
@@ -56,7 +56,7 @@ private:
 	/*!
 	\brief 序列容器指针。
 	\note 非空。
-	\since build 292 。
+	\since build 292
 	*/
 	_tContainer* pContainer;
 	SizeType head; //!< 视图中首个项目下标，大于等于 GetTotal() 时无效。
@@ -113,7 +113,7 @@ public:
 	/*!
 	\brief 设置容器。
 	\note 若容器和之前不同则重置视图。
-	\since build 292 。
+	\since build 292
 	*/
 	void
 	SetContainer(ContainerType& con)
@@ -241,7 +241,7 @@ public:
 
 	/*!
 	\brief 复位视图。
-	\since build 298 。
+	\since build 298
 	*/
 	void
 	Reset()

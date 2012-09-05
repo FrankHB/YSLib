@@ -11,17 +11,17 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r709;
+\version r716
 \author FrankHB<frankhb1989@gmail.com>
-\since build 312 。
+\since build 312
 \par 创建时间:
-	2012-05-30 22:41:35 +0800;
+	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2012-08-31 16:56 +0800;
+	2012-09-04 11:55 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::FileSystem;
+	YCLib::FileSystem
 */
 
 
@@ -33,7 +33,7 @@
 #elif YCL_MINGW32
 #include <Shlwapi.h> // for ::PathIsRelativeW;
 
-//! \since build 312 。
+//! \since build 312
 //@{
 extern "C"
 {

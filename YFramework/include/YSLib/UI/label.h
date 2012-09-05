@@ -11,17 +11,17 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1232;
+\version r1247
 \author FrankHB<frankhb1989@gmail.com>
-\since build 188 。
+\since build 188
 \par 创建时间:
-	2011-01-22 08:30:47 +0800;
+	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2012-08-30 20:15 +0800;
+	2012-09-04 12:03 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::Label;
+	YSLib::UI::Label
 */
 
 
@@ -60,12 +60,12 @@ public:
 	/*!
 	\brief 文本水平和竖直对齐属性。
 	\note 只在停用自动换行且可完整显示时有效。
-	\since build 208 。
+	\since build 208
 	*/
 	TextAlignment HorizontalAlignment, VerticalAlignment;
 	/*!
 	\brief 启用自动换行。
-	\since build 309 。
+	\since build 309
 	*/
 	bool AutoWrapLine;
 //	bool AutoSize; //!< 启用根据字号自动调整大小。
@@ -97,7 +97,7 @@ public:
 	using MLabel::Margin;
 	using MLabel::HorizontalAlignment;
 	using MLabel::VerticalAlignment;
-	//! \since build 308 。
+	//! \since build 308
 	using MLabel::AutoWrapLine;
 	using MLabel::Text;
 /*
@@ -117,7 +117,7 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294 。
+	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
@@ -166,7 +166,7 @@ public:
 	GetItemPtr(IndexType) const;
 	/*!
 	\brief 取项目行高。
-	\since build 301 。
+	\since build 301
 	*/
 	DefGetter(const ynothrow, SDst, ItemHeight,
 		GetTextLineHeightExOf(text_state))
@@ -174,14 +174,14 @@ public:
 protected:
 	/*!
 	\brief 取文本状态。
-	\since build 301 。
+	\since build 301
 	*/
 	DefGetter(ynothrow, Drawing::TextState&, TextState, text_state)
 
 public:
 	/*!
 	\brief 取文本列表中的最大文本宽度。
-	\since build 282 。
+	\since build 282
 	*/
 	SDst
 	GetMaxTextWidth() const;
@@ -189,7 +189,7 @@ public:
 	/*!
 	\brief 设置文本列表。
 	\note 若参数为空则忽略。
-	\since build 292 。
+	\since build 292
 	*/
 	void
 	SetList(const shared_ptr<ListType>& h)
@@ -201,7 +201,7 @@ public:
 	/*!
 	\brief 查找项。
 	\return 若找到则返回对应索引，否则返回 <tt>IndexType(-1)</tt> 。
-	\since build 316 。
+	\since build 316
 	*/
 	IndexType
 	Find(const ItemType&) const;

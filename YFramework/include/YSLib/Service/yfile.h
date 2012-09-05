@@ -11,17 +11,17 @@
 /*!	\file yfile.h
 \ingroup Core
 \brief 平台无关的文件抽象。
-\version r1039;
+\version r1060
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-24 23:14:41 +0800;
+	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-08-30 20:13 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YFile;
+	YSLib::Core::YFile
 */
 
 
@@ -35,7 +35,7 @@ YSL_BEGIN
 
 /*!
 \brief 文件基类。
-\since build 206 。
+\since build 206
 */
 class File : private noncopyable
 {
@@ -52,7 +52,7 @@ public:
 	/*!
 	\brief 构造：使用指定文件路径初始化对象。
 	\note 自动打开文件。
-	\since build 326 。
+	\since build 326
 	*/
 	//@
 	explicit
@@ -71,14 +71,14 @@ public:
 
 	/*!
 	\brief 判断无效性。
-	\since build 319 。
+	\since build 319
 	*/
 	PDefHOp(bool, !) const ynothrow
 		ImplRet(!bool(*this))
 
 	/*!
 	\brief 判断有效性。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit DefCvt(const ynothrow, bool, fp)
 
@@ -92,7 +92,7 @@ public:
 	/*!
 	\brief 设置文件指针位置。
 	\note 参数和返回值语义同 \c std::fseek 。
-	\since build 273 。
+	\since build 273
 	*/
 	PDefH(int, Seek, ptrdiff_t offset, int whence) const
 		ImplRet(std::fseek(fp, offset, whence))
@@ -107,7 +107,7 @@ public:
 private:
 	/*!
 	\brief 检查文件有效长度后读位置返回文件起始。
-	\since build 305 。
+	\since build 305
 	*/
 	void
 	CheckSize();
@@ -127,7 +127,7 @@ public:
 	\note 语义同 \c std::fflush 。
 	\warning 刷新输入流或最近操作为输入的流导致未定义行为。
 	\see ISO C11 7.21.5.2 。
-	\since build 329 。
+	\since build 329
 	*/
 	PDefH(int, Flush) const
 		ImplRet(std::fflush(fp))
@@ -137,7 +137,7 @@ public:
 	\note 语义同 \c std::fopen 。
 	\note 对于输入 \c openmode ，使用 ystdex::openmode_conv 转换。
 	\see ISO C11 7.21.5.3 。
-	\since build 326 。
+	\since build 326
 	*/
 	//@{
 	bool
@@ -155,7 +155,7 @@ public:
 	\return 返回成功读取的文件块数。
 	\note 语义同 \c std::fread 。
 	\see ISO C11 7.21.8.1 。
-	\since build 290 。
+	\since build 290
 	*/
 	PDefH(size_t, Read, void* ptr, size_t size = 1U, size_t nmemb = 1U) const
 		ImplRet(std::fread(ptr, size, nmemb, fp))
@@ -171,7 +171,7 @@ public:
 	\return 返回成功写入的文件块数。
 	\note 语义同 \c std::fwrite 。
 	\see ISO C11 7.21.8.2 。
-	\since build 329 。
+	\since build 329
 	*/
 	PDefH(size_t, Write, void* ptr, size_t size = 1U, size_t nmemb = 1U) const
 		ImplRet(std::fwrite(ptr, size, nmemb, fp))
@@ -181,7 +181,7 @@ public:
 \brief 从指定文件读字符。
 \param f 文件。
 \pre <tt>bool(f)</tt> 。
-\since build 326 。
+\since build 326
 */
 template<typename _tChar>
 File&
@@ -198,7 +198,7 @@ operator>>(File& f, typename std::char_traits<_tChar>::char_type& c)
 \brief 从指定文件读空白符分隔的字符串。
 \param f 文件。
 \pre <tt>bool(f)</tt> 。
-\since build 326 。
+\since build 326
 */
 template<typename _tString>
 File&
@@ -219,7 +219,7 @@ operator>>(File& f, _tString& str)
 \brief 向指定文件写字符。
 \param f 文件。
 \pre <tt>bool(f)</tt> 。
-\since build 326 。
+\since build 326
 */
 inline File&
 operator<<(File& f, char c)
@@ -233,7 +233,7 @@ operator<<(File& f, char c)
 \brief 向指定文件写字符串。
 \param f 文件。
 \pre <tt>bool(f)</tt> 。
-\since build 326 。
+\since build 326
 */
 inline File&
 operator<<(File& f, const char* str)
@@ -247,7 +247,7 @@ operator<<(File& f, const char* str)
 \brief 向指定文件写字符串。
 \param f 文件。
 \pre <tt>bool(f)</tt> 。
-\since build 326 。
+\since build 326
 \todo 支持非 char 元素字符串。
 */
 template<typename _tString>

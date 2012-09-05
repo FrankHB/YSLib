@@ -11,17 +11,17 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1867;
+\version r1879
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-16 20:06:58 +0800;
+	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-08-30 20:19 +0800;
+	2012-09-04 12:00 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YGUI;
+	YSLib::UI::YGUI
 */
 
 
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 /*!
 \brief 输入计时器。
 \warning 非虚析构。
-\since build 300 。
+\since build 300
 
 实现两段延时的持续输入状态计时器。
 */
@@ -65,7 +65,7 @@ public:
 
 	/*!
 	\brief 延迟。
-	\since build 302 。
+	\since build 302
 	*/
 	PDefH(void, Delay, const Duration& d)
 		ImplBodyMem(timer, Delay, d)
@@ -88,7 +88,7 @@ public:
 /*!
 \brief 向指定计时器传递参数，根据状态重复按键。
 \return 当且仅当结果为 true 时或之前状态为 HeldStateType::Free 时为 true 。
-\since build 300 。
+\since build 300
 */
 bool
 RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
@@ -98,20 +98,20 @@ RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
 /*!
 \brief 图形用户界面公共状态。
 \warning 非虚析构。
-\since build 287 。
+\since build 287
 */
 class GUIState
 {
 public:
 	/*!
 	\brief 输入接触状态。
-	\since build 300 。
+	\since build 300
 	*/
 	InputTimer::HeldStateType KeyHeldState, TouchHeldState;
 	Drawing::Vec DraggingOffset; //!< 拖放偏移量。
 	/*!
 	\brief 输入接触保持计时器。
-	\since build 300 。
+	\since build 300
 	*/
 	InputTimer HeldTimer;
 	Drawing::Point ControlLocation, LastControlLocation; \
@@ -188,7 +188,7 @@ public:
 
 /*!
 \brief 取默认图形用户界面公共状态。
-\since build 287 。
+\since build 287
 */
 GUIState&
 FetchGUIState();
@@ -196,7 +196,7 @@ FetchGUIState();
 
 /*
 \brief 判断指定部件是否被句柄指定的图形用户界面状态锁定为独立焦点。
-\since build 287 。
+\since build 287
 */
 inline bool
 IsFocusedByShell(const IWidget& wgt, const GUIState& st = FetchGUIState())

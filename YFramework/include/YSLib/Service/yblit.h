@@ -11,17 +11,17 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1334;
+\version r1367
 \author FrankHB<frankhb1989@gmail.com>
-\since build 219 。
+\since build 219
 \par 创建时间:
-	2011-06-16 19:43:24 +0800;
+	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2012-08-30 20:13 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::YBlit;
+	YSLib::Service::YBlit
 */
 
 
@@ -39,13 +39,13 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 /*!
 \brief Alpha 光栅化源迭代器对。
-\since build 189 。
+\since build 189
 */
 typedef ystdex::pair_iterator<ConstBitmapPtr, const u8*> IteratorPair;
 
 /*!
 \brief Alpha 单色光栅化源迭代器对。
-\since build 189 。
+\since build 189
 */
 typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
 	const u8*> MonoIteratorPair;
@@ -55,7 +55,7 @@ typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
 
 /*!
 \brief 像素填充器。
-\since build 182 。
+\since build 182
 */
 template<typename _tPixel>
 struct PixelFiller
@@ -82,7 +82,7 @@ struct PixelFiller
 
 /*!
 \brief 序列转换器。
-\since build 182 。
+\since build 182
 */
 struct SequenceTransformer
 {
@@ -105,7 +105,7 @@ struct SequenceTransformer
 
 /*!
 \brief 竖直线转换器。
-\since build 182 。
+\since build 182
 */
 struct VerticalLineTransfomer
 {
@@ -128,7 +128,7 @@ struct VerticalLineTransfomer
 
 /*!
 \brief 贴图边界计算器。
-\since build 189 。
+\since build 189
 */
 bool
 BlitBounds(const Point& dp, const Point& sp,
@@ -137,7 +137,7 @@ BlitBounds(const Point& dp, const Point& sp,
 
 /*!
 \brief 贴图偏移量计算器。
-\since build 315 。
+\since build 315
 */
 //@{
 template<bool _bSwapLR, bool _bSwapUD>
@@ -174,7 +174,7 @@ BlitScale<true, true>(const Point&, const Size&, int, int);
 \param dp 目标迭代器起始点所在缓冲区偏移。
 \param sp 源迭代器起始点所在缓冲区偏移。
 \param sc 源迭代器需要复制的区域大小。
-\since build 182 。
+\since build 182
 */
 template<template<bool> class _gBlitLoop, bool _bSwapLR, bool _bSwapUD,
 	typename _tOut, typename _tIn>
@@ -199,7 +199,7 @@ Blit(_tOut dst, const Size& ds, _tIn src, const Size& ss,
 
 /*!
 \brief 正则矩形转换器。
-\since build 266 。
+\since build 266
 */
 struct RectTransformer
 {
@@ -258,7 +258,7 @@ struct RectTransformer
 
 /*!
 \brief 清除指定位置的 n 个连续像素。
-\since build 322 。
+\since build 322
 */
 template<typename _tPixel>
 inline _tPixel*
@@ -270,7 +270,7 @@ ClearPixel(_tPixel* dst, size_t n) ynothrow
 
 /*!
 \brief 使用 n 个指定像素连续填充指定位置。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 template<typename _tPixel>
 inline void
@@ -281,7 +281,7 @@ FillPixel(_tPixel* dst, size_t n, _tPixel c)
 
 /*!
 \brief 使用 n 个指定像素竖直填充指定位置。
-\since build 182 。
+\since build 182
 */
 template<typename _tPixel>
 inline void
@@ -292,7 +292,7 @@ FillVerticalLine(_tPixel* dst, size_t n, SDst dw, _tPixel c)
 
 /*!
 \brief 使用指定像素填充指定的正则矩形区域。
-\since build 160 。
+\since build 160
 */
 template<typename _tPixel>
 inline void
@@ -304,7 +304,7 @@ FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss,
 }
 /*!
 \brief 使用指定像素填充指定的正则矩形区域。
-\since build 151 。
+\since build 151
 */
 template<typename _tPixel>
 inline void
@@ -315,7 +315,7 @@ FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 }
 /*!
 \brief 使用指定像素填充指定的正则矩形区域。
-\since build 160 。
+\since build 160
 */
 template<typename _tPixel>
 inline void
@@ -332,7 +332,7 @@ FillRect(_tPixel* dst, SDst dw, SDst dh, SPos sx, SPos sy, SDst sw, SDst sh,
 /*!
 \brief 循环：按指定扫描顺序复制一行像素。
 \note 不检查迭代器有效性。
-\since build 189 。
+\since build 189
 */
 //@{
 template<bool _bPositiveScan>
@@ -358,7 +358,7 @@ BlitLine<false>(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
 /*!
 \brief 循环：按指定扫描顺序复制一块矩形区域的像素。
 \warning 不检查迭代器有效性。
-\since build 189 。
+\since build 189
 */
 template<bool _bPositiveScan>
 struct BlitLoop
@@ -381,7 +381,7 @@ struct BlitLoop
 \brief 循环：按指定扫描顺序复制一块矩形区域的像素。
 \warning 不检查迭代器有效性。
 \note 透明性复制。
-\since build 189 。
+\since build 189
 */
 template<bool _bPositiveScan>
 struct BlitTransparentLoop
@@ -465,7 +465,7 @@ yconstexpr u32 BLT_ROUND_BR(BLT_ROUND | BLT_ROUND << 16);
 
 /*
 \brief AXYZ1555 格式 PixelType 的 Alpha 混合。
-\since build 189 。
+\since build 189
 
 使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
 输出分量： dst := (1 - alpha) * d + alpha * s
@@ -504,7 +504,7 @@ blitAlphaBlend(u32 d, u32 s, u8 a)
 
 /*
 \brief Alpha 分量混合。
-\since build 297 。
+\since build 297
 
 输出分量： dst := (1 - alpha) * d + alpha * s
 = ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
@@ -518,7 +518,7 @@ component_blend(u8 d, u8 s, u8 a)
 
 /*
 \brief Alpha 混合。
-\since build 297 。
+\since build 297
 
 使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
 背景透明， 输出 Alpha 饱和。
@@ -570,7 +570,7 @@ biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
 \brief 循环：按指定扫描顺序复制一块矩形区域的像素。
 \warning 不检查迭代器有效性。
 \note 透明度 Alpha 混合。
-\since build 189 。
+\since build 189
 */
 template<bool _bPositiveScan>
 struct BlitBlendLoop
@@ -599,7 +599,7 @@ struct BlitBlendLoop
 
 /*!
 \brief 以像素为单位变换正则矩形。
-\since build 166 。
+\since build 166
 */
 template<class _fTransformPixel>
 bool
@@ -616,7 +616,7 @@ TransformRect(const Graphics& g, const Point& pt, const Size& s,
 }
 /*!
 \brief 以像素为单位变换正则矩形。
-\since build 166 。
+\since build 166
 */
 template<class _fTransformPixel>
 inline bool
@@ -630,21 +630,21 @@ TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 \brief 以第一个参数作为目标，复制第二个参数的缓冲区内容。
 \pre 断言：指针非空；大小相等。
 \note 缓冲区指针相等时忽略。
-\since build 177 。
+\since build 177
 */
 void
 CopyBuffer(const Graphics&, const Graphics&);
 
 /*!
 \brief 清除图形接口上下文缓冲区。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 void
 ClearImage(const Graphics&);
 
 /*!
 \brief 使用指定颜色填充图形接口上下文缓冲区。
-\since build 177 。
+\since build 177
 */
 void
 Fill(const Graphics&, Color);

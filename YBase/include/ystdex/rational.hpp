@@ -11,17 +11,17 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1146;
+\version r1156
 \author FrankHB<frankhb1989@gmail.com>
-\since build 260 。
+\since build 260
 \par 创建时间:
-	2011-11-12 23:23:47 +0800;
+	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2012-08-30 20:01 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Rational;
+	YStandardEx::Rational
 */
 
 
@@ -39,7 +39,7 @@ namespace ystdex
 
 /*!
 \brief 取无符号数的以 2 为底的整数次幂。
-\since build 260 。
+\since build 260
 */
 template<typename _tDst, typename _tSrc>
 yconstfn _tDst
@@ -51,7 +51,7 @@ exp2u(_tSrc n) ynothrow
 
 /*!
 \brief 定点数乘除法中间类型。
-\since build 260 。
+\since build 260
 \todo 保持 64 位类型精度。
 */
 template<typename _type>
@@ -89,7 +89,7 @@ struct fixed_multiplicative<std::uint64_t>
 \warning 算术运算可能溢出。
 \note 默认保留 6 位二进制小数。
 \note 部分实现参考： http://www.codeproject.com/KB/cpp/fp_math.aspx 。
-\since build 260 。
+\since build 260
 */
 template<typename _tBase = std::int32_t,
 	size_t _vInt = std::numeric_limits<_tBase>::digits - 6U,
@@ -348,7 +348,7 @@ namespace std
 
 /*!
 \brief std::numeric_traits 的 ystdex::fixed_point 特化类型。
-\since build 260 。
+\since build 260
 */
 template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
 struct numeric_limits<ystdex::fixed_point<_tBase, _vInt, _vFrac>>

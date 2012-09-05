@@ -11,17 +11,17 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r144;
+\version r155
 \author FrankHB<frankhb1989@gmail.com>
-\since build 313 。
+\since build 313
 \par 创建时间:
-	2009-06-01 14:29:56 +0800;
+	2009-06-01 14:29:56 +0800
 \par 修改时间:
-	2012-08-30 20:06 +0800;
+	2012-09-04 12:27 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::Keys;
+	YCLib::Keys
 */
 
 
@@ -38,14 +38,14 @@ namespace platform
 /*!
 \brief 按键并行位宽。
 \note 不少于实际表示的 KeyPad 按键数。
-\since build 298 。
+\since build 298
 */
 yconstexpr std::size_t KeyBitsetWidth(32);
 #elif YCL_MINGW32
 /*!
 \brief 按键并行位宽。
 \note 不少于实际表示的键盘按键数。
-\since build 298 。
+\since build 298
 */
 yconstexpr std::size_t KeyBitsetWidth(256);
 #else
@@ -54,7 +54,7 @@ yconstexpr std::size_t KeyBitsetWidth(256);
 
 /*!
 \brief 本机输入类型。
-\since build 298 。
+\since build 298
 
 支持并行按键的缓冲区数据类型。
 */
@@ -64,7 +64,7 @@ typedef std::bitset<KeyBitsetWidth> KeyInput;
 /*!
 \brief 本机按键编码。
 \note MinGW32 下的 KeyCodes 中仅含每个实现默认需要支持的基本集合。
-\since build 298 。
+\since build 298
 */
 namespace KeyCodes
 {
@@ -105,7 +105,7 @@ const NativeSet
 #define VK_DOWN 0x28
 /*!
 \brief 基本公用按键集合。
-\since build 297 。
+\since build 297
 */
 //@{
 typedef enum

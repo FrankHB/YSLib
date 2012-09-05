@@ -11,17 +11,17 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r880;
+\version r901
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 189 。
+\since 早于 build 189
 \par 创建时间:
-	2011-01-27 23:01:00 +0800;
+	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-08-30 20:01 +0800;
+	2012-09-04 12:32 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YStandardEx::Iterator;
+	YStandardEx::Iterator
 */
 
 
@@ -51,7 +51,7 @@ namespace ystdex
 /*!
 \ingroup iterator_adaptors
 \brief 指针迭代器。
-\since build 290 。
+\since build 290
 
 转换指针为类类型的随机迭代器。
 */
@@ -168,7 +168,7 @@ public:
 /*!
 \ingroup meta_operations
 \brief 指针包装为类类型迭代器。
-\since build 290 。
+\since build 290
 
 若参数是指针类型则包装为 pointer_iterator 。
 */
@@ -307,7 +307,7 @@ public:
 /*!
 \ingroup iterator_adaptors
 \brief 转换迭代器。
-\since build 288 。
+\since build 288
 
 使用指定参数隐藏指定迭代器的间接操作的迭代器适配器。
 */
@@ -317,7 +317,7 @@ class transformed_iterator : public pointer_classify<_tIterator>::type
 public:
 	/*!
 	\brief 原迭代器类型。
-	\since build 290 。
+	\since build 290
 	*/
 	typedef typename pointer_classify<typename
 		remove_reference<_tIterator>::type>::type iterator_type;
@@ -361,7 +361,7 @@ public:
 
 	/*!
 	\brief 转换为原迭代器引用。
-	\since build 290 。
+	\since build 290
 	*/
 	inline
 	operator iterator_type&()
@@ -371,7 +371,7 @@ public:
 
 	/*!
 	\brief 转换为原迭代器 const 引用。
-	\since build 290 。
+	\since build 290
 	*/
 	yconstfn
 	operator const iterator_type&() const
@@ -381,7 +381,7 @@ public:
 
 	/*!
 	\brief 取原迭代器引用。
-	\since build 290 。
+	\since build 290
 	*/
 	inline iterator_type&
 	get()
@@ -391,7 +391,7 @@ public:
 
 	/*!
 	\brief 取原迭代器 const 引用。
-	\since build 290 。
+	\since build 290
 	*/
 	yconstfn const iterator_type&
 	get() const
@@ -404,7 +404,7 @@ public:
 /*!
 \ingroup helper_functions
 \brief 创建转换迭代器。
-\since build 288 。
+\since build 288
 */
 template<typename _tIterator, typename _fTransformer>
 inline transformed_iterator<typename array_ref_decay<_tIterator>::type,
@@ -418,7 +418,7 @@ make_transform(_tIterator&& i, _fTransformer&& f)
 
 /*!
 \brief 成对迭代操作。
-\since build 288 。
+\since build 288
 */
 template<typename _tIterator>
 struct pair_iterate
@@ -444,7 +444,7 @@ struct pair_iterate
 
 /*!
 \brief 操纵子。
-\since build 288 。
+\since build 288
 */
 //@{
 yconstexpr first_tag get_first = {}, get_key = {};
@@ -454,7 +454,7 @@ yconstexpr second_tag get_second = {}, get_value = {};
 
 /*!
 \brief 管道匹配操作符。
-\since build 288 。
+\since build 288
 */
 template<typename _tIterator>
 inline auto
@@ -652,12 +652,12 @@ struct common_iterator_base
 protected:
 	/*!
 	\brief 无参数构造： \c protected 默认实现。
-	\since build 296 。
+	\since build 296
 	*/
 	yconstfn common_iterator_base() = default;
 	/*!
 	\brief 复制构造： \c protected 默认实现。
-	\since build 296 。
+	\since build 296
 	*/
 	yconstfn common_iterator_base(const common_iterator_base&) = default;
 };
@@ -714,12 +714,12 @@ struct iterator_operations : public common_iterator_base
 protected:
 	/*!
 	\brief 无参数构造： \c protected 默认实现。
-	\since build 296 。
+	\since build 296
 	*/
 	yconstfn iterator_operations() = default;
 	/*!
 	\brief 复制构造： \c protected 默认实现。
-	\since build 296 。
+	\since build 296
 	*/
 	yconstfn iterator_operations(const iterator_operations&) = default;
 };

@@ -11,17 +11,17 @@
 /*!	\file yres.h
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r535;
+\version r543
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-28 16:46:40 +0800;
+	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2012-08-30 20:13 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Service::YResource;
+	YSLib::Service::YResource
 */
 
 
@@ -35,7 +35,7 @@ YSL_BEGIN
 
 /*!
 \brief 资源接口。
-\since build 174 。
+\since build 174
 */
 DeclI(IResource)
 EndDecl
@@ -47,7 +47,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 /*!
 \brief 图像资源。
-\since build 205 。
+\since build 205
 */
 class Image : public BitmapBuffer,
 	implements IResource

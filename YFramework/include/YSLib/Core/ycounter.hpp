@@ -11,17 +11,17 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r735;
+\version r748
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-02-09 20:43:52 +0800;
+	2010-02-09 20:43:52 +0800
 \par 修改时间:
-	2012-08-31 18:51 +0800;
+	2012-09-04 12:24 +0800
 \par 字符集:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YCounter;
+	YSLib::Core::YCounter
 */
 
 
@@ -34,7 +34,7 @@ YSL_BEGIN
 
 /*!
 \brief 模板类实例计数器。
-\since 早于 build 132 。
+\since 早于 build 132
 */
 template<class _type, typename count_t = u32>
 class GMCounter
@@ -47,7 +47,7 @@ public:
 	/*!
 	\brief 构造。
 	\note 实例生成计数和实例计数自增。
-	\since build 319 。
+	\since build 319
 	*/
 	GMCounter() ynothrow
 		: nID(nCount++)
@@ -57,7 +57,7 @@ public:
 	/*!
 	\brief 复制构造。
 	\note 实例生成计数和实例计数自增。
-	\since build 319 。
+	\since build 319
 	*/
 	inline
 	GMCounter(const GMCounter&) ynothrow
@@ -75,7 +75,7 @@ protected:
 	/*!
 	\brief 析构。
 	\note 实例计数自减。
-	\since build 319 。
+	\since build 319
 	*/
 	~GMCounter() ynothrow
 	{
@@ -93,7 +93,7 @@ public:
 protected:
 	/*!
 	\brief 复位实例生成计数。
-	\since build 319 。
+	\since build 319
 	*/
 	static void
 	ResetCount() ynothrow
@@ -103,7 +103,7 @@ protected:
 
 	/*!
 	\brief 复位实例计数。
-	\since build 319 。
+	\since build 319
 	*/
 	static void
 	ResetTotal() ynothrow
@@ -113,7 +113,7 @@ protected:
 
 	/*!
 	\brief 复位实例标识序列号。
-	\since build 319 。
+	\since build 319
 	*/
 	void
 	ResetID() ynothrow

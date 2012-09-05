@@ -11,17 +11,17 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1770;
+\version r1795
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-06 02:44:31 +0800;
+	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-08-30 20:10 +0800;
+	2012-09-04 12:15 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YMessage;
+	YSLib::Core::YMessage
 */
 
 
@@ -38,18 +38,18 @@ YSL_BEGIN_NAMESPACE(Messaging)
 
 /*!
 \brief 消息标识。
-\since build 175 。
+\since build 175
 */
 typedef u32 ID;
 /*!
 \brief 消息优先级。
-\since build 175 。
+\since build 175
 */
 typedef u8 Priority;
 
 /*!
 \brief 消息默认有效期。
-\since build 175 。
+\since build 175
 */
 const std::time_t DefTimeout(0);
 
@@ -57,7 +57,7 @@ const std::time_t DefTimeout(0);
 /*!
 \brief 消息。
 \warning 非虚析构。
-\since build 145 。
+\since build 145
 */
 class Message
 {
@@ -70,7 +70,7 @@ private:
 public:
 	/*!
 	\brief 构造：使用消息标识和消息内容。
-	\since build 320 。
+	\since build 320
 	*/
 	//@{
 	Message(ID = 0, const ValueObject& = ValueObject());
@@ -83,7 +83,7 @@ public:
 	DefDeCopyCtor(Message)
 	/*!
 	\brief 转移构造。
-	\since build 317 。
+	\since build 317
 	*/
 	Message(Message&&);
 
@@ -95,7 +95,7 @@ public:
 	}
 	/*!
 	\brief 成员赋值：使用值类型对象。
-	\since build 296 。
+	\since build 296
 	*/
 	Message&
 	operator=(ValueObject&& c) ynothrow
@@ -105,7 +105,7 @@ public:
 	}
 	/*
 	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
-	\since build 331 。
+	\since build 331
 	*/
 	Message&
 	operator=(Message msg) ynothrow
@@ -116,7 +116,7 @@ public:
 
 	/*!
 	\brief 判断无效性。
-	\since build 319 。
+	\since build 319
 	*/
 	PDefHOp(bool, !) const ynothrow
 		ImplRet(!bool(*this))
@@ -128,14 +128,14 @@ public:
 	operator==(const Message&, const Message&);
 	/*!
 	\brief 消息优先级比较函数。
-	\since build 272 。
+	\since build 272
 	*/
 	friend bool
 	operator<(const Message&, const Message&);
 
 	/*!
 	\brief 判断有效性。
-	\since build 319 。
+	\since build 319
 	*/
 	explicit DefCvt(const ynothrow, bool, id)
 
@@ -155,7 +155,7 @@ public:
 \brief 消息队列。
 \note 使用 multiset 模拟。
 \warning 非虚析构。
-\since build 211 。
+\since build 211
 */
 class MessageQueue : private noncopyable,
 	private multimap<Priority, Message, std::greater<Priority>>
@@ -164,7 +164,7 @@ public:
 	typedef size_type SizeType;
 	/*!
 	\brief 迭代器。
-	\since build 317 。
+	\since build 317
 	*/
 	typedef const_iterator Iterator;
 
@@ -190,7 +190,7 @@ public:
 	/*!
 	\brief 取消息队列中消息的最大优先级。
 	\return 若消息队列为空则 0 ，否则为最大优先级。
-	\since build 288 。
+	\since build 288
 	*/
 	DefGetter(const ynothrow, Priority, MaxPriority,
 		empty() ? 0 : begin()->first)
@@ -204,7 +204,7 @@ public:
 	/*!
 	\brief 从队列中删除迭代器指定的消息。、
 	\pre 迭代器从属于本消息队列。
-	\since build 317 。
+	\since build 317
 	*/
 	PDefH(bool, Erase, Iterator i)
 		ImplRet(erase(i) != end())
@@ -218,7 +218,7 @@ public:
 	/*!
 	\brief 从消息队列中取优先级最高的消息存至 msg 中。
 	\note 在队列中保留消息；不检查消息是否有效。
-	\since build 271 。
+	\since build 271
 	*/
 	void
 	Peek(Message& msg) const
@@ -240,7 +240,7 @@ public:
 
 	/*!
 	\brief 若消息有效，以指定优先级插入至消息队列中。
-	\since build 317 。
+	\since build 317
 	*/
 	void
 	Push(const Message& msg, Priority prior)
@@ -250,7 +250,7 @@ public:
 	}
 	/*!
 	\brief 若消息有效，以指定优先级插入至消息队列中。
-	\since build 317 。
+	\since build 317
 	*/
 	void
 	Push(const Message&& msg, Priority prior)
@@ -261,7 +261,7 @@ public:
 
 	/*!
 	\brief 移除不大于指定优先级的消息。
-	\since build 320 。
+	\since build 320
 	*/
 	void
 	Remove(Priority);

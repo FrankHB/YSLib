@@ -11,17 +11,17 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1535;
+\version r1551
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-27 17:12:27 +0800;
+	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2012-08-30 20:09 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YApplication;
+	YSLib::Core::YApplication
 */
 
 
@@ -37,7 +37,7 @@ using Messaging::MessageQueue;
 
 /*!
 \brief 程序实例。
-\since build 243 。
+\since build 243
 */
 class Application : public Shell
 {
@@ -75,14 +75,14 @@ public:
 	/*!
 	\brief 处理消息：分发消息。
 	\pre 断言检查：当前 Shell 句柄有效。
-	\since build 317 。
+	\since build 317
 	*/
 	void
 	OnGotMessage(const Message&) override;
 
 	/*!
 	\brief 从备份消息队列恢复所有消息。
-	\since build 272 。
+	\since build 272
 	*/
 	void
 	RecoverMessageQueue();
@@ -94,7 +94,7 @@ public:
 	/*!
 	\brief 线程切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。
 	\return 参数是否有效。
-	\since build 295 。
+	\since build 295
 	*/
 	bool
 	Switch(shared_ptr<Shell>&) ynothrow;
@@ -102,7 +102,7 @@ public:
 	\brief 线程切换：若参数非空，和线程空间中当前运行的 Shell 的句柄交换。
 	\return 参数是否有效。
 	\warning 空句柄在此处是可接受的，但继续运行可能会导致断言失败。
-	\since build 295 。
+	\since build 295
 	*/
 	bool
 	Switch(shared_ptr<Shell>&& h) ynothrow
@@ -151,27 +151,27 @@ Activate(const shared_ptr<Shell>& hShl)
 /*!
 \brief 全局默认队列消息发送函数。
 \warning 应用程序实例初始化前不保证线程安全性。
-\since build 297 。
+\since build 297
 */
 //@{
-//! \since build 317 。
+//! \since build 317
 void
 PostMessage(const Message&, Messaging::Priority) ynothrow;
-//! \since build 320 。
+//! \since build 320
 inline void
 PostMessage(Messaging::ID id, Messaging::Priority prior,
 	const ValueObject& c = ValueObject()) ynothrow
 {
 	PostMessage(Message(id, c), prior);
 }
-//! \since build 320 。
+//! \since build 320
 inline void
 PostMessage(Messaging::ID id, Messaging::Priority prior, ValueObject&& c)
 	ynothrow
 {
 	PostMessage(Message(id, std::move(c)), prior);
 }
-//! \since build 320 。
+//! \since build 320
 template<Messaging::MessageID _vID>
 inline void
 PostMessage(Messaging::Priority prior,

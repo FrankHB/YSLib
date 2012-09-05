@@ -11,17 +11,17 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2809;
+\version r2822
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-01-05 14:04:05 +0800;
+	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2012-08-31 19:18 +0800;
+	2012-09-04 12:57 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YReader::DSReader;
+	YReader::DSReader
 */
 
 
@@ -39,7 +39,7 @@ namespace
 {
 	/*!
 	\brief 指定迭代器最小值 b ，取文本迭代器 s 前最近出现的字符 c 的对应文本迭代器。
-	\since build 270 。
+	\since build 270
 	*/
 	template<typename _tBi>
 	_tBi
@@ -53,7 +53,7 @@ namespace
 
 	/*!
 	\brief 指定迭代器上确界 b ，在 r 中取文本迭代器 s 的当前行尾的文本迭代器。
-	\since build 271 。
+	\since build 271
 	*/
 	template<typename _tBi>
 	_tBi
@@ -78,7 +78,7 @@ namespace
 
 	/*!
 	\brief 指定迭代器最小值 b ，在 r 中取文本迭代器 s 的前一行首的前一字符的迭代器。
-	\since build 270 。
+	\since build 270
 	*/
 	template<typename _tBi>
 	_tBi
@@ -104,7 +104,7 @@ namespace
 	/*!
 	\brief 迭代器解引用等于指定值时自增。
 	\pre i 可解引用。
-	\since build 292 。
+	\since build 292
 	*/
 	template<typename _type, typename _tIn>
 	inline void
@@ -116,7 +116,7 @@ namespace
 
 	/*!
 	\brief 对可能出现的换行调整迭代器。
-	\since build 292 。
+	\since build 292
 	*/
 	template<typename _tIn, class _tArea, class _tContainer>
 	inline void
@@ -128,7 +128,7 @@ namespace
 
 	/*!
 	\brief 调整不完整的行首的迭代器。
-	\since build 292 。
+	\since build 292
 	*/
 	template<typename _tIn, class _tArea, class _tContainer>
 	inline void
@@ -146,7 +146,7 @@ namespace
 	\param offset 待复制区域的移动偏移（大小等于待复制区域的总行数，向上时 < 0）。
 	\param n 实际复制行数。
 	\note 不清理源区域。
-	\since build 292 。
+	\since build 292
 	*/
 	void
 	CopyScrollArea(YSLib::Components::BufferedTextArea& src_area,
@@ -172,7 +172,7 @@ namespace
 	/*!
 	\brief 全区域移动上下屏区域像素。
 	\note 复制后清除未被覆盖区域。
-	\since build 292 。
+	\since build 292
 	*/
 	void
 	MoveScrollArea(YSLib::Components::BufferedTextArea& area_up,

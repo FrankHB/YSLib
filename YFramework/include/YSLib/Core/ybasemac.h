@@ -11,17 +11,17 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2307;
+\version r2322
 \author FrankHB<frankhb1989@gmail.com>
-\since build 204 。
+\since build 204
 \par 创建时间:
-	2010-10-09 09:25:27 +0800;
+	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2012-08-31 19:09 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YBaseMacro;
+	YSLib::Core::YBaseMacro
 */
 
 
@@ -93,7 +93,7 @@ _plist parameters list
 _q qualifier(s)
 _sig signature
 _t type
-\since 早于 build 132 。
+\since 早于 build 132
 */
 //@{
 //接口类型宏。
@@ -120,7 +120,7 @@ _t type
 \def DeclDerivedI
 \brief 定义派生接口。
 \note 由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
-\since build 333 。
+\since build 333
 */
 #define DeclDerivedI(_n, ...) \
 	_yInterface _n : __VA_ARGS__ \
@@ -140,12 +140,12 @@ _t type
 
 /*!
 \brief 静态接口。
-\since build 266 。
+\since build 266
 */
 #define DeclSEntry(...)
 /*!
 \brief 静态接口实现。
-\since build 266 。
+\since build 266
 */
 #define ImplS(...)
 
@@ -153,7 +153,7 @@ _t type
 /*!
 \brief 定义直接派生类。
 \note 仅构造函数。不定义成员，避免对象切片或其它成员存储泄漏问题。
-\since build 240 。
+\since build 240
 */
 #define DefExtendClass1(_n, _b, _a) \
 	class _n : _a _b \
@@ -299,7 +299,7 @@ _t type
 \def DefClone
 \brief 动态复制。
 \note 需要在满足 \c CopyConstructible 的类的定义内。
-\since build 240 。
+\since build 240
 */
 #define DefClone(_t, _n) \
 	_t* \
@@ -314,7 +314,7 @@ _t type
 
 /*!
 \brief 传递函数。
-\since build 266 。
+\since build 266
 */
 #define DefFwdFn(_q, _t, _n, ...) \
 	inline _t \
@@ -325,7 +325,7 @@ _t type
 
 /*!
 \brief 传递模版。
-\since build 266 。
+\since build 266
 */
 #define DefFwdTmpl(_q, _t, _n, ...) \
 	template<typename... _tParams> \
@@ -339,7 +339,7 @@ _t type
 /*!
 \brief 位掩码类型操作。
 \note 参见 ISO C++2011 17.5.2.1.3[bitmask.types] 。
-\since build 270 。
+\since build 270
 */
 //@{
 #define DefBitmaskAnd(_tBitmask, _tInt) \

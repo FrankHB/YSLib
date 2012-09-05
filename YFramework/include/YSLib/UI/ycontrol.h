@@ -11,17 +11,17 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4556;
+\version r4568
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2010-02-18 13:44:24 +0800;
+	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2012-08-30 20:19 +0800;
+	2012-09-04 12:00 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YComponent;
+	YSLib::UI::YComponent
 */
 
 
@@ -112,7 +112,7 @@ SetEnabledOf(IWidget& wgt, bool b)
 /*!
 \brief 设置部件可用性，且当可用性改变时无效化部件区域。
 \return 可用性是否改变。
-\since build 286 。
+\since build 286
 */
 bool
 Enable(IWidget&, bool = true);
@@ -157,7 +157,7 @@ FetchEvent(VisualEventMap& m)
 \exception BadControl 异常中立：无事件映射表：由 GetController 抛出。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
-\since build 195 。
+\since build 195
 */
 template<VisualEvent _vID>
 EventT(typename EventTypeMapping<_vID>::HandlerType)&
@@ -174,7 +174,7 @@ FetchEvent(AController& controller)
 \exception BadControl 异常中立：无事件映射表：由 GetController 抛出。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
-\since build 237 。
+\since build 237
 */
 template<VisualEvent _vID>
 inline EventT(typename EventTypeMapping<_vID>::HandlerType)&
@@ -215,7 +215,7 @@ CallEvent(IWidget& wgt, _tEventArgs&& e)
 \tparam _vID 指定转发的目标事件。
 \tparam _tEventArgs 事件参数类型。
 \warning 不应使用于自身以免无限递归。
-\since build 300 。
+\since build 300
 */
 template<VisualEvent _vID, class _tEventArgs>
 inline void
@@ -226,7 +226,7 @@ OnEvent_Call(_tEventArgs&& e)
 
 /*
 \brief 处理事件：停止事件路由。
-\since build 285 。
+\since build 285
 */
 template<class _tEventArgs>
 inline void
@@ -248,7 +248,7 @@ OnKeyHeld(KeyEventArgs&&);
 当事件路由策略非 RoutedEventArgs::Bubble 时请求置于顶端；
 当事件路由策略为 RoutedEventArgs::Direct 时清除自身包含的焦点；
 当事件路由策略非 RoutedEventArgs::Tunnel 时请求置于顶端。
-\since build 275 。
+\since build 275
 */
 void
 OnTouchDown_RequestToTopFocused(TouchEventArgs&&);
@@ -309,7 +309,7 @@ OnKey_Bound_Click(KeyEventArgs&&);
 
 /*!
 \brief 控件。
-\since build 168 。
+\since build 168
 */
 class Control : public Widget
 {
@@ -317,7 +317,7 @@ protected:
 	/*!
 	\brief 扩展控件事件表。
 	\note 加载 Components::OnTouchHeld 作为 TouchHeld 事件处理器。
-	\since build 240 。
+	\since build 240
 	*/
 	DefExtendEventMap(ControlEventMap, VisualEventMap)
 

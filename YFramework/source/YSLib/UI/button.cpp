@@ -11,17 +11,17 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r2921;
+\version r2929
 \author FrankHB<frankhb1989@gmail.com>
-\since build 194 。
+\since build 194
 \par 创建时间:
-	2010-10-04 21:23:32 +0800;
+	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2012-08-27 17:28 +0800;
+	2012-09-04 12:48 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::Button;
+	YSLib::UI::Button
 */
 
 
@@ -39,7 +39,7 @@ namespace
 
 	/*!
 	\brief 色调偏移。
-	\since build 302 。
+	\since build 302
 	*/
 	inline Hue
 	change_hue(Hue base_h, Hue h)
@@ -49,7 +49,7 @@ namespace
 	}
 
 	/*!
-	\since build 302 。
+	\since build 302
 	*/
 	void
 	RectDrawButton(const Graphics& g, Point pt, Size s, Hue base_hue,

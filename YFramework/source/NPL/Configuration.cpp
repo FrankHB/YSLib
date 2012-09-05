@@ -11,17 +11,17 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r367;
+\version r381
 \author FrankHB<frankhb1989@gmail.com>
-\since build 334 。
+\since build 334
 \par 创建时间:
-	2012-08-27 15:15:06 +0800;
+	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2012-09-02 20:08 +0800;
+	2012-09-05 14:48 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	NPL::Configuration;
+	NPL::Configuration
 */
 
 
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(NPL)
 namespace
 {
 
-//! \since build 334 。
+//! \since build 334
 inline File&
 WritePrefix(File& f, size_t n = 1, char c = '\t')
 {
@@ -45,7 +45,7 @@ WritePrefix(File& f, size_t n = 1, char c = '\t')
 }
 
 #if 0
-//! \since build 334 。
+//! \since build 334
 File&
 WriteNode(File& f, const ValueNode& node, size_t depth)
 {
@@ -71,7 +71,7 @@ WriteNode(File& f, const ValueNode& node, size_t depth)
 }
 #endif
 
-//! \since build 335 。
+//! \since build 335
 string
 EscapeNodeString(const string& str)
 {
@@ -81,7 +81,7 @@ EscapeNodeString(const string& str)
 	return c == char() ? std::move(content) : c + content + c;
 }
 
-//! \since build 334 。
+//! \since build 334
 File&
 WriteNodeC(File& f, const ValueNode& node, size_t depth)
 {
@@ -103,7 +103,7 @@ WriteNodeC(File& f, const ValueNode& node, size_t depth)
 		--depth;
 	}
 	else
-		f << node.GetName() << ' ' << EscapeNodeString(node.Access<string>());
+		f << node.GetName() << ' ' << EscapeNodeString(Access<string>(node));
 	f << '\n';
 	return f;
 }
@@ -138,7 +138,7 @@ TransformConfiguration(const ValueNode& node)
 	const auto s(node.GetSize());
 
 	if(s == 0)
-		return node ? ValueNode(node.Access<string>()) : ValueNode();
+		return node ? ValueNode(Access<string>(node)) : ValueNode();
 
 	auto i(node.GetBegin());
 
@@ -146,12 +146,12 @@ TransformConfiguration(const ValueNode& node)
 		return TransformConfiguration(i->second);
 	if(i->second.GetSize() == 0)
 	{
-		const auto& new_name(i->second.Access<string>());
+		const auto& new_name(Access<string>(i->second));
 
 		++i;
 		try
 		{
-			return ValueNode(new_name, i->second.Access<string>());
+			return ValueNode(new_name, Access<string>(i->second));
 		}
 		catch(ystdex::bad_any_cast&)
 		{}

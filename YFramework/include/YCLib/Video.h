@@ -11,17 +11,17 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r498;
+\version r528
 \author FrankHB<frankhb1989@gmail.com>
-\since build 312 。
+\since build 312
 \par 创建时间:
-	2011-05-26 19:41:08 +0800;
+	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2012-08-30 20:07 +0800;
+	2012-09-04 12:24 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::Video;
+	YCLib::Video
 */
 
 
@@ -40,7 +40,7 @@ typedef std::uint16_t SDst; //!< 屏幕坐标距离。
 #if YCL_DS
 	/*!
 	\brief 标识 AXYZ1555 像素格式。
-	\since build 297 。
+	\since build 297
 	*/
 #	define YCL_PIXEL_FORMAT_AXYZ1555
 
@@ -51,7 +51,7 @@ typedef std::uint16_t SDst; //!< 屏幕坐标距离。
 typedef std::uint16_t PixelType;
 /*!
 \brief 取像素 Alpha 值。
-\since build 313 。
+\since build 313
 */
 yconstfn std::uint8_t
 FetchAlpha(PixelType px)
@@ -61,7 +61,7 @@ FetchAlpha(PixelType px)
 
 /*!
 \brief 取不透明像素。
-\since build 297 。
+\since build 297
 */
 yconstfn PixelType
 FetchOpaque(PixelType px)
@@ -71,7 +71,7 @@ FetchOpaque(PixelType px)
 
 /*
 \brief 使用 8 位 RGB 构造本机类型像素。
-\since build 313 。
+\since build 313
 */
 yconstfn PixelType
 FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
@@ -89,7 +89,7 @@ FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
 	即 ARGB8888 （考虑字节序为BGRA8888）。
 \warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
-\since build 313 。
+\since build 313
 */
 typedef struct
 {
@@ -101,7 +101,7 @@ typedef struct
 
 /*!
 \brief 取像素 Alpha 值。
-\since build 297 。
+\since build 297
 */
 yconstfn std::uint8_t
 FetchAlpha(PixelType px)
@@ -111,7 +111,7 @@ FetchAlpha(PixelType px)
 
 /*!
 \brief 取不透明像素。
-\since build 297 。
+\since build 297
 */
 yconstfn PixelType
 FetchOpaque(PixelType px)
@@ -121,7 +121,7 @@ FetchOpaque(PixelType px)
 
 /*
 \brief 使用 8 位 RGB 构造 std::uint32_t 像素。
-\since build 313 。
+\since build 313
 */
 yconstfn std::uint32_t
 FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
@@ -133,7 +133,7 @@ FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
 \brief 定义 Windows DIB 格式兼容像素。
 \note 得到的 32 位整数和 ::RGBQUAD 在布局上兼容。
 \note Alpha 值为 0xFF 。
-\since build 296 。
+\since build 296
 */
 #	define DefColorH_(hex, name) name = (FetchPixel((((hex) >> 16) & 0xFF), \
 	(((hex) >> 8) & 0xFF), ((hex) & 0xFF)) << 8 | 0xFF)
@@ -197,19 +197,19 @@ public:
 private:
 	/*!
 	\brief RGB 分量。
-	\since build 276 。
+	\since build 276
 	*/
 	MonoType r, g, b;
 	/*!
 	\brief Alpha 分量。
-	\since build 276 。
+	\since build 276
 	*/
 	AlphaType a;
 
 public:
 	/*!
 	\brief 无参数构造：所有分量为 0 的默认颜色。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Color() ynothrow
@@ -217,7 +217,7 @@ public:
 	{}
 	/*!
 	\brief 构造：使用本机颜色对象。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Color(PixelType px) ynothrow
@@ -233,7 +233,7 @@ public:
 #if YCL_MINGW32
 	/*!
 	\brief 构造：使用默认颜色。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Color(ColorSet cs) ynothrow
@@ -243,7 +243,7 @@ public:
 #endif
 	/*!
 	\brief 使用 RGB 值和 alpha 位构造 Color 对象。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_ = 0xFF) ynothrow
@@ -252,7 +252,7 @@ public:
 
 	/*!
 	\brief 转换：本机颜色对象。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn
 	operator PixelType() const ynothrow
@@ -268,7 +268,7 @@ public:
 
 	/*!
 	\brief 取红色分量。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn MonoType
 	GetR() const ynothrow
@@ -277,7 +277,7 @@ public:
 	}
 	/*!
 	\brief 取绿色分量。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn MonoType
 	GetG() const ynothrow
@@ -286,7 +286,7 @@ public:
 	}
 	/*!
 	\brief 取蓝色分量。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn MonoType
 	GetB() const ynothrow
@@ -295,7 +295,7 @@ public:
 	}
 	/*!
 	\brief 取 alpha 分量。
-	\since build 319 。
+	\since build 319
 	*/
 	yconstfn AlphaType
 	GetA() const ynothrow
@@ -307,14 +307,14 @@ public:
 
 /*!
 \brief 控制台接口。
-\since build 328 。
+\since build 328
 */
 namespace Consoles
 {
 
 /*!
 \brief 控制台颜色枚举。
-\since build 328 。
+\since build 328
 */
 typedef enum
 {
@@ -339,7 +339,7 @@ typedef enum
 /*!
 \brief 控制台颜色。
 \note 顺序和 Consoles::Color 对应。
-\since build 328 。
+\since build 328
 */
 yconstexpr platform::Color ConsoleColors[]{ColorSpace::Black, ColorSpace::Navy,
 	ColorSpace::Green, ColorSpace::Teal, ColorSpace::Maroon, ColorSpace::Purple,
@@ -395,7 +395,7 @@ InitScrDown(int&);
 /*!
 \brief 快速刷新缓存映像到显示屏缓冲区。
 \note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
-\since build 319 。
+\since build 319
 */
 void
 ScreenSynchronize(platform::PixelType*, const platform::PixelType*) ynothrow;

@@ -11,17 +11,17 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4471; *build 335 rev 16;
+\version r4477 *build 336 rev 17
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-12-02 05:14:30 +0800;
+	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-02 21:18 +0800;
+	2012-09-05 18:07 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	Documentation::Designation;
+	Documentation::Designation
 */
 
 /*
@@ -390,111 +390,93 @@ $using:
 
 $DONE:
 r1:
-/ @ \proj YFramework $=
-(
-	* \inc \h form @ \lib Helper @ \proj YFramework $since b303
-		$= (\a \inc \h @ (\a files \exc \impl \u ShellHelper ) ^ '""' ~ '<*>'),
-	+ \lib NPL["NPL"]
-		$= (+ \u LexicalAnalyzer["LexicalAnalyzer.h", "LexicalAnalyzer.cpp"]),
-	/ \mac INCLUDED_CORE_YCOUNTER_H_ @ \h YCounter @ \lib YSLib
-		=> YSL_INC_CORE_YCOUNTER_H_
-),
-(
-	- \mac (YSL_, YSL) @ \h YBaseMacro,
-	/ \a \mac 'YSL' -> 'YSLib',
-	/ \a \mac 'YSL_' -> 'YSLib::'
-);
+/ \impl @ \f FetchSToColor @ \un \ns @ \impl \u ReaderSetting;
 /= test 1 @ platform MinGW32;
 
 r2:
-/ @ \cl LexicalAnalyzer @ \impl \u LexicalAnalyzer $=
+/ @ \un \ns @ \impl \u ReaderSetting $=
 (
-	/ \impl @ \mf ParseByte, // Add '\f' support;
-	/ \impl @ \mf HandleEscape, // Add ' ', '\f', '\r', '\t', '\v' support;
-	+ \as @ \mf HandleEscape
+	+ \decl @ \ft <_type> _type& FetchSetting(ValueNode&, const string&);
+	/ \f (FetchString, FetchSToI, FetchSToColor)
+		-> \f \spec FetchSetting(<string>, <int>, <Color>)
 );
-/= test 2 @ platform MinGW32 ^ \conf release;
+/= test 2 @ platform MinGW32;
 
 r3:
-/ @ \cl LexicalAnalyzer @ \impl \u LexicalAnalyzer $=
-(
-	/ \impl @ \mf ParseByte, // Forbid non-literal escaping;
-	/ \impl @ \mf HandleEscape, // Add '\a', '\b' support;
-	+ \as @ \mf HandleEscape
-);
-/= test 3 @ platform MinGW32;
+/ $doc source code trailing punctuation format @ ('\since', '\par');
+/= test 3 @ platform DS;
 
 r4:
-+ \f (CheckLiteral, MakeEscape) @ \u LexicalAnalyzer;
-/= test 4 @ platform MinGW32 ^ \conf release;
+/ @ \impl \u ShlReader $=
+(
+	- redundant 'using namespace ystdex;using std::chrono::milliseconds;',
+	/ \tr \impl @ \mf ShlTextReader::Execute
+);
+/= test 4 @ platform MinGW32;
 
 r5:
-+ (\inc \h <cctype>; \f yconstfn (IsGraphicalDelimeter, IsDelimeter))
-	@ \h LexicalAnalyzer;
-/= test 5 @ platform DS;
+/ @ \u YObject $=
+(
+	/ @ \cl ValueNode $=
+	(
+		/ protected \inh ValueObject -> private \m mutable ValueObject value;
+		/ \tr \impl @ \ctor,
+		/ \m pNodes -> \m mutable pNodes,
+		/ \tr using ValueObject::\op! -> \mf \op!
+		- \tr using ValueObject::Access,
+		- \tr using ValueObject::GetObject,
+		/ \tr \impl @ \mf GetValue,
+		/ \tr using ValueObject::\op bool -> \mf \op bool
+	),
+	+ 2 \ft Access,
+	/ \tr \impl @ 2 \ft AccessChild
+);
+/ \tr \impl @ \f ((WriteNodeC @ \un \ns), TransformConfiguration)
+	@ \impl \u Configuration;
+/= test 5 @ platform MinGW32;
 
-r6:
-/= test 6 @ platform DS ^ \conf release;
-
-r7:
-/= test 7 @ platform MinGW32;
-
-r8:
-/= test 8 @ platform MinGW32 ^ \conf release;
+r6-r8:
+/= 2 test 6 @ platform MinGW32;
+/= test 7 @ platform MinGW32 ^ \conf release;
 
 r9:
-+ \f (Decompose, Tokenize) @ \u LexicalAnalyzer;
-/= test 9 @ platform MinGW32;
+/= test 8 @ platform MinGW32;
 
-r10:
-/ @ \lib NPL $=
+r10-r13:
+/= 4 test 9 @ platform MinGW32;
+
+r14:
+/ @ \cl ValueNode $=
 (
-	/ \u LexicalAnalyzer["LexicalAnalyzer.h", "LexicalAnalyzer.cpp"]
-		=> \u Lexical["Lexical.h", "Lexical.cpp"],
-	+ \u SContext["SContext.h", "SContext.cpp"];
+	* \init order @ \impl @ \ctor @ \impl \u YObject $since r5,
+	/ \op+=(ValueNode&) -> \op+=(const ValueNode&);
+	/ \impl @ \mf Add(ValueNode&),
+	+ \mf Add(const ValueNode&)
 );
 /= test 10 @ platform MinGW32;
 
-r11:
-/ @ \u SContext $=
-(
-	/ \a \f Translate => \f Analyze,
-	/ \a \f @ \un \ns @ \ns SContext @ \impl \u >> \f @ \ns SContext,
-	/ \f Check => Validate
-);
+r15:
 /= test 11 @ platform MinGW32 ^ \conf release;
 
-r12:
-+ \u Configuration["Configuration.h", "Configuration.cpp"] @ \lib NPL;
-/= test 12 @ platform MinGW32;
-
-r13:
-/ \simp \impl @ (\ctor Session, \f SContext::(Validate, Reduce))
-	@ \impl \u SContext;
-/= test 13 @ platform MinGW32;
-
-r14:
-/= test 14 @ platform MinGW32 ^ \conf release;
-
-r15:
-/= test 15 @ platform DS;
-
 r16:
-/= test 16 @ platform DS ^ \conf release;
+/= test 12 @ platform DS;
+
+r17:
+/= test 13 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-02 +0800:
--21.2d;
-// Mercurial rev1-rev207: r9080;
+2012-09-05 +0800:
+-19.0d;
+// Mercurial rev1-rev208: r9097;
 
 / ...
 
 
 $NEXT_TODO:
-b336-b348:
+b337-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -952,6 +934,19 @@ $module_tree $=
 );
 
 $now
+(
+	/ DLD "configuration reader implementation"
+		@ %'YReader'.'shells test example'.'text reader',
+	/ $dev $doc "simplified source code trailing punctuation format",
+	/ $lib @ "class %ValueNode" @ %'YFramework'.'YSLib'.'Core'.'YObject' $=
+	(
+		/ DLD "implementation" @ "class %ValueNode"
+			^ "member" ~ "base class %ValueObject",
+		/ "function template Access" -> "non-member function template %Access"
+	)
+),
+
+b335
 (
 	/ %'YFramework' $=
 	(

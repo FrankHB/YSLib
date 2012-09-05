@@ -11,17 +11,17 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r214;
+\version r220
 \author FrankHB<frankhb1989@gmail.com>
-\since build 312 。
+\since build 312
 \par 创建时间:
-	2012-05-26 20:19:54 +0800;
+	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2012-08-29 15:50 +0800;
+	2012-09-04 11:02 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YCLib::Video;
+	YCLib::Video
 */
 
 

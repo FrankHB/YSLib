@@ -11,17 +11,17 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r501;
+\version r527
 \author FrankHB<frankhb1989@gmail.com>
-\since build 296 。
+\since build 296
 \par 创建时间:
-	2012-03-25 12:49:27 +0800;
+	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2012-08-31 17:55 +0800;
+	2012-09-04 12:31 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	Helper::DSMain;
+	Helper::DSMain
 */
 
 
@@ -49,12 +49,12 @@ YSL_BEGIN
 /*!	\defgroup CustomGlobalConstants Custom Global Constants
 \ingroup GlobalObjects
 \brief 平台相关的全局常量。
-\since build 173 。
+\since build 173
 */
 //@{
 /*!
 \brief 屏幕大小。
-\since build 215 。
+\since build 215
 */
 const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 //@}
@@ -69,7 +69,7 @@ YSL_END_NAMESPACE(Drawing)
 /*!
 \brief 平台相关的应用程序类。
 \note 含默认接口。
-\since build 215 。
+\since build 215
 */
 class DSApplication : public Application
 {
@@ -91,7 +91,7 @@ private:
 	std::condition_variable init;
 	/*!
 	\brief 初始化条件。
-	\since build 325 。
+	\since build 325
 	*/
 	std::condition_variable full_init;
 #endif
@@ -99,12 +99,12 @@ private:
 protected:
 	/*!
 	\brief 默认字体缓存。
-	\since build 325 。
+	\since build 325
 	*/
 	unique_ptr<Drawing::FontCache> pFontCache;
 	/*!
 	\brief 屏幕。
-	\since build 325 。
+	\since build 325
 	*/
 	//@{
 	unique_ptr<Devices::Screen> pScreenUp;
@@ -116,7 +116,7 @@ public:
 	\brief 用户界面输入响应阈值。
 	\note 默认值 0x40 。
 	\see DSApplication::Run 。
-	\since build 288 。
+	\since build 288
 
 	用于主消息队列的消息循环中控制后台消息生成策略的全局消息优先级。
 	*/
@@ -130,28 +130,28 @@ public:
 
 	/*!
 	\brief 析构：释放资源。
-	\since build 269 。
+	\since build 269
 	*/
 	~DSApplication() override;
 
 	/*!
 	\brief 取字体缓存引用。
 	\pre 断言检查：指针非空。
-	\since build 325 。
+	\since build 325
 	*/
 	Drawing::FontCache&
 	GetFontCache() const ynothrow;
 	/*!
 	\brief 取上屏幕。
 	\pre 断言检查：内部指针非空。
-	\since build 297 。
+	\since build 297
 	*/
 	Devices::Screen&
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
 	\pre 断言检查：内部指针非空。
-	\since build 297 。
+	\since build 297
 	*/
 	Devices::Screen&
 	GetScreenDown() const ynothrow;
@@ -160,7 +160,7 @@ public:
 	\brief 处理当前消息。
 	\note 优先级小于 UIResponseLimit 的消息时视为后台消息，否则为前台消息。
 	\return 循环条件。
-	\since build 297 。
+	\since build 297
 
 	若主消息队列为空，处理空闲消息，否则从主消息队列取出并分发消息。
 	当取出的消息的标识为 SM_QUIT 时视为终止循环。
@@ -170,7 +170,7 @@ public:
 	DealMessage();
 
 #if YCL_HOSTED
-	//! \since build 325 。
+	//! \since build 325
 	::HWND
 	GetWindowHandle()
 	{
@@ -180,7 +180,7 @@ public:
 private:
 	/*!
 	\brief 初始化宿主资源和本机消息循环线程。
-	\since build 325 。
+	\since build 325
 	*/
 	void
 	HostTask();
@@ -192,7 +192,7 @@ private:
 \brief 取平台相关的全局资源。
 \pre 内部断言检查存在应用程序实例。
 \note 生存期未确定。需要手动初始化并注册应用程序实例后才能使用。
-\since build 211 。
+\since build 211
 */
 DSApplication&
 FetchGlobalInstance() ynothrow;
@@ -200,7 +200,7 @@ FetchGlobalInstance() ynothrow;
 /*!
 \ingroup HelperFunctions
 \brief 取默认字体缓存。
-\since build 219 。
+\since build 219
 */
 inline Drawing::FontCache&
 FetchDefaultFontCache()
@@ -211,7 +211,7 @@ FetchDefaultFontCache()
 /*!
 \ingroup HelperFunctions
 \brief 取默认屏幕。
-\since build 219 。
+\since build 219
 */
 inline Devices::Screen&
 FetchDefaultScreen()
@@ -221,14 +221,14 @@ FetchDefaultScreen()
 
 /*!
 \brief 以指定前景色和背景色初始化指定屏幕的控制台。
-\since build 148 。
+\since build 148
 */
 bool
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 /*!
 \brief 显示致命错误。
-\since build 175 。
+\since build 175
 */
 void
 ShowFatalError(const char*);

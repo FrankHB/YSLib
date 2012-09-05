@@ -11,17 +11,17 @@
 /*!	\file yftext.h
 \ingroup Core
 \brief 平台无关的文本文件抽象。
-\version r727;
+\version r740
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 132 。
+\since 早于 build 132
 \par 创建时间:
-	2009-11-24 23:14:41 +0800;
+	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-08-30 20:13 +0800;
+	2012-09-04 12:08 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::Core::YFile_(Text);
+	YSLib::Core::YFile_(Text)
 */
 
 
@@ -38,7 +38,7 @@ YSL_BEGIN
 Unicode Encoding Scheme Signatures BOM（byte-order mark ，字节顺序标记）常量。
 \note 在 Unicode 3.2 前作为零宽无间断空格字符在对应字符集的编码单字节序列。
 \note 适用于未明确字节序或字符集的流。
-\since build 297 。
+\since build 297
 */
 //@{
 yconstexpr char BOM_UTF_16LE[]{"\xFF\xFE"};
@@ -58,7 +58,7 @@ private:
 public:
 	/*!
 	\brief 编码。
-	\since build 290 。
+	\since build 290
 	*/
 	Text::Encoding Encoding;
 
@@ -69,7 +69,7 @@ public:
 	TextFile(const_path_t);
 	/*!
 	\brief 构造：使用指定文件路径初始化对象。
-	\since build 305 。
+	\since build 305
 	*/
 	explicit
 	TextFile(const String&);
@@ -83,14 +83,14 @@ public:
 	/*!
 	\brief 检查文件头是否有 BOM(Byte Order Mark) ，若有则据此判断编码。
 	\return BOM 的长度（字节数）。
-	\since build 273 。
+	\since build 273
 	*/
 	size_t
 	CheckBOM(Text::Encoding&);
 
 	/*!
 	\brief 定位：设置文件读位置。
-	\since build 273 。
+	\since build 273
 	*/
 	void
 	Locate(u32) const;
@@ -103,7 +103,7 @@ public:
 
 	/*!
 	\brief 按自身编码读取 Unicode 字符。
-	\since build 273 。
+	\since build 273
 	*/
 	template<typename _tChar, typename... _tParams>
 	inline Text::ConversionResult
@@ -114,7 +114,7 @@ public:
 
 	/*!
 	\brief 按自身编码读取但不保存 Unicode 字符。
-	\since build 273 。
+	\since build 273
 	*/
 	template<typename... _tParams>
 	inline Text::ConversionResult

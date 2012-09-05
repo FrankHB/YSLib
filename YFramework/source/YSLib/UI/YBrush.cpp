@@ -11,17 +11,17 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r151;
+\version r157
 \author FrankHB<frankhb1989@gmail.com>
-\since build 293 。
+\since build 293
 \par 创建时间:
-	2012-01-10 19:56:59 +0800;
+	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2012-08-27 17:29 +0800;
+	2012-09-04 12:47 +0800
 \par 文本编码:
-	UTF-8;
+	UTF-8
 \par 模块名称:
-	YSLib::UI::YBrush;
+	YSLib::UI::YBrush
 */
 
 
