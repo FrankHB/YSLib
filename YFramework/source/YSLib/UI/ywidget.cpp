@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r4241
+\version r4244
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-04 12:46 +0800
+	2012-09-07 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ SetBoundsOf(IWidget& wgt, const Rect& r)
 void
 SetInvalidationOf(IWidget& wgt)
 {
-	wgt.GetRenderer().CommitInvalidation(Rect(Point::Zero, GetSizeOf(wgt)));
+	wgt.GetRenderer().CommitInvalidation(Rect(Point(), GetSizeOf(wgt)));
 }
 
 void
@@ -115,7 +115,7 @@ Hide(IWidget& wgt)
 void
 Invalidate(IWidget& wgt)
 {
-	Invalidate(wgt, Rect(Point::Zero, GetSizeOf(wgt)));
+	Invalidate(wgt, Rect(GetSizeOf(wgt)));
 }
 void
 Invalidate(IWidget& wgt, const Rect& bounds)

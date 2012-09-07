@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2802
+\version r2803
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
+	2012-09-07 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -466,7 +466,7 @@ public:
 	\since build 280
 	*/
 	s8
-	GetAdvance(ucs4_t, FTC_SBit = nullptr) const;
+	GetAdvance(ucs4_t, FTC_SBit = {}) const;
 	/*!
 	\brief 取升部。
 	\since build 280

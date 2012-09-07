@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1226
+\version r1230
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2012-09-04 11:03 +0800
+	2012-09-07 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,8 +75,8 @@ ShlDS::OnGotMessage(const Message& msg)
 			const auto h(FetchTarget<SM_PAINT>(msg));
 			
 			if(h)
-				h->Refresh(PaintContext(h->GetContext(), Point::Zero,
-					Rect(Point::Zero, GetSizeOf(*h))));
+				h->Refresh(PaintContext(h->GetContext(), Point(),
+					GetSizeOf(*h)));
 		}
 #endif
 		ShlDS::OnInput();
@@ -98,8 +98,8 @@ ShlDS::OnInput()
 {
 	using Drawing::Rect;
 
-	yunseq(bUpdateUp = desktop_up_ptr->Validate() != Rect::Empty,
-		bUpdateDown = desktop_down_ptr->Validate() != Rect::Empty);
+	yunseq(bUpdateUp = bool(desktop_up_ptr->Validate()),
+		bUpdateDown = bool(desktop_down_ptr->Validate()));
 	OnPaint();
 	if(bUpdateUp)
 		desktop_up_ptr->Update();

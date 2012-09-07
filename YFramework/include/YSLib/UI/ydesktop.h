@@ -11,13 +11,13 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r1380
+\version r1382
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-02 12:00:08 +0800
 \par 修改时间:
-	2012-09-04 12:00 +0800
+	2012-09-07 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ public:
 	*/
 	explicit
 	Desktop(Devices::Screen&, Color = Drawing::ColorSpace::Black,
-		const shared_ptr<Drawing::Image>& = shared_ptr<Drawing::Image>());
+		const shared_ptr<Drawing::Image>& = {});
 	inline DefDeMoveCtor(Desktop)
 
 	DefGetter(const ynothrow, const Devices::Screen&, Screen, screen) \
@@ -77,7 +77,7 @@ public:
 	DefGetterMem(const ynothrow, const Drawing::Graphics&, Context,
 		GetBufferedRenderer())
 	DefGetter(ynothrow, Rect, InvalidatedArea,
-		GetRenderer().CommitInvalidation(Rect::Empty))
+		GetRenderer().CommitInvalidation(Rect()))
 
 public:
 	/*!

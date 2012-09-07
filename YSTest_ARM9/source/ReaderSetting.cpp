@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r291
+\version r292
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2012-09-04 12:57 +0800
+	2012-09-07 11:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,7 +105,7 @@ ReaderSetting::ReaderSetting(ValueNode& node)
 
 
 SettingPanel::SettingPanel()
-	: DialogPanel(Rect(Point::Zero, MainScreenWidth, MainScreenHeight)),
+	: DialogPanel(Rect(Point(), MainScreenWidth, MainScreenHeight)),
 	lblAreaUp(Rect(20, 12, 216, 72)), lblAreaDown(Rect(20, 108, 216, 72)),
 	btnFontSizeDecrease(Rect(20, 32, 80, 22)),
 	btnFontSizeIncrease(Rect(148, 32, 80, 22)),

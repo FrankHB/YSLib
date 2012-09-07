@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1468
+\version r1498
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-09-04 12:31 +0800
+	2012-09-07 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,6 +75,21 @@ public:
 
 /*!
 \ingroup helper_functions
+\brief 退化转移。
+\see ISO C++11 30.2.6[thread.decaycopy] 。
+\see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3255.html 。
+\since build 337
+*/
+template<typename _type>
+typename std::decay<_type>::type
+decay_copy(_type&& arg)
+{
+	return std::forward<_type>(arg);
+}
+
+
+/*!
+\ingroup helper_functions
 \brief 计算指定数组类型对象的长度。
 \since build 291
 */
@@ -96,24 +111,36 @@ arrlen(_type(&&)[_vN])
 
 /*!
 \brief 取指定参数初始化的 std::array 对象。
-\since build 304
+\since build 337
+*/
+template<typename _type, typename... _tParams>
+inline std::array<_type, sizeof...(_tParams)>
+make_array(_tParams&&... args)
+{
+	// TODO: Use one pair of braces.
+	return {{decay_copy(yforward(args))...}};
+}
+
+/*!
+\brief 取指定参数转换为 std::array 对象。
+\since build 337
 */
 //@{
 template<typename _type, size_t _vN, typename _tSrc>
 yconstfn std::array<_type, _vN>
-make_array(const _tSrc& src)
+to_array(const _tSrc& src)
 {
 	return std::array<_type, _vN>(src);
 }
 template<typename _type, size_t _vN>
 yconstfn std::array<_type, _vN>
-make_array(const std::array<_type, _vN>& src)
+to_array(const std::array<_type, _vN>& src)
 {
 	return src;
 }
 template<typename _type, size_t _vN, typename _tSrcElement>
 inline std::array<_type, _vN>
-make_array(const _tSrcElement(&src)[_vN])
+to_array(const _tSrcElement(&src)[_vN])
 {
 	std::array<_type, _vN> arr;
 
@@ -122,7 +149,7 @@ make_array(const _tSrcElement(&src)[_vN])
 }
 template<typename _type, size_t _vN, typename _tSrcElement>
 inline std::array<_type, _vN>
-make_array(_tSrcElement(&&src)[_vN])
+to_array(_tSrcElement(&&src)[_vN])
 {
 	std::array<_type, _vN> arr;
 
@@ -138,7 +165,7 @@ make_array(_tSrcElement(&&src)[_vN])
 \note 类似 std::call_once ，但多线程环境下失效。
 \note ISO C++11（至 N3376 ） 30.4 synopsis 处的声明存在错误。
 \since build 327
-	
+
 当标识为 true 时候无作用，否则调用函数。
 */
 template<typename _fCallable, typename... _tParams>

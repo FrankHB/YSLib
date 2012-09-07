@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5357
+\version r5361
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-04 11:59 +0800
+	2012-09-07 10:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,7 +174,7 @@ SetBoundsOf(IWidget&, const Rect&);
 \since build 269
 */
 inline void
-SetContainerPtrOf(IWidget& wgt, IWidget* pCon = nullptr)
+SetContainerPtrOf(IWidget& wgt, IWidget* pCon = {})
 {
 	wgt.GetView().pContainer = pCon;
 }
@@ -336,9 +336,10 @@ public:
 	mutable HBrush Background;
 	Color ForeColor; //!< 默认前景色。
 
+	//! \since build 337
 	explicit
-	Widget(const Rect& = Rect::Empty,
-		Color = Drawing::ColorSpace::White, Color = Drawing::ColorSpace::Black);
+	Widget(const Rect& = {}, Color = Drawing::ColorSpace::White,
+		Color = Drawing::ColorSpace::Black);
 	/*!
 	\brief 构造：使用视图指针、渲染器指针和控制器指针。
 	\param pView_ 视图指针。
@@ -350,7 +351,7 @@ public:
 	explicit inline
 	Widget(_tView&& pView_ = make_unique<View>(),
 		_tRenderer&& pRenderer_ = make_unique<Renderer>(),
-		_tController&& pController_ = nullptr)
+		_tController&& pController_ = {})
 		: pView(yforward(pView_)), pRenderer(yforward(pRenderer_)),
 		pController(yforward(pController_)),
 		Background(SolidBrush(Drawing::ColorSpace::White)),

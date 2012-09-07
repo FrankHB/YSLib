@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r515
+\version r516
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2012-09-04 12:27 +0800
+	2012-09-07 09:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -307,7 +307,7 @@ public:
 	\since build 319
 	*/
 	explicit
-	HFileNode(const_path_t path = nullptr) ynothrow
+	HFileNode(const_path_t path = {}) ynothrow
 		: dir(), p_dirent()
 	{
 		Open(path);

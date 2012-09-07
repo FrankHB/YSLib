@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2697
+\version r2705
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-07 11:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ PrintLine(_tRenderer& r, _tIn s)
 */
 template<typename _tIn, class _tRenderer>
 _tIn
-PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
+PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 {
 	while(s != g && ucs4_t(*s) != c && *s != '\n')
 	{
@@ -110,7 +110,7 @@ PutLine(_tRenderer& r, _tIn s)
 */
 template<typename _tIn, class _tRenderer>
 _tIn
-PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
+PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.PenY);
@@ -155,7 +155,7 @@ PrintString(_tRenderer& r, _tIn s)
 */
 template<typename _tIn, class _tRenderer>
 _tIn
-PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
+PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 {
 	while(s != g && ucs4_t(*s) != c && *s != '\n')
 		PrintChar(r, *s++);
@@ -201,7 +201,7 @@ PutString(_tRenderer& r, _tIn s)
 */
 template<typename _tIn, class _tRenderer>
 _tIn
-PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = '\0')
+PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
@@ -310,7 +310,7 @@ public:
 
 	TextRenderer(TextState& ts, const Graphics& g)
 		: GTextRendererBase<TextRenderer>(),
-		State(ts), Buffer(g), ClipArea(Point::Zero, g.GetSize())
+		State(ts), Buffer(g), ClipArea(g.GetSize())
 	{}
 	/*
 	\brief 构造：使用文本状态、图形接口上下文和指定区域边界。
@@ -415,7 +415,7 @@ public:
 	void
 	operator()(ucs4_t c)
 	{
-		RenderChar(c, *this, *this, Rect(Point::Zero, GetSize()),
+		RenderChar(c, *this, *this, Rect(Point(), GetSize()),
 			GetBufferAlphaPtr());
 	}
 
@@ -490,7 +490,7 @@ DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 void
 DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
 	const String& str, const Padding& margin, Color, bool line_wrap,
-	const Font& fnt = Font());
+	const Font& fnt = {});
 
 /*!
 \brief 绘制文本。
@@ -514,7 +514,7 @@ DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap);
 */
 void
 DrawText(const Graphics& g, const Rect& bounds, const String& str,
-	const Padding& margin, Color, bool line_wrap, const Font& fnt = Font());
+	const Padding& margin, Color, bool line_wrap, const Font& fnt = {});
 /*!
 \brief 绘制文本。
 \param r 文本区域。

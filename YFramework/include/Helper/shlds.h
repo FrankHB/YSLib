@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1223
+\version r1225
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2012-09-04 12:27 +0800
+	2012-09-07 09:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,8 +103,7 @@ public:
 	\note 空参数表示新建。
 	\since build 296
 	*/
-	ShlDS(const shared_ptr<Desktop>& = nullptr,
-		const shared_ptr<Desktop>& = nullptr);
+	ShlDS(const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 
 	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopUpHandle,
 		desktop_up_ptr)

@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r862
+\version r863
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-07 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,7 @@ public:
 	\since build 293
 	*/
 	explicit
-	Timer(const Duration& = Duration(), bool = false);
+	Timer(const Duration& = {}, bool = false);
 	/*!
 	\brief 析构：自动停用。
 	\since build 289

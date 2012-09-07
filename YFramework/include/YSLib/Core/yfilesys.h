@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1376
+\version r1378
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2012-09-04 12:14 +0800
+	2012-09-07 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -375,7 +375,7 @@ public:
 	\brief 替换扩展名。
 	*/
 	Path&
-	ReplaceExtension(const Path& = Path());
+	ReplaceExtension(const Path& = {});
 };
 
 inline bool
@@ -581,7 +581,7 @@ public:
 	\brief 构造：使用指定路径。
 	\note 参数为空或空字符串时为根目录。
 	*/
-	FileList(const_path_t = nullptr);
+	FileList(const_path_t = {});
 	/*!
 	\brief 构造：使用窄字符串。
 	\note 参数为空字符串时为根目录。

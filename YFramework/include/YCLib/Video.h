@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r528
+\version r529
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
+	2012-09-08 08:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,6 @@
 #define YCL_INC_VIDEO_H_ 1
 
 #include "ycommon.h"
-#include <initializer_list> // for well-formedly using of std::initialize_list;
 
 namespace platform
 {

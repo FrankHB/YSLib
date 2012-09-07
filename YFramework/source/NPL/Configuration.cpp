@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r381
+\version r390
 \author FrankHB<frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2012-09-05 14:48 +0800
+	2012-09-06 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ WriteNode(File& f, const ValueNode& node, size_t depth)
 			f << '(' << '\n';
 			try
 			{
-				WriteNode(f, n.second, depth);
+				WriteNode(f, n, depth);
 			}
 			catch(std::out_of_range&)
 			{}
@@ -89,12 +89,12 @@ WriteNodeC(File& f, const ValueNode& node, size_t depth)
 	if(node.GetSize() != 0)
 	{
 		++depth;
-		for(const auto& pr : node)
+		for(const auto& n : node)
 		{
 			f << '(' << '\n';
 			try
 			{
-				WriteNodeC(f, pr.second, depth);
+				WriteNodeC(f, n, depth);
 			}
 			catch(std::out_of_range&)
 			{}
@@ -143,15 +143,15 @@ TransformConfiguration(const ValueNode& node)
 	auto i(node.GetBegin());
 
 	if(s == 1)
-		return TransformConfiguration(i->second);
-	if(i->second.GetSize() == 0)
+		return TransformConfiguration(*i);
+	if(i->GetSize() == 0)
 	{
-		const auto& new_name(Access<string>(i->second));
+		const auto& new_name(Access<string>(*i));
 
 		++i;
 		try
 		{
-			return ValueNode(new_name, Access<string>(i->second));
+			return ValueNode(new_name, Access<string>(*i));
 		}
 		catch(ystdex::bad_any_cast&)
 		{}
@@ -160,8 +160,8 @@ TransformConfiguration(const ValueNode& node)
 
 	ValueNode new_node;
 
-	for(const auto& pr : node)
-		new_node.Add(TransformConfiguration(pr.second));
+	for(const auto& n : node)
+		new_node.Add(TransformConfiguration(n));
 	return new_node;
 }
 

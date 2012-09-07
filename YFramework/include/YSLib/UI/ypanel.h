@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r378
+\version r380
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2012-09-04 12:00 +0800
+	2012-09-07 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,9 +44,10 @@ class Panel : public Control, protected MUIContainer
 public:
 	/*!
 	\brief 构造：使用指定边界。
+	\since build 337
 	*/
 	explicit
-	Panel(const Rect& = Rect::Empty);
+	Panel(const Rect& = {});
 	inline DefDeMoveCtor(Panel)
 
 	virtual void

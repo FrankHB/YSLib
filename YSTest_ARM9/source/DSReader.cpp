@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2822
+\version r2824
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2012-09-04 12:57 +0800
+	2012-09-07 11:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,8 +208,7 @@ DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
 	: pText(), fc(fc_), i_top(), i_btm(), overread_line_n(0), scroll_offset(0),
 	Margin(4, 4, 4, 4),
-	area_up(Rect(Point::Zero, w, h_up), fc),
-	area_dn(Rect(Point::Zero, w, h_down), fc)
+	area_up(Rect(Point(), w, h_up), fc), area_dn(Rect(Point(), w, h_down), fc)
 {
 	SetFontSize(),
 	SetColor(),

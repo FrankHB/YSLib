@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1367
+\version r1369
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-07 11:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,8 +214,7 @@ struct RectTransformer
 	{
 		int min_x, min_y, max_x, max_y;
 
-		BlitBounds(dp, Point::Zero, ds, ss, ss,
-			min_x, min_y, max_x, max_y);
+		BlitBounds(dp, Point(), ds, ss, ss, min_x, min_y, max_x, max_y);
 
 		const int delta_x(max_x - min_x);
 		int delta_y(max_y - min_y);

@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r3802
+\version r3804
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2012-09-04 11:59 +0800
+	2012-09-07 09:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,11 +45,10 @@ class Window : public Panel
 public:
 	/*!
 	\brief 构造：使用指定边界和背景图像。
-	\since build 319
+	\since build 327
 	*/
 	explicit
-	Window(const Rect& = Rect::Empty,
-		const shared_ptr<Drawing::Image>& = nullptr);
+	Window(const Rect& = {}, const shared_ptr<Drawing::Image>& = {});
 	inline DefDeMoveCtor(Window)
 
 	void

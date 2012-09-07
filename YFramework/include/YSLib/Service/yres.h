@@ -11,13 +11,13 @@
 /*!	\file yres.h
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r543
+\version r544
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-07 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ public:
 	\brief 构造：使用指定位图指针、长和宽。
 	*/
 	explicit
-	Image(ConstBitmapPtr = nullptr, SDst = 0, SDst = 0);
+	Image(ConstBitmapPtr = {}, SDst = 0, SDst = 0);
 
 	DefGetter(const ynothrow, BitmapPtr, ImagePtr, GetBufferPtr())
 };

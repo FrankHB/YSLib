@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r581
+\version r585
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2012-09-04 12:46 +0800
+	2012-09-07 11:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,15 +104,14 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 				clip.GetPoint() - pc.Location, clip.GetPoint(), clip.GetSize());
 		}
 
-		PaintEventArgs e(sender, PaintContext(GetContext(), Point::Zero,
-			clip - l));
+		PaintEventArgs e(sender, PaintContext(GetContext(), Point(), clip - l));
 
 		CallEvent<Components::Paint>(wgt, e);
 		//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
-		rInvalidated.GetSizeRef() = Size::Zero;
+		rInvalidated.GetSizeRef() = Size();
 		return e.ClipArea;
 	}
-	return Rect::Empty;
+	return Rect();
 }
 
 YSL_END_NAMESPACE(Components)

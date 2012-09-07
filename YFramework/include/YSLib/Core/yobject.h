@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3093
+\version r3255
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-05 17:50 +0800
+	2012-09-07 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,6 +177,7 @@ public:
 \brief 值类型对象类。
 \pre 满足 CopyConstructible 。
 \warning 非虚析构。
+\warning 若修改子节点的 name 则行为未定义。
 \since build 217
 
 具有值语义和深复制语义的对象。
@@ -253,23 +254,35 @@ public:
 	*/
 	explicit DefCvt(const ynothrow, bool, content.get_holder())
 
+private:
+	/*!
+	\brief 取指定类型的对象。
+	\tparam _type 指定类型。
+	\pre 断言检查： bool(content) && content.type() == typeid(_type) 。
+	\since build 337
+	*/
 	template<typename _type>
 	inline _type&
-	GetObject()
+	GetMutableObject() const
 	{
 		YAssert(bool(content), "Null pointer found.");
 		YAssert(content.type() == typeid(_type), "Invalid type found.");
 
 		return *content.get<_type>();
 	}
+
+public:
+	template<typename _type>
+	inline _type&
+	GetObject()
+	{
+		return GetMutableObject<_type>();
+	}
 	template<typename _type>
 	inline const _type&
 	GetObject() const
 	{
-		YAssert(bool(content), "Null pointer found.");
-		YAssert(content.type() == typeid(_type), "Invalid type found.");
-
-		return *content.get<_type>();
+		return GetMutableObject<_type>();
 	}
 
 	/*!
@@ -334,27 +347,63 @@ MakeValueObjectByPtr(_type* p)
 class ValueNode
 {
 public:
-	typedef map<string, ValueNode> Container;
+	typedef set<ValueNode> Container;
 
 private:
 	string name;
 	//! \since build 336
 	mutable ValueObject value;
-	mutable unique_ptr<Container> pNodes;
+	//! \since build 337
+	mutable unique_ptr<Container> p_nodes;
 
 public:
 	DefDeCtor(ValueNode)
-	template<typename _tString>
-	ValueNode(const ValueObject& vo, _tString&& str)
-		: name(yforward(str)), value(vo)
+	/*!
+	\brief 构造：使用字符串左值引用和节点容器指针。
+	\since build 337
+	*/
+	inline
+	ValueNode(const string& str, unique_ptr<Container>&& p = {})
+		: name(str), value(), p_nodes(std::move(p))
 	{}
-	template<typename _tString>
-	ValueNode(ValueObject&& vo, _tString&& str)
-		: name(yforward(str)), value(std::move(vo))
+	/*!
+	\brief 构造：使用字符串右值引用和节点容器指针。
+	\since build 337
+	*/
+	inline
+	ValueNode(string&& str, unique_ptr<Container>&& p)
+		: name(str), value(), p_nodes(std::move(p))
 	{}
-	template<typename _tString, typename... _tParams>
-	ValueNode(_tString&& str, _tParams&&... args)
-		: name(yforward(str)), value(yforward(args)...)
+	/*!
+	\brief 构造：使用字符串引用、值类型对象引用和节点容器指针。
+	\since build 337
+	*/
+	template<typename _tString, typename _tValue, typename = typename
+		std::enable_if<std::is_constructible<string, _tString&&>::value
+		&& !std::is_constructible<unique_ptr<Container>, _tValue&&>::value,
+		int>::type>
+	inline
+	ValueNode(_tString&& str, _tValue&& val, unique_ptr<Container>&& p = {})
+		: name(yforward(str)), value(yforward(val)), p_nodes(std::move(p))
+	{}
+	/*!
+	\brief 构造：使用输入迭代器对。
+	\since build 337
+	*/
+	template<typename _tIn>
+	inline
+	ValueNode(const pair<_tIn, _tIn>& pr)
+		: name(), value(), p_nodes(new Container(pr.first, pr.second))
+	{}
+	/*!
+	\brief 构造：使用输入迭代器对、字符串引用和值参数。
+	\since build 337
+	*/
+	template<typename _tIn, typename _tString, typename... _tParams>
+	inline
+	ValueNode(const pair<_tIn, _tIn>& pr, _tString&& str, _tParams&&... args)
+		: name(yforward(str)), value(yforward(args)...),
+		p_nodes(new Container(pr.first, pr.second))
 	{}
 	ValueNode(const ValueNode&);
 	DefDeMoveCtor(ValueNode)
@@ -385,11 +434,7 @@ public:
 		ImplRet(name < node.name)
 
 	ValueNode&
-	operator[](const string& name)
-	{
-		CheckNodes();
-		return (*pNodes)[name];
-	}
+	operator[](const string&);
 
 	//! \since build 336
 	explicit DefCvt(const ynothrow, bool, bool(value))
@@ -398,57 +443,52 @@ public:
 	Container::iterator
 	GetBegin()
 	{
-		if(pNodes)
-			return pNodes->begin();
+		if(p_nodes)
+			return p_nodes->begin();
 		throw std::out_of_range("No child value node found.");
 	}
 	Container::const_iterator
 	GetBegin() const
 	{
-		if(pNodes)
-			return pNodes->begin();
+		if(p_nodes)
+			return p_nodes->begin();
 		throw std::out_of_range("No child value node found.");
 	}
 	Container::iterator
 	GetEnd()
 	{
-		if(pNodes)
-			return pNodes->end();
+		if(p_nodes)
+			return p_nodes->end();
 		throw std::out_of_range("No child value node found.");
 	}
 	Container::const_iterator
 	GetEnd() const
 	{
-		if(pNodes)
-			return pNodes->end();
+		if(p_nodes)
+			return p_nodes->end();
 		throw std::out_of_range("No child value node found.");
 	}
 	DefGetter(const ynothrow, const string&, Name, name)
+	//! \since build 337
+	//@{
 	ValueNode&
-	GetNode(const string& name) const
+	GetNode(const string& name)
 	{
-		if(pNodes)
-			return pNodes->at(name);
-		throw std::out_of_range(name);
+		return const_cast<ValueNode&>(
+			const_cast<const ValueNode*>(this)->GetNode(name));
 	}
-	DefGetter(const ynothrow, size_t, Size, pNodes ? pNodes->size() : 0)
+	const ValueNode&
+	GetNode(const string&) const;
+	//@}
+	DefGetter(const ynothrow, size_t, Size, p_nodes ? p_nodes->size() : 0)
 	DefGetter(ynothrow, ValueObject&, Value, value)
 	//! \since build 334
 	//@{
 	DefGetter(const ynothrow, const ValueObject&, Value, value)
 
-	DefSetter(const string&, Name, name)
 	DefSetter(const ValueObject&, Value, GetValue())
 	DefSetter(ValueObject&&, Value, GetValue())
 	//@}
-
-private:
-	void
-	CheckNodes();
-
-public:
-	PDefH(void, Clear)
-		ImplExpr(name.clear(), pNodes.reset())
 
 	PDefH(bool, Add, ValueNode& node)
 		ImplRet(Add(std::move(node)))
@@ -458,10 +498,18 @@ public:
 	bool
 	Add(ValueNode&&);
 
+private:
+	void
+	CheckNodes();
+
+public:
+	PDefH(void, Clear)
+		ImplExpr(p_nodes.reset())
+
 	PDefH(bool, Remove, const ValueNode& node)
-		ImplRet(pNodes ? pNodes->erase(node.name) != 0 : false)
+		ImplRet(p_nodes ? p_nodes->erase(node.name) != 0 : false)
 	PDefH(bool, Remove, const string& str)
-		ImplRet(pNodes ? pNodes->erase(str) != 0 : false)
+		ImplRet(p_nodes ? p_nodes->erase(str) != 0 : false)
 };
 
 /*!

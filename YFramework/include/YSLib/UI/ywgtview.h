@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r502
+\version r506
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-04 11:59 +0800
+	2012-09-07 10:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,8 +68,9 @@ private:
 public:
 	/*!
 	\brief 构造：使用指定边界。
+	\since build 337
 	*/
-	Visual(const Rect& = Rect::Empty);
+	Visual(const Rect& = {});
 
 	DefPred(const ynothrow, Visible, visible)
 	DefPred(const ynothrow, Transparent, transparent) //!< 判断是否透明。
@@ -157,8 +158,9 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界、前景色和背景色。
+	\since build 337
 	*/
-	View(const Rect& r = Rect::Empty)
+	View(const Rect& r = {})
 		: visual(r), pContainer(), pDependency(), pFocusing()
 	{}
 	View(const View& v)

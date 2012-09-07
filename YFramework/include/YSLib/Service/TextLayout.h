@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2613
+\version r2615
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-07 10:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,7 @@ FetchStringWidth(const Font& fnt, _tIn s)
 */
 template<typename _tIn>
 SDst
-FetchStringWidth(const Font& fnt, _tIn s, _tIn g, ucs4_t c = '\0')
+FetchStringWidth(const Font& fnt, _tIn s, _tIn g, ucs4_t c = {})
 {
 	SDst w(0);
 
@@ -156,7 +156,7 @@ FetchStringWidth(TextState& ts, SDst h, _tIn s)
 */
 template<typename _tIn>
 SDst
-FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, ucs4_t c = '\0')
+FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, ucs4_t c = {})
 {
 	const SPos x(ts.PenX);
 	EmptyTextRenderer r(ts, h);

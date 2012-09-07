@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1817
+\version r1819
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-09-07 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -243,7 +243,7 @@ UCS2Mapper_Map(_tParams&&...)
 template<Encoding _vEnc, typename _tDst, typename _tSrc, typename _tState>
 yconstfn ConversionResult
 UCS2Mapper_Map(_tDst&& d, _tSrc&& s, _tState&& st, decltype(
-	&GUCS2Mapper<_vEnc>::template Map<_tDst, _tSrc, _tState>) = nullptr)
+	&GUCS2Mapper<_vEnc>::template Map<_tDst, _tSrc, _tState>) = {})
 {
 	return GUCS2Mapper<_vEnc>::Map(d, s, st);
 }
@@ -257,7 +257,7 @@ UCS2Mapper_InverseMap(_tDst, _tSrc)
 template<Encoding _vEnc, typename _tDst>
 yconstfn byte
 UCS2Mapper_InverseMap(_tDst&& d, const ucs2_t& s,
-	decltype(&GUCS2Mapper<_vEnc>::template InverseMap<_tDst>) = nullptr)
+	decltype(&GUCS2Mapper<_vEnc>::template InverseMap<_tDst>) = {})
 {
 	return GUCS2Mapper<_vEnc>::InverseMap(d, s);
 }

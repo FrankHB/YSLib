@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1226
+\version r1234
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2012-09-04 12:15 +0800
+	2012-09-07 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,6 @@ template<typename _type>
 class GBinaryGroup
 {
 public:
-	static yconstexpr GBinaryGroup Zero{}; //!< 无参数构造参数构造的原点对象。
 	static yconstexpr GBinaryGroup Invalid{std::numeric_limits<_type>::lowest(),
 		std::numeric_limits<_type>::lowest()}; //!< 无效（不在屏幕坐标系中）对象。
 
@@ -154,8 +153,6 @@ public:
 };
 
 template<typename _type>
-yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Zero;
-template<typename _type>
 yconstexpr GBinaryGroup<_type> GBinaryGroup<_type>::Invalid;
 
 
@@ -238,7 +235,6 @@ typedef GBinaryGroup<SPos> Vec;
 class Size
 {
 public:
-	static const Size Zero; //!< 无参数构造的零元素对象。
 	/*!
 	\brief 无效对象。
 	\since build 296
@@ -406,7 +402,6 @@ GetAreaOf(const Size& s) ynothrow -> decltype(s.Width * s.Height)
 class Rect : private Point, private Size
 {
 public:
-	static const Rect Empty; //!< 无参数构造的空矩形对象。
 	/*!
 	\brief 无效对象。
 	\since build 296
@@ -520,7 +515,7 @@ public:
 
 	/*!
 	\brief 求与另一个屏幕正则矩形的交。
-	\note 若相离结果为 Rect::Empty ，否则为包含于两个参数中的最大矩形。
+	\note 若相离结果为 Rect() ，否则为包含于两个参数中的最大矩形。
 	\since build 320
 	*/
 	Rect&
@@ -711,10 +706,10 @@ protected:
 public:
 	/*!
 	\brief 构造：使用指定位图指针和大小。
-	\since build 319
+	\since build 337
 	*/
 	explicit yconstfn
-	Graphics(BitmapPtr b = nullptr, const Size& s = Size::Zero) ynothrow
+	Graphics(BitmapPtr b = {}, const Size& s = {}) ynothrow
 		: pBuffer(b), size(s)
 	{}
 	/*!

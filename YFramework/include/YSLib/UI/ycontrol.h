@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4568
+\version r4570
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2012-09-04 12:00 +0800
+	2012-09-07 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -342,9 +342,10 @@ public:
 	\note 使用扩展控件事件表加载的事件处理器。
 	\note 加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
 	\note 加载事件处理器： OnTouchDown_RequestToTopFocused 。
+	\since build 337
 	*/
 	explicit
-	Control(const Rect& = Rect::Empty);
+	Control(const Rect& = {});
 	/*!
 	\brief 复制构造：除容器为空外深复制。
 	*/

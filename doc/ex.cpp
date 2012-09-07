@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4477 *build 336 rev 17
+\version r4477 *build 337 rev 16
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-05 18:07 +0800
+	2012-09-07 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -390,93 +390,162 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \f FetchSToColor @ \un \ns @ \impl \u ReaderSetting;
+* $doc "corrupted non-ASCII character" @ "%FTL.txt" @ "licenses" $since b326,
+/ @ \cl ValueNode $=
+(
+	/ \impl @ \mf Clear,
+	- \mf SetName
+);
 /= test 1 @ platform MinGW32;
 
 r2:
-/ @ \un \ns @ \impl \u ReaderSetting $=
+/ @ \cl ValueNode $=
 (
-	+ \decl @ \ft <_type> _type& FetchSetting(ValueNode&, const string&);
-	/ \f (FetchString, FetchSToI, FetchSToColor)
-		-> \f \spec FetchSetting(<string>, <int>, <Color>)
-);
+	/ private \m pNodes => p_nodes,
+	/ typedef map<string, ValueNode> Container
+		-> typedef set<ValueNode> Container,
+	/ \impl @ \mf \op[],
+	/ \mf ValueNode& GetNode(const string&) -> \mf (ValueObject& GetNode(const
+		string&) const, ValueObject GetNode(const string&)),
+	/ \tr \impl @ \mf Add#1,
+),
+/ \tr \impl @ \f ((WriteNodeC @ \un \ns), TransformConfiguration)
+	@ \impl \u Configuration;
 /= test 2 @ platform MinGW32;
 
 r3:
-/ $doc source code trailing punctuation format @ ('\since', '\par');
-/= test 3 @ platform DS;
+/= test 3 @ platform MinGW32 ^ \conf release;
 
 r4:
-/ @ \impl \u ShlReader $=
+/ @ \cl ValueNode $=
 (
-	- redundant 'using namespace ystdex;using std::chrono::milliseconds;',
-	/ \tr \impl @ \mf ShlTextReader::Execute
+	+ \i @ \a \ctor \t,\
+	/ \ctor \t<_tString> \i ValueNode(const ValueObject&, _tString&&)
+		-> ValueNode(const ValueObject&, _tString&& = string(),
+		unique_ptr<Container>&& = nullptr),
+	/ \ctor \t<_tString> \i ValueNode(ValueObject&&, _tString&&)
+		-> ValueNode(ValueObject&&, _tString&& = string(),
+		unique_ptr<Container>&& = nullptr),
+	+ \ctor \t<_tString> \i ValueNode(_tString&&, unique_ptr<Container>&&),
+	+ \ctor \t<_tIn> \i ValueNode(const pair<_tIn, _tIn>&),
+	+ \ctor \t<_tIn, _tString, _Params...> \i ValueNode(const pair<_tIn, _tIn>&,
+		_tString&&, _tParams&&...)
 );
 /= test 4 @ platform MinGW32;
 
 r5:
-/ @ \u YObject $=
++ 2 \ft make_move_iterator_pair @ \h Iterator,
+- \inc \h <initializer_list> @ \h Video,
+^ \em braced-init-list @ \a \de \arg $=
 (
-	/ @ \cl ValueNode $=
-	(
-		/ protected \inh ValueObject -> private \m mutable ValueObject value;
-		/ \tr \impl @ \ctor,
-		/ \m pNodes -> \m mutable pNodes,
-		/ \tr using ValueObject::\op! -> \mf \op!
-		- \tr using ValueObject::Access,
-		- \tr using ValueObject::GetObject,
-		/ \tr \impl @ \mf GetValue,
-		/ \tr using ValueObject::\op bool -> \mf \op bool
-	),
-	+ 2 \ft Access,
-	/ \tr \impl @ 2 \ft AccessChild
-);
-/ \tr \impl @ \f ((WriteNodeC @ \un \ns), TransformConfiguration)
-	@ \impl \u Configuration;
+	^ '{}' as initializer-clause ~ (non-literal zero-initialized \o, nullptr),
+	/ \a = 'FetchPrototype<Drawing::Font>()' -> '{}'
+),
+/ \a 'Size::Zero' -> 'Size()' @ (\h ComboList, \impl \u YRenderer),
+/ \a 'Rect::Empty' -> 'Rect()' @ (\h Desktop, \impl @ \mf Rect::\op&=
+	@ \impl \u YGDIBase, \impl \u (ComboList, Shells, ShlReader)),
+/ \impl @ \mf ShlDS::OnInput ^ \mf Rect::\op bool ~ Rect::Empty;
 /= test 5 @ platform MinGW32;
 
-r6-r8:
-/= 2 test 6 @ platform MinGW32;
+r6:
+(
+	/ \a 'Point::Zero' -> 'Point()' \exc \decl;
+	/ @ \u YGDIBase $=
+	(
+		- \sm Size::Zero,
+		- \sm GBinaryGroup<type>::Zero,
+		- \sm Rect::Empty
+	)
+),
+/ \simp \cl Rect \Init @ \impl @ (\mf (DrawText#(1, 2) @ \impl \u TextRenderer,
+	TextList::CheckPoint @ \impl \u TextList), \ctor (ListBox @ \impl \u
+	ComboBox, ATrack @ \impl \u Scroll, Desktop @ \impl \u YDesktop),
+	\f Invalidate#1 @ \impl \u YWidget);
+/= test 6 @ platform MinGW32;
+
+r7:
 /= test 7 @ platform MinGW32 ^ \conf release;
 
+r8:
+/= test 8 @ platform DS;
+
 r9:
-/= test 8 @ platform MinGW32;
+/= test 9 @ platform DS ^ \conf release;
 
-r10-r13:
-/= 4 test 9 @ platform MinGW32;
-
-r14:
-/ @ \cl ValueNode $=
+r10:
+/ @ \h ValueNode $=
 (
-	* \init order @ \impl @ \ctor @ \impl \u YObject $since r5,
-	/ \op+=(ValueNode&) -> \op+=(const ValueNode&);
-	/ \impl @ \mf Add(ValueNode&),
-	+ \mf Add(const ValueNode&)
-);
+	/ @ \cl ValueObject $=
+	(
+		+ private \mft \i GetMutableObject;
+		/ \simp \impl @ 2 \mft GetObject ^ GetMutableObject
+	),
+	/ @ \cl ValueNode $=
+	(
+		/ \ctor \t<_tString> \i ValueNode(const ValueObject&, _tString&&
+			= string(), unique_ptr<Container>&& = {})
+			-> \ctor \t<_tValue> \i ValueNode(_tValue&&,
+			const string& = {}, unique_ptr<Container>&& = {})
+		/ \ctor \t<_tString> \i ValueNode(ValueObject&&, _tString&& = string(),
+			unique_ptr<Container>&& = {}) -> \ctor \t<_tValue> \i
+			ValueNode(_tValue&&, string&&, unique_ptr<Container>&& = {})
+	)
+)
 /= test 10 @ platform MinGW32;
 
+r11:
+/ @ \cl ValueNode $=
+(
+	/ \ctor \t<_tValue> \i ValueNode(_tValue&&, const string& = string(),
+		unique_ptr<Container>&& = {}) -> \ctor \i ValueNode(const string&,
+		unique_ptr<Container>&&),
+	/ \ctor \t<_tValue> \i ValueNode(_tValue&&, string&&, unique_ptr<Container>
+		&& = {}) -> \ctor \i ValueNode(string&&, unique_ptr<Container>&&)
+	/ \ctor \t<_tString> \i ValueNode(_tString&&, unique_ptr<Container>&&)
+		-> \ctor \t<_tString, _tValue> \i ValueNode(_tString&&, _tValue&&,
+		unique_ptr<Container>&& = {})
+);
+/= test 11 @ platform MinGW32;
+
+r12:
+(
+	+ \ft decay_copy @ \h Utilities,
+	/ \a make_array => to_array;
+	+ \ft make_array @ \h Utilities
+);
+/= test 12 @ platform MinGW32;
+
+r13:
+/ @ \cl ValueNode $=
+(
+	+ enable_if 2nd \tparam @ \ctor \t<_type> ValueNode(_tString&&, _tValue&&,
+		unique_ptr<Container>&& = {}),
+	- \ctor \t<_tString, _tParams...> \i ValueNode(_tString&&, _tParams&&...)
+);
+/= test 13 @ platform MinGW32;
+
+r14:
+/= test 14 @ platform MinGW32 ^ \conf release;
+
 r15:
-/= test 11 @ platform MinGW32 ^ \conf release;
+/= test 15 @ platform DS;
 
 r16:
-/= test 12 @ platform DS;
-
-r17:
-/= test 13 @ platform DS ^ \conf release;
+/= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-05 +0800:
--19.0d;
-// Mercurial rev1-rev208: r9097;
+2012-09-07 +0800:
+-17.4d;
+// Mercurial rev1-rev209: r9113;
 
 / ...
 
 
 $NEXT_TODO:
-b337-b348:
+b338-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -785,6 +854,7 @@ $HISTORY:
 
 $parser.state.style $= $natral_NPL;
 $dep_from; // take evaluation dependence from;
+$dep_all_from; // take all evaluation dependence from;
 $dep_to; // put evaluation dependence to;
 $label; // label for locating in code portions;
 
@@ -934,6 +1004,69 @@ $module_tree $=
 );
 
 $now
+(
+	* $doc "corrupted non-ASCII character" @ "%FTL.txt" @ "licenses"
+		$since b326,
+	/ %'YFramework' $=
+	(
+		(
+			^ DLD "empty braced-init-list" ~ "zero-initialized objects"
+				@ "function default arguments";
+			$dep_to "brace init default arguments"
+		),
+		/ %'YSLib'.'Core' $=
+		(
+			/ %'YObject' $=
+			(
+				/ @ "class %ValueNode" $=
+				(
+					- "public interface of modifying name" $=
+						// Now only moving operation can make the name \
+							modified, so the %const_cast of element is \
+							quite safe normarlly.
+					(
+						/ "implementation" @ "member function %Clean",
+						- "member function %SetName"
+					),
+					/ DLD "implementation" ^ "std::set" ~ "std::map",
+					/ "parameters order of 2 constructor templates specifying \
+						value",
+						// To Avoid ambiguous overloading.
+					+ "several constructor templates"
+				),
+				/ "merged implementation" @ "2 member templates %GetObject"
+					@ "class %ValueObject"
+			),
+			/ $dep_to DLD "removal use of static default graphical objects",
+			/ %'YGDIBase' $=
+			(
+				$dep_all_from "brace init default arguments",
+				$dep_from "removal use of static default graphical objects";
+				- "static const member objects %(GBinaryObject::Zero, \
+					Size::Zero, RectEmpty)"
+			)
+		),
+		- $dev $lib "redundant including header %<initialize_list>" @ "header"
+			@ %'YCLib'.'Video'
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		+ "2 function templates %make_move_iterator_pair" @ %'Iterator',
+		/ %'Utilities' $=
+		(
+			(
+				^ DLD "empty braced-init-list" ~ "zero-initialized objects"
+					@ "function default arguments";
+				$dep_to "brace init default arguments"
+			),
+			+ "function template %decay_copy",
+			/ "function templates %make_array" => "%to_array";
+			+ "function template %make_array"
+		)
+	)
+),
+
+b336
 (
 	/ DLD "configuration reader implementation"
 		@ %'YReader'.'shells test example'.'text reader',

@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r786
+\version r789
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-09-07 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,10 +65,10 @@ protected:
 public:
 	/*!
 	\brief 构造：使用指定边界、文本列表和菜单标识。
+	\since build 327
 	*/
 	explicit
-	Menu(const Rect& = Rect::Empty,
-		const shared_ptr<ListType>& = shared_ptr<ListType>(), ID = 0);
+	Menu(const Rect& = {}, const shared_ptr<ListType>& = {}, ID = 0);
 	// FIXME: consideration for pointer members;
 	inline DefDeMoveCtor(Menu)
 

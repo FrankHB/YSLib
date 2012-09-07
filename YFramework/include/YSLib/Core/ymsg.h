@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1795
+\version r1796
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-09-04 12:15 +0800
+	2012-09-07 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ public:
 	\since build 320
 	*/
 	//@{
-	Message(ID = 0, const ValueObject& = ValueObject());
+	Message(ID = 0, const ValueObject& = {});
 	Message(ID, ValueObject&&);
 	//@}
 

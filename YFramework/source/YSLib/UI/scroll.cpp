@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3331
+\version r3338
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2012-09-04 12:47 +0800
+	2012-09-07 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,9 +142,8 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 		},
 		FetchEvent<TouchMove>(*this) += OnTouchMove,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
-			if(e.Strategy == RoutedEventArgs::Direct
-				&& &e.GetSender() == this
-				&& Rect(Point::Zero, GetSizeOf(*this)).Contains(e))
+			if(e.Strategy == RoutedEventArgs::Direct && &e.GetSender() == this
+				&& Rect(GetSizeOf(*this)).Contains(e))
 			{
 				ScrollCategory t;
 
@@ -382,7 +381,7 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 	s.GetRef(bHorizontal) = l;
 	SetSizeOf(btnPrev, s);
 	SetSizeOf(btnNext, s);
-//	Button.SetLocationOf(btnPrev, Point::Zero);
+//	Button.SetLocationOf(btnPrev, Point());
 	MoveToBottom(btnNext);
 	MoveToRight(btnNext);
 }
@@ -473,8 +472,8 @@ VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)
 
 ScrollableContainer::ScrollableContainer(const Rect& r)
 	: Control(r),
-	hsbHorizontal(Rect(Point::Zero, r.Width, defMinScrollBarHeight)),
-	vsbVertical(Rect(Point::Zero, defMinScrollBarWidth, r.Height))
+	hsbHorizontal(Rect(Point(), r.Width, defMinScrollBarHeight)),
+	vsbVertical(Rect(Point(), defMinScrollBarWidth, r.Height))
 {
 	SetTransparent(true);
 	SetContainerPtrOf(hsbHorizontal, this),

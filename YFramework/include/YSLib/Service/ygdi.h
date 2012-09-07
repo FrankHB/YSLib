@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3339
+\version r3348
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-07 11:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -352,14 +352,14 @@ CopyTo(BitmapPtr, const BitmapBufferEx&, const Size&,
 /*!
 \brief 图形接口上下文复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
+\since build 337
 
 以第一个参数作为目标，以指定输出指向复制第二个参数的缓冲区内容
 	至相对于目标缓冲区的点。
 */
 inline bool
 CopyTo(const Graphics& dst, const Graphics& src,
-	const Point& dp = Point::Zero, const Point& sp = Point::Zero,
-	Rotation rot = RDeg0)
+	const Point& dp = {}, const Point& sp = {}, Rotation rot = RDeg0)
 {
 	return CopyTo(dst.GetBufferPtr(), src, dst.GetSize(),
 		dp, sp, src.GetSize(), rot);
@@ -367,13 +367,13 @@ CopyTo(const Graphics& dst, const Graphics& src,
 /*!
 \brief 刷新：位图缓冲区向图形接口上下文复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
+\since build 337
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
 inline bool
 CopyTo(const Graphics& dst, const BitmapBufferEx& src,
-	const Point& dp = Point::Zero, const Point& sp = Point::Zero,
-	Rotation rot = RDeg0)
+	const Point& dp = {}, const Point& sp = {}, Rotation rot = RDeg0)
 {
 	return CopyTo(dst.GetBufferPtr(), src, dst.GetSize(),
 		dp, sp, src.GetSize(), rot);
@@ -391,13 +391,13 @@ BlitTo(BitmapPtr, const BitmapBufferEx&, const Size&,
 /*!
 \brief 贴图：位图缓冲区向指针指定的缓冲区以贴图算法复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
+\since build 337
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向以缓冲区内容贴图。
 */
 inline bool
 BlitTo(const Graphics& dst, const BitmapBufferEx& src,
-	const Point& dp = Point::Zero, const Point& sp = Point::Zero,
-	Rotation rot = RDeg0)
+	const Point& dp = {}, const Point& sp = {}, Rotation rot = RDeg0)
 {
 	return BlitTo(dst.GetBufferPtr(), src, dst.GetSize(),
 		dp, sp, src.GetSize(), rot);

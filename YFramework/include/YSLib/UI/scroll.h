@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2496
+\version r2510
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-09-07 10:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,9 +147,10 @@ private:
 public:
 	/*!
 	\brief 构造：使用指定边界和大小。
+	\since build 337
 	*/
 	explicit
-	ATrack(const Rect& = Rect::Empty, SDst = 8);
+	ATrack(const Rect& = {}, SDst = 8);
 	inline DefDeMoveCtor(ATrack)
 
 	DefPred(const ynothrow, Horizontal, GetOrientation() == Horizontal)
@@ -243,9 +244,10 @@ public:
 	/*!
 	\brief 构造：使用指定边界和最小滑块长。
 	\pre 断言：宽大于长。
+	\since build 337
 	*/
 	explicit
-	HorizontalTrack(const Rect& = Rect::Empty, SDst = 8);
+	HorizontalTrack(const Rect& = {}, SDst = 8);
 	inline DefDeMoveCtor(HorizontalTrack)
 
 	ImplI(ATrack)
@@ -263,9 +265,10 @@ public:
 	/*!
 	\brief 构造：使用指定边界和最小滑块长。
 	\pre 断言：长大于宽。
+	\since build 337
 	*/
 	explicit
-	VerticalTrack(const Rect& = Rect::Empty, SDst = 8);
+	VerticalTrack(const Rect& = {}, SDst = 8);
 	inline DefDeMoveCtor(VerticalTrack)
 
 	ImplI(ATrack)
@@ -306,9 +309,10 @@ private:
 public:
 	/*!
 	\brief 构造：使用指定边界、大小和方向。
+	\since build 337
 	*/
 	explicit
-	AScrollBar(const Rect& = Rect::Empty, SDst = 8, Orientation = Horizontal);
+	AScrollBar(const Rect& = {}, SDst = 8, Orientation = Horizontal);
 	inline DefDeMoveCtor(AScrollBar)
 
 	/*!
@@ -370,8 +374,9 @@ AScrollBar::LocateThumb(ValueType val, ScrollCategory t)
 class HorizontalScrollBar : public AScrollBar
 {
 public:
+	//! \since build 337
 	explicit
-	HorizontalScrollBar(const Rect& = Rect::Empty, SDst = 8);
+	HorizontalScrollBar(const Rect& = {}, SDst = 8);
 	inline DefDeMoveCtor(HorizontalScrollBar)
 
 public:
@@ -391,8 +396,9 @@ protected:
 class VerticalScrollBar : public AScrollBar
 {
 public:
+	//! \since build 337
 	explicit
-	VerticalScrollBar(const Rect& = Rect::Empty, SDst = 8);
+	VerticalScrollBar(const Rect& = {}, SDst = 8);
 	inline DefDeMoveCtor(VerticalScrollBar)
 
 public:
@@ -423,8 +429,9 @@ protected:
 	VerticalScrollBar vsbVertical;
 
 public:
+	//! \since build 337
 	explicit
-	ScrollableContainer(const Rect& = Rect::Empty);
+	ScrollableContainer(const Rect& = {});
 	inline DefDeMoveCtor(ScrollableContainer)
 
 	/*!

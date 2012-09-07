@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief C++ 标准库迭代器扩展。
-\version r901
+\version r928
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-09-07 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,34 @@ namespace ystdex
 \brief 迭代器适配器。
 */
 
+
+/*!
+\ingroup helper_functions
+\brief 取转移迭代器对。
+\since build 337
+*/
+template<typename _tIterator1, typename _tIterator2>
+inline auto
+make_move_iterator_pair(_tIterator1 it1, _tIterator2 it2) -> decltype(
+	std::make_pair(std::make_move_iterator(it1), std::make_move_iterator(it2)))
+{
+	return std::make_pair(std::make_move_iterator(it1),
+		std::make_move_iterator(it2));
+}
+/*!
+\ingroup helper_functions
+\brief 取容器的迭代器对。
+\since build 337
+*/
+template<typename _tContainer>
+inline auto
+make_move_iterator_pair(_tContainer& c)
+	-> decltype(ystdex::make_move_iterator_pair(c.begin(), c.end()))
+{
+	return ystdex::make_move_iterator_pair(c.begin(), c.end());
+}
+
+
 /*!
 \ingroup iterator_adaptors
 \brief 指针迭代器。
@@ -76,7 +104,7 @@ protected:
 
 public:
 	yconstfn
-	pointer_iterator(std::nullptr_t = nullptr)
+	pointer_iterator(std::nullptr_t = {})
 		: current()
 	{}
 	template<typename _tPointer>
@@ -333,7 +361,7 @@ protected:
 public:
 	template<typename _tIter, typename _tTran>
 	yconstfn
-	transformed_iterator(_tIter&& i, _tTran&& f = _tTran())
+	transformed_iterator(_tIter&& i, _tTran&& f = {})
 		: iterator_type(yforward(i)), transformer(f)
 	{}
 

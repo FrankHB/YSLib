@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3851
+\version r3854
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-09-05 12:08 +0800
+	2012-09-07 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 
 FileInfoPanel::FileInfoPanel()
-	: Panel(Rect(Point::Zero, MainScreenWidth, MainScreenHeight)),
+	: Panel(Rect(Point(), MainScreenWidth, MainScreenHeight)),
 	lblPath(Rect(8, 20, 240, 16)),
 	lblSize(Rect(8, 40, 240, 16)),
 	lblAccessTime(Rect(8, 60, 240, 16)),
@@ -295,7 +295,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
 	);
 	{
-		Menu& mnu(*(ynew Menu(Rect::Empty, shared_ptr<Menu::ListType>(new
+		Menu& mnu(*(ynew Menu(Rect(), shared_ptr<Menu::ListType>(new
 			Menu::ListType{"返回", "设置...", "文件信息...", "向上一行",
 			"向下一行", "向上一屏", "向下一屏"}), 1u)));
 
@@ -579,7 +579,7 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 
 ShlHexBrowser::ShlHexBrowser(const IO::Path& pth)
 	: ShlReader(pth),
-	HexArea(Rect(Point::Zero, MainScreenWidth, MainScreenHeight)), pnlFileInfo()
+	HexArea(Rect(Point(), MainScreenWidth, MainScreenHeight)), pnlFileInfo()
 {
 	HexArea.SetRenderer(make_unique<BufferedRenderer>(true));
 	yunseq(

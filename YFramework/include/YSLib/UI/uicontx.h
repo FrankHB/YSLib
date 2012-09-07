@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r293
+\version r297
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-09-07 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,8 +49,9 @@ protected:
 	Thumb btnClose;
 
 public:
+	//! \since build 337
 	explicit
-	DialogBox(const Rect& = Rect::Empty);
+	DialogBox(const Rect& = {});
 
 	IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
@@ -78,8 +79,9 @@ public:
 	Thumb btnClose;
 	Button btnOK;
 
+	//! \since build 337
 	explicit
-	DialogPanel(const Rect& = Rect::Empty);
+	DialogPanel(const Rect& = {});
 };
 
 YSL_END_NAMESPACE(Components)

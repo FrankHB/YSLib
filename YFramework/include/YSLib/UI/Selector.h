@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r304
+\version r308
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-09-07 10:16 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -67,9 +67,10 @@ private:
 public:
 	/*!
 	\brief 构造：使用指定边界。
+	\since build 337
 	*/
 	explicit
-	CheckBox(const Rect& = Rect::Empty);
+	CheckBox(const Rect& = {});
 	inline DefDeMoveCtor(CheckBox)
 
 	DefPred(const ynothrow, Ticked, bTicked)
@@ -126,9 +127,10 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界。
+	\since build 337
 	*/
 	explicit
-	CheckButton(const Rect& = Rect::Empty);
+	CheckButton(const Rect& = {});
 
 	void
 	Refresh(PaintEventArgs&&) override;

@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2586
+\version r2590
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-07 10:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,9 +52,10 @@ public:
 
 	/*!
 	\brief 构造：使用指定字体家族、字体大小和颜色。
+	\since build 337
 	*/
 	explicit
-	PenStyle(const Drawing::Font& fnt = FetchPrototype<Drawing::Font>(),
+	PenStyle(const Drawing::Font& fnt = {},
 		Drawing::Color c = Drawing::ColorSpace::White)
 		: Font(fnt), Color(c)
 	{}
@@ -90,10 +91,10 @@ public:
 public:
 	/*!
 	\brief 构造：使用指定字体。
-	\since build 277
+	\since build 337
 	*/
 	explicit
-	TextState(const Drawing::Font& = FetchPrototype<Drawing::Font>());
+	TextState(const Drawing::Font& = {});
 	/*!
 	\brief 构造：使用指定字体缓存。
 	*/
@@ -209,11 +210,6 @@ void
 MovePen(TextState&, ucs4_t);
 
 YSL_END_NAMESPACE(Drawing)
-
-YSL_BEGIN_NAMESPACE(Text)
-
-
-YSL_END_NAMESPACE(Text)
 
 YSL_END
 

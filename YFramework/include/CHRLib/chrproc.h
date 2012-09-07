@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r718
+\version r722
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-09-07 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ ToASCII(_tChar c)
 */
 //@{
 ConversionResult
-MBCToUC(ucs2_t&, const char*&, Encoding, ConversionState&& = ConversionState());
+MBCToUC(ucs2_t&, const char*&, Encoding, ConversionState&& = {});
 inline ConversionResult
 MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState& st)
 {
@@ -83,7 +83,7 @@ MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState& st)
 */
 //@{
 ConversionResult
-MBCToUC(ucs2_t&, std::FILE*, Encoding, ConversionState&& = ConversionState());
+MBCToUC(ucs2_t&, std::FILE*, Encoding, ConversionState&& = {});
 inline ConversionResult
 MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState& st)
 {
@@ -96,14 +96,14 @@ MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState& st)
 */
 //@{
 ConversionResult
-MBCToUC(const char*&, Encoding, ConversionState&& = ConversionState());
+MBCToUC(const char*&, Encoding, ConversionState&& = {});
 inline ConversionResult
 MBCToUC(const char*& c, Encoding enc, ConversionState& st)
 {
 	return MBCToUC(c, enc, std::move(st));
 }
 ConversionResult
-MBCToUC(std::FILE*, Encoding, ConversionState&& = ConversionState());
+MBCToUC(std::FILE*, Encoding, ConversionState&& = {});
 inline ConversionResult
 MBCToUC(std::FILE* fp, Encoding enc, ConversionState& st)
 {

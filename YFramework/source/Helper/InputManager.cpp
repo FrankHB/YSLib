@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r168
+\version r169
 \author FrankHB<frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2012-09-04 11:03 +0800
+	2012-09-07 11:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ InputManager::DispatchInput(Desktop& dsk)
 		::ScreenToClient(FetchGlobalInstance().GetWindowHandle(), &cursor);
 		yunseq(cursor_state.X = cursor.x,
 			cursor_state.Y = cursor.y - MainScreenHeight);
-		if(!Rect(Point::Zero, MainScreenWidth, MainScreenHeight)
+		if(!Rect(Point(), MainScreenWidth, MainScreenHeight)
 			.Contains(cursor_state))
 			cursor_state = Point::Invalid;
 #endif

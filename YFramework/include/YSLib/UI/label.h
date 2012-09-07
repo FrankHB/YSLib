@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1247
+\version r1256
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-09-07 10:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,10 +75,10 @@ public:
 protected:
 	/*!
 	\brief 构造：使用指定字体。
+	\since build 337
 	*/
 	explicit
-	MLabel(const Drawing::Font& = FetchPrototype<Drawing::Font>(),
-		TextAlignment = TextAlignment::Left);
+	MLabel(const Drawing::Font& = {}, TextAlignment = TextAlignment::Left);
 	inline DefDeMoveCtor(MLabel)
 
 	/*!
@@ -107,10 +107,10 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界和字体。
+	\since build 337
 	*/
 	explicit
-	Label(const Rect& r = Rect::Empty,
-		const Drawing::Font& fnt = FetchPrototype<Drawing::Font>())
+	Label(const Rect& r = {}, const Drawing::Font& fnt = {})
 		: Widget(r), MLabel(fnt)
 	{}
 	inline DefDeMoveCtor(Label)
@@ -145,10 +145,10 @@ protected:
 	/*!
 	\brief 构造：使用文本列表句柄和字体指针。
 	\note 当文本列表指针为空时新建。
+	\since build 337
 	*/
 	explicit
-	MTextList(const shared_ptr<ListType>& = shared_ptr<ListType>(),
-		const Drawing::Font& = FetchPrototype<Drawing::Font>());
+	MTextList(const shared_ptr<ListType>& = {}, const Drawing::Font& = {});
 	inline DefDeMoveCtor(MTextList)
 
 	//void

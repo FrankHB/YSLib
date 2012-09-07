@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1248
+\version r1252
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2012-09-04 11:59 +0800
+	2012-09-07 10:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,8 +131,7 @@ public:
 	\brief 构造：使用本机键按下对象和路由事件类型。
 	\since build 298
 	*/
-	InputEventArgs(IWidget&, const KeyInput& = KeyInput(),
-		RoutingStrategy = Direct);
+	InputEventArgs(IWidget&, const KeyInput& = {}, RoutingStrategy = Direct);
 
 	/*!
 	\brief 转换为按键代码类型。
@@ -161,8 +160,7 @@ public:
 	/*!
 	\brief 构造：使用输入类型对象和路由事件类型。
 	*/
-	KeyEventArgs(IWidget&, const InputType& = InputType(),
-		RoutingStrategy = Direct);
+	KeyEventArgs(IWidget&, const InputType& = {}, RoutingStrategy = Direct);
 };
 
 
@@ -178,9 +176,9 @@ public:
 
 	/*!
 	\brief 构造：使用输入类型对象和路由事件类型。
+	\since build 337
 	*/
-	TouchEventArgs(IWidget&, const InputType& = InputType::Zero,
-		RoutingStrategy = Direct);
+	TouchEventArgs(IWidget&, const InputType& = {}, RoutingStrategy = Direct);
 };
 
 

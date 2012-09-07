@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2406
+\version r2419
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-07 10:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,9 +61,9 @@ protected:
 	TextList lstText;
 
 public:
+	//! \since build 337
 	explicit
-	ListBox(const Rect& = Rect::Empty,
-		const shared_ptr<ListType>& = shared_ptr<ListType>());
+	ListBox(const Rect& = {}, const shared_ptr<ListType>& = {});
 	inline DefDeMoveCtor(ListBox)
 
 	DefPredMem(const ynothrow, Selected, lstText)
@@ -135,12 +135,12 @@ public:
 
 	/*!
 	\brief 按指定大小上限和内容调整大小。
-	\param sup 指定调整的大小的上限，当为 Size::Zero 时忽略大小限制。
+	\param sup 指定调整的大小的上限，当为 Size() 时忽略大小限制。
 	\note s 指定大小，分量为 0 时对应分量大小由内容确定（其中宽度含边距）。
-	\since build 282
+	\since build 337
 	*/
 	void
-	ResizeForPreferred(const Size& sup, Size s = Size::Zero);
+	ResizeForPreferred(const Size& sup, Size s = {});
 
 	PDefH(void, UpdateView)
 		ImplBodyMem(lstText, UpdateView)
@@ -154,8 +154,9 @@ public:
 class FileBox : public IO::FileList, public ListBox
 {
 public:
+	//! \since build 337
 	explicit
-	FileBox(const Rect& = Rect::Empty);
+	FileBox(const Rect& = {});
 	inline DefDeMoveCtor(FileBox)
 
 	/*!
@@ -200,9 +201,9 @@ protected:
 	ListBox boxList;
 
 public:
+	//! \since build 337
 	explicit
-	DropDownList(const Rect& = Rect::Empty,
-		const shared_ptr<ListType>& = shared_ptr<ListType>());
+	DropDownList(const Rect& = {}, const shared_ptr<ListType>& = {});
 	inline DefDeMoveCtor(DropDownList)
 	/*!
 	\brief 析构：分离顶层子部件。

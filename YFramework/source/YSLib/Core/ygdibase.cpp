@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r560
+\version r564
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2012-09-04 12:51 +0800
+	2012-09-07 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,13 +33,11 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-const Size Size::Zero;
 const Size Size::Invalid(std::numeric_limits<SDst>::lowest(),
 		std::numeric_limits<SDst>::lowest());
 
 
-const Rect Rect::Empty;
-const Rect Rect::Invalid(Point::Zero, Size::Invalid);
+const Rect Rect::Invalid(Point(), Size::Invalid);
 
 bool
 Rect::Contains(int px, int py) const ynothrow
@@ -78,7 +76,7 @@ Rect::operator&=(const Rect& r) ynothrow
 
 	//相离。
 	if(Width + r.Width < dx || Height + r.Height < dy)
-		return *this = Rect::Empty;
+		return *this = Rect();
 
 	//优化：包含情况。
 	if(dx == Width && dy == Height)

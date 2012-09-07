@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r430
+\version r434
 \author FrankHB<frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-09-07 10:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,10 +47,10 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界和默认字型缓存。
-	\since build 296
+	\since build 337
 	*/
 	explicit
-	TextArea(const Drawing::Rect& = Drawing::Rect::Empty);
+	TextArea(const Drawing::Rect& = {});
 	/*!
 	\brief 构造：使用指定边界和字体缓存。
 	\since build 296
@@ -73,10 +73,10 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界和默认字型缓存。
-	\since build 296
+	\since build 337
 	*/
 	explicit
-	BufferedTextArea(const Drawing::Rect& = Drawing::Rect::Empty);
+	BufferedTextArea(const Drawing::Rect& = {});
 	/*!
 	\brief 构造：使用指定边界和字体缓存。
 	\since build 296

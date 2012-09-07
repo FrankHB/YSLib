@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r229
+\version r234
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2012-09-04 12:31 +0800
+	2012-09-07 19:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_STRING_HPP_
 #define YB_INC_STRING_HPP_ 1
 
-#include "utility.hpp" // for ../ydef.h, ystdex::make_array,
+#include "utility.hpp" // for ../ydef.h, ystdex::to_array,
 //	std::underlying_type;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	and std::to_string;
@@ -68,7 +68,7 @@ struct string_traits
 template<class _tString>
 inline _tString&
 ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
-	= &make_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
 	return str.erase(0, str.find_first_not_of(t));
 }
@@ -81,7 +81,7 @@ ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 template<class _tString>
 inline _tString&
 rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
-	= &make_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
 	return str.erase(str.find_last_not_of(t) + 1);
 }
@@ -94,7 +94,7 @@ rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 template<class _tString>
 inline _tString&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
-	= &make_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
+	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
 	return ystdex::ltrim(ystdex::rtrim(str, t));
 }
