@@ -87,6 +87,7 @@
 		<Unit filename="include\YSLib\Adaptor\ycont.h" />
 		<Unit filename="include\YSLib\Adaptor\ynew.h" />
 		<Unit filename="include\YSLib\Adaptor\yref.hpp" />
+		<Unit filename="include\YSLib\Core\ValueNode.h" />
 		<Unit filename="include\YSLib\Core\yapp.h" />
 		<Unit filename="include\YSLib\Core\ybasemac.h" />
 		<Unit filename="include\YSLib\Core\ycounter.hpp" />
@@ -251,6 +252,7 @@
 		<Unit filename="source\YCLib\ycommon.cpp" />
 		<Unit filename="source\YSLib\Adaptor\Font.cpp" />
 		<Unit filename="source\YSLib\Adaptor\ynew.cpp" />
+		<Unit filename="source\YSLib\Core\ValueNode.cpp" />
 		<Unit filename="source\YSLib\Core\yapp.cpp" />
 		<Unit filename="source\YSLib\Core\ydevice.cpp" />
 		<Unit filename="source\YSLib\Core\yexcept.cpp" />

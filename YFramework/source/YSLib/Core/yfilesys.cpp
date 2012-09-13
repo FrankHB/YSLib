@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1339
+\version r1342
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2012-09-04 12:51 +0800
+	2012-09-12 08:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,7 +341,9 @@ ChangeDirectory(const string& path)
 
 	return ChangeDirectory(path.c_str());
 }
-/*int //for String;
+#if 0
+// for String;
+int
 ChangeDirectory(const Path& path)
 {
 	if(YB_UNLIKELY(path.length() > YCL_MAX_PATH_LENGTH))
@@ -351,7 +353,8 @@ ChangeDirectory(const Path& path)
 
 	UCS2ToMBCS(p, path.c_str());
 	return ChangeDirectory(p);
-}*/
+}
+#endif
 
 String
 GetNowDirectory()

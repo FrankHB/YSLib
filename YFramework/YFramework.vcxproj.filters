@@ -646,6 +646,9 @@
     <ClInclude Include="include\NPL\Configuration.h">
       <Filter>头文件\NPL</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Core\ValueNode.h">
+      <Filter>头文件\YSLib\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -857,6 +860,9 @@
     </ClCompile>
     <ClCompile Include="source\NPL\Configuration.cpp">
       <Filter>源文件\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Core\ValueNode.cpp">
+      <Filter>源文件\YSLib\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

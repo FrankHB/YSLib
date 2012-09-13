@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1498
+\version r1546
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-09-07 19:29 +0800
+	2012-09-12 01:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,6 @@
 
 #include "../ydef.h"
 #include <utility>
-#include <array> // for std::array;
-#include <algorithm> // for std::copy_n;
 
 namespace ystdex
 {
@@ -105,57 +103,6 @@ yconstfn size_t
 arrlen(_type(&&)[_vN])
 {
 	return _vN;
-}
-//@}
-
-
-/*!
-\brief 取指定参数初始化的 std::array 对象。
-\since build 337
-*/
-template<typename _type, typename... _tParams>
-inline std::array<_type, sizeof...(_tParams)>
-make_array(_tParams&&... args)
-{
-	// TODO: Use one pair of braces.
-	return {{decay_copy(yforward(args))...}};
-}
-
-/*!
-\brief 取指定参数转换为 std::array 对象。
-\since build 337
-*/
-//@{
-template<typename _type, size_t _vN, typename _tSrc>
-yconstfn std::array<_type, _vN>
-to_array(const _tSrc& src)
-{
-	return std::array<_type, _vN>(src);
-}
-template<typename _type, size_t _vN>
-yconstfn std::array<_type, _vN>
-to_array(const std::array<_type, _vN>& src)
-{
-	return src;
-}
-template<typename _type, size_t _vN, typename _tSrcElement>
-inline std::array<_type, _vN>
-to_array(const _tSrcElement(&src)[_vN])
-{
-	std::array<_type, _vN> arr;
-
-	std::copy_n(std::addressof(src[0]), _vN, std::addressof(arr[0]));
-	return std::move(arr);
-}
-template<typename _type, size_t _vN, typename _tSrcElement>
-inline std::array<_type, _vN>
-to_array(_tSrcElement(&&src)[_vN])
-{
-	std::array<_type, _vN> arr;
-
-	std::copy_n(std::make_move_iterator(std::addressof(src[0])), _vN,
-		std::addressof(arr[0]));
-	return std::move(arr);
 }
 //@}
 

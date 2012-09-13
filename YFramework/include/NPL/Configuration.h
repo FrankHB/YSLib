@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r161
+\version r162
 \author FrankHB<frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2012-09-04 11:29 +0800
+	2012-09-13 12:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef NPL_INC_CONFIGURATION_H_
 #define NPL_INC_CONFIGURATION_H_
 
-#include "YSLib/Core/yobject.h"
+#include "YSLib/Core/ValueNode.h"
 #include "YSLib/Service/yftext.h"
 
 YSL_BEGIN_NAMESPACE(NPL)

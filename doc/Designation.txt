@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6730
+\version r6743
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-06 18:47 +0800
+	2012-09-13 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@
 一个类类型对象的生存期起始于构造调用结束后，构造函数中的操作是受限的（例如无法正确地调用虚函数）；
 构造函数允许抛出异常。
 因此：
- Shell 切换(@1.2.2.4) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::CommonRules @@5.9.5.4]) 的；
+ Shell 切换(@1.2.2.4) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::CommonRules @@5.10.5.4]) 的；
 激活和停用有必要明确地区分于构造和析构。
  Shell 可作为 ISO C++11 30.2.5.1/1 定义的执行代理(execution agent) 。
 
@@ -105,6 +105,7 @@
 @1.2.4 组织约定：
 
 @1.2.4.1 模块和模块目录：
+此处模块特指静态的组织构成单位。注意和一般意义的模块（参见 [Documentation::CommonRules @@3.7.1] ）之间的区别与联系。
 基本翻译单元或无源文件对应的头文件称为模块(module) 。一个模块目录是某个抽象路径中的模块的集合。
 一个模块仅可属于一个模块目录。
 模块和模块目录以类 C++ qualified-id 语法组成的名称表示，形式定义如下：
@@ -335,6 +336,7 @@ nested-module-name:
 
 @2 框架实现概览：
 本章描述 YSLib 项目中的 YFramework/YSLib 库。支持库参见 @5 。
+模块化设计原则参见 [Documentation::CommonRules @@3.7.1] 。
 编译单元简称单元，是一组包含源代码的文本文件，包含一个源文件（默认后缀名 .cpp ）和若干个头文件，经过预处理后成为翻译单元(translation unit) 。
 编译单元可以包含类/结构体等类型，以及 API（Application Programming Interface ，应用程序编程接口）的实现。
 关于一些文件的文件名的额外约定参见 @2.9.1 。
@@ -387,7 +389,7 @@ nested-module-name:
 多线程程序中，禁止使用非 const 全局对象。
 
 @2.2.2 对象引用和所有权管理：
-基本概念参见 [Documentation::CommonRules @@2.3.3]。
+基本概念参见 [Documentation::CommonRules @@2.3.3] 。
 注意基于非透明引用计数实现的非侵入式智能指针（如 boost::shared_ptr/std::tr1::shared_ptr 以及 C++11 的 std::shared_ptr ）具有以下固有的缺点：
 无法修改引用计数并直接转移所有权，资源实例的生存期依赖于至少一个具体智能指针对象的生存期；
 资源实例对智能指针对象的上述依赖性导致智能指针类型入侵用户程序接口；
@@ -954,10 +956,7 @@ nested-module-name:
 在不造成循环依赖的前提下， Adaptor 头文件可依赖 YFramework 文件或标准库实现的非标准头文件。
  Helper 文件和本体的非必要源文件可依赖 YCLib 文件。
 本体头文件不依赖 YSLib 以外的文件。
-注： ISO C++ 2011 直接指定的依赖项：
- <algorithm> 、 <array> 、 <string> 、 <random> 、 <vector> 包含 <initializer_list> ；
- <ios> 包含 <iosfwd> ；
- <bitset> 包含 <string> 和 <iosfwd> 。
+关于 ISO C++ 2011 直接指定的依赖项，参考 [Documentation::CommonRules @@5.14.2] 。
 
 @2.9.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
@@ -975,7 +974,7 @@ nested-module-name:
 @2.9.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件及唯一在其中声明的接口（但 Adaptor 可能会间接依赖）：
  <fstream> 、 <iomanip> 、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
-其它要点参见 [Documentation::CommonRules @@5.22] 。
+其它要点参见 [Documentation::CommonRules @@5.12] 。
 
 @2.9.1.5 本体的头文件中显式包含的 C++ 标准库依赖项：
  "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
@@ -1137,7 +1136,7 @@ nested-module-name:
 #endif
 
 不同头文件应使用不同的宏名。
-具体宏名由实现定义，一般应使用特定保留前缀（但不应与标准名称冲突，除非实现标准库，参见 [Documentation::CommonRules @@5.3.2.2.2]）。
+具体宏名由实现定义，一般应使用特定保留前缀（但不应与标准名称冲突，除非实现标准库，参见 [Documentation::CommonRules @@5.3.2.2.2] ）。
 
 @5.2 支持库概述：
 本节描述 YSLib 项目中除了 YFramework/YSLib 以外的库。
@@ -1151,6 +1150,7 @@ nested-module-name:
 @5.2.1.1 YBase ：
  YBase 除了公用头文件 YDefinition(ydef.h) 外，由 YStandardEx 、 LibDefect 和 YTest 子库组成。
  LibDefect 不保证可重入性和线程安全性由 ISO C++11 规范。
+ YBase 和其它模块之间传递的对象类型满足 trivially copable ，以保证动态库存储安全（参见 [Documentation::CommonRules @@3.7.2] ）。
 
 @5.2.1.1.1 LibDefect 以外的设计和实现原则：
 除了去除后不影响语义正确性的扩展，遵守 ISO C++ ，不使用不兼容于 ISO C++11 的特性或依赖于特定平台实现的接口。

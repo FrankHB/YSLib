@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4477 *build 337 rev 16
+\version r4479 *build 338 rev 16
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-07 22:15 +0800
+	2012-09-13 23:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,163 +389,108 @@ $using:
 
 
 $DONE:
-r1:
-* $doc "corrupted non-ASCII character" @ "%FTL.txt" @ "licenses" $since b326,
+r1-r2:
+/= 2 test 0 @ platform MinGW32;
+
+r3:
 / @ \cl ValueNode $=
 (
-	/ \impl @ \mf Clear,
-	- \mf SetName
+	/ \impl @ \ctor ValueNode#2 ^ std::move,
+	/ \a \param 'unique_ptr<Container>&&' -> 'unique_ptr<Container>'
 );
 /= test 1 @ platform MinGW32;
 
-r2:
-/ @ \cl ValueNode $=
+r4-r5:
+/= 2 test 2 @ platform MinGW32;
+
+r6:
+/ @ \lib YStandardEx @ \proj YBase $=
 (
-	/ private \m pNodes => p_nodes,
-	/ typedef map<string, ValueNode> Container
-		-> typedef set<ValueNode> Container,
-	/ \impl @ \mf \op[],
-	/ \mf ValueNode& GetNode(const string&) -> \mf (ValueObject& GetNode(const
-		string&) const, ValueObject GetNode(const string&)),
-	/ \tr \impl @ \mf Add#1,
+	+ \h Containers["container.hpp"];
+	/ \ft (assign, erase_all, erase_all_if, search_map) @ \h Algorithms
+		>> \h Containers,
+	/ (\h (<array>, <algorithm>), \ft (make_array, to_array)) @ \h Utilities
+		>> \h Containers,
+	/ \inc \h Utilities @ \h String -> \h Container
 ),
-/ \tr \impl @ \f ((WriteNodeC @ \un \ns), TransformConfiguration)
-	@ \impl \u Configuration;
-/= test 2 @ platform MinGW32;
+/ \tr \inc @ \h YEvent $= (\inc \h Algorithms -> \h Containers),
++ \tr \inc \h (<algorithm>, <functional>) @ \impl \u YNew;
+/= test 3 @ platform MinGW32;
 
-r3:
-/= test 3 @ platform MinGW32 ^ \conf release;
-
-r4:
-/ @ \cl ValueNode $=
+r7:
+/ @ \h Containers $=
 (
-	+ \i @ \a \ctor \t,\
-	/ \ctor \t<_tString> \i ValueNode(const ValueObject&, _tString&&)
-		-> ValueNode(const ValueObject&, _tString&& = string(),
-		unique_ptr<Container>&& = nullptr),
-	/ \ctor \t<_tString> \i ValueNode(ValueObject&&, _tString&&)
-		-> ValueNode(ValueObject&&, _tString&& = string(),
-		unique_ptr<Container>&& = nullptr),
-	+ \ctor \t<_tString> \i ValueNode(_tString&&, unique_ptr<Container>&&),
-	+ \ctor \t<_tIn> \i ValueNode(const pair<_tIn, _tIn>&),
-	+ \ctor \t<_tIn, _tString, _Params...> \i ValueNode(const pair<_tIn, _tIn>&,
-		_tString&&, _tParams&&...)
+	/ \inc \h Utilities -> \h Functional;
+	+ (\clt container_inserter; \f \i seq_insert)
 );
 /= test 4 @ platform MinGW32;
 
-r5:
-+ 2 \ft make_move_iterator_pair @ \h Iterator,
-- \inc \h <initializer_list> @ \h Video,
-^ \em braced-init-list @ \a \de \arg $=
-(
-	^ '{}' as initializer-clause ~ (non-literal zero-initialized \o, nullptr),
-	/ \a = 'FetchPrototype<Drawing::Font>()' -> '{}'
-),
-/ \a 'Size::Zero' -> 'Size()' @ (\h ComboList, \impl \u YRenderer),
-/ \a 'Rect::Empty' -> 'Rect()' @ (\h Desktop, \impl @ \mf Rect::\op&=
-	@ \impl \u YGDIBase, \impl \u (ComboList, Shells, ShlReader)),
-/ \impl @ \mf ShlDS::OnInput ^ \mf Rect::\op bool ~ Rect::Empty;
-/= test 5 @ platform MinGW32;
-
-r6:
-(
-	/ \a 'Point::Zero' -> 'Point()' \exc \decl;
-	/ @ \u YGDIBase $=
-	(
-		- \sm Size::Zero,
-		- \sm GBinaryGroup<type>::Zero,
-		- \sm Rect::Empty
-	)
-),
-/ \simp \cl Rect \Init @ \impl @ (\mf (DrawText#(1, 2) @ \impl \u TextRenderer,
-	TextList::CheckPoint @ \impl \u TextList), \ctor (ListBox @ \impl \u
-	ComboBox, ATrack @ \impl \u Scroll, Desktop @ \impl \u YDesktop),
-	\f Invalidate#1 @ \impl \u YWidget);
-/= test 6 @ platform MinGW32;
-
-r7:
-/= test 7 @ platform MinGW32 ^ \conf release;
-
 r8:
-/= test 8 @ platform DS;
+/= test 5 @ platform MinGW32 ^ \conf release;
 
 r9:
-/= test 9 @ platform DS ^ \conf release;
+/= test 6 @ platform DS;
 
 r10:
-/ @ \h ValueNode $=
-(
-	/ @ \cl ValueObject $=
-	(
-		+ private \mft \i GetMutableObject;
-		/ \simp \impl @ 2 \mft GetObject ^ GetMutableObject
-	),
-	/ @ \cl ValueNode $=
-	(
-		/ \ctor \t<_tString> \i ValueNode(const ValueObject&, _tString&&
-			= string(), unique_ptr<Container>&& = {})
-			-> \ctor \t<_tValue> \i ValueNode(_tValue&&,
-			const string& = {}, unique_ptr<Container>&& = {})
-		/ \ctor \t<_tString> \i ValueNode(ValueObject&&, _tString&& = string(),
-			unique_ptr<Container>&& = {}) -> \ctor \t<_tValue> \i
-			ValueNode(_tValue&&, string&&, unique_ptr<Container>&& = {})
-	)
-)
-/= test 10 @ platform MinGW32;
+/= test 7 @ platform DS ^ \conf release;
 
 r11:
-/ @ \cl ValueNode $=
-(
-	/ \ctor \t<_tValue> \i ValueNode(_tValue&&, const string& = string(),
-		unique_ptr<Container>&& = {}) -> \ctor \i ValueNode(const string&,
-		unique_ptr<Container>&&),
-	/ \ctor \t<_tValue> \i ValueNode(_tValue&&, string&&, unique_ptr<Container>
-		&& = {}) -> \ctor \i ValueNode(string&&, unique_ptr<Container>&&)
-	/ \ctor \t<_tString> \i ValueNode(_tString&&, unique_ptr<Container>&&)
-		-> \ctor \t<_tString, _tValue> \i ValueNode(_tString&&, _tValue&&,
-		unique_ptr<Container>&& = {})
-);
-/= test 11 @ platform MinGW32;
++ \u ValueNode["ValueNode.h", "ValueNode.cpp"] @ \dir Core @ \lib YSLib;
+/ (\cl ValueNode, \a \f (begin, end, Access, AccessChild))
+	@ \u YObject >> \u ValueNode,
+/ \tr \inc \h YObject @ \h (Configuration, SContext) -> \h ValueNode,
++ \tr \inc \h ValueNode @ \h ReaderSetting;
+/= test 8 @ platform MinGW32;
 
 r12:
-(
-	+ \ft decay_copy @ \h Utilities,
-	/ \a make_array => to_array;
-	+ \ft make_array @ \h Utilities
-);
-/= test 12 @ platform MinGW32;
++ \ft (MakeNode, UnpackToNode, CollectNodes, PackValues, PackNodes)
+	@ \h ValueNode;
+/= test 9 @ platform MinGW32;
 
 r13:
-/ @ \cl ValueNode $=
+/ @ \h ValueNode $=
 (
-	+ enable_if 2nd \tparam @ \ctor \t<_type> ValueNode(_tString&&, _tValue&&,
-		unique_ptr<Container>&& = {}),
-	- \ctor \t<_tString, _tParams...> \i ValueNode(_tString&&, _tParams&&...)
+	+ 2 \f UnpackToNode;
+	/ \ft PackValues \mg -> \ft PackNodes
 );
-/= test 13 @ platform MinGW32;
+/ @ \u ReaderSetting $=
+(
+	+ \decl (using YSLib::MakeNode, ValueNode MakeNode(const string&,
+		const Color&)) @ \un \ns @ \impl \u,
+	+ \mf \exp \op ValueNode @ \cl ReaderSetting
+);
+/= test 10 @ platform MinGW32;
 
 r14:
+/= test 11 @ platform MinGW32 ^ \conf release;
+
+r15-r16:
+/ \impl @ platform DS @ \impl \u ReaderSetting,
+	// Some code make devkitPro G++ 4.7.1 crash.
+/= 2 test 12 @ platform DS;
+
+r17:
+/= test 13 @ platform MinGW32;
+
+r18:
 /= test 14 @ platform MinGW32 ^ \conf release;
 
-r15:
-/= test 15 @ platform DS;
-
-r16:
-/= test 16 @ platform DS ^ \conf release;
+r19:
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-07 +0800:
--17.4d;
-// Mercurial rev1-rev209: r9113;
+2012-09-13 +0800:
+-19.2d;
+// Mercurial rev1-rev210: r9132;
 
 / ...
 
 
 $NEXT_TODO:
-b338-b348:
+b339-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -924,7 +869,8 @@ $module_tree $=
 			'Memory',
 			'String',
 			'Rational',
-			'Operators'
+			'Operators',
+			'Containers'
 		),
 		'LibDefect'
 		(
@@ -968,7 +914,8 @@ $module_tree $=
 				'YEvent', // events;
 				'YShell', // shell abstraction;
 				'YFileSystem', // file system abstraction;
-				'YApplication' // application abstraction;
+				'YApplication', // application abstraction;
+				'ValueNode' // value nodes;
 			),
 			'Service', // services;
 			'GUI',
@@ -1004,6 +951,30 @@ $module_tree $=
 );
 
 $now
+(
+	+ $lib 'ValueNode' "unit %ValueNode" @ %'YFramework'.'YSLib'.'Core' $=
+	(
+		/ $lib ("class %ValueNode", "function templates %(begin, end, Access, \
+			AccessChild)" @ %'YObject' >> %'ValueNode';
+		+ "function template %(MakeNode, UnpackToNode, CollectNodes, \
+			PackNodes)",
+		+ "2 functions %UnpackToNode"
+	),
+	+ $lib 'Containers' "header %container.hpp" @ %'YBase'.'YStandardEx'$=
+	(
+		/ $lib "function templates %(assign, erase_all, erase_all_if, \
+			search_map)" @ "header %algorithm.hpp" >> %'Containers',
+		/ $lib "header %(<array>, <algorithm>), function templates \
+			%(make_array, to_array)" @ "header %utility.hpp" >> %'Containers',
+		(
+			+ "class template %container_inserter";
+			+ "function template %seq_insert"
+		)
+	),
+	/ DLD "reader setting" @ %'YReader'.'text reader'
+),
+
+b337
 (
 	* $doc "corrupted non-ASCII character" @ "%FTL.txt" @ "licenses"
 		$since b326,

@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r292
+\version r314
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2012-09-07 11:12 +0800
+	2012-09-13 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,6 +86,23 @@ FetchSetting<Color>(ValueNode& node, const string& name)
 }
 //@}
 
+// TODO: Remove this workaround for devkitPro G++ 4.7.1.
+#if !YCL_DS
+//! \since build 338
+//@{
+using YSLib::MakeNode;
+
+ValueNode
+MakeNode(const string& name, const Color& value)
+{
+	using ystdex::to_string;
+
+	return YSLib::MakeNode(name, to_string(value.GetR()) + ' '
+		+ to_string(value.GetG()) + ' ' + to_string(value.GetB()));
+}
+//@}
+#endif
+
 } // unnamed namespace;
 
 ReaderSetting::ReaderSetting()
@@ -102,6 +119,16 @@ ReaderSetting::ReaderSetting(ValueNode& node)
 	ScrollDuration(FetchSetting<int>(node, "scroll_duration")),
 	SmoothScrollDuration(FetchSetting<int>(node, "smooth_scroll_duration"))
 {}
+
+ReaderSetting::operator ValueNode() const
+{
+	return PackNodes("", MakeNode("color_up", UpColor),
+		MakeNode("color_dn", DownColor), MakeNode("font_color", FontColor),
+		MakeNode("font_family", Font.GetFontFamily().GetFamilyName()),
+		MakeNode("font_size", Font.GetSize()), MakeNode("SmoothScroll",
+		int(SmoothScroll)), MakeNode("scroll_duration", ScrollDuration.count()),
+		MakeNode("smooth_scroll_duration", SmoothScrollDuration.count()));
+}
 
 
 SettingPanel::SettingPanel()

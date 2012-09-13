@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r339
+\version r427
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-09-12 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,100 +136,6 @@ stable_range_unique(_tForward first, _tForward last)
 			++result;
 		}
 	return result;
-}
-
-
-/*!
-\ingroup algorithms
-\brief 插入参数指定的元素到容器。
-\since build 274
-*/
-//@{
-template<class _tContainer, typename... _tParams>
-inline void
-assign(_tContainer& con, _tParams&&... args)
-{
-	con.assign(yforward(args)...);
-}
-template<class _tContainer, typename _type, size_t _vN>
-inline void
-assign(_tContainer& con, const _type(&arr)[_vN])
-{
-	con.assign(arr, arr + _vN);
-}
-//@}
-
-/*!
-\ingroup algorithms
-\brief 删除指定序列容器中和指定值的相等的元素。
-\since build 289
-*/
-template<typename _tContainer>
-void
-erase_all(_tContainer& c, const typename _tContainer::value_type& val)
-{
-	c.erase(std::remove(c.begin(), c.end(), val), c.end());
-}
-/*!
-\ingroup algorithms
-\brief 删除指定序列容器中迭代器区间中和指定值的相等的元素。
-\pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
-\since build 289
-*/
-template<typename _tContainer, typename _tIn, typename _tValue>
-void
-erase_all(_tContainer& c, _tIn first, _tIn last, const _tValue& value)
-{
-	while(first != last)
-		if(*first == value)
-			c.erase(first++);
-		else
-			++first;
-}
-
-/*!
-\ingroup algorithms
-\brief 删除指定序列容器中满足条件的元素。
-\since build 289
-*/
-template<typename _tContainer, typename _fPredicate>
-void
-erase_all_if(_tContainer& c, _fPredicate pred)
-{
-	c.erase(std::remove_if(c.begin(), c.end(), pred), c.end());
-}
-/*!
-\ingroup algorithms
-\brief 删除指定序列容器中迭代器区间中满足条件的元素。
-\pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
-\since build 289
-*/
-template<typename _tContainer, typename _tIn, typename _fPredicate>
-void
-erase_all_if(_tContainer& c, _tIn first, _tIn last, _fPredicate pred)
-{
-	while(first != last)
-		if(pred(*first))
-			c.erase(first++);
-		else
-			++first;
-}
-
-/*!
-\ingroup algorithms
-\brief 按指定键值搜索指定映射。
-\return 一个用于表示结果的 std::pair 对象，其成员 first 为迭代器，
-	second 表示是否不存在而需要插入。
-\note 行为类似 std::map::operator[] 。
-\since build 173
-*/
-template<class _tMap>
-std::pair<typename _tMap::iterator, bool>
-search_map(_tMap& m, const typename _tMap::key_type& k)
-{
-	const auto i(m.lower_bound(k));
-
-	return std::make_pair(i, (i == m.end() || m.key_comp()(k, i->first)));
 }
 
 } // namespace ystdex;

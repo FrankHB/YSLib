@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.h
 \ingroup YReader
 \brief 阅读器设置数据。
-\version r215
+\version r219
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:41 +0800
 \par 修改时间:
-	2012-09-04 12:58 +0800
+	2012-09-13 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "Shells.h"
 #include "ColorPicker.h"
+#include <YSLib/Core/ValueNode.h>
 
 YSL_BEGIN_NAMESPACE(YReader)
 
@@ -75,6 +76,10 @@ public:
 
 	DefDeCopyAssignment(ReaderSetting)
 	DefDeMoveAssignment(ReaderSetting)
+
+	//! \since build 338
+	explicit
+	operator ValueNode() const;
 
 	DefGetter(const ynothrow, std::chrono::milliseconds, TimerSetting,
 		SmoothScroll ? SmoothScrollDuration : ScrollDuration)

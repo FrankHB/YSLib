@@ -135,6 +135,7 @@
     <ClInclude Include="include\YSLib\Adaptor\Font.h" />
     <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
+    <ClInclude Include="include\YSLib\Core\ValueNode.h" />
     <ClInclude Include="include\YSLib\Core\yapp.h" />
     <ClInclude Include="include\YSLib\Core\ybasemac.h" />
     <ClInclude Include="include\YSLib\Core\ycounter.hpp" />
@@ -217,6 +218,7 @@
     <ClCompile Include="source\YCLib\ycommon.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp" />
+    <ClCompile Include="source\YSLib\Core\ValueNode.cpp" />
     <ClCompile Include="source\YSLib\Core\yapp.cpp" />
     <ClCompile Include="source\YSLib\Core\ydevice.cpp" />
     <ClCompile Include="source\YSLib\Core\yexcept.cpp" />
