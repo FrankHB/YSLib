@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1546
+\version r1547
 \author FrankHB<frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-09-12 01:48 +0800
+	2012-09-14 11:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ public:
 
 /*!
 \ingroup helper_functions
-\brief 退化转移。
+\brief 退化复制。
 \see ISO C++11 30.2.6[thread.decaycopy] 。
 \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3255.html 。
 \since build 337

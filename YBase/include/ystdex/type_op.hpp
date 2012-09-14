@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作模板类。
-\version r707
+\version r722
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2012-09-04 12:59 +0800
+	2012-09-14 12:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,23 +206,34 @@ metafunction.html 。
 /*!
 \ingroup unary_type_trait
 \brief 判断指定类型是否可作为返回值类型。
-\note 即排除数组和函数类型的所有类型。
+\note 即排除数组类型、抽象类类型和函数类型的所有类型。
+\see ISO C++11 8.3.5/8 和 ISO C++11 10.4/3 。
 \since build 333
 */
 template<typename _type>
 struct is_returnable : std::integral_constant<bool, !std::is_array<_type>::value
-	&& !std::is_function<_type>::value>
+	&& !std::is_abstract<_type>::value && !std::is_function<_type>::value>
 {};
 
 
 /*!
 \ingroup unary_type_trait
-\brief 判断指定类型是否是指向类的指针。
-\note 即排除数组和函数类型的所有类型。
+\brief 判断是否可被退化。
+\since build 339
+*/
+template<typename _type>
+struct is_decayable : std::integral_constant<bool,
+	!std::is_same<typename std::decay<_type>::type, _type>::value>
+{};
+
+
+/*!
+\ingroup unary_type_trait
+\brief 判断指定类型是否是指向类类型对象的指针。
 \since build 333
 */
 template<typename _type>
-struct is_class_pointer : std::integral_constant<bool, !std::is_pointer<_type>
+struct is_class_pointer : std::integral_constant<bool, std::is_pointer<_type>
 	::value && std::is_class<typename std::remove_pointer<_type>::type>::value>
 {};
 
@@ -230,7 +241,6 @@ struct is_class_pointer : std::integral_constant<bool, !std::is_pointer<_type>
 /*!
 \ingroup unary_type_trait
 \brief 判断指定类型是否是左值类类型引用。
-\note 即排除数组和函数类型的所有类型。
 \since build 333
 */
 template<typename _type>

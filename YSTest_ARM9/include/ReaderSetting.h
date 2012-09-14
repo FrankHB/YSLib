@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.h
 \ingroup YReader
 \brief 阅读器设置数据。
-\version r219
+\version r221
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:41 +0800
 \par 修改时间:
-	2012-09-13 20:54 +0800
+	2012-09-14 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,8 @@ public:
 	//! \since build 334
 	//@{
 	ReaderSetting();
-	ReaderSetting(ValueNode&);
+	//! \since build 339
+	ReaderSetting(const ValueNode&);
 	DefDeCopyCtor(ReaderSetting)
 	DefDeMoveCtor(ReaderSetting)
 

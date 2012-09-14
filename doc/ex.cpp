@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4479 *build 338 rev 16
+\version r4479 *build 339 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-13 23:18 +0800
+	2012-09-14 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -390,107 +390,70 @@ $using:
 
 $DONE:
 r1-r2:
-/= 2 test 0 @ platform MinGW32;
+/= 2 test 0 @ platform DS;
 
 r3:
-/ @ \cl ValueNode $=
+/ @ \h TypeOperations $=
 (
-	/ \impl @ \ctor ValueNode#2 ^ std::move,
-	/ \a \param 'unique_ptr<Container>&&' -> 'unique_ptr<Container>'
+	* \impl @ \stt is_class_pointer $since b333,
+	* \impl @ \stt is_returnable $since b333,
+	+ \stt is_decayable
 );
 /= test 1 @ platform MinGW32;
 
-r4-r5:
-/= 2 test 2 @ platform MinGW32;
-
-r6:
-/ @ \lib YStandardEx @ \proj YBase $=
-(
-	+ \h Containers["container.hpp"];
-	/ \ft (assign, erase_all, erase_all_if, search_map) @ \h Algorithms
-		>> \h Containers,
-	/ (\h (<array>, <algorithm>), \ft (make_array, to_array)) @ \h Utilities
-		>> \h Containers,
-	/ \inc \h Utilities @ \h String -> \h Container
-),
-/ \tr \inc @ \h YEvent $= (\inc \h Algorithms -> \h Containers),
-+ \tr \inc \h (<algorithm>, <functional>) @ \impl \u YNew;
-/= test 3 @ platform MinGW32;
-
-r7:
-/ @ \h Containers $=
-(
-	/ \inc \h Utilities -> \h Functional;
-	+ (\clt container_inserter; \f \i seq_insert)
-);
-/= test 4 @ platform MinGW32;
+r4-r7:
+/= 4 test 2 @ platform DS;
 
 r8:
-/= test 5 @ platform MinGW32 ^ \conf release;
+/ trailing \ret \tp @ \op() @ \clt container_inserter @ \h Containers,
+/ \simp \impl @ \impl \u ReaderSetting;
+/= test 3 @ platform DS;
 
 r9:
-/= test 6 @ platform DS;
+/= test 4 @ platform DS ^ \conf release;
 
 r10:
-/= test 7 @ platform DS ^ \conf release;
+/= test 5 @ platform MinGW32;
 
 r11:
-+ \u ValueNode["ValueNode.h", "ValueNode.cpp"] @ \dir Core @ \lib YSLib;
-/ (\cl ValueNode, \a \f (begin, end, Access, AccessChild))
-	@ \u YObject >> \u ValueNode,
-/ \tr \inc \h YObject @ \h (Configuration, SContext) -> \h ValueNode,
-+ \tr \inc \h ValueNode @ \h ReaderSetting;
-/= test 8 @ platform MinGW32;
+/= test 6 @ platform MinGW32 ^ \conf release;
 
 r12:
-+ \ft (MakeNode, UnpackToNode, CollectNodes, PackValues, PackNodes)
-	@ \h ValueNode;
-/= test 9 @ platform MinGW32;
-
-r13:
-/ @ \h ValueNode $=
-(
-	+ 2 \f UnpackToNode;
-	/ \ft PackValues \mg -> \ft PackNodes
-);
 / @ \u ReaderSetting $=
 (
-	+ \decl (using YSLib::MakeNode, ValueNode MakeNode(const string&,
-		const Color&)) @ \un \ns @ \impl \u,
-	+ \mf \exp \op ValueNode @ \cl ReaderSetting
-);
-/= test 10 @ platform MinGW32;
+	/ \param \tp ValueNode& -> const ValueNode& @ \a \f FetchSetting @ \un \ns
+		@ \impl \u;
+	/ \ctor ReaderSetting(ValueNode&) -> ReaderSetting(const ValueNode&)
+),
+/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
+/= test 7 @ platform MinGW32;
+
+r13:
+/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
+/= test 8 @ platform MinGW32;
 
 r14:
-/= test 11 @ platform MinGW32 ^ \conf release;
+/= test 9 @ platform MinGW32 ^ \conf release;
 
-r15-r16:
-/ \impl @ platform DS @ \impl \u ReaderSetting,
-	// Some code make devkitPro G++ 4.7.1 crash.
-/= 2 test 12 @ platform DS;
+r15:
+/= test 10 @ platform DS;
 
-r17:
-/= test 13 @ platform MinGW32;
-
-r18:
-/= test 14 @ platform MinGW32 ^ \conf release;
-
-r19:
-/= test 15 @ platform DS ^ \conf release;
+r16:
+/= test 11 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-13 +0800:
--19.2d;
-// Mercurial rev1-rev210: r9132;
+2012-09-14 +0800:
+-19.4d;
+// Mercurial rev1-rev211: r9148;
 
 / ...
 
 
 $NEXT_TODO:
-b339-b348:
+b340-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -951,6 +914,29 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ %'TypeOperations' $=
+		(
+			* "implementation" @ "unary type trait %is_class_pointer"
+				$since b333,
+			* "implementation" @ "unary type trait %is_returnable" $since b333,
+				// Missing exclusion of abstract object types.
+			+ "unary type trait %is_decayable"
+		),
+		/ "trailing return type" @ "member template %operator()"
+			@ "template class %container_inserter" @ %Containers
+			// More compatibility for devkitPro G++ 4.7.1.
+	),
+	/ DLD "reader setting" @ %'YReader'.'text reader',
+	/ "supported of writing named empty node"
+		@ %'YFramework'.'NPL'.'Configuration'
+		// Named empty node was invalid before. Unnamed empty node \
+			is still invalid.
+),
+
+b338
 (
 	+ $lib 'ValueNode' "unit %ValueNode" @ %'YFramework'.'YSLib'.'Core' $=
 	(

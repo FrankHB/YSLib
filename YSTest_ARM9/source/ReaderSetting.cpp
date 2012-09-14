@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r314
+\version r323
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2012-09-13 23:16 +0800
+	2012-09-14 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,29 +51,29 @@ FetchEncodingString(MTextList::IndexType i)
 namespace
 {
 
-//! \since build 335
+//! \since build 339
 //@{
 template<typename _type>
 _type
-FetchSetting(ValueNode&, const string&);
+FetchSetting(const ValueNode&, const string&);
 
 template<>
 inline string
-FetchSetting<string>(ValueNode& node, const string& name)
+FetchSetting<string>(const ValueNode& node, const string& name)
 {
 	return AccessChild<string>(node, name);
 }
 
 template<>
 int
-FetchSetting<int>(ValueNode& node, const string& name)
+FetchSetting<int>(const ValueNode& node, const string& name)
 {
 	return std::stoi(FetchSetting<string>(node, name));
 }
 
 template<>
 Color
-FetchSetting<Color>(ValueNode& node, const string& name)
+FetchSetting<Color>(const ValueNode& node, const string& name)
 {
 	const auto s(FetchSetting<string>(node, name).c_str());
 	unsigned r, g, b;
@@ -86,8 +86,6 @@ FetchSetting<Color>(ValueNode& node, const string& name)
 }
 //@}
 
-// TODO: Remove this workaround for devkitPro G++ 4.7.1.
-#if !YCL_DS
 //! \since build 338
 //@{
 using YSLib::MakeNode;
@@ -101,7 +99,6 @@ MakeNode(const string& name, const Color& value)
 		+ to_string(value.GetG()) + ' ' + to_string(value.GetB()));
 }
 //@}
-#endif
 
 } // unnamed namespace;
 
@@ -110,7 +107,7 @@ ReaderSetting::ReaderSetting()
 	Font(FetchDefaultTypeface().GetFontFamily(), 14), SmoothScroll(true),
 	ScrollDuration(1000), SmoothScrollDuration(80)
 {}
-ReaderSetting::ReaderSetting(ValueNode& node)
+ReaderSetting::ReaderSetting(const ValueNode& node)
 	: UpColor(FetchSetting<Color>(node, "color_up")), DownColor(
 	FetchSetting<Color>(node, "color_dn")), FontColor(FetchSetting<Color>(node,
 	"font_color")), Font(FontFamily(FetchDefaultFontCache(),

@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r216
+\version r218
 \author FrankHB<frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2012-09-12 19:18 +0800
+	2012-09-12 14:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,8 @@ public:
 	template<typename... _tParams>
 	auto
 	operator()(_tParams&&... args)
-		-> decltype(container->insert(yforward(args)...))
+		-> decltype(container->insert(std::forward<_tParams>(args)...))
+	// NOTE: Nested %decltype could cause crashing of devkitPro G++ 4.7.1.
 	{
 		yassume(container);
 
