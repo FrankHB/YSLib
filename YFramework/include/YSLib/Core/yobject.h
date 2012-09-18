@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3484
+\version r3524
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-13 12:34 +0800
+	2012-09-18 10:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,6 +44,22 @@ YSL_BEGIN
 */
 template<typename>
 struct OwnershipTag
+{};
+
+
+/*!
+\brief 指示转移的标记。
+\since build 340
+*/
+struct MoveTag
+{};
+
+
+/*!
+\brief 指示指针的标记。
+\since build 340
+*/
+struct PointerTag
 {};
 
 
@@ -95,6 +111,10 @@ public:
 	ValueHolder(const _type& value)
 		: held(value)
 	{}
+	//! \since build 340
+	ValueHolder(_type&& value)
+		: held(std::move(value))
+	{}
 	DefDeCopyCtor(ValueHolder)
 	DefDeMoveCtor(ValueHolder)
 
@@ -114,8 +134,9 @@ public:
 		return std::addressof(held);
 	}
 
+	//! \since build 340
 	ImplI(IValueHolder) const std::type_info&
-	type() const override
+	type() const ynothrow override
 	{
 		return typeid(_type);
 	}
@@ -165,8 +186,9 @@ public:
 		return p_held;
 	}
 
+	//! \since build 340
 	ImplI(IValueHolder) const std::type_info&
-	type() const override
+	type() const ynothrow override
 	{
 		return p_held ? typeid(_type) : typeid(void);
 	}
@@ -185,10 +207,6 @@ public:
 class ValueObject
 {
 public:
-	//! \brief 指示指针构造的标记。
-	struct PointerConstructTag
-	{};
-
 	//! \since build 332
 	ystdex::any content;
 
@@ -201,7 +219,7 @@ public:
 	DefDeCtor(ValueObject)
 	/*!
 	\brief 构造：使用对象左值引用。
-	\pre obj 可被复制构造。
+	\pre obj 可作为复制构造参数。
 	\note 得到包含指定对象副本的实例。
 	*/
 	template<typename _type>
@@ -209,11 +227,22 @@ public:
 		: content(new ValueHolder<_type>(obj), nullptr)
 	{}
 	/*!
-	\brief 构造：使用对象指针。
-	\note 得到包含指针指向的指定对象的实例，并获得所有权。
+	\brief 构造：使用对象右值引用。
+	\pre obj 可作为转移构造参数。
+	\since build 340
 	*/
 	template<typename _type>
-	ValueObject(_type* p, PointerConstructTag)
+	ValueObject(_type&& obj, MoveTag)
+		: content(new ValueHolder<typename std::remove_reference<_type>::type>(
+		std::move(obj)), nullptr)
+	{}
+	/*!
+	\brief 构造：使用对象指针。
+	\note 得到包含指针指向的指定对象的实例，并获得所有权。
+	\since build 340
+	*/
+	template<typename _type>
+	ValueObject(_type* p, PointerTag)
 		: content(new PointerHolder<_type>(p), nullptr)
 	{}
 	/*!
@@ -284,6 +313,8 @@ public:
 	{
 		return GetMutableObject<_type>();
 	}
+	//! \since build 340
+	DefGetter(const ynothrow, const std::type_info&, Type, content.type())
 
 	/*!
 	\brief 访问指定类型对象。
@@ -333,7 +364,7 @@ template<typename _type>
 inline ValueObject
 MakeValueObjectByPtr(_type* p)
 {
-	return ValueObject(p, ValueObject::PointerConstructTag());
+	return ValueObject(p, PointerTag());
 }
 
 
@@ -377,7 +408,8 @@ public:
 	DefCvt(ynothrow, ReferenceType, *ptr)
 	DefCvt(const ynothrow, bool, bool(ptr))
 
-	DefGetter(const ynothrow, ConstReferenceType, Ref, operator ConstReferenceType())
+	DefGetter(const ynothrow, ConstReferenceType, Ref,
+		operator ConstReferenceType())
 	DefGetter(ynothrow, ReferenceType, Ref, operator ReferenceType())
 	DefGetter(ynothrow, ReferenceType, NewRef, *GetCopyOnWritePtr())
 

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4479 *build 339 rev *
+\version r4484 *build 340 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-14 22:26 +0800
+	2012-09-18 11:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,71 +389,139 @@ $using:
 
 
 $DONE:
-r1-r2:
-/= 2 test 0 @ platform DS;
-
-r3:
-/ @ \h TypeOperations $=
-(
-	* \impl @ \stt is_class_pointer $since b333,
-	* \impl @ \stt is_returnable $since b333,
-	+ \stt is_decayable
-);
+r1:
++ 'ynothrow' @ \mf type @ (\cl (any_holder; value_holder, pointer_holder; any)
+	@ \h Any; \cl (ValueHolder, PointerHolder) @ \h YObject);
++ \mf GetType @ \cl ValueObject;
 /= test 1 @ platform MinGW32;
 
-r4-r7:
-/= 4 test 2 @ platform DS;
+r2:
+/= test 2 @ platform MinGW32 ^ \conf release;
 
-r8:
-/ trailing \ret \tp @ \op() @ \clt container_inserter @ \h Containers,
-/ \simp \impl @ \impl \u ReaderSetting;
-/= test 3 @ platform DS;
+r3:
+/ @ \cl ValueNode @ \u ValueNode $=
+(
+	+ \mf GetContainer;
+	/ \impl @ \mf (2 GetBegin, 2 GetEnd),
+	/ \impl @ \mf (GetSize, Clear, 2 Remove)
+);
+/= test 3 @ platform MinGW32;
 
-r9:
-/= test 4 @ platform DS ^ \conf release;
+r4:
+/ @ \cl ValueNode @ \u ValueNode $=
+(
+	/ private \mf void CheckNodes() -> Container& CheckNodes();
+	/ \simp \impl @ 2 \mf Add @ \impl \u,
+	/ \impl @ \mf \op[]
+);
+/= test 4 @ platform MinGW32;
 
-r10:
+r5:
+/ @ \cl ValueNode @ \u ValueNode $=
+(
+	/ \ctor \t<_tString, _tValue, typename = typename std::enable_if<
+		std::is_constructible<string, _tString&&>::value
+		&& !std::is_constructible<unique_ptr<Container>, _tValue&&>::value,int>
+		::type> \i ValueNode(_tString&&, _tValue&&, unique_ptr<Container> = {})
+		-> \ctor \t<_tString, _tValue, typename = typename std::enable_if<
+		std::is_constructible<string, _tString&&>::value
+		&& !std::is_constructible<unique_ptr<Container>, _tValue&&>::value,
+		int>::type> \i ValueNode(_tString&&, _tValue&&),
+	/ \ctor \t<_tIn, _tString, _tParams...> \i ValueNode(const
+		pair<_tIn, _tIn>&, _tString&&, _tParams&&...)
+		-> \ctor \t<_tIn, _tString> \i ValueNode(const pair<_tIn, _tIn>&,
+		_tString&&)
+);
 /= test 5 @ platform MinGW32;
 
-r11:
-/= test 6 @ platform MinGW32 ^ \conf release;
-
-r12:
-/ @ \u ReaderSetting $=
+r6:
+/ @ \u ValueNode $=
 (
-	/ \param \tp ValueNode& -> const ValueNode& @ \a \f FetchSetting @ \un \ns
-		@ \impl \u;
-	/ \ctor ReaderSetting(ValueNode&) -> ReaderSetting(const ValueNode&)
-),
-/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
+	/ @ \cl ValueNode $=
+	(
+		/ \impl @ \a !\de \ctor,
+		(
+			/ copy \ctor -> \exp \de copy \ctor;
+			- \un \ns @ \impl \u
+		),
+		/ \simp \impl @ \mf (GetContainer, CheckNodes, Clear),
+		- \m unique_ptr<Container> p_nodes @ \cl ValueNode
+	)
+);
+/= test 6 @ platform MinGW32;
+
+r7:
+* \impl @ (\ctor, \ctor \t) @ \cl ValueNode @ \h ValueNode $since r6;
 /= test 7 @ platform MinGW32;
 
-r13:
-/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
+r8:
+/ @ \u ValueNode $=
+(
+	/ @ \cl ValueNode $=
+	(
+		/ @ \ctor,
+		/ \mf !\i Clear -> \mf \i
+	),
+	/ \ret \tp @ \ft<_tParams...> \i unique_ptr<ValueNode::Container>
+		CollectNodes(_tParams&&...) -> ValueNode::Container*,
+	/ \tr \impl @ \ft PackNodes
+);
 /= test 8 @ platform MinGW32;
 
-r14:
+r9:
 /= test 9 @ platform MinGW32 ^ \conf release;
 
-r15:
+r10:
 /= test 10 @ platform DS;
 
-r16:
+r11:
 /= test 11 @ platform DS ^ \conf release;
+
+r12:
+/ \simp \impl @ \f FetchEncodingString @ \un \ns @ \impl \u ReaderSetting;
+/ @ \h YObject $=
+(
+	/ \em \st PointerConstructTag @ \cl YObject -> \em \st YSLib::PointerTag,
+	(
+		+ \em \st MoveTag;
+		+ \ctor \t<_type> ValueObject(_type&&, MoveTag)
+	),
+	/ \tr \impl @ \ft MakeValueObjectByPtr
+),
+/ \tr \impl @ \ft PackNodes @ \h ValueNode;
+/= test 12 @ platform MinGW32;
+
+r13:
++ \inc \h @ \h DSMain;
+/ @ \cl DSApplication @ \u DSMain $=
+(
+	+ public \m ValueNode Root;
+	/ \tr \impl @ \ctor
+);
+/= test 13 @ platform MinGW32;
+
+r14:
+/= test 14 @ platform MinGW32 ^ \conf release;
+
+r15:
+/= test 15 @ platform DS;
+
+r16:
+/= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-14 +0800:
--19.4d;
-// Mercurial rev1-rev211: r9148;
+2012-09-18 +0800:
+-20.9d;
+// Mercurial rev1-rev212: r9164;
 
 / ...
 
 
 $NEXT_TODO:
-b340-b348:
+b341-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -588,10 +656,11 @@ b401-b895:
 		@ class %ListBox
 );
 
-b896-b1366:
+b896-b1386:
 ^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
 	when (^ g++),
 / memory fragment issues,
++ tag-based type operations,
 / basic routines $=
 (
 	/ ystdex::fixed_point $=
@@ -633,7 +702,7 @@ b896-b1366:
 	+ modal widget behavior
 );
 
-b1367-b1898:
+b1387-b1918:
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
 / platform dependent system functions $=
 (
@@ -694,7 +763,7 @@ b1367-b1898:
 
 $LOW_PRIOR_TODO:
 ^ $low_prior $for_labeled_scope;
-b1899-b5412:
+b1919-b5432:
 + advanced shell system $=
 (
 	+ dynamic loading and reloading,
@@ -914,6 +983,44 @@ $module_tree $=
 );
 
 $now
+(
+	+ "exception specification %ynothrow" @ "member function %type" @ "class \
+		%any_holder; class templates %(value_holder, pointer_holder; \
+		class %any)" @ %'YBase'.'YStandardEx'.'Any',
+	/ %'YFramework'.'YSLib'.'Core' $=
+	(
+		/ %'YObject' $=
+		(
+			+ "exception specification %ynothrow" @ "member function %type"
+				@ "class %(ValueHolder, PointerHolder)";
+			+ "member function %GetType" @ "class %ValueObject",
+			/ "empty struct %ValueObject::PointerConstructTag"
+				-> "%YSLib::PointerTag",
+			(
+				+ "empty struct %MoveTag";
+				+ "constructor template with move semantics"
+					@ "class %ValueObject"
+			)
+		),
+		/ @ %'ValueNode' $=
+		(
+			/ $lib @ "class %ValueNode" $=
+			(
+				+ "member function %GetContainer",
+				/ "exceptions thrown by member functions",
+				/ "constructors",
+				- "independent data member holding other nodes",
+			)
+			/ DLD "function template %CollectNodes return raw pointers"
+				~ "%unique_ptr<ValueNode::Contaienr>"
+		),
+		+ "public member %ValueNode %Root" @ "class %DSApplication"
+			@ %'Helper'.'DSMain'
+	),
+	/ DLD "reader setting" @ %'YReader'.'text reader'
+),
+
+b339
 (
 	/ %'YBase'.'YStandardEx' $=
 	(
@@ -5224,7 +5331,7 @@ b185
 
 b184
 (
-	* $design "some spell errors",
+	* $design "some spelling errors",
 	/ "DMA operations implementation"
 ),
 

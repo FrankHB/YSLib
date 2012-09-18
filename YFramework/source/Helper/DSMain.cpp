@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2038
+\version r2039
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2012-09-04 11:55 +0800
+	2012-09-04 11:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -401,7 +401,7 @@ DSApplication::DSApplication()
 #endif
 	mtx(), init(), full_init(),
 #endif
-	pFontCache(), pScreenUp(), pScreenDown(), UIResponseLimit(0x40)
+	pFontCache(), pScreenUp(), pScreenDown(), UIResponseLimit(0x40), Root()
 {
 	YAssert(!YSLib::pApp, "Duplicate instance found.");
 

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r528
+\version r536
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-09-17 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,8 +131,9 @@ public:
 	virtual any_holder*
 	clone() const = 0;
 
+	//! \since build 340
 	virtual const std::type_info&
-	type() const = 0;
+	type() const ynothrow = 0;
 };
 
 
@@ -168,8 +169,9 @@ public:
 		return std::addressof(held);
 	}
 
+	//! \since build 340
 	const std::type_info&
-	type() const override
+	type() const ynothrow override
 	{
 		return typeid(_type);
 	}
@@ -214,8 +216,9 @@ public:
 		return p_held;
 	}
 
+	//! \since build 340
 	const std::type_info&
-	type() const override
+	type() const ynothrow override
 	{
 		return p_held ? typeid(_type) : typeid(void);
 	}
@@ -356,8 +359,9 @@ public:
 		return type() == typeid(_type) ? get<_type>() : nullptr;
 	}
 
+	//! \since build 340
 	const std::type_info&
-	type() const
+	type() const ynothrow
 	{
 		return p_holder ? p_holder->type() : typeid(void);
 	}

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1266
+\version r1267
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-09-04 11:55 +0800
+	2012-09-17 15:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #include "YSLib/Core/yapp.h"
 #include "Helper/DSMain.h"
 #include "YCLib/Debug.h"
-#include "YSLib/Service/yftext.h" // for BOM_UTF8;
+#include "YSLib/Service/yftext.h" // for BOM_UTF_8;
 #include "CHRLib/MapEx.h"
 #include "YCLib/MemoryMapping.h"
 //#include <clocale>

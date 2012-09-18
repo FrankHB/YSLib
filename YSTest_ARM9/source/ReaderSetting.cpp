@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r323
+\version r325
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2012-09-14 22:00 +0800
+	2012-09-17 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,8 +40,7 @@ FetchEncodingString(MTextList::IndexType i)
 	{
 		const auto& pr(Encodings[i]);
 
-		return String(to_string(pr.first) + ": "
-			+ String(pr.second).GetMBCS().c_str());
+		return String(to_string(pr.first) + ": ") + pr.second;
 	}
 	return u"---";
 }

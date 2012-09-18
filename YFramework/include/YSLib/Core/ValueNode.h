@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r890
+\version r990
 \author FrankHB<frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2012-09-13 22:06 +0800
+	2012-09-18 10:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN
 \warning 非虚析构。
 \since build 330
 
-包含 ValueObject 对象和以 string 为键的子 ValueObject 容器的对象。
+包含名称字符串和值类型对象的对象节点。
 */
 class ValueNode
 {
@@ -48,38 +48,29 @@ private:
 	string name;
 	//! \since build 336
 	mutable ValueObject value;
-	//! \since build 337
-	mutable unique_ptr<Container> p_nodes;
 
 public:
 	DefDeCtor(ValueNode)
 	/*!
-	\brief 构造：使用字符串左值引用和节点容器指针。
-	\since build 338
+	\brief 构造：使用字符串引用和值类型对象构造参数。
+	\since build 340
 	*/
+	template<typename _tString, typename... _tParams>
 	inline
-	ValueNode(const string& str, unique_ptr<Container> p = {})
-		: name(str), value(), p_nodes(std::move(p))
-	{}
-	/*!
-	\brief 构造：使用字符串右值引用和节点容器指针。
-	\since build 338
-	*/
-	inline
-	ValueNode(string&& str, unique_ptr<Container> p)
-		: name(std::move(str)), value(), p_nodes(std::move(p))
+	ValueNode(_tString&& str, _tParams&&... args)
+		: name(yforward(str)), value(yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用字符串引用、值类型对象引用和节点容器指针。
-	\since build 338
+	\since build 340
 	*/
 	template<typename _tString, typename _tValue, typename = typename
 		std::enable_if<std::is_constructible<string, _tString&&>::value
 		&& !std::is_constructible<unique_ptr<Container>, _tValue&&>::value,
 		int>::type>
 	inline
-	ValueNode(_tString&& str, _tValue&& val, unique_ptr<Container> p = {})
-		: name(yforward(str)), value(yforward(val)), p_nodes(std::move(p))
+	ValueNode(_tString&& str, _tValue&& val)
+		: name(yforward(str)), value(yforward(val))
 	{}
 	/*!
 	\brief 构造：使用输入迭代器对。
@@ -88,19 +79,18 @@ public:
 	template<typename _tIn>
 	inline
 	ValueNode(const pair<_tIn, _tIn>& pr)
-		: name(), value(), p_nodes(new Container(pr.first, pr.second))
+		: name(), value(Container(pr.first, pr.second))
 	{}
 	/*!
 	\brief 构造：使用输入迭代器对、字符串引用和值参数。
-	\since build 337
+	\since build 340
 	*/
-	template<typename _tIn, typename _tString, typename... _tParams>
+	template<typename _tIn, typename _tString>
 	inline
-	ValueNode(const pair<_tIn, _tIn>& pr, _tString&& str, _tParams&&... args)
-		: name(yforward(str)), value(yforward(args)...),
-		p_nodes(new Container(pr.first, pr.second))
+	ValueNode(const pair<_tIn, _tIn>& pr, _tString&& str)
+		: name(yforward(str)), value(Container(pr.first, pr.second))
 	{}
-	ValueNode(const ValueNode&);
+	DefDeCopyCtor(ValueNode)
 	DefDeMoveCtor(ValueNode)
 
 	DefDeCopyAssignment(ValueNode)
@@ -135,34 +125,13 @@ public:
 	explicit DefCvt(const ynothrow, bool, bool(value))
 	DefCvt(const ynothrow, const string&, name);
 
-	Container::iterator
-	GetBegin()
-	{
-		if(p_nodes)
-			return p_nodes->begin();
-		throw std::out_of_range("No child value node found.");
-	}
-	Container::const_iterator
-	GetBegin() const
-	{
-		if(p_nodes)
-			return p_nodes->begin();
-		throw std::out_of_range("No child value node found.");
-	}
-	Container::iterator
-	GetEnd()
-	{
-		if(p_nodes)
-			return p_nodes->end();
-		throw std::out_of_range("No child value node found.");
-	}
-	Container::const_iterator
-	GetEnd() const
-	{
-		if(p_nodes)
-			return p_nodes->end();
-		throw std::out_of_range("No child value node found.");
-	}
+	DefGetter(, Container::iterator, Begin, GetContainer().begin())
+	DefGetter(const, Container::const_iterator, Begin, GetContainer().begin())
+	//! \since build 340
+	Container&
+	GetContainer() const;
+	DefGetter(, Container::iterator, End, GetContainer().end())
+	DefGetter(const, Container::const_iterator, End, GetContainer().end())
 	DefGetter(const ynothrow, const string&, Name, name)
 	//! \since build 337
 	//@{
@@ -175,7 +144,8 @@ public:
 	const ValueNode&
 	GetNode(const string&) const;
 	//@}
-	DefGetter(const ynothrow, size_t, Size, p_nodes ? p_nodes->size() : 0)
+	size_t
+	GetSize() const ynothrow;
 	DefGetter(ynothrow, ValueObject&, Value, value)
 	//! \since build 334
 	//@{
@@ -194,17 +164,18 @@ public:
 	Add(ValueNode&&);
 
 private:
-	void
+	//! \since build 340
+	Container&
 	CheckNodes();
 
 public:
 	PDefH(void, Clear)
-		ImplExpr(p_nodes.reset())
+		ImplExpr(value.Clear())
 
-	PDefH(bool, Remove, const ValueNode& node)
-		ImplRet(p_nodes ? p_nodes->erase(node.name) != 0 : false)
+	bool
+	Remove(const ValueNode&);
 	PDefH(bool, Remove, const string& str)
-		ImplRet(p_nodes ? p_nodes->erase(str) != 0 : false)
+		ImplRet(Remove(str))
 };
 
 /*!
@@ -327,16 +298,16 @@ UnpackToNode(_tPack&& pk)
 
 /*!
 \brief 取指定值类型节点为成员的节点容器。
-\since build 338
+\since build 339
 */
 template<typename... _tParams>
-inline unique_ptr<ValueNode::Container>
+inline ValueNode::Container*
 CollectNodes(_tParams&&... args)
 {
 	const auto p(new ValueNode::Container());
 
 	ystdex::seq_insert(*p, yforward(args)...);
-	return unique_ptr<ValueNode::Container>(p);
+	return p;
 }
 
 /*!
@@ -347,8 +318,8 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 PackNodes(_tString&& name, _tParams&&... args)
 {
-	return ValueNode(yforward(name),
-		CollectNodes(UnpackToNode(yforward(args))...));
+	return ValueNode(yforward(name), CollectNodes(UnpackToNode(
+		yforward(args))...), PointerTag());
 }
 
 YSL_END

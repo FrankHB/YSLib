@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r527
+\version r532
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2012-09-04 12:31 +0800
+	2012-09-18 11:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 #include <mutex>
 #include <condition_variable>
 #endif
+#include "YSLib/Core/ValueNode.h"
 
 YSL_BEGIN
 
@@ -121,6 +122,12 @@ public:
 	用于主消息队列的消息循环中控制后台消息生成策略的全局消息优先级。
 	*/
 	Messaging::Priority UIResponseLimit;
+
+	/*!
+	\brief 值类型根节点。
+	\since build 340
+	*/
+	ValueNode Root;
 
 	/*!
 	\brief \c private 构造函数：非内联。

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r132
+\version r213
 \author FrankHB<frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2012-09-13 12:35 +0800;
+	2012-09-17 21:35 +0800;
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,72 +29,75 @@
 
 YSL_BEGIN
 
-namespace
-{
-
-//! \since build 330
-ValueNode::Container*
-CloneNodeContainer(const ValueNode::Container& cont)
-{
-	const auto p(new ValueNode::Container());
-
-	for(const auto& pr : cont)
-		p->insert(pr);
-	return p;
-}
-
-} // unnamed namespace;
-
-ValueNode::ValueNode(const ValueNode& node)
-	: name(node), value(node.GetValue()),
-	p_nodes(p_nodes ? CloneNodeContainer(*p_nodes) : nullptr)
-{}
-
 ValueNode&
 ValueNode::operator[](const string& name)
 {
-	CheckNodes();
+	auto& cont(CheckNodes());
+	auto i(cont.lower_bound(name));
 
-	auto i(p_nodes->lower_bound(name));
-
-	if(i == p_nodes->end() || p_nodes->key_comp()(name, *i))
+	if(i == cont.end() || cont.key_comp()(name, *i))
 		// TODO: Use %emplace_hint.
-		i = p_nodes->insert(i, name);
+		i = cont.insert(i, name);
 	return const_cast<ValueNode&>(*i);
 }
 
+ValueNode::Container&
+ValueNode::GetContainer() const
+{
+	return value.Access<Container>();
+}
 const ValueNode&
 ValueNode::GetNode(const string& name) const
 {
-	if(p_nodes)
-	{
-		const auto i(p_nodes->find(name));
+	auto& cont(GetContainer());
+	const auto i(cont.find(name));
 
-		if(i != p_nodes->end())
-			return *i;
-	}
+	if(i != cont.end())
+		return *i;
 	throw std::out_of_range(name);
+}
+size_t
+ValueNode::GetSize() const ynothrow
+{
+	try
+	{
+		return GetContainer().size();
+	}
+	catch(...)
+	{}
+	return 0;
 }
 
 bool
 ValueNode::Add(const ValueNode& n)
 {
-	CheckNodes();
-	return p_nodes->insert(n).second;
+	return CheckNodes().insert(n).second;
 }
 bool
 ValueNode::Add(ValueNode&& n)
 {
-	CheckNodes();
 	// TODO: Use %emplace.
-	return p_nodes->insert(std::move(n)).second;
+	return CheckNodes().insert(std::move(n)).second;
 }
 
-void
+ValueNode::Container&
 ValueNode::CheckNodes()
 {
-	if(!p_nodes)
-		p_nodes.reset(new Container());
+	if(!value)
+		value = Container();
+	return GetContainer();
+}
+
+bool
+ValueNode::Remove(const ValueNode& node)
+{
+	try
+	{
+		return GetContainer().erase(node.name) != 0;
+	}
+	catch(ystdex::bad_any_cast&)
+	{}
+	return false;
 }
 
 YSL_END
