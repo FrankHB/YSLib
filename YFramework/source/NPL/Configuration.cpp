@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r395
+\version r509
 \author FrankHB<frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2012-09-14 22:10 +0800
+	2012-09-19 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,39 @@
 using namespace YSLib;
 
 YSL_BEGIN_NAMESPACE(NPL)
+
+ValueNode
+TransformConfiguration(const ValueNode& node)
+{
+	const auto s(node.GetSize());
+
+	if(s == 0)
+		return ValueNode("", node ? Access<string>(node) : string());
+
+	auto i(node.GetBegin());
+
+	if(s == 1)
+		return TransformConfiguration(*i);
+
+	const auto& new_name(Access<string>(*i++));
+
+	if(s == 2)
+	{
+		const auto& n(TransformConfiguration(*i));
+
+		if(n.GetName().empty())
+			return ValueNode(new_name, n.GetValueRRef());
+		return ValueNode(new_name, n);
+	}
+
+	auto p_node_cont(make_unique<ValueNode::Container>());
+
+	std::for_each(i, node.GetEnd(), [&](const ValueNode& n){
+		p_node_cont->insert(TransformConfiguration(n));
+	});
+	return ValueNode(new_name, p_node_cont.release(), PointerTag());
+}
+
 
 namespace
 {
@@ -49,19 +82,20 @@ WritePrefix(File& f, size_t n = 1, char c = '\t')
 File&
 WriteNode(File& f, const ValueNode& node, size_t depth)
 {
-	WritePrefix(f, depth);
 	if(node.GetSize() != 0)
 	{
 		++depth;
 		for(const auto& n : node)
 		{
+			WritePrefix(f, depth);
 			f << '(' << '\n';
 			try
 			{
-				WriteNode(f, n, depth);
+				WriteNode(f, n, depth + 1);
 			}
 			catch(std::out_of_range&)
 			{}
+			WritePrefix(f, depth);
 			f << ')' << '\n';
 		}
 		--depth;
@@ -86,28 +120,26 @@ File&
 WriteNodeC(File& f, const ValueNode& node, size_t depth)
 {
 	WritePrefix(f, depth);
+	f << EscapeNodeString(node.GetName());
 	if(node.GetSize() != 0)
 	{
-		++depth;
+		f << '\n';
 		for(const auto& n : node)
 		{
+			WritePrefix(f, depth);
 			f << '(' << '\n';
 			try
 			{
-				WriteNodeC(f, n, depth);
+				WriteNodeC(f, n, depth + 1);
 			}
 			catch(std::out_of_range&)
 			{}
+			WritePrefix(f, depth);
 			f << ')' << '\n';
 		}
-		--depth;
 	}
-	else
-	{
-		f << node.GetName();
-		if(node)
-			f << ' ' << EscapeNodeString(Access<string>(node));
-	}
+	else if(node)
+		f << ' ' << EscapeNodeString(Access<string>(node));
 	f << '\n';
 	return f;
 }
@@ -136,37 +168,19 @@ operator>>(TextFile& tf, Configuration& conf)
 }
 
 
-ValueNode
-TransformConfiguration(const ValueNode& node)
+ConfigurationFile::ConfigurationFile(const string& filename)
+	: TextFile(filename.c_str(), std::ios_base::in | std::ios_base::out
+	| std::ios_base::trunc), conf()
 {
-	const auto s(node.GetSize());
+	*this >> conf;
+}
 
-	if(s == 0)
-		return node ? ValueNode(Access<string>(node)) : ValueNode();
-
-	auto i(node.GetBegin());
-
-	if(s == 1)
-		return TransformConfiguration(*i);
-	if(i->GetSize() == 0)
-	{
-		const auto& new_name(Access<string>(*i));
-
-		++i;
-		try
-		{
-			return ValueNode(new_name, Access<string>(*i));
-		}
-		catch(ystdex::bad_any_cast&)
-		{}
-		return new_name;
-	}
-
-	ValueNode new_node;
-
-	for(const auto& n : node)
-		new_node.Add(TransformConfiguration(n));
-	return new_node;
+void
+ConfigurationFile::Update()
+{
+	Truncate(0),
+	Rewind();
+	*this << conf;
 }
 
 YSL_END_NAMESPACE(NPL)

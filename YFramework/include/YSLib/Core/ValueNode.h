@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r990
+\version r994
 \author FrankHB<frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2012-09-18 10:38 +0800
+	2012-09-19 18:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,6 +150,8 @@ public:
 	//! \since build 334
 	//@{
 	DefGetter(const ynothrow, const ValueObject&, Value, value)
+	//! \since build 341
+	DefGetter(const ynothrow, ValueObject&&, ValueRRef, std::move(value))
 
 	DefSetter(const ValueObject&, Value, GetValue())
 	DefSetter(ValueObject&&, Value, GetValue())
@@ -304,10 +306,10 @@ template<typename... _tParams>
 inline ValueNode::Container*
 CollectNodes(_tParams&&... args)
 {
-	const auto p(new ValueNode::Container());
+	auto p(make_unique<ValueNode::Container>());
 
 	ystdex::seq_insert(*p, yforward(args)...);
-	return p;
+	return p.release();
 }
 
 /*!

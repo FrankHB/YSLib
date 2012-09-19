@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r716
+\version r729
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2012-09-04 11:55 +0800
+	2012-09-19 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,9 @@
 #include <CHRLib/chrproc.h>
 #if YCL_DS
 #include <fcntl.h>
+
+//! \since build 341
+extern "C" int	_EXFUN(fileno, (FILE *));
 #elif YCL_MINGW32
 #include <Shlwapi.h> // for ::PathIsRelativeW;
 
@@ -371,6 +374,18 @@ mkdirs(const_path_t cpath) ynothrow
 	//新建目录成功或目标路径已存在时返回 true 。
 	return ::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0
 		|| errno == EEXIST;
+}
+
+bool
+truncate(std::FILE* fp, std::size_t size) ynothrow
+{
+#if YCL_DS
+	return ::ftruncate(fileno(fp), ::off_t(size)) != 0;
+#elif YCL_MINGW32
+	return ::_chsize(_fileno(fp), long(size));
+#else
+#	error Unsupported platform found!
+#endif
 }
 
 

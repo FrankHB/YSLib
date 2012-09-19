@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2039
+\version r2053
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2012-09-04 11:13 +0800
+	2012-09-19 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -401,7 +401,8 @@ DSApplication::DSApplication()
 #endif
 	mtx(), init(), full_init(),
 #endif
-	pFontCache(), pScreenUp(), pScreenDown(), UIResponseLimit(0x40), Root()
+	pFontCache(), pMainConfigFile(), pScreenUp(), pScreenDown(),
+	UIResponseLimit(0x40), Root()
 {
 	YAssert(!YSLib::pApp, "Duplicate instance found.");
 
@@ -420,11 +421,11 @@ DSApplication::DSApplication()
 
 
 	//检查程序是否被正确安装。
-	CheckInstall();
+	pMainConfigFile = CheckInstall();
 	//初始化系统字体资源。
 	try
 	{
-		pFontCache = unique_raw(new FontCache());
+		pFontCache = make_unique<FontCache>();
 	}
 	catch(...)
 	{
@@ -436,8 +437,8 @@ DSApplication::DSApplication()
 	InitVideo();
 	try
 	{
-		pScreenUp = unique_raw(new DSScreen(false));
-		pScreenDown = unique_raw(new DSScreen(true));
+		pScreenUp = make_unique<DSScreen>(false);
+		pScreenDown = make_unique<DSScreen>(true);
 	}
 #elif YCL_MINGW32
 	{
@@ -449,8 +450,8 @@ DSApplication::DSApplication()
 	}
 	try
 	{
-		pScreenUp = unique_raw(new DSScreen(false, hHost));
-		pScreenDown = unique_raw(new DSScreen(true, hHost));
+		pScreenUp = make_unique<DSScreen>(false, hHost);
+		pScreenDown = make_unique<DSScreen>(true, hHost);
 	}
 #endif
 	catch(...)
@@ -500,7 +501,13 @@ DSApplication::GetFontCache() const ynothrow
 
 	return *pFontCache;
 }
+NPL::ConfigurationFile&
+DSApplication::GetMainConfigurationFile() const ynothrow
+{
+	YAssert(bool(pMainConfigFile), "Null pointer found.");
 
+	return *pMainConfigFile;
+}
 Devices::Screen&
 DSApplication::GetScreenUp() const ynothrow
 {

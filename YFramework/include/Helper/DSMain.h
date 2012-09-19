@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r532
+\version r540
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2012-09-18 11:28 +0800
+	2012-09-19 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 #include <mutex>
 #include <condition_variable>
 #endif
-#include "YSLib/Core/ValueNode.h"
+#include "NPL/Configuration.h"
 
 YSL_BEGIN
 
@@ -104,6 +104,11 @@ protected:
 	*/
 	unique_ptr<Drawing::FontCache> pFontCache;
 	/*!
+	\brief 主配置文件。
+	\since build 341
+	*/
+	unique_ptr<NPL::ConfigurationFile> pMainConfigFile;
+	/*!
 	\brief 屏幕。
 	\since build 325
 	*/
@@ -122,7 +127,6 @@ public:
 	用于主消息队列的消息循环中控制后台消息生成策略的全局消息优先级。
 	*/
 	Messaging::Priority UIResponseLimit;
-
 	/*!
 	\brief 值类型根节点。
 	\since build 340
@@ -148,6 +152,13 @@ public:
 	*/
 	Drawing::FontCache&
 	GetFontCache() const ynothrow;
+	/*!
+	\brief 取主配置文件。
+	\pre 断言检查：指针非空。
+	\since build 341
+	*/
+	NPL::ConfigurationFile&
+	GetMainConfigurationFile() const ynothrow;
 	/*!
 	\brief 取上屏幕。
 	\pre 断言检查：内部指针非空。

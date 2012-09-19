@@ -9,19 +9,19 @@
 */
 
 /*!	\file yftext.h
-\ingroup Core
+\ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r740
+\version r767
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-23 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Core::YFile_(Text)
+	YSLib::Service::YFile_(Text)
 */
 
 
@@ -29,6 +29,7 @@
 #define YSL_INC_CORE_YFTEXT_H_ 1
 
 #include "yfile.h"
+#include "../Adaptor/ycont.h" // for string;
 
 YSL_BEGIN
 
@@ -58,22 +59,34 @@ private:
 public:
 	/*!
 	\brief 编码。
+	\warning 修改编码可能会造成读取错误。
 	\since build 290
 	*/
 	Text::Encoding Encoding;
 
 	/*!
-	\brief 构造：使用指定文件路径初始化对象。
+	\brief 构造：使用指定文件名、编码和模式初始化文本文件对象。
+	\note 忽略二进制模式。
+	\note 当打开文件大小为零且以可写方式打开时按编码写入 BOM 。
+	\since build 341
 	*/
 	explicit
-	TextFile(const_path_t);
+	TextFile(const_path_t, std::ios_base::openmode = std::ios_base::in,
+		Text::Encoding = Text::CS_Default);
 	/*!
-	\brief 构造：使用指定文件路径初始化对象。
+	\brief 构造：使用指定文件名初始化只读文本文件对象。
 	\since build 305
 	*/
 	explicit
 	TextFile(const String&);
 
+	/*!
+	\brief 取 BOM 字符串。
+	\post 同 Rewind() 。
+	\since build 341
+	*/
+	string
+	GetBOM() const;
 	DefGetter(const ynothrow, u8, BOMSize, bl) //!< 取 BOM 大小。
 	DefGetter(const ynothrow, size_t, TextSize, GetSize() - GetBOMSize()) \
 		//!< 取文本区段大小。
@@ -109,7 +122,7 @@ public:
 	inline Text::ConversionResult
 	ReadChar(_tChar& c, _tParams&&... args) const
 	{
-		return MBCToUC(c, fp, Encoding, args...);
+		return MBCToUC(c, GetPtr(), Encoding, args...);
 	}
 
 	/*!
@@ -120,8 +133,16 @@ public:
 	inline Text::ConversionResult
 	SkipChar(_tParams&&... args) const
 	{
-		return MBCToUC(fp, Encoding, args...);
+		return MBCToUC(GetPtr(), Encoding, args...);
 	}
+
+	/*!
+	\brief 截断文本。
+	\see File::Truncate 。
+	\since build 341
+	*/
+	bool
+	Truncate(size_t) const override;
 };
 
 YSL_END

@@ -9,19 +9,19 @@
 */
 
 /*!	\file yftext.cpp
-\ingroup Core
+\ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r903
+\version r942
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2012-09-04 12:48 +0800
+	2012-09-19 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Core::YFile_(Text)
+	YSLib::Service::YFile_(Text)
 */
 
 
@@ -77,11 +77,33 @@ InitializeTextFile(TextFile& tf, size_t& bl)
 } // unnamed namespace;
 
 
-TextFile::TextFile(const_path_t filename)
-	: File(filename, "r"),
-	bl(0), Encoding(CharSet::Null)
+TextFile::TextFile(const_path_t filename, std::ios_base::openmode mode,
+	Text::Encoding enc)
+	: File(filename, mode & ~std::ios_base::binary),
+	bl(0), Encoding(enc)
 {
-	InitializeTextFile(*this, bl);
+	if(GetSize() == 0 && mode & std::ios_base::out)
+		switch(enc)
+		{
+		case CharSet::UTF_16LE:
+			yunseq(*this << BOM_UTF_16LE, bl = 2);
+			break;
+		case CharSet::UTF_16BE:
+			yunseq(*this << BOM_UTF_16BE, bl = 2);
+			break;
+		case CharSet::UTF_8:
+			yunseq(*this << BOM_UTF_8, bl = 3);
+			break;
+		case CharSet::UTF_32LE:
+			yunseq(*this << BOM_UTF_32LE, bl = 4);
+			break;
+		case CharSet::UTF_32BE:
+			yunseq(*this << BOM_UTF_32BE, bl = 4);
+		default:
+			break;
+		}
+	else
+		InitializeTextFile(*this, bl);
 }
 TextFile::TextFile(const String& filename)
 	: File(filename, u"r"),
@@ -90,11 +112,23 @@ TextFile::TextFile(const String& filename)
 	InitializeTextFile(*this, bl);
 }
 
+string
+TextFile::GetBOM() const
+{
+	const size_t s(GetBOMSize());
+	string str(s, char());
+
+	File::Rewind();
+	for(size_t i(0); i != s; ++i)
+		str[i] = std::fgetc(GetPtr());
+	return std::move(str);
+}
+
 size_t
 TextFile::CheckBOM(Text::Encoding& cp)
 {
 	Rewind();
-	if(fsize < 2)
+	if(GetSize() < 2)
 		return 0;
 	char tmp[4];
 	Read(tmp, 1, 4);
@@ -137,6 +171,12 @@ void
 TextFile::Rewind() const
 {
 	Seek(bl, SEEK_SET);
+}
+
+bool
+TextFile::Truncate(size_t size) const
+{
+	return File::Truncate(GetBOMSize() + size);
 }
 
 YSL_END

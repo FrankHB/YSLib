@@ -9,19 +9,19 @@
 */
 
 /*!	\file yfile.h
-\ingroup Core
+\ingroup Service
 \brief 平台无关的文件抽象。
-\version r1060
+\version r1073
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-09-04 12:08 +0800
+	2012-09-18 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Core::YFile
+	YSLib::Service::YFile
 */
 
 
@@ -39,8 +39,10 @@ YSL_BEGIN
 */
 class File : private noncopyable
 {
-protected:
+private:
+	//! \since build 341
 	std::FILE* fp; //!< 默认文件指针。
+	//! \since build 341
 	size_t fsize; //!< 文件大小。
 
 public:
@@ -165,6 +167,15 @@ public:
 	*/
 	PDefH(void, Rewind) const
 		ImplRet(std::rewind(fp))
+
+	/*!
+	\brief 截断文件。
+	\see platform::truncate 。
+	\note 派生类可能覆盖默认行为。
+	\since build 341
+	*/
+	virtual bool
+	Truncate(size_t) const;
 
 	/*!
 	\brief 连续写 \c nmemb 个大小为 \c size 文件块到 \c ptr 中。

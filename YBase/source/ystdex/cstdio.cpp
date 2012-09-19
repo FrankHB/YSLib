@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief YCLib C++ 标准库扩展。
-\version r175
+\version r181
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2012-09-04 10:45 +0800
+	2012-09-19 12:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,19 +53,19 @@ openmode_conv(std::ios_base::openmode mode) ynothrow
 	{
 	case ios_base::out:
 	case ios_base::out | ios_base::trunc:
-		return mode & ios_base::binary ? "w" : "wb";
+		return mode & ios_base::binary ? "wb" : "w";
 	case ios_base::out | ios_base::app:
 	case ios_base::app:
-		return mode & ios_base::binary ? "a" : "ab";
+		return mode & ios_base::binary ? "ab" : "a";
 	case ios_base::in:
-		return mode & ios_base::binary ? "r" : "rb";
+		return mode & ios_base::binary ? "rb" : "r";
 	case ios_base::in | ios_base::out:
-		return mode & ios_base::binary ? "r+" : "r+b";
+		return mode & ios_base::binary ? "r+b" : "r+";
 	case ios_base::in | ios_base::out | ios_base::trunc:
-		return mode & ios_base::binary ? "w+" : "w+b";
+		return mode & ios_base::binary ? "w+b" : "w+";
 	case ios_base::in | ios_base::out | ios_base::app:
 	case ios_base::in | ios_base::app:
-		return mode & ios_base::binary ? "a+" : "a+b";
+		return mode & ios_base::binary ? "a+b" : "a+";
 	default:
 		break;
 	}

@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r625
+\version r630
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-09-04 12:31 +0800
+	2012-09-19 00:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef INC_HELPER_INITIALZATION_H_
 #define INC_HELPER_INITIALZATION_H_ 1
 
-#include "YSLib/Core/ysdef.h"
+#include "NPL/Configuration.h"
 
 YSL_BEGIN
 
@@ -50,11 +50,12 @@ void
 InitializeSystemFontCache() ynothrow;
 
 /*!
-\brief 检查安装完整性。
+\brief 检查安装完整性并载入主配置文件。
+\return 被载入的配置文件。
 \warning 不保证线程安全性。
-\since build 303
+\since build 341
 */
-void
+unique_ptr<NPL::ConfigurationFile>
 CheckInstall() ynothrow;
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r516
+\version r526
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2012-09-07 09:55 +0800
+	2012-09-18 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -275,6 +275,18 @@ uchdir(const_path_t) ynothrow;
 */
 bool
 mkdirs(const_path_t) ynothrow;
+
+/*!
+\brief 截断文件至指定长度。
+\pre 指定文件需已经打开并可写。
+\note 不改变文件读写位置。
+\return 操作是否成功。
+\since build 341
+
+若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
+*/
+bool
+truncate(std::FILE*, std::size_t) ynothrow;
 
 
 /*!

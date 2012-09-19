@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1267
+\version r1367
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-09-17 15:04 +0800
+	2012-09-19 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,91 @@ string def_dir, font_path, font_dir;
 //! \since build 324;
 platform::MappedFile* p_mapped;
 #endif
+
+#if YCL_DS
+#	define ROOTW
+#	define DEF_DIRECTORY ROOTW "/Data/"
+	//const char* DEF_FONT_NAME = ROOTW "方正姚体";
+	//const_path_t DEF_FONT_PATH = ROOTW "/Font/FZYTK.TTF";
+#	define DEF_FONT_PATH ROOTW "/Font/FZYTK.TTF"
+#	define DEF_FONT_DIRECTORY ROOTW "/Font/"
+#else
+#	define ROOTW "H:\\NDS\\EFSRoot"
+#	define DEF_DIRECTORY ROOTW "\\Data\\"
+	//const char* DEF_FONT_NAME = "方正姚体";
+	//const_path_t DEF_FONT_PATH = ROOTW "\\Font\\FZYTK.TTF";
+#	define DEF_FONT_PATH ROOTW "\\Font\\FZYTK.TTF"
+#	define DEF_FONT_DIRECTORY ROOTW "\\Font\\"
+#endif
+#define CONF_PATH "config.txt"
+
+//! \since build 341
+//@{
+void
+ReadConfig()
+{
+	TextFile tf(CONF_PATH);
+
+	if(YB_LIKELY(tf))
+	{
+		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
+			throw LoggedEvent("Wrong encoding of configuration file.");
+
+		tf >> def_dir >> font_path >> font_dir;
+
+	}
+	else
+		throw LoggedEvent("Configuration file loading failed.");
+}
+
+unique_ptr<NPL::ConfigurationFile>
+ConfirmConfig()
+{
+	if(ufexists(CONF_PATH))
+		std::printf("Found configuration file '%s'.\n", CONF_PATH);
+	else
+	{
+		std::printf("Creating configuration file '%s'...\n", CONF_PATH);
+
+		File tf(CONF_PATH, "w");
+
+		if(tf)
+			tf << BOM_UTF_8 << DEF_DIRECTORY << '\n'
+				<< DEF_FONT_PATH << '\n' << DEF_FONT_DIRECTORY << '\n';
+		else
+			throw LoggedEvent("Cannot create file.");
+	}
+	ReadConfig();
+	// TODO: Return a valid result.
+	return unique_ptr<NPL::ConfigurationFile>();
+}
+
+void
+InitializeComponents()
+{
+	if(!def_dir.empty() && !font_path.empty() && !font_dir.empty())
+		std::printf("Loaded default directory:\n%s\n"
+			"Loaded default font path:\n%s\n"
+			"Loaded default font directory:\n%s\n",
+			def_dir.c_str(), font_path.c_str(), font_dir.c_str());
+	else
+		throw LoggedEvent("Empty path loaded.");
+#if !CHRLIB_NODYNAMIC_MAPPING
+	std::puts("Load character mapping file...");
+	p_mapped = new MappedFile(def_dir + "cp113.bin");
+	if(p_mapped->GetSize() != 0)
+		CHRLib::cp113 = p_mapped->GetPtr();
+	else
+		throw LoggedEvent("CHRMapEx loading fail.");
+	std::puts("CHRMapEx loaded successfully.");
+#endif
+	std::printf("Trying entering directory %s ...\n", def_dir.c_str());
+	if(!udirexists(def_dir))
+		throw LoggedEvent("Default data directory");
+	if(!(ufexists(font_path) || udirexists(font_dir)))
+		throw LoggedEvent("Default font");
+}
+//@}
 
 } // unnamed namespace;
 
@@ -190,99 +275,26 @@ InitializeSystemFontCache() ynothrow
 	}
 }
 
-void
+unique_ptr<NPL::ConfigurationFile>
 CheckInstall() ynothrow
 {
 	puts("Checking installation...");
 	try
 	{
-		try
-		{
-#if YCL_DS
-#	define ROOTW
-#	define DEF_DIRECTORY ROOTW "/Data/"
-	//const char* DEF_FONT_NAME = ROOTW "方正姚体";
-	//const_path_t DEF_FONT_PATH = ROOTW "/Font/FZYTK.TTF";
-#	define DEF_FONT_PATH ROOTW "/Font/FZYTK.TTF"
-#	define DEF_FONT_DIRECTORY ROOTW "/Font/"
-#else
-#	define ROOTW "H:\\NDS\\EFSRoot"
-#	define DEF_DIRECTORY ROOTW "\\Data\\"
-	//const char* DEF_FONT_NAME = "方正姚体";
-	//const_path_t DEF_FONT_PATH = ROOTW "\\Font\\FZYTK.TTF";
-#	define DEF_FONT_PATH ROOTW "\\Font\\FZYTK.TTF"
-#	define DEF_FONT_DIRECTORY ROOTW "\\Font\\"
-#endif
-#define CONF_PATH "config.txt"
+		auto p(ConfirmConfig());
 
-			if(!ufexists(CONF_PATH))
-			{
-				std::puts("Creating configuration file...");
-
-				File tf(CONF_PATH, "w");
-
-				if(tf)
-					tf << BOM_UTF_8 << DEF_DIRECTORY << '\n'
-						<< DEF_FONT_PATH << '\n' << DEF_FONT_DIRECTORY << '\n';
-				else
-					throw LoggedEvent("Cannot create file.");
-			}
-			else
-				std::printf("Found configuration file '%s'.\n", CONF_PATH);
-
-			TextFile tf(CONF_PATH);
-
-			if(YB_LIKELY(tf))
-			{
-				if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
-					throw LoggedEvent("Wrong encoding of configuration file.");
-
-				tf >> def_dir >> font_path >> font_dir;
-				if(!def_dir.empty() && !font_path.empty() && !font_dir.empty())
-					std::printf("Loaded default directory:\n%s\n"
-						"Loaded default font path:\n%s\n"
-						"Loaded default font directory:\n%s\n",
-						def_dir.c_str(), font_path.c_str(), font_dir.c_str());
-				else
-					throw LoggedEvent("Empty path loaded.");
-#if !CHRLIB_NODYNAMIC_MAPPING
-				std::puts("Load character mapping file...");
-				p_mapped = new MappedFile(def_dir + "cp113.bin");
-				if(p_mapped->GetSize() != 0)
-					CHRLib::cp113 = p_mapped->GetPtr();
-				else
-					throw LoggedEvent("CHRMapEx loading fail.");
-				std::puts("CHRMapEx loaded successfully.");
-#endif
-			}
-			else
-				throw LoggedEvent("Configuration file loading failed.");
-		}
-		catch(LoggedEvent& e)
-		{
-			std::puts("Error occurred: ");
-			std::puts(e.what());
-			throw;
-		}
-		catch(...)
-		{
-			throw LoggedEvent("Loading configuration");
-		}
-		std::printf("Trying entering directory %s ...\n", def_dir.c_str());
-		if(!udirexists(def_dir))
-			throw LoggedEvent("Default data directory");
-		if(!(ufexists(font_path) || udirexists(font_dir)))
-			throw LoggedEvent("Default font");
+		InitializeComponents();
 		puts("OK!");
-		return;
+		return p;
 	}
 	catch(LoggedEvent& e)
 	{
-		std::printf(" %s\n cannot be found!\n", e.what());
+		std::printf("Error occurred: %s\n", e.what());
 		printFailInfo("      Invalid Installation      ",
 			" Please make sure the data is\n"
 			" stored in correct directory.\n");
 	}
+	return unique_ptr<NPL::ConfigurationFile>(); // TODO: [[noreturn]].
 }
 
 void

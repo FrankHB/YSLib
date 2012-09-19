@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4484 *build 340 rev *
+\version r4488 *build 341 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-18 11:40 +0800
+	2012-09-19 21:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,10 +212,7 @@ $macro_platform_mapping:
 $using:
 \u YObject
 (
-	(
-		\cl ValueObject;
-		\cl ValueNode,
-	)
+	\cl ValueObject,
 	\clt GDependency,
 	\clt GRange
 ),
@@ -390,138 +387,128 @@ $using:
 
 $DONE:
 r1:
-+ 'ynothrow' @ \mf type @ (\cl (any_holder; value_holder, pointer_holder; any)
-	@ \h Any; \cl (ValueHolder, PointerHolder) @ \h YObject);
-+ \mf GetType @ \cl ValueObject;
++ \mf GetNodeRRef @ \cl Configuration @ \h Configuration;
+(
+	+ \inc \h YContainer @ \h YFile_(Text);
+	+ \mf string GetBOM() const @ \cl TextFile @ \u YFile_(Text)
+);
 /= test 1 @ platform MinGW32;
 
 r2:
-/= test 2 @ platform MinGW32 ^ \conf release;
++ \f bool truncate(std::FILE*, std::size_t) ynothrow @ \u FileSystem;
++ using platform::truncate @ \h YAdaptor;
++ \mf \vt bool Truncate(size_t) const @ \cl (File @ \u YFile;
+	TextFile @ \u YFile_(Text));
+/= test 2 @ platform MinGW32;
 
 r3:
-/ @ \cl ValueNode @ \u ValueNode $=
+/ \a \ac @ protected \m @ \cl File @ \h YFile -> private,
+/ \tr \impl @ \cl TextFile @ \u YFile_(Text) $=
 (
-	+ \mf GetContainer;
-	/ \impl @ \mf (2 GetBegin, 2 GetEnd),
-	/ \impl @ \mf (GetSize, Clear, 2 Remove)
-);
+	/ \impl @ \mf (ReadChar, SkipChar) @ \h,
+	/ \impl @ \mf (CheckBOM, GetBOM) @ \impl \u
+)
 /= test 3 @ platform MinGW32;
 
 r4:
-/ @ \cl ValueNode @ \u ValueNode $=
 (
-	/ private \mf void CheckNodes() -> Container& CheckNodes();
-	/ \simp \impl @ 2 \mf Add @ \impl \u,
-	/ \impl @ \mf \op[]
+	+ using YSLib::string @ \ns NPL @ \h Configuration,
+	/ \ctor TextFile(const_path_t) -> TextFile(const_path_t,
+		std::ios_base::openmode = std::ios_base::in,
+		Text::Encoding = Text::CS_Default);
+ @ \u YFile_(Text);
+	+ \cl ConfigurationFile @ \u Configuration,
+	+ \inc \h YShellDefinition @ \h Initialization -> \h Configuration;
+	/ \f void CheckInstall() ynothrow @ \u Initialization
+		-> unique_ptr<ConfigurationFile> CheckInstall() ynothrow
+),
+/ \inc \h ValueNode @ \h DSMain -> \h Configuration;
+/ @ \cl DSApplication @ \u DSMain $=
+(
+	+ protected \m unique_ptr<NPL::ConfigurationFile> pMainConfigFile;
+	+ \tr \mf GetMainConfigFile,
+	/ \tr \impl @ \ctor
 );
 /= test 4 @ platform MinGW32;
 
 r5:
-/ @ \cl ValueNode @ \u ValueNode $=
-(
-	/ \ctor \t<_tString, _tValue, typename = typename std::enable_if<
-		std::is_constructible<string, _tString&&>::value
-		&& !std::is_constructible<unique_ptr<Container>, _tValue&&>::value,int>
-		::type> \i ValueNode(_tString&&, _tValue&&, unique_ptr<Container> = {})
-		-> \ctor \t<_tString, _tValue, typename = typename std::enable_if<
-		std::is_constructible<string, _tString&&>::value
-		&& !std::is_constructible<unique_ptr<Container>, _tValue&&>::value,
-		int>::type> \i ValueNode(_tString&&, _tValue&&),
-	/ \ctor \t<_tIn, _tString, _tParams...> \i ValueNode(const
-		pair<_tIn, _tIn>&, _tString&&, _tParams&&...)
-		-> \ctor \t<_tIn, _tString> \i ValueNode(const pair<_tIn, _tIn>&,
-		_tString&&)
-);
+* \impl @ \f openmode_conv @ \impl \u CStandardIO $since b326;
+* $comp open text file as binary mode $since r2;
+* $comp cannot open \conf $since r4;
 /= test 5 @ platform MinGW32;
 
-r6:
-/ @ \u ValueNode $=
+r6-r8:
+/ @ \impl \u Initialization $=
 (
-	/ @ \cl ValueNode $=
-	(
-		/ \impl @ \a !\de \ctor,
-		(
-			/ copy \ctor -> \exp \de copy \ctor;
-			- \un \ns @ \impl \u
-		),
-		/ \simp \impl @ \mf (GetContainer, CheckNodes, Clear),
-		- \m unique_ptr<Container> p_nodes @ \cl ValueNode
-	)
+	+ \f (ConfirmConfig, ReadConfig, InitializeComponents) @ \un \ns;
+	/ \tr \simp \impl @ \f CheckInstall
 );
-/= test 6 @ platform MinGW32;
+/= 3 test 6 @ platform MinGW32;
 
-r7:
-* \impl @ (\ctor, \ctor \t) @ \cl ValueNode @ \h ValueNode $since r6;
-/= test 7 @ platform MinGW32;
-
-r8:
-/ @ \u ValueNode $=
-(
-	/ @ \cl ValueNode $=
-	(
-		/ @ \ctor,
-		/ \mf !\i Clear -> \mf \i
-	),
-	/ \ret \tp @ \ft<_tParams...> \i unique_ptr<ValueNode::Container>
-		CollectNodes(_tParams&&...) -> ValueNode::Container*,
-	/ \tr \impl @ \ft PackNodes
-);
-/= test 8 @ platform MinGW32;
-
-r9:
-/= test 9 @ platform MinGW32 ^ \conf release;
-
-r10:
-/= test 10 @ platform DS;
-
-r11:
-/= test 11 @ platform DS ^ \conf release;
+r9-r11:
+* \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration $since b334,
+/= 3 test 7 @ platform MinGW32;
 
 r12:
-/ \simp \impl @ \f FetchEncodingString @ \un \ns @ \impl \u ReaderSetting;
-/ @ \h YObject $=
-(
-	/ \em \st PointerConstructTag @ \cl YObject -> \em \st YSLib::PointerTag,
-	(
-		+ \em \st MoveTag;
-		+ \ctor \t<_type> ValueObject(_type&&, MoveTag)
-	),
-	/ \tr \impl @ \ft MakeValueObjectByPtr
-),
-/ \tr \impl @ \ft PackNodes @ \h ValueNode;
-/= test 12 @ platform MinGW32;
++ \mf DefGetter(const ynothrow, ValueObject&&, ValueRRef, std::move(value))
+	@ \cl ValueNode @ \h ValueNode;
+/ \impl @ \f TransformConfiguration @ \impl \u Configuration;
+/= test 8 @ platform MinGW32;
 
 r13:
-+ \inc \h @ \h DSMain;
-/ @ \cl DSApplication @ \u DSMain $=
+/ @ \impl \u Configuration $=
 (
-	+ public \m ValueNode Root;
-	/ \tr \impl @ \ctor
-);
-/= test 13 @ platform MinGW32;
+	/ \impl @ \f TransformConfiguration,
+	/ \impl @ \f WriteNodeC @ \un \ns
+),
+/ \impl @ \f ConfirmConfig @ \un \ns @ \impl \u Initialization;
+/= test 9 @ platform MinGW32;
 
 r14:
+/ \simp \impl @ \f TransformConfiguration @ \impl \u Configuration,
+* exception safety @ \impl @ \ft CollectNodes @ \h ValueNode $since b338,
+/ \impl @ \mf DSMain ^ \ft make_unique ~ unique_raw;
+/= test 10 @ platform MinGW32;
+
+r15-r18:
+/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration,
+/= 4 test 11 @ platform MinGW32;
+
+r19-r22:
+/ \impl @ \f TransformConfiguration @ \impl \u Configuration,
+/= 4 test 12 @ platform MinGW32;
+
+r23:
+/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
+/= test 13 @ platform MinGW32;
+
+r24:
 /= test 14 @ platform MinGW32 ^ \conf release;
 
-r15:
+r25:
+/ @ \impl \u FileSystem $=
+(
+	+ \decl extern "C" \f fileno @ \g \ns @ platform DS;
+	* \impl @ \f truncate @ platform DS $since r2
+);
 /= test 15 @ platform DS;
 
-r16:
+r26:
 /= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-18 +0800:
--20.9d;
-// Mercurial rev1-rev212: r9164;
+2012-09-19 +0800:
+-17.2d;
+// Mercurial rev1-rev213: r9190;
 
 / ...
 
 
 $NEXT_TODO:
-b341-b348:
+b342-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -983,6 +970,57 @@ $module_tree $=
 );
 
 $now
+(
+	(
+		* "function %openmode_conv" @ %'YBase'.'YStandardEx'.'CStandardIO'
+			$since b326;
+		$dep_to "%openmode_conv bug fix"
+	),
+	/ %'YFramework' $=
+	(
+		+ "function %truncate" @ %'YCLib'.'FileSystem';
+		/ %'YSLib' $=
+		(
+			/ %'YSLib'.'Service' $=
+			(
+				/ @ "class %TextFile" $=
+				(
+					(
+						$dep_from "%openmode_conv bug fix";
+						/ "constructor implementation to support output",
+					),
+					+ "member function %GetBOM()",
+					+ "member function %Truncate",
+					$ dep_to "text file output and truncate support"
+				),
+				/ $lib $dev "access control of all protected data members"
+					-> "private" @ "class %File"
+			),
+			* "exception safety" @ "function template %CollectNodes"
+				@ %'Core'.'ValueNode' $since b338,
+		),
+		/ %'NPL'.'Configuration' $=
+		(
+			+ "member function %GetNodeRRef" @ "class %Configuration",
+			(
+				$ dep_from "text file output and truncate support";
+				+ "class %ConfigurationFile"
+			),
+			* "wrong indentation before parentheses for configuration output"
+				@ %'NPL'.'Configuration' $since b334
+		);
+		/ %'Helper' $=
+		(
+			// Interface changed. Unimplemented yet: only dummy and invalid \
+				object returned.
+			/ @ "function %CheckInstall" @ %'Initialization',
+			+ "members for main configuration file"
+				@ "class %DSApplication" @ %'DSMain'
+		)
+	)
+),
+
+b340
 (
 	+ "exception specification %ynothrow" @ "member function %type" @ "class \
 		%any_holder; class templates %(value_holder, pointer_holder; \

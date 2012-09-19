@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6743
+\version r6746
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-13 00:32 +0800
+	2012-09-19 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1346,6 +1346,9 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 @5.2.4.3 初始化逻辑 Initialization
 
+@5.2.5 NPL 库：
+实现基于 S 表达式的名称协议语言，当前仅用于配置设置。
+
 @5.3 库基础结构：
 平台设置在 <Platform.h>(@5.2.1.2.3.1) 中。
 任何 YSLib 头文件，除了 "/Adaptor/" 路径下的文件以及仅包含宏定义的文件外，都直接或间接地包含 "/Core/ysdef.h" 文件。
@@ -1356,6 +1359,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
  platform ：平台中立：接口平台无关但实现平台相关的实用程序。 YSLib 本体间接依赖于此命名空间。
  platform_ex ：接口和实现都平台相关的实用程序。 YSLib 本体不依赖于此命名空间。
  CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖于此命名空间。
+ NPL ：子库 NPL(@5.2.5) 的命名空间。
 
 @6 编码风格导引：
 仅叙述之前章节未涉及的内容。
