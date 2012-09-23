@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1367
+\version r1551
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-09-19 17:51 +0800
+	2012-09-23 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,21 +47,6 @@ using namespace IO;
 namespace
 {
 
-void
-printFailInfo(const char* t, const char* s)
-{
-	YDebugSetStatus();
-	YDebugBegin();
-
-	const char* line("--------------------------------");
-
-	std::printf("%s%s%s\n%s\n%s", line, t, line, s, line);
-	terminate();
-}
-
-
-//! \since build 326
-string def_dir, font_path, font_dir;
 #if !CHRLIB_NODYNAMIC_MAPPING
 //! \since build 324;
 platform::MappedFile* p_mapped;
@@ -84,50 +69,57 @@ platform::MappedFile* p_mapped;
 #endif
 #define CONF_PATH "config.txt"
 
-//! \since build 341
+//! \since build 342
 //@{
-void
-ReadConfig()
+ValueNode
+ReadConfigFile(TextFile& tf)
 {
-	TextFile tf(CONF_PATH);
+	string def_dir, font_file, font_dir;
 
 	if(YB_LIKELY(tf))
 	{
 		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
 			throw LoggedEvent("Wrong encoding of configuration file.");
 
-		tf >> def_dir >> font_path >> font_dir;
-
+		tf >> def_dir >> font_file >> font_dir;
 	}
 	else
 		throw LoggedEvent("Configuration file loading failed.");
+	return PackNodes("YFramework", MakeNode("def_dir", def_dir),
+		MakeNode("font_file", font_file), MakeNode("font_dir", font_dir));
 }
 
-unique_ptr<NPL::ConfigurationFile>
-ConfirmConfig()
+ValueNode
+CheckConfig()
 {
-	if(ufexists(CONF_PATH))
-		std::printf("Found configuration file '%s'.\n", CONF_PATH);
-	else
+	if(!ufexists(CONF_PATH))
 	{
 		std::printf("Creating configuration file '%s'...\n", CONF_PATH);
 
-		File tf(CONF_PATH, "w");
+		TextFile tf(CONF_PATH, std::ios_base::out | std::ios_base::trunc);
 
 		if(tf)
-			tf << BOM_UTF_8 << DEF_DIRECTORY << '\n'
+			tf << DEF_DIRECTORY << '\n'
 				<< DEF_FONT_PATH << '\n' << DEF_FONT_DIRECTORY << '\n';
 		else
 			throw LoggedEvent("Cannot create file.");
 	}
-	ReadConfig();
-	// TODO: Return a valid result.
-	return unique_ptr<NPL::ConfigurationFile>();
+
+	TextFile tf(CONF_PATH);
+
+	std::printf("Found configuration file '%s'.\n", CONF_PATH);
+	if(!tf)
+		throw LoggedEvent("Cannot open file.");
+	return ReadConfigFile(tf);
 }
 
 void
-InitializeComponents()
+LoadComponents(const ValueNode& node)
 {
+	const auto& def_dir(AccessChild<string>(node, "def_dir"));
+	const auto& font_path(AccessChild<string>(node, "font_file"));
+	const auto& font_dir(AccessChild<string>(node, "font_dir"));
+
 	if(!def_dir.empty() && !font_path.empty() && !font_dir.empty())
 		std::printf("Loaded default directory:\n%s\n"
 			"Loaded default font path:\n%s\n"
@@ -136,165 +128,160 @@ InitializeComponents()
 	else
 		throw LoggedEvent("Empty path loaded.");
 #if !CHRLIB_NODYNAMIC_MAPPING
-	std::puts("Load character mapping file...");
+	puts("Load character mapping file...");
 	p_mapped = new MappedFile(def_dir + "cp113.bin");
 	if(p_mapped->GetSize() != 0)
 		CHRLib::cp113 = p_mapped->GetPtr();
 	else
 		throw LoggedEvent("CHRMapEx loading fail.");
-	std::puts("CHRMapEx loaded successfully.");
+	puts("CHRMapEx loaded successfully.");
 #endif
 	std::printf("Trying entering directory %s ...\n", def_dir.c_str());
 	if(!udirexists(def_dir))
-		throw LoggedEvent("Default data directory");
+		throw LoggedEvent("Invalid default data directory found.");
 	if(!(ufexists(font_path) || udirexists(font_dir)))
-		throw LoggedEvent("Default font");
+		throw LoggedEvent("Invalid default font file path found.");
 }
 //@}
 
 } // unnamed namespace;
 
+void
+HandleFatalError(const FatalError& e) ynothrow
+{
+	YDebugSetStatus();
+	YDebugBegin();
+
+	const char* line("--------------------------------");
+
+	std::printf("%s%s%s\n%s\n%s",
+		line, e.GetTitle(), line, e.GetContent(), line);
+	terminate();
+}
+
 
 void
-InitializeEnviornment() ynothrow
+InitializeEnviornment()
 {
 	//设置默认异常终止函数。
 	std::set_terminate(terminate);
-	try
-	{
 #if YCL_DS
-		//启用设备。
-		::powerOn(POWER_ALL);
+	//启用设备。
+	::powerOn(POWER_ALL);
 
-		//启用 LibNDS 默认异常处理。
-		::defaultExceptionHandler();
+	//启用 LibNDS 默认异常处理。
+	::defaultExceptionHandler();
 
-		//初始化主控制台。
-		platform::YConsoleInit(true, ColorSpace::Lime);
+	//初始化主控制台。
+	platform::YConsoleInit(true, ColorSpace::Lime);
 
-		//初始化文件系统。
-		//初始化 EFSLib 和 LibFAT 。
-		//当 .nds 文件大于32MB时， EFS 行为异常。
+	//初始化文件系统。
+	//初始化 EFSLib 和 LibFAT 。
+	//当 .nds 文件大于32MB时， EFS 行为异常。
 #	ifdef USE_EFS
-		if(!::EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, nullptr))
-		{
-			//如果初始化 EFS 失败则初始化 FAT 。
+	if(!::EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, nullptr))
+	{
+		//如果初始化 EFS 失败则初始化 FAT 。
 #	endif
-			if(!::fatInitDefault())
-			{
-				printFailInfo("         LibFAT Failure         ",
-					" An error is preventing the\n"
-					" program from accessing\n"
-					" external files.\n"
-					"\n"
-					" If you're using an emulator,\n"
-					" make sure it supports DLDI\n"
-					" and that it's activated.\n"
-					"\n"
-					" In case you're seeing this\n"
-					" screen on a real DS, make sure\n"
-					" you've applied the correct\n"
-					" DLDI patch (most modern\n"
-					" flashcards do this\n"
-					" automatically).\n"
-					"\n"
-					" Note: Some cards only\n"
-					" autopatch .nds files stored in\n"
-					" the root folder of the card.\n");
-			}
+		if(!::fatInitDefault())
+			throw FatalError("         LibFAT Failure         ",
+				" An error is preventing the\n"
+				" program from accessing\n"
+				" external files.\n"
+				"\n"
+				" If you're using an emulator,\n"
+				" make sure it supports DLDI\n"
+				" and that it's activated.\n"
+				"\n"
+				" In case you're seeing this\n"
+				" screen on a real DS, make sure\n"
+				" you've applied the correct\n"
+				" DLDI patch (most modern\n"
+				" flashcards do this\n"
+				" automatically).\n"
+				"\n"
+				" Note: Some cards only\n"
+				" autopatch .nds files stored in\n"
+				" the root folder of the card.\n");
 #	ifdef USE_EFS
-		}
+	}
 #	endif
 #endif
 #if 0
-		// TODO: Review locale APIs compatibility.
-		static yconstexpr char locale_str[]{"zh_CN.GBK"};
+	// TODO: Review locale APIs compatibility.
+	static yconstexpr char locale_str[]{"zh_CN.GBK"};
 
-		if(!setlocale(LC_ALL, locale_str))
-		{
-			throw LoggedEvent("setlocale() with %s failed.\n", locale_str);
-		}
+	if(!std::setlocale(LC_ALL, locale_str))
+		throw LoggedEvent("Call of std::setlocale() with %s failed.\n",
+			locale_str);
 #endif
-	}
-	catch(LoggedEvent& e)
-	{
-		puts(e.what());
-	}
-	catch(...)
-	{}
 }
 
 void
-InitializeSystemFontCache() ynothrow
+InitializeSystemFontCache(const string& fong_file, const string& font_dir)
 {
 	puts("Loading font files...");
 	try
 	{
-		try
-		{
-			auto& fc(FetchDefaultFontCache());
-			size_t nFileLoaded(fc.LoadTypefaces(font_path) != 0);
+		auto& fc(FetchDefaultFontCache());
+		size_t nFileLoaded(fc.LoadTypefaces(fong_file) != 0);
 
-			if(!font_dir.empty())
-				//读取字体文件目录并载入目录下指定后缀名的字体文件。
-				if(HFileNode dir{font_dir.c_str()})
-					while((++dir).LastError == 0)
-						if(std::strcmp(dir.GetName(), FS_Now) != 0
-							&& !dir.IsDirectory()
-							/*&& IsExtensionOf(ext, dir.GetName())*/)
-						{
-							FontPath path(font_dir + dir.GetName());
+		if(!font_dir.empty())
+			//读取字体文件目录并载入目录下指定后缀名的字体文件。
+			if(HFileNode dir{font_dir.c_str()})
+				while((++dir).LastError == 0)
+					if(std::strcmp(dir.GetName(), FS_Now) != 0
+						&& !dir.IsDirectory()
+						/*&& IsExtensionOf(ext, dir.GetName())*/)
+					{
+						FontPath path(font_dir + dir.GetName());
 
-							if(path != font_path)
-								nFileLoaded += fc.LoadTypefaces(path) != 0;
-						}
-			fc.InitializeDefaultTypeface();
-			if(const auto nFaces = FetchDefaultFontCache().GetFaces().size())
-				std::printf("%u face(s) in %u font file(s)"
-					" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
-			else
-				throw LoggedEvent("No font loaded.");
-			puts("Setting default font face...");
-			if(const auto* const pf = fc.GetDefaultTypefacePtr())
-				std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
-					pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
-			else
-				throw LoggedEvent("Setting default font face failed.");
-		}
-		catch(LoggedEvent& e)
-		{
-			puts(e.what());
-			throw;
-		}
+						if(path != fong_file)
+							nFileLoaded += fc.LoadTypefaces(path) != 0;
+					}
+		fc.InitializeDefaultTypeface();
+		if(const auto nFaces = FetchDefaultFontCache().GetFaces().size())
+			std::printf("%u face(s) in %u font file(s)"
+				" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
+		else
+			throw LoggedEvent("No fonts found.");
+		puts("Setting default font face...");
+		if(const auto* const pf = fc.GetDefaultTypefacePtr())
+			std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
+				pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
+		else
+			throw LoggedEvent("Setting default font face failed.");
+		return;
 	}
-	catch(...)
+	// TODO: Use %std::nested_exception.
+	catch(std::exception& e)
 	{
-		printFailInfo("      Font Caching Failure      ",
-			" Please make sure the fonts are\n"
-			" stored in correct directory.\n");
+		puts(e.what());
 	}
+	throw FatalError("      Font Caching Failure      ",
+		" Please make sure the fonts are\n"
+		" stored in correct path.\n");
 }
 
-unique_ptr<NPL::ConfigurationFile>
-CheckInstall() ynothrow
+ValueNode
+LoadConfig()
 {
 	puts("Checking installation...");
 	try
 	{
-		auto p(ConfirmConfig());
+		auto node(CheckConfig());
 
-		InitializeComponents();
+		LoadComponents(node);
 		puts("OK!");
-		return p;
+		return node;
 	}
-	catch(LoggedEvent& e)
+	catch(std::exception& e)
 	{
 		std::printf("Error occurred: %s\n", e.what());
-		printFailInfo("      Invalid Installation      ",
-			" Please make sure the data is\n"
-			" stored in correct directory.\n");
 	}
-	return unique_ptr<NPL::ConfigurationFile>(); // TODO: [[noreturn]].
+	throw FatalError("      Invalid Installation      ",
+		" Please make sure the data is\n"
+		" stored in correct directory.\n");
 }
 
 void

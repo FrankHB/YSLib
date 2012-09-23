@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r536
+\version r563
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-09-17 18:55 +0800
+	2012-09-20 12:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -376,7 +376,37 @@ public:
 */
 class bad_any_cast : public std::bad_cast
 {
+private:
+	//! \since build 342
+	const char* from_name;
+	//! \since build 342
+	const char* to_name;
+
 public:
+	//! \since build 342
+	//@{
+	bad_any_cast()
+		: std::bad_cast(),
+		from_name("unknown"), to_name("unknown")
+	{};
+	bad_any_cast(const std::type_info& from_type, const std::type_info& to_type)
+		: std::bad_cast(),
+		from_name(from_type.name()), to_name(to_type.name())
+	{}
+
+	const char*
+	from() const ynothrow
+	{
+		return from_name;
+	}
+
+	const char*
+	to() const ynothrow
+	{
+		return to_name;
+	}
+	//@}
+
 	virtual const char*
 	what() const ynothrow override
 	{
@@ -414,7 +444,7 @@ any_cast(const any& x)
 		std::addressof(const_cast<any&>(x))));
 
 	if(!tmp)
-		throw bad_any_cast();
+		throw bad_any_cast(x.type(), typeid(_type));
 	return static_cast<_type>(*tmp);
 }
 //@}

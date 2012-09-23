@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4488 *build 341 rev *
+\version r4488 *build 342 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-19 21:49 +0800
+	2012-09-23 13:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -386,129 +386,127 @@ $using:
 
 
 $DONE:
-r1:
-+ \mf GetNodeRRef @ \cl Configuration @ \h Configuration;
+r1-r8:
+/= test 0 @ platform MinGW32;
+
+r9:
+/ @ \cl bad_any_cast @ \h Any $=
 (
-	+ \inc \h YContainer @ \h YFile_(Text);
-	+ \mf string GetBOM() const @ \cl TextFile @ \u YFile_(Text)
+	+ private \m const char* (from_name, to_name);
+	+ public \ctor bad_any_cast(), bad_any_cast(const type_info&, const type_info&),
+	+ public \mf (from, to)
 );
+/ \impl @ \op>> @ \impl \u Configuration;
 /= test 1 @ platform MinGW32;
 
-r2:
-+ \f bool truncate(std::FILE*, std::size_t) ynothrow @ \u FileSystem;
-+ using platform::truncate @ \h YAdaptor;
-+ \mf \vt bool Truncate(size_t) const @ \cl (File @ \u YFile;
-	TextFile @ \u YFile_(Text));
+r10:
+/ \impl @ \ft any_cast#3 @ \h Any,
+/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
 /= test 2 @ platform MinGW32;
 
-r3:
-/ \a \ac @ protected \m @ \cl File @ \h YFile -> private,
-/ \tr \impl @ \cl TextFile @ \u YFile_(Text) $=
-(
-	/ \impl @ \mf (ReadChar, SkipChar) @ \h,
-	/ \impl @ \mf (CheckBOM, GetBOM) @ \impl \u
-)
+r11:
+/ \simp \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
 /= test 3 @ platform MinGW32;
 
-r4:
+r12:
+/ @ \u Initialization $=
 (
-	+ using YSLib::string @ \ns NPL @ \h Configuration,
-	/ \ctor TextFile(const_path_t) -> TextFile(const_path_t,
-		std::ios_base::openmode = std::ios_base::in,
-		Text::Encoding = Text::CS_Default);
- @ \u YFile_(Text);
-	+ \cl ConfigurationFile @ \u Configuration,
-	+ \inc \h YShellDefinition @ \h Initialization -> \h Configuration;
-	/ \f void CheckInstall() ynothrow @ \u Initialization
-		-> unique_ptr<ConfigurationFile> CheckInstall() ynothrow
+	/ @ \un \ns @ \impl \u $=
+	(
+		/ void ReadConfig() -> ValueNode ReadConfigFile(TextFile&),
+		/ \f unique_ptr<NPL::ConfigurationFile> ConfirmConfig()
+			-> \f ValueNode CheckConfig(),
+	),
+	/ \f unique_ptr<NPL::ConfigurationFile> CheckInstall()
+		-> ValueNode LoadConfig()
 ),
-/ \inc \h ValueNode @ \h DSMain -> \h Configuration;
-/ @ \cl DSApplication @ \u DSMain $=
-(
-	+ protected \m unique_ptr<NPL::ConfigurationFile> pMainConfigFile;
-	+ \tr \mf GetMainConfigFile,
-	/ \tr \impl @ \ctor
-);
+/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
 /= test 4 @ platform MinGW32;
 
-r5:
-* \impl @ \f openmode_conv @ \impl \u CStandardIO $since b326;
-* $comp open text file as binary mode $since r2;
-* $comp cannot open \conf $since r4;
-/= test 5 @ platform MinGW32;
-
-r6-r8:
+r13:
 / @ \impl \u Initialization $=
 (
-	+ \f (ConfirmConfig, ReadConfig, InitializeComponents) @ \un \ns;
-	/ \tr \simp \impl @ \f CheckInstall
+	/ \f void InitializeComponents() -> void LoadComponents(const ValueNode&),
+	/ \tr \impl @ \f LoadConfig
 );
-/= 3 test 6 @ platform MinGW32;
-
-r9-r11:
-* \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration $since b334,
-/= 3 test 7 @ platform MinGW32;
-
-r12:
-+ \mf DefGetter(const ynothrow, ValueObject&&, ValueRRef, std::move(value))
-	@ \cl ValueNode @ \h ValueNode;
-/ \impl @ \f TransformConfiguration @ \impl \u Configuration;
-/= test 8 @ platform MinGW32;
-
-r13:
-/ @ \impl \u Configuration $=
-(
-	/ \impl @ \f TransformConfiguration,
-	/ \impl @ \f WriteNodeC @ \un \ns
-),
-/ \impl @ \f ConfirmConfig @ \un \ns @ \impl \u Initialization;
-/= test 9 @ platform MinGW32;
+/= test 5 @ platform MinGW32;
 
 r14:
-/ \simp \impl @ \f TransformConfiguration @ \impl \u Configuration,
-* exception safety @ \impl @ \ft CollectNodes @ \h ValueNode $since b338,
-/ \impl @ \mf DSMain ^ \ft make_unique ~ unique_raw;
+/ @ \impl \u Initialization $=
+(
+	/ \impl @ \f InitializeSystemFontCache,
+	/ \impl @ \f ReadConfigFile @ \un \ns;
+	- \o (string def_dir, font_path, font_dir) @ \un ns
+),
+/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
+/= test 6 @ platform MinGW32;
+
+r15:
+/ @ \cl DSApplication @ \u DSMain $=
+(
+	- \m unique_ptr<NPL::ConfigurationFile> pMainConfigFile,
+	- \mf GetMainConfigFile,
+	/ \tr \impl @ \ctor
+);
+- \cl ConfigurationFile @ \u Configuration;
+/= test 7 @ platform MinGW32;
+
+r16:
+/ \f void InitializeSystemFontCache() ynothrow @ \u Initialization
+	-> \f void InitializeSystemFontCache(const string&, const string&) ynothrow,
+/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
+/= test 8 @ platform MinGW32;
+
+r17:
++ \cl FatalError @ \u YException;
+/ @ \u Initialization $=
+(
+	/ \f printFailInfo @ \un \ns @ \impl \u
+		-> \f HandleFatalError @ \ns YSLib,
+	/ \f void InitializeEnviornment() ynothrow -> void InitializeEnviornment(),
+	/ \f void InitializeSystemFontCache(const string&, const string&) ynothrow
+		-> void InitializeSystemFontCache(const string&, const string&),
+	/ \f ValueNode LoadConfig() ynothrow -> ValueNode LoadConfig()
+);
+/= test 9 @ platform MinGW32;
+
+r18:
+/ \impl @ \f (LoadComponents, InitializeSystemFontCache, InitializeEnviornment)
+	@ \impl \u Initialization;
 /= test 10 @ platform MinGW32;
 
-r15-r18:
-/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration,
-/= 4 test 11 @ platform MinGW32;
+r19:
+/= test 11 @ platform MinGW32 ^ \conf release;
 
-r19-r22:
-/ \impl @ \f TransformConfiguration @ \impl \u Configuration,
-/= 4 test 12 @ platform MinGW32;
+r20:
+/= test 12 @ platform DS;
 
-r23:
-/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
+r21:
+* \impl @ \f CheckConfig @ \un \ns @ \impl \u Initialization $since r12;
 /= test 13 @ platform MinGW32;
 
-r24:
+r22:
 /= test 14 @ platform MinGW32 ^ \conf release;
 
-r25:
-/ @ \impl \u FileSystem $=
-(
-	+ \decl extern "C" \f fileno @ \g \ns @ platform DS;
-	* \impl @ \f truncate @ platform DS $since r2
-);
+r23:
 /= test 15 @ platform DS;
 
-r26:
+r24:
 /= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-19 +0800:
--17.2d;
-// Mercurial rev1-rev213: r9190;
+2012-09-23 +0800:
+-19.1d;
+// Mercurial rev1-rev214: r9214;
 
 / ...
 
 
 $NEXT_TODO:
-b342-b348:
+b343-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -970,6 +968,53 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx'.'Any' $=
+	(
+		/ "type information record as member" @ "class %bad_any_cast" @  $=
+		(
+			+ DLD "private member object %(from_name, to_name)";
+			+ "public constructor %bad_any_cast(), \
+				%bad_any_cast(const type_info&, const type_info&)",
+			+ "public member function %(from, to)"
+		);
+		/ @ "function template %any_cast with type information",
+	),
+	/ %'YFramework' $=
+	(
+		+ "class %FatalError" @ 'YSLib'.'Core'.'YException';
+		/ %'Helper' $=
+		(
+			/ %'Initialization' $=
+			(
+				(
+					/ "simplified interfaces";
+					$dep_to "simplified initialization interface"
+				),
+				/ DLD "implementations" ^ "value nodes"
+			)
+			/ @ "class %DSApplication" @ %'DSMain' $=
+			(
+				(
+					- "member %(pMainConfigFile, GetMainConfigFile)";
+					$dep_to "simplified application member",
+					/ DLD "simplified" @ "constructor" ^ "value nodes"
+				),
+			)
+		),
+		/ %'NPL'.'Configuration' $=
+		(
+			/ DLD "implementation" @ "output configuration as text file",
+			(
+				$dep_from "simplified initialization interface",
+				$dep_from "simplified application member";
+				- "class %ConfigurationFile"
+			)
+		)
+	)
+),
+
+b341
 (
 	(
 		* "function %openmode_conv" @ %'YBase'.'YStandardEx'.'CStandardIO'

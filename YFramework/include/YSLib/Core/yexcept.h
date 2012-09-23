@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r330
+\version r346
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2012-09-04 12:14 +0800
+	2012-09-22 13:00 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -69,6 +69,24 @@ public:
 	~LoggedEvent() ynothrow override = default;
 
 	DefGetter(const ynothrow, LevelType, Level, level)
+};
+
+
+/*!
+\brief 非日志记录的致命错误。
+\since build 332
+*/
+class FatalError : GeneralEvent
+{
+private:
+	const char* content;
+
+public:
+	//! \brief 构造：使用标题和内容。
+	FatalError(const char*, const char*) ynothrow;
+
+	DefGetter(const ynothrow, const char*, Content, content)
+	DefGetter(const ynothrow, const char*, Title, what())
 };
 
 YSL_END

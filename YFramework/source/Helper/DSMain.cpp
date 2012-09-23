@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2053
+\version r2074
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2012-09-19 18:51 +0800
+	2012-09-22 09:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -393,7 +393,7 @@ Idle(Messaging::Priority prior)
 
 
 DSApplication::DSApplication()
-	:
+try	: Application(),
 #if YCL_HOSTED && YCL_MULTITHREAD == 1
 	thread(),
 #if YCL_MINGW32
@@ -401,7 +401,7 @@ DSApplication::DSApplication()
 #endif
 	mtx(), init(), full_init(),
 #endif
-	pFontCache(), pMainConfigFile(), pScreenUp(), pScreenDown(),
+	pFontCache(), pScreenUp(), pScreenDown(),
 	UIResponseLimit(0x40), Root()
 {
 	YAssert(!YSLib::pApp, "Duplicate instance found.");
@@ -420,8 +420,8 @@ DSApplication::DSApplication()
 #endif
 
 
-	//检查程序是否被正确安装。
-	pMainConfigFile = CheckInstall();
+	//检查程序是否被正确安装并读取配置。
+	Root.Add(LoadConfig());
 	//初始化系统字体资源。
 	try
 	{
@@ -431,7 +431,12 @@ DSApplication::DSApplication()
 	{
 		throw LoggedEvent("Error occurred in creating font cache.");
 	}
-	InitializeSystemFontCache();
+	{
+		const auto& node(FetchGlobalInstance().Root["YFramework"]);
+
+		InitializeSystemFontCache(AccessChild<string>(node, "font_file"),
+			AccessChild<string>(node, "font_dir"));
+	}
 	//初始化系统设备。
 #if YCL_DS
 	InitVideo();
@@ -468,6 +473,10 @@ DSApplication::DSApplication()
 	full_init.notify_one();
 #endif
 }
+catch(FatalError& e)
+{
+	HandleFatalError(e);
+}
 
 DSApplication::~DSApplication()
 {
@@ -500,13 +509,6 @@ DSApplication::GetFontCache() const ynothrow
 	YAssert(bool(pFontCache), "Null pointer found.");
 
 	return *pFontCache;
-}
-NPL::ConfigurationFile&
-DSApplication::GetMainConfigurationFile() const ynothrow
-{
-	YAssert(bool(pMainConfigFile), "Null pointer found.");
-
-	return *pMainConfigFile;
 }
 Devices::Screen&
 DSApplication::GetScreenUp() const ynothrow

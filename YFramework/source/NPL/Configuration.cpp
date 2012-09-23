@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r509
+\version r546
 \author FrankHB<frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2012-09-19 21:12 +0800
+	2012-09-21 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,8 +83,6 @@ File&
 WriteNode(File& f, const ValueNode& node, size_t depth)
 {
 	if(node.GetSize() != 0)
-	{
-		++depth;
 		for(const auto& n : node)
 		{
 			WritePrefix(f, depth);
@@ -98,9 +96,6 @@ WriteNode(File& f, const ValueNode& node, size_t depth)
 			WritePrefix(f, depth);
 			f << ')' << '\n';
 		}
-		--depth;
-	}
-	f << '\n';
 	return f;
 }
 #endif
@@ -121,8 +116,17 @@ WriteNodeC(File& f, const ValueNode& node, size_t depth)
 {
 	WritePrefix(f, depth);
 	f << EscapeNodeString(node.GetName());
-	if(node.GetSize() != 0)
+	if(node)
 	{
+		try
+		{
+			const auto& s(Access<string>(node));
+
+			f << ' ' << EscapeNodeString(s) << '\n';
+			return f;
+		}
+		catch(ystdex::bad_any_cast&)
+		{}
 		f << '\n';
 		for(const auto& n : node)
 		{
@@ -138,9 +142,6 @@ WriteNodeC(File& f, const ValueNode& node, size_t depth)
 			f << ')' << '\n';
 		}
 	}
-	else if(node)
-		f << ' ' << EscapeNodeString(Access<string>(node));
-	f << '\n';
 	return f;
 }
 
@@ -160,27 +161,14 @@ operator>>(TextFile& tf, Configuration& conf)
 		tf.Rewind();
 		conf.root = TransformConfiguration(SContext::Analyze(Session(tf)));
 	}
-	catch(ystdex::bad_any_cast&)
+	catch(ystdex::bad_any_cast& e)
 	{
-		throw LoggedEvent("Bad configuration found.", 0x80);
+		// TODO: Avoid memory allocation. 
+		throw LoggedEvent(ystdex::sfmt(
+			"Bad configuration found: cast failed from [%s] to [%s] .",
+			e.from(), e.to()), 0x80);
 	}
 	return tf;
-}
-
-
-ConfigurationFile::ConfigurationFile(const string& filename)
-	: TextFile(filename.c_str(), std::ios_base::in | std::ios_base::out
-	| std::ios_base::trunc), conf()
-{
-	*this >> conf;
-}
-
-void
-ConfigurationFile::Update()
-{
-	Truncate(0),
-	Rewind();
-	*this << conf;
 }
 
 YSL_END_NAMESPACE(NPL)

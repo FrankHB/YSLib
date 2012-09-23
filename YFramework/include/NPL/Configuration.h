@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r193
+\version r214
 \author FrankHB<frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2012-09-19 01:26 +0800
+	2012-09-21 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,31 +94,6 @@ public:
 */
 File&
 operator<<(File&, const Configuration&);
-
-
-/*!
-\brief 配置文件。
-\since build 341
-*/
-class ConfigurationFile : public TextFile
-{
-private:
-	Configuration conf;
-
-public:
-	explicit
-	ConfigurationFile(const string&);
-	virtual
-	~ConfigurationFile() override
-	{
-		Update();
-	}
-
-	DefGetterMem(ynothrow, ValueNode&&, NodeRRef, conf)
-
-	void
-	Update();
-};
 
 YSL_END_NAMESPACE(NPL)
 
