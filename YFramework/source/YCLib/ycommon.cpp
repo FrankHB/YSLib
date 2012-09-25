@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2664
+\version r2666
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2012-09-04 11:02 +0800
+	2012-09-24 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,7 @@ UTF8ToMBCS(const char* str, std::size_t len, int cp)
 		return str;
 
 	const int w_len(::MultiByteToWideChar(CP_UTF8, 0, str, len, NULL, 0));
-	std::wstring wstr(w_len, L'\0');
+	std::wstring wstr(w_len, wchar_t());
 	wchar_t* w_str = &wstr[0];
 
 	::MultiByteToWideChar(CP_UTF8, 0, str, len, w_str, w_len);
@@ -103,7 +103,7 @@ WCSToMBCS(const wchar_t* str, std::size_t len, int cp)
 {
 	const int r_len(::WideCharToMultiByte(cp, 0, str, len,
 		NULL, 0, NULL, NULL));
-	std::string mbcs(r_len, '\0');
+	std::string mbcs(r_len, char());
 
 	::WideCharToMultiByte(cp, 0, str, len, &mbcs[0], r_len, NULL, NULL);
 	return mbcs;

@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r393
+\version r394
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2012-09-04 11:02 +0800
+	2012-09-24 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ readdir(DIR* dir)
 	{
 		// NOTE: See MSDN "FindFirstFile function" for details.
 		yconstraint(dir->Name);
-		yconstraint(*dir->Name != '\0');
+		yconstraint(*dir->Name != char());
 		yconstraint(dir->Name[std::strlen(dir->Name) - 1] != '\\');
 
 		const auto wstr(reinterpret_cast<wchar_t*>(ucsdup(dir->Name)));

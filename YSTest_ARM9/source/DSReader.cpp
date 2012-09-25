@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2824
+\version r2828
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2012-09-07 11:12 +0800
+	2012-09-24 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,11 +39,11 @@ namespace
 {
 	/*!
 	\brief 指定迭代器最小值 b ，取文本迭代器 s 前最近出现的字符 c 的对应文本迭代器。
-	\since build 270
+	\since build 343
 	*/
 	template<typename _tBi>
 	_tBi
-	FindPreviousChar(_tBi s, _tBi b, ucs4_t c = '\0')
+	FindPreviousChar(_tBi s, _tBi b, ucs4_t c = ucs4_t())
 	{
 	//	while(b < --s && *s != c)
 		while(b != --s && *s != c)
@@ -347,7 +347,7 @@ DualScreenReader::Execute(Command cmd)
 
 				SetCurrentTextLineNOf(area_dn, --n);
 			}
-			//注意缓冲区不保证以 '\0' 结尾。
+			//注意缓冲区不保证以空字符结尾。
 			CarriageReturn(area_dn);
 			IncreaseIfEqual(i_btm, '\n');
 			i_btm = PutLine(area_dn, i_btm, pText->GetEnd(), '\n');
@@ -450,7 +450,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 
 		SetCurrentTextLineNOf(area_dn, --n);
 	}
-	//注意缓冲区不保证以 '\0' 结尾。
+	//注意缓冲区不保证以空字符结尾。
 	CarriageReturn(area_dn);
 	if(YB_LIKELY((scroll_offset += h) < ln_h_ex))
 	{

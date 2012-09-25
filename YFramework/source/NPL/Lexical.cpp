@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1268
+\version r1283
 \author FrankHB<frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2012-09-04 11:03 +0800
+	2012-09-25 08:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ void
 LexicalAnalyzer::PushEscape()
 {
 //	cbuf += '^'; // test: 未转义。
-	yunseq(cbuf += '\\', escs[esc] = '\0');
+	yunseq(cbuf += '\\', escs[esc] = char());
 	yunseq(cbuf += escs, esc = -1);
 }
 
@@ -108,7 +108,7 @@ LexicalAnalyzer::ParseByte(byte b)
 		escs[esc++] = b;
 		HandleEscape();
 	}
-	else if(b == '\\' && ld != '\0')
+	else if(b == '\\' && ld != char())
 		esc = 0;
 	else
 	{
@@ -116,7 +116,7 @@ LexicalAnalyzer::ParseByte(byte b)
 		{
 			case '\'':
 			case '"':
-				if(ld == '\0')
+				if(ld == char())
 				{
 				//	cbuf += '{'; // test;
 					ld = b;
@@ -126,7 +126,7 @@ LexicalAnalyzer::ParseByte(byte b)
 				else if(ld == b)
 				{
 				//	cbuf += '}'; // test;
-					ld = '\0';
+					ld = char();
 					cbuf += char(b);
 					qlist.push_back(cbuf.size());
 				}
@@ -139,7 +139,7 @@ LexicalAnalyzer::ParseByte(byte b)
 		//	case '\r':
 			case '\t':
 			case '\v':
-				if(ld == '\0')
+				if(ld == char())
 				{
 					cbuf += ' ';
 					break;
@@ -178,6 +178,12 @@ CheckLiteral(const string& str)
 	if(str.front() == '"' && str.back() == '"')
 		return '"';
 	return char();
+}
+
+string
+Deliteralize(const string& str)
+{
+	return CheckLiteral(str) == char() ? str : ystdex::get_mid(str);
 }
 
 string

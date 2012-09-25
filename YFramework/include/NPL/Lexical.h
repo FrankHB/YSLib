@@ -15,13 +15,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1231
+\version r1238
 \author FrankHB<frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2012-09-04 11:29 +0800
+	2012-09-24 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,6 +146,14 @@ public:
 */
 char
 CheckLiteral(const string&);
+
+/*!
+\brief 去除字面量边界分隔符。
+\return 若首尾字符都为 '\'' 或 '"' 之一，则为去除首尾字符之后的副本；否则为原串。
+\since build 343
+*/
+string
+Deliteralize(const string&);
 
 /*!
 \brief 转义字符串：替换指定字符串中的可转义字符。

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r729
+\version r731
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2012-09-19 21:48 +0800
+	2012-09-24 20:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -188,7 +188,7 @@ ufopen(const char* filename, const char* mode) ynothrow
 {
 	yconstraint(filename),
 	yconstraint(mode);
-	yconstraint(*mode != '\0');
+	yconstraint(*mode != char());
 
 #if YCL_DS
 	return std::fopen(filename, mode);
@@ -209,7 +209,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 {
 	yconstraint(filename),
 	yconstraint(mode);
-	yconstraint(*mode != '\0');
+	yconstraint(*mode != char());
 
 #if YCL_DS
 	try
@@ -367,7 +367,7 @@ mkdirs(const_path_t cpath) ynothrow
 	for(char* slash(path); (slash = strchr(slash, YCL_PATH_DELIMITER));
 		++slash)
 	{
-		*slash = '\0';
+		*slash = char();
 		::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO);
 		*slash = '/';
 	}

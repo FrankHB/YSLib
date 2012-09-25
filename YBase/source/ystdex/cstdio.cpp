@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief YCLib C++ 标准库扩展。
-\version r181
+\version r182
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2012-09-19 12:19 +0800
+	2012-09-24 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ openmode_conv(const char* str) ynothrow
 		default:
 			goto invalid;
 		}
-		if(str[1] != '\0')
+		if(str[1] != char())
 		{
 			auto l(strlen(str));
 

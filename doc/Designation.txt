@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6746
+\version r6748
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-19 00:20 +0800
+	2012-09-24 21:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1344,7 +1344,8 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 适应于具体平台的应用程序实例抽象。
 包含默认消息循环等。
 
-@5.2.4.3 初始化逻辑 Initialization
+@5.2.4.3 初始化 Initialization ：
+参见 [Documentation::YSLib @@3] 。
 
 @5.2.5 NPL 库：
 实现基于 S 表达式的名称协议语言，当前仅用于配置设置。

@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2074
+\version r2076
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2012-09-22 09:18 +0800
+	2012-09-24 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -434,8 +434,8 @@ try	: Application(),
 	{
 		const auto& node(FetchGlobalInstance().Root["YFramework"]);
 
-		InitializeSystemFontCache(AccessChild<string>(node, "font_file"),
-			AccessChild<string>(node, "font_dir"));
+		InitializeSystemFontCache(AccessChild<string>(node, "FontFile"),
+			AccessChild<string>(node, "FontDirectory"));
 	}
 	//初始化系统设备。
 #if YCL_DS

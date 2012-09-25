@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r994
+\version r1006
 \author FrankHB<frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2012-09-19 18:53 +0800
+	2012-09-25 08:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,18 +59,6 @@ public:
 	inline
 	ValueNode(_tString&& str, _tParams&&... args)
 		: name(yforward(str)), value(yforward(args)...)
-	{}
-	/*!
-	\brief 构造：使用字符串引用、值类型对象引用和节点容器指针。
-	\since build 340
-	*/
-	template<typename _tString, typename _tValue, typename = typename
-		std::enable_if<std::is_constructible<string, _tString&&>::value
-		&& !std::is_constructible<unique_ptr<Container>, _tValue&&>::value,
-		int>::type>
-	inline
-	ValueNode(_tString&& str, _tValue&& val)
-		: name(yforward(str)), value(yforward(val))
 	{}
 	/*!
 	\brief 构造：使用输入迭代器对。

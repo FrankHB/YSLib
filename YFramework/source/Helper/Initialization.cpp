@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1551
+\version r1611
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-09-23 12:52 +0800
+	2012-09-25 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,39 +54,38 @@ platform::MappedFile* p_mapped;
 
 #if YCL_DS
 #	define ROOTW
-#	define DEF_DIRECTORY ROOTW "/Data/"
+#	define DATA_DIRECTORY ROOTW "/Data/"
 	//const char* DEF_FONT_NAME = ROOTW "方正姚体";
 	//const_path_t DEF_FONT_PATH = ROOTW "/Font/FZYTK.TTF";
 #	define DEF_FONT_PATH ROOTW "/Font/FZYTK.TTF"
 #	define DEF_FONT_DIRECTORY ROOTW "/Font/"
 #else
 #	define ROOTW "H:\\NDS\\EFSRoot"
-#	define DEF_DIRECTORY ROOTW "\\Data\\"
+#	define DATA_DIRECTORY ROOTW "\\Data\\"
 	//const char* DEF_FONT_NAME = "方正姚体";
 	//const_path_t DEF_FONT_PATH = ROOTW "\\Font\\FZYTK.TTF";
 #	define DEF_FONT_PATH ROOTW "\\Font\\FZYTK.TTF"
 #	define DEF_FONT_DIRECTORY ROOTW "\\Font\\"
 #endif
-#define CONF_PATH "config.txt"
+#define CONF_PATH "yconf.txt"
 
 //! \since build 342
 //@{
 ValueNode
 ReadConfigFile(TextFile& tf)
 {
-	string def_dir, font_file, font_dir;
-
 	if(YB_LIKELY(tf))
 	{
 		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
 			throw LoggedEvent("Wrong encoding of configuration file.");
 
-		tf >> def_dir >> font_file >> font_dir;
+		NPL::Configuration conf;
+
+		tf >> conf;
+		if(conf.GetNodeRRef().GetSize() != 0)
+			return conf.GetNodeRRef();
 	}
-	else
-		throw LoggedEvent("Configuration file loading failed.");
-	return PackNodes("YFramework", MakeNode("def_dir", def_dir),
-		MakeNode("font_file", font_file), MakeNode("font_dir", font_dir));
+	throw LoggedEvent("Configuration file loading failed.");
 }
 
 ValueNode
@@ -95,12 +94,11 @@ CheckConfig()
 	if(!ufexists(CONF_PATH))
 	{
 		std::printf("Creating configuration file '%s'...\n", CONF_PATH);
-
-		TextFile tf(CONF_PATH, std::ios_base::out | std::ios_base::trunc);
-
-		if(tf)
-			tf << DEF_DIRECTORY << '\n'
-				<< DEF_FONT_PATH << '\n' << DEF_FONT_DIRECTORY << '\n';
+		if(TextFile tf{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
+			tf << NPL::Configuration(PackNodes("YFramework", ValueNode(
+				"DataDirectory", string(DATA_DIRECTORY)), ValueNode("FontFile",
+				string(DEF_FONT_PATH)),
+				ValueNode("FontDirectory", string(DEF_FONT_DIRECTORY))));
 		else
 			throw LoggedEvent("Cannot create file.");
 	}
@@ -108,36 +106,34 @@ CheckConfig()
 	TextFile tf(CONF_PATH);
 
 	std::printf("Found configuration file '%s'.\n", CONF_PATH);
-	if(!tf)
-		throw LoggedEvent("Cannot open file.");
 	return ReadConfigFile(tf);
 }
 
 void
 LoadComponents(const ValueNode& node)
 {
-	const auto& def_dir(AccessChild<string>(node, "def_dir"));
-	const auto& font_path(AccessChild<string>(node, "font_file"));
-	const auto& font_dir(AccessChild<string>(node, "font_dir"));
+	const auto& data_dir(AccessChild<string>(node, "DataDirectory"));
+	const auto& font_path(AccessChild<string>(node, "FontFile"));
+	const auto& font_dir(AccessChild<string>(node, "FontDirectory"));
 
-	if(!def_dir.empty() && !font_path.empty() && !font_dir.empty())
+	if(!data_dir.empty() && !font_path.empty() && !font_dir.empty())
 		std::printf("Loaded default directory:\n%s\n"
 			"Loaded default font path:\n%s\n"
 			"Loaded default font directory:\n%s\n",
-			def_dir.c_str(), font_path.c_str(), font_dir.c_str());
+			data_dir.c_str(), font_path.c_str(), font_dir.c_str());
 	else
 		throw LoggedEvent("Empty path loaded.");
 #if !CHRLIB_NODYNAMIC_MAPPING
 	puts("Load character mapping file...");
-	p_mapped = new MappedFile(def_dir + "cp113.bin");
+	p_mapped = new MappedFile(data_dir + "cp113.bin");
 	if(p_mapped->GetSize() != 0)
 		CHRLib::cp113 = p_mapped->GetPtr();
 	else
 		throw LoggedEvent("CHRMapEx loading fail.");
 	puts("CHRMapEx loaded successfully.");
 #endif
-	std::printf("Trying entering directory %s ...\n", def_dir.c_str());
-	if(!udirexists(def_dir))
+	std::printf("Trying entering directory %s ...\n", data_dir.c_str());
+	if(!udirexists(data_dir))
 		throw LoggedEvent("Invalid default data directory found.");
 	if(!(ufexists(font_path) || udirexists(font_dir)))
 		throw LoggedEvent("Invalid default font file path found.");

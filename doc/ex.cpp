@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4488 *build 342 rev *
+\version r4489 *build 343 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-23 13:26 +0800
+	2012-09-25 09:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -386,132 +386,82 @@ $using:
 
 
 $DONE:
-r1-r8:
-/= test 0 @ platform MinGW32;
-
-r9:
-/ @ \cl bad_any_cast @ \h Any $=
+r1:
+/ @ \impl \u Initialization $=
 (
-	+ private \m const char* (from_name, to_name);
-	+ public \ctor bad_any_cast(), bad_any_cast(const type_info&, const type_info&),
-	+ public \mf (from, to)
-);
-/ \impl @ \op>> @ \impl \u Configuration;
+	/ \mac \def CONF_PATH "config.txt" -> CONF_PATH "yconf.txt",
+	/ \mac DEF_DIRECTORY => DATA_DIRECTORY,
+	/ @ \un \ns $=
+	(
+		+ \f ValueNode MakeFontConfig(const string&, const string&,
+			const string&);
+		/ \impl @ \f ReadConfigFile
+	),
+	/ \tr \impl @ \f LoadConfig
+),
+/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
 /= test 1 @ platform MinGW32;
 
-r10:
-/ \impl @ \ft any_cast#3 @ \h Any,
-/ \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
-/= test 2 @ platform MinGW32;
+r2-r6:
+/= 5 test 2 @ platform MinGW32;
 
-r11:
-/ \simp \impl @ \f WriteNodeC @ \un \ns @ \impl \u Configuration;
+r7:
++ \f string Deliteralize(const string&) @ \u Lexical,
+/ \a "'\0'" @ \impl \u (Lexical, FileSystem, YCommon, NativeAPI, CStandardIO)
+	-> "char()",
+/ "'\0'" @ \impl \u DSReader -> "ucs4_t()";
 /= test 3 @ platform MinGW32;
 
-r12:
-/ @ \u Initialization $=
-(
-	/ @ \un \ns @ \impl \u $=
-	(
-		/ void ReadConfig() -> ValueNode ReadConfigFile(TextFile&),
-		/ \f unique_ptr<NPL::ConfigurationFile> ConfirmConfig()
-			-> \f ValueNode CheckConfig(),
-	),
-	/ \f unique_ptr<NPL::ConfigurationFile> CheckInstall()
-		-> ValueNode LoadConfig()
-),
-/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
+r8:
+/ \impl @ \f ((WriteNodeC @ \un \ns), TransformConfiguration)
+	@ \impl \u Configuration;
 /= test 4 @ platform MinGW32;
 
-r13:
-/ @ \impl \u Initialization $=
-(
-	/ \f void InitializeComponents() -> void LoadComponents(const ValueNode&),
-	/ \tr \impl @ \f LoadConfig
-);
-/= test 5 @ platform MinGW32;
+r9-r10:
+/ \impl @ \f (ReadConfigFile, CheckConfig) @ \un \ns @ \impl \u Initialization,
+/= 2 test 5 @ platform MinGW32;
 
-r14:
-/ @ \impl \u Initialization $=
+r11-r12:
+/ @ \un \ns @ \impl \u Initialization $=
 (
-	/ \impl @ \f InitializeSystemFontCache,
-	/ \impl @ \f ReadConfigFile @ \un \ns;
-	- \o (string def_dir, font_path, font_dir) @ \un ns
+	/ \simp \impl @ \f CheckConfig,
+	/ \mg \f MakeFontConfig -> \f CheckConfig
 ),
-/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
-/= test 6 @ platform MinGW32;
+/= 2 test 6 @ platform MinGW32;
 
-r15:
-/ @ \cl DSApplication @ \u DSMain $=
-(
-	- \m unique_ptr<NPL::ConfigurationFile> pMainConfigFile,
-	- \mf GetMainConfigFile,
-	/ \tr \impl @ \ctor
-);
-- \cl ConfigurationFile @ \u Configuration;
+r13:
+- \f \ctor \i ValueNode(_tString&&, _tValue&&) @ \h ValueNode,
+* \impl @ \f CheckConfig @ \un \ns @ \impl \u Initialization $since r14,
+* missing \ret \val @ \f Deliteralize @ \impl \u Lexical $since r7;
 /= test 7 @ platform MinGW32;
 
+r14:
+/= test 8 @ platform DS;
+
+r15:
+/= test 9 @ platform MinGW32 ^ \conf release;
+
 r16:
-/ \f void InitializeSystemFontCache() ynothrow @ \u Initialization
-	-> \f void InitializeSystemFontCache(const string&, const string&) ynothrow,
-/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
-/= test 8 @ platform MinGW32;
-
-r17:
-+ \cl FatalError @ \u YException;
-/ @ \u Initialization $=
-(
-	/ \f printFailInfo @ \un \ns @ \impl \u
-		-> \f HandleFatalError @ \ns YSLib,
-	/ \f void InitializeEnviornment() ynothrow -> void InitializeEnviornment(),
-	/ \f void InitializeSystemFontCache(const string&, const string&) ynothrow
-		-> void InitializeSystemFontCache(const string&, const string&),
-	/ \f ValueNode LoadConfig() ynothrow -> ValueNode LoadConfig()
-);
-/= test 9 @ platform MinGW32;
-
-r18:
-/ \impl @ \f (LoadComponents, InitializeSystemFontCache, InitializeEnviornment)
-	@ \impl \u Initialization;
-/= test 10 @ platform MinGW32;
-
-r19:
-/= test 11 @ platform MinGW32 ^ \conf release;
-
-r20:
-/= test 12 @ platform DS;
-
-r21:
-* \impl @ \f CheckConfig @ \un \ns @ \impl \u Initialization $since r12;
-/= test 13 @ platform MinGW32;
-
-r22:
-/= test 14 @ platform MinGW32 ^ \conf release;
-
-r23:
-/= test 15 @ platform DS;
-
-r24:
-/= test 16 @ platform DS ^ \conf release;
+/= test 10 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-23 +0800:
--19.1d;
-// Mercurial rev1-rev214: r9214;
+2012-09-25 +0800:
+-19.4d;
+// Mercurial rev1-rev215: r9230;
 
 / ...
 
 
 $NEXT_TODO:
-b343-b348:
+b344-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager,
-	+ configuration (serialization, unserialization)
+	+ configuration (serialization, unserialization) for text reader
 );
 
 
@@ -968,6 +918,35 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			/ %'Initialization' $=
+			(
+				// See %YSLib.txt for details.
+				/ "configuration loading" ^ "NPL" ~ "naive raw strings",
+				/ "configuration path",
+				/ $dev $lib "macro names for default configuration"
+			),
+			/ DLD "implementation" @ "constructor" @ "class %DSApplication to \
+				adapt to the new configuration convention" @ %'DSMain'
+		),
+		/ %'NPL' $=
+		(
+			+ "function %Deliteralize" @ %'Lexical',
+			/ "canceled escaping names and made the escaped non-name tokens as \
+				string literal" @ %'Configuration'
+		)
+		- "redundant constructor template" @ "class %ValueNode"
+			@ %'YFramework'.'YSLib'.'Core'
+	),
+	/ "referencing of deterministic null character" ^ ("char()", "ucs4_t()")
+		~ "'\0'"
+),
+
+b342
 (
 	/ %'YBase'.'YStandardEx'.'Any' $=
 	(
