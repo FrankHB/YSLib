@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r551
+\version r565
 \author FrankHB<frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2012-09-24 21:04 +0800
+	2012-09-30 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(NPL)
 ValueNode
 TransformConfiguration(const ValueNode& node)
 {
-	const auto s(node.GetSize());
+	auto s(node.GetSize());
 
 	if(s == 0)
 		return ValueNode("",
@@ -46,15 +46,26 @@ TransformConfiguration(const ValueNode& node)
 	if(s == 1)
 		return TransformConfiguration(*i);
 
-	const auto& new_name(Access<string>(*i++));
+	const auto& new_name([&]{
+		try
+		{
+			const auto& str(Access<string>(*i));
+		
+			yunseq(++i, --s);
+			return str;
+		}
+		catch(ystdex::bad_any_cast&)
+		{}
+		return string();
+	}());
 
-	if(s == 2)
+	if(s == 1)
 	{
-		const auto& n(TransformConfiguration(*i));
+		auto&& n(TransformConfiguration(*i));
 
 		if(n.GetName().empty())
 			return ValueNode(new_name, n.GetValueRRef());
-		return ValueNode(new_name, n);
+		return ValueNode(new_name, ValueNode::Container{std::move(n)});
 	}
 
 	auto p_node_cont(make_unique<ValueNode::Container>());

@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1432
+\version r1434
 \author FrankHB<frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2012-09-04 11:03 +0800
+	2012-09-26 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,11 +81,11 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 
 			if(res == e || *res != ")")
 				throw LoggedEvent("Redundant '(' found.", 0x20);
-			node.Add(std::move(nd));
+			node += std::move(nd);
 			b = ++res;
 		}
 		else
-			node.Add(ValueNode(to_string(node.GetSize()), *b++));
+			node += ValueNode(to_string(node.GetSize()), *b++);
 	return b;
 }
 

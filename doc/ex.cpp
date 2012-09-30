@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4489 *build 343 rev *
+\version r4490 *build 344 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-25 09:37 +0800
+	2012-09-30 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -387,76 +387,113 @@ $using:
 
 $DONE:
 r1:
-/ @ \impl \u Initialization $=
+/ @ \impl \u ReaderSetting $=
 (
-	/ \mac \def CONF_PATH "config.txt" -> CONF_PATH "yconf.txt",
-	/ \mac DEF_DIRECTORY => DATA_DIRECTORY,
-	/ @ \un \ns $=
-	(
-		+ \f ValueNode MakeFontConfig(const string&, const string&,
-			const string&);
-		/ \impl @ \f ReadConfigFile
-	),
-	/ \tr \impl @ \f LoadConfig
-),
-/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
+	/ \impl @ \ft \spec FetchSetting<Color> @ \un \ns,
+	/ \impl @ \mf ReaderSetting::\op=,
+	/ \impl @ \ctor ReaderSetting#2
+);
 /= test 1 @ platform MinGW32;
 
-r2-r6:
-/= 5 test 2 @ platform MinGW32;
+r2:
+/ @ \u Initialization $=
+(	
+	/ \inc \h @ \impl \u >> \h;
+	/ \f ReadConfigFile @ \un \ns @ \impl \u -> \f ReadConfiguration
+		@ \ns YSLib,
+	/ \tr \impl @ \f CheckConfig
+);
+/= test 2 @ platform MinGW32;
 
-r7:
-+ \f string Deliteralize(const string&) @ \u Lexical,
-/ \a "'\0'" @ \impl \u (Lexical, FileSystem, YCommon, NativeAPI, CStandardIO)
-	-> "char()",
-/ "'\0'" @ \impl \u DSReader -> "ucs4_t()";
+r3:
++ \f ReaderSetting LoadGlobalReaderSetting() @ \u ReaderSetting,
+/ \a use of \mf Add -> use of \mf \op+= @ \f Reduce @ \impl \u SContext;
 /= test 3 @ platform MinGW32;
 
-r8:
-/ \impl @ \f ((WriteNodeC @ \un \ns), TransformConfiguration)
-	@ \impl \u Configuration;
+r4:
+/ \f ReaderSetting LoadGlobalReaderSetting() @ \u ReaderSetting -> \smf
+	ReaderSetting LoadGlobalReaderSetting() @ \cl ShlReader @ \u ShlReader;
 /= test 4 @ platform MinGW32;
 
-r9-r10:
-/ \impl @ \f (ReadConfigFile, CheckConfig) @ \un \ns @ \impl \u Initialization,
-/= 2 test 5 @ platform MinGW32;
-
-r11-r12:
-/ @ \un \ns @ \impl \u Initialization $=
+r5:
+/ @ \cl ShlReader @ \u ShlReader $=
 (
-	/ \simp \impl @ \f CheckConfig,
-	/ \mg \f MakeFontConfig -> \f CheckConfig
-),
-/= 2 test 6 @ platform MinGW32;
+	/ \mf LoadGlobalReaderSetting => LoadGlobalConfiguration,
+	+ \smf void SaveGlobalConfiguration(const ReaderSetting&)
+);
+/= test 5 @ platform MinGW32;
 
-r13:
-- \f \ctor \i ValueNode(_tString&&, _tValue&&) @ \h ValueNode,
-* \impl @ \f CheckConfig @ \un \ns @ \impl \u Initialization $since r14,
-* missing \ret \val @ \f Deliteralize @ \impl \u Lexical $since r7;
+r6:
+/ \impl @ (\ctor, \dtor) @ \cl ShlTextReader @ \u ShlReader;
+/= test 6 @ platform MinGW32;
+
+r7:
+/ @ \u Initialization $=
+(
+	/ \f LoadConfig => InitializeInstalled;
+	/ \f CheckConfig => LoadConfiguration
+),
+/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
 /= test 7 @ platform MinGW32;
 
-r14:
-/= test 8 @ platform DS;
+r8:
++ \mf DefGetter(const ynothrow, const ValueNode&, Node, root)
+	@ \cl Configuration @ \h Configuration,
+/ @ \u DSMain $=
+(
+	/ \f LoadConfiguration,
+	/ \tr \impl @ \f InitializeInstalled,
+	(
+		+ \f void WriteConfiguration(TextFile&, const ValueNode&
+			= FetchGlobalInstance().Root);
+		+ \f bool SaveConfiguration(const ValueNode&
+			= FecthGlobalInstance().Root)
+	)
+);
+/= test 8 @ platform MinGW32;
 
-r15:
-/= test 9 @ platform MinGW32 ^ \conf release;
+r9-r10:
+* \impl @ \f TransformConfiguration @ \impl \u Configuration $since b341,
+/= 2 test 9 @ platform MinGW32;
 
-r16:
-/= test 10 @ platform DS ^ \conf release;
+r11-r13:
+/ \impl @ \f TransformConfiguration @ \impl \u Configuration,
+/= 3 test 10 @ platform MinGW32;
+
+r14-r16:
+/ \impl @ \f InitializeInstalled @ \impl \u Initialization;
+/= 3 test 11 @ platform MinGW32;
+
+r17:
+/ \impl @ \ctor DSApplication @ \impl \u DSMain;
+/= test 12 @ platform MinGW32;
+
+r18:
+* \impl @ \f InitializeInstalled() @ \impl \u Initialization $since r16;
+/= test 13 @ platform MinGW32;
+
+r19:
+/= test 14 @ platform MinGW32 ^ \conf release;
+
+r20:
+/= test 15 @ platform DS;
+
+r21:
+/= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-25 +0800:
--19.4d;
-// Mercurial rev1-rev215: r9230;
+2012-09-30 +0800:
+-22.3d;
+// Mercurial rev1-rev216: r9251;
 
 / ...
 
 
 $NEXT_TODO:
-b344-b348:
+b345-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -921,11 +958,36 @@ $now
 (
 	/ %'YFramework' $=
 	(
+		/ "function %TransformConfiguration" %'NPL'.'Configuration' $=
+		(
+			(
+				+ "support for unnamed node";
+				$dep_to "unnamed configuration node support"
+			),
+			* "wrong behavior for non-leaf list whose size equals to 2"
+				$since b341
+		)
+		/ %'Helper'.'Initialization' $=
+		(
+			+ "interface for saving and loading configuration items",
+				// Not fully implemented yet.
+			(
+				$dep_from "unnamed configuration node support";
+				/ "accept multiple configuration items"
+			)
+		)
+	)
+),
+
+b343
+(
+	/ %'YFramework' $=
+	(
 		/ %'Helper' $=
 		(
 			/ %'Initialization' $=
 			(
-				// See %YSLib.txt for details.
+				// Fully implemented b341 interface. See %YSLib.txt for details.
 				/ "configuration loading" ^ "NPL" ~ "naive raw strings",
 				/ "configuration path",
 				/ $dev $lib "macro names for default configuration"

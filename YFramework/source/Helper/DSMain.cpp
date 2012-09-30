@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2076
+\version r2077
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2012-09-24 11:41 +0800
+	2012-09-30 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -419,9 +419,8 @@ try	: Application(),
 	thread = std::thread(HostThreadFunc);
 #endif
 
-
-	//检查程序是否被正确安装并读取配置。
-	Root.Add(LoadConfig());
+	//初始化：检查程序是否被正确安装并读取配置。
+	Root = InitializeInstalled();
 	//初始化系统字体资源。
 	try
 	{

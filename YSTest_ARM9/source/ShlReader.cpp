@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3854
+\version r3888
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-09-07 11:11 +0800
+	2012-09-27 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,6 +184,18 @@ ShlReader::Exit()
 	SetShellTo(ystdex::make_shared<ShlExplorer>(CurrentPath / u".."));
 }
 
+ReaderSetting
+ShlReader::LoadGlobalConfiguration()
+{
+	try
+	{
+		return ReaderSetting(FetchGlobalInstance().Root.GetNode("YReader"));
+	}
+	catch(std::exception& e) // TODO: Logging.
+	{}
+	return ReaderSetting();
+}
+
 void
 ShlReader::OnInput()
 {
@@ -192,12 +204,24 @@ ShlReader::OnInput()
 		PostMessage<SM_TASK>(0x20, fBackgroundTask);
 }
 
+void
+ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
+{
+	try
+	{
+		FetchGlobalInstance().Root["YReader"] += rs.operator ValueNode();
+	}
+	catch(std::exception& e) // TODO: Logging.
+	{}
+}
+
 
 ShlTextReader::ShlTextReader(const IO::Path& pth)
 	: ShlReader(pth),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
-	CurrentSetting(), tmrScroll(CurrentSetting.GetTimerSetting()), tmrInput(),
-	reader(), boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
+	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
+	CurrentSetting.GetTimerSetting()), tmrInput(), reader(),
+	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
 	pTextFile(), mhMain(GetDesktopDown())
 {
 	using ystdex::get_key;
@@ -331,6 +355,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 
 ShlTextReader::~ShlTextReader()
 {
+	SaveGlobalConfiguration(CurrentSetting);
 	LastRead.Insert(CurrentPath, reader.GetTopPosition());
 }
 

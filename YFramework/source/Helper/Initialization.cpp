@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1611
+\version r1711
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-09-25 08:41 +0800
+	2012-09-30 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 #include "YSLib/Core/yapp.h"
 #include "Helper/DSMain.h"
 #include "YCLib/Debug.h"
-#include "YSLib/Service/yftext.h" // for BOM_UTF_8;
 #include "CHRLib/MapEx.h"
 #include "YCLib/MemoryMapping.h"
 //#include <clocale>
@@ -69,46 +68,6 @@ platform::MappedFile* p_mapped;
 #endif
 #define CONF_PATH "yconf.txt"
 
-//! \since build 342
-//@{
-ValueNode
-ReadConfigFile(TextFile& tf)
-{
-	if(YB_LIKELY(tf))
-	{
-		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
-			throw LoggedEvent("Wrong encoding of configuration file.");
-
-		NPL::Configuration conf;
-
-		tf >> conf;
-		if(conf.GetNodeRRef().GetSize() != 0)
-			return conf.GetNodeRRef();
-	}
-	throw LoggedEvent("Configuration file loading failed.");
-}
-
-ValueNode
-CheckConfig()
-{
-	if(!ufexists(CONF_PATH))
-	{
-		std::printf("Creating configuration file '%s'...\n", CONF_PATH);
-		if(TextFile tf{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
-			tf << NPL::Configuration(PackNodes("YFramework", ValueNode(
-				"DataDirectory", string(DATA_DIRECTORY)), ValueNode("FontFile",
-				string(DEF_FONT_PATH)),
-				ValueNode("FontDirectory", string(DEF_FONT_DIRECTORY))));
-		else
-			throw LoggedEvent("Cannot create file.");
-	}
-
-	TextFile tf(CONF_PATH);
-
-	std::printf("Found configuration file '%s'.\n", CONF_PATH);
-	return ReadConfigFile(tf);
-}
-
 void
 LoadComponents(const ValueNode& node)
 {
@@ -138,7 +97,6 @@ LoadComponents(const ValueNode& node)
 	if(!(ufexists(font_path) || udirexists(font_dir)))
 		throw LoggedEvent("Invalid default font file path found.");
 }
-//@}
 
 } // unnamed namespace;
 
@@ -153,6 +111,63 @@ HandleFatalError(const FatalError& e) ynothrow
 	std::printf("%s%s%s\n%s\n%s",
 		line, e.GetTitle(), line, e.GetContent(), line);
 	terminate();
+}
+
+
+ValueNode
+ReadConfiguration(TextFile& tf)
+{
+	if(YB_LIKELY(tf))
+	{
+		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
+			throw LoggedEvent("Wrong encoding of configuration file.");
+
+		NPL::Configuration conf;
+
+		tf >> conf;
+		if(conf.GetNodeRRef().GetSize() != 0)
+			return conf.GetNodeRRef();
+	}
+	throw LoggedEvent("Invalid file found when reading configuration.");
+}
+
+void
+WriteConfiguration(TextFile& tf, const ValueNode& node)
+{
+	if(YB_LIKELY(tf))
+		tf << NPL::Configuration("$Root", node.GetValue());
+	throw LoggedEvent("Invalid file found when writing configuration.");
+}
+
+ValueNode
+LoadConfiguration(bool bInfo)
+{
+	if(!ufexists(CONF_PATH))
+	{
+		if(bInfo)
+			std::printf("Creating configuration file '%s'...\n", CONF_PATH);
+		if(TextFile tf{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
+			tf << NPL::Configuration(PackNodes("YFramework", ValueNode(
+				"DataDirectory", string(DATA_DIRECTORY)), ValueNode("FontFile",
+				string(DEF_FONT_PATH)),
+				ValueNode("FontDirectory", string(DEF_FONT_DIRECTORY))));
+		else
+			throw LoggedEvent("Cannot create file.");
+	}
+
+	TextFile tf(CONF_PATH);
+
+	if(bInfo)
+		std::printf("Found configuration file '%s'.\n", CONF_PATH);
+	return ReadConfiguration(tf);
+}
+
+void
+SaveConfiguration(const ValueNode& node)
+{
+	TextFile tf(CONF_PATH, std::ios_base::out | std::ios_base::trunc);
+
+	WriteConfiguration(tf, node);
 }
 
 
@@ -213,6 +228,29 @@ InitializeEnviornment()
 #endif
 }
 
+ValueNode
+InitializeInstalled()
+{
+	puts("Checking installation...");
+	try
+	{
+		auto node(LoadConfiguration(true));
+
+		if(node.GetName() == "YFramework")
+			node = PackNodes("", std::move(node));
+		LoadComponents(node.GetNode("YFramework"));
+		puts("OK!");
+		return std::move(node);
+	}
+	catch(std::exception& e)
+	{
+		std::printf("Error occurred: %s\n", e.what());
+	}
+	throw FatalError("      Invalid Installation      ",
+		" Please make sure the data is\n"
+		" stored in correct directory.\n");
+}
+
 void
 InitializeSystemFontCache(const string& fong_file, const string& font_dir)
 {
@@ -257,27 +295,6 @@ InitializeSystemFontCache(const string& fong_file, const string& font_dir)
 	throw FatalError("      Font Caching Failure      ",
 		" Please make sure the fonts are\n"
 		" stored in correct path.\n");
-}
-
-ValueNode
-LoadConfig()
-{
-	puts("Checking installation...");
-	try
-	{
-		auto node(CheckConfig());
-
-		LoadComponents(node);
-		puts("OK!");
-		return node;
-	}
-	catch(std::exception& e)
-	{
-		std::printf("Error occurred: %s\n", e.what());
-	}
-	throw FatalError("      Invalid Installation      ",
-		" Please make sure the data is\n"
-		" stored in correct directory.\n");
 }
 
 void

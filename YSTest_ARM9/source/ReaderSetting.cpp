@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r325
+\version r342
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2012-09-17 00:28 +0800
+	2012-09-26 17:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,9 +79,13 @@ FetchSetting<Color>(const ValueNode& node, const string& name)
 
 	if(std::sscanf(s, "%u%u%u", &r, &g, &b) != 3)
 		throw std::invalid_argument("Color components are not enough.");
+#if 0
 	if(r < 0x100 && g < 0x100 && b < 0x100)
 		return Color(r, g, b);
 	throw std::invalid_argument("Invalid color components found.");
+#endif
+	return Color(min<Color::MonoType>(r, 0xFF), min<Color::MonoType>(g, 0xFF),
+		min<Color::MonoType>(b, 0xFF));
 }
 //@}
 
@@ -107,23 +111,23 @@ ReaderSetting::ReaderSetting()
 	ScrollDuration(1000), SmoothScrollDuration(80)
 {}
 ReaderSetting::ReaderSetting(const ValueNode& node)
-	: UpColor(FetchSetting<Color>(node, "color_up")), DownColor(
-	FetchSetting<Color>(node, "color_dn")), FontColor(FetchSetting<Color>(node,
-	"font_color")), Font(FontFamily(FetchDefaultFontCache(),
-	FetchSetting<string>(node, "font_family")), FetchSetting<int>(node,
-	"font_size")), SmoothScroll(FetchSetting<int>(node, "smooth_scroll") != 0),
-	ScrollDuration(FetchSetting<int>(node, "scroll_duration")),
-	SmoothScrollDuration(FetchSetting<int>(node, "smooth_scroll_duration"))
+	: UpColor(FetchSetting<Color>(node, "UpColor")), DownColor(
+	FetchSetting<Color>(node, "DownColor")), FontColor(FetchSetting<Color>(node,
+	"FontColor")), Font(FontFamily(FetchDefaultFontCache(),
+	FetchSetting<string>(node, "FontFamily")), FetchSetting<int>(node,
+	"FontSize")), SmoothScroll(FetchSetting<int>(node, "SmoothScroll") != 0),
+	ScrollDuration(FetchSetting<int>(node, "ScrollDuration")),
+	SmoothScrollDuration(FetchSetting<int>(node, "SmoothScrollDuration"))
 {}
 
 ReaderSetting::operator ValueNode() const
 {
-	return PackNodes("", MakeNode("color_up", UpColor),
-		MakeNode("color_dn", DownColor), MakeNode("font_color", FontColor),
-		MakeNode("font_family", Font.GetFontFamily().GetFamilyName()),
-		MakeNode("font_size", Font.GetSize()), MakeNode("SmoothScroll",
-		int(SmoothScroll)), MakeNode("scroll_duration", ScrollDuration.count()),
-		MakeNode("smooth_scroll_duration", SmoothScrollDuration.count()));
+	return PackNodes("ReaderSetting", MakeNode("UpColor", UpColor),
+		MakeNode("DownColor", DownColor), MakeNode("FontColor", FontColor),
+		MakeNode("FontFamily", Font.GetFontFamily().GetFamilyName()),
+		MakeNode("FontSize", Font.GetSize()), MakeNode("SmoothScroll",
+		int(SmoothScroll)), MakeNode("ScrollDuration", ScrollDuration.count()),
+		MakeNode("SmoothScrollDuration", SmoothScrollDuration.count()));
 }
 
 

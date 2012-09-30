@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r214
+\version r216
 \author FrankHB<frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2012-09-21 18:41 +0800
+	2012-09-27 14:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,6 +81,8 @@ public:
 	friend TextFile&
 	operator>>(TextFile&, Configuration&);
 
+	//! \since build 344
+	DefGetter(const ynothrow, const ValueNode&, Node, root)
 	/*!
 	\brief 取设置节点的右值引用。
 	\since build 341

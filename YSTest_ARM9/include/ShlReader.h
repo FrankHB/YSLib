@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1628
+\version r1647
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2012-09-04 12:57 +0800
+	2012-09-26 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,6 +162,21 @@ public:
 	ShlReader(const IO::Path&);
 
 	/*!
+	\brief 退出阅读器：停止后台任务并发送消息准备切换至 ShlExplorer 。
+	\since build 295
+	*/
+	void
+	Exit();
+
+	/*!
+	\brief 载入阅读器配置。
+	\note 若失败则使用默认初始化。
+	\since build 344
+	*/
+	static ReaderSetting
+	LoadGlobalConfiguration();
+
+	/*!
 	\brief 处理输入消息：发送绘制消息，当处于滚屏状态时自动执行滚屏。
 	\since build 289
 	*/
@@ -169,11 +184,11 @@ public:
 	OnInput() override;
 
 	/*!
-	\brief 退出阅读器：停止后台任务并发送消息准备切换至 ShlExplorer 。
-	\since build 295
+	\brief 保存阅读器配置。
+	\since build 344
 	*/
-	void
-	Exit();
+	static void
+	SaveGlobalConfiguration(const ReaderSetting&);
 };
 
 
