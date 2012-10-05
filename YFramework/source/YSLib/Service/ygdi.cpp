@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2596
+\version r2598
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-09-04 13:02 +0800
+	2012-10-04 04:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,7 +104,7 @@ BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
 	: Graphics()
 {
 	SetSize(buf.GetWidth(), buf.GetHeight());
-	if(auto p = buf.GetBufferPtr())
+	if(const auto p = buf.GetBufferPtr())
 		std::copy_n(p, GetAreaOf(GetSize()), pBuffer);
 }
 BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
@@ -175,7 +175,7 @@ BitmapBufferEx::BitmapBufferEx(const BitmapBufferEx& buf)
 	: BitmapBuffer(), pBufferAlpha()
 {
 	SetSize(buf.GetWidth(), buf.GetHeight());
-	if(auto p = buf.GetBufferPtr())
+	if(const auto p = buf.GetBufferPtr())
 	{
 		std::copy_n(p, GetAreaOf(GetSize()), pBuffer),
 		std::copy_n(buf.GetBufferAlphaPtr(), GetAreaOf(GetSize()),

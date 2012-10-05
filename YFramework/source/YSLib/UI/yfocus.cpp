@@ -11,13 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r548
+\version r550
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2012-09-04 12:46 +0800
+	2012-10-04 04:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ IsFocused(const IWidget& wgt)
 bool
 DoRequestFocus(IWidget& wgt, bool release_event)
 {
-	if(auto p = FetchContainerPtr(wgt))
+	if(const auto p = FetchContainerPtr(wgt))
 	{
 		auto& pFocusing(p->GetView().pFocusing);
 
@@ -65,7 +65,7 @@ DoRequestFocus(IWidget& wgt, bool release_event)
 bool
 DoReleaseFocus(IWidget& wgt)
 {
-	if(auto p = FetchContainerPtr(wgt))
+	if(const auto p = FetchContainerPtr(wgt))
 	{
 		auto& pFocusing(p->GetView().pFocusing);
 

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4490 *build 344 rev *
+\version r4490 *build 345 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-30 13:54 +0800
+	2012-10-06 00:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -387,113 +387,103 @@ $using:
 
 $DONE:
 r1:
-/ @ \impl \u ReaderSetting $=
-(
-	/ \impl @ \ft \spec FetchSetting<Color> @ \un \ns,
-	/ \impl @ \mf ReaderSetting::\op=,
-	/ \impl @ \ctor ReaderSetting#2
-);
+/ \impl @ \f WriteConfiguration @ \impl \u Initialization,
+/ \impl @ \smf SaveGlobalConfiguration @ \cl ShlReader @ \impl \u ShlReader;
 /= test 1 @ platform MinGW32;
 
-r2:
-/ @ \u Initialization $=
-(	
-	/ \inc \h @ \impl \u >> \h;
-	/ \f ReadConfigFile @ \un \ns @ \impl \u -> \f ReadConfiguration
-		@ \ns YSLib,
-	/ \tr \impl @ \f CheckConfig
-);
+r2-r5:
 /= test 2 @ platform MinGW32;
 
-r3:
-+ \f ReaderSetting LoadGlobalReaderSetting() @ \u ReaderSetting,
-/ \a use of \mf Add -> use of \mf \op+= @ \f Reduce @ \impl \u SContext;
+r6:
+/ @ \h ValueNode $=
+(
+	/ \simp \impl @ \ft MakeNode,
+	+ \ft StringifyToNode
+);
+/ \impl @ \mf ReaderSetting::\op ValueNode @ \impl \u ReaderSetting;
 /= test 3 @ platform MinGW32;
 
-r4:
-/ \f ReaderSetting LoadGlobalReaderSetting() @ \u ReaderSetting -> \smf
-	ReaderSetting LoadGlobalReaderSetting() @ \cl ShlReader @ \u ShlReader;
-/= test 4 @ platform MinGW32;
+r7-r8:
+/ \impl @ \smf LoadGlobalConfiguration @ \cl ShlReader @ \impl \u ShlReader,
+/= 2 test 4 @ platform MinGW32;
 
-r5:
-/ @ \cl ShlReader @ \u ShlReader $=
+r9:
+/ @ \un \ns @ \impl \u ReaderSetting $=
 (
-	/ \mf LoadGlobalReaderSetting => LoadGlobalConfiguration,
-	+ \smf void SaveGlobalConfiguration(const ReaderSetting&)
+	- \decl using YSLib::MakeNode,
+	/ \f MakeNode => ColorToNode
 );
 /= test 5 @ platform MinGW32;
 
-r6:
-/ \impl @ (\ctor, \dtor) @ \cl ShlTextReader @ \u ShlReader;
+r10:
+* \impl @ \smf LoadGlobalConfiguration @ \cl ShlReader @ \impl \u ShlReader
+	$since r7;
 /= test 6 @ platform MinGW32;
 
-r7:
-/ @ \u Initialization $=
-(
-	/ \f LoadConfig => InitializeInstalled;
-	/ \f CheckConfig => LoadConfiguration
-),
-/ \tr \impl @ \ctor DSApplication @ \impl \u DSMain;
-/= test 7 @ platform MinGW32;
+r11-r12:
+/= 2 test 7 @ platform MinGW32;
 
-r8:
-+ \mf DefGetter(const ynothrow, const ValueNode&, Node, root)
-	@ \cl Configuration @ \h Configuration,
-/ @ \u DSMain $=
-(
-	/ \f LoadConfiguration,
-	/ \tr \impl @ \f InitializeInstalled,
-	(
-		+ \f void WriteConfiguration(TextFile&, const ValueNode&
-			= FetchGlobalInstance().Root);
-		+ \f bool SaveConfiguration(const ValueNode&
-			= FecthGlobalInstance().Root)
-	)
-);
+r13:
+* font family loading @ \impl @ \ctor ReaderSetting @ \impl \u ReaderSetting
+	$since b338;
 /= test 8 @ platform MinGW32;
 
-r9-r10:
-* \impl @ \f TransformConfiguration @ \impl \u Configuration $since b341,
-/= 2 test 9 @ platform MinGW32;
+r14:
+* \impl @ font loading for missing family @ \impl @ \u ReaderSetting $since r13
+	$=
+(
+	+ \f FetchFontSetting @ \un \ns;
+	/ \impl @ \ctor ReaderSetting
+),
+/ \a 'if(auto p =' -> 'if(const auto p =' @ \impl \u (YGDI, Scroll,
+	UIContainerEx, YFocus, ShlReader, ReaderSetting);
+/= test 9 @ platform MinGW32;
 
-r11-r13:
-/ \impl @ \f TransformConfiguration @ \impl \u Configuration,
-/= 3 test 10 @ platform MinGW32;
+r15:
+* \impl @ \smf ShlReader::SaveGlobalConfiguration $since b344;
+/= test 10 @ platform MinGW32;
 
-r14-r16:
-/ \impl @ \f InitializeInstalled @ \impl \u Initialization;
-/= 3 test 11 @ platform MinGW32;
+r16-r26:
+/= 11 test 11 @ platform MinGW32;
 
-r17:
-/ \impl @ \ctor DSApplication @ \impl \u DSMain;
+r27:
+* \impl @ \f WriteConfiguration @ \impl \u Initialization $since b216;
 /= test 12 @ platform MinGW32;
 
-r18:
-* \impl @ \f InitializeInstalled() @ \impl \u Initialization $since r16;
+r28:
 /= test 13 @ platform MinGW32;
 
-r19:
-/= test 14 @ platform MinGW32 ^ \conf release;
+r29:
+/ \simp \impl @ \f WriteConfiguration @ \impl \u Initialization;
+/= test 14 @ platform MinGW32;
 
-r20:
-/= test 15 @ platform DS;
+r30:
+/ \impl @ \mf \op(>>, <<) @ \cl SettingPanel @ \impl \u ReaderSetting,
+/ \impl @ (\ctor, \mf Execute) @ \cl ShlTextReader @ \impl \u ShlReader;
+/= test 15 @ platform MinGW32;
 
-r21:
-/= test 16 @ platform DS ^ \conf release;
+r31:
+/= test 16 @ platform MinGW32 ^ \conf release;
+
+r32:
+/= test 17 @ platform DS;
+
+r33:
+/= test 18 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-09-30 +0800:
--22.3d;
-// Mercurial rev1-rev216: r9251;
+2012-10-06 +0800:
+-25.5d;
+// Mercurial rev1-rev217: r9284;
 
 / ...
 
 
 $NEXT_TODO:
-b345-b348:
+b346-b348:
 / YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -958,6 +948,28 @@ $now
 (
 	/ %'YFramework' $=
 	(
+		/ %'Helper'.'Initialization' $=
+		(
+			+ "implementation" @ "saving and loading configuration items",
+				// Fully implemented interface of b344.
+			* "always throwing exception when writing configuration" $since b344
+		),
+		+ "function template %StringifyToNode" @ %'YSLib'.'Core'.'ValueNode'
+	);
+	/ %'YReader' $=
+	(
+		+ $dev "current configuration synchronized with panel"
+			@ %'ReaderSetting';
+		+ "implementation for configuration saving and loading"
+			@ %'text reader'
+			// Fully implemented interface of b344.
+	)
+),
+
+b344
+(
+	/ %'YFramework' $=
+	(
 		/ "function %TransformConfiguration" %'NPL'.'Configuration' $=
 		(
 			(
@@ -976,7 +988,10 @@ $now
 				/ "accept multiple configuration items"
 			)
 		)
-	)
+	);
+	+ "interface for configuration saving and loading" @
+		%'YReader'.'text reader'
+		// Not fully implemented yet.
 ),
 
 b343

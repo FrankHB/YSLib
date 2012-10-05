@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3338
+\version r3342
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2012-09-07 11:26 +0800
+	2012-10-04 04:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,9 +389,9 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 IWidget*
 AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(auto p = CheckWidget(btnPrev, pt, f))
+	if(const auto p = CheckWidget(btnPrev, pt, f))
 		return p;
-	if(auto p = CheckWidget(btnNext, pt, f))
+	if(const auto p = CheckWidget(btnNext, pt, f))
 		return p;
 
 	YAssert(bool(pTrack), "Null pointer found.");
@@ -485,9 +485,9 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 IWidget*
 ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(auto p = CheckWidget(hsbHorizontal, pt, f))
+	if(const auto p = CheckWidget(hsbHorizontal, pt, f))
 		return p;
-	if(auto p = CheckWidget(vsbVertical, pt, f))
+	if(const auto p = CheckWidget(vsbVertical, pt, f))
 		return p;
 	return nullptr;
 }

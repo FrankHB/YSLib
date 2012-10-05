@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r342
+\version r383
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2012-09-26 17:16 +0800
+	2012-10-05 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,17 +89,25 @@ FetchSetting<Color>(const ValueNode& node, const string& name)
 }
 //@}
 
-//! \since build 338
+//! \since build 345
 //@{
-using YSLib::MakeNode;
-
 ValueNode
-MakeNode(const string& name, const Color& value)
+ColorToNode(const string& name, const Color& value)
 {
 	using ystdex::to_string;
 
 	return YSLib::MakeNode(name, to_string(value.GetR()) + ' '
 		+ to_string(value.GetG()) + ' ' + to_string(value.GetB()));
+}
+
+Font
+FetchFontSetting(const ValueNode& node, const string& family,
+	const string& size)
+{
+	if(const auto p = FetchDefaultFontCache().GetFontFamilyPtr(
+		FetchSetting<string>(node, family)))
+		return Font(*p, FetchSetting<int>(node, size));
+	return Font();
 }
 //@}
 
@@ -113,21 +121,22 @@ ReaderSetting::ReaderSetting()
 ReaderSetting::ReaderSetting(const ValueNode& node)
 	: UpColor(FetchSetting<Color>(node, "UpColor")), DownColor(
 	FetchSetting<Color>(node, "DownColor")), FontColor(FetchSetting<Color>(node,
-	"FontColor")), Font(FontFamily(FetchDefaultFontCache(),
-	FetchSetting<string>(node, "FontFamily")), FetchSetting<int>(node,
-	"FontSize")), SmoothScroll(FetchSetting<int>(node, "SmoothScroll") != 0),
+	"FontColor")), Font(FetchFontSetting(node, "FontFamily", "FontSize")),
+	SmoothScroll(FetchSetting<int>(node, "SmoothScroll") != 0),
 	ScrollDuration(FetchSetting<int>(node, "ScrollDuration")),
 	SmoothScrollDuration(FetchSetting<int>(node, "SmoothScrollDuration"))
 {}
 
 ReaderSetting::operator ValueNode() const
 {
-	return PackNodes("ReaderSetting", MakeNode("UpColor", UpColor),
-		MakeNode("DownColor", DownColor), MakeNode("FontColor", FontColor),
+	return PackNodes("ReaderSetting", ColorToNode("UpColor", UpColor),
+		ColorToNode("DownColor", DownColor),
+		ColorToNode("FontColor", FontColor),
 		MakeNode("FontFamily", Font.GetFontFamily().GetFamilyName()),
-		MakeNode("FontSize", Font.GetSize()), MakeNode("SmoothScroll",
-		int(SmoothScroll)), MakeNode("ScrollDuration", ScrollDuration.count()),
-		MakeNode("SmoothScrollDuration", SmoothScrollDuration.count()));
+		StringifyToNode("FontSize", Font.GetSize()),
+		StringifyToNode("SmoothScroll", int(SmoothScroll)),
+		StringifyToNode("ScrollDuration", ScrollDuration.count()),
+		StringifyToNode("SmoothScrollDuration", SmoothScrollDuration.count()));
 }
 
 
@@ -202,8 +211,8 @@ SettingPanel::SettingPanel()
 			Show(boxColor);
 		},
 		ddlFont.GetConfirmed() += [this](IndexEventArgs&&){
-			if(auto p = FetchGlobalInstance().GetFontCache().GetFontFamilyPtr(
-				ddlFont.Text.GetMBCS().c_str()))
+			if(const auto p = FetchGlobalInstance().GetFontCache()
+				.GetFontFamilyPtr(ddlFont.Text.GetMBCS().c_str()))
 			{
 				lblAreaUp.Font = Font(*p, lblAreaUp.Font.GetSize());
 				lblAreaDown.Font = lblAreaUp.Font;
@@ -263,16 +272,28 @@ SettingPanel::SettingPanel()
 SettingPanel&
 SettingPanel::operator<<(const ReaderSetting& s)
 {
-	yunseq(scroll_duration = s.ScrollDuration,
+	yunseq(lblAreaUp.ForeColor = s.FontColor,
+		lblAreaUp.Background = SolidBrush(s.UpColor),
+		lblAreaUp.Font = s.Font,
+		lblAreaDown.ForeColor = s.FontColor,
+		lblAreaDown.Background = SolidBrush(s.DownColor),
+		lblAreaDown.Font = s.Font,
+		ddlFont.Text = s.Font.GetFamilyName(),
+		scroll_duration = s.ScrollDuration,
 		smooth_scroll_duration = s.SmoothScrollDuration),
 	cbSmoothScroll.Tick(s.SmoothScroll);
+	UpdateInfo();
 	return *this;
 }
 
 SettingPanel&
 SettingPanel::operator>>(ReaderSetting& s)
 {
-	yunseq(s.SmoothScroll = cbSmoothScroll.IsTicked(),
+	yunseq(s.UpColor = lblAreaUp.Background.target<SolidBrush>()->Color,
+		s.DownColor = lblAreaDown.Background.target<SolidBrush>()->Color,
+		s.FontColor = lblAreaUp.ForeColor,
+		s.Font = lblAreaUp.Font,
+		s.SmoothScroll = cbSmoothScroll.IsTicked(),
 		s.ScrollDuration = scroll_duration,
 		s.SmoothScrollDuration = smooth_scroll_duration);
 	return *this;

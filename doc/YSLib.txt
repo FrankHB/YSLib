@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1287
+\version r1341
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-24 21:48 +0800
+	2012-10-06 00:09 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -122,6 +122,25 @@ YFramework
 
 //]
 
+@3.1.2 build 344 起：
+增加无名节点配置支持。
+生成的默认配置不变，但支持以下形式（直接编辑或追加其它配置项时变换为此形式）：
+//[
+
+(
+	YFramework
+	(
+		DataDirectory "H:\NDS\EFSRoot\Data\\"
+	)
+	(
+		FontDirectory "H:\NDS\EFSRoot\Font\\"
+	)
+	(
+		FontFile "H:\NDS\EFSRoot\Font\FZYTK.TTF"
+	)
+)
+//]
+
 @4 计划 GUI 测试项目：
 
 @4.1 基本部件测试：
@@ -171,6 +190,46 @@ YFramework
 点击屏幕显示/隐藏显示状态和详细功能按钮的阅读框。
 点击阅读框中的进度随机定位。点击 M 按钮打开菜单。点击 I 按钮打开文件和阅读位置信息。点击 R 按钮返回。点击 ←→ 按钮前进/后退（切换最近浏览位置）。
 其它功能，如切换字体和背景颜色等，使用菜单（ M 按钮）选择“设置”进入详细设置界面自定义。
+
+@5.1.3 设置和配置：
+
+@5.1.3.1 build 345 起：
+支持选择设置保存为配置项到配置文件。
+打开 Shell 读取文件时自动载入配置，若不存在则生成并追加（但配置不存在且打开的文件是配置文件时会导致读写冲突，无法响应）。
+退出 Shell 时保存配置。
+生成的默认配置如下：
+//[
+(
+	YReader
+	(
+		ReaderSetting
+		(
+			DownColor "192 216 240"
+		)
+		(
+			FontColor "0 0 0"
+		)
+		(
+			FontFamily "SimSun"
+		)
+		(
+			FontSize "14"
+		)
+		(
+			ScrollDuration "1000"
+		)
+		(
+			SmoothScroll "1"
+		)
+		(
+			SmoothScrollDuration "80"
+		)
+		(
+			UpColor "240 216 192"
+		)
+	)
+)
+//]
 
 */
 

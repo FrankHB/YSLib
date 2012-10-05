@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r199
+\version r200
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2012-09-04 12:47 +0800
+	2012-10-04 04:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ DialogBox::DialogBox(const Rect& r)
 IWidget*
 DialogBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
-	if(auto p = CheckWidget(btnClose, pt, f))
+	if(const auto p = CheckWidget(btnClose, pt, f))
 		return p;
 	return nullptr;
 }

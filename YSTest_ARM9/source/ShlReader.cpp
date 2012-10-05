@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3888
+\version r3913
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-09-27 01:17 +0800
+	2012-10-05 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,7 @@ ReaderBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
 {
 	for(const auto pWidget : std::initializer_list<IWidget*>{&btnMenu,
 		&btnSetting, &btnInfo, &btnReturn, &btnPrev, &btnNext, &pbReader})
-		if(auto p = CheckWidget(*pWidget, pt, f))
+		if(const auto p = CheckWidget(*pWidget, pt, f))
 			return p;
 	return nullptr;
 }
@@ -189,7 +189,11 @@ ShlReader::LoadGlobalConfiguration()
 {
 	try
 	{
-		return ReaderSetting(FetchGlobalInstance().Root.GetNode("YReader"));
+		// TODO: Moving node instead of copying.
+		FetchGlobalInstance().Root["YReader"]
+			= LoadConfiguration().GetNode("YReader");
+		return ReaderSetting(FetchGlobalInstance().Root.GetNode("YReader")
+			.GetNode("ReaderSetting"));
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}
@@ -209,7 +213,9 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 {
 	try
 	{
-		FetchGlobalInstance().Root["YReader"] += rs.operator ValueNode();
+		FetchGlobalInstance().Root["YReader"]["ReaderSetting"]
+			= rs.operator ValueNode();
+		SaveConfiguration(FetchGlobalInstance().Root);
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}
@@ -309,12 +315,12 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_setting,
 		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](TouchEventArgs&&)
 		{
-			Switch(pnlSetting.current_encoding);
-			reader.SetColor(pnlSetting.lblAreaUp.ForeColor),
-			reader.SetFont(pnlSetting.lblAreaUp.Font);
-			reader.UpdateView();
 			pnlSetting >> CurrentSetting;
 			tmrScroll.SetInterval(CurrentSetting.GetTimerSetting());
+			Switch(pnlSetting.current_encoding),
+			reader.SetColor(CurrentSetting.FontColor),
+			reader.SetFont(CurrentSetting.Font);
+			reader.UpdateView();
 		},
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
 	);
@@ -369,14 +375,11 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		break;
 	case MR_Setting:
 		reader.SetVisible(false),
-		yunseq(pnlSetting.lblAreaUp.ForeColor = reader.GetColor(),
-			pnlSetting.lblAreaUp.Background = GetDesktopUp().Background,
-			pnlSetting.lblAreaUp.Font = reader.GetFont(),
-			pnlSetting.lblAreaDown.ForeColor = reader.GetColor(),
-			pnlSetting.lblAreaDown.Background = GetDesktopDown().Background,
-			pnlSetting.lblAreaDown.Font = reader.GetFont(),
-			pnlSetting.ddlFont.Text = reader.GetFont().GetFamilyName());
-		pnlSetting.UpdateInfo();
+		yunseq(CurrentSetting.UpColor = GetDesktopUp().Background
+			.target<SolidBrush>()->Color, CurrentSetting.DownColor
+			= GetDesktopDown().Background.target<SolidBrush>()->Color,
+			CurrentSetting.FontColor = reader.GetColor(),
+			CurrentSetting.Font = reader.GetFont());
 		{
 			auto& dsk_up(GetDesktopUp());
 

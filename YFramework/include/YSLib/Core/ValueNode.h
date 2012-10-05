@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1006
+\version r1019
 \author FrankHB<frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2012-09-25 08:39 +0800
+	2012-10-03 01:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,8 +253,19 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 MakeNode(_tString&& name, _tParams&&... args)
 {
-	return ValueNode(yforward(name),
-		ValueObject(ystdex::decay_copy(yforward(args))...));
+	return ValueNode(yforward(name), ystdex::decay_copy(yforward(args))...);
+}
+
+/*!
+\brief 取指定名称和转换为字符串的值类型节点。
+\note 使用非限定 to_string 转换。
+\since build 344
+*/
+template<typename _tString, typename... _tParams>
+inline ValueNode
+StringifyToNode(_tString&& name, _tParams&&... args)
+{
+	return ValueNode(yforward(name), to_string(yforward(args)...));
 }
 
 /*!
