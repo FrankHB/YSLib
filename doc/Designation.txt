@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6748
+\version r6775
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-09-24 21:27 +0800
+	2012-10-09 10:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -797,16 +797,13 @@ nested-module-name:
 
 @2.7.5.2.1 渲染器(renderer) ：
 用于存储渲染状态的类，基类为 Componenets::Renderer 。
-此外，提供带有缓冲区的默认缓冲渲染器类 Componenets::BufferedRenderer ，默认仅窗口使用。
+此外，提供带有缓冲区和验证(@2.7.5.2.4) 效果的默认缓冲渲染器类 Componenets::BufferedRenderer ，默认仅窗口使用。
 渲染器可在运行时向指定部件设置。
 
-@2.7.5.2.2 部件的绘制(painting) ：
-渲染即渲染器的使用部件和渲染状态绘制流程。
-默认使用 Components::Renderer ，包含验证(@2.7.5.2.4) 效果。
- Components::Renderer 调用部件的 Paint 方法(@2.7.5.3.2) 。
-
-默认使用 Components::Render ，包含验证(@2.7.5.2.4) 效果。
- Components::Render 直接调用部件的 Refresh 方法(@2.7.5.3.2) 。
+@2.7.5.2.2 渲染器绘制(painting) ：
+渲染器的使用部件和渲染状态绘制的过程。
+ Components::Renderer 的 Paint 方法调用部件的 Paint 事件(@2.7.2.1.3) 。
+ Components::BufferedRenderer 的 Paint 方法验证(@2.7.5.2.4) 后更新(@2.7.5.2.5) 。
 
 @2.7.5.2.3 无效化(invalidation) ：
 渲染器向上层缓冲区容器请求需要重绘的区域的过程。
@@ -825,9 +822,12 @@ nested-module-name:
 带缓冲区的部件（包括窗口和桌面）实例存储无效区域状态。
  Components::Update 基于渲染器实现一般的缓冲区复制。
 成员方法 Update() 查询区域重绘状态，若区域需要重绘则忽略，否则当上层缓冲区存在时更新至上层缓冲区（对于桌面而言是屏幕）。
-在 Shell 处理函数中可以在输入分支后添加桌面对象的 Invalidate 、 Refresh 或 Update ，按需要更新最近经过重绘但未经过更新的 GUI 对象。
+在 Shell 处理函数中可以在输入分支后添加对桌面对象的渲染操作以按需要更新最近经过重绘但未经过更新的 GUI 对象：
+绘制(@2.7.5.2.2) ；
+无效化(@2.7.5.2.3) ，延时绘制；
+批量验证(@2.7.5.2.4) 后再更新，避免多个对象直接绘制之间的明显间断。
 
-@2.7.5.3 默认 GUI 绘制逻辑：
+@2.7.5.3 默认 GUI 绘制(@2.7.5.3.5) 逻辑：
 
 @2.7.5.3.1 渲染状态同步：
 部件通过与渲染器的交互保证渲染状态。
@@ -843,12 +843,17 @@ nested-module-name:
  Widget 的虚成员方法 void Refresh(PaintEventArgs&&) 是状态无关的默认刷新接口，即直接绘制部件界面。
  Widget 初始化 Paint 事件时加载背景和 Refresh 作为事件处理器。
 
-@2.7.5.3.3 绘制(painting) ：
-导致部件的 Paint 事件被调用一次的操作，称为一次绘制。
-可以直接调用 Paint 事件。
+@2.7.5.3.3 部件绘制(painting) ：
+对部件进行导致部件的 Paint 事件被调用一次的操作，称为一次绘制，包括直接调用部件的 Paint 事件和通过其它函数进行间接调用。
 一般可以通过 YWidget 单元的 PaintChild 等函数调用，它包含了重绘区域(@2.7.2.1.3) 预验证：当重绘区域和无效区域(@2.7.5.2.3) 不相交时，不进行绘制。
 
-@2.7.5.3.3 全局层次绘制逻辑：
+@2.7.5.3.4 描画(drawing) ：
+绘制过程中的某一相关组成部分，但不直接导致 Paint 事件被调用。
+
+@2.7.5.3.5 绘制：
+含义清楚，不至于造成歧义时，描画可和上述部件渲染器绘制、部件绘制称为绘制。
+
+@2.7.5.3.6 全局层次绘制逻辑：
 一般通过 Shell 对 SM_PAINT 消息的处理，以桌面对象的全局绘制操作起始，递归至各个子部件。
 典型的全局绘制操作可以是刷新。
 当多个桌面的显示需要保持同步时，一般不直接调用刷新，而是显式地验证和更新，即分别调用需要同步显示的桌面的 Desktop::Validate 和 Desktop::Update 。
@@ -1212,7 +1217,7 @@ nested-module-name:
 使用 devkitPro 。
 依赖 devkitARM / libnds / default arm7 / libfat 版本：
  build 131 前：
- 未指定。可使用 devkitARM release 26 - 29 。
+未指定。可使用 devkitARM release 26 - 29 。
  2009-09-20 起：
  libnds 1.3.7 / default arm7 0.5.6 。
  2009-09-22 起：
@@ -1256,11 +1261,14 @@ nested-module-name:
 @5.2.1.4 MinGW32 平台库和标准库实现：
 目标平台 Windows XP 及以上。
  build 299 前：
- 无（不支持的平台）。
- 2011-04-09(build 299) 起：
- 使用 http://code.google.com/p/mingw-builds 的 i686-mingw32-gcc-4.7.0-release-c,c++,fortran-sjlj 。
- 2011-06-21(build 319) 起：
- 使用 http://sourceforge.net/projects/mingwbuilds 的 i686-mingw-w64-gcc-4.7.1-release-c,c++,fortran-sjlj 。
+无（不支持的平台）。
+ 2012-04-09(build 299) 起：
+使用 http://code.google.com/p/mingw-builds 的 i686-mingw32-gcc-4.7.0-release-c,c++,fortran-sjlj 。
+ 2012-06-21(build 319) 起：
+使用 http://sourceforge.net/projects/mingwbuilds/files/windows-host/4.7.1/release/i686-mingw-w64-gcc-4.7.1-release-c,c++,fortran-sjlj.7z 。
+此版本于 2012-10-06 确认已被移除。
+ 2012-10-06(build 346) 起：
+使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.7.2/32-bit/threads-posix/sjlj/x32-4.7.2-release-posix-sjlj-rev0.7z 。
 
 @5.2.2 通用库：
 

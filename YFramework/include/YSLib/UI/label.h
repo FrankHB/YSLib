@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1256
+\version r1271
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2012-09-07 10:36 +0800
+	2012-10-09 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,9 +137,11 @@ public:
 
 protected:
 	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
-
-private:
-	Drawing::TextState text_state; //!< 文本状态。
+	/*!
+	\brief 列表文本状态。
+	\since build 346
+	*/
+	Drawing::TextState tsList;
 
 protected:
 	/*!
@@ -169,16 +171,8 @@ public:
 	\since build 301
 	*/
 	DefGetter(const ynothrow, SDst, ItemHeight,
-		GetTextLineHeightExOf(text_state))
+		GetTextLineHeightExOf(tsList))
 
-protected:
-	/*!
-	\brief 取文本状态。
-	\since build 301
-	*/
-	DefGetter(ynothrow, Drawing::TextState&, TextState, text_state)
-
-public:
 	/*!
 	\brief 取文本列表中的最大文本宽度。
 	\since build 282

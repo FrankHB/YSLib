@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2510
+\version r2513
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-09-07 10:17 +0800
+	2012-10-08 11:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,7 +161,7 @@ public:
 	\note 仅滑块。
 	*/
 	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 	DefEventGetter(ynothrow, HUIEvent, ThumbDrag, ThumbDrag) //!< 滑块拖动事件。
 	DefEventGetter(ynothrow, HScrollEvent, Scroll, Scroll) //!< 滚动事件。
 	DefGetter(const ynothrow, SDst, MinThumbLength, min_thumb_length)
@@ -320,7 +320,7 @@ public:
 	\note 仅滑块和滚动条按钮。
 	*/
 	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 	/*!
 	\brief 取轨道引用。
 	\note 断言检查： bool(pTrack) 。
@@ -438,7 +438,7 @@ public:
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
 	*/
 	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

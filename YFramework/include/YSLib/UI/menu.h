@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r790
+\version r793
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2012-09-12 08:20 +0800
+	2012-10-09 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,11 +155,11 @@ public:
 protected:
 	/*!
 	\brief 绘制菜单项。
-	\since build 265
+	\since build 346
 	*/
 	void
-	PaintItem(const Graphics&, const Rect& mask,
-		const Rect&, ListType::size_type) override;
+	DrawItem(const Graphics&, const Rect& mask, const Rect&,
+		ListType::size_type) override;
 };
 
 

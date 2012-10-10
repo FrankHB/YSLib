@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4490 *build 345 rev *
+\version r4515 *build 346 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-06 00:09 +0800
+	2012-10-11 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -310,7 +310,7 @@ $using:
 ),
 \u Label
 (
-	\cl MLabel,
+	\cl MLabel;
 	\cl Label,
 	\cl MTextList
 ),
@@ -387,113 +387,119 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \f WriteConfiguration @ \impl \u Initialization,
-/ \impl @ \smf SaveGlobalConfiguration @ \cl ShlReader @ \impl \u ShlReader;
+^ "MinGW[gcc version 4.7.2 (Built by MinGW-builds project)] \
+	x32-4.7.2-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.7.1 \
+	(Built by MinGW-builds project)] i686-mingw32-gcc-4.7.1 [release-sjlj]"
+	@ platform MinGW32,
+		// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+			Exceptions implementation: SjLj.
+/ \tr version macro check @ \h String @ \lib LibDefect;
 /= test 1 @ platform MinGW32;
 
-r2-r5:
+r2:
++ $dev 'override' @ \a \or \mf $=
+(
+	@ GetTopWidgetPtr \h (Scroll, YWidget),
+	@ ValueHolder::\op== @ \h YObject,
+	@ Widget::GetController
+);
 /= test 2 @ platform MinGW32;
 
-r6:
-/ @ \h ValueNode $=
+r3:
+/ @ \cl Widget $=
 (
-	/ \simp \impl @ \ft MakeNode,
-	+ \ft StringifyToNode
+	/ private \m pWidget => view_ptr,
+	/ private \m pRenderer => renderer_ptr,
+	/ public \m pController -> private \m controller_ptr
 );
-/ \impl @ \mf ReaderSetting::\op ValueNode @ \impl \u ReaderSetting;
 /= test 3 @ platform MinGW32;
 
-r7-r8:
-/ \impl @ \smf LoadGlobalConfiguration @ \cl ShlReader @ \impl \u ShlReader,
-/= 2 test 4 @ platform MinGW32;
+r4:
+/ \impl @ \mf BufferedRenderer::Paint,
+/ \simp \impl @ \mf TextList::PaintItems @ \impl \u TextList;
+/= test 4 @ platform MinGW32;
 
-r9:
-/ @ \un \ns @ \impl \u ReaderSetting $=
+r5:
+/ \simp \decl @ yconstexpr Padding DefaultMargin @ \h TextBase;
+/ \simp @ \cl MTextList $=
 (
-	- \decl using YSLib::MakeNode,
-	/ \f MakeNode => ColorToNode
-);
+	/ private \m TextState text_state -> protected \m TextState tsList,
+	/ \tr \impl @ (\ctor, \mf RefreshTextState),
+	- protected \mf GetTextState
+),
+/ \tr \impl @ \impl \u (Label, Menu, TestList);
 /= test 5 @ platform MinGW32;
 
-r10:
-* \impl @ \smf LoadGlobalConfiguration @ \cl ShlReader @ \impl \u ShlReader
-	$since r7;
-/= test 6 @ platform MinGW32;
+r6:
+/= test 6 @ platform MinGW32 ^ \conf release;
 
-r11-r12:
-/= 2 test 7 @ platform MinGW32;
+r7:
+/= test 7 @ platform DS;
 
-r13:
-* font family loading @ \impl @ \ctor ReaderSetting @ \impl \u ReaderSetting
-	$since b338;
-/= test 8 @ platform MinGW32;
+r8:
+/= test 8 @ platform DS ^ \conf release;
 
-r14:
-* \impl @ font loading for missing family @ \impl @ \u ReaderSetting $since r13
-	$=
+r9:
+/ @ \cl TextList $=
 (
-	+ \f FetchFontSetting @ \un \ns;
-	/ \impl @ \ctor ReaderSetting
+	+ protected \mf \vt bool DrawItemBackground(const PaintContext&,
+		const Rect&);
+	/ protected \mf PaintItems -> DrawItems
+	/ protected \mf PaintItem => DrawItem
 ),
-/ \a 'if(auto p =' -> 'if(const auto p =' @ \impl \u (YGDI, Scroll,
-	UIContainerEx, YFocus, ShlReader, ReaderSetting);
+/ \mf Menu::PaintItem => Menu::DrawItem;
 /= test 9 @ platform MinGW32;
 
-r15:
-* \impl @ \smf ShlReader::SaveGlobalConfiguration $since b344;
-/= test 10 @ platform MinGW32;
+r10:
+/ \rem @ \m ClipArea @ \st PaintContext @ \h YWidgetEvent;
+/ @ \cl TextList $=
+(
+	/ \simp \impl @ \mf InvalidateSelected,
+	/ \impl @ \mf DrawItems
+);
+/= test 10 @ platform DS ^ \conf release;
 
-r16-r26:
-/= 11 test 11 @ platform MinGW32;
+r11-r12:
+* \impl @ \mf TextList::DrawItems $since r10,
+/= 2 test 11 @ platform MinGW32;
 
-r27:
-* \impl @ \f WriteConfiguration @ \impl \u Initialization $since b216;
+r13:
+/ \simp \impl @ \ctor TextState(FontCache&) @ \impl \u TextBase ^ \inh \ctor;
 /= test 12 @ platform MinGW32;
 
-r28:
-/= test 13 @ platform MinGW32;
+r14:
+/= test 13 @ platform MinGW32 ^ \conf release;
 
-r29:
-/ \simp \impl @ \f WriteConfiguration @ \impl \u Initialization;
-/= test 14 @ platform MinGW32;
+r15:
+/= test 14 @ platform DS;
 
-r30:
-/ \impl @ \mf \op(>>, <<) @ \cl SettingPanel @ \impl \u ReaderSetting,
-/ \impl @ (\ctor, \mf Execute) @ \cl ShlTextReader @ \impl \u ShlReader;
-/= test 15 @ platform MinGW32;
-
-r31:
-/= test 16 @ platform MinGW32 ^ \conf release;
-
-r32:
-/= test 17 @ platform DS;
-
-r33:
-/= test 18 @ platform DS ^ \conf release;
+r16:
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-10-06 +0800:
--25.5d;
-// Mercurial rev1-rev217: r9284;
+2012-10-11 +0800:
+-27.5d;
+// Mercurial rev1-rev217: r9300;
 
 / ...
 
 
 $NEXT_TODO:
-b346-b348:
-/ YReader $=
+b347-b356:
+/ text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager,
-	+ configuration (serialization, unserialization) for text reader
+	+ (reading history, bookmarks) (serialization, unserialization)
+		as configuration
 );
 
 
 $TODO:
-b349-b400:
+b357-b400:
 / services $=
 (
 	+ \impl @ images loading
@@ -565,7 +571,8 @@ b401-b895:
 	/ confirm correctness @ stat() @ Win32,
 		// See comments @ src/fccache.c @ \proj fontconfig.
 	/ consideration of mutable member @ class %Message,
-	/ \n DSApplication::pFontCache
+	/ (\ac, \n) @ \m (DSApplication::pFontCache,
+		View::(pContainer, pDependency, pFocusing))
 ),
 / $low_prior performance $=
 (
@@ -761,6 +768,8 @@ $FURTHER_WORK:
 
 
 $KNOWN_ISSUE:
+// There are issues that won't be fixed if no further progress for \
+	implementation techniques found. Also depends on the environment.
 // NOTE: Obsolete issues all resolved are ignored.
 * "corrupted loading or fatal errors on loading font file with embedded \
 	bitmap glyph like simson.ttc" $since b185,
@@ -776,6 +785,8 @@ $KNOWN_ISSUE:
 	with libstdc++ std::thread" @ ^ "g++ (4.6, 4.7)" $before $future(g++4.7.2);
 	// G++ 4.7.0 tested @ b300.
 	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
+* "Vertical synchronization lacked for debug configuration when console window \
+	had got focus and then clipped with the main window" @ "platform %DS";
 
 
 $RESOLVED_ENVIRONMENT_ISSUE:
@@ -945,6 +956,31 @@ $module_tree $=
 );
 
 $now
+(
+	^ DLP "MinGW[gcc version 4.7.2 (Built by MinGW-builds project)] \
+		x32-4.7.2-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.7.1 \
+		(Built by MinGW-builds project)] i686-mingw32-gcc-4.7.1 [release-sjlj]"
+		@ "platform %MinGW32",
+			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+				Exceptions implementation: SjLj.
+	/ %'YFramework'.'YSLib'.'GUI' $=
+	(
+		/ $dev "pointer members" @ "class %Widget",
+		+ $dev $design "keyword %override for several overriders",
+		/ $dev "simplified text state member access" @ "class %MTextList",
+		/ @ "class %TextList" @ %'YFramework'.'YSLib'.'GUI' $=
+		(
+			/ "renamed several protected member functions",
+			+ "protected virtual member function %DrawItemBackground",
+			+ $dev $lib "more partial invalidation support on refreshing"
+				// Drawing items out of invalidated area ignored. Perhaps no \
+					obvious performance improved for widget as part of others \
+					because invalidated area could be enlarged by other widgets.
+		)
+	)
+),
+
+b345
 (
 	/ %'YFramework' $=
 	(
@@ -1735,7 +1771,7 @@ b322
 	),
 	(
 		$dep_from "screen thread safety";
-		* $comp "screen content corrupted" @ "platform MinGW32" $since b299
+		* $comp "screen content corrupted" @ "platform %MinGW32" $since b299
 			// A serious bug though rarely occurred.
 	),
 	+ "function template %sfmt for format string output"
@@ -1813,7 +1849,11 @@ b320
 
 b319
 (
-	^ "i686-mingw-w64-gcc-4.7.1" ~ "i686-mingw32-gcc-4.7.0" @ platform MinGW32,
+	^ "MinGW[gcc version 4.7.1 (Built by MinGW-builds project)] \
+		i686-mingw32-gcc-4.7.1 [release-sjlj]" ~ "i686-mingw32-gcc-4.7.0"
+		@ "platform %MinGW32",
+			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+				Exceptions implementation: SjLj.
 	/ %'YBase' $=
 	(
 		/ %'YDefinition' $=
@@ -2141,7 +2181,8 @@ b311
 		+ "class %CheckButton" @ %'YFramework'.'YSLib'.'GUI';
 		^ "%CheckButton" ~ "%CheckBox" @ 'shells test example'
 	),
-	^ DLD "contextual keyword %override" ~ "keyword %virtual for overriders"
+	^ $dev $design "contextual keyword %override"
+		~ "keyword %virtual for overriders"
 ),
 
 b310
@@ -2886,7 +2927,7 @@ b295
 					$since b294,
 				/ $comp "refreshing performance improved"
 			),
-			+ DLD "partial invalidation support on refreshing"
+			+ $dev $lib "partial invalidation support on refreshing"
 				@ "class %BufferedTextArea",
 			/ DLD "refreshing" ^ "border brush" @ "class %ProgressBar",
 			* "memory leak" $since b243
@@ -5441,7 +5482,7 @@ b187
 (
 	/ DLP "header %files and source files put in separated \
 		directories" @ "solution configuration",
-	^ $lib $build "-O3 & arm specified options compiled library %libloki.a"
+	^ $lib $build "-O3 & ARM specified options compiled library %libloki.a"
 		@ "project YSTest",
 	+ "minor templates" @ "YCLib",
 	/ "GDI blit implementations"

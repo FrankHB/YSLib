@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1879
+\version r1880
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-04 12:00 +0800
+	2012-10-08 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,6 +189,7 @@ public:
 /*!
 \brief 取默认图形用户界面公共状态。
 \since build 287
+\bug 线程安全性依赖于非并发地首次调用。
 */
 GUIState&
 FetchGUIState();

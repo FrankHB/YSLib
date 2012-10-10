@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r380
+\version r382
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2012-09-07 10:20 +0800
+	2012-10-08 11:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,8 +58,8 @@ public:
 
 	using MUIContainer::Contains;
 
-	PDefH(IWidget*, GetTopWidgetPtr, const Point& pt,
-		bool(&f)(const IWidget&)) override
+	PDefH(IWidget*, GetTopWidgetPtr, const Point& pt, bool(&f)(const IWidget&))
+		override
 		ImplBodyBase(MUIContainer, GetTopWidgetPtr, pt, f)
 
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1259
+\version r1261
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2012-09-04 12:48 +0800
+	2012-10-09 00:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,7 +106,7 @@ Label::Refresh(PaintEventArgs&& e)
 
 MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt)
 	: MLabel(fnt),
-	hList(h), text_state(Font)
+	hList(h), tsList(Font)
 {
 	if(!hList)
 		hList = make_shared<ListType>();
@@ -138,7 +138,7 @@ MTextList::Find(const ItemType& text) const
 void
 MTextList::RefreshTextState()
 {
-	yunseq(text_state.LineGap = GetVerticalOf(Margin), text_state.Font = Font);
+	yunseq(tsList.LineGap = GetVerticalOf(Margin), tsList.Font = Font);
 }
 
 YSL_END_NAMESPACE(Components)

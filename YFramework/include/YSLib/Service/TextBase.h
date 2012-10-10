@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2590
+\version r2592
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-07 10:37 +0800
+	2012-10-11 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \brief 默认边距。
 \since build 286
 */
-yconstexpr Padding DefaultMargin = Padding(2, 2, 2, 2);
+yconstexpr Padding DefaultMargin(2, 2, 2, 2);
 
 
 //! \brief 笔样式：字体和笔颜色。
@@ -88,7 +88,6 @@ public:
 	SPos PenX, PenY; //!< 笔坐标。
 	u8 LineGap; //!< 行距。
 
-public:
 	/*!
 	\brief 构造：使用指定字体。
 	\since build 337

@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3524
+\version r3525
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-18 10:42 +0800
+	2012-10-08 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@ public:
 	DefDelCopyAssignment(ValueHolder)
 
 	ImplI(IValueHolder) bool
-	operator==(const IValueHolder& obj) const
+	operator==(const IValueHolder& obj) const override
 	{
 		return AreEqual(held, static_cast<const ValueHolder&>(obj).held);
 	}

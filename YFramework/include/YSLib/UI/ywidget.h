@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5361
+\version r5374
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-07 10:19 +0800
+	2012-10-08 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -324,11 +324,14 @@ public:
 	{};
 
 private:
-	unique_ptr<View> pView; //!< 部件视图指针。
-	unique_ptr<Renderer> pRenderer; //!< 渲染器指针。
+	//! \since build 346
+	//@{
+	unique_ptr<View> view_ptr; //!< 部件视图指针。
+	unique_ptr<Renderer> renderer_ptr; //!< 渲染器指针。
+	unique_ptr<AController> controller_ptr; //!< 控制器指针。
+	//@}
 
 public:
-	unique_ptr<AController> pController; //!< 控制器指针。
 	/*!
 	\brief 背景。
 	\since build 294
@@ -352,12 +355,12 @@ public:
 	Widget(_tView&& pView_ = make_unique<View>(),
 		_tRenderer&& pRenderer_ = make_unique<Renderer>(),
 		_tController&& pController_ = {})
-		: pView(yforward(pView_)), pRenderer(yforward(pRenderer_)),
-		pController(yforward(pController_)),
+		: view_ptr(yforward(pView_)), renderer_ptr(yforward(pRenderer_)),
+		controller_ptr(yforward(pController_)),
 		Background(SolidBrush(Drawing::ColorSpace::White)),
 		ForeColor(Drawing::ColorSpace::Black)
 	{
-		YAssert(bool(pView) && bool(pRenderer), "Null pointer found.");
+		YAssert(bool(view_ptr) && bool(renderer_ptr), "Null pointer found.");
 
 		InitializeEvents();
 	}
@@ -390,12 +393,12 @@ public:
 	DefGetterMem(const ynothrow, SPos, Y, GetView())
 	DefGetterMem(const ynothrow, SDst, Width, GetView())
 	DefGetterMem(const ynothrow, SDst, Height, GetView())
-	ImplI(IWidget) DefGetter(const ynothrow, Renderer&, Renderer, *pRenderer)
-	ImplI(IWidget) DefGetter(const ynothrow, View&, View, *pView)
+	ImplI(IWidget) DefGetter(const ynothrow, Renderer&, Renderer, *renderer_ptr)
+	ImplI(IWidget) DefGetter(const ynothrow, View&, View, *view_ptr)
 	ImplI(IWidget) AController&
-	GetController() const;
+	GetController() const override;
 	ImplI(IWidget) PDefH(IWidget*, GetTopWidgetPtr, const Point&,
-		bool(&)(const IWidget&))
+		bool(&)(const IWidget&)) override
 		ImplRet(nullptr)
 
 	DefSetterMem(bool, Transparent, GetView())

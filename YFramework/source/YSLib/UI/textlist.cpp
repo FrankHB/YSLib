@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1013
+\version r1061
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2012-09-07 11:27 +0800
+	2012-10-10 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,7 +245,7 @@ TextList::InvalidateSelected(ListType::difference_type offset,
 	if(offset >= 0 && n != 0)
 	{
 		const auto ln_h(GetItemHeight());
-		Rect r(0, -top_offset + ln_h * offset, GetWidth(), ln_h * n);
+		Rect r(0, ln_h * offset - top_offset, GetWidth(), ln_h * n);
 
 		if(r.Y < GetHeight())
 		{
@@ -284,60 +284,69 @@ TextList::LocateViewPosition(SDst h)
 }
 
 void
-TextList::PaintItem(const Graphics& g, const Rect& mask, const Rect&,
+TextList::DrawItem(const Graphics& g, const Rect& mask, const Rect&,
 	ListType::size_type i)
 {
-	DrawClippedText(g, mask, GetTextState(), GetList()[i], false);
+	DrawClippedText(g, mask, tsList, GetList()[i], false);
 }
 
 void
-TextList::PaintItems(const PaintContext& pc)
+TextList::DrawItemBackground(const PaintContext& pc, const Rect& r)
 {
-	const auto& g(pc.Target);
-	const auto& pt(pc.Location);
+	FillRect<PixelType>(pc.Target.GetBufferPtr(), pc.Target.GetSize(),
+		pc.ClipArea & Rect(r.X + 1, r.Y, r.Width - 2, r.Height),
+		HilightBackColor);
+}
+
+void
+TextList::DrawItems(const PaintContext& pc)
+{
 	const auto h(GetHeight());
 
 	if(h != 0)
 	{
 		RefreshTextState();
 
-		if(viewer.GetTotal() != 0)
+		const Rect& r(pc.ClipArea);
+
+		if(viewer.GetTotal() != 0 && bool(r))
 		{
+			const auto& g(pc.Target);
+			const auto& pt(pc.Location);
 			const auto ln_w(GetWidth());
 			const auto ln_h(GetItemHeight());
 
 			//视图长度可能因为内容变化等原因改变，必须重新计算。
 			AdjustViewLength();
 
-			const auto last(viewer.GetHeadIndex() + viewer.GetValid());
-			SPos y(-top_offset);
+			const SPos lbound(r.Y - pt.Y);
+			const auto last(viewer.GetHeadIndex()
+				+ min<ViewerType::SizeType>((lbound + r.Height + top_offset
+				- 1) / ln_h + 1, viewer.GetValid()));
+			SPos y(ln_h * ((min<SPos>(0, lbound) + top_offset - 1) / ln_h)
+				- top_offset);
 
-			for(auto i(viewer.GetHeadIndex()); i < last; ++i)
+			for(auto i(viewer.GetHeadIndex()); i < last; y += ln_h, ++i)
 			{
 				int top(y), tmp(y + ln_h);
 
 				RestrictInInterval<int>(top, 0, h);
 				RestrictInInterval<int>(tmp, 1, h + 1);
 				tmp -= top;
-				top += pt.Y;
+
+				const Rect unit(pt.X, top + pt.Y, ln_w, tmp);
+
 				if(viewer.IsSelected() && i == viewer.GetSelectedIndex())
 				{
-					GetTextState().Color = HilightTextColor;
-					FillRect<PixelType>(g.GetBufferPtr(), g.GetSize(),
-						pc.ClipArea & Rect(pt.X + 1, top, ln_w - 2, tmp),
-						HilightBackColor);
+					tsList.Color = HilightTextColor;
+					DrawItemBackground(pc, unit);
 				}
 				else
-					GetTextState().Color = ForeColor;
-
-				const Rect unit_bounds(pt.X, top, ln_w, tmp);
-
-				GetTextState().ResetForBounds(unit_bounds, g.GetSize(),
-					Margin);
+					tsList.Color = ForeColor;
+				tsList.ResetForBounds(unit, g.GetSize(), Margin);
 				if(y < 0)
-					GetTextState().PenY -= top_offset;
-				PaintItem(g, pc.ClipArea, unit_bounds, i);
-				y += ln_h;
+					tsList.PenY -= top_offset;
+				DrawItem(g, pc.ClipArea, unit, i);
 			}
 		}
 	}
@@ -346,7 +355,7 @@ TextList::PaintItems(const PaintContext& pc)
 void
 TextList::Refresh(PaintEventArgs&& e)
 {
-	PaintItems(e);
+	DrawItems(e);
 	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 

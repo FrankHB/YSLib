@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r4244
+\version r4255
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-07 12:02 +0800
+	2012-10-08 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,16 +166,16 @@ Show(IWidget& wgt)
 
 
 Widget::Widget(const Rect& r, Color b, Color f)
-	: pView(new View(r)), pRenderer(new Renderer()),
-	pController(new WidgetController(false)),
+	: view_ptr(new View(r)), renderer_ptr(new Renderer()),
+	controller_ptr(new WidgetController(false)),
 	Background(SolidBrush(b)), ForeColor(f)
 {
 	InitializeEvents();
 }
 Widget::Widget(const Widget& wgt)
-	: pView(ClonePolymorphic(wgt.pView)),
-	pRenderer(ClonePolymorphic(wgt.pRenderer)),
-	pController(ClonePolymorphic(wgt.pController)),
+	: view_ptr(ClonePolymorphic(wgt.view_ptr)),
+	renderer_ptr(ClonePolymorphic(wgt.renderer_ptr)),
+	controller_ptr(ClonePolymorphic(wgt.controller_ptr)),
 	Background(wgt.Background), ForeColor(wgt.ForeColor)
 {}
 Widget::~Widget()
@@ -193,22 +193,21 @@ Widget::InitializeEvents()
 AController&
 Widget::GetController() const
 {
-	if(!pController)
+	if(!controller_ptr)
 		throw BadEvent();
-	return *pController;
+	return *controller_ptr;
 }
 
 void
 Widget::SetRenderer(unique_ptr<Renderer>&& p)
 {
-	pRenderer = p ? std::move(p)
-		: unique_ptr<Renderer>(new Renderer());
-	pRenderer->SetSize(GetSizeOf(*this));
+	renderer_ptr = p ? std::move(p) : unique_ptr<Renderer>(new Renderer());
+	renderer_ptr->SetSize(GetSizeOf(*this));
 }
 void
 Widget::SetView(unique_ptr<View>&& p)
 {
-	pView = p ? std::move(p)
+	view_ptr = p ? std::move(p)
 		: unique_ptr<View>(new View(GetBoundsOf(*this)));
 }
 

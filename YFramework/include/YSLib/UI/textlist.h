@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r611
+\version r622
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2012-09-07 10:03 +0800
+	2012-10-09 10:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,17 +248,26 @@ public:
 protected:
 	/*!
 	\brief 绘制列表项。
-	\since build 265
+	\since build 346
 	*/
 	virtual void
-	PaintItem(const Graphics&, const Rect& mask, const Rect&,
+	DrawItem(const Graphics&, const Rect& mask, const Rect&,
 		ListType::size_type);
 
 	/*!
-	\brief 绘制列表。
+	\brief 描画列表项背景。
+	\param r 列表项有效区域边界。
+	\since build 346
 	*/
 	virtual void
-	PaintItems(const PaintContext&);
+	DrawItemBackground(const PaintContext&, const Rect& r);
+
+	/*!
+	\brief 绘制列表。
+	\since build 346
+	*/
+	virtual void
+	DrawItems(const PaintContext&);
 
 public:
 	/*!

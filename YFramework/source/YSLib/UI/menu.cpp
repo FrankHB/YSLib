@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r986
+\version r991
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2012-09-04 12:47 +0800
+	2012-10-09 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,17 +201,17 @@ Menu::Hide()
 }
 
 void
-Menu::PaintItem(const Graphics& g, const Rect& mask, const Rect& r,
+Menu::DrawItem(const Graphics& g, const Rect& mask, const Rect& r,
 	ListType::size_type i)
 {
-	Color t(GetTextState().Color);
+	Color t(tsList.Color);
 
 	// TODO: Handle different highlight text colors.
 
 	if(!IsItemEnabled(i))
-		GetTextState().Color = FetchGUIState().Colors[Styles::GrayText];
-	DrawClippedText(g, mask, GetTextState(), GetList()[i], false);
-	GetTextState().Color = t;
+		tsList.Color = FetchGUIState().Colors[Styles::GrayText];
+	DrawClippedText(g, mask, tsList, GetList()[i], false);
+	tsList.Color = t;
 	if(YB_LIKELY(r.Width > 16))
 		if(mSubMenus.find(i) != mSubMenus.end())
 			DrawArrow(g, Rect(r.X + r.Width - 16, r.Y, 16, r.Height), 4,
