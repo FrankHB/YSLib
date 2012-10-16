@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1234
+\version r1235
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2012-09-07 11:22 +0800
+	2012-10-16 10:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -271,7 +271,7 @@ public:
 	\since build 319
 	*/
 	template<typename _type>
-	yconstfn explicit
+	explicit yconstfn
 	Size(const GBinaryGroup<_type>& val) ynothrow
 		: Width(val.X), Height(val.Y)
 	{}

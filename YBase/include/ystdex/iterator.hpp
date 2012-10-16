@@ -10,14 +10,14 @@
 
 /*!	\file iterator.hpp
 \ingroup YStandardEx
-\brief C++ 标准库迭代器扩展。
-\version r929
+\brief 通用迭代器。
+\version r1150
 \author FrankHB<frankhb1989@gmail.com>
-\since 早于 build 189
+\since build 347
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-10-08 20:03 +0800
+	2012-10-16 21:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,8 +107,9 @@ public:
 	pointer_iterator(std::nullptr_t = {})
 		: current()
 	{}
+	//! \since build 347
 	template<typename _tPointer>
-	yconstfn
+	explicit yconstfn
 	pointer_iterator(_tPointer&& ptr)
 		: current(yforward(ptr))
 	{}
@@ -223,12 +224,7 @@ struct pointer_classify<_type*>
 */
 template<typename _type, typename _tIterator = _type*,
 	typename _tTraits = std::iterator_traits<_tIterator>>
-class pseudo_iterator : private std::iterator<
-	typename _tTraits::iterator_category,
-	typename _tTraits::value_type,
-	typename _tTraits::difference_type,
-	typename _tTraits::pointer,
-	typename _tTraits::reference>
+class pseudo_iterator
 {
 protected:
 	typedef _tTraits traits_type;
@@ -359,8 +355,9 @@ protected:
 	mutable transformer_type transformer;
 
 public:
+	//! \since build 347
 	template<typename _tIter, typename _tTran>
-	yconstfn
+	explicit yconstfn
 	transformed_iterator(_tIter&& i, _tTran&& f = {})
 		: iterator_type(yforward(i)), transformer(f)
 	{}
@@ -513,13 +510,7 @@ operator|(_tIterator&& i, second_tag)
 */
 template<typename _tMaster, typename _tSlave,
 	class _tTraits = std::iterator_traits<_tMaster>>
-class pair_iterator : private std::iterator<
-	typename _tTraits::iterator_category,
-	typename _tTraits::value_type,
-	typename _tTraits::difference_type,
-	typename _tTraits::pointer,
-	typename _tTraits::reference>,
-	protected std::pair<_tMaster, _tSlave>
+class pair_iterator : private std::pair<_tMaster, _tSlave>
 {
 protected:
 	typedef _tTraits traits_type;
@@ -646,59 +637,71 @@ public:
 
 
 /*!
-\brief 公共迭代器特征类。
+\brief 迭代器操作静态模版。
+\since build 347
 */
-struct common_iterator_base
+template<typename _tIterator, typename _tReference
+	= typename std::iterator_traits<_tIterator>::reference>
+class iterator_operations
 {
+public:
+	typedef _tIterator iterator_type;
+	typedef std::iterator_traits<iterator_type> traits_type;
+	typedef typename traits_type::value_type value_type;
+	typedef typename traits_type::pointer pointer;
+	typedef _tReference reference;
 	/*!
 	\brief 公共迭代器类型。
 	*/
 	typedef void_ref common_iterator;
-	typedef void_ref value_type;
-	typedef void* pointer;
-	typedef void_ref reference;
 	typedef enum
 	{
 		deref = 0,
-		is_deref = 1,
-		is_underef = 2,
-		inc = 3
-	} operation_t;
+		inc = 1,
+		is_deref = 2,
+		is_underef = 3,
+		eq = 4
+	} operation_id;
 	/*
 	\brief 迭代器操作类型。
 	\note 模版实参 0 ：类型 reference(*)(common_iterator) ，解引用；
-		模版实参 1 ：类型 bool(*)(common_iterator) ，判断是否确定可解引用；
-		模版实参 2 ：类型 bool(*)(common_iterator) ，判断是否确定不可解引用；
-		模版实参 3 ：类型 void(*)(common_iterator) ，自增。
+		模版实参 1 ：类型 void(*)(common_iterator) ，自增；
+		模版实参 2 ：类型 bool(*)(common_iterator) ，判断是否确定可解引用；
+		模版实参 3 ：类型 bool(*)(common_iterator) ，判断是否确定不可解引用；
+		模版实参 4 ：类型 bool(*)(common_iterator, common_iterator) ，比较相等性。
 	*/
 	typedef std::tuple<
 		reference(*)(common_iterator),
+		void(*)(common_iterator),
 		bool(*)(common_iterator),
 		bool(*)(common_iterator),
-		void(*)(common_iterator)
+		bool(*)(common_iterator, common_iterator)
 	> operation_list;
 
-protected:
-	/*!
-	\brief 无参数构造： \c protected 默认实现。
-	\since build 296
-	*/
-	yconstfn common_iterator_base() = default;
-	/*!
-	\brief 复制构造： \c protected 默认实现。
-	\since build 296
-	*/
-	yconstfn common_iterator_base(const common_iterator_base&) = default;
-};
+	//! \since build 347
+	//@{
+	static bool
+	are_equal(const iterator_type& x, const iterator_type& y)
+	{
+		return x == y;
+	}
+	static bool
+	are_equal(common_iterator x, common_iterator y)
+	{
+		return x.operator iterator_type&() == y.operator iterator_type&();
+	}
 
-
-/*!
-\brief 迭代器操作静态模版。
-*/
-template<typename _tIterator>
-struct iterator_operations : public common_iterator_base
-{
-	typedef _tIterator iterator_type;
+	static reference
+	dereference(const iterator_type& i)
+	{
+		return *i;
+	}
+	//@}
+	static reference
+	dereference(common_iterator i)
+	{
+		return *i.operator iterator_type&();
+	}
 
 	static void
 	increase(iterator_type& i)
@@ -723,22 +726,11 @@ struct iterator_operations : public common_iterator_base
 		return ystdex::is_undereferencable(i.operator iterator_type&());
 	}
 
-	static reference
-	dereference(iterator_type& i)
-	{
-		return *i;
-	}
-	static reference
-	dereference(common_iterator i)
-	{
-		return *i.operator iterator_type&();
-	}
-
 	/*
 	\brief 迭代器操作。
 	*/
-	static yconstexpr operation_list operations{dereference, is_dereferencable,
-		is_undereferencable, increase};
+	static yconstexpr operation_list operations{dereference, increase,
+		is_dereferencable, is_undereferencable, are_equal};
 
 protected:
 	/*!
@@ -753,53 +745,62 @@ protected:
 	yconstfn iterator_operations(const iterator_operations&) = default;
 };
 
-template<typename _tIterator>
-yconstexpr typename common_iterator_base::operation_list
-	iterator_operations<_tIterator>::operations;
+template<typename _tIterator, typename _tReference>
+yconstexpr typename iterator_operations<_tIterator, _tReference>::operation_list
+	iterator_operations<_tIterator, _tReference>::operations;
 
 
 /*!
 \ingroup iterator_adaptors
 \brief 单态输入迭代器。
+\since 347
 
 非多态输入迭代器适配器。
 */
-class input_monomorphic_iterator : private std::iterator<
-	std::input_iterator_tag, void_ref, std::ptrdiff_t,
-	void*, void_ref>
+template<typename _type, typename _tPointer, typename _tReference>
+class any_input_iterator : public std::iterator<
+	std::input_iterator_tag, _type, std::ptrdiff_t, _tPointer, _tReference>
 {
 public:
-	typedef common_iterator_base::common_iterator common_iterator;
-	typedef common_iterator_base::operation_list operations_type;
+	typedef std::iterator<std::input_iterator_tag, _type,
+		std::ptrdiff_t, _tPointer, _tReference> iterator_type;
+	typedef iterator_operations<iterator_type> operations_base;
+	typedef typename operations_base::value_type value_type;
+	typedef typename operations_base::pointer pointer;
+	typedef typename operations_base::reference reference;
+	typedef typename operations_base::common_iterator common_iterator;
+	typedef typename operations_base::operation_list operations_type;
 
 private:
 	common_iterator obj;
 	const operations_type* operations_ptr;
 
 public:
-	input_monomorphic_iterator() = delete;
+	any_input_iterator() = delete;
 	/*!
-	\brief 构造：使用现有迭代器。
+	\brief 显式构造：使用现有迭代器。
 	\post operations_ptr != nullptr 。
+	\since build 347
 	*/
 	template<typename _tIterator>
-	input_monomorphic_iterator(_tIterator&& i)
+	explicit
+	any_input_iterator(_tIterator&& i)
 		: obj(i), operations_ptr(&iterator_operations<typename
-		std::remove_reference<_tIterator>::type>::operations)
+		std::remove_reference<_tIterator>::type, reference>::operations)
 	{}
-	input_monomorphic_iterator(const input_monomorphic_iterator&) = delete;
+	any_input_iterator(const any_input_iterator&) = delete;
 
-	input_monomorphic_iterator&
+	any_input_iterator&
 	operator++()
 	{
-		std::get<common_iterator_base::inc>(*operations_ptr)(obj);
+		std::get<operations_base::inc>(*operations_ptr)(obj);
 		return *this;
 	}
 
 	reference
 	operator*() const
 	{
-		return std::get<common_iterator_base::deref>(*operations_ptr)(obj);
+		return std::get<operations_base::deref>(*operations_ptr)(obj);
 	}
 
 	pointer
@@ -818,21 +819,73 @@ public:
 	{
 		return *operations_ptr;
 	}
+
+	/*!
+	\brief 比较底层迭代器的类型是否相同。
+	\since build 347
+	*/
+	bool
+	same_type(const any_input_iterator& i) const
+	{
+		// NOTE: In some bad conforming implementation the result may be wrong
+		//	because of boundaries.
+		return operations_ptr == i.operations_ptr;
+	}
 };
 
+/*!
+\brief 比较单态输入迭代器的相等性。
+\param x 左操作数。
+\param y 右操作数。
+\pre 断言检查 <tt>x.same_type(y)</tt> 。
+\since build 347
+*/
+template<typename _type, typename _tPointer, typename _tReference>
 inline bool
-is_dereferencable(const input_monomorphic_iterator& i)
+operator==(const any_input_iterator<_type, _tPointer, _tReference>& x,
+	const any_input_iterator<_type, _tPointer, _tReference>& y)
 {
-	return std::get<common_iterator_base::is_deref>(i.get_operations())(
-		i.get());
+	yconstraint(x.same_type(y));
+
+	//any_iterator_base<...>::eq
+	return std::get<4>(x.get_operations())(x.get(), y.get());
 }
 
+/*!
+\brief 比较单态输入迭代器的不等性。
+\since build 347
+*/
+template<typename _type, typename _tPointer, typename _tReference>
 inline bool
-is_undereferencable(const input_monomorphic_iterator& i)
+operator!=(const any_input_iterator<_type, _tPointer, _tReference>& x,
+	const any_input_iterator<_type, _tPointer, _tReference>& y)
 {
-	return std::get<common_iterator_base::is_underef>(i.get_operations())(
-		i.get());
+	return !(x == y);
 }
+
+//! \since build 347
+template<typename _type, typename _tPointer, typename _tReference>
+inline bool
+is_dereferencable(const
+	any_input_iterator<_type, _tPointer, _tReference>& i)
+{
+	//any_iterator_base<...>::is_deref
+	return std::get<2>(i.get_operations())(i.get());
+}
+
+//! \since build 347
+template<typename _type, typename _tPointer, typename _tReference>
+inline bool
+is_undereferencable(const
+	any_input_iterator<_type, _tPointer, _tReference>& i)
+{
+	//any_iterator_base<...>::is_underef
+	return std::get<3>(i.get_operations())(i.get());
+}
+
+//! \since build 347
+typedef any_input_iterator<void_ref, void*, void_ref>
+	input_monomorphic_iterator;
 
 } // namespace ystdex;
 

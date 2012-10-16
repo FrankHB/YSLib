@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r563
+\version r566
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-09-20 12:16 +0800
+	2012-10-16 09:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -452,7 +452,7 @@ any_cast(const any& x)
 /*!
 \brief 非安全动态泛型转换。
 \note 语义同 boost::unsafe_any_cast 。
-\pre 断言检查 <tt>p</tt> 。
+\pre 断言检查： <tt>p</tt> 。
 \since build 331
 */
 //@{
@@ -460,7 +460,7 @@ template<typename _type>
 inline _type*
 unsafe_any_cast(any* p)
 {
-	yassume(p);
+	yconstraint(p);
 
 	return p->get<_type>();
 }
@@ -469,7 +469,7 @@ template<typename _type>
 inline const _type*
 unsafe_any_cast(const any* p)
 {
-	yassume(p);
+	yconstraint(p);
 
 	return p->get<_type>();
 }

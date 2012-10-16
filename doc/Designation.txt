@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6775
+\version r6797
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-09 10:03 +0800
+	2012-10-15 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -342,22 +342,40 @@ nested-module-name:
 关于一些文件的文件名的额外约定参见 @2.9.1 。
 多个编译单元组成一个系统，置于文件系统的同一个目录中。
 
-@2.1 名称规则：
+@2.1 名称和命名空间规则：
 名称使用前提约束：参见 [Documentation::CommonRules @@5.1] 。
-使用嵌套命名空间。
+
+@2.1.1 文件名和目录名：
+本节适用于代码和相关目录，不适用于文档和相关目录。
+
+@2.1.1.1 长度和可包含的字符：
+除 @2.1.1.2 列出的例外，同 Boost 限制，参见 http://www.boost.org/development/requirements.html#Directory_structure 。
+ build 275 前在此之上有更强的保证：支持 8.3 文件名兼容性，文件名不使用大写字母，目录名不超过 8 个字符）。
+考虑可移植性，保证所有文件名和目录名中的所有字符使用 std::tolower 转换后得到的文件名不重复。
+
+@2.1.1.2 可包含字符例外：
+除了 YBase ，在文件名和目录名中允许使用大写字母。
+
+@2.1.1.3 头文件扩展名：
+一般使用 h ，但设计时即确定不需要作为独立翻译单元的实现文件（如仅包含模版的实现或元编程设施）的头文件使用 hpp 。
+
+@2.1.2 源代码一般规则：
+使用嵌套命名空间，避免过长的标识符命名。
 一个单元可能有多个命名空间。
 一个命名空间可能在多个单元中。
- YSLib 默认显式依赖于库 YCLib 。具体由适配器系统(@2.6) 决定。
 
-@2.1.1 头文件附加准则：
+@2.1.3 头文件附加准则：
 禁止在头文件中使用不具名命名空间(unnamed namespace) ，除非其中仅含 inline 函数和模板或需要和每一个翻译单元独立地相关的对象。
 禁止在头文件中使用全局 using 指示，除非是有意的（例如减少别名个数；需在文档中说明）。
 
-@2.1.2 全局名称：
+@2.1.4 全局名称：
  YSLib 库的根命名空间为 YSLib ，应置于全局命名空间中，即为 ::YSLib 。
 根据平台特性增设全局对象的定义位于 "/Helper/YGlobal" 中。
 
-@2.1.3 命名空间分配：
+@2.1.5 特定引用规则：
+ YSLib 默认显式依赖于库 YCLib ，可声明 YCLib 中的名称。具体由适配器系统(@2.6) 决定。
+
+@2.1.6 命名空间分配：
  YSLib::Components ：组件。
  YSLib::Components::Styles ：样式和界面定制。
  YSLib::Patterns ：设计模式。
@@ -370,11 +388,11 @@ nested-module-name:
  YSLib::Text ：文本相关的服务。
  YSLib::Timers ：计时器服务。
 
-@2.1.4 名称引用限制：
+@2.1.7 名称引用限制：
 除 Adaptor 外， YSLib 命名空间下不直接使用 YSLib 、 std 和 ystdex 以外的根命名空间以及其中的名称；不直接使用 std::tr1 及其中的名称。
 不使用除了 operator new 、 operator new[] 、 operator delete 、 operator delete[] 和 main 以外的全局命名空间中的名称。
 
-@2.1.5 附加名称限制：
+@2.1.8 附加名称限制：
 不在 Adaptor 和 Helper 等确定可以使用平台相关的代码以外区域使用环境、编译器和版本判断宏。
 
 @2.2 实体实现规则：
@@ -669,7 +687,7 @@ nested-module-name:
 事件依赖项仅对非映射事件使用。相关类参见 @2.5.9 。
 默认 GUI 事件使用 Core::YEvent 等单元实现，和 YWidget 、 YControl 和 YGUI 单元相关。
 在 YWidgetEvent 单元中的枚举类型 typedef 名称 VisualEvent 定义了标准控件事件空间，其中定义了标准控件事件，包含视图变更事件、 GUI 输入/输出事件和焦点事件。
- GUI 输入事件包含基本 GUI 输入事件和扩展 GUI 输入事件，参见 @2.7.2.1.2 。。
+ GUI 输入事件包含基本 GUI 输入事件和扩展 GUI 输入事件，参见 @2.7.2.1.2 。
 事件参数类型由 RoutedEventArgs 派生的称为路由事件。
 路由事件的路由策略分为三类： Tunnel 、 Direct 和 Bubble 。
  Tunnel 事件在处理事件的根部件进入子部件时依序触发， Direct 事件在定位至部件时触发， Bubble 事件在之后子部件退出至根部件时依序触发。

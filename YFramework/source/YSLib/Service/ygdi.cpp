@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2598
+\version r2599
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-10-04 04:34 +0800
+	2012-10-11 22:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ operator+(const Rect& r, const Padding& m)
 
 
 u64
-GetAllOf(Padding& m)
+GetAllOf(const Padding& m)
 {
 	u64 r = (m.Left << 16) | m.Right;
 

@@ -84,9 +84,12 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-Wredundant-decls" />
+			<Add option="-Wmissing-declarations" />
 			<Add option="-std=c++11" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
+			<Add option="-Winvalid-pch" />
 			<Add option="-mthreads" />
 			<Add directory="..\YSTest_ARM9\include" />
 			<Add directory="..\YFramework\include" />

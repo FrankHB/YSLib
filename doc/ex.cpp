@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4515 *build 346 rev *
+\version r4522 *build 347 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-11 00:20 +0800
+	2012-10-16 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -387,114 +387,138 @@ $using:
 
 $DONE:
 r1:
-^ "MinGW[gcc version 4.7.2 (Built by MinGW-builds project)] \
-	x32-4.7.2-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.7.1 \
-	(Built by MinGW-builds project)] i686-mingw32-gcc-4.7.1 [release-sjlj]"
-	@ platform MinGW32,
-		// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
-			Exceptions implementation: SjLj.
-/ \tr version macro check @ \h String @ \lib LibDefect;
-/= test 1 @ platform MinGW32;
+/ @ platform DS $=
+(
+	+ '-Wmissing-declarations -Winvalid-pch' @ \a \mac CFLAGS
+		@ makefiles
+	+ '-Wredundant-decls' @ \mac CFLAGS @ makefile @ \proj YBase
+);
+/= test 1 @ platform DS;
 
 r2:
-+ $dev 'override' @ \a \or \mf $=
-(
-	@ GetTopWidgetPtr \h (Scroll, YWidget),
-	@ ValueHolder::\op== @ \h YObject,
-	@ Widget::GetController
-);
+* non-correspondent \impl and missing right \impl @ \f for getting all margin \
+	components @ \u YGDI $since b167
+	$= (\f \def u64 GetAllOf(Padding&) -> \f \def u64 GetAllOf(const Padding&)),
++ '-Wmissing-declarations -Winvalid-pch -Wredundant-decls' @ \conf @ \a \proj
+	@ platform MinGW32,
+	// Ticked -Wmissing-declarations, -Wredundant-decls, added -Winvalid-pch.
+- redundant \decl \f (StartTicks, GetTicks, GetHighResolutionTicks)
+	@ \h YCommon;
 /= test 2 @ platform MinGW32;
 
 r3:
-/ @ \cl Widget $=
+/ @ \h Iterator $=
 (
-	/ private \m pWidget => view_ptr,
-	/ private \m pRenderer => renderer_ptr,
-	/ public \m pController -> private \m controller_ptr
+	/ @ \st common_iterator_base $=
+	(
+		/ typedef \en operation_t -> tyepdef \en operation_id,
+		/ \decl @ typedef operation_list
+	),
+	/ @ \stt iterator_operations $=
+	(
+		+ \smf bool equals(const iterator_type&, const iterator_type&),
+		+ \smf bool equals(common_iterator, common_iterator),
+		/ \smf reference dereference(iterator_type&)
+			-> reference dereference(const iterator_type&);
+		/ \impl @ \sm \o operations
+	)
 );
 /= test 3 @ platform MinGW32;
 
 r4:
-/ \impl @ \mf BufferedRenderer::Paint,
-/ \simp \impl @ \mf TextList::PaintItems @ \impl \u TextList;
+/ \h Iterator["iterator.hpp"] @ \dir ystdex
+	-> \u Iterator["iterator.h", "iterator.cpp"],
+/ \tr \inc \h @ (\h (Lexical, YBlit, YUIContainer, YEvent),
+	\impl \u (YTimer, CharacterProcessing, ReaderSetting, ShlReader)),
+/ \h YB_INC_YSTDEX_ITERATOR_HPP_ -> YB_INC_YSTDEX_ITERATOR_H_;
 /= test 4 @ platform MinGW32;
 
-r5:
-/ \simp \decl @ yconstexpr Padding DefaultMargin @ \h TextBase;
-/ \simp @ \cl MTextList $=
-(
-	/ private \m TextState text_state -> protected \m TextState tsList,
-	/ \tr \impl @ (\ctor, \mf RefreshTextState),
-	- protected \mf GetTextState
-),
-/ \tr \impl @ \impl \u (Label, Menu, TestList);
-/= test 5 @ platform MinGW32;
-
-r6:
-/= test 6 @ platform MinGW32 ^ \conf release;
+r5-r6:
+/ \impl @ \ft unsafe_any_cast @ \h Any,
++ \f bool operator==(const input_monomorphic_iterator&,
+	const input_monomorphic_iterator&) @ \u Iterator;
+/= 2 test 5 @ platform MinGW32;
 
 r7:
-/= test 7 @ platform DS;
+/ @ \h Iterator $=
+(
+	+ \mf input_monomorphic_iterator::same_type,
+	+ \impl @ \f \op==,
+	+ \f \i bool \op!=(const input_monomorphic_iterator&,
+		const input_monomorphic_iterator&),
+	+ \exp @ \ctor \t @ (\cl input_monomorphic_iterator,
+		\clt (pointer_iterator, transformed_iterator)) 
+),
+/ \a 'inline explicit' -> 'explicit inline',
+/ \tr \impl @ \f (ConversionResult MBCToUC(ucs2_t&, const char*&, Encoding,
+	ConversionState&&), ConversionResult MBCToUC(const char*&, Encoding,
+	ConversionState&&)) @ \impl \u CharacterProcessing;
+/= test 6 @ platform MinGW32;
 
 r8:
-/= test 8 @ platform DS ^ \conf release;
+/= test 7 @ platform MinGW32 ^ \conf release;
 
 r9:
-/ @ \cl TextList $=
-(
-	+ protected \mf \vt bool DrawItemBackground(const PaintContext&,
-		const Rect&);
-	/ protected \mf PaintItems -> DrawItems
-	/ protected \mf PaintItem => DrawItem
-),
-/ \mf Menu::PaintItem => Menu::DrawItem;
-/= test 9 @ platform MinGW32;
+/= test 8 @ platform DS;
 
 r10:
-/ \rem @ \m ClipArea @ \st PaintContext @ \h YWidgetEvent;
-/ @ \cl TextList $=
+/= test 9 @ platform DS ^ \conf release;
+
+r11:
+/ \impl @ \f \op== @ \impl \u Iterator -> \f \i @ \h Iterator;
+/ $undo r4;
+/= test 10 @ platform MinGW32;
+
+r12:
+/ @ \h Iterator $=
 (
-	/ \simp \impl @ \mf InvalidateSelected,
-	/ \impl @ \mf DrawItems
+	- \inh private 'std::iterator<*>' @ \clt (pseudo_iterator, pair_iterator),
+	/ \ac @ protected std::pair<_tMaster, _tSlave> @ \clt pair_iterator
+		-> private
 );
-/= test 10 @ platform DS ^ \conf release;
+/= test 11 @ platform MinGW32;
 
-r11-r12:
-* \impl @ \mf TextList::DrawItems $since r10,
-/= 2 test 11 @ platform MinGW32;
+r13-r16:
+/ @ \h Iterator $=
+(
+	/ (\st common_iterator_base, \stt iterator_operations<$1>)
+		-> \clt iterator_operations<$2>,
+	/ \cl input_monomorphic_iterator -> \clt any_input
+	/ \f \op(=, !=) -> \ft;
+	+ \tr typedef any_input_iterator<void_ref, void*, void_ref>
+		input_monomorphic_iterator
+),
+/= 4 test 12 @ platform MinGW32;
 
-r13:
-/ \simp \impl @ \ctor TextState(FontCache&) @ \impl \u TextBase ^ \inh \ctor;
-/= test 12 @ platform MinGW32;
-
-r14:
+r17:
 /= test 13 @ platform MinGW32 ^ \conf release;
 
-r15:
+r18:
 /= test 14 @ platform DS;
 
-r16:
+r19:
 /= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-10-11 +0800:
--27.5d;
-// Mercurial rev1-rev217: r9300;
+2012-10-16 +0800:
+-27.1d;
+// Mercurial rev1-rev218: r9319;
 
 / ...
 
 
 $NEXT_TODO:
-b347-b356:
+b348-b356:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager,
 	+ (reading history, bookmarks) (serialization, unserialization)
-		as configuration
+		as configuration,
+	/ \f ReleaseShells >> \h
 );
 
 
@@ -537,7 +561,7 @@ b357-b400:
 	/ improved tests and examples
 );
 
-b401-b895:
+b[500]:
 / $low_prior @ \lib YCLib $=
 (
 	/ fully \impl @ memory mappaing APIs,
@@ -572,7 +596,9 @@ b401-b895:
 		// See comments @ src/fccache.c @ \proj fontconfig.
 	/ consideration of mutable member @ class %Message,
 	/ (\ac, \n) @ \m (DSApplication::pFontCache,
-		View::(pContainer, pDependency, pFocusing))
+		View::(pContainer, pDependency, pFocusing)),
+	/ consideration of \impl ^ ystdex::any
+		@ \cl ystdex::input_monomorphic_iterator
 ),
 / $low_prior performance $=
 (
@@ -625,7 +651,7 @@ b401-b895:
 		@ class %ListBox
 );
 
-b896-b1386:
+b[490]:
 ^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
 	when (^ g++),
 / memory fragment issues,
@@ -671,7 +697,7 @@ b896-b1386:
 	+ modal widget behavior
 );
 
-b1387-b1918:
+b[531]:
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
 / platform dependent system functions $=
 (
@@ -732,7 +758,7 @@ b1387-b1918:
 
 $LOW_PRIOR_TODO:
 ^ $low_prior $for_labeled_scope;
-b1919-b5432:
+b[3513]:
 + advanced shell system $=
 (
 	+ dynamic loading and reloading,
@@ -956,6 +982,36 @@ $module_tree $=
 );
 
 $now
+(
+	+ $lib $dev "more specific warning options" @ "compiler command" $=
+	(
+		+ "-Wmissing-declarations -Wredundant-decls" @ "platform %DS",
+		+ "-Wredundant-decls" @ "library %YBase @ platform %DS"
+		+ "-Wmissing-declarations -Winvalid-pch -Wredundant-decls"
+			@ "platform %MinGW32"
+	),
+	/ %'YFramework' $=
+	(
+		* "non-correspondent implementation and missing right function for \
+			getting all margin components" @ "unit %YGDI" @ 'YSLib'.'Service'
+			$since b167,
+		- "redundant declarations" @ "function %(StartTicks, GetTicks, \
+			GetHighResolutionTicks)" @ "header" @ % 'YCLib'.'YCommon'
+	),
+	/ %'YBase'.'YStandardEx'.'Iterator' $=
+	(
+		- DLD "instance of %std::iterator as private inherited classes"
+			@ "class template %(pseudo_iterator, pair_iterator)",
+		/ "(struct %common_iterator_base, class template %iterator_operations) \
+		  merged" -> "class template %iterator_operations"
+		+ "class template %any_input_iterator with operator(==, !=)";
+		/ "class input_monomorphic_iterator" -> "typedef name"
+			// Only constructor limited to be explicit, other interfaces \
+				are compatible with previous revisions.
+	)
+),
+
+b346
 (
 	^ DLP "MinGW[gcc version 4.7.2 (Built by MinGW-builds project)] \
 		x32-4.7.2-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.7.1 \

@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3390
+\version r3408
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
+	2012-10-11 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,28 +77,6 @@ yassert(bool, const char*, const char*, int, const char*);
 #	define YAssert(exp, message) assert(exp)
 
 #endif
-
-
-/*!
-\brief 开始 tick 计时。
-*/
-void
-StartTicks();
-
-/*!
-\brief 取 tick 数。
-\note 单位为毫秒。
-*/
-std::uint32_t
-GetTicks();
-
-/*!
-\brief 取高精度 tick 数。
-\note 单位为纳秒。
-\since build 291
-*/
-std::uint64_t
-GetHighResolutionTicks();
 
 } // namespace platform;
 

@@ -1,8 +1,8 @@
 # DS Makefile for YShell -> ARM7 by Franksoft 2009 - 2012
-# CodePage = ANSI / GBK;
-# CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-08-28 19:50 +0800;
-# Version = r1152;
+# CodePage = ANSI / GBK
+# CTime = 2009-12-18 12:27:40 +0800
+# UTime = 2012-10-11 22:20 +0800
+# Version = r1157
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -47,6 +47,7 @@ ARCH	:=	$(ARCH_AS) -mtune=arm7tdmi
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
 CFLAGS	:=	-Wall -Wextra \
+ 			-Wmissing-declarations -Winvalid-pch \
  			-fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)

@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3348
+\version r3349
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-09-07 11:09 +0800
+	2012-10-50 10:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@ struct Padding
 	\brief 构造：使用 4 个 16 位无符号整数形式的边距。
 	\since build 286
 	*/
-	yconstfn explicit
+	explicit yconstfn
 	Padding(SDst l = 0, SDst r = 0, SDst t = 0, SDst b = 0)
 		: Left(l), Right(r), Top(t), Bottom(b)
 	{}

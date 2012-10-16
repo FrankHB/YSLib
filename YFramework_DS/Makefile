@@ -1,8 +1,8 @@
 # DS Makefile for YFramework -> DS by Franksoft 2009 - 2012
-# CodePage = ANSI / GBK;
-# CTime = 2009-12-18 12:27:40 +0800;
-# UTime = 2012-08-31 17:50 +0800;
-# Version = r1803;
+# CodePage = ANSI / GBK
+# CTime = 2009-12-18 12:27:40 +0800
+# UTime = 2012-10-11 22:20 +0800
+# Version = r1808
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -65,6 +65,7 @@ ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
 CFLAGS	:=	-Wall -Wextra \
+ 			-Wmissing-declarations -Winvalid-pch \
  			-fomit-frame-pointer \
  			-ffast-math \
  			$(ARCH)
