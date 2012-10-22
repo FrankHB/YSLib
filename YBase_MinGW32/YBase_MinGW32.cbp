@@ -83,6 +83,7 @@
 		<Unit filename="..\YBase\include\ystdex\container.hpp" />
 		<Unit filename="..\YBase\include\ystdex\cstdio.h" />
 		<Unit filename="..\YBase\include\ystdex\cstring.h" />
+		<Unit filename="..\YBase\include\ystdex\examiner.hpp" />
 		<Unit filename="..\YBase\include\ystdex\functional.hpp" />
 		<Unit filename="..\YBase\include\ystdex\iterator.hpp" />
 		<Unit filename="..\YBase\include\ystdex\memory.hpp" />

@@ -10,14 +10,14 @@
 
 /*!	\file type_op.hpp
 \ingroup YStandardEx
-\brief C++ 类型操作模板类。
-\version r722
+\brief C++ 类型操作。
+\version r724
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2012-09-14 12:21 +0800
+	2012-10-17 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_TYPEOP_HPP_
-#define YB_INC_YSTDEX_TYPEOP_HPP_ 1
+#ifndef YB_INC_YSTDEX_TYPE_OP_HPP_
+#define YB_INC_YSTDEX_TYPE_OP_HPP_ 1
 
 #include "../ydef.h" // for <type_traits> and std::declval;
 

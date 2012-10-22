@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3525
+\version r3552
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-10-08 11:49 +0800
+	2012-10-18 14:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include "yexcept.h"
 #include "../Adaptor/ycont.h"
 #include <ystdex/any.h> // for ystdex::any_holder, ystdex::any;
+#include <ystdex/examiner.hpp> // for ystdex::equal_examiner;
 
 YSL_BEGIN
 
@@ -80,20 +81,6 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 */
 DeclDerivedI(IValueHolder, ystdex::any_holder)
 	DeclIEntry(bool operator==(const IValueHolder&) const)
-
-protected:
-	template<typename _type>
-	static inline bool
-	AreEqual(_type& x, _type& y, decltype(x == y) = false)
-	{
-		return x == y;
-	}
-	template<typename _type, typename _tUnused>
-	static inline bool
-	AreEqual(_type&, _tUnused&)
-	{
-		return true;
-	}
 EndDecl
 
 
@@ -105,9 +92,11 @@ EndDecl
 template<typename _type>
 class ValueHolder : implements IValueHolder
 {
-public:
-	_type held;
+protected:
+	//! \since build 348
+	mutable _type held;
 
+public:
 	ValueHolder(const _type& value)
 		: held(value)
 	{}
@@ -123,13 +112,15 @@ public:
 	ImplI(IValueHolder) bool
 	operator==(const IValueHolder& obj) const override
 	{
-		return AreEqual(held, static_cast<const ValueHolder&>(obj).held);
+		return ystdex::examiners::equal_examiner::are_equal(held,
+			static_cast<const ValueHolder&>(obj).held);
 	}
 
 	ImplI(IValueHolder) DefClone(ValueHolder, clone)
 
+	//! \since build 348
 	ImplI(IValueHolder) void*
-	get() override
+	get() const override
 	{
 		return std::addressof(held);
 	}
@@ -153,9 +144,11 @@ class PointerHolder : implements IValueHolder
 {
 	static_assert(std::is_object<_type>::value, "Invalid type found.");
 
-public:
+protected:
 	_type* p_held;
 
+public:
+	//! \since build 348
 	PointerHolder(_type* value)
 		: p_held(value)
 	{}
@@ -176,12 +169,13 @@ public:
 	ImplI(IValueHolder) bool
 	operator==(const IValueHolder& obj) const
 	{
-		return AreEqual(*p_held,
+		return ystdex::examiners::equal_examiner::are_equal(*p_held,
 			*static_cast<const PointerHolder&>(obj).p_held);
 	}
 
+	//! \since build 348
 	ImplI(IValueHolder) void*
-	get() override
+	get() const override
 	{
 		return p_held;
 	}

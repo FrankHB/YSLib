@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r355
+\version r392
 \author FrankHB<frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-10-22 21:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,6 +155,48 @@ template<typename _fCallable>
 struct paramlist_size : std::integral_constant<size_t, std::tuple_size<typename
 	make_parameter_tuple<_fCallable>::type>::value>
 {};
+
+
+/*!
+\ingroup unary_type_trait
+\brief 取 std::reference_wrapper 实例特征。
+\since build 348
+*/
+//@{
+template<typename _type>
+struct wrapped_traits : public std::false_type
+{
+	typedef _type type;
+};
+
+template<typename _tWrapped>
+struct wrapped_traits<std::reference_wrapper<_tWrapped>> : public std::true_type
+{
+	typedef _tWrapped type;
+};
+//@}
+
+
+/*!
+\brief 解除引用包装。
+\note 默认只对于 std::reference_wrapper 的实例类型的对象重载。
+\note 可以自定义其它重载。可以使用 ADL 。
+\since build 348
+*/
+//@{
+template<typename _type>
+_type&
+unref(_type&& x) ynothrow
+{
+	return x;
+}
+template<typename _type>
+_type&
+unref(const std::reference_wrapper<_type>& x) ynothrow
+{
+	return x.get;
+}
+//@}
 
 
 /*!	\defgroup functors General Functors

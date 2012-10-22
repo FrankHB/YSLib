@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r566
+\version r585
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-10-16 09:13 +0800
+	2012-10-18 14:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,8 +125,9 @@ public:
 	~any_holder()
 	{}
 
+	//! \since build 348
 	virtual void*
-	get() = 0;
+	get() const = 0;
 
 	virtual any_holder*
 	clone() const = 0;
@@ -144,13 +145,20 @@ public:
 template<typename _type>
 class value_holder : public any_holder
 {
-public:
-	_type held;
+protected:
+	//! \since build 348
+	mutable _type held;
 
+public:
 	value_holder(const _type& value)
 		: held(value)
 	{}
-	value_holder(_type&& value) ynothrow
+	/*!
+	\brief 转移构造。
+	\note 不一定保证无异常跑出；不被 ystdex::any 直接使用。
+	\since build 348 。
+	*/
+	value_holder(_type&& value) ynoexcept(ynoexcept(held(std::move(value))))
 		: held(std::move(value))
 	{}
 
@@ -163,8 +171,9 @@ public:
 		return new value_holder(held);
 	}
 
+	//! \since build 348
 	void*
-	get() override 
+	get() const override
 	{
 		return std::addressof(held);
 	}
@@ -189,9 +198,11 @@ class pointer_holder : public any_holder
 {
 	static_assert(std::is_object<_type>::value, "Invalid type found.");
 
-public:
+protected:
+	//! \since build 348
 	_type* p_held;
 
+public:
 	pointer_holder(_type* value)
 		: p_held(value)
 	{}
@@ -210,8 +221,9 @@ public:
 		return new pointer_holder(p_held ? new _type(*p_held) : nullptr);
 	}
 
+	//! \since build 348
 	void*
-	get() override 
+	get() const override
 	{
 		return p_held;
 	}

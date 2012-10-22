@@ -62,6 +62,7 @@
 		<Unit filename="include\ystdex\container.hpp" />
 		<Unit filename="include\ystdex\cstdio.h" />
 		<Unit filename="include\ystdex\cstring.h" />
+		<Unit filename="include\ystdex\examiner.hpp" />
 		<Unit filename="include\ystdex\functional.hpp" />
 		<Unit filename="include\ystdex\iterator.hpp" />
 		<Unit filename="include\ystdex\memory.hpp" />

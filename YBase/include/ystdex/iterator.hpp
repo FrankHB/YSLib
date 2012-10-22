@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r1150
+\version r1192
 \author FrankHB<frankhb1989@gmail.com>
 \since build 347
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-10-16 21:15 +0800
+	2012-10-18 12:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,6 +118,20 @@ public:
 	inline
 	pointer_iterator(pointer_iterator&&) = default;
 
+	inline pointer_iterator&
+	operator+=(const difference_type& n)
+	{
+		current += n;
+		return *this;
+	}
+
+	inline pointer_iterator&
+	operator-=(const difference_type& n)
+	{
+		current -= n;
+		return *this;
+	}
+
 	yconstfn reference
 	operator*() const
 	{
@@ -160,24 +174,10 @@ public:
 		return current[n];
 	}
 
-	inline pointer_iterator&
-	operator+=(const difference_type& n)
-	{
-		current += n;
-		return *this;
-	}
-
 	yconstfn pointer_iterator
 	operator+(const difference_type& n) const
 	{
 		return pointer_iterator(current + n);
-	}
-
-	inline pointer_iterator&
-	operator-=(const difference_type& n)
-	{
-		current -= n;
-		return *this;
 	}
 
 	yconstfn pointer_iterator
@@ -257,6 +257,18 @@ public:
 	pseudo_iterator&
 	operator=(pseudo_iterator&&) = default;
 
+	pseudo_iterator&
+	operator+=(const difference_type&)
+	{
+		return *this;
+	}
+
+	pseudo_iterator&
+	operator-=(const difference_type&)
+	{
+		return *this;
+	}
+
 	//前向迭代器需求。
 	yconstfn reference
 	operator*() const
@@ -302,20 +314,8 @@ public:
 		return this[_n];
 	}
 
-	pseudo_iterator&
-	operator+=(const difference_type&)
-	{
-		return *this;
-	}
-
 	yconstfn pseudo_iterator
 	operator+(const difference_type&) const
-	{
-		return *this;
-	}
-
-	yconstfn pseudo_iterator&
-	operator-=(const difference_type&)
 	{
 		return *this;
 	}
@@ -549,6 +549,20 @@ public:
 	operator=(pair_iterator&&) = default;
 	// TODO: Allow iterator to const_iterator conversion.
 
+	pair_iterator&
+	operator+=(const difference_type& _n)
+	{
+		yunseq(this->first += _n, this->second += _n);
+		return *this;
+	}
+
+	pair_iterator&
+	operator-=(const difference_type& _n)
+	{
+		yunseq(this->first -= _n, this->second -= _n);
+		return *this;
+	}
+
 	//前向迭代器需求。
 	yconstfn reference
 	operator*() const
@@ -602,24 +616,10 @@ public:
 		return this->first[_n];
 	}
 
-	pair_iterator&
-	operator+=(const difference_type& _n)
-	{
-		yunseq(this->first += _n, this->second += _n);
-		return *this;
-	}
-
 	yconstfn pair_iterator
 	operator+(const difference_type& _n) const
 	{
 		return pair_iterator(this->first + _n, this->second + _n);
-	}
-
-	pair_iterator&
-	operator-=(const difference_type& _n)
-	{
-		yunseq(this->first -= _n, this->second -= _n);
-		return *this;
 	}
 
 	yconstfn pair_iterator
@@ -752,10 +752,8 @@ yconstexpr typename iterator_operations<_tIterator, _tReference>::operation_list
 
 /*!
 \ingroup iterator_adaptors
-\brief 单态输入迭代器。
+\brief 动态泛型输入迭代器。
 \since 347
-
-非多态输入迭代器适配器。
 */
 template<typename _type, typename _tPointer, typename _tReference>
 class any_input_iterator : public std::iterator<
@@ -790,13 +788,6 @@ public:
 	{}
 	any_input_iterator(const any_input_iterator&) = delete;
 
-	any_input_iterator&
-	operator++()
-	{
-		std::get<operations_base::inc>(*operations_ptr)(obj);
-		return *this;
-	}
-
 	reference
 	operator*() const
 	{
@@ -807,6 +798,13 @@ public:
 	operator->() const
 	{
 		return &**this;
+	}
+
+	any_input_iterator&
+	operator++()
+	{
+		std::get<operations_base::inc>(*operations_ptr)(obj);
+		return *this;
 	}
 
 	common_iterator

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4522 *build 347 rev *
+\version r4525 *build 348 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-16 21:33 +0800
+	2012-10-22 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -387,131 +387,90 @@ $using:
 
 $DONE:
 r1:
-/ @ platform DS $=
+/ @ \lib YStandardEx @ \proj YBase $=
 (
-	+ '-Wmissing-declarations -Winvalid-pch' @ \a \mac CFLAGS
-		@ makefiles
-	+ '-Wredundant-decls' @ \mac CFLAGS @ makefile @ \proj YBase
+	/ \mac YB_INC_YSTDEX_TYPEOP_HPP_ @ \h TypeOperation
+		=> YB_INC_YSTDEX_TYPE_OP_HPP_,
+	(
+		+ \h Examiners;
+		/ @ \h Examiners $=
+		(
+			+ \ns ystdex::examiners @ \h Examiners;
+			+ \st (equal, always_equal; equal_examiner) @ \ns ystdex::examiners
+		)
+	)
 );
-/= test 1 @ platform DS;
+/ \simp \impl @ \h YObject $=
+(
+	+ \inc \h Examiers
+	/ \impl @ \mf \op= @ \clt (ValueHolder, PointerHolder)\
+		^ ystdex::examiners::equal_examiner;
+	- \a \smf AreEqual @ \in IValueHolder
+)
+/= test 1 @ platform MinGW32;
 
 r2:
-* non-correspondent \impl and missing right \impl @ \f for getting all margin \
-	components @ \u YGDI $since b167
-	$= (\f \def u64 GetAllOf(Padding&) -> \f \def u64 GetAllOf(const Padding&)),
-+ '-Wmissing-declarations -Winvalid-pch -Wredundant-decls' @ \conf @ \a \proj
-	@ platform MinGW32,
-	// Ticked -Wmissing-declarations, -Wredundant-decls, added -Winvalid-pch.
-- redundant \decl \f (StartTicks, GetTicks, GetHighResolutionTicks)
-	@ \h YCommon;
+/ \ctor value_holder(_type&&) ynothrow -> value_holder(_type&& value)
+	ynoexcept(ynoexcept(held(std::move(value)))) @ \clt value_holder @ \h Any;
 /= test 2 @ platform MinGW32;
 
 r3:
 / @ \h Iterator $=
 (
-	/ @ \st common_iterator_base $=
-	(
-		/ typedef \en operation_t -> tyepdef \en operation_id,
-		/ \decl @ typedef operation_list
-	),
-	/ @ \stt iterator_operations $=
-	(
-		+ \smf bool equals(const iterator_type&, const iterator_type&),
-		+ \smf bool equals(common_iterator, common_iterator),
-		/ \smf reference dereference(iterator_type&)
-			-> reference dereference(const iterator_type&);
-		/ \impl @ \sm \o operations
-	)
+	/ \mf \order @ \clt (pointer_iterator, pseudo_iterator, pair_iterator,
+		any_input_iterator),
+	* \decl @ \mf \op-= @ \clt pseudo_iterator $since b246 $= (- 'yconstfn')
 );
 /= test 3 @ platform MinGW32;
 
-r4:
-/ \h Iterator["iterator.hpp"] @ \dir ystdex
-	-> \u Iterator["iterator.h", "iterator.cpp"],
-/ \tr \inc \h @ (\h (Lexical, YBlit, YUIContainer, YEvent),
-	\impl \u (YTimer, CharacterProcessing, ReaderSetting, ShlReader)),
-/ \h YB_INC_YSTDEX_ITERATOR_HPP_ -> YB_INC_YSTDEX_ITERATOR_H_;
-/= test 4 @ platform MinGW32;
-
-r5-r6:
-/ \impl @ \ft unsafe_any_cast @ \h Any,
-+ \f bool operator==(const input_monomorphic_iterator&,
-	const input_monomorphic_iterator&) @ \u Iterator;
-/= 2 test 5 @ platform MinGW32;
-
-r7:
-/ @ \h Iterator $=
+r4-r5:
+/ @ \h Any $=
 (
-	+ \mf input_monomorphic_iterator::same_type,
-	+ \impl @ \f \op==,
-	+ \f \i bool \op!=(const input_monomorphic_iterator&,
-		const input_monomorphic_iterator&),
-	+ \exp @ \ctor \t @ (\cl input_monomorphic_iterator,
-		\clt (pointer_iterator, transformed_iterator)) 
+	/ \m public _type held @ \clt value_holder -> protected mutable _type held;
+	/ \ac @ \m public _type* p_held @ \clt pointer_holder -> protected;
+	+ \c @ \a \mf get
 ),
-/ \a 'inline explicit' -> 'explicit inline',
-/ \tr \impl @ \f (ConversionResult MBCToUC(ucs2_t&, const char*&, Encoding,
-	ConversionState&&), ConversionResult MBCToUC(const char*&, Encoding,
-	ConversionState&&)) @ \impl \u CharacterProcessing;
+/ @ \h YObject $=
+(
+	/ \m public _type held @ \clt ValueHolder -> protected mutable _type held;
+	/ \ac @ \m public _type* p_held @ \clt PointerHolder -> protected;
+	+ \tr \c @ \a \mf get
+),
+/= 2 test 4 @ platform MinGW32;
+
+r6-r12:
+/= 7 test 5 @ platform MinGW32;
+
+r13:
+/ @ \h Functional $=
+(
+	+ \stt wrapped_traits,
+	+ \ft unref
+);
 /= test 6 @ platform MinGW32;
 
-r8:
+r14:
 /= test 7 @ platform MinGW32 ^ \conf release;
 
-r9:
+r15:
 /= test 8 @ platform DS;
 
-r10:
+r16:
 /= test 9 @ platform DS ^ \conf release;
-
-r11:
-/ \impl @ \f \op== @ \impl \u Iterator -> \f \i @ \h Iterator;
-/ $undo r4;
-/= test 10 @ platform MinGW32;
-
-r12:
-/ @ \h Iterator $=
-(
-	- \inh private 'std::iterator<*>' @ \clt (pseudo_iterator, pair_iterator),
-	/ \ac @ protected std::pair<_tMaster, _tSlave> @ \clt pair_iterator
-		-> private
-);
-/= test 11 @ platform MinGW32;
-
-r13-r16:
-/ @ \h Iterator $=
-(
-	/ (\st common_iterator_base, \stt iterator_operations<$1>)
-		-> \clt iterator_operations<$2>,
-	/ \cl input_monomorphic_iterator -> \clt any_input
-	/ \f \op(=, !=) -> \ft;
-	+ \tr typedef any_input_iterator<void_ref, void*, void_ref>
-		input_monomorphic_iterator
-),
-/= 4 test 12 @ platform MinGW32;
-
-r17:
-/= test 13 @ platform MinGW32 ^ \conf release;
-
-r18:
-/= test 14 @ platform DS;
-
-r19:
-/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-10-16 +0800:
--27.1d;
-// Mercurial rev1-rev218: r9319;
+2012-10-22 +0800:
+-29.9d;
+// Mercurial rev1-rev219: r9335;
 
 / ...
 
 
 $NEXT_TODO:
-b348-b356:
+b349-b360:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -519,11 +478,12 @@ b348-b356:
 	+ (reading history, bookmarks) (serialization, unserialization)
 		as configuration,
 	/ \f ReleaseShells >> \h
-);
+),
+^ mixin @ \clt iterator_operations @ \h Iterator;
 
 
 $TODO:
-b357-b400:
+b361-b404:
 / services $=
 (
 	+ \impl @ images loading
@@ -982,6 +942,53 @@ $module_tree $=
 );
 
 $now
+(
+	/ $lib %'YBase'.'YStandardEx' $=
+	(
+		+ "header %examiner.hpp" $=
+		(
+			+ "namespace %ystdex::examiners" $=
+				+ "class templates %(equal, always_equal; equal_examiner)";
+			$dep_to "examiners"
+		),
+		/ %'Any' $=
+		(
+			/ $dev "loosed nothrow exception specification" @ "copy constructor"
+				@ "class template %value_holder",
+			/ "member 'public _type held'" @ "class template %value_holder"
+				-> "'protected mutable _type held'";
+			/ "member 'public _type* p_held'" @ "class template %pointer_holder"
+				-> "'protected _type* p_held'",
+			+ "const qualifier" @ "all member functions %get"
+		)
+		* "wrong constexpr declaration" @ "member function %operator-="
+			@ "class template %pseudo_iterator" $since b246,
+		/ $design "member function declaration orders" @ "class template \
+			%(pointer_iterator, pseudo_iterator, pair_iterator, \
+			any_input_iterator)",
+		/ %'Functional' $=
+		(
+			// Specialized for std::reference_wrapper.
+			+ "class template %wrapped_traits",
+			+ "function template %unref"
+		)
+	),
+	/ $lib %'YFramework'.'YSLib'.'Core'.'YObject' $=
+	(
+		(
+			$dep_from "examiners",
+			/ $lib $dev "implementation" @ "class templates %(ValueHolder, \
+				PointerHolder)" ^ "%ystdex::examiners::equal_examiner"
+		)
+		/ "member 'public _type held'" @ "class template %ValueHolder"
+			-> "'protected mutable _type held'";
+		/ "member 'public _type* p_held'" @ "class template %PointerHolder"
+			-> "'protected _type* p_held'",
+		+ "const qualifier" @ "all member functions %get"
+	)
+),
+
+b347
 (
 	+ $lib $dev "more specific warning options" @ "compiler command" $=
 	(
