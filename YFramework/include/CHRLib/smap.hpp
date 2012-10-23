@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1819
+\version r1823
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2012-09-07 09:56 +0800
+	2012-10-23 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,15 +42,15 @@ template<typename _tIn, typename _tState>
 inline bool
 FillByte(_tIn& i, _tState& st)
 {
-	static_assert(std::is_explicitly_convertible<decltype(*i), byte>::value,
-		"Invalid mapping source type found;");
+	static_assert(std::is_constructible<const byte, decltype(*i)>::value,
+		"Invalid mapping source type found.");
 	static_assert(!std::is_volatile<typename std::remove_reference<
-		_tState>::type>::value, "Volatile state is unsupported;");
+		_tState>::type>::value, "Volatile state is not supported.");
 
 	if(YB_UNLIKELY(is_undereferencable(i)))
 		return false;
 
-	const auto r(static_cast<byte>(*i));
+	const byte r(*i);
 
 	yunseq(++i, GetSequenceOf(st)[GetCountOf(st)++] = r);
 	return true;

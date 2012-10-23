@@ -15,13 +15,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1238
+\version r1243
 \author FrankHB<frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2012-09-24 20:03 +0800
+	2012-10-23 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,6 @@
 #define NPL_INC_LEXICAL_H_
 
 #include "YSLib/Adaptor/ycont.h"
-#include <ystdex/iterator.hpp> // for ystdex::input_monomorphic_iterator;
 #include <cctype> // for std::isgraph;
 
 YSL_BEGIN_NAMESPACE(NPL)
@@ -73,10 +72,6 @@ using YSLib::string;
 class LexicalAnalyzer
 {
 public:
-	/*!
-	\brief 输入迭代器。
-	*/
-	typedef ystdex::input_monomorphic_iterator Iterator;
 	/*!
 	\brief 最大转义序列长度。
 	\note 包括反斜杠。

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4525 *build 348 rev *
+\version r4538 *build 349 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-22 23:06 +0800
+	2012-10-23 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,7 +164,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \ns ::= namespaces
 \o ::= objects
 \op ::= operators
-\or ::= overridden
+\or ::= overridden/overriders
 \param ::= parameters
 \param.de ::= default parameters
 \pos ::= position
@@ -387,90 +387,121 @@ $using:
 
 $DONE:
 r1:
-/ @ \lib YStandardEx @ \proj YBase $=
+/ \impl @ \ft FillByte @ \h StaticMapping $=
 (
-	/ \mac YB_INC_YSTDEX_TYPEOP_HPP_ @ \h TypeOperation
-		=> YB_INC_YSTDEX_TYPE_OP_HPP_,
-	(
-		+ \h Examiners;
-		/ @ \h Examiners $=
-		(
-			+ \ns ystdex::examiners @ \h Examiners;
-			+ \st (equal, always_equal; equal_examiner) @ \ns ystdex::examiners
-		)
-	)
+	/ $dev $design \as string,
+	* strict C++11 compatibility $= (^ std::is_constructible
+		~ std::is_explicitly_convertible) $since b?
+	// See $ref b349.
 );
-/ \simp \impl @ \h YObject $=
-(
-	+ \inc \h Examiers
-	/ \impl @ \mf \op= @ \clt (ValueHolder, PointerHolder)\
-		^ ystdex::examiners::equal_examiner;
-	- \a \smf AreEqual @ \in IValueHolder
-)
 /= test 1 @ platform MinGW32;
 
 r2:
-/ \ctor value_holder(_type&&) ynothrow -> value_holder(_type&& value)
-	ynoexcept(ynoexcept(held(std::move(value)))) @ \clt value_holder @ \h Any;
+/ @ \h Iterator $=
+(
+	+ \cl (any_iterator_holder; any_input_iterator_holder);
+	+ \clt (iterator_holder; input_iterator_holder);
+	+ \inc \h Cast
+);
 /= test 2 @ platform MinGW32;
 
 r3:
 / @ \h Iterator $=
 (
-	/ \mf \order @ \clt (pointer_iterator, pseudo_iterator, pair_iterator,
-		any_input_iterator),
-	* \decl @ \mf \op-= @ \clt pseudo_iterator $since b246 $= (- 'yconstfn')
+	/ \impl \clt any_input_iterator ^ \clt input_iterator_holder,
+	/ \tr \impl @ \mf op==, is_dereferencable, is_undereferencable
 );
 /= test 3 @ platform MinGW32;
 
-r4-r5:
-/ @ \h Any $=
+r4:
+/ @ \h Iterator $=
 (
-	/ \m public _type held @ \clt value_holder -> protected mutable _type held;
-	/ \ac @ \m public _type* p_held @ \clt pointer_holder -> protected;
-	+ \c @ \a \mf get
-),
-/ @ \h YObject $=
-(
-	/ \m public _type held @ \clt ValueHolder -> protected mutable _type held;
-	/ \ac @ \m public _type* p_held @ \clt PointerHolder -> protected;
-	+ \tr \c @ \a \mf get
-),
-/= 2 test 4 @ platform MinGW32;
-
-r6-r12:
-/= 7 test 5 @ platform MinGW32;
-
-r13:
-/ @ \h Functional $=
-(
-	+ \stt wrapped_traits,
-	+ \ft unref
+	/ @ \cl any_input_iterator $=
+	(
+		(
+			/ typedef iterator_operations<iterator_type> operations_base,
+				-> typedef std::iterator_traits<iterator_type> traits_type;
+			/ typedef typename operations_base::value_type value_type
+				-> typedef typename traits_type::value_type value_type,
+			/ typedef typename operations_base::pointer pointer
+				-> typedef typename traits_type::pointer pointer,
+		),
+		/ typedef typename operations_base::reference reference
+			-> typedef _tReference reference,
+		- typedef typename operations_base::common_iterator common_iterator,
+		- typedef typename operations_base::operation_list operations_type,
+	);
+	- \clt iterator_operations
 );
+/= test 4 @ platform MinGW32;
+
+r5:
++ \s \as @ \ft polymorphic_downcast @ \h Cast;
+/= test 5 @ platform MinGW32;
+
+r6:
+/ \impl @ \ctor \t @ \cl any_input_iterator @ \h Iterator,
+/ \tr \impl @ \f @ \impl \u CharacterProcessing;
 /= test 6 @ platform MinGW32;
 
+r7:
+/ @ \h Lexical $=
+(
+	- \m typedef ystdex::input_monomorphic_iterator Iterator
+		@ \cl LexicalAnalyzer;
+	- \inc \h Iterator
+);
+/= test 7 @ platform MinGW32;
+
+r8:
+/= test 8 @ platform MinGW32 ^ \conf release;
+
+r9:
+/= test 9 @ platform DS;
+
+r10:
+/= test 10 @ platform DS ^ \conf release;
+
+r11:
+/ \as @ \mf dereference @ \clt iterator_holder @ \h Iterator
+	^ \mf check_undereferencable ~ ystdex::is_undereferencable;
+/= test 11 @ platform MinGW32;
+
+r12:
++ \fnl @ \clt (iterator_holder, input_iterator_holder) @ \h Iterator;
+/= test 12 @ platform MinGW32;
+
+r13:
+/ @ \h Iteartor $=
+(
+	+ \mac (\def, !\def) (YB_ANY_DEF_CLONE, YB_ANY_DEF_TYPEID, YB_IT_DEF_CHECK,
+		YB_IT_DEF_GETREF);
+	/ \simp \impl @ \clt (iterator_holder, input_iterator_holder) ^ \mac
+);
+/= test 13 @ platform MinGW32;
+
 r14:
-/= test 7 @ platform MinGW32 ^ \conf release;
+/= test 14 @ platform MinGW32 ^ \conf release;
 
 r15:
-/= test 8 @ platform DS;
+/= test 15 @ platform DS;
 
 r16:
-/= test 9 @ platform DS ^ \conf release;
+/= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-10-22 +0800:
--29.9d;
-// Mercurial rev1-rev219: r9335;
+2012-10-23 +0800:
+-26.0d;
+// Mercurial rev1-rev221: r9351;
 
 / ...
 
 
 $NEXT_TODO:
-b349-b360:
+b350-b360:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -521,7 +552,7 @@ b361-b404:
 	/ improved tests and examples
 );
 
-b[500]:
+b[504]:
 / $low_prior @ \lib YCLib $=
 (
 	/ fully \impl @ memory mappaing APIs,
@@ -538,6 +569,7 @@ b[500]:
 (
 	/ \mac with no \arg
 ),
++ comparison between reference wrapped and non-wrapped iterators @ \h Iterator;
 / $design $low_prior robustness and cleanness $=
 (
 	/ @ \ns platform @ \u YCommon $=
@@ -796,7 +828,9 @@ $label; // label for locating in code portions;
 
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
-$dev; // issues concerned by developers, which end-users could ignore;
+$dev; // issues concerned by developers, which end-users could ignore \
+	(including compile-time characteristics such as static assertions but not \
+	runtime observative behaviors like runtime assertions);
 $lib; // issues only concerned with library(only implementation changing, \
 	or interfaces modifying including no deletion unless some replacements \
 	are provided, so no need fo library users to modify code using the library \
@@ -831,6 +865,12 @@ $ellipse_debug_assertion;
 
 $ref $=
 (
+b349 $=
+(
+$note "N3047"
+/*http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3047.html*/
+// Also LWG defect 1260.
+),
 b298 $=
 (
 $note "access violation examples"
@@ -943,7 +983,49 @@ $module_tree $=
 
 $now
 (
-	/ $lib %'YBase'.'YStandardEx' $=
+	/ $dev %'YFramework' $=
+	(
+		* "strict ISO C++11 compatibility" @ "function template %FillType"
+			%'CHRLib'.'StaticMapping' $since b?,
+			// See $ref b349.
+		- "iterator type definition and unnecessary header including"
+			@ %'NPL'.'Lexical'
+	),
+	/ $dev %'YBase' $=
+	(
+		/ %'Iterator' $=
+		(
+			+ "classes %(any_iterator_holder; any_input_iterator_holder)";
+			+ "class templates %(iterator_holder; input_iterator_holder)";
+			(
+				/ "implementation" @ "class %any_input_iterator" $=
+				(
+					// Value semantics constructor argument as default, no \
+						longer wrapping as reference automatically. It would \
+						be treat as reference only when being an object of \
+						instance of %std::reference_wrapper. User code should \
+						explicitly construct wrappers(e.g. via %std::ref or \
+						%std::cref) if reference semantic iterators were \
+						really needed.
+					^ "class template %input_iterator_holder"
+						~ "class template %iterator_operations",
+					/ "removed dependency on %iterator_operations"
+						@ "declarations of typedef names",
+					/ "constructor template"
+				);
+				- "class template %iterator_operations"
+			)
+			^ "ADL" @ "%(is_dereferencable, is_undereferencable) for \
+				class template %any_input_iterator",
+		),
+		+ "static assertion to confirm source type is a polymorphic class"
+			@ "1st function template %polymorphic_downcast" @ %'Cast'
+	)
+),
+
+b348
+(
+	/ %'YBase'.'YStandardEx' $=
 	(
 		+ "header %examiner.hpp" $=
 		(
@@ -973,7 +1055,7 @@ $now
 			+ "function template %unref"
 		)
 	),
-	/ $lib %'YFramework'.'YSLib'.'Core'.'YObject' $=
+	/ %'YFramework'.'YSLib'.'Core'.'YObject' $=
 	(
 		(
 			$dep_from "examiners",
@@ -2418,7 +2500,7 @@ b304
 				"platform %MinGW32" $since b299
 		)
 	)
-	/ DLD "simplified assertion strings",
+	/ $lib $design "simplified assertion strings",
 	/ %'YBase' $=
 	(
 		/ DLD "parameter" @ "function template %pod_fill" @ %'Algorithms',
@@ -2714,7 +2796,7 @@ b298
 			/ "native key types" @ %'Input',
 			/ "file system APIs" @ %'NativeAPI' $=
 			(
-				+ DLD "assertions",
+				+ $lib $design "assertions",
 				* "missing directory validation" @ "function %opendir"
 					@ "defined %YCL_MINGW32" $since b296
 			);
@@ -3662,7 +3744,7 @@ b279
 				/ "support for class %Panel" ~ "class %Window"
 					@ "function %RequestToTop"
 			)
-			* DLD "assertion string" @ "4 functions %(MoveToTop, \
+			* $lib $design "assertion string" @ "4 functions %(MoveToTop, \
 				MoveToBottom, MoveToLeft, MoveToRight)" $since b171,
 			/ "member funtion %Desktop::ClearContents" >> "class %Panel"
 		),
@@ -3864,9 +3946,9 @@ b274
 			- DLD "all functions %SetMarginOf",
 			* DLD "2 functions template %PrintLine cannot used with \
 				iterator parameters without postfix operator++" $since b270,
-			* DLD "assertion string"
+			* $lib $design "assertion string"
 				@ "function %FetchResizedBottomMargin" $since b273,
-			* DLD "assertion string" @ "function %FetchResizedLineN"
+			* $lib $design "assertion string" @ "function %FetchResizedLineN"
 				$since b252,
 			* "implementation" @ "member function %TextLineNEx"
 				@ "class template %GTextRendererBase" $since b267，
@@ -5223,7 +5305,7 @@ b214
 
 b213
 (
-	* DLD "UI assertion strings",
+	* $lib $design "UI assertion strings",
 	* "menu colors",
 	* "touch event coordinate error" @ "container controls" $since b195,
 	+ "functions of menus" $=
@@ -5236,7 +5318,7 @@ b213
 
 b212
 (
-	/ DLD "assertion strings",
+	/ $lib $design "assertion strings",
 	/ "menu constructor",
 	+ "redundant menu state member" @ "class %Menu",
 	/ "container member APIs" ^ "reference parameter" ~ "pointer parameter",

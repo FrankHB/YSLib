@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r761
+\version r763
 \author FrankHB<frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-10-23 12:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,6 +98,7 @@ polymorphic_cast(_tSrc* x)
 /*!
 \ingroup cast
 \brief 多态类指针向派生类指针转换。
+\pre 静态断言： _tSrc 是多态类。
 \pre 断言： dynamic_cast 成功。
 \since build 175
 */
@@ -105,6 +106,8 @@ template <class _tDst, class _tSrc>
 inline _tDst
 polymorphic_downcast(_tSrc* x)
 {
+	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
+
 	yassume(dynamic_cast<_tDst>(x) == x);
 
 	return _tDst(x);

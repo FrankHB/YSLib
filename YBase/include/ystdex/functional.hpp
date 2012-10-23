@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r392
+\version r393
 \author FrankHB<frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2012-10-22 21:32 +0800
+	2012-10-23 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,7 +180,7 @@ struct wrapped_traits<std::reference_wrapper<_tWrapped>> : public std::true_type
 /*!
 \brief 解除引用包装。
 \note 默认只对于 std::reference_wrapper 的实例类型的对象重载。
-\note 可以自定义其它重载。可以使用 ADL 。
+\note 使用 ADL 。
 \since build 348
 */
 //@{
