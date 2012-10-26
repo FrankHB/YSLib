@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5488
+\version r5462
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-09-07 10:51 +0800
+	2012-10-26 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -323,8 +323,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(*pWndExtra, false),
-	cbFPS.SetTransparent(true),
-	cbPreview.SetTransparent(true),
+	cbHex.Background = SolidBrush(Color(0xFF, 0xFF, 0xE0)),
 	Enable(btnPrevBackground, false),
 	yunseq(
 		dsk_up.Background = ImageBrush(FetchImage(1)),

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3704
+\version r3710
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2012-09-04 12:47 +0800
+	2012-10-26 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,6 +215,11 @@ Control::ControlEventMap::ControlEventMap()
 }
 
 Control::Control(const Rect& r)
+	: Control(r, NoBackgroundTag())
+{
+	Background = SolidBrush(ColorSpace::White);
+}
+Control::Control(const Rect& r, NoBackgroundTag)
 	: Widget(new View(r), new Renderer(),
 	new Controller(true, FetchPrototype<ControlEventMap>())),
 	BoundControlPtr(std::bind(&Control::GetBoundControlPtr, this,

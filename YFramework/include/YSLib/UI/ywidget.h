@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5374
+\version r5377
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-10-08 12:24 +0800
+	2012-10-26 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -344,7 +344,7 @@ public:
 	Widget(const Rect& = {}, Color = Drawing::ColorSpace::White,
 		Color = Drawing::ColorSpace::Black);
 	/*!
-	\brief 构造：使用视图指针、渲染器指针和控制器指针。
+	\brief 构造：使用视图指针、渲染器指针和控制器指针，无背景。
 	\param pView_ 视图指针。
 	\param pRenderer_ 渲染器指针。
 	\param pController_ 控制器指针。
@@ -357,8 +357,7 @@ public:
 		_tController&& pController_ = {})
 		: view_ptr(yforward(pView_)), renderer_ptr(yforward(pRenderer_)),
 		controller_ptr(yforward(pController_)),
-		Background(SolidBrush(Drawing::ColorSpace::White)),
-		ForeColor(Drawing::ColorSpace::Black)
+		Background(), ForeColor(Drawing::ColorSpace::Black)
 	{
 		YAssert(bool(view_ptr) && bool(renderer_ptr), "Null pointer found.");
 

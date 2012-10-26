@@ -404,16 +404,9 @@ public:
 
 	/*
 	\brief 复制实例。
-	\note 应为抽象方法，但无法使用协变返回类型，所以使用非抽象实现。
-	\warning 断言：禁止直接使用。
+	\since build 350
 	*/
-	virtual AController*
-	Clone()
-	{
-		YAssert(false, "Invalid call.");
-
-		return nullptr;
-	}
+	DeclIEntry(AController* Clone() const);
 };
 
 

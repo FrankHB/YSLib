@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r237
+\version r252
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2012-09-12 01:57 +0800
+	2012-10-26 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,16 +182,12 @@ to_string(_type val, typename
 
 
 /*!
-\brief 以 C 标准输出格式的输出 std::basic_string 对象。
+\brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
 \todo 提供 char 以外的模板参数的正确实现。
+\note Clang++ 对于模版声明直接提示格式字符串类型错误。
 \since build 322
 */
 template<typename _tChar>
-#if defined _WIN32 && !defined __USE_MINGW_ANSI_STDIO
-YB_ATTRIBUTE((format (ms_printf, 1, 2)))
-#else
-YB_ATTRIBUTE((format (printf, 1, 2)))
-#endif
 std::basic_string<_tChar>
 sfmt(const _tChar* fmt, ...)
 {
@@ -206,6 +202,20 @@ sfmt(const _tChar* fmt, ...)
     va_end(args);
     return str;
 }
+
+/*!
+\brief 显式实例化：以 C 标准输出格式的输出 std::string 对象。
+\see sfmt 模版声明。
+\since build 350
+*/
+template
+#if defined _WIN32 && !defined __USE_MINGW_ANSI_STDIO
+YB_ATTRIBUTE((format (ms_printf, 1, 2)))
+#else
+YB_ATTRIBUTE((format (printf, 1, 2)))
+#endif
+std::string
+sfmt<char>(const char*, ...);
 
 } // namespace ystdex;
 

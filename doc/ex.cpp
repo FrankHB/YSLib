@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4538 *build 349 rev *
+\version r4592 *build 350 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-23 15:07 +0800
+	2012-10-26 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,10 +55,12 @@ __unfold __iterators.for_labeled_paragraph
 	$DONE,
 	$DOING,
 	$NEXT_TODO,
+	$TODO,
 	$LOW_PRIOR_TODO,
+	$FURTHER_WORK,
 	$KNOWN_ISSUE,
 	$RESOLVED_ENVIRONMENT_ISSUE,
-	$TODO
+	$HISTORY
 );
 
 $script_preprocessor_escapse:
@@ -145,6 +147,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \init ::= initializations
 \inc ::= included
 \inh ::= inherited
+\inst ::= instances/instantiated
 \inv ::= invoke
 \k ::= keywords
 \li ::= lists
@@ -204,6 +207,46 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \v ::= volatile
 \vt ::= virtual
 \val ::= values
+
+$parser.state.style $= $natral_NPL;
+$dep_from; // take evaluation dependence from;
+$dep_all_from; // take all evaluation dependence from;
+$dep_to; // put evaluation dependence to;
+$label; // label for locating in code portions;
+
+$design; // features changing probably only made sense to who needs to \
+	reference or modify the implementation;
+$dev; // issues concerned by developers, which end-users could ignore \
+	(including compile-time characteristics such as static assertions but not \
+	runtime observative behaviors like runtime assertions);
+$lib; // issues only concerned with library(only implementation changing, \
+	or interfaces modifying including no deletion unless some replacements \
+	are provided, so no need fo library users to modify code using the library \
+	interface to adapt to the upgrading), regaradless of the output targets;
+$build; // issues on build;
+$install; // issues on installing;
+$depoly; // issues on deployment(other than installing);
+$comp; // features consist of dependencies with no additional work;
+$doc; // for documents target;
+$add_features +; // features added;
+$fix_bugs *; // bugs fixed;
+$modify_features /; // features modified;
+$remove_features -; // features removed;
+$using ^; // using;
+$not !; // not;
+$source_from ~; // features replaced from;
+$belonged_to @;
+$changed_to ->;
+$moved_to >>;
+$renamed_to =>;
+
+// Abbreviations.
+DLD $dev $lib $design;
+DLP $dev $lib $deploy;
+DLB $dev $lib $build;
+
+//$transform $list ($list_member $pattern $all($exclude $pattern \
+//	$string_literal "*")) +;
 
 $macro_platform_mapping:
 \mac YCL_DS -> DS,
@@ -387,97 +430,74 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \ft FillByte @ \h StaticMapping $=
+/ @ \h Iterator $=
 (
-	/ $dev $design \as string,
-	* strict C++11 compatibility $= (^ std::is_constructible
-		~ std::is_explicitly_convertible) $since b?
-	// See $ref b349.
+	/ \impl @ \ft \op== !^ \mf same_type @ \clt any_input_iterator;
+	- \mf same_type @ \clt any_input_iterator
 );
 /= test 1 @ platform MinGW32;
 
 r2:
-/ @ \h Iterator $=
-(
-	+ \cl (any_iterator_holder; any_input_iterator_holder);
-	+ \clt (iterator_holder; input_iterator_holder);
-	+ \inc \h Cast
-);
+* \mf Clone @ \cl AController @ \h YWidgetEvent $since b243
+	$= (/ \mf \vt AController* Clone() -> \amf AController* Clone() const),
 /= test 2 @ platform MinGW32;
 
 r3:
-/ @ \h Iterator $=
-(
-	/ \impl \clt any_input_iterator ^ \clt input_iterator_holder,
-	/ \tr \impl @ \mf op==, is_dereferencable, is_undereferencable
-);
-/= test 3 @ platform MinGW32;
+/= test 3 @ platform MinGW32 ^ \conf release;
 
 r4:
-/ @ \h Iterator $=
-(
-	/ @ \cl any_input_iterator $=
-	(
-		(
-			/ typedef iterator_operations<iterator_type> operations_base,
-				-> typedef std::iterator_traits<iterator_type> traits_type;
-			/ typedef typename operations_base::value_type value_type
-				-> typedef typename traits_type::value_type value_type,
-			/ typedef typename operations_base::pointer pointer
-				-> typedef typename traits_type::pointer pointer,
-		),
-		/ typedef typename operations_base::reference reference
-			-> typedef _tReference reference,
-		- typedef typename operations_base::common_iterator common_iterator,
-		- typedef typename operations_base::operation_list operations_type,
-	);
-	- \clt iterator_operations
-);
-/= test 4 @ platform MinGW32;
+/= test 4 @ platform DS;
 
 r5:
-+ \s \as @ \ft polymorphic_downcast @ \h Cast;
-/= test 5 @ platform MinGW32;
+/= test 5 @ platform DS ^ \conf release;
 
 r6:
-/ \impl @ \ctor \t @ \cl any_input_iterator @ \h Iterator,
-/ \tr \impl @ \f @ \impl \u CharacterProcessing;
-/= test 6 @ platform MinGW32;
+/ @ \h Iterator $=
+(
+	/ \a 'YB_ANY_DEF_TYPEID(_type)' -> 'YB_ANY_DEF_TYPEID(value_type)',
+	+ reference equality comparison support @ \impl @ \mf equals
+		@ \clt input_iterator_holder
+);
+/= test 6 @ platform MinGW32 ^ \conf release;
 
 r7:
-/ @ \h Lexical $=
-(
-	- \m typedef ystdex::input_monomorphic_iterator Iterator
-		@ \cl LexicalAnalyzer;
-	- \inc \h Iterator
-);
-/= test 7 @ platform MinGW32;
+/= test 7 @ platform DS ^ \conf release;
 
 r8:
-/= test 8 @ platform MinGW32 ^ \conf release;
+* "strict ISO C++11 code compatibility" $=
+(
+	* $dev "wrong constexpr specifier" @ \clt GBinaryGroup @ \h YGDIBase
+		$since b246
+		$= (- \a constexpr specifier @ setters),
+	* "dependency on incomplete type SolidBrush" @ \ctor \t Widget $since b294
+		( / "initialization" ^ "empty background initialization"
+		~ "SolidBrush");
+),
++ \exp \inst \decl @ \ft sfmt<char> @ \h String;
+/= test 8 @ platform MinGW32;
 
 r9:
-/= test 9 @ platform DS;
+/ @ \cl Control $=
+(
+	+ \exp \ctor Control(const Rect&, NoBackgroundTag),
+	/ \impl @ \exp \ctor Control(const Rect& = {})
+);
+(
+	* $comp background missing for some controls $since r8,
+	/ \impl @ \ctor (Thumb#2, ProgressBar, ATrack, AScrollBar)
+	// CheckBox is affected.
+)
+/= test 9 @ platform MinGW32;
 
-r10:
-/= test 10 @ platform DS ^ \conf release;
-
-r11:
-/ \as @ \mf dereference @ \clt iterator_holder @ \h Iterator
-	^ \mf check_undereferencable ~ ystdex::is_undereferencable;
-/= test 11 @ platform MinGW32;
+r10-r11:
+/ \impl @ \cl ShlExplorer @ \impl \u Shells,
+/= 2 test 10 @ platform MinGW32;
 
 r12:
-+ \fnl @ \clt (iterator_holder, input_iterator_holder) @ \h Iterator;
-/= test 12 @ platform MinGW32;
+/= test 11 @ platform DS ^ \conf release;
 
 r13:
-/ @ \h Iteartor $=
-(
-	+ \mac (\def, !\def) (YB_ANY_DEF_CLONE, YB_ANY_DEF_TYPEID, YB_IT_DEF_CHECK,
-		YB_IT_DEF_GETREF);
-	/ \simp \impl @ \clt (iterator_holder, input_iterator_holder) ^ \mac
-);
+/ \impl @ \cl ShlExplorer @ \impl \u Shells;
 /= test 13 @ platform MinGW32;
 
 r14:
@@ -493,15 +513,15 @@ r16:
 $DOING:
 
 $relative_process:
-2012-10-23 +0800:
--26.0d;
-// Mercurial rev1-rev221: r9351;
+2012-10-27 +0800:
+-27.1d;
+// Mercurial rev1-rev222: r9367;
 
 / ...
 
 
 $NEXT_TODO:
-b350-b360:
+b351-b360:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -643,9 +663,10 @@ b[504]:
 		@ class %ListBox
 );
 
-b[490]:
+b[492]:
 ^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
 	when (^ g++),
++ uniform \mac for function attribute (format, ms_format, gnu_format),
 / memory fragment issues,
 + tag-based type operations,
 / basic routines $=
@@ -790,7 +811,7 @@ $KNOWN_ISSUE:
 	implementation techniques found. Also depends on the environment.
 // NOTE: Obsolete issues all resolved are ignored.
 * "corrupted loading or fatal errors on loading font file with embedded \
-	bitmap glyph like simson.ttc" $since b185,
+	bitmap glyph like simson.ttc" $since b185;
 	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10) tested.
 * "<cmath> cannot use 'std::*' names" @ "!defined %_GLIBCXX_USE_C99_MATH_TR1"
 	@ "libstdc++ with g++ (4.6, 4.7) on devkitARM" @ "platform $DS"
@@ -805,6 +826,13 @@ $KNOWN_ISSUE:
 	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
 * "Vertical synchronization lacked for debug configuration when console window \
 	had got focus and then clipped with the main window" @ "platform %DS";
+* "static constexpr member of same type as class being defined";
+	// See http://stackoverflow.com/questions/11928089/\
+static-constexpr-member-of-same-type-as-class-being-defined and \
+		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3308.pdf .
+	// G++(4.7) would reject some code snippets. Clang++(3.2-trunk) rejects \
+		even more, including code accepted by G++ such as only list \
+		initialization is being used.
 
 
 $RESOLVED_ENVIRONMENT_ISSUE:
@@ -819,46 +847,6 @@ $RESOLVED_ENVIRONMENT_ISSUE:
 
 
 $HISTORY:
-
-$parser.state.style $= $natral_NPL;
-$dep_from; // take evaluation dependence from;
-$dep_all_from; // take all evaluation dependence from;
-$dep_to; // put evaluation dependence to;
-$label; // label for locating in code portions;
-
-$design; // features changing probably only made sense to who needs to \
-	reference or modify the implementation;
-$dev; // issues concerned by developers, which end-users could ignore \
-	(including compile-time characteristics such as static assertions but not \
-	runtime observative behaviors like runtime assertions);
-$lib; // issues only concerned with library(only implementation changing, \
-	or interfaces modifying including no deletion unless some replacements \
-	are provided, so no need fo library users to modify code using the library \
-	interface to adapt to the upgrading), regaradless of the output targets;
-$build; // issues on build;
-$install; // issues on installing;
-$depoly; // issues on deployment(other than installing);
-$comp; // features consist of dependencies with no additional work;
-$doc; // for documents target;
-$add_features +; // features added;
-$fix_bugs *; // bugs fixed;
-$modify_features /; // features modified;
-$remove_features -; // features removed;
-$using ^; // using;
-$not !; // not;
-$source_from ~; // features replaced from;
-$belonged_to @;
-$changed_to ->;
-$moved_to >>;
-$renamed_to =>;
-
-// Abbreviations.
-DLD $dev $lib $design;
-DLP $dev $lib $deploy;
-DLB $dev $lib $build;
-
-//$transform $list ($list_member $pattern $all($exclude $pattern \
-//	$string_literal "*")) +;
 
 $ellipse_refactoring;
 $ellipse_debug_assertion;
@@ -983,10 +971,56 @@ $module_tree $=
 
 $now
 (
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ "equality comparison of any iterator" @ %'Iterator' $=
+		(
+			/ $dev "implementation" ^ "non virtual function calls",
+			+ "support for type identification and comparison between \
+				reference-wrapped object and non-reference wrapped object"
+		),
+		+ $dev "explicitly instantiated declaration function %sfmt<char> with \
+			attribute for format moved from template declaration" @ %'String'
+			// Clang++ complains about wrong format string type for \
+				the template declaration.
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'GUI' $=
+		(
+			* "abstract member function %Clone missing 'const' qualifier"
+				@ "class %AController" @ "header ywgtevt.h" $since b243
+				// As pure virtual function now.
+			* "strict ISO C++ code compatibility" @ "constructor template"
+				@ "class %Widget"$=
+			(
+				/ "initialization" ^ "empty background initialization"
+					~ "SolidBrush";
+					// No background would be painted through this \
+						initialization.
+				* $comp "dependency on incomplete type SolidBrush" $since b294
+			);
+			+ "construct for initialization with no background"
+				@ "%class %Control"
+				// Object of %CheckButton is affected, now no background \
+					initialized as default.
+		),
+		* $dev "strict ISO C++11 code compatibility"
+			@ "class template %GBinaryGroup" @ %'Core'.'YGDIBase' $since b246
+			$= (- "wrong constexpr specifier" @ "setters"),
+	),
+	/ "background color of check button for hexadecimal browsing"
+		@ %'YReader'.'shell test example'
+),
+
+b349
+(
 	/ $dev %'YFramework' $=
 	(
-		* "strict ISO C++11 compatibility" @ "function template %FillType"
-			%'CHRLib'.'StaticMapping' $since b?,
+		* "strict ISO C++11 code compatibility" @ "function template %FillType"
+			%'CHRLib'.'StaticMapping' $since b247
+			$= (/ "implementation" ^ "%std::is_explicitly_convertible"
+			~ "%std::is_constructible"),
 			// See $ref b349.
 		- "iterator type definition and unnecessary header including"
 			@ %'NPL'.'Lexical'
@@ -1151,7 +1185,7 @@ b344
 (
 	/ %'YFramework' $=
 	(
-		/ "function %TransformConfiguration" %'NPL'.'Configuration' $=
+		/ "function %TransformConfiguration" @ %'NPL'.'Configuration' $=
 		(
 			(
 				+ "support for unnamed node";
@@ -1561,7 +1595,7 @@ b332
 			/ "constructor %any(any_holder*)"
 				-> "%any(any_holder*, std::nullptr_t)"
 		),
-		/ $lib "headers including" $=
+		/ $dev "headers including" $=
 		(
 			- "header %TypeOperations",
 			* "strict ISO C++11 code compatibility" $since b331
@@ -2452,7 +2486,7 @@ b306
 	/ %'YBase'.'YStandardEx'.'TypeOperations' $=
 	(
 		/ $doc "grouping",
-		/ "traits according to ISO C++11" ^ "%integral_constant",
+		/ $dev "traits according to ISO C++11" ^ "%integral_constant",
 		+ "binary type trait %has_equality_operator"
 	)
 ),

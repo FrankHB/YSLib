@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4570
+\version r4580
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2012-09-07 10:20 +0800
+	2012-10-26 18:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -338,14 +338,20 @@ public:
 	std::function<IWidget*(const KeyInput&)> BoundControlPtr;
 
 	/*!
-	\brief 构造：使用指定边界。
-	\note 使用扩展控件事件表加载的事件处理器。
-	\note 加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
-	\note 加载事件处理器： OnTouchDown_RequestToTopFocused 。
+	\brief 构造：使用指定边界，默认背景（同 Widget 默认构造）。
+	\see 其它重载构造函数。
 	\since build 337
 	*/
 	explicit
 	Control(const Rect& = {});
+	/*!
+	\brief 构造：使用指定边界，无背景。
+	\note 使用扩展控件事件表加载的事件处理器。
+	\note 加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
+	\note 加载事件处理器： OnTouchDown_RequestToTopFocused 。
+	\since build 350
+	*/
+	Control(const Rect&, NoBackgroundTag);
 	/*!
 	\brief 复制构造：除容器为空外深复制。
 	*/

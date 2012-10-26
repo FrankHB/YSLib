@@ -34,7 +34,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Components)
 
 ProgressBar::ProgressBar(const Rect& r, ValueType m)
-	: Control(r), GMRange<float>(m == 0 ? 1 : m, 0)
+	: Control(r, NoBackgroundTag()), GMRange<float>(m == 0 ? 1 : m, 0)
 {
 	auto& pal(FetchGUIState().Colors);
 	BorderStyle style;

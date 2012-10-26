@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r2222
+\version r2223
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2012-09-07 10:37 +0800
+	2012-10-26 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ public:
 
 protected:
 	/*!
-	\brief 无背景构造：使用指定边界和色调。
+	\brief 无背景构造：使用指定边界。
 	\since build 311
 	*/
 	explicit

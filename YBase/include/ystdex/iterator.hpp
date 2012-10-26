@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r1525
+\version r1545
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-10-23 14:49 +0800
+	2012-10-26 04:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ make_move_iterator_pair(_tIterator1 it1, _tIterator2 it2) -> decltype(
 }
 /*!
 \ingroup helper_functions
-\brief 取容器的迭代器对。
+\brief 取容器的转移迭代器对。
 \since build 337
 */
 template<typename _tContainer>
@@ -767,7 +767,7 @@ public:
 		++get_ref();
 	}
 
-	YB_ANY_DEF_TYPEID(_type)
+	YB_ANY_DEF_TYPEID(value_type)
 };
 
 
@@ -804,13 +804,16 @@ public:
 	bool
 	equals(const any_input_iterator_holder& h) const override
 	{
-		if(h.type() != typeid(_type))
+		const auto& ih(ystdex::polymorphic_downcast<const
+			input_iterator_holder&>(h));
+
+		if(input_iterator_holder::type() != ih.input_iterator_holder::type())
 			return true;
 
-		yassume(h.get());
+		yassume(ih.input_iterator_holder::get());
 
-		return get_ref()
-			== static_cast<const value_type&>(*static_cast<_type*>(h.get()));
+		return get_ref() == static_cast<const value_type&>(*static_cast<_type*>(
+			ih.input_iterator_holder::get()));
 	}
 
 	void*
@@ -837,7 +840,7 @@ public:
 		return obj.impl_type::increase();
 	}
 
-	YB_ANY_DEF_TYPEID(_type)
+	YB_ANY_DEF_TYPEID(value_type)
 };
 
 
@@ -918,25 +921,13 @@ public:
 		return ystdex::polymorphic_downcast<any_input_iterator_holder&>(
 			*obj.get_holder());
 	}
-
-	/*!
-	\brief 比较底层迭代器的类型是否相同。
-	\since build 347
-	*/
-	bool
-	same_type(const any_input_iterator& i) const
-	{
-		// NOTE: In some bad conforming implementation the result may be wrong
-		//	because of boundaries.
-		return get_holder().type() == i.get_holder().type();
-	}
 };
 
 /*!
 \brief 比较单态输入迭代器的相等性。
 \param x 左操作数。
 \param y 右操作数。
-\pre 断言检查 <tt>x.same_type(y)</tt> 。
+\pre 断言检查 <tt>x.get_holder().type() == y.get_holder().type()</tt> 。
 \since build 347
 */
 template<typename _type, typename _tPointer, typename _tReference>
@@ -944,7 +935,7 @@ inline bool
 operator==(const any_input_iterator<_type, _tPointer, _tReference>& x,
 	const any_input_iterator<_type, _tPointer, _tReference>& y)
 {
-	yconstraint(x.same_type(y));
+	yconstraint(x.get_holder().type() == y.get_holder().type());
 
 	return x.get_holder().equals(y.get_holder());
 }
