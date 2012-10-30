@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1255
+\version r1256
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2012-10-09 20:14 +0800
+	2012-10-28 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -406,7 +406,7 @@ public:
 	\brief 复制实例。
 	\since build 350
 	*/
-	DeclIEntry(AController* Clone() const);
+	DeclIEntry(AController* Clone() const)
 };
 
 

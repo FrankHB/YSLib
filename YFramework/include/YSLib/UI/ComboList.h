@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2419
+\version r2427
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2012-09-07 10:42 +0800
+	2012-10-28 16:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,16 +104,16 @@ public:
 	\see TextList::AdjustViewLength 。
 	\since build 285
 	*/
-	PDefH(void, AdjustViewLength)
-		ImplBodyMem(lstText, AdjustViewLength)
+	PDefH(void, AdjustViewLength, )
+		ImplBodyMem(lstText, AdjustViewLength, )
 
 	/*!
 	\brief 清除选中项。
 	\see TextList::ClearSelected 。
 	\since build 285
 	*/
-	PDefH(void, ClearSelected)
-		ImplBodyMem(lstText, ClearSelected)
+	PDefH(void, ClearSelected, )
+		ImplBodyMem(lstText, ClearSelected, )
 
 	/*!
 	\brief 查找项。
@@ -130,8 +130,8 @@ public:
 	void
 	Refresh(PaintEventArgs&&) override;
 
-	PDefH(void, ResetView)
-		ImplBodyMem(lstText, ResetView)
+	PDefH(void, ResetView, )
+		ImplBodyMem(lstText, ResetView, )
 
 	/*!
 	\brief 按指定大小上限和内容调整大小。
@@ -142,8 +142,8 @@ public:
 	void
 	ResizeForPreferred(const Size& sup, Size s = {});
 
-	PDefH(void, UpdateView)
-		ImplBodyMem(lstText, UpdateView)
+	PDefH(void, UpdateView, )
+		ImplBodyMem(lstText, UpdateView, )
 };
 
 

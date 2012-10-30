@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r585
+\version r618
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-10-18 14:45 +0800
+	2012-10-30 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_YSTDEX_ANY_H_
 #define YB_INC_YSTDEX_ANY_H_ 1
 
-#include "../ydef.h"
+#include "type_op.hpp"
 #include <memory> // for std::addressof;
 #include <typeinfo> // for typeid, std::bad_cast;
 
@@ -36,37 +36,46 @@ namespace ystdex
 {
 
 /*
-\brief 任意非可复制构造的非聚集类型。
-\since build 207
+\brief 任意不需要复制存储的非聚集 POD 类型。
+\note POD 和聚集类型的含义参考 ISO C++11 。
+\since build 351
 */
-union no_copy_t
+union non_aggreate_pod
 {
 	void* object_ptr;
 	const void* const_object_ptr;
+	volatile void* volatile_object_ptr;
+	const volatile void* const_volatile_object_ptr;
 	void(*function_ptr)();
-	void(no_copy_t::*member_function_pointer)();
+	int(non_aggreate_pod::*member_object_pointer);
+	void(non_aggreate_pod::*member_function_pointer)();
 };
 
 
 /*
-\brief 任意 POD 类型。
-\note POD 含义参考 ISO C++11 。
-\since build 207
+\brief 任意 POD 类型存储。
+\note POD 的含义参考 ISO C++11 。
+\since build 351
 */
-union any_pod_t
+template<typename _tPOD = typename aligned_storage<sizeof(void*)>::type>
+union pod_storage
 {
-	no_copy_t _unused;
-	byte plain_old_data[sizeof(no_copy_t)];
+	static_assert(is_pod<_tPOD>::value, "Non-POD underlying type found.");
+
+	typedef _tPOD underlying;
+
+	underlying object;
+	byte data[sizeof(underlying)];
 
 	void*
 	access()
 	{
-		return &plain_old_data[0];
+		return &data[0];
 	}
 	yconstfn const void*
 	access() const
 	{
-		return &plain_old_data[0];
+		return &data[0];
 	}
 	template<typename _type>
 	_type&
@@ -125,6 +134,10 @@ public:
 	~any_holder()
 	{}
 
+	//! \since build 351
+	any_holder&
+	operator=(const any_holder&) = delete;
+
 	//! \since build 348
 	virtual void*
 	get() const = 0;
@@ -161,9 +174,6 @@ public:
 	value_holder(_type&& value) ynoexcept(ynoexcept(held(std::move(value))))
 		: held(std::move(value))
 	{}
-
-	value_holder&
-	operator=(const value_holder&) = delete;
 
 	value_holder*
 	clone() const override
@@ -211,9 +221,6 @@ public:
 	{
 		delete p_held;
 	}
-
-	pointer_holder&
-	operator=(const pointer_holder&) = delete;
 
 	pointer_holder*
 	clone() const override
@@ -326,6 +333,12 @@ public:
 		return p_holder;
 	}
 
+	bool
+	empty() const ynothrow
+	{
+		return !p_holder;
+	}
+
 	/*!
 	\pre 断言检查： \c p_holder 。
 	\warning 无类型检查。
@@ -350,12 +363,6 @@ public:
 	{
 		delete p_holder;
 		p_holder = nullptr;
-	}
-
-	bool
-	empty() const ynothrow
-	{
-		return !p_holder;
 	}
 
 	void

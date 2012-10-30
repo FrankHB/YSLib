@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r150
+\version r151
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2012-09-04 12:58 +0800
+	2012-10-28 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,7 +103,7 @@ public:
 	/*!
 	\brief 清除所有记录。
 	*/
-	PDefH(void, Clear)
+	PDefH(void, Clear, )
 		ImplExpr(reading_list.clear(), now_reading = reading_list.end())
 
 	/*!

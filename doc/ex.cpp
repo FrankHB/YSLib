@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4592 *build 350 rev *
+\version r4656 *build 351 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-26 20:23 +0800
+	2012-10-30 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,9 +223,9 @@ $lib; // issues only concerned with library(only implementation changing, \
 	or interfaces modifying including no deletion unless some replacements \
 	are provided, so no need fo library users to modify code using the library \
 	interface to adapt to the upgrading), regaradless of the output targets;
-$build; // issues on build;
+$build; // issues on build, including diagnostic messages;
 $install; // issues on installing;
-$depoly; // issues on deployment(other than installing);
+$deploy; // issues on deployment(including build environment support);
 $comp; // features consist of dependencies with no additional work;
 $doc; // for documents target;
 $add_features +; // features added;
@@ -430,98 +430,109 @@ $using:
 
 $DONE:
 r1:
-/ @ \h Iterator $=
+/ \m \decl order @ \cl any @ \h Any;
+/ @ \h TypeOperations $=
 (
-	/ \impl @ \ft \op== !^ \mf same_type @ \clt any_input_iterator;
-	- \mf same_type @ \clt any_input_iterator
+	/ \simp \impl @ (is_returnable, is_decayable, is_class_pointer,
+		is_lvalue_class_reference, is_rvalue_class_reference) $= (- \a 'std::'),
+	+ \stt (is_pod_struct, is_pod_union)
 );
 /= test 1 @ platform MinGW32;
 
 r2:
-* \mf Clone @ \cl AController @ \h YWidgetEvent $since b243
-	$= (/ \mf \vt AController* Clone() -> \amf AController* Clone() const),
+* DLP strict ISO C++11 compatibility with \mac $since b252
+	$= - \a ^ GNU variadic macro extension
+		$= $design \reg \expr replacement ^ Visual Studio 2010
+		(
+			/ 'PDefHOp\({[^,]+}\, {[^,]+}\)' -> 'PDefHOp(\1, \2, )',
+			/ 'PDefH\({[^,]+}\, {[^,]+}\)' -> 'PDefH(\1, \2, )',
+			/ 'ImplBodyMem\({[^,]+}\, {[^,]+}\)' -> 'ImplBodyMem(\1, \2, )'
+		);
 /= test 2 @ platform MinGW32;
 
 r3:
-/= test 3 @ platform MinGW32 ^ \conf release;
+- redundant ';' @ end of \amf AController::clone @ \h YWidgetEvent $since b350,
+* strict ISO C++ compatibility for const function type @ \ctor @ \clt GHEvent
+	@ \h YEvent
+	$= (/ 'const FuncType' -> 'FuncType');
+/= test 3 @ platform MinGW32;
 
 r4:
-/= test 4 @ platform DS;
+/ class-key 'struct' -> 'class' @ \clt \spec std::numeric_limits @ \h Rational,
+* strict ISO C++11 compatibility for \exp \ctor and '{}' \de \arg $since b337 $=
+(
+	/ @ \cl Font @ \h Font $=
+	(
+		- 1st \de \arg @ \exp \ctor with \de \arg,
+		+ !\exp \de \ctor \i
+	)
+);
+/= test 4 @ platform MinGW32;
 
 r5:
-/= test 5 @ platform DS ^ \conf release;
-
-r6:
-/ @ \h Iterator $=
+/ \simp @ \h Any $=
 (
-	/ \a 'YB_ANY_DEF_TYPEID(_type)' -> 'YB_ANY_DEF_TYPEID(value_type)',
-	+ reference equality comparison support @ \impl @ \mf equals
-		@ \clt input_iterator_holder
+	+ \del copy \op= @ \cl any_holder,
+	- \del copy \op= @ \clt (value_holder, pointer_holder)
+),
+/ \simp @ \h YObject $=
+(
+	- \m 'DefDelCopyAssignment(ValueHolder)' @ \cl ValueHolder,
+	- \m 'DefDelCopyAssignment(PointerHolder)' @ \cl PointerHolder
 );
-/= test 6 @ platform MinGW32 ^ \conf release;
+/= test 5 @ platform MinGW32;
 
-r7:
-/= test 7 @ platform DS ^ \conf release;
+r6-r7:
+/= 2 test 6 @ platform MinGW32;
 
 r8:
-* "strict ISO C++11 code compatibility" $=
-(
-	* $dev "wrong constexpr specifier" @ \clt GBinaryGroup @ \h YGDIBase
-		$since b246
-		$= (- \a constexpr specifier @ setters),
-	* "dependency on incomplete type SolidBrush" @ \ctor \t Widget $since b294
-		( / "initialization" ^ "empty background initialization"
-		~ "SolidBrush");
-),
-+ \exp \inst \decl @ \ft sfmt<char> @ \h String;
-/= test 8 @ platform MinGW32;
+/= test 7 @ platform MinGW32 ^ \conf release;
 
 r9:
-/ @ \cl Control $=
-(
-	+ \exp \ctor Control(const Rect&, NoBackgroundTag),
-	/ \impl @ \exp \ctor Control(const Rect& = {})
-);
-(
-	* $comp background missing for some controls $since r8,
-	/ \impl @ \ctor (Thumb#2, ProgressBar, ATrack, AScrollBar)
-	// CheckBox is affected.
-)
-/= test 9 @ platform MinGW32;
+/= test 8 @ platform DS;
 
-r10-r11:
-/ \impl @ \cl ShlExplorer @ \impl \u Shells,
-/= 2 test 10 @ platform MinGW32;
+r10:
+/= test 9 @ platform DS ^ \conf release;
+
+r11:
+* \impl @ \stt (is_pod_struct, is_pod_union) @ \h TypeOperations $since r1;
+(
+	/ \inc \h YDefinition @ \h Any -> \h TypeOperation;
+	/ union any_pod_t @ \h Any -> union \t pod_storage<_type
+		= typaname anligned_storage<void*>::type>
+);
+/= test 10 @ platform MinGW32;
 
 r12:
-/= test 11 @ platform DS ^ \conf release;
+* \impl @ union \t pod_storage @ \h Any $since r11;
+/= test 11 @ platform MinGW32;
 
 r13:
-/ \impl @ \cl ShlExplorer @ \impl \u Shells;
-/= test 13 @ platform MinGW32;
+/ union no_copy_t -> @ \h Any union non_aggreate_pod;
+/= test 12 @ platform MinGW32;
 
 r14:
-/= test 14 @ platform MinGW32 ^ \conf release;
+/= test 13 @ platform MinGW32 ^ \conf release;
 
 r15:
-/= test 15 @ platform DS;
+/= test 14 @ platform DS;
 
 r16:
-/= test 16 @ platform DS ^ \conf release;
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-10-27 +0800:
--27.1d;
-// Mercurial rev1-rev222: r9367;
+2012-10-30 +0800:
+-26.8d;
+// Mercurial rev1-rev223: r9383;
 
 / ...
 
 
 $NEXT_TODO:
-b351-b360:
+b352-b360:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -552,7 +563,8 @@ b361-b404:
 	* (copy, move) @ \cl Menu,
 	^ delegating \ctor as possible,
 	/ strip away direct using @ Win32 types completely @ \h @ \lib YCLib,
-	^ std::call_once to confirm thread-safe initialization
+	^ std::call_once to confirm thread-safe initialization,
+	/ improving pedantic ISO C++ compatiblity
 ),
 + $design $low_prior helpers $=
 (
@@ -572,7 +584,7 @@ b361-b404:
 	/ improved tests and examples
 );
 
-b[504]:
+b[503]:
 / $low_prior @ \lib YCLib $=
 (
 	/ fully \impl @ memory mappaing APIs,
@@ -584,10 +596,6 @@ b[504]:
 	/ more accurate invalid conversion state handling,
 	/ placeholders when character conversion failed @ string conversion,
 	+ UTF-8 to GBK conversion
-),
-/ improving pedantic ISO C++ compatiblity $=
-(
-	/ \mac with no \arg
 ),
 + comparison between reference wrapped and non-wrapped iterators @ \h Iterator;
 / $design $low_prior robustness and cleanness $=
@@ -809,41 +817,58 @@ $FURTHER_WORK:
 $KNOWN_ISSUE:
 // There are issues that won't be fixed if no further progress for \
 	implementation techniques found. Also depends on the environment.
-// NOTE: Obsolete issues all resolved are ignored.
-* "corrupted loading or fatal errors on loading font file with embedded \
-	bitmap glyph like simson.ttc" $since b185;
+// Identifiers '$known_issue_*' indecate the earliest development stage when \
+	first time of getting the the issues confirmed. Obsolete issues all \
+	resolved are ignored. See $RESOLVED_ENVIRONMENT_ISSUE for other resovled \
+	issues.
+* $known_issue_b223 "corrupted loading or fatal errors on loading font file \
+	with embedded bitmap glyph like simson.ttc" $since b185;
 	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10) tested.
-* "<cmath> cannot use 'std::*' names" @ "!defined %_GLIBCXX_USE_C99_MATH_TR1"
-	@ "libstdc++ with g++ (4.6, 4.7) on devkitARM" @ "platform $DS"
-	$before $future;
+* $known_issue_b264 "<cmath> cannot use 'std::*' names" @ "!defined \
+	%_GLIBCXX_USE_C99_MATH_TR1" @ "libstdc++ with G++ (4.6, 4.7) on devkitARM"
+	@ "platform $DS" $before $future;
 	// G++ 4.7.0 tested @ b301.
-* "crashing after sleeping(default behavior of closing then reopening lid) on \
-	real machine due to libnds default interrupt handler for power management"
-	$since b279;
-* "sorry, unimplemented: use of 'type_pack_expansion' in template \
-	with libstdc++ std::thread" @ ^ "g++ (4.6, 4.7)" $before $future(g++4.7.2);
+* $known_issue_b279 "crashing after sleeping(default behavior of closing then \
+	reopening lid) on real machine due to libnds default interrupt handler \
+	for power management" $since b279;
+* $known_issue_b298 "sorry, unimplemented: use of 'type_pack_expansion' in \
+	template with libstdc++ std::thread" @ ^ "G++ (4.6, 4.7)"
+	$before $future(G++4.7.2);
 	// G++ 4.7.0 tested @ b300.
 	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
-* "Vertical synchronization lacked for debug configuration when console window \
-	had got focus and then clipped with the main window" @ "platform %DS";
-* "static constexpr member of same type as class being defined";
+* $known_issue_b346 "Vertical synchronization lacked for debug configuration \
+	when console window had got focus and then clipped with the main window"
+	@ "platform %DS";
+	// Seems to attribute to GDI.
+* $known_issue_b351_1 "static constexpr member of same type as class being \
+	defined";
 	// See http://stackoverflow.com/questions/11928089/\
 static-constexpr-member-of-same-type-as-class-being-defined and \
 		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3308.pdf .
 	// G++(4.7) would reject some code snippets. Clang++(3.2-trunk) rejects \
 		even more, including code accepted by G++ such as only list \
-		initialization is being used.
+		initialization is being used like constexpr static member in "ygdi.h".
+* $known_issue_b351_2 "Diagnostic message generated by by \
+	Clang++[-Wmismatched-tag]".
+	// Though clang++ will complain for '-Wmismatched-tags', it's totally \
+		safe. Only on non-comforming implementation(like Micrsoft C++) it \
+		would be a problem.
+* $known_issue_b351_3 "Clang++ 3.2 bugs on access control"
+	// Clang++ 3.2(trunk161531) rejected wrongly valid code in "iterator.hpp" \
+		and "yevt.hpp" which G++ 4.7.2 accepted.
 
 
 $RESOLVED_ENVIRONMENT_ISSUE:
-* "g++ 4.5.2 fails on compiling code with defaulted move assignment operator"
-	@ $interval([b207, b221));
-* "g++ 4.6.1 internal error for closure object in constructors"
-	@ $interval([b253, b300));
-	// G++ 4.6.2 tested @ b293. Fixed @ b301.
-* "g++ 4.6.1 ignores non-explicit conversion templates when there exists \
-	non-template explicit conversion function" @ $interval([b260, b314));
-	// Fixed @ b315.
+// Identifiers '$resolved_*' indecate earliest development stage when first \
+	time of getting the issues confirmed to fixed.
+* $resolved_b293 "G++ 4.5.2 fails on compiling code with defaulted move \
+	assignment operator" @ $interval([b207, b221));
+* $known_issue_b293 $resolved_b304 "G++ 4.6.1 internal error for closure \
+	object in constructors" @ $interval([b253, b300));
+	// G++ 4.6.2 tested @ b293.
+* $known_issue_b293 $resolved_b315 "G++ 4.6.1 ignores non-explicit conversion \
+	templates when there exists non-template explicit conversion function"
+	@ $interval([b260, b314));
 
 
 $HISTORY:
@@ -853,6 +878,15 @@ $ellipse_debug_assertion;
 
 $ref $=
 (
+b351 $=
+(
+$note "cv-qualifier for function types"
+/*
+http://stackoverflow.com/questions/1117873/pointer-to-const-vs-usual-pointer\
+-for-functions
+*/
+// Also CWG defect 295.
+),
 b349 $=
 (
 $note "N3047"
@@ -971,6 +1005,49 @@ $module_tree $=
 
 $now
 (
+	/ %'YBase' $=
+	(
+		/ %'Any' $=
+		(
+			+ "explicity-deleted operator=" @ "class %any_holder",
+			/ "union %any_pod_t" @ "union template %pod_storage",
+			/ "union %no_copy_t" -> "union %non_aggreate_pod"
+		),
+		+ "class template %(is_pod_struct, is_pod_union)" @ %'TypeOperations',
+		/ "class-key %struct" -> "%class" @ "class template specialization \
+			%std::numeric_limits" @ %'Rational' @ \h Rational
+		// See $KNOWN_ISSUE. In fact, according to ISO C++ synopsis, the \
+			class-key of std::numeric_limits is 'class', but it is 'struct' \
+			in libstdc++. Note that Microsoft C++ cannot be use with \
+			libstdc++. So just modified lexically as per the standard text.
+	),
+	/ %'YFramework' $=
+	(
+		* DLP "strict ISO C++11 compatibility with using of macros" $since b252
+			$= (- ^ "GNU variadic macro extension"),
+		* "strict ISO C++ compatibility for const function type"
+			@ "constructor accepting function" @ "class template %GHEvent"
+			@ %'YSLib'.'Core'.'YEvent'
+			$= (/ 'const FuncType' -> 'FuncType');
+			// Clang++ 3.2(trunk161531) generates diagnostic message: \
+				"qualifier on function type 'FuncType' (aka 'void \
+				(_tParams...)') has unspecified behavior". That's not true, \
+				because ISO C++98/03 and ISO C++11 specified different rules \
+				explicitly. See $ref b351.
+		* $dev $lib "strict ISO C++11 compatibility for explicit constuctor \
+			and using of '{}' default arguments" $since b337 $=
+		(
+			/ "class %Font" @ %'YSLib'.'Adaptor'.'Font' $=
+			(
+				/ "1st default argument" @ "constructor with default argument",
+				+ "non-explicit default constructor"
+			)
+		);
+	)
+),
+
+b350
+(
 	/ %'YBase'.'YStandardEx' $=
 	(
 		/ "equality comparison of any iterator" @ %'Iterator' $=
@@ -981,8 +1058,9 @@ $now
 		),
 		+ $dev "explicitly instantiated declaration function %sfmt<char> with \
 			attribute for format moved from template declaration" @ %'String'
-			// Clang++ complains about wrong format string type for \
-				the template declaration.
+			// Implementation issue: G++ 4.7.2 allowed the code. \
+				Clang++ 3.2(trunk161531) complains about wrong format string \
+				type for the template declaration.
 	),
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -991,23 +1069,25 @@ $now
 			* "abstract member function %Clone missing 'const' qualifier"
 				@ "class %AController" @ "header ywgtevt.h" $since b243
 				// As pure virtual function now.
-			* "strict ISO C++ code compatibility" @ "constructor template"
-				@ "class %Widget"$=
+			* "constructor template" @ "class %Widget"$=
 			(
 				/ "initialization" ^ "empty background initialization"
 					~ "SolidBrush";
 					// No background would be painted through this \
 						initialization.
 				* $comp "dependency on incomplete type SolidBrush" $since b294
+					// Implementation issue: G++ 4.7.2 allowed invalid code. \
+						Clang++ 3.2 (trunk161531) complained.
 			);
 			+ "construct for initialization with no background"
 				@ "%class %Control"
 				// Object of %CheckButton is affected, now no background \
 					initialized as default.
 		),
-		* $dev "strict ISO C++11 code compatibility"
-			@ "class template %GBinaryGroup" @ %'Core'.'YGDIBase' $since b246
+		* @ "class template %GBinaryGroup" @ %'Core'.'YGDIBase' $since b246
 			$= (- "wrong constexpr specifier" @ "setters"),
+			// Implementation issue: G++ 4.7.2 allowed invalid code. \
+				Clang++ 3.2 (trunk161531) complained.
 	),
 	/ "background color of check button for hexadecimal browsing"
 		@ %'YReader'.'shell test example'
@@ -1106,7 +1186,7 @@ b348
 
 b347
 (
-	+ $lib $dev "more specific warning options" @ "compiler command" $=
+	+ DLB "more specific warning options" @ "compiler command" $=
 	(
 		+ "-Wmissing-declarations -Wredundant-decls" @ "platform %DS",
 		+ "-Wredundant-decls" @ "library %YBase @ platform %DS"
@@ -1501,7 +1581,7 @@ b335
 (
 	/ %'YFramework' $=
 	(
-		* DLP "includ guard macros" @ %'Helper' $since b303,
+		* DLP "include guard macros" @ %'Helper' $since b303,
 		+ "library %NPL" $= (+ "units %(Lexical; SContext; Configuration)")
 	)
 	// Release binary image(.nds) of this version are strictly equal with b334 \
@@ -1944,7 +2024,7 @@ b322
 				~ "%ystdex::mmbcpy",
 			* "implementation" @ "function template %CreateRawBitmap"
 				@ "header %ShellHelper" $since $before b132;
-			- $dep "using %ystdex::(mmbcpy, mmbset)" @ %'Adaptor'
+			- "using %ystdex::(mmbcpy, mmbset)" @ %'Adaptor'
 			$dep_to "removal dep of mmbcpy and mmbset"
 		)
 	),
@@ -4423,8 +4503,7 @@ b257
 			+ $design "individual model class and view class"
 		)
 	),
-	- DLP
-		"suppout for language implementation without variadic macro";
+	- DLP "suppout for language implementation without variadic macro";
 	+ $dev "void expression macros for function implementation"
 ),
 
@@ -4499,6 +4578,7 @@ b252
 		/ "library %YStandardExtend" >> "%YStandardEx"
 	);
 	+ "POD type operations" @ "library %YStandardEx",
+	/ $dev $lib "simplified macro definitions" @ "ybasemac.h",
 	/ "Doxygen file",
 	+ DLD "nested-use support" @ "implementation" @ "macro %yunsequenced",
 	/ DLP "libraries using" $=

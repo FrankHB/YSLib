@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r228
+\version r230
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-10-28 16:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,9 +73,9 @@ public:
 		: pContainer(&con), head(0), selected(0), length(1), is_selected(false)
 	{}
 
-	inline PDefHOp(GSequenceViewer&, ++) //!< 选中项目下标自增。
+	inline PDefHOp(GSequenceViewer&, ++, ) //!< 选中项目下标自增。
 		ImplRet(IncreaseSelected(1))
-	inline PDefHOp(GSequenceViewer&, --) //!< 选中项目下标自减。
+	inline PDefHOp(GSequenceViewer&, --, ) //!< 选中项目下标自减。
 		ImplRet(IncreaseSelected(-1))
 	inline PDefHOp(GSequenceViewer&, ++, int) \
 		//!< 视图中首个项目下标自增。

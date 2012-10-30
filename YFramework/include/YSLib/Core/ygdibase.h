@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1237
+\version r1239
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2012-10-26 15:20 +0800
+	2012-10-28 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -289,7 +289,7 @@ public:
 	\brief 判断是否为空。
 	\since build 320
 	*/
-	yconstfn PDefHOp(bool, !) const ynothrow
+	yconstfn PDefHOp(bool, !, ) const ynothrow
 		ImplRet(Width == 0 && Height == 0)
 
 	/*!
@@ -729,7 +729,7 @@ public:
 	\brief 判断无效性。
 	\since build 319
 	*/
-	PDefHOp(bool, !) const ynothrow
+	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!bool(*this))
 
 	/*!

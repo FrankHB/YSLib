@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1073
+\version r1077
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-09-18 23:51 +0800
+	2012-10-28 16:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,7 @@ public:
 	\brief 判断无效性。
 	\since build 319
 	*/
-	PDefHOp(bool, !) const ynothrow
+	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!bool(*this))
 
 	/*!
@@ -103,7 +103,7 @@ public:
 	\brief 检测文件结束符。
 	\note 参数和返回值语义同 \c std::feof() 。
 	*/
-	PDefH(int, CheckEOF) const
+	PDefH(int, CheckEOF, ) const
 		ImplRet(std::feof(fp))
 
 private:
@@ -131,7 +131,7 @@ public:
 	\see ISO C11 7.21.5.2 。
 	\since build 329
 	*/
-	PDefH(int, Flush) const
+	PDefH(int, Flush, ) const
 		ImplRet(std::fflush(fp))
 
 	/*!
@@ -165,7 +165,7 @@ public:
 	/*!
 	\brief 文件指针返回到文件头，语义同 std::rewind 。
 	*/
-	PDefH(void, Rewind) const
+	PDefH(void, Rewind, ) const
 		ImplRet(std::rewind(fp))
 
 	/*!

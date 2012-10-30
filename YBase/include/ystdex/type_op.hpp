@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r724
+\version r758
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2012-10-17 01:20 +0800
+	2012-10-29 22:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,8 +211,8 @@ metafunction.html 。
 \since build 333
 */
 template<typename _type>
-struct is_returnable : std::integral_constant<bool, !std::is_array<_type>::value
-	&& !std::is_abstract<_type>::value && !std::is_function<_type>::value>
+struct is_returnable : integral_constant<bool, !is_array<_type>::value
+	&& !is_abstract<_type>::value && !is_function<_type>::value>
 {};
 
 
@@ -222,8 +222,8 @@ struct is_returnable : std::integral_constant<bool, !std::is_array<_type>::value
 \since build 339
 */
 template<typename _type>
-struct is_decayable : std::integral_constant<bool,
-	!std::is_same<typename std::decay<_type>::type, _type>::value>
+struct is_decayable : integral_constant<bool,
+	!is_same<typename decay<_type>::type, _type>::value>
 {};
 
 
@@ -233,8 +233,8 @@ struct is_decayable : std::integral_constant<bool,
 \since build 333
 */
 template<typename _type>
-struct is_class_pointer : std::integral_constant<bool, std::is_pointer<_type>
-	::value && std::is_class<typename std::remove_pointer<_type>::type>::value>
+struct is_class_pointer : integral_constant<bool, is_pointer<_type>::value
+	&& is_class<typename remove_pointer<_type>::type>::value>
 {};
 
 
@@ -244,9 +244,8 @@ struct is_class_pointer : std::integral_constant<bool, std::is_pointer<_type>
 \since build 333
 */
 template<typename _type>
-struct is_lvalue_class_reference : std::integral_constant<bool,
-	!std::is_lvalue_reference<_type>::value && std::is_class<typename
-	std::remove_reference<_type>::type>::value>
+struct is_lvalue_class_reference : integral_constant<bool, !is_lvalue_reference<
+	_type>::value && is_class<typename remove_reference<_type>::type>::value>
 {};
 
 
@@ -257,9 +256,32 @@ struct is_lvalue_class_reference : std::integral_constant<bool,
 \since build 333
 */
 template<typename _type>
-struct is_rvalue_class_reference : std::integral_constant<bool,
-	!std::is_lvalue_reference<_type>::value && std::is_class<typename
-	std::remove_reference<_type>::type>::value>
+struct is_rvalue_class_reference : integral_constant<bool, !is_lvalue_reference<
+	_type>::value && is_class<typename remove_reference<_type>::type>::value>
+{};
+
+
+/*!
+\ingroup unary_type_trait
+\brief 判断指定类型是否是 POD struct 。
+\see ISO C++11 9/10 。
+\since build 333
+*/
+template<typename _type>
+struct is_pod_struct : integral_constant<bool,
+	is_pod<_type>::value && is_class<_type>::value>
+{};
+
+
+/*!
+\ingroup unary_type_trait
+\brief 判断指定类型是否是 POD union 。
+\see ISO C++11 9/10 。
+\since build 333
+*/
+template<typename _type>
+struct is_pod_union : integral_constant<bool,
+	is_pod<_type>::value && is_union<_type>::value>
 {};
 
 

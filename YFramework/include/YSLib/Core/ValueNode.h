@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1019
+\version r1021
 \author FrankHB<frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2012-10-03 01:57 +0800
+	2012-10-28 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ public:
 
 	//! \since build 336
 	//@{
-	PDefHOp(bool, !) const ynothrow
+	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!value)
 
 	PDefHOp(bool, +=, const ValueNode& node)
@@ -159,7 +159,7 @@ private:
 	CheckNodes();
 
 public:
-	PDefH(void, Clear)
+	PDefH(void, Clear, )
 		ImplExpr(value.Clear())
 
 	bool

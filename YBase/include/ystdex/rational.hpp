@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1156
+\version r1157
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-10-28 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -351,7 +351,7 @@ namespace std
 \since build 260
 */
 template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
-struct numeric_limits<ystdex::fixed_point<_tBase, _vInt, _vFrac>>
+class numeric_limits<ystdex::fixed_point<_tBase, _vInt, _vFrac>>
 {
 private:
 	typedef ystdex::fixed_point<_tBase, _vInt, _vFrac> fp_type;

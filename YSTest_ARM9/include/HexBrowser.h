@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r400
+\version r401
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2012-09-07 10:26 +0800
+	2012-10-28 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,7 +125,7 @@ protected:
 	DefGetter(const ynothrow, DataType::const_iterator, End, data.cend())
 	DefGetter(ynothrow, DataType::iterator, End, data.end())
 
-	PDefH(void, ClearData)
+	PDefH(void, ClearData, )
 		ImplExpr(data.clear())
 
 	PDefH(void, ResizeData, DataType::size_type s)

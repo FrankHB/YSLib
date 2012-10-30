@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r622
+\version r624
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2012-10-09 10:19 +0800
+	2012-10-28 16:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,8 +212,8 @@ public:
 		return CheckPoint(pt.X, pt.Y);
 	}
 
-	PDefH(void, ClearSelected)
-		ImplBodyMem(viewer, ClearSelected)
+	PDefH(void, ClearSelected, )
+		ImplBodyMem(viewer, ClearSelected, )
 
 	//! \since build 316
 	using MTextList::Find;

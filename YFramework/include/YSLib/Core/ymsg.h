@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1796
+\version r1798
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-09-07 10:06 +0800
+	2012-10-28 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,7 +118,7 @@ public:
 	\brief 判断无效性。
 	\since build 319
 	*/
-	PDefHOp(bool, !) const ynothrow
+	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!bool(*this))
 
 	/*!
@@ -198,7 +198,7 @@ public:
 	/*!
 	\brief 清除消息队列。
 	*/
-	PDefH(void, Clear)
+	PDefH(void, Clear, )
 		ImplRet(clear())
 
 	/*!

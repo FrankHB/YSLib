@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2803
+\version r2815
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2012-09-07 09:54 +0800
+	2012-10-28 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -424,7 +424,7 @@ public:
 	/*
 	!\brief 清除字形缓存。
 	*/
-	PDefH(void, ResetGlyphCache)
+	PDefH(void, ResetGlyphCache, )
 		ImplRet(FTC_Manager_Reset(manager))
 };
 
@@ -450,11 +450,19 @@ private:
 
 public:
 	/*!
-	\brief 构造指定字型家族、大小和样式的字体对象。
+	\brief 默认构造：使用默认字型家族、大小和样式的字体对象。
+	\since build 351
+	*/
+	Font()
+		: Font(FetchDefaultTypeface().GetFontFamily())
+	{}
+	/*!
+	\brief 构造：使用指定字型家族、大小和样式的字体对象。
+	\since build 351
 	*/
 	explicit
-	Font(const FontFamily& = FetchDefaultTypeface().GetFontFamily(),
-		FontSize = DefaultSize, FontStyle = FontStyle::Regular);
+	Font(const FontFamily&, FontSize = DefaultSize,
+		FontStyle = FontStyle::Regular);
 
 	DefPred(const ynothrow, Bold, bool(style & FontStyle::Bold))
 	DefPred(const ynothrow, Italic, bool(style & FontStyle::Italic))

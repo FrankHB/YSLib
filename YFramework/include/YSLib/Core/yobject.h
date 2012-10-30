@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3552
+\version r3557
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-10-18 14:43 +0800
+	2012-10-29 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,8 +107,6 @@ public:
 	DefDeCopyCtor(ValueHolder)
 	DefDeMoveCtor(ValueHolder)
 
-	DefDelCopyAssignment(ValueHolder)
-
 	ImplI(IValueHolder) bool
 	operator==(const IValueHolder& obj) const override
 	{
@@ -157,8 +155,6 @@ public:
 	{
 		delete p_held;
 	}
-
-	DefDelCopyAssignment(PointerHolder)
 
 	ImplI(IValueHolder) PointerHolder*
 	clone() const override
@@ -265,7 +261,7 @@ public:
 	\brief 判断是否为空。
 	\since build 320
 	*/
-	PDefHOp(bool, !) const ynothrow
+	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!content)
 
 	bool
@@ -338,8 +334,8 @@ public:
 	\post <tt>*this == ValueObject()</tt> 。
 	\since build 296
 	*/
-	PDefH(void, Clear) ynothrow
-		ImplBodyMem(content, clear)
+	PDefH(void, Clear, ) ynothrow
+		ImplBodyMem(content, clear, )
 
 	/*!
 	\brief 交换。
