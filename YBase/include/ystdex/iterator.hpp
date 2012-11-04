@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r1545
+\version r1547
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-10-26 04:00 +0800
+	2012-10-26 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -881,8 +881,8 @@ public:
 	template<typename _tIterator>
 	explicit
 	any_input_iterator(_tIterator&& i)
-		: obj(new input_iterator_holder<typename std::remove_reference<
-		_tIterator>::type>(i), nullptr)
+		: obj(holder_tag(), new input_iterator_holder<typename
+		std::remove_reference<_tIterator>::type>(i))
 	{}
 	any_input_iterator(const any_input_iterator&) = delete;
 

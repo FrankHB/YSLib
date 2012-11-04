@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4656 *build 351 rev *
+\version r4659 *build 352 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-30 14:28 +0800
+	2012-11-04 20:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -430,109 +430,121 @@ $using:
 
 $DONE:
 r1:
-/ \m \decl order @ \cl any @ \h Any;
-/ @ \h TypeOperations $=
+/ @ \h Any $=
 (
-	/ \simp \impl @ (is_returnable, is_decayable, is_class_pointer,
-		is_lvalue_class_reference, is_rvalue_class_reference) $= (- \a 'std::'),
-	+ \stt (is_pod_struct, is_pod_union)
+	* wrong \es @ \ctor value_holder(_type&&) @ \clt value_holder<_type>
+		$since b348;
+	+ public typedef _type value_type @ \clt (value_holder, pointer_holder),
+	+ \s \as @ \clt value_holder
 );
 /= test 1 @ platform MinGW32;
 
 r2:
-* DLP strict ISO C++11 compatibility with \mac $since b252
-	$= - \a ^ GNU variadic macro extension
-		$= $design \reg \expr replacement ^ Visual Studio 2010
-		(
-			/ 'PDefHOp\({[^,]+}\, {[^,]+}\)' -> 'PDefHOp(\1, \2, )',
-			/ 'PDefH\({[^,]+}\, {[^,]+}\)' -> 'PDefH(\1, \2, )',
-			/ 'ImplBodyMem\({[^,]+}\, {[^,]+}\)' -> 'ImplBodyMem(\1, \2, )'
-		);
-/= test 2 @ platform MinGW32;
+* union 'non_aggregate_pod' @ \h Any misspelled as 'non_aggreate_pod'
+	$since b351;
+/= test 2 @ platform DS;
 
 r3:
-- redundant ';' @ end of \amf AController::clone @ \h YWidgetEvent $since b350,
-* strict ISO C++ compatibility for const function type @ \ctor @ \clt GHEvent
-	@ \h YEvent
-	$= (/ 'const FuncType' -> 'FuncType');
-/= test 3 @ platform MinGW32;
+/ @ union \t pod_storage @ \h Any $=
+(
+	+ \exp \de \ctor,
+	+ \ctor \t<_type> pod_storage(_type&&),
+	+ \mft< _type> pod_storage& \op=(_type&&)
+);
+/= test 3 @ platform DS ^ \conf release;
 
 r4:
-/ class-key 'struct' -> 'class' @ \clt \spec std::numeric_limits @ \h Rational,
-* strict ISO C++11 compatibility for \exp \ctor and '{}' \de \arg $since b337 $=
+/ @ \h Any $=
 (
-	/ @ \cl Font @ \h Font $=
+	* \impl @ \mft \op= @ union \t pod_storage,
+	+ \en \cl any_operation,
 	(
-		- 1st \de \arg @ \exp \ctor with \de \arg,
-		+ !\exp \de \ctor \i
-	)
+		+ typedef pod_storage<non_aggregate_pod> any_storage;
+		(
+			typedef void(*any_manager)(any_storage&, const any_storage&,
+				any_operation),
+			yconstexpr size_t max_any_size = sizeof(any_storage),
+			yconstexpr size_t max_any_align = yalignof(any_storage),
+		)
+	),
+	+ \em \st holder_tag
 );
-/= test 4 @ platform MinGW32;
+/= test 4 @ platform MinGW32 ^ \conf release;
 
 r5:
-/ \simp @ \h Any $=
+/ @ \h Any $=
 (
-	+ \del copy \op= @ \cl any_holder,
-	- \del copy \op= @ \clt (value_holder, pointer_holder)
+	/ @ \cl any $=
+	(
+		/ \mft get -> \mf,
+		/ \tr \impl @ \mft target
+	),
+	/ \tr \impl @ 2 \ft unsafe_any_cast
 ),
-/ \simp @ \h YObject $=
-(
-	- \m 'DefDelCopyAssignment(ValueHolder)' @ \cl ValueHolder,
-	- \m 'DefDelCopyAssignment(PointerHolder)' @ \cl PointerHolder
-);
+/ \tr \impl @ \mf ValueObject::GetMutableObject
 /= test 5 @ platform MinGW32;
 
-r6-r7:
-/= 2 test 6 @ platform MinGW32;
+r6:
++ \clt (any_handler, any_ref_handler, any_holder_handler) @ \h Any;
+/= test 6 @ platform MinGW32;
 
-r8:
-/= test 7 @ platform MinGW32 ^ \conf release;
-
-r9:
-/= test 8 @ platform DS;
-
-r10:
-/= test 9 @ platform DS ^ \conf release;
+r7-r10:
+/= 4 test 7 @ platform MinGW32;
 
 r11:
-* \impl @ \stt (is_pod_struct, is_pod_union) @ \h TypeOperations $since r1;
+/ @ \cl any @ \h Any $=
 (
-	/ \inc \h YDefinition @ \h Any -> \h TypeOperation;
-	/ union any_pod_t @ \h Any -> union \t pod_storage<_type
-		= typaname anligned_storage<void*>::type>
+	/ \ctor	any(any_holder*, std::nullptr_t) -> any(holder_tag, any_holder*),
+	- \ctor \t<_type> yconstfn any(_type*, int)
+),
+/ \tr \impl @ \ctor \t @ \clt any_input_iterator @ \h Iterator,
+/ \tr \impl @ \a 3 \ctor \t @ \cl ValueObject,
+/ @ \cl any @ \h Any $=
+(
+	/ \ctor any(any_holder*, std::nullptr_t) @ \h Any -> \ctor \t<_type>
+		any(any_holder*, holder_tag),
 );
-/= test 10 @ platform MinGW32;
+/= test 8 @ platform MinGW32;
 
-r12:
-* \impl @ union \t pod_storage @ \h Any $since r11;
-/= test 11 @ platform MinGW32;
+r12-r13:
++ typedef value_type @ \clt (ValueHolder, PointerHolder) @ \h YObject,
+/ @ \h Any $=
+(
+	+ enumerator get_holder_ptr @ \en \cl any_operation;
+	/ \impl @ \smf manage @ \clt (any_handler, any_holder_handler)
+),
+/= 2 test 8 @ platform MinGW32;
 
-r13:
-/ union no_copy_t -> @ \h Any union non_aggreate_pod;
-/= test 12 @ platform MinGW32;
+r14-r25:
+* missing user-provided (copy, move) \ctor @ \clt pointer_holder
+	@ \h Any $since b331,
+* missing user-provided (copy, move) \ctor @ \clt PointerHolder
+	@ \h YObject $since b332,
+/ \impl @ \cl any @ \h Any,
+/= 12 test 9 @ platform MinGW32;
 
-r14:
+r26:
 /= test 13 @ platform MinGW32 ^ \conf release;
 
-r15:
+r27:
 /= test 14 @ platform DS;
 
-r16:
+r28:
 /= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-10-30 +0800:
--26.8d;
-// Mercurial rev1-rev223: r9383;
+2012-11-04 +0800:
+-25.9d;
+// Mercurial rev1-rev224: r9411;
 
 / ...
 
 
 $NEXT_TODO:
-b352-b360:
+b353-b360:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -1005,6 +1017,68 @@ $module_tree $=
 
 $now
 (
+	/ %'YBase'.'YStandardEx'.'Any' $=
+	(
+		/ @ "class template %value_holder" $=
+		(
+			* "wrong exception specification" @ "constructor template"
+				$since b348,
+			(
+				+ "public typedef %value_type",
+				$dep_to "value holder issue"
+			),
+			+ $dev "static assertion keeping value type as object type"
+		),
+		/ @ "class template %pointer_holder" $=
+		(
+			+ "public typedef %value_type",
+			* "missing user-provided (copy, move) constructor" @ "class template \
+				%pointer_holder" $since b331,
+			$dep_to "pointer holder issue"
+		),
+		* "union %non_aggregate_pod misspelled as %non_aggreate_pod"
+			$since b351,
+		(
+			/ @ "union template class %pod_storage" $=
+			(
+				+ "explicitly defaulted constructor",
+				+ "constructor template for objects",
+				+ "assignment template for objects"
+			),
+			+ "enum class %any_operation",
+			+ "typedef %any_storage",
+			$dep_from ("value holder issue", "pointer holder issue");
+			(
+				+ "typedef %any_manager",
+				+ "constexpr size (max_any_size, max_any_align)",
+				+ "class templates %(any_handler; any_ref_handler, \
+					any_holder_handler)"
+			);
+			$dep_to "any handlers"
+		),
+		(
+			+ "empty struct %holder_tag";
+			$dep_to "holder tag"
+		)
+		/ @ "class %any" $=
+		(
+			/ "member function template %get" -> "non-template member function",
+			(
+				(
+					$dep_from "holder tag";
+					/ "constructors interface" ^ "tag type %holder_tag"
+				);
+				$dep_from any_holder_hanlder;
+				/ "implementation" ^ "holders"
+			)
+		)
+	),
+	* "missing user-provided (copy, move) constructor" @ "class template \
+		%PointerHolder" @ %'YFramework'.'YSLib'.'Core'.'YObject' $since b332,
+),
+
+b351
+(
 	/ %'YBase' $=
 	(
 		/ %'Any' $=
@@ -1132,7 +1206,7 @@ b349
 			^ "ADL" @ "%(is_dereferencable, is_undereferencable) for \
 				class template %any_input_iterator",
 		),
-		+ "static assertion to confirm source type is a polymorphic class"
+		+ $dev "static assertion to confirm source type is a polymorphic class"
 			@ "1st function template %polymorphic_downcast" @ %'Cast'
 	)
 ),
@@ -2370,7 +2444,7 @@ b315
 		/ DLD "simplified implementation" @ "destructor @ class %Widget",
 		(
 			$dep_from "align macro";
-			+ DLD "static assertion of alignment equality between %wchar_t \
+			+ $dev "static assertion of alignment equality between %wchar_t \
 				and %CHRLib::ucs2_t" @ "platform MinGW32"
 				@ %'YCLib'.'FileSystem'
 		),
@@ -2858,7 +2932,7 @@ b299
 			),
 			/ %'CHRLib' $=
 			(
-				+ DLD "static assertion for volatile type"
+				+ $dev "static assertion for volatile type"
 					@ "function template %FillByte" @ "header %smap.hpp",
 					// To avoid undefined behavior.
 				* "EOF not checked for distinguishing with invalid source \

@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3557
+\version r3579
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-10-29 14:48 +0800
+	2012-11-04 17:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,6 +92,10 @@ EndDecl
 template<typename _type>
 class ValueHolder : implements IValueHolder
 {
+public:
+	//! \since build 352
+	typedef _type value_type;
+
 protected:
 	//! \since build 348
 	mutable _type held;
@@ -142,6 +146,10 @@ class PointerHolder : implements IValueHolder
 {
 	static_assert(std::is_object<_type>::value, "Invalid type found.");
 
+public:
+	//! \since build 352
+	typedef _type value_type;
+
 protected:
 	_type* p_held;
 
@@ -150,6 +158,17 @@ public:
 	PointerHolder(_type* value)
 		: p_held(value)
 	{}
+	//! \since build 352
+	//@{
+	PointerHolder(const PointerHolder& h)
+		: PointerHolder(h.p_held ? new _type(*h.p_held) : nullptr)
+	{}
+	PointerHolder(PointerHolder&& h)
+		: p_held(h.p_held)
+	{
+		h.p_held = nullptr;
+	}
+	//@}
 	virtual
 	~PointerHolder() ynothrow
 	{
@@ -214,7 +233,7 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(const _type& obj)
-		: content(new ValueHolder<_type>(obj), nullptr)
+		: content(ystdex::holder_tag(), new ValueHolder<_type>(obj))
 	{}
 	/*!
 	\brief 构造：使用对象右值引用。
@@ -223,8 +242,8 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type&& obj, MoveTag)
-		: content(new ValueHolder<typename std::remove_reference<_type>::type>(
-		std::move(obj)), nullptr)
+		: content(ystdex::holder_tag(), new ValueHolder<typename
+		std::remove_reference<_type>::type>(std::move(obj)))
 	{}
 	/*!
 	\brief 构造：使用对象指针。
@@ -233,7 +252,7 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
-		: content(new PointerHolder<_type>(p), nullptr)
+		: content(ystdex::holder_tag(), new PointerHolder<_type>(p))
 	{}
 	/*!
 	\brief 复制构造：默认实现。
@@ -287,7 +306,7 @@ private:
 		YAssert(bool(content), "Null pointer found.");
 		YAssert(content.type() == typeid(_type), "Invalid type found.");
 
-		return *content.get<_type>();
+		return *static_cast<_type*>(content.get());
 	}
 
 public:
