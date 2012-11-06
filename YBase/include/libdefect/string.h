@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 <string> 修正。
-\version r418
+\version r419
 \author FrankHB<frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2012-10-06 19:39 +0800
+	2012-11-06 01:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ inline int
 stoi(const string& __str, size_t* __idx = 0, int __base = 10)
 {
 	return __gnu_cxx::__stoa<long, int>(&std::strtol, "stoi", __str.c_str(),
-	__idx, __base);
+		__idx, __base);
 }
 YB_LIBDEFECT_STOI(stol, long, std::strtol)
 YB_LIBDEFECT_STOI(stoul, unsigned long, std::strtoul)

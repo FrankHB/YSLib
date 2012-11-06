@@ -31,6 +31,7 @@
     <ClInclude Include="include\ytest\timing.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\ystdex\any.cpp" />
     <ClCompile Include="source\ystdex\cstdio.cpp" />
     <ClCompile Include="source\ystdex\cstring.cpp" />
   </ItemGroup>

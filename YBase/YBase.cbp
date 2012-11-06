@@ -31,8 +31,8 @@
 				</MakeCommands>
 			</Target>
 			<Target title="release">
-				<Option output="release\YBase" prefix_auto="1" extension_auto="1" />
-				<Option object_output="release\" />
+				<Option output="release/YBase" prefix_auto="1" extension_auto="1" />
+				<Option object_output="release/" />
 				<Option type="1" />
 				<Option compiler="gnu_armeabi_gcc_compiler" />
 				<Compiler>
@@ -54,26 +54,27 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="include\libdefect\string.h" />
-		<Unit filename="include\ydef.h" />
-		<Unit filename="include\ystdex\algorithm.hpp" />
-		<Unit filename="include\ystdex\any.h" />
-		<Unit filename="include\ystdex\cast.hpp" />
-		<Unit filename="include\ystdex\container.hpp" />
-		<Unit filename="include\ystdex\cstdio.h" />
-		<Unit filename="include\ystdex\cstring.h" />
-		<Unit filename="include\ystdex\examiner.hpp" />
-		<Unit filename="include\ystdex\functional.hpp" />
-		<Unit filename="include\ystdex\iterator.hpp" />
-		<Unit filename="include\ystdex\memory.hpp" />
-		<Unit filename="include\ystdex\operators.hpp" />
-		<Unit filename="include\ystdex\rational.hpp" />
-		<Unit filename="include\ystdex\string.hpp" />
-		<Unit filename="include\ystdex\type_op.hpp" />
-		<Unit filename="include\ystdex\utility.hpp" />
-		<Unit filename="include\ytest\timing.hpp" />
-		<Unit filename="source\ystdex\cstdio.cpp" />
-		<Unit filename="source\ystdex\cstring.cpp" />
+		<Unit filename="include/libdefect/string.h" />
+		<Unit filename="include/ydef.h" />
+		<Unit filename="include/ystdex/algorithm.hpp" />
+		<Unit filename="include/ystdex/any.h" />
+		<Unit filename="include/ystdex/cast.hpp" />
+		<Unit filename="include/ystdex/container.hpp" />
+		<Unit filename="include/ystdex/cstdio.h" />
+		<Unit filename="include/ystdex/cstring.h" />
+		<Unit filename="include/ystdex/examiner.hpp" />
+		<Unit filename="include/ystdex/functional.hpp" />
+		<Unit filename="include/ystdex/iterator.hpp" />
+		<Unit filename="include/ystdex/memory.hpp" />
+		<Unit filename="include/ystdex/operators.hpp" />
+		<Unit filename="include/ystdex/rational.hpp" />
+		<Unit filename="include/ystdex/string.hpp" />
+		<Unit filename="include/ystdex/type_op.hpp" />
+		<Unit filename="include/ystdex/utility.hpp" />
+		<Unit filename="include/ytest/timing.hpp" />
+		<Unit filename="source/ystdex/any.cpp" />
+		<Unit filename="source/ystdex/cstdio.cpp" />
+		<Unit filename="source/ystdex/cstring.cpp" />
 		<Extensions>
 			<DoxyBlocks>
 				<comment_style block="1" line="1" />

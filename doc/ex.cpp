@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4659 *build 352 rev *
+\version r4752 *build 353 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-11-04 20:12 +0800
+	2012-11-06 18:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,7 @@ __unfold __iterators.for_labeled_paragraph
 	$LOW_PRIOR_TODO,
 	$FURTHER_WORK,
 	$KNOWN_ISSUE,
+	$TO_BE_REVIEWED_ENVIRONMENT_ISSUE,
 	$RESOLVED_ENVIRONMENT_ISSUE,
 	$HISTORY
 );
@@ -228,6 +229,10 @@ $install; // issues on installing;
 $deploy; // issues on deployment(including build environment support);
 $comp; // features consist of dependencies with no additional work;
 $doc; // for documents target;
+$workaround; // for issues currently or temporarily cannot be resolved through \
+	a preferred clean way for certain reasons, but exist alternative ways to \
+	get being settled and work expectedly for outer observers of the system.
+
 $add_features +; // features added;
 $fix_bugs *; // bugs fixed;
 $modify_features /; // features modified;
@@ -255,16 +260,11 @@ $macro_platform_mapping:
 $using:
 \u YObject
 (
-	\cl ValueObject,
-	\clt GDependency,
-	\clt GRange
+	\cl ValueObject, \clt (GDependency, GRange)
 ),
 \u YGDIBase
 (
-	\clt GBinaryGroup;
-	typedef Point, Vec,
-	\cl Size;
-	\cl Rect
+	\clt GBinaryGroup; typedef Point, Vec, \cl Size; \cl Rect
 ),
 \u YFileSystem
 (
@@ -276,8 +276,7 @@ $using:
 ),
 \u YApplication
 (
-	\cl Log,
-	\cl Application
+	\cl (Log, Application)
 ),
 \u YConsole
 (
@@ -285,38 +284,26 @@ $using:
 ),
 \u YRender
 (
-	\cl Renderer,
-	\cl BufferedRenderer
+	\cl (Renderer; BufferedRenderer)
 ),
 \h YWidgetView
 (
-	\cl Visual,
-	\cl View
+	\cl (Visual; View)
 ),
 \h YWidgetEvent
 (
-	\st UIEventArgs;
-	\st RoutedEventArgs;
-	\st InputEventArgs;
-	(
-		\st KeyEventArgs,
-		\st TouchEventArgs
-	),
+	\st (UIEventArgs; RoutedEventArgs; InputEventArgs);
+	\st (KeyEventArgs, TouchEventArgs),
 	\clt GValueEventArgs,
-	(
-		\st PaintContext,
-		\st PaintEventArgs
-	),
+	\st (PaintContext; PaintEventArgs),
 	typedef \en VisualEvent,
 	\stt EventTypeMapping,
 	\st BadEvent,
-	\cl AController;
-	\cl WidgetController
+	\cl (AController; WidgetController)
 ),
 \u YWidget
 (
-	\in IWidget,
-	\cl Widget
+	\in IWidget; \cl Widget
 ),
 \u YUIContainer
 (
@@ -324,8 +311,7 @@ $using:
 ),
 \u YControl
 (
-	\cl Controller,
-	\cl Control
+	\cl (Controller; Control)
 ),
 \u YPanel
 (
@@ -341,26 +327,19 @@ $using:
 ),
 \u YGUI
 (
-	\cl InputTimer,
-	\cl GUIState
+	\cl (InputTimer; GUIState)
 ),
 \u YBrush
 (
-	\cl SolidBrush,
-	\cl ImageBrush,
-	\cl BorderStyle,
-	\cl BorderBrush
+	\cl (SolidBrush, ImageBrush, (BorderStyle; BorderBrush))
 ),
 \u Label
 (
-	\cl MLabel;
-	\cl Label,
-	\cl MTextList
+	\cl (MLabel; Label, MTextList)
 ),
 \u TextArea
 (
-	\cl TextArea,
-	\cl BufferedTextArea
+	\cl (TextArea; BufferedTextArea)
 ),
 \u Progress
 (
@@ -368,18 +347,15 @@ $using:
 ),
 \u Button
 (
-	\cl Thumb,
-	\cl Button
+	\cl (Thumb; Button)
 ),
 \u UIContainerEx
 (
-	\cl DialogBox,
-	\cl DialogPanel
+	\cl (DialogBox, DialogPanel)
 ),
 \u Selector
 (
-	\cl CheckBox;
-	\cl CheckButton
+	\cl (CheckBox; CheckButton)
 ),
 \u TextList
 (
@@ -391,20 +367,12 @@ $using:
 ),
 \u Scroll
 (
-	\cl ScrollEventArgs;
-	\cl ATrack;
-	\cl HorizontalTrack,
-	\cl VerticalTrack;
-	\cl AScrollBar;
-	\cl HorizontalScrollBar,
-	\cl VerticalScrollBar;
-	\cl ScrollableContainer
+	\cl (ScrollEventArgs; ATrack; HorizontalTrack, VerticalTrack; AScrollBar;
+		HorizontalScrollBar, VerticalScrollBar; ScrollableContainer)
 ),
 \u ComboList
 (
-	\cl ListBox,
-	\cl FileBox,
-	\cl DropDownList
+	\cl (ListBox, FileBox, DropDownList)
 ),
 \u Form
 (
@@ -412,14 +380,11 @@ $using:
 ),
 \u TextBase
 (
-	\cl PenStyle,
-	\cl TextState
+	\cl (PenStyle; TextState)
 ),
 \u TextRenderer
 (
-	\cl EmptyTextRenderer,
-	\clt GTextRendererBase,
-	\cl TextRenderer
+	\cl EmptyTextRenderer, \clt GTextRendererBase, \cl TextRenderer;
 	\cl TextRegion
 ),
 \u TextManager
@@ -430,121 +395,95 @@ $using:
 
 $DONE:
 r1:
-/ @ \h Any $=
-(
-	* wrong \es @ \ctor value_holder(_type&&) @ \clt value_holder<_type>
-		$since b348;
-	+ public typedef _type value_type @ \clt (value_holder, pointer_holder),
-	+ \s \as @ \clt value_holder
-);
+/ \simp \impl @ \mf clone ^ copy \ctor @ (\clt pointer_holder @ \h Any,
+	\clt PointerHolder @ \h YObject);
 /= test 1 @ platform MinGW32;
 
 r2:
-* union 'non_aggregate_pod' @ \h Any misspelled as 'non_aggreate_pod'
-	$since b351;
-/= test 2 @ platform DS;
+/ @ \u Any $=
+(
+	+ \impl \u Any[any.cpp];
+	/ \m (copy \ctor, \dtor, get, get_holder, clear, swap, type)
+		@ \cl any @ \h -> \m !\i @ \impl \u Any
+);
+/= test 2 @ platform MinGW32;
 
 r3:
-/ @ union \t pod_storage @ \h Any $=
-(
-	+ \exp \de \ctor,
-	+ \ctor \t<_type> pod_storage(_type&&),
-	+ \mft< _type> pod_storage& \op=(_type&&)
-);
-/= test 3 @ platform DS ^ \conf release;
+/= test 3 @ platform MinGW32 ^ \conf release;
 
 r4:
-/ @ \h Any $=
-(
-	* \impl @ \mft \op= @ union \t pod_storage,
-	+ \en \cl any_operation,
-	(
-		+ typedef pod_storage<non_aggregate_pod> any_storage;
-		(
-			typedef void(*any_manager)(any_storage&, const any_storage&,
-				any_operation),
-			yconstexpr size_t max_any_size = sizeof(any_storage),
-			yconstexpr size_t max_any_align = yalignof(any_storage),
-		)
-	),
-	+ \em \st holder_tag
-);
-/= test 4 @ platform MinGW32 ^ \conf release;
+/= test 4 @ platform DS;
 
 r5:
-/ @ \h Any $=
-(
-	/ @ \cl any $=
-	(
-		/ \mft get -> \mf,
-		/ \tr \impl @ \mft target
-	),
-	/ \tr \impl @ 2 \ft unsafe_any_cast
-),
-/ \tr \impl @ \mf ValueObject::GetMutableObject
-/= test 5 @ platform MinGW32;
+/= test 5 @ platform DS ^ \conf release;
 
 r6:
-+ \clt (any_handler, any_ref_handler, any_holder_handler) @ \h Any;
-/= test 6 @ platform MinGW32;
-
-r7-r10:
-/= 4 test 7 @ platform MinGW32;
-
-r11:
-/ @ \cl any @ \h Any $=
-(
-	/ \ctor	any(any_holder*, std::nullptr_t) -> any(holder_tag, any_holder*),
-	- \ctor \t<_type> yconstfn any(_type*, int)
-),
-/ \tr \impl @ \ctor \t @ \clt any_input_iterator @ \h Iterator,
-/ \tr \impl @ \a 3 \ctor \t @ \cl ValueObject,
-/ @ \cl any @ \h Any $=
-(
-	/ \ctor any(any_holder*, std::nullptr_t) @ \h Any -> \ctor \t<_type>
-		any(any_holder*, holder_tag),
-);
-/= test 8 @ platform MinGW32;
-
-r12-r13:
-+ typedef value_type @ \clt (ValueHolder, PointerHolder) @ \h YObject,
 / @ \h Any $=
 (
-	+ enumerator get_holder_ptr @ \en \cl any_operation;
-	/ \impl @ \smf manage @ \clt (any_handler, any_holder_handler)
+	/ \simp \de \arg @ \clt any_handler;
+	- \o (max_any_size, max_any_align)
+);
+/= test 6 @ platform MinGW32;
+
+r7:
+- \exp \del \mf \op= @ \cl any_holder @ \h Any
+	to prevent move \ctor being implicitly \del;
+* missing \exp \de copy \op= @ \clt (ValueHolder, PointerHolder) @ \h YObject
+	$since b?;
+/= test 7 @ platform MinGW32;
+
+r8:
++ $workaround for G++ 4.7.1 $=
+(
+	+ \exp \de (\de, copy, move) \ctor @ \cl any_holder @ \h Any;
+	+ \exp \de (\de, copy, move) \ctor @ \cl any_iterator_holder @ \h Iterator;
+	+ \exp \de (\de, copy, move) \ctor @ \in IValueHolder @ \h YObject
+);
+/= test 8 @ platform DS;
+
+r9:
+/= test 9 @ platform DS ^ \conf release;
+
+r10-r15:
+/ @ makefile @ platform DS $=
+(
+	/ '-fomit-frame-pointer' @ \mac CFLAGS @ \proj (YBase,
+		YFramework, YSTest_ARM7, YSTest_ARM9) >> \conf release ~ \a \conf,
+	+ '-flto=jobserver' @ \mac CFLAGS @ \a \conf @ \mac CFLAGS @ \proj (YBase,
+		YFramework, YSTest_ARM7, YSTest_ARM9),
+	- unused \mac LDFLAGS @ \proj (YBase, YFramework),
+	+ '-fomit-frame-pointer' @ \mac LDFLAGS @ \proj (YBase, YFramework,
+		YSTest_ARM7, YSTest_ARM9)
+	// LDFLAGS with '-flto=jobserver' will cause internal compiler error \
+		@ \conf debug @ ARM 9 or worse code being generated @ \conf release.
 ),
-/= 2 test 8 @ platform MinGW32;
+/= 2 test 10 @ platform DS ^ \conf release,
+/= 4 test 11 @ platform DS;
 
-r14-r25:
-* missing user-provided (copy, move) \ctor @ \clt pointer_holder
-	@ \h Any $since b331,
-* missing user-provided (copy, move) \ctor @ \clt PointerHolder
-	@ \h YObject $since b332,
-/ \impl @ \cl any @ \h Any,
-/= 12 test 9 @ platform MinGW32;
+r16:
+/= test 12 @ platform DS ^ \conf release;
 
-r26:
-/= test 13 @ platform MinGW32 ^ \conf release;
+r17:
++ '-flto=jobserver' @ compiler \cmd options @ Code::Blocks \proj
+	@ platform MinGW32;
+/= test 13 @ platform MinGW32;
 
-r27:
-/= test 14 @ platform DS;
-
-r28:
-/= test 15 @ platform DS ^ \conf release;
+r18:
+/= test 14 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-11-04 +0800:
--25.9d;
-// Mercurial rev1-rev224: r9411;
+2012-11-06 +0800:
+-26.5d;
+// Mercurial rev1-rev225: r9429;
 
 / ...
 
 
 $NEXT_TODO:
-b353-b360:
+b354-b360:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -826,13 +765,18 @@ $FURTHER_WORK:
 );
 
 
+// Identifiers '$known_issue_*' indecate the earliest development stage when \
+	first time of getting the the issues confirmed. Obsolete issues all \
+	resolved are ignored. See $TO_BE_REVIEWED_ENVIRONMENT_ISSUE for issues to \
+	be reviewed. See $RESOLVED_ENVIRONMENT_ISSUE for other resovled issues.
+// Identifiers '$workaround_*' indicate earliest development stage when first \
+	time of the workaround settled.
+// Identifiers '$resolved_*' indecate earliest development stage when first \
+	time of getting the issues confirmed to fixed.
+
 $KNOWN_ISSUE:
 // There are issues that won't be fixed if no further progress for \
 	implementation techniques found. Also depends on the environment.
-// Identifiers '$known_issue_*' indecate the earliest development stage when \
-	first time of getting the the issues confirmed. Obsolete issues all \
-	resolved are ignored. See $RESOLVED_ENVIRONMENT_ISSUE for other resovled \
-	issues.
 * $known_issue_b223 "corrupted loading or fatal errors on loading font file \
 	with embedded bitmap glyph like simson.ttc" $since b185;
 	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10) tested.
@@ -868,11 +812,26 @@ static-constexpr-member-of-same-type-as-class-being-defined and \
 * $known_issue_b351_3 "Clang++ 3.2 bugs on access control"
 	// Clang++ 3.2(trunk161531) rejected wrongly valid code in "iterator.hpp" \
 		and "yevt.hpp" which G++ 4.7.2 accepted.
+* $known_issue_b353 "'lto1.exe : internal compiler error : \
+	in lto_output_varpool_node, at lto-cgraph.c:595' when compiling with \
+	-flto=jobserver" @ "ARM9 target" @ "platform %DS" ^ "G++ 4.7.1";
+	// Here is some related bug reports: \
+		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52722 ,
+		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54118 .
+
+
+$TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
+// Issues should be reviewed later and moved as resolved if possible.
+* $workaround_b353 "G++ 4.7.1 wrongly treats some special function as \
+	implicitly deleted";
+	// This issue is a compiler bug. It is fixed in G++ 4.7.2. \
+		See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54506 for details. \
+		Since devkitPro is still remained with G++ 4.7.1 @ b353, so explicitly \
+		defaulted functions are used at several contexts as the workaround.
 
 
 $RESOLVED_ENVIRONMENT_ISSUE:
-// Identifiers '$resolved_*' indecate earliest development stage when first \
-	time of getting the issues confirmed to fixed.
+// Issues only for recursive analysis and testing if necessary.
 * $resolved_b293 "G++ 4.5.2 fails on compiling code with defaulted move \
 	assignment operator" @ $interval([b207, b221));
 * $known_issue_b293 $resolved_b304 "G++ 4.6.1 internal error for closure \
@@ -1016,6 +975,47 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx'.'Any' $=
+	(
+		^ $dev "some non-inlined member function implementations for \
+			class %any",
+		/ DLD "simplified implementation" @ "copy constructor"
+			@ "class template %pointer_holder",
+		(
+			/ $dev "simplified default argument and allowed using local \
+				storage for non-pointer or non-pointer-to-member types";
+			- "constexpr object %(max_any_size, max_any_align)
+		),
+		(
+			- "explicit deleted copy assignment operator" @ "class %any_holder";
+			$dep_to "removal of %any_holder copy assignment deletion"
+		)
+	),
+	/ $dev %'YFramework'.'YSLib'.'YObject' $=
+	(
+		$dep_from "removal of %any_holder copy assignment deletion";
+		* "missing explicitly defaulted copy assignment operator"
+			@ "class templates %(ValueHolder, PointerHolder)" $since b?
+	);
+	+ DLB $workaround "for G++ 4.7.1"
+		$= (+ "several explicitly defaulted copy and move constructors"
+		@ "abstract classes" @ "projects %(YBase, YFramework)",
+		// See $TO_BE_REVIEWED_ENVIRONMENT_ISSUE.
+	/ DLB "remove '-fomit-frame-pointer'" @ "configuration %debug" @ "makefiles"
+		@ "platform %DS",
+		// It enlarged program images obviously.
+	/ DLB "enabled link-time optimization options for G++" $=
+	(
+		+ '-flto=jobserver' @ "macro %CFLAGS" @ "makefiles" @ "platform %DS",
+			// Only enabled for object files, becaluse linking with LTO failed \
+				on ARM9 ELF. See $KNOWN_ISSUE.
+		+ '-flto=jobserver'
+			@ "Code::Blocks compiler options for all configurations"
+	)
+),
+
+b352
 (
 	/ %'YBase'.'YStandardEx'.'Any' $=
 	(

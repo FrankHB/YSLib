@@ -7,8 +7,8 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="debug\YSTests" prefix_auto="1" extension_auto="1" />
-				<Option object_output="debug\" />
+				<Option output="debug/YSTests" prefix_auto="1" extension_auto="1" />
+				<Option object_output="debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option use_console_runner="0" />
@@ -23,8 +23,8 @@
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="release\YSTests" prefix_auto="1" extension_auto="1" />
-				<Option object_output="release\" />
+				<Option output="release/YSTests" prefix_auto="1" extension_auto="1" />
+				<Option object_output="release/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -41,8 +41,8 @@
 				</Linker>
 			</Target>
 			<Target title="debug_DLL">
-				<Option output="debug\YSTest" prefix_auto="1" extension_auto="1" />
-				<Option object_output="debug\" />
+				<Option output="debug/YSTest" prefix_auto="1" extension_auto="1" />
+				<Option object_output="debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option use_console_runner="0" />
@@ -61,8 +61,8 @@
 				</ExtraCommands>
 			</Target>
 			<Target title="release_DLL">
-				<Option output="release\YSTest" prefix_auto="1" extension_auto="1" />
-				<Option object_output="release\" />
+				<Option output="release/YSTest" prefix_auto="1" extension_auto="1" />
+				<Option object_output="release/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -90,10 +90,11 @@
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-Winvalid-pch" />
+			<Add option="-flto=jobserver" />
 			<Add option="-mthreads" />
-			<Add directory="..\YSTest_ARM9\include" />
-			<Add directory="..\YFramework\include" />
-			<Add directory="..\YBase\include" />
+			<Add directory="../YSTest_ARM9/include" />
+			<Add directory="../YFramework/include" />
+			<Add directory="../YBase/include" />
 		</Compiler>
 		<Linker>
 			<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
@@ -103,21 +104,21 @@
 			<Add library="winmm" />
 			<Add library="Shlwapi" />
 		</Linker>
-		<Unit filename="..\YSTest_ARM9\include\ColorPicker.h" />
-		<Unit filename="..\YSTest_ARM9\include\DSReader.h" />
-		<Unit filename="..\YSTest_ARM9\include\HexBrowser.h" />
-		<Unit filename="..\YSTest_ARM9\include\ReaderSetting.h" />
-		<Unit filename="..\YSTest_ARM9\include\ReadingList.h" />
-		<Unit filename="..\YSTest_ARM9\include\Shells.h" />
-		<Unit filename="..\YSTest_ARM9\include\ShlReader.h" />
-		<Unit filename="..\YSTest_ARM9\source\ColorPicker.cpp" />
-		<Unit filename="..\YSTest_ARM9\source\DSReader.cpp" />
-		<Unit filename="..\YSTest_ARM9\source\HexBrowser.cpp" />
-		<Unit filename="..\YSTest_ARM9\source\ReaderSetting.cpp" />
-		<Unit filename="..\YSTest_ARM9\source\ReadingList.cpp" />
-		<Unit filename="..\YSTest_ARM9\source\Shells.cpp" />
-		<Unit filename="..\YSTest_ARM9\source\ShlReader.cpp" />
-		<Unit filename="..\YSTest_ARM9\source\main.cpp" />
+		<Unit filename="../YSTest_ARM9/include/ColorPicker.h" />
+		<Unit filename="../YSTest_ARM9/include/DSReader.h" />
+		<Unit filename="../YSTest_ARM9/include/HexBrowser.h" />
+		<Unit filename="../YSTest_ARM9/include/ReaderSetting.h" />
+		<Unit filename="../YSTest_ARM9/include/ReadingList.h" />
+		<Unit filename="../YSTest_ARM9/include/Shells.h" />
+		<Unit filename="../YSTest_ARM9/include/ShlReader.h" />
+		<Unit filename="../YSTest_ARM9/source/ColorPicker.cpp" />
+		<Unit filename="../YSTest_ARM9/source/DSReader.cpp" />
+		<Unit filename="../YSTest_ARM9/source/HexBrowser.cpp" />
+		<Unit filename="../YSTest_ARM9/source/ReaderSetting.cpp" />
+		<Unit filename="../YSTest_ARM9/source/ReadingList.cpp" />
+		<Unit filename="../YSTest_ARM9/source/Shells.cpp" />
+		<Unit filename="../YSTest_ARM9/source/ShlReader.cpp" />
+		<Unit filename="../YSTest_ARM9/source/main.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r1547
+\version r1553
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-10-26 13:23 +0800
+	2012-11-06 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -644,6 +644,13 @@ public:
 class any_iterator_holder : public any_holder
 {
 public:
+	//! \since build 353 as workaround for G++ 4.7.1
+	//@{
+	any_iterator_holder() = default;
+	any_iterator_holder(const any_iterator_holder&) = default;
+	any_iterator_holder(any_iterator_holder&&) = default;
+	//@}
+
 	virtual bool
 	check_dereferencable() const = 0;
 

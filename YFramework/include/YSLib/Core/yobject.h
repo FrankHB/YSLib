@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3579
+\version r3594
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-11-04 17:03 +0800
+	2012-11-06 12:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,6 +80,13 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 \since build 332
 */
 DeclDerivedI(IValueHolder, ystdex::any_holder)
+	//! \since build 353 as workaround for G++ 4.7.1
+	//@{
+	DefDeCtor(IValueHolder)
+	DefDeCopyCtor(IValueHolder)
+	DefDeMoveCtor(IValueHolder)
+	//@}
+
 	DeclIEntry(bool operator==(const IValueHolder&) const)
 EndDecl
 
@@ -110,6 +117,9 @@ public:
 	{}
 	DefDeCopyCtor(ValueHolder)
 	DefDeMoveCtor(ValueHolder)
+
+	//! \since build 353
+	DefDeCopyAssignment(ValueHolder)
 
 	ImplI(IValueHolder) bool
 	operator==(const IValueHolder& obj) const override
@@ -175,11 +185,10 @@ public:
 		delete p_held;
 	}
 
-	ImplI(IValueHolder) PointerHolder*
-	clone() const override
-	{
-		return new PointerHolder(p_held ? new _type(*p_held) : nullptr);
-	}
+	//! \since build 353
+	DefDeCopyAssignment(PointerHolder)
+
+	ImplI(IValueHolder) DefClone(PointerHolder, clone)
 
 	ImplI(IValueHolder) bool
 	operator==(const IValueHolder& obj) const

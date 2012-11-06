@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r985
+\version r1047
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-11-04 17:03 +0800
+	2012-11-06 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,13 +148,15 @@ public:
 class any_holder
 {
 public:
+	//! \since build 353 as workaround for G++ 4.7.1
+	//@{
+	any_holder() = default;
+	any_holder(const any_holder&) = default;
+	any_holder(any_holder&&) = default;
+	//@}
 	virtual
 	~any_holder()
 	{}
-
-	//! \since build 351
-	any_holder&
-	operator=(const any_holder&) = delete;
 
 	//! \since build 348
 	virtual void*
@@ -264,7 +266,7 @@ public:
 	pointer_holder*
 	clone() const override
 	{
-		return new pointer_holder(p_held ? new _type(*p_held) : nullptr);
+		return new pointer_holder(*this);
 	}
 
 	//! \since build 348
@@ -299,9 +301,6 @@ enum class any_operation
 typedef pod_storage<non_aggregate_pod> any_storage;
 typedef void(*any_manager)(any_storage&, const any_storage&, any_operation);
 
-yconstexpr size_t max_any_size = sizeof(any_storage);
-yconstexpr size_t max_any_align = yalignof(any_storage);
-
 
 //! \brief 使用持有者标记。
 struct holder_tag
@@ -314,9 +313,9 @@ struct holder_tag
 \brief 动态泛型对象处理器。
 \since build 352
 */
-template<typename _type, bool bStoredLocally = (is_pointer<_type>::value
-	|| is_member_pointer<_type>::value) && sizeof(_type) <= max_any_size
-	&& yalignof(_type) <= max_any_align && max_any_align % yalignof(_type) == 0>
+template<typename _type, bool bStoredLocally = sizeof(_type)
+	<= sizeof(any_storage) && yalignof(_type) <= yalignof(any_storage)
+	&& yalignof(any_storage) % yalignof(_type) == 0>
 class any_handler
 {
 public:
@@ -564,25 +563,13 @@ public:
 			remove_reference<_type>::type>>::init(storage, yforward(x));
 	}
 	//@}
-	any(const any& a)
-		: any()
-	{
-		if(a)
-		{
-			manager = a.manager,
-			a.manager(storage, a.storage, any_operation::clone);
-		}
-	}
+	any(const any&);
 	any(any&& a) ynothrow
 		: any()
 	{
 		a.swap(*this);
 	}
-	~any() ynothrow
-	{
-		if(manager)
-			manager(storage, storage, any_operation::destroy);
-	}
+	~any() ynothrow;
 
 	template<typename _type>
 	any&
@@ -632,47 +619,16 @@ public:
 
 	//! \since build 352
 	void*
-	get() const ynothrow
-	{
-		if(manager)
-		{
-			any_storage t;
-
-			manager(t, storage, any_operation::get_ptr);
-			return t.access<void*>();
-		}
-		return nullptr;
-	}
+	get() const ynothrow;
 
 	any_holder*
-	get_holder() const
-	{
-		if(manager)
-		{
-			any_storage t;
-
-			manager(t, storage, any_operation::get_holder_ptr);
-			return t.access<any_holder*>();
-		}
-		return nullptr;
-	}
+	get_holder() const;
 
 	void
-	clear() ynothrow
-	{
-		if(manager)
-		{
-			manager(storage, storage, any_operation::destroy);
-			manager = nullptr;
-		}
-	}
+	clear() ynothrow;
 
 	void
-	swap(any& a) ynothrow
-	{
-		std::swap(storage, a.storage),
-		std::swap(manager, a.manager);
-	}
+	swap(any& a) ynothrow;
 
 	//! \since build 352
 	//@{
@@ -693,17 +649,7 @@ public:
 
 	//! \since build 340
 	const std::type_info&
-	type() const ynothrow
-	{
-		if(manager)
-		{
-			any_storage t;
-
-			manager(t, storage, any_operation::get_type);
-			return *t.access<const std::type_info*>();
-		}
-		return typeid(void);
-	}
+	type() const ynothrow;
 };
 
 

@@ -93,5 +93,8 @@
     <ClCompile Include="source\ystdex\cstring.cpp">
       <Filter>源文件\ystdex</Filter>
     </ClCompile>
+    <ClCompile Include="source\ystdex\any.cpp">
+      <Filter>源文件\ystdex</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

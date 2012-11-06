@@ -31,8 +31,8 @@
 				</MakeCommands>
 			</Target>
 			<Target title="release">
-				<Option output="release\YBase_DS" prefix_auto="1" extension_auto="1" />
-				<Option object_output="release\" />
+				<Option output="release/YBase_DS" prefix_auto="1" extension_auto="1" />
+				<Option object_output="release/" />
 				<Option type="1" />
 				<Option compiler="gnu_armeabi_gcc_compiler" />
 				<Compiler>
@@ -54,26 +54,27 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="..\YBase\include\libdefect\string.h" />
-		<Unit filename="..\YBase\include\ydef.h" />
-		<Unit filename="..\YBase\include\ystdex\algorithm.hpp" />
-		<Unit filename="..\YBase\include\ystdex\any.h" />
-		<Unit filename="..\YBase\include\ystdex\cast.hpp" />
-		<Unit filename="..\YBase\include\ystdex\container.hpp" />
-		<Unit filename="..\YBase\include\ystdex\cstdio.h" />
-		<Unit filename="..\YBase\include\ystdex\cstring.h" />
-		<Unit filename="..\YBase\include\ystdex\examiner.hpp" />
-		<Unit filename="..\YBase\include\ystdex\functional.hpp" />
-		<Unit filename="..\YBase\include\ystdex\iterator.hpp" />
-		<Unit filename="..\YBase\include\ystdex\memory.hpp" />
-		<Unit filename="..\YBase\include\ystdex\operators.hpp" />
-		<Unit filename="..\YBase\include\ystdex\rational.hpp" />
-		<Unit filename="..\YBase\include\ystdex\string.hpp" />
-		<Unit filename="..\YBase\include\ystdex\type_op.hpp" />
-		<Unit filename="..\YBase\include\ystdex\utility.hpp" />
-		<Unit filename="..\YBase\include\ytest\timing.hpp" />
-		<Unit filename="..\YBase\source\ystdex\cstdio.cpp" />
-		<Unit filename="..\YBase\source\ystdex\cstring.cpp" />
+		<Unit filename="../YBase/include/libdefect/string.h" />
+		<Unit filename="../YBase/include/ydef.h" />
+		<Unit filename="../YBase/include/ystdex/algorithm.hpp" />
+		<Unit filename="../YBase/include/ystdex/any.h" />
+		<Unit filename="../YBase/include/ystdex/cast.hpp" />
+		<Unit filename="../YBase/include/ystdex/container.hpp" />
+		<Unit filename="../YBase/include/ystdex/cstdio.h" />
+		<Unit filename="../YBase/include/ystdex/cstring.h" />
+		<Unit filename="../YBase/include/ystdex/examiner.hpp" />
+		<Unit filename="../YBase/include/ystdex/functional.hpp" />
+		<Unit filename="../YBase/include/ystdex/iterator.hpp" />
+		<Unit filename="../YBase/include/ystdex/memory.hpp" />
+		<Unit filename="../YBase/include/ystdex/operators.hpp" />
+		<Unit filename="../YBase/include/ystdex/rational.hpp" />
+		<Unit filename="../YBase/include/ystdex/string.hpp" />
+		<Unit filename="../YBase/include/ystdex/type_op.hpp" />
+		<Unit filename="../YBase/include/ystdex/utility.hpp" />
+		<Unit filename="../YBase/include/ytest/timing.hpp" />
+		<Unit filename="../YBase/source/ystdex/any.cpp" />
+		<Unit filename="../YBase/source/ystdex/cstdio.cpp" />
+		<Unit filename="../YBase/source/ystdex/cstring.cpp" />
 		<Unit filename="Makefile" />
 		<Extensions>
 			<DoxyBlocks>
