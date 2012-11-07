@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1047
+\version r1075
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-11-06 12:49 +0800
+	2012-11-06 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,9 +285,15 @@ public:
 };
 
 
-//! \since build 352
-//@{
-enum class any_operation
+//! \since build 354
+namespace any_ops
+{
+
+//! \since build 354
+typedef std::uint32_t op_code;
+
+//! \since build 354
+enum base_op
 {
 	get_type,
 	get_ptr,
@@ -297,9 +303,13 @@ enum class any_operation
 	get_holder_ptr
 };
 
+} // namespace any_ops;
 
+
+//! \since build 352
+//@{
 typedef pod_storage<non_aggregate_pod> any_storage;
-typedef void(*any_manager)(any_storage&, const any_storage&, any_operation);
+typedef void(*any_manager)(any_storage&, const any_storage&, any_ops::op_code);
 
 
 //! \brief 使用持有者标记。
@@ -371,26 +381,26 @@ private:
 
 public:
 	static void
-	manage(any_storage& d, const any_storage& s, any_operation op)
+	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
 	{
 		switch(op)
 		{
-		case any_operation::get_type:
+		case any_ops::get_type:
 			d = &typeid(value_type);
 			break;
-		case any_operation::get_ptr:
+		case any_ops::get_ptr:
 			d = get_pointer(s);
 			break;
-		case any_operation::clone:
+		case any_ops::clone:
 			copy(d, s, local_storage());
 			break;
-		case any_operation::destroy:
+		case any_ops::destroy:
 			destroy(d, local_storage());
 			break;
-		case any_operation::get_holder_type:
+		case any_ops::get_holder_type:
 			d = &typeid(void);
 			break;
-		case any_operation::get_holder_ptr:
+		case any_ops::get_holder_ptr:
 			d = static_cast<any_holder*>(nullptr);
 		}
 	}
@@ -415,14 +425,14 @@ public:
 	}
 
 	static void
-	manage(any_storage& d, const any_storage& s, any_operation op)
+	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
 	{
 		switch(op)
 		{
-		case any_operation::get_type:
+		case any_ops::get_type:
 			d = &typeid(value_type);
 			break;
-		case any_operation::get_ptr:
+		case any_ops::get_ptr:
 			d = *base::get_pointer(s);
 			break;
 		default:
@@ -484,26 +494,26 @@ public:
 	}
 
 	static void
-	manage(any_storage& d, const any_storage& s, any_operation op)
+	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
 	{
 		switch(op)
 		{
-		case any_operation::get_type:
+		case any_ops::get_type:
 			d = &typeid(value_type);
 			break;
-		case any_operation::get_ptr:
+		case any_ops::get_ptr:
 			d = get_pointer(s);
 			break;
-		case any_operation::clone:
+		case any_ops::clone:
 			base::copy(d, s, local_storage());
 			break;
-		case any_operation::destroy:
+		case any_ops::destroy:
 			base::destroy(d, local_storage());
 			break;
-		case any_operation::get_holder_type:
+		case any_ops::get_holder_type:
 			d = &typeid(_tHolder);
 			break;
-		case any_operation::get_holder_ptr:
+		case any_ops::get_holder_ptr:
 			d = static_cast<any_holder*>(base::get_pointer(s));
 		}
 	}

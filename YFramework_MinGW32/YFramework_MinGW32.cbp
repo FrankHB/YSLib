@@ -41,14 +41,13 @@
 				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
-				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-D_GLIBCXX_DEBUG" />
 					<Add option="-DYCL_DLL" />
 				</Compiler>
 				<Linker>
-					<Add option="-Wl,--no-undefined -Wl,--dynamic-list-data -Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo --enable-runtime-pseudo-reloc" />
+					<Add option="-Wl,--no-undefined -Wl,--dynamic-list-data -Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo -Wl,--enable-runtime-pseudo-reloc" />
 					<Add library="..\YBase_MinGW32\debug\libYBase.a" />
 					<Add library="lib\libfreetype.a" />
 				</Linker>
@@ -68,7 +67,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-Wl,--no-undefined -Wl,--dynamic-list-data -Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo --enable-runtime-pseudo-reloc" />
+					<Add option="-Wl,--no-undefined -Wl,--dynamic-list-data -Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo -Wl,--enable-runtime-pseudo-reloc" />
 					<Add library="..\YBase_MinGW32\debug\libYBase.a" />
 					<Add library="lib\libfreetype.a" />
 				</Linker>

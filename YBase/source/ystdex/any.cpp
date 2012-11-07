@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r104
+\version r110
 \author FrankHB<frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2012-11-05 11:19 +0800
+	2012-11-06 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,13 +36,13 @@ any::any(const any& a)
 	if(a)
 	{
 		manager = a.manager,
-		a.manager(storage, a.storage, any_operation::clone);
+		a.manager(storage, a.storage, any_ops::clone);
 	}
 }
 any::~any() ynothrow
 {
 	if(manager)
-		manager(storage, storage, any_operation::destroy);
+		manager(storage, storage, any_ops::destroy);
 }
 
 void*
@@ -52,7 +52,7 @@ any::get() const ynothrow
 	{
 		any_storage t;
 
-		manager(t, storage, any_operation::get_ptr);
+		manager(t, storage, any_ops::get_ptr);
 		return t.access<void*>();
 	}
 	return nullptr;
@@ -65,7 +65,7 @@ any::get_holder() const
 	{
 		any_storage t;
 
-		manager(t, storage, any_operation::get_holder_ptr);
+		manager(t, storage, any_ops::get_holder_ptr);
 		return t.access<any_holder*>();
 	}
 	return nullptr;
@@ -76,7 +76,7 @@ any::clear() ynothrow
 {
 	if(manager)
 	{
-		manager(storage, storage, any_operation::destroy);
+		manager(storage, storage, any_ops::destroy);
 		manager = nullptr;
 	}
 }
@@ -95,7 +95,7 @@ any::type() const ynothrow
 	{
 		any_storage t;
 
-		manager(t, storage, any_operation::get_type);
+		manager(t, storage, any_ops::get_type);
 		return *t.access<const std::type_info*>();
 	}
 	return typeid(void);

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4752 *build 353 rev *
+\version r4771 *build 354 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-11-06 18:13 +0800
+	2012-11-07 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -224,9 +224,9 @@ $lib; // issues only concerned with library(only implementation changing, \
 	or interfaces modifying including no deletion unless some replacements \
 	are provided, so no need fo library users to modify code using the library \
 	interface to adapt to the upgrading), regaradless of the output targets;
-$build; // issues on build, including diagnostic messages;
+$build; // issues on build, such as build scripts and diagnostic messages;
 $install; // issues on installing;
-$deploy; // issues on deployment(including build environment support);
+$deploy; // issues on deployment(including build environment requirement);
 $comp; // features consist of dependencies with no additional work;
 $doc; // for documents target;
 $workaround; // for issues currently or temporarily cannot be resolved through \
@@ -394,96 +394,64 @@ $using:
 
 
 $DONE:
-r1:
-/ \simp \impl @ \mf clone ^ copy \ctor @ (\clt pointer_holder @ \h Any,
-	\clt PointerHolder @ \h YObject);
-/= test 1 @ platform MinGW32;
+r1-r3:
+/= 3 test 1 @ platform MinGW32;
 
-r2:
-/ @ \u Any $=
+r4:
+/ @ \h Any $=
 (
-	+ \impl \u Any[any.cpp];
-	/ \m (copy \ctor, \dtor, get, get_holder, clear, swap, type)
-		@ \cl any @ \h -> \m !\i @ \impl \u Any
+	+ \ns any_ops;
+	+ typedef std::uint32_t op_code,
+	/ \en \cl any_operation -> \en base_op @ \ns any_ops,
+	/ \tr \impl @ \smf manage @ \clt (any_handler, any_ref_handler)
 );
 /= test 2 @ platform MinGW32;
 
-r3:
-/= test 3 @ platform MinGW32 ^ \conf release;
-
-r4:
-/= test 4 @ platform DS;
-
 r5:
-/= test 5 @ platform DS ^ \conf release;
+/= test 3 @ platform MinGW32;
 
-r6:
-/ @ \h Any $=
+r6-r15:
+/ DLB Code::Blocks \proj settings @ platform MinGW32 $=
 (
-	/ \simp \de \arg @ \clt any_handler;
-	- \o (max_any_size, max_any_align)
-);
-/= test 6 @ platform MinGW32;
-
-r7:
-- \exp \del \mf \op= @ \cl any_holder @ \h Any
-	to prevent move \ctor being implicitly \del;
-* missing \exp \de copy \op= @ \clt (ValueHolder, PointerHolder) @ \h YObject
-	$since b?;
-/= test 7 @ platform MinGW32;
-
-r8:
-+ $workaround for G++ 4.7.1 $=
-(
-	+ \exp \de (\de, copy, move) \ctor @ \cl any_holder @ \h Any;
-	+ \exp \de (\de, copy, move) \ctor @ \cl any_iterator_holder @ \h Iterator;
-	+ \exp \de (\de, copy, move) \ctor @ \in IValueHolder @ \h YObject
-);
-/= test 8 @ platform DS;
-
-r9:
-/= test 9 @ platform DS ^ \conf release;
-
-r10-r15:
-/ @ makefile @ platform DS $=
-(
-	/ '-fomit-frame-pointer' @ \mac CFLAGS @ \proj (YBase,
-		YFramework, YSTest_ARM7, YSTest_ARM9) >> \conf release ~ \a \conf,
-	+ '-flto=jobserver' @ \mac CFLAGS @ \a \conf @ \mac CFLAGS @ \proj (YBase,
-		YFramework, YSTest_ARM7, YSTest_ARM9),
-	- unused \mac LDFLAGS @ \proj (YBase, YFramework),
-	+ '-fomit-frame-pointer' @ \mac LDFLAGS @ \proj (YBase, YFramework,
-		YSTest_ARM7, YSTest_ARM9)
-	// LDFLAGS with '-flto=jobserver' will cause internal compiler error \
-		@ \conf debug @ ARM 9 or worse code being generated @ \conf release.
+	*= allowing missing '-flto=jobserver' for linkers,
+	/ Code::Blocks \proj settings @ \proj YFramework_MinGW32 $=
+	(
+		* wrong option order @ \conf debug_DLL $since b300
+		* missing '-Wl,' before '--enable-runtime-pseudo-reloc'
+			@ \conf (debug_DLL, release_DLL) $since b300
+	)
 ),
-/= 2 test 10 @ platform DS ^ \conf release,
-/= 4 test 11 @ platform DS;
+(
+	/= test 4 @ platform MinGW32;
+	/= 2 test 5 @ platform MinGW32 ^ \conf release;
+	/= test 6 @ platform DS;
+	/= test 7 @ platform MinGW32;
+	/= test 8 @ platform MinGW32 ^ \conf release;
+	/= 4 test 9 @ platform MinGW32;
+);
 
 r16:
-/= test 12 @ platform DS ^ \conf release;
+/= test 10 @ platform MinGW32 ^ \conf release;
 
 r17:
-+ '-flto=jobserver' @ compiler \cmd options @ Code::Blocks \proj
-	@ platform MinGW32;
-/= test 13 @ platform MinGW32;
+/= test 11 @ platform DS;
 
 r18:
-/= test 14 @ platform MinGW32 ^ \conf release;
+/= test 12 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-11-06 +0800:
--26.5d;
-// Mercurial rev1-rev225: r9429;
+2012-11-07 +0800:
+-26.4d;
+// Mercurial rev1-rev226: r9447;
 
 / ...
 
 
 $NEXT_TODO:
-b354-b360:
+b355-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -496,7 +464,7 @@ b354-b360:
 
 
 $TODO:
-b361-b404:
+b381-b424:
 / services $=
 (
 	+ \impl @ images loading
@@ -535,7 +503,7 @@ b361-b404:
 	/ improved tests and examples
 );
 
-b[503]:
+b[483]:
 / $low_prior @ \lib YCLib $=
 (
 	/ fully \impl @ memory mappaing APIs,
@@ -814,10 +782,20 @@ static-constexpr-member-of-same-type-as-class-being-defined and \
 		and "yevt.hpp" which G++ 4.7.2 accepted.
 * $known_issue_b353 "'lto1.exe : internal compiler error : \
 	in lto_output_varpool_node, at lto-cgraph.c:595' when compiling with \
-	-flto=jobserver" @ "ARM9 target" @ "platform %DS" ^ "G++ 4.7.1";
-	// Here is some related bug reports: \
-		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52722 ,
-		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54118 .
+	-flto=jobserver" @ "project %YSTest_ARM9" @ "debug configuration"
+	@ "platform %DS" ^ "G++ 4.7.1";
+	// Here is a related bug report: \
+		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52722 . \
+		Release configuration using '-flto=jobserver' would obviously enlarge \
+		the size of execution file.
+* $known_issue_b354 "'lto1.exe: internal compiler error: \
+	in lto_output_varpool_node, at lto-cgraph.c:595' when compiling with \
+	-flto=jobserver" @ "project %YSTest" @ "debug configuration"
+	@ "platform %MinGW32" ^ "G++ 4.7.2";
+	// Seemed same to $known_issue_b353. Here is a related bug report: \
+		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54118 . \
+		Release configuration using '-flto=jobserver' would obviously enlarge \
+		the size of execution file.
 
 
 $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
@@ -975,6 +953,42 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx'.'Any' $=
+	(
+		+ "namespace %any_ops" $=
+		(
+			+ "typedef %op_code",
+			+ "enum %base_op"
+		);
+		- "enum class %any_operation",
+		/ DLD "implementations" @ "members of (any handlers, class %any)"
+	),
+	/ DLB "Code::Blocks project settings" @ "platform %MinGW32" $=
+	(
+		*= "allowing missing '-flto=jobserver' for linkers" $since b353,
+			// All linker settings of LTO weren't committed, and binary images \
+				except for YBase.dll in debug configuration weren't actually \
+				performed LTO, because no LTO option was passed to the linker \
+				in these builds @ b353. Currently on platform %MinGW32, linker \
+				option for LTO is removed, so LTO is not performed on debug \
+				configuration for difficulties of debugging, and not performed \
+				on release configuration for size of binaries, see $KNOWN_ISSUE.
+		/ "Code::Blocks project settings" @ "project %YFramework_MinGW32" $=
+		(
+			* "wrong option order" @ "configuration %debug_DLL" $since b300,
+			* "missing '-Wl,' before '--enable-runtime-pseudo-reloc'"
+				@ "configuration %(debug_DLL, release_DLL)" $since b300
+				// If adding '-flto=jobserver', lto1 would receive the wrong \
+					argument 'enable-runtime-pseudo-reloc' as '-fenable' and \
+					reject it.
+		)
+	)
+	// Binaries of this version are strictly equal with b313 on platform %DS, \
+		but some size changed on platform %MinGW32.
+),
+
+b353
 (
 	/ %'YBase'.'YStandardEx'.'Any' $=
 	(
@@ -2043,9 +2057,9 @@ b323
 		/ DLD "host implementation" @ "platform %MinGW32" @ 'DSMain',
 		/ DLD "several header dependencies improved"
 	),
-	/ $dev $lib "duplicate entries removed" @ "Visual C++ project filters"
+	/ DLP "duplicate entries removed" @ "Visual C++ project filters"
 		@ "platform %DS",
-	* $dev $lib "wrong position for directory %Helper"
+	* DLP "wrong position for directory %Helper"
 		@ "Code::Blocks project %YFramework" $since b303,
 	+ $doc "architecture document YFramework.vsd" @ "directory /doc/vsd"
 		^ "Microsoft Visio 2010",
