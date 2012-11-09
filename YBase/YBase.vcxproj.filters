@@ -85,6 +85,9 @@
     <ClInclude Include="include\ystdex\examiner.hpp">
       <Filter>头文件\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\any_iterator.hpp">
+      <Filter>头文件\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">

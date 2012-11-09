@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3594
+\version r3599
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-11-06 12:51 +0800
+	2012-11-08 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,7 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 \see ystdex::any_holder 。
 \since build 332
 */
-DeclDerivedI(IValueHolder, ystdex::any_holder)
+DeclDerivedI(IValueHolder, ystdex::any_ops::holder)
 	//! \since build 353 as workaround for G++ 4.7.1
 	//@{
 	DefDeCtor(IValueHolder)
@@ -242,7 +242,7 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(const _type& obj)
-		: content(ystdex::holder_tag(), new ValueHolder<_type>(obj))
+		: content(ystdex::any_ops::holder_tag(), new ValueHolder<_type>(obj))
 	{}
 	/*!
 	\brief 构造：使用对象右值引用。
@@ -251,7 +251,7 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type&& obj, MoveTag)
-		: content(ystdex::holder_tag(), new ValueHolder<typename
+		: content(ystdex::any_ops::holder_tag(), new ValueHolder<typename
 		std::remove_reference<_type>::type>(std::move(obj)))
 	{}
 	/*!
@@ -261,7 +261,7 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
-		: content(ystdex::holder_tag(), new PointerHolder<_type>(p))
+		: content(ystdex::any_ops::holder_tag(), new PointerHolder<_type>(p))
 	{}
 	/*!
 	\brief 复制构造：默认实现。

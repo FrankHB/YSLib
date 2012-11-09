@@ -15,6 +15,7 @@
     <ClInclude Include="include\ydef.h" />
     <ClInclude Include="include\ystdex\algorithm.hpp" />
     <ClInclude Include="include\ystdex\any.h" />
+    <ClInclude Include="include\ystdex\any_iterator.hpp" />
     <ClInclude Include="include\ystdex\cast.hpp" />
     <ClInclude Include="include\ystdex\container.hpp" />
     <ClInclude Include="include\ystdex\cstdio.h" />

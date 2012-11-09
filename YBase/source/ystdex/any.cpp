@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r110
+\version r115
 \author FrankHB<frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2012-11-06 23:55 +0800
+	2012-11-08 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ any::get() const ynothrow
 {
 	if(manager)
 	{
-		any_storage t;
+		any_ops::any_storage t;
 
 		manager(t, storage, any_ops::get_ptr);
 		return t.access<void*>();
@@ -58,15 +58,15 @@ any::get() const ynothrow
 	return nullptr;
 }
 
-any_holder*
+any_ops::holder*
 any::get_holder() const
 {
 	if(manager)
 	{
-		any_storage t;
+		any_ops::any_storage t;
 
 		manager(t, storage, any_ops::get_holder_ptr);
-		return t.access<any_holder*>();
+		return t.access<any_ops::holder*>();
 	}
 	return nullptr;
 }
@@ -93,7 +93,7 @@ any::type() const ynothrow
 {
 	if(manager)
 	{
-		any_storage t;
+		any_ops::any_storage t;
 
 		manager(t, storage, any_ops::get_type);
 		return *t.access<const std::type_info*>();

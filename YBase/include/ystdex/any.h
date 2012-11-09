@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1075
+\version r1163
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-11-06 23:55 +0800
+	2012-11-09 05:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,6 +76,7 @@ union pod_storage
 		new(access()) typename remove_reference<_type>::type(yforward(x));
 	}
 	
+	//! \note 为避免类型错误，需要确定类型时应使用显式使用 access 指定类型赋值。
 	template<typename _type>
 	pod_storage&
 	operator=(_type&& x)
@@ -141,28 +142,32 @@ public:
 };
 
 
+//! \since build 354
+namespace any_ops
+{
+
 /*!
 \brief 抽象动态泛型持有者接口。
 \since build 331
 */
-class any_holder
+class holder
 {
 public:
 	//! \since build 353 as workaround for G++ 4.7.1
 	//@{
-	any_holder() = default;
-	any_holder(const any_holder&) = default;
-	any_holder(any_holder&&) = default;
+	holder() = default;
+	holder(const holder&) = default;
+	holder(holder&&) = default;
 	//@}
 	virtual
-	~any_holder()
+	~holder()
 	{}
 
 	//! \since build 348
 	virtual void*
 	get() const = 0;
 
-	virtual any_holder*
+	virtual holder*
 	clone() const = 0;
 
 	//! \since build 340
@@ -176,7 +181,7 @@ public:
 \since build 331
 */
 template<typename _type>
-class value_holder : public any_holder
+class value_holder : public holder
 {
 	static_assert(std::is_object<_type>::value, "Invalid type found.");
 
@@ -230,7 +235,7 @@ public:
 \since build 331
 */
 template<typename _type>
-class pointer_holder : public any_holder
+class pointer_holder : public holder
 {
 	static_assert(std::is_object<_type>::value, "Invalid type found.");
 
@@ -286,49 +291,48 @@ public:
 
 
 //! \since build 354
-namespace any_ops
-{
-
-//! \since build 354
 typedef std::uint32_t op_code;
 
 //! \since build 354
-enum base_op
+enum base_op : op_code
 {
+	//! \since build 355
+	no_op,
 	get_type,
 	get_ptr,
 	clone,
 	destroy,
 	get_holder_type,
-	get_holder_ptr
+	get_holder_ptr,
+	//! \since build 355
+	end_base_op
 };
-
-} // namespace any_ops;
 
 
 //! \since build 352
 //@{
 typedef pod_storage<non_aggregate_pod> any_storage;
-typedef void(*any_manager)(any_storage&, const any_storage&, any_ops::op_code);
+typedef void(*any_manager)(any_storage&, const any_storage&, op_code);
 
 
 //! \brief 使用持有者标记。
 struct holder_tag
 {};
-
 //@}
 
 
 /*!
 \brief 动态泛型对象处理器。
-\since build 352
+\since build 355
 */
 template<typename _type, bool bStoredLocally = sizeof(_type)
 	<= sizeof(any_storage) && yalignof(_type) <= yalignof(any_storage)
 	&& yalignof(any_storage) % yalignof(_type) == 0>
-class any_handler
+class value_handler
 {
 public:
+	//! \since build 352
+	//@{
 	typedef _type value_type;
 	typedef integral_constant<bool, bStoredLocally> local_storage;
 
@@ -338,70 +342,89 @@ public:
 		return const_cast<value_type*>(bStoredLocally ? std::addressof(
 			s.access<value_type>()) : s.access<const value_type*>());
 	}
+	//@}
 
+	//! \since build 355
+	static value_type&
+	get_reference(const any_storage& s)
+	{
+		yassume(get_pointer(s));
+
+		return *get_pointer(s);
+	}
+
+	//! \since build 352
 	static void
 	copy(any_storage& d, const any_storage& s, true_type)
 	{
 		new(d.access()) value_type(s.access<value_type>());
 	}
+	//! \since build 352
 	static void
 	copy(any_storage& d, const any_storage& s, false_type)
 	{
 		d = new value_type(*s.access<value_type*>());
 	}
 
+	//! \since build 355
+	//@{
 	static void
-	destroy(any_storage& d, true_type)
+	uninit(any_storage& d, true_type)
 	{
 		d.access<value_type>().~value_type();
 	}
 	static void
-	destroy(any_storage& d, false_type)
+	uninit(any_storage& d, false_type)
 	{
 		delete d.access<value_type*>();
 	}
 
+	template<typename _tValue>
 	static void
-	init(any_storage& d, value_type&& x)
+	init(any_storage& d, _tValue&& x)
 	{
-		init(d, std::move(x), local_storage());
+		init(d, yforward(x), local_storage());
 	}
 
 private:
+	template<typename _tValue>
 	static void
-	init(any_storage& d, value_type&& x, true_type)
+	init(any_storage& d, _tValue&& x, true_type)
 	{
-		new(d.access()) value_type(std::move(x));
+		new(d.access()) value_type(yforward(x));
 	}
+	template<typename _tValue>
 	static void
-	init(any_storage& d, value_type&& x, false_type)
+	init(any_storage& d, _tValue&& x, false_type)
 	{
-		d = new value_type(std::move(x));
+		d = new value_type(yforward(x));
 	}
+	//@}
 
 public:
+	//! \since build 352
 	static void
-	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
+	manage(any_storage& d, const any_storage& s, op_code op)
 	{
 		switch(op)
 		{
-		case any_ops::get_type:
+		case get_type:
 			d = &typeid(value_type);
 			break;
-		case any_ops::get_ptr:
+		case get_ptr:
 			d = get_pointer(s);
 			break;
-		case any_ops::clone:
+		case clone:
 			copy(d, s, local_storage());
 			break;
-		case any_ops::destroy:
-			destroy(d, local_storage());
+		case destroy:
+			uninit(d, local_storage());
 			break;
-		case any_ops::get_holder_type:
+		case get_holder_type:
 			d = &typeid(void);
 			break;
-		case any_ops::get_holder_ptr:
-			d = static_cast<any_holder*>(nullptr);
+		case get_holder_ptr:
+			d = static_cast<holder*>(nullptr);
 		}
 	}
 };
@@ -412,11 +435,27 @@ public:
 \since build 352
 */
 template<typename _type>
-class any_ref_handler : public any_handler<_type*>
+class ref_handler : public value_handler<_type*>
 {
 public:
 	typedef _type value_type;
-	typedef any_handler<value_type*> base;
+	typedef value_handler<value_type*> base;
+
+	//! \since build 355
+	static value_type*
+	get_pointer(const any_storage& s)
+	{
+		return base::get_reference(s);
+	}
+
+	//! \since build 355
+	static value_type&
+	get_reference(const any_storage& s)
+	{
+		yassume(get_pointer(s));
+
+		return *get_pointer(s);
+	}
 
 	static void
 	init(any_storage& d, std::reference_wrapper<value_type> x)
@@ -425,15 +464,15 @@ public:
 	}
 
 	static void
-	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
+	manage(any_storage& d, const any_storage& s, op_code op)
 	{
 		switch(op)
 		{
-		case any_ops::get_type:
+		case get_type:
 			d = &typeid(value_type);
 			break;
-		case any_ops::get_ptr:
-			d = *base::get_pointer(s);
+		case get_ptr:
+			d = get_pointer(s);
 			break;
 		default:
 			base::manage(d, s, op);
@@ -447,14 +486,14 @@ public:
 \since build 352
 */
 template<typename _tHolder>
-class any_holder_handler : public any_handler<_tHolder>
+class holder_handler : public value_handler<_tHolder>
 {
-	static_assert(is_convertible<_tHolder&, any_holder&>::value,
+	static_assert(is_convertible<_tHolder&, holder&>::value,
 		"Invalid holder type found.");
 
 public:
 	typedef typename _tHolder::value_type value_type;
-	typedef any_handler<_tHolder> base;
+	typedef value_handler<_tHolder> base;
 	typedef typename base::local_storage local_storage;
 
 	static value_type*
@@ -494,30 +533,32 @@ public:
 	}
 
 	static void
-	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
+	manage(any_storage& d, const any_storage& s, op_code op)
 	{
 		switch(op)
 		{
-		case any_ops::get_type:
+		case get_type:
 			d = &typeid(value_type);
 			break;
-		case any_ops::get_ptr:
+		case get_ptr:
 			d = get_pointer(s);
 			break;
-		case any_ops::clone:
+		case clone:
 			base::copy(d, s, local_storage());
 			break;
-		case any_ops::destroy:
-			base::destroy(d, local_storage());
+		case destroy:
+			base::uninit(d, local_storage());
 			break;
-		case any_ops::get_holder_type:
+		case get_holder_type:
 			d = &typeid(_tHolder);
 			break;
-		case any_ops::get_holder_ptr:
-			d = static_cast<any_holder*>(base::get_pointer(s));
+		case get_holder_ptr:
+			d = static_cast<holder*>(base::get_pointer(s));
 		}
 	}
 };
+
+} // namespace any_ops;
 
 
 /*!
@@ -530,11 +571,11 @@ any.ValueType 。
 */
 class any
 {
-private:
-	//! \since build 352
+protected:
+	//! \since build 355
 	//@{
-	any_storage storage;
-	any_manager manager;
+	any_ops::any_storage storage;
+	any_ops::any_manager manager;
 	//@}
 
 public:
@@ -546,30 +587,31 @@ public:
 	//@{
 	template<typename _type>
 	any(_type&& x)
-		: manager(any_handler<typename remove_reference<_type>::type>::manage)
+		: manager(any_ops::value_handler<typename
+			remove_reference<_type>::type>::manage)
 	{
-		any_handler<typename remove_reference<_type>::type>::init(storage,
-			yforward(x));
+		any_ops::value_handler<typename
+			remove_reference<_type>::type>::init(storage, yforward(x));
 	}
 	template<typename _type>
 	any(std::reference_wrapper<_type> x)
-		: manager(any_ref_handler<_type>::manage)
+		: manager(any_ops::ref_handler<_type>::manage)
 	{
-		any_ref_handler<_type>::init(storage, x);
+		any_ops::ref_handler<_type>::init(storage, x);
 	}
 	//! \brief 构造：使用指定持有者。
 	template<typename _tHolder>
-	any(holder_tag, _tHolder* p)
-		: manager(any_holder_handler<_tHolder>::manage)
+	any(any_ops::holder_tag, _tHolder* p)
+		: manager(any_ops::holder_handler<_tHolder>::manage)
 	{
-		any_holder_handler<_tHolder>::init(storage, p);
+		any_ops::holder_handler<_tHolder>::init(storage, p);
 	}
 	template<typename _type>
-	any(_type&& x, holder_tag)
-		: manager(any_holder_handler<value_holder<typename
+	any(_type&& x, any_ops::holder_tag)
+		: manager(any_ops::holder_handler<any_ops::value_holder<typename
 		remove_reference<_type>::type>>::manage)
 	{
-		any_holder_handler<value_holder<typename
+		any_ops::holder_handler<any_ops::value_holder<typename
 			remove_reference<_type>::type>>::init(storage, yforward(x));
 	}
 	//@}
@@ -631,7 +673,7 @@ public:
 	void*
 	get() const ynothrow;
 
-	any_holder*
+	any_ops::holder*
 	get_holder() const;
 
 	void

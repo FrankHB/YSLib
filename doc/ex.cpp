@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4771 *build 354 rev *
+\version r4771 *build 355 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-11-07 15:45 +0800
+	2012-11-09 16:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -395,63 +395,143 @@ $using:
 
 $DONE:
 r1-r3:
+/ @ \en base_op @ \h Any $=
+(
+	 + enumerator (no_op, end_any),
+	 + underlying \tp op_code
+),
 /= 3 test 1 @ platform MinGW32;
 
 r4:
-/ @ \h Any $=
++ \h AnyIterator[any_iterator.hpp] @ \lib YStandardEx;
+/ @ \h Iterator $=
 (
-	+ \ns any_ops;
-	+ typedef std::uint32_t op_code,
-	/ \en \cl any_operation -> \en base_op @ \ns any_ops,
-	/ \tr \impl @ \smf manage @ \clt (any_handler, any_ref_handler)
-);
+	/ (\ln [637, 982] @ \ns ystdex, \inc \h (Any, Cast, Memory))
+		>> \h AnyIterator,
+	- \inc \h (Cast, <tuple>),
+	+ \inc \h <memory>
+),
+/ \inc \h Iterator @ \impl \u CharacterProcessing -> AnyIterator;
 /= test 2 @ platform MinGW32;
 
 r5:
+/ end_any @ \ns ystdex::any_ops @ \h Any => end_base_op;
++ \ns ystdex::any_ops @ \h AnyIterator
+	$= (+ \en (iterator_op, input_iterator_op, bidirectional_iteartor_op,
+		random_access_iterator_op);
 /= test 3 @ platform MinGW32;
 
-r6-r15:
-/ DLB Code::Blocks \proj settings @ platform MinGW32 $=
+r6:
+/ @ \h Any $=
 (
-	*= allowing missing '-flto=jobserver' for linkers,
-	/ Code::Blocks \proj settings @ \proj YFramework_MinGW32 $=
+	/ \ac @ \m (storage, manager) @ \cl any -> protected ~ private,
 	(
-		* wrong option order @ \conf debug_DLL $since b300
-		* missing '-Wl,' before '--enable-runtime-pseudo-reloc'
-			@ \conf (debug_DLL, release_DLL) $since b300
+		+ \smf get_reference @ \clt any_handler;
+		/ @ \clt any_ref_handler $=
+		(
+			- \inh \cl any_handler<_type*>,
+			+ \smf (get_pointer, get_reference)
+		)
 	)
-),
-(
-	/= test 4 @ platform MinGW32;
-	/= 2 test 5 @ platform MinGW32 ^ \conf release;
-	/= test 6 @ platform DS;
-	/= test 7 @ platform MinGW32;
-	/= test 8 @ platform MinGW32 ^ \conf release;
-	/= 4 test 9 @ platform MinGW32;
 );
+/= test 4 @ platform MinGW32;
 
-r16:
+r7:
+/ @ \ns ystdex @ \h Any $=
+(
+	/ \cl any_holder -> \clt holder @ \ns any_ops,
+	/ \cl value_holder => \ns any_ops,
+	/ \cl pointer_holder => \ns any_ops,
+	/ \clt any_handler -> \clt value_handler @ \ns any_ops,
+	/ \clt any_ref_handler -> \clt ref_handler @ \ns any_ops,
+	/ \clt any_holder_handler -> \clt holder_handler @ \ns any_ops,
+	/ (\clt (value_holder, pointer_holder), \st holder_tag,
+		typedef (any_storage, any_manager)) => \ns any_ops,
+),
+/ \tr \impl @ (\h (Iterator, YObject), \impl \u Any);
+/= test 5 @ platform MinGW32;
+
+r8:
++ \clt (iterator_handler; input_iterator_handler) @ \ns ystdex::any_ops
+	@ \h AnyIterator;
+/= test 6 @ platform MinGW32 ^ \conf release;
+
+r9:
+/ @ \clt any_input_iterator @ \h AnyIterator $=
+(
+	+ protected \inh \cl any,
+	- mutable \m any obj,
+	/ \tr \impl @ (\ctor, \mf (get, get_holder))
+);
+/= test 7 @ platform MinGW32;
+
+r10:
+/ @ \clt value_handler @ \h Any $=
+(
+	+ private \smf void init(any_storage&, const value_type&, true_type)
+		-> \smf \t<_tValue> void init(any_storage&, const _tValue&&, true_type),
+	+ private \smf void init(any_storage&, const value_type&, false_type)
+		-> \smf \t<_tValue> void init(any_storage&, const _tValue&&,
+		false_type),
+	/ \smf void init(any_storage&, value_type&&)
+		-> \smf \t<_tValue> void init(any_storage&, _tValue&&)
+),
+/ @ \h AnyIterator $=
+(
+	+ \stt wrap_handler;
+	/ \inh @ \clt (iterator_handler, input_iterator_handler),
+	+ using base::init @ \clt (iterator_handler, input_iterator_handler)
+);
+/= test 8 @ platform MinGW32;
+
+r11:
+/ \a \smf destroy => uninit @ \h Any to avoid ambiguous with enumerator,
+/ @ \h AnyIterator $=
+(
+	/ @ \clt any_input_iterator $=
+	(
+		/ \impl @ \ctor \t,
+		/ \impl @ \mf \op(*, ++),
+		- \mf get_holder,
+		+ \mf (equals, check_dereferencable, check_undereferencable),
+		+ using any::type
+	);
+	/ \simp \impl @ \f (\op==, is_dereferencable, is_undereferencable)
+);
+/= test 9 @ platform MinGW32;
+
+r12:
+- (\clt (any_iterator_holder, any_input_iterator_holder), \clt (iterator_holder,
+	input_iterator_holder), \mac (YB_ANY_DEF_CLONE, YB_ANY_DEF_TYPEID,
+	YB_IT_DEF_CHECK, YB_IT_DEF_GETREF)) @ \h AnyIterator;
 /= test 10 @ platform MinGW32 ^ \conf release;
 
-r17:
-/= test 11 @ platform DS;
+r13:
+* \impl @ \mf manage @ \clt ref_handler @ \h Any $since r6;
+/= test 11 @ platform MinGW32;
 
-r18:
-/= test 12 @ platform DS ^ \conf release;
+r14:
+/= test 13 @ platform DS;
+
+r15:
+/= test 14 @ platform DS ^ \conf release;
+
+r16:
+/= test 12 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-11-07 +0800:
--26.4d;
-// Mercurial rev1-rev226: r9447;
+2012-11-09 +0800:
+-24.1d;
+// Mercurial rev1-rev227: r9463;
 
 / ...
 
 
 $NEXT_TODO:
-b355-b380:
+b356-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -953,6 +1033,25 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase' $=
+	(
+		/ DLD "implementations of enumerators and static member functions \
+			of handlers" @ %'Any';
+		+ %'AnyIterator';
+		/ "any iterator interface and implementation" @ %'Iterator'
+			>> %'AnyIterator';
+		/ %'AnyIterator' $=
+		(
+			+ "enumeration and handlers for generic iterator implementation";
+			/ "implementation" @ "class template %any_input_iterator"
+				^ "handlers" ~ "holders"
+			- "unused holders"
+		)
+	)
+),
+
+b354
 (
 	/ %'YBase'.'YStandardEx'.'Any' $=
 	(

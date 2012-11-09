@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1115
+\version r1116
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2012-10-23 13:26 +0800
+	2012-11-06 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <cwchar>
 #include <ystdex/cstdio.h>
 #include <ystdex/cstring.h>
-#include <ystdex/iterator.hpp>
+#include <ystdex/any_iterator.hpp>
 
 CHRLIB_BEGIN
 
