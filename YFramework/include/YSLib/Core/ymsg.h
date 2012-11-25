@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1798
+\version r1799
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-10-28 16:46 +0800
+	2012-11-22 15:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ class Message
 
 private:
 	ID id; //!< 消息标识。
-	ValueObject content; //消息内容句柄。
+	ValueObject content; //消息内容。
 
 public:
 	/*!

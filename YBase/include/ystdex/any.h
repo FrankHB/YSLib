@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1163
+\version r1169
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-11-09 05:14 +0800
+	2012-11-25 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -383,19 +383,22 @@ public:
 	static void
 	init(any_storage& d, _tValue&& x)
 	{
-		init(d, yforward(x), local_storage());
+		init_impl(d, yforward(x), local_storage());
 	}
+	//@}
 
 private:
+	//! \since build 356
+	//@{
 	template<typename _tValue>
 	static void
-	init(any_storage& d, _tValue&& x, true_type)
+	init_impl(any_storage& d, _tValue&& x, true_type)
 	{
 		new(d.access()) value_type(yforward(x));
 	}
 	template<typename _tValue>
 	static void
-	init(any_storage& d, _tValue&& x, false_type)
+	init_impl(any_storage& d, _tValue&& x, false_type)
 	{
 		d = new value_type(yforward(x));
 	}

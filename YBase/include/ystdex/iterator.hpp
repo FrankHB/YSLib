@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r1849
+\version r2084
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-11-06 15:06 +0800
+	2012-11-26 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,6 +77,7 @@ make_move_iterator_pair(_tContainer& c)
 /*!
 \ingroup iterator_adaptors
 \brief 指针迭代器。
+\warning 非虚析构。
 \since build 290
 
 转换指针为类类型的随机迭代器。
@@ -116,15 +117,17 @@ public:
 	inline
 	pointer_iterator(pointer_iterator&&) = default;
 
-	inline pointer_iterator&
-	operator+=(const difference_type& n)
+	//! \since build 356
+	pointer_iterator&
+	operator+=(difference_type n)
 	{
 		current += n;
 		return *this;
 	}
 
-	inline pointer_iterator&
-	operator-=(const difference_type& n)
+	//! \since build 356
+	pointer_iterator&
+	operator-=(difference_type n)
 	{
 		current -= n;
 		return *this;
@@ -166,20 +169,23 @@ public:
 		return current--;
 	}
 
+	//! \since build 356
 	yconstfn reference
-	operator[](const difference_type& n) const
+	operator[](difference_type n) const
 	{
 		return current[n];
 	}
 
+	//! \since build 356
 	yconstfn pointer_iterator
-	operator+(const difference_type& n) const
+	operator+(difference_type n) const
 	{
 		return pointer_iterator(current + n);
 	}
 
+	//! \since build 356
 	yconstfn pointer_iterator
-	operator-(const difference_type& n) const
+	operator-(difference_type n) const
 	{
 		return pointer_iterator(current - n);
 	}
@@ -190,6 +196,25 @@ public:
 		return current;
 	}
 };
+
+//! \since 356
+//@{
+template<typename _type>
+inline bool
+operator==(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
+{
+	typedef typename pointer_iterator<_type>::pointer pointer;
+
+	return pointer(x) == pointer(y);
+}
+
+template<typename _type>
+inline bool
+operator!=(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
+{
+	return !(x == y);
+}
+//@}
 
 
 /*!
@@ -216,6 +241,7 @@ struct pointer_classify<_type*>
 
 /*!
 \ingroup iterator_adaptors
+\warning 非虚析构。
 \brief 伪迭代器。
 
 总是返回单一值的迭代器适配器。
@@ -255,14 +281,16 @@ public:
 	pseudo_iterator&
 	operator=(pseudo_iterator&&) = default;
 
+	//! \since build 356
 	pseudo_iterator&
-	operator+=(const difference_type&)
+	operator+=(difference_type)
 	{
 		return *this;
 	}
 
+	//! \since build 356
 	pseudo_iterator&
-	operator-=(const difference_type&)
+	operator-=(difference_type)
 	{
 		return *this;
 	}
@@ -306,29 +334,52 @@ public:
 	}
 
 	//随机访问迭代器需求。
+	//! \since build 356
 	yconstfn reference
-	operator[](const difference_type& _n) const
+	operator[](difference_type _n) const
 	{
 		return this[_n];
 	}
 
+	//! \since build 356
 	yconstfn pseudo_iterator
-	operator+(const difference_type&) const
+	operator+(difference_type) const
 	{
 		return *this;
 	}
 
+	//! \since build 356
 	yconstfn pseudo_iterator
-	operator-(const difference_type&) const
+	operator-(difference_type) const
 	{
 		return *this;
 	}
 };
 
+//! \since 356
+//@{
+template<typename _type, typename _tIterator, typename _tTraits>
+inline bool
+operator==(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
+	const pseudo_iterator<_type, _tIterator, _tTraits>& y)
+{
+	return x.value == y.value;
+}
+
+template<typename _type, typename _tIterator, typename _tTraits>
+inline bool
+operator!=(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
+	const pseudo_iterator<_type, _tIterator, _tTraits>& y)
+{
+	return !(x == y);
+}
+//@}
+
 
 /*!
 \ingroup iterator_adaptors
 \brief 转换迭代器。
+\warning 非虚析构。
 \since build 288
 
 使用指定参数隐藏指定迭代器的间接操作的迭代器适配器。
@@ -423,6 +474,25 @@ public:
 	}
 };
 
+//! \since 356
+//@{
+template<typename _type, typename _fTransformer>
+inline bool
+operator==(const transformed_iterator<_type, _fTransformer>& x,
+	const transformed_iterator<_type, _fTransformer>& y)
+{
+	return x.get() == y.get();
+}
+
+template<typename _type, typename _fTransformer>
+inline bool
+operator!=(const transformed_iterator<_type, _fTransformer>& x,
+	const transformed_iterator<_type, _fTransformer>& y)
+{
+	return !(x == y);
+}
+//@}
+
 
 /*!
 \ingroup helper_functions
@@ -503,6 +573,7 @@ operator|(_tIterator&& i, second_tag)
 /*!
 \ingroup iterator_adaptors
 \brief 成对迭代器。
+\warning 非虚析构。
 
 拼接两个迭代器对得到的迭代器适配器，以第一个为主迭代器的迭代器适配器。
 */
@@ -547,15 +618,17 @@ public:
 	operator=(pair_iterator&&) = default;
 	// TODO: Allow iterator to const_iterator conversion.
 
+	//! \since build 356
 	pair_iterator&
-	operator+=(const difference_type& _n)
+	operator+=(difference_type _n)
 	{
 		yunseq(this->first += _n, this->second += _n);
 		return *this;
 	}
 
+	//! \since build 356
 	pair_iterator&
-	operator-=(const difference_type& _n)
+	operator-=(difference_type _n)
 	{
 		yunseq(this->first -= _n, this->second -= _n);
 		return *this;
@@ -584,10 +657,10 @@ public:
 	pair_iterator
 	operator++(int)
 	{
-		const auto i(*this);
+		auto i(*this);
 
 		++*this;
-		return i;
+		return std::move(i);
 	}
 
 	//双向迭代器需求。
@@ -601,27 +674,30 @@ public:
 	pair_iterator
 	operator--(int)
 	{
-		const auto i(*this);
+		auto i(*this);
 
 		--*this;
-		return i;
+		return std::move(i);
 	}
 
 	//随机访问迭代器需求。
+	//! \since build 356
 	yconstfn reference
-	operator[](const difference_type& _n) const
+	operator[](difference_type _n) const
 	{
 		return this->first[_n];
 	}
 
+	//! \since build 356
 	yconstfn pair_iterator
-	operator+(const difference_type& _n) const
+	operator+(difference_type _n) const
 	{
 		return pair_iterator(this->first + _n, this->second + _n);
 	}
 
+	//! \since build 356
 	yconstfn pair_iterator
-	operator-(const difference_type& _n) const
+	operator-(difference_type _n) const
 	{
 		return pair_iterator(this->first - _n, this->second - _n);
 	}
@@ -632,6 +708,172 @@ public:
 		return *this;
 	}
 };
+
+//! \since 356
+//@{
+template<typename _tMaster, typename _tSlave>
+bool
+operator==(const pair_iterator<_tMaster, _tSlave>& x,
+	const pair_iterator<_tMaster, _tSlave>& y)
+{
+	return x.base().first == y.base().first
+		&& x.base().second == y.base().second();
+}
+
+template<typename _tMaster, typename _tSlave>
+inline bool
+operator!=(const pair_iterator<_tMaster, _tSlave>& x,
+	const pair_iterator<_tMaster, _tSlave>& y)
+{
+	return !(x == y);
+}
+//@}
+
+
+/*!
+\brief 成员下标迭代器。
+\warning 非虚析构。
+\since build 356 。
+
+根据指定类型提供的下标操作对枚举其成员的随机访问迭代器。
+*/
+template<class _tContainer, typename _type>
+class subscriptive_iterator : private std::iterator<typename
+	std::random_access_iterator_tag, _type, ptrdiff_t, _type*, _type&>
+{
+protected:
+	typedef std::iterator<typename std::random_access_iterator_tag,
+		_type, ptrdiff_t, _type*, _type&> base_type;
+
+public:
+	typedef _tContainer container_type;
+	typedef typename base_type::difference_type difference_type;
+	typedef typename base_type::value_type value_type;
+	typedef typename base_type::pointer pointer;
+	typedef typename base_type::reference reference;
+
+protected:
+	_tContainer* p_cont;
+	size_t idx;
+
+public:
+	yconstfn
+	subscriptive_iterator(_tContainer& c, size_t i)
+		: p_cont(std::addressof(c)), idx(i)
+	{}
+
+	subscriptive_iterator&
+	operator+=(difference_type n)
+	{
+		idx += n;
+		return *this;
+	}
+
+	subscriptive_iterator&
+	operator-=(difference_type n)
+	{
+		yassume(idx >= n);
+
+		idx -= n;
+		return *this;
+	}
+
+	reference
+	operator*()
+	{
+		return (*p_cont)[idx];
+	}
+
+	pointer
+	operator->()
+	{
+		return std::addressof(**this);
+	}
+
+	subscriptive_iterator&
+	operator++()
+	{
+		++idx;
+		return *this;
+	}
+	subscriptive_iterator
+	operator++(int)
+	{
+		auto i(*this);
+
+		++*this;
+		return std::move(i);
+	}
+
+	subscriptive_iterator
+	operator--()
+	{
+		--idx;
+		return *this;
+	}
+	subscriptive_iterator
+	operator--(int)
+	{
+		auto i(*this);
+
+		--*this;
+		return std::move(i);
+	}
+
+	reference
+	operator[](difference_type n) const
+	{
+		yassume(idx + n >= 0);
+
+		return (*p_cont)[idx + n];
+	}
+
+	subscriptive_iterator
+	operator+(difference_type n) const
+	{
+		yassume(idx + n >= 0);
+
+		return subscriptive_iterator(*p_cont, idx + n);
+	}
+
+	subscriptive_iterator
+	operator-(difference_type n) const
+	{
+		yassume(idx + n >= 0);
+
+		return subscriptive_iterator(*p_cont, idx - n);
+	}
+
+	bool
+	equals(const subscriptive_iterator<_tContainer, _type>& i) const
+	{
+		return p_cont == i.p_cont && idx == i.idx;
+	}
+};
+
+/*!
+\brief 比较成员下标迭代器的相等性。
+\since build 356
+*/
+template<class _tContainer, typename _type>
+bool
+operator==(const subscriptive_iterator<_tContainer, _type>& x,
+	const subscriptive_iterator<_tContainer, _type>& y)
+{
+	return x.equals(y);
+}
+
+/*!
+\brief 比较成员下标迭代器的不等性。
+\since build 356
+*/
+template<class _tContainer, typename _type>
+bool
+operator!=(const subscriptive_iterator<_tContainer, _type>& x,
+	const subscriptive_iterator<_tContainer, _type>& y)
+{
+	return !(x == y);
+}
 
 } // namespace ystdex;
 

@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5377
+\version r5383
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-10-26 18:46 +0800
+	2012-11-25 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,18 @@
 #include "ycomp.h"
 #include "yfocus.h"
 #include "ywgtview.h"
+#include <ystdex/any_iterator.hpp> // for ystdex::any_input_iterator;
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Components)
+
+/*!
+\brief 通用部件迭代器。
+\since build 356
+*/
+typedef ystdex::any_input_iterator<IWidget> WidgetIterator;
+
 
 /*!
 \brief 部件接口。

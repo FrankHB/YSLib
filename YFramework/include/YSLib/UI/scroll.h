@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2513
+\version r2524
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-10-08 11:45 +0800
+	2012-11-25 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "button.h"
 #include "yuicont.h"
+#include "WidgetIteration.h"
 //#include <ystdex/rational.hpp>
 //#include "../Core/yres.h"
 //#include "ystyle.h"
@@ -131,6 +132,8 @@ public:
 	} Area;
 	//注意值类型需要和继承的 GMRange 的 ValueType 一致。
 	typedef ScrollEventArgs::ValueType ValueType; //!< 值类型。
+	//! \since build 356
+	typedef ystdex::subscriptive_iterator<ATrack, IWidget> Iterator;
 
 protected:
 	Components::Thumb Thumb; //!< 滑块：轨道区域上的滚动框。
@@ -155,6 +158,9 @@ public:
 
 	DefPred(const ynothrow, Horizontal, GetOrientation() == Horizontal)
 	DefPred(const ynothrow, Vertical, GetOrientation() == Vertical)
+
+	//! \since build 356
+	DefWidgetMemberIteration(Thumb)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
@@ -284,6 +290,8 @@ class AScrollBar : public Control
 {
 public:
 	typedef ATrack::ValueType ValueType; //!< 值类型。
+	//! \since build 356
+	typedef ystdex::subscriptive_iterator<AScrollBar, IWidget> Iterator;
 
 private:
 	unique_ptr<ATrack> pTrack; //轨道。
@@ -314,6 +322,9 @@ public:
 	explicit
 	AScrollBar(const Rect& = {}, SDst = 8, Orientation = Horizontal);
 	inline DefDeMoveCtor(AScrollBar)
+
+	//! \since build 356
+	DefWidgetMemberIteration(btnPrev, btnNext)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
@@ -416,6 +427,11 @@ protected:
 */
 class ScrollableContainer : public Control
 {
+public:
+	//! \since build 356
+	typedef ystdex::subscriptive_iterator<ScrollableContainer, IWidget>
+		Iterator;
+
 protected:
 	/*!
 	\brief 控制水平可视区域的水平滚动条。
@@ -433,6 +449,9 @@ public:
 	explicit
 	ScrollableContainer(const Rect& = {});
 	inline DefDeMoveCtor(ScrollableContainer)
+
+	//! \since build 356
+	DefWidgetMemberIteration(hsbHorizontal, vsbVertical)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。

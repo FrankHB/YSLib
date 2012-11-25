@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r991
+\version r1001
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2012-10-09 10:09 +0800
+	2012-11-12 04:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,18 +57,12 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 					if(k[KeyCodes::Right])
 					{
 						if(IsSelected())
-						{
-							auto pMnu(ShowSub(GetSelectedIndex()));
-
-							if(pMnu)
+							if(const auto pMnu = ShowSub(GetSelectedIndex()))
 								pMnu->SelectFirst();
-						}
 					}
 					else if(k[KeyCodes::Left] || k[KeyCodes::Esc])
 					{
-						auto pMnu(GetParentPtr());
-
-						if(pMnu)
+						if(const auto pMnu = GetParentPtr())
 							RequestFocus(*pMnu);
 						else if(k[KeyCodes::Esc])
 							Hide();
@@ -79,9 +73,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		FetchEvent<LostFocus>(*this) += [this](UIEventArgs&& e){
 			if(pHost)
 			{
-				auto pMnu(dynamic_cast<Menu*>(&e.GetSender()));
-
-				if(pMnu)
+				if(const auto pMnu = dynamic_cast<Menu*>(&e.GetSender()))
 				{
 					if(pMnu->GetParentPtr() != this)
 						pHost->HideUnrelated(*this, *pMnu);
@@ -114,7 +106,8 @@ Menu::operator-=(IndexType idx)
 {
 	if(IsInInterval(idx, GetList().size()))
 	{
-		auto i(mSubMenus.find(idx));
+		const auto i(mSubMenus.find(idx));
+
 		if(i != mSubMenus.end() && i->second)
 		{
 			i->second->pParent = nullptr;

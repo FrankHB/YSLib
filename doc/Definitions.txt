@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11885
+\version r11898
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2012-09-18 18:35 +0800
+	2012-11-25 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -213,12 +213,17 @@ DefSetterMemDe(_t, _n, _m, _defv)
 DefSetterEx(_t, _n, _m, _e)
 DefSetterDeEx(_t, _n, _m, _defv, _e)
 DefClone(_t, _n)
-DefFwdCtorT1(_tClass, _t1, _p1)
-DefFwdCtorT2(_tClass, _t1, _p1, _t2, _p2)
-DefFwdCtorT3(_tClass, _t1, _p1, _t2, _p2, _t3)
-DefFwdCtorT4(_tClass, _t1, _p1, _t2, _p2, _t3, _p3, _t4, _p4)
+DefSubscriptor(_q, _type, ...)
 DefFwdFn(_q _type, _name, ...)
 DefFwdTmpl(_q, _type, _name, ...)
+DefBitmaskAnd(_tBitmask, _tInt)
+DefBitmaskOr(_tBitmask, _tInt)
+DefBitmaskXor(_tBitmask, _tInt)
+DefBitmaskNot(_tBitmask, _tInt)
+DefBitmaskAndAssignment(_tBitmask, _tInt)
+DefBitmaskOrAssignment(_tBitmask, _tInt)
+DefBitmaskXorAssignment(_tBitmask, _tInt)
+DefBitmaskOperations(_tBitmask, _tInt)
 }
 } //$dir Adaptor;
 $dir Core

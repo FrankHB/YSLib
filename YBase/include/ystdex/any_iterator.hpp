@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r545
+\version r556
 \author FrankHB<frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2012-11-09 05:05 +0800
+	2012-11-26 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,7 +158,8 @@ public:
 \brief 动态泛型输入迭代器。
 \since 347
 */
-template<typename _type, typename _tPointer, typename _tReference>
+template<typename _type, typename _tPointer = _type*,
+	typename _tReference = _type&>
 class any_input_iterator : public std::iterator<std::input_iterator_tag, _type,
 	std::ptrdiff_t, _tPointer, _tReference>, protected any
 {
@@ -173,11 +174,10 @@ public:
 
 	any_input_iterator() = delete;
 	/*!
-	\brief 显式构造：使用现有迭代器。
-	\since build 347
+	\brief 构造：使用现有迭代器。
+	\since build 356
 	*/
 	template<typename _tIterator>
-	explicit
 	any_input_iterator(_tIterator&& i)
 		: any()
 	{
@@ -187,7 +187,10 @@ public:
 		manager = handler::manage;
 		handler::init(storage, yforward(i));
 	}
-	any_input_iterator(const any_input_iterator&) = delete;
+	//! \since build 356
+	any_input_iterator(const any_input_iterator&) = default;
+	//! \since build 356
+	any_input_iterator(any_input_iterator&&) = default;
 
 	reference
 	operator*() const
@@ -245,7 +248,8 @@ public:
 
 		any_ops::any_storage t(&storage);
 
-		return manager(t, i.storage, any_ops::equals);
+		manager(t, i.storage, any_ops::equals);
+		return t.access<bool>();
 	}
 	//@}
 

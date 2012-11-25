@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4771 *build 355 rev *
+\version r4804 *build 356 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-11-09 16:24 +0800
+	2012-11-26 01:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,9 @@
 	process of development, conformed with a set of virtual set of syntax rules
 	which constitutes an informal pseudo-code-based language.
 	This file shall be safe of deletion when building the projects.
+
+	The version number is updated when the change is out of temporary sections
+	($DONE, $DOING, $NEXT_TODO).
 */
 
 #if 0
@@ -394,144 +397,156 @@ $using:
 
 
 $DONE:
-r1-r3:
-/ @ \en base_op @ \h Any $=
+r1:
+/ @ \ctor Menu @ \impl \u Menu $=
 (
-	 + enumerator (no_op, end_any),
-	 + underlying \tp op_code
-),
-/= 3 test 1 @ platform MinGW32;
+	/ \simp \impl @ \ctor,
+	/ \impl @ \mf \op-=
+);
+/= test 1 @ platform MinGW32;
 
-r4:
-+ \h AnyIterator[any_iterator.hpp] @ \lib YStandardEx;
-/ @ \h Iterator $=
-(
-	/ (\ln [637, 982] @ \ns ystdex, \inc \h (Any, Cast, Memory))
-		>> \h AnyIterator,
-	- \inc \h (Cast, <tuple>),
-	+ \inc \h <memory>
-),
-/ \inc \h Iterator @ \impl \u CharacterProcessing -> AnyIterator;
+r2:
+/ order @ \pre \decl @ \h Font,
+/ \impl @ postfix \op(++, --) @ \clt pair_iterator @ \h Iterator ^ std::move,
++ \ft yconstfn sizeof_params @ \h Functional;
 /= test 2 @ platform MinGW32;
 
-r5:
-/ end_any @ \ns ystdex::any_ops @ \h Any => end_base_op;
-+ \ns ystdex::any_ops @ \h AnyIterator
-	$= (+ \en (iterator_op, input_iterator_op, bidirectional_iteartor_op,
-		random_access_iterator_op);
+r3:
+/ @ \h Iterator $=
+(
+	+ \clt subscriptive_iterator,
+	/ \a \param \tp 'const difference_type&' -> 'difference_type'
+);
 /= test 3 @ platform MinGW32;
 
-r6:
-/ @ \h Any $=
+r4-r5:
 (
-	/ \ac @ \m (storage, manager) @ \cl any -> protected ~ private,
 	(
-		+ \smf get_reference @ \clt any_handler;
-		/ @ \clt any_ref_handler $=
-		(
-			- \inh \cl any_handler<_type*>,
-			+ \smf (get_pointer, get_reference)
-		)
+		+ \de \arg @ \clt any_input_iterator @ \h AnyIterator,
+		+ \inc \h AnyIterator @ \h YWidget;
+		typedef any_input_iterator<IWidget> @ \h YWidget,
+	),
+	+ \mac DefSubscriptor @ \h YBaseMacro;
+	+ \h WidgetIteration["WidgetIteration.h"] @ \dir UI @ \lib YSLib;
+	/ @ \h WidgetIteration $=
+	(
+		+ \inc \h YWidget;
+		+ \mac ((DefWidgetSubscriptor; DefWidgetEnd), DefWidgetBegin;
+			DefWidgetMemberIterationOperations; DefWidgetMemberIteration)
+			@ \h WidgetIteration;
 	)
-);
-/= test 4 @ platform MinGW32;
-
-r7:
-/ @ \ns ystdex @ \h Any $=
-(
-	/ \cl any_holder -> \clt holder @ \ns any_ops,
-	/ \cl value_holder => \ns any_ops,
-	/ \cl pointer_holder => \ns any_ops,
-	/ \clt any_handler -> \clt value_handler @ \ns any_ops,
-	/ \clt any_ref_handler -> \clt ref_handler @ \ns any_ops,
-	/ \clt any_holder_handler -> \clt holder_handler @ \ns any_ops,
-	/ (\clt (value_holder, pointer_holder), \st holder_tag,
-		typedef (any_storage, any_manager)) => \ns any_ops,
 ),
-/ \tr \impl @ (\h (Iterator, YObject), \impl \u Any);
+/= 2 test 4 @ platform MinGW32;
+
+r6:
+// See ISO C++ 7.3.3/17.
+* \n cannot be used in derived classes @ \clt $since b354
+	$= (/ \a private \n init -> init_impl);
+* $comp \cl (iterator_handler; input_iterator_handler; any_input_iterator)
+	@ \h AnyIterator cannot be instantiated with non-reference-wrapped types
+	$since b355;
 /= test 5 @ platform MinGW32;
 
-r8:
-+ \clt (iterator_handler; input_iterator_handler) @ \ns ystdex::any_ops
-	@ \h AnyIterator;
-/= test 6 @ platform MinGW32 ^ \conf release;
-
-r9:
+r7:
+/ @ \h Iterator $=
+(
+	+ \mf equals @ \clt subscriptive_iterator;
+	+ \op(==; !=) for \clt subscriptive_iterator
+),
 / @ \clt any_input_iterator @ \h AnyIterator $=
 (
-	+ protected \inh \cl any,
-	- mutable \m any obj,
-	/ \tr \impl @ (\ctor, \mf (get, get_holder))
+	* cannot be instantiated due to returning wrong type @ \impl @ \mf equals
+		 $since b355;
+	+ \exp \de move \ctor any_input_iterator,
+	/ \exp \del copy \ctor -> \exp \de copy \ctor
 );
-/= test 7 @ platform MinGW32;
+/= test 6 @ platform MinGW32;
+
+r8:
+/= test 7 @ platform MinGW32 ^ \conf release;
+
+r9:
+/= test 8 @ platform DS;
 
 r10:
-/ @ \clt value_handler @ \h Any $=
-(
-	+ private \smf void init(any_storage&, const value_type&, true_type)
-		-> \smf \t<_tValue> void init(any_storage&, const _tValue&&, true_type),
-	+ private \smf void init(any_storage&, const value_type&, false_type)
-		-> \smf \t<_tValue> void init(any_storage&, const _tValue&&,
-		false_type),
-	/ \smf void init(any_storage&, value_type&&)
-		-> \smf \t<_tValue> void init(any_storage&, _tValue&&)
-),
-/ @ \h AnyIterator $=
-(
-	+ \stt wrap_handler;
-	/ \inh @ \clt (iterator_handler, input_iterator_handler),
-	+ using base::init @ \clt (iterator_handler, input_iterator_handler)
-);
-/= test 8 @ platform MinGW32;
+/= test 9 @ platform DS ^ \conf release;
 
 r11:
-/ \a \smf destroy => uninit @ \h Any to avoid ambiguous with enumerator,
-/ @ \h AnyIterator $=
+- \exp @ \ctor \t any_input_iterator @ \h AnyIterator;
+/ \simp @ \u HexBrowser $=
 (
-	/ @ \clt any_input_iterator $=
+	/ @ \cl HexView $=
 	(
-		/ \impl @ \ctor \t,
-		/ \impl @ \mf \op(*, ++),
-		- \mf get_holder,
-		+ \mf (equals, check_dereferencable, check_undereferencable),
-		+ using any::type
-	);
-	/ \simp \impl @ \f (\op==, is_dereferencable, is_undereferencable)
+		- 2 \mf (GetBegin, GetEnd),
+		- \mf (ClearData, ResizeData);
+		/ private \m data -> protected \m datCurrent
+	),
+	/ \tr \impl @ \cl HexBrowser
 );
-/= test 9 @ platform MinGW32;
+/= test 10 @ platform MinGW32;
 
 r12:
-- (\clt (any_iterator_holder, any_input_iterator_holder), \clt (iterator_holder,
-	input_iterator_holder), \mac (YB_ANY_DEF_CLONE, YB_ANY_DEF_TYPEID,
-	YB_IT_DEF_CHECK, YB_IT_DEF_GETREF)) @ \h AnyIterator;
-/= test 10 @ platform MinGW32 ^ \conf release;
-
-r13:
-* \impl @ \mf manage @ \clt ref_handler @ \h Any $since r6;
++ \inc \h WidgetIteration @ \h Scroll;
+/ @ \h Scroll $=
+(
+	/ @ \cl Atrack $=
+	(
+		+ typedef subscriptive_iterator<ATrack, IWidget> Iterator;
+		+ 'DefWidgetMemberIteration(Thumb)'
+	),
+	/ @ \cl AScrollBar $=
+	(
+		+ typedef subscriptive_iterator<AScrollBar, IWidget> Iterator;
+		+ 'DefWidgetMemberIteration(btnPrev, btnNext)' @ \cl AScrollBar
+	),
+	/ @ \cl ScrollableContainer $=
+	(
+		+ typedef subscriptive_iterator<ScrollableContainer, IWidget> Iterator;
+		+ 'DefWidgetMemberIteration(hsbHorizontal, vsbVertical)'
+	)
+),
+/ @ \h ComboList $=
+(
+	/ @ \cl ListBox $=
+	(
+		+ typedef subscriptive_iterator<ListBox, IWidget> Iterator;
+		+ 'DefWidgetMemberIteration(lstText)'
+	),
+	/ @ \cl DropDownList $=
+	(
+		+ typedef subscriptive_iterator<DropDownList, IWidget> Iterator;
+		+ 'DefWidgetMemberIteration(boxList)'
+	)
+);
 /= test 11 @ platform MinGW32;
 
+r13:
++ !\m \op(==, !=) for \clt (pointer_iterator, pseudo_iterator,
+	transformed_iterator, pair_iterator);
+/= test 12 @ platform MinGW32;
+
 r14:
-/= test 13 @ platform DS;
+/= test 13 @ platform MinGW32 ^ \conf release;
 
 r15:
-/= test 14 @ platform DS ^ \conf release;
+/= test 14 @ platform DS;
 
 r16:
-/= test 12 @ platform MinGW32 ^ \conf release;
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-11-09 +0800:
--24.1d;
-// Mercurial rev1-rev227: r9463;
+2012-11-26 +0800:
+-34.8d;
+// Mercurial rev1-rev228: r9479;
 
 / ...
 
 
 $NEXT_TODO:
-b356-b380:
+b357-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -539,12 +554,11 @@ b356-b380:
 	+ (reading history, bookmarks) (serialization, unserialization)
 		as configuration,
 	/ \f ReleaseShells >> \h
-),
-^ mixin @ \clt iterator_operations @ \h Iterator;
+);
 
 
 $TODO:
-b381-b424:
+b[526]:
 / services $=
 (
 	+ \impl @ images loading
@@ -582,8 +596,6 @@ b381-b424:
 	+ Microsoft Windows(MinGW32) port with free hosted window size,
 	/ improved tests and examples
 );
-
-b[483]:
 / $low_prior @ \lib YCLib $=
 (
 	/ fully \impl @ memory mappaing APIs,
@@ -596,28 +608,21 @@ b[483]:
 	/ placeholders when character conversion failed @ string conversion,
 	+ UTF-8 to GBK conversion
 ),
-+ comparison between reference wrapped and non-wrapped iterators @ \h Iterator;
++ comparison between different cv-qualified any_iterator types @ \h AnyIterator;
 / $design $low_prior robustness and cleanness $=
 (
-	/ @ \ns platform @ \u YCommon $=
-	(
-		/ \ac @ \inh touchPosition @ \cl CursorInfo,
-		+ \exp \init @ \m @ \cl KeysInfo
-	),
+	/ \ac @ \inh touchPosition @ \cl CursorInfo @ \ns platform @ \u YCommon,
+	/ \ac @ \m Thumb @ \cl ATrack,
 	+ recovery environment @ main \fn,
 		// Try-catch, then relaunch the message loop.
 	/ \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
 		~ '::llround',
-	/ \mf \vt Clone -> \amf @ \cl AController ^ g++ 4.7 later,
 	+ 'yconstexpr' @ \s \m Graphics::Invalid,
 	+ error code with necessary %thread_local @ \u YCommon,
 	/ confirm correctness @ stat() @ Win32,
 		// See comments @ src/fccache.c @ \proj fontconfig.
 	/ consideration of mutable member @ class %Message,
-	/ (\ac, \n) @ \m (DSApplication::pFontCache,
-		View::(pContainer, pDependency, pFocusing)),
-	/ consideration of \impl ^ ystdex::any
-		@ \cl ystdex::input_monomorphic_iterator
+	/ (\ac, \n) @ \m View::(pContainer, pDependency, pFocusing)
 ),
 / $low_prior performance $=
 (
@@ -849,8 +854,8 @@ $KNOWN_ISSUE:
 	// See http://stackoverflow.com/questions/11928089/\
 static-constexpr-member-of-same-type-as-class-being-defined and \
 		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3308.pdf .
-	// G++(4.7) would reject some code snippets. Clang++(3.2-trunk) rejects \
-		even more, including code accepted by G++ such as only list \
+	// G++(4.7) would reject some code snippets. Clang++ 3.2(trunk161531) \
+		rejects even more, including code accepted by G++ such as only list \
 		initialization is being used like constexpr static member in "ygdi.h".
 * $known_issue_b351_2 "Diagnostic message generated by by \
 	Clang++[-Wmismatched-tag]".
@@ -940,6 +945,7 @@ $module_tree $=
 		'YDefinition',
 		'YStandardEx'
 		(
+			$with_base_namespace "ystdex";
 			'TypeOperations',
 			'Any',
 			'CStandardIO',
@@ -952,7 +958,8 @@ $module_tree $=
 			'String',
 			'Rational',
 			'Operators',
-			'Containers'
+			'Containers',
+			'AnyIterator'
 		),
 		'LibDefect'
 		(
@@ -967,6 +974,7 @@ $module_tree $=
 	(
 		'CHRLib'
 		(
+			$with_base_namespace "CHRLib";
 			'CharacterMapping',
 			'encoding conversion'
 		),
@@ -983,6 +991,7 @@ $module_tree $=
 		),
 		'YSLib'
 		(
+			$with_base_namespace "YSLib";
 			'Adaptor', // adaptors;
 			'Core' // core;
 			(
@@ -1036,14 +1045,81 @@ $now
 (
 	/ %'YBase' $=
 	(
+		+ "constexpr function template %sizeof_params for counting arguments"
+			@ %'Functional'
+		/ %'Iterator' $=
+		(
+			+ "class template %subscriptive_iterator",
+			/ "all parameter type 'const difference_type&'" -> 'difference_type'
+			+ "namespace scope %function templates operator %(==, !=) for \
+				class tempaltes %(pointer_iterator, pseudo_iterator, \
+				transformed_iterator, pair_iterator)"
+		),
+		/ %'Any' $=
+		(
+			// See ISO C++ 7.3.3/17.
+			* "name %init" @ "class template %value_handler cannot be used \
+				in derived classes" @ %'Any' $since b354;
+			$dep_to any_init
+		),
+		/ %'AnyIterator' $=
+		(
+			/ @ "class template %any_input_iterator" $=
+			(
+				+ "2 template default arguments",
+				* "cannot be instantiated due to returning wrong type"
+					@ "member function %equals" $since b355,
+				+ "explicitly defaulted move constructor",
+				/ "explicitly deleted copy constructor"
+					-> "explicitly defaulted copy constructor"
+			),
+			(
+				$dep_from any_init;
+				* $comp "class template %(iterator_handler; \
+					input_iterator_handler; any_input_iterator) cannot be \
+					instantiated with non-reference-wrapped types" $since b355
+			),
+			- 'explicit' @ "constructor template"
+		),
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		+ "macro %DefSubscriptor" @ %'Core'.'YBaseMac';
+		/ %'GUI' $=
+		(
+			+ %'WidgetIteration' $=
+			(
+				+ "macros %((DefWidgetSubscriptor; DefWidgetEnd), \
+					DefWidgetBegin; DefWidgetMemberIterationOperations; \
+					DefWidgetMemberIteration))"
+			);
+			+ ("typedef %Iterator"; "members"
+				^ "macro %DefWidgetMemberIteration") @ "class %(ATrack, \
+				AScrollBar, ScrollableContainer, ListBox, DropDownList)"
+		)
+	),
+	/ $design "simplified data access methods for hexadecimal browsing"
+		@ %'YReader'.'shell test example'
+),
+
+b355
+(
+	/ %'YBase' $=
+	(
 		/ DLD "implementations of enumerators and static member functions \
 			of handlers" @ %'Any';
 		+ %'AnyIterator';
 		/ "any iterator interface and implementation" @ %'Iterator'
-			>> %'AnyIterator';
+			>> "namespace %any_ops" @ %'AnyIterator';
 		/ %'AnyIterator' $=
 		(
-			+ "enumeration and handlers for generic iterator implementation";
+			/ @ "namespace %any_ops" $=
+			(
+				+ "enumerations %(iterator_op; input_iterator_op; \
+					bidirectional_iteartor_op; random_access_iteartor_op)",
+				+ "class template %wrap_handler";
+				+ "class templates %(iterator_handler; input_iterator_handler)
+			);
 			/ "implementation" @ "class template %any_input_iterator"
 				^ "handlers" ~ "holders"
 			- "unused holders"
@@ -1211,7 +1287,8 @@ b351
 	/ %'YFramework' $=
 	(
 		* DLP "strict ISO C++11 compatibility with using of macros" $since b252
-			$= (- ^ "GNU variadic macro extension"),
+			$= (^ "empty macro arguments" ~ "GNU variadic macro extension"),
+			// Need C99 preprocessor support. Also not conforming to ISO C++03.
 		* "strict ISO C++ compatibility for const function type"
 			@ "constructor accepting function" @ "class template %GHEvent"
 			@ %'YSLib'.'Core'.'YEvent'

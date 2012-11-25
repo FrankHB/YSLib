@@ -177,6 +177,7 @@
     <ClInclude Include="include\YSLib\UI\textlist.h" />
     <ClInclude Include="include\YSLib\UI\uicontx.h" />
     <ClInclude Include="include\YSLib\UI\viewer.hpp" />
+    <ClInclude Include="include\YSLib\UI\WidgetIteration.h" />
     <ClInclude Include="include\YSLib\UI\YBrush.h" />
     <ClInclude Include="include\YSLib\UI\ycomp.h" />
     <ClInclude Include="include\YSLib\UI\Console.h" />

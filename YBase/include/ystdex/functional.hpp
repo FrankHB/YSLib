@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r393
+\version r403
 \author FrankHB<frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2012-10-23 11:30 +0800
+	2012-11-24 20:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,18 @@
 
 namespace ystdex
 {
+
+/*!
+\brief 统计函数参数列表中的参数个数。
+\since build 360 。
+*/
+template<typename... _tParams>
+yconstfn size_t
+sizeof_params(_tParams&&...)
+{
+	return sizeof...(_tParams);
+}
+
 
 /*!
 \brief 顺序递归调用。

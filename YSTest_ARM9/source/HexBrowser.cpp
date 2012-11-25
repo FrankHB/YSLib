@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r512
+\version r521
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2012-09-04 12:57 +0800
+	2012-11-26 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ using namespace Text;
 YSL_BEGIN_NAMESPACE(Components)
 
 HexView::HexView(FontCache& fc)
-	: TextState(fc), item_num(0), data()
+	: TextState(fc), item_num(0), datCurrent()
 {
 	TextState.Color = ColorSpace::Black;
 }
@@ -141,9 +141,9 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 	auto& pen_x(TextState.PenX);
 	TextRenderer tr(TextState, e.Target);
 	auto pos(model.GetPosition());
-	auto i_data(GetBegin());
+	auto i_data(datCurrent.begin());
 
-	while(y < h && pos < fsize && i_data < GetEnd())
+	while(y < h && pos < fsize && i_data < datCurrent.end())
 	{
 		pen_x = TextState.Margin.Left;
 
@@ -174,7 +174,7 @@ void
 HexViewArea::Reset()
 {
 	vsbVertical.SetValue(0);
-	ClearData();
+	datCurrent.clear();
 	UpdateItemNum(GetHeight());
 	UpdateView();
 }
@@ -187,10 +187,10 @@ HexViewArea::UpdateData(u32 pos)
 		const DataType::size_type n(ItemPerLine * GetItemNum() * 2);
 
 		model.SetPosition(pos, SEEK_SET);
-		ResizeData(n);
+		datCurrent.resize(n);
 
-		auto b(GetBegin());
-		const auto e(GetEnd());
+		auto b(datCurrent.begin());
+		const auto e(datCurrent.end());
 
 		while(!model.CheckEOF() && b != e)
 		{
@@ -202,7 +202,7 @@ HexViewArea::UpdateData(u32 pos)
 			*b++ = l > '9' ? l + 'A' - '9' - 1 : l;
 		}
 	//	vsbVertical.SetValue(pos / ItemPerLine);
-		ResizeData(b - GetBegin());
+		datCurrent.resize(b - datCurrent.begin());
 		model.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
 	}
 }

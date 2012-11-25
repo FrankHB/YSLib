@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2427
+\version r2435
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2012-10-28 16:48 +0800
+	2012-11-25 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,6 +52,8 @@ public:
 	typedef TextList::IndexType IndexType;
 	//! \since build 316
 	typedef TextList::ItemType ItemType;
+	//! \since build 356
+	typedef ystdex::subscriptive_iterator<ListBox, IWidget> Iterator;
 
 protected:
 	/*
@@ -65,6 +67,9 @@ public:
 	explicit
 	ListBox(const Rect& = {}, const shared_ptr<ListType>& = {});
 	inline DefDeMoveCtor(ListBox)
+
+	//! \since build 356
+	DefWidgetMemberIteration(lstText)
 
 	DefPredMem(const ynothrow, Selected, lstText)
 	PDefH(bool, Contains, ListType::size_type i)
@@ -196,6 +201,8 @@ public:
 	\since build 283
 	*/
 	typedef ListBox::HViewEvent HViewEvent;
+	//! \since build 356
+	typedef ystdex::subscriptive_iterator<DropDownList, IWidget> Iterator;
 
 protected:
 	ListBox boxList;
@@ -210,6 +217,9 @@ public:
 	\since build 283
 	*/
 	~DropDownList() override;
+
+	//! \since build 356
+	DefWidgetMemberIteration(boxList)
 
 	DefGetterMem(const ynothrow, ListType&, List, boxList)
 	/*!
