@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2435
+\version r2437
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2012-11-25 20:49 +0800
+	2012-12-01 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,8 +68,8 @@ public:
 	ListBox(const Rect& = {}, const shared_ptr<ListType>& = {});
 	inline DefDeMoveCtor(ListBox)
 
-	//! \since build 356
-	DefWidgetMemberIteration(lstText)
+	//! \since build 357
+	DefWidgetMemberIterationBase(ScrollableContainer, lstText)
 
 	DefPredMem(const ynothrow, Selected, lstText)
 	PDefH(bool, Contains, ListType::size_type i)

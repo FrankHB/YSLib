@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r110
+\version r111
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2012-09-04 11:03 +0800
+	2012-12-01 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ namespace platform
 
 namespace
 {
-	static bool bDebugStatus(false);
+	static bool bDebugStatus(true);
 } // unnamed namespace;
 
 void

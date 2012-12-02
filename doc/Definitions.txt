@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11898
+\version r11920
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2012-11-25 16:49 +0800
+	2012-12-01 17:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -154,7 +154,11 @@ YSL_USE_FLEX_STRING
 YSL_OPT_SMALL_STRING_LENGTH
 YSL_DEBUG_MSG
 }
-$header Base
+} //$dir Adaptor;
+
+$dir Core
+{
+$header YBaseMacro
 {
 yJOIN
 YSL_BEGIN
@@ -214,6 +218,7 @@ DefSetterEx(_t, _n, _m, _e)
 DefSetterDeEx(_t, _n, _m, _defv, _e)
 DefClone(_t, _n)
 DefSubscriptor(_q, _type, ...)
+DefSubscriptorBase(_q, _type, _tBase, _vBaseN, ...)
 DefFwdFn(_q _type, _name, ...)
 DefFwdTmpl(_q, _type, _name, ...)
 DefBitmaskAnd(_tBitmask, _tInt)
@@ -225,9 +230,6 @@ DefBitmaskOrAssignment(_tBitmask, _tInt)
 DefBitmaskXorAssignment(_tBitmask, _tInt)
 DefBitmaskOperations(_tBitmask, _tInt)
 }
-} //$dir Adaptor;
-$dir Core
-{
 $header YEvent
 {
 DefDelegate(_n, _tSender, _tEventArgs)
@@ -258,16 +260,28 @@ SM_INPUT
 DefMessageTarget
 }
 } //$dir Core;
-$dir Shell
+$dir UI
+{
 $header YControl
 {
 DefEventTypeMapping(_n, _tEventHandler)
-} //$header YControl;
+}
+$header WidgetIteration
+{
+DefWidgetSubscriptor(...)
+DefWidgetSubscriptorBase(_tBase, ...)
+DefWidgetBegin(_tIter)
+DefWidgetEnd(_tIter)
+DefWidgetChildrenGetter
+DefWidgetMemberIterationOperations(_tIter)
+DefWidgetMemberIteration(...)
+DefWidgetMemberIterationBase(_tBase, ...)
+}
 $unit YGDI
 {
 YSL_FAST_BLIT
 }
-} //$dir Shell;
+} //$dir UI;
 } //$dir YSLib;
 
 $dir Helper

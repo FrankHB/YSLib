@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5383
+\version r5395
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-11-25 17:23 +0800
+	2012-11-29 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,11 @@ YSL_BEGIN_NAMESPACE(Components)
 \since build 356
 */
 typedef ystdex::any_input_iterator<IWidget> WidgetIterator;
+/*!
+\brief 两个部件迭代器组成的左闭右开区间确定的迭代器范围。
+\since build 357
+*/
+typedef pair<WidgetIterator, WidgetIterator> WidgetRange;
 
 
 /*!
@@ -68,6 +73,12 @@ DeclI(IWidget)
 	\note 使用部件坐标。
 	*/
 	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)))
+	/*!
+	\brief 取子部件。
+	\return 包含子部件的迭代器范围，否则返回 WidgetRange() 。
+	\since build 357
+	*/
+	DeclIEntry(WidgetRange GetChildren())
 EndDecl
 
 
@@ -407,6 +418,8 @@ public:
 	ImplI(IWidget) PDefH(IWidget*, GetTopWidgetPtr, const Point&,
 		bool(&)(const IWidget&)) override
 		ImplRet(nullptr)
+	//! \since build 357
+	ImplI(IWidget) DefGetter(override, WidgetRange, Children, WidgetRange())
 
 	DefSetterMem(bool, Transparent, GetView())
 	DefSetterMem(SDst, X, GetView())

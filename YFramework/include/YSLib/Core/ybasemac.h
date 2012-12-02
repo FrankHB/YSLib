@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2334
+\version r2372
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2012-11-25 16:47 +0800
+	2012-12-01 18:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -306,20 +306,6 @@ _t type
 	_n() const \
 	{ \
 		return new _t(*this); \
-	}
-
-
-/*!
-\def DefSubscriptor
-\brief 成员下标访问操作。
-\since build 356
-*/
-#define DefSubscriptor(_q, _type, ...) \
-	_type& \
-	operator[](size_t idx) _q \
-	{ \
-		return std::initializer_list<std::reference_wrapper<_type>> \
-			{__VA_ARGS__}.begin()[idx]; \
 	}
 
 

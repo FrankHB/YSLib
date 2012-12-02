@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 <string> 修正。
-\version r419
+\version r427
 \author FrankHB<frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2012-11-06 01:13 +0800
+	2012-11-28 00:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,13 +35,13 @@
 
 #include <string>
 
-#ifdef __GLIBCXX__
-
+// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015 .
 // TODO: Confirm exact versions affected.
+// TODO: Confirm what and how the exact minimum conditions.
 
-#if (__GLIBCXX__ <= 20120920 && __GXX_EXPERIMENTAL_CXX0X__)
-// && _GLIBCXX_USE_C99
-// && _GLIBCXX_HAVE_BROKEN_VSWPRINTF
+#if defined(__GLIBCXX__) && (__GLIBCXX__ <= 20120920 \
+	&& __GXX_EXPERIMENTAL_CXX0X__) \
+	&& !(defined(_GLIBCXX_USE_C99) && !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF))
 
 #include <ext/string_conversions.h>
 
@@ -194,9 +194,7 @@ _GLIBCXX_END_NAMESPACE_VERSION
 
 } // namespace std;
 
-#endif /* __GXX_EXPERIMENTAL_CXX0X__ && _GLIBCXX_USE_C99 ... */
-
-#endif
+#endif /* ... __GXX_EXPERIMENTAL_CXX0X__ ... */
 
 #endif
 

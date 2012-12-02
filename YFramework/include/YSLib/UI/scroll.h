@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2524
+\version r2545
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-11-25 20:49 +0800
+	2012-12-01 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -324,7 +324,7 @@ public:
 	inline DefDeMoveCtor(AScrollBar)
 
 	//! \since build 356
-	DefWidgetMemberIteration(btnPrev, btnNext)
+	DefWidgetMemberIteration(btnPrev, btnNext, *pTrack)
 
 	/*!
 	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
@@ -337,7 +337,12 @@ public:
 	\note 断言检查： bool(pTrack) 。
 	*/
 	ATrack&
-	GetTrack() const ynothrow;
+	GetTrack() const ynothrow
+	{
+		YAssert(bool(pTrack), "Null pointer found.");
+
+		return *pTrack;
+	}
 	DefGetterMem(const ynothrow, ValueType, MaxValue, GetTrack())
 	DefGetterMem(const ynothrow, ValueType, Value, GetTrack())
 	DefGetterMem(const ynothrow, ValueType, LargeDelta, GetTrack())
@@ -360,22 +365,12 @@ public:
 	\note 调用 GetTrack() 的同名函数指定滚动事件关联值设置滑块位置并触发对应事件。
 	*/
 	void
-	LocateThumb(ValueType, ScrollCategory = ScrollCategory::ThumbPosition);
+	LocateThumb(ValueType val,
+		ScrollCategory t = ScrollCategory::ThumbPosition)
+	{
+		return GetTrack().LocateThumb(val, t);
+	}
 };
-
-inline ATrack&
-AScrollBar::GetTrack() const ynothrow
-{
-	YAssert(bool(pTrack), "Null pointer found.");
-
-	return *pTrack;
-}
-
-inline void
-AScrollBar::LocateThumb(ValueType val, ScrollCategory t)
-{
-	return GetTrack().LocateThumb(val, t);
-}
 
 
 /*!

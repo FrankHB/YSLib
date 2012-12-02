@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2084
+\version r2126
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-11-26 01:07 +0800
+	2012-12-01 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -395,10 +395,16 @@ public:
 	typedef typename pointer_classify<typename
 		remove_reference<_tIterator>::type>::type iterator_type;
 	typedef _fTransformer transformer_type;
-	typedef decltype(std::declval<_fTransformer>()(
-		std::declval<_tIterator&>())) result;
-	typedef decltype(std::declval<_fTransformer>()(std::declval<const
-		_tIterator&>())) const_result;
+	//! \since build 357
+	//@{
+	typedef std::iterator_traits<iterator_type> traits_type;
+	typedef typename traits_type::iterator_category iterator_category;
+	typedef typename remove_reference<decltype(std::declval<_fTransformer>()(
+		std::declval<_tIterator&>()))>::type value_type;
+	typedef typename traits_type::difference_type difference_type;
+	typedef typename add_lvalue_reference<value_type>::type reference;
+	typedef typename add_pointer<value_type>::type pointer;
+	//@}
 
 protected:
 	mutable transformer_type transformer;
@@ -411,23 +417,15 @@ public:
 		: iterator_type(yforward(i)), transformer(f)
 	{}
 
-	inline result
-	operator*()
-	{
-		return transformer(get());
-	}
-	inline const_result
+	//! \since build 357
+	inline reference
 	operator*() const
 	{
 		return transformer(get());
 	}
 
-	inline result*
-	operator->()
-	{
-		return std::addressof(operator*());
-	}
-	inline const_result*
+	//! \since build 357
+	inline pointer
 	operator->() const
 	{
 		return std::addressof(operator*());
@@ -523,13 +521,15 @@ struct pair_iterate
 	typedef typename pair_type::first_type first_type;
 	typedef typename pair_type::second_type second_type;
 
+	//! \since build 357
 	static yconstfn auto
-	first(const _tIterator& i) -> decltype(i->first)
+	first(const _tIterator& i) -> decltype((i->first))
 	{
 		return i->first;
 	}
+	//! \since build 357
 	static yconstfn auto
-	second(const _tIterator& i) -> decltype(i->second)
+	second(const _tIterator& i) -> decltype((i->second))
 	{
 		return i->second;
 	}
@@ -844,10 +844,24 @@ public:
 		return subscriptive_iterator(*p_cont, idx - n);
 	}
 
+	//! \since build 357
+	_tContainer*
+	container() const
+	{
+		return p_cont;
+	}
+
 	bool
 	equals(const subscriptive_iterator<_tContainer, _type>& i) const
 	{
 		return p_cont == i.p_cont && idx == i.idx;
+	}
+
+	//! \since build 357
+	size_t
+	index() const
+	{
+		return idx;
 	}
 };
 

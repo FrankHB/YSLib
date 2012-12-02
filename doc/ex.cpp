@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4804 *build 356 rev *
+\version r4810 *build 357 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-11-26 01:15 +0800
+	2012-12-02 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,6 +179,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \pre ::= prepared
 \pref ::= prefix
 \proj ::= projects
+\proto ::= prototypes
 \pt ::= points
 \ptr ::= pointers
 \q ::= qualifiers
@@ -224,9 +225,10 @@ $dev; // issues concerned by developers, which end-users could ignore \
 	(including compile-time characteristics such as static assertions but not \
 	runtime observative behaviors like runtime assertions);
 $lib; // issues only concerned with library(only implementation changing, \
-	or interfaces modifying including no deletion unless some replacements \
-	are provided, so no need fo library users to modify code using the library \
-	interface to adapt to the upgrading), regaradless of the output targets;
+	or interface modifying including no deletion unless some replacements are \
+	provided, so no need for well-defined behavior library users to modify \
+	code with well-defined behavior using the library interface to adapt \
+	to the upgrading), regaradless of the output targets;
 $build; // issues on build, such as build scripts and diagnostic messages;
 $install; // issues on installing;
 $deploy; // issues on deployment(including build environment requirement);
@@ -398,155 +400,155 @@ $using:
 
 $DONE:
 r1:
-/ @ \ctor Menu @ \impl \u Menu $=
++ typedef pair<WidgetIterator, WidgetIterator> WidgetRange @ \h YWidget;
+/ @ \h WidgetIteration $=
 (
-	/ \simp \impl @ \ctor,
-	/ \impl @ \mf \op-=
+	+ \mac DefWidgetChildrenGetter ^ \mac (PDefH, ImplRet),
+	/ \simp \impl @ \mac \def DefWidgetMemberIterationOperations
 );
 /= test 1 @ platform MinGW32;
 
 r2:
-/ order @ \pre \decl @ \h Font,
-/ \impl @ postfix \op(++, --) @ \clt pair_iterator @ \h Iterator ^ std::move,
-+ \ft yconstfn sizeof_params @ \h Functional;
+/ \impl @ condition \mac @ \h String @ \lib LibDefect;
 /= test 2 @ platform MinGW32;
 
 r3:
-/ @ \h Iterator $=
+/ @ \clt any_iterator @ \h AnyIterator $=
 (
-	+ \clt subscriptive_iterator,
-	/ \a \param \tp 'const difference_type&' -> 'difference_type'
+	/ \exp \del \de \ctor -> \exp \de \de \ctor,
+	/ \impl @ \mf (check_dereferencable, check_undereferencable),
+	+ \as @ \mf \op(*, +),
+	+ \as @ \mf equals
 );
 /= test 3 @ platform MinGW32;
 
-r4-r5:
+r4:
 (
+	+ \amf DeclIEntry(WidgetRange GetChildren()) @ \in IWidget;
+	+ \cl GetChildren @ \cl Widget;
+),
+/ \impl @ \mac DefWidgetChildrenGetter @ \h WidgetIteration;
+/= test 4 @ platform MinGW32;
+
+r5:
+/ @ \cl DialogBox $=
+(
+	+ typedef ystdex::subscriptive_iterator<DialogBox, IWidget> Iterator;
+	+ 'DefWidgetMemberIteration(btnClose)'
+),
+(
+	/ @ \cl MUIContainer $=
 	(
-		+ \de \arg @ \clt any_input_iterator @ \h AnyIterator,
-		+ \inc \h AnyIterator @ \h YWidget;
-		typedef any_input_iterator<IWidget> @ \h YWidget,
-	),
-	+ \mac DefSubscriptor @ \h YBaseMacro;
-	+ \h WidgetIteration["WidgetIteration.h"] @ \dir UI @ \lib YSLib;
-	/ @ \h WidgetIteration $=
+		+ \m typedef typename WidgetMap::iterator Iterator;
+		+ \mf (GetBegin, GetEnd)
+	);
+	/ @ \cl Panel $=
 	(
-		+ \inc \h YWidget;
-		+ \mac ((DefWidgetSubscriptor; DefWidgetEnd), DefWidgetBegin;
-			DefWidgetMemberIterationOperations; DefWidgetMemberIteration)
-			@ \h WidgetIteration;
+		+ public using MUIContainer::(Iterator, GetBegin, GetEnd);
+		+ \mf GetChildren
 	)
 ),
-/= 2 test 4 @ platform MinGW32;
-
-r6:
-// See ISO C++ 7.3.3/17.
-* \n cannot be used in derived classes @ \clt $since b354
-	$= (/ \a private \n init -> init_impl);
-* $comp \cl (iterator_handler; input_iterator_handler; any_input_iterator)
-	@ \h AnyIterator cannot be instantiated with non-reference-wrapped types
-	$since b355;
+/ @ \cl ReaderBox @ \h ShlReader $=
+(
+	+ \m typedef ystdex::subscriptive_iterator<ReaderBox, IWidget> Iterator;
+	+ 'DefWidgetMemberIteration(btnMenu, btnSetting, btnInfo, btnReturn,
+		btnPrev, btnNext, pbReader, lblProgress)'
+);
 /= test 5 @ platform MinGW32;
 
-r7:
-/ @ \h Iterator $=
-(
-	+ \mf equals @ \clt subscriptive_iterator;
-	+ \op(==; !=) for \clt subscriptive_iterator
-),
-/ @ \clt any_input_iterator @ \h AnyIterator $=
-(
-	* cannot be instantiated due to returning wrong type @ \impl @ \mf equals
-		 $since b355;
-	+ \exp \de move \ctor any_input_iterator,
-	/ \exp \del copy \ctor -> \exp \de copy \ctor
-);
+r6:
+* missing track @ member iteration @ \cl AScrollBar $since b356
+	$= (/ 'DefWidgetMemberIteration(btnPrev, btnNext)' @ \cl AScrollBar
+		-> 'DefWidgetMemberIteration(btnPrev, btnNext, *pTrack)'),
++ \mac \def (DefSubscriptorBase @ \h YBaseMacro;
+	DefWidgetMemberIterationBase(_tBase, ...) @ \h WidgetIteration);
 /= test 6 @ platform MinGW32;
 
+r7:
+/ \mac (DefSubscriptor, DefSubscriptorBase) @ \h YBaseMacro
+	>> \h WidgetIteration,
+	// To make sure no invalid use of std::initializer_list and \
+		std::reference_wrapper;
+* missing base members @ member iteration @ \cl ListBox $since b356
+	$= (/ 'DefWidgetMemberIteration(lstText)'
+		-> 'DefWidgetMemberIterationBase(ScrollableContainer, lstText)'),
+- redundant \mf GetTopWidgetPtr @ \cl HexViewArea @ \u HexBrowser;
+/= test 7 @ platform MinGW32;
+
 r8:
-/= test 7 @ platform MinGW32 ^ \conf release;
+/= test 8 @ platform MinGW32 ^ \conf release;
 
 r9:
-/= test 8 @ platform DS;
+/= test 9 @ platform DS;
 
 r10:
-/= test 9 @ platform DS ^ \conf release;
+/= test 10 @ platform DS ^ \conf release;
 
 r11:
-- \exp @ \ctor \t any_input_iterator @ \h AnyIterator;
-/ \simp @ \u HexBrowser $=
-(
-	/ @ \cl HexView $=
-	(
-		- 2 \mf (GetBegin, GetEnd),
-		- \mf (ClearData, ResizeData);
-		/ private \m data -> protected \m datCurrent
-	),
-	/ \tr \impl @ \cl HexBrowser
-);
-/= test 10 @ platform MinGW32;
-
-r12:
-+ \inc \h WidgetIteration @ \h Scroll;
-/ @ \h Scroll $=
-(
-	/ @ \cl Atrack $=
-	(
-		+ typedef subscriptive_iterator<ATrack, IWidget> Iterator;
-		+ 'DefWidgetMemberIteration(Thumb)'
-	),
-	/ @ \cl AScrollBar $=
-	(
-		+ typedef subscriptive_iterator<AScrollBar, IWidget> Iterator;
-		+ 'DefWidgetMemberIteration(btnPrev, btnNext)' @ \cl AScrollBar
-	),
-	/ @ \cl ScrollableContainer $=
-	(
-		+ typedef subscriptive_iterator<ScrollableContainer, IWidget> Iterator;
-		+ 'DefWidgetMemberIteration(hsbHorizontal, vsbVertical)'
-	)
-),
-/ @ \h ComboList $=
-(
-	/ @ \cl ListBox $=
-	(
-		+ typedef subscriptive_iterator<ListBox, IWidget> Iterator;
-		+ 'DefWidgetMemberIteration(lstText)'
-	),
-	/ @ \cl DropDownList $=
-	(
-		+ typedef subscriptive_iterator<DropDownList, IWidget> Iterator;
-		+ 'DefWidgetMemberIteration(boxList)'
-	)
-);
+/ \val @ \s \ns \o bDebugStatus @ \un \ns @ \impl \u Debug @ \lib YCLib
+	-> true ~ false,
+/ \tr \simp \impl @ main \f;
 /= test 11 @ platform MinGW32;
 
-r13:
-+ !\m \op(==, !=) for \clt (pointer_iterator, pseudo_iterator,
-	transformed_iterator, pair_iterator);
-/= test 12 @ platform MinGW32;
-
-r14:
-/= test 13 @ platform MinGW32 ^ \conf release;
+r12-r14:
+/= 3 test 12 @ platform MinGW32;
 
 r15:
-/= test 14 @ platform DS;
++ \mf (container, index) \c @ \clt subscriptive_iterator @ \h Iterator;
+/= test 13 @ platform MinGW32;
 
 r16:
-/= test 15 @ platform DS ^ \conf release;
+* wrong \proto @ \mf Panel::GetChildren $since r5;
+/= test 14 @ platform MinGW32;
+
+r17:
+/= test 15 @ platform MinGW32;
+
+r18:
+/ @ \h Iterator $=
+(
+	/ @ \clt transformed_iterator $=
+	(
+		+ typedef (traits_type; value_type, difference_type,
+			reference, pointer),
+		- !\c \mf \op(*, ->),
+		/ \ret \tp @ \c \mf \op(*, ->) ^ !(result, const_result);
+		- typedef result,
+		- typedef const_result
+	);
+	* \ret \tp can be non-reference @ \smf @ \stt pair_iterate $since b288
+		// Non-reference type violates ISO C++11 24.2.2 Table 106.
+);
+* \impl @ \cl MUIContainer $since r5 $=
+(
+	/ typedef typename WidgetMap::iterator Iterator
+		-> typedef WidgetIterator Iterator,
+	/ \impl @ \mf (GetBegin, GetEnd)
+);
+/= test 16 @ platform MinGW32;
+
+r19:
+/= test 17 @ platform MinGW32 ^ \conf release;
+
+r20:
+/= test 18 @ platform DS;
+
+r21:
+/= test 19 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-11-26 +0800:
--34.8d;
-// Mercurial rev1-rev228: r9479;
+2012-12-02 +0800:
+-35.9d;
+// Mercurial rev1-rev229: r9500;
 
 / ...
 
 
 $NEXT_TODO:
-b357-b380:
+b358-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -1045,6 +1047,81 @@ $now
 (
 	/ %'YBase' $=
 	(
+		/ DLP "implementation" @ "condition macro" @ %'LibDefect'.'String',
+		/ %'YStandardEx' $=
+		(
+			/ @ "class template %any_iterator" @ %'AnyIterator' $=
+			(
+				/ "explicitly deleted default constructor"
+					-> "explicitly defaulted defalut constructor"
+				/ "implementation @ member functions %(check_dereferencable, \
+					check_undereferencable)",
+				+ "assertions"
+			),
+			/ %'Iteartor' $=
+			(
+				+ "member functions %(container, index)"
+					@ "class template %subscriptive_iterator",
+				/ @ "class template %transformed_iterator" $=
+				(
+					+ "typedef names %(traits_type; value_type, \
+						difference_type, reference, pointer)",
+					- "typedef names %(result, const_result)",
+					/ 
+				);
+				* "return type can be non-reference" @ "static member functions"
+					@ "class template %pair_iterate" $since b288
+					// Non-reference type violates ISO C++11 24.2.2 Table 106.
+			)
+		)
+	);
+	/ %'YFramework' $=
+	(
+		/ $dev %'YSLib' $=
+		(
+			/ %'GUI' $=
+			(
+				/ @ "header %Widget" $=
+				(
+					+ "typedef pair<WidgetIterator, WidgetIterator> WidgetRange",
+					+ "pure virtual function 5GetChildren"
+				);
+				(
+					+ "macros %(DefWidgetChildrenGetter, DefSubscriptorBase, \
+						DefWidgetMemberIterationBase)"
+						@ "header %WidgetIteration";
+					$dep_to "new widget iteration macros";
+				)
+				+ "implementation of default widget iteration without members"
+					@ "class %(Widget, (MUIContainer; Panel))",
+				* "missing track" @ "member iteration" @ "class %AScrollBar"
+					$since b356,
+				(
+					$dep_from "new widget iteration macros";
+					* "missing base members" @ "member iteration"
+						@ "class %ListBox" $since b356
+				)
+			),
+			/ "macro for member iteration" @ %'Core'.'YBaseMacro'
+				>> "header %WidgetIteration" @ %'GUI'
+				// To make sure no invalid use of std::initializer_list and \
+					std::reference_wrapper;
+		),
+		/ $dev "turned debug assertion printing on as default" %'YCLib'.'Debug'
+	),
+	/ $dev %'YReader' $=
+	(
+		+ ("typedef %Iterator"; "members" ^ "macro %DefWidgetMemberIteration")
+			@ "class %ReaderBox" @ %'text reader',
+		- "redundant member function %GetTopWidgetPtr"
+			@ "class %HexViewArea" @ %'hexadecimal browser'
+	)
+),
+
+b356
+(
+	/ %'YBase' $=
+	(
 		+ "constexpr function template %sizeof_params for counting arguments"
 			@ %'Functional'
 		/ %'Iterator' $=
@@ -1087,6 +1164,7 @@ $now
 		+ "macro %DefSubscriptor" @ %'Core'.'YBaseMac';
 		/ %'GUI' $=
 		(
+			+ "typedef %WidgetIterator" @ "header %YWidget";
 			+ %'WidgetIteration' $=
 			(
 				+ "macros %((DefWidgetSubscriptor; DefWidgetEnd), \

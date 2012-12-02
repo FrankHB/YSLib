@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r297
+\version r301
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2012-09-07 10:20 +0800
+	2012-11-29 15:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "ypanel.h"
 #include "button.h"
+#include "WidgetIteration.h"
 
 YSL_BEGIN
 
@@ -41,6 +42,10 @@ YSL_BEGIN_NAMESPACE(Components)
 */
 class DialogBox : public Control
 {
+public:
+	//! \since build 357
+	typedef ystdex::subscriptive_iterator<DialogBox, IWidget> Iterator;
+
 protected:
 	/*!
 	\brief 关闭按钮。
@@ -52,6 +57,9 @@ public:
 	//! \since build 337
 	explicit
 	DialogBox(const Rect& = {});
+
+	//! \since build 357
+	DefWidgetMemberIteration(btnClose)
 
 	IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;

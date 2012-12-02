@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r1750
+\version r1763
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2012-09-07 11:17 +0800
+	2012-12-02 17:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -165,6 +165,8 @@ public:
 	typedef multimap<ZOrderType, ItemType> WidgetMap; \
 		//!< 部件映射表类型：映射 Z 顺序至部件。
 	typedef WidgetMap::value_type PairType;
+	//! \since build 357
+	typedef WidgetIterator Iterator;
 
 protected:
 	/*
@@ -209,6 +211,13 @@ public:
 	*/
 	IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
+
+	//! \since build 357
+	Iterator
+	GetBegin();
+	//! \since build 357
+	Iterator
+	GetEnd();
 
 	/*!
 	\brief 向部件组添加部件。

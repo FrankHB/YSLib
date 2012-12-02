@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r416
+\version r421
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2012-11-26 00:50 +0800
+	2012-12-01 18:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,11 +174,6 @@ public:
 
 	using HexView::GetItemHeight;
 	using HexView::GetItemNum;
-	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
-	*/
-	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 	DefGetter(const ynothrow, const HexModel&, Model, model)
 
 	void

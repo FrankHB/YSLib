@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r556
+\version r576
 \author FrankHB<frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2012-11-26 00:32 +0800
+	2012-11-29 14:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,8 @@ public:
 	typedef typename traits_type::pointer pointer;
 	typedef _tReference reference;
 
-	any_input_iterator() = delete;
+	//! \since build 357
+	any_input_iterator() = default;
 	/*!
 	\brief 构造：使用现有迭代器。
 	\since build 356
@@ -195,6 +196,8 @@ public:
 	reference
 	operator*() const
 	{
+		yassume(manager);
+
 		any_ops::any_storage t;
 
 		manager(t, storage, any_ops::dereference);
@@ -210,6 +213,8 @@ public:
 	any_input_iterator&
 	operator++()
 	{
+		yassume(manager);
+
 		manager(storage, storage, any_ops::increase);
 		return *this;
 	}
@@ -226,24 +231,35 @@ public:
 	bool
 	check_dereferencable() const
 	{
-		any_ops::any_storage t;
+		if(manager)
+		{
+			any_ops::any_storage t;
 
-		manager(t, storage, any_ops::check_dereferencable);
-		return t.access<bool>();
+			manager(t, storage, any_ops::check_dereferencable);
+			return t.access<bool>();
+		}
+		return false;
 	}
 
 	bool
 	check_undereferencable() const
 	{
-		any_ops::any_storage t;
+		if(manager)
+		{
+			any_ops::any_storage t;
 
-		manager(t, storage, any_ops::check_undereferencable);
-		return t.access<bool>();
+			manager(t, storage, any_ops::check_undereferencable);
+			return t.access<bool>();
+		}
+		return true;
 	}
 
 	bool
 	equals(const any_input_iterator& i) const
 	{
+		if(!*this && !i)
+			return true;
+
 		yassume(type() == i.type());
 
 		any_ops::any_storage t(&storage);

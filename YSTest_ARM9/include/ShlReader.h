@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1647
+\version r1652
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2012-09-26 17:28 +0800
+	2012-12-01 18:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,9 @@ class ShlReader;
 class ReaderBox : public Control
 {
 public:
+	//! \since build 357
+	typedef ystdex::subscriptive_iterator<ReaderBox, IWidget> Iterator;
+
 	/*!
 	\brief 弹出菜单按钮。
 	\since build 274
@@ -76,6 +79,10 @@ public:
 	Label lblProgress;
 
 	ReaderBox(const Rect&);
+
+	//! \since build 357
+	DefWidgetMemberIteration(btnMenu, btnSetting, btnInfo, btnReturn, btnPrev,
+		btnNext, pbReader, lblProgress)
 
 	IWidget*
 	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
