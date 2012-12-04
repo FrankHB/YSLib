@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r758
+\version r763
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2012-10-29 22:43 +0800
+	2012-12-04 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -304,6 +304,9 @@ namespace details
 
 /*!
 \since build 306
+\todo 左值版本。
+
+测试右值可比较相等性。
 */
 template<typename _type1, typename _type2>
 struct have_equality_operator
@@ -512,7 +515,7 @@ public:
 \since build 290
 
 参数为非引用类型时同 array_decay ，
-否则结果为被引用的类型的 array_decay 结果的引用。
+否则成员 type 为去除引用后 array_dacay 的类型，reference 为 type 的对应引用。
 */
 //@{
 template<typename _type>
@@ -525,14 +528,14 @@ template<typename _type>
 struct array_ref_decay<_type&>
 {
 	typedef typename array_decay<_type>::type type;
-	typedef typename array_decay<_type>::type& reference;
+	typedef type& reference;
 };
 
 template<typename _type>
 struct array_ref_decay<_type&&>
 {
 	typedef typename array_decay<_type>::type type;
-	typedef typename array_decay<_type>::type&& reference;
+	typedef type&& reference;
 };
 //@}
 

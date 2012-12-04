@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2126
+\version r2186
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-12-01 20:05 +0800
+	2012-12-04 14:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -382,7 +382,7 @@ operator!=(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
 \warning 非虚析构。
 \since build 288
 
-使用指定参数隐藏指定迭代器的间接操作的迭代器适配器。
+使用指定参数转换得到新迭代器的间接操作替代指定迭代器的间接操作的迭代器适配器。
 */
 template<typename _tIterator, typename _fTransformer>
 class transformed_iterator : public pointer_classify<_tIterator>::type
@@ -395,14 +395,17 @@ public:
 	typedef typename pointer_classify<typename
 		remove_reference<_tIterator>::type>::type iterator_type;
 	typedef _fTransformer transformer_type;
+	//! \since build 358
+	typedef typename std::result_of<_fTransformer&(_tIterator&)>::type
+		transformed_type;
 	//! \since build 357
 	//@{
 	typedef std::iterator_traits<iterator_type> traits_type;
 	typedef typename traits_type::iterator_category iterator_category;
-	typedef typename remove_reference<decltype(std::declval<_fTransformer>()(
-		std::declval<_tIterator&>()))>::type value_type;
+	typedef typename add_rvalue_reference<
+		decltype(*std::declval<transformed_type>())>::type reference;
+	typedef typename remove_reference<reference>::type value_type;
 	typedef typename traits_type::difference_type difference_type;
-	typedef typename add_lvalue_reference<value_type>::type reference;
 	typedef typename add_pointer<value_type>::type pointer;
 	//@}
 
@@ -421,7 +424,7 @@ public:
 	inline reference
 	operator*() const
 	{
-		return transformer(get());
+		return *transformer(get());
 	}
 
 	//! \since build 357
@@ -509,31 +512,30 @@ make_transform(_tIterator&& i, _fTransformer&& f)
 
 
 /*!
-\brief 成对迭代操作。
-\since build 288
+\brief 迭代转换操作。
+\since build 358
 */
-template<typename _tIterator>
-struct pair_iterate
+namespace iterator_transformation
 {
-	typedef _tIterator iterator_type;
-	typedef decltype(*std::declval<_tIterator>()) reference;
-	typedef typename remove_reference<reference>::type pair_type;
-	typedef typename pair_type::first_type first_type;
-	typedef typename pair_type::second_type second_type;
-
-	//! \since build 357
+	template<typename _tIterator>
 	static yconstfn auto
-	first(const _tIterator& i) -> decltype((i->first))
+	first(const _tIterator& i) -> decltype(std::addressof(i->first))
 	{
-		return i->first;
+		return std::addressof(i->first);
 	}
-	//! \since build 357
+	template<typename _tIterator>
 	static yconstfn auto
-	second(const _tIterator& i) -> decltype((i->second))
+	second(const _tIterator& i) -> decltype(std::addressof(i->second))
 	{
-		return i->second;
+		return std::addressof(i->second);
 	}
-};
+	template<typename _tIterator>
+	static yconstfn auto
+	indirect(const _tIterator& i) -> decltype(*i)
+	{
+		return *i;
+	}
+} // namespace iterator_transformation;
 
 
 /*!
@@ -541,8 +543,10 @@ struct pair_iterate
 \since build 288
 */
 //@{
-yconstexpr first_tag get_first = {}, get_key = {};
-yconstexpr second_tag get_second = {}, get_value = {};
+yconstexpr first_tag get_first{}, get_key{};
+yconstexpr second_tag get_second{}, get_value{};
+//! \since build 358
+yconstexpr struct indirect_tag{} get_indirect{};
 //@}
 
 
@@ -553,20 +557,30 @@ yconstexpr second_tag get_second = {}, get_value = {};
 template<typename _tIterator>
 inline auto
 operator|(_tIterator&& i, first_tag)
-	-> decltype(make_transform(yforward(i), pair_iterate<typename
-	decay<_tIterator>::type>::first))
+	-> decltype(make_transform(yforward(i), iterator_transformation::first<
+	typename array_ref_decay<_tIterator>::type>))
 {
-	return make_transform(yforward(i), pair_iterate<typename
-		decay<_tIterator>::type>::first);
+	return make_transform(yforward(i), iterator_transformation::first<
+		typename array_ref_decay<_tIterator>::type>);
 }
 template<typename _tIterator>
 inline auto
 operator|(_tIterator&& i, second_tag)
-	-> decltype(make_transform(yforward(i), pair_iterate<typename
-	decay<_tIterator>::type>::second))
+	-> decltype(make_transform(yforward(i), iterator_transformation::second<
+	typename array_ref_decay<_tIterator>::type>))
 {
-	return make_transform(yforward(i), pair_iterate<typename
-		decay<_tIterator>::type>::second);
+	return make_transform(yforward(i), iterator_transformation::second<
+		typename array_ref_decay<_tIterator>::type>);
+}
+//! \since build 358
+template<typename _tIterator>
+inline auto
+operator|(_tIterator&& i, indirect_tag)
+	-> decltype(make_transform(yforward(i), iterator_transformation::indirect<
+	typename array_ref_decay<_tIterator>::type>))
+{
+	return make_transform(yforward(i), iterator_transformation::indirect<
+		typename array_ref_decay<_tIterator>::type>);
 }
 
 

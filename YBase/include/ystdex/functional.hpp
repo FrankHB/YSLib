@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r403
+\version r460
 \author FrankHB<frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2012-11-24 20:22 +0800
+	2012-12-04 11:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,28 @@ struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...)>
 {
 	typedef std::tuple<_tParams...> type;
 };
+
+// !\since build 358
+template<typename _tRet, class _tClass, typename... _tParams>
+struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) const>
+{
+	typedef std::tuple<_tParams...> type;
+};
+
+// !\since build 358
+template<typename _tRet, class _tClass, typename... _tParams>
+struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) volatile>
+{
+	typedef std::tuple<_tParams...> type;
+};
+
+// !\since build 358
+template<typename _tRet, class _tClass, typename... _tParams>
+struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) const volatile>
+{
+	typedef std::tuple<_tParams...> type;
+};
+
 //@}
 
 
@@ -123,25 +145,51 @@ struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...)>
 template<typename>
 struct return_of;
 
-template<typename Res, typename... _tParams>
-struct return_of<Res(_tParams...)> {
-    typedef Res type;
+template<typename _tResult, typename... _tParams>
+struct return_of<_tResult(_tParams...)>
+{
+    typedef _tResult type;
 };
 
-template<typename Res, typename... _tParams>
-struct return_of<Res(*)(_tParams...)> {
-    typedef Res type;
+template<typename _tResult, typename... _tParams>
+struct return_of<_tResult(*)(_tParams...)>
+{
+    typedef _tResult type;
 };
 
-template<typename Res, typename... _tParams>
-struct return_of<Res(&)(_tParams...)> {
-    typedef Res type;
+template<typename _tResult, typename... _tParams>
+struct return_of<_tResult(&)(_tParams...)>
+{
+    typedef _tResult type;
 };
 
-template<typename Res, class _tClass, typename... _tParams>
-struct return_of<Res(_tClass::*)(_tParams...)> {
-    typedef Res type;
+template<typename _tResult, class _tClass, typename... _tParams>
+struct return_of<_tResult(_tClass::*)(_tParams...)>
+{
+    typedef _tResult type;
 };
+
+// !\since build 358
+template<typename _tResult, class _tClass, typename... _tParams>
+struct return_of<_tResult(_tClass::*)(_tParams...) const>
+{
+    typedef _tResult type;
+};
+
+// !\since build 358
+template<typename _tResult, class _tClass, typename... _tParams>
+struct return_of<_tResult(_tClass::*)(_tParams...) volatile>
+{
+    typedef _tResult type;
+};
+
+// !\since build 358
+template<typename _tResult, class _tClass, typename... _tParams>
+struct return_of<_tResult(_tClass::*)(_tParams...) const volatile>
+{
+    typedef _tResult type;
+};
+
 //@}
 
 
@@ -206,7 +254,7 @@ template<typename _type>
 _type&
 unref(const std::reference_wrapper<_type>& x) ynothrow
 {
-	return x.get;
+	return x.get();
 }
 //@}
 

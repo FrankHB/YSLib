@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r576
+\version r582
 \author FrankHB<frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2012-11-29 14:34 +0800
+	2012-12-04 13:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,8 +182,12 @@ public:
 	any_input_iterator(_tIterator&& i)
 		: any()
 	{
-		typedef any_ops::input_iterator_handler<typename
-			std::remove_reference<_tIterator>::type> handler;
+		typedef typename std::remove_reference<_tIterator>::type param_obj_type;
+		typedef any_ops::input_iterator_handler<param_obj_type> handler;
+
+		static_assert(is_convertible<decltype(*std::declval<typename
+			wrapped_traits<param_obj_type>::type&>()), reference>::value,
+			"Wrong target iterator type found.");
 
 		manager = handler::manage;
 		handler::init(storage, yforward(i));

@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r1607
+\version r1611
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2012-12-02 17:23 +0800
+	2012-12-04 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,16 +160,16 @@ MUIContainer::operator-=(IWidget& wgt)
 MUIContainer::Iterator
 MUIContainer::GetBegin()
 {
-	using ystdex::get_value;
+	using namespace ystdex;
 
-	return mWidgets.rbegin() | get_value;
+	return mWidgets.rbegin() | get_value | get_indirect;
 }
 MUIContainer::Iterator
 MUIContainer::GetEnd()
 {
-	using ystdex::get_value;
+	using namespace ystdex;
 
-	return mWidgets.rend() | get_value;
+	return mWidgets.rend() | get_value | get_indirect;
 }
 IWidget*
 MUIContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4810 *build 357 rev *
+\version r4817 *build 358 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-02 20:47 +0800
+	2012-12-04 15:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,7 +198,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \smf ::= static member functions
 \smft ::= static member function templates
 \snm ::= static non-member
-\spec ::= specifications
+\spec ::= speclizations/specifications
 \st ::= structs
 \str ::= strings
 \stt ::= struct templates
@@ -399,156 +399,91 @@ $using:
 
 
 $DONE:
-r1:
-+ typedef pair<WidgetIterator, WidgetIterator> WidgetRange @ \h YWidget;
-/ @ \h WidgetIteration $=
-(
-	+ \mac DefWidgetChildrenGetter ^ \mac (PDefH, ImplRet),
-	/ \simp \impl @ \mac \def DefWidgetMemberIterationOperations
-);
-/= test 1 @ platform MinGW32;
-
-r2:
-/ \impl @ condition \mac @ \h String @ \lib LibDefect;
-/= test 2 @ platform MinGW32;
-
-r3:
-/ @ \clt any_iterator @ \h AnyIterator $=
-(
-	/ \exp \del \de \ctor -> \exp \de \de \ctor,
-	/ \impl @ \mf (check_dereferencable, check_undereferencable),
-	+ \as @ \mf \op(*, +),
-	+ \as @ \mf equals
-);
-/= test 3 @ platform MinGW32;
-
-r4:
-(
-	+ \amf DeclIEntry(WidgetRange GetChildren()) @ \in IWidget;
-	+ \cl GetChildren @ \cl Widget;
-),
-/ \impl @ \mac DefWidgetChildrenGetter @ \h WidgetIteration;
-/= test 4 @ platform MinGW32;
+r1-r4:
+/= 4 test 1 @ platform MinGW32;
 
 r5:
-/ @ \cl DialogBox $=
-(
-	+ typedef ystdex::subscriptive_iterator<DialogBox, IWidget> Iterator;
-	+ 'DefWidgetMemberIteration(btnClose)'
-),
-(
-	/ @ \cl MUIContainer $=
-	(
-		+ \m typedef typename WidgetMap::iterator Iterator;
-		+ \mf (GetBegin, GetEnd)
-	);
-	/ @ \cl Panel $=
-	(
-		+ public using MUIContainer::(Iterator, GetBegin, GetEnd);
-		+ \mf GetChildren
-	)
-),
-/ @ \cl ReaderBox @ \h ShlReader $=
-(
-	+ \m typedef ystdex::subscriptive_iterator<ReaderBox, IWidget> Iterator;
-	+ 'DefWidgetMemberIteration(btnMenu, btnSetting, btnInfo, btnReturn,
-		btnPrev, btnNext, pbReader, lblProgress)'
-);
-/= test 5 @ platform MinGW32;
+* wrong value category to deduct value type using std::declval
+	@ \clt (transformed_iterator, pair_iterate) @ \h Iterator $since b288;
+/= test 2 @ platform MinGW32;
 
 r6:
-* missing track @ member iteration @ \cl AScrollBar $since b356
-	$= (/ 'DefWidgetMemberIteration(btnPrev, btnNext)' @ \cl AScrollBar
-		-> 'DefWidgetMemberIteration(btnPrev, btnNext, *pTrack)'),
-+ \mac \def (DefSubscriptorBase @ \h YBaseMacro;
-	DefWidgetMemberIterationBase(_tBase, ...) @ \h WidgetIteration);
-/= test 6 @ platform MinGW32;
+/ \simp \impl @ typedef \m value_type @ \clt transformed_iterator @ \h Iterator
+	^ std::result_of ~ decltype;
+/= test 3 @ platform MinGW32;
 
 r7:
-/ \mac (DefSubscriptor, DefSubscriptorBase) @ \h YBaseMacro
-	>> \h WidgetIteration,
-	// To make sure no invalid use of std::initializer_list and \
-		std::reference_wrapper;
-* missing base members @ member iteration @ \cl ListBox $since b356
-	$= (/ 'DefWidgetMemberIteration(lstText)'
-		-> 'DefWidgetMemberIterationBase(ScrollableContainer, lstText)'),
-- redundant \mf GetTopWidgetPtr @ \cl HexViewArea @ \u HexBrowser;
-/= test 7 @ platform MinGW32;
+/ @ \h Functional $=
+(
+	* \impl @ \ft unref#2 $since b348,
+	* missing \spec for pointer to cv-qualified member functions
+		@ \stt (make_parameter_tuple, return_of) $since b333
+);
+/= test 4 @ platform MinGW32;
 
 r8:
-/= test 8 @ platform MinGW32 ^ \conf release;
+/= test 5 @ platform MinGW32 ^ \conf release;
 
 r9:
-/= test 9 @ platform DS;
+/= test 6 @ platform DS;
 
 r10:
-/= test 10 @ platform DS ^ \conf release;
+/= test 7 @ platform DS ^ \conf release;
 
 r11:
-/ \val @ \s \ns \o bDebugStatus @ \un \ns @ \impl \u Debug @ \lib YCLib
-	-> true ~ false,
-/ \tr \simp \impl @ main \f;
-/= test 11 @ platform MinGW32;
-
-r12-r14:
-/= 3 test 12 @ platform MinGW32;
-
-r15:
-+ \mf (container, index) \c @ \clt subscriptive_iterator @ \h Iterator;
-/= test 13 @ platform MinGW32;
-
-r16:
-* wrong \proto @ \mf Panel::GetChildren $since r5;
-/= test 14 @ platform MinGW32;
-
-r17:
-/= test 15 @ platform MinGW32;
-
-r18:
 / @ \h Iterator $=
 (
-	/ @ \clt transformed_iterator $=
-	(
-		+ typedef (traits_type; value_type, difference_type,
-			reference, pointer),
-		- !\c \mf \op(*, ->),
-		/ \ret \tp @ \c \mf \op(*, ->) ^ !(result, const_result);
-		- typedef result,
-		- typedef const_result
-	);
-	* \ret \tp can be non-reference @ \smf @ \stt pair_iterate $since b288
-		// Non-reference type violates ISO C++11 24.2.2 Table 106.
+	+ yconstfn \smf indirect @ \clt pair_iterate,
+	+ yconstexpr struct indirect_tag{} get_indirect{};
+	+ \ft<_tIterator> \i auto operator|(_tIterator&&, indirect_tag)
 );
-* \impl @ \cl MUIContainer $since r5 $=
+/= test 8 @ platform MinGW32;
+
+r12:
+/ \simp \impl @ \stt array_ref_decay @ \h TypeOperations,
+/ @ \h Iterator $=
 (
-	/ typedef typename WidgetMap::iterator Iterator
-		-> typedef WidgetIterator Iterator,
-	/ \impl @ \mf (GetBegin, GetEnd)
+	/ \cl pair_iterate -> \ns iterator_transformation;
+	/ \ret \tp @ \f (first, second) @ \ns iterator_transformation,
+		// Treat return types as iterators for chain use.
+	/ \tr \impl @ \a \f \op|,
+	/ \tr @ \clt transformed_iterator $=
+	(
+		+ typedef transformed_type;
+		/ \impl @ typedef (value_type, reference),
+		/ \impl @ \mf \op*
+	)
 );
-/= test 16 @ platform MinGW32;
+/= test 9 @ platform MinGW32;
 
-r19:
-/= test 17 @ platform MinGW32 ^ \conf release;
+r13:
++ \as @ \ctor \t any_input_iterator @ \h AnyIterator,
+* wrong dereferenced type of iterators @ \impl @ \mf (GetBegin, GetEnd)
+	^ ystdex::indirect @ \cl MUIContainer $since b357;
+/= test 10 @ platform MinGW32;
 
-r20:
-/= test 18 @ platform DS;
+r14:
+/= test 11 @ platform MinGW32 ^ \conf release;
 
-r21:
-/= test 19 @ platform DS ^ \conf release;
+r15:
+/= test 12 @ platform DS;
+
+r16:
+/= test 13 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-02 +0800:
--35.9d;
-// Mercurial rev1-rev229: r9500;
+2012-12-04 +0800:
+-35.7d;
+// Mercurial rev1-rev230: r9516;
 
 / ...
 
 
 $NEXT_TODO:
-b358-b380:
+b359-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -938,7 +873,13 @@ http://stackoverflow.com/questions/5955682/boostmake-shared-causes-access\
 http://lists.cs.uiuc.edu/pipermail/cfe-dev/2011-October/017831.html
 */
 )
-)
+);
+
+$bin_image_eq $=
+(
+	"platform %DS" (b353, b354),
+	"platform %DS" (b313, b314)
+);
 
 $module_tree $=
 (
@@ -1044,6 +985,47 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ %'Iterator' $=
+		(
+			/ @ "class template %transformed_iterator" $=
+			(
+				* "wrong value category to deduct value type using std::declval"
+					$since b288,
+				/ "typedef names and indirection implementation changed to \
+					support chained piped transformation operations"
+			),
+			/ "class template %pair_iterate" -> "namespace \
+				%iterator_transformation for iterator transformation \
+				operations",
+			+ "indirect tag for iterator transformation",
+			/ "return types" @ "pipe operator| to support \
+				multiple chained tags";
+			$dep_to "chained iterator transformation"
+		),
+		/ %'Functional' $=
+		(
+			* "implementation" @ "function template specialization %unref"
+				$since b348,
+			* $dev "missing specializations for pointer to cv-qualified member \
+				functions" @ "class template %(make_parameter_tuple, return_of)"
+				$since b333
+		),
+		+ $dev "static assertion to check dereferenced type" @ "constructor \
+			template" @ "class template %any_input_iterator" @ %'AnyIterator'
+	);
+	(
+		$dep_from "chained iterator transformation"
+		* "wrong dereferenced type of iterators" @ "implementation"
+			@ "member function %(GetBegin, GetEnd)" @ "class %MUIContainer"
+			@ %'YFramework'.'YSLib'.'GUI' $since b357
+			// Fixed crashing when child is dereferenced.
+	)
+),
+
+b357
 (
 	/ %'YBase' $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1169
+\version r1170
 \author FrankHB<frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2012-11-25 21:36 +0800
+	2012-12-03 09:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,6 +115,7 @@ union pod_storage
 \brief 任意对象引用类型。
 \warning 不检查 cv-qualifier 。
 \since build 247
+\todo 右值引用版本。
 */
 class void_ref
 {
