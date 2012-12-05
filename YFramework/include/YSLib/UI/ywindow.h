@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r3806
+\version r3809
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2012-10-08 11:51 +0800
+	2012-12-04 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,10 +78,6 @@ public:
 	}
 
 	using MUIContainer::Contains;
-
-	PDefH(IWidget*, GetTopWidgetPtr, const Point& pt, bool(&f)(const IWidget&))
-		override
-		ImplBodyBase(MUIContainer, GetTopWidgetPtr, pt, f)
 
 	void
 	Add(IWidget&, ZOrderType = DefaultZOrder) override;

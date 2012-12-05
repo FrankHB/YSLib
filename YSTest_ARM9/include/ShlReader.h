@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1652
+\version r1660
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2012-12-01 18:18 +0800
+	2012-12-04 22:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,16 +83,6 @@ public:
 	//! \since build 357
 	DefWidgetMemberIteration(btnMenu, btnSetting, btnInfo, btnReturn, btnPrev,
 		btnNext, pbReader, lblProgress)
-
-	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
-
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294
-	*/
-	void
-	Refresh(PaintEventArgs&&) override;
 
 	/*!
 	\brief 更新进度数据。

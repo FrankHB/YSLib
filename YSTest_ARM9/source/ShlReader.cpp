@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3913
+\version r3931
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-10-05 23:36 +0800
+	2012-12-05 19:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ ReaderBox::ReaderBox(const Rect& r)
 	btnPrev(Rect(84, 12, 16, 16)), btnNext(Rect(104, 12, 16, 16)),
 	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
 {
-	SetTransparent(true),
+	Background = nullptr,
 	SetRenderer(make_unique<BufferedRenderer>()),
 	unseq_apply(ContainerSetter(*this), btnMenu, btnSetting,
 		btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
@@ -73,27 +73,9 @@ ReaderBox::ReaderBox(const Rect& r)
 	SetBufferRendererAndText(btnNext, u"→");
 	pbReader.ForeColor = Color(192, 192, 64),
 	lblProgress.SetRenderer(make_unique<BufferedRenderer>()),
-	lblProgress.SetTransparent(true),
+	lblProgress.Background = nullptr,
 	lblProgress.Font.SetSize(12);
 	yunseq(lblProgress.Text = u"--%", lblProgress.ForeColor = ColorSpace::Blue);
-}
-
-IWidget*
-ReaderBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
-{
-	for(const auto pWidget : std::initializer_list<IWidget*>{&btnMenu,
-		&btnSetting, &btnInfo, &btnReturn, &btnPrev, &btnNext, &pbReader})
-		if(const auto p = CheckWidget(*pWidget, pt, f))
-			return p;
-	return nullptr;
-}
-
-void
-ReaderBox::Refresh(PaintEventArgs&& e)
-{
-	unseq_apply(ChildPainter(e), btnMenu, btnSetting,
-		btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
-	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 void

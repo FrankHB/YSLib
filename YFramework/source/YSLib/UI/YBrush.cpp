@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r157
+\version r163
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2012-09-04 12:47 +0800
+	2012-12-05 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,15 +39,14 @@ YSL_BEGIN_NAMESPACE(Components)
 void
 SolidBrush::operator()(PaintEventArgs&& e)
 {
-	if(!e.GetSender().GetView().IsTransparent())
-		Drawing::FillRect(e.Target, e.ClipArea, Color);
+	Drawing::FillRect(e.Target, e.ClipArea, Color);
 }
 
 
 void
 ImageBrush::operator()(PaintEventArgs&& e)
 {
-	if(bool(Image) && !e.GetSender().GetView().IsTransparent())
+	if(bool(Image))
 	{
 		const auto& g(e.Target);
 		const Rect& r(e.ClipArea);
@@ -69,9 +68,8 @@ BorderBrush::operator()(PaintEventArgs&& e)
 {
 	auto& sender(e.GetSender());
 
-	if(!sender.GetView().IsTransparent())
-		DrawRect(e.Target, e.ClipArea = Rect(e.Location, GetSizeOf(sender)),
-			IsFocused(sender) ? Style.ActiveColor : Style.InactiveColor);
+	DrawRect(e.Target, e.ClipArea = Rect(e.Location, GetSizeOf(sender)),
+		IsFocused(sender) ? Style.ActiveColor : Style.InactiveColor);
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4580
+\version r4588
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2012-10-26 18:44 +0800
+	2012-12-04 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,15 +84,6 @@ IsEnabled(const IWidget& wgt)
 	catch(BadEvent&)
 	{}
 	return false;
-}
-
-/*!
-\brief 判断部件是否为可用且可见的控件。
-*/
-inline bool
-IsEnabledAndVisible(const IWidget& wgt)
-{
-	return IsEnabled(wgt) && IsVisible(wgt);
 }
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3347
+\version r3445
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2012-10-26 18:50 +0800
+	2012-12-05 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,51 +91,8 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 {
 	SetContainerPtrOf(Thumb, this);
 	yunseq(
-		Background = [this](PaintEventArgs&& e){
-			if(!IsTransparent())
-			{
-				const auto& g(e.Target);
-				const auto& pt(e.Location);
-				const Rect r(pt, GetSizeOf(*this));
-				auto& pal(FetchGUIState().Colors);
-
-				FillRect(g, r, pal[Styles::Track]);
-
-#define YSL_UI_ATRACK_PARTIAL_INVALIDATION
-				// NOTE: Partial invalidation made no efficiency improved here.
-				const auto c(pal[Styles::Light]);
-#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-				SPos x(pt.X);
-				SPos y(pt.Y);
-				SPos xr(x + GetWidth());
-				SPos yr(y + GetHeight());
-#else
-				const SPos xr(pt.X + GetWidth());
-				const SPos yr(pt.Y + GetHeight());
-#endif
-				if(IsHorizontal())
-				{
-#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-					RestrictInInterval(y, r.Y, r.Y + r.Height),
-					RestrictInInterval(yr, r.Y, r.Y + r.Height);
-#endif
-					DrawHLineSeg(g, pt.Y, pt.X, xr, c),
-					DrawHLineSeg(g, yr, pt.X, xr, c);
-				}
-				else
-				{
-#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-					RestrictInInterval(x, r.X, r.X + r.Width),
-					RestrictInInterval(xr, r.X, r.X + r.Width);
-#endif
-					DrawVLineSeg(g, pt.X, pt.Y, yr, c),
-					DrawVLineSeg(g, xr, pt.Y, yr, c);
-				}
-#ifndef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-				e.ClipArea = r;
-#endif
-			}
-		},
+		Background = std::bind(DrawTrackBackground, std::placeholders::_1,
+			std::ref(*this)),
 		GetThumbDrag() += [this](UIEventArgs&&){
 			LocateThumb(0, ScrollCategory::ThumbTrack);
 		},
@@ -163,12 +120,6 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 			}
 		}
 	);
-}
-
-IWidget*
-ATrack::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
-{
-	return CheckWidget(Thumb, pt, f);
 }
 
 void
@@ -222,12 +173,6 @@ ATrack::SetLargeDelta(ValueType val)
 {
 	large_delta = val;
 	SetThumbLength(SDst(round(val * GetTrackLength() / (val + max_value))));
-}
-
-void
-ATrack::Refresh(PaintEventArgs&& e)
-{
-	PaintChild(Thumb, e);
 }
 
 ATrack::Area
@@ -288,6 +233,53 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 		}
 	}
 	GetScroll()(ScrollEventArgs(*this, t, value, old_value));
+}
+
+
+void
+DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
+{
+	const auto& g(e.Target);
+	const auto& pt(e.Location);
+	const Rect r(pt, GetSizeOf(trk));
+	auto& pal(FetchGUIState().Colors);
+
+	FillRect(g, r, pal[Styles::Track]);
+
+#define YSL_UI_ATRACK_PARTIAL_INVALIDATION
+	// NOTE: Partial invalidation made no efficiency improved here.
+	const auto c(pal[Styles::Light]);
+#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
+	SPos x(pt.X);
+	SPos y(pt.Y);
+	SPos xr(x + trk.GetWidth());
+	SPos yr(y + trk.GetHeight());
+#else
+	const SPos xr(pt.X + trk.GetWidth());
+	const SPos yr(pt.Y + trk.GetHeight());
+#endif
+
+	if(trk.IsHorizontal())
+	{
+#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
+		RestrictInInterval(y, r.Y, r.Y + r.Height),
+		RestrictInInterval(yr, r.Y, r.Y + r.Height);
+#endif
+		DrawHLineSeg(g, pt.Y, pt.X, xr, c),
+		DrawHLineSeg(g, yr, pt.X, xr, c);
+	}
+	else
+	{
+#ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
+		RestrictInInterval(x, r.X, r.X + r.Width),
+		RestrictInInterval(xr, r.X, r.X + r.Width);
+#endif
+		DrawVLineSeg(g, pt.X, pt.Y, yr, c),
+		DrawVLineSeg(g, xr, pt.Y, yr, c);
+	}
+#ifndef YSL_UI_ATRACK_PARTIAL_INVALIDATION
+	e.ClipArea = r;
+#endif
 }
 
 
@@ -384,34 +376,6 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 	MoveToRight(btnNext);
 }
 
-IWidget*
-AScrollBar::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
-{
-	if(const auto p = CheckWidget(btnPrev, pt, f))
-		return p;
-	if(const auto p = CheckWidget(btnNext, pt, f))
-		return p;
-
-	YAssert(bool(pTrack), "Null pointer found.");
-
-	return f(*pTrack.get()) ? pTrack.get() : nullptr;
-}
-
-void
-AScrollBar::Refresh(PaintEventArgs&& e)
-{
-	YAssert(bool(pTrack), "Null pointer found.");
-
-	Rect r(PaintChild(btnPrev, e));
-
-	if(!r.IsUnstrictlyEmpty())
-		e.ClipArea |= e.ClipArea;
-	if(!(r = PaintChild(btnNext, e)).IsUnstrictlyEmpty())
-		e.ClipArea |= e.ClipArea;
-	e.ClipArea |= PaintChild(*pTrack, e);
-}
-
-
 HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Horizontal)
 {
@@ -473,30 +437,11 @@ ScrollableContainer::ScrollableContainer(const Rect& r)
 	hsbHorizontal(Rect(Point(), r.Width, defMinScrollBarHeight)),
 	vsbVertical(Rect(Point(), defMinScrollBarWidth, r.Height))
 {
-	SetTransparent(true);
+	// TODO: Allow user to choose whether background is drawn.
 	SetContainerPtrOf(hsbHorizontal, this),
 	SetContainerPtrOf(vsbVertical, this);
 	MoveToBottom(hsbHorizontal);
 	MoveToRight(vsbVertical);
-}
-
-IWidget*
-ScrollableContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
-{
-	if(const auto p = CheckWidget(hsbHorizontal, pt, f))
-		return p;
-	if(const auto p = CheckWidget(vsbVertical, pt, f))
-		return p;
-	return nullptr;
-}
-
-void
-ScrollableContainer::Refresh(PaintEventArgs&& e)
-{
-	if(IsVisible(hsbHorizontal))
-		e.ClipArea = operator|(e.ClipArea, PaintChild(hsbHorizontal, e));
-	if(IsVisible(vsbVertical))
-		e.ClipArea = operator|(e.ClipArea, PaintChild(vsbVertical, e));
 }
 
 Size

@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r1763
+\version r1768
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2012-12-02 17:22 +0800
+	2012-12-04 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,12 +205,6 @@ public:
 	*/
 	bool
 	Contains(IWidget&);
-
-	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
-	*/
-	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&));
 
 	//! \since build 357
 	Iterator

@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r2930
+\version r2996
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2012-10-26 18:48 +0800
+	2012-12-05 19:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,67 +35,69 @@ YSL_BEGIN_NAMESPACE(Components)
 
 namespace
 {
-	using Drawing::Hue;
 
-	/*!
-	\brief 色调偏移。
-	\since build 302
-	*/
-	inline Hue
-	change_hue(Hue base_h, Hue h)
+using Drawing::Hue;
+
+/*!
+\brief 色调偏移。
+\since build 302
+*/
+inline Hue
+change_hue(Hue base_h, Hue h)
+{
+	base_h += h;
+	return base_h < 360 ? base_h : base_h - 360;
+}
+
+/*!
+\since build 302
+*/
+void
+RectDrawButton(const Graphics& g, Point pt, Size s, Hue base_hue,
+	bool is_pressed = false, bool is_enabled = true)
+{
+	YAssert(bool(g), "Invalid graphics context found.");
+
+	DrawRectRoundCorner(g, pt, s, is_enabled ? HSLToColor(
+		{change_hue(base_hue, 25.640625F), 0.493671F, 0.462891F})
+		: FetchGUIState().Colors[Styles::Workspace]);
+	if(YB_LIKELY(s.Width > 2 && s.Height > 2))
 	{
-		base_h += h;
-		return base_h < 360 ? base_h : base_h - 360;
-	}
-
-	/*!
-	\since build 302
-	*/
-	void
-	RectDrawButton(const Graphics& g, Point pt, Size s, Hue base_hue,
-		bool is_pressed = false, bool is_enabled = true)
-	{
-		YAssert(bool(g), "Invalid graphics context found.");
-
-		DrawRectRoundCorner(g, pt, s, is_enabled ? HSLToColor(
-			{change_hue(base_hue, 25.640625F), 0.493671F, 0.462891F})
-			: FetchGUIState().Colors[Styles::Workspace]);
-		if(YB_LIKELY(s.Width > 2 && s.Height > 2))
+		yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
+		FillRect(g, pt, s, is_enabled ? HSLToColor({change_hue(base_hue,
+			11.304688F), 0.990431F, 0.591797F}) : Color(244, 244, 244));
+		if(is_enabled)
 		{
-			yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
-			FillRect(g, pt, s, is_enabled ? HSLToColor({change_hue(base_hue,
-				11.304688F), 0.990431F, 0.591797F}) : Color(244, 244, 244));
-			if(is_enabled)
+			if(s.Width > 2 && s.Height > 2)
 			{
-				if(s.Width > 2 && s.Height > 2)
-				{
-					Size sz(s.Width - 2, (s.Height - 2) / 2);
-					Point sp(pt.X + 1, pt.Y + 1);
+				Size sz(s.Width - 2, (s.Height - 2) / 2);
+				Point sp(pt.X + 1, pt.Y + 1);
 
-					FillRect(g, sp, sz, HSLToColor({change_hue(base_hue,
-						39.132872F), 0.920000F, 0.951172F}));
-					sp.Y += sz.Height;
-					if(s.Height % 2 != 0)
-						++sz.Height;
-					FillRect(g, sp, sz, HSLToColor({change_hue(base_hue,
-						29.523438F), 0.969231F, 0.873047F}));
-				}
-				if(is_pressed)
-				{
-					const Color tc(HSLToColor({change_hue(base_hue, 165), 0.4F,
-						0.16F}));
+				FillRect(g, sp, sz, HSLToColor({change_hue(base_hue,
+					39.132872F), 0.920000F, 0.951172F}));
+				sp.Y += sz.Height;
+				if(s.Height % 2 != 0)
+					++sz.Height;
+				FillRect(g, sp, sz, HSLToColor({change_hue(base_hue,
+					29.523438F), 0.969231F, 0.873047F}));
+			}
+			if(is_pressed)
+			{
+				const Color tc(HSLToColor({change_hue(base_hue, 165), 0.4F,
+					0.16F}));
 
-					TransformRect(g, pt, s, [=](BitmapPtr dst){
-						const Color d(*dst);
+				TransformRect(g, pt, s, [=](BitmapPtr dst){
+					const Color d(*dst);
 
-						*dst = Color(d.GetR() ^ tc.GetR(), d.GetG() ^ tc.GetG(),
-							d.GetB() ^ tc.GetB());
-					});
-				}
+					*dst = Color(d.GetR() ^ tc.GetR(), d.GetG() ^ tc.GetG(),
+						d.GetB() ^ tc.GetB());
+				});
 			}
 		}
 	}
 }
+
+} // unnamed namespace;
 
 
 Thumb::Thumb(const Rect& r, Hue hue)
@@ -135,16 +137,12 @@ DrawThumbBackground(PaintEventArgs&& e, Thumb& tmb, Hue base_hue)
 	const auto& pt(e.Location);
 	Size s(GetSizeOf(tmb));
 
-//	if(!enabled)
-//		bPressed = false;
+	// TODO: Work out what should happened when a disabled button pressed.
 	RectDrawButton(g, pt, s, base_hue, tmb.IsPressed(), enabled);
-	if(enabled && IsFocused(tmb))
+	if(enabled && IsFocused(tmb) && YB_LIKELY(s.Width > 6 && s.Height > 6))
 	{
-		if(YB_LIKELY(s.Width > 6 && s.Height > 6))
-		{
-			yunseq(s.Width -= 6, s.Height -= 6);
-			DrawRect(g, pt + Vec(3, 3), s, HSLToColor({base_hue, 1, 0.5F}));
-		}
+		yunseq(s.Width -= 6, s.Height -= 6);
+		DrawRect(g, pt + Vec(3, 3), s, HSLToColor({base_hue, 1, 0.5F}));
 	}
 	e.ClipArea = Rect(pt, GetSizeOf(tmb));
 }

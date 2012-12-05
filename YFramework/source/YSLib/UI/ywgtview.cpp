@@ -11,13 +11,13 @@
 /*!	\file ywgtview.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r161
+\version r176
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-04 12:46 +0800
+	2012-12-05 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@ using namespace Drawing;
 YSL_BEGIN_NAMESPACE(Components)
 
 Visual::Visual(const Rect& r)
-	: visible(true), transparent(false),
+	: visible(true),
 	location(r.GetPoint()), size(r.Width, r.Height)
 {}
 
@@ -45,12 +45,6 @@ View::IsVisible() const ynothrow
 	return pDependency ? pDependency->GetView().IsVisible()
 		: visual.IsVisible();
 }
-bool
-View::IsTransparent() const ynothrow
-{
-	return pDependency ? pDependency->GetView().IsTransparent()
-		: visual.IsTransparent();
-}
 
 void
 View::SetVisible(bool b)
@@ -59,14 +53,6 @@ View::SetVisible(bool b)
 		pDependency->GetView().SetVisible(b);
 	else
 		visual.SetVisible(b);
-}
-void
-View::SetTransparent(bool b)
-{
-	if(pDependency)
-		pDependency->GetView().SetTransparent(b);
-	else
-		visual.SetTransparent(b);
 }
 
 YSL_END_NAMESPACE(Components)

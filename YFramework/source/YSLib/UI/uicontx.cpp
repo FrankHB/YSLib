@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r200
+\version r213
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2012-10-04 04:33 +0800
+	2012-12-04 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,21 +40,6 @@ DialogBox::DialogBox(const Rect& r)
 	DecorateAsCloseButton(btnClose),
 	SetContainerPtrOf(btnClose, this),
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority);
-}
-
-IWidget*
-DialogBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
-{
-	if(const auto p = CheckWidget(btnClose, pt, f))
-		return p;
-	return nullptr;
-}
-
-void
-DialogBox::Refresh(PaintEventArgs&& e)
-{
-	PaintChild(btnClose, e);
-	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 

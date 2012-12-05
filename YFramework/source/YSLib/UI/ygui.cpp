@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3249
+\version r3273
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-04 12:46 +0800
+	2012-12-04 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,31 @@ using namespace Drawing;
 using namespace Components;
 
 YSL_BEGIN_NAMESPACE(Components)
+
+namespace
+{
+
+//! \since build 359
+IWidget*
+FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
+{
+	auto pr(con.GetChildren());
+
+	while(pr.first != pr.second)
+	{
+		{
+			IWidget& wgt(*pr.first);
+
+			if(Contains(wgt, pt) && IsEnabled(wgt) && IsVisible(wgt))
+				return &wgt;
+		}
+		++pr.first;
+	}
+	return nullptr;
+}
+
+} // unnamed namespace;
+
 
 InputTimer::InputTimer(const Duration& d)
 	: timer(d)
@@ -272,7 +297,7 @@ GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 			return true;
 		pCon = p;
 
-		auto t(pCon->GetTopWidgetPtr(e, IsEnabledAndVisible));
+		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*pCon, e));
 
 		if(!t || t == pCon)
 			break;

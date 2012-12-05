@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2545
+\version r2586
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-12-01 20:13 +0800
+	2012-12-05 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,12 +162,6 @@ public:
 	//! \since build 356
 	DefWidgetMemberIteration(Thumb)
 
-	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
-	\note 仅滑块。
-	*/
-	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 	DefEventGetter(ynothrow, HUIEvent, ThumbDrag, ThumbDrag) //!< 滑块拖动事件。
 	DefEventGetter(ynothrow, HScrollEvent, Scroll, Scroll) //!< 滚动事件。
 	DefGetter(const ynothrow, SDst, MinThumbLength, min_thumb_length)
@@ -212,13 +206,6 @@ public:
 	void
 	SetLargeDelta(ValueType);
 
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294
-	*/
-	void
-	Refresh(PaintEventArgs&&) override;
-
 protected:
 	/*!
 	\brief 检查轨道方向指定位置所在的区域。
@@ -238,6 +225,14 @@ public:
 	void
 	LocateThumb(ValueType, ScrollCategory = ScrollCategory::ThumbPosition);
 };
+
+
+/*!
+\brief 绘制指定色调的基本按钮背景。
+\since build 359
+*/
+void
+DrawTrackBackground(PaintEventArgs&& e, ATrack&);
 
 
 /*!
@@ -327,12 +322,6 @@ public:
 	DefWidgetMemberIteration(btnPrev, btnNext, *pTrack)
 
 	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
-	\note 仅滑块和滚动条按钮。
-	*/
-	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
-	/*!
 	\brief 取轨道引用。
 	\note 断言检查： bool(pTrack) 。
 	*/
@@ -352,13 +341,6 @@ public:
 	DefSetterMem(ValueType, Value, GetTrack())
 	DefSetterMem(ValueType, LargeDelta, GetTrack())
 	DefSetter(ValueType, SmallDelta, small_delta)
-
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294
-	*/
-	void
-	Refresh(PaintEventArgs&&) override;
 
 	/*!
 	\brief 定位滑块。
@@ -447,19 +429,6 @@ public:
 
 	//! \since build 356
 	DefWidgetMemberIteration(hsbHorizontal, vsbVertical)
-
-	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
-	*/
-	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
-
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294
-	*/
-	void
-	Refresh(PaintEventArgs&&) override;
 
 protected:
 	/*!

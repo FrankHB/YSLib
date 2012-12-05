@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5462
+\version r5467
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-10-26 20:05 +0800
+	2012-12-05 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -531,7 +531,10 @@ ShlExplorer::TFormExtra::TFormExtra()
 			auto& lblTitle(shl.lblTitle);
 			auto& lblInfo(shl.lblInfo);
 
-			lblTitle.SetTransparent(!lblTitle.IsTransparent()),
+			if(lblTitle.Background)
+				lblTitle.Background = nullptr;
+			else
+				lblTitle.Background = SolidBrush(ColorSpace::White);
 			lblInfo.Text = btn.Text + u", " + String(to_string(gfx_init_time))
 				+ u";\n" + String(k.to_string());
 			Invalidate(lblTitle),

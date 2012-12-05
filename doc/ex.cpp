@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4817 *build 358 rev *
+\version r4819 *build 359 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-04 15:42 +0800
+	2012-12-04 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -399,91 +399,102 @@ $using:
 
 
 $DONE:
-r1-r4:
-/= 4 test 1 @ platform MinGW32;
+r1:
+/ @ \impl \u YGUI $=
+(
+	+ \f FetchTopEnabledAndVisibleWidgetPtr @ \un ns;
+	/ \impl @ \mf GUIState::ResponseTouch
+		^ FetchTopEnabledAndVisibleWidgetPtr ~ GetTopWidgetPtr
+);
+/= test 1 @ platform MinGW32;
 
-r5:
-* wrong value category to deduct value type using std::declval
-	@ \clt (transformed_iterator, pair_iterate) @ \h Iterator $since b288;
+r2:
+- \a \mf GetTopWidgetPtr;
+- \amf GetTopWidgetPtr @ \in IWidget;
 /= test 2 @ platform MinGW32;
 
-r6:
-/ \simp \impl @ typedef \m value_type @ \clt transformed_iterator @ \h Iterator
-	^ std::result_of ~ decltype;
-/= test 3 @ platform MinGW32;
+r3:
+/= test 3 @ platform DS;
 
-r7:
-/ @ \h Functional $=
+r4:
+/= test 4 @ platform MinGW32 ^ \conf release;
+
+r5:
+/= test 5 @ platform DS ^ \conf release;
+
+r6-r7:
 (
-	* \impl @ \ft unref#2 $since b348,
-	* missing \spec for pointer to cv-qualified member functions
-		@ \stt (make_parameter_tuple, return_of) $since b333
-);
-/= test 4 @ platform MinGW32;
+	/ \impl @ \mf Widget::Refresh;
+	- \mf Refresh @ \cl (ListBox, ATrack, AScrollBar, ScrollableContainer,
+		DialogBox, ReaderBox @ \u ShlReader)
+),
+/= 2 test 6 @ platform DS ^ \conf release;
 
 r8:
-/= test 5 @ platform MinGW32 ^ \conf release;
+/= test 7 @ platform MinGW32;
 
 r9:
-/= test 6 @ platform DS;
+/ \impl @ \mf Widget::Refresh;
+/= test 8 @ platform MinGW32 ^ \conf release;
 
 r10:
-/= test 7 @ platform DS ^ \conf release;
+/ \impl @ \f FetchTopEnabledAndVisibleWidgetPtr @ \un \ns @ \impl \u YGUI;
+- \f CheckWidget @ \u YWidget,
+- \f \i IsEnabledAndVisible @ \h YControl;
+/= test 9 @ platform DS;
 
 r11:
-/ @ \h Iterator $=
+/ @ \u Scroll $=
 (
-	+ yconstfn \smf indirect @ \clt pair_iterate,
-	+ yconstexpr struct indirect_tag{} get_indirect{};
-	+ \ft<_tIterator> \i auto operator|(_tIterator&&, indirect_tag)
-);
-/= test 8 @ platform MinGW32;
-
-r12:
-/ \simp \impl @ \stt array_ref_decay @ \h TypeOperations,
-/ @ \h Iterator $=
-(
-	/ \cl pair_iterate -> \ns iterator_transformation;
-	/ \ret \tp @ \f (first, second) @ \ns iterator_transformation,
-		// Treat return types as iterators for chain use.
-	/ \tr \impl @ \a \f \op|,
-	/ \tr @ \clt transformed_iterator $=
-	(
-		+ typedef transformed_type;
-		/ \impl @ typedef (value_type, reference),
-		/ \impl @ \mf \op*
-	)
-);
-/= test 9 @ platform MinGW32;
-
-r13:
-+ \as @ \ctor \t any_input_iterator @ \h AnyIterator,
-* wrong dereferenced type of iterators @ \impl @ \mf (GetBegin, GetEnd)
-	^ ystdex::indirect @ \cl MUIContainer $since b357;
+	+ \f void DrawTrackBackground(PaintEventArgs&&, ATrack&);
+	/ \simp \impl @ \ctor ATrack ^ \f DrawTrackBackground
+),
+/ \simp \impl \f DrawThumbBackground @ \impl \u Button;
 /= test 10 @ platform MinGW32;
 
+r12:
+/ \impl @ \mf Refresh @ \cl ProgressBar,
+/ \impl @ \ctor (ScrollableContainer, ListBox, ReaderBox @ \impl \u ShlReader,
+	DualScreenReader @ \impl \u DSReader, ShlExplorer @ \impl \u Shells),
+/ \impl @ main \f @ \impl \u Main_ARM9;
+/ \simp \impl @ \mf (SolidBrush, ImageBrush, BorderBrush)::\op();
+/= test 11 @ platform MinGW32;
+
+r13:
+- \mf Widget::(IsTransparent, SetTransparent);
+/ @ \u YWidgetView $=
+(
+	- \mf (IsTransparent, SetTransparent) @ \cl (View; Visual);
+	/ @ \cl Visual $=
+	(
+		/ \impl @ \ctor,
+		- \m bTransparent
+	)
+);
+/= test 12 @ platform MinGW32;
+
 r14:
-/= test 11 @ platform MinGW32 ^ \conf release;
+/= test 13 @ platform MinGW32 ^ \conf release;
 
 r15:
-/= test 12 @ platform DS;
+/= test 14 @ platform DS;
 
 r16:
-/= test 13 @ platform DS ^ \conf release;
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-04 +0800:
--35.7d;
-// Mercurial rev1-rev230: r9516;
+2012-12-05 +0800:
+-32.0d;
+// Mercurial rev1-rev231: r9532;
 
 / ...
 
 
 $NEXT_TODO:
-b359-b380:
+b360-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -986,6 +997,46 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework'.'YSLib'.'UI' $=
+	(
+		(
+			/ "GUI top widget checking" ^ "%IWidget::GetChildren"
+				~ "%IWidget::GetTopWidgetPtr";
+			(
+				- "member function %GetTopWidgetPtr",
+				$dep_from "removed %GetTopWidgetPtr from examples"
+			);
+			- "abstract member function %IWidget::GetChildren",
+			- "function %(CheckWidget; IsEnabledAndVisible)"
+		),
+		+ "function %DrawTrackBackground",
+		/ "background drawing not ignored as defaulted"
+			@ "class %ScrollableContainer",
+		(
+			/ "stopped using transparent property" @ "GUI rendering",
+			$dep_from "stopped using transparent property from examples";
+			/ "removed transparent property check from brushes";
+			- "transparent property from widget view"
+		)
+	),
+	/ $dev %'YReader' $=
+	(
+		(
+			/ "GUI top widget checking" ^ "%IWidget::GetChildren"
+				~ "%IWidget::GetTopWidgetPtr";
+			$dep_to "removed %GetTopWidgetPtr from examples"
+		),
+		/ "ignored background setting" @ "class %HexViewArea"
+			@ %'hexadecimal browser',
+		(
+			/ "use of transparent property" -> "direct background setting";
+			$dep_from "stopped using transparent property from examples"
+		)
+	)
+),
+
+b358
+(
 	/ %'YBase'.'YStandardEx' $=
 	(
 		/ %'Iterator' $=
@@ -1399,7 +1450,7 @@ b350
 					~ "SolidBrush";
 					// No background would be painted through this \
 						initialization.
-				* $comp "dependency on incomplete type SolidBrush" $since b294
+				* $comp "dependency on incomplete type %SolidBrush" $since b294
 					// Implementation issue: G++ 4.7.2 allowed invalid code. \
 						Clang++ 3.2 (trunk161531) complained.
 			);
@@ -2914,7 +2965,7 @@ b304
 (
 	/ %'YFramework' $=
 	(
-		/ %'YSLib'.,
+		/ %'YSLib' $=
 		(
 			/ %'GUI' $= "check box appearance",
 			(

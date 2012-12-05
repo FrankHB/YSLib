@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1692
+\version r1693
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2012-12-01 19:20 +0800
+	2012-12-05 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,7 +267,7 @@ main()
 					lblDetails.Text = u"初始化中，请稍后……",
 					lblDetails.ForeColor = Drawing::ColorSpace::White
 				);
-				lblDetails.SetTransparent(true);
+				lblDetails.Background = nullptr;
 				SetInvalidationOf(dsk_up);
 				yunseq(dsk_up.Validate(), dsk_dn.Validate());
 				dsk_up.Update(), dsk_dn.Update();

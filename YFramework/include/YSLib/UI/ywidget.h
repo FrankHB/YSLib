@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5395
+\version r5414
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-11-29 13:02 +0800
+	2012-12-05 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,12 +67,6 @@ DeclI(IWidget)
 	\brief 取控制器。
 	*/
 	DeclIEntry(AController& GetController() const)
-	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
-	\return 若为保存了子部件中的可见部件的容器则返回指针，否则返回 \c nullptr 。
-	\note 使用部件坐标。
-	*/
-	DeclIEntry(IWidget* GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)))
 	/*!
 	\brief 取子部件。
 	\return 包含子部件的迭代器范围，否则返回 WidgetRange() 。
@@ -239,14 +233,6 @@ SetVisibleOf(IWidget& wgt, bool b)
 
 
 /*!
-\brief 检查指定部件是否满足 Contains(wgt, pt) && f(wgt) 。
-\return 若满足则返回部件指针，否则为 nullptr 。
-\since build 247
-*/
-IWidget*
-CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&));
-
-/*!
 \brief 关闭部件。
 \since build 275
 
@@ -405,8 +391,6 @@ private:
 	InitializeEvents();
 
 public:
-	DefPredMem(const ynothrow, Transparent, GetView())
-
 	DefGetterMem(const ynothrow, SPos, X, GetView())
 	DefGetterMem(const ynothrow, SPos, Y, GetView())
 	DefGetterMem(const ynothrow, SDst, Width, GetView())
@@ -415,13 +399,9 @@ public:
 	ImplI(IWidget) DefGetter(const ynothrow, View&, View, *view_ptr)
 	ImplI(IWidget) AController&
 	GetController() const override;
-	ImplI(IWidget) PDefH(IWidget*, GetTopWidgetPtr, const Point&,
-		bool(&)(const IWidget&)) override
-		ImplRet(nullptr)
 	//! \since build 357
 	ImplI(IWidget) DefGetter(override, WidgetRange, Children, WidgetRange())
 
-	DefSetterMem(bool, Transparent, GetView())
 	DefSetterMem(SDst, X, GetView())
 	DefSetterMem(SDst, Y, GetView())
 	DefSetterMem(SDst, Width, GetView())
@@ -444,6 +424,7 @@ public:
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
 	\see PaintContext 。
+	\note 默认按 GetChildren() 得到的迭代器范围绘制可见子部件。
 	\since build 294
 
 	由参数指定的信息绘制事件发送者。参数的 ClipArea 成员指定边界。

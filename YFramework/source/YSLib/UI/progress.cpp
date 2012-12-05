@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r346
+\version r348
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2012-09-04 12:47 +0800
+	2012-12-05 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,8 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 
 		FillRect(g, pt, Size(w_bar, s.Height), ForeColor);
 		pt.X += w_bar;
-		if(!IsTransparent() && s.Width > w_bar)
+		if(s.Width > w_bar)
+			// TODO: Finish drawing with non-solid brushes.
 			if(const auto p = Background.target<SolidBrush>())
 				FillRect(g, pt, Size(s.Width - w_bar, s.Height), p->Color);
 	}

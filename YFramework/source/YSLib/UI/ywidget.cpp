@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r4255
+\version r4271
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-10-08 12:25 +0800
+	2012-12-04 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,12 +81,6 @@ SetSizeOf(IWidget& wgt, const Size& s)
 	CallEvent<Resize>(wgt, UIEventArgs(wgt));
 }
 
-
-IWidget*
-CheckWidget(IWidget& wgt, const Point& pt, bool(&f)(const IWidget&))
-{
-	return Contains(wgt, pt) && f(wgt) ? &wgt : nullptr;
-}
 
 void
 Close(IWidget& wgt)
@@ -212,8 +206,20 @@ Widget::SetView(unique_ptr<View>&& p)
 }
 
 void
-Widget::Refresh(PaintEventArgs&&)
-{}
+Widget::Refresh(PaintEventArgs&& e)
+{
+	if(!e.ClipArea.IsUnstrictlyEmpty())
+	{
+		auto pr(GetChildren());
+
+		while(pr.first != pr.second)
+		{
+			if(IsVisible(*pr.first))
+				e.ClipArea |= PaintChild(*pr.first, e);
+			++pr.first;
+		}
+	}
+}
 
 YSL_END_NAMESPACE(Components)
 

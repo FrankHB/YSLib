@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r506
+\version r513
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-07 10:21 +0800
+	2012-12-05 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,6 @@ class Visual
 {
 private:
 	bool visible; //!< 可见性。
-	bool transparent; //!< 透明性。
 	Point location; //!< 左上角所在位置（相对于容器的偏移坐标）。
 	Size size; //!< 部件大小。
 
@@ -73,7 +72,6 @@ public:
 	Visual(const Rect& = {});
 
 	DefPred(const ynothrow, Visible, visible)
-	DefPred(const ynothrow, Transparent, transparent) //!< 判断是否透明。
 
 	DefGetter(const ynothrow, SPos, X, GetLocation().X)
 	DefGetter(const ynothrow, SPos, Y, GetLocation().Y)
@@ -87,7 +85,6 @@ public:
 	DefGetter(ynothrow, Size&, SizeRef, size)
 
 	DefSetter(bool, Visible, visible)
-	DefSetter(bool, Transparent, transparent) //!< 设置透明性。
 	/*!
 	\brief 设置位置：横坐标。
 	\note 非虚 \c public 实现。
@@ -199,8 +196,6 @@ public:
 
 	bool
 	IsVisible() const ynothrow;
-	bool
-	IsTransparent() const ynothrow;
 
 	DefGetterMem(const ynothrow, SPos, X, visual)
 	DefGetterMem(const ynothrow, SPos, Y, visual)
@@ -215,8 +210,6 @@ public:
 
 	void
 	SetVisible(bool);
-	void
-	SetTransparent(bool);
 	DefSetterMem(SPos, X, visual)
 	DefSetterMem(SPos, Y, visual)
 	DefSetterMem(SDst, Width, visual)

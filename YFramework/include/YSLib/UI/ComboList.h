@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2437
+\version r2448
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2012-12-01 18:05 +0800
+	2012-12-04 22:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,11 +75,6 @@ public:
 	PDefH(bool, Contains, ListType::size_type i)
 		ImplBodyMem(lstText, Contains, i)
 
-	/*!
-	\brief 取包含指定点且被指定谓词过滤的顶端部件指针。
-	*/
-	IWidget*
-	GetTopWidgetPtr(const Point&, bool(&)(const IWidget&)) override;
 	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, lstText)
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex,
 		lstText)
@@ -127,13 +122,6 @@ public:
 	*/
 	PDefH(IndexType, Find, const ItemType& text)
 		ImplBodyMem(lstText, Find, text)
-
-	/*!
-	\brief 刷新：按指定参数绘制界面并更新状态。
-	\since build 294
-	*/
-	void
-	Refresh(PaintEventArgs&&) override;
 
 	PDefH(void, ResetView, )
 		ImplBodyMem(lstText, ResetView, )

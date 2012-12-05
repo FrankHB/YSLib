@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r528
+\version r529
 \author FrankHB<frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2012-12-01 18:17 +0800
+	2012-12-05 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,6 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	: ScrollableContainer(r), HexView(fc),
 	model()
 {
-	SetTransparent(false);
 	SetVisibleOf(hsbHorizontal, false);
 	SetVisibleOf(vsbVertical, true);
 	vsbVertical.SetSmallDelta(1);

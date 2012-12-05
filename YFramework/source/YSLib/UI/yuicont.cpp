@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r1611
+\version r1629
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2012-12-04 13:10 +0800
+	2012-12-04 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,19 +170,6 @@ MUIContainer::GetEnd()
 	using namespace ystdex;
 
 	return mWidgets.rend() | get_value | get_indirect;
-}
-IWidget*
-MUIContainer::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
-{
-	using ystdex::get_value;
-
-	const auto i(std::find_if(mWidgets.rbegin() | get_value,
-		mWidgets.rend() | get_value, [&](const ItemType& pWgt){
-		YAssert(pWgt, "Null pointer found.");
-
-		return Components::Contains(*pWgt, pt) && f(*pWgt);
-	}));
-	return i == mWidgets.rend() ? nullptr : *i;
 }
 
 void

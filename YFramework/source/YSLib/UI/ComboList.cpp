@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2992
+\version r3006
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2012-09-07 11:59 +0800
+	2012-12-05 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,7 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	: ScrollableContainer(r),
 	lstText(Rect(r.GetSize()), h)
 {
+	Background = nullptr,
 	SetContainerPtrOf(lstText, this),
 	vsbVertical.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
 		lstText.LocateViewPosition(SDst(round(e.GetValue())));
@@ -83,23 +84,6 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	RequestFocus(lstText);
 	//刷新文本状态，防止第一次绘制时无法正确决定是否需要滚动条。
 	lstText.RefreshTextState();
-}
-
-IWidget*
-ListBox::GetTopWidgetPtr(const Point& pt, bool(&f)(const IWidget&))
-{
-	auto pCtl(ScrollableContainer::GetTopWidgetPtr(pt, f));
-
-	pCtl = pCtl ? pCtl : &lstText;
-	return f(*pCtl) ? pCtl : nullptr;
-}
-
-void
-ListBox::Refresh(PaintEventArgs&& e)
-{
-	ScrollableContainer::Refresh(std::move(e));
-
-	PaintChild(lstText, e);
 }
 
 void
