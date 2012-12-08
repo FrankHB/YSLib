@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3931
+\version r3933
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-12-05 19:53 +0800
+	2012-12-06 20:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,8 +230,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	SetVisibleOf(boxTextInfo, false),
 	SetVisibleOf(pnlSetting, false);
 	yunseq(
-		reader.ViewChanged = [this]
-		{
+		reader.ViewChanged = [this]{
 			if(IsVisible(boxReader))
 				boxReader.UpdateData(reader);
 			if(IsVisible(boxTextInfo))

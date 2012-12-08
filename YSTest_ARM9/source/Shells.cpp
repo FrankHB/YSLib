@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5467
+\version r5645
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-12-05 20:03 +0800
+	2012-12-08 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,82 +53,7 @@ namespace
 
 using namespace YReader;
 
-Color
-GenerateRandomColor()
-{
-//使用 std::time(0) 初始化随机数种子在 DeSmuMe 上无效。
-//	std::srand(std::time(0));
-	return Color(std::rand(), std::rand(), std::rand(), 1);
-}
-
 //测试函数。
-
-//背景测试。
-void
-dfa(BitmapPtr buf, SDst x, SDst y)
-{
-	//hypY1
-	buf[y * MainScreenWidth + x] = Color(
-		~(x * y) >> 2,
-		x | y | 128,
-		240 - ((x & y) >> 1)
-	);
-}
-
-void
-dfap(BitmapPtr buf, SDst x, SDst y)
-{
-	//bza1BRGx
-	buf[y * MainScreenWidth + x] = Color(
-		(x << 4) / (y | 1),
-		(x | y << 1) % (y + 2),
-		(~y | x << 1) % 27 + 3
-	);
-}
-
-void
-dfac1(BitmapPtr buf, SDst x, SDst y)
-{
-	//fl1RBGx
-	buf[y * MainScreenWidth + x] = Color(
-		x + y * y,
-		(x & y) ^ (x | y),
-		x * x + y
-	);
-}
-
-void
-dfac1p(BitmapPtr buf, SDst x, SDst y)
-{
-	//rz3GRBx
-	buf[y * MainScreenWidth + x] = Color(
-		(x * y) | x,
-		(x * y) | y,
-		(x ^ y) * (x ^ y)
-	);
-}
-
-void
-dfac2(BitmapPtr buf, SDst x, SDst y)
-{
-	//v1BGRx1
-	buf[y * MainScreenWidth + x] = Color(
-		(x << 4) / ((y & 1) | 1),
-		~x % 101 + y,
-		(x + y) % (((y - 2) & 1) | 129) + (x << 2)
-	);
-}
-
-void
-dfac2p(BitmapPtr buf, SDst x, SDst y)
-{
-	//arz1x
-	buf[y * MainScreenWidth + x] = Color(
-		(x | y) % (y + 2),
-		(~y | x) % 27 + 3,
-		(x << 6) / (y | 1)
-	);
-}
 
 template<typename _tTarget>
 _tTarget&
@@ -178,8 +103,28 @@ using namespace Drawing::ColorSpace;
 shared_ptr<Image>&
 FetchImage(size_t i)
 {
-	static yconstexpr PPDRAW p_bg[10]{nullptr,
-		dfa, dfap, dfac1, dfac1p, dfac2, dfac2p};
+	static Color(*const p_bg[10])(SDst, SDst){nullptr,
+		[](SDst x, SDst y)->Color{
+			return {~(x * y) >> 2, x | y | 128, 240 - ((x & y) >> 1)};
+		},
+		[](SDst x, SDst y)->Color{
+			return {(x << 4) / (y | 1), (x | y << 1) % (y + 2),
+				(~y | x << 1) % 27 + 3};
+		},
+		[](SDst x, SDst y)->Color{
+			return {~(x * y) >> 2, x | y | 128, 240 - ((x & y) >> 1)};
+		},
+		[](SDst x, SDst y)->Color{
+			return {x + y * y, (x & y) ^ (x | y), x * x + y};
+		},
+		[](SDst x, SDst y)->Color{
+			return {(x << 4) / ((y & 1) | 1), ~x % 101 + y,
+				(x + y) % (((y - 2) & 1) | 129) + (x << 2)};
+		},
+		[](SDst x, SDst y)->Color{
+			return {(x | y) % (y + 2), (~y | x) % 27 + 3, (x << 6) / (y | 1)};
+		}
+	};
 
 	if(!FetchGlobalImage(i) && p_bg[i])
 	{
@@ -188,7 +133,8 @@ FetchImage(size_t i)
 		if(!h)
 			h = make_shared<Image>(nullptr, MainScreenWidth, MainScreenHeight);
 		gfx_init_time += ytest::timing::once(Timers::HighResolutionClock::now,
-			ScrDraw, h->GetBufferPtr(), p_bg[i]).count() / 1e9;
+			ScrDraw<BitmapPtr, decltype(*p_bg)>,
+			h->GetBufferPtr(), p_bg[i]).count() / 1e9;
 	}
 	return FetchGlobalImage(i);
 }
@@ -196,17 +142,6 @@ FetchImage(size_t i)
 
 namespace
 {
-
-shared_ptr<TextList::ListType>
-GenerateList(const String& str)
-{
-	auto p(new TextList::ListType());
-
-	p->push_back(str);
-	p->push_back(ystdex::sfmt("%p;", p));
-	return share_raw(p);
-}
-
 
 namespace EnrtySpace
 {
@@ -221,26 +156,12 @@ namespace EnrtySpace
 	} EntryType;
 }
 
-bool
-ReaderPathFilter(const string& path)
-{
-	const auto ext(IO::GetExtensionOf(path).c_str());
-
-	return !strcasecmp(ext, "txt")
-		|| !strcasecmp(ext, "c")
-		|| !strcasecmp(ext, "cpp")
-		|| !strcasecmp(ext, "h")
-		|| !strcasecmp(ext, "hpp")
-		|| !strcasecmp(ext, "ini")
-		|| !strcasecmp(ext, "xml");
-}
-
 EnrtySpace::EntryType
 GetEntryType(const string& path)
 {
 	using namespace EnrtySpace;
 
-	if(path.length() == 0)
+	if(path.empty())
 		return Empty;
 	if(path == IO::FS_Now)
 		return Now;
@@ -248,7 +169,14 @@ GetEntryType(const string& path)
 		return Parent;
 	if(*path.rbegin() == YCL_PATH_DELIMITER)
 		return Directory;
-	if(ReaderPathFilter(path))
+
+	static yconstexpr const char* exts[]{
+		"txt", "c", "cpp", "h", "hpp", "ini", "xml"};
+	const auto ext(IO::GetExtensionOf(path).c_str());
+
+	if(std::any_of(exts, exts + arrlen(exts), [&](const char* str){
+		return ::strcasecmp(ext, str) == 0;
+	}))
 		return Text;
 	return Hex;
 }
@@ -300,10 +228,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(8, 48, 240, 48)),
 	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	pnlSetting(Rect(10, 40, 228, 108)), cbHex(Rect(142, 142, 103, 18)),
-	cbFPS(Rect(10, 62, 73, 18)), cbPreview(Rect(10, 82, 115, 18)),
-	btnEnterTest(Rect(4, 4, 146, 22)),
-	btnMenuTest(Rect(152, 32, 60, 22)), btnShowWindow(Rect(8, 32, 104, 22)),
+	btnMenu(Rect(4, 165, 72, 22)), pnlSetting(Rect(10, 40, 228, 108)),
+	cbHex(Rect(142, 142, 103, 18)), cbFPS(Rect(10, 62, 73, 18)),
+	cbPreview(Rect(10, 82, 115, 18)),
+	btnEnterTest(Rect(4, 4, 146, 22)), btnShowWindow(Rect(8, 32, 104, 22)),
 	btnPrevBackground(Rect(110, 64, 30, 22)),
 	btnNextBackground(Rect(160, 64, 30, 22)),
 	pWndExtra(make_unique<TFormExtra>()), mhMain(*GetDesktopDownHandle()),
@@ -313,10 +241,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	AddWidgets(pnlSetting, cbFPS, cbPreview, btnEnterTest, btnMenuTest,
+	AddWidgets(pnlSetting, cbFPS, cbPreview, btnEnterTest,
 		btnShowWindow, btnPrevBackground, btnNextBackground),
 	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
-	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, cbHex),
+	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, btnMenu, cbHex),
 	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pWndExtra),
 	//启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
@@ -334,6 +262,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	// TODO: Show current working directory properly.
 		btnTest.Text = u"设置(X)",
 		btnOK.Text = u"确定(A)",
+#if YCL_MINGW32
+		btnMenu.Text = u"菜单(P)",
+#else
+		btnMenu.Text = u"菜单(Start)",
+#endif
 		cbHex.Text = u"显示十六进制",
 		cbFPS.Text = u"显示 FPS",
 		cbPreview.Text = u"切换背景时预览",
@@ -341,7 +274,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
 		btnEnterTest.VerticalAlignment = TextAlignment::Up,
-		btnMenuTest.Text = u"菜单测试",
 		btnShowWindow.Text = u"显示/隐藏窗口",
 		btnShowWindow.HorizontalAlignment = TextAlignment::Left,
 		btnShowWindow.VerticalAlignment = TextAlignment::Down,
@@ -407,7 +339,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 			btn.Text = u"Leave: " + String(to_string(e));
 			Invalidate(btn);
 		},
-		FetchEvent<Click>(btnMenuTest) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnMenu) += [this](TouchEventArgs&&){
 			static int t;
 
 			auto& mnu(mhMain[1u]);
@@ -418,17 +350,17 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 				if(lst.size() > 4)
 					lst.clear();
 				lst.push_back("TMI" + to_string(t));
+				ResizeForContent(mnu);
 			}
 			else
 			{
-				SetLocationOf(mnu, Point(
-					btnMenuTest.GetX() - btnMenuTest.GetWidth(),
-					btnMenuTest.GetY() + btnMenuTest.GetHeight()));
-				mnu.SetWidth(btnMenuTest.GetWidth() + 20);
 				lst.push_back(u"TestMenuItem1");
+				ResizeForContent(mnu);
+				mnu.SetWidth(btnMenu.GetWidth() + 20);
+				SetLocationOf(mnu, Point(btnMenu.GetX(),
+					btnMenu.GetY() - mnu.GetHeight()));
 				mhMain.Show(1u);
 			}
-			ResizeForContent(mnu);
 			Invalidate(mnu);
 			++t;
 		},
@@ -472,8 +404,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
 	// FIXME: potential memory leaks;
-	mhMain += *(ynew Menu(Rect(), GenerateList(u"A:MenuItem"), 1u)),
-	mhMain += *(ynew Menu(Rect(), GenerateList(u"B:MenuItem"), 2u));
+	mhMain += *(ynew Menu(Rect(),
+		share_raw(new TextList::ListType{u"A:MenuItem"}), 1u)),
+	mhMain += *(ynew Menu(Rect(),
+		share_raw(new TextList::ListType{u"B:MenuItem"}), 2u));
 	mhMain[1u] += make_pair(1u, &mhMain[2u]);
 	ResizeForContent(mhMain[2u]);
 }
@@ -489,11 +423,13 @@ ShlExplorer::TFormExtra::TFormExtra()
 	AddWidgets(*this, btnDragTest, btnTestEx, btnClose, btnExit),
 	yunseq(
 		//	btnDragTest.Enabled = false,
-		tie(btnDragTest.Text, btnDragTest.HorizontalAlignment, btnTestEx.Text,
-			btnClose.Text, btnExit.Text, Background, btnClose.Background)
-			= forward_as_tuple(u"测试拖放控件", TextAlignment::Left,
-			u"附加测试", u"关闭", u"退出",
-			SolidBrush(Color(248, 120, 120)), SolidBrush(Color(176, 184, 192))),
+		btnDragTest.Text = u"测试拖放控件",
+		btnDragTest.HorizontalAlignment = TextAlignment::Left,
+		btnTestEx.Text = u"附加测试",
+		btnClose.Text = u"关闭",
+		btnExit.Text = u"退出",
+		Background = SolidBrush(Color(248, 120, 120)),
+		btnClose.Background = SolidBrush(Color(176, 184, 192)),
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			Background = SolidBrush(GenerateRandomColor());
 			SetInvalidationOf(*this);
@@ -554,11 +490,8 @@ ShlExplorer::TFormExtra::TFormExtra()
 void
 ShlExplorer::OnPaint()
 {
-	// NOTE: Overwriting member function %OnInput using %SM_TASK is also valid
-	//	due to the %SM_INPUT message is sent continuously,
-	//	but with less efficiency.
-	auto& dsk_dn(GetDesktopDown());
-
+	// NOTE: Overriding member function %OnInput using %SM_TASK is also valid
+	//	because the %SM_INPUT message is sent continuously, but less efficient.
 	if(cbFPS.IsTicked())
 	{
 		using namespace ColorSpace;
@@ -567,14 +500,14 @@ ShlExplorer::OnPaint()
 
 		if(t != 0)
 		{
-			auto& g(dsk_dn.GetContext());
-			yconstexpr Rect r(0, 172, 80, 20);
+			auto& g(GetDesktopUp().GetContext());
+			yconstexpr Rect r(176, 0, 80, 20);
 			char strt[20];
 
 			std::sprintf(strt, "FPS: %u.%03u", t / 1000, t % 1000);
 			FillRect(g, r, Blue);
 			DrawText(g, r, strt, DefaultMargin, White, false);
-			bUpdateDown = true;
+			bUpdateUp = true;
 		}
 	}
 }

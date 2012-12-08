@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1519
+\version r1539
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2012-09-04 12:27 +0800
+	2012-12-06 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,23 +244,27 @@ CallStored()
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-/*!
-\brief 简单屏幕绘图函数指针类型。
-\since 早于 build 132
-*/
-typedef void (*PPDRAW)(BitmapPtr, SDst, SDst);
+//! \since build 360
+inline Color
+GenerateRandomColor()
+{
+//使用 std::time(0) 初始化随机数种子在 DeSmuMe 上无效。
+//	std::srand(std::time(0));
+	return Color(std::rand(), std::rand(), std::rand(), 1);
+}
 
 /*!
 \brief 全屏幕描点。
 \note 颜色由坐标决定。
-\since 早于 build 132
+\since build 360
 */
-inline void
-ScrDraw(BitmapPtr buf, PPDRAW f)
+template<typename _tOut, typename _tGen>
+void
+ScrDraw(_tOut buf, _tGen&& f)
 {
 	for(SDst y(0); y < MainScreenHeight; ++y)
-		for(SDst x(0); x < MainScreenWidth; ++x)
-			f(buf, x, y);
+		for(SDst x(0); x < MainScreenWidth; yunseq(++x, ++buf))
+			*buf = yforward(f)(x, y);
 }
 
 /*!

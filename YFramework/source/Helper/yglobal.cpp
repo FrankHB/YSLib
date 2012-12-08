@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2958
+\version r2960
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:28:52 +0800
 \par 修改时间:
-	2012-09-04 11:03 +0800
+	2012-12-06 15:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,6 @@
 //#include <clocale>
 
 YSL_BEGIN
-
-//全局常量。
-extern const char* DEF_DIRECTORY; //!< 默认目录。
 
 //全局变量。
 #ifdef YSL_USE_MEMORY_DEBUG

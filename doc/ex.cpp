@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4819 *build 359 rev *
+\version r4835 *build 360 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-04 14:36 +0800
+	2012-12-08 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -399,78 +399,85 @@ $using:
 
 
 $DONE:
-r1:
-/ @ \impl \u YGUI $=
-(
-	+ \f FetchTopEnabledAndVisibleWidgetPtr @ \un ns;
-	/ \impl @ \mf GUIState::ResponseTouch
-		^ FetchTopEnabledAndVisibleWidgetPtr ~ GetTopWidgetPtr
-);
-/= test 1 @ platform MinGW32;
-
-r2:
-- \a \mf GetTopWidgetPtr;
-- \amf GetTopWidgetPtr @ \in IWidget;
-/= test 2 @ platform MinGW32;
+r1-r2:
+- redundant \decl DEF_DIRECTORY @ \impl \u YGlobal,
++ \ctor \t<_tScalar> yconstfn Color(_tScalar, _tScalar, _tScalar,
+	AlphaType = 0xFF) ynothrow @ \h Video,
+/= 2 test 1 @ platform MinGW32;
 
 r3:
-/= test 3 @ platform DS;
+/ \impl @ \f FetchImage @ \impl \u Shells;
+/ @ \h ShellHelper $=
+(
+	/ \f \i void ScrDraw(BitmapPtr buf, PPDRAW f)
+		-> \ft<_tOut, _fGen> void ScrDraw(_tOut, _fGen&&);
+	- typedef \n PPDRAW;
+);
+/= test 2 @ platform MinGW32;
 
 r4:
-/= test 4 @ platform MinGW32 ^ \conf release;
+* $doc need " Rvalue references v3.0(N3053)" missing $since b230 @ 2011-08-07;
+/ \impl @ \ft ScrDraw @ \h ShellHelper,
+/ \tr \impl @ \impl \u Shells;
+/= test 3 @ platform MinGW32;
 
 r5:
-/= test 5 @ platform DS ^ \conf release;
-
-r6-r7:
+/ @ \impl \u Shells $=
 (
-	/ \impl @ \mf Widget::Refresh;
-	- \mf Refresh @ \cl (ListBox, ATrack, AScrollBar, ScrollableContainer,
-		DialogBox, ReaderBox @ \u ShlReader)
-),
-/= 2 test 6 @ platform DS ^ \conf release;
+	/ \impl @ \f FetchImage;
+	- \f (dfa, dfap, dfac1, dfac1p, dfac2, dfac2p) @ \un \ns
+);
+/= test 4 @ platform MinGW32;
+
+r6:
+/ @ \impl \u Shells $=
+(
+	/ \simp \impl @ \f (ReaderPathFilter, GetEntryType) @ \un \ns,
+	(
+		/ \impl @ \ctor ShlExplorer;
+		- \f GenerateList @ \un \ns
+	)
+);
+/= test 5 @ platform MinGW32;
+
+r7:
+/= test 6 @ platform MinGW32 ^ \conf release;
 
 r8:
-/= test 7 @ platform MinGW32;
+/ \impl @ \f ReaderPathFilter @ \un \ns;
+/= test 7 @ platform DS;
 
 r9:
-/ \impl @ \mf Widget::Refresh;
-/= test 8 @ platform MinGW32 ^ \conf release;
+/= test 8 @ platform DS ^ \conf release;
 
 r10:
-/ \impl @ \f FetchTopEnabledAndVisibleWidgetPtr @ \un \ns @ \impl \u YGUI;
-- \f CheckWidget @ \u YWidget,
-- \f \i IsEnabledAndVisible @ \h YControl;
-/= test 9 @ platform DS;
+/ @ \un \ns @ \impl \u Shells $=
+(
+	/ \f GenerateRandomColor -> \f \i @ \ns YSLib::Drawing @ \h ShellHelper,
+	/ \f ReaderPathFilter \mg -> \f GetEntryType#1
+);
+/= test 9 @ platform MinGW32;
 
 r11:
-/ @ \u Scroll $=
+/ @ \cl ShlExplorer @ \u Shells $=
 (
-	+ \f void DrawTrackBackground(PaintEventArgs&&, ATrack&);
-	/ \simp \impl @ \ctor ATrack ^ \f DrawTrackBackground
-),
-/ \simp \impl \f DrawThumbBackground @ \impl \u Button;
+	/ \impl @ \ctor TFormExtra !^ tie,
+	/ \impl @ \mf OnPaint,
+	+ \m Button btnMenu @ \cl ShlExplorer,
+	/ \tr \impl @ \ctor
+);
 /= test 10 @ platform MinGW32;
 
 r12:
-/ \impl @ \mf Refresh @ \cl ProgressBar,
-/ \impl @ \ctor (ScrollableContainer, ListBox, ReaderBox @ \impl \u ShlReader,
-	DualScreenReader @ \impl \u DSReader, ShlExplorer @ \impl \u Shells),
-/ \impl @ main \f @ \impl \u Main_ARM9;
-/ \simp \impl @ \mf (SolidBrush, ImageBrush, BorderBrush)::\op();
+/ @ \cl @ \u Shells $=
+(
+	/ \impl @ \ctor;
+	- \m Button btnMenuTest
+);
 /= test 11 @ platform MinGW32;
 
 r13:
-- \mf Widget::(IsTransparent, SetTransparent);
-/ @ \u YWidgetView $=
-(
-	- \mf (IsTransparent, SetTransparent) @ \cl (View; Visual);
-	/ @ \cl Visual $=
-	(
-		/ \impl @ \ctor,
-		- \m bTransparent
-	)
-);
+* \impl @ \mf ShlExplorer::OnPaint @ \impl \u Shells $since r11;
 /= test 12 @ platform MinGW32;
 
 r14:
@@ -486,15 +493,15 @@ r16:
 $DOING:
 
 $relative_process:
-2012-12-05 +0800:
--32.0d;
-// Mercurial rev1-rev231: r9532;
+2012-12-08 +0800:
+-32.1d;
+// Mercurial rev1-rev232: r9548;
 
 / ...
 
 
 $NEXT_TODO:
-b360-b380:
+b361-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -506,7 +513,7 @@ b360-b380:
 
 
 $TODO:
-b[526]:
+b[538]:
 / services $=
 (
 	+ \impl @ images loading
@@ -608,6 +615,8 @@ b[526]:
 / @ "GUI" $=
 (
 	+ formal abstraction of rectangular hit test,
+	+ widgets opacity,
+	/ bidirectional widget iterators support,
 	+ key accelerators,
 	+ widgets for RTC,
 	/ GUI brushes $=
@@ -670,8 +679,9 @@ b[492]:
 	+ modal widget behavior
 );
 
-b[531]:
+b[615]:
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
++ function compsition,
 / platform dependent system functions $=
 (
 	+ correct DMA (copy & fill) @ DS
@@ -705,6 +715,8 @@ b[531]:
 	),
 	/ @ "GDI" $=
 	(
+		+ basic backends adaptors,
+		+ clipping algorithms,
 		+ basic shapes abstraction,
 		+ spline nodes abstraction,
 		/ more efficient Font switching,
@@ -796,13 +808,13 @@ $KNOWN_ISSUE:
 * $known_issue_b346 "Vertical synchronization lacked for debug configuration \
 	when console window had got focus and then clipped with the main window"
 	@ "platform %DS";
-	// Seems to attribute to GDI.
+	// Seems to attribute to Windows GDI.
 * $known_issue_b351_1 "static constexpr member of same type as class being \
 	defined";
 	// See http://stackoverflow.com/questions/11928089/\
 static-constexpr-member-of-same-type-as-class-being-defined and \
 		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3308.pdf .
-	// G++(4.7) would reject some code snippets. Clang++ 3.2(trunk161531) \
+	// G++(4.7) would reject some code snippets. Clang++ 3.2 (trunk161531) \
 		rejects even more, including code accepted by G++ such as only list \
 		initialization is being used like constexpr static member in "ygdi.h".
 * $known_issue_b351_2 "Diagnostic message generated by by \
@@ -811,7 +823,7 @@ static-constexpr-member-of-same-type-as-class-being-defined and \
 		safe. Only on non-comforming implementation(like Micrsoft C++) it \
 		would be a problem.
 * $known_issue_b351_3 "Clang++ 3.2 bugs on access control"
-	// Clang++ 3.2(trunk161531) rejected wrongly valid code in "iterator.hpp" \
+	// Clang++ 3.2 (trunk161531) rejected wrongly valid code in "iterator.hpp" \
 		and "yevt.hpp" which G++ 4.7.2 accepted.
 * $known_issue_b353 "'lto1.exe : internal compiler error : \
 	in lto_output_varpool_node, at lto-cgraph.c:595' when compiling with \
@@ -996,6 +1008,17 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YReader'.'shells test example' $=
+	(
+		/ $dev "background initialization" ^ "lambda expressions",
+			// Some worse performance compiled by G++, but the code is cleaner.
+		/ "FPS showing" @ "down screen" >> "up screen",
+		/ "menu test" @ "panel" >> "down desktop"
+	)
+),
+
+b359
 (
 	/ %'YFramework'.'YSLib'.'UI' $=
 	(
@@ -1404,7 +1427,7 @@ b351
 			@ "constructor accepting function" @ "class template %GHEvent"
 			@ %'YSLib'.'Core'.'YEvent'
 			$= (/ 'const FuncType' -> 'FuncType');
-			// Clang++ 3.2(trunk161531) generates diagnostic message: \
+			// Clang++ 3.2 (trunk161531) generates diagnostic message: \
 				"qualifier on function type 'FuncType' (aka 'void \
 				(_tParams...)') has unspecified behavior". That's not true, \
 				because ISO C++98/03 and ISO C++11 specified different rules \
@@ -1434,7 +1457,7 @@ b350
 		+ $dev "explicitly instantiated declaration function %sfmt<char> with \
 			attribute for format moved from template declaration" @ %'String'
 			// Implementation issue: G++ 4.7.2 allowed the code. \
-				Clang++ 3.2(trunk161531) complains about wrong format string \
+				Clang++ 3.2 (trunk161531) complains about wrong format string \
 				type for the template declaration.
 	),
 	/ %'YFramework'.'YSLib' $=
@@ -5142,7 +5165,7 @@ b242
 		/ "class template %GBinaryGroup" ~ "classes %(BinaryGroup, Point, Vec)",
 		/ ("member functions %(GetPoint, GetSize) return const references"
 			~ "object type values") @ "class %Rect";
-		/ ("platform independent const static member %Invalid"
+		/ ("platform independent static const member %Invalid"
 			@ "(class template %GBinaryGroup, class %Size)")
 			~ ("platform dependent %FullScreen" @ "classes %(Point, Vec, Size)"
 	)
@@ -5181,7 +5204,7 @@ b240
 	+ "support for types are not %EqualityComparable" @ "class %ValueObject"
 		^ "always-be-equal strategy",
 	+ DLD "copy constructor" @ "class template %GEventMap",
-	+ DLD "const static reference getter function %GetPrototype"
+	+ DLD "static const reference getter function %GetPrototype"
 		@ "header %ystatic.hpp",
 	* DLD "member function %Insert unavailable for %unique_ptr"
 		@ "class template %GEventMap" $since b221,
@@ -5316,8 +5339,7 @@ b234
 	(
 		/ "overwritable item enablity policy support" @ "class %TextList",
 		/ "item enablity support" @ "class %Menu",
-		* DLD "recursively self call" @ "Control::Refresh"
-			$since b230
+		* DLD "recursively self call" @ "Control::Refresh" $since b230
 	),
 	/ %'YReader' $=
 	(

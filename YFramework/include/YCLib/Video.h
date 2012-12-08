@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r529
+\version r540
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2012-09-08 08:46 +0800
+	2012-12-06 17:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,12 +241,22 @@ public:
 	{}
 #endif
 	/*!
-	\brief 使用 RGB 值和 alpha 位构造 Color 对象。
+	\brief 构造：使用 RGB 值和 alpha 位。
 	\since build 319
 	*/
 	yconstfn
 	Color(MonoType r_, MonoType g_, MonoType b_, AlphaType a_ = 0xFF) ynothrow
 		: r(r_), g(g_), b(b_), a(a_)
+	{}
+	/*!
+	\brief 构造：使用相同类型转换为单色的 RGB 值和 alpha位。
+	\note 避免列表初始化时 narrowing 转换。
+	\since build 360
+	*/
+	template<typename _tScalar>
+	yconstfn
+	Color(_tScalar r_, _tScalar g_, _tScalar b_, AlphaType a_ = 0xFF) ynothrow
+		: Color(MonoType(r_), MonoType(g_), MonoType(b_), a_)
 	{}
 
 	/*!
