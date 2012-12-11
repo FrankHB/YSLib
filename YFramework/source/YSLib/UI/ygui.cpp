@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3273
+\version r3287
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-12-04 23:07 +0800
+	2012-12-09 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -259,7 +259,12 @@ GUIState::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 		auto t(FetchFocusingPtr(*pCon));
 
 		if(!t || t == pCon)
-			break;
+		{
+			if(e.Handled)
+				return true;
+			else
+				break;
+		}
 		e.SetSender(*p);
 		r |= ResponseKeyBase(e, op);
 		p = t;
@@ -276,7 +281,7 @@ GUIState::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 		e.SetSender(*(p = pCon));
 		r |= ResponseKeyBase(e, op);
 	}
-	return r;
+	return r/* || e.Handled*/;
 }
 
 bool
@@ -300,7 +305,12 @@ GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*pCon, e));
 
 		if(!t || t == pCon)
-			break;
+		{
+			if(e.Handled)
+				return true;
+			else
+				break;
+		}
 		e.SetSender(*p);
 		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
 		p = t;
@@ -319,7 +329,7 @@ GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 		e.SetSender(*(p = pCon));
 		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
 	}
-	return r;
+	return r/* || e.Handled*/;
 }
 
 

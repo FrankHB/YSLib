@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1539
+\version r1540
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2012-12-06 20:59 +0800
+	2012-12-08 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,7 +248,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 inline Color
 GenerateRandomColor()
 {
-//使用 std::time(0) 初始化随机数种子在 DeSmuMe 上无效。
+//使用 std::time(0) 初始化随机数种子在 DeSmuME 上无效。
 //	std::srand(std::time(0));
 	return Color(std::rand(), std::rand(), std::rand(), 1);
 }

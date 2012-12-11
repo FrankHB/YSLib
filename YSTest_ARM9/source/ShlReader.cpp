@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3933
+\version r3934
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-12-06 20:29 +0800
+	2012-12-08 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -615,7 +615,7 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth)
 
 	struct ::stat file_stat;
 
-	//在 DeSmuMe 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
+	//在 DeSmuME 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
 	::stat(path_str.c_str(), &file_stat);
 	yunseq(pnlFileInfo.lblAccessTime.Text = u"访问时间："
 		+ String(TranslateTime(file_stat.st_atime)),

@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2186
+\version r2191
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-12-04 14:52 +0800
+	2012-12-10 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,7 +197,7 @@ public:
 	}
 };
 
-//! \since 356
+//! \since build 356
 //@{
 template<typename _type>
 inline bool
@@ -356,7 +356,7 @@ public:
 	}
 };
 
-//! \since 356
+//! \since build 356
 //@{
 template<typename _type, typename _tIterator, typename _tTraits>
 inline bool
@@ -475,7 +475,7 @@ public:
 	}
 };
 
-//! \since 356
+//! \since build 356
 //@{
 template<typename _type, typename _fTransformer>
 inline bool
@@ -723,7 +723,7 @@ public:
 	}
 };
 
-//! \since 356
+//! \since build 356
 //@{
 template<typename _tMaster, typename _tSlave>
 bool
@@ -749,7 +749,7 @@ operator!=(const pair_iterator<_tMaster, _tSlave>& x,
 \warning 非虚析构。
 \since build 356 。
 
-根据指定类型提供的下标操作对枚举其成员的随机访问迭代器。
+根据指定类型提供的下标操作枚举其成员的随机访问迭代器。
 */
 template<class _tContainer, typename _type>
 class subscriptive_iterator : private std::iterator<typename

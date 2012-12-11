@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1880
+\version r1882
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-10-08 11:03 +0800
+	2012-12-09 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,14 +172,14 @@ public:
 
 	/*!
 	\brief 响应标准按键状态。
-	\return 已被响应时为 true 。
+	\return 已被响应（调用了非空事件处理器或参数 Handled 为 true）时为 true 。
 	*/
 	bool
 	ResponseKey(Components::KeyEventArgs&, Components::VisualEvent);
 
 	/*!
 	\brief 响应屏幕接触状态。
-	\return 已被响应时为 true 。
+	\return 已被响应（调用了非空事件处理器或参数 Handled 为 true）时为 true 。
 	*/
 	bool
 	ResponseTouch(Components::TouchEventArgs&, Components::VisualEvent);

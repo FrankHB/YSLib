@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6916
+\version r6922
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-07 19:19 +0800
+	2012-12-09 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -724,6 +724,8 @@ nested-module-name:
 事件参数类型由 RoutedEventArgs 派生的称为路由事件。
 路由事件的路由策略分为三类： Tunnel 、 Direct 和 Bubble 。
  Tunnel 事件在处理事件的根部件进入子部件时依序触发， Direct 事件在定位至部件时触发， Bubble 事件在之后子部件退出至根部件时依序触发。
+当 Tunnel 事件非可视(visible) 或非启用(enabled) 时事件路由终止。
+当参数中的处理标记（数据成员 Handled ）被设置为 true 时，事件路由终止。
 基本 GUI 输入事件是路由事件，参见 @2.7.2.1.2 。
 
 @2.7.2.1.1 视图变更事件：
@@ -757,8 +759,8 @@ nested-module-name:
 @2.7.2.1.2.4 输入事件路由：
 事件路由通过 YGUI 单元中的 GUIState 类实现。包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 、 TouchMove 和 Click 。
 触发过程：由 Helper 中的单元完成平台相关的用户输入信号捕获并向 YGUI 单元的 GUIState 类的全局实例传递，后者处理后生成对应输入事件。
-当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyPress 和 KeyUp 事件。
-当用户使用指针设备（包括触摸屏）输入时，触发 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 Click 和 TouchUp 事件。
+当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyUp 和 KeyPress 事件。
+当用户使用指针设备（包括触摸屏）输入时，依此触发 Enter(@2.7.2.1.5) 和 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 TouchUp 、Leave(@2.7.2.1.5) 和 Click 事件。
 注意非直接事件路由中 TouchHeld 不被触发。当 TouchHeld 被触发时，即使路由策略是 Direct ，也有可能因为其它部件移动而导致状态不一致。因此在 TouchHeld 的事件处理器中需要注意校验发送者是否符合预期。
 
 @2.7.2.1.2.5 指针设备坐标状态：

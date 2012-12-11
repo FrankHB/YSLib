@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4835 *build 360 rev *
+\version r4845 *build 361 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-08 23:25 +0800
+	2012-12-11 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,6 +171,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \ns ::= namespaces
 \o ::= objects
 \op ::= operators
+\opt ::= optiaonal/options
 \or ::= overridden/overriders
 \param ::= parameters
 \param.de ::= default parameters
@@ -400,108 +401,55 @@ $using:
 
 $DONE:
 r1-r2:
-- redundant \decl DEF_DIRECTORY @ \impl \u YGlobal,
-+ \ctor \t<_tScalar> yconstfn Color(_tScalar, _tScalar, _tScalar,
-	AlphaType = 0xFF) ynothrow @ \h Video,
 /= 2 test 1 @ platform MinGW32;
 
 r3:
-/ \impl @ \f FetchImage @ \impl \u Shells;
-/ @ \h ShellHelper $=
-(
-	/ \f \i void ScrDraw(BitmapPtr buf, PPDRAW f)
-		-> \ft<_tOut, _fGen> void ScrDraw(_tOut, _fGen&&);
-	- typedef \n PPDRAW;
-);
+* missing submenu test $since b360 $=
+	(/ \impl @ \ctor ShlExplorer @ \impl \u Shells);
 /= test 2 @ platform MinGW32;
 
-r4:
-* $doc need " Rvalue references v3.0(N3053)" missing $since b230 @ 2011-08-07;
-/ \impl @ \ft ScrDraw @ \h ShellHelper,
-/ \tr \impl @ \impl \u Shells;
-/= test 3 @ platform MinGW32;
+r4-r12:
+/= 9 test 3 @ platform MinGW32;
 
-r5:
-/ @ \impl \u Shells $=
-(
-	/ \impl @ \f FetchImage;
-	- \f (dfa, dfap, dfac1, dfac1p, dfac2, dfac2p) @ \un \ns
-);
-/= test 4 @ platform MinGW32;
+r13-r18:
+* $doc difference with implementation for appended events order
+	when GUI key and touch events are handled $since b199,
++ direct routed event handling when handled mark of argument is set
+	@ \impl @ \mf (ResponseKey, ResponseTouch) @ \cl GUIState,
+/= 6 test 4 @ platform MinGW32;
 
-r6:
-/ @ \impl \u Shells $=
-(
-	/ \simp \impl @ \f (ReaderPathFilter, GetEntryType) @ \un \ns,
-	(
-		/ \impl @ \ctor ShlExplorer;
-		- \f GenerateList @ \un \ns
-	)
-);
-/= test 5 @ platform MinGW32;
+r19-r36:
+/= 18 test 5 @ platform MinGW32;
 
-r7:
-/= test 6 @ platform MinGW32 ^ \conf release;
+r37:
+/ \mac 'YCL_DLL' => 'YF_DLL',
+- \mac 'YCL_FUNCTION_NO_EQUALITY_GUARANTEE',
+- additional linker \opt '-Wl,--enable-runtime-pseudo-reloc'
+	@ Code::Blocks projects \conf '*_DLL' @ platform MinGW32;
+/= test 6 @ platform MinGW32;
 
-r8:
-/ \impl @ \f ReaderPathFilter @ \un \ns;
-/= test 7 @ platform DS;
+r38:
+/= test 7 @ platform MinGW32 ^ \conf release;
 
-r9:
-/= test 8 @ platform DS ^ \conf release;
+r39:
+/= test 8 @ platform DS;
 
-r10:
-/ @ \un \ns @ \impl \u Shells $=
-(
-	/ \f GenerateRandomColor -> \f \i @ \ns YSLib::Drawing @ \h ShellHelper,
-	/ \f ReaderPathFilter \mg -> \f GetEntryType#1
-);
-/= test 9 @ platform MinGW32;
-
-r11:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	/ \impl @ \ctor TFormExtra !^ tie,
-	/ \impl @ \mf OnPaint,
-	+ \m Button btnMenu @ \cl ShlExplorer,
-	/ \tr \impl @ \ctor
-);
-/= test 10 @ platform MinGW32;
-
-r12:
-/ @ \cl @ \u Shells $=
-(
-	/ \impl @ \ctor;
-	- \m Button btnMenuTest
-);
-/= test 11 @ platform MinGW32;
-
-r13:
-* \impl @ \mf ShlExplorer::OnPaint @ \impl \u Shells $since r11;
-/= test 12 @ platform MinGW32;
-
-r14:
-/= test 13 @ platform MinGW32 ^ \conf release;
-
-r15:
-/= test 14 @ platform DS;
-
-r16:
-/= test 15 @ platform DS ^ \conf release;
+r40:
+/= test 9 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-08 +0800:
--32.1d;
-// Mercurial rev1-rev232: r9548;
+2012-12-11 +0800:
+-34.3d;
+// Mercurial rev1-rev233: r9588;
 
 / ...
 
 
 $NEXT_TODO:
-b361-b380:
+b362-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -528,7 +476,7 @@ b[538]:
 / $design $low_prior robustness and cleanness $=
 (
 	/ noncopyable GUIState,
-	* (copy, move) @ \cl Menu,
+	* move @ \cl Menu,
 	^ delegating \ctor as possible,
 	/ strip away direct using @ Win32 types completely @ \h @ \lib YCLib,
 	^ std::call_once to confirm thread-safe initialization,
@@ -737,7 +685,7 @@ b[615]:
 	+ fully \impl styles @ widgets,
 	+ general widget decorators,
 	+ clipping areas,
-	+ dynamic widget prototypes
+	+ dynamic widget \proto with copy \ctor
 );
 
 
@@ -841,6 +789,10 @@ static-constexpr-member-of-same-type-as-class-being-defined and \
 		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54118 . \
 		Release configuration using '-flto=jobserver' would obviously enlarge \
 		the size of execution file.
+* $known_issue_b361 "linking with DLL using GNU ld auto-import leads to \
+	different address across DLL and client code for same function";
+	// It causes event handlers of function set in DLL cannot removed in \
+		client code simply using function name.
 
 
 $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
@@ -1009,6 +961,32 @@ $module_tree $=
 
 $now
 (
+	* "missing submenu test" @ %'YReader'.'shells test example' $since b360,
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'GUI' $=
+		(
+			* $doc "difference with implementation for appended events order \
+				when GUI key and touch events are handled" $since b199,
+			+ "direct routed event handling when handled mark of argument \
+				is set" @ "member functions %GUIState::(ResponseKey, \
+				ResponseTouch)" @ "unit %YGUI"
+		),
+		/ $dev $build %'YCLib'.'Platform' $=
+		(
+			/ \mac 'YCL_DLL' => 'YF_DLL',
+			- \mac 'YCL_FUNCTION_NO_EQUALITY_GUARANTEE';
+		)
+	),
+	- $dev $build "additional linker option '-Wl,--enable-runtime-pseudo-reloc'"
+		@ "Code::Blocks project configurations '*_DLL'" @ "platform %MinGW32"
+		// It is default since 2005.
+),
+
+b360
+(
+	* $doc "missing C++11 feature: RValue Reference v3.0(N3053) required"
+		$since b230[2011-08-07],
 	/ %'YReader'.'shells test example' $=
 	(
 		/ $dev "background initialization" ^ "lambda expressions",
@@ -4624,7 +4602,7 @@ b270
 	(
 		// Using of unique_ptr and more contents of information box \
 			at readers make it significantly slower than before in \
-			%ShlExplorer when running on DeSmuMe at debug configuration.
+			%ShlExplorer when running on DeSmuME at debug configuration.
 		/ $design "resource management" ^ "class %unique_ptr"
 			~ "built-in pointers"
 		/ "unit %DSReader" $=

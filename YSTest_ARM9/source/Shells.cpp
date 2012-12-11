@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5645
+\version r5648
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-12-08 23:25 +0800
+	2012-12-11 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,11 +403,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	RequestFocusCascade(fbMain),
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
-	// FIXME: potential memory leaks;
 	mhMain += *(ynew Menu(Rect(),
-		share_raw(new TextList::ListType{u"A:MenuItem"}), 1u)),
+		share_raw(new TextList::ListType{u"A:MenuItem", u"0xA"}), 1u)),
 	mhMain += *(ynew Menu(Rect(),
-		share_raw(new TextList::ListType{u"B:MenuItem"}), 2u));
+		share_raw(new TextList::ListType{u"B:MenuItem", u"0xB"}), 2u));
 	mhMain[1u] += make_pair(1u, &mhMain[2u]);
 	ResizeForContent(mhMain[2u]);
 }

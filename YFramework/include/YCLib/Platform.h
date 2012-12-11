@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r419
+\version r431
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2012-09-04 12:27 +0800
+	2012-12-11 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,15 +42,9 @@
 #define YCL_INC_PLATFORM_H_ 1
 
 /*!
-\def YCL_DLL
-\brief 使用动态链接库。
-\since build 306
-*/
-
-/*!
-\def YCL_FUNCTION_NO_EQUALITY_GUARANTEE
-\brief 相同函数指针不保证相等。
-\since build 306
+\def YF_DLL
+\brief 使用 YFramework 动态链接库。
+\since build 361
 */
 
 /*!
@@ -69,10 +63,7 @@
 \since build 322
 */
 
-//#define YCL_DLL
-
-#ifdef YCL_DLL
-#	define YCL_FUNCTION_NO_EQUALITY_GUARANTEE 1
+#ifdef YF_DLL
 #endif
 
 /*!
