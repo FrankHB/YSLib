@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2615
+\version r2619
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-07 10:29 +0800
+	2012-12-11 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \return 返回调整后的底边距值（由字体大小、行距和高决定）。
 \since build 252
 */
-SDst
+YF_API SDst
 FetchResizedBottomMargin(const TextState&, SDst);
 
 /*!
@@ -50,7 +50,7 @@ FetchResizedBottomMargin(const TextState&, SDst);
 \return 最大能容纳的文本行数。
 \since build 252
 */
-u16
+YF_API u16
 FetchResizedLineN(const TextState& ts, SDst);
 
 /*!
@@ -59,7 +59,7 @@ FetchResizedLineN(const TextState& ts, SDst);
 \warning 不检查边距正确性。若顶边距正确，则返回值应小于输入的高。
 \since build 190
 */
-SPos
+YF_API SPos
 FetchLastLineBasePosition(const TextState&, SDst);
 
 
@@ -89,7 +89,7 @@ AdjustBottomMarginOf(TextRegion& tr)
 \note 无边界限制。
 \since build 280
 */
-SDst
+YF_API SDst
 FetchCharWidth(const Font&, ucs4_t);
 
 

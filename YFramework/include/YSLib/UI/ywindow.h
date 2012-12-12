@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r3809
+\version r3810
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2012-12-04 19:56 +0800
+	2012-12-11 22:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 窗口。
 \since build 264
 */
-class Window : public Panel
+class YF_API Window : public Panel
 {
 public:
 	/*!

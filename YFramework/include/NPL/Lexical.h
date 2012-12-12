@@ -15,13 +15,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1243
+\version r1249
 \author FrankHB<frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2012-10-23 13:53 +0800
+	2012-12-11 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ using YSLib::string;
 反斜杠转义：连续两个反斜杠被替换为一个反斜杠；
 引号转义：反斜杠之后紧接单引号或双引号时，反斜杠会被删除。
 */
-class LexicalAnalyzer
+class YF_API LexicalAnalyzer
 {
 public:
 	/*!
@@ -139,7 +139,7 @@ public:
 \since build 304
 \todo 实现 UTF-8 字符串末尾兼容性。
 */
-char
+YF_API char
 CheckLiteral(const string&);
 
 /*!
@@ -147,7 +147,7 @@ CheckLiteral(const string&);
 \return 若首尾字符都为 '\'' 或 '"' 之一，则为去除首尾字符之后的副本；否则为原串。
 \since build 343
 */
-string
+YF_API string
 Deliteralize(const string&);
 
 /*!
@@ -155,7 +155,7 @@ Deliteralize(const string&);
 \see LexicalAnalyzer 。
 \since build 335
 */
-string
+YF_API string
 MakeEscape(const string&);
 
 
@@ -186,7 +186,7 @@ IsDelimeter(char c)
 \brief 分解字符串为记号。
 \since build 335
 */
-list<string>
+YF_API list<string>
 Decompose(const string&);
 
 /*!
@@ -194,7 +194,7 @@ Decompose(const string&);
 \note 排除字面量，分解其余字符串为记号列表。
 \since build 301
 */
-list<string>
+YF_API list<string>
 Tokenize(const list<string>&);
 
 YSL_END_NAMESPACE(NPL)

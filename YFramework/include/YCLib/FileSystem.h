@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r526
+\version r544
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2012-09-18 23:52 +0800
+	2012-12-11 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ using ystdex::path_t;
 \bug MinGW32 环境下非线程安全。
 \since build 324
 */
-int
+YF_API int
 uopen(const char* filename, int oflag) ynothrow;
 /*!
 \brief 以 UTF-8 文件名无缓冲打开文件。
@@ -144,7 +144,7 @@ uopen(const char* filename, int oflag) ynothrow;
 \bug MinGW32 环境下非线程安全。
 \since build 324
 */
-int
+YF_API int
 uopen(const char* filename, int oflag, int pmode) ynothrow;
 /*!
 \brief 以 UCS-2LE 文件名无缓冲打开文件。
@@ -153,7 +153,7 @@ uopen(const char* filename, int oflag, int pmode) ynothrow;
 \pre 断言检查：<tt>filename</tt> 。
 \since build 324
 */
-int
+YF_API int
 uopen(const char16_t* filename, int oflag) ynothrow;
 /*!
 \brief 以 UCS-2LE 文件名无缓冲打开文件。
@@ -163,7 +163,7 @@ uopen(const char16_t* filename, int oflag) ynothrow;
 \pre 断言检查：<tt>filename</tt> 。
 \since build 324
 */
-int
+YF_API int
 uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
 
 /*!
@@ -174,7 +174,7 @@ uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
 \bug MinGW32 环境下非线程安全。
 \since build 299
 */
-std::FILE*
+YF_API std::FILE*
 ufopen(const char* filename, const char* mode) ynothrow;
 /*!
 \brief 以 UCS-2LE 文件名打开文件。
@@ -183,7 +183,7 @@ ufopen(const char* filename, const char* mode) ynothrow;
 \pre 断言检查：<tt>filename && mode && *mode != 0</tt> 。
 \since build 324
 */
-std::FILE*
+YF_API std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 
 /*!
@@ -192,7 +192,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 \pre 断言检查：参数非空。
 \since build 324
 */
-bool
+YF_API bool
 ufexists(const char*) ynothrow;
 /*!
 \brief 判断指定 UCS-2 文件名的文件是否存在。
@@ -200,7 +200,7 @@ ufexists(const char*) ynothrow;
 \pre 断言检查：参数非空。
 \since build 324
 */
-bool
+YF_API bool
 ufexists(const char16_t*) ynothrow;
 /*!
 \brief 判断指定字符串为文件名的文件是否存在。
@@ -218,7 +218,7 @@ ufexists(const _tString& str) ynothrow
 \brief 判断指定路径的目录是否存在。
 \since build 324
 */
-bool
+YF_API bool
 direxists(const_path_t) ynothrow;
 
 /*!
@@ -226,7 +226,7 @@ direxists(const_path_t) ynothrow;
 \bug MinGW32 环境下非线程安全。
 \since build 324
 */
-bool
+YF_API bool
 udirexists(const_path_t) ynothrow;
 /*!
 \brief 判断指定字符串为文件名的文件是否存在。
@@ -248,7 +248,7 @@ udirexists(const _tString& str) ynothrow
 \deprecated 特定平台上的编码不保证是 UTF-8 。
 \since build 324
 */
-char*
+YF_API char*
 getcwd_n(char* buf, std::size_t size) ynothrow;
 
 /*!
@@ -258,7 +258,7 @@ getcwd_n(char* buf, std::size_t size) ynothrow;
 \return 若成功为 buf ，否则为空指针。
 \since build 324
 */
-char16_t*
+YF_API char16_t*
 u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 
 /*!
@@ -266,14 +266,14 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 \bug MinGW32 环境下非线程安全。
 \since build 324
 */
-int
+YF_API int
 uchdir(const_path_t) ynothrow;
 
 /*!
 \brief 按路径新建一个或多个目录。
 \since build 324
 */
-bool
+YF_API bool
 mkdirs(const_path_t) ynothrow;
 
 /*!
@@ -285,7 +285,7 @@ mkdirs(const_path_t) ynothrow;
 
 若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
 */
-bool
+YF_API bool
 truncate(std::FILE*, std::size_t) ynothrow;
 
 
@@ -293,7 +293,7 @@ truncate(std::FILE*, std::size_t) ynothrow;
 \brief 文件系统节点迭代器。
 \since build 298
 */
-class HFileNode final
+class YF_API HFileNode final
 {
 public:
 	typedef ::DIR* IteratorType; //!< 本机迭代器类型。
@@ -414,13 +414,13 @@ public:
 \brief 判断指定路径字符串是否表示一个绝对路径。
 \since build 152
 */
-bool
+YF_API bool
 IsAbsolute(const_path_t);
 
 /*!
 \brief 取指定路径的文件系统根节点名称的长度。
 */
-std::size_t
+YF_API std::size_t
 GetRootNameLength(const_path_t);
 
 } // namespace platform;

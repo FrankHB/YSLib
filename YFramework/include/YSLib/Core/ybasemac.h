@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2372
+\version r2388
 \author FrankHB<frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2012-12-01 18:22 +0800
+	2012-12-11 23:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,6 +82,7 @@ Tmpl template
 以下宏参数缩写的含义：
 _a argument
 _alist arguments list
+_attr attributes
 _b base
 _e expression
 _i interface
@@ -112,18 +113,25 @@ _t type
 
 #define FwdDeclI(_n) _yInterface _n;
 
-#define DeclI(_n) _yInterface _n _yInterfaceHead(_n)
+/*
+\def DeclI
+\brief 定义接口类型。
+\since build 362
+*/
+#define DeclI(_attr, _n) \
+	_yInterface _attr _n \
+	_yInterfaceHead(_n)
 
 //对于基接口需要显式指定访问权限和继承方式。
 
 /*
 \def DeclDerivedI
-\brief 定义派生接口。
+\brief 定义派生接口类型。
 \note 由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
-\since build 333
+\since build 362
 */
-#define DeclDerivedI(_n, ...) \
-	_yInterface _n : __VA_ARGS__ \
+#define DeclDerivedI(_attr, _n, ...) \
+	_yInterface _attr _n : __VA_ARGS__ \
 	_yInterfaceHead(_n)
 
 // ImplI = Implements Interface;
@@ -153,10 +161,10 @@ _t type
 /*!
 \brief 定义直接派生类。
 \note 仅构造函数。不定义成员，避免对象切片或其它成员存储泄漏问题。
-\since build 240
+\since build 352
 */
-#define DefExtendClass1(_n, _b, _a) \
-	class _n : _a _b \
+#define DefExtendClass(_attr, _n, ...) \
+	class _attr _n : __VA_ARGS__ \
 	{ \
 	public: \
 		_n(); \

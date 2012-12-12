@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1540
+\version r1548
 \author FrankHB<frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2012-12-08 23:44 +0800
+	2012-12-11 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,9 +49,9 @@ to_string(const GBinaryGroup<_type>& val)
 
 	return "(" + to_string(val.X) + ", " + to_string(val.Y) + ')';
 }
-string
+YF_API string
 to_string(const Size&);
-string
+YF_API string
 to_string(const Rect&);
 //@}
 
@@ -302,7 +302,7 @@ YSL_END_NAMESPACE(Drawing)
 \brief 从全局消息队列中移除所有后台消息。
 \since build 320
 */
-void
+YF_API void
 RemoveGlobalTasks();
 
 
@@ -317,9 +317,9 @@ yconstexpr const char* DefaultTimeFormat("%04u-%02u-%02u %02u:%02u:%02u");
 \since build 307
 */
 //@{
-const char*
+YF_API const char*
 TranslateTime(const std::tm&, const char* = DefaultTimeFormat);
-const char*
+YF_API const char*
 TranslateTime(const std::time_t&, const char* = DefaultTimeFormat)
 	ythrow(GeneralEvent);
 //@}
@@ -329,7 +329,7 @@ TranslateTime(const std::time_t&, const char* = DefaultTimeFormat)
 \brief 取字型家族名称。
 \since build 307
 */
-shared_ptr<Components::TextList::ListType>
+YF_API shared_ptr<Components::TextList::ListType>
 FetchFontFamilyNames();
 
 
@@ -337,7 +337,7 @@ FetchFontFamilyNames();
 \brief 帧速率计数器。
 \since build 307
 */
-class FPSCounter
+class YF_API FPSCounter
 {
 private:
 	/*!
@@ -393,7 +393,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 切换部件显示状态并无效化。
 \since build 229
 */
-void
+YF_API void
 SwitchVisible(IWidget&);
 
 

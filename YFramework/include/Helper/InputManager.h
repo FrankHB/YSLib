@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r97
+\version r98
 \author FrankHB<frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2012-09-04 12:27 +0800
+	2012-12-11 21:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Devices)
 \brief 输入管理器。
 \since build 323
 */
-class InputManager : private noncopyable
+class YF_API InputManager : private noncopyable
 {
 private:
 	/*!

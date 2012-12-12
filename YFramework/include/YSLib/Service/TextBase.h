@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2592
+\version r2596
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-10-11 00:01 +0800
+	2012-12-11 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ yconstexpr Padding DefaultMargin(2, 2, 2, 2);
 
 
 //! \brief 笔样式：字体和笔颜色。
-class PenStyle
+class YF_API PenStyle
 {
 public:
 	Drawing::Font Font; //!< 字体。
@@ -81,7 +81,7 @@ public:
 文本状态不包含文本区域和显示区域的大小，应由外部图形接口上下文或缓冲区状态确定。
 \since build 145
 */
-class TextState : public PenStyle
+class YF_API TextState : public PenStyle
 {
 public:
 	Padding Margin; //!< 边距：文本区域到显示区域的距离。
@@ -186,7 +186,7 @@ SetPenOf(TextState& s, SPos x, SPos y)
 \brief 设置笔的行位置。
 \since build 231
 */
-void
+YF_API void
 SetCurrentTextLineNOf(TextState&, u16);
 
 /*!
@@ -205,7 +205,7 @@ CarriageReturn(TextState& ts)
 \brief 按字符跨距移动笔。
 \since build 196
 */
-void
+YF_API void
 MovePen(TextState&, ucs4_t);
 
 YSL_END_NAMESPACE(Drawing)

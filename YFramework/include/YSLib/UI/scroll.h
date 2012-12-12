@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2586
+\version r2595
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-12-05 19:31 +0800
+	2012-12-11 21:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ enum class ScrollCategory
 \brief 滚动事件参数类。
 \since build 193
 */
-struct ScrollEventArgs : public UIEventArgs, protected pair<float, float>
+struct YF_API ScrollEventArgs : public UIEventArgs, protected pair<float, float>
 {
 public:
 	typedef float ValueType; //!< 值类型。
@@ -119,7 +119,7 @@ DeclDelegate(HScrollEvent, ScrollEventArgs)
 \brief 轨道。
 \since build 167
 */
-class ATrack : public Control, public GMRange<ScrollEventArgs::ValueType>
+class YF_API ATrack : public Control, public GMRange<ScrollEventArgs::ValueType>
 {
 public:
 	//! \brief 轨道区域。
@@ -231,7 +231,7 @@ public:
 \brief 绘制指定色调的基本按钮背景。
 \since build 359
 */
-void
+YF_API void
 DrawTrackBackground(PaintEventArgs&& e, ATrack&);
 
 
@@ -239,7 +239,7 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack&);
 \brief 水平轨道。
 \since build 205
 */
-class HorizontalTrack : public ATrack
+class YF_API HorizontalTrack : public ATrack
 {
 public:
 	/*!
@@ -260,7 +260,7 @@ public:
 \brief 竖直轨道。
 \since build 205
 */
-class VerticalTrack : public ATrack
+class YF_API VerticalTrack : public ATrack
 {
 public:
 	/*!
@@ -281,7 +281,7 @@ public:
 \brief 滚动条。
 \since build 162
 */
-class AScrollBar : public Control
+class YF_API AScrollBar : public Control
 {
 public:
 	typedef ATrack::ValueType ValueType; //!< 值类型。
@@ -359,7 +359,7 @@ public:
 \brief 水平滚动条。
 \since build 205
 */
-class HorizontalScrollBar : public AScrollBar
+class YF_API HorizontalScrollBar : public AScrollBar
 {
 public:
 	//! \since build 337
@@ -381,7 +381,7 @@ protected:
 \brief 竖直滚动条。
 \since build 205
 */
-class VerticalScrollBar : public AScrollBar
+class YF_API VerticalScrollBar : public AScrollBar
 {
 public:
 	//! \since build 337
@@ -402,7 +402,7 @@ protected:
 \brief 带滚动条的容器。
 \since build 192
 */
-class ScrollableContainer : public Control
+class YF_API ScrollableContainer : public Control
 {
 public:
 	//! \since build 356

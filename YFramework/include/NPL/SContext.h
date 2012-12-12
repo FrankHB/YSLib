@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1330
+\version r1336
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2012-09-13 12:37 +0800
+	2012-12-11 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ typedef TokenList::const_iterator TLCIter;
 \brief 会话：分析指定 NPL 代码。
 \since build 304
 */
-class Session
+class YF_API Session
 {
 private:
 	LexicalAnalyzer llex;
@@ -77,7 +77,7 @@ YSL_BEGIN_NAMESPACE(SContext)
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \since build 335
 */
-TLCIter
+YF_API TLCIter
 Validate(TLCIter b, TLCIter e);
 
 /*!
@@ -90,7 +90,7 @@ Validate(TLCIter b, TLCIter e);
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \since build 330
 */
-TLCIter
+YF_API TLCIter
 Reduce(ValueNode& node, TLCIter b, TLCIter e);
 
 
@@ -99,11 +99,11 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e);
 \since build 335
 */
 //@{
-void
+YF_API void
 Analyze(ValueNode&, const TokenList&);
-void
+YF_API void
 Analyze(ValueNode&, const Session&);
-void
+YF_API void
 Analyze(ValueNode&, const string&);
 template<typename _type>
 ValueNode

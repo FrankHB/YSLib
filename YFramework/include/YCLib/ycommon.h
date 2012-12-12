@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3408
+\version r3413
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2012-10-11 22:49 +0800
+	2012-12-11 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ namespace platform
 \brief 异常终止函数。
 \since build 319
 */
-void
+YF_API void
 terminate() ynothrow;
 
 
@@ -65,7 +65,7 @@ terminate() ynothrow;
 \brief YCLib 默认断言函数。
 \note 当定义 YCL_USE_YASSERT 宏时，宏 YAssert 操作由此函数实现。
 */
-void
+YF_API void
 yassert(bool, const char*, const char*, int, const char*);
 
 #define YAssert(exp, message) \
@@ -92,7 +92,7 @@ namespace platform_ex
 \warning 非线程安全。
 \since build 278
 */
-bool
+YF_API bool
 AllowSleep(bool);
 
 #elif YCL_MINGW32
@@ -100,7 +100,7 @@ AllowSleep(bool);
 
 //! \since build 327
 //@{
-std::string
+YF_API std::string
 UTF8ToMBCS(const char*, std::size_t, int);
 inline std::string
 UTF8ToMBCS(const std::string& str, int cp)
@@ -108,7 +108,7 @@ UTF8ToMBCS(const std::string& str, int cp)
 	return UTF8ToMBCS(str.c_str(), str.length(), cp);
 }
 
-std::string
+YF_API std::string
 WCSToMBCS(const wchar_t*, std::size_t, int);
 inline std::string
 WCSToMBCS(const std::wstring& str, int cp)

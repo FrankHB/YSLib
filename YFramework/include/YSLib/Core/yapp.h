@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1553
+\version r1557
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2012-09-07 10:27 +0800
+	2012-12-11 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ using Messaging::MessageQueue;
 \brief 程序实例。
 \since build 243
 */
-class Application : public Shell
+class YF_API Application : public Shell
 {
 public:
 	MessageQueue Queue; //!< 主消息队列：在程序实例中实现以保证单线程。
@@ -117,7 +117,7 @@ public:
 \note 保证在平台相关的全局资源初始化之后初始化此实例。
 \warning 初始化前不保证线程安全性。
 */
-extern Application&
+extern YF_API Application&
 FetchAppInstance();
 
 /*!
@@ -155,7 +155,7 @@ Activate(const shared_ptr<Shell>& hShl)
 */
 //@{
 //! \since build 317
-void
+YF_API void
 PostMessage(const Message&, Messaging::Priority) ynothrow;
 //! \since build 320
 inline void
@@ -184,7 +184,7 @@ PostMessage(Messaging::Priority prior,
 /*!
 \brief 以优先级 p 发起 Shell 终止请求，返回 nExitCode。
 */
-void
+YF_API void
 PostQuitMessage(int nExitCode, Messaging::Priority p = 0xF0);
 
 YSL_END

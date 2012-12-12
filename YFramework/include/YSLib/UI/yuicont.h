@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r1768
+\version r1778
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2012-12-04 19:55 +0800
+	2012-12-11 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \return 若无父部件则为参数自身，否则为视图树中的父部件指针为空指针的部件的引用。
 \since build 282
 */
-IWidget&
+YF_API IWidget&
 FetchTopLevel(IWidget&);
 /*!
 \brief 取指定部件的顶层部件，当返回非第一参数时变换坐标。
@@ -48,7 +48,7 @@ FetchTopLevel(IWidget&);
 \note 原始坐标相对于指定部件，会被转换为相对于最终节点的坐标。
 \since build 282
 */
-IWidget&
+YF_API IWidget&
 FetchTopLevel(IWidget&, Point&);
 
 
@@ -56,7 +56,7 @@ FetchTopLevel(IWidget&, Point&);
 \brief 取相对于 pWgt 指向的部件的点 pt 相对于 pEnd 指向的容器的偏移坐标。
 \since build 229
 */
-Point
+YF_API Point
 LocateOffset(const IWidget* pEnd, Point, const IWidget* pWgt);
 
 /*!
@@ -73,7 +73,7 @@ LocateContainerOffset(const IWidget& wgt, const Point& pt)
 \brief 取指定部件 b 相对于部件 a 的偏移坐标。
 \since build 169
 */
-Point
+YF_API Point
 LocateForWidget(IWidget& a, IWidget& b);
 
 /*!
@@ -99,7 +99,7 @@ LocateForWidgetNode(IWidget& wgt, _fFetcher fetch_ptr)
 \note 若无容器则返回 Point::Invalid 。
 \since build 167
 */
-Point
+YF_API Point
 LocateForParentContainer(const IWidget&);
 
 
@@ -108,7 +108,7 @@ LocateForParentContainer(const IWidget&);
 \pre 断言： FetchContainerPtr(wgt) 。
 \since build 171
 */
-void
+YF_API void
 MoveToLeft(IWidget& wgt);
 
 /*!
@@ -116,7 +116,7 @@ MoveToLeft(IWidget& wgt);
 \pre 断言： FetchContainerPtr(wgt) 。
 \since build 171
 */
-void
+YF_API void
 MoveToRight(IWidget& wgt);
 
 /*!
@@ -124,7 +124,7 @@ MoveToRight(IWidget& wgt);
 \pre 断言： FetchContainerPtr(wgt) 。
 \since build 171
 */
-void
+YF_API void
 MoveToTop(IWidget& wgt);
 
 /*!
@@ -132,7 +132,7 @@ MoveToTop(IWidget& wgt);
 \pre 断言： FetchContainerPtr(wgt) 。
 \since build 171
 */
-void
+YF_API void
 MoveToBottom(IWidget& wgt);
 
 
@@ -158,7 +158,7 @@ const ZOrderType DefaultWindowZOrder(128);
 \warning 非虚析构。
 \since build 167
 */
-class MUIContainer
+class YF_API MUIContainer
 {
 public:
 	typedef IWidget* ItemType; //!< 部件组项目类型。

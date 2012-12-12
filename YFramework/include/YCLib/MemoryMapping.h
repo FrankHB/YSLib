@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r91
+\version r92
 \author FrankHB<frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2012-09-04 12:27 +0800
+	2012-12-11 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ namespace platform
 \brief 只读内存映射文件。
 \since build 324
 */
-class MappedFile
+class YF_API MappedFile
 {
 private:
 	int fd;

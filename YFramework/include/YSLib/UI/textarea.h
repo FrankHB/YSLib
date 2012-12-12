@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r434
+\version r436
 \author FrankHB<frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2012-09-07 10:17 +0800
+	2012-12-11 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 /*!
 \brief 文本区域。
 */
-class TextArea : public Widget,
+class YF_API TextArea : public Widget,
 	public Drawing::TextState, public Drawing::TextRenderer
 {
 public:
@@ -66,7 +66,7 @@ public:
 /*!
 \brief 缓冲文本区域。
 */
-class BufferedTextArea : public Widget, public Drawing::TextRegion
+class YF_API BufferedTextArea : public Widget, public Drawing::TextRegion
 {
 public:
 	Drawing::Rotation Rotation; //!< 屏幕指向。

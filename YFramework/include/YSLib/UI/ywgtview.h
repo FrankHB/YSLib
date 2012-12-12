@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r513
+\version r516
 \author FrankHB<frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-12-05 20:13 +0800
+	2012-12-11 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 方向模块。
 \since build 170
 */
-class MOriented
+class YF_API MOriented
 {
 protected:
 	Drawing::Orientation Orientation;
@@ -57,7 +57,7 @@ protected:
 \warning 非虚析构。
 \since build 168
 */
-class Visual
+class YF_API Visual
 {
 private:
 	bool visible; //!< 可见性。
@@ -137,7 +137,7 @@ public:
 \brief 部件视图。
 \since build 259
 */
-class View
+class YF_API View
 {
 private:
 	Visual visual; //!< 当前可视状态。

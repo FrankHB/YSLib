@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1378
+\version r1398
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2012-09-07 10:05 +0800
+	2012-12-11 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ typedef GSStringTemplate<NativePathCharType>::basic_string NativeString;
 \brief 路径。
 \warning 非虚析构。
 */
-class Path : public String
+class YF_API Path : public String
 {
 public:
 	typedef GSStringTemplate<ucs2_t>::basic_string StringType; \
@@ -432,24 +432,24 @@ bool lexicographical_compare(Path::iterator, Path::iterator,
 /*!
 \brief 截取路径末尾的文件名。
 */
-const char*
+YF_API const char*
 GetFileNameOf(const_path_t);
 /*!
 \brief 截取路径末尾的文件名。
 */
-string
+YF_API string
 GetFileNameOf(const string&);
 
 /*!
 \brief 截取路径中的目录名并返回字符串。
 */
-string
+YF_API string
 GetDirectoryNameOf(const string&);
 
 /*!
 \brief 截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
 */
-string::size_type
+YF_API string::size_type
 SplitPath(const string&, string&, string&);
 
 
@@ -457,68 +457,68 @@ SplitPath(const string&, string&, string&);
 \brief 截取文件名开头的主文件名。
 \note 贪婪匹配。
 */
-string
+YF_API string
 GetStemOf(const string&);
 
 /*!
 \brief 对于两个字符串，判断前者是否是后者的主文件名。
 */
-bool
+YF_API bool
 IsStemOf(const char*, const char*);
 /*!
 \brief 对于两个字符串，判断前者是否是后者的主文件名。
 */
-bool
+YF_API bool
 IsStemOf(const string&, const string&);
 
 /*!
 \brief 判断指定两个文件名的主文件名是否相同。
 \note 忽略大小写；贪婪匹配。
 */
-bool
+YF_API bool
 HaveSameStems(const char*, const char*);
 /*!
 \brief 判断指定两个文件名的主文件名是否相同。
 \note 忽略大小写；贪婪匹配。
 */
-bool
+YF_API bool
 HaveSameStems(const string&, const string&);
 
 /*!
 \brief 截取文件名末尾的扩展名。
 \note 非贪婪匹配。
 */
-const char*
+YF_API const char*
 GetExtensionOf(const char*);
 /*!
 \brief 截取文件名末尾的扩展名。
 \note 非贪婪匹配。
 */
-string
+YF_API string
 GetExtensionOf(const string&);
 
 /*!
 \brief 对于两个字符串，判断前者是否是后者的扩展名。
 */
-bool
+YF_API bool
 IsExtensionOf(const char*, const char*);
 /*!
 \brief 对于两个字符串，判断前者是否是后者的扩展名。
 */
-bool
+YF_API bool
 IsExtensionOf(const string&, const string&);
 
 /*!
 \brief 判断指定两个文件名的扩展名是否相同。
 \note 忽略大小写；非贪婪匹配。
 */
-bool
+YF_API bool
 HaveSameExtensions(const char*, const char*);
 /*!
 \brief 判断指定两个文件名的扩展名是否相同。
 \note 忽略大小写；非贪婪匹配。
 */
-bool
+YF_API bool
 HaveSameExtensions(const string&, const string&);
 
 
@@ -533,7 +533,7 @@ ChangeDirectory(const_path_t path)
 /*!
 \brief 切换路径。
 */
-int
+YF_API int
 ChangeDirectory(const string&);
 
 /*!
@@ -541,14 +541,14 @@ ChangeDirectory(const string&);
 \note 不含结尾分隔符。
 \since build 304
 */
-String
+YF_API String
 GetNowDirectory();
 
 /*!
 \brief 验证绝对路径有效性。
 \since build 298
 */
-bool
+YF_API bool
 ValidatePath(const string&);
 /*!
 \brief 验证绝对路径有效性。
@@ -566,7 +566,7 @@ ValidatePath(const Path& path)
 
 
 //! \brief 文件列表模块。
-class FileList
+class YF_API FileList
 {
 public:
 	typedef String ItemType; //!< 项目名称类型。

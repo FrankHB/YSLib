@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1882
+\version r1886
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-12-09 21:02 +0800
+	2012-12-11 22:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ YSL_BEGIN_NAMESPACE(Components)
 
 实现两段延时的持续输入状态计时器。
 */
-class InputTimer
+class YF_API InputTimer
 {
 public:
 	typedef Timers::Duration Duration;
@@ -90,7 +90,7 @@ public:
 \return 当且仅当结果为 true 时或之前状态为 HeldStateType::Free 时为 true 。
 \since build 300
 */
-bool
+YF_API bool
 RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
 	const Timers::Duration&, const Timers::Duration&);
 
@@ -100,7 +100,7 @@ RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
 \warning 非虚析构。
 \since build 287
 */
-class GUIState
+class YF_API GUIState
 {
 public:
 	/*!
@@ -191,7 +191,7 @@ public:
 \since build 287
 \bug 线程安全性依赖于非并发地首次调用。
 */
-GUIState&
+YF_API GUIState&
 FetchGUIState();
 
 

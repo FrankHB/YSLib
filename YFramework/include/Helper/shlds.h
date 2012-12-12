@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1225
+\version r1227
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2012-09-07 09:55 +0800
+	2012-12-11 21:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ YSL_BEGIN_NAMESPACE(Shells)
 \brief 标准命令行界面 Shell 。
 \since build 147
 */
-class ShlCLI : public Shell
+class YF_API ShlCLI : public Shell
 {
 public:
 	/*!
@@ -73,7 +73,7 @@ YSL_BEGIN_NAMESPACE(DS)
 \brief 双屏全屏窗口 Shell 。
 \since 早于 build 132
 */
-class ShlDS : public Shell
+class YF_API ShlDS : public Shell
 {
 private:
 	/*!

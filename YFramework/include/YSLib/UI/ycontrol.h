@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4588
+\version r4600
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2012-12-04 23:04 +0800
+	2012-12-11 22:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ using namespace Drawing;
 
 保存部件的事件响应策略和状态。
 */
-class Controller : public AController
+class YF_API Controller : public AController
 {
 protected:
 	mutable EventMapping::MapType EventMap; //!< 事件映射表。
@@ -105,7 +105,7 @@ SetEnabledOf(IWidget& wgt, bool b)
 \return 可用性是否改变。
 \since build 286
 */
-bool
+YF_API bool
 Enable(IWidget&, bool = true);
 
 
@@ -123,7 +123,7 @@ NewEvent()
 /*!
 \brief 在事件映射表中取指定 id 对应的事件。
 */
-EventMapping::ItemType&
+YF_API EventMapping::ItemType&
 GetEvent(EventMapping::MapType&, const VisualEvent&,
 	EventMapping::MappedType(&)());
 
@@ -229,7 +229,7 @@ OnEvent_StopRouting(_tEventArgs&& e)
 /*!
 \brief 处理键接触保持事件。
 */
-void
+YF_API void
 OnKeyHeld(KeyEventArgs&&);
 
 /*!
@@ -241,7 +241,7 @@ OnKeyHeld(KeyEventArgs&&);
 当事件路由策略非 RoutedEventArgs::Tunnel 时请求置于顶端。
 \since build 275
 */
-void
+YF_API void
 OnTouchDown_RequestToTopFocused(TouchEventArgs&&);
 
 /*!
@@ -249,14 +249,14 @@ OnTouchDown_RequestToTopFocused(TouchEventArgs&&);
 
 实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
 */
-void
+YF_API void
 OnTouchHeld(TouchEventArgs&&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 重复触发 TouchDown 事件。
 */
-void
+YF_API void
 OnTouchMove(TouchEventArgs&&);
 
 /*!
@@ -264,7 +264,7 @@ OnTouchMove(TouchEventArgs&&);
 \note 使用拖放。
 \note 无效化当前区域，但不无效化移动后区域；通过 Move 事件可以调用无效化。
 */
-void
+YF_API void
 OnTouchMove_Dragging(TouchEventArgs&&);
 
 
@@ -276,7 +276,7 @@ OnTouchMove_Dragging(TouchEventArgs&&);
 绑定触发 TouchUp 和 Leave 事件。
 \note 仅对 Control 及其派生类有效。
 */
-void
+YF_API void
 OnKey_Bound_TouchUpAndLeave(KeyEventArgs&&);
 
 /*!
@@ -285,7 +285,7 @@ OnKey_Bound_TouchUpAndLeave(KeyEventArgs&&);
 绑定触发 Enter 和 TouchDown 事件。
 \note 仅对 Control 及其派生类有效。
 */
-void
+YF_API void
 OnKey_Bound_EnterAndTouchDown(KeyEventArgs&&);
 
 /*!
@@ -294,7 +294,7 @@ OnKey_Bound_EnterAndTouchDown(KeyEventArgs&&);
 绑定触发 Click 事件。
 \note 仅对 Control 及其派生类有效。
 */
-void
+YF_API void
 OnKey_Bound_Click(KeyEventArgs&&);
 
 
@@ -302,7 +302,7 @@ OnKey_Bound_Click(KeyEventArgs&&);
 \brief 控件。
 \since build 168
 */
-class Control : public Widget
+class YF_API Control : public Widget
 {
 protected:
 	/*!
@@ -310,7 +310,7 @@ protected:
 	\note 加载 Components::OnTouchHeld 作为 TouchHeld 事件处理器。
 	\since build 240
 	*/
-	DefExtendEventMap(ControlEventMap, VisualEventMap)
+	DefExtendEventMap(YF_API ControlEventMap, VisualEventMap)
 
 public:
 	//标准控件事件见 VisualEvent 。

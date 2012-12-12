@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1239
+\version r1242
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2012-10-28 18:41 +0800
+	2012-12-11 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -232,7 +232,7 @@ typedef GBinaryGroup<SPos> Vec;
 \brief 屏幕区域大小。
 \since build 161
 */
-class Size
+class YF_API Size
 {
 public:
 	/*!
@@ -399,7 +399,7 @@ GetAreaOf(const Size& s) ynothrow -> decltype(s.Width * s.Height)
 \warning 非虚析构。
 \since build 161
 */
-class Rect : private Point, private Size
+class YF_API Rect : private Point, private Size
 {
 public:
 	/*!
@@ -690,7 +690,7 @@ Size::Size(const Rect& r) ynothrow
 \brief 二维图形接口上下文。
 \since build 164
 */
-class Graphics
+class YF_API Graphics
 {
 public:
 	static const Graphics Invalid; //!< 无效图形接口上下文。

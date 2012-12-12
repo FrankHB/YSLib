@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2448
+\version r2451
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2012-12-04 22:22 +0800
+	2012-12-11 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \since build 205
 \todo 实现 Resize 事件调整内容布局。
 */
-class ListBox : public ScrollableContainer
+class YF_API ListBox : public ScrollableContainer
 {
 public:
 	typedef TextList::ListType ListType;
@@ -144,7 +144,7 @@ public:
 \brief 文件列表框。
 \since build 205
 */
-class FileBox : public IO::FileList, public ListBox
+class YF_API FileBox : public IO::FileList, public ListBox
 {
 public:
 	//! \since build 337
@@ -173,7 +173,7 @@ public:
 \note 顶层容器不可转换至 Panel 时忽略列表。
 \since build 282
 */
-class DropDownList : public Button
+class YF_API DropDownList : public Button
 {
 public:
 	typedef ListBox::ListType ListType;

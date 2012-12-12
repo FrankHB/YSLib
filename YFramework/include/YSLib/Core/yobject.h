@@ -12,13 +12,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3599
+\version r3601
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-11-08 17:13 +0800
+	2012-12-11 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,7 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 \see ystdex::any_holder 。
 \since build 332
 */
-DeclDerivedI(IValueHolder, ystdex::any_ops::holder)
+DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	//! \since build 353 as workaround for G++ 4.7.1
 	//@{
 	DefDeCtor(IValueHolder)
@@ -222,7 +222,7 @@ public:
 
 具有值语义和深复制语义的对象。
 */
-class ValueObject
+class YF_API ValueObject
 {
 public:
 	//! \since build 332

@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r358
+\version r362
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-12-11 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ typedef const char* const_path_t;
 \pre 断言检查：参数非空。
 \since build 326
 */
-bool
+YB_API bool
 fexists(const char*) ynothrow;
 
 
@@ -63,7 +63,7 @@ fexists(const char*) ynothrow;
 \note 忽略 std::ios_base::ate 。
 \since build 326
 */
-const char*
+YB_API const char*
 openmode_conv(std::ios_base::openmode) ynothrow;
 /*
 \brief ISO C/C++ 标准输入输出接口打开模式转换。
@@ -73,7 +73,7 @@ openmode_conv(std::ios_base::openmode) ynothrow;
 \note 支持 x 转换。
 \since build 326
 */
-std::ios_base::openmode
+YB_API std::ios_base::openmode
 openmode_conv(const char*) ynothrow;
 
 
@@ -81,7 +81,7 @@ openmode_conv(const char*) ynothrow;
 \brief 基于 ISO C 标准库的流只读迭代器。
 \since build 245
 */
-class ifile_iterator : public std::iterator<std::input_iterator_tag,
+class YB_API ifile_iterator : public std::iterator<std::input_iterator_tag,
 	byte, ptrdiff_t, const byte*, const byte&>
 {
 protected:

@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r309
+\version r311
 \author FrankHB<frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2012-12-04 22:27 +0800
+	2012-12-11 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 对话框。
 \since build 276
 */
-class DialogBox : public Control
+class YF_API DialogBox : public Control
 {
 public:
 	//! \since build 357
@@ -67,7 +67,7 @@ public:
 \brief 对话面板。
 \since build 276
 */
-class DialogPanel : public Panel
+class YF_API DialogPanel : public Panel
 {
 public:
 	/*!

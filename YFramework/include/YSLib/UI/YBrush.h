@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r244
+\version r248
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-12-11 22:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 单色画刷。
 \since build 293
 */
-class SolidBrush
+class YF_API SolidBrush
 {
 public:
 	Drawing::Color Color;
@@ -57,7 +57,7 @@ public:
 \brief 图像画刷。
 \since build 294
 */
-class ImageBrush
+class YF_API ImageBrush
 {
 public:
 	mutable shared_ptr<Drawing::Image> Image;
@@ -85,7 +85,7 @@ public:
 \warning 非虚析构。
 \since build 276
 */
-class BorderStyle
+class YF_API BorderStyle
 {
 public:
 	Color ActiveColor, InactiveColor;
@@ -99,7 +99,7 @@ public:
 \warning 非虚析构。
 \since build 284
 */
-class BorderBrush
+class YF_API BorderBrush
 {
 public:
 	/*!

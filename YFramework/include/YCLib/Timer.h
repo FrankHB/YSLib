@@ -11,13 +11,13 @@
 /*!	\file Timer.h
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r75
+\version r78
 \author FrankHB<frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:42:34 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
+	2012-12-11 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ namespace platform
 \brief 开始 tick 计时。
 \warning 首次调用前非线程安全。
 */
-void
+YF_API void
 StartTicks();
 
 /*!
@@ -46,7 +46,7 @@ StartTicks();
 \note 调用 StartTicks 。
 \warning 首次调用 StartTicks 前非线程安全。
 */
-std::uint32_t
+YF_API std::uint32_t
 GetTicks();
 
 /*!
@@ -56,7 +56,7 @@ GetTicks();
 \warning 首次调用 StartTicks 前非线程安全。
 \since build 291
 */
-std::uint64_t
+YF_API std::uint64_t
 GetHighResolutionTicks();
 
 } // namespace platform;

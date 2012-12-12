@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r384
+\version r391
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2012-09-04 12:00 +0800
+	2012-12-11 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
 \since build 215
 */
-bool
+YF_API bool
 DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
 
 
@@ -49,7 +49,7 @@ DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
 \brief 在指定图形接口上下文的矩形上画箭头。
 \since build 215
 */
-void
+YF_API void
 RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
 	Color c = ColorSpace::Black);
 
@@ -57,7 +57,7 @@ RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
 \brief 在指定图形接口上下文上画箭头。
 \since build 302
 */
-void
+YF_API void
 DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
 	Color = ColorSpace::Black);
 
@@ -66,7 +66,7 @@ DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
 \note 若不满足长和宽都大于 8 则忽略。
 \since build 302
 */
-void
+YF_API void
 DrawCross(const Graphics&, const Point&, const Size&, Color);
 
 
@@ -117,14 +117,14 @@ typedef struct
 \brief RGB 颜色转换为 HSL 颜色。
 \since build 276
 */
-hsl_t
+YF_API hsl_t
 ColorToHSL(Color);
 
 /*!
 \brief HSL 颜色转换为 RGB 颜色。
 \since build 276
 */
-Color
+YF_API Color
 HSLToColor(hsl_t);
 
 
@@ -175,7 +175,7 @@ typedef enum
 \brief 默认调色板。
 \since build 204
 */
-class Palette
+class YF_API Palette
 {
 public:
 	typedef Drawing::Color ItemType; //项目类型。

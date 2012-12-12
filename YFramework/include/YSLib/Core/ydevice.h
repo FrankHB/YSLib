@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r1971
+\version r1973
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2012-09-07 09:52 +0800
+	2012-12-11 21:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Devices)
 
 //图形设备。
-class GraphicDevice : private noncopyable, protected Drawing::Graphics
+class YF_API GraphicDevice : private noncopyable, protected Drawing::Graphics
 {
 public:
 	/*!
@@ -73,7 +73,7 @@ public:
 
 
 //屏幕。
-class Screen : public GraphicDevice
+class YF_API Screen : public GraphicDevice
 {
 public:
 	/*!

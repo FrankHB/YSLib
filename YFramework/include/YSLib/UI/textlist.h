@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r624
+\version r626
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2012-10-28 16:48 +0800
+	2012-12-11 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@ DeclDelegate(HIndexEvent, IndexEventArgs)
 \brief 文本列表。
 \since build 212
 */
-class TextList : public Control, protected MTextList
+class YF_API TextList : public Control, protected MTextList
 {
 public:
 	using MTextList::ItemType;
@@ -330,7 +330,7 @@ private:
 \brief 根据文本内容调整文本列表大小。
 \note 调整大小后自动调整视图长度。
 */
-void
+YF_API void
 ResizeForContent(TextList&);
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r549
+\version r551
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2012-09-04 12:00 +0800
+	2012-12-11 22:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ YSL_BEGIN_NAMESPACE(Components)
 无缓冲渲染策略：不保存部件渲染状态和有效的图形接口上下文。
 \since build 237
 */
-class Renderer
+class YF_API Renderer
 {
 public:
 	inline DefDeCtor(Renderer)
@@ -86,7 +86,7 @@ public:
 
 缓冲渲染策略：保存部件渲染状态和有效的图形接口上下文。
 */
-class BufferedRenderer : public Renderer
+class YF_API BufferedRenderer : public Renderer
 {
 protected:
 	mutable Rect rInvalidated; \

@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2705
+\version r2713
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-07 11:19 +0800
+	2012-12-11 21:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -235,7 +235,7 @@ PutString(_tRenderer& r, const String& str)
 \brief 空文本渲染器。
 \since build 196
 */
-class EmptyTextRenderer
+class YF_API EmptyTextRenderer
 {
 public:
 	TextState& State;
@@ -301,7 +301,7 @@ public:
 
 文本渲染器：简单实现。
 */
-class TextRenderer : public GTextRendererBase<TextRenderer>
+class YF_API TextRenderer : public GTextRendererBase<TextRenderer>
 {
 public:
 	TextState& State;
@@ -360,7 +360,7 @@ public:
 自带缓冲区的文本渲染器，通过 Alpha 贴图刷新至位图缓冲区显示光栅化文本。
 \since 早于 build 132
 */
-class TextRegion : public GTextRendererBase<TextRegion>,
+class YF_API TextRegion : public GTextRendererBase<TextRegion>,
 	public TextState, public BitmapBufferEx
 {
 public:
@@ -473,7 +473,7 @@ public:
 \param line_wrap 自动换行。
 \since build 309
 */
-void
+YF_API void
 DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 	const String& str, bool line_wrap);
 /*!
@@ -487,7 +487,7 @@ DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 \param fnt 输出时使用的字体。
 \since build 309
 */
-void
+YF_API void
 DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
 	const String& str, const Padding& margin, Color, bool line_wrap,
 	const Font& fnt = {});
@@ -500,7 +500,7 @@ DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
 \param line_wrap 自动换行。
 \since build 309
 */
-void
+YF_API void
 DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap);
 /*!
 \brief 绘制文本。
@@ -512,7 +512,7 @@ DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap);
 \param fnt 输出时使用的字体。
 \since build 309
 */
-void
+YF_API void
 DrawText(const Graphics& g, const Rect& bounds, const String& str,
 	const Padding& margin, Color, bool line_wrap, const Font& fnt = {});
 /*!
@@ -526,7 +526,7 @@ DrawText(const Graphics& g, const Rect& bounds, const String& str,
 \note 间接绘制并贴图。
 \since build 309
 */
-void
+YF_API void
 DrawText(TextRegion& r, const Graphics& g, const Point& pt, const Size& s,
 	const String& str, bool line_wrap);
 

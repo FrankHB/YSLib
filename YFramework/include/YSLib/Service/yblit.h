@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1369
+\version r1377
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2012-09-07 11:18 +0800
+	2012-12-11 21:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,7 +130,7 @@ struct VerticalLineTransfomer
 \brief 贴图边界计算器。
 \since build 189
 */
-bool
+YF_API bool
 BlitBounds(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& cs,
 	int& min_x, int& min_y, int& max_x, int& max_y);
@@ -144,16 +144,16 @@ template<bool _bSwapLR, bool _bSwapUD>
 int
 BlitScale(const Point& dp, const Size& ds, int delta_x, int delta_y);
 template<>
-int
+YF_API int
 BlitScale<false, false>(const Point&, const Size&, int, int);
 template<>
-int
+YF_API int
 BlitScale<true, false>(const Point&, const Size&, int, int);
 template<>
-int
+YF_API int
 BlitScale<false, true>(const Point&, const Size&, int, int);
 template<>
-int
+YF_API int
 BlitScale<true, true>(const Point&, const Size&, int, int);
 //@}
 
@@ -631,21 +631,21 @@ TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 \note 缓冲区指针相等时忽略。
 \since build 177
 */
-void
+YF_API void
 CopyBuffer(const Graphics&, const Graphics&);
 
 /*!
 \brief 清除图形接口上下文缓冲区。
 \since 早于 build 132
 */
-void
+YF_API void
 ClearImage(const Graphics&);
 
 /*!
 \brief 使用指定颜色填充图形接口上下文缓冲区。
 \since build 177
 */
-void
+YF_API void
 Fill(const Graphics&, Color);
 
 YSL_END_NAMESPACE(Drawing)

@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r552
+\version r556
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2012-09-21 18:40 +0800
+	2012-12-11 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@ YSL_END_NAMESPACE(Drawing)
 \note 含默认接口。
 \since build 215
 */
-class DSApplication : public Application
+class YF_API DSApplication : public Application
 {
 #if YCL_HOSTED && YCL_MULTITHREAD == 1
 private:
@@ -200,7 +200,7 @@ private:
 \note 生存期未确定。需要手动初始化并注册应用程序实例后才能使用。
 \since build 211
 */
-DSApplication&
+YF_API DSApplication&
 FetchGlobalInstance() ynothrow;
 
 /*!
@@ -229,14 +229,14 @@ FetchDefaultScreen()
 \brief 以指定前景色和背景色初始化指定屏幕的控制台。
 \since build 148
 */
-bool
+YF_API bool
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 /*!
 \brief 显示致命错误。
 \since build 175
 */
-void
+YF_API void
 ShowFatalError(const char*);
 
 //! \brief 运行时平台。

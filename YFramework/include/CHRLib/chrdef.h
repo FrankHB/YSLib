@@ -15,13 +15,13 @@
 /*!	\file chrdef.h
 \ingroup CHRLib CHRLib 库
 \brief CHRLib 类型定义。
-\version r638
+\version r639
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2012-09-04 10:42 +0800
+	2012-12-11 23:48 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 
 #include <ydef.h>
 #include <string> // for std::char_traits;
+#include <YCLib/Platform.h> // for YF_API;
 
 #define CHRLIB_BEGIN	namespace CHRLib {
 #define CHRLIB_END		}

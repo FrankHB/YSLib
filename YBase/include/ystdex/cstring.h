@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1618
+\version r1622
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2012-10-15 09:58 +0800
+	2012-12-11 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace ystdex
 \brief 带空指针检查的字符串长度计算。
 \return 当字符指针非空时为 std::strlen 计算的串长，否则为 0 。
 */
-std::size_t
+YB_API std::size_t
 strlen_n(const char*);
 
 /*!
@@ -54,7 +54,7 @@ strlen_n(const char*);
 
 当目标字符串和源字符串都非空时用 std::strcpy 复制字符串。
 */
-char*
+YB_API char*
 strcpy_n(char*, const char*);
 
 /*!
@@ -63,7 +63,7 @@ strcpy_n(char*, const char*);
 
 对传入参数进行非空检查后串接指定的两个字符串，结果复制至指定位置。
 */
-char*
+YB_API char*
 strcpycat(char*, const char*, const char*);
 
 /*!
@@ -73,7 +73,7 @@ strcpycat(char*, const char*, const char*);
 对传入参数进行非空检查后串接指定的两个字符串，
 结果复制至用指定分配函数（默认为 std::malloc）新分配的空间。
 */
-char*
+YB_API char*
 strcatdup(const char*, const char*, void*(*)(std::size_t) = std::malloc);
 
 

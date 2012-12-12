@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r677
+\version r682
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2012-09-04 13:00 +0800
+	2012-12-11 21:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,20 +77,20 @@ DrawPoint(const Graphics& g, const Point& pt, Color c)
 \brief 绘制水平线段：指定端点水平坐标 x1 、 x2 - 1 ，竖直坐标 y 。
 \pre 断言： <tt>bool(g)</tt> 。
 */
-bool
+YF_API bool
 DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c);
 
 /*!
 \brief 绘制竖直线段：指定竖直水平坐标 x ，竖直坐标 y1 - 1 、 y2 。
 \pre 断言： <tt>bool(g)</tt> 。
 */
-bool
+YF_API bool
 DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c);
 
 /*!
 \brief 绘制一般线段：端点 p1(x1, y1) 和 p2(x2, y2) 。
 */
-bool
+YF_API bool
 DrawLineSeg(const Graphics& g, SPos x1, SPos y1, SPos x2, SPos y2, Color c);
 /*!
 \brief 绘制一般线段：端点 p1, p2 。
@@ -105,7 +105,7 @@ DrawLineSeg(const Graphics& g, const Point& p1, const Point& p2, Color c)
 \brief 绘制空心正则矩形。
 \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
 */
-bool
+YF_API bool
 DrawRect(const Graphics& g, const Point& pt, const Size& s, Color c);
 /*!
 \brief 绘制空心正则矩形。
@@ -121,7 +121,7 @@ DrawRect(const Graphics& g, const Rect& r, Color c)
 \brief 绘制实心正则矩形。
 \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
 */
-bool
+YF_API bool
 FillRect(const Graphics& g, const Point& pt, const Size& s, Color c);
 /*!
 \brief 绘制实心正则矩形。

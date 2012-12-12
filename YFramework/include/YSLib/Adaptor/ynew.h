@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1136
+\version r1146
 \author FrankHB<frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
+	2012-12-11 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,21 +54,21 @@
 \brief 调试用重载 ::operator new 和 ::operator delete 。
 \since build 173
 */
-void*
+YF_API void*
 operator new(std::size_t, const char*, int) ythrow(std::bad_alloc);
-void*
+YF_API void*
 operator new[](std::size_t, const char*, int) ythrow(std::bad_alloc);
-void*
+YF_API void*
 operator new(std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
-void*
+YF_API void*
 operator new[](std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
-void
+YF_API void
 operator delete(void*, const char*, int) ynothrow;
-void
+YF_API void
 operator delete[](void*, const char*, int) ynothrow;
-void
+YF_API void
 operator delete(void*, const std::nothrow_t&, const char*, int) ynothrow;
-void
+YF_API void
 operator delete[](void*, const std::nothrow_t&, const char*, int) ynothrow;
 //@}
 #endif
@@ -82,7 +82,7 @@ class MemoryList;
 \brief 取调试用内存块列表。
 \since build 203
 */
-MemoryList&
+YF_API MemoryList&
 GetDebugMemoryList();
 
 
@@ -91,7 +91,7 @@ GetDebugMemoryList();
 \warning 非虚析构。
 \since build 173
 */
-class MemoryList : private ystdex::noncopyable
+class YF_API MemoryList : private ystdex::noncopyable
 {
 public:
 	struct BlockInfo final

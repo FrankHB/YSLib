@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2817
+\version r2823
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2012-11-19 23:53 +0800
+	2012-12-11 23:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,7 +108,7 @@ FetchName(FontStyle style) ynothrow
 \warning 非虚析构。
 \since build 145
 */
-class FontFamily : private noncopyable
+class YF_API FontFamily : private noncopyable
 {
 public:
 	typedef map<const StyleName, Typeface*> FaceMap; //!< 字型组索引类型。
@@ -160,7 +160,7 @@ public:
 \warning 非虚析构。
 \since build 145
 */
-class Typeface : private noncopyable
+class YF_API Typeface : private noncopyable
 {
 	friend ::FT_Error
 	simpleFaceRequester(::FTC_FaceID, ::FT_Library, ::FT_Pointer, ::FT_Face*);
@@ -225,7 +225,7 @@ public:
 \note 仅抛出以上异常。
 \since build 194
 */
-const Typeface&
+YF_API const Typeface&
 FetchDefaultTypeface() ythrow(LoggedEvent);
 
 
@@ -235,7 +235,7 @@ FetchDefaultTypeface() ythrow(LoggedEvent);
 \warning 若为空时调用成员函数时行为未定义。
 \since build 147
 */
-class CharBitmap
+class YF_API CharBitmap
 {
 public:
 	typedef ::FTC_SBit NativeType;
@@ -274,7 +274,7 @@ public:
 \warning 非虚析构。
 \since build 209
 */
-class FontCache : private noncopyable,
+class YF_API FontCache : private noncopyable,
 	private OwnershipTag<Typeface>, private OwnershipTag<FontFamily>
 {
 	friend class Typeface;
@@ -434,7 +434,7 @@ public:
 \warning 非虚析构。
 \since build 145
 */
-class Font
+class YF_API Font
 {
 public:
 	static yconstexpr FontSize DefaultSize = 12,

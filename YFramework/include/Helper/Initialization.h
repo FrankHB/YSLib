@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r678
+\version r687
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-09-27 14:23 +0800
+	2012-12-11 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN
 \since build 342
 \todo 使用 [[noreturn]] 。
 */
-void
+YF_API void
 HandleFatalError(const FatalError&) ynothrow;
 
 
@@ -47,7 +47,7 @@ HandleFatalError(const FatalError&) ynothrow;
 \throw LoggedEvent 文件无效导致的读取失败。
 \since build 344
 */
-ValueNode
+YF_API ValueNode
 ReadConfiguration(TextFile&);
 
 /*!
@@ -55,7 +55,7 @@ ReadConfiguration(TextFile&);
 \throw LoggedEvent 文件无效导致的写入失败。
 \since build 344
 */
-void
+YF_API void
 WriteConfiguration(TextFile&, const ValueNode&);
 
 /*!
@@ -65,7 +65,7 @@ WriteConfiguration(TextFile&, const ValueNode&);
 \note 预设行为、配置文件和配置项参考 YSLib.txt 。
 \since build 344
 */
-ValueNode
+YF_API ValueNode
 LoadConfiguration(bool bInfo = false);
 
 /*!
@@ -73,7 +73,7 @@ LoadConfiguration(bool bInfo = false);
 \return 是否保存成功。
 \since build 344
 */
-void
+YF_API void
 SaveConfiguration(const ValueNode&);
 
 
@@ -81,7 +81,7 @@ SaveConfiguration(const ValueNode&);
 \brief 初始化环境。
 \since build 342
 */
-void
+YF_API void
 InitializeEnviornment();
 
 /*!
@@ -90,7 +90,7 @@ InitializeEnviornment();
 \warning 不保证涉及 CHRLib 初始化的线程安全性。
 \since build 344
 */
-ValueNode
+YF_API ValueNode
 InitializeInstalled();
 
 /*!
@@ -100,7 +100,7 @@ InitializeInstalled();
 
 加载默认字体文件路径和默认字体目录中的字型至默认字体缓存。
 */
-void
+YF_API void
 InitializeSystemFontCache(const string&, const string&);
 
 /*!
@@ -110,7 +110,7 @@ InitializeSystemFontCache(const string&, const string&);
 
 释放初始化的资源。
 */
-void
+YF_API void
 Uninitialize() ynothrow;
 
 YSL_END

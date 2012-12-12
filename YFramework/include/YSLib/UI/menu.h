@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r793
+\version r796
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2012-10-09 10:08 +0800
+	2012-12-11 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ const ZOrderType DefaultMenuZOrder(224); //!< 默认菜单 Z 顺序值。
 \brief 文本菜单。
 \since build 252
 */
-class Menu : public TextList
+class YF_API Menu : public TextList
 {
 	friend class MenuHost;
 
@@ -166,7 +166,7 @@ protected:
 /*!
 \brief 定位菜单：以第二个参数作为参考父菜单，按指定参考偏移索引定位菜单。
 */
-void
+YF_API void
 LocateMenu(Menu&, const Menu&, Menu::IndexType);
 
 
@@ -174,7 +174,7 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 \brief 菜单宿主。
 \since build 252
 */
-class MenuHost : private noncopyable, private OwnershipTag<Menu>
+class YF_API MenuHost : private noncopyable, private OwnershipTag<Menu>
 {
 public:
 	typedef Menu* ItemType; //!< 菜单组项目类型：记录菜单控件指针。

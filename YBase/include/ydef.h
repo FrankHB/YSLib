@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2052
+\version r2107
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-12-11 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,10 +35,6 @@
 
 #ifndef YB_INC_YDEF_H_
 #define YB_INC_YDEF_H_ 1
-
-#ifndef NDEBUG
-#	define YB_USE_YASSERT
-#endif
 
 #ifdef __cplusplus
 #	define YB_IMPL_CPP __cplusplus
@@ -149,6 +145,57 @@
 
 
 /*!
+\def YB_DLL
+\brief 使用 YBase 动态链接库。
+\since build 362
+*/
+/*!
+\def YB_BUILD_DLL
+\brief 构建 YBase 动态链接库。
+\since build 362
+*/
+/*!
+\def YB_API
+\brief YBase 应用程序编程接口：用于向库文件约定链接。
+\since build 362
+\todo 判断语言实现。
+*/
+#if defined(YB_DLL) && defined(YB_BUILD_DLL)
+#	error DLL could not be built and used at the same time!
+#endif
+
+#ifdef YB_DLL
+#	define YB_API __declspec(dllimport)
+#elif defined(YB_BUILD_DLL)
+#	define YB_API __declspec(dllexport)
+#else
+#	define YB_API
+#endif
+
+
+#ifndef NDEBUG
+#	define YB_USE_YASSERT
+#endif
+
+
+/*!
+\def YB_USE_EXCEPTION_SPECIFICATION
+\brief 使用 YSLib 动态异常规范。
+\since build 362
+*/
+#ifndef NDEBUG
+#	define YB_USE_EXCEPTION_SPECIFICATION 1
+#endif
+
+
+/*!	\defgroup YBase_pseudo_keyword YBase Specified Pseudo-Keywords
+\brief YBase 指定的替代关键字。
+\since build 362
+*/
+
+
+/*!
+\ingroup YBase_pseudo_keyword
 \def yalignof
 \brief 指定特定类型的对齐。
 \note 同 C++11 alignof 作用于类型时的语义。
@@ -163,11 +210,13 @@
 
 
 /*!
+\ingroup YBase_pseudo_keyword
 \def yconstexpr
 \brief 指定编译时常量表达式。
 \note 同 C++11 constepxr 作用于编译时常量的语义。
 */
 /*!
+\ingroup YBase_pseudo_keyword
 \def yconstfn
 \brief 指定编译时常量函数。
 \note 同 C++11 constepxr 作用于编译时常量函数的语义。
@@ -182,25 +231,19 @@
 
 
 /*!
-\def YCL_USE_EXCEPTION_SPECIFICATION
-\brief 使用 YSLib 动态异常规范。
-*/
-#ifndef NDEBUG
-#	define YCL_USE_EXCEPTION_SPECIFICATION 1
-#endif
-
-/*!
+\ingroup YBase_pseudo_keyword
 \def ythrow
 \brief YSLib 动态异常规范：根据是否使用异常规范宏指定或忽略动态异常规范。
 \note ythrow = "yielded throwing" 。
 */
-#if YCL_USE_EXCEPTION_SPECIFICATION
+#if YB_USE_EXCEPTION_SPECIFICATION
 #	define ythrow throw
 #else
 #	define ythrow(...)
 #endif
 
 /*!
+\ingroup YBase_pseudo_keyword
 \def ynothrow
 \brief YSLib 无异常抛出保证：若支持 noexcept 关键字，指定特定的 noexcept 异常规范。
 */
@@ -211,7 +254,8 @@
 #endif
 
 /*!
-\def ynothrow
+\ingroup YBase_pseudo_keyword
+\def ynoexcept
 \brief YSLib 无异常抛出保证：指定特定的异常规范。
 \since build 319
 */
@@ -223,6 +267,7 @@
 
 
 /*!
+\ingroup YBase_pseudo_keyword
 \def yconstraint
 \brief 约束：接口语义。
 \note 和普通断言相比强调接口契约。对于移植特定的平台实现时应予以特别注意。
@@ -233,6 +278,7 @@
 #define yconstraint assert
 
 /*!
+\ingroup YBase_pseudo_keyword
 \def yassume
 \brief 假定：环境语义。
 \note 和普通断言相比强调非接口契约。对于移植特定的平台实现时应予以特别注意。
@@ -369,6 +415,7 @@ class offsetof_check
 };
 
 /*!
+\ingroup YBase_pseudo_keyword
 \def yoffsetof
 \brief 带有静态类型检查的成员偏移计算。
 \see ISO C++ 18.2/4 。
@@ -383,6 +430,7 @@ class offsetof_check
 
 
 /*!
+\ingroup YBase_pseudo_keyword
 \brief 根据参数类型使用 std::forward 传递对应参数。
 \since build 245
 
@@ -406,6 +454,7 @@ unsequenced(_type&& arg, _tParams&&...) -> decltype(yforward(arg))
 }
 
 /*!
+\ingroup YBase_pseudo_keyword
 \brief 无序列依赖表达式组求值。
 \note 由于实现限制，无法用于 void 类型表达式组。
 \note 使用一元形式 %yunsequenced((_expr)) 的形式标记表达式组但不取消序列关系。

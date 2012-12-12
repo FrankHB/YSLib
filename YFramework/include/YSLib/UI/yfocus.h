@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1698
+\version r1706
 \author FrankHB<frankhb1989@gmail.com>
 \since build 168
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2012-09-04 12:00 +0800
+	2012-12-11 22:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN_NAMESPACE(Components)
 /*!
 \brief 判断部件是否取得焦点。
 */
-bool
+YF_API bool
 IsFocused(const IWidget&);
 
 /*!
@@ -46,7 +46,7 @@ IsFocused(const IWidget&);
 \return 是否成功。
 \since build 315
 */
-bool
+YF_API bool
 DoRequestFocus(IWidget&, bool release_event = false);
 
 /*!
@@ -54,7 +54,7 @@ DoRequestFocus(IWidget&, bool release_event = false);
 \return 是否成功。
 \since build 315
 */
-bool
+YF_API bool
 DoReleaseFocus(IWidget&);
 
 /*!
@@ -63,7 +63,7 @@ DoReleaseFocus(IWidget&);
 \param src 事件源。
 \note 若成功则在 dst 上触发 src 发送的 GotFocus 事件。
 */
-void
+YF_API void
 RequestFocusFrom(IWidget& dst, IWidget& src);
 
 /*!
@@ -72,7 +72,7 @@ RequestFocusFrom(IWidget& dst, IWidget& src);
 \param src 事件源。
 \note 若成功则在 dst 上触发 src 发送的 LostFocus 事件。
 */
-void
+YF_API void
 ReleaseFocusFrom(IWidget& dst, IWidget& src);
 
 /*!
@@ -100,19 +100,19 @@ ReleaseFocus(IWidget& wgt)
 \note 若此部件非容器则无效。
 \since build 258
 */
-void
+YF_API void
 ClearFocusingOf(IWidget&);
 
 /*!
 \brief 级联请求部件及上层容器焦点。
 */
-void
+YF_API void
 RequestFocusCascade(IWidget&);
 
 /*!
 \brief 级联释放部件及上层容器焦点。
 */
-void
+YF_API void
 ReleaseFocusCascade(IWidget&);
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1077
+\version r1078
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-10-28 16:45 +0800
+	2012-12-11 21:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN
 \brief 文件基类。
 \since build 206
 */
-class File : private noncopyable
+class YF_API File : private noncopyable
 {
 private:
 	//! \since build 341

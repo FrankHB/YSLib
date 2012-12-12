@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3752
+\version r3756
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2012-09-07 09:59 +0800
+	2012-12-11 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Text)
 \brief 文本文件块缓冲区。
 \since build 145
 */
-class TextFileBuffer
+class YF_API TextFileBuffer
 {
 public:
 	/*!
@@ -61,8 +61,8 @@ public:
 	\brief 目标编码迭代器类型。
 	\since build 273
 	*/
-	class Iterator : std::iterator<std::bidirectional_iterator_tag, ucs2_t,
-		ptrdiff_t, const ucs2_t, const ucs2_t&>
+	class YF_API Iterator : std::iterator<std::bidirectional_iterator_tag,
+		ucs2_t, ptrdiff_t, const ucs2_t, const ucs2_t&>
 	{
 		friend class TextFileBuffer;
 
@@ -97,7 +97,7 @@ public:
 		/*!
 		\brief 比较：相等关系。
 		*/
-		friend bool
+		YF_API friend bool
 		operator==(const Iterator&, const Iterator&) ynothrow;
 
 		DefGetter(const ynothrow, TextFileBuffer*, BufferPtr, pBuffer)

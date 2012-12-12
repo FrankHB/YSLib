@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4845 *build 361 rev *
+\version r4846 *build 362 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-11 18:19 +0800
+	2012-12-13 03:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -400,56 +400,118 @@ $using:
 
 
 $DONE:
-r1-r2:
-/= 2 test 1 @ platform MinGW32;
+r1:
+/ @ \h YDefinition $=
+(
+	+ $doc group YBase_pseudo_keyword,
+	/ \mac YCL_USE_EXCEPTION_SPECIFICATION => YB_USE_EXCEPTION_SPECIFICATION,
+	+ external \mac (YB_DLL, YB_BUILD_DLL), \mac YB_API
+);
++ 'YB_API' @ (exporting interfaces which whose \def also appeared corespoding
+	@ \impl \u) @ \h (Any, CStandardIO, CString),
+/ @ Code::Blocks \proj \conf $=
+(
+	+ \mac YB_BUILD_DLL @ \conf '*_DLL' @ platform MinGW32 @ \proj YBase,
+	/ @ \conf '*_DLL' @ platform MinGW32 @ \proj YFramework $=
+	(
+		+ \mac YB_DLL,
+		^ "YBase.dll" ~ "libYBase.a" @ linking
+	),
+	/ @ \conf '*_DLL' @ platform MinGW32 @ \proj YSTest $=
+	(
+		+ \mac YB_DLL,
+		+ "YBase.dll" @ linking
+	)
+);
+/= test 1 @ platform MinGW32;
 
-r3:
-* missing submenu test $since b360 $=
-	(/ \impl @ \ctor ShlExplorer @ \impl \u Shells);
+r2:
+/ @ \h Platform $=
+(
+	+ external \mac (YF_DLL, YF_BUILD_DLL);
+	/ \mac \def YF_API
+),
+/ @ \h YBaseMacro $=
+(
+	/ \mac DeclDerivedI(_n, ...) -> DeclDerivedI(_a, _n, ...),
+	/ \mac DeclI(_n) -> DeclI(_a, _n),
+	/ \mac DefExtendClass1(_n, _b, _a) -> DefExtendClass(_attr, _n, ...)
+),
+/ \tr \impl @ \mac DefExtendEventMap @ \h YEvent;
++ 'YF_API' @ (exporting interfaces which whose \def also appeared corespoding
+	@ \impl \u) @ \h ((Debug, FileSystem, Input, MemoryMapping, NativeAPI,
+	Timer, Video, YCommon) @ \dir YCLib, (Configuration, Lexical, SContext)
+	@ \dir NPL, (DSMain, Initialization, InputManager, ShellHelper, Shell_DS)
+	@ \dir Helper, ((Font, YNew) @ \dir Adaptor, (ValueNode, YApplication,
+	YDevice, YException, YFileSystem, YGDIBase, YMessage, YObject,
+	YShellDefinition, YShell, YString) @ \dir Core, (CharRenderer, TextBase,
+	TextLayout, TextManager, TextRenderer, YBlit, YDraw, YFile, YFile_(Text),
+	YGDI, YResource, YTimer) @ \dir Service, (Button, ComboList, Console,
+	Label, Menu, Progress, Scroll, Selector, TextArea, TextList, UIContainerEx,
+	YBrush, YComponent, YControl, YDesktop, YFocus, YGUI, YPanel, YRenderer,
+	YStyle, YUIContainer, YWidgetEvent, YWidgetView, YWidget, YWindow)
+	@ \dir UI) @ \dir YSLib),
+(
+	+ \inc <YCLib/Platform.h> @ \h CHRDefinition;
+	+ 'YF_API' @ (exporting interfaces which whose \def also appeared
+		corespoding @ \impl \u) @ \h (CHRMapping, CHRProcessing)
+),
+^ \mac YF_BUILD_DLL ~ YF_DLL @ Code::Blocks \conf '*_DLL'
+	@ platform MinGW32 @ \proj YFramework;
 /= test 2 @ platform MinGW32;
 
-r4-r12:
-/= 9 test 3 @ platform MinGW32;
+r3:
+/= test 3 @ platform MinGW32 ^ \conf release;
 
-r13-r18:
-* $doc difference with implementation for appended events order
-	when GUI key and touch events are handled $since b199,
-+ direct routed event handling when handled mark of argument is set
-	@ \impl @ \mf (ResponseKey, ResponseTouch) @ \cl GUIState,
-/= 6 test 4 @ platform MinGW32;
+r4:
+/= test 4 @ platform DS;
 
-r19-r36:
-/= 18 test 5 @ platform MinGW32;
+r5:
+/= test 5 @ platform DS ^ \conf release;
 
-r37:
-/ \mac 'YCL_DLL' => 'YF_DLL',
-- \mac 'YCL_FUNCTION_NO_EQUALITY_GUARANTEE',
-- additional linker \opt '-Wl,--enable-runtime-pseudo-reloc'
-	@ Code::Blocks projects \conf '*_DLL' @ platform MinGW32;
-/= test 6 @ platform MinGW32;
+r6-r16:
+/= 11 test 6 @ platform MinGW32;
 
-r38:
-/= test 7 @ platform MinGW32 ^ \conf release;
+r17:
+* failed comparing equality of function pointers across DLL boundaries
+	$since b300 $=
+	(/ \impl @ \mf \op== @ defined(YF_DLL) || defined(YF_BUILD_DLL)
+		@ \clt GHEvent @ \h YEvent);
+* $comp no effect on removing halders of function type of events $since b300
+	@ \conf '*_DLL' @ platform MinGW32;
+/= test 7 @ platform MinGW32;
 
-r39:
-/= test 8 @ platform DS;
+r18-r19:
+/= 2 test 8 @ platform MinGW32;
 
-r40:
-/= test 9 @ platform DS ^ \conf release;
+r20:
+/= test 9 @ platform MinGW32 ^ \conf release;
+
+r21:
+/= test 10 @ platform DS;
+
+r22:
+/= test 11 @ platform DS ^ \conf release;
+
+r23-r24:
+/= 2 test 12 @ platform MinGW32;
+
+r25:
+/= test 13 @ platform MinGW32 ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-11 +0800:
--34.3d;
-// Mercurial rev1-rev233: r9588;
+2012-12-13 +0800:
+-30.3d;
+// Mercurial rev1-rev234: r9613;
 
 / ...
 
 
 $NEXT_TODO:
-b362-b380:
+b363-b380:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -852,6 +914,7 @@ http://lists.cs.uiuc.edu/pipermail/cfe-dev/2011-October/017831.html
 
 $bin_image_eq $=
 (
+	"platform %DS" (b361r, b362r),
 	"platform %DS" (b353, b354),
 	"platform %DS" (b313, b314)
 );
@@ -960,6 +1023,34 @@ $module_tree $=
 );
 
 $now
+(
+	/ $dev %'YBase' $=
+	(
+		+ $doc "macro group %YBase_pseudo_keyword",
+		/ "macro %YCL_USE_EXCEPTION_SPECIFICATION"
+			=> "YB_USE_EXCEPTION_SPECIFICATION",
+		+ "external macro %(YB_DLL, YB_BUILD_DLL) for using and building DLL";
+		+ "macro %YB_API";
+		/ "all non-templated public interface specified by %YB_API",
+		/ $build "linking options" @ "MinGW32 '*_DLL' Code::Blocks projects"
+	);
+	/ %'YFramework' $=
+	(
+		+ "external macro %(YF_DLL, YF_BUILD_DLL) for using and building DLL";
+		+ "macro %YF_API" @ %'YCLib'.'Platform';
+		/ "all non-templated public interface specified by %YF_API except \
+			for FreeType",
+		/ $build "linking options" @ "MinGW32 '*_DLL' Code::Blocks projects",
+		* @ "platform %MinGW32" $since b300 $=
+		(
+			* "failed comparing equality of function pointers across \
+				DLL boundaries";
+			* $comp "no effect on removing halders of function type of events"
+		)
+	)
+),
+
+b361
 (
 	* "missing submenu test" @ %'YReader'.'shells test example' $since b360,
 	/ %'YFramework' $=

@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r431
+\version r441
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2012-12-11 17:38 +0800
+	2012-12-11 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,18 @@
 \since build 361
 */
 
+#if defined(YF_DLL) && defined(YF_BUILD_DLL)
+#	error DLL could not be built and used at the same time!
+#endif
+
+#ifdef YF_DLL
+#	define YF_API __declspec(dllimport)
+#elif defined(YF_BUILD_DLL)
+#	define YF_API __declspec(dllexport)
+#else
+#	define YF_API
+#endif
+
 /*!
 \def YCL_MULTITHREAD
 \brief 多线程环境。
@@ -62,9 +74,6 @@
 \li 1 单一宿主支持。
 \since build 322
 */
-
-#ifdef YF_DLL
-#endif
 
 /*!
 \ingroup Platforms

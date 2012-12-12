@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r511
+\version r515
 \author FrankHB<frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2012-09-04 12:27 +0800
+	2012-12-11 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,16 +204,16 @@ typedef struct DIR
 } DIR;
 
 
-DIR*
+YF_API DIR*
 opendir(const char*);
 
-dirent*
+YF_API dirent*
 readdir(DIR*);
 
-void
+YF_API void
 rewinddir(DIR*);
 
-int
+YF_API int
 closedir(DIR*);
 
 /*!

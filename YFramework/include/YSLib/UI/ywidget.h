@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5414
+\version r5431
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-12-05 20:10 +0800
+	2012-12-11 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ typedef pair<WidgetIterator, WidgetIterator> WidgetRange;
 \brief 部件接口。
 \since 早于 build 132
 */
-DeclI(IWidget)
+DeclI(YF_API, IWidget)
 	/*!
 	\brief 取渲染器。
 	*/
@@ -91,7 +91,7 @@ IsVisible(const IWidget& wgt)
 \since build 167
 */
 bool
-Contains(const IWidget&, SPos, SPos);
+YF_API Contains(const IWidget&, SPos, SPos);
 /*!
 \brief 判断点是否在部件的可视区域内。
 \since build 167
@@ -107,7 +107,7 @@ Contains(const IWidget& wgt, const Point& pt)
 \since build 173
 */
 bool
-ContainsVisible(const IWidget& wgt, SPos x, SPos y);
+YF_API ContainsVisible(const IWidget& wgt, SPos x, SPos y);
 /*!
 \brief 判断点是否在可见部件的可视区域内。
 \since build 173
@@ -179,7 +179,7 @@ GetBoundsOf(const IWidget& wgt)
 \brief 设置部件边界。
 \since build 177
 */
-void
+YF_API void
 SetBoundsOf(IWidget&, const Rect&);
 
 /*!
@@ -196,7 +196,7 @@ SetContainerPtrOf(IWidget& wgt, IWidget* pCon = {})
 \brief 设置部件的无效区域。
 \since build 231
 */
-void
+YF_API void
 SetInvalidationOf(IWidget&);
 
 /*!
@@ -204,21 +204,21 @@ SetInvalidationOf(IWidget&);
 \note 若容器不存在则忽略。
 \since build 229
 */
-void
+YF_API void
 SetInvalidationToParent(IWidget&);
 
 /*!
 \brief 设置部件左上角所在位置（相对于容器的偏移坐标）。
 \since build 259
 */
-void
+YF_API void
 SetLocationOf(IWidget&, const Point&);
 
 /*
 \brief 设置部件大小。
 \since build 259
 */
-void
+YF_API void
 SetSizeOf(IWidget&, const Size&);
 
 /*!
@@ -238,14 +238,14 @@ SetVisibleOf(IWidget& wgt, bool b)
 
 隐藏部件后取消容器（若存在）焦点状态。
 */
-void
+YF_API void
 Close(IWidget&);
 
 /*!
 \brief 在指定部件中心画箭头。
 \since build 302
 */
-void
+YF_API void
 DrawArrow(PaintEventArgs&&, IWidget&, SDst = 4, Drawing::Rotation
 	= Drawing::RDeg0, Drawing::Color = Drawing::ColorSpace::Black);
 
@@ -254,20 +254,20 @@ DrawArrow(PaintEventArgs&&, IWidget&, SDst = 4, Drawing::Rotation
 \since build 229
 依次释放部件焦点、设置部件不可见性和无效化。
 */
-void
+YF_API void
 Hide(IWidget&);
 
 /*!
 \brief 无效化：使部件区域在直接和间接的窗口缓冲区中无效。
 \since build 224
 */
-void
+YF_API void
 Invalidate(IWidget&);
 /*!
 \brief 无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
 \since build 268
 */
-void
+YF_API void
 Invalidate(IWidget&, const Rect&);
 
 /*
@@ -280,7 +280,7 @@ Invalidate(IWidget&, const Rect&);
 调用中， e.Location 被修改为相对子部件的坐标， e.ClipArea 被覆盖为相交区域。
 之后， e 可继续被 e.GetSender() 的渲染器的 Paint 方法修改。
 */
-void
+YF_API void
 PaintChild(IWidget& wgt, PaintEventArgs&& e);
 /*
 \brief 调用指定子部件的 Paint 事件绘制指定子部件。
@@ -291,7 +291,7 @@ PaintChild(IWidget& wgt, PaintEventArgs&& e);
 以 wgt 作为绘制目标，判断其边界是否和区域 pc.ClipArea 相交，
 若相交区域非空则调用 wgt 的渲染器的 Paint 方法绘制 。
 */
-Rect
+YF_API Rect
 PaintChild(IWidget& wgt, const PaintContext& pc);
 
 
@@ -300,7 +300,7 @@ PaintChild(IWidget& wgt, const PaintContext& pc);
 \since build 192
 \todo 完全实现提升 IWidget 至容器顶端（目前仅实现父容器为 Panel 的情形）。
 */
-void
+YF_API void
 RequestToTop(IWidget&);
 
 
@@ -310,7 +310,7 @@ RequestToTop(IWidget&);
 依次设置部件可见性、请求部件焦点和无效化。
 \since build 229
 */
-void
+YF_API void
 Show(IWidget&);
 
 
@@ -318,7 +318,7 @@ Show(IWidget&);
 \brief 部件。
 \since 早于 build 132
 */
-class Widget : implements IWidget
+class YF_API Widget : implements IWidget
 {
 public:
 	/*!

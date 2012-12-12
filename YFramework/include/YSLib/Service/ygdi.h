@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3349
+\version r3360
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-10-50 10:49 +0800
+	2012-12-11 21:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \brief 空白样式。
 \warning 非虚析构。
 */
-struct Padding
+struct YF_API Padding
 {
 	SDst Left, Right, Top, Bottom; //!< 空白距离：左、右、上、下。
 
@@ -63,13 +63,13 @@ struct Padding
 /*!
 \brief 加法：对应分量调用 operator+ 。
 */
-Padding
+YF_API Padding
 operator+(const Padding&, const Padding&);
 /*!
 \brief 加法：缩小屏幕正则矩形，相对位置由指定边距决定。
 \note 若边距过大，则矩形的宽或高可能为 0 。
 */
-Rect
+YF_API Rect
 operator+(const Rect&, const Padding&);
 
 
@@ -95,14 +95,14 @@ GetVerticalOf(const Padding& m)
 \brief 取边距。
 \note 64 位无符号整数形式。
 */
-u64
+YF_API u64
 GetAllOf(const Padding&);
 
 /*!
 \brief 设置边距。
 \note 4 个 \c SDst 形式。
 */
-void
+YF_API void
 SetAllOf(Padding&, SDst, SDst, SDst, SDst);
 /*!
 \brief 设置边距。
@@ -127,7 +127,7 @@ SetAllOf(Padding& m, SDst h, SDst v)
 /*!
 \brief 取内边界相对于外边界的边距。
 */
-Padding
+YF_API Padding
 FetchMargin(const Rect&, const Size&);
 
 
@@ -136,7 +136,7 @@ FetchMargin(const Rect&, const Size&);
 \note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
 	std::is_nothrow_move_assignable<T>::value</tt> 。
 */
-class BitmapBuffer : protected Graphics
+class YF_API BitmapBuffer : protected Graphics
 {
 public:
 	/*!
@@ -245,7 +245,7 @@ public:
 \note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
 	std::is_nothrow_move_assignable<T>::value</tt> 。
 */
-class BitmapBufferEx : public BitmapBuffer
+class YF_API BitmapBufferEx : public BitmapBuffer
 {
 protected:
 	u8* pBufferAlpha; //!<  Alpha 缓冲区指针。
@@ -337,7 +337,7 @@ public:
 以指定图形接口上下文作为源，向指定大小和点（相对左上角）的
 	指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
-bool
+YF_API bool
 CopyTo(BitmapPtr, const Graphics&, const Size&, const Point&, const Point&,
 	const Size&, Rotation = RDeg0);
 /*!
@@ -346,7 +346,7 @@ CopyTo(BitmapPtr, const Graphics&, const Size&, const Point&, const Point&,
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
-bool
+YF_API bool
 CopyTo(BitmapPtr, const BitmapBufferEx&, const Size&,
 	const Point&, const Point&, const Size&, Rotation = RDeg0);
 /*!
@@ -385,7 +385,7 @@ CopyTo(const Graphics& dst, const BitmapBufferEx& src,
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向以缓冲区内容贴图。
 */
-bool
+YF_API bool
 BlitTo(BitmapPtr, const BitmapBufferEx&, const Size&,
 	const Point&, const Point&, const Size&, Rotation = RDeg0);
 /*!

@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1256
+\version r1266
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2012-10-28 19:20 +0800
+	2012-12-11 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ yconstexpr EventPriority ForegroundPriority(0x40);
 \warning 非虚析构。
 \since build 255
 */
-struct UIEventArgs
+struct YF_API UIEventArgs
 {
 private:
 	IWidget* pSender;
@@ -84,7 +84,7 @@ public:
 \warning 非虚析构。
 \since build 195
 */
-struct RoutedEventArgs : public UIEventArgs
+struct YF_API RoutedEventArgs : public UIEventArgs
 {
 public:
 	//! 事件路由策略枚举。
@@ -118,7 +118,7 @@ typedef Drawing::Point MScreenPositionEventArgs;
 \warning 非虚析构。
 \since 早于 build 132
 */
-struct InputEventArgs : public RoutedEventArgs
+struct YF_API InputEventArgs : public RoutedEventArgs
 {
 public:
 	/*!
@@ -152,7 +152,7 @@ public:
 \warning 非虚析构。
 \since 早于 build 132
 */
-struct KeyEventArgs : public InputEventArgs
+struct YF_API KeyEventArgs : public InputEventArgs
 {
 public:
 	typedef KeyInput InputType; //!< 输入类型。
@@ -169,7 +169,7 @@ public:
 \warning 非虚析构。
 \since 早于 build 132
 */
-struct TouchEventArgs : public InputEventArgs, public MScreenPositionEventArgs
+struct YF_API TouchEventArgs : public InputEventArgs, public MScreenPositionEventArgs
 {
 public:
 	typedef Drawing::Point InputType; //!< 输入类型。
@@ -215,7 +215,7 @@ struct GValueEventArgs : public UIEventArgs
 \warning 非虚析构。
 \since build 255
 */
-struct PaintContext
+struct YF_API PaintContext
 {
 	Drawing::Graphics Target; //!< 渲染目标：图形接口上下文。
 	Drawing::Point Location; //!< 相对渲染目标的偏移坐标，指定部件左上角的位置。
@@ -235,7 +235,7 @@ struct PaintContext
 \warning 非虚析构。
 \since build 242
 */
-struct PaintEventArgs : public UIEventArgs, public PaintContext
+struct YF_API PaintEventArgs : public UIEventArgs, public PaintContext
 {
 	PaintEventArgs(IWidget&);
 	PaintEventArgs(IWidget&, const PaintContext&);
@@ -357,7 +357,7 @@ typedef EventMapping::MapType VisualEventMap;
 
 
 //! \brief 错误或不存在的部件事件异常。
-struct BadEvent
+struct YF_API BadEvent
 {};
 
 
@@ -365,7 +365,7 @@ struct BadEvent
 \brief 控制器抽象类。
 \since build 243
 */
-class AController
+class YF_API AController
 {
 private:
 	bool enabled; //!< 控件可用性。
@@ -439,7 +439,7 @@ DoEvent(AController& controller, const VisualEvent& id,
 \brief 部件控制器。
 \since build 236
 */
-class WidgetController : public AController
+class YF_API WidgetController : public AController
 {
 public:
 	//! \since build 331

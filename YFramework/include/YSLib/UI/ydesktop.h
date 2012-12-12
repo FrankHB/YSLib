@@ -11,13 +11,13 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r1382
+\version r1383
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-02 12:00:08 +0800
 \par 修改时间:
-	2012-09-07 10:59 +0800
+	2012-12-11 22:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 桌面。
 \since 早于 build 132
 */
-class Desktop : public Window
+class YF_API Desktop : public Window
 {
 private:
 	Devices::Screen& screen; //!< 屏幕对象。

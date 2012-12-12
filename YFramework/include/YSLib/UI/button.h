@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r2223
+\version r2227
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2012-10-26 18:24 +0800
+	2012-12-11 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 基本按钮/滑块。
 \since build 205
 */
-class Thumb : public Control
+class YF_API Thumb : public Control
 {
 protected:
 	/*!
@@ -80,7 +80,7 @@ public:
 \brief 绘制指定色调的基本按钮背景。
 \since build 302
 */
-void
+YF_API void
 DrawThumbBackground(PaintEventArgs&& e, Thumb&, Hue);
 
 
@@ -90,7 +90,7 @@ DrawThumbBackground(PaintEventArgs&& e, Thumb&, Hue);
 
 在指定 Thumb 上增加 Click 事件响应：关闭父容器；增加 Paint 事件响应：绘制“×”。
 */
-void
+YF_API void
 DecorateAsCloseButton(Thumb&);
 
 
@@ -98,7 +98,7 @@ DecorateAsCloseButton(Thumb&);
 \brief 按钮。
 \since build 205
 */
-class Button : public Thumb, protected MLabel
+class YF_API Button : public Thumb, protected MLabel
 {
 public:
 	using MLabel::Font;

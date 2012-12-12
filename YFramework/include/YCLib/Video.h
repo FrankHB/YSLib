@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r540
+\version r547
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2012-12-06 17:03 +0800
+	2012-12-11 21:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,7 +186,7 @@ typedef enum : std::uint32_t
 
 
 //! \brief 颜色。
-class Color
+class YF_API Color
 {
 public:
 	typedef ColorSpace::ColorSet ColorSet;
@@ -362,7 +362,7 @@ yconstexpr platform::Color ConsoleColors[]{ColorSpace::Black, ColorSpace::Navy,
 \brief 启动控制台。
 \note fc 为前景色，bc为背景色。
 */
-void
+YF_API void
 YConsoleInit(std::uint8_t dspIndex,
 	Color fc = ColorSpace::White, Color bc = ColorSpace::Black);
 
@@ -371,7 +371,7 @@ YConsoleInit(std::uint8_t dspIndex,
 \brief 初始化视频输出。
 \warning 不保证线程安全性。
 */
-bool
+YF_API bool
 InitVideo();
 
 } // namespace platform;
@@ -385,20 +385,20 @@ namespace platform_ex
 /*!
 \brief 复位屏幕显示模式。
 */
-void
+YF_API void
 ResetVideo();
 
 
 /*!
 \brief 默认上屏初始化函数。
 */
-platform::BitmapPtr
+YF_API platform::BitmapPtr
 InitScrUp(int&);
 
 /*!
 \brief 默认下屏初始化函数。
 */
-platform::BitmapPtr
+YF_API platform::BitmapPtr
 InitScrDown(int&);
 
 /*!
@@ -406,7 +406,7 @@ InitScrDown(int&);
 \note 第一参数为显示屏缓冲区，第二参数为源缓冲区。
 \since build 319
 */
-void
+YF_API void
 ScreenSynchronize(platform::PixelType*, const platform::PixelType*) ynothrow;
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4296
+\version r4304
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2012-10-28 20:45 +0800
+	2012-12-13 02:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN
 \since build 333
 */
 template<typename... _tParams>
-DeclI(GIHEvent)
+DeclI(, GIHEvent)
 	DeclIEntry(size_t operator()(_tParams...) const)
 	DeclIEntry(GIHEvent* Clone() const)
 EndDecl
@@ -141,7 +141,13 @@ public:
 	yconstfn bool
 	operator==(const GHEvent& h) const
 	{
-		return comp_eq == h.comp_eq && (comp_eq(*this, h));
+		return
+#if defined(YF_DLL) || defined(YF_BUILD_DLL)
+			BaseType::target_type() == h.BaseType::target_type()
+#else
+			comp_eq == h.comp_eq
+#endif
+			&& (comp_eq(*this, h));
 	}
 
 	/*!
@@ -731,7 +737,7 @@ public:
 \since build 240
 */
 #define DefExtendEventMap(_n, _b) \
-	DefExtendClass1(_n, _b, public)
+	DefExtendClass(YF_API, _n, public _b)
 
 YSL_END
 

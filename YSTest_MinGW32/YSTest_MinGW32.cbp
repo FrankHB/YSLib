@@ -50,10 +50,12 @@
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-DYB_DLL" />
 					<Add option="-DYF_DLL" />
 				</Compiler>
 				<Linker>
 					<Add library="..\YFramework_MinGW32\debug\YFramework.dll" />
+					<Add library="..\YBase_MinGW32\debug\YBase.dll" />
 				</Linker>
 				<ExtraCommands>
 					<Add before='cmd /c copy &quot;..\YBase_MinGW32\debug\YBase.dll&quot; &quot;debug\YBase.dll&quot;' />
@@ -71,11 +73,13 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-DNDEBUG" />
+					<Add option="-DYB_DLL" />
 					<Add option="-DYF_DLL" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="..\YFramework_MinGW32\release\YFramework.dll" />
+					<Add library="..\YBase_MinGW32\release\YBase.dll" />
 				</Linker>
 				<ExtraCommands>
 					<Add before='cmd /c copy &quot;..\YBase_MinGW32\release\YBase.dll&quot; &quot;release\YBase.dll&quot;' />

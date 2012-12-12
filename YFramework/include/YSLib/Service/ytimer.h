@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r863
+\version r868
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2012-09-07 10:07 +0800
+	2012-12-12 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ YSL_BEGIN_NAMESPACE(Timers)
 \brief 高精度时钟。
 \since build 291
 */
-class HighResolutionClock
+class YF_API HighResolutionClock
 {
 public:
 	typedef std::chrono::nanoseconds duration;
@@ -93,7 +93,7 @@ typedef std::chrono::milliseconds TimeSpan;
 \brief 延时。
 \since build 291
 */
-void
+YF_API void
 Delay(const TimeSpan&);
 
 
@@ -102,7 +102,7 @@ Delay(const TimeSpan&);
 \warning 非虚析构。
 \since build 243
 */
-class Timer : private noncopyable, protected GMCounter<Timer>
+class YF_API Timer : private noncopyable, protected GMCounter<Timer>
 {
 public:
 	typedef map<u32, Timer*> TimerMap; //!< 计时器组。
@@ -192,13 +192,13 @@ public:
 	/*!
 	\brief 激活。
 	*/
-	friend void
+	YF_API friend void
 	Activate(Timer&);
 
 	/*!
 	\brief 停用。
 	*/
-	friend void
+	YF_API friend void
 	Deactivate(Timer&);
 };
 

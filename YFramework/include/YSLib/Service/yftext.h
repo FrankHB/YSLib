@@ -11,13 +11,13 @@
 /*!	\file yftext.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r767
+\version r768
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-09-23 01:30 +0800
+	2012-12-11 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ yconstexpr char BOM_UTF_32BE[]{"\x00\x00\xFE\xFF"};
 
 
 //! \brief 文本文件类。
-class TextFile : public File
+class YF_API TextFile : public File
 {
 private:
 	size_t bl; //!<  BOM 大小。

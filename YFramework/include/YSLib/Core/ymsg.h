@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1799
+\version r1801
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-11-22 15:02 +0800
+	2012-12-11 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ const std::time_t DefTimeout(0);
 \warning 非虚析构。
 \since build 145
 */
-class Message
+class YF_API Message
 {
 	friend class MessageQueue;
 
@@ -157,7 +157,7 @@ public:
 \warning 非虚析构。
 \since build 211
 */
-class MessageQueue : private noncopyable,
+class YF_API MessageQueue : private noncopyable,
 	private multimap<Priority, Message, std::greater<Priority>>
 {
 public:

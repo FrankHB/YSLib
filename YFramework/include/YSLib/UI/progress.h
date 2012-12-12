@@ -11,13 +11,13 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r293
+\version r294
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:57:48 +0800
 \par 修改时间:
-	2012-09-07 10:14 +0800
+	2012-12-11 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 进度条。
 \since build 219
 */
-class ProgressBar : public Control, protected GMRange<float>
+class YF_API ProgressBar : public Control, protected GMRange<float>
 {
 public:
 	//! \since build 337

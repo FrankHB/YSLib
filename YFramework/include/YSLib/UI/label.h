@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1271
+\version r1274
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2012-10-09 00:36 +0800
+	2012-12-11 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ enum class TextAlignment
 \brief 标签模块。
 \warning 非虚析构。
 */
-class MLabel : private noncopyable
+class YF_API MLabel : private noncopyable
 {
 public:
 	Drawing::Font Font; //!< 字体。
@@ -90,7 +90,7 @@ protected:
 
 
 //! \brief 标签。
-class Label : public Widget, protected MLabel
+class YF_API Label : public Widget, protected MLabel
 {
 public:
 	using MLabel::Font;
@@ -128,7 +128,7 @@ public:
 \brief 文本列表模块。
 \warning 非虚析构。
 */
-class MTextList : public MLabel
+class YF_API MTextList : public MLabel
 {
 public:
 	typedef String ItemType; //!< 项目类型：字符串。

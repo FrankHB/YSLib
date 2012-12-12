@@ -11,13 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1263
+\version r1266
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-12-11 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,7 +138,7 @@ GetCountOf(_type& st)
 \note UTF-16 视为 UCS-2 。
 \since build 273
 */
-size_t
+YF_API size_t
 FetchFixedCharWidth(Encoding);
 
 /*!
@@ -147,7 +147,7 @@ FetchFixedCharWidth(Encoding);
 \note UTF-16 视为 UCS-2 。
 \since build 273
 */
-size_t
+YF_API size_t
 FetchMaxCharWidth(Encoding);
 
 /*!
@@ -156,7 +156,7 @@ FetchMaxCharWidth(Encoding);
 \note UTF-16 视为 UCS-2 。
 \since build 273
 */
-size_t
+YF_API size_t
 FetchMaxVariantCharWidth(Encoding);
 
 CHRLIB_END

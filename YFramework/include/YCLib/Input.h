@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r317
+\version r328
 \author FrankHB<frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2012-09-04 13:03 +0800
+	2012-12-11 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ namespace platform
 {
 
 //! \brief 屏幕指针设备光标信息。
-struct CursorInfo final
+struct YF_API CursorInfo final
 #if YCL_DS
 	 : public ::touchPosition
 #	define YCL_CURSOR_X px
@@ -99,7 +99,7 @@ struct CursorInfo final
 /*!
 \brief 等待任意按键。
 */
-void
+YF_API void
 WaitForInput();
 
 } // namespace platform;
@@ -123,42 +123,42 @@ namespace platform_ex
 \brief 取按键状态。
 \since build 321
 */
-const platform::KeyInput&
+YF_API const platform::KeyInput&
 FetchKeyState();
 
 /*!
 \brief 取上一次更新的按键状态。
 \since build 321
 */
-const platform::KeyInput&
+YF_API const platform::KeyInput&
 FetchOldKeyState();
 
 /*!
 \brief 取键按下状态。
 \since build 299
 */
-platform::KeyInput
+YF_API platform::KeyInput
 FetchKeyDownState();
 
 /*!
 \brief 取键释放状态。
 \since build 299
 */
-platform::KeyInput
+YF_API platform::KeyInput
 FetchKeyUpState();
 
 /*!
 \brief 清除按键缓冲。
 \since build 299
 */
-void
+YF_API void
 ClearKeyStates();
 
 /*!
 \brief 更新按键状态。
 \since build 299
 */
-void
+YF_API void
 UpdateKeyStates();
 
 #if YCL_KEYSTATE_DIRECT
@@ -166,7 +166,7 @@ UpdateKeyStates();
 \brief 按键缓冲。
 \since build 299
 */
-extern platform::KeyInput KeyState, OldKeyState;
+extern YF_API platform::KeyInput KeyState, OldKeyState;
 
 inline const platform::KeyInput&
 FetchKeyState()
@@ -205,7 +205,7 @@ FetchKeyUpState()
 \brief 写入当前指针设备信息。
 \since build 272
 */
-void
+YF_API void
 WriteCursor(platform::CursorInfo&);
 
 
@@ -214,7 +214,7 @@ WriteCursor(platform::CursorInfo&);
 \brief 等待掩码指定的按键。
 \since build 298
 */
-void
+YF_API void
 WaitForKey(platform::KeyInput);
 
 /*!

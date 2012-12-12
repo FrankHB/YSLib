@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r393
+\version r394
 \author FrankHB<frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2012-12-04 19:55 +0800
+	2012-12-11 22:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(Components)
 \brief 面板。
 \since build 201
 */
-class Panel : public Control, protected MUIContainer
+class YF_API Panel : public Control, protected MUIContainer
 {
 public:
 	/*!

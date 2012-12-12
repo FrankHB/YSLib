@@ -45,6 +45,7 @@
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-DYB_BUILD_DLL" />
 				</Compiler>
 			</Target>
 			<Target title="release_DLL">
@@ -58,6 +59,7 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-DNDEBUG" />
+					<Add option="-DYB_BUILD_DLL" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

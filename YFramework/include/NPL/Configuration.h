@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r216
+\version r219
 \author FrankHB<frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2012-09-27 14:39 +0800
+	2012-12-11 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ using YSLib::ValueNode;
 \brief 转换设置： S 表达式抽象语法树转换为 S 表达式设置。
 \since build 334
 */
-ValueNode
+YF_API ValueNode
 TransformConfiguration(const ValueNode&);
 
 
@@ -55,7 +55,7 @@ TransformConfiguration(const ValueNode&);
 \brief 设置：使用 S 表达式存储外部状态。
 \since build 334
 */
-class Configuration
+class YF_API Configuration
 {
 private:
 	ValueNode root;
@@ -94,7 +94,7 @@ public:
 \brief 输出设置至文件。
 \since build 334
 */
-File&
+YF_API File&
 operator<<(File&, const Configuration&);
 
 YSL_END_NAMESPACE(NPL)
