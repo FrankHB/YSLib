@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r796
+\version r802
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2012-12-11 23:27 +0800
+	2012-12-14 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,6 +187,14 @@ protected:
 	MenuMap mMenus; //!< 菜单组：存储非空菜单指针。
 
 public:
+	/*!
+	\since build 363
+	\brief 根菜单关联映射。
+
+	指定向指定部件转移焦点时不进行隐藏的菜单的映射。
+	*/
+	map<IWidget*, Menu::ID> Roots;
+
 	MenuHost(Window&);
 	/*!
 	\brief 析构。

@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1002
+\version r1017
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2012-12-04 14:50 +0800
+	2012-12-14 21:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,6 +73,15 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		FetchEvent<LostFocus>(*this) += [this](UIEventArgs&& e){
 			if(pHost)
 			{
+				{
+					const auto i(pHost->Roots.find(&e.GetSender()));
+					auto pMnu(this);
+
+					while(const auto pParent = pMnu->GetParentPtr())
+						pMnu = pParent;
+					if(i != pHost->Roots.end() && i->second == pMnu->id)
+						return;
+				}
 				if(const auto pMnu = dynamic_cast<Menu*>(&e.GetSender()))
 				{
 					if(pMnu->GetParentPtr() != this)
@@ -221,7 +230,7 @@ LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 
 
 MenuHost::MenuHost(Window& frm)
-	: Frame(frm), mMenus()
+	: Frame(frm), mMenus(), Roots()
 {}
 MenuHost::~MenuHost()
 {
@@ -387,11 +396,8 @@ MenuHost::HideUnrelated(Menu& mnu, Menu& mnuParent)
 			HideAll();
 	}
 	else
-	{
 		HideAll();
-	}
 }
-
 
 YSL_END_NAMESPACE(Components)
 

@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5648
+\version r5780
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-12-11 15:01 +0800
+	2012-12-15 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,40 +223,85 @@ CheckBackgroundPreview(CheckButton& cbPreview, size_t up_i, size_t dn_i)
 } // unnamed namespace;
 
 
+FrmAbout::FrmAbout()
+	: Form(Rect(5, 60, 208, 144), shared_ptr<Image>()),
+	lblTitle(Rect(8, 4, 192, 28)), lblVersion(Rect(8, 36, 192, 40)),
+	lblCopyright(Rect(8, 80, 192, 20)),
+	btnClose(Rect(12, 106, 60, 22)),
+	btnExit(Rect(84, 106, 60, 22))
+{
+	AddWidgets(*this, lblTitle, lblVersion, lblCopyright, btnClose, btnExit),
+	lblTitle.Font.SetSize(20),
+	yunseq(
+		lblTitle.Background = nullptr,
+		lblTitle.Text = G_APP_NAME,
+		lblTitle.HorizontalAlignment = TextAlignment::Left,
+		lblTitle.VerticalAlignment = TextAlignment::Down,
+		lblTitle.ForeColor = ColorSpace::Blue,
+		lblVersion.Background = nullptr,
+		lblVersion.AutoWrapLine = true,
+		lblVersion.Text = G_APP_VER + String(" @ " __DATE__ ", " __TIME__),
+		lblVersion.ForeColor = ColorSpace::Green,
+		lblCopyright.Background = nullptr,
+		lblCopyright.Text = String("(C)2009-2012 by ") + G_COMP_NAME,
+		lblCopyright.ForeColor = ColorSpace::Maroon,
+		btnClose.Text = u"关闭",
+		btnExit.Text = u"退出",
+		Background = SolidBrush(Color(248, 120, 120)),
+		btnClose.Background = SolidBrush(Color(176, 184, 192)),
+		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
+			Background = SolidBrush(GenerateRandomColor());
+			SetInvalidationOf(*this);
+			if(e.Strategy == RoutedEventArgs::Direct)
+				e.Handled = true;
+		},
+		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
+		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
+			Hide(*this);
+		},
+		FetchEvent<Click>(btnExit) += [](TouchEventArgs&&){
+			YSLib::PostQuitMessage(0);
+		}
+	);
+	SetInvalidationOf(*this);
+}
+
+
 ShlExplorer::ShlExplorer(const IO::Path& path)
 	: ShlDS(),
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(8, 48, 240, 48)),
 	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	btnMenu(Rect(4, 165, 72, 22)), pnlSetting(Rect(10, 40, 228, 108)),
-	cbHex(Rect(142, 142, 103, 18)), cbFPS(Rect(10, 62, 73, 18)),
-	cbPreview(Rect(10, 82, 115, 18)),
-	btnEnterTest(Rect(4, 4, 146, 22)), btnShowWindow(Rect(8, 32, 104, 22)),
-	btnPrevBackground(Rect(110, 64, 30, 22)),
-	btnNextBackground(Rect(160, 64, 30, 22)),
-	pWndExtra(make_unique<TFormExtra>()), mhMain(*GetDesktopDownHandle()),
+	btnMenu(Rect(4, 165, 72, 22)), pnlSetting(Rect(10, 40, 224, 136)),
+	cbHex(Rect(142, 142, 103, 18)),
+	cbFPS(Rect(10, 90, 73, 18)), cbPreview(Rect(10, 110, 115, 18)),
+	lblDragTest(Rect(4, 4, 104, 22)), btnEnterTest(Rect(8, 32, 104, 22)),
+	btnShowWindow(Rect(8, 60, 96, 22)), btnTestEx(Rect(108, 60, 96, 22)),
+	btnPrevBackground(Rect(114, 90, 30, 22)),
+	btnNextBackground(Rect(164, 90, 30, 22)),
+	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetDesktopDownHandle()),
 	fpsCounter(500000000ULL)
 {
 	static int up_i(1);
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	AddWidgets(pnlSetting, cbFPS, cbPreview, btnEnterTest,
-		btnShowWindow, btnPrevBackground, btnNextBackground),
+	AddWidgets(pnlSetting, cbFPS, cbPreview, btnEnterTest, lblDragTest,
+		btnTestEx, btnShowWindow, btnPrevBackground, btnNextBackground),
 	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
 	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, btnMenu, cbHex),
-	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pWndExtra),
+	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pFrmAbout),
 	//启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	SetVisibleOf(pnlSetting, false),
-	SetVisibleOf(*pWndExtra, false),
+	SetVisibleOf(*pFrmAbout, false),
 	cbHex.Background = SolidBrush(Color(0xFF, 0xFF, 0xE0)),
 	Enable(btnPrevBackground, false),
 	yunseq(
 		dsk_up.Background = ImageBrush(FetchImage(1)),
 		dsk_dn.Background = ImageBrush(FetchImage(2)),
-		lblTitle.Text = u"YReader",
+		lblTitle.Text = G_APP_NAME,
 		lblPath.AutoWrapLine = true, lblPath.Text = path,
 		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
 	// TODO: Show current working directory properly.
@@ -271,6 +316,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 		cbFPS.Text = u"显示 FPS",
 		cbPreview.Text = u"切换背景时预览",
 		pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
+		lblDragTest.HorizontalAlignment = TextAlignment::Left,
+		//btnTestEx.Enabled = false,
+		btnTestEx.Text = u"附加测试",
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
 		btnEnterTest.VerticalAlignment = TextAlignment::Up,
@@ -326,7 +374,40 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
 			SetInvalidationOf(GetDesktopDown());
 		},
+		FetchEvent<Move>(pnlSetting) += [this](UIEventArgs&&){
+			lblDragTest.Text = to_string(GetLocationOf(pnlSetting)) + ';';
+			Invalidate(lblDragTest);
+		},
 		FetchEvent<TouchMove>(pnlSetting) += OnTouchMove_Dragging,
+#if YCL_DS
+		FetchEvent<TouchDown>(pnlSetting) += [this](TouchEventArgs&&){
+			struct ::mallinfo t(::mallinfo());
+
+			lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
+				t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
+			Invalidate(lblInfo);
+		},
+#endif
+		FetchEvent<Click>(pnlSetting) += [this](TouchEventArgs&&){
+			yunseq(
+				lblDragTest.ForeColor = GenerateRandomColor(),
+				lblTitle.ForeColor = GenerateRandomColor()
+			);
+			Invalidate(pnlSetting);
+		},
+		FetchEvent<Click>(btnTestEx) += [this](TouchEventArgs&& e){
+			const auto& k(e.GetKeys());
+			auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
+
+			if(lblTitle.Background)
+				lblTitle.Background = nullptr;
+			else
+				lblTitle.Background = SolidBrush(GenerateRandomColor());
+			lblInfo.Text = btn.Text + u", " + String(to_string(gfx_init_time))
+				+ u";\n" + String(k.to_string());
+			Invalidate(lblTitle),
+			Invalidate(lblInfo);
+		},
 		FetchEvent<Enter>(btnEnterTest) += [](TouchEventArgs&& e){
 			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
@@ -339,6 +420,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 			btn.Text = u"Leave: " + String(to_string(e));
 			Invalidate(btn);
 		},
+		mhMain.Roots[&btnMenu] = 1u,
 		FetchEvent<Click>(btnMenu) += [this](TouchEventArgs&&){
 			static int t;
 
@@ -347,10 +429,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 
 			if(mhMain.IsShowing(1u))
 			{
+				mhMain.HideAll();
+				mnu.ClearSelected();
 				if(lst.size() > 4)
 					lst.clear();
 				lst.push_back("TMI" + to_string(t));
-				ResizeForContent(mnu);
 			}
 			else
 			{
@@ -411,81 +494,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	ResizeForContent(mhMain[2u]);
 }
 
-
-ShlExplorer::TFormExtra::TFormExtra()
-	: Form(Rect(5, 60, 208, 120), shared_ptr<Image>()), /*FetchImage(7)*/
-	btnDragTest(Rect(13, 15, 184, 22)),
-	btnTestEx(Rect(13, 52, 168, 22)),
-	btnClose(Rect(13, 82, 60, 22)),
-	btnExit(Rect(83, 82, 60, 22))
-{
-	AddWidgets(*this, btnDragTest, btnTestEx, btnClose, btnExit),
-	yunseq(
-		//	btnDragTest.Enabled = false,
-		btnDragTest.Text = u"测试拖放控件",
-		btnDragTest.HorizontalAlignment = TextAlignment::Left,
-		btnTestEx.Text = u"附加测试",
-		btnClose.Text = u"关闭",
-		btnExit.Text = u"退出",
-		Background = SolidBrush(Color(248, 120, 120)),
-		btnClose.Background = SolidBrush(Color(176, 184, 192)),
-		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
-			Background = SolidBrush(GenerateRandomColor());
-			SetInvalidationOf(*this);
-			if(e.Strategy == RoutedEventArgs::Direct)
-				e.Handled = true;
-		},
-		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
-		FetchEvent<Move>(btnDragTest) += [this](UIEventArgs&&){
-			btnDragTest.Text = to_string(GetLocationOf(btnDragTest)) + ';';
-			Invalidate(btnDragTest);
-		},
-		FetchEvent<TouchDown>(btnDragTest) += [this](TouchEventArgs&&){
-#if YCL_DS
-			struct ::mallinfo t(::mallinfo());
-			auto& lblInfo(FetchShell<ShlExplorer>().lblInfo);
-
-			lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
-				t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
-			Invalidate(lblInfo);
-#endif
-		},
-		FetchEvent<TouchMove>(btnDragTest) += OnTouchMove_Dragging,
-		FetchEvent<Click>(btnDragTest) += [this](TouchEventArgs&&){
-			yunseq(
-				btnDragTest.ForeColor = GenerateRandomColor(),
-				btnClose.ForeColor = GenerateRandomColor()
-			);
-			Invalidate(*this);
-		//	Enable(btnClose);
-		},
-		FetchEvent<Click>(btnTestEx) += [](TouchEventArgs&& e){
-			const auto& k(e.GetKeys());
-			auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
-			auto& shl(FetchShell<ShlExplorer>());
-			auto& lblTitle(shl.lblTitle);
-			auto& lblInfo(shl.lblInfo);
-
-			if(lblTitle.Background)
-				lblTitle.Background = nullptr;
-			else
-				lblTitle.Background = SolidBrush(ColorSpace::White);
-			lblInfo.Text = btn.Text + u", " + String(to_string(gfx_init_time))
-				+ u";\n" + String(k.to_string());
-			Invalidate(lblTitle),
-			Invalidate(lblInfo);
-		},
-		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
-			Hide(*this);
-		},
-		FetchEvent<Click>(btnExit) += [](TouchEventArgs&&){
-			YSLib::PostQuitMessage(0);
-		}
-	);
-	SetInvalidationOf(*this);
-}
-
-
 void
 ShlExplorer::OnPaint()
 {
@@ -527,7 +535,7 @@ ShlExplorer::GetBoundControlPtr(const KeyInput& k)
 void
 ShlExplorer::OnClick_ShowWindow(TouchEventArgs&&)
 {
-	const auto& pWnd(FetchShell<ShlExplorer>().pWndExtra);
+	const auto& pWnd(FetchShell<ShlExplorer>().pFrmAbout);
 
 	YAssert(bool(pWnd), "Null pointer found.");
 

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3934
+\version r3937
 \author FrankHB<frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-12-08 23:44 +0800
+	2012-12-14 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -236,8 +236,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 			if(IsVisible(boxTextInfo))
 				boxTextInfo.UpdateData(reader);
 		},
-		FetchEvent<TouchDown>(boxReader.btnMenu)
-			+= OnEvent_StopRouting<TouchEventArgs>, //阻止菜单失去焦点。
+		mhMain.Roots[&boxReader.btnMenu] = 1u,
 		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&& e)
 		{
 			if(mhMain.IsShowing(1u))

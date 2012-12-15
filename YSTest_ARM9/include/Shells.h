@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2823
+\version r2862
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-12-08 23:25 +0800
+	2012-12-15 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,10 @@ YSL_END
 
 YSL_BEGIN_NAMESPACE(YReader)
 
+#define G_COMP_NAME u"Franksoft"
+#define G_APP_NAME u"YReader"
+#define G_APP_VER u"Build PreAlpha"
+
 using namespace YSLib;
 
 using namespace Components;
@@ -64,41 +68,49 @@ shared_ptr<Image>&
 FetchImage(size_t);
 
 
+/*!
+\brief 关于窗体。
+\since build 363
+*/
+class FrmAbout : public Form
+{
+protected:
+	Label lblTitle, lblVersion, lblCopyright;
+	Button btnClose, btnExit;
+
+public:
+	FrmAbout();
+};
+
+
 class ShlExplorer : public ShlDS
 {
-public:
-	struct TFormExtra : Form
-	{
-		Button btnDragTest, btnTestEx, btnClose, btnExit;
-
-		TFormExtra();
-	};
-
+protected:
+	//! \since build 363
+	//@{
 	Label lblTitle, lblPath;
 	/*!
 	\brief 信息标签：说明用户操作内容等。
-	\since build 309
 	*/
 	Label lblInfo;
 	FileBox fbMain;
 	Button btnTest, btnOK;
-	//! \since build 360
 	Button btnMenu;
-	//! \since build 310
 	DialogPanel pnlSetting;
-	//! \since build 311
 	CheckButton cbHex, cbFPS;
 	/*!
 	\brief 复选按钮：指定开启切换背景时的预览。
-	\since build 330
 	*/
 	CheckButton cbPreview;
-	//! \since build 310
-	Button btnEnterTest, btnShowWindow, btnPrevBackground, btnNextBackground;
-	unique_ptr<TFormExtra> pWndExtra;
+	Label lblDragTest;
+	Button btnEnterTest, btnShowWindow, btnTestEx,
+		btnPrevBackground, btnNextBackground;
+	unique_ptr<FrmAbout> pFrmAbout;
 	MenuHost mhMain;
 	FPSCounter fpsCounter;
+	//@}
 
+public:
 	/*!
 	\brief 构造：使用指定路径。
 	\pre 参数为合法路径。

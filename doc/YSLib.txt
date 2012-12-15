@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1341
+\version r1346
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-10-06 00:09 +0800
+	2012-12-15 00:24 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -141,13 +141,13 @@ YFramework
 )
 //]
 
-@4 计划 GUI 测试项目：
+@4 计划 GUI 测试项目 ShlExplorer ：
 
 @4.1 基本部件测试：
  Label 、 Button 、 Window 等基本控件的静态显示。
- Button 功能。
 
 @4.2 隐含部件测试（非单独测试，作为正常功能集成使用）：
+ Button 功能。
  CheckBox 功能。
  ListBox 功能（含 VerticalTrack 和 VerticalScrollBar 功能）。
  FileBox 功能。
@@ -155,6 +155,7 @@ YFramework
 
 @4.3 部件综合测试：
  显示/隐藏控件。
+顶层控件测试：菜单和子菜单测试。
 
 @4.4 进阶互斥测试组：
 
@@ -165,13 +166,12 @@ YFramework
 @4.4.2 屏幕接触移动：
 边界测试：移动接触点记录 Enter 和 Leave 事件参数。
 拖放测试：拖动控件（ Button 和 Window 等）。
-顶层控件测试：菜单测试（包括子菜单）。
 
 @4.4.3 背景变换：
 背景色变换。
 背景图像替换。
 
-@5 DS 测试项目 YReader
+@5 DS 测试项目 ShlReader ：
 文本阅读器和十六进制阅读器。
 
 @5.1 文本浏览：

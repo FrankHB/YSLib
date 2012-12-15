@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1693
+\version r1696
 \author FrankHB<frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2012-12-05 20:00 +0800
+	2012-12-15 15:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,10 +49,6 @@ using namespace platform;
 using std::puts;
 
 YSL_BEGIN
-
-#define G_COMP_NAME u"Franksoft"
-#define G_APP_NAME u"YReader"
-#define G_APP_VER u"build 301"
 
 //调试功能。
 namespace
