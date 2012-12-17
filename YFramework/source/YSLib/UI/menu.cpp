@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1017
+\version r1065
 \author FrankHB<frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2012-12-14 21:46 +0800
+	2012-12-15 20:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,16 +177,16 @@ Menu::ShowSub(IndexType idx, ZOrderType z)
 {
 	if(pHost)
 	{
-		try
+		const auto i(mSubMenus.find(idx));
+
+		if(i != mSubMenus.end())
 		{
-			auto& mnu((*this)[idx]);
+			auto& mnu(*i->second);
 
 			LocateMenu(mnu, *this, idx);
 			mnu.Show(z);
 			return &mnu;
 		}
-		catch(std::out_of_range&)
-		{}
 	}
 	return nullptr;
 }
@@ -257,30 +257,25 @@ MenuHost::operator+=(Menu& mnu)
 bool
 MenuHost::operator-=(Menu::ID id)
 {
-	try
+	const auto i(mMenus.find(id));
+
+	if(i != mMenus.end())
 	{
-		auto& mnu((*this)[id]);
+		auto& mnu(*i->second);
 
 		mnu.pHost = nullptr;
-		return mMenus.erase(id) != 0;
+		mMenus.erase(i);
+		return true;
 	}
-	catch(std::out_of_range&)
-	{}
 	return false;
 }
 
 bool
 MenuHost::IsShowing(Menu::ID id)
 {
-	try
-	{
-		auto& mnu((*this)[id]);
+	const auto i(mMenus.find(id));
 
-		return Frame.Contains(mnu);
-	}
-	catch(std::out_of_range&)
-	{}
-	return false;
+	return i == mMenus.end() ? false : Frame.Contains(*i->second);
 }
 
 bool
@@ -302,16 +297,10 @@ MenuHost::Clear()
 void
 MenuHost::Show(Menu::ID id, ZOrderType z)
 {
-	try
-	{
-		auto pMenu(mMenus.at(id));
+	const auto i(mMenus.find(id));
 
-		YAssert(pMenu, "Null pointer found.");
-
-		ShowRaw(*pMenu, z);
-	}
-	catch(std::out_of_range&)
-	{}
+	if(i != mMenus.end())
+		ShowRaw(*i->second, z);
 }
 
 void
@@ -338,16 +327,10 @@ MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 void
 MenuHost::Hide(Menu::ID id)
 {
-	try
-	{
-		auto pMenu(mMenus.at(id));
+	const auto i(mMenus.find(id));
 
-		YAssert(pMenu, "Null pointer found.");
-
-		HideRaw(*pMenu);
-	}
-	catch(std::out_of_range&)
-	{}
+	if(i != mMenus.end())
+		HideRaw(*i->second);
 }
 
 void
@@ -380,16 +363,10 @@ MenuHost::HideUnrelated(Menu& mnu, Menu& mnuParent)
 
 		while(pMnu && pMnu != &mnuParent)
 		{
-			try
-			{
-				auto pMenu(mMenus.at(pMnu->GetID()));
+			const auto i(mMenus.find(pMnu->GetID()));
 
-				YAssert(pMenu, "Null pointer found.");
-
-				HideRaw(*pMenu);
-			}
-			catch(std::out_of_range&)
-			{}
+			if(i != mMenus.end())
+				HideRaw(*i->second);
 			pMnu = pMnu->GetParentPtr();
 		}
 		if(!pMnu)

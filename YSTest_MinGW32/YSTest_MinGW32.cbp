@@ -59,8 +59,8 @@
 					<Add library="..\YBase_MinGW32\debug\YBase.dll" />
 				</Linker>
 				<ExtraCommands>
-					<Add before='CMD /C XCOPY /D /Y &quot;..\YBase_MinGW32\debug\YBase.dll&quot; &quot;debug\YBase.dll&quot;' />
-					<Add before='CMD /C XCOPY /D /Y &quot;..\YFramework_MinGW32\debug\YFramework.dll&quot; &quot;debug\YFramework.dll&quot;' />
+					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YBase_MinGW32\debug\YBase.dll&quot; &quot;debug\YBase.dll&quot;' />
+					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YFramework_MinGW32\debug\YFramework.dll&quot; &quot;debug\YFramework.dll&quot;' />
 				</ExtraCommands>
 			</Target>
 			<Target title="release_DLL">
@@ -83,8 +83,8 @@
 					<Add library="..\YBase_MinGW32\release\YBase.dll" />
 				</Linker>
 				<ExtraCommands>
-					<Add before='CMD /C XCOPY /D /Y &quot;..\YBase_MinGW32\release\YBase.dll&quot; &quot;release\YBase.dll&quot;' />
-					<Add before='CMD /C XCOPY /D /Y &quot;..\YFramework_MinGW32\release\YFramework.dll&quot; &quot;release\YFramework.dll&quot;' />
+					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YBase_MinGW32\release\YBase.dll&quot; &quot;release\YBase.dll&quot;' />
+					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YFramework_MinGW32\release\YFramework.dll&quot; &quot;release\YFramework.dll&quot;' />
 				</ExtraCommands>
 			</Target>
 		</Build>

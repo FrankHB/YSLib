@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4848 *build 363 rev *
+\version r4850 *build 364 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-15 16:25 +0800
+	2012-12-17 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -401,113 +401,50 @@ $using:
 
 $DONE:
 r1:
-/ \impl @ \ctor ShlExplorer;
+/ \simp \impl @ \mf (Menu::ShowSub, MenuHost::(\op-=, IsShowing, Show, Hide,
+	HideUnrelated)) !^ exceptions,
+* DLB pre-build command paused when no old file exists @ \conf '*_DLL'
+	Code::Blocks \proj YSTest_MinGW32 $since b363
+	$= (+ 'ECHO F | ' after 'CMD /C ');
 /= test 1 @ platform MinGW32;
 
-r2:
-/ DLB object output path @ Code::Blocks \proj @ platform MinGW32;
-/= test 2 @ platform MinGW32;
-
-r3:
-/= test 3 @ platform MinGW32 ^ \conf release;
-
-r4:
-/ update post-build \cmd @ \conf '*_DLL' @ Code::Blocks \proj YSTest_MinGW32
-	@ ^ 'XCOPY /D /Y' ~ 'copy',
-(
-	/ @ \u Menu $=
-	(
-		+ public \m map<IWidget*, Menu::ID> Roots @ \cl MenuHost;
-		/ \impl @ \ctor (MenuHost, Menu)
-	);
-	/ \impl @ \ctor ShlExplorer @ \impl \u Shells
-);
-/= test 4 @ platform MinGW32;
-
-r5:
-/ \simp \impl @ \mf MenuHost::HideUnrelated,
-/ \impl @ \ctor ShlTextReader @ \impl \u ShlReader;
-/= test 5 @ platform MinGW32;
-
-r6:
-* \impl @ \ctor Menu $since r4;
-/= test 6 @ platform MinGW32;
-
-r7:
-/= test 7 @ platform MinGW32 ^ \conf release;
+r2-r7:
+/= 6 test 2 @ platform MinGW32;
 
 r8:
-/= test 8 @ platform DS;
+/= test 3 @ platform DS ^ \conf release;
 
-r9:
-/= test 9 @ platform DS ^ \conf release;
+r9-r27:
+/= 19 test 4 @ platform MinGW32;
 
-r10:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	- \m (btnDragTest, btnTestEx) @ \cl TFormExtra -> \cl ShlExplorer,
-	/ \tr \impl @ \ctor (ShlExplorer, TFormExtra)
-);
-/= test 10 @ platform MinGW32;
+r28:
+/ \impl @ \mf BorderBrush::\op();
+	// No need to interact with invalidated area, painting unconditionally.
+* $comp check button over painted $since b350;
+/= test 5 @ platform MinGW32;
 
-r11:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	/ \m Button btnDragTest -> Label lblPosition,
-	/ \tr \impl @ \ctor
-);
-/= test 11 @ platform MinGW32;
+r29:
+/= test 6 @ platform MinGW32 ^ \conf release;
 
-r12:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	/ \st TFormExtra -> \cl FrmAbout @ \ns YReader,
-	/ public \m pWndExtra -> protected \m pFrmAbout,
-	/ \a \ac @ public data \m -> protected,
-	/ \tr \impl @ \ctor ShlExplorer
-);
-/= test 12 @ platform MinGW32;
-
-r13:
-/ \mac G_* @ \impl \u Main_ARM9 >> \h Shells;
-/ @ \u Shells $=
-(
-	/ \mac G_APP_VER @ \h,
-	/ @ \cl FrmAbout $=
-	(
-		+ protected \m Label lblTitle,
-		/ \tr \impl @ \ctor
-	),
-	/ \impl @ \ctor ShlExplorer
-);
-/= test 13 @ platform MinGW32;
-
-r14-r15:
-/ \impl @ \ctor (FrmAbout, ShlExplorer) @ \impl \u Shells,
-/= 2 test 14 @ platform MinGW32;
-
-r16:
-/= test 15 @ platform MinGW32 ^ \conf release;
-
-r17:
+r30:
 /= test 16 @ platform DS;
 
-r18:
+r31:
 /= test 17 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-15 +0800:
--29.8d;
-// Mercurial rev1-rev235: r9631;
+2012-12-17 +0800:
+-30.6d;
+// Mercurial rev1-rev236: r9662;
 
 / ...
 
 
 $NEXT_TODO:
-b364-b380:
+b365-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -515,6 +452,16 @@ b364-b380:
 	+ (reading history, bookmarks) (serialization, unserialization)
 		as configuration,
 	/ \f ReleaseShells >> \h
+),
+$low_prior
+(
+	* previous frame form buffered renderer of desktop did not be handled
+		properly $since b?;
+		// Which essentially cause over painted.
+	* text lines rendering limited by the screen boundary for unbuffered
+		widget container $since b?;
+		// Only first line can go out of screen when dragging the container \
+			to clip the screen boundary.
 );
 
 
@@ -687,7 +634,7 @@ b[492]:
 
 b[615]:
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
-+ function compsition,
++ function composition,
 / platform dependent system functions $=
 (
 	+ correct DMA (copy & fill) @ DS
@@ -1021,11 +968,26 @@ $module_tree $=
 
 $now
 (
+	* DLB "pre-build command paused when no old file exists @ \conf '*_DLL' \
+		Code::Blocks project %YSTest_MinGW32" $since b363,
+	(
+		/ "removed invalidation commit" @ "class %BorderBrush"
+			@ %'YFramework'.'YSLib'.'GUI';
+		// No need to interact with invalidated area. \
+			Painting unconditionally and more efficiently.
+		* $comp "check button over painted when touching up over drop down \
+			list or some other widgets"
+			$since b350 @ %'YReader'.'ReaderSetting'
+	)
+),
+
+b363
+(
 	/ DLB @ "Code::Blocks projects" @ "platform %MinGW32" $=
 	(
 		/ "independent object output path for statically and dynamically \
 			linked libraries",
-		/ "post-build commands" @ "configuration '*_DLL'"
+		/ "pre-build commands" @ "configuration '*_DLL'"
 			@ ^ 'XCOPY /D /Y' ~ 'copy'
 	),
 	/ %'YFramework'.'YSLib'.'GUI' $=
