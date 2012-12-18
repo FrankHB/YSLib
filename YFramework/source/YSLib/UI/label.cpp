@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1261
+\version r1267
 \author FrankHB<frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2012-10-09 00:31 +0800
+	2012-10-18 10:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,6 +49,7 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 	ts.ResetForBounds(bounds, e.Target.GetSize(), Margin);
 
 	if(!AutoWrapLine)
+	{
 		switch(HorizontalAlignment)
 		{
 		case TextAlignment::Center:
@@ -68,10 +69,6 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 		default:
 			break;
 		}
-
-	SPos vertical_offset(0);
-
-	if(!AutoWrapLine)
 		switch(VerticalAlignment)
 		{
 		case TextAlignment::Center:
@@ -91,7 +88,7 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 		default:
 			break;
 		}
-	ts.PenY += vertical_offset;
+	}
 	DrawClippedText(e.Target, e.ClipArea, ts, Text, AutoWrapLine);
 }
 

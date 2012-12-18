@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2713
+\version r2763
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-11 21:27 +0800
+	2012-12-17 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,11 +35,12 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-
 /*!
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
-\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
+\param r 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
+\note 迭代直至字符串结束符。
 \since build 190
 */
 template<typename _tIn, class _tRenderer>
@@ -55,8 +56,12 @@ PrintLine(_tRenderer& r, _tIn s)
 }
 /*!
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
-\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
+\param r 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
+\param g 指示迭代终止位置的输入迭代器。
+\param c 指向迭代终止的字符。
 \return 指向结束位置的迭代器。
+\note 迭代直至 g 指定的位置或指定位置的字符为 c 。
 \since build 251
 */
 template<typename _tIn, class _tRenderer>
@@ -72,6 +77,8 @@ PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 }
 /*!
 \brief 打印字符串，直至行尾或字符串结束。
+\param r 使用的字符渲染器。
+\param str 被输出的字符串。
 \return 打印字符数。
 \since build 190
 */
@@ -84,9 +91,11 @@ PrintLine(_tRenderer& r, const String& str)
 
 /*!
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
-\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
-\note 当行内无法容纳完整字符时换行。
+\param r 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
+\note 迭代直至字符串结束符。
+\note 当行内无法容纳完整字符时换行。
 \since build 190
 */
 template<typename _tIn, class _tRenderer>
@@ -103,9 +112,13 @@ PutLine(_tRenderer& r, _tIn s)
 }
 /*!
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
-\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
-\note 当行内无法容纳完整字符时换行。
+\param r 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
+\param g 指示迭代终止位置的输入迭代器。
+\param c 指向迭代终止的字符。
 \return 指向结束位置的迭代器。
+\note 迭代直至 g 指定的位置或指定位置的字符为 c 。
+\note 当行内无法容纳完整字符时换行。
 \since build 251
 */
 template<typename _tIn, class _tRenderer>
@@ -122,8 +135,10 @@ PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 }
 /*!
 \brief 打印字符串，直至行尾或字符串结束。
-\note 当行内无法容纳完整字符时换行。
+\param r 使用的字符渲染器。
+\param str 被输出的字符串。
 \return 打印字符数。
+\note 当行内无法容纳完整字符时换行。
 \since build 190
 */
 template<class _tRenderer>
@@ -135,8 +150,10 @@ PutLine(_tRenderer& r, const String& str)
 
 /*!
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
-\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
+\param r 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
+\note 迭代直至字符串结束符。
 \since build 190
 */
 template<typename _tIn, class _tRenderer>
@@ -149,8 +166,12 @@ PrintString(_tRenderer& r, _tIn s)
 }
 /*!
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
-\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
+\param r 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
+\param g 指示迭代终止位置的输入迭代器。
+\param c 指向迭代终止的字符。
 \return 指向结束位置的迭代器。
+\note 迭代直至 g 指定的位置或指定位置的字符为 c 。
 \since build 251
 */
 template<typename _tIn, class _tRenderer>
@@ -163,6 +184,8 @@ PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 }
 /*!
 \brief 打印字符串，直至区域末尾或字符串结束。
+\param r 使用的字符渲染器。
+\param str 被输出的字符串。
 \return 打印字符数。
 \since build 190
 */
@@ -175,9 +198,11 @@ PrintString(_tRenderer& r, const String& str)
 
 /*!
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
-\note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
-\note 当行内无法容纳完整字符时换行。
+\param r 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
+\note 迭代直至字符串结束符。
+\note 当行内无法容纳完整字符时换行。
 \since build 190
 */
 template<typename _tIn, class _tRenderer>
@@ -194,9 +219,13 @@ PutString(_tRenderer& r, _tIn s)
 }
 /*!
 \brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
-\note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
-\note 当行内无法容纳完整字符时换行。
+\param r 使用的字符渲染器。
+\param s 指向字符串起始字符的输入迭代器。
+\param g 指示迭代终止位置的输入迭代器。
+\param c 指向迭代终止的字符。
 \return 指向结束位置的迭代器。
+\note 迭代直至 g 指定的位置或指定位置的字符为 c 。
+\note 当行内无法容纳完整字符时换行。
 \since build 251
 */
 template<typename _tIn, class _tRenderer>
@@ -213,8 +242,10 @@ PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 }
 /*!
 \brief 打印字符串，直至区域末尾或字符串结束。
-\note 当行内无法容纳完整字符时换行。
+\param r 使用的字符渲染器。
+\param str 被输出的字符串。
 \return 打印字符数。
+\note 当行内无法容纳完整字符时换行。
 \since build 190
 */
 template<class _tRenderer>

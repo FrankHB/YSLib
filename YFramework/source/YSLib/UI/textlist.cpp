@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1061
+\version r1062
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2012-10-10 01:09 +0800
+	2012-12-18 11:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,8 +53,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	HilightTextColor(hilight_pair.second), CyclicTraverse(false),
 	viewer(GetList()), top_offset(0)
 {
-	SetAllOf(Margin, defMarginH, defMarginV);
-
+	Margin = Padding(defMarginH, defMarginH, defMarginV, defMarginV);
 	yunseq(
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(viewer.GetTotal() != 0)

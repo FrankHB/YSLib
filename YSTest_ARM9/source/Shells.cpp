@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5780
+\version r5798
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-12-15 16:10 +0800
+	2012-12-18 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -422,30 +422,16 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 		},
 		mhMain.Roots[&btnMenu] = 1u,
 		FetchEvent<Click>(btnMenu) += [this](TouchEventArgs&&){
-			static int t;
-
 			auto& mnu(mhMain[1u]);
-			auto& lst(mnu.GetList());
 
 			if(mhMain.IsShowing(1u))
 			{
 				mhMain.HideAll();
 				mnu.ClearSelected();
-				if(lst.size() > 4)
-					lst.clear();
-				lst.push_back("TMI" + to_string(t));
 			}
 			else
-			{
-				lst.push_back(u"TestMenuItem1");
-				ResizeForContent(mnu);
-				mnu.SetWidth(btnMenu.GetWidth() + 20);
-				SetLocationOf(mnu, Point(btnMenu.GetX(),
-					btnMenu.GetY() - mnu.GetHeight()));
 				mhMain.Show(1u);
-			}
 			Invalidate(mnu);
-			++t;
 		},
 		FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow,
 		FetchEvent<Click>(btnPrevBackground) += [this](TouchEventArgs&&){
@@ -487,11 +473,15 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
 	mhMain += *(ynew Menu(Rect(),
-		share_raw(new TextList::ListType{u"A:MenuItem", u"0xA"}), 1u)),
+		share_raw(new TextList::ListType{u"测试", u"关于", u"退出"}), 1u)),
 	mhMain += *(ynew Menu(Rect(),
-		share_raw(new TextList::ListType{u"B:MenuItem", u"0xB"}), 2u));
-	mhMain[1u] += make_pair(1u, &mhMain[2u]);
-	ResizeForContent(mhMain[2u]);
+		share_raw(new TextList::ListType{u"项目1", u"项目2"}), 2u));
+	mhMain[1u] += make_pair(0u, &mhMain[2u]);
+	ResizeForContent(mhMain[1u]),
+	ResizeForContent(mhMain[2u]),
+	SetLocationOf(mhMain[1u],
+		Point(btnMenu.GetX(), btnMenu.GetY() - mhMain[1u].GetHeight()));
+	//mhMain[1u].SetWidth(btnMenu.GetWidth() + 20);
 }
 
 void

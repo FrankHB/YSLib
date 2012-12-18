@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2599
+\version r2635
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-10-11 22:25 +0800
+	2012-12-18 11:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,28 +34,6 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-/*Padding::Padding(u64 m)
-	: Left(m >> 48), Right((m >> 32) & 0xFFFF),
-	Top((m >> 16) & 0xFFFF), Bottom(m & 0xFFFF)
-{}*/
-
-Padding&
-Padding::operator+=(const Padding& m)
-{
-	Left += m.Left;
-	Right += m.Right;
-	Top += m.Top;
-	Bottom += m.Bottom;
-	return *this;
-}
-
-
-Padding
-operator+(const Padding& a, const Padding& b)
-{
-	return Padding(a.Left + b.Left, a.Right + b.Right,
-		a.Top + b.Top, a.Bottom + b.Bottom);
-}
 Rect
 operator+(const Rect& r, const Padding& m)
 {
@@ -65,30 +43,11 @@ operator+(const Rect& r, const Padding& m)
 }
 
 
-u64
-GetAllOf(const Padding& m)
-{
-	u64 r = (m.Left << 16) | m.Right;
-
-	r = (r << 32) | (m.Top << 16) | m.Bottom;
-	return r;
-}
-
-void
-SetAllOf(Padding& m, SDst left, SDst right, SDst top, SDst bottom)
-{
-	m.Left = left;
-	m.Right = right;
-	m.Top = top;
-	m.Bottom = bottom;
-}
-
-
 Padding
 FetchMargin(const Rect& r, const Size& s)
 {
-	return Padding(max<int>(0, r.X), max<int>(0, s.Width - r.X - r.Width),
-		max<int>(0, r.Y), max<int>(0, s.Height - r.Y - r.Height));
+	return Padding(r.X, s.Width - r.X - r.Width,
+		r.Y, s.Height - r.Y - r.Height);
 }
 
 

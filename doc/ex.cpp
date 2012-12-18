@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4850 *build 364 rev *
+\version r4850 *build 365 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-17 12:26 +0800
+	2012-12-18 11:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -401,50 +401,84 @@ $using:
 
 $DONE:
 r1:
-/ \simp \impl @ \mf (Menu::ShowSub, MenuHost::(\op-=, IsShowing, Show, Hide,
-	HideUnrelated)) !^ exceptions,
-* DLB pre-build command paused when no old file exists @ \conf '*_DLL'
-	Code::Blocks \proj YSTest_MinGW32 $since b363
-	$= (+ 'ECHO F | ' after 'CMD /C ');
+/ $doc @ \ft @ \h TextRenderer ^ '\param',
+/ \impl @ \ctor ShlExplorer @ \impl \u Shells,
 /= test 1 @ platform MinGW32;
 
-r2-r7:
-/= 6 test 2 @ platform MinGW32;
+r2:
+/= test 2 @ platform MinGW32;
 
-r8:
-/= test 3 @ platform DS ^ \conf release;
+r3:
+/ \simp \impl @ \mf MLabel::PaintText;
+/= test 3 @ platform MinGW32;
 
-r9-r27:
-/= 19 test 4 @ platform MinGW32;
+r4-r8:
+/ 5 test 4 @ platform MinGW32 $=
+(
+	/ @ \h YGDI $=
+	(
+		/ \m SDst Left, Right, Top, Bottom @ \cl Padding
+			-> \m SPos Left, Right, Top, Bottom,
+		/ \f yconstfn (GetHorizontalOf, GetVerticalOf) -> \f \i;
+	),
+	/ \impl @ \f FetchMargin @ \impl \u YGDI;
+	* $comp position of rendered text lines limited by the left buffer boundary
+		$since b190,
+		// Only first line can go out of screen when dragging the unbuffered \
+			container to clip the screen boundary.
+);
 
-r28:
-/ \impl @ \mf BorderBrush::\op();
-	// No need to interact with invalidated area, painting unconditionally.
-* $comp check button over painted $since b350;
-/= test 5 @ platform MinGW32;
+r9:
+/= test 5 @ platform MinGW32 ^ \conf release;
 
-r29:
-/= test 6 @ platform MinGW32 ^ \conf release;
+r10:
+/= test 6 @ platform DS;
 
-r30:
-/= test 16 @ platform DS;
+r11:
+/= test 7 @ platform DS ^ \conf release;
 
-r31:
-/= test 17 @ platform DS ^ \conf release;
+r12:
+/ @ \u YGDI $=
+(
+	/ @ \cl Padding $=
+	(
+		/ \exp \ctor Padding(SDst l = 0, SDst r = 0, SDst t = 0, SDst b = 0)
+			-> !\exp \ctor Padding(SPos, SPos, SPos, SPos);
+		+ \ctor yconstfn Padding(),
+		/ \mf !\i \op+= -> \mf \i
+	),
+	/ \f YF_API Padding operator+(const Padding&, const Padding&)
+		-> \f yconstfn Padding \op+(const Padding&, const Padding&),
+);
+/= test 8 @ platform MinGW32;
+
+r13:
+/ \impl @ \ctor TextList, Menu !^ SetAllOf;
+- \f (GetAllOf, SetAllOf) @ \u YGDI;
+/= test 9 @ platform MinGW32;
+
+r14:
+/= test 10 @ platform MinGW32 ^ \conf release;
+
+r15:
+/= test 11 @ platform DS;
+
+r16:
+/= test 12 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-17 +0800:
--30.6d;
-// Mercurial rev1-rev236: r9662;
+2012-12-18 +0800:
+-29.3d;
+// Mercurial rev1-rev237: r9678;
 
 / ...
 
 
 $NEXT_TODO:
-b365-b400:
+b366-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -458,10 +492,6 @@ $low_prior
 	* previous frame form buffered renderer of desktop did not be handled
 		properly $since b?;
 		// Which essentially cause over painted.
-	* text lines rendering limited by the screen boundary for unbuffered
-		widget container $since b?;
-		// Only first line can go out of screen when dragging the container \
-			to clip the screen boundary.
 );
 
 
@@ -967,6 +997,44 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Service' $=
+		(
+			/ $doc @ "function templates" @ "header %TextRenderer",
+			/ @ "unit %YGDI" $=
+			(
+				/ @ "class %Padding" $=
+				(
+					(
+						/ "type of member of margin components"
+							-> "%SPos" ~ "%SDst",
+						$dep_to "signed padding support"
+					),
+					(
+						$dep_from "signed padding support";
+						/ "made function %FetchMargin support signed margin"
+					)
+					+ "default constructor",
+					/ "made value-initializing constructor non-explicit"
+				),
+				/ $lib "made some functions for margin calculation be inline",
+				- "functions %(GetAllOf, GetAllOf)"
+			)
+		)
+		(
+			$dep_from "signed margin support";
+			* $comp "position of rendered text lines limited by the left \
+				buffer boundary" @ %'GUI' $since b190,
+				// Only first line can go out of screen when dragging the \
+					unbuffered container to clip the screen boundary.
+		)
+	),
+	/ "fixed menu items" @ %'YReader'.'shells test example'
+),
+
+b364
 (
 	* DLB "pre-build command paused when no old file exists @ \conf '*_DLL' \
 		Code::Blocks project %YSTest_MinGW32" $since b363,

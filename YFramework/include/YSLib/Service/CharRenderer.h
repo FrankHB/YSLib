@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2592
+\version r2593
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-11 21:25 +0800
+	2012-12-17 21:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ PutChar(_tRenderer& r, ucs4_t c)
 	const int max_w(GetBufferWidthN() - 1),
 		space_w(ts.GetCache().GetAdvance(' '));
 
-	if(max_w < spaceW)
+	if(max_w < space_w)
 		return line_breaks_l = 1;
 #endif
 	if(YB_UNLIKELY(ts.PenX + ts.Font.GetAdvance(c)

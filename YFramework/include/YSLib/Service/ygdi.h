@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3360
+\version r3424
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-12-11 21:39 +0800
+	2012-12-18 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,14 +42,26 @@ YSL_BEGIN_NAMESPACE(Drawing)
 */
 struct YF_API Padding
 {
-	SDst Left, Right, Top, Bottom; //!< 空白距离：左、右、上、下。
+	/*
+	\brief 空白距离：左、右、上、下。
+	\since build 365
+	*/
+	SPos Left, Right, Top, Bottom;
 
 	/*!
-	\brief 构造：使用 4 个 16 位无符号整数形式的边距。
-	\since build 286
+	\brief 默认构造：使用零边距。
+	\since build 365
 	*/
-	explicit yconstfn
-	Padding(SDst l = 0, SDst r = 0, SDst t = 0, SDst b = 0)
+	yconstfn
+	Padding()
+		: Padding(0, 0, 0, 0)
+	{}
+	/*!
+	\brief 构造：使用 4 个边距。
+	\since build 365
+	*/
+	yconstfn
+	Padding(SPos l, SPos r, SPos t, SPos b)
 		: Left(l), Right(r), Top(t), Bottom(b)
 	{}
 
@@ -57,14 +69,23 @@ struct YF_API Padding
 	\brief 加法赋值：对应分量调用 operator+= 。
 	*/
 	Padding&
-	operator+=(const Padding&);
+	operator+=(const Padding& m)
+	{
+		yunseq(Left += m.Left, Right += m.Right, Top += m.Top,
+			Bottom += m.Bottom);
+		return *this;
+	}
 };
 
 /*!
 \brief 加法：对应分量调用 operator+ 。
 */
-YF_API Padding
-operator+(const Padding&, const Padding&);
+yconstfn Padding
+operator+(const Padding& x, const Padding& y)
+{
+	return Padding(x.Left + y.Left, x.Right + y.Right, x.Top + y.Top,
+		x.Bottom + y.Bottom);
+}
 /*!
 \brief 加法：缩小屏幕正则矩形，相对位置由指定边距决定。
 \note 若边距过大，则矩形的宽或高可能为 0 。
@@ -76,51 +97,19 @@ operator+(const Rect&, const Padding&);
 /*!
 \brief 取水平边距和。
 */
-yconstfn SDst
+inline SDst
 GetHorizontalOf(const Padding& m)
 {
-	return m.Left + m.Right;
+	return max<SPos>(m.Left, 0) + max<SPos>(m.Right, 0);
 }
 
 /*!
 \brief 取竖直边距和。
 */
-yconstfn SDst
+inline SDst
 GetVerticalOf(const Padding& m)
 {
-	return m.Top + m.Bottom;
-}
-
-/*!
-\brief 取边距。
-\note 64 位无符号整数形式。
-*/
-YF_API u64
-GetAllOf(const Padding&);
-
-/*!
-\brief 设置边距。
-\note 4 个 \c SDst 形式。
-*/
-YF_API void
-SetAllOf(Padding&, SDst, SDst, SDst, SDst);
-/*!
-\brief 设置边距。
-\note 64 位无符号整数形式。
-*/
-inline void
-SetAllOf(Padding& m, u64 u)
-{
-	SetAllOf(m, u >> 48, (u >> 32) & 0xFFFF, (u >> 16) & 0xFFFF, u & 0xFFFF);
-}
-/*!
-\brief 设置边距。
-\note 2 个 16 位无符号整数形式，分别表示水平边距和竖直边距。
-*/
-inline void
-SetAllOf(Padding& m, SDst h, SDst v)
-{
-	SetAllOf(m, h, h, v, v);
+	return max<SPos>(m.Top, 0) + max<SPos>(m.Bottom, 0);
 }
 
 
