@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1242
+\version r1256
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2012-12-11 23:27 +0800
+	2012-12-25 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,7 +126,7 @@ public:
 	DefSetter(_type, Y, Y)
 
 	/*!
-	\biref 判断是否是零元素。
+	\brief 判断是否是零元素。
 	*/
 	yconstfn DefPred(const ynothrow, Zero, X == 0 && Y == 0)
 
@@ -761,6 +761,20 @@ public:
 	*/
 	BitmapPtr
 	at(size_t) const ythrow(GeneralEvent, std::out_of_range);
+};
+
+
+/*
+\brief 绘制上下文。
+\warning 非虚析构。
+\since build 255
+*/
+struct YF_API PaintContext
+{
+	Graphics Target; //!< 渲染目标：图形接口上下文。
+	Point Location; //!< 相对渲染目标的偏移坐标，指定参考点（如区域左上角）的位置。
+	//! \brief 相对于图形接口上下文的正则矩形，指定需要保证被刷新的边界区域。
+	Rect ClipArea;
 };
 
 

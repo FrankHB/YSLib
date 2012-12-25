@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r586
+\version r587
 \author FrankHB<frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2012-10-08 21:08 +0800
+	2012-12-25 19:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,7 +104,7 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 				clip.GetPoint() - pc.Location, clip.GetPoint(), clip.GetSize());
 		}
 
-		PaintEventArgs e(sender, PaintContext(GetContext(), Point(), clip - l));
+		PaintEventArgs e(sender, {GetContext(), Point(), clip - l});
 
 		CallEvent<Components::Paint>(wgt, e);
 		//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。

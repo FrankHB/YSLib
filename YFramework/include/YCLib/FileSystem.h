@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r544
+\version r552
 \author FrankHB<frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2012-12-11 22:47 +0800
+	2012-12-21 03:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,8 +127,8 @@ using ystdex::path_t;
 
 /*!
 \brief 以 UTF-8 文件名无缓冲打开文件。
-\param filename 文件名，意义同 POSIX ::open 。
-\param pflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
+\param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \pre 断言检查：<tt>filename</tt> 。
 \bug MinGW32 环境下非线程安全。
 \since build 324
@@ -137,8 +137,8 @@ YF_API int
 uopen(const char* filename, int oflag) ynothrow;
 /*!
 \brief 以 UTF-8 文件名无缓冲打开文件。
-\param filename 文件名，意义同 POSIX ::open 。
-\param pflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
+\param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \pre 断言检查：<tt>filename</tt> 。
 \bug MinGW32 环境下非线程安全。
@@ -148,8 +148,8 @@ YF_API int
 uopen(const char* filename, int oflag, int pmode) ynothrow;
 /*!
 \brief 以 UCS-2LE 文件名无缓冲打开文件。
-\param filename 文件名，意义同 POSIX ::open 。
-\param pflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
+\param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \pre 断言检查：<tt>filename</tt> 。
 \since build 324
 */
@@ -157,8 +157,8 @@ YF_API int
 uopen(const char16_t* filename, int oflag) ynothrow;
 /*!
 \brief 以 UCS-2LE 文件名无缓冲打开文件。
-\param filename 文件名，意义同 POSIX ::open 。
-\param pflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
+\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
+\param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \pre 断言检查：<tt>filename</tt> 。
 \since build 324

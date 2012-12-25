@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1346
+\version r1351
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-15 00:24 +0800
+	2012-12-18 12:29 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -230,6 +230,13 @@ YFramework
 	)
 )
 //]
+
+@6 测试注记：
+
+@6.1 执行覆盖：
+二进制相同的映像不重复测试。
+ build 365 及之前的 DS 提交版本经过 iDSL+DSTT 实机测试。
+其它所有版本经过 PC 测试。测试环境 Windows 7 Ultimate x64 + DeSmuME(x86/x64) 0.9.6 或以上（含 SVN 版本）。
 
 */
 

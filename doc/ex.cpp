@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4850 *build 365 rev *
+\version r4856 *build 366 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-18 11:58 +0800
+	2012-12-25 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,6 +169,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \mt ::= member templates
 \n ::= names
 \ns ::= namespaces
+\num ::= numbers
 \o ::= objects
 \op ::= operators
 \opt ::= optiaonal/options
@@ -211,8 +212,9 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \u ::= units
 \un ::= unnamed
 \v ::= volatile
-\vt ::= virtual
 \val ::= values
+\ver ::= versions
+\vt ::= virtual
 
 $parser.state.style $= $natral_NPL;
 $dep_from; // take evaluation dependence from;
@@ -401,84 +403,97 @@ $using:
 
 $DONE:
 r1:
-/ $doc @ \ft @ \h TextRenderer ^ '\param',
-/ \impl @ \ctor ShlExplorer @ \impl \u Shells,
+/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer !^ (min, max);
 /= test 1 @ platform MinGW32;
 
 r2:
+* \simp \impl @ \f RenderChar @ \impl \u CharRenderer $since r1;
 /= test 2 @ platform MinGW32;
 
 r3:
-/ \simp \impl @ \mf MLabel::PaintText;
-/= test 3 @ platform MinGW32;
+/= test 3 @ platform DS ^ \conf release;
 
-r4-r8:
-/ 5 test 4 @ platform MinGW32 $=
-(
-	/ @ \h YGDI $=
-	(
-		/ \m SDst Left, Right, Top, Bottom @ \cl Padding
-			-> \m SPos Left, Right, Top, Bottom,
-		/ \f yconstfn (GetHorizontalOf, GetVerticalOf) -> \f \i;
-	),
-	/ \impl @ \f FetchMargin @ \impl \u YGDI;
-	* $comp position of rendered text lines limited by the left buffer boundary
-		$since b190,
-		// Only first line can go out of screen when dragging the unbuffered \
-			container to clip the screen boundary.
-);
+r4:
+/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer
+	^ \mf CharBitmap::GetXAdvance;
+/= test 4 @ platform DS ^ \conf release;
+
+r5:
+/ $doc updated PROJECT_BRIEF @ Doxygen file ^ Doxygen 1.8.2,
+* $doc typo @ (Doxygen \cmd) @ \h YGDIBase $since b225,
+* $doc typo @ (Doxygen \cmd, \ver \num) @ \m pColor @ \cl SettingPanel
+	@ \proj YSTest_ARM9 $since b279,
+* $doc typo @ (Doxygen \cmd \param \n) @ \f ufopen#(1, 2, 3, 4)
+	@ \h FileSystem $since b324;
+* $doc typo @ (Doxygen \cmd \param \n) @ \ft stable_range_unique @ \h Algorithms
+	$since b265,
+/ DLP "library using"
+	$= (^ "updated library freetype 2.4.11" ~ "modified freetype 2.4.10");
+/= test 5 @ platform DS;
+
+r6:
+/= test 6 @ platform MinGW32;
+
+r7:
+/= test 7 @ platform MinGW32 ^ \conf release;
+
+r8:
+/= test 8 @ platform DS ^ \conf release;
 
 r9:
-/= test 5 @ platform MinGW32 ^ \conf release;
-
-r10:
-/= test 6 @ platform DS;
-
-r11:
-/= test 7 @ platform DS ^ \conf release;
-
-r12:
-/ @ \u YGDI $=
-(
-	/ @ \cl Padding $=
-	(
-		/ \exp \ctor Padding(SDst l = 0, SDst r = 0, SDst t = 0, SDst b = 0)
-			-> !\exp \ctor Padding(SPos, SPos, SPos, SPos);
-		+ \ctor yconstfn Padding(),
-		/ \mf !\i \op+= -> \mf \i
-	),
-	/ \f YF_API Padding operator+(const Padding&, const Padding&)
-		-> \f yconstfn Padding \op+(const Padding&, const Padding&),
-);
-/= test 8 @ platform MinGW32;
-
-r13:
-/ \impl @ \ctor TextList, Menu !^ SetAllOf;
-- \f (GetAllOf, SetAllOf) @ \u YGDI;
++ using ystdex::size_t @ \ns timing @ \h Timing,
+/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer;
 /= test 9 @ platform MinGW32;
 
+r10:
+/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer;
+/= test 10 @ platform DS ^ \conf release;
+
+r11:
+/ \st PaintContext @ \ns YSLib::Components @ \h YWidgetEvent
+	>> \ns YSLib::Drawing @ \h YGDIBase,
+- \a \ctor @ \st PaintContext;
+/ \pre \decl \st PaintContext -> using Drawing::PaintContext
+	@ \ns YSLib::Components @ \h YComponent,
+/ \tr \impl @ (\mf (Button::Refresh, (BufferedRenderer, Desktop)::Validate),
+	\ctor PaintEventArgs#3);
+/= test 11 @ platform MinGW32;
+
+r12:
+/ @ \u CharRenderer $=
+(
+	/ \inc \h YBlit @ \impl \u -> \h;
+	+ \ft BlitChar @ \h;
+	/ \simp \impl @ \f RenderChar @ \impl \u ^ \ft BlitChar
+);
+/= test 12 @ platform MinGW32;
+
+r13:
+/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer;
+/= test 13 @ platform MinGW32;
+
 r14:
-/= test 10 @ platform MinGW32 ^ \conf release;
+/= test 14 @ platform MinGW32 ^ \conf release;
 
 r15:
-/= test 11 @ platform DS;
+/= test 15 @ platform DS;
 
 r16:
-/= test 12 @ platform DS ^ \conf release;
+/= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-18 +0800:
--29.3d;
-// Mercurial rev1-rev237: r9678;
+2012-12-25 +0800:
+-32.6d;
+// Mercurial rev1-rev238: r9694;
 
 / ...
 
 
 $NEXT_TODO:
-b366-b400:
+b367-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -997,6 +1012,39 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			(
+				/ "struct %PaintContext" @ %'GUI' >> %'Core'.'YGDIBase',
+				$dep_to "moved paint context as GDI base interface"
+			),
+			/ $dev @ "unit CharRenderer" %'Service' $=
+			(
+				$dep_from "moved paint context as GDI base interface";
+				+ "template %BlitChar",
+				/ $lib "simplified implementation" @ "function %RenderChar"
+			),
+			* $doc "typo" @ "Doxygen command" @ "header" @ %'Core'.'YGDIBase'
+				$since b225,
+			- "all explicit declared constructor" @ "struct %PaintContext"
+		),
+		* $doc "typo" @ "param names" @ "Doxygen command" @ "4 overloaded \
+			functions %ufopen" @ %'YCLib'.'FileSystem' $since b324,
+	),
+	/ $doc "updated PROJECT_BRIEF" @ "Doxygen file" ^ "Doxygen 1.8.2",
+	* $doc "typo" @ "(Doxygen command, version number)" @ "member %pColor"
+		@ "class %SettingPanel" @ %'YReader'.'ReaderSetting' $since b279,
+	* $doc "typo" @ "param names" @ "Doxygen command" @ "function template \
+		%stable_range_unique" @ %'YBase'.'YStandardEx'.'Algorithms' $since b265,
+	/ DLP "library using"
+		$= (^ "updated library freetype 2.4.11" ~ "modified freetype 2.4.10"),
+	+ 'using ystdex::size_t' @ "namespace %timing" @ %'YTest'.'Timing'
+),
+
+b365
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -3057,7 +3105,7 @@ b307
 			* "wrong displayed scrolling interval" $since b301
 		)
 	),
-	/ $doc "Doxygen file" $=
+	/ $doc "updated Doxygen file" ^ "Doxygen 1.7.2" $=
 	(
 		* "wrong Doxygen root output path" $since b300,
 		/ "input ignorance"
@@ -5106,7 +5154,7 @@ b252
 	);
 	+ "POD type operations" @ "library %YStandardEx",
 	/ $dev $lib "simplified macro definitions" @ "ybasemac.h",
-	/ "Doxygen file",
+	/ "updated Doxygen file" ^ "Doxygen 1.7.2",
 	+ DLD "nested-use support" @ "implementation" @ "macro %yunsequenced",
 	/ DLP "libraries using" $=
 	(
@@ -6136,6 +6184,7 @@ b199
 (
 	+ "event routing for %(KeyUp, KeyDown, KeyHeld)",
 	* "event behavior with optimizing" $since b195,
+		// Thus the fix of makefile in b195 was unnecessary.
 	+ "keypad shortcut for file selector",
 	+ DLD "returning number of called handles in event calling"
 ),

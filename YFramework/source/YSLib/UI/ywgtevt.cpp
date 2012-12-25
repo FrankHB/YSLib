@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r128
+\version r129
 \author FrankHB<frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2012-09-04 12:46 +0800
+	2012-12-25 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ PaintEventArgs::PaintEventArgs(IWidget& wgt, const PaintContext& pc)
 {}
 PaintEventArgs::PaintEventArgs(IWidget& wgt, const Drawing::Graphics& g,
 	const Drawing::Point& pt, const Drawing::Rect& r)
-	: UIEventArgs(wgt), PaintContext(g, pt, r)
+	: UIEventArgs(wgt), PaintContext{g, pt, r}
 {}
 
 

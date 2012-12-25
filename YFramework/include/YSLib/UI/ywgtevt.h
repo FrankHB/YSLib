@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1266
+\version r1283
 \author FrankHB<frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2012-12-11 22:41 +0800
+	2012-12-25 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,26 +207,6 @@ struct GValueEventArgs : public UIEventArgs
 		Value(yforward(args)...)
 	{}
 	DefCvt(const ynothrow, ValueType, Value)
-};
-
-
-/*
-\brief 部件绘制上下文。
-\warning 非虚析构。
-\since build 255
-*/
-struct YF_API PaintContext
-{
-	Drawing::Graphics Target; //!< 渲染目标：图形接口上下文。
-	Drawing::Point Location; //!< 相对渲染目标的偏移坐标，指定部件左上角的位置。
-	//! \brief 相对于图形接口上下文的正则矩形，指定需要保证被刷新的边界区域。
-	Drawing::Rect ClipArea;
-
-	inline DefDeCtor(PaintContext)
-	PaintContext(const Drawing::Graphics& g, const Drawing::Point& pt,
-		const Drawing::Rect& r)
-		: Target(g), Location(pt), ClipArea(r)
-	{}
 };
 
 

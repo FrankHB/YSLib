@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1377
+\version r1379
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2012-12-11 21:29 +0800
+	2012-12-19 04:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,9 +160,7 @@ BlitScale<true, true>(const Point&, const Size&, int, int);
 
 /*!
 \brief 贴图函数模板。
-
-对一块矩形区域的逐像素顺序批量操作（如复制或贴图）。
-\tparam _gBlitLoop 循环实现模板类。
+\tparam _gBlitLoop 循环实现类模板。
 \tparam _bSwapLR 水平翻转镜像（关于水平中轴对称）。
 \tparam _bSwapUD 竖直翻转镜像（关于竖直中轴对称）。
 \tparam _tOut 输出迭代器类型。
@@ -175,6 +173,8 @@ BlitScale<true, true>(const Point&, const Size&, int, int);
 \param sp 源迭代器起始点所在缓冲区偏移。
 \param sc 源迭代器需要复制的区域大小。
 \since build 182
+
+对一块矩形区域的逐像素顺序批量操作（如复制或贴图）。
 */
 template<template<bool> class _gBlitLoop, bool _bSwapLR, bool _bSwapUD,
 	typename _tOut, typename _tIn>

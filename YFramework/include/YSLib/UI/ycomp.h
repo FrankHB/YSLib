@@ -16,13 +16,13 @@
 /*!	\file ycomp.h
 \ingroup UI
 \brief 平台无关的 Shell 组件。
-\version r2318
+\version r2321
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2012-09-04 12:03 +0800
+	2012-12-25 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,6 @@ class ImageBrush;
 struct InputEventArgs;
 struct KeyEventArgs;
 struct TouchEventArgs;
-struct PaintContext;
 struct PaintEventArgs;
 class Renderer;
 struct RoutedEventArgs;
@@ -89,6 +88,8 @@ using Drawing::Size;
 using Drawing::Rect;
 
 using Drawing::Graphics;
+//! \since build 366
+using Drawing::PaintContext;
 
 YSL_END_NAMESPACE(Components)
 

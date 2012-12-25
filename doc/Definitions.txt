@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11949
+\version r11953
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2012-12-11 23:03 +0800
+	2012-12-25 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -551,9 +551,10 @@ namespace std
 namespace std;
 namespace ystdex;
 namespace ystdex::details; // for impl;
-namespace ystdex::iterator_transformation; // @ <iterator.hpp>
-namespace ystdex::operators; // @ <operators.hpp>
+namespace ystdex::iterator_transformation; // @ <ystdex/iterator.hpp>
+namespace ystdex::operators; // @ <ystdex/operators.hpp>
 namespace ytest;
+namespace ytest::timing; // @ <ytest/timing.hpp>
 
 // YCLib 。
 namespace platform;
@@ -991,7 +992,7 @@ $header UI::YComponent : YMessage
 		using Drawing::PixelType, Drawing::BitmapPtr, Drawing::ConstBitmapPtr, Drawing::Color;
 
 		using Drawing::Point, Drawing::Vec, Drawing::Size, Drawing::Rect;
-		using Drawing::Graphics;
+		using Drawing::Graphics, Drawing::PaintContext;
 	} // namespace Components;
 } //$header UI::YComponent;
 

@@ -16,13 +16,13 @@
 /*!	\file timing.h
 \ingroup YTest
 \brief 运行计时测试工具。
-\version r276
+\version r278
 \author FrankHB<frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-06-23 20:01:09 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2012-12-23 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,10 @@
 */
 namespace ytest
 {
+
+//! \since build 366
+using ystdex::size_t;
+
 
 /*!
 \since build 319

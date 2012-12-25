@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.h
 \ingroup YReader
 \brief 阅读器设置数据。
-\version r221
+\version r223
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:41 +0800
 \par 修改时间:
-	2012-09-14 15:39 +0800
+	2012-12-21 02:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,8 +142,8 @@ protected:
 private:
 	/*!
 	\brief 当前设置的颜色指针。
-	\none 为空指针时忽略。
-	\since build 277
+	\note 为空指针时忽略。
+	\since build 279
 	*/
 	Color* pColor;
 	/*!

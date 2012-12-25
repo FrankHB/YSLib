@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r1697
+\version r1770
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2012-11-20 13:57 +0800
+	2012-12-25 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,12 +60,18 @@
 — ISO/IEC TR 19769:2004, Information technology — Programming languages, their environments and system software interfaces — Extensions for the programming language C to support new character data types
 — The Unicode Standard — Version 6.0 – Core Specification
 
+@1.1.1 引用缩写：
+ ISO C ： ISO/IEC 9899 ；
+ ISO C++ ： ISO/IEC 14882 ；
+ ISO C++03 ： ISO/IEC 14882:2003 ；
+ ISO C++11 ： ISO/IEC 14882:2011 。
+
 @1.2 术语：
 
 @1.2.1 C++ 语言：
 
 @1.2.1.1
-以下列表中的概念参考 ISO/IEC-14882:2003 - The C++ Programing Language （以下简称“语言标准”）：
+以下列表中的概念参考 ISO C++ ：
 翻译单元(translation unit) ：(@2/1 [lex])；
 字符集(character set) ：(@2.2 [lex.charset])；
 预处理记号(preprocessing token) ：(@2.4 [lex.pptoken])；
@@ -89,7 +95,7 @@
 命名空间(namespace) ：(@7.3 [basic.namespace])。
 
 @1.2.1.2
-以下内容参考语言标准相关描述：
+以下内容参考 ISO C++ 相关描述：
 续行/断行连接(line continuation) ：(@2.1/2 [lex.phases])，“splicing physical source lines to form logical source lines”。
 
 @2 设计的基本原理、表达形式和公用抽象：
@@ -197,7 +203,7 @@
 
 @2.3 通用语义：
 本节讨论和约定对于整个程序及其环境通用的描述和一般性结论，也包括契约和其它约束概念。
-关于“对象”的概念，参见 ISO/IEC 14882 Clause 3 。
+关于“对象”的概念，参见 ISO C++ Clause 3 。
 
 @2.3.1 可编程性和兼容性：
 可编程性是程序表达语义的基础。对于通用程序设计，可编程性受到底层实现（例如硬件驱动程序）的约束，仅能够使用有限的接口。
@@ -315,7 +321,7 @@
 
 @2.3.3.1.10 间接(indirection) 操作：
 间接操作获取具体的唯一目标（一般不是值语义，例如返回内置引用类型），又称解引用操作（ * ）。
-可被解引用的源称为可解引用的(dereferenceable) ，这扩展了 ISO/IEC 14882:2003 24.1/5 关于迭代器可解引用的定义。
+可被解引用的源称为可解引用的(dereferenceable) ，这扩展了 ISO C++03 24.1/5 关于迭代器可解引用的定义。
 不可解引用的源是无效的。
 
 @2.3.3.1.11 遍历(traverse) 操作：
@@ -365,8 +371,8 @@
 接口类型是特殊的类类型。接口类型是抽象类，不应被实例化。
 接口类型中不含状态（成员数据）；有零个、一个或多个抽象实例方法，但不含具体实例方法。
 同常见的其它语言（如 Java 和 C# ）通过语言特性直接支持的接口类型不同，此处约定的接口类型有以下需要注意之处：
-允许有静态数据域（无论是否是常量）和静态成员方法：注意 C++ 基类的命名空间独立于派生类，不影响实现；
-允许声明类型，包括 typedef 名称和类类型：注意在 C++ 中的基类命名空间和派生类命名空间的独立性，以及嵌套类实例不包含外围类实例指针；
+允许有静态数据域（无论是否是常量）和静态成员方法：注意 C++ 基类的作用域独立于派生类，不影响实现；
+允许声明类型，包括 typedef 名称和类类型：注意在 C++ 中的基类作用域和派生类作用域的独立性，以及嵌套类实例不包含外围类实例指针；
 允许声明友元；
 允许使用访问权限控制：可以包含非 public 成员；
 允许空接口被实例化：为了简化接口模板通过宏的实现；注意在 C++ 中，无法把纯虚析构函数的定义放在类的声明内部。
@@ -866,15 +872,15 @@ $4.1.3.1.4 临时性例外：
 慎重使用有条件支持的(conditionally-supported) 特性。
 
 @5.1.5
-禁止使用 ISO/IEC 14882:2003 C++ Annex D 中的 deprecated 特性，除以下有说明外；
-避免使用 ISO/IEC 14882:2011 C++ Annex D 中的 deprecated 特性。
-注意以下在前者在前者中作为 deprecated 特性，在后者中被删除（重新支持）的特性，应避免使用：
- ISO/IEC 14882:2003 C++ Annex D.2 static keyword [depr.static] 。
+禁止使用 ISO C++03 Annex D 中的 deprecated 特性，除以下有说明外；
+避免使用 ISO C++11 Annex D 中的 deprecated 特性。
+注意以下在前者在前者中作为 deprecated 特性，在后者中被删除（重新支持）的特性，除非必要应避免使用：
+ ISO C++03 Annex D.2 static keyword [depr.static] 。
 （参见 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3296.html#FI6 。）
 应特别注意禁止使用在前者中作为 deprecated 特性，在后者中不支持的特性：
- ISO/IEC 14882:2003 C++ Annex D.3 Access declarations [depr.access.dcl] ；
+ ISO C++03 Annex D.3 Access declarations [depr.access.dcl] ；
 （参见 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3296.html#US56 。）
- ISO/IEC 14882:2003 C++ Annex D.4 Implicit conversion from const strings [depr.string] 。
+ ISO C++03 Annex D.4 Implicit conversion from const strings [depr.string] 。
 有限使用动态异常规范，参见 @3.6.2.6 。
 
 @5.1.6
@@ -883,11 +889,11 @@ $4.1.3.1.4 临时性例外：
 上述情况下应该使用指针加法代替下标操作。
 
 @5.2 基本概念及语义：
-参见 ISO/IEC 14882:2011 Clause 3 和 Clause 5 。注意与 ISO/IEC 14882:2003 的区别。
+参见 ISO C++11 Clause 3 和 Clause 5 。注意与 ISO C++03 的区别。
 
 @5.2.1
 区分名称和实体。
-注意链接是名称而非实体的属性。
+注意链接是名称而非实体的属性，尽管也用于命名空间(@5.5.8) 。
 关于名称的使用，参见 @5.3.2 。
 明确声明引入名称，定义和实体的存在直接相关。
 明确定义是声明，但声明不一定是定义。
@@ -1004,7 +1010,7 @@ $4.1.3.1.4 临时性例外：
 被初始化的若为字符数组，元素（字符类型）必须是 const 类型修饰的，参见 @5.1.5 。
 
 @5.5 声明和命名空间：
-注意区分涉及声明的语法歧义，参见 ISO/IEC 14882:2011 6.8 。
+注意区分涉及声明的语法歧义，参见 ISO C++11 6.8 。
 注意函数声明和函数定义的区别。
 
 @5.5.1
@@ -1021,16 +1027,25 @@ $4.1.3.1.4 临时性例外：
 
 @5.5.4 static 和 thread_local ：
 
-@5.5.4.1
-避免使用 static 在命名空间作用域声明对象，参见 @5.1.5 。
-使用翻译单元内的无名命名空间代替。
-为了一致性，一般同时使用无名命名空间代替命名空间作用域内的 static 函数。
+@5.5.4.1 命名空间作用域 static ：
+注意命名空间作用域的 static 修饰的声明的名称具有内部链接。
+避免使用 static 在命名空间作用域声明对象，参见 @5.1.5 以及以下讨论；除非明确需要内部链接且使名称满足特定于实现的需求。
+使用翻译单元内的适当的若干未命名命名空间代替，以便自由选择使用内部链接或外部链接，且允许使链接作用于类类型或 typedef 名称等的声明；参见 @5.5.8.1 。
+注意 ISO C++03 要求模版非类型实际参数要求名称具有外部链接，参见 ISO C++03 14.3.2/1 ；此时 static 不再适用。但是， ISO C++11 明确命名空间具有的链接(@5.5.8) ，同时也取消了这个限制，参见 ISO C++11 14.3.2/1 。
+因此在 ISO C++11 实现中， static 仍然可用，但可能造成混乱，所以避免使用。
+为了一致性，一般同时使用未命名命名空间代替命名空间作用域内的 static 函数。
 
-@5.5.4.2
+@5.5.4.2 类作用域 static ：
+注意类作用域 static 用于修饰成员声明，指定其为静态成员，决定其不依赖具体对象。
+除非必要，否则不依赖于 this(@5.7.5) 的成员应该为静态成员。
 对于成员函数，在类的定义中直接使用 static ，不在类的成员函数定义中重写。
 
-@5.5.4.3
+@5.5.4.3 块作用域 static ：
+注意块作用域 static 用于修饰声明的对象，决定其具有静态存储期。
+
+@5.5.4.4 thread_local ：
 在可以且有必要使用 thread_local 时，不使用 static 代替。
+注意 thread_local 允许动态初始化，而实现提供的类似扩展特性可能不允许。
 
 @5.5.5 extern ：
 
@@ -1047,7 +1062,7 @@ $4.1.3.1.4 临时性例外：
 @5.5.6.1 语法：
 在必要时使用 inline 关键字。
 不使用冗余的 inline （类模板的成员不适用）。
- inline 对于 namespace 的使用参见 @5.5.8.2 。
+ inline 对于 namespace 的使用参见 @5.5.8.3 。
 使用 static inline 而不是 inline static ，保持一致性（命名空间作用域的 inline static 可能引起某些编译器的警告）。
 保持和 static inline 风格一致性，一般使用 explicit inline ，而不是 inline explicit 。
 
@@ -1059,13 +1074,13 @@ $4.1.3.1.4 临时性例外：
 不连用 static inline ，而在无名命名空间中用 inline 代替。
 
 @5.5.6.4
-在类的成员函数声明中可以省略 inline 关键字，参见 ISO/IEC 14882:2003 7.1.2/3 。
+在类的成员函数声明中可以省略 inline 关键字，参见 ISO C++03 7.1.2/3 。
 若类的成员函数声明和定义分离，在完整定义而不是声明处使用 inline 。
 
 @5.5.6.5 inline 函数名的链接：
 注意 ISO C 和 ISO C++ 对于 inline 函数的链接的差异。 ISO C 的 inline 函数默认具有内部链接，而 ISO C++ 的内联函数默认具有外部链接。
-按 ISO/IEC 14882:2003 C++ 标准条款 7.1.2 Function specifiers [dcl.fct.spec] 规定可知，非外部链接的内联函数内的局部静态对象不是同一对象。
-按 ISO/IEC 14882:2003 C++ 标准条款 3.5 Program and linkage [basic.link] 规定可知，非外部链接的嵌套类名的成员函数不具有外部链接。
+按 ISO C++03 7.1.2 Function specifiers [dcl.fct.spec] 规定可知，非外部链接的内联函数内的局部静态对象不是同一对象。
+按 ISO C++03 3.5 Program and linkage [basic.link] 规定可知，非外部链接的嵌套类名的成员函数不具有外部链接。
 因此需要注意当使用内联成员函数且在其中定义静态对象时类名具有的链接。
 
 @5.5.7 using ：
@@ -1080,15 +1095,20 @@ $4.1.3.1.4 临时性例外：
 除非特别指定（例如文档说明），应避免在命名空间作用域内，尤其是头文件中使用 using 指令，以防名称污染。
 
 @5.5.8 命名空间：
-注意命名空间是实体。
+注意命名空间是实体，但具有链接。
 注意命名空间具有作用域。
+注意 ISO C++11 3.5/4 明确，命名空间具有的链接对其中声明的、名称未被指定为内部链接的特定实体（变量、函数、命名类、具有 typedef-name 的未命名类、命名枚举、具有 typedef-name 的未命名枚举、具有链接的枚举中的枚举项和模版）具有传递性。
 注意全局命名空间。
 
-@5.5.8.1 命名空间别名：
+@5.5.8.1 未命名命名空间(unnamed namespace) ：
+注意未命名命名空间可能具有静态链接。
+注意 ISO C++11 中，嵌套未命名命名空间具有静态链接。
+
+@5.5.8.2 命名空间别名：
 尽量避免命名空间别名造成的名称歧义。
 
-@5.5.8.2
-在 C++11 实现中，可使用 inline 于命名空间，用于区分版本等。
+@5.5.8.3
+在 ISO C++11 实现及启用某些扩展的视线（如 Clang++ ）中，可使用 inline 于命名空间，用于区分版本等。
 
 @5.5.9 友元：
 禁止在类定义中定义友元类。
@@ -1109,6 +1129,7 @@ $4.1.3.1.4 临时性例外：
 @5.6 const 和 volatile 修饰符(cv-qulifier) ：
 
 @5.6.1 const ：
+注意无 extern 时命名空间作用域声明的 const 对象名称具有内部链接，这点和 ISO C 不同。
 若有可能，尽可能使用 const 关键字，除了以下给出的例外(@5.6.3) 。
 
 @5.6.2
@@ -1136,11 +1157,11 @@ $4.1.3.1.4 临时性例外：
 
 @5.7.2.3
 注意 sizeof(void*) == sizeof(int) 并不在所有平台上保证成立。
-需要使用和对象指针占用空间大小相同的整数类型时，若实现支持（可选支持，参见 ISO/IEC 14882:2011 18.4.1 ），使用 std::intptr_t 或 std::uintptr_t 。
+需要使用和对象指针占用空间大小相同的整数类型时，若实现支持（可选支持，参见 ISO C++11 18.4.1 ），使用 std::intptr_t 或 std::uintptr_t 。
 
 @5.7.3 枚举类型：
-注意带作用域枚举(scoped enumeration) 在声明时不能省略作为枚举名称的标识符（参见 ISO/IEC 14882:2011 7.2/2 ）。
- enum class 和 enum struct 语义等价（参见 ISO/IEC 14882:2011 7.2/2 ），统一风格起见应尽可能使用 enum class 。
+注意带作用域枚举(scoped enumeration) 在声明时不能省略作为枚举名称的标识符（参见 ISO C++11 7.2/2 ）。
+ enum class 和 enum struct 语义等价（参见 ISO C++11 7.2/2 ），统一风格起见应尽可能使用 enum class 。
 
 @5.7.4 class-key ：
 关于带作用域枚举，参见 @5.7.3 。
@@ -1159,6 +1180,14 @@ $4.1.3.1.4 临时性例外：
 不使用 export 。此特性在 ISO C++11 中被删除，但 export 关键字仍被保留。由于实现的限制，多数实现无法支持这一 ISO C++03 标准特性。
 关于依赖名称，参见 @5.3.3.2 。
 
+@5.7.7 模版名称：
+注意除了成员函数模版外的模版名称具有外部链接。
+
+@5.7.8 模版的实例化和特化：
+注意特化的结果包含实例。
+适当使用 ISO C++11 引入的显式实例化声明(extern template declaration) 以节约编译时开销。
+注意模版的特化的链接。
+
 @5.8 操作符：
 
 @5.8.1
@@ -1168,7 +1197,7 @@ $4.1.3.1.4 临时性例外：
 参见 @5.12.3 。
 
 @5.9 声明符和初始化：
-注意区分涉及声明符的语法歧义，参见 ISO/IEC 14882:2011 8.2 。
+注意区分涉及声明符的语法歧义，参见 ISO C++11 8.2 。
 
 @5.9.1 声明符：
 注意声明符的递归形式。
@@ -1216,6 +1245,7 @@ $4.1.3.1.4 临时性例外：
 接口类型(@1.6.1) 转换可选 dynamic_cast ，但能保证类型安全且不被虚继承时首选 static_cast ，以提升性能。
 如果可能（对于 simple-type-specfier 和 typename-specifier ），一般应使用函数调用形式代替 static_cast ，以保持简洁。
 注意 const_cast 禁止用于转换 const 动态类型的对象，以免引起未定义行为。
+注意在函数指针和对象指针之间的 reinterpret_cast 是有条件支持的(@5.1.4) 。
 
 @5.11.5
 禁止对派生类的成员指针使用转换为基类成员指针的 static_cast ，以避免成员指针实现相关的错误。
@@ -1295,15 +1325,15 @@ $4.1.3.1.4 临时性例外：
 
 @5.14.1 名称使用限制：
 本节“实现”指 C++ 核心语言和标准库实现。
-除非另有说明，本节中引用的标号分别表示 ISO/IEC 14882:2003 和 ISO/IEC 14882:2011 同时对应且内容一致的章节（若标号相同则只使用一个）。
+除非另有说明，本节中引用的标号分别表示 ISO C++03 和 ISO C++11 同时对应且内容一致的章节（若标号相同则只使用一个）。
 
 @5.14.1.1 命名空间使用：
 
 @5.14.1.1.1 namespace std ：
-按 ISO/IEC 14882:2003 17.4.3.1 Reserved names [lib.reserved.names] 和 ISO/IEC 14882:2011 17.6.4.2.1 Namespace std [namespace.std] 规定，对全局命名空间 std 的使用受限，仅允许在满足其它条款需求时添加模板的特化。
+按 ISO C++03 17.4.3.1 Reserved names [lib.reserved.names] 和 ISO C++11 17.6.4.2.1 Namespace std [namespace.std] 规定，对全局命名空间 std 的使用受限，仅允许在满足其它条款需求时添加模板的特化。
 
 @5.14.1.1.2 namespace posix ：
-按 ISO/IEC 14882:2011 17.6.4.2.2 Namespace posix [namespace.posix] 规定，全局命名空间 posix 及其中的名称保留给实现使用。
+按 ISO C++11 17.6.4.2.2 Namespace posix [namespace.posix] 规定，全局命名空间 posix 及其中的名称保留给实现使用。
 
 @5.14.1.2 保留名称：
 
@@ -1328,10 +1358,10 @@ $4.1.3.1.4 临时性例外：
 按 17.4.3.1.4/17.6.4.3.4 Types [lib.extern.types] 规定，对于 C 标准库的每一个类型名称 T ， ::T 和 std::T 保留给实现使用。
 
 @5.14.1.2.5
-禁止使用 override 、 final 、 carries_dependency 和 noreturn 作为宏名，参见 ISO/IEC 14882:2011 C.2.7 Clause 17: library introduction [diff.cpp03.library] 。
+禁止使用 override 、 final 、 carries_dependency 和 noreturn 作为宏名，参见 ISO C++11 C.2.7 Clause 17: library introduction [diff.cpp03.library] 。
 
-@5.14.2 ISO/IEC 14882:2011 直接指定的依赖项：
-本节“包含”的含义参见 ISO/IEC 14882:2011 17.6.5.2/1 ，即被指示为包含的头文件中的标准库接口的声明和定义保证和包含此头文件等效。
+@5.14.2 ISO C++11 直接指定的依赖项：
+本节“包含”的含义参见 ISO C++11 17.6.5.2/1 ，即被指示为包含的头文件中的标准库接口的声明和定义保证和包含此头文件等效。
  <algorithm> 、 <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <random> 、 <regex> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <valarray> 、 <vector> 、 <utility> 包含 <initializer_list> ；
  <ios> 包含 <iosfwd> ；
  <bitset> 包含 <string> 和 <iosfwd> ；

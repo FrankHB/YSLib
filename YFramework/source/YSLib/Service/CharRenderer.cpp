@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r2470
+\version r2558
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-04 12:50 +0800
+	2012-12-25 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 
 #include "YSLib/Service/CharRenderer.h"
-#include "YSLib/Service/yblit.h"
 
 using namespace ystdex;
 
@@ -45,6 +44,7 @@ namespace
 	template<bool _bPositiveScan>
 	struct BlitTextLoop
 	{
+		//! \bug 依赖于静态对象保存的状态，非线程安全。
 		void
 		operator()(int delta_x, int delta_y,
 			pair_iterator<BitmapPtr, u8*> dst_iter, u8* src_iter,
@@ -86,43 +86,43 @@ RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
 			return;
 		// TODO: Show a special glyph when no bitmap found.
 
-		const int tx(ts.PenX + ts.Font.GetAdvance(c, sbit));
-
 		if(YB_LIKELY(std::iswgraph(c) && sbit.GetBuffer()))
 		{
-			const auto& left(ts.Margin.Left);
-			const auto& top(ts.Margin.Top);
-			const auto& sbw(sbit.GetWidth());
-			const auto& sbh(sbit.GetHeight());
-			const auto dx(ts.PenX + sbit.GetLeft()),
-				dy(ts.PenY - sbit.GetTop()),
-				xmin(max<int>(0, left - dx)),
-				ymin(max<int>(0, top - dy));
 			const Size& ds(g.GetSize());
-			const Size ss(sbw, sbh);
-			const Point dp(max<int>(left, dx), max<int>(top, dy));
-			Point sp(xmin, ymin);
-			const Size sc(max<int>(min<int>(g.GetWidth() - ts.Margin.Right
-				- dx, sbw) - xmin, 0), max<int>(min<int>(g.GetHeight()
-				- ts.Margin.Bottom - dy, sbh) - ymin, 0));
-			const Rect& r(mask & Rect(dp, sc));
 
-			sp += r.GetPoint() - dp;
-			if(alpha)
+			if(GetHorizontalOf(ts.Margin) < ds.Width
+				&& GetVerticalOf(ts.Margin) < ds.Height)
 			{
-				char_color = Color(ts.Color);
-				Blit<BlitTextLoop, false, false>(pair_iterator<BitmapPtr,
-					u8*>(g.GetBufferPtr(), alpha), ds, sbit.GetBuffer(), ss,
-					r.GetPoint(), sp, r.GetSize());
-			}
-			else
-				Blit<BlitBlendLoop, false, false>(g.GetBufferPtr(), ds,
-					MonoIteratorPair(pseudo_iterator<const PixelType>(
-					Color(ts.Color)), sbit.GetBuffer()), ss,
-					r.GetPoint(), sp, r.GetSize());
+				const Size ss(sbit.GetWidth(), sbit.GetHeight());
+				Rect r(ts.PenX + sbit.GetLeft(), ts.PenY - sbit.GetTop(),
+					ss.Width, ss.Height);
+				const Point sp(max<SPos>(ts.Margin.Left - r.X, 0),
+					max<SPos>(ts.Margin.Top - r.Y, 0));
+				const SPos dr(r.X + ss.Width - ds.Width + ts.Margin.Right),
+					db(r.Y + ss.Height - ds.Height + ts.Margin.Bottom);
+
+				if(dr > 0)
+					r.Width -= dr;
+				if(db > 0)
+					r.Height -= db;
+				r.GetPointRef() += sp;
+
+				const PaintContext pc{g, sp, r & mask};
+
+				if(alpha)
+				{
+					char_color = Color(ts.Color);
+					BlitChar<BlitTextLoop>(pair_iterator<BitmapPtr, u8*>(
+						g.GetBufferPtr(), alpha), sbit.GetBuffer(), ss, pc);
+				}
+				else
+					BlitChar<BlitBlendLoop>(g.GetBufferPtr(), MonoIteratorPair(
+						pseudo_iterator<const PixelType>(Color(ts.Color)),
+						sbit.GetBuffer()), ss, pc);
+				}
 		}
 		//移动笔。
-		ts.PenX = tx;
+		ts.PenX += sbit.GetXAdvance();
 	}
 }
 

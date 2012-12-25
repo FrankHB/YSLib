@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r2996
+\version r2998
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2012-12-05 19:40 +0800
+	2012-12-25 19:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -175,8 +175,8 @@ Button::Refresh(PaintEventArgs&& e)
 {
 	// NOTE: Partial invalidation made no efficiency improved here.
 	PaintText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
-		: FetchGUIState().Colors[Styles::Workspace], PaintContext(e.Target,
-		e.Location, Rect(e.Location, GetSizeOf(*this))));
+		: FetchGUIState().Colors[Styles::Workspace], {e.Target, e.Location,
+		Rect(e.Location, GetSizeOf(*this))});
 }
 
 YSL_END_NAMESPACE(Components)

@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r427
+\version r430
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-09-12 01:43 +0800
+	2012-12-21 03:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,12 +115,12 @@ pod_move(const _type* first, const _type* last, _type* result)
 
 /*!
 \brief 去除迭代器指定的范围中的重复元素，且不改变元素之间的相对顺序。
-\param b 输入范围起始迭代器。
-\param e 输入范围终止迭代器。
+\param first 输入范围起始迭代器。
+\param last 输入范围终止迭代器。
 \return 输出范围终止迭代器。
 \note 输入和输出范围的起始迭代器相同。
 \note 输出范围元素之间的相对顺序和输入的范围保持一致。
-\note 时间复杂度： O(n^2) ，其中 n 满足 std::advance(b, n) == e 。
+\note 时间复杂度： O(n^2) ，其中 n 满足 <tt>std::advance(first, n) == last</tt> 。
 \since build 265
 */
 template<typename _tForward>

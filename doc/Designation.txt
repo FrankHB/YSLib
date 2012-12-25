@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6922
+\version r6930
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-09 21:12 +0800
+	2012-12-25 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -398,7 +398,7 @@ nested-module-name:
 一个命名空间可能在多个单元中。
 
 @2.1.3 头文件附加准则：
-禁止在头文件中使用不具名命名空间(unnamed namespace) ，除非其中仅含 inline 函数和模板或需要和每一个翻译单元独立地相关的对象。
+禁止在头文件中使用未命名命名空间(unnamed namespace) ，除非其中仅含 inline 函数和模板或需要和每一个翻译单元独立地相关的对象。
 禁止在头文件中使用全局 using 指示，除非是有意的（例如减少别名个数；需在文档中说明）。
 
 @2.1.4 全局名称：
@@ -1371,8 +1371,13 @@ BASE_EXTENSIONS += ftsynth.c
 头文件版本： 2.4.9 ；
 库文件版本： 2.4.9 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
  build 318 起：
-头文件版本： 2.4.9 ；
-库文件版本： 2.4.9 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+头文件版本： 2.4.10 ；
+ DS 库文件版本： 2.4.10 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+ MinGW32 库文件版本： 2.4.10 用当时 MinGW32(@5.2.1.4) 编译的对应版本， modules.cfg 配置不变。
+ 2012-12-21(build 366) 起：
+头文件版本： 2.4.11 ；
+ DS 库文件版本： 2.4.11 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+ MinGW32 库文件版本： 2.4.11 用当时 MinGW32(@5.2.1.4) 编译的对应版本， modules.cfg 配置不变。
 
 @5.2.3.3
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。

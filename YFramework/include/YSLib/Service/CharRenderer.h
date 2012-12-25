@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2593
+\version r2615
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-17 21:13 +0800
+	2012-12-25 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,35 @@
 #define YSL_INC_SERVICE_CHARRENDERER_H_ 1
 
 #include "TextBase.h"
+#include "YSLib/Service/yblit.h"
 #include <cwctype>
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
+
+/*!
+\brief 字符块传输。
+\tparam _gBlitLoop 循环实现类模板。
+\tparam _tOut 输出迭代器类型。
+\tparam _tIn 输入迭代器类型。
+\param src 源迭代器。
+\param ss 源迭代器所在缓冲区大小。
+\param pc 指定字符所在区域和渲染目标的绘制上下文。
+\see Blit 。
+\since build 366
+*/
+template<template<bool> class _gBlitLoop, typename _tOut, typename _tIn>
+inline void
+BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc)
+{
+	const auto& g(pc.Target);
+	const auto& r(pc.ClipArea);
+
+	Blit<_gBlitLoop, false, false>(dst, g.GetSize(), src, ss,
+		r.GetPoint(), pc.Location, r.GetSize());
+}
+
 
 /*!
 \brief 打印单个字符。
