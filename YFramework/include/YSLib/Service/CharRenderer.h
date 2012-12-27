@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2615
+\version r2636
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-25 19:39 +0800
+	2012-12-28 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,14 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
+
+/*!
+\brief 字符渲染处理器类型。
+\since build 367
+*/
+typedef void(HCharRenderer)(PaintContext&&, const Padding&, Color,
+	const CharBitmap&, u8*);
+
 
 /*!
 \brief 字符块传输。
@@ -60,17 +68,20 @@ BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc)
 
 
 /*!
-\brief 打印单个字符。
-\param c 被打印的 UCS4 字符。
-\param ts 文本状态。
-\param g 输出图形接口上下文。
-\param mask 相对于输出图形接口上下文矩形，限定输出边界。
-\param alpha 输出设备接收的 8 位 Alpha 缓冲区首个元素的指针，若为 nullptr 则忽略。
-\since build 254
+\brief 渲染单个字符。
+\note 忽略 Alpha 缓冲。
+\since build 367
 */
 YF_API void
-RenderChar(ucs4_t c, TextState& ts, const Graphics& g, const Rect& mask,
-	u8* alpha);
+RenderChar(PaintContext&&, const Padding&, Color, const CharBitmap&,
+	u8* = nullptr);
+
+/*!
+\brief 渲染带 Alpha 缓冲的单个字符。
+\since build 367
+*/
+YF_API void
+RenderCharAlpha(PaintContext&&, const Padding&, Color, const CharBitmap&, u8*);
 
 
 /*!

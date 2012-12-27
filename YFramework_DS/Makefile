@@ -1,8 +1,8 @@
 # DS Makefile for YFramework -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK
 # CTime = 2009-12-18 12:27:40 +0800
-# UTime = 2012-11-06 16:50 +0800
-# Version = r1813
+# UTime = 2012-12-27 13:35 +0800
+# Version = r1856
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -53,9 +53,6 @@ export DATA			:= data $(REFDIR)/data
 #----
 ifeq ($(PLATFORM),DS)
 
-# the prefix on the compiler executables
-PREFIX	:=	arm-eabi-
-
 ARCH_AS	:=	-mthumb -mthumb-interwork -march=armv5te
 ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
 
@@ -84,16 +81,6 @@ CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x \
 # 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 
 endif
-
-#----
-# path to tools - this can be deleted if you set the path in windows
-#----
-# export PATH		:=	/d/dev/ds/devkitARM_r11/bin:/bin
-
-#----
-# PATH to ndslib - just make a system variable called NDSLIBPATH and be done with it
-#----
-# NDSLIBPATH	:=	/d/dev/ds/ndslib/
 
 #----
 # any extra libraries we wish to link with the project
@@ -155,15 +142,10 @@ MP3FILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.mp3)))
 # use CXX for linking C++ projects, CC for standard C
 #----
 ifeq ($(strip $(CPPFILES)),)
-#----
 	export LD	:=	$(CC)
-#----
 else
-#----
 	export LD	:=	$(CXX)
-#----
 endif
-#----
 
 #export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 #					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
@@ -221,19 +203,16 @@ $(OUTPUT)	:	$(OFILES)
 # Compile Targets for C/C++
 #----
 
-#----
 %.o : %.cpp
 	@echo $(notdir $<)
 	@$(CXX) -MM $(CXXFLAGS) -o $*.d $<
 	@$(CXX) $(CXXFLAGS) -c $< -o$@
 
-#----
 %.o : %.c
 	@echo $(notdir $<)
 	@$(CC) -MM $(CFLAGS) -o $*.d $<
 	@$(CC)  $(CFLAGS) -c $< -o$@
 
-#----
 %.o : %.s
 	@echo $(notdir $<)
 	@$(CC) -MM $(CFLAGS) -o $*.d $<
@@ -250,75 +229,51 @@ define bin2o
 	echo "extern const u32" $(*)_size";" >> $(*).h
 endef
 
-#----
 %.o	:	%.mp3
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.pcx
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.bin
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.png
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.raw
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.pal
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.map
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.mdl
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.jpg
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.mod
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.gif
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
 %.o	:	%.bmp
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
@@ -329,7 +284,6 @@ endef
 # you use in the graphics folders
 #----
 %.s %.h   : %.png %.grit
-#----
 	grit $< -fts -o$*
 
 -include $(DEPSDIR)/*.d

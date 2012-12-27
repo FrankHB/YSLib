@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4856 *build 366 rev *
+\version r4863 *build 367 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-25 22:26 +0800
+	2012-12-28 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,97 +403,78 @@ $using:
 
 $DONE:
 r1:
-/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer !^ (min, max);
+/ @ \impl \u CharRenderer $=
+(
+	/ \impl @ \f RenderChar ^ YAssert,
+	/ \impl @ \stt BlitTextLoop @ \un \ns
+);
 /= test 1 @ platform MinGW32;
 
-r2:
-* \simp \impl @ \f RenderChar @ \impl \u CharRenderer $since r1;
+r2-r8:
++ \f YF_API void Clip(PaintContext&, const Margin&, const Size&) @ \u YGDI;
+/ \impl @ \f RenderChar @ \impl \u ^ MaskArea;
 /= test 2 @ platform MinGW32;
-
-r3:
 /= test 3 @ platform DS ^ \conf release;
+/= test 4 @ platform MinGW32 ^ \conf release;
+/= 4 test 5 @ platform DS ^ \conf release;
 
-r4:
-/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer
-	^ \mf CharBitmap::GetXAdvance;
-/= test 4 @ platform DS ^ \conf release;
+r9-r10:
+/= 2 test 6 @ platform DS;
 
-r5:
-/ $doc updated PROJECT_BRIEF @ Doxygen file ^ Doxygen 1.8.2,
-* $doc typo @ (Doxygen \cmd) @ \h YGDIBase $since b225,
-* $doc typo @ (Doxygen \cmd, \ver \num) @ \m pColor @ \cl SettingPanel
-	@ \proj YSTest_ARM9 $since b279,
-* $doc typo @ (Doxygen \cmd \param \n) @ \f ufopen#(1, 2, 3, 4)
-	@ \h FileSystem $since b324;
-* $doc typo @ (Doxygen \cmd \param \n) @ \ft stable_range_unique @ \h Algorithms
-	$since b265,
-/ DLP "library using"
-	$= (^ "updated library freetype 2.4.11" ~ "modified freetype 2.4.10");
-/= test 5 @ platform DS;
+r11-r12:
+/ DLB \simp @ \a makefiles @ \platform DS,
+/= 2 test 7 @ platform DS;
 
-r6:
-/= test 6 @ platform MinGW32;
-
-r7:
-/= test 7 @ platform MinGW32 ^ \conf release;
-
-r8:
-/= test 8 @ platform DS ^ \conf release;
-
-r9:
-+ using ystdex::size_t @ \ns timing @ \h Timing,
-/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer;
-/= test 9 @ platform MinGW32;
-
-r10:
-/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer;
-/= test 10 @ platform DS ^ \conf release;
-
-r11:
-/ \st PaintContext @ \ns YSLib::Components @ \h YWidgetEvent
-	>> \ns YSLib::Drawing @ \h YGDIBase,
-- \a \ctor @ \st PaintContext;
-/ \pre \decl \st PaintContext -> using Drawing::PaintContext
-	@ \ns YSLib::Components @ \h YComponent,
-/ \tr \impl @ (\mf (Button::Refresh, (BufferedRenderer, Desktop)::Validate),
-	\ctor PaintEventArgs#3);
-/= test 11 @ platform MinGW32;
-
-r12:
-/ @ \u CharRenderer $=
+r13-r20:
+/ 8 test 8 @ platform DS $=
 (
-	/ \inc \h YBlit @ \impl \u -> \h;
-	+ \ft BlitChar @ \h;
-	/ \simp \impl @ \f RenderChar @ \impl \u ^ \ft BlitChar
+	/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer ^ \f Clip,
+	* \impl @ \f Clip @ \impl \u YGDI $since r2
 );
-/= test 12 @ platform MinGW32;
 
-r13:
-/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer;
-/= test 13 @ platform MinGW32;
+r21:
+/= test 9 @ platform DS ^ \conf release;
 
-r14:
-/= test 14 @ platform MinGW32 ^ \conf release;
+r22-r23:
+/ \simp \impl @ \f Clip @ \impl \u YGDI,
+(
+	+ typedef void(HCharRenderer)(PaintContext&&, const Padding&, Color,
+		const CharBitmap&);
+	/ \f YF_API void RenderChar(ucs4_t, TextState&, const Graphics&,
+		const Rect&, u8*) @ \u RenderChar -> \f void YF_API void RenderChar(
+		PaintContext&&, const Padding&, Color, const CharBitmap&,
+		u8* = nullptr),
+	+ \f RenderCharAlpha(PaintContext&&, const Padding&, Color,
+		const CharBitmap&, u8*),
+	+ \un \ns @ \impl \u TextRenderer;
+	+ \f void RenderCharFrom(HCharRenderer, ucs4_t, const Graphics&, TextState&,
+		const u8*); @ \un \ns @ \impl \u TextRenderer;
+	/ \mf \i \op() @ \cl (TextRenderer, TextRegion) @ \u TextRenderer -> \f !\i
+),
+/= 2 test 10 @ platform MinGW32;
 
-r15:
-/= test 15 @ platform DS;
+r24:
+/= test 11 @ platform MinGW32 ^ \conf release;
 
-r16:
-/= test 16 @ platform DS ^ \conf release;
+r25:
+/= test 12 @ platform DS;
+
+r26:
+/= test 13 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-25 +0800:
--32.6d;
-// Mercurial rev1-rev238: r9694;
+2012-12-28 +0800:
+-31.8d;
+// Mercurial rev1-rev239: r9720;
 
 / ...
 
 
 $NEXT_TODO:
-b367-b400:
+b368-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -790,7 +771,7 @@ $KNOWN_ISSUE:
 	implementation techniques found. Also depends on the environment.
 * $known_issue_b223 "corrupted loading or fatal errors on loading font file \
 	with embedded bitmap glyph like simson.ttc" $since b185;
-	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10) tested.
+	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10, 2.4.12) tested.
 * $known_issue_b264 "<cmath> cannot use 'std::*' names" @ "!defined \
 	%_GLIBCXX_USE_C99_MATH_TR1" @ "libstdc++ with G++ (4.6, 4.7) on devkitARM"
 	@ "platform $DS" $before $future;
@@ -803,7 +784,7 @@ $KNOWN_ISSUE:
 	$before $future(G++4.7.2);
 	// G++ 4.7.0 tested @ b300.
 	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
-* $known_issue_b346 "Vertical synchronization lacked for debug configuration \
+* $known_issue_b346 "vertical synchronization lacked for debug configuration \
 	when console window had got focus and then clipped with the main window"
 	@ "platform %DS";
 	// Seems to attribute to Windows GDI.
@@ -1012,6 +993,27 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib'.'Service' $=
+	(
+		+ "function %Clip" @ "unit %YGDI";
+		/ "character rendering" $=
+		(
+			+ "assertion for graphics context",
+			(
+				+ "typedef %HCharRenderer" @ "header %CharRenderer.h";
+				/ "implementation splitted" ^ "function %Clip",
+			)
+		)
+	)
+	/ DLB "simplified makefiles" @ "platform %DS" $=
+	(
+		- "unused EFS file system support",
+		- "unused file extension rules" @ "project %YBase"
+	)
+),
+
+b366
 (
 	/ %'YFramework' $=
 	(
@@ -1299,8 +1301,7 @@ b357
 				(
 					+ "typedef names %(traits_type; value_type, \
 						difference_type, reference, pointer)",
-					- "typedef names %(result, const_result)",
-					/ 
+					- "typedef names %(result, const_result)"
 				);
 				* "return type can be non-reference" @ "static member functions"
 					@ "class template %pair_iterate" $since b288
@@ -2277,7 +2278,7 @@ b332
 					+ "interface class %IValueHolder"
 				);
 				+ "class templates %(IValueHolder, PointerHolder)";
-				/ DLD "implementation" @ "class %ValueObject"  
+				/ DLD "implementation" @ "class %ValueObject"
 			)
 			/ DLD "simplified implementation" @ "class %ValueNode"
 		),
@@ -2894,7 +2895,7 @@ b316
 		/ %'Core'.'YMessage' $=
 		(
 			$dep_from "weak raw";
-			/ "destination shell field" ^ "%weak_ptr<Shell>" 
+			/ "destination shell field" ^ "%weak_ptr<Shell>"
 				~ "%shared_ptr<Shell>",
 			+ "field %bool %is_to_all designating broadcasting",
 			+ "member function %MessageQueue::Push(Message&&)";
@@ -3271,7 +3272,7 @@ b303
 		),
 		- "direct UI drawing test" @ %'shells test example',
 			// It has never been compatible on MinGW32.
-		* "slash-ended item not recognized as directory" @ %'file explorer' 
+		* "slash-ended item not recognized as directory" @ %'file explorer'
 			@ "platform %MinGW32" $since b299
 	)
 ),
@@ -3392,7 +3393,7 @@ b300
 	(
 		^ "updated devkitARM release 38" ~ "devkitARM release 37",
 		^ "updated libnds 1.5.5 with default arm7 0.5.24"
-			~ "libnds 1.5.4 with default arm7 0.5.23" 
+			~ "libnds 1.5.4 with default arm7 0.5.23"
 	)
 ),
 

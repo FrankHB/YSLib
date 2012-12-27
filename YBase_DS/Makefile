@@ -1,8 +1,8 @@
 # DS Makefile for YBase -> DS by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK
 # CTime = 2009-12-18 12:27:40 +0800
-# UTime = 2012-11-06 16:52 +0800
-# Version = r1750
+# UTime = 2012-12-28 13:34 +0800
+# Version = r1847
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -48,9 +48,6 @@ export DATA			:= data $(REFDIR)/data
 #----
 ifeq ($(PLATFORM),DS)
 
-# the prefix on the compiler executables
-PREFIX	:=	arm-eabi-
-
 ARCH_AS	:=	-mthumb -mthumb-interwork -march=armv5te
 ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
 
@@ -80,22 +77,6 @@ CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x \
 endif
 
 #----
-# path to tools - this can be deleted if you set the path in windows
-#----
-# export PATH		:=	/d/dev/ds/devkitARM_r11/bin:/bin
-
-#----
-# any extra libraries we wish to link with the project
-#----
-LIBS	:=	#-lnds9 -lfat
-
-#----
-# list of directories containing libraries, this must be the top level containing
-# include and lib
-#----
-LIBDIRS	:=	#$(LIBNDS)
-
-#----
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
 #----
@@ -112,42 +93,27 @@ export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-PCXFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.pcx)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
-PNGFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.png)))
-PALFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.pal)))
-RAWFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.raw)))
 MAPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.map)))
-JPEGFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.jpg)))
-MODFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.mod)))
-GIFFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.gif)))
-BMPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.bmp)))
-MP3FILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.mp3)))
 
 #----
 # use CXX for linking C++ projects, CC for standard C
 #----
 ifeq ($(strip $(CPPFILES)),)
-#----
  	export LD	:=	$(CC)
-#----
 else
-#----
  	export LD	:=	$(CXX)
-#----
 endif
-#----
 
 #export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 #					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
-export OFILES	:=	$(MAPFILES:.map=.o) $(RAWFILES:.raw=.o) $(PALFILES:.pal=.o) $(BINFILES:.bin=.o) $(PNGFILES:.png=.o) $(PCXFILES:.pcx=.o) $(JPEGFILES:.jpg=.o) $(MODFILES:.mod=.o) $(GIFFILES:.gif=.o) $(BMPFILES:.bmp=.o) $(MP3FILES:.mp3=.o)\
+export OFILES	:=	$(MAPFILES:.map=.o) $(BINFILES:.bin=.o)\
 					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-					$(foreach dir,$(LIBDIRS),-I$(dir)/include/nds) \
 					-I$(CURDIR)/$(BUILD)
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
@@ -195,19 +161,16 @@ $(OUTPUT)	:	$(OFILES)
 # Compile Targets for C/C++
 #----
 
-#----
 %.o : %.cpp
 	@echo $(notdir $<)
 	@$(CXX) -MM $(CXXFLAGS) -o $*.d $<
 	@$(CXX) $(CXXFLAGS) -c $< -o$@
 
-#----
 %.o : %.c
 	@echo $(notdir $<)
 	@$(CC) -MM $(CFLAGS) -o $*.d $<
 	@$(CC)  $(CFLAGS) -c $< -o$@
 
-#----
 %.o : %.s
 	@echo $(notdir $<)
 	@$(CC) -MM $(CFLAGS) -o $*.d $<
@@ -224,87 +187,13 @@ define bin2o
 	echo "extern const u32" $(*)_size";" >> $(*).h
 endef
 
-#----
-%.o	:	%.mp3
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-%.o	:	%.pcx
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
 %.o	:	%.bin
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
 
-#----
-%.o	:	%.png
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-%.o	:	%.raw
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-%.o	:	%.pal
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
 %.o	:	%.map
-#----
 	@echo $(notdir $<)
 	@$(bin2o)
-
-#----
-%.o	:	%.mdl
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-%.o	:	%.jpg
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-%.o	:	%.mod
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-%.o	:	%.gif
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-%.o	:	%.bmp
-#----
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#----
-# This rule creates assembly source files using grit
-# grit takes an image file and a .grit describing how the file is to be processed
-# add additional rules like this for each image extension
-# you use in the graphics folders
-#----
-%.s %.h   : %.png %.grit
-#----
-	grit $< -fts -o$*
 
 -include $(DEPSDIR)/*.d
 

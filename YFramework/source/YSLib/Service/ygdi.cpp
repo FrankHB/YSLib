@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2635
+\version r2655
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-12-18 11:50 +0800
+	2012-12-27 15:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,26 @@ FetchMargin(const Rect& r, const Size& s)
 {
 	return Padding(r.X, s.Width - r.X - r.Width,
 		r.Y, s.Height - r.Y - r.Height);
+}
+
+
+void
+Clip(PaintContext& pc, const Padding& m, const Size& ss)
+{
+	const Size& ds(pc.Target.GetSize());
+
+	if(GetHorizontalOf(m) < ds.Width && GetVerticalOf(m) < ds.Height)
+	{
+		const auto pt(pc.Location);
+		const Point sp(max<SPos>(m.Left - pt.X, 0), max<SPos>(m.Top - pt.Y, 0));
+		const auto dr(pt.X + ss.Width - ds.Width + m.Right),
+			db(pt.Y + ss.Height - ds.Height + m.Bottom);
+
+		yunseq(pc.Location = sp, pc.ClipArea &= Rect(pt + sp, dr > 0
+			? ss.Width - dr : ss.Width, db > 0 ? ss.Height - db : ss.Height));
+	}
+	else
+		pc.ClipArea.GetSizeRef() = {};
 }
 
 

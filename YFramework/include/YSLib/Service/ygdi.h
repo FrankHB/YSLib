@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3424
+\version r3432
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-12-18 11:49 +0800
+	2012-12-27 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,6 +118,17 @@ GetVerticalOf(const Padding& m)
 */
 YF_API Padding
 FetchMargin(const Rect&, const Size&);
+
+
+/*!
+\brief 根据指定边距和源优化优化绘制上下文的剪切区域。
+\since build 367
+
+检查边距限制下需要保留绘制的区域，结果保存至绘制上下文的除渲染目标外的其它成员。
+当不需要绘制时，不修改偏移坐标。
+*/
+YF_API void
+Clip(PaintContext&, const Padding&, const Size&);
 
 
 /*!

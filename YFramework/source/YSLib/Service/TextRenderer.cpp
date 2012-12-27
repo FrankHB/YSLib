@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2503
+\version r2542
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-07 12:01 +0800
+	2012-12-28 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,42 @@ using namespace Drawing;
 using namespace Text;
 
 YSL_BEGIN_NAMESPACE(Drawing)
+
+namespace
+{
+
+//! \since build 367
+void
+RenderCharFrom(HCharRenderer f, ucs4_t c, const Graphics& g, TextState& ts,
+	const Rect& clip, u8* alpha)
+{
+	YAssert(bool(g), "Invalid graphics context found.");
+
+	const auto cbmp(ts.Font.GetGlyph(c));
+
+	if(YB_LIKELY(cbmp))
+	{
+		PaintContext pc{g, {ts.PenX + cbmp.GetLeft(), ts.PenY - cbmp.GetTop()},
+			clip};
+
+		// TODO: Show a special glyph when no bitmap found.
+		// TODO: Use fast glyph advance fetching for non-graph characters
+		//	when possible.
+		// TODO: Handle '\t'.
+		if(std::iswgraph(c))
+			f(std::move(pc), ts.Margin, ts.Color, cbmp, alpha);
+		ts.PenX += cbmp.GetXAdvance();
+	}
+}
+
+} // unnamed namespace;
+
+void
+TextRenderer::operator()(ucs4_t c)
+{
+	RenderCharFrom(RenderChar, c, TextRenderer::GetContext(), State, ClipArea,
+		nullptr);
+}
 
 void
 TextRenderer::ClearLine(u16 l, SDst n)
@@ -67,6 +103,14 @@ TextRegion::TextRegion(FontCache& fc)
 	: GTextRendererBase<TextRegion>(), TextState(fc), BitmapBufferEx()
 {
 	InitializeFont();
+}
+
+void
+TextRegion::operator()(ucs4_t c)
+{
+	RenderCharFrom(RenderCharAlpha, c, TextRegion::GetContext(),
+		TextRegion::GetTextState(), Rect(Point(), GetSize()),
+		GetBufferAlphaPtr());
 }
 
 void

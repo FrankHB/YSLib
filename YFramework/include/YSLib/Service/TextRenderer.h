@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2763
+\version r2776
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-17 21:09 +0800
+	2012-12-27 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -356,10 +356,7 @@ public:
 	\brief 渲染单个字符。
 	*/
 	void
-	operator()(ucs4_t c)
-	{
-		RenderChar(c, State, TextRenderer::GetContext(), ClipArea, nullptr);
-	}
+	operator()(ucs4_t);
 
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
 		TextState, State)
@@ -444,11 +441,7 @@ public:
 	\brief 渲染单个字符。
 	*/
 	void
-	operator()(ucs4_t c)
-	{
-		RenderChar(c, *this, *this, Rect(Point(), GetSize()),
-			GetBufferAlphaPtr());
-	}
+	operator()(ucs4_t);
 
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
 		TextState, *this)

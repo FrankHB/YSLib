@@ -1,8 +1,8 @@
-# DS Makefile for YShell by Franksoft 2009 - 2012
+# DS Makefile for YSTest by Franksoft 2009 - 2012
 # CodePage = ANSI / GBK
 # CTime = 2009-11-12 21:26:30 +0800
-# UTime = 2012-10-11 22:09 +0800
-# Version = r1070
+# UTime = 2012-10-27 14:09 +0800
+# Version = r1076
 
 # This makefile is written based on devkitPro example template.
 
@@ -46,11 +46,9 @@ ICON		:= -b $(CURDIR)/data/logo.bmp
 #----
 # If you're using EFS_lib, uncomment "USE_EFS = YES" here.
 #----
-
 #USE_EFS = YES
 
-PATH := $(DEVKITARM)/bin:$(PATH)
-PROGNAME = YShell
+PROGNAME = YSTest
 OFILES +=
 ADD_LIBS +=
 
@@ -77,7 +75,6 @@ ifeq ($(strip $(USE_EFS)), YES)
 #	@$(CURDIR)/../efs $(OUTPUT).sc.nds
 endif
 
-#----
 $(OUTPUT).nds	:	$(ARM9OBJ)
 	@echo Building $(notdir $@) ...
 ifeq ($(strip $(USE_EFS)), YES)
@@ -88,8 +85,6 @@ else
 #	@cp $(OUTPUT).nds $(OUTPUT)_.nds
 endif
 	@echo Built $(notdir $@) .
-
-#----
 
 $(BUILD):
 # Before compiling, show any warning messages that might have detected
@@ -131,8 +126,6 @@ ifeq ($(strip $(MSG_IS_ERROR)),)
 	@[ -d $@ ] || mkdir -p $@
 #	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 endif
-
-#----
 
 clean:
 	@echo Cleaning releases ...
