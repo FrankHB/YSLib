@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r1186
+\version r1189
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-09-04 12:50 +0800
+	2012-12-30 14:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,9 +37,6 @@ Message::Message(ID m, const ValueObject& c)
 {}
 Message::Message(ID m, ValueObject&& c)
 	: id(m), content(std::move(c))
-{}
-Message::Message(Message&& msg)
-	: id(msg.id), content(std::move(msg.content))
 {}
 
 void

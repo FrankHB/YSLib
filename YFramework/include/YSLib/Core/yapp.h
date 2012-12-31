@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1557
+\version r1559
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2012-12-11 21:17 +0800
+	2012-12-28 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ public:
 
 	/*!
 	\brief 处理消息：分发消息。
-	\pre 断言检查：当前 Shell 句柄有效。
+	\pre 断言：当前 Shell 句柄有效。
 	\since build 317
 	*/
 	void
@@ -134,7 +134,7 @@ FetchShellHandle() ynothrow
 /*!
 \ingroup HelperFunctions
 \brief 激活 Shell 对象：控制权转移给此对象以维持单线程运行。
-\pre 断言检查： <tt>bool(hShl)</tt> 。
+\pre 断言： <tt>bool(hShl)</tt> 。
 \warning 不保证线程安全性。
 */
 inline bool

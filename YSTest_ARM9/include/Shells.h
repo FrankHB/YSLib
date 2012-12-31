@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2862
+\version r2866
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-12-15 15:52 +0800
+	2012-12-31 18:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,8 +103,7 @@ protected:
 	*/
 	CheckButton cbPreview;
 	Label lblDragTest;
-	Button btnEnterTest, btnShowWindow, btnTestEx,
-		btnPrevBackground, btnNextBackground;
+	Button btnEnterTest, btnTestEx, btnPrevBackground, btnNextBackground;
 	unique_ptr<FrmAbout> pFrmAbout;
 	MenuHost mhMain;
 	FPSCounter fpsCounter;
@@ -128,9 +127,6 @@ public:
 private:
 	IWidget*
 	GetBoundControlPtr(const KeyInput&);
-
-	static void
-	OnClick_ShowWindow(TouchEventArgs&&);
 };
 
 YSL_END_NAMESPACE(YReader)

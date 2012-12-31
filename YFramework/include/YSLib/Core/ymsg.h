@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1801
+\version r1814
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-12-11 21:22 +0800
+	2012-12-30 14:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,11 +69,20 @@ private:
 
 public:
 	/*!
+	\brief 构造：使用消息标识和空消息内容。
+	\since build 368
+	*/
+	yconstfn
+	Message(ID msg_id = 0)
+		: id(msg_id)
+	{}
+	/*!
 	\brief 构造：使用消息标识和消息内容。
 	\since build 320
 	*/
 	//@{
-	Message(ID = 0, const ValueObject& = {});
+	//! \since build 368
+	Message(ID, const ValueObject&);
 	Message(ID, ValueObject&&);
 	//@}
 
@@ -82,10 +91,10 @@ public:
 	*/
 	DefDeCopyCtor(Message)
 	/*!
-	\brief 转移构造。
-	\since build 317
+	\brief 转移构造：默认实现。
+	\since build 368
 	*/
-	Message(Message&&);
+	DefDeMoveCtor(Message)
 
 	Message&
 	operator=(const ValueObject& c)

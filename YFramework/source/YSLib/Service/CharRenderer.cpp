@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r2901
+\version r2927
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-28 01:30 +0800
+	2012-12-28 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,36 +69,24 @@ struct BlitTextLoop
 } // unnamed namespace;
 
 void
-RenderChar(PaintContext&& pc, const Padding& m, Color c, const CharBitmap& cbmp,
-	u8*)
+RenderChar(PaintContext&& pc, Color c, CharBitmap::BufferType cbuf,
+	const Size& ss)
 {
-	if(const auto cbuf = cbmp.GetBuffer())
-	{
-		const Size ss(cbmp.GetWidth(), cbmp.GetHeight());
+	YAssert(cbuf, "Invalid buffer found.");
 
-		Clip(pc, m, ss);
-		if(!pc.ClipArea.IsUnstrictlyEmpty())
-			BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoIteratorPair(
-				pseudo_iterator<const PixelType>(c), cbuf), ss, pc);
-	}
+	BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoIteratorPair(
+		pseudo_iterator<const PixelType>(c), cbuf), ss, pc);
 }
 
 void
-RenderCharAlpha(PaintContext&& pc, const Padding& m, Color c,
-	const CharBitmap& cbmp, u8* alpha)
+RenderCharAlpha(PaintContext&& pc, Color c, CharBitmap::BufferType cbuf,
+	const Size& ss, u8* alpha)
 {
-	if(const auto cbuf = cbmp.GetBuffer())
-	{
-		const Size ss(cbmp.GetWidth(), cbmp.GetHeight());
+	YAssert(cbuf, "Invalid buffer found.");
 
-		Clip(pc, m, ss);
-		if(!pc.ClipArea.IsUnstrictlyEmpty())
-		{
-			char_color = c;
-			BlitChar<BlitTextLoop>(pair_iterator<BitmapPtr, u8*>(
-				pc.Target.GetBufferPtr(), alpha), cbuf, ss, pc);
-		}
-	}
+	char_color = c;
+	BlitChar<BlitTextLoop>(pair_iterator<BitmapPtr, u8*>(
+		pc.Target.GetBufferPtr(), alpha), cbuf, ss, pc);
 }
 
 YSL_END_NAMESPACE(Drawing)

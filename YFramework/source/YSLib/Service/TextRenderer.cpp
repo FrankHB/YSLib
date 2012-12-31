@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2542
+\version r2595
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-28 01:28 +0800
+	2012-12-30 02:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,26 +41,44 @@ YSL_BEGIN_NAMESPACE(Drawing)
 namespace
 {
 
-//! \since build 367
-void
-RenderCharFrom(HCharRenderer f, ucs4_t c, const Graphics& g, TextState& ts,
-	const Rect& clip, u8* alpha)
+//! \since build 368
+PaintContext
+ClipChar(const Graphics& g, TextState& ts, const CharBitmap& cbmp,
+	const Rect& clip)
 {
 	YAssert(bool(g), "Invalid graphics context found.");
 
+	PaintContext pc{g, {ts.PenX + cbmp.GetLeft(),
+		ts.PenY - cbmp.GetTop()}, clip};
+
+	Clip(pc, ts.Margin, {cbmp.GetWidth(), cbmp.GetHeight()});
+	return pc;
+};
+
+//! \since build 368
+template<typename _tCharRenderer, _tCharRenderer& _fCharRenderer,
+	typename... _tParams>
+void
+RenderCharFrom(ucs4_t c, const Graphics& g,
+	TextState& ts, const Rect& clip, _tParams&&... args)
+{
 	const auto cbmp(ts.Font.GetGlyph(c));
 
 	if(YB_LIKELY(cbmp))
 	{
-		PaintContext pc{g, {ts.PenX + cbmp.GetLeft(), ts.PenY - cbmp.GetTop()},
-			clip};
-
 		// TODO: Show a special glyph when no bitmap found.
 		// TODO: Use fast glyph advance fetching for non-graph characters
 		//	when possible.
 		// TODO: Handle '\t'.
 		if(std::iswgraph(c))
-			f(std::move(pc), ts.Margin, ts.Color, cbmp, alpha);
+			if(const auto cbuf = cbmp.GetBuffer())
+			{
+				auto&& pc(ClipChar(g, ts, cbmp, clip));
+
+				if(!pc.ClipArea.IsUnstrictlyEmpty())
+					_fCharRenderer(std::move(pc), ts.Color, cbuf,
+						{cbmp.GetWidth(), cbmp.GetHeight()}, yforward(args)...);
+			}
 		ts.PenX += cbmp.GetXAdvance();
 	}
 }
@@ -70,8 +88,8 @@ RenderCharFrom(HCharRenderer f, ucs4_t c, const Graphics& g, TextState& ts,
 void
 TextRenderer::operator()(ucs4_t c)
 {
-	RenderCharFrom(RenderChar, c, TextRenderer::GetContext(), State, ClipArea,
-		nullptr);
+	RenderCharFrom<decltype(RenderChar), RenderChar>(c,
+		TextRenderer::GetContext(), State, ClipArea);
 }
 
 void
@@ -94,23 +112,13 @@ TextRegion::TextRegion()
 {
 	InitializeFont();
 }
-TextRegion::TextRegion(Drawing::Font& fnt)
-	: GTextRendererBase<TextRegion>(), TextState(fnt), BitmapBufferEx()
-{
-	InitializeFont();
-}
-TextRegion::TextRegion(FontCache& fc)
-	: GTextRendererBase<TextRegion>(), TextState(fc), BitmapBufferEx()
-{
-	InitializeFont();
-}
 
 void
 TextRegion::operator()(ucs4_t c)
 {
-	RenderCharFrom(RenderCharAlpha, c, TextRegion::GetContext(),
-		TextRegion::GetTextState(), Rect(Point(), GetSize()),
-		GetBufferAlphaPtr());
+	RenderCharFrom<decltype(RenderCharAlpha), RenderCharAlpha>(c,
+		TextRegion::GetContext(), TextRegion::GetTextState(), Rect(Point(),
+		GetSize()), GetBufferAlphaPtr());
 }
 
 void

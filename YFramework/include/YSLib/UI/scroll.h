@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2595
+\version r2596
 \author FrankHB<frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-12-11 21:45 +0800
+	2012-12-28 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -323,7 +323,7 @@ public:
 
 	/*!
 	\brief 取轨道引用。
-	\note 断言检查： bool(pTrack) 。
+	\note 断言： bool(pTrack) 。
 	*/
 	ATrack&
 	GetTrack() const ynothrow

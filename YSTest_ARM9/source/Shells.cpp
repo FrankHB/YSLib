@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5798
+\version r5838
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-12-18 01:30 +0800
+	2012-12-31 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -273,10 +273,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
 	btnMenu(Rect(4, 165, 72, 22)), pnlSetting(Rect(10, 40, 224, 136)),
-	cbHex(Rect(142, 142, 103, 18)),
-	cbFPS(Rect(10, 90, 73, 18)), cbPreview(Rect(10, 110, 115, 18)),
-	lblDragTest(Rect(4, 4, 104, 22)), btnEnterTest(Rect(8, 32, 104, 22)),
-	btnShowWindow(Rect(8, 60, 96, 22)), btnTestEx(Rect(108, 60, 96, 22)),
+	cbHex(Rect(142, 142, 103, 18)), cbFPS(Rect(10, 90, 73, 18)),
+	cbPreview(Rect(10, 110, 115, 18)), lblDragTest(Rect(4, 4, 104, 22)),
+	btnEnterTest(Rect(8, 32, 104, 22)), btnTestEx(Rect(48, 60, 156, 22)),
 	btnPrevBackground(Rect(114, 90, 30, 22)),
 	btnNextBackground(Rect(164, 90, 30, 22)),
 	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetDesktopDownHandle()),
@@ -287,7 +286,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	auto& dsk_dn(GetDesktopDown());
 
 	AddWidgets(pnlSetting, cbFPS, cbPreview, btnEnterTest, lblDragTest,
-		btnTestEx, btnShowWindow, btnPrevBackground, btnNextBackground),
+		btnTestEx, btnPrevBackground, btnNextBackground),
 	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
 	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, btnMenu, cbHex),
 	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pFrmAbout),
@@ -296,8 +295,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(*pFrmAbout, false),
-	cbHex.Background = SolidBrush(Color(0xFF, 0xFF, 0xE0)),
-	Enable(btnPrevBackground, false),
 	yunseq(
 		dsk_up.Background = ImageBrush(FetchImage(1)),
 		dsk_dn.Background = ImageBrush(FetchImage(2)),
@@ -319,17 +316,18 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 		lblDragTest.HorizontalAlignment = TextAlignment::Left,
 		//btnTestEx.Enabled = false,
 		btnTestEx.Text = u"附加测试",
+		btnTestEx.HorizontalAlignment = TextAlignment::Left,
+		btnTestEx.VerticalAlignment = TextAlignment::Down,
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
 		btnEnterTest.VerticalAlignment = TextAlignment::Up,
-		btnShowWindow.Text = u"显示/隐藏窗口",
-		btnShowWindow.HorizontalAlignment = TextAlignment::Left,
-		btnShowWindow.VerticalAlignment = TextAlignment::Down,
 		btnPrevBackground.Text = u"<<",
 		btnNextBackground.Text = u">>",
 		fbMain.SetPath(path),
-		Enable(btnTest, true),
+		cbHex.Background = SolidBrush(Color(0xFF, 0xFF, 0xE0)),
+		Enable(btnTest),
 		Enable(btnOK, false),
+		Enable(btnPrevBackground, false),
 		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
 			this, std::placeholders::_1),
 		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
@@ -433,7 +431,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 				mhMain.Show(1u);
 			Invalidate(mnu);
 		},
-		FetchEvent<Click>(btnShowWindow) += OnClick_ShowWindow,
 		FetchEvent<Click>(btnPrevBackground) += [this](TouchEventArgs&&){
 			auto& dsk_up(GetDesktopUp());
 			auto& dsk_dn(GetDesktopDown());
@@ -472,16 +469,29 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 	RequestFocusCascade(fbMain),
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
-	mhMain += *(ynew Menu(Rect(),
-		share_raw(new TextList::ListType{u"测试", u"关于", u"退出"}), 1u)),
-	mhMain += *(ynew Menu(Rect(),
-		share_raw(new TextList::ListType{u"项目1", u"项目2"}), 2u));
-	mhMain[1u] += make_pair(0u, &mhMain[2u]);
-	ResizeForContent(mhMain[1u]),
-	ResizeForContent(mhMain[2u]),
-	SetLocationOf(mhMain[1u],
-		Point(btnMenu.GetX(), btnMenu.GetY() - mhMain[1u].GetHeight()));
-	//mhMain[1u].SetWidth(btnMenu.GetWidth() + 20);
+
+	auto& m1(*(ynew Menu(Rect(),
+		share_raw(new TextList::ListType{u"测试", u"关于", u"退出"}), 1u)));
+	auto& m2(*(ynew Menu(Rect(),
+		share_raw(new TextList::ListType{u"项目1", u"项目2"}), 2u)));
+
+	m1.GetConfirmed() += [this](IndexEventArgs&& e){
+		switch(e.Value)
+		{
+		case 1U:
+			YAssert(bool(pFrmAbout), "Null pointer found");
+
+			Show(*pFrmAbout);
+			break;
+		case 2U:
+			YSLib::PostQuitMessage(0);
+		}
+	},
+	mhMain += m1, mhMain += m2,
+	m1 += make_pair(0u, &m2);
+	ResizeForContent(m1), ResizeForContent(m2),
+	SetLocationOf(m1, Point(btnMenu.GetX(), btnMenu.GetY() - m1.GetHeight()));
+	//m1.SetWidth(btnMenu.GetWidth() + 20);
 }
 
 void
@@ -520,16 +530,6 @@ ShlExplorer::GetBoundControlPtr(const KeyInput& k)
 			return &btnOK;
 	}
 	return nullptr;
-}
-
-void
-ShlExplorer::OnClick_ShowWindow(TouchEventArgs&&)
-{
-	const auto& pWnd(FetchShell<ShlExplorer>().pFrmAbout);
-
-	YAssert(bool(pWnd), "Null pointer found.");
-
-	SwitchVisible(*pWnd);
 }
 
 YSL_END_NAMESPACE(YReader)

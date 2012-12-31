@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4863 *build 367 rev *
+\version r4866 *build 368 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-28 01:49 +0800
+	2012-12-31 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,6 +166,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \mft ::= member function templates
 \mg ::= merged
 \mo ::= member objects
+\msg ::= messages
 \mt ::= member templates
 \n ::= names
 \ns ::= namespaces
@@ -403,72 +404,104 @@ $using:
 
 $DONE:
 r1:
-/ @ \impl \u CharRenderer $=
+/ @ \u CharRenderer $=
 (
-	/ \impl @ \f RenderChar ^ YAssert,
-	/ \impl @ \stt BlitTextLoop @ \un \ns
-);
+	/ typedef void(HCharRenderer)(PaintContext&&, const Padding&, Color,
+		const CharBitmap&, u8*) -> typedef void(*HCharBitmapRenderer)(
+		PaintContext&&, Color, CharBitmap::BufferType, const Size&, u8*),
+	/ \f YF_API void RenderChar(PaintContext&&, const Padding&, Color,
+		const CharBitmap&, u8* = nullptr) -> YF_API void RenderChar(
+		PaintContext&&, Color, CharBitmap::BufferType, const Size&,
+		u8* = nullptr),
+	/ \f YF_API void RenderCharAlpha(PaintContext&&, const Padding&, Color,
+		const CharBitmap&, u8*) -> YF_API void RenderCharAlpha(
+		PaintContext&&, Color, CharBitmap::BufferType, const Size&, u8*)
+),
+/ \f RenderCharFrom @ \un \ns @ \impl \u TextRenderer,
+/ $doc \a '断言检查' -> '断言' @ \pre \cond;
 /= test 1 @ platform MinGW32;
 
-r2-r8:
-+ \f YF_API void Clip(PaintContext&, const Margin&, const Size&) @ \u YGDI;
-/ \impl @ \f RenderChar @ \impl \u ^ MaskArea;
-/= test 2 @ platform MinGW32;
-/= test 3 @ platform DS ^ \conf release;
-/= test 4 @ platform MinGW32 ^ \conf release;
-/= 4 test 5 @ platform DS ^ \conf release;
+r2:
+/= test 2 @ platform DS ^ \conf release;
 
-r9-r10:
-/= 2 test 6 @ platform DS;
+r3:
+/ \impl @ \f RenderCharFrom @ \un \ns @ \impl \u TextRenderer;
+/= test 3 @ platform DS;
 
-r11-r12:
-/ DLB \simp @ \a makefiles @ \platform DS,
-/= 2 test 7 @ platform DS;
+r4:
+/= test 4 @ platform DS ^ \conf release;
 
-r13-r20:
-/ 8 test 8 @ platform DS $=
+r5:
+/ @ \u CharRenderer $=
 (
-	/ \simp \impl @ \f RenderChar @ \impl \u CharRenderer ^ \f Clip,
-	* \impl @ \f Clip @ \impl \u YGDI $since r2
-);
-
-r21:
-/= test 9 @ platform DS ^ \conf release;
-
-r22-r23:
-/ \simp \impl @ \f Clip @ \impl \u YGDI,
-(
-	+ typedef void(HCharRenderer)(PaintContext&&, const Padding&, Color,
-		const CharBitmap&);
-	/ \f YF_API void RenderChar(ucs4_t, TextState&, const Graphics&,
-		const Rect&, u8*) @ \u RenderChar -> \f void YF_API void RenderChar(
-		PaintContext&&, const Padding&, Color, const CharBitmap&,
-		u8* = nullptr),
-	+ \f RenderCharAlpha(PaintContext&&, const Padding&, Color,
-		const CharBitmap&, u8*),
-	+ \un \ns @ \impl \u TextRenderer;
-	+ \f void RenderCharFrom(HCharRenderer, ucs4_t, const Graphics&, TextState&,
-		const u8*); @ \un \ns @ \impl \u TextRenderer;
-	/ \mf \i \op() @ \cl (TextRenderer, TextRegion) @ \u TextRenderer -> \f !\i
+	/ \f YF_API void RenderChar(PaintContext&& , Color, CharBitmap::BufferType,
+		const Size&, u8* = nullptr) -> \f YF_API void RenderChar(PaintContext&&,
+		Color, CharBitmap::BufferType, const Size&);
+	- typedef \n HCharBitmapRenderer
 ),
-/= 2 test 10 @ platform MinGW32;
+/ @ \impl \u TextRenderer $=
+(
+	/ \f void RenderCharFrom(HCharBitmapRenderer, ucs4_t, const Graphics&,
+		TextState&, const Rect&, u8*) @ \un \ns -> \ft<_tCharRenderer,
+		_tCharRenderer& _fCharRenderer, _tParams...> void RenderCharFrom(ucs4_t,
+		const Graphics&, TextState&, const Rect&, _tParams&&...),
+	/ \tr \impl @ \op() @ \cl (TextRenderer, TextRegion)
+);
+/= test 5 @ platform DS ^ \conf release;
 
-r24:
+r6:
+/ @ \un \ns @ \impl \u TextRenderer $=
+(
+	+ \f ClipChar,
+	/ \simp \impl @ \ft RenderCharFrom ^ \f ClipChar
+);
+/= test 6 @ platform DS ^ \conf release;
+
+r7:
+/ \ctor #(2, 3) @ \cl (Controller, TextRegion) -> \ctor \t;
+/= test 7 @ platform MinGW32;
+
+r8:
+/ @ \cl Message @ \u YMessage $=
+(
+	/ \ctor Message(ID = 0, const ValueObject& = {})
+		-> \ctor Message(ID, const ValueObject&),
+	+ \ctor yconstfn Message(ID = 0),
+	/ Message(Message&&) -> DefDeMoveCtor(Message)
+);
+/= test 8 @ platform DS ^ \conf release;
+
+r9-r12:
+/ \impl @ \ctor ShlExplorer @ \impl \u Shells,
+/= 4 test 9 @ platform MinGW32;
+
+r13:
+/ @ \cl ShlExplorer @ \u Shells $=
+(
+	(
+		/ \impl @ \ctor;
+		- \m Button btnShowWindow
+	),
+	- \smf OnClick_ShowWindow
+);
+/= test 10 @ platform MinGW32;
+
+r14:
 /= test 11 @ platform MinGW32 ^ \conf release;
 
-r25:
+r15:
 /= test 12 @ platform DS;
 
-r26:
+r16:
 /= test 13 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-28 +0800:
--31.8d;
-// Mercurial rev1-rev239: r9720;
+2012-12-31 +0800:
+-32.1d;
+// Mercurial rev1-rev240: r9736;
 
 / ...
 
@@ -492,7 +525,7 @@ $low_prior
 
 
 $TODO:
-b[538]:
+b[618]:
 / services $=
 (
 	+ \impl @ images loading
@@ -576,6 +609,7 @@ b[538]:
 	+ general resouce management,
 	/ @ "GDI" $=
 	(
+		+ unified model for glyphrun and widgets rendering,
 		+ basic animation support,
 		+ more GDI algorithms
 	),
@@ -993,6 +1027,22 @@ $module_tree $=
 );
 
 $now
+(
+	/ $doc "all '断言检查'" -> "'断言'" @ "pre conditions",
+	/ "character rendering APIs" @ %'YFramework'.'YSLib'.'Service' $=
+	(
+		/ DLD "implementations with no redundant pointer parameter";
+		- "typedef %HCharRenderer" @ "header %CharRenderer.h"
+	),
+	/ %'YReader'.'shells test example' $=
+	(
+		+ "menu functionality for showing 'About' form and performing exit";
+		- "button for testing showing 'About' form";
+		/ "trivial button layout"
+	)
+),
+
+b367
 (
 	/ %'YFramework'.'YSLib'.'Service' $=
 	(

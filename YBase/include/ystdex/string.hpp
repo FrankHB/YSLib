@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r252
+\version r253
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2012-10-26 17:43 +0800
+	2012-12-28 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,7 +102,7 @@ trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 /*!
 \ingroup string_algorithms
 \brief 取删除前缀和后缀的子字符串。
-\pre 断言检查：删除的字符串不大于串长。
+\pre 断言：删除的字符串不大于串长。
 \since build 304
 */
 //@{

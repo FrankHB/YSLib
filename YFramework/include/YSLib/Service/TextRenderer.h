@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2776
+\version r2790
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-27 15:49 +0800
+	2012-12-27 02:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -397,15 +397,17 @@ public:
 	*/
 	TextRegion();
 	/*!
-	\brief 构造：使用指定字体。
+	\brief 构造：使用指定参数确定文本状态。
+	\since build 368
 	*/
+	template<typename... _tParams>
 	explicit
-	TextRegion(Drawing::Font&);
-	/*!
-	\brief 构造：使用指定字体缓存。
-	*/
-	explicit
-	TextRegion(FontCache&);
+	TextRegion(_tParams&&... args)
+		: GTextRendererBase<TextRegion>(),
+		TextState(yforward(args)...), BitmapBufferEx()
+	{
+		InitializeFont();
+	}
 	/*!
 	\brief 复制构造：默认实现。
 	\since build 296

@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2636
+\version r2659
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-28 01:29 +0800
+	2012-12-28 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,14 +35,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
-
-/*!
-\brief 字符渲染处理器类型。
-\since build 367
-*/
-typedef void(HCharRenderer)(PaintContext&&, const Padding&, Color,
-	const CharBitmap&, u8*);
-
 
 /*!
 \brief 字符块传输。
@@ -69,19 +61,21 @@ BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc)
 
 /*!
 \brief 渲染单个字符。
+\pre 断言：缓冲区非空。
 \note 忽略 Alpha 缓冲。
-\since build 367
+\since build 368
 */
 YF_API void
-RenderChar(PaintContext&&, const Padding&, Color, const CharBitmap&,
-	u8* = nullptr);
+RenderChar(PaintContext&&, Color, CharBitmap::BufferType, const Size&);
 
 /*!
 \brief 渲染带 Alpha 缓冲的单个字符。
-\since build 367
+\pre 断言：缓冲区非空。
+\since build 368
 */
 YF_API void
-RenderCharAlpha(PaintContext&&, const Padding&, Color, const CharBitmap&, u8*);
+RenderCharAlpha(PaintContext&&, Color, CharBitmap::BufferType, const Size&,
+	u8*);
 
 
 /*!

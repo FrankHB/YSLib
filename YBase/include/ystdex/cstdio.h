@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r362
+\version r365
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2012-12-11 20:16 +0800
+	2012-12-28 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ typedef const char* const_path_t;
 /*!
 \brief 判断指定路径的文件是否存在。
 \note 使用 std::fopen 实现。
-\pre 断言检查：参数非空。
+\pre 断言：参数非空。
 \since build 326
 */
 YB_API bool
@@ -138,7 +138,7 @@ public:
 
 	/*
 	\brief 前置自增。
-	\pre 断言检查：流指针非空。
+	\pre 断言：流指针非空。
 	\note 当读到 EOF 时置流指针为空指针。
 	\return 自身引用。
 
@@ -148,7 +148,7 @@ public:
 	operator++();
 	/*
 	\brief 后置自增。
-	\pre 断言检查：同前置自增。
+	\pre 断言：同前置自增。
 	\return 迭代器副本。
 
 	读入字符。

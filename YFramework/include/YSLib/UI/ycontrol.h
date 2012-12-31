@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4600
+\version r4608
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2012-12-11 22:35 +0800
+	2012-12-30 01:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,11 +52,10 @@ public:
 	Controller(bool b)
 		: AController(b), EventMap()
 	{}
-	Controller(bool b, const EventMapping::MapType& m)
-		: AController(b), EventMap(m)
-	{}
-	Controller(bool b, EventMapping::MapType&& m)
-		: AController(b), EventMap(std::move(m))
+	//! \since build 368
+	template<typename... _tParams>
+	Controller(bool b, _tParams&&... args)
+		: AController(b), EventMap(yforward(args)...)
 	{}
 
 	ImplI(AController) PDefH(EventMapping::ItemType&, GetItem,

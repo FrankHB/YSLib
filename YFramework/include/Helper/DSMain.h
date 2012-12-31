@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r556
+\version r560
 \author FrankHB<frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2012-12-11 23:24 +0800
+	2012-12-28 02:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,7 +130,7 @@ public:
 
 	/*!
 	\brief \c private 构造函数：非内联。
-	\pre 断言检查：进程唯一性。
+	\pre 断言：进程唯一性。
 	*/
 	DSApplication();
 
@@ -142,21 +142,21 @@ public:
 
 	/*!
 	\brief 取字体缓存引用。
-	\pre 断言检查：指针非空。
+	\pre 断言：指针非空。
 	\since build 325
 	*/
 	Drawing::FontCache&
 	GetFontCache() const ynothrow;
 	/*!
 	\brief 取上屏幕。
-	\pre 断言检查：内部指针非空。
+	\pre 断言：内部指针非空。
 	\since build 297
 	*/
 	Devices::Screen&
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
-	\pre 断言检查：内部指针非空。
+	\pre 断言：内部指针非空。
 	\since build 297
 	*/
 	Devices::Screen&
