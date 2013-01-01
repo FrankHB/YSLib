@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2595
+\version r2603
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-30 02:06 +0800
+	2013-01-01 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,8 +50,10 @@ ClipChar(const Graphics& g, TextState& ts, const CharBitmap& cbmp,
 
 	PaintContext pc{g, {ts.PenX + cbmp.GetLeft(),
 		ts.PenY - cbmp.GetTop()}, clip};
+	const auto pt(ClipMargin(pc, ts.Margin,
+		{cbmp.GetWidth(), cbmp.GetHeight()}));
 
-	Clip(pc, ts.Margin, {cbmp.GetWidth(), cbmp.GetHeight()});
+	pc.Location = pt;
 	return pc;
 };
 
@@ -88,8 +90,8 @@ RenderCharFrom(ucs4_t c, const Graphics& g,
 void
 TextRenderer::operator()(ucs4_t c)
 {
-	RenderCharFrom<decltype(RenderChar), RenderChar>(c,
-		TextRenderer::GetContext(), State, ClipArea);
+	RenderCharFrom<decltype(RenderChar), RenderChar>(c, GetContext(),
+		State, ClipArea);
 }
 
 void
@@ -117,8 +119,8 @@ void
 TextRegion::operator()(ucs4_t c)
 {
 	RenderCharFrom<decltype(RenderCharAlpha), RenderCharAlpha>(c,
-		TextRegion::GetContext(), TextRegion::GetTextState(), Rect(Point(),
-		GetSize()), GetBufferAlphaPtr());
+		TextRegion::GetContext(), GetTextState(), Rect(Point(), GetSize()),
+		GetBufferAlphaPtr());
 }
 
 void

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1062
+\version r1064
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2012-12-18 11:48 +0800
+	2013-01-01 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,7 +248,7 @@ TextList::InvalidateSelected(ListType::difference_type offset,
 
 		if(r.Y < GetHeight())
 		{
-			r.Y = max<int>(r.Y, 0);
+			r.Y = max<int>(0, r.Y);
 			RestrictUnsignedStrict(r.Height, GetHeight() - r.Y);
 			Invalidate(*this, r);
 		}

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6932
+\version r6942
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-30 01:35 +0800
+	2013-01-01 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -557,6 +557,17 @@ nested-module-name:
  Point 和 Vec 为 SPos 二元组，具有不同的相关运算集。
  Size 为 SDst 二元组。
  Rect 为正则矩形(canonical rectangle) ，即边和屏幕坐标系共线，以 Point 表示左上角， Size 表示长和宽的矩形。
+
+@2.5.7.2 二维图形接口上下文：
+表示图形缓冲区及其大小的类。
+图形缓冲区指针以 YCLib 定义类型 BitmapPtr 表示。
+不对缓冲区具有所有权。
+
+@2.5.7.3 绘制上下文：
+用于保存绘制信息的结构体，包含渲染目标、参考位置和剪切区域。
+渲染目标是被渲染对象的光栅化直接关联的图形接口上下文。
+参考位置指定渲染目标关联的参考点的位置的偏移坐标。如无额外说明，选取渲染目标左上角为原点的屏幕坐标系。
+剪切区域是相对于图形接口上下文的正则矩形，指定需要保证被刷新的边界区域。如无额外说明，剪切区域的位置坐标选取渲染目标左上角为原点的屏幕坐标系。
 
 @2.5.8 平台无关的设备抽象层 YDevice ：
 位于命名空间 Devices 中。

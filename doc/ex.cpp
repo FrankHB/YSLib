@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4866 *build 368 rev *
+\version r4869 *build 369 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2012-12-31 18:36 +0800
+	2013-01-01 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -404,110 +404,55 @@ $using:
 
 $DONE:
 r1:
-/ @ \u CharRenderer $=
-(
-	/ typedef void(HCharRenderer)(PaintContext&&, const Padding&, Color,
-		const CharBitmap&, u8*) -> typedef void(*HCharBitmapRenderer)(
-		PaintContext&&, Color, CharBitmap::BufferType, const Size&, u8*),
-	/ \f YF_API void RenderChar(PaintContext&&, const Padding&, Color,
-		const CharBitmap&, u8* = nullptr) -> YF_API void RenderChar(
-		PaintContext&&, Color, CharBitmap::BufferType, const Size&,
-		u8* = nullptr),
-	/ \f YF_API void RenderCharAlpha(PaintContext&&, const Padding&, Color,
-		const CharBitmap&, u8*) -> YF_API void RenderCharAlpha(
-		PaintContext&&, Color, CharBitmap::BufferType, const Size&, u8*)
-),
-/ \f RenderCharFrom @ \un \ns @ \impl \u TextRenderer,
-/ $doc \a '断言检查' -> '断言' @ \pre \cond;
+* \impl @ \f YF_API Rect operator+(const Rect&, const Padding&) @ \impl \u YGDI
+	for padding \val less than 0 $since b365;
 /= test 1 @ platform MinGW32;
 
 r2:
-/= test 2 @ platform DS ^ \conf release;
+/ DLD \arg order @ \f \spec call (min, max);
+/= test 2 @ platform MinGW32;
 
-r3:
-/ \impl @ \f RenderCharFrom @ \un \ns @ \impl \u TextRenderer;
-/= test 3 @ platform DS;
+r3-r28:
+/= 26 test 3 @ platform MinGW32;
 
-r4:
-/= test 4 @ platform DS ^ \conf release;
-
-r5:
-/ @ \u CharRenderer $=
+r29:
+/ $doc \rem @ \h PaintContext @ \h YGDI;
+* wrong character location for unbuffered rendering $since b357 $=
 (
-	/ \f YF_API void RenderChar(PaintContext&& , Color, CharBitmap::BufferType,
-		const Size&, u8* = nullptr) -> \f YF_API void RenderChar(PaintContext&&,
-		Color, CharBitmap::BufferType, const Size&);
-	- typedef \n HCharBitmapRenderer
-),
-/ @ \impl \u TextRenderer $=
-(
-	/ \f void RenderCharFrom(HCharBitmapRenderer, ucs4_t, const Graphics&,
-		TextState&, const Rect&, u8*) @ \un \ns -> \ft<_tCharRenderer,
-		_tCharRenderer& _fCharRenderer, _tParams...> void RenderCharFrom(ucs4_t,
-		const Graphics&, TextState&, const Rect&, _tParams&&...),
-	/ \tr \impl @ \op() @ \cl (TextRenderer, TextRegion)
+	/ \f Clip -> \f ClipMargin @ \u YGDI;
+	/ \tr \impl @ \un \ns @ \impl \u TextRenderer
 );
-/= test 5 @ platform DS ^ \conf release;
+/= test 4 @ platform MinGW32;
 
-r6:
-/ @ \un \ns @ \impl \u TextRenderer $=
-(
-	+ \f ClipChar,
-	/ \simp \impl @ \ft RenderCharFrom ^ \f ClipChar
-);
-/= test 6 @ platform DS ^ \conf release;
+r30:
+/= test 5 @ platform MinGW32;
 
-r7:
-/ \ctor #(2, 3) @ \cl (Controller, TextRegion) -> \ctor \t;
-/= test 7 @ platform MinGW32;
+r31:
+/ \simp \impl @ \mf \op= @ \cl (TextRenderer, TextRegion);
+/= test 6 @ platform MinGW32;
 
-r8:
-/ @ \cl Message @ \u YMessage $=
-(
-	/ \ctor Message(ID = 0, const ValueObject& = {})
-		-> \ctor Message(ID, const ValueObject&),
-	+ \ctor yconstfn Message(ID = 0),
-	/ Message(Message&&) -> DefDeMoveCtor(Message)
-);
-/= test 8 @ platform DS ^ \conf release;
+r32:
+/= test 7 @ platform MinGW32 ^ \conf release;
 
-r9-r12:
-/ \impl @ \ctor ShlExplorer @ \impl \u Shells,
-/= 4 test 9 @ platform MinGW32;
+r33:
+/= test 8 @ platform DS;
 
-r13:
-/ @ \cl ShlExplorer @ \u Shells $=
-(
-	(
-		/ \impl @ \ctor;
-		- \m Button btnShowWindow
-	),
-	- \smf OnClick_ShowWindow
-);
-/= test 10 @ platform MinGW32;
-
-r14:
-/= test 11 @ platform MinGW32 ^ \conf release;
-
-r15:
-/= test 12 @ platform DS;
-
-r16:
-/= test 13 @ platform DS ^ \conf release;
+r34:
+/= test 9 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2012-12-31 +0800:
--32.1d;
-// Mercurial rev1-rev240: r9736;
+2013-01-01 +0800:
+-31.8d;
+// Mercurial rev1-rev241: r9770;
 
 / ...
 
 
 $NEXT_TODO:
-b368-b400:
+b370-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -544,7 +489,9 @@ b[618]:
 	^ delegating \ctor as possible,
 	/ strip away direct using @ Win32 types completely @ \h @ \lib YCLib,
 	^ std::call_once to confirm thread-safe initialization,
-	/ improving pedantic ISO C++ compatiblity
+	/ improving pedantic ISO C++ compatiblity,
+	/ consider using std::common_type for explicit template argument
+		for (min, max)
 ),
 + $design $low_prior helpers $=
 (
@@ -1027,6 +974,31 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Service' $=
+		(
+			* "wrong result when padding value less than 0"
+				@ "function Rect operator+(const Rect&, const Padding&)"
+				@ "unit %YGDI" $since b365,
+			* wrong character location for unbuffered rendering $since b357 $=
+			(
+				/ "function %Clip" -> "function %ClipMargin" @ "unit %YGDI";
+				/ $lib "implementation" @ "unit %TextRenderer"
+			);
+		),
+		/ DLD "argument order" @ "all call of %(min, max)"
+			// Confirmed locating constant(integer literal) or nested \
+				call as first argument. This make text searching convenient.
+		/ $doc "remarks of members" @ "struct %PaintContext"
+			@ %'Core'.'YGDIBase'
+			// Clarified that the coordinate can be specified to relative \
+				other than the rendering target.
+	)
+),
+
+b368
 (
 	/ $doc "all '断言检查'" -> "'断言'" @ "pre conditions",
 	/ "character rendering APIs" @ %'YFramework'.'YSLib'.'Service' $=

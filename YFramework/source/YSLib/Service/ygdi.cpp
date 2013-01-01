@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2655
+\version r2666
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2012-12-27 15:56 +0800
+	2013-01-01 21:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,8 @@ Rect
 operator+(const Rect& r, const Padding& m)
 {
 	return Rect(r.X + m.Left, r.Y + m.Top,
-		max<int>(0, r.Width - GetHorizontalOf(m)),
-		max<int>(0, r.Height - GetVerticalOf(m)));
+		max<int>(0, r.Width - m.Left - m.Right),
+		max<int>(0, r.Height - m.Top - m.Bottom));
 }
 
 
@@ -51,23 +51,25 @@ FetchMargin(const Rect& r, const Size& s)
 }
 
 
-void
-Clip(PaintContext& pc, const Padding& m, const Size& ss)
+Point
+ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 {
 	const Size& ds(pc.Target.GetSize());
 
 	if(GetHorizontalOf(m) < ds.Width && GetVerticalOf(m) < ds.Height)
 	{
-		const auto pt(pc.Location);
-		const Point sp(max<SPos>(m.Left - pt.X, 0), max<SPos>(m.Top - pt.Y, 0));
+		const auto& pt(pc.Location);
+		const Point sp(max<SPos>(0, m.Left - pt.X), max<SPos>(0, m.Top - pt.Y));
 		const auto dr(pt.X + ss.Width - ds.Width + m.Right),
 			db(pt.Y + ss.Height - ds.Height + m.Bottom);
 
-		yunseq(pc.Location = sp, pc.ClipArea &= Rect(pt + sp, dr > 0
-			? ss.Width - dr : ss.Width, db > 0 ? ss.Height - db : ss.Height));
+		pc.ClipArea &= Rect(pt + sp, dr > 0 ? ss.Width - dr : ss.Width,
+			db > 0 ? ss.Height - db : ss.Height);
+		return pc.ClipArea.GetPoint() - pt;
 	}
 	else
 		pc.ClipArea.GetSizeRef() = {};
+	return {};
 }
 
 

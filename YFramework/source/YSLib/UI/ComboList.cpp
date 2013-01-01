@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3006
+\version r3009
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2012-12-05 19:59 +0800
+	2013-01-01 15:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,8 +159,8 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 				{
 					// NOTE: Get height of top widget, top and bottom spaces.
 					const SDst h0(GetSizeOf(*p).Height);
-					const SDst h1(max<SPos>(pt.Y, 0)), h2(max<SPos>(h0 - pt.Y
-						- GetHeight(), 0));
+					const SDst h1(max<SPos>(0, pt.Y)), h2(max<SPos>(0, h0 - pt.Y
+						- GetHeight()));
 
 					if(IsInOpenInterval(h1, h0) || IsInOpenInterval(h2, h0))
 					{

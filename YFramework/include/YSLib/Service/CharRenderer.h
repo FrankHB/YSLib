@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2659
+\version r2664
 \author FrankHB<frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-28 23:36 +0800
+	2013-01-01 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \tparam _tIn 输入迭代器类型。
 \param src 源迭代器。
 \param ss 源迭代器所在缓冲区大小。
-\param pc 指定字符所在区域和渲染目标的绘制上下文。
+\param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \see Blit 。
 \since build 366
 */
@@ -61,20 +61,22 @@ BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc)
 
 /*!
 \brief 渲染单个字符。
+\param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
 \note 忽略 Alpha 缓冲。
 \since build 368
 */
 YF_API void
-RenderChar(PaintContext&&, Color, CharBitmap::BufferType, const Size&);
+RenderChar(PaintContext&& pc, Color, CharBitmap::BufferType, const Size&);
 
 /*!
 \brief 渲染带 Alpha 缓冲的单个字符。
+\param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
 \since build 368
 */
 YF_API void
-RenderCharAlpha(PaintContext&&, Color, CharBitmap::BufferType, const Size&,
+RenderCharAlpha(PaintContext&& pc, Color, CharBitmap::BufferType, const Size&,
 	u8*);
 
 

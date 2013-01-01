@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1256
+\version r1265
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2012-12-25 22:20 +0800
+	2013-01-01 21:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -772,8 +772,19 @@ public:
 struct YF_API PaintContext
 {
 	Graphics Target; //!< 渲染目标：图形接口上下文。
-	Point Location; //!< 相对渲染目标的偏移坐标，指定参考点（如区域左上角）的位置。
-	//! \brief 相对于图形接口上下文的正则矩形，指定需要保证被刷新的边界区域。
+	/*!
+	\brief 参考位置。
+
+	指定渲染目标关联的参考点的位置的偏移坐标。
+	如无额外说明，选取渲染目标左上角为原点的屏幕坐标系。
+	*/
+	Point Location;
+	/*!
+	\brief 剪切区域。
+	
+	相对于图形接口上下文的正则矩形，指定需要保证被刷新的边界区域。
+	如无额外说明，剪切区域的位置坐标选取渲染目标左上角为原点的屏幕坐标系。
+	*/
 	Rect ClipArea;
 };
 
