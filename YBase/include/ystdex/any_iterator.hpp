@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r582
+\version r585
 \author FrankHB<frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2012-12-04 13:06 +0800
+	2013-01-02 02:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,11 +161,11 @@ public:
 template<typename _type, typename _tPointer = _type*,
 	typename _tReference = _type&>
 class any_input_iterator : public std::iterator<std::input_iterator_tag, _type,
-	std::ptrdiff_t, _tPointer, _tReference>, protected any
+	ptrdiff_t, _tPointer, _tReference>, protected any
 {
 public:
 	typedef std::iterator<std::input_iterator_tag, _type,
-		std::ptrdiff_t, _tPointer, _tReference> iterator_type;
+		ptrdiff_t, _tPointer, _tReference> iterator_type;
 	//! \since build 349
 	typedef std::iterator_traits<iterator_type> traits_type;
 	typedef typename traits_type::value_type value_type;

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1379
+\version r1430
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2012-12-19 04:31 +0800
+	2013-01-02 04:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ struct VerticalLineTransfomer
 YF_API bool
 BlitBounds(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& cs,
-	int& min_x, int& min_y, int& max_x, int& max_y);
+	int& min_x, int& min_y, int& delta_x, int& delta_y);
 
 /*!
 \brief 贴图偏移量计算器。
@@ -159,6 +159,35 @@ BlitScale<true, true>(const Point&, const Size&, int, int);
 
 
 /*!
+\brief 贴图扫描函数模版。
+\tparam _bDec 指定是否翻转水平和竖直方向之一。
+\tparam _fCallable 调用操作类型。
+\tparam _tScalar 度量大小的标量类型。
+\tparam _tDiff 度量偏移量的差值类型。
+\tparam _tOut 输出迭代器类型。
+\tparam _tIn 输入迭代器类型。
+\param f 操作对象。
+\param d_width 目标缓冲区的宽。
+\param s_width 源缓冲区的宽。
+\param delta_x 实际操作的宽。
+\param delta_y 实际操作的高。
+\param dst 目标迭代器。
+\param src 源迭代器。
+\since build 370
+
+对一块矩形区域调用指定的逐像素扫描操作。
+*/
+template<bool _bDec, typename _fCallable, typename _tScalar, typename _tDiff,
+	typename _tOut, typename _tIn>
+void
+BlitScan(_fCallable&& f, _tScalar d_width, _tScalar s_width,
+	_tDiff delta_x, _tDiff delta_y, _tOut dst, _tIn src)
+{
+	yforward(f)(delta_x, delta_y, dst, src,
+		(_bDec ? -1 : 1) * d_width - delta_x, s_width - delta_x);
+}
+
+/*!
 \brief 贴图函数模板。
 \tparam _gBlitLoop 循环实现类模板。
 \tparam _bSwapLR 水平翻转镜像（关于水平中轴对称）。
@@ -174,7 +203,7 @@ BlitScale<true, true>(const Point&, const Size&, int, int);
 \param sc 源迭代器需要复制的区域大小。
 \since build 182
 
-对一块矩形区域的逐像素顺序批量操作（如复制或贴图）。
+对一块矩形区域逐像素顺序批量操作（如复制或贴图）。
 */
 template<template<bool> class _gBlitLoop, bool _bSwapLR, bool _bSwapUD,
 	typename _tOut, typename _tIn>
@@ -182,18 +211,14 @@ void
 Blit(_tOut dst, const Size& ds, _tIn src, const Size& ss,
 	const Point& dp, const Point& sp, const Size& sc)
 {
-	int min_x, min_y, max_x, max_y;
+	int min_x, min_y, delta_x, delta_y;
 
-	if(YB_LIKELY(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y, max_x, max_y)))
-	{
-		const int delta_x(max_x - min_x), delta_y(max_y - min_y),
-			src_off(min_y * ss.Width + min_x),
-			dst_off(BlitScale<_bSwapLR, _bSwapUD>(dp, ds, delta_x, delta_y));
-
-		_gBlitLoop<!_bSwapLR>()(delta_x, delta_y, dst + dst_off, src + src_off,
-			(_bSwapLR != _bSwapUD ? -1 : 1) * ds.Width - delta_x,
-			ss.Width - delta_x);
-	}
+	if(YB_LIKELY(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y,
+		delta_x, delta_y)))
+		BlitScan<_bSwapLR != _bSwapUD>(_gBlitLoop<!_bSwapLR>(), ds.Width,
+			ss.Width, delta_x, delta_y, dst + BlitScale<_bSwapLR, _bSwapUD>(dp,
+			ds, delta_x, delta_y), src + (sp.Y + min_y) * ss.Width
+			+ sp.X + min_x);
 }
 
 
@@ -212,12 +237,9 @@ struct RectTransformer
 	operator()(_tPixel* dst, const Size& ds, const Point& dp, const Size& ss,
 		_fTransformPixel tp, _fTransformLine tl)
 	{
-		int min_x, min_y, max_x, max_y;
+		int min_x, min_y, delta_x, delta_y;
 
-		BlitBounds(dp, Point(), ds, ss, ss, min_x, min_y, max_x, max_y);
-
-		const int delta_x(max_x - min_x);
-		int delta_y(max_y - min_y);
+		BlitBounds(dp, Point(), ds, ss, ss, min_x, min_y, delta_x, delta_y);
 
 		dst += max<SPos>(0, dp.Y) * ds.Width + max<SPos>(0, dp.X);
 		for(; delta_y > 0; --delta_y)

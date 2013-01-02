@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1157
+\version r1159
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2012-10-28 21:14 +0800
+	2013-01-02 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,7 @@ template<typename _tBase = std::int32_t,
 class fixed_point : operators::ordered_field_operators<
 	fixed_point<_tBase, _vInt, _vFrac>, operators::unit_steppable<
 	fixed_point<_tBase, _vInt, _vFrac>, operators::shiftable<fixed_point<
-	_tBase, _vInt, _vFrac>, std::size_t>>>
+	_tBase, _vInt, _vFrac>, size_t>>>
 {
 	static_assert(std::is_integral<_tBase>::value, "Non-integral type found.");
 	static_assert(_vInt < size_t(std::numeric_limits<_tBase>::digits),

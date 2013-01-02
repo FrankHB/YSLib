@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r956
+\version r981
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2012-09-04 13:01 +0800
+	2013-01-02 04:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,28 +35,36 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 namespace
 {
-	inline SPos
-	blit_min(SPos s, SPos d)
-	{
-		return s + max<int>(0, -d);
-	}
 
-	inline SPos
-	blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
-	{
-		return s + min<int>(min<int>(dl - d, sl - s), cl);
-	}
+//! \since build 370
+inline SPos
+blit_min(SPos d)
+{
+	return max<int>(0, -d);
 }
+
+inline SPos
+blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
+{
+	return min<int>(min<int>(dl - d, sl - s), cl);
+}
+
+} // unnamed namespace;
 
 bool
 BlitBounds(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& sc,
-	int& min_x, int& min_y, int& max_x, int& max_y)
+	int& min_x, int& min_y, int& delta_x, int& delta_y)
 {
-	yunseq(min_x = blit_min(sp.X, dp.X), min_y = blit_min(sp.Y, dp.Y),
-		max_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),
-		max_y = blit_max(sp.Y, dp.Y, ss.Height, ds.Height, sc.Height));
-	return min_x < max_x && min_y < max_y;
+	yunseq(min_x = blit_min(dp.X), min_y = blit_min(dp.Y),
+		delta_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),
+		delta_y = blit_max(sp.Y, dp.Y, ss.Height, ds.Height, sc.Height));
+	if(min_x < delta_x && min_y < delta_y)
+	{
+		yunseq(delta_x -= min_x, delta_y -= min_y);
+		return true;
+	}
+	return false;
 }
 
 template<>

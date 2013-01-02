@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4869 *build 369 rev *
+\version r4869 *build 370 rev *
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-01 22:04 +0800
+	2013-01-02 17:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,56 +403,80 @@ $using:
 
 
 $DONE:
-r1:
-* \impl @ \f YF_API Rect operator+(const Rect&, const Padding&) @ \impl \u YGDI
-	for padding \val less than 0 $since b365;
-/= test 1 @ platform MinGW32;
+r1-r3:
+/ $doc copyright holder mark @ overall license,
+/= 3 test 1 @ platform MinGW32;
 
-r2:
-/ DLD \arg order @ \f \spec call (min, max);
+r4:
+/ \a 'std::ptrdiff_t' @ \ns ystdex @ \h AnyIterator -> 'ptrdiff_t',
+/ \a 'std::size_t' @ \ns ystdex @ (\h (Algorithms, Rational), \u CString)
+	-> 'size_t';
 /= test 2 @ platform MinGW32;
 
-r3-r28:
-/= 26 test 3 @ platform MinGW32;
-
-r29:
-/ $doc \rem @ \h PaintContext @ \h YGDI;
-* wrong character location for unbuffered rendering $since b357 $=
+r5:
+/ @ \h YBlit $=
 (
-	/ \f Clip -> \f ClipMargin @ \u YGDI;
-	/ \tr \impl @ \un \ns @ \impl \u TextRenderer
+	+ \ft<bool _bDec, _fCallable, _tScalar, _tDiff, _tOut, _tIn> void
+		BlitScan(_fCallable&&, _tScalar, _tScalar, _tDiff, _tDiff, _tOut, _tIn),
+	/ \simp \impl @ \ft Blit ^ \ft BlitScan
 );
-/= test 4 @ platform MinGW32;
+/= test 3 @ platform MinGW32;
 
-r30:
+r6:
+/= test 4 @ platform MinGW32 ^ \conf release;
+
+r7:
+/ @ \u YBlit $=
+(
+	/ @ \un \ns $=
+	(
+		/ \f \i SPos blit_min(SPos, SPos)
+			-> \f yconstfn SPos blit_min(SPos),
+		/ \simp \impl @ \f blit_max
+	),
+	/ \tr \impl @ \f BlitBounds,
+	/ \tr \impl @ \ft Blit,
+	/ \tr \impl @ \mf \op()#1 @ \st RectTransformer
+);
 /= test 5 @ platform MinGW32;
 
-r31:
-/ \simp \impl @ \mf \op= @ \cl (TextRenderer, TextRegion);
-/= test 6 @ platform MinGW32;
+r8:
+/= test 6 @ platform MinGW32 ^ \conf release;
 
-r32:
-/= test 7 @ platform MinGW32 ^ \conf release;
+r9-r17:
+/= 9 test 7 @ platform MinGW32;
 
-r33:
-/= test 8 @ platform DS;
+r18:
+* wrongly clipping bottom and right margin when character $since b366
+	$= / \impl @ \f ClipMargin @ \impl \u YGDI;
+* $comp rendering error when scrolling $since b366;
+/= test 8 @ platform MinGW32;
 
-r34:
-/= test 9 @ platform DS ^ \conf release;
+r19-r20:
+/= 2 test 9 @ platform MinGW32;
+
+r21:
+/= test 10 @ platform MinGW32 ^ \conf release;
+
+r22:
+/= test 11 @ platform DS;
+
+r23:
+/= test 12 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-01-01 +0800:
--31.8d;
-// Mercurial rev1-rev241: r9770;
+2013-01-02 +0800:
+-30.7d;
+// Mercurial rev1-rev242: r9793;
 
 / ...
 
 
 $NEXT_TODO:
-b370-b400:
+b371-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -974,6 +998,33 @@ $module_tree $=
 );
 
 $now
+(
+	/ $doc "copyright holder mark @ overall license",
+	- $dev "'std::'" @ "use of %(prtrdiff_t, size_t)" %'YBase'.'YStandardEx',
+	/ %'YFramework'.'YSLib'.'Service' $=
+	(
+		/ @ "unit %YBlit" $=
+		(
+			+ "function template %BlitScam",
+			/ "coordinate for blit boundary calculation"
+			// Original results were relative to source. Current results are \
+				relative to source rendered object. Semantic changed made on \
+				parameter of function %BlitBounds.
+		),
+		(
+			* "wrongly clipping bottom and right margin when character"
+				$since b366;
+			$dep_to "character bottom clipping"
+		)
+	),
+	(
+		$dep_from "character bottom clipping";
+		* $comp "rendering error at bottom when scrolling"
+			@ %'YReader'.'text reader' $since b366
+	)
+),
+
+b369
 (
 	/ %'YFramework'.'YSLib' $=
 	(

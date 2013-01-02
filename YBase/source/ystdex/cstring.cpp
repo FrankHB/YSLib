@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.cpp
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1082
+\version r1085
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:20 +0800
 \par 修改时间:
-	2012-10-15 09:58 +0800
+	2013-01-02 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 namespace ystdex
 {
 
-std::size_t
+size_t
 strlen_n(const char* s)
 {
 	return s ? std::strlen(s) : 0;
@@ -56,7 +56,7 @@ strcpycat(char* d, const char* s1, const char* s2)
 }
 
 char*
-strcatdup(const char* s1, const char* s2, void*(*fun)(std::size_t))
+strcatdup(const char* s1, const char* s2, void*(*fun)(size_t))
 {
 	auto d(static_cast<char*>(
 		fun((strlen(s1) + strlen(s2) + 1) * sizeof(char))));

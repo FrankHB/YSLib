@@ -1,4 +1,4 @@
-﻿Copyright (C) by Franksoft 2010 - 2012.
+﻿Copyright (C) 2010 - 2013, FrankHB<frankhb1989@gmail.com>.
 
 Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
 

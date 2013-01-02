@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r430
+\version r433
 \author FrankHB<frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-12-21 03:03 +0800
+	2013-01-02 02:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ pod_fill(_type* first, _type* last, const _type& value)
 
 template <class _type>
 inline _type*
-pod_copy_n(const _type* first, std::size_t n, _type* result)
+pod_copy_n(const _type* first, size_t n, _type* result)
 {
 	static_assert(std::is_pod<typename std::remove_reference<_type>::type>
 		::value, "Non-POD type found @ pod_copy_n;");
@@ -95,7 +95,7 @@ pod_copy(const _type* first, const _type* last, _type* result)
 
 template <class _type>
 inline _type*
-pod_move_n(const _type* first, std::size_t n, _type* result)
+pod_move_n(const _type* first, size_t n, _type* result)
 {
 	static_assert(std::is_pod<typename std::remove_reference<_type>::type>
 		::value, "Non-POD type found @ pod_move_n;");

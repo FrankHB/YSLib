@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2666
+\version r2677
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-01-01 21:11 +0800
+	2013-01-02 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,12 +59,13 @@ ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 	if(GetHorizontalOf(m) < ds.Width && GetVerticalOf(m) < ds.Height)
 	{
 		const auto& pt(pc.Location);
-		const Point sp(max<SPos>(0, m.Left - pt.X), max<SPos>(0, m.Top - pt.Y));
-		const auto dr(pt.X + ss.Width - ds.Width + m.Right),
-			db(pt.Y + ss.Height - ds.Height + m.Bottom);
+		const Point dp(max<int>(m.Left, pt.X), max<int>(m.Top, pt.Y));
+		const Point sp(dp - pt);
+		const SDst scx(max<int>(0, min<int>(ss.Width, ds.Width - m.Right - dp.X)
+			- sp.X)), scy(max<int>(0, min<int>(ss.Height,
+			ds.Height - m.Bottom - dp.Y) - sp.Y));
 
-		pc.ClipArea &= Rect(pt + sp, dr > 0 ? ss.Width - dr : ss.Width,
-			db > 0 ? ss.Height - db : ss.Height);
+		pc.ClipArea &= Rect(dp, scx, scy);
 		return pc.ClipArea.GetPoint() - pt;
 	}
 	else

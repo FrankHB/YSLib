@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1622
+\version r1625
 \author FrankHB<frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2012-12-11 20:16 +0800
+	2013-01-02 02:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace ystdex
 \brief 带空指针检查的字符串长度计算。
 \return 当字符指针非空时为 std::strlen 计算的串长，否则为 0 。
 */
-YB_API std::size_t
+YB_API size_t
 strlen_n(const char*);
 
 /*!
@@ -74,7 +74,7 @@ strcpycat(char*, const char*, const char*);
 结果复制至用指定分配函数（默认为 std::malloc）新分配的空间。
 */
 YB_API char*
-strcatdup(const char*, const char*, void*(*)(std::size_t) = std::malloc);
+strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 
 
 /*!
