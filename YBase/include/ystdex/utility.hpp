@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1548
-\author FrankHB<frankhb1989@gmail.com>
+\version r1553
+\author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-12-21 03:07 +0800
+	2013-01-04 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,10 +33,6 @@
 
 namespace ystdex
 {
-
-/*!	\defgroup helper_functions Helper Functions
-\brief 助手功能。
-*/
 
 /*
 \brief 不可复制对象：禁止继承此类的对象调用复制构造函数和复制赋值操作符。

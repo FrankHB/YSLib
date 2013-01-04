@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r763
-\author FrankHB<frankhb1989@gmail.com>
+\version r767
+\author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2012-12-04 13:36 +0800
+	2013-01-04 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,8 +197,7 @@ using std::result_of;
 /*!	\defgroup metafunctions Metafunctions
 \ingroup meta_operations
 \brief 元函数。
-\see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/\
-metafunction.html 。
+\see http://www.boost.org/doc/libs/1_50_0/libs/mpl/doc/refmanual/metafunction.html 。
 \since build 333
 */
 

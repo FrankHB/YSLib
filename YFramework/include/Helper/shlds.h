@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1227
-\author FrankHB<frankhb1989@gmail.com>
+\version r1230
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2012-12-11 21:13 +0800
+	2013-01-04 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,7 +144,7 @@ public:
 
 /*!
 \brief Shell 快捷操作。
-\ingroup HelperFunctions
+\ingroup helper_functions
 \since 早于 build 132
 */
 //@{

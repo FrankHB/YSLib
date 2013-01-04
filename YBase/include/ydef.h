@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2109
-\author FrankHB<frankhb1989@gmail.com>
+\version r2123
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2012-12-21 18:03 +0800
+	2013-01-04 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,8 +313,7 @@ using std::nullptr_t;
 
 /*!
 \brief 空指针类。
-\see 代码参考：http://topic.csdn.net/u/20100924/17/\
-BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
+\see 代码参考：http://topic.csdn.net/u/20100924/17/BE0C26F8-5127-46CD-9136-C9A96AAFDA76.html 。
 */
 const class nullptr_t
 {
@@ -392,11 +391,11 @@ struct empty_base
 {};
 
 
-/*!	\defgroup HelperFunctions Helper Functions
-\brief 助手功能/函数。
+/*!	\defgroup helper_functions Helper Functions
+\brief 助手功能。
+\since build 243
 
 仅帮助简化编码形式或确定接口，并不包含编译期之后逻辑功能实现的代码设施。
-\since build 252
 */
 
 /*!

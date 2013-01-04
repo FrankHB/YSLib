@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r560
-\author FrankHB<frankhb1989@gmail.com>
+\version r563
+\author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2012-12-28 02:12 +0800
+	2013-01-04 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,7 +204,7 @@ YF_API DSApplication&
 FetchGlobalInstance() ynothrow;
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取默认字体缓存。
 \since build 219
 */
@@ -215,7 +215,7 @@ FetchDefaultFontCache()
 }
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取默认屏幕。
 \since build 219
 */

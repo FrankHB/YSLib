@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1267
-\author FrankHB<frankhb1989@gmail.com>
+\version r1276
+\author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2012-10-18 10:12 +0800
+	2013-01-04 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,13 +40,14 @@ MLabel::MLabel(const Drawing::Font& fnt, TextAlignment a)
 {}
 
 void
-MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
+MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
 {
 	Drawing::TextState ts;
 	const auto& bounds(Rect(e.Location, s));
 
-	yunseq(ts.Font = Font, ts.Color = c);
-	ts.ResetForBounds(bounds, e.Target.GetSize(), Margin);
+	yunseq(ts.Font = Font, ts.Color = c,
+		ts.Margin = FetchMargin(bounds + Margin, e.Target.GetSize())),
+	ts.ResetPenForBounds(bounds, Margin);
 
 	if(!AutoWrapLine)
 	{
@@ -62,7 +63,7 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 				{
 					if(HorizontalAlignment == TextAlignment::Center)
 						horizontal_offset /= 2;
-					ts.PenX += horizontal_offset;
+					ts.Pen.X += horizontal_offset;
 				}
 			}
 		case TextAlignment::Left:
@@ -81,7 +82,7 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 				{
 					if(VerticalAlignment == TextAlignment::Center)
 						vertical_offset /= 2;
-					ts.PenY += vertical_offset;
+					ts.Pen.Y += vertical_offset;
 				}
 			}
 		case TextAlignment::Up:
@@ -89,14 +90,15 @@ MLabel::PaintText(const Size& s, Color c, const PaintContext& e)
 			break;
 		}
 	}
-	DrawClippedText(e.Target, e.ClipArea, ts, Text, AutoWrapLine);
+	DrawClippedText(e.Target, e.ClipArea & (bounds + Margin), ts, Text,
+		AutoWrapLine);
 }
 
 
 void
 Label::Refresh(PaintEventArgs&& e)
 {
-	PaintText(GetSizeOf(*this), ForeColor, e);
+	DrawText(GetSizeOf(*this), ForeColor, e);
 	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 

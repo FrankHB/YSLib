@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r564
-\author FrankHB<frankhb1989@gmail.com>
+\version r567
+\author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2012-09-07 11:22 +0800
+	2013-01-04 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ const Size Size::Invalid(std::numeric_limits<SDst>::lowest(),
 		std::numeric_limits<SDst>::lowest());
 
 
-const Rect Rect::Invalid(Point(), Size::Invalid);
+const Rect Rect::Invalid(Size::Invalid);
 
 bool
 Rect::Contains(int px, int py) const ynothrow

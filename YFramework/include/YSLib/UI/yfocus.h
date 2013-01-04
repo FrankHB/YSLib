@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1706
-\author FrankHB<frankhb1989@gmail.com>
+\version r1710
+\author FrankHB <frankhb1989@gmail.com>
 \since build 168
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2012-12-11 22:36 +0800
+	2013-01-04 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ YF_API void
 ReleaseFocusFrom(IWidget& dst, IWidget& src);
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 向部件容器释放获得焦点，成功后向自身发送 GotFocus 事件。
 */
 inline void
@@ -86,7 +86,7 @@ RequestFocus(IWidget& wgt)
 }
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 释放焦点，成功后向自身发送 LostFocus 事件。
 */
 inline void

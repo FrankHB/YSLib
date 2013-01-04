@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1022
-\author FrankHB<frankhb1989@gmail.com>
+\version r1025
+\author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2012-12-11 21:17 +0800
+	2013-01-04 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,7 +169,7 @@ public:
 };
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 迭代器包装，用于 range-based for 。
 \since build 330
 */

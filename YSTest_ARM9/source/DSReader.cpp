@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2830
-\author FrankHB<frankhb1989@gmail.com>
+\version r2837
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2012-12-05 19:54 +0800
+	2013-01-04 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,7 +208,7 @@ DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
 	: pText(), fc(fc_), i_top(), i_btm(), overread_line_n(0), scroll_offset(0),
 	Margin(4, 4, 4, 4),
-	area_up(Rect(Point(), w, h_up), fc), area_dn(Rect(Point(), w, h_down), fc)
+	area_up(Rect({}, w, h_up), fc), area_dn(Rect({}, w, h_down), fc)
 {
 	SetFontSize(),
 	SetColor(),
@@ -454,7 +454,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 	CarriageReturn(area_dn);
 	if(YB_LIKELY((scroll_offset += h) < ln_h_ex))
 	{
-		area_dn.PenY += ln_h_ex - scroll_offset;
+		area_dn.Pen.Y += ln_h_ex - scroll_offset;
 
 		auto i_tmp(i_btm);
 
@@ -511,8 +511,8 @@ DualScreenReader::UpdateView()
 			const auto b(FetchLastLineBasePosition(area_up,
 				area_up.GetHeight()));
 
-			overread_line_n = area_up.PenY >= b ? 0 : area_dn.GetTextLineNEx()
-				+ (b - area_up.PenY) / GetTextLineHeightExOf(area_up);
+			overread_line_n = area_up.Pen.Y >= b ? 0 : area_dn.GetTextLineNEx()
+				+ (b - area_up.Pen.Y) / GetTextLineHeightExOf(area_up);
 		}
 		else
 		{
@@ -521,7 +521,7 @@ DualScreenReader::UpdateView()
 			const auto b(FetchLastLineBasePosition(area_dn,
 				area_dn.GetHeight()));
 
-			overread_line_n = area_dn.PenY >= b ? 0 : (b - area_dn.PenY)
+			overread_line_n = area_dn.Pen.Y >= b ? 0 : (b - area_dn.Pen.Y)
 				/ GetTextLineHeightExOf(area_dn);
 		}
 	}

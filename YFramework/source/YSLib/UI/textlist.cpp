@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1064
-\author FrankHB<frankhb1989@gmail.com>
+\version r1069
+\author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-01-01 15:52 +0800
+	2013-01-04 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,10 +283,10 @@ TextList::LocateViewPosition(SDst h)
 }
 
 void
-TextList::DrawItem(const Graphics& g, const Rect& mask, const Rect&,
+TextList::DrawItem(const Graphics& g, const Rect& mask, const Rect& unit,
 	ListType::size_type i)
 {
-	DrawClippedText(g, mask, tsList, GetList()[i], false);
+	DrawClippedText(g, mask & (unit + Margin), tsList, GetList()[i], false);
 }
 
 void
@@ -342,9 +342,9 @@ TextList::DrawItems(const PaintContext& pc)
 				}
 				else
 					tsList.Color = ForeColor;
-				tsList.ResetForBounds(unit, g.GetSize(), Margin);
+				tsList.ResetPenForBounds(unit, Margin);
 				if(y < 0)
-					tsList.PenY -= top_offset;
+					tsList.Pen.Y -= top_offset;
 				DrawItem(g, pc.ClipArea, unit, i);
 			}
 		}

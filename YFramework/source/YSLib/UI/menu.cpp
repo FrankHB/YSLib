@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1066
-\author FrankHB<frankhb1989@gmail.com>
+\version r1073
+\author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2012-12-18 11:48 +0800
+	2013-01-04 22:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,7 +203,7 @@ Menu::Hide()
 }
 
 void
-Menu::DrawItem(const Graphics& g, const Rect& mask, const Rect& r,
+Menu::DrawItem(const Graphics& g, const Rect& mask, const Rect& unit,
 	ListType::size_type i)
 {
 	Color t(tsList.Color);
@@ -212,12 +212,12 @@ Menu::DrawItem(const Graphics& g, const Rect& mask, const Rect& r,
 
 	if(!IsItemEnabled(i))
 		tsList.Color = FetchGUIState().Colors[Styles::GrayText];
-	DrawClippedText(g, mask, tsList, GetList()[i], false);
+	TextList::DrawItem(g, mask, unit, i);
 	tsList.Color = t;
-	if(YB_LIKELY(r.Width > 16))
+	if(YB_LIKELY(unit.Width > 16))
 		if(mSubMenus.find(i) != mSubMenus.end())
-			DrawArrow(g, Rect(r.X + r.Width - 16, r.Y, 16, r.Height), 4,
-				RDeg0, ForeColor);
+			DrawArrow(g, Rect(unit.X + unit.Width - 16, unit.Y, 16,
+				unit.Height), 4, RDeg0, ForeColor);
 }
 
 

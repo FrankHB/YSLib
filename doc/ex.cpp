@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4869 *build 370 rev *
-\author FrankHB<frankhb1989@gmail.com>
+\version r4874 *build 371 rev *
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-02 17:56 +0800
+	2013-01-05 00:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,6 +143,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \ft ::= function templates
 \fw ::= forward
 \g ::= global
+\grp ::= groups
 \gs ::= global scpoe
 \h ::= headers
 \i ::= inline
@@ -403,80 +404,139 @@ $using:
 
 
 $DONE:
-r1-r3:
-/ $doc copyright holder mark @ overall license,
-/= 3 test 1 @ platform MinGW32;
+r1:
+/ $doc $=
+(
+	/ turned (SOURCE_BROWSER, REFERENCED_BY_RELATION,
+		REFERENCES_RELATION, CALL_GRAPH, CALLER_GRAPH) on) @ doxygen file,
+	/ doxygen \rem $=
+	(
+		* missing escaping '\#' @ URL @ \h Any $since b331,
+		(
+			/ allowed single line exceeding 80 characters for URLs for sources;
+			* $comp backslash @ EOL @ URL @ \h (Any $since b331,
+				TypeOperations $since b333, YDefinition $since b245),
+		),
+		- \grp HelperFunctions @ \h YDef,
+		/ \grp helper_functions @ \h Utilities -> \h YDef
+	),
+	/ \tr \a \grp \n HelperFunctions -> helper_functions,
+	/ \a \grp \n Functors -> functors @ \h Functinal,
+	(
+		+ \grp YFramework @ \h YSBuild;
+		/ (\grp Helper @ \h YGlobal, \grp CHRLib @ \h CHRDefiniton)
+			>> \grp YFramework
+	)
+);
+/= test 1 @ platform MinGW32;
 
-r4:
-/ \a 'std::ptrdiff_t' @ \ns ystdex @ \h AnyIterator -> 'ptrdiff_t',
-/ \a 'std::size_t' @ \ns ystdex @ (\h (Algorithms, Rational), \u CString)
-	-> 'size_t';
+r2:
+/ \simp \impl @ \f ClipMargin @ \impl \u YGDI;
 /= test 2 @ platform MinGW32;
 
-r5:
-/ @ \h YBlit $=
-(
-	+ \ft<bool _bDec, _fCallable, _tScalar, _tDiff, _tOut, _tIn> void
-		BlitScan(_fCallable&&, _tScalar, _tScalar, _tDiff, _tDiff, _tOut, _tIn),
-	/ \simp \impl @ \ft Blit ^ \ft BlitScan
-);
-/= test 3 @ platform MinGW32;
+r3:
+/= test 3 @ platform DS ^ \conf release;
 
-r6:
-/= test 4 @ platform MinGW32 ^ \conf release;
+r4-r16:
+/= 13 test 4 @ platform MinGW32;
 
-r7:
-/ @ \u YBlit $=
-(
-	/ @ \un \ns $=
-	(
-		/ \f \i SPos blit_min(SPos, SPos)
-			-> \f yconstfn SPos blit_min(SPos),
-		/ \simp \impl @ \f blit_max
-	),
-	/ \tr \impl @ \f BlitBounds,
-	/ \tr \impl @ \ft Blit,
-	/ \tr \impl @ \mf \op()#1 @ \st RectTransformer
-);
+r17:
++ \f YF_API Point ClipBound(Rect&, const Rect&) @ \u YGDI;
+/ \impl @ \f ClipChar @ \un \ns @ \impl \u TextRenderer
+	^ \f ClipBound ~ ClipMargin;
 /= test 5 @ platform MinGW32;
 
-r8:
-/= test 6 @ platform MinGW32 ^ \conf release;
-
-r9-r17:
-/= 9 test 7 @ platform MinGW32;
-
 r18:
-* wrongly clipping bottom and right margin when character $since b366
-	$= / \impl @ \f ClipMargin @ \impl \u YGDI;
-* $comp rendering error when scrolling $since b366;
-/= test 8 @ platform MinGW32;
+/= test 6 @ platform DS ^ \conf release;
 
-r19-r20:
-/= 2 test 9 @ platform MinGW32;
+r19:
+/ @ \impl \u TextRenderer $=
+(
+	/ \simp \impl @ \f ClipChar @ \un \ns,
+	/ \tr \impl @ \op() @ \cl (TextRenderer, TextRegion)
+);
+/= test 7 @ platform MinGW32;
+
+r20:
+/= test 8 @ platform DS ^ \conf release;
 
 r21:
-/= test 10 @ platform MinGW32 ^ \conf release;
+/ \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser,
+/ @ \impl \u TextRenderer $=
+(
+	/ \impl @ \f DrawClippedText#1,
+	/ \simp \impl @ \mf TextRenderer::\op()
+);
+/= test 9 @ platform MinGW32;
 
 r22:
-/= test 11 @ platform DS;
+/= test 10 @ platform DS ^ \conf release;
 
 r23:
+/ \simp \impl @ call \ctor Rect !^ 'Point()' @ \impl \u (ShlReader, DSReader,
+	ReaderSetting, YWidget, Scroll, YGDIBase, InputManager);
+/= test 11 @ platform MinGW32;
+
+r24:
+/ @ \h TextBase $=
+(
+	- \vt \dtor @ \cl PenStyle,
+	/ @ \cl TextState $=
+	(
+		/ \ac @ \inh \cl PenStyle -> protected ~ public,
+		+ public using PenStyle::Font,
+		+ public using PenStyle::Color
+	)
+);
+/= test 12 @ platform MinGW32;
+
+r25:
+/= test 10 @ platform MinGW32 ^ \conf release;
+
+r26:
+/= test 11 @ platform DS;
+
+r27:
 /= test 12 @ platform DS ^ \conf release;
+
+r28:
+/ \impl @ \f DrawClippedText#(1, 2) @ \impl \u TextRenderer,
+/ \impl @ \mf (TextList, Menu)::DrawItem,
+/ \mf MLabel::PaintText -> \mf MLabel::DrawText;
+/= test 13 @ platform MinGW32;
+
+r29:
+/ \impl @ \mf void ResetForBounds(const Rect&, const Size&, const Padding&)
+	@ \cl TextState -> \mf void ResetPenForBounds(const Rect&, const Padding&),
+/ \tr \impl @ \mf MLabel::DrawText;
+/= test 14 @ platform MinGW32;
+
+r30:
+/ public \m SPos PenX, PenY @ \cl TextState -> Point Pen;
+/= test 15 @ platform MinGW32;
+
+r31:
+/= test 16 @ platform MinGW32 ^ \conf release;
+
+r32:
+/= test 17 @ platform DS;
+
+r33:
+/= test 18 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-01-02 +0800:
--30.7d;
-// Mercurial rev1-rev242: r9793;
+2013-01-05 +0800:
+-29.4d;
+// Mercurial rev1-rev243: r9826;
 
 / ...
 
 
 $NEXT_TODO:
-b371-b400:
+b372-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -999,6 +1059,81 @@ $module_tree $=
 
 $now
 (
+	/ $doc "turned %(SOURCE_BROWSER, REFERENCED_BY_RELATION, \
+		REFERENCES_RELATION, CALL_GRAPH, CALLER_GRAPH) on" @ "Doxygen file",
+	/ $doc "Doxygen comments" @ %'YBase' $=
+	(
+		* $doc "missing escaping '\#'" @ "URL" @ 'YStandardEx'.'Any'
+			$since b331,
+		(
+			/ $dev "allowed single line exceeding 80 characters for URLs \
+				for sources";
+			* $comp "backslash" @ "EOL" @ "URL" @ (%'YStandardEx'.'Any'
+				$since b331, 'YStandardEx'.'TypeOperations' $since b333,
+				'YDefinition' $since b245),
+		),
+	),
+	/ %'YFramework' $=
+	(
+		/ $doc "Doxygen groups",
+		/ %'YSLib'.'Service' $=
+		(
+			/ @ "unit %YGDI" $=
+			(
+				/ "implementation" @ "function %ClipMargin",
+				(
+					+ "function %ClipBound",
+					$dep_to "%ClipBound"
+				)
+			),
+			/ @ "%unit TextRenderer" $=
+			(
+				$dep_from "%ClipBound";
+				/ DLD "simplified character clipping implementation";
+				- $lib "unnecessary clipping calculation"
+					@ "member function %TextRenderer::operator()";
+				/ "margin clipping" @ "basic text drawing functions"
+					>> "functions with %Padding parameter"
+			),
+			/ @ "unit %TextBase" $=
+			(
+				- "virtual destructor" @ "class %PenStyle",
+					// Non-polymorphic class with performance improved a little.
+				/ @ "class %TextState" $=
+				(
+					/ "access control of inheritance class %PenStyle"
+						-> "protected" ~ "public",
+					(
+						/ "member function %ResetForBounds"
+							-> "%ResetPenForBounds";
+						$dep_to "removal of implicitly reset for margin"
+					)
+					/ "data member 'SPos PenX, PenY'" -> 'Point Pen'
+				)
+			),
+			/ %'GUI' $=
+			(
+				(
+					$dep_from "removal of implicitly reset for margin",
+					/ "member function %PaintText" @ "class %MLabel"
+						=> "DrawText";
+					/ "remained margin clipping for %MLabel::DrawText but not \
+						%(TextList, Menu)::DrawItem",
+				)
+				/ "implementation" @ "member function %Menu::DrawItem"
+					^ "call member function %TextList::DrawItem"
+			)
+		)
+	),
+	(
+		$dep_from "removal of implicitly reset for margin";
+		/ "removed margin clipping for %HexViewArea::Refresh"
+			@ %'YReader'.'hexadecimal browser'
+	)
+),
+
+b370
+(
 	/ $doc "copyright holder mark @ overall license",
 	- $dev "'std::'" @ "use of %(prtrdiff_t, size_t)" %'YBase'.'YStandardEx',
 	/ %'YFramework'.'YSLib'.'Service' $=
@@ -1109,7 +1244,7 @@ b366
 		* $doc "typo" @ "param names" @ "Doxygen command" @ "4 overloaded \
 			functions %ufopen" @ %'YCLib'.'FileSystem' $since b324,
 	),
-	/ $doc "updated PROJECT_BRIEF" @ "Doxygen file" ^ "Doxygen 1.8.2",
+	/ $doc "updated %PROJECT_BRIEF" @ "Doxygen file" ^ "Doxygen 1.8.2",
 	* $doc "typo" @ "(Doxygen command, version number)" @ "member %pColor"
 		@ "class %SettingPanel" @ %'YReader'.'ReaderSetting' $since b279,
 	* $doc "typo" @ "param names" @ "Doxygen command" @ "function template \
@@ -1662,7 +1797,7 @@ b351
 			/ "union %no_copy_t" -> "union %non_aggreate_pod"
 		),
 		+ "class template %(is_pod_struct, is_pod_union)" @ %'TypeOperations',
-		/ "class-key %struct" -> "%class" @ "class template specialization \
+		/ "class-key struct" -> "class" @ "class template specialization \
 			%std::numeric_limits" @ %'Rational' @ \h Rational
 		// See $KNOWN_ISSUE. In fact, according to ISO C++ synopsis, the \
 			class-key of std::numeric_limits is 'class', but it is 'struct' \
@@ -1729,7 +1864,7 @@ b350
 						Clang++ 3.2 (trunk161531) complained.
 			);
 			+ "construct for initialization with no background"
-				@ "%class %Control"
+				@ "class %Control"
 				// Object of %CheckButton is affected, now no background \
 					initialized as default.
 		),

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -9,19 +9,20 @@
 */
 
 /*!	\defgroup CHRLib CHRLib
+\ingroup YFramework
 \brief 字符编码处理库。
 */
 
 /*!	\file chrdef.h
-\ingroup CHRLib CHRLib 库
+\ingroup CHRLib
 \brief CHRLib 类型定义。
-\version r639
-\author FrankHB<frankhb1989@gmail.com>
+\version r643
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2012-12-11 23:48 +0800
+	2013-01-04 16:55 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5431
-\author FrankHB<frankhb1989@gmail.com>
+\version r5437
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-12-11 23:04 +0800
+	2013-01-04 16:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,7 +120,7 @@ ContainsVisible(const IWidget& wgt, const Point& pt)
 
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取部件的容器指针。
 \note 使用此函数确保返回值传递的值语义。
 \since build 225
@@ -132,7 +132,7 @@ FetchContainerPtr(const IWidget& wgt)
 }
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取焦点对象指针。
 \return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
 \since build 239
@@ -144,7 +144,7 @@ FetchFocusingPtr(IWidget& wgt)
 }
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取部件位置。
 \since build 239
 */
@@ -155,7 +155,7 @@ GetLocationOf(const IWidget& wgt)
 }
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取部件大小。
 \since build 259
 */

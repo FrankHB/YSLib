@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r515
-\author FrankHB<frankhb1989@gmail.com>
+\version r519
+\author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2012-12-11 21:00 +0800
+	2013-01-04 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,7 @@
 #define YCL_YCOMMON_H <ycommon.h>
 #define YSL_YSBUILD_H <ysbuild.h>
 
-/*!
-\defgroup workarounds Workarounds
+/*!	\defgroup workarounds Workarounds
 \brief 名称冲突解决。
 \since build 297
 */

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2619
-\author FrankHB<frankhb1989@gmail.com>
+\version r2625
+\author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-11 21:26 +0800
+	2013-01-04 23:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,11 +142,11 @@ template<typename _tIn>
 SDst
 FetchStringWidth(TextState& ts, SDst h, _tIn s)
 {
-	const SPos x(ts.PenX);
+	const SPos x(ts.Pen.X);
 	EmptyTextRenderer r(ts, h);
 
 	PrintString(r, s);
-	return ts.PenX - x;
+	return ts.Pen.X - x;
 }
 /*!
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
@@ -158,11 +158,11 @@ template<typename _tIn>
 SDst
 FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, ucs4_t c = {})
 {
-	const SPos x(ts.PenX);
+	const SPos x(ts.Pen.X);
 	EmptyTextRenderer r(ts, h);
 
 	PrintString(r, s, g, c);
-	return ts.PenX - x;
+	return ts.Pen.X - x;
 }
 /*!
 \brief 取单行字符串在指定文本状态和高度限制时的显示宽度。

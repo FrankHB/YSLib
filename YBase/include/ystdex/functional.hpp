@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r460
-\author FrankHB<frankhb1989@gmail.com>
+\version r467
+\author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2012-12-04 11:52 +0800
+	2013-01-04 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -342,7 +342,7 @@ xcrease(_tScalar& _x)
 }
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 编译期选择加法/减法复合赋值运算。
 \since build 284
 */
@@ -355,7 +355,7 @@ delta_assign(_tScalar1& _x, _tScalar2& _y)
 
 
 /*!
-\ingroup Functors
+\ingroup functors
 \brief 引用仿函数。
 */
 template<typename _type>
@@ -373,7 +373,7 @@ struct deref_op
 
 
 /*!
-\ingroup Functors
+\ingroup functors
 \brief const 引用仿函数。
 */
 template<typename _type>
@@ -391,7 +391,7 @@ struct const_deref_op
 
 
 /*!
-\ingroup Functors
+\ingroup functors
 \brief 间接访问比较仿函数。
 \warning 非虚析构。
 \since build 315
@@ -413,7 +413,7 @@ struct deref_comp
 
 
 /*!
-\ingroup Functors
+\ingroup functors
 \brief 间接访问字符串比较仿函数。
 \warning 非虚析构。
 \since build 315

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r529
-\author FrankHB<frankhb1989@gmail.com>
+\version r535
+\author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2012-12-05 19:59 +0800
+	2013-01-04 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 
 	// NOTE: It seems there is a bug in linker for checking odr-using.
 	yconstexpr auto ItemPerLine(HexViewArea::ItemPerLine);
-	auto& y(TextState.PenY);
+	auto& y(TextState.Pen.Y);
 	const SDst lh(GetItemHeight()), h(GetHeight()),
 		w_all(GetWidth() - vsbVertical.GetWidth()
 			- GetHorizontalOf(TextState.Margin)),
@@ -128,7 +128,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 		w_addr(w_ch * 8 + w_blank),
 		w_item(w_ch * 2 + w_blank);
 	const int fsize(model.GetSize());
-	auto& pen_x(TextState.PenX);
+	auto& pen_x(TextState.Pen.X);
 	TextRenderer tr(TextState, e.Target);
 	auto pos(model.GetPosition());
 	auto i_data(datCurrent.begin());
@@ -149,12 +149,10 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 
 		const auto n(min<IndexType>(fsize - pos, ItemPerLine));
 
-		for(IndexType j(0); j < n; ++j)
+		for(IndexType j(0); j < n; yunseq(++j, i_data += 2, x += w_item))
 		{
 			pen_x = x;
 			PutLine(tr, &*i_data, &*i_data + 2);
-			i_data += 2;
-			x += w_item;
 		}
 		yunseq(y += lh + TextState.LineGap, pos += ItemPerLine);
 	}

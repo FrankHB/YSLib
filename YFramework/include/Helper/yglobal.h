@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -9,19 +9,20 @@
 */
 
 /*!	\defgroup Helper Helper
-\brief YSLib 助手模块。
+\ingroup YFramework
+\brief YFramework 助手模块。
 */
 
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1805
-\author FrankHB<frankhb1989@gmail.com>
+\version r1809
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2012-09-04 12:27 +0800
+	2013-01-04 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

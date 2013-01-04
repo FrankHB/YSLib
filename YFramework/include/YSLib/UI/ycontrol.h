@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4608
-\author FrankHB<frankhb1989@gmail.com>
+\version r4613
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2012-12-30 01:57 +0800
+	2013-01-04 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,7 +127,7 @@ GetEvent(EventMapping::MapType&, const VisualEvent&,
 	EventMapping::MappedType(&)());
 
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取控件事件。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
@@ -140,7 +140,7 @@ FetchEvent(VisualEventMap& m)
 		GetEvent(m, _vID, NewEvent<_vID>));
 }
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取部件事件。
 \tparam _vID 指定事件类型。
 \param controller 指定部件的控制器。
@@ -157,7 +157,7 @@ FetchEvent(AController& controller)
 		controller.GetItemRef(_vID, NewEvent<_vID>));
 }
 /*!
-\ingroup HelperFunctions
+\ingroup helper_functions
 \brief 取部件事件。
 \tparam _vID 指定事件类型。
 \param wgt 指定部件。

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2790
-\author FrankHB<frankhb1989@gmail.com>
+\version r2802
+\author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-27 02:07 +0800
+	2013-01-04 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,9 +103,9 @@ _tIn
 PutLine(_tRenderer& r, _tIn s)
 {
 	TextState& ts(r.GetTextState());
-	const SPos fpy(ts.PenY);
+	const SPos fpy(ts.Pen.Y);
 
-	while(*s != 0 && fpy == ts.PenY)
+	while(*s != 0 && fpy == ts.Pen.Y)
 		if(!PutChar(r, *s))
 			++s;
 	return s;
@@ -126,9 +126,9 @@ _tIn
 PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 {
 	TextState& ts(r.GetTextState());
-	const SPos fpy(ts.PenY);
+	const SPos fpy(ts.Pen.Y);
 
-	while(s != g && ucs4_t(*s) != c && fpy == ts.PenY)
+	while(s != g && ucs4_t(*s) != c && fpy == ts.Pen.Y)
 		if(!PutChar(r, *s))
 			++s;
 	return s;
@@ -212,7 +212,7 @@ PutString(_tRenderer& r, _tIn s)
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
 
-	while(*s != 0 && ts.PenY <= mpy)
+	while(*s != 0 && ts.Pen.Y <= mpy)
 		if(!PutChar(r, *s))
 			++s;
 	return s;
@@ -235,7 +235,7 @@ PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
 
-	while(s != g && ucs4_t(*s) != c && ts.PenY <= mpy)
+	while(s != g && ucs4_t(*s) != c && ts.Pen.Y <= mpy)
 		if(!PutChar(r, *s))
 			++s;
 	return s;
@@ -508,14 +508,14 @@ DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 \param mask 相对于输出图形接口上下文矩形，限定输出边界。
 \param bounds 绘制区域的外边界。
 \param str 待绘制的字符串。
-\param margin 绘制区域边界和外边界之间的边距。
+\param m 绘制区域边界和外边界之间的边距。
 \param line_wrap 自动换行。
 \param fnt 输出时使用的字体。
 \since build 309
 */
 YF_API void
 DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
-	const String& str, const Padding& margin, Color, bool line_wrap,
+	const String& str, const Padding& m, Color, bool line_wrap,
 	const Font& fnt = {});
 
 /*!
@@ -533,14 +533,14 @@ DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap);
 \param g 输出图形接口上下文。
 \param bounds 绘制区域的外边界。
 \param str 待绘制的字符串。
-\param margin 绘制区域边界和外边界之间的边距。
+\param m 绘制区域边界和外边界之间的边距。
 \param line_wrap 自动换行。
 \param fnt 输出时使用的字体。
 \since build 309
 */
 YF_API void
 DrawText(const Graphics& g, const Rect& bounds, const String& str,
-	const Padding& margin, Color, bool line_wrap, const Font& fnt = {});
+	const Padding& m, Color, bool line_wrap, const Font& fnt = {});
 /*!
 \brief 绘制文本。
 \param r 文本区域。

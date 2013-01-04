@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1274
-\author FrankHB<frankhb1989@gmail.com>
+\version r1278
+\author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2012-12-11 21:42 +0800
+	2013-01-04 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,9 +83,10 @@ protected:
 
 	/*!
 	\brief 绘制文本。
+	\since build 371
 	*/
 	void
-	PaintText(const Size&, Color, const PaintContext&);
+	DrawText(const Size&, Color, const PaintContext&);
 };
 
 

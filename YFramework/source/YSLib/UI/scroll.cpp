@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3445
-\author FrankHB<frankhb1989@gmail.com>
+\version r3449
+\author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2012-12-05 19:55 +0800
+	2013-01-04 18:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -434,8 +434,8 @@ VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)
 
 ScrollableContainer::ScrollableContainer(const Rect& r)
 	: Control(r),
-	hsbHorizontal(Rect(Point(), r.Width, defMinScrollBarHeight)),
-	vsbVertical(Rect(Point(), defMinScrollBarWidth, r.Height))
+	hsbHorizontal(Rect({}, r.Width, defMinScrollBarHeight)),
+	vsbVertical(Rect({}, defMinScrollBarWidth, r.Height))
 {
 	// TODO: Allow user to choose whether background is drawn.
 	SetContainerPtrOf(hsbHorizontal, this),

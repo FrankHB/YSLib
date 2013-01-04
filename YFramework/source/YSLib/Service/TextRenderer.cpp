@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2603
-\author FrankHB<frankhb1989@gmail.com>
+\version r2629
+\author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-01 21:48 +0800
+	2013-01-04 23:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,12 +48,10 @@ ClipChar(const Graphics& g, TextState& ts, const CharBitmap& cbmp,
 {
 	YAssert(bool(g), "Invalid graphics context found.");
 
-	PaintContext pc{g, {ts.PenX + cbmp.GetLeft(),
-		ts.PenY - cbmp.GetTop()}, clip};
-	const auto pt(ClipMargin(pc, ts.Margin,
-		{cbmp.GetWidth(), cbmp.GetHeight()}));
+	PaintContext pc{g, {}, clip};
 
-	pc.Location = pt;
+	pc.Location = ClipBound(pc.ClipArea, Rect(ts.Pen.X + cbmp.GetLeft(),
+		ts.Pen.Y - cbmp.GetTop(), cbmp.GetWidth(), cbmp.GetHeight()));
 	return pc;
 };
 
@@ -81,7 +79,7 @@ RenderCharFrom(ucs4_t c, const Graphics& g,
 					_fCharRenderer(std::move(pc), ts.Color, cbuf,
 						{cbmp.GetWidth(), cbmp.GetHeight()}, yforward(args)...);
 			}
-		ts.PenX += cbmp.GetXAdvance();
+		ts.Pen.X += cbmp.GetXAdvance();
 	}
 }
 
@@ -119,8 +117,8 @@ void
 TextRegion::operator()(ucs4_t c)
 {
 	RenderCharFrom<decltype(RenderCharAlpha), RenderCharAlpha>(c,
-		TextRegion::GetContext(), GetTextState(), Rect(Point(), GetSize()),
-		GetBufferAlphaPtr());
+		TextRegion::GetContext(), GetTextState(), Rect(GetSize())
+		+ GetTextState().Margin, GetBufferAlphaPtr());
 }
 
 void
@@ -202,14 +200,14 @@ DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 }
 void
 DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
-	const String& str, const Padding& margin, Color c, bool line_wrap,
+	const String& str, const Padding& m, Color c, bool line_wrap,
 	const Font& fnt)
 {
 	TextState ts(fnt);
 
-	ts.ResetForBounds(bounds, g.GetSize(), margin);
+	ts.ResetPenForBounds(bounds, m);
 	ts.Color = c;
-	DrawClippedText(g, mask, ts, str, line_wrap);
+	DrawClippedText(g, mask & (Rect(g.GetSize()) + m), ts, str, line_wrap);
 }
 
 void
@@ -219,10 +217,9 @@ DrawText(const Graphics& g, TextState& ts, const String& str, bool line_wrap)
 }
 void
 DrawText(const Graphics& g, const Rect& bounds, const String& str,
-	const Padding& margin, Color c, bool line_wrap, const Font& fnt)
+	const Padding& m, Color c, bool line_wrap, const Font& fnt)
 {
-	DrawClippedText(g, Rect(g.GetSize()), bounds, str, margin,
-		c, line_wrap, fnt);
+	DrawClippedText(g, Rect(g.GetSize()), bounds, str, m, c, line_wrap, fnt);
 }
 void
 DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,

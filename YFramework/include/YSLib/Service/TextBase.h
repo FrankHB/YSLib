@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2596
-\author FrankHB<frankhb1989@gmail.com>
+\version r2624
+\author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-11 23:34 +0800
+	2013-01-04 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,11 @@ YSL_BEGIN_NAMESPACE(Drawing)
 yconstexpr Padding DefaultMargin(2, 2, 2, 2);
 
 
-//! \brief 笔样式：字体和笔颜色。
+/*!
+\brief 笔样式：字体和笔颜色。
+\warning 非虚析构。
+\since build 145
+*/
 class YF_API PenStyle
 {
 public:
@@ -59,10 +63,6 @@ public:
 		Drawing::Color c = Drawing::ColorSpace::White)
 		: Font(fnt), Color(c)
 	{}
-	/*!
-	\brief 析构：空实现。
-	*/
-	virtual DefEmptyDtor(PenStyle)
 
 	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, Font)
 	DefGetterMem(const ynothrow, FontCache&, Cache, Font)
@@ -81,11 +81,19 @@ public:
 文本状态不包含文本区域和显示区域的大小，应由外部图形接口上下文或缓冲区状态确定。
 \since build 145
 */
-class YF_API TextState : public PenStyle
+class YF_API TextState : protected PenStyle
 {
 public:
+	//! \since build 371
+	using PenStyle::Font;
+	//! \since build 371
+	using PenStyle::Color;
 	Padding Margin; //!< 边距：文本区域到显示区域的距离。
-	SPos PenX, PenY; //!< 笔坐标。
+	/*!
+	\brief 笔坐标。
+	\since build 371
+	*/
+	Point Pen;
 	u8 LineGap; //!< 行距。
 
 	/*!
@@ -133,11 +141,13 @@ public:
 	ResetPen();
 
 	/*!
-	\brief 按指定显示区域边界、文本区域大小和附加边距重新设置边距和笔位置。
-	\note 通过已有的区域大小和附加边距约束新的边距和笔位置。
+	\brief 按指定显示区域边界和附加边距重新设置笔位置。
+	\since build 371
+
+	通过已有的区域大小和附加边距的左和上分量约束新和笔位置。
 	*/
 	void
-	ResetForBounds(const Rect&, const Size&, const Padding&);
+	ResetPenForBounds(const Rect&, const Padding&);
 };
 
 
@@ -168,7 +178,7 @@ GetTextLineHeightExOf(const TextState& s)
 inline u16
 GetCurrentTextLineNOf(const TextState& s)
 {
-	return (s.PenY - s.Margin.Top) / GetTextLineHeightExOf(s);
+	return (s.Pen.Y - s.Margin.Top) / GetTextLineHeightExOf(s);
 }
 
 /*!
@@ -178,8 +188,7 @@ GetCurrentTextLineNOf(const TextState& s)
 inline void
 SetPenOf(TextState& s, SPos x, SPos y)
 {
-	s.PenX = x;
-	s.PenY = y;
+	s.Pen = Point(x, y);
 }
 
 /*!
@@ -198,7 +207,7 @@ SetCurrentTextLineNOf(TextState&, u16);
 inline void
 CarriageReturn(TextState& ts)
 {
-	ts.PenX = ts.Margin.Left;
+	ts.Pen.X = ts.Margin.Left;
 }
 
 /*!

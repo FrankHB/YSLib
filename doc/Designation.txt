@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r6942
+\version r6948
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-01 21:34 +0800
+	2013-01-02 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1529,6 +1529,13 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 转换操作符（以整数类型、枚举类型、其它基本类型、类类型顺序；整数类型之间以阶(rank) 排列）；
 访问器（以谓词、其它 getter 、 setter 排列）；
 其它函数或函数模版。
+
+@6.2 源代码嵌入文档：
+使用 Doxygen 。
+默认语言为简体中文。
+使用简化的（去除可以省略的星号后的） Qt 风格的注释。
+分行例外（默认参见 [Documentation::CommonRules @@6.4.1] ）： URL 链接等超出默认行宽时可在同一行（无法生成正确的代码）。
+其它参见 http://drupal.org/node/1354#links 。
 
 @7 一般实现导引：
 自定义应用程序 Shell 类，继承默认 Shells::Shell 类或其派生类并产生实例。

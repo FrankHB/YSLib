@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3937
-\author FrankHB<frankhb1989@gmail.com>
+\version r3940
+\author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2012-12-14 21:36 +0800
+	2013-01-04 18:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,7 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 
 FileInfoPanel::FileInfoPanel()
-	: Panel(Rect(Point(), MainScreenWidth, MainScreenHeight)),
+	: Panel(Rect({}, MainScreenWidth, MainScreenHeight)),
 	lblPath(Rect(8, 20, 240, 16)),
 	lblSize(Rect(8, 40, 240, 16)),
 	lblAccessTime(Rect(8, 60, 240, 16)),
@@ -587,7 +587,7 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 
 ShlHexBrowser::ShlHexBrowser(const IO::Path& pth)
 	: ShlReader(pth),
-	HexArea(Rect(Point(), MainScreenWidth, MainScreenHeight)), pnlFileInfo()
+	HexArea(Rect({}, MainScreenWidth, MainScreenHeight)), pnlFileInfo()
 {
 	HexArea.SetRenderer(make_unique<BufferedRenderer>(true));
 	yunseq(

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,20 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup YSLib YSLib
-\brief YSLib 基础库。
+/*!	\defgroup YFramework YFramework Library
+\brief YFramework 框架库。
+*/
+
+/*!	\defgroup YSLib YShell Library
+\ingroup YFramework
+\brief YShell 库。
 */
 
 /*!	\file ysbuild.h
-\ingroup YSLib
+\ingroup YFramework
 \brief YSLib 库配置文件。
-\version r725
+\version r731
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 21:53:55 +0800
 \par 修改时间:
-	2012-09-04 10:42 +0800
+	2013-01-02 23:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

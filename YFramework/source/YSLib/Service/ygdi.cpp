@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2677
-\author FrankHB<frankhb1989@gmail.com>
+\version r2700
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-01-02 17:43 +0800
+	2013-01-04 03:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,6 +52,19 @@ FetchMargin(const Rect& r, const Size& s)
 
 
 Point
+ClipBound(Rect& clip, const Rect& bound)
+{
+	if(!clip.IsUnstrictlyEmpty())
+	{
+		clip &= bound;
+		if(!clip.IsUnstrictlyEmpty())
+			return clip.GetPoint() - bound.GetPoint();
+	}
+	clip.GetSizeRef() = {};
+	return {};
+}
+
+Point
 ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 {
 	const Size& ds(pc.Target.GetSize());
@@ -61,15 +74,16 @@ ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 		const auto& pt(pc.Location);
 		const Point dp(max<int>(m.Left, pt.X), max<int>(m.Top, pt.Y));
 		const Point sp(dp - pt);
-		const SDst scx(max<int>(0, min<int>(ss.Width, ds.Width - m.Right - dp.X)
-			- sp.X)), scy(max<int>(0, min<int>(ss.Height,
-			ds.Height - m.Bottom - dp.Y) - sp.Y));
+		const auto scx(min<int>(ss.Width, ds.Width - m.Right - dp.X) - sp.X),
+			scy(min<int>(ss.Height, ds.Height - m.Bottom - dp.Y) - sp.Y);
 
-		pc.ClipArea &= Rect(dp, scx, scy);
-		return pc.ClipArea.GetPoint() - pt;
+		if(scx > 0 && scy > 0)
+		{
+			pc.ClipArea &= Rect(dp, scx, scy);
+			return pc.ClipArea.GetPoint() - pt;
+		}
 	}
-	else
-		pc.ClipArea.GetSizeRef() = {};
+	pc.ClipArea.GetSizeRef() = {};
 	return {};
 }
 
