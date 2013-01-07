@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2666
+\version r2719
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-04 23:43 +0800
+	2013-01-07 16:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,8 +81,20 @@ RenderCharAlpha(PaintContext&& pc, Color, CharBitmap::BufferType, const Size&,
 
 
 /*!
+\brief 取文本渲染器的行末位置（横坐标）。
+\since build 372
+*/
+template<class _tRenderer>
+inline SDst
+GetEndOfLinePositionOf(const _tRenderer& r)
+{
+	return r.GetTextState().Margin.Right;
+}
+
+/*!
 \brief 打印单个可打印字符。
 \since build 270
+\todo 行的结尾位置计算和边距解除耦合。
 */
 template<class _tRenderer>
 void
@@ -93,39 +105,36 @@ PrintChar(_tRenderer& r, ucs4_t c)
 }
 
 /*!
+\brief 使用指定的文本状态和行末位置（横坐标）打印并判断是否需要具体渲染单个字符。
+\return 遇到行内无法容纳而换行时为 1 ，需要继续渲染为 2 ，否则为 0 。
+\since build 372
+*/
+YF_API u8
+PutCharBase(TextState&, SDst, ucs4_t);
+
+/*!
 \brief 打印单个字符。
+\return 遇到行内无法容纳而换行时返回非零值，否则返回 0 。
 \note 处理换行符。
 \note 当行内无法容纳完整字符时换行。
+\see TextState::AdjustRightMarginForBounds
 \since build 190
 */
 template<class _tRenderer>
 u8
 PutChar(_tRenderer& r, ucs4_t c)
 {
-	TextState& ts(r.GetTextState());
+	const u8 res(PutCharBase(r.GetTextState(),
+		r.GetContext().GetWidth() - GetEndOfLinePositionOf(r), c));
 
-	if(c == '\n')
+	switch(res)
 	{
-		ts.PutNewline();
+	case 2:
+		r(c);
 		return 0;
+	default:
+		return res;
 	}
-	if(YB_UNLIKELY(!std::iswprint(c)))
-		return 0;
-#if 0
-	const int max_w(GetBufferWidthN() - 1),
-		space_w(ts.GetCache().GetAdvance(' '));
-
-	if(max_w < space_w)
-		return line_breaks_l = 1;
-#endif
-	if(YB_UNLIKELY(ts.Pen.X + ts.Font.GetAdvance(c)
-		> r.GetContext().GetWidth() - ts.Margin.Right))
-	{
-		ts.PutNewline();
-		return 1;
-	}
-	r(c);
-	return 0;
 }
 
 YSL_END_NAMESPACE(Drawing)

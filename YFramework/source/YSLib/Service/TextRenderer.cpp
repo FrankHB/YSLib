@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2629
+\version r2641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-04 23:40 +0800
+	2013-01-07 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,18 +41,16 @@ YSL_BEGIN_NAMESPACE(Drawing)
 namespace
 {
 
-//! \since build 368
+//! \since build 372
 PaintContext
-ClipChar(const Graphics& g, TextState& ts, const CharBitmap& cbmp,
-	const Rect& clip)
+ClipChar(const Graphics& g, const Point& pen, const CharBitmap& cbmp, Rect r)
 {
 	YAssert(bool(g), "Invalid graphics context found.");
 
-	PaintContext pc{g, {}, clip};
+	const auto pt(ClipBounds(r, Rect(pen.X + cbmp.GetLeft(),
+		pen.Y - cbmp.GetTop(), cbmp.GetWidth(), cbmp.GetHeight())));
 
-	pc.Location = ClipBound(pc.ClipArea, Rect(ts.Pen.X + cbmp.GetLeft(),
-		ts.Pen.Y - cbmp.GetTop(), cbmp.GetWidth(), cbmp.GetHeight()));
-	return pc;
+	return {g, pt, r};
 };
 
 //! \since build 368
@@ -73,7 +71,7 @@ RenderCharFrom(ucs4_t c, const Graphics& g,
 		if(std::iswgraph(c))
 			if(const auto cbuf = cbmp.GetBuffer())
 			{
-				auto&& pc(ClipChar(g, ts, cbmp, clip));
+				auto&& pc(ClipChar(g, ts.Pen, cbmp, clip));
 
 				if(!pc.ClipArea.IsUnstrictlyEmpty())
 					_fCharRenderer(std::move(pc), ts.Color, cbuf,
@@ -204,10 +202,12 @@ DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
 	const Font& fnt)
 {
 	TextState ts(fnt);
+	const Rect txt_bounds(bounds + m);
 
-	ts.ResetPenForBounds(bounds, m);
+	ts.Margin = FetchMargin(txt_bounds, g.GetSize()),
+	ts.ResetPen(bounds.GetPoint(), m);
 	ts.Color = c;
-	DrawClippedText(g, mask & (Rect(g.GetSize()) + m), ts, str, line_wrap);
+	DrawClippedText(g, mask & txt_bounds, ts, str, line_wrap);
 }
 
 void

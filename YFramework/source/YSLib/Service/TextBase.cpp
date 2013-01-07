@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2482
+\version r2490
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-04 23:41 +0800
+	2013-01-07 02:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,23 +55,22 @@ TextState::PutNewline()
 void
 TextState::ResetPen()
 {
-	CarriageReturn(*this);
 	//	Pen.Y = Margin.Top + GetTextLineHeightExOf(*this);
 	//	Pen.Y = Margin.Top + pCache->GetAscender();
-	SetCurrentTextLineNOf(*this, 0);
+	CarriageReturn(*this),
+	Pen.Y = GetTextLineBaseOf(*this);
+}
+void
+TextState::ResetPen(const Point& pt, const Padding& m)
+{
+	Pen = Point(pt.X + m.Left, pt.Y + Font.GetAscender() + m.Top);
 }
 
-void
-TextState::ResetPenForBounds(const Rect& r, const Padding& m)
-{
-	Pen = Point(r.X + m.Left, r.Y + Font.GetAscender() + m.Top);
-}
-
 
 void
-SetCurrentTextLineNOf(TextState& s, u16 n)
+SetCurrentTextLineNOf(TextState& ts, u16 n)
 {
-	s.Pen.Y = s.Margin.Top + s.Font.GetAscender() + GetTextLineHeightExOf(s) * n;
+	ts.Pen.Y = GetTextLineBaseOf(ts) + GetTextLineHeightExOf(ts) * n;
 }
 
 void

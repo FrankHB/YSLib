@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1276
+\version r1278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2013-01-04 23:39 +0800
+	2013-01-05 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,11 +43,11 @@ void
 MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
 {
 	Drawing::TextState ts;
-	const auto& bounds(Rect(e.Location, s));
+	const Rect bounds(e.Location, s);
 
 	yunseq(ts.Font = Font, ts.Color = c,
 		ts.Margin = FetchMargin(bounds + Margin, e.Target.GetSize())),
-	ts.ResetPenForBounds(bounds, Margin);
+	ts.ResetPen(e.Location, Margin);
 
 	if(!AutoWrapLine)
 	{

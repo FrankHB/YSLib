@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4874 *build 371 rev *
+\version r4888 *build 372 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-05 00:13 +0800
+	2013-01-07 16:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -405,138 +405,108 @@ $using:
 
 $DONE:
 r1:
-/ $doc $=
-(
-	/ turned (SOURCE_BROWSER, REFERENCED_BY_RELATION,
-		REFERENCES_RELATION, CALL_GRAPH, CALLER_GRAPH) on) @ doxygen file,
-	/ doxygen \rem $=
-	(
-		* missing escaping '\#' @ URL @ \h Any $since b331,
-		(
-			/ allowed single line exceeding 80 characters for URLs for sources;
-			* $comp backslash @ EOL @ URL @ \h (Any $since b331,
-				TypeOperations $since b333, YDefinition $since b245),
-		),
-		- \grp HelperFunctions @ \h YDef,
-		/ \grp helper_functions @ \h Utilities -> \h YDef
-	),
-	/ \tr \a \grp \n HelperFunctions -> helper_functions,
-	/ \a \grp \n Functors -> functors @ \h Functinal,
-	(
-		+ \grp YFramework @ \h YSBuild;
-		/ (\grp Helper @ \h YGlobal, \grp CHRLib @ \h CHRDefiniton)
-			>> \grp YFramework
-	)
-);
+/ \mf void ResetPenForBounds(const Rect&, const Padding&) @ \cl TextState
+	-> \mf void ResetPen(const Point&, const Padding& = {}),
+* wrongly treated graphic interface boundary as clipping boundary
+	@ \impl @ \f DrawClippedText#2 $since b371,
+/ \tr \impl @ \mf TextList::DrawItems, MLabel::DrawText;
 /= test 1 @ platform MinGW32;
 
 r2:
-/ \simp \impl @ \f ClipMargin @ \impl \u YGDI;
+/ \impl @ \mf TextList::DrawItems;
 /= test 2 @ platform MinGW32;
 
 r3:
-/= test 3 @ platform DS ^ \conf release;
+/ @ \un \ns @ \impl \u TextRenderer $=
+(
+	/ \f PaintContext ClipChar(const Graphics&, TextState&,
+		const CharBitmap&, const Rect&) -> \f PaintContext ClipChar(
+		const Graphics&, const Point&, const CharBitmap&, Rect),
+	/ \tr \impl @ \ft RenderCharFrom
+);
+/= test 3 @ platform MinGW32;
 
-r4-r16:
-/= 13 test 4 @ platform MinGW32;
+r4:
+/= test 4 @ platform DS ^ \conf release;
 
-r17:
-+ \f YF_API Point ClipBound(Rect&, const Rect&) @ \u YGDI;
-/ \impl @ \f ClipChar @ \un \ns @ \impl \u TextRenderer
-	^ \f ClipBound ~ ClipMargin;
+r5:
+/ @ \u TextBase $=
+(
+	+ \f \i SPos GetTextLineBaseOf(const TextState&) @ \h;
+	/ \impl @ \f SetCurrentTextLineNOf ^ \f GetTextLineBaseOf
+)
 /= test 5 @ platform MinGW32;
 
-r18:
-/= test 6 @ platform DS ^ \conf release;
-
-r19:
-/ @ \impl \u TextRenderer $=
-(
-	/ \simp \impl @ \f ClipChar @ \un \ns,
-	/ \tr \impl @ \op() @ \cl (TextRenderer, TextRegion)
-);
-/= test 7 @ platform MinGW32;
-
-r20:
-/= test 8 @ platform DS ^ \conf release;
-
-r21:
-/ \impl @ \mf HexViewArea::Refresh @ \impl \u HexBrowser,
-/ @ \impl \u TextRenderer $=
-(
-	/ \impl @ \f DrawClippedText#1,
-	/ \simp \impl @ \mf TextRenderer::\op()
-);
-/= test 9 @ platform MinGW32;
-
-r22:
-/= test 10 @ platform DS ^ \conf release;
-
-r23:
-/ \simp \impl @ call \ctor Rect !^ 'Point()' @ \impl \u (ShlReader, DSReader,
-	ReaderSetting, YWidget, Scroll, YGDIBase, InputManager);
-/= test 11 @ platform MinGW32;
-
-r24:
-/ @ \h TextBase $=
-(
-	- \vt \dtor @ \cl PenStyle,
-	/ @ \cl TextState $=
-	(
-		/ \ac @ \inh \cl PenStyle -> protected ~ public,
-		+ public using PenStyle::Font,
-		+ public using PenStyle::Color
-	)
-);
-/= test 12 @ platform MinGW32;
-
-r25:
-/= test 10 @ platform MinGW32 ^ \conf release;
+r6-r25:
+/= 20 test 6 @ platform MinGW32;
 
 r26:
-/= test 11 @ platform DS;
+/ \simp \impl @ \mf TextState::ResetPen ^ \f GetTextLineBaseOf,
+/= test 7 @ platform MinGW32;
 
-r27:
-/= test 12 @ platform DS ^ \conf release;
-
-r28:
-/ \impl @ \f DrawClippedText#(1, 2) @ \impl \u TextRenderer,
-/ \impl @ \mf (TextList, Menu)::DrawItem,
-/ \mf MLabel::PaintText -> \mf MLabel::DrawText;
-/= test 13 @ platform MinGW32;
+r27-r28:
++ \mf void TextState::AdjustRightMarginForBounds(const Rect&, SDst),
+/= 2 test 8 @ platform MinGW32;
 
 r29:
-/ \impl @ \mf void ResetForBounds(const Rect&, const Size&, const Padding&)
-	@ \cl TextState -> \mf void ResetPenForBounds(const Rect&, const Padding&),
-/ \tr \impl @ \mf MLabel::DrawText;
-/= test 14 @ platform MinGW32;
+* missing setting right margin \impl @ \mf TextList::DrawItems $since b371;
+/= test 9 @ platform MinGW32;
 
 r30:
-/ public \m SPos PenX, PenY @ \cl TextState -> Point Pen;
-/= test 15 @ platform MinGW32;
+* missing setting margin @ \impl @ \f DrawClippedText#2 $since b371;
+/= test 10 @ platform MinGW32;
 
 r31:
-/= test 16 @ platform MinGW32 ^ \conf release;
+/= test 11 @ platform MinGW32 ^ \conf release;
 
 r32:
-/= test 17 @ platform DS;
+/ \mf !\i TextState::AdjustRightMarginForBounds @ \u TextBase
+	-> !\m \f \i void AdjustEndOfLine(TextState&, const Rect&, SDst);
+/= test 12 @ platform MinGW32 ^ \conf release;
 
 r33:
+/ @ \u CharRenderer $=
+(
+	+ \f u8 PutCharBase(TextState&, SDst, ucs4_t),
+	+ \ft<_tRenderer> \i SDst GetEndOfLinePosOf(const _tRenderer&);
+	/ \simp \impl @ \ft PutChar ^ (\f PutCharBase, \ft GetEndOfLinePositionOf)
+);
+/= test 13 @ platform MinGW32;
+
+r34:
+/= test 14 @ platform MinGW32 ^ \conf release;
+
+r35:
+/ @ \f YGDI $=
+(
+	+ \f \i bool Clip(Rect&, const Rect&) @ \h,
+	/ \f ClipBound @ \u YGDI => ClipBounds
+);
+/ \simp \impl @ \f (ClipBoards @ \u YGDI, PaintChild#1 @ \u YWidget) ^ \f Clip;
+/= test 15 @ platform MinGW32;
+
+r36:
+/= test 16 @ platform MinGW32 ^ \conf release;
+
+r37:
+/= test 17 @ platform DS;
+
+r38:
 /= test 18 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-01-05 +0800:
--29.4d;
-// Mercurial rev1-rev243: r9826;
+2013-01-07 +0800:
+-28.7d;
+// Mercurial rev1-rev244: r9864;
 
 / ...
 
 
 $NEXT_TODO:
-b372-b400:
+b373-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -548,13 +518,13 @@ b372-b400:
 $low_prior
 (
 	* previous frame form buffered renderer of desktop did not be handled
-		properly $since b?;
+		properly for clipping area enlarged when updating $since b?;
 		// Which essentially cause over painted.
 );
 
 
 $TODO:
-b[618]:
+b[672]:
 / services $=
 (
 	+ \impl @ images loading
@@ -564,14 +534,15 @@ b[618]:
 	+ viewer models,
 	/ fully \impl @ \cl Form,
 	+ icons,
-	/ $low_prior more long list tests @ %DropDownList
+	/ $low_prior more long list tests @ %DropDownList,
+	/ refactored shared GUI mapping for menus and other widgets
 ),
 / $design $low_prior robustness and cleanness $=
 (
 	/ noncopyable GUIState,
 	* move @ \cl Menu,
 	^ delegating \ctor as possible,
-	/ strip away direct using @ Win32 types completely @ \h @ \lib YCLib,
+	/ stripping away direct using @ Win32 types completely @ \h @ \lib YCLib,
 	^ std::call_once to confirm thread-safe initialization,
 	/ improving pedantic ISO C++ compatiblity,
 	/ consider using std::common_type for explicit template argument
@@ -594,11 +565,11 @@ b[618]:
 	+ Microsoft Windows(MinGW32) port with free hosted window size,
 	/ improved tests and examples
 );
-/ $low_prior @ \lib YCLib $=
+/ $low_prior improved memory and file APIs @ \lib YCLib $=
 (
-	/ fully \impl @ memory mappaing APIs,
-	+ block file loading APIs,
-	+ shared memory APIs
+	/ fully \impl @ memory mappaing,
+	+ block file loading,
+	+ shared memory
 ),
 / @ CHRLib $=
 (
@@ -640,7 +611,12 @@ b[618]:
 	+ general resouce management,
 	/ @ "GDI" $=
 	(
-		+ unified model for glyphrun and widgets rendering,
+		/ refactoring text rendering APIs $=
+		(
+			/ refactoring current APIs,
+			+ $low_prior user-defined rendering APIs,
+			/ unifying model for glyphrun and widgets rendering
+		),
 		+ basic animation support,
 		+ more GDI algorithms
 	),
@@ -1058,6 +1034,53 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Service' $=
+		(
+			/ "member function %ResetPenForBounds" @ "class %TextState"
+				=> "%ResetPen",
+			(
+				+ "function %AdjustEndOfLine";
+				$dep_to "text right margin adjustment"
+			),
+			* @ "implementation" @ "function %DrawClippedText#2" $since b371 $=
+			(
+				* "wrongly treated graphic interface boundary as clipping \
+					boundary",
+				(
+					$dep_from "text right margin adjustment"
+					* "missing setting margin" @ "function %DrawClippedText#2"
+						// Missing of margin would likely cause wrong X pen \
+							position for multiline text. See above for \
+							probable result of missing of right margin. \
+							Missing of top or bottom might cause wrong edges \
+							displayed if the boundary had not been set properly.
+				)
+			),
+			+ "function inline SPos GetTextLineBaseOf(const TextState&)",
+					$dep_to "text right margin adjustment",
+			+ "simplified character renderer APIs" @ "unit %CharRenderer",
+			/ @ "unit %YGDI" $=
+			(
+				/ "function %ClipBound" => "%ClipBounds",
+				+ "function 'inline bool Clip(Rect&, const Rect&)'"
+			)
+		),
+		/ %'GUI' $=
+		(
+			* "missing setting right margin"
+				@ "member function %TextList::DrawItems" $since b371
+				// Missing of reasonable right margin might cause necessary \
+					time penalty for long string because the end-of-line \
+					checking in %PutChar would not be applied in time, though \
+					no visible difference if the boundary had been set properly.
+		)
+	)
+),
+
+b371
 (
 	/ $doc "turned %(SOURCE_BROWSER, REFERENCED_BY_RELATION, \
 		REFERENCES_RELATION, CALL_GRAPH, CALLER_GRAPH) on" @ "Doxygen file",

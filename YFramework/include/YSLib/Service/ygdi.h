@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3453
+\version r3465
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-01-04 03:05 +0800
+	2013-01-07 15:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,15 +121,26 @@ FetchMargin(const Rect&, const Size&);
 
 
 /*!
+\brief 剪切操作：取正则矩形交集并判断是否严格非空。
+\since build 372
+*/
+inline bool
+Clip(Rect& x, const Rect& y)
+{
+	x &= y;
+	return !x.IsUnstrictlyEmpty();
+}
+
+/*!
 \brief 根据指定源的边界优化绘制上下文的剪切区域。
 \return 若边距决定不足以被渲染则为 Point() ，否则为源的起始偏移位置。
 \note 当不需要绘制时，不修改偏移坐标。
-\since build 371
+\since build 372
 
 检查边距限制下需要保留绘制的区域，结果保存至绘制上下文的除渲染目标外的其它成员。
 */
 YF_API Point
-ClipBound(Rect&, const Rect&);
+ClipBounds(Rect&, const Rect&);
 
 /*!
 \brief 根据指定边距和源的大小优化绘制上下文的剪切区域。

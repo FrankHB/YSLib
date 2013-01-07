@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2624
+\version r2686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-04 23:43 +0800
+	2013-01-07 02:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,15 +139,14 @@ public:
 	*/
 	void
 	ResetPen();
-
 	/*!
-	\brief 按指定显示区域边界和附加边距重新设置笔位置。
-	\since build 371
+	\brief 按指定显示区域左上角位置和附加边距重新设置笔位置。
+	\since build 372
 
-	通过已有的区域大小和附加边距的左和上分量约束新和笔位置。
+	通过已有的区域左上角坐标和附加边距的左和上分量约束新和笔位置。
 	*/
 	void
-	ResetPenForBounds(const Rect&, const Padding&);
+	ResetPen(const Point&, const Padding& = {});
 };
 
 
@@ -156,9 +155,9 @@ public:
 \since build 231
 */
 inline SDst
-GetTextLineHeightOf(const TextState& s)
+GetTextLineHeightOf(const TextState& ts)
 {
-	return s.Font.GetHeight();
+	return ts.Font.GetHeight();
 }
 
 /*!
@@ -166,9 +165,9 @@ GetTextLineHeightOf(const TextState& s)
 \since build 231
 */
 inline SDst
-GetTextLineHeightExOf(const TextState& s)
+GetTextLineHeightExOf(const TextState& ts)
 {
-	return s.Font.GetHeight() + s.LineGap;
+	return ts.Font.GetHeight() + ts.LineGap;
 }
 
 /*!
@@ -176,9 +175,19 @@ GetTextLineHeightExOf(const TextState& s)
 \since build 231
 */
 inline u16
-GetCurrentTextLineNOf(const TextState& s)
+GetCurrentTextLineNOf(const TextState& ts)
 {
-	return (s.Pen.Y - s.Margin.Top) / GetTextLineHeightExOf(s);
+	return (ts.Pen.Y - ts.Margin.Top) / GetTextLineHeightExOf(ts);
+}
+
+/*!
+\brief 取第一行的基线位置（纵坐标）。
+\since build 372
+*/
+inline SPos
+GetTextLineBaseOf(const TextState& ts)
+{
+	return ts.Margin.Top + ts.Font.GetAscender();
 }
 
 /*!
@@ -186,9 +195,9 @@ GetCurrentTextLineNOf(const TextState& s)
 \since build 231
 */
 inline void
-SetPenOf(TextState& s, SPos x, SPos y)
+SetPenOf(TextState& ts, SPos x, SPos y)
 {
-	s.Pen = Point(x, y);
+	ts.Pen = Point(x, y);
 }
 
 /*!
@@ -197,6 +206,21 @@ SetPenOf(TextState& s, SPos x, SPos y)
 */
 YF_API void
 SetCurrentTextLineNOf(TextState&, u16);
+
+/*!
+\brief 按指定显示区域和文本区域的高重新设置右边距。
+\note 右边距参与行的结尾位置计算。
+\note 单独使用时，需要设置笔的起始位置（横坐标），否则只适用于单行显示。
+\see TextState::AdjustMarginForBound 。
+\see PutChar 。
+\since build 372
+*/
+inline void
+AdjustEndOfLine(TextState& ts, const Rect& r, SDst h)
+{
+//	ts.Margin = FetchMargin(r, s);
+	ts.Margin.Right = h - r.Y - r.Height;
+}
 
 /*!
 \brief 回车。

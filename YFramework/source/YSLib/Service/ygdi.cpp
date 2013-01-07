@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2700
+\version r2709
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-01-04 03:02 +0800
+	2013-01-07 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,14 +52,11 @@ FetchMargin(const Rect& r, const Size& s)
 
 
 Point
-ClipBound(Rect& clip, const Rect& bound)
+ClipBounds(Rect& clip, const Rect& bounds)
 {
-	if(!clip.IsUnstrictlyEmpty())
-	{
-		clip &= bound;
-		if(!clip.IsUnstrictlyEmpty())
-			return clip.GetPoint() - bound.GetPoint();
-	}
+	if(!clip.IsUnstrictlyEmpty() && Clip(clip, bounds)
+		&& !clip.IsUnstrictlyEmpty())
+			return clip.GetPoint() - bounds.GetPoint();
 	clip.GetSizeRef() = {};
 	return {};
 }

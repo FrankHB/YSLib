@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r2927
-\author FrankHB<frankhb1989@gmail.com>
+\version r2952
+\author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-12-28 23:37 +0800
+	2013-01-07 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,32 @@ RenderCharAlpha(PaintContext&& pc, Color c, CharBitmap::BufferType cbuf,
 	char_color = c;
 	BlitChar<BlitTextLoop>(pair_iterator<BitmapPtr, u8*>(
 		pc.Target.GetBufferPtr(), alpha), cbuf, ss, pc);
+}
+
+
+u8
+PutCharBase(TextState& ts, SDst eol, ucs4_t c)
+{
+	if(c == '\n')
+	{
+		ts.PutNewline();
+		return 0;
+	}
+	if(YB_UNLIKELY(!std::iswprint(c)))
+		return 0;
+#if 0
+	const int max_w(GetBufferWidthN() - 1),
+		space_w(ts.GetCache().GetAdvance(' '));
+
+	if(max_w < space_w)
+		return line_breaks_l = 1;
+#endif
+	if(YB_UNLIKELY(ts.Pen.X + ts.Font.GetAdvance(c) > eol))
+	{
+		ts.PutNewline();
+		return 1;
+	}
+	return 2;
 }
 
 YSL_END_NAMESPACE(Drawing)

@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1069
+\version r1075
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-01-04 23:38 +0800
+	2013-01-07 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,12 +325,12 @@ TextList::DrawItems(const PaintContext& pc)
 			SPos y(ln_h * ((min<SPos>(0, lbound) + top_offset - 1) / ln_h)
 				- top_offset);
 
-			for(auto i(viewer.GetHeadIndex()); i < last; y += ln_h, ++i)
+			for(auto i(viewer.GetHeadIndex()); i < last; yunseq(y += ln_h, ++i))
 			{
-				int top(y), tmp(y + ln_h);
+				SPos top(y), tmp(y + ln_h);
 
-				RestrictInInterval<int>(top, 0, h);
-				RestrictInInterval<int>(tmp, 1, h + 1);
+				RestrictInInterval<SPos>(top, 0, h);
+				RestrictInInterval<SPos>(tmp, 1, h + 1);
 				tmp -= top;
 
 				const Rect unit(pt.X, top + pt.Y, ln_w, tmp);
@@ -342,7 +342,8 @@ TextList::DrawItems(const PaintContext& pc)
 				}
 				else
 					tsList.Color = ForeColor;
-				tsList.ResetPenForBounds(unit, Margin);
+				AdjustEndOfLine(tsList, unit + Margin, g.GetHeight()),
+				tsList.ResetPen(unit.GetPoint(), Margin);
 				if(y < 0)
 					tsList.Pen.Y -= top_offset;
 				DrawItem(g, pc.ClipArea, unit, i);

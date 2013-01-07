@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r4274
+\version r4278
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-01-04 18:44 +0800
+	2013-01-07 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,9 +129,8 @@ PaintChild(IWidget& wgt, PaintEventArgs&& e)
 {
 	auto& sender(e.GetSender());
 
-	e.Location += GetLocationOf(sender);
-	e.ClipArea &= Rect(e.Location, GetSizeOf(sender));
-	if(!e.ClipArea.IsUnstrictlyEmpty())
+	if(Clip(e.ClipArea, Rect(e.Location += GetLocationOf(sender),
+		GetSizeOf(sender))))
 		wgt.GetRenderer().Paint(sender, std::move(e));
 }
 Rect
