@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4888 *build 372 rev *
+\version r4901 *build 373 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-07 16:09 +0800
+	2013-01-15 03:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -405,115 +405,110 @@ $using:
 
 $DONE:
 r1:
-/ \mf void ResetPenForBounds(const Rect&, const Padding&) @ \cl TextState
-	-> \mf void ResetPen(const Point&, const Padding& = {}),
-* wrongly treated graphic interface boundary as clipping boundary
-	@ \impl @ \f DrawClippedText#2 $since b371,
-/ \tr \impl @ \mf TextList::DrawItems, MLabel::DrawText;
+/ \decl order @ \ctor @ \clt GHEvent @ \h YEvent,
+/ \simp \impl @ 2 \f \i blitAlphaBlend @ \h YBlit;
 /= test 1 @ platform MinGW32;
 
-r2:
-/ \impl @ \mf TextList::DrawItems;
-/= test 2 @ platform MinGW32;
-
-r3:
-/ @ \un \ns @ \impl \u TextRenderer $=
+r2-r3:
 (
-	/ \f PaintContext ClipChar(const Graphics&, TextState&,
-		const CharBitmap&, const Rect&) -> \f PaintContext ClipChar(
-		const Graphics&, const Point&, const CharBitmap&, Rect),
-	/ \tr \impl @ \ft RenderCharFrom
-);
-/= test 3 @ platform MinGW32;
+	/ \a YB_ATTRIBUTE => YB_ATTR,
+	/ @ \h YDefinition $=
+	(
+		* typo @ \grp \n @ \group ('lang_impl_features', 'lang_impl_hints')
+			 $since b294,
+		/ \mac YB_ATTR(attrs) -> \mac YB_ATTR(...),
+			// Duplicate parentheses should not be used any longer.
+		+ \grp ('lang_impl_versions', 'lib_options'),
+		+ \mac \def (YB_ALLOCATOR, YB_PURE, YB_STATELESS);
+	);
+	+ 'YB_ALLOCATOR' @ unused allocators \decl @ \h YNew
+),
+/= 2 test 2 @ platform MinGW32;
 
 r4:
-/= test 4 @ platform DS ^ \conf release;
+/ @ \h CString $=
+(
+	+ 'YB_STATELESS' @ constexpr \ft is_null,
+	+ 'YB_PURE' @ (\ft ((ntctscmp, ntctsicmp),
+		\a constexpr \exc is_null), \f strlen_n)
+),
+/ @ \h Examiners $=
+(
+	+ 'YB_PURE' @ \smf are_equal @ \st equal,
+	+ 'YB_STATELESS' @ \smf are_equal @ \st always_equal
+),
+/ @ \h Any $=
+(
+	+ 'YB_PURE' @ ((2 \mf, 2 \mft) Access @ \un \t pod_storage,
+		(\mf \op&; \mft \op _type&) @ \cl void_ref)
+);
+/= test 3 @ platform MinGW32 ^ \conf release;
 
 r5:
-/ @ \u TextBase $=
-(
-	+ \f \i SPos GetTextLineBaseOf(const TextState&) @ \h;
-	/ \impl @ \f SetCurrentTextLineNOf ^ \f GetTextLineBaseOf
-)
+/= test 4 @ platform DS;
+
+r6:
+/ \impl @ \ctor Menu;
 /= test 5 @ platform MinGW32;
 
-r6-r25:
-/= 20 test 6 @ platform MinGW32;
+r7:
+(
+	/ @ \h Utilities $=
+	(
+		+ \cl nonmovable,
+		/ \st noncopyable -> \cl nonmovable
+	);
+	+ using ystdex::nonmovable @ \h YAdaptor,
+	+ private \inh (noncopyable, nonmovable) @ \cl GUIState;
+),
++ \mf \op ValueNode \c @ \cl ReadingList @ \u ReadingList;
+/= test 6 @ platform MinGW32;
 
-r26:
-/ \simp \impl @ \mf TextState::ResetPen ^ \f GetTextLineBaseOf,
-/= test 7 @ platform MinGW32;
+r8:
+/= test 7 @ platform DS ^ \conf release;
 
-r27-r28:
-+ \mf void TextState::AdjustRightMarginForBounds(const Rect&, SDst),
-/= 2 test 8 @ platform MinGW32;
+r9-r12:
+/= 4 test 8 @ platform MinGW32;
 
-r29:
-* missing setting right margin \impl @ \mf TextList::DrawItems $since b371;
+r13:
+* wrongly took height instead of width @ \impl @ \f \i AdjustEndOfLine
+	@ \h TextBase $since b372;
+* $comp missing top right text shown @ text list @ reader setting $since b372;
 /= test 9 @ platform MinGW32;
 
-r30:
-* missing setting margin @ \impl @ \f DrawClippedText#2 $since b371;
-/= test 10 @ platform MinGW32;
+r14-r17:
+/= 4 test 10 @ platform MinGW32;
 
-r31:
+r18:
 /= test 11 @ platform MinGW32 ^ \conf release;
 
-r32:
-/ \mf !\i TextState::AdjustRightMarginForBounds @ \u TextBase
-	-> !\m \f \i void AdjustEndOfLine(TextState&, const Rect&, SDst);
-/= test 12 @ platform MinGW32 ^ \conf release;
+r19:
+/= test 12 @ platform DS;
 
-r33:
-/ @ \u CharRenderer $=
-(
-	+ \f u8 PutCharBase(TextState&, SDst, ucs4_t),
-	+ \ft<_tRenderer> \i SDst GetEndOfLinePosOf(const _tRenderer&);
-	/ \simp \impl @ \ft PutChar ^ (\f PutCharBase, \ft GetEndOfLinePositionOf)
-);
-/= test 13 @ platform MinGW32;
-
-r34:
-/= test 14 @ platform MinGW32 ^ \conf release;
-
-r35:
-/ @ \f YGDI $=
-(
-	+ \f \i bool Clip(Rect&, const Rect&) @ \h,
-	/ \f ClipBound @ \u YGDI => ClipBounds
-);
-/ \simp \impl @ \f (ClipBoards @ \u YGDI, PaintChild#1 @ \u YWidget) ^ \f Clip;
-/= test 15 @ platform MinGW32;
-
-r36:
-/= test 16 @ platform MinGW32 ^ \conf release;
-
-r37:
-/= test 17 @ platform DS;
-
-r38:
-/= test 18 @ platform DS ^ \conf release;
+r20:
+/= test 13 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-01-07 +0800:
--28.7d;
-// Mercurial rev1-rev244: r9864;
+2013-01-15 +0800:
+-32.8d;
+// Mercurial rev1-rev245: r9884;
 
 / ...
 
 
 $NEXT_TODO:
-b373-b400:
+b374-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager,
 	+ (reading history, bookmarks) (serialization, unserialization)
 		as configuration,
-	/ \f ReleaseShells >> \h
+	/ \f ReleaseShells >> \h,
+	* crashing on reloading missing file
 ),
 $low_prior
 (
@@ -524,7 +519,7 @@ $low_prior
 
 
 $TODO:
-b[672]:
+b[671]:
 / services $=
 (
 	+ \impl @ images loading
@@ -539,14 +534,14 @@ b[672]:
 ),
 / $design $low_prior robustness and cleanness $=
 (
-	/ noncopyable GUIState,
 	* move @ \cl Menu,
 	^ delegating \ctor as possible,
 	/ stripping away direct using @ Win32 types completely @ \h @ \lib YCLib,
 	^ std::call_once to confirm thread-safe initialization,
 	/ improving pedantic ISO C++ compatiblity,
 	/ consider using std::common_type for explicit template argument
-		for (min, max)
+		for (min, max),
+	+ macros for 'deprecated' and other attributes
 ),
 + $design $low_prior helpers $=
 (
@@ -1035,6 +1030,70 @@ $module_tree $=
 
 $now
 (
+	/ $dev %'YBase' $=
+	(
+		/ %'YDefinition' $=
+		(
+			(
+				/ "macro %YB_ATTRIBUTE" -> "%YB_ATTR",
+					// Duplicate parentheses should not be used any longer.
+				+ "macros %(YB_ALLOCATOR, YB_PURE, YB_STATELESS)";
+				/ $dep_to "new macros"
+			),
+			* $doc "typo" @ "group name" @ "groups %(lang_impl_features, \
+				lang_impl_hints)" $since b294,
+			+ $doc "group %(lang_impl_versions, lib_options)"
+		),
+		/ %'YStandardEx' $=
+		(
+			(
+				$dep_from "new macros";
+				/ "functions declaration" ^ "macros %(YB_ATTR, YB_ALLOCATOR, \
+					YB_PURE, YB_STATELESS)" @ "headers %(CString, Examiners, \
+					Any)"
+			),
+			/ %'Utilities' $=
+			(
+				(
+					+ "class %nonmovable";
+					/ $dep_to "class nonmovable"
+				),
+				/ "class %noncopyable" -> "struct %noncopyable"
+			)
+		)
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Adaptor' $=
+		(
+			$dep_from "new macros";
+			+= DLD 'YB_ALLOCATOR' @ "unused allocator declarations"
+				@ "header %YNew.h",
+			(
+				$dep_from "class nonmovable",
+				+ "using ystdex::nonmovable" @ "header %yadaptor.h",
+			)
+		),
+		(
+			* "wrongly took height instead of width" @ "function \
+				%AdjustEndOfLine" @ "header %TextBase" @ %'GDI' $since b372;
+			$dep_to "wrong invalidate area of text list"
+		)
+	),
+	/ %'YReader' $=
+	(
+		+ $lib "member function %ReadingList::operator ValueNode"
+			@ %'ReadingList',
+		(
+			$dep_from "wrong invalidate area of text list";
+			* $comp "missing top right text shown" @ "text list"
+				@ %'ReaderSetting' $since b372;
+		)
+	)
+),
+
+b372
+(
 	/ %'YFramework'.'YSLib' $=
 	(
 		/ %'Service' $=
@@ -1068,15 +1127,12 @@ $now
 				+ "function 'inline bool Clip(Rect&, const Rect&)'"
 			)
 		),
-		/ %'GUI' $=
-		(
-			* "missing setting right margin"
-				@ "member function %TextList::DrawItems" $since b371
-				// Missing of reasonable right margin might cause necessary \
-					time penalty for long string because the end-of-line \
-					checking in %PutChar would not be applied in time, though \
-					no visible difference if the boundary had been set properly.
-		)
+		* "missing setting right margin"
+			@ "member function %TextList::DrawItems" @ %'GUI' $since b371
+			// Missing of reasonable right margin might cause necessary time \
+				penalty for long string because the end-of-line checking in \
+				%PutChar would not be applied in time, though no visible \
+				difference if the boundary had been set properly.
 	)
 ),
 
@@ -1191,7 +1247,7 @@ b369
 			* "wrong result when padding value less than 0"
 				@ "function Rect operator+(const Rect&, const Padding&)"
 				@ "unit %YGDI" $since b365,
-			* wrong character location for unbuffered rendering $since b357 $=
+			* "wrong character location for unbuffered rendering" $since b357 $=
 			(
 				/ "function %Clip" -> "function %ClipMargin" @ "unit %YGDI";
 				/ $lib "implementation" @ "unit %TextRenderer"

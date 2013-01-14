@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2191
-\author FrankHB<frankhb1989@gmail.com>
+\version r2194
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2012-12-10 19:46 +0800
+	2013-01-14 20:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,8 +241,8 @@ struct pointer_classify<_type*>
 
 /*!
 \ingroup iterator_adaptors
-\warning 非虚析构。
 \brief 伪迭代器。
+\warning 非虚析构。
 
 总是返回单一值的迭代器适配器。
 */

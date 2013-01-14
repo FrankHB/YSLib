@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1430
+\version r1438
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-01-02 04:30 +0800
+	2013-01-08 02:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,7 +240,6 @@ struct RectTransformer
 		int min_x, min_y, delta_x, delta_y;
 
 		BlitBounds(dp, Point(), ds, ss, ss, min_x, min_y, delta_x, delta_y);
-
 		dst += max<SPos>(0, dp.Y) * ds.Width + max<SPos>(0, dp.X);
 		for(; delta_y > 0; --delta_y)
 		{
@@ -516,12 +515,10 @@ blitAlphaBlend(u32 d, u32 s, u8 a)
 		dg  += (((s & 0x3E0) - dg) * a + BLT_ROUND) >> BLT_ALPHA_BITS;
 		return FetchOpaque((dbr & 0x1F) | (dg & 0x3E0) | (dbr >> 6 & 0x7C00));
 	}
-	if(a >= BLT_THRESHOLD2)
-		return FetchOpaque(s);
-	return d;
+	return a < BLT_THRESHOLD2 ? u16(d) : u16(FetchOpaque(s));
 }
 
-#else
+#	else
 
 /*
 \brief Alpha 分量混合。
@@ -556,9 +553,7 @@ blitAlphaBlend(PixelType d, PixelType s, u8 a)
 			component_blend(dc.GetB(), sc.GetB(), a),
 			0xFF);
 	}
-	if(a >= BLT_THRESHOLD2)
-		return FetchOpaque(s);
-	return d;
+	return a < BLT_THRESHOLD2 ? d : FetchOpaque(s);
 }
 
 #endif

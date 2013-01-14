@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1073
+\version r1080
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2013-01-04 22:33 +0800
+	2013-01-14 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,12 +75,16 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 			{
 				{
 					const auto i(pHost->Roots.find(&e.GetSender()));
-					auto pMnu(this);
 
-					while(const auto pParent = pMnu->GetParentPtr())
-						pMnu = pParent;
-					if(i != pHost->Roots.end() && i->second == pMnu->id)
-						return;
+					if(i != pHost->Roots.end())
+					{
+						auto pMnu(this);
+
+						while(const auto pParent = pMnu->GetParentPtr())
+							pMnu = pParent;
+						if(i->second == pMnu->id)
+							return;
+					}
 				}
 				if(const auto pMnu = dynamic_cast<Menu*>(&e.GetSender()))
 				{

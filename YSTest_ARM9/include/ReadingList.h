@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r151
-\author FrankHB<frankhb1989@gmail.com>
+\version r156
+\author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2012-10-28 16:46 +0800
+	2013-01-15 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,6 +92,10 @@ public:
 	ReadingList();
 	DefDelCopyCtor(ReadingList)
 	DefDelMoveCtor(ReadingList)
+
+	//! \since build 373
+	explicit
+	operator ValueNode() const;
 
 	/*!
 	\brief 检查操作可用性。

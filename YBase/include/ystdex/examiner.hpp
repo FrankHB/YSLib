@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r88
-\author FrankHB<frankhb1989@gmail.com>
+\version r92
+\author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2012-10-17 01:33 +0800
+	2013-01-10 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ namespace examiners
 struct equal
 {
 	template<typename _type1, typename _type2>
-	static yconstfn bool
+	static yconstfn YB_PURE bool
 	are_equal(_type1&& x, _type2&& y, decltype(x == y) = false)
 		ynoexcept(ynoexcept(x == y))
 	{
@@ -63,7 +63,7 @@ struct equal
 struct always_equal
 {
 	template<typename _type, typename _tUnused>
-	static yconstfn bool
+	static yconstfn YB_STATELESS bool
 	are_equal(const _type&, _tUnused) ynoexcept
 	{
 		return true;

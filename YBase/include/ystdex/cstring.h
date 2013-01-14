@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1628
+\version r1640
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2013-01-04 16:54 +0800
+	2013-01-10 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace ystdex
 \brief 带空指针检查的字符串长度计算。
 \return 当字符指针非空时为 std::strlen 计算的串长，否则为 0 。
 */
-YB_API size_t
+YB_API YB_PURE size_t
 strlen_n(const char*);
 
 /*!
@@ -82,7 +82,7 @@ strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 \since build 329
 */
 template<typename _tChar>
-yconstexpr bool
+yconstexpr YB_STATELESS bool
 is_null(_tChar c)
 {
 	return std::char_traits<_tChar>::eq(c, _tChar());
@@ -105,7 +105,7 @@ is_null(_tChar c)
 \since build 329
 */
 template<typename _tChar>
-size_t
+YB_PURE size_t
 ntctslen(const _tChar* s)
 {
 	yconstraint(s);
@@ -125,7 +125,7 @@ ntctslen(const _tChar* s)
 \since build 329
 */
 template<typename _tChar>
-typename std::char_traits<_tChar>::int_type
+YB_PURE typename std::char_traits<_tChar>::int_type
 ntctscmp(const _tChar* s1, const _tChar* s2)
 {
 	yconstraint(s1),
@@ -146,7 +146,7 @@ ntctscmp(const _tChar* s1, const _tChar* s2)
 \since build 329
 */
 template<typename _tChar>
-typename std::char_traits<_tChar>::int_type
+YB_PURE typename std::char_traits<_tChar>::int_type
 ntctsicmp(const _tChar* s1, const _tChar* s2)
 {
 	yconstraint(s1),
@@ -168,7 +168,7 @@ ntctsicmp(const _tChar* s1, const _tChar* s2)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr size_t
+yconstexpr YB_PURE size_t
 const_ntctslen(const _tChar* s)
 {
 	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctslen(s + 1) + 1;
@@ -181,7 +181,7 @@ const_ntctslen(const _tChar* s)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr size_t
+yconstexpr YB_PURE size_t
 const_ntctscnt(const _tChar* s, _tChar c)
 {
 	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctscnt(s + 1, c)
@@ -196,7 +196,7 @@ const_ntctscnt(const _tChar* s, _tChar c)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr typename std::char_traits<_tChar>::int_type
+yconstexpr YB_PURE typename std::char_traits<_tChar>::int_type
 const_ntctscmp(const _tChar* s1, const _tChar* s2)
 {
 	return !std::char_traits<_tChar>::eq(*s1, *s2) || ystdex::is_null(*s1)
@@ -211,7 +211,7 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr typename std::char_traits<_tChar>::int_type
+yconstexpr YB_PURE typename std::char_traits<_tChar>::int_type
 const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 {
 	return n == 0 ? _tChar() : (!std::char_traits<_tChar>::eq(*s1, *s2)
@@ -227,7 +227,7 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr size_t
+yconstexpr YB_PURE size_t
 const_ntctschr(const _tChar* s, _tChar c)
 {
 	return ystdex::is_null(*s) || std::char_traits<_tChar>::eq(*s, c)
@@ -242,7 +242,7 @@ const_ntctschr(const _tChar* s, _tChar c)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr size_t
+yconstexpr YB_PURE size_t
 const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 {
 	return n == 0 || ystdex::is_null(*s) ? 0 : (std::char_traits<_tChar>
@@ -258,7 +258,7 @@ const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr size_t
+yconstexpr YB_PURE size_t
 const_ntctsstr(const _tChar* s1, const _tChar* s2)
 {
 	return ystdex::is_null(*s1) ? 0 : (ystdex::const_ntctscmp(s1, s2,

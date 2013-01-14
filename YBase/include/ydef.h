@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2123
+\version r2227
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-01-04 16:53 +0800
+	2013-01-10 23:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,36 @@
 
 #ifndef YB_INC_YDEF_H_
 #define YB_INC_YDEF_H_ 1
+
+/*!	\defgroup lang_impl_versions Language Implementation Versions
+\brief 语言实现的版本。
+\since build 373
+*/
+//@{
+
+/*!
+\def YB_IMPL_CPP
+\brief C++ 实现支持版本。
+\since build 313
+
+定义为 __cplusplus 。
+*/
+
+/*!
+\def YB_IMPL_MSCPP
+\brief Microsoft C++ 实现支持版本。
+\since build 313
+
+定义为 _MSC_VER 描述的版本号。
+*/
+
+/*!
+\def YB_IMPL_GNUCPP
+\brief GNU C++ 实现支持版本。
+\since build 313
+
+定义为 100 进位制的三重版本编号和。
+*/
 
 #ifdef __cplusplus
 #	define YB_IMPL_CPP __cplusplus
@@ -55,6 +85,8 @@
 #	error This header is only for C++!
 #endif
 
+//@}
+
 #include <cstddef> // for std::nullptr_t, std::size_t, std::ptrdiff_t, offsetof;
 #include <climits>
 #include <cassert> // for assert;
@@ -64,13 +96,13 @@
 #include <type_traits> // for std::is_class, std::is_standard_layout;
 
 
-/*!	\defgroup lang_impl_features Langrage Implementation Features
+/*!	\defgroup lang_impl_features Language Implementation Features
 \brief 语言实现的特性。
 \since build 294
 */
+//@{
 
 /*!
-\ingroup lang_impl_features
 \def YB_HAS_BUILTIN_ALIGNOF
 \brief 内建 alignof 支持。
 \since build 315
@@ -79,7 +111,6 @@
 #define YB_HAS_ALIGNOF (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40500)
 
 /*!
-\ingroup lang_impl_features
 \def YB_HAS_BUILTIN_NULLPTR
 \brief 内建 nullptr 支持。
 \since build 313
@@ -89,7 +120,6 @@
 	|| YB_IMPL_GNUCPP >= 40600 || YB_IMPL_MSCPP >= 1600)
 
 /*!
-\ingroup lang_impl_features
 \def YB_HAS_CONSTEXPR
 \brief constexpr 支持。
 \since build 313
@@ -98,7 +128,6 @@
 #define YB_HAS_CONSTEXPR (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
 
 /*!
-\ingroup lang_impl_features
 \def YB_HAS_NOEXCPT
 \brief noexcept 支持。
 \since build 319
@@ -106,27 +135,46 @@
 #undef YB_HAS_NOEXCEPT
 #define YB_HAS_NOEXCEPT (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
 
+//@}
 
-/*!	\defgroup lang_impl_hints Langrage Implementation Hints
+
+/*!	\defgroup lang_impl_hints Language Implementation Hints
 \brief 语言实现的提供的附加提示。
-\note 应保证忽略时不导致运行时语义差异。
 \since build 294
+
+保证忽略时不导致运行时语义差异的提示，主要用于便于实现可能的优化。
 */
+//@{
 
 /*!
-\ingroup lang_impl_hints
-\def YB_ATTRIBUTE
+\def YB_ATTR
 \brief 属性。
-\since build 313
+\warning 不对指令进行检查。用户应验证可能使用的指令中的标识符在宏替换后能保持正确。
+\since build 373
 */
 #if YB_IMPL_GNUCPP >= 20500
-#	define YB_ATTRIBUTE(attrs) __attribute__ (attrs)
+#	define YB_ATTR(...) __attribute__((__VA_ARGS__))
 #else
-#	define YB_ATTRIBUTE(attrs)
+#	define YB_ATTR(...)
 #endif
 
 /*!
-\ingroup lang_impl_hints
+\def YB_ALLOCATOR
+\brief 指示修饰的是分配器，或返回分配器调用的函数或函数模版。
+\note 指示行为类似 std::malloc 或 std::calloc 等的函数。
+\warning 要求满足指示的假定，否则行为未定义。
+\since build 373
+
+指示函数若返回非空指针，返回的指针不是其它任何有效指针的别名，
+且指针指向的存储内容不由其它存储决定。
+*/
+#if YB_IMPL_GNUCPP >= 20296
+#	define YB_ALLOCATOR YB_ATTR(__malloc__)
+#else
+#	define YB_ALLOCATOR
+#endif
+
+/*!
 \def YB_EXPECT(expr, constant)
 \def YB_LIKELY(expr)
 \def YB_UNLIKELY(expr)
@@ -143,6 +191,57 @@
 #	define YB_UNLIKELY (expr) (expr)
 #endif
 
+/*!
+\def YB_PURE
+\brief 指示函数或函数模版实例为纯函数。
+\post 函数外可访问的存储保持不变。
+\note 假定函数保证可返回；返回类型 void 时无意义。
+\note 假定函数无外部可见的副作用：局部记忆化合并重复调用后不改变可观察行为。
+\note 不修改函数外部的存储；不访问函数外部 volatile 存储；
+	通常不调用不可被 YB_PURE 安全指定的函数。
+\warning 要求满足指示的假定，否则行为未定义。
+\since build 373
+
+指示函数或函数模版的求值是返回值的计算，无影响其它的存储的副作用，
+且返回值只依赖于参数和/或编译时确定内存位置（如具有静态存储期的对象的）存储的值。
+*/
+#if YB_IMPL_GNUCPP >= 20296
+#	define YB_PURE YB_ATTR(__pure__)
+#else
+#	define YB_PURE
+#endif
+
+/*!
+\def YB_STATELESS
+\brief 指示函数或函数模版实例为无状态函数。
+\post 函数外可访问的存储保持不变。
+\note 假定函数保证可返回；返回类型 void 时无意义。
+\note 假定函数无外部可见的副作用：局部记忆化合并重复调用后不改变可观察行为。
+\note 假定函数调用的结果总是相同：返回值总是不可分辨的右值或指示同一个内存位置的左值。
+	任意以一次调用结果替代调用或合并重复调用时不改变可观察行为。
+\note 不访问函数外部的存储；通常不调用不可被 YB_STATELESS 安全指定的函数。
+\note 可被安全指定的函数或函数模版是 YB_PURE 限定的函数或函数模版的真子集。
+\warning 要求满足指示的假定，否则行为未定义。
+\since build 373
+
+指示函数或函数模版的求值是返回值的计算，且返回值只依赖于参数的值，和其它存储无关。
+若参数是对象指针或引用类型，还必须保证指向或引用的对象是其它参数，或者不被使用。
+函数实现不能调用其它不能以 YB_STATELESS 限定的函数。
+*/
+#if YB_IMPL_GNUCPP >= 20500
+#	define YB_STATELESS YB_ATTR(__const__)
+#else
+#	define YB_STATELESS
+#endif
+
+//@}
+
+
+/*!	\defgroup lib_options Library Options
+\brief 库选项。
+\since build 373
+*/
+//@{
 
 /*!
 \def YB_DLL
@@ -173,6 +272,11 @@
 #endif
 
 
+/*!
+\def YB_USE_EXCEPTION_SPECIFICATION
+\brief 使用 YBase 断言。
+\since build 313
+*/
 #ifndef NDEBUG
 #	define YB_USE_YASSERT
 #endif
@@ -180,12 +284,15 @@
 
 /*!
 \def YB_USE_EXCEPTION_SPECIFICATION
-\brief 使用 YSLib 动态异常规范。
+\brief 使用 YBase 动态异常规范。
 \since build 362
 */
 #ifndef NDEBUG
 #	define YB_USE_EXCEPTION_SPECIFICATION 1
 #endif
+
+//@}
+
 
 
 /*!	\defgroup YBase_pseudo_keyword YBase Specified Pseudo-Keywords

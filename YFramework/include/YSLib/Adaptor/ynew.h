@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1146
-\author FrankHB<frankhb1989@gmail.com>
+\version r1152
+\author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2012-12-11 23:27 +0800
+	2013-01-10 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,13 +54,13 @@
 \brief 调试用重载 ::operator new 和 ::operator delete 。
 \since build 173
 */
-YF_API void*
+YF_API YB_ALLOCATOR void*
 operator new(std::size_t, const char*, int) ythrow(std::bad_alloc);
-YF_API void*
+YF_API YB_ALLOCATOR void*
 operator new[](std::size_t, const char*, int) ythrow(std::bad_alloc);
-YF_API void*
+YF_API YB_ALLOCATOR void*
 operator new(std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
-YF_API void*
+YF_API YB_ALLOCATOR void*
 operator new[](std::size_t, const std::nothrow_t&, const char*, int) ynothrow;
 YF_API void
 operator delete(void*, const char*, int) ynothrow;

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r116
-\author FrankHB<frankhb1989@gmail.com>
+\version r120
+\author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2012-12-11 20:55 +0800
+	2013-01-10 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,9 +87,9 @@ YDebug(const char*);
 \warning 控制台显示状态不保证线程安全性。
 */
 #if defined _WIN32 && !defined __USE_MINGW_ANSI_STDIO
-YB_ATTRIBUTE((format (ms_printf, 1, 2)))
+YB_ATTR(format (ms_printf, 1, 2))
 #else
-YB_ATTRIBUTE((format (printf, 1, 2)))
+YB_ATTR(format (printf, 1, 2))
 #endif
 YF_API int
 yprintf(const char*, ...);

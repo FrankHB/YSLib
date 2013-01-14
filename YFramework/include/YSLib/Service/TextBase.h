@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2686
+\version r2687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-07 02:58 +0800
+	2013-01-14 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,7 +219,7 @@ inline void
 AdjustEndOfLine(TextState& ts, const Rect& r, SDst h)
 {
 //	ts.Margin = FetchMargin(r, s);
-	ts.Margin.Right = h - r.Y - r.Height;
+	ts.Margin.Right = h - r.Y - r.Width;
 }
 
 /*!

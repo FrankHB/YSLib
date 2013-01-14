@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1553
+\version r1586
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-01-04 16:54 +0800
+	2013-01-14 20:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,10 +35,11 @@ namespace ystdex
 {
 
 /*
-\brief 不可复制对象：禁止继承此类的对象调用复制构造函数和复制赋值操作符。
+\brief 不可复制对象：禁止继承此类的对象调用默认原型的复制构造函数和复制赋值操作符。
 \warning 非虚析构。
+\since build 373
 */
-struct noncopyable
+class noncopyable
 {
 protected:
 	/*!
@@ -64,6 +65,40 @@ public:
 	*/
 	noncopyable&
 	operator=(const noncopyable&) = delete;
+};
+
+
+/*
+\brief 不可转移对象：禁止继承此类的对象调用默认原型的转移构造函数和转移赋值操作符。
+\warning 非虚析构。
+\since build 373
+*/
+class nonmovable
+{
+protected:
+	/*!
+	\brief \c protected 构造：默认实现。
+	\note 保护非多态类。
+	*/
+	yconstfn
+	nonmovable() = default;
+	/*!
+	\brief \c protected 析构：默认实现。
+	*/
+	~nonmovable() = default;
+
+public:
+	/*!
+	\brief 禁止复制构造。
+	*/
+	yconstfn
+	nonmovable(const nonmovable&) = delete;
+
+	/*!
+	\brief 禁止赋值复制。
+	*/
+	nonmovable&
+	operator=(const nonmovable&) = delete;
 };
 
 

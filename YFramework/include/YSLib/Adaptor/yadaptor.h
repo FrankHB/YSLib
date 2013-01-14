@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1423
-\author FrankHB<frankhb1989@gmail.com>
+\version r1428
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2012-09-18 23:52 +0800
+	2013-01-14 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,6 +106,8 @@ using ystdex::unseq_apply;
 */
 //@{
 using ystdex::noncopyable;
+//! \since build 373
+using ystdex::nonmovable;
 using ystdex::nullptr_t;
 //@}
 

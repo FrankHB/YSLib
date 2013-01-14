@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r253
-\author FrankHB<frankhb1989@gmail.com>
+\version r257
+\author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2012-12-28 02:12 +0800
+	2013-01-10 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,9 +210,9 @@ sfmt(const _tChar* fmt, ...)
 */
 template
 #if defined _WIN32 && !defined __USE_MINGW_ANSI_STDIO
-YB_ATTRIBUTE((format (ms_printf, 1, 2)))
+YB_ATTR(format (ms_printf, 1, 2))
 #else
-YB_ATTRIBUTE((format (printf, 1, 2)))
+YB_ATTR(format (printf, 1, 2))
 #endif
 std::string
 sfmt<char>(const char*, ...);

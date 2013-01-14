@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1186
+\version r1192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-01-04 16:53 +0800
+	2013-01-10 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,24 +86,24 @@ union pod_storage
 	}
 	//@}
 
-	void*
+	YB_PURE void*
 	access()
 	{
 		return &data[0];
 	}
-	yconstfn const void*
+	yconstfn YB_PURE const void*
 	access() const
 	{
 		return &data[0];
 	}
 	template<typename _type>
-	_type&
+	YB_PURE _type&
 	access()
 	{
 		return *static_cast<_type*>(access());
 	}
 	template<typename _type>
-	yconstfn const _type&
+	yconstfn YB_PURE const _type&
 	access() const
 	{
 		return *static_cast<const _type*>(access());
@@ -130,12 +130,12 @@ public:
 	{}
 
 	template<typename _type>
-	yconstfn operator _type&()
+	yconstfn YB_PURE operator _type&()
 	{
 		return *static_cast<_type*>(&*this);
 	}
 
-	void*
+	YB_PURE void*
 	operator&() const volatile
 	{
 		return const_cast<void*>(ptr);

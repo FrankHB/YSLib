@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReadingList.cpp
 \ingroup YReader
 \brief 阅读列表。
-\version r77
+\version r91
 \author FrankHB<frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:27 +0800
 \par 修改时间:
-	2012-09-04 12:57 +0800
+	2013-01-15 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,21 @@ YSL_BEGIN_NAMESPACE(YReader)
 ReadingList::ReadingList()
 	: reading_list(), now_reading(reading_list.end())
 {}
+
+ReadingList::operator ValueNode() const
+{
+	auto p(make_unique<ValueNode::Container>());
+
+	for(auto& bm : reading_list)
+		p->insert(ValueNode("bm" + to_string(p->size()),
+			ValueNode::Container{MakeNode("Path", bm.Path.GetNativeString()),
+			StringifyToNode("Position", bm.Position)}));
+
+	auto&& vn(ValueNode("ReadingList", p.get(), PointerTag()));
+
+	p.release();
+	return vn;
+}
 
 pair<bool, bool>
 ReadingList::CheckBoundary()

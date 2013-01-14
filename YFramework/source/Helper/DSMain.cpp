@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2077
-\author FrankHB<frankhb1989@gmail.com>
+\version r2080
+\author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2012-09-30 13:23 +0800
+	2013-01-12 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -575,7 +575,7 @@ DSApplication::HostTask()
 		std::unique_lock<std::mutex>lck(mtx);
 
 		full_init.wait(lck,
-			[this]{return bool(pScreenUp) && bool (pScreenDown);});
+			[this]{return bool(pScreenUp) && bool(pScreenDown);});
 
 		YAssert(bool(pScreenUp) && bool(pScreenDown), "Null pointer found.");
 	}
