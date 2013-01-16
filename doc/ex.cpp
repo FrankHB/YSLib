@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4901 *build 373 rev *
+\version r4906 *build 374 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-15 03:27 +0800
+	2013-01-16 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,6 +238,7 @@ $build; // issues on build, such as build scripts and diagnostic messages;
 $install; // issues on installing;
 $deploy; // issues on deployment(including build environment requirement);
 $comp; // features consist of dependencies with no additional work;
+$repo; // for repositories of version control system;
 $doc; // for documents target;
 $workaround; // for issues currently or temporarily cannot be resolved through \
 	a preferred clean way for certain reasons, but exist alternative ways to \
@@ -405,110 +406,97 @@ $using:
 
 $DONE:
 r1:
-/ \decl order @ \ctor @ \clt GHEvent @ \h YEvent,
-/ \simp \impl @ 2 \f \i blitAlphaBlend @ \h YBlit;
++ \as for text buffer \ptr @ \mf DualScreenReader::ScrollByPixel @ \u DSReader;
 /= test 1 @ platform MinGW32;
 
-r2-r3:
-(
-	/ \a YB_ATTRIBUTE => YB_ATTR,
-	/ @ \h YDefinition $=
-	(
-		* typo @ \grp \n @ \group ('lang_impl_features', 'lang_impl_hints')
-			 $since b294,
-		/ \mac YB_ATTR(attrs) -> \mac YB_ATTR(...),
-			// Duplicate parentheses should not be used any longer.
-		+ \grp ('lang_impl_versions', 'lib_options'),
-		+ \mac \def (YB_ALLOCATOR, YB_PURE, YB_STATELESS);
-	);
-	+ 'YB_ALLOCATOR' @ unused allocators \decl @ \h YNew
-),
-/= 2 test 2 @ platform MinGW32;
+r2:
++ \as for text buffer \ptr @ \mf DualScreenReader::Locate @ \u DSReader;
+/= test 2 @ platform MinGW32;
 
-r4:
-/ @ \h CString $=
+r3-r6:
+/= 4 test 3 @ platform MinGW32;
+
+r7-r8:
+/ @ \cl DualScreenReader @ \u DSReader $=
 (
-	+ 'YB_STATELESS' @ constexpr \ft is_null,
-	+ 'YB_PURE' @ (\ft ((ntctscmp, ntctsicmp),
-		\a constexpr \exc is_null), \f strlen_n)
-),
-/ @ \h Examiners $=
-(
-	+ 'YB_PURE' @ \smf are_equal @ \st equal,
-	+ 'YB_STATELESS' @ \smf are_equal @ \st always_equal
-),
-/ @ \h Any $=
-(
-	+ 'YB_PURE' @ ((2 \mf, 2 \mft) Access @ \un \t pod_storage,
-		(\mf \op&; \mft \op _type&) @ \cl void_ref)
+	/ \impl @ \mf LoadText @ \impl \u DSReader $=
+	(
+		* missing deleting text buffer when failing opening a text file
+			$since b154,
+		/ \impl ^ \mac yunseq
+	),
+	+ \mf IsBufferReady
 );
-/= test 3 @ platform MinGW32 ^ \conf release;
+/ missing opening result check before locating text position
+	@ \mf ShlTextReader::UpdateReadingList @ \impl \u ShlReader $since b286;
+* $comp crashing or no response on failinig opening a text file
+	when switching reading list $since b286;
+/= 2 test 4 @ platform MinGW32;
 
-r5:
-/= test 4 @ platform DS;
+r9-r10:
+/ \impl @ \mf DualScreenReader::LoadText @ \impl \u DSReader,
+/= 2 test 5 @ platform MinGW32;
 
-r6:
-/ \impl @ \ctor Menu;
-/= test 5 @ platform MinGW32;
-
-r7:
+r11:
+/ @ \cl ReaderBox @ \u ShlReader $=
 (
-	/ @ \h Utilities $=
-	(
-		+ \cl nonmovable,
-		/ \st noncopyable -> \cl nonmovable
-	);
-	+ using ystdex::nonmovable @ \h YAdaptor,
-	+ private \inh (noncopyable, nonmovable) @ \cl GUIState;
-),
-+ \mf \op ValueNode \c @ \cl ReadingList @ \u ReadingList;
+	+ private \f void InitializeProgress();
+	/ \simp \impl @ \ctor ^ \f InitializeProgress,
+	/ \impl @ \mf UpdateData
+);
 /= test 6 @ platform MinGW32;
 
-r8:
-/= test 7 @ platform DS ^ \conf release;
+r12:
+* $repo wrong hg tag ID @ b225 $since e35dc355a207[2011-07-19, local rev 98],
+* missing check for null text buffer @ \mf DualScreenReader::AdjustScrollOffset
+	@ \impl \u DSReader \ptr $since b292;
+/= test 7 @ platform MinGW32;
 
-r9-r12:
-/= 4 test 8 @ platform MinGW32;
+r13-r15:
+/= 3 test 8 @ platform MinGW32;
 
-r13:
-* wrongly took height instead of width @ \impl @ \f \i AdjustEndOfLine
-	@ \h TextBase $since b372;
-* $comp missing top right text shown @ text list @ reader setting $since b372;
-/= test 9 @ platform MinGW32;
-
-r14-r17:
-/= 4 test 10 @ platform MinGW32;
+r16-r17:
+* missing unexpected encoding handling @ \mf ShlTextReader::Execute
+	@ \impl \u ShlReader $since b290,
+/= 2 test 9 @ platform MinGW32;
 
 r18:
-/= test 11 @ platform MinGW32 ^ \conf release;
+/= test 10 @ platform DS ^ \conf release;
 
 r19:
-/= test 12 @ platform DS;
+/ protected \m Components::Thumb Thumb @ \cl ATrack -> Thumb tmbScroll,
+* \impl @ \mf ShlTextReader::Execute @ \impl \u ShlReader $since r17;
+/= test 11 @ platform MinGW32;
 
 r20:
-/= test 13 @ platform DS ^ \conf release;
+/= test 12 @ platform MinGW32 ^ \conf release;
+
+r21:
+/= test 13 @ platform DS;
+
+r22:
+/= test 14 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-01-15 +0800:
--32.8d;
-// Mercurial rev1-rev245: r9884;
+2013-01-16 +0800:
+-32.0d;
+// Mercurial local rev1-rev246: r9906;
 
 / ...
 
 
 $NEXT_TODO:
-b374-b400:
+b375-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager,
-	+ (reading history, bookmarks) (serialization, unserialization)
-		as configuration,
+	+ (reading history, bookmarks) (serialization, unserialization) as \conf,
 	/ \f ReleaseShells >> \h,
-	* crashing on reloading missing file
+	* crashing on opening setting UI after file reloading failed
 ),
 $low_prior
 (
@@ -519,7 +507,7 @@ $low_prior
 
 
 $TODO:
-b[671]:
+b[670]:
 / services $=
 (
 	+ \impl @ images loading
@@ -545,13 +533,11 @@ b[671]:
 ),
 + $design $low_prior helpers $=
 (
-	+ noinstance base class,
-	+ nonmovable base class
+	+ noinstance base class
 ),
 / $low_prior YReader $=
 (
 	+ settings manager,
-	+ reading history,
 	+ improved smooth scrolling with lower limit of scrolling cycle supported
 ),
 / project structure $=
@@ -576,7 +562,6 @@ b[671]:
 / $design $low_prior robustness and cleanness $=
 (
 	/ \ac @ \inh touchPosition @ \cl CursorInfo @ \ns platform @ \u YCommon,
-	/ \ac @ \m Thumb @ \cl ATrack,
 	+ recovery environment @ main \fn,
 		// Try-catch, then relaunch the message loop.
 	/ \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
@@ -1029,6 +1014,51 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YReader' $=
+	(
+		/ %'text reader' $=
+		(
+			/ @ "class %DualScreenReader" @ "unit %DSReader" $=
+			(
+				+ "assertion of null text buffer pointer as preconditions"
+					@ "member functions %(ScrollByPixel, Locate)"
+				* "missing deleting text buffer when failing opening \
+					a text file" @ "member function %LoadText" $since b154,
+				+ "member function %IsBufferReady",
+				* "missing null text buffer pointer check"
+					@ "member function %AdjustScrollOffset" $since b292
+			),
+			/ @ "unit %ShlReader" $=
+			(
+				/ @ "class %ShlTextReader" $=
+				(
+					(
+						/ "missing checking of result of file opening before \
+							locating text position"
+							@ "member function %UpdateReadingList" $since b286;
+						* $comp "crashing or no response on failing opening \
+							a text file when switching reading list" $since b286
+					);
+					* missing "unexpected encoding checking and hanling"
+						@ "member function %Execute" $since b290,
+				),
+				/ @ "class %ReaderBox" $=
+				(
+					+ $dev "private member function %InitializeProgress";
+					/ "progress shown as zero-length file when file \
+						opening failed"
+				)
+			)
+		)
+	),
+	* $repo "wrong Mercurial tag ID"
+		@ b225 $since "e35dc355a207[2011-07-19, local rev 98]",
+	/ $dev "protected member Thumb" @ "class %Thumb"
+		@ %'YFramework'.'YSLib'.'GUI' => "tmbScroll"
+),
+
+b373
 (
 	/ $dev %'YBase' $=
 	(

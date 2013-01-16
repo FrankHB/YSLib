@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1660
-\author FrankHB<frankhb1989@gmail.com>
+\version r1667
+\author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2012-12-04 22:31 +0800
+	2013-01-15 19:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,6 +84,12 @@ public:
 	DefWidgetMemberIteration(btnMenu, btnSetting, btnInfo, btnReturn, btnPrev,
 		btnNext, pbReader, lblProgress)
 
+private:
+	//! \since build 374
+	void
+	InitializeProgress();
+
+public:
 	/*!
 	\brief 更新进度数据。
 	\since build 271

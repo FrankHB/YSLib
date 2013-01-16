@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3940
+\version r3975
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-01-04 18:42 +0800
+	2013-01-16 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,27 +74,40 @@ ReaderBox::ReaderBox(const Rect& r)
 	pbReader.ForeColor = Color(192, 192, 64),
 	lblProgress.SetRenderer(make_unique<BufferedRenderer>()),
 	lblProgress.Background = nullptr,
-	lblProgress.Font.SetSize(12);
+	lblProgress.Font.SetSize(12),
+	InitializeProgress();
+}
+
+void
+ReaderBox::InitializeProgress()
+{
 	yunseq(lblProgress.Text = u"--%", lblProgress.ForeColor = ColorSpace::Blue);
 }
 
 void
 ReaderBox::UpdateData(DualScreenReader& reader)
 {
-	const auto ts(reader.GetTextSize());
-
-	if(YB_LIKELY(ts != 0))
+	if(YB_LIKELY(reader.IsBufferReady()))
 	{
-		const auto tp(reader.GetTopPosition());
-		char str[5];
+		const auto ts(reader.GetTextSize());
 
-		std::sprintf(str, "%2u%%", tp * 100 / ts);
-		yunseq(lblProgress.Text = str,
-			lblProgress.ForeColor = reader.GetBottomPosition() == ts
-			? ColorSpace::Green : ColorSpace::Fuchsia);
-		pbReader.SetMaxValue(ts),
-		pbReader.SetValue(tp);
+		if(YB_LIKELY(ts != 0))
+		{
+			const auto tp(reader.GetTopPosition());
+			char str[5];
+
+			std::sprintf(str, "%2u%%", tp * 100 / ts);
+			yunseq(lblProgress.Text = str,
+				lblProgress.ForeColor = reader.GetBottomPosition() == ts
+				? ColorSpace::Green : ColorSpace::Fuchsia);
+			pbReader.SetMaxValue(ts),
+			pbReader.SetValue(tp);
+		}
+		else
+			InitializeProgress();
 	}
+	else
+		InitializeProgress();
 	Invalidate(pbReader),
 	Invalidate(lblProgress);
 }
@@ -369,12 +382,14 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		{
 			using ystdex::get_key;
 
-			const auto idx(std::find(Encodings | get_key,
+			size_t i(std::find(Encodings | get_key,
 				(Encodings + arrlen(Encodings)) | get_key,
 				reader.GetEncoding()) - Encodings);
 
-			yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(idx),
-				pnlSetting.ddlEncoding.Text = Encodings[idx].second);
+			if(i == arrlen(Encodings))
+				i = 0;
+			yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(i),
+				pnlSetting.ddlEncoding.Text = Encodings[i].second);
 		}
 		StopAutoScroll(),
 		Hide(boxReader),
@@ -470,7 +485,8 @@ ShlTextReader::UpdateReadingList(bool is_prev)
 
 	if(bm.Path != CurrentPath)
 		LoadFile(bm.Path);
-	reader.Locate(bm.Position);
+	if(reader.IsBufferReady())
+		reader.Locate(bm.Position);
 	UpdateButtons();
 }
 

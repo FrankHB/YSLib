@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1751
-\author FrankHB<frankhb1989@gmail.com>
+\version r1762
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2012-09-04 12:58 +0800
+	2013-01-15 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,6 +139,8 @@ public:
 		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
 		Drawing::FontCache& fc_ = FetchGlobalInstance().GetFontCache());
 
+	//! \since build 374
+	DefPred(const ynothrow, BufferReady, bool(pText));
 	DefPred(const ynothrow, TextTop, i_top == pText->GetBegin()) \
 		//!< 判断输出位置是否到文本顶端。
 	DefPred(const ynothrow, TextBottom, i_btm == pText->GetEnd()) \
@@ -212,6 +214,7 @@ public:
 	/*!
 	\brief 调整滚屏像素偏移量：立即继续滚动至下一整文本行。
 	\return 实际滚动的像素行数。
+	\note 若缓冲区为空则忽略。
 	\since build 292
 	*/
 	Drawing::FontSize
@@ -248,6 +251,7 @@ public:
 	/*!
 	\brief 文本定位。
 	\note 自动转至最近行首。
+	\pre 断言检查：文本缓冲区指针非空。
 	\since build 271
 
 	以指定偏移量定位起始迭代器，若越界则忽略。
@@ -268,6 +272,8 @@ public:
 	\param 像素数。
 	\return 实际滚动的像素行数。
 	\note 参数超过行高时无效。
+	\pre 断言检查：行偏移量小于行高。
+	\pre 断言检查：文本缓冲区指针非空。
 	\since build 292
 	*/
 	Drawing::FontSize

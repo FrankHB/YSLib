@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3449
+\version r3465
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-01-04 18:44 +0800
+	2013-01-16 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,10 +86,10 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	: Control(Rect(r.GetPoint(), max<SDst>(defMinScrollBarWidth, r.Width),
 	max<SDst>(defMinScrollBarHeight, r.Height)), NoBackgroundTag()),
 	GMRange<ValueType>(0xFF, 0),
-	Thumb(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight)),
+	tmbScroll(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight)),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
 {
-	SetContainerPtrOf(Thumb, this);
+	SetContainerPtrOf(tmbScroll, this);
 	yunseq(
 		Background = std::bind(DrawTrackBackground, std::placeholders::_1,
 			std::ref(*this)),
@@ -127,14 +127,14 @@ ATrack::SetThumbLength(SDst l)
 {
 	RestrictInInterval(l, min_thumb_length, GetTrackLength());
 
-	Size s(GetSizeOf(Thumb));
+	Size s(GetSizeOf(tmbScroll));
 	const bool is_h(IsHorizontal());
 
 	if(l != s.GetRef(is_h))
 	{
-		Invalidate(Thumb);
+		Invalidate(tmbScroll);
 		s.GetRef(is_h) = l;
-		SetSizeOf(Thumb, s);
+		SetSizeOf(tmbScroll, s);
 	}
 }
 void
@@ -142,14 +142,14 @@ ATrack::SetThumbPosition(SPos pos)
 {
 	RestrictInClosedInterval(pos, 0, GetScrollableLength());
 
-	Point pt(GetLocationOf(Thumb));
+	Point pt(GetLocationOf(tmbScroll));
 	const bool is_h(IsHorizontal());
 
 	if(pos != pt.GetRef(is_h))
 	{
-		Invalidate(Thumb);
+		Invalidate(tmbScroll);
 		pt.GetRef(is_h) = pos;
-		SetLocationOf(Thumb, pt);
+		SetLocationOf(tmbScroll, pt);
 	}
 }
 void
@@ -288,15 +288,15 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight(), "Width is not greater than height.");
 
-	FetchEvent<TouchMove>(Thumb) +=[this](TouchEventArgs&& e){
+	FetchEvent<TouchMove>(tmbScroll) +=[this](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			auto& st(FetchGUIState());
 			SPos x(st.LastControlLocation.X + st.DraggingOffset.X);
 
-			RestrictInClosedInterval(x, 0, GetWidth() - Thumb.GetWidth());
-			Invalidate(Thumb);
-			SetLocationOf(Thumb, Point(x, GetLocationOf(Thumb).Y));
+			RestrictInClosedInterval(x, 0, GetWidth() - tmbScroll.GetWidth());
+			Invalidate(tmbScroll);
+			SetLocationOf(tmbScroll, Point(x, GetLocationOf(tmbScroll).Y));
 			GetThumbDrag()(UIEventArgs(*this));
 		}
 	};
@@ -308,15 +308,15 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 {
 	YAssert(GetHeight() > GetWidth(), "height is not greater than width.");
 
-	FetchEvent<TouchMove>(Thumb) += [this](TouchEventArgs&& e){
+	FetchEvent<TouchMove>(tmbScroll) += [this](TouchEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			auto& st(FetchGUIState());
 			SPos y(st.LastControlLocation.Y + st.DraggingOffset.Y);
 
-			RestrictInClosedInterval(y, 0, GetHeight() - Thumb.GetHeight());
-			Invalidate(Thumb);
-			SetLocationOf(Thumb, Point(GetLocationOf(Thumb).X, y));
+			RestrictInClosedInterval(y, 0, GetHeight() - tmbScroll.GetHeight());
+			Invalidate(tmbScroll);
+			SetLocationOf(tmbScroll, Point(GetLocationOf(tmbScroll).X, y));
 			GetThumbDrag()(UIEventArgs(*this));
 		}
 	};

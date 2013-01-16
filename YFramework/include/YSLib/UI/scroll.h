@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2596
-\author FrankHB<frankhb1989@gmail.com>
+\version r2606
+\author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2012-12-28 02:13 +0800
+	2013-01-16 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,7 +136,11 @@ public:
 	typedef ystdex::subscriptive_iterator<ATrack, IWidget> Iterator;
 
 protected:
-	Components::Thumb Thumb; //!< 滑块：轨道区域上的滚动框。
+	/*!
+	\brief 滑块：轨道区域上的滚动框。
+	\since build 374
+	*/
+	Thumb tmbScroll;
 
 private:
 	SDst min_thumb_length; //!< 最小滑块长度。
@@ -160,7 +164,7 @@ public:
 	DefPred(const ynothrow, Vertical, GetOrientation() == Vertical)
 
 	//! \since build 356
-	DefWidgetMemberIteration(Thumb)
+	DefWidgetMemberIteration(tmbScroll)
 
 	DefEventGetter(ynothrow, HUIEvent, ThumbDrag, ThumbDrag) //!< 滑块拖动事件。
 	DefEventGetter(ynothrow, HScrollEvent, Scroll, Scroll) //!< 滚动事件。
@@ -169,9 +173,9 @@ public:
 	DefGetter(const ynothrow, SDst, ScrollableLength,
 		GetTrackLength() - GetThumbLength()) //!< 取可滚动区域长度。
 	DefGetter(const ynothrow, SDst, ThumbLength,
-		GetSizeOf(Thumb).GetRef(IsHorizontal())) //!< 取轨道方向上的滑块长度。
+		GetSizeOf(tmbScroll).GetRef(IsHorizontal())) //!< 取轨道方向上的滑块长度。
 	DefGetter(const ynothrow, SDst, ThumbPosition,
-		GetLocationOf(Thumb).GetRef(IsHorizontal())) //!< 取滑块位置。
+		GetLocationOf(tmbScroll).GetRef(IsHorizontal())) //!< 取滑块位置。
 	virtual DefGetter(const ynothrow, SDst, TrackLength,
 		GetSizeOf(*this).GetRef(IsHorizontal())) //!< 取轨道方向上的轨道长度。
 	DefGetter(const ynothrow, ValueType, LargeDelta, large_delta)

@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2837
+\version r2851
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-01-04 23:38 +0800
+	2013-01-16 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -272,8 +272,8 @@ DualScreenReader::AdjustMargins()
 FontSize
 DualScreenReader::AdjustScrollOffset()
 {
-	return scroll_offset != 0 ? ScrollByPixel(GetTextLineHeightExOf(area_up)
-		- scroll_offset) : 0;
+	return bool(pText) && scroll_offset != 0
+		? ScrollByPixel(GetTextLineHeightExOf(area_up) - scroll_offset) : 0;
 }
 
 void
@@ -376,7 +376,11 @@ DualScreenReader::Execute(Command cmd)
 void
 DualScreenReader::Locate(size_t pos)
 {
-	if(GetTextSize() == 0)
+	YAssert(bool(pText), "Null text buffer found.");
+
+	const auto s(pText->GetTextSize());
+
+	if(s == 0)
 	{
 		Reset();
 		Invalidate();
@@ -384,7 +388,7 @@ DualScreenReader::Locate(size_t pos)
 	}
 	if(pos == 0)
 		i_top = pText->GetBegin();
-	else if(pos < pText->GetTextSize())
+	else if(pos < s)
 	{
 		i_top = pText->GetIterator(pos);
 		AdjustPrevious(area_up, ++i_top, *pText);
@@ -412,12 +416,16 @@ DualScreenReader::LoadText(TextFile& file)
 	if(YB_LIKELY(file))
 	{
 		pText = make_unique<Text::TextFileBuffer>(file);
-		i_top = pText->GetBegin();
-		i_btm = pText->GetEnd();
+		yunseq(i_top = pText->GetBegin(), i_btm = pText->GetEnd());
 		UpdateView();
 	}
 	else
+	{
+		UnloadText();
+		Reset();
 		PutString(area_up, u"文件打开失败！");
+		Invalidate();
+	}
 }
 
 void
@@ -438,7 +446,8 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 {
 	const FontSize ln_h_ex(GetTextLineHeightExOf(area_up));
 
-	YAssert(scroll_offset < ln_h_ex, "Invalid scroll offset found.");
+	YAssert(scroll_offset < ln_h_ex, "Invalid scroll offset found."),
+	YAssert(bool(pText), "Null text buffer found.");
 
 	if(YB_UNLIKELY(i_btm == pText->GetEnd() || scroll_offset + h > ln_h_ex))
 		return 0;
