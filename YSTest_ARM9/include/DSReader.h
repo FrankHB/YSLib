@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1762
+\version r1778
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-01-15 23:47 +0800
+	2013-01-21 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,6 +203,16 @@ public:
 	void
 	SetVisible(bool = true);
 
+private:
+	//! \since build 375
+	void
+	AdjustForFirstNewline();
+
+	//! \since build 375
+	void
+	AdjustForPrevNewline();
+
+public:
 	/*!
 	\brief 调整边距：使用公用边距更新各文本显示区域的边距。
 	\note 保持顶端和底端边距均衡。
@@ -263,6 +273,16 @@ public:
 	void
 	LoadText(TextFile&);
 
+private:
+	//! \since build 375
+	void
+	MoveUpForLastLine(ptrdiff_t, size_t);
+
+	//! \since build 375
+	Text::TextFileBuffer::Iterator
+	PutLastLine();
+
+public:
 	//! \brief 复位输出显示状态。
 	void
 	Reset();

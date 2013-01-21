@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r585
+\version r586
 \author FrankHB<frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2013-01-02 02:37 +0800
+	2013-01-21 03:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,7 @@ public:
 */
 template<typename _type, typename _tPointer = _type*,
 	typename _tReference = _type&>
-class any_input_iterator : public std::iterator<std::input_iterator_tag, _type,
+class any_input_iterator : private std::iterator<std::input_iterator_tag, _type,
 	ptrdiff_t, _tPointer, _tReference>, protected any
 {
 public:

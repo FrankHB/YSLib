@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r516
-\author FrankHB<frankhb1989@gmail.com>
+\version r531
+\author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-12-11 22:42 +0800
+	2013-01-18 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,32 +143,34 @@ private:
 	Visual visual; //!< 当前可视状态。
 
 public:
-	mutable IWidget* pContainer; //!< 从属的部件容器的指针。
+	//! \since build 375
+	//@{
+	mutable IWidget* ContainerPtr; //!< 从属的部件容器的指针。
 	/*!
 	\brief 从属的部件指针。
 
 	逻辑依赖的部件指针，用于提供边界、容器和焦点以外属性的默认值。
-	\since build 283
 	*/
-	mutable IWidget* pDependency;
-	mutable IWidget* pFocusing; //!< 焦点指针。
+	mutable IWidget* DependencyPtr;
+	mutable IWidget* FocusingPtr; //!< 焦点指针。
+	//@}
 
 	/*!
 	\brief 构造：使用指定边界、前景色和背景色。
 	\since build 337
 	*/
 	View(const Rect& r = {})
-		: visual(r), pContainer(), pDependency(), pFocusing()
+		: visual(r), ContainerPtr(), DependencyPtr(), FocusingPtr()
 	{}
 	View(const View& v)
-		: visual(v.visual), pContainer(), pDependency(), pFocusing()
+		: visual(v.visual), ContainerPtr(), DependencyPtr(), FocusingPtr()
 	{}
 	View(View&& v)
-		: visual(v.visual), pContainer(v.pContainer), pDependency(v.pDependency),
-		pFocusing(v.pFocusing)
+		: visual(v.visual), ContainerPtr(v.ContainerPtr),
+		DependencyPtr(v.DependencyPtr), FocusingPtr(v.FocusingPtr)
 	{
-		yunseq(v.pContainer = nullptr, v.pDependency = nullptr,
-			v.pFocusing = nullptr);
+		yunseq(v.ContainerPtr = nullptr, v.DependencyPtr = nullptr,
+			v.FocusingPtr = nullptr);
 	}
 	virtual DefClone(View, Clone)
 	virtual DefEmptyDtor(View)

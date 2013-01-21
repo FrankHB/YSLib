@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2194
+\version r2243
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-01-14 20:28 +0800
+	2013-01-21 03:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,57 @@ namespace ystdex
 \ingroup iterators
 \brief 迭代器适配器。
 */
+
+/*!	\defgroup iterator_operations Iterator Operations
+\ingroup iterators
+\brief 迭代器操作。
+\since build 375
+*/
+//@{
+
+/*!
+\brief 迭代器指向的值满足条件时取邻接迭代器，否则取原值。
+\pre 迭代器可解引用。
+*/
+//@{
+template<typename _tIn, typename _fPred>
+_tIn
+next_if(_tIn i, _fPred f,
+	typename std::iterator_traits<_tIn>::difference_type n = 1)
+{
+	return f(*i) ? std::next(i, n) : i;
+}
+template<typename _tIn, typename _type>
+_tIn
+next_if_eq(_tIn i, const _type& val,
+	typename std::iterator_traits<_tIn>::difference_type n = 1)
+{
+	return *i == val ? std::next(i, n) : i;
+}
+//@}
+
+/*!
+\brief 迭代器指向的值满足条件时取反向邻接迭代器，否则取原值。
+\pre 迭代器可解引用。
+*/
+//@{
+template<typename _tBi, typename _fPred>
+_tBi
+prev_if(_tBi i, _fPred f,
+	typename std::iterator_traits<_tBi>::difference_type n = 1)
+{
+	return f(*i) ? std::prev(i, n) : i;
+}
+template<typename _tBi, typename _type>
+_tBi
+prev_if_eq(_tBi i, const _type& val,
+	typename std::iterator_traits<_tBi>::difference_type n = 1)
+{
+	return *i == val ? std::prev(i, n) : i;
+}
+//@}
+
+//@}
 
 
 /*!
@@ -83,8 +134,7 @@ make_move_iterator_pair(_tContainer& c)
 转换指针为类类型的随机迭代器。
 */
 template<typename _type>
-class pointer_iterator
-	: private std::iterator<typename
+class pointer_iterator : private std::iterator<typename
 	std::iterator_traits<_type*>::iterator_category, _type>
 {
 protected:

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3756
-\author FrankHB<frankhb1989@gmail.com>
+\version r3761
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2012-12-11 23:37 +0800
+	2013-01-21 02:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,8 +61,9 @@ public:
 	\brief 目标编码迭代器类型。
 	\since build 273
 	*/
-	class YF_API Iterator : std::iterator<std::bidirectional_iterator_tag,
-		ucs2_t, ptrdiff_t, const ucs2_t, const ucs2_t&>
+	class YF_API Iterator : public std::iterator<
+		std::bidirectional_iterator_tag, ucs2_t,
+		ptrdiff_t, const ucs2_t, const ucs2_t&>
 	{
 		friend class TextFileBuffer;
 

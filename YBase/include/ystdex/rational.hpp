@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1159
+\version r1164
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-01-02 02:40 +0800
+	2013-01-18 21:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,13 +38,18 @@ namespace ystdex
 {
 
 /*!
-\brief 取无符号数的以 2 为底的整数次幂。
+\brief 取无符号整数的以 2 为底的无符号整数次幂，结果转换为指定目标类型。
+\tparam _tSrc 源类型。
+\tparam _tDst 目标类型。
+\pre 静态断言： <tt>is_unsigned<_tSrc>::value</tt>。
 \since build 260
 */
 template<typename _tDst, typename _tSrc>
-yconstfn _tDst
+yconstfn YB_STATELESS _tDst
 exp2u(_tSrc n) ynothrow
 {
+	static_assert(is_unsigned<_tSrc>::value, "Non-integer type found.");
+
 	return _tSrc(1) << n;
 }
 

@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7136
+\version r7155
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-15 19:44 +0800
+	2013-01-22 01:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,8 +132,9 @@ module-directory:
 nested-module-name:
 	module-name
 	module-directory :: module-name
-如无特别指明，以下所指的模块名都是（简单）模块名 module-name 。
+如无特别指明，以下使用的模块名称都是（简单）模块名 module-name 。
  :: 两边的空白仅作区分记号的示意，实际使用时和标识符之间不保留空格。
+对于清晰的上下文，可以使用部分的模块名称。特别地，在标识库的组件时顶级的标识符（表示库的名称）通常省略。
 
 @1.3 构建原则：
 基本内容参见 [Documentation::CommonRules @@2.2] 。
@@ -1050,7 +1051,7 @@ nested-module-name:
 在不造成循环依赖的前提下， Adaptor 头文件可依赖 YFramework 文件或标准库实现的非标准头文件。
  Helper 文件和本体的非必要源文件可依赖 YCLib 文件。
 本体头文件不依赖 YSLib 以外的文件。
-关于 ISO C++ 2011 直接指定的依赖项，参考 [Documentation::CommonRules @@5.14.2] 。
+关于 ISO C++ 2011 直接指定的依赖项，参考 [Documentation::CommonRules @@5.15.2] 。
 
 @2.9.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
@@ -1183,7 +1184,7 @@ nested-module-name:
 @4.6 具名对象：
 参见 [Documentation::CommonRules @@4.6] 。
 
-@5 程序部署和配置：
+@5 项目管理、程序部署和用户配置：
 不由 YSLib 项目提供的库称为外部依赖项。 YFramework 包含少量外部依赖性如 FreeType2 。
 以下如无特别说明，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
@@ -1274,20 +1275,32 @@ nested-module-name:
 
 @5.2.1.1.2 文件依赖性：
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
- ydef.h 仅依赖标准库头文件。
+ ydef.h(@5.2.1.1.3) 仅依赖标准库头文件。
  YBase 依赖且仅依赖 YBase 文件和标准库头文件。
 
-@5.2.1.1.3 YStandardEx ：
+@5.2.1.1.3 YDefinition ：
+模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
+文件內容为系统环境和公用类型和宏的基础定义，包括对实现环境的检测、实现特性的封装、部分未被实现关键字替代以及一些语言层次上的公共基础设施。
+
+@5.2.1.1.3.1 宏 yoffsetof ：
+同标准库宏 offsetof ，但额外提供了对于可能导致未定义行为的检查。
+某些实现（如 GNU C++ ）可能已经自行提供了内建检查，所以此宏并非必要。但为了一致性在库的代码使用此宏。
+
+@5.2.1.1.3.2 宏 yunseq ：
+用于标记无序列依赖表达式组，以支持非序列优化。
+参见 [Documentation::CommonRules @@6.4.3.3] 。
+
+@5.2.1.1.4 YStandardEx ：
  YStandardEx 直接扩充标准库，包含仅依赖于标准库而非标准库的接口。
 实现的内容限制为以下两个部分：
 适用范围最广的基础设施（比标准库更严格），如序列/非序列调用、通用类型转换、元类型、函数对象、迭代器；
 直接基于标准库接口的抽象和封装，如输入/输出抽象。
 所有更具体应用问题领域相关的或特定于运行时表达形式相关的操作，如形式语言处理等，都不由 YStandardEx 直接提供接口。
 
-@5.2.1.1.4 LibDefect ：
+@5.2.1.1.5 LibDefect ：
 用于修正依赖的标准库实现因不完善或配置问题等与标准规定的接口的偏差。
 
-@5.2.1.1.5 YTest ：
+@5.2.1.1.6 YTest ：
 提供软件测试需要的一些功能的辅助库。
 
 @5.2.1.2 YCLib ：
@@ -1366,7 +1379,7 @@ nested-module-name:
  devkitARM release 40 / libfat 1.0.11 。
 
 @5.2.1.4 MinGW32 平台库和标准库实现：
-目标平台 Windows XP 及以上。
+目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP 及以上。
  build 299 前：
 无（不支持的平台）。
  2012-04-09(build 299) 起：
@@ -1376,6 +1389,7 @@ nested-module-name:
 此版本于 2012-10-06 确认已被移除。
  2012-10-06(build 346) 起：
 使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.7.2/32-bit/threads-posix/sjlj/x32-4.7.2-release-posix-sjlj-rev0.7z 。
+此版本于 2013-01-20 确认已被重命名为 x32-4.7.2-release-posix-sjlj-rev0.7z 。
 
 @5.2.2 通用库：
 

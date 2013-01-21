@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4906 *build 374 rev *
+\version r4918 *build 375 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-16 20:21 +0800
+	2013-01-22 06:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,7 +177,6 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \opt ::= optiaonal/options
 \or ::= overridden/overriders
 \param ::= parameters
-\param.de ::= default parameters
 \pos ::= position
 \post ::= postfix
 \pre ::= prepared
@@ -226,14 +225,15 @@ $label; // label for locating in code portions;
 
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
-$dev; // issues concerned by developers, which end-users could ignore \
-	(including compile-time characteristics such as static assertions but not \
-	runtime observative behaviors like runtime assertions);
+$dev; // issues concerned by developers, which end-users could ignore without \
+	risk if the code with no undefined behavior (including compile-time \
+	characteristics such as static assertions but not runtime observative \
+	behaviors like runtime assertions);
 $lib; // issues only concerned with library(only implementation changing, \
 	or interface modifying including no deletion unless some replacements are \
-	provided, so no need for well-defined behavior library users to modify \
-	code with well-defined behavior using the library interface to adapt \
-	to the upgrading), regaradless of the output targets;
+	provided, no current code would be broken (except for which has undefined \
+	behavior), so no need for library users to modify code behavior using the \
+	library interface to adapt to the upgrading), regaradless of output targets;
 $build; // issues on build, such as build scripts and diagnostic messages;
 $install; // issues on installing;
 $deploy; // issues on deployment(including build environment requirement);
@@ -406,90 +406,145 @@ $using:
 
 $DONE:
 r1:
-+ \as for text buffer \ptr @ \mf DualScreenReader::ScrollByPixel @ \u DSReader;
+/ DLD updated proper devkitPro paths @ Visual C++ \proj,
+/ @ \h LibDefect::String $=
+(
+	/ \simp \mac \cond,
+	/ \simp (\mac, \f) \impl,
+	+ 9 \f to_wstring @ !defined _GLIBCXX_HAVE_BROKEN_VSWPRINTF
+);
 /= test 1 @ platform MinGW32;
 
 r2:
-+ \as for text buffer \ptr @ \mf DualScreenReader::Locate @ \u DSReader;
+/ @ \f constexpr exp2u @ \h Rational $=
+(
+	+ \s \as,
+	+ YB_STATELESS @ \decl
+);
 /= test 2 @ platform MinGW32;
 
-r3-r6:
-/= 4 test 3 @ platform MinGW32;
-
-r7-r8:
-/ @ \cl DualScreenReader @ \u DSReader $=
+r3:
+/ @ \cl View $=
 (
-	/ \impl @ \mf LoadText @ \impl \u DSReader $=
-	(
-		* missing deleting text buffer when failing opening a text file
-			$since b154,
-		/ \impl ^ \mac yunseq
-	),
-	+ \mf IsBufferReady
+	/ public \m pContainer => ContainerPtr,
+	/ public \m pDependency => DependencyPtr,
+	/ public \m pFocusing => FocusingPtr
 );
-/ missing opening result check before locating text position
-	@ \mf ShlTextReader::UpdateReadingList @ \impl \u ShlReader $since b286;
-* $comp crashing or no response on failinig opening a text file
-	when switching reading list $since b286;
-/= 2 test 4 @ platform MinGW32;
+/= test 3 @ platform MinGW32;
 
-r9-r10:
-/ \impl @ \mf DualScreenReader::LoadText @ \impl \u DSReader,
-/= 2 test 5 @ platform MinGW32;
-
-r11:
-/ @ \cl ReaderBox @ \u ShlReader $=
+r4:
+/ @ \h Iterator $=
 (
-	+ private \f void InitializeProgress();
-	/ \simp \impl @ \ctor ^ \f InitializeProgress,
-	/ \impl @ \mf UpdateData
+	+ $doc \grp iterator_operations;
+	+ \ft (2 next_if, 2 prev_if) @ \grp iterator_operations
 );
+/= test 4 @ platform MinGW32;
+
+r5:
+/ \ft (next_if, prev_if) with \val \t => (next_if_eq, prev_if_eq) @ \h Iterator,
+* non-public \ac @ \inh std::iterator<*> @ \cl TextFileBuffer::Iterator
+	@ \h TextManager $since b273;
+/ @ \impl \u DSReader $=
+(
+	/ \simp \impl @ ((\f AdjustForNewline @ \un \ns),
+		\mf DualScreenReader::(Execute, ScrollByPixel, UpdateView))
+		^ \ft ystdex::next_if ~ \ft IncreaseIfEqual;
+	- \ft IncreaseIfEqual @ \un \ns
+);
+/= test 5 @ platform MinGW32;
+
+r6:
+/ \ac @ \inh \cl std::iterator<*> -> private ~ public @ \h AnyIterator;
 /= test 6 @ platform MinGW32;
 
-r12:
-* $repo wrong hg tag ID @ b225 $since e35dc355a207[2011-07-19, local rev 98],
-* missing check for null text buffer @ \mf DualScreenReader::AdjustScrollOffset
-	@ \impl \u DSReader \ptr $since b292;
-/= test 7 @ platform MinGW32;
+r7:
+/= test 7 @ platform MinGW32 ^ \conf release;
 
-r13-r15:
-/= 3 test 8 @ platform MinGW32;
+r8:
+/= test 8 @ platform DS;
 
-r16-r17:
-* missing unexpected encoding handling @ \mf ShlTextReader::Execute
-	@ \impl \u ShlReader $since b290,
-/= 2 test 9 @ platform MinGW32;
+r9:
+/= test 9 @ platform DS ^ \conf release;
 
-r18:
-/= test 10 @ platform DS ^ \conf release;
+r10:
+/ \cl DualScreenReader @ \u DSReader $=
+(
+	/ \simp \impl @ \mf (UpdateView, Execute) ^ \mf IsTextBottom,
+	(
+		+ private \mf Text::TextFileBuffer::Iterator PutLastLine();
+		/ \simp \impl @ \mf (Execute, ScrollByPixel) ^ PutLastLine
+	),
+	(
+		+ private \mf void AdjustForFirstNewline();
+		/ \simp \impl @ \mf (Execute, ScrollByPixel) ^ AdjustForFirstNewline
+	),
+	(
+		+ private \mf void AdjustForPrevNewline();
+		/ \simp \impl @ \mf (Execute, Locate) ^ AdjustForPrevNewline
+	),
+	(
+		+ private \mf void MoveUpForLastLine(ptrdiff_t, size_t);
+		/ \simp \impl @ \mf (Execute, ScrollByPixel) ^ MoveUpForLastLine
+	)
+);
+/= test 10 @ platform MinGW32;
 
-r19:
-/ protected \m Components::Thumb Thumb @ \cl ATrack -> Thumb tmbScroll,
-* \impl @ \mf ShlTextReader::Execute @ \impl \u ShlReader $since r17;
+r11:
+/ @ \impl \u DSReader $=
+(
+	* \impl @ \mf DualScreenReader::Execute $since r10,
+	(
+		+ \f CheckOverRead @ \un \ns;
+		/ \impl @ \mf DualScreenReader::UpdateView $=
+		(
+			/ \simp \impl ^ \f CheckOverRead;
+			* wrong overread line number when character reached at bottom
+				of up area $since b272 
+		)
+	)
+);
 /= test 11 @ platform MinGW32;
 
-r20:
-/= test 12 @ platform MinGW32 ^ \conf release;
+r12:
+/ \simp \impl @ \ctor ShlHexBrowser @ \impl \u ShlReader;
+/= test 12 @ platform MinGW32;
 
-r21:
-/= test 13 @ platform DS;
+r13:
+/ @ \h Any $=
+(
+	/ @ \clt value_holder $=
+	(
+		- \exp use of 'std::' @ \s \as
+			$= (^ 'is_object' ~ 'std::is_object'),
+		+ \s \as to confirm \tp with cv-qualified \t \arg not instantiated
+	);
+	/ \tr \impl @ \ctor any#5
+);
+/= test 13 @ platform MinGW32;
 
-r22:
-/= test 14 @ platform DS ^ \conf release;
+r14:
+* \impl @ \mac YB_LIBDEFECT_TOSTRF @ \h LibDefect::String $since r1;
+/= test 14 @ platform MinGW32 ^ \conf release;
+
+r15:
+/= test 15 @ platform DS;
+
+r16:
+/= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-01-16 +0800:
--32.0d;
-// Mercurial local rev1-rev246: r9906;
+2013-01-22 +0800:
+-33.0d;
+// Mercurial local rev1-rev247: r9922;
 
 / ...
 
 
 $NEXT_TODO:
-b375-b400:
+b[$current_rev]-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -507,7 +562,7 @@ $low_prior
 
 
 $TODO:
-b[670]:
+b[669]:
 / services $=
 (
 	+ \impl @ images loading
@@ -570,10 +625,9 @@ b[670]:
 	+ error code with necessary %thread_local @ \u YCommon,
 	/ confirm correctness @ stat() @ Win32,
 		// See comments @ src/fccache.c @ \proj fontconfig.
-	/ consideration of mutable member @ class %Message,
-	/ (\ac, \n) @ \m View::(pContainer, pDependency, pFocusing)
+	/ consideration of mutable member @ class %Message
 ),
-/ $low_prior performance $=
+/ $low_prior improving performance $=
 (
 	/ \impl @ classes %(Message, MessageQueue)
 ),
@@ -1014,6 +1068,52 @@ $module_tree $=
 );
 
 $now
+(
+	/ DLD "updated proper devkitPro paths" @ "Visual C++ project",
+	/ %'YBase' $=
+	(
+		/ %'LibDefect'.'String' $=
+		(
+			/ "simplified macro condition",
+			+ "9 overloaded functions %to_wstring when \
+				!defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF)"
+		),
+		/ %'YStandardEx' $=
+		(
+			/ DLD "constexpr function %exp2u" @ %'Rational'
+				^ "macro %YB_STATELESS",
+			/ %'Iterator' $=
+			(
+				+ $doc "group %iterator_operations",
+				+ "function templates %(next_if, next_if_eq, \
+					prev_if, prev_if_eq")
+			),
+			/ DLD "class template %value_holder" @ %'Any' $=
+			(
+				- "explicitly use of 'std::'" @ "static assertion"
+					$= (^ 'is_object' ~ 'std::is_object'),
+				+ "static assertion to confirm types with cv-qualified \
+					argument types not instantiated"
+			)
+		)
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ "public members %(pContainer, pDependency, pFocusing)" @ "class %View"
+			@ %'GUI' => "%(ContainerPtr, DependencyPtr, FocusingPtr)",
+		* "non-public inherited %std::iterator<*>"
+			@ "class %TextFileBuffer::Iterator" @ %'Service' $since b273
+	),
+	/ 'YReader'.'text reader' $=
+	(
+		/ DLD "simplified implementation" ^ "(private member functions, \
+			unnamed namespace function, %ystdex::next_if_eq)",
+		* "wrong overread line number when character reached at bottom \
+			of up area" $since b272
+	)
+),
+
+b374
 (
 	/ %'YReader' $=
 	(
@@ -2690,7 +2790,7 @@ b330
 
 b329
 (
-	- DLD "redundant 'this->' for non-dependant names" @ "templates",
+	- DLD "redundant 'this->' for non-dependent names" @ "templates",
 	/ $lib %'YFramework' $=
 	(
 		/ @ "unit %YFile" @ %'YSLib'.'Service' $=
@@ -3120,7 +3220,7 @@ b318
 	/ DLP "library using"
 		$= (^ "updated library freetype 2.4.10" ~ "modified freetype 2.4.9"),
 	^ DLB "parallel command line option '-j'"
-		@ "all VC++ projects makefile command lines",
+		@ "all Visual C++ projects makefile command lines",
 	/ %'YReader'.'shells test example' $=
 	(
 		$dep_from "wrong textlist length";

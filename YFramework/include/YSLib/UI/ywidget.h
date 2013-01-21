@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5437
+\version r5440
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-01-04 16:58 +0800
+	2013-01-18 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,7 +128,7 @@ ContainsVisible(const IWidget& wgt, const Point& pt)
 inline IWidget*
 FetchContainerPtr(const IWidget& wgt)
 {
-	return wgt.GetView().pContainer;
+	return wgt.GetView().ContainerPtr;
 }
 
 /*!
@@ -140,7 +140,7 @@ FetchContainerPtr(const IWidget& wgt)
 inline IWidget*
 FetchFocusingPtr(IWidget& wgt)
 {
-	return wgt.GetView().pFocusing;
+	return wgt.GetView().FocusingPtr;
 }
 
 /*!
@@ -189,7 +189,7 @@ SetBoundsOf(IWidget&, const Rect&);
 inline void
 SetContainerPtrOf(IWidget& wgt, IWidget* pCon = {})
 {
-	wgt.GetView().pContainer = pCon;
+	wgt.GetView().ContainerPtr = pCon;
 }
 
 /*!

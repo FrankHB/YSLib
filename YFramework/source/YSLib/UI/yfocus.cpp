@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r550
-\author FrankHB<frankhb1989@gmail.com>
+\version r555
+\author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2012-10-04 04:34 +0800
+	2013-01-18 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ DoRequestFocus(IWidget& wgt, bool release_event)
 {
 	if(const auto p = FetchContainerPtr(wgt))
 	{
-		auto& pFocusing(p->GetView().pFocusing);
+		auto& pFocusing(p->GetView().FocusingPtr);
 
 		if(pFocusing != &wgt)
 		{
@@ -67,7 +67,7 @@ DoReleaseFocus(IWidget& wgt)
 {
 	if(const auto p = FetchContainerPtr(wgt))
 	{
-		auto& pFocusing(p->GetView().pFocusing);
+		auto& pFocusing(p->GetView().FocusingPtr);
 
 		if(pFocusing == &wgt)
 		{
@@ -97,7 +97,7 @@ ClearFocusingOf(IWidget& wgt)
 {
 	if(const auto p = FetchFocusingPtr(wgt))
 	{
-		wgt.GetView().pFocusing = nullptr;
+		wgt.GetView().FocusingPtr = nullptr;
 		CallEvent<LostFocus>(*p, UIEventArgs(wgt));
 	}
 }

@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3605
+\version r3607
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-01-04 16:57 +0800
+	2013-01-22 05:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,6 +181,7 @@ public:
 	virtual
 	~PointerHolder() ynothrow
 	{
+		// TODO: Provide other deleters.
 		delete p_held;
 	}
 
@@ -256,6 +257,7 @@ public:
 	/*!
 	\brief 构造：使用对象指针。
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
+	\note 使用 PointerHolder 管理资源（默认使用不限定作用域的 delete 释放资源）。
 	\since build 340
 	*/
 	template<typename _type>

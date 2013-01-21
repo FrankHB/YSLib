@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1192
+\version r1201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-01-10 21:34 +0800
+	2013-01-22 05:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,7 @@ union pod_storage
 	{
 		new(access()) typename remove_reference<_type>::type(yforward(x));
 	}
-	
+
 	//! \note 为避免类型错误，需要确定类型时应使用显式使用 access 指定类型赋值。
 	template<typename _type>
 	pod_storage&
@@ -179,12 +179,15 @@ public:
 
 /*!
 \brief 值类型动态泛型持有者。
+\pre 值类型不被 cv-qualifier 修饰。
 \since build 331
 */
 template<typename _type>
 class value_holder : public holder
 {
-	static_assert(std::is_object<_type>::value, "Invalid type found.");
+	static_assert(is_object<_type>::value, "Non-object type found.");
+	static_assert(!(is_const<_type>::value || is_volatile<_type>::value),
+		"Cv-qualified type found.");
 
 public:
 	//! \since build 352
@@ -594,8 +597,8 @@ public:
 		: manager(any_ops::value_handler<typename
 			remove_reference<_type>::type>::manage)
 	{
-		any_ops::value_handler<typename
-			remove_reference<_type>::type>::init(storage, yforward(x));
+		any_ops::value_handler<typename remove_reference<_type>::type>::init(
+			storage, yforward(x));
 	}
 	template<typename _type>
 	any(std::reference_wrapper<_type> x)
@@ -613,10 +616,11 @@ public:
 	template<typename _type>
 	any(_type&& x, any_ops::holder_tag)
 		: manager(any_ops::holder_handler<any_ops::value_holder<typename
-		remove_reference<_type>::type>>::manage)
+		remove_cv<typename remove_reference<_type>::type>::type>>::manage)
 	{
 		any_ops::holder_handler<any_ops::value_holder<typename
-			remove_reference<_type>::type>>::init(storage, yforward(x));
+			remove_cv<typename remove_reference<_type>::type>::type>>::init(
+			storage, yforward(x));
 	}
 	//@}
 	any(const any&);

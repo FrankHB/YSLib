@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1398
+\version r1401
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2012-12-11 21:21 +0800
+	2013-01-21 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,8 +75,7 @@ public:
 
 public:
 	//迭代器。
-	class iterator
-		: public std::iterator<std::bidirectional_iterator_tag, Path>
+	class iterator : public std::iterator<std::bidirectional_iterator_tag, Path>
 	{
 	private:
 		const value_type* ptr;

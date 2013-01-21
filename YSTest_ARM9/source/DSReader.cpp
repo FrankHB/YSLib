@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r2851
+\version r3095
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-01-16 00:11 +0800
+	2013-01-21 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,171 +34,169 @@ YSL_BEGIN
 
 using namespace Drawing;
 using namespace Text;
+using ystdex::next_if_eq;
 
 namespace
 {
-	/*!
-	\brief 指定迭代器最小值 b ，取文本迭代器 s 前最近出现的字符 c 的对应文本迭代器。
-	\since build 343
-	*/
-	template<typename _tBi>
-	_tBi
-	FindPreviousChar(_tBi s, _tBi b, ucs4_t c = ucs4_t())
-	{
-	//	while(b < --s && *s != c)
-		while(b != --s && *s != c)
-			;
-		return s;
-	}
 
-	/*!
-	\brief 指定迭代器上确界 b ，在 r 中取文本迭代器 s 的当前行尾的文本迭代器。
-	\since build 271
-	*/
-	template<typename _tBi>
-	_tBi
-	FindLineFeed(const TextRegion& r, _tBi s, _tBi e)
-	{
-		const SDst wmax(r.GetWidth() - GetHorizontalOf(r.Margin));
-		SDst w(0);
-
-	//	while(s < e && *s != '\n')
-		while(s != e && *s != '\n')
-		{
-			 if(std::iswprint(*s))
-			 {
-				 w += r.Font.GetAdvance(*s);
-				 if(w >= wmax)
-					 break;
-			 }
-			 ++s;
-		}
-		return s;
-	}
-
-	/*!
-	\brief 指定迭代器最小值 b ，在 r 中取文本迭代器 s 的前一行首的前一字符的迭代器。
-	\since build 270
-	*/
-	template<typename _tBi>
-	_tBi
-	FindPreviousLineFeed(TextRegion& r, _tBi s, _tBi b)
-	{
-	//	if(b < s)
-		if(b != s)
-		{
-			const auto e(s);
-			auto t(FindPreviousChar(s, b, '\n'));
-
-			do
-			{
-				s = t;
-				if(*t == '\n')
-					++t;
-				t = FindLineFeed(r, t, e);
-			}while(t != e);
-		}
-		return s;
-	}
-
-	/*!
-	\brief 迭代器解引用等于指定值时自增。
-	\pre i 可解引用。
-	\since build 292
-	*/
-	template<typename _type, typename _tIn>
-	inline void
-	IncreaseIfEqual(_tIn& i, const _type& val)
-	{
-		if(*i == val)
-			++i;
-	}
-
-	/*!
-	\brief 对可能出现的换行调整迭代器。
-	\since build 292
-	*/
-	template<typename _tIn, class _tArea, class _tContainer>
-	inline void
-	AdjustForNewline(_tArea& area, _tIn& i, _tContainer& c)
-	{
-		IncreaseIfEqual(i, '\n');
-		i = FindLineFeed(area, i, c.GetEnd());
-	}
-
-	/*!
-	\brief 调整不完整的行首的迭代器。
-	\since build 292
-	*/
-	template<typename _tIn, class _tArea, class _tContainer>
-	inline void
-	AdjustPrevious(_tArea& area, _tIn& i, _tContainer& c)
-	{
-		i = FindPreviousLineFeed(area, i, c.GetBegin());
-	}
-
-	/*!
-	\brief 按全区域移动复制上下屏区域像素。
-	\param src_area 源区域。
-	\param src_offset 源偏移行数。
-	\param dst_area 目标区域。
-	\param dst_offset 目标偏移行数。
-	\param offset 待复制区域的移动偏移（大小等于待复制区域的总行数，向上时 < 0）。
-	\param n 实际复制行数。
-	\note 不清理源区域。
-	\since build 292
-	*/
-	void
-	CopyScrollArea(YSLib::Components::BufferedTextArea& src_area,
-		size_t src_offset, YSLib::Components::BufferedTextArea& dst_area,
-		size_t dst_offset, ptrdiff_t offset, size_t n)
-	{
-		YAssert(n != 0, "Invalid number of lines found.");
-		YAssert(n <= size_t(std::abs(offset)), "Invalid offset found.");
-
-		const SDst w(src_area.GetWidth());
-
-		YAssert(w == dst_area.GetWidth(), "Distinct screen widths found.");
-
-		yunseq(src_offset *= w, dst_offset *= w, n *= w);
-		dst_area.Scroll(offset);
-		yunseq(std::copy_n(src_area.GetBufferPtr() + src_offset, n,
-			dst_area.GetBufferPtr() + dst_offset), std::copy_n(
-			src_area.GetBufferAlphaPtr() + src_offset, n,
-			dst_area.GetBufferAlphaPtr() + dst_offset));
-		src_area.Scroll(offset);
-	}
-
-	/*!
-	\brief 全区域移动上下屏区域像素。
-	\note 复制后清除未被覆盖区域。
-	\since build 292
-	*/
-	void
-	MoveScrollArea(YSLib::Components::BufferedTextArea& area_up,
-		YSLib::Components::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
-	{
-		YAssert(area_up.GetHeight() - area_up.Margin.Bottom - n > 0,
-			"No enough space of areas found.");
-
-		SDst src_off(area_dn.Margin.Top),
-			dst_off(area_up.GetHeight() - area_up.Margin.Bottom - n);
-		auto* p_src(&area_dn);
-		auto* p_dst(&area_up);
-		SDst clr_off;
-
-		if(offset > 0) //复制区域向下移动，即浏览区域向上滚动。
-		{
-			std::swap(p_src, p_dst),
-			std::swap(src_off, dst_off),
-			clr_off = area_up.Margin.Top;
-		}
-		else
-			clr_off = area_dn.GetHeight() - area_dn.Margin.Bottom - n;
-		CopyScrollArea(*p_src, src_off, *p_dst, dst_off, offset, n);
-		p_src->ClearLine(clr_off, n);
-	}
+/*!
+\brief 指定迭代器最小值 b ，取文本迭代器 s 前最近出现的字符 c 的对应文本迭代器。
+\since build 343
+*/
+template<typename _tBi>
+_tBi
+FindPreviousChar(_tBi s, _tBi b, ucs4_t c = ucs4_t())
+{
+//	while(b < --s && *s != c)
+	while(b != --s && *s != c)
+		;
+	return s;
 }
+
+/*!
+\brief 在 r 中取文本迭代器 s 的当前行尾的文本迭代器。
+\since build 271
+*/
+template<typename _tBi>
+_tBi
+FindLineFeed(const TextRegion& r, _tBi s, _tBi e)
+{
+	const SDst wmax(r.GetWidth() - GetHorizontalOf(r.Margin));
+	SDst w(0);
+
+//	while(s < e && *s != '\n')
+	while(s != e && *s != '\n')
+	{
+		if(std::iswprint(*s))
+		{
+			w += r.Font.GetAdvance(*s);
+			if(w >= wmax)
+				break;
+		}
+		++s;
+	}
+	return s;
+}
+
+/*!
+\brief 指定迭代器最小值 b ，在 r 中取文本迭代器 s 的前一行首的前一字符的迭代器。
+\since build 270
+*/
+template<typename _tBi>
+_tBi
+FindPreviousLineFeed(TextRegion& r, _tBi s, _tBi b)
+{
+//	if(b < s)
+	if(b != s)
+	{
+		const auto e(s);
+		auto t(FindPreviousChar(s, b, '\n'));
+
+		do
+		{
+			s = t;
+			if(*t == '\n')
+				++t;
+			t = FindLineFeed(r, t, e);
+		}while(t != e);
+	}
+	return s;
+}
+
+/*!
+\brief 对可能出现的换行调整迭代器。
+\since build 292
+*/
+template<typename _tIn, class _tArea, class _tContainer>
+inline void
+AdjustForNewline(_tArea& area, _tIn& i, _tContainer& c)
+{
+	i = FindLineFeed(area, next_if_eq(i, '\n'), c.GetEnd());
+}
+
+/*!
+\brief 调整不完整的行首的迭代器。
+\since build 292
+*/
+template<typename _tIn, class _tArea, class _tContainer>
+inline void
+AdjustPrevious(_tArea& area, _tIn& i, _tContainer& c)
+{
+	i = FindPreviousLineFeed(area, i, c.GetBegin());
+}
+
+/*!
+\brief 按全区域移动复制上下屏区域像素。
+\param src_area 源区域。
+\param src_offset 源偏移行数。
+\param dst_area 目标区域。
+\param dst_offset 目标偏移行数。
+\param offset 待复制区域的移动偏移（大小等于待复制区域的总行数，向上时 < 0）。
+\param n 实际复制行数。
+\note 不清理源区域。
+\since build 292
+*/
+void
+CopyScrollArea(YSLib::Components::BufferedTextArea& src_area,
+	size_t src_offset, YSLib::Components::BufferedTextArea& dst_area,
+	size_t dst_offset, ptrdiff_t offset, size_t n)
+{
+	YAssert(n != 0, "Invalid number of lines found.");
+	YAssert(n <= size_t(std::abs(offset)), "Invalid offset found.");
+
+	const SDst w(src_area.GetWidth());
+
+	YAssert(w == dst_area.GetWidth(), "Distinct screen widths found.");
+
+	yunseq(src_offset *= w, dst_offset *= w, n *= w);
+	dst_area.Scroll(offset);
+	yunseq(std::copy_n(src_area.GetBufferPtr() + src_offset, n,
+		dst_area.GetBufferPtr() + dst_offset), std::copy_n(
+		src_area.GetBufferAlphaPtr() + src_offset, n,
+		dst_area.GetBufferAlphaPtr() + dst_offset));
+	src_area.Scroll(offset);
+}
+
+/*!
+\brief 全区域移动上下屏区域像素。
+\note 复制后清除未被覆盖区域。
+\since build 292
+*/
+void
+MoveScrollArea(YSLib::Components::BufferedTextArea& area_up,
+	YSLib::Components::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
+{
+	YAssert(area_up.GetHeight() - area_up.Margin.Bottom - n > 0,
+		"No enough space of areas found.");
+
+	SDst src_off(area_dn.Margin.Top),
+		dst_off(area_up.GetHeight() - area_up.Margin.Bottom - n);
+	auto* p_src(&area_dn);
+	auto* p_dst(&area_up);
+	SDst clr_off;
+
+	if(offset > 0) //复制区域向下移动，即浏览区域向上滚动。
+	{
+		std::swap(p_src, p_dst),
+		std::swap(src_off, dst_off),
+		clr_off = area_up.Margin.Top;
+	}
+	else
+		clr_off = area_dn.GetHeight() - area_dn.Margin.Bottom - n;
+	CopyScrollArea(*p_src, src_off, *p_dst, dst_off, offset, n);
+	p_src->ClearLine(clr_off, n);
+}
+
+//! \since build 375
+u16
+CheckOverRead(TextRegion& r)
+{
+	const auto b(FetchLastLineBasePosition(r, r.GetHeight()));
+
+	return r.Pen.Y < b ? (b - r.Pen.Y) / GetTextLineHeightExOf(r) : 0;
+}
+
+} // unnamed namespace;
 
 YSL_BEGIN_NAMESPACE(DS)
 
@@ -250,6 +248,18 @@ DualScreenReader::SetFontSize(FontSize s)
 	area_up.Font.SetSize(s),
 	area_dn.Font.SetSize(s);
 	// NOTE: Margins shall be adjusted before output.
+}
+
+void
+DualScreenReader::AdjustForFirstNewline()
+{
+	AdjustForNewline(area_up, i_top, *pText);
+}
+
+void
+DualScreenReader::AdjustForPrevNewline()
+{
+	AdjustPrevious(area_up, i_top, *pText);
 }
 
 void
@@ -324,14 +334,9 @@ DualScreenReader::Execute(Command cmd)
 		{
 			MoveScrollArea(area_up, area_dn, hx, h);
 			SetCurrentTextLineNOf(area_up, 0);
-			AdjustPrevious(area_up, i_top, *pText);
+			AdjustForPrevNewline();
 			CarriageReturn(area_up);
-			{
-				auto iTopNew(i_top);
-
-				IncreaseIfEqual(iTopNew, '\n');
-				PutLine(area_up, iTopNew, pText->GetEnd(), '\n');
-			}
+			PutLine(area_up, next_if_eq(i_top, '\n'), pText->GetEnd(), '\n');
 			if(overread_line_n > 0)
 				--overread_line_n;
 			else
@@ -339,19 +344,11 @@ DualScreenReader::Execute(Command cmd)
 		}
 		else
 		{
-			MoveScrollArea(area_up, area_dn, -hx, h);
-			{
-				u16 n(area_dn.GetTextLineNEx());
-
-				YAssert(n != 0, "No Enough height.");
-
-				SetCurrentTextLineNOf(area_dn, --n);
-			}
+			MoveUpForLastLine(-hx, h);
 			//注意缓冲区不保证以空字符结尾。
 			CarriageReturn(area_dn);
-			IncreaseIfEqual(i_btm, '\n');
-			i_btm = PutLine(area_dn, i_btm, pText->GetEnd(), '\n');
-			AdjustForNewline(area_up, i_top, *pText);
+			i_btm = PutLastLine();
+			AdjustForFirstNewline();
 		}
 		Invalidate();
 	}
@@ -361,16 +358,28 @@ DualScreenReader::Execute(Command cmd)
 
 		if(cmd & Up)
 			while(ln--)
-				AdjustPrevious(area_up, i_top, *pText);
+				AdjustForPrevNewline();
 		else
-			while(ln-- && i_btm != pText->GetEnd())
+			while(ln-- && !IsTextBottom())
 			{
 				AdjustForNewline(area_dn, i_btm, *pText);
-				AdjustForNewline(area_up, i_top, *pText);
+				AdjustForFirstNewline();
 			}
 		UpdateView();
 	}
 	return true;
+}
+
+void
+DualScreenReader::Invalidate()
+{
+	using YSLib::Components::Invalidate;
+
+	//强制刷新背景。
+	Invalidate(area_up);
+	Invalidate(area_dn);
+	if(ViewChanged)
+		ViewChanged();
 }
 
 void
@@ -391,23 +400,12 @@ DualScreenReader::Locate(size_t pos)
 	else if(pos < s)
 	{
 		i_top = pText->GetIterator(pos);
-		AdjustPrevious(area_up, ++i_top, *pText);
+		++i_top;
+		AdjustForPrevNewline();
 	}
 	else
 		return;
 	UpdateView();
-}
-
-void
-DualScreenReader::Invalidate()
-{
-	using YSLib::Components::Invalidate;
-
-	//强制刷新背景。
-	Invalidate(area_up);
-	Invalidate(area_dn);
-	if(ViewChanged)
-		ViewChanged();
 }
 
 void
@@ -426,6 +424,24 @@ DualScreenReader::LoadText(TextFile& file)
 		PutString(area_up, u"文件打开失败！");
 		Invalidate();
 	}
+}
+
+void
+DualScreenReader::MoveUpForLastLine(ptrdiff_t off, size_t h)
+{
+	MoveScrollArea(area_up, area_dn, off, h);
+
+	u16 n(area_dn.GetTextLineNEx());
+
+	YAssert(n != 0, "No Enough height.");
+
+	SetCurrentTextLineNOf(area_dn, --n);
+}
+
+Text::TextFileBuffer::Iterator
+DualScreenReader::PutLastLine()
+{
+	return PutLine(area_dn, next_if_eq(i_btm, '\n'), pText->GetEnd(), '\n');
 }
 
 void
@@ -451,30 +467,18 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 
 	if(YB_UNLIKELY(i_btm == pText->GetEnd() || scroll_offset + h > ln_h_ex))
 		return 0;
-	MoveScrollArea(area_up, area_dn, -h, h);
-	{
-		u16 n(area_dn.GetTextLineNEx());
-
-		YAssert(n != 0, "No Enough height.");
-
-		SetCurrentTextLineNOf(area_dn, --n);
-	}
+	MoveUpForLastLine(-h, h);
 	//注意缓冲区不保证以空字符结尾。
 	CarriageReturn(area_dn);
 	if(YB_LIKELY((scroll_offset += h) < ln_h_ex))
 	{
 		area_dn.Pen.Y += ln_h_ex - scroll_offset;
-
-		auto i_tmp(i_btm);
-
-		IncreaseIfEqual(i_tmp, '\n');
-		PutLine(area_dn, i_tmp, pText->GetEnd(), '\n');
+		PutLastLine();
 	}
 	else
 	{
-		IncreaseIfEqual(i_btm, '\n');
-		i_btm = PutLine(area_dn, i_btm, pText->GetEnd(), '\n');
-		AdjustForNewline(area_up, i_top, *pText);
+		i_btm = PutLastLine();
+		AdjustForFirstNewline();
 		scroll_offset = 0;
 	}
 	Invalidate();
@@ -509,32 +513,21 @@ DualScreenReader::UpdateView()
 		return;
 	Reset();
 	{
-		auto i_new(i_top);
+		auto i_new(PutString(area_up, next_if_eq(i_top, '\n'),
+			pText->GetEnd()));
 
-		IncreaseIfEqual(i_new, '\n');
-		i_new = PutString(area_up, i_new, pText->GetEnd());
 		if(YB_UNLIKELY(i_new == pText->GetEnd()))
 		{
 			i_btm = i_new;
-
-			const auto b(FetchLastLineBasePosition(area_up,
-				area_up.GetHeight()));
-
-			overread_line_n = area_up.Pen.Y >= b ? 0 : area_dn.GetTextLineNEx()
-				+ (b - area_up.Pen.Y) / GetTextLineHeightExOf(area_up);
+			overread_line_n = CheckOverRead(area_up) + area_dn.GetTextLineNEx();
 		}
 		else
 		{
 			i_btm = PutString(area_dn, i_new, pText->GetEnd());
-
-			const auto b(FetchLastLineBasePosition(area_dn,
-				area_dn.GetHeight()));
-
-			overread_line_n = area_dn.Pen.Y >= b ? 0 : (b - area_dn.Pen.Y)
-				/ GetTextLineHeightExOf(area_dn);
+			overread_line_n = CheckOverRead(area_dn);
 		}
 	}
-	if(YB_LIKELY(i_btm != pText->GetEnd() && *i_btm == '\n'))
+	if(YB_LIKELY(!IsTextBottom() && *i_btm == '\n'))
 		--i_btm;
 	Invalidate();
 }

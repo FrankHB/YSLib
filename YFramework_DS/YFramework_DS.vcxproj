@@ -44,7 +44,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">
     <NMakePreprocessorDefinitions>DEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
@@ -59,7 +59,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
     <NMakePreprocessorDefinitions>NDEBUG;__GNUC__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtview.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r176
-\author FrankHB<frankhb1989@gmail.com>
+\version r181
+\author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-12-05 20:11 +0800
+	2013-01-18 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,15 +42,15 @@ Visual::Visual(const Rect& r)
 bool
 View::IsVisible() const ynothrow
 {
-	return pDependency ? pDependency->GetView().IsVisible()
+	return DependencyPtr ? DependencyPtr->GetView().IsVisible()
 		: visual.IsVisible();
 }
 
 void
 View::SetVisible(bool b)
 {
-	if(pDependency)
-		pDependency->GetView().SetVisible(b);
+	if(DependencyPtr)
+		DependencyPtr->GetView().SetVisible(b);
 	else
 		visual.SetVisible(b);
 }
