@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1025
+\version r1033
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-01-04 16:56 +0800
+	2013-01-23 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,11 +53,12 @@ public:
 	DefDeCtor(ValueNode)
 	/*!
 	\brief 构造：使用字符串引用和值类型对象构造参数。
-	\since build 340
+	\note 第一个参数不使用，仅用于避免参与单参数重载，便于其它类使用转换函数。
+	\since build 376
 	*/
 	template<typename _tString, typename... _tParams>
 	inline
-	ValueNode(_tString&& str, _tParams&&... args)
+	ValueNode(int, _tString&& str, _tParams&&... args)
 		: name(yforward(str)), value(yforward(args)...)
 	{}
 	/*!
@@ -253,7 +254,7 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 MakeNode(_tString&& name, _tParams&&... args)
 {
-	return ValueNode(yforward(name), ystdex::decay_copy(yforward(args))...);
+	return {0, yforward(name), ystdex::decay_copy(yforward(args))...};
 }
 
 /*!
@@ -265,7 +266,7 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 StringifyToNode(_tString&& name, _tParams&&... args)
 {
-	return ValueNode(yforward(name), to_string(yforward(args)...));
+	return {0, yforward(name), to_string(yforward(args)...)};
 }
 
 /*!
@@ -293,8 +294,8 @@ template<class _tPack>
 inline ValueNode
 UnpackToNode(_tPack&& pk)
 {
-	return ValueNode(get<0>(yforward(pk)),
-		ValueObject(ystdex::decay_copy(get<1>(yforward(pk)))));
+	return {0, get<0>(yforward(pk)),
+		ValueObject(ystdex::decay_copy(get<1>(yforward(pk))))};
 }
 
 /*!
@@ -319,8 +320,8 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 PackNodes(_tString&& name, _tParams&&... args)
 {
-	return ValueNode(yforward(name), CollectNodes(UnpackToNode(
-		yforward(args))...), PointerTag());
+	return {0, yforward(name), CollectNodes(UnpackToNode(
+		yforward(args))...), PointerTag()};
 }
 
 YSL_END

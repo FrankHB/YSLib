@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r586
+\version r588
 \author FrankHB<frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2013-01-21 03:22 +0800
+	2013-01-22 08:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ template<typename _type>
 struct wrap_handler
 {
 	typedef typename wrapped_traits<_type>::type value_type;
-	typedef typename std::conditional<wrapped_traits<_type>::value,
+	typedef typename conditional<wrapped_traits<_type>::value,
 		ref_handler<value_type>, value_handler<value_type>>::type type;
 };
 
@@ -182,7 +182,7 @@ public:
 	any_input_iterator(_tIterator&& i)
 		: any()
 	{
-		typedef typename std::remove_reference<_tIterator>::type param_obj_type;
+		typedef typename remove_rcv<_tIterator>::type param_obj_type;
 		typedef any_ops::input_iterator_handler<param_obj_type> handler;
 
 		static_assert(is_convertible<decltype(*std::declval<typename

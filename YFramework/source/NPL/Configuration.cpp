@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r565
-\author FrankHB<frankhb1989@gmail.com>
+\version r571
+\author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2012-09-30 12:49 +0800
+	2013-01-23 09:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,8 @@ TransformConfiguration(const ValueNode& node)
 	auto s(node.GetSize());
 
 	if(s == 0)
-		return ValueNode("",
-			node ? Deliteralize(Access<string>(node)) : string());
+		return {0, "",
+			node ? Deliteralize(Access<string>(node)) : string()};
 
 	auto i(node.GetBegin());
 
@@ -64,8 +64,8 @@ TransformConfiguration(const ValueNode& node)
 		auto&& n(TransformConfiguration(*i));
 
 		if(n.GetName().empty())
-			return ValueNode(new_name, n.GetValueRRef());
-		return ValueNode(new_name, ValueNode::Container{std::move(n)});
+			return {0, new_name, n.GetValueRRef()};
+		return {0, new_name, ValueNode::Container{std::move(n)}};
 	}
 
 	auto p_node_cont(make_unique<ValueNode::Container>());
@@ -73,7 +73,7 @@ TransformConfiguration(const ValueNode& node)
 	std::for_each(i, node.GetEnd(), [&](const ValueNode& n){
 		p_node_cont->insert(TransformConfiguration(n));
 	});
-	return ValueNode(new_name, p_node_cont.release(), PointerTag());
+	return {0, new_name, p_node_cont.release(), PointerTag()};
 }
 
 

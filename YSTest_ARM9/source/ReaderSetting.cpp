@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r386
+\version r389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2013-01-04 18:43 +0800
+	2013-01-25 08:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -196,8 +196,7 @@ SettingPanel::SettingPanel()
 				set_font_size(++size);
 		},
 		FetchEvent<Click>(btnTextColor) += [this](TouchEventArgs&&){
-			pColor = &lblAreaUp.ForeColor;
-			boxColor.SetColor(*pColor);
+			boxColor.SetColor(*(pColor = &lblAreaUp.ForeColor));
 			Show(boxColor);
 		},
 		FetchEvent<Click>(btnSetUpBack) += [this](TouchEventArgs&&){
@@ -259,6 +258,7 @@ SettingPanel::SettingPanel()
 		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
 			if(pColor)
 			{
+				// TODO: Determine less area to be invalidated.
 				*pColor = boxColor.GetColor();
 				lblAreaDown.ForeColor = lblAreaUp.ForeColor;
 				Invalidate(lblAreaUp),

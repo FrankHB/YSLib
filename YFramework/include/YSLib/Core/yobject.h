@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3607
+\version r3627
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-01-22 05:01 +0800
+	2013-01-22 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,11 +93,16 @@ EndDecl
 /*!
 \brief 带等于接口的值类型动态泛型持有者。
 \see ystdex::value_holder 。
+\note 成员命名参照 ystdex::value_holder 。
 \since build 332
 */
 template<typename _type>
 class ValueHolder : implements IValueHolder
 {
+	static_assert(std::is_object<_type>::value, "Non-object type found.");
+	static_assert(!(std::is_const<_type>::value
+		|| std::is_volatile<_type>::value), "Cv-qualified type found.");
+
 public:
 	//! \since build 352
 	typedef _type value_type;
@@ -148,6 +153,7 @@ public:
 /*!
 \brief 带等于接口的指针类型动态泛型持有者。
 \see ystdex::pointer_holder 。
+\note 成员命名参照 ystdex::pointer_holder 。
 \since build 332
 */
 template<typename _type>
@@ -236,23 +242,15 @@ public:
 	*/
 	DefDeCtor(ValueObject)
 	/*!
-	\brief 构造：使用对象左值引用。
-	\pre obj 可作为复制构造参数。
-	\note 得到包含指定对象副本的实例。
-	*/
-	template<typename _type>
-	ValueObject(const _type& obj)
-		: content(ystdex::any_ops::holder_tag(), new ValueHolder<_type>(obj))
-	{}
-	/*!
-	\brief 构造：使用对象右值引用。
+	\brief 构造：使用对象引用。
 	\pre obj 可作为转移构造参数。
-	\since build 340
+	\since build 376
 	*/
-	template<typename _type>
-	ValueObject(_type&& obj, MoveTag)
+	template<typename _type, typename = typename
+		std::enable_if<!std::is_same<_type&, ValueObject&>::value, int>::type>
+	ValueObject(_type&& obj)
 		: content(ystdex::any_ops::holder_tag(), new ValueHolder<typename
-		std::remove_reference<_type>::type>(std::move(obj)))
+		ystdex::remove_rcv<_type>::type>(yforward(obj)))
 	{}
 	/*!
 	\brief 构造：使用对象指针。

@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r767
+\version r792
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-01-04 16:54 +0800
+	2013-01-22 07:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -451,6 +451,8 @@ struct has_common_nonempty_virtual_base : integral_constant<bool,
 /*!
 \ingroup metafunctions
 \brief 恒等元函数。
+\note 功能可以使用 common_type 的单一参数实例替代。
+\note 这里的实现保证不是 common_type 的实例。
 \since build 334
 */
 template<typename _type>
@@ -462,7 +464,22 @@ struct identity
 
 /*!
 \ingroup metafunctions
+\brief 移除可能被 cv-qualifier 修饰的引用类型。
+\note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
+\since build 376
+*/
+template<typename _type>
+struct remove_rcv
+{
+	typedef typename remove_cv<typename remove_reference<_type>::type>::type
+		type;
+};
+
+
+/*!
+\ingroup metafunctions
 \brief 移除指针和引用类型。
+\note 指针包括可能的 cv-qualifier 修饰。
 \since build 175
 */
 template<typename _type>
@@ -471,6 +488,19 @@ struct remove_rp
 	typedef typename remove_pointer<typename remove_reference<_type>
 		::type>::type type;
 };
+
+
+/*!
+\ingroup metafunctions
+\brief 移除可能被 cv-qualifier 修饰的引用和指针类型。
+\since build 376
+*/
+template<typename _type>
+struct remove_rpcv
+{
+	typedef typename remove_cv<typename remove_rp<_type>::type>::type type;
+};
+
 
 
 /*!

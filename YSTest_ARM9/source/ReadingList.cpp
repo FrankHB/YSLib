@@ -11,13 +11,13 @@
 /*!	\file ReadingList.cpp
 \ingroup YReader
 \brief 阅读列表。
-\version r91
-\author FrankHB<frankhb1989@gmail.com>
+\version r94
+\author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:27 +0800
 \par 修改时间:
-	2013-01-15 00:59 +0800
+	2013-01-23 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,11 +38,11 @@ ReadingList::operator ValueNode() const
 	auto p(make_unique<ValueNode::Container>());
 
 	for(auto& bm : reading_list)
-		p->insert(ValueNode("bm" + to_string(p->size()),
+		p->insert(MakeNode("bm" + to_string(p->size()),
 			ValueNode::Container{MakeNode("Path", bm.Path.GetNativeString()),
 			StringifyToNode("Position", bm.Position)}));
 
-	auto&& vn(ValueNode("ReadingList", p.get(), PointerTag()));
+	auto&& vn(MakeNode("ReadingList", p.get(), PointerTag()));
 
 	p.release();
 	return vn;

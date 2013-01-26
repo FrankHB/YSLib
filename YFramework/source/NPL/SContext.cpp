@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by Franksoft 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1434
-\author FrankHB<frankhb1989@gmail.com>
+\version r1439
+\author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2012-09-26 10:55 +0800
+	2013-01-23 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 	while(b != e && *b != ")")
 		if(*b == "(")
 		{
-			ValueNode nd(to_string(node.GetSize()));
+			auto nd(MakeNode(to_string(node.GetSize())));
 			auto res(Reduce(nd, ++b, e));
 
 			if(res == e || *res != ")")
@@ -85,7 +85,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 			b = ++res;
 		}
 		else
-			node += ValueNode(to_string(node.GetSize()), *b++);
+			node += {0, to_string(node.GetSize()), *b++};
 	return b;
 }
 

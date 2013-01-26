@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4918 *build 375 rev *
+\version r4931 *build 376 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-22 06:03 +0800
+	2013-01-26 10:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,6 +160,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \lit ::= literals
 \ln ::= lines
 \loc ::= local
+\lst ::= lists
 \m ::= members
 \mac ::= macros
 \mem ::= memory
@@ -406,139 +407,131 @@ $using:
 
 $DONE:
 r1:
-/ DLD updated proper devkitPro paths @ Visual C++ \proj,
-/ @ \h LibDefect::String $=
-(
-	/ \simp \mac \cond,
-	/ \simp (\mac, \f) \impl,
-	+ 9 \f to_wstring @ !defined _GLIBCXX_HAVE_BROKEN_VSWPRINTF
-);
++ metafunction \stt (remove_rcv, remove_rpcv) @ \h TypeOperations;
+/ \simp \impl @ \ctor (any @ \h Any, any_input_iterator @ \h AnyIterator)
+	^ \stt remove_rcv,
+/ 'std::conditional' -> 'contiditional' @ \stt wrap_handler @ \h AnyIterator;
 /= test 1 @ platform MinGW32;
 
 r2:
-/ @ \f constexpr exp2u @ \h Rational $=
-(
-	+ \s \as,
-	+ YB_STATELESS @ \decl
-);
++ 2 \s \as to confirm (\t \param) is a cv-unqualified type
+	@ \stt ValueHolder @ \h YObject;
 /= test 2 @ platform MinGW32;
 
 r3:
-/ @ \cl View $=
+/ @ \cl ValueObject @ \h YObject $=
 (
-	/ public \m pContainer => ContainerPtr,
-	/ public \m pDependency => DependencyPtr,
-	/ public \m pFocusing => FocusingPtr
+	/ \ctor \t<_type> ValueObject(const _type&)
+		-> / \ctor \t<_type> ValueObject(_type&&) ^ ystdex::remove_rcv;
+	- \ctor \t<_type> ValueObject(_type&&, MoveTag)
 );
 /= test 3 @ platform MinGW32;
 
 r4:
-/ @ \h Iterator $=
-(
-	+ $doc \grp iterator_operations;
-	+ \ft (2 next_if, 2 prev_if) @ \grp iterator_operations
-);
-/= test 4 @ platform MinGW32;
+/= test 4 @ platform DS ^ \conf release;
 
 r5:
-/ \ft (next_if, prev_if) with \val \t => (next_if_eq, prev_if_eq) @ \h Iterator,
-* non-public \ac @ \inh std::iterator<*> @ \cl TextFileBuffer::Iterator
-	@ \h TextManager $since b273;
-/ @ \impl \u DSReader $=
+/ @ \h ValueNode $=
 (
-	/ \simp \impl @ ((\f AdjustForNewline @ \un \ns),
-		\mf DualScreenReader::(Execute, ScrollByPixel, UpdateView))
-		^ \ft ystdex::next_if ~ \ft IncreaseIfEqual;
-	- \ft IncreaseIfEqual @ \un \ns
-);
+	/ \ctor \t<_tString, _tParams...> \i !\exp ValueNode(_tString&&,
+		_tParams&&...) -> \ctor \t<_tString, _tParams...> \i \exp
+		ValueNode(int, _tString&&, _tParam&&...),
+	/ \tr \impl @ \ft (MakeNode, StringifyToNode, UnpackToNode#3, PackNodes)
+	// To make operator ValueNode() usable in practice.
+),
+/ \tr \impl @ (\mf ValueNode::(\op[], GetNode, Remove) @ \impl \u ValueNode,
+	\ctor \t Configuration @ \h Configuration) ^ initializer \lst,
+/ \tr \impl @ (\f (LoadConfiguration @ \impl \u Initialization,
+	\f TransformConfiguration @ \impl \u Configuration, \f Reduce @ \impl
+	\u SContext), \mf \op ValueNode @ \cl ReadingList @ \impl \u ReadingList)
+	^ \f MakeNode ~ \ctor \t ValueNode,
+/ \simp \impl @ \mf ShlReader::SaveGlobalConfiguration @ \impl \u ShlReader;
 /= test 5 @ platform MinGW32;
 
 r6:
-/ \ac @ \inh \cl std::iterator<*> -> private ~ public @ \h AnyIterator;
-/= test 6 @ platform MinGW32;
+/= test 6 @ platform DS;
 
 r7:
-/= test 7 @ platform MinGW32 ^ \conf release;
+/ \impl @ \f TransformConfiguration @ \impl \u Configuration $since r5
+	^ initializer \lst ~ MakeNode;
+/ \simp \impl @ \ft (MakeNode, StringifyToNode, UnpackToNode#3, PackNodes)
+	@ \h ValueNdoe ^ initializer \lst ~ \ctor \t ValueNode;
+/= test 7 @ platform MinGW32;
 
-r8:
-/= test 8 @ platform DS;
+r8-r20:
+/= 13 test 8 @ platform MinGW32;
 
-r9:
-/= test 9 @ platform DS ^ \conf release;
-
-r10:
-/ \cl DualScreenReader @ \u DSReader $=
+r21:
 (
-	/ \simp \impl @ \mf (UpdateView, Execute) ^ \mf IsTextBottom,
-	(
-		+ private \mf Text::TextFileBuffer::Iterator PutLastLine();
-		/ \simp \impl @ \mf (Execute, ScrollByPixel) ^ PutLastLine
-	),
-	(
-		+ private \mf void AdjustForFirstNewline();
-		/ \simp \impl @ \mf (Execute, ScrollByPixel) ^ AdjustForFirstNewline
-	),
-	(
-		+ private \mf void AdjustForPrevNewline();
-		/ \simp \impl @ \mf (Execute, Locate) ^ AdjustForPrevNewline
-	),
-	(
-		+ private \mf void MoveUpForLastLine(ptrdiff_t, size_t);
-		/ \simp \impl @ \mf (Execute, ScrollByPixel) ^ MoveUpForLastLine
-	)
-);
-/= test 10 @ platform MinGW32;
+	* \ctor \t<_type> ValueObject(_type&&) !\exc _type& $since r2;
+	* $comp \conf cannot be saved successfully $since r2
+),
+* \ctor \t<_type> any(_type&&) !\exc _type& $since b352;
+/= test 9 @ platform MinGW32;
 
-r11:
-/ @ \impl \u DSReader $=
-(
-	* \impl @ \mf DualScreenReader::Execute $since r10,
-	(
-		+ \f CheckOverRead @ \un \ns;
-		/ \impl @ \mf DualScreenReader::UpdateView $=
-		(
-			/ \simp \impl ^ \f CheckOverRead;
-			* wrong overread line number when character reached at bottom
-				of up area $since b272 
-		)
-	)
-);
-/= test 11 @ platform MinGW32;
+r22:
+/= test 10 @ platform MinGW32 ^ \conf release;
 
-r12:
-/ \simp \impl @ \ctor ShlHexBrowser @ \impl \u ShlReader;
+r23:
+/= test 11 @ platform DS;
+
+r24:
 /= test 12 @ platform MinGW32;
 
-r13:
-/ @ \h Any $=
-(
-	/ @ \clt value_holder $=
-	(
-		- \exp use of 'std::' @ \s \as
-			$= (^ 'is_object' ~ 'std::is_object'),
-		+ \s \as to confirm \tp with cv-qualified \t \arg not instantiated
-	);
-	/ \tr \impl @ \ctor any#5
-);
+r25:
+* \ctor \t<_tParam...> Configuration(_tParam&&...) @ \h Configuration
+	!\exc _type& $since b335;
 /= test 13 @ platform MinGW32;
 
-r14:
-* \impl @ \mac YB_LIBDEFECT_TOSTRF @ \h LibDefect::String $since r1;
-/= test 14 @ platform MinGW32 ^ \conf release;
+r26-r29:
+/= 4 test 14 @ platform MinGW32;
 
-r15:
-/= test 15 @ platform DS;
+r30:
+(
+	+ \ctor (Configuration(const ValueNode&), Configuration(ValueNode&&))
+		@ \h Configuration;
+	* $comp \conf cannot be saved successfully on creating $since r5
+);
+/= test 15 @ platform MinGW32;
 
-r16:
-/= test 16 @ platform DS ^ \conf release;
+r31:
+/= test 16 @ platform DS;
+
+r32:
+/= test 17 @ platform DS ^ \conf release;
+
+r33-r34:
+/ \simp \impl @ \ctor SettingPanel @ \impl \u SettingPanel;
+/= 2 test 18 @ platform MinGW32;
+
+r35-r37:
+(
+	/ (\ctor, \mf Execute) @ \cl ShlTextReader @ \impl \u ShlReader;
+	* $comp color set after setting box canceled $since b279
+);
+/= 3 test 19 @ platform MinGW32;
+
+r38-r39:
+* wrong color of button corner after background set $since $b289
+	$= (\impl @ \ctor ShlTextReader @ \impl \u ShlReader),
+/= 2 test 20 @ platform MinGW32;
+
+r40:
+/= test 21 @ platform MinGW32 ^ \conf release;
+
+r41:
+/= test 22 @ platform DS;
+
+r42:
+/= test 23 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-01-22 +0800:
--33.0d;
-// Mercurial local rev1-rev247: r9922;
+2013-01-26 +0800:
+-34.0d;
+// Mercurial local rev1-rev248: r9964;
 
 / ...
 
@@ -550,8 +543,7 @@ b[$current_rev]-b400:
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager,
 	+ (reading history, bookmarks) (serialization, unserialization) as \conf,
-	/ \f ReleaseShells >> \h,
-	* crashing on opening setting UI after file reloading failed
+	+ \decl @ \f ReleaseShells @ \h,
 ),
 $low_prior
 (
@@ -562,7 +554,7 @@ $low_prior
 
 
 $TODO:
-b[669]:
+b[689]:
 / services $=
 (
 	+ \impl @ images loading
@@ -617,8 +609,13 @@ b[669]:
 / $design $low_prior robustness and cleanness $=
 (
 	/ \ac @ \inh touchPosition @ \cl CursorInfo @ \ns platform @ \u YCommon,
-	+ recovery environment @ main \fn,
-		// Try-catch, then relaunch the message loop.
+	/ resumable exception handling $=
+	(
+		+ general fundamental reusable exception \tp and filtering;
+			// Or following Common Lisp conditional handling model, etc?
+		+ recovery environment @ main \fn
+			// Try-catch, then relaunch the message loop.
+	)
 	/ \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
 		~ '::llround',
 	+ 'yconstexpr' @ \s \m Graphics::Invalid,
@@ -629,7 +626,8 @@ b[669]:
 ),
 / $low_prior improving performance $=
 (
-	/ \impl @ classes %(Message, MessageQueue)
+	/ \impl @ classes %(Message, MessageQueue),
+	/ more specifc \impl @ NPL context
 ),
 / completeness of core abstraction $=
 (
@@ -1069,6 +1067,59 @@ $module_tree $=
 
 $now
 (
+	/ %'YBase'.'YStandardEx' $-
+	(
+		(
+			+ "metafunctions %(remove_rcv, remove_rcvp)" %'TypeOperations';
+			$dep_to "%remove_rcv"
+		),
+		/ DLD "explicitly" !^ 'std::' @ "%wrap_handler" @ %'AnyIterator',
+		* $dev "missing excluding of 'any&'" @ "constructor template with 1 \
+			function parameter" @ "class %any" $since b352
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'YObject' $=
+		(
+			+ DLD "2 static assertion to confirm types with cv-qualified \
+				argument types not instantiated"
+				@ "class template %ValueHolder",
+			- "constructor tag with %MoveTag",
+			(
+				$dep_from "%remove_rcv";
+				/ "constructor template with const lvalue reference as \
+					function parameter" -> "constructor template with \
+					non-const rvalue reference as function parameter"
+			)
+		);
+		/ 'NPL' $=
+		(
+			/ "variadic constructor template" ^ "prefix unused parameter"
+				@ %'ValueNode';
+				// To make operator ValueNode() usable in practice.
+			/ @ "class %Configuration" @ %'Configuration' $=
+			(
+				+ "more constructors";
+					// To handle argument with specific types correctly.
+				* $comp "missing excluding of 'Configuration&'" @ "constructor \
+					template with 1 function parameter" $since b335
+			)
+		)
+	),
+	/ %'YReader' $=
+	(
+		(
+			/ "reserved top desktop background" @ 'text reader';
+			* "color set after setting box canceled" @ %'ReaderSetting'
+				$since b279;
+		)
+		* "wrong color of button corner after background set" @ 'text reader'
+			$since $b289
+	)
+),
+
+b375
+(
 	/ DLD "updated proper devkitPro paths" @ "Visual C++ project",
 	/ %'YBase' $=
 	(
@@ -1090,7 +1141,7 @@ $now
 			),
 			/ DLD "class template %value_holder" @ %'Any' $=
 			(
-				- "explicitly use of 'std::'" @ "static assertion"
+				/ "explicitly" !^ 'std::' @ "static assertion"
 					$= (^ 'is_object' ~ 'std::is_object'),
 				+ "static assertion to confirm types with cv-qualified \
 					argument types not instantiated"
@@ -1108,7 +1159,7 @@ $now
 	(
 		/ DLD "simplified implementation" ^ "(private member functions, \
 			unnamed namespace function, %ystdex::next_if_eq)",
-		* "wrong overread line number when character reached at bottom \
+		* "wrong excessively read line number when character reached at bottom \
 			of up area" $since b272
 	)
 ),

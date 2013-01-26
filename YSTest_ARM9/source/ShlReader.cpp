@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r3978
+\version r4000
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-01-21 21:19 +0800
+	2013-01-26 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,8 +208,7 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 {
 	try
 	{
-		FetchGlobalInstance().Root["YReader"]["ReaderSetting"]
-			= rs.operator ValueNode();
+		FetchGlobalInstance().Root["YReader"]["ReaderSetting"] = ValueNode(rs);
 		SaveConfiguration(FetchGlobalInstance().Root);
 	}
 	catch(std::exception& e) // TODO: Logging.
@@ -228,11 +227,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	using ystdex::get_key;
 
 	const auto exit_setting([this](TouchEventArgs&&){
-		auto& dsk_up(GetDesktopUp());
-
-		yunseq(dsk_up.Background = pnlSetting.lblAreaUp.Background,
-			GetDesktopDown().Background = pnlSetting.lblAreaDown.Background);
-		RemoveWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown),
+		RemoveWidgets(GetDesktopUp(),
+			pnlSetting.lblAreaUp, pnlSetting.lblAreaDown),
 		reader.SetVisible(true),
 		boxReader.UpdateData(reader),
 		boxTextInfo.UpdateData(reader),
@@ -314,6 +310,15 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 			reader.SetColor(CurrentSetting.FontColor),
 			reader.SetFont(CurrentSetting.Font);
 			reader.UpdateView();
+			yunseq(GetDesktopUp().Background = pnlSetting.lblAreaUp.Background,
+				GetDesktopDown().Background = pnlSetting.lblAreaDown.Background
+			);
+			if(IsVisible(boxReader))
+				for(auto pr(boxReader.GetChildren()); pr.first != pr.second;
+					++pr.first)
+					if(dynamic_cast<BufferedRenderer*>(
+						&pr.first->GetRenderer()))
+						Invalidate(*pr.first);
 		},
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
 	);
@@ -373,12 +378,8 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 			= GetDesktopDown().Background.target<SolidBrush>()->Color,
 			CurrentSetting.FontColor = reader.GetColor(),
 			CurrentSetting.Font = reader.GetFont());
-		{
-			auto& dsk_up(GetDesktopUp());
-
-			dsk_up.Background = SolidBrush(ColorSpace::White);
-			AddWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
-		}
+		AddWidgets(GetDesktopUp(),
+			pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
 		{
 			using ystdex::get_key;
 

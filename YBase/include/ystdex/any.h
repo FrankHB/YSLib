@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1201
+\version r1209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-01-22 05:50 +0800
+	2013-01-23 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -590,15 +590,16 @@ public:
 	any() ynothrow
 		: storage(), manager()
 	{}
-	//! \since build 352
+	//! \since build 376
 	//@{
-	template<typename _type>
+	template<typename _type, typename = typename
+		std::enable_if<!is_same<_type&, any&>::value, int>::type>
 	any(_type&& x)
 		: manager(any_ops::value_handler<typename
 			remove_reference<_type>::type>::manage)
 	{
-		any_ops::value_handler<typename remove_reference<_type>::type>::init(
-			storage, yforward(x));
+		any_ops::value_handler<typename remove_rcv<_type>::type>::init(storage,
+			yforward(x));
 	}
 	template<typename _type>
 	any(std::reference_wrapper<_type> x)
@@ -616,11 +617,10 @@ public:
 	template<typename _type>
 	any(_type&& x, any_ops::holder_tag)
 		: manager(any_ops::holder_handler<any_ops::value_holder<typename
-		remove_cv<typename remove_reference<_type>::type>::type>>::manage)
+		remove_rcv<_type>::type>>::manage)
 	{
 		any_ops::holder_handler<any_ops::value_holder<typename
-			remove_cv<typename remove_reference<_type>::type>::type>>::init(
-			storage, yforward(x));
+			remove_cv<_type>::type>>::init(storage, yforward(x));
 	}
 	//@}
 	any(const any&);

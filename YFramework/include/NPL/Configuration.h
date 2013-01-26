@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r219
-\author FrankHB<frankhb1989@gmail.com>
+\version r234
+\author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2012-12-11 21:02 +0800
+	2013-01-23 16:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,9 +62,21 @@ private:
 
 public:
 	DefDeCtor(Configuration)
+	//! \since build 376
+	//@{
+	Configuration(const ValueNode& node)
+		: root(node)
+	{}
+	Configuration(ValueNode&& node)
+		: root(std::move(node))
+	{}
+	Configuration(Configuration& conf)
+		: Configuration(static_cast<const Configuration&>(conf))
+	{}
+	//@}
 	template<typename... _tParams>
 	Configuration(_tParams&&... args)
-		: root(yforward(args)...)
+		: root(0, yforward(args)...)
 	{}
 	DefDeCopyCtor(Configuration)
 	DefDeMoveCtor(Configuration)

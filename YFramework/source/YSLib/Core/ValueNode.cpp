@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r213
-\author FrankHB<frankhb1989@gmail.com>
+\version r219
+\author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2012-09-17 21:35 +0800;
+	2013-01-23 09:23 +0800;
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,11 +33,11 @@ ValueNode&
 ValueNode::operator[](const string& name)
 {
 	auto& cont(CheckNodes());
-	auto i(cont.lower_bound(name));
+	auto i(cont.lower_bound({0, name}));
 
-	if(i == cont.end() || cont.key_comp()(name, *i))
+	if(i == cont.end() || cont.key_comp()({0, name}, *i))
 		// TODO: Use %emplace_hint.
-		i = cont.insert(i, name);
+		i = cont.insert(i, {0, name});
 	return const_cast<ValueNode&>(*i);
 }
 
@@ -50,7 +50,7 @@ const ValueNode&
 ValueNode::GetNode(const string& name) const
 {
 	auto& cont(GetContainer());
-	const auto i(cont.find(name));
+	const auto i(cont.find({0, name}));
 
 	if(i != cont.end())
 		return *i;
@@ -93,7 +93,7 @@ ValueNode::Remove(const ValueNode& node)
 {
 	try
 	{
-		return GetContainer().erase(node.name) != 0;
+		return GetContainer().erase({0, node.name}) != 0;
 	}
 	catch(ystdex::bad_any_cast&)
 	{}
