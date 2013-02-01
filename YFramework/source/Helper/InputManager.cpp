@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r169
+\version r187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-01-04 18:45 +0800
+	2013-01-30 07:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,15 @@
 #include "Helper/DSMain.h"
 
 YSL_BEGIN
+
+#if YCL_MINGW32
+/*!	\addtogroup workaround
+\since build 377
+\todo 移除。
+*/
+extern ::HWND
+FetchGlobalWindowHandle();
+#endif
 
 YSL_BEGIN_NAMESPACE(Devices)
 
@@ -48,7 +57,9 @@ InputManager::DispatchInput(Desktop& dsk)
 #elif YCL_MINGW32
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
-	if(::GetForegroundWindow() != FetchGlobalInstance().GetWindowHandle())
+	const auto h_wnd(FetchGlobalWindowHandle());
+
+	if(::GetForegroundWindow() != h_wnd)
 		return;
 #else
 #	error Unsupported platform found!
@@ -75,12 +86,11 @@ InputManager::DispatchInput(Desktop& dsk)
 #if YCL_DS
 		cursor_state = cursor.operator Point();
 #elif YCL_MINGW32
-		::ScreenToClient(FetchGlobalInstance().GetWindowHandle(), &cursor);
+		::ScreenToClient(h_wnd, &cursor);
 		yunseq(cursor_state.X = cursor.x,
 			cursor_state.Y = cursor.y - MainScreenHeight);
-		if(!Rect({}, MainScreenWidth, MainScreenHeight)
-			.Contains(cursor_state))
-			cursor_state = Point::Invalid;
+		RestrictInInterval(cursor_state.X, 0, MainScreenWidth),
+		RestrictInInterval(cursor_state.Y, 0, MainScreenHeight);
 #endif
 	}
 

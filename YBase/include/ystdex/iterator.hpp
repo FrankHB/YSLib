@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2243
+\version r2249
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-01-21 03:21 +0800
+	2013-02-01 11:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,15 +113,16 @@ make_move_iterator_pair(_tIterator1 it1, _tIterator2 it2) -> decltype(
 }
 /*!
 \ingroup helper_functions
-\brief 取容器的转移迭代器对。
+\brief 取指定序列范围（包含序列容器及内建数组等）的转移迭代器对。
+\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 337
 */
-template<typename _tContainer>
+template<typename _tRange>
 inline auto
-make_move_iterator_pair(_tContainer& c)
-	-> decltype(ystdex::make_move_iterator_pair(c.begin(), c.end()))
+make_move_iterator_pair(_tRange& c)
+	-> decltype(ystdex::make_move_iterator_pair(begin(c), end(c)))
 {
-	return ystdex::make_move_iterator_pair(c.begin(), c.end());
+	return ystdex::make_move_iterator_pair(begin(c), end(c));
 }
 
 

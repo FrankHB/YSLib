@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2080
+\version r2301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-01-12 19:24 +0800
+	2013-01-31 10:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,11 @@
 #include "YSLib/Service/ytimer.h"
 #include "YCLib/Debug.h"
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
+#if YCL_MULTITHREAD == 1
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#endif
 #ifdef YCL_DS
 #include "YSLib/Service/yblit.h" // for Drawing::FillPixel;
 #endif
@@ -83,24 +88,53 @@ private:
 			NULL, 0);
 	}
 };
+
+
+/*!
+\brief 本机窗口。
+\since build 377
+*/
+class NativeWindow
+{
+public:
+	typedef ::HWND NativeHandle;
+
+private:
+	NativeHandle h_wnd;
+
+public:
+	NativeWindow(NativeHandle);
+	~NativeWindow();
+
+	void
+	Show();
+
+	DefGetter(const ynothrow, NativeHandle, NativeHandle, h_wnd)
+};
+
+NativeWindow::NativeWindow(NativeHandle h)
+	: h_wnd(h)
+{
+	YAssert(::IsWindow(h), "Invalid window handle found.");
+}
+
+NativeWindow::~NativeWindow()
+{
+	const auto res(::DestroyWindow(h_wnd));
+
+	YAssert(!res, "Destroying window failed.");
+}
+
+void
+NativeWindow::Show()
+{
+	::ShowWindow(h_wnd, SW_SHOWNORMAL);
+}
 #endif
+
 
 //注册的应用程序指针。
 DSApplication* pApp;
-
-#if YCL_HOSTED && YCL_MULTITHREAD == 1
-//! \since build 325
-void(DSApplication::*g_pm)();
-
-//! \since build 325
-void
-HostThreadFunc()
-{
-	YAssert(pApp && g_pm, "Null pointer found.");
-
-	(pApp->*g_pm)();
-}
-#endif
 
 
 #ifndef NDEBUG
@@ -178,21 +212,19 @@ public:
 public:
 	Point Offset;
 
-protected:
-	/*!
-	\brief 宿主窗口句柄。
-	\since build 322
-	*/
-	::HWND hHost;
-
 private:
+	/*!
+	\brief 宿主窗口。
+	\since build 377
+	*/
+	shared_ptr<NativeWindow> p_host_wnd;
 	ScreenBuffer gbuf;
 	//! \since build 322
 	std::mutex update_mutex;
 
 public:
-	//! \since build 325
-	DSScreen(bool, ::HWND) ynothrow;
+	//! \since build 377
+	DSScreen(bool, const shared_ptr<NativeWindow>&) ynothrow;
 
 	/*!
 	\brief 更新。
@@ -235,13 +267,11 @@ DSScreen::Update(Color c)
 	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaOf(GetSize()), c);
 }
 #elif YCL_MINGW32
-DSScreen::DSScreen(bool b, ::HWND hWnd) ynothrow
+DSScreen::DSScreen(bool b, const shared_ptr<NativeWindow>& p_wnd) ynothrow
 	: Devices::Screen(MainScreenWidth, MainScreenHeight),
-	Offset(), hHost(hWnd), gbuf(Size(MainScreenWidth, MainScreenHeight)),
+	Offset(), p_host_wnd(p_wnd), gbuf(Size(MainScreenWidth, MainScreenHeight)),
 	update_mutex()
 {
-	YAssert(bool(hWnd), "Null handle found.");
-
 	pBuffer = gbuf.pBuffer;
 	if(b)
 		Offset.Y = MainScreenHeight;
@@ -258,12 +288,14 @@ DSScreen::Update(Drawing::BitmapPtr buf) ynothrow
 	YCL_DEBUG_PUTS("Screen buffer updated.");
 	YSL_DEBUG_DECL_TIMER(tmr, "DSScreen::Update")
 
-	::HDC hDC(::GetDC(hHost));
+	YAssert(bool(p_host_wnd), "Null pointer found.");
+
+	::HDC hDC(::GetDC(p_host_wnd->GetNativeHandle()));
 	::HDC hMemDC(::CreateCompatibleDC(hDC));
 
 	UpdateToHost(hDC, hMemDC);
 	::DeleteDC(hMemDC);
-	::ReleaseDC(hHost, hDC);
+	::ReleaseDC(p_host_wnd->GetNativeHandle(), hDC);
 }
 
 void
@@ -392,14 +424,125 @@ Idle(Messaging::Priority prior)
 } // unnamed namespace;
 
 
+#if YCL_HOSTED
+class HostedEnvironment
+{
+#if YCL_MULTITHREAD == 1
+private:
+	//! \brief 宿主背景线程。
+	std::thread host_thrd;
+#if YCL_MINGW32
+	//! \brief 本机主窗口指针。
+	shared_ptr<NativeWindow> p_main_wnd;
+#endif
+	//! \brief 宿主环境互斥量。
+	std::mutex mtx;
+	//! \brief 宿主环境就绪条件。
+	std::condition_variable init;
+	//! \brief 初始化条件。
+	std::condition_variable full_init;
+#endif
+
+public:
+	HostedEnvironment();
+	~HostedEnvironment();
+
+#if YCL_MINGW32
+	//! \brief 初始化宿主资源和本机消息循环线程。
+	void
+	HostTask();
+#endif
+
+#if YCL_MULTITHREAD == 1
+	void
+	Notify();
+
+	const shared_ptr<NativeWindow>&
+	Wait();
+#endif
+};
+
+HostedEnvironment::HostedEnvironment()
+#if YCL_MULTITHREAD == 1
+	: host_thrd(),
+#if YCL_MINGW32
+	p_main_wnd(),
+#endif
+	mtx(), init(), full_init()
+#endif
+{
+#if YCL_MULTITHREAD == 1
+	host_thrd = std::thread(std::mem_fn(&HostedEnvironment::HostTask), this);
+#endif
+}
+HostedEnvironment::~HostedEnvironment()
+{
+	host_thrd.detach();
+}
+
+#if YCL_MINGW32
+void
+HostedEnvironment::HostTask()
+{
+	{
+		std::lock_guard<std::mutex> lck(mtx);
+
+		p_main_wnd.reset(new NativeWindow(YSLib::InitializeMainWindow()));
+		// NOTE: Currently there is only one client.
+		init.notify_one();
+	//	init.notify_all();
+	}
+	p_main_wnd->Show();
+	{
+		std::unique_lock<std::mutex>lck(mtx);
+
+		YAssert(pApp, "Null application pointer found.");
+
+		full_init.wait(lck, []{return pApp->IsScreenReady();});
+
+		YAssert(pApp->IsScreenReady(), "Screen is not ready.");
+	}
+
+	::MSG host_msg; //!< 本机消息类型。
+
+	while(true)
+		if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
+			::DispatchMessage(&host_msg);
+		else
+		//	std::this_thread::yield();
+			std::this_thread::sleep_for(host_sleep);
+}
+#endif
+
+#if YCL_MULTITHREAD == 1
+void
+HostedEnvironment::Notify()
+{
+	full_init.notify_one();
+}
+
+const shared_ptr<NativeWindow>&
+HostedEnvironment::Wait()
+{
+	std::unique_lock<std::mutex>lck(mtx);
+
+#if YCL_MINGW32
+	init.wait(lck, [this]{return bool(p_main_wnd);});
+
+	YAssert(bool(p_main_wnd), "Null pointer found.");
+#endif
+
+	return p_main_wnd;
+}
+#endif
+
+#endif
+
+
 DSApplication::DSApplication()
 try	: Application(),
-#if YCL_HOSTED && YCL_MULTITHREAD == 1
-	thread(),
-#if YCL_MINGW32
-	hHost(),
-#endif
-	mtx(), init(), full_init(),
+#if YCL_HOSTED
+	p_hosted(),
 #endif
 	pFontCache(), pScreenUp(), pScreenDown(),
 	UIResponseLimit(0x40), Root()
@@ -411,13 +554,11 @@ try	: Application(),
 
 	//全局初始化。
 	InitializeEnviornment();
-	//若有必要，启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
-// NOTE: libstdc++ @ G++ 4.7.1 bug,
-//	see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
-#if YCL_HOSTED && YCL_MULTITHREAD == 1
-	g_pm = &DSApplication::HostTask;
-	thread = std::thread(HostThreadFunc);
+#if YCL_HOSTED
+	p_hosted = make_unique<HostedEnvironment>();
 #endif
+
+	//若有必要，启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
 
 	//初始化：检查程序是否被正确安装并读取配置。
 	Root = InitializeInstalled();
@@ -445,17 +586,11 @@ try	: Application(),
 		pScreenDown = make_unique<DSScreen>(true);
 	}
 #elif YCL_MINGW32
-	{
-		std::unique_lock<std::mutex>lck(mtx);
-
-		init.wait(lck, [this]{return bool(hHost);});
-
-		YAssert(bool(hHost), "Null handle found.");
-	}
+	const auto& p_hosted_wnd(p_hosted->Wait());
 	try
 	{
-		pScreenUp = make_unique<DSScreen>(false, hHost);
-		pScreenDown = make_unique<DSScreen>(true, hHost);
+		pScreenUp = make_unique<DSScreen>(false, p_hosted_wnd);
+		pScreenDown = make_unique<DSScreen>(true, p_hosted_wnd);
 	}
 #endif
 	catch(...)
@@ -468,8 +603,8 @@ try	: Application(),
 		.Update(ColorSpace::Blue),
 	ystdex::polymorphic_downcast<DSScreen&>(*pScreenDown)
 		.Update(ColorSpace::Green);
-#elif YCL_MINGW32
-	full_init.notify_one();
+#elif YCL_HOSTED
+	p_hosted->Notify();
 #endif
 }
 catch(FatalError& e)
@@ -479,8 +614,8 @@ catch(FatalError& e)
 
 DSApplication::~DSApplication()
 {
-#if YCL_MINGW32
-	thread.detach();
+#if YCL_HOSTED
+	p_hosted.reset();
 #endif
 
 	//等待并确保所有 Shell 被释放。
@@ -509,6 +644,15 @@ DSApplication::GetFontCache() const ynothrow
 
 	return *pFontCache;
 }
+#if YCL_HOSTED
+HostedEnvironment&
+DSApplication::GetHostedEnvironment()
+{
+	YAssert(bool(p_hosted), "Null pointer found.");
+
+	return *p_hosted;
+}
+#endif
 Devices::Screen&
 DSApplication::GetScreenUp() const ynothrow
 {
@@ -558,36 +702,14 @@ DSApplication::DealMessage()
 	return true;
 }
 
+
 #if YCL_MINGW32
-void
-DSApplication::HostTask()
+// workaround
+::HWND
+FetchGlobalWindowHandle()
 {
-	{
-		std::lock_guard<std::mutex> lck(mtx);
-
-		hHost = YSLib::InitializeMainWindow();
-		// NOTE: Currently there is only one client.
-		init.notify_one();
-	//	Initialized.notify_all();
-	}
-	::ShowWindow(hHost, SW_SHOWNORMAL);
-	{
-		std::unique_lock<std::mutex>lck(mtx);
-
-		full_init.wait(lck,
-			[this]{return bool(pScreenUp) && bool(pScreenDown);});
-
-		YAssert(bool(pScreenUp) && bool(pScreenDown), "Null pointer found.");
-	}
-
-	::MSG host_msg; //!< 本机消息类型。
-
-	while(true)
-		if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
-			::DispatchMessage(&host_msg);
-		else
-		//	std::this_thread::yield();
-			std::this_thread::sleep_for(host_sleep);
+	return FetchGlobalInstance().GetHostedEnvironment().Wait()
+		->GetNativeHandle();
 }
 #endif
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r763
-\author FrankHB<frankhb1989@gmail.com>
+\version r808
+\author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2012-10-23 12:22 +0800
+	2013-01-28 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,42 +52,51 @@ namespace ystdex
 */
 template<typename _tDst, typename _tSrc>
 inline _tDst
-union_cast(_tSrc src) ynothrow
+union_cast(_tSrc x) ynothrow
 {
 	static_assert(is_pod<_tDst>::value, "Non-POD destination type found.");
 	static_assert(sizeof(_tSrc) == sizeof(_tDst), "Incompatible types found.");
 
 	union
 	{
-		_tSrc src;
-		_tDst dst;
-	} u = {src};
-	return u.dst;
+		_tSrc x;
+		_tDst y;
+	} u = {x};
+	return u.y;
 }
 
 
 /*!
 \brief 初值符列表转换。
+\tparam _tSrc 源类型。
+\tparam _tDst 目标类型。
 \since build 304
 */
 template<typename _tDst, typename... _tSrc>
 yconstfn std::initializer_list<_tDst>
-initializer_cast(_tSrc&&... src)
+initializer_cast(_tSrc&&... x)
 {
-	return {_tDst(yforward(src))...};
+	return {_tDst(yforward(x))...};
 }
 
 
 /*!
 \ingroup cast
 \brief 多态类指针类型转换。
+\tparam _tSrc 源类型。
+\tparam _tDst 目标类型。
+\pre 静态断言： _tSrc 是多态类。
+\pre 静态断言： _tDst 是指针。
 \throw std::bad_cast dynamic_cast 失败。
 \since build 175
 */
-template <class _tDst, class _tSrc>
+template <typename _tDst, class _tSrc>
 inline _tDst
 polymorphic_cast(_tSrc* x)
 {
+	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
+	static_assert(is_pointer<_tDst>::value, "Non-pointer destination found.");
+
 	const auto tmp(dynamic_cast<_tDst>(x));
 
 	if(!tmp)
@@ -98,15 +107,22 @@ polymorphic_cast(_tSrc* x)
 /*!
 \ingroup cast
 \brief 多态类指针向派生类指针转换。
+\tparam _tSrc 源类型。
+\tparam _tDst 目标类型。
 \pre 静态断言： _tSrc 是多态类。
+\pre 静态断言： _tDst 是指针。
+\pre 静态断言： _tSrc 是 _tDst 指向的类的基类。
 \pre 断言： dynamic_cast 成功。
 \since build 175
 */
-template <class _tDst, class _tSrc>
+template <typename _tDst, class _tSrc>
 inline _tDst
 polymorphic_downcast(_tSrc* x)
 {
 	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
+	static_assert(is_pointer<_tDst>::value, "Non-pointer destination found.");
+	static_assert(is_base_of<_tSrc, typename
+		remove_pointer<_tDst>::type>::value, "Wrong destination type found.");
 
 	yassume(dynamic_cast<_tDst>(x) == x);
 
@@ -115,9 +131,12 @@ polymorphic_downcast(_tSrc* x)
 /*!
 \ingroup cast
 \brief 多态类引用向派生类引用转换。
+\tparam _tSrc 源类型。
+\tparam _tDst 目标类型。
 \since build 175
+\todo 扩展接受右值引用参数。
 */
-template <class _tDst, class _tSrc>
+template <typename _tDst, class _tSrc>
 yconstfn _tDst&
 polymorphic_downcast(_tSrc& x)
 {
@@ -128,13 +147,22 @@ polymorphic_downcast(_tSrc& x)
 /*!
 \ingroup cast
 \brief 多态类指针交叉转换。
+\tparam _tSrc 源类型。
+\tparam _tDst 目标类型。
+\pre 静态断言： _tSrc 是多态类。
+\pre 静态断言： _tDst 是指针。
 \pre 断言： dynamic_cast 成功。
+\post 结果非空。
+\note 空指针作为参数一定失败。
 \since build 179
 */
-template <class _tDst, class _tSrc>
+template <typename _tDst, class _tSrc>
 inline _tDst
 polymorphic_crosscast(_tSrc* x)
 {
+	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
+	static_assert(is_pointer<_tDst>::value, "Non-pointer destination found.");
+
 	auto p(dynamic_cast<_tDst>(x));
 
 	yassume(p);
@@ -143,10 +171,13 @@ polymorphic_crosscast(_tSrc* x)
 /*!
 \ingroup cast
 \brief 多态类引用交叉转换。
+\tparam _tSrc 源类型。
+\tparam _tDst 目标类型。
 \throw std::bad_cast dynamic_cast 失败。
 \since build 179
+\todo 扩展接受右值引用参数。
 */
-template <class _tDst, class _tSrc>
+template <typename _tDst, class _tSrc>
 yconstfn _tDst&
 polymorphic_crosscast(_tSrc& x)
 {
@@ -227,11 +258,14 @@ struct _general_cast_type_helper
 /*!
 \ingroup cast
 \brief 一般类型转换。
+\tparam _tSrc 源类型。
+\tparam _tDst 目标类型。
+\since build 175
+\todo 扩展接受右值引用参数。
 
 能确保安全隐式转换时使用 static_cast ；
 除此之外非虚基类向派生类转换使用 polymophic_downcast；
 否则使用 dynamic_cast。
-\since build 175
 */
 //@{
 template<typename _tDst, typename _tSrc>

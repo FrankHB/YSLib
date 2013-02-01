@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4931 *build 376 rev *
+\version r4949 *build 377 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-01-26 10:41 +0800
+	2013-02-01 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,6 +121,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \del ::= deleted/deletion
 \dep ::= dependencies
 \depr ::= deprecated
+\dest ::= destinations
 \dir ::= directories
 \doc ::= documents
 \dtor ::= destructors
@@ -203,6 +204,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \smft ::= static member function templates
 \snm ::= static non-member
 \spec ::= speclizations/specifications
+\src ::= sources
 \st ::= structs
 \str ::= strings
 \stt ::= struct templates
@@ -406,138 +408,107 @@ $using:
 
 
 $DONE:
-r1:
-+ metafunction \stt (remove_rcv, remove_rpcv) @ \h TypeOperations;
-/ \simp \impl @ \ctor (any @ \h Any, any_input_iterator @ \h AnyIterator)
-	^ \stt remove_rcv,
-/ 'std::conditional' -> 'contiditional' @ \stt wrap_handler @ \h AnyIterator;
-/= test 1 @ platform MinGW32;
-
-r2:
-+ 2 \s \as to confirm (\t \param) is a cv-unqualified type
-	@ \stt ValueHolder @ \h YObject;
-/= test 2 @ platform MinGW32;
+r1-r2:
+/ \impl @ \mf InputManager::DispatchInput @ platform MinGW32
+	@ \impl \u InputManager to restrict cursor area;
+/= 2 test 1 @ platform MinGW32;
 
 r3:
-/ @ \cl ValueObject @ \h YObject $=
+/ @ \u YDesktop $=
 (
-	/ \ctor \t<_type> ValueObject(const _type&)
-		-> / \ctor \t<_type> ValueObject(_type&&) ^ ystdex::remove_rcv;
-	- \ctor \t<_type> ValueObject(_type&&, MoveTag)
+	/ @ \impl \u $=
+	(
+		+ \h Cast;
+		+ \un \ns
+			$= (+ \f GetBufferedRendererOf);
+		/ \simp \impl @ (\ctor, \mf (Update, Validate))
+			@ \cl Desktop ^ GetBufferedRendererOf
+	);
+	- \mf (GetBufferedRenderer, GetContext) @ \cl Desktop @ \h
+),
+/ \tr \impl @ \mf ShlExplorer::OnPaint @ \impl \u Shells;
+/= test 2 @ platform MinGW32;
+
+r4:
+/ @ \h Cast $=
+(
+	+ \s \as @ \ft (polymorphic_cast, \ptr \ver @ polymorphic_crosscast)
+		to confirm \src \tp is \ptr to polymorphic \cl and \dest \tp is \ptr,
+	+ \s as @ \ft @ \ptr \ver @ polymorphic_downcast to confirm \dest \tp
+		is \ptr and \src \tp is base of the \cl pointed by \dest \tp
 );
 /= test 3 @ platform MinGW32;
 
-r4:
-/= test 4 @ platform DS ^ \conf release;
-
 r5:
-/ @ \h ValueNode $=
+/ @ defined YCL_HOSTED @ \u DSMain $=
 (
-	/ \ctor \t<_tString, _tParams...> \i !\exp ValueNode(_tString&&,
-		_tParams&&...) -> \ctor \t<_tString, _tParams...> \i \exp
-		ValueNode(int, _tString&&, _tParam&&...),
-	/ \tr \impl @ \ft (MakeNode, StringifyToNode, UnpackToNode#3, PackNodes)
-	// To make operator ValueNode() usable in practice.
+	+ \pre \decl \cl HostedEnvironment @ \h,
+	/ \simp \impl @ \cl DSApplication,
+	- (g_pm, HostedFunc) @ \un \ns,
+	+ \def \cl HostedEnvironment @ \impl \u,
+	/ \inc \h (<thread>, <mutex>, <condition_variable>, <>) @ \h >> \impl \u
 ),
-/ \tr \impl @ (\mf ValueNode::(\op[], GetNode, Remove) @ \impl \u ValueNode,
-	\ctor \t Configuration @ \h Configuration) ^ initializer \lst,
-/ \tr \impl @ (\f (LoadConfiguration @ \impl \u Initialization,
-	\f TransformConfiguration @ \impl \u Configuration, \f Reduce @ \impl
-	\u SContext), \mf \op ValueNode @ \cl ReadingList @ \impl \u ReadingList)
-	^ \f MakeNode ~ \ctor \t ValueNode,
-/ \simp \impl @ \mf ShlReader::SaveGlobalConfiguration @ \impl \u ShlReader;
-/= test 5 @ platform MinGW32;
+/ \tr \impl @ \impl \u InputManager @ platform MinGW32;
+/= test 4 @ platform MinGW32;
 
 r6:
-/= test 6 @ platform DS;
+/= test 5 @ platform DS;
 
 r7:
-/ \impl @ \f TransformConfiguration @ \impl \u Configuration $since r5
-	^ initializer \lst ~ MakeNode;
-/ \simp \impl @ \ft (MakeNode, StringifyToNode, UnpackToNode#3, PackNodes)
-	@ \h ValueNdoe ^ initializer \lst ~ \ctor \t ValueNode;
-/= test 7 @ platform MinGW32;
+!^ thread workaround \simp \impl @ \impl \u DSMain;
+	// See $RESOLVED_ENVIRONMENT_ISSUE.
+/= test 6 @ platform MinGW32;
 
-r8-r20:
-/= 13 test 8 @ platform MinGW32;
+r8:
+/= test 7 @ platform DS;
+
+r9:
+* \impl @ \f FetchGlobalWindowHandle @ platform MinGW32 @ \impl \u DSMain
+	$since r5;
+/= test 8 @ platform MinGW32 ^ \conf release;
+
+r10:
+/= test 9 @ platform DS ^ \conf release;
+
+r11:
+/ @ platform MinGW32 @ \impl \u DSMain $=
+(
+	+ \cl NativeWindow @ \un \ns;
+	/ \impl @ \cl (DSScreen, HostedEnvironment)
+		^ shared_ptr<NativeWindow> ~ ::HWND
+);
+/= test 10 @ platform MinGW32;
+
+r12:
+^ (std::begin ~ .begin, std::end ~ .end) @ \ft ((erase_all, erase_all_if)#1
+	@ \h Container, (make_move_iterator_pair#2 @ \h Iterator)),
+/= test 11 @ platform MinGW32;
+
+r13-r19:
+/= 7 test 12 @ platform MinGW32;
+
+r20:
+/= test 13 @ platform MinGW32 ^ \conf release;
 
 r21:
-(
-	* \ctor \t<_type> ValueObject(_type&&) !\exc _type& $since r2;
-	* $comp \conf cannot be saved successfully $since r2
-),
-* \ctor \t<_type> any(_type&&) !\exc _type& $since b352;
-/= test 9 @ platform MinGW32;
+/= test 14 @ platform DS;
 
 r22:
-/= test 10 @ platform MinGW32 ^ \conf release;
-
-r23:
-/= test 11 @ platform DS;
-
-r24:
-/= test 12 @ platform MinGW32;
-
-r25:
-* \ctor \t<_tParam...> Configuration(_tParam&&...) @ \h Configuration
-	!\exc _type& $since b335;
-/= test 13 @ platform MinGW32;
-
-r26-r29:
-/= 4 test 14 @ platform MinGW32;
-
-r30:
-(
-	+ \ctor (Configuration(const ValueNode&), Configuration(ValueNode&&))
-		@ \h Configuration;
-	* $comp \conf cannot be saved successfully on creating $since r5
-);
-/= test 15 @ platform MinGW32;
-
-r31:
-/= test 16 @ platform DS;
-
-r32:
-/= test 17 @ platform DS ^ \conf release;
-
-r33-r34:
-/ \simp \impl @ \ctor SettingPanel @ \impl \u SettingPanel;
-/= 2 test 18 @ platform MinGW32;
-
-r35-r37:
-(
-	/ (\ctor, \mf Execute) @ \cl ShlTextReader @ \impl \u ShlReader;
-	* $comp color set after setting box canceled $since b279
-);
-/= 3 test 19 @ platform MinGW32;
-
-r38-r39:
-* wrong color of button corner after background set $since $b289
-	$= (\impl @ \ctor ShlTextReader @ \impl \u ShlReader),
-/= 2 test 20 @ platform MinGW32;
-
-r40:
-/= test 21 @ platform MinGW32 ^ \conf release;
-
-r41:
-/= test 22 @ platform DS;
-
-r42:
-/= test 23 @ platform DS ^ \conf release;
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-01-26 +0800:
--34.0d;
-// Mercurial local rev1-rev248: r9964;
+2013-02-01 +0800:
+-35.9d;
+// Mercurial local rev1-rev249: r9986;
 
 / ...
 
 
 $NEXT_TODO:
-b[$current_rev]-b400:
+b[$current_rev]-b401:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -836,8 +807,13 @@ $FURTHER_WORK:
 	be reviewed. See $RESOLVED_ENVIRONMENT_ISSUE for other resovled issues.
 // Identifiers '$workaround_*' indicate earliest development stage when first \
 	time of the workaround settled.
-// Identifiers '$resolved_*' indecate earliest development stage when first \
+// Identifiers '$resolved_*' indicate earliest development stage when first \
 	time of getting the issues confirmed to fixed.
+// Identifier '$orig_defect' indicates that the issue was confirmed being a \
+	defect of environment found by this project firstly.
+// Identifier '$non_env_fix' indicates that the issue was resolved by \
+	modifying project files as non-workaround rather fixing the known problem \
+	of environment.
 
 $KNOWN_ISSUE:
 // There are issues that won't be fixed if no further progress for \
@@ -852,11 +828,6 @@ $KNOWN_ISSUE:
 * $known_issue_b279 "crashing after sleeping(default behavior of closing then \
 	reopening lid) on real machine due to libnds default interrupt handler \
 	for power management" $since b279;
-* $known_issue_b298 "sorry, unimplemented: use of 'type_pack_expansion' in \
-	template with libstdc++ std::thread" @ ^ "G++ (4.6, 4.7)"
-	$before $future(G++4.7.2);
-	// G++ 4.7.0 tested @ b300.
-	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
 * $known_issue_b346 "vertical synchronization lacked for debug configuration \
 	when console window had got focus and then clipped with the main window"
 	@ "platform %DS";
@@ -911,6 +882,7 @@ $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
 
 $RESOLVED_ENVIRONMENT_ISSUE:
 // Issues only for recursive analysis and testing if necessary.
+// Ordered by resolved reversion and then known revision.
 * $resolved_b293 "G++ 4.5.2 fails on compiling code with defaulted move \
 	assignment operator" @ $interval([b207, b221));
 * $known_issue_b293 $resolved_b304 "G++ 4.6.1 internal error for closure \
@@ -919,6 +891,14 @@ $RESOLVED_ENVIRONMENT_ISSUE:
 * $known_issue_b293 $resolved_b315 "G++ 4.6.1 ignores non-explicit conversion \
 	templates when there exists non-template explicit conversion function"
 	@ $interval([b260, b314));
+* $known_issue_b298 $orig_defect $resolved_b377 $non_env_fix
+	"sorry, unimplemented: use of 'type_pack_expansion' \
+	in template with libstdc++ std::thread" @ ^ "G++ (4.6, 4.7)"
+	$before $future(G++4.7.2);
+	// G++ 4.7.0 tested @ b300.
+	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
+	// Resolved by moving position of thread initialization.
+	// This issue was believed beging resolved by environment fix @ G++ 4.8.x.
 
 
 $HISTORY:
@@ -1066,6 +1046,28 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ @ "platform %MinGW32" @ %'Helper' $=
+		(
+			/ "restricted cursor area adjusting to boundary of the window"
+				@ "class %InputManager",
+			/ $dev "hid concurrent interface" ^ "pImpl idiom"
+				@ "hosted environment" @ "%'DSMain'
+		),
+		- "unsafe renderer downcast interfaces" @ "class %Desktop"
+			@ %'YSLib'.'GUI',
+	),
+	/ $dev %'YBase'.'YStandarEx' $=
+	(
+		+ "static assertions" @ "pointer version of function templates \
+			%(polymorphic_cast, polymorphic_crosscast)" @ %'Cast',
+		^ ("ADL" 'begin' ~ '.begin', 'end' ~ '.end') @ "function templates"
+	)
+),
+
+b376
 (
 	/ %'YBase'.'YStandardEx' $-
 	(

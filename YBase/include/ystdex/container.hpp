@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r218
-\author FrankHB<frankhb1989@gmail.com>
+\version r229
+\author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2012-09-12 14:40 +0800
+	2013-02-01 11:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,17 +102,18 @@ seq_insert(_tContainer& cont, _tParams&&... args)
 /*!
 \ingroup algorithms
 \brief 删除指定序列容器中和指定值的相等的元素。
+\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定容器迭代器。
 \since build 289
 */
 template<typename _tContainer>
 void
 erase_all(_tContainer& c, const typename _tContainer::value_type& val)
 {
-	c.erase(std::remove(c.begin(), c.end(), val), c.end());
+	c.erase(std::remove(begin(c), end(c), val), end(c));
 }
 /*!
 \ingroup algorithms
-\brief 删除指定序列容器中迭代器区间中和指定值的相等的元素。
+\brief 删除指定容器中迭代器区间中和指定值的相等的元素。
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
@@ -129,18 +130,19 @@ erase_all(_tContainer& c, _tIn first, _tIn last, const _tValue& value)
 
 /*!
 \ingroup algorithms
-\brief 删除指定序列容器中满足条件的元素。
+\brief 删除指定序列范围（包含序列容器及内建数组等）中满足条件的元素。
+\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 289
 */
-template<typename _tContainer, typename _fPredicate>
+template<typename _tRange, typename _fPredicate>
 void
-erase_all_if(_tContainer& c, _fPredicate pred)
+erase_all_if(_tRange& c, _fPredicate pred)
 {
-	c.erase(std::remove_if(c.begin(), c.end(), pred), c.end());
+	c.erase(std::remove_if(begin(c), end(c), pred), end(c));
 }
 /*!
 \ingroup algorithms
-\brief 删除指定序列容器中迭代器区间中满足条件的元素。
+\brief 删除指定容器中迭代器区间中满足条件的元素。
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */

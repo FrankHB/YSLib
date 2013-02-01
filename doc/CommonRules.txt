@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r1876
+\version r1892
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-01-22 05:20 +0800
+	2013-02-01 11:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -465,13 +465,16 @@
 @3.2.3 引导易读的代码：
 便于编写便于阅读的用户代码。
 
+@3.2.4 相似衍生：
+非严格的最小惊讶原则。
+
 @3.3 实现基础：
 
 @3.3.1 API 命名风格：
 标识符命名以标识符命名规约(@4) 为基础。
 避免命名空间污染，除非是有意耦合的。
 
-@3.3.2 语用风格：
+@3.3.2 语用规则：
 参照 @5 。
 
 @3.4 C++ 实现的广义的契约式设计：
@@ -1357,7 +1360,7 @@ $4.1.3.1.4 临时性例外：
 注意排除模版。
 区分隐式声明和定义。
 注意 ISO C++11 关于隐式声明复制构造函数和复制赋值操作符的 deprecated 特性。
-构造函数中的虚函数调用行为同非虚函数。
+注意 ISO C++ 构造函数中的虚函数调用行为同非虚函数，这和 Java 、 C# 、 C++/CLI 和早期的非标准 C++ 的类似特性不同。
 
 @5.13.5 访问权限控制：
 访问权限控制决定可访问性。
@@ -1414,16 +1417,29 @@ $4.1.3.1.4 临时性例外：
 
 @5.15.2 ISO C++11 直接指定的依赖项：
 本节“包含”的含义参见 ISO C++11 17.6.5.2/1 ，即被指示为包含的头文件中的标准库接口的声明和定义保证和包含此头文件等效。
+
+@5.15.2.1 由 Synopsis 节显式指定：
  <algorithm> 、 <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <random> 、 <regex> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <valarray> 、 <vector> 、 <utility> 包含 <initializer_list> ；
  <ios> 包含 <iosfwd> ；
  <bitset> 包含 <string> 和 <iosfwd> ；
  <isotream>包含 <ios>、<streambuf>、<istream>、<ostream>。
 
-@5.15.3 迭代器：
+@5.15.2.2 补充指定：
+ ISO C++11 24.6.5/1 指定，除 <iterator> 外，以下头文件被包含时 24.6.5 的函数模版（即 std::begin 和 std::end ）也可用：
+ <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <regex> 、 <set> 、 <string> 、 <unordered_map> 、 <unordered_set> 和 <vector>.
+
+@5.15.3 C 标准库：
+不使用 ISO C 标准库头文件名，以 ISO C++ 对应无扩展名的头文件代替。注意命名空间。
+
+@5.15.3.1 内存管理：
+如无必要，不使用 realloc 。
+注意 ISO C 标准库关于内存分配的设计遵循无隐式 malloc 规则(no-implicit-malloc rule) ，而 POSIX 和其它实现忽略（参见 http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1106.txt )。
+
+@5.15.4 迭代器：
 注意迭代器的类别(category) 。
 注意 std::iterator 的继承应该为 public 继承，否则需要显式在派生类中声明类型名以免失效。对于迭代器类模版，依赖名称(@5.3.3.2) 若作为 std::iterator 的参数，总是需要重新声明。
 
-@5.15.4 标准 I/O
+@5.15.5 C++ 标准 I/O
 可以同时使用 C++ 标准流和 printf/scanf 函数族进行格式化输入/输出处理，但在考虑效率（以及目标文件大小）时应尽量避免使用 C++ 标准流。
 应注意 nifty counter idiom(http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter) 对多翻译单元程序大小的影响。
 正确使用 printf/scanf 函数族格式化输入输出的控制字符。

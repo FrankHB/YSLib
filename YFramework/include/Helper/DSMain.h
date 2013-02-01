@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r563
+\version r612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-01-04 16:55 +0800
+	2013-01-30 07:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,6 @@
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Core/ydevice.h"
 #include "YCLib/Input.h"
-#if YCL_MULTITHREAD == 1
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#endif
 #include "NPL/Configuration.h"
 
 YSL_BEGIN
@@ -65,6 +60,13 @@ const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 YSL_BEGIN_NAMESPACE(Drawing)
 class FontCache;
 YSL_END_NAMESPACE(Drawing)
+#if YCL_HOSTED
+/*!
+\brief 宿主环境。
+\since build 377
+*/
+class HostedEnvironment;
+#endif
 
 
 /*!
@@ -74,27 +76,13 @@ YSL_END_NAMESPACE(Drawing)
 */
 class YF_API DSApplication : public Application
 {
-#if YCL_HOSTED && YCL_MULTITHREAD == 1
+#if YCL_HOSTED
 private:
-	//! \brief 宿主背景线程。
-	std::thread thread;
-
-#if YCL_MINGW32
-protected:
-	//! \brief 本机主窗口句柄。
-	::HWND hHost;
-#endif
-
-private:
-	//! \brief 宿主环境互斥量。
-	std::mutex mtx;
-	//! \brief 宿主环境就绪条件。
-	std::condition_variable init;
 	/*!
-	\brief 初始化条件。
-	\since build 325
+	\brief 宿主状态。
+	\since build 377
 	*/
-	std::condition_variable full_init;
+	unique_ptr<HostedEnvironment> p_hosted;
 #endif
 
 protected:
@@ -140,6 +128,9 @@ public:
 	*/
 	~DSApplication() override;
 
+	//! \since build 377
+	DefPred(const ynothrow, ScreenReady, bool(pScreenUp) && bool(pScreenDown))
+
 	/*!
 	\brief 取字体缓存引用。
 	\pre 断言：指针非空。
@@ -147,6 +138,11 @@ public:
 	*/
 	Drawing::FontCache&
 	GetFontCache() const ynothrow;
+#if YCL_HOSTED
+	//! \since build 377
+	HostedEnvironment&
+	GetHostedEnvironment();
+#endif
 	/*!
 	\brief 取上屏幕。
 	\pre 断言：内部指针非空。
@@ -174,23 +170,6 @@ public:
 	*/
 	bool
 	DealMessage();
-
-#if YCL_HOSTED
-	//! \since build 325
-	::HWND
-	GetWindowHandle()
-	{
-		return hHost;
-	}
-
-private:
-	/*!
-	\brief 初始化宿主资源和本机消息循环线程。
-	\since build 325
-	*/
-	void
-	HostTask();
-#endif
 };
 
 
