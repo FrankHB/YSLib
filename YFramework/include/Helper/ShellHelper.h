@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1551
+\version r1573
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-01-04 16:55 +0800
+	2013-02-03 12:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,32 @@
 
 #include "../ysbuild.h"
 #include <ystdex/cast.hpp>
+#include "YCLib/Debug.h"
+#include "YSLib/Service/ytimer.h" // for Timers::HighResolutionClock;
 #include "YSLib/UI/textlist.h" // for Components::TextList::ListType;
 
 YSL_BEGIN
+
+#ifndef NDEBUG
+/*!
+\ingroup debugging
+\brief 调试计时器。
+\since build 378
+*/
+class YF_API DebugTimer
+{
+protected:
+	std::string event_info;
+	Timers::HighResolutionClock::time_point base_tick;
+
+public:
+	DebugTimer(const std::string& str = "");
+	~DebugTimer();
+};
+#	define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer name(__VA_ARGS__);
+#else
+#	define YSL_DEBUG_DECL_TIMER(...)
+#endif
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

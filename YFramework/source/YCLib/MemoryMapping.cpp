@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r118
-\author FrankHB<frankhb1989@gmail.com>
+\version r123
+\author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2012-09-04 11:02 +0800
+	2013-02-02 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +29,10 @@
 #include <fcntl.h>
 #include <stdexcept> // for std::runtime_error;
 #if YCL_DS
-#include <unistd.h>
+#	include <unistd.h>
 #elif YCL_MINGW32
-#include <Windows.h>
-#include <sys/stat.h>
+#	include <Windows.h>
+#	include <sys/stat.h>
 
 namespace
 {

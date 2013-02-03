@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r120
+\version r136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2013-01-10 19:04 +0800
+	2013-02-03 11:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,21 @@
 
 #include "ycommon.h"
 
+/*!	\defgroup diagnostic Diagnostic
+\brief 诊断设施。
+\since build 378
+*/
+
+/*!	\defgroup debugging Debugging
+\ingroup diagnostic
+\brief 调试设施。
+\since build 378
+
+仅在宏 NDEBUG 未被定义时起诊断作用的调试接口和实现。
+*/
+
 /*!
+\ingroup debugging
 \since build 314
 */
 //@{
@@ -46,6 +60,10 @@
 namespace platform
 {
 
+/*!
+\ingroup diagnostic
+*/
+//@{
 /*!
 \brief 调试模式：设置状态。
 \note 当且仅当状态为 true 时，以下除 YDebugGetStatus 外的调试模式函数有效。
@@ -93,6 +111,7 @@ YB_ATTR(format (printf, 1, 2))
 #endif
 YF_API int
 yprintf(const char*, ...);
+//@}
 
 } // namespace platform_ex;
 

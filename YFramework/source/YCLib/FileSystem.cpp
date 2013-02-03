@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r731
-\author FrankHB<frankhb1989@gmail.com>
+\version r735
+\author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2012-09-24 20:55 +0800
+	2013-02-02 14:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,12 @@
 #include "YCLib/NativeAPI.h"
 #include <CHRLib/chrproc.h>
 #if YCL_DS
-#include <fcntl.h>
+#	include <fcntl.h>
 
 //! \since build 341
 extern "C" int	_EXFUN(fileno, (FILE *));
 #elif YCL_MINGW32
-#include <Shlwapi.h> // for ::PathIsRelativeW;
+#	include <Shlwapi.h> // for ::PathIsRelativeW;
 
 //! \since build 312
 //@{

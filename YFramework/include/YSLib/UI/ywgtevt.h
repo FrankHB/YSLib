@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1283
-\author FrankHB<frankhb1989@gmail.com>
+\version r1286
+\author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2012-12-25 19:04 +0800
+	2013-02-02 13:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,10 +184,10 @@ public:
 
 /*!
 \brief 简单事件参数类。
-
-保存部件引用和指定类型值的事件参数。
 \warning 非虚析构。
 \since build 268
+
+保存部件引用和指定类型值的事件参数。
 */
 template<typename _type>
 struct GValueEventArgs : public UIEventArgs

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2823
-\author FrankHB<frankhb1989@gmail.com>
+\version r2826
+\author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2012-12-11 23:26 +0800
+	2013-02-02 12:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,7 +91,7 @@ DefBitmaskOperations(FontStyle, u8)
 
 /*!
 \brief 取样式名称。
-\post 返回值非空。
+\return 非空结果。
 \since build 277
 */
 yconstfn const char*

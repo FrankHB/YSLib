@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r808
+\version r810
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2013-01-28 21:36 +0800
+	2013-02-02 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,10 +149,10 @@ polymorphic_downcast(_tSrc& x)
 \brief 多态类指针交叉转换。
 \tparam _tSrc 源类型。
 \tparam _tDst 目标类型。
+\return 非空结果。
 \pre 静态断言： _tSrc 是多态类。
 \pre 静态断言： _tDst 是指针。
 \pre 断言： dynamic_cast 成功。
-\post 结果非空。
 \note 空指针作为参数一定失败。
 \since build 179
 */

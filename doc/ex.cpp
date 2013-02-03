@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4949 *build 377 rev *
+\version r4949 *build 378 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-01 12:48 +0800
+	2013-02-03 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -408,101 +408,107 @@ $using:
 
 
 $DONE:
-r1-r2:
-/ \impl @ \mf InputManager::DispatchInput @ platform MinGW32
-	@ \impl \u InputManager to restrict cursor area;
-/= 2 test 1 @ platform MinGW32;
-
-r3:
-/ @ \u YDesktop $=
+r1:
+/ @ platform MinGW32 @ \impl \u DSMain $=
 (
-	/ @ \impl \u $=
-	(
-		+ \h Cast;
-		+ \un \ns
-			$= (+ \f GetBufferedRendererOf);
-		/ \simp \impl @ (\ctor, \mf (Update, Validate))
-			@ \cl Desktop ^ GetBufferedRendererOf
-	);
-	- \mf (GetBufferedRenderer, GetContext) @ \cl Desktop @ \h
-),
-/ \tr \impl @ \mf ShlExplorer::OnPaint @ \impl \u Shells;
-/= test 2 @ platform MinGW32;
+	/ \ctor DSScreen(bool, const shared_ptr<NativeWindow>&) ynothrow
+		-> \ctor DSScreen(bool) ynothrow,
+	/ \tr \simp \impl @ \ctor DSApplication,
+	/ \simp \impl @ \mf HostedEnvironment::HostTask,
+	/ \tr decl order for \ctor DSScreen @ \impl \u
+)
+/= test 1 @ platform MinGW32;
+
+r2-r3:
+/= 2 test 2 @ platform MinGW32;
 
 r4:
-/ @ \h Cast $=
+/ \simp \impl @ \cl HostedEnvironment @ \impl \u DSMain $=
 (
-	+ \s \as @ \ft (polymorphic_cast, \ptr \ver @ polymorphic_crosscast)
-		to confirm \src \tp is \ptr to polymorphic \cl and \dest \tp is \ptr,
-	+ \s as @ \ft @ \ptr \ver @ polymorphic_downcast to confirm \dest \tp
-		is \ptr and \src \tp is base of the \cl pointed by \dest \tp
+	/ \m order,
+	/ \ctor
 );
 /= test 3 @ platform MinGW32;
 
 r5:
-/ @ defined YCL_HOSTED @ \u DSMain $=
+/ \impl @ native hosted message loop @ platform MinGW32 @ \impl \u DSMain $=
 (
-	+ \pre \decl \cl HostedEnvironment @ \h,
-	/ \simp \impl @ \cl DSApplication,
-	- (g_pm, HostedFunc) @ \un \ns,
-	+ \def \cl HostedEnvironment @ \impl \u,
-	/ \inc \h (<thread>, <mutex>, <condition_variable>, <>) @ \h >> \impl \u
-),
-/ \tr \impl @ \impl \u InputManager @ platform MinGW32;
+	^ TranslateMessage,
+	^ DispatchMessageW ~ DispatchMessage,
+	^ WaitMessage ~ std::this_thread::sleep_for,
+);
 /= test 4 @ platform MinGW32;
 
 r6:
-/= test 5 @ platform DS;
++ \grp (diagnostic; debugging) @ \h Debug;
+/ @ \h Debug $=
+(
+	/ \a debugging \f >> \grp debugging;
+	/ \a diagnostic \f >> \grp diagnostic
+),
+(
+	+ \inc \h (YDebug, YTimer) @ \h ShellHelper;
+	/ \cl DebugTimer @ \un \ns @ \impl \u DSMain
+		>> (\ns YSLib, \grp debugging) @ \u ShellHelper
+);
+/ \tr \inc \h YDebug -> \h ShellHelper @ \impl \u DSMain;
+/= test 5 @ platform MinGW32;
 
 r7:
-!^ thread workaround \simp \impl @ \impl \u DSMain;
-	// See $RESOLVED_ENVIRONMENT_ISSUE.
-/= test 6 @ platform MinGW32;
+/= test 6 @ platform DS;
 
 r8:
-/= test 7 @ platform DS;
+/= test 7 @ platform DS ^ \conf release;
 
 r9:
-* \impl @ \f FetchGlobalWindowHandle @ platform MinGW32 @ \impl \u DSMain
-	$since r5;
-/= test 8 @ platform MinGW32 ^ \conf release;
-
-r10:
-/= test 9 @ platform DS ^ \conf release;
-
-r11:
-/ @ platform MinGW32 @ \impl \u DSMain $=
++ 'YF_API' @ \decl @ \cl DebugTimer @ \h ShellHelper,
 (
-	+ \cl NativeWindow @ \un \ns;
-	/ \impl @ \cl (DSScreen, HostedEnvironment)
-		^ shared_ptr<NativeWindow> ~ ::HWND
+	+ \ns Host @ \h YGlobal;
+	/ @ platform MinGW32 @ \u DSMain $=
+	(
+		/ @ \cl YSLib::HostedEnvironment -> \cl Host::Environment,
+		/ \tr \mf GetHostedEnvironment @ \cl DSApplication -> GetHost
+	)
 );
+/= test 8 @ platform MinGW32;
+
+r10-r25:
+/= 16 test 9 @ platform MinGW32;
+
+r26:
+* wrongly ignoring first window close messages @ native hosted message loop
+	$since r5;
 /= test 10 @ platform MinGW32;
 
-r12:
-^ (std::begin ~ .begin, std::end ~ .end) @ \ft ((erase_all, erase_all_if)#1
-	@ \h Container, (make_move_iterator_pair#2 @ \h Iterator)),
-/= test 11 @ platform MinGW32;
+r27:
+/= test 11 @ platform MinGW32 ^ \conf release;
 
-r13-r19:
-/= 7 test 12 @ platform MinGW32;
+r28-r29:
+/= 2 test 12 @ platform MinGW32;
 
-r20:
-/= test 13 @ platform MinGW32 ^ \conf release;
+r30-r34:
+/= 5 test 13 @ platform MinGW32 ^ \conf release;
 
-r21:
-/= test 14 @ platform DS;
+r35:
+* \impl @ host task @ \impl \u DSMain $since r1;
+/= test 14 @ platform MinGW32;
 
-r22:
-/= test 15 @ platform DS ^ \conf release;
+r36:
+/= test 14 @ platform MinGW32 ^ \conf release;
+
+r37:
+/= test 15 @ platform DS;
+
+r38:
+/= test 16 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-02-01 +0800:
--35.9d;
-// Mercurial local rev1-rev249: r9986;
+2013-02-03 +0800:
+-35.6d;
+// Mercurial local rev1-rev250: r10024;
 
 / ...
 
@@ -1046,6 +1052,34 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		(
+			+ $doc "group %(diagnostic, debugging)" @ %'YCLib'.'Debug';
+			$dep_to "debug doc group"
+		),
+		/ %'Helper' $=
+		(
+			/ @ "platform %MinGW32" $=
+			(
+				+ "namespace %Host" @ %'YGlobal';
+				/ %'DSMain' $=
+				(
+					+ "class %Host::Environment as pImpl class";
+					/ DLD "implementation" @ "native hosted message loop"
+						^ "waiting for hosted environment"
+				)
+			),
+			(
+				$dep_from "debug doc group";
+				+ "class %DebugTimer" @ "!defined %NDEBUG" @ %'ShellHelper'
+			)
+		)
+	)
+),
+
+b377
 (
 	/ %'YFramework' $=
 	(

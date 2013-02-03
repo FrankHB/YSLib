@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r612
+\version r620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-01-30 07:36 +0800
+	2013-02-03 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,11 +61,13 @@ YSL_BEGIN_NAMESPACE(Drawing)
 class FontCache;
 YSL_END_NAMESPACE(Drawing)
 #if YCL_HOSTED
+YSL_BEGIN_NAMESPACE(Host)
 /*!
 \brief 宿主环境。
-\since build 377
+\since build 378
 */
-class HostedEnvironment;
+class Environment;
+YSL_END_NAMESPACE(Host)
 #endif
 
 
@@ -82,7 +84,7 @@ private:
 	\brief 宿主状态。
 	\since build 377
 	*/
-	unique_ptr<HostedEnvironment> p_hosted;
+	unique_ptr<Host::Environment> p_hosted;
 #endif
 
 protected:
@@ -139,9 +141,9 @@ public:
 	Drawing::FontCache&
 	GetFontCache() const ynothrow;
 #if YCL_HOSTED
-	//! \since build 377
-	HostedEnvironment&
-	GetHostedEnvironment();
+	//! \since build 378
+	Host::Environment&
+	GetHost();
 #endif
 	/*!
 	\brief 取上屏幕。

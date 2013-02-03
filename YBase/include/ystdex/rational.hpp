@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1164
+\version r1166
 \author FrankHB<frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-01-18 21:15 +0800
+	2013-02-02 12:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,11 +89,11 @@ struct fixed_multiplicative<std::uint64_t>
 \tparam _tBase 基本整数类型。
 \tparam _vInt 整数部分（若有符号则不包括符号位，下同）二进制位数。
 \tparam _vFrac 分数部分二进制位数。
+\note 默认保留 6 位二进制小数。
+\note 部分实现参考： http://www.codeproject.com/KB/cpp/fp_math.aspx 。
 \warning 基本整数类型需要具有补码表示。
 \warning 非虚析构。
 \warning 算术运算可能溢出。
-\note 默认保留 6 位二进制小数。
-\note 部分实现参考： http://www.codeproject.com/KB/cpp/fp_math.aspx 。
 \since build 260
 */
 template<typename _tBase = std::int32_t,

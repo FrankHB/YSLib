@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r199
-\author FrankHB<frankhb1989@gmail.com>
+\version r202
+\author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2012-09-04 11:54 +0800
+	2013-02-02 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/Input.h"
 #if YCL_MULTITHREAD == 1
-#include <mutex>
+#	include <mutex>
 #	define YCL_DEF_LOCKGUARD(_lck, _mutex) \
 	std::lock_guard<std::mutex> _lck(_mutex);
 #else

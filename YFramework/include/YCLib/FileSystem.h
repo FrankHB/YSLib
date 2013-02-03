@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r560
-\author FrankHB<frankhb1989@gmail.com>
+\version r564
+\author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2012-12-28 02:13 +0800
+	2013-02-02 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 struct DIR;
 struct dirent;
 #else
-#include <dirent.h>
+#	include <dirent.h>
 #endif
 
 namespace platform
@@ -381,7 +381,7 @@ public:
 
 	/*!
 	\brief 取节点名称。
-	\post 返回值非空。
+	\return 非空结果。
 	\since build 319
 	*/
 	const char*

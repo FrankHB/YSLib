@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2301
+\version r2431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-01-31 10:00 +0800
+	2013-02-03 17:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,15 +30,15 @@
 #include "Helper/Initialization.h"
 #include "YSLib/Adaptor/Font.h"
 #include "YSLib/Service/ytimer.h"
-#include "YCLib/Debug.h"
+#include "Helper/ShellHelper.h" // for DebugTimer;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #if YCL_MULTITHREAD == 1
-#include <thread>
-#include <mutex>
-#include <condition_variable>
+#	include <thread>
+#	include <mutex>
+#	include <condition_variable>
 #endif
 #ifdef YCL_DS
-#include "YSLib/Service/yblit.h" // for Drawing::FillPixel;
+#	include "YSLib/Service/yblit.h" // for Drawing::FillPixel;
 #endif
 
 YSL_BEGIN
@@ -136,39 +136,6 @@ NativeWindow::Show()
 //注册的应用程序指针。
 DSApplication* pApp;
 
-
-#ifndef NDEBUG
-/*!
-\brief 调试计时器。
-\since build 314
-*/
-class DebugTimer
-{
-protected:
-	std::string event_info;
-	Timers::HighResolutionClock::time_point base_tick;
-
-public:
-	DebugTimer(const std::string& str = "")
-		: event_info(str), base_tick()
-	{
-		std::printf("Start tick of [%s] :\n", event_info.c_str());
-		base_tick = Timers::HighResolutionClock::now();
-	}
-	~DebugTimer()
-	{
-		const double t((Timers::HighResolutionClock::now() - base_tick).count()
-			/ 1e6);
-
-		std::printf("Performed [%s] in: %f milliseconds.\n",
-			event_info.c_str(), t);
-	}
-};
-#define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer name(__VA_ARGS__);
-#else
-#define YSL_DEBUG_DECL_TIMER(...)
-#endif
-
 } // unnamed namespace;
 
 YSL_BEGIN_NAMESPACE(Devices)
@@ -223,8 +190,8 @@ private:
 	std::mutex update_mutex;
 
 public:
-	//! \since build 377
-	DSScreen(bool, const shared_ptr<NativeWindow>&) ynothrow;
+	//! \since build 378
+	DSScreen(bool) ynothrow;
 
 	/*!
 	\brief 更新。
@@ -267,16 +234,6 @@ DSScreen::Update(Color c)
 	FillPixel<PixelType>(GetCheckedBufferPtr(), GetAreaOf(GetSize()), c);
 }
 #elif YCL_MINGW32
-DSScreen::DSScreen(bool b, const shared_ptr<NativeWindow>& p_wnd) ynothrow
-	: Devices::Screen(MainScreenWidth, MainScreenHeight),
-	Offset(), p_host_wnd(p_wnd), gbuf(Size(MainScreenWidth, MainScreenHeight)),
-	update_mutex()
-{
-	pBuffer = gbuf.pBuffer;
-	if(b)
-		Offset.Y = MainScreenHeight;
-}
-
 void
 DSScreen::Update(Drawing::BitmapPtr buf) ynothrow
 {
@@ -318,8 +275,8 @@ namespace
 {
 
 #if YCL_MINGW32
-LRESULT CALLBACK
-WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+::LRESULT CALLBACK
+WndProc(::HWND hWnd, ::UINT msg, ::WPARAM wParam, ::LPARAM lParam)
 {
 //	YSL_DEBUG_DECL_TIMER(tmr, "WndProc");
 	switch(msg)
@@ -425,65 +382,62 @@ Idle(Messaging::Priority prior)
 
 
 #if YCL_HOSTED
-class HostedEnvironment
+YSL_BEGIN_NAMESPACE(Host)
+
+class Environment
 {
-#if YCL_MULTITHREAD == 1
+#	if YCL_MULTITHREAD == 1
 private:
-	//! \brief 宿主背景线程。
-	std::thread host_thrd;
-#if YCL_MINGW32
-	//! \brief 本机主窗口指针。
-	shared_ptr<NativeWindow> p_main_wnd;
-#endif
 	//! \brief 宿主环境互斥量。
 	std::mutex mtx;
 	//! \brief 宿主环境就绪条件。
 	std::condition_variable init;
 	//! \brief 初始化条件。
 	std::condition_variable full_init;
-#endif
+#		if YCL_MINGW32
+	//! \brief 本机主窗口指针。
+	shared_ptr<NativeWindow> p_main_wnd;
+#		endif
+	//! \brief 宿主背景线程。
+	std::thread host_thrd;
+#	endif
 
 public:
-	HostedEnvironment();
-	~HostedEnvironment();
+	Environment();
+	~Environment();
 
-#if YCL_MINGW32
+#	if YCL_MULTITHREAD == 1
 	//! \brief 初始化宿主资源和本机消息循环线程。
 	void
 	HostTask();
-#endif
 
-#if YCL_MULTITHREAD == 1
 	void
 	Notify();
 
 	const shared_ptr<NativeWindow>&
 	Wait();
-#endif
+#	endif
 };
 
-HostedEnvironment::HostedEnvironment()
-#if YCL_MULTITHREAD == 1
-	: host_thrd(),
-#if YCL_MINGW32
+Environment::Environment()
+#	if YCL_MULTITHREAD == 1
+	: mtx(), init(), full_init(),
+#		if YCL_MINGW32
 	p_main_wnd(),
-#endif
-	mtx(), init(), full_init()
-#endif
-{
-#if YCL_MULTITHREAD == 1
-	host_thrd = std::thread(std::mem_fn(&HostedEnvironment::HostTask), this);
-#endif
-}
-HostedEnvironment::~HostedEnvironment()
+#		endif
+	host_thrd(std::thread(std::mem_fn(&Environment::HostTask), this))
+#	endif
+{}
+Environment::~Environment()
 {
 	host_thrd.detach();
 }
 
-#if YCL_MINGW32
+#	if YCL_MULTITHREAD == 1
 void
-HostedEnvironment::HostTask()
+Environment::HostTask()
 {
+#		if YCL_MINGW32
 	{
 		std::lock_guard<std::mutex> lck(mtx);
 
@@ -503,39 +457,62 @@ HostedEnvironment::HostTask()
 		YAssert(pApp->IsScreenReady(), "Screen is not ready.");
 	}
 
-	::MSG host_msg; //!< 本机消息类型。
-
 	while(true)
-		if(::PeekMessage(&host_msg, NULL, 0, 0, PM_REMOVE))
-			::DispatchMessage(&host_msg);
+	{
+		::MSG msg; //!< 本机消息。
+
+		if(::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE) != 0)
+		{
+		//	if(!PreTranslateMessage(&msg))
+			{
+				::TranslateMessage(&msg);
+				::DispatchMessageW(&msg);
+			}
+		//	if(CheckCloseDialog(frm, false))
+			//	break;
+		}
 		else
 		//	std::this_thread::yield();
-			std::this_thread::sleep_for(host_sleep);
+		//	std::this_thread::sleep_for(host_sleep);
+			// NOTE: Failure ignored.
+			::WaitMessage();
+	}
+#		endif
 }
-#endif
 
-#if YCL_MULTITHREAD == 1
 void
-HostedEnvironment::Notify()
+Environment::Notify()
 {
 	full_init.notify_one();
 }
 
 const shared_ptr<NativeWindow>&
-HostedEnvironment::Wait()
+Environment::Wait()
 {
 	std::unique_lock<std::mutex>lck(mtx);
 
-#if YCL_MINGW32
+#		if YCL_MINGW32
 	init.wait(lck, [this]{return bool(p_main_wnd);});
 
 	YAssert(bool(p_main_wnd), "Null pointer found.");
-#endif
+#		endif
 
 	return p_main_wnd;
 }
-#endif
 
+YSL_END_NAMESPACE(Host)
+#		if YCL_MINGW32
+DSScreen::DSScreen(bool b) ynothrow
+	: Devices::Screen(MainScreenWidth, MainScreenHeight),
+	Offset(), p_host_wnd(pApp->GetHost().Wait()),
+	gbuf(Size(MainScreenWidth, MainScreenHeight)), update_mutex()
+{
+	pBuffer = gbuf.pBuffer;
+	if(b)
+		Offset.Y = MainScreenHeight;
+}
+#		endif
+#	endif
 #endif
 
 
@@ -555,7 +532,7 @@ try	: Application(),
 	//全局初始化。
 	InitializeEnviornment();
 #if YCL_HOSTED
-	p_hosted = make_unique<HostedEnvironment>();
+	p_hosted = make_unique<Host::Environment>();
 #endif
 
 	//若有必要，启动本机消息循环线程后完成应用程序实例其它部分的初始化（注意顺序）。
@@ -580,24 +557,16 @@ try	: Application(),
 	//初始化系统设备。
 #if YCL_DS
 	InitVideo();
+#endif
 	try
 	{
 		pScreenUp = make_unique<DSScreen>(false);
 		pScreenDown = make_unique<DSScreen>(true);
 	}
-#elif YCL_MINGW32
-	const auto& p_hosted_wnd(p_hosted->Wait());
-	try
-	{
-		pScreenUp = make_unique<DSScreen>(false, p_hosted_wnd);
-		pScreenDown = make_unique<DSScreen>(true, p_hosted_wnd);
-	}
-#endif
 	catch(...)
 	{
 		throw LoggedEvent("Screen initialization failed.");
 	}
-
 #if YCL_DS
 	ystdex::polymorphic_downcast<DSScreen&>(*pScreenUp)
 		.Update(ColorSpace::Blue),
@@ -645,8 +614,8 @@ DSApplication::GetFontCache() const ynothrow
 	return *pFontCache;
 }
 #if YCL_HOSTED
-HostedEnvironment&
-DSApplication::GetHostedEnvironment()
+Host::Environment&
+DSApplication::GetHost()
 {
 	YAssert(bool(p_hosted), "Null pointer found.");
 
@@ -708,8 +677,7 @@ DSApplication::DealMessage()
 ::HWND
 FetchGlobalWindowHandle()
 {
-	return FetchGlobalInstance().GetHostedEnvironment().Wait()
-		->GetNativeHandle();
+	return FetchGlobalInstance().GetHost().Wait()->GetNativeHandle();
 }
 #endif
 

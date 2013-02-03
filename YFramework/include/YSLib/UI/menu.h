@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r802
-\author FrankHB<frankhb1989@gmail.com>
+\version r806
+\author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2012-12-14 20:20 +0800
+	2013-02-02 12:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,7 +95,7 @@ public:
 
 	/*!
 	\brief 判断菜单项是否有效。
-	\断言： <tt>IsInInterval(idx, GetList().size())</tt> 。
+	\pre 断言： <tt>IsInInterval(idx, GetList().size())</tt> 。
 	\post <tt>vDisabled.size() == GetList().size()</tt> 。
 	*/
 	bool
@@ -106,7 +106,7 @@ public:
 
 	/*!
 	\brief 设置 idx 指定的菜单项的可用性。
-	\断言： <tt>IsInInterval(idx, GetList().size())</tt> 。
+	\pre 断言： <tt>IsInInterval(idx, GetList().size())</tt> 。
 	\post <tt>vDisabled.size() == GetList().size()</tt> ；
 		IsItemEnabled(idx) 。
 	*/

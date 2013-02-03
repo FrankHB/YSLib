@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Timer.cpp
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r180
+\version r183
 \author FrankHB<frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:44:52 +0800
 \par 修改时间:
-	2012-09-04 11:02 +0800
+	2013-02-02 14:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YCLib/Timer.h"
 #include "YCLib/NativeAPI.h"
 #if YCL_MINGW32
-#include <mmsystem.h> // for multimedia timers;
+#	include <mmsystem.h> // for multimedia timers;
 #endif
 
 namespace platform

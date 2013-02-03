@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r547
-\author FrankHB<frankhb1989@gmail.com>
+\version r555
+\author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2012-12-11 21:01 +0800
+	2013-02-02 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,8 +86,8 @@ FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
 \brief Windows DIB 格式兼容像素。
 \note MSDN 注明此处第 4 字节保留为 0 ，但此处使用作为 8 位 Alpha 值使用。
 	即 ARGB8888 （考虑字节序为BGRA8888）。
-\warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
+\warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
 \since build 313
 */
 typedef struct
@@ -266,13 +266,13 @@ public:
 	yconstfn
 	operator PixelType() const ynothrow
 	{
-	#if YCL_DS
+#if YCL_DS
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
-	#elif YCL_MINGW32
+#elif YCL_MINGW32
 		return {b, g, r, a};
-	#else
-	#	error Unsupport platform found!
-	#endif
+#else
+#	error Unsupport platform found!
+#endif
 	}
 
 	/*!

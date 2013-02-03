@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1438
+\version r1442
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-01-08 02:48 +0800
+	2013-02-02 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -399,8 +399,8 @@ struct BlitLoop
 
 /*!
 \brief 循环：按指定扫描顺序复制一块矩形区域的像素。
+\note 复制透明性。
 \warning 不检查迭代器有效性。
-\note 透明性复制。
 \since build 189
 */
 template<bool _bPositiveScan>
@@ -584,8 +584,8 @@ biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
 
 /*!
 \brief 循环：按指定扫描顺序复制一块矩形区域的像素。
+\note 混合 Alpha 透明度。
 \warning 不检查迭代器有效性。
-\note 透明度 Alpha 混合。
 \since build 189
 */
 template<bool _bPositiveScan>

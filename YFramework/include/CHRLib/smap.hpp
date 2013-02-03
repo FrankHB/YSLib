@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1823
-\author FrankHB<frankhb1989@gmail.com>
+\version r1828
+\author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2012-10-23 01:11 +0800
+	2013-02-02 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,11 +81,11 @@ struct GUCS2Mapper<CharSet::UTF_8>
 
 	/*!
 	\brief 映射： UTF-8 。
-
-	实现 UTF-8 到 Unicode 编码点的映射。
+	\note 参考规范： RFC 3629 ，见 http://tools.ietf.org/html/rfc3629 。
 	\warning 当前实现假定编码序列完整。
 	\warning 使用 UCS-2LE 时， 4 字节编码点可能溢出。
-	\note 参考规范： RFC 3629 ，见 http://tools.ietf.org/html/rfc3629 。
+
+	实现 UTF-8 到 Unicode 编码点的映射。
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
