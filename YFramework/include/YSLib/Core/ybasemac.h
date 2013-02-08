@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2388
-\author FrankHB<frankhb1989@gmail.com>
+\version r2391
+\author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2012-12-11 23:14 +0800
+	2013-02-04 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -332,7 +332,7 @@ _t type
 	}
 
 /*!
-\brief 传递模版。
+\brief 传递模板。
 \since build 266
 */
 #define DefFwdTmpl(_q, _t, _n, ...) \

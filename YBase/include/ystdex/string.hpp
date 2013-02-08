@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r257
+\version r259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-01-10 19:03 +0800
+	2013-02-04 17:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,7 +184,7 @@ to_string(_type val, typename
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
 \todo 提供 char 以外的模板参数的正确实现。
-\note Clang++ 对于模版声明直接提示格式字符串类型错误。
+\note Clang++ 对于模板声明直接提示格式字符串类型错误。
 \since build 322
 */
 template<typename _tChar>
@@ -205,7 +205,7 @@ sfmt(const _tChar* fmt, ...)
 
 /*!
 \brief 显式实例化：以 C 标准输出格式的输出 std::string 对象。
-\see sfmt 模版声明。
+\see sfmt 模板声明。
 \since build 350
 */
 template

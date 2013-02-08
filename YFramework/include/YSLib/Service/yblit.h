@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1442
+\version r1443
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-02-02 12:58 +0800
+	2013-02-04 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,7 +159,7 @@ BlitScale<true, true>(const Point&, const Size&, int, int);
 
 
 /*!
-\brief 贴图扫描函数模版。
+\brief 贴图扫描函数模板。
 \tparam _bDec 指定是否翻转水平和竖直方向之一。
 \tparam _fCallable 调用操作类型。
 \tparam _tScalar 度量大小的标量类型。

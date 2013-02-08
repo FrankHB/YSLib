@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2802
+\version r2803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-04 23:39 +0800
+	2013-02-04 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -292,7 +292,7 @@ public:
 
 
 /*!
-\brief 文本渲染器静态多态基类模版。
+\brief 文本渲染器静态多态基类模板。
 \warning 非虚析构。
 \since build 266
 */

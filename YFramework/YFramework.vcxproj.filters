@@ -652,6 +652,12 @@
     <ClInclude Include="include\YSLib\UI\WidgetIteration.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="source\Helper\DSScreen.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Helper\Host.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -866,6 +872,12 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\ValueNode.cpp">
       <Filter>源文件\YSLib\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\DSScreen.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\Host.cpp">
+      <Filter>源文件\Helper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

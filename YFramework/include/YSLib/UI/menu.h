@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r806
+\version r812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2013-02-02 12:47 +0800
+	2013-02-08 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,8 +69,12 @@ public:
 	*/
 	explicit
 	Menu(const Rect& = {}, const shared_ptr<ListType>& = {}, ID = 0);
-	// FIXME: consideration for pointer members;
-	inline DefDeMoveCtor(Menu)
+	/*!
+	\brief 禁止转移构造。
+	\since build 379
+	\todo 实现转移操作。
+	*/
+	DefDelMoveCtor(Menu)
 
 	/*!
 	\brief 访问索引指定的子菜单。

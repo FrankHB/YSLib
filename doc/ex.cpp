@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4949 *build 378 rev *
+\version r4950 *build 379 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-03 17:23 +0800
+	2013-02-08 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,106 +409,125 @@ $using:
 
 $DONE:
 r1:
-/ @ platform MinGW32 @ \impl \u DSMain $=
+/ @ platform MinGW32 \impl \u DSMain $=
 (
-	/ \ctor DSScreen(bool, const shared_ptr<NativeWindow>&) ynothrow
-		-> \ctor DSScreen(bool) ynothrow,
-	/ \tr \simp \impl @ \ctor DSApplication,
-	/ \simp \impl @ \mf HostedEnvironment::HostTask,
-	/ \tr decl order for \ctor DSScreen @ \impl \u
-)
+	+ \as ^ \f ::(GetWindowThreadProcessId, GetCurrentThreadId)
+		@ \ctor NativeWindow @ \un \ns,
+	* missing responding WM_QUIT to exit native hosted message loop $since b299
+);
 /= test 1 @ platform MinGW32;
 
-r2-r3:
-/= 2 test 2 @ platform MinGW32;
-
-r4:
-/ \simp \impl @ \cl HostedEnvironment @ \impl \u DSMain $=
+r2:
++ \cl Environment @ defined(YCL_HOSTED) @ \impl \u DSMain $=
 (
-	/ \m order,
-	/ \ctor
+	+ \smf void HostLoop();
+	/ \simp \impl @ \mf HostTask ^ HostLoop
+);
+/= test 2 @ platform MinGW32;
+
+r3:
+/ @ \cl NativeWindow @ platform MinGW32 @ \un \ns @ \impl \u DSMain $=
+(
+	* wrongly expected successfully destroying window @ \dtor $since b377,
+	/ \impl @ \mf Show ^ ::ShowWindowAsync ~ ::ShowWindow,
+	+ \mf Close
 );
 /= test 3 @ platform MinGW32;
 
-r5:
-/ \impl @ native hosted message loop @ platform MinGW32 @ \impl \u DSMain $=
+r4:
+/ @ defined(YCL_HOSTED) @ \u DSMain $=
 (
-	^ TranslateMessage,
-	^ DispatchMessageW ~ DispatchMessage,
-	^ WaitMessage ~ std::this_thread::sleep_for,
+	+ \del \de (copy, move) \ctor @ \cl NativeWindow @ \un \ns @ \impl \u,
+	+ \cl Host::Window
 );
 /= test 4 @ platform MinGW32;
 
-r6:
-+ \grp (diagnostic; debugging) @ \h Debug;
-/ @ \h Debug $=
-(
-	/ \a debugging \f >> \grp debugging;
-	/ \a diagnostic \f >> \grp diagnostic
-),
-(
-	+ \inc \h (YDebug, YTimer) @ \h ShellHelper;
-	/ \cl DebugTimer @ \un \ns @ \impl \u DSMain
-		>> (\ns YSLib, \grp debugging) @ \u ShellHelper
-);
-/ \tr \inc \h YDebug -> \h ShellHelper @ \impl \u DSMain;
+r5:
 /= test 5 @ platform MinGW32;
 
+r6:
+/ @ platform MinGW32 @ \impl \u DSMain $=
+(
+	/ \mg \cl NativeWindow @ \un \ns -> \cl Host::Window
+	/ \tr @ \cl (Devices::DSScreen, Host::Environment)
+);
+/= test 6 @ platform MinGW32;
+
 r7:
-/= test 6 @ platform DS;
+/ @ \cl Host::Environment @ defined(YCL_HOSTED) @ \impl \u DSMain $=
+(
+	+ \m public map<Window::NativeHandle, Window*> WindowsMap;
+	/ \tr \impl @ \ctor,
+	/ \impl @ \mf HostTask
+);
+/= test 7 @ platform MinGW32;
 
 r8:
-/= test 7 @ platform DS ^ \conf release;
-
-r9:
-+ 'YF_API' @ \decl @ \cl DebugTimer @ \h ShellHelper,
+/ @ \ns Host @ defined(YCL_HOSTED) @ \impl \u DSMain $=
 (
-	+ \ns Host @ \h YGlobal;
-	/ @ platform MinGW32 @ \u DSMain $=
+	/ @ \cl Host::Window $=
 	(
-		/ @ \cl YSLib::HostedEnvironment -> \cl Host::Environment,
-		/ \tr \mf GetHostedEnvironment @ \cl DSApplication -> GetHost
+		+ private \m Environment* p_env,
+		+ \de (\param, \arg) Environment& = FetchGlobalInstance().GetHost()
+			@ \ctor,
+		/ \impl @ \dtor
+	),
+	/ \simp \impl @ \mf Environment::HostTask
+);
+/= test 8 @ platform MinGW32 ^ \conf release;
+
+r9-r11:
+/ @ defined(YCL_HOSTED) @ \impl \u DSMain $=
+(
+	+ \mf GetHost @ \cl Window,
+	/ @ platform MinGW32 @ \un \ns $=
+	(
+		+ \f Host::Window& FetchMappedWindow(::HWND);
+		/ \impl @ \f WndProc @ \un \ns
 	)
 );
-/= test 8 @ platform MinGW32;
+/= 3 test 9 @ platform MinGW32;
 
-r10-r25:
-/= 16 test 9 @ platform MinGW32;
-
-r26:
-* wrongly ignoring first window close messages @ native hosted message loop
-	$since r5;
+r12:
+/ @ \dir Helper $=
+(
+	/ \impl @ \mf Host::Environment::HostTask ^ notify_all ~ notify_one
+		@ platform @ \impl \u DSMain,
+	+ !publc \u (DSScreen["DSScreen.h", "DSScreen.cpp"],
+		Host["Host.h", "Host.cpp"]);
+	/ @ platform MinGW32 $=
+	(
+		/ \cl ScreenBuffer @ \un \ns @ \impl \u DSMain -> \cl Host::ScreenBuffer
+			@ \u DSScreen,
+		/ \cl DSScreen >> \u DSScreen,
+		/ \cl (Window, Environment) @ \ns Host >> \u Host
+	);
+);
 /= test 10 @ platform MinGW32;
 
-r27:
-/= test 11 @ platform MinGW32 ^ \conf release;
+r13:
+/= test 11 @ platform DS;
 
-r28-r29:
-/= 2 test 12 @ platform MinGW32;
+r14:
+/ \de move \ctor @ \cl Menu -> \exp \de \del move \ctor;
+/= test 12 @ platform MinGW32;
 
-r30-r34:
-/= 5 test 13 @ platform MinGW32 ^ \conf release;
+r15:
+/= test 13 @ platform MinGW32 ^ \conf release;
 
-r35:
-* \impl @ host task @ \impl \u DSMain $since r1;
-/= test 14 @ platform MinGW32;
+r16:
+/= test 14 @ platform DS;
 
-r36:
-/= test 14 @ platform MinGW32 ^ \conf release;
-
-r37:
-/= test 15 @ platform DS;
-
-r38:
-/= test 16 @ platform DS ^ \conf release;
+r17:
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-02-03 +0800:
--35.6d;
-// Mercurial local rev1-rev250: r10024;
+2013-02-08 +0800:
+-35.9d;
+// Mercurial local rev1-rev251: r10041;
 
 / ...
 
@@ -546,7 +565,7 @@ b[689]:
 ),
 / $design $low_prior robustness and cleanness $=
 (
-	* move @ \cl Menu,
+	+ proper move support @ \cl Menu,
 	^ delegating \ctor as possible,
 	/ stripping away direct using @ Win32 types completely @ \h @ \lib YCLib,
 	^ std::call_once to confirm thread-safe initialization,
@@ -1052,6 +1071,29 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ $lib %'Helper' $=
+		(
+			/ "platform %MinGW32"$=
+			(
+				+ "thread affinity check for window creating",
+				* "missing responding WM_QUIT to exit native hosted message loop"
+					$since b299,
+				* "wrongly expected successfully destroying window"
+					@ "native window destructor" $since b377,
+				+ "mapping for native window handle to object" @ "class %Host"
+			),
+			+ "non-public modules %(DSScreen, Host) to simplified \
+				implementation of host"
+		),
+		/ "move constructor defaulted as delete" @ "class %Menu"
+			@ %'YSLib'.'GUI'
+	)
+),
+
+b378
 (
 	/ %'YFramework' $=
 	(

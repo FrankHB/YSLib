@@ -234,6 +234,10 @@
 		<Unit filename="../YFramework/source/CHRLib/chrmap.cpp" />
 		<Unit filename="../YFramework/source/CHRLib/chrproc.cpp" />
 		<Unit filename="../YFramework/source/Helper/DSMain.cpp" />
+		<Unit filename="../YFramework/source/Helper/DSScreen.cpp" />
+		<Unit filename="../YFramework/source/Helper/DSScreen.h" />
+		<Unit filename="../YFramework/source/Helper/Host.cpp" />
+		<Unit filename="../YFramework/source/Helper/Host.h" />
 		<Unit filename="../YFramework/source/Helper/Initialization.cpp" />
 		<Unit filename="../YFramework/source/Helper/InputManager.cpp" />
 		<Unit filename="../YFramework/source/Helper/ShellHelper.cpp" />

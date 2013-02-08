@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1586
+\version r1587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-01-14 20:31 +0800
+	2013-02-04 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -312,7 +312,7 @@ public:
 	若使用 bool ，对应 ystdex::call_once ，不保证线程安全。
 	其它类型可使用用户自行定义 call_once 。
 \since build 328
-\todo 使用支持 lambda pack 展开的实现构造模版。
+\todo 使用支持 lambda pack 展开的实现构造模板。
 
 静态初始化，使用 _tOnceFlag 类型的静态对象表示初始化和反初始化状态，
 保证所有在定义本类型的对象后已有静态对象被初始化。

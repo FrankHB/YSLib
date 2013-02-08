@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11965
+\version r11974
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-01-14 21:58 +0800
+	2013-02-08 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,11 +103,17 @@ $header Utilities
 } //$dir YBase;
 
 // YFramework 既定宏污染列表。
-// YF_* 、 YCL_* 、 YSL_* 和 INC_HELPER_* 保留给 YFramework 使用。（可能使用后被 #undef 取消定义。）
+//以下保留宏名可能被 #undef 取消定义。
+// YF_* 保留给 YFramework 使用。
+// YCL_* 保留给 YFramework/YCLib 使用。
+// YSL_* 保留给 YFramework/YSLib 使用。
+// INC_* 和 Inc_* 保留给 YFramework 的其它部分使用，用于表示头文件公开/非公开头文件的包含守护宏。
 $herder *
 {
-YCL_INC_*
-YSL_INC_*
+YCL_INC_* // YCLib 公开头文件包含守护宏。
+YCL_Inc_* // YCLib 非公开头文件包含守护宏。
+YSL_INC_* // YSLib 公开头文件包含守护宏。
+YSL_Inc_* // YSLib 非公开头文件包含守护宏。
 YCL_DEBUG_*
 YSL_DEBUG_*
 }
