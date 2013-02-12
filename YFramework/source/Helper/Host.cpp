@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r301
+\version r343
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-02-08 02:50 +0800
+	2013-02-12 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -29,7 +29,6 @@
 #include "DSScreen.h"
 #include "Helper/DSMain.h"
 #include "Helper/ShellHelper.h" // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
-#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 YSL_BEGIN
 
@@ -47,6 +46,8 @@ std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 
 
 #if YCL_HOSTED
+
+using Devices::DSScreen;
 
 YSL_BEGIN_NAMESPACE(Host)
 
@@ -137,23 +138,21 @@ InitializeMainWindow()
 } // unnamed namespace;
 
 
-Window::Window(NativeHandle h, Environment& env)
-	: p_env(&env), h_wnd(h)
+Window::Window(NativeHandle h, Environment& e)
+	: env(e), h_wnd(h)
 {
 	YAssert(::IsWindow(h), "Invalid window handle found.");
 	YAssert(::GetWindowThreadProcessId(h, NULL) == ::GetCurrentThreadId(),
 		"Window not created on current thread found.");
-	YAssert(env.WindowsMap.find(h) == env.WindowsMap.end()
-		|| !env.WindowsMap[h] || env.WindowsMap[h] == this,
+	YAssert(e.WindowsMap.find(h) == e.WindowsMap.end()
+		|| !e.WindowsMap[h] || e.WindowsMap[h] == this,
 		"Mismatch registered window pointer found.");
 
-	p_env->WindowsMap[h_wnd] = this;
+	e.WindowsMap[h_wnd] = this;
 }
 Window::~Window()
 {
-	YAssert(p_env, "Null pointer found.");
-
-	p_env->WindowsMap[h_wnd] = nullptr;
+	env.get().WindowsMap[h_wnd] = nullptr;
 	// Note: The window could be already destroyed in window procedure.
 	if(::IsWindow(h_wnd))
 		::DestroyWindow(h_wnd);
@@ -183,16 +182,16 @@ Window::OnLostFocus()
 void
 Window::OnPaint()
 {
-	using Devices::DSScreen;
-
 	::PAINTSTRUCT ps;
 	::HDC hDC(::BeginPaint(h_wnd, &ps));
 	::HDC hMemDC(::CreateCompatibleDC(hDC));
+	auto& app(FetchGlobalInstance());
 
-	ystdex::polymorphic_downcast<DSScreen&>(FetchGlobalInstance()
-		.GetScreenUp()).UpdateToHost(hDC, hMemDC),
-	ystdex::polymorphic_downcast<DSScreen&>(FetchGlobalInstance()
-		.GetScreenDown()).UpdateToHost(hDC, hMemDC);
+	YAssert(bool(app.scrs[0]), "Null pointer found."),
+	YAssert(bool(app.scrs[1]), "Null pointer found.");
+
+	app.scrs[0]->UpdateToHost(hDC, hMemDC),
+	app.scrs[1]->UpdateToHost(hDC, hMemDC);
 	::DeleteDC(hMemDC);
 	::EndPaint(h_wnd, &ps);
 }
@@ -206,7 +205,7 @@ Window::Show()
 
 Environment::Environment()
 #	if YCL_MULTITHREAD == 1
-	: mtx(), init(), full_init(),
+	: mtx(), init(),
 #		if YCL_MINGW32
 	p_main_wnd(),
 #		endif
@@ -248,7 +247,23 @@ Environment::HostLoop()
 	}
 #		endif
 }
+#	endif
 
+void
+Environment::UpdateWindow(DSScreen& scr)
+{
+	YAssert(bool(p_main_wnd), "Null pointer found.");
+
+	const auto h_wnd(p_main_wnd->GetNativeHandle());
+	const auto h_dc(::GetDC(h_wnd));
+	const auto h_mem_dc(::CreateCompatibleDC(h_dc));
+
+	scr.UpdateToHost(h_dc, h_mem_dc);
+	::DeleteDC(h_mem_dc);
+	::ReleaseDC(h_wnd, h_dc);
+}
+
+#	if YCL_MULTITHREAD == 1
 void
 Environment::HostTask()
 {
@@ -264,9 +279,9 @@ Environment::HostTask()
 	}
 	p_main_wnd->Show();
 	{
-		std::unique_lock<std::mutex>lck(mtx);
+		auto& app(FetchGlobalInstance());
 
-		full_init.wait(lck, []{return FetchGlobalInstance().IsScreenReady();});
+		Devices::InitDSScreen(app.scrs[0], app.scrs[1]);
 
 		YAssert(FetchGlobalInstance().IsScreenReady(), "Screen is not ready.");
 	}
@@ -274,13 +289,7 @@ Environment::HostTask()
 #		endif
 }
 
-void
-Environment::Notify()
-{
-	full_init.notify_one();
-}
-
-const shared_ptr<Window>&
+Window&
 Environment::Wait()
 {
 	std::unique_lock<std::mutex>lck(mtx);
@@ -291,7 +300,7 @@ Environment::Wait()
 	YAssert(bool(p_main_wnd), "Null pointer found.");
 #		endif
 
-	return p_main_wnd;
+	return *p_main_wnd;
 }
 #	endif
 

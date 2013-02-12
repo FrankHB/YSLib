@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2805
+\version r2847
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-02-07 02:56 +0800
+	2013-02-11 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,6 @@
 #include "Host.h"
 #include "Helper/Initialization.h"
 #include "YSLib/Adaptor/Font.h"
-#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 #if YCL_MULTITHREAD == 1
 #	include <thread> // for std::this_thread::*;
 #endif
@@ -91,8 +90,7 @@ try	: Application(),
 #if YCL_HOSTED
 	p_hosted(),
 #endif
-	pFontCache(), pScreenUp(), pScreenDown(),
-	UIResponseLimit(0x40), Root()
+	pFontCache(), scrs(), UIResponseLimit(0x40), Root()
 {
 	using Devices::DSScreen;
 
@@ -129,23 +127,9 @@ try	: Application(),
 	//初始化系统设备。
 #if YCL_DS
 	InitVideo();
-#endif
-	try
-	{
-		pScreenUp = make_unique<DSScreen>(false);
-		pScreenDown = make_unique<DSScreen>(true);
-	}
-	catch(...)
-	{
-		throw LoggedEvent("Screen initialization failed.");
-	}
-#if YCL_DS
-	ystdex::polymorphic_downcast<DSScreen&>(*pScreenUp)
-		.Update(ColorSpace::Blue),
-	ystdex::polymorphic_downcast<DSScreen&>(*pScreenDown)
-		.Update(ColorSpace::Green);
-#elif YCL_HOSTED
-	p_hosted->Notify();
+	Devices::InitDSScreen(scrs[0], scrs[1]);
+	scrs[0]->Update(ColorSpace::Blue),
+	scrs[1]->Update(ColorSpace::Green);
 #endif
 }
 catch(FatalError& e)
@@ -173,8 +157,8 @@ DSApplication::~DSApplication()
 	reset(pFontCache);
 
 	//释放设备。
-	reset(pScreenUp),
-	reset(pScreenDown);
+	reset(scrs[0]),
+	reset(scrs[1]);
 	Uninitialize();
 }
 
@@ -197,16 +181,16 @@ DSApplication::GetHost()
 Devices::Screen&
 DSApplication::GetScreenUp() const ynothrow
 {
-	YAssert(bool(pScreenUp), "Null pointer found.");
+	YAssert(bool(scrs[0]), "Null pointer found.");
 
-	return *pScreenUp;
+	return *scrs[0];
 }
 Devices::Screen&
 DSApplication::GetScreenDown() const ynothrow
 {
-	YAssert(bool(pScreenDown), "Null pointer found.");
+	YAssert(bool(scrs[1]), "Null pointer found.");
 
-	return *pScreenDown;
+	return *scrs[1];
 }
 
 bool
@@ -242,16 +226,6 @@ DSApplication::DealMessage()
 	}
 	return true;
 }
-
-
-#if YCL_MINGW32
-// workaround
-::HWND
-FetchGlobalWindowHandle()
-{
-	return FetchGlobalInstance().GetHost().Wait()->GetNativeHandle();
-}
-#endif
 
 
 Application&

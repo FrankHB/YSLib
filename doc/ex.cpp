@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4950 *build 379 rev *
+\version r4952 *build 380 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-08 17:11 +0800
+	2013-02-12 19:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,125 +409,133 @@ $using:
 
 $DONE:
 r1:
-/ @ platform MinGW32 \impl \u DSMain $=
++ \mf void UpdateWindow() @ \cl Host @ defined YCL_HOSTED \u Host,
+* \pre \decl @ \cl DSScreen @ \h DSMain
+	$= (/ \decl @ \ns Drawing >> \ns Devices) $since b379;
+/ @ \cl DSScreen @ platform MinGW32 @ \u DSSCreen $=
 (
-	+ \as ^ \f ::(GetWindowThreadProcessId, GetCurrentThreadId)
-		@ \ctor NativeWindow @ \un \ns,
-	* missing responding WM_QUIT to exit native hosted message loop $since b299
+	/ \simp \impl @ \mf void UpdateWindow(Devices::DSScreen&);
+	- \m p_hosted_wnd,
+	- \tr \simp \impl @ \ctor
 );
 /= test 1 @ platform MinGW32;
 
 r2:
-+ \cl Environment @ defined(YCL_HOSTED) @ \impl \u DSMain $=
+/ @ \cl DSScreen @ platform MinGW32 @ \u DSScreen $=
 (
-	+ \smf void HostLoop();
-	/ \simp \impl @ \mf HostTask ^ HostLoop
+	+ private \m Host::Environment* p_env;
+	/ \impl @ (\ctor, \mf Update)
 );
 /= test 2 @ platform MinGW32;
 
 r3:
-/ @ \cl NativeWindow @ platform MinGW32 @ \un \ns @ \impl \u DSMain $=
+/ @ \cl Environment @ defined(YCL_HOSTED) && YCL_MULTITHREAD == 1 @ \u Host $=
 (
-	* wrongly expected successfully destroying window @ \dtor $since b377,
-	/ \impl @ \mf Show ^ ::ShowWindowAsync ~ ::ShowWindow,
-	+ \mf Close
-);
+	/ \mf const shared_ptr<Window>& Wait() -> Window& Wait();
+	/ private \m shared_ptr<Window> p_main_wnd
+		-> unique_ptr<Window> p_main_wnd
+),
+/ \tr \impl @ \f FetchGlobalWindowHandle @ platform MinGW32 @ \impl \u DSMain;
 /= test 3 @ platform MinGW32;
 
-r4:
-/ @ defined(YCL_HOSTED) @ \u DSMain $=
+r4-r5:
 (
-	+ \del \de (copy, move) \ctor @ \cl NativeWindow @ \un \ns @ \impl \u,
-	+ \cl Host::Window
-);
-/= test 4 @ platform MinGW32;
-
-r5:
-/= test 5 @ platform MinGW32;
+	/ @ \impl \u InputManager $=
+	(
+		/ \inc \h DSMain -> \h Host;
+		/ \impl @ \mf InputManager::DispatchInput;
+		- \pre \decl FetchGlobalWindowHandle
+	);
+	- \f FetchGlobalWindowHandle @ platform MinGW32 @ \impl \u DSMain
+),
+/= 2 test 4 @ platform MinGW32;
 
 r6:
-/ @ platform MinGW32 @ \impl \u DSMain $=
+/ $repo .hgignore $=
 (
-	/ \mg \cl NativeWindow @ \un \ns -> \cl Host::Window
-	/ \tr @ \cl (Devices::DSScreen, Host::Environment)
+	+ 'doc/latex',
+	/ item order
+),
++ $doc script 'doc/doxygen-cjk.sh' for CJK characters compatible PDF generation,
+	// The LaTeX output is not enabled for compatibility issue \
+		on Doxygen output language.
+/ @ \cl DSApplication @ \u DSMain $=
+(
+	/ protected \m unique_ptr<Devices::Screen> (pScreenUp, pScreenDown)
+		-> private \m array<unique_ptr<Devices::DSScreen>, 2> scrs,
+	/ \tr \impl @ (\ctor, \mf (IsScreenReady, GetScreenUp, GetScreenDown))
 );
-/= test 6 @ platform MinGW32;
+/= test 5 @ platform MinGW32;
 
 r7:
-/ @ \cl Host::Environment @ defined(YCL_HOSTED) @ \impl \u DSMain $=
-(
-	+ \m public map<Window::NativeHandle, Window*> WindowsMap;
-	/ \tr \impl @ \ctor,
-	/ \impl @ \mf HostTask
-);
-/= test 7 @ platform MinGW32;
++ \f \i void Devices::InitDSScreen(unique_ptr<DSScreen>&, unique_ptr<DSScreen>&)
+	ynothrow @ \h DSScreen;
+/ \simp \impl @ \ctor DSApplication @ \impl \u DSMain ^ Devices::InitDSScreen;
+/= test 6 @ platform MinGW32;
 
 r8:
-/ @ \ns Host @ defined(YCL_HOSTED) @ \impl \u DSMain $=
+/ @ \cl DSApplication @ \u DSMain $=
 (
-	/ @ \cl Host::Window $=
-	(
-		+ private \m Environment* p_env,
-		+ \de (\param, \arg) Environment& = FetchGlobalInstance().GetHost()
-			@ \ctor,
-		/ \impl @ \dtor
-	),
-	/ \simp \impl @ \mf Environment::HostTask
-);
-/= test 8 @ platform MinGW32 ^ \conf release;
+	+ friend class Host::Environment @ YCL_HOSTED,
+	/ \simp \impl @ \ctor
+),
+/ \impl @ \f Environment::HostTask @ platform MinGW32;
+/= test 7 @ platform MinGW32;
 
-r9-r11:
-/ @ defined(YCL_HOSTED) @ \impl \u DSMain $=
+r9:
+/ \simp \impl @ \ctor DSApplication @ platform MinGW32 @ \impl \u DSMain
+	!^ \mf Environment::Notify;
+/ \simp \impl @ \cl Environment @ \u Host $=
 (
-	+ \mf GetHost @ \cl Window,
-	/ @ platform MinGW32 @ \un \ns $=
-	(
-		+ \f Host::Window& FetchMappedWindow(::HWND);
-		/ \impl @ \f WndProc @ \un \ns
-	)
+	- \mf Notify,
+	- \m std::condition_variable full_init,
+	/ \tr \simp \impl @ \ctor
 );
-/= 3 test 9 @ platform MinGW32;
+/= test 8 @ platform MinGW32;
+
+r10:
+/= test 9 @ platform MinGW32 ^ \conf release;
+
+r11:
+/= test 10 @ platform DS ^ \conf release;
 
 r12:
-/ @ \dir Helper $=
+/ @ \u DSMain $=
 (
-	/ \impl @ \mf Host::Environment::HostTask ^ notify_all ~ notify_one
-		@ platform @ \impl \u DSMain,
-	+ !publc \u (DSScreen["DSScreen.h", "DSScreen.cpp"],
-		Host["Host.h", "Host.cpp"]);
-	/ @ platform MinGW32 $=
-	(
-		/ \cl ScreenBuffer @ \un \ns @ \impl \u DSMain -> \cl Host::ScreenBuffer
-			@ \u DSScreen,
-		/ \cl DSScreen >> \u DSScreen,
-		/ \cl (Window, Environment) @ \ns Host >> \u Host
-	);
+	- \f \i FetchDefaultScreen @ \h,
+	+ \decl friend \cl Host::Window @ \cl DSApplication
+),
+- \inc \h Cast @ \impl \u DSMain,
+/ @ \impl \u Host $=
+(
+	/ \simp \impl @ \mf Window::OnPaint;
+	- \inc \h Cast
 );
-/= test 10 @ platform MinGW32;
+/= test 11 @ platform MinGW32;
 
 r13:
-/= test 11 @ platform DS;
-
-r14:
-/ \de move \ctor @ \cl Menu -> \exp \de \del move \ctor;
+/ \m Host::Environment* p_env -> std::reference_wrapper<Host::Environment> env
+	@ (platform MinGW32 @ \cl DSScreen @ \u DSScreen, \cl Window @ \u Host),
+/ \tr \impl @ \mf DSScreen::Update @ \impl \u DSScreen,
+/ \tr \impl @ (\mf GetHost, \ctor, \dtor) @ \cl Window @ \h Host;
 /= test 12 @ platform MinGW32;
 
-r15:
+r14:
 /= test 13 @ platform MinGW32 ^ \conf release;
 
-r16:
+r15:
 /= test 14 @ platform DS;
 
-r17:
+r16:
 /= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-02-08 +0800:
--35.9d;
-// Mercurial local rev1-rev251: r10041;
+2013-02-12 +0800:
+-37.5d;
+// Mercurial local rev1-rev252: r10057;
 
 / ...
 
@@ -545,7 +553,8 @@ $low_prior
 (
 	* previous frame form buffered renderer of desktop did not be handled
 		properly for clipping area enlarged when updating $since b?;
-		// Which essentially cause over painted.
+		// Namely, the actual painted area is not the same as accumulated \
+			invalidated bounding region, which essentially cause over painted.
 );
 
 
@@ -1072,6 +1081,27 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework'.'Helper' $=
+	(
+		/ DLD "initialization implementation",
+			// Simplified order and removed condition variable for hosted \
+				window initialization on MinGW32.
+		/ %'DSMain' $=
+		(
+			* "wrong namespace for forward declaration" $since b379,
+			- "workaround function %FetchGlobalWindowHandle",
+			+ "hosted friend classes declaration" @ "class %DSApplication"
+		)
+	),
+	/ $repo "file '.hgignore'",
+	+ $doc "script 'doc/doxygen-cjk.sh' for CJK characters compatible PDF \
+		generation"
+		// The LaTeX output is not enabled for compatibility issue \
+			on Doxygen output language.
+),
+
+b379
+(
 	/ %'YFramework' $=
 	(
 		/ $lib %'Helper' $=
@@ -1079,8 +1109,8 @@ $now
 			/ "platform %MinGW32"$=
 			(
 				+ "thread affinity check for window creating",
-				* "missing responding WM_QUIT to exit native hosted message loop"
-					$since b299,
+				* "missing responding WM_QUIT to exit native hosted message \
+					loop" $since b299,
 				* "wrongly expected successfully destroying window"
 					@ "native window destructor" $since b377,
 				+ "mapping for native window handle to object" @ "class %Host"

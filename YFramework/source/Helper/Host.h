@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r145
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-02-08 02:38 +0800
+	2013-02-12 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,7 +28,7 @@
 #ifndef Inc_Helper_Host_h_
 #define Inc_Helper_Host_h_ 1
 
-#include "Helper/DSMain.h" // for Host::Window;
+#include "Helper/DSMain.h" // for Devices::DSScreen, Host::Window;
 #include "YCLib/NativeAPI.h"
 #if YCL_MULTITHREAD == 1
 #	include <thread>
@@ -52,7 +52,8 @@ public:
 	typedef ::HWND NativeHandle;
 
 private:
-	Environment* p_env;
+	//! \since build 380
+	std::reference_wrapper<Environment> env;
 	NativeHandle h_wnd;
 
 public:
@@ -63,7 +64,7 @@ public:
 	~Window();
 
 	DefGetter(const ynothrow, NativeHandle, NativeHandle, h_wnd)
-	DefGetter(const ynothrow, Environment&, Host, *p_env)
+	DefGetter(const ynothrow, Environment&, Host, env)
 
 	void
 	Close();
@@ -94,11 +95,12 @@ private:
 	std::mutex mtx;
 	//! \brief 宿主环境就绪条件。
 	std::condition_variable init;
-	//! \brief 初始化条件。
-	std::condition_variable full_init;
 #		if YCL_MINGW32
-	//! \brief 本机主窗口指针。
-	shared_ptr<Window> p_main_wnd;
+	/*!
+	\brief 本机主窗口指针。
+	\since build 380
+	*/
+	unique_ptr<Window> p_main_wnd;
 #		endif
 	//! \brief 宿主背景线程。
 	std::thread host_thrd;
@@ -127,12 +129,15 @@ public:
 	//! \brief 初始化宿主资源和本机消息循环线程。
 	void
 	HostTask();
+#	endif
 
+	//! \since build 380
 	void
-	Notify();
+	UpdateWindow(Devices::DSScreen&);
 
-	//! \since build 379
-	const shared_ptr<Window>&
+#	if YCL_MULTITHREAD == 1
+	//! \since build 380
+	Window&
 	Wait();
 #	endif
 };

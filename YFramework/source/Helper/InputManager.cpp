@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r187
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-01-30 07:21 +0800
+	2013-02-10 03:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,18 +29,9 @@
 #include "YCLib/Input.h"
 #include "YSLib/UI/ygui.h"
 #include "YSLib/UI/ydesktop.h"
-#include "Helper/DSMain.h"
+#include "Host.h"
 
 YSL_BEGIN
-
-#if YCL_MINGW32
-/*!	\addtogroup workaround
-\since build 377
-\todo 移除。
-*/
-extern ::HWND
-FetchGlobalWindowHandle();
-#endif
 
 YSL_BEGIN_NAMESPACE(Devices)
 
@@ -57,7 +48,7 @@ InputManager::DispatchInput(Desktop& dsk)
 #elif YCL_MINGW32
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
-	const auto h_wnd(FetchGlobalWindowHandle());
+	const auto h_wnd(FetchGlobalInstance().GetHost().Wait().GetNativeHandle());
 
 	if(::GetForegroundWindow() != h_wnd)
 		return;

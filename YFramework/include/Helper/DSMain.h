@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r625
+\version r649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-02-08 02:03 +0800
+	2013-02-11 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,9 +57,9 @@ const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 
 
 //前向声明。
-YSL_BEGIN_NAMESPACE(Drawing)
+YSL_BEGIN_NAMESPACE(Devices)
 class DSScreen;
-YSL_END_NAMESPACE(Drawing)
+YSL_END_NAMESPACE(Devices)
 YSL_BEGIN_NAMESPACE(Drawing)
 class FontCache;
 YSL_END_NAMESPACE(Drawing)
@@ -79,6 +79,11 @@ YSL_END_NAMESPACE(Host)
 class YF_API DSApplication : public Application
 {
 #if YCL_HOSTED
+	//! \since build 380
+	friend class Host::Environment;
+	//! \since build 380
+	friend class Host::Window;
+
 private:
 	/*!
 	\brief 宿主状态。
@@ -93,14 +98,13 @@ protected:
 	\since build 325
 	*/
 	unique_ptr<Drawing::FontCache> pFontCache;
+
+private:
 	/*!
-	\brief 屏幕。
-	\since build 325
+	\brief 屏幕组。
+	\since build 380
 	*/
-	//@{
-	unique_ptr<Devices::Screen> pScreenUp;
-	unique_ptr<Devices::Screen> pScreenDown;
-	//@}
+	array<unique_ptr<Devices::DSScreen>, 2> scrs;
 
 public:
 	/*!
@@ -131,7 +135,7 @@ public:
 	~DSApplication() override;
 
 	//! \since build 377
-	DefPred(const ynothrow, ScreenReady, bool(pScreenUp) && bool(pScreenDown))
+	DefPred(const ynothrow, ScreenReady, bool(scrs[0]) && bool(scrs[1]))
 
 	/*!
 	\brief 取字体缓存引用。
@@ -193,17 +197,6 @@ inline Drawing::FontCache&
 FetchDefaultFontCache()
 {
 	return FetchGlobalInstance().GetFontCache();
-}
-
-/*!
-\ingroup helper_functions
-\brief 取默认屏幕。
-\since build 219
-*/
-inline Devices::Screen&
-FetchDefaultScreen()
-{
-	return FetchGlobalInstance().GetScreenUp();
 }
 
 /*!

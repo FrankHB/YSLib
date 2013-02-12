@@ -11,13 +11,13 @@
 /*!	\file DSScreen.cpp
 \ingroup Helper
 \brief DS 屏幕。
-\version r131
+\version r139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-02-08 02:49 +0800
+	2013-02-10 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -83,7 +83,7 @@ DSScreen::Update(Color c)
 #elif YCL_MINGW32
 DSScreen::DSScreen(bool b) ynothrow
 	: Devices::Screen(MainScreenWidth, MainScreenHeight),
-	Offset(), p_host_wnd(FetchGlobalInstance().GetHost().Wait()),
+	Offset(), env(FetchGlobalInstance().GetHost()),
 	gbuf(Size(MainScreenWidth, MainScreenHeight)), update_mutex()
 {
 	pBuffer = gbuf.pBuffer;
@@ -99,17 +99,11 @@ DSScreen::Update(Drawing::BitmapPtr buf) ynothrow
 	std::memcpy(gbuf.pBuffer, buf,
 		sizeof(PixelType) * size.Width * size.Height);
 //	std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
 	YCL_DEBUG_PUTS("Screen buffer updated.");
 	YSL_DEBUG_DECL_TIMER(tmr, "DSScreen::Update")
 
-	YAssert(bool(p_host_wnd), "Null pointer found.");
-
-	::HDC hDC(::GetDC(p_host_wnd->GetNativeHandle()));
-	::HDC hMemDC(::CreateCompatibleDC(hDC));
-
-	UpdateToHost(hDC, hMemDC);
-	::DeleteDC(hMemDC);
-	::ReleaseDC(p_host_wnd->GetNativeHandle(), hDC);
+	env.get().UpdateWindow(*this);
 }
 
 void

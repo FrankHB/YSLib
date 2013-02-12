@@ -11,6 +11,11 @@ syntax: glob
 */build*
 */debug*
 */release*
+*doc/html/*
+*doc/latex/*
+*doc/rtf/*
+*doc/footer.*
+*doc/header.*
 *.ncb
 *.suo
 *.sdf
@@ -19,12 +24,10 @@ syntax: glob
 UpgradeLog.XML
 *UpgradeReport*
 */~AutoRecover*
-*doc/html/*
-*doc/rtf/*
-*.cccc/
-*.cscope_file_list
 *.depend
-YSTest_MinGW32/config.txt
 *.cbTemp
 *.idc
+*.cccc/
+*.cscope_file_list
+YSTest_MinGW32/config.txt
 YSTest_MinGW32/yconf.txt

@@ -11,13 +11,13 @@
 /*!	\file DSScreen.h
 \ingroup Helper
 \brief DS 屏幕。
-\version r143
+\version r164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2013-02-08 02:49 +0800
+	2013-02-12 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,7 +28,7 @@
 #ifndef Inc_Helper_DSScreen_h_
 #define Inc_Helper_DSScreen_h_ 1
 
-#include "Helper/DSMain.h" // for ScreenWidth, ScreenHeight, Host::Window;
+#include "Helper/DSMain.h" // for ScreenWidth, ScreenHeight, Host::Environment;
 #include "YSLib/Core/ydevice.h"
 #if YCL_MULTITHREAD == 1
 #	include <mutex>
@@ -101,10 +101,10 @@ public:
 
 private:
 	/*!
-	\brief 宿主窗口。
-	\since build 379
+	\brief 宿主环境。
+	\since build 380
 	*/
-	shared_ptr<Host::Window> p_host_wnd;
+	std::reference_wrapper<Host::Environment> env;
 	Host::ScreenBuffer gbuf;
 	//! \since build 322
 	std::mutex update_mutex;
@@ -135,6 +135,25 @@ public:
 #	error Unsupported platform found!
 #endif
 };
+
+
+/*!
+\brief 初始化 DS 屏幕。
+\since build 380
+*/
+inline void
+InitDSScreen(unique_ptr<DSScreen>& p_up, unique_ptr<DSScreen>& p_dn) ynothrow
+{
+	try
+	{
+		p_up.reset(new DSScreen(false));
+		p_dn.reset(new DSScreen(true));
+	}
+	catch(...)
+	{
+		throw LoggedEvent("Screen initialization failed.");
+	}
+}
 
 YSL_END_NAMESPACE(Devices)
 
