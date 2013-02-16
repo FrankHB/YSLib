@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4952 *build 380 rev *
+\version r4966 *build 381 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-12 19:53 +0800
+	2013-02-16 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,145 +409,149 @@ $using:
 
 $DONE:
 r1:
-+ \mf void UpdateWindow() @ \cl Host @ defined YCL_HOSTED \u Host,
-* \pre \decl @ \cl DSScreen @ \h DSMain
-	$= (/ \decl @ \ns Drawing >> \ns Devices) $since b379;
-/ @ \cl DSScreen @ platform MinGW32 @ \u DSSCreen $=
-(
-	/ \simp \impl @ \mf void UpdateWindow(Devices::DSScreen&);
-	- \m p_hosted_wnd,
-	- \tr \simp \impl @ \ctor
-);
+/ \pre \decl Host::Environment @ YCL_HOSTED \h DSMain >> \h YGlobal,
+- \inc \h YDesktop @ \h YGlobal,
+/ \inc \h (YDevice, Input) -> \h YGlobal @ \h DSMain,
++ \tr \h NativeAPI @ platform MinGW32 @ \impl \h DSScreen,
+/ \a INC_HELPER_YGLOBAL_H_ => INC_Helper_YGlobal_h_,
+/ \a INC_HELPER_DSMAIN_H_ => INC_Helper_DSMain_h_;
 /= test 1 @ platform MinGW32;
 
 r2:
-/ @ \cl DSScreen @ platform MinGW32 @ \u DSScreen $=
+/ @ \u InputManager $=
 (
-	+ private \m Host::Environment* p_env;
-	/ \impl @ (\ctor, \mf Update)
+	(
+		+ \inc \h YGlobal @ \h;
+		/ @ YCL_HOSTED @ \cl InputManager $=
+		(
+			+ private \m std::reference_wrapper<Host::Environment> env,
+			/ \tr \impl @ \ctor
+		)
+	),	
+	/ \a INC_HELPER_INPUGMANAGER_H_ => INC_Helper_InputManager_h_ @ \h
 );
 /= test 2 @ platform MinGW32;
 
 r3:
-/ @ \cl Environment @ defined(YCL_HOSTED) && YCL_MULTITHREAD == 1 @ \u Host $=
-(
-	/ \mf const shared_ptr<Window>& Wait() -> Window& Wait();
-	/ private \m shared_ptr<Window> p_main_wnd
-		-> unique_ptr<Window> p_main_wnd
-),
-/ \tr \impl @ \f FetchGlobalWindowHandle @ platform MinGW32 @ \impl \u DSMain;
++ \mf (Window* GetForegroundWindow() const ynothrow, Drawing::Point
+	AdjustCursor(platform::CursorInfo&, const Window&) const ynothrow)
+	@ \cl Host::Environment @ \u Host;
+/ \simp \impl @ \mf InputManager::DispatchInput @ platform MinGW32
+	@ \impl \u InputManager;
 /= test 3 @ platform MinGW32;
 
-r4-r5:
+r4:
+/ \simp @ \cl Environment @ \u Host $=
 (
-	/ @ \impl \u InputManager $=
-	(
-		/ \inc \h DSMain -> \h Host;
-		/ \impl @ \mf InputManager::DispatchInput;
-		- \pre \decl FetchGlobalWindowHandle
-	);
-	- \f FetchGlobalWindowHandle @ platform MinGW32 @ \impl \u DSMain
-),
-/= 2 test 4 @ platform MinGW32;
+	- \mf Wait;
+	/ \simp \impl @ \smf HostTask;
+	- \m init,
+	/ \simp \impl @ \ctor;
+	- \inc \h (<condition_variable>) @ \h
+);
+/= test 4 @ platform MinGW32;
+
+r5:
+/= test 5 @ platform MinGW32 ^ \conf release;
 
 r6:
-/ $repo .hgignore $=
++ '#undef FindWindow' @ platform MinGW32 @ \h NativeAPI;
+* unsafe access for window map from different threads @ \cl Environment r3 $=
 (
-	+ 'doc/latex',
-	/ item order
+	+ private \m mutable std::mutex map_mtx;
+	/ public \m WindowsMap -> private \m wnd_map;
+	+ \mf Window* FindWindow(Window::NativeHandle) const ynothrow,
+	+ \mf void AddMappedItem(Window::NativeHandle, Window*),
+	+ \mf void RemoveMappedItem(Window::NativeHandle) ynothrow
 ),
-+ $doc script 'doc/doxygen-cjk.sh' for CJK characters compatible PDF generation,
-	// The LaTeX output is not enabled for compatibility issue \
-		on Doxygen output language.
-/ @ \cl DSApplication @ \u DSMain $=
-(
-	/ protected \m unique_ptr<Devices::Screen> (pScreenUp, pScreenDown)
-		-> private \m array<unique_ptr<Devices::DSScreen>, 2> scrs,
-	/ \tr \impl @ (\ctor, \mf (IsScreenReady, GetScreenUp, GetScreenDown))
-);
-/= test 5 @ platform MinGW32;
+/ \tr \impl @ \f FetchMappedWindow @ platform MinGW32 @ \impl \u Host;
+/= test 6 @ platform MinGW32 ^ \conf release;
 
 r7:
-+ \f \i void Devices::InitDSScreen(unique_ptr<DSScreen>&, unique_ptr<DSScreen>&)
-	ynothrow @ \h DSScreen;
-/ \simp \impl @ \ctor DSApplication @ \impl \u DSMain ^ Devices::InitDSScreen;
-/= test 6 @ platform MinGW32;
+/= test 7 @ platform DS ^ \conf release;
 
 r8:
-/ @ \cl DSApplication @ \u DSMain $=
++ $doc Documentation::ProjectRules["ProjectRules.txt"],
+/ @ \u Host $=
 (
-	+ friend class Host::Environment @ YCL_HOSTED,
-	/ \simp \impl @ \ctor
-),
-/ \impl @ \f Environment::HostTask @ platform MinGW32;
-/= test 7 @ platform MinGW32;
-
-r9:
-/ \simp \impl @ \ctor DSApplication @ platform MinGW32 @ \impl \u DSMain
-	!^ \mf Environment::Notify;
-/ \simp \impl @ \cl Environment @ \u Host $=
-(
-	- \mf Notify,
-	- \m std::condition_variable full_init,
-	/ \tr \simp \impl @ \ctor
+	+ 'yconstexpr auto WindowClassName(L"YFramework Window");' @ \h,
+	+ 'ynothrow' @ \mf Window::Show;
+	/ @ \impl \u $=
+	(
+		/ \f ::HWND InitializeMainWindow() @ \un \ns ->::HWND
+			InitializeMainWindow(const wchar_t*, u16, u16,
+			::DWORD = WS_TILED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX),
+		/ \impl @ \mf Host::HostTask
+	)
 );
 /= test 8 @ platform MinGW32;
 
-r10:
-/= test 9 @ platform MinGW32 ^ \conf release;
+r9-r11:
+/ 3 test 9 @ platform MinGW32
+	$=(* wrong window initialization $since r8);
 
-r11:
-/= test 10 @ platform DS ^ \conf release;
-
-r12:
-/ @ \u DSMain $=
-(
-	- \f \i FetchDefaultScreen @ \h,
-	+ \decl friend \cl Host::Window @ \cl DSApplication
-),
-- \inc \h Cast @ \impl \u DSMain,
-/ @ \impl \u Host $=
-(
-	/ \simp \impl @ \mf Window::OnPaint;
-	- \inc \h Cast
-);
-/= test 11 @ platform MinGW32;
-
-r13:
-/ \m Host::Environment* p_env -> std::reference_wrapper<Host::Environment> env
-	@ (platform MinGW32 @ \cl DSScreen @ \u DSScreen, \cl Window @ \u Host),
-/ \tr \impl @ \mf DSScreen::Update @ \impl \u DSScreen,
-/ \tr \impl @ (\mf GetHost, \ctor, \dtor) @ \cl Window @ \h Host;
-/= test 12 @ platform MinGW32;
-
-r14:
-/= test 13 @ platform MinGW32 ^ \conf release;
+r12-r14:
+/ \simp \impl @ \impl \u Host,
+/= 3 test 10 @ platform MinGW32;
 
 r15:
-/= test 14 @ platform DS;
+/= test 11 @ platform MinGW32 ^ \conf release;
 
 r16:
-/= test 15 @ platform DS ^ \conf release;
+/= test 12 @ platform DS;
+
+r17:
+* wrong order for cleanup of windows map and main host window
+	@ class Environment @ platform MinGW32 @ \u Host $since b379 $=
+(
+	/ \m order,
+	/ \impl @ \ctor
+);
+/= test 13 @ platform MinGW32;
+
+r18-r19:
+/= 2 test 14 @ platform MinGW32;
+
+r20-r21:
++ debug trace @ (\mf (HostLoop, HostTask), \dtor) @ \cl Environment,
+/= 2 test 15 @ platform MinGW32;
+
+r22-r24:
+/= 3 test 16 @ platform MinGW32;
+
+r25:
+/= test 17 @ platform MinGW32 ^ \conf release;
+
+r26:
+/= test 18 @ platform MinGW32;
+
+r27:
+/= test 19 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-02-12 +0800:
--37.5d;
-// Mercurial local rev1-rev252: r10057;
+2013-02-16 +0800:
+-37.1d;
+// Mercurial local rev1-rev253: r10084;
 
 / ...
 
 
 $NEXT_TODO:
-b[$current_rev]-b401:
+b[$current_rev]-b403:
+/ @ platform MinGW32 $=
+(
+	* host UI thread remained on exiting requested from other threads,
+	* invalid host enviroment access after host thread detached $since b379
+),
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks manager,
 	+ (reading history, bookmarks) (serialization, unserialization) as \conf,
-	+ \decl @ \f ReleaseShells @ \h,
+	+ \decl @ \f ReleaseShells @ \h
 ),
 $low_prior
 (
@@ -632,7 +636,7 @@ b[689]:
 / $low_prior improving performance $=
 (
 	/ \impl @ classes %(Message, MessageQueue),
-	/ more specifc \impl @ NPL context
+	/ more specific \impl @ NPL context
 ),
 / completeness of core abstraction $=
 (
@@ -937,6 +941,20 @@ $RESOLVED_ENVIRONMENT_ISSUE:
 
 $HISTORY:
 
+// Code refactoring/fixing for quality across multiple files \
+	and probably multiple revisions.
+// '$to $version' is the end revision(included) of transformation. '$to $now' \
+	means the migration is not end yet. Terms without '$to' means the \
+	migration has been finished.
+$longterm_code_evolution $=
+(
+	"new include header guard identifier scheme" $since b381 $to $now
+	"new copyright title and author mail address with whitespace per file"
+		$since b369 $to $now,
+	"Doxygen comments and file header with copyright notice" $since b170,
+	"formatted comments" $since b166 $to b169,
+);
+
 $ellipse_refactoring;
 $ellipse_debug_assertion;
 
@@ -1080,6 +1098,33 @@ $module_tree $=
 );
 
 $now
+(
+	/ $dev %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			- "dependency on including" %'GUI'.'YDesktop' @ "header %YGlobal",
+			/ "headers inclusion involved" %'%YGlobal',
+			/ @ "platform %MinGW32" $=
+			(
+				/ @ "class %Environment" $=
+				(
+					/ "window map access" ^ "mutual exclusion",
+					+ "cursor adjustment for window"
+					* "wrong order for cleanup of windows map and main host \
+						window" $since b379,
+					+ "several debug trace output"
+				);
+				- "mutex and condition variable for initialization",
+				/ DLD "input manager implementation" ^ "host environment",
+			)
+		),
+		+ '#undef FindWindow' @ "platform %MinGW32" @ %'YCLib'.'NativeAPI'
+	),
+	+ $doc "%Documentation::ProjectRules[ProjectRules.txt]"
+),
+
+b380
 (
 	/ %'YFramework'.'Helper' $=
 	(

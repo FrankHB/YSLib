@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r343
+\version r483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-02-12 19:06 +0800
+	2013-02-16 06:44 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -58,7 +58,7 @@ namespace
 Host::Window&
 FetchMappedWindow(::HWND h)
 {
-	const auto p(FetchGlobalInstance().GetHost().WindowsMap[h]);
+	const auto p(FetchGlobalInstance().GetHost().FindWindow(h));
 
 	YAssert(p, "Unmapped window handle found.");
 	YAssert(&p->GetHost() == &FetchGlobalInstance().GetHost(),
@@ -95,43 +95,17 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 	return 0;
 }
 
+//! \since build 381
 ::HWND
-InitializeMainWindow()
+InitializeMainWindow(const wchar_t* wnd_title, u16 wnd_w, u16 wnd_h,
+	::DWORD wstyle = WS_TILED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
 {
-	yconstexpr auto wnd_class_name(L"YSTest_Class");
-	yconstexpr auto wnd_title(L"YSTest");
-	::WNDCLASSEX wCl;
-
-	yunseq(wCl.hInstance = ::GetModuleHandleW(NULL),
-		wCl.lpszClassName = wnd_class_name,
-		wCl.lpfnWndProc = WndProc,
-		wCl.style = CS_DBLCLKS,
-	//	wCl.style = CS_HREDRAW | CS_VREDRAW,
-		wCl.cbSize = sizeof(wCl),
-		wCl.hIcon = ::LoadIcon(NULL, IDI_APPLICATION),
-		wCl.hIconSm = ::LoadIcon(NULL, IDI_APPLICATION),
-		wCl.hCursor = ::LoadCursor(NULL, IDC_ARROW),
-		wCl.lpszMenuName = NULL,
-		wCl.cbClsExtra = 0,
-		wCl.cbWndExtra = 0,
-		wCl.hbrBackground = ::GetSysColorBrush(COLOR_MENU)
-	//	wCl.hbrBackground = ::HBRUSH(COLOR_MENU + 1)
-	);
-
-	if(!::RegisterClassEx(&wCl))
-		throw LoggedEvent("This program requires Windows NT!");
-	//	::MessageBox(NULL, "This program requires Windows NT!",
-		//	wnd_title, MB_ICONERROR);
-
-	yconstexpr ::DWORD wstyle(WS_TILED | WS_CAPTION | WS_SYSMENU
-		| WS_MINIMIZEBOX);
-	yconstexpr u16 wnd_w(256), wnd_h(384);
 	::RECT rect{0, 0, wnd_w, wnd_h};
 
 	::AdjustWindowRect(&rect, wstyle, FALSE);
-	return ::CreateWindowEx(0, wnd_class_name, wnd_title,
-		wstyle, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
-		rect.bottom - rect.top, HWND_DESKTOP, NULL, wCl.hInstance, NULL);
+	return ::CreateWindowW(WindowClassName, wnd_title, wstyle, CW_USEDEFAULT,
+		CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
+		HWND_DESKTOP, NULL, ::GetModuleHandleW(NULL), NULL);
 }
 #endif
 
@@ -144,15 +118,12 @@ Window::Window(NativeHandle h, Environment& e)
 	YAssert(::IsWindow(h), "Invalid window handle found.");
 	YAssert(::GetWindowThreadProcessId(h, NULL) == ::GetCurrentThreadId(),
 		"Window not created on current thread found.");
-	YAssert(e.WindowsMap.find(h) == e.WindowsMap.end()
-		|| !e.WindowsMap[h] || e.WindowsMap[h] == this,
-		"Mismatch registered window pointer found.");
 
-	e.WindowsMap[h_wnd] = this;
+	e.AddMappedItem(h_wnd, this);
 }
 Window::~Window()
 {
-	env.get().WindowsMap[h_wnd] = nullptr;
+	env.get().RemoveMappedItem(h_wnd);
 	// Note: The window could be already destroyed in window procedure.
 	if(::IsWindow(h_wnd))
 		::DestroyWindow(h_wnd);
@@ -197,31 +168,78 @@ Window::OnPaint()
 }
 
 void
-Window::Show()
+Window::Show() ynothrow
 {
 	::ShowWindowAsync(h_wnd, SW_SHOWNORMAL);
 }
 
 
 Environment::Environment()
+	: wnd_map(), wmap_mtx()
 #	if YCL_MULTITHREAD == 1
-	: mtx(), init(),
 #		if YCL_MINGW32
-	p_main_wnd(),
+	, p_main_wnd()
 #		endif
-	host_thrd(std::thread(std::mem_fn(&Environment::HostTask), this)),
+	, host_thrd(std::thread(std::mem_fn(&Environment::HostTask), this))
 #	endif
-	WindowsMap()
 {}
 Environment::~Environment()
 {
+	YCL_DEBUG_PUTS("Host environment lifetime ended.");
+#	if YCL_MULTITHREAD == 1
+	// TODO: Exception safety: add either assertion or logging when throwing.
 	host_thrd.detach();
+	YCL_DEBUG_PUTS("Host thread dropped.");
+#	endif
+}
+
+Window*
+Environment::GetForegroundWindow() const ynothrow
+{
+#ifdef YCL_MINGW32
+	return FindWindow(::GetForegroundWindow());
+#endif
+	return nullptr;
+}
+
+void
+Environment::AddMappedItem(Window::NativeHandle h, Window* p)
+{
+	std::unique_lock<std::mutex> lck(wmap_mtx);
+
+	// TODO: Use %emplace.
+	wnd_map.insert(make_pair(h, p));
+}
+
+Point
+Environment::AdjustCursor(platform::CursorInfo& cursor, const Window& wnd)
+	const ynothrow
+{
+	Point pt;
+
+#ifdef YCL_MINGW32
+	::ScreenToClient(wnd.GetNativeHandle(), &cursor);
+	yunseq(pt.X = cursor.x, pt.Y = cursor.y - MainScreenHeight);
+	RestrictInInterval(pt.X, 0, MainScreenWidth),
+	RestrictInInterval(pt.Y, 0, MainScreenHeight);
+#endif
+	return pt;
+}
+
+Window*
+Environment::FindWindow(Window::NativeHandle h) const ynothrow
+{
+	std::unique_lock<std::mutex> lck(wmap_mtx);
+	const auto i(wnd_map.find(h));
+
+	return i == wnd_map.end() ? nullptr : i->second;
 }
 
 #	if YCL_MULTITHREAD == 1
 void
 Environment::HostLoop()
 {
+	YCL_DEBUG_PUTS("Host loop beginned.");
 #		if YCL_MINGW32
 	while(true)
 	{
@@ -246,8 +264,19 @@ Environment::HostLoop()
 			::WaitMessage();
 	}
 #		endif
+	YCL_DEBUG_PUTS("Host loop ended.");
 }
 #	endif
+
+void
+Environment::RemoveMappedItem(Window::NativeHandle h) ynothrow
+{
+	std::unique_lock<std::mutex> lck(wmap_mtx);
+	const auto i(wnd_map.find(h));
+
+	if(i != wnd_map.end())
+		wnd_map.erase(i);
+}
 
 void
 Environment::UpdateWindow(DSScreen& scr)
@@ -268,15 +297,36 @@ void
 Environment::HostTask()
 {
 #		if YCL_MINGW32
+	class reg_wnd
 	{
-		std::lock_guard<std::mutex> lck(mtx);
-		const auto h_wnd(Host::InitializeMainWindow());
+	protected:
+		::HINSTANCE hInstance;
 
-		// TODO: Exception safety.
-		// TODO: Handle window creation failure.
-		p_main_wnd.reset(new Window(h_wnd, *this));
-		init.notify_all();
-	}
+	public:
+		reg_wnd()
+			: hInstance(::GetModuleHandleW(NULL))
+		{
+			const ::WNDCLASS wnd_class{CS_DBLCLKS/* | CS_HREDRAW | CS_VREDRAW*/,
+				WndProc, 0, 0, hInstance, ::LoadIconW(NULL, IDI_APPLICATION),
+				::LoadCursorW(NULL, IDC_ARROW), ::HBRUSH(COLOR_MENU + 1), NULL,
+				WindowClassName};
+
+			if(!::RegisterClassW(&wnd_class))
+				throw LoggedEvent("Windows registration failed.");
+			//	::MessageBox(NULL, "This program requires Windows NT!",
+				//	wnd_title, MB_ICONERROR);
+			YCL_DEBUG_PUTS("Window class registered.");
+		}
+		~reg_wnd()
+		{
+			::UnregisterClassW(WindowClassName, hInstance);
+			YCL_DEBUG_PUTS("Window class unregistered.");
+		}
+	} guard;
+	const auto h_wnd(Host::InitializeMainWindow(L"YSTest", 256, 384));
+
+	// TODO: Handle window creation failure.
+	p_main_wnd.reset(new Window(h_wnd, *this));
 	p_main_wnd->Show();
 	{
 		auto& app(FetchGlobalInstance());
@@ -286,21 +336,8 @@ Environment::HostTask()
 		YAssert(FetchGlobalInstance().IsScreenReady(), "Screen is not ready.");
 	}
 	HostLoop();
+	YCL_DEBUG_PUTS("Host task ended.");
 #		endif
-}
-
-Window&
-Environment::Wait()
-{
-	std::unique_lock<std::mutex>lck(mtx);
-
-#		if YCL_MINGW32
-	init.wait(lck, [this]{return bool(p_main_wnd);});
-
-	YAssert(bool(p_main_wnd), "Null pointer found.");
-#		endif
-
-	return *p_main_wnd;
 }
 #	endif
 

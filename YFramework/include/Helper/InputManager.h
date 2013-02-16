@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r98
-\author FrankHB<frankhb1989@gmail.com>
+\version r110
+\author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2012-12-11 21:11 +0800
+	2013-02-13 13:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#ifndef INC_HELPER_INPUGMANAGER_H_
-#define INC_HELPER_INPUGMANAGER_H_ 1
+#ifndef INC_Helper_InputManager_h_
+#define INC_Helper_InputManager_h_ 1
 
+#include "Helper/yglobal.h"
 #include "YSLib/UI/ycomp.h"
 
 YSL_BEGIN
@@ -46,6 +47,13 @@ private:
 	\note 没有必要把输入内容以消息队列传输，因为总是有且仅有一个实例被同时处理。
 	*/
 	Drawing::Point cursor_state;
+#if YCL_HOSTED
+	/*!
+	\brief 宿主环境。
+	\since build 381
+	*/
+	std::reference_wrapper<Host::Environment> env;
+#endif
 
 public:
 	InputManager();

@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r519
+\version r536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-01-04 16:56 +0800
+	2013-02-14 04:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,14 @@
 #define YSL_YSBUILD_H <ysbuild.h>
 
 /*!	\defgroup workarounds Workarounds
-\brief 名称冲突解决。
+\brief 替代方案。
 \since build 297
+*/
+
+/*!	\defgroup name_collision_workarounds Name collision workarounds
+\brief 名称冲突替代方案。
+\note Windows API 冲突时显式使用带 A 或 W 的全局函数名称。
+\since build 381
 */
 
 
@@ -97,29 +103,35 @@ IsDirectory(const ::dirent& d)
 #include <sys/stat.h>
 
 /*!
-\ingroup workarounds
+\ingroup name_collision_workarounds
 \brief 禁止使用 DialogBox 宏。
-\note 使用 ::DialogBoxA 或 ::DialogBoxW 代替。
 \since build 297
 */
 #undef DialogBox
 
 /*!
-\ingroup workarounds
+\ingroup name_collision_workarounds
 \brief 禁止使用 DrawText 宏。
 \since build 298
 */
 #undef DrawText
 
 /*!
-\ingroup workarounds
+\ingroup name_collision_workarounds
+\brief 禁止使用 FindWindow 宏。
+\since build 381
+*/
+#undef FindWindow
+
+/*!
+\ingroup name_collision_workarounds
 \brief 禁止使用 GetObject 宏。
 \since build 313
 */
 #undef GetObject
 
 /*!
-\ingroup workarounds
+\ingroup name_collision_workarounds
 \brief 禁止使用 PostMessage 宏。
 \since build 298
 */

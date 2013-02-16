@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r197
+\version r208
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-02-10 03:38 +0800
+	2013-02-14 04:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,9 @@ YSL_BEGIN_NAMESPACE(Devices)
 
 InputManager::InputManager()
 	: cursor_state()
+#if YCL_HOSTED
+	, env(FetchGlobalInstance().GetHost())
+#endif
 {}
 
 void
@@ -48,9 +51,9 @@ InputManager::DispatchInput(Desktop& dsk)
 #elif YCL_MINGW32
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
-	const auto h_wnd(FetchGlobalInstance().GetHost().Wait().GetNativeHandle());
+	const auto p_wnd(env.get().GetForegroundWindow());
 
-	if(::GetForegroundWindow() != h_wnd)
+	if(!p_wnd)
 		return;
 #else
 #	error Unsupported platform found!
@@ -77,11 +80,7 @@ InputManager::DispatchInput(Desktop& dsk)
 #if YCL_DS
 		cursor_state = cursor.operator Point();
 #elif YCL_MINGW32
-		::ScreenToClient(h_wnd, &cursor);
-		yunseq(cursor_state.X = cursor.x,
-			cursor_state.Y = cursor.y - MainScreenHeight);
-		RestrictInInterval(cursor_state.X, 0, MainScreenWidth),
-		RestrictInInterval(cursor_state.Y, 0, MainScreenHeight);
+		cursor_state = env.get().AdjustCursor(cursor, *p_wnd);
 #endif
 	}
 

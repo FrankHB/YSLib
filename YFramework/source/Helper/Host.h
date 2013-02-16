@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r165
+\version r233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-02-12 19:03 +0800
+	2013-02-16 05:45 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -33,13 +33,16 @@
 #if YCL_MULTITHREAD == 1
 #	include <thread>
 #	include <mutex>
-#	include <condition_variable>
 #endif
 
 YSL_BEGIN
 
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
+
+//! \since build 381
+yconstexpr auto WindowClassName(L"YFramework Window");
+
 
 /*!
 \brief 宿主窗口。
@@ -78,8 +81,9 @@ public:
 	virtual void
 	OnPaint();
 
+	//! \since build 381
 	void
-	Show();
+	Show() ynothrow;
 };
 
 
@@ -89,12 +93,21 @@ public:
 */
 class Environment
 {
-#	if YCL_MULTITHREAD == 1
 private:
-	//! \brief 宿主环境互斥量。
-	std::mutex mtx;
-	//! \brief 宿主环境就绪条件。
-	std::condition_variable init;
+	/*!
+	\brief 本机窗口对象映射。
+	\note 不使用 ::SetWindowLongPtr 等 Windows API 保持跨平台及避免和其它代码冲突。
+	\warning 销毁窗口前移除映射，否则可能导致未定义行为。
+	\warning 非线程安全，应仅在宿主线程上操作。
+	\since build 381
+	*/
+	map<Window::NativeHandle, Window*> wnd_map;
+	/*!
+	\brief 窗口对象映射锁。
+	\since build 381
+	*/
+	mutable std::mutex wmap_mtx;
+#	if YCL_MULTITHREAD == 1
 #		if YCL_MINGW32
 	/*!
 	\brief 本机主窗口指针。
@@ -107,16 +120,40 @@ private:
 #	endif
 
 public:
-	/*!
-	\brief 本机窗口对象映射。
-	\note 不使用 ::SetWindowLongPtr 等 Windows API 保持跨平台及避免和其它代码冲突。
-	\warning 销毁窗口前移除映射，否则可能导致未定义行为。
-	\since build 379
-	*/
-	map<Window::NativeHandle, Window*> WindowsMap;
-
 	Environment();
 	~Environment();
+
+	/*!
+	\brief 取 GUI 前景窗口。
+	\since build 381
+	\todo 线程安全。
+	*/
+	Window*
+	GetForegroundWindow() const ynothrow;
+
+	/*!
+	\brief 插入窗口映射项。
+	\note 线程安全。
+	\since build 381
+	*/
+	void
+	AddMappedItem(Window::NativeHandle, Window*);
+
+	/*!
+	\brief 调整全局 GUI 坐标到窗口坐标。
+	\todo 线程安全。
+	\since build 381
+	*/
+	Drawing::Point
+	AdjustCursor(platform::CursorInfo&, const Window&) const ynothrow;
+
+	/*!
+	\brief 取本机句柄对应的窗口指针。
+	\note 线程安全。
+	\since build 381
+	*/
+	Window*
+	FindWindow(Window::NativeHandle) const ynothrow;
 
 	/*!
 	\brief 宿主消息循环。
@@ -131,15 +168,17 @@ public:
 	HostTask();
 #	endif
 
+	/*!
+	\brief 移除窗口映射项。
+	\note 线程安全。
+	\since build 381
+	*/
+	void
+	RemoveMappedItem(Window::NativeHandle) ynothrow;
+
 	//! \since build 380
 	void
 	UpdateWindow(Devices::DSScreen&);
-
-#	if YCL_MULTITHREAD == 1
-	//! \since build 380
-	Window&
-	Wait();
-#	endif
 };
 
 YSL_END_NAMESPACE(Host)

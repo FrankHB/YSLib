@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7235
-\author FrankHB<frankhb1989@gmail.com>
+\version r7390
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-07 18:23 +0800
+	2013-02-15 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
  YSLib 项目(the YSLib project) 包括 YFramework 和 YBase 。
-本文档适用于 YFramework 的开发。除非有特别说明，编码细节和其它规范也适用于 YBase(@5.2.1.1) 。
+本文档适用于 YFramework 的开发。除非有特别说明，编码细节和其它规范也适用于 YBase(@5.2.1) 。
 
 @1 设计：
 
@@ -109,43 +109,13 @@
 一个类类型对象的生存期起始于构造调用结束后，构造函数中的操作是受限的（例如无法正确地调用虚函数）；
 构造函数允许抛出异常。
 因此：
- Shell 切换(@1.2.2.4) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::CommonRules @@5.10.5.4]) 的；
+ Shell 切换(@1.2.2.4) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::CommonRules @@5.20.5.4]) 的；
 激活和停用有必要明确地区分于构造和析构。
  Shell 可作为 ISO C++11 30.2.5.1/1 定义的执行代理(execution agent) 。
 
 @1.2.3 设计意义：
 环境隔离：对特定领域相关的上层源代码提供一致的接口。
 抽象和封装：提供控制流实体语义的抽象；提供用于封装上层平台相关的模块的支持。
-
-@1.2.4 组织约定：
-
-@1.2.4.1 单元(unit) ：
-编译单元简称单元，是一组包含源代码的文本文件，包含一个不作为头文件包含的源文件（默认后缀名 .cpp ）和若干个被这个源文件直接或间接包含的头文件，经过预处理后成为翻译单元(translation unit) 。
-编译单元可以包含类/结构体等类型，以及 API（Application Programming Interface ，应用程序编程接口）的实现。
-单元可以作为测试的基本单位之一，即进行单元测试(unit testing) 。
-
-@1.2.4.2 模块和模块目录：
-此处模块特指静态的组织构成单位。注意和一般意义的模块（参见 [Documentation::CommonRules @@3.7.1] ）之间的区别与联系。
-一个单元或无源文件对应的头文件称为模块(module) 。一个模块目录是某个抽象路径中的模块的集合。
-一个模块仅可属于一个模块目录。
-模块和模块目录以类 C++ qualified-id 语法组成的名称表示，形式定义如下：
-module-name:
-	identifier
-module-directory:
-	identifier
-	module-directory :: identifier
-nested-module-name:
-	module-name
-	module-directory :: module-name
-如无特别指明，以下使用的模块名称都是（简单）模块名 module-name 。
- :: 两边的空白仅作区分记号的示意，实际使用时和标识符之间不保留空格。
-对于清晰的上下文，可以使用部分的模块名称。特别地，在标识库的组件时顶级的标识符（表示库的名称）通常省略。
-
-@1.2.4.3 源文件组织：
-用于存储源文件的文件系统中的一组目录称为模块目录。
-典型情况下，模块目录包含存储公开头文件 "/include" 和存储其它源文件的 "/source"。
- "/include" 中的头文件是公开头文件，它的内容是公开的接口。公开头文件和 "/source" 中的不作为头文件包含的源文件对应组成的模块，称为公开模块。
- "/source" 包含的头文件不是公开头文件，它的内容不是公开的接口。非公开头文件可能和同一个目录下的其它源文件组成模块，称为非公开模块。
 
 @1.3 构建原则：
 基本内容参见 [Documentation::CommonRules @@2.2] 。
@@ -190,7 +160,7 @@ nested-module-name:
 接口和实现仅使用 ISO C++11 中头文件 <array> 、 <atomic> 、 <chrono> 、 <condition_variable> 、 <forward_list> 、 <mutex> 、 <thread> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 
 @1.3.2.2
- YSLib 的源代码的本体(@2.9) 是平台中立 [Documentation::CommonRules @@2.2.2.1] 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
+ YSLib 的源代码的本体(@2.9) 是平台中立([Documentation::CommonRules @@2.2.2.1]) 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
 
 @1.3.2.3
 格式化输出及结构对齐时注意平台字长差异。
@@ -230,7 +200,7 @@ nested-module-name:
 消息、消息队列、消息分派和消息循环的实现参见 @2.5.10 。
 
 @1.4.1.4 可重入性和线程安全性：
-除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.6 、 @2.6.2 、@2.9 、 @5.2.1 、 @5.2.4 和 [Documentation::CHRLib] 。
+除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.6 、 @2.6.2 、@2.9 、 @5.2 、 @5.5 和 [Documentation::CHRLib] 。
 
 @1.4.1.4.1 一般准则：
 中断服务例程应保证可重入性。
@@ -379,16 +349,16 @@ nested-module-name:
 此外， YSLib 不排斥在部件实现(@2.8) 中提供（有限的）复制和转移支持以保证值语义。
 
 @1.6.3.4 泛型值类型：
-适当使用 YBase(@5.2.1.1) 提供的基于类型擦除的泛型值语义对象 ystdex::any 等类型实现。允许空值。
+适当使用 YBase(@5.2.1) 提供的基于类型擦除的泛型值语义对象 ystdex::any 等类型实现。允许空值。
 
 @2 框架实现概览：
 本章描述 YSLib 项目中的 YFramework/YSLib 库（位于 "/YFramework/YSLib/" 目录下；本章内以下路径表示以此作为根目录）。支持库参见 @5 。
 模块化设计原则参见 [Documentation::CommonRules @@3.7.1] 。
-一个模块目录(@1.2.4.2) 中的模块组成一个系统。
+一个模块目录([Documentation::ProjectRules @@3.2]) 中的模块组成一个系统。
 关于一些文件的文件名的额外约定参见 @2.9.1 。
 
 @2.1 名称和命名空间规则：
-名称使用前提约束：参见 [Documentation::CommonRules @@5.1] 。
+名称使用前提约束：参见 [Documentation::CommonRules @@5.2] 。
 
 @2.1.1 文件名和目录名：
 本节适用于代码和相关目录，不适用于文档和相关目录。
@@ -399,7 +369,7 @@ nested-module-name:
 考虑可移植性，在每一个目录下，保证其中所有文件名和目录名中的所有字符使用 std::tolower 转换后得到的文件名不重复。
 
 @2.1.1.2 可包含字符例外：
-除了 YBase(@5.2.1.1) ，在文件名（但对于存在扩展名的文件名，不包含扩展名部分）和目录名中允许使用大写字母。
+除了 YBase(@5.2.1) ，在文件名（但对于存在扩展名的文件名，不包含扩展名部分）和目录名中允许使用大写字母。
 
 @2.1.1.3 头文件扩展名：
 一般使用 h ，但设计时即确定不需要作为独立翻译单元的实现文件（如仅包含模板的实现或元编程设施）的头文件使用 hpp 。
@@ -415,7 +385,7 @@ nested-module-name:
 
 @2.1.4 全局名称：
  YSLib 库的根命名空间为 YSLib ，应置于全局命名空间中，即为 ::YSLib 。
-根据平台特性增设全局对象的定义位于 YSLib 外部 Helper 库的 YGlobal(@5.2.4) 中。
+根据平台特性增设全局对象的定义位于 YSLib 外部 Helper 库的 YGlobal(@5.5) 中。
 
 @2.1.5 特定引用规则：
  YSLib 默认显式依赖于库 YCLib ，可声明 YCLib 中的名称。具体由适配器系统(@2.6) 决定。
@@ -426,7 +396,7 @@ nested-module-name:
  YSLib::Devices ：设备抽象。
  YSLib::Drawing ：图形处理。
  YSLib::Messaging ：消息机制。
- YSLib::Host ：宿主环境支持，仅在宿主实现的 Helper 库(@5.2.4) 使用 。
+ YSLib::Host ：宿主环境支持，仅在宿主实现的 Helper 库(@5.5) 使用 。
  YSLib::IO ：输入/输出管理。
  YSLib::Shells ：Shell 抽象层。
  YSLib::Text ：文本相关的服务。
@@ -469,7 +439,7 @@ nested-module-name:
 可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。
 
 @2.3 语言特性扩展支持：
-位于 YBase(@5.2.1.1) 或 Core(@2.5) 中。
+位于 YBase(@5.2.1) 或 Core(@2.5) 中。
 
 @2.3.1 接口
 
@@ -674,13 +644,13 @@ nested-module-name:
 @2.6.1 外部库关联 YAdaptor ：
 默认行为如下：
 包含 "ynew.h" ，引入平台设置和存储调试设施(@2.6.2) 。
-包含 YBase 依赖项(@5.2) <ystdex/functional.hpp> 和 <ystdex/utility.hpp> 。
+包含 YBase 依赖项(@5) <ystdex/functional.hpp> 和 <ystdex/utility.hpp> 。
 包含 <YCLib/ycommon.h> 、 <YCLib/FileSystem.h> 和 <YCLib/Video.h> 。
-包含 CHRLib (@5.2.3.1) （<CHRLib/chrlib.h>）。
+包含 CHRLib (@5.4.1) （<CHRLib/chrlib.h>）。
 在 YSLib 命名空间 using 引用必要的名称。
 
 @2.6.2 内存调试设施 YNew ：
-默认包含编译配置、平台支持文件 <Platform.h>(@5.2.1.2.3.1) 和通用基础设施(@2.6.2) 。
+默认包含编译配置、平台支持文件 <Platform.h>(@5.2.2.3.1) 和通用基础设施(@2.6.2) 。
 定义宏 YSL_USE_MEMORY_DEBUG 后（默认 debug 配置在 "config.h" 有此定义）可以使用 "ynew.h" 声明的宏和类进行内存调试。
 重载全局 operator new 和 operator delete 可以用于用户程序调试（ YSLib 中默认并不使用）。
  MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定义了一个函数内静态对象，用函数 GetDebugMemoryList 取此对象引用获得默认调试内存信息。
@@ -1055,9 +1025,9 @@ nested-module-name:
 本体是以上 YSLib 构成单元中，除了 Adaptor 以外的部分的总称，是平台中立的。
 非本体是本体在 YSLib 中的补集，即 Adaptor ，接口是平台中立的。
  Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
-因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在外部的 Helper 库(@5.2.4) 而不是 Adaptor 中。
+因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在外部的 Helper 库(@5.5) 而不是 Adaptor 中。
 除非另有说明，仅保证非成员函数（排除声明紧随于某个类之后，首个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
-以下节指定 YFramework 中明确或明确禁止依赖的文件。关于 YBase 的文件依赖性参见 @5.2.1.1.2 。
+以下节指定 YFramework 中明确或明确禁止依赖的文件。关于 YBase 的文件依赖性参见 @5.2.1.2 。
 
 @2.9.1 基本代码依赖性（适用于 YFramework 内部）：
  YSLib 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。
@@ -1070,7 +1040,7 @@ nested-module-name:
 在不造成循环依赖的前提下， Adaptor 头文件可依赖 YFramework 文件或标准库实现的非标准头文件。
  Helper 文件和本体的非必要源文件可依赖 YCLib 文件。
 本体头文件不依赖 YSLib 以外的文件。
-关于 ISO C++ 2011 直接指定的依赖项，参考 [Documentation::CommonRules @@5.15.2] 。
+关于 ISO C++ 2011 直接指定的依赖项，参考 [Documentation::CommonRules @@5.25.2] 。
 
 @2.9.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
@@ -1088,7 +1058,7 @@ nested-module-name:
 @2.9.1.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件及唯一在其中声明的接口（但 Adaptor 可能会间接依赖）：
  <fstream> 、 <iomanip> 、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
-其它要点参见 [Documentation::CommonRules @@5.12] 。
+其它要点参见 [Documentation::CommonRules @@5.22] 。
 
 @2.9.1.5 本体的头文件中显式包含的 C++ 标准库依赖项：
  "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
@@ -1144,7 +1114,7 @@ nested-module-name:
 @3.1 类 C 标准库接口：
 
 @3.1.1 内存管理行为：
-接口不符合无隐式 malloc 规则 [Documentation::CommonRules @@5.15.3.1] 时必须向用户明确存储所有权。
+接口不符合无隐式 malloc 规则 [Documentation::CommonRules @@5.25.3.1] 时必须向用户明确存储所有权。
 
 @3.2 C++ 函数和函数模板：
 
@@ -1225,88 +1195,35 @@ nested-module-name:
 @4.6 具名对象：
 参见 [Documentation::CommonRules @@4.6] 。
 
-@5 项目管理、程序部署和用户配置：
-不由 YSLib 项目提供的库称为外部依赖项。 YFramework 包含少量外部依赖性如 FreeType2 。
+@5 程序部署和用户配置：
+依赖项相关定义参见 [Documentation::ProjectRules @@1] 。
+项目管理相关定义参见 [Documentation::ProjectRules @@2] 。
+本章描述 YSLib 项目中除了 YFramework/YSLib 以外的库。
+ YFramework 内包含少量外部依赖性如 FreeType2 。
 以下如无特别说明，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
-@5.1 非外部依赖项设计和管理约定：
+@5.1 平台配置：
+平台配置 YCLib 平台定义文件(@5.2.2.3.1) 中定义的可支持平台对应。
+当前正式支持的平台：
+非宿主实现平台 DS （ Nintendo/iQue DS/DS Lite/DSI/DSILL 以及 PC 端模拟器 DeSmuMe 等）；
+宿主实现平台 MinGW32 （对应三元组 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
+目前除了 MinGW32 外，仅使用静态链接库链接至静态或动态目标。
 
-@5.1.1 版本控制：
-此规则用于对 YSLib 项目中的文件的修订和项目发布的顺序标识提供的一种简便方式。适用于任意非外部依赖项。
-被版本库识别并归档的文件称为托管文件。
-任意托管文件的被版本库识别的改动都是项目的修订。除此之外，存档与临时文件的临时版本记录区域不视为文件修订。
-项目构建版本号独立于文件版本号。
+@5.1.1 配置管理：
+基本配置管理参见 [Documentation::ProjectRules @@2.1]。
+ MinGW32 为 DLL 目标追加对应 debug 和 release 的配置 debug_DLL 和 release_DLL 。
 
-@5.1.1.1 项目构建：
-从 build 132 开始使用版本控制工具。
-
-@5.1.1.1.1 构建版本：
-以 (release) rev （缩写 r ）加整数序号表示用于在构建之间迭代的编译版本。一个编译版本具有一次或多次修订后的一个或多个配置的一次构建。
-
-@5.1.1.1.2 提交版本：
-以 build （缩写 b ）加整数序号表示经过完整构建的提交版本。一个提交版本应至少具有一次（各个平台）所有配置的全部重新构建。
-原则上对于 N 个发布平台，一个提交版本具有至少 8N 个编译版本，其中最后的连续几个版本作为各个配置的提交发布版本。
-
-@5.1.1.1.3 库提交版本：
-包含库源代码的文件的修改的提交版本称为库提交版本。
-大部分提交版本应为库提交版本。
-
-@5.1.1.1.4 主分支版本：
-在主要开发路径分支（主分支）上的库提交版本称为主分支版本。
-主分支版本也可以仅包含库的文档改进，但应在提交记录说明。
-仅包含库的程序或文档以外的版本，不是主分支版本。
-
-@5.1.1.2 文件创建和修改时间：
-文件创建时间应不晚于最早的提交时间。
-分支版本使用新的文件创建时间，但父文件不再存在时都继承父文件创建时间。
-文件修改时间应保证和对应提交时间一致，除非最近一次修订是回滚前一次操作。
-当从其它分支合并或提交未在版本库中的文件时，文件创建时间可早于提交时间。
-
-@5.1.1.3 文件版本号：
-文件版本号表示版本的修订行数，即增加、删除、修改或移动的行的有效计数。
-有多种计数时以较小者为准（如移动优先于修改）。
-版本说明、修改时间的修改不列入计数。
-除非一次修订仅涉及空行（这里指仅含空白符的行），对空行的修改不列入计数。
-自 build 334 开始严格执行（之前大部分文件版本号在新增时加入偏移而偏大）。
-文件版本号以 Doxygen 指令 \version 标示。
-
-@5.1.1.4 实体版本标识：
-表示和文件版本号关联的版本，适用范围较文件版本号更广。
-实体包括文件实体（文本文件）和程序实体（ ISO C++ 定义的实体，参见 ISO/IEC 14882 Clause 3 ）。
-更新实体版本标识的充分必要条件是存在简单名称的变更的修订。
-对于文件，忽略目录路径变更；对于代码中的宏和实体，忽略所在命名空间（若存在）变更；对于函数、函数模板和模板特化，包括类型变更；对于类成员，包括访问权限变更。
-当从其它分支合并或提交未在版本库中的文件时，实体版本标识可早于提交版本。
-实体版本标记以 Doxygen 指令 \since 标示。
-
-@5.1.1.5 头文件包含守护宏(include guard marco) ：
-除非重复包含不影响语义，否则应使用特定名称的宏以保证头文件不被包含超过一次。
-一般包含模式如下：
-
-#ifndef 宏名
-#define 宏名 非零整数字面量
-
-//被保护的代码，常以 #include 起始。
-
-#endif
-
-不同头文件应使用不同的宏名。
-具体宏名由实现定义，一般应使用特定保留前缀（但不应与标准名称冲突，除非实现标准库，参见 [Documentation::CommonRules @@5.3.2.2.2] ）。
-
-@5.2 支持库概述：
-本节描述 YSLib 项目中除了 YFramework/YSLib 以外的库。
-目前仅使用静态链接库链接至静态或动态目标。
-
-@5.2.1 基础库：
+@5.2 基础库：
 除了 ISO C++ 标准库外的非外部依赖项：
 基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx ，独立于 YFramework 。
 基于 YBase 的平台隔离用库 YCLib ，包含于 YFramework 中。
 
-@5.2.1.1 YBase ：
+@5.2.1 YBase ：
  YBase 除了公用头文件 YDefinition(ydef.h) 外，由 YStandardEx 、 LibDefect 和 YTest 子库组成。
  LibDefect 不保证可重入性，线程安全性由 ISO C++11 规范。
  YBase 和其它模块之间传递的对象类型满足 trivially copable ，以保证动态库存储安全（参见 [Documentation::CommonRules @@3.7.2] ）。
 
-@5.2.1.1.1 LibDefect 以外的设计和实现原则：
+@5.2.1.1 LibDefect 以外的设计和实现原则：
 除了去除后不影响语义正确性的扩展，遵守 ISO C++ ，不使用不兼容于 ISO C++11 的特性或依赖于特定平台实现的接口。
 关于当前允许使用的非 ISO C++03 扩展参见 @1.3.2.1 。
 尽量严格遵守 ISO C++11 ，涉及未确定行为和实现定义的行为时应附文档说明。
@@ -1314,66 +1231,75 @@ nested-module-name:
 除非有显著性能问题，否则非成员或静态成员接口应保证线程安全性。
 不降低性能时尽量保证可重入性。
 
-@5.2.1.1.2 文件依赖性：
+@5.2.1.2 文件依赖性：
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
- ydef.h(@5.2.1.1.3) 仅依赖标准库头文件。
+ ydef.h(@5.2.1.3) 仅依赖标准库头文件。
  YBase 依赖且仅依赖 YBase 文件和标准库头文件。
 
-@5.2.1.1.3 YDefinition ：
+@5.2.1.3 YDefinition ：
 模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
 文件內容为系统环境和公用类型和宏的基础定义，包括对实现环境的检测、实现特性的封装、部分未被实现关键字替代以及一些语言层次上的公共基础设施。
 
-@5.2.1.1.3.1 宏 yoffsetof ：
+@5.2.1.3.1 宏 yoffsetof ：
 同标准库宏 offsetof ，但额外提供了对于可能导致未定义行为的检查。
 某些实现（如 GNU C++ ）可能已经自行提供了内建检查，所以此宏并非必要。但为了一致性在库的代码使用此宏。
 
-@5.2.1.1.3.2 宏 yunseq ：
+@5.2.1.3.2 宏 yunseq ：
 用于标记无序列依赖表达式组，以支持非序列优化。
 参见 [Documentation::CommonRules @@6.4.3.3] 。
 
-@5.2.1.1.4 YStandardEx ：
+@5.2.1.4 YStandardEx ：
  YStandardEx 直接扩充标准库，包含仅依赖于标准库而非标准库的接口。
 实现的内容限制为以下两个部分：
 适用范围最广的基础设施（比标准库更严格），如序列/非序列调用、通用类型转换、元类型、函数对象、迭代器；
 直接基于标准库接口的抽象和封装，如输入/输出抽象。
 所有更具体应用问题领域相关的或特定于运行时表达形式相关的操作，如形式语言处理等，都不由 YStandardEx 直接提供接口。
 
-@5.2.1.1.5 LibDefect ：
+@5.2.1.5 LibDefect ：
 用于修正依赖的标准库实现因不完善或配置问题等与标准规定的接口的偏差。
 
-@5.2.1.1.6 YTest ：
+@5.2.1.6 YTest ：
 提供软件测试需要的一些功能的辅助库。
 
-@5.2.1.2 YCLib ：
- YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.2.3.1 ）。
+@5.2.2 YCLib ：
+ YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.4.1 ）。
  YCLib 允许接口平台中立的接口具有实现定义的行为差异。
 除非另有说明， YCLib 仅保证非成员或静态成员函数的线程安全性。
 平台定义文件 Platform.h 不包含其它文件。
 
-@5.2.1.2.1 环境资源占用：
+@5.2.2.1 环境资源占用：
 
-@5.2.1.2.1.1 DS 计时器：
+@5.2.2.1.1 DS 计时器：
  build 291 前占用计时器 0 和计时器 1 。
  build 291 起占用计时器 2 。
 占用计时器用于实现计时接口。若用户占用计时器或修改计数，则计时相关接口结果未定义。
 
-@5.2.1.2.2 实现定义行为：
+@5.2.2.2 实现定义行为：
 
-@5.2.1.2.2.1 对于未说明字符串参数编码的文件操作接口：
-必要时的编码转换使用 CHRLib(@5.2.3.1) 。
+@5.2.2.2.1 对于未说明字符串参数编码的文件操作接口：
+必要时的编码转换使用 CHRLib(@5.4.1) 。
  DS 直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
  MinGW32 直接使用 UCS2-LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL2-LE 路径，使用 _w 起始的 MSVCRT 文件函数。
 
-@5.2.1.2.3 平台文件：
+@5.2.2.3 平台 API 使用策略：
+
+@5.2.2.3.1 Win32 API ：
+需要 #undef 消除引起冲突的宏名，尽可能显式使用带后缀的函数（若存在）。
+当存在后缀时，一般尽可能使用 W ，因为大部分情况下 W 后缀为原始版本， A 后缀需要转换间接调用 W 后缀版本。
+但也存在例外， 如使用 ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
+不使用被标记为过时的 API 如 IsBadReadPtr 。
+
+@5.2.2.3 平台文件：
 引入平台相关特性。
 
-@5.2.1.2.3.1 <Platform.h> ：
+@5.2.2.3.1 <Platform.h> ：
 定义了必要的平台支持。
+对正式支持的平台定义 YCL_ 起始的宏，保证替换得到的值非零。使用 #if （而不需要 #ifdef ）直接检测这些宏以确定是否支持。
 
-@5.2.1.2.3.2 <NativeAPI.h> ：
+@5.2.2.3.2 <NativeAPI.h> ：
 定义了扩展的平台 API 。
 
-@5.2.1.3 DS 平台库和标准库实现：
+@5.2.3 DS 平台库和标准库实现：
 目标平台 NDS 及以上。
 使用 devkitPro 中的 devkitARM 工具链及库文件的非 debug 版本。
 依赖 devkitARM / libnds / default arm7 / libfat 版本：
@@ -1419,7 +1345,7 @@ nested-module-name:
  2012-05-14(build 308) 起：
  devkitARM release 40 / libfat 1.0.11 。
 
-@5.2.1.4 MinGW32 平台库和标准库实现：
+@5.2.4 MinGW32 平台库和标准库实现：
 目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP 及以上。
  build 299 前：
 无（不支持的平台）。
@@ -1432,24 +1358,24 @@ nested-module-name:
 使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.7.2/32-bit/threads-posix/sjlj/x32-4.7.2-release-posix-sjlj-rev0.7z 。
 此版本于 2013-01-20 确认已被重命名为 x32-4.7.2-release-posix-sjlj-rev0.7z 。
 
-@5.2.2 通用库：
+@5.3 通用库：
 
-@5.2.2.1
+@5.3.1
  build 207 前使用 Loki 库的智能指针实现句柄。
 
-@5.2.3 专用库：
+@5.4 专用库：
 包含于 YFramework 中的子库。
 
-@5.2.3.1 字符表示结构支持库 CHRLib ：
+@5.4.1 字符表示结构支持库 CHRLib ：
 位于 "/CHRLib" 。非外部依赖项。
 支持字符相关构造（编码和字符集等）的抽象。
 支持特定编码字符串的转换。
 参见 [Documentation::CHRLib] 。
 
-@5.2.3.2
+@5.4.2
 字体输出使用 FreeType2 实现矢量字体光栅化支持。
 
-@5.2.3.2.1 FreeType2 库版本：
+@5.4.2.1 FreeType2 库版本：
  build 185 前：
 头文件版本： 2.3.12 ；
 库文件版本：在 VNDS 源代码中提取的 2.3.6 。
@@ -1482,17 +1408,17 @@ BASE_EXTENSIONS += ftsynth.c
  build 318 起：
 头文件版本： 2.4.10 ；
  DS 库文件版本： 2.4.10 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
- MinGW32 库文件版本： 2.4.10 用当时 MinGW32(@5.2.1.4) 编译的对应版本， modules.cfg 配置不变。
+ MinGW32 库文件版本： 2.4.10 用当时 MinGW32(@5.2.4) 编译的对应版本， modules.cfg 配置不变。
  2012-12-21(build 366) 起：
 头文件版本： 2.4.11 ；
  DS 库文件版本： 2.4.11 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
- MinGW32 库文件版本： 2.4.11 用当时 MinGW32(@5.2.1.4) 编译的对应版本， modules.cfg 配置不变。
+ MinGW32 库文件版本： 2.4.11 用当时 MinGW32(@5.2.4) 编译的对应版本， modules.cfg 配置不变。
 
-@5.2.3.3
+@5.4.3
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。
 已移除。
 
-@5.2.4 助手(Helper) 库：
+@5.5 助手(Helper) 库：
 位于 "/Helper" 。非外部依赖项。
 可能平台相关的外部库，可以提供宿主实现、加入插件等，一般由库用户自行配置。
 除非另有说明，仅保证必要文件(@2.9.1) 提供接口中的可重入性和线程安全性同本体(@2.9) 。其它文件应明确非成员函数和静态成员函数的可重入性和线程安全性。
@@ -1500,7 +1426,7 @@ BASE_EXTENSIONS += ftsynth.c
  main 函数由 Helper 的其它源文件封装，或由用户提供。
  Helper 定义的类型若适用于不同平台，不保证二进制兼容性，除非另有说明。
 
-@5.2.4.1 YGlobal 单元：
+@5.5.1 YGlobal 单元：
 平台相关的全局对象和函数定义。
 除了以下接口，其它都是不确定的：
 const SDst MainScreenWidth, MainScreenHeight;
@@ -1514,37 +1440,37 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
  YSLib 不依赖这些接口以外的特性。
 
-@5.2.4.2 Application 派生类：
+@5.5.2 Application 派生类：
 适应于具体平台的应用程序实例抽象。
 包含默认消息循环等。
 
-@5.2.4.3 初始化 Initialization ：
+@5.5.3 初始化 Initialization ：
 参见 [Documentation::YSLib @@3] 。
 
-@5.2.5 NPL 库：
-实现基于 S 表达式的名称协议语言，当前仅用于配置设置。
+@5.6 NPL 库：
+实现基于 S 表达式的名称协议语言，当前仅用于用户配置设置。
 
-@5.3 库基础结构：
-平台设置在 <Platform.h>(@5.2.1.2.3.1) 中。
+@5.7 库基础结构：
+平台设置在 <Platform.h>(@5.2.2.3.1) 中。
 任何 YSLib 头文件，除了 "/Adaptor/" 路径下的文件以及仅包含宏定义的文件外，都直接或间接地包含 "/Core/ysdef.h" 文件。
 所有外部链接库为静态库。除了 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 中。这样有利于以子库为单位的移植。
 
-@5.4 全局命名空间：
+@5.8 全局命名空间：
 除了使用标准库命名空间 std 外如下所列。
 
-@5.4.1 标准库实现提供的附加命名空间：
+@5.8.1 标准库实现提供的附加命名空间：
  __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::Adaptor 使用。
 
-@5.4.2 YBase 引入的命名空间：
+@5.8.2 YBase 引入的命名空间：
  YBase 使用的命名空间。
  ystdex ：从 std 扩充的平台无关的实用程序 YStandard 。 YSLib 本体直接依赖于此命名空间。
  ytest ：测试框架设施 YTest 。
 
-@5.4.3 YFramework 引入的命名空间：
+@5.8.3 YFramework 引入的命名空间：
  platform ：平台中立：接口平台无关但实现平台相关的实用程序。 YSLib 本体间接依赖于此命名空间。
  platform_ex ：接口和实现都平台相关的实用程序。 YSLib 本体不依赖于此命名空间。
  CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖于此命名空间。
- NPL ：子库 NPL(@5.2.5) 的命名空间。
+ NPL ：子库 NPL(@5.6) 的命名空间。
  YSLib ： YSLib 库命名空间。
 
 @6 编码风格导引：

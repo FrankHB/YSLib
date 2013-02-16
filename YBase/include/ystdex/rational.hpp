@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1166
-\author FrankHB<frankhb1989@gmail.com>
+\version r1168
+\author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-02-02 12:53 +0800
+	2013-02-15 17:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -396,7 +396,7 @@ public:
 	static yconstfn fp_type
 	epsilon() ynothrow
 	{
-		return fp_type(1, fp_type::internal_construct_tag());;
+		return fp_type(1, fp_type::internal_construct_tag());
 	}
 
 	static yconstfn fp_type

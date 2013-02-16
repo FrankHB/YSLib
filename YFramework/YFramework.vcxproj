@@ -15,6 +15,7 @@
     <None Include="..\doc\CommonRules.txt" />
     <None Include="..\doc\Definitions.txt" />
     <None Include="..\doc\Designation.txt" />
+    <None Include="..\doc\ProjectRules.txt" />
     <None Include="..\doc\vsd\YFramework.vsd" />
     <None Include="..\doc\YSLib.txt" />
   </ItemGroup>

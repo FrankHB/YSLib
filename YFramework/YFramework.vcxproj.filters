@@ -128,6 +128,9 @@
     <None Include="..\doc\vsd\YFramework.vsd">
       <Filter>文档\vsd</Filter>
     </None>
+    <None Include="..\doc\ProjectRules.txt">
+      <Filter>文档</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\YSLib\Adaptor\config.h">

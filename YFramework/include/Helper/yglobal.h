@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1817
+\version r1821
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-02-03 12:50 +0800
+	2013-02-13 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 */
 
 
-#ifndef INC_HELPER_YGLOBAL_H_
-#define INC_HELPER_YGLOBAL_H_ 1
+#ifndef INC_Helper_YGlobal_h_
+#define INC_Helper_YGlobal_h_ 1
 
 //包含 YCLib 公用部分。
 #include "YCLib/ycommon.h"
@@ -64,6 +64,8 @@ YSL_END_NAMESPACE(Messaging)
 \since build 378
 */
 YSL_BEGIN_NAMESPACE(Host)
+//! \since build 381
+class Environment;
 YSL_END_NAMESPACE(Host)
 #endif
 

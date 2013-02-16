@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r649
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-02-11 22:27 +0800
+	2013-02-13 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,11 @@
 */
 
 
-#ifndef INC_HELPER_DSMAIN_H_
-#define INC_HELPER_DSMAIN_H_ 1
+#ifndef INC_Helper_DSMain_h_
+#define INC_Helper_DSMain_h_ 1
 
+#include "Helper/yglobal.h"
 #include "YSLib/Core/yapp.h"
-#include "YSLib/Core/ydevice.h"
 #include "YCLib/Input.h"
 #include "NPL/Configuration.h"
 
