@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4966 *build 381 rev *
+\version r4979 *build 382 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-16 16:30 +0800
+	2013-02-18 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,6 +99,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \adtor ::= abstract destructor
 \amb ::= ambiguities
 \amf ::= abstract/pure virtual member function
+\app ::= applications
 \arg ::= arguments
 \as ::= assertions
 \bg ::= background
@@ -409,143 +410,78 @@ $using:
 
 $DONE:
 r1:
-/ \pre \decl Host::Environment @ YCL_HOSTED \h DSMain >> \h YGlobal,
-- \inc \h YDesktop @ \h YGlobal,
-/ \inc \h (YDevice, Input) -> \h YGlobal @ \h DSMain,
-+ \tr \h NativeAPI @ platform MinGW32 @ \impl \h DSScreen,
-/ \a INC_HELPER_YGLOBAL_H_ => INC_Helper_YGlobal_h_,
-/ \a INC_HELPER_DSMAIN_H_ => INC_Helper_DSMain_h_;
+/ @ \u Host $=
+(
+	/ yconstexpr auto WindowClassName(L"YFramework Window") @ \h
+		-> yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
+	+ window class name check @ \impl @ \ctor Window
+);
 /= test 1 @ platform MinGW32;
 
 r2:
-/ @ \u InputManager $=
+/ @ \un \ns @ \impl \u Host $=
 (
-	(
-		+ \inc \h YGlobal @ \h;
-		/ @ YCL_HOSTED @ \cl InputManager $=
-		(
-			+ private \m std::reference_wrapper<Host::Environment> env,
-			/ \tr \impl @ \ctor
-		)
-	),	
-	/ \a INC_HELPER_INPUGMANAGER_H_ => INC_Helper_InputManager_h_ @ \h
+	/ \impl @ \f WndProc;
+	- \f FetchMappedWindow
 );
 /= test 2 @ platform MinGW32;
 
 r3:
-+ \mf (Window* GetForegroundWindow() const ynothrow, Drawing::Point
-	AdjustCursor(platform::CursorInfo&, const Window&) const ynothrow)
-	@ \cl Host::Environment @ \u Host;
-/ \simp \impl @ \mf InputManager::DispatchInput @ platform MinGW32
-	@ \impl \u InputManager;
+/ \impl @ (\ctor, \dtor) Window @ \impl \u Host;
 /= test 3 @ platform MinGW32;
 
 r4:
-/ \simp @ \cl Environment @ \u Host $=
-(
-	- \mf Wait;
-	/ \simp \impl @ \smf HostTask;
-	- \m init,
-	/ \simp \impl @ \ctor;
-	- \inc \h (<condition_variable>) @ \h
-);
+* \impl @ \f WndProc @ \un \ns @ \impl \u Host $since r2;
 /= test 4 @ platform MinGW32;
 
 r5:
-/= test 5 @ platform MinGW32 ^ \conf release;
+* host thread remained on quit message posted by other threads $since b299
+	// Thus the UI didn't normally exited. 
+	$= (/ \impl @ \dtor Environment @ \impl \u Host);
+/= test 5 @ platform MinGW32;
 
 r6:
-+ '#undef FindWindow' @ platform MinGW32 @ \h NativeAPI;
-* unsafe access for window map from different threads @ \cl Environment r3 $=
-(
-	+ private \m mutable std::mutex map_mtx;
-	/ public \m WindowsMap -> private \m wnd_map;
-	+ \mf Window* FindWindow(Window::NativeHandle) const ynothrow,
-	+ \mf void AddMappedItem(Window::NativeHandle, Window*),
-	+ \mf void RemoveMappedItem(Window::NativeHandle) ynothrow
-),
-/ \tr \impl @ \f FetchMappedWindow @ platform MinGW32 @ \impl \u Host;
-/= test 6 @ platform MinGW32 ^ \conf release;
+* host thread detached before cleanup $since b299
+	$= (/ \impl @ \dtor @ \cl Environment ^ std::thread::join
+		~ std::thread::detach);
+* $comp invalid host environment access after host thread detached $since b379
+/= test 6 @ platform MinGW32;
 
-r7:
-/= test 7 @ platform DS ^ \conf release;
+r7-r42:
+/= 36 test 7 @ platform MinGW32 ^ \conf release;
 
-r8:
-+ $doc Documentation::ProjectRules["ProjectRules.txt"],
-/ @ \u Host $=
-(
-	+ 'yconstexpr auto WindowClassName(L"YFramework Window");' @ \h,
-	+ 'ynothrow' @ \mf Window::Show;
-	/ @ \impl \u $=
-	(
-		/ \f ::HWND InitializeMainWindow() @ \un \ns ->::HWND
-			InitializeMainWindow(const wchar_t*, u16, u16,
-			::DWORD = WS_TILED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX),
-		/ \impl @ \mf Host::HostTask
-	)
-);
-/= test 8 @ platform MinGW32;
+r43:
+* crashed immediately after \app \init for invalid screen access @ main thread
+	@ platform MinGW32 $since b380
+	$= (\impl @ \ctor DSApplication @ YCL_MULTITHREAD @ \impl \u DSMain);
+/= test 8 @ platform MinGW32 ^ \conf release;
 
-r9-r11:
-/ 3 test 9 @ platform MinGW32
-	$=(* wrong window initialization $since r8);
+r44:
+- 'ynoexcept' @ \dtor any @ \h Any;
+/= test 9 @ platform MinGW32;
 
-r12-r14:
-/ \simp \impl @ \impl \u Host,
-/= 3 test 10 @ platform MinGW32;
+r45:
+/= test 10 @ platform MinGW32 ^ \conf release;
 
-r15:
-/= test 11 @ platform MinGW32 ^ \conf release;
+r46:
+/= test 11 @ platform DS;
 
-r16:
-/= test 12 @ platform DS;
-
-r17:
-* wrong order for cleanup of windows map and main host window
-	@ class Environment @ platform MinGW32 @ \u Host $since b379 $=
-(
-	/ \m order,
-	/ \impl @ \ctor
-);
-/= test 13 @ platform MinGW32;
-
-r18-r19:
-/= 2 test 14 @ platform MinGW32;
-
-r20-r21:
-+ debug trace @ (\mf (HostLoop, HostTask), \dtor) @ \cl Environment,
-/= 2 test 15 @ platform MinGW32;
-
-r22-r24:
-/= 3 test 16 @ platform MinGW32;
-
-r25:
-/= test 17 @ platform MinGW32 ^ \conf release;
-
-r26:
-/= test 18 @ platform MinGW32;
-
-r27:
-/= test 19 @ platform DS ^ \conf release;
+r47:
+/= test 12 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-02-16 +0800:
--37.1d;
-// Mercurial local rev1-rev253: r10084;
+2013-02-18 +0800:
+-38.1d;
+// Mercurial local rev1-rev254: r10131;
 
 / ...
 
 
 $NEXT_TODO:
-b[$current_rev]-b403:
-/ @ platform MinGW32 $=
-(
-	* host UI thread remained on exiting requested from other threads,
-	* invalid host enviroment access after host thread detached $since b379
-),
+b[$current_rev]-b402:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -585,7 +521,9 @@ b[689]:
 	/ improving pedantic ISO C++ compatiblity,
 	/ consider using std::common_type for explicit template argument
 		for (min, max),
-	+ macros for 'deprecated' and other attributes
+	+ macros for 'deprecated' and other attributes,
+	+ thread safety check for WndProc,
+	* stdout thread safety
 ),
 + $design $low_prior helpers $=
 (
@@ -943,16 +881,17 @@ $HISTORY:
 
 // Code refactoring/fixing for quality across multiple files \
 	and probably multiple revisions.
-// '$to $version' is the end revision(included) of transformation. '$to $now' \
-	means the migration is not end yet. Terms without '$to' means the \
-	migration has been finished.
-$longterm_code_evolution $=
+// '$end_at $version' is the last revision of the valid remained result. \
+	After this revision, the transformed content was abandoned.
+// The interval is the revision(s) of transformation in progress. End '$now' \
+	means the migration is not end yet.
+$long_term_code_evolution $=
 (
-	"new include header guard identifier scheme" $since b381 $to $now
+	"new include header guard identifier scheme" $interval([b381, $now]),
 	"new copyright title and author mail address with whitespace per file"
-		$since b369 $to $now,
-	"Doxygen comments and file header with copyright notice" $since b170,
-	"formatted comments" $since b166 $to b169,
+		$interval([b369, $now]),
+	"Doxygen comments and file header with copyright notice" $at b170,
+	"formatted comments" $interval([b176, b169]) $end_at b169
 );
 
 $ellipse_refactoring;
@@ -1098,6 +1037,27 @@ $module_tree $=
 );
 
 $now
+(
+	/ @ "platform %MinGW32" %'YFramework'.'Helper' $=
+	(
+		+ "assertion for window class name",
+		/ $dev "implementation" @ "native window procedure"
+			^ "window extra data",
+		(
+			* "host thread remained on quit message posted by other threads"
+				$since b299;
+				// Thus the native UI just didn't normally exited. 
+			* "host thread detached before cleanup" $since b299;
+			* $comp "invalid host environment access after host thread detached"
+				$since b379
+		),
+		* "crashed immediately after application initialization for invalid \
+			screen access" @ "main thread" $since b380
+	)
+	- 'ynoexcept' @ "class template %any" @ %'YBase'.'YStandardEx'.'Any'
+),
+
+b381
 (
 	/ $dev %'YFramework' $=
 	(

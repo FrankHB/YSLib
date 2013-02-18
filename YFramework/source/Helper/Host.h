@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r233
+\version r238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-02-16 05:45 +0800
+	2013-02-16 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -40,8 +40,8 @@ YSL_BEGIN
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
 
-//! \since build 381
-yconstexpr auto WindowClassName(L"YFramework Window");
+//! \since build 382
+yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
 
 
 /*!
@@ -60,6 +60,9 @@ private:
 	NativeHandle h_wnd;
 
 public:
+	/*!
+	\throw LoggedEvent 窗口类名不是 WindowClassName 。
+	*/
 	Window(NativeHandle, Environment& = FetchGlobalInstance().GetHost());
 	DefDelCopyCtor(Window)
 	DefDelMoveCtor(Window)

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1209
+\version r1219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-01-23 14:53 +0800
+	2013-02-18 18:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,9 +36,10 @@ namespace ystdex
 {
 
 /*
-\brief 任意不需要复制存储的非聚集 POD 类型。
+\brief 用于表示任意不需要复制存储的非聚集 POD 类型。
 \note POD 和聚集类型的含义参考 ISO C++11 。
 \since build 352
+\todo 确定整数和枚举类型的必要性。
 */
 union non_aggregate_pod
 {
@@ -570,11 +571,12 @@ public:
 
 /*!
 \brief 基于类型擦除的动态泛型对象。
-\note 值语义。基本接口和语义同 boost::any 。
+\note 值语义。基本接口和语义同 std::any 提议和 boost::any （对应接口以前者为准）。
 \warning 非虚析构。
-\see http://www.boost.org/doc/libs/1_50_0/doc/html/any/reference.html\#any.ValueType 。
+\see http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2012/n3508.html\#synopsis 。
+\see http://www.boost.org/doc/libs/1_53_0/doc/html/any/reference.html\#any.ValueType 。
 \since build 331
-\todo 调整接口： http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2012/n3390.html\#synopsis 。
+\todo allocator_arg 支持。
 */
 class YB_API any
 {
@@ -586,6 +588,7 @@ protected:
 	//@}
 
 public:
+	//! \post <tt>this->empty()</tt> 。
 	yconstfn
 	any() ynothrow
 		: storage(), manager()
@@ -629,7 +632,8 @@ public:
 	{
 		a.swap(*this);
 	}
-	~any() ynothrow;
+	//! \since build 382
+	~any();
 
 	template<typename _type>
 	any&

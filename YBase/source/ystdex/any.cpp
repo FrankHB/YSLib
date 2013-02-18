@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r115
-\author FrankHB<frankhb1989@gmail.com>
+\version r118
+\author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2012-11-08 17:11 +0800
+	2013-02-18 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ any::any(const any& a)
 		a.manager(storage, a.storage, any_ops::clone);
 	}
 }
-any::~any() ynothrow
+any::~any()
 {
 	if(manager)
 		manager(storage, storage, any_ops::destroy);

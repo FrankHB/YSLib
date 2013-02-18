@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r483
+\version r518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-02-16 06:44 +0800
+	2013-02-17 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -55,38 +55,33 @@ namespace
 {
 
 #if YCL_MINGW32
-Host::Window&
-FetchMappedWindow(::HWND h)
-{
-	const auto p(FetchGlobalInstance().GetHost().FindWindow(h));
-
-	YAssert(p, "Unmapped window handle found.");
-	YAssert(&p->GetHost() == &FetchGlobalInstance().GetHost(),
-		"Mismatched host environment found.");
-	return *p;
-}
-
 ::LRESULT CALLBACK
 WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 {
 //	YSL_DEBUG_DECL_TIMER(tmr, "WndProc")
+	const auto p(reinterpret_cast<Window*>(::GetWindowLongPtrW(h_wnd,
+		GWLP_USERDATA)));
 
 	switch(msg)
 	{
 	case WM_PAINT:
 		YCL_DEBUG_PUTS("Handling of WM_PAINT.");
+		if(p)
 		{
 			YSL_DEBUG_DECL_TIMER(tmr, "WM_PAINT")
-			FetchMappedWindow(h_wnd).OnPaint();
+
+			p->OnPaint();
 		}
 		break;
 	case WM_KILLFOCUS:
 		YCL_DEBUG_PUTS("Handling of WM_KILLFOCUS.");
-		FetchMappedWindow(h_wnd).OnLostFocus();
+		if(p)
+			p->OnLostFocus();
 		break;
 	case WM_DESTROY:
 		YCL_DEBUG_PUTS("Handling of WM_DESTROY.");
-		FetchMappedWindow(h_wnd).OnDestroy();
+		if(p)
+			p->OnDestroy();
 		break;
 	default:
 	//	YCL_DEBUG_PUTS("Handling of default procedure.");
@@ -118,11 +113,23 @@ Window::Window(NativeHandle h, Environment& e)
 	YAssert(::IsWindow(h), "Invalid window handle found.");
 	YAssert(::GetWindowThreadProcessId(h, NULL) == ::GetCurrentThreadId(),
 		"Window not created on current thread found.");
+	YAssert(::GetWindowLongPtrW(h, GWLP_USERDATA) == 0,
+		"Invalid user data of window found.");
 
+	wchar_t buf[ystdex::arrlen(WindowClassName) + 1];
+
+	::GetClassName(h_wnd, buf, ystdex::arrlen(WindowClassName) + 1);
+	if(std::wcscmp(buf, WindowClassName) != 0)
+		throw LoggedEvent("Wrong windows class name found.");
+	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR(this));
+	::SetWindowPos(h_wnd, NULL, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE
+		| SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOSIZE
+		| SWP_NOZORDER);
 	e.AddMappedItem(h_wnd, this);
 }
 Window::~Window()
 {
+	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR());
 	env.get().RemoveMappedItem(h_wnd);
 	// Note: The window could be already destroyed in window procedure.
 	if(::IsWindow(h_wnd))
@@ -186,9 +193,16 @@ Environment::Environment()
 Environment::~Environment()
 {
 	YCL_DEBUG_PUTS("Host environment lifetime ended.");
+
+	using ystdex::get_value;
+
+	std::for_each(wnd_map.cbegin() | get_value, wnd_map.cend() | get_value,
+		[](Window* const& p){
+			p->Close();
+	});
 #	if YCL_MULTITHREAD == 1
 	// TODO: Exception safety: add either assertion or logging when throwing.
-	host_thrd.detach();
+	host_thrd.join();
 	YCL_DEBUG_PUTS("Host thread dropped.");
 #	endif
 }
