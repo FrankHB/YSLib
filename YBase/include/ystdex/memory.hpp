@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r404
-\author FrankHB<frankhb1989@gmail.com>
+\version r414
+\author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2012-09-08 08:29 +0800
+	2013-02-23 08:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_MEMORY_HPP_
-#define YB_INC_YSTDEX_MEMORY_HPP_ 1
+#ifndef YB_INC_ystdex_memory_hpp_
+#define YB_INC_ystdex_memory_hpp_ 1
 
 #include "../ydef.h"
 #include <memory>
@@ -235,23 +235,24 @@ share_raw(nullptr_t) ynothrow
 
 /*!
 \ingroup helper_functions
-\brief 使用全局 new 和指定参数构造指定类型的 std::unique_ptr 实例。
+\brief 使用 new 和指定参数构造指定类型的 std::unique_ptr 实例。
 \tparam _type 被指向类型。
 \see http://herbsutter.com/gotw/_102/ 。
 \since build 293
+\todo 其它 deleter 的重载。
 */
 template<typename _type, typename... _tParams>
 yconstfn std::unique_ptr<_type>
 make_unique(_tParams&&... args)
 {
-	return std::unique_ptr<_type>(::new _type(yforward(args)...));
+	return std::unique_ptr<_type>(new _type(yforward(args)...));
 }
 
 /*!
 \ingroup helper_functions
-\brief 使用全局 new 和指定参数构造指定类型的 std::shared_ptr 实例。
+\brief 使用 new 和指定参数构造指定类型的 std::shared_ptr 实例。
 \tparam _type 被指向类型。
-\note 不同于 std::make_shared ，不依赖于具体 allocator 。
+\note 不同于 std::make_shared ，不依赖于具体 allocator 和 deleter 类型信息。
 \note std::make_shared 的具体实现一般会导致目标文件增大。
 \since build 298
 */
@@ -259,7 +260,7 @@ template<typename _type, typename... _tParams>
 yconstfn std::shared_ptr<_type>
 make_shared(_tParams&&... args)
 {
-	return std::shared_ptr<_type>(::new _type(yforward(args)...));
+	return std::shared_ptr<_type>(new _type(yforward(args)...));
 }
 
 } // namespace ystdex;

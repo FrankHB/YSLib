@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4979 *build 382 rev *
+\version r4991 *build 383 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-18 23:41 +0800
+	2013-02-23 08:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -410,72 +410,99 @@ $using:
 
 $DONE:
 r1:
-/ @ \u Host $=
+/ .nds titles @ platform DS,
+/ \impl @ \ctor FrmAbout @ \impl \u Shells,
+/ $doc explicitly clarified license adoption for FreeType @ overall license,
+/ @ \h Memory $=
 (
-	/ yconstexpr auto WindowClassName(L"YFramework Window") @ \h
-		-> yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
-	+ window class name check @ \impl @ \ctor Window
+	* \impl @ \ft make_shared $since b298
+		$= (^ 'new' ~ '::new'),
+	* \impl @ \ft make_unique $since b293
+		$= (^ 'new' ~ '::new')
 );
 /= test 1 @ platform MinGW32;
 
 r2:
-/ @ \un \ns @ \impl \u Host $=
+* redundant \decl \mf void Application::RecoverMessageQueue()
+	@ \h YApplication $since b299,
 (
-	/ \impl @ \f WndProc;
-	- \f FetchMappedWindow
+	/ @ \u DSMain $=
+	(
+		/ \ns DS >> platform DS ~ \a platform,
+		+ \ns MinGW32 @ platform MinGW32,
+		+ \f YF_API void TestFramework(size_t) @ \ns MinGW32 @ platform MinGW32
+	);
+	/ \impl @ \ctor ShlExplorer @ platform MinGW32 ^ \f TestFramework
 );
 /= test 2 @ platform MinGW32;
 
 r3:
-/ \impl @ (\ctor, \dtor) Window @ \impl \u Host;
+/ \impl @ \f MinGW32::TestFramework @ platform MinGW32 @ \u DSMain;
 /= test 3 @ platform MinGW32;
 
 r4:
-* \impl @ \f WndProc @ \un \ns @ \impl \u Host $since r2;
+/ \simp \impl @ \ctor Window @ \impl \u Host;
 /= test 4 @ platform MinGW32;
 
-r5:
-* host thread remained on quit message posted by other threads $since b299
-	// Thus the UI didn't normally exited. 
-	$= (/ \impl @ \dtor Environment @ \impl \u Host);
-/= test 5 @ platform MinGW32;
+r5-r6:
+/= 2 test 5 @ platform MinGW32;
 
-r6:
-* host thread detached before cleanup $since b299
-	$= (/ \impl @ \dtor @ \cl Environment ^ std::thread::join
-		~ std::thread::detach);
-* $comp invalid host environment access after host thread detached $since b379
+r7:
+/ @ \cl DSApplication @ \u DSMain $=
+(
+	+ \mf (GetDSScreenUp, GetDSScreenDown),
+	- \decl friend \cl Host::Window
+),
+/ @ \impl \u Host $=
+(
+	+ \cl DSWindow @ \un \ns;
+	/ \impl @ \mf Environment::HostTask ^ \cl DSWindow ~ \cl Window;
+	/ \simp \mf Window::(OnDestroy, OnPaint)
+);
 /= test 6 @ platform MinGW32;
 
-r7-r42:
-/= 36 test 7 @ platform MinGW32 ^ \conf release;
+r8-r12:
+/= 5 test 7 @ platform MinGW32;
 
-r43:
-* crashed immediately after \app \init for invalid screen access @ main thread
-	@ platform MinGW32 $since b380
-	$= (\impl @ \ctor DSApplication @ YCL_MULTITHREAD @ \impl \u DSMain);
-/= test 8 @ platform MinGW32 ^ \conf release;
+r13:
+- \inc \h YDefinition @ \h Rational,
+(
+	/ @ \h Utilities $=
+	(
+		/ \inc \h YDefinition -> \h TypeOperations;
+		/ DLD \exp !^ 'std::' @ \ret \tp @ \ft decay_copy,
+		+ \ft decay_forward
+	);
+	/ @ \h Functional $=
+	(
+		/ \inc \h TypeOperations -> \h Utilities;
+		/ \impl @ \ft (seq_apply#2, unseq_apply) ^ \ft ystdex::decay_forward
+	)
+);
+/= test 8 @ platform MinGW32;
 
-r44:
-- 'ynoexcept' @ \dtor any @ \h Any;
-/= test 9 @ platform MinGW32;
+r14:
+/= test 9 @ platform MinGW32 ^ \conf release;
 
-r45:
-/= test 10 @ platform MinGW32 ^ \conf release;
+r15:
+/ \a YB_INC_YSTDEX_TYPE_OP_HPP_ => YB_INC_ystdex_type_op_hpp_,
+/ \a YB_INC_YSTDEX_FUNCTIONAL_HPP_ => YB_INC_ystdex_functional_hpp_,
+/ \a YB_INC_YSTDEX_RATIONAL_HPP_ => YB_INC_ystdex_rational_hpp_,
+/ \a YB_INC_YSTDEX_UTILITY_HPP_ => YB_INC_ystdex_utility_hpp_,
+/ \a YB_INC_YSTDEX_MEMORY_HPP_ => YB_INC_ystdex_memory_hpp_,
+/ \a YSL_INC_CORE_YAPP_H_ => YSL_INC_Core_yapp_h_;
+/= test 10 @ platform DS;
 
-r46:
-/= test 11 @ platform DS;
-
-r47:
-/= test 12 @ platform DS ^ \conf release;
+r16:
+/= test 11 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-02-18 +0800:
--38.1d;
-// Mercurial local rev1-rev254: r10131;
+2013-02-23 +0800:
+-39.8d;
+// Mercurial local rev1-rev255: r10147;
 
 / ...
 
@@ -890,6 +917,8 @@ $long_term_code_evolution $=
 	"new include header guard identifier scheme" $interval([b381, $now]),
 	"new copyright title and author mail address with whitespace per file"
 		$interval([b369, $now]),
+	"several postfix punctuation removal" $interval([b334, b336]),
+	"strict reversion number" $at b334,
 	"Doxygen comments and file header with copyright notice" $at b170,
 	"formatted comments" $interval([b176, b169]) $end_at b169
 );
@@ -1037,6 +1066,61 @@ $module_tree $=
 );
 
 $now
+(
+	/ ".nds titles" @ "platform %DS",
+	/ %'YReader' $=
+	(
+		/ "year" @ %'about form',
+		/ @ "platform MinGW32" $=
+		(
+			$dep_form "%TestFramework";
+			/ "test in menu to call test function %MinGW32::TestFramework"
+		)
+	)
+	/ $doc "explicitly clarified license adoption for FreeType"
+		@ "overall license",
+	/ %'YBase'.'YStandardEx' $=
+	(
+		* "wrongly used global new" @ "function template" ("%make_shared"
+			$since b298, "%make_unique" $since b293) @ %'Memory',
+		/ %'Utilities' $=
+		(
+			/ DLD "explicitly" !^ 'std::' @ "return type"
+				@ "function %decay_copy",
+			(
+				+ "function template %decay_forward";
+				$dep_to "%decay_forward"
+			);
+			/ "function %(seq_apply, unseq_apply) supported for parameters \
+				of non decayed types"
+		)
+	),
+	/ %'YFramework' $=
+	(
+		* "redundant declaration" @ "member function %Application::\
+			RecoverMessageQueue" @ %'Core'.'YApplication' $since b299,
+		/ %'Helper' $=
+		(
+			/ %'DSMain' $=
+			(
+				/ "namespace %DS" >> "platform %DS" ~ "all platforms",
+				/ @ "platform %MinGW32" $=
+				(
+					+ "namespace %MinGW32";
+					+ "function YF_API %MinGW32::TestFramework";
+					$dep_to "%TestFramework"
+				)
+				+ "member function %(GetDSScreenUp, GetScreenDown)"
+					@ "class %DSApplication"
+					// Removed dependency on public requirement of conversion \
+						from %Devices::DSScreen to %Devices::Screen.
+			),
+			/ DLD "window class for non main window"
+		)
+	)
+),
+
+b382
 (
 	/ @ "platform %MinGW32" %'YFramework'.'Helper' $=
 	(
@@ -3984,6 +4068,7 @@ b299
 	(
 		/ %'YSLib' $=
 		(
+			- "message backup interface" @ %'Core'.'Application',
 			/ %'helpers' $=
 			(
 				/ DLD "input dispatching" @ "member function \
@@ -3998,16 +4083,9 @@ b299
 						@ "class %DSScreen" @ "platform %MinGW32" $since b298
 				)
 			),
-			/ "improved implementation" @ "function %IsAbsolute"
-				@ %'YCLib'.'FileSystem' $=
-			(
-				+ "support for absolute path beginning with 'sd:/'"
-					@ "platform %DS",
-				+ "implementation" @ "platform %MinGW32"
-			),
 			* "destructor" @ "class %Shell" @ %'Core'.'YShell'
 				$since $before b132 $= (- "wrong assertion"),
-			* @ %GUI $since b298 $=
+			* @ %'GUI' $since b298 $=
 			(
 				/ "constructor implementation" @ "class %TextList";
 				* $comp "missing response to 'Enter' key"
@@ -4031,6 +4109,13 @@ b299
 		),
 		/ %'YCLib' $=
 		(
+			/ "improved implementation" @ "function %IsAbsolute"
+				@ %'FileSystem' $=
+			(
+				+ "support for absolute path beginning with 'sd:/'"
+					@ "platform %DS",
+				+ "implementation" @ "platform %MinGW32"
+			),
 			/ %'Input' $=
 			(
 				+ "header %Input.h for several input APIs";

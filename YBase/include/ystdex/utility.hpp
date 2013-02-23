@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1587
+\version r1602
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-02-04 17:51 +0800
+	2013-02-23 08:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,10 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_UTILITY_HPP_
-#define YB_INC_YSTDEX_UTILITY_HPP_ 1
+#ifndef YB_INC_ystdex_utility_hpp_
+#define YB_INC_ystdex_utility_hpp_ 1
 
-#include "../ydef.h"
+#include "type_op.hpp" // for ../ydef.h, ystdex::qualified_decay;
 #include <utility>
 
 namespace ystdex
@@ -110,8 +110,22 @@ public:
 \since build 337
 */
 template<typename _type>
-typename std::decay<_type>::type
+typename decay<_type>::type
 decay_copy(_type&& arg)
+{
+	return std::forward<_type>(arg);
+}
+
+
+/*!
+\ingroup helper_functions
+\brief 退化传递。
+\note 类似 decay_copy ，但仅对函数或数组及其引用类型退化，不复制其它值。
+\since build 383
+*/
+template<typename _type>
+typename qualified_decay<_type>::type
+decay_forward(_type&& arg)
 {
 	return std::forward<_type>(arg);
 }

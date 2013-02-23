@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r467
+\version r477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-01-04 16:54 +0800
+	2013-02-24 08:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,11 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_FUNCTIONAL_HPP_
-#define YB_INC_YSTDEX_FUNCTIONAL_HPP_ 1
+#ifndef YB_INC_ystdex_functional_hpp_
+#define YB_INC_ystdex_functional_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h, ystdex::variadic_sequence,
-	// ystdex::make_natural_sequence;
+#include "utility.hpp" // for ../ydef.h, ystdex::decay_forward,
+	// ystdex::variadic_sequence, ystdex::make_natural_sequence;
 #include <functional>
 #include <tuple>
 #include <string> // for std::char_traits;
@@ -51,6 +51,7 @@ sizeof_params(_tParams&&...)
 
 /*!
 \brief 顺序递归调用。
+\see 关于调用参数类型： ISO C++11 30.3.1.2[thread.thread.constr] 。
 \since build 327
 */
 //@{
@@ -62,20 +63,23 @@ template<typename _fCallable, typename _type, typename... _tParams>
 inline void
 seq_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
 {
-	f(yforward(arg)), ystdex::seq_apply(f, yforward(args)...);
+	(ystdex::decay_forward(yforward(f)))(ystdex::decay_forward(yforward(arg))),
+		ystdex::seq_apply(yforward(f), yforward(args)...);
 }
 //@}
 
 
 /*!
 \brief 无序调用。
+\see 关于调用参数类型： ISO C++11 30.3.1.2[thread.thread.constr] 。
 \since build 327
 */
 template<typename _fCallable, typename... _tParams>
 inline void
 unseq_apply(_fCallable&& f, _tParams&&... args)
 {
-	yunseq((f(yforward(args)), 0)...);
+	yunseq(((ystdex::decay_forward(yforward(f)))(
+		ystdex::decay_forward(yforward(args))), 0)...);
 }
 
 

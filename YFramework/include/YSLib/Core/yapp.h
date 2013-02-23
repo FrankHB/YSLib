@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1563
+\version r1571
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2013-01-04 16:57 +0800
+	2013-02-23 08:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YAPP_H_
-#define YSL_INC_CORE_YAPP_H_ 1
+#ifndef YSL_INC_Core_yapp_h_
+#define YSL_INC_Core_yapp_h_ 1
 
 #include "yfilesys.h"
 #include "yshell.h"
@@ -79,13 +79,6 @@ public:
 	*/
 	void
 	OnGotMessage(const Message&) override;
-
-	/*!
-	\brief 从备份消息队列恢复所有消息。
-	\since build 272
-	*/
-	void
-	RecoverMessageQueue();
 
 	//启动线程消息循环。
 //	void

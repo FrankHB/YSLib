@@ -34,9 +34,11 @@ Creative Commons Attribution-ShareAlike 3.0 Unported - See CC BY-SA 3.0 legalcod
 ====
 License for FreeType2:
 ----
-At least one of the following licenses shall be used:
+At least one of the following licenses shall be used for independert distribution:
 FreeType License - See FTL.txt;
 GNU General Public License Version 2 - See gpl-2.0.txt.
+FreeType License is adopted here for statically linked binaries or whole project distribution because of the license compatibility.
+See http://www.freetype.org/license.html for details.
 ====
 License for other parts:
 GNU General Public License Version 3 - See gpl-3.0.txt.

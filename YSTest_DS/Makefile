@@ -1,8 +1,8 @@
-# DS Makefile for YSTest by Franksoft 2009 - 2012
+# DS Makefile for YSTest by FrankHB 2009 - 2013
 # CodePage = ANSI / GBK
 # CTime = 2009-11-12 21:26:30 +0800
-# UTime = 2012-10-27 14:09 +0800
-# Version = r1076
+# UTime = 2013-02-19 05:41 +0800
+# Version = r1079
 
 # This makefile is written based on devkitPro example template.
 
@@ -39,8 +39,8 @@ export OUTPUT		=	$(CURDIR)/$(RELEASE)/$(TARGET)
 #----
 
 TITLE		:= YSTest
-SUBTITLE1 	:= Franksoft
-SUBTITLE2 	:= 2009 - 2012
+SUBTITLE1 	:= FrankHB
+SUBTITLE2 	:= 2009 - 2013
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
 #----

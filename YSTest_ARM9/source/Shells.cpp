@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5842
+\version r5848
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-01-28 19:29 +0800
+	2013-02-22 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -243,7 +243,7 @@ FrmAbout::FrmAbout()
 		lblVersion.Text = G_APP_VER + String(" @ " __DATE__ ", " __TIME__),
 		lblVersion.ForeColor = ColorSpace::Green,
 		lblCopyright.Background = nullptr,
-		lblCopyright.Text = String("(C)2009-2012 by ") + G_COMP_NAME,
+		lblCopyright.Text = String("(C)2009-2013 by ") + G_COMP_NAME,
 		lblCopyright.ForeColor = ColorSpace::Maroon,
 		btnClose.Text = u"关闭",
 		btnExit.Text = u"退出",
@@ -487,6 +487,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 			YSLib::PostQuitMessage(0);
 		}
 	},
+#if YCL_MINGW32
+	m2.GetConfirmed() += [this](IndexEventArgs&& e){
+		MinGW32::TestFramework(e.Value);
+	},
+#endif
 	mhMain += m1, mhMain += m2,
 	m1 += make_pair(0u, &m2);
 	ResizeForContent(m1), ResizeForContent(m2),

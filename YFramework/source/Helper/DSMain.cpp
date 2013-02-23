@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2852
+\version r2877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-02-18 18:37 +0800
+	2013-02-23 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ DSApplication::~DSApplication()
 
 	//释放全局非静态资源。
 
-	//清理消息队列（必要，保证所有Shell在Application前析构）。
+	//清理消息队列（必要，保证所有 Shell 在 Application 前析构）。
 	Queue.Clear();
 
 	//当主 Shell 句柄为静态存储期对象时需要通过 reset 释放。
@@ -167,6 +167,20 @@ DSApplication::~DSApplication()
 	Uninitialize();
 }
 
+Devices::DSScreen&
+DSApplication::GetDSScreenUp() const ynothrow
+{
+	YAssert(bool(scrs[0]), "Null pointer found.");
+
+	return *scrs[0];
+}
+Devices::DSScreen&
+DSApplication::GetDSScreenDown() const ynothrow
+{
+	YAssert(bool(scrs[1]), "Null pointer found.");
+
+	return *scrs[1];
+}
 FontCache&
 DSApplication::GetFontCache() const ynothrow
 {
@@ -186,16 +200,12 @@ DSApplication::GetHost()
 Devices::Screen&
 DSApplication::GetScreenUp() const ynothrow
 {
-	YAssert(bool(scrs[0]), "Null pointer found.");
-
-	return *scrs[0];
+	return GetDSScreenUp();
 }
 Devices::Screen&
 DSApplication::GetScreenDown() const ynothrow
 {
-	YAssert(bool(scrs[1]), "Null pointer found.");
-
-	return *scrs[1];
+	return GetDSScreenDown();
 }
 
 bool
@@ -278,6 +288,19 @@ ShowFatalError(const char* s)
 	std::printf("Fatal Error:\n%s\n", s);
 	terminate();
 }
+
+#if YCL_MINGW32
+YSL_BEGIN_NAMESPACE(MinGW32)
+
+void
+TestFramework(size_t idx)
+{
+	YCL_DEBUG_PUTS(("Test beginned, idx = " + to_string(idx) + " .").c_str());
+	YCL_DEBUG_PUTS("Test ended.");
+}
+
+YSL_END_NAMESPACE(MinGW32)
+#endif
 
 YSL_END
 

@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r518
+\version r569
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-02-17 01:23 +0800
+	2013-02-23 05:27 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -102,6 +102,42 @@ InitializeMainWindow(const wchar_t* wnd_title, u16 wnd_w, u16 wnd_h,
 		CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
 		HWND_DESKTOP, NULL, ::GetModuleHandleW(NULL), NULL);
 }
+
+/*!
+\brief 双屏幕宿主窗口。
+\since build 383
+*/
+class DSWindow : public Window
+{
+public:
+	DSWindow(NativeHandle h, Environment& e = FetchGlobalInstance().GetHost())
+		: Window(h, e)
+	{}
+
+	void
+	OnDestroy() override
+	{
+		Window::OnDestroy(),
+		YSLib::PostQuitMessage(0);
+		// NOTE: Try to make sure all shells are released before destructing the
+		//	instance of %DSApplication.
+	}
+
+	void
+	OnPaint() override
+	{
+		const auto h_wnd(GetNativeHandle());
+		::PAINTSTRUCT ps;
+		::HDC hDC(::BeginPaint(h_wnd, &ps));
+		::HDC hMemDC(::CreateCompatibleDC(hDC));
+		auto& app(FetchGlobalInstance());
+
+		app.GetDSScreenUp().UpdateToHost(hDC, hMemDC),
+		app.GetDSScreenDown().UpdateToHost(hDC, hMemDC);
+		::DeleteDC(hMemDC);
+		::EndPaint(h_wnd, &ps);
+	}
+};
 #endif
 
 } // unnamed namespace;
@@ -116,9 +152,9 @@ Window::Window(NativeHandle h, Environment& e)
 	YAssert(::GetWindowLongPtrW(h, GWLP_USERDATA) == 0,
 		"Invalid user data of window found.");
 
-	wchar_t buf[ystdex::arrlen(WindowClassName) + 1];
+	wchar_t buf[ystdex::arrlen(WindowClassName)];
 
-	::GetClassName(h_wnd, buf, ystdex::arrlen(WindowClassName) + 1);
+	::GetClassName(h_wnd, buf, ystdex::arrlen(WindowClassName));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw LoggedEvent("Wrong windows class name found.");
 	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR(this));
@@ -145,10 +181,7 @@ Window::Close()
 void
 Window::OnDestroy()
 {
-	::PostQuitMessage(0),
-	YSLib::PostQuitMessage(0);
-	// NOTE: Try to make sure all shells are released before destructing the
-	//	instance of %DSApplication.
+	::PostQuitMessage(0);
 }
 
 void
@@ -159,20 +192,7 @@ Window::OnLostFocus()
 
 void
 Window::OnPaint()
-{
-	::PAINTSTRUCT ps;
-	::HDC hDC(::BeginPaint(h_wnd, &ps));
-	::HDC hMemDC(::CreateCompatibleDC(hDC));
-	auto& app(FetchGlobalInstance());
-
-	YAssert(bool(app.scrs[0]), "Null pointer found."),
-	YAssert(bool(app.scrs[1]), "Null pointer found.");
-
-	app.scrs[0]->UpdateToHost(hDC, hMemDC),
-	app.scrs[1]->UpdateToHost(hDC, hMemDC);
-	::DeleteDC(hMemDC);
-	::EndPaint(h_wnd, &ps);
-}
+{}
 
 void
 Window::Show() ynothrow
@@ -340,7 +360,7 @@ Environment::HostTask()
 	const auto h_wnd(Host::InitializeMainWindow(L"YSTest", 256, 384));
 
 	// TODO: Handle window creation failure.
-	p_main_wnd.reset(new Window(h_wnd, *this));
+	p_main_wnd.reset(new DSWindow(h_wnd, *this));
 	p_main_wnd->Show();
 	{
 		auto& app(FetchGlobalInstance());

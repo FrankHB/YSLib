@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1168
+\version r1171
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-02-15 17:12 +0800
+	2013-02-23 08:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,9 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_RATIONAL_HPP_
-#define YB_INC_YSTDEX_RATIONAL_HPP_ 1
+#ifndef YB_INC_ystdex_rational_hpp_
+#define YB_INC_ystdex_rational_hpp_ 1
 
-#include "../ydef.h"
 #include "type_op.hpp"
 #include "operators.hpp"
 #include <cmath> // for std::llround;

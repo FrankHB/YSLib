@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r653
+\version r683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-02-13 13:45 +0800
+	2013-02-23 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,8 +81,6 @@ class YF_API DSApplication : public Application
 #if YCL_HOSTED
 	//! \since build 380
 	friend class Host::Environment;
-	//! \since build 380
-	friend class Host::Window;
 
 private:
 	/*!
@@ -138,6 +136,20 @@ public:
 	DefPred(const ynothrow, ScreenReady, bool(scrs[0]) && bool(scrs[1]))
 
 	/*!
+	\brief 取 DS 上屏幕。
+	\pre 断言：内部指针非空。
+	\since build 383
+	*/
+	Devices::DSScreen&
+	GetDSScreenUp() const ynothrow;
+	/*!
+	\brief 取 DS 下屏幕。
+	\pre 断言：内部指针非空。
+	\since build 383
+	*/
+	Devices::DSScreen&
+	GetDSScreenDown() const ynothrow;
+	/*!
 	\brief 取字体缓存引用。
 	\pre 断言：指针非空。
 	\since build 325
@@ -151,14 +163,14 @@ public:
 #endif
 	/*!
 	\brief 取上屏幕。
-	\pre 断言：内部指针非空。
+	\note 使用 GetDSScreenUp 实现。
 	\since build 297
 	*/
 	Devices::Screen&
 	GetScreenUp() const ynothrow;
 	/*!
 	\brief 取下屏幕。
-	\pre 断言：内部指针非空。
+	\note 使用 GetDSScreenDown 实现。
 	\since build 297
 	*/
 	Devices::Screen&
@@ -214,10 +226,23 @@ YF_API void
 ShowFatalError(const char*);
 
 //! \brief 运行时平台。
-namespace DS
-{
-	using namespace platform_ex;
-}
+#if YCL_DS
+YSL_BEGIN_NAMESPACE(DS)
+
+using namespace platform_ex;
+
+YSL_END_NAMESPACE(DS)
+#elif YCL_MINGW32
+//! \since build 383
+YSL_BEGIN_NAMESPACE(MinGW32)
+
+using namespace platform_ex;
+
+YF_API void
+TestFramework(size_t);
+
+YSL_END_NAMESPACE(MinGW32)
+#endif
 
 YSL_END
 

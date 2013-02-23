@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r792
+\version r797
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-01-22 07:29 +0800
+	2013-02-23 08:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_TYPE_OP_HPP_
-#define YB_INC_YSTDEX_TYPE_OP_HPP_ 1
+#ifndef YB_INC_ystdex_type_op_hpp_
+#define YB_INC_ystdex_type_op_hpp_ 1
 
 #include "../ydef.h" // for <type_traits> and std::declval;
 
@@ -508,7 +508,7 @@ struct remove_rpcv
 \brief 数组类型退化。
 \since build 290
 
-参数为数组类型时同 std::decay ，否则结果类型为参数。
+参数为数组类型时同 decay ，否则结果类型为参数。
 */
 template<typename _type>
 struct array_decay
@@ -521,9 +521,10 @@ struct array_decay
 /*!
 \ingroup metafunctions
 \brief 保持修饰符的类型退化。
+\note 结果不移除非数组或函数类型的引用，可用于参数转发。
 \since build 290
 
-参数移除引用后为数组或函数类型时同 std::decay ，否则结果为参数。
+参数移除引用后为数组或函数类型时同 decay ，否则结果为参数。
 */
 template<typename _type>
 struct qualified_decay

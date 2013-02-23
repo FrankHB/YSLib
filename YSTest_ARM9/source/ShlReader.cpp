@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4000
+\version r4016
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-01-26 10:02 +0800
+	2013-02-22 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,35 +246,28 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 				boxTextInfo.UpdateData(reader);
 		},
 		mhMain.Roots[&boxReader.btnMenu] = 1u,
-		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&& e)
-		{
+		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&& e){
 			if(mhMain.IsShowing(1u))
 				mhMain.Hide(1u);
 			else
 				ShowMenu(1u, e);
 		},
-		FetchEvent<Click>(boxReader.btnSetting) += [this](TouchEventArgs&&)
-		{
+		FetchEvent<Click>(boxReader.btnSetting) += [this](TouchEventArgs&&){
 			Execute(MR_Setting);
 		},
-		FetchEvent<Click>(boxReader.btnInfo) += [this](TouchEventArgs&&)
-		{
+		FetchEvent<Click>(boxReader.btnInfo) += [this](TouchEventArgs&&){
 			Execute(MR_FileInfo);
 		},
-		FetchEvent<Click>(boxReader.btnReturn) += [this](TouchEventArgs&&)
-		{
+		FetchEvent<Click>(boxReader.btnReturn) += [this](TouchEventArgs&&){
 			Execute(MR_Return);
 		},
-		FetchEvent<Click>(boxReader.btnPrev) += [this](TouchEventArgs&&)
-		{
+		FetchEvent<Click>(boxReader.btnPrev) += [this](TouchEventArgs&&){
 			UpdateReadingList(true);
 		},
-		FetchEvent<Click>(boxReader.btnNext) += [this](TouchEventArgs&&)
-		{
+		FetchEvent<Click>(boxReader.btnNext) += [this](TouchEventArgs&&){
 			UpdateReadingList(false);
 		},
-		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e)
-		{
+		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e){
 			const auto s(reader.GetTextSize());
 
 			if(YB_LIKELY(s != 0))
@@ -302,8 +295,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 				ColorSpace::Yellow);
 		},
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_setting,
-		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](TouchEventArgs&&)
-		{
+		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](TouchEventArgs&&){
 			pnlSetting >> CurrentSetting;
 			tmrScroll.SetInterval(CurrentSetting.GetTimerSetting());
 			Switch(pnlSetting.current_encoding),
