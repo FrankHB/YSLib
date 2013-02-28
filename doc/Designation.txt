@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7390
+\version r7396
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-15 14:20 +0800
+	2013-02-28 15:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -432,14 +432,17 @@
 注意此时尽管和非句柄意义下的智能指针类型相同，但意义不同，除特殊情况外（如和内建指针直接比较；需在对应实现处注释）应避免通过 get 成员或 ystdex::raw 等直接使用对应的内建指针值。
 对于需要保持所有权但又要避免重复引用计数的开销的情况，使用 std::unique_ptr 。
 其它情况下，使用不含所有权的内建指针，以保持用户程序对资源管理的选择自由和灵活性。若没有在注释或文档注明所有权关系，均应视为由用户程序对象具有指针参数指向对象的所有权。
-以下所有权关系中，被托管对象类包括派生类。所有者（基类）中 public 继承了 OwnershipTag<_type> ，其中 _type 是被托管对象类型。实例包括：
+
+@2.2.2.1 所有权标签：
+以下独占所有权关系中，被托管对象类不是直接的成员或明确具有所有权语义的指针指向的对象。使用 OwnershipTag 模版标识这些类型。
+所有者（基类）中 private 继承了 OwnershipTag<_type> 。被托管对象的实际类型可能是 _type 的派生类。实例包括：
  Drawing::FontCache 具有 Drawing::Typeface 和 Drawing::FontFamily 的所有权；
  Components::MenuHost 具有 Components::Menu 的所有权；
  Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
 可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。
 
 @2.3 语言特性扩展支持：
-位于 YBase(@5.2.1) 或 Core(@2.5) 中。
+位于 YBase(@5.2.1) 或 YFrameowrk::YSLib::Core(@2.5) 中。
 
 @2.3.1 接口
 
@@ -979,7 +982,7 @@
 
 @2.8.7.1 平台无关的 Shell 组件 YComponent
 
-@2.8.7.2 控制台 YComponent
+@2.8.7.2 控制台
 
 @2.8.8 默认部件
 
@@ -1221,7 +1224,7 @@
 @5.2.1 YBase ：
  YBase 除了公用头文件 YDefinition(ydef.h) 外，由 YStandardEx 、 LibDefect 和 YTest 子库组成。
  LibDefect 不保证可重入性，线程安全性由 ISO C++11 规范。
- YBase 和其它模块之间传递的对象类型满足 trivially copable ，以保证动态库存储安全（参见 [Documentation::CommonRules @@3.7.2] ）。
+ YBase 和其它模块之间传递的对象类型满足 trivially copyable ，以保证动态库存储安全（参见 [Documentation::CommonRules @@3.7.2] ）。
 
 @5.2.1.1 LibDefect 以外的设计和实现原则：
 除了去除后不影响语义正确性的扩展，遵守 ISO C++ ，不使用不兼容于 ISO C++11 的特性或依赖于特定平台实现的接口。

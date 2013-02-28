@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r551
-\author FrankHB<frankhb1989@gmail.com>
+\version r559
+\author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2012-12-11 22:37 +0800
+	2013-02-28 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_YRENDER_H_
-#define YSL_INC_UI_YRENDER_H_ 1
+#ifndef YSL_INC_UI_yrender_h_
+#define YSL_INC_UI_yrender_h_ 1
 
 #include "ycomp.h"
 #include "../Service/ygdi.h"
@@ -47,7 +47,6 @@ public:
 	inline DefDeCtor(Renderer)
 	inline DefDeCopyCtor(Renderer)
 	inline DefDeMoveCtor(Renderer)
-	virtual DefClone(Renderer, Clone)
 	virtual DefEmptyDtor(Renderer)
 
 	/*!
@@ -57,6 +56,8 @@ public:
 	virtual void
 	SetSize(const Size&)
 	{}
+
+	virtual DefClone(const, Renderer, Clone)
 
 	/*!
 	\brief 提交无效区域。
@@ -109,7 +110,6 @@ public:
 	{}
 	DefDeCopyCtor(BufferedRenderer)
 	DefDeMoveCtor(BufferedRenderer)
-	virtual DefClone(BufferedRenderer, Clone)
 
 	/*!
 	\brief 判断是否需要刷新。
@@ -133,6 +133,8 @@ public:
 	*/
 	void
 	SetSize(const Size&) override;
+
+	DefClone(const override, BufferedRenderer, Clone)
 
 	/*!
 	\brief 提交无效区域，使之合并至现有无效区域中。

@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r569
+\version r672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-02-23 05:27 +0800
+	2013-03-01 06:59 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -114,6 +114,20 @@ public:
 		: Window(h, e)
 	{}
 
+	Point
+	AdjustCursor(platform::CursorInfo& cursor) const ynothrow override
+	{
+		Point pt;
+
+#ifdef YCL_MINGW32
+		::ScreenToClient(GetNativeHandle(), &cursor);
+		yunseq(pt.X = cursor.x, pt.Y = cursor.y - MainScreenHeight);
+		RestrictInInterval(pt.X, 0, MainScreenWidth),
+		RestrictInInterval(pt.Y, 0, MainScreenHeight);
+#endif
+		return pt;
+	}
+
 	void
 	OnDestroy() override
 	{
@@ -172,6 +186,12 @@ Window::~Window()
 		::DestroyWindow(h_wnd);
 }
 
+Point
+Window::AdjustCursor(platform::CursorInfo&) const ynothrow
+{
+	return Point();
+}
+
 void
 Window::Close()
 {
@@ -198,6 +218,74 @@ void
 Window::Show() ynothrow
 {
 	::ShowWindowAsync(h_wnd, SW_SHOWNORMAL);
+}
+
+
+WindowThread::~WindowThread()
+{
+	YAssert(bool(p_wnd), "Null pointer found.");
+
+	p_wnd->Close();
+	thrd.join();
+}
+
+void
+WindowThread::ThreadLoop(Window::NativeHandle h_wnd)
+{
+	p_wnd.reset(new Window(h_wnd));
+	WindowLoop(*p_wnd);
+}
+void
+WindowThread::ThreadLoop(unique_ptr<Window> p)
+{
+	p_wnd = std::move(p);
+	WindowLoop(*p_wnd);
+}
+
+void
+WindowThread::WindowLoop(Window& wnd)
+{
+	wnd.Show();
+	Environment::HostLoop();
+}
+
+
+HostRenderer::HostRenderer(Components::IWidget& wgt, Window::NativeHandle h)
+	: BufferedRenderer(),
+	widget(wgt), gbuf(GetSizeOf(wgt)), update_mutex(), thrd([this, &h]{
+		return unique_ptr<Window>(new RenderWindow(h, *this));
+	})
+{}
+
+void
+HostRenderer::SetSize(const Size& s)
+{
+	BufferedRenderer::SetSize(s);
+}
+
+void
+HostRenderer::Update(BitmapPtr buf)
+{
+	YSL_DEBUG_DECL_TIMER(tmr, "HostRenderer::Update")
+	std::lock_guard<std::mutex> lck(update_mutex);
+	const auto& s(GetSizeOf(widget));
+
+	std::memcpy(gbuf.pBuffer, buf, sizeof(PixelType) * s.Width * s.Height);
+
+	YSL_DEBUG_DECL_TIMER(tmrx, "HostRenderer::Update!UpdateWindow")
+
+	if(const auto p_wnd = GetWindowPtr())
+	{
+		const auto h_wnd(p_wnd->GetNativeHandle());
+		const auto h_dc(::GetDC(h_wnd));
+		const auto h_mem_dc(::CreateCompatibleDC(h_dc));
+
+		::SelectObject(h_mem_dc, gbuf.hBitmap);
+		// NOTE: Unlocked intentionally for performance.
+		::BitBlt(h_dc, 0, 0, s.Width, s.Height, h_mem_dc, 0, 0, SRCCOPY);
+		::DeleteDC(h_mem_dc);
+		::ReleaseDC(h_wnd, h_dc);
+	}
 }
 
 
@@ -243,21 +331,6 @@ Environment::AddMappedItem(Window::NativeHandle h, Window* p)
 
 	// TODO: Use %emplace.
 	wnd_map.insert(make_pair(h, p));
-}
-
-Point
-Environment::AdjustCursor(platform::CursorInfo& cursor, const Window& wnd)
-	const ynothrow
-{
-	Point pt;
-
-#ifdef YCL_MINGW32
-	::ScreenToClient(wnd.GetNativeHandle(), &cursor);
-	yunseq(pt.X = cursor.x, pt.Y = cursor.y - MainScreenHeight);
-	RestrictInInterval(pt.X, 0, MainScreenWidth),
-	RestrictInInterval(pt.Y, 0, MainScreenHeight);
-#endif
-	return pt;
 }
 
 Window*
@@ -312,20 +385,6 @@ Environment::RemoveMappedItem(Window::NativeHandle h) ynothrow
 		wnd_map.erase(i);
 }
 
-void
-Environment::UpdateWindow(DSScreen& scr)
-{
-	YAssert(bool(p_main_wnd), "Null pointer found.");
-
-	const auto h_wnd(p_main_wnd->GetNativeHandle());
-	const auto h_dc(::GetDC(h_wnd));
-	const auto h_mem_dc(::CreateCompatibleDC(h_dc));
-
-	scr.UpdateToHost(h_dc, h_mem_dc);
-	::DeleteDC(h_mem_dc);
-	::ReleaseDC(h_wnd, h_dc);
-}
-
 #	if YCL_MULTITHREAD == 1
 void
 Environment::HostTask()
@@ -374,6 +433,37 @@ Environment::HostTask()
 #		endif
 }
 #	endif
+
+void
+Environment::UpdateRenderWindows()
+{
+	std::unique_lock<std::mutex> lck(wmap_mtx);
+
+	for(const auto &pr : wnd_map)
+		if(auto p_wnd = dynamic_cast<RenderWindow*>(pr.second))
+		{
+			auto& rd(p_wnd->GetRenderer());
+			auto& wgt(rd.GetWidgetRef());
+
+			if(rd.Validate(wgt, wgt,
+				{rd.GetContext(), Point(), GetBoundsOf(wgt)}))
+				rd.Update(rd.GetContext().GetBufferPtr());
+		}
+}
+
+void
+Environment::UpdateWindow(DSScreen& scr)
+{
+	YAssert(bool(p_main_wnd), "Null pointer found.");
+
+	const auto h_wnd(p_main_wnd->GetNativeHandle());
+	const auto h_dc(::GetDC(h_wnd));
+	const auto h_mem_dc(::CreateCompatibleDC(h_dc));
+
+	scr.UpdateToHost(h_dc, h_mem_dc);
+	::DeleteDC(h_mem_dc);
+	::ReleaseDC(h_wnd, h_dc);
+}
 
 YSL_END_NAMESPACE(Host)
 #endif

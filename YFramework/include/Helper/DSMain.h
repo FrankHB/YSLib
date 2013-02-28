@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r683
+\version r686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-02-23 05:21 +0800
+	2013-02-28 15:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,9 @@ YSL_END_NAMESPACE(Drawing)
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
 class Window;
+class RenderWindow;
+class WindowThread;
+class HostRenderer;
 class Environment;
 YSL_END_NAMESPACE(Host)
 #endif

@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r238
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-02-16 22:00 +0800
+	2013-03-01 06:58 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -34,6 +34,8 @@
 #	include <thread>
 #	include <mutex>
 #endif
+#include "YSLib/UI/yrender.h"
+#include "DSScreen.h" // for ScreenBuffer;
 
 YSL_BEGIN
 
@@ -72,6 +74,13 @@ public:
 	DefGetter(const ynothrow, NativeHandle, NativeHandle, h_wnd)
 	DefGetter(const ynothrow, Environment&, Host, env)
 
+	/*!
+	\brief 调整全局 GUI 坐标到窗口坐标。
+	\since build 383
+	*/
+	virtual Drawing::Point
+	AdjustCursor(platform::CursorInfo&) const ynothrow;
+
 	void
 	Close();
 
@@ -87,6 +96,98 @@ public:
 	//! \since build 381
 	void
 	Show() ynothrow;
+};
+
+
+/*!
+\brief 渲染窗口。
+\since build 384
+*/
+class RenderWindow : public Window
+{
+private:
+	std::reference_wrapper<HostRenderer> renderer;
+
+public:
+	RenderWindow(NativeHandle h, HostRenderer& r)
+		: Window(h), renderer(r)
+	{}
+
+	DefGetter(const ynothrow, HostRenderer&, Renderer, renderer)
+};
+
+
+/*!
+\brief 宿主窗口线程。
+\since build 384
+*/
+class WindowThread
+{
+private:
+	unique_ptr<Window> p_wnd;
+	std::thread thrd;
+
+public:
+	template<typename... _tParams>
+	WindowThread(_tParams&&... args)
+		: p_wnd(), thrd(std::mem_fn(&WindowThread::ThreadFunc<typename
+		ystdex::qualified_decay<_tParams>::type...>), this,
+		yforward(ystdex::decay_forward(args))...)
+	{}
+	~WindowThread();
+
+	DefGetter(const ynothrow, Window*, WindowPtr, p_wnd.get())
+
+private:
+	template<typename _fCallable, typename... _tParams>
+	void
+	ThreadFunc(_fCallable&& f, _tParams&&... args)
+	{
+		ThreadLoop(yforward(f)(yforward(args)...));
+	}
+
+	void
+	ThreadLoop(Window::NativeHandle);
+	void
+	ThreadLoop(unique_ptr<Window>);
+
+public:
+	static void
+	WindowLoop(Window&);
+};
+
+
+/*!
+\brief 宿主渲染器：在宿主环境以窗口形式显示的渲染器。
+\since build 384
+*/
+class HostRenderer : public Components::BufferedRenderer
+{
+private:
+	std::reference_wrapper<Components::IWidget> widget;
+	Host::ScreenBuffer gbuf;
+	std::mutex update_mutex;
+	WindowThread thrd;
+
+public:
+	HostRenderer(Components::IWidget&, Window::NativeHandle);
+	DefDeMoveCtor(HostRenderer)
+
+	DefGetter(const ynothrow, Components::IWidget&, WidgetRef, widget.get())
+	DefGetterMem(const ynothrow, Window*, WindowPtr, thrd)
+
+	void
+	SetSize(const Drawing::Size&) override;
+
+	HostRenderer*
+	Clone() const override
+	{
+		throw LoggedEvent("HostRenderer::Clone: Not implemented.");
+	}
+//	DefClone(const override, HostRenderer, Clone)
+
+	void
+	Update(Drawing::BitmapPtr);
 };
 
 
@@ -143,14 +244,6 @@ public:
 	AddMappedItem(Window::NativeHandle, Window*);
 
 	/*!
-	\brief 调整全局 GUI 坐标到窗口坐标。
-	\todo 线程安全。
-	\since build 381
-	*/
-	Drawing::Point
-	AdjustCursor(platform::CursorInfo&, const Window&) const ynothrow;
-
-	/*!
 	\brief 取本机句柄对应的窗口指针。
 	\note 线程安全。
 	\since build 381
@@ -178,6 +271,10 @@ public:
 	*/
 	void
 	RemoveMappedItem(Window::NativeHandle) ynothrow;
+
+	//! \since build 384
+	void
+	UpdateRenderWindows();
 
 	//! \since build 380
 	void

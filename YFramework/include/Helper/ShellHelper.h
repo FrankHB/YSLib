@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1573
+\version r1576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-02-03 12:32 +0800
+	2013-02-28 20:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INC_HELPER_SHELLHELPER_H_
-#define INC_HELPER_SHELLHELPER_H_ 1
+#ifndef INC_Helper_ShellHelper_h_
+#define INC_Helper_ShellHelper_h_ 1
 
 #include "../ysbuild.h"
 #include <ystdex/cast.hpp>
@@ -52,7 +52,7 @@ public:
 	DebugTimer(const std::string& str = "");
 	~DebugTimer();
 };
-#	define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer name(__VA_ARGS__);
+#	define YSL_DEBUG_DECL_TIMER(_name, ...) DebugTimer _name(__VA_ARGS__);
 #else
 #	define YSL_DEBUG_DECL_TIMER(...)
 #endif

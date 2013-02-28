@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1230
-\author FrankHB<frankhb1989@gmail.com>
+\version r1238
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2012-09-07 11:16 +0800
+	2013-03-01 07:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include "Helper/DSMain.h"
 #include "YSLib/UI/ydesktop.h"
 #include "YSLib/UI/ygui.h"
+#include "Host.h"
 
 YSL_BEGIN
 
@@ -82,8 +83,6 @@ ShlDS::OnGotMessage(const Message& msg)
 		ShlDS::OnInput();
 		return;
 	case SM_INPUT:
-		YAssert(bool(desktop_up_ptr), "Null pointer found.");
-
 		input_mgr.DispatchInput(*desktop_down_ptr);
 		OnInput();
 		return;
@@ -105,6 +104,10 @@ ShlDS::OnInput()
 		desktop_up_ptr->Update();
 	if(bUpdateDown)
 		desktop_down_ptr->Update();
+#if YCL_HOSTED
+	// TODO: Use host reference stored by shell.
+	FetchGlobalInstance().GetHost().UpdateRenderWindows();
+#endif
 	// NOTE: Use code below instead if asynchronous posting is necessary.
 //	PostMessage<SM_PAINT>(0xE0, nullptr);
 }

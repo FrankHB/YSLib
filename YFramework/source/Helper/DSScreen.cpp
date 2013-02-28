@@ -11,13 +11,13 @@
 /*!	\file DSScreen.cpp
 \ingroup Helper
 \brief DS 屏幕。
-\version r139
+\version r141
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-02-10 19:01 +0800
+	2013-02-28 07:57 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -94,6 +94,7 @@ DSScreen::DSScreen(bool b) ynothrow
 void
 DSScreen::Update(Drawing::BitmapPtr buf) ynothrow
 {
+	YSL_DEBUG_DECL_TIMER(tmr, "DSScreen::Update")
 	std::lock_guard<std::mutex> lck(update_mutex);
 
 	std::memcpy(gbuf.pBuffer, buf,
@@ -101,7 +102,7 @@ DSScreen::Update(Drawing::BitmapPtr buf) ynothrow
 //	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
 	YCL_DEBUG_PUTS("Screen buffer updated.");
-	YSL_DEBUG_DECL_TIMER(tmr, "DSScreen::Update")
+	YSL_DEBUG_DECL_TIMER(tmrx, "DSScreen::Update!UpdateWindow")
 
 	env.get().UpdateWindow(*this);
 }

@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2877
+\version r2883
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-02-23 05:37 +0800
+	2013-02-28 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,20 +147,14 @@ DSApplication::~DSApplication()
 #if YCL_HOSTED
 	p_hosted.reset();
 #endif
-
 	//等待并确保所有 Shell 被释放。
 //	hShell = nullptr;
-
 	//释放全局非静态资源。
-
 	//清理消息队列（必要，保证所有 Shell 在 Application 前析构）。
 	Queue.Clear();
-
 	//当主 Shell 句柄为静态存储期对象时需要通过 reset 释放。
-
 	//释放默认字体资源。
 	reset(pFontCache);
-
 	//释放设备。
 	reset(scrs[0]),
 	reset(scrs[1]);

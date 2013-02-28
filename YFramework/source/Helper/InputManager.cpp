@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r208
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-02-14 04:01 +0800
+	2013-02-24 06:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ InputManager::DispatchInput(Desktop& dsk)
 #if YCL_DS
 		cursor_state = cursor.operator Point();
 #elif YCL_MINGW32
-		cursor_state = env.get().AdjustCursor(cursor, *p_wnd);
+		cursor_state = p_wnd->AdjustCursor(cursor);
 #endif
 	}
 

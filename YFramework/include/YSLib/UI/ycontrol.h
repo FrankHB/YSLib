@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4613
+\version r4616
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-01-04 16:57 +0800
+	2013-02-28 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_YCONTROL_H_
-#define YSL_INC_UI_YCONTROL_H_ 1
+#ifndef YSL_INC_UI_ycontrol_h_
+#define YSL_INC_UI_ycontrol_h_ 1
 
 #include "ywidget.h"
 #include "ywgtevt.h"
@@ -66,7 +66,7 @@ public:
 	DefGetter(const ynothrow, EventMapping::MapType&, EventMap, EventMap) \
 		//!< 取事件映射表。
 
-	ImplI(AController) DefClone(Controller, Clone)
+	ImplI(AController) DefClone(const override, Controller, Clone)
 };
 
 

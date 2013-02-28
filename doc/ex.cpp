@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4991 *build 383 rev *
+\version r4991 *build 384 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-23 08:56 +0800
+	2013-03-01 07:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,100 +409,110 @@ $using:
 
 
 $DONE:
-r1:
-/ .nds titles @ platform DS,
-/ \impl @ \ctor FrmAbout @ \impl \u Shells,
-/ $doc explicitly clarified license adoption for FreeType @ overall license,
-/ @ \h Memory $=
-(
-	* \impl @ \ft make_shared $since b298
-		$= (^ 'new' ~ '::new'),
-	* \impl @ \ft make_unique $since b293
-		$= (^ 'new' ~ '::new')
-);
-/= test 1 @ platform MinGW32;
+r1-r4:
++ \cl WindowThread @ \u Host,
+/= 4 test 1 @ platform MinGW32;
 
-r2:
-* redundant \decl \mf void Application::RecoverMessageQueue()
-	@ \h YApplication $since b299,
+r5:
+/ @ \u Host @ \impl \u DSMain $=
 (
-	/ @ \u DSMain $=
-	(
-		/ \ns DS >> platform DS ~ \a platform,
-		+ \ns MinGW32 @ platform MinGW32,
-		+ \f YF_API void TestFramework(size_t) @ \ns MinGW32 @ platform MinGW32
-	);
-	/ \impl @ \ctor ShlExplorer @ platform MinGW32 ^ \f TestFramework
+	+ \mf \vt AdjustCursor @ \cl Window;
+	+ \mf \or AdjustCursor @ \cl DSWindow @ \un \ns @ \impl \u
 );
+/ \impl @ \mf InputManager::DispatchInput platform MinGW32
+	@ \impl \u InputManager;
 /= test 2 @ platform MinGW32;
 
-r3:
-/ \impl @ \f MinGW32::TestFramework @ platform MinGW32 @ \u DSMain;
+r6:
+- \mf Environment::AdjustCursor @ \u Host;
 /= test 3 @ platform MinGW32;
 
-r4:
-/ \simp \impl @ \ctor Window @ \impl \u Host;
+r7:
+* \impl @ \mac YSL_DEBUG_DECL_TIMER
+	($since b314; @ \h as public \in $since b378);
+/ \impl @ \mf DSScreen::Update @ platform MinGW32;
 /= test 4 @ platform MinGW32;
 
-r5-r6:
-/= 2 test 5 @ platform MinGW32;
-
-r7:
-/ @ \cl DSApplication @ \u DSMain $=
+r8:
+- \as @ \impl @ \mf ShlDS::OnGotMessage,
+/ @ defined(YCL_HOSTED)
 (
-	+ \mf (GetDSScreenUp, GetDSScreenDown),
-	- \decl friend \cl Host::Window
-),
-/ @ \impl \u Host $=
-(
-	+ \cl DSWindow @ \un \ns;
-	/ \impl @ \mf Environment::HostTask ^ \cl DSWindow ~ \cl Window;
-	/ \simp \mf Window::(OnDestroy, OnPaint)
+	+ \pre \decl @ \cl (RenderWindow, HostRenderer, WindowThread)
+		@ \ns Host @ \h DSMain;
+	+ \cl (RenderWindow, HostRenderer) @ \u Host,
+	+ \mf WindowThread::GetWindowPtr
 );
-/= test 6 @ platform MinGW32;
+/= test 5 @ platform MinGW32;
 
-r8-r12:
-/= 5 test 7 @ platform MinGW32;
+r9:
+/ \mac DefClone(_t, _n) -> \mac DefClone(_q, _t, _n) @ \h YBaseMacro,
+^ \a \mf (Clone ^ DefClone) ^ override,
+/ \a INC_HELPER_SHELLHELPER_H_ => INC_Helper_ShellHelper_h_,
+/ \a YSL_INC_ADAPTOR_YBASEMAC_H_ => YSL_INC_Adaptor_ybasemac_h_,
+/ \a YSL_INC_CORE_YEVT_HPP_ => YSL_INC_Core_yevt_hpp_,
+/ \a YSL_INC_CORE_YOBJECT_H_ => YSL_INC_Core_yobject_h_,
+/ \a YSL_INC_SERVICE_YGDI_H_ => YSL_INC_Service_ygdi_h_,
+/ \a YSL_INC_UI_YCONTROL_H_ => YSL_INC_UI_ycontrol_h_,
+/ \a YSL_INC_UI_YRENDER_H_ => YSL_INC_UI_yrender_h_,
+/ \a INCLUDED_YWGTEVT_H_ => YSL_INC_UI_ywgtevt_h_,
+/ \a YSL_INC_UI_YWGTVIEW_H_ => YSL_INC_UI_ywgtview_h_;
+/= test 6 @ platform DS ^ \conf release;
 
-r13:
-- \inc \h YDefinition @ \h Rational,
+r10:
+/ @ \u Host $=
 (
-	/ @ \h Utilities $=
+	+ \inc \h YRenderer @ \h,
+	/ @ \cl HostRenderer @ \u Host $=
 	(
-		/ \inc \h YDefinition -> \h TypeOperations;
-		/ DLD \exp !^ 'std::' @ \ret \tp @ \ft decay_copy,
-		+ \ft decay_forward
-	);
-	/ @ \h Functional $=
-	(
-		/ \inc \h TypeOperations -> \h Utilities;
-		/ \impl @ \ft (seq_apply#2, unseq_apply) ^ \ft ystdex::decay_forward
+		+ \mf GetWindowPtr,
+		+ \exp \de move \ctor,
+		+ \mf Clone ^ DefClone,
+		+ \inh \cl public Components::BufferedRenderer,
+		/ \tr \impl @ \ctor,
+		+ \mf SetSize
 	)
+);
+/= test 7 @ platform MinGW32;
+
+r11:
+/ @ \u Host $=
+(
+	/ @ \cl HostRenderer $=
+	(
+		+ \m widget, g_buf, update_mutex;
+		/ \tr \impl @ \ctor,
+		+ \mf GetWidgetRef,
+		+ \mf HostRenderer::Update
+	),
+	+ \inc \h DSScreen @ \h;
+	+ \mf Environment::UpdateRenderWindows
 );
 /= test 8 @ platform MinGW32;
 
+r12-r13:
+/ @ \impl \u Shell_DS $=
+(
+	+ \inc \h Host;
+	/ \impl @ \mf ShlDS::OnGotMessage @ defined(YCL_HOSTED)
+),
+/= 2 test 9 @ platform MinGW32;
+
 r14:
-/= test 9 @ platform MinGW32 ^ \conf release;
+/= test 10 @ platform MinGW32 ^ \conf release;
 
 r15:
-/ \a YB_INC_YSTDEX_TYPE_OP_HPP_ => YB_INC_ystdex_type_op_hpp_,
-/ \a YB_INC_YSTDEX_FUNCTIONAL_HPP_ => YB_INC_ystdex_functional_hpp_,
-/ \a YB_INC_YSTDEX_RATIONAL_HPP_ => YB_INC_ystdex_rational_hpp_,
-/ \a YB_INC_YSTDEX_UTILITY_HPP_ => YB_INC_ystdex_utility_hpp_,
-/ \a YB_INC_YSTDEX_MEMORY_HPP_ => YB_INC_ystdex_memory_hpp_,
-/ \a YSL_INC_CORE_YAPP_H_ => YSL_INC_Core_yapp_h_;
-/= test 10 @ platform DS;
+/= test 11 @ platform DS;
 
 r16:
-/= test 11 @ platform DS ^ \conf release;
+/= test 12 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-02-23 +0800:
--39.8d;
-// Mercurial local rev1-rev255: r10147;
+2013-03-01 +0800:
+-40.6d;
+// Mercurial local rev1-rev256: r10163;
 
 / ...
 
@@ -1066,6 +1076,37 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			/ $lib @ "platform %MinGW32" $=
+			(
+				/ "adjust cursor by window" ~ "host environment",
+				/ @ "host implementation" $=
+				(
+					+ "window thread",
+					+ "render window";
+						// Cloning not implemented.
+					+ "host renderer";
+						// Not fully available yet.
+					+ "host renderer validation" ^ "window map traverse"
+				)
+			),
+			* "wrong implementation" @ "macro %YSL_DEBUG_DECL_TIMER" ($since
+				b314; "as public interface" @ %'ShellHelper' $since b378),
+				// Wrong name caused use of this macro more than once in the \
+					same scope leading to redefinition.
+			- "assertion" @ "implementation"
+				@ "member function %ShlDS::OnGotMessage"
+		),
+		/ "macro %DefClone parameter with qualifier/specifier"
+			@ %'YSLib'.'Core'.'YBaseMacro'
+	)
+),
+
+b383
 (
 	/ ".nds titles" @ "platform %DS",
 	/ %'YReader' $=

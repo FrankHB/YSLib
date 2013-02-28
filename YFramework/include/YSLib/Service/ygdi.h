@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3465
+\version r3472
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-01-07 15:28 +0800
+	2013-02-28 20:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_SERVICE_YGDI_H_
-#define YSL_INC_SERVICE_YGDI_H_ 1
+#ifndef YSL_INC_Service_ygdi_h_
+#define YSL_INC_Service_ygdi_h_ 1
 
 #include "../Core/ygdibase.h"
 
@@ -177,7 +177,6 @@ public:
 	\since build 296
 	*/
 	BitmapBuffer(BitmapBuffer&&) ynothrow;
-	virtual DefClone(BitmapBuffer, Clone)
 	/*!
 	\brief 析构：释放资源。
 	*/
@@ -251,6 +250,8 @@ public:
 	virtual void
 	ClearImage() const;
 
+	virtual DefClone(const, BitmapBuffer, Clone)
+
 	/*
 	\brief 交换。
 	\since build 296
@@ -291,7 +292,6 @@ public:
 	\since build 296
 	*/
 	BitmapBufferEx(BitmapBufferEx&&) ynothrow;
-	virtual DefClone(BitmapBufferEx, Clone)
 	/*!
 	\brief 析构：释放资源。
 	*/
@@ -339,6 +339,8 @@ public:
 	*/
 	void
 	ClearImage() const override;
+
+	DefClone(const override, BitmapBufferEx, Clone)
 
 	/*
 	\brief 交换。

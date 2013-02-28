@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3628
+\version r3633
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-02-04 17:50 +0800
+	2013-02-28 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YOBJECT_H_
-#define YSL_INC_CORE_YOBJECT_H_ 1
+#ifndef YSL_INC_Core_yobject_h_
+#define YSL_INC_Core_yobject_h_ 1
 
 #include "ycutil.h"
 #include "yexcept.h"
@@ -132,7 +132,7 @@ public:
 			static_cast<const ValueHolder&>(obj).held);
 	}
 
-	ImplI(IValueHolder) DefClone(ValueHolder, clone)
+	ImplI(IValueHolder) DefClone(const override, ValueHolder, clone)
 
 	//! \since build 348
 	ImplI(IValueHolder) void*
@@ -194,14 +194,14 @@ public:
 	//! \since build 353
 	DefDeCopyAssignment(PointerHolder)
 
-	ImplI(IValueHolder) DefClone(PointerHolder, clone)
-
 	ImplI(IValueHolder) bool
 	operator==(const IValueHolder& obj) const
 	{
 		return ystdex::examiners::equal_examiner::are_equal(*p_held,
 			*static_cast<const PointerHolder&>(obj).p_held);
 	}
+
+	ImplI(IValueHolder) DefClone(const override, PointerHolder, clone)
 
 	//! \since build 348
 	ImplI(IValueHolder) void*

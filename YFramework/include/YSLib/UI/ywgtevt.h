@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1286
+\version r1289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-02-02 13:00 +0800
+	2013-02-28 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INCLUDED_YWGTEVT_H_
-#define INCLUDED_YWGTEVT_H_ 1
+#ifndef YSL_INC_UI_ywgtevt_h_
+#define YSL_INC_UI_ywgtevt_h_ 1
 
 #include "ycomp.h"
 #include "../Core/yevt.hpp"
@@ -434,7 +434,7 @@ public:
 	ImplI(AController) EventMapping::ItemType&
 	GetItem(const VisualEvent&);
 
-	ImplI(AController) DefClone(WidgetController, Clone)
+	ImplI(AController) DefClone(const override, WidgetController, Clone)
 };
 
 YSL_END_NAMESPACE(Components)

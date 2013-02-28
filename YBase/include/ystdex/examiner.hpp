@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r92
+\version r93
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2013-01-10 21:16 +0800
+	2013-02-25 08:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,7 @@ struct always_equal
 \brief 等于操作检测。
 \since build 348
 */
-struct equal_examiner: public equal, public always_equal
+struct equal_examiner : public equal, public always_equal
 {
 	using equal::are_equal;
 	using always_equal::are_equal;

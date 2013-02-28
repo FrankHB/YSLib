@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2391
+\version r2397
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-02-04 17:51 +0800
+	2013-02-28 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_ADAPTOR_YBASEMAC_H_
-#define YSL_INC_ADAPTOR_YBASEMAC_H_ 1
+#ifndef YSL_INC_Adaptor_ybasemac_h_
+#define YSL_INC_Adaptor_ybasemac_h_ 1
 
 //! \todo 检查语言实现的必要支持：可变参数宏。
 
@@ -307,11 +307,12 @@ _t type
 \def DefClone
 \brief 动态复制。
 \note 需要在满足 \c CopyConstructible 的类的定义内。
-\since build 240
+\note 如需要多态复制，需要显示前置 \c virtual 或加入 \c override 等指示符。
+\since build 384
 */
-#define DefClone(_t, _n) \
+#define DefClone(_q, _t, _n) \
 	_t* \
-	_n() const \
+	_n() _q \
 	{ \
 		return new _t(*this); \
 	}
