@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2249
+\version r2252
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-02-01 11:17 +0800
+	2013-03-02 07:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_ITERATOR_HPP_
-#define YB_INC_YSTDEX_ITERATOR_HPP_ 1
+#ifndef YB_INC_ystdex_iterator_hpp_
+#define YB_INC_ystdex_iterator_hpp_ 1
 
 #include "type_op.hpp" // for std::remove_reference, ystdex::*_tag;
 #include <iterator> // for std::make_move_iterator, std::iterator,
@@ -154,7 +154,7 @@ protected:
 
 public:
 	yconstfn
-	pointer_iterator(std::nullptr_t = {})
+	pointer_iterator(nullptr_t = {})
 		: current()
 	{}
 	//! \since build 347

@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1289
+\version r1290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-02-28 20:57 +0800
+	2013-03-02 07:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,7 +372,7 @@ public:
 	DeclIEntry(EventMapping::ItemType& GetItem(const VisualEvent&))
 	/*!
 	\brief 取事件项，若不存在则用指定函数指针添加。
-	\throw 忽略加入任何事件项。
+	\note 派生类的实现可能抛出异常并忽略加入任何事件项。
 	*/
 	virtual EventMapping::ItemType&
 	GetItemRef(const VisualEvent& id, EventMapping::MappedType(&)())

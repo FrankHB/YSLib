@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7396
+\version r7403
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-02-28 15:46 +0800
+	2013-03-02 07:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1151,13 +1151,14 @@
 @4.1.6.2
 以 "INCLUDED_" 起始的标识符专用于头文件包含标识。
 
-@4.1.6.3
-以下前缀保留给的标识符保留给 YSLib 模板参数使用：
+@4.1.6.3 模版形式参数前缀：
+以下前缀保留给的标识符保留作为模板形式参数的名称：
  "_b" ：布尔类型参数；
- "_p" ：指针类型参数；
- "_f" ：函数/仿函数类型参数；
+ "_f" ：函数/可调用对象(callable object) 类型参数；
  "_i" ：接口（纯虚类）类型参数；
- "_t" ：其它类型参数；
+ "_p" ：内建指针类型参数；
+ "_r" ：引用类型参数；
+ "_t" ：不保证以上类型的其它类型参数；
  "_g" ：泛型类型（模板）参数；
  "_gi" ：泛型接口（纯虚类模板）参数；
  "_gf" ：泛型函数/仿函数模板参数；
@@ -1576,7 +1577,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
  \throw 指显式抛出异常， \exception 指内部调用间接抛出的异常。
 除了组(group) 相关指令、实体标识指令（ \def 、 \fn 等）以及 \author 、\par 、 \sa 、 \since 、 \version 外，其它指令后的内容以句为单位（不成句的不视为完整的注释）。
 实体注释中详细注释放在最后。组相关指令在最前（且在注释首行使用水平制表符缩进），然后是实体标识指令（，除了 \def 外一般省略），之后是其它指令。
-指定顺序的实体注释指令： \brief 、 \tparam 、 \param 、 \return 、 \throw 、 \exception 、 \pre 、 \post 、 \note 、 \warning 、 \bug 、 \sa 、 \see 、 \since  、 \todo 。
+指定顺序的实体注释指令： \brief 、 \tparam 、 \param 、 \pre 、 \post 、 \return 、 \throw 、 \exception 、 \note 、 \warning 、 \bug 、 \deprecated 、 \sa 、 \see 、 \since  、 \todo 。
 其它参见 http://drupal.org/node/1354#links 。
 
 @7 一般实现导引：

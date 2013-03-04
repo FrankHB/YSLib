@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11974
+\version r11977
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-02-08 01:43 +0800
+	2013-03-02 07:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,9 @@ $header Utilities
 // YF_* 保留给 YFramework 使用。
 // YCL_* 保留给 YFramework/YCLib 使用。
 // YSL_* 保留给 YFramework/YSLib 使用。
-// INC_* 和 Inc_* 保留给 YFramework 的其它部分使用，用于表示头文件公开/非公开头文件的包含守护宏。
+// NPL_* 保留给 YFramework/NPL 使用。
+// INC_* 和 Inc_* 保留给 YFramework 的其它部分和客户程序使用。
+// 约定 INC 和 Inc 分别用于表示头文件公开/非公开头文件的包含守护宏。
 $herder *
 {
 YCL_INC_* // YCLib 公开头文件包含守护宏。

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4991 *build 384 rev *
+\version r4992 *build 385 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-01 07:44 +0800
+	2013-03-04 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,6 +125,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \dest ::= destinations
 \dir ::= directories
 \doc ::= documents
+\dst ::= destinations
 \dtor ::= destructors
 \e ::= exceptions
 \em ::= empty
@@ -409,110 +410,92 @@ $using:
 
 
 $DONE:
-r1-r4:
-+ \cl WindowThread @ \u Host,
-/= 4 test 1 @ platform MinGW32;
+r1:
+/= test 0 @ platform MinGW32;
 
-r5:
-/ @ \u Host @ \impl \u DSMain $=
-(
-	+ \mf \vt AdjustCursor @ \cl Window;
-	+ \mf \or AdjustCursor @ \cl DSWindow @ \un \ns @ \impl \u
-);
-/ \impl @ \mf InputManager::DispatchInput platform MinGW32
-	@ \impl \u InputManager;
-/= test 2 @ platform MinGW32;
-
-r6:
-- \mf Environment::AdjustCursor @ \u Host;
-/= test 3 @ platform MinGW32;
-
-r7:
-* \impl @ \mac YSL_DEBUG_DECL_TIMER
-	($since b314; @ \h as public \in $since b378);
-/ \impl @ \mf DSScreen::Update @ platform MinGW32;
-/= test 4 @ platform MinGW32;
-
-r8:
-- \as @ \impl @ \mf ShlDS::OnGotMessage,
-/ @ defined(YCL_HOSTED)
-(
-	+ \pre \decl @ \cl (RenderWindow, HostRenderer, WindowThread)
-		@ \ns Host @ \h DSMain;
-	+ \cl (RenderWindow, HostRenderer) @ \u Host,
-	+ \mf WindowThread::GetWindowPtr
-);
-/= test 5 @ platform MinGW32;
-
-r9:
-/ \mac DefClone(_t, _n) -> \mac DefClone(_q, _t, _n) @ \h YBaseMacro,
-^ \a \mf (Clone ^ DefClone) ^ override,
-/ \a INC_HELPER_SHELLHELPER_H_ => INC_Helper_ShellHelper_h_,
-/ \a YSL_INC_ADAPTOR_YBASEMAC_H_ => YSL_INC_Adaptor_ybasemac_h_,
-/ \a YSL_INC_CORE_YEVT_HPP_ => YSL_INC_Core_yevt_hpp_,
-/ \a YSL_INC_CORE_YOBJECT_H_ => YSL_INC_Core_yobject_h_,
-/ \a YSL_INC_SERVICE_YGDI_H_ => YSL_INC_Service_ygdi_h_,
-/ \a YSL_INC_UI_YCONTROL_H_ => YSL_INC_UI_ycontrol_h_,
-/ \a YSL_INC_UI_YRENDER_H_ => YSL_INC_UI_yrender_h_,
-/ \a INCLUDED_YWGTEVT_H_ => YSL_INC_UI_ywgtevt_h_,
-/ \a YSL_INC_UI_YWGTVIEW_H_ => YSL_INC_UI_ywgtview_h_;
-/= test 6 @ platform DS ^ \conf release;
-
-r10:
+r2:
 / @ \u Host $=
 (
-	+ \inc \h YRenderer @ \h,
-	/ @ \cl HostRenderer @ \u Host $=
-	(
-		+ \mf GetWindowPtr,
-		+ \exp \de move \ctor,
-		+ \mf Clone ^ DefClone,
-		+ \inh \cl public Components::BufferedRenderer,
-		/ \tr \impl @ \ctor,
-		+ \mf SetSize
-	)
-);
-/= test 7 @ platform MinGW32;
-
-r11:
-/ @ \u Host $=
-(
+	+ \exp \de move \ctor WindowThread;
 	/ @ \cl HostRenderer $=
 	(
-		+ \m widget, g_buf, update_mutex;
-		/ \tr \impl @ \ctor,
-		+ \mf GetWidgetRef,
-		+ \mf HostRenderer::Update
-	),
-	+ \inc \h DSScreen @ \h;
-	+ \mf Environment::UpdateRenderWindows
+		/ \ctor HostRenderer(Components::IWidget&, Window::NativeHandle)
+			-> HostRenderer(Components::IWidget&, WindowThread&&);
+		+ \ctor \t<_tParams...> HostRenderer(Components::IWidget&,
+			_tParams&&... args)
+	)
 );
-/= test 8 @ platform MinGW32;
+/= test 1 @ platform MinGW32;
 
-r12-r13:
-/ @ \impl \u Shell_DS $=
+r3:
+/ \simp \impl @ \mf Rect::operator&= @ \impl \u YGDIBase;
+/= test 2 @ platform DS ^ \conf release;
+
+r4-r5:
+/ \simp \impl @ \mf Rect::operator&= @ \impl \u YGDIBase;
+/= 2 test 3 @ platform DS ^ \conf release;
+
+r6:
+/ \param std::nullptr_t -> nullptr_t @ \ctor pointer_iterator @ \h Iterator,
+/ @ \h Memory $=
 (
-	+ \inc \h Host;
-	/ \impl @ \mf ShlDS::OnGotMessage @ defined(YCL_HOSTED)
+	/ \inc \h YDefinition -> \h TypeOperations;
+	+ \s \as @ \ptr \t @ \ft (unique_raw, share_raw)#(1,2) @ \h Memory
 ),
-/= 2 test 9 @ platform MinGW32;
+/ \impl @ \mf deref_comp::\op() ^ (\exp cast to bool @ null check)
+	@ \h Functional,
+/ @ \h Cast $=
+(
+	/ @ \ft polymorphic_downcast#1 $=
+	(
+		* cv-qualified \ptr \dst \tp disallowed @ \s \as $since b377,
+		^ static_cast ~ \ctor style cast @ \ret
+	),
+	+ \s \as for \ref \dst \tp @ \ft (polymorphic_downcast,
+		polymorphic_crosscast)#2,
+	* \doc wrong '\throw' directive @ \ft polymorphic_crosscast#2 $since b266
+),
+/ \a YB_INC_YSTDEX_CSTDIO_H_ => YB_INC_ystdex_cstdio_h_,
+/ \a YB_INC_YSTDEX_CAST_HPP_ => YB_INC_ystdex_cast_hpp_,
+/ \a YB_INC_YSTDEX_ITERATOR_HPP_ => YB_INC_ystdex_iterator_hpp_,
+/ \a NPL_INC_SCONTEXT_H_ => NPL_INC_SContext_h_,
+/ \a YCL_INC_FILESYSTEM_H_ => YCL_INC_FileSystem_h_,
+/ \a YSL_INC_UI_TEXTLIST_H_ => YSL_INC_UI_textlist_h_,
+/ \a INC_YREADER_DSREADER_H_ => INC_YReader_DSReader_h_;
+/= test 4 @ platform MinGW32;
 
-r14:
-/= test 10 @ platform MinGW32 ^ \conf release;
+r7-r38:
+/= 32 test 5 @ platform MinGW32;
 
-r15:
-/= test 11 @ platform DS;
+r39:
+* wrong thread for GUI passed @ \u Host $since r2 $=
+(
+	+ \inc \h YWidget @ \h,
+	/ \exp \de move \ctor @ \cl WindowThread -> \exp \del move \ctor,
+	/ @ \cl HostRenderer $=
+	(
+		- \ctor !\t,
+		/ \impl @ \ctor \t
+	)
+);
+/= test 6 @ platform MinGW32;
 
-r16:
-/= test 12 @ platform DS ^ \conf release;
+r40:
+/= test 7 @ platform MinGW32 ^ \conf release;
+
+r41:
+/= test 8 @ platform DS;
+
+r42:
+/= test 9 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-03-01 +0800:
--40.6d;
-// Mercurial local rev1-rev256: r10163;
+2013-03-04 +0800:
+-41.6d;
+// Mercurial local rev1-rev257: r10205;
 
 / ...
 
@@ -1076,6 +1059,33 @@ $module_tree $=
 );
 
 $now
+(
+	/ "implementation for window thread arguments forwarding"
+		@ "host renderer" @ DLD @ "platform %MinGW32" @ %'YFramework'.'Helper',
+	/ "simpler and faster implementation" @ "rectangle intersection"
+		@ %'YFramework'.'YSLib'.'Core'.'YGDIBase',
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ DLD 'std::nullptr_t' -> 'nullptr_t' @ "constructor %pointer_iterator"
+			@ %'Iterator',
+		+ $dev "static assertion for template arguments"
+			@ "function templates %(unique_raw, share_raw)" @ %'Memory',
+		/ "cast to bool for pointer types" @ "member function \
+			%deref_comp::operator()" @ %'Functional',
+		/ %'Cast' $=
+		(
+			* $dev "cv-qualified pointer destination type wrongly disallowed \
+				by the static assertion" $since b377,
+			+ $dev "static assertion for reference destination type"
+				@ "function templates %(polymorphic_downcast, \
+				polymorphic_crosscast#2)",
+			* $doc "wrong '\throw' Doxygen directive" @ "comments"
+				@ "function template %polymorphic_crosscast#2" $since b266
+		)
+	)
+),
+
+b384
 (
 	/ %'YFramework' $=
 	(

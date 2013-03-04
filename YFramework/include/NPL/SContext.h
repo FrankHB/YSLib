@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1336
+\version r1342
 \author FrankHB<frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2012-12-11 21:04 +0800
+	2013-03-02 07:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef NPL_INC_SCONTEXT_H_
-#define NPL_INC_SCONTEXT_H_
+#ifndef NPL_INC_SContext_h_
+#define NPL_INC_SContext_h_ 1
 
 #include "NPL/Lexical.h"
 #include "YSLib/Core/ValueNode.h"
@@ -72,9 +72,9 @@ YSL_BEGIN_NAMESPACE(SContext)
 \brief 遍历记号列表，验证基本合法性：圆括号是否对应。
 \param b 起始迭代器。
 \param e 终止迭代器。
+\pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \return e 或指向冗余的 ')' 的迭代器。
 \throw LoggedEvent 找到冗余的 '(' 。
-\pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \since build 335
 */
 YF_API TLCIter
@@ -85,9 +85,9 @@ Validate(TLCIter b, TLCIter e);
 \param node 节点。
 \param b 起始迭代器。
 \param e 终止迭代器。
+\pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \return e 或指向冗余的 ')' 的迭代器。
 \throw LoggedEvent 找到冗余的 '(' 。
-\pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \since build 330
 */
 YF_API TLCIter

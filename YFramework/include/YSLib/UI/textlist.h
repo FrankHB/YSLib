@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r626
+\version r631
 \author FrankHB<frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2012-12-11 22:29 +0800
+	2013-03-02 07:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_TEXTLIST_H_
-#define YSL_INC_UI_TEXTLIST_H_ 1
+#ifndef YSL_INC_UI_textlist_h_
+#define YSL_INC_UI_textlist_h_ 1
 
 #include "ycontrol.h"
 #include "ygui.h"
@@ -168,8 +168,8 @@ public:
 private:
 	/*!
 	\brief 调整列表视图底项目的竖直偏移量为零。
-	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
 	\post 若调整则 <tt>top_offset == 0</tt> 。
+	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
 	\note 若没有底项目则不调整，返回 0 。
 
 	参数为 <tt>true</tt> 时，调整列表视图底项目（可能不完全）超出下边界以上的竖直

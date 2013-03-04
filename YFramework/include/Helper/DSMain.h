@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r686
+\version r687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-02-28 15:36 +0800
+	2013-03-02 07:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,8 +181,8 @@ public:
 
 	/*!
 	\brief 处理当前消息。
-	\note 优先级小于 UIResponseLimit 的消息时视为后台消息，否则为前台消息。
 	\return 循环条件。
+	\note 优先级小于 UIResponseLimit 的消息时视为后台消息，否则为前台消息。
 	\since build 297
 
 	若主消息队列为空，处理空闲消息，否则从主消息队列取出并分发消息。

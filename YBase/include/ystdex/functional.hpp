@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r477
+\version r478
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-02-24 08:36 +0800
+	2013-03-02 06:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -411,7 +411,7 @@ struct deref_comp
 	bool
 	operator()(const _tPointer& _x, const _tPointer& _y) const
 	{
-		return _x && _y && _fCompare()(*_x, *_y);
+		return bool(_x) && bool(_y) && _fCompare()(*_x, *_y);
 	}
 };
 

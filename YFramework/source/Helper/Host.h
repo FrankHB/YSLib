@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r327
+\version r340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-03-01 06:58 +0800
+	2013-03-04 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -35,6 +35,7 @@
 #	include <mutex>
 #endif
 #include "YSLib/UI/yrender.h"
+#include "YSLib/UI/ywidget.h" // for Components::GetSizeOf;
 #include "DSScreen.h" // for ScreenBuffer;
 
 YSL_BEGIN
@@ -134,6 +135,8 @@ public:
 		ystdex::qualified_decay<_tParams>::type...>), this,
 		yforward(ystdex::decay_forward(args))...)
 	{}
+	//! \since build 385
+	DefDelMoveCtor(WindowThread)
 	~WindowThread();
 
 	DefGetter(const ynothrow, Window*, WindowPtr, p_wnd.get())
@@ -170,7 +173,13 @@ private:
 	WindowThread thrd;
 
 public:
-	HostRenderer(Components::IWidget&, Window::NativeHandle);
+	//! \since build 385
+	template<typename... _tParams>
+	HostRenderer(Components::IWidget& wgt, _tParams&&... args)
+		: BufferedRenderer(),
+		widget(wgt), gbuf(GetSizeOf(wgt)), update_mutex(),
+		thrd(yforward(args)...)
+	{}
 	DefDeMoveCtor(HostRenderer)
 
 	DefGetter(const ynothrow, Components::IWidget&, WidgetRef, widget.get())

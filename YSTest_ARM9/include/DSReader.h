@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1778
+\version r1782
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-01-21 09:04 +0800
+	2013-03-02 07:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INC_YREADER_DSREADER_H_
-#define INC_YREADER_DSREADER_H_ 1
+#ifndef INC_YReader_DSReader_h_
+#define INC_YReader_DSReader_h_ 1
 
 #include <YSLib/UI/textarea.h>
 #include <YSLib/Service/yftext.h>
@@ -290,10 +290,10 @@ public:
 	/*!
 	\brief 向下滚屏指定像素行。
 	\param 像素数。
-	\return 实际滚动的像素行数。
-	\note 参数超过行高时无效。
 	\pre 断言检查：行偏移量小于行高。
 	\pre 断言检查：文本缓冲区指针非空。
+	\return 实际滚动的像素行数。
+	\note 参数超过行高时无效。
 	\since build 292
 	*/
 	Drawing::FontSize

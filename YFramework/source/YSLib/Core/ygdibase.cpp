@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r567
+\version r590
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2013-01-04 18:45 +0800
+	2013-03-01 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,31 +67,10 @@ Rect::ContainsStrict(const Rect& r) const ynothrow
 Rect&
 Rect::operator&=(const Rect& r) ynothrow
 {
-	const SPos xm(X + Width);
-	const SPos rxm(r.X + r.Width);
-	const SPos ym(Y + Height);
-	const SPos rym(r.Y + r.Height);
-	const SDst dx(max(xm, rxm) - min(X, r.X)),
-		dy(max(ym, rym) - min(Y, r.Y));
+	const SPos x1(max(X, r.X)), x2(min(X + Width, r.X + r.Width)),
+		y1(max(Y, r.Y)), y2(min(Y + Height, r.Y + r.Height));
 
-	//相离。
-	if(Width + r.Width < dx || Height + r.Height < dy)
-		return *this = Rect();
-
-	//优化：包含情况。
-	if(dx == Width && dy == Height)
-		return *this = r;
-	if(dx == r.Width && dy == r.Height)
-		return *this;
-
-	SPos x1(max(X, r.X)), x2(min(xm, rxm)),
-		y1(max(Y, r.Y)), y2(min(ym, rym));
-
-	if(x2 < x1)
-		std::swap(x1, x2);
-	if(y2 < y1)
-		std::swap(y1, y2);
-	return *this = Rect(x1, y1, x2 - x1, y2 - y1);
+	return *this = x2 < x1 || y2 < y1 ? Rect() : Rect(x1, y1, x2 - x1, y2 - y1);
 }
 
 Rect&
@@ -102,10 +81,10 @@ Rect::operator|=(const Rect& r) ynothrow
 	if(!r)
 		return *this;
 
-	const auto mx(min(X, r.X)), my(min(Y, r.Y));
+	const SPos mx(min(X, r.X)), my(min(Y, r.Y));
 
-	return *this = Rect(mx, my, max<SPos>(X + Width, r.X + r.Width) - mx,
-		max<SPos>(Y + Height, r.Y + r.Height) - my);
+	return *this = Rect(mx, my, max(X + Width, r.X + r.Width) - mx,
+		max(Y + Height, r.Y + r.Height) - my);
 }
 
 Rect

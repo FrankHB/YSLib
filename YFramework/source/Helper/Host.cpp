@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r672
+\version r682
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-03-01 06:59 +0800
+	2013-03-04 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -249,13 +249,6 @@ WindowThread::WindowLoop(Window& wnd)
 	Environment::HostLoop();
 }
 
-
-HostRenderer::HostRenderer(Components::IWidget& wgt, Window::NativeHandle h)
-	: BufferedRenderer(),
-	widget(wgt), gbuf(GetSizeOf(wgt)), update_mutex(), thrd([this, &h]{
-		return unique_ptr<Window>(new RenderWindow(h, *this));
-	})
-{}
 
 void
 HostRenderer::SetSize(const Size& s)

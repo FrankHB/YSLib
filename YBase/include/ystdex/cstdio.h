@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r365
-\author FrankHB<frankhb1989@gmail.com>
+\version r370
+\author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2012-12-28 02:12 +0800
+	2013-03-02 07:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_CSTDIO_H_
-#define YB_INC_YSTDEX_CSTDIO_H_ 1
+#ifndef YB_INC_ystdex_cstdio_h_
+#define YB_INC_ystdex_cstdio_h_ 1
 
 #include "../ydef.h"
 #include <cstdio>
@@ -139,8 +139,8 @@ public:
 	/*
 	\brief 前置自增。
 	\pre 断言：流指针非空。
-	\note 当读到 EOF 时置流指针为空指针。
 	\return 自身引用。
+	\note 当读到 EOF 时置流指针为空指针。
 
 	使用 std::fgetc 读字符。
 	*/

@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r810
+\version r850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2013-02-02 12:50 +0800
+	2013-03-02 07:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_CAST_HPP_
-#define YB_INC_YSTDEX_CAST_HPP_ 1
+#ifndef YB_INC_ystdex_cast_hpp_
+#define YB_INC_ystdex_cast_hpp_ 1
 
 #include "type_op.hpp"
 #include <memory>
@@ -84,20 +84,20 @@ initializer_cast(_tSrc&&... x)
 \ingroup cast
 \brief 多态类指针类型转换。
 \tparam _tSrc 源类型。
-\tparam _tDst 目标类型。
+\tparam _pDst 目标类型。
 \pre 静态断言： _tSrc 是多态类。
-\pre 静态断言： _tDst 是指针。
+\pre 静态断言： _pDst 是内建指针。
 \throw std::bad_cast dynamic_cast 失败。
 \since build 175
 */
-template <typename _tDst, class _tSrc>
-inline _tDst
+template <typename _pDst, class _tSrc>
+inline _pDst
 polymorphic_cast(_tSrc* x)
 {
 	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
-	static_assert(is_pointer<_tDst>::value, "Non-pointer destination found.");
+	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
 
-	const auto tmp(dynamic_cast<_tDst>(x));
+	const auto tmp(dynamic_cast<_pDst>(x));
 
 	if(!tmp)
 		throw std::bad_cast();
@@ -108,62 +108,66 @@ polymorphic_cast(_tSrc* x)
 \ingroup cast
 \brief 多态类指针向派生类指针转换。
 \tparam _tSrc 源类型。
-\tparam _tDst 目标类型。
+\tparam _pDst 目标类型。
 \pre 静态断言： _tSrc 是多态类。
-\pre 静态断言： _tDst 是指针。
-\pre 静态断言： _tSrc 是 _tDst 指向的类的基类。
+\pre 静态断言： _pDst 是内建指针。
+\pre 静态断言： _tSrc 是 _pDst 指向的类去除修饰符后的基类。
 \pre 断言： dynamic_cast 成功。
 \since build 175
 */
-template <typename _tDst, class _tSrc>
-inline _tDst
+template <typename _pDst, class _tSrc>
+inline _pDst
 polymorphic_downcast(_tSrc* x)
 {
 	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
-	static_assert(is_pointer<_tDst>::value, "Non-pointer destination found.");
-	static_assert(is_base_of<_tSrc, typename
-		remove_pointer<_tDst>::type>::value, "Wrong destination type found.");
+	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
+	static_assert(is_base_of<_tSrc, typename remove_cv<typename remove_pointer<
+		_pDst>::type>::type>::value, "Wrong destination type found.");
 
-	yassume(dynamic_cast<_tDst>(x) == x);
+	yassume(dynamic_cast<_pDst>(x) == x);
 
-	return _tDst(x);
+	return static_cast<_pDst>(x);
 }
 /*!
 \ingroup cast
 \brief 多态类引用向派生类引用转换。
 \tparam _tSrc 源类型。
-\tparam _tDst 目标类型。
+\tparam _rDst 目标类型。
+\pre 静态断言： _rDst 是引用。
 \since build 175
 \todo 扩展接受右值引用参数。
 */
-template <typename _tDst, class _tSrc>
-yconstfn _tDst&
+template <typename _rDst, class _tSrc>
+yconstfn _rDst&
 polymorphic_downcast(_tSrc& x)
 {
+	static_assert(is_reference<_rDst>::value,
+		"Non-reference destination found.");
+
 	return *ystdex::polymorphic_downcast<typename remove_reference<
-		_tDst>::type*>(std::addressof(x));
+		_rDst>::type*>(std::addressof(x));
 }
 
 /*!
 \ingroup cast
 \brief 多态类指针交叉转换。
 \tparam _tSrc 源类型。
-\tparam _tDst 目标类型。
-\return 非空结果。
+\tparam _pDst 目标类型。
 \pre 静态断言： _tSrc 是多态类。
-\pre 静态断言： _tDst 是指针。
+\pre 静态断言： _pDst 是内建指针。
 \pre 断言： dynamic_cast 成功。
+\return 非空结果。
 \note 空指针作为参数一定失败。
 \since build 179
 */
-template <typename _tDst, class _tSrc>
-inline _tDst
+template <typename _pDst, class _tSrc>
+inline _pDst
 polymorphic_crosscast(_tSrc* x)
 {
 	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
-	static_assert(is_pointer<_tDst>::value, "Non-pointer destination found.");
+	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
 
-	auto p(dynamic_cast<_tDst>(x));
+	auto p(dynamic_cast<_pDst>(x));
 
 	yassume(p);
 	return p;
@@ -172,17 +176,20 @@ polymorphic_crosscast(_tSrc* x)
 \ingroup cast
 \brief 多态类引用交叉转换。
 \tparam _tSrc 源类型。
-\tparam _tDst 目标类型。
-\throw std::bad_cast dynamic_cast 失败。
+\tparam _rDst 目标类型。
+\pre 静态断言： _rDst 是引用。
 \since build 179
 \todo 扩展接受右值引用参数。
 */
-template <typename _tDst, class _tSrc>
-yconstfn _tDst&
+template <typename _rDst, class _tSrc>
+yconstfn _rDst&
 polymorphic_crosscast(_tSrc& x)
 {
+	static_assert(is_reference<_rDst>::value,
+		"Non-reference destination found.");
+
 	return *ystdex::polymorphic_crosscast<typename remove_reference<
-		_tDst>::type*>(std::addressof(x));
+		_rDst>::type*>(std::addressof(x));
 }
 
 

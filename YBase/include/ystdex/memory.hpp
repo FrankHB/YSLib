@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r414
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2013-02-23 08:38 +0800
+	2013-03-02 07:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "../ydef.h"
+#include "type_op.hpp" // for ../ydef.h and is_pointer;
 #include <memory>
 #include <cstring> // for std::memcpy and std::memmove;
 
@@ -153,20 +153,26 @@ reset(std::shared_ptr<_type>& p) ynothrow
 //@{
 /*!
 \tparam _pSrc 指定指针类型。
+\pre 静态断言： _pSrc 是内建指针。
 */
 template<typename _type, typename _pSrc>
 yconstfn std::unique_ptr<_type>
 unique_raw(const _pSrc& p)
 {
+	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
+
 	return std::unique_ptr<_type>(p);
 }
 /*!
 \tparam _pSrc 指定指针类型。
+\pre 静态断言： _pSrc 是内建指针。
 */
 template<typename _type, typename _pSrc>
 yconstfn std::unique_ptr<_type>
 unique_raw(_pSrc&& p)
 {
+	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
+
 	return std::unique_ptr<_type>(p);
 }
 template<typename _type>
@@ -198,20 +204,26 @@ unique_raw(nullptr_t) ynothrow
 //@{
 /*!
 \tparam _pSrc 指定指针类型。
+\pre 静态断言： _pSrc 是内建指针。
 */
 template<typename _type, typename _pSrc>
 yconstfn std::shared_ptr<_type>
 share_raw(const _pSrc& p)
 {
+	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
+
 	return std::shared_ptr<_type>(p);
 }
 /*!
 \tparam _pSrc 指定指针类型。
+\pre 静态断言： _pSrc 是内建指针。
 */
 template<typename _type, typename _pSrc>
 yconstfn std::shared_ptr<_type>
 share_raw(_pSrc&& p)
 {
+	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
+
 	return std::shared_ptr<_type>(p);
 }
 template<typename _type>
