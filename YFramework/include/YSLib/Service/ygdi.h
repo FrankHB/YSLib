@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3472
+\version r3476
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-02-28 20:55 +0800
+	2013-03-05 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ operator+(const Padding& x, const Padding& y)
 		x.Bottom + y.Bottom);
 }
 /*!
-\brief 加法：缩小屏幕正则矩形，相对位置由指定边距决定。
+\brief 加法：缩小屏幕标准矩形，相对位置由指定边距决定。
 \note 若边距过大，则矩形的宽或高可能为 0 。
 */
 YF_API Rect
@@ -121,7 +121,7 @@ FetchMargin(const Rect&, const Size&);
 
 
 /*!
-\brief 剪切操作：取正则矩形交集并判断是否严格非空。
+\brief 剪切操作：取标准矩形交集并判断是否严格非空。
 \since build 372
 */
 inline bool
@@ -155,7 +155,7 @@ ClipMargin(PaintContext&, const Padding&, const Size&);
 
 
 /*!
-\brief 正则矩形位图缓冲区。
+\brief 标准矩形位图缓冲区。
 \note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
 	std::is_nothrow_move_assignable<T>::value</tt> 。
 */
@@ -265,7 +265,7 @@ public:
 
 
 /*!
-\brief 扩展的正则矩形位图缓冲区。
+\brief 扩展的标准矩形位图缓冲区。
 \note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
 	std::is_nothrow_move_assignable<T>::value</tt> 。
 */

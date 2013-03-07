@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4992 *build 385 rev *
+\version r4994 *build 386 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-04 19:45 +0800
+	2013-03-07 12:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,6 +212,7 @@ $parser.$preprocessor.$define_schema "<statement> ::= $statement_in_literal";
 \stt ::= struct templates
 \t ::= templates
 \tb ::= try blocks
+\term ::= terms/terminology
 \tg ::= targets
 \tr ::= trivial
 \tp ::= types
@@ -245,6 +246,7 @@ $deploy; // issues on deployment(including build environment requirement);
 $comp; // features consist of dependencies with no additional work;
 $repo; // for repositories of version control system;
 $doc; // for documents target;
+$term; // for terminology;
 $workaround; // for issues currently or temporarily cannot be resolved through \
 	a preferred clean way for certain reasons, but exist alternative ways to \
 	get being settled and work expectedly for outer observers of the system.
@@ -410,98 +412,193 @@ $using:
 
 
 $DONE:
-r1:
-/= test 0 @ platform MinGW32;
+r1-r6:
+/= 6 test 1 @ platform MinGW32;
 
-r2:
-/ @ \u Host $=
+r7:
+/ @ \cl HostRenderer @ \h Host $=
 (
-	+ \exp \de move \ctor WindowThread;
-	/ @ \cl HostRenderer $=
-	(
-		/ \ctor HostRenderer(Components::IWidget&, Window::NativeHandle)
-			-> HostRenderer(Components::IWidget&, WindowThread&&);
-		+ \ctor \t<_tParams...> HostRenderer(Components::IWidget&,
-			_tParams&&... args)
-	)
+	+ \ft MakeRenderWindow;
+	/ \impl @ \ctor \t ^ MakeRenderWindow
 );
-/= test 1 @ platform MinGW32;
+/= test 2 @ platform MinGW32;
 
-r3:
-/ \simp \impl @ \mf Rect::operator&= @ \impl \u YGDIBase;
-/= test 2 @ platform DS ^ \conf release;
+r8:
+/ $dev $doc $term \a ('正则矩形' -> '标准矩形', '矢量' -> '向量',
+	'标量' -> '纯量'),
+/ \ren \param @ \mf DSScreen::UpdateToHost @ platform MinGW32
+	@ \impl \u DSScreen;
+/= test 3 @ platform MinGW32;
 
-r4-r5:
-/ \simp \impl @ \mf Rect::operator&= @ \impl \u YGDIBase;
-/= 2 test 3 @ platform DS ^ \conf release;
-
-r6:
-/ \param std::nullptr_t -> nullptr_t @ \ctor pointer_iterator @ \h Iterator,
-/ @ \h Memory $=
+r9:
+/ @ platform MinGW32 @ \u DSScreen $=
 (
-	/ \inc \h YDefinition -> \h TypeOperations;
-	+ \s \as @ \ptr \t @ \ft (unique_raw, share_raw)#(1,2) @ \h Memory
-),
-/ \impl @ \mf deref_comp::\op() ^ (\exp cast to bool @ null check)
-	@ \h Functional,
-/ @ \h Cast $=
-(
-	/ @ \ft polymorphic_downcast#1 $=
+	/ \st ScreenBuffer -> \cl ScreenBuffer;
+	/ @ \cl ScreenBuffer $=
 	(
-		* cv-qualified \ptr \dst \tp disallowed @ \s \as $since b377,
-		^ static_cast ~ \ctor style cast @ \ret
-	),
-	+ \s \as for \ref \dst \tp @ \ft (polymorphic_downcast,
-		polymorphic_crosscast)#2,
-	* \doc wrong '\throw' directive @ \ft polymorphic_crosscast#2 $since b266
-),
-/ \a YB_INC_YSTDEX_CSTDIO_H_ => YB_INC_ystdex_cstdio_h_,
-/ \a YB_INC_YSTDEX_CAST_HPP_ => YB_INC_ystdex_cast_hpp_,
-/ \a YB_INC_YSTDEX_ITERATOR_HPP_ => YB_INC_ystdex_iterator_hpp_,
-/ \a NPL_INC_SCONTEXT_H_ => NPL_INC_SContext_h_,
-/ \a YCL_INC_FILESYSTEM_H_ => YCL_INC_FileSystem_h_,
-/ \a YSL_INC_UI_TEXTLIST_H_ => YSL_INC_UI_textlist_h_,
-/ \a INC_YREADER_DSREADER_H_ => INC_YReader_DSReader_h_;
+		/ \tr !\exp \ac @ \a data \m -> protected,
+		+ \mf GetBufferPtr;
+		/ \tr \impl @ \ctor,
+		/ \tr \impl @ \mf Update,
+		+ \mf UpdateTo,
+	);
+	/ \simp \impl @ \mf DSScreen::UpdateToHost
+);
+/ \simp \impl @ \mf HostRenderer::Update @ \impl \u Host;
 /= test 4 @ platform MinGW32;
 
-r7-r38:
-/= 32 test 5 @ platform MinGW32;
-
-r39:
-* wrong thread for GUI passed @ \u Host $since r2 $=
+r10:
+/ @ platform MinGW32 @ \u DSScreen $=
 (
-	+ \inc \h YWidget @ \h,
-	/ \exp \de move \ctor @ \cl WindowThread -> \exp \del move \ctor,
-	/ @ \cl HostRenderer $=
+	/ @ \cl ScreenBuffer $=
 	(
-		- \ctor !\t,
-		/ \impl @ \ctor \t
+		+ private \m Drawing::Size size,
+		- private \mf InitializeDIB,
+		/ @ \mf UpdateTo,
+		/ \tr \impl @ \ctor,
+		+ \mf (UpdateFrom, GetSize)
+	),
+	/ @ \cl DSScreen $=
+	(
+		/ \tr \impl @ \mf UpdateToHost,
+		/ \simp \impl @ \mf Update ^ std::copy_n ~ std::memcpy
 	)
 );
-/= test 6 @ platform MinGW32;
+/ @ \mf HostRenderer::Update @ \impl \u Host $=
+(
+	+ \as for rendering size,
+	/ \tr \simp \impl ^ std::copy_n ~ std::memcpy
+);
+/= test 5 @ platform MinGW32;
 
-r40:
-/= test 7 @ platform MinGW32 ^ \conf release;
+r11-r12:
+/ \inc \h <cstring> @ \h Memory -> \h Algorithms,
++ \tr \inc \h <cstring> @ \impl \u (CStandardIO, Initialization, FileSystem),
+/ @ \impl \u YFile_(Text) $=
+(
+	/ \impl @ \f InitializeTextFile @ \un \ns ^ std::uninitialized_fill_n
+		~ std::memset,
+	(
+		/ \impl @ \mf TextFile::CheckBOM ^ std::char_traits<char>::compare
+			~ memcmp;
+		- 'using std::memcmp;'
+	)
+),
+^ 'ynothrow' ~ 'ynoexcept' @ \a always_equal::are_equal @ \h Examiner,
+/ \a YB_INC_YSTDEX_ALGORITHM_HPP_ => YB_INC_ystdex_algorithm_hpp_,
+/ \a YSL_INC_CORE_YGDIBASE_H_ => YSL_INC_Core_ygdibase_h_,
+/ \a YSL_INC_SERVICE_YBLIT_H_ => YSL_INC_Service_yblit_h_,
+/ \a YSL_INC_SERVICE_YDRAW_H_ => YSL_INC_Service_ydraw_h_,
+/ \a YSL_INC_UI_YSTYLE_H_ => YSL_INC_UI_ystyle_h_,
+/ \a YB_INC_YSTDEX_EXAMINER_HPP_ => YB_INC_ystdex_examiner_hpp_,
+/= 2 test 6 @ platform MinGW32;
 
-r41:
-/= test 8 @ platform DS;
+r13:
+* $doc wrong note @ \ft ntctscmp, ntctsicmp, const_ntctscmp#(1, 2) @ \h CString
+	$since b324,
++ move \ctor @ \cl ScreenBuffer @ platform MinGW32 @ \u DSScreen;
+/= test 7 @ platform MinGW32;
 
-r42:
-/= test 9 @ platform DS ^ \conf release;
+r14:
+/ \impl @ \f InitializeTextFile @ \un \ns @ \impl \u YFile_(Text)
+	^ std::char_traits<char>::assign ~ std::uninitialized_fill_n,
+/ @ \impl \u CStandardIO $=
+(
+	/ \impl @ \f ^ char_traits<char>::length ~ strlen;
+	/ \inc \h <cstring> -> <string>
+);
+/= test 8 @ platform MinGW32 ^ \conf release;
+
+r15:
+/ @ platform MinGW32 @ \u DSMain $=
+(
+	+ \cl WindowSurface,
+	+ \mf GetNativeHandle
+),
+/ \simp \impl @ \mf HostRenderer::Update;
+/= test 9 @ platform MinGW32;
+
+r16:
+/ @ platform MinGW32 @ \u DSScreen $=
+(
+	+ \cl (WindowMemorySurface, WindowDeviceContext)
+	/ @ \cl WindowSurface $=
+	(
+		/ \m reference_wrapper<const Window> wnd -> WindowDeviceContext wdc,
+		/ \m ::HDC h_mem_dc -> WindowMemorySurface surface,
+		/ \impl @ (\ctor, \dtor),
+		- \mf Update
+	)
+);
+/= test 10 @ platform MinGW32;
+
+r17:
+/ @ platform MinGW32 @ \u DSScreen $=
+(
+	+ \cl WindowDeviceContextBase;
+	/ \simp @ \cl WindowDeviceContext ^ \inh \h WindowDeviceContextBase,
+	+ \cl (WindowRegionDeviceContext; WindowRegionSurface)
+);
+/= test 11 @ platform MinGW32;
+
+r18:
+/ \mg \cl (WindowSurface, WindowRegionSurface) -> \clt GSurface
+	@ platform MinGW32 @ \u DSScreen;
+/ \tr \impl @ \mf HostRenderer::Update @ \impl \u Host;
+/= test 12 @ platform MinGW32;
+
+r19:
+/ \impl @ \mf DSWindow::OnPaint @ \un \ns @ \impl \u Host,
++ \mf DSScreen::ScreenBufferRef @ platform MinGW32 @ \h DSScreen;
+/= test 13 @ platform MinGW32;
+
+r20:
+/ \simp \impl @ \mf Environment::UpdateWindow @ \impl \u Host ^ GSurface<>;
+- \mf DSScreen::UpdateToHost @ platform MinGW32 @ \u DSMain;
+/= test 14 @ platform MinGW32;
+
+r21:
+* \impl @ \mf Environment::UpdateWindow @ \impl \u Host ^ GSurface<> $since r20;
+/= test 15 @ platform MinGW32;
+
+r22:
+/ \impl @ \mf DSWindow::OnPaint @ \un \ns @ \impl \u Host
+	^ GSurface<WindowRegionDeviceContext>;
+/= test 16 @ platform MinGW32;
+
+r23:
+/ @ platform MinGW32 @ \u DSMain $=
+(
+	- \mf ScreenBuffer::UpdateTo, DSScreen::GetScreenBufferRef,
+	+ \mft DSScreen::UpdateToSurface
+),
+/ \tr \simp \impl @ \mf (Environment::UpdateWindow, DSWindow::OnPaint @ \un \ns)
+	@ \impl \u Host;
+/= test 17 @ platform MinGW32;
+
+r24:
+/= test 18 @ platform MinGW32 ^ \conf release;
+
+r25:
+/ \tr \impl @ \f ResetVideo @ \impl \u Video ^ std::fill_n ~ std::memset;
+/= test 19 @ platform DS;
+
+r26:
+/= test 20 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-03-04 +0800:
--41.6d;
-// Mercurial local rev1-rev257: r10205;
+2013-03-07 +0800:
+-39.5d;
+// Mercurial local rev1-rev258: r10231;
 
 / ...
 
 
 $NEXT_TODO:
-b[$current_rev]-b402:
+b[$current_rev]-b403:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
@@ -515,6 +612,7 @@ $low_prior
 		properly for clipping area enlarged when updating $since b?;
 		// Namely, the actual painted area is not the same as accumulated \
 			invalidated bounding region, which essentially cause over painted.
+	/ resolved 'scaler' \term and %is_scalar(e.g. for fixed point numbers);
 );
 
 
@@ -1059,6 +1157,22 @@ $module_tree $=
 );
 
 $now
+(
+	/ DLD @ "platform MinGW32" @ %'YFramework'.'Helper' $=
+	(
+		/ "buffer class";
+		+ "surface classes",
+		/ "simplified implementation" ^ "surface classes"
+	),
+	/ $dev $doc $term "all" ('正则矩形' -> '标准矩形', '矢量' -> '向量',
+		'标量' -> '纯量'),
+	/ $dev "minimized dependence on header <cstring> in several contexts",
+		// Preferred %std::char_traits over C functions.
+	* $doc "wrong note" @ "function templates %(ntctscmp, ntctsicmp, \
+		const_ntctscmp#(1, 2))" @ %'YBase'.'StandardEx'.'CString' $since b324
+),
+
+b385
 (
 	/ "implementation for window thread arguments forwarding"
 		@ "host renderer" @ DLD @ "platform %MinGW32" @ %'YFramework'.'Helper',

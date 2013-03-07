@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r340
+\version r351
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-03-04 19:27 +0800
+	2013-03-05 11:45 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -178,7 +178,9 @@ public:
 	HostRenderer(Components::IWidget& wgt, _tParams&&... args)
 		: BufferedRenderer(),
 		widget(wgt), gbuf(GetSizeOf(wgt)), update_mutex(),
-		thrd(yforward(args)...)
+		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<typename
+			ystdex::qualified_decay<_tParams>::type...>), this,
+			yforward(ystdex::decay_forward(args))...)
 	{}
 	DefDeMoveCtor(HostRenderer)
 
@@ -194,6 +196,15 @@ public:
 		throw LoggedEvent("HostRenderer::Clone: Not implemented.");
 	}
 //	DefClone(const override, HostRenderer, Clone)
+
+	//! \since build 386
+	template<typename _fCallable, typename... _tParams>
+	unique_ptr<Window>
+	MakeRenderWindow(_fCallable&& f, _tParams&&... args)
+	{
+		return unique_ptr<Window>(new
+			RenderWindow(yforward(f)(yforward(args)...), *this));
+	}
 
 	void
 	Update(Drawing::BitmapPtr);

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r183
-\author FrankHB<frankhb1989@gmail.com>
+\version r187
+\author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2012-10-15 09:58 +0800
+	2013-03-06 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "ystdex/cstdio.h"
+#include <string> // for std::char_traits<char>::length;
 
 namespace ystdex
 {
@@ -96,7 +97,7 @@ openmode_conv(const char* str) ynothrow
 		}
 		if(str[1] != char())
 		{
-			auto l(strlen(str));
+			auto l(char_traits<char>::length(str));
 
 			if(str[l - 1] == 'x')
 			{

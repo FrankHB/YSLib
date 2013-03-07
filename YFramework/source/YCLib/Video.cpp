@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r220
-\author FrankHB<frankhb1989@gmail.com>
+\version r223
+\author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2012-09-04 11:02 +0800
+	2013-03-07 12:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,7 +161,7 @@ ResetVideo()
 	::vramSetBankG(VRAM_G_LCD);
 	::vramSetBankH(VRAM_H_LCD);
 	::vramSetBankI(VRAM_I_LCD);
-	std::memset(VRAM_A, 0, 0x90000);
+	std::fill_n(VRAM_A, 0x90000, 0);
 //	memset(OAM, 0, SPRITE_COUNT * sizeof(SpriteEntry));
 //	memset(OAM_SUB, 0, SPRITE_COUNT * sizeof(SpriteEntry));
 	videoSetMode(MODE_5_2D);

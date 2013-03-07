@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1443
+\version r1455
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-02-04 17:49 +0800
+	2013-03-06 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_SERVICE_YBLIT_H_
-#define YSL_INC_SERVICE_YBLIT_H_ 1
+#ifndef YSL_INC_Service_yblit_h_
+#define YSL_INC_Service_yblit_h_ 1
 
 #include "../Core/ygdibase.h"
 #include "../Core/ycutil.h"
@@ -162,7 +162,7 @@ BlitScale<true, true>(const Point&, const Size&, int, int);
 \brief 贴图扫描函数模板。
 \tparam _bDec 指定是否翻转水平和竖直方向之一。
 \tparam _fCallable 调用操作类型。
-\tparam _tScalar 度量大小的标量类型。
+\tparam _tScalar 度量大小的纯量类型。
 \tparam _tDiff 度量偏移量的差值类型。
 \tparam _tOut 输出迭代器类型。
 \tparam _tIn 输入迭代器类型。
@@ -223,13 +223,13 @@ Blit(_tOut dst, const Size& ds, _tIn src, const Size& ss,
 
 
 /*!
-\brief 正则矩形转换器。
+\brief 标准矩形转换器。
 \since build 266
 */
 struct RectTransformer
 {
 	/*!
-	\brief 渲染正则矩形内的像素。
+	\brief 渲染标准矩形内的像素。
 	\note 不含右边界和下边界。
 	*/
 	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
@@ -248,7 +248,7 @@ struct RectTransformer
 		}
 	}
 	/*!
-	\brief 渲染正则矩形内的像素。
+	\brief 渲染标准矩形内的像素。
 	\note 不含右边界和下边界。
 	*/
 	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
@@ -260,7 +260,7 @@ struct RectTransformer
 			_fTransformLine>(dst, ds, rSrc.GetPoint(), rSrc.GetSize(), tp, tl);
 	}
 	/*!
-	\brief 渲染正则矩形内的像素。
+	\brief 渲染标准矩形内的像素。
 	\note 不含右边界和下边界。
 	*/
 	template<typename _tPixel, class _fTransformPixel, class _fTransformLine>
@@ -311,7 +311,7 @@ FillVerticalLine(_tPixel* dst, size_t n, SDst dw, _tPixel c)
 }
 
 /*!
-\brief 使用指定像素填充指定的正则矩形区域。
+\brief 使用指定像素填充指定的标准矩形区域。
 \since build 160
 */
 template<typename _tPixel>
@@ -323,7 +323,7 @@ FillRect(_tPixel* dst, const Size& ds, const Point& sp, const Size& ss,
 		SequenceTransformer());
 }
 /*!
-\brief 使用指定像素填充指定的正则矩形区域。
+\brief 使用指定像素填充指定的标准矩形区域。
 \since build 151
 */
 template<typename _tPixel>
@@ -334,7 +334,7 @@ FillRect(_tPixel* dst, const Size& ds, const Rect& rSrc, _tPixel c)
 		SequenceTransformer());
 }
 /*!
-\brief 使用指定像素填充指定的正则矩形区域。
+\brief 使用指定像素填充指定的标准矩形区域。
 \since build 160
 */
 template<typename _tPixel>
@@ -614,7 +614,7 @@ struct BlitBlendLoop
 
 
 /*!
-\brief 以像素为单位变换正则矩形。
+\brief 以像素为单位变换标准矩形。
 \since build 166
 */
 template<class _fTransformPixel>
@@ -631,7 +631,7 @@ TransformRect(const Graphics& g, const Point& pt, const Size& s,
 	return false;
 }
 /*!
-\brief 以像素为单位变换正则矩形。
+\brief 以像素为单位变换标准矩形。
 \since build 166
 */
 template<class _fTransformPixel>

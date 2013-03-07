@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1265
+\version r1279
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-01-01 21:32 +0800
+	2013-03-07 12:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YGDIBASE_H_
-#define YSL_INC_CORE_YGDIBASE_H_ 1
+#ifndef YSL_INC_Core_ygdibase_h_
+#define YSL_INC_Core_ygdibase_h_ 1
 
 #include "yexcept.h"
 #include <limits>
@@ -81,7 +81,7 @@ public:
 	explicit yconstfn
 	GBinaryGroup(const Rect&) ynothrow;
 	/*!
-	\brief 构造：使用两个标量。
+	\brief 构造：使用两个纯量。
 	\since build 319
 	*/
 	template<typename _tScalar1, typename _tScalar2>
@@ -276,7 +276,7 @@ public:
 		: Width(val.X), Height(val.Y)
 	{}
 	/*!
-	\brief 构造：使用两个标量。
+	\brief 构造：使用两个纯量。
 	\since build 319
 	*/
 	template<typename _tScalar1, typename _tScalar2>
@@ -394,7 +394,7 @@ GetAreaOf(const Size& s) ynothrow -> decltype(s.Width * s.Height)
 
 
 /*!
-\brief 屏幕正则矩形：表示屏幕矩形区域。
+\brief 屏幕标准矩形：表示屏幕矩形区域。
 \note 边平行于水平直线；使用左上点屏幕坐标、宽和高表示。
 \warning 非虚析构。
 \since build 161
@@ -514,7 +514,7 @@ public:
 	//@}
 
 	/*!
-	\brief 求与另一个屏幕正则矩形的交。
+	\brief 求与另一个屏幕标准矩形的交。
 	\note 若相离结果为 Rect() ，否则为包含于两个参数中的最大矩形。
 	\since build 320
 	*/
@@ -522,7 +522,7 @@ public:
 	operator&=(const Rect&) ynothrow;
 
 	/*!
-	\brief 求与另一个屏幕正则矩形的并。
+	\brief 求与另一个屏幕标准矩形的并。
 	\note 结果为包含两个参数中的最小矩形。
 	\since build 320
 	*/
@@ -617,7 +617,7 @@ public:
 };
 
 /*!
-\brief 比较：屏幕正则矩形相等关系。
+\brief 比较：屏幕标准矩形相等关系。
 \since build 319
 */
 yconstfn bool
@@ -627,7 +627,7 @@ operator==(const Rect& x, const Rect& y) ynothrow
 }
 
 /*!
-\brief 比较：屏幕正则矩形不等关系。
+\brief 比较：屏幕标准矩形不等关系。
 \since build 319
 */
 yconstfn bool
@@ -638,7 +638,7 @@ operator!=(const Rect& x, const Rect& y) ynothrow
 
 
 /*!
-\brief 加法：使用正则矩形 r 和偏移向量 v 构造屏幕正则矩形。
+\brief 加法：使用标准矩形 r 和偏移向量 v 构造屏幕标准矩形。
 \since build 319
 */
 yconstfn Rect
@@ -648,7 +648,7 @@ operator+(const Rect& r, const Vec& v) ynothrow
 }
 
 /*!
-\brief 减法：使用正则矩形 r 和偏移向量的加法逆元 v 构造屏幕正则矩形。
+\brief 减法：使用标准矩形 r 和偏移向量的加法逆元 v 构造屏幕标准矩形。
 \since build 319
 */
 yconstfn Rect
@@ -658,7 +658,7 @@ operator-(const Rect& r, const Vec& v) ynothrow
 }
 
 /*!
-\brief 求两个屏幕正则矩形的交。
+\brief 求两个屏幕标准矩形的交。
 \see Rect::operator&= 。
 \since build 320
 */
@@ -666,7 +666,7 @@ Rect
 operator&(const Rect&, const Rect&) ynothrow;
 
 /*!
-\brief 求两个屏幕正则矩形的并。
+\brief 求两个屏幕标准矩形的并。
 \see Rect::operator|= 。
 \since build 320
 */
@@ -782,7 +782,7 @@ struct YF_API PaintContext
 	/*!
 	\brief 剪切区域。
 	
-	相对于图形接口上下文的正则矩形，指定需要保证被刷新的边界区域。
+	相对于图形接口上下文的标准矩形，指定需要保证被刷新的边界区域。
 	如无额外说明，剪切区域的位置坐标选取渲染目标左上角为原点的屏幕坐标系。
 	*/
 	Rect ClipArea;

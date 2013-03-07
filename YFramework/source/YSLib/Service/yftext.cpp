@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yftext.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r942
-\author FrankHB<frankhb1989@gmail.com>
+\version r953
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2012-09-19 01:33 +0800
+	2013-03-06 16:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 YSL_BEGIN
 
 using namespace Text;
-using std::memcmp;
 
 namespace
 {
@@ -66,11 +65,10 @@ InitializeTextFile(TextFile& tf, size_t& bl)
 		const auto n(min(tf.GetTextSize(), YSL_TXT_CHECK_ENCODING_N));
 #undef YSL_TXT_CHECK_ENCODING_N
 
-		std::memset(s + n, 0, arrlen(s) - n);
+		std::char_traits<char>::assign(s + n, arrlen(s) - n, 0);
 		tf.Read(s, 1, n);
 		tf.Rewind();
 		tf.Encoding = CheckEncoding(s, n);
-	//	tf.Encoding = CS_Default;
 	}
 }
 
@@ -127,33 +125,35 @@ TextFile::GetBOM() const
 size_t
 TextFile::CheckBOM(Text::Encoding& cp)
 {
+	using std::char_traits;
+
 	Rewind();
 	if(GetSize() < 2)
 		return 0;
 	char tmp[4];
 	Read(tmp, 1, 4);
 
-	if(!memcmp(tmp, BOM_UTF_16LE, 2))
+	if(char_traits<char>::compare(tmp, BOM_UTF_16LE, 2) == 0)
 	{
 		cp = CharSet::UTF_16LE;
 		return 2;
 	}
-	if(!memcmp(tmp, BOM_UTF_16BE, 2))
+	if(char_traits<char>::compare(tmp, BOM_UTF_16BE, 2) == 0)
 	{
 		cp = CharSet::UTF_16BE;
 		return 2;
 	}
-	if(!memcmp(tmp, BOM_UTF_8, 3))
+	if(char_traits<char>::compare(tmp, BOM_UTF_8, 3) == 0)
 	{
 		cp = CharSet::UTF_8;
 		return 3;
 	}
-	if(!memcmp(tmp, BOM_UTF_32LE, 4))
+	if(char_traits<char>::compare(tmp, BOM_UTF_32LE, 4) == 0)
 	{
 		cp = CharSet::UTF_32LE;
 		return 4;
 	}
-	if(!memcmp(tmp, BOM_UTF_32BE, 4))
+	if(char_traits<char>::compare(tmp, BOM_UTF_32BE, 4) == 0)
 	{
 		cp = CharSet::UTF_32BE;
 		return 4;

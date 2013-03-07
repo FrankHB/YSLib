@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1640
+\version r1644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2013-01-10 21:00 +0800
+	2013-03-06 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@ ntctslen(const _tChar* s)
 \ingroup NTCTSUtil
 \brief 按字典序比较简单 NTCTS 。
 \pre 断言： <tt>s1 && s2</tt> 。
-\note 语义同 std::char_traits<_tChar>::compare ，但忽略指定长度。
+\note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度。
 \since build 329
 */
 template<typename _tChar>
@@ -142,7 +142,7 @@ ntctscmp(const _tChar* s1, const _tChar* s2)
 \ingroup NTCTSUtil
 \brief 按字典序比较简单 NTCTS （忽略大小写）。
 \pre 断言： <tt>s1 && s2</tt> 。
-\note 语义同 std::char_traits<_tChar>::compare ，但忽略指定长度和大小写。
+\note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度和大小写。
 \since build 329
 */
 template<typename _tChar>
@@ -192,7 +192,7 @@ const_ntctscnt(const _tChar* s, _tChar c)
 \ingroup constexpr_algorithms
 \ingroup NTCTSUtil
 \brief 比较简单 NTCTS 。
-\note 语义同 std::char_traits<_tChar>::compare ，但忽略指定长度。
+\note 语义同 std::basic_string<_tChar>::compare ，但忽略指定长度。
 \since build 329
 */
 template<typename _tChar>
@@ -207,7 +207,7 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2)
 \ingroup constexpr_algorithms
 \ingroup NTCTSUtil
 \brief 比较限制长度上限的简单 NTCTS 。
-\note 语义同 std::char_traits<_tChar>::compare 。
+\note 语义同 std::basic_string<_tChar>::compare 。
 \since build 329
 */
 template<typename _tChar>

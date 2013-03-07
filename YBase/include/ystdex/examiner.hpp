@@ -11,22 +11,22 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r93
+\version r97
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2013-02-25 08:00 +0800
+	2013-03-06 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YStandardEx::TypeOperation
+	YStandardEx::Examiner
 */
 
 
-#ifndef YB_INC_YSTDEX_EXAMINER_HPP_
-#define YB_INC_YSTDEX_EXAMINER_HPP_ 1
+#ifndef YB_INC_ystdex_examiner_hpp_
+#define YB_INC_ystdex_examiner_hpp_ 1
 
 #include "../ydef.h" // for ynoexcept;
 
@@ -64,7 +64,7 @@ struct always_equal
 {
 	template<typename _type, typename _tUnused>
 	static yconstfn YB_STATELESS bool
-	are_equal(const _type&, _tUnused) ynoexcept
+	are_equal(const _type&, _tUnused) ynothrow
 	{
 		return true;
 	}

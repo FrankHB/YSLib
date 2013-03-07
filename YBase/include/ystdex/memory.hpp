@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r423
+\version r424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2013-03-02 07:25 +0800
+	2013-03-06 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "type_op.hpp" // for ../ydef.h and is_pointer;
 #include <memory>
-#include <cstring> // for std::memcpy and std::memmove;
 
 namespace ystdex
 {

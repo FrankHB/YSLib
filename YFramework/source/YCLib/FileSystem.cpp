@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r735
+\version r736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-02-02 14:01 +0800
+	2013-03-06 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "YCLib/FileSystem.h"
 #include "YCLib/NativeAPI.h"
 #include <CHRLib/chrproc.h>
+#include <cstring> // for std::strcpy, std::strchr;
 #if YCL_DS
 #	include <fcntl.h>
 

@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r682
+\version r707
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-03-04 19:27 +0800
+	2013-03-07 12:21 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -140,16 +140,11 @@ public:
 	void
 	OnPaint() override
 	{
-		const auto h_wnd(GetNativeHandle());
-		::PAINTSTRUCT ps;
-		::HDC hDC(::BeginPaint(h_wnd, &ps));
-		::HDC hMemDC(::CreateCompatibleDC(hDC));
+		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
 		auto& app(FetchGlobalInstance());
 
-		app.GetDSScreenUp().UpdateToHost(hDC, hMemDC),
-		app.GetDSScreenDown().UpdateToHost(hDC, hMemDC);
-		::DeleteDC(hMemDC);
-		::EndPaint(h_wnd, &ps);
+		app.GetDSScreenUp().UpdateToSurface(sf),
+		app.GetDSScreenDown().UpdateToSurface(sf);
 	}
 };
 #endif
@@ -261,23 +256,18 @@ HostRenderer::Update(BitmapPtr buf)
 {
 	YSL_DEBUG_DECL_TIMER(tmr, "HostRenderer::Update")
 	std::lock_guard<std::mutex> lck(update_mutex);
-	const auto& s(GetSizeOf(widget));
 
-	std::memcpy(gbuf.pBuffer, buf, sizeof(PixelType) * s.Width * s.Height);
+	YAssert(GetSizeOf(widget) == gbuf.GetSize(), "Mismatched size found.");
+
+	gbuf.UpdateFrom(buf);
 
 	YSL_DEBUG_DECL_TIMER(tmrx, "HostRenderer::Update!UpdateWindow")
 
 	if(const auto p_wnd = GetWindowPtr())
 	{
-		const auto h_wnd(p_wnd->GetNativeHandle());
-		const auto h_dc(::GetDC(h_wnd));
-		const auto h_mem_dc(::CreateCompatibleDC(h_dc));
+		GSurface<> sf(p_wnd->GetNativeHandle());
 
-		::SelectObject(h_mem_dc, gbuf.hBitmap);
-		// NOTE: Unlocked intentionally for performance.
-		::BitBlt(h_dc, 0, 0, s.Width, s.Height, h_mem_dc, 0, 0, SRCCOPY);
-		::DeleteDC(h_mem_dc);
-		::ReleaseDC(h_wnd, h_dc);
+		sf.Update(gbuf);
 	}
 }
 
@@ -432,7 +422,7 @@ Environment::UpdateRenderWindows()
 {
 	std::unique_lock<std::mutex> lck(wmap_mtx);
 
-	for(const auto &pr : wnd_map)
+	for(const auto& pr : wnd_map)
 		if(auto p_wnd = dynamic_cast<RenderWindow*>(pr.second))
 		{
 			auto& rd(p_wnd->GetRenderer());
@@ -449,13 +439,9 @@ Environment::UpdateWindow(DSScreen& scr)
 {
 	YAssert(bool(p_main_wnd), "Null pointer found.");
 
-	const auto h_wnd(p_main_wnd->GetNativeHandle());
-	const auto h_dc(::GetDC(h_wnd));
-	const auto h_mem_dc(::CreateCompatibleDC(h_dc));
+	GSurface<> sf(p_main_wnd->GetNativeHandle());
 
-	scr.UpdateToHost(h_dc, h_mem_dc);
-	::DeleteDC(h_mem_dc);
-	::ReleaseDC(h_wnd, h_dc);
+	scr.UpdateToSurface(sf);
 }
 
 YSL_END_NAMESPACE(Host)

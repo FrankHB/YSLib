@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r1992
+\version r1994
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-02-25 08:24 +0800
+	2013-03-06 12:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -938,8 +938,8 @@ $4.1.3.1.4 临时性例外：
 对象具有存储期和生存期。
 注意对于非 trivial 构造/析构的对象，生存期始于构造结束，终于析构开始。
 注意静态对象的生存期。
-注意 POD 对象和 trivially copyable 对象，以及它们之间的区别。
-注意非 trivially copyable 对象的使用限制（和 C 存储的交互性， std::memcpy 、 offset 的适用性等）。
+注意 POD 对象（包括 C++03 和 C++11 的不同定义）、 standard layout 对象和 trivially copyable 对象，以及它们之间的区别。
+注意非 standard layout 或 trivially copyable 对象的使用限制（和 C 存储的交互性， std::memcpy 、 offset 的适用性等）。
 了解 scope guard 等和对象生存期相关的惯用法。
 
 @5.2.3 表达式及其求值(evaluation) ：
