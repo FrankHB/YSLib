@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1238
+\version r1239
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-03-01 07:13 +0800
+	2013-03-10 23:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,6 +83,7 @@ ShlDS::OnGotMessage(const Message& msg)
 		ShlDS::OnInput();
 		return;
 	case SM_INPUT:
+		input_mgr.Update();
 		input_mgr.DispatchInput(*desktop_down_ptr);
 		OnInput();
 		return;

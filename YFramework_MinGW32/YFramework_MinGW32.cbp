@@ -279,6 +279,8 @@
 		<Unit filename="../YFramework/source/Helper/Host.h" />
 		<Unit filename="../YFramework/source/Helper/Initialization.cpp" />
 		<Unit filename="../YFramework/source/Helper/InputManager.cpp" />
+		<Unit filename="../YFramework/source/Helper/ScreenBuffer.cpp" />
+		<Unit filename="../YFramework/source/Helper/ScreenBuffer.h" />
 		<Unit filename="../YFramework/source/Helper/ShellHelper.cpp" />
 		<Unit filename="../YFramework/source/Helper/shlds.cpp" />
 		<Unit filename="../YFramework/source/Helper/yglobal.cpp" />

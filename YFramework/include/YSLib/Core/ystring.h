@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2105
-\author FrankHB<frankhb1989@gmail.com>
+\version r2108
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2012-12-11 21:24 +0800
+	2013-03-11 10:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Text)
 /*!
 \brief YSLib 标准字符串（使用 UCS-2LE ）。
 \warning 非虚析构。
-\bug 对象构造时非线程安全，跨线程构造可能得到错误的值。
+\bug 对象构造时依赖于非线程安全、不可重入的共享状态，多线程同时构造可能得到错误的值。
 \since 早于 build 132
 */
 class YF_API String : public ucs2string

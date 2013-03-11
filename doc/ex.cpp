@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4994 *build 386 rev *
+\version r4996 *build 387 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-07 12:38 +0800
+	2013-03-11 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -412,187 +412,120 @@ $using:
 
 
 $DONE:
-r1-r6:
-/= 6 test 1 @ platform MinGW32;
-
-r7:
-/ @ \cl HostRenderer @ \h Host $=
+r1:
+/ @ \u Host $=
 (
-	+ \ft MakeRenderWindow;
-	/ \impl @ \ctor \t ^ MakeRenderWindow
+	+ \mft HostRenderer::UpdateToSurface;
+	+ \mf RenderWindow::OnPaint \or
 );
+/= test 1 @ platform MinGW32;
+
+r2:
 /= test 2 @ platform MinGW32;
 
-r8:
-/ $dev $doc $term \a ('正则矩形' -> '标准矩形', '矢量' -> '向量',
-	'标量' -> '纯量'),
-/ \ren \param @ \mf DSScreen::UpdateToHost @ platform MinGW32
-	@ \impl \u DSScreen;
+r3:
+/ @ \lib Helper $=
+(
+	+ !public \u ScreenBuffer["ScreenBuffer.h", "ScreenBuffer.cpp"];
+	/ \ns Host @ \u DSScreen >> \u ScreenBuffer;
+	+ \inc \h ScreenBuffer @ \h DSScreen
+);
 /= test 3 @ platform MinGW32;
 
-r9:
-/ @ platform MinGW32 @ \u DSScreen $=
-(
-	/ \st ScreenBuffer -> \cl ScreenBuffer;
-	/ @ \cl ScreenBuffer $=
-	(
-		/ \tr !\exp \ac @ \a data \m -> protected,
-		+ \mf GetBufferPtr;
-		/ \tr \impl @ \ctor,
-		/ \tr \impl @ \mf Update,
-		+ \mf UpdateTo,
-	);
-	/ \simp \impl @ \mf DSScreen::UpdateToHost
-);
-/ \simp \impl @ \mf HostRenderer::Update @ \impl \u Host;
+r4:
+/ \mf UpdateWindow @ \cl Environment -> \mf GetMainWindow @ \u Host,
+/ \tr \impl @ \mf DSScreen::Update @ platform MinGW32 @ \impl \u DSScreen;
 /= test 4 @ platform MinGW32;
 
-r10:
-/ @ platform MinGW32 @ \u DSScreen $=
+r5:
+/ @ \u ScreenBuffer $=
 (
-	/ @ \cl ScreenBuffer $=
+	+ \cl ScreenRegionBuffer,
+	/ @ \cl WindowMemorySurface $=
 	(
-		+ private \m Drawing::Size size,
-		- private \mf InitializeDIB,
-		/ @ \mf UpdateTo,
-		/ \tr \impl @ \ctor,
-		+ \mf (UpdateFrom, GetSize)
-	),
-	/ @ \cl DSScreen $=
-	(
-		/ \tr \impl @ \mf UpdateToHost,
-		/ \simp \impl @ \mf Update ^ std::copy_n ~ std::memcpy
+		/ \mf void Update(const ScreenBuffer&, const Drawing::Point& = {})
+			ynothrow -> void Update(ScreenBuffer&, const Drawing::Point& = {})
+			ynothrow;
+		+ \mf void Update(ScreenRegionBuffer&, const Drawing::Point& = {})
+			ynothrow @ \cl WindowMemorySurface
 	)
 );
-/ @ \mf HostRenderer::Update @ \impl \u Host $=
+/ \simp @ (\cl DSScreen @ platform MinGW32 @ \u DSScreen,
+	\cl HostRenderer @ \u Host) $=
 (
-	+ \as for rendering size,
-	/ \tr \simp \impl ^ std::copy_n ~ std::memcpy
-);
+	/ private \m (ScreenBuffer gbuf, std::mutex update_mutex)
+		-> private \m ScreenRegionBuffer rbuf,
+	/ \tr \impl @ (\ctor, \mf Update),
+	/ \tr \impl @ \mft UpdateToSurface
+),
+/ \inc \h ShellHelper @ \impl \u DSScreen >> \impl \u ScreenBuffer;
 /= test 5 @ platform MinGW32;
 
-r11-r12:
-/ \inc \h <cstring> @ \h Memory -> \h Algorithms,
-+ \tr \inc \h <cstring> @ \impl \u (CStandardIO, Initialization, FileSystem),
-/ @ \impl \u YFile_(Text) $=
-(
-	/ \impl @ \f InitializeTextFile @ \un \ns ^ std::uninitialized_fill_n
-		~ std::memset,
-	(
-		/ \impl @ \mf TextFile::CheckBOM ^ std::char_traits<char>::compare
-			~ memcmp;
-		- 'using std::memcmp;'
-	)
-),
-^ 'ynothrow' ~ 'ynoexcept' @ \a always_equal::are_equal @ \h Examiner,
-/ \a YB_INC_YSTDEX_ALGORITHM_HPP_ => YB_INC_ystdex_algorithm_hpp_,
-/ \a YSL_INC_CORE_YGDIBASE_H_ => YSL_INC_Core_ygdibase_h_,
-/ \a YSL_INC_SERVICE_YBLIT_H_ => YSL_INC_Service_yblit_h_,
-/ \a YSL_INC_SERVICE_YDRAW_H_ => YSL_INC_Service_ydraw_h_,
-/ \a YSL_INC_UI_YSTYLE_H_ => YSL_INC_UI_ystyle_h_,
-/ \a YB_INC_YSTDEX_EXAMINER_HPP_ => YB_INC_ystdex_examiner_hpp_,
-/= 2 test 6 @ platform MinGW32;
+r6-r11:
+/= 6 test 6 @ platform MinGW32;
 
-r13:
-* $doc wrong note @ \ft ntctscmp, ntctsicmp, const_ntctscmp#(1, 2) @ \h CString
-	$since b324,
-+ move \ctor @ \cl ScreenBuffer @ platform MinGW32 @ \u DSScreen;
+r12:
+* \impl @ \mf ScreenRegionBuffer::UpdateFrom $since r5;
 /= test 7 @ platform MinGW32;
 
-r14:
-/ \impl @ \f InitializeTextFile @ \un \ns @ \impl \u YFile_(Text)
-	^ std::char_traits<char>::assign ~ std::uninitialized_fill_n,
-/ @ \impl \u CStandardIO $=
+r13:
+/ @ \u InputManager $=
 (
-	/ \impl @ \f ^ char_traits<char>::length ~ strlen;
-	/ \inc \h <cstring> -> <string>
-);
-/= test 8 @ platform MinGW32 ^ \conf release;
-
-r15:
-/ @ platform MinGW32 @ \u DSMain $=
-(
-	+ \cl WindowSurface,
-	+ \mf GetNativeHandle
-),
-/ \simp \impl @ \mf HostRenderer::Update;
-/= test 9 @ platform MinGW32;
-
-r16:
-/ @ platform MinGW32 @ \u DSScreen $=
-(
-	+ \cl (WindowMemorySurface, WindowDeviceContext)
-	/ @ \cl WindowSurface $=
+	/ \inc \h YComponent -> \h YGUI @ \h InputManager;
+	- \inc \h YComponent @ \impl \u,
+	/ @ \cl InputManager $=
 	(
-		/ \m reference_wrapper<const Window> wnd -> WindowDeviceContext wdc,
-		/ \m ::HDC h_mem_dc -> WindowMemorySurface surface,
-		/ \impl @ (\ctor, \dtor),
-		- \mf Update
+		+ private \m std::reference_wrapper<Components::GUIState> GUI_state,
+		/ \impl @ \ctor,
+		/ \simp \impl @ \mf DispatchInput
 	)
 );
-/= test 10 @ platform MinGW32;
+/= test 8 @ platform DS ^ \conf release;
+
+r14:
+/ @ \u InputManager $=
+(
+	/ \mf void DispatchInput(Desktop&) -> DispatchInput(Components::IWidget&),
+	+ \mf void DispatchInput(),
+	- \inc \h YDesktop @ \impl \u  
+),
+/ \tr \impl @ \mf ShlDS::OnInput @ \impl \u Shell_DS;
+/= test 9 @ platform MinGW32;
+
+r15:
+/ @ \u InputManager $=
+(
+	+ \mf void UpdateInput();
+	/ \simp \impl @ \f DispatchInput
+);
+/= test 10 @ platform DS;
+
+r16:
+/= test 11 @ platform DS ^ \conf release;
 
 r17:
-/ @ platform MinGW32 @ \u DSScreen $=
-(
-	+ \cl WindowDeviceContextBase;
-	/ \simp @ \cl WindowDeviceContext ^ \inh \h WindowDeviceContextBase,
-	+ \cl (WindowRegionDeviceContext; WindowRegionSurface)
-);
-/= test 11 @ platform MinGW32;
-
-r18:
-/ \mg \cl (WindowSurface, WindowRegionSurface) -> \clt GSurface
-	@ platform MinGW32 @ \u DSScreen;
-/ \tr \impl @ \mf HostRenderer::Update @ \impl \u Host;
++ \ft<_tFirst, _tSecond, typename = typename std::enable_if<is_convertible<
+	_tMaster, _tFirst>::value && is_convertible<_tSlave, _tSecond>::value,
+	int>::type> operator std::pair<_tFirst, _tSecond>() @ \clt pair_iterator
+	@ \h Iterator;
 /= test 12 @ platform MinGW32;
 
+r18:
+/= test 13 @ platform MinGW32 ^ \conf release;
+
 r19:
-/ \impl @ \mf DSWindow::OnPaint @ \un \ns @ \impl \u Host,
-+ \mf DSScreen::ScreenBufferRef @ platform MinGW32 @ \h DSScreen;
-/= test 13 @ platform MinGW32;
+/= test 14 @ platform DS;
 
 r20:
-/ \simp \impl @ \mf Environment::UpdateWindow @ \impl \u Host ^ GSurface<>;
-- \mf DSScreen::UpdateToHost @ platform MinGW32 @ \u DSMain;
-/= test 14 @ platform MinGW32;
-
-r21:
-* \impl @ \mf Environment::UpdateWindow @ \impl \u Host ^ GSurface<> $since r20;
-/= test 15 @ platform MinGW32;
-
-r22:
-/ \impl @ \mf DSWindow::OnPaint @ \un \ns @ \impl \u Host
-	^ GSurface<WindowRegionDeviceContext>;
-/= test 16 @ platform MinGW32;
-
-r23:
-/ @ platform MinGW32 @ \u DSMain $=
-(
-	- \mf ScreenBuffer::UpdateTo, DSScreen::GetScreenBufferRef,
-	+ \mft DSScreen::UpdateToSurface
-),
-/ \tr \simp \impl @ \mf (Environment::UpdateWindow, DSWindow::OnPaint @ \un \ns)
-	@ \impl \u Host;
-/= test 17 @ platform MinGW32;
-
-r24:
-/= test 18 @ platform MinGW32 ^ \conf release;
-
-r25:
-/ \tr \impl @ \f ResetVideo @ \impl \u Video ^ std::fill_n ~ std::memset;
-/= test 19 @ platform DS;
-
-r26:
-/= test 20 @ platform DS ^ \conf release;
+/= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-03-07 +0800:
--39.5d;
-// Mercurial local rev1-rev258: r10231;
+2013-03-11 +0800:
+-41.1d;
+// Mercurial local rev1-rev259: r10251;
 
 / ...
 
@@ -1158,6 +1091,24 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework'.'Helper' $=
+	(
+		+ $lib "render window overrider %OnPaint",
+		+ $lib "non-public module %ScreenBuffer to simplified \
+			implementation of host",
+		+ $lib "screen buffer with mutex",
+		/ @ "class %InputManager" @ %'InputManager' $=
+		(
+			/ $lib "initialized GUI state as member",
+			/ "split input updating function" 
+		)
+	),
+	+ "conversion function to instantiation of %std::pair"
+		@ "class template %pair_iterator" @ %'YBase'.'Iterator'
+),
+
+b386
+(
 	/ DLD @ "platform MinGW32" @ %'YFramework'.'Helper' $=
 	(
 		/ "buffer class";
@@ -1369,8 +1320,8 @@ b379
 					@ "native window destructor" $since b377,
 				+ "mapping for native window handle to object" @ "class %Host"
 			),
-			+ "non-public modules %(DSScreen, Host) to simplified \
-				implementation of host"
+			+ "non-public modules %(DSScreen, Host) to simplify host \
+				implementation"
 		),
 		/ "move constructor defaulted as delete" @ "class %Menu"
 			@ %'YSLib'.'GUI'

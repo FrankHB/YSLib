@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r707
+\version r733
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-03-07 12:21 +0800
+	2013-03-10 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -216,6 +216,15 @@ Window::Show() ynothrow
 }
 
 
+void
+RenderWindow::OnPaint()
+{
+	GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
+
+	renderer.get().UpdateToSurface(sf);
+}
+
+
 WindowThread::~WindowThread()
 {
 	YAssert(bool(p_wnd), "Null pointer found.");
@@ -254,21 +263,11 @@ HostRenderer::SetSize(const Size& s)
 void
 HostRenderer::Update(BitmapPtr buf)
 {
-	YSL_DEBUG_DECL_TIMER(tmr, "HostRenderer::Update")
-	std::lock_guard<std::mutex> lck(update_mutex);
+	YAssert(GetSizeOf(widget) == rbuf.GetSize(), "Mismatched size found.");
 
-	YAssert(GetSizeOf(widget) == gbuf.GetSize(), "Mismatched size found.");
-
-	gbuf.UpdateFrom(buf);
-
-	YSL_DEBUG_DECL_TIMER(tmrx, "HostRenderer::Update!UpdateWindow")
-
+	rbuf.UpdateFrom(buf);
 	if(const auto p_wnd = GetWindowPtr())
-	{
-		GSurface<> sf(p_wnd->GetNativeHandle());
-
-		sf.Update(gbuf);
-	}
+		rbuf.UpdateTo(p_wnd->GetNativeHandle());
 }
 
 
@@ -305,6 +304,14 @@ Environment::GetForegroundWindow() const ynothrow
 	return FindWindow(::GetForegroundWindow());
 #endif
 	return nullptr;
+}
+
+Window&
+Environment::GetMainWindow() const ynothrow
+{
+	YAssert(bool(p_main_wnd), "Null pointer found.");
+
+	return *p_main_wnd;
 }
 
 void
@@ -432,16 +439,6 @@ Environment::UpdateRenderWindows()
 				{rd.GetContext(), Point(), GetBoundsOf(wgt)}))
 				rd.Update(rd.GetContext().GetBufferPtr());
 		}
-}
-
-void
-Environment::UpdateWindow(DSScreen& scr)
-{
-	YAssert(bool(p_main_wnd), "Null pointer found.");
-
-	GSurface<> sf(p_main_wnd->GetNativeHandle());
-
-	scr.UpdateToSurface(sf);
 }
 
 YSL_END_NAMESPACE(Host)

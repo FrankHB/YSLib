@@ -196,6 +196,7 @@
     <ClInclude Include="include\YSLib\UI\ywindow.h" />
     <ClInclude Include="source\Helper\DSScreen.h" />
     <ClInclude Include="source\Helper\Host.h" />
+    <ClInclude Include="source\Helper\ScreenBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\doc\ex.cpp" />
@@ -207,6 +208,7 @@
     <ClCompile Include="source\Helper\Host.cpp" />
     <ClCompile Include="source\Helper\Initialization.cpp" />
     <ClCompile Include="source\Helper\InputManager.cpp" />
+    <ClCompile Include="source\Helper\ScreenBuffer.cpp" />
     <ClCompile Include="source\Helper\ShellHelper.cpp" />
     <ClCompile Include="source\Helper\shlds.cpp" />
     <ClCompile Include="source\Helper\yglobal.cpp" />

@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3002
+\version r3003
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-01-28 19:21 +0800
+	2013-03-11 10:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,7 +137,6 @@ DrawThumbBackground(PaintEventArgs&& e, Thumb& tmb, Hue base_hue)
 	const auto& pt(e.Location);
 	Size s(GetSizeOf(tmb));
 
-	// TODO: Work out what should happened when a disabled button pressed.
 	RectDrawButton(g, pt, s, base_hue, tmb.IsPressed(), enabled);
 	if(enabled && IsFocused(tmb) && YB_LIKELY(s.Width > 6 && s.Height > 6))
 	{

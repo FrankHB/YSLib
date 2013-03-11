@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r351
+\version r371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-03-05 11:45 +0800
+	2013-03-10 09:06 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -115,6 +115,10 @@ public:
 	{}
 
 	DefGetter(const ynothrow, HostRenderer&, Renderer, renderer)
+
+	//! \since build 387
+	void
+	OnPaint() override;
 };
 
 
@@ -168,8 +172,8 @@ class HostRenderer : public Components::BufferedRenderer
 {
 private:
 	std::reference_wrapper<Components::IWidget> widget;
-	Host::ScreenBuffer gbuf;
-	std::mutex update_mutex;
+	//! \since build 387
+	ScreenRegionBuffer rbuf;
 	WindowThread thrd;
 
 public:
@@ -177,7 +181,7 @@ public:
 	template<typename... _tParams>
 	HostRenderer(Components::IWidget& wgt, _tParams&&... args)
 		: BufferedRenderer(),
-		widget(wgt), gbuf(GetSizeOf(wgt)), update_mutex(),
+		widget(wgt), rbuf(GetSizeOf(wgt)),
 		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<typename
 			ystdex::qualified_decay<_tParams>::type...>), this,
 			yforward(ystdex::decay_forward(args))...)
@@ -208,6 +212,14 @@ public:
 
 	void
 	Update(Drawing::BitmapPtr);
+
+	//! \since build 387
+	template<typename _type>
+	void
+	UpdateToSurface(_type& sf)
+	{
+		sf.Update(rbuf);
+	}
 };
 
 
@@ -255,6 +267,10 @@ public:
 	Window*
 	GetForegroundWindow() const ynothrow;
 
+	//! \since build 387
+	Window&
+	GetMainWindow() const ynothrow;
+
 	/*!
 	\brief 插入窗口映射项。
 	\note 线程安全。
@@ -295,10 +311,6 @@ public:
 	//! \since build 384
 	void
 	UpdateRenderWindows();
-
-	//! \since build 380
-	void
-	UpdateWindow(Devices::DSScreen&);
 };
 
 YSL_END_NAMESPACE(Host)

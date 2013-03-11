@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2883
+\version r2884
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-02-28 15:10 +0800
+	2013-03-11 10:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ try	: Application(),
 #elif YCL_MULTITHREAD
 	// FIXME: Reduce possible data race.
 	while(!IsScreenReady())
-		// TODO: Resolve magic sleep duration/
+		// TODO: Resolve magic sleep duration.
 		std::this_thread::sleep_for(idle_sleep);
 #endif
 }

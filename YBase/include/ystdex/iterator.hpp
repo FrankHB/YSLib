@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2252
+\version r2261
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-03-02 07:16 +0800
+	2013-03-11 10:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -681,7 +681,6 @@ public:
 	operator=(const pair_iterator&) = default;
 	inline pair_iterator&
 	operator=(pair_iterator&&) = default;
-	// TODO: Allow iterator to const_iterator conversion.
 
 	//! \since build 356
 	pair_iterator&
@@ -765,6 +764,15 @@ public:
 	operator-(difference_type _n) const
 	{
 		return pair_iterator(this->first - _n, this->second - _n);
+	}
+
+	//! \since build 378
+	template<typename _tFirst, typename _tSecond, typename = typename
+		std::enable_if<is_convertible<_tMaster, _tFirst>::value
+		&& is_convertible<_tSlave, _tSecond>::value, int>::type>
+	operator std::pair<_tFirst, _tSecond>()
+	{
+		return std::pair<_tFirst, _tSecond>(this->first, this->second);
 	}
 
 	yconstfn const pair_type&
