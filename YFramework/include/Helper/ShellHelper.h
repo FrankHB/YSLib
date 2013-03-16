@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1576
+\version r1577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-02-28 20:52 +0800
+	2013-03-13 13:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <ystdex/cast.hpp>
 #include "YCLib/Debug.h"
 #include "YSLib/Service/ytimer.h" // for Timers::HighResolutionClock;
-#include "YSLib/UI/textlist.h" // for Components::TextList::ListType;
+#include "YSLib/UI/textlist.h" // for UI::TextList::ListType;
 
 YSL_BEGIN
 
@@ -352,7 +352,7 @@ TranslateTime(const std::time_t&, const char* = DefaultTimeFormat)
 \brief 取字型家族名称。
 \since build 307
 */
-YF_API shared_ptr<Components::TextList::ListType>
+YF_API shared_ptr<UI::TextList::ListType>
 FetchFontFamilyNames();
 
 
@@ -410,7 +410,7 @@ public:
 
 //@}
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 切换部件显示状态并无效化。
@@ -482,7 +482,7 @@ SetBufferRendererAndText(_tWidget& wgt, const String& s)
 	wgt.Text = s;
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 
 YSL_END

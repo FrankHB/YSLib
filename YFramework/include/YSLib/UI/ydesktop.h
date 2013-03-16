@@ -11,13 +11,13 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r1402
+\version r1406
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-02 12:00:08 +0800
 \par 修改时间:
-	2013-01-28 19:20 +0800
+	2013-03-13 12:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_YDESKTOP_H_
-#define YSL_INC_UI_YDESKTOP_H_ 1
+#ifndef YSL_INC_UI_ydesktop_h_
+#define YSL_INC_UI_ydesktop_h_ 1
 
 #include "ywindow.h"
 #include "../Core/ydevice.h"
@@ -34,7 +34,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 桌面。
@@ -77,7 +77,7 @@ public:
 	Validate();
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

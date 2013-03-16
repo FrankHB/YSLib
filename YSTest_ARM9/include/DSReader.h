@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1782
+\version r1786
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-03-02 07:21 +0800
+	2013-03-13 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(DS)
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 using Drawing::Color;
 using Drawing::PixelType;
@@ -80,7 +80,7 @@ private:
 	Drawing::FontCache& fc; //!< 字体缓存。
 	/*!
 	\brief 文本区域输入迭代器。
-	
+
 	文本区域的起点和终点在文本缓冲区的迭代器，构成一个左闭右开区间。
 	\note 若因为读入换行符而换行，则迭代器指向的字符此换行符。
 	\since build 273
@@ -117,8 +117,8 @@ private:
 	\since build 273
 	*/
 	//@{
-	YSLib::Components::BufferedTextArea area_up;
-	YSLib::Components::BufferedTextArea area_dn;
+	YSLib::UI::BufferedTextArea area_up;
+	YSLib::UI::BufferedTextArea area_dn;
 	//@}
 
 public:
@@ -235,7 +235,7 @@ public:
 	\since build 273
 	*/
 	void
-	Attach(YSLib::Components::Window&, YSLib::Components::Window&);
+	Attach(YSLib::UI::Window&, YSLib::UI::Window&);
 
 	/*!
 	\brief 从窗口分离。
@@ -328,7 +328,7 @@ public:
 
 DefBitmaskOperations(DualScreenReader::Command, u16)
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END_NAMESPACE(DS)
 

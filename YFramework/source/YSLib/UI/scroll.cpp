@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3465
+\version r3467
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-01-16 20:00 +0800
+	2013-03-13 13:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@ using namespace ystdex;
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 namespace
 {
@@ -480,7 +480,7 @@ ScrollableContainer::FixLayout(const Size& s)
 	return arena;
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

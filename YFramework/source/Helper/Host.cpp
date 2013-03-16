@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r733
+\version r771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-03-10 18:24 +0800
+	2013-03-16 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -103,6 +103,14 @@ InitializeMainWindow(const wchar_t* wnd_title, u16 wnd_w, u16 wnd_h,
 		HWND_DESKTOP, NULL, ::GetModuleHandleW(NULL), NULL);
 }
 
+//! \since build 388
+void
+ResizeWindow(::HWND h_wnd, SDst w, SDst h)
+{
+	::SetWindowPos(h_wnd, NULL, 0, 0, w, h, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
+		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER);
+}
+
 /*!
 \brief 双屏幕宿主窗口。
 \since build 383
@@ -114,18 +122,11 @@ public:
 		: Window(h, e)
 	{}
 
-	Point
-	AdjustCursor(platform::CursorInfo& cursor) const ynothrow override
+	pair<Point, Point>
+	GetInputBounds() const ynothrow override
 	{
-		Point pt;
-
-#ifdef YCL_MINGW32
-		::ScreenToClient(GetNativeHandle(), &cursor);
-		yunseq(pt.X = cursor.x, pt.Y = cursor.y - MainScreenHeight);
-		RestrictInInterval(pt.X, 0, MainScreenWidth),
-		RestrictInInterval(pt.Y, 0, MainScreenHeight);
-#endif
-		return pt;
+		return {Point(0, MainScreenHeight),
+			Point(MainScreenWidth, MainScreenHeight << 1)};
 	}
 
 	void
@@ -181,16 +182,39 @@ Window::~Window()
 		::DestroyWindow(h_wnd);
 }
 
-Point
-Window::AdjustCursor(platform::CursorInfo&) const ynothrow
+pair<Point, Point>
+Window::GetInputBounds() const ynothrow
 {
-	return Point();
+	::RECT rect;
+
+	::GetClientRect(h_wnd, &rect);
+
+	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
+		"Invalid boundary found.");
+
+	return {Point(rect.left, rect.top), Point(rect.right, rect.bottom)};
 }
 
 void
 Window::Close()
 {
 	::SendNotifyMessageW(h_wnd, WM_CLOSE, 0, 0);
+}
+
+void
+Window::Resize(const Size& s)
+{
+	ResizeWindow(GetNativeHandle(), s.Width, s.Height);
+}
+
+void
+Window::ResizeClient(const Size& s)
+{
+	const auto h_wnd(GetNativeHandle());
+	::RECT rect{0, 0, s.Width, s.Height};
+
+	::AdjustWindowRect(&rect, ::GetWindowLongW(h_wnd, GWL_STYLE), FALSE);
+	ResizeWindow(h_wnd, rect.right - rect.left, rect.bottom - rect.top);
 }
 
 void

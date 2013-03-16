@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version r1937
-\author FrankHB<frankhb1989@gmail.com>
+\version r1942
+\author FrankHB <frankhb1989@gmail.com>
 \since build 217
 \par 创建时间:
 	2009-12-08 12:05:26 +0800
 \par 修改时间:
-	2012-09-04 13:00 +0800
+	2013-03-13 14:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YSMSGDEF_H_
-#define YSL_INC_CORE_YSMSGDEF_H_ 1
+#ifndef YSL_INC_CORE_ymsgdef_h_
+#define YSL_INC_CORE_ymsgdef_h_ 1
 
 #include "ymsg.h"
 #include <functional> // for std::function;
@@ -74,7 +74,6 @@ struct SMessageMap
 
 DefMessageTarget(SM_NULL, void)
 DefMessageTarget(SM_SET, shared_ptr<Shell>)
-DefMessageTarget(SM_PAINT, shared_ptr<Desktop>)
 DefMessageTarget(SM_QUIT, int)
 DefMessageTarget(SM_TASK, std::function<void()>)
 DefMessageTarget(SM_INPUT, void)

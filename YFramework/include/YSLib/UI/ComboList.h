@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2451
-\author FrankHB<frankhb1989@gmail.com>
+\version r2457
+\author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2012-12-11 23:39 +0800
+	2013-03-13 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_COMBOLIST_H_
-#define YSL_INC_UI_COMBOLIST_H_ 1
+#ifndef YSL_INC_UI_ComboList_h_
+#define YSL_INC_UI_ComboList_h_ 1
 
 #include "textlist.h"
 #include "scroll.h"
@@ -35,7 +35,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 带滚动条的文本列表框。
@@ -249,7 +249,7 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

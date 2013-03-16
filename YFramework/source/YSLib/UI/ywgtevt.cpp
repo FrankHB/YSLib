@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r129
-\author FrankHB<frankhb1989@gmail.com>
+\version r134
+\author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2012-12-25 19:23 +0800
+	2013-03-13 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 InputEventArgs::InputEventArgs(IWidget& wgt, const KeyInput& k,
 	RoutingStrategy s)
@@ -69,12 +69,12 @@ WidgetController::WidgetController(bool b)
 EventMapping::ItemType&
 WidgetController::GetItem(const VisualEvent& id)
 {
-	if(id == Components::Paint)
+	if(id == UI::Paint)
 		return Paint;
 	throw BadEvent();
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

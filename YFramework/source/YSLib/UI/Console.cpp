@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Console.cpp
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r72
-\author FrankHB<frankhb1989@gmail.com>
+\version r76
+\author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2011-04-20 09:28:39 +0800
 \par 修改时间:
-	2012-09-04 12:48 +0800
+	2013-03-13 13:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 void
 Console::Pause()
@@ -50,7 +50,7 @@ Deactivate(Console&)
 	InitVideo();
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

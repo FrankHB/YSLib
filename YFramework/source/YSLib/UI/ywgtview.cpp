@@ -11,13 +11,13 @@
 /*!	\file ywgtview.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r181
+\version r183
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-01-18 22:49 +0800
+	2013-03-13 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@ YSL_BEGIN
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 Visual::Visual(const Rect& r)
 	: visible(true),
@@ -55,7 +55,7 @@ View::SetVisible(bool b)
 		visual.SetVisible(b);
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

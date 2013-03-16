@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r812
+\version r817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2013-02-08 16:29 +0800
+	2013-03-13 13:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,15 +25,15 @@
 */
 
 
-#ifndef YSL_INC_UI_MENU_H_
-#define YSL_INC_UI_MENU_H_ 1
+#ifndef YSL_INC_UI_menu_h_
+#define YSL_INC_UI_menu_h_ 1
 
 #include "textlist.h"
-#include "yuicont.h" // for Components::ZOrderType;
+#include "yuicont.h" // for UI::ZOrderType;
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 class MenuHost;
 
@@ -330,7 +330,7 @@ public:
 	HideUnrelated(Menu& mnu, Menu& mnuParent);
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

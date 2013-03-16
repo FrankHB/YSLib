@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1239
+\version r1247
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-03-10 23:05 +0800
+	2013-03-13 13:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ ShlDS::ShlDS(const shared_ptr<Desktop>& hUp, const shared_ptr<Desktop>& hDn)
 	YAssert(bool(desktop_up_ptr), "Null pointer found.");
 	YAssert(bool(desktop_down_ptr), "Null pointer found.");
 
-	YSLib::Components::FetchGUIState().Reset();
+	YSLib::UI::FetchGUIState().Reset();
 }
 
 void
@@ -74,7 +74,7 @@ ShlDS::OnGotMessage(const Message& msg)
 #if 0
 		{
 			const auto h(FetchTarget<SM_PAINT>(msg));
-			
+
 			if(h)
 				h->Refresh(PaintContext(h->GetContext(), Point(),
 					GetSizeOf(*h)));
@@ -83,8 +83,15 @@ ShlDS::OnGotMessage(const Message& msg)
 		ShlDS::OnInput();
 		return;
 	case SM_INPUT:
+#if YCL_HOSTED
+		if(auto p_wgt = input_mgr.Update())
+			input_mgr.DispatchInput(*p_wgt);
+		else
+			input_mgr.DispatchInput(*desktop_down_ptr);
+#else
 		input_mgr.Update();
 		input_mgr.DispatchInput(*desktop_down_ptr);
+#endif
 		OnInput();
 		return;
 	default:

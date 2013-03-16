@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r409
+\version r413
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-03-11 10:36 +0800
+	2013-03-13 13:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,7 @@ TranslateTime(const std::time_t& t, const char* format) ythrow(GeneralEvent)
 }
 
 
-shared_ptr<Components::TextList::ListType>
+shared_ptr<UI::TextList::ListType>
 FetchFontFamilyNames()
 {
 	const auto& mFamilies(FetchGlobalInstance().GetFontCache()
@@ -126,7 +126,7 @@ FetchFontFamilyNames()
 	// TODO: Use g++ 4.8 or later.
 //	return make_shared<TextList::ListType>(mFamilies.cbegin()
 //		| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
-	return share_raw(new Components::TextList::ListType(mFamilies.cbegin()
+	return share_raw(new UI::TextList::ListType(mFamilies.cbegin()
 		| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
 }
 
@@ -156,7 +156,7 @@ FPSCounter::Refresh()
 	return 0;
 }
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 void
 SwitchVisible(IWidget& wgt)
@@ -165,7 +165,7 @@ SwitchVisible(IWidget& wgt)
 	Invalidate(wgt);
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END;
 

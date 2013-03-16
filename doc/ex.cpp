@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r4996 *build 387 rev *
+\version r5105 *build 388 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-11 11:04 +0800
+	2013-03-17 00:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -413,10 +413,10 @@ $using:
 
 $DONE:
 r1:
-/ @ \u Host $=
+/ @ defined(YCL_HOSTED) @ \lib Helper $=
 (
-	+ \mft HostRenderer::UpdateToSurface;
-	+ \mf RenderWindow::OnPaint \or
+	/ \impl @ \mf InputManager::Update @ \impl \u InputManager,
+	/ \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS
 );
 /= test 1 @ platform MinGW32;
 
@@ -424,108 +424,120 @@ r2:
 /= test 2 @ platform MinGW32;
 
 r3:
-/ @ \lib Helper $=
+/ @ \u Host $=
 (
-	+ !public \u ScreenBuffer["ScreenBuffer.h", "ScreenBuffer.cpp"];
-	/ \ns Host @ \u DSScreen >> \u ScreenBuffer;
-	+ \inc \h ScreenBuffer @ \h DSScreen
-);
+	/ \mf \vt Drawing::Point AdjustCursor(platform::CursorInfo&) const ynothrow
+		@ \cl Window -> \mf \vt Drawing::Rect GetInputBounds() const ynothrow,
+	/ \tr @ \mf AdjustCursor \or -> \mf GetInputBounds \or
+		@ \cl DSWindow @ \impl \u
+),
+/ \impl @ \mf InputManager::Update @ defined(YCL_HOSTED)
+	@ \impl \u InputManager;
+* out-of-bound touch event transferred @ platform MinGW32 $since b377;
 /= test 3 @ platform MinGW32;
 
 r4:
-/ \mf UpdateWindow @ \cl Environment -> \mf GetMainWindow @ \u Host,
-/ \tr \impl @ \mf DSScreen::Update @ platform MinGW32 @ \impl \u DSScreen;
 /= test 4 @ platform MinGW32;
 
 r5:
-/ @ \u ScreenBuffer $=
-(
-	+ \cl ScreenRegionBuffer,
-	/ @ \cl WindowMemorySurface $=
-	(
-		/ \mf void Update(const ScreenBuffer&, const Drawing::Point& = {})
-			ynothrow -> void Update(ScreenBuffer&, const Drawing::Point& = {})
-			ynothrow;
-		+ \mf void Update(ScreenRegionBuffer&, const Drawing::Point& = {})
-			ynothrow @ \cl WindowMemorySurface
-	)
-);
-/ \simp @ (\cl DSScreen @ platform MinGW32 @ \u DSScreen,
-	\cl HostRenderer @ \u Host) $=
-(
-	/ private \m (ScreenBuffer gbuf, std::mutex update_mutex)
-		-> private \m ScreenRegionBuffer rbuf,
-	/ \tr \impl @ (\ctor, \mf Update),
-	/ \tr \impl @ \mft UpdateToSurface
-),
-/ \inc \h ShellHelper @ \impl \u DSScreen >> \impl \u ScreenBuffer;
+* narrowing \conv @ \impl @ \mf Window::GetInputBounds $since r3;
 /= test 5 @ platform MinGW32;
 
-r6-r11:
-/= 6 test 6 @ platform MinGW32;
+r6:
+/ \ns YSLib::Components => YSLib::UI,
+/ \ns YSLib::DS::Components => YSLib::DS::UI,
+/ \a YSL_INC_UI_YCOMP_H_ => YSL_INC_UI_ycomp_h_,
+/ \a INC_YREADER_HEXVIEWER_H_ => INC_YReader_HexBrowser_h_,
+/ \a INC_YREADER_SHELLS_H_ => INC_YReader_Shells_h_,
+/ \a INC_YREADER_COLORPICKER_H_ => INC_YReader_ColorPicker_h_,
+/ \a YSL_INC_UI_YWINDOW_H_ => YSL_INC_UI_ywindow_h_,
+/ \a YSL_INC_UI_YDESKTOP_H_ => YSL_INC_UI_ydesktop_h_,
+/ \a YSL_INC_UI_YWIDGET_H_ => YSL_INC_UI_ywidget_h_,
+/ \a YSL_INC_UI_YUICONT_H_ => YSL_INC_UI_yuicont_h_,
+/ \a YSL_INC_UI_YFOCUS_HPP_ => YSL_INC_UI_yfocus_h_,
+/ \a YSL_INC_UI_YPANEL_H_ => YSL_INC_UI_ypanel_h_,
+/ \a YSL_INC_UI_YGUI_H_ => YSL_INC_UI_ygui_h_,
+/ \a YSL_INC_UI_YCONSOLE_H_ => YSL_INC_UI_Console_h_,
+/ \a YSL_INC_UI_BORDER_H_ => YSL_INC_UI_YBrush_h_,
+/ \a YSL_INC_UI_MENU_H_ => YSL_INC_UI_menu_h_,
+/ \a YSL_INC_UI_WIDGETITERATION_H_ => YSL_INC_UI_WidgetIteration_h_,
+/ \a YSL_INC_UI_FORM_H_ => YSL_INC_UI_form_h_,
+/ \a YSL_INC_UI_COMBOLIST_H_ => YSL_INC_UI_ComboList_h_,
+/ \a YSL_INC_UI_VIEWER_HPP_ => YSL_INC_UI_viewer_hpp_,
+/ \a YSL_INC_UI_LABEL_H_ => YSL_INC_UI_label_h_,
+/ \a YSL_INC_UI_BUTTON_H_ => YSL_INC_UI_button_h_,
+/ \a YSL_INC_UI_UICONTX_H_ => YSL_INC_UI_uicontx_h_,
+/ \a YSL_INC_CORE_YSDEF_H_ => YSL_INC_Core_ysder_h_,
+/ \a YSL_INC_UI_TEXTAREA_H_ => YSL_INC_UI_textarea_h_,
+/ \a YSL_INC_UI_SELECTOR_H_ => YSL_INC_UI_Selector_h_,
+/ \a YSL_INC_UI_SCROLL_H_ => YSL_INC_UI_scroll_h_,
+/ \a YSL_INC_UI_PROGRESS_H_ => YSL_INC_UI_progress_h_,
+/= test 6 @ platform MinGW32;
 
-r12:
-* \impl @ \mf ScreenRegionBuffer::UpdateFrom $since r5;
+r7:
+/ @ \h YShellDefinition $=
+(
+	- \ns UI;
+	- \pre \decl @ \cl Desktop
+),
+(
+	+ \inc \h YMessageDefinition @ \h YComponent;
+	/ 'DefMessageTarget(SM_PAINT, shared_ptr<Desktop>)' @ \ns Messaging
+		@ \h YMissagDefinition -> 'DefMessageTarget(SM_PAINT,
+		shared_ptr<UI::IWidget>)' @ \ns Messaging @ \h YComponent,
+),
+/ \a YSL_INC_CORE_YSMSGDEF_H_ => YSL_INC_CORE_ymsgdef_h_,
+/ \tr @ \h YGlobal;
 /= test 7 @ platform MinGW32;
 
-r13:
-/ @ \u InputManager $=
-(
-	/ \inc \h YComponent -> \h YGUI @ \h InputManager;
-	- \inc \h YComponent @ \impl \u,
-	/ @ \cl InputManager $=
-	(
-		+ private \m std::reference_wrapper<Components::GUIState> GUI_state,
-		/ \impl @ \ctor,
-		/ \simp \impl @ \mf DispatchInput
-	)
-);
+r8:
 /= test 8 @ platform DS ^ \conf release;
 
-r14:
-/ @ \u InputManager $=
+r9:
+- redundant '#undef YWindowAssert' @ \h YWindow,
+/ @ \u Host $=
 (
-	/ \mf void DispatchInput(Desktop&) -> DispatchInput(Components::IWidget&),
-	+ \mf void DispatchInput(),
-	- \inc \h YDesktop @ \impl \u  
-),
-/ \tr \impl @ \mf ShlDS::OnInput @ \impl \u Shell_DS;
+	/ \mf \vt Drawing::Rect GetInputBounds() const ynothrow
+		@ \cl (Window, DSWindow) @ \u Host -> \mf \vt
+		pair<Drawing::Point, Drawing::Point> GetInputBounds() const ynothrow,
+	/ \tr \impl @ \mf InputManager::Update
+);
 /= test 9 @ platform MinGW32;
 
-r15:
-/ @ \u InputManager $=
+r10:
+/= test 10 @ platform MinGW32;
+
+r11:
+/ @ \u Host $=
 (
-	+ \mf void UpdateInput();
-	/ \simp \impl @ \f DispatchInput
+	+ \f void ResizeWindow(::HWND, SDst, SDst) @ \un \ns @ \impl \u;
+	/ @ \cl Window $=
+	(
+		+ \mf void Resize(const Drawing::Size&),
+		+ \mf void ResizeClient(const Drawing::Size&)
+	)
 );
-/= test 10 @ platform DS;
+/= test 11 @ platform MinGW32;
+
+r12-r15:
+/= 4 test 12 @ platform MinGW32;
 
 r16:
-/= test 11 @ platform DS ^ \conf release;
-
-r17:
-+ \ft<_tFirst, _tSecond, typename = typename std::enable_if<is_convertible<
-	_tMaster, _tFirst>::value && is_convertible<_tSlave, _tSecond>::value,
-	int>::type> operator std::pair<_tFirst, _tSecond>() @ \clt pair_iterator
-	@ \h Iterator;
-/= test 12 @ platform MinGW32;
-
-r18:
 /= test 13 @ platform MinGW32 ^ \conf release;
 
-r19:
+r17:
 /= test 14 @ platform DS;
 
-r20:
+r18:
 /= test 15 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-03-11 +0800:
--41.1d;
-// Mercurial local rev1-rev259: r10251;
+2013-03-17 +0800:
+-40.5d;
+// Mercurial local rev1-rev260: r10269;
 
 / ...
 
@@ -550,7 +562,7 @@ $low_prior
 
 
 $TODO:
-b[689]:
+b[683]:
 / services $=
 (
 	+ \impl @ images loading
@@ -588,7 +600,7 @@ b[689]:
 / project structure $=
 (
 	/ $low_prior build command @ \a \conf @ \proj YBase,
-	+ Microsoft Windows(MinGW32) port with free hosted window size,
+	+ Microsoft Windows(MinGW32) port with free hosted window size and styles,
 	/ improved tests and examples
 );
 / $low_prior improved memory and file APIs @ \lib YCLib $=
@@ -1056,8 +1068,11 @@ $module_tree $=
 				'ValueNode' // value nodes;
 			),
 			'Service', // services;
-			'GUI',
-			'UI styles'
+			'UI'
+			(
+				'GUI',
+				'UI styles'
+			)
 		)
 		'Helper'
 		(
@@ -1090,6 +1105,41 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			(
+				/ $dev $lib "implementation" @ "input manager"
+					@ "host platform",
+				/ $dev $lib "cursor adjusting interface" @ "platform %MinGW32";
+				* "out-of-bound touch event transferred" @ "platform %MinGW32"
+					$since b377
+			),
+			+ $lib "window resizing"
+		),
+		/ %'YSLib' $=
+		(
+			/ %'UI' $=
+			(
+				/ "namespace %Components" => "namespace %UI",
+				- "redundant '#undef YWindowAssert'" @ "header %ywindow.h"
+					@ %'GUI'
+			),
+			/ %'Core' $=
+			(
+				/ "forward declaration and using" @ ("class %Desktop"
+					@ "namespace %YSLib") @ "header %ysdef.h"
+					>> 'Helper'.'YGlobal',
+				/ "message mapping %SM_PAINT with dependency on" ("class \
+					%IWidget" ~ "class %Desktop") >> "header %ycomp.h" @ %'UI'
+			)
+		)
+	)
+),
+
+b387
 (
 	/ %'YFramework'.'Helper' $=
 	(
@@ -1263,7 +1313,7 @@ b381
 	(
 		/ %'Helper' $=
 		(
-			- "dependency on including" %'GUI'.'YDesktop' @ "header %YGlobal",
+			- "dependency on including" %'UI'.'GUI'.'YDesktop' @ "header %YGlobal",
 			/ "headers inclusion involved" %'%YGlobal',
 			/ @ "platform %MinGW32" $=
 			(
@@ -1324,7 +1374,7 @@ b379
 				implementation"
 		),
 		/ "move constructor defaulted as delete" @ "class %Menu"
-			@ %'YSLib'.'GUI'
+			@ %'YSLib'.'UI'.'GUI'
 	)
 ),
 
@@ -1368,7 +1418,7 @@ b377
 				@ "hosted environment" @ "%'DSMain'
 		),
 		- "unsafe renderer downcast interfaces" @ "class %Desktop"
-			@ %'YSLib'.'GUI',
+			@ %'YSLib'.'UI'.'GUI',
 	),
 	/ $dev %'YBase'.'YStandarEx' $=
 	(
@@ -1464,7 +1514,7 @@ b375
 	/ %'YFramework'.'YSLib' $=
 	(
 		/ "public members %(pContainer, pDependency, pFocusing)" @ "class %View"
-			@ %'GUI' => "%(ContainerPtr, DependencyPtr, FocusingPtr)",
+			@ %'UI'.'GUI' => "%(ContainerPtr, DependencyPtr, FocusingPtr)",
 		* "non-public inherited %std::iterator<*>"
 			@ "class %TextFileBuffer::Iterator" @ %'Service' $since b273
 	),
@@ -1519,7 +1569,7 @@ b374
 	* $repo "wrong Mercurial tag ID"
 		@ b225 $since "e35dc355a207[2011-07-19, local rev 98]",
 	/ $dev "protected member Thumb" @ "class %Thumb"
-		@ %'YFramework'.'YSLib'.'GUI' => "tmbScroll"
+		@ %'YFramework'.'YSLib'.'UI'.'GUI' => "tmbScroll"
 ),
 
 b373
@@ -1622,7 +1672,7 @@ b372
 			)
 		),
 		* "missing setting right margin"
-			@ "member function %TextList::DrawItems" @ %'GUI' $since b371
+			@ "member function %TextList::DrawItems" @ %'UI'.'GUI' $since b371
 			// Missing of reasonable right margin might cause necessary time \
 				penalty for long string because the end-of-line checking in \
 				%PutChar would not be applied in time, though no visible \
@@ -1684,7 +1734,7 @@ b371
 					/ "data member 'SPos PenX, PenY'" -> 'Point Pen'
 				)
 			),
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				(
 					$dep_from "removal of implicitly reset for margin",
@@ -1801,7 +1851,7 @@ b366
 		/ %'YSLib' $=
 		(
 			(
-				/ "struct %PaintContext" @ %'GUI' >> %'Core'.'YGDIBase',
+				/ "struct %PaintContext" @ %'UI'.'GUI' >> %'Core'.'YGDIBase',
 				$dep_to "moved paint context as GDI base interface"
 			),
 			/ $dev @ "unit CharRenderer" %'Service' $=
@@ -1857,7 +1907,7 @@ b365
 		(
 			$dep_from "signed margin support";
 			* $comp "position of rendered text lines limited by the left \
-				buffer boundary" @ %'GUI' $since b190,
+				buffer boundary" @ %'UI'.'GUI' $since b190,
 				// Only first line can go out of screen when dragging the \
 					unbuffered container to clip the screen boundary.
 		)
@@ -1871,7 +1921,7 @@ b364
 		Code::Blocks project %YSTest_MinGW32" $since b363,
 	(
 		/ "removed invalidation commit" @ "class %BorderBrush"
-			@ %'YFramework'.'YSLib'.'GUI';
+			@ %'YFramework'.'YSLib'.'UI'.'GUI';
 		// No need to interact with invalidated area. \
 			Painting unconditionally and more efficiently.
 		* $comp "check button over painted when touching up over drop down \
@@ -1889,7 +1939,7 @@ b363
 		/ "pre-build commands" @ "configuration '*_DLL'"
 			@ ^ 'XCOPY /D /Y' ~ 'copy'
 	),
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ "public widget map for ignoring focus moving from menus"
 			@ "class %MenuHost";
@@ -1946,7 +1996,7 @@ b361
 	* "missing submenu test" @ %'YReader'.'shells test example' $since b360,
 	/ %'YFramework' $=
 	(
-		/ %'YSLib'.'GUI' $=
+		/ %'YSLib'.'UI'.'GUI' $=
 		(
 			* $doc "difference with implementation for appended events order \
 				when GUI key and touch events are handled" $since b199,
@@ -2054,7 +2104,7 @@ b358
 		$dep_from "chained iterator transformation"
 		* "wrong dereferenced type of iterators" @ "implementation"
 			@ "member function %(GetBegin, GetEnd)" @ "class %MUIContainer"
-			@ %'YFramework'.'YSLib'.'GUI' $since b357
+			@ %'YFramework'.'YSLib'.'UI'.'GUI' $since b357
 			// Fixed crashing when child is dereferenced.
 	)
 ),
@@ -2094,7 +2144,7 @@ b357
 	(
 		/ $dev %'YSLib' $=
 		(
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				/ @ "header %Widget" $=
 				(
@@ -2118,7 +2168,7 @@ b357
 				)
 			),
 			/ "macro for member iteration" @ %'Core'.'YBaseMacro'
-				>> "header %WidgetIteration" @ %'GUI'
+				>> "header %WidgetIteration" @ %'UI'.'GUI'
 				// To make sure no invalid use of std::initializer_list and \
 					std::reference_wrapper;
 		),
@@ -2177,7 +2227,7 @@ b356
 	/ %'YFramework'.'YSLib' $=
 	(
 		+ "macro %DefSubscriptor" @ %'Core'.'YBaseMac';
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			+ "typedef %WidgetIterator" @ "header %YWidget";
 			+ %'WidgetIteration' $=
@@ -2421,7 +2471,7 @@ b350
 	),
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			* "abstract member function %Clone missing 'const' qualifier"
 				@ "class %AController" @ "header ywgtevt.h" $since b243
@@ -2579,12 +2629,12 @@ b346
 		@ "platform %MinGW32",
 			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 				Exceptions implementation: SjLj.
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ $dev "pointer members" @ "class %Widget",
 		+ $dev $design "keyword %override for several overriders",
 		/ $dev "simplified text state member access" @ "class %MTextList",
-		/ @ "class %TextList" @ %'YFramework'.'YSLib'.'GUI' $=
+		/ @ "class %TextList" @ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 		(
 			/ "renamed several protected member functions",
 			+ "protected virtual member function %DrawItemBackground",
@@ -3086,7 +3136,7 @@ b331
 					the copy is out of the block.
 		)
 		/ "add explicit rvalue reference of parameter for UI delegates"
-			@ %'GUI',
+			@ %'UI'.'GUI',
 	),
 	/ %'YBase' $=
 	(
@@ -3452,7 +3502,7 @@ b320
 					// A little performance improved.
 			)
 		)
-		* "performance" @ "member function %AScrollBar::Refresh "%'GUI'
+		* "performance" @ "member function %AScrollBar::Refresh "%'UI'.'GUI'
 			$since b295,
 			// Avoiding refreshing repainted bottom button unnecessarily.
 		/ "implementation" @ ("message loop", $design "input dispatching")
@@ -3532,7 +3582,7 @@ b319
 			),
 			+ DLD "no throw exception specification" @ "class %DSScreen"
 				@ %'Helper'.'DSMain',
-			/ @ "header %YWindow" %'GUI' $=
+			/ @ "header %YWindow" %'UI'.'GUI' $=
 			(
 				/ "simplified default arguments" @ "constructor"
 					@ "class %Window";
@@ -3566,7 +3616,7 @@ b318
 			/ DLD "improved performance of move constructor" @ "class $Message",
 			- "redundant parameter" @ "function %PostMessage"
 		)
-		/ @ "unit %TextList" @ %'GUI' $=
+		/ @ "unit %TextList" @ %'UI'.'GUI' $=
 		(
 			/ DLD "simplified implementation" @ "key event handler"
 				@ "class %TextList"
@@ -3633,7 +3683,7 @@ b317
 				)
 			),
 			* "missing calling event %LostFocus when focus moved through \
-				requesting" @ %'GUI' $since b315,
+				requesting" @ %'UI'.'GUI' $since b315,
 		),
 		/ %'Helper' $=
 		(
@@ -3672,7 +3722,7 @@ b316
 	)
 	/ %'YFramework'.'YSLib' $=
 	(
-		+ "member function %Find" @ "class %MTextList" @ %'GUI',
+		+ "member function %Find" @ "class %MTextList" @ %'UI'.'GUI',
 		/ %'Core'.'YMessage' $=
 		(
 			$dep_from "weak raw";
@@ -3719,7 +3769,7 @@ b315
 	),
 	/ %'YFramework' $=
 	(
-		/ %'YSLib'.'GUI' $=
+		/ %'YSLib'.'UI'.'GUI' $=
 		(
 			+ "interfaces for raw focus requesting and releasing";
 				// Response focus behavior without calling events.
@@ -3794,7 +3844,7 @@ b312
 b311
 (
 	(
-		+ "class %CheckButton" @ %'YFramework'.'YSLib'.'GUI';
+		+ "class %CheckButton" @ %'YFramework'.'YSLib'.'UI'.'GUI';
 		^ "%CheckButton" ~ "%CheckBox" @ 'shells test example'
 	),
 	^ $dev $design "contextual keyword %override"
@@ -3813,7 +3863,7 @@ b310
 				%DrawClippedText" @ "unit %CharRenderer" $since b309;
 			$dep_to "rchar margin"
 		),
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			(
 				$dep_from "rchar margin";
@@ -3841,7 +3891,7 @@ b309
 				+ $doc "parameter descriptions"
 			)
 		);
-		/ @ %'GUI' $=
+		/ @ %'UI'.'GUI' $=
 		(
 			+ "member %AutoWrapLine" @ "class %MLabel";
 			/ DLD "implementation" @ "member function %PaintItem"
@@ -3866,7 +3916,7 @@ b308
 b307
 (
 	(
-		/ %'YFramework'.'YSLib'.'GUI' $=
+		/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 		(
 			* "%CheckBox tick interface" $since b306,
 			(
@@ -3913,7 +3963,7 @@ b306
 	(
 		/ %'YSLib' $=
 		(
-			+ "member function %Tick" @ "class %CheckBox" @ %'GUI',
+			+ "member function %Tick" @ "class %CheckBox" @ %'UI'.'GUI',
 			+ "member function templates %Access" @ "class %ValueObject"
 				@ %'core abstraction'
 		),
@@ -3949,7 +3999,7 @@ b304
 	(
 		/ %'YSLib' $=
 		(
-			/ %'GUI' $= "check box appearance",
+			/ %'UI'.'GUI' $= "check box appearance",
 			(
 				$dep_from "u16getcwd";
 				/ "function %GetNowDirectory" @ %'Core'
@@ -4005,10 +4055,10 @@ b303
 	(
 		/ %'YSLib' $=
 		(
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				+ "function templates %(AddWidgets, AddWidgetsZ, RemoveWidgets)"
-					@ "header %yuicont.h" @ %'GUI',
+					@ "header %yuicont.h" @ %'UI'.'GUI',
 				(
 					$dep_from "timer delay";
 					+ "member function %Delay" @ "class %InputTimer"
@@ -4062,7 +4112,7 @@ b302
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			/ @ "unit %YStyle" $=
 			(
@@ -4137,7 +4187,7 @@ b300
 	(
 		/ %'YSLib' $=
 		(
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				+ ("input timer class %InputTimer";
 					"input timer API for repeating key input") @ "unit %YGUI",
@@ -4201,7 +4251,7 @@ b299
 			),
 			* "destructor" @ "class %Shell" @ %'Core'.'YShell'
 				$since $before b132 $= (- "wrong assertion"),
-			* @ %'GUI' $since b298 $=
+			* @ %'UI'.'GUI' $since b298 $=
 			(
 				/ "constructor implementation" @ "class %TextList";
 				* $comp "missing response to 'Enter' key"
@@ -4289,7 +4339,7 @@ b298
 		);
 		/ %'YSLib' $=
 		(
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				/ "key events response" @ "controls"
 				* "implementation" @ "class %ListBox" $since b261
@@ -4390,7 +4440,7 @@ b297
 		+ "blit algorithm implementation without pixel format dependency"
 			@ "unit YBlit" @ %'Service',
 		* "using implicitly deleted copy constructor on events causing \
-			ill-formed program" @ "class %BorderBrush" @ %'GUI' $since b295,
+			ill-formed program" @ "class %BorderBrush" @ %'UI'.'GUI' $since b295,
 		/ %'Core' $=
 		(
 			* "missing virtual destructor" @ "class %GraphicDevice"
@@ -4480,7 +4530,7 @@ b296
 					)
 				)
 			),
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				(
 					/ "widget size bound to screen" @ "class %Desktop"
@@ -4532,7 +4582,7 @@ b295
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			(
 				/ "simplified refreshing" @ "class %Thumb",
@@ -4596,7 +4646,7 @@ b294
 			/ "event container" ^ "%multimap" ~ "list";
 			$dep_to "event with priority"
 		),
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			/ "widget controller event %Paint delayed to initialize in \
 				initialization of objects with class %Widget",
@@ -4661,8 +4711,8 @@ b293
 		* "member function template parameter types missing '&&'"
 			@ "header %(yevent.hpp, yfunc.hpp)" @ %'Core' $since b210,
 		* "constructor template parameter type missing '&&'" @ "class %Widget"
-			@ 'GUI' $since b258,
-		/ %'GUI' $=
+			@ 'UI'.'GUI' $since b258,
+		/ %'UI'.'GUI' $=
 		(
 			/ "rendering logic" @ "unit %(YRenderer, YWidget)" $=
 				// Performance is improved a little.
@@ -4703,7 +4753,7 @@ b292
 			* DLD "strict ISO C++ code compatibility" $since b273
 				$= (/ "assertion strings" @ "implementation unit %TextManager"
 					@ %'Service' !^ "%__FUNCTION__"),
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				/ @ "class %DropDownList" $=
 				(
@@ -4847,7 +4897,7 @@ b289
 		),
 		(
 			/ DLD "bound control pointer assignment" @ "constructor"
-				@ "class %Control" @ !^ "std::mem_fn" @ 'GUI';
+				@ "class %Control" @ !^ "std::mem_fn" @ 'UI'.'GUI';
 			$dep_to "class %ShlExplorer" @ %'shells test example'
 		),
 		/ @ %'Core'.'YMessage' $=
@@ -4856,7 +4906,7 @@ b289
 				@ "class %MessageQueue";
 			$dep_to %'YReader'.'text reader'
 		),
-		/ @ "class %ProgressBar" %'GUI' $=
+		/ @ "class %ProgressBar" %'UI'.'GUI' $=
 		(
 			/ "refreshing efficiency improved",
 			/ "zero max value automatic set as 1" @ "constructor"
@@ -4934,7 +4984,7 @@ b288
 	),
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ DLD "simplified implementation" @ "class %Thumb" @ %'GUI',
+		/ DLD "simplified implementation" @ "class %Thumb" @ %'UI'.'GUI',
 		* DLD "comments" @ "header %ycutil.h" $since b281,
 		/ DLD "implementation" @ "idle handling",
 		/ %'Core' $=
@@ -4970,7 +5020,7 @@ b287
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			/ "right component of margin" @ "constructor"
 				@ "class %DropDownList",
@@ -5025,7 +5075,7 @@ b286
 				+ DLD "literal type object %DefaultMargin"
 					@ "header %TextBase.h";
 				/ "margin setting" @ "constructor" @ "class %TextBase",
-				/ %'GUI' $=
+				/ %'UI'.'GUI' $=
 				(
 					+ "return value" @ "function %Enable" @ "unit %YControl",
 					/ "margin setting" @ "constructor" @ "class %DropDownList"
@@ -5052,7 +5102,7 @@ b286
 
 b285
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		- "hosted menu referent pointer" @ "unit %Menu",
 		+ "member functions %(SetSelected, ClearSelected)" @ "class %ListBox";
@@ -5068,7 +5118,7 @@ b284
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			/ "border APIs" @ "unit Border" $=
 			(
@@ -5086,7 +5136,7 @@ b284
 
 b283
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		* @ "destructor" @ "class %Widget"
 			$since b240 $= (- "calling event %LostFocus"),
@@ -5122,7 +5172,7 @@ b282
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			/ DLD "APIs for text list resizing for contents",
 			(
@@ -5143,7 +5193,7 @@ b281
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ "text list refreshing implementation" @ %'GUI' $=
+		/ "text list refreshing implementation" @ %'UI'.'GUI' $=
 		(
 			* "text not fully shown at bottom" $since b190;
 			/ "high light area height"
@@ -5208,7 +5258,7 @@ b279
 (
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			(
 				/ "support widget moving to top" >> "class %Panel"
@@ -5250,7 +5300,7 @@ b278
 					class %Typeface"
 					~ "member function FontCache::LoadTypefaces"
 			),
-			/ 'GUI' $=
+			/ 'UI'.'GUI' $=
 			(
 				* "missing painting of background for parent of buffered widgets"
 					$since b225,
@@ -5330,7 +5380,7 @@ b276
 		(
 			+ "adding/removing member function handlers with object type \
 				distinct to class type" @ "class %GEvent",
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				+ DLD "member function %OnTouch_Close" @ "class %Control";
 				+ "class %ToolBox",
@@ -5358,7 +5408,7 @@ b275
 		(
 			/ DLD "decomposed unit %YText into unit %(TextBase.cpp, \
 				CharRenderer, TextRenderer, TextLayout)",
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				+ "control default handler for requesting to top and focus \
 					for event %TouchDown",
@@ -5512,7 +5562,7 @@ b272
 			/ "efficiency improved" @ "function %Idle",
 			/ DLD "simplified implementation" @ "function %::main"
 		),
-		^ "rounding" @ "member function %ProgressBar::Refresh" @ %'GUI'
+		^ "rounding" @ "member function %ProgressBar::Refresh" @ %'UI'.'GUI'
 	),
 	/ %'YReader'.'text reader' $=
 	(
@@ -5537,7 +5587,7 @@ b271
 	(
 		/ %'YSLib' $=
 		(
-			/ %'GUI' $=
+			/ %'UI'.'GUI' $=
 			(
 				/ DLD "implementation" @ "class %ScrollEventArgs"
 					^ "class template %std::pair",
@@ -5628,7 +5678,7 @@ b269
 		),
 		* DLD "null function call" @ "destructor" @ "class %Application"
 			$since b243,
-		/ %'YFramework'.'YSLib'.'GUI' $=
+		/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 		(
 			- "unnecessary view updating for empty list on event %KeyDown"
 				@ "class %TextList",
@@ -5641,9 +5691,9 @@ b269
 
 b268
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			+ "invalidation on event %(Move, Resize) as default"
 				@ "class %Control";
@@ -5685,7 +5735,7 @@ b268
 
 b267
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ "simplified renderer interface",
 		* "unstable length of scrolling thumb" @ "class %ATrack" $since b264
@@ -5700,7 +5750,7 @@ b266
 		$=(^ "updated modified freetype 2.4.8" ~ "modified freetype 2.4.5"),
 	/ %'YFramework'.'YSLib' $=
 	(
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			/ "invalidation algorithm",
 			/= DLD "confirmed no need of partial invalidation support \
@@ -5723,7 +5773,7 @@ b265
 		+ "partial invalidation support for text rendering";
 			// It makes efficiency decreased obviously \
 				for non-overlapped widgets.
-		/ %'GUI' $=
+		/ %'UI'.'GUI' $=
 		(
 			/ "window classes hierarchy" ^ "class %Panel",
 			/ "refreshing algorithm" @ "class %Frame::Refresh" $=
@@ -5753,7 +5803,7 @@ b264
 			browser" ^ "custom functions" ~ "function %std::ctime",
 		* "file information box cannot be shown" @ "text reader" $since b263
 	),
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ @ "class %ATrack"
 		(
@@ -5780,7 +5830,7 @@ b264
 
 b263
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		* "event %Confirmed checking fail for items out of initial view scope"
 			$since b262,
@@ -5802,7 +5852,7 @@ b262
 
 b261
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ DLD "simplified interface" @ "class %ATrack";
 		* "wrong alignment" @ "listbox when alignment is non-zero value \
@@ -5819,12 +5869,12 @@ b260
 		+ "fixed-point arithmetic template %fixed_point"
 	);
 	* "improper underlying type of scroll event argument type"
-		@ %'YFramework'.'YSLib'.'GUI' $since b201
+		@ %'YFramework'.'YSLib'.'UI'.'GUI' $since b201
 ),
 
 b259
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		* "focusing pointer not removed when removing widgets"
 			@ "classes %(Panel, AFrame) $since b258;
@@ -5836,7 +5886,7 @@ b259
 
 b258
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		- "focus responder runtime substituting capability",
 		+ "widget view class %WidgetView";
@@ -5847,7 +5897,7 @@ b258
 
 b257
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ DLD "simplified entering/leaving event implementation",
 		- DLD "dependency events" @ "classes %(ATrack, TextList)"
@@ -5868,7 +5918,7 @@ b257
 b256
 (
 	* DLD "undefined behavior when event arguments class not empty"
-		@ %'YFramework'.'YSLib'.'GUI' $since b255,
+		@ %'YFramework'.'YSLib'.'UI'.'GUI' $since b255,
 	* "overloading error when using default template argument"
 		@ "class template ExpandMemberFirstBinder" $since b171
 	/ "first parameter for merged to second parameter" @ "event handling"
@@ -5885,7 +5935,7 @@ b255
 		)
 	),
 	* "wrong value construction" @ "class %TouchEventArgs"
-		@ %'YFramework'.'YSLib'.'GUI' $since b195
+		@ %'YFramework'.'YSLib'.'UI'.'GUI' $since b195
 ),
 
 b254
@@ -5900,7 +5950,8 @@ b254
 		)
 	),
 	+ DLD "unsequenced evaluated expressions optimization" @ "widget class \
-		constructors" @ "directory %YSLib::UI" @ %'YFramework'.'YSLib'.'GUI'
+		constructors" @ "directory %YSLib::UI"
+		@ %'YFramework'.'YSLib'.'UI'.'GUI'
 ),
 
 b253
@@ -5912,7 +5963,7 @@ b253
 			@ "unit %Shells",
 		+ "automatic desktop invalidation when checkbox unticked"
 	),
-	* "wrong control %OnLostFocus behavior" @ %'YFramework'.'YSLib'.'GUI'
+	* "wrong control %OnLostFocus behavior" @ %'YFramework'.'YSLib'.'UI'.'GUI'
 		$since b240,
 	^ "new character types" $=
 	(
@@ -6007,7 +6058,7 @@ b248
 (
 	/ DLD "deleted copy constructor" @ "class %input_monomorphic_iterator \
 		for safety",
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		* "wrong return value" @ "member function %Refresh" @ "classes \
 			%(Widget, Label, Progress, TextArea, Control, AWindow)" $since b226,
@@ -6020,7 +6071,7 @@ b248
 
 b247
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ DLD "common widget member operation function %CheckWidget";
 		/ DLD "simplified scrolling widget implementation"
@@ -6087,7 +6138,7 @@ b243
 	/ DLD "simplified class inheritance" @ "shell and application classes";
 	- DLD "inheritance GMCounter<Message>" @ "class %Message";
 	- "classes %(YCountableObject; YObject)";
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ "default GUI event %Paint for all widgets",
 		+ "controller class %WidgetController for widgets which %Paint is the \
@@ -6104,7 +6155,7 @@ b243
 
 b242
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ "class %PaintEventArgs",
 		/ DLD "simplified painting parameters" ^ "class %PaintEventArgs",
@@ -6135,7 +6186,7 @@ b241
 (
 	+ "new macros to simplify defaulted or deleted constructors \
 		and destructors definition" @ "header %ybase.h",
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ DLD "%(MoveConstructible) support for all widget classes",
 		+ DLD "class %IController as controller interface type"
@@ -6172,7 +6223,7 @@ b240
 		@ "class template %GEventMap",
 	+ DLD "%CopyConstructible and %MoveConstructible support"
 		@ "classes %(BitmapBuffer, BitmapBufferEx)";
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		* @ "class template %GFocusResponser" $since b239
 			$= (+ "default constructor"),
@@ -6196,7 +6247,7 @@ b240
 
 b239
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ "dynamic focus responser switching",
 		/ "simplified" @ "class %IWidget and derived classes",
@@ -6211,7 +6262,7 @@ b239
 
 b238
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ "simplified" @ "class %IWidget",
 		/ DLD "controller pointer" @ "class %Control" >> "class %Widget",
@@ -6222,7 +6273,7 @@ b238
 
 b237
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ "control functionality for widgets" ~ "for controls" $=
 		(
@@ -6246,7 +6297,7 @@ b236
 (
 	^ "updated libnds 1.5.4 with default arm7 0.5.23"
 		~ "libnds 1.5.1 with default arm7 0.5.21",
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ "controllers",
 		/ "simplified %IControl interface",
@@ -6276,7 +6327,7 @@ b235
 			+ "direct reading command controls"
 		)
 	),
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		- DLD "redundant refreshing" $since b226
 			@ "efficiency improved" @ "member function %ATrack::Refresh",
@@ -6295,7 +6346,7 @@ b235
 
 b234
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ "overwritable item enablity policy support" @ "class %TextList",
 		/ "item enablity support" @ "class %Menu",
@@ -6312,7 +6363,7 @@ b234
 
 b233
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ "partial invalidation for hosted menus",
 		/ "partial invalidation for member function %Desktop::MoveToTop",
@@ -6342,7 +6393,7 @@ b232
 		- $design "member function ShlProc"
 			@ "classes %(ShlExplorer, ShlReader)",
 	),
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		* "invalid parent menu displayed on confirming submenus" $since b231,
 		/ "menus functionality" $=
@@ -6366,7 +6417,7 @@ b232
 
 b231
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ "updating with limited area" $=
 		(
@@ -6408,7 +6459,7 @@ b230
 
 b229
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ "simplified controls rendering implementation" $=
 		(
@@ -6433,7 +6484,7 @@ b229
 
 b228
 (
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ "runtime buffering control" $=
 		(
@@ -6526,7 +6577,7 @@ b224
 
 b223
 (
-	/ "DS painting" ^ "message %SM_PAINT" @ %'YFramework'.'YSLib'.'GUI'
+	/ "DS painting" ^ "message %SM_PAINT" @ %'YFramework'.'YSLib'.'UI'.'GUI'
 			~ "directly calling of %ShlDS::UpdateToScreen",
 	* "uncleared application message queues on program exit" $since b174,
 		// This might cause memory leaks.
@@ -6608,7 +6659,7 @@ b221
 	+ DLB "diagnostic pragma for GCC 4.6.0 and newer"
 		@ "header %type_op.hpp",
 	* "class %HDirectory state not restored during operations" $since b175,
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ "controls key-to-touch event mapping" @ "class %Control" $=
 		(
@@ -6979,7 +7030,7 @@ b198
 	* "%ListBox scroll bar length",
 	* "handle constructors",
 	- "class %ShlGUI" @ "unit %Shell_DS" @ $design "shells for DS",
-	/ %'YFramework'.'YSLib'.'GUI' $=
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ DLD "using pointers" ~ "references in parameters \
 			of container methods",

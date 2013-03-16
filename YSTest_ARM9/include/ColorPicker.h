@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.h
 \ingroup YReader
 \brief 拾色器。
-\version r131
-\author FrankHB<frankhb1989@gmail.com>
+\version r137
+\author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2012-01-06 20:46:10 +0800
 \par 修改时间:
-	2012-09-04 12:58 +0800
+	2013-03-13 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,15 +25,15 @@
 */
 
 
-#ifndef INC_YREADER_COLORPICKER_H_
-#define INC_YREADER_COLORPICKER_H_ 1
+#ifndef INC_YReader_ColorPicker_h_
+#define INC_YReader_ColorPicker_h_ 1
 
 #include <YSLib/UI/uicontx.h>
 #include <YSLib/UI/scroll.h>
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 拾色框。
@@ -80,7 +80,7 @@ public:
 	SetColor(Color);
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

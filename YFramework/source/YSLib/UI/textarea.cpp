@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r427
-\author FrankHB<frankhb1989@gmail.com>
+\version r431
+\author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:10:27 +0800
 \par 修改时间:
-	2012-09-04 12:47 +0800
+	2013-03-13 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@ YSL_BEGIN
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 TextArea::TextArea(const Rect& r)
 	: Widget(r), TextState(), TextRenderer(*this),
@@ -69,7 +69,7 @@ BufferedTextArea::Refresh(PaintEventArgs&& e)
 		r.GetPoint() - e.Location, r.GetSize(), Rotation);
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

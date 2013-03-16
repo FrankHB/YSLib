@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r396
+\version r398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-03-06 13:46 +0800
+	2013-03-13 12:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,7 +130,7 @@ HSLToColor(hsl_t);
 
 YSL_END_NAMESPACE(Drawing)
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 YSL_BEGIN_NAMESPACE(Styles)
 
@@ -209,7 +209,7 @@ public:
 
 YSL_END_NAMESPACE(Styles)
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

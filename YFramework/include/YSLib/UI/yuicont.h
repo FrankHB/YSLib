@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r1778
-\author FrankHB<frankhb1989@gmail.com>
+\version r1784
+\author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2012-12-11 23:41 +0800
+	2013-03-13 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,15 +25,15 @@
 */
 
 
-#ifndef YSL_INC_UI_YUICONT_H_
-#define YSL_INC_UI_YUICONT_H_ 1
+#ifndef YSL_INC_UI_yuicont_h_
+#define YSL_INC_UI_yuicont_h_ 1
 
 #include "ywidget.h"
 #include <ystdex/iterator.hpp>
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 取指定部件的顶层部件。
@@ -274,7 +274,7 @@ RemoveWidgets(_tContainer& con, _tWidgets&... wgts)
 		std::forward<IWidget&>(wgts)...);
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

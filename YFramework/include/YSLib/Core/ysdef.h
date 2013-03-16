@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version r1560
-\author FrankHB<frankhb1989@gmail.com>
+\version r1571
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-24 15:29:11 +0800
 \par 修改时间:
-	2012-09-04 10:52 +0800
+	2013-03-13 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YSDEF_H_
-#define YSL_INC_CORE_YSDEF_H_ 1
+#ifndef YSL_INC_Core_ysder_h_
+#define YSL_INC_Core_ysder_h_ 1
 
 //适配器模块。
 #include "../Adaptor/yadaptor.h"
@@ -43,10 +43,6 @@ YSL_BEGIN
 
 //前向声明。
 
-YSL_BEGIN_NAMESPACE(Components)
-class Desktop;
-YSL_END_NAMESPACE(Components)
-
 YSL_BEGIN_NAMESPACE(Shells)
 class Shell;
 YSL_END_NAMESPACE(Shells)
@@ -56,8 +52,6 @@ class String;
 YSL_END_NAMESPACE(Text)
 
 class Application;
-
-using Components::Desktop;
 
 using Shells::Shell;
 

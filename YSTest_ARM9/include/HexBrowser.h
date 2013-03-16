@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r421
-\author FrankHB<frankhb1989@gmail.com>
+\version r427
+\author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2012-12-01 18:15 +0800
+	2013-03-13 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INC_YREADER_HEXVIEWER_H_
-#define INC_YREADER_HEXVIEWER_H_ 1
+#ifndef INC_YReader_HexBrowser_h_
+#define INC_YReader_HexBrowser_h_ 1
 
 #include <YSLib/UI/scroll.h>
 #include <YSLib/Service/yfile.h>
@@ -35,7 +35,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 十六进制模型：十六进制视图区域数据源。
@@ -209,7 +209,7 @@ public:
 	UpdateView(bool = false);
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

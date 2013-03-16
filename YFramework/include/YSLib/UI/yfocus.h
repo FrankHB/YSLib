@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1710
+\version r1714
 \author FrankHB <frankhb1989@gmail.com>
 \since build 168
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-01-04 16:57 +0800
+	2013-03-13 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,14 +25,14 @@
 */
 
 
-#ifndef YSL_INC_UI_YFOCUS_HPP_
-#define YSL_INC_UI_YFOCUS_HPP_ 1
+#ifndef YSL_INC_UI_yfocus_h_
+#define YSL_INC_UI_yfocus_h_ 1
 
 #include "ycomp.h"
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 判断部件是否取得焦点。
@@ -115,7 +115,7 @@ RequestFocusCascade(IWidget&);
 YF_API void
 ReleaseFocusCascade(IWidget&);
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

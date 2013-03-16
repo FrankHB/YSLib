@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Console.h
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r136
-\author FrankHB<frankhb1989@gmail.com>
+\version r142
+\author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2011-04-19 23:00:29 +0800
 \par 修改时间:
-	2012-12-11 21:41 +0800
+	2013-03-13 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,15 +25,15 @@
 */
 
 
-#ifndef YSL_INC_UI_YCONSOLE_H_
-#define YSL_INC_UI_YCONSOLE_H_ 1
+#ifndef YSL_INC_UI_Console_h_
+#define YSL_INC_UI_Console_h_ 1
 
 #include "ycomp.h"
 #include "../Core/ydevice.h"
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 //! \brief 控制台。
 class YF_API Console
@@ -81,7 +81,7 @@ public:
 	Pause();
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

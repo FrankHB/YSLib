@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4616
+\version r4620
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-02-28 20:56 +0800
+	2013-03-13 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 using namespace Drawing;
 
@@ -306,7 +306,7 @@ class YF_API Control : public Widget
 protected:
 	/*!
 	\brief 扩展控件事件表。
-	\note 加载 Components::OnTouchHeld 作为 TouchHeld 事件处理器。
+	\note 加载 UI::OnTouchHeld 作为 TouchHeld 事件处理器。
 	\since build 240
 	*/
 	DefExtendEventMap(YF_API ControlEventMap, VisualEventMap)
@@ -357,13 +357,13 @@ public:
 	/*!
 	\brief 处理屏幕事件：关闭显示。
 
-	调用 Components::Close 。
+	调用 UI::Close 。
 	*/
 	void
 	OnTouch_Close(TouchEventArgs&&);
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

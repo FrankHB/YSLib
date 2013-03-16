@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2866
-\author FrankHB<frankhb1989@gmail.com>
+\version r2832
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2012-12-31 18:35 +0800
+	2013-03-13 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 */
 
 
-#ifndef INC_YREADER_SHELLS_H_
-#define INC_YREADER_SHELLS_H_ 1
+#ifndef INC_YReader_Shells_h_
+#define INC_YReader_Shells_h_ 1
 
 #include <Helper/shlds.h>
 #include <Helper/ShellHelper.h>
@@ -54,11 +54,11 @@ YSL_BEGIN_NAMESPACE(YReader)
 
 using namespace YSLib;
 
-using namespace Components;
+using namespace UI;
 using namespace Drawing;
 
 using namespace DS;
-using namespace DS::Components;
+using namespace DS::UI;
 
 using platform::WaitForInput;
 using platform::YDebugSetStatus;

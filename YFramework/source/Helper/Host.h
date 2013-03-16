@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r371
+\version r397
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-03-10 09:06 +0800
+	2013-03-16 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -35,7 +35,7 @@
 #	include <mutex>
 #endif
 #include "YSLib/UI/yrender.h"
-#include "YSLib/UI/ywidget.h" // for Components::GetSizeOf;
+#include "YSLib/UI/ywidget.h" // for UI::GetSizeOf;
 #include "DSScreen.h" // for ScreenBuffer;
 
 YSL_BEGIN
@@ -74,16 +74,33 @@ public:
 
 	DefGetter(const ynothrow, NativeHandle, NativeHandle, h_wnd)
 	DefGetter(const ynothrow, Environment&, Host, env)
-
 	/*!
-	\brief 调整全局 GUI 坐标到窗口坐标。
-	\since build 383
+	\brief 取预定的指针设备输入响应有效区域的左上角和右下角坐标。
+	\note 坐标相对于客户区。
+	\since build 388
 	*/
-	virtual Drawing::Point
-	AdjustCursor(platform::CursorInfo&) const ynothrow;
+	virtual pair<Drawing::Point, Drawing::Point>
+	GetInputBounds() const ynothrow;
 
+	//! \note 线程安全：跨线程调用时使用基于消息队列的异步设置。
 	void
 	Close();
+
+	/*!
+	\brief 调整窗口大小。
+	\note 线程安全：跨线程调用时使用基于消息队列的异步设置。
+	\since build 388
+	*/
+	void
+	Resize(const Drawing::Size&);
+
+	/*!
+	\brief 按客户区调整窗口大小。
+	\note 线程安全：跨线程调用时使用基于消息队列的异步设置。
+	\since build 388
+	*/
+	void
+	ResizeClient(const Drawing::Size&);
 
 	virtual void
 	OnDestroy();
@@ -168,10 +185,10 @@ public:
 \brief 宿主渲染器：在宿主环境以窗口形式显示的渲染器。
 \since build 384
 */
-class HostRenderer : public Components::BufferedRenderer
+class HostRenderer : public UI::BufferedRenderer
 {
 private:
-	std::reference_wrapper<Components::IWidget> widget;
+	std::reference_wrapper<UI::IWidget> widget;
 	//! \since build 387
 	ScreenRegionBuffer rbuf;
 	WindowThread thrd;
@@ -179,7 +196,7 @@ private:
 public:
 	//! \since build 385
 	template<typename... _tParams>
-	HostRenderer(Components::IWidget& wgt, _tParams&&... args)
+	HostRenderer(UI::IWidget& wgt, _tParams&&... args)
 		: BufferedRenderer(),
 		widget(wgt), rbuf(GetSizeOf(wgt)),
 		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<typename
@@ -188,7 +205,7 @@ public:
 	{}
 	DefDeMoveCtor(HostRenderer)
 
-	DefGetter(const ynothrow, Components::IWidget&, WidgetRef, widget.get())
+	DefGetter(const ynothrow, UI::IWidget&, WidgetRef, widget.get())
 	DefGetterMem(const ynothrow, Window*, WindowPtr, thrd)
 
 	void

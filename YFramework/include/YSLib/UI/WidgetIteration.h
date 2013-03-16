@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file WidgetIteration.h
 \ingroup UI
 \brief 部件迭代接口。
-\version r167
-\author FrankHB<frankhb1989@gmail.com>
+\version r173
+\author FrankHB <frankhb1989@gmail.com>
 \since build 356
 \par 创建时间:
 	2012-11-25 16:36:34 +0800
 \par 修改时间:
-	2012-12-01 18:24 +0800
+	2013-03-13 13:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_WIDGETITERATION_H_
-#define YSL_INC_UI_WIDGETITERATION_H_ 1
+#ifndef YSL_INC_UI_WidgetIteration_h_
+#define YSL_INC_UI_WidgetIteration_h_ 1
 
 #include "ywidget.h"
 
@@ -59,7 +59,7 @@ YSL_BEGIN
 	}
 
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \def DefWidgetSubscriptor
@@ -143,7 +143,7 @@ YSL_BEGIN_NAMESPACE(Components)
 	DefWidgetMemberIterationOperations(Iterator) \
 	DefWidgetSubscriptorBase(_tBase, __VA_ARGS__)
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

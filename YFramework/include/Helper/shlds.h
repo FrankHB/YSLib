@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1230
+\version r1232
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-01-04 16:55 +0800
+	2013-03-13 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,9 +151,9 @@ public:
 
 //@}
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END_NAMESPACE(DS)
 

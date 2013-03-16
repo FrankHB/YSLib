@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r254
+\version r275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-03-10 23:07 +0800
+	2013-03-16 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 
 YSL_BEGIN
 
-using namespace Components;
+using namespace UI;
 
 YSL_BEGIN_NAMESPACE(Devices)
 
@@ -108,9 +108,29 @@ InputManager::Update()
 #if YCL_DS
 		cursor_state = cursor.operator Point();
 #elif YCL_MINGW32
-		cursor_state = p_wnd->AdjustCursor(cursor);
+		::ScreenToClient(p_wnd->GetNativeHandle(), &cursor);
+
+		const auto& pr(p_wnd->GetInputBounds());
+
+		if(!(IsInInterval< ::LONG>(cursor.x, pr.first.X, pr.second.X)
+			&& IsInInterval< ::LONG>(cursor.y, pr.first.Y, pr.second.Y)))
+		{
+			if(GUI_state.get().GetTouchDownPtr())
+			{
+				RestrictInInterval(cursor.x, pr.first.X, pr.second.X),
+				RestrictInInterval(cursor.y, pr.first.Y, pr.second.Y);
+			}
+			else
+				return nullptr;
+		}
+		yunseq(cursor_state.X = cursor.x - pr.first.X,
+			cursor_state.Y = cursor.y - pr.first.Y);
 #endif
 	}
+#if YCL_HOSTED
+	if(auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd))
+		return &p_render_wnd->GetRenderer().GetWidgetRef();
+#endif
 	return nullptr;
 }
 #undef YCL_CURSOR_VALID

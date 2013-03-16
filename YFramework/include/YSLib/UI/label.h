@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1278
+\version r1282
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2013-01-04 22:53 +0800
+	2013-03-13 13:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_LABEL_H_
-#define YSL_INC_UI_LABEL_H_ 1
+#ifndef YSL_INC_UI_label_h_
+#define YSL_INC_UI_label_h_ 1
 
 #include "ywidget.h"
 //#include "../Core/yres.h"
@@ -35,7 +35,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 //文本对齐样式。
 enum class TextAlignment
@@ -208,7 +208,7 @@ public:
 	RefreshTextState();
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

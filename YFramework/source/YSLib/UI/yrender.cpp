@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r587
-\author FrankHB<frankhb1989@gmail.com>
+\version r593
+\author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2012-12-25 19:21 +0800
+	2013-01-13 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,14 +31,14 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 Rect
 Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 {
 	YAssert(&e.GetSender().GetRenderer() == this, "Invalid widget found.");
 
-	CallEvent<Components::Paint>(wgt, e);
+	CallEvent<UI::Paint>(wgt, e);
 	return e.ClipArea;
 }
 
@@ -106,7 +106,7 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 
 		PaintEventArgs e(sender, {GetContext(), Point(), clip - l});
 
-		CallEvent<Components::Paint>(wgt, e);
+		CallEvent<UI::Paint>(wgt, e);
 		//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
 		rInvalidated.GetSizeRef() = Size();
 		return e.ClipArea;
@@ -114,7 +114,7 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 	return Rect();
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

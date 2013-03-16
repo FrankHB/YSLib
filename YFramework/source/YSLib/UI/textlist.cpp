@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1075
+\version r1078
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-01-07 02:57 +0800
+	2013-03-13 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 namespace
 {
@@ -102,7 +102,7 @@ bound_select:
 				}
 				else if(viewer.IsSelected())
 				{
-					// NOTE: Do not confuse with %Components::Enter.
+					// NOTE: Do not confuse with %UI::Enter.
 					if(k[KeyCodes::Enter])
 						InvokeConfirmed(viewer.GetSelectedIndex());
 					else if(k[Esc])
@@ -416,7 +416,7 @@ ResizeForContent(TextList& tl)
 	tl.AdjustViewLength();
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

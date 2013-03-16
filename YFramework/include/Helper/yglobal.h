@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1821
+\version r1827
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-02-13 13:40 +0800
+	2013-03-13 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,6 +58,11 @@ YSL_END_NAMESPACE(Drawing)
 YSL_BEGIN_NAMESPACE(Messaging)
 YSL_END_NAMESPACE(Messaging)
 
+//! \since build 388
+YSL_BEGIN_NAMESPACE(UI)
+class Desktop;
+YSL_END_NAMESPACE(UI)
+
 #if YCL_HOSTED
 /*!
 \brief 宿主环境支持。
@@ -68,6 +73,9 @@ YSL_BEGIN_NAMESPACE(Host)
 class Environment;
 YSL_END_NAMESPACE(Host)
 #endif
+
+//! \since build 388
+using UI::Desktop;
 
 YSL_END
 

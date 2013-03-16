@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r310
-\author FrankHB<frankhb1989@gmail.com>
+\version r316
+\author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2012-12-11 21:57 +0800
+	2013-03-13 13:20 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -25,15 +25,15 @@
 */
 
 
-#ifndef YSL_INC_UI_SELECTOR_H_
-#define YSL_INC_UI_SELECTOR_H_ 1
+#ifndef YSL_INC_UI_Selector_h_
+#define YSL_INC_UI_Selector_h_ 1
 
 #include "button.h"
 #include "ystyle.h"
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 复选框。
@@ -136,7 +136,7 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2606
+\version r2610
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2013-01-16 19:59 +0800
+	2013-03-13 13:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_SCROLL_H_
-#define YSL_INC_UI_SCROLL_H_ 1
+#ifndef YSL_INC_UI_scroll_h_
+#define YSL_INC_UI_scroll_h_ 1
 
 #include "button.h"
 #include "yuicont.h"
@@ -37,7 +37,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 滚动类别。
@@ -443,7 +443,7 @@ protected:
 	FixLayout(const Size&);
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

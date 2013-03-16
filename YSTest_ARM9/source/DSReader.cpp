@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3095
+\version r3101
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-01-21 09:41 +0800
+	2013-03-13 13:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,8 +137,8 @@ AdjustPrevious(_tArea& area, _tIn& i, _tContainer& c)
 \since build 292
 */
 void
-CopyScrollArea(YSLib::Components::BufferedTextArea& src_area,
-	size_t src_offset, YSLib::Components::BufferedTextArea& dst_area,
+CopyScrollArea(YSLib::UI::BufferedTextArea& src_area,
+	size_t src_offset, YSLib::UI::BufferedTextArea& dst_area,
 	size_t dst_offset, ptrdiff_t offset, size_t n)
 {
 	YAssert(n != 0, "Invalid number of lines found.");
@@ -163,8 +163,8 @@ CopyScrollArea(YSLib::Components::BufferedTextArea& src_area,
 \since build 292
 */
 void
-MoveScrollArea(YSLib::Components::BufferedTextArea& area_up,
-	YSLib::Components::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
+MoveScrollArea(YSLib::UI::BufferedTextArea& area_up,
+	YSLib::UI::BufferedTextArea& area_dn, ptrdiff_t offset, size_t n)
 {
 	YAssert(area_up.GetHeight() - area_up.Margin.Bottom - n > 0,
 		"No enough space of areas found.");
@@ -200,7 +200,7 @@ CheckOverRead(TextRegion& r)
 
 YSL_BEGIN_NAMESPACE(DS)
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
@@ -230,7 +230,7 @@ DualScreenReader::SetVisible(bool b)
 {
 	SetVisibleOf(area_up, b), SetVisibleOf(area_dn, b);
 
-	using YSLib::Components::Invalidate;
+	using YSLib::UI::Invalidate;
 
 	//强制刷新背景。
 	Invalidate(area_up);
@@ -287,8 +287,8 @@ DualScreenReader::AdjustScrollOffset()
 }
 
 void
-DualScreenReader::Attach(YSLib::Components::Window& wnd_up,
-	YSLib::Components::Window& wnd_dn)
+DualScreenReader::Attach(YSLib::UI::Window& wnd_up,
+	YSLib::UI::Window& wnd_dn)
 {
 	wnd_up += area_up,
 	wnd_dn += area_dn;
@@ -297,7 +297,7 @@ DualScreenReader::Attach(YSLib::Components::Window& wnd_up,
 void
 DualScreenReader::Detach()
 {
-	using YSLib::Components::Window;
+	using YSLib::UI::Window;
 
 	if(auto pCon = dynamic_cast<Window*>(FetchContainerPtr(area_up)))
 		*pCon -= area_up;
@@ -373,7 +373,7 @@ DualScreenReader::Execute(Command cmd)
 void
 DualScreenReader::Invalidate()
 {
-	using YSLib::Components::Invalidate;
+	using YSLib::UI::Invalidate;
 
 	//强制刷新背景。
 	Invalidate(area_up);
@@ -532,7 +532,7 @@ DualScreenReader::UpdateView()
 	Invalidate();
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END_NAMESPACE(DS)
 

@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1889
+\version r1904
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-01-14 20:32 +0800
+	2013-03-13 13:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_YGUI_H_
-#define YSL_INC_UI_YGUI_H_ 1
+#ifndef YSL_INC_UI_ygui_h_
+#define YSL_INC_UI_ygui_h_ 1
 
 #include "ywgtevt.h"
 #include "../Service/ytimer.h"
@@ -34,7 +34,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 输入计时器。
@@ -116,12 +116,12 @@ public:
 	InputTimer HeldTimer;
 	Drawing::Point ControlLocation, LastControlLocation; \
 		//!< 最近两次的指针设备操作时的控件全局位置（屏幕坐标）。
-	Components::Styles::Palette Colors; //!< 调色板。
+	Styles::Palette Colors; //!< 调色板。
 
 private:
 	//独立焦点指针：自由状态时即时输入（按下）状态捕获的控件指针。
-	Components::IWidget* p_KeyDown;
-	Components::IWidget* p_TouchDown;
+	IWidget* p_KeyDown;
+	IWidget* p_TouchDown;
 	bool control_entered; //!< 记录指针是否在控件内部。
 
 public:
@@ -129,9 +129,9 @@ public:
 
 	DefPred(const ynothrow, ControlEntered, control_entered)
 
-	DefGetter(const ynothrow, Components::IWidget*, KeyDownPtr, p_KeyDown) \
+	DefGetter(const ynothrow, IWidget*, KeyDownPtr, p_KeyDown) \
 		//独立键焦点指针。
-	DefGetter(const ynothrow, Components::IWidget*, TouchDownPtr, p_TouchDown) \
+	DefGetter(const ynothrow, IWidget*, TouchDownPtr, p_TouchDown) \
 		//独立屏幕焦点指针。
 
 	/*!
@@ -150,10 +150,10 @@ public:
 
 private:
 	void
-	TryEntering(Components::TouchEventArgs&&);
+	TryEntering(TouchEventArgs&&);
 
 	void
-	TryLeaving(Components::TouchEventArgs&&);
+	TryLeaving(TouchEventArgs&&);
 
 public:
 	/*!
@@ -161,28 +161,28 @@ public:
 	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseKeyBase(Components::KeyEventArgs&, Components::VisualEvent);
+	ResponseKeyBase(KeyEventArgs&, VisualEvent);
 
 	/*!
 	\brief 响应标准按键状态。
 	\note 无视事件路由，直接响应。
 	*/
 	bool
-	ResponseTouchBase(Components::TouchEventArgs&, Components::VisualEvent);
+	ResponseTouchBase(TouchEventArgs&, VisualEvent);
 
 	/*!
 	\brief 响应标准按键状态。
 	\return 已被响应（调用了非空事件处理器或参数 Handled 为 true）时为 true 。
 	*/
 	bool
-	ResponseKey(Components::KeyEventArgs&, Components::VisualEvent);
+	ResponseKey(KeyEventArgs&, VisualEvent);
 
 	/*!
 	\brief 响应屏幕接触状态。
 	\return 已被响应（调用了非空事件处理器或参数 Handled 为 true）时为 true 。
 	*/
 	bool
-	ResponseTouch(Components::TouchEventArgs&, Components::VisualEvent);
+	ResponseTouch(TouchEventArgs&, VisualEvent);
 };
 
 
@@ -205,7 +205,7 @@ IsFocusedByShell(const IWidget& wgt, const GUIState& st = FetchGUIState())
 	return st.GetTouchDownPtr() == &wgt;
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

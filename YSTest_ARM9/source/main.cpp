@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1696
-\author FrankHB<frankhb1989@gmail.com>
+\version r1699
+\author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2012-12-15 15:40 +0800
+	2013-03-13 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -242,7 +242,7 @@ main()
 
 			//platform::YDebugSetStatus(false);
 			{
-				using namespace YSLib::Components;
+				using namespace YSLib::UI;
 
 				Desktop dsk_up(theApp.GetScreenUp()),
 					dsk_dn(theApp.GetScreenDown());

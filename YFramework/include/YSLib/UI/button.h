@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r2230
+\version r2234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-01-16 19:53 +0800
+	2013-03-13 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_BUTTON_H_
-#define YSL_INC_UI_BUTTON_H_ 1
+#ifndef YSL_INC_UI_button_h_
+#define YSL_INC_UI_button_h_ 1
 
 #include "ycontrol.h"
 #include "label.h"
@@ -34,7 +34,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 基本按钮。
@@ -127,7 +127,7 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

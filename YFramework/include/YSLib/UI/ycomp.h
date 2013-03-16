@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file ycomp.h
 \ingroup UI
 \brief 平台无关的 Shell 组件。
-\version r2321
-\author FrankHB<frankhb1989@gmail.com>
+\version r2332
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2012-12-25 19:16 +0800
+	2013-03-13 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,12 @@
 */
 
 
-#ifndef YSL_INC_UI_YCOMP_H_
-#define YSL_INC_UI_YCOMP_H_ 1
+#ifndef YSL_INC_UI_ycomp_h_
+#define YSL_INC_UI_ycomp_h_ 1
 
 #include "../Core/ygdibase.h"
 #include "../Core/yfunc.hpp"
+#include "../Core/ymsgdef.h"
 #include "../Adaptor/ycont.h"
 
 YSL_BEGIN
@@ -46,7 +47,7 @@ class Image;
 
 YSL_END_NAMESPACE(Drawing)
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 class AController;
 FwdDeclI(IWidget)
@@ -91,7 +92,14 @@ using Drawing::Graphics;
 //! \since build 366
 using Drawing::PaintContext;
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
+
+//! \since build 388
+YSL_BEGIN_NAMESPACE(Messaging)
+
+DefMessageTarget(SM_PAINT, shared_ptr<UI::IWidget>)
+
+YSL_END_NAMESPACE(Messaging)
 
 YSL_END
 

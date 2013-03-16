@@ -11,13 +11,13 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面面板。
-\version r255
+\version r257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:44:51 +0800
 \par 修改时间:
-	2013-01-18 22:50 +0800
+	2013-03-13 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 Panel::Panel(const Rect& r)
 	: Control(r), MUIContainer()
@@ -97,7 +97,7 @@ Panel::Refresh(PaintEventArgs&& e)
 		PaintVisibleChildren(e);
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 

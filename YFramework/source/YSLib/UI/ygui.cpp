@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3287
-\author FrankHB<frankhb1989@gmail.com>
+\version r3304
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-12-09 22:15 +0800
+	2013-03-13 13:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,8 @@
 YSL_BEGIN
 
 using namespace Drawing;
-using namespace Components;
 
-YSL_BEGIN_NAMESPACE(Components)
+YSL_BEGIN_NAMESPACE(UI)
 
 namespace
 {
@@ -163,7 +162,7 @@ GUIState::TryLeaving(TouchEventArgs&& e)
 }
 
 bool
-GUIState::ResponseKeyBase(KeyEventArgs& e, Components::VisualEvent op)
+GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 {
 	auto& wgt(e.GetSender());
 
@@ -197,7 +196,7 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, Components::VisualEvent op)
 }
 
 bool
-GUIState::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
+GUIState::ResponseTouchBase(TouchEventArgs& e, UI::VisualEvent op)
 {
 	auto& wgt(e.GetSender());
 
@@ -241,13 +240,13 @@ GUIState::ResponseTouchBase(TouchEventArgs& e, Components::VisualEvent op)
 }
 
 bool
-GUIState::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
+GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 {
 	auto p(&e.GetSender());
 	IWidget* pCon;
 	bool r(false);
 
-	e.Strategy = Components::RoutedEventArgs::Tunnel;
+	e.Strategy = UI::RoutedEventArgs::Tunnel;
 	while(true)
 	{
 		if(!(IsVisible(*p) && IsEnabled(*p)))
@@ -272,10 +271,10 @@ GUIState::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 
 	YAssert(p, "Null pointer found.");
 
-	e.Strategy = Components::RoutedEventArgs::Direct;
+	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);
 	r |= ResponseKeyBase(e, op);
-	e.Strategy = Components::RoutedEventArgs::Bubble;
+	e.Strategy = UI::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e.SetSender(*(p = pCon));
@@ -285,7 +284,7 @@ GUIState::ResponseKey(KeyEventArgs& e, Components::VisualEvent op)
 }
 
 bool
-GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
+GUIState::ResponseTouch(TouchEventArgs& e, UI::VisualEvent op)
 {
 	ControlLocation = e;
 
@@ -293,7 +292,7 @@ GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 	IWidget* pCon;
 	bool r(false);
 
-	e.Strategy = Components::RoutedEventArgs::Tunnel;
+	e.Strategy = UI::RoutedEventArgs::Tunnel;
 	while(true)
 	{
 		if(!(IsVisible(*p) && IsEnabled(*p)))
@@ -319,10 +318,10 @@ GUIState::ResponseTouch(TouchEventArgs& e, Components::VisualEvent op)
 
 	YAssert(p, "Null pointer found.");
 
-	e.Strategy = Components::RoutedEventArgs::Direct;
+	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);
 	r |= ResponseTouchBase(e, op);
-	e.Strategy = Components::RoutedEventArgs::Bubble;
+	e.Strategy = UI::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e += GetLocationOf(*p);
@@ -341,7 +340,7 @@ FetchGUIState()
 	return *pState;
 }
 
-YSL_END_NAMESPACE(Components)
+YSL_END_NAMESPACE(UI)
 
 YSL_END
 
