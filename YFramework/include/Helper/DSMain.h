@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r687
+\version r692
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-03-02 07:00 +0800
+	2013-03-17 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,6 @@ const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 //@}
 
 
-//前向声明。
 YSL_BEGIN_NAMESPACE(Devices)
 class DSScreen;
 YSL_END_NAMESPACE(Devices)
@@ -65,6 +64,10 @@ class FontCache;
 YSL_END_NAMESPACE(Drawing)
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
+#if YCL_MINGW32
+//! \since build 389
+typedef ::HWND NativeWindowHandle;
+#endif
 class Window;
 class RenderWindow;
 class WindowThread;

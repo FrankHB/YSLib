@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7446
+\version r7450
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-13 12:18 +0800
+	2013-03-18 20:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1175,11 +1175,16 @@
 基本内容参见 [Documentation::CommonRules @@4.1.7] 。
 
 @4.1.7.3 YFramework 约定：
-除了 YSLib 中非本体部分，不位于类作用域的自由函数 Fetch* ：语义近似于 Get*，但遵循以下附加规则：
+
+@4.1.7.3.1 模式 Fetch* ：
+除了 YSLib 中非本体部分，命名空间作用域函数名 Fetch* ：语义近似于 Get*Of ，但遵循以下附加规则：
 函数名符合模式 Fetch*Ref 的，返回类型为目标类型的引用或 const 引用类型；
 函数名符合模式 Fetch*Ptr 的，返回类型为目标类型的指针、 const 指针或对应的智能指针类型；
 目标类型为 POD 类型的，返回类型为目标类型；
 其它情况返回类型为目标类型的引用或 const 引用类型。
+
+@4.1.7.3.2 模式 Make* ：
+类似 ISO C++ 标准库中的 make_* 。
 
 @4.2 宏名：
 基本内容参见 [Documentation::CommonRules @@4.2] 。

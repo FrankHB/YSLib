@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r397
+\version r468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-03-16 23:29 +0800
+	2013-03-18 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,8 +28,7 @@
 #ifndef Inc_Helper_Host_h_
 #define Inc_Helper_Host_h_ 1
 
-#include "Helper/DSMain.h" // for Devices::DSScreen, Host::Window;
-#include "YCLib/NativeAPI.h"
+#include "Helper/HostWindow.h" // for Devices::DSScreen, Host::Window;
 #if YCL_MULTITHREAD == 1
 #	include <thread>
 #	include <mutex>
@@ -48,76 +47,6 @@ yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
 
 
 /*!
-\brief 宿主窗口。
-\since build 379
-\todo 处理 Windows API 返回值。
-*/
-class Window
-{
-public:
-	typedef ::HWND NativeHandle;
-
-private:
-	//! \since build 380
-	std::reference_wrapper<Environment> env;
-	NativeHandle h_wnd;
-
-public:
-	/*!
-	\throw LoggedEvent 窗口类名不是 WindowClassName 。
-	*/
-	Window(NativeHandle, Environment& = FetchGlobalInstance().GetHost());
-	DefDelCopyCtor(Window)
-	DefDelMoveCtor(Window)
-	virtual
-	~Window();
-
-	DefGetter(const ynothrow, NativeHandle, NativeHandle, h_wnd)
-	DefGetter(const ynothrow, Environment&, Host, env)
-	/*!
-	\brief 取预定的指针设备输入响应有效区域的左上角和右下角坐标。
-	\note 坐标相对于客户区。
-	\since build 388
-	*/
-	virtual pair<Drawing::Point, Drawing::Point>
-	GetInputBounds() const ynothrow;
-
-	//! \note 线程安全：跨线程调用时使用基于消息队列的异步设置。
-	void
-	Close();
-
-	/*!
-	\brief 调整窗口大小。
-	\note 线程安全：跨线程调用时使用基于消息队列的异步设置。
-	\since build 388
-	*/
-	void
-	Resize(const Drawing::Size&);
-
-	/*!
-	\brief 按客户区调整窗口大小。
-	\note 线程安全：跨线程调用时使用基于消息队列的异步设置。
-	\since build 388
-	*/
-	void
-	ResizeClient(const Drawing::Size&);
-
-	virtual void
-	OnDestroy();
-
-	virtual void
-	OnLostFocus();
-
-	virtual void
-	OnPaint();
-
-	//! \since build 381
-	void
-	Show() ynothrow;
-};
-
-
-/*!
 \brief 渲染窗口。
 \since build 384
 */
@@ -127,7 +56,7 @@ private:
 	std::reference_wrapper<HostRenderer> renderer;
 
 public:
-	RenderWindow(NativeHandle h, HostRenderer& r)
+	RenderWindow(NativeWindowHandle h, HostRenderer& r)
 		: Window(h), renderer(r)
 	{}
 
@@ -154,7 +83,7 @@ public:
 	WindowThread(_tParams&&... args)
 		: p_wnd(), thrd(std::mem_fn(&WindowThread::ThreadFunc<typename
 		ystdex::qualified_decay<_tParams>::type...>), this,
-		yforward(ystdex::decay_forward(args))...)
+		ystdex::decay_forward(yforward(args))...)
 	{}
 	//! \since build 385
 	DefDelMoveCtor(WindowThread)
@@ -170,8 +99,9 @@ private:
 		ThreadLoop(yforward(f)(yforward(args)...));
 	}
 
+	//! \since build 389
 	void
-	ThreadLoop(Window::NativeHandle);
+	ThreadLoop(NativeWindowHandle);
 	void
 	ThreadLoop(unique_ptr<Window>);
 
@@ -201,7 +131,7 @@ public:
 		widget(wgt), rbuf(GetSizeOf(wgt)),
 		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<typename
 			ystdex::qualified_decay<_tParams>::type...>), this,
-			yforward(ystdex::decay_forward(args))...)
+			ystdex::decay_forward(yforward(args))...)
 	{}
 	DefDeMoveCtor(HostRenderer)
 
@@ -252,9 +182,9 @@ private:
 	\note 不使用 ::SetWindowLongPtr 等 Windows API 保持跨平台及避免和其它代码冲突。
 	\warning 销毁窗口前移除映射，否则可能导致未定义行为。
 	\warning 非线程安全，应仅在宿主线程上操作。
-	\since build 381
+	\since build 389
 	*/
-	map<Window::NativeHandle, Window*> wnd_map;
+	map<NativeWindowHandle, Window*> wnd_map;
 	/*!
 	\brief 窗口对象映射锁。
 	\since build 381
@@ -291,18 +221,18 @@ public:
 	/*!
 	\brief 插入窗口映射项。
 	\note 线程安全。
-	\since build 381
+	\since build 389
 	*/
 	void
-	AddMappedItem(Window::NativeHandle, Window*);
+	AddMappedItem(NativeWindowHandle, Window*);
 
 	/*!
 	\brief 取本机句柄对应的窗口指针。
 	\note 线程安全。
-	\since build 381
+	\since build 389
 	*/
 	Window*
-	FindWindow(Window::NativeHandle) const ynothrow;
+	FindWindow(NativeWindowHandle) const ynothrow;
 
 	/*!
 	\brief 宿主消息循环。
@@ -320,10 +250,10 @@ public:
 	/*!
 	\brief 移除窗口映射项。
 	\note 线程安全。
-	\since build 381
+	\since build 389
 	*/
 	void
-	RemoveMappedItem(Window::NativeHandle) ynothrow;
+	RemoveMappedItem(NativeWindowHandle) ynothrow;
 
 	//! \since build 384
 	void

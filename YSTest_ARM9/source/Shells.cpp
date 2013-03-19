@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r5848
+\version r5853
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-02-22 11:03 +0800
+	2013-03-17 19:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,10 +172,15 @@ GetEntryType(const string& path)
 
 	static yconstexpr const char* exts[]{
 		"txt", "c", "cpp", "h", "hpp", "ini", "xml"};
+	auto npath(IO::GetExtensionOf(path));
+
+	for(auto& c : npath)
+		c = std::tolower(c);
+
 	const auto ext(IO::GetExtensionOf(path).c_str());
 
 	if(std::any_of(exts, exts + arrlen(exts), [&](const char* str){
-		return ::strcasecmp(ext, str) == 0;
+		return std::strcmp(ext, str) == 0;
 	}))
 		return Text;
 	return Hex;

@@ -102,6 +102,8 @@
 		<Unit filename="../YFramework/include/CHRLib/encoding.h" />
 		<Unit filename="../YFramework/include/CHRLib/smap.hpp" />
 		<Unit filename="../YFramework/include/Helper/DSMain.h" />
+		<Unit filename="../YFramework/include/Helper/HostWindow.h" />
+		<Unit filename="../YFramework/include/Helper/HostedUI.h" />
 		<Unit filename="../YFramework/include/Helper/Initialization.h" />
 		<Unit filename="../YFramework/include/Helper/InputManager.h" />
 		<Unit filename="../YFramework/include/Helper/ShellHelper.h" />
@@ -277,6 +279,8 @@
 		<Unit filename="../YFramework/source/Helper/DSScreen.h" />
 		<Unit filename="../YFramework/source/Helper/Host.cpp" />
 		<Unit filename="../YFramework/source/Helper/Host.h" />
+		<Unit filename="../YFramework/source/Helper/HostWindow.cpp" />
+		<Unit filename="../YFramework/source/Helper/HostedUI.cpp" />
 		<Unit filename="../YFramework/source/Helper/Initialization.cpp" />
 		<Unit filename="../YFramework/source/Helper/InputManager.cpp" />
 		<Unit filename="../YFramework/source/Helper/ScreenBuffer.cpp" />

@@ -111,6 +111,8 @@
     <ClInclude Include="include\freetype\ttunpat.h" />
     <ClInclude Include="include\ft2build.h" />
     <ClInclude Include="include\Helper\DSMain.h" />
+    <ClInclude Include="include\Helper\HostedUI.h" />
+    <ClInclude Include="include\Helper\HostWindow.h" />
     <ClInclude Include="include\Helper\Initialization.h" />
     <ClInclude Include="include\Helper\InputManager.h" />
     <ClInclude Include="include\Helper\ShellHelper.h" />
@@ -206,6 +208,7 @@
     <ClCompile Include="source\Helper\DSMain.cpp" />
     <ClCompile Include="source\Helper\DSScreen.cpp" />
     <ClCompile Include="source\Helper\Host.cpp" />
+    <ClCompile Include="source\Helper\HostedUI.cpp" />
     <ClCompile Include="source\Helper\Initialization.cpp" />
     <ClCompile Include="source\Helper\InputManager.cpp" />
     <ClCompile Include="source\Helper\ScreenBuffer.cpp" />

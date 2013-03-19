@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4017
+\version r4028
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-03-11 10:37 +0800
+	2013-03-19 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,12 +245,17 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 			if(IsVisible(boxTextInfo))
 				boxTextInfo.UpdateData(reader);
 		},
-		mhMain.Roots[&boxReader.btnMenu] = 1u,
-		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&& e){
-			if(mhMain.IsShowing(1u))
-				mhMain.Hide(1u);
+		mhMain.Roots[&boxReader.btnMenu] = 1U,
+		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&&){
+			if(mhMain.IsShowing(1U))
+				mhMain.Hide(1U);
 			else
-				ShowMenu(1u, e);
+			{
+				const auto& pt(LocateForWidget(GetDesktopDown(),
+					boxReader.btnMenu));
+
+				ShowMenu(1U, Point(pt.X, pt.Y - mhMain[1U].GetHeight()));
+			}
 		},
 		FetchEvent<Click>(boxReader.btnSetting) += [this](TouchEventArgs&&){
 			Execute(MR_Setting);
@@ -430,7 +435,7 @@ ShlTextReader::Scroll()
 }
 
 void
-ShlTextReader::ShowMenu(Menu::ID id, const Point&)
+ShlTextReader::ShowMenu(Menu::ID id, const Point& pt)
 {
 	if(!mhMain.IsShowing(id))
 	{
@@ -446,6 +451,7 @@ ShlTextReader::ShowMenu(Menu::ID id, const Point&)
 			mnu.SetItemEnabled(MR_ScreenUp, !reader.IsTextTop());
 			mnu.SetItemEnabled(MR_ScreenDown, !reader.IsTextBottom());
 		}
+		SetLocationOf(mnu, pt);
 		mhMain.Show(id);
 	}
 }

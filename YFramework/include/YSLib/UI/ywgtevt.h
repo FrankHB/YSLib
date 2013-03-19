@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1292
+\version r1294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-03-13 12:57 +0800
+	2013-03-18 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,7 +169,8 @@ public:
 \warning 非虚析构。
 \since 早于 build 132
 */
-struct YF_API TouchEventArgs : public InputEventArgs, public MScreenPositionEventArgs
+struct YF_API TouchEventArgs : public InputEventArgs,
+	public MScreenPositionEventArgs
 {
 public:
 	typedef Drawing::Point InputType; //!< 输入类型。

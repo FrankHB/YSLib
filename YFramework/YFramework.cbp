@@ -63,6 +63,8 @@
 		<Unit filename="include/CHRLib/encoding.h" />
 		<Unit filename="include/CHRLib/smap.hpp" />
 		<Unit filename="include/Helper/DSMain.h" />
+		<Unit filename="include/Helper/HostWindow.h" />
+		<Unit filename="include/Helper/HostedUI.h" />
 		<Unit filename="include/Helper/Initialization.h" />
 		<Unit filename="include/Helper/InputManager.h" />
 		<Unit filename="include/Helper/ShellHelper.h" />
@@ -238,8 +240,12 @@
 		<Unit filename="source/Helper/DSScreen.h" />
 		<Unit filename="source/Helper/Host.cpp" />
 		<Unit filename="source/Helper/Host.h" />
+		<Unit filename="source/Helper/HostWindow.cpp" />
+		<Unit filename="source/Helper/HostedUI.cpp" />
 		<Unit filename="source/Helper/Initialization.cpp" />
 		<Unit filename="source/Helper/InputManager.cpp" />
+		<Unit filename="source/Helper/ScreenBuffer.cpp" />
+		<Unit filename="source/Helper/ScreenBuffer.h" />
 		<Unit filename="source/Helper/ShellHelper.cpp" />
 		<Unit filename="source/Helper/shlds.cpp" />
 		<Unit filename="source/Helper/yglobal.cpp" />

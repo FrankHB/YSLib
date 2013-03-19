@@ -1,8 +1,18 @@
-# DS Makefile for YFramework -> DS by Franksoft 2009 - 2012
-# CodePage = ANSI / GBK
-# CTime = 2009-12-18 12:27:40 +0800
-# UTime = 2012-12-27 13:35 +0800
-# Version = r1856
+#
+#	Copyright by FrankHB 2009 - 2013.
+#
+#	This file is part of the YSLib project, and may only be used,
+#	modified, and distributed under the terms of the YSLib project
+#	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+#	this file you indicate that you have read the license and
+#	understand and accept it fully.
+#
+# DS Makefile for YFramework -> ARM9
+# Version = r1870
+# Created = 2009-12-18 12:27:40 +0800
+# Updated = 2013-03-17 18:45 +0800
+# Encoding = ANSI
+
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -73,10 +83,10 @@ ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
 else
 ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -D_GLIBCXX_DEBUG
+CFLAGS	+=	-g -O0 -fno-omit-frame-pointer -D_GLIBCXX_DEBUG
 endif
 
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++0x \
+CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++11 \
  			-Wctor-dtor-privacy -Wsign-promo
 # 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 

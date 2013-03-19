@@ -1,8 +1,18 @@
-# DS Makefile for YShell -> ARM9 by Franksoft 2009 - 2012
-# CodePage = ANSI / GBK
-# CTime = 2009-12-18 12:27:40 +0800
-# UTime = 2012-12-27 13:33 +0800
-# Version = r1266
+#
+#	Copyright by FrankHB 2009 - 2013.
+#
+#	This file is part of the YSLib project, and may only be used,
+#	modified, and distributed under the terms of the YSLib project
+#	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+#	this file you indicate that you have read the license and
+#	understand and accept it fully.
+#
+# DS Makefile for YShell Test -> ARM9
+# Version = r1280
+# Created = 2009-12-18 12:27:40 +0800
+# Updated = 2013-03-17 18:44 +0800
+# Encoding = ANSI
+
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
@@ -60,12 +70,12 @@ ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
 else
 ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -D_GLIBCXX_DEBUG
+CFLAGS	+=	-g -O0 -fno-omit-frame-pointer  -D_GLIBCXX_DEBUG
 LDFLAGS	+=	-g
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit \
- 			-std=gnu++0x -Wctor-dtor-privacy -Wsign-promo
+ 			-std=c++11 -Wctor-dtor-privacy -Wsign-promo
 # 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 
 #CFLAGS	:=	-g -Wformat=2 -Winline -Wall \

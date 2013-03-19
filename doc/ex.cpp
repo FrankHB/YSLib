@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5105 *build 388 rev *
+\version r5115 *build 389 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-17 00:34 +0800
+	2013-03-19 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -413,131 +413,86 @@ $using:
 
 $DONE:
 r1:
-/ @ defined(YCL_HOSTED) @ \lib Helper $=
-(
-	/ \impl @ \mf InputManager::Update @ \impl \u InputManager,
-	/ \impl @ \mf ShlDS::OnGotMessage @ \impl \u Shell_DS
-);
++ \u HostedUI["HostedUI.h", "HostedUI.cpp"] @ \dir Helper,
++ typedef ::HWND NativeWindowHandle @ platform MinGW32 @ \h DSMain,
+* passing \arg missing forwarding for rvalue \ref @ \impl
+	@ \ctor \t (WindowThread, HostRenderer) @ \h Host $since b384;
++ \f YF_API unique_ptr<UI::BufferedRenderer> MakeHostRenderer(UI::IWidget&,
+	std::function<NativeWindowHandle()>) @ \ns Host @ \u HostedUI;
 /= test 1 @ platform MinGW32;
 
 r2:
+/ \impl @ \u Host ^ Host::NativeWindowHandle ~ Host::Window::NativeHandle;
+- typedef Window::NativeHandle @ \impl \u Host;
 /= test 2 @ platform MinGW32;
 
 r3:
-/ @ \u Host $=
++ \mac \def YB_HAS_ALIGNAS @ \h YDefinition @ YB_IMPL_GNUCPP >= 40800,
 (
-	/ \mf \vt Drawing::Point AdjustCursor(platform::CursorInfo&) const ynothrow
-		@ \cl Window -> \mf \vt Drawing::Rect GetInputBounds() const ynothrow,
-	/ \tr @ \mf AdjustCursor \or -> \mf GetInputBounds \or
-		@ \cl DSWindow @ \impl \u
-),
-/ \impl @ \mf InputManager::Update @ defined(YCL_HOSTED)
-	@ \impl \u InputManager;
-* out-of-bound touch event transferred @ platform MinGW32 $since b377;
-/= test 3 @ platform MinGW32;
+	/ \impl @ \f GetEntryType @ \un \ns @ \impl \u Shells ^ (std::strcmp,
+		range_based for) ~ ::strcasecmp to remove dependency on non-ISO C++;
+	/ @ makefile @ platform DS $=
+	(
+		+ '-fno-omit-frame-pointer' @ \conf debug @ \a \proj,
+		/ \a '-pedantic' @ $CFLAGS -> 'pedantic-errors',
+		/ \a '-std=c++0x' @ $CXXFLAGS -> '-std=c++11',
+		/ \a '-std=gnu++0x' @ $CXXFLAGS -> '-std=c++11'
+	)
+	// Thus all projects are now strictly conforming to C++.
+);
+/= test 3 @ platform DS;
 
 r4:
-/= test 4 @ platform MinGW32;
+/= test 4 @ platform DS ^ \conf release;
 
 r5:
-* narrowing \conv @ \impl @ \mf Window::GetInputBounds $since r3;
++ \u HostWindow["HostWindow.h", "HostWindow.cpp"] @ \dir Helper;
+/ \cl Host::Window @ \u Host -> \u HostWindow,
+/ \inc \h (DSMain, NativeAPI) @ \h Host -> \h HostWindow;
 /= test 5 @ platform MinGW32;
 
 r6:
-/ \ns YSLib::Components => YSLib::UI,
-/ \ns YSLib::DS::Components => YSLib::DS::UI,
-/ \a YSL_INC_UI_YCOMP_H_ => YSL_INC_UI_ycomp_h_,
-/ \a INC_YREADER_HEXVIEWER_H_ => INC_YReader_HexBrowser_h_,
-/ \a INC_YREADER_SHELLS_H_ => INC_YReader_Shells_h_,
-/ \a INC_YREADER_COLORPICKER_H_ => INC_YReader_ColorPicker_h_,
-/ \a YSL_INC_UI_YWINDOW_H_ => YSL_INC_UI_ywindow_h_,
-/ \a YSL_INC_UI_YDESKTOP_H_ => YSL_INC_UI_ydesktop_h_,
-/ \a YSL_INC_UI_YWIDGET_H_ => YSL_INC_UI_ywidget_h_,
-/ \a YSL_INC_UI_YUICONT_H_ => YSL_INC_UI_yuicont_h_,
-/ \a YSL_INC_UI_YFOCUS_HPP_ => YSL_INC_UI_yfocus_h_,
-/ \a YSL_INC_UI_YPANEL_H_ => YSL_INC_UI_ypanel_h_,
-/ \a YSL_INC_UI_YGUI_H_ => YSL_INC_UI_ygui_h_,
-/ \a YSL_INC_UI_YCONSOLE_H_ => YSL_INC_UI_Console_h_,
-/ \a YSL_INC_UI_BORDER_H_ => YSL_INC_UI_YBrush_h_,
-/ \a YSL_INC_UI_MENU_H_ => YSL_INC_UI_menu_h_,
-/ \a YSL_INC_UI_WIDGETITERATION_H_ => YSL_INC_UI_WidgetIteration_h_,
-/ \a YSL_INC_UI_FORM_H_ => YSL_INC_UI_form_h_,
-/ \a YSL_INC_UI_COMBOLIST_H_ => YSL_INC_UI_ComboList_h_,
-/ \a YSL_INC_UI_VIEWER_HPP_ => YSL_INC_UI_viewer_hpp_,
-/ \a YSL_INC_UI_LABEL_H_ => YSL_INC_UI_label_h_,
-/ \a YSL_INC_UI_BUTTON_H_ => YSL_INC_UI_button_h_,
-/ \a YSL_INC_UI_UICONTX_H_ => YSL_INC_UI_uicontx_h_,
-/ \a YSL_INC_CORE_YSDEF_H_ => YSL_INC_Core_ysder_h_,
-/ \a YSL_INC_UI_TEXTAREA_H_ => YSL_INC_UI_textarea_h_,
-/ \a YSL_INC_UI_SELECTOR_H_ => YSL_INC_UI_Selector_h_,
-/ \a YSL_INC_UI_SCROLL_H_ => YSL_INC_UI_scroll_h_,
-/ \a YSL_INC_UI_PROGRESS_H_ => YSL_INC_UI_progress_h_,
-/= test 6 @ platform MinGW32;
+/= test 6 @ platform MinGW32 ^ \conf release;
 
-r7:
-/ @ \h YShellDefinition $=
+r7-r8:
+/ @ \u HostedUI $=
 (
-	- \ns UI;
-	- \pre \decl @ \cl Desktop
+	+ \f YF_API UI::BufferedRenderer* GetHostRendererPtrOf(UI::IWidget&),
+	+ \f YF_API Window* GetWindowPtrOf(UI::IWidget&)
 ),
-(
-	+ \inc \h YMessageDefinition @ \h YComponent;
-	/ 'DefMessageTarget(SM_PAINT, shared_ptr<Desktop>)' @ \ns Messaging
-		@ \h YMissagDefinition -> 'DefMessageTarget(SM_PAINT,
-		shared_ptr<UI::IWidget>)' @ \ns Messaging @ \h YComponent,
-),
-/ \a YSL_INC_CORE_YSMSGDEF_H_ => YSL_INC_CORE_ymsgdef_h_,
-/ \tr @ \h YGlobal;
-/= test 7 @ platform MinGW32;
-
-r8:
-/= test 8 @ platform DS ^ \conf release;
+/= 2 test 7 @ platform MinGW32;
 
 r9:
-- redundant '#undef YWindowAssert' @ \h YWindow,
-/ @ \u Host $=
++ YF_API @ \cl Host::Window @ \h HostWindow;
+/= test 8 @ platform MinGW32;
+
+r10-r12:
+/ enabled menu positioning @ \cl ShlTextReader @ \impl \u ShlReader $=
 (
-	/ \mf \vt Drawing::Rect GetInputBounds() const ynothrow
-		@ \cl (Window, DSWindow) @ \u Host -> \mf \vt
-		pair<Drawing::Point, Drawing::Point> GetInputBounds() const ynothrow,
-	/ \tr \impl @ \mf InputManager::Update
+	/ \impl @ \ms ShowMenu,
+	/ \impl @ \ctor
 );
-/= test 9 @ platform MinGW32;
+/= 3 test 9 @ platform MinGW32;
 
-r10:
-/= test 10 @ platform MinGW32;
-
-r11:
-/ @ \u Host $=
-(
-	+ \f void ResizeWindow(::HWND, SDst, SDst) @ \un \ns @ \impl \u;
-	/ @ \cl Window $=
-	(
-		+ \mf void Resize(const Drawing::Size&),
-		+ \mf void ResizeClient(const Drawing::Size&)
-	)
-);
-/= test 11 @ platform MinGW32;
-
-r12-r15:
-/= 4 test 12 @ platform MinGW32;
-
-r16:
-/= test 13 @ platform MinGW32 ^ \conf release;
+r13-r16:
+/= 4 test 10 @ platform MinGW32;
 
 r17:
-/= test 14 @ platform DS;
+/= test 11 @ platform MinGW32 ^ \conf release;
 
 r18:
-/= test 15 @ platform DS ^ \conf release;
+/= test 12 @ platform DS;
+
+r19:
+/= test 13 @ platform DS ^ \conf release;
 
 
 $DOING:
 
 $relative_process:
-2013-03-17 +0800:
--40.5d;
-// Mercurial local rev1-rev260: r10269;
+2013-03-19 +0800:
+-39.1d;
+// Mercurial local rev1-rev261: r10288;
 
 / ...
 
@@ -600,7 +555,11 @@ b[683]:
 / project structure $=
 (
 	/ $low_prior build command @ \a \conf @ \proj YBase,
-	+ Microsoft Windows(MinGW32) port with free hosted window size and styles,
+	/ Microsoft Windows(MinGW32) port $=
+	(
+		+ free hosted window styles,
+		+ host desktop abstraction
+	),
 	/ improved tests and examples
 );
 / $low_prior improved memory and file APIs @ \lib YCLib $=
@@ -946,10 +905,13 @@ $HISTORY:
 	and probably multiple revisions.
 // '$end_at $version' is the last revision of the valid remained result. \
 	After this revision, the transformed content was abandoned.
-// The interval is the revision(s) of transformation in progress. End '$now' \
+// The interval is the revision(s) of transformation in progress, but not \
+	necessarily containing the modifying except for the boundary. End '$now' \
 	means the migration is not end yet.
 $long_term_code_evolution $=
 (
+	"copyright notice and head formatting for makefiles"
+		$interval([b389, $now]),
 	"new include header guard identifier scheme" $interval([b381, $now]),
 	"new copyright title and author mail address with whitespace per file"
 		$interval([b369, $now]),
@@ -1080,7 +1042,9 @@ $module_tree $=
 			'Shell_DS'; // shells for DS;
 			'DSMain', // DS main unit;
 			'Initialization', // initialization;
-			'InputManager' // input manager;
+			'InputManager' // input manager;,
+			'HostWindow',
+			'HostedUI'
 		),
 		'NPL'
 		(
@@ -1105,6 +1069,41 @@ $module_tree $=
 );
 
 $now
+(
+	/ @ "platform %MinGW32" @ %'YFramework'.'Helper' $=
+	(
+		+ "unit %HostedUI for operating hosted widgets",
+		+ "typedef %NativeWindowHandle" @ "header %DSMain.h",
+		* DLD "missing passing forwarding arguments for rvalues"
+			@ "constructor templates" @ "classes %(WindowThread, HostRenderer)"
+			@ "internal header %Host" 
+		+ "unit %HostWindow for with public class %Host::Window for \
+			operating hosted widgets",
+	)
+	+ "macro %YB_HAS_ALIGNAS when the keyword %alignas supported by \
+		G++ since 4.8.0" @ %'YBase'.'YDefinition',
+	/ %'YReader' $=
+	(
+		(
+			/ "removed POSIX %::strcasecmp dependency" @ 'shells test example',
+			$dep_to "POSIX dependency removal";
+		),
+		/ "ennabled positioning for menu" @ %'text reader'
+	)
+	/ "makefiles" @ "platform $DS" $=
+	(
+		^ "explicit '-fno-omit-frame-pointer'" @ "%CFLAGS"
+			@ "debug configuration",
+		^ '-pedantic_errors' ~ '-pedantic' @ "%CFLAGS",
+		(
+			$dep_from "POSIX dependency removal";
+			^ "'-std=c++11'" ~ "'-std=c++0x', '-std=gnu++0x'"
+		)
+		// Thus all projects are now strictly conforming to C++.
+	)
+),
+
+b388
 (
 	/ %'YFramework' $=
 	(

@@ -69,6 +69,7 @@
     <Filter Include="文档">
       <UniqueIdentifier>{13193de8-2c62-4701-b8d9-520168a94ed9}</UniqueIdentifier>
       <Extensions>txt;htm;html;xml;doc;vsd</Extensions>
+      <ParseFiles>false</ParseFiles>
     </Filter>
     <Filter Include="头文件\freetype">
       <UniqueIdentifier>{e84ea4d1-fce8-4bb2-ac44-79d5a2876533}</UniqueIdentifier>
@@ -664,6 +665,12 @@
     <ClInclude Include="source\Helper\ScreenBuffer.h">
       <Filter>头文件\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="include\Helper\HostedUI.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Helper\HostWindow.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -886,6 +893,9 @@
       <Filter>源文件\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\Helper\ScreenBuffer.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\HostedUI.cpp">
       <Filter>源文件\Helper</Filter>
     </ClCompile>
   </ItemGroup>
