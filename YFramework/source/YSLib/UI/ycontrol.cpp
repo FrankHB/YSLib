@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3714
+\version r3718
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-03-13 13:14 +0800
+	2013-03-19 18:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,7 @@ OnKey_Bound_TouchUpAndLeave(KeyEventArgs&& e)
 {
 	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		TouchEventArgs et(*pCtl, TouchEventArgs::Invalid);
+		TouchEventArgs et(*pCtl, e.Keys, TouchEventArgs::Invalid);
 
 		CallEvent<TouchUp>(*pCtl, et);
 		CallEvent<Leave>(*pCtl, et);
@@ -185,7 +185,7 @@ OnKey_Bound_EnterAndTouchDown(KeyEventArgs&& e)
 {
 	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		TouchEventArgs et(*pCtl, TouchEventArgs::Invalid);
+		TouchEventArgs et(*pCtl, e.Keys, TouchEventArgs::Invalid);
 
 		CallEvent<Enter>(*pCtl, et);
 		CallEvent<TouchDown>(*pCtl, et);
@@ -198,7 +198,7 @@ OnKey_Bound_Click(KeyEventArgs&& e)
 {
 	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		TouchEventArgs et(*pCtl, TouchEventArgs::Invalid);
+		TouchEventArgs et(*pCtl, e.Keys, TouchEventArgs::Invalid);
 
 		CallEvent<Click>(*pCtl, et);
 		e.Handled = true;
@@ -228,6 +228,7 @@ Control::Control(const Rect& r, NoBackgroundTag)
 	const auto h([this](UIEventArgs&&){
 		Invalidate(*this);
 	});
+
 	yunseq(
 		FetchEvent<Move>(*this) += h,
 		FetchEvent<Resize>(*this) += h,

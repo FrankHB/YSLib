@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r134
+\version r137
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-03-13 13:24 +0800
+	2013-03-19 15:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,9 +43,9 @@ KeyEventArgs::KeyEventArgs(IWidget& wgt, const InputType& k, RoutingStrategy s)
 {}
 
 
-TouchEventArgs::TouchEventArgs(IWidget& wgt, const InputType& pt,
-	RoutingStrategy s)
-	: InputEventArgs(wgt, 0, s), MScreenPositionEventArgs(pt)
+TouchEventArgs::TouchEventArgs(IWidget& wgt, const KeyInput& k,
+	const InputType& pt, RoutingStrategy s)
+	: InputEventArgs(wgt, k, s), MScreenPositionEventArgs(pt)
 {}
 
 

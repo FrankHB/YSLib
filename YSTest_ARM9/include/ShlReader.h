@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1667
+\version r1670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-01-15 19:30 +0800
+	2013-03-20 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,13 +25,13 @@
 */
 
 
-#ifndef INC_YREADER_SHLREADER_H_
-#define INC_YREADER_SHLREADER_H_ 1
+#ifndef INC_YReader_ShlReader_h_
+#define INC_YReader_ShlReader_h_ 1
 
 #include "Shells.h"
 #include "DSReader.h"
 #include "HexBrowser.h"
-#include "ReaderSetting.h"
+#include "ReaderSettingUI.h"
 #include "ReadingList.h"
 
 YSL_BEGIN_NAMESPACE(YReader)

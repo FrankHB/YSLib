@@ -19,52 +19,76 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\DSReader.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Shells.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\HexBrowser.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ShlReader.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ColorPicker.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ReaderSetting.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ReadingList.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\DSReader.h">
+    <ClInclude Include="include\About.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="include\Shells.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HexBrowser.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ShlReader.h">
+    <ClInclude Include="include\BookMarkListUI.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\ColorPicker.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\DSReader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HexBrowser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="include\ReaderSetting.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ReaderSettingUI.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\ReadingList.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\Shells.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ShlExplorer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ShlReader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\About.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\BookMarkListUI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ColorPicker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\DSReader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\HexBrowser.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ReaderSetting.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ReaderSettingUI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ReadingList.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Shells.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ShlExplorer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ShlReader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

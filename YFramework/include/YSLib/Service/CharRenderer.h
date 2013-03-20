@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2719
+\version r2722
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-07 16:09 +0800
+	2013-03-20 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_SERVICE_CHARRENDERER_H_
-#define YSL_INC_SERVICE_CHARRENDERER_H_ 1
+#ifndef YSL_INC_Service_CharRenderer_h_
+#define YSL_INC_Service_CharRenderer_h_ 1
 
 #include "TextBase.h"
 #include "YSLib/Service/yblit.h"
@@ -117,7 +117,6 @@ PutCharBase(TextState&, SDst, ucs4_t);
 \return 遇到行内无法容纳而换行时返回非零值，否则返回 0 。
 \note 处理换行符。
 \note 当行内无法容纳完整字符时换行。
-\see TextState::AdjustRightMarginForBounds
 \since build 190
 */
 template<class _tRenderer>

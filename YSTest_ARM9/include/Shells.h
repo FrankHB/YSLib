@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2832
+\version r2889
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-03-13 12:45 +0800
+	2013-03-20 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,67 +67,9 @@ using platform::YDebugSetStatus;
 shared_ptr<Image>&
 FetchImage(size_t);
 
-
-/*!
-\brief 关于窗体。
-\since build 363
-*/
-class FrmAbout : public Form
-{
-protected:
-	Label lblTitle, lblVersion, lblCopyright;
-	Button btnClose, btnExit;
-
-public:
-	FrmAbout();
-};
-
-
-class ShlExplorer : public ShlDS
-{
-protected:
-	//! \since build 363
-	//@{
-	Label lblTitle, lblPath;
-	/*!
-	\brief 信息标签：说明用户操作内容等。
-	*/
-	Label lblInfo;
-	FileBox fbMain;
-	Button btnTest, btnOK;
-	Button btnMenu;
-	DialogPanel pnlSetting;
-	CheckButton cbHex, cbFPS;
-	/*!
-	\brief 复选按钮：指定开启切换背景时的预览。
-	*/
-	CheckButton cbPreview;
-	Label lblDragTest;
-	Button btnEnterTest, btnTestEx, btnPrevBackground, btnNextBackground;
-	unique_ptr<FrmAbout> pFrmAbout;
-	MenuHost mhMain;
-	FPSCounter fpsCounter;
-	//@}
-
-public:
-	/*!
-	\brief 构造：使用指定路径。
-	\pre 参数为合法路径。
-	\since build 301
-	*/
-	ShlExplorer(const IO::Path& = IO::GetNowDirectory());
-
-	/*!
-	\brief 处理绘制消息：更新到屏幕并刷新 FPS 。
-	\since build 289
-	*/
-	void
-	OnPaint() override;
-
-private:
-	IWidget*
-	GetBoundControlPtr(const KeyInput&);
-};
+//! \since build 390
+double
+FetchImageLoadTime();
 
 YSL_END_NAMESPACE(YReader)
 

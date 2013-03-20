@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5115 *build 389 rev *
+\version r5124 *build 389 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-19 12:52 +0800
+	2013-03-20 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -413,85 +413,99 @@ $using:
 
 $DONE:
 r1:
-+ \u HostedUI["HostedUI.h", "HostedUI.cpp"] @ \dir Helper,
-+ typedef ::HWND NativeWindowHandle @ platform MinGW32 @ \h DSMain,
-* passing \arg missing forwarding for rvalue \ref @ \impl
-	@ \ctor \t (WindowThread, HostRenderer) @ \h Host $since b384;
-+ \f YF_API unique_ptr<UI::BufferedRenderer> MakeHostRenderer(UI::IWidget&,
-	std::function<NativeWindowHandle()>) @ \ns Host @ \u HostedUI;
+/ \ctor TouchEventArgs(IWidget&, const InputType&, RoutingStrategy = Direct)
+	@ \u YWidgetEvent -> \ctor TouchEventArgs(IWidget&, const KeyInput&,
+	const InputType& = {}, RoutingStrategy = Direct),
+/ \tr \impl @ \f (OnKey_Bound_TouchUpAndLeave, OnKey_Bound_EnterAndTouchDown,
+	OnKey_Bound_Click) @ \impl \u YControl,
+/ \tr \impl @ \mf GUIState::ResponseTouchBase @ \impl \u YGUI,
+/ \tr \impl @ \mf InputManager::DispatchInput @ \impl \u InputManager,
+/ \tr \impl @ \ctor ShlTextReader @ \impl \u ShlReader;
 /= test 1 @ platform MinGW32;
 
 r2:
-/ \impl @ \u Host ^ Host::NativeWindowHandle ~ Host::Window::NativeHandle;
-- typedef Window::NativeHandle @ \impl \u Host;
+/ \impl @ \mf InputManager::DispatchInput @ platform MinGW32
+	@ \impl \u InputManager,
+/ \impl @ \mf ShlTextReader::OnClick @ platform MinGW32 @ \impl \u ShlReader;
 /= test 2 @ platform MinGW32;
 
 r3:
-+ \mac \def YB_HAS_ALIGNAS @ \h YDefinition @ YB_IMPL_GNUCPP >= 40800,
-(
-	/ \impl @ \f GetEntryType @ \un \ns @ \impl \u Shells ^ (std::strcmp,
-		range_based for) ~ ::strcasecmp to remove dependency on non-ISO C++;
-	/ @ makefile @ platform DS $=
-	(
-		+ '-fno-omit-frame-pointer' @ \conf debug @ \a \proj,
-		/ \a '-pedantic' @ $CFLAGS -> 'pedantic-errors',
-		/ \a '-std=c++0x' @ $CXXFLAGS -> '-std=c++11',
-		/ \a '-std=gnu++0x' @ $CXXFLAGS -> '-std=c++11'
-	)
-	// Thus all projects are now strictly conforming to C++.
-);
-/= test 3 @ platform DS;
+/ \impl @ \mf InputManager::Update @ platform MinGW32 @ \impl \u InputManager;
+/= test 3 @ platform MinGW32;
 
-r4:
-/= test 4 @ platform DS ^ \conf release;
+r4-r7:
+/ \simp \impl @ \mf ShlTextReader::ShowMenu @ \impl \u ShlReader,
+/= 4 test 4 @ platform MinGW32;
 
-r5:
-+ \u HostWindow["HostWindow.h", "HostWindow.cpp"] @ \dir Helper;
-/ \cl Host::Window @ \u Host -> \u HostWindow,
-/ \inc \h (DSMain, NativeAPI) @ \h Host -> \h HostWindow;
+r8:
 /= test 5 @ platform MinGW32;
 
-r6:
-/= test 6 @ platform MinGW32 ^ \conf release;
-
-r7-r8:
-/ @ \u HostedUI $=
-(
-	+ \f YF_API UI::BufferedRenderer* GetHostRendererPtrOf(UI::IWidget&),
-	+ \f YF_API Window* GetWindowPtrOf(UI::IWidget&)
-),
-/= 2 test 7 @ platform MinGW32;
-
 r9:
-+ YF_API @ \cl Host::Window @ \h HostWindow;
+* wrongly took (height ~ width, Y-coordinate ~ X-coordinate)
+	@ \f AdjustEndOfLine @ \h TextBase $since b372,
+/ \tr \impl @ \mf TextList::DrawItems $since b372;
+* $comp missing top right text shown @ context menu @ text reader $since r4;
+/= test 6 @ platform MinGW32;
+
+r10:
+/= test 7 @ platform MinGW32 ^ \conf release;
+
+r11:
+/ \a YSL_INC_SERVICE_TEXTBASE_H_ => YSL_INC_Service_TextBase_h_,
+/ \a INC_YREADER_READERSETTING_H_ => INC_YReader_ReaderSetting_h_,
+/ @ \proj YSTest $=
+(
+	+ \u ReaderSettingUI["ReaderSettingUI.h", "ReaderSettingUI.cpp"];
+	/ @ \u ReaderSetting $=
+	(
+		/ \inc \h ColorPicker >> \h ReaderSettingUI,
+		/ (\f FetchEncodingString, \cl SettingPanel) >> \u ReaderSettingUI,
+		- \inc \h Iterator
+	)
+),
+/ \tr \inc \h ReaderSetting @ \h ShlReader -> ReaderSettingUI,
+- \inc \h Iterator @ \u ShlReader;
 /= test 8 @ platform MinGW32;
 
-r10-r12:
-/ enabled menu positioning @ \cl ShlTextReader @ \impl \u ShlReader $=
+r12:
+/ \a YSL_INC_SERVICE_CHARRENDERER_H_ => YSL_INC_Service_CharRenderer_h_,
+/ \a INC_YREADER_SHLREADER_H_ => INC_YReader_ShlReader_h_,
+/ @ \proj YSTest $=
 (
-	/ \impl @ \ms ShowMenu,
-	/ \impl @ \ctor
-);
-/= 3 test 9 @ platform MinGW32;
+	(
+		+ \u About["About.h", "About.cpp"];
+		/ \cl FrmAbout @ \u Shells >> \u About
+	),
+	(
+		+ \u ShlExplorer["ShlExplorer.h", "ShlExplorer.cpp"],
+		+ \f FetchImageLoadTime @ \u Shells;
+		/ \cl ShlExplorer @ \u Shells >> \u ShlExplorer
+	)
+),
+/ \inc \h Shells @ \impl \u Main_ARM9 -> \h ShlExplorer,
++ \inc \h ShlExplorer @ \impl \u Shells;
+/= test 9 @ platform MinGW32;
 
-r13-r16:
-/= 4 test 10 @ platform MinGW32;
+r13:
++ \u BookMarkListUI["BookMarkListUI.h", "BookMarkListUI.cpp"] @ \proj YSTest;
+/= test 10 @ platform MinGW32;
 
-r17:
+r14:
 /= test 11 @ platform MinGW32 ^ \conf release;
 
-r18:
+r15:
 /= test 12 @ platform DS;
 
-r19:
+r16:
 /= test 13 @ platform DS ^ \conf release;
 
 
 $DOING:
+r13
 
 $relative_process:
-2013-03-19 +0800:
--39.1d;
+2013-03-20 +0800:
+-37.6d;
 // Mercurial local rev1-rev261: r10288;
 
 / ...
@@ -1070,6 +1084,63 @@ $module_tree $=
 
 $now
 (
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'UI'.'GUI' $=
+			(
+				(
+					/ "constructor" @ "class %TouchEventArgs to support key \
+						input argument";
+					/ "key input transmitted for touching" @ ("functions \
+						%(OnKey_Bound_TouchUpAndLeave, \
+						OnKey_Bound_EnterAndTouchDown, OnKey_Bound_Click)",
+						"member function %GUIState::ResponseTouchBase");
+					$dep_to "key input transmitted for touching",
+				)
+				(
+					* "wrongly passed height" ~ "width" @ "member function \
+						%TextList::DrawItems" $since b372;
+					$dep_to "wrong invalidate area of text list"
+				)
+			),
+			(
+				* "wrongly took" ("height" ~ "width", "Y-coordinate"
+					~ "X-coordinate") @ "function %AdjustEndOfLine"
+					@ "header %TextBase" @ %'Service' $since b372,
+				$dep_to "wrong EOL adjusting"
+			)
+		)
+		/ %'Helper' $=
+		(
+			$dep_from "key input transmitted for touching";
+			/ "key input transmitted for touching supported"
+				@ "class %InputManager";
+			$dep_to "dispatched key input transmitted for touching"
+		)
+	),
+	/ %'YReader' $=
+	(
+		/ %'text reader' $=
+		(
+			(
+				$dep_from "dispatched key input transmitted for touching";
+				+ "context menu support"
+			),
+			(
+				$dep_from "wrong invalidate area of text list",
+				$dep_from "wrong EOL adjusting";
+				* $comp "missing top right text shown" @ "context menu"
+					@  $since b372
+			)
+		),
+		+ $dev "unit %(About, ShlExplorer, ReaderSettingUI, BookMarkListUI)"
+	)
+),
+
+b389
+(
 	/ @ "platform %MinGW32" @ %'YFramework'.'Helper' $=
 	(
 		+ "unit %HostedUI for operating hosted widgets",
@@ -1618,8 +1689,8 @@ b373
 			)
 		),
 		(
-			* "wrongly took height instead of width" @ "function \
-				%AdjustEndOfLine" @ "header %TextBase" @ %'GDI' $since b372;
+			* "wrongly took height" ~ "width" @ "function %AdjustEndOfLine"
+				@ "header %TextBase" @ %'Service' $since b372;
 			$dep_to "wrong invalidate area of text list"
 		)
 	),
@@ -1630,7 +1701,7 @@ b373
 		(
 			$dep_from "wrong invalidate area of text list";
 			* $comp "missing top right text shown" @ "text list"
-				@ %'ReaderSetting' $since b372;
+				@ %'ReaderSetting' $since b372
 		)
 	)
 ),
@@ -1672,7 +1743,7 @@ b372
 		),
 		* "missing setting right margin"
 			@ "member function %TextList::DrawItems" @ %'UI'.'GUI' $since b371
-			// Missing of reasonable right margin might cause necessary time \
+			// Missing of reasonable right margin might cause unnecessary time \
 				penalty for long string because the end-of-line checking in \
 				%PutChar would not be applied in time, though no visible \
 				difference if the boundary had been set properly.
@@ -1685,14 +1756,14 @@ b371
 		REFERENCES_RELATION, CALL_GRAPH, CALLER_GRAPH) on" @ "Doxygen file",
 	/ $doc "Doxygen comments" @ %'YBase' $=
 	(
-		* $doc "missing escaping '\#'" @ "URL" @ 'YStandardEx'.'Any'
+		* $doc "missing escaping '\#'" @ "URL" @ "comment" @ 'YStandardEx'.'Any'
 			$since b331,
 		(
 			/ $dev "allowed single line exceeding 80 characters for URLs \
 				for sources";
-			* $comp "backslash" @ "EOL" @ "URL" @ (%'YStandardEx'.'Any'
-				$since b331, 'YStandardEx'.'TypeOperations' $since b333,
-				'YDefinition' $since b245),
+			* $comp "backslash" @ "EOL" @ "URL" @ "comment" @ (
+				%'YStandardEx'.'Any' $since b331, 'YStandardEx'.'TypeOperations'
+				$since b333, 'YDefinition' $since b245),
 		),
 	),
 	/ %'YFramework' $=

@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2687
+\version r2693
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-14 02:19 +0800
+	2013-03-20 14:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_SERVICE_TEXTBASE_H_
-#define YSL_INC_SERVICE_TEXTBASE_H_ 1
+#ifndef YSL_INC_Service_TextBase_h_
+#define YSL_INC_Service_TextBase_h_ 1
 
 #include "ygdi.h"
 #include "../Adaptor/Font.h"
@@ -208,18 +208,17 @@ YF_API void
 SetCurrentTextLineNOf(TextState&, u16);
 
 /*!
-\brief 按指定显示区域和文本区域的高重新设置右边距。
+\brief 按指定显示区域和文本区域的宽重新设置右边距。
 \note 右边距参与行的结尾位置计算。
 \note 单独使用时，需要设置笔的起始位置（横坐标），否则只适用于单行显示。
-\see TextState::AdjustMarginForBound 。
 \see PutChar 。
 \since build 372
 */
 inline void
-AdjustEndOfLine(TextState& ts, const Rect& r, SDst h)
+AdjustEndOfLine(TextState& ts, const Rect& r, SDst w)
 {
 //	ts.Margin = FetchMargin(r, s);
-	ts.Margin.Right = h - r.Y - r.Width;
+	ts.Margin.Right = w - r.X - r.Width;
 }
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4028
+\version r4044
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-03-19 12:17 +0800
+	2013-03-20 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#include <ShlReader.h>
-#include <ystdex/iterator.hpp>
+#include "ShlReader.h"
+#include "ShlExplorer.h"
 
 YSL_BEGIN_NAMESPACE(YReader)
 
@@ -350,7 +350,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	UpdateButtons();
 	//置默认视图。
 	// TODO: Associate view setting state for user selection.
-	OnClick(TouchEventArgs(dsk_dn));
+	OnClick(TouchEventArgs(dsk_dn, 0));
 	RequestFocusCascade(dsk_dn);
 }
 
@@ -441,7 +441,6 @@ ShlTextReader::ShowMenu(Menu::ID id, const Point& pt)
 	{
 		auto& mnu(mhMain[id]);
 
-		SetLocationOf(mnu, Point()),
 		mnu.ClearSelected();
 		switch(id)
 		{
@@ -499,8 +498,19 @@ ShlTextReader::UpdateButtons()
 }
 
 void
+#if YCL_MINGW32
+ShlTextReader::OnClick(TouchEventArgs&& e)
+#else
 ShlTextReader::OnClick(TouchEventArgs&&)
+#endif
 {
+#if YCL_MINGW32
+	if(e.Keys[VK_RBUTTON])
+	{
+		ShowMenu(1U, e);
+		return;
+	}
+#endif
 	if(tmrScroll.IsActive())
 	{
 		StopAutoScroll();

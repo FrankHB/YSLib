@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1699
+\version r1700
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-03-13 12:46 +0800
+	2013-03-20 21:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@
 //#define USE_EFS
 
 //包含文件。
-#include "Shells.h"
+#include "ShlExplorer.h"
 
 using namespace platform;
 using std::puts;

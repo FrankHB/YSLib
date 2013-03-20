@@ -14,23 +14,31 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\About.h" />
+    <ClInclude Include="include\BookMarkListUI.h" />
+    <ClInclude Include="include\ColorPicker.h" />
+    <ClInclude Include="include\DSReader.h" />
+    <ClInclude Include="include\HexBrowser.h" />
+    <ClInclude Include="include\ReaderSetting.h" />
+    <ClInclude Include="include\ReaderSettingUI.h" />
+    <ClInclude Include="include\ReadingList.h" />
+    <ClInclude Include="include\Shells.h" />
+    <ClInclude Include="include\ShlExplorer.h" />
+    <ClInclude Include="include\ShlReader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\About.cpp" />
+    <ClCompile Include="source\BookMarkListUI.cpp" />
     <ClCompile Include="source\ColorPicker.cpp" />
     <ClCompile Include="source\DSReader.cpp" />
     <ClCompile Include="source\HexBrowser.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\ReaderSetting.cpp" />
+    <ClCompile Include="source\ReaderSettingUI.cpp" />
     <ClCompile Include="source\ReadingList.cpp" />
     <ClCompile Include="source\Shells.cpp" />
+    <ClCompile Include="source\ShlExplorer.cpp" />
     <ClCompile Include="source\ShlReader.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\ColorPicker.h" />
-    <ClInclude Include="include\DSReader.h" />
-    <ClInclude Include="include\HexBrowser.h" />
-    <ClInclude Include="include\ReaderSetting.h" />
-    <ClInclude Include="include\ReadingList.h" />
-    <ClInclude Include="include\Shells.h" />
-    <ClInclude Include="include\ShlReader.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{501944E8-ADCC-40E6-87F0-08816CFAA343}</ProjectGuid>
