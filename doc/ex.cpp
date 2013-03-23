@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5124 *build 389 rev *
+\version r5126 *build 391 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-20 22:49 +0800
+	2013-03-23 09:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -413,100 +413,130 @@ $using:
 
 $DONE:
 r1:
-/ \ctor TouchEventArgs(IWidget&, const InputType&, RoutingStrategy = Direct)
-	@ \u YWidgetEvent -> \ctor TouchEventArgs(IWidget&, const KeyInput&,
-	const InputType& = {}, RoutingStrategy = Direct),
-/ \tr \impl @ \f (OnKey_Bound_TouchUpAndLeave, OnKey_Bound_EnterAndTouchDown,
-	OnKey_Bound_Click) @ \impl \u YControl,
-/ \tr \impl @ \mf GUIState::ResponseTouchBase @ \impl \u YGUI,
-/ \tr \impl @ \mf InputManager::DispatchInput @ \impl \u InputManager,
-/ \tr \impl @ \ctor ShlTextReader @ \impl \u ShlReader;
+/ @ \proj YSTest $=
+(
+	/ \u BookMarkListUI => BookmarkUI,
+	/ \inc \h Shells @ \h BookmarkUI -> ReadingList,
+	/ \a INC_YReader_BookMarkListUI_h_ => INC_YReader_BookmarkUI_h_,
+	/ \cl BookMark @ \u ReadingList => Bookmark
+);
 /= test 1 @ platform MinGW32;
 
 r2:
-/ \impl @ \mf InputManager::DispatchInput @ platform MinGW32
-	@ \impl \u InputManager,
-/ \impl @ \mf ShlTextReader::OnClick @ platform MinGW32 @ \impl \u ShlReader;
+/ @ \h ReadingList $=
+(
+	/ @ \cl Bookmark $=
+	(
+		+ typedef size_t PositionType;
+		/ \tp @ (\m size_t Position) -> PositionType
+	);
+	+ typedef vector<Bookmark::PositionType> BookmarkList
+);
 /= test 2 @ platform MinGW32;
 
 r3:
-/ \impl @ \mf InputManager::Update @ platform MinGW32 @ \impl \u InputManager;
++ \cl BookmarkListPanel @ \u BookmarkUI,
+/ @ \u ComboList $=
+(
+	/ \m lstText @ \cl ListBox => tlContent,
+	/ \m boxList @ \cl DropDownList => lbContent
+);
 /= test 3 @ platform MinGW32;
 
-r4-r7:
-/ \simp \impl @ \mf ShlTextReader::ShowMenu @ \impl \u ShlReader,
-/= 4 test 4 @ platform MinGW32;
+r4:
+/ @ \u BookmarkUI $=
+(
+	/ \cl BookmarkListPanel => BookmarkPanel;
+	/ \m bookmark_list @ \cl BookmarkPanel => bookmarks
+)
+/ @ \u ShlReader $=
+(
+	/ \inc \h ReadingList @ \h => BookmarkUI;
+	/ @ \cl ShlTextReader $=
+	(
+		+ private \m BookmarkList bookmarks,
+		+ protected \m BookmarkPanel pnlBookmark,
+		/ \tr \impl @ \ctor
+	),
+	* wrong UI instruction on \ctor FileInfoPanel @ platform MinGW32 $since b299
+);
+/= test 4 @ platform MinGW32;
+
+r5-r6:
+/ @ \u ShlReader $=
+(
+	/ @ \cl ReaderBox $=
+	(
+		+ \m btnBookmark,
+		/ \tr \impl @ \ctor
+	);
+	/ @ \impl \u $=
+	(
+		/ @ \en MNU_READER @ \un \ns;
+		/ \impl @ (\ctor, \mf Execute) @ \cl ShlReader
+	)
+),
+/= 2 test 5 @ platform MinGW32;
+
+r7:
+/= test 6 @ platform MinGW32 ^ \conf release;
 
 r8:
-/= test 5 @ platform MinGW32;
+* missing updated widget range @ \cl ReaderBox @ \h ShlReader $since r5;
+/= test 7 @ platform MinGW32;
 
 r9:
-* wrongly took (height ~ width, Y-coordinate ~ X-coordinate)
-	@ \f AdjustEndOfLine @ \h TextBase $since b372,
-/ \tr \impl @ \mf TextList::DrawItems $since b372;
-* $comp missing top right text shown @ context menu @ text reader $since r4;
-/= test 6 @ platform MinGW32;
-
-r10:
-/= test 7 @ platform MinGW32 ^ \conf release;
-
-r11:
-/ \a YSL_INC_SERVICE_TEXTBASE_H_ => YSL_INC_Service_TextBase_h_,
-/ \a INC_YREADER_READERSETTING_H_ => INC_YReader_ReaderSetting_h_,
-/ @ \proj YSTest $=
++ \clt GShellSession @ \h ShellHelper;
+/ @ \cl ShlTextReader @ \u ShlReader $=
 (
-	+ \u ReaderSettingUI["ReaderSettingUI.h", "ReaderSettingUI.cpp"];
-	/ @ \u ReaderSetting $=
-	(
-		/ \inc \h ColorPicker >> \h ReaderSettingUI,
-		/ (\f FetchEncodingString, \cl SettingPanel) >> \u ReaderSettingUI,
-		- \inc \h Iterator
-	)
-),
-/ \tr \inc \h ReaderSetting @ \h ShlReader -> ReaderSettingUI,
-- \inc \h Iterator @ \u ShlReader;
+	+ private \mf (BeginSession_PrepareSetting,
+		BeginSession_StopAutoScrollAndHide, EndSession_RemoveSettingWidgets,
+		EndSession_RestoreReader);
+	+ private \cl SettingSession, BookmarkSession;
+	+ private \m unique_ptr<SettingSession> setting_session_ptr,
+	+ private \m unique_ptr<BookmarkSession> bookmark_session_ptr;
+	/ \simp \impl @ (\ctor, \mf)
+);
 /= test 8 @ platform MinGW32;
 
-r12:
-/ \a YSL_INC_SERVICE_CHARRENDERER_H_ => YSL_INC_Service_CharRenderer_h_,
-/ \a INC_YREADER_SHLREADER_H_ => INC_YReader_ShlReader_h_,
-/ @ \proj YSTest $=
-(
-	(
-		+ \u About["About.h", "About.cpp"];
-		/ \cl FrmAbout @ \u Shells >> \u About
-	),
-	(
-		+ \u ShlExplorer["ShlExplorer.h", "ShlExplorer.cpp"],
-		+ \f FetchImageLoadTime @ \u Shells;
-		/ \cl ShlExplorer @ \u Shells >> \u ShlExplorer
-	)
-),
-/ \inc \h Shells @ \impl \u Main_ARM9 -> \h ShlExplorer,
-+ \inc \h ShlExplorer @ \impl \u Shells;
-/= test 9 @ platform MinGW32;
+r10-r16:
+/= 7 test 9 @ platform MinGW32;
 
-r13:
-+ \u BookMarkListUI["BookMarkListUI.h", "BookMarkListUI.cpp"] @ \proj YSTest;
+r17:
+/ @ \cl ShlTextReader @ \u ShlReader $=
+(
+	+ private \cl BaseSession;
+	/ @ \m \cl (SettingSession, BookmarkSession) $=
+	(
+		/ \inh GShellSession<ShlTextReader> -> BaseSession,
+		/ \simp \impl @ (\ctor, \dtor)
+	),
+	/ private \m (unique_ptr<SettingSession> setting_session_ptr,
+		unique_ptr<BookmarkSession> bookmark_session_ptr)
+		-> unique_ptr<BaseSession> session_ptr,
+	/ \mg \a private \mf (Begin*, End*)
+		-> \cl (SettingSession, BookmarkSession),
+	/ \tr \impl @ \ctor,
+	/ \tr \impl @ \mf Execute
+);
 /= test 10 @ platform MinGW32;
 
-r14:
+r18:
 /= test 11 @ platform MinGW32 ^ \conf release;
 
-r15:
+r19:
 /= test 12 @ platform DS;
 
-r16:
+r20:
 /= test 13 @ platform DS ^ \conf release;
 
 
 $DOING:
-r13
 
 $relative_process:
-2013-03-20 +0800:
--37.6d;
-// Mercurial local rev1-rev261: r10288;
+2013-03-23 +0800:
+-37.0d;
+// Mercurial local rev1-rev263: r10324;
 
 / ...
 
@@ -1084,6 +1114,36 @@ $module_tree $=
 
 $now
 (
+	/ %'YReader'.'text reader' $=
+	(
+		(
+			/ "unit %BookMarkListUI" => "%BookmarkUI",
+			+ "bookmark panel";
+				// No bookmark loading and saving, to be implemented.
+			+ "menu item and reader box button for bookmark panel"
+		),
+		(
+			$dep_from "shell session",
+			/ $dev "simplified implementation" ^ "sessions"
+		);
+		+ $dev "bookmark session"
+	),
+	/ %'YFramework' $=
+	(
+		(
+			+ "class template %GShellSession" @ %'Helper'.'ShellHelper';
+			$dep_to "shell session"
+		)
+		/ $dev %'YFramework'.'YSLib'.'UI'.'GUI' $=
+		(
+			"protected member %lstText" @ "class %ListBox" => "%tlContent",
+			"protected member %boxList" @ "class %DropDownList" => "%lbContent"
+		)
+	)
+),
+
+b390
+(
 	/ %'YFramework' $=
 	(
 		/ %'YSLib' $=
@@ -1638,8 +1698,8 @@ b374
 	),
 	* $repo "wrong Mercurial tag ID"
 		@ b225 $since "e35dc355a207[2011-07-19, local rev 98]",
-	/ $dev "protected member Thumb" @ "class %Thumb"
-		@ %'YFramework'.'YSLib'.'UI'.'GUI' => "tmbScroll"
+	/ $dev "protected member %Thumb" @ "class %Thumb"
+		@ %'YFramework'.'YSLib'.'UI'.'GUI' => "%tmbScroll"
 ),
 
 b373

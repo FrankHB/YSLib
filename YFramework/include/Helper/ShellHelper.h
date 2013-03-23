@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1577
+\version r1597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-03-13 13:22 +0800
+	2013-03-22 00:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,33 @@ public:
 #else
 #	define YSL_DEBUG_DECL_TIMER(...)
 #endif
+
+
+/*!
+\brief Shell 连接会话。
+\since build 391
+*/
+template<class _tShell, typename _tConnection = std::reference_wrapper<_tShell>>
+class GShellSession
+{
+public:
+	typedef _tShell Shell;
+	typedef _tConnection Connection;
+
+private:
+	Connection conn;
+
+public:
+	template<typename... _tParam>
+	GShellSession(_tParam&&... args)
+		: conn(yforward(args)...)
+	{}
+
+	virtual DefEmptyDtor(GShellSession)
+
+	DefGetter(const ynothrow, _tShell&, Shell, conn)
+};
+
 
 YSL_BEGIN_NAMESPACE(Drawing)
 

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1670
+\version r1713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-03-20 21:03 +0800
+	2013-03-23 08:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "DSReader.h"
 #include "HexBrowser.h"
 #include "ReaderSettingUI.h"
-#include "ReadingList.h"
+#include "BookmarkUI.h"
 
 YSL_BEGIN_NAMESPACE(YReader)
 
@@ -61,6 +61,11 @@ public:
 	*/
 	Button btnInfo;
 	/*!
+	\brief 书签管理按钮。
+	\since build 391
+	*/
+	Button btnBookmark;
+	/*!
 	\brief 返回按钮。
 	\since build 274
 	*/
@@ -81,8 +86,8 @@ public:
 	ReaderBox(const Rect&);
 
 	//! \since build 357
-	DefWidgetMemberIteration(btnMenu, btnSetting, btnInfo, btnReturn, btnPrev,
-		btnNext, pbReader, lblProgress)
+	DefWidgetMemberIteration(btnMenu, btnSetting, btnInfo, btnBookmark,
+		btnReturn, btnPrev, btnNext, pbReader, lblProgress)
 
 private:
 	//! \since build 374
@@ -201,6 +206,28 @@ public:
 */
 class ShlTextReader : public ShlReader
 {
+private:
+	//! \since build 391
+	//@{
+	class BaseSession : public GShellSession<ShlTextReader>
+	{
+	public:
+		BaseSession(ShlTextReader&);
+		~BaseSession() override;
+	};
+	class SettingSession : public BaseSession
+	{
+	public:
+		SettingSession(ShlTextReader&);
+		~SettingSession() override;
+	};
+	class BookmarkSession : public BaseSession
+	{
+	public:
+		BookmarkSession(ShlTextReader&);
+	};
+	//@}
+
 public:
 	/*!
 	\brief 近期浏览记录。
@@ -212,6 +239,13 @@ public:
 	\since build 334
 	*/
 	ReaderSetting CurrentSetting;
+
+private:
+	/*!
+	\brief 当前打开文件的书签列表。
+	\since build 391
+	*/
+	BookmarkList bookmarks;
 
 protected:
 	/*!
@@ -235,6 +269,15 @@ protected:
 	unique_ptr<TextFile> pTextFile;
 	MenuHost mhMain;
 	//@}
+	/*!
+	\brief 书签管理面板。
+	\since build 391
+	*/
+	BookmarkPanel pnlBookmark;
+
+private:
+	//! \since build 391
+	unique_ptr<BaseSession> session_ptr;
 
 public:
 	/*!

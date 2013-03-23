@@ -22,9 +22,6 @@
     <ClInclude Include="include\About.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="include\BookMarkListUI.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="include\ColorPicker.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -52,12 +49,12 @@
     <ClInclude Include="include\ShlReader.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\BookmarkUI.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\About.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="source\BookMarkListUI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="source\ColorPicker.cpp">
@@ -88,6 +85,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="source\ShlReader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="source\BookmarkUI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

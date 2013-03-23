@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\About.h" />
-    <ClInclude Include="include\BookMarkListUI.h" />
+    <ClInclude Include="include\BookmarkUI.h" />
     <ClInclude Include="include\ColorPicker.h" />
     <ClInclude Include="include\DSReader.h" />
     <ClInclude Include="include\HexBrowser.h" />
@@ -28,7 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\About.cpp" />
-    <ClCompile Include="source\BookMarkListUI.cpp" />
+    <ClCompile Include="source\BookmarkUI.cpp" />
     <ClCompile Include="source\ColorPicker.cpp" />
     <ClCompile Include="source\DSReader.cpp" />
     <ClCompile Include="source\HexBrowser.cpp" />

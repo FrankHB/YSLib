@@ -11,13 +11,13 @@
 /*!	\file ReadingList.cpp
 \ingroup YReader
 \brief 阅读列表。
-\version r95
+\version r96
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:27 +0800
 \par 修改时间:
-	2013-02-14 15:12 +0800
+	2013-03-21 18:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ ReadingList::Insert(const IO::Path& pth, size_t pos)
 	reading_list.emplace(now_reading, pth, pos);
 }
 
-BookMark
+Bookmark
 ReadingList::Switch(bool is_prev)
 {
 	if(is_prev)

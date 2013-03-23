@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7551
+\version r7552
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-20 19:36 +0800
+	2013-03-21 08:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,7 +201,7 @@ Shell 和 Core 的关系是相对的，例如：
  Shell 实体（简称 Shell ）是一种包含状态的有限片段控制流抽象，是动态映像(@1.5.1.1) 或静态映像(@1.5.1.2) 之一。
 
 @1.4.3 会话(session) ：
-会话是连接对象([Documentation::CommonRules @@2.5.4]) 或其它会话具有直接所有权的实体集合。
+会话是连接对象([Documentation::CommonRules @@2.5.4]) 或其它会话具有直接所有权的实体集合，通常用于在一段时间间隔内跟踪连接的客户端的操作。
 
 @1.4.3.1 网络通信会话：
 网络通信会话是半持久化的数据交换的抽象。

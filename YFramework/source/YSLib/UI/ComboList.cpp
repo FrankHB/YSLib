@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3014
+\version r3051
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2013-03-13 13:16 +0800
+	2013-03-21 19:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,42 +57,43 @@ namespace
 
 ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	: ScrollableContainer(r),
-	lstText(Rect(r.GetSize()), h)
+	tlContent(Rect(r.GetSize()), h)
 {
 	Background = nullptr,
-	SetContainerPtrOf(lstText, this),
+	SetContainerPtrOf(tlContent, this),
 	vsbVertical.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
-		lstText.LocateViewPosition(SDst(round(e.GetValue())));
+		tlContent.LocateViewPosition(SDst(round(e.GetValue())));
 	},
-	lstText.GetViewChanged() += [this](ViewArgs&& e){
+	tlContent.GetViewChanged() += [this](ViewArgs&& e){
 		if(!e.Value && GetWidth() > defMinScrollBarWidth)
 		{
 			const Size view_arena(GetWidth() - defMinScrollBarWidth,
-				lstText.GetFullViewHeight());
+				tlContent.GetFullViewHeight());
 
-			SetSizeOf(lstText, FixLayout(view_arena));
-			if(view_arena.Height > lstText.GetHeight())
+			SetSizeOf(tlContent, FixLayout(view_arena));
+			if(view_arena.Height > tlContent.GetHeight())
 			{
-				vsbVertical.SetSmallDelta(lstText.GetItemHeight());
+				vsbVertical.SetSmallDelta(tlContent.GetItemHeight());
 				vsbVertical.SetMaxValue(view_arena.Height
-					- lstText.GetHeight());
-				vsbVertical.SetLargeDelta(lstText.GetHeight());
-				vsbVertical.SetValue(lstText.GetViewPosition());
+					- tlContent.GetHeight());
+				vsbVertical.SetLargeDelta(tlContent.GetHeight());
+				vsbVertical.SetValue(tlContent.GetViewPosition());
 			}
 		}
 	},
-	RequestFocus(lstText);
+	RequestFocus(tlContent);
 	//刷新文本状态，防止第一次绘制时无法正确决定是否需要滚动条。
-	lstText.RefreshTextState();
+	tlContent.RefreshTextState();
 }
 
 void
 ListBox::ResizeForPreferred(const Size& sup, Size s)
 {
 	if(s.Width == 0)
-		s.Width = lstText.GetMaxTextWidth() + GetHorizontalOf(lstText.Margin);
+		s.Width = tlContent.GetMaxTextWidth()
+			+ GetHorizontalOf(tlContent.Margin);
 	if(s.Height == 0)
-		s.Height = lstText.GetFullViewHeight();
+		s.Height = tlContent.GetFullViewHeight();
 	if(sup.Width != 0 && s.Width > sup.Width)
 		s.Width = sup.Width;
 	if(sup.Height != 0 && s.Height > sup.Height)
@@ -102,8 +103,8 @@ ListBox::ResizeForPreferred(const Size& sup, Size s)
 			s.Width = sup.Width;
 	}
 	SetSizeOf(*this, s);
-	SetSizeOf(lstText, FixLayout(s));
-	lstText.UpdateView();
+	SetSizeOf(tlContent, FixLayout(s));
+	tlContent.UpdateView();
 }
 
 
@@ -139,7 +140,7 @@ FileBox::SetPath(const IO::Path& pth)
 
 DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 	: Button(r),
-	boxList(Rect(), h)
+	lbContent(Rect(), h)
 {
 	const auto detacher([this](UIEventArgs&&){
 		DetachTopWidget();
@@ -149,9 +150,9 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 		Margin.Left = 4,
 		Margin.Right = 18,
 		HorizontalAlignment = TextAlignment::Left,
-		boxList.GetView().DependencyPtr = this,
+		lbContent.GetView().DependencyPtr = this,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
-			if(!FetchContainerPtr(boxList))
+			if(!FetchContainerPtr(lbContent))
 			{
 				Point pt;
 
@@ -165,36 +166,37 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 
 					if(IsInOpenInterval(h1, h0) || IsInOpenInterval(h2, h0))
 					{
-						boxList.ResizeForPreferred(Size(0, max(h1, h2)),
+						lbContent.ResizeForPreferred(Size(0, max(h1, h2)),
 							Size(GetWidth(), 0));
 
-						const SDst h(boxList.GetHeight());
+						const SDst h(lbContent.GetHeight());
 
 						// NOTE: Bottom space is preferred.
 						pt.Y += h2 < h ? -h : GetHeight();
-						SetLocationOf(boxList, pt);
-						boxList.AdjustViewLength();
+						SetLocationOf(lbContent, pt);
+						lbContent.AdjustViewLength();
 						{
-							const auto idx(boxList.Find(Text));
+							const auto idx(lbContent.Find(Text));
 
 							if(idx + 1 != 0)
-								boxList.SetSelected(idx);
+								lbContent.SetSelected(idx);
 							else
-								boxList.ClearSelected();
+								lbContent.ClearSelected();
 						}
-						p->Add(boxList, 224U); // TODO: Use non-magic number.
-						RequestFocus(boxList);
+						p->Add(lbContent, 224U); // TODO: Use non-magic number.
+						RequestFocus(lbContent);
 						e.Handled = true;
 					}
 				}
 			}
 		},
 		FetchEvent<LostFocus>(*this) += detacher,
-		FetchEvent<LostFocus>(boxList) += detacher,
-		boxList.GetConfirmed() += [this](IndexEventArgs&& e){
-			YAssert(e.Value < boxList.GetList().size(), "Invalid index found.");
+		FetchEvent<LostFocus>(lbContent) += detacher,
+		lbContent.GetConfirmed() += [this](IndexEventArgs&& e){
+			YAssert(e.Value < lbContent.GetList().size(),
+				"Invalid index found.");
 
-			Text = boxList.GetList()[e.Value];
+			Text = lbContent.GetList()[e.Value];
 			Invalidate(*this),
 			DetachTopWidget();
 		}
@@ -208,7 +210,7 @@ DropDownList::~DropDownList()
 void
 DropDownList::DetachTopWidget()
 {
-	Detach(FetchContainerPtr(boxList), boxList);
+	Detach(FetchContainerPtr(lbContent), lbContent);
 }
 
 void
@@ -216,7 +218,7 @@ DropDownList::Refresh(PaintEventArgs&& e)
 {
 	bool b(bPressed);
 
-	bPressed = bPressed || FetchContainerPtr(boxList);
+	bPressed = bPressed || FetchContainerPtr(lbContent);
 	Button::Refresh(std::move(e));
 	bPressed = b;
 	DrawArrow(e.Target, Rect(e.Location + Vec(GetWidth() - 16, 0),

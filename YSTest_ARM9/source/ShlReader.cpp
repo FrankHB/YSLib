@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4044
+\version r4143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-03-20 21:31 +0800
+	2013-03-23 08:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,8 @@ enum MNU_READER : Menu::IndexType
 	MR_Return = 0,
 	MR_Setting,
 	MR_FileInfo,
+	//! \since build 391
+	MR_Bookmark,
 	MR_LineUp,
 	MR_LineDown,
 	MR_ScreenUp,
@@ -57,17 +59,19 @@ enum MNU_READER : Menu::IndexType
 ReaderBox::ReaderBox(const Rect& r)
 	: Control(r),
 	btnMenu(Rect(4, 12, 16, 16)), btnSetting(Rect(24, 12, 16, 16)),
-	btnInfo(Rect(44, 12, 16, 16)), btnReturn(Rect(64, 12, 16, 16)),
-	btnPrev(Rect(84, 12, 16, 16)), btnNext(Rect(104, 12, 16, 16)),
+	btnInfo(Rect(44, 12, 16, 16)), btnBookmark(Rect(64, 12, 16, 16)),
+	btnReturn(Rect(84, 12, 16, 16)),
+	btnPrev(Rect(104, 12, 16, 16)), btnNext(Rect(124, 12, 16, 16)),
 	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
 {
 	Background = nullptr,
 	SetRenderer(make_unique<BufferedRenderer>()),
-	unseq_apply(ContainerSetter(*this), btnMenu, btnSetting,
-		btnInfo, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
+	unseq_apply(ContainerSetter(*this), btnMenu, btnSetting, btnInfo,
+		btnBookmark, btnReturn, btnPrev, btnNext, pbReader, lblProgress);
 	SetBufferRendererAndText(btnMenu, u"M"),
 	SetBufferRendererAndText(btnSetting, u"S"),
 	SetBufferRendererAndText(btnInfo, u"I"),
+	SetBufferRendererAndText(btnBookmark, u"B"),
 	SetBufferRendererAndText(btnReturn, u"R"),
 	SetBufferRendererAndText(btnPrev, u"←"),
 	SetBufferRendererAndText(btnNext, u"→");
@@ -156,7 +160,11 @@ FileInfoPanel::FileInfoPanel()
 	lblOperations(Rect(8, 120, 240, 16))
 {
 	Background = SolidBrush(ColorSpace::Silver);
+#if YCL_DS
 	lblOperations.Text = "<↑↓> 滚动一行 <LR> 滚动一屏 <B>退出";
+#else
+	lblOperations.Text = "<↑↓> 滚动一行 <LR> 滚动一屏 <Esc>退出";
+#endif
 	AddWidgets(*this, lblPath, lblSize, lblAccessTime, lblModifiedTime,
 		lblOperations);
 }
@@ -216,28 +224,88 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 }
 
 
+ShlTextReader::BaseSession::BaseSession(ShlTextReader& shl)
+	: GShellSession<ShlTextReader>(shl)
+{
+	shl.StopAutoScroll(),
+	Hide(shl.boxReader),
+	Hide(shl.boxTextInfo);
+}
+ShlTextReader::BaseSession::~BaseSession()
+{
+	auto& shl(GetShell());
+
+	shl.reader.SetVisible(true),
+	shl.boxReader.UpdateData(shl.reader),
+	shl.boxTextInfo.UpdateData(shl.reader),
+	Show(shl.boxReader);
+}
+
+
+ShlTextReader::SettingSession::SettingSession(ShlTextReader& shl)
+	: BaseSession(shl)
+{
+	auto& dsk_up(shl.GetDesktopUp());
+	auto& dsk_dn(shl.GetDesktopDown());
+	auto& reader(shl.reader);
+	auto& CurrentSetting(shl.CurrentSetting);
+	auto& pnlSetting(shl.pnlSetting);
+
+	shl.reader.SetVisible(false),
+	yunseq(CurrentSetting.UpColor = dsk_up.Background
+		.target<SolidBrush>()->Color, CurrentSetting.DownColor
+		= dsk_dn.Background.target<SolidBrush>()->Color,
+		CurrentSetting.FontColor = reader.GetColor(),
+		CurrentSetting.Font = reader.GetFont());
+	AddWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
+	{
+		using ystdex::get_key;
+
+		size_t i(std::find(Encodings | get_key,
+			(Encodings + arrlen(Encodings)) | get_key,
+			reader.GetEncoding()) - Encodings);
+
+		if(i == arrlen(Encodings))
+			i = 0;
+		yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(i),
+			pnlSetting.ddlEncoding.Text = Encodings[i].second);
+	}
+	Show(pnlSetting << CurrentSetting);
+}
+ShlTextReader::SettingSession::~SettingSession()
+{
+	auto& shl(GetShell());
+
+	RemoveWidgets(shl.GetDesktopUp(),
+		shl.pnlSetting.lblAreaUp, shl.pnlSetting.lblAreaDown);
+}
+
+
+ShlTextReader::BookmarkSession::BookmarkSession(ShlTextReader& shl)
+	: BaseSession(shl)
+{
+	Show(shl.pnlBookmark);
+}
+
+
 ShlTextReader::ShlTextReader(const IO::Path& pth)
 	: ShlReader(pth),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
-	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
+	CurrentSetting(LoadGlobalConfiguration()), bookmarks(), tmrScroll(
 	CurrentSetting.GetTimerSetting()), tmrInput(), reader(),
 	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
-	pTextFile(), mhMain(GetDesktopDown())
+	pTextFile(), mhMain(GetDesktopDown()), pnlBookmark(bookmarks), session_ptr()
 {
 	using ystdex::get_key;
 
-	const auto exit_setting([this](TouchEventArgs&&){
-		RemoveWidgets(GetDesktopUp(),
-			pnlSetting.lblAreaUp, pnlSetting.lblAreaDown),
-		reader.SetVisible(true),
-		boxReader.UpdateData(reader),
-		boxTextInfo.UpdateData(reader),
-		Show(boxReader);
+	const auto exit_session([this](TouchEventArgs&&){
+		session_ptr.reset();
 	});
 
 	SetVisibleOf(boxReader, false),
 	SetVisibleOf(boxTextInfo, false),
-	SetVisibleOf(pnlSetting, false);
+	SetVisibleOf(pnlSetting, false),
+	SetVisibleOf(pnlBookmark, false);
 	yunseq(
 		reader.ViewChanged = [this]{
 			if(IsVisible(boxReader))
@@ -262,6 +330,9 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		},
 		FetchEvent<Click>(boxReader.btnInfo) += [this](TouchEventArgs&&){
 			Execute(MR_FileInfo);
+		},
+		FetchEvent<Click>(boxReader.btnBookmark) += [this](TouchEventArgs&&){
+			Execute(MR_Bookmark);
 		},
 		FetchEvent<Click>(boxReader.btnReturn) += [this](TouchEventArgs&&){
 			Execute(MR_Return);
@@ -299,7 +370,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 				- reader.GetTopPosition()) * w / mval), pb.GetHeight() - 2),
 				ColorSpace::Yellow);
 		},
-		FetchEvent<Click>(pnlSetting.btnClose) += exit_setting,
+		FetchEvent<Click>(pnlSetting.btnClose) += exit_session,
 		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](TouchEventArgs&&){
 			pnlSetting >> CurrentSetting;
 			tmrScroll.SetInterval(CurrentSetting.GetTimerSetting());
@@ -317,12 +388,14 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 						&pr.first->GetRenderer()))
 						Invalidate(*pr.first);
 		},
-		FetchEvent<Click>(pnlSetting.btnOK) += exit_setting
+		FetchEvent<Click>(pnlSetting.btnOK) += exit_session,
+		FetchEvent<Click>(pnlBookmark.btnClose) += exit_session,
+		FetchEvent<Click>(pnlBookmark.btnOK) += exit_session
 	);
 	{
 		Menu& mnu(*(ynew Menu(Rect(), shared_ptr<Menu::ListType>(new
-			Menu::ListType{"返回", "设置...", "文件信息...", "向上一行",
-			"向下一行", "向上一屏", "向下一屏"}), 1u)));
+			Menu::ListType{"返回", "设置...", "文件信息...", "书签...",
+			"向上一行", "向下一行", "向上一屏", "向下一屏"}), 1u)));
 
 		mnu.GetConfirmed() += [this](IndexEventArgs&& e){
 			Execute(e.Value);
@@ -344,7 +417,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		FetchEvent<KeyHeld>(dsk_dn) += OnEvent_Call<KeyDown>
 	);
 	reader.Attach(dsk_up, dsk_dn),
-	AddWidgets(dsk_dn, boxReader, boxTextInfo, pnlSetting);
+	AddWidgets(dsk_dn, boxReader, boxTextInfo, pnlSetting, pnlBookmark);
 	LoadFile(pth);
 	LastRead.DropSubsequent();
 	UpdateButtons();
@@ -369,30 +442,10 @@ ShlTextReader::Execute(IndexEventArgs::ValueType idx)
 		Exit();
 		break;
 	case MR_Setting:
-		reader.SetVisible(false),
-		yunseq(CurrentSetting.UpColor = GetDesktopUp().Background
-			.target<SolidBrush>()->Color, CurrentSetting.DownColor
-			= GetDesktopDown().Background.target<SolidBrush>()->Color,
-			CurrentSetting.FontColor = reader.GetColor(),
-			CurrentSetting.Font = reader.GetFont());
-		AddWidgets(GetDesktopUp(),
-			pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
-		{
-			using ystdex::get_key;
-
-			size_t i(std::find(Encodings | get_key,
-				(Encodings + arrlen(Encodings)) | get_key,
-				reader.GetEncoding()) - Encodings);
-
-			if(i == arrlen(Encodings))
-				i = 0;
-			yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(i),
-				pnlSetting.ddlEncoding.Text = Encodings[i].second);
-		}
-		StopAutoScroll(),
-		Hide(boxReader),
-		Hide(boxTextInfo),
-		Show(pnlSetting << CurrentSetting);
+		session_ptr.reset(new SettingSession(*this));
+		break;
+	case MR_Bookmark:
+		session_ptr.reset(new BookmarkSession(*this));
 		break;
 	case MR_FileInfo:
 		boxTextInfo.UpdateData(reader);

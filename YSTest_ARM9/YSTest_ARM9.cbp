@@ -56,7 +56,7 @@
 		</Compiler>
 		<Unit filename="Makefile" />
 		<Unit filename="include/About.h" />
-		<Unit filename="include/BookMarkListUI.h" />
+		<Unit filename="include/BookmarkUI.h" />
 		<Unit filename="include/ColorPicker.h" />
 		<Unit filename="include/DSReader.h" />
 		<Unit filename="include/HexBrowser.h" />
@@ -67,7 +67,7 @@
 		<Unit filename="include/ShlExplorer.h" />
 		<Unit filename="include/ShlReader.h" />
 		<Unit filename="source/About.cpp" />
-		<Unit filename="source/BookMarkListUI.cpp" />
+		<Unit filename="source/BookmarkUI.cpp" />
 		<Unit filename="source/ColorPicker.cpp" />
 		<Unit filename="source/DSReader.cpp" />
 		<Unit filename="source/HexBrowser.cpp" />

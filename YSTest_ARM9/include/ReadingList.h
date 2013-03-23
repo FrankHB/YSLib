@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r156
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2013-01-15 00:42 +0800
+	2013-03-21 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,19 +35,26 @@ YSL_BEGIN_NAMESPACE(YReader)
 /*!
 \brief 书签。
 \warning 非虚析构。
-\since build 286
+\since build 391
 */
-class BookMark
+class Bookmark
 {
 public:
-	IO::Path Path;
-	size_t Position;
+	/*!
+	\brief 文件位置类型。
+	\since build 391
+	*/
+	typedef size_t PositionType;
 
-	BookMark(const IO::Path& path, size_t pos)
+	IO::Path Path;
+	//! \since build 391
+	PositionType Position;
+
+	Bookmark(const IO::Path& path, size_t pos)
 		: Path(path), Position(pos)
 	{}
-	DefDeCopyCtor(BookMark)
-	DefDeMoveCtor(BookMark)
+	DefDeCopyCtor(Bookmark)
+	DefDeMoveCtor(Bookmark)
 };
 
 
@@ -56,10 +63,17 @@ public:
 \since build 286
 */
 inline bool
-operator==(const BookMark& x, const BookMark& y)
+operator==(const Bookmark& x, const Bookmark& y)
 {
 	return x.Path == y.Path && x.Position == y.Position;
 }
+
+
+/*!
+\brief 书签列表类型。
+\since build 391
+*/
+typedef vector<Bookmark::PositionType> BookmarkList;
 
 
 /*!
@@ -73,7 +87,7 @@ public:
 	/*!
 	\brief 阅读记录列表类型。
 	*/
-	typedef list<BookMark> ListType;
+	typedef list<Bookmark> ListType;
 
 private:
 	/*!
@@ -131,7 +145,7 @@ public:
 
 	后退或前进，同时移除该记录。
 	*/
-	BookMark
+	Bookmark
 	Switch(bool);
 };
 

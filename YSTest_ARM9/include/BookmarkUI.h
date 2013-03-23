@@ -8,29 +8,48 @@
 	understand and accept it fully.
 */
 
-/*!	\file BookMarkListUI.h
+/*!	\file BookmarkUI.h
 \ingroup YReader
-\brief 书签列表界面。
-\version r37
+\brief 书签界面。
+\version r59
 \author FrankHB <frankhb1989@gmail.com>
-\since build 390
+\since build 391
 \par 创建时间:
 	2013-03-20 22:11:46 +0800
 \par 修改时间:
-	2013-03-20 22:12 +0800
+	2013-03-21 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YReader::BookMarkListUI
+	YReader::BookmarkUI
 */
 
 
-#ifndef INC_YReader_BookMarkListUI_h_
-#define INC_YReader_BookMarkListUI_h_ 1
+#ifndef INC_YReader_BookmarkUI_h_
+#define INC_YReader_BookmarkUI_h_ 1
 
-#include "Shells.h"
+#include "ReadingList.h"
 
 YSL_BEGIN_NAMESPACE(YReader)
+
+/*!
+\brief 书签管理面板。
+\since build 391
+*/
+class BookmarkPanel : public DialogPanel
+{
+private:
+	std::reference_wrapper<const BookmarkList> bookmarks;
+
+protected:
+	ListBox lbPosition;
+
+public:
+	BookmarkPanel(const BookmarkList&);
+
+	BookmarkList::size_type
+	GetIndex() const;
+};
 
 YSL_END_NAMESPACE(YReader)
 

@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2457
+\version r2483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2013-03-13 13:10 +0800
+	2013-03-21 19:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,9 +58,9 @@ public:
 protected:
 	/*
 	\brief 文本列表。
-	\since build 281
+	\since build 391
 	*/
-	TextList lstText;
+	TextList tlContent;
 
 public:
 	//! \since build 337
@@ -69,35 +69,35 @@ public:
 	inline DefDeMoveCtor(ListBox)
 
 	//! \since build 357
-	DefWidgetMemberIterationBase(ScrollableContainer, lstText)
+	DefWidgetMemberIterationBase(ScrollableContainer, tlContent)
 
-	DefPredMem(const ynothrow, Selected, lstText)
+	DefPredMem(const ynothrow, Selected, tlContent)
 	PDefH(bool, Contains, ListType::size_type i)
-		ImplBodyMem(lstText, Contains, i)
+		ImplBodyMem(tlContent, Contains, i)
 
-	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, lstText)
+	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, tlContent)
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex,
-		lstText)
-	DefGetterMem(const ynothrow, ListType&, List, lstText)
-	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, lstText) \
+		tlContent)
+	DefGetterMem(const ynothrow, ListType&, List, tlContent)
+	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, tlContent) \
 		//!< 视图变更事件。
-	DefEventGetterMem(ynothrow, HIndexEvent, Selected, lstText) \
+	DefEventGetterMem(ynothrow, HIndexEvent, Selected, tlContent) \
 		//!< 项目选择状态变更事件。
-	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, lstText) \
+	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, tlContent) \
 		//!< 项目选中确定事件。
 
 	/*!
 	\brief 设置文本列表。
 	\since build 292
 	*/
-	DefSetterMem(const shared_ptr<ListType>&, List, lstText)
+	DefSetterMem(const shared_ptr<ListType>&, List, tlContent)
 	/*!
 	\brief 设置选中项。
 	\see TextList::SetSelected 。
 	\since build 285。
 	*/
 	PDefH(void, SetSelected, ListType::size_type i)
-		ImplBodyMem(lstText, SetSelected, i)
+		ImplBodyMem(tlContent, SetSelected, i)
 
 	/*!
 	\brief 调整视图长度。
@@ -105,7 +105,7 @@ public:
 	\since build 285
 	*/
 	PDefH(void, AdjustViewLength, )
-		ImplBodyMem(lstText, AdjustViewLength, )
+		ImplBodyMem(tlContent, AdjustViewLength, )
 
 	/*!
 	\brief 清除选中项。
@@ -113,7 +113,7 @@ public:
 	\since build 285
 	*/
 	PDefH(void, ClearSelected, )
-		ImplBodyMem(lstText, ClearSelected, )
+		ImplBodyMem(tlContent, ClearSelected, )
 
 	/*!
 	\brief 查找项。
@@ -121,10 +121,10 @@ public:
 	\since build 316
 	*/
 	PDefH(IndexType, Find, const ItemType& text)
-		ImplBodyMem(lstText, Find, text)
+		ImplBodyMem(tlContent, Find, text)
 
 	PDefH(void, ResetView, )
-		ImplBodyMem(lstText, ResetView, )
+		ImplBodyMem(tlContent, ResetView, )
 
 	/*!
 	\brief 按指定大小上限和内容调整大小。
@@ -136,7 +136,7 @@ public:
 	ResizeForPreferred(const Size& sup, Size s = {});
 
 	PDefH(void, UpdateView, )
-		ImplBodyMem(lstText, UpdateView, )
+		ImplBodyMem(tlContent, UpdateView, )
 };
 
 
@@ -193,7 +193,8 @@ public:
 	typedef ystdex::subscriptive_iterator<DropDownList, IWidget> Iterator;
 
 protected:
-	ListBox boxList;
+	//! \since build 391
+	ListBox lbContent;
 
 public:
 	//! \since build 337
@@ -207,30 +208,30 @@ public:
 	~DropDownList() override;
 
 	//! \since build 356
-	DefWidgetMemberIteration(boxList)
+	DefWidgetMemberIteration(lbContent)
 
-	DefGetterMem(const ynothrow, ListType&, List, boxList)
+	DefGetterMem(const ynothrow, ListType&, List, lbContent)
 	/*!
 	\brief 取视图变更事件。
 	\since build 283
 	*/
-	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, boxList)
+	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, lbContent)
 	/*!
 	\brief 取项目选择状态变更事件。
 	\since build 283
 	*/
-	DefEventGetterMem(ynothrow, HIndexEvent, Selected, boxList)
+	DefEventGetterMem(ynothrow, HIndexEvent, Selected, lbContent)
 	/*!
 	\brief 取项目选中确定事件。
 	\since build 283
 	*/
-	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, boxList)
+	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, lbContent)
 
 	/*!
 	\brief 设置文本列表。
 	\since build 292
 	*/
-	DefSetterMem(const shared_ptr<ListType>&, List, boxList)
+	DefSetterMem(const shared_ptr<ListType>&, List, lbContent)
 
 private:
 	/*!
