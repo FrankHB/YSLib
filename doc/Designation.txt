@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7552
+\version r7555
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-21 08:43 +0800
+	2013-03-23 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1423,6 +1423,8 @@ Shell 和 Core 的关系是相对的，例如：
  2012-10-06(build 346) 起：
 使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.7.2/32-bit/threads-posix/sjlj/x32-4.7.2-release-posix-sjlj-rev0.7z 。
 此版本于 2013-01-20 确认已被重命名为 x32-4.7.2-release-posix-sjlj-rev0.7z 。
+ 2013-03-23(build 392) 起：
+使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.0/32-bit/threads-posix/sjlj/x32-4.8.0-release-posix-sjlj-rev0.7z 。
 
 @5.3 通用库：
 

@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5126 *build 391 rev *
+\version r5127 *build 392 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-23 09:10 +0800
+	2013-03-24 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,7 @@
 */
 
 /*
-	NOTE: this is NOT a source file. The base name of this file is named
+	NOTE: This is NOT a source file. The base name of this file is named
 	intentionally to activate syntax highlight and other functions in an IDE
 	(specially, Visual Studio). The content is mainly about log of the
 	process of development, conformed with a set of virtual set of syntax rules
@@ -412,131 +412,15 @@ $using:
 
 
 $DONE:
-r1:
-/ @ \proj YSTest $=
-(
-	/ \u BookMarkListUI => BookmarkUI,
-	/ \inc \h Shells @ \h BookmarkUI -> ReadingList,
-	/ \a INC_YReader_BookMarkListUI_h_ => INC_YReader_BookmarkUI_h_,
-	/ \cl BookMark @ \u ReadingList => Bookmark
-);
-/= test 1 @ platform MinGW32;
-
-r2:
-/ @ \h ReadingList $=
-(
-	/ @ \cl Bookmark $=
-	(
-		+ typedef size_t PositionType;
-		/ \tp @ (\m size_t Position) -> PositionType
-	);
-	+ typedef vector<Bookmark::PositionType> BookmarkList
-);
-/= test 2 @ platform MinGW32;
-
-r3:
-+ \cl BookmarkListPanel @ \u BookmarkUI,
-/ @ \u ComboList $=
-(
-	/ \m lstText @ \cl ListBox => tlContent,
-	/ \m boxList @ \cl DropDownList => lbContent
-);
-/= test 3 @ platform MinGW32;
-
-r4:
-/ @ \u BookmarkUI $=
-(
-	/ \cl BookmarkListPanel => BookmarkPanel;
-	/ \m bookmark_list @ \cl BookmarkPanel => bookmarks
-)
-/ @ \u ShlReader $=
-(
-	/ \inc \h ReadingList @ \h => BookmarkUI;
-	/ @ \cl ShlTextReader $=
-	(
-		+ private \m BookmarkList bookmarks,
-		+ protected \m BookmarkPanel pnlBookmark,
-		/ \tr \impl @ \ctor
-	),
-	* wrong UI instruction on \ctor FileInfoPanel @ platform MinGW32 $since b299
-);
-/= test 4 @ platform MinGW32;
-
-r5-r6:
-/ @ \u ShlReader $=
-(
-	/ @ \cl ReaderBox $=
-	(
-		+ \m btnBookmark,
-		/ \tr \impl @ \ctor
-	);
-	/ @ \impl \u $=
-	(
-		/ @ \en MNU_READER @ \un \ns;
-		/ \impl @ (\ctor, \mf Execute) @ \cl ShlReader
-	)
-),
-/= 2 test 5 @ platform MinGW32;
-
-r7:
-/= test 6 @ platform MinGW32 ^ \conf release;
-
-r8:
-* missing updated widget range @ \cl ReaderBox @ \h ShlReader $since r5;
-/= test 7 @ platform MinGW32;
-
-r9:
-+ \clt GShellSession @ \h ShellHelper;
-/ @ \cl ShlTextReader @ \u ShlReader $=
-(
-	+ private \mf (BeginSession_PrepareSetting,
-		BeginSession_StopAutoScrollAndHide, EndSession_RemoveSettingWidgets,
-		EndSession_RestoreReader);
-	+ private \cl SettingSession, BookmarkSession;
-	+ private \m unique_ptr<SettingSession> setting_session_ptr,
-	+ private \m unique_ptr<BookmarkSession> bookmark_session_ptr;
-	/ \simp \impl @ (\ctor, \mf)
-);
-/= test 8 @ platform MinGW32;
-
-r10-r16:
-/= 7 test 9 @ platform MinGW32;
-
-r17:
-/ @ \cl ShlTextReader @ \u ShlReader $=
-(
-	+ private \cl BaseSession;
-	/ @ \m \cl (SettingSession, BookmarkSession) $=
-	(
-		/ \inh GShellSession<ShlTextReader> -> BaseSession,
-		/ \simp \impl @ (\ctor, \dtor)
-	),
-	/ private \m (unique_ptr<SettingSession> setting_session_ptr,
-		unique_ptr<BookmarkSession> bookmark_session_ptr)
-		-> unique_ptr<BaseSession> session_ptr,
-	/ \mg \a private \mf (Begin*, End*)
-		-> \cl (SettingSession, BookmarkSession),
-	/ \tr \impl @ \ctor,
-	/ \tr \impl @ \mf Execute
-);
-/= test 10 @ platform MinGW32;
-
-r18:
-/= test 11 @ platform MinGW32 ^ \conf release;
-
-r19:
-/= test 12 @ platform DS;
-
-r20:
-/= test 13 @ platform DS ^ \conf release;
+r1-r27;
 
 
 $DOING:
 
 $relative_process:
-2013-03-23 +0800:
--37.0d;
-// Mercurial local rev1-rev263: r10324;
+2013-03-24 +0800:
+-33.8d;
+// Mercurial local rev1-rev264: r10351;
 
 / ...
 
@@ -1113,6 +997,84 @@ $module_tree $=
 );
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'GUI' $=
+			(
+				(
+					+ "constructor for custom hue" @ "class %Button";
+					/ "OK button hue" @ "class %DialogPanel"
+				),
+				/ @ "class template %GSequenceViewer" $=
+				(
+					^ DLD "operator(<, !)" ~ "operator>="
+						@ "member functions implementation",
+					+ "member function %AdjustForContent",
+					+ "static assertion for member typedefs \
+						%(SizeType, DifferenceType)",
+				),
+				/ "split member function %GetList for constness" @ "class \
+					%MTextList" -> "member functions %(GetList, GetListRef)",
+				/ "member function %TextList::UpdateView" -> "non-member \
+					function %UI::UpdateView with unselectable invalidation"
+			),
+			* $dev $build "strict ISO C++ conformance" @ %'Core' $=
+			(
+				* "redundant ';'" @ "macro %(DefBitmaskXor, \
+					DefBitmaskNot)" @ %'YBaseMacro' $since b270,
+				* "redundant ';'" @ "strict ISO C++ conformance"
+					@ "(copy, move) constructor" @ "class template %GEvent"
+					@ %'YEvent' $since b270
+			),
+			* $dev $build "strict ISO C++ conformance" @ "unit %TextRenderer"
+				$since b368
+				$= ("redundant ';'")
+		),
+		/ $dev $build @ %'Helper' $=
+		(
+			* "strict ISO C++ conformance" @ %'Shell_DS' $=
+			(
+				* "redundant ';'" @ "class %ShlCLI" $since b246,
+				* "redundant ';' after %YSL_END" @ $since $before b132
+			),
+			/ "all 'NULL'" -> 'nullptr'
+				@ "unit %(ScreenBuffer, Host, HostWindow)"
+				// To eliminate warning[-Wzero-as-null-pointer-constant].
+		),
+		/ $dev $build "all 'NULL'" -> 'nullptr' @ "unit %(NativeAPI, YCommon)"
+			@ %'YCLib'
+			// To eliminate warning[-Wzero-as-null-pointer-constant].
+	),
+	/ %'YReader' $=
+	(
+		+ "bookmark list adding and removing UI"
+	),
+	/ DLD %'YBase' $=
+	(
+		/ "version marco confirmed" @ %'LibDefect'.'String',
+		^ "operator(<, !)" ~ "operator>=" @ "class template \
+			%subscriptive_iterator" @ %'YStandardEx'.'Iterator'
+	),
+	/ $dev $build @ "platform %MinGW32" $=
+	(
+		^ DLP "MinGW[gcc version 4.8.0 (Built by MinGW-builds project)] \
+			x32-4.8.0-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.7.2 \
+			(Built by MinGW-builds project)] x32-4.7.2-release-posix-sjlj-rev0 \
+			[release-sjlj]" @ "platform %MinGW32",
+				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+					Exceptions implementation: SjLj.
+		/ $dev $build "compiler flag" ("'-O'" -> '-Og' @ "debug configurations",
+			'-Wpedantic' -> '-pedantic-erros') @ "project %YBase",
+		+ $dev $build "compiler flag" ('-pedantic-errors' @ "projects \
+			%(YFramework, YSTest)", '-Wmissing-include-dirs \
+			-Wzero-as-null-pointer-constant' @ "all projects")
+	)
+),
+
+b391
 (
 	/ %'YReader'.'text reader' $=
 	(

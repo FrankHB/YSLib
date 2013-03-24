@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2261
+\version r2265
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-03-11 10:47 +0800
+	2013-03-24 10:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -845,7 +845,7 @@ public:
 	subscriptive_iterator&
 	operator-=(difference_type n)
 	{
-		yassume(idx >= n);
+		yassume(!(idx < n));
 
 		idx -= n;
 		return *this;
@@ -896,7 +896,7 @@ public:
 	reference
 	operator[](difference_type n) const
 	{
-		yassume(idx + n >= 0);
+		yassume(!(idx + n < 0));
 
 		return (*p_cont)[idx + n];
 	}
@@ -904,7 +904,7 @@ public:
 	subscriptive_iterator
 	operator+(difference_type n) const
 	{
-		yassume(idx + n >= 0);
+		yassume(!(idx + n < 0));
 
 		return subscriptive_iterator(*p_cont, idx + n);
 	}
@@ -912,7 +912,7 @@ public:
 	subscriptive_iterator
 	operator-(difference_type n) const
 	{
-		yassume(idx + n >= 0);
+		yassume(!(idx + n < 0));
 
 		return subscriptive_iterator(*p_cont, idx - n);
 	}

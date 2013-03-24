@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2397
+\version r2399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-02-28 20:53 +0800
+	2013-03-23 20:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -364,11 +364,11 @@ _t type
 #define DefBitmaskXor(_tBitmask, _tInt) \
 	yconstfn _tBitmask operator^(_tBitmask _x, _tBitmask _y) \
 		ImplRet(static_cast<_tBitmask>( \
-			static_cast<_tInt>(_x) ^ static_cast<_tInt>(_y)));
+			static_cast<_tInt>(_x) ^ static_cast<_tInt>(_y)))
 
 #define DefBitmaskNot(_tBitmask, _tInt) \
 	yconstfn _tBitmask operator~(_tBitmask _x) \
-		ImplRet(static_cast<_tBitmask>(~static_cast<_tInt>(_x)));
+		ImplRet(static_cast<_tBitmask>(~static_cast<_tInt>(_x)))
 
 #define DefBitmaskAndAssignment(_tBitmask, _tInt) \
 	inline _tBitmask& operator&=(_tBitmask& _x, _tBitmask _y) \

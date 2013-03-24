@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r634
+\version r660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2013-03-13 13:16 +0800
+	2013-03-24 21:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,6 +124,8 @@ public:
 	using MTextList::GetItemHeight;
 	using MTextList::GetItemPtr;
 	using MTextList::GetList;
+	//! \since build 392
+	using MTextList::GetListRef;
 	using MTextList::GetMaxTextWidth;
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex, viewer)
 	/*!
@@ -179,6 +181,14 @@ private:
 	AdjustOffset(bool);
 
 public:
+	/*!
+	\brief 按内容大小依次调整视图中选中和首个项目的索引。
+	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
+	\since build 392
+	*/
+	void
+	AdjustViewForContent();
+
 	/*!
 	\brief 调整视图长度。
 	\note 视图长为当项目数足够时所有在视图中显示的（可能不完全）项目总数。
@@ -300,17 +310,6 @@ public:
 	void
 	SelectLast();
 
-	/*!
-	\brief 更新视图。
-	\param is_active 是否确定仅变更视图位置。
-	\param need_invalidation 更新后无效化自身。
-	\since build 318
-
-	调用视图变更事件并调整视图长度。
-	*/
-	void
-	UpdateView(bool is_active = false, bool need_invalidation = true);
-
 private:
 	/*!
 	\brief 调用选中事件处理器。
@@ -332,6 +331,16 @@ private:
 */
 YF_API void
 ResizeForContent(TextList&);
+
+/*!
+\brief 更新文本列表视图。
+\param is_active 是否确定仅变更视图位置。
+\since build 392
+
+调用视图变更事件、调整视图长度并无效化。
+*/
+YF_API void
+UpdateView(TextList&, bool is_active = false);
 
 YSL_END_NAMESPACE(UI)
 

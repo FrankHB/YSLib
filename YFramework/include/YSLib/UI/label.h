@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1282
+\version r1297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2013-03-13 13:12 +0800
+	2013-03-24 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,13 +160,26 @@ protected:
 public:
 	/*!
 	\brief 取文本列表。
+	\since build 392
 	*/
-	DefGetter(const ynothrow, ListType&, List, *hList)
+	DefGetter(const ynothrow, const ListType&, List, *hList)
+	/*!
+	\brief 取文本列表引用。
+	\since build 392
+	*/
+	DefGetter(ynothrow, ListType&, ListRef, *hList)
 	/*!
 	\brief 取指定项目索引的项目指针。
+	\since build 392
 	*/
 	ItemType*
-	GetItemPtr(IndexType) const;
+	GetItemPtr(const IndexType&);
+	/*!
+	\brief 取指定项目索引的项目 const 指针。
+	\since build 392
+	*/
+	const ItemType*
+	GetItemPtr(const IndexType&) const;
 	/*!
 	\brief 取项目行高。
 	\since build 301

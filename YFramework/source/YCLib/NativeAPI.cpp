@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r394
-\author FrankHB<frankhb1989@gmail.com>
+\version r402
+\author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2012-09-24 20:54 +0800
+	2013-03-23 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ opendir(const char* name)
 		yassume(std::strlen(name) + 2 < sizeof(dir->Name));
 
 		dir->WinDir = ::WIN32_FIND_DATAW();
-		yunseq(std::sprintf(dir->Name, "%s\\*", name), dir->hNode = NULL,
+		yunseq(std::sprintf(dir->Name, "%s\\*", name), dir->hNode = nullptr,
 			dir->POSIXDir.lpWinDir = &dir->WinDir);
 		return dir;
 	}
@@ -82,7 +82,7 @@ readdir(DIR* dir)
 {
 	static_assert(sizeof(wchar_t) == sizeof(ucs2_t), "Wrong character type!");
 
-	if(dir->hNode == 0)
+	if(dir->hNode == nullptr)
 	{
 		// NOTE: See MSDN "FindFirstFile function" for details.
 		yconstraint(dir->Name);
@@ -95,11 +95,11 @@ readdir(DIR* dir)
 			return nullptr;
 		if((dir->hNode = ::FindFirstFileW(wstr, &dir->WinDir))
 			== reinterpret_cast<void*>(0xFFFFFFFF))
-			dir->hNode = NULL;
+			dir->hNode = nullptr;
 		std::free(wstr);
 	}
 	else if(!::FindNextFileW(dir->hNode, &dir->WinDir))
-		dir->hNode = NULL;
+		dir->hNode = nullptr;
 	if(dir->hNode && dir->hNode != reinterpret_cast<void*>(0xFFFFFFFF))
 	{
 		yassume(dir->WinDir.cFileName);
@@ -118,7 +118,7 @@ readdir(DIR* dir)
 		dir->POSIXDir.d_reclen = std::strlen(dir->POSIXDir.d_name);
 		yunseq(dir->POSIXDir.d_off = 0, dir->POSIXDir.d_ino = 0);
 	}
-	return dir->hNode == NULL ? 0 : &dir->POSIXDir;
+	return !dir->hNode ? nullptr : &dir->POSIXDir;
 }
 
 void
@@ -127,7 +127,7 @@ rewinddir(DIR* dir)
 	if(dir->hNode)
 	{
 		::FindClose(dir->hNode);
-		dir->hNode = NULL;
+		dir->hNode = nullptr;
 	}
 }
 

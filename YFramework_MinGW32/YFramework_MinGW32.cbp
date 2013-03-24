@@ -16,6 +16,7 @@
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-Og" />
 					<Add option="-D_GLIBCXX_DEBUG" />
 				</Compiler>
 			</Target>
@@ -44,6 +45,7 @@
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-Og" />
 					<Add option="-D_GLIBCXX_DEBUG" />
 					<Add option="-DYB_DLL" />
 					<Add option="-DYF_BUILD_DLL" />
@@ -79,6 +81,9 @@
 		<Compiler>
 			<Add option="-Wredundant-decls" />
 			<Add option="-Wmissing-declarations" />
+			<Add option="-Wmissing-include-dirs" />
+			<Add option="-Wzero-as-null-pointer-constant" />
+			<Add option="-pedantic-errors" />
 			<Add option="-std=c++11" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />

@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1280
+\version r1289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2013-03-13 13:04 +0800
+	2013-03-24 21:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,9 +112,16 @@ MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt)
 }
 
 MTextList::ItemType*
-MTextList::GetItemPtr(IndexType idx) const
+MTextList::GetItemPtr(const IndexType& idx)
 {
-	ListType& lst(GetList());
+	auto& lst(GetListRef());
+
+	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
+}
+const MTextList::ItemType*
+MTextList::GetItemPtr(const IndexType& idx) const
+{
+	const auto& lst(GetList());
 
 	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
 }

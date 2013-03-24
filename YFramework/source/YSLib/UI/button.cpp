@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3005
+\version r3013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-03-13 13:23 +0800
+	2013-03-23 10:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,9 +164,13 @@ DecorateAsCloseButton(Thumb& tmb)
 }
 
 
-Button::Button(const Rect& r, const Drawing::Font& fnt)
-	: Thumb(r),
-	MLabel(fnt, TextAlignment::Center)
+Button::Button(const Rect& r, const Drawing::Font& fnt, TextAlignment a)
+	: Button(r, 180, fnt, a)
+{}
+Button::Button(const Rect& r, Drawing::Hue h, const Drawing::Font& fnt,
+	TextAlignment a)
+	: Thumb(r, h),
+	MLabel(fnt, a)
 {}
 
 void

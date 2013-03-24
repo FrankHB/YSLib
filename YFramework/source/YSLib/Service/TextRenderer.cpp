@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2641
+\version r2642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-07 15:30 +0800
+	2013-03-23 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ ClipChar(const Graphics& g, const Point& pen, const CharBitmap& cbmp, Rect r)
 		pen.Y - cbmp.GetTop(), cbmp.GetWidth(), cbmp.GetHeight())));
 
 	return {g, pt, r};
-};
+}
 
 //! \since build 368
 template<typename _tCharRenderer, _tCharRenderer& _fCharRenderer,

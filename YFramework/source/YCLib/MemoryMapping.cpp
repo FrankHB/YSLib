@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r123
+\version r126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2013-02-02 14:03 +0800
+	2013-03-23 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,14 +50,14 @@ map_file(size_t len, int fd)
 
 		if(h != INVALID_HANDLE_VALUE)
 		{
-			::HANDLE fm(::CreateFileMapping(h, NULL, PAGE_READONLY, 0,
-				len, NULL));
+			::HANDLE fm(::CreateFileMapping(h, nullptr, PAGE_READONLY, 0,
+				len, nullptr));
 
 			if(fm)
 			{
 				map = ::MapViewOfFile(fm, FILE_MAP_READ, 0, 0, len);
 				::CloseHandle(fm);
-				if(map == NULL)
+				if(!map)
 					return MAP_FAILED;
 			}
 		}

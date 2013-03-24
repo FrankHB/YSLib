@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r413
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-03-13 13:25 +0800
+	2013-03-23 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,5 +167,5 @@ SwitchVisible(IWidget& wgt)
 
 YSL_END_NAMESPACE(UI)
 
-YSL_END;
+YSL_END
 

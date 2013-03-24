@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r236
+\version r293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2013-03-13 13:11 +0800
+	2013-03-24 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,9 +48,16 @@ public:
 	\since build 292
 	*/
 	typedef _tContainer ContainerType;
-	typedef typename _tContainer::size_type SizeType; //!< 项目下标类型。
+	typedef typename _tContainer::size_type SizeType; //!< 项目索引类型。
 	typedef typename _tContainer::difference_type DifferenceType; \
 		//!< 项目索引差值类型。
+
+	//! \since build 392
+	static_assert(std::is_unsigned<SizeType>::value,
+		"Invalid size type found!");
+	//! \since build 392
+	static_assert(std::is_signed<DifferenceType>::value,
+		"Invalid difference type found!");
 
 private:
 	/*!
@@ -59,29 +66,31 @@ private:
 	\since build 292
 	*/
 	_tContainer* pContainer;
-	SizeType head; //!< 视图中首个项目下标，大于等于 GetTotal() 时无效。
-	SizeType selected; //!< 选中项目下标，大于等于 GetTotal() 时无效。
+	SizeType head; //!< 视图中首个项目的索引，大于等于 GetTotal() 时无效。
+	SizeType selected; //!< 选中项目的索引，大于等于 GetTotal() 时无效。
 	SizeType length; //!< 视图长度：最大可视项目数。
 	bool is_selected; //!< 选中状态。
 
 public:
 	/*!
 	\brief 构造：使用指定容器。
+	\post <tt>GetHeadIndex() == 0 && GetSelectedIndex() == 0 && GetLength() == 1
+		&& !IsSelected()</tt> 。
 	*/
 	explicit
 	GSequenceViewer(ContainerType& con)
 		: pContainer(&con), head(0), selected(0), length(1), is_selected(false)
 	{}
 
-	inline PDefHOp(GSequenceViewer&, ++, ) //!< 选中项目下标自增。
+	inline PDefHOp(GSequenceViewer&, ++, ) //!< 选中项目的索引自增。
 		ImplRet(IncreaseSelected(1))
-	inline PDefHOp(GSequenceViewer&, --, ) //!< 选中项目下标自减。
+	inline PDefHOp(GSequenceViewer&, --, ) //!< 选中项目的索引自减。
 		ImplRet(IncreaseSelected(-1))
 	inline PDefHOp(GSequenceViewer&, ++, int) \
-		//!< 视图中首个项目下标自增。
+		//!< 视图中首个项目的索引自增。
 		ImplRet(IncreaseHead(1))
 	inline PDefHOp(GSequenceViewer&, --, int) \
-		//!< 视图中首个项目下标自减。
+		//!< 视图中首个项目的索引自减。
 		ImplRet(IncreaseHead(-1))
 
 	/*!
@@ -106,7 +115,7 @@ public:
 	DefGetter(const ynothrow, SizeType, SelectedIndex, selected)
 	DefGetter(const ynothrow, DifferenceType, Offset, IsSelected()
 		? GetSelectedIndex() - GetHeadIndex() : -1) \
-		//!< 取选中的项目相对于视图中首个项目的下标偏移（未选中时为 -1 ）。
+		//!< 取选中的项目相对于视图中首个项目的的索引偏移（未选中时为 -1 ）。
 	DefGetter(const ynothrow, SizeType, Valid, min(GetTotal() - GetHeadIndex(),
 		GetLength())) //!< 取当前视图中有效项目个数。
 
@@ -122,7 +131,7 @@ public:
 			yunseq(pContainer = &con, selected = 0, head = 0, length = 1);
 	}
 	/*!
-	\brief 设置项目索引。
+	\brief 设置视图中首个项目的索引。
 	*/
 	bool
 	SetHeadIndex(SizeType t)
@@ -153,7 +162,7 @@ public:
 		return false;
 	}
 	/*!
-	\brief 设置选中项目下标。
+	\brief 设置选中项目的索引。
 	*/
 	bool
 	SetSelectedIndex(SizeType t)
@@ -169,6 +178,27 @@ public:
 	}
 
 	/*!
+	\brief 按序列内容大小依次调整选中和首个项目的索引。
+	\post <tt>(GetTotal() == 0 && !IsSelected()) || (GetSelectedIndex()
+		< GetTotal() && GetHeadIndex() < GetTotal())</tt> 。
+	\since build 392
+	*/
+	void
+	AdjustForContent()
+	{
+		const auto total(GetTotal());
+
+		if(total != 0)
+		{
+			if(!(selected < total))
+				selected = total - 1;
+			RestrictView();
+		}
+		else
+			Reset();
+	}
+
+	/*!
 	\brief 取消选中状态。
 	*/
 	inline void
@@ -178,15 +208,16 @@ public:
 	}
 
 	inline PDefH(GSequenceViewer&, DecreaseHead, DifferenceType d) \
-		//!< 视图中首个项目下标减少 d 。
+		//!< 视图中首个项目的索引减少 d 。
 		ImplRet(IncreaseHead(-d))
 
 	inline PDefH(GSequenceViewer&, DecreaseSelected, DifferenceType d) \
-		//!< 选中项目下标减少 d 。
+		//!< 选中项目的索引减少 d 。
 		ImplRet(IncreaseSelected(-d))
 
 	/*!
-	\brief 视图中首个项目下标增加 d 。
+	\brief 按偏移设置视图中首个项目的索引。
+	\param d 增加的索引偏移值。
 	*/
 	GSequenceViewer&
 	IncreaseHead(DifferenceType d)
@@ -199,7 +230,8 @@ public:
 	}
 
 	/*!
-	\brief 选中项目下标增加 d 。
+	\brief 按偏移设置选中项目的索引。
+	\param d 增加的索引偏移值。
 	*/
 	GSequenceViewer&
 	IncreaseSelected(DifferenceType d)
@@ -231,12 +263,10 @@ public:
 	bool
 	MoveViewerToEnd()
 	{
-		if(GetTotal() >= length)
-		{
-			head = GetTotal() - length;
-			return true;
-		}
-		return false;
+		if(GetTotal() < length)
+			return false;
+		head = GetTotal() - length;
+		return true;
 	}
 
 	/*!
@@ -251,6 +281,8 @@ public:
 
 	/*!
 	\brief 约束被选中的元素在视图内。
+	\post <tt>GetTotal() == 0 || (!(GetSelectedIndex() < GetHeadIndex())
+		&& GetSelectedIndex() < GetHeadIndex() + GetLength())</tt> 。
 	*/
 	bool
 	RestrictSelected()
@@ -259,15 +291,17 @@ public:
 			return false;
 		if(selected < head)
 			selected = head;
-		else if(selected >= head + length)
-			selected = head + length - 1;
-		else
+		else if(selected < head + length)
 			return false;
+		else
+			selected = head + length - 1;
 		return true;
 	}
 
 	/*!
 	\brief 约束视图包含被选中的元素。
+	\post <tt>GetTotal() == 0 || (!(GetSelectedIndex() < GetHeadIndex())
+		&& GetSelectedIndex() < GetHeadIndex() + GetLength())</tt> 。
 	*/
 	bool
 	RestrictView()
@@ -276,10 +310,10 @@ public:
 			return false;
 		if(selected < head)
 			head = selected;
-		else if(selected >= head + length)
-			head = selected + 1 - length;
-		else
+		else if(selected < head + length)
 			return false;
+		else
+			head = selected + 1 - length;
 		return true;
 	}
 };

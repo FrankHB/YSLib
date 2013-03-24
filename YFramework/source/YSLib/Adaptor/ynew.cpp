@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r955
-\author FrankHB<frankhb1989@gmail.com>
+\version r958
+\author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2012-09-12 08:19 +0800
+	2013-03-23 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ namespace
 \bug 非线程安全。
 \since build 298
 */
-static MemoryList DebugMemoryList(0);
+static MemoryList DebugMemoryList(nullptr);
 
 } // unnamed namespace;
 

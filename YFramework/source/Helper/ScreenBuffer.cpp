@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.cpp
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r101
+\version r105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-03-10 18:27 +0800
+	2013-03-23 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -37,18 +37,18 @@ YSL_BEGIN_NAMESPACE(Host)
 #	if YCL_MINGW32
 ScreenBuffer::ScreenBuffer(const Size& s)
 	: size(s), hBitmap([this]{
-		::BITMAPINFO bmi{{sizeof(::BITMAPINFO::bmiHeader), size.Width,
+		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), size.Width,
 			-size.Height - 1, 1, 32, BI_RGB,
 			sizeof(PixelType) * size.Width * size.Height, 0, 0, 0, 0}, {}};
 
-		return ::CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS,
-			&reinterpret_cast<void*&>(pBuffer), NULL, 0);
+		return ::CreateDIBSection(nullptr, &bmi, DIB_RGB_COLORS,
+			&reinterpret_cast<void*&>(pBuffer), nullptr, 0);
 	}())
 {}
 ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
 	: size(sbuf.size), hBitmap(sbuf.hBitmap)
 {
-	sbuf.hBitmap = NULL;
+	sbuf.hBitmap = nullptr;
 }
 ScreenBuffer::~ScreenBuffer()
 {

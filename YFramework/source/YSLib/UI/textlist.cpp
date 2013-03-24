@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1079
+\version r1102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-03-19 19:52 +0800
+	2013-03-24 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	: Control(r), MTextList(h),
 	HilightBackColor(hilight_pair.first),
 	HilightTextColor(hilight_pair.second), CyclicTraverse(false),
-	viewer(GetList()), top_offset(0)
+	viewer(GetListRef()), top_offset(0)
 {
 	Margin = Padding(defMarginH, defMarginH, defMarginV, defMarginV);
 	yunseq(
@@ -96,7 +96,7 @@ bound_select:
 						CallSelected();
 					if(old_top != top_offset || viewer.GetHeadIndex()
 						!= old_hid)
-						UpdateView();
+						UpdateView(*this);
 					else if(old_off != new_off)
 						InvalidateSelected2(old_off, new_off);
 				}
@@ -118,13 +118,13 @@ bound_select:
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
 			SetSelected(e);
-			UpdateView();
+			UpdateView(*this);
 		},
 		FetchEvent<TouchMove>(*this) += [this](TouchEventArgs&& e){
 			if(&e.GetSender() == this)
 			{
 				SetSelected(e);
-				UpdateView();
+				UpdateView(*this);
 			}
 		},
 		FetchEvent<Click>(*this) += [this](TouchEventArgs&& e){
@@ -212,6 +212,12 @@ TextList::AdjustOffset(bool is_top)
 }
 
 void
+TextList::AdjustViewForContent()
+{
+	viewer.AdjustForContent();
+}
+
+void
 TextList::AdjustViewLength()
 {
 	const auto h(GetHeight());
@@ -278,7 +284,7 @@ TextList::LocateViewPosition(SDst h)
 		viewer.SetHeadIndex(h / item_height);
 		top_offset = h % item_height;
 		//更新视图。
-		UpdateView(true);
+		UpdateView(*this, true);
 	}
 }
 
@@ -368,7 +374,7 @@ TextList::ResetView()
 	if(b)
 		viewer.SetSelectedIndex(0);
 	top_offset = 0;
-	UpdateView();
+	UpdateView(*this);
 }
 
 void
@@ -383,15 +389,6 @@ TextList::SelectLast()
 {
 	viewer.SetSelectedIndex(GetList().size() - 1);
 	AdjustOffset(false);
-}
-
-void
-TextList::UpdateView(bool is_active, bool need_invalidation)
-{
-	GetViewChanged()(ViewArgs(*this, is_active));
-	AdjustViewLength();
-	if(need_invalidation)
-		Invalidate(*this);
 }
 
 void
@@ -414,6 +411,14 @@ ResizeForContent(TextList& tl)
 	SetSizeOf(tl, Size(tl.GetMaxTextWidth() + GetHorizontalOf(tl.Margin),
 		tl.GetFullViewHeight()));
 	tl.AdjustViewLength();
+}
+
+void
+UpdateView(TextList& tl, bool is_active)
+{
+	tl.GetViewChanged()(TextList::ViewArgs(tl, is_active));
+	tl.AdjustViewLength();
+	Invalidate(tl);
 }
 
 YSL_END_NAMESPACE(UI)

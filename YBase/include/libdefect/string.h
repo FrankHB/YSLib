@@ -22,7 +22,7 @@
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2013-01-22 06:03 +0800
+	2013-03-23 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@
 #include <string>
 
 // See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015 .
-// TODO: Seems fixed @ 4.8. Not confirmed yet.
+// NOTE: Fixed @ 4.8.
 
 #if defined(__GLIBCXX__) && __GLIBCXX__ <= 20120920 \
 	&& defined(__GXX_EXPERIMENTAL_CXX0X__) \

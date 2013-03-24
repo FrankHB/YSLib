@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2483
+\version r2514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2013-03-21 19:26 +0800
+	2013-03-24 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,10 @@ public:
 	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, tlContent)
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex,
 		tlContent)
-	DefGetterMem(const ynothrow, ListType&, List, tlContent)
+	//! \since build 392
+	DefGetterMem(const ynothrow, const ListType&, List, tlContent)
+	//! \since build 392
+	DefGetterMem(ynothrow, ListType&, ListRef, tlContent)
 	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, tlContent) \
 		//!< 视图变更事件。
 	DefEventGetterMem(ynothrow, HIndexEvent, Selected, tlContent) \
@@ -93,15 +96,24 @@ public:
 	DefSetterMem(const shared_ptr<ListType>&, List, tlContent)
 	/*!
 	\brief 设置选中项。
-	\see TextList::SetSelected 。
+	\sa TextList::SetSelected 。
 	\since build 285。
 	*/
 	PDefH(void, SetSelected, ListType::size_type i)
 		ImplBodyMem(tlContent, SetSelected, i)
 
 	/*!
+	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
+	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
+	\sa TextList::AdjustViewLength 。
+	\since build 392
+	*/
+	PDefH(void, AdjustViewForContent, )
+		ImplBodyMem(tlContent, AdjustViewForContent, )
+
+	/*!
 	\brief 调整视图长度。
-	\see TextList::AdjustViewLength 。
+	\sa TextList::AdjustViewLength 。
 	\since build 285
 	*/
 	PDefH(void, AdjustViewLength, )
@@ -109,7 +121,7 @@ public:
 
 	/*!
 	\brief 清除选中项。
-	\see TextList::ClearSelected 。
+	\sa TextList::ClearSelected 。
 	\since build 285
 	*/
 	PDefH(void, ClearSelected, )
@@ -117,7 +129,7 @@ public:
 
 	/*!
 	\brief 查找项。
-	\see TextList::Find 。
+	\sa TextList::Find 。
 	\since build 316
 	*/
 	PDefH(IndexType, Find, const ItemType& text)
@@ -129,14 +141,14 @@ public:
 	/*!
 	\brief 按指定大小上限和内容调整大小。
 	\param sup 指定调整的大小的上限，当为 Size() 时忽略大小限制。
-	\note s 指定大小，分量为 0 时对应分量大小由内容确定（其中宽度含边距）。
+	\param s 指定大小，分量为 0 时对应分量大小由内容确定（其中宽度含边距）。
 	\since build 337
 	*/
 	void
 	ResizeForPreferred(const Size& sup, Size s = {});
 
 	PDefH(void, UpdateView, )
-		ImplBodyMem(tlContent, UpdateView, )
+		ImplExpr(UI::UpdateView(tlContent))
 };
 
 
@@ -179,13 +191,13 @@ public:
 	typedef ListBox::ListType ListType;
 	/*!
 	\brief 视图参数类型。
-	\see TextList::ViewArgs 。
+	\sa TextList::ViewArgs 。
 	\since build 283
 	*/
 	typedef ListBox::ViewArgs ViewArgs;
 	/*!
 	\brief 视图事件委托类型。
-	\see TextList::HViewEvent 。
+	\sa TextList::HViewEvent 。
 	\since build 283
 	*/
 	typedef ListBox::HViewEvent HViewEvent;
@@ -210,7 +222,10 @@ public:
 	//! \since build 356
 	DefWidgetMemberIteration(lbContent)
 
-	DefGetterMem(const ynothrow, ListType&, List, lbContent)
+	//! \since build 392
+	DefGetterMem(const ynothrow, const ListType&, List, lbContent)
+	//! \since build 392
+	DefGetterMem(ynothrow, ListType&, ListRef, lbContent)
 	/*!
 	\brief 取视图变更事件。
 	\since build 283
@@ -232,6 +247,15 @@ public:
 	\since build 292
 	*/
 	DefSetterMem(const shared_ptr<ListType>&, List, lbContent)
+
+	/*!
+	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
+	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
+	\sa TextList::AdjustViewLength 。
+	\since build 392
+	*/
+	PDefH(void, AdjustViewForContent, )
+		ImplBodyMem(lbContent, AdjustViewForContent, )
 
 private:
 	/*!

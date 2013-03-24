@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r143
+\version r147
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-03-18 18:40 +0800
+	2013-03-23 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -43,7 +43,8 @@ namespace
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
-	::SetWindowPos(h_wnd, NULL, 0, 0, w, h, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
+	::SetWindowPos(h_wnd, nullptr, 0, 0, w, h,
+		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
 		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 #endif
@@ -55,7 +56,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 	: env(e), h_wnd(h)
 {
 	YAssert(::IsWindow(h), "Invalid window handle found.");
-	YAssert(::GetWindowThreadProcessId(h, NULL) == ::GetCurrentThreadId(),
+	YAssert(::GetWindowThreadProcessId(h, nullptr) == ::GetCurrentThreadId(),
 		"Window not created on current thread found.");
 	YAssert(::GetWindowLongPtrW(h, GWLP_USERDATA) == 0,
 		"Invalid user data of window found.");
@@ -66,7 +67,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw LoggedEvent("Wrong windows class name found.");
 	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR(this));
-	::SetWindowPos(h_wnd, NULL, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE
+	::SetWindowPos(h_wnd, nullptr, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE
 		| SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOSIZE
 		| SWP_NOZORDER);
 	e.AddMappedItem(h_wnd, this);

@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r855
+\version r862
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-03-18 18:47 +0800
+	2013-03-23 21:18 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -99,7 +99,7 @@ InitializeMainWindow(const wchar_t* wnd_title, u16 wnd_w, u16 wnd_h,
 	::AdjustWindowRect(&rect, wstyle, FALSE);
 	return ::CreateWindowW(WindowClassName, wnd_title, wstyle, CW_USEDEFAULT,
 		CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
-		HWND_DESKTOP, NULL, ::GetModuleHandleW(NULL), NULL);
+		HWND_DESKTOP, nullptr, ::GetModuleHandleW(nullptr), nullptr);
 }
 
 
@@ -272,7 +272,7 @@ Environment::HostLoop()
 	{
 		::MSG msg; //!< 本机消息。
 
-		if(::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE) != 0)
+		if(::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 		{
 			if(msg.message == WM_QUIT)
 				break;
@@ -317,16 +317,16 @@ Environment::HostTask()
 
 	public:
 		reg_wnd()
-			: hInstance(::GetModuleHandleW(NULL))
+			: hInstance(::GetModuleHandleW(nullptr))
 		{
 			const ::WNDCLASS wnd_class{CS_DBLCLKS/* | CS_HREDRAW | CS_VREDRAW*/,
-				WndProc, 0, 0, hInstance, ::LoadIconW(NULL, IDI_APPLICATION),
-				::LoadCursorW(NULL, IDC_ARROW), ::HBRUSH(COLOR_MENU + 1), NULL,
-				WindowClassName};
+				WndProc, 0, 0, hInstance, ::LoadIconW(nullptr, IDI_APPLICATION),
+				::LoadCursorW(nullptr, IDC_ARROW), ::HBRUSH(COLOR_MENU + 1),
+				nullptr, WindowClassName};
 
 			if(!::RegisterClassW(&wnd_class))
 				throw LoggedEvent("Windows registration failed.");
-			//	::MessageBox(NULL, "This program requires Windows NT!",
+			//	::MessageBox(nullptr, "This program requires Windows NT!",
 				//	wnd_title, MB_ICONERROR);
 			YCL_DEBUG_PUTS("Window class registered.");
 		}

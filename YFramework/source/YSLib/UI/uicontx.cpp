@@ -17,7 +17,7 @@
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2013-03-13 12:56 +0800
+	2013-03-23 10:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ DialogBox::DialogBox(const Rect& r)
 DialogPanel::DialogPanel(const Rect& r)
 	: Panel(r),
 	btnClose(Rect(GetWidth() - 20, 4, 16, 16), 330),
-	btnOK(Rect(GetWidth() - 40, 4, 16, 16))
+	btnOK(Rect(GetWidth() - 40, 4, 16, 16), 120)
 {
 	AddWidgets(*this, btnClose, btnOK),
 	DecorateAsCloseButton(btnClose),
