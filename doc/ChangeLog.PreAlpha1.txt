@@ -1,0 +1,277 @@
+﻿/*
+	Copyright by FrankHB 2013.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ChangeLog.PreAlpha1.txt
+\ingroup Documentation
+\brief 版本更新历史记录 - PreAlpha1 。
+\version r276
+\author FrankHB <frankhb1989@gmail.com>
+\since build 393
+\par 创建时间:
+	2013-03-25 00:01:48 +0800
+\par 修改时间:
+	2013-03-25 00:25 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::ChangeLog::PreAlpha1
+*/
+
+// See "Meta.cpp" for meta discriptions.
+
+$import $HISTORY;
+
+// Scope: $since $before b200;
+
+b199
+(
+	+ "event routing for %(KeyUp, KeyDown, KeyHeld)",
+	* "event behavior with optimizing" $since b195,
+		// Thus the fix of makefile in b195 was unnecessary.
+	+ "keypad shortcut for file selector",
+	+ DLD "returning number of called handles in event calling"
+),
+
+b198
+(
+	* "font caching without default font file load successfully",
+	+ "showing and hiding windows",
+	* "%ListBox scroll bar length",
+	* "handle constructors",
+	- "class %ShlGUI" @ "unit %Shell_DS" @ $design "shells for DS",
+	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
+	(
+		/ DLD "using pointers" ~ "references in parameters \
+			of container methods",
+		/ "simplified GUI shell" $=
+		(
+			/ "input points matching",
+			- "windows list"
+		)
+	),
+	/ DLD "simplified destructors",
+	/ "simplified window drawing",
+	+ "desktop capability of non-control widget container",
+	- "container pointer parameter" @ "constructor widgets",
+	/ "desktops as window" @ "shells"
+),
+
+b197
+(
+	* "label alignment",
+	+ "%std::string based font cache"
+),
+
+b196
+(
+	+ "controls: checkbox",
+	* "platform color type",
+	+ "horizontal text alignment" @ "class %MLabel"
+),
+
+b195
+(
+	* DLB "makefiles",
+	+ "dependency events",
+	+ "simple events routing"
+),
+
+b194
+(
+	/ "global architecture",
+	/ "GUI shell class architecture" @ "unit %YGUI",
+	/ "default control event handlers implementation",
+	/ "implementation" @ "unit %YInitialization",
+	/ "controls always visual",
+	- "class %IVisualControl",
+	- "class %VisualControl",
+	/ "container focus" @ "classes %(AUIBoxControl, AWindow)"
+),
+
+b193
+(
+	/ "scroll controls implementation",
+	/ "core utilities"
+	/ "empty event arguments" $=
+	(
+		- "empty constant of event arguments",
+		+ "inline function template %GetStaticRef",
+		/ "all event empty arguments" ^ "%GetStaticRef"
+	),
+	/ "scroll controls and listbox implementation"
+),
+
+b192
+(
+	+ "empty constant of event arguments",
+	/ "event interfaces",
+	/ DLP "header %including",
+	+ "unit %YUIContainerEx" @ "directory Shell",
+	+ "class %AUIBoxControl" @ "unit %YUIContainerEx",
+	+ "controls: class %YScrollableContainer" @ "unit %YGUIComponent",
+	/ DLD "function %FetchWindowPtr as non-inline" @ "unit %YUIContainer",
+	/ "class %IWindow as non-virtual inheritance" @ "class %AWindow"
+		@ "class %YWindow",
+	/ DLB "arm9 makefile",
+	/ "scroll controls implementation",
+	^ "updated libnds 1.4.9" ~ "libnds 1.5.0",
+	^ "updated default arm7 0.5.20" ~ "default arm7 0.5.18",
+	^ "updated libfat 1.0.9" ~ "libfat 1.0.7"
+),
+
+b191
+(
+	/ "listbox APIs implementation",
+	/ "class template %GSequenceViewer" $=
+	(
+		* DLD "declaration of member function %Contains" @ $since b171,
+		/ "interfaces"
+	),
+	* "implementation of function %GetTouchedVisualControlPtr" @ "unit %YGUI"
+		$since b167,
+	/ "simplified focus implementation"
+),
+
+b190
+(
+	* $lib "strict ISO C++03 code compatibility" $since $before b132
+		$= (/ "fixed macros" ~ "variadic macros"),
+	/ "text region and renderers APIs implementation",
+	/ "widget, label and listbox APIs implementation"
+),
+
+b189
+(
+	+ "class %pair_iterator" @ "YCLib",
+	/ "GDI blit and transformer implementations"
+),
+
+b188
+(
+	/ "shells test example",
+	/ "GDI blit implementations",
+	- DLB "DLDI patch commands" @ "makefile",
+	* "invalid listbox input when the list not beginning from the top"
+		$since b171
+),
+
+b187
+(
+	/ DLP "header %files and source files put in separated \
+		directories" @ "solution configuration",
+	^ $lib $build "-O3 & ARM specified options compiled library %libloki.a"
+		@ "project YSTest",
+	+ "minor templates" @ "YCLib",
+	/ "GDI blit implementations"
+),
+
+b186
+(
+	/ "solution configuration",
+	* DLB "makefiles",
+	/ DLP "file including",
+	* "some wrong Doxygen comments"
+),
+
+b185
+(
+	/ "library using"
+		$= (^ "updated freetype 2.4.4" ~ "freetype 2.3.12"),
+	/ "basic memory operations" $=
+	(
+		- "DMA implantation";
+		^ "normal %memcpy and %memset"
+	)
+	/ "desktop window refreshing logic",
+	/ DLD "MDualScreenReader constructor" ^ "%ynew" ~ "%new"
+),
+
+b184
+(
+	* $design "some spelling errors",
+	/ "DMA operations implementation"
+),
+
+b170_b183
+(
+	/ "GUI" $=
+	(
+		+ "controls: tracks",
+		+ "controls: scroll bars";
+		+ "controls: scrollable container",
+		+ "controls: listbox"
+	)
+),
+
+b159_b169
+(
+	+ "controls: buttons" @ "classes %(YThumb, YButton)",
+	+ "controls: listbox class",
+	+ "event mapping"
+),
+
+b134_b158
+(
+	+ DLD "core utility templates",
+	/ "smart pointers",
+	+ "GUI focus",
+	+ "shells" @ %'YReader' $=
+	+ "controls",
+	+ "virtual inheritance" @ "control classes",
+	+ "exceptions",
+	+ "debug macros & functions",
+	+ "color type",
+	+ "class template %general_cast",
+	+ "class %Timer"
+),
+
+b133
+(
+	/ DLD "simplified primary types definition",
+	/ "event interfaces",
+	+ "several exception classes",
+	/ "exception handling" @ "some functions"
+),
+
+b132
+(
+	/ "basic log interfaces",
+	+ "backup message queue object" @ "the application class",
+	/ "automatically clearing screen windows when deactivating class %ShlGUI",
+	+ "background image indexing" @ %'YReader'
+),
+
+b1_b131
+(
+	+ "initial test with PALib & libnds",
+	+ "character set management library %CHRLib",
+	+ "fonts management" ^ "freetype 2",
+	+ "shell classes",
+	+ "platform abstraction library %YCLib",
+	+ "the application class",
+	+ "basic objects & counting",
+	+ "global objects",
+	+ "string class %String",
+	+ "file classes",
+	+ "dual screen text file reader framework",
+	+ "output devices & desktops",
+	+ "messaging",
+	+ "program initialization",
+	+ "simple GUI: widgets & windows",
+	+ "simple GDI",
+	+ "base abbreviation macros",
+	+ "events",
+	+ "smart pointers" ^ "library %Loki",
+	+ "library %'Anti-Grain Geometry' test",
+	+ "simple resource classes"
+);
+
+////
+

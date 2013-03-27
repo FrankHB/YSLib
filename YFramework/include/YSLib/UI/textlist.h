@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r660
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2013-03-24 21:49 +0800
+	2013-03-27 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,7 +182,7 @@ private:
 
 public:
 	/*!
-	\brief 按内容大小依次调整视图中选中和首个项目的索引。
+	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
 	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
 	\since build 392
 	*/

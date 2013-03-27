@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3305
+\version r3322
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-03-19 15:25 +0800
+	2013-03-25 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,17 +41,12 @@ namespace
 IWidget*
 FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
 {
-	auto pr(con.GetChildren());
-
-	while(pr.first != pr.second)
+	for(auto pr = con.GetChildren(); pr.first != pr.second; ++pr.first)
 	{
-		{
-			IWidget& wgt(*pr.first);
+		IWidget& wgt(*pr.first);
 
-			if(Contains(wgt, pt) && IsEnabled(wgt) && IsVisible(wgt))
-				return &wgt;
-		}
-		++pr.first;
+		if(Contains(wgt, pt) && IsEnabled(wgt) && IsVisible(wgt))
+			return &wgt;
 	}
 	return nullptr;
 }
@@ -67,27 +62,21 @@ bool
 InputTimer::Refresh(HeldStateType& s,
 	const Duration& initial_delay, const Duration& repeated_delay)
 {
-	//三状态自动机。
 	switch(s)
 	{
 	case Free:
-		/*
-		必须立即转移状态，否则 Activate(HeldTimer) 会使 HeldTimer.Refresh()
-		始终为 false ，导致状态无法转移。
-		*/
-		s = Pressed;
-		timer.SetInterval(initial_delay); //初始键按下延迟。
+		s = Pressed,
+		timer.SetInterval(initial_delay);
 		Activate(timer);
 		break;
-
 	case Pressed:
 	case Held:
 		if(YB_UNLIKELY(timer.Refresh()))
 		{
 			if(s == Pressed)
 			{
-				s = Held;
-				timer.SetInterval(repeated_delay); //重复键按下延迟。
+				s = Held,
+				timer.SetInterval(repeated_delay);
 			}
 			return true;
 		}

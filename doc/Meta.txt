@@ -1,0 +1,380 @@
+﻿/*
+	Copyright by FrankHB 2013.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Meta.txt
+\ingroup Documentation
+\brief 项目元标记。
+\version r379
+\author FrankHB <frankhb1989@gmail.com>
+\since build 393
+\par 创建时间:
+	2013-03-25 00:01:48 +0800
+\par 修改时间:
+	2013-03-25 00:30 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::Meta
+*/
+
+// This file contains meta discriptions.
+
+$META:
+//$configureation_for_custom_NPL_script_parser:
+$parser
+(
+	$eval($ignore_not_impl);
+	$eval($for_each $anything $in $.iterators $do_something) unfold;
+);
+$parser.$ __pstate;
+$parser.unfold __unfold;
+$parser.$.iterators __iterators;
+
+$match_each __m;
+
+__unfold.(__m($ctor, $dtor)) $= __pstate.behavior.ignore
+	$= __m($true, $false);
+__unfold __iterators.for_labeled_paragraph
+(
+	$DONE,
+	$DOING,
+	$NEXT_TODO,
+	$TODO,
+	$LOW_PRIOR_TODO,
+	$FURTHER_WORK,
+	$KNOWN_ISSUE,
+	$TO_BE_REVIEWED_ENVIRONMENT_ISSUE,
+	$RESOLVED_ENVIRONMENT_ISSUE,
+	$HISTORY
+);
+
+// See "ex.cpp" for escaped abbreviation schema.
+
+$parser.state.style $= $natral_NPL;
+$dep_from; // take evaluation dependence from;
+$dep_all_from; // take all evaluation dependence from;
+$dep_to; // put evaluation dependence to;
+$label; // label for locating in code portions;
+
+$design; // features changing probably only made sense to who needs to \
+	reference or modify the implementation;
+$dev; // issues concerned by developers, which end-users could ignore without \
+	risk if the code with no undefined behavior (including compile-time \
+	characteristics such as static assertions but not runtime observative \
+	behaviors like runtime assertions);
+$lib; // issues only concerned with library(only implementation changing, \
+	or interface modifying including no deletion unless some replacements are \
+	provided, no current code would be broken (except for which has undefined \
+	behavior), so no need for library users to modify code behavior using the \
+	library interface to adapt to the upgrading), regaradless of output targets;
+$build; // issues on build, such as build scripts and diagnostic messages;
+$install; // issues on installing;
+$deploy; // issues on deployment(including build environment requirement);
+$comp; // features consist of dependencies with no additional work;
+$repo; // for repositories of version control system;
+$doc; // for documents target;
+$term; // for terminology;
+$workaround; // for issues currently or temporarily cannot be resolved through \
+	a preferred clean way for certain reasons, but exist alternative ways to \
+	get being settled and work expectedly for outer observers of the system.
+
+$add_features +; // features added;
+$fix_bugs *; // bugs fixed;
+$modify_features /; // features modified;
+$remove_features -; // features removed;
+$using ^; // using;
+$not !; // not;
+$source_from ~; // features replaced from;
+$belonged_to @;
+$changed_to ->;
+$moved_to >>;
+$renamed_to =>;
+
+// Abbreviations.
+DLD $dev $lib $design;
+DLP $dev $lib $deploy;
+DLB $dev $lib $build;
+
+
+//$transform $list ($list_member $pattern $all($exclude $pattern \
+//	$string_literal "*")) +;
+
+
+// Identifiers '$known_issue_*' indecate the earliest development stage when \
+	first time of getting the the issues confirmed. Obsolete issues all \
+	resolved are ignored. See $TO_BE_REVIEWED_ENVIRONMENT_ISSUE for issues to \
+	be reviewed. See $RESOLVED_ENVIRONMENT_ISSUE for other resovled issues.
+// Identifiers '$workaround_*' indicate earliest development stage when first \
+	time of the workaround settled.
+// Identifiers '$resolved_*' indicate earliest development stage when first \
+	time of getting the issues confirmed to fixed.
+// Identifier '$orig_defect' indicates that the issue was confirmed being a \
+	defect of environment found by this project firstly.
+// Identifier '$non_env_fix' indicates that the issue was resolved by \
+	modifying project files as non-workaround rather fixing the known problem \
+	of environment.
+
+$KNOWN_ISSUE:
+// There are issues that won't be fixed if no further progress for \
+	implementation techniques found. Also depends on the environment.
+* $known_issue_b223 "corrupted loading or fatal errors on loading font file \
+	with embedded bitmap glyph like simson.ttc" $since b185;
+	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10, 2.4.12) tested.
+* $known_issue_b264 "<cmath> cannot use 'std::*' names" @ "!defined \
+	%_GLIBCXX_USE_C99_MATH_TR1" @ "libstdc++ with G++ (4.6, 4.7) on devkitARM"
+	@ "platform $DS" $before $future;
+	// G++ 4.7.0 tested @ b301.
+* $known_issue_b279 "crashing after sleeping(default behavior of closing then \
+	reopening lid) on real machine due to libnds default interrupt handler \
+	for power management" $since b279;
+* $known_issue_b346 "vertical synchronization lacked for debug configuration \
+	when console window had got focus and then clipped with the main window"
+	@ "platform %DS";
+	// Seems to attribute to Windows GDI.
+* $known_issue_b351_1 "static constexpr member of same type as class being \
+	defined";
+	// See http://stackoverflow.com/questions/11928089/\
+static-constexpr-member-of-same-type-as-class-being-defined and \
+		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3308.pdf .
+	// G++(4.7) would reject some code snippets. Clang++ 3.2 (trunk161531) \
+		rejects even more, including code accepted by G++ such as only list \
+		initialization is being used like constexpr static member in "ygdi.h".
+* $known_issue_b351_2 "Diagnostic message generated by by \
+	Clang++[-Wmismatched-tag]".
+	// Though clang++ will complain for '-Wmismatched-tags', it's totally \
+		safe. Only on non-comforming implementation(like Micrsoft C++) it \
+		would be a problem.
+* $known_issue_b351_3 "Clang++ 3.2 bugs on access control"
+	// Clang++ 3.2 (trunk161531) rejected wrongly valid code in "iterator.hpp" \
+		and "yevt.hpp" which G++ 4.7.2 accepted.
+* $known_issue_b353 "'lto1.exe : internal compiler error : \
+	in lto_output_varpool_node, at lto-cgraph.c:595' when compiling with \
+	-flto=jobserver" @ "project %YSTest_ARM9" @ "debug configuration"
+	@ "platform %DS" ^ "G++ 4.7.1";
+	// Here is a related bug report: \
+		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52722 . \
+		Release configuration using '-flto=jobserver' would obviously enlarge \
+		the size of execution file.
+* $known_issue_b354 "'lto1.exe: internal compiler error: \
+	in lto_output_varpool_node, at lto-cgraph.c:595' when compiling with \
+	-flto=jobserver" @ "project %YSTest" @ "debug configuration"
+	@ "platform %MinGW32" ^ "G++ 4.7.2";
+	// Seemed same to $known_issue_b353. Here is a related bug report: \
+		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54118 . \
+		Release configuration using '-flto=jobserver' would obviously enlarge \
+		the size of execution file.
+* $known_issue_b361 "linking with DLL using GNU ld auto-import leads to \
+	different address across DLL and client code for same function";
+	// It causes event handlers of function set in DLL cannot removed in \
+		client code simply using function name.
+
+
+$TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
+// Issues should be reviewed later and moved as resolved if possible.
+* $workaround_b353 "G++ 4.7.1 wrongly treats some special function as \
+	implicitly deleted";
+	// This issue is a compiler bug. It is fixed in G++ 4.7.2. \
+		See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54506 for details. \
+		Since devkitPro is still remained with G++ 4.7.1 @ b353, so explicitly \
+		defaulted functions are used at several contexts as the workaround.
+
+
+$RESOLVED_ENVIRONMENT_ISSUE:
+// Issues only for recursive analysis and testing if necessary.
+// Ordered by resolved reversion and then known revision.
+* $resolved_b293 "G++ 4.5.2 fails on compiling code with defaulted move \
+	assignment operator" @ $interval([b207, b221));
+* $known_issue_b293 $resolved_b304 "G++ 4.6.1 internal error for closure \
+	object in constructors" @ $interval([b253, b300));
+	// G++ 4.6.2 tested @ b293.
+* $known_issue_b293 $resolved_b315 "G++ 4.6.1 ignores non-explicit conversion \
+	templates when there exists non-template explicit conversion function"
+	@ $interval([b260, b314));
+* $known_issue_b298 $orig_defect $resolved_b377 $non_env_fix
+	"sorry, unimplemented: use of 'type_pack_expansion' \
+	in template with libstdc++ std::thread" @ ^ "G++ (4.6, 4.7)"
+	$before $future(G++4.7.2);
+	// G++ 4.7.0 tested @ b300.
+	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
+	// Resolved by moving position of thread initialization.
+	// This issue was believed beging resolved by environment fix @ G++ 4.8.x.
+
+
+$HISTORY:
+
+// Code refactoring/fixing for quality across multiple files \
+	and probably multiple revisions.
+// '$end_at $version' is the last revision of the valid remained result. \
+	After this revision, the transformed content was abandoned.
+// The interval is the revision(s) of transformation in progress, but not \
+	necessarily containing the modifying except for the boundary. End '$now' \
+	means the migration is not end yet.
+$long_term_code_evolution $=
+(
+	"copyright notice and head formatting for makefiles"
+		$interval([b389, $now]),
+	"new include header guard identifier scheme" $interval([b381, $now]),
+	"new copyright title and author mail address with whitespace per file"
+		$interval([b369, $now]),
+	"several postfix punctuation removal" $interval([b334, b336]),
+	"strict reversion number" $at b334,
+	"Doxygen comments and file header with copyright notice" $at b170,
+	"formatted comments" $interval([b176, b169]) $end_at b169
+);
+
+$ellipse_refactoring;
+$ellipse_debug_assertion;
+
+$ref $=
+(
+b351 $=
+(
+$note "cv-qualifier for function types"
+/*
+http://stackoverflow.com/questions/1117873/pointer-to-const-vs-usual-pointer\
+-for-functions
+*/
+// Also CWG defect 295.
+),
+b349 $=
+(
+$note "N3047"
+/*http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3047.html*/
+// Also LWG defect 1260.
+),
+b298 $=
+(
+$note "access violation examples"
+/*
+http://stackoverflow.com/questions/5955682/boostmake-shared-causes-access\
+-violation
+http://lists.cs.uiuc.edu/pipermail/cfe-dev/2011-October/017831.html
+*/
+)
+);
+
+$bin_image_eq $=
+(
+	"platform %DS" (b361r, b362r),
+	"platform %DS" (b353, b354),
+	"platform %DS" (b313, b314)
+);
+
+$module_tree $=
+(
+	'YBase',
+	(
+		'YDefinition',
+		'YStandardEx'
+		(
+			$with_base_namespace "ystdex";
+			'TypeOperations',
+			'Any',
+			'CStandardIO',
+			'CString',
+			'Iterator',
+			'Functional',
+			'Algorithms',
+			'Utilities',
+			'Memory',
+			'String',
+			'Rational',
+			'Operators',
+			'Containers',
+			'AnyIterator'
+		),
+		'LibDefect'
+		(
+			'String'
+		),
+		'YTest'
+		(
+			'Timing'
+		)
+	),
+	'YFramework'
+	(
+		'CHRLib'
+		(
+			$with_base_namespace "CHRLib";
+			'CharacterMapping',
+			'encoding conversion'
+		),
+		'YCLib' $=
+		(
+			'Platform', // platform definition;
+			'NativeAPI', // native APIs;
+			'YCommon', // common utilities;
+			'Input', // common input APIs;
+			'Video', // common video APIs;
+			'FileSystem', // common file system APIs;
+			'Debug', // debug helpers;
+			'MemoryMapping' //memory mapping APIs;
+		),
+		'YSLib'
+		(
+			$with_base_namespace "YSLib";
+			'Adaptor', // adaptors;
+			'Core' // core;
+			(
+				'YBaseMacro', // basic macros,
+				'YObject', // basic objects;
+				'YCoreUtilities', // core utilities;
+				'YGDIBase', // GDI base;
+				'YDevice', // devices;
+				'YMessage', // messaging;
+				'YMessageDefinition', // message definitions;
+				'YEvent', // events;
+				'YShell', // shell abstraction;
+				'YFileSystem', // file system abstraction;
+				'YApplication', // application abstraction;
+				'ValueNode' // value nodes;
+			),
+			'Service', // services;
+			'UI'
+			(
+				'GUI',
+				'UI styles'
+			)
+		)
+		'Helper'
+		(
+			'YGlobal', // global helper unit;
+			'Shell_DS'; // shells for DS;
+			'DSMain', // DS main unit;
+			'Initialization', // initialization;
+			'InputManager' // input manager;,
+			'HostWindow',
+			'HostedUI'
+		),
+		'NPL'
+		(
+			'Lexical';
+			'SContext';
+			'Configuration'
+		)
+	),
+	'YReader'
+	(
+		'main',
+		'about form',
+		'file explorer',
+		'shells test example',
+		(
+			'ReadingList',
+			'ReaderSetting';
+			'text reader'
+		),
+		'hexadecimal browser'
+	)
+);
+
+////
+

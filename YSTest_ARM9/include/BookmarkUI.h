@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.h
 \ingroup YReader
 \brief 书签界面。
-\version r69
+\version r76
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:11:46 +0800
 \par 修改时间:
-	2013-03-23 12:55 +0800
+	2013-03-27 01:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,15 +43,18 @@ protected:
 	//! \since build 392
 	Button btnAdd, btnRemove;
 
-public:
+private:
+	//! \since build 393
 	//@{
-	Bookmark::PositionType ReaderPosition;
+	std::function<Bookmark::PositionType()> get_reader_position;
 
-	BookmarkPanel(BookmarkList&);
+public:
+	BookmarkPanel(BookmarkList&, std::function<Bookmark::PositionType()>);
+	//@}
 
+	//! \since build 392
 	BookmarkList::difference_type
 	GetSelected() const;
-	//@}
 };
 
 YSL_END_NAMESPACE(YReader)

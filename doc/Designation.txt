@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7555
+\version r7559
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-23 19:44 +0800
+	2013-03-25 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1473,13 +1473,15 @@ BASE_EXTENSIONS += ftsynth.c
  build 292 起：
 头文件版本： 2.4.9 ；
 库文件版本： 2.4.9 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+ build 299 起：
+增加 MinGW32 库文件版本： 2.4.9 用当时 MinGW32(@5.2.4) 编译的对应版本， modules.cfg 配置不变。
  build 318 起：
 头文件版本： 2.4.10 ；
- DS 库文件版本： 2.4.10 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+ DS 库文件版本： 2.4.10 使用 devkitPro 编译的对应版本， modules.cfg 配置不变。
  MinGW32 库文件版本： 2.4.10 用当时 MinGW32(@5.2.4) 编译的对应版本， modules.cfg 配置不变。
  2012-12-21(build 366) 起：
 头文件版本： 2.4.11 ；
- DS 库文件版本： 2.4.11 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+ DS 库文件版本： 2.4.11 使用 devkitPro 编译的对应版本， modules.cfg 配置不变。
  MinGW32 库文件版本： 2.4.11 用当时 MinGW32(@5.2.4) 编译的对应版本， modules.cfg 配置不变。
 
 @5.4.3

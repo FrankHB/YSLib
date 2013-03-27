@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r214
+\version r215
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-03-20 20:49 +0800
+	2013-03-27 20:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,6 +86,7 @@ SettingPanel::SettingPanel()
 	//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
 	//		BoundaryPriority),
 		FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
+		FetchEvent<KeyHeld>(*this) += OnEvent_StopRouting<KeyEventArgs>,
 		FetchEvent<Click>(btnFontSizeDecrease)
 			+= [this, set_font_size](TouchEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());

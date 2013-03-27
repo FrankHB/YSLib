@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4144
+\version r4148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-03-23 11:44 +0800
+	2013-03-27 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -284,7 +284,6 @@ ShlTextReader::SettingSession::~SettingSession()
 ShlTextReader::BookmarkSession::BookmarkSession(ShlTextReader& shl)
 	: BaseSession(shl)
 {
-	shl.pnlBookmark.ReaderPosition = shl.reader.GetTopPosition();
 	Show(shl.pnlBookmark);
 }
 
@@ -295,7 +294,9 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	CurrentSetting(LoadGlobalConfiguration()), bookmarks(), tmrScroll(
 	CurrentSetting.GetTimerSetting()), tmrInput(), reader(),
 	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
-	pTextFile(), mhMain(GetDesktopDown()), pnlBookmark(bookmarks), session_ptr()
+	pTextFile(), mhMain(GetDesktopDown()), pnlBookmark(bookmarks, [this]{
+		return reader.GetTopPosition();
+	}), session_ptr()
 {
 	using ystdex::get_key;
 

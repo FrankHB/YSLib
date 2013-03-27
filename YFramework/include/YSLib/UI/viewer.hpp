@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r293
+\version r300
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2013-03-24 22:29 +0800
+	2013-03-27 17:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,9 +181,10 @@ public:
 	\brief 按序列内容大小依次调整选中和首个项目的索引。
 	\post <tt>(GetTotal() == 0 && !IsSelected()) || (GetSelectedIndex()
 		< GetTotal() && GetHeadIndex() < GetTotal())</tt> 。
-	\since build 392
+	\return 是否改变了视图中首个项目的索引。
+	\since build 393
 	*/
-	void
+	bool
 	AdjustForContent()
 	{
 		const auto total(GetTotal());
@@ -192,10 +193,11 @@ public:
 		{
 			if(!(selected < total))
 				selected = total - 1;
-			RestrictView();
+			return RestrictView();
 		}
 		else
 			Reset();
+		return true;
 	}
 
 	/*!
@@ -283,6 +285,7 @@ public:
 	\brief 约束被选中的元素在视图内。
 	\post <tt>GetTotal() == 0 || (!(GetSelectedIndex() < GetHeadIndex())
 		&& GetSelectedIndex() < GetHeadIndex() + GetLength())</tt> 。
+	\return 是否改变了视图中选中项目的索引。
 	*/
 	bool
 	RestrictSelected()
@@ -302,6 +305,7 @@ public:
 	\brief 约束视图包含被选中的元素。
 	\post <tt>GetTotal() == 0 || (!(GetSelectedIndex() < GetHeadIndex())
 		&& GetSelectedIndex() < GetHeadIndex() + GetLength())</tt> 。
+	\return 是否改变了视图中首个项目的索引。
 	*/
 	bool
 	RestrictView()

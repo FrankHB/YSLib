@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r110
+\version r122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-03-24 22:01 +0800
+	2013-03-27 20:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,17 +59,26 @@ ConvertToBookmarkList(const vector<String>& lst)
 
 } // unnamed namespace;
 
-BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks)
+BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks,
+	std::function<Bookmark::PositionType()> f)
 	: DialogPanel(Rect({}, MainScreenWidth, MainScreenHeight)),
 	lbPosition(Rect(32, 32, 192, 128),
 	share_raw(new vector<String>(std::move(ConvertToUIString(bookmarks))))),
 	btnAdd(Rect(GetWidth() - 80, 4, 16, 16), 210),
-	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210)
+	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210),
+	get_reader_position(std::move(f))
 {
+	const auto stop_routing_after_direct([](KeyEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Bubble)
+			e.Handled = true;
+	});
+
 	AddWidgets(*this, lbPosition, btnAdd, btnRemove),
 	yunseq(
 		btnAdd.Text = u"+",
 		btnRemove.Text = u"-",
+		FetchEvent<KeyDown>(lbPosition) += stop_routing_after_direct,
+		FetchEvent<KeyHeld>(lbPosition) += stop_routing_after_direct,
 		FetchEvent<Click>(btnOK) += [&, this](TouchEventArgs&&){
 			bookmarks = std::move(ConvertToBookmarkList(lbPosition.GetList()));
 		},
@@ -79,7 +88,8 @@ BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks)
 
 			if(idx < 0)
 				idx = lst.size();
-			lst.insert(lst.begin() + idx, String(to_string(ReaderPosition)));
+			lst.insert(lst.begin() + idx,
+				String(to_string(get_reader_position())));
 			lbPosition.AdjustViewForContent();
 			lbPosition.UpdateView();
 		},

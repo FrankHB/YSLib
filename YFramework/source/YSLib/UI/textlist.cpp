@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1102
+\version r1111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-03-24 22:00 +0800
+	2013-03-27 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,7 +214,16 @@ TextList::AdjustOffset(bool is_top)
 void
 TextList::AdjustViewForContent()
 {
-	viewer.AdjustForContent();
+	const bool b(viewer.AdjustForContent());
+
+	if(viewer.IsSelected() && b)
+	{
+		AdjustOffset(viewer.GetSelectedIndex() == viewer.GetHeadIndex());
+		return;
+	}
+	if(GetFullViewHeight() < GetViewPosition() + GetHeight())
+		top_offset = 0;
+	AdjustViewLength();
 }
 
 void
