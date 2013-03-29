@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r317
+\version r325
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2013-03-13 13:15 +0800
+	2013-03-29 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,14 +69,19 @@ public:
 */
 class YF_API DialogPanel : public Panel
 {
-public:
+protected:
 	/*!
 	\brief 关闭按钮。
-	\since build 302
+	\since build 394
 	*/
 	Thumb btnClose;
-	Button btnOK;
+	/*!
+	\brief 确定按钮。
+	\since build 394
+	*/
+	Thumb btnOK;
 
+public:
 	//! \since build 337
 	explicit
 	DialogPanel(const Rect& = {});

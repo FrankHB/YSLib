@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3385
+\version r3408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-03-27 21:03 +0800
+	2013-03-29 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,30 @@ $import $HISTORY;
 // Scope: [b300, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Service' $=
+		(
+			+ "function inline %PlotPixel",
+			(
+				+ "function %DrawCircle";
+				$dep_to "%DrawCircle"
+			)
+		),
+		/ @ "class %DialogPanel" %'GUI'.'UI' $=
+		(
+			(
+				$dep_from "%DrawCircle";
+				/ "OK button painting" ^ "circle" ~ "circle character '○'"
+			),
+			/ $dev "widget member access control"
+		)
+	),
+	+ "locating text for reader from bookmark panel" @ %'YReader'.'text reader'
+),
+
+b393
 (
 	/ $doc "split ex.cpp to meta descriptions and change logs",
 	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=

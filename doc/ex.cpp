@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5410 *build 393 rev *
+\version r5410 *build 394 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-27 21:08 +0800
+	2013-03-29 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,15 +366,15 @@ $using:
 
 
 $DONE:
-r1-r36;
+r1-r23;
 
 
 $DOING:
 
 $relative_process:
-2013-03-27 +0800:
--35.5d;
-// Mercurial local rev1-rev265: r10387;
+2013-03-29 +0800:
+-35.1d;
+// Mercurial local rev1-rev266: r10410;
 
 / ...
 
@@ -384,9 +384,10 @@ b[$current_rev]-b403:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
-	+ bookmarks manager,
+	+ bookmarks persistence,
 	+ (reading history, bookmarks) (serialization, unserialization) as \conf,
-	+ \decl @ \f ReleaseShells @ \h
+	+ \decl @ \f ReleaseShells @ \h,
+	* assertion failed for null shell handle found @ \conf debug @ platform DS
 ),
 $low_prior
 (

@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r670
+\version r709
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2013-03-06 13:45 +0800
+	2013-03-29 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,16 +38,42 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 /*!
 \brief 绘制像素：(x, y) 。
-\pre 断言 <tt>bool(g) && Rect(g.GetSize()).Contains(x, y)</tt> 。
+\pre 断言 <tt>dst</tt> 。
+\since build 394
+*/
+inline void
+PutPixel(BitmapPtr dst, SDst w, SPos x, SPos y, Color c)
+{
+	YAssert(dst, "Null pointer found.");
+
+	dst[y * w + x] = c;
+}
+/*!
+\brief 绘制像素：(x, y) 。
+\pre 断言 <tt>Rect(g.GetSize()).Contains(x, y)</tt> 。
 */
 inline void
 PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 {
-	YAssert(bool(g), "Invalid graphics context found.");
 	YAssert(Rect(g.GetSize()).Contains(x, y),
 		"The pixel is not in the device context buffer.");
 
-	g.GetBufferPtr()[y * g.GetWidth() + x] = c;
+	PutPixel(g.GetBufferPtr(), g.GetWidth(), x, y, c);
+}
+
+/*!
+\brief 绘制像素：(x, y) 。
+\since build 394
+*/
+inline bool
+PlotPixel(BitmapPtr dst, const Size& s, SPos x, SPos y, Color c)
+{
+	if(Rect(s).Contains(x, y))
+	{
+		PutPixel(dst, s.Width, x, y, c);
+		return true;
+	}
+	return false;
 }
 
 /*!
@@ -57,11 +83,7 @@ inline bool
 DrawPoint(const Graphics& g, SPos x, SPos y, Color c)
 {
 	if(YB_LIKELY(g))
-		if(Rect(g.GetSize()).Contains(x, y))
-		{
-			PutPixel(g, x, y, c);
-			return true;
-		}
+		return PlotPixel(g.GetBufferPtr(), g.GetSize(), x, y, c);
 	return false;
 }
 /*!
@@ -132,6 +154,13 @@ FillRect(const Graphics& g, const Rect& r, Color c)
 {
 	return FillRect(g, r.GetPoint(), r.GetSize(), c);
 }
+
+/*!
+\brief 绘制圆形。
+\since build 394
+*/
+YF_API bool
+DrawCircle(const Graphics&, const Point&, SDst, Color c);
 
 YSL_END_NAMESPACE(Drawing)
 

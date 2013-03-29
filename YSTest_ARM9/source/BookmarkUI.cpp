@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r122
+\version r127
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-03-27 20:51 +0800
+	2013-03-29 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,14 +59,12 @@ ConvertToBookmarkList(const vector<String>& lst)
 
 } // unnamed namespace;
 
-BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks,
-	std::function<Bookmark::PositionType()> f)
+BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks, ShlTextReader& shl)
 	: DialogPanel(Rect({}, MainScreenWidth, MainScreenHeight)),
 	lbPosition(Rect(32, 32, 192, 128),
 	share_raw(new vector<String>(std::move(ConvertToUIString(bookmarks))))),
 	btnAdd(Rect(GetWidth() - 80, 4, 16, 16), 210),
-	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210),
-	get_reader_position(std::move(f))
+	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210), shell(shl)
 {
 	const auto stop_routing_after_direct([](KeyEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Bubble)
@@ -89,7 +87,7 @@ BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks,
 			if(idx < 0)
 				idx = lst.size();
 			lst.insert(lst.begin() + idx,
-				String(to_string(get_reader_position())));
+				String(to_string(shell.get().GetReaderPosition())));
 			lbPosition.AdjustViewForContent();
 			lbPosition.UpdateView();
 		},

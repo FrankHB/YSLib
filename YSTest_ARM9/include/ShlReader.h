@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1713
+\version r1723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-03-23 08:46 +0800
+	2013-03-29 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -291,6 +291,10 @@ public:
 	*/
 	~ShlTextReader() override;
 
+	//! \since build 394
+	DefGetter(const ynothrow, Bookmark::PositionType, ReaderPosition,
+		reader.GetTopPosition())
+
 private:
 	/*!
 	\brief 执行阅读器命令。
@@ -307,6 +311,14 @@ public:
 	*/
 	void
 	LoadFile(const IO::Path&);
+
+	/*!
+	\brief 定位到文本中的指定位置：更新阅读器状态、阅读列表和按钮状态。
+	\return 是否成功：在有效范围内且和原位置不同。
+	\since build 394
+	*/
+	bool
+	Locate(Bookmark::PositionType);
 
 	/*!
 	\brief 当自动滚屏有效状态为 true 时超时自动滚屏。

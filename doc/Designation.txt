@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7559
+\version r7603
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-25 01:05 +0800
+	2013-03-29 17:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1264,13 +1264,13 @@ Shell 和 Core 的关系是相对的，例如：
 依赖项相关定义参见 [Documentation::ProjectRules @@1] 。
 项目管理相关定义参见 [Documentation::ProjectRules @@2] 。
 本章描述 YSLib 项目中除了 YFramework/YSLib 以外的库。
- YFramework 内包含少量外部依赖性如 FreeType2 。
+ YFramework 内包含少量外部依赖性如 FreeType2(@5.4.2) 。
 以下如无特别说明，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
 @5.1 平台配置：
 平台配置 YCLib 平台定义文件(@5.2.2.3.1) 中定义的可支持平台对应。
 当前正式支持的平台：
-非宿主实现平台 DS （ Nintendo/iQue DS/DS Lite/DSI/DSILL 以及 PC 端模拟器 DeSmuMe 等）；
+非宿主实现平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等）；
 宿主实现平台 MinGW32 （对应三元组 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
 目前除了 MinGW32 外，仅使用静态链接库链接至静态或动态目标。
 
@@ -1366,8 +1366,8 @@ Shell 和 Core 的关系是相对的，例如：
 定义了扩展的平台 API 。
 
 @5.2.3 DS 平台库和标准库实现：
-目标平台 NDS 及以上。
-使用 devkitPro 中的 devkitARM 工具链及库文件的非 debug 版本。
+目标平台 DS ，实现环境参见 @5.1 。
+使用 devkitPro（参见 http://devkitpro.org ） 中的 devkitARM 工具链及库文件的非 debug 版本。
 依赖 devkitARM / libnds / default arm7 / libfat 版本：
  build 131 前：
 未指定。可使用 devkitARM release 26 - 29 。
@@ -1441,48 +1441,57 @@ Shell 和 Core 的关系是相对的，例如：
 参见 [Documentation::CHRLib] 。
 
 @5.4.2
-字体输出使用 FreeType2 实现向量字体光栅化支持。
+字体输出使用 FreeType2（参见 http://www.freetype.org ） 实现向量字体光栅化支持。
 
-@5.4.2.1 FreeType2 库版本：
+@5.4.2.1 使用版本：
  build 185 前：
-头文件版本： 2.3.12 ；
+头文件版本： 2.3.12 。
 库文件版本：在 VNDS 源代码中提取的 2.3.6 。
  build 185 起：
-头文件版本： 2.4.4 ；
-库文件版本：使用 devkitPro 编译的对应版本， modules.cfg 配置包含以下行：
+头文件版本： 2.4.4 。
+库文件版本：使用当时 devkitPro(@5.2.3) 编译的对应版本，使用 makefile 宏 CFLAGS ?= -c -g -O3 -Wall 。
+库配置： modules.cfg 配置包含以下有效行：
 FONT_MODULES += truetype
 FONT_MODULES += sfnt
 HINTING_MODULES += autofit
 HINTING_MODULES += pshinter
 RASTER_MODULES += smooth
+AUX_MODULES += cache
+AUX_MODULES += gzip
+AUX_MODULES += psnames
 BASE_EXTENSIONS += ftbitmap.c
 BASE_EXTENSIONS += ftglyph.c
-并使用 -O3 优化。
+使用 makefile 宏 CFLAGS ?= -c -g -O3 -Wall 。
  build 223 rev 31 起：
-头文件版本： 2.4.5 ；
-库文件版本：使用 devkitPro 编译的对应版本， modules.cfg 配置追加行：
+头文件版本： 2.4.5 。
+库配置：  modules.cfg 配置追加以下有效行：
 BASE_EXTENSIONS += ftbbox.c
 BASE_EXTENSIONS += ftstroke.c
 BASE_EXTENSIONS += ftsynth.c
 其它配置不变。
  build 224 rev 34 起：
-使用 2.4.4 的 /src/cache 源文件代替 2.4.5 对应部分并重新编译库文件，以修正不明原因的 FontCache::GetAscender 的结果错误。
+使用 2.4.4 的 /src/cache 源文件代替 2.4.5 对应部分并重新编译库文件（以修正不明原因的 FontCache::GetAscender 的结果错误）。
+其它配置不变。
  build 266 起：
-头文件版本： 2.4.8 ；
-库文件版本：使用 2.4.4 的 /src/cache 源文件代替 2.4.8 对应部分，用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+头文件版本： 2.4.8 。
+库文件版本：使用 2.4.4 的 /src/cache 源文件代替 2.4.8 对应部分，用当时 devkitPro(@5.2.3) 编译的对应版本。
+其它配置不变。
  build 292 起：
-头文件版本： 2.4.9 ；
-库文件版本： 2.4.9 用 devkitPro 编译的对应版本， modules.cfg 配置不变。
+头文件版本： 2.4.9 。
+库文件版本： 2.4.9 用 devkitPro(@5.2.3) 编译的对应版本。
  build 299 起：
-增加 MinGW32 库文件版本： 2.4.9 用当时 MinGW32(@5.2.4) 编译的对应版本， modules.cfg 配置不变。
+增加 MinGW32 库文件版本： 2.4.9 用当时 MinGW32(@5.2.4) 编译的对应版本，使用 mingw32-make 直接构建默认提供的 makefile 。
+ modules.cfg 配置不变。
  build 318 起：
-头文件版本： 2.4.10 ；
- DS 库文件版本： 2.4.10 使用 devkitPro 编译的对应版本， modules.cfg 配置不变。
- MinGW32 库文件版本： 2.4.10 用当时 MinGW32(@5.2.4) 编译的对应版本， modules.cfg 配置不变。
+头文件版本： 2.4.10 。
+ DS 库文件版本： 2.4.10 使用 devkitPro 编译的对应版本。
+ MinGW32 库文件版本： 2.4.10 用当时 MinGW32(@5.2.4) 编译的对应版本。
+其它配置不变。
  2012-12-21(build 366) 起：
-头文件版本： 2.4.11 ；
- DS 库文件版本： 2.4.11 使用 devkitPro 编译的对应版本， modules.cfg 配置不变。
- MinGW32 库文件版本： 2.4.11 用当时 MinGW32(@5.2.4) 编译的对应版本， modules.cfg 配置不变。
+头文件版本： 2.4.11 。
+ DS 库文件版本： 2.4.11 使用 devkitPro(@5.2.3) 编译的对应版本。
+ MinGW32 库文件版本： 2.4.11 用当时 MinGW32(@5.2.4) 编译的对应版本。
+其它配置不变。
 
 @5.4.3
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。

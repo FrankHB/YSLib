@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.h
 \ingroup YReader
 \brief 拾色器。
-\version r137
+\version r140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2012-01-06 20:46:10 +0800
 \par 修改时间:
-	2013-03-13 12:52 +0800
+	2013-03-29 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,10 @@ YSL_BEGIN_NAMESPACE(UI)
 */
 class ColorBox : public DialogPanel
 {
+public:
+	//! \since build 394
+	using DialogPanel::btnOK;
+
 protected:
 	/*!
 	\brief 颜色区域。

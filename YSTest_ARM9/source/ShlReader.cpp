@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4148
+\version r4194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-03-27 01:01 +0800
+	2013-03-29 14:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -294,9 +294,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 	CurrentSetting(LoadGlobalConfiguration()), bookmarks(), tmrScroll(
 	CurrentSetting.GetTimerSetting()), tmrInput(), reader(),
 	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
-	pTextFile(), mhMain(GetDesktopDown()), pnlBookmark(bookmarks, [this]{
-		return reader.GetTopPosition();
-	}), session_ptr()
+	pTextFile(), mhMain(GetDesktopDown()), pnlBookmark(bookmarks, *this),
+	session_ptr()
 {
 	using ystdex::get_key;
 
@@ -349,17 +348,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 			const auto s(reader.GetTextSize());
 
 			if(YB_LIKELY(s != 0))
-			{
-				const auto old_pos(reader.GetTopPosition());
-
-				reader.Locate(e.X * s / boxReader.pbReader.GetWidth());
-				if(YB_LIKELY(old_pos != reader.GetTopPosition()))
-				{
-					LastRead.Insert(CurrentPath, old_pos);
-					LastRead.DropSubsequent();
-					UpdateButtons();
-				}
-			}
+				Locate(e.X * s / boxReader.pbReader.GetWidth());
 		},
 		FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
 			auto& pb(boxReader.pbReader);
@@ -369,7 +358,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 
 			FillRect(e.Target, Point(pt.X + 1 + round(pb.GetValue() * w / mval),
 				pt.Y + 1), Size(round((reader.GetBottomPosition()
-				- reader.GetTopPosition()) * w / mval), pb.GetHeight() - 2),
+				- GetReaderPosition()) * w / mval), pb.GetHeight() - 2),
 				ColorSpace::Yellow);
 		},
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_session,
@@ -392,6 +381,11 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 		},
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_session,
 		FetchEvent<Click>(pnlBookmark.btnClose) += exit_session,
+		FetchEvent<Click>(pnlBookmark.btnOK) += [this](TouchEventArgs&&){
+			if(pnlBookmark.lbPosition.IsSelected()
+				&& Locate(bookmarks[pnlBookmark.lbPosition.GetSelectedIndex()]))
+				boxReader.UpdateData(reader);
+		},
 		FetchEvent<Click>(pnlBookmark.btnOK) += exit_session
 	);
 	{
@@ -432,7 +426,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth)
 ShlTextReader::~ShlTextReader()
 {
 	SaveGlobalConfiguration(CurrentSetting);
-	LastRead.Insert(CurrentPath, reader.GetTopPosition());
+	LastRead.Insert(CurrentPath, GetReaderPosition());
 }
 
 void
@@ -474,6 +468,27 @@ ShlTextReader::LoadFile(const IO::Path& pth)
 	CurrentPath = pth;
 	pTextFile = make_unique<TextFile>(pth);
 	reader.LoadText(*pTextFile);
+}
+
+bool
+ShlTextReader::Locate(Bookmark::PositionType pos)
+{
+	const auto s(reader.GetTextSize());
+
+	if(YB_LIKELY(s != 0))
+	{
+		const auto old_pos(GetReaderPosition());
+
+		reader.Locate(pos);
+		if(YB_LIKELY(old_pos != GetReaderPosition()))
+		{
+			LastRead.Insert(CurrentPath, old_pos);
+			LastRead.DropSubsequent();
+			UpdateButtons();
+			return true;
+		}
+	}
+	return false;
 }
 
 void
@@ -532,7 +547,7 @@ ShlTextReader::Switch(Encoding enc)
 void
 ShlTextReader::UpdateReadingList(bool is_prev)
 {
-	LastRead.Insert(CurrentPath, reader.GetTopPosition());
+	LastRead.Insert(CurrentPath, GetReaderPosition());
 
 	const auto& bm(LastRead.Switch(is_prev));
 
