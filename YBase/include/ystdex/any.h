@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1219
+\version r1235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-02-18 18:57 +0800
+	2013-04-01 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_YSTDEX_ANY_H_ 1
 
 #include "type_op.hpp"
-#include <memory> // for std::addressof;
+#include <memory> // for std::addressof, std::unique_ptr;
 #include <typeinfo> // for typeid, std::bad_cast;
 
 namespace ystdex
@@ -511,22 +511,25 @@ public:
 	}
 
 private:
+	//! \since build 395
 	static void
-	init(any_storage& d, _tHolder* p, true_type)
+	init(any_storage& d, std::unique_ptr<_tHolder> p, true_type)
 	{
 		new(d.access()) _tHolder(std::move(*p));
 	}
+	//! \since build 395
 	static void
-	init(any_storage& d, _tHolder* p, false_type)
+	init(any_storage& d, std::unique_ptr<_tHolder> p, false_type)
 	{
-		d = p;
+		d = p.release();
 	}
 
 public:
+	//! \since build 395
 	static void
-	init(any_storage& d, _tHolder* p)
+	init(any_storage& d, std::unique_ptr<_tHolder> p)
 	{
-		init(d, p, local_storage());
+		init(d, std::move(p), local_storage());
 	}
 	static void
 	init(any_storage& d, _tHolder&& x)
@@ -610,12 +613,15 @@ public:
 	{
 		any_ops::ref_handler<_type>::init(storage, x);
 	}
-	//! \brief 构造：使用指定持有者。
+	/*!
+	\brief 构造：使用指定持有者。
+	\since build 395
+	*/
 	template<typename _tHolder>
-	any(any_ops::holder_tag, _tHolder* p)
+	any(any_ops::holder_tag, std::unique_ptr<_tHolder> p)
 		: manager(any_ops::holder_handler<_tHolder>::manage)
 	{
-		any_ops::holder_handler<_tHolder>::init(storage, p);
+		any_ops::holder_handler<_tHolder>::init(storage, std::move(p));
 	}
 	template<typename _type>
 	any(_type&& x, any_ops::holder_tag)

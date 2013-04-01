@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r394
+\version r406
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-03-20 21:37 +0800
+	2013-04-01 01:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,10 +69,10 @@ GetEntryType(const string& path)
 	for(auto& c : npath)
 		c = std::tolower(c);
 
-	const auto ext(IO::GetExtensionOf(path).c_str());
+	const auto ext(IO::GetExtensionOf(path));
 
 	if(std::any_of(exts, exts + arrlen(exts), [&](const char* str){
-		return std::strcmp(ext, str) == 0;
+		return std::strcmp(ext.c_str(), str) == 0;
 	}))
 		return Text;
 	return Hex;
@@ -120,8 +120,9 @@ CheckBackgroundPreview(CheckButton& cbPreview, size_t up_i, size_t dn_i)
 } // unnamed namespace;
 
 
-ShlExplorer::ShlExplorer(const IO::Path& path)
-	: ShlDS(),
+ShlExplorer::ShlExplorer(const IO::Path& path,
+	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
+	: ShlDS(h_dsk_up, h_dsk_dn),
 	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(8, 48, 240, 48)),
 	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
 	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
@@ -204,16 +205,22 @@ ShlExplorer::ShlExplorer(const IO::Path& path)
 
 				if(!IO::ValidatePath(s) && ufexists(s))
 				{
+					const auto& h_dsk_up(GetDesktopUpHandle());
+					const auto& h_dsk_dn(GetDesktopDownHandle());
+
+					ResetDesktops();
 					if(GetEntryType(s) == EnrtySpace::Text
 						&& !cbHex.IsTicked())
 					// TODO: Use G++ 4.8 or later.
 					//	SetShellTo(make_shared<ShlTextReader>(path));
-						SetShellTo(share_raw(new ShlTextReader(path)));
+						SetShellTo(share_raw(new ShlTextReader(path,
+							h_dsk_up, h_dsk_dn)));
 					//	SetShellToNew<ShlTextReader>(path);
 					else
 					// TODO: Use G++ 4.8 or later.
 					//	SetShellTo(make_shared<ShlHexBrowser>(path));
-						SetShellTo(share_raw(new ShlHexBrowser(path)));
+						SetShellTo(share_raw(new ShlHexBrowser(path,
+							h_dsk_up, h_dsk_dn)));
 					//	SetShellToNew<ShlHexBrowser>(path);
 				}
 			}

@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r402
+\version r408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2013-03-23 20:57 +0800
+	2013-04-01 12:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ readdir(DIR* dir)
 {
 	static_assert(sizeof(wchar_t) == sizeof(ucs2_t), "Wrong character type!");
 
-	if(dir->hNode == nullptr)
+	if(!dir->hNode)
 	{
 		// NOTE: See MSDN "FindFirstFile function" for details.
 		yconstraint(dir->Name);
@@ -94,13 +94,16 @@ readdir(DIR* dir)
 		if(!wstr)
 			return nullptr;
 		if((dir->hNode = ::FindFirstFileW(wstr, &dir->WinDir))
-			== reinterpret_cast<void*>(0xFFFFFFFF))
+			== INVALID_HANDLE_VALUE)
 			dir->hNode = nullptr;
 		std::free(wstr);
 	}
 	else if(!::FindNextFileW(dir->hNode, &dir->WinDir))
+	{
+		FindClose(dir->hNode);
 		dir->hNode = nullptr;
-	if(dir->hNode && dir->hNode != reinterpret_cast<void*>(0xFFFFFFFF))
+	}
+	if(dir->hNode && dir->hNode != INVALID_HANDLE_VALUE)
 	{
 		yassume(dir->WinDir.cFileName);
 

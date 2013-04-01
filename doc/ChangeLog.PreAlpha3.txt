@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3408
+\version r3453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-03-29 17:43 +0800
+	2013-04-01 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,37 @@ $import $HISTORY;
 // Scope: [b300, $now];
 
 $now
+(
+	/ %'YReader' $=
+	(
+		/ "reused desktop memory to avoid allocation failure" @ "shells";
+		* "memroy allocation failure caused abnormal exit"
+			@ "debug configuration" @ "platform %DS" $since b391,
+		* "invalid use of result out of full expression for %string::c_str"
+			@ "filtering reader extensions" $since b244
+	),
+	/ %'YFramework' $=
+	(
+		* "read uninitialized memory" @ "host message object"
+			@ "platform %MinGW32" @ %'Helper' $since 379,
+		/ "constructor templates" @ "class %ValueObject"
+			@ %'YSLib'.'Core'.'YObject' $=
+		(
+			$dep_from "any implementation";
+			* $comp "leak holders" $since b352
+		),
+		* "leak handle called by %FindFirstFileW" @ "%readdir"
+			@ platform MinGW32 @ %'YCLib'.'NativeAPI' $since b296
+	),
+	/ %'YBase'.'YStandardEx'.'Any' $=
+	(
+		/ "passing ownership" ^ "%std::unique_ptr" ~ "raw pointer",
+		* "leak in local storage holder %init implementation" $since b352;
+		$dep_to "any implementation"
+	)
+),
+
+b394
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -153,16 +184,20 @@ b391
 	/ %'YReader'.'text reader' $=
 	(
 		(
-			/ "unit %BookMarkListUI" => "%BookmarkUI",
-			+ "bookmark panel";
-				// No bookmark loading and saving, to be implemented.
-			+ "menu item and reader box button for bookmark panel"
+			(
+				/ "unit %BookMarkListUI" => "%BookmarkUI",
+				+ "bookmark panel";
+					// No bookmark loading and saving, to be implemented.
+				+ "menu item and reader box button for bookmark panel"
+			),
+			(
+				$dep_from "shell session",
+				/ $dev "simplified implementation" ^ "sessions"
+			);
+			+ $dev "bookmark session"
 		),
-		(
-			$dep_from "shell session",
-			/ $dev "simplified implementation" ^ "sessions"
-		);
-		+ $dev "bookmark session"
+		* "wrong key input instruction" @ "reader box" @ "platform %MinGW32"
+			$xince b299
 	),
 	/ %'YFramework' $=
 	(

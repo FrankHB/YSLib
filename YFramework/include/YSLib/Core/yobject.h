@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3633
+\version r3637
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-02-28 20:54 +0800
+	2013-04-01 10:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,8 +249,8 @@ public:
 	template<typename _type, typename = typename
 		std::enable_if<!std::is_same<_type&, ValueObject&>::value, int>::type>
 	ValueObject(_type&& obj)
-		: content(ystdex::any_ops::holder_tag(), new ValueHolder<typename
-		ystdex::remove_rcv<_type>::type>(yforward(obj)))
+		: content(ystdex::any_ops::holder_tag(), make_unique<ValueHolder<
+		typename ystdex::remove_rcv<_type>::type>>(yforward(obj)))
 	{}
 	/*!
 	\brief 构造：使用对象指针。
@@ -260,7 +260,8 @@ public:
 	*/
 	template<typename _type>
 	ValueObject(_type* p, PointerTag)
-		: content(ystdex::any_ops::holder_tag(), new PointerHolder<_type>(p))
+		: content(ystdex::any_ops::holder_tag(), make_unique<PointerHolder<
+		_type>>(p))
 	{}
 	/*!
 	\brief 复制构造：默认实现。

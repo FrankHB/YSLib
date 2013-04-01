@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r436
-\author FrankHB<frankhb1989@gmail.com>
+\version r438
+\author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-03-06 13:41 +0800
+	2013-04-01 09:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "../ydef.h"
 #include <algorithm>
-#include <cstring> // for std::memcpy and std::memmove;
+#include <cstring> // for std::memcpy, std::memmove;
 
 namespace ystdex
 {

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r83
+\version r89
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-03-20 21:24 +0800
+	2013-03-31 15:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,11 +60,13 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用指定路径。
-	\pre 参数为合法路径。
-	\since build 301
+	\brief 构造：使用指定路径和上下桌面。
+	\pre 第一参数为合法路径。
+	\sa ShlDS::ShlDS 。
+	\since build 395
 	*/
-	ShlExplorer(const IO::Path& = IO::GetNowDirectory());
+	ShlExplorer(const IO::Path& = IO::GetNowDirectory(),
+		const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 
 	/*!
 	\brief 处理绘制消息：更新到屏幕并刷新 FPS 。

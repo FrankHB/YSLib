@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r862
+\version r863
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-03-23 21:18 +0800
+	2013-04-01 09:46 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -270,7 +270,7 @@ Environment::HostLoop()
 #		if YCL_MINGW32
 	while(true)
 	{
-		::MSG msg; //!< 本机消息。
+		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}}; //!< 本机消息。
 
 		if(::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
 		{

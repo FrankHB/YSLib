@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7603
+\version r7605
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-03-29 17:25 +0800
+	2013-03-31 15:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1639,8 +1639,8 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 算术操作符（以 + 、 - 、 * 、 / 、 % ）的顺序；
 二元位操作符（以 << 、 >> 、 & 、 | 、 ^ 的顺序）；
 逻辑操作符（以 && 、 || ）的顺序；
-转换操作符（以整数类型、枚举类型、其它基本类型、类类型顺序；整数类型之间以阶(rank) 排列）；
-访问器（以谓词、其它 getter 、 setter 排列）；
+转换操作符（以整数类型、枚举类型、其它基本类型、类类型顺序；整数类型之间以转换阶(conversion rank) 从小到大的顺序排列）；
+访问器([Documentation::CommonRules @@3.11.3]) （以谓词([Documentation::CommonRules @@3.11.2]) 、其它获取器([Documentation::CommonRules @@3.11.4]) 、设置器([Documentation::CommonRules @@3.11.4]) 排列）；
 其它函数或函数模板。
 
 @6.2 源代码嵌入文档：

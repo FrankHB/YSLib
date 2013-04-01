@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1723
+\version r1738
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-03-29 13:29 +0800
+	2013-03-31 15:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,10 +164,12 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用指定路径。
-	\since build 296
+	\brief 构造：使用指定路径和上下桌面。
+	\sa ShlDS::ShlDS 。
+	\since build 395
 	*/
-	ShlReader(const IO::Path&);
+	ShlReader(const IO::Path&,
+		const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 
 	/*!
 	\brief 退出阅读器：停止后台任务并发送消息准备切换至 ShlExplorer 。
@@ -281,10 +283,12 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用指定路径。
-	\since build 296
+	\brief 构造：使用指定路径和上下桌面。
+	\sa ShlDS::ShlDS 。
+	\since build 395
 	*/
-	ShlTextReader(const IO::Path&);
+	ShlTextReader(const IO::Path&,
+		const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 	/*!
 	\brief 析构：释放资源。
 	\since build 286
@@ -383,10 +387,12 @@ public:
 	FileInfoPanel pnlFileInfo;
 
 	/*!
-	\brief 构造：使用指定路径。
-	\since build 296
+	\brief 构造：使用指定路径和上下屏幕。
+	\sa ShlDS::ShlDS 。
+	\since build 395
 	*/
-	ShlHexBrowser(const IO::Path&);
+	ShlHexBrowser(const IO::Path&,
+		const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 };
 
 YSL_END_NAMESPACE(YReader)

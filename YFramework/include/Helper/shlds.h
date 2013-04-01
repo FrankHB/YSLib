@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1234
+\version r1243
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-03-23 20:40 +0800
+	2013-03-31 15:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,8 +99,8 @@ protected:
 
 public:
 	/*!
-	\brief 构造：使用上下屏幕初始化对应桌面。
-	\note 空参数表示新建。
+	\brief 构造：使用指定上下桌面。
+	\note 空参数表示新建上下屏幕初始化对应的桌面。
 	\since build 296
 	*/
 	ShlDS(const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
@@ -139,6 +139,15 @@ public:
 	*/
 	virtual void
 	OnPaint();
+
+	/*!
+	\brief 复位桌面。
+	\since build 395
+
+	依次对销毁每个桌面并在原存储位置新建新的对应对象。
+	*/
+	void
+	ResetDesktops();
 };
 
 

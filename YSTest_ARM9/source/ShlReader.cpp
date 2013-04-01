@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4194
+\version r4206
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-03-29 14:45 +0800
+	2013-03-31 15:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,8 +170,9 @@ FileInfoPanel::FileInfoPanel()
 }
 
 
-ShlReader::ShlReader(const IO::Path& pth)
-	: ShlDS(),
+ShlReader::ShlReader(const IO::Path& pth,
+	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
+	: ShlDS(h_dsk_up, h_dsk_dn),
 	CurrentPath(pth), fBackgroundTask(), bExit()
 {}
 
@@ -184,7 +185,9 @@ ShlReader::Exit()
 	fBackgroundTask = nullptr;
 	// TODO: Use template %SetShellToNew.
 //	SetShellToNew<ShlExplorer>();
-	SetShellTo(ystdex::make_shared<ShlExplorer>(CurrentPath / u".."));
+	ResetDesktops();
+	SetShellTo(ystdex::make_shared<ShlExplorer>(CurrentPath / u"..",
+		GetDesktopUpHandle(), GetDesktopDownHandle()));
 }
 
 ReaderSetting
@@ -288,8 +291,9 @@ ShlTextReader::BookmarkSession::BookmarkSession(ShlTextReader& shl)
 }
 
 
-ShlTextReader::ShlTextReader(const IO::Path& pth)
-	: ShlReader(pth),
+ShlTextReader::ShlTextReader(const IO::Path& pth,
+	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
+	: ShlReader(pth, h_dsk_up, h_dsk_dn),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
 	CurrentSetting(LoadGlobalConfiguration()), bookmarks(), tmrScroll(
 	CurrentSetting.GetTimerSetting()), tmrInput(), reader(),
@@ -680,8 +684,9 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 }
 
 
-ShlHexBrowser::ShlHexBrowser(const IO::Path& pth)
-	: ShlReader(pth),
+ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
+	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
+	: ShlReader(pth, h_dsk_up, h_dsk_dn),
 	HexArea(Rect({}, MainScreenWidth, MainScreenHeight)), pnlFileInfo()
 {
 	HexArea.SetRenderer(make_unique<BufferedRenderer>(true));
