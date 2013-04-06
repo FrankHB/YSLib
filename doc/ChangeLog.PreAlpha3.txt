@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3453
+\version r3472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-04-01 12:29 +0800
+	2013-04-07 02:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,26 @@ $import $HISTORY;
 // Scope: [b300, $now];
 
 $now
+(
+	/ $dev "simplified implementation" @ "constructor" @ "class %Menu"
+		@ %'YFramework'.'YSLib'.'UI'.'GUI',
+		// Make DrMemory happy about uninitialized access of \
+			%Menu::vDisabled.
+	(
+		+ $dev "macro %YB_NORETURN" @ 'YBase'.'YStandardEx'.'YDefinition';
+		+ $dev "%YB_NORETURN" @ "functions for termination"
+			@ %'YFramework'.'YCLib'
+	),
+	(
+		/ $dev "function to reset desktops"
+			@ %'YFramework'.'Helper'.'ShellHelper';
+		* "crashed after switch shells" @ %'YReader' by key input $since b395
+	),
+	/ DLD "function implementation and default arguments" @ %'YFramework'
+		^ "%FetchDefaultFontCache" ~ 'FetchGlobalInstance().GetFontCacheRef()'
+),
+
+b395
 (
 	/ %'YReader' $=
 	(

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r687
-\author FrankHB<frankhb1989@gmail.com>
+\version r691
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2012-12-11 21:09 +0800
+	2013-04-03 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,9 +36,8 @@ YSL_BEGIN
 /*!
 \brief 处理致命错误：显示错误信息并终止程序。
 \since build 342
-\todo 使用 [[noreturn]] 。
 */
-YF_API void
+YB_NORETURN YF_API void
 HandleFatalError(const FatalError&) ynothrow;
 
 

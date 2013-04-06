@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r406
+\version r433
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-04-01 01:38 +0800
+	2013-04-05 12:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,23 +205,23 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 
 				if(!IO::ValidatePath(s) && ufexists(s))
 				{
-					const auto& h_dsk_up(GetDesktopUpHandle());
-					const auto& h_dsk_dn(GetDesktopDownHandle());
+					const auto h_up(GetDesktopUpHandle());
+					const auto h_dn(GetDesktopDownHandle());
+					const bool b(GetEntryType(s) == EnrtySpace::Text
+						&& !cbHex.IsTicked());
 
-					ResetDesktops();
-					if(GetEntryType(s) == EnrtySpace::Text
-						&& !cbHex.IsTicked())
+					PostMessage<SM_TASK>(0xF8, [=]{
+						ResetDSDesktops(*h_up, *h_dn);
+						if(b)
+							NowShellTo(ystdex::make_shared<ShlTextReader>(path,
+								h_up, h_dn));
+						else
+							NowShellTo(ystdex::make_shared<ShlHexBrowser>(path,
+								h_up, h_dn));
 					// TODO: Use G++ 4.8 or later.
 					//	SetShellTo(make_shared<ShlTextReader>(path));
-						SetShellTo(share_raw(new ShlTextReader(path,
-							h_dsk_up, h_dsk_dn)));
 					//	SetShellToNew<ShlTextReader>(path);
-					else
-					// TODO: Use G++ 4.8 or later.
-					//	SetShellTo(make_shared<ShlHexBrowser>(path));
-						SetShellTo(share_raw(new ShlHexBrowser(path,
-							h_dsk_up, h_dsk_dn)));
-					//	SetShellToNew<ShlHexBrowser>(path);
+					});
 				}
 			}
 		},

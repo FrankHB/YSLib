@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1786
+\version r1788
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-03-13 13:31 +0800
+	2013-04-07 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,10 +134,11 @@ public:
 	\param h_up 上文本区域高。
 	\param h_down 下文本区域高。
 	\param fc_ 字体缓存对象。
+	\since build 396
 	*/
 	DualScreenReader(SDst w = MainScreenWidth,
 		SDst h_up = MainScreenHeight, SDst h_down = MainScreenHeight,
-		Drawing::FontCache& fc_ = FetchGlobalInstance().GetFontCache());
+		Drawing::FontCache& fc_ = FetchDefaultFontCache());
 
 	//! \since build 374
 	DefPred(const ynothrow, BufferReady, bool(pText));

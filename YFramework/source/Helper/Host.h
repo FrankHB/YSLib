@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r468
+\version r469
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-03-18 18:46 +0800
+	2013-04-03 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -141,7 +141,7 @@ public:
 	void
 	SetSize(const Drawing::Size&) override;
 
-	HostRenderer*
+	YB_NORETURN HostRenderer*
 	Clone() const override
 	{
 		throw LoggedEvent("HostRenderer::Clone: Not implemented.");

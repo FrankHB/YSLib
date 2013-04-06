@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1255
+\version r1263
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-03-31 15:30 +0800
+	2013-04-05 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,15 +123,6 @@ ShlDS::OnInput()
 void
 ShlDS::OnPaint()
 {}
-
-void
-ShlDS::ResetDesktops()
-{
-	desktop_up_ptr->~Desktop();
-	new(desktop_up_ptr.get()) Desktop(FetchGlobalInstance().GetScreenUp());
-	desktop_down_ptr->~Desktop();
-	new(desktop_down_ptr.get()) Desktop(FetchGlobalInstance().GetScreenDown());
-}
 
 YSL_END_NAMESPACE(DS)
 

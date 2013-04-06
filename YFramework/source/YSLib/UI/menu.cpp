@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1082
+\version r1085
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2013-03-13 13:03 +0800
+	2013-04-01 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,13 +39,11 @@ YSL_BEGIN_NAMESPACE(UI)
 Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	: TextList(r, h, FetchGUIState().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText)),
-	id(id), pParent(nullptr), mSubMenus(), vDisabled()
+	id(id), pParent(nullptr), mSubMenus(), vDisabled(h ? h->size() : 0)
 {
 	Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
 	Margin = Padding(6, 18, 4, 4);
 	CyclicTraverse = true;
-	if(h)
-		vDisabled.resize(h->size());
 	yunseq(
 		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 			if(pHost)

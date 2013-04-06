@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r215
+\version r216
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-03-27 20:19 +0800
+	2013-04-07 01:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,7 +116,7 @@ SettingPanel::SettingPanel()
 			Show(boxColor);
 		},
 		ddlFont.GetConfirmed() += [this](IndexEventArgs&&){
-			if(const auto p = FetchGlobalInstance().GetFontCache()
+			if(const auto p = FetchDefaultFontCache()
 				.GetFontFamilyPtr(ddlFont.Text.GetMBCS().c_str()))
 			{
 				lblAreaUp.Font = Font(*p, lblAreaUp.Font.GetSize());

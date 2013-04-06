@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5410 *build 395 rev *
+\version r5534 *build 396 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-04-01 12:38 +0800
+	2013-04-07 02:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,75 +366,73 @@ $using:
 
 
 $DONE:
-r1-r86;
+r1-r30;
 
 
 $DOING:
 
 $relative_process:
-2013-04-01 +0800:
--36.1d;
-// Mercurial local rev1-rev267: r10496;
+2013-04-07 +0800:
+-40.5d;
+// Mercurial local rev1-rev268: r10526;
 
 / ...
 
 
 $NEXT_TODO:
-b[$current_rev]-b403:
+b[$current_rev]-b400:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
 	+ bookmarks persistence,
 	+ (reading history, bookmarks) (serialization, unserialization) as \conf,
-	+ \decl @ \f ReleaseShells @ \h,
-	* assertion failed for null shell handle found @ \conf debug @ platform DS
-		$since b391
-),
-$low_prior
-(
-	* previous frame form buffered renderer of desktop did not be handled
-		properly for clipping area enlarged when updating $since b?;
-		// Namely, the actual painted area is not the same as accumulated \
-			invalidated bounding region, which essentially cause over painted.
-	/ resolved 'scaler' \term and %is_scalar(e.g. for fixed point numbers);
+	+ \decl @ \f ReleaseShells @ \h
 );
++ BSD copyright reproducing @ binaries;
 
 
 $TODO:
-b[683]:
+b[370]:
+/ external dependencies $=
+(
+	/ recompile freetype with MinGW g++ 4.8.0,
+	/ consider: recompile DS freetype without '-g' CFLAGS option
+);
 / services $=
 (
 	+ \impl @ images loading
 ),
+/ consider: ^ %std::this_thread::sleep_for ~ YSLib::Delay,
++ \s \as | \mac for (__has_feature(cxx_exceptions) && __has_feature(cxx_rtti))
+	for Clang++ @ \h YDefinition,
 / @ "GUI" $=
 (
-	+ viewer models,
-	/ fully \impl @ \cl Form,
+	/ split %GSeqeunceViewer to 2 class templates,
+	/ mark (YDesktop; YWindow) as unnecessary files,
 	+ icons,
 	/ $low_prior more long list tests @ %DropDownList,
-	/ refactored shared GUI mapping for menus and other widgets
+	/ refactored shared GUI mapping for menus and other widgets,
+	+ safe widget cloning,
+	* previous frame form buffered renderer of desktop did not be handled
+		properly for clipping area enlarged when updating $since b?,
+		// Namely, the actual painted area is not the same as accumulated \
+			invalidated bounding region, which essentially cause over painted.
 ),
-/ $design $low_prior robustness and cleanness $=
+/ sessions $=
 (
-	+ proper move support @ \cl Menu,
-	^ delegating \ctor as possible,
-	/ stripping away direct using @ Win32 types completely @ \h @ \lib YCLib,
-	^ std::call_once to confirm thread-safe initialization,
-	/ improving pedantic ISO C++ compatiblity,
-	/ consider using std::common_type for explicit template argument
-		for (min, max),
-	+ macros for 'deprecated' and other attributes,
-	+ thread safety check for WndProc,
-	* stdout thread safety
-),
-+ $design $low_prior helpers $=
-(
-	+ noinstance base class
+	+ $doc session id,
+	+ session shells,
+	+ \cl FrameworkSession
 ),
 / $low_prior YReader $=
 (
 	+ settings manager,
 	+ improved smooth scrolling with lower limit of scrolling cycle supported
+),
++ general shell switching clueanup $=
+(
+	+ filtering background task or clearing application message queue,
+	+ helper functions
 ),
 / project structure $=
 (
@@ -446,33 +444,11 @@ b[683]:
 	),
 	/ improved tests and examples
 );
-/ $low_prior improved memory and file APIs @ \lib YCLib $=
-(
-	/ fully \impl @ memory mappaing,
-	+ block file loading,
-	+ shared memory
-),
-/ @ CHRLib $=
-(
-	/ more accurate invalid conversion state handling,
-	/ placeholders when character conversion failed @ string conversion,
-	+ UTF-8 to GBK conversion
-),
 + comparison between different cv-qualified any_iterator types @ \h AnyIterator;
 / $design $low_prior robustness and cleanness $=
 (
 	/ \ac @ \inh touchPosition @ \cl CursorInfo @ \ns platform @ \u YCommon,
-	/ resumable exception handling $=
-	(
-		+ general fundamental reusable exception \tp and filtering;
-			// Or following Common Lisp conditional handling model, etc?
-		+ recovery environment @ main \fn
-			// Try-catch, then relaunch the message loop.
-	)
-	/ \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
-		~ '::llround',
-	+ 'yconstexpr' @ \s \m Graphics::Invalid,
-	+ error code with necessary %thread_local @ \u YCommon,
+	+ consider: 'yconstexpr' @ \s \m Graphics::Invalid,
 	/ confirm correctness @ stat() @ Win32,
 		// See comments @ src/fccache.c @ \proj fontconfig.
 	/ consideration of mutable member @ class %Message
@@ -480,11 +456,53 @@ b[683]:
 / $low_prior improving performance $=
 (
 	/ \impl @ classes %(Message, MessageQueue),
-	/ more specific \impl @ NPL context
+	/ more specific \impl @ NPL context,
+	/ higher FPS
+);
+
+b[426]:
+/ YBase $=
+(
+	/ $low_prior \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
+		~ '::llround',
+	+ noinstance base class,
+	/ \mft<_type> any& \op=(const _type&) -> \mft<_type> any& \op=(_type),
+	/ resolved 'scaler' \term and %is_scalar(e.g. for fixed point numbers),
+	+ adaptive seriazation (to text/binary),
+	+ round to 2^n integer arithmetics
+),
++ $low_prior freestanding memory management and new_handler to avoid
+	high-level memory allocation failure,
+/ Core $=
+(
+	+ \t \spec swap<YSLib::Message>,
+	/ \impl YFileSystem ^ tr2::filesystem
+),
+/ host environment $=
+(
+	+ thread safety check for WndProc,
+	/ \impl @ \f MinGW32::TestFramework @ platform MinGW32,
+	/ split hosted message loop as a new thread distinct to host initialization,
+	+ consider: \conv \f between Drawing::Rect, ::RECT @ Helper,
+	+ window hypervisor
+),
+/ @ \lib YCLib $=
+(
+	+ error code with necessary %thread_local,
+	/ stripping away direct using @ Win32 types completely @ \h,
+	/ consider: ::OutputDebugStringA,
+	/ fully \impl @ memory mappaing,
+	+ block file loading,
+	+ shared memory
+),
+/ @ \lib CHRLib $=
+(
+	/ more accurate invalid conversion state handling,
+	/ placeholders when character conversion failed @ string conversion,
+	+ UTF-8 to GBK conversion
 ),
 / completeness of core abstraction $=
 (
-	+ shell session;
 	+ UI scenes,
 	+ UI modes,
 	+ UI subsessions,
@@ -507,12 +525,31 @@ b[683]:
 	),
 	/ fully \impl @ encoding checking
 ),
+/ resumable exception handling $=
+(
+	+ general fundamental reusable exception \tp and filtering;
+		// Or following Common Lisp conditional handling model, etc?
+	+ recovery environment @ main \fn
+		// Try-catch, then relaunch the message loop.
+),
 / debugging $=
 (
-	/ more APIs,
-	+ namespaces
+	+ more debug APIs,
+	+ debugging namespaces
 ),
-/ $low_prior tests and examples $=
+/ $design $low_prior robustness and cleanness $=
+(
+	+ proper move support @ \cl Menu,
+	^ delegating \ctor as possible,
+	^ std::call_once to confirm thread-safe initialization,
+	/ keeping pedantic ISO C++ compatiblity,
+	/ consider using std::common_type for explicit template argument
+		for (min, max),
+	+ macros for 'deprecated' and other attributes,
+	^ C++11 generlized attributes,
+	* stdout thread safety
+),
+/ $low_prior YReader tests and examples $=
 (
 	+ overlapping test @ \cl Rect,
 	+ partial invalidation support @ %(HexViewArea::Refresh)
@@ -584,7 +621,7 @@ b[492]:
 	+ modal widget behavior
 );
 
-b[615]:
+b[621]:
 / improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
 + function composition,
 / platform dependent system functions $=
@@ -631,6 +668,8 @@ b[615]:
 ),
 / @ "GUI" $=
 (
+	+ viewer models,
+	/ fully \impl @ \cl Form,
 	/ partial invalidation support @ \f DrawRectRoundCorner,
 	+ document-view models,
 	/ focusing $=

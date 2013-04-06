@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2240
+\version r2254
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-03-17 18:11 +0800
+	2013-03-17 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,7 +103,7 @@
 //@{
 
 /*!
-\def YB_HAS_BUILTIN_ALIGNAS
+\def YB_HAS_ALIGNAS
 \brief 内建 alignas 支持。
 \since build 389
 */
@@ -111,7 +111,7 @@
 #define YB_HAS_ALIGNAS (YB_IMPL_GNUCPP >= 40800)
 
 /*!
-\def YB_HAS_BUILTIN_ALIGNOF
+\def YB_HAS_ALIGNOF
 \brief 内建 alignof 支持。
 \since build 315
 */
@@ -197,6 +197,19 @@
 #	define YB_EXPECT(expr, constant) (expr)
 #	define YB_LIKELY (expr) (expr)
 #	define YB_UNLIKELY (expr) (expr)
+#endif
+
+/*!
+\def YB_NORETURN
+\brief 指定无返回值函数。
+\warning 当指定的函数调用实际返回时行为未定义。
+\since build 396
+\todo 使用 ISO C++11 noreturn 属性。
+*/
+#if YB_IMPL_GNUCPP >= 20296
+#	define YB_NORETURN YB_ATTR(__noreturn__)
+#else
+#	define YB_NORETURN
 #endif
 
 /*!

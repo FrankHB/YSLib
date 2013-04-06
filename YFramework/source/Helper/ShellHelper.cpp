@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r414
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-03-23 20:46 +0800
+	2013-04-07 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,17 @@ DebugTimer::~DebugTimer()
 		event_info.c_str(), t);
 }
 #endif
+
+
+void
+ResetDSDesktops(Desktop& dsk_up, Desktop& dsk_dn)
+{
+	auto& app(FetchGlobalInstance());
+
+	ResetDesktop(dsk_up, app.GetScreenUp()),
+	ResetDesktop(dsk_dn, app.GetScreenDown());
+}
+
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -120,8 +131,7 @@ TranslateTime(const std::time_t& t, const char* format) ythrow(GeneralEvent)
 shared_ptr<UI::TextList::ListType>
 FetchFontFamilyNames()
 {
-	const auto& mFamilies(FetchGlobalInstance().GetFontCache()
-		.GetFamilyIndices());
+	const auto& mFamilies(FetchDefaultFontCache().GetFamilyIndices());
 
 	// TODO: Use g++ 4.8 or later.
 //	return make_shared<TextList::ListType>(mFamilies.cbegin()

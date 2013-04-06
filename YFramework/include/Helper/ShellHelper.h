@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1597
+\version r1615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-03-22 00:14 +0800
+	2013-04-05 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,11 +238,11 @@ NowShellToStored()
 \since 早于 build 132
 */
 inline void
-SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority p = 0x80)
+SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority prior = 0x80)
 {
 	// NOTE: It would make the message loop in dead lock when called more
 	//	than once specifying on same destination shell.
-	PostMessage<SM_SET>(p, hShl);
+	PostMessage<SM_SET>(prior, hShl);
 }
 
 /*!
@@ -288,6 +288,27 @@ CallStored()
 {
 	SetShellToStored<_tShl>();
 }
+
+
+/*!
+\brief 复位桌面。
+\since build 396
+
+销毁每个桌面并在原存储位置创建新的对象。
+*/
+inline void
+ResetDesktop(Desktop& dsk, Devices::Screen& scr)
+{
+	dsk.~Desktop();
+	new(&dsk) Desktop(scr);
+}
+
+/*!
+\brief 以默认屏幕复位两个桌面。
+\since build 396
+*/
+YF_API void
+ResetDSDesktops(Desktop&, Desktop&);
 
 
 //资源相关定义和函数。
