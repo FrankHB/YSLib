@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1788
+\version r1814
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-04-07 01:53 +0800
+	2013-04-10 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,12 +63,10 @@ public:
 		Down = 0,
 		Line = 4,
 		Screen = 0,
-
 		LineUp = Line | Up,
 		LineDown = Line | Down,
 		ScreenUp = Screen | Up,
 		ScreenDown = Screen | Down,
-
 		LineUpScroll = LineUp | Scroll,
 		LineDownScroll = LineDown | Scroll,
 		ScreenUpScroll = ScreenUp | Scroll,
@@ -76,7 +74,11 @@ public:
 	} Command;
 
 private:
-	unique_ptr<Text::TextFileBuffer> pText; //!< 文本资源。
+	/*!
+	\brief 文本资源。
+	\since build 397
+	*/
+	unique_ptr<Text::TextFileBuffer> p_text;
 	Drawing::FontCache& fc; //!< 字体缓存。
 	/*!
 	\brief 文本区域输入迭代器。
@@ -141,10 +143,10 @@ public:
 		Drawing::FontCache& fc_ = FetchDefaultFontCache());
 
 	//! \since build 374
-	DefPred(const ynothrow, BufferReady, bool(pText));
-	DefPred(const ynothrow, TextTop, i_top == pText->GetBegin()) \
+	DefPred(const ynothrow, BufferReady, bool(p_text));
+	DefPred(const ynothrow, TextTop, i_top == p_text->GetBegin()) \
 		//!< 判断输出位置是否到文本顶端。
-	DefPred(const ynothrow, TextBottom, i_btm == pText->GetEnd()) \
+	DefPred(const ynothrow, TextBottom, i_btm == p_text->GetEnd()) \
 		//!< 判断输出位置是否到文本底端。
 
 	/*!
@@ -160,15 +162,15 @@ public:
 	DefGetter(const ynothrow, const Drawing::Font&, Font, area_up.Font)
 	DefGetter(const ynothrow, u8, LineGap, area_up.LineGap) \
 		//!< 取文本区域的行距。
-	DefGetter(const ynothrow, Text::Encoding, Encoding, pText
-		? pText->GetEncoding() : Text::CharSet::Null) //!< 取编码。
+	DefGetter(const ynothrow, Text::Encoding, Encoding, p_text
+		? p_text->GetEncoding() : Text::CharSet::Null) //!< 取编码。
 	/*!
 	\brief 取文本大小。
 	\note 单位为字节。
 	\since build 270
 	*/
 	DefGetter(const ynothrow, size_t, TextSize,
-		pText ? pText->GetTextSize() : 0)
+		p_text ? p_text->GetTextSize() : 0)
 	/*!
 	\brief 取阅读位置。
 
@@ -178,10 +180,23 @@ public:
 	*/
 	//@{
 	DefGetter(const ynothrow, size_t, TopPosition,
-		pText ? pText->GetPosition(i_top) : 0)
+		p_text ? p_text->GetPosition(i_top) : 0)
 	DefGetter(const ynothrow, size_t, BottomPosition,
-		pText ? pText->GetPosition(i_btm) : 0)
+		p_text ? p_text->GetPosition(i_btm) : 0)
 	//@}
+	/*!
+	\brief 取文本资源。
+	\throw LoggedEvent 缓冲区指针为空。
+	\note 仅抛出以上异常。
+	\since build 397
+	*/
+	Text::TextFileBuffer&
+	GetTextBufferRef() ythrow(LoggedEvent)
+	{
+		if(p_text)
+			return *p_text;
+		throw LoggedEvent("Null text buffer pointer found.");
+	}
 
 	PDefH(void, SetColor, Color c = Drawing::ColorSpace::Black)
 		ImplUnseq(area_up.Color = c, area_dn.Color = c) //!< 设置字符颜色。

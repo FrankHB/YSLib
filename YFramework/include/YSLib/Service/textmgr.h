@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3761
+\version r3772
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-01-21 02:55 +0800
+	2013-04-11 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ class YF_API TextFileBuffer
 public:
 	/*!
 	\brief 缓冲区块类型。
-	
+
 	保存转换后的文本区块和初始转换偏移状态。
 	\since build 273
 	*/
@@ -110,7 +110,7 @@ public:
 	\brief 默认文本区块大小。
 	\since build 273
 	*/
-	static yconstexpr size_t nBlockSize = 2048U;
+	static yconstexpr size_t BlockSize = 2048U;
 
 protected:
 	/*!
@@ -207,6 +207,18 @@ operator!=(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator y)
 {
 	return !(x == y);
 }
+
+
+/*!
+\brief 从文本文件缓冲区复制指定字节位置起始的字符串。
+\return 不越界时，第三参数为零则为空串，否则为尽可能长但不大于指定长度的缓冲区内容。
+\throw std::out_of_range 起始位置越界无法访问。
+\note 仅抛出以上异常。
+\note 可能刷新缓冲。
+\since build 397
+*/
+YF_API string
+CopySliceFrom(TextFileBuffer&, size_t, size_t) ythrow(std::out_of_range);
 
 YSL_END_NAMESPACE(Text)
 

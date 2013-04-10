@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r219
+\version r246
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-01-23 09:23 +0800;
+	2013-04-08 21:14 +0800;
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,30 @@
 #include "YSLib/Core/ValueNode.h"
 
 YSL_BEGIN
+
+bool
+ValueNode::operator+=(const ValueNode& node)
+{
+	return CheckNodes().insert(node).second;
+}
+bool
+ValueNode::operator+=(ValueNode&& node)
+{
+	// TODO: Use %emplace.
+	return CheckNodes().insert(std::move(node)).second;
+}
+
+bool
+ValueNode::operator-=(const ValueNode& node)
+{
+	try
+	{
+		return GetContainer().erase({0, node.name}) != 0;
+	}
+	catch(ystdex::bad_any_cast&)
+	{}
+	return false;
+}
 
 ValueNode&
 ValueNode::operator[](const string& name)
@@ -68,36 +92,12 @@ ValueNode::GetSize() const ynothrow
 	return 0;
 }
 
-bool
-ValueNode::Add(const ValueNode& n)
-{
-	return CheckNodes().insert(n).second;
-}
-bool
-ValueNode::Add(ValueNode&& n)
-{
-	// TODO: Use %emplace.
-	return CheckNodes().insert(std::move(n)).second;
-}
-
 ValueNode::Container&
 ValueNode::CheckNodes()
 {
 	if(!value)
 		value = Container();
 	return GetContainer();
-}
-
-bool
-ValueNode::Remove(const ValueNode& node)
-{
-	try
-	{
-		return GetContainer().erase({0, node.name}) != 0;
-	}
-	catch(ystdex::bad_any_cast&)
-	{}
-	return false;
 }
 
 YSL_END

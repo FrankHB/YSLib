@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4216
+\version r4222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-04-05 12:34 +0800
+	2013-04-10 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -224,7 +224,7 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 {
 	try
 	{
-		FetchGlobalInstance().Root["YReader"]["ReaderSetting"] = ValueNode(rs);
+		FetchGlobalInstance().Root["YReader"] /= ValueNode(rs);
 		SaveConfiguration(FetchGlobalInstance().Root);
 	}
 	catch(std::exception& e) // TODO: Logging.
@@ -436,6 +436,12 @@ ShlTextReader::~ShlTextReader()
 {
 	SaveGlobalConfiguration(CurrentSetting);
 	LastRead.Insert(CurrentPath, GetReaderPosition());
+}
+
+string
+ShlTextReader::GetSlice(Bookmark::PositionType pos, string::size_type len)
+{
+	return CopySliceFrom(reader.GetTextBufferRef(), pos, len);
 }
 
 void

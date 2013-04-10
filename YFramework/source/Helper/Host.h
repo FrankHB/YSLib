@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r469
+\version r483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-04-03 22:40 +0800
+	2013-04-07 12:22 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -192,14 +192,14 @@ private:
 	mutable std::mutex wmap_mtx;
 #	if YCL_MULTITHREAD == 1
 #		if YCL_MINGW32
-	/*!
-	\brief 本机主窗口指针。
-	\since build 380
-	*/
-	unique_ptr<Window> p_main_wnd;
+	//! \since build 397
+	::HINSTANCE h_instance;
 #		endif
-	//! \brief 宿主背景线程。
-	std::thread host_thrd;
+	/*!
+	\brief 宿主窗口线程。
+	\since build 397
+	*/
+	unique_ptr<WindowThread> p_wnd_thrd;
 #	endif
 
 public:
@@ -242,9 +242,12 @@ public:
 	HostLoop();
 
 #	if YCL_MULTITHREAD == 1
-	//! \brief 初始化宿主资源和本机消息循环线程。
+	/*!
+	\brief 初始化宿主资源和本机消息循环线程并等待主窗口初始化完毕。
+	\since build 397
+	*/
 	void
-	HostTask();
+	InitHostTask();
 #	endif
 
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r2884
+\version r2893
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-03-11 10:36 +0800
+	2013-04-07 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,14 +127,13 @@ try	: Application(),
 	//初始化系统设备。
 #if YCL_DS
 	InitVideo();
+#endif
 	Devices::InitDSScreen(scrs[0], scrs[1]);
+#if YCL_DS
 	scrs[0]->Update(ColorSpace::Blue),
 	scrs[1]->Update(ColorSpace::Green);
-#elif YCL_MULTITHREAD
-	// FIXME: Reduce possible data race.
-	while(!IsScreenReady())
-		// TODO: Resolve magic sleep duration.
-		std::this_thread::sleep_for(idle_sleep);
+#elif YCL_MINGW32
+	GetHost().InitHostTask();
 #endif
 }
 catch(FatalError& e)

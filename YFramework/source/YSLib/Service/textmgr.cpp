@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3625
-\author FrankHB<frankhb1989@gmail.com>
+\version r3656
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2012-09-04 12:50 +0800
+	2013-04-10 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,7 +98,7 @@ operator==(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator& y)
 
 TextFileBuffer::TextFileBuffer(TextFile& file)
 	: File(file), nTextSize(File.GetTextSize()),
-	nBlock((nTextSize + nBlockSize - 1) / nBlockSize), Map(),
+	nBlock((nTextSize + BlockSize - 1) / BlockSize), Map(),
 	fixed_width(FetchFixedCharWidth(File.Encoding)), max_width(fixed_width
 	== 0 ? FetchMaxVariantCharWidth(File.Encoding) : fixed_width)
 {
@@ -119,12 +119,12 @@ TextFileBuffer::operator[](size_t idx)
 
 	if(YB_UNLIKELY(vec.empty() && bool(File)))
 	{
-		size_t len(idx == nBlock - 1 && nTextSize % nBlockSize != 0
-			? nTextSize % nBlockSize : nBlockSize);
+		size_t len(idx == nBlock - 1 && nTextSize % BlockSize != 0
+			? nTextSize % BlockSize : BlockSize);
 		size_t n_byte(0);
 		ucs2_t c;
 
-		File.Locate(idx * nBlockSize);
+		File.Locate(idx * BlockSize);
 		vec.reserve(len / fixed_width);
 
 		while(n_byte < len)
@@ -155,15 +155,15 @@ TextFileBuffer::GetIterator(size_t pos)
 {
 	if(pos < nTextSize)
 	{
-		const size_t idx(pos / nBlockSize);
+		const size_t idx(pos / BlockSize);
 
-		pos %= nBlockSize;
+		pos %= BlockSize;
 		if(fixed_width == max_width)
 			return TextFileBuffer::Iterator(this, idx, pos / max_width);
 
 		YAssert(bool(File), "Invalid file found.");
 
-		File.Locate(idx * nBlockSize);
+		File.Locate(idx * BlockSize);
 
 		size_t n_byte(0), n_char(0);
 
@@ -189,13 +189,13 @@ TextFileBuffer::GetPosition(TextFileBuffer::Iterator i)
 	const auto pos(i.GetIndexN());
 
 	if(fixed_width == max_width)
-		return idx * nBlockSize + pos * max_width;
+		return idx * BlockSize + pos * max_width;
 
 	const auto& vec((*this)[idx].first);
 
 	YAssert(!vec.empty() && bool(File), "Block loading failed.");
 
-	File.Locate(idx *= nBlockSize);
+	File.Locate(idx *= BlockSize);
 
 	size_t n_byte(0);
 	const auto mid(vec.cbegin() + pos);
@@ -212,6 +212,32 @@ TextFileBuffer::GetPosition(TextFileBuffer::Iterator i)
 		n_byte += GetCountOf(st);
 	}
 	return idx + n_byte;
+}
+
+
+string
+CopySliceFrom(TextFileBuffer& buf, size_t pos, size_t len)
+	ythrow(std::out_of_range)
+{
+	const auto i_end(buf.GetEnd());
+	auto i_beg(buf.GetIterator(pos));
+
+	if(i_beg == i_end)
+		throw std::out_of_range("Wrong offset found.");
+	if(len == 0)
+		return {};
+
+	YAssert(pos < pos + len, "Unexpected unsigned integer round up.");
+
+	string str;
+
+	str.reserve(len * 2);
+	while(len != 0 && i_beg != i_end)
+	{
+		str.push_back(*i_beg);
+		yunseq(++i_beg, --len);
+	}
+	return std::move(str);
 }
 
 YSL_END_NAMESPACE(Text)

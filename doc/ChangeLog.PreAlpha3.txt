@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3472
+\version r3504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-04-07 02:24 +0800
+	2013-04-11 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,41 @@ $import $HISTORY;
 
 $now
 (
+	/ %'YFramework' $=
+	(
+		/ DLD "platform %MinGW32" %'Helper' $=
+		(
+			/ "make screens initialization wating on main thread other \
+				than host thread",
+			/ "host thread" ^ "class %WindowThread" ~ "%std::thread directly",
+			/ "simpified host task implementation"
+		),
+		/ %'YSLib' $=
+		(
+			/ @ "class %ValueNode" @ %'Core'.'ValueNode' $=
+			(
+				/ "merged member functions %(Add, Remove) to %operator(+, -)",
+				+ "mmeber function %operator/= to replace node"
+			),
+			/ %'Service'.'TextManager' $=
+			(
+				/ "member %TextFileBuffer::nBlockSize" => "%BlockSize",
+				+ "function %CopySliceFrom"
+			)
+		)
+	);
+	/ @ "bookmark UI" @ %'YReader'.'text reader' $=
+	(
+		/ "buffer content shown" @ "bookmark prensentation",
+		/ "enlarged listbox width" @ "bookmark panel"
+	)
+),
+
+b396
+(
 	/ $dev "simplified implementation" @ "constructor" @ "class %Menu"
 		@ %'YFramework'.'YSLib'.'UI'.'GUI',
-		// Make DrMemory happy about uninitialized access of \
+		// This makes DrMemory happy about uninitialized access of \
 			%Menu::vDisabled.
 	(
 		+ $dev "macro %YB_NORETURN" @ 'YBase'.'YStandardEx'.'YDefinition';

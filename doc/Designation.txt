@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7606
+\version r7608
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-04-03 14:13 +0800
+	2013-04-09 15:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1411,6 +1411,8 @@ Shell 和 Core 的关系是相对的，例如：
  devkitARM release 39 / libnds 1.5.7 。
  2012-05-14(build 308) 起：
  devkitARM release 40 / libfat 1.0.11 。
+ 2012-06-29(build 321) 起：
+ devkitARM release 41 。
 
 @5.2.4 MinGW32 平台库和标准库实现：
 目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP 及以上。

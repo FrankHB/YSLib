@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r863
+\version r944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-04-01 09:46 +0800
+	2013-04-07 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -109,10 +109,17 @@ InitializeMainWindow(const wchar_t* wnd_title, u16 wnd_w, u16 wnd_h,
 */
 class DSWindow : public Window
 {
+private:
+	//! \since build 397
+	DSScreen& scr_up;
+	//! \since build 397
+	DSScreen& scr_dn;
+
 public:
-	DSWindow(NativeWindowHandle h,
-		Environment& e = FetchGlobalInstance().GetHost())
-		: Window(h, e)
+	//! \since build 397
+	DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
+		Environment& e)
+		: Window(h, e), scr_up(s_up), scr_dn(s_dn)
 	{}
 
 	pair<Point, Point>
@@ -135,10 +142,9 @@ public:
 	OnPaint() override
 	{
 		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
-		auto& app(FetchGlobalInstance());
 
-		app.GetDSScreenUp().UpdateToSurface(sf),
-		app.GetDSScreenDown().UpdateToSurface(sf);
+		scr_up.UpdateToSurface(sf),
+		scr_dn.UpdateToSurface(sf);
 	}
 };
 #endif
@@ -160,6 +166,7 @@ WindowThread::~WindowThread()
 	YAssert(bool(p_wnd), "Null pointer found.");
 
 	p_wnd->Close();
+	// TODO: Exception safety: add either assertion or logging when throwing.
 	thrd.join();
 }
 
@@ -205,11 +212,24 @@ Environment::Environment()
 	: wnd_map(), wmap_mtx()
 #	if YCL_MULTITHREAD == 1
 #		if YCL_MINGW32
-	, p_main_wnd()
+	, h_instance(::GetModuleHandleW(nullptr))
 #		endif
-	, host_thrd(std::thread(std::mem_fn(&Environment::HostTask), this))
+	, p_wnd_thrd()
 #	endif
-{}
+{
+#if YCL_MINGW32
+	const ::WNDCLASS wnd_class{CS_DBLCLKS/* | CS_HREDRAW | CS_VREDRAW*/,
+		WndProc, 0, 0, h_instance, ::LoadIconW(nullptr, IDI_APPLICATION),
+		::LoadCursorW(nullptr, IDC_ARROW), ::HBRUSH(COLOR_MENU + 1),
+		nullptr, WindowClassName};
+
+	if(!::RegisterClassW(&wnd_class))
+		throw LoggedEvent("Windows registration failed.");
+	//	::MessageBox(nullptr, "This program requires Windows NT!",
+		//	wnd_title, MB_ICONERROR);
+	YCL_DEBUG_PUTS("Window class registered.");
+#endif
+}
 Environment::~Environment()
 {
 	YCL_DEBUG_PUTS("Host environment lifetime ended.");
@@ -221,9 +241,12 @@ Environment::~Environment()
 			p->Close();
 	});
 #	if YCL_MULTITHREAD == 1
-	// TODO: Exception safety: add either assertion or logging when throwing.
-	host_thrd.join();
+	p_wnd_thrd.reset();
 	YCL_DEBUG_PUTS("Host thread dropped.");
+#		if YCL_MINGW32
+	::UnregisterClassW(WindowClassName, h_instance);
+	YCL_DEBUG_PUTS("Window class unregistered.");
+#		endif
 #	endif
 }
 
@@ -239,9 +262,9 @@ Environment::GetForegroundWindow() const ynothrow
 Window&
 Environment::GetMainWindow() const ynothrow
 {
-	YAssert(bool(p_main_wnd), "Null pointer found.");
+	YAssert(bool(p_wnd_thrd), "Null pointer found.");
 
-	return *p_main_wnd;
+	return *p_wnd_thrd->GetWindowPtr();
 }
 
 void
@@ -307,49 +330,21 @@ Environment::RemoveMappedItem(NativeWindowHandle h) ynothrow
 
 #	if YCL_MULTITHREAD == 1
 void
-Environment::HostTask()
+Environment::InitHostTask()
 {
 #		if YCL_MINGW32
-	class reg_wnd
-	{
-	protected:
-		::HINSTANCE hInstance;
+	auto& app(FetchGlobalInstance());
 
-	public:
-		reg_wnd()
-			: hInstance(::GetModuleHandleW(nullptr))
-		{
-			const ::WNDCLASS wnd_class{CS_DBLCLKS/* | CS_HREDRAW | CS_VREDRAW*/,
-				WndProc, 0, 0, hInstance, ::LoadIconW(nullptr, IDI_APPLICATION),
-				::LoadCursorW(nullptr, IDC_ARROW), ::HBRUSH(COLOR_MENU + 1),
-				nullptr, WindowClassName};
+	YAssert(app.IsScreenReady(), "Screen is not ready.");
 
-			if(!::RegisterClassW(&wnd_class))
-				throw LoggedEvent("Windows registration failed.");
-			//	::MessageBox(nullptr, "This program requires Windows NT!",
-				//	wnd_title, MB_ICONERROR);
-			YCL_DEBUG_PUTS("Window class registered.");
-		}
-		~reg_wnd()
-		{
-			::UnregisterClassW(WindowClassName, hInstance);
-			YCL_DEBUG_PUTS("Window class unregistered.");
-		}
-	} guard;
-	const auto h_wnd(Host::InitializeMainWindow(L"YSTest", 256, 384));
-
-	// TODO: Handle window creation failure.
-	p_main_wnd.reset(new DSWindow(h_wnd, *this));
-	p_main_wnd->Show();
-	{
-		auto& app(FetchGlobalInstance());
-
-		Devices::InitDSScreen(app.scrs[0], app.scrs[1]);
-
-		YAssert(FetchGlobalInstance().IsScreenReady(), "Screen is not ready.");
-	}
-	HostLoop();
-	YCL_DEBUG_PUTS("Host task ended.");
+	p_wnd_thrd.reset(new WindowThread([this, &app]{
+		return unique_ptr<Window>(new DSWindow(Host::InitializeMainWindow(
+			L"YSTest", 256, 384), *app.scrs[0], *app.scrs[1], *this));
+	}));
+	// FIXME: Reduce possible data race.
+	while(!p_wnd_thrd->GetWindowPtr())
+		// TODO: Resolve magic sleep duration.
+		std::this_thread::sleep_for(host_sleep);
 #		endif
 }
 #	endif

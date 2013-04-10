@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1033
+\version r1066
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-01-23 09:48 +0800
+	2013-04-10 20:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,16 +90,26 @@ public:
 	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!value)
 
-	PDefHOp(bool, +=, const ValueNode& node)
-		ImplRet(Add(node))
+	bool
+	operator+=(const ValueNode&);
 	//@}
-	PDefHOp(bool, +=, ValueNode&& node)
-		ImplRet(Add(std::move(node)))
+	bool
+	operator+=(ValueNode&&);
 
-	PDefHOp(bool, -=, const ValueNode& node)
-		ImplRet(Remove(node))
+	bool
+	operator-=(const ValueNode&);
 	PDefHOp(bool, -=, const string& str)
-		ImplRet(Remove(str))
+		ImplRet(*this -= {0, str})
+	/*!
+	\brief 替换同名子节点。
+	\since build 397
+	*/
+	//@{
+	PDefHOp(ValueNode&, /=, const ValueNode& node)
+		ImplRet((*this)[node.name] = node)
+	PDefHOp(ValueNode&, /=, ValueNode&& node)
+		ImplRet((*this)[node.name] = std::move(node))
+	//@}
 
 	PDefHOp(bool, ==, const ValueNode& node) const
 		ImplRet(name == node.name)
@@ -128,7 +138,7 @@ public:
 	GetNode(const string& name)
 	{
 		return const_cast<ValueNode&>(
-			const_cast<const ValueNode*>(this)->GetNode(name));
+			static_cast<const ValueNode*>(this)->GetNode(name));
 	}
 	const ValueNode&
 	GetNode(const string&) const;
@@ -146,14 +156,6 @@ public:
 	DefSetter(ValueObject&&, Value, GetValue())
 	//@}
 
-	PDefH(bool, Add, ValueNode& node)
-		ImplRet(Add(std::move(node)))
-	//! \since build 336
-	bool
-	Add(const ValueNode&);
-	bool
-	Add(ValueNode&&);
-
 private:
 	//! \since build 340
 	Container&
@@ -162,11 +164,6 @@ private:
 public:
 	PDefH(void, Clear, )
 		ImplExpr(value.Clear())
-
-	bool
-	Remove(const ValueNode&);
-	PDefH(bool, Remove, const string& str)
-		ImplRet(Remove(str))
 };
 
 /*!
@@ -200,7 +197,7 @@ end(const ValueNode& node) -> decltype(node.GetEnd())
 
 /*!
 \brief 访问节点的指定类型对象。
-\throw std::bad_cast 空实例或类型检查失败 。
+\exception std::bad_cast 空实例或类型检查失败 。
 \since build 336
 */
 template<typename _type>
@@ -211,7 +208,7 @@ Access(ValueNode& node)
 }
 /*!
 \brief 访问节点的指定类型 const 对象。
-\throw std::bad_cast 空实例或类型检查失败 。
+\exception std::bad_cast 空实例或类型检查失败 。
 \since build 336
 */
 template<typename _type>
@@ -224,7 +221,7 @@ Access(const ValueNode& node)
 
 /*!
 \brief 访问指定名称的子节点的指定类型对象。
-\throw std::bad_cast 空实例或类型检查失败 。
+\exception std::bad_cast 空实例或类型检查失败 。
 \since build 334
 */
 template<typename _type>
@@ -235,7 +232,7 @@ AccessChild(ValueNode& node, const string& name)
 }
 /*!
 \brief 访问指定名称的子节点的指定类型 const 对象。
-\throw std::bad_cast 空实例或类型检查失败 。
+\exception std::bad_cast 空实例或类型检查失败 。
 \since build 334
 */
 template<typename _type>

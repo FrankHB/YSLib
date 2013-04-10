@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1738
+\version r1741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-03-31 15:08 +0800
+	2013-04-10 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -298,6 +298,10 @@ public:
 	//! \since build 394
 	DefGetter(const ynothrow, Bookmark::PositionType, ReaderPosition,
 		reader.GetTopPosition())
+
+	//! \since build 397
+	string
+	GetSlice(Bookmark::PositionType, string::size_type);
 
 private:
 	/*!

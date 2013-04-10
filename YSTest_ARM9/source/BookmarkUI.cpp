@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r127
+\version r152
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-03-29 12:50 +0800
+	2013-04-11 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,14 +35,33 @@ namespace
 
 using namespace std;
 
+//! \since build 397
+string
+ConvertToUIString(Bookmark::PositionType pos, ShlTextReader& shl)
+{
+	auto line(shl.GetSlice(pos, 48U));
+
+	if(line.size() > 1)
+	{
+		const bool b(line[0] == '\n');
+		const auto i(line.find("\r\n", b));
+
+		if(i != string::npos)
+			line.erase(i);
+		if(b)
+			line.erase(line.begin());
+	}
+	return to_string(pos) + "  " + std::move(line);
+}
+//! \since build 397
 vector<String>
-ConvertToUIString(const BookmarkList& lst)
+ConvertToUIString(const BookmarkList& lst, ShlTextReader& shl)
 {
 	vector<String> vec;
 
 	vec.reserve(lst.size());
-	for(const auto i : lst)
-		vec.push_back(String(to_string(i)));
+	for(const auto pos : lst)
+		vec.push_back(ConvertToUIString(pos, shl));
 	return vec;
 }
 
@@ -61,9 +80,9 @@ ConvertToBookmarkList(const vector<String>& lst)
 
 BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks, ShlTextReader& shl)
 	: DialogPanel(Rect({}, MainScreenWidth, MainScreenHeight)),
-	lbPosition(Rect(32, 32, 192, 128),
-	share_raw(new vector<String>(std::move(ConvertToUIString(bookmarks))))),
-	btnAdd(Rect(GetWidth() - 80, 4, 16, 16), 210),
+	lbPosition(Rect(8, 32, 240, 128),
+	share_raw(new vector<String>(std::move(ConvertToUIString(bookmarks,
+	shl))))), btnAdd(Rect(GetWidth() - 80, 4, 16, 16), 210),
 	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210), shell(shl)
 {
 	const auto stop_routing_after_direct([](KeyEventArgs&& e){
@@ -86,8 +105,8 @@ BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks, ShlTextReader& shl)
 
 			if(idx < 0)
 				idx = lst.size();
-			lst.insert(lst.begin() + idx,
-				String(to_string(shell.get().GetReaderPosition())));
+			lst.insert(lst.begin() + idx, String(
+				ConvertToUIString(shell.get().GetReaderPosition(), shell)));
 			lbPosition.AdjustViewForContent();
 			lbPosition.UpdateView();
 		},
