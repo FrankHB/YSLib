@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r423
+\version r431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-04-07 01:51 +0800
+	2013-04-13 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,16 +46,6 @@ DebugTimer::~DebugTimer()
 		event_info.c_str(), t);
 }
 #endif
-
-
-void
-ResetDSDesktops(Desktop& dsk_up, Desktop& dsk_dn)
-{
-	auto& app(FetchGlobalInstance());
-
-	ResetDesktop(dsk_up, app.GetScreenUp()),
-	ResetDesktop(dsk_dn, app.GetScreenDown());
-}
 
 
 YSL_BEGIN_NAMESPACE(Drawing)

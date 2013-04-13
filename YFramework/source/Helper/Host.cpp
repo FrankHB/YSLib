@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r944
+\version r1025
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-04-07 12:24 +0800
+	2013-04-13 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -26,8 +26,7 @@
 
 
 #include "Host.h"
-#include "DSScreen.h"
-#include "Helper/DSMain.h"
+#include "Helper/GUIApplication.h"
 #include "Helper/ShellHelper.h" // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
 
 YSL_BEGIN
@@ -37,7 +36,7 @@ using namespace Drawing;
 namespace
 {
 
-#if YCL_MINGW32
+#if YCL_MINGW32 && 0
 yconstexpr double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 #endif
@@ -46,8 +45,6 @@ std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 
 
 #if YCL_HOSTED
-using Devices::DSScreen;
-
 YSL_BEGIN_NAMESPACE(Host)
 
 namespace
@@ -88,65 +85,6 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 	}
 	return 0;
 }
-
-//! \since build 381
-::HWND
-InitializeMainWindow(const wchar_t* wnd_title, u16 wnd_w, u16 wnd_h,
-	::DWORD wstyle = WS_TILED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
-{
-	::RECT rect{0, 0, wnd_w, wnd_h};
-
-	::AdjustWindowRect(&rect, wstyle, FALSE);
-	return ::CreateWindowW(WindowClassName, wnd_title, wstyle, CW_USEDEFAULT,
-		CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
-		HWND_DESKTOP, nullptr, ::GetModuleHandleW(nullptr), nullptr);
-}
-
-
-/*!
-\brief 双屏幕宿主窗口。
-\since build 383
-*/
-class DSWindow : public Window
-{
-private:
-	//! \since build 397
-	DSScreen& scr_up;
-	//! \since build 397
-	DSScreen& scr_dn;
-
-public:
-	//! \since build 397
-	DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
-		Environment& e)
-		: Window(h, e), scr_up(s_up), scr_dn(s_dn)
-	{}
-
-	pair<Point, Point>
-	GetInputBounds() const ynothrow override
-	{
-		return {Point(0, MainScreenHeight),
-			Point(MainScreenWidth, MainScreenHeight << 1)};
-	}
-
-	void
-	OnDestroy() override
-	{
-		Window::OnDestroy(),
-		YSLib::PostQuitMessage(0);
-		// NOTE: Try to make sure all shells are released before destructing the
-		//	instance of %DSApplication.
-	}
-
-	void
-	OnPaint() override
-	{
-		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
-
-		scr_up.UpdateToSurface(sf),
-		scr_dn.UpdateToSurface(sf);
-	}
-};
 #endif
 
 } // unnamed namespace;
@@ -214,7 +152,6 @@ Environment::Environment()
 #		if YCL_MINGW32
 	, h_instance(::GetModuleHandleW(nullptr))
 #		endif
-	, p_wnd_thrd()
 #	endif
 {
 #if YCL_MINGW32
@@ -241,8 +178,6 @@ Environment::~Environment()
 			p->Close();
 	});
 #	if YCL_MULTITHREAD == 1
-	p_wnd_thrd.reset();
-	YCL_DEBUG_PUTS("Host thread dropped.");
 #		if YCL_MINGW32
 	::UnregisterClassW(WindowClassName, h_instance);
 	YCL_DEBUG_PUTS("Window class unregistered.");
@@ -257,14 +192,6 @@ Environment::GetForegroundWindow() const ynothrow
 	return FindWindow(::GetForegroundWindow());
 #endif
 	return nullptr;
-}
-
-Window&
-Environment::GetMainWindow() const ynothrow
-{
-	YAssert(bool(p_wnd_thrd), "Null pointer found.");
-
-	return *p_wnd_thrd->GetWindowPtr();
 }
 
 void
@@ -327,27 +254,6 @@ Environment::RemoveMappedItem(NativeWindowHandle h) ynothrow
 	if(i != wnd_map.end())
 		wnd_map.erase(i);
 }
-
-#	if YCL_MULTITHREAD == 1
-void
-Environment::InitHostTask()
-{
-#		if YCL_MINGW32
-	auto& app(FetchGlobalInstance());
-
-	YAssert(app.IsScreenReady(), "Screen is not ready.");
-
-	p_wnd_thrd.reset(new WindowThread([this, &app]{
-		return unique_ptr<Window>(new DSWindow(Host::InitializeMainWindow(
-			L"YSTest", 256, 384), *app.scrs[0], *app.scrs[1], *this));
-	}));
-	// FIXME: Reduce possible data race.
-	while(!p_wnd_thrd->GetWindowPtr())
-		// TODO: Resolve magic sleep duration.
-		std::this_thread::sleep_for(host_sleep);
-#		endif
-}
-#	endif
 
 void
 Environment::UpdateRenderWindows()

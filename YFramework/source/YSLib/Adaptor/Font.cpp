@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2898
-\author FrankHB<frankhb1989@gmail.com>
+\version r2901
+\author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2012-09-04 11:01 +0800
+	2013-04-13 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Core/yexcept.h"
 #include "YSLib/Core/yfilesys.h"
-#include <Helper/DSMain.h>
+#include <Helper/GUIApplication.h>
 #include "YCLib/Debug.h"
 #include <algorithm> // for std::for_each;
 //#include FT_BITMAP_H

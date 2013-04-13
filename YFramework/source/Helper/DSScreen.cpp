@@ -11,13 +11,13 @@
 /*!	\file DSScreen.cpp
 \ingroup Helper
 \brief DS 屏幕。
-\version r234
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-03-10 18:26 +0800
+	2013-04-11 14:12 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -57,7 +57,7 @@ DSScreen::Update(Color c)
 #elif YCL_MINGW32
 DSScreen::DSScreen(bool b) ynothrow
 	: Devices::Screen(MainScreenWidth, MainScreenHeight),
-	Offset(), env(FetchGlobalInstance().GetHost()),
+	Offset(), WindowHandle(),
 	rbuf(Size(MainScreenWidth, MainScreenHeight))
 {
 	pBuffer = rbuf.GetBufferPtr();
@@ -68,8 +68,10 @@ DSScreen::DSScreen(bool b) ynothrow
 void
 DSScreen::Update(Drawing::BitmapPtr buf) ynothrow
 {
+	YAssert(bool(WindowHandle), "Null handle found.");
+
 	rbuf.UpdateFrom(buf);
-	rbuf.UpdateTo(env.get().GetMainWindow().GetNativeHandle(), Offset);
+	rbuf.UpdateTo(WindowHandle, Offset);
 }
 #else
 #	error Unsupported platform found!

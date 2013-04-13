@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3504
+\version r3562
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-04-11 01:33 +0800
+	2013-04-13 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,64 @@ $import $HISTORY;
 // Scope: [b300, $now];
 
 $now
+(
+	/ %'YBase'.'YStandard'.'Any' $=
+	(
+		* $doc "wrong URL @ comments" @ "class %any" $since b371,
+		/ "adjusted function templates %any_cast to synonipos of standard \
+			std::any proposal revision 2" $=
+			// See $ref b398.
+		+ 'ynothrow' @ "template functions %any_cast with pointer parameters",
+		+ "overloaded function %std::swap for %ystdex::any"
+	),
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			+ $dev "split non-public unit %DSWindow",
+			+ "unit %GUIApplication",
+				$= ( + "class YF_API %GUIApplication")
+			+ "several forward declaration and helper functions for global \
+				instance" @ %'DSMain' >> %'GUIApplication',
+			/ "function %ResetDSDesktops" @ %'ShellHelper'
+				>> "namespace %DS" @ %'Shell_DS',
+			/ "function %InitializeSystemFontCache accepted specified \
+				font chche" @ %'Initialization'
+		),
+		/ %'YSLib'.'Core' $=
+		(
+			/ @ "class %ValueObject" @ %'ValueObject' $=
+			(
+				* "missing 'const' at cast" @ "member template function \
+					'const _type& Access() const'" $since b332,
+				+ "2 member funtcion templates %AccessPtr"
+			);
+			/ %'ValueNode' $=
+			(
+				/ @ "class %ValueNode" $=
+				(
+					+ "member function %GetContainerPtr",
+					/ $dev "implementation" @ "member functions"
+						!^ "catching exceptions",
+						// It's convenient for debugging without catching \
+							such exceptions.
+					- "member function 'ValueNode& ValueNode::GetNode(const \
+						string&)'",
+					/ "member function 'ValueNode& operator[](const string&)'"
+						-> 'ValueObject& operator[](const string&)',
+					/ "member function 'ValueNode& \op/=(const ValueNode&)'"
+						-> 'const ValueNode& \op/=(const ValueNode&) const',
+					/ "member function 'ValueNode& \op/=(ValueNode&&)'",
+						-> 'const ValueNode& \op/=(ValueNode&&) const'
+					// So there are no 'const_cast' @ \cl ValueNode.
+				),
+				+ "2 function templates %AccessPtr for %ValueNode"
+			)
+		)
+	)
+),
+
+b397
 (
 	/ %'YFramework' $=
 	(
@@ -79,7 +137,7 @@ b396
 		* "crashed after switch shells" @ %'YReader' by key input $since b395
 	),
 	/ DLD "function implementation and default arguments" @ %'YFramework'
-		^ "%FetchDefaultFontCache" ~ 'FetchGlobalInstance().GetFontCacheRef()'
+		^ "%FetchDefaultFontCache" ~ 'FetchGlobalInstance().GetFontCache()'
 ),
 
 b395

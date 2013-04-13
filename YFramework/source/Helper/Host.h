@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r483
+\version r499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-04-07 12:22 +0800
+	2013-04-11 13:48 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -35,7 +35,7 @@
 #endif
 #include "YSLib/UI/yrender.h"
 #include "YSLib/UI/ywidget.h" // for UI::GetSizeOf;
-#include "DSScreen.h" // for ScreenBuffer;
+#include "ScreenBuffer.h" // for ScreenRegionBuffer;
 
 YSL_BEGIN
 
@@ -195,11 +195,6 @@ private:
 	//! \since build 397
 	::HINSTANCE h_instance;
 #		endif
-	/*!
-	\brief 宿主窗口线程。
-	\since build 397
-	*/
-	unique_ptr<WindowThread> p_wnd_thrd;
 #	endif
 
 public:
@@ -213,10 +208,6 @@ public:
 	*/
 	Window*
 	GetForegroundWindow() const ynothrow;
-
-	//! \since build 387
-	Window&
-	GetMainWindow() const ynothrow;
 
 	/*!
 	\brief 插入窗口映射项。
@@ -240,15 +231,6 @@ public:
 	*/
 	static void
 	HostLoop();
-
-#	if YCL_MULTITHREAD == 1
-	/*!
-	\brief 初始化宿主资源和本机消息循环线程并等待主窗口初始化完毕。
-	\since build 397
-	*/
-	void
-	InitHostTask();
-#	endif
 
 	/*!
 	\brief 移除窗口映射项。

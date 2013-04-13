@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1066
+\version r1113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-04-10 20:41 +0800
+	2013-04-12 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,13 +102,13 @@ public:
 		ImplRet(*this -= {0, str})
 	/*!
 	\brief 替换同名子节点。
-	\since build 397
+	\since build 398
 	*/
 	//@{
-	PDefHOp(ValueNode&, /=, const ValueNode& node)
-		ImplRet((*this)[node.name] = node)
-	PDefHOp(ValueNode&, /=, ValueNode&& node)
-		ImplRet((*this)[node.name] = std::move(node))
+	PDefHOp(const ValueNode&, /=, const ValueNode& node) const
+		ImplRet((*this)[node.name].value = node.value, *this)
+	PDefHOp(const ValueNode&, /=, ValueNode&& node) const
+		ImplRet((*this)[node.name].value = std::move(node.value), *this)
 	//@}
 
 	PDefHOp(bool, ==, const ValueNode& node) const
@@ -117,8 +117,9 @@ public:
 	PDefHOp(bool, <, const ValueNode& node) const
 		ImplRet(name < node.name)
 
-	ValueNode&
-	operator[](const string&);
+	//! \since build 398
+	const ValueNode&
+	operator[](const string&) const;
 
 	//! \since build 336
 	explicit DefCvt(const ynothrow, bool, bool(value))
@@ -127,22 +128,16 @@ public:
 	DefGetter(, Container::iterator, Begin, GetContainer().begin())
 	DefGetter(const, Container::const_iterator, Begin, GetContainer().begin())
 	//! \since build 340
-	Container&
-	GetContainer() const;
+	DefGetter(const, Container&, Container, value.Access<Container>())
+	//! \since build 398
+	DefGetter(const ynothrow, Container*, ContainerPtr,
+		value.AccessPtr<Container>())
 	DefGetter(, Container::iterator, End, GetContainer().end())
 	DefGetter(const, Container::const_iterator, End, GetContainer().end())
 	DefGetter(const ynothrow, const string&, Name, name)
 	//! \since build 337
-	//@{
-	ValueNode&
-	GetNode(const string& name)
-	{
-		return const_cast<ValueNode&>(
-			static_cast<const ValueNode*>(this)->GetNode(name));
-	}
 	const ValueNode&
 	GetNode(const string&) const;
-	//@}
 	size_t
 	GetSize() const ynothrow;
 	DefGetter(ynothrow, ValueObject&, Value, value)
@@ -157,9 +152,9 @@ public:
 	//@}
 
 private:
-	//! \since build 340
+	//! \since build 398
 	Container&
-	CheckNodes();
+	CheckNodes() const;
 
 public:
 	PDefH(void, Clear, )
@@ -200,23 +195,39 @@ end(const ValueNode& node) -> decltype(node.GetEnd())
 \exception std::bad_cast 空实例或类型检查失败 。
 \since build 336
 */
+//@{
 template<typename _type>
 inline _type&
 Access(ValueNode& node)
 {
 	return node.GetValue().Access<_type>();
 }
-/*!
-\brief 访问节点的指定类型 const 对象。
-\exception std::bad_cast 空实例或类型检查失败 。
-\since build 336
-*/
 template<typename _type>
 inline const _type&
 Access(const ValueNode& node)
 {
 	return node.GetValue().Access<_type>();
 }
+//@}
+
+/*!
+\brief 访问节点的指定类型对象指针。
+\since build 398
+*/
+//@{
+template<typename _type>
+inline _type*
+AccessPtr(ValueNode& node) ynothrow
+{
+	return node.GetValue().AccessPtr<_type>();
+}
+template<typename _type>
+inline const _type*
+AccessPtr(const ValueNode& node) ynothrow
+{
+	return node.GetValue().AccessPtr<_type>();
+}
+//@}
 
 
 /*!

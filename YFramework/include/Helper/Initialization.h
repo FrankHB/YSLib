@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r691
+\version r694
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-04-03 22:41 +0800
+	2013-04-12 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "NPL/Configuration.h"
 #include "YSLib/Service/yftext.h"
+#include "YSLib/Adaptor/Font.h" // for Drawing::FontCache;
 
 YSL_BEGIN
 
@@ -95,12 +96,12 @@ InitializeInstalled();
 /*!
 \brief 初始化系统字体缓存。
 \pre 默认字体缓存已初始化。
-\since build 342
+\since build 398
 
 加载默认字体文件路径和默认字体目录中的字型至默认字体缓存。
 */
 YF_API void
-InitializeSystemFontCache(const string&, const string&);
+InitializeSystemFontCache(Drawing::FontCache&, const string&, const string&);
 
 /*!
 \brief 反初始化。

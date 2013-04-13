@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r113
+\version r116
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-03-19 00:55 +0800
+	2013-04-13 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef INC_Helper_HostWindow_h_
 #define INC_Helper_HostWindow_h_ 1
 
-#include "Helper/DSMain.h"
+#include "Helper/GUIApplication.h"
 
 YSL_BEGIN
 
@@ -52,9 +52,9 @@ private:
 public:
 	/*!
 	\throw LoggedEvent 窗口类名不是 WindowClassName 。
-	\since build 389
+	\since build 398
 	*/
-	Window(NativeWindowHandle, Environment& = FetchGlobalInstance().GetHost());
+	Window(NativeWindowHandle, Environment& = FetchEnvironment());
 	DefDelCopyCtor(Window)
 	DefDelMoveCtor(Window)
 	virtual

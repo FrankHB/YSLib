@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1263
+\version r1274
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-04-05 12:18 +0800
+	2013-04-13 13:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 
 #include "Helper/shlds.h"
 #include "Helper/DSMain.h"
+#include "Helper/ShellHelper.h"
 #include "YSLib/UI/ydesktop.h"
 #include "YSLib/UI/ygui.h"
 #include "Host.h"
@@ -51,12 +52,22 @@ YSL_END_NAMESPACE(Shells)
 
 YSL_BEGIN_NAMESPACE(DS)
 
+void
+ResetDSDesktops(Desktop& dsk_up, Desktop& dsk_dn)
+{
+	auto& app(FetchGlobalInstance<DSApplication>());
+
+	ResetDesktop(dsk_up, app.GetScreenUp()),
+	ResetDesktop(dsk_dn, app.GetScreenDown());
+}
+
+
 ShlDS::ShlDS(const shared_ptr<Desktop>& hUp, const shared_ptr<Desktop>& hDn)
 	: Shell(),
 	input_mgr(), desktop_up_ptr(hUp ? hUp : make_shared<Desktop>(
-		FetchGlobalInstance().GetScreenUp())),
+		FetchGlobalInstance<DSApplication>().GetScreenUp())),
 	desktop_down_ptr(hDn ? hDn : make_shared<Desktop>(
-		FetchGlobalInstance().GetScreenDown())),
+		FetchGlobalInstance<DSApplication>().GetScreenDown())),
 	bUpdateUp(), bUpdateDown()
 {
 	YAssert(bool(desktop_up_ptr), "Null pointer found.");
@@ -114,7 +125,7 @@ ShlDS::OnInput()
 		desktop_down_ptr->Update();
 #if YCL_HOSTED
 	// TODO: Use host reference stored by shell.
-	FetchGlobalInstance().GetHost().UpdateRenderWindows();
+	Host::FetchEnvironment().UpdateRenderWindows();
 #endif
 	// NOTE: Use code below instead if asynchronous posting is necessary.
 //	PostMessage<SM_PAINT>(0xE0, nullptr);

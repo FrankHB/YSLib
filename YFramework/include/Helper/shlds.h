@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief Shell 类库 DS 版本。
-\version r1250
+\version r1256
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-04-05 12:19 +0800
+	2013-04-13 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,6 +68,14 @@ YSL_END_NAMESPACE(Shells)
 
 
 YSL_BEGIN_NAMESPACE(DS)
+
+/*!
+\brief 以默认屏幕复位两个桌面。
+\since build 396
+*/
+YF_API void
+ResetDSDesktops(Desktop&, Desktop&);
+
 
 /*!
 \brief 双屏全屏窗口 Shell 。

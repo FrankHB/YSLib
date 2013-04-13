@@ -683,6 +683,12 @@
     <ClInclude Include="include\Helper\HostWindow.h">
       <Filter>头文件\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="include\Helper\GUIApplication.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Helper\DSWindow.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -908,6 +914,12 @@
       <Filter>源文件\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\Helper\HostedUI.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\GUIApplication.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\DSWindow.cpp">
       <Filter>源文件\Helper</Filter>
     </ClCompile>
   </ItemGroup>

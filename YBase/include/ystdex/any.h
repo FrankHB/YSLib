@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1235
+\version r1286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-04-01 10:58 +0800
+	2013-04-12 09:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -576,8 +576,8 @@ public:
 \brief 基于类型擦除的动态泛型对象。
 \note 值语义。基本接口和语义同 std::any 提议和 boost::any （对应接口以前者为准）。
 \warning 非虚析构。
-\see http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2012/n3508.html\#synopsis 。
-\see http://www.boost.org/doc/libs/1_53_0/doc/html/any/reference.html\#any.ValueType 。
+\see http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3508.html#synopsis 。
+\see http://www.boost.org/doc/libs/1_53_0/doc/html/any/reference.html#any.ValueType 。
 \since build 331
 \todo allocator_arg 支持。
 */
@@ -773,36 +773,54 @@ public:
 /*!
 \brief 动态泛型转换。
 \note 语义同 boost::any_cast 。
-\since build 331
+\since build 398
 \todo 检验特定环境（如使用动态库时）比较 std::type_info::name() 的必要性。
-\todo 调整接口：http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2012/n3390.html\#synopsis 。
 */
 //@{
-template<typename _type>
-inline _type*
-any_cast(any* p)
+/*!
+\return 当 <tt>x != nullptr && x->type() == typeid(remove_pointer<
+	_tPointer>::type)</tt> 为指向对象的指针，否则为空指针。
+*/
+//@{
+template<typename _tPointer>
+inline _tPointer
+any_cast(any* p) ynothrow
 {
-	return p ? p->target<_type>() : nullptr;
+	return p ? p->target<typename remove_pointer<_tPointer>::type>() : nullptr;
 }
-
-template<typename _type>
-inline const _type*
-any_cast(const any* p)
+template<typename _tPointer>
+inline _tPointer
+any_cast(const any* p) ynothrow
 {
-	return p ? p->target<_type>() : nullptr;
+	return p ? p->target<typename remove_pointer<_tPointer>::type>() : nullptr;
 }
-
-template<typename _type>
-_type
-any_cast(const any& x)
+//@}
+/*!
+\throw bad_any_cast 当 <tt>x.type()
+	!= typeid(remove_reference<_tValue>::type)</tt> 。
+*/
+//@{
+template<typename _tValue>
+inline _tValue
+any_cast(any& x)
 {
-	const auto tmp(any_cast<typename std::remove_reference<_type>::type>(
-		std::addressof(const_cast<any&>(x))));
+	const auto tmp(any_cast<typename remove_reference<_tValue>::type*>(&x));
 
 	if(!tmp)
-		throw bad_any_cast(x.type(), typeid(_type));
-	return static_cast<_type>(*tmp);
+		throw bad_any_cast(x.type(), typeid(_tValue));
+	return static_cast<_tValue>(*tmp);
 }
+template<typename _tValue>
+_tValue
+any_cast(const any& x)
+{
+	const auto tmp(any_cast<typename remove_reference<_tValue>::type*>(&x));
+
+	if(!tmp)
+		throw bad_any_cast(x.type(), typeid(_tValue));
+	return static_cast<_tValue>(*tmp);
+}
+//@}
 //@}
 
 /*!
@@ -848,6 +866,22 @@ struct pseudo_output
 };
 
 } // namespace ystdex;
+
+
+namespace std
+{
+
+/*!
+\brief \c std::swap 的 \c ystdex::any 重载。
+\since build 398
+*/
+inline void
+swap(ystdex::any& x, ystdex::any& y) ynothrow
+{
+	x.swap(y);
+}
+
+} // namespace std;
 
 #endif
 

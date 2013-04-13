@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1660
+\version r1662
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:36 +0800
 \par 修改时间:
-	2013-04-03 05:29 +0800
+	2013-04-12 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,8 @@ Application::Application()
 {}
 Application::~Application()
 {
+	// Note: It is necessary to cleanup to make sure all shells are destroyed.
+	Queue.Clear();
 //	hShell = nullptr;
 	// NOTE: All shells must have been released.
 	YAssert(!hShell, "Active shell found.");

@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r235
+\version r236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-03-19 16:13 +0800
+	2013-04-13 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ YSL_BEGIN_NAMESPACE(Devices)
 InputManager::InputManager()
 	: GUI_state(FetchGUIState()), cursor_state()
 #if YCL_HOSTED
-	, env(FetchGlobalInstance().GetHost())
+	, env(Host::FetchEnvironment())
 #endif
 {}
 

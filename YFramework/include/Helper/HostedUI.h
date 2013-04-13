@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r69
+\version r70
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-03-19 00:48 +0800
+	2013-04-13 13:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef INC_Helper_HostedUI_h_
 #define INC_Helper_HostedUI_h_ 1
 
-#include "Helper/DSMain.h"
+#include "Helper/GUIApplication.h"
 #include "YSLib/UI/yrender.h"
 
 YSL_BEGIN

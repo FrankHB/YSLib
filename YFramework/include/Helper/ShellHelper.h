@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1615
+\version r1620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-04-05 12:26 +0800
+	2013-04-13 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -302,13 +302,6 @@ ResetDesktop(Desktop& dsk, Devices::Screen& scr)
 	dsk.~Desktop();
 	new(&dsk) Desktop(scr);
 }
-
-/*!
-\brief 以默认屏幕复位两个桌面。
-\since build 396
-*/
-YF_API void
-ResetDSDesktops(Desktop&, Desktop&);
 
 
 //资源相关定义和函数。

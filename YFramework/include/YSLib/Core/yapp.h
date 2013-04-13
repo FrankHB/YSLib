@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1571
+\version r1574
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2013-02-23 08:39 +0800
+	2013-04-13 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,9 +109,10 @@ public:
 \brief 取应用程序实例。
 \note 保证在平台相关的全局资源初始化之后初始化此实例。
 \warning 初始化前不保证线程安全性。
+\since build 398
 */
 extern YF_API Application&
-FetchAppInstance();
+FetchAppInstance() ynothrow;
 
 /*!
 \ingroup helper_functions

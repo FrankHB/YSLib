@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r387
+\version r403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-04-08 22:45 +0800
+	2013-04-13 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,27 +241,34 @@ $ellipse_debug_assertion;
 
 $ref $=
 (
+b398 $=
+(
+$note "N3508"
+/*
+http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2013/n3508.html#synopsis .
+*/
+),
 b351 $=
 (
 $note "cv-qualifier for function types"
 /*
-http://stackoverflow.com/questions/1117873/pointer-to-const-vs-usual-pointer\
--for-functions
+http://stackoverflow.com/questions/1117873/pointer-to-const-vs-usual-pointer-for-functions
 */
 // Also CWG defect 295.
 ),
 b349 $=
 (
 $note "N3047"
-/*http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3047.html*/
+/*
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3047.html
+*/
 // Also LWG defect 1260.
 ),
 b298 $=
 (
 $note "access violation examples"
 /*
-http://stackoverflow.com/questions/5955682/boostmake-shared-causes-access\
--violation
+http://stackoverflow.com/questions/5955682/boostmake-shared-causes-access-violation
 http://lists.cs.uiuc.edu/pipermail/cfe-dev/2011-October/017831.html
 */
 )
@@ -359,7 +366,8 @@ $module_tree $=
 			'Initialization', // initialization;
 			'InputManager' // input manager;,
 			'HostWindow',
-			'HostedUI'
+			'HostedUI',
+			'GUIApplication'
 		),
 		'NPL'
 		(

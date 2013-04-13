@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7608
+\version r7610
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-04-09 15:15 +0800
+	2013-04-12 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1607,7 +1607,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 构成重载的所有成员声明之间不插入其它成员声明。
 对于同一个名称的成员，成员重载先于非成员重载。
 涉及特殊成员函数的重载以默认构造函数、其它构造函数/构造模板、复制构造函数、转移构造函数、析构函数、其它赋值操作符函数/模板、复制赋值操作符函数、转移复制操作符函数的顺序声明，优先于以下子区段规则。
-仅限定符不同或仅修饰相同位置参数中的限定符构成重载的区段：首先按 cv-qualifier 以无限定、const 、volatile 、const volatile 排列，其次按 ref-qualifier 以无限定、 & 、 && 排列。
+仅限定符不同或仅修饰相同位置参数中的限定符构成重载的区段：首先按 cv-qualifier 以无限定、const 、volatile 、const volatile 排列，其次按 ref-qualifier 以无限定、 & 、 && 排列；但命名空间作用域中若在接口语义或实现中存在声明（调用）依赖则允许使用其它顺序（但应尽少改变）。
 类型和所有的限定符一致的成员函数先于成员函数模板。
 
 @6.1.6 建议的具体声明顺序：
@@ -1642,6 +1642,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 算术操作符（以 + 、 - 、 * 、 / 、 % ）的顺序；
 二元位操作符（以 << 、 >> 、 & 、 | 、 ^ 的顺序）；
 逻辑操作符（以 && 、 || ）的顺序；
+分配/去配操作符（以 new 、new[] 、 delete 、 delete[] 的顺序）；
 转换操作符（以整数类型、枚举类型、其它基本类型、类类型顺序；整数类型之间以转换阶(conversion rank) 从小到大的顺序排列）；
 访问器([Documentation::CommonRules @@3.11.3]) （以谓词([Documentation::CommonRules @@3.11.2]) 、其它获取器([Documentation::CommonRules @@3.11.4]) 、设置器([Documentation::CommonRules @@3.11.4]) 排列）；
 其它函数或函数模板。

@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3637
+\version r3664
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-04-01 10:44 +0800
+	2013-04-12 09:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -336,26 +336,42 @@ public:
 
 	/*!
 	\brief 访问指定类型对象。
-	\throw std::bad_cast 空实例或类型检查失败 。
+	\exception std::bad_cast 空实例或类型检查失败 。
 	\since build 334
 	*/
+	//@{
 	template<typename _type>
 	inline _type&
 	Access()
 	{
 		return ystdex::any_cast<_type&>(content);
 	}
-	/*!
-	\brief 访问指定类型 const 对象。
-	\throw std::bad_cast 空实例或类型检查失败 。
-	\since build 306
-	*/
 	template<typename _type>
 	inline const _type&
 	Access() const
 	{
-		return ystdex::any_cast<_type&>(content);
+		return ystdex::any_cast<const _type&>(content);
 	}
+	//@}
+
+	/*!
+	\brief 访问指定类型对象指针。
+	\since build 398
+	*/
+	//@{
+	template<typename _type>
+	inline _type*
+	AccessPtr() ynothrow
+	{
+		return ystdex::any_cast<_type*>(&content);
+	}
+	template<typename _type>
+	inline const _type*
+	AccessPtr() const ynothrow
+	{
+		return ystdex::any_cast<const _type*>(&content);
+	}
+	//@}
 
 	/*
 	\brief 清除。

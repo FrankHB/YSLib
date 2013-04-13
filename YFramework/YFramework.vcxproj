@@ -115,6 +115,7 @@
     <ClInclude Include="include\freetype\ttunpat.h" />
     <ClInclude Include="include\ft2build.h" />
     <ClInclude Include="include\Helper\DSMain.h" />
+    <ClInclude Include="include\Helper\GUIApplication.h" />
     <ClInclude Include="include\Helper\HostedUI.h" />
     <ClInclude Include="include\Helper\HostWindow.h" />
     <ClInclude Include="include\Helper\Initialization.h" />
@@ -201,6 +202,7 @@
     <ClInclude Include="include\YSLib\UI\ywidget.h" />
     <ClInclude Include="include\YSLib\UI\ywindow.h" />
     <ClInclude Include="source\Helper\DSScreen.h" />
+    <ClInclude Include="source\Helper\DSWindow.h" />
     <ClInclude Include="source\Helper\Host.h" />
     <ClInclude Include="source\Helper\ScreenBuffer.h" />
   </ItemGroup>
@@ -211,6 +213,8 @@
     <ClCompile Include="source\CHRLib\MapEx.cpp" />
     <ClCompile Include="source\Helper\DSMain.cpp" />
     <ClCompile Include="source\Helper\DSScreen.cpp" />
+    <ClCompile Include="source\Helper\DSWindow.cpp" />
+    <ClCompile Include="source\Helper\GUIApplication.cpp" />
     <ClCompile Include="source\Helper\Host.cpp" />
     <ClCompile Include="source\Helper\HostedUI.cpp" />
     <ClCompile Include="source\Helper\Initialization.cpp" />

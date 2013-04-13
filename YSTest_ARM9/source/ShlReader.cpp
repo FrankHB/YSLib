@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4222
+\version r4224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-04-10 23:46 +0800
+	2013-04-12 12:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,8 +201,7 @@ ShlReader::LoadGlobalConfiguration()
 	try
 	{
 		// TODO: Move node instead of copying.
-		FetchGlobalInstance().Root["YReader"]
-			= LoadConfiguration().GetNode("YReader");
+		FetchGlobalInstance().Root /= LoadConfiguration().GetNode("YReader");
 		return ReaderSetting(FetchGlobalInstance().Root.GetNode("YReader")
 			.GetNode("ReaderSetting"));
 	}

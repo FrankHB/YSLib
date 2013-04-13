@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1721
+\version r1727
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-03-06 13:49 +0800
+	2013-04-13 13:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,8 @@
 
 
 #include "Helper/Initialization.h"
-#include "YSLib/Adaptor/Font.h"
 #include "YSLib/Core/yapp.h"
-#include "Helper/DSMain.h"
+#include "Helper/GUIApplication.h"
 #include "YCLib/Debug.h"
 #include "CHRLib/MapEx.h"
 #include "YCLib/MemoryMapping.h"
@@ -253,12 +252,12 @@ InitializeInstalled()
 }
 
 void
-InitializeSystemFontCache(const string& fong_file, const string& font_dir)
+InitializeSystemFontCache(FontCache& fc,
+	const string& fong_file, const string& font_dir)
 {
 	puts("Loading font files...");
 	try
 	{
-		auto& fc(FetchDefaultFontCache());
 		size_t nFileLoaded(fc.LoadTypefaces(fong_file) != 0);
 
 		if(!font_dir.empty())
@@ -275,7 +274,7 @@ InitializeSystemFontCache(const string& fong_file, const string& font_dir)
 							nFileLoaded += fc.LoadTypefaces(path) != 0;
 					}
 		fc.InitializeDefaultTypeface();
-		if(const auto nFaces = FetchDefaultFontCache().GetFaces().size())
+		if(const auto nFaces = fc.GetFaces().size())
 			std::printf("%u face(s) in %u font file(s)"
 				" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
 		else

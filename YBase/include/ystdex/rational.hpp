@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1171
+\version r1172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-02-23 08:37 +0800
+	2013-04-12 07:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -351,7 +351,7 @@ namespace std
 {
 
 /*!
-\brief std::numeric_traits 的 ystdex::fixed_point 特化类型。
+\brief \c std::numeric_traits 的 \c ystdex::fixed_point 特化类型。
 \since build 260
 */
 template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r246
+\version r269
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-04-08 21:14 +0800;
+	2013-04-12 12:50 +0800;
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,17 +44,13 @@ ValueNode::operator+=(ValueNode&& node)
 bool
 ValueNode::operator-=(const ValueNode& node)
 {
-	try
-	{
-		return GetContainer().erase({0, node.name}) != 0;
-	}
-	catch(ystdex::bad_any_cast&)
-	{}
-	return false;
+	const auto p_con(GetContainerPtr());
+
+	return p_con ? p_con->erase({0, node.name}) != 0 : false;
 }
 
-ValueNode&
-ValueNode::operator[](const string& name)
+const ValueNode&
+ValueNode::operator[](const string& name) const
 {
 	auto& cont(CheckNodes());
 	auto i(cont.lower_bound({0, name}));
@@ -62,14 +58,9 @@ ValueNode::operator[](const string& name)
 	if(i == cont.end() || cont.key_comp()({0, name}, *i))
 		// TODO: Use %emplace_hint.
 		i = cont.insert(i, {0, name});
-	return const_cast<ValueNode&>(*i);
+	return *i;
 }
 
-ValueNode::Container&
-ValueNode::GetContainer() const
-{
-	return value.Access<Container>();
-}
 const ValueNode&
 ValueNode::GetNode(const string& name) const
 {
@@ -83,17 +74,13 @@ ValueNode::GetNode(const string& name) const
 size_t
 ValueNode::GetSize() const ynothrow
 {
-	try
-	{
-		return GetContainer().size();
-	}
-	catch(...)
-	{}
-	return 0;
+	const auto p_con(GetContainerPtr());
+
+	return p_con ? p_con->size() : 0;
 }
 
 ValueNode::Container&
-ValueNode::CheckNodes()
+ValueNode::CheckNodes() const
 {
 	if(!value)
 		value = Container();
