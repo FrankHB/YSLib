@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r259
+\version r270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-02-04 17:52 +0800
+	2013-04-19 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,7 +127,7 @@ get_mid(const _tString& str, typename _tString::size_type l,
 
 /*!
 \ingroup string_algorithms
-\brief 以指定字符分割字符串。
+\brief 以指定字符分割字符序列。
 \since build 304
 */
 template<typename _fPred, typename _fInsert, typename _tIn>
@@ -149,7 +149,17 @@ split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 		insert(i, b);
 	return i;
 }
-
+/*!
+\ingroup string_algorithms
+\brief 以指定字符分割范围指定的字符串。
+\since build 399
+*/
+template<typename _fPred, typename _fInsert, typename _tRange>
+inline void
+split(_tRange&& c, _fPred is_delim, _fInsert insert)
+{
+	split(begin(c), end(c), is_delim, insert);
+}
 
 /*!
 \brief 转换为字符串。

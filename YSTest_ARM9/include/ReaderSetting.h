@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.h
 \ingroup YReader
 \brief 阅读器设置。
-\version r327
+\version r331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:41 +0800
 \par 修改时间:
-	2013-03-20 20:39 +0800
+	2013-04-19 08:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,17 +61,17 @@ public:
 	//! \since build 334
 	//@{
 	ReaderSetting();
-	//! \since build 339
-	ReaderSetting(const ValueNode&);
+	//! \since build 399
+	ReaderSetting(const ValueNode::Container&);
 	DefDeCopyCtor(ReaderSetting)
 	DefDeMoveCtor(ReaderSetting)
 
 	DefDeCopyAssignment(ReaderSetting)
 	DefDeMoveAssignment(ReaderSetting)
 
-	//! \since build 338
+	//! \since build 399
 	explicit
-	operator ValueNode() const;
+	operator ValueNode::Container() const;
 
 	DefGetter(const ynothrow, std::chrono::milliseconds, TimerSetting,
 		SmoothScroll ? SmoothScrollDuration : ScrollDuration)

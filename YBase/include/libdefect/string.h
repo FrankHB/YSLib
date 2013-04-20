@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 <tt><string></tt> 修正。
-\version r533
+\version r535
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2013-03-23 21:12 +0800
+	2013-04-13 06:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 */
 
 
-#ifndef YB_INC_LIBDEFECT_STRING_H_
-#define YB_INC_LIBDEFECT_STRING_H_ 1
+#ifndef YB_INC_libdefect_string_h_
+#define YB_INC_libdefect_string_h_ 1
 
 #include <string>
 

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r269
+\version r281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-04-12 12:50 +0800;
+	2013-04-19 18:45 +0800;
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,12 +64,7 @@ ValueNode::operator[](const string& name) const
 const ValueNode&
 ValueNode::GetNode(const string& name) const
 {
-	auto& cont(GetContainer());
-	const auto i(cont.find({0, name}));
-
-	if(i != cont.end())
-		return *i;
-	throw std::out_of_range(name);
+	return AccessNode(GetContainer(), name);
 }
 size_t
 ValueNode::GetSize() const ynothrow
@@ -82,9 +77,16 @@ ValueNode::GetSize() const ynothrow
 ValueNode::Container&
 ValueNode::CheckNodes() const
 {
-	if(!value)
-		value = Container();
+	if(!Value)
+		Value = Container();
 	return GetContainer();
+}
+
+
+const ValueNode&
+AccessNode(const ValueNode::Container& con, const string& name)
+{
+	return ystdex::at(con, ValueNode(0, name));
 }
 
 YSL_END

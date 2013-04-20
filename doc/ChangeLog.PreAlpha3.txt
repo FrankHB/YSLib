@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3562
+\version r3626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-04-13 13:44 +0800
+	2013-04-20 10:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,71 @@ $import $HISTORY;
 // Scope: [b300, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			(
+				+ %'GUIShell'
+					$= (+ "class %GUIShell");
+				/ $dev "GUI shell implemetnation" -> "class %GUIShell"
+					~ "class %ShlDS"
+					// Simplified shell usage for no need of DS shell.
+			),
+			* "wrong behavior of destructor of class %WindowThreads \
+				when the joined window thread has already been completed"
+				@ "%platform MinGW32" $since b384,
+			+ "atomic window counting and callback on exit",
+				// To allow automatically terminating when all \
+					windows are closed.
+			+ "function YF_API %Execute" @ %'GUIShell'
+				// For convenient message loop.
+		),
+		/ %'YSLib'.'Core' $=
+		(
+			- 'explicit' @ "constructor 'Rect(const Size&)'" @ %.'YGDIBase',
+			+ "2 member function %operator%=" @ "class %ValueObject"
+				 @ %'YObject',
+			/ $dev %'ValueNode' $=
+			(
+				/ @ "class %ValueNode" $=
+				(
+					/ "put value object as public data member \
+						to simplify interface",
+					/ "merged some member funtions for 'const'"
+				),
+				/ "function template %CollectNodes returning %unique_ptr"
+					~ "raw pointer",
+				/ "merged function templates %(Access, AccessPtr) for 'const'",
+				+ "function YF_API %AccessNode"
+			)
+		)
+	),
+	/ $dev "updated .vcxproj for VS2012",
+	/ %'YReader'.'text reader' $=
+	(
+		/ DLD "configuration node object" ^ "%ValueNode::Container"
+			~ "%ValueNode",
+		/ "bookmarks object hold by bookmark panel to discard bookmars \
+			modifying state on cancelling"
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ %'TypeOperation' $=
+		(
+			+ "macro %YB_TYPE_OP_TEST_2 for simplifying traits implementation";
+			/ DLD "simplified implementation"
+				@ "binary trait %has_equality_operator",
+			+ "binary trait %has_subscription"
+		),
+		+ "2 function template overloadings %at" @ %'Container',
+		+ "function template overloading %split for range-based object \
+			representing string" @ 'String'
+	)
+),
+
+b398
 (
 	/ %'YBase'.'YStandard'.'Any' $=
 	(

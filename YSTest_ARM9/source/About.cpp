@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r75
+\version r80
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-03-20 21:15 +0800
+	2013-04-15 08:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,11 @@
 YSL_BEGIN_NAMESPACE(YReader)
 
 FrmAbout::FrmAbout()
-	: Form(Rect(5, 60, 208, 144), shared_ptr<Image>()),
-	lblTitle(Rect(8, 4, 192, 28)), lblVersion(Rect(8, 36, 192, 40)),
-	lblCopyright(Rect(8, 80, 192, 20)),
-	btnClose(Rect(12, 106, 60, 22)),
-	btnExit(Rect(84, 106, 60, 22))
+	: Form({5, 60, 208, 144}, shared_ptr<Image>()),
+	lblTitle({8, 4, 192, 28}), lblVersion({8, 36, 192, 40}),
+	lblCopyright({8, 80, 192, 20}),
+	btnClose({12, 106, 60, 22}),
+	btnExit({84, 106, 60, 22})
 {
 	AddWidgets(*this, lblTitle, lblVersion, lblCopyright, btnClose, btnExit),
 	lblTitle.Font.SetSize(20),

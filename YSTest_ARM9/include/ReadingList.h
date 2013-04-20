@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r176
+\version r181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2013-03-21 18:43 +0800
+	2013-04-18 14:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,10 @@ public:
 	{}
 	DefDeCopyCtor(Bookmark)
 	DefDeMoveCtor(Bookmark)
+
+	//! \since build 399	
+	explicit
+	operator ValueNode::Container() const;
 };
 
 
@@ -107,9 +111,9 @@ public:
 	DefDelCopyCtor(ReadingList)
 	DefDelMoveCtor(ReadingList)
 
-	//! \since build 373
+	//! \since build 399
 	explicit
-	operator ValueNode() const;
+	operator ValueNode::Container() const;
 
 	/*!
 	\brief 检查操作可用性。

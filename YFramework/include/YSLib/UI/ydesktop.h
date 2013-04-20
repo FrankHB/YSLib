@@ -11,13 +11,13 @@
 /*!	\file ydesktop.h
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r1406
+\version r1407
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-02 12:00:08 +0800
 \par 修改时间:
-	2013-03-13 12:53 +0800
+	2013-04-15 08:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,7 @@ public:
 		screen.GetCheckedBufferPtr()) //!< 取屏幕背景指针。
 
 	DefGetter(ynothrow, Rect, InvalidatedArea,
-		GetRenderer().CommitInvalidation(Rect()))
+		GetRenderer().CommitInvalidation({}))
 
 	/*!
 	\brief 更新缓冲区至屏幕。

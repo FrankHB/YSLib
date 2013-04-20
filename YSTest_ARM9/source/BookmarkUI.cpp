@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r152
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-04-11 01:12 +0800
+	2013-04-20 09:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,12 +78,11 @@ ConvertToBookmarkList(const vector<String>& lst)
 
 } // unnamed namespace;
 
-BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks, ShlTextReader& shl)
-	: DialogPanel(Rect({}, MainScreenWidth, MainScreenHeight)),
-	lbPosition(Rect(8, 32, 240, 128),
-	share_raw(new vector<String>(std::move(ConvertToUIString(bookmarks,
-	shl))))), btnAdd(Rect(GetWidth() - 80, 4, 16, 16), 210),
-	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210), shell(shl)
+BookmarkPanel::BookmarkPanel(ShlTextReader& shl)
+	: DialogPanel(Size(MainScreenWidth, MainScreenHeight)),
+	lbPosition({8, 32, 240, 128}),
+	btnAdd(Rect(GetWidth() - 80, 4, 16, 16), 210),
+	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210), shell(shl), bookmarks()
 {
 	const auto stop_routing_after_direct([](KeyEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Bubble)
@@ -96,7 +95,7 @@ BookmarkPanel::BookmarkPanel(BookmarkList& bookmarks, ShlTextReader& shl)
 		btnRemove.Text = u"-",
 		FetchEvent<KeyDown>(lbPosition) += stop_routing_after_direct,
 		FetchEvent<KeyHeld>(lbPosition) += stop_routing_after_direct,
-		FetchEvent<Click>(btnOK) += [&, this](TouchEventArgs&&){
+		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
 			bookmarks = std::move(ConvertToBookmarkList(lbPosition.GetList()));
 		},
 		FetchEvent<Click>(btnAdd) += [this](TouchEventArgs&&){
@@ -128,6 +127,12 @@ BookmarkList::difference_type
 BookmarkPanel::GetSelected() const
 {
 	return lbPosition.IsSelected() ? lbPosition.GetSelectedIndex() : -1;
+}
+
+void
+BookmarkPanel::LoadBookmarks()
+{
+	lbPosition.GetListRef() = ConvertToUIString(bookmarks, shell);
 }
 
 YSL_END_NAMESPACE(YReader)

@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r11998
+\version r12001
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-04-13 12:37 +0800
+	2013-04-19 14:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ $region $synopsis $begin
 // ! 默认由外部（如编译器命令行）提供。
 
 // YBase 既定宏污染列表。
-// YB_* 保留给 YBase 使用。（可能使用后被 #undef 取消定义。）
+// YB_* 保留给 YBase 使用。（除了 ydef.h 中定义的宏和包含守护宏外，可能使用后被 #undef 取消定义。）
 $dir YBase
 {
 $header *
@@ -97,8 +97,9 @@ yunseq
 }
 $dir ystdex
 {
-$header Utilities
+$header TypeOperations
 {
+YB_TYPE_OP_TEST_2(_n, _expr)
 }
 } //$dir ystdex;
 } //$dir YBase;

@@ -11,14 +11,14 @@
 /*!	\file shlds.h
 \ingroup Helper
 \ingroup DS
-\brief Shell 类库 DS 版本。
-\version r1256
+\brief DS 平台 Shell 类。
+\version r1282
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-04-13 13:03 +0800
+	2013-04-14 06:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,12 +26,10 @@
 */
 
 
-#ifndef INC_HELPER_SHLDS_H_
-#define INC_HELPER_SHLDS_H_ 1
+#ifndef INC_Helper_shlds_h_
+#define INC_Helper_shlds_h_ 1
 
-#include "YSLib/Core/yshell.h"
-#include "YSLib/Core/ystring.h"
-#include "Helper/InputManager.h"
+#include "Helper/GUIShell.h"
 
 YSL_BEGIN
 
@@ -81,14 +79,9 @@ ResetDSDesktops(Desktop&, Desktop&);
 \brief 双屏全屏窗口 Shell 。
 \since 早于 build 132
 */
-class YF_API ShlDS : public Shell
+class YF_API ShlDS : public Shells::GUIShell
 {
 private:
-	/*!
-	\brief 输入管理器。
-	\since build 323
-	*/
-	Devices::InputManager input_mgr;
 	/*!
 	\brief 共享桌面指针：正常状态下应总是指向可用的桌面对象。
 	\since build 296
@@ -125,28 +118,23 @@ public:
 	\since build 317
 
 	处理以下消息：
-	绘制消息 SM_PAINT ，调用 ShlDS::OnInput 。
-	输入消息 SM_INPUT ，分发按键处理后调用 OnInput 。
+	绘制消息 SM_PAINT ：调用 ShlDS::OnInput 。
+	输入消息 SM_INPUT ：分发按键处理后调用 OnInput。
+	其它消息传递至 GUIShell::OnGotMessage 。
 	*/
 	void
 	OnGotMessage(const Message&) override;
 
 	/*!
 	\brief 处理输入消息：发送绘制消息。
-	\note 如需要异步更新可以覆盖本方法。
+	\sa GUIShell::OnInput
 	\since build 289
 
-	默认行为对桌面后 Validate 操作后调用 OnPaint ，再对桌面 Update 。
+	默认行为：对桌面后 Validate 操作后调用 OnPaint ，再对桌面 Update ，
+		对宿主实现再调用 GUIShell::OnInput 。
 	*/
-	virtual void
-	OnInput();
-
-	/*!
-	\brief 处理绘制消息：空实现。
-	\since build 288
-	*/
-	virtual void
-	OnPaint();
+	void
+	OnInput() override;
 };
 
 

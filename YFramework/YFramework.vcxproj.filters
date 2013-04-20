@@ -689,6 +689,9 @@
     <ClInclude Include="source\Helper\DSWindow.h">
       <Filter>头文件\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="include\Helper\GUIShell.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -920,6 +923,9 @@
       <Filter>源文件\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\Helper\DSWindow.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\GUIShell.cpp">
       <Filter>源文件\Helper</Filter>
     </ClCompile>
   </ItemGroup>

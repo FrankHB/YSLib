@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r593
+\version r594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-01-13 13:03 +0800
+	2013-04-15 08:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,7 +111,7 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 		rInvalidated.GetSizeRef() = Size();
 		return e.ClipArea;
 	}
-	return Rect();
+	return {};
 }
 
 YSL_END_NAMESPACE(UI)

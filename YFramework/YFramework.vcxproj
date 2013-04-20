@@ -116,6 +116,7 @@
     <ClInclude Include="include\ft2build.h" />
     <ClInclude Include="include\Helper\DSMain.h" />
     <ClInclude Include="include\Helper\GUIApplication.h" />
+    <ClInclude Include="include\Helper\GUIShell.h" />
     <ClInclude Include="include\Helper\HostedUI.h" />
     <ClInclude Include="include\Helper\HostWindow.h" />
     <ClInclude Include="include\Helper\Initialization.h" />
@@ -215,6 +216,7 @@
     <ClCompile Include="source\Helper\DSScreen.cpp" />
     <ClCompile Include="source\Helper\DSWindow.cpp" />
     <ClCompile Include="source\Helper\GUIApplication.cpp" />
+    <ClCompile Include="source\Helper\GUIShell.cpp" />
     <ClCompile Include="source\Helper\Host.cpp" />
     <ClCompile Include="source\Helper\HostedUI.cpp" />
     <ClCompile Include="source\Helper\Initialization.cpp" />
@@ -295,11 +297,13 @@
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <OutDir>$(Configuration)\</OutDir>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <OutDir>$(Configuration)\</OutDir>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r171
+\version r179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-04-13 13:15 +0800
+	2013-04-13 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Core/ValueNode.h"
 #include <ystdex/cast.hpp>
+#include "Helper/GUIShell.h"
 
 YSL_BEGIN
 
@@ -165,6 +166,14 @@ FetchEnvironment() ynothrow
 
 YSL_END_NAMESPACE(Host)
 #endif
+
+/*!
+\brief 执行程序主消息循环。
+\note 对于宿主实现，设置退出所有窗口时向 YSLib 发送退出消息。
+\since build 399
+*/
+YF_API void
+Execute(GUIApplication&, shared_ptr<Shell> = make_shared<Shells::GUIShell>());
 
 YSL_END
 

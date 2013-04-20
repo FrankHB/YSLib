@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r797
+\version r859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-02-23 08:34 +0800
+	2013-04-19 15:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -301,33 +301,48 @@ namespace details
 #	endif
 #endif
 
+
+/*!
+\def YB_TYPE_OP_TEST_2
+\brief 测试
+\since build 399
+*/
+#define YB_TYPE_OP_TEST_2(_n, _expr) \
+	template<typename _type1, typename _type2> \
+	struct _n \
+	{ \
+	private: \
+		template<typename _type> \
+		static yconstfn bool \
+		test(int, typename enable_if<(_expr), int>::type = 0) \
+		{ \
+			return true; \
+		} \
+		template<typename> \
+		static yconstfn bool \
+		test(...) \
+		{ \
+			return false; \
+		} \
+	\
+	public: \
+		static yconstexpr bool value = test(); \
+	};
+
+
 /*!
 \since build 306
-\todo 左值版本。
 
-测试右值可比较相等性。
+测试可比较相等性。
 */
-template<typename _type1, typename _type2>
-struct have_equality_operator
-{
-private:
-	template<typename _type>
-	static yconstfn bool
-	test_equal(int, typename enable_if<is_convertible<decltype(std::declval<
-		_type>() == std::declval<_type2>()), bool>::value, int>::type = 0)
-	{
-		return true;
-	}
-	template<typename>
-	static yconstfn bool
-	test_equal(...)
-	{
-		return false;
-	}
+YB_TYPE_OP_TEST_2(have_equality_operator, (is_convertible<decltype(std::declval<
+	_type>() == std::declval<_type2>()), bool>::value))
 
-public:
-	static yconstexpr bool value = test_equal();
-};
+
+//! \since build 399
+YB_TYPE_OP_TEST_2(has_subscription, !is_void<decltype(std::declval<_type>()[
+	std::declval<_type2>()])>::value)
+
 
 #if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP >= 40600
 //#	pragma GCC diagnostic warning "-Wctor-dtor-privacy"
@@ -413,6 +428,16 @@ public:
 };
 
 } // namespace details;
+
+
+/*!
+\ingroup binary_type_trait
+\brief 判断是否存在合式的结果为非 void 类型的 [] 操作符接受指定类型的表达式。
+\since build 399
+*/
+template<typename _type1, typename _type2>
+struct has_subscription : details::has_subscription<_type1, _type2>
+{};
 
 
 /*!

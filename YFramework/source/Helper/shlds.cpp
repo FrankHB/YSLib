@@ -11,14 +11,14 @@
 /*!	\file shlds.cpp
 \ingroup Helper
 \ingroup DS
-\brief Shell 类库 DS 版本。
-\version r1274
+\brief DS 平台 Shell 类。
+\version r1299
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-04-13 13:19 +0800
+	2013-04-14 06:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,8 +63,8 @@ ResetDSDesktops(Desktop& dsk_up, Desktop& dsk_dn)
 
 
 ShlDS::ShlDS(const shared_ptr<Desktop>& hUp, const shared_ptr<Desktop>& hDn)
-	: Shell(),
-	input_mgr(), desktop_up_ptr(hUp ? hUp : make_shared<Desktop>(
+	: GUIShell(),
+	desktop_up_ptr(hUp ? hUp : make_shared<Desktop>(
 		FetchGlobalInstance<DSApplication>().GetScreenUp())),
 	desktop_down_ptr(hDn ? hDn : make_shared<Desktop>(
 		FetchGlobalInstance<DSApplication>().GetScreenDown())),
@@ -72,8 +72,6 @@ ShlDS::ShlDS(const shared_ptr<Desktop>& hUp, const shared_ptr<Desktop>& hDn)
 {
 	YAssert(bool(desktop_up_ptr), "Null pointer found.");
 	YAssert(bool(desktop_down_ptr), "Null pointer found.");
-
-	YSLib::UI::FetchGUIState().Reset();
 }
 
 void
@@ -82,33 +80,24 @@ ShlDS::OnGotMessage(const Message& msg)
 	switch(msg.GetMessageID())
 	{
 	case SM_PAINT:
-#if 0
-		{
-			const auto h(FetchTarget<SM_PAINT>(msg));
-
-			if(h)
-				h->Refresh(PaintContext(h->GetContext(), Point(),
-					GetSizeOf(*h)));
-		}
-#endif
 		ShlDS::OnInput();
 		return;
 	case SM_INPUT:
 #if YCL_HOSTED
-		if(auto p_wgt = input_mgr.Update())
-			input_mgr.DispatchInput(*p_wgt);
+		if(auto p_wgt = imMain.Update())
+			imMain.DispatchInput(*p_wgt);
 		else
-			input_mgr.DispatchInput(*desktop_down_ptr);
+			imMain.DispatchInput(*desktop_down_ptr);
 #else
-		input_mgr.Update();
-		input_mgr.DispatchInput(*desktop_down_ptr);
+		imMain.Update();
+		imMain.DispatchInput(*desktop_down_ptr);
 #endif
 		OnInput();
 		return;
 	default:
 		break;
 	}
-	Shell::OnGotMessage(msg);
+	GUIShell::OnGotMessage(msg);
 }
 
 void
@@ -124,16 +113,9 @@ ShlDS::OnInput()
 	if(bUpdateDown)
 		desktop_down_ptr->Update();
 #if YCL_HOSTED
-	// TODO: Use host reference stored by shell.
-	Host::FetchEnvironment().UpdateRenderWindows();
+	GUIShell::OnInput();
 #endif
-	// NOTE: Use code below instead if asynchronous posting is necessary.
-//	PostMessage<SM_PAINT>(0xE0, nullptr);
 }
-
-void
-ShlDS::OnPaint()
-{}
 
 YSL_END_NAMESPACE(DS)
 

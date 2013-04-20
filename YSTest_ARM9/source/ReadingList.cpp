@@ -11,13 +11,13 @@
 /*!	\file ReadingList.cpp
 \ingroup YReader
 \brief 阅读列表。
-\version r96
+\version r109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:27 +0800
 \par 修改时间:
-	2013-03-21 18:32 +0800
+	2013-04-18 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,23 +29,25 @@
 
 YSL_BEGIN_NAMESPACE(YReader)
 
+Bookmark::operator ValueNode::Container() const
+{
+	return {MakeNode("Path", Path.GetNativeString()),
+		StringifyToNode("Position", Position)};
+}
+
+
 ReadingList::ReadingList()
 	: reading_list(), now_reading(reading_list.end())
 {}
 
-ReadingList::operator ValueNode() const
+ReadingList::operator ValueNode::Container() const
 {
-	auto p(make_unique<ValueNode::Container>());
+	ValueNode::Container con;
 
 	for(const auto& bm : reading_list)
-		p->insert(MakeNode("bm" + to_string(p->size()),
-			ValueNode::Container{MakeNode("Path", bm.Path.GetNativeString()),
-			StringifyToNode("Position", bm.Position)}));
-
-	auto&& vn(MakeNode("ReadingList", p.get(), PointerTag()));
-
-	p.release();
-	return vn;
+		con.insert(MakeNode("bm" + to_string(con.size()),
+			ValueNode::Container(bm)));
+	return std::move(con);
 }
 
 pair<bool, bool>

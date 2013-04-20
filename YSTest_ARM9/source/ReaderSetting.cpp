@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r557
+\version r581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2013-03-20 20:49 +0800
+	2013-04-19 18:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,31 +36,31 @@ using std::chrono::milliseconds;
 namespace
 {
 
-//! \since build 339
+//! \since build 399
 //@{
 template<typename _type>
 _type
-FetchSetting(const ValueNode&, const string&);
+FetchSetting(const ValueNode::Container&, const string&);
 
 template<>
 inline string
-FetchSetting<string>(const ValueNode& node, const string& name)
+FetchSetting<string>(const ValueNode::Container& con, const string& name)
 {
-	return AccessChild<string>(node, name);
+	return Access<string>(AccessNode(con, name));
 }
 
 template<>
 int
-FetchSetting<int>(const ValueNode& node, const string& name)
+FetchSetting<int>(const ValueNode::Container& con, const string& name)
 {
-	return std::stoi(FetchSetting<string>(node, name));
+	return std::stoi(FetchSetting<string>(con, name));
 }
 
 template<>
 Color
-FetchSetting<Color>(const ValueNode& node, const string& name)
+FetchSetting<Color>(const ValueNode::Container& con, const string& name)
 {
-	const auto s(FetchSetting<string>(node, name).c_str());
+	const auto s(FetchSetting<string>(con, name).c_str());
 	unsigned r, g, b;
 
 	if(std::sscanf(s, "%u%u%u", &r, &g, &b) != 3)
@@ -76,7 +76,6 @@ FetchSetting<Color>(const ValueNode& node, const string& name)
 //@}
 
 //! \since build 345
-//@{
 ValueNode
 ColorToNode(const string& name, const Color& value)
 {
@@ -86,16 +85,16 @@ ColorToNode(const string& name, const Color& value)
 		+ to_string(value.GetG()) + ' ' + to_string(value.GetB()));
 }
 
+//! \since build 399
 Font
-FetchFontSetting(const ValueNode& node, const string& family,
+FetchFontSetting(const ValueNode::Container& con, const string& family,
 	const string& size)
 {
 	if(const auto p = FetchDefaultFontCache().GetFontFamilyPtr(
-		FetchSetting<string>(node, family)))
-		return Font(*p, FetchSetting<int>(node, size));
+		FetchSetting<string>(con, family)))
+		return Font(*p, FetchSetting<int>(con, size));
 	return Font();
 }
-//@}
 
 } // unnamed namespace;
 
@@ -104,25 +103,25 @@ ReaderSetting::ReaderSetting()
 	Font(FetchDefaultTypeface().GetFontFamily(), 14), SmoothScroll(true),
 	ScrollDuration(1000), SmoothScrollDuration(80)
 {}
-ReaderSetting::ReaderSetting(const ValueNode& node)
-	: UpColor(FetchSetting<Color>(node, "UpColor")), DownColor(
-	FetchSetting<Color>(node, "DownColor")), FontColor(FetchSetting<Color>(node,
-	"FontColor")), Font(FetchFontSetting(node, "FontFamily", "FontSize")),
-	SmoothScroll(FetchSetting<int>(node, "SmoothScroll") != 0),
-	ScrollDuration(FetchSetting<int>(node, "ScrollDuration")),
-	SmoothScrollDuration(FetchSetting<int>(node, "SmoothScrollDuration"))
+ReaderSetting::ReaderSetting(const ValueNode::Container& con)
+	: UpColor(FetchSetting<Color>(con, "UpColor")), DownColor(
+	FetchSetting<Color>(con, "DownColor")), FontColor(FetchSetting<Color>(con,
+	"FontColor")), Font(FetchFontSetting(con, "FontFamily", "FontSize")),
+	SmoothScroll(FetchSetting<int>(con, "SmoothScroll") != 0),
+	ScrollDuration(FetchSetting<int>(con, "ScrollDuration")),
+	SmoothScrollDuration(FetchSetting<int>(con, "SmoothScrollDuration"))
 {}
 
-ReaderSetting::operator ValueNode() const
+ReaderSetting::operator ValueNode::Container() const
 {
-	return PackNodes("ReaderSetting", ColorToNode("UpColor", UpColor),
+	return ValueNode::Container{ColorToNode("UpColor", UpColor),
 		ColorToNode("DownColor", DownColor),
 		ColorToNode("FontColor", FontColor),
 		MakeNode("FontFamily", Font.GetFontFamily().GetFamilyName()),
 		StringifyToNode("FontSize", Font.GetSize()),
 		StringifyToNode("SmoothScroll", int(SmoothScroll)),
 		StringifyToNode("ScrollDuration", ScrollDuration.count()),
-		StringifyToNode("SmoothScrollDuration", SmoothScrollDuration.count()));
+		StringifyToNode("SmoothScrollDuration", SmoothScrollDuration.count())};
 }
 
 YSL_END_NAMESPACE(YReader)

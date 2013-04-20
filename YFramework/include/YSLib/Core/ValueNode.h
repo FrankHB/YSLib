@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1113
+\version r1187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-04-12 12:48 +0800
+	2013-04-19 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_VALUENODE_H_
-#define YSL_INC_CORE_VALUENODE_H_ 1
+#ifndef YSL_INC_Core_ValueNode_h_
+#define YSL_INC_Core_ValueNode_h_ 1
 
 #include "yobject.h"
 
@@ -46,10 +46,11 @@ public:
 
 private:
 	string name;
-	//! \since build 336
-	mutable ValueObject value;
 
 public:
+	//! \since build 399
+	mutable ValueObject Value;
+
 	DefDeCtor(ValueNode)
 	/*!
 	\brief 构造：使用字符串引用和值类型对象构造参数。
@@ -59,7 +60,7 @@ public:
 	template<typename _tString, typename... _tParams>
 	inline
 	ValueNode(int, _tString&& str, _tParams&&... args)
-		: name(yforward(str)), value(yforward(args)...)
+		: name(yforward(str)), Value(yforward(args)...)
 	{}
 	/*!
 	\brief 构造：使用输入迭代器对。
@@ -68,7 +69,7 @@ public:
 	template<typename _tIn>
 	inline
 	ValueNode(const pair<_tIn, _tIn>& pr)
-		: name(), value(Container(pr.first, pr.second))
+		: name(), Value(Container(pr.first, pr.second))
 	{}
 	/*!
 	\brief 构造：使用输入迭代器对、字符串引用和值参数。
@@ -77,7 +78,7 @@ public:
 	template<typename _tIn, typename _tString>
 	inline
 	ValueNode(const pair<_tIn, _tIn>& pr, _tString&& str)
-		: name(yforward(str)), value(Container(pr.first, pr.second))
+		: name(yforward(str)), Value(Container(pr.first, pr.second))
 	{}
 	DefDeCopyCtor(ValueNode)
 	DefDeMoveCtor(ValueNode)
@@ -88,7 +89,7 @@ public:
 	//! \since build 336
 	//@{
 	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!value)
+		ImplRet(!Value)
 
 	bool
 	operator+=(const ValueNode&);
@@ -102,13 +103,35 @@ public:
 		ImplRet(*this -= {0, str})
 	/*!
 	\brief 替换同名子节点。
+	\return 自身引用。
 	\since build 398
 	*/
 	//@{
 	PDefHOp(const ValueNode&, /=, const ValueNode& node) const
-		ImplRet((*this)[node.name].value = node.value, *this)
+		ImplRet(*this %= node, *this)
 	PDefHOp(const ValueNode&, /=, ValueNode&& node) const
-		ImplRet((*this)[node.name].value = std::move(node.value), *this)
+		ImplRet(*this %= std::move(node), *this)
+	//@}
+	/*!
+	\brief 替换同名子节点。
+	\return 子节点引用。
+	\since build 399
+	*/
+	//@{
+	const ValueNode&
+	operator%=(const ValueNode& node) const
+	{
+		const auto& n((*this)[node.name]);
+
+		return n.Value = node.Value, n;
+	}
+	const ValueNode&
+	operator%=(const ValueNode&& node) const
+	{
+		const auto& n((*this)[node.name]);
+
+		return n.Value = std::move(node.Value), n;
+	}
 	//@}
 
 	PDefHOp(bool, ==, const ValueNode& node) const
@@ -122,16 +145,16 @@ public:
 	operator[](const string&) const;
 
 	//! \since build 336
-	explicit DefCvt(const ynothrow, bool, bool(value))
+	explicit DefCvt(const ynothrow, bool, bool(Value))
 	DefCvt(const ynothrow, const string&, name);
 
 	DefGetter(, Container::iterator, Begin, GetContainer().begin())
 	DefGetter(const, Container::const_iterator, Begin, GetContainer().begin())
 	//! \since build 340
-	DefGetter(const, Container&, Container, value.Access<Container>())
+	DefGetter(const, Container&, Container, Value.Access<Container>())
 	//! \since build 398
 	DefGetter(const ynothrow, Container*, ContainerPtr,
-		value.AccessPtr<Container>())
+		Value.AccessPtr<Container>())
 	DefGetter(, Container::iterator, End, GetContainer().end())
 	DefGetter(const, Container::const_iterator, End, GetContainer().end())
 	DefGetter(const ynothrow, const string&, Name, name)
@@ -140,16 +163,6 @@ public:
 	GetNode(const string&) const;
 	size_t
 	GetSize() const ynothrow;
-	DefGetter(ynothrow, ValueObject&, Value, value)
-	//! \since build 334
-	//@{
-	DefGetter(const ynothrow, const ValueObject&, Value, value)
-	//! \since build 341
-	DefGetter(const ynothrow, ValueObject&&, ValueRRef, std::move(value))
-
-	DefSetter(const ValueObject&, Value, GetValue())
-	DefSetter(ValueObject&&, Value, GetValue())
-	//@}
 
 private:
 	//! \since build 398
@@ -158,7 +171,7 @@ private:
 
 public:
 	PDefH(void, Clear, )
-		ImplExpr(value.Clear())
+		ImplExpr(Value.Clear())
 };
 
 /*!
@@ -193,42 +206,33 @@ end(const ValueNode& node) -> decltype(node.GetEnd())
 /*!
 \brief 访问节点的指定类型对象。
 \exception std::bad_cast 空实例或类型检查失败 。
-\since build 336
+\since build 399
 */
-//@{
 template<typename _type>
 inline _type&
-Access(ValueNode& node)
-{
-	return node.GetValue().Access<_type>();
-}
-template<typename _type>
-inline const _type&
 Access(const ValueNode& node)
 {
-	return node.GetValue().Access<_type>();
+	return node.Value.Access<_type>();
 }
-//@}
 
 /*!
 \brief 访问节点的指定类型对象指针。
-\since build 398
+\since build 399
 */
-//@{
 template<typename _type>
 inline _type*
-AccessPtr(ValueNode& node) ynothrow
-{
-	return node.GetValue().AccessPtr<_type>();
-}
-template<typename _type>
-inline const _type*
 AccessPtr(const ValueNode& node) ynothrow
 {
-	return node.GetValue().AccessPtr<_type>();
+	return node.Value.AccessPtr<_type>();
 }
-//@}
 
+
+/*!
+\brief 访问容器中的节点。
+\since build 399
+*/
+YF_API const ValueNode&
+AccessNode(const ValueNode::Container&, const string&);
 
 /*!
 \brief 访问指定名称的子节点的指定类型对象。
@@ -308,16 +312,16 @@ UnpackToNode(_tPack&& pk)
 
 /*!
 \brief 取指定值类型节点为成员的节点容器。
-\since build 339
+\since build 399
 */
 template<typename... _tParams>
-inline ValueNode::Container*
+inline unique_ptr<ValueNode::Container>
 CollectNodes(_tParams&&... args)
 {
 	auto p(make_unique<ValueNode::Container>());
 
 	ystdex::seq_insert(*p, yforward(args)...);
-	return p.release();
+	return std::move(p);
 }
 
 /*!
@@ -329,7 +333,7 @@ inline ValueNode
 PackNodes(_tString&& name, _tParams&&... args)
 {
 	return {0, yforward(name), CollectNodes(UnpackToNode(
-		yforward(args))...), PointerTag()};
+		yforward(args))...).release(), PointerTag()};
 }
 
 YSL_END

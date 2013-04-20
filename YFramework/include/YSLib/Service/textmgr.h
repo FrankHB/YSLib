@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3772
+\version r3774
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-04-11 01:21 +0800
+	2013-04-14 06:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_SERVICE_TEXTMGR_H_
-#define YSL_INC_SERVICE_TEXTMGR_H_ 1
+#ifndef YSL_INC_Service_textmgr_h_
+#define YSL_INC_Service_textmgr_h_ 1
 
 #include "../Core/ystring.h"
 #include "yftext.h"

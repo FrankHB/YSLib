@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1279
+\version r1281
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-03-07 12:10 +0800
+	2013-04-15 08:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -457,9 +457,9 @@ public:
 	{}
 	/*!
 	\brief 构造：使用 Size 对象。
-	\since build 319
+	\since build 399
 	*/
-	explicit yconstfn
+	yconstfn
 	Rect(const Size& s) ynothrow
 		: Point(), Size(s)
 	{}

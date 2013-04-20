@@ -108,6 +108,7 @@
 		<Unit filename="../YFramework/include/CHRLib/smap.hpp" />
 		<Unit filename="../YFramework/include/Helper/DSMain.h" />
 		<Unit filename="../YFramework/include/Helper/GUIApplication.h" />
+		<Unit filename="../YFramework/include/Helper/GUIShell.h" />
 		<Unit filename="../YFramework/include/Helper/HostWindow.h" />
 		<Unit filename="../YFramework/include/Helper/HostedUI.h" />
 		<Unit filename="../YFramework/include/Helper/Initialization.h" />
@@ -286,6 +287,7 @@
 		<Unit filename="../YFramework/source/Helper/DSWindow.cpp" />
 		<Unit filename="../YFramework/source/Helper/DSWindow.h" />
 		<Unit filename="../YFramework/source/Helper/GUIApplication.cpp" />
+		<Unit filename="../YFramework/source/Helper/GUIShell.cpp" />
 		<Unit filename="../YFramework/source/Helper/Host.cpp" />
 		<Unit filename="../YFramework/source/Helper/Host.h" />
 		<Unit filename="../YFramework/source/Helper/HostWindow.cpp" />

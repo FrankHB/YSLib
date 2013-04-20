@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3467
+\version r3472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-03-13 13:01 +0800
+	2013-04-15 09:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,10 +83,10 @@ const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
 
 
 ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
-	: Control(Rect(r.GetPoint(), max<SDst>(defMinScrollBarWidth, r.Width),
-	max<SDst>(defMinScrollBarHeight, r.Height)), NoBackgroundTag()),
+	: Control({r.GetPoint(), max<SDst>(defMinScrollBarWidth, r.Width),
+	max<SDst>(defMinScrollBarHeight, r.Height)}, NoBackgroundTag()),
 	GMRange<ValueType>(0xFF, 0),
-	tmbScroll(Rect(0, 0, defMinScrollBarWidth, defMinScrollBarHeight)),
+	tmbScroll(Size(defMinScrollBarWidth, defMinScrollBarHeight)),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
 {
 	SetContainerPtrOf(tmbScroll, this);
@@ -434,8 +434,8 @@ VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)
 
 ScrollableContainer::ScrollableContainer(const Rect& r)
 	: Control(r),
-	hsbHorizontal(Rect({}, r.Width, defMinScrollBarHeight)),
-	vsbVertical(Rect({}, defMinScrollBarWidth, r.Height))
+	hsbHorizontal(Size(r.Width, defMinScrollBarHeight)),
+	vsbVertical(Size(defMinScrollBarWidth, r.Height))
 {
 	// TODO: Allow user to choose whether background is drawn.
 	SetContainerPtrOf(hsbHorizontal, this),

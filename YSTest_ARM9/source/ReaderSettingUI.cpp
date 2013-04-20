@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r216
+\version r226
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-04-07 01:57 +0800
+	2013-04-15 09:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,18 +46,18 @@ FetchEncodingString(MTextList::IndexType i)
 
 
 SettingPanel::SettingPanel()
-	: DialogPanel(Rect({}, MainScreenWidth, MainScreenHeight)),
-	lblAreaUp(Rect(20, 12, 216, 72)), lblAreaDown(Rect(20, 108, 216, 72)),
-	btnFontSizeDecrease(Rect(20, 32, 80, 22)),
-	btnFontSizeIncrease(Rect(148, 32, 80, 22)),
-	btnSetUpBack(Rect(20, 64, 80, 22)), btnSetDownBack(Rect(148, 64, 80, 22)),
-	btnTextColor(Rect(20, 96, 80, 22)),
-	ddlFont(Rect(148, 96, 80, 22), FetchFontFamilyNames()),
-	ddlEncoding(Rect(20, 128, 192, 22), share_raw(new
+	: DialogPanel(Size(MainScreenWidth, MainScreenHeight)),
+	lblAreaUp({20, 12, 216, 72}), lblAreaDown({20, 108, 216, 72}),
+	btnFontSizeDecrease({20, 32, 80, 22}),
+	btnFontSizeIncrease({148, 32, 80, 22}),
+	btnSetUpBack({20, 64, 80, 22}), btnSetDownBack({148, 64, 80, 22}),
+	btnTextColor({20, 96, 80, 22}),
+	ddlFont({148, 96, 80, 22}, FetchFontFamilyNames()),
+	ddlEncoding({20, 128, 192, 22}, share_raw(new
 		TextList::ListType(Encodings | ystdex::get_value, (Encodings
 		+ arrlen(Encodings)) | ystdex::get_value))),
-	cbSmoothScroll(Rect(20, 160, 72, 18)),
-	ddlScrollTiming(Rect(96, 160, 128, 22)),
+	cbSmoothScroll({20, 160, 72, 18}),
+	ddlScrollTiming({96, 160, 128, 22}),
 	boxColor(Point(4, 80)), pColor(), current_encoding(),
 	scroll_duration(), smooth_scroll_duration()
 {

@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r499
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-04-11 13:48 +0800
+	2013-04-16 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -32,6 +32,7 @@
 #if YCL_MULTITHREAD == 1
 #	include <thread>
 #	include <mutex>
+#	include <atomic>
 #endif
 #include "YSLib/UI/yrender.h"
 #include "YSLib/UI/ywidget.h" // for UI::GetSizeOf;
@@ -195,6 +196,20 @@ private:
 	//! \since build 397
 	::HINSTANCE h_instance;
 #		endif
+	/*!
+	\brief 窗口线程计数。
+	\sa EnterWindowThrad 和 LeaveWindowThread 。
+	\since build 399
+	*/
+	std::atomic<size_t> wnd_thrd_count;
+
+public:
+	/*!
+	\brief 退出标记。
+	\sa LeaveWindowThread 。
+	\since build 399
+	*/
+	std::atomic<bool> ExitOnAllWindowThreadCompleted;
 #	endif
 
 public:
@@ -217,6 +232,19 @@ public:
 	void
 	AddMappedItem(NativeWindowHandle, Window*);
 
+#	if YCL_MULTITHREAD == 1
+	/*!
+	\brief 标记开始窗口线程，增加窗口线程计数。
+	\note 线程安全。
+	\since build 399
+	*/
+	void
+	EnterWindowThread()
+	{
+		++wnd_thrd_count;
+	}
+#	endif
+
 	/*!
 	\brief 取本机句柄对应的窗口指针。
 	\note 线程安全。
@@ -231,6 +259,17 @@ public:
 	*/
 	static void
 	HostLoop();
+
+#	if YCL_MULTITHREAD == 1
+	/*!
+	\brief 标记结束窗口线程，减少窗口线程计数并在计数为零时执行附加操作。
+	\since build 399
+
+	减少窗口计数后检查，若为零且退出标记被设置时向 YSLib 消息队列发送退出消息。
+	*/
+	void
+	LeaveWindowThread();
+#	endif
 
 	/*!
 	\brief 移除窗口映射项。

@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1025
+\version r1055
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-04-13 13:08 +0800
+	2013-04-16 02:19 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -50,7 +50,7 @@ YSL_BEGIN_NAMESPACE(Host)
 namespace
 {
 
-#if YCL_MINGW32
+#	if YCL_MINGW32
 ::LRESULT CALLBACK
 WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 {
@@ -85,7 +85,7 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 	}
 	return 0;
 }
-#endif
+#	endif
 
 } // unnamed namespace;
 
@@ -104,8 +104,15 @@ WindowThread::~WindowThread()
 	YAssert(bool(p_wnd), "Null pointer found.");
 
 	p_wnd->Close();
-	// TODO: Exception safety: add either assertion or logging when throwing.
-	thrd.join();
+	// NOTE: If the thread has been already completed there is no effect.
+	// TODO: Exception safety: add either assertion or logging when throwing
+	//	other exceptions.
+	try
+	{
+		thrd.join();
+	}
+	catch(std::invalid_argument&)
+	{}
 }
 
 void
@@ -124,8 +131,16 @@ WindowThread::ThreadLoop(unique_ptr<Window> p)
 void
 WindowThread::WindowLoop(Window& wnd)
 {
+#	if YCL_MULTITHREAD
+	auto& env(wnd.GetHost());
+
+	env.EnterWindowThread();
+#	endif
 	wnd.Show();
 	Environment::HostLoop();
+#	if YCL_MULTITHREAD
+	env.LeaveWindowThread();
+#	endif
 }
 
 
@@ -152,9 +167,10 @@ Environment::Environment()
 #		if YCL_MINGW32
 	, h_instance(::GetModuleHandleW(nullptr))
 #		endif
+	, wnd_thrd_count(), ExitOnAllWindowThreadCompleted()
 #	endif
 {
-#if YCL_MINGW32
+#	if YCL_MINGW32
 	const ::WNDCLASS wnd_class{CS_DBLCLKS/* | CS_HREDRAW | CS_VREDRAW*/,
 		WndProc, 0, 0, h_instance, ::LoadIconW(nullptr, IDI_APPLICATION),
 		::LoadCursorW(nullptr, IDC_ARROW), ::HBRUSH(COLOR_MENU + 1),
@@ -165,7 +181,7 @@ Environment::Environment()
 	//	::MessageBox(nullptr, "This program requires Windows NT!",
 		//	wnd_title, MB_ICONERROR);
 	YCL_DEBUG_PUTS("Window class registered.");
-#endif
+#	endif
 }
 Environment::~Environment()
 {
@@ -212,12 +228,11 @@ Environment::FindWindow(NativeWindowHandle h) const ynothrow
 	return i == wnd_map.end() ? nullptr : i->second;
 }
 
-#	if YCL_MULTITHREAD == 1
 void
 Environment::HostLoop()
 {
 	YCL_DEBUG_PUTS("Host loop beginned.");
-#		if YCL_MINGW32
+#	if YCL_MINGW32
 	while(true)
 	{
 		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}}; //!< 本机消息。
@@ -240,8 +255,16 @@ Environment::HostLoop()
 			// NOTE: Failure ignored.
 			::WaitMessage();
 	}
-#		endif
+#	endif
 	YCL_DEBUG_PUTS("Host loop ended.");
+}
+
+#	if YCL_MULTITHREAD == 1
+void
+Environment::LeaveWindowThread()
+{
+	if(--wnd_thrd_count == 0 && ExitOnAllWindowThreadCompleted)
+		YSLib::PostQuitMessage(0);
 }
 #	endif
 

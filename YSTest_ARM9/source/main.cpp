@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1700
+\version r1714
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-03-20 21:23 +0800
+	2013-04-16 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,18 +238,16 @@ main()
 	{
 		{
 			//应用程序实例。
-			DSApplication theApp;
+			DSApplication app;
 
 			//platform::YDebugSetStatus(false);
 			{
 				using namespace YSLib::UI;
 
-				Desktop dsk_up(theApp.GetScreenUp()),
-					dsk_dn(theApp.GetScreenDown());
-				Label lblTitle(Rect(50, 20, 100, 22)),
-					lblStatus(Rect(60, 80, 120, 22)),
-					lblDetails(Rect(30, 20, 160, 22));
-				ProgressBar pb(Rect(8, 168, 240, 16), 10);
+				Desktop dsk_up(app.GetScreenUp()), dsk_dn(app.GetScreenDown());
+				Label lblTitle({50, 20, 100, 22}), lblStatus({60, 80, 120, 22}),
+					lblDetails({30, 20, 160, 22});
+				ProgressBar pb({8, 168, 240, 16}, 10);
 
 				AddWidgets(dsk_up, lblTitle, lblStatus, pb);
 				dsk_dn += lblDetails;
@@ -280,11 +278,7 @@ main()
 				pb.SetValue(10);
 				Repaint(dsk_up);
 			}
-			if(YB_UNLIKELY(!Activate(make_shared<YReader::ShlExplorer>())))
-				throw LoggedEvent("Failed launching the main shell;");
-			//主体：消息循环。
-			while(theApp.DealMessage())
-				;
+			Execute(app, make_shared<YReader::ShlExplorer>());
 			//释放 Shell （必要，保证释放 Shell 且避免资源泄漏）。
 			YSLib::ReleaseShells();
 		}

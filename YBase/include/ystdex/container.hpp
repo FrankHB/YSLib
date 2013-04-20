@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r230
+\version r253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-03-11 10:35 +0800
+	2013-04-19 17:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,6 +52,32 @@ inline void
 assign(_tContainer& con, const _type(&arr)[_vN])
 {
 	con.assign(arr, arr + _vN);
+}
+//@}
+
+
+/*!
+\brief 访问关联容器。
+\exception std::out_of_range 访问的值不存在。
+\since build 399
+*/
+//@{
+template<class _tContainer, typename _tKey>
+auto
+at(_tContainer& con, const _tKey& k)
+	-> decltype(con.at(k))
+{
+	return con.at(k);
+}
+template<class _tContainer, typename _tKey>
+const _tKey&
+at(const _tContainer& con, const _tKey& k)
+{
+	const auto i(con.find(k));
+
+	if(i != end(con))
+		return *i;
+	throw std::out_of_range("ystdex::at");
 }
 //@}
 

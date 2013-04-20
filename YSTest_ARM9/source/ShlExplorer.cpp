@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r434
+\version r445
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-04-13 12:45 +0800
+	2013-04-15 08:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,15 +123,15 @@ CheckBackgroundPreview(CheckButton& cbPreview, size_t up_i, size_t dn_i)
 ShlExplorer::ShlExplorer(const IO::Path& path,
 	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
 	: ShlDS(h_dsk_up, h_dsk_dn),
-	lblTitle(Rect(16, 20, 220, 22)), lblPath(Rect(8, 48, 240, 48)),
-	lblInfo(Rect(8, 100, 240, 64)), fbMain(Rect(4, 6, 248, 128)),
-	btnTest(Rect(115, 165, 65, 22)), btnOK(Rect(185, 165, 65, 22)),
-	btnMenu(Rect(4, 165, 72, 22)), pnlSetting(Rect(10, 40, 224, 136)),
-	cbHex(Rect(142, 142, 103, 18)), cbFPS(Rect(10, 90, 73, 18)),
-	cbPreview(Rect(10, 110, 115, 18)), lblDragTest(Rect(4, 4, 104, 22)),
-	btnEnterTest(Rect(8, 32, 104, 22)), btnTestEx(Rect(48, 60, 156, 22)),
-	btnPrevBackground(Rect(114, 90, 30, 22)),
-	btnNextBackground(Rect(164, 90, 30, 22)),
+	lblTitle({16, 20, 220, 22}), lblPath({8, 48, 240, 48}),
+	lblInfo({8, 100, 240, 64}), fbMain({4, 6, 248, 128}),
+	btnTest({115, 165, 65, 22}), btnOK({185, 165, 65, 22}),
+	btnMenu({4, 165, 72, 22}), pnlSetting({10, 40, 224, 136}),
+	cbHex({142, 142, 103, 18}), cbFPS({10, 90, 73, 18}),
+	cbPreview({10, 110, 115, 18}), lblDragTest({4, 4, 104, 22}),
+	btnEnterTest({8, 32, 104, 22}), btnTestEx({48, 60, 156, 22}),
+	btnPrevBackground({114, 90, 30, 22}),
+	btnNextBackground({164, 90, 30, 22}),
 	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetDesktopDownHandle()),
 	fpsCounter(500000000ULL)
 {
@@ -330,9 +330,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
 
-	auto& m1(*(ynew Menu(Rect(),
+	auto& m1(*(ynew Menu({},
 		share_raw(new TextList::ListType{u"测试", u"关于", u"退出"}), 1u)));
-	auto& m2(*(ynew Menu(Rect(),
+	auto& m2(*(ynew Menu({},
 		share_raw(new TextList::ListType{u"项目1", u"项目2"}), 2u)));
 
 	m1.GetConfirmed() += [this](IndexEventArgs&& e){

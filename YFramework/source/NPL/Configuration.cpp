@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r571
+\version r572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2013-01-23 09:39 +0800
+	2013-04-18 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ TransformConfiguration(const ValueNode& node)
 		try
 		{
 			const auto& str(Access<string>(*i));
-		
+
 			yunseq(++i, --s);
 			return str;
 		}
@@ -64,7 +64,7 @@ TransformConfiguration(const ValueNode& node)
 		auto&& n(TransformConfiguration(*i));
 
 		if(n.GetName().empty())
-			return {0, new_name, n.GetValueRRef()};
+			return {0, new_name, std::move(n.Value)};
 		return {0, new_name, ValueNode::Container{std::move(n)}};
 	}
 
@@ -175,7 +175,7 @@ operator>>(TextFile& tf, Configuration& conf)
 	}
 	catch(ystdex::bad_any_cast& e)
 	{
-		// TODO: Avoid memory allocation. 
+		// TODO: Avoid memory allocation.
 		throw LoggedEvent(ystdex::sfmt(
 			"Bad configuration found: cast failed from [%s] to [%s] .",
 			e.from(), e.to()), 0x80);

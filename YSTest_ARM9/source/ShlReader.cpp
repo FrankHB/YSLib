@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4224
+\version r4257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-04-12 12:20 +0800
+	2013-04-20 09:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,11 +58,11 @@ enum MNU_READER : Menu::IndexType
 
 ReaderBox::ReaderBox(const Rect& r)
 	: Control(r),
-	btnMenu(Rect(4, 12, 16, 16)), btnSetting(Rect(24, 12, 16, 16)),
-	btnInfo(Rect(44, 12, 16, 16)), btnBookmark(Rect(64, 12, 16, 16)),
-	btnReturn(Rect(84, 12, 16, 16)),
-	btnPrev(Rect(104, 12, 16, 16)), btnNext(Rect(124, 12, 16, 16)),
-	pbReader(Rect(4, 0, 248, 8)), lblProgress(Rect(216, 12, 40, 16))
+	btnMenu({4, 12, 16, 16}), btnSetting({24, 12, 16, 16}),
+	btnInfo({44, 12, 16, 16}), btnBookmark({64, 12, 16, 16}),
+	btnReturn({84, 12, 16, 16}),
+	btnPrev({104, 12, 16, 16}), btnNext({124, 12, 16, 16}),
+	pbReader({4, 0, 248, 8}), lblProgress({216, 12, 40, 16})
 {
 	Background = nullptr,
 	SetRenderer(make_unique<BufferedRenderer>()),
@@ -118,11 +118,11 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 
 
 TextInfoBox::TextInfoBox()
-	: DialogBox(Rect(32, 32, 200, 108)),
-	lblEncoding(Rect(4, 20, 192, 18)),
-	lblSize(Rect(4, 40, 192, 18)),
-	lblTop(Rect(4, 60, 192, 18)),
-	lblBottom(Rect(4, 80, 192, 18))
+	: DialogBox({32, 32, 200, 108}),
+	lblEncoding({4, 20, 192, 18}),
+	lblSize({4, 40, 192, 18}),
+	lblTop({4, 60, 192, 18}),
+	lblBottom({4, 80, 192, 18})
 {
 	unseq_apply(ContainerSetter(*this), lblEncoding, lblSize);
 	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
@@ -152,12 +152,12 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 
 
 FileInfoPanel::FileInfoPanel()
-	: Panel(Rect({}, MainScreenWidth, MainScreenHeight)),
-	lblPath(Rect(8, 20, 240, 16)),
-	lblSize(Rect(8, 40, 240, 16)),
-	lblAccessTime(Rect(8, 60, 240, 16)),
-	lblModifiedTime(Rect(8, 80, 240, 16)),
-	lblOperations(Rect(8, 120, 240, 16))
+	: Panel(Size(MainScreenWidth, MainScreenHeight)),
+	lblPath({8, 20, 240, 16}),
+	lblSize({8, 40, 240, 16}),
+	lblAccessTime({8, 60, 240, 16}),
+	lblModifiedTime({8, 80, 240, 16}),
+	lblOperations({8, 120, 240, 16})
 {
 	Background = SolidBrush(ColorSpace::Silver);
 #if YCL_DS
@@ -200,14 +200,12 @@ ShlReader::LoadGlobalConfiguration()
 {
 	try
 	{
-		// TODO: Move node instead of copying.
-		FetchGlobalInstance().Root /= LoadConfiguration().GetNode("YReader");
-		return ReaderSetting(FetchGlobalInstance().Root.GetNode("YReader")
-			.GetNode("ReaderSetting"));
+		return ReaderSetting((FetchGlobalInstance().Root %= LoadConfiguration()
+			.GetNode("YReader")).GetNode("ReaderSetting").GetContainer());
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}
-	return ReaderSetting();
+	return {};
 }
 
 void
@@ -223,8 +221,10 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 {
 	try
 	{
-		FetchGlobalInstance().Root["YReader"] /= ValueNode(rs);
-		SaveConfiguration(FetchGlobalInstance().Root);
+		auto& root(FetchGlobalInstance().Root);
+
+		root["YReader"]["ReaderSetting"].Value = ValueNode::Container(rs);
+		SaveConfiguration(root);
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}
@@ -291,6 +291,7 @@ ShlTextReader::SettingSession::~SettingSession()
 ShlTextReader::BookmarkSession::BookmarkSession(ShlTextReader& shl)
 	: BaseSession(shl)
 {
+	shl.pnlBookmark.LoadBookmarks();
 	Show(shl.pnlBookmark);
 }
 
@@ -299,10 +300,10 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
 	: ShlReader(pth, h_dsk_up, h_dsk_dn),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
-	CurrentSetting(LoadGlobalConfiguration()), bookmarks(), tmrScroll(
+	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
 	CurrentSetting.GetTimerSetting()), tmrInput(), reader(),
-	boxReader(Rect(0, 160, 256, 32)), boxTextInfo(), pnlSetting(),
-	pTextFile(), mhMain(GetDesktopDown()), pnlBookmark(bookmarks, *this),
+	boxReader({0, 160, 256, 32}), boxTextInfo(), pnlSetting(),
+	pTextFile(), mhMain(GetDesktopDown()), pnlBookmark(*this),
 	session_ptr()
 {
 	using ystdex::get_key;
@@ -390,14 +391,14 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_session,
 		FetchEvent<Click>(pnlBookmark.btnClose) += exit_session,
 		FetchEvent<Click>(pnlBookmark.btnOK) += [this](TouchEventArgs&&){
-			if(pnlBookmark.lbPosition.IsSelected()
-				&& Locate(bookmarks[pnlBookmark.lbPosition.GetSelectedIndex()]))
+			if(pnlBookmark.lbPosition.IsSelected() && Locate(pnlBookmark
+				.bookmarks[pnlBookmark.lbPosition.GetSelectedIndex()]))
 				boxReader.UpdateData(reader);
 		},
 		FetchEvent<Click>(pnlBookmark.btnOK) += exit_session
 	);
 	{
-		Menu& mnu(*(ynew Menu(Rect(), shared_ptr<Menu::ListType>(new
+		Menu& mnu(*(ynew Menu({}, shared_ptr<Menu::ListType>(new
 			Menu::ListType{"返回", "设置...", "文件信息...", "书签...",
 			"向上一行", "向下一行", "向上一屏", "向下一屏"}), 1u)));
 
