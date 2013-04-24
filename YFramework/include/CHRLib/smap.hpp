@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1828
+\version r1839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-02-02 12:55 +0800
+	2013-04-22 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef CHRLIB_INC_SMAP_HPP_
-#define CHRLIB_INC_SMAP_HPP_ 1
+#ifndef CHRLIB_INC_smap_hpp_
+#define CHRLIB_INC_smap_hpp_ 1
 
 #include "chrmap.h"
 #include <ystdex/cstdio.h>
@@ -47,7 +47,7 @@ FillByte(_tIn& i, _tState& st)
 	static_assert(!std::is_volatile<typename std::remove_reference<
 		_tState>::type>::value, "Volatile state is not supported.");
 
-	if(YB_UNLIKELY(is_undereferencable(i)))
+	if(YB_UNLIKELY(is_undereferenceable(i)))
 		return false;
 
 	const byte r(*i);
@@ -124,10 +124,8 @@ struct GUCS2Mapper<CharSet::UTF_8>
 				return ConversionResult::Invalid;
 			if(((seq[0] ^ 0xE0) & 0xF0) == 0)
 			{
-				uc = (((seq[0] & 0x0F) << 4
-					| (seq[1] & 0x3C) >> 2) << 8)
-					| ((seq[1] & 0x3) << 6)
-					| (seq[2] & 0x3F);
+				uc = (((seq[0] & 0x0F) << 4 | (seq[1] & 0x3C) >> 2) << 8)
+					| ((seq[1] & 0x3) << 6) | (seq[2] & 0x3F);
 				break;
 			}
 		case 3:
@@ -137,10 +135,8 @@ struct GUCS2Mapper<CharSet::UTF_8>
 				return ConversionResult::Invalid;
 			if(YB_LIKELY(((seq[0] ^ 0xF0) & 0xF8) == 0))
 			{
-				uc = (((seq[0] & 0x0F) << 4
-					| (seq[1] & 0x3C) >> 2) << 8)
-					| ((seq[1] & 0x3) << 6)
-					| (seq[2] & 0x3F);
+				uc = (((seq[0] & 0x0F) << 4 | (seq[1] & 0x3C) >> 2) << 8)
+					| ((seq[1] & 0x3) << 6) | (seq[2] & 0x3F);
 				break;
 			}
 			return ConversionResult::Unhandled;

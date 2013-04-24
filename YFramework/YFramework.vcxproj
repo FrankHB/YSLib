@@ -287,6 +287,9 @@
     <ClCompile Include="source\YSLib\UI\ywidget.cpp" />
     <ClCompile Include="source\YSLib\UI\ywindow.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{305D480F-C3DC-4A3D-915A-88E9D2224742}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>

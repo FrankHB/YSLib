@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r371
+\version r388
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2013-03-06 19:00 +0800
+	2013-04-22 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,7 @@
 #include <cstdio>
 #include <ios> // for std::ios_base::openmode;
 #include <iterator>
-#include "memory.hpp" \
-	// for ystdex::is_dereferencable, ystdex::is_undereferencable;
+#include "memory.hpp" // for ystdex::is_undereferenceable;
 
 namespace ystdex
 {
@@ -108,7 +107,7 @@ public:
 		: stream(), value()
 	{}
 	/*!
-	\brief 构造：使用流指针。
+	\brief 构造：使用流引用。
 	\pre <tt>stream</tt>。
 	\post <tt>stream == &s</tt> 。
 	*/
@@ -183,23 +182,12 @@ operator!=(const ifile_iterator& x, const ifile_iterator& y)
 
 
 /*!
-\ingroup is_dereferencable
-\brief 判断 ifile_iterator 实例是否确定为可解引用。
-\since build 249
-*/
-inline bool
-is_dereferencable(const ifile_iterator& i)
-{
-	return i.get_stream();
-}
-
-/*!
-\ingroup is_undereferencable
+\ingroup is_undereferenceable
 \brief 判断 ifile_iterator 实例是否确定为不可解引用。
-\since build 250
+\since build 400
 */
 inline bool
-is_undereferencable(const ifile_iterator& i)
+is_undereferenceable(const ifile_iterator& i)
 {
 	return !i.get_stream();
 }

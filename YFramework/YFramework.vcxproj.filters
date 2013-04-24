@@ -929,4 +929,9 @@
       <Filter>源文件\Helper</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\doc\ChangeLog.PreAlpha4.txt">
+      <Filter>文档</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

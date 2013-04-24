@@ -56,6 +56,7 @@
 		</Compiler>
 		<Unit filename="../YFramework/data/cp113.bin" />
 		<Unit filename="../YFramework/data/default_font.bin" />
+		<Unit filename="../YFramework/include/CHRLib/Convert.hpp" />
 		<Unit filename="../YFramework/include/CHRLib/MapEx.h" />
 		<Unit filename="../YFramework/include/CHRLib/chrdef.h" />
 		<Unit filename="../YFramework/include/CHRLib/chrmap.h" />
@@ -86,6 +87,7 @@
 		<Unit filename="../YFramework/include/YCLib/Video.h" />
 		<Unit filename="../YFramework/include/YCLib/ycommon.h" />
 		<Unit filename="../YFramework/include/YSLib/Adaptor/Font.h" />
+		<Unit filename="../YFramework/include/YSLib/Adaptor/YTextBase.h" />
 		<Unit filename="../YFramework/include/YSLib/Adaptor/config.h" />
 		<Unit filename="../YFramework/include/YSLib/Adaptor/yadaptor.h" />
 		<Unit filename="../YFramework/include/YSLib/Adaptor/ycont.h" />

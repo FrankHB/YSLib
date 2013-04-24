@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r165
+\version r167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-04-20 09:05 +0800
+	2013-04-20 16:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,11 +78,11 @@ ConvertToBookmarkList(const vector<String>& lst)
 
 } // unnamed namespace;
 
-BookmarkPanel::BookmarkPanel(ShlTextReader& shl)
+BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 	: DialogPanel(Size(MainScreenWidth, MainScreenHeight)),
 	lbPosition({8, 32, 240, 128}),
 	btnAdd(Rect(GetWidth() - 80, 4, 16, 16), 210),
-	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210), shell(shl), bookmarks()
+	btnRemove(Rect(GetWidth() - 60, 4, 16, 16), 210), shell(shl), bookmarks(bm)
 {
 	const auto stop_routing_after_direct([](KeyEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Bubble)

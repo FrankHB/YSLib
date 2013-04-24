@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief YSLib 库配置。
-\version r619
-\author FrankHB<frankhb1989@gmail.com>
+\version r624
+\author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
+	2013-04-24 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,10 @@
 */
 
 
-#ifndef YSL_INC_ADAPTOR_CONFIG_H_
-#define YSL_INC_ADAPTOR_CONFIG_H_ 1
+#ifndef YSL_INC_Adaptor_config_h_
+#define YSL_INC_Adaptor_config_h_ 1
 
-#include <YCLib/Platform.h>
+#include "YCLib/Platform.h"
 
 //#define NDEBUG //!< 非调试模式。
 

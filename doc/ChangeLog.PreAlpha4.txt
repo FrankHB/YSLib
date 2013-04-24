@@ -1,0 +1,117 @@
+﻿/*
+	Copyright by FrankHB 2013.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ChangeLog.PreAlpha4.txt
+\ingroup Documentation
+\brief 版本更新历史记录 - PreAlpha4 。
+\version r116
+\author FrankHB <frankhb1989@gmail.com>
+\since build 400
+\par 创建时间:
+	2013-04-20 11:19:07 +0800
+\par 修改时间:
+	2013-04-24 18:28 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::ChangeLog::PreAlpha4
+*/
+
+// See "Meta.cpp" for meta discriptions.
+
+$import $HISTORY;
+
+// Scope: [b400, $now];
+
+$now
+(
+	/ %'YRader' $=
+	(
+		/ %'text reader' $=
+		(
+			+ "bookmarks saving and loading",
+			(
+				$ dep_from "fixed text open mode";
+				* $comp "dead loop or wrong position calculated after \
+					reader reaching EOF" @ "some files" @ "%platform MinGW32"
+					$since b299
+			)
+		),
+		/ $dev "cleanup" @ %('main', 'shells')
+			// Eliminated warning[-Wmissing-declarations].
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ @ %'AnyIterator' $=
+		(
+			+ "template parameter for difference type"
+				@ "class tempalte %any_input_iterator),
+			(
+				+ "class templates %(any_forward_iterator,
+					any_bidirectional_iterator)";
+				+ "typedefs %(forward_monomorphic_iterator,
+					bidirectional_monomorphic_iterator)
+			)
+		),
+		/ $dev "inheritance and member typedefs cleanup"
+			@ "class templates" @ 'Iterator',
+		(
+			- "all entities %(is_dereferncable, check_dereferncable)";
+			* $comp "spelling error" $since b249
+		),
+		* spell error $since b250 $=
+		(
+			/ "%is_undereferencable" => "%is_undereferenceable",
+			/ "%check_undereferencable" => "%check_undereferenceable"
+		)
+	),
+	/ %'YFramework',
+	(
+		/ %'CHRLib' $=
+		(
+			/ %'encoding conversion' $=
+			(
+				* "implementation" @ "function %MBCToUC#2" $since b299,
+				/ "reduced duplicate call of mapping function fetching"
+					@ "conversion for string",
+				+ $dev "assertions as null pointer check"
+			)
+			+ "header %Convert.hpp"
+		),
+		/ %'YSLib' $=
+		(
+			/ "class %TextFileBuffer" @ %'Service' $=
+			(
+				(
+					* "wrongly using text open mode with random position \
+						calculation", $since b273;
+					// It seems that DS ignores difference between text and \
+						binary mode like POSIX systems, so only affected on \
+						platform %MinGW32.
+					$ dep_to "fixed text open mode"
+				),
+				/ "reduced duplicate call of mapping function fetching"
+					@ "random accessing"
+			),
+			/ %'Adaptor' $=
+			(
+				/ @ \h YAdaptor $=
+				(
+					/ DLD "simplified including headers",
+					- "namespace %YSLib::Pattern"
+				),
+				+ "header %YTextBase.h"
+			)
+		)
+	)
+);
+
+////
+

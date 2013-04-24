@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5534 *build 399 rev *
+\version r5534 *build 400 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-04-20 10:58 +0800
+	2013-04-24 18:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,29 +366,26 @@ $using:
 
 
 $DONE:
-r1-r48;
+r1-r32;
 
 
 $DOING:
 
 $relative_process:
-2013-04-20 +0800:
--39.4d;
-// Mercurial local rev1-rev271: r10646;
+2013-04-24 +0800:
+-37.6d;
+// Mercurial local rev1-rev272: r10678;
 
 / ...
 
 
 $NEXT_TODO:
-b[$current_rev]-b400:
+b[$current_rev]-b404:
 / text reader @ YReader $=
 (
 	/ \simp \impl @ \u (DSReader, ShlReader),
-	+ bookmarks persistence,
-	+ (reading history, bookmarks) (serialization, unserialization) as \conf,
-	+ \decl @ \f ReleaseShells @ \h
 );
-+ BSD copyright reproducing @ binaries;
++ BSD/GPL/... copyright notice reproducing/displaying @ binaries;
 
 
 $TODO:

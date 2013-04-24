@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yftext.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r768
-\author FrankHB<frankhb1989@gmail.com>
+\version r771
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-12-11 21:38 +0800
+	2013-04-22 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,6 @@ public:
 
 	/*!
 	\brief 构造：使用指定文件名、编码和模式初始化文本文件对象。
-	\note 忽略二进制模式。
 	\note 当打开文件大小为零且以可写方式打开时按编码写入 BOM 。
 	\since build 341
 	*/

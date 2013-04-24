@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2826
+\version r2827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-02-02 12:51 +0800
+	2013-04-24 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "../Core/yobject.h"
 #include <string>
 #include "../Core/yexcept.h"
+#include "YTextBase.h"
 
 //包含 FreeType2 。
 

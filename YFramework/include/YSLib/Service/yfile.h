@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1078
-\author FrankHB<frankhb1989@gmail.com>
+\version r1083
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2012-12-11 21:30 +0800
+	2013-04-24 00:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,12 @@
 */
 
 
-#ifndef YSL_INC_CORE_YFILE_H_
-#define YSL_INC_CORE_YFILE_H_ 1
+#ifndef YSL_INC_Core_yfile_h_
+#define YSL_INC_Core_yfile_h_ 1
 
 #include "../Core/ycutil.h"
 #include <cwctype>
+#include "../Adaptor/YTextBase.h"
 
 YSL_BEGIN
 

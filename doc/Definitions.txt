@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12001
+\version r12012
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-04-19 14:41 +0800
+	2013-04-24 00:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -914,20 +914,10 @@ namespace ColorSpace = platform::ColorSpace;
 
 } // namespace Drawing;
 
-namespace Text
-{
-	using namespace CHRLib;
-} // namespace Text;
-using Text::ucs4_t, Text::ucs2_t, Text::ucsint_t;
-
 //库适配器。
 
 // Function 。
 //using Loki::Function;
-
-//! \brief 设计模式。
-YSL_BEGIN_NAMESPACE(Pattern)
-YSL_END_NAMESPACE(Pattern)
 
 //使用 Loki 小对象。
 //using Loki::SmallObject;
@@ -963,6 +953,17 @@ $header Adaptor::YReference
 	using ystdex::unique_raw;
 	using std::weak_ptr;
 } //$header Adaptor::YReference;
+
+$header Adaptor::YTextBase
+{
+
+namespace Text
+{
+	using namespace CHRLib;
+} // namespace Text;
+using Text::ucs4_t, Text::ucs2_t, Text::ucsint_t;
+
+} //$header YAdaptor::YTextBase;
 
 $header Core::YShellDefinition : Adaptor::YAdaptor
 {

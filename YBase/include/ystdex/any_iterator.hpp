@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r588
-\author FrankHB<frankhb1989@gmail.com>
+\version r811
+\author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2013-01-22 08:02 +0800
+	2013-04-22 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,13 +25,12 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_ANY_ITERATOR_HPP_
-#define YB_INC_YSTDEX_ANY_ITERATOR_HPP_ 1
+#ifndef YB_INC_ystdex_any_iterator_hpp_
+#define YB_INC_ystdex_any_iterator_hpp_ 1
 
 #include "any.h"
 #include "cast.hpp" // for ystdex::polymorphic_downcast;
-#include "memory.hpp" // for ystdex::is_dereferencable,
-//	ystdex::is_undereferencable;
+#include "memory.hpp" // for ystdex::is_undereferenceable;
 
 namespace ystdex
 {
@@ -43,8 +42,8 @@ namespace any_ops
 //@{
 enum iterator_op : op_code
 {
-	check_dereferencable = end_base_op,
-	check_undereferencable,
+	//! \since build 400
+	check_undereferenceable = end_base_op,
 	dereference,
 	increase,
 	end_iterator_op
@@ -101,11 +100,8 @@ public:
 	{
 		switch(op)
 		{
-		case check_dereferencable:
-			d.access<bool>() = is_dereferencable(get_reference(s));
-			break;
-		case check_undereferencable:
-			d.access<bool>() = is_undereferencable(get_reference(s));
+		case check_undereferenceable:
+			d.access<bool>() = is_undereferenceable(get_reference(s));
 			break;
 		case dereference:
 			d = void_ref(*get_reference(s));
@@ -150,26 +146,96 @@ public:
 };
 //@}
 
+
+//! \since build 400
+template<typename _type>
+class forward_iterator_handler : public input_iterator_handler<_type>
+{
+public:
+	typedef input_iterator_handler<_type> base;
+	typedef typename base::value_type value_type;
+
+	using base::get_reference;
+
+	using base::init;
+
+	using base::manage;
+};
+
+
+//! \since build 400
+template<typename _type>
+class bidirectional_iterator_handler : public forward_iterator_handler<_type>
+{
+public:
+	typedef forward_iterator_handler<_type> base;
+	typedef typename base::value_type value_type;
+
+	using base::get_reference;
+
+	using base::init;
+
+	static void
+	manage(any_storage& d, const any_storage& s, any_ops::op_code op)
+	{
+		switch(op)
+		{
+		case decrease:
+			--get_reference(d);
+			break;
+		default:
+			base::manage(d, s, op);
+		}
+	}
+};
+
 } // namespace any_ops;
+
+
+//! \since build 400
+//@{
+
+#define YB_ITERATOR_OP1(_n, _t, _it, _e) \
+	template<typename _type, typename _tDifference, typename _tPointer, \
+		typename _tReference> \
+	inline _t \
+	_n(const _it<_type, _tDifference, _tPointer, _tReference>& i) \
+	{ \
+		return _e; \
+	}
+
+#define YB_ITERATOR_OP2(_n, _t, _it, _e) \
+	template<typename _type, typename _tDifference, typename _tPointer, \
+		typename _tReference> \
+	inline _t \
+	_n(const _it<_type, _tDifference, _tPointer, _tReference>& x, \
+		const _it<_type, _tDifference, _tPointer, _tReference>& y) \
+	{ \
+		return _e; \
+	}
+
+#define YB_ITERATOR_MEMBER_POSTFIX(_op, _it) \
+	_it \
+	operator _op(int) \
+	{ \
+		auto tmp = *this; \
+	\
+		_op *this; \
+		return tmp; \
+	}
 
 
 /*!
 \ingroup iterator_adaptors
 \brief 动态泛型输入迭代器。
-\since 347
 */
-template<typename _type, typename _tPointer = _type*,
-	typename _tReference = _type&>
-class any_input_iterator : private std::iterator<std::input_iterator_tag, _type,
-	ptrdiff_t, _tPointer, _tReference>, protected any
+template<typename _type, typename _tDifference = ptrdiff_t,
+	typename _tPointer = _type*, typename _tReference = _type&>
+class any_input_iterator : public std::iterator<std::input_iterator_tag, _type,
+	_tDifference, _tPointer, _tReference>, protected any
 {
 public:
-	typedef std::iterator<std::input_iterator_tag, _type,
-		ptrdiff_t, _tPointer, _tReference> iterator_type;
-	//! \since build 349
-	typedef std::iterator_traits<iterator_type> traits_type;
-	typedef typename traits_type::value_type value_type;
-	typedef typename traits_type::pointer pointer;
+	typedef _tPointer pointer;
 	typedef _tReference reference;
 
 	//! \since build 357
@@ -230,34 +296,22 @@ public:
 		return static_cast<const any&>(*this);
 	}
 
-	//! \since build 355
-	//@{
+	//! \since build 400
 	bool
-	check_dereferencable() const
+	check_undereferenceable() const
 	{
 		if(manager)
 		{
 			any_ops::any_storage t;
 
-			manager(t, storage, any_ops::check_dereferencable);
-			return t.access<bool>();
-		}
-		return false;
-	}
-
-	bool
-	check_undereferencable() const
-	{
-		if(manager)
-		{
-			any_ops::any_storage t;
-
-			manager(t, storage, any_ops::check_undereferencable);
+			manager(t, storage, any_ops::check_undereferenceable);
 			return t.access<bool>();
 		}
 		return true;
 	}
 
+	//! \since build 355
+	//@{
 	bool
 	equals(const any_input_iterator& i) const
 	{
@@ -271,60 +325,122 @@ public:
 		manager(t, i.storage, any_ops::equals);
 		return t.access<bool>();
 	}
-	//@}
 
-	//! \since build 355
 	using any::type;
+	//@}
 };
 
-/*!
-\brief 比较单态输入迭代器的相等性。
-\param x 左操作数。
-\param y 右操作数。
-\pre 断言检查 <tt>x.get_holder().type() == y.get_holder().type()</tt> 。
-\since build 347
-*/
-template<typename _type, typename _tPointer, typename _tReference>
-inline bool
-operator==(const any_input_iterator<_type, _tPointer, _tReference>& x,
-	const any_input_iterator<_type, _tPointer, _tReference>& y)
-{
-	return x.equals(y);
-}
+YB_ITERATOR_OP2(operator==, bool, any_input_iterator, x.equals(y))
 
-/*!
-\brief 比较单态输入迭代器的不等性。
-\since build 347
-*/
-template<typename _type, typename _tPointer, typename _tReference>
-inline bool
-operator!=(const any_input_iterator<_type, _tPointer, _tReference>& x,
-	const any_input_iterator<_type, _tPointer, _tReference>& y)
-{
-	return !(x == y);
-}
+YB_ITERATOR_OP2(operator!=, bool, any_input_iterator, !(x == y))
 
-//! \since build 347
-template<typename _type, typename _tPointer, typename _tReference>
-inline bool
-is_dereferencable(const
-	any_input_iterator<_type, _tPointer, _tReference>& i)
-{
-	return i.check_dereferencable();
-}
+YB_ITERATOR_OP1(is_undereferenceable, bool, any_input_iterator,
+	i.check_undereferenceable())
 
-//! \since build 347
-template<typename _type, typename _tPointer, typename _tReference>
-inline bool
-is_undereferencable(const
-	any_input_iterator<_type, _tPointer, _tReference>& i)
-{
-	return i.check_undereferencable();
-}
-
-//! \since build 347
-typedef any_input_iterator<void_ref, void*, void_ref>
+typedef any_input_iterator<void_ref, ptrdiff_t, void*, void_ref>
 	input_monomorphic_iterator;
+//@}
+
+
+/*!
+\ingroup iterator_adaptors
+\brief 动态泛型前向迭代器。
+*/
+template<typename _type, typename _tDifference = ptrdiff_t,
+	typename _tPointer = _type*, typename _tReference = _type&>
+class any_forward_iterator
+	: public any_input_iterator<_type, _tDifference, _tPointer, _tReference>
+{
+public:
+	typedef std::forward_iterator_tag iterator_category;
+	typedef _tPointer pointer;
+	typedef _tReference reference;
+
+	any_forward_iterator() = default;
+	template<typename _tIterator>
+	any_forward_iterator(_tIterator&& i)
+		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
+	{}
+	any_forward_iterator(const any_forward_iterator&) = default;
+	any_forward_iterator(any_forward_iterator&&) = default;
+
+	any_forward_iterator&
+	operator++()
+	{
+		any_input_iterator<_type, _tPointer, _tReference>::operator++();
+		return *this;
+	}
+	YB_ITERATOR_MEMBER_POSTFIX(++, any_forward_iterator)
+};
+
+YB_ITERATOR_OP2(operator==, bool, any_forward_iterator, x.equals(y))
+
+YB_ITERATOR_OP2(operator!=, bool, any_forward_iterator, !(x == y))
+
+YB_ITERATOR_OP1(is_undereferenceable, bool, any_forward_iterator,
+	i.check_undereferenceable())
+
+typedef any_forward_iterator<void_ref, ptrdiff_t, void*, void_ref>
+	forward_monomorphic_iterator;
+
+
+/*!
+\ingroup iterator_adaptors
+\brief 动态泛型双向迭代器。
+*/
+template<typename _type, typename _tDifference = ptrdiff_t,
+	typename _tPointer = _type*, typename _tReference = _type&>
+class any_bidirectional_iterator
+	: public any_forward_iterator<_type, _tDifference, _tPointer, _tReference>
+{
+public:
+	typedef std::bidirectional_iterator_tag iterator_category;
+	typedef _tPointer pointer;
+	typedef _tReference reference;
+
+	any_bidirectional_iterator() = default;
+	template<typename _tIterator>
+	any_bidirectional_iterator(_tIterator&& i)
+		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
+	{}
+	any_bidirectional_iterator(const any_bidirectional_iterator&) = default;
+	any_bidirectional_iterator(any_bidirectional_iterator&&) = default;
+
+	any_bidirectional_iterator&
+	operator++()
+	{
+		any_forward_iterator<_type, _tPointer, _tReference>::operator++();
+		return *this;
+	}
+	YB_ITERATOR_MEMBER_POSTFIX(++, any_bidirectional_iterator)
+
+	any_bidirectional_iterator&
+	operator--()
+	{
+		yassume(this->manager);
+
+		this->manager(this->storage, this->storage, any_ops::decrease);
+		return *this;
+	}
+	YB_ITERATOR_MEMBER_POSTFIX(--, any_bidirectional_iterator)
+};
+
+YB_ITERATOR_OP2(operator==, bool, any_bidirectional_iterator, x.equals(y))
+
+YB_ITERATOR_OP2(operator!=, bool, any_bidirectional_iterator, !(x == y))
+
+YB_ITERATOR_OP1(is_undereferenceable, bool, any_bidirectional_iterator,
+	i.check_undereferenceable())
+
+typedef any_bidirectional_iterator<void_ref, ptrdiff_t, void*, void_ref>
+	bidirectional_monomorphic_iterator;
+
+
+#undef YB_ITERATOR_OP1
+#undef YB_ITERATOR_OP2
+#undef YB_ITERATOR_MEMBER_POSTFIX
+
+//@}
 
 } // namespace ystdex;
 

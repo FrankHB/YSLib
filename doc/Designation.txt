@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7610
+\version r7624
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-04-12 12:01 +0800
+	2013-04-24 15:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1090,20 +1090,23 @@ Shell 和 Core 的关系是相对的，例如：
 
 @2.9.1 基本代码依赖性（适用于 YFramework 内部）：
  YSLib 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。
+关于 ISO C++ 2011 直接指定的依赖项，参考 [Documentation::CommonRules @@5.25.2] 。
 以下为基本代码依赖性规则（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
- Adaptor 中的 config.h 不依赖 <YCLib/Platform.h> 以外的其它文件，仅可被 Adaptor 中的头文件直接包含。
+除非另有说明，禁止依赖于（包括包含）非头文件。
+除非另有说明，禁止重复包含同一文件，避免造成循环依赖。
+ YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 任意 YFramework 文件可依赖 @2.9 余下部分指定的标准库头文件以及 YBase 头文件。
 必要文件不依赖非必要文件。
- YCLib 仅可被 YCLib 、 YSLib 和 Helper 依赖。
-除 Adaptor.h 外， Adaptor 头文件不依赖 <YCLib/ycommon.h> 以外的 YCLib 文件。
-在不造成循环依赖的前提下， Adaptor 头文件可依赖 YFramework 文件或标准库实现的非标准头文件。
- Helper 文件和本体的非必要源文件可依赖 YCLib 文件。
+ YCLib 中除 YCLib/Platform.h 外的文件仅可被 YCLib 、 YSLib 和 Helper 依赖。
+除 YSLib/Adaptor/yadaptor.h 外， YSLib/Adaptor 头文件不依赖 YCLib/ycommon.h 以外的 YCLib 文件。
+ YSLib/Adaptor 头文件可依赖 YFramework 文件或标准库实现的非标准头文件。
 本体头文件不依赖 YSLib 以外的文件。
-关于 ISO C++ 2011 直接指定的依赖项，参考 [Documentation::CommonRules @@5.25.2] 。
+ Helper 文件和本体的非必要源文件可依赖除 YSLib 和 Helper 外的 YFramework 其它文件（包括 YCLib 文件）。
+ YCLib 和 Helper 文件可依赖具体平台相关的文件。
 
-@2.9.1.1 C 标准库的 C++ 标准库版本头文件依赖项：
+@2.9.1.1 引入自 C 标准库的 C++ 标准库头文件依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
- "ydaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 、 <cmath> 和 <ctime> 被包含；
+ "ydaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
 
 @2.9.1.2 不在本体中显式包含，需要在 "ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
  <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和  <vector>。
@@ -1138,9 +1141,10 @@ Shell 和 Core 的关系是相对的，例如：
 在 Core 中，以下依赖关系对于头文件包含是确定的：
  "ybasemac.h" 不依赖于任何其它文件；
  "ysdef.h" 依赖于 Adaptor 的 "yadaptor.h" 和 "yref.hpp" ；
-除了 "ybasemac.h" 和 "ysdef.h" 外都依赖于 "ysdef.h"；
+除了 "ybasemac.h" 和 "ysdef.h" 外都直接或间接依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 和 "yexcept.h" ；
  "ystring.h" 、 "ymsg.h" 依赖于 "yobject.h" ；
+ "ystring.h" 依赖于 Adaptor 的 "YTextBase.h" ；
  "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.hpp" ；
  "ymsgdef.h" 依赖于 "ymsg.h" ；
  "yshell.h" 依赖于 "ymsgdef.h" ；

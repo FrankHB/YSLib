@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.h
 \ingroup YReader
 \brief 书签界面。
-\version r94
+\version r102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:11:46 +0800
 \par 修改时间:
-	2013-04-20 09:03 +0800
+	2013-04-20 16:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,14 +52,15 @@ protected:
 
 private:
 	std::reference_wrapper<ShlTextReader> shell;
-	//! \since build 399
-	//@{
-	//! \brief 当前打开文件的书签列表。
+	/*!
+	\since build 399
+	\brief 当前打开文件的书签列表。
+	*/
 	BookmarkList bookmarks;
 
 public:
-	BookmarkPanel(ShlTextReader&);
-	//@}
+	//! \since build 400
+	BookmarkPanel(const BookmarkList&, ShlTextReader&);
 
 	//! \since build 392
 	BookmarkList::difference_type

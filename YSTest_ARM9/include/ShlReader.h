@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1747
+\version r1753
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-04-20 08:55 +0800
+	2013-04-20 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,6 +178,10 @@ public:
 	void
 	Exit();
 
+	//! \since build 399
+	static BookmarkList
+	LoadBookmarks(const string&);
+
 	/*!
 	\brief 载入阅读器配置。
 	\note 若失败则使用默认初始化。
@@ -192,6 +196,10 @@ public:
 	*/
 	void
 	OnInput() override;
+
+	//! \since build 399
+	static void
+	SaveBookmarks(const string&, const BookmarkList&);
 
 	/*!
 	\brief 保存阅读器配置。

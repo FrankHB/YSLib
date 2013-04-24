@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4257
+\version r4305
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-04-20 09:05 +0800
+	2013-04-22 16:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "ShlReader.h"
 #include "ShlExplorer.h"
+#include <NPL/Lexical.h>
 
 YSL_BEGIN_NAMESPACE(YReader)
 
@@ -195,6 +196,26 @@ ShlReader::Exit()
 	});
 }
 
+BookmarkList
+ShlReader::LoadBookmarks(const string& group)
+{
+	BookmarkList bookmarks;
+
+	try
+	{
+		// TODO: Complete unexpected input handling.
+		ystdex::split(Access<string>(FetchGlobalInstance().Root
+			.GetNode("YReader")["Bookmarks"].GetNode('"' + NPL::MakeEscape(
+			group) + '"')), static_cast<int(&)(int)>(std::isspace),
+			[&](string::iterator b, string::iterator e){
+				bookmarks.push_back(std::stoi(ystdex::ltrim(string(b, e))));
+		});
+	}
+	catch(std::exception& e) // TODO: Logging.
+	{}
+	return std::move(bookmarks);
+}
+
 ReaderSetting
 ShlReader::LoadGlobalConfiguration()
 {
@@ -214,6 +235,27 @@ ShlReader::OnInput()
 	PostMessage<SM_PAINT>(0xE0, nullptr);
 	if(fBackgroundTask)
 		PostMessage<SM_TASK>(0x20, fBackgroundTask);
+}
+
+void
+ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
+{
+	try
+	{
+		FetchGlobalInstance().Root.GetNode("YReader")["Bookmarks"]
+			['"' + NPL::MakeEscape(group) + '"'].Value = [&]{
+				string str;
+
+				for(const auto& pos : bookmarks)
+				{
+					str += to_string(pos);
+					str += ' ';
+				}
+				return std::move(str);
+		}();
+	}
+	catch(std::exception& e) // TODO: Logging.
+	{}
 }
 
 void
@@ -303,8 +345,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
 	CurrentSetting.GetTimerSetting()), tmrInput(), reader(),
 	boxReader({0, 160, 256, 32}), boxTextInfo(), pnlSetting(),
-	pTextFile(), mhMain(GetDesktopDown()), pnlBookmark(*this),
-	session_ptr()
+	pTextFile(), mhMain(GetDesktopDown()),
+	pnlBookmark(LoadBookmarks(pth.GetNativeString()), *this), session_ptr()
 {
 	using ystdex::get_key;
 
@@ -434,6 +476,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 
 ShlTextReader::~ShlTextReader()
 {
+	SaveBookmarks(CurrentPath.GetNativeString(), pnlBookmark.bookmarks),
 	SaveGlobalConfiguration(CurrentSetting);
 	LastRead.Insert(CurrentPath, GetReaderPosition());
 }
@@ -481,8 +524,15 @@ void
 ShlTextReader::LoadFile(const IO::Path& pth)
 {
 	CurrentPath = pth;
-	pTextFile = make_unique<TextFile>(pth);
+	pTextFile = make_unique<TextFile>(pth.GetNativeString().c_str(),
+		std::ios_base::in | std::ios_base::binary, CharSet::Null);
 	reader.LoadText(*pTextFile);
+
+	const auto text_size(reader.GetTextSize());
+
+	ystdex::erase_all_if(pnlBookmark.bookmarks, [&](Bookmark::PositionType pos){
+		return pos >= text_size;
+	});
 }
 
 bool

@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1428
+\version r1456
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2013-01-14 21:57 +0800
+	2013-04-24 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,35 +30,27 @@
 */
 
 
-#ifndef YSL_INC_ADAPTOR_YADAPTOR_H_
-#define YSL_INC_ADAPTOR_YADAPTOR_H_ 1
+#ifndef YSL_INC_Adaptor_yadaptor_h_
+#define YSL_INC_Adaptor_yadaptor_h_ 1
 
 //引入平台设置和存储调试设施。
 #include "ynew.h"
 
+// 确保包含标准库必要部分。
+#include <cmath>
+#include <algorithm> // for std::min, std::max;
+
 //包含 YStandardEx 公用部分。
 #include <ystdex/functional.hpp>
 #include <ystdex/utility.hpp>
+#include <ystdex/string.hpp> // for std::to_string, ystdex::to_string;
 
 //包含 YCLib 公用部分。
-#include <YCLib/ycommon.h>
-#include <YCLib/Keys.h>
-#include <YCLib/Timer.h>
-#include <YCLib/FileSystem.h>
-#include <YCLib/Video.h>
-
-//包含 CHRLib 。
-#include <CHRLib/chrproc.h>
-
-// 确保包含 C 标准库必要部分。
-#include <cstddef>
-#include <cstdint>
-#include <climits>
-#include <cmath>
-
-// 确保包含 C++ 标准库必要部分。
-#include <algorithm> // for std::min, std::max;
-#include <ystdex/string.hpp> // for std::to_string, ystdex::to_string;
+#include "YCLib/ycommon.h"
+#include "YCLib/Keys.h"
+#include "YCLib/Timer.h"
+#include "YCLib/FileSystem.h"
+#include "YCLib/Video.h"
 
 /*
 !\brief YSLib 命名空间。
@@ -218,10 +210,6 @@ using platform::StartTicks;
 namespace KeyCodes = platform::KeyCodes;
 using platform::KeyInput;
 
-//! \brief 设计模式。
-YSL_BEGIN_NAMESPACE(Pattern)
-YSL_END_NAMESPACE(Pattern)
-
 //! \brief 图形处理。
 YSL_BEGIN_NAMESPACE(Drawing)
 
@@ -239,16 +227,6 @@ using platform::Color;
 namespace ColorSpace = platform::ColorSpace;
 
 YSL_END_NAMESPACE(Drawing)
-
-YSL_BEGIN_NAMESPACE(Text)
-
-using namespace CHRLib;
-
-YSL_END_NAMESPACE(Text)
-
-using Text::ucs4_t;
-using Text::ucs2_t;
-using Text::ucsint_t;
 
 YSL_END
 

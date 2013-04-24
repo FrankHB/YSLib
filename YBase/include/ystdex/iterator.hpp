@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2265
+\version r2305
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-03-24 10:49 +0800
+	2013-04-22 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "type_op.hpp" // for std::remove_reference, ystdex::*_tag;
 #include <iterator> // for std::make_move_iterator, std::iterator,
-//	std::iterator_traits, std::iterator_category;
+//	std::iterator_traits;
 #include <utility> // for std::make_pair;
 #include <memory> // for std::addressof;
 
@@ -133,21 +133,20 @@ make_move_iterator_pair(_tRange& c)
 \since build 290
 
 转换指针为类类型的随机迭代器。
+\todo 和 std::pointer_traits 交互。
 */
 template<typename _type>
-class pointer_iterator : private std::iterator<typename
-	std::iterator_traits<_type*>::iterator_category, _type>
+class pointer_iterator
 {
-protected:
-	typedef typename std::iterator<typename
-		std::iterator_traits<_type*>::iterator_category, _type> base_type;
-
 public:
-	typedef typename base_type::difference_type difference_type;
-	typedef typename base_type::value_type value_type;
-	typedef typename base_type::pointer pointer;
-	typedef typename base_type::reference reference;
-	typedef typename base_type::iterator_category iterator_category;
+	typedef _type* iterator_type;
+	typedef typename std::iterator_traits<iterator_type>::iterator_category
+		iterator_category;
+	typedef typename std::iterator_traits<iterator_type>::value_type value_type;
+	typedef typename std::iterator_traits<iterator_type>::difference_type
+		difference_type;
+	typedef typename std::iterator_traits<iterator_type>::pointer pointer;
+	typedef typename std::iterator_traits<iterator_type>::reference reference;
 
 protected:
 	mutable pointer current;
@@ -301,16 +300,15 @@ template<typename _type, typename _tIterator = _type*,
 	typename _tTraits = std::iterator_traits<_tIterator>>
 class pseudo_iterator
 {
-protected:
-	typedef _tTraits traits_type;
-
 public:
 	typedef _tIterator iterator_type;
-	typedef typename traits_type::iterator_category iterator_category;
+	//! \since build 400
+	typedef _tTraits traits_type;
+	typedef typename traits_type::iterator_category iterator_category;	
 	typedef typename traits_type::value_type value_type;
 	typedef typename traits_type::difference_type difference_type;
-	typedef typename traits_type::reference reference;
 	typedef typename traits_type::pointer pointer;
+	typedef typename traits_type::reference reference;
 
 	value_type value;
 
@@ -451,12 +449,11 @@ public:
 		transformed_type;
 	//! \since build 357
 	//@{
-	typedef std::iterator_traits<iterator_type> traits_type;
-	typedef typename traits_type::iterator_category iterator_category;
 	typedef typename add_rvalue_reference<
 		decltype(*std::declval<transformed_type>())>::type reference;
 	typedef typename remove_reference<reference>::type value_type;
-	typedef typename traits_type::difference_type difference_type;
+	typedef typename std::iterator_traits<iterator_type>::difference_type
+		difference_type;
 	typedef typename add_pointer<value_type>::type pointer;
 	//@}
 
@@ -646,17 +643,16 @@ template<typename _tMaster, typename _tSlave,
 	class _tTraits = std::iterator_traits<_tMaster>>
 class pair_iterator : private std::pair<_tMaster, _tSlave>
 {
-protected:
-	typedef _tTraits traits_type;
-
 public:
 	typedef std::pair<_tMaster, _tSlave> pair_type;
 	typedef _tMaster iterator_type;
+	//! \since build 400
+	typedef _tTraits traits_type;
 	typedef typename traits_type::iterator_category iterator_category;
 	typedef typename traits_type::value_type value_type;
 	typedef typename traits_type::difference_type difference_type;
-	typedef typename traits_type::reference reference;
 	typedef typename traits_type::pointer pointer;
+	typedef typename traits_type::reference reference;
 
 	yconstfn
 	pair_iterator()
@@ -811,19 +807,15 @@ operator!=(const pair_iterator<_tMaster, _tSlave>& x,
 根据指定类型提供的下标操作枚举其成员的随机访问迭代器。
 */
 template<class _tContainer, typename _type>
-class subscriptive_iterator : private std::iterator<typename
-	std::random_access_iterator_tag, _type, ptrdiff_t, _type*, _type&>
+class subscriptive_iterator
 {
-protected:
-	typedef std::iterator<typename std::random_access_iterator_tag,
-		_type, ptrdiff_t, _type*, _type&> base_type;
-
 public:
 	typedef _tContainer container_type;
-	typedef typename base_type::difference_type difference_type;
-	typedef typename base_type::value_type value_type;
-	typedef typename base_type::pointer pointer;
-	typedef typename base_type::reference reference;
+	typedef std::random_access_iterator_tag iterator_category;
+	typedef _type value_type;
+	typedef ptrdiff_t difference_type;
+	typedef _type* pointer;
+	typedef _type& reference;
 
 protected:
 	_tContainer* p_cont;

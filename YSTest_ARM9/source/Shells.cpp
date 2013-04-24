@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6272
+\version r6287
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-03-20 21:36 +0800
+	2013-04-20 18:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,30 +76,18 @@ FetchGlobalImage(size_t idx)
 
 } // unnamed namespace;
 
-YSL_END_NAMESPACE(YReader)
-
-
-YSL_BEGIN
+using namespace Shells;
+using namespace Drawing::ColorSpace;
 
 void
-ReleaseShells()
+Cleanup()
 {
-	using namespace YReader;
-
 	for(size_t i(0); i != 10; ++i)
 		FetchGlobalImage(i).reset();
 	GlobalResourceMap.clear();
 	ReleaseStored<ShlReader>();
 	ReleaseStored<ShlExplorer>();
 }
-
-YSL_END
-
-
-YSL_BEGIN_NAMESPACE(YReader)
-
-using namespace Shells;
-using namespace Drawing::ColorSpace;
 
 shared_ptr<Image>&
 FetchImage(size_t i)

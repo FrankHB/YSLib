@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r654
-\author FrankHB<frankhb1989@gmail.com>
+\version r661
+\author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2012-09-04 10:53 +0800
+	2013-04-24 00:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,12 +25,13 @@
 */
 
 
-#ifndef YSL_INC_ADAPTOR_YCONT_H_
-#define YSL_INC_ADAPTOR_YCONT_H_ 1
+#ifndef YSL_INC_Adaptor_ycont_h_
+#define YSL_INC_Adaptor_ycont_h_ 1
 
 #include "yadaptor.h"
 #include <utility>
 #include <tuple>
+#include "CHRLib/chrdef.h"
 
 
 //包含 flex_string 。
@@ -154,8 +155,8 @@ struct GSStringTemplate
 typedef GSStringTemplate<char>::basic_string string;
 
 // YSLib 基本字符串（使用 UCS-2LE / UCS-4LE ）。
-typedef GSStringTemplate<ucs2_t>::basic_string ucs2string;
-typedef GSStringTemplate<ucs4_t>::basic_string ucs4string;
+typedef GSStringTemplate<CHRLib::ucs2_t>::basic_string ucs2string;
+typedef GSStringTemplate<CHRLib::ucs4_t>::basic_string ucs4string;
 
 YSL_END
 

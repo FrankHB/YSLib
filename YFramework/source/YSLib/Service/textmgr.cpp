@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3656
+\version r3728
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-04-10 22:20 +0800
+	2013-04-24 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,25 @@
 
 
 #include "YSLib/Service/textmgr.h"
+#include "CHRLib/MapEx.h"
+#include <ystdex/any_iterator.hpp>
+#include "CHRLib/Convert.hpp"
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Text)
+
+namespace
+{
+
+//! \since build 400
+yconstexpr auto& FetchMapperFunc(FetchMapperPtr<ConversionResult(ucs2_t&,
+	ystdex::input_monomorphic_iterator&&, ConversionState&&)>);
+//! \since build 400
+yconstexpr auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult(
+	ystdex::input_monomorphic_iterator&&, ConversionState&&)>);
+
+} // unnamed namespace;
 
 
 TextFileBuffer::Iterator::Iterator(TextFileBuffer* pBuf, size_t b, size_t idx)
@@ -118,25 +133,31 @@ TextFileBuffer::operator[](size_t idx)
 	auto& vec(b.first);
 
 	if(YB_UNLIKELY(vec.empty() && bool(File)))
-	{
-		size_t len(idx == nBlock - 1 && nTextSize % BlockSize != 0
-			? nTextSize % BlockSize : BlockSize);
-		size_t n_byte(0);
-		ucs2_t c;
-
-		File.Locate(idx * BlockSize);
-		vec.reserve(len / fixed_width);
-
-		while(n_byte < len)
+		if(const auto pfun = FetchMapperFunc(File.Encoding))
 		{
-			ConversionState st;
+			File.Locate(idx * BlockSize);
 
-			if(YB_LIKELY(File.ReadChar(c, st) == ConversionResult::OK))
-				vec.push_back(c);
-			n_byte += GetCountOf(st);
+			size_t len(idx == nBlock - 1 && nTextSize % BlockSize != 0
+				? nTextSize % BlockSize : BlockSize);
+
+			vec.reserve(len / fixed_width);
+
+			size_t n_byte(0);
+			ucs2_t c;
+			ystdex::ifile_iterator i(*File.GetPtr());
+
+			while(n_byte < len)
+			{
+				ConversionState st;
+
+				if(YB_LIKELY(ConvertCharacter(pfun, c, i, std::move(st))
+					== ConversionResult::OK))
+					vec.push_back(c);
+				n_byte += GetCountOf(st);
+			}
+			std::ungetc(*i, File.GetPtr()),
+			vec.shrink_to_fit();
 		}
-		vec.shrink_to_fit();
-	}
 	return b;
 }
 
@@ -163,19 +184,26 @@ TextFileBuffer::GetIterator(size_t pos)
 
 		YAssert(bool(File), "Invalid file found.");
 
-		File.Locate(idx * BlockSize);
-
-		size_t n_byte(0), n_char(0);
-
-		while(n_byte < pos)
+		if(const auto pfun = FetchSkipMapperFunc(File.Encoding))
 		{
-			ConversionState st;
+			File.Locate(idx * BlockSize);
 
-			if(YB_LIKELY(File.SkipChar(st) == ConversionResult::OK))
-				++n_char;
-			n_byte += GetCountOf(st);
+			size_t n_byte(0), n_char(0);
+			ystdex::ifile_iterator i(*File.GetPtr());
+
+			while(n_byte < pos)
+			{
+				ConversionState st;
+
+				if(YB_LIKELY(ConvertCharacter(pfun, i, std::move(st))
+					== ConversionResult::OK))
+					++n_char;
+				n_byte += GetCountOf(st);
+			}
+			std::ungetc(*i, File.GetPtr());
+			return TextFileBuffer::Iterator(this, idx, n_char);
 		}
-		return TextFileBuffer::Iterator(this, idx, n_char);
+		return TextFileBuffer::Iterator(this, idx, 0);
 	}
 	return GetEnd();
 }
@@ -191,27 +219,37 @@ TextFileBuffer::GetPosition(TextFileBuffer::Iterator i)
 	if(fixed_width == max_width)
 		return idx * BlockSize + pos * max_width;
 
-	const auto& vec((*this)[idx].first);
-
-	YAssert(!vec.empty() && bool(File), "Block loading failed.");
-
-	File.Locate(idx *= BlockSize);
-
-	size_t n_byte(0);
-	const auto mid(vec.cbegin() + pos);
-	auto it(vec.begin());
-
-	YAssert(it <= mid && mid <= vec.cend(), "Wrong iterator found.");
-
-	while(it != mid)
+	if(const auto pfun = FetchSkipMapperFunc(File.Encoding))
 	{
-		ConversionState st;
+		const auto& vec((*this)[idx].first);
 
-		if(YB_LIKELY(File.SkipChar(st) == ConversionResult::OK))
-			++it;
-		n_byte += GetCountOf(st);
+		YAssert(!vec.empty() && bool(File), "Block loading failed.");
+
+		File.Locate(idx *= BlockSize);
+
+		const auto mid(vec.cbegin() + pos);
+
+		YAssert(mid <= vec.cend(), "Wrong iterator found.");
+
+		auto it(vec.begin());
+
+		YAssert(it <= mid, "Wrong iterator found.");
+
+		ystdex::ifile_iterator i(*File.GetPtr());
+		size_t n_byte(0);
+
+		while(it != mid)
+		{
+			ConversionState st;
+
+			if(YB_LIKELY(ConvertCharacter(pfun, i, std::move(st))
+				== ConversionResult::OK))
+				++it;
+			n_byte += GetCountOf(st);
+		}
+		return idx + n_byte;
 	}
-	return idx + n_byte;
+	return idx;
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1714
+\version r1720
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-04-16 01:16 +0800
+	2013-04-20 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,11 +211,6 @@ Repaint(Desktop& dsk)
 
 //! 非 YSLib 声明的平台相关函数。
 //@{
-/*!
-\brief Shell 对象释放函数。
-*/
-extern void
-ReleaseShells();
 //@}
 
 YSL_END
@@ -280,7 +275,7 @@ main()
 			}
 			Execute(app, make_shared<YReader::ShlExplorer>());
 			//释放 Shell （必要，保证释放 Shell 且避免资源泄漏）。
-			YSLib::ReleaseShells();
+			YReader::Cleanup();
 		}
 
 	#ifdef YSL_USE_MEMORY_DEBUG

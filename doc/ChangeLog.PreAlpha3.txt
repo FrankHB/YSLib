@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3626
+\version r3628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-04-20 10:57 +0800
+	2013-04-20 11:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 
 $import $HISTORY;
 
-// Scope: [b300, $now];
+// Scope: [b300, b400);
 
-$now
+b399
 (
 	/ %'YFramework' $=
 	(

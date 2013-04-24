@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r2819
+\version r2820
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-03-25 00:25 +0800
+	2013-04-22 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1811,7 +1811,7 @@ b251
 	* "wrong ending of text checking @ text buffer" $since b246,
 	/ @ "library %CHRLib" $=
 	(
-		/ "undereferencable conversion error treated as conversion faliure",
+		/ "undereferenceable conversion error treated as conversion faliure",
 		/ "conversion functions returns non-zero if non-zero bytes read \
 			when a conversion failure occured"
 	)
