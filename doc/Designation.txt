@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7624
+\version r7625
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-04-24 15:02 +0800
+	2013-04-29 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,6 +119,7 @@ Shell 和 Core 的关系是相对的，例如：
  Unicode string literals(N2442) ；
  New function declaration syntax for deduced return types(N2541) ；
  Initializer lists (N2672) ；
+ Non-static data member initializers (N2756) ；
  Rvalue references v3.0(N3053) ；
  Lambda expressions and closures v1.1(N2927) ；
  Range-based for(N2930) ；

@@ -7,7 +7,7 @@
 		<Option pch_mode="2" />
 		<Option compiler="gnu_armeabi_gcc_compiler" />
 		<MakeCommands>
-			<Build command="$make -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
+			<Build command="$make -j -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
 			<CompileFile command="$make -f $makefile $file" />
 			<Clean command="$make -f $makefile -r BUILD=$target clean" />
 			<DistClean command="$make -f $makefile distclean$target" />
@@ -22,12 +22,12 @@
 					<Add option="-g" />
 				</Compiler>
 				<MakeCommands>
-					<Build command="$make -f $makefile -r BUILD=$target" />
+					<Build command="$make -j -f $makefile -r BUILD=$target" />
 					<CompileFile command="$make -f $makefile $file" />
 					<Clean command="$make -f $makefile -r BUILD=$target clean" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
+					<SilentBuild command="$make -j -f $makefile -r BUILD=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="release">
@@ -42,18 +42,103 @@
 					<Add option="-s" />
 				</Linker>
 				<MakeCommands>
-					<Build command="$make -f $makefile -r BUILD=$target" />
+					<Build command="$make -j -f $makefile -r BUILD=$target" />
 					<CompileFile command="$make -f $makefile $file" />
 					<Clean command="$make -f $makefile -r BUILD=$target clean" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
+					<SilentBuild command="$make -j -f $makefile -r BUILD=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../3rdparty/include/freetype/config/ftconfig.h" />
+		<Unit filename="../3rdparty/include/freetype/config/ftheader.h" />
+		<Unit filename="../3rdparty/include/freetype/config/ftmodule.h" />
+		<Unit filename="../3rdparty/include/freetype/config/ftoption.h" />
+		<Unit filename="../3rdparty/include/freetype/config/ftstdlib.h" />
+		<Unit filename="../3rdparty/include/freetype/freetype.h" />
+		<Unit filename="../3rdparty/include/freetype/ftadvanc.h" />
+		<Unit filename="../3rdparty/include/freetype/ftautoh.h" />
+		<Unit filename="../3rdparty/include/freetype/ftbbox.h" />
+		<Unit filename="../3rdparty/include/freetype/ftbdf.h" />
+		<Unit filename="../3rdparty/include/freetype/ftbitmap.h" />
+		<Unit filename="../3rdparty/include/freetype/ftbzip2.h" />
+		<Unit filename="../3rdparty/include/freetype/ftcache.h" />
+		<Unit filename="../3rdparty/include/freetype/ftchapters.h" />
+		<Unit filename="../3rdparty/include/freetype/ftcid.h" />
+		<Unit filename="../3rdparty/include/freetype/fterrdef.h" />
+		<Unit filename="../3rdparty/include/freetype/fterrors.h" />
+		<Unit filename="../3rdparty/include/freetype/ftgasp.h" />
+		<Unit filename="../3rdparty/include/freetype/ftglyph.h" />
+		<Unit filename="../3rdparty/include/freetype/ftgxval.h" />
+		<Unit filename="../3rdparty/include/freetype/ftgzip.h" />
+		<Unit filename="../3rdparty/include/freetype/ftimage.h" />
+		<Unit filename="../3rdparty/include/freetype/ftincrem.h" />
+		<Unit filename="../3rdparty/include/freetype/ftlcdfil.h" />
+		<Unit filename="../3rdparty/include/freetype/ftlist.h" />
+		<Unit filename="../3rdparty/include/freetype/ftlzw.h" />
+		<Unit filename="../3rdparty/include/freetype/ftmac.h" />
+		<Unit filename="../3rdparty/include/freetype/ftmm.h" />
+		<Unit filename="../3rdparty/include/freetype/ftmodapi.h" />
+		<Unit filename="../3rdparty/include/freetype/ftmoderr.h" />
+		<Unit filename="../3rdparty/include/freetype/ftotval.h" />
+		<Unit filename="../3rdparty/include/freetype/ftoutln.h" />
+		<Unit filename="../3rdparty/include/freetype/ftpfr.h" />
+		<Unit filename="../3rdparty/include/freetype/ftrender.h" />
+		<Unit filename="../3rdparty/include/freetype/ftsizes.h" />
+		<Unit filename="../3rdparty/include/freetype/ftsnames.h" />
+		<Unit filename="../3rdparty/include/freetype/ftstroke.h" />
+		<Unit filename="../3rdparty/include/freetype/ftsynth.h" />
+		<Unit filename="../3rdparty/include/freetype/ftsystem.h" />
+		<Unit filename="../3rdparty/include/freetype/fttrigon.h" />
+		<Unit filename="../3rdparty/include/freetype/fttypes.h" />
+		<Unit filename="../3rdparty/include/freetype/ftwinfnt.h" />
+		<Unit filename="../3rdparty/include/freetype/ftxf86.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/autohint.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftcalc.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftdebug.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftdriver.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftgloadr.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftmemory.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftobjs.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftpic.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftrfork.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftserv.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftstream.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/fttrace.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/ftvalid.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/internal.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/psaux.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/pshints.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svbdf.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svcid.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svgldict.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svgxval.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svkern.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svmm.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svotval.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svpfr.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svpostnm.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svprop.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svpscmap.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svpsinfo.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svsfnt.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svttcmap.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svtteng.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svttglyf.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svwinfnt.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/services/svxf86nm.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/sfnt.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/t1types.h" />
+		<Unit filename="../3rdparty/include/freetype/internal/tttypes.h" />
+		<Unit filename="../3rdparty/include/freetype/t1tables.h" />
+		<Unit filename="../3rdparty/include/freetype/ttnameid.h" />
+		<Unit filename="../3rdparty/include/freetype/tttables.h" />
+		<Unit filename="../3rdparty/include/freetype/tttags.h" />
+		<Unit filename="../3rdparty/include/freetype/ttunpat.h" />
 		<Unit filename="../YFramework/data/cp113.bin" />
 		<Unit filename="../YFramework/data/default_font.bin" />
 		<Unit filename="../YFramework/include/CHRLib/Convert.hpp" />
@@ -151,91 +236,6 @@
 		<Unit filename="../YFramework/include/YSLib/UI/ywgtview.h" />
 		<Unit filename="../YFramework/include/YSLib/UI/ywidget.h" />
 		<Unit filename="../YFramework/include/YSLib/UI/ywindow.h" />
-		<Unit filename="../YFramework/include/freetype/config/ftconfig.h" />
-		<Unit filename="../YFramework/include/freetype/config/ftheader.h" />
-		<Unit filename="../YFramework/include/freetype/config/ftmodule.h" />
-		<Unit filename="../YFramework/include/freetype/config/ftoption.h" />
-		<Unit filename="../YFramework/include/freetype/config/ftstdlib.h" />
-		<Unit filename="../YFramework/include/freetype/freetype.h" />
-		<Unit filename="../YFramework/include/freetype/ftadvanc.h" />
-		<Unit filename="../YFramework/include/freetype/ftautoh.h" />
-		<Unit filename="../YFramework/include/freetype/ftbbox.h" />
-		<Unit filename="../YFramework/include/freetype/ftbdf.h" />
-		<Unit filename="../YFramework/include/freetype/ftbitmap.h" />
-		<Unit filename="../YFramework/include/freetype/ftbzip2.h" />
-		<Unit filename="../YFramework/include/freetype/ftcache.h" />
-		<Unit filename="../YFramework/include/freetype/ftchapters.h" />
-		<Unit filename="../YFramework/include/freetype/ftcid.h" />
-		<Unit filename="../YFramework/include/freetype/fterrdef.h" />
-		<Unit filename="../YFramework/include/freetype/fterrors.h" />
-		<Unit filename="../YFramework/include/freetype/ftgasp.h" />
-		<Unit filename="../YFramework/include/freetype/ftglyph.h" />
-		<Unit filename="../YFramework/include/freetype/ftgxval.h" />
-		<Unit filename="../YFramework/include/freetype/ftgzip.h" />
-		<Unit filename="../YFramework/include/freetype/ftimage.h" />
-		<Unit filename="../YFramework/include/freetype/ftincrem.h" />
-		<Unit filename="../YFramework/include/freetype/ftlcdfil.h" />
-		<Unit filename="../YFramework/include/freetype/ftlist.h" />
-		<Unit filename="../YFramework/include/freetype/ftlzw.h" />
-		<Unit filename="../YFramework/include/freetype/ftmac.h" />
-		<Unit filename="../YFramework/include/freetype/ftmm.h" />
-		<Unit filename="../YFramework/include/freetype/ftmodapi.h" />
-		<Unit filename="../YFramework/include/freetype/ftmoderr.h" />
-		<Unit filename="../YFramework/include/freetype/ftotval.h" />
-		<Unit filename="../YFramework/include/freetype/ftoutln.h" />
-		<Unit filename="../YFramework/include/freetype/ftpfr.h" />
-		<Unit filename="../YFramework/include/freetype/ftrender.h" />
-		<Unit filename="../YFramework/include/freetype/ftsizes.h" />
-		<Unit filename="../YFramework/include/freetype/ftsnames.h" />
-		<Unit filename="../YFramework/include/freetype/ftstroke.h" />
-		<Unit filename="../YFramework/include/freetype/ftsynth.h" />
-		<Unit filename="../YFramework/include/freetype/ftsystem.h" />
-		<Unit filename="../YFramework/include/freetype/fttrigon.h" />
-		<Unit filename="../YFramework/include/freetype/fttypes.h" />
-		<Unit filename="../YFramework/include/freetype/ftwinfnt.h" />
-		<Unit filename="../YFramework/include/freetype/ftxf86.h" />
-		<Unit filename="../YFramework/include/freetype/internal/autohint.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftcalc.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftdebug.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftdriver.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftgloadr.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftmemory.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftobjs.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftpic.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftrfork.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftserv.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftstream.h" />
-		<Unit filename="../YFramework/include/freetype/internal/fttrace.h" />
-		<Unit filename="../YFramework/include/freetype/internal/ftvalid.h" />
-		<Unit filename="../YFramework/include/freetype/internal/internal.h" />
-		<Unit filename="../YFramework/include/freetype/internal/psaux.h" />
-		<Unit filename="../YFramework/include/freetype/internal/pshints.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svbdf.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svcid.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svgldict.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svgxval.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svkern.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svmm.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svotval.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svpfr.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svpostnm.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svprop.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svpscmap.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svpsinfo.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svsfnt.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svttcmap.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svtteng.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svttglyf.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svwinfnt.h" />
-		<Unit filename="../YFramework/include/freetype/internal/services/svxf86nm.h" />
-		<Unit filename="../YFramework/include/freetype/internal/sfnt.h" />
-		<Unit filename="../YFramework/include/freetype/internal/t1types.h" />
-		<Unit filename="../YFramework/include/freetype/internal/tttypes.h" />
-		<Unit filename="../YFramework/include/freetype/t1tables.h" />
-		<Unit filename="../YFramework/include/freetype/ttnameid.h" />
-		<Unit filename="../YFramework/include/freetype/tttables.h" />
-		<Unit filename="../YFramework/include/freetype/tttags.h" />
-		<Unit filename="../YFramework/include/freetype/ttunpat.h" />
 		<Unit filename="../YFramework/include/ft2build.h" />
 		<Unit filename="../YFramework/include/ysbuild.h" />
 		<Unit filename="../YFramework/source/CHRLib/MapEx.cpp" />

@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r534
+\version r536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-04-16 01:07 +0800
+	2013-04-26 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -42,10 +42,6 @@ YSL_BEGIN
 
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
-
-//! \since build 382
-yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
-
 
 /*!
 \brief 渲染窗口。

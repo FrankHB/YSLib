@@ -11,13 +11,13 @@
 /*!	\file GUIShell.h
 \ingroup Helper
 \brief GUI Shell 类。
-\version r88
+\version r97
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:29 +0800
 \par 修改时间:
-	2013-04-14 06:30 +0800
+	2013-04-29 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,12 @@ protected:
 
 public:
 	/*!
+	\brief 挂起延时时间。
+	\since build 400
+	*/
+	std::chrono::nanoseconds IdleSleep{1000000};
+
+	/*!
 	\brief 无参数构造：复位 GUI 状态。
 	*/
 	GUIShell();
@@ -59,7 +65,7 @@ public:
 
 	处理以下消息：
 	绘制消息 SM_PAINT ：调用 GUIShell::OnInput 。
-	输入消息 SM_INPUT ：分发按键处理后调用 OnInput 。
+	输入消息 SM_INPUT ：分发按键处理后调用 OnInput。
 	其它消息传递至 Shell::OnGotMessage 。
 	*/
 	void
@@ -69,7 +75,8 @@ public:
 	\brief 处理输入消息：发送绘制消息。
 	\note 如需要异步更新可以覆盖本方法。
 
-	默认行为： 若为宿主实现，向宿主环境分发输入。
+	默认行为：调用 OnPaint ；若为宿主实现，向宿主环境分发输入，
+		之后线程内延时 IdleSleep 。
 	*/
 	virtual void
 	OnInput();

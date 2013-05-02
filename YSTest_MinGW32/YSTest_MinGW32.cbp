@@ -22,6 +22,10 @@
 				<Linker>
 					<Add library="..\YFramework_MinGW32\debug\libYFramework.a" />
 					<Add library="..\YBase_MinGW32\debug\libYBase.a" />
+					<Add library="gdi32" />
+					<Add library="winmm" />
+					<Add library="Shlwapi" />
+					<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
 				</Linker>
 			</Target>
 			<Target title="release">
@@ -40,6 +44,10 @@
 					<Add option="-s" />
 					<Add library="..\YFramework_MinGW32\release\libYFramework.a" />
 					<Add library="..\YBase_MinGW32\release\libYBase.a" />
+					<Add library="gdi32" />
+					<Add library="winmm" />
+					<Add library="Shlwapi" />
+					<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
 				</Linker>
 			</Target>
 			<Target title="debug_DLL">
@@ -105,15 +113,8 @@
 			<Add directory="../YSTest_ARM9/include" />
 			<Add directory="../YFramework/include" />
 			<Add directory="../YBase/include" />
+			<Add directory="../3rdparty/include" />
 		</Compiler>
-		<Linker>
-			<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
-			<Add library="gdi32" />
-			<Add library="user32" />
-			<Add library="kernel32" />
-			<Add library="winmm" />
-			<Add library="Shlwapi" />
-		</Linker>
 		<Unit filename="../YSTest_ARM9/include/About.h" />
 		<Unit filename="../YSTest_ARM9/include/BookmarkUI.h" />
 		<Unit filename="../YSTest_ARM9/include/ColorPicker.h" />

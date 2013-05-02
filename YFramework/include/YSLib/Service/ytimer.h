@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r868
-\author FrankHB<frankhb1989@gmail.com>
+\version r873
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2012-12-12 00:07 +0800
+	2013-04-29 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 */
 
 
-#ifndef YSL_INC_SERVICE_YTIMER_H_
-#define YSL_INC_SERVICE_YTIMER_H_ 1
+#ifndef YSL_INC_Service_ytimer_h_
+#define YSL_INC_Service_ytimer_h_ 1
 
 #include "../Core/yobject.h"
 #include "../Adaptor/ycont.h"
@@ -90,7 +90,7 @@ typedef std::chrono::milliseconds TimeSpan;
 
 
 /*!
-\brief 延时。
+\brief 阻塞延时。
 \since build 291
 */
 YF_API void

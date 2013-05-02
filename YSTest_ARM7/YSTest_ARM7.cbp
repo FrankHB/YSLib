@@ -7,7 +7,7 @@
 		<Option pch_mode="2" />
 		<Option compiler="gnu_armeabi_gcc_compiler" />
 		<MakeCommands>
-			<Build command="$make -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
+			<Build command="$make -j -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
 			<CompileFile command="$make -f $makefile $file" />
 			<Clean command="$make -f $makefile -r BUILD=$target clean" />
 			<DistClean command="$make -f $makefile distclean$target" />
@@ -22,17 +22,17 @@
 					<Add option="-g" />
 				</Compiler>
 				<MakeCommands>
-					<Build command="$make -f $makefile -r BUILD=$target" />
+					<Build command="$make -j -f $makefile -r BUILD=$target" />
 					<CompileFile command="$make -f $makefile $file" />
 					<Clean command="$make -f $makefile -r BUILD=$target clean" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
+					<SilentBuild command="$make -j -f $makefile -r BUILD=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="release">
-				<Option output="release\YSTest_ARM7" prefix_auto="1" extension_auto="1" />
-				<Option object_output="release\" />
+				<Option output="release/YSTest_ARM7" prefix_auto="1" extension_auto="1" />
+				<Option object_output="release/" />
 				<Option type="1" />
 				<Option compiler="gnu_armeabi_gcc_compiler" />
 				<Compiler>
@@ -42,12 +42,12 @@
 					<Add option="-s" />
 				</Linker>
 				<MakeCommands>
-					<Build command="$make -f $makefile -r BUILD=$target" />
+					<Build command="$make -j -f $makefile -r BUILD=$target" />
 					<CompileFile command="$make -f $makefile $file" />
 					<Clean command="$make -f $makefile -r BUILD=$target clean" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
+					<SilentBuild command="$make -j -f $makefile -r BUILD=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 		</Build>
@@ -55,7 +55,7 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="Makefile" />
-		<Unit filename="source\main.cpp" />
+		<Unit filename="source/main.cpp" />
 		<Extensions>
 			<DoxyBlocks>
 				<comment_style block="1" line="1" />

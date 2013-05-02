@@ -11,13 +11,13 @@
 /*!	\file GUIShell.cpp
 \ingroup Helper
 \brief GUI Shell 类。
-\version r84
+\version r95
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:22 +0800
 \par 修改时间:
-	2013-04-14 06:26 +0800
+	2013-04-29 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,12 +25,9 @@
 */
 
 
-#include "Helper/shlds.h"
-#include "Helper/DSMain.h"
-#include "Helper/ShellHelper.h"
-#include "YSLib/UI/ydesktop.h"
-#include "YSLib/UI/ygui.h"
+#include "Helper/GUIShell.h"
 #include "Host.h"
+#include <thread> // for std::this_thread::sleep_for;
 
 YSL_BEGIN
 
@@ -54,7 +51,7 @@ GUIShell::OnGotMessage(const Message& msg)
 		GUIShell::OnInput();
 		return;
 	case SM_INPUT:
-		if(auto p_wgt = imMain.Update())
+		if(const auto p_wgt = imMain.Update())
 			imMain.DispatchInput(*p_wgt);
 		OnInput();
 		return;
@@ -67,10 +64,14 @@ GUIShell::OnGotMessage(const Message& msg)
 void
 GUIShell::OnInput()
 {
+	OnPaint();
 #if YCL_HOSTED
 	// TODO: Use host reference stored by shell.
 	Host::FetchEnvironment().UpdateRenderWindows();
+	std::this_thread::sleep_for(IdleSleep);
 #endif
+	// NOTE: Use code below if non-hosted delay is needed..
+//	Timers::Delay(std::chrono::duration_cast<Timers::TimeSpan>(IdleSleep));
 	// NOTE: Use code below instead if asynchronous posting is necessary.
 //	PostMessage<SM_PAINT>(0xE0, nullptr);
 }

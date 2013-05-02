@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r70
+\version r85
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-04-13 13:07 +0800
+	2013-04-26 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "Helper/GUIApplication.h"
 #include "YSLib/UI/yrender.h"
+#include "YSLib/UI/ywidget.h"
 
 YSL_BEGIN
 
@@ -60,6 +61,22 @@ GetWindowPtrOf(UI::IWidget&);
 */
 YF_API unique_ptr<UI::BufferedRenderer>
 MakeHostRenderer(UI::IWidget&, std::function<NativeWindowHandle()>);
+
+
+//! \since build 401
+template<typename _tParam>
+void
+WrapRenderer(UI::Widget& wgt, _tParam&& arg)
+{
+	wgt.SetRenderer(MakeHostRenderer(wgt, yforward(arg)));
+}
+//! \since build 401
+template<typename... _tParams>
+void
+WrapRenderer(UI::Widget& wgt, _tParams&&... args)
+{
+	wgt.SetRenderer(MakeHostRenderer(wgt, std::bind(yforward(args)...)));
+}
 
 YSL_END_NAMESPACE(Host)
 #endif

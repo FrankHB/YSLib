@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r196
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-04-16 01:23 +0800
+	2013-04-29 19:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,11 +39,6 @@ using namespace Drawing;
 
 namespace
 {
-
-#if YCL_MINGW32
-yconstexpr double g_max_free_fps(1000);
-std::chrono::nanoseconds idle_sleep(u64(1000000000 / g_max_free_fps));
-#endif
 
 //! \since build 398
 GUIApplication* pApp;
@@ -139,14 +134,8 @@ GUIApplication::DealMessage()
 	using namespace Shells;
 
 	if(Queue.IsEmpty())
-	{
 	//	Idle(UIResponseLimit);
 		OnGotMessage(FetchIdleMessage());
-#if YCL_MINGW32
-	//	std::this_thread::yield();
-		std::this_thread::sleep_for(idle_sleep);
-#endif
-	}
 	else
 	{
 		// TODO: Consider the application queue to be locked for thread safety.
@@ -155,12 +144,7 @@ GUIApplication::DealMessage()
 		if(YB_UNLIKELY(i->second.GetMessageID() == SM_QUIT))
 			return false;
 		if(i->first < UIResponseLimit)
-		{
 			Idle(UIResponseLimit);
-#if YCL_MINGW32
-			std::this_thread::sleep_for(idle_sleep);
-#endif
-		}
 		OnGotMessage(i->second);
 		Queue.Erase(i);
 	}

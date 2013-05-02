@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r116
+\version r142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-04-24 18:28 +0800
+	2013-05-02 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,33 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ @ %'YFramework'.'Helper' $=
+	(
+		/ "platform %MinGW32" $=
+		(
+			/ 'yconstexpr wchar_t WindowClassName[]{L"YFramework Window"}'
+				@ "non-public header" >> %'HostWindow',
+			+ "2 function templates %WrapWidget" @ "namespace %Host" @ %'HostUI'
+		),
+		(
+			+ "public member %IdelSleep" @ "class %GUIShell" @ %'GUIShell';
+			/ "GUI sleep" @ "member function %GUIApplication::DealMessage"
+				>> "class %GUIShell"
+				// It is only used on hosted environment by default for \
+					performance.
+		)
+	),
+	/ $dev $build @ "Code::Blocks projects" $=
+	(
+		/ "simplified library dependencies",
+		+ "pararrel compiling support" @ "makefile commands" @ "platform %DS"
+	),
+	/ $build "headers of library %freetype" @ "project %YFramework"
+		>> "%3rdparty/include" ~ "directory %YFramework/include"
+),
+
+b400
 (
 	/ %'YRader' $=
 	(

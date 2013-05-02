@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2135
+\version r2137
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-04-22 12:37 +0800
+	2013-04-27 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,7 @@
 — ISO/IEC 14882:2011, Information technology — Programming languages — C++
 — ISO/IEC TR 19769:2004, Information technology — Programming languages, their environments and system software interfaces — Extensions for the programming language C to support new character data types
 — The Unicode Standard — Version 6.0 – Core Specification
+— GCC Coding Conventions(http://gcc.gnu.org/codingconventions.html)
 
 @1.1.1 引用缩写：
  ISO C ： ISO/IEC 9899 ；
@@ -704,6 +705,7 @@
 @4.1.3 拼写和构词原则：
 基于兼容性考虑，不使用基本字符集（不另外声明默认为 ASCII ）以外的 Unicode 字符。
 以美式英语作为命名标识符的基本自然语言参考。
+使用 ISO C++ 术语拼写。其它术语使用兼容于 GCC Coding Conventions 的术语拼写。剩余术语规范见下文。
 若不使用以下构词原则或例外，至少应在原始声明处注释。
 
 @4.1.3.1 基本构词原则：

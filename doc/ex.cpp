@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5534 *build 400 rev *
+\version r5544 *build 401 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-04-24 18:40 +0800
+	2013-05-02 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,30 +366,43 @@ $using:
 
 
 $DONE:
-r1-r32;
+r1-r38;
 
 
 $DOING:
 
 $relative_process:
-2013-04-24 +0800:
--37.6d;
-// Mercurial local rev1-rev272: r10678;
+2013-05-02 +0800:
+-43.6d;
+// Mercurial local rev1-rev273: r10716;
 
 / ...
 
 
 $NEXT_TODO:
-b[$current_rev]-b404:
+b[$current_rev]-b428:
 / text reader @ YReader $=
 (
-	/ \simp \impl @ \u (DSReader, ShlReader),
+	/ \simp \impl @ \u (DSReader, ShlReader)
+),
+/ @ explorer $=
+(
+	+ extension & MIME options,
+	+ filesystem & partition view @ explorer
+),
+/ @ \proj YBase $=
+(
+	+ ABI dependent APIs(e.g. name demangling),
+	/ consider merge: boost::transform,
+	+ null_deleter,
+	/ $low_prior consider: ifile_iterator & ifilebuf_iterator,
+	/ consider: ^ compile-time integer sequence:
+		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3493.html
 );
-+ BSD/GPL/... copyright notice reproducing/displaying @ binaries;
 
 
 $TODO:
-b[370]:
+b[378]:
 / external dependencies $=
 (
 	/ recompile freetype with MinGW g++ 4.8.0,
@@ -455,7 +468,15 @@ b[370]:
 	/ \impl @ classes %(Message, MessageQueue),
 	/ more specific \impl @ NPL context,
 	/ higher FPS
-);
+),
+/ text manager @ services $=
+(
+	* text file buffer boundray for encoding for text size not fit
+		for char length,
+	/ $low_prior more effiecent batch \impl @ \f CopySliceFrom,
+	/ consider: const @ \mf @ \cl TextManager
+),
++ BSD/GPL/... copyright notice reproducing/displaying @ binaries;
 
 b[426]:
 / YBase $=

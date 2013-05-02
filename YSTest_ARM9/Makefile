@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1280
+# Version = r1282
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2013-03-17 18:44 +0800
+# Updated = 2013-05-02 09:30 +0800
 # Encoding = ANSI
 
 
@@ -40,7 +40,7 @@ export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source data
-export INCLUDES		:= include data ../YSTest/include ../YBase/include ../YFramework/include
+export INCLUDES		:= include data ../YSTest/include ../YBase/include ../YFramework/include ../3rdparty/include
 export DATA			:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music
@@ -179,7 +179,6 @@ export OFILES	:=	$(MAPFILES:.map=.o) $(RAWFILES:.raw=.o) $(PALFILES:.pal=.o) $(B
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include/nds) \
-				#	-I$(PAPATH)/include/nds \
 					-I$(CURDIR)/$(BUILD)
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
