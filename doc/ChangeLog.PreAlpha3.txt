@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3628
+\version r3631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-04-20 11:20 +0800
+	2013-05-06 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ b398
 		(
 			+ $dev "split non-public unit %DSWindow",
 			+ "unit %GUIApplication",
-				$= ( + "class YF_API %GUIApplication")
+				$= (+ "class YF_API %GUIApplication")
 			+ "several forward declaration and helper functions for global \
 				instance" @ %'DSMain' >> %'GUIApplication',
 			/ "function %ResetDSDesktops" @ %'ShellHelper'
@@ -1347,8 +1347,9 @@ b362
 		/ "macro %YCL_USE_EXCEPTION_SPECIFICATION"
 			=> "YB_USE_EXCEPTION_SPECIFICATION",
 		+ "external macro %(YB_DLL, YB_BUILD_DLL) for using and building DLL";
-		+ "macro %YB_API";
+		+ "macro %YB_API"; // See $RESOLVED_ENVIRONMENT_ISSUE.
 		/ "all non-templated public interface specified by %YB_API",
+			// See $RESOLVED_ENVIRONMENT_ISSUE.
 		/ $build "linking options" @ "MinGW32 '*_DLL' Code::Blocks projects"
 	);
 	/ %'YFramework' $=

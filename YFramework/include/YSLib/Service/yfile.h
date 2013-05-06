@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1083
+\version r1087
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2013-04-24 00:35 +0800
+	2013-05-06 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,8 +59,8 @@ public:
 	*/
 	//@
 	explicit
-	File(const_path_t, const char* = "rb");
-	File(const_path_t, std::ios_base::openmode);
+	File(IO::const_path_t, const char* = "rb");
+	File(IO::const_path_t, std::ios_base::openmode);
 	explicit
 	File(const String&, const ucs2_t* = u"rb");
 	File(const String&, std::ios_base::openmode);
@@ -144,9 +144,9 @@ public:
 	*/
 	//@{
 	bool
-	Open(const_path_t, const char* = "rb");
+	Open(IO::const_path_t, const char* = "rb");
 	bool
-	Open(const_path_t, std::ios_base::openmode);
+	Open(IO::const_path_t, std::ios_base::openmode);
 	bool
 	Open(const String&, const ucs2_t* = u"rb");
 	bool

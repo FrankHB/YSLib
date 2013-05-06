@@ -112,6 +112,7 @@
     <ClInclude Include="include\CHRLib\chrdef.h" />
     <ClInclude Include="include\CHRLib\chrmap.h" />
     <ClInclude Include="include\CHRLib\chrproc.h" />
+    <ClInclude Include="include\CHRLib\Convert.hpp" />
     <ClInclude Include="include\CHRLib\encoding.h" />
     <ClInclude Include="include\CHRLib\MapEx.h" />
     <ClInclude Include="include\CHRLib\smap.hpp" />
@@ -146,6 +147,7 @@
     <ClInclude Include="include\YSLib\Adaptor\Font.h" />
     <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
+    <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />
     <ClInclude Include="include\YSLib\Core\yapp.h" />
     <ClInclude Include="include\YSLib\Core\ybasemac.h" />

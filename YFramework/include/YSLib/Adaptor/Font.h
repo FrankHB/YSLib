@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2827
+\version r2829
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-04-24 00:36 +0800
+	2013-05-05 13:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_ADAPTOR_FONT_H_
-#define YSL_INC_ADAPTOR_FONT_H_ 1
+#ifndef YSL_INC_Adaptor_Font_h_
+#define YSL_INC_Adaptor_Font_h_ 1
 
 #include "../Core/yfunc.hpp"
 #include "../Core/yobject.h"

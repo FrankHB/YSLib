@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r751
+\version r840
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-04-23 10:46 +0800
+	2013-05-06 16:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,15 +25,17 @@
 */
 
 
-#ifndef CHRLIB_INC_chrproc_h_
-#define CHRLIB_INC_chrproc_h_ 1
+#ifndef INC_CHRLib_chrproc_h_
+#define INC_CHRLib_chrproc_h_ 1
 
 #include "chrmap.h"
 #include <cstdio>
 #include <memory> // for std::move;
 #include <ystdex/string.hpp> // for ystdex::string_traits;
+#include <algorithm> // for std::copy_n;
 
-CHRLIB_BEGIN
+namespace CHRLib
+{
 
 #if 0
 size_t	UTF16toUTF8(byte*, const u16*);
@@ -125,7 +127,7 @@ UCToMBC(char*, const ucs2_t&, Encoding);
 
 
 /*!
-\brief 按指定编码转换 MBCS 字符串为 UTF-16LE 字符串，返回转换的串长。
+\brief 按指定编码转换 MBCS 字符串为 UCS-2LE 字符串，返回转换的串长。
 \pre 断言： 指针参数非空 。
 \since build 291
 */
@@ -133,7 +135,7 @@ YF_API size_t
 MBCSToUCS2(ucs2_t*, const char*, Encoding = CS_Default);
 
 /*!
-\brief 按指定编码转换 UTF-16LE 字符串为 MBCS 字符串，返回转换的串长。
+\brief 按指定编码转换 UCS-2LE 字符串为 MBCS 字符串，返回转换的串长。
 \pre 断言： 指针参数非空 。
 \since build 291
 */
@@ -148,7 +150,7 @@ YF_API size_t
 UCS4ToUCS2(ucs2_t*, const ucs4_t*);
 
 /*!
-\brief 取指定编码的多字节字符串。
+\brief 取 UCS2-LE 字符串转换的指定编码的多字节字符串。
 \since build 305
 */
 template<class _tDst, class _tSrc>
@@ -157,10 +159,10 @@ GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 {
 	// FIXME: size for max MBC sequence length > 4;
 	_tDst str(src.length() << 2,
-		typename ystdex::string_traits<_tSrc>::value_type());
+		typename ystdex::string_traits<_tDst>::value_type());
 
 	str.resize(UCS2ToMBCS(&str[0], src.c_str(), enc));
-	return str;
+	return std::move(str);
 }
 
 
@@ -174,7 +176,7 @@ YF_API char*
 strdup(const ucs2_t*, Encoding = CS_Default);
 
 /*!
-\brief 复制多字节字符串为 UCS-2/UTF-16LE 字符串。
+\brief 复制多字节字符串为 UCS-2LE 字符串。
 \pre 断言： 指针参数非空 。
 \note 空间由 std::free 释放。
 \since build 291
@@ -189,14 +191,58 @@ ucsdup(const char*, Encoding = CS_Default);
 YF_API ucs2_t*
 ucsdup(const ucs2_t*);
 /*!
-\brief 复制 UCS-4 字符串为 UCS-2 字符串。
+\brief 复制 UCS-4 字符串为 UCS2-LE 字符串。
 \pre 断言： 指针参数非空 。
 \note 空间由 std::free 释放。
 */
 YF_API ucs2_t*
 ucsdup(const ucs4_t*);
 
-CHRLIB_END
+
+//! \since build 402
+//@{
+//! \brief 复制指定编码的多字节字符串为指定类型的 UCS2-LE 字符串。
+template<class _tDst>
+_tDst
+MakeUCS2LEString(const char* s, Encoding enc = CS_Default)
+{
+	yconstraint(s);
+
+	_tDst str(std::char_traits<char>::length(s),
+		typename ystdex::string_traits<_tDst>::value_type());
+
+	str.resize(MBCSToUCS2(&str[0], s, enc));
+	return std::move(str);
+}
+//! \brief 复制指定类型的 UCS-2 字符串。
+template<class _tDst>
+_tDst
+MakeUCS2LEString(const ucs2_t* s, Encoding = CharSet::ISO_10646_UCS_2)
+{
+	yconstraint(s);
+
+	_tDst str(std::char_traits<ucs2_t>::length(s),
+		typename ystdex::string_traits<_tDst>::value_type());
+
+	std::copy_n(s, str.size(), str.begin());
+	return std::move(str);
+}
+//! \brief 复制 UCS-4 字符串为指定类型的 UCS2-LE 字符串。
+template<class _tDst>
+_tDst
+MakeUCS2LEString(const ucs4_t* s, Encoding = CharSet::ISO_10646_UCS_4)
+{
+	yconstraint(s);
+
+	_tDst str(std::char_traits<ucs4_t>::length(s),
+		typename ystdex::string_traits<_tDst>::value_type());
+
+	str.resize(UCS4ToUCS2(&str[0], s));
+	return std::move(str);
+}
+//@}
+
+} // namespace CHRLib;
 
 #endif
 

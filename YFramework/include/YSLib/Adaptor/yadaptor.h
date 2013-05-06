@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1456
+\version r1474
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2013-04-24 00:27 +0800
+	2013-05-06 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,23 +181,6 @@ using platform::terminate;
 using platform::SPos;
 using platform::SDst;
 
-//文件系统抽象。
-/*!
-\brief 本机路径字符类型。
-\since build 286
-*/
-using platform::NativePathCharType;
-using platform::const_path_t;
-using platform::path_t;
-
-using platform::HFileNode;
-using platform::IsAbsolute;
-using platform::GetRootNameLength;
-
-//文件系统常量。
-using platform::PATHSTR;
-using platform::FILENAMESTR;
-
 //基本输出接口。
 using platform::InitVideo;
 
@@ -227,6 +210,27 @@ using platform::Color;
 namespace ColorSpace = platform::ColorSpace;
 
 YSL_END_NAMESPACE(Drawing)
+
+YSL_BEGIN_NAMESPACE(IO)
+//文件系统抽象。
+/*!
+\brief 本机路径字符类型。
+\since build 286
+*/
+using platform::NativePathCharType;
+//! \since build 402
+using platform::CS_Path;
+using platform::const_path_t;
+using platform::path_t;
+
+using platform::HFileNode;
+using platform::IsAbsolute;
+using platform::GetRootNameLength;
+
+//文件系统常量。
+using platform::PATHSTR;
+using platform::FILENAMESTR;
+YSL_END_NAMESPACE(IO)
 
 YSL_END
 

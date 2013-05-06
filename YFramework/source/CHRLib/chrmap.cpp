@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2011.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file chrmap.cpp
 \ingroup CHRLib
 \brief 字符映射。
-\version r753
-\author FrankHB<frankhb1989@gmail.com>
+\version r758
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2012-09-04 11:04 +0800
+	2013-05-04 23:29 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "CHRLib/chrmap.h"
 
-CHRLIB_BEGIN
+namespace CHRLib
+{
 
 using namespace CharSet;
 
@@ -76,5 +77,5 @@ FetchMaxVariantCharWidth(Encoding cp)
 	}
 }
 
-CHRLIB_END
+} // namespace CHRLib;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r583
-\author FrankHB<frankhb1989@gmail.com>
+\version r593
+\author FrankHB <frankhb1989@gmail.com>
 \since build 242
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2012-09-04 10:42 +0800
+	2013-05-04 23:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,14 +25,16 @@
 */
 
 
-#ifndef CHRLIB_INC_ENCODING_H_
-#define CHRLIB_INC_ENCODING_H_ 1
+#ifndef INC_CHRLib_encoding_h_
+#define INC_CHRLib_encoding_h_ 1
 
 #include "chrdef.h"
 
-CHRLIB_BEGIN
+namespace CHRLib
+{
 
-CHRLIB_BEGIN_NAMESPACE(CharSet)
+namespace CharSet
+{
 
 /*
 \brief 字符流编码标识。
@@ -363,9 +365,9 @@ yconstexpr Encoding
 	EUC_CN_(GB2312), windows_51936_(GB2312),
 	windows_950_(Big5);
 
-CHRLIB_END_NAMESPACE(CharSet)
+} // namespace CharSet;
 
-CHRLIB_END
+} // namespace CHRLib;
 
 #endif
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r328
-\author FrankHB<frankhb1989@gmail.com>
+\version r334
+\author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2012-12-11 23:16 +0800
+	2013-05-05 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,11 @@
 */
 
 
-#ifndef YCL_INC_INPUT_H_
-#define YCL_INC_INPUT_H_ 1
+#ifndef YCL_INC_Inupt_h_
+#define YCL_INC_Inupt_h_ 1
 
-#include "Keys.h"
-#include "NativeAPI.h"
+#include "YCLib/Keys.h"
+#include "YCLib/NativeAPI.h"
 
 namespace platform
 {

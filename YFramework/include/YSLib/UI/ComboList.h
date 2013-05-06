@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2514
+\version r2522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2013-03-24 21:53 +0800
+	2013-05-05 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ public:
 	DefSetterMem(const shared_ptr<ListType>&, List, tlContent)
 	/*!
 	\brief 设置选中项。
-	\sa TextList::SetSelected 。
+	\sa TextList::SetSelected
 	\since build 285。
 	*/
 	PDefH(void, SetSelected, ListType::size_type i)
@@ -105,7 +105,7 @@ public:
 	/*!
 	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
 	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
-	\sa TextList::AdjustViewLength 。
+	\sa TextList::AdjustViewLength
 	\since build 392
 	*/
 	PDefH(void, AdjustViewForContent, )
@@ -113,7 +113,7 @@ public:
 
 	/*!
 	\brief 调整视图长度。
-	\sa TextList::AdjustViewLength 。
+	\sa TextList::AdjustViewLength
 	\since build 285
 	*/
 	PDefH(void, AdjustViewLength, )
@@ -121,7 +121,7 @@ public:
 
 	/*!
 	\brief 清除选中项。
-	\sa TextList::ClearSelected 。
+	\sa TextList::ClearSelected
 	\since build 285
 	*/
 	PDefH(void, ClearSelected, )
@@ -129,7 +129,7 @@ public:
 
 	/*!
 	\brief 查找项。
-	\sa TextList::Find 。
+	\sa TextList::Find
 	\since build 316
 	*/
 	PDefH(IndexType, Find, const ItemType& text)
@@ -191,13 +191,13 @@ public:
 	typedef ListBox::ListType ListType;
 	/*!
 	\brief 视图参数类型。
-	\sa TextList::ViewArgs 。
+	\sa TextList::ViewArgs
 	\since build 283
 	*/
 	typedef ListBox::ViewArgs ViewArgs;
 	/*!
 	\brief 视图事件委托类型。
-	\sa TextList::HViewEvent 。
+	\sa TextList::HViewEvent
 	\since build 283
 	*/
 	typedef ListBox::HViewEvent HViewEvent;
@@ -251,7 +251,7 @@ public:
 	/*!
 	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
 	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
-	\sa TextList::AdjustViewLength 。
+	\sa TextList::AdjustViewLength
 	\since build 392
 	*/
 	PDefH(void, AdjustViewForContent, )

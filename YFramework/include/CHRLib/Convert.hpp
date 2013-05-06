@@ -11,13 +11,13 @@
 /*!	\file Convert.hpp
 \ingroup CHRLib
 \brief 转换模版。
-\version r52
+\version r57
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-23 10:18:20 +0800
 \par 修改时间:
-	2013-04-23 10:30 +0800
+	2013-05-05 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,13 +25,14 @@
 */
 
 
-#ifndef CHRLIB_INC_Convert_hpp_
-#define CHRLIB_INC_Convert_hpp_ 1
+#ifndef INC_CHRLib_Convert_hpp
+#define INC_CHRLib_Convert_hpp 1
 
 #include "chrmap.h"
 #include <ystdex/any_iterator.hpp> // for ystdex::input_monomorphic_iterator;
 
-CHRLIB_BEGIN
+namespace CHRLib
+{
 
 template<typename _tIn, typename _fConv>
 ConversionResult
@@ -47,7 +48,7 @@ ConvertCharacter(_fConv f, _tIn&& it, ConversionState&& st)
 	return f(ystdex::input_monomorphic_iterator(std::ref(it)), std::move(st));
 }
 
-CHRLIB_END
+} // namespace CHRLib;
 
 #endif
 

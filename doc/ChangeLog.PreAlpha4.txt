@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r142
+\version r203
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-02 15:57 +0800
+	2013-05-06 16:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,67 @@ $import $HISTORY;
 
 $now
 (
+	/ %'YFramework' $=
+	(
+		/ %'CHRLib' $=
+		(
+			- "namespace macros",
+			+ "3 function templates %MakeUCS2LEString" @ %CharacterProcessing
+		),
+		/ %'YCLib' $=
+		(
+			/ $dev "normalized header including with prefix 'YCLib/'",
+			/ @ "platform %MinGW32" @ %'NativeAPI' $=
+			(
+				/ "simplified including" ,
+					// Reduced some name pollution.
+				- "directory APIs"
+			),
+			/ %'FileSystem' $=
+			(
+				/ "class %FileNode" @ "platform %MinGW32" ^ "MinGW \
+					wide-oriented directory APIs" ~ "custom UTF-8 APIs",
+				* "spell error" $since b171
+					$= (/ %YCL_PATH_SEPERATOR => %YCL_PATH_SEPARATOR),
+				+ "static asserts to check delimiter and separator constraints",
+				+ "file system path encoding constant %CS_Path";
+				$dep_to "FileSystem"
+			)
+		),
+		/ %'YSLib' $=
+		(
+			* "missing header %(YSLib/YAdaptor/YTextBase.h, CHRLib/Convert.hpp)"
+				@ VC++ \proj $since b400,
+			/ %'Adaptor'.'YAdaptor' $=
+			(
+				(
+					$dep_from "FileSystem";
+					+ "using %CS_Path" @ "namespace %YSLib::IO",
+					$dep_to "CS_Path"
+				);
+				/ "all file system related name" @ "namespace %YSLib"
+					>> "namespace %YSLib::IO"
+			),
+			/ %'Core'.'YFileSystem' $=
+			(
+				* "spell error" $since $before b132
+					$= (/ %FS_Seperator => %FS_Separator),
+				(
+					$dep_from "CS_Path";
+					/ "file system path encoding constant %CS_Path"
+						~ "%CP_Path";
+					- "%CP_Path"
+				)
+			)
+		)
+	),
+	/ $doc "made expected non-sentance Doxygen especially for directive '\sa'",
+	* "missing including header %Functional"
+		@ %'YBase'.'YStandardEx'.'AnyIterator' $since b355
+),
+
+b401
+(
 	/ @ %'YFramework'.'Helper' $=
 	(
 		/ "platform %MinGW32" $=
@@ -41,7 +102,7 @@ $now
 			+ "2 function templates %WrapWidget" @ "namespace %Host" @ %'HostUI'
 		),
 		(
-			+ "public member %IdelSleep" @ "class %GUIShell" @ %'GUIShell';
+			+ "public member %IdleSleep" @ "class %GUIShell" @ %'GUIShell';
 			/ "GUI sleep" @ "member function %GUIApplication::DealMessage"
 				>> "class %GUIShell"
 				// It is only used on hosted environment by default for \

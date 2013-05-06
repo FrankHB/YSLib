@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r536
+\version r615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-02-14 04:55 +0800
+	2013-05-05 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,11 @@
 */
 
 
-#ifndef YCL_INC_NATIVEAPI_H_
-#define YCL_INC_NATIVEAPI_H_ 1
+#ifndef YCL_INC_NativeAPI_h_
+#define YCL_INC_NativeAPI_h_ 1
 
 //平台定义。
-#include "Platform.h"
+#include "YCLib/Platform.h"
 
 #ifndef YCL_PLATFORM
 #	error Unknown platform!
@@ -74,16 +74,6 @@
 namespace platform_ex
 {
 
-/*!
-\brief 判断 ::dirent 指定的节点是否为目录。
-\since build 312
-*/
-inline bool
-IsDirectory(const ::dirent& d)
-{
-	return d.d_type & DT_DIR;
-}
-
 } // namespace platform_ex;
 
 
@@ -94,12 +84,6 @@ IsDirectory(const ::dirent& d)
 #endif
 
 #include <Windows.h>
-#include <Windowsx.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include <sys/stat.h>
 
 /*!
@@ -176,57 +160,6 @@ makedir(char const* dir, mode_t)
 extern "C"
 {
 
-typedef struct dirent
-{
-	long d_ino;
-	off_t d_off;
-	unsigned short d_reclen;
-	char d_name[NAME_MAX + 1];
-	/*!
-	\brief Win32 文件查找信息指针。
-	\since build 299
-	*/
-	::LPWIN32_FIND_DATAW lpWinDir;
-} dirent;
-
-
-typedef struct DIR
-{
-	/*!
-	\brief 目录名称。
-	\since build 298
-	*/
-	char Name[NAME_MAX];
-	/*!
-	\brief 节点句柄。
-	\since build 298
-	*/
-	::HANDLE hNode;
-	/*!
-	\brief Win32 文件查找信息。
-	\since build 299
-	*/
-	::WIN32_FIND_DATAW WinDir;
-	/*!
-	\brief POSIX 目录信息。
-	\since build 298
-	*/
-	dirent POSIXDir;
-} DIR;
-
-
-YF_API DIR*
-opendir(const char*);
-
-YF_API dirent*
-readdir(DIR*);
-
-YF_API void
-rewinddir(DIR*);
-
-YF_API int
-closedir(DIR*);
-
 /*!
 \def mkdir
 \brief 修正 MinGW 中的 mkdir 参数问题。
@@ -258,24 +191,6 @@ inline bool
 IsDirectory(const ::WIN32_FIND_DATAW& d)
 {
 	return d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-}
-/*!
-\brief 判断 ::dirent 指定的节点是否为目录。
-\since build 312
-*/
-inline bool
-IsDirectory(const ::dirent& d)
-{
-	return d.lpWinDir && IsDirectory(*d.lpWinDir);
-}
-/*!
-\brief 判断 ::DIR 指定的节点是否为目录。
-\since build 312
-*/
-inline bool
-IsDirectory(const ::DIR& d)
-{
-	return IsDirectory(d.WinDir);
 }
 
 } // namespace platform_ex;

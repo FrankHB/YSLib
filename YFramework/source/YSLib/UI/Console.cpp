@@ -11,13 +11,13 @@
 /*!	\file Console.cpp
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r76
+\version r78
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2011-04-20 09:28:39 +0800
 \par 修改时间:
-	2013-03-13 13:18 +0800
+	2013-05-05 21:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,8 @@
 
 
 #include "YSLib/UI/Console.h"
-#include <Helper/DSMain.h>
+#include "Helper/DSMain.h"
+#include "YCLib/Input.h" // platform::WaitForInput;
 
 YSL_BEGIN
 

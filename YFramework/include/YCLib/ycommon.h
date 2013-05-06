@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3418
+\version r3419
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-04-14 06:44 +0800
+	2013-05-05 17:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #define YCL_INC_ycommon_h_ 1
 
 //平台定义。
-#include "Platform.h"
+#include "YCLib/Platform.h"
 
 //平台无关部分。
 #include <ydef.h>

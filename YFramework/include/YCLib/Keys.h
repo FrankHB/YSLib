@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r159
-\author FrankHB<frankhb1989@gmail.com>
+\version r160
+\author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
-	2009-06-01 14:29:56 +0800
+	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2012-09-07 10:22 +0800
+	2013-05-05 16:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,10 @@
 */
 
 
-#ifndef YCL_INC_KEYS_H_
-#define YCL_INC_KEYS_H_ 1
+#ifndef YCL_INC_Keys_h_
+#define YCL_INC_Keys_h_ 1
 
-#include "ycommon.h"
+#include "YCLib/ycommon.h"
 #include <bitset>
 
 namespace platform

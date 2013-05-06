@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1160
+\version r1177
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-04-24 14:31 +0800
+	2013-05-04 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,15 +34,15 @@
 #include <ystdex/cstring.h>
 #include "CHRLib/Convert.hpp"
 
-CHRLIB_BEGIN
+namespace CHRLib
+{
 
+using std::malloc;
 using std::size_t;
 using std::tolower;
-using std::malloc;
-using std::strlen;
-using std::memcpy;
-using ystdex::ntctslen;
 using ystdex::input_monomorphic_iterator;
+using ystdex::is_null;
+using ystdex::ntctslen;
 
 ConversionResult
 MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState&& st)
@@ -116,7 +116,7 @@ MBCSToUCS2(ucs2_t* d, const char* s, Encoding enc)
 
 	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
 		input_monomorphic_iterator&&, ConversionState&&)>(enc))
-		while(!ystdex::is_null(*s))
+		while(!is_null(*s))
 		{
 			ConversionState st;
 
@@ -135,7 +135,7 @@ UCS2ToMBCS(char* d, const ucs2_t* s, Encoding enc)
 	const auto p(d);
 
 	if(const auto pfun = FetchMapperPtr<byte(char*, const ucs2_t&)>(enc))
-		while(!ystdex::is_null(*s))
+		while(!is_null(*s))
 			d += pfun(d, *s++);
 	*d = 0;
 	return d - p;
@@ -149,7 +149,7 @@ UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
 
 	const auto p(d);
 
-	while(!ystdex::is_null(*s))
+	while(!is_null(*s))
 		*d++ = *s++;
 	*d = 0;
 	return d - p;
@@ -162,7 +162,7 @@ strdup(const ucs2_t* s, Encoding enc)
 	yconstraint(s);
 
 	// FIXME: size for max MBC sequence length > 4;
-	const auto str(static_cast<char*>(malloc((ystdex::ntctslen(s) << 2) + 1)));
+	const auto str(static_cast<char*>(malloc((ntctslen(s) << 2) + 1)));
 
 	UCS2ToMBCS(str, s, enc);
 	return str;
@@ -173,22 +173,22 @@ ucsdup(const char* s, Encoding enc)
 {
 	yconstraint(s);
 
-	const auto p(static_cast<ucs2_t*>(malloc((strlen(s) + 1) << 1)));
+	const auto p(static_cast<ucs2_t*>(malloc((ntctslen(s) + 1) << 1)));
 
 	if(YB_LIKELY(p))
 		MBCSToUCS2(p, s, enc);
 	return p;
 }
 ucs2_t*
-ucsdup(const ucs2_t* str)
+ucsdup(const ucs2_t* s)
 {
-	yconstraint(str);
+	yconstraint(s);
 
-	const size_t n(ntctslen(str) * sizeof(ucs2_t));
+	const size_t n(ntctslen(s) * sizeof(ucs2_t));
 	const auto p(static_cast<ucs2_t*>(malloc(n + sizeof(ucs2_t))));
 
 	if(YB_LIKELY(p))
-		memcpy(p, str, n);
+		std::copy_n(s, n, p);
 	return p;
 }
 ucs2_t*
@@ -204,5 +204,5 @@ ucsdup(const ucs4_t* s)
 	return p;
 }
 
-CHRLIB_END
+} // namespace CHRLib;
 

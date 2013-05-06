@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r432
+\version r433
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2013-04-13 13:11 +0800
+	2013-05-06 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ public:
 	HexModel()
 		: pSource(new File())
 	{}
-	HexModel(const_path_t path)
+	HexModel(IO::const_path_t path)
 		: pSource(new File(path))
 	{}
 	DefDelCopyCtor(HexModel)
@@ -178,7 +178,7 @@ public:
 	DefGetter(const ynothrow, const HexModel&, Model, model)
 
 	void
-	Load(const_path_t);
+	Load(IO::const_path_t);
 
 	/*!
 	\brief 定位视图顶端至指定竖直位置（行数）。

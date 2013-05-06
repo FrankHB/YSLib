@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12012
+\version r12033
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-04-24 00:16 +0800
+	2013-05-06 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,7 +142,7 @@ $header YCommon
 YCL_MAX_FILENAME_LENGTH
 YCL_MAX_PATH_LENGTH
 YCL_PATH_DELIMITER
-YCL_PATH_SEPERATOR
+YCL_PATH_SEPARATOR
 YCL_PATH_ROOT
 YCL_PIXEL_FORMAT_AXYZ1555
 } //$dir YCLib;
@@ -156,12 +156,6 @@ $dir CHRLib
 {
 $header CHRLib
 {
-CHRLIB_BEGIN
-CHRLIB_END
-CHRLIB_
-CHRLIB
-CHRLIB_BEGIN_NAMESPACE(s)
-CHRLIB_END_NAMESPACE(s)
 }
 } //$dir CHRLib;
 
@@ -880,19 +874,6 @@ using platform::terminate;
 using platform::SPos;
 using platform::SDst;
 
-//文件系统抽象。
-using platform::NativePathCharType;
-using platform::const_path_t;
-using platform::path_t;
-
-using platform::HFileNode;
-using platform::IsAbsolute;
-using platform::GetRootNameLength;
-
-//文件系统常量。
-using platform::PATHSTR;
-using platform::FILENAMESTR;
-
 //基本输出接口。
 using platform::InitVideo;
 
@@ -913,6 +894,23 @@ using platform::Color;
 namespace ColorSpace = platform::ColorSpace;
 
 } // namespace Drawing;
+
+namespace IO
+{
+//文件系统抽象。
+using platform::NativePathCharType;
+using platform::CS_Path;
+using platform::const_path_t;
+using platform::path_t;
+
+using platform::HFileNode;
+using platform::IsAbsolute;
+using platform::GetRootNameLength;
+
+//文件系统常量。
+using platform::PATHSTR;
+using platform::FILENAMESTR;
+} // namespace IO;
 
 //库适配器。
 

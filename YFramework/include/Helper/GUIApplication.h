@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r179
+\version r180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-04-13 01:26 +0800
+	2013-05-05 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_Helper_GUIApplication_h_ 1
 
 #include "Helper/yglobal.h"
-#include "YCLib/Input.h"
+#include "YCLib/NativeAPI.h"
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Core/ValueNode.h"
 #include <ystdex/cast.hpp>

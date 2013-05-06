@@ -698,6 +698,12 @@
     <ClInclude Include="..\3rdparty\include\freetype\internal\services\svxf86nm.h">
       <Filter>头文件\freetype\internal\services</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Adaptor\YTextBase.h">
+      <Filter>头文件\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CHRLib\Convert.hpp">
+      <Filter>头文件\CHRLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">

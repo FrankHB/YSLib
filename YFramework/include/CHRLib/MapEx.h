@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MapEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r253
-\author FrankHB<frankhb1989@gmail.com>
+\version r260
+\author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2012-09-04 12:32 +0800
+	2013-05-04 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,12 +25,13 @@
 */
 
 
-#ifndef CHRLIB_INC_MAPEX_H_
-#define CHRLIB_INC_MAPEX_H_ 1
+#ifndef INC_CHRLib_MapEx_h_
+#define INC_CHRLib_MapEx_h_ 1
 
 #include "CHRLib/smap.hpp"
 
-CHRLIB_BEGIN
+namespace CHRLib
+{
 
 /*!
 \def CHRLIB_NODYNAMIC_MAPPING
@@ -236,7 +237,7 @@ case enc: \
 	return nullptr;
 }
 
-CHRLIB_END
+} // namespace CHRLib;
 
 #endif
 

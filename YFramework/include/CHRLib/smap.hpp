@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1839
+\version r1844
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-04-22 12:46 +0800
+	2013-05-04 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,14 +25,15 @@
 */
 
 
-#ifndef CHRLIB_INC_smap_hpp_
-#define CHRLIB_INC_smap_hpp_ 1
+#ifndef INC_CHRLib_smap_hpp_
+#define INC_CHRLib_smap_hpp_ 1
 
 #include "chrmap.h"
 #include <ystdex/cstdio.h>
 #include <ystdex/any.h> // for ystdex::pseudo_object;
 
-CHRLIB_BEGIN
+namespace CHRLib
+{
 
 /*!
 \brief 以输入迭代器指向内容填充有效输入迭代器指定的字节。
@@ -281,7 +282,7 @@ UCS2Mapper(char* d, const ucs2_t& s)
 }
 //@}
 
-CHRLIB_END
+} // namespace CHRLib;
 
 #endif
 

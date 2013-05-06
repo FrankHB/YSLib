@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r147
+\version r148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-03-23 21:19 +0800
+	2013-05-05 21:11 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,6 +27,7 @@
 
 #include "Helper/HostWindow.h"
 #include "Host.h" // for WindowClassName;
+#include "YCLib/Input.h" // for platform::ClearKeyStates;
 
 YSL_BEGIN
 

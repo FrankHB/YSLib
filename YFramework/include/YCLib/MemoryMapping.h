@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,8 +11,8 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r92
-\author FrankHB<frankhb1989@gmail.com>
+\version r98
+\author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
@@ -25,11 +25,11 @@
 */
 
 
-#ifndef YCL_INC_MEMORYMAPPING_H_
-#define YCL_INC_MEMORYMAPPING_H_ 1
+#ifndef YCL_INC_MemoryMapping_h_
+#define YCL_INC_MemoryMapping_h_ 1
 
-#include "ycommon.h"
-#include "FileSystem.h" // for const_path_t;
+#include "YCLib/ycommon.h"
+#include "YCLib/FileSystem.h" // for const_path_t;
 
 namespace platform
 {

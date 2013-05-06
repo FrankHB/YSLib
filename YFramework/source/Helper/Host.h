@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r536
+\version r538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-04-26 20:40 +0800
+	2013-05-05 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -194,7 +194,7 @@ private:
 #		endif
 	/*!
 	\brief 窗口线程计数。
-	\sa EnterWindowThrad 和 LeaveWindowThread 。
+	\sa EnterWindowThrad, LeaveWindowThread
 	\since build 399
 	*/
 	std::atomic<size_t> wnd_thrd_count;
@@ -202,7 +202,7 @@ private:
 public:
 	/*!
 	\brief 退出标记。
-	\sa LeaveWindowThread 。
+	\sa LeaveWindowThread
 	\since build 399
 	*/
 	std::atomic<bool> ExitOnAllWindowThreadCompleted;

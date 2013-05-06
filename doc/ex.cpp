@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5544 *build 401 rev *
+\version r5548 *build 402 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-05-02 15:58 +0800
+	2013-05-04 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,14 +366,15 @@ $using:
 
 
 $DONE:
-r1-r38;
+r1-r?;
 
 
 $DOING:
+r8
 
 $relative_process:
-2013-05-02 +0800:
--43.6d;
+2013-05-06 +0800:
+-43.0d;
 // Mercurial local rev1-rev273: r10716;
 
 / ...
@@ -393,7 +394,6 @@ b[$current_rev]-b428:
 / @ \proj YBase $=
 (
 	+ ABI dependent APIs(e.g. name demangling),
-	/ consider merge: boost::transform,
 	+ null_deleter,
 	/ $low_prior consider: ifile_iterator & ifilebuf_iterator,
 	/ consider: ^ compile-time integer sequence:
@@ -402,7 +402,7 @@ b[$current_rev]-b428:
 
 
 $TODO:
-b[378]:
+b[377]:
 / external dependencies $=
 (
 	/ recompile freetype with MinGW g++ 4.8.0,
@@ -446,7 +446,6 @@ b[378]:
 ),
 / project structure $=
 (
-	/ $low_prior build command @ \a \conf @ \proj YBase,
 	/ Microsoft Windows(MinGW32) port $=
 	(
 		+ free hosted window styles,
@@ -478,11 +477,12 @@ b[378]:
 ),
 + BSD/GPL/... copyright notice reproducing/displaying @ binaries;
 
-b[426]:
+b[427]:
 / YBase $=
 (
 	/ $low_prior \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
 		~ '::llround',
+	/ $low_prior consider merge: boost::transform,
 	+ noinstance base class,
 	/ \mft<_type> any& \op=(const _type&) -> \mft<_type> any& \op=(_type),
 	/ resolved 'scaler' \term and %is_scalar(e.g. for fixed point numbers),

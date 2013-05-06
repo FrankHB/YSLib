@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfile.cpp
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r503
-\author FrankHB<frankhb1989@gmail.com>
+\version r506
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2012-09-18 18:54 +0800
+	2013-05-06 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,8 @@
 #include "YSLib/Core/yfilesys.h"
 
 YSL_BEGIN
+
+using IO::const_path_t;
 
 File::File()
 	: fp(), fsize(0)

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r89
+\version r90
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-03-31 15:08 +0800
+	2013-05-05 13:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ public:
 	/*!
 	\brief 构造：使用指定路径和上下桌面。
 	\pre 第一参数为合法路径。
-	\sa ShlDS::ShlDS 。
+	\sa ShlDS::ShlDS
 	\since build 395
 	*/
 	ShlExplorer(const IO::Path& = IO::GetNowDirectory(),

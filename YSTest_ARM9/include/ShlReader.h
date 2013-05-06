@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1753
+\version r1756
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-04-20 16:35 +0800
+	2013-05-05 13:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -165,7 +165,7 @@ protected:
 public:
 	/*!
 	\brief 构造：使用指定路径和上下桌面。
-	\sa ShlDS::ShlDS 。
+	\sa ShlDS::ShlDS
 	\since build 395
 	*/
 	ShlReader(const IO::Path&,
@@ -285,7 +285,7 @@ private:
 public:
 	/*!
 	\brief 构造：使用指定路径和上下桌面。
-	\sa ShlDS::ShlDS 。
+	\sa ShlDS::ShlDS
 	\since build 395
 	*/
 	ShlTextReader(const IO::Path&,
@@ -393,7 +393,7 @@ public:
 
 	/*!
 	\brief 构造：使用指定路径和上下屏幕。
-	\sa ShlDS::ShlDS 。
+	\sa ShlDS::ShlDS
 	\since build 395
 	*/
 	ShlHexBrowser(const IO::Path&,

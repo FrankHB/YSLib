@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r567
+\version r629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-03-02 07:19 +0800
+	2013-05-06 14:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,14 +28,12 @@
 #ifndef YCL_INC_FileSystem_h_
 #define YCL_INC_FileSystem_h_ 1
 
-#include "ycommon.h"
-#if YCL_MINGW32
-// NOTE: Make sure there are no uses of MinGW32 ::dirent, ::DIR, ::opendir, etc.
-struct DIR;
-struct dirent;
-#else
-#	include <dirent.h>
-#endif
+#include "YCLib/ycommon.h"
+#include <ystdex/utility.hpp> // for std::is_array, std::is_integral,
+//	std::remove_reference, ystdex::arrlen;
+#include <ystdex/cstring.h> // for ystdex::is_null;
+#include <CHRLib/encoding.h>
+#include <dirent.h>
 
 namespace platform
 {
@@ -65,19 +63,26 @@ namespace platform
 	*/
 #	define YCL_PATH_DELIMITER '/'
 	/*!
-	\brief 文件路径分隔字符串。
+	\brief 文件路径分界符。
+	\since build 402
 	*/
-#	define YCL_PATH_SEPERATOR "/"
+#	define YCL_PATH_SEPARATOR "/"
 	/*!
 	\brief 根目录路径。
 	*/
-#	define YCL_PATH_ROOT YCL_PATH_SEPERATOR
+#	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
 
 /*!
 \brief 本机路径字符类型。
 \since build 286
 */
 typedef char NativePathCharType;
+
+/*!
+\brief 路径字符串编码。
+\since build 402
+*/
+yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 #elif YCL_MINGW32
 	/*!
 	\brief 文件路径分隔符。
@@ -86,16 +91,16 @@ typedef char NativePathCharType;
 #	define YCL_PATH_DELIMITER '\\'
 //	#define YCL_PATH_DELIMITER L'\\'
 	/*!
-	\brief 文件路径分隔字符串。
-	\since build 296
+	\brief 文件路径分界符。
+	\since build 402
 	*/
-#	define YCL_PATH_SEPERATOR "\\"
-//	#define YCL_PATH_SEPERATOR L"\\"
+#	define YCL_PATH_SEPARATOR "\\"
+//	#define YCL_PATH_SEPARATOR L"\\"
 	/*!
 	\brief 虚拟根目录路径。
 	\since build 297
 	*/
-#	define YCL_PATH_ROOT YCL_PATH_SEPERATOR
+#	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
 
 /*!
 \brief 本机路径字符类型。
@@ -104,9 +109,29 @@ typedef char NativePathCharType;
 */
 //	typedef wchar_t NativePathCharType;
 typedef char NativePathCharType;
+
+/*!
+\brief 路径字符串编码。
+\since build 402
+*/
+yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 #else
 #	error Unsupported platform found!
 #endif
+
+//! \since build 402
+//@{
+static_assert(std::is_integral<decltype(YCL_PATH_DELIMITER)>::value,
+	"Illegal type of delimiter found.");
+static_assert(std::is_array<typename std::remove_reference<decltype(
+	YCL_PATH_SEPARATOR)>::type>::value, "Non-array type of separator found.");
+static_assert(ystdex::arrlen(YCL_PATH_SEPARATOR) == 2,
+	"Wrong length of separator found.");
+static_assert(YCL_PATH_SEPARATOR[0] == YCL_PATH_DELIMITER,
+	"Mismatched path delimiter and separator found.");
+static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
+	"Non-null-terminator as end of separator.");
+//@}
 
 //类型定义。
 /*!
@@ -296,7 +321,12 @@ truncate(std::FILE*, std::size_t) ynothrow;
 class YF_API HFileNode final
 {
 public:
+#if YCL_DS
 	typedef ::DIR* IteratorType; //!< 本机迭代器类型。
+#else
+	//! \since build 402
+	typedef ::_WDIR* IteratorType; //!< 本机迭代器类型。
+#endif
 
 	/*!
 	\brief 上一次操作结果，0 为无错误。
@@ -307,11 +337,26 @@ public:
 
 private:
 	IteratorType dir;
+
+#if YCL_DS
 	/*!
 	\brief 节点信息。
 	\since build 298
 	*/
 	::dirent* p_dirent;
+#else
+	/*!
+	\brief 节点信息。
+	\since build 402
+	*/
+	::_wdirent* p_dirent;
+
+	/*!
+	\brief 节点 UTF-8 名称。
+	\since build 402
+	*/
+	mutable std::string utf8_name;
+#endif
 
 public:
 	/*!

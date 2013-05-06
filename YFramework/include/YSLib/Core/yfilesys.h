@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1401
+\version r1409
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-01-21 02:57 +0800
+	2013-05-06 13:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,15 +35,14 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(IO)
 
-const auto CP_Path(Text::CS_Default); //!< 路径编码。
-
 /*!
 \brief 文件系统常量：前缀 FS 表示文件系统 (File System) 。
 \since build 285
 */
 //@{
 yconstexpr const_path_t FS_Root(YCL_PATH_ROOT);
-yconstexpr const_path_t FS_Seperator(YCL_PATH_SEPERATOR);
+//! \since build 402
+yconstexpr const_path_t FS_Separator(YCL_PATH_SEPARATOR);
 yconstexpr const_path_t FS_Now(".");
 yconstexpr const_path_t FS_Parent("..");
 yconstexpr const ucs2_t* FS_Now_X(u".");
@@ -183,10 +182,10 @@ public:
 		: String(pathstr)
 	{}
 	Path(const NativePathCharType* pathstr)
-		: String(pathstr, CP_Path)
+		: String(pathstr, CS_Path)
 	{}
 	Path(const NativeString& pathstr)
-		: String(pathstr, CP_Path)
+		: String(pathstr, CS_Path)
 	{}
 	template<class _tString>
 	Path(const _tString& pathstr)
@@ -210,8 +209,7 @@ public:
 	operator/=(const Path&);
 
 	//查询。
-	DefPred(const ynothrow, Absolute,
-		YSLib::IsAbsolute(GetNativeString().c_str()))
+	DefPred(const ynothrow, Absolute, IO::IsAbsolute(GetNativeString().c_str()))
 	DefPred(const ynothrow, Relative, !IsAbsolute())
 	/*!
 	\brief 判断是否表示目录。
@@ -327,7 +325,7 @@ public:
 	Path
 	GetExtension() const;
 	DefGetter(const ynothrow, NativeString, NativeString,
-		GetMBCS(CP_Path)) //!< 取本地格式和编码的字符串。
+		GetMBCS(CS_Path)) //!< 取本地格式和编码的字符串。
 
 	//取迭代器。
 	/*!

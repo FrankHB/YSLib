@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r811
+\version r812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2013-04-22 13:03 +0800
+	2013-05-06 15:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_any_iterator_hpp_ 1
 
 #include "any.h"
-#include "cast.hpp" // for ystdex::polymorphic_downcast;
+#include "functional.hpp" // for ystdex::wrapped_traits;
 #include "memory.hpp" // for ystdex::is_undereferenceable;
 
 namespace ystdex

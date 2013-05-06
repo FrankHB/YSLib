@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1342
-\author FrankHB<frankhb1989@gmail.com>
+\version r1348
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2012-09-12 08:21 +0800
+	2013-05-06 13:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,7 +108,7 @@ Path::GetRootName() const
 Path
 Path::GetRootDirectory() const
 {
-	return Path(FS_Seperator);
+	return Path(FS_Separator);
 }
 Path
 Path::GetRootPath() const
@@ -379,7 +379,7 @@ FileList::FileList(const string& path)
 	: Directory(path.empty() ? FS_Root : path.c_str()), hList(new ListType())
 {}
 FileList::FileList(const FileList::ItemType& path)
-	: Directory(path.empty() ? FS_Root : path.GetMBCS(CP_Path).c_str()),
+	: Directory(path.empty() ? FS_Root : path.GetMBCS(CS_Path).c_str()),
 	hList(new ListType())
 {}
 
@@ -421,8 +421,8 @@ FileList::ListItems()
 			if(YB_LIKELY(std::strcmp(dir.GetName(), FS_Now) != 0))
 				hList->push_back(std::strcmp(dir.GetName(), FS_Parent)
 					&& dir.IsDirectory() ? String(
-					string(dir.GetName()) + FS_Seperator, CP_Path)
-					: String(dir.GetName(), CP_Path));
+					string(dir.GetName()) + FS_Separator, CS_Path)
+					: String(dir.GetName(), CS_Path));
 		// TODO: Platform-dependent name converting.
 	}
 	return n;
