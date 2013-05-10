@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r281
+\version r301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-04-19 18:45 +0800;
+	2013-05-09 09:38 +0800;
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,26 +28,6 @@
 #include "YSLib/Core/ValueNode.h"
 
 YSL_BEGIN
-
-bool
-ValueNode::operator+=(const ValueNode& node)
-{
-	return CheckNodes().insert(node).second;
-}
-bool
-ValueNode::operator+=(ValueNode&& node)
-{
-	// TODO: Use %emplace.
-	return CheckNodes().insert(std::move(node)).second;
-}
-
-bool
-ValueNode::operator-=(const ValueNode& node)
-{
-	const auto p_con(GetContainerPtr());
-
-	return p_con ? p_con->erase({0, node.name}) != 0 : false;
-}
 
 const ValueNode&
 ValueNode::operator[](const string& name) const
@@ -80,6 +60,26 @@ ValueNode::CheckNodes() const
 	if(!Value)
 		Value = Container();
 	return GetContainer();
+}
+
+bool
+ValueNode::Add(const ValueNode& node) const
+{
+	return CheckNodes().insert(node).second;
+}
+bool
+ValueNode::Add(ValueNode&& node) const
+{
+	// TODO: Use %emplace.
+	return CheckNodes().insert(std::move(node)).second;
+}
+
+bool
+ValueNode::Remove(const ValueNode& node) const
+{
+	const auto p_con(GetContainerPtr());
+
+	return p_con ? p_con->erase({0, node.name}) != 0 : false;
 }
 
 

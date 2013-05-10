@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r445
+\version r448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-04-15 08:29 +0800
+	2013-05-10 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,12 +64,12 @@ GetEntryType(const string& path)
 
 	static yconstexpr const char* exts[]{
 		"txt", "c", "cpp", "h", "hpp", "ini", "xml"};
-	auto npath(IO::GetExtensionOf(path));
+	auto npath(IO::Path(path).GetExtension().GetNativeString());
 
 	for(auto& c : npath)
 		c = std::tolower(c);
 
-	const auto ext(IO::GetExtensionOf(path));
+	const auto ext(IO::Path(path).GetExtension().GetNativeString());
 
 	if(std::any_of(exts, exts + arrlen(exts), [&](const char* str){
 		return std::strcmp(ext.c_str(), str) == 0;
@@ -153,7 +153,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		dsk_up.Background = ImageBrush(FetchImage(1)),
 		dsk_dn.Background = ImageBrush(FetchImage(2)),
 		lblTitle.Text = G_APP_NAME,
-		lblPath.AutoWrapLine = true, lblPath.Text = path,
+		lblPath.AutoWrapLine = true, lblPath.Text = String(path),
 		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
 	// TODO: Show current working directory properly.
 		btnTest.Text = u"设置(X)",
@@ -188,7 +188,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
 		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click,
 		fbMain.GetViewChanged() += [this](UIEventArgs&&){
-			lblPath.Text = fbMain.GetPath();
+			lblPath.Text = String(fbMain.GetPath());
 			Invalidate(lblPath);
 		},
 		fbMain.GetSelected() += [this](IndexEventArgs&&){

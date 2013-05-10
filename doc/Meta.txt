@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r422
+\version r425
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-05-06 14:18 +0800
+	2013-05-10 04:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,10 +214,11 @@ $RESOLVED_ENVIRONMENT_ISSUE:
 	// It causes event handlers of function set in DLL cannot removed in \
 		client code simply using function name.
 	// Resoved by explicitly using symbol visibility wrapped by macros.
-* $known_issue_b402 $resolved_b402 $non_env_fix "'constexpr auto' causing \
-	[-Wunused-variable] @ G++ 4.8.0";
+* $known_issue_b402 $orig_defect $resolved_b402 $non_env_fix "'constexpr auto' \
+	causing [-Wunused-variable] @ G++ 4.8.0";
 	// Not tested in other versions.
 	// Resolved by using type name explicitly instead of 'auto'.
+	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57183 .
 
 
 $HISTORY:

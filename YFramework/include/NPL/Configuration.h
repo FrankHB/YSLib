@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r234
+\version r236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2013-01-23 16:12 +0800
+	2013-05-09 09:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,9 +88,9 @@ public:
 
 	/*!
 	\brief 从文件输入设置。
-	\since build 334
+	\since build 403
 	*/
-	friend TextFile&
+	friend YF_API TextFile&
 	operator>>(TextFile&, Configuration&);
 
 	//! \since build 344

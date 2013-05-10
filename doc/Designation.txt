@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7630
+\version r7632
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-05-06 12:38 +0800
+	2013-05-10 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1621,7 +1621,8 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 以下同一区段内，按约定顺序排列；约定同类顺序的， @6.1.5.3.1 的规则排列。
 友元类和友元模板；
 嵌套类、嵌套类模板；
- typedef 或代替 typedef 的 using 声明；
+ typedef 或代替 typedef 的 using 别名；
+ using 声明；
 静态 constexpr 数据成员；
 静态 const 数据成员；
 静态无限定数据成员；

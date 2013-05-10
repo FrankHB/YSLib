@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5548 *build 402 rev *
+\version r5548 *build 403 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-05-04 19:32 +0800
+	2013-05-10 23:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,16 +366,15 @@ $using:
 
 
 $DONE:
-r1-r?;
+r1-r16;
 
 
 $DOING:
-r8
 
 $relative_process:
-2013-05-06 +0800:
--43.0d;
-// Mercurial local rev1-rev273: r10716;
+2013-05-10 +0800:
+-44.4d;
+// Mercurial local rev1-rev275: r10748;
 
 / ...
 

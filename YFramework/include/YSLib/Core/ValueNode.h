@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1187
+\version r1214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-04-19 19:14 +0800
+	2013-05-09 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,20 +87,21 @@ public:
 	DefDeMoveAssignment(ValueNode)
 
 	//! \since build 336
-	//@{
 	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!Value)
 
-	bool
-	operator+=(const ValueNode&);
-	//@}
-	bool
-	operator+=(ValueNode&&);
+	//! \since build 403
+	//@{
+	PDefHOp(const ValueNode&, +=, const ValueNode& node) const
+		ImplRet(Add(node), *this)
+	PDefHOp(const ValueNode&, +=, ValueNode&& node) const
+		ImplRet(Add(std::move(node)), *this)
 
-	bool
-	operator-=(const ValueNode&);
-	PDefHOp(bool, -=, const string& str)
-		ImplRet(*this -= {0, str})
+	PDefHOp(const ValueNode&, -=, const ValueNode& node) const
+		ImplRet(Remove(node), *this)
+	PDefHOp(const ValueNode&, -=, const string& str) const
+		ImplRet(Remove(str), *this)
+	//@}
 	/*!
 	\brief 替换同名子节点。
 	\return 自身引用。
@@ -164,6 +165,13 @@ public:
 	size_t
 	GetSize() const ynothrow;
 
+	//! \since build 403
+	bool
+	Add(const ValueNode&) const;
+	//! \since build 403
+	bool
+	Add(ValueNode&&) const;
+
 private:
 	//! \since build 398
 	Container&
@@ -172,6 +180,13 @@ private:
 public:
 	PDefH(void, Clear, )
 		ImplExpr(Value.Clear())
+
+	//! \since build 403
+	bool
+	Remove(const ValueNode&) const;
+	//! \since build 403
+	PDefH(bool, Remove, const string& str) const
+		ImplRet(Remove({0, str}))
 };
 
 /*!

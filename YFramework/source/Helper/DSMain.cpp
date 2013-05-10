@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3042
+\version r3043
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-04-13 13:45 +0800
+	2013-05-06 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,6 +197,8 @@ TestFramework(size_t idx)
 {
 	YCL_DEBUG_PUTS(("Test beginned, idx = " + to_string(idx) + " .").c_str());
 	YCL_DEBUG_PUTS("Test ended.");
+
+	static_cast<void>(idx);
 }
 
 YSL_END_NAMESPACE(MinGW32)

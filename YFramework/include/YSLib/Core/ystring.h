@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2109
+\version r2122
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2013-04-24 00:14 +0800
+	2013-05-06 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,14 +39,10 @@ YSL_BEGIN_NAMESPACE(Text)
 /*!
 \brief YSLib 标准字符串（使用 UCS-2LE ）。
 \warning 非虚析构。
-\bug 对象构造时依赖于非线程安全、不可重入的共享状态，多线程同时构造可能得到错误的值。
 \since 早于 build 132
 */
 class YF_API String : public ucs2string
 {
-private:
-	static ucs2_t* s_str; //!< 内码转换生成字符串临时指针。
-
 public:
 	/*!
 	\brief 无参数构造：默认实现。
@@ -71,11 +67,9 @@ public:
 	\since build 281
 	*/
 	template<typename _tChar>
-	String(const _tChar* s, Encoding cp = CS_Default)
-		: ucs2string(s_str = ucsdup(s, cp))
-	{
-		std::free(s_str);
-	}
+	String(const _tChar* s, Encoding enc = CS_Default)
+		: ucs2string(MakeUCS2LEString<ucs2string>(s, enc))
+	{}
 	/*!
 	\brief 构造：使用 YSLib 基本字符串。
 	*/
@@ -94,11 +88,9 @@ public:
 	\since build 281
 	*/
 	template<typename _tChar>
-	String(const std::basic_string<_tChar>& s, Encoding cs = CS_Default)
-		: ucs2string(s_str = ucsdup(s.c_str(), cs))
-	{
-		std::free(s_str);
-	}
+	String(const std::basic_string<_tChar>& s, Encoding enc = CS_Default)
+		: String(s.c_str(), enc)
+	{}
 	inline DefDeDtor(String)
 
 	/*!

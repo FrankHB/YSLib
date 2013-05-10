@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1348
+\version r1502
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2013-05-06 13:49 +0800
+	2013-05-10 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,23 +36,23 @@ using namespace Text;
 
 YSL_BEGIN_NAMESPACE(IO)
 
-const Path Path::Now(FS_Now_X);
-const Path Path::Parent(FS_Parent_X);
+const Path Path::Now(u".");
+const Path Path::Parent(u"..");
 
 
 Path::iterator&
 Path::iterator::operator++()
 {
-	n = n == StringType::npos ? 0
-		: ptr->find_first_not_of(Slash, ptr->find(Slash, n));
+	n = n == StringType::npos ? 0 : ptr->path_string.find_first_not_of(Slash,
+		ptr->path_string.find(Slash, n));
 	return *this;
 }
 
 Path::iterator&
 Path::iterator::operator--()
 {
-	n = n == 0 ? StringType::npos
-		: ptr->rfind(Slash, ptr->find_last_not_of(Slash, n)) + 1;
+	n = n == 0 ? StringType::npos : ptr->path_string.rfind(Slash,
+		ptr->path_string.find_last_not_of(Slash, n)) + 1;
 	return *this;
 }
 
@@ -62,9 +62,10 @@ Path::iterator::operator*() const
 	if(n == StringType::npos)
 		return Path(FS_Now);
 
-	StringType::size_type p(ptr->find(Slash, n));
+	StringType::size_type p(ptr->path_string.find(Slash, n));
 
-	return ptr->substr(n, p == StringType::npos ? StringType::npos : p - n);
+	return ptr->path_string.substr(n,
+		p == StringType::npos ? StringType::npos : p - n);
 }
 
 
@@ -76,15 +77,15 @@ Path::operator/=(const Path& path)
 		{
 			if(*i == FS_Parent)
 			{
-				erase((--end()).GetPosition());
-				if(empty())
+				path_string.erase((--end()).GetPosition());
+				if(path_string.empty())
 					*this = GetRootPath();
 			}
 			else
 			{
-				*this += *i;
+				path_string += (*i).path_string;
 				if(IsDirectory())
-					*this += Slash;
+					path_string += Slash;
 				else
 					break;
 			}
@@ -102,7 +103,7 @@ Path::IsDirectory() const
 Path
 Path::GetRootName() const
 {
-	return Path(StringType(c_str(),
+	return Path(StringType(path_string.c_str(),
 		GetRootNameLength(GetNativeString().c_str())));
 }
 Path
@@ -118,27 +119,32 @@ Path::GetRootPath() const
 Path
 Path::GetRelativePath() const
 {
-	return empty() ? Path() : *begin();
+	return path_string.empty() ? Path() : *begin();
 }
 Path
 Path::GetParentPath() const
 {
-	return substr(0, (--end()).GetPosition());
+	return path_string.substr(0, (--end()).GetPosition());
 }
 Path
 Path::GetFilename() const
 {
-	return empty() ? Path() : *--end();
+	return path_string.empty() ? Path() : *--end();
 }
 Path
 Path::GetStem() const
 {
-	return Path();
+	const auto pos(path_string.rfind('.'));
+
+	return pos == String::npos
+		? Path(path_string) : Path(path_string.substr(0, pos));
 }
 Path
 Path::GetExtension() const
 {
-	return Path();
+	const auto pos(path_string.rfind('.'));
+
+	return pos == String::npos ? Path() : Path(path_string.substr(pos + 1));
 }
 
 Path&
@@ -151,24 +157,24 @@ Path::MakeAbsolute(const Path&)
 bool
 Path::NormalizeTrailingSlash()
 {
-	if(YB_UNLIKELY(empty()))
+	if(YB_UNLIKELY(path_string.empty()))
 		return false;
 
-	const bool has_trailing_slash(back() == Slash);
+	const bool has_trailing_slash(path_string.back() == Slash);
 
-	if(has_trailing_slash && size() == 1)
+	if(has_trailing_slash && path_string.size() == 1)
 		return false;
 	if(IsDirectory())
 	{
 		if(has_trailing_slash)
 			return false;
-		push_back(Slash);
+		path_string.push_back(Slash);
 	}
 	else
 	{
 		if(!has_trailing_slash)
 			return false;
-		pop_back();
+		path_string.pop_back();
 	}
 	return true;
 }
@@ -184,28 +190,10 @@ Path&
 Path::ReplaceExtension(const Path& new_extension)
 {
 //	RemoveExtension();
-	*this += new_extension;
+	path_string += new_extension.path_string;
 	return *this;
 }
 
-
-const char*
-GetFileNameOf(const_path_t path)
-{
-	if(!path)
-		return nullptr;
-
-	const char* p(strrchr(path, YCL_PATH_DELIMITER));
-
-	return p ? (*++p ? p : nullptr) : path;
-}
-string
-GetFileNameOf(const string& path)
-{
-	const string::size_type p(path.rfind(YCL_PATH_DELIMITER));
-
-	return p == string::npos ? string(path) : path.substr(p + 1);
-}
 
 string
 GetDirectoryNameOf(const string& path)
@@ -215,123 +203,6 @@ GetDirectoryNameOf(const string& path)
 	return p == string::npos ? string() : path.substr(0, p + 1);
 }
 
-string::size_type
-SplitPath(const string& path, string& directory, string& file)
-{
-	const string::size_type p(path.rfind(YCL_PATH_DELIMITER));
-
-	if(p == string::npos)
-		yunseq((directory = "", file = path));
-	else
-		yunseq((directory = path.substr(0, p + 1),
-			file = path.substr(p + 1)));
-	return p;
-}
-
-string
-GetStemOf(const string& name)
-{
-	const string::size_type p(name.rfind('.'));
-
-	return p == string::npos ? string(name) : name.substr(0, p);
-}
-
-bool
-IsStemOf(const char* str, const char* name)
-{
-	size_t t(strlen_n(str));
-
-	if(t > strlen_n(name))
-		return false;
-	return !strncmp(str, name, strlen_n(str));
-}
-bool
-IsStemOf(const string& str, const string& name)
-{
-	if(str.length() > name.length())
-		return false;
-	return !name.compare(0, str.length(), str);
-}
-
-bool
-HaveSameStems(const char* a, const char* b)
-{
-	const char *pea(GetExtensionOf(a)), *peb(GetExtensionOf(b));
-
-	if(pea - a != peb - b)
-		return false;
-	while(a < pea)
-	{
-		if(*a != *b)
-			return false;
-		yunseq(++a, ++b);
-	}
-	return true;
-}
-bool
-HaveSameStems(const string& a, const string& b)
-{
-	return GetStemOf(a) == GetStemOf(b);
-}
-
-const char*
-GetExtensionOf(const char* name)
-{
-	if(!name)
-		return nullptr;
-
-	const char* p(strrchr(name, '.'));
-
-	return p && *++p ? p : nullptr;
-}
-string
-GetExtensionOf(const string& name)
-{
-	const string::size_type p(name.rfind('.'));
-
-	return p == string::npos ? string() : name.substr(p + 1);
-}
-
-bool
-IsExtensionOf(const char* str, const char* name)
-{
-	const char* p(GetExtensionOf(name));
-
-	if(!p)
-		return false;
-	// TODO: Implementation for non-case-sensitive file names.
-	return !strcmp(str, p);
-}
-bool
-IsExtensionOf(const string& str, const string& name)
-{
-	if(str.length() > name.length())
-		return false;
-	return GetExtensionOf(name) == str;
-}
-
-bool
-HaveSameExtensions(const char* a, const char* b)
-{
-	if(!(a && b))
-		return false;
-
-	const char *pa(GetExtensionOf(a)), *pb(GetExtensionOf(b));
-
-	if(!(pa && pb))
-		return false;
-	// TODO: Implementation for non-case-sensitive file names.
-	return std::strcmp(pa, pb) != 0;
-}
-bool
-HaveSameExtensions(const string& a, const string& b)
-{
-	string ea(GetExtensionOf(a)), eb(GetExtensionOf(b));
-
-	// TODO: for non-case-sensitive file names;
-	return std::strcmp(ea.c_str(), eb.c_str()) != 0;
-//	return ucsicmp(ea.c_str(), eb.c_str());
-}
 
 int
 ChangeDirectory(const string& path)
@@ -341,20 +212,6 @@ ChangeDirectory(const string& path)
 
 	return ChangeDirectory(path.c_str());
 }
-#if 0
-// for String;
-int
-ChangeDirectory(const Path& path)
-{
-	if(YB_UNLIKELY(path.length() > YCL_MAX_PATH_LENGTH))
-		return -2;
-
-	PATHSTR p;
-
-	UCS2ToMBCS(p, path.c_str());
-	return ChangeDirectory(p);
-}
-#endif
 
 String
 GetNowDirectory()

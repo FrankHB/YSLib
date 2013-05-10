@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1409
+\version r1559
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-05-06 13:59 +0800
+	2013-05-10 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YFILESYS_H_
-#define YSL_INC_CORE_YFILESYS_H_ 1
+#ifndef YSL_INC_Core_yfilesys_h_
+#define YSL_INC_Core_yfilesys_h_ 1
 
 #include "ystring.h"
 #include <iterator>
@@ -45,8 +45,6 @@ yconstexpr const_path_t FS_Root(YCL_PATH_ROOT);
 yconstexpr const_path_t FS_Separator(YCL_PATH_SEPARATOR);
 yconstexpr const_path_t FS_Now(".");
 yconstexpr const_path_t FS_Parent("..");
-yconstexpr const ucs2_t* FS_Now_X(u".");
-yconstexpr const ucs2_t* FS_Parent_X(u"..");
 //@}
 
 
@@ -61,7 +59,7 @@ typedef GSStringTemplate<NativePathCharType>::basic_string NativeString;
 \brief 路径。
 \warning 非虚析构。
 */
-class YF_API Path : public String
+class YF_API Path
 {
 public:
 	typedef GSStringTemplate<ucs2_t>::basic_string StringType; \
@@ -101,6 +99,12 @@ public:
 		iterator(const iterator& i)
 			: ptr(i.ptr), n(i.n)
 		{}
+
+		/*!
+		\brief 间接访问。
+		*/
+		value_type
+		operator*() const;
 
 		/*!
 		\brief 迭代：向后遍历。
@@ -150,12 +154,6 @@ public:
 			return !(*this == i);
 		}
 
-		/*!
-		\brief 间接访问。
-		*/
-		value_type
-		operator*() const;
-
 		DefGetter(const ynothrow, const value_type*, Ptr, ptr)
 		DefGetter(const ynothrow, StringType::size_type, Position, n)
 	};
@@ -166,10 +164,32 @@ public:
 //	static std::locale imbue(const std::locale&);
 //	static const codecvt_type& codecvt();
 
+private:
+	//! \since build 403
+	String path_string;
+
+public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
 	inline DefDeCtor(Path)
+	Path(const ucs2_t* str)
+		: path_string(str)
+	{}
+	//! \since build 402
+	//@{
+	Path(const ucs2string& str)
+		: path_string(str)
+	{}
+	Path(ucs2string&& str)
+		: path_string(std::move(str))
+	{}
+	template<typename _type, typename = typename std::enable_if<!std::is_same<
+		typename ystdex::remove_rcv<_type>::type, Path>::value, int>::type>
+	Path(_type&& arg, Text::Encoding enc = CS_Path)
+		: path_string(yforward(arg), enc)
+	{}
+	//@}
 	/*!
 	\brief 复制构造：默认实现。
 	*/
@@ -178,19 +198,6 @@ public:
 	\brief 转移构造：默认实现。
 	*/
 	inline DefDeMoveCtor(Path)
-	Path(const ucs2_t* pathstr)
-		: String(pathstr)
-	{}
-	Path(const NativePathCharType* pathstr)
-		: String(pathstr, CS_Path)
-	{}
-	Path(const NativeString& pathstr)
-		: String(pathstr, CS_Path)
-	{}
-	template<class _tString>
-	Path(const _tString& pathstr)
-		: String(pathstr)
-	{}
 	inline DefDeDtor(Path)
 
 	/*!
@@ -208,6 +215,11 @@ public:
 	Path&
 	operator/=(const Path&);
 
+	//! \since build 403
+	DefCvt(ynothrow, String&, path_string)
+	//! \since build 403
+	DefCvt(const ynothrow, const String&, path_string)
+
 	//查询。
 	DefPred(const ynothrow, Absolute, IO::IsAbsolute(GetNativeString().c_str()))
 	DefPred(const ynothrow, Relative, !IsAbsolute())
@@ -224,7 +236,7 @@ public:
 	bool
 	HasRootName() const
 	{
-		return !GetRootName().empty();
+		return !GetRootName().path_string.empty();
 	}
 	/*!
 	\brief 判断是否有根目录。
@@ -232,7 +244,7 @@ public:
 	bool
 	HasRootDirectory() const
 	{
-		return !GetRootDirectory().empty();
+		return !GetRootDirectory().path_string.empty();
 	}
 	/*!
 	\brief 判断是否有根路径。
@@ -240,7 +252,7 @@ public:
 	bool
 	HasRootPath() const
 	{
-		return !GetRootPath().empty();
+		return !GetRootPath().path_string.empty();
 	}
 	/*!
 	\brief 判断是否有相对路径。
@@ -248,7 +260,7 @@ public:
 	bool
 	HasRelativePath() const
 	{
-		return !GetRelativePath().empty();
+		return !GetRelativePath().path_string.empty();
 	}
 	/*!
 	\brief 判断是否有父路径。
@@ -256,7 +268,7 @@ public:
 	bool
 	HasParentPath() const
 	{
-		return !GetParentPath().empty();
+		return !GetParentPath().path_string.empty();
 	}
 	/*!
 	\brief 判断是否有文件名。
@@ -264,7 +276,7 @@ public:
 	bool
 	HasFilename() const
 	{
-		return !GetFilename().empty();
+		return !GetFilename().path_string.empty();
 	}
 	/*!
 	\brief 判断是否有主文件名。
@@ -272,7 +284,7 @@ public:
 	bool
 	HasStem() const
 	{
-		return !GetStem().empty();
+		return !GetStem().path_string.empty();
 	}
 	/*!
 	\brief 判断是否有扩展名。
@@ -280,7 +292,7 @@ public:
 	bool
 	HasExtension() const
 	{
-		return !GetExtension().empty();
+		return !GetExtension().path_string.empty();
 	}
 
 	//路径分解。
@@ -310,22 +322,24 @@ public:
 	Path
 	GetParentPath() const;
 	/*!
-	\brief 取文件名。
+	\brief 取路径末尾的文件名。
 	*/
 	Path
 	GetFilename() const;
 	/*!
 	\brief 取主文件名。
+	\note 贪婪匹配。
 	*/
 	Path
 	GetStem() const;
 	/*!
 	\brief 取扩展名。
+	\note 非贪婪匹配。
 	*/
 	Path
 	GetExtension() const;
 	DefGetter(const ynothrow, NativeString, NativeString,
-		GetMBCS(CS_Path)) //!< 取本地格式和编码的字符串。
+		path_string.GetMBCS(CS_Path)) //!< 取本地格式和编码的字符串。
 
 	//取迭代器。
 	/*!
@@ -373,6 +387,13 @@ public:
 	*/
 	Path&
 	ReplaceExtension(const Path& = {});
+
+	//! \since build 403
+	void
+	Swap(Path& pth)
+	{
+		pth.path_string.swap(path_string);
+	}
 };
 
 inline bool
@@ -417,7 +438,7 @@ operator/(const Path& x, const Path& y)
 inline void
 swap(Path& x, Path& y)
 {
-	x.swap(y);
+	x.Swap(y);
 }
 
 #if 0
@@ -427,105 +448,19 @@ bool lexicographical_compare(Path::iterator, Path::iterator,
 
 
 /*!
-\brief 截取路径末尾的文件名。
-*/
-YF_API const char*
-GetFileNameOf(const_path_t);
-/*!
-\brief 截取路径末尾的文件名。
-*/
-YF_API string
-GetFileNameOf(const string&);
-
-/*!
 \brief 截取路径中的目录名并返回字符串。
 */
 YF_API string
 GetDirectoryNameOf(const string&);
-
-/*!
-\brief 截取路径中的目录名和文件名保存至字符串，并返回最后一个目录分隔符的位置。
-*/
-YF_API string::size_type
-SplitPath(const string&, string&, string&);
-
-
-/*!
-\brief 截取文件名开头的主文件名。
-\note 贪婪匹配。
-*/
-YF_API string
-GetStemOf(const string&);
-
-/*!
-\brief 对于两个字符串，判断前者是否是后者的主文件名。
-*/
-YF_API bool
-IsStemOf(const char*, const char*);
-/*!
-\brief 对于两个字符串，判断前者是否是后者的主文件名。
-*/
-YF_API bool
-IsStemOf(const string&, const string&);
-
-/*!
-\brief 判断指定两个文件名的主文件名是否相同。
-\note 忽略大小写；贪婪匹配。
-*/
-YF_API bool
-HaveSameStems(const char*, const char*);
-/*!
-\brief 判断指定两个文件名的主文件名是否相同。
-\note 忽略大小写；贪婪匹配。
-*/
-YF_API bool
-HaveSameStems(const string&, const string&);
-
-/*!
-\brief 截取文件名末尾的扩展名。
-\note 非贪婪匹配。
-*/
-YF_API const char*
-GetExtensionOf(const char*);
-/*!
-\brief 截取文件名末尾的扩展名。
-\note 非贪婪匹配。
-*/
-YF_API string
-GetExtensionOf(const string&);
-
-/*!
-\brief 对于两个字符串，判断前者是否是后者的扩展名。
-*/
-YF_API bool
-IsExtensionOf(const char*, const char*);
-/*!
-\brief 对于两个字符串，判断前者是否是后者的扩展名。
-*/
-YF_API bool
-IsExtensionOf(const string&, const string&);
-
-/*!
-\brief 判断指定两个文件名的扩展名是否相同。
-\note 忽略大小写；非贪婪匹配。
-*/
-YF_API bool
-HaveSameExtensions(const char*, const char*);
-/*!
-\brief 判断指定两个文件名的扩展名是否相同。
-\note 忽略大小写；非贪婪匹配。
-*/
-YF_API bool
-HaveSameExtensions(const string&, const string&);
 
 
 /*!
 \brief 切换路径。
 */
 inline int
-ChangeDirectory(const_path_t path)
+ChangeDirectory(const_path_t pth)
 {
-	return uchdir(path);
+	return uchdir(pth);
 }
 /*!
 \brief 切换路径。
@@ -552,9 +487,9 @@ ValidatePath(const string&);
 \since build 298
 */
 inline bool
-ValidatePath(const Path& path)
+ValidatePath(const Path& pth)
 {
-	return ValidatePath(path.GetNativeString());
+	return ValidatePath(pth.GetNativeString());
 }
 
 

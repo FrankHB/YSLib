@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r203
+\version r257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-06 16:48 +0800
+	2013-05-10 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,57 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'Core' $=
+		(
+			/ @ "class %String" $=
+			(
+				/ "simplified constructor template",
+				- $dev $lib "static member object for encoding convesion";
+				* $comp "thread-safety and reentrance on constructing"
+					$since $before b132
+			),
+			/ %'YFileSystem' $=
+			(
+				/ @ "class %Path" $=
+				(
+					/ "allowed specifying encoding" @ "constructor template",
+					/ "simplified non-template constuctors",
+					/ "public inheritance %String" -> "explicit conversion \
+						functions to %(String&, const String&),
+					+ "member function %Swap",
+					+ "fully implementation"
+						@ "member functions %(GetExtension, GetStem)"
+				),
+				- "namespace scope objects %(FS_Now_X, FS_Parent_X)",
+				- "functions %YF_API %(SplitPath, 2 HaveSameStems, \
+					2 GetExtensionOf, 2 IsExtensionOf, 2 HaveSameExtensions, \
+					GetStemOf, 2 IsStemOf, 2 GetFileNameOf)
+					// Use member functions of %Path instead.
+			),
+			/ "member functions for adding and removing nodes"
+				@ "class %ValueNode" $=
+			(
+				+ "member functions %(Add, Remove) returing %bool",
+				/ "member functions %operator(+=, -=) returning %ValueNode&"
+			)
+		),
+		/ %'YCLib'.'NativeAPI $=
+		(
+			- "object placeholder 'static int t'"
+			/ $comp DLB "reduced warning [-funused-variable]"
+		),
+		/ DLB "implementation to reduce warning [-funused-variable]"
+			@ "configuration %'release_*'" @ "function %TestFramework"
+			@ %'Helper',
+		* "missing 'YF_API'" @ "friend function %operator>>"
+			@ %'NPL'.'Configuration' $since b362
+	)
+),
+
+b402
 (
 	/ %'YFramework' $=
 	(
@@ -115,7 +166,10 @@ b401
 		+ "pararrel compiling support" @ "makefile commands" @ "platform %DS"
 	),
 	/ $build "headers of library %freetype" @ "project %YFramework"
-		>> "%3rdparty/include" ~ "directory %YFramework/include"
+		>> "directory %3rdparty/include" ~ "directory %YFramework/include"
+		// It is required to put the directory "3rdpraty" into the header \
+		//	searching path by user, since FreeType2 headers are explicitly \
+		//	included by header "YSLib/Adaptor/Font.h".
 ),
 
 b400

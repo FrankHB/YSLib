@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r492
+\version r493
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2013-05-05 20:35 +0800
+	2013-05-06 18:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,8 +36,6 @@ using namespace CHRLib;
 
 namespace
 {
-
-static int t; //object file place holder;
 
 }
 
