@@ -65,6 +65,10 @@ using platform::WaitForInput;
 using platform::YDebugSetStatus;
 
 
+//! \since build 404
+yconstexpr size_t Image_N(6);
+
+
 /*!
 \brief 全局资源清理。
 \since build 400

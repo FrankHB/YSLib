@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r7632
+\version r7633
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-05-10 14:58 +0800
+	2013-05-11 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1091,7 +1091,7 @@ Shell 和 Core 的关系是相对的，例如：
 以下节指定 YFramework 中明确或明确禁止依赖的文件。关于 YBase 的文件依赖性参见 @5.2.1.2 。
 
 @2.9.1 基本代码依赖性（适用于 YFramework 内部）：
- YSLib 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。
+ YSLib 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。必要文件必须被 YFramework 内的至少一个其它文件依赖。
 关于 ISO C++ 2011 直接指定的依赖项，参考 [Documentation::CommonRules @@5.25.2] 。
 以下为基本代码依赖性规则（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
 除非另有说明，禁止依赖于（包括包含）非头文件。

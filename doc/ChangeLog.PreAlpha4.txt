@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r257
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-10 23:44 +0800
+	2013-05-11 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,22 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YReader'.'shell' $=
+	(
+		/ "widget layout",
+		- "touch screen desktop background image",
+		!^ DLD "magic number of image pointer array size"
+	),
+	(
+		+ "access history model template class %GAccessList"
+			@ %'YFramework'.'YSLib'.'Service';
+		/ $dev "simplified implementation" @ "reading list"
+			@ %'YReader'.'text reader'
+	)
+),
+
+b403
 (
 	/ %'YFramework' $=
 	(

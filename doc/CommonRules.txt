@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2183
+\version r2184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-05-09 09:09 +0800
+	2013-05-12 08:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -687,6 +687,7 @@
 注意返回 bool 类型的获取器是谓词(@3.11.2) 。因此含义清楚时，排除元编程用途的谓词可以专指返回ool 类型的获取器。
 
 @4 基于类 C 语言的标识符命名规约(naming convention) ：
+标识符的长度应不大于 ISO C++ Annex B 约定的实现支持的标识符包含字符数的最小值 1024 。
 以下是默认风格标识符的命名规则和约定。
 
 @4.1 通用指引：

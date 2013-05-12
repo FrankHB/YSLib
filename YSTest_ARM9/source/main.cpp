@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1720
+\version r1725
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-04-20 18:19 +0800
+	2013-05-11 08:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,11 +238,12 @@ main()
 			//platform::YDebugSetStatus(false);
 			{
 				using namespace YSLib::UI;
+				using YReader::Image_N;
 
 				Desktop dsk_up(app.GetScreenUp()), dsk_dn(app.GetScreenDown());
 				Label lblTitle({50, 20, 100, 22}), lblStatus({60, 80, 120, 22}),
 					lblDetails({30, 20, 160, 22});
-				ProgressBar pb({8, 168, 240, 16}, 10);
+				ProgressBar pb({8, 168, 240, 16}, Image_N);
 
 				AddWidgets(dsk_up, lblTitle, lblStatus, pb);
 				dsk_dn += lblDetails;
@@ -261,16 +262,16 @@ main()
 				yunseq(dsk_up.Validate(), dsk_dn.Validate());
 				dsk_up.Update(), dsk_dn.Update();
 				//初始化所有图像资源。
-				for(size_t i(0); i < 10; ++i)
+				for(size_t i(0); i < Image_N; ++i)
 				{
 					pb.SetValue(i);
 			//		Invalidate(pb);
 					dsk_up.Background
-						= SolidBrush(Color(255 - i * 255 / 10, 216, 192));
+						= SolidBrush(Color(255 - i * 255 / Image_N, 216, 192));
 					Repaint(dsk_up);
 					YReader::FetchImage(i);
 				}
-				pb.SetValue(10);
+				pb.SetValue(Image_N);
 				Repaint(dsk_up);
 			}
 			Execute(app, make_shared<YReader::ShlExplorer>());

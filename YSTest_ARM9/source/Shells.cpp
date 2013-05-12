@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6287
+\version r6289
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-04-20 18:15 +0800
+	2013-05-12 08:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ using namespace Drawing::ColorSpace;
 void
 Cleanup()
 {
-	for(size_t i(0); i != 10; ++i)
+	for(size_t i(0); i != Image_N; ++i)
 		FetchGlobalImage(i).reset();
 	GlobalResourceMap.clear();
 	ReleaseStored<ShlReader>();
@@ -92,7 +92,7 @@ Cleanup()
 shared_ptr<Image>&
 FetchImage(size_t i)
 {
-	static Color(*const p_bg[10])(SDst, SDst){nullptr,
+	static Color(*const p_bg[Image_N])(SDst, SDst){
 		[](SDst x, SDst y)->Color{
 			return {~(x * y) >> 2, x | y | 128, 240 - ((x & y) >> 1)};
 		},

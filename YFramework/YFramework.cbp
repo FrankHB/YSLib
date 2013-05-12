@@ -196,6 +196,7 @@
 		<Unit filename="include/YSLib/Core/yshell.h" />
 		<Unit filename="include/YSLib/Core/ystorage.hpp" />
 		<Unit filename="include/YSLib/Core/ystring.h" />
+		<Unit filename="include/YSLib/Service/AccessHistory.hpp" />
 		<Unit filename="include/YSLib/Service/CharRenderer.h" />
 		<Unit filename="include/YSLib/Service/TextBase.h" />
 		<Unit filename="include/YSLib/Service/TextLayout.h" />

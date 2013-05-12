@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r448
+\version r463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-05-10 23:16 +0800
+	2013-05-12 07:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,10 +124,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
 	: ShlDS(h_dsk_up, h_dsk_dn),
 	lblTitle({16, 20, 220, 22}), lblPath({8, 48, 240, 48}),
-	lblInfo({8, 100, 240, 64}), fbMain({4, 6, 248, 128}),
-	btnTest({115, 165, 65, 22}), btnOK({185, 165, 65, 22}),
-	btnMenu({4, 165, 72, 22}), pnlSetting({10, 40, 224, 136}),
-	cbHex({142, 142, 103, 18}), cbFPS({10, 90, 73, 18}),
+	lblInfo({8, 100, 240, 64}), fbMain({0, 0, 256, 152}),
+	btnTest({128, 170, 64, 22}), btnOK({192, 170, 64, 22}),
+	btnMenu({0, 170, 72, 22}), pnlSetting({10, 40, 224, 136}),
+	cbHex({166, 156, 90, 13}), cbFPS({10, 90, 73, 18}),
 	cbPreview({10, 110, 115, 18}), lblDragTest({4, 4, 104, 22}),
 	btnEnterTest({8, 32, 104, 22}), btnTestEx({48, 60, 156, 22}),
 	btnPrevBackground({114, 90, 30, 22}),
@@ -147,11 +147,13 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	//启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
+	cbHex.SetRenderer(make_unique<BufferedRenderer>()),
 	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(*pFrmAbout, false),
 	yunseq(
-		dsk_up.Background = ImageBrush(FetchImage(1)),
-		dsk_dn.Background = ImageBrush(FetchImage(2)),
+		dsk_up.Background = ImageBrush(FetchImage(0)),
+		dsk_dn.Background = SolidBrush(
+			FetchGUIState().Colors[Styles::Panel]),
 		lblTitle.Text = G_APP_NAME,
 		lblPath.AutoWrapLine = true, lblPath.Text = String(path),
 		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
@@ -178,7 +180,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		btnPrevBackground.Text = u"<<",
 		btnNextBackground.Text = u">>",
 		fbMain.SetPath(path),
-		cbHex.Background = SolidBrush(Color(0xFF, 0xFF, 0xE0)),
 		Enable(btnTest),
 		Enable(btnOK, false),
 		Enable(btnPrevBackground, false),
@@ -295,15 +296,14 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			auto& dsk_up(GetDesktopUp());
 			auto& dsk_dn(GetDesktopDown());
 
-			if(up_i > 1)
+			if(up_i > 0)
 			{
 				--up_i;
 				Enable(btnNextBackground);
 			}
-			if(up_i == 1)
+			if(up_i == 0)
 				Enable(btnPrevBackground, false);
-			yunseq(dsk_up.Background = ImageBrush(FetchImage(up_i)),
-				dsk_dn.Background = ImageBrush(FetchImage(up_i + 1)));
+			dsk_up.Background = ImageBrush(FetchImage(up_i));
 			CheckBackgroundPreview(cbPreview, up_i, up_i + 1);
 			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);
@@ -319,8 +319,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			}
 			if(up_i == 5)
 				Enable(btnNextBackground, false);
-			yunseq(dsk_up.Background = ImageBrush(FetchImage(up_i)),
-				dsk_dn.Background = ImageBrush(FetchImage(up_i + 1)));
+			dsk_up.Background = ImageBrush(FetchImage(up_i));
 			CheckBackgroundPreview(cbPreview, up_i, up_i + 1);
 			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);

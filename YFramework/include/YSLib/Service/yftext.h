@@ -11,13 +11,13 @@
 /*!	\file yftext.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r772
+\version r774
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2013-05-06 14:01 +0800
+	2013-05-11 07:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YFTEXT_H_
-#define YSL_INC_CORE_YFTEXT_H_ 1
+#ifndef YSL_INC_Service_yftext_h_
+#define YSL_INC_Service_yftext_h_ 1
 
 #include "yfile.h"
 #include "../Adaptor/ycont.h" // for string;

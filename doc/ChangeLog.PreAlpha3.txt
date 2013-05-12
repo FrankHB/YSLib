@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3637
+\version r3640
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-05-10 23:45 +0800
+	2013-05-12 07:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,8 @@ b395
 (
 	/ %'YReader' $=
 	(
-		/ "reused desktop memory to avoid allocation failure" @ "shells";
+		/ $workaround "reused desktop memory to avoid allocation failure"
+			@ "shells";
 		* "memroy allocation failure caused abnormal exit"
 			@ "debug configuration" @ "platform %DS" $since b391,
 		* "invalid use of result out of full expression for %string::c_str"
@@ -1401,7 +1402,7 @@ b360
 		/ $dev "background initialization" ^ "lambda expressions",
 			// Some worse performance compiled by G++, but the code is cleaner.
 		/ "FPS showing" @ "down screen" >> "up screen",
-		/ "menu test" @ "panel" >> "down desktop"
+		/ "menu test" @ "panel" >> "touch screen desktop"
 	)
 ),
 

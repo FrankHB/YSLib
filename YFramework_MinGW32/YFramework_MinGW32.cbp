@@ -240,6 +240,7 @@
 		<Unit filename="../YFramework/include/YSLib/Core/yshell.h" />
 		<Unit filename="../YFramework/include/YSLib/Core/ystorage.hpp" />
 		<Unit filename="../YFramework/include/YSLib/Core/ystring.h" />
+		<Unit filename="../YFramework/include/YSLib/Service/AccessHistory.hpp" />
 		<Unit filename="../YFramework/include/YSLib/Service/CharRenderer.h" />
 		<Unit filename="../YFramework/include/YSLib/Service/TextBase.h" />
 		<Unit filename="../YFramework/include/YSLib/Service/TextLayout.h" />

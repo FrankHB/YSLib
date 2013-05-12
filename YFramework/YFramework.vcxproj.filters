@@ -704,6 +704,9 @@
     <ClInclude Include="include\CHRLib\Convert.hpp">
       <Filter>头文件\CHRLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Service\AccessHistory.hpp">
+      <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
