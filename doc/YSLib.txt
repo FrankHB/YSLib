@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1378
+\version r1908
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-04-20 17:36 +0800
+	2013-05-18 04:17 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,658 @@
 单独一行“//[”表示引用文本段落起始；单独一行“//]”表示引用文本段落终止。
 本文档适用于 YSLib 。
 
-@1 Shell 消息列表：
+@1 YSLib 库实现约束、组成和架构：
+关于显式外部依赖项股则，参见 [Documentation::Designation @@4.1] 。
+关于具体的外部依赖项，参见 [Documentation::Designation @@7] 。
+
+@1.1 名称和命名空间规则：
+名称使用前提约束：参见 [Documentation::CommonRules @@7.2] 。
+关于文件名和目录名，参见 [Documentation::ProjectRules @@5.4] 。
+
+@1.1.1 源代码一般规则：
+使用嵌套命名空间，避免过长的标识符命名。
+一个单元可能有多个命名空间。
+一个命名空间可能在多个单元中。
+
+@1.1.2 头文件附加准则：
+禁止在头文件中使用未命名命名空间(unnamed namespace) ，除非其中仅含 inline 函数和模板或需要和每一个翻译单元独立地相关的对象。
+禁止在头文件中使用全局 using 指示，除非是有意的（例如减少别名个数；需在文档中说明）。
+
+@1.1.3 全局名称：
+ YSLib 库的根命名空间为 YSLib ，应置于全局命名空间中，即为 ::YSLib 。
+根据平台特性增设全局对象的定义位于 YSLib 外部 Helper 库的 YGlobal([Documentation::Designation @@7.5]) 中。
+
+@1.1.4 特定引用规则：
+ YSLib 默认显式依赖于库 YCLib ，可声明 YCLib 中的名称。具体由适配器系统(@1.6) 决定。
+
+@1.1.5 命名空间分配：
+ YSLib::Devices ：设备抽象。
+ YSLib::Drawing ：图形处理。
+ YSLib::Messaging ：消息机制。
+ YSLib::Host ：宿主环境支持，仅在宿主实现的 Helper 库([Documentation::Designation @@7.5]) 使用 。
+ YSLib::IO ：输入/输出管理。
+ YSLib::Shells ：Shell 抽象层。
+ YSLib::Text ：文本相关的服务。
+ YSLib::Timers ：计时器服务。
+ YSLib::UI ：用户界面。
+ YSLib::UI::Styles ：用户界面样式定制。
+
+@1.1.6 名称引用限制：
+除 Adaptor 外， YSLib 命名空间下不直接使用 YSLib 、 std 和 ystdex 以外的根命名空间以及其中的名称；不直接使用 std::tr1 及其中的名称。
+不使用除了 operator new 、 operator new[] 、 operator delete 、 operator delete[] 和 main 以外的全局命名空间中的名称。
+
+@1.1.7 附加名称限制：
+不在 Adaptor 和 Helper 等确定可以使用平台相关的代码以外区域使用环境、编译器和版本判断宏。
+
+@1.2 YSLib 头文件依赖性：
+本节描述 YSLib 和外部依赖项之间以及 YSLib 内部的头文件包含关联。
+
+@1.2.1 引入自 C 标准库的 C++ 标准库头文件依赖项：
+不在本体的必要文件中显式包含，除了以下例外：
+ "ydaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
+
+@1.2.2 不在本体中显式包含，需要在 "Adaptor/ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
+ <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和  <vector>。
+例外：同时需要使用容器和限定标准库类型时：
+ "yexcept.h" 包含 <string> （鉴于复用标准库异常需要的参数类型 std::string 不一定是 "ycont.h" 配置的类型）。
+
+@1.2.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
+ <algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
+ "yadaptor.h" 需要保证 <bitset> 和 <initializer_list> 被包含。
+
+@1.2.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
+基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件及唯一在其中声明的接口（但 Adaptor 可能会间接依赖）：
+ <fstream> 、 <iomanip> 、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
+其它要点参见 [Documentation::CommonRules @@5.22] 。
+
+@1.2.5 本体的头文件中显式包含的 C++ 标准库依赖项：
+ "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
+ "Core/yfunc.hpp" 包含 <functional> 和 <typeinfo> ；
+ "Service/ytimer.h" 包含 <chrono> 。
+其它： <iterator> 。
+
+@1.2.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
+ <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 、 <typeindex> 和 <valarray> 。
+
+@1.2.7 本体头文件对 YBase 依赖性：
+ "yblit.h" 依赖于 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
+
+@1.2.8 内部头文件依赖性：
+ Core 的头文件仅包含 Adaptor 或 Core 的头文件。
+ Adaptor 的头文件依赖于 Core 的 "ybasemac.h" 。
+实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
+在 Core 中，以下依赖关系对于头文件包含是确定的：
+ "ybasemac.h" 不依赖于任何其它文件；
+ "ysdef.h" 依赖于 Adaptor 的 "yadaptor.h" 和 "yref.hpp" ；
+除了 "ybasemac.h" 和 "ysdef.h" 外都直接或间接依赖于 "ysdef.h"；
+ "yobject.h" 依赖于 "ycutil.h" 和 "yexcept.h" ；
+ "ystring.h" 、 "ymsg.h" 依赖于 "yobject.h" ；
+ "ystring.h" 依赖于 Adaptor 的 "YTextBase.h" ；
+ "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.hpp" ；
+ "ymsgdef.h" 依赖于 "ymsg.h" ；
+ "yshell.h" 依赖于 "ymsgdef.h" ；
+ "yfilesys.h" 依赖于 "ystring.h"；
+ "yapp.h" 依赖于 "yfilesys.h" 和 "yshell.h" 。
+在 Service 中，以下依赖关系对于头文件包含是确定的：
+ "ytimer.h" 依赖于 Core 的 "ysdef.h" ；
+ "yblit.h" 、 "ydraw.h" 和 "ygdi.h" 依赖于 Core 的 "ygdibase.h" ；
+ "yblit.h" 依赖于 Core 的 "ycutil.h" ；
+在 UI 中，以下依赖关系对于头文件包含是确定的：
+ "ycomp.h" 依赖于 Core 的 "ygdibase.h" 、 "yfunc.hpp" 和 "ysmsgdef.h" 以及 Adaptor 的 "ycont.h" ；
+ "yfocus.hpp" 依赖于 "ycomp.h" ；
+ "yrender.h" 依赖于 "ycomp.h" 和 Service 的 "ygdi.h" ；
+ "ystyle.h" 依赖于 "ycomp.h" 和 Service 的 "ydraw.h" ；
+ "ywgtview.h" 依赖于 "ycomp.h" ；
+ "ywgtevt.h" 依赖于 "ycomp.h" 和 Core 的 "yevt.hpp" ；
+ "YBrush.h" 依赖于 "ywgtview.h" 和 Service 的 "yres.h" ；
+ "ywidget.h" 依赖于 "yfocus.hpp" 和 "ywgtview.h" ；
+ "ygui.h" 依赖于 "ywgtevt.h" 、 "ystyle.h" 和 Service 的 "ytimer.h" ；
+ "yuicont.h" 依赖于 "ywidget.h" ；
+ "ycontrol.h" 依赖于 "ywidget.h" 和 "ywgtevt.h" ；
+ "ypanel.h" 依赖于 "ycontrol.h" 和 "yuicont.h" ；
+ "ywindow.h" 依赖于 "ypanel.h" 和 Service 的 "yres.h" ；
+ "ydesktop.h" 依赖于 "ywindow.h" 、 "yrender.h" 和 Core 的 "ydevice.h" 。
+在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
+
+@1.3 YSLib 可重入性和线程安全性：
+一般规则参见 [Documentation::Designation @@1.4.1.4] 。
+ YSLib 的可重入性和线程安全性参见 @2 、 @2.2 和 @3.1 。
+
+@2 YSLib 适配器(Adaptor) ：
+位于 "/Adaptor" 。
+负责衔接和封装外部库，便于移植。
+除了 C++ 标准库以外，其它外部库的名称需要在此声明。
+直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
+除非另有说明，仅保证必要文件(@2.1.1) 提供接口中的可重入性和线程安全性同本体(@2.1) 。
+
+@2.1 外部库关联 YAdaptor ：
+默认行为如下：
+包含 "ynew.h" ，引入平台设置和存储调试设施(@2.2) 。
+包含 YBase 依赖项(@5) <ystdex/functional.hpp> 和 <ystdex/utility.hpp> 。
+包含 <YCLib/ycommon.h> 、 <YCLib/FileSystem.h> 和 <YCLib/Video.h> 。
+包含 CHRLib (@5.4.1) （<CHRLib/chrlib.h>）。
+在 YSLib 命名空间 using 引用必要的名称。
+
+@2.2 内存调试设施 YNew ：
+默认包含编译配置、平台支持文件 <Platform.h>(@5.2.2.3.1) 和通用基础设施(@3.1) 。
+定义宏 YSL_USE_MEMORY_DEBUG 后（默认 debug 配置在 "config.h" 有此定义）可以使用 "ynew.h" 声明的宏和类进行内存调试。
+重载全局 operator new 和 operator delete 可以用于用户程序调试（ YSLib 中默认并不使用）。
+ MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定义了一个函数内静态对象，用函数 GetDebugMemoryList 取此对象引用获得默认调试内存信息。
+可以用宏 ynew 代替 new/new[] ， ydelete 代替 delete ， ydelete_array 代替 delete[] ，配合 GetDebugMemoryList 检测内存泄露以及重复释放错误；但不适于智能指针，因为未使用 ydelete 和 ydelete_array 。
+ YNew 的接口不保证可重入性，暂时不支持线程安全性。
+
+@2.3 引用对象 YReference ：
+在 "yref.hpp" 中声明智能指针等引用对象类型。
+可以包装 Loki 或 std::tr1 指针智能等实现。
+ YSLib 早期包装 Loki 指针实现句柄；
+ build 208 起包装 ISO C++11 标准库智能指针实现；
+ build 210 开始直接使用 ISO C++11 标准库智能指针作为句柄。
+
+@2.4 平台无关的字体缓存库 Font ：
+基本接口平台无关，但可能提供平台相关的扩展接口，实现也是平台相关的，因此在 Adaptor 中。
+
+@3 YSLib 本体：
+
+@3.1 核心构件系统：
+通称 Core ，位于 "/Core" 。
+除了核心定义 YSDefinition 以外，主要包含以下几大部分：
+不依赖于其它任何头文件的通用基础设施 YBaseMacro ：定义了各种基础平台无关的宏，用于简化代码等；
+核心实用模块 YCoreUtilities ；
+平台无关的基础对象 YObject ；
+对象计数器 YCounter；
+函数对象封装 YFunc ；
+异常处理模块 YException ；
+基础字符串管理 YString ；
+平台无关的基础图形学对象 YGDIBase ；
+平台无关的设备抽象层 YDevice ；
+事件回调 YEvent ；
+消息处理 YMessage ；
+标准 Shell 消息列表 YMessageDefinition ；
+全局静态类型存储管理 YStatic ；
+平台无关的文件处理系统 YFileSystem ；
+ Shell 定义 YShell ；
+系统资源和应用程序实例抽象 YApplication 等。
+
+@3.1.1 核心实用模块 YCoreUtilities
+
+@3.1.2 平台无关的基础对象 YObject
+
+@3.1.3 对象计数器 YCounter
+
+@3.1.4 函数对象封装 YFunc
+
+@3.1.5 异常处理模块 YException ：
+标准库异常类以外， YSLib 仅使用派生自 YSLib::Exceptions::Exception 异常类。
+以下是 YSLib 命名空间中一般的异常类列表：
+ YException 单元中：
+ Exception ：YSLib 异常基类。
+ GeneralEvent ：一般异常事件类。
+ LoggedEvent ：记录异常事件类。
+
+@3.1.6 基础字符串管理 YString
+通用字符串抽象以及相关 API 。
+
+@3.1.7 平台无关的基础图形学对象 YGDIBase ：
+
+@3.1.7.1 基本屏幕对象：
+用于实现二维输出设备参照坐标系([Documentation::Designation @@1.5.2.1]) 。
+ YSLib 默认使用整数分量坐标，类型为 SPos （平台相关的有符号整数类型），绝对值类型为 SDst （宽度与 SPos 相同的无符号整数类型）。
+以此为基础进一步定义了 Point 、 Vec 、 Size 和 Rect 等基本屏幕对象类。
+ Point 和 Vec 为 SPos 二元组，具有不同的相关运算集。
+ Size 为 SDst 二元组。
+ Rect 为标准矩形([Documentation::Designation @@1.5.2.3]) ，即边和屏幕坐标系共线的矩形；使用 Point 表示左上角， Size 表示长和宽。
+
+@3.1.7.2 二维图形接口上下文：
+表示图形缓冲区及其大小的类。
+图形缓冲区指针以 YCLib 定义类型 BitmapPtr 表示。
+不对缓冲区具有所有权。
+
+@3.1.7.3 绘制上下文：
+用于保存绘制信息的结构体，包含渲染目标、参考位置和剪切区域。
+渲染目标是被渲染对象的光栅化直接关联的图形接口上下文。
+参考位置指定渲染目标关联的参考点的位置的偏移坐标。如无额外说明，选取渲染目标左上角为原点的屏幕坐标系。
+剪切区域是相对于图形接口上下文的标准矩形，指定需要保证被刷新的边界区域。如无额外说明，剪切区域的位置坐标选取渲染目标左上角为原点的屏幕坐标系。
+
+@3.1.8 平台无关的设备抽象层 YDevice ：
+位于命名空间 Devices 中。
+
+@3.1.8.1 设备基类：
+ GraphicDevice 是输出设备基类。
+
+@3.1.8.2 物理设备：
+ Screen 由 GraphicDevice 派生，是二维屏幕的抽象。
+
+@3.1.8.3 虚拟设备：
+
+@3.1.8.3.1 桌面：
+桌面是大小和对应输出屏幕相等的窗口（参见 @3.3.1.2.4 ），默认实现为 UI::Desktop 类，除了 YShellDefinition 的前向声明，并非位于 Core 。
+
+@3.1.9 事件回调 YEvent ：
+实现事件。
+用户界面事件参数基类 UIEventArgs ，可从这个类派生自定义参数类。
+除此之外，默认提供以下参数类：
+ ScreenPositionEventArgs ，屏幕事件参数类。
+ InputEventArgs ，输入事件参数模块类。
+ TouchEventArgs ，指针设备输入事件参数类。
+ KeyEventArgs ，键盘输入事件参数类。
+以下用模板定义用于事件处理机制的接口和实现类：
+事件处理器接口模板 GIHEvent ，提供两个参数的 operator() 抽象方法。
+事件处理器模板 GHEvent ，标准版 HEvent ；基于 Function 和 list 实现。
+事件模板 GEvent 为多播版本。（单播版本已被移除。）
+事件依赖项模板 GDependencyEvent ；基于 YObject 单元中的类模板 GDependency 实现共享事件以节约空间。
+事件包装类 GEventWrapper ；实现基于复杂性考虑，直接使用 GEvent 而不是 GDependencyEvent 的实例。
+事件映射表模板 GEventMap ，映射特定的枚举 ID 到 GEventWrapper 模板实例。
+
+@3.1.9.1 YSLib 标准事件处理实现概述：
+仅实现同步事件。
+相关概念说明参见 [Documentation::CommonRules @@2.5.1.1] 。
+
+@3.1.9.1.1 单播版本（自 build 204 起被移除）：
+添加事件订阅和移除事件订阅的时间复杂度为 O(1) ，同普通的函数指针赋值。调用事件处理器的时间复杂度为 O(1) ，同普通的函数指针调用。
+
+@3.1.9.1.2 多播版本：
+使用 std::list 实现的函数对象队列。
+调用链维持稳定的顺序（和订阅顺序相同）。
+对于重复的事件订阅，允许存在多个实例；也可以在添加时指定仅保留一个实例（移至调用链末尾）。
+事件处理器调用顺序由调用链决定。
+对于调用链长 n ，添加事件订阅、移除事件订阅、调用事件处理器复杂度相对每个事件处理器调用为 O(n) 。
+每个事件处理器调用复杂度同单播版本。
+
+@3.1.10 消息处理 YMessage ：
+
+@3.1.10.1 消息：
+在命名空间 YSLib::Messaging 中。
+消息类型是 Message 类；
+决定消息种类的消息主标识是唯一的，简称为消息标识，它的类型为 ID（本质上是无符号整数）；
+库中的 "/Core/ymsgdef.h" 文件预定义了一些消息标识。覆盖这些标识的最小连续区间称为系统消息标识区间。
+用户可自定义新的标识（用户自定义消息标识），但不应和原有定义冲突。由于为宏定义实现，可以使多个标识名对应一个实际的标识，但反之无法实现。
+应尽可能保持所有用户自定义消息标识在系统消息标识区间之外。
+消息的处理的具体实现取决于用户。
+
+@3.1.10.2 消息队列：
+消息队列类型是 MessageQueue 类，在逻辑上是一个优先队列。
+使用多重集作为消息队列的内部容器实现。
+第一优先级为 unsigned char 型变量。
+
+@3.1.10.2.1 自 build 216 起过时的特性：
+为了适应不支持 std::clock() 的平台，用消息实例构造时的计数标识代替产生时间作为第二优先级。
+
+@3.1.10.3 消息分派：
+ Shell 消息分派实质上是双分派。
+由于需要实现运行时可切换的 Shell 来处理不同的消息，以及消息携带语义但并不决定处理逻辑，分派由 Shell 的实现决定。
+因此 Shell 类需要是多态类；而消息类不需要是多态类，需要消息标识，且和其它大多数框架不同，默认必须指定的标识数较少。
+
+@3.1.10.4 消息循环：
+重复获取、分派并处理消息的程序逻辑称为消息循环。
+消息循环总体通常使用默认的消息队列，但由于逻辑上并不总是需要异步操作，也可以使用立即处理非队列消息来提高运行时性能。
+
+@3.1.11 标准 Shell 消息列表 YMessageDefinition
+ SM_SET 消息指示 Shell 切换。通过重写 SM_SET 消息处理函数可以控制 Shell 切换前和切换后的行为。
+消息的详细列表参见 @4 。
+
+@3.1.12 全局静态类型存储管理 YStatic
+
+@3.1.13 平台无关的文件处理系统 YFileSystem
+
+@3.1.14 Shell 定义 YShell
+
+@3.1.15 系统资源和应用程序实例抽象 YApplication
+
+@3.2 服务系统：
+位于 "/Service" 。
+对以上组成部分提供内部和外部的常用功能的实现与封装。
+提供辅助性接口供用户程序使用。
+
+@3.2.1 计时器服务 YTimer
+
+@3.2.2 图形库
+
+@3.2.2.1 平台无关的图形设备接口 YGDI
+
+@3.2.2.2 平台无关的二维图形光栅化 YDraw
+
+@3.2.2.3 平台无关的图像块操作 YBlit
+
+@3.2.3 基础文本显示：
+通用的字符/字符串光栅化处理。字符串本身的逻辑处理在 Core::YString 中，而不在此处。
+
+@3.2.3.1 文本基础抽象 TextBase ：
+包含笔样式 PenStyle 、文本状态 TextState 等。
+
+@3.2.3.2 字符渲染 CharRenderer ：
+单一字符渲染的例程。
+
+@3.2.3.3 文本渲染 TextRenderer ：
+文本渲染器和批量文本（字符串、行等）渲染。
+
+@3.2.3.4 文本布局 TextLayout ：
+提供文本相关位置和大小等布局计算。
+
+@3.2.4 应用程序资源管理模块 YResource
+
+@3.2.5 文件抽象
+
+@3.2.5.1 平台无关的文件抽象 YFile
+
+@3.2.5.2 平台无关的文本文件抽象 YFile_(Text)
+
+@3.2.6 扩展服务
+
+@3.2.6.1 文本管理类 TextManager
+
+@3.3 组件和界面系统：
+位于 "/UI" 。
+包含基本的部件/控件抽象、图形界面中较常用绘图例程以及样式管理。
+更基本的图形抽象、绘图/图像处理例程和图像资源管理则来自于 Core::YGDIBase 、 Service::YGDI 和 Service::YResource 。
+组件 (Component) 是具有一定相互联系的功能集合单元。
+组件类是非抽象类，默认基类为 YComponent ，继承自 YCountableObject，可以引用方式作为参数传递。
+组件对 GUI 对象进行直接支持。包含部件和控件类：
+具有基本屏幕输出效果，实现了部件接口 IWidget 的类，称为部件(Widget) 类；
+具有基本屏幕输出效果和公共事件响应能力的部件类，称为控件(Control) 类。
+部件仅仅负责 Shell 直接和 UI 相关的部分，默认不包含任何消息处理。
+消息应被其从属的 Shell 消息处理过程截获并进行处理。
+特定的控件行为由专用公共控制器(@3.3.1.2.3.2) 控制。
+其它组件行为原则上直接由 Shell 消息处理过程控制，以避免消息转发带来的开销。
+
+@3.3.1 用于 GUI 的对象特性：
+
+@3.3.1.1 视图组织：
+默认为视图树，其中的节点实现了 IWidget 接口(@3.3.1.2.1) 。
+ IWidget 支持向上（父节点指针）和向下（子节点迭代器范围）访问视图树中与之直接关联的节点。
+ Desktop 作为默认视图树的默认根节点类型。
+
+@3.3.1.2 类组织：
+
+@3.3.1.2.1 部件接口 UI::IWidget ：
+ IWidget 除了支持访问视图树关联节点(@3.3.1.1) 外，还包括对部件内部的架构实现代理(@3.3.1.2.1) 的相关操作。所有虚方法可以在容器中重载实现。
+功能说明和其它描述参见 @3.3 、 @3.3.1.2.4 。
+
+@3.3.1.2.2 继承：
+ GUI 构件相关参见 @3.3.1.2.4 。
+视图类、渲染器、控制器分别进行继承。
+为了避免虚继承无法静态转换类型以及带来的运行时开销，所有继承除混入(@2.4.6) （一般使用 protected 继承）外都是 public 单继承。
+
+@3.3.1.2.3 部件架构实现代理：
+包括视图、控制器、渲染器等，包含在 IWidget 的实现类中，需要实现运行时的代理对象访问以及渲染器的设置。
+
+@3.3.1.2.3.1 视图：
+默认视图类 UI::View ，由基类 UI::Visual 提供基本的视图属性，并包含了焦点。
+
+@3.3.1.2.3.2 专用公共控制器：
+默认实现的专用公共控制器基类是 AController 。
+ AController 使用事件机制(@3.3.2) 提供控制（在运行期加载供回调的函数）。
+
+@3.3.1.2.3.3 渲染器：
+参见 @3.3.5.2.1 。
+
+@3.3.1.2.4 主要 GUI 元素的具体类：
+部件是实现了 IWidget 接口的类，是基本的 GUI 对象类。
+部件容器是包含子部件的部件，是一般化的组件容器，它能以可视化方式处理其包含的部件（例如顺序显示）。部件树的非叶节点是部件容器。
+和部件树的抽象结构不同，部件类保存指向容器的指针，而容器是否保存的子部件指针由具体容器（部件派生类）的实现决定。
+应重写成员方法 GetChildren 以便保证部件树节点遍历的正确行为。
+控件是使用非空控制器的具有事件响应特性的部件，默认继承 YControl 单元中提供的 Control 类实现。
+窗口是继承 Window 类的类，是一种具有背景显示功能的部件容器。
+窗体（基类为 Form ）是增加了客户区布局管理的标准窗口。
+默认组件中，除继承自窗口的组件（基类为 Frame ，缓冲区继承自类 BitmapBuffer ）外，所有部件默认不带显示缓冲区。实际使用时可以用其它类型成员（如 TextRegion ）提供显示缓冲区。
+
+@3.3.1.2.5 辅助类：
+默认提供基本事件回调模板类，以方便用户实现消息映射和其它间接传递消息的功能。
+此外，还提供对默认 GUI 输入事件的参数类。
+
+@3.3.2 GUI 事件：
+
+@3.3.2.1 默认 GUI 事件：
+即 YWidgetEvent 单元中定义的标准部件事件，发送对象类型为 IWidget 。
+参数类型总是 UIEventArgs 及其派生类，包含发送对象类型，通过 UIEventArgs::GetSender 取得发送对象的引用。
+事件依赖项仅对非映射事件使用。相关类参见 [Documentation::YSLib @@3.1.9] 。
+默认 GUI 事件使用 Core::YEvent 等单元实现，和 YWidget 、 YControl 和 YGUI 单元相关。
+在 YWidgetEvent 单元中的枚举类型 typedef 名称 VisualEvent 定义了标准控件事件空间，其中定义了标准控件事件，包含视图变更事件、 GUI 输入/输出事件和焦点事件。
+ GUI 输入事件包含基本 GUI 输入事件和扩展 GUI 输入事件，参见 @3.3.2.1.2 。
+事件参数类型由 RoutedEventArgs 派生的称为路由事件。
+路由事件的路由策略分为三类： Tunnel 、 Direct 和 Bubble 。
+ Tunnel 事件在处理事件的根部件进入子部件时依序触发， Direct 事件在定位至部件时触发， Bubble 事件在之后子部件退出至根部件时依序触发。
+当 Tunnel 事件非可视(visible) 或非启用(enabled) 时事件路由终止。
+当参数中的处理标记（数据成员 Handled ）被设置为 true 时，事件路由终止。
+基本 GUI 输入事件是路由事件，参见 @3.3.2.1.2 。
+
+@3.3.2.1.1 视图变更事件：
+包括 Move 、 Resize 事件等。
+事件参数类型 UIEventArgs ，事件类型为 HUIEvent 。
+在试图变更视图时触发。
+需要注意，不包括必然的视图改变后置条件。即使设置控件视图操作的结果与未设置时相同，仍触发事件。
+
+@3.3.2.1.1.1 Move 事件：
+设置控件位置后触发。
+默认通过调用 UI::SetLocationOf 触发，此时发送对象和订阅者相同。
+
+@3.3.2.1.1.2 Resize 事件：
+设置控件大小后触发。
+默认通过调用 UI::SetSizeOf 触发，此时事件发送者和订阅者相同。
+
+@3.3.2.1.2 GUI 输入事件：
+基本用户界面输入事件是 GUI 输入直接引起的事件，分为基本按键输入事件和基本指针设备（屏幕光标定位设备）输入事件。
+默认通过 GUIState 实现的事件参数中，除了 TouchHeld 外，事件发送者和订阅者相同。
+
+@3.3.2.1.2.1 基本按键输入事件：
+基本按键输入事件包含 KeyUp 、 KeyDown 和 KeyHeld 。
+
+@3.3.2.1.2.2 基本指针设备输入（触摸屏输入）事件：
+基本指针设备输入事件包含 TouchUp 、 TouchDown 和 TouchHeld 。
+默认通过 GUIState 实现的 TouchHeld 事件当且仅当触摸移动的部件和开始接触时不同时，事件发送者和订阅者不同。订阅者总是开始接触时的部件。
+
+@3.3.2.1.2.3 扩展 GUI 输入事件：
+扩展 GUI 输入事件有以下几类：复合事件（包括 KeyPress 、 Click 、TouchMove ）、边界事件（包括 Enter 和 Leave ，参见 @3.3.2.1.5 ）等。
+
+@3.3.2.1.2.4 输入事件路由：
+事件路由通过 YGUI 单元中的 GUIState 类实现。包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 、 TouchMove 和 Click 。
+触发过程：由 Helper 中的单元完成平台相关的用户输入信号捕获并向 YGUI 单元的 GUIState 类的全局实例传递，后者处理后生成对应输入事件。
+当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyUp 和 KeyPress 事件。
+当用户使用指针设备（包括触摸屏）输入时，依此触发 Enter(@3.3.2.1.5) 和 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 TouchUp 、Leave(@3.3.2.1.5) 和 Click 事件。
+注意非直接事件路由中 TouchHeld 不被触发。当 TouchHeld 被触发时，即使路由策略是 Direct ，也有可能因为其它部件移动而导致状态不一致。因此在 TouchHeld 的事件处理器中需要注意校验发送者是否符合预期。
+
+@3.3.2.1.2.5 指针设备坐标状态：
+指针设备相关事件中，参数包含了相对于部件的坐标。
+最近操作的坐标保存于全局变量 ControlLocation 中。
+拖放操作依赖的最近坐标保存于全局变量 LastControlLocation 中。
+
+@3.3.2.1.2.6 默认输入事件处理器：
+在 YControl 单元中定义了主要的事件处理器。
+ Control 类处理 TouchDown 事件，调用函数 RequestFocus 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
+
+@3.3.2.1.3 GUI 输出事件：
+ Paint 事件在绘制界面时触发，表示事件订阅者应对发送者进行渲染等操作以便完成绘制。
+ Paint 事件的参数中包含上下文信息 PaintContext ，表示绘制必要的信息，如重绘区域 ClipArea 。
+默认通过 YRenderer 单元实现。事件发送者为被绘制的部件，订阅者为实际提供绘制方法的部件。
+
+@3.3.2.1.4 焦点事件：
+包括 GotFocus 和 LostFocus 事件。
+默认通过 YFocus 单元实现。事件发送者为引起焦点变化的部件，订阅者为实际发生焦点改变的部件。
+触发条件参见 @3.3.4 。
+功能概述参见 [Documentation::Designation @@1.6.2.7] 。
+
+@3.3.2.1.5 边界事件：
+包括 Enter 和 Leave 事件。
+默认通过 GUIState 实现，事件发送者和订阅者相同。
+指针设备作用于部件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+边界事件的事件源是被作用的边界对应的部件，且参数坐标相对于此部件。
+
+@3.3.2.2 公用和扩展事件处理程序：
+ YControl 单元中定义了部分非成员函数公用事件处理器。
+ OnKeyHeld 使用 RepeatHeld 产生有延迟的连续按键输入。
+ OnTouchHeld 是 Control 默认加载的 TouchHeld 事件处理器，在其中实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
+ OnTouchMove 可结合 OnTouchHeld 用于处理 TouchMove 事件实现重复触发 TouchDown 事件。
+ OnTouchMove_Dragging 可结合 OnTouchHeld 实现控件拖曳。
+
+@3.3.2.3 默认实现细节：
+默认的事件处理器不适用虚函数，以免在基类添加事件后，在派生类重复添加事件响应。
+默认的事件处理器可以是 lambda 表达式。
+在派生类定义的和基类同名的事件响应函数（函数名以 On 起始）会被隐藏而不是覆盖基类的事件响应函数，是非 public 方法。一般应避免在类实现外部调用响应函数。
+ Control 类在构造函数中添加了 GotFocus 、 LostFocus 、 TouchDown 、 TouchHeld 的事件处理器，且除了 TouchHeld 外，都是 Control 的成员函数。
+
+@3.3.2.2 自定义 GUI 事件：
+和 YGUI 等单元相关的自定义事件，一般使用 YEvent 等单元实现。可以使用 GDependencyEvent 节约存储。
+
+@3.3.2.3 GUI 事件组映射：
+事件组映射通过 std::function 等返回被映射事件的参数，并传递给特定的用于映射的事件处理器。
+ Control 类使用 BoundControlPtr 取按键-指针设备输入事件映射的控件，默认实现使用 GetBoundControlPtr 。
+
+@3.3.3 GUI 输入控制器：
+由于设备的特点， GUI 输入相对于输出而言是容易规格化的。因此在 YControl 单元中定义了一些默认 GUI 输入事件（参见 @3.3.2.1 ），且在 YGUI 单元中定义了若干函数/类用于处理默认 GUI 输入事件。
+默认实现输入输出消息及输入状态寄存的控制器类是 GUIState ，同时是输入事件的触发器。
+在默认的控件实现中，使用上述的默认 GUI 输入处理程序作为调度控件行为的控制器。在自定义控件实现中，可以另行定义控制器。
+
+@3.3.4 用于 GUI 的焦点特性：
+概述：参见 [Documentation::Designation @@1.6.2.7] 。
+
+@3.3.4.1 焦点污染：
+焦点默认和请求/响应双方相关，而和其它对象无关。即 RequestFocus 函数应只改变主调对象及其响应对象中描述焦点的状态域，而不产生副作用。
+可以在 GotFocus 和 LostFocus 的响应函数中添加相关代码改变这一特性，但会使主调对象和其它对象产生额外的关联。这种关联不符合焦点本身的语义，且难以调试，如非必要，应避免。
+
+@3.3.4.2 焦点请求链：
+在排除 @3.3.4.1 中叙述的副作用的情况下，可以认为不同对象的 RequestFocus 的调用是顺序无关的，可以任意调度。
+使用 YGUI 单元声明的函数 void RequestFocusCascade(UI::IWidget&) 可以实现由 IWidget 对象自下向上的嵌套容器焦点申请。注意，会以相同的顺序触发 GotFocus 事件。
+
+@3.3.4.3 默认实现综述：
+具有焦点响应能力（即储存了关于集中焦点于特定的子对象的状态）的类称为焦点响应类。
+默认通过组合 WidgetView 保存的部件焦点指针实现焦点响应类。
+部件容器需要实现明确的响应焦点的请求和释放操作。
+在 GUI Shell 实现中独立保存额外的控件独立焦点指针，捕获自由状态的控件指针并判断是否能够据此调用 KeyPress 或 Click 事件。
+为了支持拖放操作，索引控件时，按位置判断作用的控件并根据上述 Shell 中的独立焦点指针和状态变量判断附加操作，而不通过上述的通用焦点。
+
+@3.3.4.3.1 实例：
+ Desktop 和 Form 是 IWidget 的焦点响应类。
+
+@3.3.5 默认 GUI 响应流程：
+
+@3.3.5.1 概述：
+用户进行 GUI 输入；
+控制器捕获 GUI 输入产生 GUI 输入事件；
+视图或控制器处理 GUI 输入事件，必要时呈递至模型，并向视图同步模型数据；
+视图向用户呈现 GUI 数据。
+以上流程在组合构件中可以有相应细节上的变化，但步骤之间的顺序不变。
+
+@3.3.5.2 默认 GUI 渲染逻辑：
+使用视图信息（渲染状态等）和指定的部件对部件指定的缓冲区进行渲染。具体内容由视图的实现定义。
+重绘信息(@3.3.2.1.3) 是由外部直接或间接的参数。
+
+@3.3.5.2.1 渲染器(renderer) ：
+用于存储渲染状态的类，基类为 Componenets::Renderer 。
+此外，提供带有缓冲区和验证(@3.3.5.2.4) 效果的默认缓冲渲染器类 Componenets::BufferedRenderer ，默认仅窗口使用。
+渲染器可在运行时向指定部件设置。
+
+@3.3.5.2.2 渲染器绘制(painting) ：
+渲染器的使用部件和渲染状态绘制的过程。
+ UI::Renderer 的 Paint 方法调用部件的 Paint 事件(@3.3.2.1.3) 。
+ UI::BufferedRenderer 的 Paint 方法验证(@3.3.5.2.4) 后更新(@3.3.5.2.5) 。
+
+@3.3.5.2.3 无效化(invalidation) ：
+渲染器向上层缓冲区容器请求需要重绘的区域的过程。
+请求得到的需要保证之后被重绘的区域在被绘制前表示无效状态。
+默认缓冲渲染器通过 Rect 类型的重绘区域保持，称为无效区域。
+无效区域长或宽为零时表示重绘已经结束且无新的绘制请求，无需再次重绘。
+
+@3.3.5.2.4 验证(validation) ：
+绘制部件并消除自身无效区域的过程。
+因为并非所有部件都保存自身无效区域，它们不一定提供验证接口。
+部件被验证时，保证缓冲区中若存在无效区域则进行绘制，并消除无效区域。
+ UI::BufferedRenderer::Validate(IWidget&, IWidget&, const PaintContext&) 是默认缓冲渲染器提供的接口。
+
+@3.3.5.2.5 更新(updating) ：
+缓冲区内的图形信息复制到其它缓冲区的过程。
+带缓冲区的部件（包括窗口和桌面）实例存储无效区域状态。
+ UI::Update 基于渲染器实现一般的缓冲区复制。
+成员方法 Update() 查询区域重绘状态，若区域需要重绘则忽略，否则当上层缓冲区存在时更新至上层缓冲区（对于桌面而言是屏幕）。
+在 Shell 处理函数中可以在输入分支后添加对桌面对象的渲染操作以按需要更新最近经过重绘但未经过更新的 GUI 对象：
+绘制(@3.3.5.2.2) ；
+无效化(@3.3.5.2.3) ，延时绘制；
+批量验证(@3.3.5.2.4) 后再更新，避免多个对象直接绘制之间的明显间断。
+
+@3.3.5.3 默认 GUI 绘制(@3.3.5.3.5) 逻辑：
+
+@3.3.5.3.1 渲染状态同步：
+部件通过与渲染器的交互保证渲染状态。
+部件的无效化是部件通过渲染器向上层缓冲区容器请求需要重绘的区域的过程。
+ UI::InvalidateCascade(IWidget&, const Rect&) 通过调用 Validate() 向本层和上层缓冲区（若存在）传递相对于部件的标准矩形区域无效状态，以便被重绘。
+ UI::Invalidate(IWidget&) 是使用部件自身区域为参数调用 InvalidateCascade 的人本接口。
+
+@3.3.5.3.2 刷新(refreshing) ：
+具体部件按传入的参数（图形接口上下文、起始偏移坐标和边界）直接进行绘制的过程。不被渲染器策略直接影响。
+边界基于部件坐标系，用于优化暗示，可以被忽略，但是刷新过程需要保证边界内的区域无需被重绘。
+带缓冲区的部件（包括窗口和桌面）实例存储刷新状态。
+通常应实现为 Paint 事件的处理器。
+ Widget 的虚成员方法 void Refresh(PaintEventArgs&&) 是状态无关的默认刷新接口，即直接绘制部件界面。
+ Widget 初始化 Paint 事件时加载背景和 Refresh 作为事件处理器。
+
+@3.3.5.3.3 部件绘制(painting) ：
+对部件进行导致部件的 Paint 事件被调用一次的操作，称为一次绘制，包括直接调用部件的 Paint 事件和通过其它函数进行间接调用。
+一般可以通过 YWidget 单元的 PaintChild 等函数调用，它包含了重绘区域(@3.3.2.1.3) 预验证：当重绘区域和无效区域(@3.3.5.2.3) 不相交时，不进行绘制。
+
+@3.3.5.3.4 描画(drawing) ：
+绘制过程中的某一相关组成部分，但不直接导致 Paint 事件被调用。
+
+@3.3.5.3.5 绘制：
+含义清楚，不至于造成歧义时，描画可和上述部件渲染器绘制、部件绘制称为绘制。
+
+@3.3.5.3.6 全局层次绘制逻辑：
+一般通过 Shell 对 SM_PAINT 消息的处理，以桌面对象的全局绘制操作起始，递归至各个子部件。
+典型的全局绘制操作可以是刷新。
+当多个桌面的显示需要保持同步时，一般不直接调用刷新，而是显式地验证和更新，即分别调用需要同步显示的桌面的 Desktop::Validate 和 Desktop::Update 。
+
+@3.3.6 GUI 特性抽象
+
+@3.3.6.1 GUI 样式 YStyle
+
+@3.3.6.2 GUI 焦点特性 YFocus
+
+@3.3.6.3 平台无关的 GUI YGUI
+
+@3.3.7 组件
+
+@3.3.7.1 平台无关的 Shell 组件 YComponent
+
+@3.3.7.2 控制台
+
+@3.3.8 默认部件
+
+@3.3.8.1 样式无关的 GUI 部件 YWidget ：
+主要类型：
+ Renderer 类；
+ BufferedRenderer 类；
+ IWidget 接口；
+ Visual 类；
+ Widget 类。
+渲染器 BufferedRenderer 可以设置是否忽略背景（注意忽略背景可能影响子部件的渲染行为）。
+
+@3.3.8.2 样式无关的 GUI 容器 YUIContainer ：
+主要类型：
+ MUIContainer 类。
+
+@3.3.9 默认控件
+
+@3.3.9.1 样式无关的控件 YControl ：
+主要类型：
+ Control 类。
+
+@3.3.9.2 样式无关的 GUI 面板 Panel ：
+主要类型：
+ Panel 类。
+
+@3.3.9.3 样式无关的 GUI 窗口 YWindow ：
+主要类型：
+ Window 类。
+
+@3.3.9.4 桌面 YDesktop ：
+命名空间 UI 中的 Desktop 类是桌面的抽象，自带显示缓冲区，和 Screen 关联，负责把窗体和其它桌面对象输出至屏幕。
+
+@3.3.10 扩展部件
+
+@3.3.10.1 样式无关的用户界面标签 Label ：
+主要类型：
+ Label 类。
+
+@3.3.11 扩展控件
+
+@4 Shell 消息列表：
 
 //全局系统消息。
 //除另有说明外，一般用作队列消息。
@@ -74,22 +725,22 @@ SM_TASK					0x0016
 //指示输入设备接收用户输入并产生输入事件。
 SM_INPUT				0x00FF
 
-@2 当前非确定上层实现注意事项：
+@5 当前非确定上层实现注意事项：
 
-@2.1 ShellHelper ：
+@5.1 ShellHelper ：
 注意严格禁止 CallStored 在未生效前被调用多次以免破坏消息队列。
 
-@2.2 后台任务：
+@5.2 后台任务：
 注意生存期。
 
-@3 初始化：
+@6 初始化：
 初始化由 Helper进行。
 
-@3.1 配置：
+@6.1 配置：
 自 build 300 起，配置不再硬编码，初始化时读取配置文件的内容。
 读取行为、配置文件格式和默认配置见以下说明。
 
-@3.1.1 build 343 前：
+@6.1.1 build 343 前：
 配置文件路径 "config.txt" 。
 若配置不存在则首先生成。
 要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
@@ -102,7 +753,7 @@ H:\NDS\EFSRoot\Font\
 
 //]
 
-@3.1.2 build 343 起：
+@6.1.2 build 343 起：
 配置文件路径 "yconf.txt" ，格式和之前不兼容。
 若配置不存在则首先使用 NPL 生成。
 要求配置文件为 UTF-8 编码（实际当内容仅含 ASCII 字符时，允许 ANSI 兼容编码），否则出错。
@@ -122,7 +773,7 @@ YFramework
 
 //]
 
-@3.1.2 build 344 起：
+@6.1.2 build 344 起：
 增加无名节点配置支持。
 生成的默认配置不变，但支持以下形式（直接编辑或追加其它配置项时变换为此形式）：
 //[
@@ -141,50 +792,50 @@ YFramework
 )
 //]
 
-@4 计划 GUI 测试项目 ShlExplorer ：
+@7 计划 GUI 测试项目 ShlExplorer ：
 
-@4.1 基本部件测试：
+@7.1 基本部件测试：
  Label 、 Button 、 Window 等基本控件的静态显示。
 
-@4.2 隐含部件测试（非单独测试，作为正常功能集成使用）：
+@7.2 隐含部件测试（非单独测试，作为正常功能集成使用）：
  Button 功能。
  CheckBox 功能。
  ListBox 功能（含 VerticalTrack 和 VerticalScrollBar 功能）。
  FileBox 功能。
  ProgressBar 功能。
 
-@4.3 部件综合测试：
+@7.3 部件综合测试：
  显示/隐藏控件。
 顶层控件测试：菜单和子菜单测试。
 
-@4.4 进阶互斥测试组：
+@7.4 进阶互斥测试组：
 
-@4.4.1 显示：
+@7.4.1 显示：
 屏幕直接绘制。
 动态 FPS 显示。
 
-@4.4.2 屏幕接触移动：
+@7.4.2 屏幕接触移动：
 边界测试：移动接触点记录 Enter 和 Leave 事件参数。
 拖放测试：拖动控件（ Button 和 Window 等）。
 
-@4.4.3 背景变换：
+@7.4.3 背景变换：
 背景色变换。
 背景图像替换。
 
-@5 DS 测试项目 ShlReader ：
+@8 DS 测试项目 ShlReader ：
 文本阅读器和十六进制阅读器。
 
-@5.1 文本浏览：
+@8.1 文本浏览：
 支持 txt 、 c 、 cpp 、 ini 等后缀按文本打开。
 使用随机载入复杂度为 O(1) 的算法，缓冲时间和文本文件大小无关。
 
-@5.1.1 编码支持：
+@8.1.1 编码支持：
 支持带 BOM 的 UTF-8 、 UCS2-LE 、 UCS2-BE 、 UCS-4LE 、 UCS-4BE 编码。
 不带 BOM 的编码只读取文件起始字节（至多 64 个）判断为 UTF-8 或 GBK 。
 按 GBK 打开时，可以顺序阅读，但不保证随机定位后读取的内容正常（GBK 无法保证随机定位时一定能选取到字符起始字节）。
 模拟器上读取 GBK 编码文件极慢（可能需要等待数十秒），因为需要在二进制文件中载入编码表，属于正常情况。
 
-@5.1.2 操作说明：
+@8.1.2 操作说明：
 上下换行，左右翻页， LR 调整行距， XY 调整字体 。
  Start 开启自动滚屏（可在设置界面配置以行为单位或以像素为单位平滑滚屏以及滚屏时间间隔），任意其它输入停止。
 点击屏幕显示/隐藏显示状态和详细功能按钮的阅读框。
@@ -197,9 +848,9 @@ YFramework
 点击 ←→ 按钮前进/后退（切换最近浏览位置）。
 其它功能，如切换字体和背景颜色等，使用菜单（ M 按钮）选择“设置”进入详细设置界面自定义。
 
-@5.1.3 设置和配置：
+@8.1.3 设置和配置：
 
-@5.1.3.1 build 345 起：
+@8.1.3.1 build 345 起：
 支持选择设置保存为配置项到配置文件。配置文件仅当进入文本阅读器时会被读取，正常退出时会被写入。
 打开 Shell 读取文件时自动载入配置，若不存在则生成并追加（但配置不存在且打开的文件是配置文件时会导致读写冲突，无法响应）。
 退出 Shell 时保存配置。
@@ -237,7 +888,7 @@ YFramework
 )
 //]
 
-@5.1.3.2 build 400 起：
+@8.1.3.2 build 400 起：
 追加书签读取和写入支持，保存至 YReader 下 Bookmarks 节点，形如：
 Bookmarks
 (
@@ -246,17 +897,17 @@ Bookmarks
 整数值表示在文件的字节位置。
 空白符除了作为间隔以外会被忽略。以空白符分组后，非整数值起始的项时此项和之后所有项都会被删除。
 
-@6 测试注记：
-示例测试项目 YSTest 包含 @4 和 @5 提到的测试。
+@9 测试注记：
+示例测试项目 YSTest 包含 @7 和 @8 提到的测试。
 自 build 363 起关于界面包含编译时间，因此原则上不会有相同的二进制文件。
 
-@6.1 执行覆盖：
+@9.1 执行覆盖：
 二进制相同的映像不重复测试。
  build 132 前的所有版本、 build 398 及之前的 DS 提交版本（除 build 387 rev 20[release] ）经过 iDSL+DSTT 实机测试。
 所有 DS 版本经过 PC 测试。测试环境 Windows 7 Ultimate x64 + DeSmuME(x86/x64) 0.9.6 或以上（含 SVN 版本）。
 所有 MinGW32 版本经过 PC 测试。测试环境 Windows 7 Ultimate x64 。
 
-@6.1.1 非正式支持平台：
+@9.1.1 非正式支持平台：
  2013-02-13: ArchLinux x86-64 使用 wine-1.5.23 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。
 
 */

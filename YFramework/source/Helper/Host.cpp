@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1055
+\version r1058
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-04-16 02:19 +0800
+	2013-05-17 20:29 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -171,6 +171,8 @@ Environment::Environment()
 #	endif
 {
 #	if YCL_MINGW32
+	// NOTE: Intentionally no %CS_OWNDC or %CS_CLASSDC, so %::ReleaseDC
+	//	is always needed.
 	const ::WNDCLASS wnd_class{CS_DBLCLKS/* | CS_HREDRAW | CS_VREDRAW*/,
 		WndProc, 0, 0, h_instance, ::LoadIconW(nullptr, IDI_APPLICATION),
 		::LoadCursorW(nullptr, IDC_ARROW), ::HBRUSH(COLOR_MENU + 1),
@@ -290,7 +292,7 @@ Environment::UpdateRenderWindows()
 			auto& wgt(rd.GetWidgetRef());
 
 			if(rd.Validate(wgt, wgt,
-				{rd.GetContext(), Point(), GetBoundsOf(wgt)}))
+				{rd.GetContext(), Point(), rd.GetInvalidatedArea()}))
 				rd.Update(rd.GetContext().GetBufferPtr());
 		}
 }

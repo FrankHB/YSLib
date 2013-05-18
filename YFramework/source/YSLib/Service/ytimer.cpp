@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r723
-\author FrankHB<frankhb1989@gmail.com>
+\version r780
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2012-09-04 13:02 +0800
+	2013-05-17 03:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 
 #include "YSLib/Service/ytimer.h"
-#include <ystdex/iterator.hpp>
 
 YSL_BEGIN
 
@@ -66,34 +65,10 @@ Delay(const TimeSpan& ms)
 }
 
 
-Timer::TimerMap Timer::mTimers;
-
 Timer::Timer(const Duration& i, bool b)
-	: nBase(), nInterval(i)
+	: nBase(), Interval(i)
 {
 	Init(*this, b);
-}
-
-
-bool
-Timer::IsActive() const
-{
-	try
-	{
-		mTimers.at(GetObjectID());
-		return true;
-	}
-	catch(std::out_of_range&)
-	{}
-	return false;
-}
-
-void
-Timer::SetInterval(const Duration& i)
-{
-	nInterval = i;
-	if(YB_UNLIKELY(nInterval == Duration::zero()))
-		Deactivate(*this);
 }
 
 bool
@@ -101,53 +76,17 @@ Timer::Refresh()
 {
 	const auto tick(HighResolutionClock::now());
 
-	if(YB_LIKELY(tick < nBase + nInterval))
+	if(YB_LIKELY(tick < nBase + Interval))
 		return false;
-	nBase = tick - (tick - nBase) % nInterval;
+	nBase = tick - (tick - nBase) % Interval;
 	return true;
-}
-
-bool
-Timer::RefreshAll()
-{
-	using ystdex::get_value;
-
-	bool t(false);
-
-	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
-		[&](Timer* const& pTmr){
-		if(YB_LIKELY(pTmr))
-			t |= pTmr->Refresh();
-	});
-	return t;
-}
-
-void
-Timer::ResetAll()
-{
-	using ystdex::get_value;
-
-	std::for_each(mTimers.begin() | get_value, mTimers.end() | get_value,
-		[](Timer* const& pTmr){
-		if(YB_LIKELY(pTmr))
-			pTmr->Reset();
-	});
 }
 
 void
 Activate(Timer& tmr)
 {
-	if(tmr.nInterval != Duration::zero())
-	{
-		Timer::mTimers.insert(make_pair(tmr.GetObjectID(), &tmr));
+	if(tmr.Interval != Duration::zero())
 		tmr.nBase = HighResolutionClock::now();
-	}
-}
-
-void
-Deactivate(Timer& tmr)
-{
-	Timer::mTimers.erase(tmr.GetObjectID());
 }
 
 YSL_END_NAMESPACE(Timers)

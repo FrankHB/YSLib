@@ -11,13 +11,13 @@
 /*!	\file DSWindow.cpp
 \ingroup Helper
 \brief DS 宿主窗口。
-\version r72
+\version r75
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:36:43 +0800
 \par 修改时间:
-	2013-04-11 11:08 +0800
+	2013-05-17 20:45 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -60,6 +60,9 @@ DSWindow::OnDestroy()
 void
 DSWindow::OnPaint()
 {
+	// NOTE: Painting using %::GetDC and manually managing clipping areas
+	//	instead of %::GetDCEx, for performance and convenience of implementing
+	//	%DSWindow::GetInputBounds.
 	GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
 
 	scr_up.UpdateToSurface(sf),

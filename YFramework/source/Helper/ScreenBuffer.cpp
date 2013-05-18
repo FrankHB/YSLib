@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.cpp
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r105
+\version r109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-03-23 21:07 +0800
+	2013-05-17 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -37,6 +37,9 @@ YSL_BEGIN_NAMESPACE(Host)
 #	if YCL_MINGW32
 ScreenBuffer::ScreenBuffer(const Size& s)
 	: size(s), hBitmap([this]{
+		// NOTE: Bitmap format is hard coded here for explicit buffer
+		//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
+		//	windows.
 		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), size.Width,
 			-size.Height - 1, 1, 32, BI_RGB,
 			sizeof(PixelType) * size.Width * size.Height, 0, 0, 0, 0}, {}};
@@ -78,7 +81,6 @@ ScreenRegionBuffer::UpdateTo(::HWND h_wnd, const Point& pt) ynothrow
 	std::lock_guard<std::mutex> lck(mtx);
 	GSurface<> sf(h_wnd);
 
-//	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	sf.Update(*this, pt);
 }
 

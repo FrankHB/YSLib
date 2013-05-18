@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1756
+\version r1761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-05-05 13:48 +0800
+	2013-05-17 03:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,7 +136,7 @@ class FileInfoPanel : public Panel
 {
 public:
 	Label lblPath, lblSize, lblAccessTime, lblModifiedTime, lblOperations;
-	
+
 	FileInfoPanel();
 };
 
@@ -256,6 +256,11 @@ protected:
 	\since build 289
 	*/
 	Timers::Timer tmrScroll;
+	/*!
+	\brief 滚屏计时器激活状态。
+	\since build 405
+	*/
+	bool tmrScrollActive;
 	/*!
 	\brief 按键计时器。
 	\note 独立计时，排除路由事件干扰。

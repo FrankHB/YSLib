@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1281
+\version r1293
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-04-15 08:16 +0800
+	2013-05-19 03:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -701,7 +701,11 @@ protected:
 	\warning 不应视为具有所有权。
 	*/
 	BitmapPtr pBuffer;
-	Size size; //!< 缓冲区大小。
+	/*
+	\brief 图形区域大小。
+	\since build 405
+	*/
+	Size sGraphics;
 
 public:
 	/*!
@@ -710,7 +714,7 @@ public:
 	*/
 	explicit yconstfn
 	Graphics(BitmapPtr b = {}, const Size& s = {}) ynothrow
-		: pBuffer(b), size(s)
+		: pBuffer(b), sGraphics(s)
 	{}
 	/*!
 	\brief 复制构造：浅复制。
@@ -718,7 +722,7 @@ public:
 	*/
 	yconstfn
 	Graphics(const Graphics& g) ynothrow
-		: pBuffer(g.pBuffer), size(g.size)
+		: pBuffer(g.pBuffer), sGraphics(g.sGraphics)
 	{}
 	/*!
 	\brief 析构：空实现。
@@ -744,14 +748,14 @@ public:
 	\since build 319
 	*/
 	explicit DefCvt(const ynothrow, bool,
-		pBuffer && size.Width != 0 && size.Height != 0)
+		pBuffer && sGraphics.Width != 0 && sGraphics.Height != 0)
 
 	DefGetter(const ynothrow, BitmapPtr, BufferPtr, pBuffer)
-	DefGetter(const ynothrow, const Size&, Size, size)
-	DefGetter(const ynothrow, SDst, Width, size.Width)
-	DefGetter(const ynothrow, SDst, Height, size.Height)
+	DefGetter(const ynothrow, const Size&, Size, sGraphics)
+	DefGetter(const ynothrow, SDst, Width, sGraphics.Width)
+	DefGetter(const ynothrow, SDst, Height, sGraphics.Height)
 	DefGetter(const ynothrow, size_t, SizeOfBuffer,
-		sizeof(PixelType) * GetAreaOf(size)) //!< 取缓冲区占用空间。
+		sizeof(PixelType) * GetAreaOf(sGraphics)) //!< 取缓冲区占用空间。
 
 	/*!
 	\brief 取指定行首元素指针。

@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3322
+\version r3326
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-03-25 23:38 +0800
+	2013-05-17 03:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ InputTimer::Refresh(HeldStateType& s,
 	{
 	case Free:
 		s = Pressed,
-		timer.SetInterval(initial_delay);
+		timer.Interval = initial_delay;
 		Activate(timer);
 		break;
 	case Pressed:
@@ -76,7 +76,7 @@ InputTimer::Refresh(HeldStateType& s,
 			if(s == Pressed)
 			{
 				s = Held,
-				timer.SetInterval(repeated_delay);
+				timer.Interval = repeated_delay;
 			}
 			return true;
 		}
@@ -88,8 +88,7 @@ InputTimer::Refresh(HeldStateType& s,
 void
 InputTimer::Reset()
 {
-	Deactivate(timer);
-	timer.SetInterval(Timers::TimeSpan(1000));
+	timer.Interval = Timers::TimeSpan(1000);
 }
 
 

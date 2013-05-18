@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4309
+\version r4319
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-05-11 08:58 +0800
+	2013-05-17 03:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,8 +343,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	: ShlReader(pth, h_dsk_up, h_dsk_dn),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
 	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
-	CurrentSetting.GetTimerSetting()), tmrInput(), reader(),
-	boxReader({0, 160, 256, 32}), boxTextInfo(), pnlSetting(),
+	CurrentSetting.GetTimerSetting()), tmrScrollActive(false), tmrInput(),
+	reader(), boxReader({0, 160, 256, 32}), boxTextInfo(), pnlSetting(),
 	pTextFile(), mhMain(GetDesktopDown()),
 	pnlBookmark(LoadBookmarks(pth.GetNativeString()), *this), session_ptr()
 {
@@ -415,7 +415,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_session,
 		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](TouchEventArgs&&){
 			pnlSetting >> CurrentSetting;
-			tmrScroll.SetInterval(CurrentSetting.GetTimerSetting());
+			tmrScroll.Interval = CurrentSetting.GetTimerSetting();
 			Switch(pnlSetting.current_encoding),
 			reader.SetColor(CurrentSetting.FontColor),
 			reader.SetFont(CurrentSetting.Font);
@@ -559,7 +559,7 @@ ShlTextReader::Locate(Bookmark::PositionType pos)
 void
 ShlTextReader::Scroll()
 {
-	if(tmrScroll.IsActive())
+	if(tmrScrollActive)
 		if(YB_UNLIKELY(tmrScroll.Refresh()))
 		{
 			if(CurrentSetting.SmoothScroll)
@@ -595,7 +595,7 @@ ShlTextReader::StopAutoScroll()
 {
 	reader.AdjustScrollOffset(),
 	fBackgroundTask = nullptr,
-	Deactivate(tmrScroll);
+	tmrScrollActive = false;
 }
 
 void
@@ -644,10 +644,9 @@ ShlTextReader::OnClick(TouchEventArgs&&)
 		return;
 	}
 #endif
-	if(tmrScroll.IsActive())
+	if(tmrScrollActive)
 	{
 		StopAutoScroll();
-		Deactivate(tmrScroll);
 		return;
 	}
 	if(IsVisible(boxReader))
@@ -675,7 +674,7 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 		const auto ntick(HighResolutionClock::now());
 
 		//这里可以考虑提供暂停，不调整视图。
-		if(tmrScroll.IsActive())
+		if(tmrScrollActive)
 		{
 			StopAutoScroll();
 			return;
@@ -689,7 +688,8 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 		{
 			fBackgroundTask = std::bind(&ShlTextReader::Scroll, this);
 			tmrScroll.Reset();
-			Activate(tmrScroll);
+			Activate(tmrScroll),
+			tmrScrollActive = true;
 			return;
 		}
 		if(k[KeyCodes::Enter])

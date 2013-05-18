@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3476
+\version r3499
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-03-05 14:49 +0800
+	2013-05-19 04:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,11 +155,22 @@ ClipMargin(PaintContext&, const Padding&, const Size&);
 
 
 /*!
+\brief 图像接口。
+\since build 405
+*/
+DeclI(YF_API, IImage)
+	DeclIEntry(const Graphics& GetContext() const)
+	DeclIEntry(void SetSize(const Size&))
+EndDecl
+
+
+/*!
 \brief 标准矩形位图缓冲区。
 \note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
 	std::is_nothrow_move_assignable<T>::value</tt> 。
 */
-class YF_API BitmapBuffer : protected Graphics
+class YF_API BitmapBuffer : implements IImage,
+	protected Graphics
 {
 public:
 	/*!
@@ -183,7 +194,7 @@ public:
 	virtual
 	~BitmapBuffer()
 	{
-		ydelete_array(pBuffer);
+		delete[] pBuffer;
 	}
 
 	/*
@@ -220,8 +231,7 @@ public:
 	using Graphics::GetHeight;
 	using Graphics::GetWidth;
 	using Graphics::GetSize;
-	using Graphics::GetSizeOfBuffer;
-	DefGetter(const ynothrow, const Graphics&, Context, *this)
+	ImplI(IImage) DefGetter(const ynothrow, const Graphics&, Context, *this)
 	//@}
 
 	/*!
@@ -231,13 +241,16 @@ public:
 	*/
 	void
 	SetContent(ConstBitmapPtr, SDst, SDst);
+	PDefH(void, SetSize, SDst w, SDst h)
+		ImplExpr(SetSize(Size(w, h)))
 	/*!
 	\brief 重新设置缓冲区大小。
 	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；
 		设置后清除缓冲区。
+	\since build 405
 	*/
-	virtual void
-	SetSize(SDst, SDst);
+	ImplI(IImage) void
+	SetSize(const Size&);
 	/*!
 	\brief 交换宽和高；同时清除缓冲区。
 	*/
@@ -297,7 +310,7 @@ public:
 	*/
 	~BitmapBufferEx() override
 	{
-		ydelete_array(pBufferAlpha);
+		delete[] pBufferAlpha;
 	}
 
 	/*
@@ -326,13 +339,16 @@ public:
 	DefGetter(const ynothrow, size_t, SizeOfBufferAlpha, sizeof(u8)
 		* GetAreaOf(GetSize())) //!< 取 Alpha 缓冲区占用空间。
 
+	//! \since build 405
+	using BitmapBuffer::SetSize;
 	/*!
 	\brief 重新设置缓冲区大小。
 	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；
 		设置后清除缓冲区。
+	\since build 405
 	*/
 	void
-	SetSize(SDst, SDst) override;
+	SetSize(const Size&) override;
 
 	/*!
 	\brief 清除缓冲区。

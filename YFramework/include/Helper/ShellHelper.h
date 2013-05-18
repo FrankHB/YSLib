@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1620
+\version r1637
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-04-13 13:54 +0800
+	2013-05-12 11:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -406,46 +406,43 @@ class YF_API FPSCounter
 private:
 	/*!
 	\brief 内部计数。
-	\note 单位为纳秒。
-	\since build 291
+	\since build 405
 	*/
-	//@{
-	u64 last_tick;
-	u64 now_tick;
-	//@}
+	std::chrono::nanoseconds last_tick, now_tick;
 	/*!
 	\brief 刷新计数。
-	\since build 295
+	\since build 405
 	*/
-	u32 refresh_count;
+	size_t refresh_count;
 
 public:
 	/*!
 	\brief 计时间隔下界。
-	\since build 295
+	\since build 405
 	*/
-	u64 MinimalInterval;
+	std::chrono::nanoseconds MinimalInterval;
 
 	/*!
 	\brief 构造：使用指定计时间隔下界。
-	\since build 295
+	\since build 405
 	*/
-	FPSCounter(u64 = 0);
+	FPSCounter(std::chrono::nanoseconds = {});
 
 	/*!
 	\brief 取内部计数。
-	\since build 291
+	\since build 405
 	*/
 	//@{
-	DefGetter(const ynothrow, u64, LastTick, last_tick)
-	DefGetter(const ynothrow, u64, NowTick, now_tick)
+	DefGetter(const ynothrow, std::chrono::nanoseconds, LastTick, last_tick)
+	DefGetter(const ynothrow, std::chrono::nanoseconds, NowTick, now_tick)
 	//@}
 
 	/*!
 	\brief 刷新：更新计数器内部计数。
 	\return 内部计数差值大于计时间隔下界时的每秒毫计数次数；否则为 0 。
+	\since build 405
 	*/
-	u32
+	size_t
 	Refresh();
 };
 

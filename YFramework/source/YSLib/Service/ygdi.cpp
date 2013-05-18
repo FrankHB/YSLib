@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2709
+\version r2778
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-01-07 15:29 +0800
+	2013-05-19 04:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,16 +96,14 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
 BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
 	: Graphics()
 {
-	SetSize(buf.GetWidth(), buf.GetHeight());
+	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
 		std::copy_n(p, GetAreaOf(GetSize()), pBuffer);
 }
 BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
-	: Graphics(nullptr, buf.GetSize())
+	: Graphics(buf.GetContext())
 {
-	// TODO: Change Graphics::SetSize interface.
-//	buf.SetSize(0, 0);
-	std::swap<Graphics>(*this, buf);
+	buf.pBuffer = nullptr;
 }
 
 void
@@ -116,37 +114,32 @@ BitmapBuffer::SetContent(ConstBitmapPtr s, SDst w, SDst h)
 		std::copy_n(s, GetAreaOf(GetSize()), pBuffer);
 }
 void
-BitmapBuffer::SetSize(SDst w, SDst h)
+BitmapBuffer::SetSize(const Size& s)
 {
-	decltype(GetAreaOf(GetSize())) s(w * h);
+	const auto area(GetAreaOf(s));
 
-	if(YB_UNLIKELY(s == 0))
+	try
 	{
-		ydelete_array(pBuffer);
-		pBuffer = nullptr;
+		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0)
+			? new PixelType[area] : nullptr);
+		unique_ptr<PixelType[]> p_old(pBuffer);
+
+		pBuffer = p_new.release();
 	}
-	else if(GetAreaOf(GetSize()) < s)
-		try
-		{
-			BitmapPtr pBufferNew(ynew PixelType[s]);
+	catch(std::bad_alloc&)
+	{
+		throw LoggedEvent("%BitmapBuffer allocation failed.", 1);
+	}
 
-			std::swap(pBuffer, pBufferNew);
-			ydelete_array(pBufferNew);
-		}
-		catch(std::bad_alloc&)
-		{
-			throw LoggedEvent("Allocation failed.", 1);
-		}
+	YAssert(!((pBuffer != nullptr) ^ (area != 0)), "Buffer corruptied.");
 
-	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied.");
-
-	yunseq(size.Width = w, size.Height = h);
+	sGraphics = s,
 	ClearImage();
 }
 void
 BitmapBuffer::SetSizeSwap()
 {
-	std::swap(size.Width, size.Height);
+	std::swap(sGraphics.Width, sGraphics.Height);
 	ClearImage();
 }
 
@@ -167,7 +160,7 @@ BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDst w, SDst h)
 BitmapBufferEx::BitmapBufferEx(const BitmapBufferEx& buf)
 	: BitmapBuffer(), pBufferAlpha()
 {
-	SetSize(buf.GetWidth(), buf.GetHeight());
+	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
 	{
 		std::copy_n(p, GetAreaOf(GetSize()), pBuffer),
@@ -182,51 +175,39 @@ BitmapBufferEx::BitmapBufferEx(BitmapBufferEx&& buf) ynothrow
 }
 
 void
-BitmapBufferEx::SetSize(SDst w, SDst h)
+BitmapBufferEx::SetSize(const Size& s)
 {
-	decltype(GetAreaOf(GetSize())) s(w * h);
+	const auto area(GetAreaOf(s));
 
-	if(YB_UNLIKELY(s == 0))
+	try
 	{
-		ydelete_array(pBuffer);
-		pBuffer = nullptr;
-		ydelete_array(pBufferAlpha);
-		pBufferAlpha = nullptr;
+		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0)
+			? new PixelType[area] : nullptr);
+		unique_ptr<u8[]> p_new_alpha(YB_LIKELY(area != 0)
+			? new u8[area] : nullptr);
+
+		unique_ptr<PixelType[]> p_old(pBuffer);
+		unique_ptr<u8[]> p_old_alpha(pBufferAlpha);
+
+		pBuffer = p_new.release();
+		pBufferAlpha = p_new_alpha.release();
 	}
-	else if(GetAreaOf(size) < s)
+	catch(std::bad_alloc&)
 	{
-		BitmapPtr pBufferNew(nullptr);
-
-		try
-		{
-			pBufferNew = ynew PixelType[s];
-
-			u8* pBufferAlphaNew(ynew u8[s]);
-
-			std::swap(pBuffer, pBufferNew);
-			ydelete_array(pBufferNew);
-			std::swap(pBufferAlpha, pBufferAlphaNew);
-			ydelete_array(pBufferAlphaNew);
-		}
-		catch(std::bad_alloc&)
-		{
-			ydelete_array(pBufferNew);
-			throw LoggedEvent("Allocation failed.", 1);
-		}
+		throw LoggedEvent("%BitmapBufferEx allocation failed.", 1);
 	}
 
-	YAssert(!((pBuffer != nullptr) ^ (s != 0)), "Buffer corruptied.");
-	YAssert(!((pBufferAlpha != nullptr) ^ (s != 0)), "Buffer corruptied.");
+	YAssert(!((pBuffer != nullptr) ^ (area != 0)), "Buffer corruptied.");
+	YAssert(!((pBufferAlpha != nullptr) ^ (area != 0)), "Buffer corruptied.");
 
-	size.Width = w;
-	size.Height = h;
+	sGraphics = s,
 	ClearImage();
 }
 
 void
 BitmapBufferEx::ClearImage() const
 {
-	const u32 t = GetAreaOf(size);
+	const u32 t = GetAreaOf(sGraphics);
 
 	ClearPixel(pBuffer, t);
 	ClearPixel(pBufferAlpha, t);

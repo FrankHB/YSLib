@@ -17,7 +17,7 @@
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-05-12 07:17 +0800
+	2013-05-12 11:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	btnPrevBackground({114, 90, 30, 22}),
 	btnNextBackground({164, 90, 30, 22}),
 	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetDesktopDownHandle()),
-	fpsCounter(500000000ULL)
+	fpsCounter(std::chrono::milliseconds(500))
 {
 	static int up_i(1);
 	auto& dsk_up(GetDesktopUp());

@@ -10,14 +10,14 @@
 
 /*!	\file Convert.hpp
 \ingroup CHRLib
-\brief 转换模版。
+\brief 转换模板。
 \version r57
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-23 10:18:20 +0800
 \par 修改时间:
-	2013-05-05 00:06 +0800
+	2013-05-16 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

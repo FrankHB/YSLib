@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r859
+\version r860
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-04-19 15:27 +0800
+	2013-05-12 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -304,7 +304,7 @@ namespace details
 
 /*!
 \def YB_TYPE_OP_TEST_2
-\brief 测试
+\brief 测试包含指定的 2 个类型的表达式是否合式。
 \since build 399
 */
 #define YB_TYPE_OP_TEST_2(_n, _expr) \

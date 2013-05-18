@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.h
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r209
+\version r211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-03-10 09:15 +0800
+	2013-05-17 20:41 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -42,6 +42,7 @@ YSL_BEGIN_NAMESPACE(Host)
 
 /*!
 \brief 虚拟屏幕缓存。
+\note 像素格式和 platform::PixelType 兼容。
 \since build 379
 */
 class ScreenBuffer
@@ -195,7 +196,7 @@ class GSurface : public _type, public WindowMemorySurface
 {
 public:
 	GSurface(::HWND h_wnd)
-		: _type(h_wnd), WindowMemorySurface(::GetDC(h_wnd))
+		: _type(h_wnd), WindowMemorySurface(_type::GetDeviceContextHandle())
 	{}
 };
 //@}

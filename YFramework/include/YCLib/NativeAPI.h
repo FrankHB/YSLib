@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r615
+\version r632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-05-05 17:11 +0800
+	2013-05-18 16:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,6 +73,25 @@
 
 namespace platform_ex
 {
+
+/*!
+\brief DMA 异步填充字。
+\param chan 使用的通道编号（取值范围 0 ~ 3 ）。
+\param val 填充的 32 位字。
+\param p_dst 填充目标。
+\param size 填充的字节数。
+\note 当前仅适用于 ARM9 ；填充的字节数会被按字（ 4 字节）截断。
+\since build 405
+*/
+inline void
+DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
+{
+	DMA_FILL(chan) = vu32(val);
+	DMA_SRC(3) = u32(&DMA_FILL(3));
+	DMA_DEST(3) = u32(p_dst);
+
+	DMA_CR(3) = DMA_SRC_FIX | DMA_COPY_WORDS | size >> 2;
+}
 
 } // namespace platform_ex;
 

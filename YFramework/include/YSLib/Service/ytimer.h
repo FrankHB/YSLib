@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r873
+\version r932
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-04-29 21:26 +0800
+	2013-05-17 03:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,7 @@
 #ifndef YSL_INC_Service_ytimer_h_
 #define YSL_INC_Service_ytimer_h_ 1
 
-#include "../Core/yobject.h"
-#include "../Adaptor/ycont.h"
-#include "../Core/ycounter.hpp"
+#include "../Core/ysdef.h"
 #include <chrono>
 
 YSL_BEGIN
@@ -102,55 +100,27 @@ Delay(const TimeSpan&);
 \warning 非虚析构。
 \since build 243
 */
-class YF_API Timer : private noncopyable, protected GMCounter<Timer>
+class YF_API Timer : private noncopyable
 {
-public:
-	typedef map<u32, Timer*> TimerMap; //!< 计时器组。
-
 protected:
-	static TimerMap mTimers;
-
+	//! \brief 时间基点：计时的起点。
 	TimePoint nBase;
-	Duration nInterval;
 
 public:
+	/*!
+	\brief 重复刷新有效的最小时间间隔。
+	\since build 405
+	*/
+	Duration Interval;
+
 	/*!
 	\brief 构造：使用时间间隔和激活状态。
-	\since build 293
+	\since build 405
 	*/
 	explicit
-	Timer(const Duration& = {}, bool = false);
-	/*!
-	\brief 析构：自动停用。
-	\since build 289
-	*/
-	~Timer();
-
-	/*!
-	\brief 判断 Timer 是否处于激活状态。
-	\since build 289
-	*/
-	bool
-	IsActive() const;
+	Timer(const Duration& = {}, bool = true);
 
 	DefGetter(const ynothrow, TimePoint, BaseTick, nBase)
-	DefGetter(const ynothrow, Duration, Interval, nInterval)
-
-	/*!
-	\brief 设置时间间隔。
-	\since build 300
-	*/
-	void
-	SetInterval(const TimeSpan& i)
-	{
-		SetInterval(static_cast<const Duration&>(i));
-	}
-	/*!
-	\brief 设置时间间隔。
-	\since build 300
-	*/
-	void
-	SetInterval(const Duration&);
 
 	/*!
 	\brief 延迟。
@@ -164,6 +134,7 @@ public:
 
 	/*!
 	\brief 刷新。
+	\return 是否有效。
 	*/
 	bool
 	Refresh();
@@ -184,29 +155,11 @@ public:
 	}
 
 	/*!
-	\brief 复位计时器组中的所有计时器。
-	*/
-	static void
-	ResetAll();
-
-	/*!
-	\brief 激活。
+	\brief 激活：同步时间基点。
 	*/
 	YF_API friend void
 	Activate(Timer&);
-
-	/*!
-	\brief 停用。
-	*/
-	YF_API friend void
-	Deactivate(Timer&);
 };
-
-inline
-Timer::~Timer()
-{
-	Deactivate(*this);
-}
 
 YSL_END_NAMESPACE(Timers)
 

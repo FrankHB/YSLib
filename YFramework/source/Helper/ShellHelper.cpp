@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r431
+\version r435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-04-13 13:04 +0800
+	2013-05-12 11:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,22 +131,22 @@ FetchFontFamilyNames()
 }
 
 
-FPSCounter::FPSCounter(u64 s)
+FPSCounter::FPSCounter(std::chrono::nanoseconds s)
 	: last_tick(GetHighResolutionTicks()), now_tick(), refresh_count(1),
 	MinimalInterval(s)
 {}
 
-u32
+size_t
 FPSCounter::Refresh()
 {
-	const u64 tmp_tick(GetHighResolutionTicks());
+	const std::chrono::nanoseconds tmp_tick(GetHighResolutionTicks());
 
 	if(YB_UNLIKELY(last_tick + MinimalInterval < tmp_tick))
 	{
 		last_tick = now_tick;
 
 		const u32 r(1000000000000ULL * refresh_count
-			/ ((now_tick = tmp_tick) - last_tick));
+			/ ((now_tick = tmp_tick) - last_tick).count());
 
 		refresh_count = 1;
 		return r;

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r272
+\version r341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-11 09:54 +0800
+	2013-05-19 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,76 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Helpers' $=
+		(
+			/ $dev "class %FPSCounter" @ %'ShellHelper' ^ "types \
+				%std::chrono::nanoseconds, %std::size_t"
+				~ "unsigned integer types",
+			/ @ "%platform MinGW32" $=
+			(
+				/ "updated only validated area instead of whole widget \
+					renderer buffer to improve performance",
+				* %"repeated calls to ::GetDC without releasing" $since b386
+			)
+		),
+		/ %'YSLib' $=
+		(
+			/ @ "class %Timer" @ %'Services' $=
+			(
+				- "association operations; deactivation, object counting";
+					// Activation states is not stored within the timer. \
+						Activation only means the timer has the right base \
+						tick. This saves significant resource. Users should \
+						track the state manually if really needed.
+				/ $dev "made interval as public accessible data member"
+			),
+			/ $dev "protected member %Graphics::size" => "%sGraphics"
+				@ %'Core'.'YGDIBase',
+			/ %'YGDI' $=
+			(
+				(
+					+ "interface %IImage";
+					+ "inheritance %IImage" @ "class %BitmapBuffer"
+				),
+				/ "class %BitmapBuffer" $=
+				(
+					- 'using Graphics::GetSizeOfBuffer',
+					/ "made member function %GetContext virtual"
+				),
+				/ @ "classes %(BitmapBuffer, BitmapBufferEx)" $=
+				(
+					/ $dev "allocation and deallocation" ^ "%unique_ptr"
+						~ "%(ynew, ydelete_array)",
+					/ "member functions %SetSize" ^ "parameter %'const Size&'"
+						~ "2 %SDst",
+					/ "allocation fails" @ "member functions %SetSize"
+						^ "distinguishable and clearer exception strings"
+				),
+				+ 'using %BitmapBuffer::SetSize' @ "class %BitmapBufferEx"
+			)
+		)
+		/ @ "%platform DS" @ %'YCLib' $=
+		(
+			+ "function inline %DMAFillWordsAsync" @ %'NativeAPI',
+			/ %'Video' $=
+			(
+				- "cache flush before DMA copying"
+					@ "function %ScreenSynchronize",
+				- "fill zeros" @ "function %ResetVideo"
+				// These make performance a little improved.
+			)
+		);
+	),
+	- $dev $repo "pattern glob '*/build*'" @ "file %.hgignore",
+	+ $dev "files for build FreeType2"
+	/ $doc "reconstructed most YSLib documentation"
+		@ "%Documentation::Designation" >> "%Documentation::YSLib"
+),
+
+b404
 (
 	/ %'YReader'.'shell' $=
 	(

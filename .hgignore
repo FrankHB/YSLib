@@ -9,7 +9,6 @@ syntax: glob
 *.o
 *.d
 *.elf
-*/build*
 */debug*
 */release*
 *doc/html/*
