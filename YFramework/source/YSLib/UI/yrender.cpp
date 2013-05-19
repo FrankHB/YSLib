@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r594
+\version r609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-04-15 08:46 +0800
+	2013-05-19 11:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,16 @@ Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 }
 
 
+BufferedRenderer::BufferedRenderer(bool b, unique_ptr<Drawing::IImage> p)
+	: rInvalidated(), pImageBuffer(std::move(p)),
+	IgnoreBackground(b)
+{}
+BufferedRenderer::BufferedRenderer(const BufferedRenderer& r)
+	: Renderer(r),
+	rInvalidated(r.rInvalidated), pImageBuffer(ClonePolymorphic(
+	r.pImageBuffer)), IgnoreBackground(r.IgnoreBackground)
+{}
+
 bool
 BufferedRenderer::RequiresRefresh() const
 {
@@ -50,9 +60,15 @@ BufferedRenderer::RequiresRefresh() const
 }
 
 void
+BufferedRenderer::SetImageBuffer(unique_ptr<Drawing::IImage> p)
+{
+	pImageBuffer = p ? std::move(p) : make_unique<Drawing::BitmapBuffer>();
+}
+
+void
 BufferedRenderer::SetSize(const Size& s)
 {
-	Buffer.SetSize(s.Width, s.Height);
+	GetImageBuffer().SetSize(s);
 	rInvalidated.GetSizeRef() = s;
 }
 

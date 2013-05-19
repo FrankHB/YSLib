@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8272
+\version r8287
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-05-18 04:32 +0800
+	2013-05-20 07:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -889,17 +889,28 @@ BASE_EXTENSIONS += ftsynth.c
 头文件版本： 2.4.9 。
 库文件版本： 2.4.9 用 devkitPro(@5.2.3) 编译的对应版本。
  build 299 起：
-增加 MinGW32 库文件版本： 2.4.9 用当时 MinGW32(@5.2.4) 编译的对应版本，使用 mingw32-make 直接构建默认提供的 makefile 。
+增加 MinGW32 库文件版本： 2.4.9 使用当时 MinGW32(@5.2.4) 编译的对应版本，使用 mingw32-make 直接构建默认提供的 makefile 。
  modules.cfg 配置不变。
  build 318 起：
 头文件版本： 2.4.10 。
  DS 库文件版本： 2.4.10 使用 devkitPro 编译的对应版本。
- MinGW32 库文件版本： 2.4.10 用当时 MinGW32(@5.2.4) 编译的对应版本。
+ MinGW32 库文件版本： 2.4.10 使用当时 MinGW32(@5.2.4) 编译的对应版本。
 其它配置不变。
  2012-12-21(build 366) 起：
 头文件版本： 2.4.11 。
  DS 库文件版本： 2.4.11 使用 devkitPro(@5.2.3) 编译的对应版本。
- MinGW32 库文件版本： 2.4.11 用当时 MinGW32(@5.2.4) 编译的对应版本。
+ MinGW32 库文件版本： 2.4.11 使用当时 MinGW32(@5.2.4) 编译的对应版本。
+其它配置不变。
+ 2013-05-19(build 406) 起：
+测试发现 2.4.12 库在 DS 上的性能显著降低，因此暂不升级；仅重新编译减小二进制文件大小。
+头文件版本不变。
+ DS 库文件版本： 2.4.11 使用 devkitPro(@5.2.3) 去除 -g 选项（减小文件体积）重新编译的对应版本。
+ MinGW32 库文件版本： 2.4.11 使用当时 MinGW32(@5.2.4) 重新编译的对应版本。
+库配置和 DS 库构建文件已添加至版本库，参见 "3rdparty/freetype/builds/ds/modules.cfg" 。
+ modules.cfg 配置移除以下有效行：
+HINTING_MODULES += pshinter
+AUX_MODULES += gzip
+BASE_EXTENSIONS += ftbbox.c
 其它配置不变。
 
 @5.4.2

@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3499
+\version r3538
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-05-19 04:57 +0800
+	2013-05-19 11:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,9 +159,43 @@ ClipMargin(PaintContext&, const Padding&, const Size&);
 \since build 405
 */
 DeclI(YF_API, IImage)
-	DeclIEntry(const Graphics& GetContext() const)
+	//! \since build 406
+	DeclIEntry(const Graphics& GetContext() const ynothrow)
 	DeclIEntry(void SetSize(const Size&))
+
+	//! \since build 406
+	DeclIEntry(IImage* Clone() const)
 EndDecl
+
+
+/*!
+\brief 使用 Graphics 定义的基本图像。
+\since build 406
+*/
+class YF_API BasicImage : implements IImage,
+	protected Graphics
+{
+public:
+	DefDeCtor(BasicImage)
+	BasicImage(const Graphics& g)
+		: Graphics(g)
+	{}
+
+	using Graphics::operator!;
+
+	using Graphics::operator bool;
+
+	using Graphics::GetBufferPtr;
+	using Graphics::GetHeight;
+	using Graphics::GetWidth;
+	using Graphics::GetSize;
+	ImplI(IImage) DefGetter(const ynothrow override, const Graphics&, Context,
+		*this)
+
+	ImplI(IImage) DefClone(const override, BasicImage, Clone)
+
+	ImplI(IImage) DefSetter(const Size&, Size, sGraphics)
+};
 
 
 /*!
@@ -169,8 +203,7 @@ EndDecl
 \note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
 	std::is_nothrow_move_assignable<T>::value</tt> 。
 */
-class YF_API BitmapBuffer : implements IImage,
-	protected Graphics
+class YF_API BitmapBuffer : public BasicImage
 {
 public:
 	/*!
@@ -191,8 +224,7 @@ public:
 	/*!
 	\brief 析构：释放资源。
 	*/
-	virtual
-	~BitmapBuffer()
+	~BitmapBuffer() override
 	{
 		delete[] pBuffer;
 	}
@@ -218,22 +250,6 @@ public:
 		return *this;
 	}
 
-	//! \since build 319
-	//@{
-	using Graphics::operator!;
-
-	using Graphics::operator bool;
-	//@}
-
-	//! \since build 296
-	//@{
-	using Graphics::GetBufferPtr;
-	using Graphics::GetHeight;
-	using Graphics::GetWidth;
-	using Graphics::GetSize;
-	ImplI(IImage) DefGetter(const ynothrow, const Graphics&, Context, *this)
-	//@}
-
 	/*!
 	\brief 设置内容。
 	\note 预先设置缓冲区大小。
@@ -249,8 +265,8 @@ public:
 		设置后清除缓冲区。
 	\since build 405
 	*/
-	ImplI(IImage) void
-	SetSize(const Size&);
+	void
+	SetSize(const Size&) override;
 	/*!
 	\brief 交换宽和高；同时清除缓冲区。
 	*/

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r341
+\version r373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-19 05:21 +0800
+	2013-05-19 07:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,39 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Service'.'YGDI' $=
+		(
+			/ @ "interface %IImage" $=
+			(
+				+ "abstract method %Clone",
+				+ 'ynothrow' @ "method %GetContext"
+			);
+			+ "class %BasicImage implementing %IImage";
+			/ "inheritance of %BitmapBuffer" ^ "BasicImage"
+		);
+		/ "class %BufferedRenderer" %'UI'.'YRenderer' $=
+		(
+			/ "buffer" ^ "%unique_ptr<Drawing::IImage>"
+				~ "public %BitmapBuffer",
+			+ "buffer setting"
+		)
+	),
+	/ DLP "library using" $=
+	(
+		/ freetype build \conf updated $=
+		(
+			/ "'modules.cfg' adjusted to fit actual library and rebuilt",
+			- '-g' "compiler option" @ "platform %DS"
+		);
+		^ "recompiled library freetype,
+			// See $known_issue_b406.
+	),
+),
+
+b405
 (
 	/ %'YFramework' $=
 	(

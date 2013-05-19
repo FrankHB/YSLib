@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2778
+\version r2781
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-05-19 04:46 +0800
+	2013-05-19 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 
 
 BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
-	: Graphics()
+	: BasicImage()
 	//不能提前初始化 size ，否则指针非空和面积非零状态不一致。
 {
 	SetSize(w, h);
@@ -94,14 +94,14 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
 		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
 }
 BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
-	: Graphics()
+	: BasicImage()
 {
 	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
 		std::copy_n(p, GetAreaOf(GetSize()), pBuffer);
 }
 BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
-	: Graphics(buf.GetContext())
+	: BasicImage(buf)
 {
 	buf.pBuffer = nullptr;
 }

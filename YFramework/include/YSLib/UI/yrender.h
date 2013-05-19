@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r561
+\version r578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2013-03-13 12:50 +0800
+	2013-05-19 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,9 +92,13 @@ class YF_API BufferedRenderer : public Renderer
 protected:
 	mutable Rect rInvalidated; \
 		//!< 无效区域：包含所有新绘制请求的区域（不一定是最小的）。
+	/*!
+	\brief 显示图像缓冲区指针。
+	\since build 406
+	*/
+	unique_ptr<Drawing::IImage> pImageBuffer;
 
 public:
-	Drawing::BitmapBuffer Buffer; //!< 显示缓冲区。
 	/*!
 	\brief 指定验证时忽略上层缓冲区背景。
 	\since build 278
@@ -103,12 +107,11 @@ public:
 
 	/*!
 	\brief 构造：指定是否忽略上层缓冲区背景。
-	\since build 278
+	\since build 406
 	*/
-	BufferedRenderer(bool b = false)
-		: rInvalidated(), Buffer(), IgnoreBackground(b)
-	{}
-	DefDeCopyCtor(BufferedRenderer)
+	BufferedRenderer(bool = false,
+		unique_ptr<Drawing::IImage> = make_unique<Drawing::BitmapBuffer>());
+	BufferedRenderer(const BufferedRenderer&);
 	DefDeMoveCtor(BufferedRenderer)
 
 	/*!
@@ -118,6 +121,8 @@ public:
 	bool
 	RequiresRefresh() const;
 
+	//! \since build 406
+	DefGetter(const ynothrow, Drawing::IImage&, ImageBuffer, *pImageBuffer)
 	/*!
 	\brief 取无效区域。
 	*/
@@ -126,13 +131,16 @@ public:
 	\brief 取图形接口上下文。
 	\return 缓冲区图形接口上下文。
 	*/
-	DefGetterMem(const ynothrow, const Graphics&, Context, Buffer)
+	DefGetterMem(const ynothrow, const Graphics&, Context, GetImageBuffer())
 
 	/*!
 	\brief 设置缓冲区大小。
 	*/
 	void
 	SetSize(const Size&) override;
+	//! \since build 406
+	void
+	SetImageBuffer(unique_ptr<Drawing::IImage>);
 
 	DefClone(const override, BufferedRenderer, Clone)
 

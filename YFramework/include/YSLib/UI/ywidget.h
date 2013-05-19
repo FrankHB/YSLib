@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5448
+\version r5450
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-03-20 12:27 +0800
+	2013-05-19 11:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -413,9 +413,10 @@ public:
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用以当前部件边界新建的 Renderer 对象。
 	\note 取得指定对象的所有权。
+	\since build 406
 	*/
 	void
-	SetRenderer(unique_ptr<Renderer>&&);
+	SetRenderer(unique_ptr<Renderer>);
 	/*!
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用以当前部件边界新建的 View 对象。
