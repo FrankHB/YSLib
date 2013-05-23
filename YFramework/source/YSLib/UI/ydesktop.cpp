@@ -11,13 +11,13 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r1427
+\version r1432
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-02 12:00:08 +0800
 \par 修改时间:
-	2013-03-13 13:14 +0800
+	2013-05-21 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,11 +48,13 @@ GetBufferedRendererOf(const IWidget& wgt) ynothrow
 } // unnamed namespace;
 
 
-Desktop::Desktop(Devices::Screen& s, Color c, const shared_ptr<Image>& hImg)
-	: Window(Rect(s.GetSize()), hImg),
+Desktop::Desktop(Devices::Screen& s, Color c, const shared_ptr<Image>& hImg,
+	unique_ptr<BufferedRenderer> p)
+	: Window(Rect(s.GetSize()), p ? std::move(p) : std::move(
+	make_unique<BufferedRenderer>(true, std::move(s.GetBackBuffer())))),
 	screen(s)
 {
-	Background = SolidBrush(c),
+	Background = hImg ? HBrush(ImageBrush(hImg)) : HBrush(SolidBrush(c)),
 	GetBufferedRendererOf(*this).IgnoreBackground = true;
 }
 

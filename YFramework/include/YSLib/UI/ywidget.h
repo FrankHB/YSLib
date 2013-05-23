@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5450
+\version r5451
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-05-19 11:21 +0800
+	2013-05-22 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -436,7 +436,7 @@ public:
 	绘制结束后更新边界，表示实际被绘制的区域。
 	若部件的内部状态能够保证显示状态最新，则返回的区域可能比传入时表示的范围更小。
 	*/
-	ImplI(IWidget) void
+	virtual void
 	Refresh(PaintEventArgs&&);
 };
 

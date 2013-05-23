@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3538
+\version r3566
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-05-19 11:12 +0800
+	2013-05-22 01:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,20 +155,6 @@ ClipMargin(PaintContext&, const Padding&, const Size&);
 
 
 /*!
-\brief 图像接口。
-\since build 405
-*/
-DeclI(YF_API, IImage)
-	//! \since build 406
-	DeclIEntry(const Graphics& GetContext() const ynothrow)
-	DeclIEntry(void SetSize(const Size&))
-
-	//! \since build 406
-	DeclIEntry(IImage* Clone() const)
-EndDecl
-
-
-/*!
 \brief 使用 Graphics 定义的基本图像。
 \since build 406
 */
@@ -301,7 +287,11 @@ public:
 class YF_API BitmapBufferEx : public BitmapBuffer
 {
 protected:
-	u8* pBufferAlpha; //!<  Alpha 缓冲区指针。
+	/*!
+	\brief Alpha 缓冲区指针。
+	\since build 407
+	*/
+	Color::AlphaType* pBufferAlpha;
 
 public:
 	/*!
@@ -350,10 +340,18 @@ public:
 		return *this;
 	}
 
-	DefGetter(const ynothrow, u8*, BufferAlphaPtr, pBufferAlpha) \
-		//!< 取 Alpha 缓冲区的指针。
-	DefGetter(const ynothrow, size_t, SizeOfBufferAlpha, sizeof(u8)
-		* GetAreaOf(GetSize())) //!< 取 Alpha 缓冲区占用空间。
+	/*!
+	\brief 取 Alpha 缓冲区的指针。
+	\since build 407
+	*/
+	DefGetter(const ynothrow, Color::AlphaType*, BufferAlphaPtr,
+		pBufferAlpha)
+	/*!
+	\brief 取 Alpha 缓冲区占用空间。
+	\since build 407
+	*/
+	DefGetter(const ynothrow, size_t, SizeOfBufferAlpha,
+		sizeof(Color::AlphaType) * GetAreaOf(GetSize()))
 
 	//! \since build 405
 	using BitmapBuffer::SetSize;

@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1293
+\version r1304
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-05-19 03:44 +0800
+	2013-05-21 06:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -766,6 +766,20 @@ public:
 	BitmapPtr
 	at(size_t) const ythrow(GeneralEvent, std::out_of_range);
 };
+
+
+/*!
+\brief 图像接口。
+\since build 405
+*/
+DeclI(YF_API, IImage)
+	//! \since build 406
+	DeclIEntry(const Graphics& GetContext() const ynothrow)
+	DeclIEntry(void SetSize(const Size&))
+
+	//! \since build 406
+	DeclIEntry(IImage* Clone() const)
+EndDecl
 
 
 /*

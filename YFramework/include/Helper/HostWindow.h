@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r118
+\version r130
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-04-26 20:41 +0800
+	2013-05-22 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,6 +78,22 @@ public:
 	void
 	Close();
 
+	virtual void
+	OnDestroy();
+
+	virtual void
+	OnLostFocus();
+
+	virtual void
+	OnPaint();
+
+	/*!
+	\brief 刷新：保持渲染状态同步。
+	\since build 407
+	*/
+	virtual PDefH(void, Refresh, )
+		ImplExpr(void())
+
 	/*!
 	\brief 调整窗口大小。
 	\note 线程安全：跨线程调用时使用基于消息队列的异步设置。
@@ -93,15 +109,6 @@ public:
 	*/
 	void
 	ResizeClient(const Drawing::Size&);
-
-	virtual void
-	OnDestroy();
-
-	virtual void
-	OnLostFocus();
-
-	virtual void
-	OnPaint();
 
 	//! \since build 381
 	void

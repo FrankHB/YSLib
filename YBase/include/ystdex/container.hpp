@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r253
+\version r257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-04-19 17:16 +0800
+	2013-05-22 13:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,9 +143,9 @@ erase_all(_tContainer& c, const typename _tContainer::value_type& val)
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
-template<typename _tContainer, typename _tIn, typename _tValue>
+template<typename _tContainer, typename _tForward, typename _tValue>
 void
-erase_all(_tContainer& c, _tIn first, _tIn last, const _tValue& value)
+erase_all(_tContainer& c, _tForward first, _tForward last, const _tValue& value)
 {
 	while(first != last)
 		if(*first == value)
@@ -172,9 +172,9 @@ erase_all_if(_tRange& c, _fPredicate pred)
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
-template<typename _tContainer, typename _tIn, typename _fPredicate>
+template<typename _tContainer, typename _tForward, typename _fPredicate>
 void
-erase_all_if(_tContainer& c, _tIn first, _tIn last, _fPredicate pred)
+erase_all_if(_tContainer& c, _tForward first, _tForward last, _fPredicate pred)
 {
 	while(first != last)
 		if(pred(*first))

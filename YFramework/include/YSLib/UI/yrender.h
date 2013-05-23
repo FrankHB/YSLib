@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r578
+\version r582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2013-05-19 11:30 +0800
+	2013-05-21 06:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,6 @@
 #define YSL_INC_UI_yrender_h_ 1
 
 #include "ycomp.h"
-#include "../Service/ygdi.h"
 
 YSL_BEGIN
 
@@ -107,10 +106,10 @@ public:
 
 	/*!
 	\brief 构造：指定是否忽略上层缓冲区背景。
-	\since build 406
+	\note 当指针为空时新建缓冲区。
+	\since build 407
 	*/
-	BufferedRenderer(bool = false,
-		unique_ptr<Drawing::IImage> = make_unique<Drawing::BitmapBuffer>());
+	BufferedRenderer(bool = false, unique_ptr<Drawing::IImage> = {});
 	BufferedRenderer(const BufferedRenderer&);
 	DefDeMoveCtor(BufferedRenderer)
 

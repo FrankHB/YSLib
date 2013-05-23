@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r189
+\version r193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-05-18 03:58 +0800
+	2013-05-22 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,9 +114,11 @@
 @2.2.4.2 同名实体变更：
 对于重载，不视为相同实体；
 对于模板特化，不视为相同实体。
-包括所有实体名称的链接（或对应实现的符号(symbol) 可见性(visibility)）变化；除此以外忽略所有 ISO C++ 或实现扩展的属性(attribute) 的变化。
-对于函数、函数模板和模板特化，包括类型（注意类型等价性，参见 [Documentation::CommonRules @@5.12.1] ）。和默认参数变更；
+包括所有实体名称的链接（或对应实现的符号(symbol) 可见性(visibility)）变更；除此以外忽略所有 ISO C++ 或实现扩展的属性(attribute) 变更。
+对于函数、函数模板和模板特化，包括类型（注意类型等价性，参见 [Documentation::CommonRules @@5.12.1] ）和默认参数变更；
 对于类成员，包括访问权限变更。
+不包括 typedef 名称和别名声明中被声明标识符以外的变更；
+不包括函数或模版的形式参数名称变更。
 
 @2.2.5 头文件包含守护宏(include guard marco) ：
 除非重复包含不影响语义，否则应使用特定名称的宏以保证头文件不被包含超过一次。

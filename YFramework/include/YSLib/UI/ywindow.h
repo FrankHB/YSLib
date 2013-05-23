@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r3817
+\version r3823
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2013-03-16 11:48 +0800
+	2013-05-20 15:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YSL_INC_UI_ywindow_h_ 1
 
 #include "ypanel.h"
+#include "yrender.h"
 
 YSL_BEGIN
 
@@ -42,11 +43,13 @@ class YF_API Window : public Panel
 {
 public:
 	/*!
-	\brief 构造：使用指定边界和背景图像。
-	\since build 327
+	\brief 构造：使用指定边界并设置渲染器。
+	\note 若渲染器指针为空则忽略设置渲染器。
+	\since build 407
 	*/
 	explicit
-	Window(const Rect& = {}, const shared_ptr<Drawing::Image>& = {});
+	Window(const Rect& = {},
+		unique_ptr<Renderer> = make_unique<BufferedRenderer>());
 	inline DefDeMoveCtor(Window)
 
 	void

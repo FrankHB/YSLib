@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r447
+\version r448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-05-20 07:24 +0800
+	2013-05-23 05:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ $KNOWN_ISSUE:
 	implementation techniques found. Also depends on the environment.
 * $known_issue_b223 "corrupted loading or fatal errors on loading font file \
 	with embedded bitmap glyph like simson.ttc" $since b185;
-	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10, 2.4.12) tested.
+	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10, 2.4.11, 2.4.12) tested.
 * $known_issue_b264 "<cmath> cannot use 'std::*' names" @ "!defined \
 	%_GLIBCXX_USE_C99_MATH_TR1" @ "libstdc++ with G++ (4.6, 4.7) on devkitARM"
 	@ "platform $DS" $before $future;

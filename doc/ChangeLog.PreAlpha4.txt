@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r373
+\version r420
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-19 07:30 +0800
+	2013-05-24 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,54 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ $dev @ %'Service'.'YGDI' $=
+		(
+			/ "interface %IImage" >> 'Core'.'YGDIBase',
+			/ "all 'u8'" -> 'PixelType::AlphaType' @ %YGDI
+		),
+		+ $dev "virtual member function %GraphicDevice::GetBackBuffer"
+			@ %'Core'.'YDevice',
+		/ %'UI' $=
+		(
+			/ "constructor" @ "%Window" ^ "renderer"
+				~ "background image as 2nd optional parameter",
+			/ @ "class %Desktop" $=
+			(
+				* "no effect for background image argument" @ "destructor"
+					$since b294,
+				/ @ "constructor" $=
+				(
+					+ "buffered renderer parameter",
+					/ "made renderer through buffer from screen as back \
+						buffer when renderer not specified"
+				)
+			),
+			/ @ "constructor" @ "class %BufferedRenderer" @ %'YRenderer' $=
+			(
+				/ "defaulted creating a new buffer when provided buffer \
+					argument is null",
+				/ "simplified default argument as '{}'"
+			)
+		),
+		/ "platform %MinGW32" @ %'Helper'.'HostWindow' $=
+		(
+			+ $dev "virtual member function %Window::Refresh" @ %'HostWindow',
+			/ $design
+				"increased performance of render windows updating a little",
+		)
+	),
+	/ "made video initialization more" @ "function %ResetVideo" ~ "InitVideo"
+		@ "platform %DS" @ %'YCLib'.'Video',
+	* "misleading iterator category" @ "template parameters" @ "function \
+		template %ystdex::(erase_all, erase_all_if) for associative containers"
+		$since b289
+		// Containers require forward iterators, not input iterators.
+),
+
+b406
 (
 	/ %'YFramework'.'YSLib' $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1058
+\version r1076
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-05-17 20:29 +0800
+	2013-05-22 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -89,6 +89,17 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 
 } // unnamed namespace;
 
+
+void
+RenderWindow::Refresh()
+{
+	auto& rd(GetRenderer());
+	auto& wgt(rd.GetWidgetRef());
+
+	if(rd.Validate(wgt, wgt,
+		{rd.GetContext(), Point(), rd.GetInvalidatedArea()}))
+		rd.Update(rd.GetContext().GetBufferPtr());
+}
 
 void
 RenderWindow::OnPaint()
@@ -286,15 +297,8 @@ Environment::UpdateRenderWindows()
 	std::unique_lock<std::mutex> lck(wmap_mtx);
 
 	for(const auto& pr : wnd_map)
-		if(auto p_wnd = dynamic_cast<RenderWindow*>(pr.second))
-		{
-			auto& rd(p_wnd->GetRenderer());
-			auto& wgt(rd.GetWidgetRef());
-
-			if(rd.Validate(wgt, wgt,
-				{rd.GetContext(), Point(), rd.GetInvalidatedArea()}))
-				rd.Update(rd.GetContext().GetBufferPtr());
-		}
+		if(pr.second)
+			pr.second->Refresh();
 }
 
 YSL_END_NAMESPACE(Host)

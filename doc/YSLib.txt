@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1908
+\version r1911
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-05-18 04:17 +0800
+	2013-05-21 06:51 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -130,7 +130,7 @@
 在 UI 中，以下依赖关系对于头文件包含是确定的：
  "ycomp.h" 依赖于 Core 的 "ygdibase.h" 、 "yfunc.hpp" 和 "ysmsgdef.h" 以及 Adaptor 的 "ycont.h" ；
  "yfocus.hpp" 依赖于 "ycomp.h" ；
- "yrender.h" 依赖于 "ycomp.h" 和 Service 的 "ygdi.h" ；
+ "yrender.h" 依赖于 "ycomp.h" ；
  "ystyle.h" 依赖于 "ycomp.h" 和 Service 的 "ydraw.h" ；
  "ywgtview.h" 依赖于 "ycomp.h" ；
  "ywgtevt.h" 依赖于 "ycomp.h" 和 Core 的 "yevt.hpp" ；
@@ -140,8 +140,8 @@
  "yuicont.h" 依赖于 "ywidget.h" ；
  "ycontrol.h" 依赖于 "ywidget.h" 和 "ywgtevt.h" ；
  "ypanel.h" 依赖于 "ycontrol.h" 和 "yuicont.h" ；
- "ywindow.h" 依赖于 "ypanel.h" 和 Service 的 "yres.h" ；
- "ydesktop.h" 依赖于 "ywindow.h" 、 "yrender.h" 和 Core 的 "ydevice.h" 。
+ "ywindow.h" 依赖于 "ypanel.h" 、 "yrender.h" 和 Service 的 "yres.h" ；
+ "ydesktop.h" 依赖于 "ywindow.h" 和 Core 的 "ydevice.h" 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
 
 @1.3 YSLib 可重入性和线程安全性：

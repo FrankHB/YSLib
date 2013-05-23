@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r3397
+\version r3400
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2012-03-13 13:14 +0800
+	2012-05-20 15:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,11 +34,11 @@ using namespace Drawing;
 
 YSL_BEGIN_NAMESPACE(UI)
 
-Window::Window(const Rect& r, const shared_ptr<Image>& hImg)
+Window::Window(const Rect& r, unique_ptr<Renderer> p_renderer)
 	: Panel(r)
 {
-	Background = ImageBrush(hImg),
-	SetRenderer(make_unique<BufferedRenderer>());
+	if(p_renderer)
+		SetRenderer(std::move(p_renderer));
 }
 
 void

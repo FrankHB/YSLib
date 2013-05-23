@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r609
+\version r612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-05-19 11:35 +0800
+	2013-05-21 06:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/yrender.h"
 #include "YSLib/UI/ycontrol.h"
-#include "YSLib/Service/ydraw.h"
+#include "YSLib/Service/ygdi.h"
 
 YSL_BEGIN
 
@@ -44,8 +44,8 @@ Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 
 
 BufferedRenderer::BufferedRenderer(bool b, unique_ptr<Drawing::IImage> p)
-	: rInvalidated(), pImageBuffer(std::move(p)),
-	IgnoreBackground(b)
+	: rInvalidated(), pImageBuffer(p ? std::move(p)
+	: make_unique<BitmapBuffer>()), IgnoreBackground(b)
 {}
 BufferedRenderer::BufferedRenderer(const BufferedRenderer& r)
 	: Renderer(r),

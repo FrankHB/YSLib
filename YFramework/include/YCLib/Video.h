@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r558
+\version r559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-05-05 17:01 +0800
+	2013-05-21 21:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -383,7 +383,7 @@ namespace platform_ex
 #if YCL_DS
 
 /*!
-\brief 复位屏幕显示模式。
+\brief 复位屏幕显示模式：清除背景寄存器，使用 ::vramDefault 复位，设置双屏 Mode 5 。
 */
 YF_API void
 ResetVideo();

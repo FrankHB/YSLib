@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r538
+\version r546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-05-05 13:50 +0800
+	2013-05-22 09:44 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -58,6 +58,10 @@ public:
 	{}
 
 	DefGetter(const ynothrow, HostRenderer&, Renderer, renderer)
+
+	//! \since build 387
+	void
+	Refresh() override;
 
 	//! \since build 387
 	void
@@ -138,11 +142,8 @@ public:
 	void
 	SetSize(const Drawing::Size&) override;
 
-	YB_NORETURN HostRenderer*
-	Clone() const override
-	{
-		throw LoggedEvent("HostRenderer::Clone: Not implemented.");
-	}
+	YB_NORETURN PDefH(HostRenderer*, Clone, ) const override
+		ImplExpr(throw LoggedEvent("HostRenderer::Clone: Not implemented."));
 //	DefClone(const override, HostRenderer, Clone)
 
 	//! \since build 386

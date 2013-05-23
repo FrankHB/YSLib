@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r1973
-\author FrankHB<frankhb1989@gmail.com>
+\version r1981
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2012-12-11 21:18 +0800
+	2013-05-21 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,6 +60,12 @@ public:
 	using Graphics::operator bool;
 	//@}
 
+	/*!
+	\brief 取后备缓冲区。
+	\since build 407
+	*/
+	virtual DefGetter(const, unique_ptr<Drawing::IImage>, BackBuffer,
+		unique_ptr<Drawing::IImage>())
 	//! \since build 296
 	//@{
 	using Graphics::GetBufferPtr;

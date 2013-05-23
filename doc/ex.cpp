@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5549 *build 406 rev *
+\version r5973 *build 407 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-05-20 07:48 +0800
+	2013-05-24 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,25 +366,21 @@ $using:
 
 
 $DONE:
-r1-r47;
+r1-r32;
 
 
 $DOING:
 
 $relative_process:
-2013-05-20 +0800:
--42.9d;
-// Mercurial local rev1-rev278: r10831;
+2013-05-24 +0800:
+-44.6d;
+// Mercurial local rev1-rev279: r10863;
 
 / ...
 
 
 $NEXT_TODO:
-b[$current_rev]-b428:
-/ text reader @ YReader $=
-(
-	/ \simp \impl @ \u (DSReader, ShlReader)
-),
+b[$current_rev]-b421:
 / @ explorer $=
 (
 	+ extension & MIME options,
@@ -392,125 +388,128 @@ b[$current_rev]-b428:
 ),
 / @ \proj YBase $=
 (
-	+ ABI dependent APIs(e.g. name demangling),
-	+ null_deleter,
-	/ $low_prior consider: ifile_iterator & ifilebuf_iterator,
-	/ consider: ^ compile-time integer sequence:
-		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3493.html
+	+ null_deleter
 );
 
 
 $TODO:
-b[377]:
-/ external dependencies $=
+b[1076]:
+/ $extern external dependencies $=
 (
 	/ recompile freetype with MinGW g++ 4.8.0,
-	/ consider: recompile DS freetype without '-g' CFLAGS option
+	* freetype 2.4.12 performance @ DS
 );
-/ services $=
+/ YBase $=
 (
-	+ \impl @ images loading
+	+ ABI dependent APIs(e.g. name demangling),
+	/ $low_prior consider: ifile_iterator & ifilebuf_iterator,
+	+ consider: compile-time integer sequence;
+		// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3493.html
+	+ \s \as | \mac for (__has_feature(cxx_exceptions)
+		&& __has_feature(cxx_rtti)) for Clang++ @ \h YDefinition,
+	+ comparison between different cv-qualified any_iterator types
+		@ \h AnyIterator,
+	+ ystdex::noinstance base class,
+	/ $extern adjusted ystdex::any to std::tr2::any,
+	/ resolved 'scaler' \term and %is_scalar(e.g. for fixed point numbers),
+	+ adaptive seriazation (to text/binary),
+	+ round to 2^n integer arithmetics,
+	/ $low_prior consider merge: boost::transform,
+	+ tag-based type operations,
+	/ ystdex::fixed_point $=
+	(
+		* \impl @ \op/= for signed types,
+		+ 64-bit integer underlying type support
+	),
+	+ $low_prior C-style string output routines (u16printf, u32printf),
+	/ consider: improve efficiency @ \ft polymorphic_crosscast @ \h YCast
+		@ \conf release,
 ),
-/ consider: ^ %std::this_thread::sleep_for ~ YSLib::Delay,
-+ \s \as | \mac for (__has_feature(cxx_exceptions) && __has_feature(cxx_rtti))
-	for Clang++ @ \h YDefinition,
-/ @ "GUI" $=
+/ YFramework.YSLib.Adaptor $=
+(
+	/ consider: + final @ \cl (Font, CharBitmap) @ \u Font,
+	+ external image \lib binding
+),
+/ YFramework.YSLib.Service $=
+(
+	+ \impl @ images I/O and conversions,
+	/ \impl YFileSystem ^ tr2::filesystem,
+	// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3505.html .
+	/ fully \impl @ encoding checking,
+	+ general \impl @ images processing interface,
+	^ <chrono> to completely abstract system clocks,
+	+ general data configuragion,
+	/ general file type abstraction,
+	/ fully \impl @ \cl Path
+),
+/ YFramework.YSLib.UI $=
 (
 	/ split %GSeqeunceViewer to 2 class templates,
 	/ mark (YDesktop; YWindow) as unnecessary files,
 	+ icons,
 	/ $low_prior more long list tests @ %DropDownList,
-	/ refactored shared GUI mapping for menus and other widgets,
-	+ safe widget cloning,
 	* previous frame form buffered renderer of desktop did not be handled
 		properly for clipping area enlarged when updating $since b?,
 		// Namely, the actual painted area is not the same as accumulated \
-			invalidated bounding region, which essentially cause over painted.
-),
-/ sessions $=
-(
-	+ $doc session id,
-	+ session shells,
-	+ \cl FrameworkSession
-),
-/ $low_prior YReader $=
-(
-	+ settings manager,
-	+ improved smooth scrolling with lower limit of scrolling cycle supported
-),
-+ general shell switching clueanup $=
-(
-	+ filtering background task or clearing application message queue,
-	+ helper functions
-),
-/ project structure $=
-(
-	/ Microsoft Windows(MinGW32) port $=
+			invalidated bounding region, which essentially cause over \
+			painted.
+	+ formal abstraction of rectangular hit test,
+	+ widgets opacity,
+	+ bidirectional widget iterators support,
+	+ key accelerators,
+	+ widgets for RTC,
+	/ refactored shared GUI mapping for menus and other widgets,
+	+ safe widget cloning,
+	/ GUI brushes $=
 	(
-		+ free hosted window styles,
-		+ host desktop abstraction
+		+ more base class templates,
+		+ transformations
 	),
-	/ improved tests and examples
-);
-+ comparison between different cv-qualified any_iterator types @ \h AnyIterator;
-/ $design $low_prior robustness and cleanness $=
-(
-	/ \ac @ \inh touchPosition @ \cl CursorInfo @ \ns platform @ \u YCommon,
-	+ consider: 'yconstexpr' @ \s \m Graphics::Invalid,
-	/ confirm correctness @ stat() @ Win32,
-		// See comments @ src/fccache.c @ \proj fontconfig.
-	/ consideration of mutable member @ class %Message
+	+ generic timers multiplexing for input holding events,
+		// To resolve routed events repeating preemption.
+	+ widget layout managers,
+	+ widget-based animation support,
+	* View position switch through scroll bar not accurate enough
+		@ class %ListBox,
+	+ widget models,
+	/ sessions $=
+	(
+		+ $doc session id,
+		+ session shells,
+		+ \cl FrameworkSession
+	),
+	+ UI scenes, modes, subsessions,
 ),
-/ $low_prior improving performance $=
+/ YFramework.YSLib.Core $=
 (
-	/ \impl @ classes %(Message, MessageQueue),
-	/ more specific \impl @ NPL context,
-	/ higher FPS
+	/ messaging $=
+	(
+		/ consider: mutable member @ class %Message,
+		+ \t \spec swap<YSLib::Message> and other framework \tp;
+		+ general predicates for removing message,
+		^ timing triggers @ message loop,
+		/ consider: ^ weak_ptr @ shell messages
+	)
 ),
-/ text manager @ services $=
+/ YFramework.Helpers $=
 (
-	* text file buffer boundray for encoding for text size not fit
-		for char length,
-	/ $low_prior more effiecent batch \impl @ \f CopySliceFrom,
-	/ consider: const @ \mf @ \cl TextManager
-),
-+ BSD/GPL/... copyright notice reproducing/displaying @ binaries;
-
-b[427]:
-/ YBase $=
-(
-	/ $low_prior \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
-		~ '::llround',
-	/ $low_prior consider merge: boost::transform,
-	+ noinstance base class,
-	/ \mft<_type> any& \op=(const _type&) -> \mft<_type> any& \op=(_type),
-	/ resolved 'scaler' \term and %is_scalar(e.g. for fixed point numbers),
-	+ adaptive seriazation (to text/binary),
-	+ round to 2^n integer arithmetics
-),
-+ $low_prior freestanding memory management and new_handler to avoid
-	high-level memory allocation failure,
-/ Core $=
-(
-	+ \t \spec swap<YSLib::Message>,
-	/ \impl YFileSystem ^ tr2::filesystem
-),
-/ host environment $=
-(
-	+ thread safety check for WndProc,
-	/ \impl @ \f MinGW32::TestFramework @ platform MinGW32,
-	/ split hosted message loop as a new thread distinct to host initialization,
-	+ consider: \conv \f between Drawing::Rect, ::RECT @ Helper,
-	+ window hypervisor
-),
-/ @ \lib YCLib $=
-(
-	+ error code with necessary %thread_local,
-	/ stripping away direct using @ Win32 types completely @ \h,
-	/ consider: ::OutputDebugStringA,
-	/ fully \impl @ memory mappaing,
-	+ block file loading,
-	+ shared memory
+	+ general shell switching clueanup $=
+	(
+		+ filtering background task or clearing application message queue,
+		+ more switching helper functions,
+		+ locking;
+		+ exceptional state and handlers
+	),
+	/ host environment $=
+	(
+		/ consider: CreateCompatibleBitmap double buffering,
+		/ revised thread safety check for WndProc,
+		/ \impl @ \f MinGW32::TestFramework @ platform MinGW32,
+		/ split hosted message loop as a new thread distinct to host \
+			initialization,
+		+ consider: \conv \f between Drawing::Rect, ::RECT @ Helper,
+		+ window hypervisor
+	)
 ),
 / @ \lib CHRLib $=
 (
@@ -518,29 +517,31 @@ b[427]:
 	/ placeholders when character conversion failed @ string conversion,
 	+ UTF-8 to GBK conversion
 ),
-/ completeness of core abstraction $=
+/ @ \lib YCLib $=
 (
-	+ UI scenes,
-	+ UI modes,
-	+ UI subsessions,
-	+ shell framework for plugins and devices,
-	+ automatic shellizing,
+	/ consider: necessity of %thread_local for error codes, etc,
+	/ stripping away direct using @ Win32 types completely @ \h
 ),
-/ services $=
+/ $low_prior YReader $=
 (
-	+ general resouce management,
-	/ @ "GDI" $=
+	+ settings manager,
+	/ \simp \impl @ \u (DSReader, ShlReader),
+	+ improved smooth scrolling with lower limit of scrolling cycle supported
+	+ overlapping test @ \cl Rect,
+	+ partial invalidation support @ %(HexViewArea::Refresh)
+),
+/ project structure and documentation $=
+(
+	/ Microsoft Windows(MinGW32) port $=
 	(
-		/ refactoring text rendering APIs $=
-		(
-			/ refactoring current APIs,
-			+ $low_prior user-defined rendering APIs,
-			/ unifying model for glyphrun and widgets rendering
-		),
-		+ basic animation support,
-		+ more GDI algorithms
+		+ free hosted window styles,
+		+ host desktop abstraction
 	),
-	/ fully \impl @ encoding checking
+	+ \conf profile for DS;
+		// http://lectem.fr/2012/10/profiling-on-the-nintendo-ds/ .
+	/ improved tests and examples,
+	/ consider: split Roadmap.txt form ex.cpp to record todo issues and \
+		fulfilments
 ),
 / resumable exception handling $=
 (
@@ -552,106 +553,57 @@ b[427]:
 / debugging $=
 (
 	+ more debug APIs,
-	+ debugging namespaces
+	/ consider: ::OutputDebugStringA,
+	+ debugging namespaces,
+	^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
+		when (^ g++),
+	+ uniform \mac for function attribute (format, ms_format, gnu_format)
 ),
 / $design $low_prior robustness and cleanness $=
 (
+	/ \ac @ \inh touchPosition @ \cl CursorInfo @ \ns platform @ \u YCommon,
+	+ consider: 'yconstexpr' @ \s \m Graphics::Invalid,
+	/ confirm correctness @ stat() @ Win32,
+		// See comments @ src/fccache.c @ \proj fontconfig.
+	/ $low_prior \impl @ \ctor \t fixed_point#2 @ \h Rational ^ 'std::llround'
+		~ '::llround',
+	+ $low_prior freestanding memory management and new_handler to avoid
+		high-level memory allocation failure,
 	+ proper move support @ \cl Menu,
 	^ delegating \ctor as possible,
 	^ std::call_once to confirm thread-safe initialization,
-	/ keeping pedantic ISO C++ compatiblity,
+	/ keeping pedantic ISO C++ compatiblity(for C++14, Clang++, G++),
 	/ consider using std::common_type for explicit template argument
 		for (min, max),
 	+ macros for 'deprecated' and other attributes,
 	^ C++11 generlized attributes,
 	* stdout thread safety
 ),
-/ $low_prior YReader tests and examples $=
+/ $low_prior improving performance $=
 (
-	+ overlapping test @ \cl Rect,
-	+ partial invalidation support @ %(HexViewArea::Refresh)
+	/ \impl @ classes %(Message, MessageQueue),
+	/ more specific \impl @ NPL context,
+	/ memory fragment issues
 ),
-/ @ "GUI" $=
-(
-	+ formal abstraction of rectangular hit test,
-	+ widgets opacity,
-	/ bidirectional widget iterators support,
-	+ key accelerators,
-	+ widgets for RTC,
-	/ GUI brushes $=
-	(
-		+ more base class templates,
-		+ transformations
-	),
-	+ generic timers multiplexing for input holding events,
-		// To resolve routed events repeating preemption.
-	+ widget layout managers,
-	+ widget-based animation support,
-	* View position switch through scroll bar not accurate enough
-		@ class %ListBox
-);
++ copyright notice reproducing/displaying for licenses @ binaries;
 
-b[492]:
-^ \mac __PRETTY_FUNCTION__ ~ custom assertion strings @ whole YFramework
-	when (^ g++),
-+ uniform \mac for function attribute (format, ms_format, gnu_format),
-/ memory fragment issues,
-+ tag-based type operations,
-/ basic routines $=
+b[866]:
+/ @ \proj YBase $=
 (
-	/ ystdex::fixed_point $=
-	(
-		* \impl @ \op/= for signed types,
-		+ 64-bit integer underlying type support
-	),
-	+ u16printf,
-	+ u32printf
+	+ function composition
 ),
-/ completeness of core abstraction $=
+/ @ \lib YCLib $=
 (
-	/ shell switching $=
-	(
-		+ locking;
-		+ exceptional state and handlers
-	),
-	/ messaging $=
-	(
-		+ general predicates for removing message,
-		^ timing triggers @ message loop,
-		^ weak_ptr @ shell messages
-	),
-	/ \cl String interface;
-	/ fully \impl @ \cl Path
+	/ fully \impl @ memory mappaing,
+	+ block file caching and loading,
+	+ shared memory,
+	/ consider: + correct DMA (copy & fill) @ DS
 ),
-/ services $=
+/ YFramework.YSLib.Core $=
 (
-	+ general \impl @ images processing interface,
-	^ <chrono> to completely abstract system clocks,
-	+ general data configuragion,
-	/ general file type abstraction
-),
-/ @ "GUI" $=
-(
-	+ widget models,
-	+ IMEs,
-	+ widget layout \impl,
-	+ modal widget behavior
-);
-
-b[621]:
-/ improve efficiency @ \ft polymorphic_crosscast @ \h YCast for \conf release,
-+ function composition,
-/ platform dependent system functions $=
-(
-	+ correct DMA (copy & fill) @ DS
-),
-/ completeness of core abstraction $=
-(
-	/ messaging $=
-	(
-		+ general predicates for removing message,
-	),
-	/ fully \impl @ \cl Path,
+	/ implicit encoding conversion @ \cl String,
+	+ shell framework for plugins and devices,
+	+ automatic shellizing,
 	/ handles $=
 	(
 		- \a direct dereference operations of handle type,
@@ -663,8 +615,15 @@ b[621]:
 		+ meta language infrastructure
 	)
 ),
-/ services $=
+/ YFramework.YSLib.Service $=
 (
+	/ text manager @ services $=
+	(
+		* text file buffer boundray for encoding for text size not fit
+			for char length,
+		/ $low_prior more effiecent batch \impl @ \f CopySliceFrom,
+		/ consider: const @ \mf @ \cl TextManager
+	),
 	+ user-defined stream filters,
 	/ improving \impl font switching,
 	/ fully \impl logging $=
@@ -672,8 +631,18 @@ b[621]:
 		+ more clarified log Levels,
 		+ log streams
 	),
+	+ general resouce management helpers,
 	/ @ "GDI" $=
 	(
+		/ unifying u8 and PixelType::AlphaType @ YBlit,
+		/ refactoring text rendering APIs $=
+		(
+			/ refactoring current APIs,
+			+ $low_prior user-defined rendering APIs,
+			/ unifying the basic model for glyphrun and widgets rendering
+		),
+		+ basic media types and animation support,
+		+ more drawing algorithms,
 		+ basic backends adaptors,
 		+ clipping algorithms,
 		+ basic shapes abstraction,
@@ -683,8 +652,11 @@ b[621]:
 		/ advanced text layout like Unicode layout control
 	)
 ),
-/ @ "GUI" $=
+/ @ YFramework.YSLib.UI $=
 (
+	+ IMEs,
+	+ widget layout \impl,
+	+ modal widget behavior,
 	+ viewer models,
 	/ fully \impl @ \cl Form,
 	/ partial invalidation support @ \f DrawRectRoundCorner,
@@ -737,9 +709,6 @@ $FURTHER_WORK:
 	+ ISO directive or RFC2119 compliance,
 	+ documentation indexing tools
 );
-
-//---- temp code;
-	// TODO: remove '*printf';
 
 #endif
 

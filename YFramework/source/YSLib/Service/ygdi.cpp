@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2781
+\version r2784
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-05-19 10:20 +0800
+	2013-05-22 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,11 +183,11 @@ BitmapBufferEx::SetSize(const Size& s)
 	{
 		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0)
 			? new PixelType[area] : nullptr);
-		unique_ptr<u8[]> p_new_alpha(YB_LIKELY(area != 0)
-			? new u8[area] : nullptr);
+		unique_ptr<Color::AlphaType[]> p_new_alpha(YB_LIKELY(area != 0)
+			? new Color::AlphaType[area] : nullptr);
 
 		unique_ptr<PixelType[]> p_old(pBuffer);
-		unique_ptr<u8[]> p_old_alpha(pBufferAlpha);
+		unique_ptr<Color::AlphaType[]> p_old_alpha(pBufferAlpha);
 
 		pBuffer = p_new.release();
 		pBufferAlpha = p_new_alpha.release();

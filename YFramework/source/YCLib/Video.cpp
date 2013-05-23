@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r278
+\version r295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-05-18 23:53 +0800
+	2013-05-21 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,10 +125,6 @@ InitVideo()
 {
 #if YCL_DS
 	platform_ex::ResetVideo();
-	//设置显示模式。
-	::vramSetBankA(VRAM_A_MAIN_BG);
-	::vramSetBankC(VRAM_C_SUB_BG);
-	//设置主显示引擎渲染上屏。
 	platform_ex::lcdMainOnTop();
 //	platform_ex::lcdMainOnBottom();
 //	platform_ex::lcdSwap();
@@ -144,16 +140,18 @@ namespace platform_ex
 void
 ResetVideo()
 {
-	REG_BG0CNT = REG_BG1CNT = REG_BG2CNT = REG_BG3CNT = 0;
-	REG_BG0CNT_SUB = REG_BG1CNT_SUB = REG_BG2CNT_SUB = REG_BG3CNT_SUB = 0;
-	::vramSetPrimaryBanks(VRAM_A_LCD, VRAM_B_LCD, VRAM_C_LCD, VRAM_D_LCD);
-	::vramSetBankE(VRAM_E_LCD);
-	::vramSetBankF(VRAM_F_LCD);
-	::vramSetBankG(VRAM_G_LCD);
-	::vramSetBankH(VRAM_H_LCD);
+	REG_BG0CNT = 0,
+	REG_BG1CNT = 0,
+	REG_BG2CNT = 0,
+	REG_BG3CNT = 0,
+	REG_BG0CNT_SUB = 0,
+	REG_BG1CNT_SUB = 0,
+	REG_BG2CNT_SUB = 0,
+	REG_BG3CNT_SUB = 0;
+	::vramDefault();
+	::vramSetBanks_EFG(VRAM_E_LCD, VRAM_F_LCD, VRAM_G_LCD),
+	::vramSetBankH(VRAM_H_LCD),
 	::vramSetBankI(VRAM_I_LCD);
-//	std::fill_n(VRAM_A, 0x90000, 0);
-// NOTE: 512 KiB VRAM bank A-D and extra 64 KiB others.
 //	memset(OAM, 0, SPRITE_COUNT * sizeof(SpriteEntry));
 //	memset(OAM_SUB, 0, SPRITE_COUNT * sizeof(SpriteEntry));
 	videoSetMode(MODE_5_2D);
