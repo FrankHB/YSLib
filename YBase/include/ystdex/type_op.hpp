@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r860
+\version r871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-05-12 17:44 +0800
+	2013-05-24 09:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,20 +313,14 @@ namespace details
 	{ \
 	private: \
 		template<typename _type> \
-		static yconstfn bool \
-		test(int, typename enable_if<(_expr), int>::type = 0) \
-		{ \
-			return true; \
-		} \
+		static true_type \
+		test(typename enable_if<(_expr), int>::type); \
 		template<typename> \
-		static yconstfn bool \
-		test(...) \
-		{ \
-			return false; \
-		} \
+		static false_type \
+		test(...); \
 	\
 	public: \
-		static yconstexpr bool value = test(); \
+		static yconstexpr bool value = decltype(test<_type1>(0))::value; \
 	};
 
 

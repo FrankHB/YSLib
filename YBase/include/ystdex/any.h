@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1288
+\version r1289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-04-14 06:41 +0800
+	2013-05-25 06:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -599,7 +599,7 @@ public:
 	//! \since build 376
 	//@{
 	template<typename _type, typename = typename
-		std::enable_if<!is_same<_type&, any&>::value, int>::type>
+		enable_if<!is_same<_type&, any&>::value, int>::type>
 	any(_type&& x)
 		: manager(any_ops::value_handler<typename
 			remove_reference<_type>::type>::manage)

@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1172
+\version r1183
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-04-12 07:22 +0800
+	2013-05-25 06:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,13 +147,13 @@ private:
 public:
 	template<typename _tInt>
 	yconstfn
-	fixed_point(_tInt val, typename std::enable_if<
-		std::is_integral<_tInt>::value, int>::type = 0) ynothrow
+	fixed_point(_tInt val, typename enable_if<std::is_integral<_tInt>::value,
+		int>::type = 0) ynothrow
 		: value(base_type(val) << frac_bit_n)
 	{}
 	template<typename _tFloat>
 	yconstfn
-	fixed_point(_tFloat val, typename std::enable_if<std::is_floating_point<
+	fixed_point(_tFloat val, typename enable_if<std::is_floating_point<
 		_tFloat>::value, int>::type = 0) ynothrow
 		: value(::llround(base_element() * val))
 	{
@@ -164,15 +164,13 @@ public:
 	template<size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<base_type, _vOtherInt, _vOtherFrac>& f,
-		typename std::enable_if<(_vOtherInt < int_bit_n), int>::type = 0)
-		ynothrow
+		typename enable_if<(_vOtherInt < int_bit_n), int>::type = 0) ynothrow
 		: value(f.value >> (int_bit_n - _vOtherInt))
 	{}
 	template<size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<base_type, _vOtherInt, _vOtherFrac>& f,
-		typename std::enable_if<(int_bit_n < _vOtherInt), int>::type = 0)
-		ynothrow
+		typename enable_if<(int_bit_n < _vOtherInt), int>::type = 0) ynothrow
 		: value(f.value << (_vOtherInt - int_bit_n))
 	{}
 
@@ -279,15 +277,13 @@ public:
 
 private:
 	template<typename _type>
-	inline typename std::enable_if<std::is_integral<_type>::value,
-		_type>::type
+	inline typename enable_if<std::is_integral<_type>::value, _type>::type
 	cast() const
 	{
 		return value >> frac_bit_n;
 	}
 	template<typename _type>
-	typename std::enable_if<std::is_floating_point<_type>::value,
-		_type>::type
+	typename enable_if<std::is_floating_point<_type>::value, _type>::type
 	cast() const
 	{
 		return _type(value) / base_element();

@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1559
-\author FrankHB<frankhb1989@gmail.com>
+\version r1561
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-05-10 23:00 +0800
+	2013-05-27 04:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ public:
 
 		/*!
 		\brief 无参数构造。
-		\note 空迭代器。仅为兼容标准迭代器需求。
+		\note 空迭代器。仅为兼容标准迭代器要求。
 		*/
 		iterator()
 			: ptr(), n(StringType::npos)

@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief YCLib ISO C++ 标准字符串扩展。
-\version r270
+\version r313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-04-19 20:40 +0800
+	2013-05-29 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_STRING_HPP_
-#define YB_INC_YSTDEX_STRING_HPP_ 1
+#ifndef YB_INC_ystdex_string_hpp_
+#define YB_INC_ystdex_string_hpp_ 1
 
 #include "container.hpp" // for ../ydef.h, ystdex::to_array,
 //	std::underlying_type;
@@ -128,11 +128,47 @@ get_mid(const _tString& str, typename _tString::size_type l,
 /*!
 \ingroup string_algorithms
 \brief 以指定字符分割字符序列。
+\note 只保留非空结果，不保留分隔字符。
 \since build 304
 */
 template<typename _fPred, typename _fInsert, typename _tIn>
-_tIn
+void
 split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
+{
+	while(b != e)
+	{
+		_tIn i(std::find_if_not(b, e, is_delim));
+
+		b = std::find_if(i, e, is_delim);
+		if(i != b)
+			insert(i, b);
+		else
+			break;
+	}
+}
+/*!
+\ingroup string_algorithms
+\brief 以指定字符分割范围指定的字符串。
+\note 只保留非空结果，不保留分隔字符。
+\since build 399
+*/
+template<typename _fPred, typename _fInsert, typename _tRange>
+inline void
+split(_tRange&& c, _fPred is_delim, _fInsert insert)
+{
+	split(begin(c), end(c), is_delim, insert);
+}
+
+/*!
+\ingroup string_algorithms
+\brief 以指定字符分割字符序列。
+\note 只保留除了分隔字符外非空的结果；
+	结果保留起始分隔字符，除非是起始非分隔字符第一次匹配。
+\since build 408
+*/
+template<typename _fPred, typename _fInsert, typename _tIn>
+_tIn
+split_l(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 {
 	_tIn i(b);
 
@@ -152,13 +188,15 @@ split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 /*!
 \ingroup string_algorithms
 \brief 以指定字符分割范围指定的字符串。
-\since build 399
+\note 只保留除了分隔字符外非空的结果；
+	结果保留起始分隔字符，除非是起始非分隔字符第一次匹配。
+\since build 408
 */
 template<typename _fPred, typename _fInsert, typename _tRange>
 inline void
-split(_tRange&& c, _fPred is_delim, _fInsert insert)
+split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
 {
-	split(begin(c), end(c), is_delim, insert);
+	split_l(begin(c), end(c), is_delim, insert);
 }
 
 /*!
@@ -181,7 +219,7 @@ to_string(unsigned short val)
 template<typename _type>
 inline std::string
 to_string(_type val, typename
-	std::enable_if<std::is_enum<_type>::value, int>::type = 0)
+	enable_if<std::is_enum<_type>::value, int>::type = 0)
 {
 	using std::to_string;
 	using ystdex::to_string;

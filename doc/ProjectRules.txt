@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r193
+\version r198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-05-22 01:37 +0800
+	2013-05-25 06:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,13 +114,18 @@
 @2.2.4.2 同名实体变更：
 对于重载，不视为相同实体；
 对于模板特化，不视为相同实体。
+被 using 声明（注意不含 typedef 声明、 using 指示、友元声明和别名声明）指定的前提下的等价名称变换不视为名称变更。
 包括所有实体名称的链接（或对应实现的符号(symbol) 可见性(visibility)）变更；除此以外忽略所有 ISO C++ 或实现扩展的属性(attribute) 变更。
 对于函数、函数模板和模板特化，包括类型（注意类型等价性，参见 [Documentation::CommonRules @@5.12.1] ）和默认参数变更；
 对于类成员，包括访问权限变更。
 不包括 typedef 名称和别名声明中被声明标识符以外的变更；
 不包括函数或模版的形式参数名称变更。
 
-@2.2.5 头文件包含守护宏(include guard marco) ：
+@2.2.5 声明独立版本标识：
+ typedef 声明、 using 声明、 using 指示 、友元声明和别名声明可独立加注版本，以声明的名称确定版本一致性。
+ static_assert 声明可独立加注版本，以记号序列等价性确定版本一致性。
+
+@2.2.6 头文件包含守护宏(include guard marco) ：
 除非重复包含不影响语义，否则应使用特定名称的宏以保证头文件不被包含超过一次。
 一般包含模式如下：
 

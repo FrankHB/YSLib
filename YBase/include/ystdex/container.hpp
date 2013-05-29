@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r257
+\version r457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-05-22 13:27 +0800
+	2013-05-29 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_CONTAINER_HPP_
-#define YB_INC_YSTDEX_CONTAINER_HPP_ 1
+#ifndef YB_INC_ystdex_container_hpp_
+#define YB_INC_ystdex_container_hpp_ 1
 
 #include "functional.hpp"
 #include <array> // for std::array;
@@ -36,20 +36,230 @@ namespace ystdex
 {
 
 /*!
+\brief 容器适配器。
+\note 满足容器要求（但不是 ISO C++ 要求的序列容器要求）。
+\note 使用 ISO C++11 容器要求指定的成员顺序声明。
+\warning 非虚析构。
+\see ISO C++11 23.6[container.adaptors],
+	23.2.1[container.requirements.general] 。
+\since build 408
+*/
+template<class _tSeqCont>
+class container_adaptor : protected _tSeqCont
+{
+protected:
+	typedef _tSeqCont container_type;
+
+private:
+	typedef container_type base;
+
+public:
+	//! \brief 满足容器要求。
+	//@{
+	typedef typename container_type::value_type value_type;
+	typedef typename container_type::reference reference;
+	typedef typename container_type::const_reference const_reference;
+	typedef typename container_type::iterator iterator;
+	typedef typename container_type::const_iterator const_iterator;
+	typedef typename container_type::difference_type difference_type;
+	typedef typename container_type::size_type size_type;
+
+	container_adaptor() = default;
+	explicit
+	container_adaptor(size_type n)
+		: base(n)
+	{}
+	container_adaptor(size_type n, const value_type& value)
+		: base(n, value)
+	{}
+	template<class _tIn>
+	container_adaptor(_tIn first, _tIn last)
+		: base(std::move(first), std::move(last))
+	{}
+	container_adaptor(const container_adaptor&) = default;
+	container_adaptor(container_adaptor&&) = default;
+	//@}
+	container_adaptor(std::initializer_list<value_type> il)
+		: base(il)
+	{};
+
+	//! \brief 满足容器要求。
+	//@{
+	container_adaptor&
+	operator=(const container_adaptor&) = default;
+	container_adaptor&
+	operator=(container_adaptor&&) = default;
+	//@}
+	container_adaptor&
+	operator=(std::initializer_list<value_type> il)
+	{
+		base::operator=(il);
+	}
+
+	//! \brief 满足容器要求。
+	friend bool
+	operator==(const container_adaptor& x, const container_adaptor& y)
+	{
+		return static_cast<const container_type&>(x)
+			== static_cast<const container_type&>(y);
+	}
+
+	//! \brief 满足容器要求。
+	//@{
+	using container_type::begin;
+
+	using container_type::end;
+
+	using container_type::cbegin;
+
+	using container_type::cend;
+
+	void
+	swap(container_adaptor& c) ynothrow
+	{
+		return base::swap(static_cast<container_type&>(c));
+	}
+
+	using base::size;
+
+	using base::max_size;
+
+	using base::empty;
+	//@}
+};
+
+/*!
+\brief 满足容器要求。
+\since build 408
+*/
+//@{
+template<class _tSeqCont>
+inline bool
+operator!=(const container_adaptor<_tSeqCont>& x,
+	const container_adaptor<_tSeqCont>& y)
+{
+	return !(x == y);
+}
+
+template<class _tSeqCont>
+void
+swap(container_adaptor<_tSeqCont>& x,
+	container_adaptor<_tSeqCont>& y) ynothrow
+{
+	x.swap(y);
+}
+//@}
+
+
+/*!
+\brief 序列容器适配器。
+\note 满足序列要求（但不是 ISO C++ 要求的序列容器要求）。
+\note 使用 ISO C++11 容器要求指定的成员顺序声明。
+\warning 非虚析构。
+\see ISO C++11 23.6[container.adaptors], 23.2.1[container.requirements.general],
+	23.2.3[sequence.reqmts] 。
+\since build 408
+*/
+template<class _tSeqCont>
+class sequence_container_adaptor : protected container_adaptor<_tSeqCont>
+{
+private:
+	typedef container_adaptor<_tSeqCont> base;
+
+public:
+	typedef typename base::container_type container_type;
+	typedef typename container_type::value_type value_type;
+	typedef typename container_type::size_type size_type;
+
+	//! \brief 满足序列容器要求。
+	//@{
+	sequence_container_adaptor() = default;
+	explicit
+	sequence_container_adaptor(size_type n)
+		: base(n)
+	{}
+	sequence_container_adaptor(size_type n, const value_type& value)
+		: base(n, value)
+	{}
+	template<class _tIn>
+	sequence_container_adaptor(_tIn first, _tIn last)
+		: base(std::move(first), std::move(last))
+	{}
+	sequence_container_adaptor(const sequence_container_adaptor&) = default;
+	sequence_container_adaptor(sequence_container_adaptor&&) = default;
+	sequence_container_adaptor(std::initializer_list<value_type> il)
+		: base(il)
+	{};
+
+	sequence_container_adaptor&
+	operator=(const sequence_container_adaptor&) = default;
+	sequence_container_adaptor&
+	operator=(sequence_container_adaptor&&) = default;
+	sequence_container_adaptor&
+	operator=(std::initializer_list<value_type> il)
+	{
+		base::operator=(il);
+	}
+
+	//! \brief 满足容器要求。
+	friend bool
+	operator==(const sequence_container_adaptor& x,
+		const sequence_container_adaptor& y)
+	{
+		return static_cast<const container_type&>(x)
+			== static_cast<const container_type&>(y);
+	}
+
+//	using container_type::emplace;
+
+	using container_type::insert;
+
+	using container_type::erase;
+
+	using container_type::clear;
+
+	using container_type::assign;
+	//@}
+};
+
+/*!
+\brief 满足容器要求。
+\since build 408
+*/
+//@{
+template<class _tSeqCont>
+inline bool
+operator!=(const sequence_container_adaptor<_tSeqCont>& x,
+	const sequence_container_adaptor<_tSeqCont>& y)
+{
+	return !(x == y);
+}
+
+template<class _tSeqCont>
+void
+swap(sequence_container_adaptor<_tSeqCont>& x,
+	sequence_container_adaptor<_tSeqCont>& y) ynothrow
+{
+	x.swap(y);
+}
+//@}
+
+
+/*!
 \ingroup algorithms
 \brief 插入参数指定的元素到容器。
 \since build 274
 */
 //@{
-template<class _tContainer, typename... _tParams>
+template<class _tCont, typename... _tParams>
 inline void
-assign(_tContainer& con, _tParams&&... args)
+assign(_tCont& con, _tParams&&... args)
 {
 	con.assign(yforward(args)...);
 }
-template<class _tContainer, typename _type, size_t _vN>
+template<class _tCont, typename _type, size_t _vN>
 inline void
-assign(_tContainer& con, const _type(&arr)[_vN])
+assign(_tCont& con, const _type(&arr)[_vN])
 {
 	con.assign(arr, arr + _vN);
 }
@@ -62,16 +272,16 @@ assign(_tContainer& con, const _type(&arr)[_vN])
 \since build 399
 */
 //@{
-template<class _tContainer, typename _tKey>
+template<class _tCont, typename _tKey>
 auto
-at(_tContainer& con, const _tKey& k)
+at(_tCont& con, const _tKey& k)
 	-> decltype(con.at(k))
 {
 	return con.at(k);
 }
-template<class _tContainer, typename _tKey>
+template<class _tCont, typename _tKey>
 const _tKey&
-at(const _tContainer& con, const _tKey& k)
+at(const _tCont& con, const _tKey& k)
 {
 	const auto i(con.find(k));
 
@@ -87,17 +297,17 @@ at(const _tContainer& con, const _tKey& k)
 \note 成员命名参照 ISO C++11 24.5.2 中的类定义概要。
 \since build 338
 */
-template<typename _tContainer>
+template<typename _tCont>
 class container_inserter
 {
 public:
-	typedef _tContainer container_type;
+	typedef _tCont container_type;
 
 protected:
-	_tContainer* container;
+	_tCont* container;
 
 public:
-	container_inserter(_tContainer& cont)
+	container_inserter(_tCont& cont)
 		: container(&cont)
 	{}
 
@@ -117,11 +327,11 @@ public:
 \brief 顺序插入值至指定容器。
 \since build 338
 */
-template<typename _tContainer, typename... _tParams>
+template<typename _tCont, typename... _tParams>
 inline void
-seq_insert(_tContainer& cont, _tParams&&... args)
+seq_insert(_tCont& cont, _tParams&&... args)
 {
-	ystdex::seq_apply(container_inserter<_tContainer>(cont), yforward(args)...);
+	ystdex::seq_apply(container_inserter<_tCont>(cont), yforward(args)...);
 }
 
 
@@ -131,9 +341,9 @@ seq_insert(_tContainer& cont, _tParams&&... args)
 \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定容器迭代器。
 \since build 289
 */
-template<typename _tContainer>
+template<typename _tCont>
 void
-erase_all(_tContainer& c, const typename _tContainer::value_type& val)
+erase_all(_tCont& c, const typename _tCont::value_type& val)
 {
 	c.erase(std::remove(begin(c), end(c), val), end(c));
 }
@@ -143,9 +353,9 @@ erase_all(_tContainer& c, const typename _tContainer::value_type& val)
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
-template<typename _tContainer, typename _tForward, typename _tValue>
+template<typename _tCont, typename _tForward, typename _tValue>
 void
-erase_all(_tContainer& c, _tForward first, _tForward last, const _tValue& value)
+erase_all(_tCont& c, _tForward first, _tForward last, const _tValue& value)
 {
 	while(first != last)
 		if(*first == value)
@@ -160,9 +370,9 @@ erase_all(_tContainer& c, _tForward first, _tForward last, const _tValue& value)
 \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 289
 */
-template<typename _tRange, typename _fPredicate>
+template<typename _tRange, typename _fPred>
 void
-erase_all_if(_tRange& c, _fPredicate pred)
+erase_all_if(_tRange& c, _fPred pred)
 {
 	c.erase(std::remove_if(begin(c), end(c), pred), end(c));
 }
@@ -172,9 +382,9 @@ erase_all_if(_tRange& c, _fPredicate pred)
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
-template<typename _tContainer, typename _tForward, typename _fPredicate>
+template<typename _tCont, typename _tForward, typename _fPred>
 void
-erase_all_if(_tContainer& c, _tForward first, _tForward last, _fPredicate pred)
+erase_all_if(_tCont& c, _tForward first, _tForward last, _fPred pred)
 {
 	while(first != last)
 		if(pred(*first))

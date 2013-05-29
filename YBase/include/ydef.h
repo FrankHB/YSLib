@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2256
+\version r2257
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-04-14 06:42 +0800
+	2013-05-25 05:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -375,7 +375,7 @@
 \def ynothrow
 \brief YSLib 无异常抛出保证：若支持 noexcept 关键字，指定特定的 noexcept 异常规范。
 */
-#ifdef YB_HAS_NOEXCEPT
+#if YB_HAS_NOEXCEPT
 #	define ynothrow ynoexcept
 #else
 #	define ynothrow ythrow()

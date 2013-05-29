@@ -68,6 +68,7 @@
 		<Unit filename="../YBase/include/ystdex/iterator.hpp" />
 		<Unit filename="../YBase/include/ystdex/memory.hpp" />
 		<Unit filename="../YBase/include/ystdex/operators.hpp" />
+		<Unit filename="../YBase/include/ystdex/path.hpp" />
 		<Unit filename="../YBase/include/ystdex/rational.hpp" />
 		<Unit filename="../YBase/include/ystdex/string.hpp" />
 		<Unit filename="../YBase/include/ystdex/type_op.hpp" />

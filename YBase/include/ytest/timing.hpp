@@ -1,5 +1,5 @@
 /*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file timing.h
 \ingroup YTest
 \brief 运行计时测试工具。
-\version r278
-\author FrankHB<frankhb1989@gmail.com>
+\version r283
+\author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-06-23 20:01:09 +0800
 \par 修改时间:
-	2012-12-23 00:11 +0800
+	2013-05-27 04:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 */
 
 
-#ifndef YB_INC_YTEST_TIMING_HPP_
-#define YB_INC_YTEST_TIMING_HPP_ 1
+#ifndef YB_INC_ytest_timing_hpp_
+#define YB_INC_ytest_timing_hpp_ 1
 
 #include "../ydef.h"
 #include <ctime>
@@ -88,7 +88,7 @@ once_c(_fCallable&& f, _tParams&&... args)
 /*!
 \brief 测试指定函数执行若干次的总时间。
 \note 使用 _tClock 时钟类计时。
-\pre _tClock 满足 TrivialClock 需求。
+\pre _tClock 满足 TrivialClock 要求。
 \since build 327
 */
 template<class _fNow, typename _fCallable, typename... _tParams>

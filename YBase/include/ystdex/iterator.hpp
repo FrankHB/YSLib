@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2305
+\version r2342
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-04-22 01:00 +0800
+	2013-05-27 04:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -344,7 +344,8 @@ public:
 		return *this;
 	}
 
-	//前向迭代器需求。
+	//! \brief 满足前向迭代器要求。
+	//@{
 	yconstfn reference
 	operator*() const
 	{
@@ -362,50 +363,56 @@ public:
 	{
 		return *this;
 	}
-
 	pseudo_iterator
 	operator++(int)
 	{
 		return *this;
 	}
+	//@}
 
-	//双向迭代器需求。
+	//! \brief 满足双向迭代器要求。
+	//@{
 	yconstfn pseudo_iterator&
 	operator--()
 	{
 		return *this;
 	}
-
 	yconstfn pseudo_iterator
 	operator--(int)
 	{
 		return *this;
 	}
+	//@}
 
-	//随机访问迭代器需求。
-	//! \since build 356
+	/*!
+	\brief 满足随机访问迭代器要求。
+	\since build 356
+	*/
+	//@{
 	yconstfn reference
 	operator[](difference_type _n) const
 	{
 		return this[_n];
 	}
 
-	//! \since build 356
 	yconstfn pseudo_iterator
 	operator+(difference_type) const
 	{
 		return *this;
 	}
 
-	//! \since build 356
 	yconstfn pseudo_iterator
 	operator-(difference_type) const
 	{
 		return *this;
 	}
+	//@}
 };
 
-//! \since build 356
+/*!
+\brief 满足输入迭代器要求。
+\since build 356
+*/
 //@{
 template<typename _type, typename _tIterator, typename _tTraits>
 inline bool
@@ -523,7 +530,10 @@ public:
 	}
 };
 
-//! \since build 356
+/*!
+\brief 满足输入迭代器要求。
+\since build 356
+*/
 //@{
 template<typename _type, typename _fTransformer>
 inline bool
@@ -694,7 +704,8 @@ public:
 		return *this;
 	}
 
-	//前向迭代器需求。
+	//! \brief 满足前向迭代器要求。
+	//@{
 	yconstfn reference
 	operator*() const
 	{
@@ -713,7 +724,6 @@ public:
 		yunseq(++this->first, ++this->second);
 		return *this;
 	}
-
 	pair_iterator
 	operator++(int)
 	{
@@ -722,15 +732,16 @@ public:
 		++*this;
 		return std::move(i);
 	}
+	//@}
 
-	//双向迭代器需求。
+	//! \brief 满足双向迭代器要求。
+	//@{
 	pair_iterator&
 	operator--()
 	{
 		yunseq(--this->first, --this->second);
 		return *this;
 	}
-
 	pair_iterator
 	operator--(int)
 	{
@@ -739,32 +750,35 @@ public:
 		--*this;
 		return std::move(i);
 	}
+	//@}
 
-	//随机访问迭代器需求。
-	//! \since build 356
+	/*!
+	\brief 满足随机访问迭代器要求。
+	\since build 356
+	*/
+	//@{
 	yconstfn reference
 	operator[](difference_type _n) const
 	{
 		return this->first[_n];
 	}
 
-	//! \since build 356
 	yconstfn pair_iterator
 	operator+(difference_type _n) const
 	{
 		return pair_iterator(this->first + _n, this->second + _n);
 	}
 
-	//! \since build 356
 	yconstfn pair_iterator
 	operator-(difference_type _n) const
 	{
 		return pair_iterator(this->first - _n, this->second - _n);
 	}
+	//@}
 
 	//! \since build 378
 	template<typename _tFirst, typename _tSecond, typename = typename
-		std::enable_if<is_convertible<_tMaster, _tFirst>::value
+		enable_if<is_convertible<_tMaster, _tFirst>::value
 		&& is_convertible<_tSlave, _tSecond>::value, int>::type>
 	operator std::pair<_tFirst, _tSecond>()
 	{

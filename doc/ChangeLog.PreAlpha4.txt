@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r420
+\version r459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-24 00:19 +0800
+	2013-05-30 05:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,46 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YBase' $=
+	(
+		* "implementation" @ '#define ynothrow' @ "!defined 'YB_HAS_NOEXCEPT'
+			@ 'YDefinition' $since b319,
+		/ %'YStandardEx' $=
+		(
+			/ DLD "all 'std::enable_if' excluding 'using std::enable_if'"
+				-> 'enable_if' @ "namespace %ystdex",
+		),
+		/ $lib %'TypeOperation' $=
+		(
+			* "macro %YB_TYPE_OP_TEST_2" $since b399;
+			* $comp "broken %(details::have_equality_operator,
+				ystdex::has_equality_operator)" $since b399
+		),
+		+ $dev $doc "member grouping Doxygen comments for some random access \
+			iterator templates" %'Iterator',
+		(
+			+ "class templates %(container_adaptor; sequence_container_adaptor)"
+				 @ %'Container';
+			+ %'Path' $=
+			(
+				+ "class template %path";
+				+ "free function templates for %path"
+			)
+		),
+		/ %'String' $=
+		(
+			/ "all 2 function tmplates %split" => "%split_l";
+				// Marked as "left" because left delimiter is reserved.
+			+ "2 function templates %split"
+				// New return type is void instead of iterator type.
+		),
+		/ DLD "normalized template parameters as convention: \
+			%(_fPred, _tCont, _tSeqCont)"
+	)
+),
+
+b407
 (
 	/ %'YFramework'.'YSLib' $=
 	(

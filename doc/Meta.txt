@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r448
+\version r455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-05-23 05:27 +0800
+	2013-05-30 05:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -196,6 +196,11 @@ $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
 		See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54506 for details. \
 		Since devkitPro is still remained with G++ 4.7.1 @ b353, so explicitly \
 		defaulted functions are used at several contexts as the workaround.
+* $know_issue_b407 $workaround_b407 "configuration load wrongly as 'Debug' \
+	rather than 'debug' if user configuration is cleaned on VS2012 \
+	(other version unconfirmed). This is the default behavior, because the \
+	solution platform is not selected. Set 'DS' platform and activate other \
+	configuration (i.e. 'release'), then reopen the IDE to resolve.";
 
 
 $RESOLVED_ENVIRONMENT_ISSUE:
@@ -318,7 +323,8 @@ $module_tree $=
 			'Rational',
 			'Operators',
 			'Containers',
-			'AnyIterator'
+			'AnyIterator',
+			'Path'
 		),
 		'LibDefect'
 		(
