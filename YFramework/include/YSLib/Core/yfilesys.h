@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1561
+\version r1880
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-05-27 04:23 +0800
+	2013-05-31 21:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,42 @@
 #define YSL_INC_Core_yfilesys_h_ 1
 
 #include "ystring.h"
-#include <iterator>
+#include <ystdex/path.hpp>
+
+//! \since build 409
+namespace ystdex
+{
+
+//! \since build 409
+template<>
+class file_path_norm<YSLib::String> : public path_norm<YSLib::String>
+{
+public:
+	typedef YSLib::String value_type;
+
+	PDefH(bool, is_delimiter, const value_type& str) override
+		ImplRet(YCL_FS_CharIsDelimiter(str[0], u))
+
+	PDefH(bool, is_parent, const value_type& str) ynothrow override
+		ImplRet(YCL_FS_StringIsParent(str, u))
+
+	PDefH(bool, is_root, const value_type& str) ynothrow override
+		ImplRet(YCL_FS_StringIsRoot(str, u))
+
+	PDefH(bool, is_self, const value_type& str) ynothrow override
+		ImplRet(YCL_FS_StringIsCurrent(str, u))
+
+	DefClone(override, file_path_norm)
+};
+
+}
 
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(IO)
+
+//! \since build 409
+typedef ystdex::path<vector<String>> ypath;
 
 /*!
 \brief 文件系统常量：前缀 FS 表示文件系统 (File System) 。
@@ -59,114 +90,13 @@ typedef GSStringTemplate<NativePathCharType>::basic_string NativeString;
 \brief 路径。
 \warning 非虚析构。
 */
-class YF_API Path
+class YF_API Path : private ypath
 {
 public:
-	typedef GSStringTemplate<ucs2_t>::basic_string StringType; \
-		//!< 内部字符串类型。
-//	typedef std::codecvt<wchar_t, char, std::mbstate_t> codecvt_type;
-
-	static yconstexpr ucs2_t Slash = YCL_PATH_DELIMITER;
-	static const Path Now;
-	static const Path Parent;
-
-public:
-	//迭代器。
-	class iterator : public std::iterator<std::bidirectional_iterator_tag, Path>
-	{
-	private:
-		const value_type* ptr;
-		StringType::size_type n;
-
-		/*!
-		\brief 无参数构造。
-		\note 空迭代器。仅为兼容标准迭代器要求。
-		*/
-		iterator()
-			: ptr(), n(StringType::npos)
-		{}
-
-	public:
-		/*!
-		\brief 构造：使用值引用。
-		*/
-		iterator(const value_type& p)
-			: ptr(&p), n(StringType::npos)
-		{}
-		/*!
-		\brief 复制构造。
-		*/
-		iterator(const iterator& i)
-			: ptr(i.ptr), n(i.n)
-		{}
-
-		/*!
-		\brief 间接访问。
-		*/
-		value_type
-		operator*() const;
-
-		/*!
-		\brief 迭代：向后遍历。
-		*/
-		iterator&
-		operator++();
-		/*!
-		\brief 迭代：向后遍历。
-		\note 构造新迭代器并返回。
-		*/
-		iterator
-		operator++(int)
-		{
-			return ++iterator(*this);
-		}
-
-		/*!
-		\brief 迭代：向前遍历。
-		*/
-		iterator&
-		operator--();
-		/*!
-		\brief 迭代：向前遍历。
-		\note 构造新迭代器并返回。
-		*/
-		iterator
-		operator--(int)
-		{
-			return --iterator(*this);
-		}
-
-		/*!
-		\brief 比较：相等关系。
-		*/
-		bool
-		operator==(const iterator& i) const
-		{
-			return ptr == i.ptr && n == i.n;
-		}
-
-		/*!
-		\brief 比较：不等关系。
-		*/
-		bool
-		operator!=(const iterator& i) const
-		{
-			return !(*this == i);
-		}
-
-		DefGetter(const ynothrow, const value_type*, Ptr, ptr)
-		DefGetter(const ynothrow, StringType::size_type, Position, n)
-	};
-
-	typedef iterator const_iterator;
-
-	//编码转换。
-//	static std::locale imbue(const std::locale&);
-//	static const codecvt_type& codecvt();
-
-private:
-	//! \since build 403
-	String path_string;
+	using ypath::iterator;
+	using ypath::const_iterator;
+	//! \since build 409
+	using ypath::value_type;
 
 public:
 	/*!
@@ -174,20 +104,20 @@ public:
 	*/
 	inline DefDeCtor(Path)
 	Path(const ucs2_t* str)
-		: path_string(str)
+		: ypath(Parse(str))
 	{}
 	//! \since build 402
 	//@{
 	Path(const ucs2string& str)
-		: path_string(str)
+		: ypath(Parse(str))
 	{}
 	Path(ucs2string&& str)
-		: path_string(std::move(str))
+		: ypath(Parse(str))
 	{}
 	template<typename _type, typename = typename std::enable_if<!std::is_same<
 		typename ystdex::remove_rcv<_type>::type, Path>::value, int>::type>
 	Path(_type&& arg, Text::Encoding enc = CS_Path)
-		: path_string(yforward(arg), enc)
+		: ypath(Parse(String(yforward(arg), enc)))
 	{}
 	//@}
 	/*!
@@ -215,12 +145,15 @@ public:
 	Path&
 	operator/=(const Path&);
 
-	//! \since build 403
-	DefCvt(ynothrow, String&, path_string)
-	//! \since build 403
-	DefCvt(const ynothrow, const String&, path_string)
+	friend bool
+	operator==(const Path&, const Path&);
 
-	//查询。
+	friend bool
+	operator<(const Path&, const Path&);
+
+	//! \since build 409
+	operator String() const;
+
 	DefPred(const ynothrow, Absolute, IO::IsAbsolute(GetNativeString().c_str()))
 	DefPred(const ynothrow, Relative, !IsAbsolute())
 	/*!
@@ -230,176 +163,61 @@ public:
 	*/
 	bool
 	IsDirectory() const;
-	/*!
-	\brief 判断是否有根名称。
-	*/
-	bool
-	HasRootName() const
-	{
-		return !GetRootName().path_string.empty();
-	}
-	/*!
-	\brief 判断是否有根目录。
-	*/
-	bool
-	HasRootDirectory() const
-	{
-		return !GetRootDirectory().path_string.empty();
-	}
-	/*!
-	\brief 判断是否有根路径。
-	*/
-	bool
-	HasRootPath() const
-	{
-		return !GetRootPath().path_string.empty();
-	}
-	/*!
-	\brief 判断是否有相对路径。
-	*/
-	bool
-	HasRelativePath() const
-	{
-		return !GetRelativePath().path_string.empty();
-	}
-	/*!
-	\brief 判断是否有父路径。
-	*/
-	bool
-	HasParentPath() const
-	{
-		return !GetParentPath().path_string.empty();
-	}
-	/*!
-	\brief 判断是否有文件名。
-	*/
-	bool
-	HasFilename() const
-	{
-		return !GetFilename().path_string.empty();
-	}
-	/*!
-	\brief 判断是否有主文件名。
-	*/
-	bool
-	HasStem() const
-	{
-		return !GetStem().path_string.empty();
-	}
-	/*!
-	\brief 判断是否有扩展名。
-	*/
-	bool
-	HasExtension() const
-	{
-		return !GetExtension().path_string.empty();
-	}
 
-	//路径分解。
-	/*!
-	\brief 取根名称。
-	*/
-	Path
-	GetRootName() const;
-	/*!
-	\brief 取根目录。
-	*/
-	Path
-	GetRootDirectory() const;
-	/*!
-	\brief 取根路径。
-	*/
-	Path
-	GetRootPath() const;
-	/*!
-	\brief 取相对路径。
-	*/
-	Path
-	GetRelativePath() const;
-	/*!
-	\brief 取父路径。
-	*/
-	Path
-	GetParentPath() const;
-	/*!
-	\brief 取路径末尾的文件名。
-	*/
-	Path
-	GetFilename() const;
-	/*!
-	\brief 取主文件名。
-	\note 贪婪匹配。
-	*/
-	Path
-	GetStem() const;
 	/*!
 	\brief 取扩展名。
 	\note 非贪婪匹配。
+	\since build 409
 	*/
-	Path
+	String
 	GetExtension() const;
 	DefGetter(const ynothrow, NativeString, NativeString,
-		path_string.GetMBCS(CS_Path)) //!< 取本地格式和编码的字符串。
+		String(*this).GetMBCS(CS_Path)) //!< 取本地格式和编码的字符串。
 
-	//取迭代器。
-	/*!
-	\brief 取起始迭代器。
-	*/
-	iterator
-	begin() const
-	{
-		return ++iterator(*this);
-	}
+	//! \since build 409
+	//@{
+	static ypath
+	Parse(const ucs2string&);
 
-	/*!
-	\brief 取终止迭代器。
-	*/
-	iterator
-	end() const
-	{
-		return iterator(*this);
-	}
+	using ypath::back;
 
-	//修改函数。
+	using ypath::begin;
 
-	/*!
-	\brief 构造绝对路径。
-	*/
-	Path&
-	MakeAbsolute(const Path&);
-	/*!
-	\brief 正规化结尾分隔符：根据路径表示的实体修正结尾 Slash 。
-	\return 原路径是否改变。
-	\note 忽略空路径或仅由一个分隔符组成的路径。
-	\since build 298
+	using ypath::cbegin;
 
-	当路径表示目录时保证以 Slash 结尾，否则若存在结尾的 Slash 则删除。
-	*/
-	bool
-	NormalizeTrailingSlash();
-	/*!
-	\brief 移除文件名。
-	*/
-	Path&
-	RemoveFilename();
-	/*!
-	\brief 替换扩展名。
-	*/
-	Path&
-	ReplaceExtension(const Path& = {});
+	using ypath::clear;
 
-	//! \since build 403
+	using ypath::cend;
+
+	using ypath::empty;
+
+	using ypath::end;
+
+	using ypath::erase;
+
+	using ypath::front;
+
+	using ypath::insert;
+
+	using ypath::is_absolute;
+
+	using ypath::is_relative;
+
+	using ypath::size;
+
+	using ypath::swap;
 	void
-	Swap(Path& pth)
+	swap(Path& pth)
 	{
-		pth.path_string.swap(path_string);
+		static_cast<ypath&>(pth).swap(*this);
 	}
+	//@}
 };
 
 inline bool
 operator==(const Path& x, const Path& y)
 {
-	return x.GetNativeString() == y.GetNativeString();
+	return static_cast<const ypath&>(x) == static_cast<const ypath&>(y);
 }
 inline bool
 operator!=(const Path& x, const Path& y)
@@ -409,7 +227,7 @@ operator!=(const Path& x, const Path& y)
 inline bool
 operator<(const Path& x, const Path& y)
 {
-	return x.GetNativeString() < y.GetNativeString();
+	return static_cast<const ypath&>(x) < static_cast<const ypath&>(y);
 }
 inline bool
 operator<=(const Path& x, const Path& y)
@@ -438,35 +256,9 @@ operator/(const Path& x, const Path& y)
 inline void
 swap(Path& x, Path& y)
 {
-	x.Swap(y);
+	x.swap(y);
 }
 
-#if 0
-bool lexicographical_compare(Path::iterator, Path::iterator,
-	Path::iterator, Path::iterator);
-#endif
-
-
-/*!
-\brief 截取路径中的目录名并返回字符串。
-*/
-YF_API string
-GetDirectoryNameOf(const string&);
-
-
-/*!
-\brief 切换路径。
-*/
-inline int
-ChangeDirectory(const_path_t pth)
-{
-	return uchdir(pth);
-}
-/*!
-\brief 切换路径。
-*/
-YF_API int
-ChangeDirectory(const string&);
 
 /*!
 \brief 取当前工作目录。

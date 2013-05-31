@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r463
+\version r466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-05-12 11:23 +0800
+	2013-05-31 21:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,17 +59,17 @@ GetEntryType(const string& path)
 		return Now;
 	if(path == IO::FS_Parent)
 		return Parent;
-	if(*path.rbegin() == YCL_PATH_DELIMITER)
+	if(path.back() == YCL_PATH_DELIMITER)
 		return Directory;
 
 	static yconstexpr const char* exts[]{
 		"txt", "c", "cpp", "h", "hpp", "ini", "xml"};
-	auto npath(IO::Path(path).GetExtension().GetNativeString());
+	auto npath(IO::Path(path).GetExtension());
 
 	for(auto& c : npath)
 		c = std::tolower(c);
 
-	const auto ext(IO::Path(path).GetExtension().GetNativeString());
+	const auto ext(IO::Path(path).GetExtension().GetMBCS());
 
 	if(std::any_of(exts, exts + arrlen(exts), [&](const char* str){
 		return std::strcmp(ext.c_str(), str) == 0;

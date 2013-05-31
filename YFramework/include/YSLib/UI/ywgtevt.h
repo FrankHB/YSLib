@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1299
+\version r1303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-03-19 15:20 +0800
+	2013-05-30 08:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -386,9 +386,9 @@ public:
 
 	/*
 	\brief 复制实例。
-	\since build 350
+	\since build 409
 	*/
-	DeclIEntry(AController* Clone() const)
+	DeclIEntry(AController* clone() const)
 };
 
 
@@ -436,7 +436,8 @@ public:
 	ImplI(AController) EventMapping::ItemType&
 	GetItem(const VisualEvent&);
 
-	ImplI(AController) DefClone(const override, WidgetController, Clone)
+	//! \since build 409
+	ImplI(AController) DefClone(const override, WidgetController)
 };
 
 YSL_END_NAMESPACE(UI)

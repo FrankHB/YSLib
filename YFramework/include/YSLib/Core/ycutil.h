@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r1928
-\author FrankHB<frankhb1989@gmail.com>
+\version r1932
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
+	2013-05-30 08:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -460,7 +460,7 @@ CloneNonpolymorphic(const _type& p) -> decltype(&*p)
 }
 
 /*!
-\brief 使用 Clone 成员函数复制指定指针指向的多态类类型对象。
+\brief 使用 clone 成员函数复制指定指针指向的多态类类型对象。
 \pre 断言： std::is_polymorphic<decltype(*p)>::value 。
 \since build 240
 */
@@ -472,7 +472,7 @@ ClonePolymorphic(const _type& p) -> decltype(&*p)
 		std::remove_reference<decltype(*p)>::type>::value,
 		"Non-polymorphic class type found.");
 
-	return p->Clone();
+	return p->clone();
 }
 
 YSL_END

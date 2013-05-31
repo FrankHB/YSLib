@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1814
-\author FrankHB<frankhb1989@gmail.com>
+\version r1821
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2012-12-30 14:59 +0800
+	2013-05-30 08:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,7 @@ public:
 	Message&
 	operator=(Message msg) ynothrow
 	{
-		Swap(msg);
+		msg.swap(*this);
 		return *this;
 	}
 
@@ -154,10 +154,14 @@ public:
 
 	/*
 	\brief 交换。
+	\since build 409
 	*/
 	void
-	Swap(Message&) ynothrow;
+	swap(Message&) ynothrow;
 };
+
+//! \since build 409
+inline DefSwap(ynothrow, Message)
 
 
 /*!

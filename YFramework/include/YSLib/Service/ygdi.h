@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3566
+\version r3584
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-05-22 01:44 +0800
+	2013-05-30 08:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,7 +178,8 @@ public:
 	ImplI(IImage) DefGetter(const ynothrow override, const Graphics&, Context,
 		*this)
 
-	ImplI(IImage) DefClone(const override, BasicImage, Clone)
+	//! \since build 409
+	ImplI(IImage) DefClone(const override, BasicImage)
 
 	ImplI(IImage) DefSetter(const Size&, Size, sGraphics)
 };
@@ -222,7 +223,7 @@ public:
 	BitmapBuffer&
 	operator=(const BitmapBuffer& buf)
 	{
-		BitmapBuffer(buf).Swap(*this);
+		BitmapBuffer(buf).swap(*this);
 		return *this;
 	}
 	/*
@@ -232,7 +233,7 @@ public:
 	BitmapBuffer&
 	operator=(BitmapBuffer&& buf) ynothrow
 	{
-		Swap(buf);
+		buf.swap(*this);
 		return *this;
 	}
 
@@ -265,18 +266,22 @@ public:
 	virtual void
 	ClearImage() const;
 
-	virtual DefClone(const, BitmapBuffer, Clone)
+	//! \since build 409
+	virtual DefClone(const, BitmapBuffer)
 
 	/*
 	\brief 交换。
-	\since build 296
+	\since build 409
 	*/
 	void
-	Swap(BitmapBuffer& buf) ynothrow
+	swap(BitmapBuffer& buf) ynothrow
 	{
 		std::swap<Graphics>(*this, buf);
 	}
 };
+
+//! \since build 409
+inline DefSwap(ynothrow, BitmapBuffer)
 
 
 /*!
@@ -326,7 +331,7 @@ public:
 	BitmapBufferEx&
 	operator=(const BitmapBufferEx& buf)
 	{
-		BitmapBufferEx(buf).Swap(*this);
+		BitmapBufferEx(buf).swap(*this);
 		return *this;
 	}
 	/*
@@ -336,7 +341,7 @@ public:
 	BitmapBufferEx&
 	operator=(BitmapBufferEx&& buf) ynothrow
 	{
-		Swap(buf);
+		swap(buf);
 		return *this;
 	}
 
@@ -370,19 +375,23 @@ public:
 	void
 	ClearImage() const override;
 
-	DefClone(const override, BitmapBufferEx, Clone)
+	//! \since build 409
+	DefClone(const override, BitmapBufferEx)
 
 	/*
 	\brief 交换。
-	\since build 296
+	\since build 409
 	*/
 	void
-	Swap(BitmapBufferEx& buf) ynothrow
+	swap(BitmapBufferEx& buf) ynothrow
 	{
 		std::swap<BitmapBuffer>(*this, buf),
 		std::swap(pBufferAlpha, buf.pBufferAlpha);
 	}
 };
+
+//! \since build 409
+inline DefSwap(ynothrow, BitmapBufferEx)
 
 
 /*!

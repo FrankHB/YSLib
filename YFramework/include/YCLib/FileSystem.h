@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r629
+\version r665
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-05-06 14:07 +0800
+	2013-05-31 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include <ystdex/utility.hpp> // for std::is_array, std::is_integral,
 //	std::remove_reference, ystdex::arrlen;
 #include <ystdex/cstring.h> // for ystdex::is_null;
+#include <ystdex/string.hpp> // for ystdex::string_length;
 #include <CHRLib/encoding.h>
 #include <dirent.h>
 
@@ -56,6 +57,33 @@ namespace platform
 #	define YCL_MAX_FILENAME_LENGTH YCL_MAX_PATH_LENGTH
 #endif
 
+/*
+\brief 判断字符串是否是当前路径。
+\since build 409
+*/
+#define YCL_FS_StringIsCurrent(_s, _p) \
+	(ystdex::string_length(_s) == 1 && _s[0] == yJOIN(_p, '.'))
+
+/*
+\brief 判断字符串是否是父目录。
+\since build 409
+*/
+#define YCL_FS_StringIsParent(_s, _p) \
+	(ystdex::string_length(_s) == 2 \
+	&& YCL_FS_StringIsCurrent(_s, _p) && _s[1] == yJOIN(_p, '.'))
+
+/*
+\def YCL_FS_CharIsDelimiter
+\brief 判断字符是否路径分隔符。
+\since build 409
+*/
+
+/*
+\def YCL_FS_StringIsRoot
+\brief 判断字符是否表示根目录路径。
+\since build 409
+*/
+
 #ifdef YCL_API_FILESYSTEM_POSIX
 	/*!
 	\brief 文件路径分隔符。
@@ -77,6 +105,9 @@ namespace platform
 \since build 286
 */
 typedef char NativePathCharType;
+
+#	define YCL_FS_CharIsDelimiter(_c, _p) (_c == yjoin(_p, YCL_PATH_DELIMITER))
+#	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
 
 /*!
 \brief 路径字符串编码。
@@ -109,6 +140,12 @@ yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 */
 //	typedef wchar_t NativePathCharType;
 typedef char NativePathCharType;
+
+#	define YCL_FS_CharIsDelimiter(_c, _p) \
+	(_c == yJOIN(_p, '/') || _c == yJOIN(_p, '\\'))
+#	define YCL_FS_StringIsRoot(_s, _p) \
+		(ystdex::string_length(_s) == 3 \
+		&& _s[1] == ':' && YCL_FS_CharIsDelimiter(_s[2], _p))
 
 /*!
 \brief 路径字符串编码。
@@ -472,6 +509,12 @@ GetRootNameLength(const_path_t);
 
 namespace platform_ex
 {
+
+#if YCL_DS
+//! \since build 409
+char16_t
+FS_IsRoot(const char16_t*);
+#endif
 
 } // namespace platform_ex;
 

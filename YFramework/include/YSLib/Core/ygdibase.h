@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1304
+\version r1306
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-05-21 06:01 +0800
+	2013-05-30 08:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -777,8 +777,8 @@ DeclI(YF_API, IImage)
 	DeclIEntry(const Graphics& GetContext() const ynothrow)
 	DeclIEntry(void SetSize(const Size&))
 
-	//! \since build 406
-	DeclIEntry(IImage* Clone() const)
+	//! \since build 409
+	DeclIEntry(IImage* clone() const)
 EndDecl
 
 
@@ -799,7 +799,7 @@ struct YF_API PaintContext
 	Point Location;
 	/*!
 	\brief 剪切区域。
-	
+
 	相对于图形接口上下文的标准矩形，指定需要保证被刷新的边界区域。
 	如无额外说明，剪切区域的位置坐标选取渲染目标左上角为原点的屏幕坐标系。
 	*/

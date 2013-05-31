@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4316
+\version r4325
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-03-23 20:36 +0800
+	2013-05-30 08:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,8 @@ YSL_BEGIN
 template<typename... _tParams>
 DeclI(, GIHEvent)
 	DeclIEntry(size_t operator()(_tParams...) const)
-	DeclIEntry(GIHEvent* Clone() const)
+	//! \since build 409
+	DeclIEntry(GIHEvent* clone() const)
 EndDecl
 
 
@@ -449,8 +450,9 @@ public:
 
 	/*
 	\brief 交换。
+	\since build 409
 	*/
-	inline PDefH(void, Swap, GEvent& e) ynothrow
+	inline PDefH(void, swap, GEvent& e) ynothrow
 		ImplRet(List.swap(e))
 };
 //@}
@@ -492,6 +494,10 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
 		prior);
 }
 //@}
+
+//! \since build 409
+template<typename _tRet, typename... _tParams>
+inline DefSwap(ynothrow, GEvent<_tRet(_tParams...)>)
 
 
 /*!
@@ -679,7 +685,9 @@ public:
 	}
 
 	inline ImplI(GIHEvent<_tBaseArgs>)
-	DefClone(const override, GEventWrapper, Clone)
+
+	//! \since build 409
+	DefClone(const override, GEventWrapper)
 };
 
 

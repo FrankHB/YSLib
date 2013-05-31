@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r838
+\version r846
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-05-06 16:50 +0800
+	2013-05-31 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -484,6 +484,16 @@ GetRootNameLength(const_path_t path)
 
 namespace platform_ex
 {
+
+#if YCL_DS
+char16_t
+FS_IsRoot(const char16_t* str)
+{
+	const std::u16string ustr(str);
+
+	return ustr == u"/" || ustr == u"fat:/" || ustr == u"sd:/";
+}
+#endif
 
 }
 

@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r546
+\version r549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-05-22 09:44 +0800
+	2013-05-30 08:29 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -142,9 +142,10 @@ public:
 	void
 	SetSize(const Drawing::Size&) override;
 
-	YB_NORETURN PDefH(HostRenderer*, Clone, ) const override
-		ImplExpr(throw LoggedEvent("HostRenderer::Clone: Not implemented."));
-//	DefClone(const override, HostRenderer, Clone)
+	//! \since build 409
+	YB_NORETURN PDefH(HostRenderer*, clone, ) const override
+		ImplExpr(throw LoggedEvent("HostRenderer::clone: Not implemented."));
+//	DefClone(const override, HostRenderer)
 
 	//! \since build 386
 	template<typename _fCallable, typename... _tParams>

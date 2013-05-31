@@ -11,13 +11,13 @@
 /*!	\file ybasemac.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2399
+\version r2427
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-03-23 20:33 +0800
+	2013-05-31 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,19 +29,6 @@
 #define YSL_INC_Adaptor_ybasemac_h_ 1
 
 //! \todo 检查语言实现的必要支持：可变参数宏。
-
-/*
-\def yJOIN
-\brief 记号连接。
- ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
- GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，此宏不会被展开。
-详见：http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
-解决方案来源：
- https://www.securecoding.cert.org/confluence/display/cplusplus/ \
- PRE05-CPP.+Understand+macro+replacement+when+concatenating \
- +tokens+or+performing+stringification 。
-*/
-#define yJOIN(x, y) x ## y
 
 
 // YSLib 命名空间宏。
@@ -308,14 +295,22 @@ _t type
 \brief 动态复制。
 \note 需要在满足 \c CopyConstructible 的类的定义内。
 \note 如需要多态复制，需要显示前置 \c virtual 或加入 \c override 等指示符。
-\since build 384
+\since build 409
 */
-#define DefClone(_q, _t, _n) \
-	_t* \
-	_n() _q \
-	{ \
-		return new _t(*this); \
-	}
+#define DefClone(_q, _t) \
+	PDefH(_t*, clone, ) _q \
+		ImplRet(new _t(*this))
+
+
+/*!
+\def DefSwap
+\brief 交换成员。
+\note 需要对应类型具有接受两个左值引用的 swap 成员函数。
+\since build 409
+*/
+#define DefSwap(_q, _t) \
+	PDefH(void, swap, _t& _x, _t& _y) _q \
+		ImplExpr(_x.swap(_y))
 
 
 //成员函数和模板映射。

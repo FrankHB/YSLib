@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r459
+\version r540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-30 05:16 +0800
+	2013-05-31 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,88 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ $dev "all %Swap" => 'swap',
+		/ $dev "all %Clone" => 'clone',
+		/ %'YSLib' $=
+		(
+			/ %'Core' $=
+			(
+				/ $dev %'YBaseMacro' $=
+				(
+					/ "macro %DefClone(_q, _t, n)" -> "%DefClone(_q, _t)",
+						// Thus all member function name 'Clone' unified as \
+							'clone'.
+					+ "macro %DefSwap",
+					/ "macro %yJOIN" >> 'YBase'.'YDefinition'
+				),
+				+ "non-member function template %swap for specification of \
+					%GEvent" @ %'YEvent',
+				+ "non-member function %swap for ,
+				+ "non-member function %swap for classs"
+					%(Message @ %'YMessage', ValueObject" @ %'YObject'),
+				/ %'YFileSystem' $=
+				(
+					$dep_from %'YCLib'.'FileSystem'
+					+ $dev "template specification \
+						%ystdex::file_path_norm<YSLib::String>",
+					+ $dev "typedef name %ypath";
+					/ @ "class %Path" $=
+					(
+						- "all static member object %(Slash, Now, Parent)",
+						/ $dev "implementation" ^ "inheritance %ypath"
+							~ "string member",
+						- "member functions %('Has*', 'GetRoot*',
+							GetRelativePath, GetParentPath, GetFilename,
+							GetStem, MakeAbsolute, RemoveFilename,
+							ReplaceExtension, NormalizeTrailingSlash),
+						+ "iterator typedef names" -> "using
+							%ybase::(iterator, const_iterator)",
+						+ "typedef %StringType' -> "%value_type",
+						/ "2 conversion functions for string referendce"
+							-> "conversion function for %String"
+						+ "using %ypath::(back, front, begin, end, cbegin, cend,
+							iterator, const_iterator, value_type, insert, erase,
+							is_absolute, is_relative, empty, clear, size)",
+						+ "declarations for friend operator %(==, <) using \
+							bases but not native strings"
+					)
+					- "functions %(GetDirectoryNameOf, 2 ChangeDirectory)"
+				)
+			),
+			+ "non-member function template %swap for class %(BitmapBuffer, \
+				BitmapBufferEx)" @ %'Service'.'YGDI'
+		),
+		/ $dev %'YCLib'.'FileSystem' $=
+		(
+			$dep_from %'YBase'.'YDefinition';
+			+ "function bool platform_ex::FS_IsRoot(const ucs2_t*)"
+				@ "platform %DS",
+			+ "macro %(YCL_FS_StringIsCurrent, YCL_FS_StringIsParent,
+					YCL_FS_CharIsDelimiter, YCL_FS_StringIsRoot)"
+		)
+	),
+	/ $dev %'YBase' $=
+	(
+		/ %'YStadardEx' $=
+		(
+			/ "tempalte specification %path<std::string>"
+				@ %'YStandardEx'.'Path' -> "partial specification \
+				%path<std::basic_string<_tChar, _tAlloc>>",
+			/ %'String' $=
+			(
+				/ "typedef name %string_traits::value_type to adapt to \
+					non-class C-style string types",
+				+ "2 function templates %string_length"
+			)
+		),
+		+ "macro %yjoin" @ %'YDefinition'
+	)
+),
+
+b408
 (
 	/ %'YBase' $=
 	(

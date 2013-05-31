@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8397
+\version r8410
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-05-29 12:59 +0800
+	2013-05-30 08:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -605,16 +605,16 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 @4.1
 参见 [Documentation::CommonRules @@4.1] 。
 
-@4.1.6
+@4.1.1 保留标识符：
 基本内容参见 [Documentation::CommonRules @@4.1.6] 。
 
-@4.1.6.1
+@4.1.1.1
 以 "_y" 起始的标识符保留给 YSLib 库内部实现使用。
 
-@4.1.6.2
+@4.1.1.2
 以 "INCLUDED_" 起始的标识符专用于头文件包含标识。
 
-@4.1.6.3 模板形式参数前缀：
+@4.1.1.3 模板形式参数前缀：
 以下前缀保留给的标识符保留作为模板形式参数的名称：
  "_b" ：布尔类型参数；
  "_f" ：函数/可调用对象(callable object) 类型参数；
@@ -627,11 +627,11 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
  "_gf" ：泛型函数/仿函数模板参数；
  "_v" ：其它非类型参数（值参数）。
 
-@4.1.7 惯用函数命名：
+@4.1.2 惯用函数命名：
 基本内容参见 [Documentation::CommonRules @@4.1.7] 。
 
-@4.1.7.1 YBase 和 YFramework 约定：
-使用以下固定含义的模板形式参数名称（前缀参见 @4.1.6.3 ）：
+@4.1.2.1 YBase 和 YFramework 约定：
+使用以下固定含义的模板形式参数名称（前缀参见 @4.1.1.3 ）：
  _fPred ：谓词函数类型；
  _tIn ：输入迭代器类型；
  _tOut ：输出迭代器类型；
@@ -641,17 +641,20 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
  _tRange ：一般范围类型；
  _tCont ：容器类型（符合 ISO C++11 约定的容器要求的类型）；
  _tSeqCont ：序列容器类型。
+使用以下成员名称：
+ swap ：交换函数，返回类型 void 。
+ clone ：动态复制函数，返回类型为被复制的对象的指针。
 
-@4.1.7.2 YFramework 约定：
+@4.1.2.2 YFramework 约定：
 
-@4.1.7.2.1 模式 Fetch* ：
+@4.1.2.2.1 模式 Fetch* ：
 除了 YSLib 中非本体部分，命名空间作用域函数名 Fetch* ：语义近似于 Get*Of ，但遵循以下附加规则：
 函数名符合模式 Fetch*Ref 的，返回类型为目标类型的引用或 const 引用类型；
 函数名符合模式 Fetch*Ptr 的，返回类型为目标类型的指针、 const 指针或对应的智能指针类型；
 目标类型为 POD 类型的，返回类型为目标类型；
 其它情况返回类型为目标类型的引用或 const 引用类型。
 
-@4.1.7.2.2 模式 Make* ：
+@4.1.2.2.2 模式 Make* ：
 类似 ISO C++ 标准库中的 make_* 。
 
 @4.2 宏名：

@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r467
+\version r483
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2013-05-30 03:35 +0800
+	2013-05-31 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,35 +77,39 @@ public:
 template<typename _type>
 class file_path_norm;
 
-//! \brief 文件字符串路径范式。
-template<>
-class file_path_norm<std::string> : public path_norm<std::string>
+/*!
+\brief 文件字符串路径范式。
+\since build 409
+*/
+template<typename _tChar, class _tAlloc>
+class file_path_norm<std::basic_string<_tChar, _tAlloc>>
+	: public path_norm<std::string>
 {
 public:
-	typedef std::string value_type;
+	typedef std::basic_string<_tChar, _tAlloc> value_type;
 
 	bool
-	is_delimiter(const value_type& s) override
+	is_delimiter(const value_type& str) override
 	{
-		return s == "/";
+		return str.length() == 1 && str[0] == "/";
 	}
 
 	bool
-	is_parent(const value_type& s) ynothrow override
+	is_parent(const value_type& str) ynothrow override
 	{
-		return s == "..";
+		return str.length() == 2 && str[0] == '.' && str[1] == '.';
 	}
 
 	bool
-	is_root(const value_type& s) ynothrow override
+	is_root(const value_type& str) ynothrow override
 	{
-		return s.empty();
+		return str.empty();
 	}
 
 	bool
-	is_self(const value_type& s) ynothrow override
+	is_self(const value_type& str) ynothrow override
 	{
-		return s == ".";
+		return str.length() == 1 && str[0] == '.';
 	}
 
 	file_path_norm*

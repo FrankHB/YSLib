@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4620
+\version r4622
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-03-13 14:51 +0800
+	2013-05-30 08:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,8 @@ public:
 	DefGetter(const ynothrow, EventMapping::MapType&, EventMap, EventMap) \
 		//!< 取事件映射表。
 
-	ImplI(AController) DefClone(const override, Controller, Clone)
+	//! \since build 409
+	ImplI(AController) DefClone(const override, Controller)
 };
 
 

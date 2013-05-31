@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12037
+\version r12040
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-05-17 03:06 +0800
+	2013-05-31 11:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,6 +66,7 @@ $header YDefinition
 YB_IMPL_CPP
 YB_IMPL_MSCPP
 YB_IMPL_GNUCPP
+yJOIN
 YB_HAS_ALIGNAS
 YB_HAS_ALIGNOF
 YB_HAS_BUILTIN_NULLPTR
@@ -180,7 +181,6 @@ $dir Core
 {
 $header YBaseMacro
 {
-yJOIN
 YSL_BEGIN
 YSL_END
 YSL_BEGIN_NAMESPACE(s)
@@ -236,7 +236,8 @@ DefSetterMem(_t, _n, _m)
 DefSetterMemDe(_t, _n, _m, _defv)
 DefSetterEx(_t, _n, _m, _e)
 DefSetterDeEx(_t, _n, _m, _defv, _e)
-DefClone(_t, _n)
+DefClone(_q, _t)
+DefSwap(_q, _t)
 DefSubscriptor(_q, _type, ...)
 DefSubscriptorBase(_q, _type, _tBase, _vBaseN, ...)
 DefFwdFn(_q _type, _name, ...)

@@ -10,14 +10,14 @@
 
 /*!	\file string.hpp
 \ingroup YStandardEx
-\brief YCLib ISO C++ 标准字符串扩展。
-\version r313
+\brief ISO C++ 标准字符串扩展。
+\version r339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-05-29 13:24 +0800
+	2013-05-31 11:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,13 +40,15 @@ namespace ystdex
 
 /*!
 \brief 字符串特征。
+\note 支持字符类型指针表示的 C 风格字符串和随机序列容器（含 basic_string ）字符串。
 \since build 304
 */
 template<typename _tString>
 struct string_traits
 {
-	typedef typename std::remove_reference<_tString>::type string_type;
-	typedef typename string_type::value_type value_type;
+	typedef typename remove_reference<_tString>::type string_type;
+	typedef typename remove_rcv<decltype(std::declval<string_type>()[0])>::type
+		value_type;
 	typedef typename std::char_traits<value_type> traits_type;
 	typedef value_type* pointer;
 	typedef const value_type* const_pointer;
@@ -57,8 +59,32 @@ struct string_traits
 /*!	\defgroup string_algorithms String Algorithms
 \addtogroup algorithms
 \brief 字符串算法。
+\note 模板形参关键字 \c class 表示仅支持类类型对象字符串。
 \since build 304
 */
+
+
+/*!
+\ingroup string_algorithms
+\brief 计算字符串长度。
+\since build 409
+*/
+//@{
+template<typename _tChar>
+size_t
+string_length(const _tChar* str)
+{
+	return std::char_traits<_tChar>::length(str);
+}
+template<class _tString,
+	typename = typename enable_if<is_class<_tString>::value, int>::type>
+size_t
+string_length(const _tString& str)
+{
+	return str.size();
+}
+//@}
+
 
 /*!
 \ingroup string_algorithms

@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2257
+\version r2274
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-05-25 05:10 +0800
+	2013-05-31 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,6 +94,27 @@
 #include <cwchar> // for std::wint_t;
 #include <utility> // for std::forward;
 #include <type_traits> // for std::is_class, std::is_standard_layout;
+
+
+/*
+\def yjoin
+\brief 带宏替换的记号连接。
+\see http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
+\see https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
+\since build 409
+
+ ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
+注意 GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，此宏不会被展开。
+*/
+#define yjoin(x, y) yJOIN(x, y)
+
+/*
+\def yJOIN
+\brief 记号连接。
+\sa yjoin
+\since build 304
+*/
+#define yJOIN(x, y) x ## y
 
 
 /*!	\defgroup lang_impl_features Language Implementation Features

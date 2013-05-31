@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r582
+\version r586
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2013-05-21 06:48 +0800
+	2013-05-30 08:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,8 @@ public:
 	SetSize(const Size&)
 	{}
 
-	virtual DefClone(const, Renderer, Clone)
+	//! \since build 409
+	virtual DefClone(const, Renderer)
 
 	/*!
 	\brief 提交无效区域。
@@ -141,7 +142,8 @@ public:
 	void
 	SetImageBuffer(unique_ptr<Drawing::IImage>);
 
-	DefClone(const override, BufferedRenderer, Clone)
+	//! \since build 409
+	DefClone(const override, BufferedRenderer)
 
 	/*!
 	\brief 提交无效区域，使之合并至现有无效区域中。
