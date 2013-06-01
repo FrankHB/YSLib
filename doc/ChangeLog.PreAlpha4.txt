@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r540
+\version r594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-05-31 22:00 +0800
+	2013-06-02 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,61 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	* "wrong implementation" @ "member functions %(filter_self, merge_parents)
+		@ "class template %path" @ %'YBase'.'YStandardEx'.'Path' $since b409;
+	/ %'YFramework' $=
+	(
+		* "wrong implementation" @ "macro %YCL_FS_StringIsParent"
+			@ %'YCLib'.'FileSystem' $since b409,
+		/ %'YSLib'.'Core'.'YFileSystem' $=
+		(
+			/ @ "class %Path" $=
+			(
+				+ "using %ypath::(get_norm, filter_self, merge_parents)",
+				- "member functions %(GetExtension, IsDirectory, IsAbsolute, \
+					IsRelative)",
+				+ "member functions %(GetString, Normalize)"
+				* "wrong implementation for empty or absolute paths"
+					@ "member function %operator/=" $since b409;
+				+ "member %operator/= for %String as directly subdirectory \
+					access"
+			),
+			+ "functions %(GetExtensionOf, 4 VerifyDirectory, \
+				3 IsAbsolute, 4 IsRelative),
+				// Another overloaded %IsAbsolute is from namespace %platform;
+			- "functions 2 %YF_API %ValidateDirectory";
+				// %VerifyDirectory should be used instead.
+			+ "member %operator/= for %String as directly subdirectory \
+				access" @ "class %FileList",
+			+ "path and file system node classifying APIs"
+			(
+				+ "enum classes %(PathCategory, NodeCategory)";
+				+ "functions %YF_API %(ClassifyPath, ClassifyNode)
+			)
+		)
+	),
+	/ %'YReader' $=
+	(
+		/ %'file explorer' $=
+		(
+			* "non lower-case extensions wrongly ignored" $since b389,
+			(
+				$dep_from %'YFramework';
+				* $comp "non-normalized paths shown" $since b409;
+				$dep_to "explorer path"
+			)
+		),
+		/ %'text reader' $=
+		(
+			$dep_from "explorer path";
+			* $comp "non-normalized path wrote into configuration" $since b409
+				// This may cause corrupted configuration and crash on loading.
+		)
+	)
+),
+
+b409
 (
 	/ %'YFramework' $=
 	(

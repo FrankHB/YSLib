@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r665
+\version r668
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-05-31 12:25 +0800
+	2013-06-01 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ namespace platform
 */
 #define YCL_FS_StringIsParent(_s, _p) \
 	(ystdex::string_length(_s) == 2 \
-	&& YCL_FS_StringIsCurrent(_s, _p) && _s[1] == yJOIN(_p, '.'))
+	&& _s[0] == yJOIN(_p, '.') && _s[1] == yJOIN(_p, '.'))
 
 /*
 \def YCL_FS_CharIsDelimiter
@@ -291,7 +291,7 @@ direxists(const_path_t) ynothrow;
 YF_API bool
 udirexists(const_path_t) ynothrow;
 /*!
-\brief 判断指定字符串为文件名的文件是否存在。
+\brief 判断指定字符串为目录名的目录是否存在。
 \note 使用 NTCTS 参数 udirexists 实现。
 \since build 326
 */
@@ -397,7 +397,7 @@ private:
 
 public:
 	/*!
-	\brief 构造：使用路径字符串。
+	\brief 构造：使用目录路径。
 	\since build 319
 	*/
 	explicit

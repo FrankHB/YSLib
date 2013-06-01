@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1668
+\version r1764
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2013-05-31 21:21 +0800
+	2013-06-02 05:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,64 +36,47 @@ using namespace Text;
 
 YSL_BEGIN_NAMESPACE(IO)
 
-namespace
-{
-
-//! \since build 409
-String
-ConvertPath(const ypath& pth)
-{
-	return ystdex::to_string_d(pth, YCL_PATH_DELIMITER);
-}
-
-} // unnamed namespace;
-
 Path&
-Path::operator/=(const Path& path)
+Path::operator/=(const String& fname)
 {
-	auto& rnorm(path.get_norm());
+	auto& norm(get_norm());
 
-	if(!path.empty() && path.is_relative())
-		for(const auto& s : path)
-			if(rnorm.is_parent(s))
-			{
-				if(empty())
-					*this = {get_root()};
-				else
-					pop_back();
-			}
-			else if(!rnorm.is_self(s))
-				push_back(s);
+	if(norm.is_parent(fname))
+	{
+		if((is_absolute() ? 1 : 0) < size())
+			pop_back();
+	}
+	else if(!norm.is_self(fname))
+		push_back(fname);
+	return *this;
+}
+Path&
+Path::operator/=(const Path& pth)
+{
+	for(const auto& fname : pth)
+		*this /= fname;
 	return *this;
 }
 
 Path::operator String() const
 {
-	auto res(ConvertPath(*this));
-
-	if(!res.empty() && res.back() == YCL_PATH_DELIMITER && !IsDirectory())
+	auto res(GetString());
+	
+	if(!(res.empty() || VerifyDirectory(res)))
 		res.pop_back();
 	return std::move(res);
 }
 
-bool
-Path::IsDirectory() const
-{
-	return !empty() && udirexists(ConvertPath(*this).GetMBCS(CS_Path).c_str());
-}
-
 String
-Path::GetExtension() const
+Path::GetString() const
 {
-	if(!empty())
-	{
-		const auto& fname(back());
-		const auto pos(fname.rfind('.'));
+	auto res(ystdex::to_string_d(static_cast<const ypath&>(*this),
+		YCL_PATH_DELIMITER));
 
-		if(pos != String::npos)
-			return fname.substr(pos + 1);
-	}
-	return {};
+	YAssert(res.empty() || res.back() == YCL_PATH_DELIMITER,
+		"Invalid conversion result found.");
+
+	return std::move(res);
 }
 
 ypath
@@ -113,6 +96,20 @@ Path::Parse(const ucs2string& str)
 
 
 String
+GetExtensionOf(const String& fname)
+{
+	if(!fname.empty())
+	{
+		const auto pos(fname.rfind('.'));
+
+		if(pos != String::npos)
+			return fname.substr(pos + 1);
+	}
+	return {};
+}
+
+
+String
 GetNowDirectory()
 {
 	ucs2_t buf[YCL_MAX_PATH_LENGTH];
@@ -120,10 +117,41 @@ GetNowDirectory()
 	return u16getcwd_n(buf, YCL_MAX_PATH_LENGTH - 1) ? String(buf) : String();
 }
 
-bool
-ValidatePath(const string& pathstr)
+
+PathCategory
+ClassifyPath(const String& fname, ypath::norm&& norm)
 {
-	return bool(HFileNode(pathstr.c_str()));
+	if(YB_UNLIKELY(fname.empty()))
+		return PathCategory::Empty;
+	if(norm.is_self(fname))
+		return PathCategory::Self;
+	if(norm.is_parent(fname))
+		return PathCategory::Parent;
+	return PathCategory::Node;
+}
+
+NodeCategory
+ClassifyNode(const Path& pth)
+{
+	if(pth.empty())
+		return NodeCategory::Empty;
+
+	const auto& fname(pth.back());
+
+	switch(ClassifyPath(fname, std::move(pth.get_norm())))
+	{
+	case PathCategory::Empty:
+		return NodeCategory::Empty;
+	case PathCategory::Self:
+	case PathCategory::Parent:
+		break;
+	default:
+		if(ufexists(pth.GetNativeString()))
+			return VerifyDirectory(pth)
+				? NodeCategory::Directory : NodeCategory::Normal;
+	// TODO: Implementation for other categories.
+	}
+	return NodeCategory::Unknown;
 }
 
 
@@ -141,7 +169,7 @@ FileList::FileList(const FileList::ItemType& path)
 bool
 FileList::operator=(const Path& d)
 {
-	if(d.IsDirectory())
+	if(VerifyDirectory(d))
 	{
 		Directory = d;
 		ListItems();
@@ -150,9 +178,14 @@ FileList::operator=(const Path& d)
 	return false;
 }
 bool
+FileList::operator/=(const String& d)
+{
+	return *this = Directory / d;
+}
+bool
 FileList::operator/=(const Path& d)
 {
-	return *this = (Directory / d);
+	return *this = Directory / d;
 }
 
 

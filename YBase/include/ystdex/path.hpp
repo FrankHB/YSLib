@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r483
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2013-05-31 11:31 +0800
+	2013-06-02 04:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,31 +247,24 @@ public:
 	bool
 	before(const path& pth) const
 	{
-		yconstraint(p_norm),
-		yconstraint(pth.p_norm);
-
-		return typeid(*p_norm).before(typeid(*pth.p_norm))
+		return typeid(get_norm()).before(typeid(pth.get_norm()))
 			&& static_cast<const base&>(*this) < static_cast<const base&>(pth);
 	}
 
 	bool
 	equals(const path& pth) const
 	{
-		yconstraint(p_norm),
-		yconstraint(pth.p_norm);
-
-		return typeid(*p_norm) == typeid(*pth.p_norm)
+		return typeid(get_norm()) == typeid(pth.get_norm())
 			&& static_cast<const base&>(*this) == static_cast<const base&>(pth);
 	}
 
 	void
 	filter_self()
 	{
-		yconstraint(p_norm);
+		auto& nm(get_norm());
 
-		ystdex::erase_all_if(static_cast<base&>(*this), this->begin(),
-			this->end(), [this](const value_type& s){
-				p_norm->is_self();
+		ystdex::erase_all_if(*this, [&](const value_type& s){
+				return nm.is_self(s);
 		});
 	}
 
@@ -304,19 +297,23 @@ public:
 	void
 	merge_parents()
 	{
-		auto i(this->begin());
+		auto& nm(get_norm());
 
-		while(auto j = std::adjacent_find(i, this->end(),
-			[this](const value_type&, const value_type& s){
-			return p_norm->is_parent();
-		}))
+		for(auto i(this->begin()); i != this->end();)
 		{
+			auto j(std::adjacent_find(i, this->end(),
+				[&](const value_type& x, const value_type& y){
+					return !nm.is_self(x) && !nm.is_parent(x)
+						&& nm.is_parent(y);
+			}));
+
+			if(j == this->end())
+				break;
 			i = j++;
 
 			yassume(j != this->end());
 
-			++j;
-			i = erase(i, j);
+			i = erase(i, ++j);
 		}
 	}
 

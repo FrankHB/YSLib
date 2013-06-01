@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台无关的文件系统抽象。
-\version r1880
+\version r2006
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-05-31 21:29 +0800
+	2013-06-02 05:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,9 +141,14 @@ public:
 	*/
 	inline DefDeMoveAssignment(Path)
 
-	//追加路径。
+	//! \brief 追加路径。
+	//@{
+	//! \since build 410
+	Path&
+	operator/=(const String&);
 	Path&
 	operator/=(const Path&);
+	//@}
 
 	friend bool
 	operator==(const Path&, const Path&);
@@ -151,28 +156,29 @@ public:
 	friend bool
 	operator<(const Path&, const Path&);
 
-	//! \since build 409
-	operator String() const;
-
-	DefPred(const ynothrow, Absolute, IO::IsAbsolute(GetNativeString().c_str()))
-	DefPred(const ynothrow, Relative, !IsAbsolute())
 	/*!
-	\brief 判断是否表示目录。
-	\note 无视结尾分隔符。
-	\since build 298
-	*/
-	bool
-	IsDirectory() const;
-
-	/*!
-	\brief 取扩展名。
-	\note 非贪婪匹配。
+	\brief 转换为字符串。
+	\note 使用 VerifyDirectory 验证，当且仅当确认为可打开的目录时结果以分隔符结尾。
 	\since build 409
 	*/
+	operator String() const;
+
+	/*!
+	\brief 取字符串表示。
+	\post 断言：结果为空或以分隔符结尾。
+	\since build 411
+	*/
 	String
-	GetExtension() const;
+	GetString() const;
 	DefGetter(const ynothrow, NativeString, NativeString,
 		String(*this).GetMBCS(CS_Path)) //!< 取本地格式和编码的字符串。
+
+	/*!
+	\brief 正规化：去除自指和父节点的路径成员。
+	\since build 410
+	*/
+	PDefH(void, Normalize,)
+		ImplRet(ystdex::normalize(*this))
 
 	//! \since build 409
 	//@{
@@ -195,13 +201,22 @@ public:
 
 	using ypath::erase;
 
+	//! \since build 410
+	using ypath::filter_self;
+
 	using ypath::front;
+
+	//! \since build 410
+	using ypath::get_norm;
 
 	using ypath::insert;
 
 	using ypath::is_absolute;
 
 	using ypath::is_relative;
+
+	//! \since build 410
+	using ypath::merge_parents;
 
 	using ypath::size;
 
@@ -247,7 +262,7 @@ operator>=(const Path& x, const Path& y)
 inline Path
 operator/(const Path& x, const Path& y)
 {
-	return Path(x) /= y;
+	return std::move(Path(x) /= y);
 }
 
 /*!
@@ -261,6 +276,22 @@ swap(Path& x, Path& y)
 
 
 /*!
+\brief 取扩展名。
+\note 非贪婪匹配。
+\since build 410
+*/
+//@{
+YF_API String
+GetExtensionOf(const String&);
+inline String
+GetExtensionOf(const Path& pth)
+{
+	return pth.empty() ? String() : GetExtensionOf(pth.back());
+}
+//@}
+
+
+/*!
 \brief 取当前工作目录。
 \note 不含结尾分隔符。
 \since build 304
@@ -268,21 +299,75 @@ swap(Path& x, Path& y)
 YF_API String
 GetNowDirectory();
 
-/*!
-\brief 验证绝对路径有效性。
-\since build 298
-*/
-YF_API bool
-ValidatePath(const string&);
-/*!
-\brief 验证绝对路径有效性。
-\since build 298
-*/
-inline bool
-ValidatePath(const Path& pth)
+
+//! \since build 410
+//@{
+//! \brief 验证路径表示的目录是否存在。
+//@{
+inline PDefH(bool, IsAbsolute, const string& path)
+	ImplRet(IsAbsolute(path.c_str()))
+inline PDefH(bool, IsAbsolute, const String& path)
+	ImplRet(IsAbsolute(path.GetMBCS(CS_Path)))
+inline PDefH(bool, IsAbsolute, const Path& pth)
+	ImplRet(!pth.empty() && IsAbsolute(pth.GetString()))
+//@}
+
+//! \brief 验证路径表示的目录是否存在。
+//@{
+inline PDefH(bool, IsRelative, const char* path)
+	ImplRet(!IsAbsolute(path))
+inline PDefH(bool, IsRelative, const string& path)
+	ImplRet(!IsAbsolute(path))
+inline PDefH(bool, IsRelative, const String& path)
+	ImplRet(!IsAbsolute(path))
+inline PDefH(bool, IsRelative, const Path& pth)
+	ImplRet(!IsAbsolute(pth))
+//@}
+
+
+//! \brief 验证路径表示的目录是否存在。
+//@{
+inline PDefH(bool, VerifyDirectory, const char* path)
+	ImplRet(udirexists(path))
+inline PDefH(bool, VerifyDirectory, const string& path)
+	ImplRet(VerifyDirectory(path.c_str()))
+inline PDefH(bool, VerifyDirectory, const String& path)
+	ImplRet(VerifyDirectory(path.GetMBCS(CS_Path)))
+inline PDefH(bool, VerifyDirectory, const Path& pth)
+	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
+//@}
+
+
+//! 路径类别。
+enum class PathCategory
 {
-	return ValidatePath(pth.GetNativeString());
-}
+	Empty,
+	Self,
+	Parent,
+	Node
+};
+
+//! 文件系统节点类别。
+enum class NodeCategory
+{
+	Empty = PathCategory::Empty,
+	Unknown = PathCategory::Node,
+	Directory,
+	HardLink,
+	SymbolicLink,
+	Pipe,
+	Socket,
+	Normal
+};
+
+//! \brief 按路径类别对路径成员分类。
+YF_API PathCategory
+ClassifyPath(const String&, ypath::norm&& = ystdex::file_path_norm<String>());
+
+//! \brief 按文件系统节点类别对路径分类。
+YF_API NodeCategory
+ClassifyNode(const Path&);
+//@}
 
 
 // \brief 文件名过滤器。
@@ -325,6 +410,14 @@ public:
 	*/
 	bool
 	operator=(const Path&);
+
+	/*!
+	\brief 导航至子目录。
+	\note 若成功同时读取列表。
+	\since build 410
+	*/
+	bool
+	operator/=(const String&);
 	/*!
 	\brief 导航至相对路径。
 	\note 若成功同时读取列表。

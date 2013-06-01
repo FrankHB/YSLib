@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1728
+\version r1729
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-04-18 18:18 +0800
+	2013-06-01 12:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YCLib/Debug.h"
 #include "CHRLib/MapEx.h"
 #include "YCLib/MemoryMapping.h"
+#include "YSLib/Core/yfilesys.h"
 #include <cstring> // for std::strcmp;
 //#include <clocale>
 

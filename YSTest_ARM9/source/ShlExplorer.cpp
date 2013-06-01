@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r466
+\version r521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-05-31 21:15 +0800
+	2013-06-02 05:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,66 +35,60 @@ using ystdex::polymorphic_downcast;
 namespace
 {
 
-namespace EnrtySpace
+//! \since build 410
+//@{
+using namespace IO;
+
+enum class FileCategory
 {
-	typedef enum
-	{
-		Empty,
-		Now,
-		Parent,
-		Directory,
-		Text,
-		Hex
-	} EntryType;
-}
+	Empty = NodeCategory::Empty,
+	Unknown = NodeCategory::Normal,
+	Binary,
+	Text
+};
 
-EnrtySpace::EntryType
-GetEntryType(const string& path)
+bool
+CheckTextFileExtensions(string ext)
 {
-	using namespace EnrtySpace;
-
-	if(path.empty())
-		return Empty;
-	if(path == IO::FS_Now)
-		return Now;
-	if(path == IO::FS_Parent)
-		return Parent;
-	if(path.back() == YCL_PATH_DELIMITER)
-		return Directory;
-
 	static yconstexpr const char* exts[]{
 		"txt", "c", "cpp", "h", "hpp", "ini", "xml"};
-	auto npath(IO::Path(path).GetExtension());
 
-	for(auto& c : npath)
+	for(auto& c : ext)
 		c = std::tolower(c);
-
-	const auto ext(IO::Path(path).GetExtension().GetMBCS());
-
-	if(std::any_of(exts, exts + arrlen(exts), [&](const char* str){
+	return std::any_of(exts, exts + arrlen(exts), [&](const char* str){
 		return std::strcmp(ext.c_str(), str) == 0;
-	}))
-		return Text;
-	return Hex;
+	});
 }
-EnrtySpace::EntryType
-GetEntryType(const IO::Path& path)
+
+FileCategory
+ClassifyFile(const Path& pth)
 {
-	return GetEntryType(path.GetNativeString());
+	switch(ClassifyNode(pth))
+	{
+	case NodeCategory::Normal:
+		return CheckTextFileExtensions(GetExtensionOf(pth).GetMBCS(CS_Path))
+			? FileCategory::Text : FileCategory::Binary;
+	case NodeCategory::Unknown:
+		break;
+	default:
+		return FileCategory::Empty;
+	}
+	// TODO: Verifying.
+	// TODO: Implementation for other categories.
+	return FileCategory::Unknown;
 }
+//@}
 
 bool
 CheckReaderEnability(FileBox& fb, CheckBox& hex)
 {
 	if(fb.IsSelected())
 	{
-		using namespace EnrtySpace;
-
-		switch(GetEntryType(fb.GetList()[fb.GetSelectedIndex()]))
+		switch(ClassifyFile(fb.GetPath()))
 		{
-		case Text:
+		case FileCategory::Text:
 			return true;
-		case Hex:
+		case FileCategory::Binary:
 			return hex.IsTicked();
 		default:
 			;
@@ -202,13 +196,15 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			if(fbMain.IsSelected())
 			{
 				const auto& path(fbMain.GetPath());
-				const string& s(path.GetNativeString());
+			//	const string& s(path.GetNativeString());
+				const auto category(ClassifyFile(path));
 
-				if(!IO::ValidatePath(s) && ufexists(s))
+				if(category == FileCategory::Text
+					|| category == FileCategory::Binary)
 				{
 					const auto h_up(GetDesktopUpHandle());
 					const auto h_dn(GetDesktopDownHandle());
-					const bool b(GetEntryType(s) == EnrtySpace::Text
+					const bool b(category == FileCategory::Text
 						&& !cbHex.IsTicked());
 
 					PostMessage<SM_TASK>(0xF8, [=]{
