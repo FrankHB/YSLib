@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r668
+\version r865
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-06-01 19:23 +0800
+	2013-06-04 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -277,32 +277,6 @@ ufexists(const _tString& str) ynothrow
 }
 
 /*!
-\brief 判断指定路径的目录是否存在。
-\since build 324
-*/
-YF_API bool
-direxists(const_path_t) ynothrow;
-
-/*!
-\brief 判断指定 UTF-8 路径的目录是否存在。
-\bug MinGW32 环境下非线程安全。
-\since build 324
-*/
-YF_API bool
-udirexists(const_path_t) ynothrow;
-/*!
-\brief 判断指定字符串为目录名的目录是否存在。
-\note 使用 NTCTS 参数 udirexists 实现。
-\since build 326
-*/
-template<class _tString>
-inline bool
-udirexists(const _tString& str) ynothrow
-{
-	return udirexists(str.c_str());
-}
-
-/*!
 \brief 当第一参数非空时取当前工作目录复制至指定缓冲区中。
 \param buf 缓冲区起始指针。
 \param size 缓冲区长。
@@ -352,29 +326,69 @@ truncate(std::FILE*, std::size_t) ynothrow;
 
 
 /*!
-\brief 文件系统节点迭代器。
-\since build 298
+\brief 表示文件操作失败的异常。
+\since build 411
 */
-class YF_API HFileNode final
+class YF_API FileOperationFailure : public std::runtime_error
+{
+public:
+	FileOperationFailure(const std::string& msg = "")
+		: runtime_error(msg)
+	{}
+};
+
+
+/*!
+\brief 目录会话：表示打开的目录。
+\warning 非虚析构。
+\since build 411
+*/
+class YF_API DirectorySession
 {
 public:
 #if YCL_DS
-	typedef ::DIR* IteratorType; //!< 本机迭代器类型。
+	typedef ::DIR* NativeHandle;
 #else
-	//! \since build 402
-	typedef ::_WDIR* IteratorType; //!< 本机迭代器类型。
+	typedef ::_WDIR* NativeHandle;
 #endif
 
-	/*!
-	\brief 上一次操作结果，0 为无错误。
-	\warning 不可重入。
-	\warning 非线程安全。
-	*/
-	static int LastError;
-
 private:
-	IteratorType dir;
+	NativeHandle dir;
 
+public:
+	/*!
+	\brief 构造：打开目录路径。
+	\throw FileOperationFail 打开失败。
+	\note 当路径为空指针或空字符串时视为 "." 。
+	*/
+	explicit
+	DirectorySession(const char* path = {});
+	DirectorySession(DirectorySession&& h)
+		: dir(h.dir)
+	{
+		h.dir = nullptr;
+	}
+	//! \brief 析构：关闭目录路径。
+	~DirectorySession() ynothrow;
+
+	NativeHandle
+	GetNativeHandle() ynothrow
+	{
+		return dir;
+	}
+
+	//! \brief 复位目录状态。
+	void
+	Rewind() ynothrow;
+};
+
+
+/*!
+\brief 目录句柄：表示打开的目录和内容迭代状态。
+\since build 411
+*/
+class YF_API HDirectory final : private DirectorySession
+{
 #if YCL_DS
 	/*!
 	\brief 节点信息。
@@ -396,53 +410,28 @@ private:
 #endif
 
 public:
-	/*!
-	\brief 构造：使用目录路径。
-	\since build 319
-	*/
+	//! \brief 构造：使用目录路径。
 	explicit
-	HFileNode(const_path_t path = {}) ynothrow
-		: dir(), p_dirent()
-	{
-		Open(path);
-	}
-	/*!
-	\brief 复制构造：默认实现。
-	\note 浅复制。
-	*/
-	HFileNode(const HFileNode&) = default;
-	/*!
-	\brief 析构。
-	\since build 319
-	*/
-	~HFileNode() ynothrow
-	{
-		Close();
-	}
+	HDirectory(const char* path) ynothrow
+		: DirectorySession(path)
+	{}
 
 	/*!
-	\brief 复制赋值：默认实现。
-	\note 浅复制。
-	\since build 311
+	\brief 间接操作：取节点名称。
+	\return 非空结果：子节点不可用时为 "." ，否则为子节点名称。
+	\note 返回的结果在析构和下一次迭代前保持有效。
 	*/
-	HFileNode&
-	operator=(const HFileNode&) = default;
+	const char*
+	operator*() const ynothrow;
 
 	/*!
 	\brief 迭代：向后遍历。
-	\since build 319
+	\throw FileOperationFail 读取目录失败。
+	\throw FileOperationFail 目录没有打开。
 	*/
-	HFileNode&
-	operator++() ynothrow;
-	/*!
-	\brief 迭代：向前遍历。
-	\since build 319
-	*/
-	HFileNode
-	operator++(int) ynothrow
-	{
-		return ++HFileNode(*this);
-	}
+	HDirectory&
+	operator++();
+	//@}
 
 	/*!
 	\brief 判断文件系统节点有效性。
@@ -451,7 +440,7 @@ public:
 	explicit
 	operator bool() const ynothrow
 	{
-		return dir;
+		return p_dirent;
 	}
 
 	/*!
@@ -461,35 +450,93 @@ public:
 	bool
 	IsDirectory() const ynothrow;
 
+	//! \brief 复位。
+	using DirectorySession::Rewind;
+};
+
+
+/*!
+\brief 文件迭代器。
+\since build 411
+*/
+class YF_API FileIterator : public std::iterator<std::input_iterator_tag,
+	const char*, ptrdiff_t>
+{
+private:
+	HDirectory* p_handle;
+
+public:
+	//! \brief 默认构造：空迭代器。
+	FileIterator()
+		: p_handle()
+	{}
+	//! \brief 构造：使用目录句柄并进行一次迭代。
+	FileIterator(HDirectory& dir)
+		: p_handle(&++dir)
+	{}
+	FileIterator(const FileIterator&) = default;
+	FileIterator(FileIterator&& i) ynothrow
+		: p_handle(i.p_handle)
+	{
+		i.p_handle = nullptr;
+	}
+
+	FileIterator&
+	operator=(const FileIterator&) = default;
+	FileIterator&
+	operator=(FileIterator&&) = default;
+
+	operator bool() const ynothrow
+	{
+		return p_handle && bool(*p_handle);
+	}
+
 	/*!
-	\brief 取节点名称。
-	\return 非空结果。
-	\since build 319
+	\brief 间接操作：取节点名称。
+	\pre 断言：<tt>*this</tt> 。
 	*/
 	const char*
-	GetName() const ynothrow;
+	operator*() const ynothrow
+	{
+		yconstraint(p_handle);
+
+		return **p_handle;
+	}
 
 	/*!
-	\brief 打开。
-	\since build 319
+	\brief 迭代：向后遍历。
+	\pre 断言：<tt>*this</tt> 。
 	*/
-	void
-	Open(const_path_t) ynothrow;
+	FileIterator&	
+	operator++()
+	{
+		yconstraint(p_handle);
 
-	/*!
-	\brief 关闭。
-	\since build 319
-	*/
-	void
-	Close() ynothrow;
+		++*p_handle;
+		return *this;
+	}
+	FileIterator
+	operator++(int)
+	{
+		const auto i(*this);
 
-	/*!
-	\brief 复位。
-	\since build 319
-	*/
-	void
-	Reset() ynothrow;
+		++*this;
+		return i;
+	}
+
+	friend bool
+	operator==(const FileIterator& x, const FileIterator& y)
+	{
+		return (!bool(x) && !bool(y)) || x.p_handle == y.p_handle;
+	}
 };
+
+//! \since build 411
+inline bool
+operator!=(const FileIterator& x, const FileIterator& y)
+{
+	return !(x == y);
+}
 
 
 /*!

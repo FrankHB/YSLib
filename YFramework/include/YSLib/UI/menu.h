@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r817
+\version r818
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2013-03-13 13:05 +0800
+	2013-06-02 13:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ public:
 
 	/*!
 	\brief 访问索引指定的子菜单。
-	\exception std::out_of_range 异常中立：指定子菜单越界或不存在：由 at 抛出。
+	\exception std::out_of_range 异常中立：由 at 抛出。
 	*/
 	PDefHOp(Menu&, [], size_t idx)
 		ImplRet(*mSubMenus.at(idx))

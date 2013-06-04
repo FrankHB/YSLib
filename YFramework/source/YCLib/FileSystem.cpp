@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r846
+\version r972
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-05-31 11:56 +0800
+	2013-06-03 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,37 +227,6 @@ ufexists(const char16_t* filename) ynothrow
 	return false;
 }
 
-bool
-direxists(const_path_t path) ynothrow
-{
-	const auto dir(::opendir(path));
-
-	::closedir(dir);
-	return dir;
-}
-
-bool
-udirexists(const_path_t path) ynothrow
-{
-#if YCL_MINGW32
-	using namespace CHRLib;
-
-	if(path)
-		try
-		{
-			const auto dir(::_wopendir(u_to_w(path).c_str()));
-
-			::_wclosedir(dir);
-			return dir;
-		}
-		catch(...)
-		{}
-	return false;
-#else
-	return direxists(path);
-#endif
-}
-
 char*
 getcwd_n(char* buf, std::size_t size) ynothrow
 {
@@ -351,28 +320,78 @@ truncate(std::FILE* fp, std::size_t size) ynothrow
 }
 
 
-int HFileNode::LastError(0);
-
-HFileNode&
-HFileNode::operator++() ynothrow
+DirectorySession::DirectorySession(const_path_t path)
+	: dir(
+#if YCL_DS
+		::opendir(path && *path != '\0' ? path : ".")
+#else
+		::_wopendir(path && *path != '\0' ? u_to_w(path).c_str() : L".")
+#endif
+	)
 {
-	LastError = 0;
-	if(YB_LIKELY(*this))
+	if(!dir)
+		throw FileOperationFailure("Opening directory failed.");
+}
+DirectorySession::~DirectorySession() ynothrow
+{
+#if YCL_DS
+	const auto res(::closedir(dir));
+#else
+	const auto res(::_wclosedir(dir));
+#endif
+
+	YAssert(res == 0, "No valid directory found.");
+
+	static_cast<void>(res);
+}
+
+void
+DirectorySession::Rewind() ynothrow
+{
+	YAssert(dir, "Invalid native handle found.");
+
+#if YCL_DS
+	::rewinddir(dir);
+#else
+	::_wrewinddir(dir);
+#endif
+}
+
+
+const char*
+HDirectory::operator*() const ynothrow
+{
+	if(p_dirent)
 	{
 #if YCL_DS
-		if(!(p_dirent = ::readdir(dir)))
+		return p_dirent->d_name;
 #else
-		if(!(p_dirent = ::_wreaddir(dir)))
+		try
+		{
+			utf8_name = u16_to_u(reinterpret_cast<const char16_t*>(
+				p_dirent->d_name));
+			return &utf8_name[0];
+		}
+		catch(...)
+		{}
 #endif
-			LastError = 2;
 	}
-	else
-		LastError = 1;
+	return ".";
+}
+
+HDirectory&
+HDirectory::operator++()
+{
+#if YCL_DS
+	p_dirent = ::readdir(GetNativeHandle());
+#else
+	p_dirent = ::_wreaddir(GetNativeHandle());
+#endif
 	return *this;
 }
 
 bool
-HFileNode::IsDirectory() const ynothrow
+HDirectory::IsDirectory() const ynothrow
 {
 	if(p_dirent)
 	{
@@ -386,68 +405,6 @@ HFileNode::IsDirectory() const ynothrow
 #endif
 	}
 	return false;
-}
-
-const char*
-HFileNode::GetName() const ynothrow
-{
-	if(p_dirent)
-	{
-#if YCL_DS
-		return p_dirent->d_name;
-#else
-		try
-		{
-			utf8_name = u16_to_u(reinterpret_cast<const char16_t*>(
-				p_dirent->d_name));
-			return utf8_name.data();
-		}
-		catch(...)
-		{}
-#endif
-	}
-	return ".";
-}
-
-void
-HFileNode::Open(const_path_t path) ynothrow
-{
-	if(path)
-	{
-#if YCL_DS
-		dir = ::opendir(path);
-#else
-		try
-		{
-			dir = ::_wopendir(u_to_w(path).c_str());
-		}
-		catch(...)
-		{}
-#endif
-	}
-	else
-		dir = nullptr;
-}
-
-void
-HFileNode::Close() ynothrow
-{
-#if YCL_DS
-	LastError = *this ? ::closedir(dir) : 1;
-#else
-	LastError = *this ? ::_wclosedir(dir) : 1;
-#endif
-	dir = nullptr;
-}
-
-void
-HFileNode::Reset() ynothrow
-{
-#if YCL_DS
-	::rewinddir(dir);
-#else
-	::_wrewinddir(dir);
-#endif
 }
 
 

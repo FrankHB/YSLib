@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1729
+\version r1745
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-06-01 12:14 +0800
+	2013-06-04 14:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,9 +93,9 @@ LoadComponents(const ValueNode& node)
 	puts("CHRMapEx loaded successfully.");
 #endif
 	std::printf("Trying entering directory %s ...\n", data_dir.c_str());
-	if(!udirexists(data_dir))
+	if(!IO::VerifyDirectory(data_dir))
 		throw LoggedEvent("Invalid default data directory found.");
-	if(!(ufexists(font_path) || udirexists(font_dir)))
+	if(!(ufexists(font_path) || IO::VerifyDirectory(font_dir)))
 		throw LoggedEvent("Invalid default font file path found.");
 }
 
@@ -263,17 +263,25 @@ InitializeSystemFontCache(FontCache& fc,
 
 		if(!font_dir.empty())
 			//读取字体文件目录并载入目录下指定后缀名的字体文件。
-			if(HFileNode dir{font_dir.c_str()})
-				while((++dir).LastError == 0)
-					if(std::strcmp(dir.GetName(), FS_Now) != 0
-						&& !dir.IsDirectory()
-						/*&& IsExtensionOf(ext, dir.GetName())*/)
+			try
+			{
+				HDirectory dir{font_dir.c_str()};
+				IO::PathNorm nm;
+
+				std::for_each(FileIterator(dir), FileIterator(),
+					[&](const char* name){
+					if(!nm.is_self(name) && !dir.IsDirectory()
+						/*&& IsExtensionOf(ext, *dir)*/)
 					{
-						FontPath path(font_dir + dir.GetName());
+						FontPath path(font_dir + *dir);
 
 						if(path != fong_file)
 							nFileLoaded += fc.LoadTypefaces(path) != 0;
 					}
+				});
+			}
+			catch(FileOperationFailure&)
+			{}
 		fc.InitializeDefaultTypeface();
 		if(const auto nFaces = fc.GetFaces().size())
 			std::printf("%u face(s) in %u font file(s)"

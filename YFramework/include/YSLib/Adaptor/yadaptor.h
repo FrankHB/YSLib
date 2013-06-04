@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1474
+\version r1487
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2013-05-06 13:53 +0800
+	2013-06-04 14:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,16 +156,11 @@ using ystdex::wint_t;
 
 /*!
 \brief 文件系统例程。
-\since build 171
+\since build 299
 */
 //@{
-//! \since build 299
 using platform::ufopen;
-//! \since build 299
 using platform::ufexists;
-using platform::direxists;
-//! \since build 312
-using platform::udirexists;
 //! \since build 304
 using platform::u16getcwd_n;
 //! \since build 313
@@ -223,7 +218,13 @@ using platform::CS_Path;
 using platform::const_path_t;
 using platform::path_t;
 
-using platform::HFileNode;
+//! \since build 411
+//@{
+using platform::FileOperationFailure;
+using platform::DirectorySession;
+using platform::HDirectory;
+using platform::FileIterator;
+//@}
 using platform::IsAbsolute;
 using platform::GetRootNameLength;
 

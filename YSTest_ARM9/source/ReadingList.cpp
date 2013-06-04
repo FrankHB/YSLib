@@ -11,13 +11,13 @@
 /*!	\file ReadingList.cpp
 \ingroup YReader
 \brief 阅读列表。
-\version r138
+\version r139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:27 +0800
 \par 修改时间:
-	2013-05-12 11:25 +0800
+	2013-06-03 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@ YSL_BEGIN_NAMESPACE(YReader)
 
 Bookmark::operator ValueNode::Container() const
 {
-	return {MakeNode("Path", Path.GetNativeString()),
+	return {MakeNode("Path", string(Path)),
 		StringifyToNode("Position", Position)};
 }
 

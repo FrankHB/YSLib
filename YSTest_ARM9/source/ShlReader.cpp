@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4319
+\version r4322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-05-17 03:27 +0800
+	2013-06-03 21:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -346,7 +346,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	CurrentSetting.GetTimerSetting()), tmrScrollActive(false), tmrInput(),
 	reader(), boxReader({0, 160, 256, 32}), boxTextInfo(), pnlSetting(),
 	pTextFile(), mhMain(GetDesktopDown()),
-	pnlBookmark(LoadBookmarks(pth.GetNativeString()), *this), session_ptr()
+	pnlBookmark(LoadBookmarks(pth), *this), session_ptr()
 {
 	using ystdex::get_key;
 
@@ -476,7 +476,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 
 ShlTextReader::~ShlTextReader()
 {
-	SaveBookmarks(CurrentPath.GetNativeString(), pnlBookmark.bookmarks),
+	SaveBookmarks(CurrentPath, pnlBookmark.bookmarks),
 	SaveGlobalConfiguration(CurrentSetting);
 	LastRead.Insert(CurrentPath, GetReaderPosition());
 }
@@ -524,7 +524,7 @@ void
 ShlTextReader::LoadFile(const IO::Path& pth)
 {
 	CurrentPath = pth;
-	pTextFile = make_unique<TextFile>(pth.GetNativeString().c_str(),
+	pTextFile = make_unique<TextFile>(string(pth).c_str(),
 		std::ios_base::in | std::ios_base::binary, CharSet::Null);
 	reader.LoadText(*pTextFile);
 
@@ -764,7 +764,7 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
-	const auto& path_str(pth.GetNativeString());
+	const string& path_str(pth);
 
 	pnlFileInfo.lblPath.Text = u"文件路径：" + String(pth);
 

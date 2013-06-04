@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1303
+\version r1313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-05-30 08:31 +0800
+	2013-06-02 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -338,9 +338,18 @@ YSL_END_NAMESPACE(EventMapping)
 typedef EventMapping::MapType VisualEventMap;
 
 
-//! \brief 错误或不存在的部件事件异常。
-struct YF_API BadEvent
-{};
+/*!
+\brief 错误或不存在的部件事件异常。
+\since build 241
+*/
+class YF_API BadEvent : LoggedEvent
+{
+public:
+	//! \since build 411
+	BadEvent(const std::string& msg = "")
+		: LoggedEvent(msg)
+	{}
+};
 
 
 /*!

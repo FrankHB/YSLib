@@ -10,14 +10,14 @@
 
 /*!	\file yfilesys.h
 \ingroup Core
-\brief 平台无关的文件系统抽象。
-\version r2006
+\brief 平台中立的文件系统抽象。
+\version r2048
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-06-02 05:12 +0800
+	2013-06-04 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,24 +66,8 @@ YSL_BEGIN_NAMESPACE(IO)
 //! \since build 409
 typedef ystdex::path<vector<String>> ypath;
 
-/*!
-\brief 文件系统常量：前缀 FS 表示文件系统 (File System) 。
-\since build 285
-*/
-//@{
-yconstexpr const_path_t FS_Root(YCL_PATH_ROOT);
-//! \since build 402
-yconstexpr const_path_t FS_Separator(YCL_PATH_SEPARATOR);
-yconstexpr const_path_t FS_Now(".");
-yconstexpr const_path_t FS_Parent("..");
-//@}
-
-
-/*!
-\brief 本机字符串。
-\since build 285
-*/
-typedef GSStringTemplate<NativePathCharType>::basic_string NativeString;
+//! \since build 411
+typedef ystdex::file_path_norm<String> PathNorm;
 
 
 /*!
@@ -162,7 +146,18 @@ public:
 	\since build 409
 	*/
 	operator String() const;
+	/*!
+	\brief 转换为窄字符串。
+	\since build 411
+	*/
+	DefCvt(const, string, GetMBCS(CS_Path))
 
+	/*!
+	\brief 取指定编码的多字节字符串。
+	\since build 411
+	*/
+	PDefH(string, GetMBCS, Text::Encoding enc = CS_Path) const
+		ImplRet(String(*this).GetMBCS(enc))
 	/*!
 	\brief 取字符串表示。
 	\post 断言：结果为空或以分隔符结尾。
@@ -170,8 +165,6 @@ public:
 	*/
 	String
 	GetString() const;
-	DefGetter(const ynothrow, NativeString, NativeString,
-		String(*this).GetMBCS(CS_Path)) //!< 取本地格式和编码的字符串。
 
 	/*!
 	\brief 正规化：去除自指和父节点的路径成员。
@@ -327,8 +320,8 @@ inline PDefH(bool, IsRelative, const Path& pth)
 
 //! \brief 验证路径表示的目录是否存在。
 //@{
-inline PDefH(bool, VerifyDirectory, const char* path)
-	ImplRet(udirexists(path))
+YF_API bool
+VerifyDirectory(const char*);
 inline PDefH(bool, VerifyDirectory, const string& path)
 	ImplRet(VerifyDirectory(path.c_str()))
 inline PDefH(bool, VerifyDirectory, const String& path)
@@ -360,9 +353,12 @@ enum class NodeCategory
 	Normal
 };
 
-//! \brief 按路径类别对路径成员分类。
+/*!
+\brief 按路径类别对路径成员分类。
+\since build 411
+*/
 YF_API PathCategory
-ClassifyPath(const String&, ypath::norm&& = ystdex::file_path_norm<String>());
+ClassifyPath(const String&, ypath::norm&& = PathNorm());
 
 //! \brief 按文件系统节点类别对路径分类。
 YF_API NodeCategory
@@ -434,8 +430,10 @@ public:
 
 	/*!
 	\brief 遍历目录中的项目，更新至列表。
+	\pre 断言：列表指针非空。
+	\since build 411
 	*/
-	ListType::size_type
+	void
 	ListItems();
 };
 

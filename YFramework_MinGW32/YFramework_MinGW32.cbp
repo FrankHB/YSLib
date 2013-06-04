@@ -16,7 +16,6 @@
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-Og" />
 					<Add option="-D_GLIBCXX_DEBUG" />
 				</Compiler>
 			</Target>
@@ -45,7 +44,6 @@
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-Og" />
 					<Add option="-D_GLIBCXX_DEBUG" />
 					<Add option="-DYB_DLL" />
 					<Add option="-DYF_BUILD_DLL" />

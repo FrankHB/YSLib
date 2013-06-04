@@ -17,7 +17,7 @@
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-05-30 08:29 +0800
+	2013-06-02 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -144,7 +144,7 @@ public:
 
 	//! \since build 409
 	YB_NORETURN PDefH(HostRenderer*, clone, ) const override
-		ImplExpr(throw LoggedEvent("HostRenderer::clone: Not implemented."));
+		ImplExpr(throw LoggedEvent("%HostRenderer::clone: Not implemented."));
 //	DefClone(const override, HostRenderer)
 
 	//! \since build 386

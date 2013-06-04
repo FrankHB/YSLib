@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r594
+\version r654
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-02 05:37 +0800
+	2013-06-04 14:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,66 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ $dev $build @ "platform %MinGW32" $=
+	(
+		^ DLP "MinGW[gcc version 4.8.1 (Built by MinGW-builds project)] \
+			x32-4.8.1-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.8.0 \
+			(Built by MinGW-builds project)] x32-4.8.0-release-posix-sjlj-rev0 \
+			[release-sjlj]" @ "platform %MinGW32",
+				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+					Exceptions implementation: SjLj.
+		/ $dev $build "compiler flag" "'-Og'" -> '-O' @ "debug configurations"
+			// $revert(b392) Code::Blocks can't debugging with \
+				'-Og' well.
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YCLib'.'FileSystem' $=
+		(
+			- "(functions, function templates) %(udirexists, direxists)",
+			/ "class %YF_API %HFileNode" -> "classes %YF_API \
+				%(FileOperationFailure, DirectorySession, HDirectory, \
+				FileIterator)"
+		)
+		/ %'YSLib' $=
+		(
+			/ %'UI' $=
+			(
+				* $dev $doc "exception name" @ %'UI'.'YControl' $since b241,
+				/ "empty struct %BadEvent"
+					-> "class %BadEvent : public LoggedEvent" @ %'YWidgetEvent'
+			),
+			/ $dev %'Adaptor'.'YAdaptor' $=
+			(
+				$dep_from %'YCLib'.'FileSystem';
+				+ "using %platform::(FileOperationFailure, DirectorySession, \
+					HDirectory, FileIterator)" @ "namespace %IO"
+			);
+			/ @ "namespace %IO" @ %'Core'.'YFileSystem' $=
+			(
+				/ @ \cl Path $=
+				(
+					/ "member function %GetNativeString" -> "%GetMBCS";
+					+ "conversion function operator %string"
+				);
+				- "typedef name %NativeString",
+				+ "typedef name %PathNorm",
+				/ @ "class %FileList" $=
+				(
+					/ "supported empty path as '.'",
+					/ "discarded returning type" @ "member function %ListItems"
+						// Now no counting and reserving list items, and the \
+							original would be kept on exception thrown.
+				),
+				- "all namespace scope yconstexpr constants \
+					%(FS_Now, FS_Parent, FS_Separator, FS_Root)",
+			)
+		)
+	)
+),
+
+b410
 (
 	* "wrong implementation" @ "member functions %(filter_self, merge_parents)
 		@ "class template %path" @ %'YBase'.'YStandardEx'.'Path' $since b409;
@@ -54,7 +114,7 @@ $now
 			+ "functions %(GetExtensionOf, 4 VerifyDirectory, \
 				3 IsAbsolute, 4 IsRelative),
 				// Another overloaded %IsAbsolute is from namespace %platform;
-			- "functions 2 %YF_API %ValidateDirectory";
+			- "functions 2 %YF_API %ValidatePath";
 				// %VerifyDirectory should be used instead.
 			+ "member %operator/= for %String as directly subdirectory \
 				access" @ "class %FileList",
