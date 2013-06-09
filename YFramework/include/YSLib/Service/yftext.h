@@ -11,13 +11,13 @@
 /*!	\file yftext.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r774
+\version r776
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2013-05-12 11:24 +0800
+	2013-06-05 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,10 +67,10 @@ public:
 	/*!
 	\brief 构造：使用指定文件名、编码和模式初始化文本文件对象。
 	\note 当打开文件大小为零且以可写方式打开时按编码写入 BOM 。
-	\since build 341
+	\since build 412
 	*/
 	explicit
-	TextFile(IO::const_path_t, std::ios_base::openmode = std::ios_base::in,
+	TextFile(const char*, std::ios_base::openmode = std::ios_base::in,
 		Text::Encoding = Text::CS_Default);
 	/*!
 	\brief 构造：使用指定文件名初始化只读文本文件对象。

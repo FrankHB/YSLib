@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3640
+\version r3641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-05-12 07:10 +0800
+	2013-06-09 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2830,7 +2830,7 @@ b321
 	/ DLD "macro names" @ %'YBase'.'YStandardEx'.'Operators',
 	/ DLP "library using" @ "platform %DS"
 		$= (^ "updated devkitARM release 41" ~ "devkitARM release 40"),
-	/ DLP "all std=c++0x" -> "c++11" @ "platform %MinGW32"
+	/ DLP "all -std=c++0x" -> "-std=c++11" @ "platform %MinGW32"
 		@ "Code::Blocks project configuration";
 	/ %'YFramework' $=
 	(

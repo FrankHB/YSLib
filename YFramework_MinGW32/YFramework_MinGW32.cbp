@@ -363,6 +363,8 @@
 		<Unit filename="../YFramework/source/YSLib/UI/ywgtview.cpp" />
 		<Unit filename="../YFramework/source/YSLib/UI/ywidget.cpp" />
 		<Unit filename="../YFramework/source/YSLib/UI/ywindow.cpp" />
+		<Unit filename="include/YCLib/COM.h" />
+		<Unit filename="include/YCLib/MinGW32.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

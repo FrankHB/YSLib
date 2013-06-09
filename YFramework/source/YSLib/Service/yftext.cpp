@@ -11,13 +11,13 @@
 /*!	\file yftext.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r955
+\version r957
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2013-05-06 14:03 +0800
+	2013-06-05 18:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 YSL_BEGIN
 
 using namespace Text;
-using IO::const_path_t;
 
 namespace
 {
@@ -76,7 +75,7 @@ InitializeTextFile(TextFile& tf, size_t& bl)
 } // unnamed namespace;
 
 
-TextFile::TextFile(const_path_t filename, std::ios_base::openmode mode,
+TextFile::TextFile(const char* filename, std::ios_base::openmode mode,
 	Text::Encoding enc)
 	: File(filename, mode),
 	bl(0), Encoding(enc)

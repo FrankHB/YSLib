@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2784
+\version r2786
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-05-22 01:45 +0800
+	2013-05-22 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,7 +128,7 @@ BitmapBuffer::SetSize(const Size& s)
 	}
 	catch(std::bad_alloc&)
 	{
-		throw LoggedEvent("%BitmapBuffer allocation failed.", 1);
+		throw LoggedEvent("BitmapBuffer allocation failed.", 1);
 	}
 
 	YAssert(!((pBuffer != nullptr) ^ (area != 0)), "Buffer corruptied.");
@@ -194,7 +194,7 @@ BitmapBufferEx::SetSize(const Size& s)
 	}
 	catch(std::bad_alloc&)
 	{
-		throw LoggedEvent("%BitmapBufferEx allocation failed.", 1);
+		throw LoggedEvent("BitmapBufferEx allocation failed.", 1);
 	}
 
 	YAssert(!((pBuffer != nullptr) ^ (area != 0)), "Buffer corruptied.");

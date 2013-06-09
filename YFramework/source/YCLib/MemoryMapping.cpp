@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r126
+\version r128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2013-03-23 21:17 +0800
+	2013-06-05 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "YCLib/MemoryMapping.h"
+#include "YCLib/FileSystem.h" // for platform::uopen;
 #include <fcntl.h>
 #include <stdexcept> // for std::runtime_error;
 #if YCL_DS
@@ -72,7 +73,7 @@ map_file(size_t len, int fd)
 namespace platform
 {
 
-MappedFile::MappedFile(const_path_t path)
+MappedFile::MappedFile(const char* path)
 	: fd(uopen(path, O_RDONLY, S_IRUSR | S_IWUSR))
 {
 	::fstat(fd, &st);

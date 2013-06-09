@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r160
+\version r161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2013-05-05 16:58 +0800
+	2013-06-08 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YCL_INC_Keys_h_
 #define YCL_INC_Keys_h_ 1
 
-#include "YCLib/ycommon.h"
+#include "ycommon.h"
 #include <bitset>
 
 namespace platform

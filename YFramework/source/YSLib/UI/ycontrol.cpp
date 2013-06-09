@@ -11,17 +11,17 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3718
+\version r3720
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-03-19 18:44 +0800
+	2013-06-09 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::UI::YComponent
+	YSLib::UI::YControl
 */
 
 
@@ -30,7 +30,6 @@
 #include "YSLib/UI/yuicont.h"
 #include "YSLib/Core/ystorage.hpp"
 #include <ystdex/algorithm.hpp>
-#include "YSLib/UI/yrender.h"
 #include "YSLib/UI/YBrush.h"
 
 YSL_BEGIN

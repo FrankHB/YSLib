@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r654
+\version r743
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-04 14:33 +0800
+	2013-06-09 14:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,96 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YBase' $=
+	(
+		/ "disabled macro %YB_USE_EXCEPTION_SPECIFICATION unconditionally \
+			by default" @ %'YDefinition',
+		/ %'YStandardEx' $=
+		(
+			- "typedef names %(const_path_t, path_t)" @ %'CStandardIO',
+			(
+				+ %'Variadic';
+				/ "variadic meta types" @ %'TypeOperations' >> %'Variadic'
+			),
+			+ "struct %variadic_param; function template %varg" @ %'Functional',
+			/ %'Iterator' $=
+			(
+				/ @ "class template %transformed_iterator" $=
+				(
+					/ "transformer interface",
+						// Now producing value instead of iterator. Note it is \
+							still distinct with boost.iterator, whose \
+							%transform_iterator excepts a value but not \
+							iterator as input.
+					+ "2 member function %get_transformer"
+				),
+				+ "class template %indirect_input_iterator";
+			)
+		)
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YCLib'.'FileSystem' $=
+		(
+			/ @ "class %HDirectory" $=
+			(
+				+ "member function %GetName";
+				/ "%operator* now returning self reference to adapt to \
+					%indirect_input_iterator"
+			),
+			$dep_from %'Iterator';
+			/ "class %FileIterator" -> "typedef name of instantiated \
+				template %indirect_input_iterator",
+			/ $dev $lib "simplified header inclusion as \
+				%Documentation::ProjectRules"
+		),
+		+ %'YCLib_(MinGW32)' $=
+		(
+			+ "common header file";
+			+ "COM abstraction header file"
+		),
+		/ %'YSLib' $=
+		(
+			// All bugs below in this revision are checked by Clang++ 3.4 \
+				(trunk183609) diagnostics, which all accepted by G++ 4.8.1 \
+				silencely.
+			/ %'Core' $=
+			(
+				* $dev "strictly use of constexpr conforming to ISO C++11 for \
+					static data object %Invalid"
+					@ "class template %GBinaryObject" @ %'GDIBase' $since b311
+					// Resolved $known_issue_b351_1. Though C++1Y may loose \
+						the restrictions as allowing this invalid C++11 \
+						construct. See $ref b412 $note "N3652".
+				* $dev "wrong 'yconstfn'" @ "constructor %Message" @ %'YMessage'
+					$since b368,
+					// Though G++ accepts invalid code, it is conforming \
+						because "no diagnostics required" is explicitly stated \
+						by ISO C++11.
+				/ $dev %'YFileSystem' $=
+				(
+					+ "specified %u32 as underlying type"
+						@ "enum classes %(PathCategory, NodeCategory)";
+					* missing explicit cast when initializating members with \
+						enum class enumerators" @ "enum class %NodeCategory"
+						$since b410
+				),
+				* "wrong overloaded member leading to copy constructor cannot
+					be calleed" $since b207
+					// This also resolves the Clang++ bug, for private member \
+						with SFINAE is not enough. See $ref b412 $note \
+						"Clang++ bug 8448".
+			)
+			* $dev "invalid incompelete type %Renderer used"
+				@ "construct template %Widget" @ %'UI'.'YWidget' $since b293
+		)
+	)
+	+ DLD "'const' for 'yconstfn' functions and function templates to \
+		eliminate Clang++ [-Wno-constexpr-not-const]"
+),
+
+b411
 (
 	/ $dev $build @ "platform %MinGW32" $=
 	(

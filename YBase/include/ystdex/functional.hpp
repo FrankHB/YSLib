@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file utility.hpp
+/*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r478
+\version r526
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-03-02 06:28 +0800
+	2013-06-09 09:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "utility.hpp" // for ../ydef.h, ystdex::decay_forward,
-	// ystdex::variadic_sequence, ystdex::make_natural_sequence;
+#include "utility.hpp" // for ../ydef.h, ystdex::decay_forward;
+#include "variadic.hpp" // for ystdex::variadic_sequence,
+//	ystdex::make_natural_sequence;
 #include <functional>
 #include <tuple>
 #include <string> // for std::char_traits;
@@ -47,6 +48,55 @@ sizeof_params(_tParams&&...)
 {
 	return sizeof...(_tParams);
 }
+
+
+//! \since build 412
+//@{
+//! \brief 变长参数操作模板。
+//@{
+template<size_t _vN>
+struct variadic_param
+{
+	template<typename _type, typename... _tParams>
+	yconstfn static auto
+	get(_type&&, _tParams&&... args)
+		-> decltype(variadic_param<_vN - 1>::get(yforward(args)...))
+	{
+		static_assert(sizeof...(args) == _vN,
+			"Wrong variadic arguments number found.");
+
+		return variadic_param<_vN - 1>::get(yforward(args)...);
+	}
+};
+
+template<>
+struct variadic_param<0U>
+{
+	template<typename _type>
+	yconstfn static auto
+	get(_type&& arg) -> decltype(yforward(arg))
+	{
+		return yforward(arg);
+	}
+};
+//@}
+
+
+/*!
+\brief 取指定位置的变长参数。
+\tparam _vN 表示参数位置的非负数，从左开始计数，第一个参数为 0 。
+*/
+template<size_t _vN, typename... _tParams>
+yconstexpr auto
+varg(_tParams&&... args)
+	-> decltype(variadic_param<_vN>::get(yforward(args)...))
+{
+	static_assert(_vN < sizeof...(args),
+		"Out-of-range index of variadic argument found.");
+
+	return variadic_param<_vN>::get(yforward(args)...);
+}
+//@}
 
 
 /*!
@@ -318,7 +368,7 @@ template<bool, typename _tScalar1, typename _tScalar2>
 struct delta_assignment
 {
 	yconstfn _tScalar1&
-	operator()(_tScalar1& x, _tScalar2 y)
+	operator()(_tScalar1& x, _tScalar2 y) const
 	{
 		return x += y;
 	}
@@ -327,7 +377,7 @@ template<typename _tScalar1, typename _tScalar2>
 struct delta_assignment<false, _tScalar1, _tScalar2>
 {
 	yconstfn _tScalar1&
-	operator()(_tScalar1& x, _tScalar2 y)
+	operator()(_tScalar1& x, _tScalar2 y) const
 	{
 		return x -= y;
 	}

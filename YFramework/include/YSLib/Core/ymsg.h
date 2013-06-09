@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1821
+\version r1822
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2013-05-30 08:26 +0800
+	2013-06-09 09:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,6 @@ public:
 	\brief 构造：使用消息标识和空消息内容。
 	\since build 368
 	*/
-	yconstfn
 	Message(ID msg_id = 0)
 		: id(msg_id)
 	{}

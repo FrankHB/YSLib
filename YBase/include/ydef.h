@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2274
+\version r2275
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-05-31 12:26 +0800
+	2013-06-05 18:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -329,7 +329,7 @@
 \brief 使用 YBase 动态异常规范。
 \since build 362
 */
-#ifndef NDEBUG
+#if 0 && !defined(NDEBUG)
 #	define YB_USE_EXCEPTION_SPECIFICATION 1
 #endif
 

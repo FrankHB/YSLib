@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4325
+\version r4334
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-05-30 08:28 +0800
+	2013-06-09 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,20 +241,17 @@ public:
 	\brief 转移构造：默认实现。
 	*/
 	yconstfn DefDeMoveCtor(GEvent)
-
-private:
 	/*!
-	\brief \c private 构造：添加事件处理器。
-	\since build 293
+	\brief 构造：添加事件处理器。
+	\since build 412
 	*/
-	template<typename _tHandler>
+	template<typename _tHandler, typename = typename
+		std::enable_if<!std::is_same<_tHandler&, GEvent&>::value, int>::type>
 	GEvent(_tHandler&& h)
 		: List()
 	{
 		Add(yforward(h));
 	}
-
-public:
 	/*!
 	\brief 复制赋值：默认实现。
 	*/
@@ -684,9 +681,8 @@ public:
 		return EventType::operator()(EventArgsType(yforward(e)));
 	}
 
-	inline ImplI(GIHEvent<_tBaseArgs>)
-
 	//! \since build 409
+	inline ImplI(GIHEvent<_tBaseArgs>)
 	DefClone(const override, GEventWrapper)
 };
 
@@ -737,7 +733,7 @@ public:
 	DefDeMoveCtor(GEventPointerWrapper)
 
 	yconstfn DefCvt(const ynothrow, const ItemType&, *ptr)
-	yconstfn DefCvt(ynothrow, ItemType&, *ptr)
+	yconstfn DefCvt(const ynothrow, ItemType&, *ptr)
 };
 
 

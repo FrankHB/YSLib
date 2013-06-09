@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r865
+\version r977
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-06-04 13:51 +0800
+	2013-06-08 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,14 @@
 #ifndef YCL_INC_FileSystem_h_
 #define YCL_INC_FileSystem_h_ 1
 
-#include "YCLib/ycommon.h"
+#include "ycommon.h"
 #include <ystdex/utility.hpp> // for std::is_array, std::is_integral,
 //	std::remove_reference, ystdex::arrlen;
 #include <ystdex/cstring.h> // for ystdex::is_null;
-#include <ystdex/string.hpp> // for ystdex::string_length;
+#include <ystdex/string.hpp> // for ystdex::string_length, std::string;
 #include <CHRLib/encoding.h>
 #include <dirent.h>
+#include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 
 namespace platform
 {
@@ -136,7 +137,6 @@ yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 /*!
 \brief 本机路径字符类型。
 \since build 296
-\todo 解决 const_path_t 冲突。
 */
 //	typedef wchar_t NativePathCharType;
 typedef char NativePathCharType;
@@ -181,10 +181,6 @@ typedef NativePathCharType PATHSTR[YCL_MAX_PATH_LENGTH];
 \since build 286
 */
 typedef NativePathCharType FILENAMESTR[YCL_MAX_FILENAME_LENGTH];
-
-// using ystdex;
-using ystdex::const_path_t;
-using ystdex::path_t;
 
 
 /*!
@@ -300,17 +296,17 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 /*!
 \brief 切换当前工作路径至指定的 UTF-8 字符串。
 \bug MinGW32 环境下非线程安全。
-\since build 324
+\since build 412
 */
 YF_API int
-uchdir(const_path_t) ynothrow;
+uchdir(const char*) ynothrow;
 
 /*!
 \brief 按路径新建一个或多个目录。
-\since build 324
+\since build 412
 */
 YF_API bool
-mkdirs(const_path_t) ynothrow;
+mkdirs(const char*) ynothrow;
 
 /*!
 \brief 截断文件至指定长度。
@@ -389,6 +385,7 @@ public:
 */
 class YF_API HDirectory final : private DirectorySession
 {
+private:
 #if YCL_DS
 	/*!
 	\brief 节点信息。
@@ -417,12 +414,20 @@ public:
 	{}
 
 	/*!
-	\brief 间接操作：取节点名称。
-	\return 非空结果：子节点不可用时为 "." ，否则为子节点名称。
-	\note 返回的结果在析构和下一次迭代前保持有效。
+	\brief 间接操作：取自身引用。
+	\note 使用 ystdex::indirect_input_iterator 和转换函数访问。
+	\since build 412
 	*/
-	const char*
-	operator*() const ynothrow;
+	HDirectory&
+	operator*() ynothrow
+	{
+		return *this;
+	}
+	const HDirectory&
+	operator*() const ynothrow
+	{
+		return *this;
+	}
 
 	/*!
 	\brief 迭代：向后遍历。
@@ -443,6 +448,21 @@ public:
 		return p_dirent;
 	}
 
+	//! \since build 412
+	operator std::string() const
+	{
+		return GetName();
+	}
+
+	/*!
+	\brief 间接操作：取节点名称。
+	\return 非空结果：子节点不可用时为 "." ，否则为子节点名称。
+	\note 返回的结果在析构和下一次迭代前保持有效。
+	\since build 412
+	*/
+	const char*
+	GetName() const ynothrow;
+
 	/*!
 	\brief 从节点状态信息判断是否为目录。
 	\since build 319
@@ -459,98 +479,22 @@ public:
 \brief 文件迭代器。
 \since build 411
 */
-class YF_API FileIterator : public std::iterator<std::input_iterator_tag,
-	const char*, ptrdiff_t>
-{
-private:
-	HDirectory* p_handle;
-
-public:
-	//! \brief 默认构造：空迭代器。
-	FileIterator()
-		: p_handle()
-	{}
-	//! \brief 构造：使用目录句柄并进行一次迭代。
-	FileIterator(HDirectory& dir)
-		: p_handle(&++dir)
-	{}
-	FileIterator(const FileIterator&) = default;
-	FileIterator(FileIterator&& i) ynothrow
-		: p_handle(i.p_handle)
-	{
-		i.p_handle = nullptr;
-	}
-
-	FileIterator&
-	operator=(const FileIterator&) = default;
-	FileIterator&
-	operator=(FileIterator&&) = default;
-
-	operator bool() const ynothrow
-	{
-		return p_handle && bool(*p_handle);
-	}
-
-	/*!
-	\brief 间接操作：取节点名称。
-	\pre 断言：<tt>*this</tt> 。
-	*/
-	const char*
-	operator*() const ynothrow
-	{
-		yconstraint(p_handle);
-
-		return **p_handle;
-	}
-
-	/*!
-	\brief 迭代：向后遍历。
-	\pre 断言：<tt>*this</tt> 。
-	*/
-	FileIterator&	
-	operator++()
-	{
-		yconstraint(p_handle);
-
-		++*p_handle;
-		return *this;
-	}
-	FileIterator
-	operator++(int)
-	{
-		const auto i(*this);
-
-		++*this;
-		return i;
-	}
-
-	friend bool
-	operator==(const FileIterator& x, const FileIterator& y)
-	{
-		return (!bool(x) && !bool(y)) || x.p_handle == y.p_handle;
-	}
-};
-
-//! \since build 411
-inline bool
-operator!=(const FileIterator& x, const FileIterator& y)
-{
-	return !(x == y);
-}
+typedef ystdex::indirect_input_iterator<HDirectory*> FileIterator;
 
 
 /*!
 \brief 判断指定路径字符串是否表示一个绝对路径。
-\since build 152
+\since build 412
 */
 YF_API bool
-IsAbsolute(const_path_t);
+IsAbsolute(const char*);
 
 /*!
 \brief 取指定路径的文件系统根节点名称的长度。
+\since build 412
 */
 YF_API std::size_t
-GetRootNameLength(const_path_t);
+GetRootNameLength(const char*);
 
 } // namespace platform;
 

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1745
+\version r1753
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-06-04 14:24 +0800
+	2013-06-08 13:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,14 +56,14 @@ platform::MappedFile* p_mapped;
 #	define ROOTW
 #	define DATA_DIRECTORY ROOTW "/Data/"
 	//const char* DEF_FONT_NAME = ROOTW "方正姚体";
-	//const_path_t DEF_FONT_PATH = ROOTW "/Font/FZYTK.TTF";
+	//const char* DEF_FONT_PATH = ROOTW "/Font/FZYTK.TTF";
 #	define DEF_FONT_PATH ROOTW "/Font/FZYTK.TTF"
 #	define DEF_FONT_DIRECTORY ROOTW "/Font/"
 #else
 #	define ROOTW "H:\\NDS\\EFSRoot"
 #	define DATA_DIRECTORY ROOTW "\\Data\\"
 	//const char* DEF_FONT_NAME = "方正姚体";
-	//const_path_t DEF_FONT_PATH = ROOTW "\\Font\\FZYTK.TTF";
+	//const char* DEF_FONT_PATH = ROOTW "\\Font\\FZYTK.TTF";
 #	define DEF_FONT_PATH ROOTW "\\Font\\FZYTK.TTF"
 #	define DEF_FONT_DIRECTORY ROOTW "\\Font\\"
 #endif
@@ -253,8 +253,8 @@ InitializeInstalled()
 }
 
 void
-InitializeSystemFontCache(FontCache& fc,
-	const string& fong_file, const string& font_dir)
+InitializeSystemFontCache(FontCache& fc, const string& fong_file,
+	const string& font_dir)
 {
 	puts("Loading font files...");
 	try
@@ -268,12 +268,12 @@ InitializeSystemFontCache(FontCache& fc,
 				HDirectory dir{font_dir.c_str()};
 				IO::PathNorm nm;
 
-				std::for_each(FileIterator(dir), FileIterator(),
-					[&](const char* name){
+				std::for_each(FileIterator(&dir), FileIterator(),
+					[&](const std::string& name){
 					if(!nm.is_self(name) && !dir.IsDirectory()
-						/*&& IsExtensionOf(ext, *dir)*/)
+						/*&& IsExtensionOf(ext, dir.GetName())*/)
 					{
-						FontPath path(font_dir + *dir);
+						FontPath path(font_dir + dir.GetName());
 
 						if(path != fong_file)
 							nFileLoaded += fc.LoadTypefaces(path) != 0;

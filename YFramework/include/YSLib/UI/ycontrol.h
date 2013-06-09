@@ -11,17 +11,17 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4625
+\version r4626
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-06-02 13:46 +0800
+	2013-06-09 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::UI::YComponent
+	YSLib::UI::YControl
 */
 
 

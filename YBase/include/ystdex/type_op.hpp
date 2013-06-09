@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r871
+\version r911
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-05-24 09:31 +0800
+	2013-06-06 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -697,53 +697,6 @@ typedef n_tag<0> first_tag;
 \brief 第二分量标记。
 */
 typedef n_tag<1> second_tag;
-
-/*!
-\ingroup meta_types
-\brief 变量参数标记。
-\since build 303
-*/
-template<size_t... _vSeq>
-struct variadic_sequence
-{};
-//@}
-
-
-/*!
-\ingroup meta_operations
-\brief 取自然数变量标记后继。
-\since build 303
-*/
-//@{
-template<class>
-struct make_successor;
-
-template<size_t... _vSeq>
-struct make_successor<variadic_sequence<_vSeq...>>
-{
-	typedef variadic_sequence<_vSeq..., sizeof...(_vSeq)> type;
-};
-//@}
-
-
-/*!
-\ingroup meta_operations
-\brief 取自然数变量标记序列。
-\since build 303
-*/
-//@{
-template<size_t _vN>
-struct make_natural_sequence
-{
-	typedef typename make_successor<typename
-		make_natural_sequence<_vN - 1>::type>::type type;
-};
-
-template<>
-struct make_natural_sequence<0>
-{
-	typedef variadic_sequence<> type;
-};
 //@}
 
 } // namespace ystdex;

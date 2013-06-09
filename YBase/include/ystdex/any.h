@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1289
+\version r1291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-05-25 06:37 +0800
+	2013-06-09 09:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,8 @@ public:
 	{}
 
 	template<typename _type>
-	yconstfn YB_PURE operator _type&()
+	yconstfn YB_PURE
+	operator _type&() const
 	{
 		return *static_cast<_type*>(&*this);
 	}

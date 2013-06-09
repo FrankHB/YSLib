@@ -73,6 +73,7 @@
 		<Unit filename="include/ystdex/string.hpp" />
 		<Unit filename="include/ystdex/type_op.hpp" />
 		<Unit filename="include/ystdex/utility.hpp" />
+		<Unit filename="include/ystdex/variadic.hpp" />
 		<Unit filename="include/ytest/timing.hpp" />
 		<Unit filename="source/ystdex/any.cpp" />
 		<Unit filename="source/ystdex/cstdio.cpp" />

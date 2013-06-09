@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r972
+\version r998
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-06-03 16:03 +0800
+	2013-06-08 13:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -277,7 +277,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 }
 
 int
-uchdir(const_path_t path) ynothrow
+uchdir(const char* path) ynothrow
 {
 #if YCL_DS
 	return ::chdir(path);
@@ -293,7 +293,7 @@ uchdir(const_path_t path) ynothrow
 }
 
 bool
-mkdirs(const_path_t cpath) ynothrow
+mkdirs(const char* cpath) ynothrow
 {
 	PATHSTR path;
 
@@ -320,7 +320,7 @@ truncate(std::FILE* fp, std::size_t size) ynothrow
 }
 
 
-DirectorySession::DirectorySession(const_path_t path)
+DirectorySession::DirectorySession(const char* path)
 	: dir(
 #if YCL_DS
 		::opendir(path && *path != '\0' ? path : ".")
@@ -358,27 +358,6 @@ DirectorySession::Rewind() ynothrow
 }
 
 
-const char*
-HDirectory::operator*() const ynothrow
-{
-	if(p_dirent)
-	{
-#if YCL_DS
-		return p_dirent->d_name;
-#else
-		try
-		{
-			utf8_name = u16_to_u(reinterpret_cast<const char16_t*>(
-				p_dirent->d_name));
-			return &utf8_name[0];
-		}
-		catch(...)
-		{}
-#endif
-	}
-	return ".";
-}
-
 HDirectory&
 HDirectory::operator++()
 {
@@ -407,9 +386,30 @@ HDirectory::IsDirectory() const ynothrow
 	return false;
 }
 
+const char*
+HDirectory::GetName() const ynothrow
+{
+	if(p_dirent)
+	{
+#if YCL_DS
+		return p_dirent->d_name;
+#else
+		try
+		{
+			utf8_name = u16_to_u(reinterpret_cast<const char16_t*>(
+				p_dirent->d_name));
+			return &utf8_name[0];
+		}
+		catch(...)
+		{}
+#endif
+	}
+	return ".";
+}
+
 
 bool
-IsAbsolute(const_path_t path)
+IsAbsolute(const char* path)
 {
 #if YCL_DS
 	if(path)
@@ -430,7 +430,7 @@ IsAbsolute(const_path_t path)
 }
 
 std::size_t
-GetRootNameLength(const_path_t path)
+GetRootNameLength(const char* path)
 {
 	const char* p(std::strchr(path, ':'));
 

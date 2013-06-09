@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5451
+\version r5453
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-05-22 10:27 +0800
+	2013-06-09 11:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,10 @@
 #define YSL_INC_UI_ywidget_h_ 1
 
 #include "ycomp.h"
+#include <ystdex/any_iterator.hpp> // for ystdex::any_input_iterator;
 #include "yfocus.h"
 #include "ywgtview.h"
-#include <ystdex/any_iterator.hpp> // for ystdex::any_input_iterator;
+#include "yrender.h"
 
 YSL_BEGIN
 

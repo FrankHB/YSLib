@@ -109,6 +109,7 @@
 			<Add option="-flto=jobserver" />
 			<Add option="-mthreads" />
 			<Add directory="../YSTest_ARM9/include" />
+			<Add directory="../YFramework_MinGW32/include" />
 			<Add directory="../YFramework/include" />
 			<Add directory="../YBase/include" />
 			<Add directory="../3rdparty/include" />

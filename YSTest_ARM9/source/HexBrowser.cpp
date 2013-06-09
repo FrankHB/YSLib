@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r538
+\version r540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2013-05-06 14:14 +0800
+	2013-06-05 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@ YSL_BEGIN
 
 using namespace Drawing;
 using namespace Text;
-using IO::const_path_t;
 
 YSL_BEGIN_NAMESPACE(UI)
 
@@ -82,7 +81,7 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 }
 
 void
-HexViewArea::Load(const_path_t path)
+HexViewArea::Load(const char* path)
 {
 	Reset();
 	model = make_unique<File>(path);

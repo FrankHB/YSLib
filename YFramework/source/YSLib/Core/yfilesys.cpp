@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r1804
+\version r1808
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2013-06-04 14:24 +0800
+	2013-06-08 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,7 +169,7 @@ ClassifyNode(const Path& pth)
 }
 
 
-FileList::FileList(const_path_t path)
+FileList::FileList(const char* path)
 	: Directory((path && *path) ? path : ""), hList(new ListType())
 {}
 FileList::FileList(const string& path)
@@ -214,11 +214,11 @@ FileList::ListItems()
 		PathNorm nm;
 		ListType lst;
 
-		std::for_each(FileIterator(dir), FileIterator(),
-			[&](const char* name){
+		std::for_each(FileIterator(&dir), FileIterator(),
+			[&](const std::string& name){
 			if(YB_LIKELY(!nm.is_self(name)))
 				lst.push_back(String(!nm.is_parent(name) && dir.IsDirectory()
-					? string(name) + YCL_PATH_DELIMITER : name, CS_Path));
+					? name + YCL_PATH_DELIMITER : name, CS_Path));
 		});
 		hList->swap(lst);
 		// TODO: Platform-dependent name converting.

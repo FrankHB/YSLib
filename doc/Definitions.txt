@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12049
+\version r12053
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-06-04 14:25 +0800
+	2013-06-05 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -792,8 +792,6 @@ using std::result_of;
 $header "ycommon.h"
 {
 	// using ystdex;
-	using ystdex::const_path_t;
-	using ystdex::path_t;
 } //$header "ycommon.h";
 
 
@@ -894,8 +892,6 @@ namespace IO
 //文件系统抽象。
 using platform::NativePathCharType;
 using platform::CS_Path;
-using platform::const_path_t;
-using platform::path_t;
 
 //! \since build 411
 //@{

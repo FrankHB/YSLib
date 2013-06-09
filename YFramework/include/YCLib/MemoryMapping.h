@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r98
+\version r103
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2012-12-11 20:59 +0800
+	2013-06-08 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YCL_INC_MemoryMapping_h_
 #define YCL_INC_MemoryMapping_h_ 1
 
-#include "YCLib/ycommon.h"
-#include "YCLib/FileSystem.h" // for const_path_t;
+#include "ycommon.h"
+#include "NativeAPI.h" // for struct ::stat;
 
 namespace platform
 {
@@ -48,8 +48,9 @@ private:
 public:
 	//! \throw std::runtime_error 映射失败。
 	//@{
+	//! \since build 412
 	explicit
-	MappedFile(const_path_t);
+	MappedFile(const char*);
 	//! \since build 326
 	template<class _tString>
 	explicit

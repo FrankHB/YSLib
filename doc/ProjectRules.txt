@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r201
+\version r244
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-05-30 08:18 +0800
+	2013-06-08 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,8 @@
 @1.3 依赖结构：
  YFramework 依赖于 YBase 。
  YSTest 依赖于 YBase 和 YFramework 。
-具体的调用依赖和架构见 /vsd 。
+具体的框架依赖架构见 "/doc/vsd" 。
+文件组织依赖见 @3.3 。
 不由 YSLib 项目提供的库称为外部依赖项。
 
 @2 项目管理：
@@ -138,7 +139,7 @@
 #endif
 
 不同头文件应使用不同的宏名。
-具体宏名由实现定义，一般应使用特定保留前缀（但不应与标准名称冲突，除非实现标准库，参见 [Documentation::CommonRules @@5.3.2.2.2] ）。
+具体宏名由实现定义。一般应使用特定保留前缀（但不应与标准名称冲突，除非实现标准库，参见 [Documentation::CommonRules @@5.3.2.2.2] ）。可能包含模块命名空间(@3.2) 的名称。
 
 @3 组织约定：
 
@@ -147,28 +148,44 @@
 编译单元可以包含类/结构体等类型，以及 API（Application Programming Interface ，应用程序编程接口）的实现。
 单元可以作为测试的基本单位之一，即进行单元测试(unit testing) 。
 
-@3.2 模块和模块目录：
+@3.2 模块和模块命名空间：
 此处模块特指静态的组织构成单位。注意和一般意义的模块（参见 [Documentation::CommonRules @@3.7.1] ）之间的区别与联系。
 一个单元或无源文件对应的头文件称为模块(module) 。一个模块目录是某个抽象路径中的模块的集合。
 一个模块仅可属于一个模块目录。
 模块和模块目录以类 C++ qualified-id 语法组成的名称表示，形式定义如下：
-module-name:
+name-expression:
 	identifier
-module-directory:
-	identifier
-	module-directory :: identifier
+	identifier ( name-expression )
+simple-module-name:
+	name-expression
+module-namespace-name:
+	name-expression
+	module-namespace-name :: name-expression
+module-namespace-qualifier:
+	module-namespace-name ::
 nested-module-name:
-	module-name
-	module-directory :: module-name
-如无特别指明，以下使用的模块名称都是（简单）模块名 module-name 。
- :: 两边的空白仅作区分记号的示意，实际使用时和标识符之间不保留空格。
+	module-namespace-qualifier simple-module-name
+module-path:
+	simple-module-name
+	module-namespace-name
+	nested-module-name
+ identifier 规则同 ISO C++ 标识符。
+如无特别指明，以下使用的模块名称都是简单模块名 simple-module-name 。
+ :: 、 ( 和 ) 两边的空白仅作区分记号的示意，实际使用时和标识符之间不保留空格。
 对于清晰的上下文，可以使用部分的模块名称。特别地，在标识库的组件时顶级的标识符（表示库的名称）通常省略。
+顶级子项目(@1.1) 不作为模块命名空间；其并集作为全局模块命名空间。
 
-@3.3 源文件组织：
-用于存储源文件的文件系统中的一组目录称为模块目录。
-典型情况下，模块目录包含存储公开头文件 "/include" 和存储其它源文件的 "/source"。
+@3.3 文件组织：
+和模块目录对应的用于存储源文件的文件系统中的一组目录称为模块目录。模块对应其中的文件。
+除非另行指定，模块命名空间的名称和对应的主要模块目录（称为原始目录）名称相同。对模块不限制名称一致。
+每个顶级子项目中关于特定平台配置适用的部分称为平台扩展，在原始目录外另外并列存储为单独的目录，名称为顶级子项目名称后缀 "_平台配置名称" 。这些平台特定的目录中的文件单向依赖于原始目录（原始目录的文件不依赖于这些目录中的文件）。
+此外，第三方依赖项项目独占目录 "/3rdparty" 。
+
+@3.3.1 源文件组织：
+典型情况下，每个顶级子项目的根模块目录包含存储公开头文件 "/include" 和存储其它源文件的 "/source"，以下分别按模块命名空间组织为文件系统的目录。
  "/include" 中的头文件是公开头文件，它的内容是公开的接口。公开头文件和 "/source" 中的不作为头文件包含的源文件对应组成的模块，称为公开模块。
  "/source" 包含的头文件不是公开头文件，它的内容不是公开的接口。非公开头文件可能和同一个目录下的其它源文件组成模块，称为非公开模块。
+命名参见 @3.4 。
 
 @3.4 文件名和目录名：
 本节适用于代码和相关目录，不适用于文档和相关目录。
@@ -183,6 +200,16 @@ nested-module-name:
 
 @3.4.3 头文件扩展名：
 一般使用 h ，但设计时即确定不需要作为独立翻译单元的实现文件（如仅包含模板的实现或元编程设施）的头文件使用 hpp 。
+
+@3.4.4 文件包含：
+本节约定 #include 等使用的字符序列。
+不使用文件系统中的绝对路径。
+统一使用 "/" 作为文件路径分隔符。
+实现搜索的根路径为子项目(@1.1) 所在的各个目录(@3.3) 。
+本节约定的完整路径是指实现搜索的根路径起始的相对路径；最简相对路径指不包含自指 "." ，以尽量少的 ".." 跳转表示的相对路径。
+对于包含当前项目外的文件（包括外部的库文件），使用 <完整路径> 。
+对于包含当前项目中的相同子项目文件，使用 "最简相对路径" 。注意对于同一个项目的不同平台配置指定原始目录(@3.3) 时路径会较原始目录内部的包含路径复杂。
+对于其它文件，使用 "完整路径" 。
 
 @4 程序部署：
 使用 YFramework 和 YBase 需要维持目录结构。其它暂略。

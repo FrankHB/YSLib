@@ -99,6 +99,7 @@
 		<Unit filename="../YBase/include/ystdex/string.hpp" />
 		<Unit filename="../YBase/include/ystdex/type_op.hpp" />
 		<Unit filename="../YBase/include/ystdex/utility.hpp" />
+		<Unit filename="../YBase/include/ystdex/variadic.hpp" />
 		<Unit filename="../YBase/include/ytest/timing.hpp" />
 		<Unit filename="../YBase/source/ystdex/any.cpp" />
 		<Unit filename="../YBase/source/ystdex/cstdio.cpp" />

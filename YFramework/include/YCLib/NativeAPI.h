@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r632
+\version r633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-05-18 16:50 +0800
+	2013-06-08 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YCL_INC_NativeAPI_h_ 1
 
 //平台定义。
-#include "YCLib/Platform.h"
+#include "Platform.h"
 
 #ifndef YCL_PLATFORM
 #	error Unknown platform!

@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r2048
+\version r2054
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-06-04 13:57 +0800
+	2013-06-09 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -332,7 +332,7 @@ inline PDefH(bool, VerifyDirectory, const Path& pth)
 
 
 //! 路径类别。
-enum class PathCategory
+enum class PathCategory : u32
 {
 	Empty,
 	Self,
@@ -341,10 +341,10 @@ enum class PathCategory
 };
 
 //! 文件系统节点类别。
-enum class NodeCategory
+enum class NodeCategory : u32
 {
-	Empty = PathCategory::Empty,
-	Unknown = PathCategory::Node,
+	Empty = u32(PathCategory::Empty),
+	Unknown = u32(PathCategory::Node),
 	Directory,
 	HardLink,
 	SymbolicLink,
@@ -385,8 +385,9 @@ public:
 	/*!
 	\brief 构造：使用指定路径。
 	\note 参数为空或空字符串时为根目录。
+	\since build 412
 	*/
-	FileList(const_path_t = {});
+	FileList(const char* = {});
 	/*!
 	\brief 构造：使用窄字符串。
 	\note 参数为空字符串时为根目录。

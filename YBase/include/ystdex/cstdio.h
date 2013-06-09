@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r388
+\version r396
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2013-04-22 13:04 +0800
+	2013-06-05 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,15 +36,6 @@
 
 namespace ystdex
 {
-
-/*!
-\brief 路径类型定义。
-\since build 216
-*/
-//@{
-typedef char* path_t;
-typedef const char* const_path_t;
-//@}
 
 /*!
 \brief 判断指定路径的文件是否存在。

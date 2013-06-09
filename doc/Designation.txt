@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8412
+\version r8421
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-03 08:02 +0800
+	2013-06-08 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -399,7 +399,7 @@ Shell 和 Core 的关系是相对的，例如：
 @1.6.3.1 引用参照：
  Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 
-@1.6.3.2 库依赖性：
+@1.6.3.2 库依赖策略：
 除非必要，尽量使用标准库。例外情况下应该提供充足理由，并对用户自行替换底层接口和实现提供一定的便利性。
 
 @1.6.3.3 资源管理：
@@ -418,11 +418,12 @@ Shell 和 Core 的关系是相对的，例如：
 关于一些文件的文件名的额外约定参见 @2.1 。
 
 @2.1 框架组成和依赖项规则：
+基本目录和文件组织规则参见 [Documentation::ProjectRules @@3.3] 。
  YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
 其中最核心的部分是 YSLib 库，除了本文档描述外，参见 [Documentation::YSLib] 。
-对于 YFramework 集成的第三方库(@5) ，位于 "/3rdparty/" 目录下。其它部分位于 "/YFramework/" 目录下。例如 YSLib 位于 "/YFramework/YSLib/" 目录下。
+对于 YFramework 集成的第三方库(@5) ，位于 "/3rdparty/" 目录下。其它部分的原始目录为 "/YFramework" 。例如 YSLib 位于 "/YFramework/YSLib/" 目录下。
  YFramework 依赖于外部项目，包括平台支持和基础库 YBase ，参见 @5 。
- 除了 YSLib 和第三方库， YFramework 也集成了一些辅助的库。其中一部分不依赖于 YSLib ，包括 CHRLib 和 YCLib ；另一部分依赖于 YSLib ，包括 NPL 和 Helper 。具体说明参见 @5 。
+ 除了 YSLib 和第三方库， YFramework 也集成了一些辅助的库。其中一部分除了平台扩展外不依赖于 YSLib ，包括 CHRLib 和 YCLib ；另一部分依赖于 YSLib ，包括 NPL 和 Helper 。具体说明参见 @5 。
  YSLib 中，目录 "/YFramework/Adaptor/" 下的部分称为 Adaptor [Documentation::YSLib @@2] ，其它部分总称为本体，是平台中立的。
  Adaptor 的接口是平台中立的，但 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元的重新编译。
 因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在外部的 Helper 库(@2.6) 而不是 Adaptor 中。
@@ -594,6 +595,13 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 @3.2.3 模板参数：
 合理使用 ISO C++11 支持的函数模板的模板默认参数简化实现，减少需要的函数重载版本。
+
+@3.3 错误处理：
+基本内容参见 [Documentation::CommonRules @@3] 。
+
+@3.3.1 异常消息：
+使用仅使用基本字符集的字符串表示用户可读的消息。
+除非必要，消息中不出现表示代码位置（例如所在函数）的信息，以免冗余。
 
 @3.2.4 SFINAE(substition failure is not an error) 技巧：
 使用 SFINAE 进行类型检查，实现复杂的重载匹配。避免暴露过于复杂的接口。

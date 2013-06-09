@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2342
+\version r2495
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-05-27 04:18 +0800
+	2013-06-09 09:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,7 +202,7 @@ public:
 		return *this;
 	}
 	yconstfn pointer_iterator
-	operator++(int)
+	operator++(int) const
 	{
 		return current++;
 	}
@@ -214,7 +214,7 @@ public:
 		return *this;
 	}
 	yconstfn pointer_iterator
-	operator--(int)
+	operator--(int) const
 	{
 		return current--;
 	}
@@ -373,12 +373,12 @@ public:
 	//! \brief 满足双向迭代器要求。
 	//@{
 	yconstfn pseudo_iterator&
-	operator--()
+	operator--() const
 	{
 		return *this;
 	}
 	yconstfn pseudo_iterator
-	operator--(int)
+	operator--(int) const
 	{
 		return *this;
 	}
@@ -438,7 +438,8 @@ operator!=(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
 \warning 非虚析构。
 \since build 288
 
-使用指定参数转换得到新迭代器的间接操作替代指定迭代器的间接操作的迭代器适配器。
+使用指定参数转换得到新迭代器的间接操作替代指定原始类型的间接操作的迭代器适配器。
+被替代的原始类型是迭代器类型，或除间接操作（可以不存在）外符合迭代器要求的类型。
 */
 template<typename _tIterator, typename _fTransformer>
 class transformed_iterator : public pointer_classify<_tIterator>::type
@@ -454,17 +455,11 @@ public:
 	//! \since build 358
 	typedef typename std::result_of<_fTransformer&(_tIterator&)>::type
 		transformed_type;
-	//! \since build 357
-	//@{
-	typedef typename add_rvalue_reference<
-		decltype(*std::declval<transformed_type>())>::type reference;
-	typedef typename remove_reference<reference>::type value_type;
-	typedef typename std::iterator_traits<iterator_type>::difference_type
-		difference_type;
-	typedef typename add_pointer<value_type>::type pointer;
-	//@}
+	//! \since build 412
+	typedef decltype(std::declval<transformed_type>()) reference;
 
 protected:
+	//! \note 当为空类时作为第一个成员可启用空基类优化。
 	mutable transformer_type transformer;
 
 public:
@@ -472,21 +467,14 @@ public:
 	template<typename _tIter, typename _tTran>
 	explicit yconstfn
 	transformed_iterator(_tIter&& i, _tTran&& f = {})
-		: iterator_type(yforward(i)), transformer(f)
+		: iterator_type(yforward(i)), transformer(yforward(f))
 	{}
 
 	//! \since build 357
 	inline reference
 	operator*() const
 	{
-		return *transformer(get());
-	}
-
-	//! \since build 357
-	inline pointer
-	operator->() const
-	{
-		return std::addressof(operator*());
+		return yforward(transformer(get()));
 	}
 
 	/*!
@@ -528,6 +516,20 @@ public:
 	{
 		return *this;
 	}
+
+	//! \since build 412
+	//@{
+	transformer_type&
+	get_transformer() ynothrow
+	{
+		return transformer;
+	}
+	yconstfn const transformer_type&
+	get_transformer() const ynothrow
+	{
+		return transformer;
+	}
+	//@}
 };
 
 /*!
@@ -565,7 +567,7 @@ inline transformed_iterator<typename array_ref_decay<_tIterator>::type,
 make_transform(_tIterator&& i, _fTransformer&& f)
 {
 	return transformed_iterator<typename array_ref_decay<_tIterator>::type,
-		_fTransformer>(yforward(i), f);
+		_fTransformer>(yforward(i), yforward(f));
 }
 
 
@@ -575,24 +577,27 @@ make_transform(_tIterator&& i, _fTransformer&& f)
 */
 namespace iterator_transformation
 {
+	//! \since build 412
+	//@{
 	template<typename _tIterator>
 	static yconstfn auto
-	first(const _tIterator& i) -> decltype(std::addressof(i->first))
+	first(const _tIterator& i) -> decltype((i->first))
 	{
-		return std::addressof(i->first);
+		return i->first;
 	}
 	template<typename _tIterator>
 	static yconstfn auto
-	second(const _tIterator& i) -> decltype(std::addressof(i->second))
+	second(const _tIterator& i) -> decltype((i->second))
 	{
-		return std::addressof(i->second);
+		return i->second;
 	}
 	template<typename _tIterator>
 	static yconstfn auto
-	indirect(const _tIterator& i) -> decltype(*i)
+	indirect(const _tIterator& i) -> decltype((**i))
 	{
-		return *i;
+		return **i;
 	}
+	//@}
 } // namespace iterator_transformation;
 
 
@@ -811,6 +816,128 @@ operator!=(const pair_iterator<_tMaster, _tSlave>& x,
 	return !(x == y);
 }
 //@}
+
+
+/*!
+\ingroup iterator_adaptors
+\brief 间接输入迭代器。
+\note 向指定类型的迭代器传递输入迭代器操作。
+\since build 412
+*/
+template<typename _tIterator>
+class indirect_input_iterator
+{
+public:
+	typedef _tIterator iterator_type;
+	typedef typename std::input_iterator_tag iterator_category;
+	typedef typename std::iterator_traits<iterator_type>::value_type value_type;
+	typedef typename std::iterator_traits<iterator_type>::difference_type
+		difference_type;
+	typedef typename std::iterator_traits<iterator_type>::pointer pointer;
+	typedef typename std::iterator_traits<iterator_type>::reference reference;
+
+private:
+	iterator_type iter;
+
+public:
+	indirect_input_iterator()
+		: iter()
+	{}
+	indirect_input_iterator(iterator_type i)
+		: iter(i)
+	{
+		++*this;
+	}
+	indirect_input_iterator(const indirect_input_iterator&) = default;
+	//! \note 使用 ADL 。
+	indirect_input_iterator(indirect_input_iterator&& i) ynothrow
+		: iter()
+	{
+		using std::swap;
+
+		swap(iter, i.iter);
+	}
+
+	indirect_input_iterator&
+	operator=(const indirect_input_iterator&) = default;
+	indirect_input_iterator&
+	operator=(indirect_input_iterator&&) = default;
+
+	pointer
+	operator->() const
+	{
+		return (*iter).operator->();
+	}
+
+	template<typename = typename enable_if<is_constructible<bool,
+		decltype(*std::declval<iterator_type&>())>::value, int>::type>
+	explicit
+	operator bool() const
+//	operator bool() const ynoexcept((!is_undereferenceable(std::declval<
+//		iterator_type&>()) && bool(*std::declval<iterator_type&>())))
+	{
+		return !is_undereferenceable(iter) && bool(*iter);
+	}
+
+	/*!
+	\brief 间接操作。
+	\pre 断言：<tt>!is_undereferenceable(iter)</tt> 。
+	*/
+	reference
+	operator*() const ynothrow
+	{
+		yconstraint(!is_undereferenceable(iter));
+
+		return **iter;
+	}
+
+	/*!
+	\brief 迭代：向后遍历。
+	\pre 断言：<tt>!is_undereferenceable(iter)</tt> 。
+	*/
+	indirect_input_iterator&	
+	operator++()
+	{
+		yconstraint(!is_undereferenceable(iter));
+
+		++*iter;
+		return *this;
+	}
+	indirect_input_iterator
+	operator++(int)
+	{
+		const auto i(*this);
+
+		++*this;
+		return i;
+	}
+
+	friend bool
+	operator==(const indirect_input_iterator& x, const indirect_input_iterator& y)
+	{
+		return (!bool(x) && !bool(y)) || x.iter == y.iter;
+	}
+
+	iterator_type&
+	get() ynothrow
+	{
+		return iter;
+	}
+	const iterator_type&
+	get() const ynothrow
+	{
+		return iter;
+	}
+};
+
+//! \since build 412
+template<typename _tIterator>
+inline bool
+operator!=(const indirect_input_iterator<_tIterator>& x,
+	const indirect_input_iterator<_tIterator>& y)
+{
+	return !(x == y);
+}
 
 
 /*!
