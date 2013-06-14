@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3326
+\version r3328
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-05-17 03:29 +0800
+	2013-06-14 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -299,7 +299,7 @@ GUIState::ResponseTouch(TouchEventArgs& e, UI::VisualEvent op)
 				break;
 		}
 		e.SetSender(*p);
-		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
+		r |= DoEvent<HTouchEvent>(p->GetController(), op, std::move(e)) != 0;
 		p = t;
 		e -= GetLocationOf(*p);
 	};
@@ -314,7 +314,7 @@ GUIState::ResponseTouch(TouchEventArgs& e, UI::VisualEvent op)
 	{
 		e += GetLocationOf(*p);
 		e.SetSender(*(p = pCon));
-		r |= DoEvent<HTouchEvent>(p->GetController(), op, e) != 0;
+		r |= DoEvent<HTouchEvent>(p->GetController(), op, std::move(e)) != 0;
 	}
 	return r/* || e.Handled*/;
 }

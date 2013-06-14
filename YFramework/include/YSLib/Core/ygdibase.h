@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1391
+\version r1393
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-06-09 09:24 +0800
+	2013-06-13 14:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -725,9 +725,9 @@ public:
 		: pBuffer(g.pBuffer), sGraphics(g.sGraphics)
 	{}
 	/*!
-	\brief 析构：空实现。
+	\brief 析构：默认实现。
 	*/
-	DefEmptyDtor(Graphics)
+	DefDeDtor(Graphics)
 
 	/*!
 	\brief 判断无效性。

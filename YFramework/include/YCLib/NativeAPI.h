@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r633
+\version r645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-06-08 13:58 +0800
+	2013-06-13 09:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,9 @@
 
 //平台定义。
 #include "Platform.h"
+
+#include <ydef.h>
+#include "YBaseMacro.h"
 
 #ifndef YCL_PLATFORM
 #	error Unknown platform!
@@ -197,20 +200,14 @@ namespace platform_ex
 \brief 判断 WIN32_FIND_DATAA 指定的节点是否为目录。
 \since build 298
 */
-inline bool
-IsDirectory(const ::WIN32_FIND_DATAA& d)
-{
-	return d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-}
+inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAA& d) ynothrow
+	ImplRet(d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 /*!
 \brief 判断 WIN32_FIND_DATAW 指定的节点是否为目录。
 \since build 299
 */
-inline bool
-IsDirectory(const ::WIN32_FIND_DATAW& d)
-{
-	return d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-}
+inline PDefH(bool, IsDirectory, const ::WIN32_FIND_DATAW& d) ynothrow
+	ImplRet(d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 
 } // namespace platform_ex;
 

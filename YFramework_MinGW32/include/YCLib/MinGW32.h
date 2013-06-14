@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r50
+\version r51
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-06-08 18:23 +0800
+	2013-06-13 08:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 #define YCL_MinGW32_INC_MinGW32_h_ 1
 
 #include "YCLib/ycommon.h"
-#include "YSLib/Core/ybasemac.h"
 
 #if !YCL_MINGW32
 #	error This file is only for MinGW32.

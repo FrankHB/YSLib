@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3421
+\version r3422
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-06-08 13:59 +0800
+	2013-06-13 08:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,7 @@
 #include <ystdex/cstdio.h>
 #include <cstdlib>
 #include <string>
+#include "YBaseMacro.h"
 
 //平台相关部分。
 //#include <unistd.h>

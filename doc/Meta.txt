@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r500
+\version r501
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-06-09 14:04 +0800
+	2013-06-09 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -268,6 +268,7 @@ b412
 (
 $note "N3652"
 $URL http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3652.html
+$URL https://github.com/cplusplus/draft/blob/master/papers/n3692.html
 $note "Clang++ bug 8448"
 $URL "http://llvm.org/bugs/show_bug.cgi?id=8448"
 $URL "http://stackoverflow.com/questions/8984013/can-sfinae-detect-private-access-violations"

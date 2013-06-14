@@ -311,9 +311,6 @@
     <ClInclude Include="include\YCLib\ycommon.h">
       <Filter>头文件\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ybasemac.h">
-      <Filter>头文件\YSLib\Core</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\UI\ywgtview.h">
       <Filter>头文件\YSLib\UI</Filter>
     </ClInclude>
@@ -706,6 +703,9 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\Service\AccessHistory.hpp">
       <Filter>头文件\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YBaseMacro.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

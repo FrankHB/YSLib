@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1637
+\version r1638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-05-12 11:23 +0800
+	2013-06-13 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ public:
 		: conn(yforward(args)...)
 	{}
 
-	virtual DefEmptyDtor(GShellSession)
+	virtual DefDeDtor(GShellSession)
 
 	DefGetter(const ynothrow, _tShell&, Shell, conn)
 };

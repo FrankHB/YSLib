@@ -8,25 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\file ybasemac.h
+/*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2427
+\version r2452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-05-31 11:41 +0800
+	2013-06-13 10:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Core::YBaseMacro
+	YBaseMacro
 */
 
 
-#ifndef YSL_INC_Adaptor_ybasemac_h_
-#define YSL_INC_Adaptor_ybasemac_h_ 1
+#ifndef YF_INC_YBaseMacro_h_
+#define YF_INC_YBaseMacro_h_ 1
 
 //! \todo 检查语言实现的必要支持：可变参数宏。
 
@@ -93,7 +93,7 @@ _t type
 /*!
 \def _yInterfaceHead
 \brief 定义接口类型头部。
-\see DefEmptyDtor
+\see ImplEmptyDtor
 */
 #define _yInterfaceHead(_n) { \
 	virtual ~_n() {}
@@ -178,7 +178,7 @@ _t type
 	}
 #define ImplRet(...) \
 	{ \
-		return (__VA_ARGS__); \
+		return __VA_ARGS__; \
 	}
 // NOTE: Need 'ydef.h'.
 // NOTE: GCC complains about 'void(yunseq(__VA_ARGS__))'.
@@ -198,17 +198,13 @@ _t type
 //简单通用成员函数定义。
 //prefix "Def" = Define;
 /*!
-\def DefEmptyDtor
-\brief 定义空析构函数。
-\note 与显式 default 不同，允许虚函数。
-\note C++11 不需要显式使用异常规范，可自动推导（参见 ISO C++11 12.4/3 ）。
+\def DefDeDtor
+\brief 定义默认析构函数。
+\note CWG defect 906 的解决禁止显式默认虚函数，但 CWG defect 1135
+	的解决撤销了这一限制。 ISO C++11 最终没有此限制。
+\note ISO C++11 不需要显式使用异常规范，可自动推导（参见 ISO C++11 12.4/3 ）。
 	显式异常规范导致使用隐式继承需要保证成员函数的异常规范限制。
 */
-#define DefEmptyDtor(_t) \
-	~_t() \
-	{}
-#define ImplEmptyDtor(_t) \
-	inline _t::DefEmptyDtor(_t)
 
 #define DefDeCtor(_t) \
 	_t() = default;
@@ -225,10 +221,20 @@ _t type
 #define DefDelMoveCtor(_t) \
 	_t(_t&&) = delete;
 
+//! \since build 413 as workaround for G++ 4.7.1
+#if __GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ <= 47100
+#define DefDeDtor(_t) \
+	~_t() \
+	{}
+#else
 #define DefDeDtor(_t) \
 	~_t() = default;
+#endif
 #define DefDelDtor(_t) \
 	~_t() = delete;
+
+#define ImplEmptyDtor(_t) \
+	inline _t::DefDeDtor(_t)
 
 #define DefDeCopyAssignment(_t) \
 	_t& operator=(const _t&) = default;

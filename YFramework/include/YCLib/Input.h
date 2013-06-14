@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r336
+\version r401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2013-06-08 13:57 +0800
+	2013-06-13 08:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,22 +60,14 @@ struct YF_API CursorInfo final
 
 	/*!
 	\brief 取横坐标。
-	\since build 313
+	\since build 413
 	*/
-	yconstfn std::uint16_t
-	GetX() const
-	{
-		return YCL_CURSOR_X;
-	}
+	yconstfn DefGetter(const ynothrow, std::uint16_t, X, YCL_CURSOR_X)
 	/*!
 	\brief 取纵坐标。
-	\since build 313
+	\since build 413
 	*/
-	yconstfn std::uint16_t
-	GetY() const
-	{
-		return YCL_CURSOR_Y;
-	}
+	yconstfn DefGetter(const ynothrow, std::uint16_t, Y, YCL_CURSOR_Y)
 #undef YCL_CURSOR_Y
 #undef YCL_CURSOR_X
 };
@@ -168,35 +160,20 @@ UpdateKeyStates();
 */
 extern YF_API platform::KeyInput KeyState, OldKeyState;
 
-inline const platform::KeyInput&
-FetchKeyState()
-{
-	return KeyState;
-}
+inline PDefH(const platform::KeyInput&, FetchKeyState, )
+	ImplRet(KeyState)
 
-inline const platform::KeyInput&
-FetchOldKeyState()
-{
-	return OldKeyState;
-}
+inline PDefH(const platform::KeyInput&, FetchOldKeyState, )
+	ImplRet(OldKeyState)
 
-inline void
-ClearKeyStates()
-{
-	yunseq(KeyState.reset(), OldKeyState.reset());
-}
+inline PDefH(void, ClearKeyStates, )
+	ImplUnseq(KeyState.reset(), OldKeyState.reset())
 
-inline platform::KeyInput
-FetchKeyDownState()
-{
-	return FetchKeyState() &~ FetchOldKeyState();
-}
+inline PDefH(platform::KeyInput, FetchKeyDownState, )
+	ImplRet(FetchKeyState() &~ FetchOldKeyState())
 
-inline platform::KeyInput
-FetchKeyUpState()
-{
-	return (FetchKeyState() ^ FetchOldKeyState()) & ~FetchKeyState();
-}
+inline PDefH(platform::KeyInput, FetchKeyUpState, )
+	ImplRet((FetchKeyState() ^ FetchOldKeyState()) & ~FetchKeyState())
 
 #endif
 
@@ -220,53 +197,38 @@ WaitForKey(platform::KeyInput);
 /*!
 \brief 等待任意按键（除触摸屏、翻盖外）。
 */
-inline void
-WaitForKeypad()
-{
-	WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y | KEY_L | KEY_R
+inline PDefH(void, WaitForKeypad, )
+	ImplExpr(WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y | KEY_L | KEY_R
 		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		| KEY_START | KEY_SELECT);
-}
+		| KEY_START | KEY_SELECT))
 
 /*!
 \brief 等待任意按键（除 L 、 R 和翻盖外）。
 */
-inline void
-WaitForFrontKey()
-{
-	WaitForKey(KEY_TOUCH | KEY_A | KEY_B | KEY_X | KEY_Y
+inline PDefH(void, WaitForFrontKey, )
+	ImplExpr(WaitForKey(KEY_TOUCH | KEY_A | KEY_B | KEY_X | KEY_Y
 		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		| KEY_START | KEY_SELECT);
-}
+		| KEY_START | KEY_SELECT))
 
 /*!
 \brief 等待任意按键（除 L 、 R 、触摸屏和翻盖外）。
 */
-inline void
-WaitForFrontKeypad()
-{
-	WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y
+inline PDefH(void, WaitForFrontKeypad, )
+	ImplExpr(WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y
 		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		|KEY_START | KEY_SELECT);
-}
+		|KEY_START | KEY_SELECT))
 
 /*!
 \brief 等待方向键。
 */
-inline void
-WaitForArrowKey()
-{
-	WaitForKey(KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN);
-}
+inline PDefH(void, WaitForArrowKey, )
+	ImplExpr(WaitForKey(KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN))
 
 /*!
 \brief 等待按键 A 、 B 、 X 、 Y 键。
 */
-inline void
-WaitForABXY()
-{
-	WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y);
-}
+inline PDefH(void, WaitForABXY, )
+	ImplExpr(WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y))
 #endif
 
 } // namespace platform_ex;

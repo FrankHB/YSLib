@@ -130,6 +130,7 @@
     <ClInclude Include="include\NPL\Configuration.h" />
     <ClInclude Include="include\NPL\Lexical.h" />
     <ClInclude Include="include\NPL\SContext.h" />
+    <ClInclude Include="include\YBaseMacro.h" />
     <ClInclude Include="include\YCLib\Debug.h" />
     <ClInclude Include="include\YCLib\FileSystem.h" />
     <ClInclude Include="include\YCLib\Input.h" />
@@ -150,7 +151,6 @@
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />
     <ClInclude Include="include\YSLib\Core\yapp.h" />
-    <ClInclude Include="include\YSLib\Core\ybasemac.h" />
     <ClInclude Include="include\YSLib\Core\ycounter.hpp" />
     <ClInclude Include="include\YSLib\Core\ycutil.h" />
     <ClInclude Include="include\YSLib\Core\ydevice.h" />

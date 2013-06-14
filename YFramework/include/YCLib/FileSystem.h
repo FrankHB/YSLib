@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r977
+\version r1011
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-06-08 13:56 +0800
+	2013-06-13 08:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -266,11 +266,8 @@ ufexists(const char16_t*) ynothrow;
 \since build 324
 */
 template<class _tString>
-inline bool
-ufexists(const _tString& str) ynothrow
-{
-	return ufexists(str.c_str());
-}
+inline PDefH(bool, ufexists, const _tString& str) ynothrow
+	ImplRet(ufexists(str.c_str()))
 
 /*!
 \brief 当第一参数非空时取当前工作目录复制至指定缓冲区中。
@@ -328,7 +325,8 @@ truncate(std::FILE*, std::size_t) ynothrow;
 class YF_API FileOperationFailure : public std::runtime_error
 {
 public:
-	FileOperationFailure(const std::string& msg = "")
+	//! \since build 413
+	FileOperationFailure(const std::string& msg = "") ynothrow
 		: runtime_error(msg)
 	{}
 };
@@ -367,11 +365,8 @@ public:
 	//! \brief 析构：关闭目录路径。
 	~DirectorySession() ynothrow;
 
-	NativeHandle
-	GetNativeHandle() ynothrow
-	{
-		return dir;
-	}
+	//! \since build 413
+	DefGetter(const ynothrow, NativeHandle, NativeHandle, dir)
 
 	//! \brief 复位目录状态。
 	void
@@ -418,16 +413,12 @@ public:
 	\note 使用 ystdex::indirect_input_iterator 和转换函数访问。
 	\since build 412
 	*/
-	HDirectory&
-	operator*() ynothrow
-	{
-		return *this;
-	}
-	const HDirectory&
-	operator*() const ynothrow
-	{
-		return *this;
-	}
+	//@{
+	PDefHOp(HDirectory&, *, ) ynothrow
+		ImplRet(*this)
+	PDefHOp(const HDirectory&, *, ) const ynothrow
+		ImplRet(*this)
+	//@}
 
 	/*!
 	\brief 迭代：向后遍历。
@@ -442,17 +433,10 @@ public:
 	\brief 判断文件系统节点有效性。
 	\since build 319
 	*/
-	explicit
-	operator bool() const ynothrow
-	{
-		return p_dirent;
-	}
+	explicit DefCvt(const ynothrow, bool, p_dirent)
 
 	//! \since build 412
-	operator std::string() const
-	{
-		return GetName();
-	}
+	DefCvt(const, std::string, GetName())
 
 	/*!
 	\brief 间接操作：取节点名称。

@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1822
+\version r1823
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2013-06-09 09:24 +0800
+	2013-06-13 14:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,7 +184,7 @@ public:
 	\brief 无参数构造：默认实现。
 	*/
 	inline DefDeCtor(MessageQueue)
-	DefEmptyDtor(MessageQueue)
+	DefDeDtor(MessageQueue)
 
 	DefPred(const ynothrow, Empty, empty()) //!< 判断消息队列是否为空。
 

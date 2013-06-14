@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8421
+\version r8422
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-08 18:11 +0800
+	2013-06-13 08:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -436,6 +436,7 @@ Shell 和 Core 的关系是相对的，例如：
 以下为基本代码依赖性规则（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
 除非另有说明，禁止依赖于（包括包含）非头文件。
 除非另有说明，禁止重复包含同一文件，避免造成循环依赖。
+ YFramework/YBaseMacro.h 不依赖于任何其它文件。
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 任意 YFramework 文件可依赖 @2.1 余下部分指定的标准库头文件以及 YBase 头文件。
 必要文件不依赖非必要文件。

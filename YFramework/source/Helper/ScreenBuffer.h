@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.h
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r211
+\version r212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-05-17 20:41 +0800
+	2013-06-13 14:23 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -145,7 +145,7 @@ protected:
 	WindowDeviceContextBase(::HWND h_wnd, ::HDC h_dc)
 		: hWindow(h_wnd), hDC(h_dc)
 	{}
-	DefEmptyDtor(WindowDeviceContextBase)
+	DefDeDtor(WindowDeviceContextBase)
 
 public:
 	DefGetter(const ynothrow, ::HDC, DeviceContextHandle, hDC)

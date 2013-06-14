@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4334
+\version r4376
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-06-09 10:55 +0800
+	2013-06-13 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,14 +60,11 @@ class GHEvent;
 //! \warning 非虚析构。
 template<typename _tRet, typename... _tParams>
 class GHEvent<_tRet(_tParams...)>
-	: protected std::function<void(_tParams...)>
+	: protected std::function<_tRet(_tParams...)>
 {
 public:
 	typedef tuple<_tParams...> TupleType;
-	typedef typename std::conditional<std::tuple_size<TupleType>::value == 0,
-		void, typename std::tuple_element<0, TupleType>::type>::type
-		EventArgsType;
-	typedef void FuncType(_tParams...);
+	typedef _tRet FuncType(_tParams...);
 	typedef std::function<FuncType> BaseType;
 
 private:
@@ -122,12 +119,13 @@ public:
 	{}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
+	\since build 413
 	*/
 	template<class _type>
 	yconstfn
-	GHEvent(_type& obj, void(_type::*pm)(_tParams...))
-		: BaseType(ExpandMemberFirstBinder<_type, void, _tParams...>(obj,
-		pm)), comp_eq(GEquality<ExpandMemberFirstBinder<_type, void,
+	GHEvent(_type& obj, _tRet(_type::*pm)(_tParams...))
+		: BaseType(ExpandMemberFirstBinder<_type, _tRet, _tParams...>(obj,
+		pm)), comp_eq(GEquality<ExpandMemberFirstBinder<_type, _tRet,
 		_tParams...>>::AreEqual)
 	{}
 	yconstfn DefDeCopyCtor(GHEvent)
@@ -211,7 +209,7 @@ class GEvent<_tRet(_tParams...)>
 {
 public:
 	typedef GHEvent<_tRet(_tParams...)> HandlerType;
-	typedef typename HandlerType::EventArgsType EventArgsType;
+	typedef typename HandlerType::TupleType TupleType;
 	typedef typename HandlerType::FuncType FuncType;
 	/*!
 	\brief 容器类型。
@@ -368,11 +366,11 @@ public:
 	/*!
 	\brief 添加事件响应：使用对象引用、成员函数指针和优先级。
 	\note 不检查是否已经在列表中。
-	\since build 294
+	\since build 413
 	*/
 	template<class _tObj, class _type>
 	inline GEvent&
-	Add(_tObj& obj, void(_type::*pm)(EventArgsType),
+	Add(_tObj& obj, _tRet(_type::*pm)(_tParams...),
 		EventPriority prior = DefaultEventPriority)
 	{
 		return Add(HandlerType(static_cast<_type&>(obj), std::move(pm)), prior);
@@ -380,11 +378,11 @@ public:
 
 	/*!
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
-	\since build 276
+	\since build 413
 	*/
 	template<class _tObj, class _type>
 	inline GEvent&
-	Remove(_tObj& obj, void(_type::*pm)(EventArgsType))
+	Remove(_tObj& obj, _tRet(_type::*pm)(_tParams...))
 	{
 		return *this -= HandlerType(static_cast<_type&>(obj), std::move(pm));
 	}
@@ -481,11 +479,11 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type&& arg,
 {
 	return AddUnique(evt, HandlerType(yforward(arg)), prior);
 }
+//! \since build 413
 template<class _type, typename _tRet, typename... _tParams>
 inline GEvent<_tRet(_tParams...)>&
 AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
-	void(_type::*pm)(typename GEvent<_tRet(_tParams...)>::EventArgsType),
-	EventPriority prior = DefaultEventPriority)
+	_tRet(_type::*pm)(_tParams...), EventPriority prior = DefaultEventPriority)
 {
 	return AddUnique(evt, HandlerType(static_cast<_type&>(obj), std::move(pm)),
 		prior);
@@ -521,7 +519,6 @@ public:
 	typedef typename GDependency<_tEvent>::ReferentType ReferentType;
 	typedef typename GDependency<_tEvent>::ReferenceType ReferenceType;
 	typedef DependentType EventType;
-	typedef typename EventType::EventArgsType EventArgsType;
 	typedef typename EventType::SEventType SEventType;
 	typedef typename EventType::FuncType FuncType;
 	typedef typename EventType::HandlerType HandlerType;
@@ -553,31 +550,35 @@ public:
 
 	/*!
 	\brief 添加事件响应：使用对象引用和成员函数指针。
+	\since build 413
 	*/
-	template<class _type>
+	template<class _type, typename _tRet, typename... _tParams>
 	inline ReferenceType
-	Add(_type& obj, void(_type::*pm)(EventArgsType))
+	Add(_type& obj, _tRet(_type::*pm)(_tParams...))
 	{
 		return this->GetNewRef().Add(obj, pm);
 	}
 
 	/*!
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
+	\since build 413
 	*/
-	template<class _type>
+	template<class _type, typename _tRet, typename... _tParams>
 	inline ReferenceType
-	Remove(_type& obj, void(_type::*pm)(EventArgsType))
+	Remove(_type& obj, _tRet(_type::*pm)(_tParams...))
 	{
 		return this->GetNewRef().Remove(obj, pm);
 	}
 
 	/*!
 	\brief 调用函数。
+	\since build 413
 	*/
+	template<typename... _tParams>
 	inline SizeType
-	operator()(EventArgsType&& e) const
+	operator()(_tParams&&... args) const
 	{
-		return this->GetRef().operator()(std::move(e));
+		return this->GetRef().operator()(yforward(args)...);
 	}
 
 	/*!
@@ -593,12 +594,26 @@ public:
 };
 
 
+//! \since build 413
+template<typename... _tParams>
+struct EventArgsHead
+{
+	typedef typename std::conditional<sizeof...(_tParams) == 0, void,
+		typename std::tuple_element<0, tuple<_tParams...>>::type>::type type;
+};
+
+template<typename... _tParams>
+struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
+{};
+
+
 /*!
 \brief 事件类型宏。
 \since build 188
 */
 //@{
-#define EventT(_tEventHandler) GEvent<void(_tEventHandler::EventArgsType)>
+#define EventT(_tEventHandler) \
+	GEvent<void(typename EventArgsHead<_tEventHandler::TupleType>::type)>
 #define DepEventT(_tEventHandler) \
 	typename GDependencyEvent(EventT(_tEventHandler))
 //@}
@@ -668,7 +683,8 @@ class GEventWrapper : public _tEvent,
 public:
 	typedef _tEvent EventType;
 	typedef _tBaseArgs BaseArgsType;
-	typedef typename EventType::EventArgsType EventArgsType;
+	typedef typename EventArgsHead<typename _tEvent::TupleType>::type
+		EventArgsType;
 
 	/*!
 	\brief 委托调用。

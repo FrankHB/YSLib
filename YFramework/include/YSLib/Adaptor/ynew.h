@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1152
+\version r1156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2013-01-10 16:57 +0800
+	2013-06-13 08:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_ADAPTOR_YNEW_H_
-#define YSL_INC_ADAPTOR_YNEW_H_ 1
+#ifndef YSL_INC_Adaptor_ynew_h_
+#define YSL_INC_Adaptor_ynew_h_ 1
 
 //包含编译配置。
 #include "config.h"
@@ -34,8 +34,8 @@
 //包含 YBase 基础定义。
 #include <ydef.h>
 
-//引入 YSLib 命名空间宏。
-#include "../Core/ybasemac.h"
+//引入 YSLib 基本宏。
+#include "YBaseMacro.h"
 
 #ifdef YSL_USE_MEMORY_DEBUG
 

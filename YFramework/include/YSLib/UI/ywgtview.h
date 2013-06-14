@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r539
+\version r540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-05-30 08:14 +0800
+	2013-06-13 14:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,7 @@ public:
 		yunseq(v.ContainerPtr = nullptr, v.DependencyPtr = nullptr,
 			v.FocusingPtr = nullptr);
 	}
-	virtual DefEmptyDtor(View)
+	virtual DefDeDtor(View)
 
 	/*!
 	\brief 复制赋值：仅可视状态。

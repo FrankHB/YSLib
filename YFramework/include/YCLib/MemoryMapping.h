@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r103
+\version r109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2013-06-08 13:54 +0800
+	2013-06-13 08:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,11 +60,8 @@ public:
 	//@}
 	~MappedFile();
 
-	ystdex::byte*
-	GetPtr() const
-	{
-		return addr;
-	}
+	//! \since build 413
+	DefGetter(const ynothrow, ystdex::byte*, Ptr, addr)
 	size_t
 	GetSize() const;
 };

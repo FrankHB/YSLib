@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1912
+\version r1914
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-01 12:13 +0800
+	2013-06-13 08:16 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -109,10 +109,9 @@
 
 @1.2.8 内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件。
- Adaptor 的头文件依赖于 Core 的 "ybasemac.h" 。
+ Adaptor 的头文件依赖于 YFramework 的 "YBaseMacro.h" 。
 实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 在 Core 中，以下依赖关系对于头文件包含是确定的：
- "ybasemac.h" 不依赖于任何其它文件；
  "ysdef.h" 依赖于 Adaptor 的 "yadaptor.h" 和 "yref.hpp" ；
 除了 "ybasemac.h" 和 "ysdef.h" 外都直接或间接依赖于 "ysdef.h"；
  "yobject.h" 依赖于 "ycutil.h" 和 "yexcept.h" ；

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r416
+\version r426
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2013-06-08 18:21 +0800
+	2013-06-11 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,15 +40,22 @@ namespace platform_ex
 //! \brief COM 全局状态。
 class YF_API COM
 {
+protected:
+	//! \since build 413
+	::HRESULT hResult;
+
 public:
 	COM()
-	{
-		::CoInitialize(nullptr);
-	}
+		: hResult(::CoInitialize(nullptr))
+	{}
 	~COM()
 	{
-		::CoUninitialize();
+		if(hResult == S_OK)
+			::CoUninitialize();
 	}
+
+	//! \since build 413
+	DefGetter(ynothrow, ::HRESULT, HResult, hResult)
 };
 
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r743
+\version r802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-09 14:09 +0800
+	2013-06-14 10:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,64 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YCLib' $=
+		(
+			+ 'ynothrow' @ ("constructor %FileOperationFailure"
+				@ %'YFileSystem',"member funtions %CursorInfo::(GetX, GetY)"
+				@ %'Input', "member function %MappedFile::GetPtr"
+				@ %'MemoryMapping', "2 functions %IsDirectory"
+				@ "platform %MinGW32" @ %'NativeAPI', "all namespace scope \
+				functions %'Fecth*'" @ %'Video')
+			+ 'const' @ "member function %DirectorySession::GetNativeHandle"
+				@ %'FileSystem'
+			$dev
+			(
+				$dep_form %'YBaseMacro';
+				^ %'YBaseMacro' @ %'YCLib'
+			)
+		),
+		/ "saved initialization result to allow multiple initlization"
+			@ "class %COM" %'YCLib_(MinGW32)'.'COM',
+		/ $dev %'YBaseMacro' $=
+		(
+			/ "header %YBaseMacro[%ybasemac.h]" @ 'YSLib'.'Core'
+				-> 'YBaseMacro'["YBaseMacro.h" @ "directory %YFramework"];
+			/ "macro %ImplRet now allowed brace-init-list returned",
+			/ "merged macro %DefEmptyDtor" -> %'DefDeDtor'
+				// As of G++ 4.7.1 bug, using workaround as %DefEmptyDtor, \
+					otherwise explicit defaulted function.
+		),
+		/ %'YSLib' $=
+		(
+			/ %'Core' $=
+			(
+				/ $dev %'YEvent' $=
+				(
+					/ @ "class templates %(GHEvent; GEvent; GDependencyEvent)"
+						$=
+					(
+						/ "supported non-void returning type",
+						- "typedef name %EventArgsType"
+					),
+					+ "typedef name %TupleType" @ "class template %GEvent",
+					+ "template class %EventArgsTypeHead"
+				),
+				+ "member function String& operator*=(size_t)" @ "class %String"
+					@ %'YString'
+			),
+			/ %'UI' $=
+			(
+				$dep_from %'Core'.'YEvent';
+				- "function template %DoEvent#2"
+			)
+		)
+	)
+),
+
+b412
 (
 	/ %'YBase' $=
 	(
@@ -92,7 +150,8 @@ $now
 					@ "class template %GBinaryObject" @ %'GDIBase' $since b311
 					// Resolved $known_issue_b351_1. Though C++1Y may loose \
 						the restrictions as allowing this invalid C++11 \
-						construct. See $ref b412 $note "N3652".
+						construct. Note another restriction is already relaxed \
+						in the draft WG21/N3691. See $ref b412 $note "N3652".
 				* $dev "wrong 'yconstfn'" @ "constructor %Message" @ %'YMessage'
 					$since b368,
 					// Though G++ accepts invalid code, it is conforming \

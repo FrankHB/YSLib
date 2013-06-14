@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r560
+\version r620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-06-08 13:58 +0800
+	2013-06-13 08:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,33 +50,25 @@ typedef std::uint16_t SDst; //!< 屏幕坐标距离。
 typedef std::uint16_t PixelType;
 /*!
 \brief 取像素 Alpha 值。
-\since build 313
+\since build 413
 */
-yconstfn std::uint8_t
-FetchAlpha(PixelType px)
-{
-	return px & 1 << 15 ? 0xFF : 0;
-}
+yconstfn PDefH(std::uint8_t, FetchAlpha, PixelType px) ynothrow
+	ImplRet(px & 1 << 15 ? 0xFF : 0)
 
 /*!
 \brief 取不透明像素。
-\since build 297
+\since build 413
 */
-yconstfn PixelType
-FetchOpaque(PixelType px)
-{
-	return px | 1 << 15;
-}
+yconstfn PDefH(PixelType, FetchOpaque, PixelType px) ynothrow
+	ImplRet(px | 1 << 15)
 
 /*
 \brief 使用 8 位 RGB 构造本机类型像素。
-\since build 313
+\since build 413
 */
-yconstfn PixelType
-FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
-{
-	return r >> 3 | std::uint16_t(g >> 3) << 5 | std::uint16_t(b >> 3) << 10;
-}
+yconstfn PDefH(PixelType, FetchPixel,
+	std::uint8_t r, std::uint8_t g, std::uint8_t b) ynothrow
+	ImplRet(r >> 3 | std::uint16_t(g >> 3) << 5 | std::uint16_t(b >> 3) << 10)
 
 #	define DefColorH_(hex, name) name = \
 	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
@@ -100,33 +92,25 @@ typedef struct
 
 /*!
 \brief 取像素 Alpha 值。
-\since build 297
+\since build 413
 */
-yconstfn std::uint8_t
-FetchAlpha(PixelType px)
-{
-	return px.rgbReserved;
-}
+yconstfn PDefH(std::uint8_t, FetchAlpha, PixelType px) ynothrow
+	ImplRet(px.rgbReserved)
 
 /*!
 \brief 取不透明像素。
-\since build 297
+\since build 413
 */
-yconstfn PixelType
-FetchOpaque(PixelType px)
-{
-	return {px.rgbBlue, px.rgbGreen, px.rgbRed, 0xFF};
-}
+yconstfn PDefH(PixelType, FetchOpaque, PixelType px) ynothrow
+	ImplRet({px.rgbBlue, px.rgbGreen, px.rgbRed, 0xFF})
 
 /*
 \brief 使用 8 位 RGB 构造 std::uint32_t 像素。
-\since build 313
+\since build 413
 */
-yconstfn std::uint32_t
-FetchPixel(std::uint8_t r, std::uint8_t g, std::uint8_t b)
-{
-	return r | g << 8 | std::uint32_t(b) << 16;
-}
+yconstfn PDefH(std::uint32_t, FetchPixel,
+	std::uint8_t r, std::uint8_t g, std::uint8_t b) ynothrow
+	ImplRet(r | g << 8 | std::uint32_t(b) << 16)
 
 /*!
 \brief 定义 Windows DIB 格式兼容像素。
@@ -276,41 +260,25 @@ public:
 	}
 
 	/*!
-	\brief 取红色分量。
+	\brief 取 alpha 分量。
 	\since build 319
 	*/
-	yconstfn MonoType
-	GetR() const ynothrow
-	{
-		return r;
-	}
-	/*!
-	\brief 取绿色分量。
-	\since build 319
-	*/
-	yconstfn MonoType
-	GetG() const ynothrow
-	{
-		return g;
-	}
+	yconstfn DefGetter(const ynothrow, MonoType, A, a)
 	/*!
 	\brief 取蓝色分量。
 	\since build 319
 	*/
-	yconstfn MonoType
-	GetB() const ynothrow
-	{
-		return b;
-	}
+	yconstfn DefGetter(const ynothrow, MonoType, B, b)
 	/*!
-	\brief 取 alpha 分量。
+	\brief 取绿色分量。
 	\since build 319
 	*/
-	yconstfn AlphaType
-	GetA() const ynothrow
-	{
-		return a;
-	}
+	yconstfn DefGetter(const ynothrow, MonoType, G, g)
+	/*!
+	\brief 取红色分量。
+	\since build 319
+	*/
+	yconstfn DefGetter(const ynothrow, MonoType, R, r)
 };
 
 

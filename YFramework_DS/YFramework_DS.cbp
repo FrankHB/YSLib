@@ -161,6 +161,7 @@
 		<Unit filename="../YFramework/include/NPL/Configuration.h" />
 		<Unit filename="../YFramework/include/NPL/Lexical.h" />
 		<Unit filename="../YFramework/include/NPL/SContext.h" />
+		<Unit filename="../YFramework/include/YBaseMacro.h" />
 		<Unit filename="../YFramework/include/YCLib/Debug.h" />
 		<Unit filename="../YFramework/include/YCLib/FileSystem.h" />
 		<Unit filename="../YFramework/include/YCLib/Input.h" />
@@ -180,7 +181,6 @@
 		<Unit filename="../YFramework/include/YSLib/Adaptor/yref.hpp" />
 		<Unit filename="../YFramework/include/YSLib/Core/ValueNode.h" />
 		<Unit filename="../YFramework/include/YSLib/Core/yapp.h" />
-		<Unit filename="../YFramework/include/YSLib/Core/ybasemac.h" />
 		<Unit filename="../YFramework/include/YSLib/Core/ycounter.hpp" />
 		<Unit filename="../YFramework/include/YSLib/Core/ycutil.h" />
 		<Unit filename="../YFramework/include/YSLib/Core/ydevice.h" />

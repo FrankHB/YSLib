@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4626
+\version r4631
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-06-09 11:03 +0800
+	2013-06-14 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,15 +183,15 @@ template<VisualEvent _vID, typename _tEventArgs>
 inline size_t
 CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
+	typedef typename EventTypeMapping<_vID>::HandlerType HandlerType;
 	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
-		::type, typename std::remove_reference<typename
-		EventTypeMapping<_vID>::HandlerType::EventArgsType>::type>
+		::type, typename std::remove_reference<typename EventArgsHead<typename
+		HandlerType::TupleType>::type>::type>
 		::value, "Invalid event argument type found @ CallEvent;");
 
 	try
 	{
-		return DoEvent<typename EventTypeMapping<_vID>::HandlerType>(
-			wgt.GetController(), _vID, yforward(e));
+		return DoEvent<HandlerType>(wgt.GetController(), _vID, std::move(e));
 	}
 	catch(BadEvent&)
 	{}

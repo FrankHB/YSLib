@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1725
+\version r1726
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-05-12 11:25 +0800
+	2013-06-13 14:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ public:
 	/*!
 	\brief 析构：空实现。
 	*/
-	virtual DefEmptyDtor(Log)
+	virtual DefDeDtor(Log)
 
 	/*!
 	\brief 输出 char 字符。

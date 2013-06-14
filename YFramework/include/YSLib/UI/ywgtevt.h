@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1313
+\version r1322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-06-02 14:30 +0800
+	2013-06-14 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,7 +372,7 @@ public:
 	\brief 析构：空实现。
 	\since build 295
 	*/
-	virtual DefEmptyDtor(AController)
+	virtual DefDeDtor(AController)
 
 	DefPred(const ynothrow, Enabled, enabled)
 
@@ -401,10 +401,11 @@ public:
 };
 
 
+//! \since build 413
 template<class _tEventHandler>
 size_t
 DoEvent(AController& controller, const VisualEvent& id,
-	typename _tEventHandler::EventArgsType&& e)
+	typename EventArgsHead<typename _tEventHandler::TupleType>::type&& e)
 {
 	try
 	{
@@ -416,13 +417,6 @@ DoEvent(AController& controller, const VisualEvent& id,
 	catch(std::bad_cast&)
 	{}
 	return 0;
-}
-template<class _tEventHandler>
-inline size_t
-DoEvent(AController& controller, const VisualEvent& id,
-	typename _tEventHandler::EventArgsType& e)
-{
-	return DoEvent<_tEventHandler>(controller, id, std::move(e));
 }
 
 
