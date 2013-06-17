@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r339
+\version r374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-05-31 11:53 +0800
+	2013-06-15 00:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "container.hpp" // for ../ydef.h, ystdex::to_array,
-//	std::underlying_type;
+#include "container.hpp" // for ../ydef.h, std::underlying_type,
+//	ystdex::sort_unique, ystdex::to_array;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	and std::to_string;
 #include <cstdio> // for std::vsnprintf
@@ -85,6 +85,44 @@ string_length(const _tString& str)
 }
 //@}
 
+
+/*!
+\brief 取字母表：有序的字符串的不重复序列。
+\since build 414
+*/
+template<class _tString>
+_tString
+alph(_tString& str)
+{
+	_tString res(str);
+
+	ystdex::sort_unique(res);
+	return std::move(res);
+}
+
+/*!
+\brief 重复串接。
+\param str 被串接的字符串的引用。
+\param n 串接结果包含原字符串的重复次数。
+\pre 断言： <tt>1 < n</tt> 。
+\since build 414
+*/
+template<class _tString>
+void
+concat(_tString& str, size_t n)
+{
+	yconstraint(n != 0);
+
+	if(1 < n)
+	{
+		const auto len(str.length());
+
+		ystdex::concat(str, n / 2);
+		str.append(&str[0], str.length());
+		if(n % 2 != 0)
+			str.append(&str[0], len);
+	}
+}
 
 /*!
 \ingroup string_algorithms

@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2642
+\version r2644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-03-23 20:59 +0800
+	2013-06-17 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,8 @@ RenderCharFrom(ucs4_t c, const Graphics& g,
 
 				if(!pc.ClipArea.IsUnstrictlyEmpty())
 					_fCharRenderer(std::move(pc), ts.Color, cbuf,
-						{cbmp.GetWidth(), cbmp.GetHeight()}, yforward(args)...);
+						cbmp.GetGrayLevel(), {cbmp.GetWidth(),
+						cbmp.GetHeight()}, yforward(args)...);
 			}
 		ts.Pen.X += cbmp.GetXAdvance();
 	}

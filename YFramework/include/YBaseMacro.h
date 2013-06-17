@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2452
+\version r2453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-06-13 10:33 +0800
+	2013-06-14 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -348,7 +348,7 @@ _t type
 
 /*!
 \brief 位掩码类型操作。
-\note 参见 ISO C++2011 17.5.2.1.3[bitmask.types] 。
+\note 参见 ISO C++11 17.5.2.1.3[bitmask.types] 。
 \since build 270
 */
 //@{

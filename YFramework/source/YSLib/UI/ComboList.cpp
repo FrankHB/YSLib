@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3053
+\version r3088
 \author FrankHB<frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2013-04-15 08:46 +0800
+	2013-06-15 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,11 +109,14 @@ ListBox::ResizeForPreferred(const Size& sup, Size s)
 
 
 FileBox::FileBox(const Rect& r)
-	: FileList(), ListBox(r, GetListPtr())
+	: ListBox(r), pthDirectory()
 {
 	GetConfirmed() += [this](IndexEventArgs&& e){
 		if(Contains(e) && bool(*this /= GetList()[e.Value]))
+		{
+			GetListRef() = ListItems();
 			ResetView();
+		}
 	};
 	ListItems();
 	UpdateView();
@@ -122,19 +125,51 @@ FileBox::FileBox(const Rect& r)
 IO::Path
 FileBox::GetPath() const
 {
-	return IsSelected() ? Directory / (GetList()[GetSelectedIndex()])
-		: Directory;
+	return IsSelected() ? pthDirectory / (GetList()[GetSelectedIndex()])
+		: pthDirectory;
+}
+
+bool
+FileBox::operator=(const IO::Path& d)
+{
+	if(VerifyDirectory(d))
+	{
+		pthDirectory = d;
+		return true;
+	}
+	return false;
+}
+bool
+FileBox::operator/=(const String& d)
+{
+	return *this = pthDirectory / d;
+}
+bool
+FileBox::operator/=(const IO::Path& d)
+{
+	return *this = pthDirectory / d;
 }
 
 bool
 FileBox::SetPath(const IO::Path& pth)
 {
-	if(FileList::operator=(pth))
+	if(operator=(pth))
 	{
+		GetListRef() = ListItems();
 		UpdateView();
 		return true;
 	}
 	return false;
+}
+
+FileBox::ListType
+FileBox::ListItems() const
+{
+	ListType lst;
+
+	ListFiles(pthDirectory, lst);
+	// TODO: Platform-dependent name converting.
+	return std::move(lst);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r2820
+\version r2821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-04-22 12:50 +0800
+	2013-06-17 20:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -778,7 +778,7 @@ b288
 				+ "function template %make_transform",
 			),
 			+ "class template %pair_iterate for selecting members";
-			$dep_from 'TypeOperations';
+			$dep_from %'TypeOperations';
 			+ "manipulators for selection members";
 			+ "pipe operators for selecting members"
 		),

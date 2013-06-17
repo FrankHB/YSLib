@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8422
+\version r8424
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-13 08:17 +0800
+	2013-06-13 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -984,9 +984,10 @@ BASE_EXTENSIONS += ftbbox.c
 组(group) 相关指令（ \defgroup 、 \ingroup 、 \name 等）、实体标识指令（ \def 、 \fn 等）以及 \author 、\par 、 \sa 、 \since 、 \version 不使用句为单位（不使用全角标点）；其它指令后的内容以句为单位（对于中文注释以全角标点结束；不成句的不视为完整的注释）。
 实体注释中详细注释放在最后。组相关指令在最前（且在注释首行使用水平制表符缩进），然后是实体标识指令（，除了 \def 外一般省略），之后是其它指令。
 
-@6.1.4 指令顺序：
+@6.1.4 指令格式和顺序：
+组相关指令先于实体注释指令，仅出现一次，在注释起始同一行，之前使用一个水平制表符分隔。
 指定顺序的实体注释指令： \brief 、 \tparam 、 \param 、 \pre 、 \post 、 \return 、 \throw 、 \exception 、 \note 、 \warning 、 \bug 、 \deprecated 、 \relates 、 \sa 、 \see 、 \since  、 \todo 。
-其它参见 http://drupal.org/node/1354#links 。
+其它顺序参见 http://drupal.org/node/1354#links 。
 
 @6.2 YFramework 接口：
 

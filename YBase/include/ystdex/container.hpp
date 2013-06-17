@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r457
+\version r485
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-05-29 13:10 +0800
+	2013-06-14 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -337,13 +337,13 @@ seq_insert(_tCont& cont, _tParams&&... args)
 
 /*!
 \ingroup algorithms
-\brief 删除指定序列容器中和指定值的相等的元素。
+\brief 删除指定序列范围中和指定值的相等的元素。
 \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定容器迭代器。
 \since build 289
 */
-template<typename _tCont>
+template<typename _tRange>
 void
-erase_all(_tCont& c, const typename _tCont::value_type& val)
+erase_all(_tRange& c, const typename _tRange::value_type& val)
 {
 	c.erase(std::remove(begin(c), end(c), val), end(c));
 }
@@ -366,7 +366,7 @@ erase_all(_tCont& c, _tForward first, _tForward last, const _tValue& value)
 
 /*!
 \ingroup algorithms
-\brief 删除指定序列范围（包含序列容器及内建数组等）中满足条件的元素。
+\brief 删除指定序列范围中满足条件的元素。
 \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 289
 */
@@ -391,6 +391,33 @@ erase_all_if(_tCont& c, _tForward first, _tForward last, _fPred pred)
 			c.erase(first++);
 		else
 			++first;
+}
+
+
+/*!
+\brief 排序指定序列范围，保留不重复元素的区间。
+\return 不重复元素的区间末尾。
+\since build 414
+*/
+template<typename _tRandom>
+inline _tRandom
+sort_unique(_tRandom first, _tRandom last)
+{
+	std::sort(first, last);
+	return std::unique(first, last);
+}
+
+/*!
+\brief 排序指定容器，保留不重复元素。
+\pre 容器的迭代器满足随机迭代器要求。
+\since build 414
+*/
+template<class _tCont>
+void
+sort_unique(_tCont& c)
+{
+	ystdex::sort_unique(begin(c), last(c));
+	c.erase(ystdex::sort_unique(begin(c), last(c)), end(c));
 }
 
 

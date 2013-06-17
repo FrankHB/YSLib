@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1455
+\version r1480
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-03-06 13:45 +0800
+	2013-06-17 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,17 +144,30 @@ template<bool _bSwapLR, bool _bSwapUD>
 int
 BlitScale(const Point& dp, const Size& ds, int delta_x, int delta_y);
 template<>
-YF_API int
-BlitScale<false, false>(const Point&, const Size&, int, int);
+inline int
+BlitScale<false, false>(const Point& dp, const Size& ds, int, int)
+{
+	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X);
+}
 template<>
-YF_API int
-BlitScale<true, false>(const Point&, const Size&, int, int);
+inline int
+BlitScale<true, false>(const Point& dp, const Size& ds, int, int delta_y)
+{
+	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width + max<int>(0, dp.X);
+}
 template<>
-YF_API int
-BlitScale<false, true>(const Point&, const Size&, int, int);
+inline int
+BlitScale<false, true>(const Point& dp, const Size& ds, int delta_x, int)
+{
+	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X) + delta_x - 1;
+}
 template<>
-YF_API int
-BlitScale<true, true>(const Point&, const Size&, int, int);
+inline int
+BlitScale<true, true>(const Point& dp, const Size& ds, int delta_x, int delta_y)
+{
+	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width
+		+ max<int>(0, dp.X) + delta_x - 1;
+}
 //@}
 
 
@@ -570,9 +583,11 @@ biltAlphaPoint(PixelType* dst_iter, IteratorPair src_iter)
 	if(a >= BLT_THRESHOLD)
 		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);
 }
-template<>
+//! \since build 414
+template<typename _tIn>
 inline void
-biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
+biltAlphaPoint(PixelType* dst_iter, ystdex::pair_iterator<
+	ystdex::pseudo_iterator<const PixelType>, _tIn> src_iter)
 {
 	const u8 a(*src_iter.base().second);
 

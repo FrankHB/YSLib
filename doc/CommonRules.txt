@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2368
+\version r2371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-06-13 21:46 +0800
+	2013-06-17 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -344,7 +344,7 @@
 任何非可迭代的源或引用关系是不可迭代的。
 
 @2.3.4.2 迭代器(iterator) ：
-关于“迭代器”的概念，参见 ISO/IEC 14882 Clause 24 。
+关于“迭代器”的概念，参见 ISO C++ Clause 24 。
 迭代器的引用目标是对象（集合，下同）。
 迭代器应是弱引用的、透明的和可迭代的。
 
@@ -1326,12 +1326,12 @@ $4.1.3.1.4 临时性例外：
 @5.7.2.3 整数与指针类型：
 注意指针类型和整数类型的大小不保证相等。
 需要使用和对象指针占用空间大小相同的整数类型时，若实现支持（可选支持，参见 ISO C++11 18.4.1 ），使用 std::intptr_t 或 std::uintptr_t 。
+除了 char 以外的内建字符类型关键字在位域外不需要被 signed 或 unsigned 修饰。
 
 @5.7.2.4 字符类型：
  ISO C++98/03 支持 char 和 wchar_t 作为内建支持的字符类型。 ISO C++11 新增 char16_t 和 char32_t 类型，一般用于表示 Unicode 字符。
  ISO C/C++ 中， char 类型实际定义了字节的大小，即 sizeof(char) == 1 ，且具有 CHAR_BIT （注意 CHAR_BIT 不小于 8 ）二进制位。
 注意 ISO C/C++ 中，和其它能被 signed 或 unsigned 修饰的整数类型不同 signed char 、 unsigned char 和 char 具有相同的大小和对齐要求，但是三种不同的类型。
-除了 char 以外的内建字符类型关键字不被 signed 或 unsigned 修饰。
 注意 sizeof(wchar_t) 平台相关。而 char16_t 和 char32_t 分别表示至少能存储 16 位和 32 位二进制整数，并不表示确切的大小。
 
 @5.7.3 枚举类型：

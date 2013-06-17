@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r981
-\author FrankHB<frankhb1989@gmail.com>
+\version r1007
+\author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-01-02 04:21 +0800
+	2013-06-17 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,32 +65,6 @@ BlitBounds(const Point& dp, const Point& sp,
 		return true;
 	}
 	return false;
-}
-
-template<>
-int
-BlitScale<false, false>(const Point& dp, const Size& ds, int, int)
-{
-	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X);
-}
-template<>
-int
-BlitScale<true, false>(const Point& dp, const Size& ds, int, int delta_y)
-{
-	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width + max<int>(0, dp.X);
-}
-template<>
-int
-BlitScale<false, true>(const Point& dp, const Size& ds, int delta_x, int)
-{
-	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X) + delta_x - 1;
-}
-template<>
-int
-BlitScale<true, true>(const Point& dp, const Size& ds, int delta_x, int delta_y)
-{
-	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width
-		+ max<int>(0, dp.X) + delta_x - 1;
 }
 
 //显式实例化：防止链接错误。

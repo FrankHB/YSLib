@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r5974 *build 413 rev *
+\version r6109 *build 414 rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-14 10:44 +0800
+	2013-06-17 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,139 +230,7 @@ $macro_platform_mapping:
 \mac YCL_MINGW32 -> MinGW32;
 
 $using:
-\u YObject
-(
-	\cl ValueObject, \clt (GDependency, GRange)
-),
-\u YGDIBase
-(
-	\clt GBinaryGroup; typedef Point, Vec, \cl Size; \cl Rect
-),
-\u YFileSystem
-(
-	\cl Path
-),
-\u YShell
-(
-	\cl Shell
-),
-\u YApplication
-(
-	\cl (Log, Application)
-),
-\u YConsole
-(
-	\cl Console
-),
-\u YRender
-(
-	\cl (Renderer; BufferedRenderer)
-),
-\h YWidgetView
-(
-	\cl (Visual; View)
-),
-\h YWidgetEvent
-(
-	\st (UIEventArgs; RoutedEventArgs; InputEventArgs);
-	\st (KeyEventArgs, TouchEventArgs),
-	\clt GValueEventArgs,
-	\st (PaintContext; PaintEventArgs),
-	typedef \en VisualEvent,
-	\stt EventTypeMapping,
-	\st BadEvent,
-	\cl (AController; WidgetController)
-),
-\u YWidget
-(
-	\in IWidget; \cl Widget
-),
-\u YUIContainer
-(
-	\cl MUIContainer
-),
-\u YControl
-(
-	\cl (Controller; Control)
-),
-\u YPanel
-(
-	\cl Panel,
-),
-\u YWindow
-(
-	\cl Window
-),
-\u YStyle
-(
-	\cl Palette
-),
-\u YGUI
-(
-	\cl (InputTimer; GUIState)
-),
-\u YBrush
-(
-	\cl (SolidBrush, ImageBrush, (BorderStyle; BorderBrush))
-),
-\u Label
-(
-	\cl (MLabel; Label, MTextList)
-),
-\u TextArea
-(
-	\cl (TextArea; BufferedTextArea)
-),
-\u Progress
-(
-	\cl ProgressBar
-),
-\u Button
-(
-	\cl (Thumb; Button)
-),
-\u UIContainerEx
-(
-	\cl (DialogBox, DialogPanel)
-),
-\u Selector
-(
-	\cl (CheckBox; CheckButton)
-),
-\u TextList
-(
-	\cl TextList
-),
-\u Menu
-(
-	\cl Menu, MenuHost
-),
-\u Scroll
-(
-	\cl (ScrollEventArgs; ATrack; HorizontalTrack, VerticalTrack; AScrollBar;
-		HorizontalScrollBar, VerticalScrollBar; ScrollableContainer)
-),
-\u ComboList
-(
-	\cl (ListBox, FileBox, DropDownList)
-),
-\u Form
-(
-	\cl Form
-),
-\u TextBase
-(
-	\cl (PenStyle; TextState)
-),
-\u TextRenderer
-(
-	\cl EmptyTextRenderer, \clt GTextRendererBase, \cl TextRenderer;
-	\cl TextRegion
-),
-\u TextManager
-(
-	\cl TextFileBuffer
-);
+;
 
 
 $DONE:
@@ -372,9 +240,9 @@ r1-r16;
 $DOING:
 
 $relative_process:
-2013-06-14 +0800:
--35.8d;
-// Mercurial local rev1-rev285: r11019;
+2013-06-17 +0800:
+-35.4d;
+// Mercurial local rev1-rev286: r11035;
 
 / ...
 
@@ -445,7 +313,6 @@ b[1076]:
 / YFramework.YSLib.UI $=
 (
 	/ split %GSeqeunceViewer to 2 class templates,
-	/ mark (YDesktop; YWindow) as unnecessary files,
 	+ icons,
 	/ $low_prior more long list tests @ %DropDownList,
 	* previous frame form buffered renderer of desktop did not be handled

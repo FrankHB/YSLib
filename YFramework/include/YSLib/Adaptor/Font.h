@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2829
+\version r2834
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-05-05 13:06 +0800
+	2013-06-17 10:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -259,10 +259,12 @@ public:
 	yconstfn DefCvt(const ynothrow, NativeType, bitmap)
 
 	yconstfn DefGetter(const ynothrow, BufferType, Buffer, bitmap->buffer)
-	yconstfn DefGetter(const ynothrow, ScaleType, Width, bitmap->width)
+	//! \since build 414
+	yconstfn DefGetter(const ynothrow, ScaleType, GrayLevel, bitmap->max_grays)
 	yconstfn DefGetter(const ynothrow, ScaleType, Height, bitmap->height)
 	yconstfn DefGetter(const ynothrow, SignedScaleType, Left, bitmap->left)
 	yconstfn DefGetter(const ynothrow, SignedScaleType, Top, bitmap->top)
+	yconstfn DefGetter(const ynothrow, ScaleType, Width, bitmap->width)
 	yconstfn DefGetter(const ynothrow, SignedScaleType, XAdvance,
 		bitmap->xadvance)
 	yconstfn DefGetter(const ynothrow, SignedScaleType, YAdvance,
@@ -493,7 +495,8 @@ public:
 	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
 	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, GetTypeface())
 	DefGetter(const ynothrow, FontSize, Size, FontSize(scaler.height))
-	DefGetter(const ynothrow, FontStyle, style, style)
+	//! \since build 414
+	DefGetter(const ynothrow, FontStyle, Style, style)
 	/*!
 	\brief 取当前字型和大小渲染的指定字符的字形。
 	\param c 指定需要被渲染的字符。

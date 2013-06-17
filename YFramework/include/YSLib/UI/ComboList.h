@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2522
+\version r2559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2013-05-05 13:51 +0800
+	2013-06-15 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,8 +156,15 @@ public:
 \brief 文件列表框。
 \since build 205
 */
-class YF_API FileBox : public IO::FileList, public ListBox
+class YF_API FileBox : public ListBox
 {
+protected:
+	/*!
+	\brief 目录的完整路径。
+	\since build 414
+	*/
+	IO::Path pthDirectory;
+
 public:
 	//! \since build 337
 	explicit
@@ -165,7 +172,32 @@ public:
 	inline DefDeMoveCtor(FileBox)
 
 	/*!
-	\brief 取当前路径。
+	\brief 导航至绝对路径。
+	\since build 414
+	*/
+	bool
+	operator=(const IO::Path&);
+
+	/*!
+	\brief 导航至子目录。
+	\since build 414
+	*/
+	bool
+	operator/=(const String&);
+	/*!
+	\brief 导航至相对路径。
+	\since build 414
+	*/
+	bool
+	operator/=(const IO::Path&);
+
+	/*!
+	\brief 取目录的完整路径。
+	\since build 414
+	*/
+	DefGetter(const ynothrow, const IO::Path&, Directory, pthDirectory)
+	/*!
+	\brief 取当前选中项的路径。
 	*/
 	IO::Path
 	GetPath() const;
@@ -177,6 +209,13 @@ public:
 	*/
 	bool
 	SetPath(const IO::Path&);
+
+	/*!
+	\brief 遍历目录中的项目，更新至列表。
+	\since build 414
+	*/
+	ListType
+	ListItems() const;
 };
 
 

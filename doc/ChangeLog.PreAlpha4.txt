@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r802
+\version r859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-14 10:34 +0800
+	2013-06-17 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,64 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ "implemented %stable_range_unique ADL with %std::swap" @ %'Algorithm',
+		+ "2 function templates %sort_unique" @ %'Container',
+		/ %'String'
+		(
+			(
+				$dep_from %'Container',
+				+ "function template %alph"
+			),
+			+ "function template %concat"
+		),
+		+ "class template %bitseg_iterator @ %'Iterator'
+			// Currently only mutable underlying byte pointer is supported.
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Core' $=
+		(
+			(
+				$dep_from %'YBase'.'YStandardEx'.'String';
+				/ "implementation" @ "member function %String::operator="
+					@ %'String'
+					// More efficient.
+			),
+			/ "class %FileList" -> "function %ListFiles" @ %'YFileSystem'
+		),
+		(
+			$dep_from %'Core'.'YFileSystem';
+			/ "simplified inheritance and members" @ "class %FileBox" @ %'UI'
+				// More space efficient.
+		),
+		/ %'Adaptors'.'Font' $=
+		(
+			/ "member function %Font::Getstyle" => "GetStyle";
+			+ "member function %CharBitmap::GetGrayLevel"
+		),
+		/ %'Service' $=
+		(
+			/ "function template specializations %BlitScale implemented \
+				as inline functions",
+				// For more compact binary files.
+			(
+				$dep_from %'YBase'.'YStandardEx'.'Iterator';
+				/ $dev "blitAlpha supported for %bitseg_iterator as source";
+				$dep_to "%blitAlpha"
+			),
+			(
+				$dep_from "%blitAlpha";
+				/ "character renderer interface supported for bitmap source \
+					other than 255 gray level"
+			)
+		)
+	)
+),
+
+b413
 (
 	/ %'YFramework' $=
 	(

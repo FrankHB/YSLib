@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2722
+\version r2728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-03-20 21:02 +0800
+	2013-06-17 19:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,20 +64,21 @@ BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc)
 \param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
 \note 忽略 Alpha 缓冲。
-\since build 368
+\since build 414
 */
 YF_API void
-RenderChar(PaintContext&& pc, Color, CharBitmap::BufferType, const Size&);
+RenderChar(PaintContext&& pc, Color, CharBitmap::BufferType,
+	CharBitmap::ScaleType, const Size&);
 
 /*!
 \brief 渲染带 Alpha 缓冲的单个字符。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
-\since build 368
+\since build 414
 */
 YF_API void
-RenderCharAlpha(PaintContext&& pc, Color, CharBitmap::BufferType, const Size&,
-	u8*);
+RenderCharAlpha(PaintContext&& pc, Color, CharBitmap::BufferType,
+	CharBitmap::ScaleType, const Size&, u8*);
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r2055
+\version r2123
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-06-13 14:32 +0800
+	2013-06-15 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ public:
 	DefClone(override, file_path_norm)
 };
 
-}
+} // namespace ystdex;
 
 YSL_BEGIN
 
@@ -331,6 +331,14 @@ inline PDefH(bool, VerifyDirectory, const Path& pth)
 //@}
 
 
+/*!
+\brief 遍历目录中的项目，更新至列表。
+\since build 414
+*/
+void
+ListFiles(const Path&, vector<String>&);
+
+
 //! 路径类别。
 enum class PathCategory : u32
 {
@@ -368,75 +376,6 @@ ClassifyNode(const Path&);
 
 // \brief 文件名过滤器。
 // TODO: Definition & impl.
-
-
-//! \brief 文件列表模块。
-class YF_API FileList
-{
-public:
-	typedef String ItemType; //!< 项目名称类型。
-	typedef vector<ItemType> ListType; //!< 项目列表类型。
-
-protected:
-	Path Directory; //!< 目录的完整路径。
-	shared_ptr<ListType> hList; //!< 目录中的项目列表句柄。
-
-public:
-	/*!
-	\brief 构造：使用指定路径。
-	\note 参数为空或空字符串时为根目录。
-	\since build 412
-	*/
-	FileList(const char* = {});
-	/*!
-	\brief 构造：使用窄字符串。
-	\note 参数为空字符串时为根目录。
-	*/
-	FileList(const string&);
-	/*!
-	\brief 构造：使用指定项目。
-	\note 参数为空字符串时为根目录。
-	*/
-	FileList(const ItemType&);
-	virtual DefDeDtor(FileList)
-
-	/*!
-	\brief 导航至绝对路径。
-	\note 若成功同时读取列表。
-	\since build 298
-	*/
-	bool
-	operator=(const Path&);
-
-	/*!
-	\brief 导航至子目录。
-	\note 若成功同时读取列表。
-	\since build 410
-	*/
-	bool
-	operator/=(const String&);
-	/*!
-	\brief 导航至相对路径。
-	\note 若成功同时读取列表。
-	\since build 298
-	*/
-	bool
-	operator/=(const Path&);
-
-	DefGetter(const ynothrow, const Path&, Directory, Directory) \
-		//!< 取目录的完整路径。
-	DefGetter(const ynothrow, shared_ptr<ListType>, ListPtr, hList) \
-		//!< 取项目列表句柄。
-//	DefGetter(const ynothrow, const ListType&, List, List) //!< 取项目列表。
-
-	/*!
-	\brief 遍历目录中的项目，更新至列表。
-	\pre 断言：列表指针非空。
-	\since build 411
-	*/
-	void
-	ListItems();
-};
 
 YSL_END_NAMESPACE(IO)
 

@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r438
+\version r442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-04-01 09:26 +0800
+	2013-06-14 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@ namespace ystdex
 
 /*!	\defgroup algorithms Gerneral Algorithms
 \brief 算法。
+\note 范围包含序列容器及内建数组等。容器概念和容器要求参见 ISO C++ Clause 23 。
 \since build 189
 */
 
@@ -122,6 +123,7 @@ pod_move(const _type* first, const _type* last, _type* result)
 \note 输入和输出范围的起始迭代器相同。
 \note 输出范围元素之间的相对顺序和输入的范围保持一致。
 \note 时间复杂度： O(n^2) ，其中 n 满足 <tt>std::advance(first, n) == last</tt> 。
+\note 使用 ADL 交换。
 \since build 265
 */
 template<typename _tForward>
@@ -133,7 +135,9 @@ stable_range_unique(_tForward first, _tForward last)
 	for(_tForward i(first); i != last; ++i)
 		if(std::find(first, result, *i) == result)
 		{
-			std::swap(*i, *result);
+			using std::swap;
+
+			swap(*i, *result);
 			++result;
 		}
 	return result;

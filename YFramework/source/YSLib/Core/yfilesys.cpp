@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r1808
+\version r1864
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2013-06-08 13:24 +0800
+	2013-06-15 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ Path::operator/=(const Path& pth)
 Path::operator String() const
 {
 	auto res(GetString());
-	
+
 	if(!(res.empty() || VerifyDirectory(res)))
 		res.pop_back();
 	return std::move(res);
@@ -122,13 +122,33 @@ VerifyDirectory(const char* path)
 	try
 	{
 		DirectorySession unused(path);
-		
+
 		static_cast<void>(unused);
 		return true;
 	}
 	catch(FileOperationFailure&)
 	{}
 	return false;
+}
+
+
+void
+ListFiles(const Path& pth, vector<String>& lst)
+{
+	try
+	{
+		HDirectory dir(string(pth).c_str());
+		PathNorm nm;
+
+		std::for_each(FileIterator(&dir), FileIterator(),
+			[&](const std::string& name){
+			if(YB_LIKELY(!nm.is_self(name)))
+				lst.push_back(String(!nm.is_parent(name) && dir.IsDirectory()
+					? name + YCL_PATH_DELIMITER : name, CS_Path));
+		});
+	}
+	catch(FileOperationFailure&)
+	{}
 }
 
 
@@ -166,65 +186,6 @@ ClassifyNode(const Path& pth)
 	// TODO: Implementation for other categories.
 	}
 	return NodeCategory::Unknown;
-}
-
-
-FileList::FileList(const char* path)
-	: Directory((path && *path) ? path : ""), hList(new ListType())
-{}
-FileList::FileList(const string& path)
-	: Directory(path.c_str()), hList(new ListType())
-{}
-FileList::FileList(const FileList::ItemType& path)
-	: Directory(path.empty() ? "" : path.GetMBCS(CS_Path).c_str()),
-	hList(new ListType())
-{}
-
-bool
-FileList::operator=(const Path& d)
-{
-	if(VerifyDirectory(d))
-	{
-		Directory = d;
-		ListItems();
-		return true;
-	}
-	return false;
-}
-bool
-FileList::operator/=(const String& d)
-{
-	return *this = Directory / d;
-}
-bool
-FileList::operator/=(const Path& d)
-{
-	return *this = Directory / d;
-}
-
-
-void
-FileList::ListItems()
-{
-	YAssert(bool(hList), "Null handle found.");
-
-	try
-	{
-		HDirectory dir(string(Directory).c_str());
-		PathNorm nm;
-		ListType lst;
-
-		std::for_each(FileIterator(&dir), FileIterator(),
-			[&](const std::string& name){
-			if(YB_LIKELY(!nm.is_self(name)))
-				lst.push_back(String(!nm.is_parent(name) && dir.IsDirectory()
-					? name + YCL_PATH_DELIMITER : name, CS_Path));
-		});
-		hList->swap(lst);
-		// TODO: Platform-dependent name converting.
-	}
-	catch(FileOperationFailure&)
-	{}
 }
 
 YSL_END_NAMESPACE(IO)

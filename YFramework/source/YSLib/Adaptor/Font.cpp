@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2904
+\version r2905
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-06-02 17:45 +0800
+	2013-06-17 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -367,7 +367,7 @@ Font::GetGlyph(ucs4_t c, ::FT_UInt flags) const
 {
 	auto pFace(&GetTypeface());
 	auto& cache(GetCache());
-	FTC_SBit sbit;
+	::FTC_SBit sbit;
 
 	::FTC_SBitCache_LookupScaler(cache.sbitCache, &scaler, flags,
 		::FTC_CMapCache_Lookup(cache.cmapCache, scaler.face_id,
