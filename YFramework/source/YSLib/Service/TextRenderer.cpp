@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2644
+\version r2668
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-17 17:13 +0800
+	2013-06-18 09:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,26 @@ ClipChar(const Graphics& g, const Point& pen, const CharBitmap& cbmp, Rect r)
 	return {g, pt, r};
 }
 
+//! \since build 415
+SDst
+FetchBMPSrcWidth(const CharBitmap& cbmp)
+{
+	SDst abs_pitch(std::abs(cbmp.GetPitch()));
+
+	switch(cbmp.GetFormat())
+	{
+	case CharBitmap::Mono:
+		return abs_pitch * 8;
+	case CharBitmap::Gray2:
+		return abs_pitch * 4;
+	case CharBitmap::Gray4:
+		return abs_pitch * 2;
+	default:
+		break;
+	}
+	return abs_pitch;
+}
+
 //! \since build 368
 template<typename _tCharRenderer, _tCharRenderer& _fCharRenderer,
 	typename... _tParams>
@@ -73,9 +93,10 @@ RenderCharFrom(ucs4_t c, const Graphics& g,
 			{
 				auto&& pc(ClipChar(g, ts.Pen, cbmp, clip));
 
+				// TODO: Support negative pitch.
 				if(!pc.ClipArea.IsUnstrictlyEmpty())
-					_fCharRenderer(std::move(pc), ts.Color, cbuf,
-						cbmp.GetGrayLevel(), {cbmp.GetWidth(),
+					_fCharRenderer(std::move(pc), ts.Color, cbmp.GetPitch() < 0,
+						cbuf, cbmp.GetFormat(), {FetchBMPSrcWidth(cbmp),
 						cbmp.GetHeight()}, yforward(args)...);
 			}
 		ts.Pen.X += cbmp.GetXAdvance();
@@ -87,8 +108,8 @@ RenderCharFrom(ucs4_t c, const Graphics& g,
 void
 TextRenderer::operator()(ucs4_t c)
 {
-	RenderCharFrom<decltype(RenderChar), RenderChar>(c, GetContext(),
-		State, ClipArea);
+	RenderCharFrom<decltype(RenderChar), RenderChar>(c, GetContext(), State,
+		ClipArea);
 }
 
 void
@@ -168,7 +189,7 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 	{
 		const s32 t(((h + Margin.Bottom > GetHeight()
 			? GetHeight() - Margin.Bottom : h)
-			- Margin.Top - abs(n)) * GetWidth());
+			- Margin.Top - std::abs(n)) * GetWidth());
 
 		if(YB_LIKELY(n && t > 0))
 		{

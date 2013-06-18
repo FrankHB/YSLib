@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2834
+\version r2854
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-06-17 10:45 +0800
+	2013-06-18 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -239,8 +239,21 @@ FetchDefaultTypeface() ythrow(LoggedEvent);
 class YF_API CharBitmap
 {
 public:
-	typedef ::FTC_SBit NativeType;
 	typedef ::FT_Byte* BufferType;
+	//! \since build 415
+	enum FormatType
+	{
+		None = ::FT_PIXEL_MODE_NONE,
+		Mono = ::FT_PIXEL_MODE_MONO,
+		Gray = ::FT_PIXEL_MODE_GRAY,
+		Gray2 = ::FT_PIXEL_MODE_GRAY2,
+		Gray4 = ::FT_PIXEL_MODE_GRAY4,
+		LCD = ::FT_PIXEL_MODE_LCD,
+		LCD_V = ::FT_PIXEL_MODE_LCD_V
+	};
+	typedef ::FTC_SBit NativeType;
+	//! \since build 415
+	typedef ::FT_Short PitchType;
 	typedef ::FT_Byte ScaleType;
 	typedef ::FT_Char SignedScaleType;
 
@@ -259,10 +272,15 @@ public:
 	yconstfn DefCvt(const ynothrow, NativeType, bitmap)
 
 	yconstfn DefGetter(const ynothrow, BufferType, Buffer, bitmap->buffer)
+	//! \since build 415
+	yconstfn DefGetter(const ynothrow, FormatType, Format,
+		FormatType(bitmap->format))
 	//! \since build 414
 	yconstfn DefGetter(const ynothrow, ScaleType, GrayLevel, bitmap->max_grays)
 	yconstfn DefGetter(const ynothrow, ScaleType, Height, bitmap->height)
 	yconstfn DefGetter(const ynothrow, SignedScaleType, Left, bitmap->left)
+	//! \since build 415
+	yconstfn DefGetter(const ynothrow, PitchType, Pitch, bitmap->pitch)
 	yconstfn DefGetter(const ynothrow, SignedScaleType, Top, bitmap->top)
 	yconstfn DefGetter(const ynothrow, ScaleType, Width, bitmap->width)
 	yconstfn DefGetter(const ynothrow, SignedScaleType, XAdvance,
@@ -501,6 +519,7 @@ public:
 	\brief 取当前字型和大小渲染的指定字符的字形。
 	\param c 指定需要被渲染的字符。
 	\param flags FreeType 渲染标识。
+	\warning 返回的位图在下一次调用 FontCache 方法或底层 FreeType 缓存时不保证有效。
 	\warning flags 可能被移除，应仅用于内部实现。
 	\since build 280
 	*/

@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1480
+\version r1514
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-06-17 14:20 +0800
+	2013-06-18 11:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,16 +39,17 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 /*!
 \brief Alpha 光栅化源迭代器对。
-\since build 189
+\since build 415
 */
-typedef ystdex::pair_iterator<ConstBitmapPtr, const u8*> IteratorPair;
+typedef ystdex::pair_iterator<ConstBitmapPtr, const Color::AlphaType*>
+	IteratorPair;
 
 /*!
 \brief Alpha 单色光栅化源迭代器对。
-\since build 189
+\since build 415
 */
 typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
-	const u8*> MonoIteratorPair;
+	const Color::AlphaType*> MonoIteratorPair;
 
 
 //基本仿函数。
@@ -397,9 +398,8 @@ template<bool _bPositiveScan>
 struct BlitLoop
 {
 	void
-	operator()(int delta_x, int delta_y,
-		BitmapPtr dst_iter, ConstBitmapPtr src_iter,
-		int dst_inc, int src_inc)
+	operator()(int delta_x, int delta_y, BitmapPtr dst_iter,
+		ConstBitmapPtr src_iter, int dst_inc, int src_inc)
 	{
 		for(; delta_y > 0; --delta_y)
 		{
@@ -421,9 +421,8 @@ struct BlitTransparentLoop
 {
 	//使用源迭代器对应像素的第 15 位表示透明性。
 	void
-	operator()(int delta_x, int delta_y,
-		BitmapPtr dst_iter, ConstBitmapPtr src_iter,
-		int dst_inc, int src_inc)
+	operator()(int delta_x, int delta_y, BitmapPtr dst_iter,
+		ConstBitmapPtr src_iter, int dst_inc, int src_inc)
 	{
 		for(; delta_y > 0; --delta_y)
 		{
@@ -441,9 +440,8 @@ struct BlitTransparentLoop
 
 	//使用 Alpha 通道表示透明性。
 	void
-	operator()(int delta_x, int delta_y,
-		BitmapPtr dst_iter, IteratorPair src_iter,
-		int dst_inc, int src_inc)
+	operator()(int delta_x, int delta_y, BitmapPtr dst_iter,
+		IteratorPair src_iter, int dst_inc, int src_inc)
 	{
 		for(; delta_y > 0; --delta_y)
 		{
@@ -487,18 +485,21 @@ biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
 
 #else
 
-yconstexpr u8 BLT_ALPHA_BITS(8);
+//! \since build 415
+yconstexpr Color::AlphaType BLT_ALPHA_BITS(8);
 yconstexpr u32 BLT_MAX_ALPHA((1 << BLT_ALPHA_BITS) - 1);
 yconstexpr u32 BLT_ROUND(1 << (BLT_ALPHA_BITS - 1));
-yconstexpr u8 BLT_THRESHOLD(8);
-yconstexpr u8 BLT_THRESHOLD2(128);
+//! \since build 415
+yconstexpr Color::AlphaType BLT_THRESHOLD(8);
+//! \since build 415
+yconstexpr Color::AlphaType BLT_THRESHOLD2(128);
 yconstexpr u32 BLT_ROUND_BR(BLT_ROUND | BLT_ROUND << 16);
 
 #	ifdef YCL_PIXEL_FORMAT_AXYZ1555
 
 /*
 \brief AXYZ1555 格式 PixelType 的 Alpha 混合。
-\since build 189
+\since build 415
 
 使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
 输出分量： dst := (1 - alpha) * d + alpha * s
@@ -507,7 +508,7 @@ yconstexpr u32 BLT_ROUND_BR(BLT_ROUND | BLT_ROUND << 16);
 背景透明， 输出 Alpha 饱和。
 */
 inline u16
-blitAlphaBlend(u32 d, u32 s, u8 a)
+blitAlphaBlend(u32 d, u32 s, Color::AlphaType a)
 {
 	/*
 	格式： 16 位 AXYZ1555 ，以 ARGB1555 为例。
@@ -535,27 +536,28 @@ blitAlphaBlend(u32 d, u32 s, u8 a)
 
 /*
 \brief Alpha 分量混合。
-\since build 297
+\since build 415
 
 输出分量： dst := (1 - alpha) * d + alpha * s
 = ((BLT_MAX_ALPHA - a) * d + a * s) >> BLT_ALPHA_BITS
 = d + ((a * (s - d) + BLT_ROUND) >> BLT_ALPHA_BITS) 。
 */
-inline u8
-component_blend(u8 d, u8 s, u8 a)
+template<typename _tAlpha>
+inline _tAlpha
+component_blend(_tAlpha d, _tAlpha s, _tAlpha a)
 {
 	return d + ((a * (s - d) + BLT_ROUND) >> BLT_ALPHA_BITS);
 }
 
 /*
 \brief Alpha 混合。
-\since build 297
+\since build 415
 
 使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
 背景透明， 输出 Alpha 饱和。
 */
 inline PixelType
-blitAlphaBlend(PixelType d, PixelType s, u8 a)
+blitAlphaBlend(PixelType d, PixelType s, Color::AlphaType a)
 {
 	if(FetchAlpha(d) && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
 	{
@@ -563,8 +565,7 @@ blitAlphaBlend(PixelType d, PixelType s, u8 a)
 
 		return Color(component_blend(dc.GetR(), sc.GetR(), a),
 			component_blend(dc.GetG(), sc.GetG(), a),
-			component_blend(dc.GetB(), sc.GetB(), a),
-			0xFF);
+			component_blend(dc.GetB(), sc.GetB(), a), 0xFF);
 	}
 	return a < BLT_THRESHOLD2 ? d : FetchOpaque(s);
 }
@@ -578,7 +579,7 @@ template<>
 inline void
 biltAlphaPoint(PixelType* dst_iter, IteratorPair src_iter)
 {
-	const u8 a(*src_iter.base().second);
+	const Color::AlphaType a(*src_iter.base().second);
 
 	if(a >= BLT_THRESHOLD)
 		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);
@@ -589,7 +590,7 @@ inline void
 biltAlphaPoint(PixelType* dst_iter, ystdex::pair_iterator<
 	ystdex::pseudo_iterator<const PixelType>, _tIn> src_iter)
 {
-	const u8 a(*src_iter.base().second);
+	const Color::AlphaType a(*src_iter.base().second);
 
 	if(a >= BLT_THRESHOLD)
 		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);
@@ -609,8 +610,7 @@ struct BlitBlendLoop
 	//使用 Alpha 通道表示 8 位透明度。
 	template<typename _tIn>
 	void
-	operator()(int delta_x, int delta_y,
-		BitmapPtr dst_iter, _tIn src_iter,
+	operator()(int delta_x, int delta_y, BitmapPtr dst_iter, _tIn src_iter,
 		int dst_inc, int src_inc)
 	{
 		for(; delta_y > 0; --delta_y)

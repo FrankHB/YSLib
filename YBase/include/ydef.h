@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2275
+\version r2281
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-06-05 18:18 +0800
+	2013-06-18 08:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -471,7 +471,8 @@ public:
 	\brief 转换任意类型至空非成员或静态成员指针。
 	*/
 	template<typename _type>
-	inline operator _type*() const
+	inline
+	operator _type*() const
 	{
 		return 0;
 	}
@@ -480,14 +481,16 @@ public:
 	\brief 转换任意类型至空非静态成员指针。
 	*/
 	template<class _tClass, typename _type>
-	inline operator _type _tClass::*() const
+	inline
+	operator _type _tClass::*() const
 	{
 		return 0;
 	}
 	/*
 	\brief 支持关系运算符重载。
 	*/
-	template<typename _type> bool
+	template<typename _type>
+	bool
 	equals(const _type& rhs) const
 	{
 		return rhs == 0;

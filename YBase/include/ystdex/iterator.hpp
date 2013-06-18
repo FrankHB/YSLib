@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2669
+\version r2773
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-06-17 21:11 +0800
+	2013-06-18 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,7 +129,7 @@ make_move_iterator_pair(_tRange& c)
 /*!
 \ingroup iterator_adaptors
 \brief 指针迭代器。
-\note 有序比较操作使用转换为对应指针实现。
+\note 转换为 bool 、有序比较等操作使用转换为对应指针实现。
 \warning 非虚析构。
 \since build 290
 
@@ -150,18 +150,19 @@ public:
 	typedef typename std::iterator_traits<iterator_type>::reference reference;
 
 protected:
-	mutable pointer current;
+	//! \since build 415
+	pointer raw;
 
 public:
 	yconstfn
 	pointer_iterator(nullptr_t = {})
-		: current()
+		: raw()
 	{}
 	//! \since build 347
 	template<typename _tPointer>
 	explicit yconstfn
 	pointer_iterator(_tPointer&& ptr)
-		: current(yforward(ptr))
+		: raw(yforward(ptr))
 	{}
 	inline
 	pointer_iterator(const pointer_iterator&) = default;
@@ -172,7 +173,9 @@ public:
 	pointer_iterator&
 	operator+=(difference_type n)
 	{
-		current += n;
+		yconstraint(raw);
+
+		raw += n;
 		return *this;
 	}
 
@@ -180,71 +183,81 @@ public:
 	pointer_iterator&
 	operator-=(difference_type n)
 	{
-		current -= n;
+		yconstraint(raw);
+
+		raw -= n;
 		return *this;
 	}
 
-	yconstfn reference
+	reference
 	operator*() const
 	{
-		return *current;
+		yconstraint(raw);
+
+		return *raw;
 	}
 
 	yconstfn pointer
 	operator->() const
 	{
-		return current;
+		return raw;
 	}
 
 	inline pointer_iterator&
 	operator++()
 	{
-		++current;
+		yconstraint(raw);
+
+		++raw;
 		return *this;
 	}
-	yconstfn pointer_iterator
-	operator++(int) const
+	//! \since build 415
+	pointer_iterator
+	operator++(int)
 	{
-		return current++;
+		return raw++;
 	}
 
 	inline pointer_iterator&
 	operator--()
 	{
-		--current;
+		--raw;
 		return *this;
 	}
-	yconstfn pointer_iterator
-	operator--(int) const
+	//! \since build 415
+	pointer_iterator
+	operator--(int)
 	{
-		return current--;
+		return raw--;
 	}
 
 	//! \since build 356
-	yconstfn reference
+	reference
 	operator[](difference_type n) const
 	{
-		return current[n];
+		yconstraint(raw);
+
+		return raw[n];
 	}
 
 	//! \since build 356
 	yconstfn pointer_iterator
 	operator+(difference_type n) const
 	{
-		return pointer_iterator(current + n);
+		return pointer_iterator(raw + n);
 	}
 
 	//! \since build 356
 	yconstfn pointer_iterator
 	operator-(difference_type n) const
 	{
-		return pointer_iterator(current - n);
+		return pointer_iterator(raw - n);
 	}
 
 	yconstfn
 	operator pointer() const
 	{
-		return current;
+		return raw;
 	}
 };
 
@@ -305,7 +318,7 @@ public:
 	typedef _tIterator iterator_type;
 	//! \since build 400
 	typedef _tTraits traits_type;
-	typedef typename traits_type::iterator_category iterator_category;	
+	typedef typename traits_type::iterator_category iterator_category;
 	typedef typename traits_type::value_type value_type;
 	typedef typename traits_type::difference_type difference_type;
 	typedef typename traits_type::pointer pointer;
@@ -391,9 +404,9 @@ public:
 	*/
 	//@{
 	yconstfn reference
-	operator[](difference_type _n) const
+	operator[](difference_type n) const
 	{
-		return this[_n];
+		return this[n];
 	}
 
 	yconstfn pseudo_iterator
@@ -437,6 +450,7 @@ operator!=(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
 \ingroup iterator_adaptors
 \brief 转换迭代器。
 \warning 非虚析构。
+\bug 迭代器类别不保证完全满足原迭代器：不保证可默认构造。
 \since build 288
 
 使用指定参数转换得到新迭代器的间接操作替代指定原始类型的间接操作的迭代器适配器。
@@ -456,7 +470,10 @@ public:
 	//! \since build 358
 	typedef typename std::result_of<_fTransformer&(_tIterator&)>::type
 		transformed_type;
-	//! \since build 412
+	//! \since build 415
+	typedef typename pointer_classify<_tIterator>::type::difference_type
+		difference_type;
+	//! \since build 357
 	typedef decltype(std::declval<transformed_type>()) reference;
 
 protected:
@@ -464,18 +481,62 @@ protected:
 	mutable transformer_type transformer;
 
 public:
-	//! \since build 347
-	template<typename _tIter, typename _tTran>
+	//! \since build 415
+	//@{
+	template<typename _tIter, typename _tTran, typename = typename enable_if<
+		!std::is_same<_tIter&, transformed_iterator&>::value, int>::type>
 	explicit yconstfn
 	transformed_iterator(_tIter&& i, _tTran&& f = {})
 		: iterator_type(yforward(i)), transformer(yforward(f))
 	{}
+	transformed_iterator(const transformed_iterator&) = default;
+	//! \since build 353 as workaround for G++ 4.7.1
+#if YB_IMPL_GNUCPP >= 40800
+	transformed_iterator(transformed_iterator&&) = default;
+#endif
+	//@}
+
+	//! \since build 415
+	transformed_iterator&
+	operator+=(difference_type n)
+	{
+		std::advance(get(), n);
+		return *this;
+	}
+
+	//! \since build 415
+	transformed_iterator&
+	operator-=(difference_type n)
+	{
+		std::advance(get(), -n);
+		return *this;
+	}
 
 	//! \since build 357
 	inline reference
 	operator*() const
 	{
 		return yforward(transformer(get()));
+	}
+
+	//! \since build 415
+	transformed_iterator
+	operator+(difference_type n) const
+	{
+		auto i(*this);
+
+		i += n;
+		return std::move(i);
+	}
+
+	//! \since build 415
+	transformed_iterator
+	operator-(difference_type n) const
+	{
+		auto i(*this);
+
+		i -= n;
+		return std::move(i);
 	}
 
 	/*!
@@ -651,6 +712,7 @@ operator|(_tIterator&& i, indirect_tag)
 /*!
 \ingroup iterator_adaptors
 \brief 成对迭代器。
+\note 成员迭代器需可复制构造，满足随机迭代器要求（但不需要 + 和 - ）。
 \warning 非虚析构。
 
 拼接两个迭代器对得到的迭代器适配器，以第一个为主迭代器的迭代器适配器。
@@ -696,17 +758,17 @@ public:
 
 	//! \since build 356
 	pair_iterator&
-	operator+=(difference_type _n)
+	operator+=(difference_type n)
 	{
-		yunseq(this->first += _n, this->second += _n);
+		yunseq(this->first += n, this->second += n);
 		return *this;
 	}
 
 	//! \since build 356
 	pair_iterator&
-	operator-=(difference_type _n)
+	operator-=(difference_type n)
 	{
-		yunseq(this->first -= _n, this->second -= _n);
+		yunseq(this->first -= n, this->second -= n);
 		return *this;
 	}
 
@@ -764,21 +826,27 @@ public:
 	*/
 	//@{
 	yconstfn reference
-	operator[](difference_type _n) const
+	operator[](difference_type n) const
 	{
-		return this->first[_n];
+		return this->first[n];
 	}
 
-	yconstfn pair_iterator
-	operator+(difference_type _n) const
+	pair_iterator
+	operator+(difference_type n) const
 	{
-		return pair_iterator(this->first + _n, this->second + _n);
+		auto i(*this);
+
+		yunseq(i.first += n, i.second += n);
+		return std::move(i);
 	}
 
-	yconstfn pair_iterator
-	operator-(difference_type _n) const
+	pair_iterator
+	operator-(difference_type n) const
 	{
-		return pair_iterator(this->first - _n, this->second - _n);
+		auto i(*this);
+
+		yunseq(i.first -= n, i.second -= n);
+		return std::move(i);
 	}
 	//@}
 
@@ -896,7 +964,7 @@ public:
 	\brief 迭代：向后遍历。
 	\pre 断言：<tt>!is_undereferenceable(iter)</tt> 。
 	*/
-	indirect_input_iterator&	
+	indirect_input_iterator&
 	operator++()
 	{
 		yconstraint(!is_undereferenceable(iter));
@@ -983,7 +1051,7 @@ public:
 	\post 断言： <tt>shift < seg_n</tt> 。
 	*/
 	bitseg_iterator(byte* p = {}, unsigned char n = 0)
-		: base(p), shift(n) 
+		: base(p), shift(n)
 	{
 		yassume(shift < seg_n);
 	}
@@ -1007,7 +1075,7 @@ public:
 		return *this;
 	}
 
-	yconstfn reference
+	reference
 	operator*() const
 	{
 		yconstraint(base);
@@ -1032,8 +1100,9 @@ public:
 			yunseq(shift = 0, ++base);
 		return *this;
 	}
-	yconstfn bitseg_iterator
-	operator++(int) const
+	//! \since build 415
+	bitseg_iterator
+	operator++(int)
 	{
 		auto i(*this);
 
@@ -1053,8 +1122,9 @@ public:
 			--shift;
 		return *this;
 	}
-	yconstfn bitseg_iterator
-	operator--(int) const
+	//! \since build 415
+	bitseg_iterator
+	operator--(int)
 	{
 		auto i(*this);
 
@@ -1062,7 +1132,7 @@ public:
 		return std::move(i);
 	}
 
-	yconstfn reference
+	reference
 	operator[](difference_type n) const
 	{
 		const auto i(*this);

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r522
+\version r524
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-06-03 21:49 +0800
+	2013-06-18 10:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -308,12 +308,12 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			auto& dsk_up(GetDesktopUp());
 			auto& dsk_dn(GetDesktopDown());
 
-			if(up_i < 5)
+			if(size_t(up_i + 1) < Image_N)
 			{
 				++up_i;
 				Enable(btnPrevBackground);
 			}
-			if(up_i == 5)
+			if(size_t(up_i + 1) == Image_N)
 				Enable(btnNextBackground, false);
 			dsk_up.Background = ImageBrush(FetchImage(up_i));
 			CheckBackgroundPreview(cbPreview, up_i, up_i + 1);

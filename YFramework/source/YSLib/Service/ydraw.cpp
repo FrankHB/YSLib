@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r828
+\version r829
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2013-03-29 02:15 +0800
+	2013-06-18 01:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,7 +95,7 @@ DrawObliqueLine(const Graphics& g, SPos x1, SPos y1, SPos x2, SPos y2,
 		//起点 (x1, y1) 和终点 (x2, y2) 不同。
 
 		const s8 sx(FetchSign(x2 - x1)), sy(FetchSign(y2 - y1));
-		SDst dx(abs(x2 - x1)), dy(abs(y2 - y1));
+		SDst dx(std::abs(x2 - x1)), dy(std::abs(y2 - y1));
 		bool f(dy > dx);
 
 		if(f)

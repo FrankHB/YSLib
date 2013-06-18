@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3030
+\version r3098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-17 19:25 +0800
+	2013-06-18 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,8 @@ YSL_BEGIN_NAMESPACE(Drawing)
 namespace
 {
 
-const u8 BLT_TEXT_ALPHA_THRESHOLD(16);
+//! \since build 415
+const Color::AlphaType BLT_TEXT_ALPHA_THRESHOLD(16);
 PixelType char_color;
 
 template<bool _bPositiveScan>
@@ -47,12 +48,11 @@ struct BlitTextLoop
 {
 	/*!
 	\bug 依赖于静态对象保存的状态，非线程安全。
-	\since build 414
+	\since build 415
 	*/
-	template<typename _tIn>
+	template<typename _tOut, typename _tIn>
 	void
-	operator()(int delta_x, int delta_y,
-		pair_iterator<BitmapPtr, u8*> dst_iter, _tIn src_iter,
+	operator()(int delta_x, int delta_y, _tOut dst_iter, _tIn src_iter,
 		int dst_inc, int src_inc)
 	{
 		for(; delta_y > 0; --delta_y)
@@ -70,97 +70,104 @@ struct BlitTextLoop
 	}
 };
 
-//! \since build 414
+//! \since build 415
 //@{
-u8
-lb32(u32 v)
+template<unsigned char _vN>
+struct tr_seg
 {
-	static_assert(u32(-1) == ~0U, "2's component representation required.");
+	static_assert(_vN < CHAR_BIT, "Specified bits should be within a byte.");
 
-	u32 r((v > 0xFFFF) << 4);
+	byte v;
 
-	v >>= r;
+	const byte&
+	operator()(const bitseg_iterator<_vN, true>& i) ynothrow
+	{
+		return v = byte(*i << (CHAR_BIT - _vN) | ((1U << _vN) - 1));
+	}
+};
 
-	u32 shift((v > 0xFF) << 3);
 
-	v >>= shift;
-	r |= shift;
-	shift = (v > 0xF) << 2;
-	v >>= shift;
-	r |= shift;
-	shift = (v > 0x3) << 1;
-	return r | shift | (v >> (shift + 1));
+typedef pseudo_iterator<const PixelType> PixelIt;
+
+typedef bitseg_iterator<1, true> BIt_1;
+typedef bitseg_iterator<2, true> BIt_2;
+typedef bitseg_iterator<4, true> BIt_4;
+
+typedef transformed_iterator<BIt_1, tr_seg<1>> TIt_1;
+typedef transformed_iterator<BIt_2, tr_seg<2>> TIt_2;
+typedef transformed_iterator<BIt_4, tr_seg<4>> TIt_4;
+
+typedef pair_iterator<PixelIt, TIt_1> MonoItPair_1;
+typedef pair_iterator<PixelIt, TIt_2> MonoItPair_2;
+typedef pair_iterator<PixelIt, TIt_4> MonoItPair_4;
+
+typedef pair_iterator<BitmapPtr, Color::AlphaType*> PairIt;
+
+
+template<unsigned char _vN>
+auto
+tr_buf(byte* p)
+	-> decltype(make_transform(bitseg_iterator<_vN, true>(p), tr_seg<_vN>()))
+{
+	return make_transform(bitseg_iterator<_vN, true>(p), tr_seg<_vN>());
 }
-
-typedef ystdex::bitseg_iterator<1> bseg_it_1;
-typedef ystdex::bitseg_iterator<2> bseg_it_2;
-typedef ystdex::bitseg_iterator<4> bseg_it_4;
-
-typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
-	bseg_it_1> MonoIteratorPair_1;
-typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
-	bseg_it_2> MonoIteratorPair_2;
-typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
-	bseg_it_4> MonoIteratorPair_4;
 //@}
 
 } // unnamed namespace;
 
 void
-RenderChar(PaintContext&& pc, Color c, CharBitmap::BufferType cbuf,
-	CharBitmap::ScaleType gray, const Size& ss)
+RenderChar(PaintContext&& pc, Color c, bool neg_pitch,
+	CharBitmap::BufferType cbuf, CharBitmap::FormatType fmt, const Size& ss)
 {
 	YAssert(cbuf, "Invalid buffer found.");
 
-	switch(lb32(gray + 1U))
+	switch(fmt)
 	{
-	case 1:
-		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoIteratorPair_1(
-			pseudo_iterator<const PixelType>(c), bseg_it_1(cbuf)), ss, pc);
+	case CharBitmap::Mono:
+		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoItPair_1(
+			PixelIt(c), tr_buf<1>(cbuf)), ss, pc, neg_pitch);
 		break;
-	case 2:
-		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoIteratorPair_2(
-			pseudo_iterator<const PixelType>(c), bseg_it_2(cbuf)), ss, pc);
+	case CharBitmap::Gray2:
+		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoItPair_2(
+			PixelIt(c), tr_buf<2>(cbuf)), ss, pc, neg_pitch);
 		break;
-	case 4:
-		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoIteratorPair_4(
-			pseudo_iterator<const PixelType>(c), bseg_it_4(cbuf)), ss, pc);
+	case CharBitmap::Gray4:
+		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoItPair_4(
+			PixelIt(c), tr_buf<4>(cbuf)), ss, pc, neg_pitch);
 		break;
-	case 8:
+	case CharBitmap::Gray:
 		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoIteratorPair(
-			pseudo_iterator<const PixelType>(c), cbuf), ss, pc);
+			PixelIt(c), cbuf), ss, pc, neg_pitch);
 	default:
 		break;
 	}
 }
 
 void
-RenderCharAlpha(PaintContext&& pc, Color c, CharBitmap::BufferType cbuf,
-	CharBitmap::ScaleType gray, const Size& ss, u8* alpha)
+RenderCharAlpha(PaintContext&& pc, Color c, bool neg_pitch,
+	CharBitmap::BufferType cbuf, CharBitmap::FormatType fmt, const Size& ss,
+	Color::AlphaType* alpha)
 {
 	YAssert(cbuf, "Invalid buffer found.");
 
 	char_color = c;
-	switch(lb32(gray + 1U))
+	switch(fmt)
 	{
-	case 1:
-		BlitChar<BlitTextLoop>(pair_iterator<BitmapPtr, u8*>(
-			pc.Target.GetBufferPtr(), alpha), ystdex::bitseg_iterator<1>(cbuf),
-			ss, pc);
+	case CharBitmap::Mono:
+		BlitChar<BlitTextLoop>(PairIt(pc.Target.GetBufferPtr(), alpha),
+			tr_buf<1>(cbuf), ss, pc, neg_pitch);
 		break;
-	case 2:
-		BlitChar<BlitTextLoop>(pair_iterator<BitmapPtr, u8*>(
-			pc.Target.GetBufferPtr(), alpha), ystdex::bitseg_iterator<2>(cbuf),
-			ss, pc);
+	case CharBitmap::Gray2:
+		BlitChar<BlitTextLoop>(PairIt(pc.Target.GetBufferPtr(), alpha),
+			tr_buf<2>(cbuf), ss, pc, neg_pitch);
 		break;
-	case 4:
-		BlitChar<BlitTextLoop>(pair_iterator<BitmapPtr, u8*>(
-			pc.Target.GetBufferPtr(), alpha), ystdex::bitseg_iterator<4>(cbuf),
-			ss, pc);
+	case CharBitmap::Gray4:
+		BlitChar<BlitTextLoop>(PairIt(pc.Target.GetBufferPtr(), alpha),
+			tr_buf<4>(cbuf), ss, pc, neg_pitch);
 		break;
-	case 8:
-		BlitChar<BlitTextLoop>(pair_iterator<BitmapPtr, u8*>(
-			pc.Target.GetBufferPtr(), alpha), cbuf, ss, pc);
+	case CharBitmap::Gray:
+		BlitChar<BlitTextLoop>(PairIt(pc.Target.GetBufferPtr(), alpha), cbuf,
+			ss, pc, neg_pitch);
 	default:
 		break;
 	}

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1602
+\version r1603
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-02-23 08:37 +0800
+	2013-06-17 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,7 +155,7 @@ arrlen(_type(&&)[_vN])
 /*!
 \brief 按标识调用函数，保证调用一次。
 \note 类似 std::call_once ，但多线程环境下失效。
-\note ISO C++11（至 N3376 ） 30.4 synopsis 处的声明存在错误。
+\note ISO C++11（至 N3691 ） 30.4 synopsis 处的声明存在错误。
 \since build 327
 
 当标识为 true 时候无作用，否则调用函数。

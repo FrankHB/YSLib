@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r859
+\version r921
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-17 21:04 +0800
+	2013-06-18 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,68 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YBase'.'YStandardEx'.'Iterator' $=
+	(
+		/ @ \clt pointer_iterator $=
+		(
+			+ "non-null assertions" @ "several member functions",
+			- 'const' @ "member functions postfix %operator(++, --),
+			/ $dev "private member 'mutable pointer current'" -> 'pointer raw'
+		),
+		/ @ "class template %bitseg_iterator" $=
+		(
+			* "'yconstfn' and assertions for strict ISO C++11 compatibility"
+				@ $since b414,
+				// G++ didn't complain, but Clang++ does.
+			- 'const' @ "member functions postfix %operator(++, --)
+		),
+		/ "implemented member functions %operator(+, -) supporting underlying \
+			functions which don't returning types constrctible for \
+			%pair_iterator" @ "class template %pair_iterator",
+		/ @ \clt transformed_iterator $=
+		(
+			* "wrong overloaded member leading to copy constructor cannot
+				be called for non-const reference type" $since b288,
+			+ "explicitly defaulted copy constructor",
+			+ "explicitly defaulted move constructor",
+				// G++ 4.7.1 can't accept this overloading, so ignored \
+					as workaround.
+			+ "member functions %operator(+=, -=; +, -)"
+				// Using %std::advance.
+		)
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ @ "class %CharBitmap" @ %'Adaptor'.'Font' $=
+		(
+			+ "typedef %PictchType; member function %GetPitch",
+			+ "typedef %FormatType; member function %GetFormat"
+		);
+		/ %'Service' $=
+		(
+			(
+				$dep_from %'YBase'.'YStandardEx'.'Iterator';
+				/ "text rendering supporting negative pitch and non 255 gray \
+					level bitmaps";
+				* $comp "wrong dispatch of char format" $since b414,
+				* $comp "bitmap rendering corrupting for font with non 255 \
+					gray level embedded bitmaps" $since b185
+			)
+			/ $dev "all '%u8' for alpha value" -> ('Color::AlphaType'
+				| "template parameter %_tAlpha") @ %'YBlit'
+		)
+	),
+	/ %'YReader' $=
+	(
+		- "3 bitmaps" @ "shells background images";
+		* $workaround "memory allocation failed exiting reader"
+			@ "debug configuration" @ "platform %DS" $since b399
+			// Still possible out-of-memory if the font file is too big.
+	)
+),
+
+b414
 (
 	/ %'YBase'.'YStandardEx' $=
 	(
@@ -224,7 +286,7 @@ b412
 						$since b410
 				),
 				* "wrong overloaded member leading to copy constructor cannot
-					be calleed" $since b207
+					be called for non-const reference type" $since b207
 					// This also resolves the Clang++ bug, for private member \
 						with SFINAE is not enough. See $ref b412 $note \
 						"Clang++ bug 8448".

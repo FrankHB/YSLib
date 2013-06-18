@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6289
+\version r6299
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-05-12 08:22 +0800
+	2013-06-18 10:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,16 +102,6 @@ FetchImage(size_t i)
 		},
 		[](SDst x, SDst y)->Color{
 			return {~(x * y) >> 2, x | y | 128, 240 - ((x & y) >> 1)};
-		},
-		[](SDst x, SDst y)->Color{
-			return {x + y * y, (x & y) ^ (x | y), x * x + y};
-		},
-		[](SDst x, SDst y)->Color{
-			return {(x << 4) / ((y & 1) | 1), ~x % 101 + y,
-				(x + y) % (((y - 2) & 1) | 129) + (x << 2)};
-		},
-		[](SDst x, SDst y)->Color{
-			return {(x | y) % (y + 2), (~y | x) % 27 + 3, (x << 6) / (y | 1)};
 		}
 	};
 

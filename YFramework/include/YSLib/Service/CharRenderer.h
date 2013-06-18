@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2728
+\version r2741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-17 19:22 +0800
+	2013-06-18 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,18 +44,21 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \param src 源迭代器。
 \param ss 源迭代器所在缓冲区大小。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
+\param neg_pitch 指定交换行渲染顺序。
 \see Blit 。
-\since build 366
+\since build 415
 */
 template<template<bool> class _gBlitLoop, typename _tOut, typename _tIn>
 inline void
-BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc)
+BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc,
+	bool neg_pitch)
 {
 	const auto& g(pc.Target);
 	const auto& r(pc.ClipArea);
 
-	Blit<_gBlitLoop, false, false>(dst, g.GetSize(), src, ss,
-		r.GetPoint(), pc.Location, r.GetSize());
+	(neg_pitch ? Blit<_gBlitLoop, false, true, _tOut, _tIn> : Blit<_gBlitLoop,
+		false, false, _tOut, _tIn>)(dst, g.GetSize(), src, ss, r.GetPoint(),
+		pc.Location, r.GetSize());
 }
 
 
@@ -64,21 +67,21 @@ BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc)
 \param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
 \note 忽略 Alpha 缓冲。
-\since build 414
+\since build 415
 */
 YF_API void
-RenderChar(PaintContext&& pc, Color, CharBitmap::BufferType,
-	CharBitmap::ScaleType, const Size&);
+RenderChar(PaintContext&& pc, Color, bool, CharBitmap::BufferType,
+	CharBitmap::FormatType, const Size&);
 
 /*!
 \brief 渲染带 Alpha 缓冲的单个字符。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
-\since build 414
+\since build 415
 */
 YF_API void
-RenderCharAlpha(PaintContext&& pc, Color, CharBitmap::BufferType,
-	CharBitmap::ScaleType, const Size&, u8*);
+RenderCharAlpha(PaintContext&& pc, Color, bool, CharBitmap::BufferType,
+	CharBitmap::FormatType, const Size&, Color::AlphaType*);
 
 
 /*!

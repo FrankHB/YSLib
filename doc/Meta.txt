@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r501
+\version r511
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-06-09 15:30 +0800
+	2013-06-18 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,9 +132,6 @@ DLB $dev $lib $build;
 $KNOWN_ISSUE:
 // There are issues that won't be fixed if no further progress for \
 	implementation techniques found. Also depends on the environment.
-* $known_issue_b223 "corrupted loading or fatal errors on loading font file \
-	with embedded bitmap glyph like simson.ttc" $since b185;
-	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10, 2.4.11, 2.4.12) tested.
 * $known_issue_b264 "<cmath> cannot use 'std::*' names" @ "!defined \
 	%_GLIBCXX_USE_C99_MATH_TR1" @ "libstdc++ with G++ (4.6, 4.7) on devkitARM"
 	@ "platform $DS" $before $future;
@@ -234,6 +231,15 @@ $RESOLVED_ENVIRONMENT_ISSUE:
 		rejects even more, including code accepted by G++ such as only list \
 		initialization is being used like constexpr static member in \
 		"ygdibase.h".
+
+
+$RESOLVED_BUG:
+* $known_issue_b223 $resolved_b415 "corrupted loading or fatal errors on \
+	loading font file with embedded bitmap glyph like simson.ttc" $since b185;
+	// freetype (2.4.6, 2.4.8, 2.4.9, 2.4.10, 2.4.11, 2.4.12) tested.
+	// It is the bug of loading and rendering wrongly ignoring the format, and \
+		only occured when using FreeType cache(which is the only method in \
+		YSTest). FreeType is OK.
 
 
 $HISTORY:
