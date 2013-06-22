@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3328
+\version r3354
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-06-14 00:17 +0800
+	2013-06-20 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,29 +55,25 @@ FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
 
 
 InputTimer::InputTimer(const Duration& d)
-	: timer(d)
+	: Timer(d)
 {}
 
 bool
-InputTimer::Refresh(HeldStateType& s,
-	const Duration& initial_delay, const Duration& repeated_delay)
+InputTimer::RefreshHeld(HeldStateType& s, const Duration& initial_delay,
+	const Duration& repeated_delay)
 {
 	switch(s)
 	{
 	case Free:
-		s = Pressed,
-		timer.Interval = initial_delay;
-		Activate(timer);
+		yunseq(s = Pressed, Interval = initial_delay);
+		Activate(*this);
 		break;
 	case Pressed:
 	case Held:
-		if(YB_UNLIKELY(timer.Refresh()))
+		if(YB_UNLIKELY(Timer::Refresh()))
 		{
 			if(s == Pressed)
-			{
-				s = Held,
-				timer.Interval = repeated_delay;
-			}
+				yunseq(s = Held, Interval = repeated_delay);
 			return true;
 		}
 		break;
@@ -85,10 +81,21 @@ InputTimer::Refresh(HeldStateType& s,
 	return false;
 }
 
-void
-InputTimer::Reset()
+size_t
+InputTimer::RefreshClick(size_t s, const Duration& delay)
 {
-	timer.Interval = Timers::TimeSpan(1000);
+	if(s == 0 || YB_UNLIKELY(!Timer::Refresh()))
+		Interval = delay;
+	else
+		return 0;
+	Activate(*this);
+	return s + 1;
+}
+
+void
+InputTimer::ResetInput()
+{
+	Interval = Timers::TimeSpan(1000);
 }
 
 
@@ -99,7 +106,7 @@ RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
 {
 	const bool b(st == InputTimer::Free);
 
-	return tmr.Refresh(st, initial_delay, repeated_delay) || b;
+	return tmr.RefreshHeld(st, initial_delay, repeated_delay) || b;
 }
 
 
@@ -116,7 +123,7 @@ GUIState::Reset()
 {
 	yunseq(KeyHeldState = InputTimer::Free, TouchHeldState = InputTimer::Free,
 		DraggingOffset = Vec::Invalid),
-	HeldTimer.Reset();
+	HeldTimer.ResetInput();
 	yunseq(ControlLocation = Point::Invalid,
 		LastControlLocation = Point::Invalid,
 		p_TouchDown = nullptr, p_KeyDown = nullptr);
@@ -126,7 +133,7 @@ void
 GUIState::ResetHeldState(InputTimer::HeldStateType& s)
 {
 	s = InputTimer::Free,
-	HeldTimer.Reset();
+	HeldTimer.ResetInput();
 }
 
 void

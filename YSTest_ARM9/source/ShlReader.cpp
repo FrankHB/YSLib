@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4322
+\version r4361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-06-03 21:50 +0800
+	2013-06-21 13:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -274,7 +274,8 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 
 
 ShlTextReader::BaseSession::BaseSession(ShlTextReader& shl)
-	: GShellSession<ShlTextReader>(shl)
+	: GShellSession<ShlTextReader>(shl),
+	reader_box_shown(IsVisible(shl.boxReader))
 {
 	shl.StopAutoScroll(),
 	Hide(shl.boxReader),
@@ -286,8 +287,9 @@ ShlTextReader::BaseSession::~BaseSession()
 
 	shl.reader.SetVisible(true),
 	shl.boxReader.UpdateData(shl.reader),
-	shl.boxTextInfo.UpdateData(shl.reader),
-	Show(shl.boxReader);
+	shl.boxTextInfo.UpdateData(shl.reader);
+	if(reader_box_shown)
+		Show(shl.boxReader);
 }
 
 
@@ -344,8 +346,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
 	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
 	CurrentSetting.GetTimerSetting()), tmrScrollActive(false), tmrInput(),
-	reader(), boxReader({0, 160, 256, 32}), boxTextInfo(), pnlSetting(),
-	pTextFile(), mhMain(GetDesktopDown()),
+	nClick(), reader(), boxReader({0, 160, 256, 32}), boxTextInfo(),
+	pnlSetting(), pTextFile(), mhMain(GetDesktopDown()),
 	pnlBookmark(LoadBookmarks(pth), *this), session_ptr()
 {
 	using ystdex::get_key;
@@ -591,6 +593,14 @@ ShlTextReader::ShowMenu(Menu::ID id, const Point& pt)
 }
 
 void
+ShlTextReader::StartAutoScroll()
+{
+	fBackgroundTask = std::bind(&ShlTextReader::Scroll, this);
+	Activate(tmrScroll),
+	tmrScrollActive = true;
+}
+
+void
 ShlTextReader::StopAutoScroll()
 {
 	reader.AdjustScrollOffset(),
@@ -631,11 +641,7 @@ ShlTextReader::UpdateButtons()
 }
 
 void
-#if YCL_MINGW32
 ShlTextReader::OnClick(TouchEventArgs&& e)
-#else
-ShlTextReader::OnClick(TouchEventArgs&&)
-#endif
 {
 #if YCL_MINGW32
 	if(e.Keys[VK_RBUTTON])
@@ -643,21 +649,30 @@ ShlTextReader::OnClick(TouchEventArgs&&)
 		ShowMenu(1U, e);
 		return;
 	}
+#else
+	static_cast<void>(e);
 #endif
 	if(tmrScrollActive)
-	{
 		StopAutoScroll();
-		return;
-	}
-	if(IsVisible(boxReader))
-	{
-		Close(boxReader);
-		reader.Stretch(0);
-	}
 	else
 	{
-		Show(boxReader);
-		reader.Stretch(boxReader.GetHeight());
+		if((nClick = tmrInput.RefreshClick(nClick)) > 1)
+		{
+			nClick = 0;
+			StartAutoScroll();
+		}
+		else if(nClick == 0)
+			++nClick;
+		if(IsVisible(boxReader))
+		{
+			Close(boxReader);
+			reader.Stretch(0);
+		}
+		else
+		{
+			Show(boxReader);
+			reader.Stretch(boxReader.GetHeight());
+		}
 	}
 }
 
@@ -686,10 +701,7 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 			return;
 		if(k[YCL_KEY_Start])
 		{
-			fBackgroundTask = std::bind(&ShlTextReader::Scroll, this);
-			tmrScroll.Reset();
-			Activate(tmrScroll),
-			tmrScrollActive = true;
+			StartAutoScroll();
 			return;
 		}
 		if(k[KeyCodes::Enter])

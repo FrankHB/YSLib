@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r6109 *build 415 rev *
+\version r6126 *build 416+ rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-18 20:14 +0800
+	2013-06-20 01:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,20 +229,15 @@ $macro_platform_mapping:
 \mac YCL_DS -> DS,
 \mac YCL_MINGW32 -> MinGW32;
 
-$using:
-;
-
 
 $DONE:
-r1-r41;
+r1-r*;
 
 
 $DOING:
 
 $relative_process:
-2013-06-18 +0800:
--33.3d;
-// Mercurial local rev1-rev287: r11076;
+// Mercurial local rev1-rev287+: r11076+;
 
 / ...
 
@@ -264,7 +259,7 @@ $TODO:
 b[1076]:
 / $extern external dependencies $=
 (
-	/ recompile freetype with MinGW g++ 4.8.0,
+	/ recompile freetype with MinGW g++ 4.8.1 or later,
 	* freetype 2.4.12 performance @ DS
 );
 / YBase $=
@@ -277,11 +272,9 @@ b[1076]:
 		&& __has_feature(cxx_rtti)) for Clang++ @ \h YDefinition,
 	+ comparison between different cv-qualified any_iterator types
 		@ \h AnyIterator,
-	+ ystdex::noinstance base class,
 	/ $extern adjusted ystdex::any to std::tr2::any,
-	/ resolved 'scaler' \term and %is_scalar(e.g. for fixed point numbers),
 	+ adaptive seriazation (to text/binary),
-	+ round to 2^n integer arithmetics,
+	+ round to 2^n integer/bit hacking arithmetics,
 	/ $low_prior consider merge: boost.iterator,
 	+ tag-based type operations,
 	/ ystdex::fixed_point $=
@@ -295,20 +288,19 @@ b[1076]:
 ),
 / YFramework.YSLib.Adaptor $=
 (
-	/ consider: + final @ \cl (Font, CharBitmap) @ \u Font,
+	/ consider: character bitmap reference counting,
 	+ external image \lib binding
 ),
 / YFramework.YSLib.Service $=
 (
 	+ \impl @ images I/O and conversions,
-	/ \impl YFileSystem ^ tr2::filesystem,
+	/ consider: integrated \impl YFileSystem ^ tr2::filesystem,
 	// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3505.html .
 	/ fully \impl @ encoding checking,
 	+ general \impl @ images processing interface,
 	^ <chrono> to completely abstract system clocks,
-	+ general data configuragion,
-	/ general file type abstraction,
-	/ fully \impl @ \cl Path
+	+ general data configuragion(consider: NPL extensions),
+	/ general file type abstraction(consider: MIME)
 ),
 / YFramework.YSLib.UI $=
 (
@@ -386,7 +378,6 @@ b[1076]:
 ),
 / @ \lib YCLib $=
 (
-	/ consider: necessity of %thread_local for error codes, etc,
 	/ stripping away direct using @ Win32 types completely @ \h
 ),
 / $low_prior YReader $=
@@ -452,6 +443,7 @@ b[1076]:
 	/ more specific \impl @ NPL context,
 	/ memory fragment issues
 ),
+/ consider: necessity of %thread_local for error codes, etc,
 + copyright notice reproducing/displaying for licenses @ binaries;
 
 b[866]:

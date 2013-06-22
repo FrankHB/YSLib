@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r398
+\version r401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-03-13 12:56 +0800
+	2013-06-20 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,9 +136,9 @@ YSL_BEGIN_NAMESPACE(Styles)
 
 /*!
 \brief 样式区域类型。
-\since build 204
+\since build 416
 */
-typedef enum
+enum Area
 {
 	//背景和填充区域。
 	Null = 0, //!< 空（屏幕背景）。
@@ -168,7 +168,7 @@ typedef enum
 	HotTracking = 22,
 
 	EndArea = 24
-} Area;
+};
 
 
 /*!

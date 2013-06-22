@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1322
+\version r1331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-06-14 00:10 +0800
+	2013-06-20 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,13 +87,16 @@ public:
 struct YF_API RoutedEventArgs : public UIEventArgs
 {
 public:
-	//! 事件路由策略枚举。
-	typedef enum
+	/*!
+	\brief 事件路由策略枚举。
+	\since build 416
+	*/
+	enum RoutingStrategy
 	{
 		Bubble = 0, //!< 气泡事件：向上遍历视图树时触发。
 		Tunnel = 1, //!< 隧道事件：向下遍历视图树时触发。
 		Direct = 2 //!< 直接事件：仅当遍历至目标控件时触发。
-	} RoutingStrategy;
+	};
 
 	RoutingStrategy Strategy; //!< 事件路由策略。
 	bool Handled; //!< 事件已经被处理。
@@ -246,9 +249,9 @@ DeclDelegate(HPaintEvent, PaintEventArgs&&)
 
 /*!
 \brief 标准控件事件空间。
-\since build 192
+\since build 416
 */
-typedef enum
+enum VisualEvent
 {
 //	AutoSizeChanged,
 //	BackColorChanged,
@@ -288,7 +291,7 @@ typedef enum
 //	FontChanged,
 //	FontColorChanged,
 //	FontSizeChanged,
-} VisualEvent;
+};
 
 
 template<VisualEvent>

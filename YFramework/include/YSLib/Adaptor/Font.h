@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2854
+\version r2864
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-06-18 02:41 +0800
+	2013-06-20 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,10 +106,9 @@ FetchName(FontStyle style) ynothrow
 
 /*!
 \brief 字型家族 (Typeface Family) 标识。
-\warning 非虚析构。
 \since build 145
 */
-class YF_API FontFamily : private noncopyable
+class YF_API FontFamily final : private noncopyable
 {
 public:
 	typedef map<const StyleName, Typeface*> FaceMap; //!< 字型组索引类型。
@@ -158,10 +157,9 @@ public:
 
 /*!
 \brief 字型标识。
-\warning 非虚析构。
 \since build 145
 */
-class YF_API Typeface : private noncopyable
+class YF_API Typeface final : private noncopyable
 {
 	friend ::FT_Error
 	simpleFaceRequester(::FTC_FaceID, ::FT_Library, ::FT_Pointer, ::FT_Face*);
@@ -232,11 +230,10 @@ FetchDefaultTypeface() ythrow(LoggedEvent);
 
 /*!
 \brief 字符位图。
-\warning 非虚析构。
 \warning 若为空时调用成员函数时行为未定义。
 \since build 147
 */
-class YF_API CharBitmap
+class YF_API CharBitmap final
 {
 public:
 	typedef ::FT_Byte* BufferType;
@@ -292,10 +289,9 @@ public:
 
 /*!
 \brief 字体缓存。
-\warning 非虚析构。
 \since build 209
 */
-class YF_API FontCache : private noncopyable,
+class YF_API FontCache final : private noncopyable,
 	private OwnershipTag<Typeface>, private OwnershipTag<FontFamily>
 {
 	friend class Typeface;
@@ -452,10 +448,9 @@ public:
 
 /*!
 \brief 字体：字模，包含字型、样式和大小。
-\warning 非虚析构。
 \since build 145
 */
-class YF_API Font
+class YF_API Font final
 {
 public:
 	static yconstexpr FontSize DefaultSize = 12,

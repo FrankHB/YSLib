@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r435
+\version r440
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-05-12 11:24 +0800
+	2013-06-21 15:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,11 +123,8 @@ FetchFontFamilyNames()
 {
 	const auto& mFamilies(FetchDefaultFontCache().GetFamilyIndices());
 
-	// TODO: Use g++ 4.8 or later.
-//	return make_shared<TextList::ListType>(mFamilies.cbegin()
-//		| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
-	return share_raw(new UI::TextList::ListType(mFamilies.cbegin()
-		| ystdex::get_key, mFamilies.cend() | ystdex::get_key));
+	return ystdex::make_shared<UI::TextList::ListType>(mFamilies.cbegin()
+		| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r620
+\version r627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-06-13 08:56 +0800
+	2013-06-20 14:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,11 +138,12 @@ namespace ColorSpace
 /*!
 \brief 默认颜色集。
 \see http://www.w3schools.com/html/html_colornames.asp 。
+\since build 416
 */
 #if YCL_DS
-typedef enum : PixelType
+enum ColorSet : PixelType
 #else
-typedef enum : std::uint32_t
+enum ColorSet : std::uint32_t
 #endif
 {
 	DefColorH(00FFFF, Aqua),
@@ -161,7 +162,7 @@ typedef enum : std::uint32_t
 	DefColorH(008080, Teal),
 	DefColorH(FFFFFF, White),
 	DefColorH(FFFF00, Yellow)
-} ColorSet;
+};
 
 #undef DefColorH
 #undef DefColorH_
@@ -291,9 +292,9 @@ namespace Consoles
 
 /*!
 \brief 控制台颜色枚举。
-\since build 328
+\since build 416
 */
-typedef enum
+enum Color
 {
 	Black = 0,
 	DarkBlue,
@@ -311,7 +312,7 @@ typedef enum
 	Magenta,
 	Yellow,
 	White
-} Color;
+};
 
 /*!
 \brief 控制台颜色。

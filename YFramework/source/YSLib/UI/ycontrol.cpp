@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3720
+\version r3738
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-06-09 11:03 +0800
+	2013-06-21 18:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@ OnKeyHeld(KeyEventArgs&& e)
 {
 	auto& st(FetchGUIState());
 
-	if(st.HeldTimer.Refresh(st.KeyHeldState, Timers::TimeSpan(240),
+	if(st.HeldTimer.RefreshHeld(st.KeyHeldState, Timers::TimeSpan(240),
 		Timers::TimeSpan(60)))
 		CallEvent<KeyDown>(e.GetSender(), e);
 }
@@ -118,7 +118,7 @@ OnTouchMove(TouchEventArgs&& e)
 	{
 		auto& st(FetchGUIState());
 
-		if(st.GetTouchDownPtr() && st.HeldTimer.Refresh(st.TouchHeldState,
+		if(st.GetTouchDownPtr() && st.HeldTimer.RefreshHeld(st.TouchHeldState,
 			Timers::TimeSpan(240), Timers::TimeSpan(80)))
 			CallEvent<TouchDown>(*st.GetTouchDownPtr(), e);
 	}
@@ -148,23 +148,25 @@ OnTouchMove_Dragging(TouchEventArgs&& e)
 
 namespace
 {
-	IWidget*
-	FetchEnabledBoundControlPtr(KeyEventArgs&& e)
-	{
-		try
-		{
-			auto pCtl(dynamic_cast<Control&>(e.GetSender())
-				.BoundControlPtr(e.GetKeys()));
 
-			return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
-		}
-		catch(std::bad_function_call&)
-		{}
-		catch(std::bad_cast&)
-		{}
-		return nullptr;
+IWidget*
+FetchEnabledBoundControlPtr(KeyEventArgs&& e)
+{
+	try
+	{
+		auto pCtl(dynamic_cast<Control&>(e.GetSender()).BoundControlPtr(
+			e.GetKeys()));
+
+		return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
 	}
+	catch(std::bad_function_call&)
+	{}
+	catch(std::bad_cast&)
+	{}
+	return nullptr;
 }
+
+} // unnamed namespace;
 
 void
 OnKey_Bound_TouchUpAndLeave(KeyEventArgs&& e)

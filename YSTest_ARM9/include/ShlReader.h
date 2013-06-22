@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1761
+\version r1776
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-05-17 03:12 +0800
+	2013-06-21 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,9 +35,6 @@
 #include "BookmarkUI.h"
 
 YSL_BEGIN_NAMESPACE(YReader)
-
-class ShlReader;
-
 
 class ReaderBox : public Control
 {
@@ -221,6 +218,10 @@ private:
 	//@{
 	class BaseSession : public GShellSession<ShlTextReader>
 	{
+	private:
+		//! \since build 416
+		bool reader_box_shown;
+
 	public:
 		BaseSession(ShlTextReader&);
 		~BaseSession() override;
@@ -267,6 +268,11 @@ protected:
 	\since build 300
 	*/
 	InputTimer tmrInput;
+	/*!
+	\brief 记录点击次数。
+	\since build 416
+	*/
+	size_t nClick;
 	//! \since build 323
 	//@{
 	DualScreenReader reader;
@@ -344,6 +350,13 @@ public:
 private:
 	void
 	ShowMenu(Menu::ID, const Point&);
+
+	/*!
+	\brief 开始自动滚屏。
+	\since build 416
+	*/
+	void
+	StartAutoScroll();
 
 	/*!
 	\brief 停止自动滚屏。

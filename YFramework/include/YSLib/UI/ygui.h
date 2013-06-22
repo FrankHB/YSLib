@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1904
+\version r1929
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-03-13 13:00 +0800
+	2013-06-20 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,50 +38,49 @@ YSL_BEGIN_NAMESPACE(UI)
 
 /*!
 \brief 输入计时器。
-\warning 非虚析构。
 \since build 300
 
 实现两段延时的持续输入状态计时器。
 */
-class YF_API InputTimer
+class YF_API InputTimer : public Timers::Timer
 {
 public:
 	typedef Timers::Duration Duration;
 	/*!
 	\brief 输入保持状态。
+	\since build 416
 	*/
-	typedef enum
+	enum HeldStateType
 	{
 		Free = 0,
 		Pressed = 1,
 		Held = 2
-	} HeldStateType;
+	};
 
-private:
-	Timers::Timer timer;
-
-public:
 	InputTimer(const Duration& = Timers::TimeSpan(1000U));
 
 	/*!
-	\brief 延迟。
-	\since build 302
-	*/
-	PDefH(void, Delay, const Duration& d)
-		ImplBodyMem(timer, Delay, d)
-
-	/*!
 	\brief 重复检测输入接触保持状态。
+	\since build 416
 	*/
 	bool
-	Refresh(HeldStateType&, const Duration& = Timers::TimeSpan(240),
+	RefreshHeld(HeldStateType&, const Duration& = Timers::TimeSpan(240),
 		const Duration& = Timers::TimeSpan(120));
 
 	/*!
-	\brief 复位状态。
+	\brief 重复检测连续点击状态。
+	\return 保持的点击次数：若不超过延时则为输入次数增加 1 ，否则为 0 。
+	\since build 416
+	*/
+	size_t
+	RefreshClick(size_t, const Duration& = Timers::TimeSpan(400));
+
+	/*!
+	\brief 复位输入计时状态。
+	\since build 416
 	*/
 	void
-	Reset();
+	ResetInput();
 };
 
 

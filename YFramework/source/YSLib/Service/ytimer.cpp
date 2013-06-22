@@ -11,13 +11,13 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r780
+\version r798
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-05-17 03:24 +0800
+	2013-06-20 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,27 +33,29 @@ YSL_BEGIN_NAMESPACE(Timers)
 
 namespace
 {
-	bool NotInitialized(true);
 
-	void
-	Init(Timer& tmr, bool b)
+bool NotInitialized(true);
+
+void
+Init(Timer& tmr, bool b)
+{
+	if(YB_UNLIKELY(NotInitialized))
 	{
-		if(YB_UNLIKELY(NotInitialized))
-		{
-			StartTicks();
-			NotInitialized = false;
-		}
-		if(b)
-			Activate(tmr);
+		StartTicks();
+		NotInitialized = false;
 	}
-
-
-	inline TimePoint
-	GetTickPoint()
-	{
-		return TimePoint(TimeSpan(GetTicks()));
-	}
+	if(b)
+		Activate(tmr);
 }
+
+
+inline TimePoint
+GetTickPoint()
+{
+	return TimePoint(TimeSpan(GetTicks()));
+}
+
+} // unnamed namespace;
 
 void
 Delay(const TimeSpan& ms)

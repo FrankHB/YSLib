@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r90
+\version r95
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-05-05 13:48 +0800
+	2013-06-21 21:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,14 +43,10 @@ protected:
 	*/
 	Label lblInfo;
 	FileBox fbMain;
-	Button btnTest, btnOK;
+	Button btnOK;
 	Button btnMenu;
 	DialogPanel pnlSetting;
 	CheckButton cbHex, cbFPS;
-	/*!
-	\brief 复选按钮：指定开启切换背景时的预览。
-	*/
-	CheckButton cbPreview;
 	Label lblDragTest;
 	Button btnEnterTest, btnTestEx, btnPrevBackground, btnNextBackground;
 	unique_ptr<FrmAbout> pFrmAbout;

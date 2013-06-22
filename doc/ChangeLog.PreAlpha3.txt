@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3641
+\version r3642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-06-09 13:58 +0800
+	2013-06-21 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3377,7 +3377,7 @@ b304
 	(
 		/ %'YSLib' $=
 		(
-			/ %'UI'.'GUI' $= "check box appearance",
+			/ %'UI'.'GUI' $= "checkbox appearance",
 			(
 				$dep_from "u16getcwd";
 				/ "function %GetNowDirectory" @ %'Core'

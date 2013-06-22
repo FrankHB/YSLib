@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r161
+\version r169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2013-06-08 13:57 +0800
+	2013-06-20 14:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,8 @@ namespace KeyCodes
 {
 
 #if YCL_DS
-typedef enum
+//! \since build 416
+enum NativeSet
 {
 	A		= 0,
 	B		= 1,
@@ -86,7 +87,7 @@ typedef enum
 	Y		= 11,
 	Touch	= 12,
 	Lid		= 13
-} NativeSet;
+};
 
 //按键别名。
 const NativeSet
@@ -105,10 +106,9 @@ const NativeSet
 #define VK_DOWN 0x28
 /*!
 \brief 基本公用按键集合。
-\since build 297
+\since build 416
 */
-//@{
-typedef enum
+enum NativeSet
 {
 	Empty	= 0,
 	Enter	= VK_RETURN,
@@ -119,8 +119,7 @@ typedef enum
 	Up		= VK_UP,
 	Right	= VK_RIGHT,
 	Down	= VK_DOWN
-} NativeSet;
-//@}
+};
 #undef VK_RETURN
 #undef VK_ESCAPE
 #undef VK_PRIOR

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r524
+\version r572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-06-18 10:32 +0800
+	2013-06-21 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,20 +97,6 @@ CheckReaderEnability(FileBox& fb, CheckBox& hex)
 	return false;
 }
 
-//! \since build 330
-void
-CheckBackgroundPreview(CheckButton& cbPreview, size_t up_i, size_t dn_i)
-{
-	if(cbPreview.IsTicked())
-	{
-		auto& app(FetchGlobalInstance<DSApplication>());
-
-		app.GetScreenUp().Update(FetchImage(up_i)->GetBufferPtr());
-		app.GetScreenDown().Update(FetchImage(dn_i)->GetBufferPtr());
-		platform::WaitForInput();
-	}
-}
-
 } // unnamed namespace;
 
 
@@ -118,14 +104,13 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
 	: ShlDS(h_dsk_up, h_dsk_dn),
 	lblTitle({16, 20, 220, 22}), lblPath({8, 48, 240, 48}),
-	lblInfo({8, 100, 240, 64}), fbMain({0, 0, 256, 152}),
-	btnTest({128, 170, 64, 22}), btnOK({192, 170, 64, 22}),
-	btnMenu({0, 170, 72, 22}), pnlSetting({10, 40, 224, 136}),
-	cbHex({166, 156, 90, 13}), cbFPS({10, 90, 73, 18}),
-	cbPreview({10, 110, 115, 18}), lblDragTest({4, 4, 104, 22}),
-	btnEnterTest({8, 32, 104, 22}), btnTestEx({48, 60, 156, 22}),
-	btnPrevBackground({114, 90, 30, 22}),
-	btnNextBackground({164, 90, 30, 22}),
+	lblInfo({8, 100, 240, 64}), fbMain({0, 0, 256, 170}),
+	btnOK({192, 170, 64, 22}), btnMenu({0, 170, 72, 22}),
+	pnlSetting({10, 40, 224, 100}), cbHex({10, 60, 100, 18}),
+	cbFPS({10, 80, 72, 18}), lblDragTest({4, 4, 104, 22}),
+	btnEnterTest({8, 32, 104, 22}), btnTestEx({116, 32, 104, 22}),
+	btnPrevBackground({120, 60, 30, 22}),
+	btnNextBackground({164, 60, 30, 22}),
 	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetDesktopDownHandle()),
 	fpsCounter(std::chrono::milliseconds(500))
 {
@@ -133,10 +118,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	auto& dsk_up(GetDesktopUp());
 	auto& dsk_dn(GetDesktopDown());
 
-	AddWidgets(pnlSetting, cbFPS, cbPreview, btnEnterTest, lblDragTest,
-		btnTestEx, btnPrevBackground, btnNextBackground),
+	AddWidgets(pnlSetting, cbHex, cbFPS, btnEnterTest, lblDragTest, btnTestEx,
+		btnPrevBackground, btnNextBackground),
 	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
-	AddWidgets(dsk_dn, fbMain, btnTest, btnOK, btnMenu, cbHex),
+	AddWidgets(dsk_dn, fbMain, btnOK, btnMenu),
 	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pFrmAbout),
 	//启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
@@ -152,7 +137,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		lblPath.AutoWrapLine = true, lblPath.Text = String(path),
 		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
 	// TODO: Show current working directory properly.
-		btnTest.Text = u"设置(X)",
 		btnOK.Text = u"确定(A)",
 #if YCL_MINGW32
 		btnMenu.Text = u"菜单(P)",
@@ -161,7 +145,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 #endif
 		cbHex.Text = u"显示十六进制",
 		cbFPS.Text = u"显示 FPS",
-		cbPreview.Text = u"切换背景时预览",
 		pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
 		lblDragTest.HorizontalAlignment = TextAlignment::Left,
 		//btnTestEx.Enabled = false,
@@ -174,7 +157,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		btnPrevBackground.Text = u"<<",
 		btnNextBackground.Text = u">>",
 		fbMain.SetPath(path),
-		Enable(btnTest),
 		Enable(btnOK, false),
 		Enable(btnPrevBackground, false),
 		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
@@ -182,15 +164,16 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
 		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
 		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click,
+		FetchEvent<KeyPress>(dsk_dn) += [this](KeyEventArgs&& e){
+			if(e.GetKeys()[YCL_KEY(X)])
+				SwitchVisible(pnlSetting);
+		},
 		fbMain.GetViewChanged() += [this](UIEventArgs&&){
 			lblPath.Text = String(fbMain.GetPath());
 			Invalidate(lblPath);
 		},
 		fbMain.GetSelected() += [this](IndexEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
-		},
-		FetchEvent<Click>(btnTest) += [this](TouchEventArgs&&){
-			SwitchVisible(pnlSetting);
 		},
 		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
 			if(fbMain.IsSelected())
@@ -215,9 +198,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 						else
 							NowShellTo(ystdex::make_shared<ShlHexBrowser>(path,
 								h_up, h_dn));
-					// TODO: Use G++ 4.8 or later.
-					//	SetShellTo(make_shared<ShlTextReader>(path));
-					//	SetShellToNew<ShlTextReader>(path);
 					});
 				}
 			}
@@ -300,7 +280,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			if(up_i == 0)
 				Enable(btnPrevBackground, false);
 			dsk_up.Background = ImageBrush(FetchImage(up_i));
-			CheckBackgroundPreview(cbPreview, up_i, up_i + 1);
 			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);
 		},
@@ -316,7 +295,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			if(size_t(up_i + 1) == Image_N)
 				Enable(btnNextBackground, false);
 			dsk_up.Background = ImageBrush(FetchImage(up_i));
-			CheckBackgroundPreview(cbPreview, up_i, up_i + 1);
 			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);
 		}
@@ -325,8 +303,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	SetInvalidationOf(dsk_up),
 	SetInvalidationOf(dsk_dn);
 
-	auto& m1(*(ynew Menu({},
-		share_raw(new TextList::ListType{u"测试", u"关于", u"退出"}), 1u)));
+	auto& m1(*(ynew Menu({}, share_raw(
+		new TextList::ListType{u"测试", u"关于", u"设置(X)", u"退出"}), 1u)));
 	auto& m2(*(ynew Menu({},
 		share_raw(new TextList::ListType{u"项目1", u"项目2"}), 2u)));
 
@@ -334,11 +312,12 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		switch(e.Value)
 		{
 		case 1U:
-			YAssert(bool(pFrmAbout), "Null pointer found");
-
 			Show(*pFrmAbout);
 			break;
 		case 2U:
+			SwitchVisible(pnlSetting);
+			break;
+		case 3U:
 			YSLib::PostQuitMessage(0);
 		}
 	},
@@ -385,10 +364,10 @@ ShlExplorer::GetBoundControlPtr(const KeyInput& k)
 {
 	if(k.count() == 1)
 	{
-		if(k[YCL_KEY(X)])
-			return &btnTest;
 		if(k[YCL_KEY(A)])
 			return &btnOK;
+		if(k[YCL_KEY_Start])
+			return &btnMenu;
 	}
 	return nullptr;
 }

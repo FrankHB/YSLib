@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2610
+\version r2616
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2013-03-13 13:22 +0800
+	2013-06-20 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,14 +122,17 @@ DeclDelegate(HScrollEvent, ScrollEventArgs)
 class YF_API ATrack : public Control, public GMRange<ScrollEventArgs::ValueType>
 {
 public:
-	//! \brief 轨道区域。
-	typedef enum
+	/*!
+	\brief 轨道区域。
+	\since build 416
+	*/
+	enum Area
 	{
 		None = 0,
 		OnThumb = 1,
 		OnPrev = 2,
 		OnNext = 3
-	} Area;
+	};
 	//注意值类型需要和继承的 GMRange 的 ValueType 一致。
 	typedef ScrollEventArgs::ValueType ValueType; //!< 值类型。
 	//! \since build 356

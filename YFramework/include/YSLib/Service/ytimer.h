@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r932
+\version r962
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-05-17 03:26 +0800
+	2013-06-20 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,6 @@ Delay(const TimeSpan&);
 
 /*!
 \brief 计时器。
-\warning 非虚析构。
 \since build 243
 */
 class YF_API Timer : private noncopyable
@@ -119,18 +118,18 @@ public:
 	*/
 	explicit
 	Timer(const Duration& = {}, bool = true);
+	//! \since build 416
+	virtual DefDeDtor(Timer)
 
 	DefGetter(const ynothrow, TimePoint, BaseTick, nBase)
 
 	/*!
-	\brief 延迟。
+	\brief 延时。
+	\note 非阻塞，立即返回。
 	\since build 303
 	*/
-	void
-	Delay(const Duration& d)
-	{
-		nBase += d;
-	}
+	PDefH(void, Delay, const Duration& d)
+		ImplExpr(nBase += d)
 
 	/*!
 	\brief 刷新。
@@ -140,26 +139,18 @@ public:
 	Refresh();
 
 	/*!
-	\brief 刷新计时器组中的所有计时器。
-	*/
-	static bool
-	RefreshAll();
-
-	/*!
-	\brief 复位。
-	*/
-	void
-	Reset()
-	{
-		nBase = TimePoint();
-	}
-
-	/*!
-	\brief 激活：同步时间基点。
+	\brief 激活：当时间间隔非零时同步时间基点。
 	*/
 	YF_API friend void
 	Activate(Timer&);
 };
+
+/*!
+\brief 测试是否未超时。
+\since 416
+*/
+inline PDefH(bool, Test, const Timer& tmr) ynothrow
+	ImplRet(HighResolutionClock::now() < tmr.GetBaseTick() + tmr.Interval)
 
 YSL_END_NAMESPACE(Timers)
 

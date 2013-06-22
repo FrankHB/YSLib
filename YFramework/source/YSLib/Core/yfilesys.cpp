@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r1864
+\version r1866
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2013-06-15 15:07 +0800
+	2013-06-20 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,9 +121,8 @@ VerifyDirectory(const char* path)
 {
 	try
 	{
-		DirectorySession unused(path);
+		DirectorySession ss(path);
 
-		static_cast<void>(unused);
 		return true;
 	}
 	catch(FileOperationFailure&)

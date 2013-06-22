@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1814
+\version r1817
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-04-10 23:46 +0800
+	2013-06-20 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,9 +53,9 @@ class DualScreenReader
 public:
 	/*!
 	\brief 命令类型。
-	\since build 270
+	\since build 416
 	*/
-	typedef enum : u16
+	enum Command : u16
 	{
 		Null = 0,
 		Scroll = 1,
@@ -71,7 +71,7 @@ public:
 		LineDownScroll = LineDown | Scroll,
 		ScreenUpScroll = ScreenUp | Scroll,
 		ScreenDownScroll = ScreenDown | Scroll
-	} Command;
+	};
 
 private:
 	/*!

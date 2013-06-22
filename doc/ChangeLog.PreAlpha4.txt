@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r921
+\version r974
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-18 20:14 +0800
+	2013-06-23 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,60 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ $dev %'YFramework'.'YSLib' $=
+	(
+		+ 'final' @ "all classes" @ %'Adaptor'.'Font',
+		(
+			/ "class %Timer" @ %'Service'.'Timer' $=
+			(
+				* "redundant member function declaration %Timer::RefreshAll"
+					$since b405,
+				+ "member function %Test",
+				+ "virtual destructor"
+			);
+			/ @ "class %InputTimer" %'UI'.'GUI' $=
+			(
+				(
+					- "member functions %(Delay, Reset)",
+					/ "member function %Reset" => "%ResetInput";
+					/ "publicly inherited class %Timers::Timer"
+				),
+				+ "member function %RefreshClick"
+			)
+		)
+	),
+	/ $dev "all typedef of unnamed enumerations" @ "C++ code"
+		-> "non-typedef named enumerations",
+	/ %'YReader' $=
+	(
+		/ %'text reader' $=
+		(
+			+ "double click to start auto scroll when not started already",
+				// Intended to not limit the positions between clicks.
+			(
+				/ "saved reader box state on entering session and restored on \
+					exit" @ base session;
+				* $comp "reader box could overlap with text after returning \
+					reading UI from other UI entered through context menu"
+					$since b390
+					// Currently "other UI" is setting or bookmark UI.
+			)
+		),
+		- "background switch preview" @ %'shell test example',
+		/ %'file explorer' $=
+		(
+			* "missing menu button binding" $since b360,
+				// No effect when key pressed as button text indicated.
+			/ "setting panel layout",
+			/ "hexadecimal check box moved into setting panel",
+			/ "file box layout",
+			/ "about form position"
+		)
+	)
+),
+
+b415
 (
 	/ %'YBase'.'YStandardEx'.'Iterator' $=
 	(

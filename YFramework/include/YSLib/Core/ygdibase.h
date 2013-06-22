@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1393
+\version r1399
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-06-13 14:24 +0800
+	2013-06-20 14:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -809,25 +809,25 @@ struct YF_API PaintContext
 
 /*!
 \brief 逆时针旋转角度指示输出指向。
-\since build 178
+\since build 416
 */
-typedef enum
+enum Rotation
 {
 	RDeg0 = 0,
 	RDeg90 = 1,
 	RDeg180 = 2,
 	RDeg270 = 3
-} Rotation;
+};
 
 /*!
 \brief 二元方向。
-\since build 170
+\since build 416
 */
-typedef enum
+enum Orientation
 {
 	Horizontal = 0,
 	Vertical = 1
-} Orientation;
+};
 
 YSL_END_NAMESPACE(Drawing)
 

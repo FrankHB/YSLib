@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r511
+\version r512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-06-18 19:32 +0800
+	2013-06-18 21:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,7 +134,7 @@ $KNOWN_ISSUE:
 	implementation techniques found. Also depends on the environment.
 * $known_issue_b264 "<cmath> cannot use 'std::*' names" @ "!defined \
 	%_GLIBCXX_USE_C99_MATH_TR1" @ "libstdc++ with G++ (4.6, 4.7) on devkitARM"
-	@ "platform $DS" $before $future;
+	@ "platform %DS" $before $future;
 	// G++ 4.7.0 tested @ b301.
 * $known_issue_b279 "crashing after sleeping(default behavior of closing then \
 	reopening lid) on real machine due to libnds default interrupt handler \

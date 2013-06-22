@@ -11,13 +11,13 @@
 /*!	\file encoding.h
 \ingroup CHRLib
 \brief 字符编码定义。
-\version r593
+\version r597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 242
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-05-04 23:57 +0800
+	2013-06-20 14:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,6 @@ namespace CharSet
 
 /*
 \brief 字符流编码标识。
-
-编码字符集：使用 IANA 官方字符集名称和 MIBenum（MIB 枚举）。
 \note MIB(management information base) 是
 	SNMP(simple network management protocal ，简单网络管理协议) 和
 	OSI/ISO 网络管理模型上下文中的虚拟数据库，参见
@@ -47,8 +45,11 @@ namespace CharSet
 \note 由于历史原因， CharSet（字符集）和相关概念在此作为文本编码的同义词，
 	但不是确切的用法，参见 http://www.iana.org/assignments/ianacharset-mib 。
 \note 完整枚举项的详细信息参见 http://www.iana.org/assignments/character-sets 。
+\since build 416
+
+编码字符集：使用 IANA 官方字符集名称和 MIBenum（MIB 枚举）。
 */
-typedef enum
+enum Encoding
 {
 	//保留。
 	Null = 0, //!< 空字符集。
@@ -312,7 +313,7 @@ typedef enum
 	csTIS620 = 2259,
 	cs50220 = 2260,
 	reserved = 3000
-} Encoding;
+};
 
 //通用别名。
 yconstexpr Encoding
