@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r627
+\version r659
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-06-20 14:45 +0800
+	2013-06-24 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,12 +36,19 @@ namespace platform
 typedef std::int16_t SPos; //!< 屏幕坐标度量。
 typedef std::uint16_t SDst; //!< 屏幕坐标距离。
 
+//! \since build 417
+//@{
+typedef ystdex::octet MonoType;
+typedef ystdex::octet AlphaType;
+//@}
+
 #if YCL_DS
 	/*!
-	\brief 标识 AXYZ1555 像素格式。
+	\brief 标识 XYZ1555 像素格式。
+	\note 值表示按整数表示的顺序从高位到低位为 ABGR 。
 	\since build 297
 	*/
-#	define YCL_PIXEL_FORMAT_AXYZ1555
+#	define YCL_PIXEL_FORMAT_XYZ555 0xAABBCCDD
 
 /*!
 \brief LibNDS 兼容像素。
@@ -50,9 +57,9 @@ typedef std::uint16_t SDst; //!< 屏幕坐标距离。
 typedef std::uint16_t PixelType;
 /*!
 \brief 取像素 Alpha 值。
-\since build 413
+\since build 417
 */
-yconstfn PDefH(std::uint8_t, FetchAlpha, PixelType px) ynothrow
+yconstfn PDefH(AlphaType, FetchAlpha, PixelType px) ynothrow
 	ImplRet(px & 1 << 15 ? 0xFF : 0)
 
 /*!
@@ -64,16 +71,23 @@ yconstfn PDefH(PixelType, FetchOpaque, PixelType px) ynothrow
 
 /*
 \brief 使用 8 位 RGB 构造本机类型像素。
-\since build 413
+\since build 417
 */
 yconstfn PDefH(PixelType, FetchPixel,
-	std::uint8_t r, std::uint8_t g, std::uint8_t b) ynothrow
+	MonoType r, MonoType g, MonoType b) ynothrow
 	ImplRet(r >> 3 | std::uint16_t(g >> 3) << 5 | std::uint16_t(b >> 3) << 10)
 
 #	define DefColorH_(hex, name) name = \
 	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
 	| 1 << 15)
 #elif YCL_MINGW32
+	/*!
+	\brief 标识 XYZ888 像素格式。
+	\note 值表示按整数表示的顺序从高位到低位为 ARGB 。
+	\since build 297
+	*/
+#	define YCL_PIXEL_FORMAT_XYZ888 0xAADDCCBB
+
 /*!
 \brief Windows DIB 格式兼容像素。
 \note MSDN 注明此处第 4 字节保留为 0 ，但此处使用作为 8 位 Alpha 值使用。
@@ -81,20 +95,24 @@ yconstfn PDefH(PixelType, FetchPixel,
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
 \warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
 \since build 313
+\todo 断言对齐，保证类型兼容。
 */
 typedef struct
 {
-	std::uint8_t rgbBlue;
-	std::uint8_t rgbGreen;
-	std::uint8_t rgbRed;
-	std::uint8_t rgbReserved;
+	//! \since build 417
+	//@{
+	MonoType rgbBlue;
+	MonoType rgbGreen;
+	MonoType rgbRed;
+	AlphaType rgbReserved;
+	//@}
 } PixelType;
 
 /*!
 \brief 取像素 Alpha 值。
-\since build 413
+\since build 417
 */
-yconstfn PDefH(std::uint8_t, FetchAlpha, PixelType px) ynothrow
+yconstfn PDefH(AlphaType, FetchAlpha, PixelType px) ynothrow
 	ImplRet(px.rgbReserved)
 
 /*!
@@ -106,10 +124,10 @@ yconstfn PDefH(PixelType, FetchOpaque, PixelType px) ynothrow
 
 /*
 \brief 使用 8 位 RGB 构造 std::uint32_t 像素。
-\since build 413
+\since build 417
 */
 yconstfn PDefH(std::uint32_t, FetchPixel,
-	std::uint8_t r, std::uint8_t g, std::uint8_t b) ynothrow
+	AlphaType r, AlphaType g, AlphaType b) ynothrow
 	ImplRet(r | g << 8 | std::uint32_t(b) << 16)
 
 /*!
@@ -175,8 +193,6 @@ class YF_API Color
 {
 public:
 	typedef ColorSpace::ColorSet ColorSet;
-	typedef std::uint8_t MonoType;
-	typedef std::uint8_t AlphaType;
 
 private:
 	/*!

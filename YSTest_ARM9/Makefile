@@ -10,7 +10,7 @@
 # DS Makefile for YShell Test -> ARM9
 # Version = r1282
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2013-05-02 09:30 +0800
+# Updated = 2013-06-26 03:35 +0800
 # Encoding = ANSI
 
 
@@ -99,7 +99,7 @@ LIBS	:=	-lfat -lnds9
 #---- User defined libraries.
 
 LIBPATHEX	:= -L$(TOPDIR)/../YFramework_DS/lib
-LIBEX		:= -lfreetype #-lagg -lloki
+LIBEX		:= -lFreeImage -lfreetype #-lagg -lloki
 
 YBASE_A := $(TOPDIR)/../YBase_DS/$(RELEASE)/libYBase.a
 YFRAMEWORK_A := $(TOPDIR)/../YFramework_DS/$(RELEASE)/libYFramework.a

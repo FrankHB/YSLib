@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r2821
+\version r2936
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-06-17 20:51 +0800
+	2013-06-26 20:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ b298
 				+ "member function %Reset" @ "class template %GSequenceViewer",
 				/ "default holding intervals"
 					// Key: (240ms, 120ms) -> (240ms, 60ms); \
-						Touch: (240ms, 60ms) -> (240ms, 80ms);
+						Touch: (240ms, 60ms) -> (240ms, 80ms).
 			),
 			/ "key events response" @ "class %ShlDS" @ %'helpers'.'shells',
 			/ %'Core'.'YFileSystem' $=
@@ -242,7 +242,8 @@ b297
 		+ "blit algorithm implementation without pixel format dependency"
 			@ "unit YBlit" @ %'Service',
 		* "using implicitly deleted copy constructor on events causing \
-			ill-formed program" @ "class %BorderBrush" @ %'UI'.'GUI' $since b295,
+			ill-formed program" @ "class %BorderBrush" @ %'UI'.'GUI'
+			$since b295,
 		/ %'Core' $=
 		(
 			* "missing virtual destructor" @ "class %GraphicDevice"
@@ -314,8 +315,7 @@ b296
 						@ "functions %(CopyTo, BlitTo)" @ "header %GDI",
 					$dep_from "%Rect::FullScreen platform dependency from \
 						widgets",
-					$dep_from "%Rect::FullScreen platform dependency from \
-						test";
+					$dep_from "%Rect::FullScreen platform dependency from test";
 					/ @ "static member %FullScreen" @ "classes %(Rect; Size)"
 						-> "%Invalid";
 					- DLD $comp "platform dependency" @ "%FullScreen"
@@ -337,8 +337,7 @@ b296
 				(
 					/ "widget size bound to screen" @ "class %Desktop"
 						~ "platform dependent %Rect::FullScreen";
-					$dep_to "%Rect::FullScreen platform dependency from \
-						widgets"
+					$dep_to "%Rect::FullScreen platform dependency from widgets"
 				),
 				* $doc @ "function %LocateForParentContainer"
 					@ "header yuicont.h" $since b242,
@@ -388,8 +387,8 @@ b295
 		(
 			(
 				/ "simplified refreshing" @ "class %Thumb",
-				/ DLD "simplified refreshing" @ "classes %(CheckBox, ATrack, \
-					AScrollBar, Panel, Window)",
+				/ DLD "simplified refreshing"
+					@ "classes %(CheckBox, ATrack, AScrollBar, Panel, Window)",
 				/ "improved refreshing" @ "class %AScrollBar";
 				* $comp "background of buttons over refreshed" $since b294,
 				* DLD $comp "background of scroll bars over refreshed"
@@ -564,8 +563,8 @@ b292
 					/ "fixed position of arrow and right margin",
 					/ "refreshing as pressed down when list shown"
 				),
-				* "member function %ListBox::ResizeForPreferred when \
-					limit width is zero" $since b282,
+				* "member function %ListBox::ResizeForPreferred when limit \
+					width is zero" $since b282,
 				(
 					+ "container setter" @ "class template %GSequenceViewer";
 					+ "member function %SetList" @ "classes %(MTextList, \
@@ -601,8 +600,8 @@ b291
 		(
 			/ DLD "simplified implementation" ^ "libnds functions"
 				~ "direct operations on registers";
-				// Now only counter 2 is used by this library instead of \
-					all the 4 counters on ARM9;
+				// Now only counter 2 is used by this library instead of all \
+					the 4 counters on ARM9;
 			+ "high resolution counter";
 				// It provides at most resolution as nanoseconds.
 			$dep_to %'YReader'.'shells test example',
@@ -655,8 +654,8 @@ b290
 	(
 		+ "stream encoding checking without BOM" @ "class %TextFile"
 			@ %'Service',
-			// At most first 64 bytes would be read for checking, \
-				now only for UTF-8 and GBK.
+			// At most first 64 bytes would be read for checking, now only for \
+				UTF-8 and GBK.
 		$dep_to "no BOM checking";
 		+ "top and down space comparing when list shown" @ "class %DropDownList"
 	);
@@ -830,8 +829,8 @@ b287
 				@ "member function %MLabel::PaintText" $since b208,
 			+ "focus requesting/releasing" @ "functions %(Show, Hide)"
 				@ "unit %YWidget",
-			* $comp "wrong alignment when refreshing \
-				widget" @ "class %DropDownList",
+			* $comp "wrong alignment when refreshing widget"
+				@ "class %DropDownList",
 			/ "GUI state abstraction" $=
 			(
 				+ "class %GUIState",
@@ -942,8 +941,8 @@ b283
 	(
 		* @ "destructor" @ "class %Widget"
 			$since b240 $= (- "calling event %LostFocus"),
-			// It depends on itself to be a complete object in \
-				its lifetime which does not fit for destructing.
+			// It depends on itself to be a complete object in its lifetime \
+				which does not fit for destructing.
 		(
 			/ @ "class %View"
 			(
@@ -954,8 +953,8 @@ b283
 		),
 		/ "focus operation for containers" @ "class %YGUIShell"
 			>> "class %Control",
-		/ "focus requesting on handling event %TouchDown of controls \
-			only when the strategy is bubble";
+		/ "focus requesting on handling event %TouchDown of controls only when \
+			the strategy is bubble";
 		/ @ "class %DropDownList" $=
 		(
 			* "top widget not removed when destructing" $since b282,
@@ -981,8 +980,8 @@ b282
 				/ DLD "unit names" @ "directory %UI";
 				+ "class %DropDownList" @ "unit %ComboList"
 			),
-			- "assertion" @ "constructor" @ "classes %(HorizontalScrollBar, \
-				VerticalScrollBar),
+			- "assertion" @ "constructor"
+				@ "classes %(HorizontalScrollBar, VerticalScrollBar),
 			* "wrong comments" @ "constructors of track classes" $since b173
 		),
 		* "wrong result for function %Intersect" @ "unit %YGDIBase" $since b227
@@ -1003,8 +1002,8 @@ b281
 		DLD
 		(
 			+ "deleting second member debug functor" @ "header %ycutil.h";
-			/ "several implementations" @ "unit %(YTimer, Menu, \
-				YUIContainer, YEvent, YMessage)" ^ "%std::for_each" ~ "for loop"
+			/ "several implementations" @ "unit %(YTimer, Menu, YUIContainer, \
+				YEvent, YMessage)" ^ "%std::for_each" ~ "for loop"
 		),
 		/ @ "unit %YString" $=
 		(
@@ -1047,8 +1046,8 @@ b280
 			/ DLD "several getters" @ "class %FontCache" >> "class %Font",
 			/ DLD "stored state" @ "class %Font";
 				// It brings the ability of automatically state synchronizing \
-					with FT_Size with almost no efficiency changing, \
-					but 'sizeof(Font)' grows obviously.
+					with FT_Size with almost no efficiency changing, but \
+					'sizeof(Font)' grows obviously.
 			/ "eliminating need of updating font"
 		),
 		* "undefined behavior raised when calculating advance of or rendering \
@@ -1073,8 +1072,8 @@ b279
 			/ "member funtion %Desktop::ClearContents" >> "class %Panel"
 		),
 		/ DLD "default idle handler implementation"
-			!^ "function %platform::AllowSleep to forbid sleeping \
-			when the main message queue is not empty"
+			!^ "function %platform::AllowSleep to forbid sleeping when the \
+			main message queue is not empty"
 	),
 	/ %'YReader'.'text reader' $=
 	(
@@ -1098,8 +1097,8 @@ b278
 			(
 				* "memory leak when loading duplicate typefaces"
 					@ "member function %FontCache::LoadTypefaces" $since b277,
-				/ DLD "font file loading implementation" @ "constructor of \
-					class %Typeface"
+				/ DLD "font file loading implementation"
+					@ "constructor of class %Typeface"
 					~ "member function FontCache::LoadTypefaces"
 			),
 			/ 'UI'.'GUI' $=
@@ -1113,8 +1112,8 @@ b278
 				@ "header %yfunc.hpp",
 			+ "helper function object class %ContainerSetter",
 			/ DLD "default idle handler implementation"
-				^ "function %platform::AllowSleep to forbid sleeping \
-				when the main message queue is not empty";
+				^ "function %platform::AllowSleep to forbid sleeping when the \
+				main message queue is not empty";
 			* "VRAM not flushed or crashing when opening lid on real DS"
 				$since $before b132
 		)
@@ -1168,8 +1167,8 @@ b276
 		(
 			* "wrong implementation" @ "casting to floating types" $since b260,
 			* DLD "wrong comments" $since b260,
-			* "wrong implementation" @ "member function %operator*= \
-				for signed types" $since b260,
+			* "wrong implementation" @ "member function %operator*= for signed \
+				types" $since b260,
 			- "explicit @ casting operator"
 		)
 	);
@@ -1220,13 +1219,13 @@ b275
 						%GUIShell::ResponseTouch, but now can only occur \
 						before the control requesting for focus \
 						in its parent widget.
-					// It means that the requesting handler can be unloaded \
-						by user manually.
+					// It means that the requesting handler can be unloaded by \
+						user manually.
 				+ "hosted referent pointer" @ "class %MenuHost",
 				/ @ "unit %YWidget" $=
 				(
-					* "no effect of functions %(Show, Hide) \
-						when used with widgets not buffered" $since b229,
+					* "no effect of functions %(Show, Hide) when used with \
+						widgets not buffered" $since b229,
 					+ "function %Close for hiding and releasing focus"
 				)
 				* "missing thumb refreshing when invalidated area not \
@@ -1268,8 +1267,8 @@ b274
 		/ "text rendering" @ %'Service' $=
 		(
 			- DLD "all functions %SetMarginOf",
-			* DLD "2 functions template %PrintLine cannot used with \
-				iterator parameters without postfix operator++" $since b270,
+			* DLD "2 functions template %PrintLine cannot used with iterator \
+				parameters without postfix operator++" $since b270,
 			* $lib $design "assertion string"
 				@ "function %FetchResizedBottomMargin" $since b273,
 			* $lib $design "assertion string" @ "function %FetchResizedLineN"
@@ -1336,8 +1335,8 @@ b273
 		),
 	),
 	/ "view" @ "class %TextInfoBox" @ %'YReader'.'text reader',
-		// Efficiency for opening and random access operations to \
-			large files improved obviously due to using of mapping buffering.
+		// Efficiency for opening and random access operations to large files \
+			improved obviously due to using of mapping buffering.
 	* $doc $dev $design "several minor Doxygen warnings" @ $since b196
 ),
 
@@ -1406,8 +1405,8 @@ b271
 				/ @ "class MessageQueue" $=
 				(
 					- "redundant member functions",
-					+ DLD "copy assignment and move assignment merged \
-						as unifying assignment"
+					+ DLD "copy assignment and move assignment merged as \
+						unifying assignment"
 					(
 						+ "minor efficiency",
 						+ "ability to use copy-elision optimization",
@@ -1434,9 +1433,9 @@ b270
 	+ "macros for bitmask operations" @ "header %YBaseMacro",
 	/ %'YReader'.'text reader' $=
 	(
-		// Using of unique_ptr and more contents of information box \
-			at readers make it significantly slower than before in \
-			%ShlExplorer when running on DeSmuME at debug configuration.
+		// Using of unique_ptr and more contents of information box at readers \
+			make it significantly slower than before in %ShlExplorer when \
+			running on DeSmuME at debug configuration.
 		/ $design "resource management" ^ "class %unique_ptr"
 			~ "built-in pointers"
 		/ "unit %DSReader" $=
@@ -1511,8 +1510,8 @@ b268
 			* "minor line segments length on background"
 				@ "member function ATrack::Refresh" $since b167,
 			- "widget visibility check" @ "function %BufferedRenderer::Refresh",
-			/= DLD "confirmed no need of partial invalidation support \
-				on event %Selected" @ "class %ATrack",
+			/= DLD "confirmed no need of partial invalidation support on event \
+				%Selected" @ "class %ATrack",
 			(
 				DLD
 				(
@@ -1555,8 +1554,8 @@ b266
 		/ %'UI'.'GUI' $=
 		(
 			/ "invalidation algorithm",
-			/= DLD "confirmed no need of partial invalidation support \
-				on event %Selected" @ "class %Button",
+			/= DLD "confirmed no need of partial invalidation support on event \
+				%Selected" @ "class %Button",
 			/ "simplified button invalidation",
 		),
 		(
@@ -1657,8 +1656,8 @@ b261
 	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		/ DLD "simplified interface" @ "class %ATrack";
-		* "wrong alignment" @ "listbox when alignment is non-zero value \
-			and scrolling down to end" $since b193
+		* "wrong alignment" @ "listbox when alignment is non-zero value and \
+			scrolling down to end" $since b193
 	)
 ),
 
@@ -1708,8 +1707,8 @@ b257
 	(
 		/ %'hexadecimal browser' $=,
 		(
-			* "value of vertical scroll bar" @ "class %HexViewArea \
-				not reset when file reloaded" $since b254,
+			* "value of vertical scroll bar" @ "class %HexViewArea not reset \
+				when file reloaded" $since b254,
 			+ $design "individual model class and view class"
 		)
 	),
@@ -1751,8 +1750,8 @@ b254
 			+ "updating data for non-zero offset"
 		)
 	),
-	+ DLD "unsequenced evaluated expressions optimization" @ "widget class \
-		constructors" @ "directory %YSLib::UI"
+	+ DLD "unsequenced evaluated expressions optimization"
+		@ "widget class constructors" @ "directory %YSLib::UI"
 		@ %'YFramework'.'YSLib'.'UI'.'GUI'
 ),
 
@@ -1769,7 +1768,7 @@ b253
 		$since b240,
 	^ "new character types" $=
 	(
-		^ "fundamental types %(char16_t, char32_t) ~ %(std::uint16_t, \
+		^ "fundamental types %(char16_t, char32_t) ~ %std::(uint16_t, \
 			std::uint32_t) as basic types" @ "library %CHRLib",
 		^ "literal syntax prefix u" ~ "macro _ustr"
 	),
@@ -1812,8 +1811,8 @@ b251
 	/ @ "library %CHRLib" $=
 	(
 		/ "undereferenceable conversion error treated as conversion faliure",
-		/ "conversion functions returns non-zero if non-zero bytes read \
-			when a conversion failure occured"
+		/ "conversion functions returns non-zero if non-zero bytes read when a \
+			conversion failure occured"
 	)
 ),
 
@@ -1822,12 +1821,12 @@ b250
 	+ DLD "iterator checking operations" @ "library %YCLib";
 	/ @ "library %CHRLib" $=
 	(
-		+ "valid conversion state support for %CharSet::UTF_8 \
-			to %CharSet::UCS2 mapping function",
-		+ "invalid conversion state support for %(CharSet::UTF_8, \
-			CharSet::GBK) to %CharSet::UCS2 mapping function",
-		+ "conversion state support for %(CharSet::UTF_16LE, \
-			CharSet::UTF_16BE) to %CharSet::UCS2 mapping function"
+		+ "valid conversion state support for %CharSet::UTF_8 to \
+			%CharSet::UCS2 mapping function",
+		+ "invalid conversion state support for %CharSet::(UTF_8, GBK) to \
+			%CharSet::UCS2 mapping function",
+		+ "conversion state support for %CharSet::(UTF_16LE, UTF_16BE) to \
+			%CharSet::UCS2 mapping function"
 	);
 	* "EOF cannot be recognized by conversion routines" $since b248
 ),
@@ -1858,14 +1857,14 @@ b249
 
 b248
 (
-	/ DLD "deleted copy constructor" @ "class %input_monomorphic_iterator \
-		for safety",
+	/ DLD "deleted copy constructor" @ "class %input_monomorphic_iterator for \
+		safety",
 	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		* "wrong return value" @ "member function %Refresh" @ "classes \
 			%(Widget, Label, Progress, TextArea, Control, AWindow)" $since b226,
-		* "wrong overlapping condition" @ "(function %RenderChild, \
-			member function %Frame::DrawContents)" $since b226;
+		* "wrong overlapping condition" @ "(function %RenderChild, member \
+			function %Frame::DrawContents)" $since b226;
 		* "wrong invalidation on thumb of tracks after performing small \
 			increase/decrease" $since b240
 	)
@@ -1912,8 +1911,8 @@ b245
 	(
 		* "unspecified subexpression evaluation order"
 			@ "implementation unit chrmap.cpp",
-		* "wrong behavior of mapping functions for platforms where char \
-			is a signed type"
+		* "wrong behavior of mapping functions for platforms where char is a \
+			signed type"
 	) $since before '~b4x'($with_timestamp 2009-11-22, $rev("chrproc.cpp")
 		= r1319),
 	+ "encoding conversion from UTF-8 to UCS-2" @ "library %CHRLib";
@@ -1986,8 +1985,8 @@ b242
 
 b241
 (
-	+ "new macros to simplify defaulted or deleted constructors \
-		and destructors definition" @ "header %ybase.h",
+	+ "new macros to simplify defaulted or deleted constructors and \
+		destructors definition" @ "header %ybase.h",
 	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
 		+ DLD "%(MoveConstructible) support for all widget classes",
@@ -2029,17 +2028,16 @@ b240
 	(
 		* @ "class template %GFocusResponser" $since b239
 			$= (+ "default constructor"),
-		+ "virtual member function %Clone" @ "renderers, focus responsers \
-			and widget classes",
+		+ "virtual member function %Clone" @ "renderers, focus responsers and \
+			widget classes",
 		+ DLD "prototype constructing of widgets" $=
 		(
-			+ DLD "%(CopyConstructible, MoveConstructible) and clone \
-				support" @ "classes %(WidgetRenderer, BufferedWidgetRenderer)",
-			+ DLD "%(CopyConstructible, MoveConstructible) and clone \
-				support" @ "class templates %(GFocusResponser, \
-				GCheckedFocusResponser)",
-			+ DLD "%(CopyConstructible, MoveConstructible) and clone \
-				support" @ "class %WidgetController";
+			+ DLD "%(CopyConstructible, MoveConstructible) and clone support"
+				@ "classes %(WidgetRenderer, BufferedWidgetRenderer)",
+			+ DLD "%(CopyConstructible, MoveConstructible) and clone support"
+				@ "class templates %(GFocusResponser, GCheckedFocusResponser)",
+			+ DLD "%(CopyConstructible, MoveConstructible) and clone support"
+				@ "class %WidgetController";
 			+ DLD "%CopyConstructible and %MoveConstructible support"
 				@ "classes %(Widget; Control)",
 			+ "class %ControlEventMap" @ "class %Control"
@@ -2106,10 +2104,10 @@ b236
 		+ DLD "rvalue forwarding and return value support"
 			@ "function template %CallEvent",
 		+ "limited focusing interfaces" @ "class %IWidget",
-		/ "namespace %(Widgets, Controls, Forms) merged to parent \
-			namespace %YSLib::Components",
-		/ "simplified implementation and improved efficiency \
-			in focus requesting" $=
+		/ "namespace %(Widgets, Controls, Forms) merged to parent namespace \
+			%YSLib::Components",
+		/ "simplified implementation and improved efficiency in focus \
+			requesting" $=
 		(
 			^ DLD "class %IControl" ~ "class %AFocusRequester"
 				@ "member functions" @ "controls",
@@ -2138,8 +2136,8 @@ b235
 			/ "a little improvement of efficiency"
 				@ "entering and leaving events handling"
 		),
-		/ "pointer to containers as top elements returned accepted \
-			and treated as null pointers",
+		/ "pointer to containers as top elements returned accepted and treated \
+			as null pointers",
 		+ "label text display supporting for non-direct contained widgets",
 		/ "invalidating canceled when enablity not changed"
 			@ "function %SetEnableOf" @ "unit %YControl"
@@ -2418,10 +2416,10 @@ b222
 		+ "key events for text list controls including menu" $=
 		(
 			+ "state-based cyclic traversing" @ "class %TextList",
-			+ "%TouchDown %KeySpace::Up and %TouchDown %KeySpace::Down \
-				of cyclic traversing",
-			+ "%TouchDown %KeySpace::Up and %TouchDown %KeySpace::Down \
-				of initializing selection when unselected"
+			+ "%TouchDown %KeySpace::Up and %TouchDown %KeySpace::Down of \
+				cyclic traversing",
+			+ "%TouchDown %KeySpace::Up and %TouchDown %KeySpace::Down of \
+				initializing selection when unselected"
 		)
 	),
 	/ %'YReader' $=
@@ -2452,9 +2450,8 @@ b221
 		+ "sender type as template parameter type",
 		/ "simplified sender argument forwarding"
 		/ "more efficient implementation" ^ "%unique_ptr" ~ "%shared_ptr",
-			// Old version of libstdc++ might fail in compiling \
-				due to members with parameter of rvalue-reference type \
-				are not supported.
+			// Old version of libstdc++ might fail in compiling due to members \
+				with parameter of rvalue-reference type are not supported.
 	),
 	* "lost move constructor" @ "class template %GMCounter" $since b210,
 	/ "class %HDirectory" ^ "POSIX dirent API" ~ "libnds-specific API",
@@ -2538,11 +2535,10 @@ b218
 
 b217
 (
-	* "wrong lost focus behavior for menus \
-		which had popped submenu(s) previously" $since b214,
-	/ "improved compatibility" @ "class %GHEvent for types \
-		not met EqualityComparable requirement interface \
-		including closure types" $=
+	* "wrong lost focus behavior for menus which had popped submenu(s) \
+		previously" $since b214,
+	/ "improved compatibility" @ "class %GHEvent for types not met \
+		%EqualityComparable requirement interface including closure types" $=
 	(
 		/ "result always true",
 		* "compile-error for non-trivially copy-assignable objects",
@@ -2553,10 +2549,10 @@ b217
 		+ "workspace file",
 		+ "project files"
 	),
-	/ DLD ^ "lambda expression" ~ "several private member function \
-		as event handlers",
-	+ "%KeyDown and %KeyHeld handlers for scroll bars \
-		to perform mapped touch behaviors",
+	/ DLD ^ "lambda expression" ~ "several private member function as event \
+		handlers",
+	+ "%KeyDown and %KeyHeld handlers for scroll bars to perform mapped touch \
+		behaviors",
 	+ "key-to-touch event mapping methods" @ "class %Control",
 	(
 		* "wrong coordinate passed to touch focus captured control" $since b195;
@@ -2574,8 +2570,8 @@ b216
 		~ "%priority_queue",
 	/ "simplified shell example",
 	+ "default windows Z order",
-	+ "message fetching automatically calling %Idle \
-		when size less or equal than a user-specified limit"
+	+ "message fetching automatically calling %Idle when size less or equal \
+		than a user-specified limit"
 ),
 
 b215
@@ -2586,7 +2582,7 @@ b215
 	+ "visible arrow indicating multi-level menus",
 	/ "creating list" @ ("constructor of class %MTextList"
 		~ "member function %GetList"),
-	+ "event handler supporting for types not met EqualityComparable \
+	+ "event handler supporting for types not met %EqualityComparable \
 		requirement interface including closure types",
 	* DLD "access of interitance of class std::function"
 		@ "class template %GHEvent" $since b207,
@@ -2620,8 +2616,8 @@ b214
 	),
 	/ DLD ^ "public %noncopyable inheritance"
 		~ "all private %noncopyable inheritance",
-	* "point containing test for zero width or height rectangle \
-		turned out assertion failure" $since b204,
+	* "point containing test for zero width or height rectangle turned out \
+		assertion failure" $since b204,
 	* "constness of text width measuring" $since b197,
 	/ (- "unused parameter and argument") @
 		"simplified focus operations interface"
@@ -2665,8 +2661,8 @@ b210
 	+ "template %is_valid for checking pointers which cast bool explicitly",
 	/ "part of template %raw moved to namespace %ystdex",
 	- DLD "some unused code",
-	+ "macro %yforward for simply using std::forward and argument \
-		type deduction",
+	+ "macro %yforward for simply using std::forward and argument type \
+		deduction",
 	/ "handles and smart pointers rearranged" $=
 	(
 
@@ -2707,8 +2703,8 @@ b207
 	/ DLD "event handler implementation ^ %std::function" ~ "%Loki::Function",
 	- $lib $build "library %AGG",
 	- $lib $build "library %Loki",
-	+ DLD "union %no_copy_t and union %any_pod_t for suppressing \
-		static type checking",
+	+ DLD "union %no_copy_t and union %any_pod_t for suppressing static type \
+		checking",
 	+ DLD "polymorphic function object template and base class",
 	- "single-cast event class template",
 	^ "rvalue reference" @ "event class",

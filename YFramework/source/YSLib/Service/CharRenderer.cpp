@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3098
+\version r3103
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-18 19:09 +0800
+	2013-06-24 22:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,8 @@ YSL_BEGIN_NAMESPACE(Drawing)
 namespace
 {
 
-//! \since build 415
-const Color::AlphaType BLT_TEXT_ALPHA_THRESHOLD(16);
+//! \since build 417
+const AlphaType BLT_TEXT_ALPHA_THRESHOLD(16);
 PixelType char_color;
 
 template<bool _bPositiveScan>
@@ -101,7 +101,8 @@ typedef pair_iterator<PixelIt, TIt_1> MonoItPair_1;
 typedef pair_iterator<PixelIt, TIt_2> MonoItPair_2;
 typedef pair_iterator<PixelIt, TIt_4> MonoItPair_4;
 
-typedef pair_iterator<BitmapPtr, Color::AlphaType*> PairIt;
+//! \since build 417
+typedef pair_iterator<BitmapPtr, AlphaType*> PairIt;
 
 
 template<unsigned char _vN>
@@ -146,7 +147,7 @@ RenderChar(PaintContext&& pc, Color c, bool neg_pitch,
 void
 RenderCharAlpha(PaintContext&& pc, Color c, bool neg_pitch,
 	CharBitmap::BufferType cbuf, CharBitmap::FormatType fmt, const Size& ss,
-	Color::AlphaType* alpha)
+	AlphaType* alpha)
 {
 	YAssert(cbuf, "Invalid buffer found.");
 

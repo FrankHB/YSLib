@@ -24,6 +24,7 @@
     <None Include="..\doc\YSLib.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\3rdparty\include\FreeImage.h" />
     <ClInclude Include="..\3rdparty\include\freetype\config\ftconfig.h" />
     <ClInclude Include="..\3rdparty\include\freetype\config\ftheader.h" />
     <ClInclude Include="..\3rdparty\include\freetype\config\ftmodule.h" />
@@ -143,6 +144,7 @@
     <ClInclude Include="include\YCLib\ycommon.h" />
     <ClInclude Include="include\ysbuild.h" />
     <ClInclude Include="include\YSLib\Adaptor\config.h" />
+    <ClInclude Include="include\YSLib\Adaptor\Image.h" />
     <ClInclude Include="include\YSLib\Adaptor\yadaptor.h" />
     <ClInclude Include="include\YSLib\Adaptor\ycont.h" />
     <ClInclude Include="include\YSLib\Adaptor\Font.h" />
@@ -243,6 +245,7 @@
     <ClCompile Include="source\YCLib\Video.cpp" />
     <ClCompile Include="source\YCLib\ycommon.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\Font.cpp" />
+    <ClCompile Include="source\YSLib\Adaptor\Image.cpp" />
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp" />
     <ClCompile Include="source\YSLib\Core\ValueNode.cpp" />
     <ClCompile Include="source\YSLib\Core\yapp.cpp" />
@@ -329,7 +332,7 @@
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <IncludePath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\3rdparty\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
     <NMakeBuildCommandLine>make -j -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
@@ -347,7 +350,7 @@
     <NMakeBuildCommandLine>make -j -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>make -j -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
-    <IncludePath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\3rdparty\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
     <LibraryPath />

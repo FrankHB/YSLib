@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1514
+\version r1533
 \author FrankHB<frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-06-18 11:10 +0800
+	2013-06-25 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,17 +39,17 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 /*!
 \brief Alpha 光栅化源迭代器对。
-\since build 415
+\since build 417
 */
-typedef ystdex::pair_iterator<ConstBitmapPtr, const Color::AlphaType*>
+typedef ystdex::pair_iterator<ConstBitmapPtr, const AlphaType*>
 	IteratorPair;
 
 /*!
 \brief Alpha 单色光栅化源迭代器对。
-\since build 415
+\since build 417
 */
 typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
-	const Color::AlphaType*> MonoIteratorPair;
+	const AlphaType*> MonoIteratorPair;
 
 
 //基本仿函数。
@@ -376,8 +376,7 @@ BlitLine(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
 	if(delta_x > 0)
 	{
 		std::copy_n(src_iter, delta_x, dst_iter);
-		src_iter += delta_x;
-		dst_iter += delta_x;
+		yunseq(src_iter += delta_x, dst_iter += delta_x);
 	}
 }
 template<>
@@ -485,21 +484,21 @@ biltAlphaPoint(PixelType* dst_iter, MonoIteratorPair src_iter)
 
 #else
 
-//! \since build 415
-yconstexpr Color::AlphaType BLT_ALPHA_BITS(8);
+//! \since build 417
+yconstexpr AlphaType BLT_ALPHA_BITS(8);
 yconstexpr u32 BLT_MAX_ALPHA((1 << BLT_ALPHA_BITS) - 1);
 yconstexpr u32 BLT_ROUND(1 << (BLT_ALPHA_BITS - 1));
-//! \since build 415
-yconstexpr Color::AlphaType BLT_THRESHOLD(8);
-//! \since build 415
-yconstexpr Color::AlphaType BLT_THRESHOLD2(128);
+//! \since build 417
+yconstexpr AlphaType BLT_THRESHOLD(8);
+//! \since build 417
+yconstexpr AlphaType BLT_THRESHOLD2(128);
 yconstexpr u32 BLT_ROUND_BR(BLT_ROUND | BLT_ROUND << 16);
 
-#	ifdef YCL_PIXEL_FORMAT_AXYZ1555
+#	if YCL_PIXEL_FORMAT_XYZ555 & 0xAA000000
 
 /*
 \brief AXYZ1555 格式 PixelType 的 Alpha 混合。
-\since build 415
+\since build 417
 
 使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
 输出分量： dst := (1 - alpha) * d + alpha * s
@@ -508,7 +507,7 @@ yconstexpr u32 BLT_ROUND_BR(BLT_ROUND | BLT_ROUND << 16);
 背景透明， 输出 Alpha 饱和。
 */
 inline u16
-blitAlphaBlend(u32 d, u32 s, Color::AlphaType a)
+blitAlphaBlend(u32 d, u32 s, AlphaType a)
 {
 	/*
 	格式： 16 位 AXYZ1555 ，以 ARGB1555 为例。
@@ -551,13 +550,13 @@ component_blend(_tAlpha d, _tAlpha s, _tAlpha a)
 
 /*
 \brief Alpha 混合。
-\since build 415
+\since build 417
 
 使用下列公式进行像素的 Alpha 混合（其中 alpha = a / BLT_MAX_ALPHA）：
 背景透明， 输出 Alpha 饱和。
 */
 inline PixelType
-blitAlphaBlend(PixelType d, PixelType s, Color::AlphaType a)
+blitAlphaBlend(PixelType d, PixelType s, AlphaType a)
 {
 	if(FetchAlpha(d) && a <= BLT_MAX_ALPHA - BLT_THRESHOLD)
 	{
@@ -579,7 +578,7 @@ template<>
 inline void
 biltAlphaPoint(PixelType* dst_iter, IteratorPair src_iter)
 {
-	const Color::AlphaType a(*src_iter.base().second);
+	const AlphaType a(*src_iter.base().second);
 
 	if(a >= BLT_THRESHOLD)
 		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);
@@ -590,7 +589,7 @@ inline void
 biltAlphaPoint(PixelType* dst_iter, ystdex::pair_iterator<
 	ystdex::pseudo_iterator<const PixelType>, _tIn> src_iter)
 {
-	const Color::AlphaType a(*src_iter.base().second);
+	const AlphaType a(*src_iter.base().second);
 
 	if(a >= BLT_THRESHOLD)
 		*dst_iter = blitAlphaBlend(*dst_iter, *src_iter, a);

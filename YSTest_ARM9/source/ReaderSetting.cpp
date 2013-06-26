@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.cpp
 \ingroup YReader
 \brief 阅读器设置。
-\version r581
+\version r583
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:21 +0800
 \par 修改时间:
-	2013-04-19 18:57 +0800
+	2013-06-24 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,8 +70,8 @@ FetchSetting<Color>(const ValueNode::Container& con, const string& name)
 		return Color(r, g, b);
 	throw std::invalid_argument("Invalid color components found.");
 #endif
-	return Color(min<Color::MonoType>(r, 0xFF), min<Color::MonoType>(g, 0xFF),
-		min<Color::MonoType>(b, 0xFF));
+	return Color(min<MonoType>(r, 0xFF), min<MonoType>(g, 0xFF),
+		min<MonoType>(b, 0xFF));
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2786
+\version r2794
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-05-22 10:02 +0800
+	2013-06-25 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,6 +93,9 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
 	if(i)
 		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
 }
+BitmapBuffer::BitmapBuffer(unique_ptr<PixelType[]> p, const Size& s) ynothrow
+	: BasicImage(Graphics(p.release(), s))
+{}
 BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
 	: BasicImage()
 {
@@ -181,13 +184,13 @@ BitmapBufferEx::SetSize(const Size& s)
 
 	try
 	{
-		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0)
-			? new PixelType[area] : nullptr);
-		unique_ptr<Color::AlphaType[]> p_new_alpha(YB_LIKELY(area != 0)
-			? new Color::AlphaType[area] : nullptr);
+		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0) ? new PixelType[area]
+			: nullptr);
+		unique_ptr<AlphaType[]> p_new_alpha(YB_LIKELY(area != 0)
+			? new AlphaType[area] : nullptr);
 
 		unique_ptr<PixelType[]> p_old(pBuffer);
-		unique_ptr<Color::AlphaType[]> p_old_alpha(pBufferAlpha);
+		unique_ptr<AlphaType[]> p_old_alpha(pBufferAlpha);
 
 		pBuffer = p_new.release();
 		pBufferAlpha = p_new_alpha.release();

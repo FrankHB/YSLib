@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r974
+\version r1048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-23 00:49 +0800
+	2013-06-26 20:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,52 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	+ "typedef octet" @ %'YBase'.'YDefinition',
+	(
+		+ "3rdparty library FreeImage";
+		$dep_to "FreeImage"
+	),
+	/ %'YFramework' $=
+	(
+		/ $dev %'YCLib'.'Video' $=
+		(
+			/ "typedef Color::(MonoType, AlphaType)"
+				-> "namespace scope typedef names" @ "namespace %platform",
+			/ "macro %YCL_PIXEL_FORMAT_AXYZ1555" -> "%YCL_PIXEL_FORMAT_XYZ555"
+				@ "platform %DS",
+			+ "macro %YCL_PIXEL_FORMAT_XYZ888" @ "platform %MinGW32"
+		),
+		/ %'YSLib' $=
+		(
+			/ %'Adaptor' $=
+			(
+				(
+					$dep_from %'YBase'.'YDefinition';
+					+ "using %ystdex::(byte, octet)" @ %'YAdaptor';
+				),
+				$dep_from "FreeImage";
+				+ "unit %Image"
+			),
+			/ %'Service' $=
+			(
+				+ "constructor 'BitmapBuffer(unique_ptr<PixelType[]>, \
+					const Size&) ynothrow'",
+				* "wrong source offset"
+					@ "member function %ImageBrush::operator()" $since b294
+			)
+		),
+		(
+			$dep_from "FreeImage"
+			/ $dev $build "FreeImage supported" @ "ARM9 Makefile"
+				@ "platform %DS"
+		)
+	)
+	* "library %YFramework" @ "configuration %release_DLL" @ "platform %MinGW32"
+		"wrongly linked to 'YBase.dll' of configuration %debug" $since b362,
+),
+
+b416
 (
 	/ $dev %'YFramework'.'YSLib' $=
 	(
@@ -110,8 +156,8 @@ b415
 				be called for non-const reference type" $since b288,
 			+ "explicitly defaulted copy constructor",
 			+ "explicitly defaulted move constructor",
-				// G++ 4.7.1 can't accept this overloading, so ignored \
-					as workaround.
+				// G++ 4.7.1 can't accept this overloading, so ignored as \
+					workaround.
 			+ "member functions %operator(+=, -=; +, -)"
 				// Using %std::advance.
 		)
@@ -187,16 +233,17 @@ b414
 		),
 		/ %'Service' $=
 		(
-			/ "function template specializations %BlitScale implemented \
-				as inline functions",
+			/ "function template specializations %BlitScale implemented as \
+				inline functions",
 				// For more compact binary files.
 			(
 				$dep_from %'YBase'.'YStandardEx'.'Iterator';
-				/ $dev "blitAlpha supported for %bitseg_iterator as source";
-				$dep_to "%blitAlpha"
+				/ $dev "blitAlphaBlend supported for %bitseg_iterator as \
+					source";
+				$dep_to "%blitAlphaBlend"
 			),
 			(
-				$dep_from "%blitAlpha";
+				$dep_from "%blitAlphaBlend";
 				/ "character renderer interface supported for bitmap source \
 					other than 255 gray level"
 			)
@@ -302,8 +349,8 @@ b412
 					%indirect_input_iterator"
 			),
 			$dep_from %'Iterator';
-			/ "class %FileIterator" -> "typedef name of instantiated \
-				template %indirect_input_iterator",
+			/ "class %FileIterator" -> "typedef name of instantiated template \
+				%indirect_input_iterator",
 			/ $dev $lib "simplified header inclusion as \
 				%Documentation::ProjectRules"
 		),
@@ -322,7 +369,7 @@ b412
 				* $dev "strictly use of constexpr conforming to ISO C++11 for \
 					static data object %Invalid"
 					@ "class template %GBinaryObject" @ %'GDIBase' $since b311
-					// Resolved $known_issue_b351_1. Though C++1Y may loose \
+					// Resolved $known_issue_b351_1. Though C++1y may loose \
 						the restrictions as allowing this invalid C++11 \
 						construct. Note another restriction is already relaxed \
 						in the draft WG21/N3691. See $ref b412 $note "N3652".
@@ -364,8 +411,7 @@ b411
 				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 					Exceptions implementation: SjLj.
 		/ $dev $build "compiler flag" "'-Og'" -> '-O' @ "debug configurations"
-			// $revert(b392) Code::Blocks can't debugging with \
-				'-Og' well.
+			// $revert(b392) Code::Blocks can't debugging with '-Og' well.
 	),
 	/ %'YFramework' $=
 	(
@@ -406,8 +452,8 @@ b411
 						// Now no counting and reserving list items, and the \
 							original would be kept on exception thrown.
 				),
-				- "all namespace scope yconstexpr constants \
-					%(FS_Now, FS_Parent, FS_Separator, FS_Root)",
+				- "all namespace scope yconstexpr constants %(FS_Now, \
+					FS_Parent, FS_Separator, FS_Root)",
 			)
 		)
 	)
@@ -434,13 +480,13 @@ b410
 				+ "member %operator/= for %String as directly subdirectory \
 					access"
 			),
-			+ "functions %(GetExtensionOf, 4 VerifyDirectory, \
-				3 IsAbsolute, 4 IsRelative),
+			+ "functions %(GetExtensionOf, 4 VerifyDirectory, 3 IsAbsolute, \
+				4 IsRelative),
 				// Another overloaded %IsAbsolute is from namespace %platform;
 			- "functions 2 %YF_API %ValidatePath";
 				// %VerifyDirectory should be used instead.
-			+ "member %operator/= for %String as directly subdirectory \
-				access" @ "class %FileList",
+			+ "member %operator/= for %String as directly subdirectory access"
+				@ "class %FileList",
 			+ "path and file system node classifying APIs"
 			(
 				+ "enum classes %(PathCategory, NodeCategory)";
@@ -585,8 +631,8 @@ b408
 			+ "2 function templates %split"
 				// New return type is void instead of iterator type.
 		),
-		/ DLD "normalized template parameters as convention: \
-			%(_fPred, _tCont, _tSeqCont)"
+		/ DLD "normalized template parameters as convention: %(_fPred, _tCont, \
+			_tSeqCont)"
 	)
 ),
 
@@ -612,8 +658,8 @@ b407
 				/ @ "constructor" $=
 				(
 					+ "buffered renderer parameter",
-					/ "made renderer through buffer from screen as back \
-						buffer when renderer not specified"
+					/ "made renderer through buffer from screen as back buffer \
+						when renderer not specified"
 				)
 			),
 			/ @ "constructor" @ "class %BufferedRenderer" @ %'YRenderer' $=
@@ -783,8 +829,8 @@ b403
 						@ "member functions %(GetExtension, GetStem)"
 				),
 				- "namespace scope objects %(FS_Now_X, FS_Parent_X)",
-				- "functions %YF_API %(SplitPath, 2 HaveSameStems, \
-					2 GetExtensionOf, 2 IsExtensionOf, 2 HaveSameExtensions, \
+				- "functions %YF_API %(SplitPath, 2 HaveSameStems, 2 \
+					GetExtensionOf, 2 IsExtensionOf, 2 HaveSameExtensions, \
 					GetStemOf, 2 IsStemOf, 2 GetFileNameOf)
 					// Use member functions of %Path instead.
 			),
@@ -840,7 +886,7 @@ b402
 		/ %'YSLib' $=
 		(
 			* "missing header %(YSLib/YAdaptor/YTextBase.h, CHRLib/Convert.hpp)"
-				@ VC++ \proj $since b400,
+				@ "VC++ project" $since b400,
 			/ %'Adaptor'.'YAdaptor' $=
 			(
 				(
@@ -908,8 +954,8 @@ b400
 			+ "bookmarks saving and loading",
 			(
 				$ dep_from "fixed text open mode";
-				* $comp "dead loop or wrong position calculated after \
-					reader reaching EOF" @ "some files" @ "%platform MinGW32"
+				* $comp "dead loop or wrong position calculated after reader \
+					reaching EOF" @ "some files" @ "%platform MinGW32"
 					$since b299
 			)
 		),
@@ -971,7 +1017,7 @@ b400
 			),
 			/ %'Adaptor' $=
 			(
-				/ @ \h YAdaptor $=
+				/ %'YAdaptor' $=
 				(
 					/ DLD "simplified including headers",
 					- "namespace %YSLib::Pattern"

@@ -54,6 +54,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../3rdparty/include/FreeImage.h" />
 		<Unit filename="../3rdparty/include/freetype/config/ftconfig.h" />
 		<Unit filename="../3rdparty/include/freetype/config/ftheader.h" />
 		<Unit filename="../3rdparty/include/freetype/config/ftmodule.h" />
@@ -173,6 +174,7 @@
 		<Unit filename="../YFramework/include/YCLib/Video.h" />
 		<Unit filename="../YFramework/include/YCLib/ycommon.h" />
 		<Unit filename="../YFramework/include/YSLib/Adaptor/Font.h" />
+		<Unit filename="../YFramework/include/YSLib/Adaptor/Image.h" />
 		<Unit filename="../YFramework/include/YSLib/Adaptor/YTextBase.h" />
 		<Unit filename="../YFramework/include/YSLib/Adaptor/config.h" />
 		<Unit filename="../YFramework/include/YSLib/Adaptor/yadaptor.h" />
@@ -273,6 +275,7 @@
 		<Unit filename="../YFramework/source/YCLib/Video.cpp" />
 		<Unit filename="../YFramework/source/YCLib/ycommon.cpp" />
 		<Unit filename="../YFramework/source/YSLib/Adaptor/Font.cpp" />
+		<Unit filename="../YFramework/source/YSLib/Adaptor/Image.cpp" />
 		<Unit filename="../YFramework/source/YSLib/Adaptor/ynew.cpp" />
 		<Unit filename="../YFramework/source/YSLib/Core/ValueNode.cpp" />
 		<Unit filename="../YFramework/source/YSLib/Core/yapp.cpp" />

@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3584
+\version r3598
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-05-30 08:26 +0800
+	2013-06-26 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,6 +202,12 @@ public:
 	\brief 构造：使用指定位图指针和大小。
 	*/
 	BitmapBuffer(ConstBitmapPtr, SDst, SDst);
+	/*!
+	\brief 构造：使用指定位图指针和大小。
+	\note 取得所有权。
+	\since build 417
+	*/
+	BitmapBuffer(unique_ptr<PixelType[]>, const Size&) ynothrow;
 	BitmapBuffer(const BitmapBuffer&);
 	/*!
 	\brief 转移构造：转移资源。
@@ -294,9 +300,9 @@ class YF_API BitmapBufferEx : public BitmapBuffer
 protected:
 	/*!
 	\brief Alpha 缓冲区指针。
-	\since build 407
+	\since build 417
 	*/
-	Color::AlphaType* pBufferAlpha;
+	AlphaType* pBufferAlpha;
 
 public:
 	/*!
@@ -347,16 +353,15 @@ public:
 
 	/*!
 	\brief 取 Alpha 缓冲区的指针。
-	\since build 407
+	\since build 417
 	*/
-	DefGetter(const ynothrow, Color::AlphaType*, BufferAlphaPtr,
-		pBufferAlpha)
+	DefGetter(const ynothrow, AlphaType*, BufferAlphaPtr, pBufferAlpha)
 	/*!
 	\brief 取 Alpha 缓冲区占用空间。
 	\since build 407
 	*/
 	DefGetter(const ynothrow, size_t, SizeOfBufferAlpha,
-		sizeof(Color::AlphaType) * GetAreaOf(GetSize()))
+		sizeof(AlphaType) * GetAreaOf(GetSize()))
 
 	//! \since build 405
 	using BitmapBuffer::SetSize;
@@ -405,7 +410,7 @@ YF_API bool
 CopyTo(BitmapPtr, const Graphics&, const Size&, const Point&, const Point&,
 	const Size&, Rotation = RDeg0);
 /*!
-\brief 刷新：位图缓冲区向指针指定的缓冲区复制。
+\brief 位图缓冲区向指针指定的缓冲区复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
@@ -429,7 +434,7 @@ CopyTo(const Graphics& dst, const Graphics& src,
 		dp, sp, src.GetSize(), rot);
 }
 /*!
-\brief 刷新：位图缓冲区向图形接口上下文复制。
+\brief 位图缓冲区向图形接口上下文复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
 \since build 337
 

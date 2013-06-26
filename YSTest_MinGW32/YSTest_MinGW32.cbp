@@ -20,11 +20,12 @@
 				</Compiler>
 				<Linker>
 					<Add library="..\YFramework_MinGW32\debug\libYFramework.a" />
+					<Add library="..\YFramework_MinGW32\lib\libFreeImage.a" />
+					<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
 					<Add library="..\YBase_MinGW32\debug\libYBase.a" />
 					<Add library="gdi32" />
 					<Add library="winmm" />
 					<Add library="Shlwapi" />
-					<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
 				</Linker>
 			</Target>
 			<Target title="release">
@@ -42,11 +43,12 @@
 				<Linker>
 					<Add option="-s" />
 					<Add library="..\YFramework_MinGW32\release\libYFramework.a" />
+					<Add library="..\YFramework_MinGW32\lib\libFreeImage.a" />
+					<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
 					<Add library="..\YBase_MinGW32\release\libYBase.a" />
 					<Add library="gdi32" />
 					<Add library="winmm" />
 					<Add library="Shlwapi" />
-					<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
 				</Linker>
 			</Target>
 			<Target title="debug_DLL">

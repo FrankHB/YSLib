@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2741
+\version r2743
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-18 09:43 +0800
+	2013-06-24 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,11 +77,11 @@ RenderChar(PaintContext&& pc, Color, bool, CharBitmap::BufferType,
 \brief 渲染带 Alpha 缓冲的单个字符。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
-\since build 415
+\since build 417
 */
 YF_API void
 RenderCharAlpha(PaintContext&& pc, Color, bool, CharBitmap::BufferType,
-	CharBitmap::FormatType, const Size&, Color::AlphaType*);
+	CharBitmap::FormatType, const Size&, AlphaType*);
 
 
 /*!

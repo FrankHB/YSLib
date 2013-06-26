@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r276
+\version r280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-03-25 00:25 +0800
+	2013-06-26 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,8 +48,8 @@ b198
 	- "class %ShlGUI" @ "unit %Shell_DS" @ $design "shells for DS",
 	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
 	(
-		/ DLD "using pointers" ~ "references in parameters \
-			of container methods",
+		/ DLD "using pointers"
+			~ "references in parameters of container methods",
 		/ "simplified GUI shell" $=
 		(
 			/ "input points matching",
@@ -164,8 +164,8 @@ b188
 
 b187
 (
-	/ DLP "header %files and source files put in separated \
-		directories" @ "solution configuration",
+	/ DLP "header %files and source files put in separated directories"
+		@ "solution configuration",
 	^ $lib $build "-O3 & ARM specified options compiled library %libloki.a"
 		@ "project YSTest",
 	+ "minor templates" @ "YCLib",

@@ -1,0 +1,61 @@
+# DS makefile for FreeImage
+# Require: devkitPro
+
+include Makefile.srcs
+
+DELETE    := rm -fr
+CAT       := cat
+SEP       := /
+
+CC := $(DEVKITARM)/bin/arm-none-eabi-gcc.exe
+CXX := $(DEVKITARM)/bin/arm-none-eabi-g++.exe
+AR := $(DEVKITARM)/bin/arm-none-eabi-ar.exe
+COMPILER_SEP := /
+O  := o
+A  := a
+I := -I
+D := -D
+L := -l
+T := -o$(space)
+
+DIST ?= Dist
+
+# General configuration variables:
+DESTDIR ?= /
+INCDIR ?= $(DESTDIR)/usr/include
+#INSTALLDIR ?= $(DESTDIR)/usr/lib
+
+MODULES = $(SRCS:.c=.o)
+MODULES := $(MODULES:.cpp=.o)
+CFLAGS ?= -c -O3 -Wno-attributes -fvisibility=hidden -DNO_LCMS
+CFLAGS += $(INCLUDE)
+CXXFLAGS ?= -c -O3 -Wno-attributes -fpermissive -fvisibility=hidden -Wno-ctor-dtor-privacy
+CXXFLAGS += $(INCLUDE)
+
+TARGET  = FreeImage
+STATICLIB = lib$(TARGET).a
+HEADER = Source/FreeImage.h
+
+
+default: all
+
+all: dist
+
+dist: FreeImage
+	cp *.a $(DIST)
+	cp Source/FreeImage.h Dist
+
+FreeImage: $(STATICLIB)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< -o $@
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(STATICLIB): $(MODULES)
+	$(AR) rcs $@ $(MODULES)
+
+clean:
+	rm -f core $(DIST)/*.* u2dtmp* $(MODULES) $(STATICLIB) $(LIBNAME)
+

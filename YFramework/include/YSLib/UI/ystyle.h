@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r401
+\version r403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-06-20 14:46 +0800
+	2013-06-24 22:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,9 +72,9 @@ DrawCross(const Graphics&, const Point&, const Size&, Color);
 
 /*!
 \brief 矩形区域颜色转换。
-\since build 196
+\since build 417
 */
-template<Color::MonoType r, Color::MonoType g, Color::MonoType b>
+template<MonoType r, MonoType g, MonoType b>
 inline void
 transform_pixel_ex(BitmapPtr dst)
 {
