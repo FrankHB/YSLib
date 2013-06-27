@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2864
+\version r2914
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-06-20 01:12 +0800
+	2013-06-28 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,36 +161,27 @@ public:
 */
 class YF_API Typeface final : private noncopyable
 {
-	friend ::FT_Error
-	simpleFaceRequester(::FTC_FaceID, ::FT_Library, ::FT_Pointer, ::FT_Face*);
-
-//	static const ::FT_Matrix MNormal, MOblique;
 public:
 	const FontPath Path;
 
 private:
-	FontFamily* pFontFamily;
-//	::FT_Face face;
-//	bool bBold, bOblique, bUnderline;
-	StyleName style_name;
-
 	::FT_Long face_index;
 	::FT_Int cmap_index;
-/*	FT_Long nGlyphs;
-	FT_UShort uUnitPerEM;
-	FT_Int nCharmaps;
-	FT_Long lUnderlinePos;
-	FT_Matrix matrix;
-	vector<u8> fixSizes;*/
+	StyleName style_name;
+	//! \since build 418
+	//@{
+	::FT_Face face;
+	std::reference_wrapper<FontFamily> family;
+	unordered_map<ucs4_t, FT_UInt> glyph_index_cache;
+	//@}
 
 public:
 	/*!
 	\brief 使用字体缓存引用在指定字体文件路径读取指定索引的字型并构造对象。
-	\post <tt>bool(pFontFamily)</tt> 。
+	\post 断言： <tt>face</tt> 。
+	\post 断言： \c cmap_index 在 face 接受的范围内。
 	*/
-	Typeface(FontCache&, const FontPath&, u32 = 0
-		/*, const bool bb = false,
-		const bool bi = false, const bool bu = false*/);
+	Typeface(FontCache&, const FontPath&, u32 = 0);
 
 	/*!
 	\brief 比较：相等关系。
@@ -208,13 +199,23 @@ public:
 	\brief 取字型家族。
 	\since build 278
 	*/
-	DefGetter(const ynothrow, const FontFamily&, FontFamily, *pFontFamily)
+	DefGetter(const ynothrow, const FontFamily&, FontFamily, family)
 	DefGetter(const ynothrow, const StyleName&, StyleName, style_name)
 	/*!
 	\brief 取字符映射索引号。
 	\since build 278
 	*/
 	DefGetter(const ynothrow, ::FT_Int, CMapIndex, cmap_index)
+	//! \since build 418
+	::FT_UInt
+	GetGlyphIndex(ucs4_t);
+
+	//! \since build 418
+	PDefH(void, FlushCache, )
+		ImplExpr(glyph_index_cache.clear())
+
+	friend ::FT_Error
+	simpleFaceRequester(::FTC_FaceID, ::FT_Library, ::FT_Pointer, ::FT_Face*);
 };
 
 
@@ -304,7 +305,8 @@ class YF_API FontCache final : private noncopyable,
 public:
 	typedef set<Typeface*, ystdex::deref_comp<const Typeface>>
 		FaceSet; //!< 字型组类型。
-	typedef map<FamilyName, FontFamily*> FamilyMap; //!< 字型家族组索引类型。
+	//! \brief 字型家族组索引类型。
+	typedef unordered_map<FamilyName, unique_ptr<FontFamily>> FamilyMap;
 
 	/*!
 	\brief 字形缓冲区大小。
@@ -316,7 +318,6 @@ public:
 private:
 	::FT_Library library; //!< 库实例。
 	::FTC_Manager manager; //!< 内存管理器实例。
-	::FTC_CMapCache cmapCache;
 	::FTC_SBitCache sbitCache;
 
 protected:
@@ -376,11 +377,11 @@ private:
 	GetNativeFace(Typeface*) const;
 
 	/*!
-	\brief 向字型家族组添加字型对象。
-	\since build 277
+	\brief 向字型家族组添加字型家族。
+	\since build 418
 	*/
 	void
-	operator+=(FontFamily&);
+	operator+=(unique_ptr<FontFamily>);
 	/*!
 	\brief 向字型组添加字型对象。
 	\since build 277
@@ -401,26 +402,11 @@ private:
 	bool
 	operator-=(Typeface&);
 
-public:
-	/*!
-	\brief 清除缓存。
-	*/
-	void
-	ClearCache();
-
-private:
 	/*!
 	\brief 清除容器。
 	*/
 	void
 	ClearContainers();
-
-	/*!
-	\brief 从指定路径的字体文件中载入指定索引指定的字型信息。
-	\since build 316
-	*/
-	void
-	LoadTypeface(const FontPath&, size_t) ynothrow;
 
 public:
 	/*!
@@ -437,6 +423,13 @@ public:
 	*/
 	void
 	InitializeDefaultTypeface();
+
+	/*!
+	\brief 复位缓存。
+	\since build 418
+	*/
+	void
+	Reset();
 
 	/*
 	!\brief 清除字形缓存。

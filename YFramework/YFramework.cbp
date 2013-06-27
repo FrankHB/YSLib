@@ -140,6 +140,7 @@
 		<Unit filename="../3rdparty/include/freetype/tttables.h" />
 		<Unit filename="../3rdparty/include/freetype/tttags.h" />
 		<Unit filename="../3rdparty/include/freetype/ttunpat.h" />
+		<Unit filename="../3rdparty/include/ft2build.h" />
 		<Unit filename="data/cp113.bin" />
 		<Unit filename="data/default_font.bin" />
 		<Unit filename="include/CHRLib/Convert.hpp" />
@@ -239,7 +240,6 @@
 		<Unit filename="include/YSLib/UI/ywgtview.h" />
 		<Unit filename="include/YSLib/UI/ywidget.h" />
 		<Unit filename="include/YSLib/UI/ywindow.h" />
-		<Unit filename="include/ft2build.h" />
 		<Unit filename="include/ysbuild.h" />
 		<Unit filename="source/CHRLib/MapEx.cpp" />
 		<Unit filename="source/CHRLib/chrmap.cpp" />

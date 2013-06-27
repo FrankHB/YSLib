@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2668
+\version r2669
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-18 09:44 +0800
+	2013-06-27 16:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,7 +128,7 @@ TextRenderer::ClearLine(u16 l, SDst n)
 
 
 TextRegion::TextRegion()
-	: GTextRendererBase<TextRegion>(), TextState(), BitmapBufferEx()
+	: GTextRendererBase<TextRegion>(), TextState(), CompactPixmapEx()
 {
 	InitializeFont();
 }

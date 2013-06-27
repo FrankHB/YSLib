@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r612
+\version r614
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-05-21 06:49 +0800
+	2013-06-27 16:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 
 BufferedRenderer::BufferedRenderer(bool b, unique_ptr<Drawing::IImage> p)
 	: rInvalidated(), pImageBuffer(p ? std::move(p)
-	: make_unique<BitmapBuffer>()), IgnoreBackground(b)
+	: make_unique<CompactPixmap>()), IgnoreBackground(b)
 {}
 BufferedRenderer::BufferedRenderer(const BufferedRenderer& r)
 	: Renderer(r),
@@ -62,7 +62,7 @@ BufferedRenderer::RequiresRefresh() const
 void
 BufferedRenderer::SetImageBuffer(unique_ptr<Drawing::IImage> p)
 {
-	pImageBuffer = p ? std::move(p) : make_unique<Drawing::BitmapBuffer>();
+	pImageBuffer = p ? std::move(p) : make_unique<Drawing::CompactPixmap>();
 }
 
 void

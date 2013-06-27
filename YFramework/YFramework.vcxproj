@@ -110,6 +110,7 @@
     <ClInclude Include="..\3rdparty\include\freetype\tttables.h" />
     <ClInclude Include="..\3rdparty\include\freetype\tttags.h" />
     <ClInclude Include="..\3rdparty\include\freetype\ttunpat.h" />
+    <ClInclude Include="..\3rdparty\include\ft2build.h" />
     <ClInclude Include="include\CHRLib\chrdef.h" />
     <ClInclude Include="include\CHRLib\chrmap.h" />
     <ClInclude Include="include\CHRLib\chrproc.h" />
@@ -117,7 +118,6 @@
     <ClInclude Include="include\CHRLib\encoding.h" />
     <ClInclude Include="include\CHRLib\MapEx.h" />
     <ClInclude Include="include\CHRLib\smap.hpp" />
-    <ClInclude Include="include\ft2build.h" />
     <ClInclude Include="include\Helper\DSMain.h" />
     <ClInclude Include="include\Helper\GUIApplication.h" />
     <ClInclude Include="include\Helper\GUIShell.h" />

@@ -339,9 +339,6 @@
     <ClInclude Include="include\YSLib\Service\TextRenderer.h">
       <Filter>头文件\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\ft2build.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="include\YCLib\NativeAPI.h">
       <Filter>头文件\YCLib</Filter>
     </ClInclude>
@@ -715,6 +712,9 @@
       <Filter>头文件\YSLib\Adaptor</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\include\FreeImage.h">
+      <Filter>头文件\3rdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\include\ft2build.h">
       <Filter>头文件\3rdparty</Filter>
     </ClInclude>
   </ItemGroup>

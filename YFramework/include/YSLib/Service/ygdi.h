@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3598
+\version r3656
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-06-26 19:38 +0800
+	2013-06-27 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,58 +186,56 @@ public:
 
 
 /*!
-\brief 标准矩形位图缓冲区。
+\brief 标准矩形像素图缓冲区。
 \note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
 	std::is_nothrow_move_assignable<T>::value</tt> 。
+\note 保证像素数据连续。
+\since build 418
 */
-class YF_API BitmapBuffer : public BasicImage
+class YF_API CompactPixmap : public BasicImage
 {
 public:
 	/*!
 	\brief 无参数构造：默认实现。
 	\note 零初始化。
 	*/
-	DefDeCtor(BitmapBuffer)
+	DefDeCtor(CompactPixmap)
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
-	BitmapBuffer(ConstBitmapPtr, SDst, SDst);
+	CompactPixmap(ConstBitmapPtr, SDst, SDst);
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	\note 取得所有权。
-	\since build 417
 	*/
-	BitmapBuffer(unique_ptr<PixelType[]>, const Size&) ynothrow;
-	BitmapBuffer(const BitmapBuffer&);
+	CompactPixmap(unique_ptr<PixelType[]>, const Size&) ynothrow;
+	CompactPixmap(const CompactPixmap&);
 	/*!
 	\brief 转移构造：转移资源。
-	\since build 296
 	*/
-	BitmapBuffer(BitmapBuffer&&) ynothrow;
+	CompactPixmap(CompactPixmap&&) ynothrow;
 	/*!
 	\brief 析构：释放资源。
 	*/
-	~BitmapBuffer() override
+	~CompactPixmap() override
 	{
 		delete[] pBuffer;
 	}
 
 	/*
 	\brief 复制赋值：使用复制构造函数和交换函数。
-	\since build 296
 	*/
-	BitmapBuffer&
-	operator=(const BitmapBuffer& buf)
+	CompactPixmap&
+	operator=(const CompactPixmap& buf)
 	{
-		BitmapBuffer(buf).swap(*this);
+		CompactPixmap(buf).swap(*this);
 		return *this;
 	}
 	/*
 	\brief 转移赋值：使用转移构造函数和交换函数。
-	\since build 296
 	*/
-	BitmapBuffer&
-	operator=(BitmapBuffer&& buf) ynothrow
+	CompactPixmap&
+	operator=(CompactPixmap&& buf) ynothrow
 	{
 		buf.swap(*this);
 		return *this;
@@ -272,30 +270,29 @@ public:
 	virtual void
 	ClearImage() const;
 
-	//! \since build 409
-	virtual DefClone(const, BitmapBuffer)
+	virtual DefClone(const, CompactPixmap)
 
 	/*
 	\brief 交换。
-	\since build 409
 	*/
 	void
-	swap(BitmapBuffer& buf) ynothrow
+	swap(CompactPixmap& buf) ynothrow
 	{
 		std::swap<Graphics>(*this, buf);
 	}
 };
 
-//! \since build 409
-inline DefSwap(ynothrow, BitmapBuffer)
+//! \since build 418
+inline DefSwap(ynothrow, CompactPixmap)
 
 
 /*!
-\brief 扩展的标准矩形位图缓冲区。
+\brief 使用 8 位 Alpha 扩展的标准矩形像素图缓冲区。
 \note 满足 <tt>std::is_nothrow_move_constructible<T>::value &&
 	std::is_nothrow_move_assignable<T>::value</tt> 。
+\note 保证像素数据和 Alpha 数据分别连续。
 */
-class YF_API BitmapBufferEx : public BitmapBuffer
+class YF_API CompactPixmapEx : public CompactPixmap
 {
 protected:
 	/*!
@@ -309,23 +306,22 @@ public:
 	\brief 无参数构造。
 	\note 零初始化。
 	*/
-	BitmapBufferEx()
-		: BitmapBuffer(), pBufferAlpha()
+	CompactPixmapEx()
+		: CompactPixmap(), pBufferAlpha()
 	{}
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
-	BitmapBufferEx(ConstBitmapPtr, SDst, SDst);
-	BitmapBufferEx(const BitmapBufferEx&);
+	CompactPixmapEx(ConstBitmapPtr, SDst, SDst);
+	CompactPixmapEx(const CompactPixmapEx&);
 	/*!
 	\brief 转移构造：转移资源。
-	\since build 296
 	*/
-	BitmapBufferEx(BitmapBufferEx&&) ynothrow;
+	CompactPixmapEx(CompactPixmapEx&&) ynothrow;
 	/*!
 	\brief 析构：释放资源。
 	*/
-	~BitmapBufferEx() override
+	~CompactPixmapEx() override
 	{
 		delete[] pBufferAlpha;
 	}
@@ -334,18 +330,17 @@ public:
 	\brief 复制赋值：使用复制构造函数和交换函数。
 	\since build 296
 	*/
-	BitmapBufferEx&
-	operator=(const BitmapBufferEx& buf)
+	CompactPixmapEx&
+	operator=(const CompactPixmapEx& buf)
 	{
-		BitmapBufferEx(buf).swap(*this);
+		CompactPixmapEx(buf).swap(*this);
 		return *this;
 	}
 	/*
 	\brief 转移赋值：使用转移构造函数和交换函数。
-	\since build 296
 	*/
-	BitmapBufferEx&
-	operator=(BitmapBufferEx&& buf) ynothrow
+	CompactPixmapEx&
+	operator=(CompactPixmapEx&& buf) ynothrow
 	{
 		swap(buf);
 		return *this;
@@ -363,8 +358,7 @@ public:
 	DefGetter(const ynothrow, size_t, SizeOfBufferAlpha,
 		sizeof(AlphaType) * GetAreaOf(GetSize()))
 
-	//! \since build 405
-	using BitmapBuffer::SetSize;
+	using CompactPixmap::SetSize;
 	/*!
 	\brief 重新设置缓冲区大小。
 	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；
@@ -380,23 +374,21 @@ public:
 	void
 	ClearImage() const override;
 
-	//! \since build 409
-	DefClone(const override, BitmapBufferEx)
+	DefClone(const override, CompactPixmapEx)
 
 	/*
 	\brief 交换。
-	\since build 409
 	*/
 	void
-	swap(BitmapBufferEx& buf) ynothrow
+	swap(CompactPixmapEx& buf) ynothrow
 	{
-		std::swap<BitmapBuffer>(*this, buf),
+		std::swap<CompactPixmap>(*this, buf),
 		std::swap(pBufferAlpha, buf.pBufferAlpha);
 	}
 };
 
-//! \since build 409
-inline DefSwap(ynothrow, BitmapBufferEx)
+//! \since build 418
+inline DefSwap(ynothrow, CompactPixmapEx)
 
 
 /*!
@@ -412,11 +404,12 @@ CopyTo(BitmapPtr, const Graphics&, const Size&, const Point&, const Point&,
 /*!
 \brief 位图缓冲区向指针指定的缓冲区复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
+\since build 418
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
 YF_API bool
-CopyTo(BitmapPtr, const BitmapBufferEx&, const Size&,
+CopyTo(BitmapPtr, const CompactPixmapEx&, const Size&,
 	const Point&, const Point&, const Size&, Rotation = RDeg0);
 /*!
 \brief 图形接口上下文复制。
@@ -436,12 +429,12 @@ CopyTo(const Graphics& dst, const Graphics& src,
 /*!
 \brief 位图缓冲区向图形接口上下文复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
-\since build 337
+\since build 418
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
 inline bool
-CopyTo(const Graphics& dst, const BitmapBufferEx& src,
+CopyTo(const Graphics& dst, const CompactPixmapEx& src,
 	const Point& dp = {}, const Point& sp = {}, Rotation rot = RDeg0)
 {
 	return CopyTo(dst.GetBufferPtr(), src, dst.GetSize(),
@@ -451,21 +444,22 @@ CopyTo(const Graphics& dst, const BitmapBufferEx& src,
 /*!
 \brief 贴图：位图缓冲区向指针指定的缓冲区以贴图算法复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
+\since build 418
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向以缓冲区内容贴图。
 */
 YF_API bool
-BlitTo(BitmapPtr, const BitmapBufferEx&, const Size&,
+BlitTo(BitmapPtr, const CompactPixmapEx&, const Size&,
 	const Point&, const Point&, const Size&, Rotation = RDeg0);
 /*!
 \brief 贴图：位图缓冲区向指针指定的缓冲区以贴图算法复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
-\since build 337
+\since build 418
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向以缓冲区内容贴图。
 */
 inline bool
-BlitTo(const Graphics& dst, const BitmapBufferEx& src,
+BlitTo(const Graphics& dst, const CompactPixmapEx& src,
 	const Point& dp = {}, const Point& sp = {}, Rotation rot = RDeg0)
 {
 	return BlitTo(dst.GetBufferPtr(), src, dst.GetSize(),

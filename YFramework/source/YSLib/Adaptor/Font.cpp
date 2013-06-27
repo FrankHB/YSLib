@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2905
+\version r3032
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-06-17 14:16 +0800
+	2013-06-28 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,52 +52,13 @@ YSL_BEGIN_NAMESPACE(Drawing)
 从由 face_id 提供的参数对应的字体文件中读取字体，写入 aface 。
 */
 ::FT_Error
-simpleFaceRequester(::FTC_FaceID face_id, ::FT_Library library,
+simpleFaceRequester(::FTC_FaceID face_id, ::FT_Library,
 					::FT_Pointer, ::FT_Face* aface)
 {
-	Typeface* fontFace(static_cast<Typeface*>(face_id));
-	::FT_Face& face(*aface);
-	::FT_Error error(FT_New_Face(library, fontFace->Path.c_str(),
-		fontFace->face_index, aface));
-
-	if(YB_LIKELY(!error))
-	{
-		error = ::FT_Select_Charmap(face, FT_ENCODING_UNICODE);
-		if(YB_LIKELY(!error && face))
-		{
-			fontFace->cmap_index = face->charmap
-				? ::FT_Get_Charmap_Index(face->charmap) : 0;
-#if 0
-			fontFace->nGlyphs = face->num_glyphs;
-			fontFace->uUnitPerEM = face->units_per_EM;
-			fontFace->nCharmaps = face->num_charmaps;
-			if(FT_IS_SCALABLE(face))
-				fontFace->lUnderlinePos = FT_MulFix(face->underline_position,
-					face->size->metrics.y_scale) >> 6;
-			fontFace->fixSizes.clear();
-			if(face->available_sizes)
-			{
-				::FT_Int t = face->num_fixed_sizes;
-
-				fontFace->fixSizes.reserve(t);
-				for(::FT_Int i = 0; i < t; ++i)
-					fontFace->fixSizes.push_back(
-						face->available_sizes[i].size >> 6);
-			}
-
-#endif
-		}
-	}
-#if 0
-	// FIXME: wrong impl;
-	::FT_GlyphSlot_Embolden(face->glyph);
-	::FT_GlyphSlot_Oblique(face->glyph);
-	::FT_Outline_Embolden(&face->glyph->outline, 64);
-	::FT_Set_Transform(face, &fontFace->matrix, nullptr);
-#endif
-	if(YB_UNLIKELY(error))
-		platform::yprintf("Face request error: %08x\n", error);
-	return error;
+	if(YB_UNLIKELY(!face_id || !aface))
+		return FT_Err_Invalid_Argument;
+	*aface = static_cast<Typeface*>(face_id)->face;
+	return FT_Err_Ok;
 }
 
 
@@ -134,35 +95,40 @@ FontFamily::GetTypefacePtr(const StyleName& style_name) const
 }
 
 
-/*const ::FT_Matrix Typeface::MNormal = {0x10000, 0, 0, 0x10000},
-	Typeface::MOblique = {0x10000, 0x5800, 0, 0x10000};*/
+Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
+	: Path(path), face_index(i), cmap_index(-1), style_name(), face(),
+	family(*[&, this]{
+		if(YB_UNLIKELY(cache.sFaces.find(this) != cache.sFaces.end()))
+			throw LoggedEvent("Duplicate typeface found.", 2);
 
-Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i
-	/*, const bool bb, const bool bi, const bool bu*/)
-	: Path(path), face_index(i), cmap_index(-1)
-/*	, bBold(bb), bOblique(bi), bUnderline(bu),
-	, matrix(bi ? MOblique : MNormal)*/
+		::FT_Error error(::FT_New_Face(cache.library, Path.c_str(),
+			face_index, &face));
+
+		if(YB_LIKELY(!error))
+			if(YB_LIKELY(!(error = ::FT_Select_Charmap(face,
+				FT_ENCODING_UNICODE)) && face))
+				cmap_index = face->charmap
+					? ::FT_Get_Charmap_Index(face->charmap) : 0;
+		if(YB_UNLIKELY(error))
+		{
+			platform::yprintf("Face request error: %08x\n", error);
+			throw LoggedEvent("Face loading failed.", 2);
+		}
+
+		const FamilyName family_name(face->family_name);
+		auto& p_ff(cache.mFamilies[family_name]);
+
+		if(!p_ff)
+			p_ff = make_unique<FontFamily>(cache, family_name);
+		return p_ff.get();
+	}()), glyph_index_cache()
 {
-	if(YB_UNLIKELY(cache.sFaces.find(this) != cache.sFaces.end()))
-		throw LoggedEvent("Duplicate typeface found.", 2);
+	YAssert(face, "Null pointer found.");
+	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(face->num_charmaps),
+		"Invalid CMap index found.");
 
-	::FTC_FaceID new_face_id(this);
-	::FT_Face face(nullptr);
-
-	//读取字型名称并构造名称映射。
-	if(YB_UNLIKELY(FTC_Manager_LookupFace(cache.manager, new_face_id, &face)
-		!= 0 || !face))
-		throw LoggedEvent("Face loading failed.", 2);
-
-	const FamilyName family_name(face->family_name);
-	const auto it(cache.mFamilies.find(family_name));
-	const bool not_found(it == cache.mFamilies.end());
-
-	yunseq(pFontFamily = not_found ? ynew FontFamily(cache, family_name)
-		: it->second, style_name = face->style_name);
-	if(YB_LIKELY(not_found))
-		cache += *pFontFamily;
-	*pFontFamily += *this;
+	style_name = face->style_name;
+	family.get() += *this;
 }
 
 bool
@@ -175,6 +141,21 @@ Typeface::operator<(const Typeface& rhs) const
 {
 	return Path < rhs.Path
 		|| (Path == rhs.Path && face_index < rhs.face_index);
+}
+
+::FT_UInt
+Typeface::GetGlyphIndex(ucs4_t c)
+{
+	auto i(glyph_index_cache.find(c));
+
+	if(i == glyph_index_cache.end())
+	{
+		if(cmap_index > 0)
+			::FT_Set_Charmap(face, face->charmaps[cmap_index]);
+		i = glyph_index_cache.insert(make_pair(c, ::FT_Get_Char_Index(face,
+			::FT_ULong(c)))).first;
+	}
+	return i->second;
 }
 
 
@@ -198,8 +179,7 @@ FontCache::FontCache(size_t cache_size)
 	if(YB_LIKELY((error = ::FT_Init_FreeType(&library)) == 0
 		&& (error = ::FTC_Manager_New(library, 0, 0, cache_size,
 		&simpleFaceRequester, nullptr, &manager)) == 0
-		&& (error = ::FTC_SBitCache_New(manager, &sbitCache)) == 0
-		&& (error = ::FTC_CMapCache_New(manager, &cmapCache)) == 0))
+		&& (error = ::FTC_SBitCache_New(manager, &sbitCache)) == 0))
 	{
 		// TODO: Write log on success.
 	}
@@ -222,7 +202,7 @@ FontCache::GetFontFamilyPtr(const FamilyName& family_name) const
 {
 	const auto i(mFamilies.find(family_name));
 
-	return (i == mFamilies.cend()) ? nullptr : i->second;
+	return (i == mFamilies.cend()) ? nullptr : i->second.get();
 }
 
 const Typeface*
@@ -253,9 +233,10 @@ FontCache::GetNativeFace(Typeface* pFace) const
 }
 
 void
-FontCache::operator+=(FontFamily& family)
+FontCache::operator+=(unique_ptr<FontFamily> p_family)
 {
-	mFamilies.insert(make_pair(family.GetFamilyName(), &family));
+	mFamilies.emplace(make_pair(p_family->GetFamilyName(),
+		std::move(p_family)));
 }
 void
 FontCache::operator+=(Typeface& face)
@@ -275,30 +256,11 @@ FontCache::operator-=(Typeface& face)
 }
 
 void
-FontCache::ClearCache()
-{
-	ClearContainers();
-	FTC_Manager_Reset(manager);
-}
-
-void
 FontCache::ClearContainers()
 {
 	std::for_each(sFaces.begin(), sFaces.end(), delete_obj());
 	sFaces.clear();
-	std::for_each(mFamilies.begin(), mFamilies.end(), delete_second_mem());
 	mFamilies.clear();
-}
-
-void
-FontCache::LoadTypeface(const FontPath& path, size_t idx) ynothrow
-{
-	try
-	{
-		*this += *(ynew Typeface(*this, path, idx));
-	}
-	catch(...)
-	{}
 }
 
 size_t
@@ -320,7 +282,12 @@ FontCache::LoadTypefaces(const FontPath& path)
 		const size_t face_n(face_num);
 
 		for(size_t i(0); i < face_n; ++i)
-			LoadTypeface(path, i);
+			try
+			{
+				*this += *(ynew Typeface(*this, path, i));
+			}
+			catch(...)
+			{}
 		return face_n;
 	}
 	return 0;
@@ -331,6 +298,13 @@ FontCache::InitializeDefaultTypeface()
 {
 	if(YB_LIKELY(!(pDefaultFace || sFaces.empty())))
 		pDefaultFace = *sFaces.begin();
+}
+
+void
+FontCache::Reset()
+{
+	ClearContainers();
+	::FTC_Manager_Reset(manager);
 }
 
 
@@ -365,13 +339,11 @@ Font::GetDescender() const
 CharBitmap
 Font::GetGlyph(ucs4_t c, ::FT_UInt flags) const
 {
-	auto pFace(&GetTypeface());
 	auto& cache(GetCache());
 	::FTC_SBit sbit;
 
 	::FTC_SBitCache_LookupScaler(cache.sbitCache, &scaler, flags,
-		::FTC_CMapCache_Lookup(cache.cmapCache, scaler.face_id,
-		pFace->GetCMapIndex(), c), &sbit, nullptr);
+		GetTypeface().GetGlyphIndex(c), &sbit, nullptr);
 	return sbit;
 }
 FontSize

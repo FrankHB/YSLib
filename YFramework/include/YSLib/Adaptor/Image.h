@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r169
+\version r192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-06-26 22:00 +0800
+	2013-06-27 16:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,8 +43,8 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-//! \since build 417
-class BitmapBuffer;
+//! \since build 418
+class CompactPixmap;
 
 
 //! \since build 402
@@ -95,8 +95,11 @@ public:
 //@}
 
 
-//! \since build 402
-class YF_API NativePixmap final
+/*!
+\brief 位图句柄：指向位图数据。
+\since build 418
+*/
+class YF_API HBitmap final
 {
 public:
 	typedef ::FIBITMAP* DataPtr;
@@ -106,7 +109,7 @@ private:
 
 public:
 	//! \throw BadImageAlloc 分配空间失败。
-	NativePixmap(const Size&, BitPerPixel = 0);
+	HBitmap(const Size&, BitPerPixel = 0);
 	//! \since build 417
 	//@{
 	/*
@@ -114,20 +117,19 @@ public:
 	\post 断言检查： bitmap 非空。
 	\note 取得所有权。
 	*/
-	NativePixmap(DataPtr) ynothrow;
+	HBitmap(DataPtr) ynothrow;
 	/*
 	\brief 构造：使用指定文件路径。
 	\throw UnknownImageFormat 未知图像格式。
 	\throw LoggedEvent 读取失败。
-	\since build 417
 	*/
-	NativePixmap(const string&);
+	HBitmap(const string&);
 	//! \throw LoggedEvent 读取失败。
-	NativePixmap(const ImageMemory&);
+	HBitmap(const ImageMemory&);
 	//! \throw BadImageAlloc 分配空间失败。
-	NativePixmap(const NativePixmap&);
-	NativePixmap(NativePixmap&&) ynothrow;
-	~NativePixmap();
+	HBitmap(const HBitmap&);
+	HBitmap(HBitmap&&) ynothrow;
+	~HBitmap();
 	//@}
 
 	BitPerPixel
@@ -153,13 +155,16 @@ public:
 	ImageCodec();
 	~ImageCodec();
 
-	static BitmapBuffer
+	//! \since build 418
+	//@{
+	static CompactPixmap
 	Load(const vector<octet>&);
 
-	static BitmapBuffer
-	Convert(const NativePixmap&);
-//	static BitmapBuffer
-//	Convert(NativePixmap&&);
+	static CompactPixmap
+	Convert(const HBitmap&);
+	//@}
+//	static CompactPixmap
+//	Convert(HBitmap&&);
 };
 
 YSL_END_NAMESPACE(Drawing)

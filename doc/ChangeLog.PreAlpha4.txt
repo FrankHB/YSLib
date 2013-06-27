@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1048
+\version r1077
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-26 20:58 +0800
+	2013-06-28 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,36 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ DLD "header %ft2build.h" @ "directory %YFramework/include"
+		>> "directory %3rdparty/include",
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Service'.'YGDI' $=
+		(
+			/ "class %BitmapBuffer" => "%CompactPixmap",
+			/ "class BitmapBufferEx => "%CompactPixmapEx"
+		),
+		/ %'Adaptor' $=
+		(
+			/ "class NativePixmap" @ %'Image' => "%HBitmap",
+			/ %'Font' $=
+			(
+				/ @ "class %FontCache" $=
+				(
+					^ "%unordered_map with %unique_ptr for %FontFamily \
+						stored",
+					/ "member function %ClearCache" => "%Reset",
+					- "FreeType CMap cacheing"
+						// Binary size enlarged. No performance impact.
+				),
+				+ "CMap cacheing" ^ "%unordered_map"
+			)
+		)
+	)
+),
+
+b417
 (
 	+ "typedef octet" @ %'YBase'.'YDefinition',
 	(

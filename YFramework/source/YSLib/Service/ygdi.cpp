@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2794
+\version r2813
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-06-25 20:47 +0800
+	2013-06-27 16:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,7 @@ ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 }
 
 
-BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
+CompactPixmap::CompactPixmap(ConstBitmapPtr i, SDst w, SDst h)
 	: BasicImage()
 	//不能提前初始化 size ，否则指针非空和面积非零状态不一致。
 {
@@ -93,31 +93,31 @@ BitmapBuffer::BitmapBuffer(ConstBitmapPtr i, SDst w, SDst h)
 	if(i)
 		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
 }
-BitmapBuffer::BitmapBuffer(unique_ptr<PixelType[]> p, const Size& s) ynothrow
+CompactPixmap::CompactPixmap(unique_ptr<PixelType[]> p, const Size& s) ynothrow
 	: BasicImage(Graphics(p.release(), s))
 {}
-BitmapBuffer::BitmapBuffer(const BitmapBuffer& buf)
+CompactPixmap::CompactPixmap(const CompactPixmap& buf)
 	: BasicImage()
 {
 	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
 		std::copy_n(p, GetAreaOf(GetSize()), pBuffer);
 }
-BitmapBuffer::BitmapBuffer(BitmapBuffer&& buf) ynothrow
+CompactPixmap::CompactPixmap(CompactPixmap&& buf) ynothrow
 	: BasicImage(buf)
 {
 	buf.pBuffer = nullptr;
 }
 
 void
-BitmapBuffer::SetContent(ConstBitmapPtr s, SDst w, SDst h)
+CompactPixmap::SetContent(ConstBitmapPtr s, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(YB_LIKELY(pBuffer && s))
 		std::copy_n(s, GetAreaOf(GetSize()), pBuffer);
 }
 void
-BitmapBuffer::SetSize(const Size& s)
+CompactPixmap::SetSize(const Size& s)
 {
 	const auto area(GetAreaOf(s));
 
@@ -140,28 +140,28 @@ BitmapBuffer::SetSize(const Size& s)
 	ClearImage();
 }
 void
-BitmapBuffer::SetSizeSwap()
+CompactPixmap::SetSizeSwap()
 {
 	std::swap(sGraphics.Width, sGraphics.Height);
 	ClearImage();
 }
 
 void
-BitmapBuffer::ClearImage() const
+CompactPixmap::ClearImage() const
 {
 	Drawing::ClearImage(*this);
 }
 
 
-BitmapBufferEx::BitmapBufferEx(ConstBitmapPtr i, SDst w, SDst h)
-	: BitmapBuffer(), pBufferAlpha()
+CompactPixmapEx::CompactPixmapEx(ConstBitmapPtr i, SDst w, SDst h)
+	: CompactPixmap(), pBufferAlpha()
 {
 	SetSize(w, h);
 	if(i)
 		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
 }
-BitmapBufferEx::BitmapBufferEx(const BitmapBufferEx& buf)
-	: BitmapBuffer(), pBufferAlpha()
+CompactPixmapEx::CompactPixmapEx(const CompactPixmapEx& buf)
+	: CompactPixmap(), pBufferAlpha()
 {
 	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
@@ -171,14 +171,14 @@ BitmapBufferEx::BitmapBufferEx(const BitmapBufferEx& buf)
 			pBufferAlpha);
 	}
 }
-BitmapBufferEx::BitmapBufferEx(BitmapBufferEx&& buf) ynothrow
-	: BitmapBuffer(std::move(buf)), pBufferAlpha(buf.GetBufferAlphaPtr())
+CompactPixmapEx::CompactPixmapEx(CompactPixmapEx&& buf) ynothrow
+	: CompactPixmap(std::move(buf)), pBufferAlpha(buf.GetBufferAlphaPtr())
 {
 	buf.pBufferAlpha = nullptr;
 }
 
 void
-BitmapBufferEx::SetSize(const Size& s)
+CompactPixmapEx::SetSize(const Size& s)
 {
 	const auto area(GetAreaOf(s));
 
@@ -197,7 +197,7 @@ BitmapBufferEx::SetSize(const Size& s)
 	}
 	catch(std::bad_alloc&)
 	{
-		throw LoggedEvent("BitmapBufferEx allocation failed.", 1);
+		throw LoggedEvent("CompactPixmapEx allocation failed.", 1);
 	}
 
 	YAssert(!((pBuffer != nullptr) ^ (area != 0)), "Buffer corruptied.");
@@ -208,7 +208,7 @@ BitmapBufferEx::SetSize(const Size& s)
 }
 
 void
-BitmapBufferEx::ClearImage() const
+CompactPixmapEx::ClearImage() const
 {
 	const u32 t = GetAreaOf(sGraphics);
 
@@ -231,7 +231,7 @@ CopyTo(BitmapPtr dst, const Graphics& g, const Size& ds,
 	return false;
 }
 bool
-CopyTo(BitmapPtr dst, const BitmapBufferEx& buf, const Size& ds,
+CopyTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
 {
 	if(~rot & 1 && dst && bool(buf))
@@ -247,7 +247,7 @@ CopyTo(BitmapPtr dst, const BitmapBufferEx& buf, const Size& ds,
 }
 
 bool
-BlitTo(BitmapPtr dst, const BitmapBufferEx& buf, const Size& ds,
+BlitTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
 {
 	if(~rot & 1 && dst && bool(buf))

@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2803
+\version r2807
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-02-04 17:49 +0800
+	2013-06-27 16:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_SERVICE_TEXTRENDERER_H_
-#define YSL_INC_SERVICE_TEXTRENDERER_H_ 1
+#ifndef YSL_INC_Service_TextRenderer_h_
+#define YSL_INC_Service_TextRenderer_h_ 1
 
 #include "CharRenderer.h"
 #include "../Core/ystring.h"
@@ -389,7 +389,7 @@ public:
 \since 早于 build 132
 */
 class YF_API TextRegion : public GTextRendererBase<TextRegion>,
-	public TextState, public BitmapBufferEx
+	public TextState, public CompactPixmapEx
 {
 public:
 	/*!
@@ -404,7 +404,7 @@ public:
 	explicit
 	TextRegion(_tParams&&... args)
 		: GTextRendererBase<TextRegion>(),
-		TextState(yforward(args)...), BitmapBufferEx()
+		TextState(yforward(args)...), CompactPixmapEx()
 	{
 		InitializeFont();
 	}
