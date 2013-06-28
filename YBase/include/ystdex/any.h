@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1291
+\version r1296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-06-09 09:19 +0800
+	2013-06-28 05:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -265,7 +265,7 @@ public:
 	pointer_holder(pointer_holder&& h)
 		: p_held(h.p_held)
 	{
-		h.p_held = nullptr;
+		h.p_held = {};
 	}
 	//@}
 	virtual
@@ -773,14 +773,14 @@ public:
 
 /*!
 \brief 动态泛型转换。
+\return 当 <tt>p && p->type() == typeid(remove_pointer<_tPointer>::type)</tt> 时
+	为指向对象的指针，否则为空指针。
 \note 语义同 boost::any_cast 。
 \since build 398
 \todo 检验特定环境（如使用动态库时）比较 std::type_info::name() 的必要性。
 */
 //@{
 /*!
-\return 当 <tt>x != nullptr && x->type() == typeid(remove_pointer<
-	_tPointer>::type)</tt> 为指向对象的指针，否则为空指针。
 */
 //@{
 template<typename _tPointer>

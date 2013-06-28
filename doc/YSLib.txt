@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1916
+\version r1917
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-21 16:02 +0800
+	2013-06-28 04:34 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -185,7 +185,6 @@
 @3.1 核心构件系统：
 通称 Core ，位于 "/Core" 。
 除了核心定义 YSDefinition 以外，主要包含以下几大部分：
-不依赖于其它任何头文件的通用基础设施 YBaseMacro ：定义了各种基础平台无关的宏，用于简化代码等；
 核心实用模块 YCoreUtilities ；
 平台无关的基础对象 YObject ；
 对象计数器 YCounter；

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1011
+\version r1012
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-06-13 08:59 +0800
+	2013-06-28 05:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -360,7 +360,7 @@ public:
 	DirectorySession(DirectorySession&& h)
 		: dir(h.dir)
 	{
-		h.dir = nullptr;
+		h.dir = {};
 	}
 	//! \brief 析构：关闭目录路径。
 	~DirectorySession() ynothrow;

@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面窗口。
-\version r3400
+\version r3402
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2012-05-20 15:40 +0800
+	2012-06-28 05:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ Window::operator-=(IWidget& wgt)
 	{
 		SetContainerPtrOf(wgt);
 		if(FetchFocusingPtr(*this) == &wgt)
-			GetView().FocusingPtr = nullptr;
+			GetView().FocusingPtr = {};
 		return MUIContainer::operator-=(wgt);
 	}
 	return false;
@@ -73,7 +73,7 @@ Window::operator-=(Window& wnd)
 	{
 		SetContainerPtrOf(wnd);
 		if(FetchFocusingPtr(*this) == &wnd)
-			GetView().FocusingPtr = nullptr;
+			GetView().FocusingPtr = {};
 		return MUIContainer::operator-=(wnd);
 	}
 	return false;

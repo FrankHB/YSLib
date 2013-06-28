@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r512
+\version r514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-06-18 21:39 +0800
+	2013-06-29 06:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,6 +176,8 @@ $KNOWN_ISSUE:
 		problem can be located. So upgrading is stopped (on all platform to \
 		keep one headers version), but recompiling can be performed for \
 		optimization on binary size.
+	// FreeType 2.5.0.1 test @ b418.
+	// FreeType 2.5.0.1 without cache subsystem test @ b419.
 
 
 $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:

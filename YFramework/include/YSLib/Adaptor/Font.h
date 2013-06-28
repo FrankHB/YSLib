@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r2914
+\version r3038
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-06-28 01:20 +0800
+	2013-06-29 06:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,6 +105,47 @@ FetchName(FontStyle style) ynothrow
 
 
 /*!
+\brief 字体异常。
+\since build 241
+*/
+class YF_API FontException : public LoggedEvent
+{
+public:
+	typedef ::FT_Error FontError;
+
+private:
+	FontError err;
+
+public:
+	FontException(FontError e, const std::string& msg = "")
+		: LoggedEvent(msg),
+		err(e)
+	{}
+
+	DefGetter(const ynothrow, FontError, ErrorCode, err)
+};
+
+
+/*!
+\brief 本机字体大小。
+\since build 419
+*/
+class YF_API NativeFontSize final
+{
+private:
+	::FT_Size size;
+
+public:
+	NativeFontSize(FT_Face, FontSize);
+	NativeFontSize(NativeFontSize&&) ynothrow;
+	~NativeFontSize() ynothrow;
+
+	::FT_SizeRec&
+	GetSizeRec() const;
+};
+
+
+/*!
 \brief 字型家族 (Typeface Family) 标识。
 \since build 145
 */
@@ -152,6 +193,12 @@ public:
 	*/
 	Typeface*
 	GetTypefacePtr(const StyleName&) const;
+	//! \since build 419
+	Typeface&
+	GetTypefaceRef(FontStyle) const;
+	//! \since build 419
+	Typeface&
+	GetTypefaceRef(const StyleName&) const;
 };
 
 
@@ -161,10 +208,42 @@ public:
 */
 class YF_API Typeface final : private noncopyable
 {
+	//! \since build 419
+	friend class Font;
+
 public:
 	const FontPath Path;
 
 private:
+	//! \since build 419
+	//@{
+	struct BitmapKey
+	{
+		::FT_UInt Flags;
+		::FT_UInt GlyphIndex;
+		FontSize Size;
+
+		PDefHOp(bool, ==, const BitmapKey& key) const ynothrow
+			ImplRet(Flags == key.Flags && GlyphIndex == key.GlyphIndex
+				&& Size == key.Size)
+	};
+
+	struct BitmapKeyHash
+	{
+		PDefHOp(size_t, (), const BitmapKey& key) const ynothrow
+			ImplRet(key.Size * 8 + key.Flags * 31 + key.GlyphIndex / 16)
+	};
+
+	struct SmallBitmapData
+	{
+		::FTC_SBitRec_ sbit;
+
+		SmallBitmapData(::FT_GlyphSlot);
+		SmallBitmapData(SmallBitmapData&&);
+		~SmallBitmapData();
+	};
+	//@}
+
 	::FT_Long face_index;
 	::FT_Int cmap_index;
 	StyleName style_name;
@@ -172,8 +251,12 @@ private:
 	//@{
 	::FT_Face face;
 	std::reference_wrapper<FontFamily> family;
-	unordered_map<ucs4_t, FT_UInt> glyph_index_cache;
 	//@}
+	//! \since build 419
+	mutable unordered_map<BitmapKey, SmallBitmapData, BitmapKeyHash>
+		bitmap_cache;
+	//! \since build 419
+	mutable unordered_map<ucs4_t, ::FT_UInt> glyph_index_cache;
 
 public:
 	/*!
@@ -206,16 +289,23 @@ public:
 	\since build 278
 	*/
 	DefGetter(const ynothrow, ::FT_Int, CMapIndex, cmap_index)
-	//! \since build 418
+
+private:
+	//! \since build 419
+	//@{
+	SmallBitmapData&
+	LookupBitmap(const BitmapKey&) const;
+
 	::FT_UInt
-	GetGlyphIndex(ucs4_t);
+	LookupGlyphIndex(ucs4_t) const;
 
-	//! \since build 418
-	PDefH(void, FlushCache, )
+public:
+	PDefH(void, ClearBitmapCache, )
+		ImplExpr(bitmap_cache.clear())
+
+	PDefH(void, ClearGlyphIndexCache, )
 		ImplExpr(glyph_index_cache.clear())
-
-	friend ::FT_Error
-	simpleFaceRequester(::FTC_FaceID, ::FT_Library, ::FT_Pointer, ::FT_Face*);
+	//@}
 };
 
 
@@ -317,8 +407,6 @@ public:
 
 private:
 	::FT_Library library; //!< 库实例。
-	::FTC_Manager manager; //!< 内存管理器实例。
-	::FTC_SBitCache sbitCache;
 
 protected:
 	FaceSet sFaces; //!< 字型组。
@@ -329,6 +417,7 @@ protected:
 public:
 	/*!
 	\brief 构造：分配指定大小的字形缓存空间。
+	\note 当前暂时忽略参数。
 	\since build 316
 	*/
 	explicit
@@ -369,13 +458,6 @@ public:
 	GetTypefacePtr(const FamilyName&, const StyleName&) const;
 
 private:
-	/*!
-	\brief 取当前本机类型字型。
-	\since build 280
-	*/
-	::FT_Face
-	GetNativeFace(Typeface*) const;
-
 	/*!
 	\brief 向字型家族组添加字型家族。
 	\since build 418
@@ -423,19 +505,6 @@ public:
 	*/
 	void
 	InitializeDefaultTypeface();
-
-	/*!
-	\brief 复位缓存。
-	\since build 418
-	*/
-	void
-	Reset();
-
-	/*
-	!\brief 清除字形缓存。
-	*/
-	PDefH(void, ResetGlyphCache, )
-		ImplRet(FTC_Manager_Reset(manager))
 };
 
 
@@ -450,7 +519,10 @@ public:
 		MinimalSize = 4, MaximalSize = 96;
 
 private:
-	mutable ::FTC_ScalerRec scaler;
+	//! \since build 419
+	std::reference_wrapper<Typeface> typeface;
+	//! \since build 419
+	FontSize font_size;
 	/*!
 	\brief 字体样式。
 	\since build 297
@@ -472,6 +544,14 @@ public:
 	explicit
 	Font(const FontFamily&, FontSize = DefaultSize,
 		FontStyle = FontStyle::Regular);
+	//! \since build 419 as workaround for G++ 4.7.1
+	//@{
+	DefDeCopyCtor(Font)
+	Font(Font&& fnt)
+		: Font(fnt)
+	{}
+	DefDeCopyAssignment(Font)
+	//@}
 
 	DefPred(const ynothrow, Bold, bool(style & FontStyle::Bold))
 	DefPred(const ynothrow, Italic, bool(style & FontStyle::Italic))
@@ -490,6 +570,7 @@ public:
 	*/
 	s8
 	GetAscender() const;
+	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
 	/*!
 	\brief 取降部。
 	\since build 280
@@ -498,9 +579,8 @@ public:
 	GetDescender() const;
 	DefGetterMem(const ynothrow, const FamilyName&, FamilyName,
 		GetFontFamily())
-	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
 	DefGetterMem(const ynothrow, const FontFamily&, FontFamily, GetTypeface())
-	DefGetter(const ynothrow, FontSize, Size, FontSize(scaler.height))
+	DefGetter(const ynothrow, FontSize, Size, font_size)
 	//! \since build 414
 	DefGetter(const ynothrow, FontStyle, Style, style)
 	/*!
@@ -525,9 +605,9 @@ public:
 private:
 	/*!
 	\brief 取内部信息。
-	\since build 280
+	\since build 419
 	*/
-	::FT_SizeRec&
+	::FT_Size_Metrics
 	GetInternalInfo() const;
 
 public:
@@ -535,8 +615,7 @@ public:
 	\brief 取字型引用。
 	\since build 280
 	*/
-	DefGetter(const ynothrow, Typeface&, Typeface,
-		*static_cast<Typeface*>(scaler.face_id))
+	DefGetter(const ynothrow, Typeface&, Typeface, typeface)
 
 	/*!
 	\brief 设置字体大小。

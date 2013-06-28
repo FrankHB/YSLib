@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r396
+\version r397
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2013-06-05 18:36 +0800
+	2013-06-28 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ private:
 public:
 	/*!
 	\brief 无参数构造。
-	\post <tt>stream == nullptr</tt> 。
+	\post <tt>!stream</tt> 。
 
 	构造空流迭代器。
 	*/

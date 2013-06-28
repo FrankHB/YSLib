@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r190
+\version r191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-06-27 16:48 +0800
+	2013-06-28 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ HBitmap::HBitmap(const HBitmap& pixmap)
 HBitmap::HBitmap(HBitmap&& pixmap) ynothrow
 	: bitmap(pixmap.bitmap)
 {
-	pixmap.bitmap = nullptr;
+	pixmap.bitmap = {};
 }
 HBitmap::~HBitmap()
 {

@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3032
+\version r3184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-06-28 01:12 +0800
+	2013-06-29 06:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include <Helper/GUIApplication.h>
 #include "YCLib/Debug.h"
 #include <algorithm> // for std::for_each;
+#include FT_SIZES_H
 //#include FT_BITMAP_H
 //#include FT_GLYPH_H
 //#include FT_OUTLINE_H
@@ -46,19 +47,31 @@ using namespace IO;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-/*!
-\brief 供 FreeType 使用的客户端字体查询函数。
-
-从由 face_id 提供的参数对应的字体文件中读取字体，写入 aface 。
-*/
-::FT_Error
-simpleFaceRequester(::FTC_FaceID face_id, ::FT_Library,
-					::FT_Pointer, ::FT_Face* aface)
+NativeFontSize::NativeFontSize(::FT_Face face, FontSize s)
+	: size()
 {
-	if(YB_UNLIKELY(!face_id || !aface))
-		return FT_Err_Invalid_Argument;
-	*aface = static_cast<Typeface*>(face_id)->face;
-	return FT_Err_Ok;
+	if(const auto err = ::FT_New_Size(face, &size))
+		throw FontException(err, "Native font size creation failed.");
+	::FT_Activate_Size(size);
+	if(const auto err = ::FT_Set_Pixel_Sizes(face, s, s))
+		throw FontException(err, "Native font setting size failed.");
+}
+NativeFontSize::NativeFontSize(NativeFontSize&& ns) ynothrow
+	: size(ns.size)
+{
+	ns.size = {};
+}
+NativeFontSize::~NativeFontSize() ynothrow
+{
+	::FT_Done_Size(size);
+}
+
+::FT_SizeRec&
+NativeFontSize::GetSizeRec() const
+{
+	if(YB_UNLIKELY(!size))
+		throw LoggedEvent("Invalid native size found.");
+	return *size;
 }
 
 
@@ -92,6 +105,69 @@ FontFamily::GetTypefacePtr(const StyleName& style_name) const
 	const auto i(mFaces.find(style_name));
 
 	return (i == mFaces.cend()) ? nullptr : i->second;
+}
+Typeface&
+FontFamily::GetTypefaceRef(FontStyle fs) const
+{
+	const auto p(GetTypefacePtr(fs));
+
+	if(YB_UNLIKELY(!p))
+		throw LoggedEvent("No matching face found.");
+	return *p;
+}
+Typeface&
+FontFamily::GetTypefaceRef(const StyleName& style_name) const
+{
+	const auto p(GetTypefacePtr(style_name));
+
+	if(YB_UNLIKELY(!p))
+		throw LoggedEvent("No matching face found.");
+	return *p;
+}
+
+
+Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot)
+{
+	if(slot && slot->format == FT_GLYPH_FORMAT_BITMAP)
+	{
+		const auto& bitmap(slot->bitmap);
+		const ::FT_Pos xadvance((slot->advance.x + 32) >> 6),
+			yadvance((slot->advance.y + 32) >> 6);
+		::FT_Int temp;
+
+#define SBIT_CHECK_CHAR(d) (temp = ::FT_Char(d), temp == d)
+#define SBIT_CHECK_BYTE(d) (temp = ::FT_Byte(d), temp == d)
+		if(SBIT_CHECK_BYTE(bitmap.rows) &&
+			SBIT_CHECK_BYTE(bitmap.width) &&
+			SBIT_CHECK_CHAR(bitmap.pitch) &&
+			SBIT_CHECK_CHAR(slot->bitmap_left) &&
+			SBIT_CHECK_CHAR(slot->bitmap_top) &&
+			SBIT_CHECK_CHAR(xadvance) &&
+			SBIT_CHECK_CHAR(yadvance))
+		{
+			const ::FT_ULong size(std::abs(bitmap.pitch) * bitmap.rows);
+
+			sbit = {::FT_Byte(bitmap.width), ::FT_Byte(bitmap.rows),
+				::FT_Char(slot->bitmap_left), ::FT_Char(slot->bitmap_top),
+				::FT_Byte(bitmap.pixel_mode), ::FT_Byte(bitmap.num_grays - 1),
+				::FT_Char(bitmap.pitch), ::FT_Char(xadvance),
+				::FT_Char(yadvance), ynew ::FT_Byte[size]};
+			std::memcpy(sbit.buffer, bitmap.buffer, size);
+			return;
+		}
+#undef SBIT_CHECK_CHAR
+#undef SBIT_CHECK_BYTE
+	}
+	sbit = {255, 0, 0, 0, 0, 0, 0, 0, 0, nullptr};
+}
+Typeface::SmallBitmapData::SmallBitmapData(SmallBitmapData&& sbit_dat)
+	: sbit(sbit_dat.sbit)
+{
+	sbit_dat.sbit.buffer = {};
+}
+Typeface::SmallBitmapData::~SmallBitmapData()
+{
+	ydelete_array(sbit.buffer);
 }
 
 
@@ -143,8 +219,27 @@ Typeface::operator<(const Typeface& rhs) const
 		|| (Path == rhs.Path && face_index < rhs.face_index);
 }
 
+Typeface::SmallBitmapData&
+Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
+{
+	auto i(bitmap_cache.find(key));
+
+	if(i == bitmap_cache.end())
+	{
+		NativeFontSize native_size(face, key.Size);
+		const auto pr(bitmap_cache.emplace(key, SmallBitmapData(::FT_Load_Glyph(
+			face, key.GlyphIndex, key.Flags | FT_LOAD_RENDER) == 0
+			? face->glyph : nullptr)));
+
+		if(YB_UNLIKELY(!pr.second))
+			throw LoggedEvent("Bitmap cache insertion failed.");
+		i = pr.first;
+	}
+	return i->second;
+}
+
 ::FT_UInt
-Typeface::GetGlyphIndex(ucs4_t c)
+Typeface::LookupGlyphIndex(ucs4_t c) const
 {
 	auto i(glyph_index_cache.find(c));
 
@@ -152,8 +247,13 @@ Typeface::GetGlyphIndex(ucs4_t c)
 	{
 		if(cmap_index > 0)
 			::FT_Set_Charmap(face, face->charmaps[cmap_index]);
-		i = glyph_index_cache.insert(make_pair(c, ::FT_Get_Char_Index(face,
-			::FT_ULong(c)))).first;
+
+		const auto pr(glyph_index_cache.emplace(c, ::FT_Get_Char_Index(face,
+			::FT_ULong(c))));
+
+		if(YB_UNLIKELY(!pr.second))
+			throw LoggedEvent("Glyph index cache insertion failed.");
+		i = pr.first;
 	}
 	return i->second;
 }
@@ -171,18 +271,14 @@ FetchDefaultTypeface() ythrow(LoggedEvent)
 }
 
 
-FontCache::FontCache(size_t cache_size)
+FontCache::FontCache(size_t /*cache_size*/)
 	: pDefaultFace()
 {
 	::FT_Error error;
 
-	if(YB_LIKELY((error = ::FT_Init_FreeType(&library)) == 0
-		&& (error = ::FTC_Manager_New(library, 0, 0, cache_size,
-		&simpleFaceRequester, nullptr, &manager)) == 0
-		&& (error = ::FTC_SBitCache_New(manager, &sbitCache)) == 0))
-	{
+	if(YB_LIKELY((error = ::FT_Init_FreeType(&library)) == 0))
 		// TODO: Write log on success.
-	}
+		;
 	else
 	{
 		// TODO: Format without allocating memory.
@@ -192,7 +288,6 @@ FontCache::FontCache(size_t cache_size)
 }
 FontCache::~FontCache()
 {
-	::FTC_Manager_Done(manager);
 	::FT_Done_FreeType(library);
 	ClearContainers();
 }
@@ -222,21 +317,11 @@ FontCache::GetTypefacePtr(const FamilyName& family_name,
 		return nullptr;
 	return f->GetTypefacePtr(style_name);
 }
-::FT_Face
-FontCache::GetNativeFace(Typeface* pFace) const
-{
-	::FT_Face face(nullptr);
-
-	if(YB_LIKELY(pFace))
-		::FTC_Manager_LookupFace(manager, pFace, &face);
-	return face;
-}
 
 void
 FontCache::operator+=(unique_ptr<FontFamily> p_family)
 {
-	mFamilies.emplace(make_pair(p_family->GetFamilyName(),
-		std::move(p_family)));
+	mFamilies.emplace(p_family->GetFamilyName(), std::move(p_family));
 }
 void
 FontCache::operator+=(Typeface& face)
@@ -300,23 +385,13 @@ FontCache::InitializeDefaultTypeface()
 		pDefaultFace = *sFaces.begin();
 }
 
-void
-FontCache::Reset()
-{
-	ClearContainers();
-	::FTC_Manager_Reset(manager);
-}
-
 
 Font::Font(const FontFamily& family, const FontSize size, FontStyle fs)
-	: scaler{family.GetTypefacePtr(fs), size, size, 1, 0, 0}, style(fs)
-{
-	if(YB_UNLIKELY(!scaler.face_id))
-		throw LoggedEvent("Bad font found.");
-}
+	: typeface(family.GetTypefaceRef(fs)), font_size(size), style(fs)
+{}
 
 s8
-Font::GetAdvance(ucs4_t c, FTC_SBit sbit) const
+Font::GetAdvance(ucs4_t c, ::FTC_SBit sbit) const
 {
 	if(YB_UNLIKELY(c == '\t'))
 		return GetAdvance(' ') << 2;
@@ -329,53 +404,46 @@ Font::GetAdvance(ucs4_t c, FTC_SBit sbit) const
 s8
 Font::GetAscender() const
 {
-	return GetInternalInfo().metrics.ascender >> 6;
+	return GetInternalInfo().ascender >> 6;
 }
 s8
 Font::GetDescender() const
 {
-	return GetInternalInfo().metrics.descender >> 6;
+	return GetInternalInfo().descender >> 6;
 }
 CharBitmap
 Font::GetGlyph(ucs4_t c, ::FT_UInt flags) const
 {
-	auto& cache(GetCache());
-	::FTC_SBit sbit;
+	const auto& typeface(GetTypeface());
 
-	::FTC_SBitCache_LookupScaler(cache.sbitCache, &scaler, flags,
-		GetTypeface().GetGlyphIndex(c), &sbit, nullptr);
-	return sbit;
+	return &typeface.LookupBitmap(Typeface::BitmapKey{flags,
+		typeface.LookupGlyphIndex(c), font_size}).sbit;
 }
 FontSize
 Font::GetHeight() const ynothrow
 {
-	return GetInternalInfo().metrics.height >> 6;
+	return GetInternalInfo().height >> 6;
 }
-FT_SizeRec&
+::FT_Size_Metrics
 Font::GetInternalInfo() const
 {
-	::FT_Size size(nullptr);
-
-	if(YB_UNLIKELY(::FTC_Manager_LookupSize(GetCache().manager, &scaler, &size)
-		!= 0))
-		throw LoggedEvent("Size lookup failed.");
-	return *size;
+	return NativeFontSize(GetTypeface().face, GetSize()).GetSizeRec().metrics;
 }
 
 void
 Font::SetSize(FontSize s)
 {
 	if(YB_LIKELY(s >= MinimalSize && s <= MaximalSize))
-		yunseq(scaler.width = s, scaler.height = s);
+		font_size = s;
 }
 bool
 Font::SetStyle(FontStyle fs)
 {
-	auto pFace(GetFontFamily().GetTypefacePtr(fs));
+	auto p(GetFontFamily().GetTypefacePtr(fs));
 
-	if(pFace)
+	if(p)
 	{
-		scaler.face_id = pFace;
+		typeface = std::ref(*p);
 		return true;
 	}
 	return false;

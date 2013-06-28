@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.cpp
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r109
+\version r110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-05-17 20:47 +0800
+	2013-06-28 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -51,7 +51,7 @@ ScreenBuffer::ScreenBuffer(const Size& s)
 ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
 	: size(sbuf.size), hBitmap(sbuf.hBitmap)
 {
-	sbuf.hBitmap = nullptr;
+	sbuf.hBitmap = {};
 }
 ScreenBuffer::~ScreenBuffer()
 {

@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1085
+\version r1087
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2013-04-01 23:16 +0800
+	2013-06-28 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@ Menu::operator-=(IndexType idx)
 
 		if(i != mSubMenus.end() && i->second)
 		{
-			i->second->pParent = nullptr;
+			i->second->pParent = {};
 			mSubMenus.erase(i);
 			return true;
 		}
@@ -265,7 +265,7 @@ MenuHost::operator-=(Menu::ID id)
 	{
 		auto& mnu(*i->second);
 
-		mnu.pHost = nullptr;
+		mnu.pHost = {};
 		mMenus.erase(i);
 		return true;
 	}

@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8439
+\version r8449
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-27 02:19 +0800
+	2013-06-28 04:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -487,8 +487,9 @@ Shell 和 Core 的关系是相对的，例如：
  Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
 可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。
 
-@2.3 语言特性扩展支持：
-位于 YBase(@5.2.1) 或 YFrameowrk::YSLib::Core(@2.5) 中。
+@2.3 语言特性和扩展支持：
+除了 YBaseMacro(@2.3.1) 外，主要位于 YBase(@5.2.1) 、 YFramework::YCLib 和 YFrameowrk::YSLib::Core[Documentation::YSLib @@3.1] 中。
+ YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无关的宏，用于简化代码。具体使用参见 @6.2.1 。
 
 @2.3.1 接口
 
@@ -1002,15 +1003,20 @@ BASE_EXTENSIONS += ftbbox.c
 @6.2 YFramework 接口：
 
 @6.2.1 YFramework 宏使用：
- YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YSLib::Core::YBaseMacro([Documentation::YSLib @@3.1]) 定义的宏，而不是其展开形式：
+ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacro(@2.3) 定义的宏，而不是其展开形式。
 使用宏 YSL_BEGIN 和 YSL_END 标识 YSLib 命名空间；
 使用宏 YSL_BEGIN_NAMESPACE 和 YSL_END 标识 YSLib 命名空间下的子命名空间；
-使用宏声明接口类型([Documentation::CommonRules @@2.4.1]) ；
+使用宏声明接口类型([Documentation::CommonRules @@2.4.1]) 。
+
+@6.2.1.1 函数实现：
+除非无法用宏简单表示定义或需要隐藏实现，总是使用以下的宏实现类定义中的成员函数或函数模板或紧随类定义的扩展接口：
 使用宏 DefDe* 声明默认的特殊成员函数；
 使用宏 DefDel* 声明删除的特殊成员函数；
 使用宏 Impl* 表示公开实现（提供定义）的非模板成员函数的函数体；
 使用宏 DefEmptyDtor 在类定义内定义空析构函数，除非需要显式的异常规范；
-使用宏 PDefH 和 Impl* 实现成员函数，除非无法用宏 Impl* 简单表示其定义。
+使用宏 PDefH 和 Impl* 在类定义中实现成员函数或在类定义后实现类的扩展接口。
+注意为了简便，模板一般总是在类定义内实现，不一定使用以上宏。非成员函数或函数模板若无法使用以上宏表示，可以显式在头文件中使用 inline 或分离定义。
+除构造函数或构造模板外，类定义中若无法使用以上函数表示成员定义，则该成员不在类定义中定义（可以在类定义后使用 inline 定义，或在另外的源文件中分离定义）。
 
 @6.3 成员声明顺序规则：
 一般规则参见 [Documentation::CommonRules @@6.8.6] 。

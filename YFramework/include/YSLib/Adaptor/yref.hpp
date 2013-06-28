@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r2620
-\author FrankHB<frankhb1989@gmail.com>
+\version r2625
+\author FrankHB <frankhb1989@gmail.com>
 \since build 176
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
+	2012-06-28 05:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INCLUDED_ADAPTOR_YREF_HPP_
-#define INCLUDED_ADAPTOR_YREF_HPP_ 1
+#ifndef YSL_INC_Adaptor_yref_hpp_
+#define YSL_INC_Adaptor_yref_hpp_ 1
 
 #include "yadaptor.h"
 #include <utility>
@@ -66,7 +66,7 @@ reset(_type*& p) ynothrow
 	bool b(p);
 
 	ydelete(p);
-	p = nullptr;
+	p = {};
 	return b;
 }
 //@}

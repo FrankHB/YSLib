@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r2936
+\version r2937
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-06-26 20:26 +0800
+	2013-06-29 07:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1145,7 +1145,7 @@ b277
 	/ %'YFramework'.'YSLib' $=
 	(
 		* "rounding of alpha blending color component" $since $before b132,
-		* DLD "platform-dependent bool type xor operation"
+		* $design "platform-dependent bool type xor operation"
 			@ "function template %Blit" $since b189,
 		/ "font APIs" $=
 		(

@@ -11,13 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r557
+\version r559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-03-13 13:13 +0800
+	2013-06-28 05:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ DoReleaseFocus(IWidget& wgt)
 
 		if(pFocusing == &wgt)
 		{
-			pFocusing = nullptr;
+			pFocusing = {};
 			return true;
 		}
 	}
@@ -97,7 +97,7 @@ ClearFocusingOf(IWidget& wgt)
 {
 	if(const auto p = FetchFocusingPtr(wgt))
 	{
-		wgt.GetView().FocusingPtr = nullptr;
+		wgt.GetView().FocusingPtr = {};
 		CallEvent<LostFocus>(*p, UIEventArgs(wgt));
 	}
 }

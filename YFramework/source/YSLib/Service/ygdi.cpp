@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2813
+\version r2818
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-06-27 16:36 +0800
+	2013-06-28 05:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,7 +106,7 @@ CompactPixmap::CompactPixmap(const CompactPixmap& buf)
 CompactPixmap::CompactPixmap(CompactPixmap&& buf) ynothrow
 	: BasicImage(buf)
 {
-	buf.pBuffer = nullptr;
+	buf.pBuffer = {};
 }
 
 void
@@ -134,7 +134,7 @@ CompactPixmap::SetSize(const Size& s)
 		throw LoggedEvent("BitmapBuffer allocation failed.", 1);
 	}
 
-	YAssert(!((pBuffer != nullptr) ^ (area != 0)), "Buffer corruptied.");
+	YAssert(bool(pBuffer) == (area != 0), "Buffer corruptied.");
 
 	sGraphics = s,
 	ClearImage();
@@ -174,7 +174,7 @@ CompactPixmapEx::CompactPixmapEx(const CompactPixmapEx& buf)
 CompactPixmapEx::CompactPixmapEx(CompactPixmapEx&& buf) ynothrow
 	: CompactPixmap(std::move(buf)), pBufferAlpha(buf.GetBufferAlphaPtr())
 {
-	buf.pBufferAlpha = nullptr;
+	buf.pBufferAlpha = {};
 }
 
 void
@@ -200,8 +200,8 @@ CompactPixmapEx::SetSize(const Size& s)
 		throw LoggedEvent("CompactPixmapEx allocation failed.", 1);
 	}
 
-	YAssert(!((pBuffer != nullptr) ^ (area != 0)), "Buffer corruptied.");
-	YAssert(!((pBufferAlpha != nullptr) ^ (area != 0)), "Buffer corruptied.");
+	YAssert(bool(pBuffer) == (area != 0), "Buffer corruptied.");
+	YAssert(bool(pBufferAlpha) == (area != 0), "Buffer corruptied.");
 
 	sGraphics = s,
 	ClearImage();

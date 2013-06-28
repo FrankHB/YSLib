@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3672
+\version r3673
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-05-30 08:26 +0800
+	2013-06-28 05:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,7 +182,7 @@ public:
 	PointerHolder(PointerHolder&& h)
 		: p_held(h.p_held)
 	{
-		h.p_held = nullptr;
+		h.p_held = {};
 	}
 	//@}
 	virtual

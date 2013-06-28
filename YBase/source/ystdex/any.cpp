@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r118
+\version r119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2013-02-18 18:45 +0800
+	2013-06-28 05:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ any::clear() ynothrow
 	if(manager)
 	{
 		manager(storage, storage, any_ops::destroy);
-		manager = nullptr;
+		manager = {};
 	}
 }
 

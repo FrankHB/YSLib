@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3354
+\version r3358
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-06-20 21:25 +0800
+	2013-06-28 05:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,8 +125,7 @@ GUIState::Reset()
 		DraggingOffset = Vec::Invalid),
 	HeldTimer.ResetInput();
 	yunseq(ControlLocation = Point::Invalid,
-		LastControlLocation = Point::Invalid,
-		p_TouchDown = nullptr, p_KeyDown = nullptr);
+		LastControlLocation = Point::Invalid, p_TouchDown = {}, p_KeyDown = {});
 }
 
 void
@@ -169,7 +168,7 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 		if(p_KeyDown == &wgt)
 		{
 			CallEvent<KeyPress>(wgt, e);
-			p_KeyDown = nullptr;
+			p_KeyDown = {};
 		}
 		break;
 	case KeyDown:
@@ -210,7 +209,7 @@ GUIState::ResponseTouchBase(TouchEventArgs& e, UI::VisualEvent op)
 		if(p_TouchDown == &wgt)
 		{
 			CallEvent<Click>(wgt, e);
-			p_TouchDown = nullptr;
+			p_TouchDown = {};
 		}
 		break;
 	case TouchDown:

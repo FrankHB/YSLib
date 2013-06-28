@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1077
+\version r1118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-28 01:28 +0800
+	2013-06-29 07:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,48 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Adaptor'.'Font' $=
+		(
+			+ "class %(FontException, NativeFontSize, SmallBitmapData)";
+			/ @ "class %Typeface" $=
+			(
+				* "missing glyph index cache insertion failure check"
+					$since b418,
+				+ "2 member functions %GetTypefaceRef",
+				(
+					+ "glyph bitmap cache";
+					+ "member function %ClearBitmapCache"
+				)
+			);
+			- @ "class %FontCache" $=
+			(
+				- "size cache";
+				- "FreeType cache manager";
+				- "member function %(ResetGlyphCache, Reset)"
+			),
+			/ @ "class %Font" $=
+			(
+				/ "simplified data member",
+				+ $dev $workaround "special member functions"
+					// For G++ 4.7.1 there are several errors about implicitly \
+						declared special member functions in derived class.
+			),
+		)
+		/ $dev "access control" @ "inheriting class %LoggedEvent"
+			@ "class %BadEvent" @ %'UI'.'YWidgetEvent' -> 'public' ~ 'private',
+		* $design "platform-dependent bool type xor operation" @ "assertion"
+			@ "member function %(CompactPixmap, CompactPixmapEx)::SetSize, \
+			CompactPixmapEx::SetSize" $since b176
+			@ %'(BitmapBuffer, BitmapBufferEx)::SetSize'
+	),
+	/ DLD "all '= nullptr'" -> "'= {}' for well-formed use of pointer types as \
+		left operands"
+),
+
+b418
 (
 	/ DLD "header %ft2build.h" @ "directory %YFramework/include"
 		>> "directory %3rdparty/include",

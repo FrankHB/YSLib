@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3043
+\version r3044
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-05-06 18:29 +0800
+	2013-06-28 05:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,7 @@ DSApplication::~DSApplication()
 	YCL_DEBUG_PUTS("Host thread dropped.");
 #endif
 	//等待并确保所有 Shell 被释放。
-//	hShell = nullptr;
+//	hShell = {};
 	//释放全局非静态资源。
 	//当主 Shell 句柄为静态存储期对象时需要通过 reset 释放。
 	//释放设备。

@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r187
+\version r188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2013-03-06 18:58 +0800
+	2013-06-28 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,7 +143,7 @@ ifile_iterator::operator++()
 	const auto val(std::fgetc(stream));
 
 	if(YB_UNLIKELY(val == EOF))
-		stream = nullptr;
+		stream = {};
 	else
 		value = val;
 	return *this;
