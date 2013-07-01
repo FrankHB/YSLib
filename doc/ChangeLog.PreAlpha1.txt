@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r280
+\version r281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-06-26 20:07 +0800
+	2013-07-01 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,7 +182,7 @@ b186
 
 b185
 (
-	/ "library using"
+	/ DLP "library using"
 		$= (^ "updated freetype 2.4.4" ~ "freetype 2.3.12"),
 	/ "basic memory operations" $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r514
+\version r530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-06-29 06:35 +0800
+	2013-07-01 18:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,17 +167,6 @@ $KNOWN_ISSUE:
 		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54118 . \
 		Release configuration using '-flto=jobserver' would obviously enlarge \
 		the size of execution file.
-* $known_issue_b406 "low performance of freetype 2.4.12 on DS when loading UI";
-	// There is a serious performance problem using on DS (about 5x longer lag \
-		when first loading) unless macro %FT_CONFIG_OPTION_OLD_INTERNALS is \
-		defined at freetype configuration header %ftoption.h, but it is \
-		disabled from 2.4.12 by default and removed would be since 2.5 ( \
-		confirmed from git repo). Neither the concrete code which cause the \
-		problem can be located. So upgrading is stopped (on all platform to \
-		keep one headers version), but recompiling can be performed for \
-		optimization on binary size.
-	// FreeType 2.5.0.1 test @ b418.
-	// FreeType 2.5.0.1 without cache subsystem test @ b419.
 
 
 $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
@@ -193,6 +182,21 @@ $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
 	(other version unconfirmed). This is the default behavior, because the \
 	solution platform is not selected. Set 'DS' platform and activate other \
 	configuration (i.e. 'release'), then reopen the IDE to resolve.";
+* $known_issue_b406 $orig_defect $workaround_b420 "low performance of freetype \
+	2.4.12 on DS when loading UI";
+	// There is a serious performance problem using on DS (about 5x longer lag \
+		when first loading) unless macro %FT_CONFIG_OPTION_OLD_INTERNALS is \
+		defined at freetype configuration header %ftoption.h, but it is \
+		disabled from 2.4.12 by default and removed would be since 2.5 ( \
+		confirmed from git repo). Neither the concrete code which cause the \
+		problem can be located. So upgrading is stopped (on all platform to \
+		keep one headers version), but recompiling can be performed for \
+		optimization on binary size.
+	// FreeType 2.5.0.1 test @ b418.
+	// FreeType 2.5.0.1 without cache subsystem test @ b419.
+	// Recompiled the library with "sfnt/ttmtx.c" with header \
+		"freetype/config/ftoption.h" from FreeType 2.4.11 as workaround.
+	// See http://savannah.nongnu.org/bugs/index.php?39383 .
 
 
 $RESOLVED_ENVIRONMENT_ISSUE:

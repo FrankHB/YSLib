@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3038
+\version r3065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-06-29 06:06 +0800
+	2013-06-29 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,18 +130,27 @@ public:
 \brief 本机字体大小。
 \since build 419
 */
-class YF_API NativeFontSize final
+class YF_API NativeFontSize final : private noncopyable
 {
 private:
 	::FT_Size size;
 
 public:
-	NativeFontSize(FT_Face, FontSize);
+	//! \since build 420
+	NativeFontSize(::FT_FaceRec&, FontSize);
 	NativeFontSize(NativeFontSize&&) ynothrow;
 	~NativeFontSize() ynothrow;
 
 	::FT_SizeRec&
 	GetSizeRec() const;
+
+	/*!
+	\brief 激活当前大小。
+	\note 替代 \c ::FT_Activate_Size 。
+	\since build 420
+	*/
+	void
+	Activate() const;
 };
 
 
@@ -247,24 +256,25 @@ private:
 	::FT_Long face_index;
 	::FT_Int cmap_index;
 	StyleName style_name;
-	//! \since build 418
-	//@{
-	::FT_Face face;
-	std::reference_wrapper<FontFamily> family;
-	//@}
+	//! \since build 420
+	pair<std::reference_wrapper<FontFamily>,
+		std::reference_wrapper< ::FT_FaceRec_>> ref;
 	//! \since build 419
 	mutable unordered_map<BitmapKey, SmallBitmapData, BitmapKeyHash>
 		bitmap_cache;
 	//! \since build 419
 	mutable unordered_map<ucs4_t, ::FT_UInt> glyph_index_cache;
+	//! \since build 420
+	mutable unordered_map<FontSize, NativeFontSize> size_cache;
 
 public:
 	/*!
 	\brief 使用字体缓存引用在指定字体文件路径读取指定索引的字型并构造对象。
-	\post 断言： <tt>face</tt> 。
 	\post 断言： \c cmap_index 在 face 接受的范围内。
 	*/
 	Typeface(FontCache&, const FontPath&, u32 = 0);
+	//! since build 420
+	~Typeface();
 
 	/*!
 	\brief 比较：相等关系。
@@ -282,7 +292,7 @@ public:
 	\brief 取字型家族。
 	\since build 278
 	*/
-	DefGetter(const ynothrow, const FontFamily&, FontFamily, family)
+	DefGetter(const ynothrow, const FontFamily&, FontFamily, ref.first)
 	DefGetter(const ynothrow, const StyleName&, StyleName, style_name)
 	/*!
 	\brief 取字符映射索引号。
@@ -299,6 +309,10 @@ private:
 	::FT_UInt
 	LookupGlyphIndex(ucs4_t) const;
 
+	//! since build 420
+	NativeFontSize&
+	LookupSize(FontSize) const;
+
 public:
 	PDefH(void, ClearBitmapCache, )
 		ImplExpr(bitmap_cache.clear())
@@ -306,6 +320,10 @@ public:
 	PDefH(void, ClearGlyphIndexCache, )
 		ImplExpr(glyph_index_cache.clear())
 	//@}
+
+	//! since build 420
+	PDefH(void, ClearSizeCache, )
+		ImplExpr(size_cache.clear())
 };
 
 

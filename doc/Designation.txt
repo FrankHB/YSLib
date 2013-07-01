@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8449
+\version r8492
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-28 04:45 +0800
+	2013-07-01 18:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,6 +143,12 @@ Shell 和 Core 的关系是相对的，例如：
 尽可能地平台无关，且注重效率。
 能够保持必要的运行时安全性。
 实现一部分的通用较高级功能，例如消息机制(@1.4.1.3) 。
+
+@1.3.5 参考标准和规格说明：
+基本内容参见 [Documentation::CommonRules @@1.1] 。
+语言使用另见 @1.3.2.1 。
+遵从的其它标准和规格说明：
+暂略。
 
 @1.4 通用语义：
 基本内容参见 [Documentation::CommonRules @@2.3] 。
@@ -881,12 +887,16 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 字体输出使用 FreeType2（参见 http://www.freetype.org ） 实现向量字体光栅化支持。
 
 @5.4.1.1 使用版本：
+以下库配置若之前版本已存在，除非另行说明，保持不变。
+除非另行说明，使用当时 devkitPro(@5.2.3) 自行编译 DS 库文件，使用当时 MinGW32(@5.2.4) 自行编译 MinGW32 库文件。
+
+@5.4.1.2 DS 库配置：
  build 185 前：
 头文件版本： 2.3.12 。
 库文件版本：在 VNDSx-1.5.3 源代码中提取的 2.3.6 。
  build 185 起：
 头文件版本： 2.4.4 。
-库文件版本：使用当时 devkitPro(@5.2.3) 编译的对应版本，使用 makefile 宏 CFLAGS ?= -c -g -O3 -Wall 。
+库文件版本：使用 makefile 宏 CFLAGS ?= -c -g -O3 -Wall 编译库文件。
 库配置： modules.cfg 配置包含以下有效行：
 FONT_MODULES += truetype
 FONT_MODULES += sfnt
@@ -905,41 +915,43 @@ BASE_EXTENSIONS += ftglyph.c
 BASE_EXTENSIONS += ftbbox.c
 BASE_EXTENSIONS += ftstroke.c
 BASE_EXTENSIONS += ftsynth.c
-其它配置不变。
  build 224 rev 34 起：
-使用 2.4.4 的 /src/cache 源文件代替 2.4.5 对应部分并重新编译库文件（以修正不明原因的 FontCache::GetAscender 的结果错误）。
-其它配置不变。
+使用 FreeType 2.4.5 ，但源文件目录 "cache" 使用 2.4.4 版本替换，以修正不明原因的 FontCache::GetAscender 的结果错误。
+重新编译库文件。
  build 266 起：
-头文件版本： 2.4.8 。
-库文件版本：使用 2.4.4 的 /src/cache 源文件代替 2.4.8 对应部分，用当时 devkitPro(@5.2.3) 编译的对应版本。
-其它配置不变。
+使用 FreeType 2.4.8 ，但源文件目录 "cache" 使用 2.4.4 版本替换，原因同上。
+重新编译库文件。
  build 292 起：
-头文件版本： 2.4.9 。
-库文件版本： 2.4.9 用 devkitPro(@5.2.3) 编译的对应版本。
+使用 FreeType 2.4.9 。证实已修复 cache 错误。
+重新编译库文件。
+
+@5.4.1.3 DS 和 MinGW32 库配置：
  build 299 起：
-增加 MinGW32 库文件版本： 2.4.9 使用当时 MinGW32(@5.2.4) 编译的对应版本，使用 mingw32-make 直接构建默认提供的 makefile 。
+增加 MinGW32 库文件版本，使用 mingw32-make 直接构建默认提供的 makefile 。
  modules.cfg 配置不变。
  build 318 起：
-头文件版本： 2.4.10 。
- DS 库文件版本： 2.4.10 使用当时 devkitPro(@5.2.3) 编译的对应版本。
- MinGW32 库文件版本： 2.4.10 使用当时 MinGW32(@5.2.4) 编译的对应版本。
-其它配置不变。
+使用 FreeType 2.4.10 。
  2012-12-21(build 366) 起：
-头文件版本： 2.4.11 。
- DS 库文件版本： 2.4.11 使用当时 devkitPro(@5.2.3) 编译的对应版本。
- MinGW32 库文件版本： 2.4.11 使用当时 MinGW32(@5.2.4) 编译的对应版本。
-其它配置不变。
+使用 FreeType 2.4.11 。
  2013-05-19(build 406) 起：
 测试发现 2.4.12 库在 DS 上的性能显著降低，因此暂不升级；仅重新编译减小二进制文件大小。
-头文件版本不变。
- DS 库文件版本： 2.4.11 使用当时 devkitPro(@5.2.3) 去除 -g 选项（减小文件体积）重新编译的对应版本。
- MinGW32 库文件版本： 2.4.11 使用当时 MinGW32(@5.2.4) 重新编译的对应版本。
-库配置和 DS 库构建文件已添加至版本库，参见 "3rdparty/freetype/builds/ds/modules.cfg" 。
  modules.cfg 配置移除以下有效行：
 HINTING_MODULES += pshinter
 AUX_MODULES += gzip
 BASE_EXTENSIONS += ftbbox.c
-其它配置不变。
+库配置和 DS 库构建文件已添加至版本库，参见 "3rdparty/freetype/builds/ds/modules.cfg" 。
+ DS 库文件： 2.4.11 去除 -g 选项（以减小文件体积）重新编译。
+ MinGW32 库文件： 重新编译。
+ 2013-07-01(build 420) 起：
+使用 FreeType 2.5.0.1 ，但部分文件使用 2.4.11 版本替换，参见 [Documentation::Meta @@ $workaround_b420] 。
+对原始版本的修改：
+ "include/freetype/config/ftoption.h" ：保持 2.4.11 版本。
+ "src/sfnt/ttmtx.c" ：使用 2.4.11 版本。
+ modules.cfg 配置移除以下有效行：
+HINTING_MODULES += pshinter
+AUX_MODULES += gzip
+BASE_EXTENSIONS += ftbbox.c
+重新编译 DS 和 MinGW32 库文件。
 
 @5.4.2
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。

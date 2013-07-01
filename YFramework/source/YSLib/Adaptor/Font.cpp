@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3184
+\version r3259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-06-29 06:08 +0800
+	2013-06-29 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,13 +47,30 @@ using namespace IO;
 
 YSL_BEGIN_NAMESPACE(Drawing)
 
-NativeFontSize::NativeFontSize(::FT_Face face, FontSize s)
+//! \since build 420
+namespace
+{
+
+//! \brief 替代 ::FT_Set_Pixel_Sizes 。
+::FT_Error
+N_SetPixelSizes(::FT_FaceRec& face, ::FT_UInt s) ynothrow
+{
+	::FT_Size_RequestRec req{FT_SIZE_REQUEST_TYPE_NOMINAL, ::FT_Long(s << 6),
+		::FT_Long(s << 6), 0, 0};
+
+	return ::FT_Request_Size(&face, &req);
+}
+
+} // unnamed namespace;
+
+
+NativeFontSize::NativeFontSize(::FT_FaceRec& face, FontSize s)
 	: size()
 {
-	if(const auto err = ::FT_New_Size(face, &size))
+	if(const auto err = ::FT_New_Size(&face, &size))
 		throw FontException(err, "Native font size creation failed.");
-	::FT_Activate_Size(size);
-	if(const auto err = ::FT_Set_Pixel_Sizes(face, s, s))
+	Activate();
+	if(const auto err = N_SetPixelSizes(face, s))
 		throw FontException(err, "Native font setting size failed.");
 }
 NativeFontSize::NativeFontSize(NativeFontSize&& ns) ynothrow
@@ -72,6 +89,19 @@ NativeFontSize::GetSizeRec() const
 	if(YB_UNLIKELY(!size))
 		throw LoggedEvent("Invalid native size found.");
 	return *size;
+}
+
+//! \brief 替代 ::FT_Activate_Size 。
+void
+NativeFontSize::Activate() const
+{
+	YAssert(size, "Null pointer found.");
+
+	auto face(size->face);
+
+	YAssert(face, "Null pointer found.");
+
+	face->size = size;
 }
 
 
@@ -130,7 +160,7 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot)
 {
 	if(slot && slot->format == FT_GLYPH_FORMAT_BITMAP)
 	{
-		const auto& bitmap(slot->bitmap);
+		auto& bitmap(slot->bitmap);
 		const ::FT_Pos xadvance((slot->advance.x + 32) >> 6),
 			yadvance((slot->advance.y + 32) >> 6);
 		::FT_Int temp;
@@ -145,14 +175,16 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot)
 			SBIT_CHECK_CHAR(xadvance) &&
 			SBIT_CHECK_CHAR(yadvance))
 		{
-			const ::FT_ULong size(std::abs(bitmap.pitch) * bitmap.rows);
-
 			sbit = {::FT_Byte(bitmap.width), ::FT_Byte(bitmap.rows),
 				::FT_Char(slot->bitmap_left), ::FT_Char(slot->bitmap_top),
 				::FT_Byte(bitmap.pixel_mode), ::FT_Byte(bitmap.num_grays - 1),
 				::FT_Char(bitmap.pitch), ::FT_Char(xadvance),
-				::FT_Char(yadvance), ynew ::FT_Byte[size]};
-			std::memcpy(sbit.buffer, bitmap.buffer, size);
+				::FT_Char(yadvance), bitmap.buffer};
+			bitmap.buffer = {};
+			// XXX: Moving instead of copying should be safe if the library 
+			//	memory handlers are not customized.
+			// NOTE: Be cautious for DLLs. For documented default behavior, see:
+			//	http://www.freetype.org/freetype2/docs/design/design-4.html .
 			return;
 		}
 #undef SBIT_CHECK_CHAR
@@ -167,16 +199,17 @@ Typeface::SmallBitmapData::SmallBitmapData(SmallBitmapData&& sbit_dat)
 }
 Typeface::SmallBitmapData::~SmallBitmapData()
 {
-	ydelete_array(sbit.buffer);
+	// NOTE: See constructor.
+	std::free(sbit.buffer);
 }
 
 
 Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
-	: Path(path), face_index(i), cmap_index(-1), style_name(), face(),
-	family(*[&, this]{
+	: Path(path), face_index(i), cmap_index(-1), style_name(), ref([&, this]{
 		if(YB_UNLIKELY(cache.sFaces.find(this) != cache.sFaces.end()))
 			throw LoggedEvent("Duplicate typeface found.", 2);
 
+		::FT_Face face;
 		::FT_Error error(::FT_New_Face(cache.library, Path.c_str(),
 			face_index, &face));
 
@@ -195,16 +228,24 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 		auto& p_ff(cache.mFamilies[family_name]);
 
 		if(!p_ff)
-			p_ff = make_unique<FontFamily>(cache, family_name);
-		return p_ff.get();
-	}()), glyph_index_cache()
+			p_ff.reset(new FontFamily(cache, family_name));
+		return pair<std::reference_wrapper<FontFamily>,
+			std::reference_wrapper< ::FT_FaceRec_>>(*p_ff.get(), *face);
+	}()), bitmap_cache(), glyph_index_cache()
 {
-	YAssert(face, "Null pointer found.");
-	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(face->num_charmaps),
+	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(ref.second.get().num_charmaps),
 		"Invalid CMap index found.");
 
-	style_name = face->style_name;
-	family.get() += *this;
+	style_name = ref.second.get().style_name;
+	ref.first.get() += *this;
+}
+Typeface::~Typeface()
+{
+	size_cache.clear();
+	glyph_index_cache.clear();
+	bitmap_cache.clear();
+	ref.first.get() -= *this;
+	::FT_Done_Face(&ref.second.get());
 }
 
 bool
@@ -226,10 +267,11 @@ Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
 
 	if(i == bitmap_cache.end())
 	{
-		NativeFontSize native_size(face, key.Size);
+		LookupSize(key.Size).Activate();
+
 		const auto pr(bitmap_cache.emplace(key, SmallBitmapData(::FT_Load_Glyph(
-			face, key.GlyphIndex, key.Flags | FT_LOAD_RENDER) == 0
-			? face->glyph : nullptr)));
+			&ref.second.get(), key.GlyphIndex, key.Flags | FT_LOAD_RENDER) == 0
+			? ref.second.get().glyph : nullptr)));
 
 		if(YB_UNLIKELY(!pr.second))
 			throw LoggedEvent("Bitmap cache insertion failed.");
@@ -246,13 +288,30 @@ Typeface::LookupGlyphIndex(ucs4_t c) const
 	if(i == glyph_index_cache.end())
 	{
 		if(cmap_index > 0)
-			::FT_Set_Charmap(face, face->charmaps[cmap_index]);
+			::FT_Set_Charmap(&ref.second.get(),
+				ref.second.get().charmaps[cmap_index]);
 
-		const auto pr(glyph_index_cache.emplace(c, ::FT_Get_Char_Index(face,
-			::FT_ULong(c))));
+		const auto pr(glyph_index_cache.emplace(c, ::FT_Get_Char_Index(
+			&ref.second.get(), ::FT_ULong(c))));
 
 		if(YB_UNLIKELY(!pr.second))
 			throw LoggedEvent("Glyph index cache insertion failed.");
+		i = pr.first;
+	}
+	return i->second;
+}
+
+NativeFontSize&
+Typeface::LookupSize(FontSize s) const
+{
+	auto i(size_cache.find(s));
+
+	if(i == size_cache.end())
+	{
+		const auto pr(size_cache.emplace(s, NativeFontSize(ref.second, s)));
+
+		if(YB_UNLIKELY(!pr.second))
+			throw LoggedEvent("Bitmap cache insertion failed.");
 		i = pr.first;
 	}
 	return i->second;
@@ -288,8 +347,8 @@ FontCache::FontCache(size_t /*cache_size*/)
 }
 FontCache::~FontCache()
 {
-	::FT_Done_FreeType(library);
 	ClearContainers();
+	::FT_Done_FreeType(library);
 }
 
 const FontFamily*
@@ -427,7 +486,7 @@ Font::GetHeight() const ynothrow
 ::FT_Size_Metrics
 Font::GetInternalInfo() const
 {
-	return NativeFontSize(GetTypeface().face, GetSize()).GetSizeRec().metrics;
+	return GetTypeface().LookupSize(GetSize()).GetSizeRec().metrics;
 }
 
 void

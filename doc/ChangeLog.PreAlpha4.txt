@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1118
+\version r1155
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-06-29 07:42 +0800
+	2013-07-01 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,44 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'Adaptor'.'Font' $=
+	(
+		/ "small bitmap cacheing using moving" ~ "copying",
+		/ @ "class %Typeface" $=
+		(
+			/ DLD "assured non-null face",
+			* "missing destructor" $since b419,
+			+ "size cacheing"
+		),
+		/ @ "class %NativeFontSize" $=
+		(
+			+ $dev "private inheritance %noncopyable",
+			/ $dev "constructor accept reference" ~ "pointer",
+			+ "member function %Activate",
+			- "redundant check"
+		),
+		* "destructor" @ "class %FontCache wrongly release library before \
+			cleaning container" $since b419
+			// It's OK for cached objects because no destructor would perform \
+				multiple release when cache manager is cleared before the \
+				library instance. But it's wrong without FreeType cache \
+				manager and will cause multiple release of resources. Since \
+				the destructor is missing, this problem is not explicit @ \
+				b419, but resource leaks.
+	),
+	/ DLP "updated library freetype" @ "library using" $=
+	(
+		- "module configuration ('HINTING_MODULES += autofit',
+			'AUX_MODULES += cache', 'BASE_EXTENSIONS += ftfstype.c',
+			'BASE_EXTENSIONS += ftstroke.c', 'BASE_EXTENSIONS += ftsynth.c'),;
+		^ "updated freetype 2.5.0.1 with several files remained"
+			~ "freetype 2.4.11"
+			// See [Documentation::Designation @@5.4.1.3] .
+	)
+),
+
+b419
 (
 	/ %'YFramework' $=
 	(

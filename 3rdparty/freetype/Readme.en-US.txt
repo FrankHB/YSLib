@@ -1,6 +1,9 @@
 ﻿== FreeType build instructions
 FreeType2 source files are needed.
 Get the source from http://freetype.org .
+Currently following files from version 2.4.11 should replace files from version 2.4.12 :
+ "include/freetype/config/ftoption.h",
+ "src/sfnt/ttmtx.c".
 
 = DS
 Currently only building on Windows is supported.
