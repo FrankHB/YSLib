@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r247
+\version r248
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-06-28 09:23 +0800
+	2013-07-03 04:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,6 +120,7 @@
 对于宏，包括参数列表变更。
 对于所有实体，包括实际引起语义变化的存储类限定符（ static 、 extern 、 mutable 等）变更。
 对于函数、函数模板和模板特化，包括类型（注意类型等价性，参见 [Documentation::CommonRules @@5.12.1] ）和默认参数变更，不包括函数限定符（ inline 、 virtual 、explicit ）变更。
+对于枚举器，包括显式指定值的增加、删除或修改，不包括调换顺序等导致的隐式值的变更。
 对于类成员，包括访问权限变更。
 不包括 typedef 名称和别名声明中被声明标识符以外的变更。
 不包括函数或模版的形式参数名称变更。

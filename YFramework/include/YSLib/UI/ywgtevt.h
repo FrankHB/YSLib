@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1332
+\version r1341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-06-28 04:00 +0800
+	2013-07-03 04:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -274,8 +274,12 @@ enum VisualEvent
 	TouchUp, //!< 屏幕接触结束。
 	TouchDown, //!< 屏幕接触开始。
 	TouchHeld, //!< 屏幕接触保持。
-	TouchMove, //!< 屏幕接触移动。
 	Click, //!< 屏幕点击。
+	/*!
+	\brief 光标移动。
+	\since build 421
+	*/
+	CursorMove,
 
 	//图形用户界面输出事件。
 	Paint, //!< 界面绘制。
@@ -311,8 +315,9 @@ DefEventTypeMapping(KeyPress, HKeyEvent)
 DefEventTypeMapping(TouchUp, HTouchEvent)
 DefEventTypeMapping(TouchDown, HTouchEvent)
 DefEventTypeMapping(TouchHeld, HTouchEvent)
-DefEventTypeMapping(TouchMove, HTouchEvent)
 DefEventTypeMapping(Click, HTouchEvent)
+//! \since build 421
+DefEventTypeMapping(CursorMove, HTouchEvent)
 
 DefEventTypeMapping(Paint, HPaintEvent)
 

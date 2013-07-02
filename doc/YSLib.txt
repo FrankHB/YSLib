@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1917
+\version r1931
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-28 04:34 +0800
+	2013-07-03 06:59 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -469,19 +469,23 @@
 默认通过 GUIState 实现的 TouchHeld 事件当且仅当触摸移动的部件和开始接触时不同时，事件发送者和订阅者不同。订阅者总是开始接触时的部件。
 
 @3.3.2.1.2.3 扩展 GUI 输入事件：
-扩展 GUI 输入事件有以下几类：复合事件（包括 KeyPress 、 Click 、TouchMove ）、边界事件（包括 Enter 和 Leave ，参见 @3.3.2.1.5 ）等。
+扩展 GUI 输入事件有以下几类：复合事件（包括 KeyPress 和 Click ）、边界事件（包括 Enter 和 Leave ，参见 @3.3.2.1.5 ）等。
 
 @3.3.2.1.2.4 输入事件路由：
-事件路由通过 YGUI 单元中的 GUIState 类实现。包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 、 TouchMove 和 Click 。
+事件路由通过 YGUI 单元中的 GUIState 类实现。包括按键输入事件 KeyUp 、 KeyDown 、 KeyHeld 和 KeyPress；指针设备（屏幕光标定位设备）接触事件 TouchUp 、TouchDown 、 TouchHeld 和 Click 。
 触发过程：由 Helper 中的单元完成平台相关的用户输入信号捕获并向 YGUI 单元的 GUIState 类的全局实例传递，后者处理后生成对应输入事件。
+ YGUI 中，复合事件和边界事件仅在直接事件路由策略处理中通过访问独立焦点指针，判断满足特定条件触发。
+ KeyPress 需要先后在同一部件上触发 KeyDown 和 KeyUp 事件。
+ Click 需要先后在同一部件上触发 TouchDown 和 TouchUp 事件。
+边界事件触发条件参见 @3.3.2.1.5 。
 当用户按键时，触发 KeyDown 事件；持续时触发 KeyHeld 事件；结束时依次触发 KeyUp 和 KeyPress 事件。
-当用户使用指针设备（包括触摸屏）输入时，依此触发 Enter(@3.3.2.1.5) 和 TouchDown 事件；持续时触发 TouchHeld 事件；持续且移动时可触发 TouchMove 事件；结束时依次触发 TouchUp 、Leave(@3.3.2.1.5) 和 Click 事件。
+当用户使用指针设备（包括触摸屏）输入时，依此触发 Enter(@3.3.2.1.5) 和 TouchDown 事件；持续且存在已经记录位置的独立焦点时在其中记录初始坐标偏移（用于拖放）或触发独立焦点上的 TouchHeld 事件；结束时依次触发 TouchUp 、Leave(@3.3.2.1.5) 和 Click 事件。
 注意非直接事件路由中 TouchHeld 不被触发。当 TouchHeld 被触发时，即使路由策略是 Direct ，也有可能因为其它部件移动而导致状态不一致。因此在 TouchHeld 的事件处理器中需要注意校验发送者是否符合预期。
 
 @3.3.2.1.2.5 指针设备坐标状态：
 指针设备相关事件中，参数包含了相对于部件的坐标。
-最近操作的坐标保存于全局变量 ControlLocation 中。
-拖放操作依赖的最近坐标保存于全局变量 LastControlLocation 中。
+最近操作的坐标保存于 GUI 状态变量 ControlLocation 中，由 YGUI 负责更新。
+拖放操作依赖的最近坐标保存于 GUI 状态变量 LastControlLocation 中，由实现拖放的控件事件处理器负责更新。
 
 @3.3.2.1.2.6 默认输入事件处理器：
 在 YControl 单元中定义了主要的事件处理器。
@@ -501,15 +505,14 @@
 @3.3.2.1.5 边界事件：
 包括 Enter 和 Leave 事件。
 默认通过 GUIState 实现，事件发送者和订阅者相同。
-指针设备作用于部件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入控件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+指针设备作用于部件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入部件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 边界事件的事件源是被作用的边界对应的部件，且参数坐标相对于此部件。
 
 @3.3.2.2 公用和扩展事件处理程序：
  YControl 单元中定义了部分非成员函数公用事件处理器。
- OnKeyHeld 使用 RepeatHeld 产生有延迟的连续按键输入。
- OnTouchHeld 是 Control 默认加载的 TouchHeld 事件处理器，在其中实现记录坐标偏移（用于拖放）或触发 TouchMove 事件。
- OnTouchMove 可结合 OnTouchHeld 用于处理 TouchMove 事件实现重复触发 TouchDown 事件。
- OnTouchMove_Dragging 可结合 OnTouchHeld 实现控件拖曳。
+ OnKeyHeld 使用 RepeatHeld 实现有延迟地重复触发 KeyDown 事件。
+ OnTouchHeld 使用 RepeatHeld 实现有延迟地重复触发 TouchDown 事件。
+ OnTouchHeld_Dragging 实现拖曳。
 
 @3.3.2.3 默认实现细节：
 默认的事件处理器不适用虚函数，以免在基类添加事件后，在派生类重复添加事件响应。

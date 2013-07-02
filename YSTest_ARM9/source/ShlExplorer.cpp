@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r572
+\version r577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-06-21 22:04 +0800
+	2013-07-03 04:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,13 +148,17 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
 		lblDragTest.HorizontalAlignment = TextAlignment::Left,
 		//btnTestEx.Enabled = false,
+		btnTestEx.Font.SetStyle(FontStyle::Bold | FontStyle::Italic),
 		btnTestEx.Text = u"附加测试",
 		btnTestEx.HorizontalAlignment = TextAlignment::Left,
 		btnTestEx.VerticalAlignment = TextAlignment::Down,
+		btnEnterTest.Font.SetStyle(FontStyle::Italic),
 		btnEnterTest.Text = u"边界测试",
 		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
 		btnEnterTest.VerticalAlignment = TextAlignment::Up,
+		btnPrevBackground.Font.SetStyle(FontStyle::Bold),
 		btnPrevBackground.Text = u"<<",
+		btnNextBackground.Font.SetStyle(FontStyle::Bold),
 		btnNextBackground.Text = u">>",
 		fbMain.SetPath(path),
 		Enable(btnOK, false),
@@ -213,7 +217,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			lblDragTest.Text = to_string(GetLocationOf(pnlSetting)) + ';';
 			Invalidate(lblDragTest);
 		},
-		FetchEvent<TouchMove>(pnlSetting) += OnTouchMove_Dragging,
+		FetchEvent<TouchHeld>(pnlSetting) += OnTouchHeld_Dragging,
 #if YCL_DS
 		FetchEvent<TouchDown>(pnlSetting) += [this](TouchEventArgs&&){
 			struct ::mallinfo t(::mallinfo());

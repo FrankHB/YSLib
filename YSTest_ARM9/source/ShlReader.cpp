@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4361
+\version r4362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-06-21 13:19 +0800
+	2013-07-03 04:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,7 +126,7 @@ TextInfoBox::TextInfoBox()
 	lblBottom({4, 80, 192, 18})
 {
 	unseq_apply(ContainerSetter(*this), lblEncoding, lblSize);
-	FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging;
+	FetchEvent<TouchHeld>(*this) += OnTouchHeld_Dragging;
 }
 
 void

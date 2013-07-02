@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2453
+\version r2457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-06-14 12:58 +0800
+	2013-06-02 18:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,8 @@
 
 #ifndef YF_INC_YBaseMacro_h_
 #define YF_INC_YBaseMacro_h_ 1
+
+#include <ydef.h>
 
 //! \todo 检查语言实现的必要支持：可变参数宏。
 
@@ -391,8 +393,11 @@ _t type
 	DefBitmaskAndAssignment(_tBitmask, _tInt) \
 	DefBitmaskOrAssignment(_tBitmask, _tInt) \
 	DefBitmaskXorAssignment(_tBitmask, _tInt)
-//@}
 
+//! \since build 421
+#define DefBitmaskEnum(_tEnum) \
+	DefBitmaskOperations(_tEnum, typename std::underlying_type<_tEnum>::type)
+//@}
 //@}
 
 #endif

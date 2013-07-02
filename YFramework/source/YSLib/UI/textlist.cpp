@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1111
+\version r1112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-03-27 17:13 +0800
+	2013-07-03 04:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,7 +120,7 @@ bound_select:
 			SetSelected(e);
 			UpdateView(*this);
 		},
-		FetchEvent<TouchMove>(*this) += [this](TouchEventArgs&& e){
+		FetchEvent<TouchHeld>(*this) += [this](TouchEventArgs&& e){
 			if(&e.GetSender() == this)
 			{
 				SetSelected(e);

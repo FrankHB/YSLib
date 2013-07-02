@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r229
+\version r230
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-06-28 05:19 +0800
+	2013-07-03 04:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,7 @@ SettingPanel::SettingPanel()
 			else
 				scroll_duration = milliseconds((e.Value + 1U) * 100);
 		},
-		FetchEvent<TouchMove>(boxColor) += OnTouchMove_Dragging,
+		FetchEvent<TouchHeld>(boxColor) += OnTouchHeld_Dragging,
 		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
 			if(pColor)
 			{

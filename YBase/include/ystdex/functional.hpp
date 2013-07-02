@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r526
+\version r588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-06-09 09:15 +0800
+	2013-07-02 06:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -310,6 +310,74 @@ unref(const std::reference_wrapper<_type>& x) ynothrow
 {
 	return x.get();
 }
+//@}
+
+
+/*!	\defgroup hash_extensions Hash Extensions
+\brief 散列扩展接口。
+\note 当前使用 Boost 定义的接口和近似实现。
+\see http://www.boost.org/doc/libs/1_54_0/doc/html/hash/reference.html#boost.hash_combine
+\since build 421
+*/
+//@{
+/*!
+\brief 重复计算散列。
+\note <tt>(1UL << 31) / ((1 + std::sqrt(5)) / 4) == 0x9E3779B9</tt> 。
+\warning 实现（ Boost 文档作为 Effects ）可能改变，不应作为接口依赖。
+*/
+template<typename _type>
+inline void
+hash_combine(size_t& seed, const _type& val)
+{
+	seed ^= std::hash<_type>()(val) + 0x9E3779B9 + (seed << 6) + (seed >> 2);
+}
+
+/*!
+\ingroup helper_functions
+\brief 重复计算序列散列。
+\sa hash_combine
+*/
+//@{
+template<typename _type>
+inline size_t
+hash_combine_seq(size_t seed, const _type& val)
+{
+	ystdex::hash_combine(seed, val);
+
+	return seed;
+}
+template<typename _type, typename... _tParams>
+inline size_t
+hash_combine_seq(size_t seed, const _type& x, const _tParams&... args)
+{
+	return ystdex::hash_combine_seq(ystdex::hash_combine_seq(seed, x), args...);
+}
+//@}
+
+/*!
+\brief 重复对范围计算散列。
+\note 使用 ADL 。
+*/
+//@{
+template<typename _tIn>
+inline size_t
+hash_range(_tIn first, _tIn last)
+{
+	size_t seed(0);
+
+	for(; first != last; ++first)
+		hash_combine(seed, *first);
+	return seed;
+}
+template<typename _tIn>
+inline size_t
+hash_range(size_t& seed, _tIn first, _tIn last)
+{
+	for(; first != last; ++first)
+		 hash_combine(seed, *first);
+	return seed;
+}
+//@}
 //@}
 
 

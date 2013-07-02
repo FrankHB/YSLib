@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3358
+\version r3396
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-06-28 05:25 +0800
+	2013-07-03 06:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,10 +112,9 @@ RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
 
 GUIState::GUIState() ynothrow
 	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
-	DraggingOffset(Vec::Invalid), HeldTimer(),
-	ControlLocation(Point::Invalid),
-	LastControlLocation(Point::Invalid), Colors(),
-	p_KeyDown(), p_TouchDown(), control_entered(false)
+	DraggingOffset(Vec::Invalid), HeldTimer(), ControlLocation(Point::Invalid),
+	LastControlLocation(Point::Invalid), Colors(), p_KeyDown(), p_TouchDown(),
+	control_entered(false)
 {}
 
 void
@@ -163,13 +162,11 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 	switch(op)
 	{
 	case KeyUp:
-		ResetHeldState(KeyHeldState);
 		CallEvent<KeyUp>(wgt, e);
+		ResetHeldState(KeyHeldState);
 		if(p_KeyDown == &wgt)
-		{
 			CallEvent<KeyPress>(wgt, e);
-			p_KeyDown = {};
-		}
+		p_KeyDown = {};
 		break;
 	case KeyDown:
 		p_KeyDown = &wgt;
@@ -197,9 +194,9 @@ GUIState::ResponseTouchBase(TouchEventArgs& e, UI::VisualEvent op)
 	switch(op)
 	{
 	case TouchUp:
-		ResetHeldState(TouchHeldState);
-		DraggingOffset = Vec::Invalid;
 		CallEvent<TouchUp>(wgt, e);
+		ResetHeldState(TouchHeldState),
+		DraggingOffset = Vec::Invalid;
 		if(p_TouchDown)
 		{
 			e.SetSender(*p_TouchDown);
@@ -207,10 +204,8 @@ GUIState::ResponseTouchBase(TouchEventArgs& e, UI::VisualEvent op)
 			e.SetSender(wgt);
 		}
 		if(p_TouchDown == &wgt)
-		{
 			CallEvent<Click>(wgt, e);
-			p_TouchDown = {};
-		}
+		p_TouchDown = {};
 		break;
 	case TouchDown:
 		p_TouchDown = &wgt;
@@ -220,12 +215,23 @@ GUIState::ResponseTouchBase(TouchEventArgs& e, UI::VisualEvent op)
 	case TouchHeld:
 		if(!p_TouchDown)
 			return false;
-		if(p_TouchDown == &wgt)
-			TryEntering(TouchEventArgs(e));
-		else
-			TryLeaving(TouchEventArgs(*p_TouchDown, e.Keys,
-				e - LocateForWidget(wgt, *p_TouchDown)));
-		CallEvent<TouchHeld>(*p_TouchDown, e);
+		{
+			auto& wgt_d(*p_TouchDown);
+
+			if(p_TouchDown == &wgt)
+				TryEntering(TouchEventArgs(e));
+			else
+				TryLeaving(TouchEventArgs(wgt_d, e.Keys,
+					e - LocateForWidget(wgt, wgt_d)));
+			if(e.Strategy == RoutedEventArgs::Direct)
+			{
+				if(DraggingOffset == Vec::Invalid)
+					DraggingOffset = GetLocationOf(wgt_d) - ControlLocation;
+				else
+					CallEvent<TouchHeld>(wgt_d, e);
+				LastControlLocation = ControlLocation;
+			}
+		}
 		break;
 	default:
 		YAssert(false, "Invalid operation found.");
@@ -259,7 +265,7 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 				break;
 		}
 		e.SetSender(*p);
-		r |= ResponseKeyBase(e, op);
+		r |= DoEvent<HKeyEvent>(p->GetController(), op, std::move(e)) != 0;
 		p = t;
 	}
 
@@ -272,7 +278,7 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e.SetSender(*(p = pCon));
-		r |= ResponseKeyBase(e, op);
+		r |= DoEvent<HKeyEvent>(p->GetController(), op, std::move(e)) != 0;
 	}
 	return r/* || e.Handled*/;
 }

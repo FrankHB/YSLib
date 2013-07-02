@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3065
+\version r3075
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-06-29 23:01 +0800
+	2013-07-02 18:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,8 @@ enum class FontStyle : u8
 	Strikeout = 8 //!< 删除线。
 };
 
-DefBitmaskOperations(FontStyle, u8)
+//! \since build 421
+DefBitmaskEnum(FontStyle)
 
 
 /*!
@@ -231,23 +232,27 @@ private:
 		::FT_UInt Flags;
 		::FT_UInt GlyphIndex;
 		FontSize Size;
+		//! \since build 421
+		FontStyle Style;
 
 		PDefHOp(bool, ==, const BitmapKey& key) const ynothrow
 			ImplRet(Flags == key.Flags && GlyphIndex == key.GlyphIndex
-				&& Size == key.Size)
+				&& Size == key.Size && Style == key.Style)
 	};
 
 	struct BitmapKeyHash
 	{
 		PDefHOp(size_t, (), const BitmapKey& key) const ynothrow
-			ImplRet(key.Size * 8 + key.Flags * 31 + key.GlyphIndex / 16)
+			ImplRet(ystdex::hash_combine_seq(size_t(key.Style), key.Size,
+				key.GlyphIndex, key.Flags))
 	};
 
 	struct SmallBitmapData
 	{
 		::FTC_SBitRec_ sbit;
 
-		SmallBitmapData(::FT_GlyphSlot);
+		//! \since build 421
+		SmallBitmapData(::FT_GlyphSlot, FontStyle);
 		SmallBitmapData(SmallBitmapData&&);
 		~SmallBitmapData();
 	};
@@ -642,6 +647,7 @@ public:
 	SetSize(FontSize = DefaultSize);
 	/*!
 	\brief 设置样式。
+	\note 仅当存在字型时设置样式。
 	\since build 280
 	*/
 	bool

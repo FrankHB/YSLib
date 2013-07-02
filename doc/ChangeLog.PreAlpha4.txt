@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1155
+\version r1211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-01 19:04 +0800
+	2013-07-03 07:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,63 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	+ "function templates %(hash_combine; 3 hash_combine_seq, 2 hash_range)"
+		@ %'YBase'.'YStandardEx'.'Functional',
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'Adaptor'.'Font' $=
+			(
+				$dep_from %'YBase'.'YStandardEx'.'Functional';
+				+ "style hashing" @ "glyph bitmap cacheing",
+				/ "member function %Font::SetStyle to allow non-regular style \
+					setting when typeface exists";
+				+ "support for bold and italic bitmap glyphs"
+					// But no support of typefaces for specific styles currently.
+			),
+			/ %'UI' $=
+			(
+				/ "all event handlers of %TouchMove" -> "TouchHeld",
+				/ %'YControl' $=
+				(
+					- "function %OnTouchMove",
+					/ "function %OnTouchMove_Dragging"
+						=> "%OnTouchHeld_Dragging"
+				);
+				/ "enumeration %VisualEvent" @ %'YWidgetEvent' $=
+				(
+					- "enumerator %TouchMove",
+					+ "enumerator %CursorMove"
+						// No effect currently.
+				);
+				/ @ "class %GUIState" @ %'YGUI' $=
+				(
+					/ "side effects of responsing %(TouchUp, KeyUp)" $=
+					(
+						/ "independent focus pointer now unconditionally reset",
+						/ "(held state, dragging offset) now maintained"
+					),
+					/ "member function %GUIState::ResponseKey now only allowed \
+						event called without other side effects (i.e. access \
+						independent focus event and trying KeyPress when \
+						possible) for indirect routing stratagy
+				)
+			)
+		),
+		/ $dev %'YBaseMacro' $=
+		(
+			+ DLD "including header %ydef.h",
+			+ "macro %DefBitmaskEnumOperations"
+		),
+		* "wrongly dragged widgets after released dragging and moved cursor \
+			out of boundary of host window touch event responding area"
+			@ "platform %MinGW32" $since b388
+	)
+),
+
+b420
 (
 	/ %'YFramework'.'Adaptor'.'Font' $=
 	(

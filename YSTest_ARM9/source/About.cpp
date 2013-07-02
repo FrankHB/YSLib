@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r82
+\version r83
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-06-23 00:27 +0800
+	2013-07-03 04:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ FrmAbout::FrmAbout()
 			if(e.Strategy == RoutedEventArgs::Direct)
 				e.Handled = true;
 		},
-		FetchEvent<TouchMove>(*this) += OnTouchMove_Dragging,
+		FetchEvent<TouchHeld>(*this) += OnTouchHeld_Dragging,
 		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
 			Hide(*this);
 		},

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3738
+\version r3761
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-06-21 18:35 +0800
+	2013-07-03 05:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,27 +97,6 @@ OnTouchHeld(TouchEventArgs&& e)
 	{
 		auto& st(FetchGUIState());
 
-		if(st.GetTouchDownPtr())
-		{
-			auto& wgt(*st.GetTouchDownPtr());
-
-			if(st.DraggingOffset == Vec::Invalid)
-				st.DraggingOffset = GetLocationOf(wgt)
-					- st.ControlLocation;
-			else
-				CallEvent<TouchMove>(wgt, e);
-			st.LastControlLocation = st.ControlLocation;
-		}
-	}
-}
-
-void
-OnTouchMove(TouchEventArgs&& e)
-{
-	if(e.Strategy == RoutedEventArgs::Direct)
-	{
-		auto& st(FetchGUIState());
-
 		if(st.GetTouchDownPtr() && st.HeldTimer.RefreshHeld(st.TouchHeldState,
 			Timers::TimeSpan(240), Timers::TimeSpan(80)))
 			CallEvent<TouchDown>(*st.GetTouchDownPtr(), e);
@@ -125,7 +104,7 @@ OnTouchMove(TouchEventArgs&& e)
 }
 
 void
-OnTouchMove_Dragging(TouchEventArgs&& e)
+OnTouchHeld_Dragging(TouchEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -209,10 +188,7 @@ OnKey_Bound_Click(KeyEventArgs&& e)
 
 Control::ControlEventMap::ControlEventMap()
 {
-	yunseq(
-		FetchEvent<TouchDown>(*this) += OnTouchDown_RequestToTopFocused,
-		FetchEvent<TouchHeld>(*this) += OnTouchHeld
-	);
+	FetchEvent<TouchDown>(*this) += OnTouchDown_RequestToTopFocused;
 }
 
 Control::Control(const Rect& r)

@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r236
+\version r243
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-04-13 12:57 +0800
+	2013-07-03 06:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,13 +125,8 @@ InputManager::Update()
 		if(!(IsInInterval< ::LONG>(cursor.x, pr.first.X, pr.second.X)
 			&& IsInInterval< ::LONG>(cursor.y, pr.first.Y, pr.second.Y)))
 		{
-			if(GUI_state.get().GetTouchDownPtr())
-			{
-				RestrictInInterval(cursor.x, pr.first.X, pr.second.X),
-				RestrictInInterval(cursor.y, pr.first.Y, pr.second.Y);
-			}
-			else
-				return nullptr;
+			RestrictInInterval(cursor.x, pr.first.X, pr.second.X),
+			RestrictInInterval(cursor.y, pr.first.Y, pr.second.Y);
 		}
 		yunseq(cursor_state.X = cursor.x - pr.first.X,
 			cursor_state.Y = cursor.y - pr.first.Y);

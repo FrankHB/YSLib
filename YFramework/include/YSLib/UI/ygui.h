@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1929
+\version r1930
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-06-20 21:22 +0800
+	2013-07-03 04:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -165,6 +165,7 @@ public:
 	/*!
 	\brief 响应标准按键状态。
 	\note 无视事件路由，直接响应。
+	\note 对于 \c TouchHeld 请求实现记录坐标偏移（用于拖放）或触发事件。
 	*/
 	bool
 	ResponseTouchBase(TouchEventArgs&, VisualEvent);

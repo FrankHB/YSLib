@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3259
+\version r3296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-06-29 23:27 +0800
+	2013-07-02 06:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include "YCLib/Debug.h"
 #include <algorithm> // for std::for_each;
 #include FT_SIZES_H
-//#include FT_BITMAP_H
+#include FT_BITMAP_H
 //#include FT_GLYPH_H
 //#include FT_OUTLINE_H
 //#include FT_SYNTHESIS_H
@@ -60,6 +60,12 @@ N_SetPixelSizes(::FT_FaceRec& face, ::FT_UInt s) ynothrow
 
 	return ::FT_Request_Size(&face, &req);
 }
+
+/*!
+\since build 421
+\see ::FT_GlyphSlot_Oblique 实现。
+*/
+::FT_Matrix italic_matrix{0x10000L, 0x0366AL, 0x0000L, 0x10000L};
 
 } // unnamed namespace;
 
@@ -156,11 +162,41 @@ FontFamily::GetTypefaceRef(const StyleName& style_name) const
 }
 
 
-Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot)
+Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 {
 	if(slot && slot->format == FT_GLYPH_FORMAT_BITMAP)
 	{
 		auto& bitmap(slot->bitmap);
+
+		if(bool(style & FontStyle::Bold))
+		{
+			const auto library(slot->library);
+			const auto face(slot->face);
+			::FT_Pos xstr(FT_MulFix(face->units_per_EM,
+				face->size->metrics.y_scale) / 24 & ~63), ystr(xstr);
+
+			if(xstr == 0)
+				xstr = 1 << 6;
+
+			if(::FT_GlyphSlot_Own_Bitmap(slot) == FT_Err_Ok
+				&& ::FT_Bitmap_Embolden(library, &bitmap, xstr, ystr)
+				== FT_Err_Ok)
+			{
+				if(slot->advance.x)
+					slot->advance.x += xstr;
+				if(slot->advance.y)
+					slot->advance.y += ystr;
+				{
+					auto& metrics(slot->metrics);
+
+					yunseq(metrics.width += xstr, metrics.height += ystr,
+						metrics.horiAdvance += xstr,
+						metrics.vertAdvance += ystr);
+				}
+				slot->bitmap_top += ::FT_Int(ystr >> 6);
+			}
+		}
+
 		const ::FT_Pos xadvance((slot->advance.x + 32) >> 6),
 			yadvance((slot->advance.y + 32) >> 6);
 		::FT_Int temp;
@@ -268,10 +304,12 @@ Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
 	if(i == bitmap_cache.end())
 	{
 		LookupSize(key.Size).Activate();
+		::FT_Set_Transform(&ref.second.get(),
+			bool(key.Style & FontStyle::Italic) ? &italic_matrix : nullptr, {});
 
 		const auto pr(bitmap_cache.emplace(key, SmallBitmapData(::FT_Load_Glyph(
 			&ref.second.get(), key.GlyphIndex, key.Flags | FT_LOAD_RENDER) == 0
-			? ref.second.get().glyph : nullptr)));
+			? ref.second.get().glyph : nullptr, key.Style)));
 
 		if(YB_UNLIKELY(!pr.second))
 			throw LoggedEvent("Bitmap cache insertion failed.");
@@ -476,7 +514,7 @@ Font::GetGlyph(ucs4_t c, ::FT_UInt flags) const
 	const auto& typeface(GetTypeface());
 
 	return &typeface.LookupBitmap(Typeface::BitmapKey{flags,
-		typeface.LookupGlyphIndex(c), font_size}).sbit;
+		typeface.LookupGlyphIndex(c), font_size, style}).sbit;
 }
 FontSize
 Font::GetHeight() const ynothrow
@@ -502,7 +540,7 @@ Font::SetStyle(FontStyle fs)
 
 	if(p)
 	{
-		typeface = std::ref(*p);
+		yunseq(typeface = std::ref(*p), style = fs);
 		return true;
 	}
 	return false;
