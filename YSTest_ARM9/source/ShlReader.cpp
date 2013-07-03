@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4362
+\version r4374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-07-03 04:41 +0800
+	2013-07-03 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -352,7 +352,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 {
 	using ystdex::get_key;
 
-	const auto exit_session([this](TouchEventArgs&&){
+	const auto exit_session([this](CursorEventArgs&&){
 		session_ptr.reset();
 	});
 
@@ -368,7 +368,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 				boxTextInfo.UpdateData(reader);
 		},
 		mhMain.Roots[&boxReader.btnMenu] = 1U,
-		FetchEvent<Click>(boxReader.btnMenu) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(boxReader.btnMenu) += [this](CursorEventArgs&&){
 			if(mhMain.IsShowing(1U))
 				mhMain.Hide(1U);
 			else
@@ -379,25 +379,25 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 				ShowMenu(1U, Point(pt.X, pt.Y - mhMain[1U].GetHeight()));
 			}
 		},
-		FetchEvent<Click>(boxReader.btnSetting) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(boxReader.btnSetting) += [this](CursorEventArgs&&){
 			Execute(MR_Setting);
 		},
-		FetchEvent<Click>(boxReader.btnInfo) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(boxReader.btnInfo) += [this](CursorEventArgs&&){
 			Execute(MR_FileInfo);
 		},
-		FetchEvent<Click>(boxReader.btnBookmark) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(boxReader.btnBookmark) += [this](CursorEventArgs&&){
 			Execute(MR_Bookmark);
 		},
-		FetchEvent<Click>(boxReader.btnReturn) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(boxReader.btnReturn) += [this](CursorEventArgs&&){
 			Execute(MR_Return);
 		},
-		FetchEvent<Click>(boxReader.btnPrev) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(boxReader.btnPrev) += [this](CursorEventArgs&&){
 			UpdateReadingList(true);
 		},
-		FetchEvent<Click>(boxReader.btnNext) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(boxReader.btnNext) += [this](CursorEventArgs&&){
 			UpdateReadingList(false);
 		},
-		FetchEvent<TouchDown>(boxReader.pbReader) += [this](TouchEventArgs&& e){
+		FetchEvent<TouchDown>(boxReader.pbReader) += [this](CursorEventArgs&& e){
 			const auto s(reader.GetTextSize());
 
 			if(YB_LIKELY(s != 0))
@@ -415,7 +415,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 				ColorSpace::Yellow);
 		},
 		FetchEvent<Click>(pnlSetting.btnClose) += exit_session,
-		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](TouchEventArgs&&){
+		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](CursorEventArgs&&){
 			pnlSetting >> CurrentSetting;
 			tmrScroll.Interval = CurrentSetting.GetTimerSetting();
 			Switch(pnlSetting.current_encoding),
@@ -434,7 +434,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		},
 		FetchEvent<Click>(pnlSetting.btnOK) += exit_session,
 		FetchEvent<Click>(pnlBookmark.btnClose) += exit_session,
-		FetchEvent<Click>(pnlBookmark.btnOK) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(pnlBookmark.btnOK) += [this](CursorEventArgs&&){
 			if(pnlBookmark.lbPosition.IsSelected() && Locate(pnlBookmark
 				.bookmarks[pnlBookmark.lbPosition.GetSelectedIndex()]))
 				boxReader.UpdateData(reader);
@@ -472,7 +472,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	UpdateButtons();
 	//置默认视图。
 	// TODO: Associate view setting state for user selection.
-	OnClick(TouchEventArgs(dsk_dn, 0));
+	OnClick(CursorEventArgs(dsk_dn, 0));
 	RequestFocusCascade(dsk_dn);
 }
 
@@ -641,7 +641,7 @@ ShlTextReader::UpdateButtons()
 }
 
 void
-ShlTextReader::OnClick(TouchEventArgs&& e)
+ShlTextReader::OnClick(CursorEventArgs&& e)
 {
 #if YCL_MINGW32
 	if(e.Keys[VK_RBUTTON])

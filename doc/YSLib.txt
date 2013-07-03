@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1931
+\version r1937
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-03 06:59 +0800
+	2013-07-04 02:59 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -459,13 +459,14 @@
 
 @3.3.2.1.2 GUI 输入事件：
 基本用户界面输入事件是 GUI 输入直接引起的事件，分为基本按键输入事件和基本指针设备（屏幕光标定位设备）输入事件。
-默认通过 GUIState 实现的事件参数中，除了 TouchHeld 外，事件发送者和订阅者相同。
+默认通过 GUIState 实现的事件参数中，除了 CursorOver 和 TouchHeld 外，事件发送者和订阅者相同。
 
 @3.3.2.1.2.1 基本按键输入事件：
 基本按键输入事件包含 KeyUp 、 KeyDown 和 KeyHeld 。
 
 @3.3.2.1.2.2 基本指针设备输入（触摸屏输入）事件：
-基本指针设备输入事件包含 TouchUp 、 TouchDown 和 TouchHeld 。
+基本指针设备输入事件包含 CursorOver 、 TouchUp 、 TouchDown 和 TouchHeld 。
+ CursorOver 对支持光标自由移动的指针设备（如鼠标、无线感应笔）时有效。其它指针设备（如触摸屏）默认忽略，但允许用户手动触发事件。
 默认通过 GUIState 实现的 TouchHeld 事件当且仅当触摸移动的部件和开始接触时不同时，事件发送者和订阅者不同。订阅者总是开始接触时的部件。
 
 @3.3.2.1.2.3 扩展 GUI 输入事件：
@@ -505,7 +506,9 @@
 @3.3.2.1.5 边界事件：
 包括 Enter 和 Leave 事件。
 默认通过 GUIState 实现，事件发送者和订阅者相同。
-指针设备作用于部件，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入部件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+指针设备作用于部件，触发 CursorOver 时改变光标所在的部件可以触发边界事件。此外，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入部件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
+通过 CursorOver 的事件保证按键（参数的 Keys 数据成员）会被清空。据此可以判断边界事件的触发方式。（但注意不保证非 CursorOver 对应的 Keys 一定非空，用户的事件处理器可能会重新设置按键。）
+默认不对所有部件启用触发。通过 GUIState::Wrap 指定对部件启用触发， Control 类构造时自动指定启用。判断 CursorOver 、 TouchDown 和 TouchHeld 触发时使用最高事件优先级，判断 TouchUp 触发时使用最低事件优先级。
 边界事件的事件源是被作用的边界对应的部件，且参数坐标相对于此部件。
 
 @3.3.2.2 公用和扩展事件处理程序：

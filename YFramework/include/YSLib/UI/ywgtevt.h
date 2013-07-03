@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1341
+\version r1358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-07-03 04:45 +0800
+	2013-07-04 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,9 +170,9 @@ public:
 /*!
 \brief 指针设备输入事件参数类。
 \warning 非虚析构。
-\since 早于 build 132
+\since build 422
 */
-struct YF_API TouchEventArgs : public InputEventArgs,
+struct YF_API CursorEventArgs : public InputEventArgs,
 	public MScreenPositionEventArgs
 {
 public:
@@ -180,9 +180,9 @@ public:
 
 	/*!
 	\brief 构造：使用按键输入类型对象、输入类型对象和事件路由策略。
-	\since build 389
+	\since build 422
 	*/
-	TouchEventArgs(IWidget&, const KeyInput&, const InputType& = {},
+	CursorEventArgs(IWidget&, const KeyInput&, const InputType& = {},
 		RoutingStrategy = Direct);
 };
 
@@ -233,7 +233,8 @@ struct YF_API PaintEventArgs : public UIEventArgs, public PaintContext
 DeclDelegate(HUIEvent, UIEventArgs&&)
 DeclDelegate(HInputEvent, InputEventArgs&&)
 DeclDelegate(HKeyEvent, KeyEventArgs&&)
-DeclDelegate(HTouchEvent, TouchEventArgs&&)
+//! \since build 422
+DeclDelegate(HCursorEvent, CursorEventArgs&&)
 DeclDelegate(HPaintEvent, PaintEventArgs&&)
 //DefDelegate(HPointEvent, Drawing::Point&&)
 //DefDelegate(HSizeEvent, Size&&)
@@ -271,15 +272,15 @@ enum VisualEvent
 	KeyDown, //!< 键接触开始。
 	KeyHeld, //!< 键接触保持。
 	KeyPress, //!< 键按下。
+	/*!
+	\brief 指针设备光标悬停。
+	\since build 422
+	*/
+	CursorOver,
 	TouchUp, //!< 屏幕接触结束。
 	TouchDown, //!< 屏幕接触开始。
 	TouchHeld, //!< 屏幕接触保持。
 	Click, //!< 屏幕点击。
-	/*!
-	\brief 光标移动。
-	\since build 421
-	*/
-	CursorMove,
 
 	//图形用户界面输出事件。
 	Paint, //!< 界面绘制。
@@ -312,20 +313,20 @@ DefEventTypeMapping(KeyUp, HKeyEvent)
 DefEventTypeMapping(KeyDown, HKeyEvent)
 DefEventTypeMapping(KeyHeld, HKeyEvent)
 DefEventTypeMapping(KeyPress, HKeyEvent)
-DefEventTypeMapping(TouchUp, HTouchEvent)
-DefEventTypeMapping(TouchDown, HTouchEvent)
-DefEventTypeMapping(TouchHeld, HTouchEvent)
-DefEventTypeMapping(Click, HTouchEvent)
-//! \since build 421
-DefEventTypeMapping(CursorMove, HTouchEvent)
+//! \since build 422
+DefEventTypeMapping(CursorOver, HCursorEvent)
+DefEventTypeMapping(TouchUp, HCursorEvent)
+DefEventTypeMapping(TouchDown, HCursorEvent)
+DefEventTypeMapping(TouchHeld, HCursorEvent)
+DefEventTypeMapping(Click, HCursorEvent)
 
 DefEventTypeMapping(Paint, HPaintEvent)
 
 DefEventTypeMapping(GotFocus, HUIEvent)
 DefEventTypeMapping(LostFocus, HUIEvent)
 
-DefEventTypeMapping(Enter, HTouchEvent)
-DefEventTypeMapping(Leave, HTouchEvent)
+DefEventTypeMapping(Enter, HCursorEvent)
+DefEventTypeMapping(Leave, HCursorEvent)
 
 
 /*!

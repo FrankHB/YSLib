@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3088
-\author FrankHB<frankhb1989@gmail.com>
+\version r3090
+\author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2013-06-15 15:11 +0800
+	2013-07-03 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,7 +186,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 		Margin.Right = 18,
 		HorizontalAlignment = TextAlignment::Left,
 		lbContent.GetView().DependencyPtr = this,
-		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
+		FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
 			if(!FetchContainerPtr(lbContent))
 			{
 				Point pt;

@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r83
+\version r86
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-07-03 04:42 +0800
+	2013-07-03 16:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,17 +55,17 @@ FrmAbout::FrmAbout()
 		btnExit.Text = u"退出",
 		Background = SolidBrush(Color(248, 120, 120)),
 		btnClose.Background = SolidBrush(Color(176, 184, 192)),
-		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
+		FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
 			Background = SolidBrush(GenerateRandomColor());
 			SetInvalidationOf(*this);
 			if(e.Strategy == RoutedEventArgs::Direct)
 				e.Handled = true;
 		},
 		FetchEvent<TouchHeld>(*this) += OnTouchHeld_Dragging,
-		FetchEvent<Click>(btnClose) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnClose) += [this](CursorEventArgs&&){
 			Hide(*this);
 		},
-		FetchEvent<Click>(btnExit) += [](TouchEventArgs&&){
+		FetchEvent<Click>(btnExit) += [](CursorEventArgs&&){
 			YSLib::PostQuitMessage(0);
 		}
 	);

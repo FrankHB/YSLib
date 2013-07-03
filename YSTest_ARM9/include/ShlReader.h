@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1776
+\version r1778
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-06-21 13:24 +0800
+	2013-07-03 16:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,8 +391,9 @@ public:
 	UpdateButtons();
 
 private:
+	//! \since build 422
 	void
-	OnClick(TouchEventArgs&&);
+	OnClick(CursorEventArgs&&);
 
 	void
 	OnKeyDown(KeyEventArgs&&);

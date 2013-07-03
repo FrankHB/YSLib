@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r577
+\version r588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-07-03 04:42 +0800
+	2013-07-03 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,7 +179,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		fbMain.GetSelected() += [this](IndexEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
 		},
-		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnOK) += [this](CursorEventArgs&&){
 			if(fbMain.IsSelected())
 			{
 				const auto& path(fbMain.GetPath());
@@ -206,10 +206,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 				}
 			}
 		},
-		FetchEvent<Click>(cbFPS) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(cbFPS) += [this](CursorEventArgs&&){
 			SetInvalidationOf(GetDesktopDown());
 		},
-		FetchEvent<Click>(cbHex) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(cbHex) += [this](CursorEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
 			SetInvalidationOf(GetDesktopDown());
 		},
@@ -219,7 +219,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		},
 		FetchEvent<TouchHeld>(pnlSetting) += OnTouchHeld_Dragging,
 #if YCL_DS
-		FetchEvent<TouchDown>(pnlSetting) += [this](TouchEventArgs&&){
+		FetchEvent<TouchDown>(pnlSetting) += [this](CursorEventArgs&&){
 			struct ::mallinfo t(::mallinfo());
 
 			lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
@@ -227,14 +227,14 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			Invalidate(lblInfo);
 		},
 #endif
-		FetchEvent<Click>(pnlSetting) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(pnlSetting) += [this](CursorEventArgs&&){
 			yunseq(
 				lblDragTest.ForeColor = GenerateRandomColor(),
 				lblTitle.ForeColor = GenerateRandomColor()
 			);
 			Invalidate(pnlSetting);
 		},
-		FetchEvent<Click>(btnTestEx) += [this](TouchEventArgs&& e){
+		FetchEvent<Click>(btnTestEx) += [this](CursorEventArgs&& e){
 			const auto& k(e.GetKeys());
 			auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
 
@@ -247,20 +247,20 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			Invalidate(lblTitle),
 			Invalidate(lblInfo);
 		},
-		FetchEvent<Enter>(btnEnterTest) += [](TouchEventArgs&& e){
+		FetchEvent<Enter>(btnEnterTest) += [](CursorEventArgs&& e){
 			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
 			btn.Text = u"Enter: " + String(to_string(e));
 			Invalidate(btn);
 		},
-		FetchEvent<Leave>(btnEnterTest) += [](TouchEventArgs&& e){
+		FetchEvent<Leave>(btnEnterTest) += [](CursorEventArgs&& e){
 			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
 			btn.Text = u"Leave: " + String(to_string(e));
 			Invalidate(btn);
 		},
 		mhMain.Roots[&btnMenu] = 1u,
-		FetchEvent<Click>(btnMenu) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnMenu) += [this](CursorEventArgs&&){
 			auto& mnu(mhMain[1u]);
 
 			if(mhMain.IsShowing(1u))
@@ -272,7 +272,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 				mhMain.Show(1u);
 			Invalidate(mnu);
 		},
-		FetchEvent<Click>(btnPrevBackground) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnPrevBackground) += [this](CursorEventArgs&&){
 			auto& dsk_up(GetDesktopUp());
 			auto& dsk_dn(GetDesktopDown());
 
@@ -287,7 +287,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			SetInvalidationOf(dsk_up),
 			SetInvalidationOf(dsk_dn);
 		},
-		FetchEvent<Click>(btnNextBackground) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnNextBackground) += [this](CursorEventArgs&&){
 			auto& dsk_up(GetDesktopUp());
 			auto& dsk_dn(GetDesktopDown());
 

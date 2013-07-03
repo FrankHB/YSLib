@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3761
+\version r3769
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-07-03 05:03 +0800
+	2013-07-04 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ OnKeyHeld(KeyEventArgs&& e)
 }
 
 void
-OnTouchDown_RequestToTopFocused(TouchEventArgs&& e)
+OnTouchDown_RequestToTopFocused(CursorEventArgs&& e)
 {
 	IWidget& wgt(e.GetSender());
 
@@ -91,7 +91,7 @@ OnTouchDown_RequestToTopFocused(TouchEventArgs&& e)
 }
 
 void
-OnTouchHeld(TouchEventArgs&& e)
+OnTouchHeld(CursorEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -104,7 +104,7 @@ OnTouchHeld(TouchEventArgs&& e)
 }
 
 void
-OnTouchHeld_Dragging(TouchEventArgs&& e)
+OnTouchHeld_Dragging(CursorEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
 	{
@@ -152,7 +152,7 @@ OnKey_Bound_TouchUpAndLeave(KeyEventArgs&& e)
 {
 	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		TouchEventArgs et(*pCtl, e.Keys, TouchEventArgs::Invalid);
+		CursorEventArgs et(*pCtl, e.Keys, CursorEventArgs::Invalid);
 
 		CallEvent<TouchUp>(*pCtl, et);
 		CallEvent<Leave>(*pCtl, et);
@@ -165,7 +165,7 @@ OnKey_Bound_EnterAndTouchDown(KeyEventArgs&& e)
 {
 	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		TouchEventArgs et(*pCtl, e.Keys, TouchEventArgs::Invalid);
+		CursorEventArgs et(*pCtl, e.Keys, CursorEventArgs::Invalid);
 
 		CallEvent<Enter>(*pCtl, et);
 		CallEvent<TouchDown>(*pCtl, et);
@@ -178,7 +178,7 @@ OnKey_Bound_Click(KeyEventArgs&& e)
 {
 	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		TouchEventArgs et(*pCtl, e.Keys, TouchEventArgs::Invalid);
+		CursorEventArgs et(*pCtl, e.Keys, CursorEventArgs::Invalid);
 
 		CallEvent<Click>(*pCtl, et);
 		e.Handled = true;
@@ -206,6 +206,7 @@ Control::Control(const Rect& r, NoBackgroundTag)
 		Invalidate(*this);
 	});
 
+	FetchGUIState().Wrap(*this),
 	yunseq(
 		FetchEvent<Move>(*this) += h,
 		FetchEvent<Resize>(*this) += h,
@@ -218,7 +219,7 @@ Control::Control(const Control& ctl)
 {}
 
 void
-Control::OnTouch_Close(TouchEventArgs&&)
+Control::OnTouch_Close(CursorEventArgs&&)
 {
 	Close(*this);
 }

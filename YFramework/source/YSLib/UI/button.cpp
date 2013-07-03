@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3013
+\version r3018
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-03-23 10:33 +0800
+	2013-07-03 03:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,15 +111,15 @@ Thumb::Thumb(const Rect& r, NoBackgroundTag)
 	bPressed(false)
 {
 	yunseq(
-		FetchEvent<Enter>(*this) += [this](TouchEventArgs&&){
-			if(!bPressed)
+		FetchEvent<Enter>(*this) += [this](CursorEventArgs&& e){
+			if(!bPressed && e.Keys.any())
 			{
 				bPressed = true;
 				Invalidate(*this);
 			}
 		},
-		FetchEvent<Leave>(*this) += [this](TouchEventArgs&&){
-			if(bPressed)
+		FetchEvent<Leave>(*this) += [this](CursorEventArgs&& e){
+			if(bPressed && e.Keys.any())
 			{
 				bPressed = false;
 				Invalidate(*this);
@@ -151,7 +151,7 @@ void
 DecorateAsCloseButton(Thumb& tmb)
 {
 	yunseq(
-		FetchEvent<Click>(tmb) += [&](TouchEventArgs&&)
+		FetchEvent<Click>(tmb) += [&](CursorEventArgs&&)
 		{
 			if(const auto pCon = FetchContainerPtr(tmb))
 				Close(*pCon);

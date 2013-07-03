@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1112
+\version r1115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-07-03 04:36 +0800
+	2013-07-03 16:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,18 +116,18 @@ bound_select:
 			}
 		},
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
-		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
+		FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
 			SetSelected(e);
 			UpdateView(*this);
 		},
-		FetchEvent<TouchHeld>(*this) += [this](TouchEventArgs&& e){
+		FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
 			if(&e.GetSender() == this)
 			{
 				SetSelected(e);
 				UpdateView(*this);
 			}
 		},
-		FetchEvent<Click>(*this) += [this](TouchEventArgs&& e){
+		FetchEvent<Click>(*this) += [this](CursorEventArgs&& e){
 			InvokeConfirmed(CheckPoint(e));
 		},
 		FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority)

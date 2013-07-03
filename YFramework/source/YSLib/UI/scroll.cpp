@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3477
+\version r3482
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-07-03 05:01 +0800
+	2013-07-03 16:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 			LocateThumb(0, ScrollCategory::ThumbTrack);
 		},
 		FetchEvent<TouchHeld>(*this) += OnTouchHeld,
-		FetchEvent<TouchDown>(*this) += [this](TouchEventArgs&& e){
+		FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
 			if(e.Strategy == RoutedEventArgs::Direct && &e.GetSender() == this
 				&& Rect(GetSizeOf(*this)).Contains(e))
 			{
@@ -288,7 +288,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight(), "Width is not greater than height.");
 
-	FetchEvent<TouchHeld>(tmbScroll) +=[this](TouchEventArgs&& e){
+	FetchEvent<TouchHeld>(tmbScroll) +=[this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			auto& st(FetchGUIState());
@@ -308,7 +308,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 {
 	YAssert(GetHeight() > GetWidth(), "height is not greater than width.");
 
-	FetchEvent<TouchHeld>(tmbScroll) += [this](TouchEventArgs&& e){
+	FetchEvent<TouchHeld>(tmbScroll) += [this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			auto& st(FetchGUIState());
@@ -353,11 +353,11 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 		},
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<TouchHeld>(btnPrev) += OnTouchHeld,
-		FetchEvent<TouchDown>(btnPrev) += [this](TouchEventArgs&&){
+		FetchEvent<TouchDown>(btnPrev) += [this](CursorEventArgs&&){
 			LocateThumb(small_delta, ScrollCategory::SmallDecrement);
 		},
 		FetchEvent<TouchHeld>(btnNext) += OnTouchHeld,
-		FetchEvent<TouchDown>(btnNext) += [this](TouchEventArgs&&){
+		FetchEvent<TouchDown>(btnNext) += [this](CursorEventArgs&&){
 			LocateThumb(small_delta, ScrollCategory::SmallIncrement);
 		},
 		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave,

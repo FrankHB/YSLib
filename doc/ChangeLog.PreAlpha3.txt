@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3746
+\version r3753
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-06-26 20:54 +0800
+	2013-07-03 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ b399
 			+ "atomic window counting and callback on exit",
 				// To allow automatically terminating when all windows are \
 					closed.
-			+ "function %YF_API %Execute" @ %'GUIShell'
+			+ "function %Execute" @ %'GUIShell'
 				// For convenient message loop.
 		),
 		/ %'YSLib'.'Core' $=
@@ -68,7 +68,7 @@ b399
 				/ "function template %CollectNodes returning %unique_ptr"
 					~ "raw pointer",
 				/ "merged function templates %(Access, AccessPtr) for 'const'",
-				+ "function %YF_API %AccessNode"
+				+ "function %AccessNode"
 			)
 		)
 	),
@@ -112,7 +112,7 @@ b398
 		(
 			+ $dev "split non-public unit %DSWindow",
 			+ "unit %GUIApplication",
-				$= (+ "class %YF_API %GUIApplication")
+				$= (+ "class %GUIApplication")
 			+ "several forward declaration and helper functions for global \
 				instance" @ %'DSMain' >> %'GUIApplication',
 			/ "function %ResetDSDesktops" @ %'ShellHelper'
@@ -651,7 +651,7 @@ b383
 				/ @ "platform %MinGW32" $=
 				(
 					+ "namespace %MinGW32";
-					+ "function %YF_API %MinGW32::TestFramework";
+					+ "function %MinGW32::TestFramework";
 					$dep_to "%TestFramework"
 				)
 				+ "member function %(GetDSScreenUp, GetScreenDown)"
@@ -1357,9 +1357,8 @@ b362
 	/ %'YFramework' $=
 	(
 		+ "external macro %(YF_DLL, YF_BUILD_DLL) for using and building DLL";
-		+ "macro %YF_API" @ %'YCLib'.'Platform';
-		/ "all non-templated public interface specified by %YF_API except \
-			for FreeType",
+		+ "macro" @ %'YCLib'.'Platform';
+		/ "all non-templated public interface specified by except for FreeType",
 		/ $build "linking options" @ "MinGW32 '*_DLL' Code::Blocks projects",
 		* @ "platform %MinGW32" $since b300 $=
 		(

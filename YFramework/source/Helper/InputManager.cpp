@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r243
+\version r255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-07-03 06:43 +0800
+	2013-07-04 03:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,16 +57,22 @@ InputManager::DispatchInput(IWidget& wgt)
 	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
 		VisualEvent touch_evt){
 #if YCL_MINGW32
-		if(keyset[YCL_KEY_Touch] || keyset[VK_RBUTTON])
+		if(touch_evt == TouchUp || keyset[YCL_KEY_Touch]
+			|| keyset[VK_RBUTTON])
 #else
 		if(keyset[YCL_KEY_Touch])
 #endif
 		{
 			YCL_CURSOR_VALID
 			{
-				TouchEventArgs e(wgt, keyset, cursor_state);
+				CursorEventArgs e(wgt, keyset, cursor_state);
 
+#if YCL_MINGW32
+				GUI_state.get().ResponseTouch(e, keyset.none() ? CursorOver
+					: touch_evt);
+#else
 				GUI_state.get().ResponseTouch(e, touch_evt);
+#endif
 			}
 		}
 		else if(keyset.any())
@@ -102,11 +108,7 @@ InputManager::Update()
 //	platform::AllowSleep(true);
 	platform_ex::UpdateKeyStates();
 
-#if YCL_MINGW32
-	const auto& key_st(platform_ex::FetchKeyState());
-
-	if(key_st[YCL_KEY_Touch] || key_st[VK_RBUTTON])
-#else
+#if YCL_DS
 	if(platform_ex::FetchKeyState()[YCL_KEY_Touch])
 #endif
 	{

@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r167
+\version r170
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-04-20 16:45 +0800
+	2013-07-03 16:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,10 +95,10 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 		btnRemove.Text = u"-",
 		FetchEvent<KeyDown>(lbPosition) += stop_routing_after_direct,
 		FetchEvent<KeyHeld>(lbPosition) += stop_routing_after_direct,
-		FetchEvent<Click>(btnOK) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnOK) += [this](CursorEventArgs&&){
 			bookmarks = std::move(ConvertToBookmarkList(lbPosition.GetList()));
 		},
-		FetchEvent<Click>(btnAdd) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnAdd) += [this](CursorEventArgs&&){
 			auto& lst(lbPosition.GetListRef());
 			auto idx(GetSelected());
 
@@ -109,7 +109,7 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 			lbPosition.AdjustViewForContent();
 			lbPosition.UpdateView();
 		},
-		FetchEvent<Click>(btnRemove) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnRemove) += [this](CursorEventArgs&&){
 			auto& lst(lbPosition.GetListRef());
 			const auto idx(GetSelected());
 

@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1930
+\version r1961
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-03 04:44 +0800
+	2013-07-04 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,14 +120,26 @@ public:
 private:
 	//独立焦点指针：自由状态时即时输入（按下）状态捕获的控件指针。
 	IWidget* p_KeyDown;
+	/*!
+	\brief 光标设备指针对应的部件。
+	\since build 422
+	*/
+	IWidget* p_CursorOver;
 	IWidget* p_TouchDown;
-	bool control_entered; //!< 记录指针是否在控件内部。
+	/*!
+	\brief 记录按键时的光标是否在部件内部。
+	\since build 422
+	*/
+	bool entered;
 
 public:
 	GUIState() ynothrow;
 
-	DefPred(const ynothrow, ControlEntered, control_entered)
+	//! \since build 422
+	DefPred(const ynothrow, Entered, entered)
 
+	//! \since build 422
+	DefGetter(const ynothrow, IWidget*, CursorOverPtr, p_CursorOver)
 	DefGetter(const ynothrow, IWidget*, KeyDownPtr, p_KeyDown) \
 		//独立键焦点指针。
 	DefGetter(const ynothrow, IWidget*, TouchDownPtr, p_TouchDown) \
@@ -147,13 +159,6 @@ public:
 	void
 	ResetHeldState(InputTimer::HeldStateType&);
 
-private:
-	void
-	TryEntering(TouchEventArgs&&);
-
-	void
-	TryLeaving(TouchEventArgs&&);
-
 public:
 	/*!
 	\brief 响应标准按键状态。
@@ -166,9 +171,10 @@ public:
 	\brief 响应标准按键状态。
 	\note 无视事件路由，直接响应。
 	\note 对于 \c TouchHeld 请求实现记录坐标偏移（用于拖放）或触发事件。
+	\since build 422
 	*/
 	bool
-	ResponseTouchBase(TouchEventArgs&, VisualEvent);
+	ResponseTouchBase(CursorEventArgs&, VisualEvent);
 
 	/*!
 	\brief 响应标准按键状态。
@@ -177,12 +183,27 @@ public:
 	bool
 	ResponseKey(KeyEventArgs&, VisualEvent);
 
+	//! \since build 422
+	//@{
 	/*!
 	\brief 响应屏幕接触状态。
 	\return 已被响应（调用了非空事件处理器或参数 Handled 为 true）时为 true 。
 	*/
 	bool
-	ResponseTouch(TouchEventArgs&, VisualEvent);
+	ResponseTouch(CursorEventArgs&, VisualEvent);
+
+private:
+	void
+	TryEntering(CursorEventArgs&&);
+
+	void
+	TryLeaving(CursorEventArgs&&);
+
+public:
+	//! \brief 包装部件响应 Enter/Leave 事件。
+	void
+	Wrap(IWidget&);
+	//@}
 };
 
 

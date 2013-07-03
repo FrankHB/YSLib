@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4643
+\version r4651
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-07-03 04:44 +0800
+	2013-07-03 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -239,26 +239,27 @@ OnKeyHeld(KeyEventArgs&&);
 当事件路由策略非 RoutedEventArgs::Bubble 时请求置于顶端；
 当事件路由策略为 RoutedEventArgs::Direct 时清除自身包含的焦点；
 当事件路由策略非 RoutedEventArgs::Tunnel 时请求置于顶端。
-\since build 275
+\since build 422
 */
 YF_API void
-OnTouchDown_RequestToTopFocused(TouchEventArgs&&);
+OnTouchDown_RequestToTopFocused(CursorEventArgs&&);
 
 /*!
 \brief 处理屏幕接触保持事件。
 \note 重复触发 TouchDown 事件。
+\since build 422
 */
 YF_API void
-OnTouchHeld(TouchEventArgs&&);
+OnTouchHeld(CursorEventArgs&&);
 
 /*!
 \brief 处理屏幕接触移动事件。
 \note 使用拖放。
 \note 无效化当前区域，但不无效化移动后区域；通过 Move 事件可以调用无效化。
-\since build 421
+\since build 422
 */
 YF_API void
-OnTouchHeld_Dragging(TouchEventArgs&&);
+OnTouchHeld_Dragging(CursorEventArgs&&);
 
 
 // Control 事件处理器。
@@ -350,11 +351,12 @@ public:
 
 	/*!
 	\brief 处理屏幕事件：关闭显示。
+	\since build 422
 
 	调用 UI::Close 。
 	*/
 	void
-	OnTouch_Close(TouchEventArgs&&);
+	OnTouch_Close(CursorEventArgs&&);
 };
 
 YSL_END_NAMESPACE(UI)

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r135
-\author FrankHB<frankhb1989@gmail.com>
+\version r138
+\author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2012-09-04 10:42 +0800
+	2013-07-03 16:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 本文档适用于 CHRLib 。
 
 @1 设计：
- CHRLib 是 Character Homomorphism Representation Library 的缩写，是一个字符表示结构支持库。
+ CHRLib 是 Character Homomorphism Representation Library 的缩写，是一个字符或类似数据结构的表示支持库。
 
 @1.1 设计的基本原理和表达形式：
 支持基于字符的相关构造（编码和字符集等）的抽象。

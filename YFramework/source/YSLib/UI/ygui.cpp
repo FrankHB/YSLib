@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3396
+\version r3496
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-03 06:49 +0800
+	2013-07-04 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,8 +113,8 @@ RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
 GUIState::GUIState() ynothrow
 	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
 	DraggingOffset(Vec::Invalid), HeldTimer(), ControlLocation(Point::Invalid),
-	LastControlLocation(Point::Invalid), Colors(), p_KeyDown(), p_TouchDown(),
-	control_entered(false)
+	LastControlLocation(Point::Invalid), Colors(), p_KeyDown(), p_CursorOver(),
+	p_TouchDown(), entered()
 {}
 
 void
@@ -124,7 +124,8 @@ GUIState::Reset()
 		DraggingOffset = Vec::Invalid),
 	HeldTimer.ResetInput();
 	yunseq(ControlLocation = Point::Invalid,
-		LastControlLocation = Point::Invalid, p_TouchDown = {}, p_KeyDown = {});
+		LastControlLocation = Point::Invalid, p_TouchDown = {}, p_KeyDown = {},
+		p_CursorOver = {}, entered = {});
 }
 
 void
@@ -132,26 +133,6 @@ GUIState::ResetHeldState(InputTimer::HeldStateType& s)
 {
 	s = InputTimer::Free,
 	HeldTimer.ResetInput();
-}
-
-void
-GUIState::TryEntering(TouchEventArgs&& e)
-{
-	if(!control_entered)
-	{
-		CallEvent<Enter>(e.GetSender(), e);
-		control_entered = true;
-	}
-}
-
-void
-GUIState::TryLeaving(TouchEventArgs&& e)
-{
-	if(control_entered)
-	{
-		CallEvent<Leave>(e.GetSender(), e);
-		control_entered = false;
-	}
 }
 
 bool
@@ -187,50 +168,39 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 }
 
 bool
-GUIState::ResponseTouchBase(TouchEventArgs& e, UI::VisualEvent op)
+GUIState::ResponseTouchBase(CursorEventArgs& e, UI::VisualEvent op)
 {
 	auto& wgt(e.GetSender());
 
 	switch(op)
 	{
+	case CursorOver:
+		CallEvent<CursorOver>(wgt, e);
+		break;
 	case TouchUp:
 		CallEvent<TouchUp>(wgt, e);
 		ResetHeldState(TouchHeldState),
 		DraggingOffset = Vec::Invalid;
-		if(p_TouchDown)
-		{
-			e.SetSender(*p_TouchDown);
-			TryLeaving(std::move(e));
-			e.SetSender(wgt);
-		}
 		if(p_TouchDown == &wgt)
 			CallEvent<Click>(wgt, e);
 		p_TouchDown = {};
 		break;
 	case TouchDown:
 		p_TouchDown = &wgt;
-		TryEntering(std::move(e));
 		CallEvent<TouchDown>(wgt, e);
 		break;
 	case TouchHeld:
 		if(!p_TouchDown)
 			return false;
+	//	if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			auto& wgt_d(*p_TouchDown);
 
-			if(p_TouchDown == &wgt)
-				TryEntering(TouchEventArgs(e));
+			if(DraggingOffset == Vec::Invalid)
+				DraggingOffset = GetLocationOf(wgt_d) - ControlLocation;
 			else
-				TryLeaving(TouchEventArgs(wgt_d, e.Keys,
-					e - LocateForWidget(wgt, wgt_d)));
-			if(e.Strategy == RoutedEventArgs::Direct)
-			{
-				if(DraggingOffset == Vec::Invalid)
-					DraggingOffset = GetLocationOf(wgt_d) - ControlLocation;
-				else
-					CallEvent<TouchHeld>(wgt_d, e);
-				LastControlLocation = ControlLocation;
-			}
+				CallEvent<TouchHeld>(wgt_d, e);
+			LastControlLocation = ControlLocation;
 		}
 		break;
 	default:
@@ -284,7 +254,7 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 }
 
 bool
-GUIState::ResponseTouch(TouchEventArgs& e, UI::VisualEvent op)
+GUIState::ResponseTouch(CursorEventArgs& e, UI::VisualEvent op)
 {
 	ControlLocation = e;
 
@@ -311,7 +281,7 @@ GUIState::ResponseTouch(TouchEventArgs& e, UI::VisualEvent op)
 				break;
 		}
 		e.SetSender(*p);
-		r |= DoEvent<HTouchEvent>(p->GetController(), op, std::move(e)) != 0;
+		r |= DoEvent<HCursorEvent>(p->GetController(), op, std::move(e)) != 0;
 		p = t;
 		e -= GetLocationOf(*p);
 	};
@@ -326,9 +296,79 @@ GUIState::ResponseTouch(TouchEventArgs& e, UI::VisualEvent op)
 	{
 		e += GetLocationOf(*p);
 		e.SetSender(*(p = pCon));
-		r |= DoEvent<HTouchEvent>(p->GetController(), op, std::move(e)) != 0;
+		r |= DoEvent<HCursorEvent>(p->GetController(), op, std::move(e)) != 0;
 	}
 	return r/* || e.Handled*/;
+}
+
+void
+GUIState::TryEntering(CursorEventArgs&& e)
+{
+	if(!entered)
+	{
+		CallEvent<Enter>(e.GetSender(), e);
+		entered = true;
+	}
+}
+
+void
+GUIState::TryLeaving(CursorEventArgs&& e)
+{
+	if(entered)
+	{
+		CallEvent<Leave>(e.GetSender(), e);
+		entered = false;
+	}
+}
+
+void
+GUIState::Wrap(IWidget& wgt)
+{
+	auto& controller(wgt.GetController());
+
+	yunseq(
+	FetchEvent<CursorOver>(controller).Add([this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			e.Keys.reset();
+
+			auto& wgt(e.GetSender());
+
+			if(p_CursorOver != &wgt)
+			{
+				if(p_CursorOver)
+					CallEvent<Leave>(*p_CursorOver, CursorEventArgs(
+						*p_CursorOver, e.Keys, e - LocateForWidget(wgt,
+						*p_CursorOver)));
+				CallEvent<Enter>(e.GetSender(), CursorEventArgs(e));
+				p_CursorOver = &wgt;
+			}
+		}
+	}, 0xFF),
+	FetchEvent<TouchDown>(controller).Add([this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+			TryEntering(std::move(e));
+	}, 0xFF),
+	FetchEvent<TouchHeld>(controller).Add([this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct && p_TouchDown)
+		{
+			auto& wgt(e.GetSender());
+
+			if(p_TouchDown == &wgt)
+				TryEntering(CursorEventArgs(e));
+			else
+				TryLeaving(CursorEventArgs(*p_TouchDown, e.Keys,
+					e - LocateForWidget(wgt, *p_TouchDown)));
+		}
+	}, 0xFF),
+	FetchEvent<TouchUp>(controller).Add([this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct && p_TouchDown)
+		{
+			e.SetSender(*p_TouchDown);
+			TryLeaving(std::move(e));
+			e.SetSender(e.GetSender());
+		}
+	}, 0x00));
 }
 
 

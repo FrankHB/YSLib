@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r578
+\version r579
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2013-03-13 13:01 +0800
+	2013-07-03 16:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,7 +103,7 @@ CheckBox::CheckBox(const Rect& r)
 	: Thumb(r, NoBackgroundTag()),
 	bTicked(false)
 {
-	FetchEvent<Click>(*this) += [this](TouchEventArgs&&){
+	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
 		bTicked = !bTicked;
 		Ticked(TickedArgs(*this, bTicked));
 	};

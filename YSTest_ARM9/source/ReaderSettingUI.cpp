@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r230
+\version r236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-07-03 04:41 +0800
+	2013-07-03 16:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,29 +88,29 @@ SettingPanel::SettingPanel()
 		FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
 		FetchEvent<KeyHeld>(*this) += OnEvent_StopRouting<KeyEventArgs>,
 		FetchEvent<Click>(btnFontSizeDecrease)
-			+= [this, set_font_size](TouchEventArgs&&){
+			+= [this, set_font_size](CursorEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
 			if(YB_LIKELY(size > Font::MinimalSize))
 				set_font_size(--size);
 		},
 		FetchEvent<Click>(btnFontSizeIncrease)
-			+= [this, set_font_size](TouchEventArgs&&){
+			+= [this, set_font_size](CursorEventArgs&&){
 			auto size(lblAreaUp.Font.GetSize());
 
 			if(YB_LIKELY(size < Font::MaximalSize))
 				set_font_size(++size);
 		},
-		FetchEvent<Click>(btnTextColor) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnTextColor) += [this](CursorEventArgs&&){
 			boxColor.SetColor(*(pColor = &lblAreaUp.ForeColor));
 			Show(boxColor);
 		},
-		FetchEvent<Click>(btnSetUpBack) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnSetUpBack) += [this](CursorEventArgs&&){
 			boxColor.SetColor(*(pColor
 				= &lblAreaUp.Background.target<SolidBrush>()->Color));
 			Show(boxColor);
 		},
-		FetchEvent<Click>(btnSetDownBack) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(btnSetDownBack) += [this](CursorEventArgs&&){
 			boxColor.SetColor(*(pColor
 				= &lblAreaDown.Background.target<SolidBrush>()->Color));
 			Show(boxColor);
@@ -161,7 +161,7 @@ SettingPanel::SettingPanel()
 				scroll_duration = milliseconds((e.Value + 1U) * 100);
 		},
 		FetchEvent<TouchHeld>(boxColor) += OnTouchHeld_Dragging,
-		FetchEvent<Click>(boxColor.btnOK) += [this](TouchEventArgs&&){
+		FetchEvent<Click>(boxColor.btnOK) += [this](CursorEventArgs&&){
 			if(pColor)
 			{
 				// TODO: Determine less area to be invalidated.

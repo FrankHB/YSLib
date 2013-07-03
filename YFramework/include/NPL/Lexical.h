@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2012.
+	Copyright by FrankHB 2012 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,13 +15,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1249
-\author FrankHB<frankhb1989@gmail.com>
+\version r1254
+\author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2012-12-11 21:03 +0800
+	2013-07-03 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,8 @@
 */
 
 
-#ifndef NPL_INC_LEXICAL_H_
-#define NPL_INC_LEXICAL_H_
+#ifndef NPL_INC_Lexical_h_
+#define NPL_INC_Lexical_h_
 
 #include "YSLib/Adaptor/ycont.h"
 #include <cctype> // for std::isgraph;
@@ -63,7 +63,7 @@ using YSLib::string;
 	被替换为单一空格；回车符会被忽略；
 原始输出：其它字符序列逐字节输出。
 支持转义序列为 "\\" 、 "\a" 、 "\b" 、 "\f" 、 "\n" 、 "\r" 、 "\t" 和 "\v" 。
-除以下说明外，转义序列语义参见 ISO C++11 （除 raw-string-literal 外）；
+除以下说明外，转义序列语义参见 ISO C++11 （排除 raw-string-literal ）；
 	其它转义序列由派生实现定义。
 除了反斜杠转义外，其它转义仅适用于字面量。
 反斜杠转义：连续两个反斜杠被替换为一个反斜杠；

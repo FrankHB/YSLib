@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2011 - 2012.
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1301
-\author FrankHB<frankhb1989@gmail.com>
+\version r1337
+\author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2012-09-04 10:46 +0800
+	2013-07-03 16:39 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_YSTDEX_OPERATORS_HPP_
-#define YB_INC_YSTDEX_OPERATORS_HPP_ 1
+#ifndef YB_INC_ystdex_operators_hpp_
+#define YB_INC_ystdex_operators_hpp_ 1
 
 #include "../ydef.h"
 
@@ -217,8 +217,7 @@ YB_OP_TEMPLATE_HEADER2(indexable) : _tBase
 
 YB_OP_TEMPLATE_HEADER2(totally_ordered2)
 	: less_than_comparable2<_type, _type2,
-		equality_comparable2<_type, _type2, _tBase>
-	>
+		equality_comparable2<_type, _type2, _tBase>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(totally_ordered1)
@@ -264,8 +263,7 @@ YB_OP_TEMPLATE_HEADER1(arithmetic1)
 
 YB_OP_TEMPLATE_HEADER2(integer_arithmetic2)
 	: additive2<_type, _type2,
-		integer_multiplicative2<_type, _type2, _tBase>
-	>
+		integer_multiplicative2<_type, _type2, _tBase>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(integer_arithmetic1)
@@ -275,8 +273,7 @@ YB_OP_TEMPLATE_HEADER1(integer_arithmetic1)
 
 YB_OP_TEMPLATE_HEADER2(bitwise2)
 	: xorable2<_type, _type2, andable2<_type, _type2,
-		orable2<_type, _type2, _tBase>>
-	>
+		orable2<_type, _type2, _tBase>>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(bitwise1)
@@ -291,8 +288,7 @@ YB_OP_TEMPLATE_HEADER1(unit_steppable)
 
 YB_OP_TEMPLATE_HEADER2(shiftable2)
 	: left_shiftable2<_type, _type2,
-		right_shiftable2<_type, _type2, _tBase>
-	>
+		right_shiftable2<_type, _type2, _tBase>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(shiftable1)
@@ -302,8 +298,7 @@ YB_OP_TEMPLATE_HEADER1(shiftable1)
 
 YB_OP_TEMPLATE_HEADER2(ring_operators2)
 	: additive2<_type, _type2, subtractable2_left<_type, _type2,
-		multipliable2<_type, _type2, _tBase>>
-	>
+		multipliable2<_type, _type2, _tBase>>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(ring_operators1)
@@ -313,8 +308,7 @@ YB_OP_TEMPLATE_HEADER1(ring_operators1)
 
 YB_OP_TEMPLATE_HEADER2(ordered_ring_operators2)
 	: ring_operators2<_type, _type2,
-		totally_ordered2<_type, _type2, _tBase>
-	>
+		totally_ordered2<_type, _type2, _tBase>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(ordered_ring_operators1)
@@ -324,8 +318,7 @@ YB_OP_TEMPLATE_HEADER1(ordered_ring_operators1)
 
 YB_OP_TEMPLATE_HEADER2(field_operators2)
 	: ring_operators2<_type, _type2, dividable2<_type, _type2,
-		dividable2_left<_type, _type2, _tBase>>
-	>
+		dividable2_left<_type, _type2, _tBase>>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(field_operators1)
@@ -335,8 +328,7 @@ YB_OP_TEMPLATE_HEADER1(field_operators1)
 
 YB_OP_TEMPLATE_HEADER2(ordered_field_operators2)
 	: field_operators2<_type, _type2,
-		totally_ordered2<_type, _type2, _tBase>
-	>
+		totally_ordered2<_type, _type2, _tBase>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(ordered_field_operators1)
@@ -347,9 +339,7 @@ YB_OP_TEMPLATE_HEADER1(ordered_field_operators1)
 YB_OP_TEMPLATE_HEADER2(euclidian_ring_operators2)
 	: ring_operators2<_type, _type2, dividable2<_type, _type2,
 		dividable2_left<_type, _type2, modable2<_type, _type2,
-			modable2_left<_type, _type2, _tBase>>>
-		>
-	>
+			modable2_left<_type, _type2, _tBase>>>>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(euclidian_ring_operators1)
@@ -359,8 +349,7 @@ YB_OP_TEMPLATE_HEADER1(euclidian_ring_operators1)
 
 YB_OP_TEMPLATE_HEADER2(ordered_euclidian_ring_operators2)
 	: totally_ordered2<_type, _type2,
-		euclidian_ring_operators2<_type, _type2, _tBase>
-	>
+		euclidian_ring_operators2<_type, _type2, _tBase>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(ordered_euclidian_ring_operators1)
@@ -371,9 +360,7 @@ YB_OP_TEMPLATE_HEADER1(ordered_euclidian_ring_operators1)
 YB_OP_TEMPLATE_HEADER2(euclidean_ring_operators2)
 	: ring_operators2<_type, _type2, dividable2<_type, _type2,
 		dividable2_left<_type, _type2, modable2<_type, _type2,
-			modable2_left<_type, _type2, _tBase>>>
-		>
-	>
+			modable2_left<_type, _type2, _tBase>>>>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(euclidean_ring_operators1)
@@ -383,8 +370,7 @@ YB_OP_TEMPLATE_HEADER1(euclidean_ring_operators1)
 
 YB_OP_TEMPLATE_HEADER2(ordered_euclidean_ring_operators2)
 	: totally_ordered2<_type, _type2,
-		euclidean_ring_operators2<_type, _type2, _tBase>
-	>
+		euclidean_ring_operators2<_type, _type2, _tBase>>
 {};
 
 YB_OP_TEMPLATE_HEADER1(ordered_euclidean_ring_operators1)
@@ -394,8 +380,7 @@ YB_OP_TEMPLATE_HEADER1(ordered_euclidean_ring_operators1)
 
 YB_OP_TEMPLATE_HEADER1(input_iteratable)
 	: equality_comparable1<_type, incrementable<_type,
-		dereferenceable<_type, _tBase>>
-	>
+		dereferenceable<_type, _tBase>>>
 {};
 
 
@@ -416,8 +401,7 @@ YB_OP_TEMPLATE_HEADER1(bidirectional_iteratable)
 
 YB_OP_TEMPLATE_HEADER2(random_access_iteratable)
 	: bidirectional_iteratable<_type, less_than_comparable1<_type,
-		additive2<_type, _type2, indexable<_type, _type2, _tBase>>>
-	>
+		additive2<_type, _type2, indexable<_type, _type2, _tBase>>>>
 {};
 
 } // namespace details;
@@ -454,8 +438,7 @@ namespace operators
 	using ystdex::details::_name##2; \
 	template<class _type, class _type2 = _type, \
 		class _tBase = empty_base<_type>, \
-		bool _v = is_chained_base<_type2>::value \
-	> \
+		bool _v = is_chained_base<_type2>::value> \
 	struct _name \
 		: _name##2<_type, _type2, _tBase> \
 	{}; \
