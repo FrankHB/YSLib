@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r696
+\version r697
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-04-14 06:35 +0800
+	2013-07-04 07:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ WriteConfiguration(TextFile&, const ValueNode&);
 \since build 344
 */
 YF_API ValueNode
-LoadConfiguration(bool bInfo = false);
+LoadConfiguration(bool bInfo = {});
 
 /*!
 \brief 保存默认配置。

@@ -11,13 +11,13 @@
 /*!	\file examiner.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作检测。
-\version r97
+\version r98
 \author FrankHB <frankhb1989@gmail.com>
 \since build 348
 \par 创建时间:
 	2012-10-17 01:21:01 +0800
 \par 修改时间:
-	2013-03-06 13:53 +0800
+	2013-07-04 07:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@ struct equal
 {
 	template<typename _type1, typename _type2>
 	static yconstfn YB_PURE bool
-	are_equal(_type1&& x, _type2&& y, decltype(x == y) = false)
+	are_equal(_type1&& x, _type2&& y, decltype(x == y) = {})
 		ynoexcept(ynoexcept(x == y))
 	{
 		return x == y;

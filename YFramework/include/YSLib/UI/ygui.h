@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r1961
+\version r2000
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-04 02:40 +0800
+	2013-07-05 10:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,37 +160,57 @@ public:
 	ResetHeldState(InputTimer::HeldStateType&);
 
 public:
-	/*!
-	\brief 响应标准按键状态。
-	\note 无视事件路由，直接响应。
-	*/
-	bool
-	ResponseKeyBase(KeyEventArgs&, VisualEvent);
-
-	/*!
-	\brief 响应标准按键状态。
-	\note 无视事件路由，直接响应。
-	\note 对于 \c TouchHeld 请求实现记录坐标偏移（用于拖放）或触发事件。
-	\since build 422
-	*/
-	bool
-	ResponseTouchBase(CursorEventArgs&, VisualEvent);
-
-	/*!
-	\brief 响应标准按键状态。
-	\return 已被响应（调用了非空事件处理器或参数 Handled 为 true）时为 true 。
-	*/
-	bool
-	ResponseKey(KeyEventArgs&, VisualEvent);
-
-	//! \since build 422
+	//! \since build 423
 	//@{
 	/*!
 	\brief 响应屏幕接触状态。
 	\return 已被响应（调用了非空事件处理器或参数 Handled 为 true）时为 true 。
+	\sa ResponseCursorBase
+	\since build 423
 	*/
 	bool
-	ResponseTouch(CursorEventArgs&, VisualEvent);
+	ResponseCursor(CursorEventArgs&, VisualEvent);
+
+	/*!
+	\brief 响应标准指针设备状态。
+	\note 无视事件路由，直接响应。
+	\note 支持 \c Touch* 和 \c Cursor* 事件。
+	\note 对于 \c TouchHeld 请求实现记录坐标偏移（用于拖放）或触发事件。
+	\warning 调用的事件和参数的动态类型必须匹配。
+	\since build 423
+	*/
+	bool
+	ResponseCursorBase(CursorEventArgs&, VisualEvent);
+
+	/*!
+	\brief 响应非直接路由的指针设备状态。
+	\note 无视事件路由，直接响应。
+	\note 支持 \c Touch* 和 \c Cursor* 事件。
+	\warning 调用的事件和参数的动态类型必须匹配。
+	\since build 423
+	*/
+	bool
+	ResponseCursorBaseIndirect(CursorEventArgs&, VisualEvent);
+	//@}
+
+	//! \since build 422
+	//@{
+	/*!
+	\brief 响应标准按键状态。
+	\return 已被响应（调用了非空事件处理器或参数 Handled 为 true）时为 true 。
+	\sa ResponseKeyBase
+	*/
+	bool
+	ResponseKey(KeyEventArgs&, VisualEvent);
+
+	/*!
+	\brief 响应标准按键状态。
+	\note 无视事件路由，直接响应。
+	\note 支持 \c Key* 事件。
+	\warning 调用的事件和参数的动态类型必须匹配。
+	*/
+	bool
+	ResponseKeyBase(KeyEventArgs&, VisualEvent);
 
 private:
 	void

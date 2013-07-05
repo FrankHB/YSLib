@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8493
+\version r8497
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-02 18:03 +0800
+	2013-07-05 06:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1033,6 +1033,11 @@ BASE_EXTENSIONS += ftbbox.c
 @6.3 成员声明顺序规则：
 一般规则参见 [Documentation::CommonRules @@6.8.6] 。
 访问器[Documentation::CommonRules @@3.11.3] （以谓词[Documentation::CommonRules @@3.11.2] 、其它获取器[Documentation::CommonRules @@3.11.4] 、设置器[Documentation::CommonRules @@3.11.4] 排列）在转换操作符后和其它函数或函数模板前声明。
+
+@6.4 其它实现规则：
+在建议 [Documentation::CommonRules @@5.3.3.1] 的基础上强制要求全局名称保留前缀 :: 规则。
+全局 operator new/delete 使用前缀 :: 以强调确定使用全局版本（对应非名称的 new/delete 表达式也同样使用）。
+其它一般全局名称的使用总是保留前缀 :: 以便移植。
 
 @7 一般实现导引：
 自定义应用程序 Shell 类，继承默认 Shells::Shell 类或其派生类并产生实例。

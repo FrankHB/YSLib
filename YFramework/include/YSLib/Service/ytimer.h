@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r962
+\version r963
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-06-20 21:21 +0800
+	2013-07-04 07:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ public:
 	typedef duration::period period;
 	typedef std::chrono::time_point<HighResolutionClock, duration> time_point;
 
-	static yconstexpr bool is_steady = false;
+	static yconstexpr bool is_steady = {};
 
 	//! \warning 首次调用前非线程安全。
 	static time_point

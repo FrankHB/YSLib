@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r255
+\version r277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-07-04 03:13 +0800
+	2013-07-05 10:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,16 @@ InputManager::InputManager()
 #if YCL_HOSTED
 	, env(Host::FetchEnvironment())
 #endif
-{}
+{
+#if YCL_HOSTED
+	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
+
+	if(YB_UNLIKELY(!::RegisterRawInputDevices(&rid, 1, sizeof(rid))))
+		throw LoggedEvent(ystdex::sfmt(
+			"Raw input device registering failed: %08x.",
+			unsigned(::GetLastError())).c_str());
+#endif
+}
 
 #if YCL_DS
 #	define YCL_KEY_Touch KeyCodes::Touch
@@ -68,10 +77,10 @@ InputManager::DispatchInput(IWidget& wgt)
 				CursorEventArgs e(wgt, keyset, cursor_state);
 
 #if YCL_MINGW32
-				GUI_state.get().ResponseTouch(e, keyset.none() ? CursorOver
+				GUI_state.get().ResponseCursor(e, keyset.none() ? CursorOver
 					: touch_evt);
 #else
-				GUI_state.get().ResponseTouch(e, touch_evt);
+				GUI_state.get().ResponseCursor(e, touch_evt);
 #endif
 			}
 		}
@@ -87,7 +96,19 @@ InputManager::DispatchInput(IWidget& wgt)
 	disp(keys, KeyUp, TouchUp);
 	keys = platform_ex::FetchKeyDownState();
 	disp(keys, KeyDown, TouchDown);
-	disp(platform_ex::FetchKeyState(), KeyHeld, TouchHeld);
+	keys = platform_ex::FetchKeyState();
+	disp(keys, KeyHeld, TouchHeld);
+#if YCL_MINGW32
+	const UI::WheelDelta raw_mouse(env.get().RawMouseButton);
+
+	if(raw_mouse != 0)
+	{
+		CursorWheelEventArgs e(wgt, raw_mouse, keys, cursor_state);
+
+		GUI_state.get().ResponseCursor(e, CursorWheel);
+		env.get().RawMouseButton = 0;
+	}
+#endif
 }
 
 IWidget*

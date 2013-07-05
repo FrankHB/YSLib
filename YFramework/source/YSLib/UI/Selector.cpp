@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r579
+\version r582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2013-07-03 16:22 +0800
+	2013-07-04 07:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,9 +47,8 @@ namespace
 	using namespace Drawing;
 
 	void
-	RectDrawCheckBox(const Graphics& g, const Rect& r,
-		bool is_pressed = false, bool is_locked = false,
-		bool is_ticked = false, bool is_focused = false,
+	RectDrawCheckBox(const Graphics& g, const Rect& r, bool is_pressed = {},
+		bool is_locked = {}, bool is_ticked = {}, bool is_focused = {},
 		Color c = Color(85, 184, 163))
 	{
 		YAssert(bool(g), "Invalid context found.");

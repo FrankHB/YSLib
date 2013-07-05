@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r550
+\version r557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-06-06 10:01 +0800
+	2013-07-05 06:28 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -202,6 +202,14 @@ private:
 	std::atomic<size_t> wnd_thrd_count;
 
 public:
+#if YCL_MINGW32
+	/*!
+	\brief 鼠标键输入。
+	\since build 423
+	*/
+	std::atomic<short> RawMouseButton;
+
+#endif
 	/*!
 	\brief 退出标记。
 	\sa LeaveWindowThread

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r588
+\version r589
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-07-03 16:30 +0800
+	2013-07-04 07:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,7 +147,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		cbFPS.Text = u"显示 FPS",
 		pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
 		lblDragTest.HorizontalAlignment = TextAlignment::Left,
-		//btnTestEx.Enabled = false,
+	//	btnTestEx.Enabled = {},
 		btnTestEx.Font.SetStyle(FontStyle::Bold | FontStyle::Italic),
 		btnTestEx.Text = u"附加测试",
 		btnTestEx.HorizontalAlignment = TextAlignment::Left,

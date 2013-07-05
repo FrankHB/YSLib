@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r587
+\version r588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2013-06-13 14:32 +0800
+	2013-07-04 07:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ public:
 	\note 当指针为空时新建缓冲区。
 	\since build 407
 	*/
-	BufferedRenderer(bool = false, unique_ptr<Drawing::IImage> = {});
+	BufferedRenderer(bool = {}, unique_ptr<Drawing::IImage> = {});
 	BufferedRenderer(const BufferedRenderer&);
 	DefDeMoveCtor(BufferedRenderer)
 

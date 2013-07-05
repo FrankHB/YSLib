@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r191
+\version r194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-06-28 05:23 +0800
+	2013-07-04 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(Drawing)
 
 ImageMemory::ImageMemory(octet* p, size_t size)
-	: handle(::FreeImage_OpenMemory(static_cast< ::BYTE*>(p), static_cast<
+	: handle(::FreeImage_OpenMemory(static_cast<byte*>(p), static_cast<
 	::DWORD>(size))), format(::FreeImage_GetFileTypeFromMemory(handle, size))
 {
 	if(!handle)
@@ -143,7 +143,7 @@ ImageCodec::Convert(const HBitmap& pixmap)
 	const Size& s(pixmap.GetSize());
 	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
 
-	FreeImage_ConvertToRawBits(reinterpret_cast< ::BYTE*>(&pixels[0]),
+	FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
 		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 16, FI16_555_RED_MASK,
 		FI16_555_GREEN_MASK, FI16_555_BLUE_MASK, true);
 	return CompactPixmap(std::move(pixels), s);
@@ -153,7 +153,7 @@ ImageCodec::Convert(const HBitmap& pixmap)
 	const Size& s(pixmap.GetSize());
 	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
 
-	FreeImage_ConvertToRawBits(reinterpret_cast< ::BYTE*>(&pixels[0]),
+	FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
 		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 32, FI_RGBA_RED_MASK,
 		FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, true);
 #	if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_BGR

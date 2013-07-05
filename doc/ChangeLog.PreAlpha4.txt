@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1248
+\version r1283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-04 03:26 +0800
+	2013-07-05 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,42 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ DLD "all '= false'" -> "'= {}' for well-formed use of pointer types as \
+		left operands",
+	* $design "platform-dependent bool type xor operation" @ "function \
+		%openmode_conv#2" @ %'YBase'.'YStandardEx'.'CStandardIO' $since b326,
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'UI' $=
+		(
+			/ %'YWidgetEvent' $=
+			(
+				+ "event enumerator %CursorWheel" @ "%VisualEvent",
+				(
+					+ "typedef %WheelDelta";
+					+ "class %CursorWheelEventArgs";
+					+ "typedef %HWheelEvent"
+				),
+				+ "virtual destructor" @ "class %UIEventArgs"
+			);
+			/ @ "class %GUIState" @ %'YGUI' $=
+			(
+				+ "member funtcion %ResponseCursorIndirect";
+				/ "member funtcion %ResponseTouchBase" -> "%ResponseCursorBase";
+				/ "member funtcion %ResponseTouch" -> "%ResponseCursor"
+			);
+			+ "%CursorWheel support for class %AScrollBar" @ %'Scroll'
+		),
+		/ %'Helper' @ "platform %MinGW32" $=
+		(
+			+ "raw input support for mouse wheel";
+			+ "wheel input forwarding" @ "class %InputManager"
+		)
+	)
+),
+
+b422
 (
 	/ %'YFramework' $=
 	(

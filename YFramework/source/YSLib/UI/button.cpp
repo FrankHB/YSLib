@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3018
+\version r3020
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-07-03 03:00 +0800
+	2013-07-04 07:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ change_hue(Hue base_h, Hue h)
 */
 void
 RectDrawButton(const Graphics& g, Point pt, Size s, Hue base_hue,
-	bool is_pressed = false, bool is_enabled = true)
+	bool is_pressed = {}, bool is_enabled = true)
 {
 	YAssert(bool(g), "Invalid graphics context found.");
 
@@ -121,7 +121,7 @@ Thumb::Thumb(const Rect& r, NoBackgroundTag)
 		FetchEvent<Leave>(*this) += [this](CursorEventArgs&& e){
 			if(bPressed && e.Keys.any())
 			{
-				bPressed = false;
+				bPressed = {};
 				Invalidate(*this);
 			}
 		}

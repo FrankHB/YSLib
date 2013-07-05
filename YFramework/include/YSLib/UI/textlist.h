@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r661
+\version r662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2013-03-27 14:53 +0800
+	2013-07-04 07:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -340,7 +340,7 @@ ResizeForContent(TextList&);
 调用视图变更事件、调整视图长度并无效化。
 */
 YF_API void
-UpdateView(TextList&, bool is_active = false);
+UpdateView(TextList&, bool is_active = {});
 
 YSL_END_NAMESPACE(UI)
 

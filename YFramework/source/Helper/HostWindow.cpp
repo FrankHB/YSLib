@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r148
+\version r149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-05-05 21:11 +0800
+	2013-07-04 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -64,7 +64,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 
 	wchar_t buf[ystdex::arrlen(WindowClassName)];
 
-	::GetClassName(h_wnd, buf, ystdex::arrlen(WindowClassName));
+	::GetClassNameW(h_wnd, buf, ystdex::arrlen(WindowClassName));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw LoggedEvent("Wrong windows class name found.");
 	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR(this));

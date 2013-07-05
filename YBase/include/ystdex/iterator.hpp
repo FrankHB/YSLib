@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2773
+\version r2774
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-06-18 19:13 +0800
+	2013-07-04 07:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1021,7 +1021,7 @@ operator!=(const indirect_input_iterator<_tIterator>& x,
 
 对字节分段提供的随机访问迭代器。
 */
-template<unsigned char _vN, bool _bEndian = false>
+template<unsigned char _vN, bool _bEndian = {}>
 class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
 	byte, ptrdiff_t, byte*, byte&>
 {

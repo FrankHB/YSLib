@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1714
+\version r1715
 \author FrankHB <frankhb1989@gmail.com>
 \since build 168
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-03-13 12:55 +0800
+	2013-07-04 07:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ IsFocused(const IWidget&);
 \since build 315
 */
 YF_API bool
-DoRequestFocus(IWidget&, bool release_event = false);
+DoRequestFocus(IWidget&, bool release_event = {});
 
 /*!
 \brief 释放焦点，并指定 LostFocus 事件发送控件。

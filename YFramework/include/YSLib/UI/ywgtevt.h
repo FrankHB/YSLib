@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1358
+\version r1402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-07-04 00:40 +0800
+	2013-07-05 08:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,6 @@ yconstexpr EventPriority ForegroundPriority(0x40);
 
 /*!
 \brief 用户界面事件参数基类。
-\warning 非虚析构。
 \since build 255
 */
 struct YF_API UIEventArgs
@@ -66,6 +65,8 @@ public:
 	\since build 295
 	*/
 	inline DefDeCopyCtor(UIEventArgs)
+	//! \since build 423
+	virtual DefDeDtor(UIEventArgs)
 
 	/*!
 	\brief 复制赋值：默认实现。
@@ -81,7 +82,6 @@ public:
 
 /*!
 \brief 路由事件参数基类。
-\warning 非虚析构。
 \since build 195
 */
 struct YF_API RoutedEventArgs : public UIEventArgs
@@ -118,7 +118,6 @@ typedef Drawing::Point MScreenPositionEventArgs;
 
 /*!
 \brief 输入事件参数类。
-\warning 非虚析构。
 \since 早于 build 132
 */
 struct YF_API InputEventArgs : public RoutedEventArgs
@@ -152,7 +151,6 @@ public:
 
 /*!
 \brief 按键输入事件参数类。
-\warning 非虚析构。
 \since 早于 build 132
 */
 struct YF_API KeyEventArgs : public InputEventArgs
@@ -169,7 +167,6 @@ public:
 
 /*!
 \brief 指针设备输入事件参数类。
-\warning 非虚析构。
 \since build 422
 */
 struct YF_API CursorEventArgs : public InputEventArgs,
@@ -188,8 +185,31 @@ public:
 
 
 /*!
-\brief 简单事件参数类。
-\warning 非虚析构。
+\brief 滚轮度量：以角度计量的转动滚轮的幅度。
+\since build 423
+*/
+typedef ptrdiff_t WheelDelta;
+
+
+/*!
+\brief 滚轮事件参数。
+\since build 423
+*/
+class YF_API CursorWheelEventArgs : public CursorEventArgs
+{
+private:
+	WheelDelta delta;
+
+public:
+	CursorWheelEventArgs(IWidget&, WheelDelta, const KeyInput&,
+		const InputType& = {}, RoutingStrategy = Direct);
+
+	DefGetter(const ynothrow, WheelDelta, Delta, delta)
+};
+
+
+/*!
+\brief 简单 UI 事件参数类。
 \since build 268
 
 保存部件引用和指定类型值的事件参数。
@@ -217,7 +237,6 @@ struct GValueEventArgs : public UIEventArgs
 
 /*!
 \brief 部件绘制参数。
-\warning 非虚析构。
 \since build 242
 */
 struct YF_API PaintEventArgs : public UIEventArgs, public PaintContext
@@ -236,6 +255,11 @@ DeclDelegate(HKeyEvent, KeyEventArgs&&)
 //! \since build 422
 DeclDelegate(HCursorEvent, CursorEventArgs&&)
 DeclDelegate(HPaintEvent, PaintEventArgs&&)
+/*!
+\brief 滚轮事件。
+\since build 423
+*/
+DeclDelegate(HWheelEvent, CursorWheelEventArgs&&)
 //DefDelegate(HPointEvent, Drawing::Point&&)
 //DefDelegate(HSizeEvent, Size&&)
 
@@ -272,15 +296,20 @@ enum VisualEvent
 	KeyDown, //!< 键接触开始。
 	KeyHeld, //!< 键接触保持。
 	KeyPress, //!< 键按下。
+	TouchUp, //!< 屏幕接触结束。
+	TouchDown, //!< 屏幕接触开始。
+	TouchHeld, //!< 屏幕接触保持。
+	Click, //!< 屏幕点击。
 	/*!
 	\brief 指针设备光标悬停。
 	\since build 422
 	*/
 	CursorOver,
-	TouchUp, //!< 屏幕接触结束。
-	TouchDown, //!< 屏幕接触开始。
-	TouchHeld, //!< 屏幕接触保持。
-	Click, //!< 屏幕点击。
+	/*!
+	\brief 指针设备滚轮输入。
+	\since build 423
+	*/
+	CursorWheel,
 
 	//图形用户界面输出事件。
 	Paint, //!< 界面绘制。
@@ -319,6 +348,8 @@ DefEventTypeMapping(TouchUp, HCursorEvent)
 DefEventTypeMapping(TouchDown, HCursorEvent)
 DefEventTypeMapping(TouchHeld, HCursorEvent)
 DefEventTypeMapping(Click, HCursorEvent)
+//! \since build 423
+DefEventTypeMapping(CursorWheel, HWheelEvent)
 
 DefEventTypeMapping(Paint, HPaintEvent)
 
@@ -443,7 +474,7 @@ public:
 	\brief 构造：使用指定可用性。
 	*/
 	explicit
-	WidgetController(bool = false);
+	WidgetController(bool = {});
 
 	ImplI(AController) EventMapping::ItemType&
 	GetItem(const VisualEvent&);

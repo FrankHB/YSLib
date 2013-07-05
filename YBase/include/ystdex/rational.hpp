@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1183
+\version r1189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-05-25 06:37 +0800
+	2013-07-04 07:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -384,7 +384,7 @@ public:
 	static yconstexpr int digits10 = digits * 643L / 2136;
 	static yconstexpr int max_digits10 = 0;
 	static yconstexpr bool is_signed = numeric_limits<base_type>::is_signed;
-	static yconstexpr bool is_integer = false;
+	static yconstexpr bool is_integer = {};
 	static yconstexpr bool is_exact = true;
 	static yconstexpr int radix = 2;
 
@@ -405,11 +405,11 @@ public:
 	static yconstexpr int max_exponent = 0;
 	static yconstexpr int max_exponent10 = 0;
 
-	static yconstexpr bool has_infinity = false;
-	static yconstexpr bool has_quiet_NaN = false;
+	static yconstexpr bool has_infinity = {};
+	static yconstexpr bool has_quiet_NaN = {};
 	static yconstexpr bool has_signaling_NaN = has_quiet_NaN;
 	static yconstexpr float_denorm_style has_denorm = denorm_absent;
-	static yconstexpr bool has_denorm_loss = false;
+	static yconstexpr bool has_denorm_loss = {};
 
 	static yconstfn fp_type
 	infinity() ynothrow
@@ -435,12 +435,12 @@ public:
 		return 0;
 	}
 
-	static yconstexpr bool is_iec559 = false;
+	static yconstexpr bool is_iec559 = {};
 	static yconstexpr bool is_bounded = true;
 	static yconstexpr bool is_modulo = numeric_limits<base_type>::is_modulo;
 
 	static yconstexpr bool traps = numeric_limits<base_type>::traps;
-	static yconstexpr bool tinyness_before = false;
+	static yconstexpr bool tinyness_before = {};
 	static yconstexpr float_round_style round_style = round_toward_zero;
 };
 

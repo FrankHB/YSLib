@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r437
+\version r438
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2013-06-05 18:44 +0800
+	2013-07-04 07:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,7 @@ public:
 	\since build 269
 	*/
 	void
-	UpdateView(bool = false);
+	UpdateView(bool = {});
 };
 
 YSL_END_NAMESPACE(UI)

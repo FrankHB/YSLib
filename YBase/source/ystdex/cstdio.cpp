@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r188
+\version r190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2013-06-28 05:21 +0800
+	2013-07-05 09:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,11 +113,11 @@ openmode_conv(const char* str) ynothrow
 			switch(l)
 			{
 			case 2:
-				if(b ^ p)
+				if(b != p)
 					break;
 				goto invalid;
 			case 3:
-				yunseq(b ^= str[2] == 'b', p ^= str[2] == '+');
+				yunseq(b = b != (str[2] == 'b'), p = p != (str[2] == '+'));
 				if(b && p)
 					break;
 			default:

@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3496
+\version r3605
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-04 02:41 +0800
+	2013-07-05 08:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/UI/ygui.h"
 #include "YSLib/UI/ydesktop.h"
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 YSL_BEGIN
 
@@ -136,6 +137,50 @@ GUIState::ResetHeldState(InputTimer::HeldStateType& s)
 }
 
 bool
+GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
+{
+	auto p(&e.GetSender());
+	IWidget* pCon;
+	bool r(false);
+
+	e.Strategy = UI::RoutedEventArgs::Tunnel;
+	while(true)
+	{
+		if(!(IsVisible(*p) && IsEnabled(*p)))
+			return false;
+		if(e.Handled)
+			return true;
+		pCon = p;
+
+		const auto t(FetchFocusingPtr(*pCon));
+
+		if(!t || t == pCon)
+		{
+			if(e.Handled)
+				return true;
+			else
+				break;
+		}
+		e.SetSender(*p);
+		r |= DoEvent<HKeyEvent>(p->GetController(), op, std::move(e)) != 0;
+		p = t;
+	}
+
+	YAssert(p, "Null pointer found.");
+
+	e.Strategy = UI::RoutedEventArgs::Direct;
+	e.SetSender(*p);
+	r |= ResponseKeyBase(e, op);
+	e.Strategy = UI::RoutedEventArgs::Bubble;
+	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
+	{
+		e.SetSender(*(p = pCon));
+		r |= DoEvent<HKeyEvent>(p->GetController(), op, std::move(e)) != 0;
+	}
+	return r/* || e.Handled*/;
+}
+
+bool
 GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 {
 	auto& wgt(e.GetSender());
@@ -168,93 +213,7 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 }
 
 bool
-GUIState::ResponseTouchBase(CursorEventArgs& e, UI::VisualEvent op)
-{
-	auto& wgt(e.GetSender());
-
-	switch(op)
-	{
-	case CursorOver:
-		CallEvent<CursorOver>(wgt, e);
-		break;
-	case TouchUp:
-		CallEvent<TouchUp>(wgt, e);
-		ResetHeldState(TouchHeldState),
-		DraggingOffset = Vec::Invalid;
-		if(p_TouchDown == &wgt)
-			CallEvent<Click>(wgt, e);
-		p_TouchDown = {};
-		break;
-	case TouchDown:
-		p_TouchDown = &wgt;
-		CallEvent<TouchDown>(wgt, e);
-		break;
-	case TouchHeld:
-		if(!p_TouchDown)
-			return false;
-	//	if(e.Strategy == RoutedEventArgs::Direct)
-		{
-			auto& wgt_d(*p_TouchDown);
-
-			if(DraggingOffset == Vec::Invalid)
-				DraggingOffset = GetLocationOf(wgt_d) - ControlLocation;
-			else
-				CallEvent<TouchHeld>(wgt_d, e);
-			LastControlLocation = ControlLocation;
-		}
-		break;
-	default:
-		YAssert(false, "Invalid operation found.");
-	}
-	return true;
-}
-
-bool
-GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
-{
-	auto p(&e.GetSender());
-	IWidget* pCon;
-	bool r(false);
-
-	e.Strategy = UI::RoutedEventArgs::Tunnel;
-	while(true)
-	{
-		if(!(IsVisible(*p) && IsEnabled(*p)))
-			return false;
-		if(e.Handled)
-			return true;
-		pCon = p;
-
-		auto t(FetchFocusingPtr(*pCon));
-
-		if(!t || t == pCon)
-		{
-			if(e.Handled)
-				return true;
-			else
-				break;
-		}
-		e.SetSender(*p);
-		r |= DoEvent<HKeyEvent>(p->GetController(), op, std::move(e)) != 0;
-		p = t;
-	}
-
-	YAssert(p, "Null pointer found.");
-
-	e.Strategy = UI::RoutedEventArgs::Direct;
-	e.SetSender(*p);
-	r |= ResponseKeyBase(e, op);
-	e.Strategy = UI::RoutedEventArgs::Bubble;
-	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
-	{
-		e.SetSender(*(p = pCon));
-		r |= DoEvent<HKeyEvent>(p->GetController(), op, std::move(e)) != 0;
-	}
-	return r/* || e.Handled*/;
-}
-
-bool
-GUIState::ResponseTouch(CursorEventArgs& e, UI::VisualEvent op)
+GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 {
 	ControlLocation = e;
 
@@ -281,7 +240,7 @@ GUIState::ResponseTouch(CursorEventArgs& e, UI::VisualEvent op)
 				break;
 		}
 		e.SetSender(*p);
-		r |= DoEvent<HCursorEvent>(p->GetController(), op, std::move(e)) != 0;
+		r |= ResponseCursorBaseIndirect(e, op);
 		p = t;
 		e -= GetLocationOf(*p);
 	};
@@ -290,15 +249,84 @@ GUIState::ResponseTouch(CursorEventArgs& e, UI::VisualEvent op)
 
 	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);
-	r |= ResponseTouchBase(e, op);
+	r |= ResponseCursorBase(e, op);
 	e.Strategy = UI::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
 		e += GetLocationOf(*p);
 		e.SetSender(*(p = pCon));
-		r |= DoEvent<HCursorEvent>(p->GetController(), op, std::move(e)) != 0;
+		r |= ResponseCursorBaseIndirect(e, op);
 	}
 	return r/* || e.Handled*/;
+}
+
+bool
+GUIState::ResponseCursorBase(CursorEventArgs& e, UI::VisualEvent op)
+{
+	auto& wgt(e.GetSender());
+
+	switch(op)
+	{
+	case TouchUp:
+		CallEvent<TouchUp>(wgt, e);
+		ResetHeldState(TouchHeldState),
+		DraggingOffset = Vec::Invalid;
+		if(p_TouchDown == &wgt)
+			CallEvent<Click>(wgt, e);
+		p_TouchDown = {};
+		break;
+	case TouchDown:
+		p_TouchDown = &wgt;
+		CallEvent<TouchDown>(wgt, e);
+		break;
+	case TouchHeld:
+		if(!p_TouchDown)
+			return false;
+	//	if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			auto& wgt_d(*p_TouchDown);
+
+			if(DraggingOffset == Vec::Invalid)
+				DraggingOffset = GetLocationOf(wgt_d) - ControlLocation;
+			else
+				CallEvent<TouchHeld>(wgt_d, e);
+			LastControlLocation = ControlLocation;
+		}
+		break;
+	case CursorOver:
+		CallEvent<CursorOver>(wgt, e);
+		break;
+	case CursorWheel:
+		CallEvent<CursorWheel>(wgt,
+			ystdex::polymorphic_downcast<CursorWheelEventArgs&>(e));
+		break;
+	default:
+		YAssert(false, "Invalid operation found.");
+	}
+	return true;
+}
+
+bool
+GUIState::ResponseCursorBaseIndirect(CursorEventArgs& e, UI::VisualEvent op)
+{
+	auto& wgt(e.GetSender());
+
+	switch(op)
+	{
+	case TouchUp:
+	case TouchDown:
+	case TouchHeld:
+	case CursorOver:
+		return DoEvent<HCursorEvent>(e.GetSender().GetController(), op,
+			std::move(e)) != 0;
+	case CursorWheel:
+		CallEvent<CursorWheel>(wgt,
+			ystdex::polymorphic_downcast<CursorWheelEventArgs&>(e));
+		break;
+	default:
+		YAssert(false, "Invalid operation found.");
+	}
+	return true;
 }
 
 void
@@ -317,7 +345,7 @@ GUIState::TryLeaving(CursorEventArgs&& e)
 	if(entered)
 	{
 		CallEvent<Leave>(e.GetSender(), e);
-		entered = false;
+		entered = {};
 	}
 }
 

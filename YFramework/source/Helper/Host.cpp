@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r1076
+\version r1102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-05-22 09:07 +0800
+	2013-07-05 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -62,7 +62,7 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 	{
 	case WM_PAINT:
 		YCL_DEBUG_PUTS("Handling of WM_PAINT.");
-		if(p)
+		if(YB_LIKELY(p))
 		{
 			YSL_DEBUG_DECL_TIMER(tmr, "WM_PAINT")
 
@@ -71,13 +71,33 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 		break;
 	case WM_KILLFOCUS:
 		YCL_DEBUG_PUTS("Handling of WM_KILLFOCUS.");
-		if(p)
+		if(YB_LIKELY(p))
 			p->OnLostFocus();
 		break;
 	case WM_DESTROY:
 		YCL_DEBUG_PUTS("Handling of WM_DESTROY.");
-		if(p)
+		if(YB_LIKELY(p))
 			p->OnDestroy();
+		break;
+	case WM_INPUT:
+		if(YB_LIKELY(p))
+		{
+			::UINT size(sizeof(::RAWINPUT));
+			byte lpb[sizeof(::RAWINPUT)];
+
+			if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
+				&size, sizeof(::RAWINPUTHEADER)) != ::UINT(-1)))
+			{
+				const auto raw(reinterpret_cast<::RAWINPUT*>(lpb));
+
+				if(YB_LIKELY(raw->header.dwType == RIM_TYPEMOUSE))
+				{
+					if(raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
+						p->GetHost().RawMouseButton
+							= raw->data.mouse.usButtonData;
+				}
+			}
+		}
 		break;
 	default:
 	//	YCL_DEBUG_PUTS("Handling of default procedure.");
@@ -178,7 +198,11 @@ Environment::Environment()
 #		if YCL_MINGW32
 	, h_instance(::GetModuleHandleW(nullptr))
 #		endif
-	, wnd_thrd_count(), ExitOnAllWindowThreadCompleted()
+	, wnd_thrd_count(),
+#		if YCL_MINGW32
+	RawMouseButton(0),
+#		endif
+	ExitOnAllWindowThreadCompleted()
 #	endif
 {
 #	if YCL_MINGW32

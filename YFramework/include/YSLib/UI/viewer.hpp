@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r300
+\version r310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2013-03-27 17:09 +0800
+	2013-07-04 07:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,11 +203,8 @@ public:
 	/*!
 	\brief 取消选中状态。
 	*/
-	inline void
-	ClearSelected()
-	{
-		is_selected = false;
-	}
+	PDefH(void, ClearSelected, )
+		ImplExpr(is_selected = {})
 
 	inline PDefH(GSequenceViewer&, DecreaseHead, DifferenceType d) \
 		//!< 视图中首个项目的索引减少 d 。
@@ -275,11 +272,8 @@ public:
 	\brief 复位视图。
 	\since build 298
 	*/
-	void
-	Reset()
-	{
-		yunseq(head = 0, selected = 0, length = 1, is_selected = false);
-	}
+	PDefH(void, Reset, )
+		ImplUnseq(head = 0, selected = 0, length = 1, is_selected = {})
 
 	/*!
 	\brief 约束被选中的元素在视图内。
