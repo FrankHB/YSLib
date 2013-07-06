@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1283
+\version r1340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-05 12:46 +0800
+	2013-07-07 07:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,63 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ @ "platform %MinGW32" @ %'Helper' $=
+		(
+			* "cursor across host window boundary" $= $since b388,
+			* "wrong location of initializing raw input" $since b423
+				// The initialization should be at initialization of host \
+					window, but not the shell input manager.
+			(
+				* "missing triggling %KeyUp" $since b422
+				$dep_to "triggling %KeyUp"
+			)
+		),
+		* "corrupted wrong screen output" @ "platform %DS" $since b405
+			$= (/ $revert(b405) "flush cache" @ "function %ScreenSynchronize"
+				@ %'YCLib'.'Video'),
+		/ %'YSLib'.'UI' $=
+		(
+			/ %'YControl' $=
+			(
+				// Now event %(Enter, Leave) can be automatically synthesized.
+				/ "function %OnKey_Bound_TouchUpAndLeave"
+					-> "%OnKey_Bound_TouchUp",
+				/ "function %OnKey_Bound_EnterAndTouchDown"
+					-> "%OnKey_Bound_TouchDown"
+			),
+			/ @ "class %GUIState" @ %'YGUI' $=
+			(
+				(
+					/ $revert(b421) "member function %GUIState::ResponseKey \
+						allowed routed events,
+					/ "events %(TouchUp, TouchDown) handled by wrapped handlers";
+						// So manually sent touch events can be handled with \
+							GUI state changes, and no need to bind \
+							%OnKey_Bound_Click.
+					* $comp "bound missing automatically triggling control \
+						%(Leave, Click) events" $since b421;
+					$dep_from "triggling %Leave";
+				),
+				/ "events %(KeyUp, KeyDown) handled by wrapped handlers",
+					// So manually sent key events can be handled with GUI \
+						state changes.
+				/ "all returning value of member function %'Response*' \
+					discarded"
+			),
+			(
+				$dep_from "triggling %KeyUp",
+				$dep_from "triggling %Leave";
+				* $comp "missing responding forwarding tunnel key accerators"
+					$since b421
+			)
+		)
+	)
+),
+
+b423
 (
 	/ DLD "all '= false'" -> "'= {}' for well-formed use of pointer types as \
 		left operands",
@@ -962,7 +1019,7 @@ b405
 			(
 				/ "updated only validated area instead of whole widget \
 					renderer buffer to improve performance",
-				* %"repeated calls to ::GetDC without releasing" $since b386
+				* %"repeated calls to %::GetDC without releasing" $since b386
 			)
 		),
 		/ %'YSLib' $=

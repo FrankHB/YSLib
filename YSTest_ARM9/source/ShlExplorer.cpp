@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r589
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-07-04 07:28 +0800
+	2013-07-07 05:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -165,9 +165,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Enable(btnPrevBackground, false),
 		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
 			this, std::placeholders::_1),
-		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUpAndLeave,
-		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_EnterAndTouchDown,
-		FetchEvent<KeyPress>(dsk_dn) += OnKey_Bound_Click,
+		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUp,
+		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_TouchDown,
 		FetchEvent<KeyPress>(dsk_dn) += [this](KeyEventArgs&& e){
 			if(e.GetKeys()[YCL_KEY(X)])
 				SwitchVisible(pnlSetting);

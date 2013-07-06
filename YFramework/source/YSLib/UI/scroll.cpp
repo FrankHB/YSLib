@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3491
+\version r3493
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-07-05 11:10 +0800
+	2013-07-07 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -351,8 +351,8 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 				.GetView().GetLocationRef().GetRef(is_h) = tl + prev_metric);
 			// NOTE: No event %(Resize, Move) is raised.
 		},
-		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUpAndLeave,
-		FetchEvent<KeyDown>(*this) += OnKey_Bound_EnterAndTouchDown,
+		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUp,
+		FetchEvent<KeyDown>(*this) += OnKey_Bound_TouchDown,
 		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 		FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){
 			if(e.GetDelta() > 0)

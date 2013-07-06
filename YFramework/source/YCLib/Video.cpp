@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r295
+\version r296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-05-21 21:35 +0800
+	2013-07-06 15:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,6 +186,7 @@ ScreenSynchronize(platform::PixelType* buf, const platform::PixelType* src)
 	typedef platform::PixelType
 		ScreenBufferType[SCREEN_WIDTH * SCREEN_HEIGHT]; //!< 主显示屏缓冲区。
 
+	::DC_FlushRange(src, sizeof(ScreenBufferType));
 	::dmaCopyWordsAsynch(3, src, buf, sizeof(ScreenBufferType));
 }
 #endif

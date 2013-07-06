@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3769
+\version r3773
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-07-04 02:32 +0800
+	2013-07-07 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,26 +148,24 @@ FetchEnabledBoundControlPtr(KeyEventArgs&& e)
 } // unnamed namespace;
 
 void
-OnKey_Bound_TouchUpAndLeave(KeyEventArgs&& e)
+OnKey_Bound_TouchUp(KeyEventArgs&& e)
 {
 	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
 		CursorEventArgs et(*pCtl, e.Keys, CursorEventArgs::Invalid);
 
 		CallEvent<TouchUp>(*pCtl, et);
-		CallEvent<Leave>(*pCtl, et);
 		e.Handled = true;
 	}
 }
 
 void
-OnKey_Bound_EnterAndTouchDown(KeyEventArgs&& e)
+OnKey_Bound_TouchDown(KeyEventArgs&& e)
 {
 	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
 		CursorEventArgs et(*pCtl, e.Keys, CursorEventArgs::Invalid);
 
-		CallEvent<Enter>(*pCtl, et);
 		CallEvent<TouchDown>(*pCtl, et);
 		e.Handled = true;
 	}

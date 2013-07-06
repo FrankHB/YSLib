@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r277
+\version r304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-07-05 10:45 +0800
+	2013-07-07 04:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,16 +40,7 @@ InputManager::InputManager()
 #if YCL_HOSTED
 	, env(Host::FetchEnvironment())
 #endif
-{
-#if YCL_HOSTED
-	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
-
-	if(YB_UNLIKELY(!::RegisterRawInputDevices(&rid, 1, sizeof(rid))))
-		throw LoggedEvent(ystdex::sfmt(
-			"Raw input device registering failed: %08x.",
-			unsigned(::GetLastError())).c_str());
-#endif
-}
+{}
 
 #if YCL_DS
 #	define YCL_KEY_Touch KeyCodes::Touch
@@ -66,8 +57,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
 		VisualEvent touch_evt){
 #if YCL_MINGW32
-		if(touch_evt == TouchUp || keyset[YCL_KEY_Touch]
-			|| keyset[VK_RBUTTON])
+		if(keyset[YCL_KEY_Touch] || keyset[VK_RBUTTON])
 #else
 		if(keyset[YCL_KEY_Touch])
 #endif
@@ -76,12 +66,7 @@ InputManager::DispatchInput(IWidget& wgt)
 			{
 				CursorEventArgs e(wgt, keyset, cursor_state);
 
-#if YCL_MINGW32
-				GUI_state.get().ResponseCursor(e, keyset.none() ? CursorOver
-					: touch_evt);
-#else
 				GUI_state.get().ResponseCursor(e, touch_evt);
-#endif
 			}
 		}
 		else if(keyset.any())
@@ -94,6 +79,14 @@ InputManager::DispatchInput(IWidget& wgt)
 	KeyInput keys(platform_ex::FetchKeyUpState());
 
 	disp(keys, KeyUp, TouchUp);
+#if YCL_MINGW32
+	YCL_CURSOR_VALID
+	{
+		CursorEventArgs e(wgt, keys, cursor_state);
+
+		GUI_state.get().ResponseCursor(e, CursorOver);
+	}
+#endif
 	keys = platform_ex::FetchKeyDownState();
 	disp(keys, KeyDown, TouchDown);
 	keys = platform_ex::FetchKeyState();
@@ -147,12 +140,10 @@ InputManager::Update()
 
 		if(!(IsInInterval< ::LONG>(cursor.x, pr.first.X, pr.second.X)
 			&& IsInInterval< ::LONG>(cursor.y, pr.first.Y, pr.second.Y)))
-		{
-			RestrictInInterval(cursor.x, pr.first.X, pr.second.X),
-			RestrictInInterval(cursor.y, pr.first.Y, pr.second.Y);
-		}
-		yunseq(cursor_state.X = cursor.x - pr.first.X,
-			cursor_state.Y = cursor.y - pr.first.Y);
+			cursor_state = Point::Invalid;
+		else
+			yunseq(cursor_state.X = cursor.x - pr.first.X,
+				cursor_state.Y = cursor.y - pr.first.Y);
 #endif
 	}
 #if YCL_HOSTED

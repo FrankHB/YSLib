@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r149
+\version r154
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-07-04 22:39 +0800
+	2013-07-07 02:14 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -71,6 +71,13 @@ Window::Window(NativeWindowHandle h, Environment& e)
 	::SetWindowPos(h_wnd, nullptr, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE
 		| SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOSIZE
 		| SWP_NOZORDER);
+
+	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
+
+	if(YB_UNLIKELY(!::RegisterRawInputDevices(&rid, 1, sizeof(rid))))
+		throw LoggedEvent(ystdex::sfmt(
+			"Raw input device registering failed: %08x.",
+			unsigned(::GetLastError())).c_str());
 	e.AddMappedItem(h_wnd, this);
 }
 Window::~Window()

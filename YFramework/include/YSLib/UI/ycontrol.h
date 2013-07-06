@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4651
+\version r4661
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-07-03 16:26 +0800
+	2013-07-07 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -266,21 +266,23 @@ OnTouchHeld_Dragging(CursorEventArgs&&);
 
 /*!
 \brief 处理按键事件：按键-指针设备接触结束。
-
-绑定触发 TouchUp 和 Leave 事件。
 \note 仅对 Control 及其派生类有效。
+\since build 424
+
+绑定触发 TouchUp 事件。
 */
 YF_API void
-OnKey_Bound_TouchUpAndLeave(KeyEventArgs&&);
+OnKey_Bound_TouchUp(KeyEventArgs&&);
 
 /*!
 \brief 处理按键事件：按键-指针设备接触开始。
-
-绑定触发 Enter 和 TouchDown 事件。
 \note 仅对 Control 及其派生类有效。
+\since build 424
+
+绑定触发 TouchDown 事件。
 */
 YF_API void
-OnKey_Bound_EnterAndTouchDown(KeyEventArgs&&);
+OnKey_Bound_TouchDown(KeyEventArgs&&);
 
 /*!
 \brief 处理按键事件：按键-指针设备按下。
