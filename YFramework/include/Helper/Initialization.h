@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r697
+\version r709
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-07-04 07:39 +0800
+	2013-07-08 10:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,6 +112,21 @@ InitializeSystemFontCache(Drawing::FontCache&, const string&, const string&);
 */
 YF_API void
 Uninitialize() ynothrow;
+
+
+/*!
+\brief 取值类型根节点。
+\since build 425
+*/
+YF_API ValueNode&
+FetchRoot();
+
+/*!
+\brief 取默认字体缓存。
+\since build 425
+*/
+YF_API Drawing::FontCache&
+FetchDefaultFontCache();
 
 YSL_END
 

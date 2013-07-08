@@ -11,13 +11,13 @@
 /*!	\file ex.cpp
 \ingroup Documentation
 \brief 设计规则指定和附加说明 - 存档与临时文件。
-\version r6126 *build 416+ rev *
+\version r6130 *build 416+ rev *
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-06-20 01:38 +0800
+	2013-07-07 09:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -237,30 +237,17 @@ r1-r*;
 $DOING:
 
 $relative_process:
-// Mercurial local rev1-rev287+: r11076+;
-
-/ ...
+// Mercurial local rev1-rev296+: r11348+;
 
 
 $NEXT_TODO:
-b[$current_rev]-b421:
-/ @ explorer $=
-(
-	+ extension & MIME options,
-	+ filesystem & partition view @ explorer
-),
-/ @ \proj YBase $=
-(
-	+ null_deleter
-);
+// ...
 
 
 $TODO:
-b[1076]:
+b[1075]:
 / $extern external dependencies $=
 (
-	/ recompile freetype with MinGW g++ 4.8.1 or later,
-	* freetype 2.4.12 performance @ DS
 );
 / YBase $=
 (

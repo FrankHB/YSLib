@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1402
+\version r1406
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-07-05 08:55 +0800
+	2013-07-08 03:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -256,10 +256,10 @@ DeclDelegate(HKeyEvent, KeyEventArgs&&)
 DeclDelegate(HCursorEvent, CursorEventArgs&&)
 DeclDelegate(HPaintEvent, PaintEventArgs&&)
 /*!
-\brief 滚轮事件。
-\since build 423
+\brief 指针设备滚轮事件。
+\since build 425
 */
-DeclDelegate(HWheelEvent, CursorWheelEventArgs&&)
+DeclDelegate(HCursorWheelEvent, CursorWheelEventArgs&&)
 //DefDelegate(HPointEvent, Drawing::Point&&)
 //DefDelegate(HSizeEvent, Size&&)
 
@@ -349,7 +349,7 @@ DefEventTypeMapping(TouchDown, HCursorEvent)
 DefEventTypeMapping(TouchHeld, HCursorEvent)
 DefEventTypeMapping(Click, HCursorEvent)
 //! \since build 423
-DefEventTypeMapping(CursorWheel, HWheelEvent)
+DefEventTypeMapping(CursorWheel, HCursorWheelEvent)
 
 DefEventTypeMapping(Paint, HPaintEvent)
 

@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r180
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-05-05 21:10 +0800
+	2013-07-08 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,9 +37,6 @@
 
 YSL_BEGIN
 
-YSL_BEGIN_NAMESPACE(Drawing)
-class FontCache;
-YSL_END_NAMESPACE(Drawing)
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
 #if YCL_MINGW32
@@ -70,13 +67,6 @@ private:
 	unique_ptr<Host::Environment> p_hosted;
 #endif
 
-protected:
-	/*!
-	\brief 默认字体缓存。
-	\since build 325
-	*/
-	unique_ptr<Drawing::FontCache> pFontCache;
-
 public:
 	/*!
 	\brief 用户界面输入响应阈值。
@@ -86,10 +76,6 @@ public:
 	用于主消息队列的消息循环中控制后台消息生成策略的全局消息优先级。
 	*/
 	Messaging::Priority UIResponseLimit;
-	/*!
-	\brief 值类型根节点。
-	*/
-	ValueNode Root;
 
 	/*!
 	\brief \c private 构造函数：非内联。
@@ -101,12 +87,6 @@ public:
 	*/
 	~GUIApplication() override;
 
-	/*!
-	\brief 取字体缓存引用。
-	\pre 断言：指针非空。
-	*/
-	Drawing::FontCache&
-	GetFontCache() const ynothrow;
 #if YCL_HOSTED
 	Host::Environment&
 	GetHost();
@@ -142,17 +122,6 @@ FetchGlobalInstance() ynothrow
 	return ystdex::polymorphic_downcast<_tApp&>(FetchGlobalInstance());
 }
 //@}
-
-/*!
-\ingroup helper_functions
-\brief 取默认字体缓存。
-\since build 398
-*/
-inline Drawing::FontCache&
-FetchDefaultFontCache() ynothrow
-{
-	return FetchGlobalInstance().GetFontCache();
-}
 
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)

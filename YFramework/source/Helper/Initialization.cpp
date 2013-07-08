@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1753
+\version r1793
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-06-08 13:30 +0800
+	2013-07-08 10:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,12 @@ using namespace IO;
 namespace
 {
 
+//! \since build 425
+//@{
+stack<std::function<void()>> app_exit;
+ValueNode* p_root;
+Drawing::FontCache* p_font_cache;
+//@}
 #if !CHRLIB_NODYNAMIC_MAPPING
 //! \since build 324;
 platform::MappedFile* p_mapped;
@@ -309,9 +315,48 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 void
 Uninitialize() ynothrow
 {
+	while(!app_exit.empty())
+	{
+		if(YB_LIKELY(app_exit.top()))
+			app_exit.top()();
+		app_exit.pop();
+	}
 #if !CHRLIB_NODYNAMIC_MAPPING
 	delete p_mapped;
 #endif
+}
+
+
+ValueNode&
+FetchRoot()
+{
+	if(YB_UNLIKELY(!p_root))
+	{
+		p_root = ynew ValueNode(InitializeInstalled());
+		app_exit.push([]{
+			ydelete(p_root);
+		});
+	}
+	return *p_root;
+}
+
+Drawing::FontCache&
+FetchDefaultFontCache()
+{
+	if(YB_UNLIKELY(!p_font_cache))
+	{
+		p_font_cache = ynew Drawing::FontCache;
+		app_exit.push([]{
+			ydelete(p_font_cache);
+		});
+
+		const auto& node(FetchRoot()["YFramework"]);
+
+		InitializeSystemFontCache(*p_font_cache,
+			AccessChild<string>(node, "FontFile"),
+			AccessChild<string>(node, "FontDirectory"));
+	}
+	return *p_font_cache;
 }
 
 YSL_END

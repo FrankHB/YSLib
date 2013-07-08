@@ -28,7 +28,6 @@
 #include "Helper/GUIApplication.h"
 #include "Host.h"
 #include "Helper/Initialization.h"
-#include "YSLib/Adaptor/Font.h"
 #if YCL_MULTITHREAD == 1
 #	include <thread> // for std::this_thread::*;
 #endif
@@ -80,7 +79,7 @@ GUIApplication::GUIApplication()
 #if YCL_HOSTED
 	p_hosted(),
 #endif
-	pFontCache(), UIResponseLimit(0x40), Root()
+	UIResponseLimit(0x40)
 {
 	YAssert(!YSLib::pApp, "Duplicate instance found.");
 
@@ -89,21 +88,6 @@ GUIApplication::GUIApplication()
 #if YCL_HOSTED
 	p_hosted = make_unique<Host::Environment>();
 #endif
-	Root = InitializeInstalled();
-	try
-	{
-		pFontCache = make_unique<FontCache>();
-	}
-	catch(...)
-	{
-		throw LoggedEvent("Error occurred in creating font cache.");
-	}
-	{
-		const auto& node(Root["YFramework"]);
-
-		InitializeSystemFontCache(*pFontCache, AccessChild<string>(
-			node, "FontFile"), AccessChild<string>(node, "FontDirectory"));
-	}
 }
 
 GUIApplication::~GUIApplication()
@@ -111,13 +95,6 @@ GUIApplication::~GUIApplication()
 	Uninitialize();
 }
 
-FontCache&
-GUIApplication::GetFontCache() const ynothrow
-{
-	YAssert(bool(pFontCache), "Null pointer found.");
-
-	return *pFontCache;
-}
 #if YCL_HOSTED
 Host::Environment&
 GUIApplication::GetHost()

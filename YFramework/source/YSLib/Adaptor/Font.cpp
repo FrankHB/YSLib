@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3296
+\version r3315
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-07-02 06:40 +0800
+	2013-07-08 13:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include "YSLib/Core/yapp.h"
 #include "YSLib/Core/yexcept.h"
 #include "YSLib/Core/yfilesys.h"
-#include <Helper/GUIApplication.h>
+#include <Helper/Initialization.h>
 #include "YCLib/Debug.h"
 #include <algorithm> // for std::for_each;
 #include FT_SIZES_H
@@ -37,6 +37,9 @@
 //#include FT_GLYPH_H
 //#include FT_OUTLINE_H
 //#include FT_SYNTHESIS_H
+#include <freetype/internal/internal.h> // for FreeType internal macros;
+#include FT_INTERNAL_OBJECTS_H // for FT_Face_InternalRec_;
+#include FT_INTERNAL_TRUETYPE_TYPES_H // for TT_Face, TT_FaceRec_;
 
 using namespace ystdex;
 using namespace platform;
@@ -217,7 +220,7 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 				::FT_Char(bitmap.pitch), ::FT_Char(xadvance),
 				::FT_Char(yadvance), bitmap.buffer};
 			bitmap.buffer = {};
-			// XXX: Moving instead of copying should be safe if the library 
+			// XXX: Moving instead of copying should be safe if the library
 			//	memory handlers are not customized.
 			// NOTE: Be cautious for DLLs. For documented default behavior, see:
 			//	http://www.freetype.org/freetype2/docs/design/design-4.html .
@@ -281,7 +284,23 @@ Typeface::~Typeface()
 	glyph_index_cache.clear();
 	bitmap_cache.clear();
 	ref.first.get() -= *this;
-	::FT_Done_Face(&ref.second.get());
+
+	const auto face(&ref.second.get());
+
+	YAssert(face, "Null pointer found.");
+	YAssert(face->internal->refcount == 1,
+		"Invalid face reference cout found.");
+
+	// XXX: Hack for using %ttmtx.c and %sfobjs.c of FreeType 2.4.11.
+	if(FT_IS_SFNT(face))
+	{
+		const auto ttface(reinterpret_cast< ::TT_Face>(face));
+
+		// NOTE: See %Typeface::SmallBitmapData::SmallBitmapData.
+		std::free(ttface->horizontal.long_metrics),
+		std::free(ttface->horizontal.short_metrics);
+	}
+	::FT_Done_Face(face);
 }
 
 bool
@@ -357,7 +376,7 @@ Typeface::LookupSize(FontSize s) const
 
 
 const Typeface&
-FetchDefaultTypeface() ythrow(LoggedEvent)
+FetchDefaultTypeface()
 {
 	const Typeface* const pDefaultTypeface(
 		FetchDefaultFontCache().GetDefaultTypefacePtr());
@@ -398,7 +417,7 @@ FontCache::GetFontFamilyPtr(const FamilyName& family_name) const
 }
 
 const Typeface*
-FontCache::GetDefaultTypefacePtr() const ythrow(LoggedEvent)
+FontCache::GetDefaultTypefacePtr() const
 {
 	// NOTE: Guaranteed to be non-null for default typeface in default cache.
 	return pDefaultFace ? pDefaultFace

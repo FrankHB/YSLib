@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1603
+\version r1624
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-06-17 21:36 +0800
+	2013-07-08 06:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,19 +257,21 @@ get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 /*!
 \ingroup init_mgr
 \brief 使用引用计数的静态初始化管理器。
+\pre _type 满足 Destructible 。
+\note 当实现支持静态 TLS 时为每线程单例，否则为全局静态单例。
+\warning 对于不支持 TLS 的实现非线程安全。
+\sa ythread
 \see http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter 。
-\warning 非线程安全。
-\since build 328
+\since build 425
 
 静态初始化，通过引用计数保证所有在定义本类型的对象后已有静态对象被初始化。
 在所有翻译单元的本类型对象析构后自动反初始化。
 */
-template<class _type, typename _tCount = size_t>
+template<class _type>
 class nifty_counter
 {
 public:
 	typedef _type object_type;
-	typedef _tCount count_type;
 
 	template<typename... _tParams>
 	nifty_counter(_tParams&&... args)
@@ -277,14 +279,16 @@ public:
 		if(get_count()++ == 0)
 			get_object_ptr() = new _type(yforward(args)...);
 	}
-	~nifty_counter()
+	//! \since build 425
+	//@{
+	~nifty_counter() ynothrow
 	{
 		if(--get_count() == 0)
 			delete get_object_ptr();
 	}
 
 	static object_type&
-	get()
+	get() ynothrow
 	{
 		yassume(get_object_ptr());
 
@@ -292,27 +296,28 @@ public:
 	}
 
 private:
-	static count_type&
-	get_count()
+	static size_t&
+	get_count() ynothrow
 	{
-		static count_type count;
+		ythread size_t count;
 
 		return count;
 	}
 	static object_type*&
-	get_object_ptr()
+	get_object_ptr() ynothrow
 	{
-		static object_type* ptr;
+		ythread object_type* ptr;
 
 		return ptr;
 	}
 
 public:
-	static count_type
-	use_count()
+	static size_t
+	use_count() ynothrow
 	{
 		return get_count();
 	}
+	//@}
 };
 
 

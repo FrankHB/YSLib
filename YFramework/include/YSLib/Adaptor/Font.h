@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3075
+\version r3080
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-07-02 18:10 +0800
+	2013-07-08 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -335,11 +335,10 @@ public:
 /*!
 \brief 取默认字型引用。
 \throw LoggedEvent 记录异常事件。
-\note 仅抛出以上异常。
-\since build 194
+\since build 425
 */
 YF_API const Typeface&
-FetchDefaultTypeface() ythrow(LoggedEvent);
+FetchDefaultTypeface();
 
 
 /*!
@@ -468,10 +467,10 @@ public:
 	/*!
 	\brief 取默认字型指针。
 	\throw LoggedEvent 记录异常事件。
-	\note 仅抛出以上异常。
+	\since build 425
 	*/
 	const Typeface*
-	GetDefaultTypefacePtr() const ythrow(LoggedEvent);
+	GetDefaultTypefacePtr() const;
 //	Typeface*
 //	GetTypefacePtr(u16) const; //!< 取字型组储存的指定索引的字型指针。
 	/*!

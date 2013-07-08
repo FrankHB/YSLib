@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r252
+\version r253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-07-05 06:21 +0800
+	2013-07-08 04:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,7 +120,7 @@
 包括所有实体名称的链接（或对应实现的符号(symbol) 可见性(visibility)）变更；除此以外忽略所有 ISO C++ 或实现扩展的属性(attribute) 变更。
 对于宏，包括参数列表变更。
 对于所有实体，包括实际引起语义变化的存储类限定符（ static 、 extern 、 mutable 等）变更。
-对于函数、函数模板和模板特化，包括类型（注意类型等价性，参见 [Documentation::CommonRules @@5.12.1] ）和不等效的默认参数变更，不包括函数限定符（ inline 、 virtual 、explicit ）变更。
+对于函数、函数模板和模板特化，包括类型（注意类型等价性，参见 [Documentation::CommonRules @@5.12.1] ）、显式指定的异常规范和不等效（等效包括 nullptr 修改为 {} 等；涉及名称变更的修改不等效）的默认参数变更，不包括函数限定符（ inline 、 virtual 、explicit ）和 constexpr 的变更。
 对于枚举器，包括显式指定值的增加、删除或修改，不包括调换顺序等导致的隐式值的变更。
 对于类成员，包括访问权限变更。
 对于在类定义内初始化的类的数据成员和首次声明时初始化的命名空间作用域变量，包括不等效的初值符变更。

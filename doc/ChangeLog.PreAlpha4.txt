@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1340
+\version r1404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-07 07:07 +0800
+	2013-07-08 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,71 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'UI' $=
+			(
+				/ "typedef %HWheelEvent" @ %'YWidgetEvent' => "%HCursorWheelEvent",
+				+ "forwarding %CursorWheel to vertical scroll bar"
+					@ "class %ScrollableContainer" @ %'Scroll';
+			),
+			/ %'Adaptor'.'Font' $=
+			(
+				- "exception specifications" @ "functions \
+					%(FontCache::GetDefaultTypefacePtr, FetchDefaultTypeface)",
+				/ @ "destructor" @ "class %Typeface" $=
+				(
+					+ "assertions for internal face pointer and face object \
+						state";
+					* "faces metrics tables leaked on font cache exit"
+						$since b420
+				)
+			)
+		),
+		/ %'Helper' $=
+		(
+			- $dev "host double %CS_DBLCLKS support" @ "host windows"
+				@ "platform %MinGW32"
+			(
+				/ "inline function %FetchDefaultFontCache"
+					@ "header %GUIApplication.h" -> "non-inline function"
+					@ %'Initialization',
+				/ %'Initialization' $=
+				(
+					+ "function %FetchRoot",
+					+ "registered module destructors as stack"
+						@ "function %Unitialize"
+						// For debug allocation compatibility;
+				);
+				- "members %(ValueNode, GetFontCache; pFontCache)"
+					@ "class %GUIApplication" @ %'GUIApplication'
+			)
+			* "uninitialized access" @ "window procedure" @ "platform %MinGW32"
+				$since b423
+		)
+	),
+	/ %'YBase' $=
+	(
+		+ "macro %(YB_HAS_THREAD_LOCAL; ythread)" @ %'YDefinition',
+		/ @ "class template %nifty_counter" @ %'YStandardEx'.'Utilities' $=
+		(
+			(
+				- "typedef %count_type";
+				- "template parameter 'typename _tCount = size_t'",
+			),
+			(
+				$dep_from %'YDefinition';
+				/ "implementation" ^ "%ythread"
+			),
+			+ 'ynoexcept' @ "all non-template member functions"
+		)
+	)
+),
+
+b424
 (
 	/ %'YFramework' $=
 	(

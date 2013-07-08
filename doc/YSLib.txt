@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1961
+\version r1962
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-07 07:20 +0800
+	2013-07-08 05:27 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@
  "ymsgdef.h" 依赖于 "ymsg.h" ；
  "yshell.h" 依赖于 "ymsgdef.h" ；
  "yfilesys.h" 依赖于 "ystring.h"；
- "yapp.h" 依赖于 "yshell.h" 。
+ "yapp.h" 依赖于 "yshell.h" 和 Adaptor 的 "ycont.h" 。
 在 Service 中，以下依赖关系对于头文件包含是确定的：
  "ytimer.h" 依赖于 Core 的 "ysdef.h" ；
  "yblit.h" 、 "ydraw.h" 和 "ygdi.h" 依赖于 Core 的 "ygdibase.h" ；

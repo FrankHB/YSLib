@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2293
+\version r2314
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-06-24 21:28 +0800
+	2013-07-08 10:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,6 +164,15 @@
 #undef YB_HAS_NOEXCEPT
 #define YB_HAS_NOEXCEPT (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
 
+/*!
+\def YB_HAS_THREAD_LOCAL
+\brief thread_local 支持。
+\see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=1773 。
+\since build 425
+*/
+#undef YB_HAS_THREAD_LOCAL
+#define YB_HAS_THREAD_LOCAL \
+	((YB_IMPL_CPP >= 201103L && !YB_IMPL_GNUCPP) || YB_IMPL_GNUCPP >= 40800)
 //@}
 
 
@@ -412,6 +421,19 @@
 #	define ynoexcept noexcept
 #else
 #	define ynoexcept(...)
+#endif
+
+/*!
+\ingroup YBase_pseudo_keyword
+\def ythread
+\brief 线程局部存储：若实现支持，指定为 \c thread_local 。
+\since build 425
+\todo 加入 \c __thread 和 \c __declspec(thread) 。
+*/
+#if YB_HAS_THREAD_LOCAL
+#	define ythread thread_local
+#else
+#	define ythread static
 #endif
 
 

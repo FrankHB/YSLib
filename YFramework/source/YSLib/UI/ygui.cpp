@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3758
+\version r3759
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-07 06:34 +0800
+	2013-07-07 09:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,7 +254,7 @@ GUIState::ResponseCursorBase(CursorEventArgs& e, UI::VisualEvent op)
 		DoEvent<HCursorEvent>(controller, op, std::move(e));
 		break;
 	case CursorWheel:
-		DoEvent<HWheelEvent>(controller, CursorWheel,
+		DoEvent<HCursorWheelEvent>(controller, CursorWheel,
 			std::move(ystdex::polymorphic_downcast<CursorWheelEventArgs&>(e)));
 		break;
 	default:

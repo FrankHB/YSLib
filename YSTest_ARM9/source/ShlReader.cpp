@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4375
+\version r4384
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-07-04 07:27 +0800
+	2013-07-08 10:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,10 +204,9 @@ ShlReader::LoadBookmarks(const string& group)
 	try
 	{
 		// TODO: Complete unexpected input handling.
-		ystdex::split(Access<string>(FetchGlobalInstance().Root
-			.GetNode("YReader")["Bookmarks"].GetNode('"' + NPL::MakeEscape(
-			group) + '"')), static_cast<int(&)(int)>(std::isspace),
-			[&](string::iterator b, string::iterator e){
+		ystdex::split(Access<string>(FetchRoot().GetNode("YReader")["Bookmarks"]
+			.GetNode('"' + NPL::MakeEscape(group) + '"')), static_cast<int(&)(
+			int)>(std::isspace), [&](string::iterator b, string::iterator e){
 				bookmarks.push_back(std::stoi(ystdex::ltrim(string(b, e))));
 		});
 	}
@@ -221,8 +220,8 @@ ShlReader::LoadGlobalConfiguration()
 {
 	try
 	{
-		return ReaderSetting((FetchGlobalInstance().Root %= LoadConfiguration()
-			.GetNode("YReader")).GetNode("ReaderSetting").GetContainer());
+		return ReaderSetting((FetchRoot() %= LoadConfiguration().GetNode(
+			"YReader")).GetNode("ReaderSetting").GetContainer());
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}
@@ -242,8 +241,8 @@ ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
 {
 	try
 	{
-		FetchGlobalInstance().Root.GetNode("YReader")["Bookmarks"]
-			['"' + NPL::MakeEscape(group) + '"'].Value = [&]{
+		FetchRoot().GetNode("YReader")["Bookmarks"]['"' + NPL::MakeEscape(group)
+			+ '"'].Value = [&]{
 				string str;
 
 				for(const auto& pos : bookmarks)
@@ -263,7 +262,7 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 {
 	try
 	{
-		auto& root(FetchGlobalInstance().Root);
+		auto& root(FetchRoot());
 
 		root["YReader"]["ReaderSetting"].Value = ValueNode::Container(rs);
 		SaveConfiguration(root);
