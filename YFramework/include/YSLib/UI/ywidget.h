@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5453
+\version r5482
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-06-09 11:01 +0800
+	2013-07-10 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,8 @@
 #ifndef YSL_INC_UI_ywidget_h_
 #define YSL_INC_UI_ywidget_h_ 1
 
-#include "ycomp.h"
-#include <ystdex/any_iterator.hpp> // for ystdex::any_input_iterator;
 #include "yfocus.h"
+#include <ystdex/any_iterator.hpp> // for ystdex::any_input_iterator;
 #include "ywgtview.h"
 #include "yrender.h"
 
@@ -52,28 +51,32 @@ typedef pair<WidgetIterator, WidgetIterator> WidgetRange;
 
 /*!
 \brief 部件接口。
+\none 注意具体实现不保证可复制或可转移。
 \since 早于 build 132
 */
 DeclI(YF_API, IWidget)
-	/*!
-	\brief 取渲染器。
-	*/
-	DeclIEntry(Renderer& GetRenderer() const)
-	/*!
-	\brief 取部件视图。
-	\warning 注意修改容器指针或焦点指针时，应保持和容器包含部件的状态同步。
-	*/
-	DeclIEntry(View& GetView() const)
-	/*!
-	\brief 取控制器。
-	*/
-	DeclIEntry(AController& GetController() const)
 	/*!
 	\brief 取子部件。
 	\return 包含子部件的迭代器范围，否则返回 WidgetRange() 。
 	\since build 357
 	*/
 	DeclIEntry(WidgetRange GetChildren())
+	/*!
+	\brief 取控制器。
+	\since build 243
+	*/
+	DeclIEntry(AController& GetController() const)
+	/*!
+	\brief 取渲染器。
+	\since build 242
+	*/
+	DeclIEntry(Renderer& GetRenderer() const)
+	/*!
+	\brief 取部件视图。
+	\warning 注意修改容器指针或焦点指针时，应保持和容器包含部件的状态同步。
+	\since build 259
+	*/
+	DeclIEntry(View& GetView() const)
 EndDecl
 
 
@@ -332,7 +335,7 @@ public:
 private:
 	/*!
 	\since build 346
-	\note 非空。
+	\note 除非被转移否则非空。
 	*/
 	//@{
 	unique_ptr<View> view_ptr; //!< 部件视图指针。
@@ -395,16 +398,18 @@ private:
 	InitializeEvents();
 
 public:
-	DefGetterMem(const ynothrow, SPos, X, GetView())
-	DefGetterMem(const ynothrow, SPos, Y, GetView())
-	DefGetterMem(const ynothrow, SDst, Width, GetView())
-	DefGetterMem(const ynothrow, SDst, Height, GetView())
-	ImplI(IWidget) DefGetter(const ynothrow, Renderer&, Renderer, *renderer_ptr)
-	ImplI(IWidget) DefGetter(const ynothrow, View&, View, *view_ptr)
-	ImplI(IWidget) AController&
-	GetController() const override;
 	//! \since build 357
 	ImplI(IWidget) DefGetter(override, WidgetRange, Children, WidgetRange())
+	ImplI(IWidget) AController&
+	GetController() const override;
+	DefGetterMem(const ynothrow, SDst, Height, GetView())
+	ImplI(IWidget) Renderer&
+	GetRenderer() const override;
+	ImplI(IWidget) View&
+	GetView() const override;
+	DefGetterMem(const ynothrow, SDst, Width, GetView())
+	DefGetterMem(const ynothrow, SPos, X, GetView())
+	DefGetterMem(const ynothrow, SPos, Y, GetView())
 
 	DefSetterMem(SDst, X, GetView())
 	DefSetterMem(SDst, Y, GetView())

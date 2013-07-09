@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1827
+\version r1837
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-03-13 15:26 +0800
+	2013-07-09 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,6 +71,18 @@ YSL_END_NAMESPACE(UI)
 YSL_BEGIN_NAMESPACE(Host)
 //! \since build 381
 class Environment;
+
+/*!
+\brief 宿主异常。
+\since build 426
+*/
+class YF_API Exception : public LoggedEvent
+{
+public:
+	Exception(const std::string& = "unknown host exception", LevelType = 0)
+		ynothrow;
+};
+
 YSL_END_NAMESPACE(Host)
 #endif
 

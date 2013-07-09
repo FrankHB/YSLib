@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r154
+\version r200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-07-07 02:14 +0800
+	2013-07-09 11:55 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -39,20 +39,24 @@ YSL_BEGIN_NAMESPACE(Host)
 namespace
 {
 
-#if YCL_MINGW32
+#	if YCL_MINGW32
 //! \since build 388
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
-	::SetWindowPos(h_wnd, nullptr, 0, 0, w, h,
+	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, nullptr, 0, 0, w, h,
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
-		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER);
+		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER)))
+		YF_Raise_Win32Exception("SetWindowPos");
 }
-#endif
+#	else
+#		error Unsupported platform found.
+#	endif
 
 } // unnamed namespace;
 
 
+#	if YCL_MINGW32
 Window::Window(NativeWindowHandle h, Environment& e)
 	: env(e), h_wnd(h)
 {
@@ -64,20 +68,24 @@ Window::Window(NativeWindowHandle h, Environment& e)
 
 	wchar_t buf[ystdex::arrlen(WindowClassName)];
 
-	::GetClassNameW(h_wnd, buf, ystdex::arrlen(WindowClassName));
+	if(YB_UNLIKELY(!::GetClassNameW(h_wnd, buf,
+		ystdex::arrlen(WindowClassName))))
+		YF_Raise_Win32Exception("GetClassNameW");
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw LoggedEvent("Wrong windows class name found.");
-	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR(this));
-	::SetWindowPos(h_wnd, nullptr, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE
-		| SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOSIZE
-		| SWP_NOZORDER);
+	::SetLastError(0);
+	if(YB_UNLIKELY(::SetWindowLongPtrW(h_wnd, GWLP_USERDATA,
+		::LONG_PTR(this)) == 0&& GetLastError() != 0))
+		YF_Raise_Win32Exception("SetWindowLongPtrW");
+	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, nullptr, 0, 0, 0, 0, SWP_NOACTIVATE
+		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING
+		| SWP_NOSIZE | SWP_NOZORDER)))
+		YF_Raise_Win32Exception("SetWindowPos");
 
 	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
 
 	if(YB_UNLIKELY(!::RegisterRawInputDevices(&rid, 1, sizeof(rid))))
-		throw LoggedEvent(ystdex::sfmt(
-			"Raw input device registering failed: %08x.",
-			unsigned(::GetLastError())).c_str());
+		YF_Raise_Win32Exception("RegisterRawInputDevices");
 	e.AddMappedItem(h_wnd, this);
 }
 Window::~Window()
@@ -102,10 +110,30 @@ Window::GetInputBounds() const ynothrow
 	return {Point(rect.left, rect.top), Point(rect.right, rect.bottom)};
 }
 
+Point
+Window::GetLocation() const
+{
+	::RECT rect;
+
+	if(YB_UNLIKELY(!::GetWindowRect(h_wnd, &rect)))
+		YF_Raise_Win32Exception("GetWindowRect");
+	return Point(rect.left, rect.top);
+}
+
 void
 Window::Close()
 {
-	::SendNotifyMessageW(h_wnd, WM_CLOSE, 0, 0);
+	if(YB_UNLIKELY(!::SendNotifyMessageW(h_wnd, WM_CLOSE, 0, 0)))
+		YF_Raise_Win32Exception("SendNotifyMessageW");
+}
+
+void
+Window::Move(const Point& pt)
+{
+	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, nullptr, pt.X, pt.Y, 0, 0,
+		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW
+		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER)))
+		YF_Raise_Win32Exception("SetWindowPos");
 }
 
 void
@@ -120,7 +148,9 @@ Window::ResizeClient(const Size& s)
 	const auto h_wnd(GetNativeHandle());
 	::RECT rect{0, 0, s.Width, s.Height};
 
-	::AdjustWindowRect(&rect, ::GetWindowLongW(h_wnd, GWL_STYLE), FALSE);
+	if(YB_UNLIKELY(!::AdjustWindowRect(&rect,
+		::GetWindowLongW(h_wnd, GWL_STYLE), false)))
+		YF_Raise_Win32Exception("AdjustWindowRect");
 	ResizeWindow(h_wnd, rect.right - rect.left, rect.bottom - rect.top);
 }
 
@@ -140,11 +170,12 @@ void
 Window::OnPaint()
 {}
 
-void
+bool
 Window::Show() ynothrow
 {
-	::ShowWindowAsync(h_wnd, SW_SHOWNORMAL);
+	return ::ShowWindowAsync(h_wnd, SW_SHOWNORMAL) != 0;
 }
+#	endif
 
 YSL_END_NAMESPACE(Host)
 #endif

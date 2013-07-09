@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r169
+\version r172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2013-06-20 14:44 +0800
+	2013-07-09 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ yconstexpr std::size_t KeyBitsetWidth(32);
 */
 yconstexpr std::size_t KeyBitsetWidth(256);
 #else
-#	error Unsupport platform found!
+#	error Unsupported platform found.
 #endif
 
 /*!
@@ -128,8 +128,6 @@ enum NativeSet
 #undef VK_UP
 #undef VK_RIGHT
 #undef VK_DOWN
-#else
-#	error Unsupport platform found!
 #endif
 
 } // namespace KeyCodes;

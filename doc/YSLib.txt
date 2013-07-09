@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1962
+\version r1969
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-08 05:27 +0800
+	2013-07-09 05:23 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -127,14 +127,14 @@
  "yblit.h" 、 "ydraw.h" 和 "ygdi.h" 依赖于 Core 的 "ygdibase.h" ；
  "yblit.h" 依赖于 Core 的 "ycutil.h" ；
 在 UI 中，以下依赖关系对于头文件包含是确定的：
- "ycomp.h" 依赖于 Core 的 "ygdibase.h" 、 "yfunc.hpp" 和 "ysmsgdef.h" 以及 Adaptor 的 "ycont.h" ；
- "yfocus.hpp" 依赖于 "ycomp.h" ；
- "yrender.h" 依赖于 "ycomp.h" ；
- "ystyle.h" 依赖于 "ycomp.h" 和 Service 的 "ydraw.h" ；
- "ywgtview.h" 依赖于 "ycomp.h" ；
- "ywgtevt.h" 依赖于 "ycomp.h" 和 Core 的 "yevt.hpp" ；
+ "YComponent.h" 依赖于 Core 的 "ygdibase.h" 、 "yfunc.hpp" 和 "ysmsgdef.h" 以及 Adaptor 的 "ycont.h" ；
+ "yfocus.h" 依赖于 "YComponent.h" ；
+ "yrender.h" 依赖于 "YComponent.h" ；
+ "ystyle.h" 依赖于 "YComponent.h" 和 Service 的 "ydraw.h" ；
+ "ywgtview.h" 依赖于 "YComponent.h" ；
+ "ywgtevt.h" 依赖于 "YComponent.h" 和 Core 的 "yevt.hpp" ；
  "YBrush.h" 依赖于 "ywgtview.h" 和 Service 的 "yres.h" ；
- "ywidget.h" 依赖于 "yfocus.hpp" 和 "ywgtview.h" ；
+ "ywidget.h" 依赖于 "yfocus.h" 和 "ywgtview.h" ；
  "ygui.h" 依赖于 "ywgtevt.h" 、 "ystyle.h" 和 Service 的 "ytimer.h" ；
  "yuicont.h" 依赖于 "ywidget.h" ；
  "ycontrol.h" 依赖于 "ywidget.h" 和 "ywgtevt.h" ；

@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r911
+\version r912
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-06-06 12:09 +0800
+	2013-07-09 04:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -519,7 +519,6 @@ struct remove_rpcv
 {
 	typedef typename remove_cv<typename remove_rp<_type>::type>::type type;
 };
-
 
 
 /*!

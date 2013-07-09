@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r403
+\version r404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-06-24 22:44 +0800
+	2013-07-09 05:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YSL_INC_UI_ystyle_h_
 #define YSL_INC_UI_ystyle_h_ 1
 
-#include "ycomp.h"
+#include "YComponent.h"
 #include "../Service/ydraw.h"
 #include <ystdex/rational.hpp>
 

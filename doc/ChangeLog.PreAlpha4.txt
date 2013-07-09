@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1404
+\version r1466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-08 20:56 +0800
+	2013-07-10 02:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,66 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ DLB "VC++ projects" $=
+	(
+		- "all filters of extensions",
+		/ "reconstructed files as directories"
+	),
+	/ %'YFramework' $=
+	(
+		- "pure color filling method %Update" @ "class %DSScreen",
+		/ %'UI' $=
+		(
+			/ $dev @ %'YComponent' $=
+			(
+				/ "header %ycomp.h" => "%YComponent.h",
+				+ "implementation unit %YComponent.cpp"
+			),
+			/ "inline 'ynothrow' member functions %(GetRenderer, GetView)"
+				@ "class %Widget" @ %'YWidget' -> "non-inline member functions \
+				without exception specifications";
+				// It should be note that the internal pointer could be null \
+					so the state is invalid after being moved, thus exceptions \
+					should be thrown.
+		),
+		/ %'Helper' $=
+		(
+			/ "all 3 %Drawing::to_string" @ %'ShellHelper'>> %'UI'.'YComponent';
+			/ DLD "host implementation reconstructed";
+			(
+				+ "class %Host::Exception" @ "defined %YCL_HOSTED"
+					@ %'YGlobal';
+				+ "class %MinGW32::Win32Exception; macro \
+					%YF_Raise_Win32Exception" @ "platform %MinGW32"
+					@ %'GUIApplication';
+				/ @ %'HostWindow' $=
+				(
+					/ @ "class %Host::Window" $=
+					(
+						/ "returning type of member function %Show" -> "'bool'"
+							~ "'void' to report asynchronous result",
+						+ "member function %(Move, GetLocation)"
+							@ "class %Host::Window"
+					);
+					/ "all Win32 API call failures not producing as result \
+						wrapped by %MinGW::Win32Exception" @ "platform %MinGW32"
+				);
+				+ "function %Host::DragWindow" @ %'HostedUI'
+					// Currently only supported when cursor over the host \
+						window.
+			),
+			* "command line initialization state missing" @ "platform %DS"
+				@ %'GUIApplication' @ $since b425
+				// Font cache was not initialized as soon before GUI mode 
+					screen initialization, so the output messages were missing.
+		)
+		/ DLD "unified preprocessing error message for alerting unsupported \
+			platform",
+	)
+),
+
+b425
 (
 	/ %'YFramework' $=
 	(
@@ -66,7 +126,7 @@ $now
 				/ %'Initialization' $=
 				(
 					+ "function %FetchRoot",
-					+ "registered module destructors as stack"
+					+ "registered object destructors as stacked callbacks"
 						@ "function %Unitialize"
 						// For debug allocation compatibility;
 				);
@@ -1239,8 +1299,8 @@ b402
 		),
 		/ %'YSLib' $=
 		(
-			* "missing header %(YSLib/YAdaptor/YTextBase.h, CHRLib/Convert.hpp)"
-				@ "VC++ project" $since b400,
+			* DLB "missing header %(YSLib/YAdaptor/YTextBase.h, \
+				CHRLib/Convert.hpp)" @ "VC++ project" $since b400,
 			/ %'Adaptor'.'YAdaptor' $=
 			(
 				(

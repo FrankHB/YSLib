@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r310
+\version r311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2013-07-04 07:43 +0800
+	2013-07-09 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YSL_INC_UI_viewer_hpp_
 #define YSL_INC_UI_viewer_hpp_ 1
 
-#include "ycomp.h"
+#include "YComponent.h"
 #include <ystdex/algorithm.hpp>
 
 YSL_BEGIN

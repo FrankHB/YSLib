@@ -195,8 +195,8 @@
     <ClInclude Include="include\YSLib\UI\viewer.hpp" />
     <ClInclude Include="include\YSLib\UI\WidgetIteration.h" />
     <ClInclude Include="include\YSLib\UI\YBrush.h" />
-    <ClInclude Include="include\YSLib\UI\ycomp.h" />
     <ClInclude Include="include\YSLib\UI\Console.h" />
+    <ClInclude Include="include\YSLib\UI\YComponent.h" />
     <ClInclude Include="include\YSLib\UI\ycontrol.h" />
     <ClInclude Include="include\YSLib\UI\ydesktop.h" />
     <ClInclude Include="include\YSLib\UI\yfocus.h" />
@@ -212,6 +212,7 @@
     <ClInclude Include="source\Helper\DSScreen.h" />
     <ClInclude Include="source\Helper\DSWindow.h" />
     <ClInclude Include="source\Helper\Host.h" />
+    <ClInclude Include="source\Helper\HostRenderer.h" />
     <ClInclude Include="source\Helper\ScreenBuffer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -226,6 +227,8 @@
     <ClCompile Include="source\Helper\GUIShell.cpp" />
     <ClCompile Include="source\Helper\Host.cpp" />
     <ClCompile Include="source\Helper\HostedUI.cpp" />
+    <ClCompile Include="source\Helper\HostRenderer.cpp" />
+    <ClCompile Include="source\Helper\HostWindow.cpp" />
     <ClCompile Include="source\Helper\Initialization.cpp" />
     <ClCompile Include="source\Helper\InputManager.cpp" />
     <ClCompile Include="source\Helper\ScreenBuffer.cpp" />
@@ -282,6 +285,7 @@
     <ClCompile Include="source\YSLib\UI\uicontx.cpp" />
     <ClCompile Include="source\YSLib\UI\YBrush.cpp" />
     <ClCompile Include="source\YSLib\UI\Console.cpp" />
+    <ClCompile Include="source\YSLib\UI\YComponent.cpp" />
     <ClCompile Include="source\YSLib\UI\ycontrol.cpp" />
     <ClCompile Include="source\YSLib\UI\ydesktop.cpp" />
     <ClCompile Include="source\YSLib\UI\yfocus.cpp" />

@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r209
+\version r223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-04-29 19:42 +0800
+	2013-07-09 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,12 +41,6 @@ namespace
 
 //! \since build 398
 GUIApplication* pApp;
-
-} // unnamed namespace;
-
-
-namespace
-{
 
 /*!
 \brief 取空闲消息。
@@ -72,6 +66,21 @@ Idle(Messaging::Priority prior)
 }
 
 } // unnamed namespace;
+
+
+#if YCL_MINGW32
+YSL_BEGIN_NAMESPACE(MinGW32)
+
+Win32Exception::Win32Exception(::DWORD e, const std::string& s, LevelType l)
+	ynothrow
+	: Exception(s, l),
+	err(e)
+{
+	YAssert(e != 0, "No error should be thrown.");
+}
+
+YSL_END_NAMESPACE(MinGW32)
+#endif
 
 
 GUIApplication::GUIApplication()

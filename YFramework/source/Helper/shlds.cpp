@@ -18,7 +18,7 @@
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-04-28 20:42 +0800
+	2013-07-09 05:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include "Helper/ShellHelper.h"
 #include "YSLib/UI/ydesktop.h"
 #include "YSLib/UI/ygui.h"
-#include "Host.h"
 
 YSL_BEGIN
 

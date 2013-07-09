@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r659
+\version r664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-06-24 23:43 +0800
+	2013-07-09 09:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,7 +139,7 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 #	define DefColorH_(hex, name) name = (FetchPixel((((hex) >> 16) & 0xFF), \
 	(((hex) >> 8) & 0xFF), ((hex) & 0xFF)) << 8 | 0xFF)
 #else
-#	error Unsupported platform found!
+#	error Unsupported platform found.
 #endif
 
 typedef PixelType* BitmapPtr;
@@ -226,8 +226,6 @@ public:
 		a(FetchAlpha(px) ? 0xFF : 0x00)
 #elif YCL_MINGW32
 		: r(px.rgbRed), g(px.rgbGreen), b(px.rgbBlue), a(px.rgbReserved)
-#else
-#	error Unsupport platform found!
 #endif
 	{}
 #if YCL_MINGW32
@@ -271,8 +269,6 @@ public:
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
 #elif YCL_MINGW32
 		return {b, g, r, a};
-#else
-#	error Unsupport platform found!
 #endif
 	}
 

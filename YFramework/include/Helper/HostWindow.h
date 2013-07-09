@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r131
+\version r151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-07-05 06:14 +0800
+	2013-07-09 08:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,6 +73,21 @@ public:
 	virtual pair<Drawing::Point, Drawing::Point>
 	GetInputBounds() const ynothrow;
 
+	/*!
+	\brief 取窗口位置。
+	\since build 426
+	*/
+	Drawing::Point
+	GetLocation() const;
+
+	/*!
+	\brief 移动窗口。
+	\note 线程安全。
+	\since build 426
+	*/
+	void
+	Move(const Drawing::Point&);
+
 	//! \note 线程安全：跨线程调用时使用基于消息队列的异步设置。
 	void
 	Close();
@@ -95,7 +110,7 @@ public:
 
 	/*!
 	\brief 调整窗口大小。
-	\note 线程安全：跨线程调用时使用基于消息队列的异步设置。
+	\note 线程安全。
 	\since build 388
 	*/
 	void
@@ -103,14 +118,17 @@ public:
 
 	/*!
 	\brief 按客户区调整窗口大小。
-	\note 线程安全：跨线程调用时使用基于消息队列的异步设置。
+	\note 线程安全。
 	\since build 388
 	*/
 	void
 	ResizeClient(const Drawing::Size&);
 
-	//! \since build 381
-	void
+	/*!
+	\return 异步操作是否成功。
+	\since build 426
+	*/
+	bool
 	Show() ynothrow;
 };
 

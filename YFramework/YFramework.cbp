@@ -217,6 +217,7 @@
 		<Unit filename="include/YSLib/UI/Selector.h" />
 		<Unit filename="include/YSLib/UI/WidgetIteration.h" />
 		<Unit filename="include/YSLib/UI/YBrush.h" />
+		<Unit filename="include/YSLib/UI/YComponent.h" />
 		<Unit filename="include/YSLib/UI/button.h" />
 		<Unit filename="include/YSLib/UI/form.h" />
 		<Unit filename="include/YSLib/UI/label.h" />
@@ -227,7 +228,6 @@
 		<Unit filename="include/YSLib/UI/textlist.h" />
 		<Unit filename="include/YSLib/UI/uicontx.h" />
 		<Unit filename="include/YSLib/UI/viewer.hpp" />
-		<Unit filename="include/YSLib/UI/ycomp.h" />
 		<Unit filename="include/YSLib/UI/ycontrol.h" />
 		<Unit filename="include/YSLib/UI/ydesktop.h" />
 		<Unit filename="include/YSLib/UI/yfocus.h" />
@@ -253,6 +253,8 @@
 		<Unit filename="source/Helper/GUIShell.cpp" />
 		<Unit filename="source/Helper/Host.cpp" />
 		<Unit filename="source/Helper/Host.h" />
+		<Unit filename="source/Helper/HostRenderer.cpp" />
+		<Unit filename="source/Helper/HostRenderer.h" />
 		<Unit filename="source/Helper/HostWindow.cpp" />
 		<Unit filename="source/Helper/HostedUI.cpp" />
 		<Unit filename="source/Helper/Initialization.cpp" />
@@ -303,6 +305,7 @@
 		<Unit filename="source/YSLib/UI/Console.cpp" />
 		<Unit filename="source/YSLib/UI/Selector.cpp" />
 		<Unit filename="source/YSLib/UI/YBrush.cpp" />
+		<Unit filename="source/YSLib/UI/YComponent.cpp" />
 		<Unit filename="source/YSLib/UI/button.cpp" />
 		<Unit filename="source/YSLib/UI/form.cpp" />
 		<Unit filename="source/YSLib/UI/label.cpp" />

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r441
-\author FrankHB<frankhb1989@gmail.com>
+\version r446
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2012-12-11 20:54 +0800
+	2013-07-09 09:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,8 @@
 */
 
 
-#ifndef YCL_INC_PLATFORM_H_
-#define YCL_INC_PLATFORM_H_ 1
+#ifndef YCL_INC_Platform_h_
+#define YCL_INC_Platform_h_ 1
 
 /*!
 \def YF_DLL
@@ -117,7 +117,7 @@
 #	define YCL_HOSTED 1
 #	define YCL_MULTITHREAD 1
 #else
-#	error Unsupported platform found!
+#	error Unsupported platform found.
 #endif
 
 #endif

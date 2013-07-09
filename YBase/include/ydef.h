@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2314
+\version r2315
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-07-08 10:46 +0800
+	2013-07-09 05:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,7 +343,6 @@
 #endif
 
 //@}
-
 
 
 /*!	\defgroup YBase_pseudo_keyword YBase Specified Pseudo-Keywords

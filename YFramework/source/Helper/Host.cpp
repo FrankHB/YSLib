@@ -10,14 +10,14 @@
 
 /*!	\file Host.cpp
 \ingroup Helper
-\brief DS 平台框架。
-\version r1107
+\brief 宿主环境。
+\version r1175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-07-08 13:40 +0800
+	2013-07-09 05:56 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Host.h"
-#include "Helper/GUIApplication.h"
+#include "Helper/HostWindow.h" // for Host::Window;
 #include "Helper/ShellHelper.h" // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
 
 YSL_BEGIN
@@ -108,88 +108,6 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 #	endif
 
 } // unnamed namespace;
-
-
-void
-RenderWindow::Refresh()
-{
-	auto& rd(GetRenderer());
-	auto& wgt(rd.GetWidgetRef());
-
-	if(rd.Validate(wgt, wgt,
-		{rd.GetContext(), Point(), rd.GetInvalidatedArea()}))
-		rd.Update(rd.GetContext().GetBufferPtr());
-}
-
-void
-RenderWindow::OnPaint()
-{
-	GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
-
-	renderer.get().UpdateToSurface(sf);
-}
-
-
-WindowThread::~WindowThread()
-{
-	YAssert(bool(p_wnd), "Null pointer found.");
-
-	p_wnd->Close();
-	// NOTE: If the thread has been already completed there is no effect.
-	// TODO: Exception safety: add either assertion or logging when throwing
-	//	other exceptions.
-	try
-	{
-		thrd.join();
-	}
-	catch(std::invalid_argument&)
-	{}
-}
-
-void
-WindowThread::ThreadLoop(NativeWindowHandle h_wnd)
-{
-	p_wnd.reset(new Window(h_wnd));
-	WindowLoop(*p_wnd);
-}
-void
-WindowThread::ThreadLoop(unique_ptr<Window> p)
-{
-	p_wnd = std::move(p);
-	WindowLoop(*p_wnd);
-}
-
-void
-WindowThread::WindowLoop(Window& wnd)
-{
-#	if YCL_MULTITHREAD
-	auto& env(wnd.GetHost());
-
-	env.EnterWindowThread();
-#	endif
-	wnd.Show();
-	Environment::HostLoop();
-#	if YCL_MULTITHREAD
-	env.LeaveWindowThread();
-#	endif
-}
-
-
-void
-HostRenderer::SetSize(const Size& s)
-{
-	BufferedRenderer::SetSize(s);
-}
-
-void
-HostRenderer::Update(BitmapPtr buf)
-{
-	YAssert(GetSizeOf(widget) == rbuf.GetSize(), "Mismatched size found.");
-
-	rbuf.UpdateFrom(buf);
-	if(const auto p_wnd = GetWindowPtr())
-		rbuf.UpdateTo(p_wnd->GetNativeHandle());
-}
 
 
 Environment::Environment()

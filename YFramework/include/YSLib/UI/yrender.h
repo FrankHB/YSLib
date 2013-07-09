@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件渲染器。
-\version r588
+\version r589
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2013-07-04 07:35 +0800
+	2013-07-09 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YSL_INC_UI_yrender_h_
 #define YSL_INC_UI_yrender_h_ 1
 
-#include "ycomp.h"
+#include "YComponent.h"
 
 YSL_BEGIN
 

@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r128
+\version r129
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2013-06-05 18:47 +0800
+	2013-07-09 09:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,7 @@ MappedFile::MappedFile(const char* path)
 	// TODO: Create specific exception type.
 	addr = static_cast<byte*>(p);
 #else
-#	error Unsupported platform found!
+#	error Unsupported platform found.
 #endif
 }
 MappedFile::~MappedFile()

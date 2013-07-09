@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1638
+\version r1657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-06-13 14:32 +0800
+	2013-07-09 04:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,29 +83,6 @@ public:
 	DefGetter(const ynothrow, _tShell&, Shell, conn)
 };
 
-
-YSL_BEGIN_NAMESPACE(Drawing)
-
-/*!
-\brief 转换为字符串。
-\since build 308
-*/
-//@{
-template<typename _type>
-string
-to_string(const GBinaryGroup<_type>& val)
-{
-	using YSLib::to_string;
-
-	return "(" + to_string(val.X) + ", " + to_string(val.Y) + ')';
-}
-YF_API string
-to_string(const Size&);
-YF_API string
-to_string(const Rect&);
-//@}
-
-YSL_END_NAMESPACE(Drawing)
 
 YSL_BEGIN_NAMESPACE(Text)
 

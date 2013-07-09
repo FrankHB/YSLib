@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r63
+\version r75
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-03-19 00:50 +0800
+	2013-07-09 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/HostedUI.h"
-#include "Host.h"
+#include "HostRenderer.h"
 
 YSL_BEGIN
 
@@ -55,6 +55,20 @@ unique_ptr<BufferedRenderer>
 MakeHostRenderer(IWidget& wgt, std::function<NativeWindowHandle()> f)
 {
 	return unique_ptr<BufferedRenderer>(new HostRenderer(wgt, std::move(f)));
+}
+
+
+void
+DragWindow(Window& wnd, UI::CursorEventArgs&& e)
+{
+	if(e.Strategy == RoutedEventArgs::Direct)
+	{
+		auto& st(FetchGUIState());
+		const auto offset(st.LastControlLocation + st.DraggingOffset);
+
+		wnd.Move(wnd.GetLocation() + offset);
+		st.ControlLocation -= offset - GetLocationOf(e.GetSender());
+	}
 }
 
 YSL_END_NAMESPACE(Host)

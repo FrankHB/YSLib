@@ -13,16 +13,16 @@
 \brief YSLib UI 模块。
 */
 
-/*!	\file ycomp.h
+/*!	\file YComponent.h
 \ingroup UI
-\brief 平台无关的 Shell 组件。
-\version r2337
+\brief 平台中立的 UI 组件。
+\version r2360
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2013-07-03 22:16 +0800
+	2013-07-09 05:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 */
 
 
-#ifndef YSL_INC_UI_ycomp_h_
-#define YSL_INC_UI_ycomp_h_ 1
+#ifndef YSL_INC_UI_YComponent_h_
+#define YSL_INC_UI_YComponent_h_ 1
 
 #include "../Core/ygdibase.h"
 #include "../Core/yfunc.hpp"
@@ -44,6 +44,26 @@ YSL_BEGIN_NAMESPACE(Drawing)
 
 //! \since build 319
 class Image;
+
+/*!
+\brief 转换为字符串。
+\note 使用 ADL 。
+\since build 308
+*/
+//@{
+template<typename _type>
+string
+to_string(const GBinaryGroup<_type>& val)
+{
+	using YSLib::to_string;
+
+	return "(" + to_string(val.X) + ", " + to_string(val.Y) + ')';
+}
+YF_API string
+to_string(const Size&);
+YF_API string
+to_string(const Rect&);
+//@}
 
 YSL_END_NAMESPACE(Drawing)
 

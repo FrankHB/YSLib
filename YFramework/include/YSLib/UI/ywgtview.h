@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r542
+\version r543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-06-28 05:27 +0800
+	2013-07-09 05:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YSL_INC_UI_ywgtview_h_
 #define YSL_INC_UI_ywgtview_h_ 1
 
-#include "ycomp.h"
+#include "YComponent.h"
 
 YSL_BEGIN
 

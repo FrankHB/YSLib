@@ -1,109 +1,113 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="源文件">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="头文件">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="资源文件">
+    <Filter Include="data">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>
       </Extensions>
     </Filter>
-    <Filter Include="头文件\ystdex">
-      <UniqueIdentifier>{cbbbb3e5-cc2e-4e3c-a4ae-fbe2fac7370a}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="include">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>
+      </Extensions>
     </Filter>
-    <Filter Include="源文件\ystdex">
+    <Filter Include="include\ystdex">
+      <UniqueIdentifier>{cbbbb3e5-cc2e-4e3c-a4ae-fbe2fac7370a}</UniqueIdentifier>
+      <Extensions>
+      </Extensions>
+    </Filter>
+    <Filter Include="include\libdefect">
+      <UniqueIdentifier>{929b4b30-f9e4-4c8f-9200-d0f7eaf535e6}</UniqueIdentifier>
+      <Extensions>
+      </Extensions>
+    </Filter>
+    <Filter Include="include\ytest">
+      <UniqueIdentifier>{cef80dcb-4b35-4ab2-a25c-f2f9dcb4e121}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>
+      </Extensions>
+    </Filter>
+    <Filter Include="source\ystdex">
       <UniqueIdentifier>{3eefbce0-b4c1-411d-9af0-b0d663b526db}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="头文件\libdefect">
-      <UniqueIdentifier>{929b4b30-f9e4-4c8f-9200-d0f7eaf535e6}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="头文件\ytest">
-      <UniqueIdentifier>{cef80dcb-4b35-4ab2-a25c-f2f9dcb4e121}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ydef.h">
-      <Filter>头文件</Filter>
+      <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\cast.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\iterator.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\type_op.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\memory.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\utility.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\cstdio.h">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\cstring.h">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\any.h">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\algorithm.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\rational.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\operators.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\string.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\libdefect\string.h">
-      <Filter>头文件\libdefect</Filter>
+      <Filter>include\libdefect</Filter>
     </ClInclude>
     <ClInclude Include="include\ytest\timing.hpp">
-      <Filter>头文件\ytest</Filter>
+      <Filter>include\ytest</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\functional.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\container.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\examiner.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\any_iterator.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\path.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\variadic.hpp">
-      <Filter>头文件\ystdex</Filter>
+      <Filter>include\ystdex</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">
-      <Filter>源文件\ystdex</Filter>
+      <Filter>source\ystdex</Filter>
     </ClCompile>
     <ClCompile Include="source\ystdex\cstring.cpp">
-      <Filter>源文件\ystdex</Filter>
+      <Filter>source\ystdex</Filter>
     </ClCompile>
     <ClCompile Include="source\ystdex\any.cpp">
-      <Filter>源文件\ystdex</Filter>
+      <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r85
+\version r92
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-04-26 20:50 +0800
+	2013-07-09 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,6 +77,15 @@ WrapRenderer(UI::Widget& wgt, _tParams&&... args)
 {
 	wgt.SetRenderer(MakeHostRenderer(wgt, std::bind(yforward(args)...)));
 }
+
+
+/*!
+\brief 按指针设备输入事件指定的光标位置移动宿主窗口。
+\sa UI::OnTouchHeld_Dragging
+\since build 426
+*/
+YF_API void
+DragWindow(Window&, UI::CursorEventArgs&&);
 
 YSL_END_NAMESPACE(Host)
 #endif

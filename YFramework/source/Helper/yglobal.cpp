@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2960
-\author FrankHB<frankhb1989@gmail.com>
+\version r2971
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:28:52 +0800
 \par 修改时间:
-	2012-12-06 15:18 +0800
+	2013-07-09 08:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,8 +26,6 @@
 
 
 #include "Helper/yglobal.h"
-#include "YSLib/Core/yapp.h"
-#include "YSLib/UI/ydesktop.h"
 //#include <clocale>
 
 YSL_BEGIN
@@ -43,6 +41,16 @@ YSL_BEGIN
 */
 //@{
 //@}
+
+#if YCL_HOSTED
+YSL_BEGIN_NAMESPACE(Host)
+
+Exception::Exception(const std::string& s, LevelType l) ynothrow
+	: LoggedEvent(s, l)
+{}
+
+YSL_END_NAMESPACE(Host)
+#endif
 
 YSL_END
 

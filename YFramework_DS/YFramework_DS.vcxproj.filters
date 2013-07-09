@@ -3,20 +3,12 @@
   <ItemGroup>
     <None Include="Makefile" />
     <None Include="..\YFramework\data\default_font.bin">
-      <Filter>资源文件</Filter>
+      <Filter>data</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="头文件">
-      <UniqueIdentifier>{22b3ea3e-ca74-480d-af36-daae745f0024}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="资源文件">
+    <Filter Include="data">
       <UniqueIdentifier>{1cb47ae8-72cc-4f9e-82ec-46f636fa4dd7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件">
-      <UniqueIdentifier>{0001eb06-b6fe-492c-9f44-82a8c971d24c}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
 </Project>

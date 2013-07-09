@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3422
+\version r3423
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-06-13 08:20 +0800
+	2013-07-09 09:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,7 @@ WCSToMBCS(const std::wstring& str, int cp)
 //@}
 
 #else
-#	error Unsupport platform found!
+#	error Unsupported platform found.
 #endif
 
 } // namespace platform_ex;

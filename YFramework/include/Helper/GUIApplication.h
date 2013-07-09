@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r209
+\version r235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-07-08 10:09 +0800
+	2013-07-09 09:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include "Helper/yglobal.h"
 #include "YCLib/NativeAPI.h"
 #include "YSLib/Core/yapp.h"
-#include "YSLib/Core/ValueNode.h"
 #include <ystdex/cast.hpp>
 #include "Helper/GUIShell.h"
 
@@ -49,6 +48,37 @@ class WindowThread;
 class HostRenderer;
 class Environment;
 YSL_END_NAMESPACE(Host)
+#endif
+
+#if YCL_MINGW32
+YSL_BEGIN_NAMESPACE(MinGW32)
+
+/*!
+\brief Win32 错误引起的宿主异常。
+\since build 426
+\todo 不仅适用于 GUI 程序，应转移到合适的单元。
+*/
+class YF_API Win32Exception : public Host::Exception
+{
+private:
+	::DWORD err;
+
+public:
+	//! \pre 错误码不等于 0 。
+	Win32Exception(::DWORD, const std::string& = "Win32 exception",
+		LevelType = 0) ynothrow;
+
+	DefGetter(const ynothrow, ::DWORD, ErrorCode, err)
+};
+
+/*!
+\brief 按 ::GetLastError 的结果和指定参数抛出 MinGW32::Win32Exception 对象。
+\since build 426
+*/
+#	define YF_Raise_Win32Exception(...) \
+	throw MinGW32::Win32Exception(::GetLastError(), __VA_ARGS__)
+
+YSL_END_NAMESPACE(MinGW32)
 #endif
 
 

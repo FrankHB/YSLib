@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r440
+\version r455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-06-21 15:05 +0800
+	2013-07-09 04:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,26 +47,6 @@ DebugTimer::~DebugTimer()
 }
 #endif
 
-
-YSL_BEGIN_NAMESPACE(Drawing)
-
-string
-to_string(const Size& s)
-{
-	using YSLib::to_string;
-
-	return "(" + to_string(s.Width) + ", " + to_string(s.Height) + ')';
-}
-string
-to_string(const Rect& r)
-{
-	using YSLib::to_string;
-
-	return "(" + to_string(r.X) + ", " + to_string(r.Y) + ", "
-		+ to_string(r.Width) + ", " + to_string(r.Height) + ')';
-}
-
-YSL_END_NAMESPACE(Drawing)
 
 void
 RemoveGlobalTasks()
