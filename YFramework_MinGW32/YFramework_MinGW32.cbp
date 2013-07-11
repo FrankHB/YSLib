@@ -374,6 +374,9 @@
 		<Unit filename="../YFramework/source/YSLib/UI/ywindow.cpp" />
 		<Unit filename="include/YCLib/COM.h" />
 		<Unit filename="include/YCLib/MinGW32.h" />
+		<Unit filename="include/YCLib/Win32GUI.h" />
+		<Unit filename="source/YCLib/MinGW32.cpp" />
+		<Unit filename="source/YCLib/Win32GUI.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

@@ -1,0 +1,95 @@
+﻿/*
+	Copyright by FrankHB 2012 - 2013.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Designation.txt
+\ingroup Documentation
+\brief YBase 说明。
+\version r94
+\author FrankHB <frankhb1989@gmail.com>
+\since build 305
+\par 创建时间:
+	2012-04-29 17:11:42 +0800
+\par 修改时间:
+	2013-07-10 14:45 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::YBase
+*/
+
+
+/*
+
+@0 体例和适用范围：
+引用标记参见 [Documentation::CommonRules @@0.1] 。
+项目范围参见 [Documentation::ProjectRules @@1.1] 。
+本文档适用于 YBase 。
+部分编码细节和其它规范和 YFramework 共享，参见 [Documentation::Designation] 。
+
+@1 设计：
+ YBase 是 YSLib(the YSLib project) 的顶级子项目([ProjectRules @@1.1]) ，且不被其它顶级子项目依赖。
+
+@1.1 设计的基本原理和表达形式：
+以扩展标准库为基础构建 YSLib 项目的基础实现。
+
+@1.2 理论背景、工具和依据：
+基本内容参见 [Documentation::CommonRules @@2.1] 。
+标准库扩展部分和 Boost 接口兼容，参见 http://www.boost.org/ 。
+
+@1.3 构建原则：
+基本内容参见 [Documentation::CommonRules @@2.2] 。
+其它见 [Documentation::Designation @@1.3] 。
+
+@2 实现约束、组成和架构：
+
+@2.1 LibDefect 以外的设计和实现原则：
+除了去除后不影响语义正确性和可观察行为的扩展，遵守 ISO C++ ，不使用不兼容于 ISO C++11 的特性或依赖于特定平台实现的接口。
+注意 YDefinition 实现及判断语言特性的接口可能依赖于具体语言实现的特性限制。
+关于当前允许使用的非 ISO C++03 扩展参见 [Documentation::Designation @1.3.2.1] 。
+尽量严格遵守 ISO C++11 ，涉及未确定行为和实现定义的行为时应附文档说明。
+除非另有说明， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
+除非有显著性能问题，否则非成员或静态成员接口应保证线程安全性。
+不降低性能时尽量保证可重入性。
+
+@2.2 文件依赖性：
+以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
+ ydef.h(@2.3) 仅依赖标准库头文件。
+ LibDefect 不包含头文件或仅包含标准库头文件。
+ YBase 依赖且仅依赖 YBase 文件和标准库头文件。
+
+@2.3 YDefinition ：
+模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
+若其它文件不依赖此文件，则也不依赖其它 YBase 文件。
+文件內容为系统环境和公用类型和宏的基础定义，包括对实现环境的检测、实现特性的封装、部分未被实现关键字替代以及一些语言层次上的公共基础设施。
+
+@2.3.1 宏 yoffsetof ：
+同标准库宏 offsetof ，但额外提供了对于可能导致未定义行为的检查。
+某些实现（如 GNU C++ ）可能已经自行提供了内建检查，所以此宏并非必要。但为了一致性在库的代码使用此宏。
+
+@2.3.2 宏 yunseq ：
+用于标记无序列依赖表达式组，以支持非序列优化。
+参见 [Documentation::CommonRules @@6.4.3.3] 。
+
+@2.4 YStandardEx ：
+ YStandardEx 直接扩充标准库，包含仅依赖于标准库而非标准库的接口。
+实现的内容限制为以下两个部分：
+适用范围最广的基础设施（比标准库更严格），如序列/非序列调用、通用类型转换、元类型、函数对象、迭代器；
+直接基于标准库接口的抽象和封装，如输入/输出抽象。
+所有更具体应用问题领域相关的或特定于运行时表达形式相关的操作，如形式语言处理等，都不由 YStandardEx 直接提供接口。
+
+@2.5 LibDefect ：
+用于修正依赖的标准库实现因不完善或配置问题等与标准规定的接口的偏差。
+
+@2.6 YTest ：
+提供软件测试需要的一些功能的辅助库。
+
+*/
+////
+

@@ -301,6 +301,8 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
+    <Text Include="..\doc\YBase.txt" />
+    <Text Include="..\doc\YFramework.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{305D480F-C3DC-4A3D-915A-88E9D2224742}</ProjectGuid>

@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2971
+\version r2974
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:28:52 +0800
 \par 修改时间:
-	2013-07-09 08:58 +0800
+	2013-07-10 15:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,10 +44,6 @@ YSL_BEGIN
 
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
-
-Exception::Exception(const std::string& s, LevelType l) ynothrow
-	: LoggedEvent(s, l)
-{}
 
 YSL_END_NAMESPACE(Host)
 #endif

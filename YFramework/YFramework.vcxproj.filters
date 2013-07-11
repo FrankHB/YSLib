@@ -986,5 +986,11 @@
     <Text Include="..\doc\ChangeLog.PreAlpha4.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\YBase.txt">
+      <Filter>doc</Filter>
+    </Text>
+    <Text Include="..\doc\YFramework.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>

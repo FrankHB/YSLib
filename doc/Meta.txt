@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r530
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-07-01 18:13 +0800
+	2013-07-11 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,6 +167,10 @@ $KNOWN_ISSUE:
 		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54118 . \
 		Release configuration using '-flto=jobserver' would obviously enlarge \
 		the size of execution file.
+* $known_issue_b427 "G++ 4.7.1 of devkitPro would crash(ICE: segfault) when \
+	compiling copy constructor of %YSLib::Drawing::BasicImage after put the \
+	interface %IImage at the end of base class list".
+	// OK for MinGW G++ 4.8.1.
 
 
 $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:

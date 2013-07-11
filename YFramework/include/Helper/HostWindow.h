@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r151
+\version r202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-07-09 08:59 +0800
+	2013-07-11 14:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,9 @@
 #define INC_Helper_HostWindow_h_ 1
 
 #include "Helper/GUIApplication.h"
+#if YCL_MULTITHREAD == 1
+#	include <atomic>
+#endif
 
 YSL_BEGIN
 
@@ -41,17 +44,21 @@ yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
 /*!
 \brief 宿主窗口。
 \since build 379
-\todo 处理 Windows API 返回值。
 */
-class YF_API Window
+class YF_API Window : private MinGW32::WindowReference
 {
 private:
 	//! \since build 380
 	std::reference_wrapper<Environment> env;
-	//! \since build 389
-	NativeWindowHandle h_wnd;
 
 public:
+	/*!
+	\brief 限制指针设备响应在窗口边界内。
+	\bug 必须支持 <tt>std::atomic</tt> 。
+	\since build 427
+	*/
+	std::atomic<bool> BoundsLimited{false};
+
 	/*!
 	\throw LoggedEvent 窗口类名不是 WindowClassName 。
 	\since build 398
@@ -62,8 +69,6 @@ public:
 	virtual
 	~Window();
 
-	//! \since build 389
-	DefGetter(const ynothrow, NativeWindowHandle, NativeHandle, h_wnd)
 	DefGetter(const ynothrow, Environment&, Host, env)
 	/*!
 	\brief 取预定的指针设备输入响应有效区域的左上角和右下角坐标。
@@ -72,25 +77,16 @@ public:
 	*/
 	virtual pair<Drawing::Point, Drawing::Point>
 	GetInputBounds() const ynothrow;
+	//! \since build 427
+	//@{
+	using WindowReference::GetLocation;
+	using WindowReference::GetNativeHandle;
+	using WindowReference::GetSize;
 
-	/*!
-	\brief 取窗口位置。
-	\since build 426
-	*/
-	Drawing::Point
-	GetLocation() const;
+	using WindowReference::Close;
 
-	/*!
-	\brief 移动窗口。
-	\note 线程安全。
-	\since build 426
-	*/
-	void
-	Move(const Drawing::Point&);
-
-	//! \note 线程安全：跨线程调用时使用基于消息队列的异步设置。
-	void
-	Close();
+	using WindowReference::Move;
+	//@}
 
 	virtual void
 	OnDestroy();
@@ -108,28 +104,14 @@ public:
 	virtual PDefH(void, Refresh, )
 		ImplExpr(void())
 
-	/*!
-	\brief 调整窗口大小。
-	\note 线程安全。
-	\since build 388
-	*/
-	void
-	Resize(const Drawing::Size&);
+	//! \since build 427
+	//@{
+	using WindowReference::Resize;
 
-	/*!
-	\brief 按客户区调整窗口大小。
-	\note 线程安全。
-	\since build 388
-	*/
-	void
-	ResizeClient(const Drawing::Size&);
+	using WindowReference::ResizeClient;
 
-	/*!
-	\return 异步操作是否成功。
-	\since build 426
-	*/
-	bool
-	Show() ynothrow;
+	using WindowReference::Show;
+	//@}
 };
 
 YSL_END_NAMESPACE(Host)

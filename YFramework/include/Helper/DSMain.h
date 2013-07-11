@@ -142,15 +142,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 YF_API void
 ShowFatalError(const char*);
 
-//! \brief 运行时平台。
-#if YCL_DS
-YSL_BEGIN_NAMESPACE(DS)
-
-using namespace platform_ex;
-
-YSL_END_NAMESPACE(DS)
-#elif YCL_MINGW32
-//! \since build 383
+#if YCL_MINGW32
 YSL_BEGIN_NAMESPACE(MinGW32)
 
 using namespace platform_ex;

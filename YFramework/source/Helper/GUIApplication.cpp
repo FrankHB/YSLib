@@ -68,21 +68,6 @@ Idle(Messaging::Priority prior)
 } // unnamed namespace;
 
 
-#if YCL_MINGW32
-YSL_BEGIN_NAMESPACE(MinGW32)
-
-Win32Exception::Win32Exception(::DWORD e, const std::string& s, LevelType l)
-	ynothrow
-	: Exception(s, l),
-	err(e)
-{
-	YAssert(e != 0, "No error should be thrown.");
-}
-
-YSL_END_NAMESPACE(MinGW32)
-#endif
-
-
 GUIApplication::GUIApplication()
 	: Application(),
 #if YCL_HOSTED

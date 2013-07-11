@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>
+      </Extensions>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>
+      </Extensions>
+    </Filter>
+    <Filter Include="include\YCLib">
+      <UniqueIdentifier>{e54f09dc-3b61-4085-ae10-e883d6bed6fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\YCLib">
+      <UniqueIdentifier>{febcd6f2-59d8-45c0-b714-4c4c541212e3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\YCLib\COM.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\MinGW32.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\Win32GUI.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\YCLib\Win32GUI.cpp">
+      <Filter>source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\MinGW32.cpp">
+      <Filter>source\YCLib</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

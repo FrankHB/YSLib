@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1837
+\version r1860
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-07-09 09:33 +0800
+	2013-07-10 15:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,9 @@
 
 //包含 YCLib 公用部分。
 #include "YCLib/ycommon.h"
-
+#if YCL_MINGW32
+#	include "YCLib/MinGW32.h"
+#endif
 #include "YSLib/Core/ygdibase.h"
 #include "YSLib/Core/ymsgdef.h"
 #include "YSLib/Core/ydevice.h"
@@ -73,17 +75,28 @@ YSL_BEGIN_NAMESPACE(Host)
 class Environment;
 
 /*!
-\brief 宿主异常。
-\since build 426
+\brief 宿主异常：平台异常。
+\since build 427
 */
-class YF_API Exception : public LoggedEvent
-{
-public:
-	Exception(const std::string& = "unknown host exception", LevelType = 0)
-		ynothrow;
-};
+using platform_ex::Exception;
 
 YSL_END_NAMESPACE(Host)
+#endif
+
+//! \brief 运行时平台。
+#if YCL_DS
+YSL_BEGIN_NAMESPACE(DS)
+
+using namespace platform_ex;
+
+YSL_END_NAMESPACE(DS)
+#elif YCL_MINGW32
+//! \since build 383
+YSL_BEGIN_NAMESPACE(MinGW32)
+
+using namespace platform_ex;
+
+YSL_END_NAMESPACE(MinGW32)
 #endif
 
 //! \since build 388

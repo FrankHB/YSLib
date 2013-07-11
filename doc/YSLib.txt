@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1969
+\version r1977
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-09 05:23 +0800
+	2013-07-10 14:50 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -27,13 +27,14 @@
 
 /*
 @0 体例和适用范围：
-以字符 @ 起始的行作为章节标题。
+引用标记参见 [Documentation::CommonRules @@0.1] 。
+项目范围参见 [Documentation::ProjectRules @@1.1] 。
 单独一行“//[”表示引用文本段落起始；单独一行“//]”表示引用文本段落终止。
-本文档适用于 YSLib 。
+本文档适用于 YFramework 顶级子项目中的 YSLib 库。
 
 @1 YSLib 库实现约束、组成和架构：
-关于显式外部依赖项股则，参见 [Documentation::Designation @@4.1] 。
-关于具体的外部依赖项，参见 [Documentation::Designation @@7] 。
+关于显式外部依赖项规则，参见 [Documentation::YFramework @@2.1] 。
+关于具体的外部依赖项，参见 [Documentation::Designation @@5] 。
 
 @1.1 名称和命名空间规则：
 名称使用前提约束：参见 [Documentation::CommonRules @@7.2] 。
@@ -144,7 +145,7 @@
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
 
 @1.3 YSLib 可重入性和线程安全性：
-一般规则参见 [Documentation::Designation @@1.4.1.4] 。
+一般规则参见 [Documentation::YFramework @@1.4.1.4] 。
  YSLib 的可重入性和线程安全性参见 @2 、 @2.2 和 @3.1 。
 
 @2 YSLib 适配器(Adaptor) ：
@@ -273,7 +274,7 @@
 
 @3.1.9.1 YSLib 标准事件处理实现概述：
 仅实现同步事件。
-相关概念说明参见 [Documentation::CommonRules @@2.5.1.1] 。
+相关概念说明参见 [Documentation::YFramework @@2.5.1.1] 。
 
 @3.1.9.1.1 单播版本（自 build 204 起被移除）：
 添加事件订阅和移除事件订阅的时间复杂度为 O(1) ，同普通的函数指针赋值。调用事件处理器的时间复杂度为 O(1) ，同普通的函数指针调用。

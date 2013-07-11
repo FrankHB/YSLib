@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r306
+\version r313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-07-09 09:12 +0800
+	2013-07-11 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,12 +139,14 @@ InputManager::Update()
 
 		const auto& pr(p_wnd->GetInputBounds());
 
-		if(!(IsInInterval< ::LONG>(cursor.x, pr.first.X, pr.second.X)
-			&& IsInInterval< ::LONG>(cursor.y, pr.first.Y, pr.second.Y)))
-			cursor_state = Point::Invalid;
-		else
+		if(YB_LIKELY(pr.first.X != pr.second.X && pr.first.Y != pr.second.Y)
+			&& (!p_wnd->BoundsLimited
+			|| (IsInInterval< ::LONG>(cursor.x, pr.first.X, pr.second.X)
+			&& IsInInterval< ::LONG>(cursor.y, pr.first.Y, pr.second.Y))))
 			yunseq(cursor_state.X = cursor.x - pr.first.X,
 				cursor_state.Y = cursor.y - pr.first.Y);
+		else
+			cursor_state = Point::Invalid;
 #endif
 	}
 #if YCL_HOSTED

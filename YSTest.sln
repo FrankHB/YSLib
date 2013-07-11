@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YSTest_DS", "YSTest_DS\YSTest_DS.vcxproj", "{2843D63B-952F-4EB3-9620-D1B97301898F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{42310096-8CB9-462A-B097-CF4A682E2536} = {42310096-8CB9-462A-B097-CF4A682E2536}
@@ -35,6 +35,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YFramework_DS", "YFramework
 	ProjectSection(ProjectDependencies) = postProject
 		{C713494C-E435-4D29-B3B6-DFECD22DDCEC} = {C713494C-E435-4D29-B3B6-DFECD22DDCEC}
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MinGW32", "MinGW32", "{7AF9A589-1C6E-4BC3-A47A-9EBF19860C4D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{9DA73A1D-34DE-4888-8FFA-8745E2240394}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YFramework_MinGW32", "YFramework_MinGW32\YFramework_MinGW32.vcxproj", "{B429F839-AE23-4B3B-8F24-D91D31318373}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,6 +121,18 @@ Global
 		{CDF038BE-EAE7-43A3-AF79-9B0DD85714FB}.release|DS.Build.0 = release|Win32
 		{CDF038BE-EAE7-43A3-AF79-9B0DD85714FB}.release|Mixed Platforms.ActiveCfg = release|Win32
 		{CDF038BE-EAE7-43A3-AF79-9B0DD85714FB}.release|Win32.ActiveCfg = release|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Any CPU.ActiveCfg = Debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|DS.ActiveCfg = Debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Mixed Platforms.Build.0 = Debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Win32.ActiveCfg = Debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.debug|Win32.Build.0 = Debug|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Any CPU.ActiveCfg = Release|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|DS.ActiveCfg = Release|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Mixed Platforms.ActiveCfg = Release|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Mixed Platforms.Build.0 = Release|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Win32.ActiveCfg = Release|Win32
+		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,5 +147,7 @@ Global
 		{501944E8-ADCC-40E6-87F0-08816CFAA343} = {B83F2946-591A-42AC-B01B-DEA8B1ECD5B4}
 		{C713494C-E435-4D29-B3B6-DFECD22DDCEC} = {EEA6F31C-BD64-46EC-B042-1B9D3E6C1135}
 		{CDF038BE-EAE7-43A3-AF79-9B0DD85714FB} = {EEA6F31C-BD64-46EC-B042-1B9D3E6C1135}
+		{9DA73A1D-34DE-4888-8FFA-8745E2240394} = {7AF9A589-1C6E-4BC3-A47A-9EBF19860C4D}
+		{B429F839-AE23-4B3B-8F24-D91D31318373} = {9DA73A1D-34DE-4888-8FFA-8745E2240394}
 	EndGlobalSection
 EndGlobal

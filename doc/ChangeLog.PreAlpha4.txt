@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1466
+\version r1543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-10 02:44 +0800
+	2013-07-12 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,84 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			/ @ "class %Window" @ %'HostWindow' $=
+			(
+				* "missing checking failure" @ "member function \
+					%Window::GetInputBounds" @ "platform %MinGW32" $since b388
+				+ $dev 'using namespace platform_ex' @ "namespace %Host"
+					@ "platform %MinGW32" @ %'HostWindow',
+				(
+					$dep_from %'YCLib_(MinGW32)'.'Win32GUI';
+					/ DLD "simplified implementation" @ "class %Host::Window"
+						^ "private inheritance %Windows::WindowReference"
+				),
+				(
+					+ 'std::atomic<bool> BoundsLimited{false};'
+						@ "class %Host::Window"
+						// DS window defaulted as 'true'.
+					$dep_to "window cursor boundary"
+				)
+			),
+			/ @ "member function %InputManager::Update" @ "platform %MinGW32"
+				@ %'InputManager' $=
+			(
+				$dep_from %'YCLib_(MinGW32)'.'Win32GUI';
+				* "missing checking input boundary validity"
+					@ "member function %InputManager::Update" $since b388,
+					// Win32 API call can faile, though it's rare.
+				(
+					$dep_from "window cursor boundary";
+					+ "free cursor boundary support"
+					// Now dragging hosted window would not be interrupted by \
+						move the cursor out of the boundary unless \
+						%Window::BoundsLimited is set.
+				)
+			),
+			/ @ "namespace %YSLib::Host" @ %'YGlobal' $=
+			(
+				/ "class %Exception" >> ("namespace %platform_ex"
+					@ %'YCLib_(MinGW32)'.'MinGW32')
+				+ 'using platform_ex::Exception'
+			),
+			/ $dev 'using namespace platform_ex' @ "platform namespaces"
+				@ %'DSMain' >> ("corresponding namespace" %'YGlobal'),
+			/ $dev @ "platform %MinGW" @ %'GUIApplication' $=
+			(
+				$dep_from %'YCLib_(MinGW32)'.'Win32GUI');
+				/ "class %Win32Exception, macro %YF_Raise_Win32Exception" 
+					>> %'YCLib_(MinGW32)'.'MinGW32',
+				/ 'typedef ::HWND NativeWindowHandle' @ "namespace %Host"
+					>> ("namespace %platform_ex"
+					@ %'YCLib_(MinGW32)'.'Win32GUI')
+			)
+		)
+		+ "constructor 'Screen(const Size&, Drawing::BitmapPtr = {}) ynothrow'"
+			@ %'YSLib'.'Core'.'YDevice',
+		/ %'YCLib_(MinGW32)' $=
+		(
+			+ $dev "unit %'Win32GUI' with files %(Win32GUI.h, Win32GUI.cpp)";
+			/ %'MinGW32GUI' $=
+			(
+				+ "inline namespace %Windows" @ "namespace %platform_ex";
+				+ "class %WindowReference" @ "namespace %platform_ex::Windows"
+			)
+		)
+	)
+	+ $dev "empty VC++ projects %YFramework_MinGW32",
+		// Only for convenience, no ability for building.
+	/ $doc @ "directory %doc" $=
+	(
+		+ "%Documentation::YBase(file %YBase.txt)" 
+		+ "%Documentation::YFramework(file %YFramework.txt)"
+	)
+),
+
+b426
 (
 	/ DLB "VC++ projects" $=
 	(

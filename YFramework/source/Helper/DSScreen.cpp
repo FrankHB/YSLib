@@ -11,13 +11,13 @@
 /*!	\file DSScreen.cpp
 \ingroup Helper
 \brief DS 屏幕。
-\version r247
+\version r249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-07-09 09:15 +0800
+	2013-07-10 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN_NAMESPACE(Devices)
 
 #if YCL_DS
 DSScreen::DSScreen(bool b) ynothrow
-	: Devices::Screen(MainScreenWidth, MainScreenHeight)
+	: Screen(MainScreenWidth, MainScreenHeight)
 {
 	pBuffer = (b ? DS::InitScrDown : DS::InitScrUp)(bg);
 }
@@ -47,7 +47,7 @@ DSScreen::Update(BitmapPtr buf) ynothrow
 }
 #elif YCL_MINGW32
 DSScreen::DSScreen(bool b) ynothrow
-	: Devices::Screen(MainScreenWidth, MainScreenHeight),
+	: Screen(MainScreenWidth, MainScreenHeight),
 	Offset(), WindowHandle(),
 	rbuf(Size(MainScreenWidth, MainScreenHeight))
 {

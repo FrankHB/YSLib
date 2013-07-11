@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3423
+\version r3427
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-07-09 09:15 +0800
+	2013-07-10 11:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,6 +81,10 @@ yassert(bool, const char*, const char*, int, const char*);
 
 } // namespace platform;
 
+/*!
+\brief 平台扩展命名空间。
+\note 为便于移植，部分平台扩展接口保留至平台中立文件，依赖性按后者处理。
+*/
 namespace platform_ex
 {
 

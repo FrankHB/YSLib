@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r200
+\version r270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-07-09 11:55 +0800
+	2013-07-10 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -36,29 +36,9 @@ using namespace Drawing;
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
 
-namespace
-{
-
-#	if YCL_MINGW32
-//! \since build 388
-void
-ResizeWindow(::HWND h_wnd, SDst w, SDst h)
-{
-	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, nullptr, 0, 0, w, h,
-		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
-		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos");
-}
-#	else
-#		error Unsupported platform found.
-#	endif
-
-} // unnamed namespace;
-
-
 #	if YCL_MINGW32
 Window::Window(NativeWindowHandle h, Environment& e)
-	: env(e), h_wnd(h)
+	: WindowReference(h), env(e)
 {
 	YAssert(::IsWindow(h), "Invalid window handle found.");
 	YAssert(::GetWindowThreadProcessId(h, nullptr) == ::GetCurrentThreadId(),
@@ -68,16 +48,16 @@ Window::Window(NativeWindowHandle h, Environment& e)
 
 	wchar_t buf[ystdex::arrlen(WindowClassName)];
 
-	if(YB_UNLIKELY(!::GetClassNameW(h_wnd, buf,
+	if(YB_UNLIKELY(!::GetClassNameW(hWindow, buf,
 		ystdex::arrlen(WindowClassName))))
 		YF_Raise_Win32Exception("GetClassNameW");
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw LoggedEvent("Wrong windows class name found.");
 	::SetLastError(0);
-	if(YB_UNLIKELY(::SetWindowLongPtrW(h_wnd, GWLP_USERDATA,
+	if(YB_UNLIKELY(::SetWindowLongPtrW(hWindow, GWLP_USERDATA,
 		::LONG_PTR(this)) == 0&& GetLastError() != 0))
 		YF_Raise_Win32Exception("SetWindowLongPtrW");
-	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, nullptr, 0, 0, 0, 0, SWP_NOACTIVATE
+	if(YB_UNLIKELY(!::SetWindowPos(hWindow, nullptr, 0, 0, 0, 0, SWP_NOACTIVATE
 		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING
 		| SWP_NOSIZE | SWP_NOZORDER)))
 		YF_Raise_Win32Exception("SetWindowPos");
@@ -86,15 +66,15 @@ Window::Window(NativeWindowHandle h, Environment& e)
 
 	if(YB_UNLIKELY(!::RegisterRawInputDevices(&rid, 1, sizeof(rid))))
 		YF_Raise_Win32Exception("RegisterRawInputDevices");
-	e.AddMappedItem(h_wnd, this);
+	e.AddMappedItem(hWindow, this);
 }
 Window::~Window()
 {
-	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR());
-	env.get().RemoveMappedItem(h_wnd);
+	::SetWindowLongPtrW(hWindow, GWLP_USERDATA, ::LONG_PTR());
+	env.get().RemoveMappedItem(hWindow);
 	// Note: The window could be already destroyed in window procedure.
-	if(::IsWindow(h_wnd))
-		::DestroyWindow(h_wnd);
+	if(::IsWindow(hWindow))
+		::DestroyWindow(hWindow);
 }
 
 pair<Point, Point>
@@ -102,56 +82,13 @@ Window::GetInputBounds() const ynothrow
 {
 	::RECT rect;
 
-	::GetClientRect(h_wnd, &rect);
+	if(YB_UNLIKELY(!::GetClientRect(hWindow, &rect)))
+		return {};
 
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
 
 	return {Point(rect.left, rect.top), Point(rect.right, rect.bottom)};
-}
-
-Point
-Window::GetLocation() const
-{
-	::RECT rect;
-
-	if(YB_UNLIKELY(!::GetWindowRect(h_wnd, &rect)))
-		YF_Raise_Win32Exception("GetWindowRect");
-	return Point(rect.left, rect.top);
-}
-
-void
-Window::Close()
-{
-	if(YB_UNLIKELY(!::SendNotifyMessageW(h_wnd, WM_CLOSE, 0, 0)))
-		YF_Raise_Win32Exception("SendNotifyMessageW");
-}
-
-void
-Window::Move(const Point& pt)
-{
-	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, nullptr, pt.X, pt.Y, 0, 0,
-		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW
-		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos");
-}
-
-void
-Window::Resize(const Size& s)
-{
-	ResizeWindow(GetNativeHandle(), s.Width, s.Height);
-}
-
-void
-Window::ResizeClient(const Size& s)
-{
-	const auto h_wnd(GetNativeHandle());
-	::RECT rect{0, 0, s.Width, s.Height};
-
-	if(YB_UNLIKELY(!::AdjustWindowRect(&rect,
-		::GetWindowLongW(h_wnd, GWL_STYLE), false)))
-		YF_Raise_Win32Exception("AdjustWindowRect");
-	ResizeWindow(h_wnd, rect.right - rect.left, rect.bottom - rect.top);
 }
 
 void
@@ -169,12 +106,6 @@ Window::OnLostFocus()
 void
 Window::OnPaint()
 {}
-
-bool
-Window::Show() ynothrow
-{
-	return ::ShowWindowAsync(h_wnd, SW_SHOWNORMAL) != 0;
-}
 #	endif
 
 YSL_END_NAMESPACE(Host)
