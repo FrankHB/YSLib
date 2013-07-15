@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r297
+\version r298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-07-09 09:14 +0800
+	2013-07-14 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,7 @@ YConsoleInit(std::uint8_t, Color, Color)
 {
 // TODO: Implementation.
 #else
-#	error Unsupported platform found.
+#	error "Unsupported platform found."
 #endif
 }
 

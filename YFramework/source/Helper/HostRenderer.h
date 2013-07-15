@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r174
+\version r183
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-07-09 05:59 +0800
+	2013-07-13 23:19 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -71,10 +71,15 @@ public:
 \brief 宿主窗口线程。
 \since build 384
 */
-class WindowThread
+class WindowThread : private OwnershipTag<Window>
 {
 private:
-	unique_ptr<Window> p_wnd;
+	/*!
+	\brief 窗口指针。
+	\note 不使用 \c unique_ptr 以便于实现线程安全的状态检查。
+	\since build 428
+	*/
+	std::atomic<Window*> p_wnd;
 	std::thread thrd;
 
 public:
@@ -88,7 +93,8 @@ public:
 	DefDelMoveCtor(WindowThread)
 	~WindowThread();
 
-	DefGetter(const ynothrow, Window*, WindowPtr, p_wnd.get())
+	//! \note 线程安全。
+	DefGetter(const ynothrow, Window*, WindowPtr, p_wnd)
 
 private:
 	template<typename _fCallable, typename... _tParams>

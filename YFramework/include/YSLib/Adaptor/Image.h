@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r192
+\version r198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-06-27 16:50 +0800
+	2013-07-15 06:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,8 @@ private:
 
 public:
 	ImageMemory(octet* = {}, size_t = 0);
-	~ImageMemory();
+	//! \since build 428
+	~ImageMemory() ynothrow;
 	
 	DefGetter(const ynothrow, ImageFormat, Format, format)
 	DefGetter(const ynothrow, NativeHandle, NativeHandle, handle)
@@ -129,7 +130,8 @@ public:
 	//! \throw BadImageAlloc 分配空间失败。
 	HBitmap(const HBitmap&);
 	HBitmap(HBitmap&&) ynothrow;
-	~HBitmap();
+	//! \since build 428
+	~HBitmap() ynothrow;
 	//@}
 
 	BitPerPixel
@@ -153,7 +155,8 @@ class YF_API ImageCodec final
 {
 public:
 	ImageCodec();
-	~ImageCodec();
+	//! \since build 428
+	~ImageCodec() ynothrow;
 
 	//! \since build 418
 	//@{

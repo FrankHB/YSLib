@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r999
+\version r1000
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-07-09 09:16 +0800
+	2013-07-14 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,7 @@ u_to_w(const char* str)
 	return std::move(wstr);
 }
 #else
-#	error Unsupported platform found.
+#	error "Unsupported platform found."
 #endif
 
 } // unnamed namespace;
@@ -425,7 +425,7 @@ IsAbsolute(const char* path)
 #elif YCL_MINGW32
 	return !::PathIsRelativeW(u_to_w(path).c_str());
 #else
-#	error Unsupported platform found.
+#	error "Unsupported platform found."
 #endif
 }
 

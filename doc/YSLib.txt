@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1977
+\version r1979
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-10 14:50 +0800
+	2013-07-14 16:00 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -274,7 +274,7 @@
 
 @3.1.9.1 YSLib 标准事件处理实现概述：
 仅实现同步事件。
-相关概念说明参见 [Documentation::YFramework @@2.5.1.1] 。
+相关概念说明参见 [Documentation::CommonRules @@2.5.1] 。
 
 @3.1.9.1.1 单播版本（自 build 204 起被移除）：
 添加事件订阅和移除事件订阅的时间复杂度为 O(1) ，同普通的函数指针赋值。调用事件处理器的时间复杂度为 O(1) ，同普通的函数指针调用。
@@ -745,7 +745,7 @@ SM_INPUT				0x00FF
 注意生存期。
 
 @6 初始化：
-初始化由 Helper进行。
+初始化由 Helper 进行。
 
 @6.1 配置：
 自 build 300 起，配置不再硬编码，初始化时读取配置文件的内容。

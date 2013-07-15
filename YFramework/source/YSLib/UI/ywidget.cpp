@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r4296
+\version r4319
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-09 02:30 +0800
+	2013-07-15 08:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/ydesktop.h"
 #include "YSLib/UI/YBrush.h"
-#include "YSLib/UI/ystyle.h"
+#include "YSLib/UI/YGUI.h"
 
 YSL_BEGIN
 
@@ -174,6 +174,7 @@ Widget::Widget(const Widget& wgt)
 Widget::~Widget()
 {
 	DoReleaseFocus(*this);
+	FetchGUIState().CleanupReferences(*this);
 }
 
 void
@@ -181,28 +182,6 @@ Widget::InitializeEvents()
 {
 	(FetchEvent<Paint>(*this).Add(std::ref(Background), BackgroundPriority))
 		+= std::bind(&Widget::Refresh, this, std::placeholders::_1);
-}
-
-AController&
-Widget::GetController() const
-{
-	if(!controller_ptr)
-		throw BadEvent();
-	return *controller_ptr;
-}
-Renderer&
-Widget::GetRenderer() const
-{
-	if(YB_UNLIKELY(!renderer_ptr))
-		throw LoggedEvent("Null renderer pointer found.");
-	return *renderer_ptr;
-}
-View&
-Widget::GetView() const
-{
-	if(YB_UNLIKELY(!view_ptr))
-		throw LoggedEvent("Null view pointer found.");
-	return *view_ptr;
 }
 
 void

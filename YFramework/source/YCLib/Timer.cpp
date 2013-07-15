@@ -11,13 +11,13 @@
 /*!	\file Timer.cpp
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r190
+\version r191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:44:52 +0800
 \par 修改时间:
-	2013-07-09 09:14 +0800
+	2013-07-14 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,7 +129,7 @@ StartTicks()
 			g_ticks.start = ::timeGetTime();
 		}
 #else
-#	error Unsupported platform found.
+#	error "Unsupported platform found."
 #endif
 		bUninitializedTimers = {};
 	};

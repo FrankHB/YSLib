@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r313
+\version r314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-07-11 14:20 +0800
+	2013-07-14 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ InputManager::InputManager()
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
 #else
-#	error Unsupported platform found.
+#	error "Unsupported platform found."
 #endif
 void
 InputManager::DispatchInput(IWidget& wgt)

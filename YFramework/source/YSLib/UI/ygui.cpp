@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3759
+\version r3769
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-07 09:31 +0800
+	2013-07-15 08:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,6 +117,17 @@ GUIState::GUIState() ynothrow
 	LastControlLocation(Point::Invalid), Colors(), p_KeyDown(), p_CursorOver(),
 	p_TouchDown(), entered()
 {}
+
+void
+GUIState::CleanupReferences(IWidget& wgt)
+{
+	if(p_KeyDown == &wgt)
+		p_KeyDown = {};
+	if(p_CursorOver == &wgt)
+		p_CursorOver = {};
+	if(p_TouchDown == &wgt)
+		p_TouchDown = {};
+}
 
 void
 GUIState::Reset()

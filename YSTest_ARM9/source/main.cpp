@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1726
+\version r1730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-06-13 14:33 +0800
+	2013-07-14 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,15 +27,15 @@
 
 //标识主源文件。
 #ifdef YSL_ARM9_MAIN_CPP_
-#	error The main source file has already compiled. Try to make the macro \
-		YSL_ARM9_MAIN_CPP_ be defined iff. once in the project.
+#	error "The main source file has already compiled. Try to make the macro \
+		YSL_ARM9_MAIN_CPP_ be defined iff. once in the project."
 #endif
 
 #define YSL_ARM9_MAIN_CPP_ YSL_MAIN_CPP_
 
 #ifdef YSL_MAIN_CPP_
-#	error The main source file has already compiled. Try to make the macro \
-		YSL_MAIN_CPP_ be defined iff. once in the project.
+#	error "The main source file has already compiled. Try to make the macro \
+		YSL_MAIN_CPP_ be defined iff. once in the project."
 #endif
 #define YSL_MAIN_CPP_
 

@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r194
+\version r199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-07-04 23:27 +0800
+	2013-07-15 06:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ ImageMemory::ImageMemory(octet* p, size_t size)
 	if(!handle)
 		throw LoggedEvent("Opening image memory failed.");
 }
-ImageMemory::~ImageMemory()
+ImageMemory::~ImageMemory() ynothrow
 {
 	::FreeImage_CloseMemory(handle);
 }
@@ -89,7 +89,7 @@ HBitmap::HBitmap(HBitmap&& pixmap) ynothrow
 {
 	pixmap.bitmap = {};
 }
-HBitmap::~HBitmap()
+HBitmap::~HBitmap() ynothrow
 {
 	::FreeImage_Unload(bitmap);
 }
@@ -120,7 +120,7 @@ ImageCodec::ImageCodec()
 {
 	::FreeImage_Initialise(false);
 }
-ImageCodec::~ImageCodec()
+ImageCodec::~ImageCodec() ynothrow
 {
 	::FreeImage_DeInitialise();
 }
@@ -160,11 +160,11 @@ ImageCodec::Convert(const HBitmap& pixmap)
 //#	elif FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_RGB
 	// TODO: Add support for different color order.
 #	else
-#		error No supported FreeImage pixel format for RGB888 found.
+#		error "No supported FreeImage pixel format for RGB888 found."
 #	endif
 	return CompactPixmap(std::move(pixels), s);
 #else
-#	error Unsupported pixel format found.
+#	error "Unsupported pixel format found."
 #endif
 }
 

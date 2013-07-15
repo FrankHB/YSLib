@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r123
+\version r132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-07-09 05:59 +0800
+	2013-07-12 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -58,9 +58,11 @@ RenderWindow::OnPaint()
 
 WindowThread::~WindowThread()
 {
-	YAssert(bool(p_wnd), "Null pointer found.");
+	const auto p_wnd_val(GetWindowPtr());
 
-	p_wnd->Close();
+	YAssert(bool(p_wnd_val), "Null pointer found.");
+
+	p_wnd_val->Close();
 	// NOTE: If the thread has been already completed there is no effect.
 	// TODO: Exception safety: add either assertion or logging when throwing
 	//	other exceptions.
@@ -70,18 +72,23 @@ WindowThread::~WindowThread()
 	}
 	catch(std::invalid_argument&)
 	{}
+	delete p_wnd_val;
 }
 
 void
 WindowThread::ThreadLoop(NativeWindowHandle h_wnd)
 {
-	p_wnd.reset(new Window(h_wnd));
-	WindowLoop(*p_wnd);
+	ThreadLoop(ystdex::make_unique<Window>(h_wnd));
 }
 void
 WindowThread::ThreadLoop(unique_ptr<Window> p)
 {
-	p_wnd = std::move(p);
+	YAssert(!p_wnd, "Repeated window initialization detected.");
+
+	p_wnd = p.release();
+
+	YAssert(p_wnd, "Null pointer found.");
+
 	WindowLoop(*p_wnd);
 }
 

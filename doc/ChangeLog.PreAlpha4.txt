@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1543
+\version r1632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-12 14:48 +0800
+	2013-07-15 08:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,96 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'UI' $=
+			(
+				/ @ "class %Widget" @ %'YWidget' $=
+				(
+					(
+						/ "explicitly defualted move constuctor"
+							-> "explicitly deleted";
+						/ $revert(b426) "simplified member functions \
+							%(GetRenderer, View) as inline function without \
+							exception",
+							// For performance.
+						/ "simplified member function %GetController as inline \
+							function without exception",
+							// Ditto.
+					),
+					(
+						$dep_from %'YGUI';
+						/ "automatically cleanup references on destruction"
+					)
+				)
+				+ "member function %GUIState::CleanupReference" @ %'YGUI'
+			),
+			/ @ "class %Graphic" @ %'Core'.'YGDIBase' $=
+			(
+				+ "non-explicit default constructor",
+				- "1st default argument" @ "explicit constructor with 2 parameters"
+			)
+		),
+		/ @ "namespace %platform_ex::Windows" @ %'YCLib(MinGW32)'.'Win32GUI' $=
+		(
+			(
+				+ "function %CreateNativeWindow",
+				+ "member function %WindowReference::SetText"
+			),
+			(
+				+ "class %(ScreenBuffer; ScreenRegionBuffer)",
+				+ "class %WindowMemorySurface",
+				+ "class %(WindowDeviceContextBase; WindowDeviceContext, \
+					WindowRegionDeviceContext)",
+				+ "class template %GSurface";
+				- $comp "screen update time" @ "debug output";
+			),
+			/ DLD "declared reopened non-inline namespace %Windows"
+				@ "namespace %platform_ex"	
+				// Though G++ have no diagnostic at all for reopened namespace \
+					both from inline to non-inline and vice versa, but Clang++ \
+					do complain both. See $ref b428.
+		),
+		/ %'Helper' $=
+		(
+			/ %'HostWindow' $=
+			(
+				$dep_from "%WindowReference::SetText";
+				+ "'using WindowReference::SetText;'" @ "class %Host::Window";
+			),
+			/ @ "namespace %Host" @ %'HosteUI' $=
+			(
+				(
+					/ DLD "window thread implementation"
+						^ 'std::atomic<Window*>' ~ 'unique_ptr<Window>';
+						// Convenient for safe concurrent state checking. The \
+							ownership semantics still kept.
+					+ "function %WaitForHostWindow"
+				),
+				(
+					+ "function %ShowTopLevel" @ "platform %MinGW32";
+					+ "function %ShowTopLevelDraggable"
+				)
+			)
+		),
+		/ "made explicit no exception specification"
+			@ "user-defined destructors" @ "all final classes" @ %'YFramework'
+			$= (+ 'ynothrow' @ ("classes %(ImageMemory, HBitmap, ImageCodec)"
+				@ %'Image', "classes %(Typeface, FontCache)" @ %'Font')
+				@ %'YSLib'.'Adaptor'));
+			// Class at %YBase like %any should conform ISO C++ standard library \
+				tradition, which add no explicit exception specification.
+	),
+	* "missing 2nd template parameter" @ "relation functions for class \
+		template %ystdex::bitseg_iterator" @ %'YBase'.'Iterator' $since b414,
+	/ $dev "all subsequent tokens" @ "preprocessing directive '#error'"
+		-> "string literal"
+),
+
+b427
 (
 	/ %'YFramework' $=
 	(

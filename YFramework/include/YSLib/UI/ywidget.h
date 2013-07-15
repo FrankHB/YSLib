@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5484
+\version r5493
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-10 03:27 +0800
+	2013-07-12 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -335,7 +335,7 @@ public:
 private:
 	/*!
 	\since build 346
-	\note 除非被转移否则非空。
+	\note 非空。
 	*/
 	//@{
 	unique_ptr<View> view_ptr; //!< 部件视图指针。
@@ -379,7 +379,8 @@ public:
 	\brief 复制构造：除容器指针为空外深复制。
 	*/
 	Widget(const Widget&);
-	DefDeMoveCtor(Widget)
+	//! since build 428
+	DefDelMoveCtor(Widget)
 	/*!
 	\brief 析构：虚实现。
 
@@ -400,13 +401,11 @@ private:
 public:
 	//! \since build 357
 	ImplI(IWidget) DefGetter(override, WidgetRange, Children, WidgetRange())
-	ImplI(IWidget) AController&
-	GetController() const override;
+	ImplI(IWidget)
+		DefGetter(const override, AController&, Controller, *controller_ptr)
 	DefGetterMem(const ynothrow, SDst, Height, GetView())
-	ImplI(IWidget) Renderer&
-	GetRenderer() const override;
-	ImplI(IWidget) View&
-	GetView() const override;
+	ImplI(IWidget) DefGetter(const override, Renderer&, Renderer, *renderer_ptr)
+	ImplI(IWidget) DefGetter(const override, View&, View, *view_ptr)
 	DefGetterMem(const ynothrow, SDst, Width, GetView())
 	DefGetterMem(const ynothrow, SPos, X, GetView())
 	DefGetterMem(const ynothrow, SPos, Y, GetView())

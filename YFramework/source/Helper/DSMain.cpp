@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3051
+\version r3069
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-07-09 10:01 +0800
+	2013-07-14 19:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,23 +54,6 @@ std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 //注册的应用程序指针。
 DSApplication* pApp;
 
-
-#if YCL_MINGW32
-//! \since build 381
-::HWND
-InitializeMainWindow(const wchar_t* wnd_title, u16 wnd_w, u16 wnd_h,
-	::DWORD wstyle = WS_TILED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
-{
-	::RECT rect{0, 0, wnd_w, wnd_h};
-
-	::AdjustWindowRect(&rect, wstyle, FALSE);
-	return ::CreateWindowW(Host::WindowClassName, wnd_title, wstyle,
-		CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
-		rect.bottom - rect.top, HWND_DESKTOP, nullptr,
-		::GetModuleHandleW(nullptr), nullptr);
-}
-#endif
-
 } // unnamed namespace;
 
 
@@ -105,8 +88,9 @@ DSApplication::DSApplication()
 	YAssert(IsScreenReady(), "Screen is not ready.");
 
 	p_wnd_thrd.reset(new WindowThread([this]{
-		return unique_ptr<Window>(new DSWindow(InitializeMainWindow(
-			L"YSTest", 256, 384), *scrs[0], *scrs[1], GetHost()));
+		return unique_ptr<Window>(new DSWindow(CreateNativeWindow(
+			WindowClassName, {256, 384}, L"YSTest", WS_TILED | WS_CAPTION
+			| WS_SYSMENU | WS_MINIMIZEBOX), *scrs[0], *scrs[1], GetHost()));
 	}));
 	// FIXME: Reduce possible data race.
 	while(!p_wnd_thrd->GetWindowPtr())
@@ -176,7 +160,7 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType)
 {
 #else
-#	error Unsupported platform found.
+#	error "Unsupported platform found."
 #endif
 	return true;
 }

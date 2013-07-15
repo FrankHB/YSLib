@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3315
+\version r3317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-07-08 13:34 +0800
+	2013-07-15 06:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -278,7 +278,7 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 	style_name = ref.second.get().style_name;
 	ref.first.get() += *this;
 }
-Typeface::~Typeface()
+Typeface::~Typeface() ynothrow
 {
 	size_cache.clear();
 	glyph_index_cache.clear();
@@ -402,7 +402,7 @@ FontCache::FontCache(size_t /*cache_size*/)
 			ystdex::sfmt("Font init failed: %08x\n;", error).c_str(), 1);
 	}
 }
-FontCache::~FontCache()
+FontCache::~FontCache() ynothrow
 {
 	ClearContainers();
 	::FT_Done_FreeType(library);

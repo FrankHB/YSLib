@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3080
+\version r3084
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-07-08 10:58 +0800
+	2013-07-15 06:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -278,8 +278,8 @@ public:
 	\post 断言： \c cmap_index 在 face 接受的范围内。
 	*/
 	Typeface(FontCache&, const FontPath&, u32 = 0);
-	//! since build 420
-	~Typeface();
+	//! since build 428
+	~Typeface() ynothrow;
 
 	/*!
 	\brief 比较：相等关系。
@@ -446,8 +446,9 @@ public:
 	FontCache(size_t = DefaultGlyphCacheSize);
 	/*!
 	\brief 析构：释放空间。
+	\since build 428
 	*/
-	~FontCache();
+	~FontCache() ynothrow;
 
 public:
 	/*!

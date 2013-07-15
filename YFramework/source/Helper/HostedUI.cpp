@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r75
+\version r105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-07-09 14:19 +0800
+	2013-07-14 20:17 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,6 +27,7 @@
 
 #include "Helper/HostedUI.h"
 #include "HostRenderer.h"
+#include <YSLib/UI/ycontrol.h> // for UI::FetchEvent;
 
 YSL_BEGIN
 
@@ -50,6 +51,17 @@ GetWindowPtrOf(UI::IWidget& wgt)
 	return nullptr;
 }
 
+Window&
+WaitForHostWindow(UI::IWidget& wgt)
+{
+	auto& renderer(dynamic_cast<HostRenderer&>(wgt.GetRenderer()));
+	Host::Window* p_wnd{};
+
+	while(!p_wnd)
+		p_wnd = renderer.GetWindowPtr();
+	return *p_wnd;
+}
+
 
 unique_ptr<BufferedRenderer>
 MakeHostRenderer(IWidget& wgt, std::function<NativeWindowHandle()> f)
@@ -69,6 +81,28 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 		wnd.Move(wnd.GetLocation() + offset);
 		st.ControlLocation -= offset - GetLocationOf(e.GetSender());
 	}
+}
+
+#	if YCL_MINGW32
+
+void
+ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, const wchar_t* title)
+{
+	WrapRenderer(wgt, CreateNativeWindow, WindowClassName, GetSizeOf(wgt),
+		title, wstyle);
+}
+#	endif
+
+void
+ShowTopLevelDraggable(UI::Widget& wgt)
+{
+#	if YCL_MINGW32
+	ShowTopLevel(wgt, WS_POPUP);
+#else
+#	error "Currently only Windows is supported."
+#endif
+	UI::FetchEvent<UI::TouchHeld>(wgt) += std::bind(Host::DragWindow,
+		std::ref(Host::WaitForHostWindow(wgt)), std::placeholders::_1);
 }
 
 YSL_END_NAMESPACE(Host)

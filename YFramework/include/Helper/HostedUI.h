@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r92
+\version r116
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-07-09 15:01 +0800
+	2013-07-14 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,15 @@ GetHostRendererPtrOf(UI::IWidget&);
 YF_API Window*
 GetWindowPtrOf(UI::IWidget&);
 
+/*!
+\brief 等待宿主渲染器窗口就绪。
+\return 宿主渲染器对应的窗口引用。
+\exception std::bad_cast 异常中立：渲染器类型转换为 HostRenderer 失败。
+\since build 428
+*/
+YF_API Window&
+WaitForHostWindow(UI::IWidget&);
+
 
 /*!
 \brief 制造新的宿主渲染器。
@@ -86,6 +95,25 @@ WrapRenderer(UI::Widget& wgt, _tParams&&... args)
 */
 YF_API void
 DragWindow(Window&, UI::CursorEventArgs&&);
+
+#	if YCL_MINGW32
+
+/*!
+\brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。
+\since build 428
+*/
+YF_API void
+ShowTopLevel(UI::Widget&, ::DWORD, const wchar_t* = L"");
+#	endif
+
+/*!
+\brief 显示控件为顶层可拖动的 GUI 对象。
+\note 可能会因为等待顶层对象就绪的宿主渲染器窗口就绪阻塞。
+\note 使用 DragWindow 实现拖动宿主窗口，因此需要能支持 UI::TouchHeld 事件。
+\since build 428
+*/
+YF_API void
+ShowTopLevelDraggable(UI::Widget&);
 
 YSL_END_NAMESPACE(Host)
 #endif

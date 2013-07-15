@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2315
+\version r2318
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-07-09 05:00 +0800
+	2013-07-14 19:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,10 +79,10 @@
 // TODO: Complete version checking for compiler and library implementations.
 //#ifdef __GNUC__
 //#	include <tr1/type_traits>
-#		error This language implementation is not supported!
+#		error "This language implementation is not supported."
 #	endif
 #else
-#	error This header is only for C++!
+#	error "This header is only for C++."
 #endif
 
 //@}
@@ -311,7 +311,7 @@
 \todo 判断语言实现。
 */
 #if defined(YB_DLL) && defined(YB_BUILD_DLL)
-#	error DLL could not be built and used at the same time!
+#	error "DLL could not be built and used at the same time."
 #endif
 
 #ifdef YB_DLL

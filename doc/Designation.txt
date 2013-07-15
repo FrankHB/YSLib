@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8970
+\version r8978
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-10 05:54 +0800
+	2013-07-12 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -312,7 +312,7 @@ Shell 和 Core 的关系是相对的，例如：
 @5.2.2.2 实现定义行为：
 
 @5.2.2.2.1 对于未说明字符串参数编码的文件操作接口：
-必要时的编码转换使用 CHRLib([Documentation::YFramework @@2.5]) 。
+必要时的编码转换使用 CHRLib([Documentation::YFramework @@2.6]) 。
  DS 直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
  MinGW32 直接使用 UCS2-LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL2-LE 路径，使用 _w 起始的 MSVCRT 文件函数。
 
@@ -406,9 +406,9 @@ Shell 和 Core 的关系是相对的，例如：
 
 @5.4 专用库：
 包含于 YFramework 中的子库。
-关于 CHRLib ，参见 [Documentation::YSLib @@2.5] 。
-关于 Helper ，参见 [Documentation::YSLib @@2.6] 。
-关于 NPL ，参见 [Documentation::YSLib @@2.7] 。
+关于 CHRLib ，参见 [Documentation::YFramework @@2.6] 。
+关于 Helper ，参见 [Documentation::YFramework @@2.7] 。
+关于 NPL ，参见 [Documentation::YFramework @@2.8] 。
 本节余下内容描述第三方专用库。
 
 @5.4.1
@@ -510,7 +510,7 @@ BASE_EXTENSIONS += ftbbox.c
  ytest ：测试框架设施 YTest 。
 
 @5.6.3 YFramework 引入的命名空间：
-参见 [Documentation::YSLib @@2.1.4] 。
+参见 [Documentation::YFramework @@2.2.4] 。
 
 @6 编码风格导引：
 仅叙述之前章节未涉及的内容。

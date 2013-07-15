@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r81
+\version r82
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-07-11 07:08 +0800
+	2013-07-14 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include "YSLib/Core/yexcept.h" // for YSLib::LoggedEvent;
 
 #if !YCL_MINGW32
-#	error This file is only for MinGW32.
+#	error "This file is only for MinGW32."
 #endif
 
 /*!

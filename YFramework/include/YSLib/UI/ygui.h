@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2025
+\version r2033
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-07 06:29 +0800
+	2013-07-15 08:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,6 +144,15 @@ public:
 		//独立键焦点指针。
 	DefGetter(const ynothrow, IWidget*, TouchDownPtr, p_TouchDown) \
 		//独立屏幕焦点指针。
+	
+	/*!
+	\brief 清除状态对指定部件的引用。
+	\post p_KeyDown 、 p_CursorOver 和 p_TouchDown 和指定部件的指针不相等。
+	\note 若没有找到对指定部件的引用则不改变状态。
+	\since build 428
+	*/
+	void
+	CleanupReferences(IWidget&);
 
 	/*!
 	\brief 复位图形用户界面状态。

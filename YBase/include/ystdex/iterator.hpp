@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2774
+\version r2798
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-07-04 07:39 +0800
+	2013-07-14 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1009,14 +1009,13 @@ operator!=(const indirect_input_iterator<_tIterator>& x,
 }
 
 
-//! \since build 414
-//@{
 /*!
 \ingroup iterators
 \brief 位段迭代器。
 \tparam _vN 段宽度。
 \tparam _bEndian 位序， ture 时为大端，否则为小端。
 \warning 非虚析构。
+\since build 414
 \todo 支持 const byte* 实现的迭代器。
 
 对字节分段提供的随机访问迭代器。
@@ -1166,49 +1165,57 @@ public:
 	}
 };
 
-template<size_t _vN>
+//! \since build 428
+//@{
+template<size_t _vN, bool _bEndian>
 inline bool
-operator==(const bitseg_iterator<_vN>& x, const bitseg_iterator<_vN>& y)
+operator==(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
 {
-	typedef typename bitseg_iterator<_vN>::pointer pointer;
+	typedef typename bitseg_iterator<_vN, _bEndian>::pointer pointer;
 
 	return pointer(x) == pointer(y) && x.get_shift() == y.get_shift();
 }
 
-template<size_t _vN>
+template<size_t _vN, bool _bEndian>
 inline bool
-operator!=(const bitseg_iterator<_vN>& x, const bitseg_iterator<_vN>& y)
+operator!=(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
 {
 	return !(x == y);
 }
 
-template<size_t _vN>
+template<size_t _vN, bool _bEndian>
 inline bool
-operator<(const bitseg_iterator<_vN>& x, const bitseg_iterator<_vN>& y)
+operator<(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
 {
-	typedef typename bitseg_iterator<_vN>::pointer pointer;
+	typedef typename bitseg_iterator<_vN, _bEndian>::pointer pointer;
 
 	return pointer(x) < pointer(y)
 		|| (pointer(x) == pointer(y) && x.get_shift() < y.get_shift());
 }
 
-template<size_t _vN>
+template<size_t _vN, bool _bEndian>
 bool
-operator<=(const bitseg_iterator<_vN>& x, const bitseg_iterator<_vN>& y)
+operator<=(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
 {
 	return !(y < x);
 }
 
-template<size_t _vN>
+template<size_t _vN, bool _bEndian>
 bool
-operator>(const bitseg_iterator<_vN>& x, const bitseg_iterator<_vN>& y)
+operator>(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
 {
 	return y < x;
 }
 
-template<size_t _vN>
+template<size_t _vN, bool _bEndian>
 bool
-operator>=(const bitseg_iterator<_vN>& x, const bitseg_iterator<_vN>& y)
+operator>=(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
 {
 	return !(x < y);
 }

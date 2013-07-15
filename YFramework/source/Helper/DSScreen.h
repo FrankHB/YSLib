@@ -11,13 +11,13 @@
 /*!	\file DSScreen.h
 \ingroup Helper
 \brief DS 屏幕。
-\version r409
+\version r410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2013-07-09 09:15 +0800
+	2013-07-14 19:48 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -103,7 +103,7 @@ public:
 		sf.Update(rbuf, Offset);
 	}
 #else
-#	error Unsupported platform found.
+#	error "Unsupported platform found."
 #endif
 };
 

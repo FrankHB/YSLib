@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1399
+\version r1408
 \author FrankHB<frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-06-20 14:45 +0800
+	2013-07-14 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -709,11 +709,18 @@ protected:
 
 public:
 	/*!
+	\brief 默认构造：使用空指针和大小。
+	\since build 428
+	*/
+	Graphics() ynothrow
+		: Graphics({})
+	{}
+	/*!
 	\brief 构造：使用指定位图指针和大小。
-	\since build 337
+	\since build 428
 	*/
 	explicit yconstfn
-	Graphics(BitmapPtr b = {}, const Size& s = {}) ynothrow
+	Graphics(BitmapPtr b, const Size& s = {}) ynothrow
 		: pBuffer(b), sGraphics(s)
 	{}
 	/*!

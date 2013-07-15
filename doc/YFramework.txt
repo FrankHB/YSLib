@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r521
+\version r593
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-11 10:34 +0800
+	2013-07-14 16:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -317,24 +317,38 @@
 本章描述 YSLib 项目中的 YFramework 框架库。外部依赖项和 YSLib 项目整体配置参见 [Documentation::Designation @@5] 。
 模块化设计原则参见 [Documentation::CommonRules @@3.7.1] 。
 一个模块目录([Documentation::ProjectRules @@3.2]) 中的模块组成一个系统。
-关于一些文件的文件名的额外约定参见 @2.1 。
+关于一些文件的文件名的额外约定参见 @2.2 。
 
 @2.1 框架组成和依赖项规则：
 基本目录和文件组织规则参见 [Documentation::ProjectRules @@3.3] 。
  YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
-其中最核心的部分是 YSLib 库，除了本文档描述外，参见 [Documentation::YSLib] 。
-对于 YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3rdparty/" 目录下。其它部分的原始目录为 "/YFramework" 。例如 YSLib 位于 "/YFramework/YSLib/" 目录下。
-关于 YFramework 依赖的外部项目（包括平台支持和基础库 YBase([Documentation::YBase]) ）的关联和配置参见 [Documentation::Designation @@5] 。
- 除了 YSLib 和第三方库， YFramework 也集成了一些附加的库，这些库不直接在 YSLib 命名空间中添加声明（参见 @2.1.4 ）。其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖于 YSLib ，包括 CHRLib(@2.5) 和 YCLib(@5.2.2) ；另一部分依赖于 YSLib ，包括 NPL(@2.7) 和 Helper(@2.6) 。其它具体说明参见 [Documentation::Designation @@5] 。
- YSLib 没有平台扩展。 YSLib 中，目录 "/YFramework/Adaptor/" 下的部分称为 Adaptor [Documentation::YSLib @@2] ，其它部分总称为本体，其接口和实现都是平台中立的。
- Adaptor 的公开接口是平台中立的。
- Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元需要重新编译，因此除非是用来实现基本功能的外部的库，新增的平台相关的部分应尽量放在外部的 Helper 库(@2.6) 而不是 Adaptor 中。
 除非另有说明，仅保证非成员函数（排除声明紧随于某个类之后，首个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
 关于 YBase 的文件依赖性参见 [Documentation::YBase @@2.2] 。
- @2.1 以下部分指定 YFramework 中明确或明确禁止依赖的文件，排除构建的中间文件。非公开头文件的适用规则同非头文件。以下头文件指公开头文件。
 
-@2.1.1 基本文件依赖性（适用于 YFramework ）：
- YSLib 和 Helper(@2.6) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
+@2.1.1 组成概述：
+ YFramework 最核心的部分是 YSLib 库，除了本文档描述外，参见 [Documentation::YSLib] 。
+ YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3rdparty/" 目录下。其它部分的原始目录为 "/YFramework" 。例如 YSLib 位于 "/YFramework/YSLib/" 目录下。
+当前第三方库和 YFramework 其它部分编译为单独的目标（静态库或动态库）。
+关于 YFramework 依赖的外部项目（包括平台支持和基础库 YBase([Documentation::YBase]) ）的关联和配置参见 [Documentation::Designation @@5] 。
+除了 YSLib 和第三方库， YFramework 也集成了一些附加的库，这些库不直接在 YSLib 命名空间中添加声明（参见 @2.2.4 ）。其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖于 YSLib ，包括 CHRLib(@2.6) 和 YCLib(@5.2.2) ；另一部分依赖于 YSLib ，包括 NPL(@2.8) 和 Helper(@2.7) 。其它具体说明参见 [Documentation::Designation @@5] 。
+综上所述， YFramework 有以下非第三方次级子项目： CHRLib 、 YCLib 、 YSLib 、 NPL 和 Helper 。
+
+@2.1.2 平台相关性：
+除平台扩展外的 YFramework 公开接口是平台中立的（但 YCLib 和 Helper 接口可能会限定平台集合，如宿主实现环境）；
+ YSLib 没有平台扩展。对 YSLib 的平台特定的功能扩展由 Helper 提供。
+平台扩展一般直接作为目标平台的接口，但也可以包括仅供实际目标平台模拟的接口。使用 YCL/Platform.h 中定义的平台宏([Documentation Designation @@5.2.2.3.1]) 确定实际平台。
+
+@2.1.3 YSLib Adaptor 和本体：
+ YSLib 中，目录 "/YFramework/Adaptor/" 下的部分称为 Adaptor [Documentation::YSLib @@2] ，其它部分总称为本体。
+除了标准库和 YBase 的公开接口外，本体的接口和实现以及 Adaptor 的公开接口没有 YSLib 以外的依赖项。
+而 Adaptor 非公开接口除此之外还可能有其它外部依赖项（第三方库），但这些依赖项的公开接口是平台中立的。
+ Adaptor 被 YSLib 的几乎所有其它部分依赖。 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元需要重新编译，因此除非是用来实现基本功能、有必要被足够多模块依赖的的外部依赖项，新增的部分应尽量放在外部的 Helper 库(@2.7) 而不是 Adaptor 中。
+
+@2.2 文件依赖性：
+以下部分指定 YFramework 中明确或明确禁止依赖的文件，排除构建的中间文件。非公开头文件的适用规则同非头文件。以下头文件指公开头文件。
+
+@2.2.1 基本文件依赖性（适用于 YFramework ）：
+ YSLib 和 Helper(@2.7) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
 关于 ISO C++11 直接指定的依赖项，参见 [Documentation::CommonRules @@5.25.2] ；其它基本代码依赖性规则如下（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
 禁止依赖于（包括包含）非头文件。
 除非另有说明，禁止重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
@@ -342,14 +356,14 @@
  YFramework/YBaseMacro.h 不依赖 YFramework 中的任何其它文件。
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 必要文件不依赖非必要文件。
-任意 YFramework 文件可依赖 @2.1 以下部分指定的标准库头文件以及 YBase 头文件。
- YCLib 和 Helper 文件可依赖具体平台相关的外部依赖项。关于 Helper 的文件附加依赖规则参见 @2.6 。
+任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头文件以及 YBase 头文件。
+ YCLib 和 Helper 文件可依赖具体平台相关的外部依赖项。关于 Helper 的文件附加依赖规则参见 @2.7 。
 
-@2.1.2 YCLib 文件依赖性：
+@2.2.2 YCLib 文件依赖性：
  YCLib 平台扩展可依赖 YSLib/Core 的文件。
  YCLib 中除 YCLib/Platform.h 外的文件仅可被 YCLib 、 YSLib 和 Helper 依赖。
 
-@2.1.3 YSLib 文件依赖性：
+@2.2.3 YSLib 文件依赖性：
 除 @2.1.1 约定的之外， YSLib 不依赖 CHRLib 、 YCLib 和 YSLib 以外的文件。
 除 YSLib/Adaptor/yadaptor.h 外， YSLib/Adaptor 头文件不依赖 YCLib/ycommon.h 以外的 YCLib 文件。
  YSLib/Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
@@ -357,16 +371,16 @@
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
-@2.1.4 YFramework 引入的命名空间：
+@2.2.4 YFramework 引入的命名空间：
  platform ：平台中立：接口平台无关但实现平台相关的实用程序。 YSLib 本体间接依赖（可配置 using 声明的名称）于此命名空间。
  platform_ex ：平台扩展：接口和实现都平台相关的实用程序。 YSLib 本体不依赖于此命名空间。
  CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）于此命名空间。
- NPL ：子库 NPL(@2.7) 的命名空间。
+ NPL ：子库 NPL(@2.8) 的命名空间。
  YSLib ： YSLib 库命名空间。
 
-@2.2 实体实现规则：
+@2.3 实体实现规则：
 
-@2.2.1 对象准则：
+@2.3.1 对象准则：
 局部对象在声明时同时初始化。
 函数内变量尽可能置于最小作用域内——除非效率原因，尽可能使用语句块级对象代替函数级局部对象。
 避免在嵌套类中定义被嵌套类的定义，除非能够确保此定义的实现无关性。
@@ -375,7 +389,7 @@
 除非程序明确为单线程的，禁止使用非 POD(plain-old data) 类型的全局对象。若非必要，用内建 (built-in) 类型代替 POD 结构体全局对象。
 多线程程序中，禁止使用非 const 全局对象。
 
-@2.2.2 对象引用和所有权管理：
+@2.3.2 对象引用和所有权管理：
 基本概念参见 [Documentation::CommonRules @@2.3.3] 。
 注意基于非透明引用计数实现的非侵入式智能指针（如 boost::shared_ptr/std::tr1::shared_ptr 以及 C++11 的 std::shared_ptr ）具有以下固有的缺点：
 无法修改引用计数并直接转移所有权，资源实例的生存期依赖于至少一个具体智能指针对象的生存期；
@@ -388,7 +402,7 @@
 对于需要保持所有权但又要避免重复引用计数的开销的情况，使用 std::unique_ptr 。
 其它情况下，使用不含所有权的内建指针，以保持用户程序对资源管理的选择自由和灵活性。若没有在注释或文档注明所有权关系，均应视为由用户程序对象具有指针参数指向对象的所有权。
 
-@2.2.2.1 所有权标签：
+@2.3.2.1 所有权标签：
 以下独占所有权关系中，被托管对象类不是直接的成员或明确具有所有权语义的指针指向的对象。使用 OwnershipTag 模板标识这些类型。
 所有者（基类）中 private 继承了 OwnershipTag<_type> 。被托管对象的实际类型可能是 _type 的派生类。实例包括：
  Drawing::FontCache 具有 Drawing::Typeface 和 Drawing::FontFamily 的所有权；
@@ -396,38 +410,38 @@
  Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
 可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。
 
-@2.3 语言特性和扩展支持：
-除了 YBaseMacro(@2.3.1) 外，主要位于 YBase[Documentation::YBase] 、 YFramework::YCLib 和 YFrameowrk::YSLib::Core[Documentation::YSLib @@3.1] 中。
+@2.4 语言特性和扩展支持：
+除了 YBaseMacro(@2.4.1) 外，主要位于 YBase[Documentation::YBase] 、 YFramework::YCLib 和 YFrameowrk::YSLib::Core[Documentation::YSLib @@3.1] 中。
  YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无关的宏，用于简化代码。具体使用参见 @6.2.1 。
 
-@2.3.1 接口
+@2.4.1 接口
 
-@2.3.2 断言
+@2.4.2 断言
 
-@2.3.3 成员函数简写（代码生成器）
+@2.4.3 成员函数简写（代码生成器）
 
-@2.4 类型构建：
+@2.5 类型构建：
 
-@2.4.1 基本约束：
+@2.5.1 基本约束：
 命名必须和标识符命名规约(@4) 兼容。
 
-@2.4.2 类型特性：
+@2.5.2 类型特性：
 除了 I 和 A 前缀的类，都不含有纯虚函数。
 命名中按以下列出的顺序确定分类。
 
-@2.4.3 I 前缀类名的类：
+@2.5.3 I 前缀类名的类：
 接口类型([Documentation::CommonRules @@2.4.1]) 或纯虚类。
 
-@2.4.4 A 前缀类名的类：
+@2.5.4 A 前缀类名的类：
 抽象类。
 成员函数中至少存在一个纯虚函数；不能被实例化。
 
-@2.4.5 S 前缀类名的类：
+@2.5.5 S 前缀类名的类：
 静态类。
 除了类型定义外，应仅包含静态成员。但编译时不作检查。
 可参与多重继承，例如作为特征类(traits class) 。
 
-@2.4.6 M 前缀类名的类：
+@2.5.6 M 前缀类名的类：
 模块类。
 具有 public 或 protected 的无参数（或所有参数都有默认参数）的构造函数。不一定能够被复制构造（可能显式地被禁止）。
 用于提供实现而非规范接口，可定义人本接口成员。
@@ -435,26 +449,26 @@
 当作为非多态类时析构函数应为 protected （除非它的所有派生类都没有在它的基础上扩展域，或都满足析构函数为 protected ），且不可作为类的成员或被实例化。
 其它情况下可实例化，但通常仅用于作为类实例的子对象（混入实例）。此时应尽可能减少虚表体积，并降低额外的运行时效率开销（例如，不使用引用类型的成员）。
 
-@2.4.7 H 前缀类名的类型：
+@2.5.7 H 前缀类名的类型：
 从属于相近但不同的两类：
 句柄(handles) ：具有间接访问语义的类型（例如指针、引用或迭代器）。
 处理器(handlers) ：具有回调功能的类型（例如事件处理器或 std::function 的实例）。
 
-@2.4.8 无前缀类名的类型：
+@2.5.8 无前缀类名的类型：
 一般类型。
 其它类型。无其它限制和特性保证。
 
-@2.4.9 异常类总览：
+@2.5.9 异常类总览：
 专用于被 C++ 异常机制捕获的类称为异常类。
 异常类不一定在特定的命名空间中定义，但 YSLib 集中使用某些异常，参见 [Documentation::YSLib @@3.1.5] 。
 
-@2.5 字符表示结构支持库 CHRLib ：
+@2.6 字符表示结构支持库 CHRLib ：
 位于 "/CHRLib" 。非外部依赖项。
 支持字符相关构造（编码和字符集等）的抽象。
 支持特定编码字符串的转换。
 参见 [Documentation::CHRLib] 。
 
-@2.6 助手(Helper) 库：
+@2.7 助手(Helper) 库：
 位于 "/Helper" 。非外部依赖项。
 除 @2.1.1 的限制， Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
 可能平台相关的外部库，可以提供宿主实现、加入插件等，一般由库用户自行配置。
@@ -463,7 +477,7 @@
  main 函数由 Helper 的其它源文件封装，或由用户提供。
  Helper 定义的类型若适用于不同平台，不保证二进制兼容性，除非另有说明。
 
-@2.6.1 YGlobal 单元：
+@2.7.1 YGlobal 单元：
 平台相关的全局对象和函数定义。
 除了以下接口，其它都是不确定的：
 const SDst MainScreenWidth, MainScreenHeight;
@@ -477,14 +491,22 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
  YSLib 不依赖这些接口以外的特性。
 
-@2.6.2 Application 派生类：
+@2.7.2 Application 派生类：
 适应于具体平台的应用程序实例抽象。
 包含默认消息循环等。
 
-@2.6.3 初始化 Initialization ：
-参见 [Documentation::YSLib @@6] 。
+@2.7.3 初始化 Initialization ：
+关于配置文件格式和内容参见 [Documentation::YSLib @@6] 。
+初始化的重要策略之一是在程序启动时减少不必要的初始化，以达到以下的优势：
+减少可能的外部依赖（如不需要使用文字的程序就不初始化字体缓存，也不需要依赖外部字体文件和字体配置等）；
+减少可能的资源占用；
+保留静态链接时优化去除没有调用的代码以减少二进制可执行文件体积的可能性。
+因此，对于一些全局资源使用静态函数内 static 对象实现单态(monostate) 模式，保存全局状态。当前取得单态状态的接口包括：
+ FetchRoot ：取值类型根节点；
+ FetchDefaultFontCache ：取默认字体缓存。
+其它如 ImageCodec 因为未包含复杂副作用，当前不提供接口。用户可以自行初始化这些对象。
 
-@2.7 NPL 库：
+@2.8 NPL 库：
 实现基于 S 表达式的名称协议语言，当前仅用于用户配置设置。
 
 @3 API 设计和风格概述：

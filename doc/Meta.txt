@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r534
+\version r549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-07-11 14:51 +0800
+	2013-07-14 15:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,9 +148,6 @@ $KNOWN_ISSUE:
 	// Though clang++ will complain for '-Wmismatched-tags', it's totally \
 		safe. Only on non-comforming implementation(like Micrsoft C++) it \
 		would be a problem.
-* $known_issue_b351_3 "Clang++ 3.2 bugs on access control"
-	// Clang++ 3.2 (trunk161531) rejected wrongly valid code in "iterator.hpp" \
-		and "yevt.hpp" which G++ 4.7.2 accepted.
 * $known_issue_b353 "'lto1.exe : internal compiler error : \
 	in lto_output_varpool_node, at lto-cgraph.c:595' when compiling with \
 	-flto=jobserver" @ "project %YSTest_ARM9" @ "debug configuration"
@@ -237,10 +234,17 @@ $RESOLVED_ENVIRONMENT_ISSUE:
 	same type as class being defined";
 	// See http://stackoverflow.com/questions/11928089/static-constexpr-member-of-same-type-as-class-being-defined and \
 		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3308.pdf .
-	// G++(4.7) would reject some code snippets. Clang++ 3.2 (trunk161531) \
+	// G++ 4.7 would reject some code snippets. Clang++ 3.2 (trunk161531) \
 		rejects even more, including code accepted by G++ such as only list \
 		initialization is being used like constexpr static member in \
 		"ygdibase.h".
+* $known_issue_b351_3 $resolved_b428 "Clang++ 3.2 bugs on access control"
+	// Clang++ 3.2 (trunk161531) wrongly rejected valid code in "iterator.hpp" \
+		and "yevt.hpp" which G++ 4.7.2 accepted.
+	// Clang++ 3.3 tested, accepting code above but having trouble to compile \
+		code in "ygdibase.h" which concerned with static_cast of private bases \
+		in class scope and accepted by G++ 4.8.0 correctly.
+	// Clang++ 3.4 (trunk186265) tested fixed.
 
 
 $RESOLVED_BUG:
@@ -280,6 +284,11 @@ $ellipse_debug_assertion;
 
 $ref $=
 (
+b428
+(
+$note "G++ bug 53402"
+$URL http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53402
+),
 b412 
 (
 $note "N3652"

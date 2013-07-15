@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1013
+\version r1014
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-07-09 09:16 +0800
+	2013-07-14 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ typedef char NativePathCharType;
 */
 yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 #else
-#	error Unsupported platform found.
+#	error "Unsupported platform found."
 #endif
 
 //! \since build 402
