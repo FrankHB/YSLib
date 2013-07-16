@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r298
+\version r331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-07-14 19:46 +0800
+	2013-07-15 14:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,8 +126,6 @@ InitVideo()
 #if YCL_DS
 	platform_ex::ResetVideo();
 	platform_ex::lcdMainOnTop();
-//	platform_ex::lcdMainOnBottom();
-//	platform_ex::lcdSwap();
 #endif
 	return true;
 }
@@ -154,8 +152,8 @@ ResetVideo()
 	::vramSetBankI(VRAM_I_LCD);
 //	memset(OAM, 0, SPRITE_COUNT * sizeof(SpriteEntry));
 //	memset(OAM_SUB, 0, SPRITE_COUNT * sizeof(SpriteEntry));
-	videoSetMode(MODE_5_2D);
-	videoSetModeSub(MODE_5_2D);
+	::videoSetMode(MODE_5_2D);
+	::videoSetModeSub(MODE_5_2D);
 }
 
 
@@ -188,6 +186,38 @@ ScreenSynchronize(platform::PixelType* buf, const platform::PixelType* src)
 
 	::DC_FlushRange(src, sizeof(ScreenBufferType));
 	::dmaCopyWordsAsynch(3, src, buf, sizeof(ScreenBufferType));
+}
+#endif
+
+#if YCL_DS || YCL_HOSTED
+bool
+DSVideoState::IsLCDMainOnTop() const
+{
+#	if YCL_DS
+	return REG_POWERCNT & POWER_SWAP_LCDS;
+#	else
+	return LCD_main_on_top;
+#endif
+}
+
+void
+DSVideoState::SetLCDMainOnTop(bool b)
+{
+#	if YCL_DS
+	b ? lcdMainOnTop() : lcdMainOnBottom();
+#	else
+	LCD_main_on_top = b;
+#endif
+}
+
+void
+DSVideoState::SwapLCD()
+{
+#	if YCL_DS
+	lcdSwap();
+#	else
+	LCD_main_on_top = !LCD_main_on_top;
+#endif
 }
 #endif
 

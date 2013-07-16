@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1730
+\version r1741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-07-14 19:44 +0800
+	2013-07-16 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,16 +240,16 @@ main()
 				using namespace YSLib::UI;
 				using YReader::Image_N;
 
-				Desktop dsk_up(app.GetScreenUp()), dsk_dn(app.GetScreenDown());
+				Desktop dsk_m(app.GetScreenUp()), dsk_s(app.GetScreenDown());
 				Label lblTitle({50, 20, 100, 22}), lblStatus({60, 80, 120, 22}),
 					lblDetails({30, 20, 160, 22});
 				ProgressBar pb({8, 168, 240, 16}, Image_N);
 
-				AddWidgets(dsk_up, lblTitle, lblStatus, pb);
-				dsk_dn += lblDetails;
+				AddWidgets(dsk_m, lblTitle, lblStatus, pb);
+				dsk_s += lblDetails;
 				yunseq(
-					dsk_up.Background = SolidBrush(Color(240, 216, 192)),
-					dsk_dn.Background
+					dsk_m.Background = SolidBrush(Color(240, 216, 192)),
+					dsk_s.Background
 						= SolidBrush(FetchGUIState().Colors[Styles::Desktop]),
 					//Color(240, 216, 240),
 					lblTitle.Text = G_APP_NAME,
@@ -258,21 +258,21 @@ main()
 					lblDetails.ForeColor = Drawing::ColorSpace::White
 				);
 				lblDetails.Background = nullptr;
-				SetInvalidationOf(dsk_up);
-				yunseq(dsk_up.Validate(), dsk_dn.Validate());
-				dsk_up.Update(), dsk_dn.Update();
+				SetInvalidationOf(dsk_m);
+				yunseq(dsk_m.Validate(), dsk_s.Validate());
+				dsk_m.Update(), dsk_s.Update();
 				//初始化所有图像资源。
 				for(size_t i(0); i < Image_N; ++i)
 				{
 					pb.SetValue(i);
 			//		Invalidate(pb);
-					dsk_up.Background
+					dsk_m.Background
 						= SolidBrush(Color(255 - i * 255 / Image_N, 216, 192));
-					Repaint(dsk_up);
+					Repaint(dsk_m);
 					YReader::FetchImage(i);
 				}
 				pb.SetValue(Image_N);
-				Repaint(dsk_up);
+				Repaint(dsk_m);
 			}
 			Execute(app, make_shared<YReader::ShlExplorer>());
 			//释放 Shell （必要，保证释放 Shell 且避免资源泄漏）。

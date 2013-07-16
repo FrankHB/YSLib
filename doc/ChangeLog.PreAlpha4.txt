@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1632
+\version r1701
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-15 08:48 +0800
+	2013-07-16 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,76 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		+ "class %platform_ex::DSVideoState" @ 'YCL_DS || YCL_HOSTED'
+			@ %'YCLib'.'Video',
+		+ "member function %WindowReference::Invalidate"
+			@ %'YCLib_(MinGW32)'.'Win32GUI',
+		/ %'Helper' $=
+		(
+			/ %'HostWindow' $=
+			(
+				$dep_from "%WindowReference::Invalidate";
+				+ "'using WindowReference::Invalidate;'" @ "class %Host::Window";
+			),
+			/ %'DSMain' $=
+			(
+				+ $dev "restricted 'YCL_DS || YCL_HOSTED'" @ "header",
+				/ @ "class %DSApplication" $=
+				(
+					(
+						$dep_from %'YCLib'.'Video';
+						+ "private inheritance %platform_ex::DSVideoState";
+						+ 'using DSVideoState::IsLCDMainOnTop;'
+					),
+					$dep_from %'HostWindow';
+					+ "member function %SwapScreens"
+				)
+			),
+			/ @ "class %ShlDS" @ %'Shell_DS' $=
+			(
+				(
+					+ "cursor desktop pointer";
+					+ "member functions %(GetCursorDesktopHandle,
+						GetCursorDesktop)"
+				),
+				(
+					$dep_from "class %DSApplication";
+					+ "member function %SwapScreens";
+					+ "function %WrapForSwapScreens"
+				),
+				+ "member function %SwapDesktops",
+				/ "member function %GetDesktopDown" => "%GetSubDesktop",
+				/ "member function %GetDesktopDownHandle"
+					=> "%GetSubDesktopHandle",
+				/ "member function %GetDesktopUp" => "%GetMainDesktop",
+				/ "member function %GetDesktopUpHandle"
+					=> "%GetMainDesktopHandle"
+			)
+		),
+		/ %'YSLib'.'UI' $=
+		(
+			+ "class template %GEventGuard" @ %'YEvent';
+			/ %'YControl' $=
+			(
+				/ "function template %NewEvent" >> %'YWidgetEvent';
+				/ "function %GetEvent" >> %'YWidgetEvent';
+				/ "function templates %FetchEvent except for %IWidget"
+					>> %'YWidgetEvent'
+			)
+		)
+	);
+	/% 'YReader'.'file explorer' $=
+	(
+		$dep_from "";
+		+ "swap screens when key pressed down has mask specified by mask",
+		+ "buttons for swapping screens on desktops"
+	)
+),
+
+b428
 (
 	/ %'YFramework' $=
 	(

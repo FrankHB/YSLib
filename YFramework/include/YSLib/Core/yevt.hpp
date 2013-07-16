@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4377
+\version r4402
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-07-04 07:39 +0800
+	2013-07-16 09:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -493,6 +493,34 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
 //! \since build 409
 template<typename _tRet, typename... _tParams>
 inline DefSwap(ynothrow, GEvent<_tRet(_tParams...)>)
+
+
+/*!
+\brief 使用 RAII 管理的事件辅助类。
+\warning 非虚析构。
+\since build 429
+*/
+template<typename... _tEventArgs>
+class GEventGuard
+{
+public:
+	typedef GEvent<_tEventArgs...> EventType;
+	typedef GHEvent<_tEventArgs...> HandlerType;
+	std::reference_wrapper<EventType> Event;
+	HandlerType Handler;
+
+	template<typename _type>
+	GEventGuard(EventType& evt, _type&& handler,
+		EventPriority prior = DefaultEventPriority)
+		: Event(evt), Handler(yforward(handler))
+	{
+		Event.get().Add(Handler, prior);
+	}
+	~GEventGuard()
+	{
+		Event.get() -= Handler;
+	}
+};
 
 
 /*!

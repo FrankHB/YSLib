@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r204
+\version r206
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-07-12 07:47 +0800
+	2013-07-15 15:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,9 @@ public:
 	using WindowReference::SetText;
 
 	using WindowReference::Close;
+
+	//! \since build 429
+	using WindowReference::Invalidate;
 
 	using WindowReference::Move;
 	//@}

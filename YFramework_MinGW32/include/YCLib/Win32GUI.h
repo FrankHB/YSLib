@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r257
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2013-07-14 14:35 +0800
+	2013-07-15 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,6 +74,13 @@ public:
 	//! \note 线程安全。
 	void
 	Close();
+
+	/*!
+	\brief 无效化窗口客户区。
+	\since build 429
+	*/
+	void
+	Invalidate();
 
 	/*!
 	\brief 移动窗口。

@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r142
+\version r151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-07-05 08:14 +0800
+	2013-07-16 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,6 +78,18 @@ WidgetController::GetItem(const VisualEvent& id)
 	if(id == UI::Paint)
 		return Paint;
 	throw BadEvent();
+}
+
+
+EventMapping::ItemType&
+GetEvent(EventMapping::MapType& m, const VisualEvent& id,
+	EventMapping::MappedType(&f)())
+{
+	auto pr(ystdex::search_map(m, id));
+
+	if(pr.second)
+		pr.first = m.insert(pr.first, EventMapping::PairType(id, f()));
+	return pr.first->second;
 }
 
 YSL_END_NAMESPACE(UI)

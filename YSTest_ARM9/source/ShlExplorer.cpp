@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r592
+\version r635
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-07-07 05:20 +0800
+	2013-07-16 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,38 +100,54 @@ CheckReaderEnability(FileBox& fb, CheckBox& hex)
 } // unnamed namespace;
 
 
+
+SwitchScreensButton::SwitchScreensButton(ShlDS& shl, const Point& pt)
+	: Button({pt, {22, 22}}, 60),
+	shell(shl)
+{
+	yunseq(
+		Text = u"％",
+		FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
+			shell.get().SwapScreens();
+		}
+	);
+}
+
+
 ShlExplorer::ShlExplorer(const IO::Path& path,
 	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
 	: ShlDS(h_dsk_up, h_dsk_dn),
 	lblTitle({16, 20, 220, 22}), lblPath({8, 48, 240, 48}),
 	lblInfo({8, 100, 240, 64}), fbMain({0, 0, 256, 170}),
-	btnOK({192, 170, 64, 22}), btnMenu({0, 170, 72, 22}),
+	btnOK({170, 170, 64, 22}), btnMenu({0, 170, 72, 22}),
 	pnlSetting({10, 40, 224, 100}), cbHex({10, 60, 100, 18}),
 	cbFPS({10, 80, 72, 18}), lblDragTest({4, 4, 104, 22}),
 	btnEnterTest({8, 32, 104, 22}), btnTestEx({116, 32, 104, 22}),
-	btnPrevBackground({120, 60, 30, 22}),
-	btnNextBackground({164, 60, 30, 22}),
-	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetDesktopDownHandle()),
-	fpsCounter(std::chrono::milliseconds(500))
+	btnPrevBackground({120, 60, 30, 22}), btnNextBackground({164, 60, 30, 22}),
+	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetSubDesktopHandle()),
+	fpsCounter(std::chrono::milliseconds(500)),
+	btnSwitchMain(*this, {234, 170}), btnSwitchSub(*this, {234, 170})
 {
 	static int up_i(1);
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
+	auto& dsk_m(GetMainDesktop());
+	auto& dsk_s(GetSubDesktop());
 
 	AddWidgets(pnlSetting, cbHex, cbFPS, btnEnterTest, lblDragTest, btnTestEx,
 		btnPrevBackground, btnNextBackground),
-	AddWidgets(dsk_up, lblTitle, lblPath, lblInfo),
-	AddWidgets(dsk_dn, fbMain, btnOK, btnMenu),
-	AddWidgetsZ(dsk_dn, DefaultWindowZOrder, pnlSetting, *pFrmAbout),
+	AddWidgets(dsk_m, lblTitle, lblPath, lblInfo, btnSwitchMain),
+	AddWidgets(dsk_s, fbMain, btnOK, btnMenu, btnSwitchSub),
+	AddWidgetsZ(dsk_s, DefaultWindowZOrder, pnlSetting, *pFrmAbout),
 	//启用缓存。
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	cbHex.SetRenderer(make_unique<BufferedRenderer>()),
 	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(*pFrmAbout, false),
+	WrapForSwapScreens(dsk_m, SwapMask),
+	WrapForSwapScreens(dsk_s, SwapMask),
 	yunseq(
-		dsk_up.Background = ImageBrush(FetchImage(0)),
-		dsk_dn.Background = SolidBrush(
+		dsk_m.Background = ImageBrush(FetchImage(0)),
+		dsk_s.Background = SolidBrush(
 			FetchGUIState().Colors[Styles::Panel]),
 		lblTitle.Text = G_APP_NAME,
 		lblPath.AutoWrapLine = true, lblPath.Text = String(path),
@@ -163,11 +179,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		fbMain.SetPath(path),
 		Enable(btnOK, false),
 		Enable(btnPrevBackground, false),
-		dsk_dn.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
+		dsk_s.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
 			this, std::placeholders::_1),
-		FetchEvent<KeyUp>(dsk_dn) += OnKey_Bound_TouchUp,
-		FetchEvent<KeyDown>(dsk_dn) += OnKey_Bound_TouchDown,
-		FetchEvent<KeyPress>(dsk_dn) += [this](KeyEventArgs&& e){
+		FetchEvent<KeyUp>(dsk_s) += OnKey_Bound_TouchUp,
+		FetchEvent<KeyDown>(dsk_s) += OnKey_Bound_TouchDown,
+		FetchEvent<KeyPress>(dsk_s) += [this](KeyEventArgs&& e){
 			if(e.GetKeys()[YCL_KEY(X)])
 				SwitchVisible(pnlSetting);
 		},
@@ -188,8 +204,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 				if(category == FileCategory::Text
 					|| category == FileCategory::Binary)
 				{
-					const auto h_up(GetDesktopUpHandle());
-					const auto h_dn(GetDesktopDownHandle());
+					const auto h_up(GetMainDesktopHandle());
+					const auto h_dn(GetSubDesktopHandle());
 					const bool b(category == FileCategory::Text
 						&& !cbHex.IsTicked());
 
@@ -206,11 +222,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			}
 		},
 		FetchEvent<Click>(cbFPS) += [this](CursorEventArgs&&){
-			SetInvalidationOf(GetDesktopDown());
+			SetInvalidationOf(GetSubDesktop());
 		},
 		FetchEvent<Click>(cbHex) += [this](CursorEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
-			SetInvalidationOf(GetDesktopDown());
+			SetInvalidationOf(GetSubDesktop());
 		},
 		FetchEvent<Move>(pnlSetting) += [this](UIEventArgs&&){
 			lblDragTest.Text = to_string(GetLocationOf(pnlSetting)) + ';';
@@ -272,8 +288,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			Invalidate(mnu);
 		},
 		FetchEvent<Click>(btnPrevBackground) += [this](CursorEventArgs&&){
-			auto& dsk_up(GetDesktopUp());
-			auto& dsk_dn(GetDesktopDown());
+			auto& dsk_m(GetMainDesktop());
+			auto& dsk_s(GetSubDesktop());
 
 			if(up_i > 0)
 			{
@@ -282,13 +298,13 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			}
 			if(up_i == 0)
 				Enable(btnPrevBackground, false);
-			dsk_up.Background = ImageBrush(FetchImage(up_i));
-			SetInvalidationOf(dsk_up),
-			SetInvalidationOf(dsk_dn);
+			dsk_m.Background = ImageBrush(FetchImage(up_i));
+			SetInvalidationOf(dsk_m),
+			SetInvalidationOf(dsk_s);
 		},
 		FetchEvent<Click>(btnNextBackground) += [this](CursorEventArgs&&){
-			auto& dsk_up(GetDesktopUp());
-			auto& dsk_dn(GetDesktopDown());
+			auto& dsk_m(GetMainDesktop());
+			auto& dsk_s(GetSubDesktop());
 
 			if(size_t(up_i + 1) < Image_N)
 			{
@@ -297,14 +313,14 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			}
 			if(size_t(up_i + 1) == Image_N)
 				Enable(btnNextBackground, false);
-			dsk_up.Background = ImageBrush(FetchImage(up_i));
-			SetInvalidationOf(dsk_up),
-			SetInvalidationOf(dsk_dn);
+			dsk_m.Background = ImageBrush(FetchImage(up_i));
+			SetInvalidationOf(dsk_m),
+			SetInvalidationOf(dsk_s);
 		}
 	);
 	RequestFocusCascade(fbMain),
-	SetInvalidationOf(dsk_up),
-	SetInvalidationOf(dsk_dn);
+	SetInvalidationOf(dsk_m),
+	SetInvalidationOf(dsk_s);
 
 	auto& m1(*(ynew Menu({}, share_raw(
 		new TextList::ListType{u"测试", u"关于", u"设置(X)", u"退出"}), 1u)));
@@ -350,7 +366,7 @@ ShlExplorer::OnPaint()
 		if(t != 0)
 		{
 			auto& g(ystdex::polymorphic_downcast<BufferedRenderer&>(
-				GetDesktopUp().GetRenderer()).GetContext());
+				GetMainDesktop().GetRenderer()).GetContext());
 			yconstexpr Rect r(176, 0, 80, 20);
 			char strt[20];
 

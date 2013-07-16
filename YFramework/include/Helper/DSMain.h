@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r789
+\version r813
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-04-13 13:15 +0800
+	2013-07-15 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,16 +29,17 @@
 #define INC_Helper_DSMain_h_ 1
 
 #include "Helper/GUIApplication.h"
-#include "NPL/Configuration.h"
+#include "YCLib/Video.h"
 
 YSL_BEGIN
 
-#ifndef SCREEN_WIDTH
-#	define SCREEN_WIDTH 256
-#endif
-#ifndef SCREEN_HEIGHT
-#	define SCREEN_HEIGHT 192
-#endif
+#if YCL_DS || YCL_HOSTED
+#	ifndef SCREEN_WIDTH
+#		define SCREEN_WIDTH 256
+#	endif
+#	ifndef SCREEN_HEIGHT
+#		define SCREEN_HEIGHT 192
+#	endif
 
 /*!	\defgroup CustomGlobalConstants Custom Global Constants
 \ingroup GlobalObjects
@@ -64,7 +65,8 @@ YSL_END_NAMESPACE(Devices)
 \note 含默认接口。
 \since build 215
 */
-class YF_API DSApplication : public GUIApplication
+class YF_API DSApplication : public GUIApplication,
+	private platform_ex::DSVideoState
 {
 private:
 	/*!
@@ -73,13 +75,13 @@ private:
 	*/
 	array<unique_ptr<Devices::DSScreen>, 2> scrs;
 
-#if YCL_MINGW32
+#	if YCL_MINGW32
 	/*!
 	\brief 宿主窗口线程。
 	\since build 398
 	*/
 	unique_ptr<Host::WindowThread> p_wnd_thrd;
-#endif
+#	endif
 
 public:
 	/*!
@@ -94,6 +96,8 @@ public:
 	*/
 	~DSApplication() override;
 
+	//! \since build 429
+	using DSVideoState::IsLCDMainOnTop;
 	//! \since build 377
 	DefPred(const ynothrow, ScreenReady, bool(scrs[0]) && bool(scrs[1]))
 
@@ -125,6 +129,13 @@ public:
 	*/
 	Devices::Screen&
 	GetScreenDown() const ynothrow;
+
+	/*!
+	\brief 复位 GUI 状态后交换屏幕。
+	\since build 429
+	*/
+	void
+	SwapScreens();
 };
 
 
@@ -142,7 +153,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 YF_API void
 ShowFatalError(const char*);
 
-#if YCL_MINGW32
+#	if YCL_MINGW32
 YSL_BEGIN_NAMESPACE(MinGW32)
 
 using namespace platform_ex;
@@ -151,6 +162,9 @@ YF_API void
 TestFramework(size_t);
 
 YSL_END_NAMESPACE(MinGW32)
+#	endif
+#else
+#	error "Only DS and hosted platform supported."
 #endif
 
 YSL_END

@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file Designation.txt
+/*!	\file YFramework.txt
 \ingroup Documentation
-\brief 设计规则指定和说明。
-\version r593
+\brief YFramework 设计和实现说明。
+\version r597
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-14 16:05 +0800
+	2013-07-15 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@
 消息、消息队列、消息分派和消息循环的实现参见 [Documentation::YSLib @@2.5.10] 。
 
 @1.4.1.4 可重入性和线程安全性：
-除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 [Documentation::YSLib @@2.6] 、 @5.2 、 [Documentation::YSLib @@1.3] 和 [Documentation::CHRLib] 。
+除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.7 、 [Documentation::Designation @@5.2] 、 [Documentation::YSLib @@1.3] 和 [Documentation::CHRLib] 。
 
 @1.4.1.4.1 一般准则：
 中断服务例程应保证可重入性。
@@ -470,7 +470,7 @@
 
 @2.7 助手(Helper) 库：
 位于 "/Helper" 。非外部依赖项。
-除 @2.1.1 的限制， Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
+除 @2.2.1 的限制， Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
 可能平台相关的外部库，可以提供宿主实现、加入插件等，一般由库用户自行配置。
 除非另有说明，仅保证必要文件(@2.1.1) 提供接口中的可重入性和线程安全性同本体(@2.1) 。其它文件的例程仅当明确说明时可具有可重入性和线程安全性。
  YGlobal 是不可缺少的，它封装了必要的全局对象。

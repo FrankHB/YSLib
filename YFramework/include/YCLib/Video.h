@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r665
+\version r686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-07-14 19:47 +0800
+	2013-07-15 15:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -362,7 +362,6 @@ namespace platform_ex
 {
 
 #if YCL_DS
-
 /*!
 \brief 复位屏幕显示模式：清除背景寄存器，使用 ::vramDefault 复位，设置双屏 Mode 5 。
 */
@@ -389,6 +388,31 @@ InitScrDown(int&);
 */
 YF_API void
 ScreenSynchronize(platform::PixelType*, const platform::PixelType*) ynothrow;
+#endif
+
+#if YCL_DS || YCL_HOSTED
+/*!
+\brief DS 显示状态。
+\note 对于 DS 提供实际的状态设置；对于宿主实现，仅保存状态。
+\since build 429
+*/
+class YF_API DSVideoState
+{
+#if YCL_HOSTED
+private:
+	bool LCD_main_on_top = true;
+#endif
+
+public:
+	bool
+	IsLCDMainOnTop() const;
+
+	void
+	SetLCDMainOnTop(bool);
+
+	void
+	SwapLCD();
+};
 #endif
 
 } // namespace platform_ex;

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1303
+\version r1346
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-07-09 05:58 +0800
+	2013-07-16 16:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "Helper/ShellHelper.h"
 #include "YSLib/UI/ydesktop.h"
 #include "YSLib/UI/ygui.h"
+#include <YCLib/Input.h>
 
 YSL_BEGIN
 
@@ -52,25 +53,27 @@ YSL_END_NAMESPACE(Shells)
 YSL_BEGIN_NAMESPACE(DS)
 
 void
-ResetDSDesktops(Desktop& dsk_up, Desktop& dsk_dn)
+ResetDSDesktops(Desktop& dsk_m, Desktop& dsk_s)
 {
 	auto& app(FetchGlobalInstance<DSApplication>());
 
-	ResetDesktop(dsk_up, app.GetScreenUp()),
-	ResetDesktop(dsk_dn, app.GetScreenDown());
+	ResetDesktop(dsk_m, app.GetScreenUp()),
+	ResetDesktop(dsk_s, app.GetScreenDown());
 }
 
 
-ShlDS::ShlDS(const shared_ptr<Desktop>& hUp, const shared_ptr<Desktop>& hDn)
+ShlDS::ShlDS(const shared_ptr<Desktop>& h_main,
+	const shared_ptr<Desktop>& h_sub)
 	: GUIShell(),
-	desktop_up_ptr(hUp ? hUp : make_shared<Desktop>(
+	main_desktop_ptr(h_main ? h_main : make_shared<Desktop>(
 		FetchGlobalInstance<DSApplication>().GetScreenUp())),
-	desktop_down_ptr(hDn ? hDn : make_shared<Desktop>(
+	sub_desktop_ptr(h_sub ? h_sub : make_shared<Desktop>(
 		FetchGlobalInstance<DSApplication>().GetScreenDown())),
+	cursor_desktop_ptr(sub_desktop_ptr),
 	bUpdateUp(), bUpdateDown()
 {
-	YAssert(bool(desktop_up_ptr), "Null pointer found.");
-	YAssert(bool(desktop_down_ptr), "Null pointer found.");
+	YAssert(bool(main_desktop_ptr), "Null pointer found.");
+	YAssert(bool(sub_desktop_ptr), "Null pointer found.");
 }
 
 void
@@ -86,10 +89,10 @@ ShlDS::OnGotMessage(const Message& msg)
 		if(auto p_wgt = imMain.Update())
 			imMain.DispatchInput(*p_wgt);
 		else
-			imMain.DispatchInput(*desktop_down_ptr);
+			imMain.DispatchInput(*cursor_desktop_ptr);
 #else
 		imMain.Update();
-		imMain.DispatchInput(*desktop_down_ptr);
+		imMain.DispatchInput(*cursor_desktop_ptr);
 #endif
 		OnInput();
 		return;
@@ -104,13 +107,44 @@ ShlDS::OnInput()
 {
 	using Drawing::Rect;
 
-	yunseq(bUpdateUp = bool(desktop_up_ptr->Validate()),
-		bUpdateDown = bool(desktop_down_ptr->Validate()));
+	yunseq(bUpdateUp = bool(main_desktop_ptr->Validate()),
+		bUpdateDown = bool(sub_desktop_ptr->Validate()));
 	GUIShell::OnInput();
 	if(bUpdateUp)
-		desktop_up_ptr->Update();
+		main_desktop_ptr->Update();
 	if(bUpdateDown)
-		desktop_down_ptr->Update();
+		sub_desktop_ptr->Update();
+}
+
+void
+ShlDS::SwapDesktops()
+{
+	std::swap(main_desktop_ptr, sub_desktop_ptr);
+}
+
+void
+ShlDS::SwapScreens()
+{
+	auto& app(FetchGlobalInstance<DSApplication>());
+
+	app.SwapScreens();
+	cursor_desktop_ptr = app.IsLCDMainOnTop() ? sub_desktop_ptr
+		: main_desktop_ptr;
+}
+
+void
+ShlDS::WrapForSwapScreens(YSLib::UI::IWidget& wgt, KeyInput& mask)
+{
+	using namespace YSLib::UI;
+
+	FetchEvent<KeyDown>(wgt).Add([&, this](KeyEventArgs&& e){
+		if(e.Strategy != RoutedEventArgs::Bubble && mask.any()
+			&& (platform_ex::FetchKeyState() & mask) == mask)
+		{
+			SwapScreens();
+			e.Handled = true;
+		}
+	}, 0xE0);
 }
 
 YSL_END_NAMESPACE(DS)

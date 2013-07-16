@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r95
+\version r111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-06-21 21:46 +0800
+	2013-07-16 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,17 @@
 #include "About.h"
 
 YSL_BEGIN_NAMESPACE(YReader)
+
+//! \since build 429
+class SwitchScreensButton : public Button
+{
+private:
+	std::reference_wrapper<ShlDS> shell;
+
+public:
+	SwitchScreensButton(ShlDS&, const Point&);
+};
+
 
 class ShlExplorer : public ShlDS
 {
@@ -53,6 +64,14 @@ protected:
 	MenuHost mhMain;
 	FPSCounter fpsCounter;
 	//@}
+	//! \since build 429
+	SwitchScreensButton btnSwitchMain, btnSwitchSub;
+	/*!
+	\brief 切换屏幕的按键掩码。
+	\note 清空时无效。
+	\since build 429
+	*/
+	KeyInput SwapMask = KeyInput().set(YCL_KEY(L)).set(YCL_KEY(R));
 
 public:
 	/*!

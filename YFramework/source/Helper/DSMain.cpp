@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3069
+\version r3082
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-07-14 19:48 +0800
+	2013-07-15 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@
 #	include "YSLib/Service/yblit.h" // for Drawing::FillPixel;
 #endif
 #include "YCLib/Debug.h"
+#include "Host.h"
 
 YSL_BEGIN
 
@@ -58,7 +59,7 @@ DSApplication* pApp;
 
 
 DSApplication::DSApplication()
-	: GUIApplication(),
+	: GUIApplication(), DSVideoState(),
 	scrs()
 #if YCL_MINGW32
 	, p_wnd_thrd()
@@ -141,6 +142,18 @@ Devices::Screen&
 DSApplication::GetScreenDown() const ynothrow
 {
 	return GetDSScreenDown();
+}
+
+void
+DSApplication::SwapScreens()
+{
+	UI::FetchGUIState().Reset();
+	SwapLCD();
+#if YCL_HOSTED
+	std::swap(GetDSScreenUp().Offset, GetDSScreenDown().Offset);
+	if(const auto p_wnd = GetHost().GetForegroundWindow())
+		p_wnd->Invalidate();
+#endif
 }
 
 

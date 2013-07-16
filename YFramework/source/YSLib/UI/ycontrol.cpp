@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3773
+\version r3782
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-07-07 02:32 +0800
+	2013-07-16 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,18 +35,6 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(UI)
-
-EventMapping::ItemType&
-GetEvent(EventMapping::MapType& m, const VisualEvent& id,
-	EventMapping::MappedType(&f)())
-{
-	auto pr(ystdex::search_map(m, id));
-
-	if(pr.second)
-		pr.first = m.insert(pr.first, EventMapping::PairType(id, f()));
-	return pr.first->second;
-}
-
 
 EventMapping::ItemType&
 Controller::GetItemRef(const VisualEvent& id, EventMapping::MappedType(&f)())

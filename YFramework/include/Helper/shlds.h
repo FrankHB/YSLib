@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1282
+\version r1316
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-04-14 06:31 +0800
+	2013-07-16 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,12 @@ private:
 	\brief 共享桌面指针：正常状态下应总是指向可用的桌面对象。
 	\since build 296
 	*/
-	shared_ptr<Desktop> desktop_up_ptr, desktop_down_ptr;
+	shared_ptr<Desktop> main_desktop_ptr, sub_desktop_ptr;
+	/*!
+	\brief 指针设备响应的桌面指针：总是指向下屏对应的桌面。
+	\since build 429
+	*/
+	shared_ptr<Desktop> cursor_desktop_ptr;
 
 protected:
 	/*!
@@ -106,12 +111,18 @@ public:
 	*/
 	ShlDS(const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 
-	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopUpHandle,
-		desktop_up_ptr)
-	DefGetter(const ynothrow, const shared_ptr<Desktop>&, DesktopDownHandle,
-		desktop_down_ptr)
-	DefGetter(const ynothrow, Desktop&, DesktopUp, *desktop_up_ptr)
-	DefGetter(const ynothrow, Desktop&, DesktopDown, *desktop_down_ptr)
+	//! \since build 429
+	//@{
+	DefGetter(const ynothrow, const shared_ptr<Desktop>&, CursorDesktopHandle,
+		main_desktop_ptr)
+	DefGetter(const ynothrow, Desktop&, CursorDesktop, *cursor_desktop_ptr)
+	DefGetter(const ynothrow, const shared_ptr<Desktop>&, MainDesktopHandle,
+		main_desktop_ptr)
+	DefGetter(const ynothrow, Desktop&, MainDesktop, *main_desktop_ptr)
+	DefGetter(const ynothrow, const shared_ptr<Desktop>&, SubDesktopHandle,
+		sub_desktop_ptr)
+	DefGetter(const ynothrow, Desktop&, SubDesktop, *sub_desktop_ptr)
+	//@}
 
 	/*!
 	\brief 消息处理函数。
@@ -135,6 +146,25 @@ public:
 	*/
 	void
 	OnInput() override;
+
+	//! \since build 429
+	//@{
+	//! \brief 交换桌面。
+	void
+	SwapDesktops();
+
+	//! \brief 交换屏幕。
+	void
+	SwapScreens();
+
+	/*!
+	\brief 包装指定的部件处理满足指定按键掩码的 KeyDown 事件：交换屏幕。
+	\note 忽略 Bubble 路由事件；设置 e.Handled 。
+	\note 事件优先级 0xE0 。
+	*/
+	void
+	WrapForSwapScreens(UI::IWidget&, KeyInput&);
+	//@}
 };
 
 

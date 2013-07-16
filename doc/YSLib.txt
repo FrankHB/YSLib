@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1979
+\version r1980
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-14 16:00 +0800
+	2013-07-16 16:27 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -858,6 +858,7 @@ YFramework
 点击 R 按钮返回。
 点击 ←→ 按钮前进/后退（切换最近浏览位置）。
 其它功能，如切换字体和背景颜色等，使用菜单（ M 按钮）选择“设置”进入详细设置界面自定义。
+ b429 起选择文件界面支持按组合键 L+R 或右下角按钮切换上下屏幕。
 
 @8.1.3 设置和配置：
 

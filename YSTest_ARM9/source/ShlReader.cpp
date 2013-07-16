@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4384
+\version r4415
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-07-08 10:19 +0800
+	2013-07-16 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -186,8 +186,8 @@ ShlReader::Exit()
 	fBackgroundTask = nullptr;
 	// TODO: Use template %SetShellToNew.
 //	SetShellToNew<ShlExplorer>();
-	const auto h_up(GetDesktopUpHandle());
-	const auto h_dn(GetDesktopDownHandle());
+	const auto h_up(GetMainDesktopHandle());
+	const auto h_dn(GetSubDesktopHandle());
 
 	PostMessage<SM_TASK>(0xF8, [=]{
 		ResetDSDesktops(*h_up, *h_dn);
@@ -295,19 +295,19 @@ ShlTextReader::BaseSession::~BaseSession()
 ShlTextReader::SettingSession::SettingSession(ShlTextReader& shl)
 	: BaseSession(shl)
 {
-	auto& dsk_up(shl.GetDesktopUp());
-	auto& dsk_dn(shl.GetDesktopDown());
+	auto& dsk_m(shl.GetMainDesktop());
+	auto& dsk_s(shl.GetSubDesktop());
 	auto& reader(shl.reader);
 	auto& CurrentSetting(shl.CurrentSetting);
 	auto& pnlSetting(shl.pnlSetting);
 
 	shl.reader.SetVisible(false),
-	yunseq(CurrentSetting.UpColor = dsk_up.Background
+	yunseq(CurrentSetting.UpColor = dsk_m.Background
 		.target<SolidBrush>()->Color, CurrentSetting.DownColor
-		= dsk_dn.Background.target<SolidBrush>()->Color,
+		= dsk_s.Background.target<SolidBrush>()->Color,
 		CurrentSetting.FontColor = reader.GetColor(),
 		CurrentSetting.Font = reader.GetFont());
-	AddWidgets(dsk_up, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
+	AddWidgets(dsk_m, pnlSetting.lblAreaUp, pnlSetting.lblAreaDown);
 	{
 		using ystdex::get_key;
 
@@ -326,7 +326,7 @@ ShlTextReader::SettingSession::~SettingSession()
 {
 	auto& shl(GetShell());
 
-	RemoveWidgets(shl.GetDesktopUp(),
+	RemoveWidgets(shl.GetMainDesktop(),
 		shl.pnlSetting.lblAreaUp, shl.pnlSetting.lblAreaDown);
 }
 
@@ -346,7 +346,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
 	CurrentSetting.GetTimerSetting()), tmrScrollActive(false), tmrInput(),
 	nClick(), reader(), boxReader({0, 160, 256, 32}), boxTextInfo(),
-	pnlSetting(), pTextFile(), mhMain(GetDesktopDown()),
+	pnlSetting(), pTextFile(), mhMain(GetSubDesktop()),
 	pnlBookmark(LoadBookmarks(pth), *this), session_ptr()
 {
 	using ystdex::get_key;
@@ -372,7 +372,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 				mhMain.Hide(1U);
 			else
 			{
-				const auto& pt(LocateForWidget(GetDesktopDown(),
+				const auto& pt(LocateForWidget(GetSubDesktop(),
 					boxReader.btnMenu));
 
 				ShowMenu(1U, Point(pt.X, pt.Y - mhMain[1U].GetHeight()));
@@ -421,8 +421,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 			reader.SetColor(CurrentSetting.FontColor),
 			reader.SetFont(CurrentSetting.Font);
 			reader.UpdateView();
-			yunseq(GetDesktopUp().Background = pnlSetting.lblAreaUp.Background,
-				GetDesktopDown().Background = pnlSetting.lblAreaDown.Background
+			yunseq(GetMainDesktop().Background = pnlSetting.lblAreaUp.Background,
+				GetSubDesktop().Background = pnlSetting.lblAreaDown.Background
 			);
 			if(IsVisible(boxReader))
 				for(auto pr(boxReader.GetChildren()); pr.first != pr.second;
@@ -452,27 +452,27 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	}
 	ResizeForContent(mhMain[1u]);
 
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
+	auto& dsk_m(GetMainDesktop());
+	auto& dsk_s(GetSubDesktop());
 
 	reader.SetColor(CurrentSetting.FontColor),
 	reader.SetFont(CurrentSetting.Font),
 	yunseq(
-		dsk_up.Background = SolidBrush(CurrentSetting.UpColor),
-		dsk_dn.Background = SolidBrush(CurrentSetting.DownColor),
-		FetchEvent<Click>(dsk_dn).Add(*this, &ShlTextReader::OnClick),
-		FetchEvent<KeyDown>(dsk_dn).Add(*this, &ShlTextReader::OnKeyDown),
-		FetchEvent<KeyHeld>(dsk_dn) += OnEvent_Call<KeyDown>
+		dsk_m.Background = SolidBrush(CurrentSetting.UpColor),
+		dsk_s.Background = SolidBrush(CurrentSetting.DownColor),
+		FetchEvent<Click>(dsk_s).Add(*this, &ShlTextReader::OnClick),
+		FetchEvent<KeyDown>(dsk_s).Add(*this, &ShlTextReader::OnKeyDown),
+		FetchEvent<KeyHeld>(dsk_s) += OnEvent_Call<KeyDown>
 	);
-	reader.Attach(dsk_up, dsk_dn),
-	AddWidgets(dsk_dn, boxReader, boxTextInfo, pnlSetting, pnlBookmark);
+	reader.Attach(dsk_m, dsk_s),
+	AddWidgets(dsk_s, boxReader, boxTextInfo, pnlSetting, pnlBookmark);
 	LoadFile(pth);
 	LastRead.DropSubsequent();
 	UpdateButtons();
 	//置默认视图。
 	// TODO: Associate view setting state for user selection.
-	OnClick(CursorEventArgs(dsk_dn, 0));
-	RequestFocusCascade(dsk_dn);
+	OnClick(CursorEventArgs(dsk_s, 0));
+	RequestFocusCascade(dsk_s);
 }
 
 ShlTextReader::~ShlTextReader()
@@ -773,8 +773,8 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 		}
 	);
 
-	auto& dsk_up(GetDesktopUp());
-	auto& dsk_dn(GetDesktopDown());
+	auto& dsk_m(GetMainDesktop());
+	auto& dsk_s(GetSubDesktop());
 	const string& path_str(pth);
 
 	pnlFileInfo.lblPath.Text = u"文件路径：" + String(pth);
@@ -787,11 +787,11 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 		+ String(TranslateTime(file_stat.st_atime)),
 		pnlFileInfo.lblModifiedTime.Text = u"修改时间："
 		+ String(TranslateTime(file_stat.st_mtime)));
-	dsk_up += pnlFileInfo;
+	dsk_m += pnlFileInfo;
 	HexArea.Load(path_str.c_str());
 	HexArea.UpdateData(0);
 	HexArea.ViewChanged(HexViewArea::ViewArgs(HexArea, true));
-	dsk_dn += HexArea;
+	dsk_s += HexArea;
 	RequestFocusCascade(HexArea);
 }
 

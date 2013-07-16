@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r191
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-07-13 08:01 +0800
+	2013-07-15 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,6 +94,13 @@ WindowReference::Close()
 {
 	if(YB_UNLIKELY(!::SendNotifyMessageW(hWindow, WM_CLOSE, 0, 0)))
 		YF_Raise_Win32Exception("SendNotifyMessageW");
+}
+
+void
+WindowReference::Invalidate()
+{
+	if(YB_UNLIKELY(!::InvalidateRect(hWindow, {}, false)))
+		YF_Raise_Win32Exception("InvalidateRect");
 }
 
 void
