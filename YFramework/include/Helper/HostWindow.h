@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r206
+\version r259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-07-15 15:08 +0800
+	2013-07-19 16:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 #ifndef INC_Helper_HostWindow_h_
 #define INC_Helper_HostWindow_h_ 1
 
-#include "Helper/GUIApplication.h"
-#if YCL_MULTITHREAD == 1
-#	include <atomic>
+#include "Helper/yglobal.h"
+#if YCL_MINGW32
+#	include <YCLib/Win32GUI.h>
 #endif
 
 YSL_BEGIN
@@ -38,14 +38,16 @@ YSL_BEGIN
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
 
-//! \since build 382
-yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
+#	if YCL_MINGW32
+//! \since build 427
+using namespace platform_ex;
+#	endif
 
 /*!
-\brief 宿主窗口。
+\brief 宿主环境支持的窗口。
 \since build 379
 */
-class YF_API Window : private MinGW32::WindowReference
+class YF_API Window : public MinGW32::HostWindow
 {
 private:
 	//! \since build 380
@@ -53,19 +55,13 @@ private:
 
 public:
 	/*!
-	\brief 限制指针设备响应在窗口边界内。
-	\bug 必须支持 <tt>std::atomic</tt> 。
-	\since build 427
+	\exception LoggedEvent 异常中立：窗口类名不是 WindowClassName 。
+	\since build 429
 	*/
-	std::atomic<bool> BoundsLimited{false};
-
-	/*!
-	\throw LoggedEvent 窗口类名不是 WindowClassName 。
-	\since build 398
-	*/
-	Window(NativeWindowHandle, Environment& = FetchEnvironment());
-	DefDelCopyCtor(Window)
-	DefDelMoveCtor(Window)
+	//@{
+	Window(NativeWindowHandle);
+	Window(NativeWindowHandle, Environment&);
+	//@}
 	virtual
 	~Window();
 
@@ -75,33 +71,11 @@ public:
 	\note 坐标相对于客户区。
 	\since build 388
 	*/
-	virtual pair<Drawing::Point, Drawing::Point>
+	virtual pair<YSLib::Drawing::Point, YSLib::Drawing::Point>
 	GetInputBounds() const ynothrow;
-	//! \since build 427
-	//@{
-	using WindowReference::GetLocation;
-	using WindowReference::GetNativeHandle;
-	using WindowReference::GetSize;
 
-	//! \since build 428
-	using WindowReference::SetText;
-
-	using WindowReference::Close;
-
-	//! \since build 429
-	using WindowReference::Invalidate;
-
-	using WindowReference::Move;
-	//@}
-
-	virtual void
-	OnDestroy();
-
-	virtual void
-	OnLostFocus();
-
-	virtual void
-	OnPaint();
+	void
+	OnLostFocus() override;
 
 	/*!
 	\brief 刷新：保持渲染状态同步。
@@ -109,15 +83,6 @@ public:
 	*/
 	virtual PDefH(void, Refresh, )
 		ImplExpr(void())
-
-	//! \since build 427
-	//@{
-	using WindowReference::Resize;
-
-	using WindowReference::ResizeClient;
-
-	using WindowReference::Show;
-	//@}
 };
 
 YSL_END_NAMESPACE(Host)

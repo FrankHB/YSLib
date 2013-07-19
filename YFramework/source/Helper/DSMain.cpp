@@ -17,7 +17,7 @@
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-07-15 15:09 +0800
+	2013-07-18 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "DSScreen.h"
-#include "HostRenderer.h" // for Host::WindowThread;
+#include "Helper/HostRenderer.h" // for Host::WindowThread;
 #include "Helper/Initialization.h"
 #include "YSLib/Adaptor/Font.h"
 #include "DSWindow.h"

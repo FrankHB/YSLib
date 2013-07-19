@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r170
+\version r171
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-07-03 16:31 +0800
+	2013-07-19 07:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 		FetchEvent<KeyDown>(lbPosition) += stop_routing_after_direct,
 		FetchEvent<KeyHeld>(lbPosition) += stop_routing_after_direct,
 		FetchEvent<Click>(btnOK) += [this](CursorEventArgs&&){
-			bookmarks = std::move(ConvertToBookmarkList(lbPosition.GetList()));
+			bookmarks = ConvertToBookmarkList(lbPosition.GetList());
 		},
 		FetchEvent<Click>(btnAdd) += [this](CursorEventArgs&&){
 			auto& lst(lbPosition.GetListRef());

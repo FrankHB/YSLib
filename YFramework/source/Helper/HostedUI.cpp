@@ -11,23 +11,24 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r105
+\version r128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-07-14 20:17 +0800
+	2013-07-18 22:18 +0800
 \par 文本编码:
 	UTF-8
-\par 非公开模块名称:
+\par 模块名称:
 	Helper::HostedUI
 */
 
 
 #include "Helper/HostedUI.h"
-#include "HostRenderer.h"
+#include "Helper/HostRenderer.h"
 #include <YSLib/UI/ycontrol.h> // for UI::FetchEvent;
+#include <YSLib/UI/ygui.h> // for FetchGUIState;
 
 YSL_BEGIN
 
@@ -36,20 +37,6 @@ using namespace UI;
 
 #if YCL_HOSTED
 YSL_BEGIN_NAMESPACE(Host)
-
-BufferedRenderer*
-GetHostRendererPtrOf(UI::IWidget& wgt)
-{
-	return dynamic_cast<HostRenderer*>(&wgt.GetRenderer());
-}
-
-Window*
-GetWindowPtrOf(UI::IWidget& wgt)
-{
-	if(const auto p_r = dynamic_cast<HostRenderer*>(&wgt.GetRenderer()))
-		return p_r->GetWindowPtr();
-	return nullptr;
-}
 
 Window&
 WaitForHostWindow(UI::IWidget& wgt)
@@ -60,13 +47,6 @@ WaitForHostWindow(UI::IWidget& wgt)
 	while(!p_wnd)
 		p_wnd = renderer.GetWindowPtr();
 	return *p_wnd;
-}
-
-
-unique_ptr<BufferedRenderer>
-MakeHostRenderer(IWidget& wgt, std::function<NativeWindowHandle()> f)
-{
-	return unique_ptr<BufferedRenderer>(new HostRenderer(wgt, std::move(f)));
 }
 
 
@@ -86,10 +66,11 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 #	if YCL_MINGW32
 
 void
-ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, const wchar_t* title)
+ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
+	const wchar_t* title)
 {
 	WrapRenderer(wgt, CreateNativeWindow, WindowClassName, GetSizeOf(wgt),
-		title, wstyle);
+		title, wstyle, wstyle_ex);
 }
 #	endif
 

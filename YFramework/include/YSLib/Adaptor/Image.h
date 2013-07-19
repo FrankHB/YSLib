@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r198
+\version r257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-07-15 06:22 +0800
+	2013-07-19 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,11 +53,28 @@ typedef u8 BitPerPixel;
 
 /*!
 \brief 图像格式。
-\note ::FREE_IMAGE_FORMAT 。
+\note 和 ::FREE_IMAGE_FORMAT 兼容。
 \see FreeImage 宏 FI_ENUM 。
 \since build 417
 */
 typedef int ImageFormat;
+
+
+/*!
+\brief 采样过滤算法。
+\note 和 ::FREE_IMAGE_FILTER 兼容。
+\see FreeImage 宏 FI_ENUM 。
+\since build 430
+*/
+enum class SamplingFilter
+{
+	Box = 0,
+	Bicubic = 1,
+	Bilinear = 2,
+	BSpline = 3,
+	CatmullRom = 4,
+	Lanczos3 = 5
+};
 
 
 //! \since build 402
@@ -89,7 +106,7 @@ public:
 	ImageMemory(octet* = {}, size_t = 0);
 	//! \since build 428
 	~ImageMemory() ynothrow;
-	
+
 	DefGetter(const ynothrow, ImageFormat, Format, format)
 	DefGetter(const ynothrow, NativeHandle, NativeHandle, handle)
 };
@@ -109,16 +126,18 @@ private:
 	DataPtr bitmap;
 
 public:
+	/*
+	\brief 构造：使用现有数据指针。
+	\note 取得所有权。
+	\since build 430
+	*/
+	HBitmap(DataPtr ptr = {}) ynothrow
+		: bitmap(ptr)
+	{}
 	//! \throw BadImageAlloc 分配空间失败。
 	HBitmap(const Size&, BitPerPixel = 0);
 	//! \since build 417
 	//@{
-	/*
-	\brief 构造：使用现有数据指针。
-	\post 断言检查： bitmap 非空。
-	\note 取得所有权。
-	*/
-	HBitmap(DataPtr) ynothrow;
 	/*
 	\brief 构造：使用指定文件路径。
 	\throw UnknownImageFormat 未知图像格式。
@@ -127,11 +146,33 @@ public:
 	HBitmap(const string&);
 	//! \throw LoggedEvent 读取失败。
 	HBitmap(const ImageMemory&);
+	/*!
+	\brief 构造指定图像缩放至指定大小的副本。
+	\throw LoggedEvent 缩放失败。
+	\since build 430
+	*/
+	HBitmap(const HBitmap&, const Size&, SamplingFilter);
 	//! \throw BadImageAlloc 分配空间失败。
 	HBitmap(const HBitmap&);
 	HBitmap(HBitmap&&) ynothrow;
 	//! \since build 428
 	~HBitmap() ynothrow;
+	//@}
+
+	//! \since build 430
+	//@{
+	//! \brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	HBitmap&
+	operator=(HBitmap pixmap) ynothrow
+	{
+		pixmap.swap(*this);
+		return *this;
+	}
+
+	PDefHOp(bool, !, ) const ynothrow
+		ImplRet(!bitmap)
+
+	explicit DefCvt(const ynothrow, bool, bitmap)
 	//@}
 
 	BitPerPixel
@@ -147,7 +188,24 @@ public:
 	GetPitch() const ynothrow;
 	SDst
 	GetWidth() const ynothrow;
+
+	/*!
+	\brief 缩放为指定大小。
+	\since build 430
+	*/
+	void
+	Rescale(const Size&, SamplingFilter = SamplingFilter::Box);
+
+	/*
+	\brief 交换。
+	\since build 430
+	*/
+	PDefH(void, swap, HBitmap& pixmap) ynothrow
+		ImplExpr(std::swap(bitmap, pixmap.bitmap))
 };
+
+//! \since build 430
+inline DefSwap(ynothrow, HBitmap)
 
 
 //! \since build 417

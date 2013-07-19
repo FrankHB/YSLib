@@ -11,22 +11,22 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r183
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-07-13 23:19 +0800
+	2013-07-18 16:50 +0800
 \par 文本编码:
 	UTF-8
-\par 非公开模块名称:
+\par 模块名称:
 	Helper::HostRenderer
 */
 
 
-#ifndef Inc_Helper_HostRenderer_h_
-#define Inc_Helper_HostRenderer_h_ 1
+#ifndef INC_Helper_HostRenderer_h_
+#define INC_Helper_HostRenderer_h_ 1
 
 #include "Helper/HostWindow.h" // for Host::Window;
 #if YCL_MULTITHREAD == 1
@@ -34,7 +34,7 @@
 #endif
 #include "YSLib/UI/yrender.h"
 #include "YSLib/UI/ywidget.h" // for UI::GetSizeOf;
-#include "ScreenBuffer.h" // for ScreenRegionBuffer;
+#include "Helper/ScreenBuffer.h" // for ScreenRegionBuffer;
 
 YSL_BEGIN
 
@@ -43,15 +43,15 @@ YSL_BEGIN_NAMESPACE(Host)
 
 /*!
 \brief 渲染窗口。
-\since build 384
+\since build 430
 */
-class RenderWindow : public Window
+class YF_API RenderWindow : public Window
 {
 private:
 	std::reference_wrapper<HostRenderer> renderer;
 
 public:
-	RenderWindow(NativeWindowHandle h, HostRenderer& r)
+	RenderWindow(HostRenderer& r, NativeWindowHandle h)
 		: Window(h), renderer(r)
 	{}
 
@@ -69,9 +69,9 @@ public:
 
 /*!
 \brief 宿主窗口线程。
-\since build 384
+\since build 430
 */
-class WindowThread : private OwnershipTag<Window>
+class YF_API WindowThread : private OwnershipTag<Window>
 {
 private:
 	/*!
@@ -86,8 +86,8 @@ public:
 	template<typename... _tParams>
 	WindowThread(_tParams&&... args)
 		: p_wnd(), thrd(std::mem_fn(&WindowThread::ThreadFunc<typename
-		ystdex::qualified_decay<_tParams>::type...>), this,
-		ystdex::decay_forward(yforward(args))...)
+		std::decay<_tParams>::type...>), this,
+		ystdex::decay_copy(yforward(args))...)
 	{}
 	//! \since build 385
 	DefDelMoveCtor(WindowThread)
@@ -118,9 +118,9 @@ public:
 
 /*!
 \brief 宿主渲染器：在宿主环境以窗口形式显示的渲染器。
-\since build 384
+\since build 430
 */
-class HostRenderer : public UI::BufferedRenderer
+class YF_API HostRenderer : public UI::BufferedRenderer
 {
 private:
 	std::reference_wrapper<UI::IWidget> widget;
@@ -132,12 +132,34 @@ public:
 	//! \since build 385
 	template<typename... _tParams>
 	HostRenderer(UI::IWidget& wgt, _tParams&&... args)
+		: HostRenderer(ystdex::identity<RenderWindow>(), wgt, yforward(args)...)
+	{}
+	//! \since build 430
+	//@{
+	template<class _tWindow, typename... _tParams>
+	HostRenderer(ystdex::identity<_tWindow>, UI::IWidget& wgt,
+		_tParams&&... args)
 		: BufferedRenderer(),
 		widget(wgt), rbuf(GetSizeOf(wgt)),
-		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<typename
-			ystdex::qualified_decay<_tParams>::type...>), this,
-			ystdex::decay_forward(yforward(args))...)
+		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<_tWindow,
+			typename std::decay<_tParams>::type...>), this,
+			ystdex::decay_copy(yforward(args))...)
 	{}
+	template<typename... _tParams>
+	HostRenderer(int, UI::IWidget& wgt, _tParams&&... args)
+		: HostRenderer(0, ystdex::identity<RenderWindow>(), wgt,
+		yforward(args)...)
+	{}
+	template<class _tWindow, typename... _tParams>
+	HostRenderer(int, ystdex::identity<_tWindow>, UI::IWidget& wgt,
+		_tParams&&... args)
+		: BufferedRenderer(),
+		widget(wgt), rbuf(GetSizeOf(wgt)),
+		thrd(std::mem_fn(&HostRenderer::MakeRenderWindowEx<_tWindow,
+			typename std::decay<_tParams>::type...>), this,
+			ystdex::decay_copy(yforward(args))...)
+	{}
+	//@}
 	DefDeMoveCtor(HostRenderer)
 
 	DefGetter(const ynothrow, UI::IWidget&, WidgetRef, widget.get())
@@ -151,14 +173,24 @@ public:
 		ImplExpr(throw LoggedEvent("HostRenderer::clone: Not implemented."));
 //	DefClone(const override, HostRenderer)
 
-	//! \since build 386
-	template<typename _fCallable, typename... _tParams>
+	//! \since build 430
+	//@{
+	template<class _tWindow, typename _fCallable, typename... _tParams>
 	unique_ptr<Window>
 	MakeRenderWindow(_fCallable&& f, _tParams&&... args)
 	{
 		return unique_ptr<Window>(new
-			RenderWindow(yforward(f)(yforward(args)...), *this));
+			_tWindow(*this, yforward(f)(yforward(args)...)));
 	}
+
+	template<class _tWindow, typename _fCallable, typename... _tParams>
+	unique_ptr<Window>
+	MakeRenderWindowEx(_fCallable&& f, _tParams&&... args)
+	{
+		return unique_ptr<Window>(new
+			_tWindow(*this, yforward(f)(), yforward(args)...));
+	}
+	//@}
 
 	void
 	Update(Drawing::BitmapPtr);

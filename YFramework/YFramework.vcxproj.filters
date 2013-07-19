@@ -724,14 +724,14 @@
     <ClInclude Include="source\Helper\Host.h">
       <Filter>source\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="source\Helper\ScreenBuffer.h">
-      <Filter>source\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\UI\YComponent.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="source\Helper\HostRenderer.h">
-      <Filter>source\Helper</Filter>
+    <ClInclude Include="include\Helper\HostRenderer.h">
+      <Filter>include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Helper\ScreenBuffer.h">
+      <Filter>include\Helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

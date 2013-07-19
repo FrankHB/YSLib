@@ -153,10 +153,12 @@
 		<Unit filename="include/Helper/DSMain.h" />
 		<Unit filename="include/Helper/GUIApplication.h" />
 		<Unit filename="include/Helper/GUIShell.h" />
+		<Unit filename="include/Helper/HostRenderer.h" />
 		<Unit filename="include/Helper/HostWindow.h" />
 		<Unit filename="include/Helper/HostedUI.h" />
 		<Unit filename="include/Helper/Initialization.h" />
 		<Unit filename="include/Helper/InputManager.h" />
+		<Unit filename="include/Helper/ScreenBuffer.h" />
 		<Unit filename="include/Helper/ShellHelper.h" />
 		<Unit filename="include/Helper/shlds.h" />
 		<Unit filename="include/Helper/yglobal.h" />
@@ -254,13 +256,11 @@
 		<Unit filename="source/Helper/Host.cpp" />
 		<Unit filename="source/Helper/Host.h" />
 		<Unit filename="source/Helper/HostRenderer.cpp" />
-		<Unit filename="source/Helper/HostRenderer.h" />
 		<Unit filename="source/Helper/HostWindow.cpp" />
 		<Unit filename="source/Helper/HostedUI.cpp" />
 		<Unit filename="source/Helper/Initialization.cpp" />
 		<Unit filename="source/Helper/InputManager.cpp" />
 		<Unit filename="source/Helper/ScreenBuffer.cpp" />
-		<Unit filename="source/Helper/ScreenBuffer.h" />
 		<Unit filename="source/Helper/ShellHelper.cpp" />
 		<Unit filename="source/Helper/shlds.cpp" />
 		<Unit filename="source/Helper/yglobal.cpp" />

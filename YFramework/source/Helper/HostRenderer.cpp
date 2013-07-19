@@ -11,21 +11,21 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r132
+\version r134
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-07-12 19:59 +0800
+	2013-07-18 16:15 +0800
 \par 文本编码:
 	UTF-8
-\par 非公开模块名称:
+\par 模块名称:
 	Helper::HostRenderer
 */
 
 
-#include "HostRenderer.h"
+#include "Helper/HostRenderer.h"
 #include "Host.h" // for Host::Environment;
 //#include "Helper/GUIApplication.h"
 

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4415
+\version r4423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-07-16 15:53 +0800
+	2013-07-19 07:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,7 +207,14 @@ ShlReader::LoadBookmarks(const string& group)
 		ystdex::split(Access<string>(FetchRoot().GetNode("YReader")["Bookmarks"]
 			.GetNode('"' + NPL::MakeEscape(group) + '"')), static_cast<int(&)(
 			int)>(std::isspace), [&](string::iterator b, string::iterator e){
-				bookmarks.push_back(std::stoi(ystdex::ltrim(string(b, e))));
+				try
+				{
+					bookmarks.push_back(std::stoi(ystdex::ltrim(string(b, e))));
+				}
+				catch(std::invalid_argument&)
+				{}
+				catch(std::out_of_range&)
+				{}
 		});
 	}
 	catch(std::exception& e) // TODO: Logging.

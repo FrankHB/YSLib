@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r197
+\version r256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-07-15 15:39 +0800
+	2013-07-18 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,6 +74,15 @@ WindowReference::GetSize() const
 
 	return {rect.right - rect.left, rect.bottom - rect.top};
 }
+YSLib::Drawing::AlphaType
+WindowReference::GetOpacity() const
+{
+	ystdex::byte a;
+
+	if(YB_UNLIKELY(!GetLayeredWindowAttributes(hWindow, {}, &a, {})))
+		YF_Raise_Win32Exception("GetLayeredWindowAttributes");
+	return a;
+}
 Point
 WindowReference::GetLocation() const
 {
@@ -82,6 +91,12 @@ WindowReference::GetLocation() const
 	return {rect.left, rect.top};
 }
 
+void
+WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
+{
+	if(YB_UNLIKELY(!SetLayeredWindowAttributes(hWindow, 0, a, LWA_ALPHA)))
+		YF_Raise_Win32Exception("SetLayeredWindowAttributes");
+}
 void
 WindowReference::SetText(const wchar_t* str)
 {
@@ -138,12 +153,12 @@ WindowReference::Show() ynothrow
 
 NativeWindowHandle
 CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
-	const wchar_t* title, ::DWORD wstyle)
+	const wchar_t* title, ::DWORD wstyle, ::DWORD wstyle_ex)
 {
 	::RECT rect{0, 0, s.Width, s.Height};
 
 	::AdjustWindowRect(&rect, wstyle, FALSE);
-	return ::CreateWindowW(class_name, title, wstyle, CW_USEDEFAULT,
+	return ::CreateWindowExW(wstyle_ex, class_name, title, wstyle, CW_USEDEFAULT,
 		CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
 		HWND_DESKTOP, nullptr, ::GetModuleHandleW(nullptr), nullptr);
 }
@@ -208,6 +223,59 @@ WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
 		SRCCOPY);
 	::SelectObject(h_mem_dc, h_old);
 }
+
+
+HostWindow::HostWindow(NativeWindowHandle h)
+	: WindowReference(h)
+{
+	YAssert(::IsWindow(h), "Invalid window handle found.");
+	YAssert(::GetWindowThreadProcessId(h, nullptr) == ::GetCurrentThreadId(),
+		"Window not created on current thread found.");
+	YAssert(::GetWindowLongPtrW(h, GWLP_USERDATA) == 0,
+		"Invalid user data of window found.");
+
+	wchar_t buf[ystdex::arrlen(WindowClassName)];
+
+	if(YB_UNLIKELY(!::GetClassNameW(hWindow, buf,
+		ystdex::arrlen(WindowClassName))))
+		YF_Raise_Win32Exception("GetClassNameW");
+	if(std::wcscmp(buf, WindowClassName) != 0)
+		throw LoggedEvent("Wrong windows class name found.");
+	::SetLastError(0);
+	if(YB_UNLIKELY(::SetWindowLongPtrW(hWindow, GWLP_USERDATA,
+		::LONG_PTR(this)) == 0 && GetLastError() != 0))
+		YF_Raise_Win32Exception("SetWindowLongPtrW");
+	if(YB_UNLIKELY(!::SetWindowPos(hWindow, nullptr, 0, 0, 0, 0, SWP_NOACTIVATE
+		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING
+		| SWP_NOSIZE | SWP_NOZORDER)))
+		YF_Raise_Win32Exception("SetWindowPos");
+
+	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
+
+	if(YB_UNLIKELY(!::RegisterRawInputDevices(&rid, 1, sizeof(rid))))
+		YF_Raise_Win32Exception("RegisterRawInputDevices");
+}
+HostWindow::~HostWindow()
+{
+	::SetWindowLongPtrW(hWindow, GWLP_USERDATA, ::LONG_PTR());
+	// Note: The window could be already destroyed in window procedure.
+	if(::IsWindow(hWindow))
+		::DestroyWindow(hWindow);
+}
+
+void
+HostWindow::OnDestroy()
+{
+	::PostQuitMessage(0);
+}
+
+void
+HostWindow::OnLostFocus()
+{}
+
+void
+HostWindow::OnPaint()
+{}
 
 } // namespace Windows;
 

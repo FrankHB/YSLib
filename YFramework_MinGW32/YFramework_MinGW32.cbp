@@ -198,10 +198,12 @@
 		<Unit filename="../YFramework/include/Helper/DSMain.h" />
 		<Unit filename="../YFramework/include/Helper/GUIApplication.h" />
 		<Unit filename="../YFramework/include/Helper/GUIShell.h" />
+		<Unit filename="../YFramework/include/Helper/HostRenderer.h" />
 		<Unit filename="../YFramework/include/Helper/HostWindow.h" />
 		<Unit filename="../YFramework/include/Helper/HostedUI.h" />
 		<Unit filename="../YFramework/include/Helper/Initialization.h" />
 		<Unit filename="../YFramework/include/Helper/InputManager.h" />
+		<Unit filename="../YFramework/include/Helper/ScreenBuffer.h" />
 		<Unit filename="../YFramework/include/Helper/ShellHelper.h" />
 		<Unit filename="../YFramework/include/Helper/shlds.h" />
 		<Unit filename="../YFramework/include/Helper/yglobal.h" />
@@ -299,13 +301,11 @@
 		<Unit filename="../YFramework/source/Helper/Host.cpp" />
 		<Unit filename="../YFramework/source/Helper/Host.h" />
 		<Unit filename="../YFramework/source/Helper/HostRenderer.cpp" />
-		<Unit filename="../YFramework/source/Helper/HostRenderer.h" />
 		<Unit filename="../YFramework/source/Helper/HostWindow.cpp" />
 		<Unit filename="../YFramework/source/Helper/HostedUI.cpp" />
 		<Unit filename="../YFramework/source/Helper/Initialization.cpp" />
 		<Unit filename="../YFramework/source/Helper/InputManager.cpp" />
 		<Unit filename="../YFramework/source/Helper/ScreenBuffer.cpp" />
-		<Unit filename="../YFramework/source/Helper/ScreenBuffer.h" />
 		<Unit filename="../YFramework/source/Helper/ShellHelper.cpp" />
 		<Unit filename="../YFramework/source/Helper/shlds.cpp" />
 		<Unit filename="../YFramework/source/Helper/yglobal.cpp" />

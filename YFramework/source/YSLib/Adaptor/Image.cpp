@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r199
+\version r222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-07-15 06:22 +0800
+	2013-07-15 15:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,14 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Drawing)
+
+//! \since build 430
+static_assert(int(SamplingFilter::Box) == FILTER_BOX && int(
+	SamplingFilter::Bicubic) == FILTER_BICUBIC && int(SamplingFilter::Bilinear)
+	== FILTER_BILINEAR && int(SamplingFilter::BSpline) == FILTER_BSPLINE && int(
+	SamplingFilter::CatmullRom) == FILTER_CATMULLROM && int(
+	SamplingFilter::Lanczos3) == FILTER_LANCZOS3, "Incompatible filter found.");
+
 
 ImageMemory::ImageMemory(octet* p, size_t size)
 	: handle(::FreeImage_OpenMemory(static_cast<byte*>(p), static_cast<
@@ -53,11 +61,6 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 	if(!bitmap)
 		throw BadImageAlloc();
 }
-HBitmap::HBitmap(DataPtr ptr) ynothrow
-	: bitmap(ptr)
-{
-	YAssert(bitmap, "Null pointer found");
-}
 HBitmap::HBitmap(const string& filename)
 	: bitmap([](const char* fname){
 		const auto fif(::FreeImage_GetFIFFromFilename(fname));
@@ -77,6 +80,13 @@ HBitmap::HBitmap(const ImageMemory& mem)
 {
 	if(!bitmap)
 		throw LoggedEvent("Loading image failed.");
+}
+HBitmap::HBitmap(const HBitmap& pixmap, const Size& s, SamplingFilter sf)
+	: bitmap(::FreeImage_Rescale(pixmap.bitmap, s.Width, s.Height,
+		static_cast< ::FREE_IMAGE_FILTER>(sf)))
+{
+	if(!bitmap)
+		throw LoggedEvent("Rescaling image failed.");
 }
 HBitmap::HBitmap(const HBitmap& pixmap)
 	: bitmap(::FreeImage_Clone(pixmap.bitmap))
@@ -102,17 +112,23 @@ HBitmap::GetBPP() const ynothrow
 SDst
 HBitmap::GetHeight() const ynothrow
 {
-	return ::FreeImage_GetHeight(bitmap); 
+	return ::FreeImage_GetHeight(bitmap);
 }
 SDst
 HBitmap::GetPitch() const ynothrow
 {
-	return ::FreeImage_GetPitch(bitmap); 
+	return ::FreeImage_GetPitch(bitmap);
 }
 SDst
 HBitmap::GetWidth() const ynothrow
 {
-	return ::FreeImage_GetWidth(bitmap); 
+	return ::FreeImage_GetWidth(bitmap);
+}
+
+void
+HBitmap::Rescale(const Size& s, SamplingFilter sf)
+{
+	*this = HBitmap(*this, s, sf);
 }
 
 
@@ -132,7 +148,7 @@ ImageCodec::Load(const vector<octet>& vec)
 
 	if(mem.GetFormat() == FIF_UNKNOWN)
 		throw UnknownImageFormat("Unknown image format found when loading.");
-	
+
 	return Convert(HBitmap(mem));
 }
 

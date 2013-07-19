@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1860
+\version r1865
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-07-10 15:48 +0800
+	2013-07-18 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,11 @@ YSL_END_NAMESPACE(UI)
 */
 YSL_BEGIN_NAMESPACE(Host)
 //! \since build 381
+class Environment;
+class Window;
+class RenderWindow;
+class WindowThread;
+class HostRenderer;
 class Environment;
 
 /*!

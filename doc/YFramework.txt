@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r597
+\version r599
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-15 13:02 +0800
+	2013-07-19 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -404,7 +404,7 @@
 
 @2.3.2.1 所有权标签：
 以下独占所有权关系中，被托管对象类不是直接的成员或明确具有所有权语义的指针指向的对象。使用 OwnershipTag 模板标识这些类型。
-所有者（基类）中 private 继承了 OwnershipTag<_type> 。被托管对象的实际类型可能是 _type 的派生类。实例包括：
+所有者（基类）中 private 继承了 OwnershipTag<_type> 。被托管对象的实际类型可能是 _type 的派生类（需要是虚析构的多态类）。除了 Helper 外的实例包括：
  Drawing::FontCache 具有 Drawing::Typeface 和 Drawing::FontFamily 的所有权；
  UI::MenuHost 具有 UI::Menu 的所有权；
  Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
@@ -529,7 +529,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 使用宏 DefEmptyDtor 在类定义内定义空析构函数，除非需要显式的异常规范；
 使用宏 PDefH 和 Impl* 在类定义中实现成员函数或在类定义后实现类的扩展接口。
 注意为了简便，模板一般总是在类定义内实现，不一定使用以上宏。非成员函数或函数模板若无法使用以上宏表示，可以显式在头文件中使用 inline 或分离定义。
-除构造函数或构造模板外，类定义中若无法使用以上函数表示成员定义，则该成员不在类定义中定义（可以在类定义后使用 inline 定义，或在另外的源文件中分离定义）。
+除构造函数、构造模板和成员 operator= 外，类定义中若无法使用以上函数表示成员定义，则该成员不在类定义中定义（可以在类定义后使用 inline 定义，或在另外的源文件中分离定义）。
 
 @4.2 类类型规则：
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1701
+\version r1780
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-16 16:23 +0800
+	2013-07-19 16:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,82 @@ $import $HISTORY;
 
 $now
 (
+	/= DLD "ensured all if clause and member initializer for class objects \
+		initialization" ^ "preferred ISO C++11 braced initializer syntax with \
+		direct-initialization" ~ "equal initializer syntax with copy \
+		initialization",
+		// No instance of violation found.
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			/ "supported extra window sytle" @ ("function %CreateNativeWindow"
+				%'YCLib_(MinGW32)'.'Win32GUI'; "function %ShowTopLevel"
+				@ %'HostedUI') @ "platform %MinGW32",
+				// Defaulted as 'WS_EX_LAYERED'.
+			+ "units %(ScreenBuffer; HostRenderer)",
+			/ %'HostedUI' $=
+			(
+				/ "non-inline functions %(GetHostRendererPtrOf, GetWindowPtrOf)"
+					-> "inline functions",
+				/ "function %MakeHostRenderer" -> "function template"
+			),
+			/ $dev @ "class %Window" %'HostWindow' $=
+			(
+				(
+					$dep_from %'YCLib_(MinGW32)'.'Win32GUI';
+					/ "simplified class %Host::Window" ^ "class %HostWindow"
+				),
+				(
+					-"2nd parameter" @ "constructor";
+					+ "constructor with 1 parameter"
+				)
+			),
+			/ "object %WindowClassName" @ "namespace %Host" @ %'HostWindow'
+				>> %'YCLib_(MinGW32)'.'Win32GUI';
+			/ $dev "simplified header dependencies";
+			/ $dev @ "namespace %Host" @ %'GUIApplication' $=
+			(
+				/ "all class name declarations" >> %'YGlobal',
+				/ 'using namespace platform_ex;' >> %'HostWindow'
+			),
+		)
+		/ %'YCLib_(MinGW32)'.'Win32GUI' $=
+		(
+			+ "member functions %(GetOpacity, SetOpacity)"
+				@ "class %WindowReference",
+			+ "class %HostWindow" @ "namespace %platform_ex::Windows"
+		)
+		/ %'YSLib'.'YAdaptor'.'Image' $=
+		(
+			+ "enum class %SamplingFilter",
+			/ @ "class %HBitmap" $=
+			(
+				/ "allowed nullptr as default argument"
+					@ "constructor with data pointer",
+					// As "handle".
+				+ "member function %swap",
+				+ "unifying assignment",
+				+ "converter 'explicit operator bool() const ynothrow'",
+				+ 'operator!() const ynothrow',
+				(
+					$dep_from "%SamplingFilter";
+					+ "constructor 'HBitmap(const HBitmap&, const Size&, \
+						SamplingFilter)'";
+					+ "member function %HBitmap::Rescale"
+				)
+			),
+			(
+				$dep_from "%HBitmap::swap";
+				+ "non-member function %swap for class %HBitmap"
+			)
+		)
+	),
+	/ "resumed when one bookmark loading failed" @ %'YReader'.'text reader'
+),
+
+b429
+(
 	/ %'YFramework' $=
 	(
 		+ "class %platform_ex::DSVideoState" @ 'YCL_DS || YCL_HOSTED'
@@ -43,7 +119,7 @@ $now
 			/ %'HostWindow' $=
 			(
 				$dep_from "%WindowReference::Invalidate";
-				+ "'using WindowReference::Invalidate;'" @ "class %Host::Window";
+				+ 'using WindowReference::Invalidate;' @ "class %Host::Window"
 			),
 			/ %'DSMain' $=
 			(
@@ -131,7 +207,8 @@ b428
 			/ @ "class %Graphic" @ %'Core'.'YGDIBase' $=
 			(
 				+ "non-explicit default constructor",
-				- "1st default argument" @ "explicit constructor with 2 parameters"
+				- "1st default argument"
+					@ "explicit constructor with 2 parameters"
 			)
 		),
 		/ @ "namespace %platform_ex::Windows" @ %'YCLib(MinGW32)'.'Win32GUI' $=
@@ -159,7 +236,7 @@ b428
 			/ %'HostWindow' $=
 			(
 				$dep_from "%WindowReference::SetText";
-				+ "'using WindowReference::SetText;'" @ "class %Host::Window";
+				+ 'using WindowReference::SetText;' @ "class %Host::Window"
 			),
 			/ @ "namespace %Host" @ %'HosteUI' $=
 			(

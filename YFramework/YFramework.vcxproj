@@ -122,9 +122,11 @@
     <ClInclude Include="include\Helper\GUIApplication.h" />
     <ClInclude Include="include\Helper\GUIShell.h" />
     <ClInclude Include="include\Helper\HostedUI.h" />
+    <ClInclude Include="include\Helper\HostRenderer.h" />
     <ClInclude Include="include\Helper\HostWindow.h" />
     <ClInclude Include="include\Helper\Initialization.h" />
     <ClInclude Include="include\Helper\InputManager.h" />
+    <ClInclude Include="include\Helper\ScreenBuffer.h" />
     <ClInclude Include="include\Helper\ShellHelper.h" />
     <ClInclude Include="include\Helper\shlds.h" />
     <ClInclude Include="include\Helper\yglobal.h" />
@@ -212,8 +214,6 @@
     <ClInclude Include="source\Helper\DSScreen.h" />
     <ClInclude Include="source\Helper\DSWindow.h" />
     <ClInclude Include="source\Helper\Host.h" />
-    <ClInclude Include="source\Helper\HostRenderer.h" />
-    <ClInclude Include="source\Helper\ScreenBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\doc\ex.cpp" />

@@ -11,21 +11,21 @@
 /*!	\file ScreenBuffer.cpp
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r161
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-07-13 07:49 +0800
+	2013-07-18 15:17 +0800
 \par 文本编码:
 	UTF-8
-\par 非公开模块名称:
+\par 模块名称:
 	Helper::ScreenBuffer
 */
 
 
-#include "ScreenBuffer.h"
+#include "Helper/ScreenBuffer.h"
 #include "Helper/ShellHelper.h" // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
 
 YSL_BEGIN

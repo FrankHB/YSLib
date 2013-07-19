@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r667
+\version r668
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-07-09 05:57 +0800
+	2013-07-18 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,7 +28,7 @@
 #ifndef Inc_Helper_Host_h_
 #define Inc_Helper_Host_h_ 1
 
-#include "Helper/GUIApplication.h" // for Host::Window;
+#include "Helper/HostWindow.h" // for Host::Window;
 #if YCL_MULTITHREAD == 1
 #	include <mutex>
 #	include <atomic>

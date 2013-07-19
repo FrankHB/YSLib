@@ -11,22 +11,22 @@
 /*!	\file ScreenBuffer.h
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r357
+\version r360
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-07-15 06:29 +0800
+	2013-07-18 15:17 +0800
 \par 文本编码:
 	UTF-8
-\par 非公开模块名称:
+\par 模块名称:
 	Helper::ScreenBuffer
 */
 
 
-#ifndef Inc_Helper_ScreenBuffer_h_
-#define Inc_Helper_ScreenBuffer_h_ 1
+#ifndef INC_Helper_ScreenBuffer_h_
+#define INC_Helper_ScreenBuffer_h_ 1
 
 #include "YSLib/Core/ygdibase.h"
 #include "YCLib/NativeAPI.h"

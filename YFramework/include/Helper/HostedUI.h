@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r116
+\version r144
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-07-14 20:16 +0800
+	2013-07-18 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,7 @@
 #ifndef INC_Helper_HostedUI_h_
 #define INC_Helper_HostedUI_h_ 1
 
-#include "Helper/GUIApplication.h"
-#include "YSLib/UI/yrender.h"
-#include "YSLib/UI/ywidget.h"
+#include "Helper/HostRenderer.h"
 
 YSL_BEGIN
 
@@ -40,18 +38,26 @@ YSL_BEGIN_NAMESPACE(Host)
 /*!
 \brief 取宿主渲染器指针。
 \return 若渲染器类型能转换为 HostRenderer 则返回转换后的指针；否则为空。
-\since build 389
+\since build 430
 */
-YF_API UI::BufferedRenderer*
-GetHostRendererPtrOf(UI::IWidget&);
+inline HostRenderer*
+GetHostRendererPtrOf(UI::IWidget& wgt)
+{
+	return dynamic_cast<HostRenderer*>(&wgt.GetRenderer());
+}
 
 /*!
 \brief 取宿主渲染器对应的窗口。
 \return 若渲染器类型能转换为 HostRenderer 且有对应窗口则返回窗口指针；否则为空。
-\since build 389
+\since build 430
 */
-YF_API Window*
-GetWindowPtrOf(UI::IWidget&);
+inline Window*
+GetWindowPtrOf(UI::IWidget& wgt)
+{
+	if(const auto p_r = dynamic_cast<HostRenderer*>(&wgt.GetRenderer()))
+		return p_r->GetWindowPtr();
+	return nullptr;
+}
 
 /*!
 \brief 等待宿主渲染器窗口就绪。
@@ -65,12 +71,16 @@ WaitForHostWindow(UI::IWidget&);
 
 /*!
 \brief 制造新的宿主渲染器。
-\return unique_ptr 包装的渲染器，保证实际动态类型为 HostRenderer 。
-\since build 389
+\return unique_ptr 包装的渲染器。
+\since build 430
 */
-YF_API unique_ptr<UI::BufferedRenderer>
-MakeHostRenderer(UI::IWidget&, std::function<NativeWindowHandle()>);
-
+template<typename _fCallable, typename... _tParams>
+unique_ptr<HostRenderer>
+MakeHostRenderer(UI::IWidget& wgt, _fCallable&& f, _tParams&&... args)
+{
+	return ystdex::make_unique<HostRenderer>(wgt, yforward(f),
+		yforward(args)...);
+}
 
 //! \since build 401
 template<typename _tParam>
@@ -100,10 +110,11 @@ DragWindow(Window&, UI::CursorEventArgs&&);
 
 /*!
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。
-\since build 428
+\since build 430
 */
 YF_API void
-ShowTopLevel(UI::Widget&, ::DWORD, const wchar_t* = L"");
+ShowTopLevel(UI::Widget&, ::DWORD = WS_POPUP, ::DWORD = WS_EX_LAYERED,
+	const wchar_t* = L"");
 #	endif
 
 /*!

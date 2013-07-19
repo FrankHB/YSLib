@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r278
+\version r291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-07-10 16:31 +0800
+	2013-07-18 21:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,21 +38,6 @@
 #endif
 
 YSL_BEGIN
-
-#if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
-#	if YCL_MINGW32
-//! \since build 427
-using namespace platform_ex;
-#	endif
-class Window;
-class RenderWindow;
-class WindowThread;
-class HostRenderer;
-class Environment;
-YSL_END_NAMESPACE(Host)
-#endif
-
 
 /*!
 \brief 平台相关的应用程序类。

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r263
+\version r332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2013-07-15 15:32 +0800
+	2013-07-18 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "MinGW32.h"
 #include <YSLib/Core/ygdibase.h>
 #include <mutex> // for std::mutex;
+#include <atomic>
 
 namespace platform_ex
 {
@@ -61,9 +62,24 @@ public:
 	YSLib::Drawing::Point
 	GetLocation() const;
 	DefGetter(const ynothrow, NativeWindowHandle, NativeHandle, hWindow)
+	/*!
+	\brief 取不透明度。
+	\pre 之前必须在此窗口上调用过 SetOpacity 或 ::SetLayeredWindowAttributes 。
+	\note 当窗口未启用 WS_EX_LAYERED 样式时无效。
+	\since build 430
+	*/
+	YSLib::Drawing::AlphaType
+	GetOpacity() const;
 	YSLib::Drawing::Size
 	GetSize() const;
 
+	/*!
+	\brief 设置不透明度。
+	\note 当窗口未启用 WS_EX_LAYERED 样式时无效。
+	\since build 430
+	*/
+	void
+	SetOpacity(YSLib::Drawing::AlphaType);
 	/*!
 	\brief 设置标题栏文字。
 	\since build 428
@@ -113,12 +129,12 @@ public:
 
 
 /*!
-\brief 按指定窗口类名、客户区大小、标题文本和样式创建本机顶层窗口。
-\since build 428
+\brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶层窗口。
+\since build 430
 */
 YF_API NativeWindowHandle
 CreateNativeWindow(const wchar_t*, const YSLib::Drawing::Size&,
-	const wchar_t* = L"", ::DWORD = WS_POPUP);
+	const wchar_t* = L"", ::DWORD = WS_POPUP, ::DWORD = WS_EX_LTRREADING);
 
 
 /*!
@@ -284,6 +300,72 @@ public:
 	GSurface(NativeWindowHandle h_wnd)
 		: _type(h_wnd), WindowMemorySurface(_type::GetDeviceContextHandle())
 	{}
+};
+
+
+//! \since build 382
+yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
+
+
+/*!
+\brief 宿主窗口。
+\since build 429
+*/
+class YF_API HostWindow : private WindowReference
+{
+public:
+	/*!
+	\brief 限制指针设备响应在窗口边界内。
+	\bug 必须支持 <tt>std::atomic</tt> 。
+	\since build 427
+	*/
+	std::atomic<bool> BoundsLimited{false};
+
+	//! \throw LoggedEvent 窗口类名不是 WindowClassName 。
+	HostWindow(NativeWindowHandle);
+	DefDelCopyCtor(HostWindow)
+	DefDelMoveCtor(HostWindow)
+	virtual
+	~HostWindow();
+
+	//! \since build 427
+	//@{
+	using WindowReference::GetLocation;
+	using WindowReference::GetNativeHandle;
+	//! \since build 430
+	using WindowReference::GetOpacity;
+	using WindowReference::GetSize;
+
+	//! \since build 430
+	using WindowReference::SetOpacity;
+	//! \since build 428
+	using WindowReference::SetText;
+
+	using WindowReference::Close;
+
+	//! \since build 429
+	using WindowReference::Invalidate;
+
+	using WindowReference::Move;
+	//@}
+
+	virtual void
+	OnDestroy();
+
+	virtual void
+	OnLostFocus();
+
+	virtual void
+	OnPaint();
+
+	//! \since build 427
+	//@{
+	using WindowReference::Resize;
+
+	using WindowReference::ResizeClient;
+
+	using WindowReference::Show;
+	//@}
 };
 
 } // namespace Windows;
