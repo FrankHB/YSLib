@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1646
+\version r1648
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2013-05-27 02:45 +0800
+	2013-07-22 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,8 +91,8 @@ is_null(_tChar c)
 
 /*!	\defgroup NTCTSUtil null-terminated character string utilities
 \brief 简单 NTCTS 操作。
-\note NTCTS(null-terminated character string) 即 NUL 字符标记结束的字符串，
-	除了结束字符外没有 NUL 字符。
+\note NTCTS(null-terminated character string) 即空字符标记结束的字符串，
+	除了结束字符外没有空字符。
 \note 简单指不包括 NTMBS(null-terminated mutibyte string) ，按等宽字符考虑。
 \see ISO C++03 (17.1.12, 17.3.2.1.3.2) 。
 */

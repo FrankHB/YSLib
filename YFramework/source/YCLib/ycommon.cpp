@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2671
+\version r2691
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2013-03-23 20:56 +0800
+	2013-07-22 16:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,31 +83,7 @@ AllowSleep(bool b)
 	return b_old;
 }
 #elif YCL_MINGW32
-std::string
-UTF8ToMBCS(const char* str, std::size_t len, int cp)
-{
-	if(cp == CP_UTF8)
-		return str;
 
-	const int w_len(::MultiByteToWideChar(CP_UTF8, 0, str, len, nullptr, 0));
-	std::wstring wstr(w_len, wchar_t());
-	wchar_t* w_str = &wstr[0];
-
-	::MultiByteToWideChar(CP_UTF8, 0, str, len, w_str, w_len);
-
-	return WCSToMBCS(w_str, w_len, cp);
-}
-
-std::string
-WCSToMBCS(const wchar_t* str, std::size_t len, int cp)
-{
-	const int r_len(::WideCharToMultiByte(cp, 0, str, len,
-		nullptr, 0, nullptr, nullptr));
-	std::string mbcs(r_len, char());
-
-	::WideCharToMultiByte(cp, 0, str, len, &mbcs[0], r_len, nullptr, nullptr);
-	return mbcs;
-}
 #endif
 
 }

@@ -1,4 +1,4 @@
-// ==========================================================
+﻿// ==========================================================
 // FreeImage Plugin Interface
 //
 // Design and implementation by
@@ -20,11 +20,16 @@
 // Use at your own risk!
 // ==========================================================
 
-// Modified by FrankHB <frankhb1989@gmail.com>, 2013-06-26;
+// Modified by FrankHB <frankhb1989@gmail.com>, 2013-06-26:
+//	Disabled unused plugins and make placeholders in plugin list in "Source/Plugin.h" and "Source/FreeImage/Plugin.cpp".
+// Modified by FrankHB <frankhb1989@gmail.com>, 2013-07-20:
+//	Normalized all EOL marker as CR+LF.
+//	Removed all spaces at end of lines.
+//	Saved as UTF8 + BOM.
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #pragma warning (disable : 4786) // identifier was truncated to 'number' characters
-#endif 
+#endif
 
 #ifndef PLUGIN_H
 #define PLUGIN_H

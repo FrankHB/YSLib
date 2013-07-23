@@ -11,13 +11,13 @@
 /*!	\file Console.cpp
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r78
+\version r82
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2011-04-20 09:28:39 +0800
 \par 修改时间:
-	2013-05-05 21:13 +0800
+	2013-07-23 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 
 #include "YSLib/UI/Console.h"
-#include "Helper/DSMain.h"
 #include "YCLib/Input.h" // platform::WaitForInput;
 
 YSL_BEGIN
@@ -40,15 +39,13 @@ Console::Pause()
 }
 
 void
-Activate(Console& c, Drawing::Color fc, Drawing::Color bc)
+Activate(Console&, Drawing::Color, Drawing::Color)
 {
-	InitConsole(c.Screen, fc, bc);
 }
 
 void
 Deactivate(Console&)
 {
-	InitVideo();
 }
 
 YSL_END_NAMESPACE(UI)

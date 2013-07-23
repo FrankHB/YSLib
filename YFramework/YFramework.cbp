@@ -150,9 +150,9 @@
 		<Unit filename="include/CHRLib/chrproc.h" />
 		<Unit filename="include/CHRLib/encoding.h" />
 		<Unit filename="include/CHRLib/smap.hpp" />
-		<Unit filename="include/Helper/DSMain.h" />
 		<Unit filename="include/Helper/GUIApplication.h" />
 		<Unit filename="include/Helper/GUIShell.h" />
+		<Unit filename="include/Helper/Host.h" />
 		<Unit filename="include/Helper/HostRenderer.h" />
 		<Unit filename="include/Helper/HostWindow.h" />
 		<Unit filename="include/Helper/HostedUI.h" />
@@ -160,7 +160,6 @@
 		<Unit filename="include/Helper/InputManager.h" />
 		<Unit filename="include/Helper/ScreenBuffer.h" />
 		<Unit filename="include/Helper/ShellHelper.h" />
-		<Unit filename="include/Helper/shlds.h" />
 		<Unit filename="include/Helper/yglobal.h" />
 		<Unit filename="include/NPL/Configuration.h" />
 		<Unit filename="include/NPL/Lexical.h" />
@@ -248,13 +247,10 @@
 		<Unit filename="source/CHRLib/chrproc.cpp" />
 		<Unit filename="source/Helper/DSMain.cpp" />
 		<Unit filename="source/Helper/DSScreen.cpp" />
-		<Unit filename="source/Helper/DSScreen.h" />
 		<Unit filename="source/Helper/DSWindow.cpp" />
-		<Unit filename="source/Helper/DSWindow.h" />
 		<Unit filename="source/Helper/GUIApplication.cpp" />
 		<Unit filename="source/Helper/GUIShell.cpp" />
 		<Unit filename="source/Helper/Host.cpp" />
-		<Unit filename="source/Helper/Host.h" />
 		<Unit filename="source/Helper/HostRenderer.cpp" />
 		<Unit filename="source/Helper/HostWindow.cpp" />
 		<Unit filename="source/Helper/HostedUI.cpp" />
@@ -262,7 +258,6 @@
 		<Unit filename="source/Helper/InputManager.cpp" />
 		<Unit filename="source/Helper/ScreenBuffer.cpp" />
 		<Unit filename="source/Helper/ShellHelper.cpp" />
-		<Unit filename="source/Helper/shlds.cpp" />
 		<Unit filename="source/Helper/yglobal.cpp" />
 		<Unit filename="source/NPL/Configuration.cpp" />
 		<Unit filename="source/NPL/Lexical.cpp" />

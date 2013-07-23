@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r222
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-07-15 15:33 +0800
+	2013-07-22 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include <FreeImage.h>
 #include "YSLib/Service/yblit.h"
 #include "YSLib/Service/ygdi.h"
+#include <CHRLib/chrproc.h> // for CHRLib::ToASCII;
 
 YSL_BEGIN
 
@@ -40,6 +41,66 @@ static_assert(int(SamplingFilter::Box) == FILTER_BOX && int(
 	== FILTER_BILINEAR && int(SamplingFilter::BSpline) == FILTER_BSPLINE && int(
 	SamplingFilter::CatmullRom) == FILTER_CATMULLROM && int(
 	SamplingFilter::Lanczos3) == FILTER_LANCZOS3, "Incompatible filter found.");
+
+//! \since build 431
+namespace
+{
+
+::FreeImageIO u8_io{
+	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h){
+		return unsigned(std::fread(buffer, std::size_t(size),
+			std::size_t(nmemb), static_cast<std::FILE*>(h)));
+	},
+	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h){
+		return unsigned(std::fwrite(buffer, std::size_t(size),
+			std::size_t(nmemb), static_cast<std::FILE*>(h)));
+	},
+	[](::fi_handle h, long offset, int whence){
+		return std::fseek(static_cast<std::FILE*>(h), offset, whence);
+	},
+	[](::fi_handle h){
+		return std::ftell(static_cast<std::FILE*>(h));
+	}
+};
+
+::FIBITMAP*
+LoadImage(ImageFormat fmt, std::FILE* fp, int flags) ynothrow
+{
+	if(fp)
+	{
+		const auto bitmap(::FreeImage_LoadFromHandle(::FREE_IMAGE_FORMAT(fmt),
+			&u8_io, ::fi_handle(fp), flags));
+
+		std::fclose(fp);
+		return bitmap;
+	}
+	return {};
+}
+::FIBITMAP*
+LoadImage(ImageFormat fmt, const char* filename, int flags = 0) ynothrow
+{
+	return LoadImage(fmt, ufopen(filename, "rb"), flags);
+}
+::FIBITMAP*
+LoadImage(ImageFormat fmt, const char16_t* filename, int flags = 0) ynothrow
+{
+	return LoadImage(fmt, ufopen(filename, u"rb"), flags);
+}
+
+ImageFormat
+GetFormatFromFilename(const char16_t* filename)
+{
+	const auto len(std::char_traits<char16_t>::length(filename));
+	const unique_ptr<char[]> p(new char[len]);
+	const auto str(p.get());
+
+	for(size_t i{}; i < len; ++i)
+		str[i] = CHRLib::ToASCII(filename[i]);
+	str[len] = u'\0';
+	return ::FreeImage_GetFIFFromFilename(str);
+}
+
+} // unnamed namespace;
 
 
 ImageMemory::ImageMemory(octet* p, size_t size)
@@ -61,15 +122,20 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 	if(!bitmap)
 		throw BadImageAlloc();
 }
-HBitmap::HBitmap(const string& filename)
-	: bitmap([](const char* fname){
-		const auto fif(::FreeImage_GetFIFFromFilename(fname));
-
-		if(fif == FIF_UNKNOWN)
-			throw UnknownImageFormat(
-				"Unknown image format found on opening file.");
-		return ::FreeImage_Load(fif, fname);
-	}(filename.c_str()))
+HBitmap::HBitmap(const char* filename)
+	: HBitmap(filename, ::FreeImage_GetFIFFromFilename(filename))
+{}
+HBitmap::HBitmap(const char* filename, ImageFormat fmt)
+	: bitmap(LoadImage(fmt, filename))
+{
+	if(!bitmap)
+		throw LoggedEvent("Loading image failed.");
+}
+HBitmap::HBitmap(const char16_t* filename)
+	: HBitmap(filename, GetFormatFromFilename(filename))
+{}
+HBitmap::HBitmap(const char16_t* filename, ImageFormat fmt)
+	: bitmap(LoadImage(fmt, filename))
 {
 	if(!bitmap)
 		throw LoggedEvent("Loading image failed.");
@@ -83,7 +149,7 @@ HBitmap::HBitmap(const ImageMemory& mem)
 }
 HBitmap::HBitmap(const HBitmap& pixmap, const Size& s, SamplingFilter sf)
 	: bitmap(::FreeImage_Rescale(pixmap.bitmap, s.Width, s.Height,
-		static_cast< ::FREE_IMAGE_FILTER>(sf)))
+	::FREE_IMAGE_FILTER(sf)))
 {
 	if(!bitmap)
 		throw LoggedEvent("Rescaling image failed.");

@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r128
+\version r132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-07-18 22:18 +0800
+	2013-07-23 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,6 +71,11 @@ ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
 {
 	WrapRenderer(wgt, CreateNativeWindow, WindowClassName, GetSizeOf(wgt),
 		title, wstyle, wstyle_ex);
+
+	auto& wnd(WaitForHostWindow(wgt));
+
+	if(wstyle_ex & WS_EX_LAYERED)
+		wnd.SetOpacity(0xFF);
 }
 #	endif
 
@@ -83,7 +88,7 @@ ShowTopLevelDraggable(UI::Widget& wgt)
 #	error "Currently only Windows is supported."
 #endif
 	UI::FetchEvent<UI::TouchHeld>(wgt) += std::bind(Host::DragWindow,
-		std::ref(Host::WaitForHostWindow(wgt)), std::placeholders::_1);
+		std::ref(WaitForHostWindow(wgt)), std::placeholders::_1);
 }
 
 YSL_END_NAMESPACE(Host)

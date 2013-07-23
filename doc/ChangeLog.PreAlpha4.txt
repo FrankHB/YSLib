@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1780
+\version r1880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-19 16:21 +0800
+	2013-07-23 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,103 @@ $import $HISTORY;
 
 $now
 (
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ @ "class %HBitmap" @ %'Adaptor'.'Image' $=
+			(
+				+ "constructor with file name and specified image format",
+				+ "constructor for different types of file names",
+				/ "char-based file names with UTF-8 support" @ "constructors"
+			),
+			/ %'UI'.'Console' $=
+			(
+				/ "disabled platform dependent functionality"
+					@ "class %Console";
+				- $dev "header dependency" @ ("%DSMain" @ %'Helper')
+			)
+		),
+		/ "functions %platform_ex::(UTF8ToMBCS, WCSToMBCS)" @ "platform \
+			%MinGW32" @ %'YCLib'.'YCommon' >> ("namespace %platform_ex::Windows"
+			@ %'YCLib_(MinGW32)'.'MinGW');
+		/ @ "namespace %platform::Windows" @ %'YCLib_(MinGW32)'.'MinGW' $=
+		(
+			+ "3 functions %MBCSToWCS",
+			+ "inline functions for native encoding conversion with length of \
+				C style strings calculated at runtime;
+			^ "'CP_ACP' as default arguments" @ "encoding transformation \
+				functions" @ %'YCLib_(MinGW32)'.'MinGW';
+		),
+		/ %'Helper' $=
+		(
+			/ @ "function %ShowTopLevel" @ %'HostedUI' $=
+			(
+				/ "blocked wating window pointer until being non-null";
+				/ "set default opacity with '0xFF'";
+				$comp $revert(b430) "windows maybe initialized being fully \
+					transparent"
+			),
+			+ %'Host'
+		),
+		(
+			+ %'Helper_(DS)';
+			/ %('DSMain'; 'Shell_DS') @ %'Helper' >> %'Helper_(DS)'
+		)
+	),
+	+ "top level directory %Tools"
+		$= (+ $dev "project %PredefinedMacroDetector"),
+			// Generator to detect predefined macros. Generated file is a C++ \
+				source file. Use preprocessing command line like "gcc -E" then \
+				compile in hosted environment to get macros for cross compilers.
+	+ DLD "common pre-defined macros" @ "platform %DS" @ "VC++ projects",
+	+ $dev $repo "pattern globs ('__gen_*.*', '*.pdb', '*.idb', '*.ilk', \
+		'*.exe', '*.obj', '*.tlog', '*.lastbuildstate', '*.unsuccessfulbuild')"
+		@ "file %.hgignore",
+	/ "3rdparty libraries" $=
+	(
+		/ @ "library %FreeImage" $=
+		(
+			/ DLD @ "all modified source files" $=
+			(
+				/ "all EOL markers are normalized as CR+LF",
+				/ "removed all spaces at end of lines",
+				/ "saved as UTF8 + BOM"
+			),
+			- "function only supported in Win32: %(FreeImage_LoadU, \
+				FreeImage_SaveU, FreeImage_GetFileTypeU, \
+				FreeImage_GetFIFFromFilenameU, FreeImage_JPEGTransformU, \
+				FreeImage_JPEGCropU"),
+			/ "excluded files ('Source/FreeImageToolkit/JPEGTransform.cpp',
+				'Source/MetaData/XTIFF.cpp')" @ "source list";
+			/ @ "recompiled library %FreeImage" $=
+			(
+				^ "libjpeg-turbo 1.3.0" ~ "libjpeg-8d" $=
+				(
+					/ "overwritten source files",
+					+ "custom configuration headers %(jconfig.h, config.h)"
+						@ 'Source/LibJPEG/',
+					+ "generated SIMD configuration file %jsimdcfg.inc"
+						@ 'Source/LibJPEG/simd'
+					+ "SIMD assembly files" @ "source list",
+					+ "modified MinGW makefile"
+				),
+				^ "libpng-1.6.3 with stadard configuration header file \
+					%Source/LibPNG/pnglibconf.h" ~ "libpng-1.5.13",
+				^ "zlib-1.2.8" ~ "zlib-1.2.7"
+			)
+		),
+		* $doc "missing license for FreeImage" $since b417;
+		+ $dev $doc "warning for using patched FreeType",
+	),
+	/ $dev $build "merged directories for %(YBase, YFramework) platform \
+		extensions"
+		// Directories with pattern '$(PROJECT)_$(PLATFORM)' are now put in \
+			'$(PROJECT)' with name '$PLATFORM' as subdirectories.
+),
+
+b430
+(
 	/= DLD "ensured all if clause and member initializer for class objects \
 		initialization" ^ "preferred ISO C++11 braced initializer syntax with \
 		direct-initialization" ~ "equal initializer syntax with copy \
@@ -41,10 +138,12 @@ $now
 	(
 		/ %'Helper' $=
 		(
-			/ "supported extra window sytle" @ ("function %CreateNativeWindow"
+			/ "supported extra window style" @ ("function %CreateNativeWindow"
 				%'YCLib_(MinGW32)'.'Win32GUI'; "function %ShowTopLevel"
 				@ %'HostedUI') @ "platform %MinGW32",
-				// Defaulted as 'WS_EX_LAYERED'.
+				// Defaulted as 'WS_EX_LAYERED'. Note the windows is totally \
+					transparent after 'WS_EX_LAYERED' is set. Set opacity to \
+					make the window visible.
 			+ "units %(ScreenBuffer; HostRenderer)",
 			/ %'HostedUI' $=
 			(
@@ -226,7 +325,7 @@ b428
 				- $comp "screen update time" @ "debug output";
 			),
 			/ DLD "declared reopened non-inline namespace %Windows"
-				@ "namespace %platform_ex"	
+				@ "namespace %platform_ex"
 				// Though G++ have no diagnostic at all for reopened namespace \
 					both from inline to non-inline and vice versa, but Clang++ \
 					do complain both. See $ref b428.
@@ -317,7 +416,7 @@ b427
 			/ $dev @ "platform %MinGW" @ %'GUIApplication' $=
 			(
 				$dep_from %'YCLib_(MinGW32)'.'Win32GUI');
-				/ "class %Win32Exception, macro %YF_Raise_Win32Exception" 
+				/ "class %Win32Exception, macro %YF_Raise_Win32Exception"
 					>> %'YCLib_(MinGW32)'.'MinGW32',
 				/ 'typedef ::HWND NativeWindowHandle' @ "namespace %Host"
 					>> ("namespace %platform_ex"
@@ -340,7 +439,7 @@ b427
 		// Only for convenience, no ability for building.
 	/ $doc @ "directory %doc" $=
 	(
-		+ "%Documentation::YBase(file %YBase.txt)" 
+		+ "%Documentation::YBase(file %YBase.txt)"
 		+ "%Documentation::YFramework(file %YFramework.txt)"
 	)
 ),
@@ -397,7 +496,7 @@ b426
 			),
 			* "command line initialization state missing" @ "platform %DS"
 				@ %'GUIApplication' @ $since b425
-				// Font cache was not initialized as soon before GUI mode 
+				// Font cache was not initialized as soon before GUI mode
 					screen initialization, so the output messages were missing.
 		)
 		/ DLD "unified preprocessing error message for alerting unsupported \

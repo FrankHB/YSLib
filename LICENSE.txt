@@ -1,4 +1,6 @@
-﻿Copyright (C) 2010 - 2013, FrankHB<frankhb1989@gmail.com>.
+﻿OVERALL LICENSE of the YSLib Project
+
+Copyright (C) 2010 - 2013, FrankHB <frankhb1989@gmail.com>.
 
 Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
 
@@ -37,15 +39,26 @@ Creative Commons Attribution-ShareAlike 3.0 Unported - See CC BY-SA 3.0 legalcod
 ====
 In the directory "3rdparty", if not otherwise specified in LICENSE DOCUMENTS or README DOCUMENTS in the corresponding library directories, all derived work are licensed as the same as the original materials.
 ====
-License for FreeType2:
+License for FreeType:
 ----
 At least one of the following licenses shall be used for independert distribution:
-FreeType License - See FTL.txt;
+The FreeType Project LICENSE - See FTL.txt;
 GNU General Public License Version 2 - See gpl-2.0.txt.
 FreeType License is adopted here for statically linked binaries or whole project distribution because of the license compatibility.
 See http://www.freetype.org/license.html for details.
 ====
+License for FreeImage:
+----
+At least one of the following licenses shall be used for independert distribution:
+FreeImage Public License - Version 1.0 - See license-fi.txt;
+GNU General Public License Version 2 - See gpl-2.0.txt.
+====
 License for other parts:
 GNU General Public License Version 3 - See gpl-3.0.txt.
+(License for these parts may be relicensed using some permissive licenses in future release of the YSLib project.)
+====
+Important note:
+There are several licenses incompatible to others. Some of them don't allow relicensing.
+Make sure choose the correct licenses before redistribution.
 ====
 

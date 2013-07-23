@@ -685,9 +685,6 @@
     <ClInclude Include="..\3rdparty\include\ft2build.h">
       <Filter>include\3rdparty</Filter>
     </ClInclude>
-    <ClInclude Include="include\Helper\DSMain.h">
-      <Filter>include\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="include\Helper\GUIApplication.h">
       <Filter>include\Helper</Filter>
     </ClInclude>
@@ -709,20 +706,8 @@
     <ClInclude Include="include\Helper\ShellHelper.h">
       <Filter>include\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="include\Helper\shlds.h">
-      <Filter>include\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="include\Helper\yglobal.h">
       <Filter>include\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Helper\DSScreen.h">
-      <Filter>source\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Helper\DSWindow.h">
-      <Filter>source\Helper</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Helper\Host.h">
-      <Filter>source\Helper</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\YComponent.h">
       <Filter>include\YSLib\UI</Filter>
@@ -731,6 +716,9 @@
       <Filter>include\Helper</Filter>
     </ClInclude>
     <ClInclude Include="include\Helper\ScreenBuffer.h">
+      <Filter>include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Helper\Host.h">
       <Filter>include\Helper</Filter>
     </ClInclude>
   </ItemGroup>
@@ -933,15 +921,6 @@
     <ClCompile Include="source\YSLib\Adaptor\Image.cpp">
       <Filter>source\YSLib\Adaptor</Filter>
     </ClCompile>
-    <ClCompile Include="source\Helper\DSMain.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Helper\DSScreen.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Helper\DSWindow.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
     <ClCompile Include="source\Helper\GUIApplication.cpp">
       <Filter>source\Helper</Filter>
     </ClCompile>
@@ -967,9 +946,6 @@
       <Filter>source\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\Helper\ShellHelper.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Helper\shlds.cpp">
       <Filter>source\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\Helper\yglobal.cpp">

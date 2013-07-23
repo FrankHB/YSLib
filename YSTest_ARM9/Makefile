@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1282
+# Version = r1288
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2013-06-26 03:35 +0800
+# Updated = 2013-07-23 20:10 +0800
 # Encoding = ANSI
 
 
@@ -40,7 +40,9 @@ export TARGET		:= $(shell basename $(CURDIR))
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source data
-export INCLUDES		:= include data ../YSTest/include ../YBase/include ../YFramework/include ../3rdparty/include
+export INCLUDES		:= include data ../YSTest/include \
+	../YFramework/include ../YFramework/DS/include \
+	../3rdparty/include ../YBase/include
 export DATA			:= data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music
@@ -98,11 +100,11 @@ LIBS	:=	-lfat -lnds9
 
 #---- User defined libraries.
 
-LIBPATHEX	:= -L$(TOPDIR)/../YFramework_DS/lib
+LIBPATHEX	:= -L$(TOPDIR)/../YFramework/DS/lib
 LIBEX		:= -lFreeImage -lfreetype #-lagg -lloki
 
-YBASE_A := $(TOPDIR)/../YBase_DS/$(RELEASE)/libYBase.a
-YFRAMEWORK_A := $(TOPDIR)/../YFramework_DS/$(RELEASE)/libYFramework.a
+YBASE_A := $(TOPDIR)/../YBase/DS/$(RELEASE)/libYBase.a
+YFRAMEWORK_A := $(TOPDIR)/../YFramework/DS/$(RELEASE)/libYFramework.a
 
 #----
 

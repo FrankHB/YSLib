@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r316
+\version r317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-07-18 22:22 +0800
+	2013-07-23 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "Helper/InputManager.h"
 #include "YCLib/Input.h"
-#include "Host.h"
+#include "Helper/Host.h"
 #include "Helper/HostRenderer.h" // for Host::Window, Host::RenderWindow;
 #include "Helper/GUIApplication.h" // for FetchEnvironment;
 

@@ -11,13 +11,13 @@
 /*!	\file GUIShell.cpp
 \ingroup Helper
 \brief GUI Shell 类。
-\version r96
+\version r97
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:22 +0800
 \par 修改时间:
-	2013-07-18 22:02 +0800
+	2013-07-23 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "Helper/GUIShell.h"
 #include "Helper/GUIApplication.h" // for FetchEnvironent;
-#include "Host.h"
+#include "Helper/Host.h"
 #include <thread> // for std::this_thread::sleep_for;
 
 YSL_BEGIN

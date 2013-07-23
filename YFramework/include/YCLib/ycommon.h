@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3428
+\version r3446
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-07-14 19:47 +0800
+	2013-07-22 16:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,26 +101,6 @@ YF_API bool
 AllowSleep(bool);
 
 #elif YCL_MINGW32
-// TODO: Add more Windows specific APIs.
-
-//! \since build 327
-//@{
-YF_API std::string
-UTF8ToMBCS(const char*, std::size_t, int);
-inline std::string
-UTF8ToMBCS(const std::string& str, int cp)
-{
-	return UTF8ToMBCS(str.c_str(), str.length(), cp);
-}
-
-YF_API std::string
-WCSToMBCS(const wchar_t*, std::size_t, int);
-inline std::string
-WCSToMBCS(const std::wstring& str, int cp)
-{
-	return WCSToMBCS(str.c_str(), str.length(), cp);
-}
-//@}
 
 #else
 #	error "Unsupported platform found."

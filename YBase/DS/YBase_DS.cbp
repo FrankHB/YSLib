@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="YBase_DS" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gnu_armeabi_gcc_compiler" />
+		<MakeCommands>
+			<Build command="$make -j -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
+			<CompileFile command="$make -f $makefile $file" />
+			<Clean command="$make -f $makefile -r BUILD=$target clean" />
+			<DistClean command="$make -f $makefile distclean$target" />
+			<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
+			<SilentBuild command="$make -j -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27 &gt; $(CMD_NULL)" />
+		</MakeCommands>
+		<Build>
+			<Target title="debug">
+				<Option type="4" />
+				<Option compiler="gnu_armeabi_gcc_compiler" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -j -f $makefile -r BUILD=$target" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile -r BUILD=$target clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
+					<SilentBuild command="$make -j -f $makefile -r BUILD=$target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="release">
+				<Option output="release/YBase_DS" prefix_auto="1" extension_auto="1" />
+				<Option object_output="release/" />
+				<Option type="1" />
+				<Option compiler="gnu_armeabi_gcc_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+				<MakeCommands>
+					<Build command="$make -j -f $makefile -r BUILD=$target" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile -r BUILD=$target clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
+					<SilentBuild command="$make -j -f $makefile -r BUILD=$target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../include/libdefect/string.h" />
+		<Unit filename="../include/ydef.h" />
+		<Unit filename="../include/ystdex/algorithm.hpp" />
+		<Unit filename="../include/ystdex/any.h" />
+		<Unit filename="../include/ystdex/any_iterator.hpp" />
+		<Unit filename="../include/ystdex/cast.hpp" />
+		<Unit filename="../include/ystdex/container.hpp" />
+		<Unit filename="../include/ystdex/cstdio.h" />
+		<Unit filename="../include/ystdex/cstring.h" />
+		<Unit filename="../include/ystdex/examiner.hpp" />
+		<Unit filename="../include/ystdex/functional.hpp" />
+		<Unit filename="../include/ystdex/iterator.hpp" />
+		<Unit filename="../include/ystdex/memory.hpp" />
+		<Unit filename="../include/ystdex/operators.hpp" />
+		<Unit filename="../include/ystdex/path.hpp" />
+		<Unit filename="../include/ystdex/rational.hpp" />
+		<Unit filename="../include/ystdex/string.hpp" />
+		<Unit filename="../include/ystdex/type_op.hpp" />
+		<Unit filename="../include/ystdex/utility.hpp" />
+		<Unit filename="../include/ystdex/variadic.hpp" />
+		<Unit filename="../include/ytest/timing.hpp" />
+		<Unit filename="../source/ystdex/any.cpp" />
+		<Unit filename="../source/ystdex/cstdio.cpp" />
+		<Unit filename="../source/ystdex/cstring.cpp" />
+		<Unit filename="Makefile" />
+		<Extensions>
+			<DoxyBlocks>
+				<comment_style block="1" line="1" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
+			<code_completion />
+			<envvars set="default" />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

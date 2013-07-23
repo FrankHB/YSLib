@@ -1,5 +1,28 @@
 VER_MAJOR = 3
 VER_MINOR = 15.4
+
+libsimd_SOURCES = Source\LibJPEG\simd\jsimd_i386.c \
+	Source\LibJPEG\simd\jsimdcpu.asm Source\LibJPEG\simd\jccolmmx.asm Source\LibJPEG\simd\jdcolmmx.asm Source\LibJPEG\simd\jcgrammx.asm \
+	Source\LibJPEG\simd\jcsammmx.asm Source\LibJPEG\simd\jdsammmx.asm Source\LibJPEG\simd\jdmermmx.asm Source\LibJPEG\simd\jcqntmmx.asm \
+	Source\LibJPEG\simd\jfmmxfst.asm Source\LibJPEG\simd\jfmmxint.asm Source\LibJPEG\simd\jimmxred.asm Source\LibJPEG\simd\jimmxint.asm \
+	Source\LibJPEG\simd\jimmxfst.asm Source\LibJPEG\simd\jcqnt3dn.asm Source\LibJPEG\simd\jf3dnflt.asm Source\LibJPEG\simd\ji3dnflt.asm \
+	Source\LibJPEG\simd\jcqntsse.asm Source\LibJPEG\simd\jfsseflt.asm Source\LibJPEG\simd\jisseflt.asm Source\LibJPEG\simd\jccolss2.asm \
+	Source\LibJPEG\simd\jdcolss2.asm Source\LibJPEG\simd\jcgrass2.asm Source\LibJPEG\simd\jcsamss2.asm Source\LibJPEG\simd\jdsamss2.asm \
+	Source\LibJPEG\simd\jdmerss2.asm Source\LibJPEG\simd\jcqnts2i.asm Source\LibJPEG\simd\jfss2fst.asm Source\LibJPEG\simd\jfss2int.asm \
+	Source\LibJPEG\simd\jiss2red.asm Source\LibJPEG\simd\jiss2int.asm Source\LibJPEG\simd\jiss2fst.asm Source\LibJPEG\simd\jcqnts2f.asm \
+	Source\LibJPEG\simd\jiss2flt.asm
+
+libsimd_64_SOURCES = Source\LibJPEG\simd\jsimd_x86_64.c \
+	Source\LibJPEG\simd\jfsseflt-64.asm Source\LibJPEG\simd\jcgrass2-64.asm \
+	Source\LibJPEG\simd\jccolss2-64.asm Source\LibJPEG\simd\jdcolss2-64.asm Source\LibJPEG\simd\jcsamss2-64.asm \
+	Source\LibJPEG\simd\jdsamss2-64.asm Source\LibJPEG\simd\jdmerss2-64.asm Source\LibJPEG\simd\jcqnts2i-64.asm \
+	Source\LibJPEG\simd\jfss2fst-64.asm Source\LibJPEG\simd\jfss2int-64.asm Source\LibJPEG\simd\jiss2red-64.asm \
+	Source\LibJPEG\simd\jiss2int-64.asm Source\LibJPEG\simd\jiss2fst-64.asm Source\LibJPEG\simd\jcqnts2f-64.asm \
+	Source\LibJPEG\simd\jiss2flt-64.asm
+
+libsimd_ARM_SOURCES = Source\LibJPEG\simd\jsimd_arm.c Source\LibJPEG\simd\jsimd_arm_neon.S
+
+
 SRCS = Source/FreeImage/BitmapAccess.cpp Source/FreeImage/ColorLookup.cpp Source/FreeImage/FreeImage.cpp \
 Source/FreeImage/FreeImageC.c Source/FreeImage/FreeImageIO.cpp \
 Source/FreeImage/GetType.cpp Source/FreeImage/MemoryIO.cpp \
@@ -17,12 +40,16 @@ Source/FreeImage/Conversion4.cpp Source/FreeImage/Conversion8.cpp \
 Source/FreeImage/ConversionFloat.cpp \
 Source/FreeImage/ConversionRGB16.cpp Source/FreeImage/ConversionRGBF.cpp \
 Source/FreeImage/ConversionType.cpp Source/FreeImage/ConversionUINT16.cpp \
-Source/FreeImageToolkit/Background.cpp Source/FreeImageToolkit/BSplineRotate.cpp Source/FreeImageToolkit/Channels.cpp Source/FreeImageToolkit/ClassicRotate.cpp Source/FreeImageToolkit/Colors.cpp Source/FreeImageToolkit/CopyPaste.cpp Source/FreeImageToolkit/Display.cpp Source/FreeImageToolkit/Flip.cpp Source/FreeImageToolkit/JPEGTransform.cpp Source/FreeImageToolkit/MultigridPoissonSolver.cpp Source/FreeImageToolkit/Rescale.cpp Source/FreeImageToolkit/Resize.cpp \
+Source/FreeImageToolkit/Background.cpp Source/FreeImageToolkit/BSplineRotate.cpp Source/FreeImageToolkit/Channels.cpp Source/FreeImageToolkit/ClassicRotate.cpp Source/FreeImageToolkit/Colors.cpp Source/FreeImageToolkit/CopyPaste.cpp Source/FreeImageToolkit/Display.cpp Source/FreeImageToolkit/Flip.cpp \
+Source/FreeImageToolkit/MultigridPoissonSolver.cpp Source/FreeImageToolkit/Rescale.cpp Source/FreeImageToolkit/Resize.cpp \
 Source/FreeImage/ZLibInterface.cpp \
 Source/LibJPEG/jaricom.c Source/LibJPEG/jcapimin.c Source/LibJPEG/jcapistd.c Source/LibJPEG/jcarith.c Source/LibJPEG/jccoefct.c Source/LibJPEG/jccolor.c Source/LibJPEG/jcdctmgr.c Source/LibJPEG/jchuff.c Source/LibJPEG/jcinit.c Source/LibJPEG/jcmainct.c Source/LibJPEG/jcmarker.c Source/LibJPEG/jcmaster.c Source/LibJPEG/jcomapi.c Source/LibJPEG/jcparam.c Source/LibJPEG/jcprepct.c Source/LibJPEG/jcsample.c Source/LibJPEG/jctrans.c Source/LibJPEG/jdapimin.c Source/LibJPEG/jdapistd.c Source/LibJPEG/jdarith.c Source/LibJPEG/jdatadst.c Source/LibJPEG/jdatasrc.c Source/LibJPEG/jdcoefct.c Source/LibJPEG/jdcolor.c Source/LibJPEG/jddctmgr.c Source/LibJPEG/jdhuff.c Source/LibJPEG/jdinput.c Source/LibJPEG/jdmainct.c Source/LibJPEG/jdmarker.c Source/LibJPEG/jdmaster.c Source/LibJPEG/jdmerge.c Source/LibJPEG/jdpostct.c Source/LibJPEG/jdsample.c Source/LibJPEG/jdtrans.c Source/LibJPEG/jerror.c Source/LibJPEG/jfdctflt.c Source/LibJPEG/jfdctfst.c Source/LibJPEG/jfdctint.c Source/LibJPEG/jidctflt.c Source/LibJPEG/jidctfst.c Source/LibJPEG/jidctint.c Source/LibJPEG/jmemmgr.c Source/LibJPEG/jmemnobs.c Source/LibJPEG/jquant1.c Source/LibJPEG/jquant2.c Source/LibJPEG/jutils.c Source/LibJPEG/transupp.c \
+Source/LibJPEG/jcphuff.c Source/LibJPEG/jdphuff.c Source/LibJPEG/jidctred.c \
 Source/LibPNG/png.c Source/LibPNG/pngerror.c Source/LibPNG/pngget.c Source/LibPNG/pngmem.c Source/LibPNG/pngpread.c Source/LibPNG/pngread.c Source/LibPNG/pngrio.c Source/LibPNG/pngrtran.c Source/LibPNG/pngrutil.c Source/LibPNG/pngset.c Source/LibPNG/pngtrans.c Source/LibPNG/pngwio.c Source/LibPNG/pngwrite.c Source/LibPNG/pngwtran.c Source/LibPNG/pngwutil.c \
 Source/ZLib/adler32.c Source/ZLib/compress.c Source/ZLib/crc32.c Source/ZLib/deflate.c Source/ZLib/gzclose.c Source/ZLib/gzlib.c Source/ZLib/gzread.c Source/ZLib/gzwrite.c Source/ZLib/infback.c Source/ZLib/inffast.c Source/ZLib/inflate.c Source/ZLib/inftrees.c Source/ZLib/trees.c Source/ZLib/uncompr.c Source/ZLib/zutil.c \
-Source/Metadata/Exif.cpp Source/Metadata/FIRational.cpp Source/Metadata/FreeImageTag.cpp Source/Metadata/IPTC.cpp Source/Metadata/TagConversion.cpp Source/Metadata/TagLib.cpp Source/Metadata/XTIFF.cpp \
+Source/Metadata/Exif.cpp Source/Metadata/FIRational.cpp Source/Metadata/FreeImageTag.cpp Source/Metadata/IPTC.cpp Source/Metadata/TagConversion.cpp Source/Metadata/TagLib.cpp \
+#Source/Metadata/XTIFF.cpp \
+#Source/FreeImageToolkit/JPEGTransform.cpp \
 #Source/FreeImage/Halftoning.cpp \
 #Source/FreeImage/J2KHelper.cpp Source/FreeImage/MNGHelper.cpp \
 #Source/LibTIFF4/tif_aux.c Source/LibTIFF4/tif_close.c Source/LibTIFF4/tif_codec.c Source/LibTIFF4/tif_color.c Source/LibTIFF4/tif_compress.c Source/LibTIFF4/tif_dir.c Source/LibTIFF4/tif_dirinfo.c Source/LibTIFF4/tif_dirread.c Source/LibTIFF4/tif_dirwrite.c Source/LibTIFF4/tif_dumpmode.c Source/LibTIFF4/tif_error.c Source/LibTIFF4/tif_extension.c Source/LibTIFF4/tif_fax3.c Source/LibTIFF4/tif_fax3sm.c Source/LibTIFF4/tif_flush.c Source/LibTIFF4/tif_getimage.c Source/LibTIFF4/tif_jpeg.c Source/LibTIFF4/tif_luv.c Source/LibTIFF4/tif_lzma.c Source/LibTIFF4/tif_lzw.c Source/LibTIFF4/tif_next.c Source/LibTIFF4/tif_ojpeg.c Source/LibTIFF4/tif_open.c Source/LibTIFF4/tif_packbits.c Source/LibTIFF4/tif_pixarlog.c Source/LibTIFF4/tif_predict.c Source/LibTIFF4/tif_print.c Source/LibTIFF4/tif_read.c Source/LibTIFF4/tif_strip.c Source/LibTIFF4/tif_swab.c Source/LibTIFF4/tif_thunder.c Source/LibTIFF4/tif_tile.c Source/LibTIFF4/tif_version.c Source/LibTIFF4/tif_warning.c Source/LibTIFF4/tif_write.c Source/LibTIFF4/tif_zip.c \

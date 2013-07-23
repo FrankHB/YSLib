@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r549
+\version r554
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-07-14 15:50 +0800
+	2013-07-23 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -433,11 +433,14 @@ $module_tree $=
 			'GUIShell',
 			'GUIApplication';
 			'Shell_DS'; // shells for DS;
-			'DSMain', // DS main unit;
 			'Initialization', // initialization;
 			'InputManager' // input manager;,
 			'HostWindow',
 			'HostedUI',
+		),
+		'Helper_(MinGW32)'
+		(
+			'DSMain' // DS main unit;
 		),
 		'NPL'
 		(

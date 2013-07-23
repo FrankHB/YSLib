@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r257
+\version r300
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-07-19 16:03 +0800
+	2013-07-22 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,14 +136,41 @@ public:
 	{}
 	//! \throw BadImageAlloc 分配空间失败。
 	HBitmap(const Size&, BitPerPixel = 0);
-	//! \since build 417
+	/*!
+	\throw LoggedEvent 读取失败。
+	\since build 431
+	*/
 	//@{
 	/*
-	\brief 构造：使用指定文件路径。
+	\brief 构造：使用指定 UTF-8 文件名。
 	\throw UnknownImageFormat 未知图像格式。
-	\throw LoggedEvent 读取失败。
 	*/
-	HBitmap(const string&);
+	HBitmap(const char*);
+	//! \brief 构造：使用指定 UTF-8 文件名和指定格式。
+	HBitmap(const char*, ImageFormat);
+	/*
+	\brief 构造：使用指定 UTF-16LE 文件名。
+	\throw UnknownImageFormat 未知图像格式。
+	*/
+	HBitmap(const char16_t*);
+	//! \brief 构造：使用指定 UTF-16LE 文件名和指定格式。
+	HBitmap(const char16_t*, ImageFormat);
+	/*
+	\brief 构造：使用指定字符串文件名。
+	\throw UnknownImageFormat 未知图像格式。
+	*/
+	template<class _tString, typename = decltype(&_tString()[0])>
+	HBitmap(const _tString& filename)
+		: HBitmap(&filename[0])
+	{}
+	//! \brief 构造：使用指定字符串文件名。
+	template<class _tString, typename = decltype(&_tString()[0])>
+	HBitmap(const _tString& filename, ImageFormat fmt)
+		: HBitmap(&filename[0], fmt)
+	{}
+	//@}
+	//! \since build 417
+	//@{
 	//! \throw LoggedEvent 读取失败。
 	HBitmap(const ImageMemory&);
 	/*!

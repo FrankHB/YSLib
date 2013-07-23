@@ -19,10 +19,10 @@
 					<Add option="-D_GLIBCXX_DEBUG" />
 				</Compiler>
 				<Linker>
-					<Add library="..\YFramework_MinGW32\debug\libYFramework.a" />
-					<Add library="..\YFramework_MinGW32\lib\libFreeImage.a" />
-					<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
-					<Add library="..\YBase_MinGW32\debug\libYBase.a" />
+					<Add library="..\YFramework\MinGW32\debug\libYFramework.a" />
+					<Add library="..\YFramework\MinGW32\lib\libFreeImage.a" />
+					<Add library="..\YFramework\MinGW32\lib\libfreetype.a" />
+					<Add library="..\YBase\MinGW32\debug\libYBase.a" />
 					<Add library="gdi32" />
 					<Add library="winmm" />
 					<Add library="Shlwapi" />
@@ -42,10 +42,10 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="..\YFramework_MinGW32\release\libYFramework.a" />
-					<Add library="..\YFramework_MinGW32\lib\libFreeImage.a" />
-					<Add library="..\YFramework_MinGW32\lib\libfreetype.a" />
-					<Add library="..\YBase_MinGW32\release\libYBase.a" />
+					<Add library="..\YFramework\MinGW32\release\libYFramework.a" />
+					<Add library="..\YFramework\MinGW32\lib\libFreeImage.a" />
+					<Add library="..\YFramework\MinGW32\lib\libfreetype.a" />
+					<Add library="..\YBase\MinGW32\release\libYBase.a" />
 					<Add library="gdi32" />
 					<Add library="winmm" />
 					<Add library="Shlwapi" />
@@ -65,12 +65,12 @@
 					<Add option="-DYF_DLL" />
 				</Compiler>
 				<Linker>
-					<Add library="..\YFramework_MinGW32\debug\YFramework.dll" />
-					<Add library="..\YBase_MinGW32\debug\YBase.dll" />
+					<Add library="..\YFramework\MinGW32\debug\YFramework.dll" />
+					<Add library="..\YBase\MinGW32\debug\YBase.dll" />
 				</Linker>
 				<ExtraCommands>
-					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YBase_MinGW32\debug\YBase.dll&quot; &quot;debug\YBase.dll&quot;' />
-					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YFramework_MinGW32\debug\YFramework.dll&quot; &quot;debug\YFramework.dll&quot;' />
+					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YBase\MinGW32\debug\YBase.dll&quot; &quot;debug\YBase.dll&quot;' />
+					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YFramework\MinGW32\debug\YFramework.dll&quot; &quot;debug\YFramework.dll&quot;' />
 				</ExtraCommands>
 			</Target>
 			<Target title="release_DLL">
@@ -89,12 +89,12 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="..\YFramework_MinGW32\release\YFramework.dll" />
-					<Add library="..\YBase_MinGW32\release\YBase.dll" />
+					<Add library="..\YFramework\MinGW32\release\YFramework.dll" />
+					<Add library="..\YBase\MinGW32\release\YBase.dll" />
 				</Linker>
 				<ExtraCommands>
-					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YBase_MinGW32\release\YBase.dll&quot; &quot;release\YBase.dll&quot;' />
-					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YFramework_MinGW32\release\YFramework.dll&quot; &quot;release\YFramework.dll&quot;' />
+					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YBase\MinGW32\release\YBase.dll&quot; &quot;release\YBase.dll&quot;' />
+					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\YFramework\MinGW32\release\YFramework.dll&quot; &quot;release\YFramework.dll&quot;' />
 				</ExtraCommands>
 			</Target>
 		</Build>
@@ -102,8 +102,8 @@
 			<Add option="-Wredundant-decls" />
 			<Add option="-Wmissing-declarations" />
 			<Add option="-Wmissing-include-dirs" />
-			<Add option="-Wzero-as-null-pointer-constant" />
 			<Add option="-pedantic-errors" />
+			<Add option="-Wzero-as-null-pointer-constant" />
 			<Add option="-std=c++11" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
@@ -111,7 +111,8 @@
 			<Add option="-flto=jobserver" />
 			<Add option="-mthreads" />
 			<Add directory="../YSTest_ARM9/include" />
-			<Add directory="../YFramework_MinGW32/include" />
+			<Add directory="../YFramework/DS/include" />
+			<Add directory="../YFramework/MinGW32/include" />
 			<Add directory="../YFramework/include" />
 			<Add directory="../YBase/include" />
 			<Add directory="../3rdparty/include" />

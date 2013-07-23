@@ -5,10 +5,16 @@ syntax: glob
 *.log
 *.user
 *.stackdump
+__gen_*.*
 .map
 *.o
 *.d
 *.elf
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.exe
 */debug*
 */release*
 *doc/html/*
@@ -16,6 +22,9 @@ syntax: glob
 *doc/rtf/*
 *doc/footer.*
 *doc/header.*
+*.tlog
+*.lastbuildstate
+*.unsuccessfulbuild
 *.ncb
 *.suo
 *.sdf

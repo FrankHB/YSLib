@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r134
+\version r135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-07-18 16:15 +0800
+	2013-07-23 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/HostRenderer.h"
-#include "Host.h" // for Host::Environment;
+#include "Helper/Host.h" // for Host::Environment;
 //#include "Helper/GUIApplication.h"
 
 YSL_BEGIN
