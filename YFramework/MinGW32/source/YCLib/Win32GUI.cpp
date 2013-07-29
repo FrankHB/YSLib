@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r256
+\version r279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-07-18 21:07 +0800
+	2013-07-29 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,11 +225,34 @@ WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
 }
 
 
+WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
+	::UINT style, ::HBRUSH h_bg)
+	: h_instance(::GetModuleHandleW({}))
+{
+	// NOTE: Intentionally no %CS_OWNDC or %CS_CLASSDC, so %::ReleaseDC
+	//	is always needed.
+	const ::WNDCLASSW wnd_class{style, wnd_proc, 0, 0, h_instance,
+		::LoadIconW({}, IDI_APPLICATION),
+		::LoadCursorW({}, IDC_ARROW), h_bg, nullptr, class_name};
+
+	if(YB_UNLIKELY(::RegisterClassW(&wnd_class) == 0))
+		YF_Raise_Win32Exception("RegisterClassW");
+	// TODO: Trace class name.
+	YTraceDe(Notice, "Window class registered.\n");
+}
+WindowClass::~WindowClass()
+{
+	::UnregisterClassW(WindowClassName, h_instance);
+	// TODO: Trace class name.
+	YTraceDe(Notice, "Window class unregistered.\n");
+}
+
+
 HostWindow::HostWindow(NativeWindowHandle h)
 	: WindowReference(h)
 {
 	YAssert(::IsWindow(h), "Invalid window handle found.");
-	YAssert(::GetWindowThreadProcessId(h, nullptr) == ::GetCurrentThreadId(),
+	YAssert(::GetWindowThreadProcessId(h, {}) == ::GetCurrentThreadId(),
 		"Window not created on current thread found.");
 	YAssert(::GetWindowLongPtrW(h, GWLP_USERDATA) == 0,
 		"Invalid user data of window found.");
@@ -245,7 +268,7 @@ HostWindow::HostWindow(NativeWindowHandle h)
 	if(YB_UNLIKELY(::SetWindowLongPtrW(hWindow, GWLP_USERDATA,
 		::LONG_PTR(this)) == 0 && GetLastError() != 0))
 		YF_Raise_Win32Exception("SetWindowLongPtrW");
-	if(YB_UNLIKELY(!::SetWindowPos(hWindow, nullptr, 0, 0, 0, 0, SWP_NOACTIVATE
+	if(YB_UNLIKELY(!::SetWindowPos(hWindow, {}, 0, 0, 0, 0, SWP_NOACTIVATE
 		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING
 		| SWP_NOSIZE | SWP_NOZORDER)))
 		YF_Raise_Win32Exception("SetWindowPos");
@@ -258,7 +281,7 @@ HostWindow::HostWindow(NativeWindowHandle h)
 HostWindow::~HostWindow()
 {
 	::SetWindowLongPtrW(hWindow, GWLP_USERDATA, ::LONG_PTR());
-	// Note: The window could be already destroyed in window procedure.
+	// NOTE: The window could be already destroyed in window procedure.
 	if(::IsWindow(hWindow))
 		::DestroyWindow(hWindow);
 }

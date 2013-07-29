@@ -293,6 +293,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
+    <Text Include="..\doc\NPL.txt" />
     <Text Include="..\doc\YBase.txt" />
     <Text Include="..\doc\YFramework.txt" />
   </ItemGroup>

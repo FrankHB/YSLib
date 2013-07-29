@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12070
+\version r12087
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-07-21 02:02 +0800
+	2013-07-27 05:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,8 @@ YB_STATELESS
 !YB_DLL
 !YB_BUILD_DLL
 YB_API
-YB_USE_YASSERT
+YB_Use_YAssert
+YB_Use_YTrace
 YB_USE_EXCEPTION_SPECIFICATION
 yalignof(_type)
 yconstexpr
@@ -101,6 +102,11 @@ $dir ystdex
 $header TypeOperations
 {
 YB_TYPE_OP_TEST_2(_n, _expr)
+}
+$header CAssert
+{
+YAssert(*)
+YTrace(*)
 }
 } //$dir ystdex;
 } //$dir YBase;
@@ -140,12 +146,19 @@ YCL_MINGW32
 }
 $header YCommon
 {
+YTraceEx
+}
+$header FileSystem
+{
 YCL_MAX_FILENAME_LENGTH
 YCL_MAX_PATH_LENGTH
 YCL_PATH_DELIMITER
 YCL_PATH_SEPARATOR
 YCL_PATH_ROOT
-YCL_PIXEL_FORMAT_AXYZ1555
+}
+$header Video
+{
+YCL_PIXEL_FORMAT_XYZ555
 } //$dir YCLib;
 $header Input
 {
@@ -166,7 +179,6 @@ $dir Adaptor
 {
 $header Config
 {
-YCL_USE_YASSERT
 YSL_USE_MEMORY_DEBUG
 YSL_MULTITHREAD
 YSL_USE_COPY_ON_WRITE
@@ -854,6 +866,8 @@ using ystdex::errno_t;
 using ystdex::ptrdiff_t;
 using ystdex::size_t;
 using ystdex::wint_t;
+
+using namespace platform::Discriptions;
 
 //基本实用例程。
 

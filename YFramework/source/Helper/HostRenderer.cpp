@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r135
+\version r142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-07-23 19:47 +0800
+	2013-07-29 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,12 @@ WindowThread::~WindowThread()
 
 	YAssert(bool(p_wnd_val), "Null pointer found.");
 
-	p_wnd_val->Close();
+	try
+	{
+		p_wnd_val->Close();
+	}
+	catch(Win32Exception&)
+	{}
 	// NOTE: If the thread has been already completed there is no effect.
 	// TODO: Exception safety: add either assertion or logging when throwing
 	//	other exceptions.
@@ -78,7 +83,7 @@ WindowThread::~WindowThread()
 void
 WindowThread::ThreadLoop(NativeWindowHandle h_wnd)
 {
-	ThreadLoop(ystdex::make_unique<Window>(h_wnd));
+	ThreadLoop(make_unique<Window>(h_wnd));
 }
 void
 WindowThread::ThreadLoop(unique_ptr<Window> p)

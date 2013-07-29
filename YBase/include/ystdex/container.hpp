@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r485
+\version r486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-06-14 23:59 +0800
+	2013-07-27 04:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "functional.hpp"
+#include "cassert.h"
 #include <array> // for std::array;
 #include <algorithm> // for std::copy_n;
 

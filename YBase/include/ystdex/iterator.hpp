@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2798
+\version r2799
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-07-14 14:30 +0800
+	2013-07-27 04:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_iterator_hpp_ 1
 
 #include "type_op.hpp" // for std::remove_reference, ystdex::*_tag;
+#include "cassert.h"
 #include <iterator> // for std::make_move_iterator, std::iterator,
 //	std::iterator_traits;
 #include <utility> // for std::make_pair;

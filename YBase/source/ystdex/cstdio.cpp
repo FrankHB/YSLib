@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r190
+\version r191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2013-07-05 09:05 +0800
+	2013-07-27 04:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "ystdex/cstdio.h"
+#include "ystdex/cassert.h"
 #include <string> // for std::char_traits<char>::length;
 
 namespace ystdex

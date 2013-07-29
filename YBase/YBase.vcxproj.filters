@@ -98,6 +98,9 @@
     <ClInclude Include="include\ystdex\variadic.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\cassert.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">
@@ -107,6 +110,9 @@
       <Filter>source\ystdex</Filter>
     </ClCompile>
     <ClCompile Include="source\ystdex\any.cpp">
+      <Filter>source\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\cassert.cpp">
       <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>

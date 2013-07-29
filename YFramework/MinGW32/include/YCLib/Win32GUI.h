@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r335
+\version r348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2013-07-23 02:14 +0800
+	2013-07-29 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -300,6 +300,22 @@ public:
 	GSurface(NativeWindowHandle h_wnd)
 		: _type(h_wnd), WindowMemorySurface(_type::GetDeviceContextHandle())
 	{}
+};
+
+
+/*!
+\brief 窗口类。
+\since build 432
+*/
+class YF_API WindowClass
+{
+private:
+	::HINSTANCE h_instance;
+
+public:
+	WindowClass(const wchar_t*, ::WNDPROC, ::UINT = 0,
+		::HBRUSH = ::HBRUSH(COLOR_MENU + 1));
+	~WindowClass();
 };
 
 

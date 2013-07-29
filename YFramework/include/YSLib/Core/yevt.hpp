@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4402
+\version r4424
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-07-16 09:37 +0800
+	2013-07-28 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,15 +231,6 @@ public:
 	*/
 	yconstfn DefDeCtor(GEvent)
 	/*!
-	\brief 复制构造：默认实现。
-	\note 深复制。
-	*/
-	yconstfn DefDeCopyCtor(GEvent)
-	/*!
-	\brief 转移构造：默认实现。
-	*/
-	yconstfn DefDeMoveCtor(GEvent)
-	/*!
 	\brief 构造：添加事件处理器。
 	\since build 412
 	*/
@@ -251,6 +242,27 @@ public:
 		Add(yforward(h));
 	}
 	/*!
+	\brief 复制构造：默认实现。
+	\note 深复制。
+	*/
+	yconstfn DefDeCopyCtor(GEvent)
+	/*!
+	\brief 转移构造：默认实现。
+	*/
+	yconstfn DefDeMoveCtor(GEvent)
+
+	/*!
+	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
+	\since build 432
+	*/
+	template<typename _tHandler, typename = typename
+		std::enable_if<!std::is_same<_tHandler&, GEvent&>::value, int>::type>
+	inline GEvent&
+	operator=(_tHandler&& _arg)
+	{
+		return *this = GEvent(yforward(_arg));
+	}
+	/*!
 	\brief 复制赋值：默认实现。
 	*/
 	DefDeCopyAssignment(GEvent)
@@ -258,16 +270,6 @@ public:
 	\brief 转移赋值：默认实现。
 	*/
 	DefDeMoveAssignment(GEvent)
-	/*!
-	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
-	\since build 293
-	*/
-	template<typename _type>
-	inline GEvent&
-	operator=(_type&& _arg)
-	{
-		return *this = HandlerType(yforward(_arg));
-	}
 
 	/*!
 	\brief 添加事件响应：使用 const 事件处理器和优先级。

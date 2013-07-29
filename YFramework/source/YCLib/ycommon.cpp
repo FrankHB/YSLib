@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2691
+\version r2707
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2013-07-22 16:32 +0800
+	2013-07-27 04:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "YCLib/Debug.h"
 #include <cstring>
 #include <cerrno>
+#include <cstdarg>
 #include "YCLib/NativeAPI.h"
 
 namespace platform
@@ -44,25 +45,7 @@ terminate() ynothrow
 #endif
 }
 
-
-#ifdef YB_USE_YASSERT
-
-void
-yassert(bool exp, const char* expstr, const char* message,
-	int line, const char* file)
-{
-	if(YB_UNLIKELY(!exp))
-	{
-		yprintf("Assertion failed: \n"
-			"%s\nMessage: \n%s\nAt line %i in file \"%s\".\n",
-			expstr, message, line, file);
-		std::abort();
-	}
-}
-
-#endif
-
-}
+} // namespace platform;
 
 namespace platform_ex
 {

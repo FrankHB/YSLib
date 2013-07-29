@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r554
+\version r592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-07-23 14:18 +0800
+	2013-07-29 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,6 +130,7 @@ DLB $dev $lib $build;
 	of environment.
 
 $KNOWN_ISSUE:
+// Sorted by known revisions.
 // There are issues that won't be fixed if no further progress for \
 	implementation techniques found. Also depends on the environment.
 * $known_issue_b264 "<cmath> cannot use 'std::*' names" @ "!defined \
@@ -172,17 +173,43 @@ $KNOWN_ISSUE:
 
 $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
 // Issues should be reviewed later and moved as resolved if possible.
+// Ordered by workaround revisions and then known revision.
+* $known_issue_b350 $workaround_b350 "Clang++ always complains about wrong \
+	format when format attribute used on a function template";
+	// Use attribute only for explicit instantiation of 'char' as workaround.
 * $workaround_b353 "G++ 4.7.1 wrongly treats some special function as \
 	implicitly deleted";
 	// This issue is a compiler bug. It is fixed in G++ 4.7.2. \
 		See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54506 for details. \
 		Since devkitPro is still remained with G++ 4.7.1 @ b353, so explicitly \
 		defaulted functions are used at several contexts as the workaround.
+* $known_issue_b298 $orig_defect $workaround_b377
+	"sorry, unimplemented: use of 'type_pack_expansion' \
+	in template with libstdc++ std::thread" @ ^ "G++ (4.6, 4.7)"
+	$before $future(G++4.7.2);
+	// G++ 4.7.0 tested @ b300.
+	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
+	// Resolved by moving position of thread initialization.
+	// This issue was resolved by environment fix @ G++ 4.8.
 * $know_issue_b407 $workaround_b407 "configuration load wrongly as 'Debug' \
 	rather than 'debug' if user configuration is cleaned on VS2012 \
 	(other version unconfirmed). This is the default behavior, because the \
 	solution platform is not selected. Set 'DS' platform and activate other \
 	configuration (i.e. 'release'), then reopen the IDE to resolve.";
+* $known_issue_b402 $orig_defect $workaround_b402 "'constexpr auto' causing \
+	[-Wunused-variable] @ G++ 4.8.0";
+	// Not tested in other versions.
+	// Workarounded by using type name explicitly instead of 'auto'.
+	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57183 .
+	// G++ 4.8.1 fixes this bug, not tested.
+* $known_issue_b351_1 $workaround_b412 "static constexpr member of same type \
+	as class being defined";
+	// See http://stackoverflow.com/questions/11928089/static-constexpr-member-of-same-type-as-class-being-defined and \
+		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3308.pdf .
+	// G++ 4.7 would reject some code snippets. Clang++ 3.2 (trunk161531) \
+		rejects even more, including code accepted by G++ such as only list \
+		initialization is being used like constexpr static member in \
+		"ygdibase.h".
 * $known_issue_b406 $orig_defect $workaround_b420 "low performance of freetype \
 	2.4.12 on DS when loading UI";
 	// There is a serious performance problem using on DS (about 5x longer lag \
@@ -211,33 +238,12 @@ $RESOLVED_ENVIRONMENT_ISSUE:
 * $known_issue_b293 $resolved_b315 "G++ 4.6.1 ignores non-explicit conversion \
 	templates when there exists non-template explicit conversion function"
 	@ $interval([b260, b314));
-* $known_issue_b298 $orig_defect $resolved_b377 $non_env_fix
-	"sorry, unimplemented: use of 'type_pack_expansion' \
-	in template with libstdc++ std::thread" @ ^ "G++ (4.6, 4.7)"
-	$before $future(G++4.7.2);
-	// G++ 4.7.0 tested @ b300.
-	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53872 .
-	// Resolved by moving position of thread initialization.
-	// This issue was believed beging resolved by environment fix @ G++ 4.8.x.
 * $known_issue_b361 $resolved_b362 $non_env_fix "linking with DLL using GNU ld \
 	auto-import leads to different address across DLL and client code for \
 	same function";
 	// It causes event handlers of function set in DLL cannot removed in \
 		client code simply using function name.
 	// Resoved by explicitly using symbol visibility wrapped by macros.
-* $known_issue_b402 $orig_defect $resolved_b402 $non_env_fix "'constexpr auto' \
-	causing [-Wunused-variable] @ G++ 4.8.0";
-	// Not tested in other versions.
-	// Resolved by using type name explicitly instead of 'auto'.
-	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57183 .
-* $known_issue_b351_1 $resolved_b412 $non_env_fix "static constexpr member of \
-	same type as class being defined";
-	// See http://stackoverflow.com/questions/11928089/static-constexpr-member-of-same-type-as-class-being-defined and \
-		http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3308.pdf .
-	// G++ 4.7 would reject some code snippets. Clang++ 3.2 (trunk161531) \
-		rejects even more, including code accepted by G++ such as only list \
-		initialization is being used like constexpr static member in \
-		"ygdibase.h".
 * $known_issue_b351_3 $resolved_b428 "Clang++ 3.2 bugs on access control"
 	// Clang++ 3.2 (trunk161531) wrongly rejected valid code in "iterator.hpp" \
 		and "yevt.hpp" which G++ 4.7.2 accepted.
@@ -352,7 +358,8 @@ $module_tree $=
 			'Operators',
 			'Containers',
 			'AnyIterator',
-			'Path'
+			'Path',
+			'CAssert'
 		),
 		'LibDefect'
 		(
@@ -384,12 +391,12 @@ $module_tree $=
 			'FileSystem', // common file system APIs;
 			'Debug', // debug helpers;
 			'MemoryMapping' //memory mapping APIs;
-		),
+		);
 		'YCLib_(MinGW32)'
 		(
 			'MinGW32';
 			'COM'
-		),
+		);
 		'YSLib'
 		(
 			$with_base_namespace "YSLib";

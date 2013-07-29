@@ -10,7 +10,7 @@
 # DS Makefile for YBase
 # Version = r1869
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2013-03-17 18:31 +0800
+# Updated = 2013-07-25 16:31 +0800
 # Encoding = ANSI
 
 
@@ -46,7 +46,7 @@ export TOPDIR		?=	$(CURDIR)
 
 export TARGET		:= YBase
 export TARGETP		:= $(TARGET)_$(PLATFORM)
-export REFDIR		:= ../$(TARGET)
+export REFDIR		:= ..
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source data $(REFDIR)/source $(REFDIR)/source/ystdex

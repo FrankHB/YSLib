@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板类。
-\version r850
+\version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2013-03-02 07:29 +0800
+	2013-07-27 04:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_cast_hpp_ 1
 
 #include "type_op.hpp"
+#include "cassert.h"
 #include <memory>
 #include <typeinfo> // for dynamic_cast;
 #include <initializer_list> // for std::initialize_list;

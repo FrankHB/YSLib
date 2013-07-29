@@ -968,5 +968,8 @@
     <Text Include="..\doc\YFramework.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\NPL.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1296
+\version r1297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-06-28 05:30 +0800
+	2013-07-27 04:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_any_h_ 1
 
 #include "type_op.hpp"
+#include "cassert.h"
 #include <memory> // for std::addressof, std::unique_ptr;
 #include <typeinfo> // for typeid, std::bad_cast;
 

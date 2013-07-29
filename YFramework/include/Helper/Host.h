@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r671
+\version r678
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-07-23 19:41 +0800
+	2013-07-29 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,10 +60,6 @@ private:
 	*/
 	mutable std::mutex wmap_mtx;
 #	if YCL_MULTITHREAD == 1
-#		if YCL_MINGW32
-	//! \since build 397
-	::HINSTANCE h_instance;
-#		endif
 	/*!
 	\brief 窗口线程计数。
 	\sa EnterWindowThrad, LeaveWindowThread
@@ -86,6 +82,10 @@ public:
 	\since build 399
 	*/
 	std::atomic<bool> ExitOnAllWindowThreadCompleted;
+
+private:
+	//! \since build 432
+	WindowClass window_class;
 #	endif
 
 public:

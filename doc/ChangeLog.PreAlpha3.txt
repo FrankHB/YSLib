@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r3753
+\version r3762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-07-03 00:46 +0800
+	2013-07-28 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,10 +141,11 @@ b398
 						string&)'",
 					/ "member function 'ValueNode& operator[](const string&)'"
 						-> 'ValueObject& operator[](const string&)',
-					/ "member function 'ValueNode& \op/=(const ValueNode&)'"
-						-> 'const ValueNode& \op/=(const ValueNode&) const',
-					/ "member function 'ValueNode& \op/=(ValueNode&&)'",
-						-> 'const ValueNode& \op/=(ValueNode&&) const'
+					/ "member function 'ValueNode& operator/=(const \
+						ValueNode&)'" -> 'const ValueNode& operator/=(const \
+						ValueNode&) const',
+					/ "member function 'ValueNode& operator/=(ValueNode&&)'",
+						-> 'const ValueNode& operator/=(ValueNode&&) const'
 					// So there are no 'const_cast' @ \cl ValueNode.
 				),
 				+ "2 function templates %AccessPtr for %ValueNode"
@@ -842,8 +843,9 @@ b376
 			(
 				+ "more constructors";
 					// To handle argument with specific types correctly.
-				* $comp "missing excluding of 'Configuration&'" @ "constructor \
-					template with 1 function parameter" $since b335
+				* $comp $dev "missing excluding of 'Configuration&'"
+					@ "constructor template with 1 function parameter" $since
+					b335
 			)
 		)
 	),
@@ -2576,7 +2578,7 @@ b330
 	(
 		/ $lib "implementation" @ "(constructor, destructor)"
 			@ "class %noncopyable" %'YBase'.'YStandardEx'.'Utilities'
-		* $comp $dld "constexpr use" @ "derived classes of class %noncopyable"
+		* $comp DLD "constexpr use" @ "derived classes of class %noncopyable"
 			$since b246
 	)
 ),

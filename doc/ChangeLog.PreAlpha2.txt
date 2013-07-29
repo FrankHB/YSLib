@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r2937
+\version r2938
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-06-29 07:41 +0800
+	2013-07-25 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,7 +178,7 @@ b298
 		/ $design "file system APIs" %'YCLib',
 		(
 			$dep_from "make_shared",
-			^ DLD "%ystdex::make_shared" ^ "%std::make_shared"
+			^ DLD "%ystdex::make_shared" ~ "%std::make_shared"
 				// %std::make_shared with RTTI will enlarge size of object \
 					files. Several implementations may cause access violation, \
 					see $ref b298.

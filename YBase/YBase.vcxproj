@@ -16,6 +16,7 @@
     <ClInclude Include="include\ystdex\algorithm.hpp" />
     <ClInclude Include="include\ystdex\any.h" />
     <ClInclude Include="include\ystdex\any_iterator.hpp" />
+    <ClInclude Include="include\ystdex\cassert.h" />
     <ClInclude Include="include\ystdex\cast.hpp" />
     <ClInclude Include="include\ystdex\container.hpp" />
     <ClInclude Include="include\ystdex\cstdio.h" />
@@ -35,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\any.cpp" />
+    <ClCompile Include="source\ystdex\cassert.cpp" />
     <ClCompile Include="source\ystdex\cstdio.cpp" />
     <ClCompile Include="source\ystdex\cstring.cpp" />
   </ItemGroup>

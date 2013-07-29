@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1178
+\version r1202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-07-23 19:41 +0800
+	2013-07-29 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,30 +112,16 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 Environment::Environment()
 	: wnd_map(), wmap_mtx()
 #	if YCL_MULTITHREAD == 1
-#		if YCL_MINGW32
-	, h_instance(::GetModuleHandleW(nullptr))
-#		endif
 	, wnd_thrd_count(),
 #		if YCL_MINGW32
 	RawMouseButton(0),
 #		endif
 	ExitOnAllWindowThreadCompleted()
+#		if YCL_MINGW32
+	, window_class(WindowClassName, WndProc)
+#		endif
 #	endif
-{
-#	if YCL_MINGW32
-	// NOTE: Intentionally no %CS_OWNDC or %CS_CLASSDC, so %::ReleaseDC
-	//	is always needed.
-	const ::WNDCLASSW wnd_class{0, WndProc, 0, 0, h_instance,
-		::LoadIconW(nullptr, IDI_APPLICATION), ::LoadCursorW(nullptr,
-		IDC_ARROW), ::HBRUSH(COLOR_MENU + 1), nullptr, WindowClassName};
-
-	if(!::RegisterClassW(&wnd_class))
-		throw LoggedEvent("Windows registration failed.");
-	//	::MessageBox(nullptr, "This program requires Windows NT!",
-		//	wnd_title, MB_ICONERROR);
-	YCL_DEBUG_PUTS("Window class registered.");
-#	endif
-}
+{}
 Environment::~Environment()
 {
 	YCL_DEBUG_PUTS("Host environment lifetime ended.");
@@ -146,12 +132,6 @@ Environment::~Environment()
 		[](Window* const& p){
 			p->Close();
 	});
-#	if YCL_MULTITHREAD == 1
-#		if YCL_MINGW32
-	::UnregisterClassW(WindowClassName, h_instance);
-	YCL_DEBUG_PUTS("Window class unregistered.");
-#		endif
-#	endif
 }
 
 Window*

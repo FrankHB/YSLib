@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2011.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r348
-\author FrankHB<frankhb1989@gmail.com>
+\version r357
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2012-12-11 21:19 +0800
+	2013-07-24 17:50 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YEXCEPT_H_
-#define YSL_INC_CORE_YEXCEPT_H_ 1
+#ifndef YSL_INC_Core_yexcept_h_
+#define YSL_INC_Core_yexcept_h_ 1
 
 #include "ysdef.h"
 #include <exception>
@@ -47,7 +47,7 @@ typedef std::runtime_error GeneralEvent;
 class YF_API LoggedEvent : public GeneralEvent
 {
 public:
-	typedef u8 LevelType;
+	typedef RecordLevel LevelType;
 
 private:
 	LevelType level;
@@ -55,14 +55,14 @@ private:
 public:
 	/*!
 	\brief 构造：使用异常字符串和异常等级。
-	\since build 319
+	\since build 432
 	*/
-	LoggedEvent(const std::string&, LevelType = 0) ynothrow;
+	LoggedEvent(const std::string&, LevelType = Emergent) ynothrow;
 	/*!
 	\brief 构造：使用一般异常事件对象和异常等级。
-	\since build 319
+	\since build 432
 	*/
-	LoggedEvent(const GeneralEvent&, LevelType = 0) ynothrow;
+	LoggedEvent(const GeneralEvent&, LevelType = Emergent) ynothrow;
 	/*!
 	\brief 析构：默认实现。
 	*/

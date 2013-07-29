@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r224
+\version r225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-07-23 19:46 +0800
+	2013-07-28 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ FetchIdleMessage()
 inline void
 Idle(Messaging::Priority prior)
 {
-	// Note: Wait for GUI input of any shells. Post message for specific shell
+	// NOTE: Wait for GUI input of any shells. Post message for specific shell
 	//	would cause low performance when there are many candidate messages
 	//	of distinct shells.
 	PostMessage(FetchIdleMessage(), prior);

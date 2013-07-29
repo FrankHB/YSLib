@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r146
+\version r148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-07-23 08:59 +0800
+	2013-07-25 15:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,8 +78,7 @@ template<typename _fCallable, typename... _tParams>
 unique_ptr<HostRenderer>
 MakeHostRenderer(UI::IWidget& wgt, _fCallable&& f, _tParams&&... args)
 {
-	return ystdex::make_unique<HostRenderer>(wgt, yforward(f),
-		yforward(args)...);
+	return make_unique<HostRenderer>(wgt, yforward(f), yforward(args)...);
 }
 
 //! \since build 401

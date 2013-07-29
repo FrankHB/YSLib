@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2318
+\version r2345
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-07-14 19:42 +0800
+	2013-07-27 04:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -324,12 +324,18 @@
 
 
 /*!
-\def YB_USE_EXCEPTION_SPECIFICATION
-\brief 使用 YBase 断言。
+\def YB_Use_YAssert
+\brief 使用断言。
+\since build 313
+*/
+/*!
+\def YB_Use_YTrace
+\brief 使用调试跟踪记录。
 \since build 313
 */
 #ifndef NDEBUG
-#	define YB_USE_YASSERT
+#	define YB_Use_YAssert 1
+#	define YB_Use_YTrace 1
 #endif
 
 
@@ -434,29 +440,6 @@
 #else
 #	define ythread static
 #endif
-
-
-/*!
-\ingroup YBase_pseudo_keyword
-\def yconstraint
-\brief 约束：接口语义。
-\note 和普通断言相比强调接口契约。对于移植特定的平台实现时应予以特别注意。
-\since build 298
-
-运行时检查的接口语义约束断言。不满足此断言的行为是接口明确地未定义的，行为不可预测。
-*/
-#define yconstraint assert
-
-/*!
-\ingroup YBase_pseudo_keyword
-\def yassume
-\brief 假定：环境语义。
-\note 和普通断言相比强调非接口契约。对于移植特定的平台实现时应予以特别注意。
-\since build 298
-
-运行时检查的环境条件约束断言。用于明确地非 yconstraint 适用的情形。
-*/
-#define yassume assert
 
 
 namespace ystdex

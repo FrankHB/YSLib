@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2818
+\version r2820
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-06-28 05:24 +0800
+	2013-07-24 17:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,7 @@ CompactPixmap::SetSize(const Size& s)
 	}
 	catch(std::bad_alloc&)
 	{
-		throw LoggedEvent("BitmapBuffer allocation failed.", 1);
+		throw LoggedEvent("BitmapBuffer allocation failed.", Alert);
 	}
 
 	YAssert(bool(pBuffer) == (area != 0), "Buffer corruptied.");
@@ -197,7 +197,7 @@ CompactPixmapEx::SetSize(const Size& s)
 	}
 	catch(std::bad_alloc&)
 	{
-		throw LoggedEvent("CompactPixmapEx allocation failed.", 1);
+		throw LoggedEvent("CompactPixmapEx allocation failed.", Alert);
 	}
 
 	YAssert(bool(pBuffer) == (area != 0), "Buffer corruptied.");

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r1871
+# Version = r1875
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2013-05-02 09:39 +0800
+# Updated = 2013-07-25 16:35 +0800
 # Encoding = ANSI
 
 
@@ -45,15 +45,16 @@ export TOPDIR		?=	$(CURDIR)
 
 export TARGET		:= YFramework
 export TARGETP		:= $(TARGET)_$(PLATFORM)
-export REFDIR		:= ../$(TARGET)
+export REFDIR		:= ..
 export BUILD		?= release
 export RELEASE		= $(BUILD)
 export SOURCES		:= source data $(REFDIR)/source/CHRLib \
 	$(REFDIR)/source/YCLib $(REFDIR)/source/YSLib \
 	$(REFDIR)/source/YSLib/Adaptor $(REFDIR)/source/YSLib/Core \
 	$(REFDIR)/source/YSLib/Service $(REFDIR)/Source/YSLib/UI \
-	$(REFDIR)/source/NPL $(REFDIR)/source/Helper
-export INCLUDES		:= include data ../YBase/include $(REFDIR)/include ../3rdparty/include
+	$(REFDIR)/source/NPL $(REFDIR)/source/Helper \
+	source/Helper
+export INCLUDES		:= include data ../../YBase/include $(REFDIR)/include ../../3rdparty/include
 export DATA			:= data $(REFDIR)/data
 #export GRAPHICS	:= gfx
 #export MUSIC		:= music

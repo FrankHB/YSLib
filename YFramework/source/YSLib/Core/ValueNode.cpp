@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r301
+\version r307
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-05-09 09:38 +0800;
+	2013-07-28 09:57 +0800;
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,14 @@ const ValueNode&
 AccessNode(const ValueNode::Container& con, const string& name)
 {
 	return ystdex::at(con, ValueNode(0, name));
+}
+
+const ValueNode*
+AccessNodePtr(const ValueNode::Container& con, const string& name)
+{
+	const auto i(con.find(ValueNode(0, name)));
+
+	return i != end(con) ? &*i : nullptr;
 }
 
 YSL_END

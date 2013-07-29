@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r1880
+\version r2015
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-23 20:00 +0800
+	2013-07-29 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,133 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	* "missing relocation of VC++ project file for projects %(YBase_(DS), \
+		YFramework_(DS), YFramework_(MinGW32)",
+	/ %'YBase' $=
+	(
+		/ %'YDefinition' $=
+		(
+			/ @ '!defined(NDEBUG)' @ %'YDefinition' $=
+			(
+				+ "macro definition %YB_Use_YTrace",
+				/ "macro %YB_USE_YASSERT" -> "macro %YB_Use_YAssert"
+			),
+			(
+				/ $dep_from %'YStandardEx'.'CAssert';
+				/ "macro %(yconstraint, yassume)" @ %'YDefinition'
+					>> %'YStandardEx'.'CAssert'
+			)
+		),
+		/ %'YStandardEx' $=
+		(
+			/ $dev "unified format attribute with 'printf'" ~ 'ms_printf'
+				@ "%sfmt<char>" @ %'YStandardEx'.'String'
+				// It seems that macro '__USE_MINGW_ANSI_STDIO' is always \
+					defined for C++.
+			+ %'CAssert' $=
+			(
+				/ @ 'YB_USE_YTrace' $=
+				(
+					+ "function %ytrace",
+					+ "macro %YTrace"
+				)
+			),
+			/ @ 'YB_USE_YTrace' $=
+
+		)
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YCLib'.'YCommon' $=
+		(
+			(
+				+ "namespace %Discriptions"
+					$= (+ "enumeration %RecordLevel");
+				$dep_to "%platform::Discriptions"
+			),
+			(
+				/ $dev "assertion function" $=
+				(
+					/ "parameter order and assert string",
+					^ DLD 'std::terminate' ~ "'std::abort' as termination",
+					^ "standard output to 'stderr'"
+						~ "platform dependent output function"
+				);
+				/ "(functions %yassert, macro %YAssert)"
+					@ %'YCommon' >> %'YBase'.'CAssert',
+			);
+			$dep_from %'YBase'.'YStandardEx'.'CAssert';
+			/ @ 'YB_USE_YTrace'
+				$= (+ "macros %(YF_TraceLevel, YTrace)")
+		);
+		/ %'YSLib' $=
+		(
+			/ %'Adaptor' $=
+			(
+				- "macro definition %YB_USE_YASSERT" @ '!defined(NDEBUG)'
+					@ %'Configuration',
+				(
+					$dep_from "%platform::Discriptions";
+					+ 'using namespace platform::Discriptions;'
+						@ "namespace %YSLib" @ %'YAdaptor';
+					$dep_to "exception level"
+				)
+			),
+			/ %'Core' $=
+			(
+				/ $dev %'YException' $=
+				(
+					$dep_to "exception level";
+					^ "typename %RecordLevel as member %LevelType"
+						@ "exception class %LoggedEvent"
+				),
+				/ %'ValueNode'
+				(
+					/ "merged 2 function templates %AccessChild",
+					+ "2 functions %AccessNodePtr",
+					+ "function template %AccessPtr for type \
+						'const ValueNode*'",
+					+ "2 function templates %AccessChildPtr"
+				),
+				* $dev "missing excluding of 'GEvent&'" @ %'GEvent'
+					@ "member template %operator= with 1 function parameter"
+					@ "class template %GEvent" $since b293
+					// This would cause recursive calls by self.
+			),
+			(
+				/ $dep_from %'Core'.'YException',
+				/ DLD "throwing exceptions" ^ "different exception level"
+					@ (%'Adaptor'.'Font', 'Service'.'YGDI');
+			)
+		)
+		/ @ "platform MinGW32" @ %'Helper' $=
+		(
+			/ DLD "all ('std::make_shared', 'ystdex::make_shared', \
+				'ystdex::make_unique')" -> "ADL use without qualification",
+				// Non-MinGW32 code still cant use this substitution, because G++ 4.7.1 in \
+					devkitARM release 41 doesn't support. See $known_issue_b298.
+			(
+				$dep_from %'YCLib_(MinGW32)'.'Win32GUI';
+				/ "window class registration" ^ ("trace",
+					("exception class %Win32Exception" ~ "%LoggedEvent"))
+			),
+			* "unhandled %Win32Exception" @ "host window thread"
+				@ "window closed" $since b426
+				// Exit code is %::NTSTATUS error \
+					'STATUS_STACK_OVERFLOW'(0xC00000FD).
+		),
+		* $comp "missing excluding of 'ValueNode&'"
+			@ "constructor template with 1 function parameter"
+			@ "class %Configuration" @ %'NPL'.'Configuration' $since b376,
+		+ "class %WindowClass" @ %'YCLib_(MinGW32)'.'Win32GUI'
+	),
+	+ $doc "%Documentation::NPL",
+	* $dev "header and source locations" @ "makefiles" @ "platform DS"
+		@ "project %(YBase_DS, YFramework_DS)" $since b431
+),
+
+b431
 (
 	/ %'YFramework' $=
 	(
@@ -1360,10 +1487,15 @@ b409
 					+ "macro %DefSwap",
 					/ "macro %yJOIN" >> 'YBase'.'YDefinition'
 				),
-				+ "non-member function template %swap for specification of \
-					%GEvent" @ %'YEvent',
-				+ "non-member function %swap for ,
-				+ "non-member function %swap for classs"
+				/ @ %'YEvent' $=
+				(
+					+ "non-member function template %swap for specification of \
+						%GEvent",
+					* $dev "missing excluding of 'GEvent&'"
+						@ "constructor template with 1 function parameter"
+						@ "class template %GEvent" $since b293
+				),
+				+ "non-member function %swap for classes \
 					%(Message @ %'YMessage', ValueObject" @ %'YObject'),
 				/ %'YFileSystem' $=
 				(

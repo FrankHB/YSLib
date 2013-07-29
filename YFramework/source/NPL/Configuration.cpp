@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r574
+\version r575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2013-05-05 01:26 +0800
+	2013-07-24 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,7 +177,7 @@ operator>>(TextFile& tf, Configuration& conf)
 		// TODO: Avoid memory allocation.
 		throw LoggedEvent(ystdex::sfmt(
 			"Bad configuration found: cast failed from [%s] to [%s] .",
-			e.from(), e.to()), 0x80);
+			e.from(), e.to()), Warning);
 	}
 	return tf;
 }

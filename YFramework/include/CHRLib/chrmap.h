@@ -11,13 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1273
+\version r1274
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-05-04 23:57 +0800
+	2013-07-27 04:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define INC_CHRLib_chrmap_h_ 1
 
 #include "encoding.h"
+#include <ystdex/cassert.h>
 
 namespace CHRLib
 {

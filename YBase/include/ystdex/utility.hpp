@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1624
+\version r1625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-07-08 06:02 +0800
+	2013-07-27 04:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_utility_hpp_ 1
 
 #include "type_op.hpp" // for ../ydef.h, ystdex::qualified_decay;
+#include "cassert.h"
 #include <utility>
 
 namespace ystdex

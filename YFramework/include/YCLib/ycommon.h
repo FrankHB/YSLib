@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3446
+\version r3484
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-07-22 16:31 +0800
+	2013-07-27 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@
 
 //平台中立部分。
 #include <ydef.h>
+#include <ystdex/cassert.h>
 #include <ystdex/cstdio.h>
 #include <cstdlib>
 #include <string>
@@ -57,26 +58,52 @@ YB_NORETURN YF_API void
 terminate() ynothrow;
 
 
-//断言。
-#ifdef YB_USE_YASSERT
-
-#undef YAssert
+/*!
+\brief 平台描述空间。
+\since build 432
+*/
+namespace Discriptions
+{
 
 /*!
-\brief YCLib 默认断言函数。
-\note 当定义 YCL_USE_YASSERT 宏时，宏 YAssert 操作由此函数实现。
+\brief 记录等级。
+\since build 432
 */
-YF_API void
-yassert(bool, const char*, const char*, int, const char*);
+enum RecordLevel : std::uint8_t
+{
+	Emergent = 0x00,
+	Alert = 0x20,
+	Critical = 0x40,
+	Err = 0x60,
+	Warning = 0x80,
+	Notice = 0xA0,
+	Informative = 0xC0,
+	Debug = 0x70
+};
 
-#define YAssert(exp, message) \
-	platform::yassert(exp, #exp, message, __LINE__, __FILE__)
+} // namespace Discriptions;
 
+
+#if YB_Use_YTrace
+/*!
+\brief YCLib 默认调试跟踪等级阈值。
+\note 默认仅小于此等级的调试跟踪信息不忽略。
+\since build 432
+*/
+#	ifndef YF_TraceLevel
+#		define YF_TraceLevel platform::Discriptions::Informative
+#	endif
+
+/*!
+\brief YCLib 默认调试跟踪。
+\note 使用默认的调试跟踪级别。
+\sa YF_TraceLevel
+\sa ystdex::ytrace
+*/
+#	define YTraceDe(_lv, ...) \
+	ystdex::ytrace(stderr, _lv, YF_TraceLevel, __FILE__, __LINE__, __VA_ARGS__)
 #else
-
-#include <cassert>
-#	define YAssert(exp, message) assert(exp)
-
+#	define YTraceDe(...)
 #endif
 
 } // namespace platform;

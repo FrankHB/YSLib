@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1214
+\version r1251
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-05-09 09:40 +0800
+	2013-07-28 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,6 +240,16 @@ AccessPtr(const ValueNode& node) ynothrow
 {
 	return node.Value.AccessPtr<_type>();
 }
+/*!
+\brief 访问节点的指定类型对象指针。
+\since build 432
+*/
+template<typename _type>
+inline _type*
+AccessPtr(const ValueNode* p_node) ynothrow
+{
+	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
+}
 
 
 /*!
@@ -250,27 +260,50 @@ YF_API const ValueNode&
 AccessNode(const ValueNode::Container&, const string&);
 
 /*!
+\brief 访问容器中的节点指针。
+\since build 432
+*/
+//@{
+YF_API const ValueNode*
+AccessNodePtr(const ValueNode::Container&, const string&);
+inline const ValueNode*
+AccessNodePtr(const ValueNode::Container* p_con, const string& name)
+{
+	return p_con ? AccessNodePtr(*p_con, name) : nullptr;
+}
+//@}
+
+/*!
 \brief 访问指定名称的子节点的指定类型对象。
 \exception std::bad_cast 空实例或类型检查失败 。
-\since build 334
+\since build 432
 */
 template<typename _type>
 inline _type&
-AccessChild(ValueNode& node, const string& name)
-{
-	return Access<_type>(node.GetNode(name));
-}
-/*!
-\brief 访问指定名称的子节点的指定类型 const 对象。
-\exception std::bad_cast 空实例或类型检查失败 。
-\since build 334
-*/
-template<typename _type>
-inline const _type&
 AccessChild(const ValueNode& node, const string& name)
 {
 	return Access<_type>(node.GetNode(name));
 }
+
+/*!
+\brief 访问指定名称的子节点的指定类型对象的指针。
+\exception std::bad_cast 空实例或类型检查失败 。
+\since build 432
+*/
+//@{
+template<typename _type>
+inline _type*
+AccessChildPtr(const ValueNode& node, const string& name)
+{
+	return AccessPtr<_type>(AccessNodePtr(node.GetContainerPtr(), name));
+}
+template<typename _type>
+inline _type*
+AccessChildPtr(const ValueNode* p_node, const string& name)
+{
+	return p_node ? AccessChildPtr<_type>(*p_node, name) : nullptr;
+}
+//@}
 
 
 /*!

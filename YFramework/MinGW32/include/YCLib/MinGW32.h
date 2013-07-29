@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r125
+\version r129
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-07-22 20:38 +0800
+	2013-07-24 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,8 +54,9 @@ namespace platform_ex
 class YF_API Exception : public YSLib::LoggedEvent
 {
 public:
-	Exception(const std::string& = "unknown host exception", LevelType = 0)
-		ynothrow;
+	//! \since build 432
+	Exception(const std::string& = "unknown host exception",
+		LevelType = {}) ynothrow;
 };
 
 /*!
@@ -77,7 +78,7 @@ private:
 public:
 	//! \pre 错误码不等于 0 。
 	Win32Exception(::DWORD, const std::string& = "Win32 exception",
-		LevelType = 0) ynothrow;
+		LevelType = {}) ynothrow;
 
 	DefGetter(const ynothrow, ::DWORD, ErrorCode, err)
 };

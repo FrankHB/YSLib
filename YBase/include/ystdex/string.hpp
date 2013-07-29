@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r374
+\version r382
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-06-15 00:15 +0800
+	2013-06-15 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -317,16 +317,10 @@ sfmt(const _tChar* fmt, ...)
 
 /*!
 \brief 显式实例化：以 C 标准输出格式的输出 std::string 对象。
-\see sfmt 模板声明。
+\sa sfmt
 \since build 350
 */
-template
-#if defined _WIN32 && !defined __USE_MINGW_ANSI_STDIO
-YB_ATTR(format (ms_printf, 1, 2))
-#else
-YB_ATTR(format (printf, 1, 2))
-#endif
-std::string
+template YB_ATTR(format (printf, 1, 2)) std::string
 sfmt<char>(const char*, ...);
 
 } // namespace ystdex;

@@ -11,13 +11,13 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief YSLib 库配置。
-\version r624
+\version r625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-04-24 00:26 +0800
+	2013-07-27 03:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,6 @@
 //#define NDEBUG //!< 非调试模式。
 
 #ifndef NDEBUG
-#	define YB_USE_YASSERT //!< 使用 YCLib 断言。
 #	define YSL_USE_MEMORY_DEBUG //!< 使用 YSLib 内存调试设施。
 #endif
 

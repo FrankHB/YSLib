@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1441
+\version r1446
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2013-04-22 12:45 +0800
+	2013-07-24 17:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ Session::Session(const TextFile& tf)
 	while(!tf.CheckEOF())
 	{
 		if(YB_UNLIKELY(is_undereferenceable(i)))
-			throw LoggedEvent("Bad Source!", 0x40);
+			throw LoggedEvent("Bad Source!", Critical);
 		llex.ParseByte(*i);
 		++i;
 	}
@@ -62,7 +62,7 @@ Validate(TLCIter b, TLCIter e)
 			auto res(Validate(++b, e));
 
 			if(res == e || *res != ")")
-				throw LoggedEvent("Redundant '(' found.", 0x20);
+				throw LoggedEvent("Redundant '(' found.", Alert);
 			b = ++res;
 		}
 		else
@@ -80,7 +80,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e)
 			auto res(Reduce(nd, ++b, e));
 
 			if(res == e || *res != ")")
-				throw LoggedEvent("Redundant '(' found.", 0x20);
+				throw LoggedEvent("Redundant '(' found.", Alert);
 			node += std::move(nd);
 			b = ++res;
 		}
@@ -94,10 +94,10 @@ Analyze(ValueNode& root, const TokenList& token_list)
 {
 #if 0
 	if(token_list.empty())
-		throw LoggedEvent("Empty token list found;", 0x20);
+		throw LoggedEvent("Empty token list found;", Alert);
 #endif
 	if(Validate(token_list.begin(), token_list.end()) != token_list.end())
-		throw LoggedEvent("Redundant ')' found.", 0x20);
+		throw LoggedEvent("Redundant ')' found.", Alert);
 
 	const auto res(Reduce(root, token_list.begin(), token_list.end()));
 

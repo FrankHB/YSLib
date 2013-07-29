@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3317
+\version r3326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-07-15 06:20 +0800
+	2013-07-24 18:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ NativeFontSize::~NativeFontSize() ynothrow
 NativeFontSize::GetSizeRec() const
 {
 	if(YB_UNLIKELY(!size))
-		throw LoggedEvent("Invalid native size found.");
+		throw LoggedEvent("Invalid native size found.", Critical);
 	return *size;
 }
 
@@ -151,7 +151,7 @@ FontFamily::GetTypefaceRef(FontStyle fs) const
 	const auto p(GetTypefacePtr(fs));
 
 	if(YB_UNLIKELY(!p))
-		throw LoggedEvent("No matching face found.");
+		throw LoggedEvent("No matching face found.", Critical);
 	return *p;
 }
 Typeface&
@@ -160,7 +160,7 @@ FontFamily::GetTypefaceRef(const StyleName& style_name) const
 	const auto p(GetTypefacePtr(style_name));
 
 	if(YB_UNLIKELY(!p))
-		throw LoggedEvent("No matching face found.");
+		throw LoggedEvent("No matching face found.", Critical);
 	return *p;
 }
 
@@ -246,7 +246,7 @@ Typeface::SmallBitmapData::~SmallBitmapData()
 Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 	: Path(path), face_index(i), cmap_index(-1), style_name(), ref([&, this]{
 		if(YB_UNLIKELY(cache.sFaces.find(this) != cache.sFaces.end()))
-			throw LoggedEvent("Duplicate typeface found.", 2);
+			throw LoggedEvent("Duplicate typeface found.", Critical);
 
 		::FT_Face face;
 		::FT_Error error(::FT_New_Face(cache.library, Path.c_str(),
@@ -260,7 +260,7 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 		if(YB_UNLIKELY(error))
 		{
 			platform::yprintf("Face request error: %08x\n", error);
-			throw LoggedEvent("Face loading failed.", 2);
+			throw LoggedEvent("Face loading failed.", Critical);
 		}
 
 		const FamilyName family_name(face->family_name);
@@ -331,7 +331,7 @@ Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
 			? ref.second.get().glyph : nullptr, key.Style)));
 
 		if(YB_UNLIKELY(!pr.second))
-			throw LoggedEvent("Bitmap cache insertion failed.");
+			throw LoggedEvent("Bitmap cache insertion failed.", Alert);
 		i = pr.first;
 	}
 	return i->second;
@@ -352,7 +352,7 @@ Typeface::LookupGlyphIndex(ucs4_t c) const
 			&ref.second.get(), ::FT_ULong(c))));
 
 		if(YB_UNLIKELY(!pr.second))
-			throw LoggedEvent("Glyph index cache insertion failed.");
+			throw LoggedEvent("Glyph index cache insertion failed.", Alert);
 		i = pr.first;
 	}
 	return i->second;
@@ -368,7 +368,7 @@ Typeface::LookupSize(FontSize s) const
 		const auto pr(size_cache.emplace(s, NativeFontSize(ref.second, s)));
 
 		if(YB_UNLIKELY(!pr.second))
-			throw LoggedEvent("Bitmap cache insertion failed.");
+			throw LoggedEvent("Bitmap cache insertion failed.", Alert);
 		i = pr.first;
 	}
 	return i->second;
@@ -382,7 +382,7 @@ FetchDefaultTypeface()
 		FetchDefaultFontCache().GetDefaultTypefacePtr());
 
 	if(YB_UNLIKELY(!pDefaultTypeface))
-		throw LoggedEvent("Null default font face pointer found.");
+		throw LoggedEvent("Null default font face pointer found.", Critical);
 	return *pDefaultTypeface;
 }
 
@@ -399,7 +399,7 @@ FontCache::FontCache(size_t /*cache_size*/)
 	{
 		// TODO: Format without allocating memory.
 		throw LoggedEvent(
-			ystdex::sfmt("Font init failed: %08x\n;", error).c_str(), 1);
+			ystdex::sfmt("Font init failed: %08x\n;", error).c_str(), Alert);
 	}
 }
 FontCache::~FontCache() ynothrow
