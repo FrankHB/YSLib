@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1793
+\version r1794
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-07-08 10:34 +0800
+	2013-08-01 12:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,7 +245,7 @@ InitializeInstalled()
 
 		if(node.GetName() == "YFramework")
 			node = PackNodes("", std::move(node));
-		LoadComponents(node.GetNode("YFramework"));
+		LoadComponents(node.at("YFramework"));
 		puts("OK!");
 		return std::move(node);
 	}

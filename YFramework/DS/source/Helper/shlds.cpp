@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1346
+\version r1347
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-07-16 16:05 +0800
+	2013-07-31 02:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ ShlDS::OnGotMessage(const Message& msg)
 		return;
 	case SM_INPUT:
 #if YCL_HOSTED
-		if(auto p_wgt = imMain.Update())
+		if(const auto p_wgt = imMain.Update())
 			imMain.DispatchInput(*p_wgt);
 		else
 			imMain.DispatchInput(*cursor_desktop_ptr);

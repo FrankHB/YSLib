@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r109
+\version r110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2013-06-13 08:38 +0800
+	2013-07-31 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@ namespace platform
 
 /*!
 \brief 只读内存映射文件。
+\note 对于不支持内存映射的实现，使用 C 标准 IO 模拟。
 \since build 324
 */
 class YF_API MappedFile

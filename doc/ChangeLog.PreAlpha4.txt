@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2015
+\version r2087
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-07-29 13:04 +0800
+	2013-08-02 01:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,61 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ $doc $dev 'Documentation' $=
+	(
+		+ $doc "basic namespace rules" @ %'NPL',
+		(
+			+ "workflow document %Workflow.2013.txt";
+			+ "labeled paragraph %$STATE for current state" @ %'Meta'
+		)
+	),
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'UI' $=
+		(
+			- $revert(b240) "releasing focus on destruction" @ "class %Widget",
+				// For convenience of unspecified order of widget destruction.
+			+ %'Loader' @ %'UI' $=
+			(
+				+ "functions %(ParseRect, DetectWidgetNode, CheckChildName, \
+					TransformUILayout, ConvertUILayout, AccessWidget)",
+				+ "template alias %GWidgetCreatorMap",
+				+ "function templates %(FetchWidgetMapping, CreateWidget, \
+					2 AccessWidget)",
+				+ "class template %GWidgetFactory"
+			)
+		),
+		/ %'Core'.'ValueNode' $=
+		(
+			/ "member function %GetNode" @ "class %ValueNode" => "%at",
+			+ "function %AccessNode for container pointer";
+			/ $design "inlined function %AccessNode for container reference"
+		)
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ %'Path' $=
+		(
+			/ @ "class template %path" $=
+			(
+				(
+					+ "constructor with base rvalue reference as parameter";
+					/ DLD "delegating other non-copy/move constructors with \
+						base temporaries"
+				),
+				+ "constructor template with base parameters"
+			)
+			* "type error implementation" @ "member function %is_delimiter"
+				@ "template class specialization %file_path_norm" $since b409
+		),
+		- "function templates %ystdex::at" @ %'Container'
+	),
+	/ DLD "normalized template parameters as convention: %(_tCont, _tSeqCont)" \
+		=> "%(_tCon, _tSeqCon)"
+),
+
+b432
 (
 	* "missing relocation of VC++ project file for projects %(YBase_(DS), \
 		YFramework_(DS), YFramework_(MinGW32)",
@@ -135,8 +190,9 @@ $now
 		(
 			/ DLD "all ('std::make_shared', 'ystdex::make_shared', \
 				'ystdex::make_unique')" -> "ADL use without qualification",
-				// Non-MinGW32 code still cant use this substitution, because G++ 4.7.1 in \
-					devkitARM release 41 doesn't support. See $known_issue_b298.
+				// Non-MinGW32 code still cant use this substitution, because \
+					G++ 4.7.1 in devkitARM release 41 doesn't support. See \
+					$known_issue_b298.
 			(
 				$dep_from %'YCLib_(MinGW32)'.'Win32GUI';
 				/ "window class registration" ^ ("trace",
@@ -484,8 +540,9 @@ b428
 			$= (+ 'ynothrow' @ ("classes %(ImageMemory, HBitmap, ImageCodec)"
 				@ %'Image', "classes %(Typeface, FontCache)" @ %'Font')
 				@ %'YSLib'.'Adaptor'));
-			// Class at %YBase like %any should conform ISO C++ standard library \
-				tradition, which add no explicit exception specification.
+			// Class at %YBase like %any should conform ISO C++ standard \
+				library tradition, which add no explicit exception \
+				specification.
 	),
 	* "missing 2nd template parameter" @ "relation functions for class \
 		template %ystdex::bitseg_iterator" @ %'YBase'.'Iterator' $since b414,
@@ -639,7 +696,8 @@ b425
 		(
 			/ %'UI' $=
 			(
-				/ "typedef %HWheelEvent" @ %'YWidgetEvent' => "%HCursorWheelEvent",
+				/ "typedef %HWheelEvent" @ %'YWidgetEvent'
+					=> "%HCursorWheelEvent",
 				+ "forwarding %CursorWheel to vertical scroll bar"
 					@ "class %ScrollableContainer" @ %'Scroll';
 			),
@@ -729,7 +787,8 @@ b424
 				(
 					/ $revert(b421) "member function %GUIState::ResponseKey \
 						allowed routed events,
-					/ "events %(TouchUp, TouchDown) handled by wrapped handlers";
+					/ "events %(TouchUp, TouchDown) handled by wrapped \
+						handlers";
 						// So manually sent touch events can be handled with \
 							GUI state changes, and no need to bind \
 							%OnKey_Bound_Click.
@@ -834,7 +893,8 @@ b421
 				/ "member function %Font::SetStyle to allow non-regular style \
 					setting when typeface exists";
 				+ "support for bold and italic bitmap glyphs"
-					// But no support of typefaces for specific styles currently.
+					// But no support of typefaces for specific styles \
+						currently.
 			),
 			/ %'UI' $=
 			(
@@ -907,7 +967,7 @@ b420
 	(
 		- "module configuration ('HINTING_MODULES += autofit',
 			'AUX_MODULES += cache', 'BASE_EXTENSIONS += ftfstype.c',
-			'BASE_EXTENSIONS += ftstroke.c', 'BASE_EXTENSIONS += ftsynth.c'),;
+			'BASE_EXTENSIONS += ftstroke.c', 'BASE_EXTENSIONS += ftsynth.c');
 		^ "updated freetype 2.5.0.1 with several files remained"
 			~ "freetype 2.4.11"
 			// See [Documentation::Designation @@5.4.1.3] .
@@ -1900,9 +1960,11 @@ b401
 	),
 	/ $build "headers of library %freetype" @ "project %YFramework"
 		>> "directory %3rdparty/include" ~ "directory %YFramework/include"
-		// It is required to put the directory "3rdpraty" into the header \
-		//	searching path by user, since FreeType2 headers are explicitly \
-		//	included by header "YSLib/Adaptor/Font.h".
+		// For convenience, the main YFramework VC++ project is still \
+			containing these items, as for "/doc". And it is required to put \
+			the directory "3rdpraty" into the header searching path by user, \
+			since FreeType2 headers are explicitly included by header \
+			"YSLib/Adaptor/Font.h".
 ),
 
 b400

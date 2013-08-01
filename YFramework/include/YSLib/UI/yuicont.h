@@ -237,12 +237,12 @@ protected:
 \note 不保证顺序。
 \since build 303
 */
-template<class _tContainer, class... _tWidgets>
+template<class _tCon, class... _tWidgets>
 inline void
-AddWidgets(_tContainer& con, _tWidgets&... wgts)
+AddWidgets(_tCon& con, _tWidgets&... wgts)
 {
-	unseq_apply(std::bind(static_cast<void(_tContainer::*)(IWidget&)>(
-		&_tContainer::operator+=), std::ref(con), std::placeholders::_1),
+	unseq_apply(std::bind(static_cast<void(_tCon::*)(IWidget&)>(
+		&_tCon::operator+=), std::ref(con), std::placeholders::_1),
 		std::forward<IWidget&>(wgts)...);
 }
 
@@ -251,12 +251,12 @@ AddWidgets(_tContainer& con, _tWidgets&... wgts)
 \note 不保证顺序。
 \since build 303
 */
-template<class _tContainer, class... _tWidgets>
+template<class _tCon, class... _tWidgets>
 inline void
-AddWidgetsZ(_tContainer& con, ZOrderType z, _tWidgets&... wgts)
+AddWidgetsZ(_tCon& con, ZOrderType z, _tWidgets&... wgts)
 {
-	unseq_apply(std::bind(static_cast<void(_tContainer::*)(IWidget&, ZOrderType)
-		>(&_tContainer::Add), std::ref(con), std::placeholders::_1, z),
+	unseq_apply(std::bind(static_cast<void(_tCon::*)(IWidget&, ZOrderType)
+		>(&_tCon::Add), std::ref(con), std::placeholders::_1, z),
 		std::forward<IWidget&>(wgts)...);
 }
 
@@ -265,12 +265,12 @@ AddWidgetsZ(_tContainer& con, ZOrderType z, _tWidgets&... wgts)
 \note 不保证顺序。
 \since build 303
 */
-template<class _tContainer, class... _tWidgets>
+template<class _tCon, class... _tWidgets>
 inline void
-RemoveWidgets(_tContainer& con, _tWidgets&... wgts)
+RemoveWidgets(_tCon& con, _tWidgets&... wgts)
 {
-	unseq_apply(std::bind(static_cast<bool(_tContainer::*)(IWidget&)>(
-		&_tContainer::operator-=), std::ref(con), std::placeholders::_1),
+	unseq_apply(std::bind(static_cast<bool(_tCon::*)(IWidget&)>(
+		&_tCon::operator-=), std::ref(con), std::placeholders::_1),
 		std::forward<IWidget&>(wgts)...);
 }
 

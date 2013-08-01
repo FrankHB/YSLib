@@ -17,6 +17,12 @@
     <Filter Include="source\YCLib">
       <UniqueIdentifier>{febcd6f2-59d8-45c0-b714-4c4c541212e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Helper">
+      <UniqueIdentifier>{90e65ebe-7f57-484c-ba80-e0e3a7385385}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Helper">
+      <UniqueIdentifier>{7b1022e1-4f0f-434c-83f2-2828bbb6c237}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\YCLib\COM.h">
@@ -28,6 +34,18 @@
     <ClInclude Include="include\YCLib\Win32GUI.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.h">
+      <Filter>source\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.h">
+      <Filter>source\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\include\Helper\DSMain.h">
+      <Filter>include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\include\Helper\shlds.h">
+      <Filter>include\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YCLib\Win32GUI.cpp">
@@ -35,6 +53,18 @@
     </ClCompile>
     <ClCompile Include="source\YCLib\MinGW32.cpp">
       <Filter>source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSMain.cpp">
+      <Filter>source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.cpp">
+      <Filter>source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.cpp">
+      <Filter>source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\shlds.cpp">
+      <Filter>source\Helper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

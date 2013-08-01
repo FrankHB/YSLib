@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1741
+\version r1744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-07-16 15:52 +0800
+	2013-07-31 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,15 +142,15 @@ OnExit_DebugMemory_continue()
 /*!
 \since build 301
 */
-template<std::size_t _vN, class _tContainer>
+template<std::size_t _vN, class _tCon>
 void
-OnExit_DebugMemory_print(_tContainer& con, const char* item_name)
+OnExit_DebugMemory_print(_tCon& con, const char* item_name)
 {
 	if(!con.empty())
 	{
 		std::fprintf(stderr, "%i %s(s) detected:\n", con.size(), item_name);
 
-		typename _tContainer::size_type n(0);
+		typename _tCon::size_type n(0);
 
 		for(const auto& item : con)
 		{

@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r594
+\version r595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2013-05-19 03:45 +0800
+	2013-08-01 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,6 +110,7 @@ Graphics::operator[](size_t r) const ynothrow
 
 	return pBuffer + r * sGraphics.Width;
 }
+
 BitmapPtr
 Graphics::at(size_t r) const ythrow(GeneralEvent, std::out_of_range)
 {

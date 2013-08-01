@@ -11,13 +11,13 @@
 /*!	\file GUIShell.cpp
 \ingroup Helper
 \brief GUI Shell 类。
-\version r97
+\version r98
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:22 +0800
 \par 修改时间:
-	2013-07-23 19:47 +0800
+	2013-07-31 02:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ GUIShell::OnInput()
 	Host::FetchEnvironment().UpdateRenderWindows();
 	std::this_thread::sleep_for(IdleSleep);
 #endif
-	// NOTE: Use code below if non-hosted delay is needed..
+	// NOTE: Use code below if non-hosted delay is needed.
 //	Timers::Delay(std::chrono::duration_cast<Timers::TimeSpan>(IdleSleep));
 	// NOTE: Use code below instead if asynchronous posting is necessary.
 //	PostMessage<SM_PAINT>(0xE0, nullptr);

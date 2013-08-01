@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r1982
+\version r1986
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-17 22:32 +0800
+	2013-08-01 21:09 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 引用标记参见 [Documentation::CommonRules @@0.1] 。
 项目范围参见 [Documentation::ProjectRules @@1.1] 。
 单独一行“//[”表示引用文本段落起始；单独一行“//]”表示引用文本段落终止。
-本文档适用于 YFramework 顶级子项目中的 YSLib 库。
+本文档适用于 YFramework 子项目中的 YSLib 库。
 
 @1 YSLib 库实现约束、组成和架构：
 关于显式外部依赖项规则，参见 [Documentation::YFramework @@2.1] 。
@@ -92,8 +92,8 @@
  "yadaptor.h" 需要保证 <bitset> 和 <initializer_list> 被包含。
 
 @1.2.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
-基于性能、兼容性或其它因素考虑，Adaptor 和本体不直接使用以下头文件及唯一在其中声明的接口（但 Adaptor 可能会间接依赖）：
- <fstream> 、 <iomanip> 、 <iostream> 、 <istream> 、 <locale>、 <ostream> 、 <sstream> 、 <streambuf> 和 <strstream> 。
+基于性能、兼容性、安全性及其它因素考虑，Adaptor 和本体不直接使用以下头文件及唯一在其中声明的接口（但 Adaptor 可能会间接依赖）：
+ <iostream> 、 <locale> 和 <strstream> 。
 其它要点参见 [Documentation::CommonRules @@5.22] 。
 
 @1.2.5 本体的头文件中显式包含的 C++ 标准库依赖项：
@@ -220,6 +220,7 @@
 
 @3.1.6 基础字符串管理 YString
 通用字符串抽象以及相关 API 。
+包括 String 类。当前使用 UTF-16LE 作为内部编码。
 
 @3.1.7 平台无关的基础图形学对象 YGDIBase ：
 

@@ -186,6 +186,7 @@
     <ClInclude Include="include\YSLib\UI\ComboList.h" />
     <ClInclude Include="include\YSLib\UI\form.h" />
     <ClInclude Include="include\YSLib\UI\label.h" />
+    <ClInclude Include="include\YSLib\UI\Loader.h" />
     <ClInclude Include="include\YSLib\UI\menu.h" />
     <ClInclude Include="include\YSLib\UI\progress.h" />
     <ClInclude Include="include\YSLib\UI\scroll.h" />
@@ -268,6 +269,7 @@
     <ClCompile Include="source\YSLib\UI\ComboList.cpp" />
     <ClCompile Include="source\YSLib\UI\form.cpp" />
     <ClCompile Include="source\YSLib\UI\label.cpp" />
+    <ClCompile Include="source\YSLib\UI\Loader.cpp" />
     <ClCompile Include="source\YSLib\UI\menu.cpp" />
     <ClCompile Include="source\YSLib\UI\progress.cpp" />
     <ClCompile Include="source\YSLib\UI\scroll.cpp" />
@@ -294,6 +296,7 @@
   <ItemGroup>
     <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
     <Text Include="..\doc\NPL.txt" />
+    <Text Include="..\doc\Workflow.Annual2013.txt" />
     <Text Include="..\doc\YBase.txt" />
     <Text Include="..\doc\YFramework.txt" />
   </ItemGroup>
@@ -331,7 +334,7 @@
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <IncludePath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\3rdparty\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\3rdparty\include;$(ProjectDir)include;$(ProjectDir)DS\include;$(ProjectDir)MinGW32\include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
     <NMakeBuildCommandLine>make -j -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
@@ -349,7 +352,7 @@
     <NMakeBuildCommandLine>make -j -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>make -j -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
-    <IncludePath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\3rdparty\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\3rdparty\include;$(ProjectDir)include;$(ProjectDir)DS\include;$(ProjectDir)MinGW32\include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
     <LibraryPath />

@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1251
+\version r1265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-07-28 10:02 +0800
+	2013-08-02 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,9 +159,6 @@ public:
 	DefGetter(, Container::iterator, End, GetContainer().end())
 	DefGetter(const, Container::const_iterator, End, GetContainer().end())
 	DefGetter(const ynothrow, const string&, Name, name)
-	//! \since build 337
-	const ValueNode&
-	GetNode(const string&) const;
 	size_t
 	GetSize() const ynothrow;
 
@@ -187,6 +184,10 @@ public:
 	//! \since build 403
 	PDefH(bool, Remove, const string& str) const
 		ImplRet(Remove({0, str}))
+
+	//! \since build 433
+	const ValueNode&
+	at(const string&) const;
 };
 
 /*!
@@ -256,8 +257,16 @@ AccessPtr(const ValueNode* p_node) ynothrow
 \brief 访问容器中的节点。
 \since build 399
 */
+//@{
+//! \since build 433
 YF_API const ValueNode&
-AccessNode(const ValueNode::Container&, const string&);
+AccessNode(const ValueNode::Container*, const string&);
+inline const ValueNode&
+AccessNode(const ValueNode::Container& con, const string& name)
+{
+	return AccessNode(&con, name);
+}
+//@}
 
 /*!
 \brief 访问容器中的节点指针。
@@ -282,7 +291,7 @@ template<typename _type>
 inline _type&
 AccessChild(const ValueNode& node, const string& name)
 {
-	return Access<_type>(node.GetNode(name));
+	return Access<_type>(node.at(name));
 }
 
 /*!

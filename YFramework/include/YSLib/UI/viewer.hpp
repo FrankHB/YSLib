@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r311
+\version r320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2013-07-09 05:21 +0800
+	2013-07-31 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ YSL_BEGIN_NAMESPACE(UI)
 \brief 序列视图类模板。
 \since build 147
 */
-template<class _tContainer>
+template<class _tCon>
 class GSequenceViewer
 {
 public:
@@ -47,9 +47,9 @@ public:
 	\brief 容器类型。
 	\since build 292
 	*/
-	typedef _tContainer ContainerType;
-	typedef typename _tContainer::size_type SizeType; //!< 项目索引类型。
-	typedef typename _tContainer::difference_type DifferenceType; \
+	typedef _tCon ContainerType;
+	typedef typename _tCon::size_type SizeType; //!< 项目索引类型。
+	typedef typename _tCon::difference_type DifferenceType; \
 		//!< 项目索引差值类型。
 
 	//! \since build 392
@@ -63,9 +63,9 @@ private:
 	/*!
 	\brief 序列容器指针。
 	\note 非空。
-	\since build 292
+	\since build 433
 	*/
-	_tContainer* pContainer;
+	_tCon* p_con;
 	SizeType head; //!< 视图中首个项目的索引，大于等于 GetTotal() 时无效。
 	SizeType selected; //!< 选中项目的索引，大于等于 GetTotal() 时无效。
 	SizeType length; //!< 视图长度：最大可视项目数。
@@ -79,7 +79,7 @@ public:
 	*/
 	explicit
 	GSequenceViewer(ContainerType& con)
-		: pContainer(&con), head(0), selected(0), length(1), is_selected(false)
+		: p_con(&con), head(0), selected(0), length(1), is_selected(false)
 	{}
 
 	inline PDefHOp(GSequenceViewer&, ++, ) //!< 选中项目的索引自增。
@@ -108,7 +108,7 @@ public:
 			&& IsInInterval<SizeType>(i - GetHeadIndex(), GetLength());
 	}
 
-	DefGetter(const ynothrow, SizeType, Total, pContainer->size()) \
+	DefGetter(const ynothrow, SizeType, Total, p_con->size()) \
 		//!< 取容器中项目个数。
 	DefGetter(const ynothrow, SizeType, Length, length)
 	DefGetter(const ynothrow, SizeType, HeadIndex, head)
@@ -127,8 +127,8 @@ public:
 	void
 	SetContainer(ContainerType& con)
 	{
-		if(YB_LIKELY(pContainer != &con))
-			yunseq(pContainer = &con, selected = 0, head = 0, length = 1);
+		if(YB_LIKELY(p_con != &con))
+			yunseq(p_con = &con, selected = 0, head = 0, length = 1);
 	}
 	/*!
 	\brief 设置视图中首个项目的索引。

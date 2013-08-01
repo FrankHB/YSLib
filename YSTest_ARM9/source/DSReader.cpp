@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3123
+\version r3135
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-04-10 19:44 +0800
+	2013-07-31 19:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,9 +107,9 @@ FindPreviousLineFeed(TextRegion& r, _tBi s, _tBi b)
 \brief 对可能出现的换行调整迭代器。
 \since build 292
 */
-template<typename _tIn, class _tArea, class _tContainer>
+template<typename _tIn, class _tArea, class _tCon>
 inline void
-AdjustForNewline(_tArea& area, _tIn& i, _tContainer& c)
+AdjustForNewline(_tArea& area, _tIn& i, _tCon& c)
 {
 	i = FindLineFeed(area, next_if_eq(i, '\n'), c.GetEnd());
 }
@@ -118,9 +118,9 @@ AdjustForNewline(_tArea& area, _tIn& i, _tContainer& c)
 \brief 调整不完整的行首的迭代器。
 \since build 292
 */
-template<typename _tIn, class _tArea, class _tContainer>
+template<typename _tIn, class _tArea, class _tCon>
 inline void
-AdjustPrevious(_tArea& area, _tIn& i, _tContainer& c)
+AdjustPrevious(_tArea& area, _tIn& i, _tCon& c)
 {
 	i = FindPreviousLineFeed(area, i, c.GetBegin());
 }
@@ -299,10 +299,10 @@ DualScreenReader::Detach()
 {
 	using YSLib::UI::Window;
 
-	if(auto pCon = dynamic_cast<Window*>(FetchContainerPtr(area_up)))
-		*pCon -= area_up;
-	if(auto pCon = dynamic_cast<Window*>(FetchContainerPtr(area_dn)))
-		*pCon -= area_dn;
+	if(const auto p_con = dynamic_cast<Window*>(FetchContainerPtr(area_up)))
+		*p_con -= area_up;
+	if(const auto p_con = dynamic_cast<Window*>(FetchContainerPtr(area_dn)))
+		*p_con -= area_dn;
 }
 
 bool

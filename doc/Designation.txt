@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r8993
+\version r9001
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-21 11:20 +0800
+	2013-08-01 21:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,6 +112,7 @@ Shell 和 Core 的关系是相对的，例如：
  Generalized constant expressions(N2235) ；
  Variadic templates v0.9(N2242) ；
  New character types(N2249) ；
+ Template aliases(N2258) ；
  Declared type of an expression v1.0(N2343) ；
  Defaulted and deleted functions(N2346) ；
  Strongly-typed enums(N2347) ；
@@ -127,7 +128,7 @@ Shell 和 Core 的关系是相对的，例如：
  Range-based for(N2930) ；
  Converting Lambdas to Function Pointers(N3052) ；
  Explicit virtual overrides v1.0(N3272) 。
-接口和实现仅使用 ISO C++11 中头文件 <array> 、 <atomic> 、 <chrono> 、 <condition_variable> 、 <forward_list> 、 <mutex> 、 <thread> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
+接口和实现仅使用 ISO C++11 中新增头文件 <array> 、 <atomic> 、 <chrono> 、 <condition_variable> 、 <forward_list> 、 <mutex> 、 <thread> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 
 @1.3.2.2
  YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([Documentation::CommonRules @@2.2.2.1]) 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
@@ -227,11 +228,11 @@ Shell 和 Core 的关系是相对的，例如：
  _tBi ：双向迭代器类型；
  _tRandom ：随机访问迭代器类型；
  _tRange ：一般范围类型；
- _tCont ：容器类型（符合 ISO C++11 约定的容器要求的类型）；
- _tSeqCont ：序列容器类型。
-使用以下成员名称：
- swap ：交换函数，返回类型 void 。
+ _tCon ：容器类型（符合 ISO C++11 约定的容器要求的类型，或类似的在特定上下文中通过文档约定的类型如 std::string ，下同）；
+ _tSeqCon ：序列容器类型。
+使用以下非 ISO C++11 的要求中出现的其它成员名称：
  clone ：动态复制函数，返回类型为被复制的对象的指针。
+ begin 和 end 以 ADL 为使用形式，一般使用命名空间作用域包装，不作为 YFramework 类的成员名称。
 
 @4.1.2.2 YFramework 约定：
 

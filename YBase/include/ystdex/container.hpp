@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r486
+\version r551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-07-27 04:27 +0800
+	2013-08-01 12:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,11 +45,11 @@ namespace ystdex
 	23.2.1[container.requirements.general] 。
 \since build 408
 */
-template<class _tSeqCont>
-class container_adaptor : protected _tSeqCont
+template<class _tSeqCon>
+class container_adaptor : protected _tSeqCon
 {
 protected:
-	typedef _tSeqCont container_type;
+	typedef _tSeqCon container_type;
 
 private:
 	typedef container_type base;
@@ -134,18 +134,18 @@ public:
 \since build 408
 */
 //@{
-template<class _tSeqCont>
+template<class _tSeqCon>
 inline bool
-operator!=(const container_adaptor<_tSeqCont>& x,
-	const container_adaptor<_tSeqCont>& y)
+operator!=(const container_adaptor<_tSeqCon>& x,
+	const container_adaptor<_tSeqCon>& y)
 {
 	return !(x == y);
 }
 
-template<class _tSeqCont>
+template<class _tSeqCon>
 void
-swap(container_adaptor<_tSeqCont>& x,
-	container_adaptor<_tSeqCont>& y) ynothrow
+swap(container_adaptor<_tSeqCon>& x,
+	container_adaptor<_tSeqCon>& y) ynothrow
 {
 	x.swap(y);
 }
@@ -161,11 +161,11 @@ swap(container_adaptor<_tSeqCont>& x,
 	23.2.3[sequence.reqmts] 。
 \since build 408
 */
-template<class _tSeqCont>
-class sequence_container_adaptor : protected container_adaptor<_tSeqCont>
+template<class _tSeqCon>
+class sequence_container_adaptor : protected container_adaptor<_tSeqCon>
 {
 private:
-	typedef container_adaptor<_tSeqCont> base;
+	typedef container_adaptor<_tSeqCon> base;
 
 public:
 	typedef typename base::container_type container_type;
@@ -228,18 +228,18 @@ public:
 \since build 408
 */
 //@{
-template<class _tSeqCont>
+template<class _tSeqCon>
 inline bool
-operator!=(const sequence_container_adaptor<_tSeqCont>& x,
-	const sequence_container_adaptor<_tSeqCont>& y)
+operator!=(const sequence_container_adaptor<_tSeqCon>& x,
+	const sequence_container_adaptor<_tSeqCon>& y)
 {
 	return !(x == y);
 }
 
-template<class _tSeqCont>
+template<class _tSeqCon>
 void
-swap(sequence_container_adaptor<_tSeqCont>& x,
-	sequence_container_adaptor<_tSeqCont>& y) ynothrow
+swap(sequence_container_adaptor<_tSeqCon>& x,
+	sequence_container_adaptor<_tSeqCon>& y) ynothrow
 {
 	x.swap(y);
 }
@@ -252,43 +252,17 @@ swap(sequence_container_adaptor<_tSeqCont>& x,
 \since build 274
 */
 //@{
-template<class _tCont, typename... _tParams>
+template<class _tCon, typename... _tParams>
 inline void
-assign(_tCont& con, _tParams&&... args)
+assign(_tCon& c, _tParams&&... args)
 {
-	con.assign(yforward(args)...);
+	c.assign(yforward(args)...);
 }
-template<class _tCont, typename _type, size_t _vN>
+template<class _tCon, typename _type, size_t _vN>
 inline void
-assign(_tCont& con, const _type(&arr)[_vN])
+assign(_tCon& c, const _type(&arr)[_vN])
 {
-	con.assign(arr, arr + _vN);
-}
-//@}
-
-
-/*!
-\brief 访问关联容器。
-\exception std::out_of_range 访问的值不存在。
-\since build 399
-*/
-//@{
-template<class _tCont, typename _tKey>
-auto
-at(_tCont& con, const _tKey& k)
-	-> decltype(con.at(k))
-{
-	return con.at(k);
-}
-template<class _tCont, typename _tKey>
-const _tKey&
-at(const _tCont& con, const _tKey& k)
-{
-	const auto i(con.find(k));
-
-	if(i != end(con))
-		return *i;
-	throw std::out_of_range("ystdex::at");
+	c.assign(arr, arr + _vN);
 }
 //@}
 
@@ -298,18 +272,18 @@ at(const _tCont& con, const _tKey& k)
 \note 成员命名参照 ISO C++11 24.5.2 中的类定义概要。
 \since build 338
 */
-template<typename _tCont>
+template<typename _tCon>
 class container_inserter
 {
 public:
-	typedef _tCont container_type;
+	typedef _tCon container_type;
 
 protected:
-	_tCont* container;
+	_tCon* container;
 
 public:
-	container_inserter(_tCont& cont)
-		: container(&cont)
+	container_inserter(_tCon& c)
+		: container(&c)
 	{}
 
 	template<typename... _tParams>
@@ -328,11 +302,11 @@ public:
 \brief 顺序插入值至指定容器。
 \since build 338
 */
-template<typename _tCont, typename... _tParams>
+template<typename _tCon, typename... _tParams>
 inline void
-seq_insert(_tCont& cont, _tParams&&... args)
+seq_insert(_tCon& c, _tParams&&... args)
 {
-	ystdex::seq_apply(container_inserter<_tCont>(cont), yforward(args)...);
+	ystdex::seq_apply(container_inserter<_tCon>(c), yforward(args)...);
 }
 
 
@@ -354,9 +328,9 @@ erase_all(_tRange& c, const typename _tRange::value_type& val)
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
-template<typename _tCont, typename _tForward, typename _tValue>
+template<typename _tCon, typename _tForward, typename _tValue>
 void
-erase_all(_tCont& c, _tForward first, _tForward last, const _tValue& value)
+erase_all(_tCon& c, _tForward first, _tForward last, const _tValue& value)
 {
 	while(first != last)
 		if(*first == value)
@@ -383,9 +357,9 @@ erase_all_if(_tRange& c, _fPred pred)
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
-template<typename _tCont, typename _tForward, typename _fPred>
+template<typename _tCon, typename _tForward, typename _fPred>
 void
-erase_all_if(_tCont& c, _tForward first, _tForward last, _fPred pred)
+erase_all_if(_tCon& c, _tForward first, _tForward last, _fPred pred)
 {
 	while(first != last)
 		if(pred(*first))
@@ -413,9 +387,9 @@ sort_unique(_tRandom first, _tRandom last)
 \pre 容器的迭代器满足随机迭代器要求。
 \since build 414
 */
-template<class _tCont>
+template<class _tCon>
 void
-sort_unique(_tCont& c)
+sort_unique(_tCon& c)
 {
 	ystdex::sort_unique(begin(c), last(c));
 	c.erase(ystdex::sort_unique(begin(c), last(c)), end(c));

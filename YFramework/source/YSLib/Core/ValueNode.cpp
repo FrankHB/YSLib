@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r307
+\version r321
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-07-28 09:57 +0800;
+	2013-08-01 12:53 +0800;
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,20 +32,15 @@ YSL_BEGIN
 const ValueNode&
 ValueNode::operator[](const string& name) const
 {
-	auto& cont(CheckNodes());
-	auto i(cont.lower_bound({0, name}));
+	auto& con(CheckNodes());
+	auto i(con.lower_bound({0, name}));
 
-	if(i == cont.end() || cont.key_comp()({0, name}, *i))
+	if(i == con.end() || con.key_comp()({0, name}, *i))
 		// TODO: Use %emplace_hint.
-		i = cont.insert(i, {0, name});
+		i = con.insert(i, {0, name});
 	return *i;
 }
 
-const ValueNode&
-ValueNode::GetNode(const string& name) const
-{
-	return AccessNode(GetContainer(), name);
-}
 size_t
 ValueNode::GetSize() const ynothrow
 {
@@ -82,11 +77,19 @@ ValueNode::Remove(const ValueNode& node) const
 	return p_con ? p_con->erase({0, node.name}) != 0 : false;
 }
 
+const ValueNode&
+ValueNode::at(const string& name) const
+{
+	return AccessNode(GetContainer(), name);
+}
+
 
 const ValueNode&
-AccessNode(const ValueNode::Container& con, const string& name)
+AccessNode(const ValueNode::Container* p_con, const string& name)
 {
-	return ystdex::at(con, ValueNode(0, name));
+	if(const auto p = AccessNodePtr(p_con, name))
+		return *p;
+	throw std::out_of_range("Wrong name found.");
 }
 
 const ValueNode*

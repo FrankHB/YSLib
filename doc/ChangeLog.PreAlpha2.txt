@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r2938
+\version r3027
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-07-25 15:49 +0800
+	2013-07-30 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2006,42 +2006,75 @@ b241
 
 b240
 (
-	/ "macros" @ "header %ybase.h" $=
+	/ %'YFramework'.'YSLib' $=
 	(
-		/ DLD "simplified macro parameter names",
-		+ "new macros for template declarations and forwarding constructor \
-			templates",
-		+ "macro %DefClone(_t, _n) for define member function for cloning"
-	),
-	+ "support for types are not %EqualityComparable" @ "class %ValueObject"
-		^ "always-be-equal strategy",
-	+ DLD "copy constructor" @ "class template %GEventMap",
-	+ DLD "static const reference getter function %GetPrototype"
-		@ "header %ystatic.hpp",
-	* DLD "member function %Insert unavailable for %unique_ptr"
-		@ "class template %GEventMap" $since b221,
-	+ DLD "%CopyConstructible, %MoveConstructible support"
-		@ "class template %GEventMap",
-	+ DLD "%CopyConstructible and %MoveConstructible support"
-		@ "classes %(BitmapBuffer, BitmapBufferEx)";
-	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
-	(
-		* @ "class template %GFocusResponser" $since b239
-			$= (+ "default constructor"),
-		+ "virtual member function %Clone" @ "renderers, focus responsers and \
-			widget classes",
-		+ DLD "prototype constructing of widgets" $=
+		/ "macros" @ 'Adaptor'.'YBase' $=
 		(
-			+ DLD "%(CopyConstructible, MoveConstructible) and clone support"
-				@ "classes %(WidgetRenderer, BufferedWidgetRenderer)",
-			+ DLD "%(CopyConstructible, MoveConstructible) and clone support"
-				@ "class templates %(GFocusResponser, GCheckedFocusResponser)",
-			+ DLD "%(CopyConstructible, MoveConstructible) and clone support"
-				@ "class %WidgetController";
-			+ DLD "%CopyConstructible and %MoveConstructible support"
-				@ "classes %(Widget; Control)",
-			+ "class %ControlEventMap" @ "class %Control"
-		)
+			/ DLD "simplified macro parameter names",
+			+ "new macros for template declarations and forwarding constructor \
+				templates",
+			+ "macro %DefClone(_t, _n) for define member function for cloning"
+		),
+		/ %'UI' $=
+		(
+			/ %'YControl' $=
+			(
+				+ "function template %OnFocus_Invalidate",
+				/ "typedef %VisualEventMapType" => "%VisualEventMap";
+				+ $dev "2 constructors for visual event map"
+					@ "class %WidgetController",
+				+ "class %ControlEventMap"
+			),
+			* "missing default constructor" @ "class template %GFocusResponser"
+				$since b239,
+			+ "releasing focus on destruction" @ "class %Widget",
+			+ DLD "prototype constructing of widgets" $=
+			(
+				+ DLD "%(CopyConstructible, MoveConstructible) and clone \
+					support"
+					@ "classes %(WidgetRenderer, BufferedWidgetRenderer)",
+				+ DLD "%(CopyConstructible, MoveConstructible) and clone \
+					support" @ "class templates %(GFocusResponser, \
+					GCheckedFocusResponser)",
+				+ DLD "%(CopyConstructible, MoveConstructible) and clone \
+					support" @ "class %WidgetController";
+				+ DLD "%CopyConstructible and %MoveConstructible support"
+					@ "classes %(Widget; Control)";
+				+ "virtual member function %Clone"
+					@ "renderers, focus responsers and widget classes"
+			)
+		),
+		/ %'Core' $=
+		(
+			/ @ %'YStatic' $=
+			(
+				+ "static const reference getter function template \
+					%FetchPrototype";
+				$dep_from "static object prototyping";
+				/ "function template %GetStaticRef" => "%FetchStaticRef"
+			),
+			/ $dev %'YEvent' $=
+			(
+				+ "abstract member funtion %Clone" @ "template class GIHEvent";
+				/ @ "class template %GEventMap" $=
+				(
+					+ "member function %Clone",
+					* DLD "member function %Insert unavailable for %unique_ptr"
+						$since b221,
+					+ DLD "%CopyConstructible, %MoveConstructible support"
+						%GEventMap"
+				)
+			),
+			+ "support for types are not %EqualityComparable"
+				@ "class %ValueObject" ^ "always-be-equal strategy",
+			(
+				/ DLD "static object prototyping" ^ "%FetchProtoType"
+					~ "%FetchStaticRef"
+				$dep_to "static object prototyping"
+			)
+		),
+		+ DLD "%CopyConstructible and %MoveConstructible support"
+			@ "classes %(BitmapBuffer, BitmapBufferEx)" @ %'Service'.'YGDI'
 	)
 ),
 

@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r4319
+\version r4322
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-15 08:29 +0800
+	2013-07-31 02:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,8 +145,8 @@ PaintChild(IWidget& wgt, const PaintContext& pc)
 void
 RequestToTop(IWidget& wgt)
 {
-	if(auto pFrm = dynamic_cast<Panel*>(FetchContainerPtr(wgt)))
-		pFrm->MoveToTop(wgt);
+	if(const auto p_pnl = dynamic_cast<Panel*>(FetchContainerPtr(wgt)))
+		p_pnl->MoveToTop(wgt);
 }
 
 void
@@ -173,7 +173,6 @@ Widget::Widget(const Widget& wgt)
 {}
 Widget::~Widget()
 {
-	DoReleaseFocus(*this);
 	FetchGUIState().CleanupReferences(*this);
 }
 

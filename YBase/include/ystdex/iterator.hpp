@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2799
+\version r2819
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-07-27 04:28 +0800
+	2013-07-31 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1231,11 +1231,11 @@ operator>=(const bitseg_iterator<_vN, _bEndian>& x,
 
 根据指定类型提供的下标操作枚举其成员的随机访问迭代器。
 */
-template<class _tContainer, typename _type>
+template<class _tCon, typename _type>
 class subscriptive_iterator
 {
 public:
-	typedef _tContainer container_type;
+	typedef _tCon container_type;
 	typedef std::random_access_iterator_tag iterator_category;
 	typedef _type value_type;
 	typedef ptrdiff_t difference_type;
@@ -1243,13 +1243,14 @@ public:
 	typedef _type& reference;
 
 protected:
-	_tContainer* p_cont;
+	//! \since build 433
+	_tCon* con_ptr;
 	size_t idx;
 
 public:
 	yconstfn
-	subscriptive_iterator(_tContainer& c, size_t i)
-		: p_cont(std::addressof(c)), idx(i)
+	subscriptive_iterator(_tCon& c, size_t i)
+		: con_ptr(std::addressof(c)), idx(i)
 	{}
 
 	subscriptive_iterator&
@@ -1271,7 +1272,7 @@ public:
 	reference
 	operator*()
 	{
-		return (*p_cont)[idx];
+		return (*con_ptr)[idx];
 	}
 
 	pointer
@@ -1315,7 +1316,7 @@ public:
 	{
 		yassume(!(idx + n < 0));
 
-		return (*p_cont)[idx + n];
+		return (*con_ptr)[idx + n];
 	}
 
 	subscriptive_iterator
@@ -1323,7 +1324,7 @@ public:
 	{
 		yassume(!(idx + n < 0));
 
-		return subscriptive_iterator(*p_cont, idx + n);
+		return subscriptive_iterator(*con_ptr, idx + n);
 	}
 
 	subscriptive_iterator
@@ -1331,20 +1332,20 @@ public:
 	{
 		yassume(!(idx + n < 0));
 
-		return subscriptive_iterator(*p_cont, idx - n);
+		return subscriptive_iterator(*con_ptr, idx - n);
 	}
 
 	//! \since build 357
-	_tContainer*
+	_tCon*
 	container() const
 	{
-		return p_cont;
+		return con_ptr;
 	}
 
 	bool
-	equals(const subscriptive_iterator<_tContainer, _type>& i) const
+	equals(const subscriptive_iterator<_tCon, _type>& i) const
 	{
-		return p_cont == i.p_cont && idx == i.idx;
+		return con_ptr == i.con_ptr && idx == i.idx;
 	}
 
 	//! \since build 357
@@ -1359,10 +1360,10 @@ public:
 \brief 比较成员下标迭代器的相等性。
 \since build 356
 */
-template<class _tContainer, typename _type>
+template<class _tCon, typename _type>
 bool
-operator==(const subscriptive_iterator<_tContainer, _type>& x,
-	const subscriptive_iterator<_tContainer, _type>& y)
+operator==(const subscriptive_iterator<_tCon, _type>& x,
+	const subscriptive_iterator<_tCon, _type>& y)
 {
 	return x.equals(y);
 }
@@ -1371,10 +1372,10 @@ operator==(const subscriptive_iterator<_tContainer, _type>& x,
 \brief 比较成员下标迭代器的不等性。
 \since build 356
 */
-template<class _tContainer, typename _type>
+template<class _tCon, typename _type>
 bool
-operator!=(const subscriptive_iterator<_tContainer, _type>& x,
-	const subscriptive_iterator<_tContainer, _type>& y)
+operator!=(const subscriptive_iterator<_tCon, _type>& x,
+	const subscriptive_iterator<_tCon, _type>& y)
 {
 	return !(x == y);
 }

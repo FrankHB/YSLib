@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r599
+\version r608
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-07-19 15:57 +0800
+	2013-08-01 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -320,7 +320,7 @@
 关于一些文件的文件名的额外约定参见 @2.2 。
 
 @2.1 框架组成和依赖项规则：
-基本目录和文件组织规则参见 [Documentation::ProjectRules @@3.3] 。
+基本目录和文件组织规则和原始目录的概念参见 [Documentation::ProjectRules @@3.3] 。
  YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
 除非另有说明，仅保证非成员函数（排除声明紧随于某个类之后，首个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
 关于 YBase 的文件依赖性参见 [Documentation::YBase @@2.2] 。
@@ -336,7 +336,7 @@
 @2.1.2 平台相关性：
 除平台扩展外的 YFramework 公开接口是平台中立的（但 YCLib 和 Helper 接口可能会限定平台集合，如宿主实现环境）；
  YSLib 没有平台扩展。对 YSLib 的平台特定的功能扩展由 Helper 提供。
-平台扩展一般直接作为目标平台的接口，但也可以包括仅供实际目标平台模拟的接口。使用 YCL/Platform.h 中定义的平台宏([Documentation Designation @@5.2.2.3.1]) 确定实际平台。
+平台扩展一般直接作为目标平台的接口，但也可以包括仅供实际目标平台模拟的接口。使用 YCL/Platform.h 中定义的平台宏([Documentation Designation @@5.2.2.3.1]) 确定程序实际运行的目标平台。
 
 @2.1.3 YSLib Adaptor 和本体：
  YSLib 中，目录 "/YFramework/Adaptor/" 下的部分称为 Adaptor [Documentation::YSLib @@2] ，其它部分总称为本体。
@@ -360,6 +360,7 @@
  YCLib 和 Helper 文件可依赖具体平台相关的外部依赖项。关于 Helper 的文件附加依赖规则参见 @2.7 。
 
 @2.2.2 YCLib 文件依赖性：
+ YCLib 的实现可依赖 YCLib 的对应平台扩展。
  YCLib 平台扩展可依赖 YSLib/Core 的文件。
  YCLib 中除 YCLib/Platform.h 外的文件仅可被 YCLib 、 YSLib 和 Helper 依赖。
 
@@ -367,7 +368,7 @@
 除 @2.1.1 约定的之外， YSLib 不依赖 CHRLib 、 YCLib 和 YSLib 以外的文件。
 除 YSLib/Adaptor/yadaptor.h 外， YSLib/Adaptor 头文件不依赖 YCLib/ycommon.h 以外的 YCLib 文件。
  YSLib/Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
-本体的必要头文件不依赖 YSLib 以外的文件。
+本体的必要文件不依赖 YSLib 以外的文件。
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
@@ -510,7 +511,12 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 实现基于 S 表达式的名称协议语言，当前仅用于用户配置设置。
 
 @3 API 设计和风格概述：
-参见 [Documentation::Designation @@3] 。
+基本内容参见 [Documentation::Designation @@3] 。
+
+@3.1 字符编码：
+ YFramework 使用 UTF-8 作为外部文本编码。
+除非显式指定表示编码的参数或另有说明，以 char 作为字符类型的 C 风格字符串使用外部文本编码。
+关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.1.6] 。
 
 @4 编码风格导引：
 基本内容参见 [Documentation::Designation @@6] 。

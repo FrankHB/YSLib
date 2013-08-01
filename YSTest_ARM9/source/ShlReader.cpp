@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4423
+\version r4428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-07-19 07:56 +0800
+	2013-08-01 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,8 +204,8 @@ ShlReader::LoadBookmarks(const string& group)
 	try
 	{
 		// TODO: Complete unexpected input handling.
-		ystdex::split(Access<string>(FetchRoot().GetNode("YReader")["Bookmarks"]
-			.GetNode('"' + NPL::MakeEscape(group) + '"')), static_cast<int(&)(
+		ystdex::split(Access<string>(FetchRoot().at("YReader")["Bookmarks"].at(
+			'"' + NPL::MakeEscape(group) + '"')), static_cast<int(&)(
 			int)>(std::isspace), [&](string::iterator b, string::iterator e){
 				try
 				{
@@ -227,8 +227,8 @@ ShlReader::LoadGlobalConfiguration()
 {
 	try
 	{
-		return ReaderSetting((FetchRoot() %= LoadConfiguration().GetNode(
-			"YReader")).GetNode("ReaderSetting").GetContainer());
+		return ReaderSetting((FetchRoot() %= LoadConfiguration().at("YReader"))
+			.at("ReaderSetting").GetContainer());
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}
@@ -248,7 +248,7 @@ ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
 {
 	try
 	{
-		FetchRoot().GetNode("YReader")["Bookmarks"]['"' + NPL::MakeEscape(group)
+		FetchRoot().at("YReader")["Bookmarks"]['"' + NPL::MakeEscape(group)
 			+ '"'].Value = [&]{
 				string str;
 
