@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3500
+\version r3519
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-07-07 09:29 +0800
+	2013-08-04 16:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -288,16 +288,21 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight(), "Width is not greater than height.");
 
-	FetchEvent<TouchHeld>(tmbScroll) +=[this](CursorEventArgs&& e){
+	FetchEvent<TouchHeld>(tmbScroll) += [this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			auto& st(FetchGUIState());
-			SPos x(st.LastControlLocation.X + st.DraggingOffset.X);
 
-			RestrictInClosedInterval(x, 0, GetWidth() - tmbScroll.GetWidth());
-			Invalidate(tmbScroll);
-			SetLocationOf(tmbScroll, Point(x, GetLocationOf(tmbScroll).Y));
-			GetThumbDrag()(UIEventArgs(*this));
+			if(st.CheckDraggingOffset())
+			{
+				SPos x(st.LastControlLocation.X + st.DraggingOffset.X);
+
+				RestrictInClosedInterval(x, 0,
+					GetWidth() - tmbScroll.GetWidth());
+				Invalidate(tmbScroll);
+				SetLocationOf(tmbScroll, Point(x, GetLocationOf(tmbScroll).Y));
+				GetThumbDrag()(UIEventArgs(*this));
+			}
 		}
 	};
 }
@@ -312,12 +317,17 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			auto& st(FetchGUIState());
-			SPos y(st.LastControlLocation.Y + st.DraggingOffset.Y);
 
-			RestrictInClosedInterval(y, 0, GetHeight() - tmbScroll.GetHeight());
-			Invalidate(tmbScroll);
-			SetLocationOf(tmbScroll, Point(GetLocationOf(tmbScroll).X, y));
-			GetThumbDrag()(UIEventArgs(*this));
+			if(st.CheckDraggingOffset())
+			{
+				SPos y(st.LastControlLocation.Y + st.DraggingOffset.Y);
+
+				RestrictInClosedInterval(y, 0,
+					GetHeight() - tmbScroll.GetHeight());
+				Invalidate(tmbScroll);
+				SetLocationOf(tmbScroll, Point(GetLocationOf(tmbScroll).X, y));
+				GetThumbDrag()(UIEventArgs(*this));
+			}
 		}
 	};
 }

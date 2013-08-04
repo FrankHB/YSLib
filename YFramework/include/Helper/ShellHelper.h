@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1657
+\version r1660
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-07-09 04:54 +0800
+	2013-08-02 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,8 +66,8 @@ template<class _tShell, typename _tConnection = std::reference_wrapper<_tShell>>
 class GShellSession
 {
 public:
-	typedef _tShell Shell;
-	typedef _tConnection Connection;
+	using Shell = _tShell;
+	using Connection = _tConnection;
 
 private:
 	Connection conn;
@@ -90,7 +90,7 @@ YSL_BEGIN_NAMESPACE(Text)
 \brief 编码信息项目。
 \since build 307
 */
-typedef std::pair<Encoding, const ucs2_t*> EncodingInfoItem;
+using EncodingInfoItem = std::pair<Encoding, const ucs2_t*>;
 
 /*!
 \brief 编码信息。

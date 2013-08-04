@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2819
+\version r2870
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-07-31 18:56 +0800
+	2013-08-02 04:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,14 +141,14 @@ template<typename _type>
 class pointer_iterator
 {
 public:
-	typedef _type* iterator_type;
-	typedef typename std::iterator_traits<iterator_type>::iterator_category
-		iterator_category;
-	typedef typename std::iterator_traits<iterator_type>::value_type value_type;
-	typedef typename std::iterator_traits<iterator_type>::difference_type
-		difference_type;
-	typedef typename std::iterator_traits<iterator_type>::pointer pointer;
-	typedef typename std::iterator_traits<iterator_type>::reference reference;
+	using iterator_type = _type*;
+	using iterator_category
+		= typename std::iterator_traits<iterator_type>::iterator_category;
+	using value_type = typename std::iterator_traits<iterator_type>::value_type;
+	using difference_type
+		= typename std::iterator_traits<iterator_type>::difference_type;
+	using pointer = typename std::iterator_traits<iterator_type>::pointer;
+	using reference = typename std::iterator_traits<iterator_type>::reference;
 
 protected:
 	//! \since build 415
@@ -268,7 +268,7 @@ template<typename _type>
 inline bool
 operator==(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
 {
-	typedef typename pointer_iterator<_type>::pointer pointer;
+	using pointer = typename pointer_iterator<_type>::pointer;
 
 	return pointer(x) == pointer(y);
 }
@@ -293,13 +293,13 @@ operator!=(const pointer_iterator<_type>& x, const pointer_iterator<_type>& y)
 template<typename _type>
 struct pointer_classify
 {
-	typedef _type type;
+	using type = _type;
 };
 
 template<typename _type>
 struct pointer_classify<_type*>
 {
-	typedef pointer_iterator<_type> type;
+	using type = pointer_iterator<_type>;
 };
 //@}
 
@@ -316,14 +316,14 @@ template<typename _type, typename _tIterator = _type*,
 class pseudo_iterator
 {
 public:
-	typedef _tIterator iterator_type;
+	using iterator_type = _tIterator;
 	//! \since build 400
-	typedef _tTraits traits_type;
-	typedef typename traits_type::iterator_category iterator_category;
-	typedef typename traits_type::value_type value_type;
-	typedef typename traits_type::difference_type difference_type;
-	typedef typename traits_type::pointer pointer;
-	typedef typename traits_type::reference reference;
+	using traits_type = _tTraits;
+	using iterator_category = typename traits_type::iterator_category;
+	using value_type = typename traits_type::value_type;
+	using difference_type = typename traits_type::difference_type;
+	using pointer = typename traits_type::pointer;
+	using reference = typename traits_type::reference;
 
 	value_type value;
 
@@ -465,17 +465,17 @@ public:
 	\brief 原迭代器类型。
 	\since build 290
 	*/
-	typedef typename pointer_classify<typename
-		remove_reference<_tIterator>::type>::type iterator_type;
-	typedef _fTransformer transformer_type;
+	using iterator_type = typename
+		pointer_classify<typename remove_reference<_tIterator>::type>::type;
+	using transformer_type = _fTransformer;
 	//! \since build 358
-	typedef typename std::result_of<_fTransformer&(_tIterator&)>::type
-		transformed_type;
+	using transformed_type
+		= typename std::result_of<_fTransformer&(_tIterator&)>::type;
 	//! \since build 415
-	typedef typename pointer_classify<_tIterator>::type::difference_type
-		difference_type;
+	using difference_type
+		= typename pointer_classify<_tIterator>::type::difference_type;
 	//! \since build 357
-	typedef decltype(std::declval<transformed_type>()) reference;
+	using reference = decltype(std::declval<transformed_type>());
 
 protected:
 	//! \note 当为空类时作为第一个成员可启用空基类优化。
@@ -723,15 +723,15 @@ template<typename _tMaster, typename _tSlave,
 class pair_iterator : private std::pair<_tMaster, _tSlave>
 {
 public:
-	typedef std::pair<_tMaster, _tSlave> pair_type;
-	typedef _tMaster iterator_type;
+	using pair_type = std::pair<_tMaster, _tSlave>;
+	using iterator_type = _tMaster;
 	//! \since build 400
-	typedef _tTraits traits_type;
-	typedef typename traits_type::iterator_category iterator_category;
-	typedef typename traits_type::value_type value_type;
-	typedef typename traits_type::difference_type difference_type;
-	typedef typename traits_type::pointer pointer;
-	typedef typename traits_type::reference reference;
+	using traits_type = _tTraits;
+	using iterator_category = typename traits_type::iterator_category;
+	using value_type = typename traits_type::value_type;
+	using difference_type = typename traits_type::difference_type;
+	using pointer = typename traits_type::pointer;
+	using reference = typename traits_type::reference;
 
 	yconstfn
 	pair_iterator()
@@ -898,13 +898,13 @@ template<typename _tIterator>
 class indirect_input_iterator
 {
 public:
-	typedef _tIterator iterator_type;
-	typedef typename std::input_iterator_tag iterator_category;
-	typedef typename std::iterator_traits<iterator_type>::value_type value_type;
-	typedef typename std::iterator_traits<iterator_type>::difference_type
-		difference_type;
-	typedef typename std::iterator_traits<iterator_type>::pointer pointer;
-	typedef typename std::iterator_traits<iterator_type>::reference reference;
+	using iterator_type = _tIterator;
+	using iterator_category = std::input_iterator_tag;
+	using value_type = typename std::iterator_traits<iterator_type>::value_type;
+	using difference_type
+		= typename std::iterator_traits<iterator_type>::difference_type;
+	using pointer = typename std::iterator_traits<iterator_type>::pointer;
+	using reference = typename std::iterator_traits<iterator_type>::reference;
 
 private:
 	iterator_type iter;
@@ -1031,9 +1031,9 @@ class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
 		"A byte should be divided by number of segments without padding.");
 
 public:
-	typedef ptrdiff_t difference_type;
-	typedef byte* pointer;
-	typedef byte& reference;
+	using difference_type = ptrdiff_t;
+	using pointer = byte*;
+	using reference = byte&;
 
 	static yconstexpr unsigned char seg_n = CHAR_BIT / _vN;
 	static yconstexpr unsigned char seg_size = 1 << _vN;
@@ -1173,7 +1173,7 @@ inline bool
 operator==(const bitseg_iterator<_vN, _bEndian>& x,
 	const bitseg_iterator<_vN, _bEndian>& y)
 {
-	typedef typename bitseg_iterator<_vN, _bEndian>::pointer pointer;
+	using pointer = typename bitseg_iterator<_vN, _bEndian>::pointer;
 
 	return pointer(x) == pointer(y) && x.get_shift() == y.get_shift();
 }
@@ -1191,7 +1191,7 @@ inline bool
 operator<(const bitseg_iterator<_vN, _bEndian>& x,
 	const bitseg_iterator<_vN, _bEndian>& y)
 {
-	typedef typename bitseg_iterator<_vN, _bEndian>::pointer pointer;
+	using pointer = typename bitseg_iterator<_vN, _bEndian>::pointer;
 
 	return pointer(x) < pointer(y)
 		|| (pointer(x) == pointer(y) && x.get_shift() < y.get_shift());
@@ -1235,12 +1235,12 @@ template<class _tCon, typename _type>
 class subscriptive_iterator
 {
 public:
-	typedef _tCon container_type;
-	typedef std::random_access_iterator_tag iterator_category;
-	typedef _type value_type;
-	typedef ptrdiff_t difference_type;
-	typedef _type* pointer;
-	typedef _type& reference;
+	using container_type = _tCon;
+	using iterator_category = std::random_access_iterator_tag;
+	using value_type = _type;
+	using difference_type = ptrdiff_t;
+	using pointer = _type*;
+	using reference = _type&;
 
 protected:
 	//! \since build 433

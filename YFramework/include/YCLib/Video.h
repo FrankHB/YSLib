@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r686
+\version r697
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-07-15 15:37 +0800
+	2013-08-02 04:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,13 +33,13 @@
 namespace platform
 {
 
-typedef std::int16_t SPos; //!< 屏幕坐标度量。
-typedef std::uint16_t SDst; //!< 屏幕坐标距离。
+using SPos = std::int16_t; //!< 屏幕坐标度量。
+using SDst = std::uint16_t; //!< 屏幕坐标距离。
 
 //! \since build 417
 //@{
-typedef ystdex::octet MonoType;
-typedef ystdex::octet AlphaType;
+using MonoType = ystdex::octet;
+using AlphaType = ystdex::octet;
 //@}
 
 #if YCL_DS
@@ -54,7 +54,7 @@ typedef ystdex::octet AlphaType;
 \brief LibNDS 兼容像素。
 \note ABGR1555 。
 */
-typedef std::uint16_t PixelType;
+using PixelType = std::uint16_t;
 /*!
 \brief 取像素 Alpha 值。
 \since build 417
@@ -94,10 +94,10 @@ yconstfn PDefH(PixelType, FetchPixel,
 	即 ARGB8888 （考虑字节序为BGRA8888）。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
 \warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
-\since build 313
+\since build 434
 \todo 断言对齐，保证类型兼容。
 */
-typedef struct
+struct PixelType
 {
 	//! \since build 417
 	//@{
@@ -106,7 +106,7 @@ typedef struct
 	MonoType rgbRed;
 	AlphaType rgbReserved;
 	//@}
-} PixelType;
+};
 
 /*!
 \brief 取像素 Alpha 值。
@@ -142,8 +142,8 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 #	error "Unsupported platform found."
 #endif
 
-typedef PixelType* BitmapPtr;
-typedef const PixelType* ConstBitmapPtr;
+using BitmapPtr = PixelType*;
+using ConstBitmapPtr = const PixelType*;
 
 
 //! \brief 系统默认颜色空间。
@@ -192,7 +192,7 @@ enum ColorSet : std::uint32_t
 class YF_API Color
 {
 public:
-	typedef ColorSpace::ColorSet ColorSet;
+	using ColorSet = ColorSpace::ColorSet;
 
 private:
 	/*!

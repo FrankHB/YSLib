@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3084
+\version r3098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-07-15 06:19 +0800
+	2013-08-02 03:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,22 +56,22 @@ class Typeface;
 \brief 字体大小。
 \since build 277
 */
-typedef u8 FontSize;
+using FontSize = u8;
 /*!
 \brief 字体文件路径。
 \since build 277
 */
-typedef std::string FontPath;
+using FontPath = std::string;
 /*!
 \brief 字型家族名称。
 \since build 277
 */
-typedef std::string FamilyName;
+using FamilyName = std::string;
 /*!
 \brief 字型样式名称。
 \since build 277
 */
-typedef std::string StyleName;
+using StyleName = std::string;
 
 
 /*!
@@ -112,7 +112,7 @@ FetchName(FontStyle style) ynothrow
 class YF_API FontException : public LoggedEvent
 {
 public:
-	typedef ::FT_Error FontError;
+	using FontError = ::FT_Error;
 
 private:
 	FontError err;
@@ -162,7 +162,7 @@ public:
 class YF_API FontFamily final : private noncopyable
 {
 public:
-	typedef map<const StyleName, Typeface*> FaceMap; //!< 字型组索引类型。
+	using FaceMap = map<const StyleName, Typeface*>; //!< 字型组索引类型。
 
 	FontCache& Cache;
 
@@ -349,7 +349,7 @@ FetchDefaultTypeface();
 class YF_API CharBitmap final
 {
 public:
-	typedef ::FT_Byte* BufferType;
+	using BufferType = ::FT_Byte*;
 	//! \since build 415
 	enum FormatType
 	{
@@ -361,11 +361,11 @@ public:
 		LCD = ::FT_PIXEL_MODE_LCD,
 		LCD_V = ::FT_PIXEL_MODE_LCD_V
 	};
-	typedef ::FTC_SBit NativeType;
+	using NativeType = ::FTC_SBit;
 	//! \since build 415
-	typedef ::FT_Short PitchType;
-	typedef ::FT_Byte ScaleType;
-	typedef ::FT_Char SignedScaleType;
+	using PitchType = ::FT_Short;
+	using ScaleType = ::FT_Byte;
+	using SignedScaleType = ::FT_Char;
 
 private:
 	NativeType bitmap;
@@ -415,10 +415,10 @@ class YF_API FontCache final : private noncopyable,
 	friend class Font;
 
 public:
-	typedef set<Typeface*, ystdex::deref_comp<const Typeface>>
-		FaceSet; //!< 字型组类型。
+	using FaceSet = set<Typeface*, ystdex::deref_comp<const Typeface>>; \
+		//!< 字型组类型。
 	//! \brief 字型家族组索引类型。
-	typedef unordered_map<FamilyName, unique_ptr<FontFamily>> FamilyMap;
+	using FamilyMap = unordered_map<FamilyName, unique_ptr<FontFamily>>;
 
 	/*!
 	\brief 字形缓冲区大小。

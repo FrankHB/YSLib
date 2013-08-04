@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r217
+\version r219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2013-05-12 11:24 +0800
+	2013-08-02 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ public:
 	\brief 文件位置类型。
 	\since build 391
 	*/
-	typedef size_t PositionType;
+	using PositionType = size_t;
 
 	IO::Path Path;
 	//! \since build 391
@@ -78,7 +78,7 @@ operator==(const Bookmark& x, const Bookmark& y)
 \brief 书签列表类型。
 \since build 391
 */
-typedef vector<Bookmark::PositionType> BookmarkList;
+using BookmarkList = vector<Bookmark::PositionType>;
 
 
 /*!

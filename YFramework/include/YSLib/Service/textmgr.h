@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3775
+\version r3777
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-06-13 14:31 +0800
+	2013-08-02 04:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,14 +49,14 @@ public:
 	保存转换后的文本区块和初始转换偏移状态。
 	\since build 273
 	*/
-	typedef pair<vector<ucs2_t>, size_t> BlockType;
+	using BlockType = pair<vector<ucs2_t>, size_t>;
 	/*!
 	\brief 缓冲映射类型。
 
 	区块号到指定缓冲区快的映射。
 	\since build 273
 	*/
-	typedef map<size_t, BlockType> MapType;
+	using MapType = map<size_t, BlockType>;
 	/*!
 	\brief 目标编码迭代器类型。
 	\since build 273

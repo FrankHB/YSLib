@@ -11,13 +11,13 @@
 /*!	\file AccessHistory.hpp
 \ingroup Service
 \brief 访问历史记录。
-\version r114
+\version r116
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-12 07:42:35 +0800
 \par 修改时间:
-	2013-05-12 08:48 +0800
+	2013-08-02 04:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,9 +42,9 @@ class GAccessList
 {
 public:
 	//! \brief 访问项：值类型。
-	typedef _type ValueType;
+	using ValueType = _type;
 	//! \brief 记录列表类型。
-	typedef list<_type> ListType;
+	using ListType = list<_type>;
 
 protected:
 	//! \brief 列表记录：项的列表。

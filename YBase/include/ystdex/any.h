@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1297
+\version r1310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-07-27 04:26 +0800
+	2013-08-02 03:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,7 @@ union pod_storage
 {
 	static_assert(is_pod<_tPOD>::value, "Non-POD underlying type found.");
 
-	typedef _tPOD underlying;
+	using underlying = _tPOD;
 
 	underlying object;
 	byte data[sizeof(underlying)];
@@ -194,7 +194,7 @@ class value_holder : public holder
 
 public:
 	//! \since build 352
-	typedef _type value_type;
+	using value_type = _type;
 
 protected:
 	//! \since build 348
@@ -248,7 +248,7 @@ class pointer_holder : public holder
 
 public:
 	//! \since build 352
-	typedef _type value_type;
+	using value_type = _type;
 
 protected:
 	//! \since build 348
@@ -298,7 +298,7 @@ public:
 
 
 //! \since build 354
-typedef std::uint32_t op_code;
+using op_code = std::uint32_t;
 
 //! \since build 354
 enum base_op : op_code
@@ -318,8 +318,8 @@ enum base_op : op_code
 
 //! \since build 352
 //@{
-typedef pod_storage<non_aggregate_pod> any_storage;
-typedef void(*any_manager)(any_storage&, const any_storage&, op_code);
+using any_storage = pod_storage<non_aggregate_pod>;
+using any_manager = void(*)(any_storage&, const any_storage&, op_code);
 
 
 //! \brief 使用持有者标记。
@@ -340,8 +340,8 @@ class value_handler
 public:
 	//! \since build 352
 	//@{
-	typedef _type value_type;
-	typedef integral_constant<bool, bStoredLocally> local_storage;
+	using value_type = _type;
+	using local_storage = integral_constant<bool, bStoredLocally>;
 
 	static value_type*
 	get_pointer(const any_storage& s)
@@ -448,8 +448,8 @@ template<typename _type>
 class ref_handler : public value_handler<_type*>
 {
 public:
-	typedef _type value_type;
-	typedef value_handler<value_type*> base;
+	using value_type = _type;
+	using base = value_handler<value_type*>;
 
 	//! \since build 355
 	static value_type*
@@ -502,9 +502,9 @@ class holder_handler : public value_handler<_tHolder>
 		"Invalid holder type found.");
 
 public:
-	typedef typename _tHolder::value_type value_type;
-	typedef value_handler<_tHolder> base;
-	typedef typename base::local_storage local_storage;
+	using value_type = typename _tHolder::value_type;
+	using base = value_handler<_tHolder>;
+	using local_storage = typename base::local_storage;
 
 	static value_type*
 	get_pointer(const any_storage& s)

@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r320
+\version r323
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2013-07-31 19:10 +0800
+	2013-08-02 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,9 +47,9 @@ public:
 	\brief 容器类型。
 	\since build 292
 	*/
-	typedef _tCon ContainerType;
-	typedef typename _tCon::size_type SizeType; //!< 项目索引类型。
-	typedef typename _tCon::difference_type DifferenceType; \
+	using ContainerType = _tCon;
+	using SizeType = typename _tCon::size_type; //!< 项目索引类型。
+	using DifferenceType = typename _tCon::difference_type; \
 		//!< 项目索引差值类型。
 
 	//! \since build 392

@@ -11,13 +11,13 @@
 /*!	\file DSScreen.h
 \ingroup Helper
 \brief DS 屏幕。
-\version r411
+\version r412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2013-07-18 16:53 +0800
+	2013-08-02 03:49 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -47,7 +47,7 @@ class DSScreen : public Screen
 {
 #if YCL_DS
 public:
-	typedef int BGType;
+	using BGType = int;
 
 private:
 	BGType bg;

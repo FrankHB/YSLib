@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r588
+\version r607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-07-02 06:27 +0800
+	2013-08-02 04:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,46 +145,46 @@ struct make_parameter_tuple;
 template<typename _tRet, typename... _tParams>
 struct make_parameter_tuple<_tRet(_tParams...)>
 {
-	typedef std::tuple<_tParams...> type;
+	using type = std::tuple<_tParams...>;
 };
 
 template<typename _tRet, typename... _tParams>
 struct make_parameter_tuple<_tRet(*)(_tParams...)>
 {
-	typedef std::tuple<_tParams...> type;
+	using type = std::tuple<_tParams...>;
 };
 
 template<typename _tRet, typename... _tParams>
 struct make_parameter_tuple<_tRet(&)(_tParams...)>
 {
-	typedef std::tuple<_tParams...> type;
+	using type = std::tuple<_tParams...>;
 };
 
 template<typename _tRet, class _tClass, typename... _tParams>
 struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...)>
 {
-	typedef std::tuple<_tParams...> type;
+	using type = std::tuple<_tParams...>;
 };
 
 // !\since build 358
 template<typename _tRet, class _tClass, typename... _tParams>
 struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) const>
 {
-	typedef std::tuple<_tParams...> type;
+	using type = std::tuple<_tParams...>;
 };
 
 // !\since build 358
 template<typename _tRet, class _tClass, typename... _tParams>
 struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) volatile>
 {
-	typedef std::tuple<_tParams...> type;
+	using type = std::tuple<_tParams...>;
 };
 
 // !\since build 358
 template<typename _tRet, class _tClass, typename... _tParams>
 struct make_parameter_tuple<_tRet(_tClass::*)(_tParams...) const volatile>
 {
-	typedef std::tuple<_tParams...> type;
+	using type = std::tuple<_tParams...>;
 };
 
 //@}
@@ -202,46 +202,46 @@ struct return_of;
 template<typename _tResult, typename... _tParams>
 struct return_of<_tResult(_tParams...)>
 {
-    typedef _tResult type;
+    using type = _tResult;
 };
 
 template<typename _tResult, typename... _tParams>
 struct return_of<_tResult(*)(_tParams...)>
 {
-    typedef _tResult type;
+    using type = _tResult;
 };
 
 template<typename _tResult, typename... _tParams>
 struct return_of<_tResult(&)(_tParams...)>
 {
-    typedef _tResult type;
+    using type = _tResult;
 };
 
 template<typename _tResult, class _tClass, typename... _tParams>
 struct return_of<_tResult(_tClass::*)(_tParams...)>
 {
-    typedef _tResult type;
+    using type = _tResult;
 };
 
 // !\since build 358
 template<typename _tResult, class _tClass, typename... _tParams>
 struct return_of<_tResult(_tClass::*)(_tParams...) const>
 {
-    typedef _tResult type;
+    using type = _tResult;
 };
 
 // !\since build 358
 template<typename _tResult, class _tClass, typename... _tParams>
 struct return_of<_tResult(_tClass::*)(_tParams...) volatile>
 {
-    typedef _tResult type;
+    using type = _tResult;
 };
 
 // !\since build 358
 template<typename _tResult, class _tClass, typename... _tParams>
 struct return_of<_tResult(_tClass::*)(_tParams...) const volatile>
 {
-    typedef _tResult type;
+    using type = _tResult;
 };
 
 //@}
@@ -255,8 +255,8 @@ struct return_of<_tResult(_tClass::*)(_tParams...) const volatile>
 template<size_t _vIdx, typename _fCallable>
 struct parameter_of
 {
-	typedef typename std::tuple_element<_vIdx, typename
-		make_parameter_tuple<_fCallable>::type>::type type;
+	using type = typename std::tuple_element<_vIdx, typename
+		make_parameter_tuple<_fCallable>::type>::type;
 };
 
 
@@ -280,13 +280,13 @@ struct paramlist_size : std::integral_constant<size_t, std::tuple_size<typename
 template<typename _type>
 struct wrapped_traits : public std::false_type
 {
-	typedef _type type;
+	using type = _type;
 };
 
 template<typename _tWrapped>
 struct wrapped_traits<std::reference_wrapper<_tWrapped>> : public std::true_type
 {
-	typedef _tWrapped type;
+	using type = _tWrapped;
 };
 //@}
 
@@ -550,7 +550,7 @@ struct deref_str_comp
 	bool
 	operator()(const _tChar* x, const _tChar* y) const
 	{
-		typedef std::char_traits<_tChar> traits_type;
+		using traits_type = std::char_traits<_tChar>;
 
 		return x && y && std::lexicographical_compare(x, x + traits_type
 			::length(x), y, y + traits_type::length(y), _fCompare());

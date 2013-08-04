@@ -11,14 +11,14 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r357
+\version r361
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2013-07-24 17:50 +0800
-\par 字符集:
+	2013-08-02 19:15 +0800
+\par 文本编码:
 	UTF-8
 \par 模块名称:
 	YSLib::Core::YException
@@ -36,18 +36,18 @@
 YSL_BEGIN
 
 //! \brief YSLib 异常基类。
-typedef std::exception Exception;
+using Exception = std::exception;
 
 
 //! \brief 一般运行时异常事件类。
-typedef std::runtime_error GeneralEvent;
+using GeneralEvent = std::runtime_error;
 
 
 //记录异常事件类。
 class YF_API LoggedEvent : public GeneralEvent
 {
 public:
-	typedef RecordLevel LevelType;
+	using LevelType = RecordLevel;
 
 private:
 	LevelType level;

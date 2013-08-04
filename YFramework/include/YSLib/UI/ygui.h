@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2033
+\version r2042
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-15 08:23 +0800
+	2013-08-04 16:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ YSL_BEGIN_NAMESPACE(UI)
 class YF_API InputTimer : public Timers::Timer
 {
 public:
-	typedef Timers::Duration Duration;
+	using Duration = Timers::Duration;
 	/*!
 	\brief 输入保持状态。
 	\since build 416
@@ -144,7 +144,16 @@ public:
 		//独立键焦点指针。
 	DefGetter(const ynothrow, IWidget*, TouchDownPtr, p_TouchDown) \
 		//独立屏幕焦点指针。
-	
+
+	/*!
+	\brief 若拖放偏移量无效则按指定部件的屏幕坐标更新拖放偏移量。
+	\return 是否已在拖放状态。
+	\note 若参数为空则检查独立焦点指针，如已被按下则指定为独立焦点，否则忽略。
+	\since build 434
+	*/
+	bool
+	CheckDraggingOffset(IWidget* = {});
+
 	/*!
 	\brief 清除状态对指定部件的引用。
 	\post p_KeyDown 、 p_CursorOver 和 p_TouchDown 和指定部件的指针不相等。

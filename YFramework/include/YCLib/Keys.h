@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r173
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2013-07-14 19:47 +0800
+	2013-08-02 04:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ yconstexpr std::size_t KeyBitsetWidth(256);
 
 支持并行按键的缓冲区数据类型。
 */
-typedef std::bitset<KeyBitsetWidth> KeyInput;
+using KeyInput = std::bitset<KeyBitsetWidth>;
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1778
+\version r1779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-07-03 16:31 +0800
+	2013-08-02 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ class ReaderBox : public Control
 {
 public:
 	//! \since build 357
-	typedef ystdex::subscriptive_iterator<ReaderBox, IWidget> Iterator;
+	using Iterator = ystdex::subscriptive_iterator<ReaderBox, IWidget>;
 
 	/*!
 	\brief 弹出菜单按钮。

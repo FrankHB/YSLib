@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2559
+\version r2569
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2013-06-15 15:09 +0800
+	2013-08-02 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,15 +45,15 @@ YSL_BEGIN_NAMESPACE(UI)
 class YF_API ListBox : public ScrollableContainer
 {
 public:
-	typedef TextList::ListType ListType;
-	typedef TextList::ViewArgs ViewArgs;
-	typedef TextList::HViewEvent HViewEvent;
+	using ListType = TextList::ListType;
+	using ViewArgs = TextList::ViewArgs;
+	using HViewEvent = TextList::HViewEvent;
 	//! \since build 316
-	typedef TextList::IndexType IndexType;
+	using IndexType = TextList::IndexType;
 	//! \since build 316
-	typedef TextList::ItemType ItemType;
+	using ItemType = TextList::ItemType;
 	//! \since build 356
-	typedef ystdex::subscriptive_iterator<ListBox, IWidget> Iterator;
+	using Iterator = ystdex::subscriptive_iterator<ListBox, IWidget>;
 
 protected:
 	/*
@@ -227,21 +227,21 @@ public:
 class YF_API DropDownList : public Button
 {
 public:
-	typedef ListBox::ListType ListType;
+	using ListType = ListBox::ListType;
 	/*!
 	\brief 视图参数类型。
 	\sa TextList::ViewArgs
 	\since build 283
 	*/
-	typedef ListBox::ViewArgs ViewArgs;
+	using ViewArgs = ListBox::ViewArgs;
 	/*!
 	\brief 视图事件委托类型。
 	\sa TextList::HViewEvent
 	\since build 283
 	*/
-	typedef ListBox::HViewEvent HViewEvent;
+	using HViewEvent = ListBox::HViewEvent;
 	//! \since build 356
-	typedef ystdex::subscriptive_iterator<DropDownList, IWidget> Iterator;
+	using Iterator = ystdex::subscriptive_iterator<DropDownList, IWidget>;
 
 protected:
 	//! \since build 391

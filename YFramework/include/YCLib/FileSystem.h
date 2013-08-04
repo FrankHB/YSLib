@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1014
+\version r1022
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-07-14 19:46 +0800
+	2013-08-02 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,7 +105,7 @@ namespace platform
 \brief 本机路径字符类型。
 \since build 286
 */
-typedef char NativePathCharType;
+using NativePathCharType = char;
 
 #	define YCL_FS_CharIsDelimiter(_c, _p) (_c == yjoin(_p, YCL_PATH_DELIMITER))
 #	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
@@ -138,8 +138,8 @@ yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 \brief 本机路径字符类型。
 \since build 296
 */
-//	typedef wchar_t NativePathCharType;
-typedef char NativePathCharType;
+//	using NativePathCharType = wchar_t;
+using NativePathCharType = char;
 
 #	define YCL_FS_CharIsDelimiter(_c, _p) \
 	(_c == yJOIN(_p, '/') || _c == yJOIN(_p, '\\'))
@@ -175,12 +175,12 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 \brief 本机路径字符串类型。
 \since build 286
 */
-typedef NativePathCharType PATHSTR[YCL_MAX_PATH_LENGTH];
+using PATHSTR = NativePathCharType[YCL_MAX_PATH_LENGTH];
 /*!
 \brief 本机文件名类型。
 \since build 286
 */
-typedef NativePathCharType FILENAMESTR[YCL_MAX_FILENAME_LENGTH];
+using FILENAMESTR = NativePathCharType[YCL_MAX_FILENAME_LENGTH];
 
 
 /*!
@@ -341,9 +341,9 @@ class YF_API DirectorySession
 {
 public:
 #if YCL_DS
-	typedef ::DIR* NativeHandle;
+	using NativeHandle = ::DIR*;
 #else
-	typedef ::_WDIR* NativeHandle;
+	using NativeHandle = ::_WDIR*;
 #endif
 
 private:
@@ -463,7 +463,7 @@ public:
 \brief 文件迭代器。
 \since build 411
 */
-typedef ystdex::indirect_input_iterator<HDirectory*> FileIterator;
+using FileIterator = ystdex::indirect_input_iterator<HDirectory*>;
 
 
 /*!

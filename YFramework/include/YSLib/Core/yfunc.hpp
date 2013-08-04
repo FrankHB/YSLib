@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r878
-\author FrankHB<frankhb1989@gmail.com>
+\version r884
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2012-09-04 12:14 +0800
+	2013-08-02 03:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INCLUDED_CORE_YFUNC_HPP_
-#define INCLUDED_CORE_YFUNC_HPP_ 1
+#ifndef YSL_INC_Core_yfunc_hpp_
+#define YSL_INC_Core_yfunc_hpp_ 1
 
 #include "ysdef.h"
 #include <functional>
@@ -261,8 +261,8 @@ public:
 template<class _fCallable, typename _tParm>
 struct InversedCurrying
 {
-	typedef typename _fCallable::Result Result;
-	typedef typename _fCallable::Parm1 Parm1;
+	using Result = typename _fCallable::Result;
+	using Parm1 = typename _fCallable::Parm1;
 
 	_fCallable f;
 

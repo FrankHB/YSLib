@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r661
+\version r666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-04-24 00:29 +0800
+	2013-08-02 04:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,7 +139,7 @@ template<typename _tChar,
 >
 struct GSStringTemplate
 {
-	typedef flex_string<_tChar, _tCharTrait, _tAlloc, _tStorage> basic_string;
+	using basic_string = flex_string<_tChar, _tCharTrait, _tAlloc, _tStorage>;
 };
 
 #else
@@ -147,16 +147,16 @@ struct GSStringTemplate
 template<typename _tChar>
 struct GSStringTemplate
 {
-	typedef std::basic_string<_tChar> basic_string;
+	using basic_string = std::basic_string<_tChar>;
 };
 
 #endif
 
-typedef GSStringTemplate<char>::basic_string string;
+using string = GSStringTemplate<char>::basic_string;
 
 // YSLib 基本字符串（使用 UCS-2LE / UCS-4LE ）。
-typedef GSStringTemplate<CHRLib::ucs2_t>::basic_string ucs2string;
-typedef GSStringTemplate<CHRLib::ucs4_t>::basic_string ucs4string;
+using ucs2string = GSStringTemplate<CHRLib::ucs2_t>::basic_string;
+using ucs4string = GSStringTemplate<CHRLib::ucs4_t>::basic_string;
 
 YSL_END
 

@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r662
+\version r665
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2013-07-04 07:38 +0800
+	2013-08-02 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ YSL_BEGIN_NAMESPACE(UI)
 \brief 索引事件。
 \since build 268
 */
-typedef GValueEventArgs<MTextList::IndexType> IndexEventArgs;
+using IndexEventArgs = GValueEventArgs<MTextList::IndexType>;
 DeclDelegate(HIndexEvent, IndexEventArgs)
 
 /*!
@@ -54,13 +54,13 @@ public:
 	using MTextList::ItemType;
 	using MTextList::ListType;
 	using MTextList::IndexType;
-	typedef GSequenceViewer<ListType> ViewerType; //!< 视图类型。
+	using ViewerType = GSequenceViewer<ListType>; //!< 视图类型。
 	/*!
 	\brief 视图参数类型。
 	\param 表示主动定位视图。
 	\since build 268
 	*/
-	typedef GValueEventArgs<bool> ViewArgs;
+	using ViewArgs = GValueEventArgs<bool>;
 	/*!
 	\brief 视图事件委托类型。
 	\since build 268

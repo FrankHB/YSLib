@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1189
+\version r1197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-07-04 07:35 +0800
+	2013-08-02 03:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,21 +61,21 @@ exp2u(_tSrc n) ynothrow
 template<typename _type>
 struct fixed_multiplicative
 {
-	typedef typename make_signed_c<typename make_fixed_width_int<
+	using type = typename make_signed_c<typename make_fixed_width_int<
 		integer_width<_type>::value << 1>::type,
-		std::is_signed<_type>::value>::type type;
+		std::is_signed<_type>::value>::type;
 };
 
 template<>
 struct fixed_multiplicative<std::int64_t>
 {
-	typedef std::int64_t type;
+	using type = std::int64_t;
 };
 
 template<>
 struct fixed_multiplicative<std::uint64_t>
 {
-	typedef std::uint64_t type;
+	using type = std::uint64_t;
 };
 
 
@@ -114,7 +114,7 @@ class fixed_point : operators::ordered_field_operators<
 	friend class std::numeric_limits<fixed_point<_tBase, _vInt, _vFrac>>;
 
 public:
-	typedef _tBase base_type;
+	using base_type = _tBase;
 
 	//! \brief 整数部分二进制位数。
 	static yconstexpr size_t int_bit_n = _vInt;
@@ -125,7 +125,7 @@ public:
 
 private:
 	//! \brief 内部构造类型（ private 构造重载用）。
-	typedef empty_base<fixed_point> internal_construct_tag;
+	using internal_construct_tag = empty_base<fixed_point>;
 
 	base_type value;
 
@@ -354,8 +354,8 @@ template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
 class numeric_limits<ystdex::fixed_point<_tBase, _vInt, _vFrac>>
 {
 private:
-	typedef ystdex::fixed_point<_tBase, _vInt, _vFrac> fp_type;
-	typedef typename fp_type::base_type base_type;
+	using fp_type = ystdex::fixed_point<_tBase, _vInt, _vFrac>;
+	using base_type = typename fp_type::base_type;
 
 public:
 	static yconstexpr bool is_specialized = true;

@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r812
+\version r839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2013-05-06 15:51 +0800
+	2013-08-02 04:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,9 +78,9 @@ enum random_access_iteartor_op : op_code
 template<typename _type>
 struct wrap_handler
 {
-	typedef typename wrapped_traits<_type>::type value_type;
-	typedef typename conditional<wrapped_traits<_type>::value,
-		ref_handler<value_type>, value_handler<value_type>>::type type;
+	using value_type = typename wrapped_traits<_type>::type;
+	using type = typename conditional<wrapped_traits<_type>::value,
+		ref_handler<value_type>, value_handler<value_type>>::type;
 };
 
 
@@ -88,8 +88,8 @@ template<typename _type>
 class iterator_handler : public wrap_handler<_type>::type
 {
 public:
-	typedef typename wrap_handler<_type>::type base;
-	typedef typename base::value_type value_type;
+	using base = typename wrap_handler<_type>::type;
+	using value_type = typename base::value_type;
 
 	using base::get_reference;
 
@@ -120,8 +120,8 @@ template<typename _type>
 class input_iterator_handler : public iterator_handler<_type>
 {
 public:
-	typedef iterator_handler<_type> base;
-	typedef typename base::value_type value_type;
+	using base = iterator_handler<_type>;
+	using value_type = typename base::value_type;
 
 	using base::get_reference;
 
@@ -152,8 +152,8 @@ template<typename _type>
 class forward_iterator_handler : public input_iterator_handler<_type>
 {
 public:
-	typedef input_iterator_handler<_type> base;
-	typedef typename base::value_type value_type;
+	using base = input_iterator_handler<_type>;
+	using value_type = typename base::value_type;
 
 	using base::get_reference;
 
@@ -168,8 +168,8 @@ template<typename _type>
 class bidirectional_iterator_handler : public forward_iterator_handler<_type>
 {
 public:
-	typedef forward_iterator_handler<_type> base;
-	typedef typename base::value_type value_type;
+	using base = forward_iterator_handler<_type>;
+	using value_type = typename base::value_type;
 
 	using base::get_reference;
 
@@ -235,8 +235,8 @@ class any_input_iterator : public std::iterator<std::input_iterator_tag, _type,
 	_tDifference, _tPointer, _tReference>, protected any
 {
 public:
-	typedef _tPointer pointer;
-	typedef _tReference reference;
+	using pointer = _tPointer;
+	using reference = _tReference;
 
 	//! \since build 357
 	any_input_iterator() = default;
@@ -248,8 +248,8 @@ public:
 	any_input_iterator(_tIterator&& i)
 		: any()
 	{
-		typedef typename remove_rcv<_tIterator>::type param_obj_type;
-		typedef any_ops::input_iterator_handler<param_obj_type> handler;
+		using param_obj_type = typename remove_rcv<_tIterator>::type;
+		using handler = any_ops::input_iterator_handler<param_obj_type>;
 
 		static_assert(is_convertible<decltype(*std::declval<typename
 			wrapped_traits<param_obj_type>::type&>()), reference>::value,
@@ -337,8 +337,8 @@ YB_ITERATOR_OP2(operator!=, bool, any_input_iterator, !(x == y))
 YB_ITERATOR_OP1(is_undereferenceable, bool, any_input_iterator,
 	i.check_undereferenceable())
 
-typedef any_input_iterator<void_ref, ptrdiff_t, void*, void_ref>
-	input_monomorphic_iterator;
+using input_monomorphic_iterator
+	= any_input_iterator<void_ref, ptrdiff_t, void*, void_ref>;
 //@}
 
 
@@ -352,9 +352,9 @@ class any_forward_iterator
 	: public any_input_iterator<_type, _tDifference, _tPointer, _tReference>
 {
 public:
-	typedef std::forward_iterator_tag iterator_category;
-	typedef _tPointer pointer;
-	typedef _tReference reference;
+	using iterator_category = std::forward_iterator_tag;
+	using pointer = _tPointer;
+	using reference = _tReference;
 
 	any_forward_iterator() = default;
 	template<typename _tIterator>
@@ -380,8 +380,8 @@ YB_ITERATOR_OP2(operator!=, bool, any_forward_iterator, !(x == y))
 YB_ITERATOR_OP1(is_undereferenceable, bool, any_forward_iterator,
 	i.check_undereferenceable())
 
-typedef any_forward_iterator<void_ref, ptrdiff_t, void*, void_ref>
-	forward_monomorphic_iterator;
+using forward_monomorphic_iterator
+	= any_forward_iterator<void_ref, ptrdiff_t, void*, void_ref>;
 
 
 /*!
@@ -394,9 +394,9 @@ class any_bidirectional_iterator
 	: public any_forward_iterator<_type, _tDifference, _tPointer, _tReference>
 {
 public:
-	typedef std::bidirectional_iterator_tag iterator_category;
-	typedef _tPointer pointer;
-	typedef _tReference reference;
+	using iterator_category = std::bidirectional_iterator_tag;
+	using pointer = _tPointer;
+	using reference = _tReference;
 
 	any_bidirectional_iterator() = default;
 	template<typename _tIterator>
@@ -432,8 +432,8 @@ YB_ITERATOR_OP2(operator!=, bool, any_bidirectional_iterator, !(x == y))
 YB_ITERATOR_OP1(is_undereferenceable, bool, any_bidirectional_iterator,
 	i.check_undereferenceable())
 
-typedef any_bidirectional_iterator<void_ref, ptrdiff_t, void*, void_ref>
-	bidirectional_monomorphic_iterator;
+using bidirectional_monomorphic_iterator
+	= any_bidirectional_iterator<void_ref, ptrdiff_t, void*, void_ref>;
 
 
 #undef YB_ITERATOR_OP1

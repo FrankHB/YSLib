@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r300
+\version r304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-07-22 09:27 +0800
+	2013-08-02 03:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@ class CompactPixmap;
 
 
 //! \since build 402
-typedef u8 BitPerPixel;
+using BitPerPixel = u8;
 
 
 /*!
@@ -57,7 +57,7 @@ typedef u8 BitPerPixel;
 \see FreeImage 宏 FI_ENUM 。
 \since build 417
 */
-typedef int ImageFormat;
+using ImageFormat = int;
 
 
 /*!
@@ -96,7 +96,7 @@ public:
 class YF_API ImageMemory final
 {
 public:
-	typedef ::FIMEMORY* NativeHandle;
+	using NativeHandle = ::FIMEMORY*;
 
 private:
 	NativeHandle handle;
@@ -120,7 +120,7 @@ public:
 class YF_API HBitmap final
 {
 public:
-	typedef ::FIBITMAP* DataPtr;
+	using DataPtr = ::FIBITMAP*;
 
 private:
 	DataPtr bitmap;

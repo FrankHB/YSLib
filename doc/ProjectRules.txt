@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r264
+\version r266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-07-31 13:13 +0800
+	2013-08-02 01:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,8 @@
 对于重载，不视为相同实体；
 对于模板特化，不视为相同实体。
 被 using 声明（注意不含 typedef 声明、 using 指示、友元声明和别名声明）指定的前提下（注意不包括 using 声明和非 using 声明之间的变更）的等价名称变换不视为名称变更。
-包括所有实体名称的链接（或对应实现的符号(symbol) 可见性(visibility)）变更；除此以外忽略所有 ISO C++ 或实现扩展的属性(attribute) 变更。
+别名声明和 typedef 的等价变换不视为变更。
+包括所有实体名称的链接（或对应实现的符号(symbol) 可见性(visibility)）变更（注意仅仅变换 inline 而省略指定符号可见性不视为变更）；除此以外忽略所有 ISO C++ 或实现扩展的属性(attribute) 变更。
 对于宏，包括参数列表变更。
 对于所有实体，包括实际引起语义变化的存储类限定符（ static 、 extern 、 mutable 等）变更。
 对于函数、函数模板和模板特化，包括类型（注意类型等价性，参见 [Documentation::CommonRules @@5.12.1] ）、显式指定的异常规范和不等效（等效包括 nullptr 修改为 {} 等；涉及名称变更的修改不等效）的默认参数变更，不包括函数限定符（ inline 、 virtual 、explicit ）和 constexpr 的变更。

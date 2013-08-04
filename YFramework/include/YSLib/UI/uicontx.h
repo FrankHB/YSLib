@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的图形用户界面附加容器。
-\version r325
+\version r326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2013-03-29 12:55 +0800
+	2013-08-02 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ class YF_API DialogBox : public Control
 {
 public:
 	//! \since build 357
-	typedef ystdex::subscriptive_iterator<DialogBox, IWidget> Iterator;
+	using Iterator = ystdex::subscriptive_iterator<DialogBox, IWidget>;
 
 protected:
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r382
+\version r389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-06-15 22:51 +0800
+	2013-08-02 04:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,13 +46,13 @@ namespace ystdex
 template<typename _tString>
 struct string_traits
 {
-	typedef typename remove_reference<_tString>::type string_type;
-	typedef typename remove_rcv<decltype(std::declval<string_type>()[0])>::type
-		value_type;
-	typedef typename std::char_traits<value_type> traits_type;
-	typedef value_type* pointer;
-	typedef const value_type* const_pointer;
-	typedef std::initializer_list<value_type> initializer;
+	using string_type = typename remove_reference<_tString>::type;
+	using value_type
+		= typename remove_rcv<decltype(std::declval<string_type>()[0])>::type;
+	using traits_type = typename std::char_traits<value_type>;
+	using pointer = value_type*;
+	using const_pointer = const value_type*;
+	using initializer = std::initializer_list<value_type>;
 };
 
 

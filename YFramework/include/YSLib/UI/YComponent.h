@@ -16,13 +16,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2360
+\version r2361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2013-07-09 05:35 +0800
+	2013-08-02 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,7 @@ class Window;
 \brief 画刷回调函数。
 \since build 293
 */
-typedef std::function<void(PaintEventArgs&&)> HBrush;
+using HBrush = std::function<void(PaintEventArgs&&)>;
 
 
 //名称引用。

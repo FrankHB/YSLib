@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2897
+\version r2903
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-06-18 10:19 +0800
+	2013-08-04 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,11 +36,12 @@
 #include <Helper/ShellHelper.h>
 #include <YCLib/Debug.h>
 #include <YCLib/Input.h>
+#include <YSLib/UI/Loader.h>
 
 YSL_BEGIN
 
-typedef decltype(__LINE__) ResourceIndex;
-typedef map<ResourceIndex, ValueObject> ResourceMap;
+using ResourceIndex = decltype(__LINE__);
+using ResourceMap = map<ResourceIndex, ValueObject>;
 
 #define DeclResource(_name) const ResourceIndex _name(__LINE__);
 
@@ -82,6 +83,11 @@ FetchImage(size_t);
 //! \since build 390
 double
 FetchImageLoadTime();
+
+
+//! \since build 434
+WidgetLoader&
+FetchWidgetLoader();
 
 YSL_END_NAMESPACE(YReader)
 

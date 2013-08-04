@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1156
+\version r1162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2013-06-13 08:15 +0800
+	2013-08-02 03:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,12 +139,10 @@ public:
 		}
 	};
 
-	typedef std::map<const void*, BlockInfo, std::less<const void*>,
-		__gnu_cxx::malloc_allocator<std::pair<const void* const, BlockInfo>> >
-		MapType;
-	typedef std::list<std::pair<const void*, BlockInfo>,
-		__gnu_cxx::malloc_allocator<std::pair<const void*, BlockInfo>> >
-		ListType;
+	using MapType = std::map<const void*, BlockInfo, std::less<const void*>,
+		__gnu_cxx::malloc_allocator<std::pair<const void* const, BlockInfo>>>;
+	using ListType = std::list<std::pair<const void*, BlockInfo>,
+		__gnu_cxx::malloc_allocator<std::pair<const void*, BlockInfo>>>;
 
 	MapType Blocks;
 	ListType DuplicateDeletedBlocks;

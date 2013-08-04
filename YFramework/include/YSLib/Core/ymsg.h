@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1823
+\version r1829
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2013-06-13 14:24 +0800
+	2013-08-02 04:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YSMSG_H_
-#define YSL_INC_CORE_YSMSG_H_ 1
+#ifndef YSL_INC_Core_ymsg_h_
+#define YSL_INC_Core_ymsg_h_ 1
 
 #include "yobject.h"
 #include "../Adaptor/ycont.h"
@@ -40,12 +40,12 @@ YSL_BEGIN_NAMESPACE(Messaging)
 \brief 消息标识。
 \since build 175
 */
-typedef u32 ID;
+using ID = u32;
 /*!
 \brief 消息优先级。
 \since build 175
 */
-typedef u8 Priority;
+using Priority = u8;
 
 /*!
 \brief 消息默认有效期。
@@ -173,12 +173,12 @@ class YF_API MessageQueue : private noncopyable,
 	private multimap<Priority, Message, std::greater<Priority>>
 {
 public:
-	typedef size_type SizeType;
+	using SizeType = size_type;
 	/*!
 	\brief 迭代器。
 	\since build 317
 	*/
-	typedef const_iterator Iterator;
+	using Iterator = const_iterator;
 
 	/*!
 	\brief 无参数构造：默认实现。

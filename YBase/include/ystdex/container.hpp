@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r551
+\version r565
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-08-01 12:20 +0800
+	2013-08-02 03:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,21 +49,21 @@ template<class _tSeqCon>
 class container_adaptor : protected _tSeqCon
 {
 protected:
-	typedef _tSeqCon container_type;
+	using container_type = _tSeqCon;
 
 private:
-	typedef container_type base;
+	using base = container_type;
 
 public:
 	//! \brief 满足容器要求。
 	//@{
-	typedef typename container_type::value_type value_type;
-	typedef typename container_type::reference reference;
-	typedef typename container_type::const_reference const_reference;
-	typedef typename container_type::iterator iterator;
-	typedef typename container_type::const_iterator const_iterator;
-	typedef typename container_type::difference_type difference_type;
-	typedef typename container_type::size_type size_type;
+	using value_type = typename container_type::value_type;
+	using reference = typename container_type::reference;
+	using const_reference = typename container_type::const_reference;
+	using iterator = typename container_type::iterator;
+	using const_iterator = typename container_type::const_iterator;
+	using difference_type = typename container_type::difference_type;
+	using size_type = typename container_type::size_type;
 
 	container_adaptor() = default;
 	explicit
@@ -165,12 +165,12 @@ template<class _tSeqCon>
 class sequence_container_adaptor : protected container_adaptor<_tSeqCon>
 {
 private:
-	typedef container_adaptor<_tSeqCon> base;
+	using base = container_adaptor<_tSeqCon>;
 
 public:
-	typedef typename base::container_type container_type;
-	typedef typename container_type::value_type value_type;
-	typedef typename container_type::size_type size_type;
+	using container_type = typename base::container_type;
+	using value_type = typename container_type::value_type;
+	using size_type = typename container_type::size_type;
 
 	//! \brief 满足序列容器要求。
 	//@{
@@ -276,7 +276,7 @@ template<typename _tCon>
 class container_inserter
 {
 public:
-	typedef _tCon container_type;
+	using container_type = _tCon;
 
 protected:
 	_tCon* container;

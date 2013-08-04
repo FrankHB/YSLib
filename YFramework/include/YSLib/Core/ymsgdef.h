@@ -11,13 +11,13 @@
 /*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version r1942
+\version r1945
 \author FrankHB <frankhb1989@gmail.com>
 \since build 217
 \par 创建时间:
 	2009-12-08 12:05:26 +0800
 \par 修改时间:
-	2013-03-13 14:56 +0800
+	2013-08-02 04:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(Messaging)
 
-typedef enum MessageSpace
+using MessageID = enum MessageSpace
 {
 	Null = 0x0000,
 	Set = 0x0003,
@@ -47,7 +47,7 @@ typedef enum MessageSpace
 
 	Input = 0x00FF
 
-} MessageID;
+};
 
 
 #define SM_NULL					Messaging::Null
@@ -69,7 +69,7 @@ struct SMessageMap
 	template<> \
 	struct SMessageMap<_id> \
 	{ \
-		typedef _type TargetType; \
+		using TargetType = _type; \
 	};
 
 DefMessageTarget(SM_NULL, void)

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1625
+\version r1632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-07-27 04:29 +0800
+	2013-08-02 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,8 +155,9 @@ arrlen(_type(&&)[_vN])
 
 /*!
 \brief 按标识调用函数，保证调用一次。
-\note 类似 std::call_once ，但多线程环境下失效。
+\note 类似 std::call_once ，但不保证线程安全性。
 \note ISO C++11（至 N3691 ） 30.4 synopsis 处的声明存在错误。
+\see https://github.com/cplusplus/draft/issues/151 。
 \since build 327
 
 当标识为 true 时候无作用，否则调用函数。
@@ -217,7 +218,7 @@ template<typename _tKey, typename... _tKeys, typename _fInit,
 inline auto
 get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 {
-	typedef decltype(f(yforward(args)...)) obj_type;
+	using obj_type = decltype(f(yforward(args)...));
 
 	auto& p(ystdex::parameterize_static_object<obj_type*, _tKey, _tKeys...>());
 
@@ -237,7 +238,7 @@ template<size_t... _vKeys, typename _fInit, typename... _tParams>
 inline auto
 get_init(_fInit&& f, _tParams&&... args) -> decltype(f(yforward(args)...))&
 {
-	typedef decltype(f(yforward(args)...)) obj_type;
+	using obj_type = decltype(f(yforward(args)...));
 
 	auto& p(ystdex::parameterize_static_object<obj_type*, _vKeys...>());
 
@@ -272,7 +273,7 @@ template<class _type>
 class nifty_counter
 {
 public:
-	typedef _type object_type;
+	using object_type = _type;
 
 	template<typename... _tParams>
 	nifty_counter(_tParams&&... args)
@@ -345,8 +346,8 @@ template<typename _type, typename _tOnceFlag>
 class call_once_init
 {
 public:
-	typedef _type object_type;
-	typedef _tOnceFlag flag_type;
+	using object_type = _type;
+	using flag_type = _tOnceFlag;
 
 	template<typename... _tParams>
 	call_once_init(_tParams&&... args)

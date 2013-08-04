@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3769
+\version r3783
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-15 08:25 +0800
+	2013-08-04 16:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,6 +117,21 @@ GUIState::GUIState() ynothrow
 	LastControlLocation(Point::Invalid), Colors(), p_KeyDown(), p_CursorOver(),
 	p_TouchDown(), entered()
 {}
+
+bool
+GUIState::CheckDraggingOffset(IWidget* p)
+{
+	if(!p)
+		p = p_TouchDown;
+	if(p)
+	{
+		if(DraggingOffset == Vec::Invalid)
+			DraggingOffset = GetLocationOf(*p) - ControlLocation;
+		else
+			return true;
+	}
+	return false;
+}
 
 void
 GUIState::CleanupReferences(IWidget& wgt)
@@ -250,12 +265,7 @@ GUIState::ResponseCursorBase(CursorEventArgs& e, UI::VisualEvent op)
 	case TouchHeld:
 		if(e.Strategy == RoutedEventArgs::Direct && p_TouchDown)
 		{
-			auto& wgt_d(*p_TouchDown);
-
-			if(DraggingOffset == Vec::Invalid)
-				DraggingOffset = GetLocationOf(wgt_d) - ControlLocation;
-			else
-				CallEvent<TouchHeld>(wgt_d, e);
+			CallEvent<TouchHeld>(*p_TouchDown, e);
 			LastControlLocation = ControlLocation;
 		}
 		break;

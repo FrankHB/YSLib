@@ -11,14 +11,14 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r316
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2013-03-13 13:20 +0800
-\par 字符集:
+	2013-08-02 19:15 +0800
+\par 文本编码:
 	UTF-8
 \par 模块名称:
 	YSLib::UI::Selector
@@ -47,7 +47,7 @@ public:
 	\note bool 参数表示选中后的状态。
 	\since build 292
 	*/
-	typedef GValueEventArgs<bool> TickedArgs;
+	using TickedArgs = GValueEventArgs<bool>;
 	/*!
 	\brief 复选框选中事件委托类型。
 	\since build 292

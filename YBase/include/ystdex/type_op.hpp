@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r912
+\version r944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-07-09 04:59 +0800
+	2013-08-02 03:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -477,7 +477,7 @@ struct has_common_nonempty_virtual_base : integral_constant<bool,
 template<typename _type>
 struct identity
 {
-	typedef _type type;
+	using type = _type;
 };
 
 
@@ -490,8 +490,8 @@ struct identity
 template<typename _type>
 struct remove_rcv
 {
-	typedef typename remove_cv<typename remove_reference<_type>::type>::type
-		type;
+	using type
+		= typename remove_cv<typename remove_reference<_type>::type>::type;
 };
 
 
@@ -504,8 +504,8 @@ struct remove_rcv
 template<typename _type>
 struct remove_rp
 {
-	typedef typename remove_pointer<typename remove_reference<_type>
-		::type>::type type;
+	using type
+		= typename remove_pointer<typename remove_reference<_type>::type>::type;
 };
 
 
@@ -517,7 +517,7 @@ struct remove_rp
 template<typename _type>
 struct remove_rpcv
 {
-	typedef typename remove_cv<typename remove_rp<_type>::type>::type type;
+	using type = typename remove_cv<typename remove_rp<_type>::type>::type;
 };
 
 
@@ -531,8 +531,8 @@ struct remove_rpcv
 template<typename _type>
 struct array_decay
 {
-	typedef typename conditional<is_array<_type>::value,
-		typename decay<_type>::type, _type>::type type;
+	using type = typename conditional<is_array<_type>::value,
+		typename decay<_type>::type, _type>::type;
 };
 
 
@@ -548,12 +548,12 @@ template<typename _type>
 struct qualified_decay
 {
 private:
-	typedef typename remove_reference<_type>::type value_type;
+	using value_type = typename remove_reference<_type>::type;
 
 public:
-	typedef typename conditional<is_function<value_type>::value
+	using type = typename conditional<is_function<value_type>::value
 		|| is_array<value_type>::value, typename decay<_type>::type,
-		_type>::type type;
+		_type>::type;
 };
 
 
@@ -569,21 +569,21 @@ public:
 template<typename _type>
 struct array_ref_decay
 {
-	typedef typename array_decay<_type>::type type;
+	using type = typename array_decay<_type>::type;
 };
 
 template<typename _type>
 struct array_ref_decay<_type&>
 {
-	typedef typename array_decay<_type>::type type;
-	typedef type& reference;
+	using type = typename array_decay<_type>::type;
+	using reference = type&;
 };
 
 template<typename _type>
 struct array_ref_decay<_type&&>
 {
-	typedef typename array_decay<_type>::type type;
-	typedef type&& reference;
+	using type = typename array_decay<_type>::type;
+	using reference = type&&;
 };
 //@}
 
@@ -608,13 +608,13 @@ struct integer_width
 template<typename _type, bool>
 struct make_signed_c
 {
-	typedef typename std::make_signed<_type>::type type;
+	using type = typename std::make_signed<_type>::type;
 };
 
 template<typename _type>
 struct make_signed_c<_type, false>
 {
-	typedef typename std::make_unsigned<_type>::type type;
+	using type = typename std::make_unsigned<_type>::type;
 };
 //@}
 
@@ -628,36 +628,36 @@ struct make_signed_c<_type, false>
 template<size_t>
 struct make_fixed_width_int
 {
-	typedef int type;
-	typedef unsigned unsigned_type;
+	using type = int;
+	using unsigned_type = unsigned;
 };
 
 template<>
 struct make_fixed_width_int<8U>
 {
-	typedef std::int8_t type;
-	typedef std::uint8_t unsigned_type;
+	using type = std::int8_t;
+	using unsigned_type = std::uint8_t;
 };
 
 template<>
 struct make_fixed_width_int<16U>
 {
-	typedef std::int16_t type;
-	typedef std::uint16_t unsigned_type;
+	using type = std::int16_t;
+	using unsigned_type = std::uint16_t;
 };
 
 template<>
 struct make_fixed_width_int<32U>
 {
-	typedef std::int32_t type;
-	typedef std::uint32_t unsigned_type;
+	using type = std::int32_t;
+	using unsigned_type = std::uint32_t;
 };
 
 template<>
 struct make_fixed_width_int<64U>
 {
-	typedef std::int64_t type;
-	typedef std::uint64_t unsigned_type;
+	using type = std::int64_t;
+	using unsigned_type = std::uint64_t;
 };
 //@}
 
@@ -675,13 +675,13 @@ struct make_fixed_width_int<64U>
 template<size_t _vN>
 struct n_tag
 {
-	typedef n_tag<_vN - 1> type;
+	using type = n_tag<_vN - 1>;
 };
 
 template<>
 struct n_tag<0>
 {
-	typedef void type;
+	using type = void;
 };
 //@}
 
@@ -689,13 +689,13 @@ struct n_tag<0>
 \ingroup meta_types
 \brief 第一分量标记。
 */
-typedef n_tag<0> first_tag;
+using first_tag = n_tag<0>;
 
 /*!
 \ingroup meta_types
 \brief 第二分量标记。
 */
-typedef n_tag<1> second_tag;
+using second_tag = n_tag<1>;
 //@}
 
 } // namespace ystdex;

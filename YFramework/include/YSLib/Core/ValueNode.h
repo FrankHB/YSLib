@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1265
+\version r1266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-08-02 00:08 +0800
+	2013-08-02 03:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ YSL_BEGIN
 class YF_API ValueNode
 {
 public:
-	typedef set<ValueNode> Container;
+	using Container = set<ValueNode>;
 
 private:
 	string name;

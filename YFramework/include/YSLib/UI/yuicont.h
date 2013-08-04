@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的图形用户界面容器。
-\version r1784
+\version r1789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2013-03-13 12:52 +0800
+	2013-08-02 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,7 +140,7 @@ MoveToBottom(IWidget& wgt);
 \brief Z 顺序类型：覆盖顺序，值越大表示越接近顶层。
 \since build 212
 */
-typedef u8 ZOrderType;
+using ZOrderType = u8;
 /*!
 \brief 默认 Z 顺序值。
 \since build 212
@@ -161,12 +161,12 @@ const ZOrderType DefaultWindowZOrder(128);
 class YF_API MUIContainer
 {
 public:
-	typedef IWidget* ItemType; //!< 部件组项目类型。
-	typedef multimap<ZOrderType, ItemType> WidgetMap; \
+	using ItemType = IWidget*; //!< 部件组项目类型。
+	using WidgetMap = multimap<ZOrderType, ItemType>; \
 		//!< 部件映射表类型：映射 Z 顺序至部件。
-	typedef WidgetMap::value_type PairType;
+	using PairType = WidgetMap::value_type;
 	//! \since build 357
-	typedef WidgetIterator Iterator;
+	using Iterator = WidgetIterator;
 
 protected:
 	/*

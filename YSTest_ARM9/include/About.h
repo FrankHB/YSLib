@@ -11,13 +11,13 @@
 /*!	\file About.h
 \ingroup YReader
 \brief 关于界面。
-\version r51
+\version r53
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:07:32 +0800
 \par 修改时间:
-	2013-03-20 21:14 +0800
+	2013-08-04 19:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,8 @@ YSL_BEGIN_NAMESPACE(YReader)
 class FrmAbout : public Form
 {
 protected:
-	Label lblTitle, lblVersion, lblCopyright;
-	Button btnClose, btnExit;
+	//! \since build 434
+	DynamicWidget dynWgts;
 
 public:
 	FrmAbout();

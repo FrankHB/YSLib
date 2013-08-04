@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1408
-\author FrankHB<frankhb1989@gmail.com>
+\version r1411
+\author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-07-14 15:29 +0800
+	2013-08-02 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -218,14 +218,14 @@ operator*(const GBinaryGroup<_type>& val, _tScalar l) ynothrow
 \brief 屏幕二维点（直角坐标表示）。
 \since build 242
 */
-typedef GBinaryGroup<SPos> Point;
+using Point = GBinaryGroup<SPos>;
 
 
 /*!
 \brief 屏幕二维向量（直角坐标表示）。
 \since build 242
 */
-typedef GBinaryGroup<SPos> Vec;
+using Vec = GBinaryGroup<SPos>;
 
 
 /*!

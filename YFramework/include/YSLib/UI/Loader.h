@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 UI 加载。
-\version r159
+\version r332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2013-08-02 01:11 +0800
+	2013-08-04 19:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,86 +39,19 @@ YSL_BEGIN_NAMESPACE(UI)
 YF_API Rect
 ParseRect(const string&);
 
-//! \since build 432
-//@{
-template<typename _fCreator>
-using GWidgetCreatorMap = unordered_map<string, _fCreator>;
-
-
-template<typename _fCreator>
-GWidgetCreatorMap<_fCreator>&
-FetchWidgetMapping()
-{
-	static GWidgetCreatorMap<_fCreator> widget_map;
-
-	return widget_map;
-}
-
 
 /*!
-\brief 显式实例化默认使用的映射。
-\note 对于 DLL 是必要的，因为模板不能直接指定静态局部对象的同一性。
+\brief 注册部件加载器。
 \since build 433
+\todo 使用 ISO C++1y 多态 lambda 表达式代替。
 */
-//@{
-extern template YF_API GWidgetCreatorMap<unique_ptr<IWidget>(*)()>&
-FetchWidgetMapping();
-extern template YF_API GWidgetCreatorMap<unique_ptr<IWidget>(*)(const Rect&)>&
-FetchWidgetMapping();
-//@}
-
-
-template<class _tWidget>
-class GWidgetFactory
+template<typename _tWidget, typename... _tParams>
+static unique_ptr<IWidget>
+CreateUniqueWidget(_tParams&&... args)
 {
-private:
-	template<typename... _tParams>
-	static unique_ptr<IWidget>
-	CreateWidget(_tParams&&... args)
-	{
-		return make_unique<_tWidget>(yforward(args)...);
-	}
-
-	template<typename... _tParams>
-	static int
-	Register(const string& key)
-	{
-		FetchWidgetMapping<unique_ptr<IWidget>(*)(_tParams...)>().emplace(
-			key, &CreateWidget<_tParams...>);
-		return 0;
-	}
-
-public:
-	GWidgetFactory(const string& key)
-	{
-		static int create_def(Register<>(key));
-		static int create_bounds(Register<const Rect&>(key));
-
-		static_cast<void>(create_def);
-		static_cast<void>(create_bounds);
-	}
-};
-
-
-template<typename... _tParams>
-unique_ptr<IWidget>
-CreateWidget(const string& type_str, _tParams&&... args)
-{
-	if(const auto f = FetchWidgetMapping<unique_ptr<IWidget>(*)(_tParams...)>()[
-		type_str])
-	{
-		YTraceDe(Notice, "Found widget creator: %s.\n", type_str.c_str());
-
-		return f(yforward(args)...);
-	}
-	return {};
+	return make_unique<_tWidget>(yforward(args)...);
 }
-//@}
 
-
-//! \since build 433
-YF_API unique_ptr<IWidget>
-DetectWidgetNode(const ValueNode&);
 
 //! \since build 432
 inline bool
@@ -129,13 +62,6 @@ CheckChildName(const string& str)
 
 //! \since build 433
 //@{
-YF_API ValueNode
-TransformUILayout(const ValueNode&);
-
-YF_API ValueNode
-ConvertUILayout(const string&);
-
-
 YF_API IWidget&
 AccessWidget(const ValueNode&);
 template<typename... _tParams>
@@ -151,6 +77,133 @@ AccessWidget(const ValueNode& node, _tParams&&... args)
 	return dynamic_cast<_tWidget&>(AccessWidget(node, yforward(args)...));
 }
 //@}
+
+
+//! \since build 434
+template<typename... _tParams>
+using GWidgetCreatorMap
+	= unordered_map<string, unique_ptr<IWidget>(*)(_tParams...)>;
+
+
+/*!
+\brief 加载器注册接口：加载一个或多个键和类初始化例程。
+\note 加载的键的数量和类的数量需要保持一致。
+\since build 434
+\par 调用示例:
+\code
+	static GWidgetRegister<> reg;
+
+	reg.Register<Widget, Control, Panel>({"Widget", "Control", "Panel"});
+\endcode
+*/
+template<typename... _tParams>
+struct GWidgetRegister
+{
+private:
+	GWidgetCreatorMap<_tParams...> wgt_map;
+
+public:
+	unique_ptr<IWidget>
+	CreateWidget(const string& type_str, _tParams&&... args)
+	{
+		if(const auto f = wgt_map[type_str])
+		{
+			YTraceDe(Notice, "Found widget creator: %s.\n", type_str.c_str());
+
+			return f(yforward(args)...);
+		}
+		return {};
+	}
+
+	template<class _tWidget>
+	void
+	Register(const string& key)
+	{
+		wgt_map.emplace(key, &CreateUniqueWidget<_tWidget, _tParams...>);
+	}
+	template<typename _tIn, class _tWidget, class _tTuple>
+	void
+	Register(_tIn first, _tIn last)
+	{
+		YAssert(first != last && std::distance(first, last)
+			== std::tuple_size<_tTuple>::value + 1, "Wrong range found.");
+
+		Register<_tWidget>(*first);
+		++first;
+
+		YAssert((first == last) == (std::tuple_size<_tTuple>::value == 0),
+			"Wrong number of parameters found.");
+
+	//	static_if(std::tuple_size<_tTuple>::value != 0)
+	//		RegisterTail<_tIn, std::tuple_element<0, _tTuple>,
+	//			typename tuple_split<_tTuple>::tail>(first, last);
+		RegisterTail<_tIn>(static_cast<_tTuple*>(nullptr), first, last);
+	}
+	template<class _tWidget, class... _tWidgets>
+	void
+	Register(std::initializer_list<string> il)
+	{
+		YAssert(il.size() == sizeof...(_tWidgets) + 1,
+			"Wrong size of initializer list found.");
+
+		Register<std::initializer_list<string>::const_iterator, _tWidget,
+			tuple<_tWidgets...>>(il.begin(), il.end());
+	}
+
+private:
+	template<typename _tIn>
+	void
+	RegisterTail(tuple<>*, _tIn first, _tIn last)
+	{
+		YAssert(first == last, "Wrong size of initializer list found.");
+
+		static_cast<void>(first),
+		static_cast<void>(last);
+	}
+	template<typename _tIn, class _tWidget, class... _tWidgets>
+	void
+	RegisterTail(tuple<_tWidget, _tWidgets...>*, _tIn first, _tIn last)
+	{
+		Register<_tIn, _tWidget, tuple<_tWidgets...>>(first, last);
+	}
+};
+
+
+/*!
+\brief 部件加载器。
+\since build 434
+*/
+class YF_API WidgetLoader
+{
+public:
+	GWidgetRegister<> Default;
+	GWidgetRegister<const Rect&> Bounds;
+
+	unique_ptr<IWidget>
+	DetectWidgetNode(const ValueNode&);
+
+	ValueNode
+	LoadUILayout(const string&);
+
+	ValueNode
+	TransformUILayout(const ValueNode&);
+};
+
+
+/*!
+\brief 动态部件。
+\since build 434
+*/
+class YF_API DynamicWidget
+{
+public:
+	std::reference_wrapper<WidgetLoader> Loader;
+	ValueNode WidgetNode;
+
+	DynamicWidget(WidgetLoader& ldr, const string& str)
+		: Loader(ldr), WidgetNode(ldr.LoadUILayout(str))
+	{}
+};
 
 YSL_END_NAMESPACE(UI)
 

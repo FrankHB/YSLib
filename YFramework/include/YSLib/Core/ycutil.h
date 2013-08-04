@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r1932
+\version r1939
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-05-30 08:30 +0800
+	2013-08-02 03:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YCUTIL_H_
-#define YSL_INC_CORE_YCUTIL_H_ 1
+#ifndef YSL_INC_Core_ycutil_h_
+#define YSL_INC_Core_ycutil_h_ 1
 
 #include "ysdef.h"
 
@@ -42,8 +42,8 @@ YSL_BEGIN
 template<typename _type, typename _tStrict, typename _tWeak>
 struct MoreConvertible
 {
-	typedef typename std::conditional<std::is_convertible<_type,
-		_tStrict>::value, _tStrict, _tWeak>::Result Result;
+	using Result = typename std::conditional<std::is_convertible<_type,
+		_tStrict>::value, _tStrict, _tWeak>::Result;
 
 	static inline Result
 	Cast(_type o)
@@ -63,8 +63,7 @@ struct MoreConvertible
 template<typename _type, typename _tStrict>
 struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 {
-	typedef typename MoreConvertible<_type, _tStrict, _type>::Result
-		Result;
+	using Result = typename MoreConvertible<_type, _tStrict, _type>::Result;
 };
 
 
@@ -332,7 +331,7 @@ template<typename _tOut>
 inline void
 ClearSequence(_tOut dst, size_t n) ynothrow
 {
-	typedef typename std::remove_reference<decltype(*dst)>::type _type;
+	using _type = typename std::remove_reference<decltype(*dst)>::type;
 
 	static_assert(std::is_pod<_type>::value
 		|| (std::is_nothrow_default_constructible<_type>::value

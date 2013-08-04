@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3673
+\version r3682
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-06-28 05:25 +0800
+	2013-08-02 04:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,7 +105,7 @@ class ValueHolder : implements IValueHolder
 
 public:
 	//! \since build 352
-	typedef _type value_type;
+	using value_type = _type;
 
 protected:
 	//! \since build 348
@@ -164,7 +164,7 @@ class PointerHolder : implements IValueHolder
 
 public:
 	//! \since build 352
-	typedef _type value_type;
+	using value_type = _type;
 
 protected:
 	_type* p_held;
@@ -422,12 +422,12 @@ template<typename _type, class _tOwnerPointer = shared_ptr<_type>>
 class GDependency
 {
 public:
-	typedef _type DependentType;
-	typedef _tOwnerPointer PointerType;
-	typedef decltype(*PointerType()) ConstReferenceType;
-	typedef typename std::remove_const<typename std::remove_reference<
-		ConstReferenceType>::type>::type ReferentType;
-	typedef ReferentType& ReferenceType;
+	using DependentType = _type;
+	using PointerType = _tOwnerPointer;
+	using ConstReferenceType = decltype(*PointerType());
+	using ReferentType = typename std::remove_const<typename
+		std::remove_reference<ConstReferenceType>::type>::type;
+	using ReferenceType = ReferentType&;
 
 private:
 	PointerType ptr;
@@ -482,7 +482,7 @@ template<typename _type>
 class GMRange
 {
 public:
-	typedef _type ValueType;
+	using ValueType = _type;
 
 protected:
 	ValueType max_value; //!< 最大取值。

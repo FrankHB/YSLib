@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1453
+\version r1466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-07-16 09:32 +0800
+	2013-08-02 13:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,7 +113,7 @@ public:
 \warning 非虚析构。
 \since build 160
 */
-typedef Drawing::Point MScreenPositionEventArgs;
+using MScreenPositionEventArgs = Drawing::Point;
 
 
 /*!
@@ -156,7 +156,7 @@ public:
 struct YF_API KeyEventArgs : public InputEventArgs
 {
 public:
-	typedef KeyInput InputType; //!< 输入类型。
+	using InputType = KeyInput; //!< 输入类型。
 
 	/*!
 	\brief 构造：使用输入类型对象和事件路由策略。
@@ -173,7 +173,7 @@ struct YF_API CursorEventArgs : public InputEventArgs,
 	public MScreenPositionEventArgs
 {
 public:
-	typedef Drawing::Point InputType; //!< 输入类型。
+	using InputType = Drawing::Point; //!< 输入类型。
 
 	/*!
 	\brief 构造：使用按键输入类型对象、输入类型对象和事件路由策略。
@@ -188,7 +188,7 @@ public:
 \brief 滚轮度量：以角度计量的转动滚轮的幅度。
 \since build 423
 */
-typedef ptrdiff_t WheelDelta;
+using WheelDelta = ptrdiff_t;
 
 
 /*!
@@ -218,7 +218,7 @@ template<typename _type>
 struct GValueEventArgs : public UIEventArgs
 {
 	//! \brief 值类型。
-	typedef _type ValueType;
+	using ValueType = _type;
 
 	ValueType Value;
 
@@ -268,7 +268,7 @@ DeclDelegate(HCursorWheelEvent, CursorWheelEventArgs&&)
 	template<> \
 	struct EventTypeMapping<_name> \
 	{ \
-		typedef _tEventHandler HandlerType; \
+		using HandlerType = _tEventHandler; \
 	};
 
 
@@ -332,7 +332,7 @@ template<VisualEvent>
 struct EventTypeMapping
 {
 	//定义 HandlerType 的默认值可能会导致运行期 dynamic_cast 失败。
-//	typedef HEvent HandlerType;
+//	using HandlerType = HEvent;
 };
 
 DefEventTypeMapping(Move, HUIEvent)
@@ -366,16 +366,16 @@ DefEventTypeMapping(Leave, HCursorEvent)
 */
 YSL_BEGIN_NAMESPACE(EventMapping)
 
-typedef GEventPointerWrapper<UIEventArgs&&> MappedType; //!< 映射项类型。
-typedef GIHEvent<UIEventArgs&&> ItemType;
-typedef pair<VisualEvent, MappedType> PairType;
-typedef map<VisualEvent, MappedType> MapType; //!< 映射表类型。
-typedef pair<typename MapType::iterator, bool> SearchResult; \
+using MappedType = GEventPointerWrapper<UIEventArgs&&>; //!< 映射项类型。
+using ItemType = GIHEvent<UIEventArgs&&>;
+using PairType = pair<VisualEvent, MappedType>;
+using MapType = map<VisualEvent, MappedType>; //!< 映射表类型。
+using SearchResult = pair<typename MapType::iterator, bool>; \
 	//!< 搜索表结果类型。
 
 YSL_END_NAMESPACE(EventMapping)
 
-typedef EventMapping::MapType VisualEventMap;
+using VisualEventMap = EventMapping::MapType;
 
 
 /*!

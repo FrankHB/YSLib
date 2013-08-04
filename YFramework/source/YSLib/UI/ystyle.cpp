@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r648
+\version r650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-03-13 12:58 +0800
+	2013-08-02 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,7 +148,7 @@ DrawCross(const Graphics& g, const Point& pt, const Size& s, Color c)
 hsl_t
 ColorToHSL(Color c)
 {
-	typedef float mid_t; //中间类型。
+	using mid_t = float; //中间类型。
 
 	const u8 r(c.GetR()), g(c.GetG()), b(c.GetB()),
 		min_color(min(min(r, g), b)), max_color(max(max(r, g), b));
@@ -191,7 +191,7 @@ HSLToColor(hsl_t c)
 		return c.l > 255.F / 0x100 ? Color(0xFF, 0xFF, 0xFF)
 			: Color(c.l * 0x100, c.l * 0x100, c.l * 0x100);
 
-	typedef float mid_t; //中间类型。
+	using mid_t = float; //中间类型。
 
 	mid_t t2((c.l < 0.5 ? c.l * (1 + c.s) : (c.l + c.s - c.l * c.s)) * 0x100),
 		t1((c.l * 0x200) - t2);

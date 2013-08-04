@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r86
+\version r136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-07-03 16:31 +0800
+	2013-08-04 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,56 @@
 
 YSL_BEGIN_NAMESPACE(YReader)
 
+//! \since build 434
+namespace
+{
+
+const char TU_About[]{u8R"NPL(
+root
+($type "Panel")
+($bounds "0 0 208 144")
+(
+	lblTitle
+	($type "Label")
+	($bounds "8 4 192 28")
+)
+(
+	lblVersion
+	($type "Label")
+	($bounds "8 36 192 40")
+)
+(
+	lblCopyright
+	($type "Label")
+	($bounds "8 80 192 20")
+)
+(
+	btnClose
+	($type "Button")
+	($bounds "12 106 60 22")
+)
+(
+	btnExit
+	($type "Button")
+	($bounds "84 106 60 22")
+)
+)NPL"};
+
+} // unnamed namespace;
+
 FrmAbout::FrmAbout()
 	: Form({8, 24, 208, 144}),
-	lblTitle({8, 4, 192, 28}), lblVersion({8, 36, 192, 40}),
-	lblCopyright({8, 80, 192, 20}),
-	btnClose({12, 106, 60, 22}),
-	btnExit({84, 106, 60, 22})
+	dynWgts(FetchWidgetLoader(), TU_About)
 {
-	AddWidgets(*this, lblTitle, lblVersion, lblCopyright, btnClose, btnExit),
+	auto& node(dynWgts.WidgetNode);
+	auto& root(AccessWidget<Panel>(node));
+	auto& lblTitle(AccessWidget<Label>(node, "lblTitle"));
+	auto& lblVersion(AccessWidget<Label>(node, "lblVersion"));
+	auto& lblCopyright(AccessWidget<Label>(node, "lblCopyright"));
+	auto& btnClose(AccessWidget<Button>(node, "btnClose"));
+	auto& btnExit(AccessWidget<Button>(node, "btnExit"));
+
+	AddWidgets(*this, AccessWidget<Panel>(node)),
 	lblTitle.Font.SetSize(20),
 	yunseq(
 		lblTitle.Background = nullptr,
@@ -53,15 +95,16 @@ FrmAbout::FrmAbout()
 		lblCopyright.ForeColor = ColorSpace::Maroon,
 		btnClose.Text = u"关闭",
 		btnExit.Text = u"退出",
-		Background = SolidBrush(Color(248, 120, 120)),
+		root.Background = SolidBrush(Color(248, 120, 120)),
 		btnClose.Background = SolidBrush(Color(176, 184, 192)),
-		FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
-			Background = SolidBrush(GenerateRandomColor());
-			SetInvalidationOf(*this);
+		FetchEvent<TouchDown>(root) += [&](CursorEventArgs&& e){
+			root.Background = SolidBrush(GenerateRandomColor());
+			SetInvalidationOf(root);
 			if(e.Strategy == RoutedEventArgs::Direct)
 				e.Handled = true;
 		},
-		FetchEvent<TouchHeld>(*this) += OnTouchHeld_Dragging,
+		FetchEvent<TouchHeld>(root) += std::bind(OnTouchHeld_DraggingRaw,
+			std::placeholders::_1, std::ref(*this)),
 		FetchEvent<Click>(btnClose) += [this](CursorEventArgs&&){
 			Hide(*this);
 		},

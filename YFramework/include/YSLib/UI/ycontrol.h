@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4708
+\version r4719
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-07-16 09:31 +0800
+	2013-08-04 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,7 @@ template<VisualEvent _vID, typename _tEventArgs>
 inline size_t
 CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
-	typedef typename EventTypeMapping<_vID>::HandlerType HandlerType;
+	using HandlerType = typename EventTypeMapping<_vID>::HandlerType;
 	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
 		::type, typename std::remove_reference<typename EventArgsHead<typename
 		HandlerType::TupleType>::type>::type>
@@ -205,16 +205,21 @@ YF_API void
 OnTouchHeld(CursorEventArgs&&);
 
 /*!
-\brief 处理屏幕接触移动事件。
-\note 使用拖放。
+\brief 处理屏幕接触移动事件：拖放按下部件。
 \note 无效化当前区域，但不无效化移动后区域；通过 Move 事件可以调用无效化。
 \since build 422
 */
 YF_API void
 OnTouchHeld_Dragging(CursorEventArgs&&);
 
+/*!
+\brief 处理屏幕接触移动事件：拖放指定部件。
+\note 无效化当前区域，但不无效化移动后区域；通过 Move 事件可以调用无效化。
+\since build 434
+*/
+YF_API void
+OnTouchHeld_DraggingRaw(CursorEventArgs&&, IWidget&);
 
-// Control 事件处理器。
 
 /*!
 \brief 处理按键事件：按键-指针设备接触结束。

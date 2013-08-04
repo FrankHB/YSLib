@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r567
+\version r581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2013-07-31 19:24 +0800
+	2013-08-02 03:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ template<typename _type>
 class path_norm
 {
 public:
-	typedef _type value_type;
+	using value_type = _type;
 
 	virtual bool
 	is_compatible_with(const path_norm&) const ynothrow
@@ -86,7 +86,7 @@ class file_path_norm<std::basic_string<_tChar, _tAlloc>>
 	: public path_norm<std::string>
 {
 public:
-	typedef std::basic_string<_tChar, _tAlloc> value_type;
+	using value_type = std::basic_string<_tChar, _tAlloc>;
 
 	bool
 	is_delimiter(const value_type& str) override
@@ -136,20 +136,20 @@ template<class _tSeqCon>
 class path : private sequence_container_adaptor<_tSeqCon>
 {
 private:
-	typedef sequence_container_adaptor<_tSeqCon> base;
+	using base = sequence_container_adaptor<_tSeqCon>;
 
 public:
-	typedef typename _tSeqCon::value_type value_type;
-	typedef path_norm<value_type> norm;
-	typedef typename _tSeqCon::reference reference;
-	typedef typename _tSeqCon::const_reference const_reference;
-	typedef typename base::size_type size_type;
-	typedef typename base::difference_type difference_type;
-	typedef typename base::iterator iterator;
-	typedef typename base::const_iterator const_iterator;
-	typedef typename base::container_type::reverse_iterator reverse_iterator;
-	typedef typename base::container_type::const_reverse_iterator
-		const_reverse_iterator;
+	using value_type = typename _tSeqCon::value_type;
+	using norm = path_norm<value_type>;
+	using reference = typename _tSeqCon::reference;
+	using const_reference = typename _tSeqCon::const_reference;
+	using size_type = typename base::size_type;
+	using difference_type = typename base::difference_type;
+	using iterator = typename base::iterator;
+	using const_iterator = typename base::const_iterator;
+	using reverse_iterator = typename base::container_type::reverse_iterator;
+	using const_reverse_iterator
+		= typename base::container_type::const_reverse_iterator;
 
 	std::unique_ptr<norm> p_norm;
 

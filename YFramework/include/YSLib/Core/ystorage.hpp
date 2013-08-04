@@ -1,6 +1,5 @@
-﻿
-/*
-	Copyright (C) by Franksoft 2011 - 2012.
+﻿/*
+	Copyright by FrankHB 2011 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,22 +11,22 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r403
-\author FrankHB<frankhb1989@gmail.com>
+\version r411
+\author FrankHB <frankhb1989@gmail.com>
 \since build 195
 \par 创建时间:
 	2011-03-14 20:17:34 +0800
 \par 修改时间:
-	2012-09-04 12:14 +0800
-\par 字符集:
+	2013-08-02 19:15 +0800
+\par 文本编码:
 	UTF-8
 \par 模块名称:
 	YSLib::Core::YStorage
 */
 
 
-#ifndef INCLUDED_CORE_YSTORAGE_HPP_
-#define INCLUDED_CORE_YSTORAGE_HPP_ 1
+#ifndef YSL_INC_Core_ystorage_hpp_
+#define YSL_INC_Core_ystorage_hpp_ 1
 
 #include "ycutil.h"
 
@@ -86,7 +85,7 @@ class GStaticCache
 		"Invalid pointer type found");
 
 public:
-	typedef _tPointer PointerType;
+	using PointerType = _tPointer;
 
 private:
 	static PointerType _ptr;
@@ -153,7 +152,7 @@ class GLocalStaticCache
 		"Invalid pointer type found");
 
 public:
-	typedef _tPointer PointerType;
+	using PointerType = _tPointer;
 
 private:
 	static PointerType _ptr;

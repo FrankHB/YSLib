@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r2123
+\version r2126
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-06-15 15:05 +0800
+	2013-08-02 04:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ template<>
 class file_path_norm<YSLib::String> : public path_norm<YSLib::String>
 {
 public:
-	typedef YSLib::String value_type;
+	using value_type = YSLib::String;
 
 	PDefH(bool, is_delimiter, const value_type& str) override
 		ImplRet(YCL_FS_CharIsDelimiter(str[0], u))
@@ -64,10 +64,10 @@ YSL_BEGIN
 YSL_BEGIN_NAMESPACE(IO)
 
 //! \since build 409
-typedef ystdex::path<vector<String>> ypath;
+using ypath = ystdex::path<vector<String>>;
 
 //! \since build 411
-typedef ystdex::file_path_norm<String> PathNorm;
+using PathNorm = ystdex::file_path_norm<String>;
 
 
 /*!

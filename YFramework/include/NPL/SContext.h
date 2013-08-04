@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1345
+\version r1348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2013-05-05 01:24 +0800
+	2013-08-02 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,9 +40,9 @@ using YSLib::TextFile;
 using YSLib::ValueNode;
 //@}
 
-typedef list<string> TokenList;
-typedef TokenList::iterator TLIter;
-typedef TokenList::const_iterator TLCIter;
+using TokenList = list<string>;
+using TLIter = TokenList::iterator;
+using TLCIter = TokenList::const_iterator;
 
 
 /*!

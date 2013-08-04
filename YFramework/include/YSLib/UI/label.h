@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1297
+\version r1300
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2013-03-24 21:58 +0800
+	2013-08-02 12:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,9 +132,9 @@ public:
 class YF_API MTextList : public MLabel
 {
 public:
-	typedef String ItemType; //!< 项目类型：字符串。
-	typedef vector<ItemType> ListType; //!< 列表类型。
-	typedef typename ListType::size_type IndexType; //!< 索引类型。
+	using ItemType = String; //!< 项目类型：字符串。
+	using ListType = vector<ItemType>; //!< 列表类型。
+	using IndexType = typename ListType::size_type; //!< 索引类型。
 
 protected:
 	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。

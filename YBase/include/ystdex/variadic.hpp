@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r85
+\version r89
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2013-06-06 12:10 +0800
+	2013-08-02 03:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ struct make_successor;
 template<size_t... _vSeq>
 struct make_successor<variadic_sequence<_vSeq...>>
 {
-	typedef variadic_sequence<_vSeq..., sizeof...(_vSeq)> type;
+	using type = variadic_sequence<_vSeq..., sizeof...(_vSeq)>;
 };
 //@}
 
@@ -69,14 +69,14 @@ struct make_successor<variadic_sequence<_vSeq...>>
 template<size_t _vN>
 struct make_natural_sequence
 {
-	typedef typename make_successor<typename
-		make_natural_sequence<_vN - 1>::type>::type type;
+	using type = typename make_successor<typename
+		make_natural_sequence<_vN - 1>::type>::type;
 };
 
 template<>
 struct make_natural_sequence<0>
 {
-	typedef variadic_sequence<> type;
+	using type = variadic_sequence<>;
 };
 //@}
 

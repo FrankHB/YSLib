@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r397
+\version r401
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2013-06-28 05:21 +0800
+	2013-08-02 03:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,12 +75,12 @@ class YB_API ifile_iterator : public std::iterator<std::input_iterator_tag,
 	byte, ptrdiff_t, const byte*, const byte&>
 {
 protected:
-	typedef std::iterator<std::input_iterator_tag,
-		byte, ptrdiff_t, const byte*, const byte&> traits_type;
+	using traits_type = std::iterator<std::input_iterator_tag, byte, ptrdiff_t,
+		const byte*, const byte&>;
 
 public:
-	typedef byte char_type;
-	typedef std::FILE istream_type;
+	using char_type = byte;
+	using istream_type = std::FILE;
 
 private:
 	istream_type* stream; //!< 流指针。

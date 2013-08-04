@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6299
+\version r6315
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-06-18 10:21 +0800
+	2013-08-04 09:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,6 +122,25 @@ double
 FetchImageLoadTime()
 {
 	return gfx_init_time;
+}
+
+
+WidgetLoader&
+FetchWidgetLoader()
+{
+	static WidgetLoader wgt_ldr;
+	static struct Init
+	{
+		Init()
+		{
+			wgt_ldr.Bounds.Register<Widget, Control, Panel, Window, Label,
+				Button>
+				({"Widget", "Control", "Panel", "Window", "Label", "Button"});
+		}
+	} obj;
+
+	static_cast<void>(obj);
+	return wgt_ldr;
 }
 
 YSL_END_NAMESPACE(YReader)

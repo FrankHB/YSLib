@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3103
+\version r3114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-24 22:45 +0800
+	2013-08-02 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,22 +87,22 @@ struct tr_seg
 };
 
 
-typedef pseudo_iterator<const PixelType> PixelIt;
+using PixelIt = pseudo_iterator<const PixelType>;
 
-typedef bitseg_iterator<1, true> BIt_1;
-typedef bitseg_iterator<2, true> BIt_2;
-typedef bitseg_iterator<4, true> BIt_4;
+using BIt_1 = bitseg_iterator<1, true>;
+using BIt_2 = bitseg_iterator<2, true>;
+using BIt_4 = bitseg_iterator<4, true>;
 
-typedef transformed_iterator<BIt_1, tr_seg<1>> TIt_1;
-typedef transformed_iterator<BIt_2, tr_seg<2>> TIt_2;
-typedef transformed_iterator<BIt_4, tr_seg<4>> TIt_4;
+using TIt_1 = transformed_iterator<BIt_1, tr_seg<1>> ;
+using TIt_2 = transformed_iterator<BIt_2, tr_seg<2>>;
+using TIt_4 = transformed_iterator<BIt_4, tr_seg<4>>;
 
-typedef pair_iterator<PixelIt, TIt_1> MonoItPair_1;
-typedef pair_iterator<PixelIt, TIt_2> MonoItPair_2;
-typedef pair_iterator<PixelIt, TIt_4> MonoItPair_4;
+using MonoItPair_1 = pair_iterator<PixelIt, TIt_1>;
+using MonoItPair_2 = pair_iterator<PixelIt, TIt_2>;
+using MonoItPair_4 = pair_iterator<PixelIt, TIt_4>;
 
 //! \since build 417
-typedef pair_iterator<BitmapPtr, AlphaType*> PairIt;
+using PairIt = pair_iterator<BitmapPtr, AlphaType*>;
 
 
 template<unsigned char _vN>

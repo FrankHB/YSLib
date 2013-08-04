@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r963
+\version r970
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-07-04 07:38 +0800
+	2013-08-02 04:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,10 +47,10 @@ YSL_BEGIN_NAMESPACE(Timers)
 class YF_API HighResolutionClock
 {
 public:
-	typedef std::chrono::nanoseconds duration;
-	typedef duration::rep rep;
-	typedef duration::period period;
-	typedef std::chrono::time_point<HighResolutionClock, duration> time_point;
+	using duration = std::chrono::nanoseconds;
+	using rep = duration::rep;
+	using period = duration::period;
+	using time_point = std::chrono::time_point<HighResolutionClock, duration>;
 
 	static yconstexpr bool is_steady = {};
 
@@ -71,20 +71,20 @@ HighResolutionClock::now() ynothrow
 \note 单位为纳秒。
 \since build 291
 */
-typedef HighResolutionClock::duration Duration;
+using Duration = HighResolutionClock::duration;
 
 /*!
 \brief 时刻。
 \since build 291
 */
-typedef HighResolutionClock::time_point TimePoint;
+using TimePoint = HighResolutionClock::time_point;
 
 /*!
 \brief 低精度时间间隔。
 \note 单位为毫秒。
 \since build 291
 */
-typedef std::chrono::milliseconds TimeSpan;
+using TimeSpan = std::chrono::milliseconds;
 
 
 /*!

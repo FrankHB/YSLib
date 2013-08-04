@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r818
+\version r824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2013-06-02 13:42 +0800
+	2013-08-02 12:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,9 +49,9 @@ class YF_API Menu : public TextList
 	friend class MenuHost;
 
 public:
-	typedef size_t ID; //!< 菜单标识类型。
-	typedef map<IndexType, Menu*> SubMap; //!< 子菜单映射表类型。
-	typedef SubMap::value_type ValueType; //!< 子菜单映射表项目类型。
+	using ID = size_t; //!< 菜单标识类型。
+	using SubMap = map<IndexType, Menu*>; //!< 子菜单映射表类型。
+	using ValueType = SubMap::value_type; //!< 子菜单映射表项目类型。
 
 private:
 	ID id; //!< 菜单标识。
@@ -181,9 +181,9 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 class YF_API MenuHost : private noncopyable, private OwnershipTag<Menu>
 {
 public:
-	typedef Menu* ItemType; //!< 菜单组项目类型：记录菜单控件指针。
-	typedef map<Menu::ID, ItemType> MenuMap; //!< 菜单组类型。
-	typedef MenuMap::value_type ValueType;
+	using ItemType = Menu*; //!< 菜单组项目类型：记录菜单控件指针。
+	using MenuMap = map<Menu::ID, ItemType>; //!< 菜单组类型。
+	using ValueType = MenuMap::value_type;
 
 	Window& Frame; //!< 框架窗口。
 

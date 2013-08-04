@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2087
+\version r2138
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-02 01:40 +0800
+	2013-08-04 20:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,56 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ "all anonymous struct typedef declarations"
+		-> "named struct declarations",
+		// See $2013-08 @ %Documentation::Workflow::Annual2013.
+	^ DLD "all typedef declarations except in directory %3rdparty"
+		-> "using aliases",
+		// Ditto.
+	/ %'YFramework'.'YSLib'.'UI' $=
+	(
+		/ @ %'Loader' $=
+		(
+			/ "class template %GWidgetFactory" 
+				-> "function templates %(CreateUniqueWidget, RegisterLoader)",
+			+ "template class %GWidgetRegister";
+			(
+				/ "using alias %GWidgetCreatorMap accept function parameters \
+					directly",
+				- "function templates %(FetchWidgetMapping, CreateWidget)",
+				/ "functions %(DetectWidgetNode, TransformUILayout, \
+  					ConvertUILayout)" -> "class %WidgetLoader";
+				/ $comp "widget loader implemented with no static duaration \
+					object and being friendly to multithreading without data \
+					race"
+			),
+			+ "class %DynamicWidget"
+		),
+		(
+			/ @ "class %GUIState" @ %'YGUI' $=
+			(
+				// Check of offset for touch held event now is removed for \
+					client hanlders.
+				- "invalid offset check" @ "basic cursor handler for \
+					%TouchHeld",
+				+ "member function %CheckOffset"
+			);
+			+ "function %OnTouchHeld_DraggingRaw for user-specified dragging \
+				target" @ %'YControl'
+		)
+	),
+	* DLB $revert(b432) "wrong location of VC++ project file for projects \
+		%YFramework_(MinGW32)" $since b432,
+	/ %'YReader' $=
+	(
+		$dep_from %'YFramework'.'YSLib'.'UI';
+		+ "dynamic widget loader initialization";
+		/ DLD "implementation" @ "about window" ^ "dynamic widget"
+	)
+),
+
+b433
 (
 	/ $doc $dev 'Documentation' $=
 	(
@@ -87,8 +137,8 @@ $now
 
 b432
 (
-	* "missing relocation of VC++ project file for projects %(YBase_(DS), \
-		YFramework_(DS), YFramework_(MinGW32)",
+	* DLB "missing relocation of VC++ project file for projects %(YBase_(DS), \
+		YFramework_(DS), YFramework_(MinGW32))",
 	/ %'YBase' $=
 	(
 		/ %'YDefinition' $=

@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4424
+\version r4458
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-07-28 19:56 +0800
+	2013-08-02 04:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,18 +63,18 @@ class GHEvent<_tRet(_tParams...)>
 	: protected std::function<_tRet(_tParams...)>
 {
 public:
-	typedef tuple<_tParams...> TupleType;
-	typedef _tRet FuncType(_tParams...);
-	typedef std::function<FuncType> BaseType;
+	using TupleType = tuple<_tParams...>;
+	using FuncType = _tRet(_tParams...);
+	using BaseType = std::function<FuncType>;
 
 private:
-	typedef bool(*Comparer)(const GHEvent&, const GHEvent&); //!< 比较函数类型。
+	using Comparer = bool(*)(const GHEvent&, const GHEvent&); //!< 比较函数类型。
 	template<class _tFunctor>
 	struct GEquality
 	{
 		//! \since build 319
 		//@{
-		typedef typename std::decay<_tFunctor>::type decayed_type;
+		using decayed_type = typename std::decay<_tFunctor>::type;
 
 #if YB_HAS_NOEXCEPT
 		static yconstexpr bool except_helper = noexcept(std::declval<
@@ -184,7 +184,7 @@ private:
 \brief 事件优先级。
 \since build 294
 */
-typedef u8 EventPriority;
+using EventPriority = u8;
 
 
 /*!
@@ -208,16 +208,16 @@ template<typename _tRet, typename... _tParams>
 class GEvent<_tRet(_tParams...)>
 {
 public:
-	typedef GHEvent<_tRet(_tParams...)> HandlerType;
-	typedef typename HandlerType::TupleType TupleType;
-	typedef typename HandlerType::FuncType FuncType;
+	using HandlerType = GHEvent<_tRet(_tParams...)>;
+	using TupleType = typename HandlerType::TupleType;
+	using FuncType = typename HandlerType::FuncType;
 	/*!
 	\brief 容器类型。
 	\since build 294
 	*/
-	typedef multimap<EventPriority, HandlerType, std::greater<EventPriority>>
-		ContainerType;
-	typedef typename ContainerType::size_type SizeType;
+	using ContainerType
+		= multimap<EventPriority, HandlerType, std::greater<EventPriority>>;
+	using SizeType = typename ContainerType::size_type;
 
 	/*!
 	\brief 响应列表。
@@ -506,8 +506,8 @@ template<typename... _tEventArgs>
 class GEventGuard
 {
 public:
-	typedef GEvent<_tEventArgs...> EventType;
-	typedef GHEvent<_tEventArgs...> HandlerType;
+	using EventType = GEvent<_tEventArgs...>;
+	using HandlerType = GHEvent<_tEventArgs...>;
 	std::reference_wrapper<EventType> Event;
 	HandlerType Handler;
 
@@ -530,7 +530,7 @@ public:
 \since build 268
 */
 #define DeclDelegate(_name, _tEventArgs) \
-	typedef GHEvent<void(_tEventArgs)> _name;
+	using _name = GHEvent<void(_tEventArgs)>;
 
 
 /*!
@@ -542,17 +542,17 @@ template<class _tEvent, class _tOwnerPointer = shared_ptr<_tEvent>>
 class GDependencyEvent : public GDependency<_tEvent, _tOwnerPointer>
 {
 public:
-	typedef typename GDependency<_tEvent>::DependentType DependentType;
-	typedef typename GDependency<_tEvent>::PointerType PointerType;
-	typedef typename GDependency<_tEvent>::ConstReferenceType
-		ConstReferenceType;
-	typedef typename GDependency<_tEvent>::ReferentType ReferentType;
-	typedef typename GDependency<_tEvent>::ReferenceType ReferenceType;
-	typedef DependentType EventType;
-	typedef typename EventType::SEventType SEventType;
-	typedef typename EventType::FuncType FuncType;
-	typedef typename EventType::HandlerType HandlerType;
-	typedef typename EventType::SizeType SizeType;
+	using DependentType = typename GDependency<_tEvent>::DependentType;
+	using PointerType = typename GDependency<_tEvent>::PointerType;
+	using ConstReferenceType
+		= typename GDependency<_tEvent>::ConstReferenceType;
+	using ReferentType = typename GDependency<_tEvent>::ReferentType;
+	using ReferenceType = typename GDependency<_tEvent>::ReferenceType;
+	using EventType = DependentType;
+	using SEventType = typename EventType::SEventType;
+	using FuncType = typename EventType::FuncType;
+	using HandlerType = typename EventType::HandlerType;
+	using SizeType = typename EventType::SizeType;
 
 	GDependencyEvent(PointerType p = PointerType())
 		: GDependency<_tEvent>(p)
@@ -628,8 +628,8 @@ public:
 template<typename... _tParams>
 struct EventArgsHead
 {
-	typedef typename std::conditional<sizeof...(_tParams) == 0, void,
-		typename std::tuple_element<0, tuple<_tParams...>>::type>::type type;
+	using type = typename std::conditional<sizeof...(_tParams) == 0, void,
+		typename std::tuple_element<0, tuple<_tParams...>>::type>::type;
 };
 
 template<typename... _tParams>
@@ -711,10 +711,10 @@ class GEventWrapper : public _tEvent,
 	implements GIHEvent<_tBaseArgs>
 {
 public:
-	typedef _tEvent EventType;
-	typedef _tBaseArgs BaseArgsType;
-	typedef typename EventArgsHead<typename _tEvent::TupleType>::type
-		EventArgsType;
+	using EventType = _tEvent;
+	using BaseArgsType = _tBaseArgs;
+	using EventArgsType
+		= typename EventArgsHead<typename _tEvent::TupleType>::type;
 
 	/*!
 	\brief 委托调用。
@@ -742,8 +742,8 @@ template<typename _tBaseArgs>
 class GEventPointerWrapper
 {
 public:
-	typedef GIHEvent<_tBaseArgs> ItemType;
-	typedef unique_ptr<ItemType> PointerType;
+	using ItemType = GIHEvent<_tBaseArgs>;
+	using PointerType = unique_ptr<ItemType>;
 
 private:
 #if YB_HAS_NOEXCEPT

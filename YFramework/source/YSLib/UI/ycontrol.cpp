@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3782
+\version r3837
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-07-16 09:33 +0800
+	2013-08-04 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,49 @@
 YSL_BEGIN
 
 YSL_BEGIN_NAMESPACE(UI)
+
+namespace
+{
+
+IWidget*
+FetchEnabledBoundControlPtr(KeyEventArgs&& e)
+{
+	try
+	{
+		auto pCtl(dynamic_cast<Control&>(e.GetSender()).BoundControlPtr(
+			e.GetKeys()));
+
+		return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
+	}
+	catch(std::bad_function_call&)
+	{}
+	catch(std::bad_cast&)
+	{}
+	return nullptr;
+}
+
+//! \since build 434
+void
+TouchHeld_DragWidget(IWidget* p = {})
+{
+	auto& st(FetchGUIState());
+
+	if(!p)
+		p = st.GetTouchDownPtr();
+	if(st.CheckDraggingOffset(p))
+	{
+	// TODO: Analyze buffered coordinate delayed painting bug.
+	//	if(st.LastControlLocation != st.ControlLocation)
+	//	{
+	// TODO: Merge state to make a more efficient implementation.
+		Invalidate(*p);
+		SetLocationOf(*p, st.LastControlLocation + st.DraggingOffset);
+	//	}
+	}
+}
+
+} // unnamed namespace;
+
 
 EventMapping::ItemType&
 Controller::GetItemRef(const VisualEvent& id, EventMapping::MappedType(&f)())
@@ -95,45 +138,16 @@ void
 OnTouchHeld_Dragging(CursorEventArgs&& e)
 {
 	if(e.Strategy == RoutedEventArgs::Direct)
-	{
-		auto& st(FetchGUIState());
-
-		if(st.GetTouchDownPtr())
-		{
-			auto& wgt(*st.GetTouchDownPtr());
-
-		// TODO: Analysis buffered coordinate delayed painting bug.
-		//	if(st.LastControlLocation != st.ControlLocation)
-		//	{
-		// TODO: Merge state to make a more efficient implementation.
-			Invalidate(wgt);
-			SetLocationOf(wgt, st.LastControlLocation + st.DraggingOffset);
-		//	}
-		}
-	}
+		TouchHeld_DragWidget();
 }
 
-namespace
+void
+OnTouchHeld_DraggingRaw(CursorEventArgs&& e, IWidget& wgt)
 {
-
-IWidget*
-FetchEnabledBoundControlPtr(KeyEventArgs&& e)
-{
-	try
-	{
-		auto pCtl(dynamic_cast<Control&>(e.GetSender()).BoundControlPtr(
-			e.GetKeys()));
-
-		return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
-	}
-	catch(std::bad_function_call&)
-	{}
-	catch(std::bad_cast&)
-	{}
-	return nullptr;
+	if(e.Strategy == RoutedEventArgs::Direct)
+		TouchHeld_DragWidget(&wgt);
 }
 
-} // unnamed namespace;
 
 void
 OnKey_Bound_TouchUp(KeyEventArgs&& e)

@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1533
-\author FrankHB<frankhb1989@gmail.com>
+\version r1538
+\author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-06-25 00:51 +0800
+	2013-08-02 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,15 +41,14 @@ YSL_BEGIN_NAMESPACE(Drawing)
 \brief Alpha 光栅化源迭代器对。
 \since build 417
 */
-typedef ystdex::pair_iterator<ConstBitmapPtr, const AlphaType*>
-	IteratorPair;
+using IteratorPair = ystdex::pair_iterator<ConstBitmapPtr, const AlphaType*>;
 
 /*!
 \brief Alpha 单色光栅化源迭代器对。
 \since build 417
 */
-typedef ystdex::pair_iterator<ystdex::pseudo_iterator<const PixelType>,
-	const AlphaType*> MonoIteratorPair;
+using MonoIteratorPair = ystdex::pair_iterator<
+	ystdex::pseudo_iterator<const PixelType>, const AlphaType*>;
 
 
 //基本仿函数。

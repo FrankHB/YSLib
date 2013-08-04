@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r440
+\version r443
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2013-07-18 21:44 +0800
+	2013-08-02 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,8 +99,8 @@ class HexView
 public:
 	static yconstexpr size_t ItemPerLine = 8; //!< 每行数据总数（字节）。
 
-	typedef std::uintptr_t IndexType; //!< 索引类型。
-	typedef vector<char> DataType; //!< 显示数据类型。
+	using IndexType = std::uintptr_t; //!< 索引类型。
+	using DataType = vector<char>; //!< 显示数据类型。
 
 protected:
 	Drawing::TextState TextState; //!< 文本状态。
@@ -149,7 +149,7 @@ public:
 	\note bool 参数表示主动定位视图。
 	\since build 269
 	*/
-	typedef GValueEventArgs<bool> ViewArgs;
+	using ViewArgs = GValueEventArgs<bool>;
 	/*!
 	\brief 视图事件委托类型。
 	\since build 269

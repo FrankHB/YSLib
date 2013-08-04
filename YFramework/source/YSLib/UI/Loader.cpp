@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 UI 加载。
-\version r159
+\version r194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2013-08-02 01:11 +0800
+	2013-08-03 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,14 +58,19 @@ ParseRect(const string& str)
 }
 
 
-template GWidgetCreatorMap<unique_ptr<IWidget>(*)()>&
-FetchWidgetMapping();
-template GWidgetCreatorMap<unique_ptr<IWidget>(*)(const Rect&)>&
-FetchWidgetMapping();
+IWidget&
+AccessWidget(const ValueNode& node)
+{
+	const auto& p(AccessChild<shared_ptr<IWidget>>(node, "$pointer"));
+
+	YAssert(bool(p), "Null pointer found.");
+
+	return *p;
+}
 
 
 unique_ptr<IWidget>
-DetectWidgetNode(const ValueNode& node)
+WidgetLoader::DetectWidgetNode(const ValueNode& node)
 {
 	try
 	{
@@ -76,20 +81,40 @@ DetectWidgetNode(const ValueNode& node)
 			{
 				const Rect& bounds(ParseRect(*p_bounds_str));
 
-				return CreateWidget(type_str, bounds);
+				return Bounds.CreateWidget(type_str, bounds);
 			}
 			catch(std::invalid_argument&)
 			{}
-		return CreateWidget(type_str);
+		return Default.CreateWidget(type_str);
 	}
 	catch(ystdex::bad_any_cast&)
 	{}
 	return {};
 }
 
+ValueNode
+WidgetLoader::LoadUILayout(const string& str)
+{
+	using namespace NPL;
+	ValueNode root;
+
+	try
+	{
+		root = TransformConfiguration(SContext::Analyze(Session(str)));
+	}
+	catch(ystdex::bad_any_cast& e)
+	{
+		// TODO: Avoid memory allocation.
+		throw LoggedEvent(ystdex::sfmt(
+			"Bad configuration found: cast failed from [%s] to [%s] .",
+			e.from(), e.to()), Warning);
+	}
+//	return std::move(root);
+	return TransformUILayout(std::move(root));
+}
 
 ValueNode
-TransformUILayout(const ValueNode& node)
+WidgetLoader::TransformUILayout(const ValueNode& node)
 {
 	if(unique_ptr<IWidget> p_new_widget{DetectWidgetNode(node)})
 	{
@@ -121,37 +146,6 @@ TransformUILayout(const ValueNode& node)
 		return std::move(res);
 	}
 	return {};
-}
-
-ValueNode
-ConvertUILayout(const string& str)
-{
-	using namespace NPL;
-	ValueNode root;
-
-	try
-	{
-		root = TransformConfiguration(SContext::Analyze(Session(str)));
-	}
-	catch(ystdex::bad_any_cast& e)
-	{
-		// TODO: Avoid memory allocation.
-		throw LoggedEvent(ystdex::sfmt(
-			"Bad configuration found: cast failed from [%s] to [%s] .",
-			e.from(), e.to()), Warning);
-	}
-//	return std::move(root);
-	return TransformUILayout(std::move(root));
-}
-
-IWidget&
-AccessWidget(const ValueNode& node)
-{
-	const auto& p(AccessChild<shared_ptr<IWidget>>(node, "$pointer"));
-
-	YAssert(bool(p), "Null pointer found.");
-
-	return *p;
 }
 
 YSL_END_NAMESPACE(UI)

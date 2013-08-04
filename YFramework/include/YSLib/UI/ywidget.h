@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的图形用户界面部件。
-\version r5493
+\version r5495
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-12 00:38 +0800
+	2013-08-02 13:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,12 +41,12 @@ YSL_BEGIN_NAMESPACE(UI)
 \brief 通用部件迭代器。
 \since build 356
 */
-typedef ystdex::any_input_iterator<IWidget> WidgetIterator;
+using WidgetIterator = ystdex::any_input_iterator<IWidget>;
 /*!
 \brief 两个部件迭代器组成的左闭右开区间确定的迭代器范围。
 \since build 357
 */
-typedef pair<WidgetIterator, WidgetIterator> WidgetRange;
+using WidgetRange = pair<WidgetIterator, WidgetIterator>;
 
 
 /*!

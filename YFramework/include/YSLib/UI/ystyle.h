@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r404
+\version r412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-07-09 05:22 +0800
+	2013-08-02 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,14 +91,14 @@ transform_pixel_ex(BitmapPtr dst)
 \note 角度制，值 360 对应一个圆周。
 \since build 302
 */
-typedef ystdex::fixed_point<u16, 9> Hue;
+using Hue = ystdex::fixed_point<u16, 9>;
 
 
 /*!
 \brief HSL 颜色。
-\since build 196
+\since build 433
 */
-typedef struct
+struct hsl_t
 {
 	/*!
 	\brief 色调。
@@ -111,7 +111,7 @@ typedef struct
 	\since build 276
 	*/
 	float s, l;
-} hsl_t;
+};
 
 /*!
 \brief RGB 颜色转换为 HSL 颜色。
@@ -178,8 +178,8 @@ enum Area
 class YF_API Palette
 {
 public:
-	typedef Drawing::Color ItemType; //项目类型。
-	typedef vector<ItemType> ColorListType; //颜色组类型。
+	using ItemType = Drawing::Color; //项目类型。
+	using ColorListType = vector<ItemType>; //颜色组类型。
 
 private:
 	ColorListType colors; //颜色组。
