@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r219
+\version r222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2013-08-02 13:03 +0800
+	2013-08-05 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "Shells.h"
 #include <YSLib/Service/AccessHistory.hpp>
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 /*!
 \brief 书签。
@@ -142,7 +143,7 @@ public:
 	using GAccessList<Bookmark>::Switch;
 };
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 
 #endif
 

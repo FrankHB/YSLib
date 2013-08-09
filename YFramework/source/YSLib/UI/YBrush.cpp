@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r170
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2013-06-26 19:41 +0800
+	2013-08-05 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,13 @@
 #include "YSLib/UI/ygui.h"
 #include "YSLib/UI/ywidget.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 void
 SolidBrush::operator()(PaintEventArgs&& e)
@@ -72,7 +74,7 @@ BorderBrush::operator()(PaintEventArgs&& e)
 		? Style.ActiveColor : Style.InactiveColor);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r411
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 195
 \par 创建时间:
 	2011-03-14 20:17:34 +0800
 \par 修改时间:
-	2013-08-02 19:15 +0800
+	2013-08-05 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "ycutil.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*!
 \brief 取指定类型的无参数构造的对象。
@@ -215,7 +216,7 @@ public:
 	}
 };
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

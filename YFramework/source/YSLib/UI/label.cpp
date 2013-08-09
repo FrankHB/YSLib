@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1289
+\version r1295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2013-03-24 21:59 +0800
+	2013-08-05 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/Service/TextLayout.h"
 #include "YSLib/UI/ywgtevt.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 MLabel::MLabel(const Drawing::Font& fnt, TextAlignment a)
 	: Font(fnt), Margin(Drawing::DefaultMargin),
@@ -147,7 +149,7 @@ MTextList::RefreshTextState()
 	yunseq(tsList.LineGap = GetVerticalOf(Margin), tsList.Font = Font);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

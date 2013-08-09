@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1007
+\version r1013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-06-17 14:19 +0800
+	2013-08-05 21:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 
 using namespace ystdex;
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 namespace
 {
@@ -119,7 +121,7 @@ Fill(const Graphics& g, Color c)
 	FillPixel<PixelType>(g.GetBufferPtr(), GetAreaOf(g.GetSize()), c);
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

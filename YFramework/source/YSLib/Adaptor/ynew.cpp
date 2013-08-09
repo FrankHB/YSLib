@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r958
+\version r964
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2013-03-23 21:24 +0800
+	2013-08-05 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,10 @@
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_END
+} // namespace YSLib;
 
 /*
 using YSLib::GetDebugMemoryList;
@@ -101,7 +102,8 @@ operator delete[](void* p, const std::nothrow_t&, const char* f, int l) ynothrow
 }
 */
 
-YSL_BEGIN
+namespace YSLib
+{
 
 namespace
 {
@@ -171,7 +173,7 @@ MemoryList::PrintAllDuplicate(std::FILE* stream)
 		std::bind(MemoryList::Print, std::placeholders::_1, stream));
 }
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

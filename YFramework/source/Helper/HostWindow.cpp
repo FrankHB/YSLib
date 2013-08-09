@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r316
+\version r338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-07-23 19:47 +0800
+	2013-08-08 20:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,14 +29,16 @@
 #include "Helper/GUIApplication.h" // for FetchEnvironent;
 #include "YCLib/Input.h" // for platform::ClearKeyStates;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
-#	if YCL_MINGW32
+#	if YCL_MinGW32
 Window::Window(NativeWindowHandle h)
 	: Window(h, FetchEnvironment())
 {}
@@ -69,10 +71,27 @@ Window::OnLostFocus()
 {
 	platform_ex::ClearKeyStates();
 }
+
+void
+Window::UpdateFrom(YSLib::Drawing::BitmapPtr buf, ScreenRegionBuffer& rbuf)
+{
+	const auto h_wnd(GetNativeHandle());
+
+	if(UseOpacity)
+	{
+		rbuf.Premultiply(buf);
+		rbuf.UpdatePremultipliedTo(h_wnd, Opacity);
+	}
+	else
+	{
+		rbuf.UpdateFrom(buf);
+		rbuf.UpdateTo(h_wnd);
+	}
+}
 #	endif
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 

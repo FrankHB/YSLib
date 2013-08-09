@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r148
+\version r156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-07-25 15:47 +0800
+	2013-08-08 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,12 @@
 
 #include "Helper/HostRenderer.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 /*!
 \brief 取宿主渲染器指针。
@@ -105,11 +107,11 @@ WrapRenderer(UI::Widget& wgt, _tParams&&... args)
 YF_API void
 DragWindow(Window&, UI::CursorEventArgs&&);
 
-#	if YCL_MINGW32
+#	if YCL_MinGW32
 
 /*!
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。
-\note WS_EX_LAYERED 被设置时透明，可对宿主窗口 SetOpacity 设置不透明性。
+\note WS_EX_LAYERED 被设置时默认透明，可对宿主窗口 Opacity 成员设置不透明性。
 \note 阻塞等待宿主窗口指针非空。
 \since build 430
 */
@@ -127,10 +129,10 @@ ShowTopLevel(UI::Widget&, ::DWORD = WS_POPUP, ::DWORD = WS_EX_LAYERED,
 YF_API void
 ShowTopLevelDraggable(UI::Widget&);
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.cpp
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r163
+\version r170
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-07-18 15:17 +0800
+	2013-08-05 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,17 +28,19 @@
 #include "Helper/ScreenBuffer.h"
 #include "Helper/ShellHelper.h" // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
-#	if YCL_MINGW32
+namespace Host
+{
+#	if YCL_MinGW32
 
 #	endif
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r243
+\version r246
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2013-07-26 22:18 +0800
+	2013-08-05 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "YSLib/Core/ValueNode.h"
 #include "YSLib/Service/yftext.h"
 
-YSL_BEGIN_NAMESPACE(NPL)
+namespace NPL
+{
 
 //! \since build 341
 using YSLib::string;
@@ -113,7 +114,7 @@ public:
 YF_API File&
 operator<<(File&, const Configuration&);
 
-YSL_END_NAMESPACE(NPL)
+} // namespace NPL;
 
 #endif
 

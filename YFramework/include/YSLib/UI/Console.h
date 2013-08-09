@@ -11,13 +11,13 @@
 /*!	\file Console.h
 \ingroup UI
 \brief 基于平台中立接口的控制台实现。
-\version r143
+\version r149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2011-04-19 23:00:29 +0800
 \par 修改时间:
-	2013-07-09 05:21 +0800
+	2013-08-05 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "YComponent.h"
 #include "../Core/ydevice.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 //! \brief 控制台。
 class YF_API Console
@@ -81,9 +83,9 @@ public:
 	Pause();
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

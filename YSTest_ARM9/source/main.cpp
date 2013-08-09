@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1744
+\version r1748
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-07-31 19:23 +0800
+	2013-08-05 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,8 @@
 using namespace platform;
 using std::puts;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 //调试功能。
 namespace
@@ -213,10 +214,10 @@ Repaint(Desktop& dsk)
 //@{
 //@}
 
-YSL_END
+} // namespace YSLib;
 
 int
-#if YCL_MINGW32
+#if YCL_MinGW32
 WINAPI
 WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 //WinMain(HINSTANCE hThis, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmd)

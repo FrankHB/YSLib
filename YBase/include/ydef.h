@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2349
+\version r2357
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-08-02 03:42 +0800
+	2013-08-08 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -581,9 +581,17 @@ class offsetof_check
 	static_assert(_bNoExcept, "Exception guarantee violation found.");
 };
 
+
+/*!
+\ingroup YBase_pseduo_keyword
+\brief 标记未使用的表达式。
+\note 显式转换为 void 类型以标记表达式未被作为子表达式使用，可避免某些实现的警告。
+\since build 435
+*/
+#define yunused(...) static_cast<void>(__VA_ARGS__)
+
 /*!
 \ingroup YBase_pseudo_keyword
-\def yoffsetof
 \brief 带有静态类型检查的成员偏移计算。
 \see ISO C++ 18.2/4 。
 \note 某些 G++ 和 Clang++ 版本可使用 __builtin_offsetof 及 -Winvalid-offsetof ，
@@ -594,7 +602,6 @@ class offsetof_check
 	(decltype(sizeof(ystdex::offsetof_check<std::is_member_object_pointer< \
 	decltype(&_type::_member)>::value, ynoexcept(offsetof(_type, _member)), \
 	_type>))(offsetof(_type, _member)))
-
 
 /*!
 \ingroup YBase_pseudo_keyword

@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r2625
+\version r2628
 \author FrankHB <frankhb1989@gmail.com>
 \since build 176
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2012-06-28 05:27 +0800
+	2013-08-05 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include <utility>
 #include <ystdex/memory.hpp>
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using std::bad_weak_ptr;
 using std::const_pointer_cast;
@@ -113,7 +114,7 @@ operator!=(shared_ptr<_type>&& sp, _type* p)
 	return sp.get() != p;
 }
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3656
+\version r3662
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-06-27 16:53 +0800
+	2013-08-05 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 #include "../Core/ygdibase.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 // GDI 逻辑对象。
 
@@ -466,9 +468,9 @@ BlitTo(const Graphics& dst, const CompactPixmapEx& src,
 		dp, sp, src.GetSize(), rot);
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

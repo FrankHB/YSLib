@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r225
+\version r228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-07-28 00:43 +0800
+	2013-08-05 21:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #	include <thread> // for std::this_thread::*;
 #endif
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
@@ -150,5 +151,5 @@ Execute(GUIApplication& app, shared_ptr<Shell> p_shl)
 		;
 }
 
-YSL_END
+} // namespace YSLib;
 

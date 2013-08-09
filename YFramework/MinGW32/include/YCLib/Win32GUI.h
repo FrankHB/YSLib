@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r348
+\version r390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2013-07-29 01:05 +0800
+	2013-08-09 15:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,7 @@ inline namespace Windows
 /*!
 \brief 本机窗口引用。
 \note 不具有所有权。
+\warning 非虚析构。
 \since build 427
 */
 class YF_API WindowReference
@@ -138,9 +139,13 @@ CreateNativeWindow(const wchar_t*, const YSLib::Drawing::Size&,
 
 
 /*!
+\warning 非虚析构。
+\since build 435
+*/
+//@{
+/*!
 \brief 虚拟屏幕缓存。
 \note 像素格式和 platform::PixelType 兼容。
-\since build 379
 */
 class ScreenBuffer
 {
@@ -165,8 +170,18 @@ public:
 	DefGetter(const ynothrow, const YSLib::Drawing::Size&, Size, size)
 
 	/*!
+	\brief 从缓冲区更新并按 Alpha 预乘。
+	\post ::HBITMAP 的 rgbReserved 为 0 。
+	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
+	\since build 435
+	*/
+	void
+	Premultiply(YSLib::Drawing::BitmapPtr) ynothrow;
+
+	/*!
 	\brief 从缓冲区更新。
-	\warning 直接复制，没有边界和大小检查。
+	\post ::HBITMAP 的 rgbReserved 为 0 。
+	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
 	*/
 	void
 	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
@@ -174,8 +189,8 @@ public:
 };
 
 
-//! \since build 387
-class ScreenRegionBuffer : private ScreenBuffer
+//! \brief 虚拟屏幕区域缓存。
+class YF_API ScreenRegionBuffer : private ScreenBuffer
 {
 private:
 	std::mutex mtx;
@@ -190,12 +205,21 @@ public:
 	using ScreenBuffer::GetSize;
 	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
 
+	//! \since build 435
+	using ScreenBuffer::Premultiply;
+
 	void
 	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
+
+	//! \since build 435
+	void
+	UpdatePremultipliedTo(NativeWindowHandle, YSLib::Drawing::AlphaType = 0xFF,
+		const YSLib::Drawing::Point& = {}) ynothrow;
 
 	void
 	UpdateTo(NativeWindowHandle, const YSLib::Drawing::Point& = {}) ynothrow;
 };
+//@}
 
 
 //! \since build 428
@@ -226,9 +250,24 @@ public:
 	Update(ScreenBuffer&, const YSLib::Drawing::Point& = {}) ynothrow;
 	//! \since build 387
 	void
-	Update(ScreenRegionBuffer& rbuf, const YSLib::Drawing::Point& pt = {}) ynothrow
+	Update(ScreenRegionBuffer& rbuf, const YSLib::Drawing::Point& pt = {})
+		ynothrow
 	{
 		Update(rbuf.GetScreenBufferRef(), pt);
+	}
+
+	//! \since build 435
+	void
+	UpdatePremultiplied(ScreenBuffer&, NativeWindowHandle,
+		YSLib::Drawing::AlphaType = 0xFF, const YSLib::Drawing::Point& = {})
+		ynothrow;
+	//! \since build 435
+	void
+	UpdatePremultiplied(ScreenRegionBuffer& rbuf, NativeWindowHandle h_wnd,
+		YSLib::Drawing::AlphaType a = 0xFF,
+		const YSLib::Drawing::Point& pt = {}) ynothrow
+	{
+		UpdatePremultiplied(rbuf.GetScreenBufferRef(), h_wnd, a, pt);
 	}
 };
 
@@ -290,6 +329,7 @@ protected:
 
 /*!
 \brief 显式区域表面：储存显式区域上的二维图形绘制状态。
+\warning 非虚析构。
 \since build 387
 */
 template<typename _type = WindowDeviceContext>

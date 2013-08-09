@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r575
+\version r578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2013-07-24 17:54 +0800
+	2013-08-05 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 using namespace YSLib;
 
-YSL_BEGIN_NAMESPACE(NPL)
+namespace NPL
+{
 
 ValueNode
 TransformConfiguration(const ValueNode& node)
@@ -182,5 +183,5 @@ operator>>(TextFile& tf, Configuration& conf)
 	return tf;
 }
 
-YSL_END_NAMESPACE(NPL)
+} // namespace NPL;
 

@@ -10,14 +10,14 @@
 
 /*!	\file ywidget.cpp
 \ingroup UI
-\brief 样式无关的图形用户界面部件。
-\version r4322
+\brief 样式无关的 GUI 部件。
+\version r4329
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-31 02:25 +0800
+	2013-08-08 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/UI/YBrush.h"
 #include "YSLib/UI/YGUI.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 bool
 Contains(const IWidget& wgt, SPos x, SPos y)
@@ -212,7 +214,7 @@ Widget::Refresh(PaintEventArgs&& e)
 	}
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

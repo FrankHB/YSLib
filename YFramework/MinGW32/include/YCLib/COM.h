@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r426
+\version r427
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2013-06-11 12:31 +0800
+	2013-08-08 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -383,7 +383,7 @@ Attach(COMPtr<_iCOM>& ptr, typename COMPtr<_iCOM>::InterfaceType* p) ynothrow
 	{
 		const auto ref(p_interface->Release());
 
-		static_cast<void>(ref);
+		yunused(ref);
 
 		yassume(ref != 0 || p_interface != p);
 	}

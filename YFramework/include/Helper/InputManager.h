@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r126
+\version r132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2013-03-13 13:26 +0800
+	2013-08-05 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "Helper/yglobal.h"
 #include "YSLib/UI/ygui.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Devices)
+namespace Devices
+{
 
 /*!
 \brief 输入管理器。
@@ -79,9 +81,9 @@ public:
 	Update();
 };
 
-YSL_END_NAMESPACE(Devices)
+} // namespace Devices;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

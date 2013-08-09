@@ -10,14 +10,14 @@
 
 /*!	\file uicontx.h
 \ingroup UI
-\brief 样式无关的图形用户界面附加容器。
-\version r326
+\brief 样式无关的 GUI 附加容器。
+\version r333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2013-08-02 12:58 +0800
+	2013-08-08 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include "button.h"
 #include "WidgetIteration.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 对话框。
@@ -87,9 +89,9 @@ public:
 	DialogPanel(const Rect& = {});
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

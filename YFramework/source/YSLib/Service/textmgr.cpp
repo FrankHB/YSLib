@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3728
+\version r3734
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-04-24 15:35 +0800
+	2013-08-05 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 #include <ystdex/any_iterator.hpp>
 #include "CHRLib/Convert.hpp"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Text)
+namespace Text
+{
 
 namespace
 {
@@ -278,7 +280,7 @@ CopySliceFrom(TextFileBuffer& buf, size_t pos, size_t len)
 	return std::move(str);
 }
 
-YSL_END_NAMESPACE(Text)
+} // namespace Text;
 
-YSL_END
+} // namespace YSLib;
 

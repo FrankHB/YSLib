@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r540
+\version r546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2013-06-05 18:29 +0800
+	2013-08-05 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,12 +27,14 @@
 
 #include "HexBrowser.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 using namespace Text;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 HexView::HexView(FontCache& fc)
 	: TextState(fc), item_num(0), datCurrent()
@@ -202,7 +204,7 @@ HexViewArea::UpdateView(bool is_active)
 	Invalidate(*this);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

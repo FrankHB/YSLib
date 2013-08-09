@@ -11,13 +11,13 @@
 /*!	\file ReaderSetting.h
 \ingroup YReader
 \brief 阅读器设置。
-\version r331
+\version r334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:41 +0800
 \par 修改时间:
-	2013-04-19 08:17 +0800
+	2013-08-05 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "Shells.h"
 #include <YSLib/Core/ValueNode.h>
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 /*!
 \brief 阅读器设置。
@@ -78,7 +79,7 @@ public:
 	//@}
 };
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 
 #endif
 

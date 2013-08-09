@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2903
+\version r2909
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-08-04 19:01 +0800
+	2013-08-05 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,17 +38,19 @@
 #include <YCLib/Input.h>
 #include <YSLib/UI/Loader.h>
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using ResourceIndex = decltype(__LINE__);
 using ResourceMap = map<ResourceIndex, ValueObject>;
 
 #define DeclResource(_name) const ResourceIndex _name(__LINE__);
 
-YSL_END
+} // namespace YSLib;
 
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 #define G_COMP_NAME u"Franksoft"
 #define G_APP_NAME u"YReader"
@@ -89,7 +91,7 @@ FetchImageLoadTime();
 WidgetLoader&
 FetchWidgetLoader();
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 
 #endif
 

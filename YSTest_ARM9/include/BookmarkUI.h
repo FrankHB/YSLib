@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.h
 \ingroup YReader
 \brief 书签界面。
-\version r102
+\version r105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:11:46 +0800
 \par 修改时间:
-	2013-04-20 16:45 +0800
+	2013-08-05 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "ReadingList.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 //! \since build 394
 class ShlTextReader;
@@ -71,7 +72,7 @@ public:
 	LoadBookmarks();
 };
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 
 #endif
 

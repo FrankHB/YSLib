@@ -10,14 +10,14 @@
 
 /*!	\file Loader.h
 \ingroup UI
-\brief 动态 UI 加载。
-\version r332
+\brief 动态 GUI 加载。
+\version r339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2013-08-04 19:02 +0800
+	2013-08-08 05:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "ywidget.h"
 #include "../Core/ValueNode.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 //! \since build 433
 YF_API Rect
@@ -157,8 +159,8 @@ private:
 	{
 		YAssert(first == last, "Wrong size of initializer list found.");
 
-		static_cast<void>(first),
-		static_cast<void>(last);
+		yunused(first),
+		yunused(last);
 	}
 	template<typename _tIn, class _tWidget, class... _tWidgets>
 	void
@@ -205,9 +207,9 @@ public:
 	{}
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

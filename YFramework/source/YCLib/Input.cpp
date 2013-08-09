@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r204
+\version r206
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2013-07-14 19:47 +0800
+	2013-08-05 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,7 @@ UpdateKeyStates()
 #endif
 #if YCL_DS
 	KeyState = ::keysCurrent();
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 	// NOTE: 0x00 and 0xFF should be invalid.
 	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		pKeyState->set(i, ::GetAsyncKeyState(i) & 0x8000);
@@ -154,7 +154,7 @@ WriteCursor(platform::CursorInfo& tp)
 	else
 		// NOTE: %YSLib::Point::Invalid.
 		yunseq(tp.px = std::uint16_t(-1), tp.py = std::uint16_t(-1));
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 	::GetCursorPos(&tp);
 #else
 #	error "Unsupported platform found."

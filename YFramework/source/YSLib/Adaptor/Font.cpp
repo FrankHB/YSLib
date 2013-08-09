@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3326
+\version r3332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-07-24 18:25 +0800
+	2013-08-05 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,11 +44,13 @@
 using namespace ystdex;
 using namespace platform;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace IO;
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 //! \since build 420
 namespace
@@ -565,7 +567,7 @@ Font::SetStyle(FontStyle fs)
 	return false;
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

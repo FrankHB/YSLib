@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2010 - 2012.
+	Copyright by FrankHB 2010 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,26 +11,27 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r748
-\author FrankHB<frankhb1989@gmail.com>
+\version r756
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-09 20:43:52 +0800
 \par 修改时间:
-	2012-09-04 12:24 +0800
-\par 字符集:
+	2013-08-05 21:00 +0800
+\par 文本编码:
 	UTF-8
 \par 模块名称:
 	YSLib::Core::YCounter
 */
 
 
-#ifndef YSL_INC_CORE_YCOUNTER_H_
-#define YSL_INC_CORE_YCOUNTER_H_ 1
+#ifndef YSL_INC_Core_ycounter_hpp_
+#define YSL_INC_Core_ycounter_hpp_ 1
 
 #include "ysdef.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*!
 \brief 模板类实例计数器。
@@ -128,7 +129,7 @@ count_t GMCounter<_type, count_t>::nCount(0);
 template<class _type, typename count_t>
 count_t GMCounter<_type, count_t>::nTotal(0);
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

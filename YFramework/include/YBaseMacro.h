@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2457
+\version r2463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-06-02 18:08 +0800
+	2013-08-08 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,15 +31,6 @@
 #include <ydef.h>
 
 //! \todo 检查语言实现的必要支持：可变参数宏。
-
-
-// YSLib 命名空间宏。
-
-#define YSL_BEGIN	namespace YSLib {
-#define YSL_END		}
-
-#define YSL_BEGIN_NAMESPACE(_n)	namespace _n {
-#define YSL_END_NAMESPACE(_n)	}
 
 
 /*	\defgroup cmacro Macros For Code Compressing
@@ -186,7 +177,7 @@ _t type
 // NOTE: GCC complains about 'void(yunseq(__VA_ARGS__))'.
 #define ImplUnseq(...) \
 	{ \
-		static_cast<void>(yunseq(__VA_ARGS__)); \
+		yunused(yunseq(__VA_ARGS__)); \
 	}
 
 //基类同名函数映射和成员同名函数映射实现。

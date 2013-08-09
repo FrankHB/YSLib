@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r582
+\version r588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2013-07-04 07:29 +0800
+	2013-08-05 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/Service/yblit.h"
 #include "YSLib/UI/ygui.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 namespace
 {
@@ -156,7 +158,7 @@ CheckButton::Refresh(PaintEventArgs&& e)
 	e.ClipArea = Rect(pt, GetSizeOf(*this));
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

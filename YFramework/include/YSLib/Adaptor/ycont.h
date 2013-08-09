@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r666
+\version r672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-08-02 04:09 +0800
+	2013-08-05 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,8 @@
 #ifdef YSL_USE_FLEX_STRING
 #	include <loki/flex/flex_string_shell.h>
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*
 #	ifdef YSL_USE_YASLI_VECTOR
@@ -53,7 +54,7 @@ YSL_BEGIN
 #		include <loki/flex/cowstringopt.h>
 #	endif
 
-YSL_END
+} // namespace YSLib;
 
 #else
 //#	include <string>
@@ -81,7 +82,8 @@ YSL_END
 #include <queue>
 #include <stack>
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using std::forward_as_tuple;
 using std::get;
@@ -158,7 +160,7 @@ using string = GSStringTemplate<char>::basic_string;
 using ucs2string = GSStringTemplate<CHRLib::ucs2_t>::basic_string;
 using ucs4string = GSStringTemplate<CHRLib::ucs4_t>::basic_string;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

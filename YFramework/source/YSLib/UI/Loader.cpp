@@ -10,14 +10,14 @@
 
 /*!	\file Loader.cpp
 \ingroup UI
-\brief 动态 UI 加载。
-\version r194
+\brief 动态 GUI 加载。
+\version r201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2013-08-03 13:45 +0800
+	2013-08-08 05:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "NPL/SContext.h"
 #include "NPL/Configuration.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 Rect
 ParseRect(const string& str)
@@ -148,7 +150,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 	return {};
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file About.h
 \ingroup YReader
 \brief 关于界面。
-\version r53
+\version r56
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:07:32 +0800
 \par 修改时间:
-	2013-08-04 19:28 +0800
+	2013-08-05 21:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "Shells.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 /*!
 \brief 关于窗体。
@@ -46,7 +47,7 @@ public:
 	FrmAbout();
 };
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 
 #endif
 

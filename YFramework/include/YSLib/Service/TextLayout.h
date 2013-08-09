@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2625
+\version r2633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-04 23:42 +0800
+	2013-08-05 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,14 +25,16 @@
 */
 
 
-#ifndef YSL_INC_SERVICE_TEXTLAYOUT_H_
-#define YSL_INC_SERVICE_TEXTLAYOUT_H_ 1
+#ifndef YSL_INC_Service_TextLayout_h_
+#define YSL_INC_Service_TextLayout_h_ 1
 
 #include "TextRenderer.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 /*!
 \brief 取指定文本状态和文本区域高调整的底边距。
@@ -196,9 +198,9 @@ FetchMaxTextWidth(const Font& font, _tIn first, _tIn last)
 	return max_width;
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -10,14 +10,14 @@
 
 /*!	\file yrender.cpp
 \ingroup UI
-\brief 样式无关的图形用户界面部件渲染器。
-\version r616
+\brief 样式无关的 GUI 部件渲染器。
+\version r623
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-07-11 08:58 +0800
+	2013-08-08 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/UI/ycontrol.h"
 #include "YSLib/Service/ygdi.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 Rect
 Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
@@ -131,7 +133,7 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 	return {};
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

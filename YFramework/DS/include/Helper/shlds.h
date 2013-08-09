@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1316
+\version r1328
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-07-16 10:27 +0800
+	2013-08-06 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 
 #include "Helper/GUIShell.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Shells)
+namespace Shells
+{
 
 /*!
 \brief 标准命令行界面 Shell 。
@@ -62,10 +64,11 @@ public:
 	}
 };
 
-YSL_END_NAMESPACE(Shells)
+} // namespace Shells;
 
 
-YSL_BEGIN_NAMESPACE(DS)
+namespace DS
+{
 
 /*!
 \brief 以默认屏幕复位两个桌面。
@@ -177,13 +180,14 @@ public:
 
 //@}
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END_NAMESPACE(DS)
+} // namespace DS;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

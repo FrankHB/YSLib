@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r697
+\version r701
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-08-02 04:17 +0800
+	2013-08-05 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ yconstfn PDefH(PixelType, FetchPixel,
 #	define DefColorH_(hex, name) name = \
 	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
 	| 1 << 15)
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 	/*!
 	\brief 标识 XYZ888 像素格式。
 	\note 值表示按整数表示的顺序从高位到低位为 ARGB 。
@@ -224,11 +224,11 @@ public:
 #if YCL_DS
 		: r(px << 3 & 248), g(px >> 2 & 248), b(px >> 7 & 248),
 		a(FetchAlpha(px) ? 0xFF : 0x00)
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 		: r(px.rgbRed), g(px.rgbGreen), b(px.rgbBlue), a(px.rgbReserved)
 #endif
 	{}
-#if YCL_MINGW32
+#if YCL_MinGW32
 	/*!
 	\brief 构造：使用默认颜色。
 	\since build 319
@@ -267,7 +267,7 @@ public:
 	{
 #if YCL_DS
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 		return {b, g, r, a};
 #endif
 	}

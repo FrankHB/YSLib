@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4428
+\version r4433
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-08-01 12:24 +0800
+	2013-08-08 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #include "ShlExplorer.h"
 #include <NPL/Lexical.h>
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 namespace
 {
@@ -649,14 +650,14 @@ ShlTextReader::UpdateButtons()
 void
 ShlTextReader::OnClick(CursorEventArgs&& e)
 {
-#if YCL_MINGW32
+#if YCL_MinGW32
 	if(e.Keys[VK_RBUTTON])
 	{
 		ShowMenu(1U, e);
 		return;
 	}
 #else
-	static_cast<void>(e);
+	yunused(e);
 #endif
 	if(tmrScrollActive)
 		StopAutoScroll();
@@ -802,5 +803,5 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 	RequestFocusCascade(HexArea);
 }
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 

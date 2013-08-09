@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1660
+\version r1672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-08-02 03:51 +0800
+	2013-08-05 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include "YSLib/Service/ytimer.h" // for Timers::HighResolutionClock;
 #include "YSLib/UI/textlist.h" // for UI::TextList::ListType;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #ifndef NDEBUG
 /*!
@@ -84,7 +85,8 @@ public:
 };
 
 
-YSL_BEGIN_NAMESPACE(Text)
+namespace Text
+{
 
 /*!
 \brief 编码信息项目。
@@ -102,7 +104,7 @@ yconstexpr EncodingInfoItem Encodings[] = {{CharSet::UTF_8, u"UTF-8"},
 	{CharSet::UTF_32BE, u"UTF-32 Big Endian"},
 	{CharSet::UTF_32LE, u"UTF-16 Little Endian"}};
 
-YSL_END_NAMESPACE(Text)
+} // namespace Text;
 
 
 /*!
@@ -283,7 +285,8 @@ ResetDesktop(Desktop& dsk, Devices::Screen& scr)
 
 //资源相关定义和函数。
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 //! \since build 360
 inline Color
@@ -337,7 +340,7 @@ CreateRawBitmap(const _tPixel* s, size_t n)
 	return nullptr;
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
 /*!
 \brief 从全局消息队列中移除所有后台消息。
@@ -425,7 +428,8 @@ public:
 
 //@}
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 切换部件显示状态并无效化。
@@ -497,10 +501,10 @@ SetBufferRendererAndText(_tWidget& wgt, const String& s)
 	wgt.Text = s;
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

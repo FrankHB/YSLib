@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r455
+\version r461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-07-09 04:58 +0800
+	2013-08-05 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include "Helper/ShellHelper.h"
 #include <cstdio> // for std::sprintf;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #ifndef NDEBUG
 DebugTimer::DebugTimer(const std::string& str)
@@ -133,7 +134,8 @@ FPSCounter::Refresh()
 	return 0;
 }
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 void
 SwitchVisible(IWidget& wgt)
@@ -142,7 +144,7 @@ SwitchVisible(IWidget& wgt)
 	Invalidate(wgt);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

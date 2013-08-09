@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3135
+\version r3144
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-07-31 19:12 +0800
+	2013-08-05 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 #include <YSLib/UI/ywindow.h>
 #include <YSLib/Service/TextLayout.h>
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 using namespace Text;
@@ -198,9 +199,11 @@ CheckOverRead(TextRegion& r)
 
 } // unnamed namespace;
 
-YSL_BEGIN_NAMESPACE(DS)
+namespace DS
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 	FontCache& fc_)
@@ -532,9 +535,9 @@ DualScreenReader::UpdateView()
 	Invalidate();
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END_NAMESPACE(DS)
+} // namespace DS;
 
-YSL_END
+} // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1779
+\version r1782
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-08-02 13:04 +0800
+	2013-08-05 19:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include "ReaderSettingUI.h"
 #include "BookmarkUI.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 class ReaderBox : public Control
 {
@@ -419,7 +420,7 @@ public:
 		const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 };
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 
 #endif
 

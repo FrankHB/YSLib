@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.cpp
 \ingroup Service
 \brief 文本布局计算。
-\version r2463
-\author FrankHB<frankhb1989@gmail.com>
+\version r2471
+\author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2012-09-04 12:50 +0800
+	2013-08-05 21:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,12 +30,14 @@
 
 using namespace ystdex;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 using namespace Text;
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 SDst
 FetchResizedBottomMargin(const TextState& ts, SDst h)
@@ -72,7 +74,7 @@ FetchCharWidth(const Font& font, ucs4_t c)
 	return font.GetAdvance(c, font.GetGlyph(c));
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

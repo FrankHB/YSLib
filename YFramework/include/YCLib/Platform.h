@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r448
+\version r450
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2013-07-14 19:41 +0800
+	2013-08-05 20:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,6 +88,7 @@
 
 /*!
 \brief MinGW32 平台。
+\since build 435
 */
 #define YCL_PLATFORM_MINGW32 0x4002
 
@@ -113,7 +114,7 @@
 #	define YCL_API_USE_UNISTD
 #	define YCL_API_USE_SYS_DIR
 #elif YCL_PLATFORM == YCL_PLATFORM_MINGW32
-#	define YCL_MINGW32 1
+#	define YCL_MinGW32 1
 #	define YCL_HOSTED 1
 #	define YCL_MULTITHREAD 1
 #else

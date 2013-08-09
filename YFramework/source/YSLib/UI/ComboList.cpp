@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3090
+\version r3096
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2013-07-03 16:30 +0800
+	2013-08-05 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/UI/ystyle.h"
 #include "YSLib/UI/ypanel.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 namespace
 {
@@ -260,7 +262,7 @@ DropDownList::Refresh(PaintEventArgs&& e)
 		Size(16, GetHeight())), 4, RDeg270, ForeColor);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

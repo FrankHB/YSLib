@@ -10,14 +10,14 @@
 
 /*!	\file button.h
 \ingroup UI
-\brief 样式相关的图形用户界面按钮控件。
-\version r2245
+\brief 样式相关的 GUI 按钮控件。
+\version r2252
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-03-23 10:31 +0800
+	2013-08-08 05:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include "label.h"
 #include "ystyle.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 基本按钮。
@@ -134,9 +136,9 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

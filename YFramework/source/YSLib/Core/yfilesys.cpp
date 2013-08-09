@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r1866
+\version r1872
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2013-06-20 10:20 +0800
+	2013-08-05 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,13 @@
 #include "YSLib/Core/yfilesys.h"
 #include <ystdex/cstring.h>
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Text;
 
-YSL_BEGIN_NAMESPACE(IO)
+namespace IO
+{
 
 Path&
 Path::operator/=(const String& fname)
@@ -187,7 +189,7 @@ ClassifyNode(const Path& pth)
 	return NodeCategory::Unknown;
 }
 
-YSL_END_NAMESPACE(IO)
+} // namespace IO;
 
-YSL_END
+} // namespace YSLib;
 

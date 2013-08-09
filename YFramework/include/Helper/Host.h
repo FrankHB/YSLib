@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r678
+\version r685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-07-29 01:21 +0800
+	2013-08-05 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,10 +34,12 @@
 #	include <atomic>
 #endif
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 /*!
 \brief 宿主环境。
@@ -68,7 +70,7 @@ private:
 	std::atomic<size_t> wnd_thrd_count;
 
 public:
-#if YCL_MINGW32
+#if YCL_MinGW32
 	/*!
 	\brief 鼠标键输入。
 	\since build 423
@@ -160,10 +162,10 @@ public:
 	UpdateRenderWindows();
 };
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

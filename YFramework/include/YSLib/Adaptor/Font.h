@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3098
+\version r3194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-08-02 03:53 +0800
+	2013-08-05 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,9 +41,11 @@
 #include FT_FREETYPE_H
 #include FT_CACHE_H
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 //前向声明。
 class Font;
@@ -654,9 +656,9 @@ public:
 	SetStyle(FontStyle);
 };
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

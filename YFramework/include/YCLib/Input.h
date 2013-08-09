@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r404
+\version r405
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2013-07-14 13:26 +0800
+	2013-08-05 20:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ struct YF_API CursorInfo final
 	 : public ::touchPosition
 #	define YCL_CURSOR_X px
 #	define YCL_CURSOR_Y py
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 	 : public ::POINT
 #	define YCL_CURSOR_X x
 #	define YCL_CURSOR_Y y

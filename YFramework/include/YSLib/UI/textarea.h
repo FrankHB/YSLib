@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r442
+\version r448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2013-03-13 13:19 +0800
+	2013-08-05 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 //#include "../Core/yres.h"
 #include "../Service/TextRenderer.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 文本区域。
@@ -95,9 +97,9 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

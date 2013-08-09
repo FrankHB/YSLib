@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r288
+\version r294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-07-22 10:55 +0800
+	2013-08-05 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "YSLib/Service/ygdi.h"
 #include <CHRLib/chrproc.h> // for CHRLib::ToASCII;
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 //! \since build 430
 static_assert(int(SamplingFilter::Box) == FILTER_BOX && int(
@@ -250,7 +252,7 @@ ImageCodec::Convert(const HBitmap& pixmap)
 #endif
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

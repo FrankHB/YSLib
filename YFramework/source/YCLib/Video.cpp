@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r333
+\version r334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-08-02 13:02 +0800
+	2013-08-05 21:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 		bg_palette[0]	= bc | BITALPHA;
 		bg_palette[255]	= fc | BITALPHA;
 	}
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 YConsoleInit(std::uint8_t, Color, Color)
 {
 // TODO: Implementation.

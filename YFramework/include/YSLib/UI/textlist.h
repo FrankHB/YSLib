@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r665
+\version r671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2013-08-02 12:57 +0800
+	2013-08-05 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,11 @@
 #include "label.h"
 #include "viewer.hpp"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 索引事件。
@@ -342,9 +344,9 @@ ResizeForContent(TextList&);
 YF_API void
 UpdateView(TextList&, bool is_active = {});
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

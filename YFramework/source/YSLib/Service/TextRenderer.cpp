@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2669
+\version r2676
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-27 16:36 +0800
+	2013-08-08 11:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,14 @@
 
 using namespace ystdex;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 using namespace Text;
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 namespace
 {
@@ -57,7 +59,7 @@ ClipChar(const Graphics& g, const Point& pen, const CharBitmap& cbmp, Rect r)
 SDst
 FetchBMPSrcWidth(const CharBitmap& cbmp)
 {
-	SDst abs_pitch(std::abs(cbmp.GetPitch()));
+	const SDst abs_pitch(std::abs(cbmp.GetPitch()));
 
 	switch(cbmp.GetFormat())
 	{
@@ -254,7 +256,7 @@ DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,
 	BlitTo(g.GetBufferPtr(), tr, g.GetSize(), Point(), pt, s);
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

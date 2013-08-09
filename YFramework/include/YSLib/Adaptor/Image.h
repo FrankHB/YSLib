@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r304
+\version r310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-08-02 03:54 +0800
+	2013-08-05 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,9 +39,11 @@ struct FIBITMAP;
 //! \since build 417
 struct FIMEMORY;
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 //! \since build 418
 class CompactPixmap;
@@ -255,9 +257,9 @@ public:
 //	Convert(HBitmap&&);
 };
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

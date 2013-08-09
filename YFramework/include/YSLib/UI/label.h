@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1300
+\version r1306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2013-08-02 12:56 +0800
+	2013-08-05 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,11 @@
 #include "../Core/ystring.h"
 #include "../Service/TextBase.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 //文本对齐样式。
 enum class TextAlignment
@@ -221,9 +223,9 @@ public:
 	RefreshTextState();
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

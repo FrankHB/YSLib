@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1202
+\version r1214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-07-29 01:19 +0800
+	2013-08-05 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,14 +28,15 @@
 #include "Helper/Host.h"
 #include "Helper/ShellHelper.h" // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
 namespace
 {
 
-#if YCL_MINGW32 && 0
+#if YCL_MinGW32 && 0
 yconstexpr double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 #endif
@@ -44,12 +45,13 @@ std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 namespace
 {
 
-#	if YCL_MINGW32
+#	if YCL_MinGW32
 ::LRESULT CALLBACK
 WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 {
@@ -113,11 +115,11 @@ Environment::Environment()
 	: wnd_map(), wmap_mtx()
 #	if YCL_MULTITHREAD == 1
 	, wnd_thrd_count(),
-#		if YCL_MINGW32
+#		if YCL_MinGW32
 	RawMouseButton(0),
 #		endif
 	ExitOnAllWindowThreadCompleted()
-#		if YCL_MINGW32
+#		if YCL_MinGW32
 	, window_class(WindowClassName, WndProc)
 #		endif
 #	endif
@@ -137,7 +139,7 @@ Environment::~Environment()
 Window*
 Environment::GetForegroundWindow() const ynothrow
 {
-#ifdef YCL_MINGW32
+#ifdef YCL_MinGW32
 	return FindWindow(::GetForegroundWindow());
 #endif
 	return nullptr;
@@ -165,7 +167,7 @@ void
 Environment::HostLoop()
 {
 	YCL_DEBUG_PUTS("Host loop beginned.");
-#	if YCL_MINGW32
+#	if YCL_MinGW32
 	while(true)
 	{
 		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}}; //!< 本机消息。
@@ -221,8 +223,8 @@ Environment::UpdateRenderWindows()
 			pr.second->Refresh();
 }
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 

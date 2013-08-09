@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r970
+\version r976
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-08-02 04:04 +0800
+	2013-08-05 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,9 +36,11 @@
 #include "../Core/ysdef.h"
 #include <chrono>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Timers)
+namespace Timers
+{
 
 /*!
 \brief 高精度时钟。
@@ -152,9 +154,9 @@ public:
 inline PDefH(bool, Test, const Timer& tmr) ynothrow
 	ImplRet(HighResolutionClock::now() < tmr.GetBaseTick() + tmr.Interval)
 
-YSL_END_NAMESPACE(Timers)
+} // namespace Timers;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

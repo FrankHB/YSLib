@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1087
+\version r1093
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2013-06-28 05:23 +0800
+	2013-08-05 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,13 @@
 #include "YSLib/UI/YBrush.h"
 #include "YSLib/Service/TextRenderer.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	: TextList(r, h, FetchGUIState().Colors.GetPair(Styles::Highlight,
@@ -378,7 +380,7 @@ MenuHost::HideUnrelated(Menu& mnu, Menu& mnuParent)
 		HideAll();
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

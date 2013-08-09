@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2623
+\version r2629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2013-08-02 12:57 +0800
+	2013-08-05 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,9 +35,11 @@
 //#include "../Core/yres.h"
 //#include "ystyle.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 滚动类别。
@@ -446,9 +448,9 @@ protected:
 	FixLayout(const Size&);
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

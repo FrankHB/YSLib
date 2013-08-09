@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3114
+\version r3120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-02 13:02 +0800
+	2013-08-05 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,14 @@
 
 using namespace ystdex;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 using namespace Text;
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 namespace
 {
@@ -200,7 +202,7 @@ PutCharBase(TextState& ts, SDst eol, ucs4_t c)
 	return 2;
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

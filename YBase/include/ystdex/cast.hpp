@@ -10,14 +10,14 @@
 
 /*!	\file cast.hpp
 \ingroup YStandardEx
-\brief C++ 转换模板类。
+\brief C++ 转换模板。
 \version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2013-07-27 04:26 +0800
+	2013-08-06 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

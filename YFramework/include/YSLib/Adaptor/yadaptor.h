@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1519
+\version r1528
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2013-08-02 03:54 +0800
+	2013-08-05 20:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,8 @@
 !\brief YSLib 命名空间。
 \since 早于 build 132
 */
-YSL_BEGIN
+namespace YSLib
+{
 
 //目标平台中立接口。
 
@@ -200,7 +201,8 @@ namespace KeyCodes = platform::KeyCodes;
 using platform::KeyInput;
 
 //! \brief 图形处理。
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 using platform::PixelType;
 using platform::BitmapPtr;
@@ -220,9 +222,10 @@ using platform::AlphaType;
 using platform::Color;
 namespace ColorSpace = platform::ColorSpace;
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(IO)
+namespace IO
+{
 //文件系统抽象。
 /*!
 \brief 本机路径字符类型。
@@ -245,9 +248,9 @@ using platform::GetRootNameLength;
 //文件系统常量。
 using platform::PATHSTR;
 using platform::FILENAMESTR;
-YSL_END_NAMESPACE(IO)
+} // namespace IO;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

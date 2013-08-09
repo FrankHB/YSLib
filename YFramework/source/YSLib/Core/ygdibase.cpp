@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r595
+\version r601
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2013-08-01 12:24 +0800
+	2013-08-05 21:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/Core/ycutil.h"
 #include <ystdex/algorithm.hpp>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 const Size Size::Invalid(std::numeric_limits<SDst>::lowest(),
 		std::numeric_limits<SDst>::lowest());
@@ -122,7 +124,7 @@ Graphics::at(size_t r) const ythrow(GeneralEvent, std::out_of_range)
 	return pBuffer + r * sGraphics.Width;
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

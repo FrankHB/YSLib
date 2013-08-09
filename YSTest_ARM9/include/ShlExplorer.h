@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r111
+\version r114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-07-16 15:49 +0800
+	2013-08-05 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "About.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 //! \since build 429
 class SwitchScreensButton : public Button
@@ -95,7 +96,7 @@ private:
 	GetBoundControlPtr(const KeyInput&);
 };
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 
 #endif
 

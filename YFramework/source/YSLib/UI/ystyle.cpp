@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r650
+\version r662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-08-02 13:03 +0800
+	2013-08-05 21:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 using namespace ystdex;
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 bool
 DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
@@ -219,11 +221,13 @@ HSLToColor(hsl_t c)
 	return Color(dc[0], dc[1], dc[2]);
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
-YSL_BEGIN_NAMESPACE(Styles)
+namespace Styles
+{
 
 Palette::Palette()
 	: colors{
@@ -266,9 +270,9 @@ Palette::GetPair(Palette::ColorListType::size_type n1,
 	return make_pair(colors[n1], colors[n2]);
 }
 
-YSL_END_NAMESPACE(Styles)
+} // namespace Styles;
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

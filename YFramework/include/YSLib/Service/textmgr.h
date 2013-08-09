@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3777
+\version r3783
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-08-02 04:03 +0800
+	2013-08-05 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include "yftext.h"
 #include "../Adaptor/ycont.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Text)
+namespace Text
+{
 
 /*
 \brief 文本文件块缓冲区。
@@ -220,9 +222,9 @@ operator!=(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator y)
 YF_API string
 CopySliceFrom(TextFileBuffer&, size_t, size_t) ythrow(std::out_of_range);
 
-YSL_END_NAMESPACE(Text)
+} // namespace Text;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

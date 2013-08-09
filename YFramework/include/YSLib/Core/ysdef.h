@@ -16,13 +16,13 @@
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version r1571
+\version r1580
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-24 15:29:11 +0800
 \par 修改时间:
-	2013-03-13 14:47 +0800
+	2013-08-05 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,17 +39,20 @@
 //间接访问类模块。
 #include "../Adaptor/yref.hpp"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 //前向声明。
 
-YSL_BEGIN_NAMESPACE(Shells)
+namespace Shells
+{
 class Shell;
-YSL_END_NAMESPACE(Shells)
+} // namespace Shells;
 
-YSL_BEGIN_NAMESPACE(Text)
+namespace Text
+{
 class String;
-YSL_END_NAMESPACE(Text)
+} // namespace Text;
 
 class Application;
 
@@ -89,7 +92,7 @@ using Text::String;
 //@{
 //@}
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

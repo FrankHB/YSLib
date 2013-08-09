@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r321
+\version r324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-08-01 12:53 +0800;
+	2013-08-05 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "YSLib/Core/ValueNode.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 const ValueNode&
 ValueNode::operator[](const string& name) const
@@ -100,5 +101,5 @@ AccessNodePtr(const ValueNode::Container& con, const string& name)
 	return i != end(con) ? &*i : nullptr;
 }
 
-YSL_END
+} // namespace YSLib;
 

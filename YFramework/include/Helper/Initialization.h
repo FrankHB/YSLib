@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r709
+\version r712
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-07-08 10:54 +0800
+	2013-08-05 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include "YSLib/Service/yftext.h"
 #include "YSLib/Adaptor/Font.h" // for Drawing::FontCache;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*!
 \brief 处理致命错误：显示错误信息并终止程序。
@@ -128,7 +129,7 @@ FetchRoot();
 YF_API Drawing::FontCache&
 FetchDefaultFontCache();
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

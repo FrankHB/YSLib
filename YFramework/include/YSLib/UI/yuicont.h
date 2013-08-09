@@ -10,14 +10,14 @@
 
 /*!	\file yuicont.h
 \ingroup UI
-\brief 样式无关的图形用户界面容器。
-\version r1789
+\brief 样式无关的 GUI 容器。
+\version r1796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2013-08-02 12:59 +0800
+	2013-08-08 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "ywidget.h"
 #include <ystdex/iterator.hpp>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 取指定部件的顶层部件。
@@ -274,9 +276,9 @@ RemoveWidgets(_tCon& con, _tWidgets&... wgts)
 		std::forward<IWidget&>(wgts)...);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

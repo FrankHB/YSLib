@@ -10,14 +10,14 @@
 
 /*!	\file ywgtview.cpp
 \ingroup UI
-\brief 样式无关的图形用户界面部件。
-\version r183
+\brief 样式无关的 GUI 部件。
+\version r190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-03-13 13:23 +0800
+	2013-08-08 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,11 +27,13 @@
 
 #include "YSLib/UI/ywidget.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 Visual::Visual(const Rect& r)
 	: visible(true),
@@ -55,7 +57,7 @@ View::SetVisible(bool b)
 		visual.SetVisible(b);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

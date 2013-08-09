@@ -11,13 +11,13 @@
 /*!	\file ydesktop.cpp
 \ingroup UI
 \brief 平台无关的桌面抽象层。
-\version r1432
+\version r1438
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-02 12:00:08 +0800
 \par 修改时间:
-	2013-05-21 21:37 +0800
+	2013-08-05 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,13 @@
 #include "YSLib/UI/YBrush.h"
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 namespace
 {
@@ -74,7 +76,7 @@ Desktop::Validate()
 		{rd.GetContext(), Point(), GetBoundsOf(*this)});
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

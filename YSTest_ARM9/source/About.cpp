@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r136
+\version r139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-08-04 20:08 +0800
+	2013-08-05 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "About.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 //! \since build 434
 namespace
@@ -115,5 +116,5 @@ FrmAbout::FrmAbout()
 	SetInvalidationOf(*this);
 }
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 

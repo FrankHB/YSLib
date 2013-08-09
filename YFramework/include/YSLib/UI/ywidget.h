@@ -10,14 +10,14 @@
 
 /*!	\file ywidget.h
 \ingroup UI
-\brief 样式无关的图形用户界面部件。
-\version r5495
+\brief 样式无关的 GUI 部件。
+\version r5502
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-02 13:01 +0800
+	2013-08-08 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,11 @@
 #include "ywgtview.h"
 #include "yrender.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 通用部件迭代器。
@@ -445,9 +447,9 @@ public:
 	Refresh(PaintEventArgs&&);
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

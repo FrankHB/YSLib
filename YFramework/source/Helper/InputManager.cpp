@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r318
+\version r330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-07-31 02:24 +0800
+	2013-08-05 21:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,13 @@
 #include "Helper/HostRenderer.h" // for Host::Window, Host::RenderWindow;
 #include "Helper/GUIApplication.h" // for FetchEnvironment;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace UI;
 
-YSL_BEGIN_NAMESPACE(Devices)
+namespace Devices
+{
 
 InputManager::InputManager()
 	: GUI_state(FetchGUIState()), cursor_state()
@@ -47,7 +49,7 @@ InputManager::InputManager()
 #if YCL_DS
 #	define YCL_KEY_Touch KeyCodes::Touch
 #	define YCL_CURSOR_VALID
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
 #else
@@ -58,7 +60,7 @@ InputManager::DispatchInput(IWidget& wgt)
 {
 	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
 		VisualEvent touch_evt){
-#if YCL_MINGW32
+#if YCL_MinGW32
 		if(keyset[YCL_KEY_Touch] || keyset[VK_RBUTTON])
 #else
 		if(keyset[YCL_KEY_Touch])
@@ -81,7 +83,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	KeyInput keys(platform_ex::FetchKeyUpState());
 
 	disp(keys, KeyUp, TouchUp);
-#if YCL_MINGW32
+#if YCL_MinGW32
 	YCL_CURSOR_VALID
 	{
 		CursorEventArgs e(wgt, keys, cursor_state);
@@ -93,7 +95,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	disp(keys, KeyDown, TouchDown);
 	keys = platform_ex::FetchKeyState();
 	disp(keys, KeyHeld, TouchHeld);
-#if YCL_MINGW32
+#if YCL_MinGW32
 	const UI::WheelDelta raw_mouse(env.get().RawMouseButton);
 
 	if(raw_mouse != 0)
@@ -109,7 +111,7 @@ InputManager::DispatchInput(IWidget& wgt)
 IWidget*
 InputManager::Update()
 {
-#if YCL_MINGW32
+#if YCL_MinGW32
 	const auto p_wnd(env.get().GetForegroundWindow());
 
 	if(!p_wnd)
@@ -135,7 +137,7 @@ InputManager::Update()
 		platform_ex::WriteCursor(cursor);
 #if YCL_DS
 		cursor_state = cursor.operator Point();
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 		::ScreenToClient(p_wnd->GetNativeHandle(), &cursor);
 
 		const auto& pr(p_wnd->GetInputBounds());
@@ -159,7 +161,7 @@ InputManager::Update()
 #undef YCL_CURSOR_VALID
 #undef YCL_KEY_Touch
 
-YSL_END_NAMESPACE(Devices)
+} // namespace Devices;
 
-YSL_END
+} // namespace YSLib;
 

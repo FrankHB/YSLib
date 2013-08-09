@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1865
+\version r1888
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-07-18 21:41 +0800
+	2013-08-05 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,14 +35,15 @@
 
 //包含 YCLib 公用部分。
 #include "YCLib/ycommon.h"
-#if YCL_MINGW32
+#if YCL_MinGW32
 #	include "YCLib/MinGW32.h"
 #endif
 #include "YSLib/Core/ygdibase.h"
 #include "YSLib/Core/ymsgdef.h"
 #include "YSLib/Core/ydevice.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*!	\defgroup CustomGlobalVariables Custom Global Variables
 \ingroup GlobalObjects
@@ -54,23 +55,27 @@ YSL_BEGIN
 
 
 //前向声明。
-YSL_BEGIN_NAMESPACE(Drawing)
-YSL_END_NAMESPACE(Drawing)
+namespace Drawing
+{
+} // namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(Messaging)
-YSL_END_NAMESPACE(Messaging)
+namespace Messaging
+{
+} // namespace Messaging;
 
 //! \since build 388
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 class Desktop;
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
 #if YCL_HOSTED
 /*!
 \brief 宿主环境支持。
 \since build 378
 */
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 //! \since build 381
 class Environment;
 class Window;
@@ -85,29 +90,31 @@ class Environment;
 */
 using platform_ex::Exception;
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
 //! \brief 运行时平台。
 #if YCL_DS
-YSL_BEGIN_NAMESPACE(DS)
+namespace DS
+{
 
 using namespace platform_ex;
 
-YSL_END_NAMESPACE(DS)
-#elif YCL_MINGW32
+} // namespace DS;
+#elif YCL_MinGW32
 //! \since build 383
-YSL_BEGIN_NAMESPACE(MinGW32)
+namespace MinGW32
+{
 
 using namespace platform_ex;
 
-YSL_END_NAMESPACE(MinGW32)
+} // namespace MinGW32;
 #endif
 
 //! \since build 388
 using UI::Desktop;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

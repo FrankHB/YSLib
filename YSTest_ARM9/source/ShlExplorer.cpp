@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r635
+\version r640
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-07-16 16:06 +0800
+	2013-08-05 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include "ShlExplorer.h"
 #include "ShlReader.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 using ystdex::polymorphic_downcast;
 
@@ -154,7 +155,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
 	// TODO: Show current working directory properly.
 		btnOK.Text = u"确定(A)",
-#if YCL_MINGW32
+#if YCL_MinGW32
 		btnMenu.Text = u"菜单(P)",
 #else
 		btnMenu.Text = u"菜单(Start)",
@@ -340,7 +341,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			YSLib::PostQuitMessage(0);
 		}
 	},
-#if YCL_MINGW32
+#if YCL_MinGW32
 	m2.GetConfirmed() += [this](IndexEventArgs&& e){
 		MinGW32::TestFramework(e.Value);
 	},
@@ -391,5 +392,5 @@ ShlExplorer::GetBoundControlPtr(const KeyInput& k)
 	return nullptr;
 }
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 

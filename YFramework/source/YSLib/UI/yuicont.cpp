@@ -10,14 +10,14 @@
 
 /*!	\file yuicont.cpp
 \ingroup UI
-\brief 样式无关的图形用户界面容器。
-\version r1634
+\brief 样式无关的 GUI 容器。
+\version r1641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2013-03-13 12:53 +0800
+	2013-08-08 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,11 @@
 
 #include "YSLib/UI/ydesktop.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 IWidget&
 FetchTopLevel(IWidget& wgt)
@@ -204,7 +206,7 @@ MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 	});
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

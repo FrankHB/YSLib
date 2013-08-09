@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r82
+\version r126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2013-07-22 16:38 +0800
+	2013-08-08 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,12 +40,60 @@ Exception::Exception(const std::string& s, LevelType l) ynothrow
 namespace Windows
 {
 
-Win32Exception::Win32Exception(::DWORD e, const std::string& s, LevelType l)
+Win32Exception::Win32Exception(ErrorCode ec, const std::string& s, LevelType l)
 	ynothrow
-	: Exception(s, l),
-	err(e)
+	: Exception([&]{
+		try
+		{
+			return s + ": " + FormatMessage(ec);
+		}
+		catch(...)
+		{}
+		return s;
+	}(), l),
+	err(ec)
 {
-	YAssert(e != 0, "No error should be thrown.");
+	YAssert(ec != 0, "No error should be thrown.");
+}
+
+std::string
+Win32Exception::FormatMessage(ErrorCode ec) ynothrow
+{
+	try
+	{
+		wchar_t* buf{};
+
+		::FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER
+			| FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM, {},
+			ec, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+			reinterpret_cast<wchar_t*>(&buf), 1, {});
+
+		auto res(WCSToMBCS(buf, CP_UTF8));
+
+		::LocalFree(buf);
+		return std::move(res);
+	}
+	catch(...)
+	{}
+	return {};
+}
+
+
+bool
+CheckWine()
+{
+	try
+	{
+		RegisterKey k1(HKEY_CURRENT_USER, L"Software\\Wine");
+		RegisterKey k2(HKEY_LOCAL_MACHINE, L"Software\\Wine");
+		
+		yunused(k1),
+		yunused(k2);
+		return true;
+	}
+	catch(Win32Exception&)
+	{}
+	return false;
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1097
+\version r1100
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2013-06-05 18:44 +0800
+	2013-08-05 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include <cwctype>
 #include "../Adaptor/YTextBase.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*!
 \brief 文件基类。
@@ -276,7 +277,7 @@ operator<<(File& f, const _tString& str)
 	return f;
 }
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

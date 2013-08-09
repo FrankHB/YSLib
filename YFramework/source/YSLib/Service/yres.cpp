@@ -11,13 +11,13 @@
 /*!	\file yres.cpp
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r259
+\version r265
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2013-06-27 16:37 +0800
+	2013-08-05 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,15 +28,17 @@
 #include "YSLib/Service/yres.h"
 #include "YSLib/Core/yshell.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 Image::Image(ConstBitmapPtr s, SDst w, SDst h)
 	: CompactPixmap(s, w, h)
 {}
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

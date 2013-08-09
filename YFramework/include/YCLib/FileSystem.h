@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1022
+\version r1023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-08-02 03:52 +0800
+	2013-08-05 20:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,7 @@ using NativePathCharType = char;
 \since build 402
 */
 yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 	/*!
 	\brief 文件路径分隔符。
 	\since build 296

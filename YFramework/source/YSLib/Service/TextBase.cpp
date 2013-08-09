@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2490
+\version r2496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-01-07 02:51 +0800
+	2013-08-05 21:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,12 +30,14 @@
 
 using namespace ystdex;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 using namespace Text;
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 TextState::TextState(const Drawing::Font& font)
 	: PenStyle(font),
@@ -81,12 +83,13 @@ MovePen(TextState& ts, ucs4_t c)
 	ts.Pen.X += ts.Font.GetAdvance(c, sbit);
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(Text)
+namespace Text
+{
 
 
-YSL_END_NAMESPACE(Text)
+} // namespace Text;
 
-YSL_END
+} // namespace YSLib;
 

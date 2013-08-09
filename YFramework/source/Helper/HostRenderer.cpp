@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r142
+\version r150
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-07-29 12:34 +0800
+	2013-08-08 18:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,14 @@
 #include "Helper/Host.h" // for Host::Environment;
 //#include "Helper/GUIApplication.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 void
 RenderWindow::Refresh()
@@ -124,13 +126,12 @@ HostRenderer::Update(BitmapPtr buf)
 {
 	YAssert(GetSizeOf(widget) == rbuf.GetSize(), "Mismatched size found.");
 
-	rbuf.UpdateFrom(buf);
 	if(const auto p_wnd = GetWindowPtr())
-		rbuf.UpdateTo(p_wnd->GetNativeHandle());
+		p_wnd->UpdateFrom(buf, rbuf);
 }
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 

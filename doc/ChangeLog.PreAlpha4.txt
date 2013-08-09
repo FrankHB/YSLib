@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2138
+\version r2200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-04 20:34 +0800
+	2013-08-10 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,67 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		- "macro %(YSL_BEGIN, YSL_END, YSL_BEGIN_NAMESPACE, YSL_END_NAMESPACE)"
+			@ %'YBaseMacro',
+		/ "macro %YCL_MINGW32" @ %'YCLib'.'Platform' => "%YCL_MinGW32",
+		/ %'YCLib_(MinGW32)' $=
+		(
+			/ %'MinGW32' $=
+			(
+				* "result of '::GetLastError()' might be overriden in \
+					initializing argument of exception object before finishing \
+					checking the error code" @ "macro %YF_Raise_Win32Exception"
+					 $since b426,
+					// The initialization of %std::string object might call \
+						Win32 API and thus have effect on Win32 error code. \
+						This means '::GetLastError()' should be called before \
+						creating the exception object, or wrong error code \
+						might be initialized.
+				/ @ "class %Win32Exception" @ %'MinGW32' $=
+				(
+					+ 'typedef ::DWORD ErrorCode;';
+					+ "member function 'explicit operator ErrorCode()'",
+					(
+						+ "static member function %FormatMessage";
+						/ "initialized exception message with Win32 error \
+							message"
+					)
+				),
+				+ "class %RegisterKey; function %CheckWine" @ %'MinGW32'
+			),
+			/ %'Win32GUI' $=
+			(
+				+ "class %(ScreenBuffer; ScreenRegionBuffer)",
+				+ "alpha premultiplying support" @ "screen buffer",
+				+ "2 functions %UpdatePremultiplied"
+					@ "class %WindowMemorySurface"
+			)
+		),
+		/ %'Helper' $=
+		(
+			(
+				$dep_from %'YCLib_(MinGW32)'.'Win32GUI';
+				/ "supported host transprent by per pointer bitmap alpha value"
+					@ "class %Host::Window" @ "platform @MinGW32"
+					@ %'HostWindow' $=
+					// Top level hit test is also based on non-zero alpha value.
+				(
+					+ "member data %(UseOpacity, Opacity)",
+					+ "member function %UpdateFrom"
+				)
+			),
+			- $revert(b431) "automatically set opacity as '0xFF' when \
+				'WS_EX_LAYERED' set" @ "function %ShowTopLevel"
+				@ "platform %MinGW32" @ %'Helper'.'HostedUI'
+		)
+	),
+	+ "macro %yunused" @ %'YBase'.'YDefinition'
+),
+
+b434
 (
 	/ "all anonymous struct typedef declarations"
 		-> "named struct declarations",
@@ -77,6 +138,8 @@ $now
 		$dep_from %'YFramework'.'YSLib'.'UI';
 		+ "dynamic widget loader initialization";
 		/ DLD "implementation" @ "about window" ^ "dynamic widget"
+			// This enlarges binary significantly. Here it is not necessary, \
+				just being used as an demo.
 	)
 ),
 

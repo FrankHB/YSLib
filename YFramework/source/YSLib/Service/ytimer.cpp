@@ -11,13 +11,13 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r799
+\version r805
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-07-04 07:30 +0800
+	2013-08-05 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,11 @@
 
 #include "YSLib/Service/ytimer.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Timers)
+namespace Timers
+{
 
 namespace
 {
@@ -91,7 +93,7 @@ Activate(Timer& tmr)
 		tmr.nBase = HighResolutionClock::now();
 }
 
-YSL_END_NAMESPACE(Timers)
+} // namespace Timers;
 
-YSL_END
+} // namespace YSLib;
 

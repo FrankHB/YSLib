@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1000
+\version r1006
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-07-14 19:47 +0800
+	2013-08-08 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 
 //! \since build 341
 extern "C" int	_EXFUN(fileno, (FILE *));
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 #	include <Shlwapi.h> // for ::PathIsRelativeW;
 #endif
 
@@ -45,7 +45,7 @@ static_assert(std::is_same<CHRLib::ucs2_t, char16_t>::value,
 	"Wrong character type!");
 static_assert(std::is_same<CHRLib::ucs4_t, char32_t>::value,
 	"Wrong character type!");
-#if YCL_MINGW32
+#if YCL_MinGW32
 static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
 	"Wrong character type!");
 static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
@@ -68,7 +68,7 @@ u16_to_u(const char16_t* u16str)
 	return std::move(str);
 }
 #if YCL_DS
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 std::wstring
 u_to_w(const char* str)
 {
@@ -342,7 +342,7 @@ DirectorySession::~DirectorySession() ynothrow
 
 	YAssert(res == 0, "No valid directory found.");
 
-	static_cast<void>(res);
+	yunused(res);
 }
 
 void
@@ -376,7 +376,7 @@ HDirectory::IsDirectory() const ynothrow
 	{
 #if YCL_DS
 		return p_dirent->d_type & DT_DIR;
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 		struct ::stat st;
 
 		::wstat(p_dirent->d_name, &st);
@@ -422,7 +422,7 @@ IsAbsolute(const char* path)
 		return p && p != path && !std::strstr(p, ":/");
 	}
 	return false;
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 	return !::PathIsRelativeW(u_to_w(path).c_str());
 #else
 #	error "Unsupported platform found."

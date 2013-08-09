@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1466
+\version r1477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-08-02 13:00 +0800
+	2013-08-08 05:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "YComponent.h"
 #include "../Core/yevt.hpp"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 用户界面绘制优先级。
@@ -291,7 +293,7 @@ enum VisualEvent
 	Move, //!< 移动：位置调整。
 	Resize, //!< 大小调整。
 
-	//图形用户界面输入事件。
+	// GUI 输入事件。
 	KeyUp, //!< 键接触结束。
 	KeyDown, //!< 键接触开始。
 	KeyHeld, //!< 键接触保持。
@@ -311,7 +313,7 @@ enum VisualEvent
 	*/
 	CursorWheel,
 
-	//图形用户界面输出事件。
+	// GUI 输出事件。
 	Paint, //!< 界面绘制。
 
 	//焦点事件。
@@ -364,7 +366,8 @@ DefEventTypeMapping(Leave, HCursorEvent)
 \brief 事件映射命名空间。
 \since build 242
 */
-YSL_BEGIN_NAMESPACE(EventMapping)
+namespace EventMapping
+{
 
 using MappedType = GEventPointerWrapper<UIEventArgs&&>; //!< 映射项类型。
 using ItemType = GIHEvent<UIEventArgs&&>;
@@ -373,7 +376,7 @@ using MapType = map<VisualEvent, MappedType>; //!< 映射表类型。
 using SearchResult = pair<typename MapType::iterator, bool>; \
 	//!< 搜索表结果类型。
 
-YSL_END_NAMESPACE(EventMapping)
+} // namespace EventMapping;
 
 using VisualEventMap = EventMapping::MapType;
 
@@ -533,9 +536,9 @@ public:
 	ImplI(AController) DefClone(const override, WidgetController)
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file WidgetIteration.h
 \ingroup UI
 \brief 部件迭代接口。
-\version r173
+\version r179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 356
 \par 创建时间:
 	2012-11-25 16:36:34 +0800
 \par 修改时间:
-	2013-03-13 13:06 +0800
+	2013-08-05 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "ywidget.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*!
 \def DefSubscriptor
@@ -59,7 +60,8 @@ YSL_BEGIN
 	}
 
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \def DefWidgetSubscriptor
@@ -143,9 +145,9 @@ YSL_BEGIN_NAMESPACE(UI)
 	DefWidgetMemberIterationOperations(Iterator) \
 	DefWidgetSubscriptorBase(_tBase, __VA_ARGS__)
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r259
+\version r290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-07-19 16:39 +0800
+	2013-08-08 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,16 +29,18 @@
 #define INC_Helper_HostWindow_h_ 1
 
 #include "Helper/yglobal.h"
-#if YCL_MINGW32
+#if YCL_MinGW32
 #	include <YCLib/Win32GUI.h>
 #endif
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
-#	if YCL_MINGW32
+#	if YCL_MinGW32
 //! \since build 427
 using namespace platform_ex;
 #	endif
@@ -54,6 +56,22 @@ private:
 	std::reference_wrapper<Environment> env;
 
 public:
+	/*!
+	\brief 标记是否使用不透明性成员。
+	\note 使用 Windows 层叠窗口实现，但和 WindowReference 实现不同：使用
+		::UpdateLayeredWindows 而非 WM_PAINT 更新窗口。
+	\warning 使用不透明性成员时在此窗口上调用 ::SetLayeredWindowAttributes 、
+		GetOpacity 或 SetOpacity 可能出错。
+	\since build 435
+	*/
+	bool UseOpacity{false};
+	/*!
+	\brief 不透明性。
+	\note 仅当窗口启用 WS_EX_LAYERED 样式且 UseOpacity 设置为 true 时有效。
+	\since build 435
+	*/
+	YSLib::Drawing::AlphaType Opacity{0xFF};
+
 	/*!
 	\exception LoggedEvent 异常中立：窗口类名不是 WindowClassName 。
 	\since build 429
@@ -83,12 +101,20 @@ public:
 	*/
 	virtual PDefH(void, Refresh, )
 		ImplExpr(void())
+
+	/*!
+	\brief 更新：同步缓冲区。
+	\note 根据 UseOpacity 选择更新操作。
+	\since build 435
+	*/
+	void
+	UpdateFrom(YSLib::Drawing::BitmapPtr, ScreenRegionBuffer&);
 };
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

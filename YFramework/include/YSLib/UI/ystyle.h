@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r412
+\version r424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-08-02 12:59 +0800
+	2013-08-05 21:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include "../Service/ydraw.h"
 #include <ystdex/rational.hpp>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 /*!
 \brief 绘制部件边框用空心标准矩形。
@@ -128,11 +130,13 @@ YF_API Color
 HSLToColor(hsl_t);
 
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
-YSL_BEGIN_NAMESPACE(Styles)
+namespace Styles
+{
 
 /*!
 \brief 样式区域类型。
@@ -207,11 +211,11 @@ public:
 	GetPair(ColorListType::size_type, ColorListType::size_type) const;
 };
 
-YSL_END_NAMESPACE(Styles)
+} // namespace Styles;
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

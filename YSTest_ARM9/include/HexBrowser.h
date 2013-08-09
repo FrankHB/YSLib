@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r443
+\version r449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2013-08-02 13:03 +0800
+	2013-08-05 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,11 @@
 #include <YSLib/Service/TextLayout.h>
 #include <Helper/Initialization.h>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 十六进制模型：十六进制视图区域数据源。
@@ -212,9 +214,9 @@ public:
 	UpdateView(bool = {});
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

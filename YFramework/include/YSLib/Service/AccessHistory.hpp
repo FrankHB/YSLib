@@ -11,13 +11,13 @@
 /*!	\file AccessHistory.hpp
 \ingroup Service
 \brief 访问历史记录。
-\version r116
+\version r119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-12 07:42:35 +0800
 \par 修改时间:
-	2013-08-02 04:03 +0800
+	2013-08-05 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,8 @@
 
 #include "../Adaptor/ycont.h" // for list;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*!
 \brief 访问列表。
@@ -109,7 +110,7 @@ public:
 	}
 };
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3083
+\version r3095
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-07-18 19:35 +0800
+	2013-08-08 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,14 +39,15 @@
 #include "YCLib/Debug.h"
 #include <Helper/Host.h>
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
 namespace
 {
 
-#if YCL_MINGW32
+#if YCL_MinGW32
 yconstexpr double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 #endif
@@ -61,7 +62,7 @@ DSApplication* pApp;
 DSApplication::DSApplication()
 	: GUIApplication(), DSVideoState(),
 	scrs()
-#if YCL_MINGW32
+#if YCL_MinGW32
 	, p_wnd_thrd()
 #endif
 {
@@ -82,7 +83,7 @@ DSApplication::DSApplication()
 		GetAreaOf(scrs[0]->GetSize()), ColorSpace::Blue),
 	FillPixel<PixelType>(scrs[1]->GetCheckedBufferPtr(),
 		GetAreaOf(scrs[1]->GetSize()), ColorSpace::Green);
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 
 	using namespace Host;
 
@@ -106,7 +107,7 @@ DSApplication::DSApplication()
 
 DSApplication::~DSApplication()
 {
-#if YCL_MINGW32
+#if YCL_MinGW32
 	p_wnd_thrd.reset();
 	YCL_DEBUG_PUTS("Host thread dropped.");
 #endif
@@ -169,7 +170,7 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType)
 {
 #else
@@ -189,8 +190,9 @@ ShowFatalError(const char* s)
 	terminate();
 }
 
-#if YCL_MINGW32
-YSL_BEGIN_NAMESPACE(MinGW32)
+#if YCL_MinGW32
+namespace MinGW32
+{
 
 void
 TestFramework(size_t idx)
@@ -198,11 +200,11 @@ TestFramework(size_t idx)
 	YCL_DEBUG_PUTS(("Test beginned, idx = " + to_string(idx) + " .").c_str());
 	YCL_DEBUG_PUTS("Test ended.");
 
-	static_cast<void>(idx);
+	yunused(idx);
 }
 
-YSL_END_NAMESPACE(MinGW32)
+} // namespace MinGW32;
 #endif
 
-YSL_END
+} // namespace YSLib;
 

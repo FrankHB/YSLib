@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1115
+\version r1121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-07-03 16:22 +0800
+	2013-08-05 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,11 +31,13 @@
 #include "YSLib/Service/YBlit.h"
 #include "YSLib/Service/TextLayout.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 namespace
 {
@@ -430,7 +432,7 @@ UpdateView(TextList& tl, bool is_active)
 	Invalidate(tl);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

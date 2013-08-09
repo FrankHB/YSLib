@@ -11,13 +11,13 @@
 /*!	\file ReadingList.cpp
 \ingroup YReader
 \brief 阅读列表。
-\version r139
+\version r142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:14:27 +0800
 \par 修改时间:
-	2013-06-03 21:48 +0800
+	2013-08-05 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "ReadingList.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 Bookmark::operator ValueNode::Container() const
 {
@@ -52,5 +53,5 @@ ReadingList::Insert(const IO::Path& pth, size_t pos)
 	Emplace(pth, pos);
 }
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 

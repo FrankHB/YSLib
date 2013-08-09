@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r318
+\version r324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2013-08-02 19:15 +0800
+	2013-08-05 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "button.h"
 #include "ystyle.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 复选框。
@@ -136,9 +138,9 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -16,13 +16,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2361
+\version r2373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2013-08-02 12:58 +0800
+	2013-08-05 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,9 +38,11 @@
 #include "../Core/ymsgdef.h"
 #include "../Adaptor/ycont.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 //! \since build 319
 class Image;
@@ -65,9 +67,10 @@ YF_API string
 to_string(const Rect&);
 //@}
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 class AController;
 //! \since build 422
@@ -115,16 +118,17 @@ using Drawing::Graphics;
 //! \since build 366
 using Drawing::PaintContext;
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
 //! \since build 388
-YSL_BEGIN_NAMESPACE(Messaging)
+namespace Messaging
+{
 
 DefMessageTarget(SM_PAINT, shared_ptr<UI::IWidget>)
 
-YSL_END_NAMESPACE(Messaging)
+} // namespace Messaging;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file yftext.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r957
+\version r960
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2013-06-05 18:35 +0800
+	2013-08-05 21:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "YSLib/Service/yftext.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Text;
 
@@ -179,5 +180,5 @@ TextFile::Truncate(size_t size) const
 	return File::Truncate(GetBOMSize() + size);
 }
 
-YSL_END
+} // namespace YSLib;
 

@@ -15,13 +15,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1254
+\version r1257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2013-07-03 16:44 +0800
+	2013-08-05 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,8 @@
 #include "YSLib/Adaptor/ycont.h"
 #include <cctype> // for std::isgraph;
 
-YSL_BEGIN_NAMESPACE(NPL)
+namespace NPL
+{
 
 //! \since build 329
 //@{
@@ -197,7 +198,7 @@ Decompose(const string&);
 YF_API list<string>
 Tokenize(const list<string>&);
 
-YSL_END_NAMESPACE(NPL)
+} // namespace NPL;
 
 #endif
 

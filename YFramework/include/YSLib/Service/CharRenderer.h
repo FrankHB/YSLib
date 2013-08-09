@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2743
+\version r2749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-24 22:42 +0800
+	2013-08-05 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include "YSLib/Service/yblit.h"
 #include <cwctype>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 /*!
 \brief 字符块传输。
@@ -140,9 +142,9 @@ PutChar(_tRenderer& r, ucs4_t c)
 	}
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

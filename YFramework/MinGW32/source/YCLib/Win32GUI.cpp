@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r279
+\version r334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-07-29 01:29 +0800
+	2013-08-10 00:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ namespace
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
-	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, nullptr, 0, 0, w, h,
+	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, {}, 0, 0, w, h,
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
 		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER)))
 		YF_Raise_Win32Exception("SetWindowPos");
@@ -121,7 +121,7 @@ WindowReference::Invalidate()
 void
 WindowReference::Move(const Point& pt)
 {
-	if(YB_UNLIKELY(!::SetWindowPos(hWindow, nullptr, pt.X, pt.Y, 0, 0,
+	if(YB_UNLIKELY(!::SetWindowPos(hWindow, {}, pt.X, pt.Y, 0, 0,
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW
 		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER)))
 		YF_Raise_Win32Exception("SetWindowPos");
@@ -157,10 +157,10 @@ CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
 {
 	::RECT rect{0, 0, s.Width, s.Height};
 
-	::AdjustWindowRect(&rect, wstyle, FALSE);
-	return ::CreateWindowExW(wstyle_ex, class_name, title, wstyle, CW_USEDEFAULT,
-		CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top,
-		HWND_DESKTOP, nullptr, ::GetModuleHandleW(nullptr), nullptr);
+	::AdjustWindowRect(&rect, wstyle, false);
+	return ::CreateWindowExW(wstyle_ex, class_name, title, wstyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
+		rect.bottom - rect.top, HWND_DESKTOP, {}, ::GetModuleHandleW({}), {});
 }
 
 
@@ -173,8 +173,8 @@ ScreenBuffer::ScreenBuffer(const Size& s)
 			-size.Height - 1, 1, 32, BI_RGB,
 			sizeof(PixelType) * size.Width * size.Height, 0, 0, 0, 0}, {}};
 
-		return ::CreateDIBSection(nullptr, &bmi, DIB_RGB_COLORS,
-			&reinterpret_cast<void*&>(pBuffer), nullptr, 0);
+		return ::CreateDIBSection({}, &bmi, DIB_RGB_COLORS,
+			&reinterpret_cast<void*&>(pBuffer), {}, 0);
 	}())
 {}
 ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
@@ -188,8 +188,25 @@ ScreenBuffer::~ScreenBuffer()
 }
 
 void
+ScreenBuffer::Premultiply(BitmapPtr buf) ynothrow
+{
+	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
+	//	pixels can be supposed to be contiguous.
+	std::transform(buf, buf + size.Width * size.Height, pBuffer,
+		[](const PixelType& pixel){
+			const auto a(pixel.rgbReserved);
+
+			return PixelType{MonoType(pixel.rgbBlue * a / 0xFF),
+				MonoType(pixel.rgbGreen * a / 0xFF),
+				MonoType(pixel.rgbRed * a / 0xFF), a};
+	});
+}
+
+void
 ScreenBuffer::UpdateFrom(BitmapPtr buf) ynothrow
 {
+	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
+	//	pixels can be supposed to be contiguous.
 	std::copy_n(buf, size.Width * size.Height, GetBufferPtr());
 }
 
@@ -203,7 +220,17 @@ ScreenRegionBuffer::UpdateFrom(BitmapPtr buf) ynothrow
 }
 
 void
-ScreenRegionBuffer::UpdateTo(::HWND h_wnd, const Point& pt) ynothrow
+ScreenRegionBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
+	const Point& pt) ynothrow
+{
+	std::lock_guard<std::mutex> lck(mtx);
+	GSurface<> sf(h_wnd);
+
+	sf.UpdatePremultiplied(*this, h_wnd, a, pt);
+}
+
+void
+ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 {
 	std::lock_guard<std::mutex> lck(mtx);
 	GSurface<> sf(h_wnd);
@@ -223,6 +250,28 @@ WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
 		SRCCOPY);
 	::SelectObject(h_mem_dc, h_old);
 }
+void
+WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
+	NativeWindowHandle h_wnd, YSLib::Drawing::AlphaType a, const Point& pt)
+	ynothrow
+{
+	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
+	auto rect(FetchWindowRect(h_wnd));
+	::SIZE size{rect.right - rect.left, rect.bottom - rect.top};
+	::POINT ptx{pt.X, pt.Y};
+	::BLENDFUNCTION bfunc{AC_SRC_OVER, 0, a, AC_SRC_ALPHA};
+
+	// NOTE: Unlocked intentionally for performance.
+	if(YB_UNLIKELY(!::UpdateLayeredWindow(h_wnd, h_owner_dc,
+		reinterpret_cast< ::POINT*>(&rect), &size, h_mem_dc, &ptx, 0, &bfunc,
+		ULW_ALPHA)))
+	{
+		// TODO: Use RAII.
+		::SelectObject(h_mem_dc, h_old);
+		YF_Raise_Win32Exception("UpdateLayeredWindow");
+	}
+	::SelectObject(h_mem_dc, h_old);
+}
 
 
 WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
@@ -232,8 +281,8 @@ WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
 	// NOTE: Intentionally no %CS_OWNDC or %CS_CLASSDC, so %::ReleaseDC
 	//	is always needed.
 	const ::WNDCLASSW wnd_class{style, wnd_proc, 0, 0, h_instance,
-		::LoadIconW({}, IDI_APPLICATION),
-		::LoadCursorW({}, IDC_ARROW), h_bg, nullptr, class_name};
+		::LoadIconW({}, IDI_APPLICATION), ::LoadCursorW({}, IDC_ARROW),
+		h_bg, nullptr, class_name};
 
 	if(YB_UNLIKELY(::RegisterClassW(&wnd_class) == 0))
 		YF_Raise_Win32Exception("RegisterClassW");

@@ -11,13 +11,13 @@
 /*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version r1945
+\version r1951
 \author FrankHB <frankhb1989@gmail.com>
 \since build 217
 \par 创建时间:
 	2009-12-08 12:05:26 +0800
 \par 修改时间:
-	2013-08-02 04:00 +0800
+	2013-08-05 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "ymsg.h"
 #include <functional> // for std::function;
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Messaging)
+namespace Messaging
+{
 
 using MessageID = enum MessageSpace
 {
@@ -86,9 +88,9 @@ FetchTarget(const Message& msg)
 	return msg.GetContent().GetObject<typename SMessageMap<_vID>::TargetType>();
 }
 
-YSL_END_NAMESPACE(Messaging)
+} // namespace Messaging;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

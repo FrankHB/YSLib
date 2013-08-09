@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r254
+\version r260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2013-03-13 13:04 +0800
+	2013-08-05 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "ywgtevt.h"
 #include "../Service/yres.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 单色画刷。
@@ -128,9 +130,9 @@ public:
 	operator()(PaintEventArgs&&);
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

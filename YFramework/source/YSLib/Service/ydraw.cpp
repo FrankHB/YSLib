@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r829
+\version r835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2013-06-18 01:13 +0800
+	2013-08-05 21:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,11 @@
 #include "YSLib/Service/ydraw.h"
 #include "YSLib/Service/yblit.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 bool
 DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)
@@ -215,7 +217,7 @@ DrawCircle(const Graphics& g, const Point& pt, SDst r, Color c)
 	return true;
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

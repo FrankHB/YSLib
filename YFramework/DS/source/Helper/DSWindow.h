@@ -11,13 +11,13 @@
 /*!	\file DSWindow.h
 \ingroup Helper
 \brief DS 宿主窗口。
-\version r71
+\version r77
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2013-04-13 13:19 +0800
+	2013-08-06 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,10 +31,12 @@
 #include "Helper/HostWindow.h" // for Host::Environment, Host::Window;
 #include "DSScreen.h" // for Devices::DSScreen;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 /*!
 \brief 双屏幕宿主窗口。
@@ -63,10 +65,10 @@ public:
 	OnPaint() override;
 };
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

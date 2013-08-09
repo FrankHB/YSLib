@@ -10,14 +10,14 @@
 
 /*!	\file form.h
 \ingroup UI
-\brief 样式无关的图形用户界面窗体。
-\version r586
+\brief 样式无关的 GUI 窗体。
+\version r593
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-30 00:51:36 +0800
 \par 修改时间:
-	2013-08-02 12:56 +0800
+	2013-08-08 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 #include "ywindow.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 using Form = Window;
 
@@ -54,9 +56,9 @@ public:
 };
 #endif
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

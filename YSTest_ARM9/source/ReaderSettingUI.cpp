@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r236
+\version r239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-07-03 16:31 +0800
+	2013-08-05 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "ReaderSettingUI.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 using namespace Text;
 using std::chrono::milliseconds;
@@ -211,5 +212,5 @@ SettingPanel::UpdateInfo()
 		+ String(to_string(lblAreaUp.Font.GetSize()) + " 。");
 }
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 

@@ -11,13 +11,13 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r300
+\version r306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:57:48 +0800
 \par 修改时间:
-	2013-03-13 13:25 +0800
+	2013-08-05 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 //#include "../Core/yres.h"
 //#include "ystyle.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 进度条。
@@ -76,9 +78,9 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

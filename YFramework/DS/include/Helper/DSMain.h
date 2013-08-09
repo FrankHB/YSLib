@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r813
+\version r824
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-07-15 11:26 +0800
+	2013-08-05 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,8 @@
 #include "Helper/GUIApplication.h"
 #include "YCLib/Video.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #if YCL_DS || YCL_HOSTED
 #	ifndef SCREEN_WIDTH
@@ -55,9 +56,10 @@ const SDst MainScreenWidth(SCREEN_WIDTH), MainScreenHeight(SCREEN_HEIGHT);
 //@}
 
 
-YSL_BEGIN_NAMESPACE(Devices)
+namespace Devices
+{
 class DSScreen;
-YSL_END_NAMESPACE(Devices)
+} // namespace Devices;
 
 
 /*!
@@ -75,7 +77,7 @@ private:
 	*/
 	array<unique_ptr<Devices::DSScreen>, 2> scrs;
 
-#	if YCL_MINGW32
+#	if YCL_MinGW32
 	/*!
 	\brief 宿主窗口线程。
 	\since build 398
@@ -153,21 +155,22 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 YF_API void
 ShowFatalError(const char*);
 
-#	if YCL_MINGW32
-YSL_BEGIN_NAMESPACE(MinGW32)
+#	if YCL_MinGW32
+namespace MinGW32
+{
 
 using namespace platform_ex;
 
 YF_API void
 TestFramework(size_t);
 
-YSL_END_NAMESPACE(MinGW32)
+} // namespace MinGW32;
 #	endif
 #else
 #	error "Only DS and hosted platform supported."
 #endif
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

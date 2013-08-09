@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.h
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r361
+\version r368
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-07-30 20:02 +0800
+	2013-08-05 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,24 +33,26 @@
 #if YCL_MULTITHREAD == 1
 #	include <mutex>
 #endif
-#if YCL_MINGW32
+#if YCL_MinGW32
 #	include "YCLib/Win32GUI.h"
 #elif YCL_HOSTED
 #		error "Currently only Windows is supported with host implementation."
 #endif
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 //! \since build 428
 using namespace platform_ex;
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

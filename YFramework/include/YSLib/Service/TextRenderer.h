@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2807
+\version r2813
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-06-27 16:38 +0800
+	2013-08-05 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "CharRenderer.h"
 #include "../Core/ystring.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 /*!
 \brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
@@ -556,9 +558,9 @@ YF_API void
 DrawText(TextRegion& r, const Graphics& g, const Point& pt, const Size& s,
 	const String& str, bool line_wrap);
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

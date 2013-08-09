@@ -11,13 +11,13 @@
 /*!	\file GUIShell.h
 \ingroup Helper
 \brief GUI Shell 类。
-\version r97
+\version r103
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:29 +0800
 \par 修改时间:
-	2013-04-29 22:04 +0800
+	2013-08-05 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include "YSLib/Core/ystring.h"
 #include "Helper/InputManager.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Shells)
+namespace Shells
+{
 
 /*!
 \brief GUI Shell 基类。
@@ -88,9 +90,9 @@ public:
 	OnPaint();
 };
 
-YSL_END_NAMESPACE(Shells)
+} // namespace Shells;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

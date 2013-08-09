@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1446
+\version r1452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2013-07-24 17:56 +0800
+	2013-08-05 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 
 using namespace YSLib;
 
-YSL_BEGIN_NAMESPACE(NPL)
+namespace NPL
+{
 
 Session::Session(const string& line)
 	: llex()
@@ -51,7 +52,8 @@ Session::Session(const TextFile& tf)
 }
 
 
-YSL_BEGIN_NAMESPACE(SContext)
+namespace SContext
+{
 
 TLCIter
 Validate(TLCIter b, TLCIter e)
@@ -114,7 +116,7 @@ Analyze(ValueNode& root, const string& unit)
 	Analyze(root, Session(unit).GetTokenList());
 }
 
-YSL_END_NAMESPACE(SContext)
+} // namespace SContext;
 
-YSL_END_NAMESPACE(NPL)
+} // namespace NPL;
 

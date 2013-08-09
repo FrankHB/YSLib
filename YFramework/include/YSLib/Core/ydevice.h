@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r1991
+\version r1997
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2013-07-10 15:08 +0800
+	2013-08-05 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "yobject.h"
 #include "ygdibase.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Devices)
+namespace Devices
+{
 
 //图形设备。
 class YF_API GraphicDevice : private noncopyable, protected Drawing::Graphics
@@ -113,9 +115,9 @@ public:
 	Update(Drawing::BitmapPtr) ynothrow;
 };
 
-YSL_END_NAMESPACE(Devices)
+} // namespace Devices;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

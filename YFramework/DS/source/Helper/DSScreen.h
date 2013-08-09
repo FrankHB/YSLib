@@ -11,13 +11,13 @@
 /*!	\file DSScreen.h
 \ingroup Helper
 \brief DS 屏幕。
-\version r412
+\version r419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2013-08-02 03:49 +0800
+	2013-08-06 01:48 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -35,9 +35,11 @@
 #	include <mutex>
 #endif
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Devices)
+namespace Devices
+{
 
 /*!
 \brief DS 屏幕。
@@ -68,7 +70,7 @@ public:
 	*/
 	void
 	Update(Drawing::BitmapPtr) ynothrow override;
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 public:
 	Drawing::Point Offset;
 	/*!
@@ -126,9 +128,9 @@ InitDSScreen(unique_ptr<DSScreen>& p_up, unique_ptr<DSScreen>& p_dn) ynothrow
 	}
 }
 
-YSL_END_NAMESPACE(Devices)
+} // namespace Devices;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

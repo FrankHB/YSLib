@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r171
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-07-19 07:57 +0800
+	2013-08-05 21:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include "BookmarkUI.h"
 #include "ShlReader.h"
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 namespace
 {
@@ -135,5 +136,5 @@ BookmarkPanel::LoadBookmarks()
 	lbPosition.GetListRef() = ConvertToUIString(bookmarks, shell);
 }
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 

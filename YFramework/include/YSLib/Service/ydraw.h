@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r709
+\version r715
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2013-03-29 16:46 +0800
+	2013-08-05 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 #include "../Core/ygdibase.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 //图形接口上下文操作：绘图。
 
@@ -162,9 +164,9 @@ FillRect(const Graphics& g, const Rect& r, Color c)
 YF_API bool
 DrawCircle(const Graphics&, const Point&, SDst, Color c);
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

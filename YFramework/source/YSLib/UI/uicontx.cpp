@@ -10,14 +10,14 @@
 
 /*!	\file uicontx.cpp
 \ingroup UI
-\brief 样式无关的图形用户界面附加容器。
-\version r224
+\brief 样式无关的 GUI 附加容器。
+\version r231
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2013-07-03 16:24 +0800
+	2013-08-08 05:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/UI/ygui.h"
 #include "YSLib/UI/YBrush.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 DialogBox::DialogBox(const Rect& r)
 	: Control(r),
@@ -63,7 +65,7 @@ DialogPanel::DialogPanel(const Rect& r)
 	);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

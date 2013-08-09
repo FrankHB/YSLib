@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r174
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2013-08-02 04:08 +0800
+	2013-08-05 20:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ namespace platform
 \since build 298
 */
 yconstexpr std::size_t KeyBitsetWidth(32);
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 /*!
 \brief 按键并行位宽。
 \note 不少于实际表示的键盘按键数。
@@ -95,7 +95,7 @@ const NativeSet
 	Esc = B,
 	PgUp = L,
 	PgDn = R;
-#elif YCL_MINGW32
+#elif YCL_MinGW32
 #define VK_RETURN 0x0D
 #define VK_ESCAPE 0x1B
 #define VK_PRIOR 0x21

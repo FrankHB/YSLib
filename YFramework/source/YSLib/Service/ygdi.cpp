@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2820
+\version r2826
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-07-24 17:59 +0800
+	2013-08-05 21:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 using namespace ystdex;
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 Rect
 operator+(const Rect& r, const Padding& m)
@@ -262,7 +264,7 @@ BlitTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 	return false;
 }
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 

@@ -10,14 +10,14 @@
 
 /*!	\file ywindow.h
 \ingroup UI
-\brief 样式无关的图形用户界面窗口。
-\version r3824
+\brief 样式无关的 GUI 窗口。
+\version r3831
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2013-06-09 10:59 +0800
+	2013-08-08 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 #include "ypanel.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 窗口。
@@ -83,9 +85,9 @@ public:
 	Add(IWidget&, ZOrderType = DefaultZOrder) override;
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

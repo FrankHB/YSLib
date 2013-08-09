@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3020
+\version r3026
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-07-04 07:29 +0800
+	2013-08-05 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/Service/yblit.h"
 #include "YSLib/UI/ygui.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 namespace
 {
@@ -182,7 +184,7 @@ Button::Refresh(PaintEventArgs&& e)
 		Rect(e.Location, GetSizeOf(*this))});
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

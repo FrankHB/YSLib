@@ -11,13 +11,13 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r789
+\version r792
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2012-09-13 12:35 +0800
+	2013-08-05 21:27 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "YSLib/Core/yobject.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 bool
 ValueObject::operator==(const ValueObject& vo) const
@@ -39,5 +40,5 @@ ValueObject::operator==(const ValueObject& vo) const
 		*x) == static_cast<const IValueHolder&>(*y) : false;
 }
 
-YSL_END
+} // namespace YSLib;
 

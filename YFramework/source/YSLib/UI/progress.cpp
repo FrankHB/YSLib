@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r352
+\version r358
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2013-03-13 13:01 +0800
+	2013-08-05 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #include "YSLib/UI/ygui.h"
 #include "YSLib/UI/YBrush.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 ProgressBar::ProgressBar(const Rect& r, ValueType m)
 	: Control(r, NoBackgroundTag()), GMRange<float>(m == 0 ? 1 : m, 0)
@@ -81,7 +83,7 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 	}
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r559
+\version r565
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-06-28 05:24 +0800
+	2013-08-05 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,11 @@
 
 #include "YSLib/UI/ycontrol.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 bool
 IsFocused(const IWidget& wgt)
@@ -124,7 +126,7 @@ ReleaseFocusCascade(IWidget& wgt)
 	}while((p = FetchContainerPtr(*p)));
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1286
+\version r1289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2013-05-29 04:51 +0800
+	2013-08-05 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include "NPL/Lexical.h"
 #include <ystdex/string.hpp> // for ystdex::get_mid;
 
-YSL_BEGIN_NAMESPACE(NPL)
+namespace NPL
+{
 
 LexicalAnalyzer::LexicalAnalyzer()
 	: esc(-1), ld(), cbuf(), qlist()
@@ -264,5 +265,5 @@ Tokenize(const list<string>& src)
 	return dst;
 }
 
-YSL_END_NAMESPACE(NPL)
+} // namespace NPL;
 

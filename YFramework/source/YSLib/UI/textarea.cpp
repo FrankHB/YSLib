@@ -11,13 +11,13 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r431
+\version r437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:10:27 +0800
 \par 修改时间:
-	2013-03-13 12:58 +0800
+	2013-08-05 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,13 @@
 #include "YSLib/UI/textarea.h"
 #include "YSLib/UI/ywgtevt.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 TextArea::TextArea(const Rect& r)
 	: Widget(r), TextState(), TextRenderer(*this),
@@ -69,7 +71,7 @@ BufferedTextArea::Refresh(PaintEventArgs&& e)
 		r.GetPoint() - e.Location, r.GetSize(), Rotation);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

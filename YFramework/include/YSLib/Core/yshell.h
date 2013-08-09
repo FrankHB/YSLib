@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r1934
-\author FrankHB<frankhb1989@gmail.com>
+\version r1944
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2012-12-11 21:24 +0800
+	2013-08-05 21:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,15 +25,17 @@
 */
 
 
-#ifndef YSL_INC_CORE_YSHELL_H_
-#define YSL_INC_CORE_YSHELL_H_ 1
+#ifndef YSL_INC_Core_yshell_h_
+#define YSL_INC_Core_yshell_h_ 1
 
 #include "ymsgdef.h"
 #include "yfunc.hpp"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Shells)
+namespace Shells
+{
 
 //! \brief 外壳程序：实现运行期控制流映像语义。
 class YF_API Shell : private noncopyable, public enable_shared_from_this<Shell>
@@ -71,9 +73,9 @@ public:
 		ImplExpr(DefShlProc(msg))
 };
 
-YSL_END_NAMESPACE(Shells)
+} // namespace Shells;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

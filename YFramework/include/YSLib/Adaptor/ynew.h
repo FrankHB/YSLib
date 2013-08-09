@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1162
+\version r1165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2013-08-02 03:55 +0800
+	2013-08-05 21:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,8 @@ operator delete[](void*, const std::nothrow_t&, const char*, int) ynothrow;
 #endif
 
 
-YSL_BEGIN
+namespace YSLib
+{
 
 class MemoryList;
 
@@ -169,7 +170,7 @@ public:
 	PrintAllDuplicate(std::FILE*);
 };
 
-YSL_END
+} // namespace YSLib;
 
 /*
 \def ynew

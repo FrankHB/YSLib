@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2042
+\version r2048
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-04 16:41 +0800
+	2013-08-05 21:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include "../Service/ytimer.h"
 #include "ystyle.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 输入计时器。
@@ -251,9 +253,9 @@ IsFocusedByShell(const IWidget& wgt, const GUIState& st = FetchGUIState())
 	return st.GetTouchDownPtr() == &wgt;
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

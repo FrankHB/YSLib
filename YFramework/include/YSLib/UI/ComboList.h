@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2569
+\version r2575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2013-08-02 12:55 +0800
+	2013-08-05 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,11 @@
 #include "../Core/yfilesys.h"
 //#include "ystyle.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 带滚动条的文本列表框。
@@ -313,9 +315,9 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2133
+\version r2139
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2013-06-13 00:51 +0800
+	2013-08-05 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include "../Adaptor/ycont.h"
 #include "../Adaptor/YTextBase.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Text)
+namespace Text
+{
 
 /*!
 \brief YSLib 标准字符串（使用 UCS-2LE ）。
@@ -119,9 +121,9 @@ public:
 		ImplRet(GetMBCSOf<string>(*this, enc))
 };
 
-YSL_END_NAMESPACE(Text)
+} // namespace Text;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

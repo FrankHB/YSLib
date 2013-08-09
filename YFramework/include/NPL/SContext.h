@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1348
+\version r1354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2013-08-02 03:51 +0800
+	2013-08-05 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,8 @@
 #include "YSLib/Core/ValueNode.h"
 #include "YSLib/Service/yftext.h"
 
-YSL_BEGIN_NAMESPACE(NPL)
+namespace NPL
+{
 
 //! \since build 335
 //@{
@@ -66,7 +67,8 @@ public:
 \brief S 表达式上下文：处理 S 表达式。
 \since build 330
 */
-YSL_BEGIN_NAMESPACE(SContext)
+namespace SContext
+{
 
 /*!
 \brief 遍历记号列表，验证基本合法性：圆括号是否对应。
@@ -117,9 +119,9 @@ Analyze(const _type& arg)
 }
 //@}
 
-YSL_END_NAMESPACE(SContext)
+} // namespace SContext;
 
-YSL_END_NAMESPACE(NPL)
+} // namespace NPL;
 
 #endif
 

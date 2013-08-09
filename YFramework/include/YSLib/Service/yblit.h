@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1538
+\version r1544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-08-02 19:13 +0800
+	2013-08-05 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,9 +33,11 @@
 #include <ystdex/algorithm.hpp>
 #include <ystdex/iterator.hpp>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Drawing)
+namespace Drawing
+{
 
 /*!
 \brief Alpha 光栅化源迭代器对。
@@ -678,9 +680,9 @@ ClearImage(const Graphics&);
 YF_API void
 Fill(const Graphics&, Color);
 
-YSL_END_NAMESPACE(Drawing)
+} // namespace Drawing;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

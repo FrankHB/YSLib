@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1664
+\version r1667
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:36 +0800
 \par 修改时间:
-	2013-07-29 00:43 +0800
+	2013-08-05 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,8 @@
 
 #include "YSLib/Core/yapp.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 Application::Application()
 	: Shell(), Queue(), hShell()
@@ -79,5 +80,5 @@ PostQuitMessage(int nExitCode, Messaging::Priority prior)
 	PostMessage<SM_QUIT>(prior, nExitCode);
 }
 
-YSL_END
+} // namespace YSLib;
 

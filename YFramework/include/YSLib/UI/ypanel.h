@@ -10,14 +10,14 @@
 
 /*!	\file ypanel.h
 \ingroup UI
-\brief 样式无关的图形用户界面面板。
-\version r400
+\brief 样式无关的 GUI 面板。
+\version r407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2013-03-13 12:57 +0800
+	2013-08-08 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "ycontrol.h"
 #include "yuicont.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 面板。
@@ -99,9 +101,9 @@ public:
 	Refresh(PaintEventArgs&&) override;
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

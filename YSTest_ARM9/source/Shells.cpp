@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6315
+\version r6319
 \author FrankHB<frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-08-04 09:02 +0800
+	2013-08-08 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,8 @@
 
 using namespace ystdex;
 
-YSL_BEGIN_NAMESPACE(YReader)
+namespace YReader
+{
 
 namespace
 {
@@ -139,9 +140,9 @@ FetchWidgetLoader()
 		}
 	} obj;
 
-	static_cast<void>(obj);
+	yunused(obj);
 	return wgt_ldr;
 }
 
-YSL_END_NAMESPACE(YReader)
+} // namespace YReader;
 

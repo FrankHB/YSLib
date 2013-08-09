@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.h
 \ingroup YReader
 \brief 拾色器。
-\version r140
+\version r146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2012-01-06 20:46:10 +0800
 \par 修改时间:
-	2013-03-29 12:59 +0800
+	2013-08-05 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include <YSLib/UI/uicontx.h>
 #include <YSLib/UI/scroll.h>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 拾色框。
@@ -84,9 +86,9 @@ public:
 	SetColor(Color);
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

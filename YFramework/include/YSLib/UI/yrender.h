@@ -10,14 +10,14 @@
 
 /*!	\file yrender.h
 \ingroup UI
-\brief 样式无关的图形用户界面部件渲染器。
-\version r589
+\brief 样式无关的 GUI 部件渲染器。
+\version r596
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2013-07-09 05:21 +0800
+	2013-08-08 05:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 #include "YComponent.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 部件渲染器。
@@ -182,9 +184,9 @@ public:
 	Validate(IWidget& wgt, IWidget& sender, const PaintContext&);
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

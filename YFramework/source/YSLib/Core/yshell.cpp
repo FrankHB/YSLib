@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	Copyright by FrankHB 2009 - 2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r2366
-\author FrankHB<frankhb1989@gmail.com>
+\version r2374
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2012-09-04 12:50 +0800
+	2013-08-05 21:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,11 @@
 #include "YSLib/Core/yshell.h"
 #include "YSLib/Core/yapp.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(Shells)
+namespace Shells
+{
 
 using namespace Messaging;
 
@@ -69,7 +71,7 @@ Shell::DefShlProc(const Message& msg)
 	return 0;
 }
 
-YSL_END_NAMESPACE(Shells)
+} // namespace Shells;
 
-YSL_END
+} // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r138
+\version r148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-08-04 16:41 +0800
+	2013-08-08 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,15 @@
 #include <YSLib/UI/ycontrol.h> // for UI::FetchEvent;
 #include <YSLib/UI/ygui.h> // for FetchGUIState;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 using namespace UI;
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 Window&
 WaitForHostWindow(UI::IWidget& wgt)
@@ -67,7 +69,7 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 	}
 }
 
-#	if YCL_MINGW32
+#	if YCL_MinGW32
 
 void
 ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
@@ -76,17 +78,14 @@ ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
 	WrapRenderer(wgt, CreateNativeWindow, WindowClassName, GetSizeOf(wgt),
 		title, wstyle, wstyle_ex);
 
-	auto& wnd(WaitForHostWindow(wgt));
-
-	if(wstyle_ex & WS_EX_LAYERED)
-		wnd.SetOpacity(0xFF);
+	WaitForHostWindow(wgt);
 }
 #	endif
 
 void
 ShowTopLevelDraggable(UI::Widget& wgt)
 {
-#	if YCL_MINGW32
+#	if YCL_MinGW32
 	ShowTopLevel(wgt, WS_POPUP);
 #else
 #	error "Currently only Windows is supported."
@@ -95,8 +94,8 @@ ShowTopLevelDraggable(UI::Widget& wgt)
 		std::ref(WaitForHostWindow(wgt)), std::placeholders::_1);
 }
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 

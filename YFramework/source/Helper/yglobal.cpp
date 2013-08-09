@@ -11,13 +11,13 @@
 /*!	\file yglobal.cpp
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r2974
+\version r2980
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:28:52 +0800
 \par 修改时间:
-	2013-07-10 15:20 +0800
+	2013-08-05 21:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #include "Helper/yglobal.h"
 //#include <clocale>
 
-YSL_BEGIN
+namespace YSLib
+{
 
 //全局变量。
 #ifdef YSL_USE_MEMORY_DEBUG
@@ -43,10 +44,11 @@ YSL_BEGIN
 //@}
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 

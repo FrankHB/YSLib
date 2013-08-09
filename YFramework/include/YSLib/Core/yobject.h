@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3682
+\version r3685
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-02 04:01 +0800
+	2013-08-05 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,8 @@
 #include <ystdex/any.h> // for ystdex::any_holder, ystdex::any;
 #include <ystdex/examiner.hpp> // for ystdex::equal_examiner;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 //特征类策略：对象类型标签模板。
 
@@ -500,7 +501,7 @@ public:
 	DefGetter(const ynothrow, ValueType, Value, value)
 };
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file DSWindow.cpp
 \ingroup Helper
 \brief DS 宿主窗口。
-\version r78
+\version r84
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:36:43 +0800
 \par 修改时间:
-	2013-07-11 14:23 +0800
+	2013-08-06 01:48 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,13 +28,15 @@
 #include "DSWindow.h"
 #include "DSScreen.h" // for GSurface;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #if YCL_HOSTED
 using Devices::DSScreen;
 using Drawing::Point;
 
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 DSWindow::DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
 	Environment& e)
@@ -71,8 +73,8 @@ DSWindow::OnPaint()
 	scr_dn.UpdateToSurface(sf);
 }
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 

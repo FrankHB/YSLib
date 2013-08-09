@@ -10,14 +10,14 @@
 
 /*!	\file ywindow.cpp
 \ingroup UI
-\brief 样式无关的图形用户界面窗口。
-\version r3402
+\brief 样式无关的 GUI 窗口。
+\version r3409
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2012-06-28 05:28 +0800
+	2013-08-08 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,13 @@
 #include "YSLib/UI/ydesktop.h"
 #include "YSLib/UI/YBrush.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
 using namespace Drawing;
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 Window::Window(const Rect& r, unique_ptr<Renderer> p_renderer)
 	: Panel(r)
@@ -86,7 +88,7 @@ Window::Add(IWidget& wgt, ZOrderType z)
 	SetContainerPtrOf(wgt, this);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r323
+\version r329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2013-08-02 12:58 +0800
+	2013-08-05 21:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 #include "YComponent.h"
 #include <ystdex/algorithm.hpp>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 序列视图类模板。
@@ -316,9 +318,9 @@ public:
 	}
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r291
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-07-18 21:46 +0800
+	2013-08-05 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,11 +33,12 @@
 #include "YSLib/Core/yapp.h"
 #include <ystdex/cast.hpp>
 #include "Helper/GUIShell.h"
-#if YCL_MINGW32
+#if YCL_MinGW32
 #	include <YCLib/Win32GUI.h>
 #endif
 
-YSL_BEGIN
+namespace YSLib
+{
 
 /*!
 \brief 平台相关的应用程序类。
@@ -111,7 +112,8 @@ FetchGlobalInstance() ynothrow
 //@}
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 //! \since build 398
 inline Environment&
@@ -120,7 +122,7 @@ FetchEnvironment() ynothrow
 	return FetchGlobalInstance().GetHost();
 }
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
 /*!
@@ -131,7 +133,7 @@ YSL_END_NAMESPACE(Host)
 YF_API void
 Execute(GUIApplication&, shared_ptr<Shell> = make_shared<Shells::GUIShell>());
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

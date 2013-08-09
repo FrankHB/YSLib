@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r232
+\version r238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-07-18 16:50 +0800
+	2013-08-05 20:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,10 +36,12 @@
 #include "YSLib/UI/ywidget.h" // for UI::GetSizeOf;
 #include "Helper/ScreenBuffer.h" // for ScreenRegionBuffer;
 
-YSL_BEGIN
+namespace YSLib
+{
 
 #if YCL_HOSTED
-YSL_BEGIN_NAMESPACE(Host)
+namespace Host
+{
 
 /*!
 \brief 渲染窗口。
@@ -204,10 +206,10 @@ public:
 	}
 };
 
-YSL_END_NAMESPACE(Host)
+} // namespace Host;
 #endif
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

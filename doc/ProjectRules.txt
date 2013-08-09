@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r266
+\version r267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-08-02 01:58 +0800
+	2013-08-08 05:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -220,7 +220,7 @@ module-path:
 
 @4 程序部署：
 使用 YFramework 和 YBase 需要维持目录结构。其它暂略。
-关于 YReader 的部署配置参见 [Documentation::YSLib @@8] 。
+关于 YReader 的部署配置参见 [Documentation::YSLib @@10] 。
 
 @5 用户配置：
 暂略。

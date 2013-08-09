@@ -10,14 +10,14 @@
 
 /*!	\file ywgtview.h
 \ingroup UI
-\brief 样式无关的图形用户界面部件。
-\version r543
+\brief 样式无关的 GUI 部件。
+\version r550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-07-09 05:22 +0800
+	2013-08-08 05:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,11 @@
 
 #include "YComponent.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 /*!
 \brief 方向模块。
@@ -225,9 +227,9 @@ public:
 	virtual DefClone(const, View)
 };
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
 #endif
 

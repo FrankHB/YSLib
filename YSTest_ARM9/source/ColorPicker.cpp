@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r257
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2012-01-06 21:37:51 +0800
 \par 修改时间:
-	2013-04-15 08:39 +0800
+	2013-08-05 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,11 @@
 #include "ColorPicker.h"
 #include <YSLib/UI/YBrush.h>
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 namespace
 {
@@ -89,7 +91,7 @@ ColorBox::SetColor(Color c)
 	Invalidate(lblRed), Invalidate(lblGreen), Invalidate(lblBlue);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 

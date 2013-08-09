@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r155
+\version r157
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-08-04 10:30 +0800
+	2013-08-10 00:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,6 +152,8 @@ The YSLib project now prefers using aliases over typedef declarations. Here's th
 	5. See https://groups.google.com/a/isocpp.org/forum/#!searchin/std-discussion/typedef/std-discussion/cwZ8HYQxxlM/Zzj4CTxSaskJ for the discussion of flavor in the ISO C++ standard text. No problems found for others even for using in standard proposals.
 There is nothing cannot be implemented by ISO C++14 lambda expressions which is able via std::bind, see http://stackoverflow.com/questions/17363003/why-use-stdbind-over-lambdas-in-c14 .
 For std::bind, pointers and reference wrappers arguments are almost always significant except for member function of a class type lvalue, 'std::ref(*this)' and 'this' is the same, while the YSLib code always preferred the latter(simpler). Note the difference is always significant for 'ystdex::any_iterator'.
+For 32bpp '::HBITMAP', it seems that no pitch should be considered, i.e. the storage of pixels is contiguous.
+Note that '::HBITMAP' data is raw bitmap compatible but not strict '::RGBQUAD', so the reserved 'rgbReserved' member can be used as alpha value.
 
 ////
 

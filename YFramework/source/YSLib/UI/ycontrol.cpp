@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3837
+\version r3843
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-08-04 20:08 +0800
+	2013-08-05 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,9 +32,11 @@
 #include <ystdex/algorithm.hpp>
 #include "YSLib/UI/YBrush.h"
 
-YSL_BEGIN
+namespace YSLib
+{
 
-YSL_BEGIN_NAMESPACE(UI)
+namespace UI
+{
 
 namespace
 {
@@ -224,7 +226,7 @@ Control::OnTouch_Close(CursorEventArgs&&)
 	Close(*this);
 }
 
-YSL_END_NAMESPACE(UI)
+} // namespace UI;
 
-YSL_END
+} // namespace YSLib;
 
