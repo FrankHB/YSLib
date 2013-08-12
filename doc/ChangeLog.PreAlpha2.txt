@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3027
+\version r3031
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-07-30 08:41 +0800
+	2013-08-11 12:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1257,6 +1257,10 @@ b275
 		- "string functions not strictly compliant to ISO" @ "all projects";
 		/ DLB "Makefile" @ "project %(YBase, YFramework)"
 			^ "-std=c++0x" ~ "-std=gnu++0x"
+	),
+	(
+		$dep_from %'YFramework'.'YSLib';
+		/ DLD "header %platform.h" -> ("header %Platform.h" @ %'YCLib')
 	)
 ),
 

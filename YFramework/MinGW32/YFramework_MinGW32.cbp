@@ -8,7 +8,7 @@
 		<Option extended_obj_names="1" />
 		<Build>
 			<Target title="debug">
-				<Option output="debug/YFramework" prefix_auto="1" extension_auto="1" />
+				<Option output="debug/YFrameworkd" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="debug/static/" />
 				<Option type="2" />
@@ -37,7 +37,7 @@
 				</Linker>
 			</Target>
 			<Target title="debug_DLL">
-				<Option output="debug/YFramework" prefix_auto="1" extension_auto="1" />
+				<Option output="debug/YFrameworkd" prefix_auto="1" extension_auto="1" />
 				<Option object_output="debug/dynamic/" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -52,7 +52,7 @@
 					<Add option="-Wl,--no-undefined -Wl,--dynamic-list-data -Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo" />
 					<Add library="lib\libFreeImage.a" />
 					<Add library="lib\libfreetype.a" />
-					<Add library="..\..\YBase\MinGW32\debug\YBase.dll" />
+					<Add library="..\..\YBase\MinGW32\debug\YBased.dll" />
 					<Add library="gdi32" />
 					<Add library="winmm" />
 					<Add library="Shlwapi" />

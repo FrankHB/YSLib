@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r139
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-08-05 22:00 +0800
+	2013-08-10 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,35 +34,18 @@ namespace YReader
 namespace
 {
 
-const char TU_About[]{u8R"NPL(
-root
-($type "Panel")
-($bounds "0 0 208 144")
-(
-	lblTitle
-	($type "Label")
-	($bounds "8 4 192 28")
-)
-(
-	lblVersion
-	($type "Label")
-	($bounds "8 36 192 40")
-)
-(
-	lblCopyright
-	($type "Label")
-	($bounds "8 80 192 20")
-)
-(
-	btnClose
-	($type "Button")
-	($bounds "12 106 60 22")
-)
-(
-	btnExit
-	($type "Button")
-	($bounds "84 106 60 22")
-)
+const char TU_About[]{u8R"NPL(root
+($type "Panel")($bounds "0 0 208 144")
+(lblTitle
+	($type "Label")($bounds "8 4 192 28"))
+(lblVersion
+	($type "Label")($bounds "8 36 192 40"))
+(lblCopyright
+	($type "Label")($bounds "8 80 192 20"))
+(btnClose
+	($type "Button")($bounds "12 106 60 22"))
+(btnExit
+	($type "Button")($bounds "84 106 60 22"))
 )NPL"};
 
 } // unnamed namespace;
@@ -72,12 +55,12 @@ FrmAbout::FrmAbout()
 	dynWgts(FetchWidgetLoader(), TU_About)
 {
 	auto& node(dynWgts.WidgetNode);
-	auto& root(AccessWidget<Panel>(node));
-	auto& lblTitle(AccessWidget<Label>(node, "lblTitle"));
-	auto& lblVersion(AccessWidget<Label>(node, "lblVersion"));
-	auto& lblCopyright(AccessWidget<Label>(node, "lblCopyright"));
-	auto& btnClose(AccessWidget<Button>(node, "btnClose"));
-	auto& btnExit(AccessWidget<Button>(node, "btnExit"));
+	DeclDynWidget(Panel, root, node)
+	DeclDynWidgetNode(Label, lblTitle)
+	DeclDynWidgetNode(Label, lblVersion)
+	DeclDynWidgetNode(Label, lblCopyright)
+	DeclDynWidgetNode(Button, btnClose)
+	DeclDynWidgetNode(Button, btnExit)
 
 	AddWidgets(*this, AccessWidget<Panel>(node)),
 	lblTitle.Font.SetSize(20),

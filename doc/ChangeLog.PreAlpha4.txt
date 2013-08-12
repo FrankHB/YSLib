@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2200
+\version r2245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-10 00:46 +0800
+	2013-08-12 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,48 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		+ "macro %(DeclDynWidget; DeclDynWidgetN; DeclDynWidgetN)"
+			@ %'YSLib'.'UI'.'Loader',
+		+ $dev '#define YCL_Device_Cursor_FixedKey 1' @ "platform %DS"
+			@ %'YCLib'.'Platform'
+			// See $2013-08 @ %Documentation::Workflow::Annual2013.
+	),
+	/ DLD %'YReader' $=
+	(
+		/ "compacted NPL translation unit of about UI as LISP-style",
+		/ "partial implementation" @ "setting UI"
+			^ "NPL dynamic widget loading",
+			// Layout manually adjusted.
+		/ DLD "partial implementation" @ "explorer shell"
+			^ "NPL dynamic widget loading"
+	),
+	/ "function %std::swap for %ystdex::any" @ %'YBase'.'YStandardEx'.'Any'
+		>> "namespace %ystdex",
+		// ADL is preferred.
+	/ $repo "engineering fault tagged" ^ "hg bookmark" ~ "hg tag",
+	/ "library files name with postfix '.d'" @ "debug configuration"
+		@ "platform %MinGW32" $=
+		// This makes DLL files of both debug and release configurations can \
+			be placed in the same directory, which makes debug and path \
+			confituration convenient.
+	(
+		/ $dev @ "configuration %debug" $=
+		(
+			/ "target %libYBase.a" => "%libYBased.a"
+			/ "target %libYFramework.a" => "%libYFrameworkd.a"
+		),
+		/ @ "configuration %debug_DLL" $=
+		(
+			/ "target %YBase.dll" => "%YBased.dll"
+			/ "target %YFramework.dll" => "%YFrameworkd.dll"
+		)
+	)
+),
+
+b435
 (
 	/ %'YFramework' $=
 	(
@@ -137,9 +179,10 @@ b434
 	(
 		$dep_from %'YFramework'.'YSLib'.'UI';
 		+ "dynamic widget loader initialization";
-		/ DLD "implementation" @ "about window" ^ "dynamic widget"
-			// This enlarges binary significantly. Here it is not necessary, \
-				just being used as an demo.
+		/ DLD "implementation" @ "about UI" ^ "NPL dynamic widget loading"
+			// This adds an additional panel and enlarges binary \
+				significantly. Here it is not necessary, just being used as an \
+				demo.
 	)
 ),
 

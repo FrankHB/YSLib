@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9009
+\version r9020
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-08-03 19:38 +0800
+	2013-08-12 04:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -275,15 +275,17 @@ Shell 和 Core 的关系是相对的，例如：
 @5 程序部署和用户配置：
 依赖项相关定义参见 [Documentation::ProjectRules @@1] 。
 项目管理相关定义参见 [Documentation::ProjectRules @@2] 。
-本章描述 YSLib 项目中除了 YFramework/YSLib 以外的库。
- YFramework 内包含少量外部依赖性如 FreeType2(@5.4.1) 。
+本章描述 YSLib 项目中除了 YFramework/YSLib 以外的依赖项。
+ YSLib 项目的依赖项都是库，其中一部分是不由 YSLib 项目维护的第三方的外部依赖项。
+外部依赖项中，系统库（ system library ，符合 GNU GPL v2 和 v3 条例定义）在平台配置中描述，可被所有非外部依赖项。
+其它外部依赖项都被 YFramework 引用，如 FreeType2(@5.4.1) 。
 以下如无特别说明，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
 @5.1 平台配置：
-平台配置 YCLib 平台定义文件(@5.2.2.3.1) 中定义的可支持平台对应。
-当前正式支持的平台：
-非宿主实现平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等）；
-宿主实现平台 MinGW32 （对应三元组 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
+目标平台配置和 YCLib 平台定义文件(@5.2.2.3.1) 中定义的可支持平台对应。
+当前正式支持的目标平台：
+非宿主实现目标平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等）；
+宿主实现目标平台 MinGW32 （对应三元组 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
 目前除了 MinGW32 外，仅使用静态链接库链接至静态或动态目标。
 
 @5.1.1 配置管理：
@@ -292,7 +294,7 @@ Shell 和 Core 的关系是相对的，例如：
 
 @5.2 基础环境：
 除了 ISO C++ 标准库外的非外部依赖项：
-基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx ，独立于 YFramework 。
+基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx 等，独立于 YFramework 。
 基于 YBase 的平台隔离用库 YCLib ，包含于 YFramework 中。
 
 @5.2.1 YBase ：
@@ -338,7 +340,7 @@ Shell 和 Core 的关系是相对的，例如：
 
 @5.2.3 DS 平台工具链和标准库实现：
 目标平台 DS ，实现环境参见 @5.1 。
-使用 devkitPro（参见 http://devkitpro.org ） 中的 devkitARM 工具链及库文件的非 debug 版本。
+系统库：使用 devkitPro（参见 http://devkitpro.org ） 中的 devkitARM 工具链及库文件的非 debug 版本。
 依赖 devkitARM / libnds / default arm7 / libfat 版本：
  build 131 前：
 未指定。可使用 devkitARM release 26 - 29 。
@@ -386,6 +388,7 @@ Shell 和 Core 的关系是相对的，例如：
 
 @5.2.4 MinGW32 平台工具链和标准库实现：
 目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP/Windows Server 2003 及以上。
+系统库：使用 MinGW 间接依赖的 Win32 API 相关库（如 user32 和 gdi32 ）以及 MSVCRT(Microsoft Visual C++ Runtime Library) 的特定版本。
  build 299 前：
 无（不支持的平台）。
  2012-04-09(build 299) 起：

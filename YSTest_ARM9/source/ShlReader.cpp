@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4433
+\version r4435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-08-08 00:43 +0800
+	2013-08-10 06:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -326,7 +326,8 @@ ShlTextReader::SettingSession::SettingSession(ShlTextReader& shl)
 		if(i == arrlen(Encodings))
 			i = 0;
 		yunseq(pnlSetting.lblAreaDown.Text = FetchEncodingString(i),
-			pnlSetting.ddlEncoding.Text = Encodings[i].second);
+			AccessWidget<DropDownList>(pnlSetting.dynWgts.WidgetNode,
+			"ddlEncoding").Text = Encodings[i].second);
 	}
 	Show(pnlSetting << CurrentSetting);
 }

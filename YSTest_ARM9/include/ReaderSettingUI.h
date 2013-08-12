@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.h
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r148
+\version r175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:26:48 +0800
 \par 修改时间:
-	2013-08-05 21:58 +0800
+	2013-08-10 06:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,37 +55,14 @@ class SettingPanel : public DialogPanel
 	friend class ShlTextReader;
 
 protected:
+	//! \since build 436
+	DynamicWidget dynWgts;
 	/*!
 	\brief 标签：文本区域示例。
 	\note 不加入 SettingPanel 容器，加入上屏桌面。
 	\since build 280
 	*/
 	Label lblAreaUp, lblAreaDown;
-	/*!
-	\brief 按钮：字体大小递减/递增。
-	\since build 280
-	*/
-	Button btnFontSizeDecrease, btnFontSizeIncrease;
-	/*!
-	\brief 按钮：设置。
-	\since build 279
-	*/
-	Button btnSetUpBack, btnSetDownBack, btnTextColor;
-	/*!
-	\brief 下拉列表：字体设置。
-	\since build 282
-	*/
-	DropDownList ddlFont;
-	/*!
-	\brief 下拉列表：编码设置。
-	\since build 290
-	*/
-	DropDownList ddlEncoding;
-	/*!
-	\brief 复选按钮：选定自动光滑滚屏。
-	\since build 329
-	*/
-	CheckButton cbSmoothScroll;
 	/*!
 	\brief 下拉列表：自动滚屏时间设置。
 	\since build 292

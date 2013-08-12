@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r640
+\version r751
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-08-05 22:02 +0800
+	2013-08-10 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,6 +98,46 @@ CheckReaderEnability(FileBox& fb, CheckBox& hex)
 	return false;
 }
 
+
+//! \since build 436
+const char TU_Explorer_Main[]{u8R"NPL(root
+($type "Panel")($bounds "0 0 256 192")
+(lblTitle
+	($type "Label")($bounds "16 20 220 22"))
+(lblPath
+	($type "Label")($bounds "8 48 240 48"))
+(lblInfo
+	($type "Label")($bounds "8 100 240 64"))
+)NPL"};
+//! \since build 436
+const char TU_Explorer_Sub[]{u8R"NPL(root
+($type "Panel")($bounds "0 0 256 192")
+(fbMain
+	($type "FileBox")($bounds "0 0 256 170"))
+(btnOK
+	($type "Button")($bounds "170 170 64 22"))
+(btnMenu
+	($type "Button")($bounds "0 170 72 22"))
+(pnlSetting
+	($type "Panel")($bounds "10 40 224 100")
+	(cbHex
+		($type "CheckButton")($bounds "10 60 100 18"))
+	(cbFPS
+		($type "CheckButton")($bounds "10 80 72 18"))
+	(btnEnterTest
+		($type "Button")($bounds "8 32 104 22"))
+	(lblDragTest
+		($type "Label")($bounds "4 4 104 22"))
+	(btnTestEx
+		($type "Button")($bounds "116 32 104 22"))
+	(btnPrevBackground
+		($type "Button")($bounds "120 60 30 22"))
+	(btnNextBackground
+		($type "Button")($bounds "164 60 30 22"))
+)
+)NPL"};
+
+
 } // unnamed namespace;
 
 
@@ -118,13 +158,8 @@ SwitchScreensButton::SwitchScreensButton(ShlDS& shl, const Point& pt)
 ShlExplorer::ShlExplorer(const IO::Path& path,
 	const shared_ptr<Desktop>& h_dsk_up, const shared_ptr<Desktop>& h_dsk_dn)
 	: ShlDS(h_dsk_up, h_dsk_dn),
-	lblTitle({16, 20, 220, 22}), lblPath({8, 48, 240, 48}),
-	lblInfo({8, 100, 240, 64}), fbMain({0, 0, 256, 170}),
-	btnOK({170, 170, 64, 22}), btnMenu({0, 170, 72, 22}),
-	pnlSetting({10, 40, 224, 100}), cbHex({10, 60, 100, 18}),
-	cbFPS({10, 80, 72, 18}), lblDragTest({4, 4, 104, 22}),
-	btnEnterTest({8, 32, 104, 22}), btnTestEx({116, 32, 104, 22}),
-	btnPrevBackground({120, 60, 30, 22}), btnNextBackground({164, 60, 30, 22}),
+	dynWgts_Main(FetchWidgetLoader(), TU_Explorer_Main),
+	dynWgts_Sub(FetchWidgetLoader(), TU_Explorer_Sub),
 	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetSubDesktopHandle()),
 	fpsCounter(std::chrono::milliseconds(500)),
 	btnSwitchMain(*this, {234, 170}), btnSwitchSub(*this, {234, 170})
@@ -132,13 +167,32 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	static int up_i(1);
 	auto& dsk_m(GetMainDesktop());
 	auto& dsk_s(GetSubDesktop());
+	auto& node(dynWgts_Main.WidgetNode);
+	DeclDynWidget(Panel, root, node)
+	DeclDynWidgetNode(Label, lblTitle)
+	DeclDynWidgetNode(Label, lblPath)
+	DeclDynWidgetNode(Label, lblInfo)
+	auto& node_sub(dynWgts_Sub.WidgetNode);
+	DeclDynWidget(Panel, root_sub, node_sub)
+	DeclDynWidgetN(FileBox, fbMain, node_sub)
+	DeclDynWidgetN(Button, btnOK, node_sub)
+	DeclDynWidgetN(Button, btnMenu, node_sub)
+	auto& node_pnlSetting(node_sub.at("$children").at("pnlSetting"));
+	DeclDynWidget(Panel, pnlSetting, node_pnlSetting)
+	DeclDynWidgetN(CheckButton, cbHex, node_pnlSetting)
+	DeclDynWidgetN(CheckButton, cbFPS, node_pnlSetting)
+	DeclDynWidgetN(Label, lblDragTest, node_pnlSetting)
+	DeclDynWidgetN(Button, btnEnterTest, node_pnlSetting)
+	DeclDynWidgetN(Button, btnTestEx, node_pnlSetting)
+	DeclDynWidgetN(Button, btnPrevBackground, node_pnlSetting)
+	DeclDynWidgetN(Button, btnNextBackground, node_pnlSetting)
 
-	AddWidgets(pnlSetting, cbHex, cbFPS, btnEnterTest, lblDragTest, btnTestEx,
-		btnPrevBackground, btnNextBackground),
-	AddWidgets(dsk_m, lblTitle, lblPath, lblInfo, btnSwitchMain),
-	AddWidgets(dsk_s, fbMain, btnOK, btnMenu, btnSwitchSub),
-	AddWidgetsZ(dsk_s, DefaultWindowZOrder, pnlSetting, *pFrmAbout),
-	//启用缓存。
+	dsk_m += root,
+	dsk_m.Add(btnSwitchMain, 96),
+	dsk_s += root_sub,
+	root_sub -= pnlSetting;
+	dsk_s.Add(btnSwitchSub, 96),
+	AddWidgetsZ(dsk_s, DefaultWindowZOrder, pnlSetting, *pFrmAbout);
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	cbHex.SetRenderer(make_unique<BufferedRenderer>()),
@@ -148,8 +202,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	WrapForSwapScreens(dsk_s, SwapMask),
 	yunseq(
 		dsk_m.Background = ImageBrush(FetchImage(0)),
-		dsk_s.Background = SolidBrush(
-			FetchGUIState().Colors[Styles::Panel]),
+		dsk_s.Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
+		root.Background = nullptr,
+		root_sub.Background = nullptr,
 		lblTitle.Text = G_APP_NAME,
 		lblPath.AutoWrapLine = true, lblPath.Text = String(path),
 		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
@@ -180,22 +235,30 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		fbMain.SetPath(path),
 		Enable(btnOK, false),
 		Enable(btnPrevBackground, false),
-		dsk_s.BoundControlPtr = std::bind(&ShlExplorer::GetBoundControlPtr,
-			this, std::placeholders::_1),
+		dsk_s.BoundControlPtr = [&, this](const KeyInput& k)->IWidget*{
+			if(k.count() == 1)
+			{
+				if(k[YCL_KEY(A)])
+					return &btnOK;
+				if(k[YCL_KEY_Start])
+					return &btnMenu;
+			}
+			return nullptr;
+		},
 		FetchEvent<KeyUp>(dsk_s) += OnKey_Bound_TouchUp,
 		FetchEvent<KeyDown>(dsk_s) += OnKey_Bound_TouchDown,
-		FetchEvent<KeyPress>(dsk_s) += [this](KeyEventArgs&& e){
+		FetchEvent<KeyPress>(dsk_s) += [&](KeyEventArgs&& e){
 			if(e.GetKeys()[YCL_KEY(X)])
 				SwitchVisible(pnlSetting);
 		},
-		fbMain.GetViewChanged() += [this](UIEventArgs&&){
+		fbMain.GetViewChanged() += [&](UIEventArgs&&){
 			lblPath.Text = String(fbMain.GetPath());
 			Invalidate(lblPath);
 		},
-		fbMain.GetSelected() += [this](IndexEventArgs&&){
+		fbMain.GetSelected() += [&](IndexEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
 		},
-		FetchEvent<Click>(btnOK) += [this](CursorEventArgs&&){
+		FetchEvent<Click>(btnOK) += [&](CursorEventArgs&&){
 			if(fbMain.IsSelected())
 			{
 				const auto& path(fbMain.GetPath());
@@ -225,17 +288,17 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		FetchEvent<Click>(cbFPS) += [this](CursorEventArgs&&){
 			SetInvalidationOf(GetSubDesktop());
 		},
-		FetchEvent<Click>(cbHex) += [this](CursorEventArgs&&){
+		FetchEvent<Click>(cbHex) += [&](CursorEventArgs&&){
 			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
 			SetInvalidationOf(GetSubDesktop());
 		},
-		FetchEvent<Move>(pnlSetting) += [this](UIEventArgs&&){
+		FetchEvent<Move>(pnlSetting) += [&](UIEventArgs&&){
 			lblDragTest.Text = to_string(GetLocationOf(pnlSetting)) + ';';
 			Invalidate(lblDragTest);
 		},
 		FetchEvent<TouchHeld>(pnlSetting) += OnTouchHeld_Dragging,
 #if YCL_DS
-		FetchEvent<TouchDown>(pnlSetting) += [this](CursorEventArgs&&){
+		FetchEvent<TouchDown>(pnlSetting) += [&](CursorEventArgs&&){
 			struct ::mallinfo t(::mallinfo());
 
 			lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
@@ -243,14 +306,14 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			Invalidate(lblInfo);
 		},
 #endif
-		FetchEvent<Click>(pnlSetting) += [this](CursorEventArgs&&){
+		FetchEvent<Click>(pnlSetting) += [&](CursorEventArgs&&){
 			yunseq(
 				lblDragTest.ForeColor = GenerateRandomColor(),
 				lblTitle.ForeColor = GenerateRandomColor()
 			);
 			Invalidate(pnlSetting);
 		},
-		FetchEvent<Click>(btnTestEx) += [this](CursorEventArgs&& e){
+		FetchEvent<Click>(btnTestEx) += [&](CursorEventArgs&& e){
 			const auto& k(e.GetKeys());
 			auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
 
@@ -288,7 +351,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 				mhMain.Show(1u);
 			Invalidate(mnu);
 		},
-		FetchEvent<Click>(btnPrevBackground) += [this](CursorEventArgs&&){
+		FetchEvent<Click>(btnPrevBackground) += [&](CursorEventArgs&&){
 			auto& dsk_m(GetMainDesktop());
 			auto& dsk_s(GetSubDesktop());
 
@@ -303,7 +366,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			SetInvalidationOf(dsk_m),
 			SetInvalidationOf(dsk_s);
 		},
-		FetchEvent<Click>(btnNextBackground) += [this](CursorEventArgs&&){
+		FetchEvent<Click>(btnNextBackground) += [&](CursorEventArgs&&){
 			auto& dsk_m(GetMainDesktop());
 			auto& dsk_s(GetSubDesktop());
 
@@ -328,7 +391,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	auto& m2(*(ynew Menu({},
 		share_raw(new TextList::ListType{u"项目1", u"项目2"}), 2u)));
 
-	m1.GetConfirmed() += [this](IndexEventArgs&& e){
+	m1.GetConfirmed() += [&](IndexEventArgs&& e){
 		switch(e.Value)
 		{
 		case 1U:
@@ -342,7 +405,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		}
 	},
 #if YCL_MinGW32
-	m2.GetConfirmed() += [this](IndexEventArgs&& e){
+	m2.GetConfirmed() += [](IndexEventArgs&& e){
 		MinGW32::TestFramework(e.Value);
 	},
 #endif
@@ -356,6 +419,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 void
 ShlExplorer::OnPaint()
 {
+	DeclDynWidgetN(CheckButton, cbFPS, dynWgts_Sub.WidgetNode, "pnlSetting")
+
 	// NOTE: Overriding member function %OnInput using %SM_TASK is also valid
 	//	because the %SM_INPUT message is sent continuously, but less efficient.
 	if(cbFPS.IsTicked())
@@ -377,19 +442,6 @@ ShlExplorer::OnPaint()
 			bUpdateUp = true;
 		}
 	}
-}
-
-IWidget*
-ShlExplorer::GetBoundControlPtr(const KeyInput& k)
-{
-	if(k.count() == 1)
-	{
-		if(k[YCL_KEY(A)])
-			return &btnOK;
-		if(k[YCL_KEY_Start])
-			return &btnMenu;
-	}
-	return nullptr;
 }
 
 } // namespace YReader;

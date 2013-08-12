@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r114
+\version r131
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-08-05 21:58 +0800
+	2013-08-10 22:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,20 +47,10 @@ public:
 class ShlExplorer : public ShlDS
 {
 protected:
+	//! \since build 436
+	DynamicWidget dynWgts_Main, dynWgts_Sub;
 	//! \since build 363
 	//@{
-	Label lblTitle, lblPath;
-	/*!
-	\brief 信息标签：说明用户操作内容等。
-	*/
-	Label lblInfo;
-	FileBox fbMain;
-	Button btnOK;
-	Button btnMenu;
-	DialogPanel pnlSetting;
-	CheckButton cbHex, cbFPS;
-	Label lblDragTest;
-	Button btnEnterTest, btnTestEx, btnPrevBackground, btnNextBackground;
 	unique_ptr<FrmAbout> pFrmAbout;
 	MenuHost mhMain;
 	FPSCounter fpsCounter;
@@ -90,10 +80,6 @@ public:
 	*/
 	void
 	OnPaint() override;
-
-private:
-	IWidget*
-	GetBoundControlPtr(const KeyInput&);
 };
 
 } // namespace YReader;

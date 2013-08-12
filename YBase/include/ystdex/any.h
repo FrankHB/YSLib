@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1310
+\version r1323
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-08-02 03:42 +0800
+	2013-08-11 15:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -724,6 +724,16 @@ public:
 	type() const ynothrow;
 };
 
+/*!
+\brief 交换对象。
+\since build 398
+*/
+inline void
+swap(any& x, any& y) ynothrow
+{
+	x.swap(y);
+}
+
 
 /*!
 \brief 动态泛型转换失败异常。
@@ -868,22 +878,6 @@ struct pseudo_output
 };
 
 } // namespace ystdex;
-
-
-namespace std
-{
-
-/*!
-\brief \c std::swap 的 \c ystdex::any 重载。
-\since build 398
-*/
-inline void
-swap(ystdex::any& x, ystdex::any& y) ynothrow
-{
-	x.swap(y);
-}
-
-} // namespace std;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r239
+\version r303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-08-05 22:02 +0800
+	2013-08-10 18:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,34 @@
 
 namespace YReader
 {
+
+//! \since build 436
+namespace
+{
+
+const char TU_ReaderSettingUI[]{u8R"NPL(root
+($type "Panel")($bounds "16 28 216 156")
+(btnFontSizeDecrease
+	($type "Button")($bounds "4 4 80 22"))
+(btnFontSizeIncrease
+	($type "Button")($bounds "132 4 80 22"))
+(btnSetUpBack
+	($type "Button")($bounds "4 36 80 22"))
+(btnSetDownBack
+	($type "Button")($bounds "132 36 80 22"))
+(btnTextColor
+	($type "Button")($bounds "4 68 80 22"))
+(ddlFont
+	($type "DropDownList")($bounds "132 68 80 22"))
+(ddlEncoding
+	($type "DropDownList")($bounds "4 100 192 22"))
+(cbSmoothScroll
+	($type "CheckButton")($bounds "4 132 72 18"))
+(ddlScrollTiming
+	($type "DropDownList")($bounds "80 132 128 22"))
+)NPL"};
+
+} // unnamed namespace;
 
 using namespace Text;
 using std::chrono::milliseconds;
@@ -48,20 +76,22 @@ FetchEncodingString(MTextList::IndexType i)
 
 SettingPanel::SettingPanel()
 	: DialogPanel(Size(MainScreenWidth, MainScreenHeight)),
+	dynWgts(FetchWidgetLoader(), TU_ReaderSettingUI),
 	lblAreaUp({20, 12, 216, 72}), lblAreaDown({20, 108, 216, 72}),
-	btnFontSizeDecrease({20, 32, 80, 22}),
-	btnFontSizeIncrease({148, 32, 80, 22}),
-	btnSetUpBack({20, 64, 80, 22}), btnSetDownBack({148, 64, 80, 22}),
-	btnTextColor({20, 96, 80, 22}),
-	ddlFont({148, 96, 80, 22}, FetchFontFamilyNames()),
-	ddlEncoding({20, 128, 192, 22}, share_raw(new
-		TextList::ListType(Encodings | ystdex::get_value, (Encodings
-		+ arrlen(Encodings)) | ystdex::get_value))),
-	cbSmoothScroll({20, 160, 72, 18}),
-	ddlScrollTiming({96, 160, 128, 22}),
 	boxColor(Point(4, 80)), pColor(), current_encoding(),
 	scroll_duration(), smooth_scroll_duration()
 {
+	auto& node(dynWgts.WidgetNode);
+	DeclDynWidget(Panel, root, node)
+	DeclDynWidgetNode(Button, btnFontSizeDecrease)
+	DeclDynWidgetNode(Button, btnFontSizeIncrease)
+	DeclDynWidgetNode(Button, btnSetUpBack)
+	DeclDynWidgetNode(Button, btnSetDownBack)
+	DeclDynWidgetNode(Button, btnTextColor)
+	DeclDynWidgetNode(DropDownList, ddlFont)
+	DeclDynWidgetNode(DropDownList, ddlEncoding)
+	DeclDynWidgetNode(CheckButton, cbSmoothScroll)
+	DeclDynWidgetNode(DropDownList, ddlScrollTiming)
 	const auto set_font_size([this](FontSize size){
 		lblAreaUp.Font.SetSize(size),
 		lblAreaDown.Font.SetSize(size);
@@ -70,12 +100,15 @@ SettingPanel::SettingPanel()
 		Invalidate(lblAreaDown);
 	});
 
-	AddWidgets(*this, btnFontSizeDecrease, btnFontSizeIncrease, btnSetUpBack,
-		btnSetDownBack, btnTextColor, ddlFont, ddlEncoding, cbSmoothScroll,
-		ddlScrollTiming),
+	AddWidgets(*this, root),
 	Add(boxColor, 112U),
-	SetVisibleOf(boxColor, false);
+	SetVisibleOf(boxColor, false),
+	ddlFont.SetList(FetchFontFamilyNames()),
+	ddlEncoding.SetList(share_raw(
+		new TextList::ListType(Encodings | ystdex::get_value,
+		(Encodings + arrlen(Encodings)) | ystdex::get_value))),
 	yunseq(
+		root.Background = nullptr,
 		btnFontSizeDecrease.Text = u"减小字体",
 		btnFontSizeIncrease.Text = u"增大字体",
 		btnSetUpBack.Text = u"上屏颜色...",
@@ -116,7 +149,7 @@ SettingPanel::SettingPanel()
 				= &lblAreaDown.Background.target<SolidBrush>()->Color));
 			Show(boxColor);
 		},
-		ddlFont.GetConfirmed() += [this](IndexEventArgs&&){
+		ddlFont.GetConfirmed() += [&, this](IndexEventArgs&&){
 			if(const auto p = FetchDefaultFontCache()
 				.GetFontFamilyPtr(ddlFont.Text.GetMBCS().c_str()))
 			{
@@ -131,7 +164,7 @@ SettingPanel::SettingPanel()
 				lblAreaDown.Text = FetchEncodingString(e.Value)),
 			Invalidate(lblAreaDown);
 		},
-		cbSmoothScroll.GetTicked() += [this](CheckBox::TickedArgs&& e){
+		cbSmoothScroll.GetTicked() += [&, this](CheckBox::TickedArgs&& e){
 			using ystdex::get_init;
 
 			static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
@@ -155,7 +188,7 @@ SettingPanel::SettingPanel()
 				/ 100U) - 1U],
 			Invalidate(ddlScrollTiming);
 		},
-		ddlScrollTiming.GetConfirmed() += [this](IndexEventArgs&& e){
+		ddlScrollTiming.GetConfirmed() += [&, this](IndexEventArgs&& e){
 			if(cbSmoothScroll.IsTicked())
 				smooth_scroll_duration = milliseconds((e.Value + 1U) * 10);
 			else
@@ -178,6 +211,10 @@ SettingPanel::SettingPanel()
 SettingPanel&
 SettingPanel::operator<<(const ReaderSetting& s)
 {
+	auto& node(dynWgts.WidgetNode);
+	DeclDynWidgetNode(DropDownList, ddlFont)
+	DeclDynWidgetNode(CheckButton, cbSmoothScroll)
+
 	yunseq(lblAreaUp.ForeColor = s.FontColor,
 		lblAreaUp.Background = SolidBrush(s.UpColor),
 		lblAreaUp.Font = s.Font,
@@ -195,6 +232,9 @@ SettingPanel::operator<<(const ReaderSetting& s)
 SettingPanel&
 SettingPanel::operator>>(ReaderSetting& s)
 {
+	auto& node(dynWgts.WidgetNode);
+	DeclDynWidgetNode(CheckButton, cbSmoothScroll)
+
 	yunseq(s.UpColor = lblAreaUp.Background.target<SolidBrush>()->Color,
 		s.DownColor = lblAreaDown.Background.target<SolidBrush>()->Color,
 		s.FontColor = lblAreaUp.ForeColor,

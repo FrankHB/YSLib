@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12087
+\version r12095
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-07-27 05:11 +0800
+	2013-08-11 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -310,6 +310,12 @@ DefWidgetChildrenGetter
 DefWidgetMemberIterationOperations(_tIter)
 DefWidgetMemberIteration(...)
 DefWidgetMemberIterationBase(_tBase, ...)
+}
+$unit Loader
+{
+DeclDynWidget(_t, _n, ...)
+DeclDynWidgetN(_t, _n, ...)
+DeclDynWidgetNode(_t, _n)
 }
 $unit Scroll
 {
@@ -660,9 +666,9 @@ using ystdex::nullptr;
 
 // std 命名空间兼容性污染列表。
 
-$header <platform.h>
+$header <Platform.h>
 {
-} //$header <platfrom.h>
+} //$header <Platfrom.h>
 
 $header <ystdex/rational.hpp>
 {

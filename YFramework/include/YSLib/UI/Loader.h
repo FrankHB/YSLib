@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r339
+\version r357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2013-08-08 05:39 +0800
+	2013-08-10 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,6 +206,26 @@ public:
 		: Loader(ldr), WidgetNode(ldr.LoadUILayout(str))
 	{}
 };
+
+
+/*!
+\brief 声明动态部件。
+\since build 436
+*/
+#define DeclDynWidget(_t, _n, ...) \
+	auto& _n(YSLib::UI::AccessWidget<_t>(__VA_ARGS__));
+/*!
+\brief 声明指定节点下的按相同名称访问的动态部件。
+\note ... 展开为参数列表，其中第一个为节点名称，之后的可选为名称字符串参数。
+\since build 436
+*/
+#define DeclDynWidgetN(_t, _n, ...) \
+	DeclDynWidget(_t, _n, __VA_ARGS__, #_n)
+/*!
+\brief 声明名称为 node 的节点下的按相同名称访问的动态部件。
+\since build 436
+*/
+#define DeclDynWidgetNode(_t, _n) DeclDynWidgetN(_t, _n, node)
 
 } // namespace UI;
 

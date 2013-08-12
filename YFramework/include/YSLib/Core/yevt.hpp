@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4461
+\version r4463
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-08-05 21:06 +0800
+	2013-08-10 05:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -675,10 +675,10 @@ struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
 \brief 声明事件接口函数。
 */
 //@{
-//! since build 166 。
+//! since build 166
 #define DeclIEventEntry(_tEventHandler, _name) \
 	DeclIEntry(const EventT(_tEventHandler)& yJOIN(Get, _name)() const)
-//! since build 188 。
+//! since build 188
 #define DeclIDepEventEntry(_tEventHandler, _name) \
 	DeclIEntry(const DepEventT(_tEventHandler)& yJOIN(Get, _name)() const)
 //@}
