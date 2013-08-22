@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9020
+\version r9029
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-08-12 04:32 +0800
+	2013-08-13 10:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -296,6 +296,8 @@ Shell 和 Core 的关系是相对的，例如：
 除了 ISO C++ 标准库外的非外部依赖项：
 基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx 等，独立于 YFramework 。
 基于 YBase 的平台隔离用库 YCLib ，包含于 YFramework 中。
+ ISO C++ 实现定义行为要求：
+至少支持 std::placeholder::_6 。
 
 @5.2.1 YBase ：
 参见 [Documentation::YBase] 。
@@ -366,7 +368,7 @@ Shell 和 Core 的关系是相对的，例如：
  libnds 1.5.0 / default arm7 0.5.20 / libfat 1.0.9 。
  2011-06-24(build 221) 起：
  devkitARM release 33 / libnds 1.5.0 / default arm7 0.5.20 。
-注：文件系统目录访问接口变化，需要使用 devkitARM release 33 或自行配置所需的 POSIX API 。 
+注：文件系统目录访问接口变化，需要使用 devkitARM release 33 或自行配置所需的 POSIX API 。
  2011-07-03(build 223) 起：
  libnds 1.5.1 / default arm7 0.5.21 。
  2011-07-05(build 223) 起：
@@ -406,6 +408,14 @@ Shell 和 Core 的关系是相对的，例如：
  2013-07-20(build 431) 起：
 增加依赖项 NASM 2.07 ：http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download 。
 当前不直接用于构建 YSLib ，仅用于构建依赖项。
+
+@5.2.4.1 MinGW32 库部署：
+ YSLib 内部使用固定的相对路径，不依赖库的部署。
+用户程序依赖 YSLib 库（注意静态库可包括第三方库）时，可以复制库文件或建立直接的符号链接，使用以下方法：
+ 静态库文件（文件名形如 'lib$(LIB).a' ，其中 $(LIB) 是可能带有 d 后缀表示调试版本的库名，下同）置于链接器的搜索路径指定的目录内，在链接器命令行中引用文件名（ lib$(LIB).a ）指定库；
+ 动态库文件（文件名形如 '$(LIB).dll' ）置于链接器的搜索路径指定的目录内，但重命名为 $(LIB).dll.a 同时在链接器命令行中直接引用 $LIB 指定库；
+ 动态库文件（文件名形如 '$(LIB).dll' ）在 PATH 环境变量内或直接依赖的文件所在的目录以便被搜索。
+以上部署方式中链接器搜索路径中的静态库和动态库的调试版本和非调试版本可以在一个目录内，不产生冲突。
 
 @5.3 通用库：
 

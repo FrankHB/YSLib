@@ -50,6 +50,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YFramework_DS", "YFramework
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YFramework_MinGW32", "YFramework\MinGW32\YFramework_MinGW32.vcxproj", "{B429F839-AE23-4B3B-8F24-D91D31318373}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CreationTimeManager", "Tools\CreationTimeManager\CreationTimeManager.vcxproj", "{49698256-F394-4C2A-AFAC-6879E4852890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|Any CPU = debug|Any CPU
@@ -181,6 +183,20 @@ Global
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Mixed Platforms.Build.0 = release|Win32
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Win32.ActiveCfg = release|Win32
 		{B429F839-AE23-4B3B-8F24-D91D31318373}.release|Win32.Build.0 = release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Any CPU.ActiveCfg = Debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|DS.ActiveCfg = Debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|MinGW32.ActiveCfg = Debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Mixed Platforms.Build.0 = Debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Win32.ActiveCfg = Debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.debug|Win32.Build.0 = Debug|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Any CPU.ActiveCfg = Release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|DS.ActiveCfg = Release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|MinGW32.ActiveCfg = Release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Mixed Platforms.ActiveCfg = Release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Mixed Platforms.Build.0 = Release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Win32.ActiveCfg = Release|Win32
+		{49698256-F394-4C2A-AFAC-6879E4852890}.release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -198,5 +214,6 @@ Global
 		{9DA73A1D-34DE-4888-8FFA-8745E2240394} = {7AF9A589-1C6E-4BC3-A47A-9EBF19860C4D}
 		{B429F839-AE23-4B3B-8F24-D91D31318373} = {9DA73A1D-34DE-4888-8FFA-8745E2240394}
 		{39AA598C-244E-46AA-8CA5-55FBD4A3AACC} = {F3C15243-D0BB-46E9-8FAA-396334548304}
+		{49698256-F394-4C2A-AFAC-6879E4852890} = {F3C15243-D0BB-46E9-8FAA-396334548304}
 	EndGlobalSection
 EndGlobal

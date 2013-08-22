@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2826
+\version r2848
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-08-05 21:30 +0800
+	2013-08-21 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -224,10 +224,12 @@ CopyTo(BitmapPtr dst, const Graphics& g, const Size& ds,
 {
 	if(~rot & 1 && dst && bool(g))
 	{
-		(rot == RDeg0
-			? Blit<BlitLoop, false, false, BitmapPtr, ConstBitmapPtr>
-			: Blit<BlitLoop, true, true, BitmapPtr, ConstBitmapPtr>)(
-			dst, ds, g.GetBufferPtr(), g.GetSize(), dp, sp, sc);
+		if(rot == RDeg0)
+			BlitLines<false, false, BitmapPtr, ConstBitmapPtr>(BlitLine<true>,
+				dst, g.GetBufferPtr(), ds, g.GetSize(), dp, sp, sc);
+		else
+			BlitLines<true, true, BitmapPtr, ConstBitmapPtr>(BlitLine<false>,
+				dst, g.GetBufferPtr(), ds, g.GetSize(), dp, sp, sc);
 		return true;
 	}
 	return false;
@@ -238,11 +240,14 @@ CopyTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 {
 	if(~rot & 1 && dst && bool(buf))
 	{
-		(rot == RDeg0
-			? Blit<BlitTransparentLoop, false, false, BitmapPtr, IteratorPair>
-			: Blit<BlitTransparentLoop, true, true, BitmapPtr, IteratorPair>)(
-			dst, ds, IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()),
-			buf.GetSize(), dp, sp, sc);
+		if(rot == RDeg0)
+			BlitLines<false, false>(BlitTransparentLine<true>(), dst,
+				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
+				buf.GetSize(), dp, sp, sc);
+		else
+			BlitLines<true, true>(BlitTransparentLine<false>(), dst,
+				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
+				buf.GetSize(), dp, sp, sc);
 		return true;
 	}
 	return false;
@@ -254,11 +259,14 @@ BlitTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 {
 	if(~rot & 1 && dst && bool(buf))
 	{
-		(rot == RDeg0
-			? Blit<BlitBlendLoop, false, false, BitmapPtr, IteratorPair>
-			: Blit<BlitBlendLoop, true, true, BitmapPtr, IteratorPair>)(
-			dst, ds, IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()),
-			buf.GetSize(), dp, sp, sc);
+		if(rot == RDeg0)
+			BlitLines<false, false>(BlitBlendLine<true>(), dst,
+				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
+				buf.GetSize(), dp, sp, sc);
+		else
+			BlitLines<true, true>(BlitBlendLine<false>(), dst,
+				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
+				buf.GetSize(), dp, sp, sc);
 		return true;
 	}
 	return false;

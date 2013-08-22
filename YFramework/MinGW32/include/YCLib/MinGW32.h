@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r182
+\version r184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-08-08 06:00 +0800
+	2013-08-16 05:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,6 +89,8 @@ public:
 		LevelType = {}) ynothrow;
 
 	DefGetter(const ynothrow, ErrorCode, ErrorCode, err)
+	//! \since build 437
+	DefGetter(const ynothrow, std::string, Message, FormatMessage(err))
 
 	explicit DefCvt(const ynothrow, ErrorCode, err)
 

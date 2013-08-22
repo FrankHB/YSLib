@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r310
+\version r311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-08-05 21:03 +0800
+	2013-08-14 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,6 +117,7 @@ public:
 
 /*!
 \brief 位图句柄：指向位图数据。
+\note 内部数据的平凡容器：深复制且可转移。
 \since build 418
 */
 class YF_API HBitmap final

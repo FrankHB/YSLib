@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r751
+\version r755
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-08-10 22:32 +0800
+	2013-08-13 11:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,7 +137,6 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 )
 )NPL"};
 
-
 } // unnamed namespace;
 
 
@@ -187,6 +186,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidgetN(Button, btnPrevBackground, node_pnlSetting)
 	DeclDynWidgetN(Button, btnNextBackground, node_pnlSetting)
 
+	p_ChkFPS = &cbFPS;
 	dsk_m += root,
 	dsk_m.Add(btnSwitchMain, 96),
 	dsk_s += root_sub,
@@ -419,7 +419,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 void
 ShlExplorer::OnPaint()
 {
-	DeclDynWidgetN(CheckButton, cbFPS, dynWgts_Sub.WidgetNode, "pnlSetting")
+	// NOTE: Hack for performance.
+//	DeclDynWidgetN(CheckButton, cbFPS, dynWgts_Sub.WidgetNode, "pnlSetting")
+	auto& cbFPS(*p_ChkFPS);
 
 	// NOTE: Overriding member function %OnInput using %SM_TASK is also valid
 	//	because the %SM_INPUT message is sent continuously, but less efficient.

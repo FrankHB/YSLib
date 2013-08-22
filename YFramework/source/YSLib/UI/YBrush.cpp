@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r176
+\version r178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2013-08-05 21:35 +0800
+	2013-08-17 06:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,13 +48,13 @@ SolidBrush::operator()(PaintEventArgs&& e)
 void
 ImageBrush::operator()(PaintEventArgs&& e)
 {
-	if(bool(Image))
+	if(Image)
 	{
 		const auto& g(e.Target);
 		const Rect& r(e.ClipArea);
 
 		CopyTo(g.GetBufferPtr(), Image->GetContext(), g.GetSize(),
-			r.GetPoint(), {}, r.GetSize());
+			r.GetPoint(), Offset, r.GetSize());
 	}
 }
 

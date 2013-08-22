@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2749
+\version r2757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-05 21:03 +0800
+	2013-08-21 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ namespace Drawing
 \param ss 源迭代器所在缓冲区大小。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \param neg_pitch 指定交换行渲染顺序。
-\see Blit 。
+\sa Blit
 \since build 415
 */
 template<template<bool> class _gBlitLoop, typename _tOut, typename _tIn>
@@ -55,12 +55,15 @@ inline void
 BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc,
 	bool neg_pitch)
 {
-	const auto& g(pc.Target);
+	const auto& ds(pc.Target.GetSize());
 	const auto& r(pc.ClipArea);
 
-	(neg_pitch ? Blit<_gBlitLoop, false, true, _tOut, _tIn> : Blit<_gBlitLoop,
-		false, false, _tOut, _tIn>)(dst, g.GetSize(), src, ss, r.GetPoint(),
-		pc.Location, r.GetSize());
+	if(neg_pitch)
+		Blit<false, true>(_gBlitLoop<true>(), dst, src, ds, ss, r.GetPoint(),
+			pc.Location, r.GetSize());
+	else
+		Blit<false, false>(_gBlitLoop<true>(), dst, src, ds, ss, r.GetPoint(),
+			pc.Location, r.GetSize());
 }
 
 

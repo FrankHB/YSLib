@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r131
+\version r134
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-08-10 22:31 +0800
+	2013-08-13 11:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,10 @@ public:
 
 class ShlExplorer : public ShlDS
 {
+private:
+	//! \since build 437
+	CheckButton* p_ChkFPS{};
+
 protected:
 	//! \since build 436
 	DynamicWidget dynWgts_Main, dynWgts_Sub;

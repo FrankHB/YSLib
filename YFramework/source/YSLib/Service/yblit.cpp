@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1013
+\version r1041
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-08-05 21:30 +0800
+	2013-08-17 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,13 +42,13 @@ namespace
 inline SPos
 blit_min(SPos d)
 {
-	return max<int>(0, -d);
+	return max<ptrdiff_t>(0, -d);
 }
 
 inline SPos
 blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 {
-	return min<int>(min<int>(dl - d, sl - s), cl);
+	return min<ptrdiff_t>(min<ptrdiff_t>(dl - d, sl - s), cl);
 }
 
 } // unnamed namespace;
@@ -56,7 +56,7 @@ blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 bool
 BlitBounds(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& sc,
-	int& min_x, int& min_y, int& delta_x, int& delta_y)
+	ptrdiff_t& min_x, ptrdiff_t& min_y, ptrdiff_t& delta_x, ptrdiff_t& delta_y)
 {
 	yunseq(min_x = blit_min(dp.X), min_y = blit_min(dp.Y),
 		delta_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),
@@ -68,32 +68,6 @@ BlitBounds(const Point& dp, const Point& sp,
 	}
 	return false;
 }
-
-//显式实例化：防止链接错误。
-template
-void Blit<BlitLoop, false, false>(BitmapPtr, const Size&,
-	ConstBitmapPtr, const Size&,
-	const Point&, const Point&, const Size&);
-template
-void Blit<BlitLoop, true, true>(BitmapPtr, const Size&,
-	ConstBitmapPtr, const Size&,
-	const Point&, const Point&, const Size&);
-template
-void Blit<BlitTransparentLoop, false, false>(BitmapPtr, const Size&,
-	IteratorPair, const Size&,
-	const Point&, const Point&, const Size&);
-template
-void Blit<BlitTransparentLoop, true, true>(BitmapPtr, const Size&,
-	IteratorPair, const Size&,
-	const Point&, const Point&, const Size&);
-template
-void Blit<BlitBlendLoop, false, false>(BitmapPtr, const Size&,
-	IteratorPair, const Size&,
-	const Point&, const Point&, const Size&);
-template
-void Blit<BlitBlendLoop, true, true>(BitmapPtr, const Size&,
-	IteratorPair, const Size&,
-	const Point&, const Point&, const Size&);
 
 
 void

@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r260
+\version r262
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2013-08-05 21:10 +0800
+	2013-08-17 04:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,6 +63,8 @@ class YF_API ImageBrush
 {
 public:
 	mutable shared_ptr<Drawing::Image> Image;
+	//! \since build 437
+	Point Offset{};
 
 	yconstfn DefDeCtor(ImageBrush)
 	ImageBrush(const shared_ptr<Drawing::Image>& h)

@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1544
+\version r1749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-08-05 21:02 +0800
+	2013-08-22 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,20 +38,6 @@ namespace YSLib
 
 namespace Drawing
 {
-
-/*!
-\brief Alpha 光栅化源迭代器对。
-\since build 417
-*/
-using IteratorPair = ystdex::pair_iterator<ConstBitmapPtr, const AlphaType*>;
-
-/*!
-\brief Alpha 单色光栅化源迭代器对。
-\since build 417
-*/
-using MonoIteratorPair = ystdex::pair_iterator<
-	ystdex::pseudo_iterator<const PixelType>, const AlphaType*>;
-
 
 //基本仿函数。
 
@@ -130,45 +116,51 @@ struct VerticalLineTransfomer
 
 /*!
 \brief 贴图边界计算器。
-\since build 189
+\since build 437
 */
 YF_API bool
 BlitBounds(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& cs,
-	int& min_x, int& min_y, int& delta_x, int& delta_y);
+	ptrdiff_t& min_x, ptrdiff_t& min_y, ptrdiff_t& delta_x, ptrdiff_t& delta_y);
 
 /*!
 \brief 贴图偏移量计算器。
-\since build 315
+\since build 437
 */
 //@{
 template<bool _bSwapLR, bool _bSwapUD>
-int
-BlitScale(const Point& dp, const Size& ds, int delta_x, int delta_y);
+ptrdiff_t
+BlitScale(const Point& dp, const Size& ds, ptrdiff_t delta_x,
+	ptrdiff_t delta_y);
 template<>
-inline int
-BlitScale<false, false>(const Point& dp, const Size& ds, int, int)
+inline ptrdiff_t
+BlitScale<false, false>(const Point& dp, const Size& ds, ptrdiff_t, ptrdiff_t)
 {
-	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X);
+	return max<ptrdiff_t>(0, dp.Y) * ds.Width + max<ptrdiff_t>(0, dp.X);
 }
 template<>
-inline int
-BlitScale<true, false>(const Point& dp, const Size& ds, int, int delta_y)
+inline ptrdiff_t
+BlitScale<true, false>(const Point& dp, const Size& ds, ptrdiff_t,
+	ptrdiff_t delta_y)
 {
-	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width + max<int>(0, dp.X);
+	return (max<ptrdiff_t>(0, dp.Y) + delta_y - 1) * ds.Width
+		+ max<ptrdiff_t>(0, dp.X);
 }
 template<>
-inline int
-BlitScale<false, true>(const Point& dp, const Size& ds, int delta_x, int)
+inline ptrdiff_t
+BlitScale<false, true>(const Point& dp, const Size& ds, ptrdiff_t delta_x,
+	ptrdiff_t)
 {
-	return max<int>(0, dp.Y) * ds.Width + max<int>(0, dp.X) + delta_x - 1;
+	return max<ptrdiff_t>(0, dp.Y) * ds.Width + max<ptrdiff_t>(0, dp.X)
+		+ delta_x - 1;
 }
 template<>
-inline int
-BlitScale<true, true>(const Point& dp, const Size& ds, int delta_x, int delta_y)
+inline ptrdiff_t
+BlitScale<true, true>(const Point& dp, const Size& ds, ptrdiff_t delta_x,
+	ptrdiff_t delta_y)
 {
-	return (max<int>(0, dp.Y) + delta_y - 1) * ds.Width
-		+ max<int>(0, dp.X) + delta_x - 1;
+	return (max<ptrdiff_t>(0, dp.Y) + delta_y - 1) * ds.Width
+		+ max<ptrdiff_t>(0, dp.X) + delta_x - 1;
 }
 //@}
 
@@ -176,11 +168,11 @@ BlitScale<true, true>(const Point& dp, const Size& ds, int delta_x, int delta_y)
 /*!
 \brief 贴图扫描函数模板。
 \tparam _bDec 指定是否翻转水平和竖直方向之一。
-\tparam _fCallable 调用操作类型。
 \tparam _tScalar 度量大小的纯量类型。
 \tparam _tDiff 度量偏移量的差值类型。
 \tparam _tOut 输出迭代器类型。
 \tparam _tIn 输入迭代器类型。
+\tparam _fBlitLoop 贴图循环操作。
 \param f 操作对象。
 \param d_width 目标缓冲区的宽。
 \param s_width 源缓冲区的宽。
@@ -188,27 +180,28 @@ BlitScale<true, true>(const Point& dp, const Size& ds, int delta_x, int delta_y)
 \param delta_y 实际操作的高。
 \param dst 目标迭代器。
 \param src 源迭代器。
-\since build 370
+\since build 437
 
 对一块矩形区域调用指定的逐像素扫描操作。
 */
-template<bool _bDec, typename _fCallable, typename _tScalar, typename _tDiff,
-	typename _tOut, typename _tIn>
+template<bool _bDec, typename _tScalar, typename _tDiff, typename _tOut,
+	typename _tIn, typename _fBlitLoop>
 void
-BlitScan(_fCallable&& f, _tScalar d_width, _tScalar s_width,
-	_tDiff delta_x, _tDiff delta_y, _tOut dst, _tIn src)
+BlitScan(_fBlitLoop loop, _tOut dst, _tIn src, _tScalar d_width,
+	_tScalar s_width, _tDiff delta_x, _tDiff delta_y)
 {
-	yforward(f)(delta_x, delta_y, dst, src,
-		(_bDec ? -1 : 1) * d_width - delta_x, s_width - delta_x);
+	loop(dst, src, delta_x, delta_y, (_bDec ? -1 : 1) * d_width - delta_x,
+		s_width - delta_x);
 }
 
 /*!
 \brief 贴图函数模板。
-\tparam _gBlitLoop 循环实现类模板。
 \tparam _bSwapLR 水平翻转镜像（关于水平中轴对称）。
 \tparam _bSwapUD 竖直翻转镜像（关于竖直中轴对称）。
-\tparam _tOut 输出迭代器类型。
-\tparam _tIn 输入迭代器类型。
+\tparam _tOut 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
+\tparam _tIn 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
+\tparam _fBlitLoop 循环操作类型。
+\param loop 循环操作。
 \param dst 目标迭代器。
 \param ds 目标迭代器所在缓冲区大小。
 \param src 源迭代器。
@@ -216,24 +209,82 @@ BlitScan(_fCallable&& f, _tScalar d_width, _tScalar s_width,
 \param dp 目标迭代器起始点所在缓冲区偏移。
 \param sp 源迭代器起始点所在缓冲区偏移。
 \param sc 源迭代器需要复制的区域大小。
-\since build 182
+\since build 437
 
 对一块矩形区域逐像素顺序批量操作（如复制或贴图）。
 */
-template<template<bool> class _gBlitLoop, bool _bSwapLR, bool _bSwapUD,
-	typename _tOut, typename _tIn>
+template<bool _bSwapLR, bool _bSwapUD, typename _tOut, typename _tIn,
+	typename _fBlitLoop>
 void
-Blit(_tOut dst, const Size& ds, _tIn src, const Size& ss,
+Blit(_fBlitLoop loop, _tOut dst, _tIn src, const Size& ds, const Size& ss,
 	const Point& dp, const Point& sp, const Size& sc)
 {
-	int min_x, min_y, delta_x, delta_y;
+	ptrdiff_t min_x, min_y, delta_x, delta_y;
 
 	if(YB_LIKELY(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y,
 		delta_x, delta_y)))
-		BlitScan<_bSwapLR != _bSwapUD>(_gBlitLoop<!_bSwapLR>(), ds.Width,
-			ss.Width, delta_x, delta_y, dst + BlitScale<_bSwapLR, _bSwapUD>(dp,
-			ds, delta_x, delta_y), src + (sp.Y + min_y) * ss.Width
-			+ sp.X + min_x);
+		BlitScan<_bSwapLR != _bSwapUD>(loop, dst + BlitScale<_bSwapLR,
+			_bSwapUD>(dp, ds, delta_x, delta_y), src + (sp.Y + min_y) * ss.Width
+			+ sp.X + min_x, ds.Width, ss.Width, delta_x, delta_y);
+}
+
+
+/*!
+\brief 贴图扫描线循环操作。
+\sa BlitScan
+\since build 437
+*/
+template<bool _bPositiveScan>
+struct BlitScannerLoop
+{
+	template<typename _fBlitScanner, typename _tOut, typename _tIn>
+	void
+	operator()(_fBlitScanner scanner, _tOut dst_iter, _tIn src_iter,
+		ptrdiff_t delta_x, ptrdiff_t delta_y, ptrdiff_t dst_inc,
+		ptrdiff_t src_inc) const
+	{
+		for(; delta_y > 0; --delta_y)
+		{
+			scanner(dst_iter, src_iter, delta_x);
+			src_iter += src_inc;
+			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
+		}
+	}
+};
+
+
+/*!
+\brief 扫描线贴图函数模板。
+\tparam _bSwapLR 水平翻转镜像（关于水平中轴对称）。
+\tparam _bSwapUD 竖直翻转镜像（关于竖直中轴对称）。
+\tparam _tOut 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
+\tparam _tIn 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
+\tparam _fBlitScanner 扫描线操作类型。
+\param scanner 扫描线操作。
+\param dst 目标迭代器。
+\param ds 目标迭代器所在缓冲区大小。
+\param src 源迭代器。
+\param ss 源迭代器所在缓冲区大小。
+\param dp 目标迭代器起始点所在缓冲区偏移。
+\param sp 源迭代器起始点所在缓冲区偏移。
+\param sc 源迭代器需要复制的区域大小。
+\sa Blit
+\sa BlitScannerLoop
+\since build 437
+
+对一块矩形区域逐（水平）扫描线批量操作（如复制或贴图）。
+*/
+template<bool _bSwapLR, bool _bSwapUD, typename _tOut, typename _tIn,
+	typename _fBlitScanner>
+void
+BlitLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ds,
+	const Size& ss, const Point& dp, const Point& sp, const Size& sc)
+{
+	using namespace std::placeholders;
+
+	Blit<_bSwapLR, _bSwapUD, _tOut, _tIn>(std::bind(
+		BlitScannerLoop<!_bSwapLR>(), scanner, _1, _2, _3, _4, _5, _6), dst,
+		src, ds, ss, dp, sp, sc);
 }
 
 
@@ -252,7 +303,7 @@ struct RectTransformer
 	operator()(_tPixel* dst, const Size& ds, const Point& dp, const Size& ss,
 		_fTransformPixel tp, _fTransformLine tl)
 	{
-		int min_x, min_y, delta_x, delta_y;
+		ptrdiff_t min_x, min_y, delta_x, delta_y;
 
 		BlitBounds(dp, Point(), ds, ss, ss, min_x, min_y, delta_x, delta_y);
 		dst += max<SPos>(0, dp.Y) * ds.Width + max<SPos>(0, dp.X);
@@ -362,17 +413,15 @@ FillRect(_tPixel* dst, SDst dw, SDst dh, SPos sx, SPos sy, SDst sw, SDst sh,
 }
 
 
-//显示缓存操作：复制和贴图。
-
 /*!
 \brief 循环：按指定扫描顺序复制一行像素。
-\note 不检查迭代器有效性。
-\since build 189
+\warning 不检查迭代器有效性。
+\since build 437
 */
 //@{
 template<bool _bPositiveScan>
 void
-BlitLine(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
+BlitLine(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, ptrdiff_t delta_x)
 {
 	if(delta_x > 0)
 	{
@@ -382,7 +431,8 @@ BlitLine(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
 }
 template<>
 inline void
-BlitLine<false>(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
+BlitLine<false>(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter,
+	ptrdiff_t delta_x)
 {
 	for(; delta_x > 0; --delta_x)
 		*dst_iter-- = *src_iter++;
@@ -397,9 +447,10 @@ BlitLine<false>(BitmapPtr& dst_iter, ConstBitmapPtr& src_iter, int delta_x)
 template<bool _bPositiveScan>
 struct BlitLoop
 {
+	//! \since build 437
 	void
-	operator()(int delta_x, int delta_y, BitmapPtr dst_iter,
-		ConstBitmapPtr src_iter, int dst_inc, int src_inc)
+	operator()(BitmapPtr dst_iter, ConstBitmapPtr src_iter, ptrdiff_t delta_x,
+		ptrdiff_t delta_y, ptrdiff_t dst_inc, ptrdiff_t src_inc) const
 	{
 		for(; delta_y > 0; --delta_y)
 		{
@@ -410,50 +461,63 @@ struct BlitLoop
 	}
 };
 
+
 /*!
-\brief 循环：按指定扫描顺序复制一块矩形区域的像素。
-\note 复制透明性。
+\brief Alpha 光栅化源迭代器对。
+\since build 417
+*/
+using IteratorPair = ystdex::pair_iterator<ConstBitmapPtr, const AlphaType*>;
+
+/*!
+\brief Alpha 单色光栅化源迭代器对。
+\since build 417
+*/
+using MonoIteratorPair = ystdex::pair_iterator<
+	ystdex::pseudo_iterator<const PixelType>, const AlphaType*>;
+
+
+
+/*!
+\brief 像素迭代器透明操作。
 \warning 不检查迭代器有效性。
-\since build 189
+\since build 437
+*/
+//@{
+//! \note 使用源迭代器对应像素的第 15 位表示透明性。
+template<typename _tOut, typename _tIn>
+inline void
+BlitTransparentPixel(_tOut& dst_iter, _tIn& src_iter)
+{
+	if(FetchAlpha(*src_iter))
+		*dst_iter = *src_iter;
+}
+//! \note 使用 Alpha 通道表示透明性。
+template<typename _tOut>
+inline void
+BlitTransparentPixel(_tOut& dst_iter, IteratorPair& src_iter)
+{
+	*dst_iter = *src_iter.base().second & 0x80 ? FetchOpaque(*src_iter)
+		: FetchOpaque(PixelType());
+}
+//@}
+
+/*!
+\brief 循环：按指定扫描顺序复制一行透明像素。
+\warning 不检查迭代器有效性。
+\since build 437
 */
 template<bool _bPositiveScan>
-struct BlitTransparentLoop
+struct BlitTransparentLine
 {
-	//使用源迭代器对应像素的第 15 位表示透明性。
+	template<typename _tOut, typename _tIn>
 	void
-	operator()(int delta_x, int delta_y, BitmapPtr dst_iter,
-		ConstBitmapPtr src_iter, int dst_inc, int src_inc)
+	operator()(_tOut& dst_iter, _tIn& src_iter, ptrdiff_t delta_x)
 	{
-		for(; delta_y > 0; --delta_y)
+		for(ptrdiff_t x(0); x < delta_x; ++x)
 		{
-			for(int x(0); x < delta_x; ++x)
-			{
-				if(FetchAlpha(*src_iter))
-					*dst_iter = *src_iter;
-				++src_iter;
-				ystdex::xcrease<_bPositiveScan>(dst_iter);
-			}
-			src_iter += src_inc;
-			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
-		}
-	}
-
-	//使用 Alpha 通道表示透明性。
-	void
-	operator()(int delta_x, int delta_y, BitmapPtr dst_iter,
-		IteratorPair src_iter, int dst_inc, int src_inc)
-	{
-		for(; delta_y > 0; --delta_y)
-		{
-			for(int x(0); x < delta_x; ++x)
-			{
-				*dst_iter = *src_iter.base().second & 0x80
-					? FetchOpaque(*src_iter) : FetchOpaque(PixelType());
-				++src_iter;
-				ystdex::xcrease<_bPositiveScan>(dst_iter);
-			}
-			src_iter += src_inc;
-			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
+			BlitTransparentPixel(dst_iter, src_iter);
+			++src_iter;
+			ystdex::xcrease<_bPositiveScan>(dst_iter);
 		}
 	}
 };
@@ -599,30 +663,23 @@ biltAlphaPoint(PixelType* dst_iter, ystdex::pair_iterator<
 #endif
 
 /*!
-\brief 循环：按指定扫描顺序复制一块矩形区域的像素。
-\note 混合 Alpha 透明度。
+\brief 循环：按指定扫描顺序复制一行透明像素。
+\note 使用 Alpha 通道表示 8 位透明度。
 \warning 不检查迭代器有效性。
-\since build 189
+\since build 437
 */
 template<bool _bPositiveScan>
-struct BlitBlendLoop
+struct BlitBlendLine
 {
-	//使用 Alpha 通道表示 8 位透明度。
-	template<typename _tIn>
+	template<typename _tOut, typename _tIn>
 	void
-	operator()(int delta_x, int delta_y, BitmapPtr dst_iter, _tIn src_iter,
-		int dst_inc, int src_inc)
+	operator()(_tOut& dst_iter, _tIn& src_iter, ptrdiff_t delta_x)
 	{
-		for(; delta_y > 0; --delta_y)
+		for(ptrdiff_t x(0); x < delta_x; ++x)
 		{
-			for(int x(0); x < delta_x; ++x)
-			{
-				biltAlphaPoint(dst_iter, src_iter);
-				++src_iter;
-				ystdex::xcrease<_bPositiveScan>(dst_iter);
-			}
-			src_iter += src_inc;
-			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
+			biltAlphaPoint(dst_iter, src_iter);
+			++src_iter;
+			ystdex::xcrease<_bPositiveScan>(dst_iter);
 		}
 	}
 };

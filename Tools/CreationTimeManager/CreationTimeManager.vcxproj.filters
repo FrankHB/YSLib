@@ -4,7 +4,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="predefined-macro-detector.txt" />
     <Text Include="Readme.en-US.txt" />
   </ItemGroup>
 </Project>

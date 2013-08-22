@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2245
+\version r2297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-12 15:57 +0800
+	2013-08-21 10:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,59 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	* "significant FPS lag on DS" @ "file explorer" @ %'YReader' $since b436,
+		// About 5x lag. Hack should have been considered for performance on \
+			per-frame call.
+	/ %'Tools' $=
+	(
+		+ %'CreationTimeManager',
+		+ DLD "readme file" @ "VC++ projects" @ %'PredefinedMacroDetector'
+	),
+	/ %'YFramework' $=
+	(
+		+ "member function %Win32Exception::GetMessage"
+			@ %'YCLib_(MinGW32)'.'MinGW32',
+		/ %'YSLib' $=
+		(
+			+ "member 'Point Offset;' as image drawing offset"
+				@ "class %ImageBrush" @ %'UI'.'YBrush',
+			/ %'Service'.'YBlit' $=
+			(
+				/ $design "all interface and implementation of blit function"
+					^ "%ptrdiff_t" ~ "%int",
+				(
+					+ "2 function templates %BlitTransparentPixel";
+					+ "class template %BlitTransparentLine";
+					- "class template %BlitTransparentLoop
+				),
+				(
+					+ "class template %BlitBlendLine";
+					- "class template %BlitBlendLoop"
+				),
+				- DLD "all explicit instantiation of %Blit" @ "file %yblit.cpp",
+				/ "function template %Blit adapted to custom function object \
+					as loop provider",
+				/ "function %BlitScan accepted function object"
+					~ "function object reference",
+					// %std::ref should be used if copying is not intended.
+				(
+					+ "class template %BlitScannerLoop";
+					+ "function template %BlitLines"
+				);
+				- "class templates %(BlitTransparentLoop, BlitBlendLoop)",
+				/ $design "templates with function parameter of iterator types \
+					at first after function object"
+					// Thus other function parameters can be convenient for \
+						passing through parameter pack.
+			)
+		)
+	),
+	+ $doc DLB "number of members of %std::placeholders requirement";
+		// Currently _6 is needed by %YBlit.
+),
+
+b436
 (
 	/ %'YFramework' $=
 	(
@@ -145,7 +198,7 @@ b434
 	(
 		/ @ %'Loader' $=
 		(
-			/ "class template %GWidgetFactory" 
+			/ "class template %GWidgetFactory"
 				-> "function templates %(CreateUniqueWidget, RegisterLoader)",
 			+ "template class %GWidgetRegister";
 			(

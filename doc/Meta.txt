@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r670
+\version r672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-08-02 01:24 +0800
+	2013-08-14 04:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -456,7 +456,8 @@ $module_tree $=
 	),
 	'Tools'
 	(
-		'PredefinedMacroDetector'
+		'PredefinedMacroDetector',
+		'CreationTimeManager'
 	),
 	'YReader'
 	(

@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3120
+\version r3156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-05 21:31 +0800
+	2013-08-22 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,12 +50,12 @@ struct BlitTextLoop
 {
 	/*!
 	\bug 依赖于静态对象保存的状态，非线程安全。
-	\since build 415
+	\since build 437
 	*/
 	template<typename _tOut, typename _tIn>
 	void
-	operator()(int delta_x, int delta_y, _tOut dst_iter, _tIn src_iter,
-		int dst_inc, int src_inc)
+	operator()(_tOut dst_iter, _tIn src_iter, ptrdiff_t delta_x,
+		ptrdiff_t delta_y, ptrdiff_t dst_inc, ptrdiff_t src_inc)
 	{
 		for(; delta_y > 0; --delta_y)
 		{
@@ -115,6 +115,30 @@ tr_buf(byte* p)
 	return make_transform(bitseg_iterator<_vN, true>(p), tr_seg<_vN>());
 }
 //@}
+
+/*!
+\brief 循环：按指定扫描顺序复制一块矩形区域的像素。
+\note 混合 Alpha 透明度。
+\warning 不检查迭代器有效性。
+\since build 189
+*/
+template<bool _bPositiveScan>
+struct BlitBlendLoop
+{
+	//! \since build 437
+	template<typename _tOut, typename _tIn>
+	void
+	operator()(_tOut dst_iter, _tIn src_iter, ptrdiff_t delta_x,
+		ptrdiff_t delta_y, ptrdiff_t dst_inc, ptrdiff_t src_inc) const
+	{
+		for(; delta_y > 0; --delta_y)
+		{
+			BlitBlendLine<_bPositiveScan>()(dst_iter, src_iter, delta_x);
+			src_iter += src_inc;
+			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
+		}
+	}
+};
 
 } // unnamed namespace;
 

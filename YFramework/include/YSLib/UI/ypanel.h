@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r407
+\version r409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2013-08-08 05:37 +0800
+	2013-08-16 18:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,10 +85,10 @@ public:
 	ClearContents();
 
 	/*!
-	\brief 提升部件至顶端。
+	\brief 提升部件至 Z 顺序相等的同组部件的顶端。
+	\since build 279
 
 	子部件组中查找指定部件并重新插入至顶端。
-	\since build 279
 	*/
 	bool
 	MoveToTop(IWidget&);
