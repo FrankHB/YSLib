@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2676
+\version r2677
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-08 11:37 +0800
+	2013-08-23 12:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,7 +95,7 @@ RenderCharFrom(ucs4_t c, const Graphics& g,
 			{
 				auto&& pc(ClipChar(g, ts.Pen, cbmp, clip));
 
-				// TODO: Support negative pitch.
+				// TODO: Test support for bitmaps with negative pitch.
 				if(!pc.ClipArea.IsUnstrictlyEmpty())
 					_fCharRenderer(std::move(pc), ts.Color, cbmp.GetPitch() < 0,
 						cbuf, cbmp.GetFormat(), {FetchBMPSrcWidth(cbmp),

@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2757
+\version r2767
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-21 21:38 +0800
+	2013-08-22 19:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,29 +40,30 @@ namespace Drawing
 
 /*!
 \brief 字符块传输。
-\tparam _gBlitLoop 循环实现类模板。
 \tparam _tOut 输出迭代器类型。
 \tparam _tIn 输入迭代器类型。
+\tparam _fBlitScanner 扫描线操作类型。
+\param scanner 扫描线操作。
 \param src 源迭代器。
 \param ss 源迭代器所在缓冲区大小。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
 \param neg_pitch 指定交换行渲染顺序。
 \sa Blit
-\since build 415
+\since build 438
 */
-template<template<bool> class _gBlitLoop, typename _tOut, typename _tIn>
-inline void
-BlitChar(_tOut dst, _tIn src, const Size& ss, const PaintContext& pc,
-	bool neg_pitch)
+template<typename _tOut, typename _tIn, typename _fBlitScanner>
+void
+BlitGlyphLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ss,
+	const PaintContext& pc, bool neg_pitch)
 {
 	const auto& ds(pc.Target.GetSize());
 	const auto& r(pc.ClipArea);
 
 	if(neg_pitch)
-		Blit<false, true>(_gBlitLoop<true>(), dst, src, ds, ss, r.GetPoint(),
+		BlitLines<false, true>(scanner, dst, src, ds, ss, r.GetPoint(),
 			pc.Location, r.GetSize());
 	else
-		Blit<false, false>(_gBlitLoop<true>(), dst, src, ds, ss, r.GetPoint(),
+		BlitLines<false, false>(scanner, dst, src, ds, ss, r.GetPoint(),
 			pc.Location, r.GetSize());
 }
 

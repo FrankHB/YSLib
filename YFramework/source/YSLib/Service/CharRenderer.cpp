@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3156
+\version r3214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-22 09:32 +0800
+	2013-08-23 09:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,29 +45,24 @@ namespace
 const AlphaType BLT_TEXT_ALPHA_THRESHOLD(16);
 PixelType char_color;
 
-template<bool _bPositiveScan>
-struct BlitTextLoop
+/*!
+\brief 混合 Alpha 透明度扫描线。
+\warning 不检查迭代器有效性。
+\since build 438
+*/
+struct BlitTextLine
 {
-	/*!
-	\bug 依赖于静态对象保存的状态，非线程安全。
-	\since build 437
-	*/
+	//! \bug 依赖于静态对象保存的状态，非线程安全。
 	template<typename _tOut, typename _tIn>
 	void
-	operator()(_tOut dst_iter, _tIn src_iter, ptrdiff_t delta_x,
-		ptrdiff_t delta_y, ptrdiff_t dst_inc, ptrdiff_t src_inc)
+	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x)
 	{
-		for(; delta_y > 0; --delta_y)
+		for(SDst x(0); x < delta_x; ++x)
 		{
-			for(int x(0); x < delta_x; ++x)
-			{
-				if(*src_iter >= BLT_TEXT_ALPHA_THRESHOLD)
-					yunseq(*dst_iter.base().second = *src_iter,
-						*dst_iter = char_color);
-				yunseq(++src_iter, xcrease<_bPositiveScan>(dst_iter));
-			}
-			src_iter += src_inc;
-			delta_assign<_bPositiveScan>(dst_iter, dst_inc);
+			if(*src_iter >= BLT_TEXT_ALPHA_THRESHOLD)
+				yunseq(*dst_iter.base().second = *src_iter,
+					*dst_iter = char_color);
+			yunseq(++src_iter, ++dst_iter);
 		}
 	}
 };
@@ -116,30 +111,6 @@ tr_buf(byte* p)
 }
 //@}
 
-/*!
-\brief 循环：按指定扫描顺序复制一块矩形区域的像素。
-\note 混合 Alpha 透明度。
-\warning 不检查迭代器有效性。
-\since build 189
-*/
-template<bool _bPositiveScan>
-struct BlitBlendLoop
-{
-	//! \since build 437
-	template<typename _tOut, typename _tIn>
-	void
-	operator()(_tOut dst_iter, _tIn src_iter, ptrdiff_t delta_x,
-		ptrdiff_t delta_y, ptrdiff_t dst_inc, ptrdiff_t src_inc) const
-	{
-		for(; delta_y > 0; --delta_y)
-		{
-			BlitBlendLine<_bPositiveScan>()(dst_iter, src_iter, delta_x);
-			src_iter += src_inc;
-			ystdex::delta_assign<_bPositiveScan>(dst_iter, dst_inc);
-		}
-	}
-};
-
 } // unnamed namespace;
 
 void
@@ -151,20 +122,20 @@ RenderChar(PaintContext&& pc, Color c, bool neg_pitch,
 	switch(fmt)
 	{
 	case CharBitmap::Mono:
-		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoItPair_1(
-			PixelIt(c), tr_buf<1>(cbuf)), ss, pc, neg_pitch);
+		BlitGlyphLines(BlitBlendLine<true>(), pc.Target.GetBufferPtr(),
+			MonoItPair_1(PixelIt(c), tr_buf<1>(cbuf)), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray2:
-		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoItPair_2(
-			PixelIt(c), tr_buf<2>(cbuf)), ss, pc, neg_pitch);
+		BlitGlyphLines(BlitBlendLine<true>(), pc.Target.GetBufferPtr(),
+			MonoItPair_2(PixelIt(c), tr_buf<2>(cbuf)), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray4:
-		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoItPair_4(
-			PixelIt(c), tr_buf<4>(cbuf)), ss, pc, neg_pitch);
+		BlitGlyphLines(BlitBlendLine<true>(), pc.Target.GetBufferPtr(),
+			MonoItPair_4(PixelIt(c), tr_buf<4>(cbuf)), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray:
-		BlitChar<BlitBlendLoop>(pc.Target.GetBufferPtr(), MonoIteratorPair(
-			PixelIt(c), cbuf), ss, pc, neg_pitch);
+		BlitGlyphLines(BlitBlendLine<true>(), pc.Target.GetBufferPtr(),
+			MonoIteratorPair(PixelIt(c), cbuf), ss, pc, neg_pitch);
 	default:
 		break;
 	}
@@ -181,20 +152,20 @@ RenderCharAlpha(PaintContext&& pc, Color c, bool neg_pitch,
 	switch(fmt)
 	{
 	case CharBitmap::Mono:
-		BlitChar<BlitTextLoop>(PairIt(pc.Target.GetBufferPtr(), alpha),
+		BlitGlyphLines(BlitTextLine(), PairIt(pc.Target.GetBufferPtr(), alpha),
 			tr_buf<1>(cbuf), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray2:
-		BlitChar<BlitTextLoop>(PairIt(pc.Target.GetBufferPtr(), alpha),
+		BlitGlyphLines(BlitTextLine(), PairIt(pc.Target.GetBufferPtr(), alpha),
 			tr_buf<2>(cbuf), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray4:
-		BlitChar<BlitTextLoop>(PairIt(pc.Target.GetBufferPtr(), alpha),
+		BlitGlyphLines(BlitTextLine(), PairIt(pc.Target.GetBufferPtr(), alpha),
 			tr_buf<4>(cbuf), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray:
-		BlitChar<BlitTextLoop>(PairIt(pc.Target.GetBufferPtr(), alpha), cbuf,
-			ss, pc, neg_pitch);
+		BlitGlyphLines(BlitTextLine(), PairIt(pc.Target.GetBufferPtr(), alpha),
+			cbuf, ss, pc, neg_pitch);
 	default:
 		break;
 	}

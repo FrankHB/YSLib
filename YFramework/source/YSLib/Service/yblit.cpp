@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1041
+\version r1051
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-08-17 16:26 +0800
+	2013-08-23 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,17 +38,17 @@ namespace Drawing
 namespace
 {
 
-//! \since build 370
-inline SPos
+//! \since build 438
+inline SDst
 blit_min(SPos d)
 {
-	return max<ptrdiff_t>(0, -d);
+	return max<SPos>(0, -d);
 }
 
 inline SPos
 blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 {
-	return min<ptrdiff_t>(min<ptrdiff_t>(dl - d, sl - s), cl);
+	return min<SPos>(min<SPos>(dl - d, sl - s), cl);
 }
 
 } // unnamed namespace;
@@ -56,14 +56,16 @@ blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 bool
 BlitBounds(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& sc,
-	ptrdiff_t& min_x, ptrdiff_t& min_y, ptrdiff_t& delta_x, ptrdiff_t& delta_y)
+	SDst& min_x, SDst& min_y, SDst& delta_x, SDst& delta_y)
 {
+	SDst max_x, max_y;
+
 	yunseq(min_x = blit_min(dp.X), min_y = blit_min(dp.Y),
-		delta_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),
-		delta_y = blit_max(sp.Y, dp.Y, ss.Height, ds.Height, sc.Height));
-	if(min_x < delta_x && min_y < delta_y)
+		max_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),
+		max_y = blit_max(sp.Y, dp.Y, ss.Height, ds.Height, sc.Height));
+	if(min_x < max_x && min_y < max_y)
 	{
-		yunseq(delta_x -= min_x, delta_y -= min_y);
+		yunseq(delta_x = max_x - min_x, delta_y = max_y - min_y);
 		return true;
 	}
 	return false;

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2297
+\version r2342
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-21 10:04 +0800
+	2013-08-23 17:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,50 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib'.'Service' $=
+	(
+		/ "function template %BlitChar" @ %'CharRenderer' -> "%BlitGlyphLines \
+			adapted to custom function object as line scanner",
+		/ @ %'YBlit' $=
+		(
+			/ "2 function templates %BlitLine"
+				-> "class template specializations %BlitLine with support for \
+				parameterized iterator types",
+			/ "extended all operations of pixel pointers to iteration types",
+			- DLD "macro %YSL_FAST_BLIT and blit test code",
+			/ "objects %'BLT_*', functions %('blit*', component_blend) except \
+				for %biltAlphaPoint"
+				-> "class templates %(GPixelBlenderBase; GPixelBlender)"
+				// Now blending functions for different pixels can be used in the same \
+					platform configuration.
+			/ "function templates %biltAlphaPoint" => "%BiltAlphaPoint",
+			/ "explicitly kept untouched value if boundary is not applicable"
+				@ "function %BlitBounds",
+			* "ignored boundary calculation" @ "%RectTransformer::operator()"
+				$since b189,
+				// Since %BlitBounds actually ensured all the arguments to be \
+					initialized, it had no effect. Now the constraints \
+					violation effects because %BlitBounds explicitly kept \
+					untouched delta values.
+			/ $revert_ex(b437) $design "all parameter types of blit \
+				function" ^ "%SPos" ~ "%ptrdiff_t",
+			^ $revert_ex(b437) "unsigned delta types and values" ~ "%ptrdiff_t"
+				// Since the blit algorithms guarantees the non-negative delta \
+					values and indices.
+			(
+				/ "return type @ %BlitScale" -> "%size_t" ~ "%ptrdiff_t",
+				/ "all delta parameter types" ^ "%SDst" ~ "%ptrdiff_t",
+				- "all non-negative checks" @ "block and scan line loop \
+					implementations"
+					// Zero checks are still handled. To be some bit efficient.
+			)
+			- "blit thresholds" @ "alpha composition algorithms"
+		)
+	)
+),
+
+b437
 (
 	* "significant FPS lag on DS" @ "file explorer" @ %'YReader' $since b436,
 		// About 5x lag. Hack should have been considered for performance on \
@@ -399,7 +443,7 @@ b432
 		(
 			/ DLD "all ('std::make_shared', 'ystdex::make_shared', \
 				'ystdex::make_unique')" -> "ADL use without qualification",
-				// Non-MinGW32 code still cant use this substitution, because \
+				// Non-MinGW32 code still can't use this substitution, because \
 					G++ 4.7.1 in devkitARM release 41 doesn't support. See \
 					$known_issue_b298.
 			(
@@ -718,7 +762,7 @@ b428
 			),
 			/ DLD "declared reopened non-inline namespace %Windows"
 				@ "namespace %platform_ex"
-				// Though G++ have no diagnostic at all for reopened namespace \
+				// Though G++ has no diagnostic at all for reopened namespace \
 					both from inline to non-inline and vice versa, but Clang++ \
 					do complain both. See $ref b428.
 		),

@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r635
+\version r648
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-08-15 06:57 +0800
+	2013-08-23 15:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -333,7 +333,7 @@
 关于一些文件的文件名的额外约定参见 @2.2 。
 
 @2.1 框架组成和依赖项规则：
-基本目录和文件组织规则和原始目录的概念参见 [Documentation::ProjectRules @@3.3] 。
+基本目录和文件组织规则以及原始目录的概念参见 [Documentation::ProjectRules @@3.3] 。
  YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
 除非另有说明，仅保证非成员函数（排除声明紧随于某个类之后，首个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
 关于 YBase 的文件依赖性参见 [Documentation::YBase @@2.2] 。
@@ -343,15 +343,25 @@
  YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3rdparty/" 目录下。其它部分的原始目录为 "/YFramework" 。例如 YSLib 位于 "/YFramework/YSLib/" 目录下。
 当前第三方库和 YFramework 其它部分编译为单独的目标（静态库或动态库）。
 关于 YFramework 依赖的外部项目（包括平台支持和基础库 YBase([Documentation::YBase]) ）的关联和配置参见 [Documentation::Designation @@5] 。
-除了 YSLib 和第三方库， YFramework 也集成了一些附加的库，这些库不直接在 YSLib 命名空间中添加声明（参见 @2.2.4 ）。其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖于 YSLib ，包括 CHRLib(@2.6) 和 YCLib(@5.2.2) ；另一部分依赖于 YSLib ，包括 NPL(@2.8) 和 Helper(@2.7) 。其它具体说明参见 [Documentation::Designation @@5] 。
+
+@2.1.2 附加库：
+除了 YSLib 和第三方库 YFramework 也集成了一些附加的库作为非第三方次级子项目。这些库不直接在 YSLib 命名空间中添加声明（参见 @2.2.4 ）。
+其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖于 YSLib ，称为基础附加库，包括 CHRLib(@2.6) 和 YCLib([Documentation::Designation @@5.2.2]) 。
+另一部分依赖于 YSLib ，包括 NPL(@2.8) 和 Helper(@2.7) 。其它具体说明参见 [Documentation::Designation @@5] 。
 综上所述， YFramework 有以下非第三方次级子项目： CHRLib 、 YCLib 、 YSLib 、 NPL 和 Helper 。
 
-@2.1.2 平台相关性：
+@2.1.2.1 组织和依赖准则：
+每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
+基础附加库总是被 YSLib 库的 Adaptor 或 Core 直接或间接依赖。
+ YCLib 和 Helper 不保证接口或实现平台中立。其中 YCLib 不依赖于 YSLib ，被作为 YSLib 平台中立接口和实现的基础适配层； Helper 依赖于 YSLib 。
+其它附加库的没有平台扩展且保证平台中立，只依赖于 YSLib 库的 Core 和 Service ，但当前暂时不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立于 YFramework 外）。
+
+@2.1.3 平台相关性：
 除平台扩展外的 YFramework 公开接口是平台中立的（但 YCLib 和 Helper 接口可能会限定平台集合，如宿主实现环境）；
  YSLib 没有平台扩展。对 YSLib 的平台特定的功能扩展由 Helper 提供。
 平台扩展一般直接作为目标平台的接口，但也可以包括仅供实际目标平台模拟的接口。使用 YCL/Platform.h 中定义的平台宏([Documentation Designation @@5.2.2.3.1]) 确定程序实际运行的目标平台。
 
-@2.1.3 YSLib Adaptor 和本体：
+@2.1.4 YSLib Adaptor 和本体：
  YSLib 中，目录 "/YFramework/Adaptor/" 下的部分称为 Adaptor [Documentation::YSLib @@2] ，其它部分总称为本体。
 除了标准库和 YBase 的公开接口外，本体的接口和实现以及 Adaptor 的公开接口没有 YSLib 以外的依赖项。
 而 Adaptor 非公开接口除此之外还可能有其它外部依赖项（第三方库），但这些依赖项的公开接口是平台中立的。
@@ -366,7 +376,7 @@
 禁止依赖于（包括包含）非头文件。
 除非另有说明，禁止重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
 除非以下显式说明，禁止平台中立文件依赖于平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
- YFramework/YBaseMacro.h 不依赖 YFramework 中的任何其它文件。
+ YFramework/YBaseMacro.h 仅依赖 YBase 的 ydef.h 。
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 必要文件不依赖非必要文件。
 任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头文件以及 YBase 头文件。

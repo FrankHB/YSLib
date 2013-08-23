@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2199
+\version r2205
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-08-13 01:23 +0800
+	2013-08-23 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@
 @1.1 名称和命名空间规则：
 名称使用前提约束：参见 [Documentation::CommonRules @@7.2] 。
 关于文件名和目录名，参见 [Documentation::ProjectRules @@5.4] 。
+ YSLib 库下直接的子目录计有 Adaptor 、 Core 、 Service 和 UI 。
 
 @1.1.1 源代码一般规则：
 使用嵌套命名空间，避免过长的标识符命名。
@@ -54,7 +55,7 @@
 根据平台特性增设全局对象的定义位于 YSLib 外部 Helper 库的 YGlobal([Documentation::Designation @@7.5]) 中。
 
 @1.1.4 特定引用规则：
- YSLib 默认显式依赖于库 YCLib ，可声明 YCLib 中的名称。具体由适配器系统(@1.6) 决定。
+ YSLib 默认显式依赖于库 YCLib ，在 Adaptor 引入 YCLib 中的名称。
 
 @1.1.5 命名空间分配：
  YSLib::Devices ：设备抽象。
@@ -153,7 +154,7 @@
 负责衔接和封装外部库，便于移植。
 除了 C++ 标准库以外，其它外部库的名称需要在此声明。
 直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
-除非另有说明，仅保证必要文件(@2.1.1) 提供接口中的可重入性和线程安全性同本体(@2.1) 。
+除非另有说明，仅保证必要文件[Documentation::YFramework @@2.1.1] 提供接口中的可重入性和线程安全性同本体(@2.1) 。
 
 @2.1 外部库关联 YAdaptor ：
 默认行为如下：
@@ -948,7 +949,9 @@ Bookmarks
  build 424 及之前的 DS release 提交版本。
 
 @11.1.2 MinGW ：
-所有 MinGW32 版本通过 PC 测试。测试环境 Windows 7 Ultimate x64 。
+所有 MinGW32 版本通过 PC 测试。
+ build 438 前测试环境 Windows 7 Ultimate x64 。
+ build 438 起测试环境 Windows 2012 Datacenter x64 。
 
 @11.1.1 非正式支持平台：
  2013-02-13: ArchLinux x86-64 使用 wine-1.5.23 i386 (WOW64) 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。

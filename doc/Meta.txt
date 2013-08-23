@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r672
+\version r677
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-08-14 04:21 +0800
+	2013-08-22 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,10 @@ $term; // for terminology;
 $workaround; // for issues currently or temporarily cannot be resolved through \
 	a preferred clean way for certain reasons, but exist alternative ways to \
 	get being settled and work expectedly for outer observers of the system.
-$revert($rev_list); // for actions reverting changes in previous revision(s).
+$revert($rev_list); // for actions reverting changes in previous revision(s), \
+	with all explicit modification and effection restored to the original state.
+$revert_ex($rev_list); // same for $revert except for the modification not \
+	reset to the original state.
 
 // General features modification:
 $add_features +; // features added;
@@ -292,7 +295,7 @@ b428
 $note "G++ bug 53402"
 $URL http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53402
 ),
-b412 
+b412
 (
 $note "N3652"
 $URL http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3652.html
