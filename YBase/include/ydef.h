@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2357
+\version r2362
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-08-08 00:40 +0800
+	2013-08-25 13:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -557,6 +557,12 @@ operator!=(const _type& lhs, nullptr_t rhs)
 template<typename...>
 struct empty_base
 {};
+
+/*!
+\brief 直接构造类型（直接构造重载用）。
+\since build 439
+*/
+using raw_tag = empty_base<>;
 
 
 /*!	\defgroup helper_functions Helper Functions

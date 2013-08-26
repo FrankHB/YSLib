@@ -53,6 +53,9 @@
     <ClInclude Include="include\ystdex\utility.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\cstdint.hpp">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
     <ClInclude Include="include\ystdex\cstdio.h">
       <Filter>include\ystdex</Filter>
     </ClInclude>

@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1121
+\version r1122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-08-05 21:35 +0800
+	2013-08-23 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YSLib/UI/textlist.h"
 #include "YSLib/UI/ywindow.h"
 #include "YSLib/UI/YBrush.h"
-#include "YSLib/Service/YBlit.h"
+#include "YSLib/Service/yblit.h"
 #include "YSLib/Service/TextLayout.h"
 
 namespace YSLib

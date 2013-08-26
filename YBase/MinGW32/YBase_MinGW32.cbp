@@ -88,6 +88,7 @@
 		<Unit filename="../include/ystdex/cassert.h" />
 		<Unit filename="../include/ystdex/cast.hpp" />
 		<Unit filename="../include/ystdex/container.hpp" />
+		<Unit filename="../include/ystdex/cstdint.hpp" />
 		<Unit filename="../include/ystdex/cstdio.h" />
 		<Unit filename="../include/ystdex/cstring.h" />
 		<Unit filename="../include/ystdex/examiner.hpp" />

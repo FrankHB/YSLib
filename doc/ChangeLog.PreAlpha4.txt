@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2342
+\version r2435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-23 17:31 +0800
+	2013-08-26 18:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,100 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		* $dev $build "wrong case of including header %YBlit"
+			@ "file %textlist.cpp" @ %'UI' $since b319,
+			// It can cause build fail on case-sensitive file system.
+		* $comp "class template %MoreConvertible" @ %'Core'.'YCoreUtilities'
+			$since b206
+	),
+	/ %'YBase'
+	(
+		+ "alias declaration %ystdex::raw_tag" @ %'YDefinition',
+		/ %'YStandardEx' $=
+		(
+			/ %'Rational' $=
+			(
+				(
+					$dep_from %'YDefinition';
+					^ DLD "%ystdex::raw_tag" ~ "private alias declaration \
+						%internal_construct_tag";
+					* $comp "specialization of %std::numeric_limits for \
+						%ystdex::fixed_point" $since b260;
+						// Missing 'typename' for internal implementation.
+				);
+				/ @ "class template %fixed_point" $=
+				(
+					/ DLD "overloaded default parameter types"
+						@ "SFINAE constructor templates",
+					+ "constructor with 2 parameters as fraction",
+					+ "raw value constructor"
+					/ "restricted conversion template for arithmetic types",
+					+ "constructor templates for %fixed_point with other base \
+						types",
+					/ DLD "overloaded multiplying algorithm implementations \
+						for signed and unsigned types to avoid possible \
+						warning",
+					/ "operators inheritance" ^ "class template %operators"
+						@ "class template %fixed_point",
+						// The modulo is not implemented yet.
+					+ "member function %get"
+				),
+				(
+					+ "template partial specialization %std::common_type for 2 \
+						%ystdex::fixed_point";
+					* $comp "ambiguity of binary operations between \
+						%fixed_point values" $since b260
+						$= (+ "binary %operator(+, -, *, /) for %fixed_point"
+							@ "namespace %ystdex")
+				),
+				+ "class template %normalized_max",
+				- "function template %ystdex::exp2u"
+			)
+		),
+		/ $dev @ "namespace %ystdex" @ %'TypeOperation' $=
+		(
+			+ 'using std::underlying_type;';
+			+ "alias declarations %(decay_t, enable_if_t, conditional_t, \
+				common_type_t, underlying_type_t, result_of_t)"
+				// For C++1y compatibility. There seems no %std::align_union \
+					implemented by libstdc++, so %align_union_t is deferred.
+		),
+		(
+			+ %'CStandardInteger';
+			/ "meta operation template %make_fixed_width_int" @ %'TypeOperation'
+				-> "%make_width_int with %('int_least*_t', 'int_fast*_t') \
+				support and without non-exact width defauted types support"
+				@ %'CStandardInteger',
+			/ "meta operation templates %(integer_width, make_signed_c)"
+				>> %'CStandardInteger'
+		),
+		/ @ %'Operators' $=
+		(
+			* "2nd commutative operator wrongly implemented" @ %'Operators'
+				$since b260;
+				// Modifying const reference which is ill-formed if \
+					instantiated.
+			- "all templates with spelling 'euclidian'",
+				// Boost.Operators is compatible with both spellings.
+			(
+				/ "all member" @ "namespace %operators" >> "namespace %ystdex",
+				+ "class template operators2";
+				+ "class template operators"
+					// Compatible with Boost.Operators.
+			)
+		)
+	),
+	(
+		$dep_from %'YBase'.'YStandardEx'.'TypeOperation';
+		^ DLD "alias for type traits as possible except for \
+			%YFramework::YBaseMacro" ~ "raw type traits";
+	)
+),
+
+b438
 (
 	/ %'YFramework'.'YSLib'.'Service' $=
 	(

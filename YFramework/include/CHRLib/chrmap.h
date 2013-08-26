@@ -11,13 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1274
+\version r1275
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-07-27 04:38 +0800
+	2013-08-23 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ enum class ConversionResult
 	OK = 0, //!< 转换成功。
 	BadState, //!< 转换状态错误。
 	BadSource, //!< 源数据不可达（如越界）。
-	Invalid, //!< 数据校验失败（如非法的编码点）。
+	Invalid, //!< 数据校验失败（如不构成代码点的字节序列）。
 	Unhandled //!< 未处理（超过被处理的界限）。
 };
 

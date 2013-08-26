@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r944
+\version r1042
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-08-02 03:48 +0800
+	2013-08-24 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,11 +149,13 @@ using std::remove_pointer;
 using std::add_pointer;
 
 using std::aligned_storage;
+//using std::aligned_union;
 using std::decay;
 using std::enable_if;
 using std::conditional;
 using std::common_type;
-//	using std::underlying_type;
+//! \since build 439
+using std::underlying_type;
 using std::result_of;
 
 
@@ -203,6 +205,36 @@ using std::result_of;
 
 
 /*!
+\ingroup type_traits_operations
+\brief ISO C++ 1y 兼容类型操作别名。
+\since build 349
+\todo 条件编译：尽可能使用语言实现。
+*/
+//@{
+//template<std::size_t _vLen, typename... _types>
+//using aligned_union_t = typename aligned_union<_vLen, _types...>::type;
+
+template<typename _type>
+using decay_t = typename decay<_type>::type;
+
+template<bool _bCond, typename _type = void>
+using enable_if_t = typename enable_if<_bCond, _type>::type;
+
+template<bool _bCond, typename _type, typename _type2>
+using conditional_t = typename conditional<_bCond, _type, _type2>::type;
+
+template<typename... _types>
+using common_type_t = typename common_type<_types...>::type;
+
+template<typename _type>
+using underlying_type_t = typename underlying_type<_type>::type;
+
+template<typename _type>
+using result_of_t = typename result_of<_type>::type;
+//@}
+
+
+/*!
 \ingroup unary_type_trait
 \brief 判断指定类型是否可作为返回值类型。
 \note 即排除数组类型、抽象类类型和函数类型的所有类型。
@@ -221,8 +253,8 @@ struct is_returnable : integral_constant<bool, !is_array<_type>::value
 \since build 339
 */
 template<typename _type>
-struct is_decayable : integral_constant<bool,
-	!is_same<typename decay<_type>::type, _type>::value>
+struct is_decayable
+	: integral_constant<bool, !is_same<decay_t<_type>, _type>::value>
 {};
 
 
@@ -314,7 +346,7 @@ namespace details
 	private: \
 		template<typename _type> \
 		static true_type \
-		test(typename enable_if<(_expr), int>::type); \
+		test(enable_if_t<(_expr), int>); \
 		template<typename> \
 		static false_type \
 		test(...); \
@@ -531,8 +563,7 @@ struct remove_rpcv
 template<typename _type>
 struct array_decay
 {
-	using type = typename conditional<is_array<_type>::value,
-		typename decay<_type>::type, _type>::type;
+	using type = conditional_t<is_array<_type>::value, decay_t<_type>, _type>;
 };
 
 
@@ -551,9 +582,8 @@ private:
 	using value_type = typename remove_reference<_type>::type;
 
 public:
-	using type = typename conditional<is_function<value_type>::value
-		|| is_array<value_type>::value, typename decay<_type>::type,
-		_type>::type;
+	using type = conditional_t<is_function<value_type>::value
+		|| is_array<value_type>::value, decay_t<_type>, _type>;
 };
 
 
@@ -584,80 +614,6 @@ struct array_ref_decay<_type&&>
 {
 	using type = typename array_decay<_type>::type;
 	using reference = type&&;
-};
-//@}
-
-
-/*!
-\ingroup meta_operations
-\brief 取指定整数类型的位宽度。
-\since build 260
-*/
-template<typename _tInt>
-struct integer_width
-	: public integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
-{};
-
-
-/*!
-\ingroup meta_operations
-\brief 取指定整数类型和条件表达式对应的有符号或无符号整数类型。
-\since build 260
-*/
-//@{
-template<typename _type, bool>
-struct make_signed_c
-{
-	using type = typename std::make_signed<_type>::type;
-};
-
-template<typename _type>
-struct make_signed_c<_type, false>
-{
-	using type = typename std::make_unsigned<_type>::type;
-};
-//@}
-
-
-/*!
-\ingroup meta_operations
-\brief 取按指定宽度的整数类型。
-\since build 260
-*/
-//@{
-template<size_t>
-struct make_fixed_width_int
-{
-	using type = int;
-	using unsigned_type = unsigned;
-};
-
-template<>
-struct make_fixed_width_int<8U>
-{
-	using type = std::int8_t;
-	using unsigned_type = std::uint8_t;
-};
-
-template<>
-struct make_fixed_width_int<16U>
-{
-	using type = std::int16_t;
-	using unsigned_type = std::uint16_t;
-};
-
-template<>
-struct make_fixed_width_int<32U>
-{
-	using type = std::int32_t;
-	using unsigned_type = std::uint32_t;
-};
-
-template<>
-struct make_fixed_width_int<64U>
-{
-	using type = std::int64_t;
-	using unsigned_type = std::uint64_t;
 };
 //@}
 

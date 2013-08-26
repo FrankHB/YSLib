@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r389
+\version r396
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-08-02 04:08 +0800
+	2013-08-24 10:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,8 +76,8 @@ string_length(const _tChar* str)
 {
 	return std::char_traits<_tChar>::length(str);
 }
-template<class _tString,
-	typename = typename enable_if<is_class<_tString>::value, int>::type>
+//! \since build 439
+template<class _tString, typename = enable_if_t<is_class<_tString>::value, int>>
 size_t
 string_length(const _tString& str)
 {
@@ -280,15 +280,15 @@ to_string(unsigned short val)
 {
 	return std::to_string(unsigned(val));
 }
+//! \since build 439
 template<typename _type>
 inline std::string
-to_string(_type val, typename
-	enable_if<std::is_enum<_type>::value, int>::type = 0)
+to_string(_type val, enable_if_t<std::is_enum<_type>::value, int> = 0)
 {
 	using std::to_string;
 	using ystdex::to_string;
 
-	return to_string(typename std::underlying_type<_type>::type(val));
+	return to_string(underlying_type_t<_type>(val));
 }
 //@}
 

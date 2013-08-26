@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r427
+\version r438
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2013-08-08 00:41 +0800
+	2013-08-24 10:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,9 +126,10 @@ public:
 	COMPtr(_iOther* ptr) ynothrow
 		: pInterface(ptr)
 	{}
+	//! \since build 439
 	template<class _iOther>
-	COMPtr(_iOther& intf, typename std::enable_if<!std::is_convertible<_iOther&,
-		COMPtr&>::value, int>::type = 0) ynothrow
+	COMPtr(_iOther& intf, ystdex::enable_if_t<!std::is_convertible<_iOther&,
+		COMPtr&>::value, int> = 0) ynothrow
 		: pInterface(&intf)
 	{
 		pInterface->AddRef();
@@ -138,10 +139,10 @@ public:
 	{
 		InternalAddRef();
 	}
+	//! \since build 439
 	template<class _iOther>
-	COMPtr(const COMPtr<_iOther>& ptr,
-		typename std::enable_if<std::is_convertible<_iOther*, _iCOM*>::value,
-		int>::type = 0) ynothrow
+	COMPtr(const COMPtr<_iOther>& ptr, ystdex::enable_if_t<
+		std::is_convertible<_iOther*, _iCOM*>::value, int> = 0) ynothrow
 		: pInterface(ptr.pInterface)
 	{
 		InternalAddRef();
@@ -151,10 +152,10 @@ public:
 	{
 		ptr.swap(*this);
 	}
+	//! \since build 439
 	template<class _iOther>
-	COMPtr(COMPtr<_iOther>&& ptr,
-		typename std::enable_if<std::is_convertible<_iOther*, _iCOM*>::value,
-		int>::type = 0) ynothrow
+	COMPtr(COMPtr<_iOther>&& ptr, ystdex::enable_if_t<
+		std::is_convertible<_iOther*, _iCOM*>::value, int> = 0) ynothrow
 		: pInterface(ptr.pInterface)
 	{
 		ptr.pInterface = nullptr;

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1323
+\version r1327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-08-11 15:33 +0800
+	2013-08-24 10:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -598,10 +598,9 @@ public:
 	any() ynothrow
 		: storage(), manager()
 	{}
-	//! \since build 376
-	//@{
-	template<typename _type, typename = typename
-		enable_if<!is_same<_type&, any&>::value, int>::type>
+	//! \since build 439
+	template<typename _type, typename
+		= enable_if_t<!is_same<_type&, any&>::value, int>>
 	any(_type&& x)
 		: manager(any_ops::value_handler<typename
 			remove_reference<_type>::type>::manage)
@@ -609,6 +608,8 @@ public:
 		any_ops::value_handler<typename remove_rcv<_type>::type>::init(storage,
 			yforward(x));
 	}
+	//! \since build 376
+	//@{
 	template<typename _type>
 	any(std::reference_wrapper<_type> x)
 		: manager(any_ops::ref_handler<_type>::manage)

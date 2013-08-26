@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1632
+\version r1634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-08-02 18:46 +0800
+	2013-08-24 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,10 +108,10 @@ public:
 \brief 退化复制。
 \see ISO C++11 30.2.6[thread.decaycopy] 。
 \see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3255.html 。
-\since build 337
+\since build 439
 */
 template<typename _type>
-typename decay<_type>::type
+decay_t<_type>
 decay_copy(_type&& arg)
 {
 	return std::forward<_type>(arg);

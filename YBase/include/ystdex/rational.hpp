@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1197
+\version r1372
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-08-02 03:47 +0800
+	2013-08-26 17:55 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_rational_hpp_
 #define YB_INC_ystdex_rational_hpp_ 1
 
-#include "type_op.hpp"
+#include "cstdint.hpp"
 #include "operators.hpp"
 #include <cmath> // for std::llround;
 #include <limits>
@@ -37,20 +37,27 @@ namespace ystdex
 {
 
 /*!
-\brief 取无符号整数的以 2 为底的无符号整数次幂，结果转换为指定目标类型。
-\tparam _tSrc 源类型。
-\tparam _tDst 目标类型。
-\pre 静态断言： <tt>is_unsigned<_tSrc>::value</tt>。
-\since build 260
+\brief 取算术类型的正规化后的最大值。
+\since build 439
+\todo 静态断言限制类型。
 */
-template<typename _tDst, typename _tSrc>
-yconstfn YB_STATELESS _tDst
-exp2u(_tSrc n) ynothrow
-{
-	static_assert(is_unsigned<_tSrc>::value, "Non-integer type found.");
+//@{
+template<typename _type, std::uintmax_t _vNum = 1, std::uintmax_t _vDen = 1,
+	bool _bIsFloat = is_floating_point<_type>::value>
+struct normalized_max;
 
-	return _tSrc(1) << n;
-}
+template<typename _type, std::uintmax_t _vNum, std::uintmax_t _vDen>
+struct normalized_max<_type, _vNum, _vDen, true>
+{
+	static yconstexpr _type value = double(_vNum / _vDen);
+};
+
+template<typename _type, std::uintmax_t _vNum, std::uintmax_t _vDen>
+struct normalized_max<_type, _vNum, _vDen, false>
+{
+	static yconstexpr _type value = std::numeric_limits<_type>::max();
+};
+//@}
 
 
 /*!
@@ -61,9 +68,8 @@ exp2u(_tSrc n) ynothrow
 template<typename _type>
 struct fixed_multiplicative
 {
-	using type = typename make_signed_c<typename make_fixed_width_int<
-		integer_width<_type>::value << 1>::type,
-		std::is_signed<_type>::value>::type;
+	using type = typename make_signed_c<typename make_width_int<integer_width<
+		_type>::value << 1>::type, std::is_signed<_type>::value>::type;
 };
 
 template<>
@@ -94,14 +100,13 @@ struct fixed_multiplicative<std::uint64_t>
 \warning 非虚析构。
 \warning 算术运算可能溢出。
 \since build 260
+\todo 实现模除和位操作。
+\todo 根据范围禁止算术类型隐式转换。
 */
 template<typename _tBase = std::int32_t,
 	size_t _vInt = std::numeric_limits<_tBase>::digits - 6U,
 	size_t _vFrac = std::numeric_limits<_tBase>::digits - _vInt>
-class fixed_point : operators::ordered_field_operators<
-	fixed_point<_tBase, _vInt, _vFrac>, operators::unit_steppable<
-	fixed_point<_tBase, _vInt, _vFrac>, operators::shiftable<fixed_point<
-	_tBase, _vInt, _vFrac>, size_t>>>
+class fixed_point : public operators<fixed_point<_tBase, _vInt, _vFrac>>
 {
 	static_assert(std::is_integral<_tBase>::value, "Non-integral type found.");
 	static_assert(_vInt < size_t(std::numeric_limits<_tBase>::digits),
@@ -124,9 +129,6 @@ public:
 	static yconstexpr size_t digit_bit_n = int_bit_n + frac_bit_n;
 
 private:
-	//! \brief 内部构造类型（ private 构造重载用）。
-	using internal_construct_tag = empty_base<fixed_point>;
-
 	base_type value;
 
 public:
@@ -138,41 +140,72 @@ public:
 	fixed_point() ynothrow
 	{}
 
-private:
+	//! \since build 439
+	//@{
 	yconstfn
-	fixed_point(base_type v, internal_construct_tag) ynothrow
+	fixed_point(base_type v, raw_tag) ynothrow
 		: value(v)
 	{}
-
-public:
 	template<typename _tInt>
 	yconstfn
-	fixed_point(_tInt val, typename enable_if<std::is_integral<_tInt>::value,
-		int>::type = 0) ynothrow
+	fixed_point(_tInt val, enable_if_t<is_integral<_tInt>::value, _tInt*> = {})
+		ynothrow
 		: value(base_type(val) << frac_bit_n)
 	{}
 	template<typename _tFloat>
 	yconstfn
-	fixed_point(_tFloat val, typename enable_if<std::is_floating_point<
-		_tFloat>::value, int>::type = 0) ynothrow
+	fixed_point(_tFloat val,
+		enable_if_t<is_floating_point<_tFloat>::value, _tFloat*> = {}) ynothrow
 		: value(::llround(base_element() * val))
 	{
 		// TODO: Use std::llround.
 	}
+	template<typename _tFirst, typename _tSecond>
+	yconstfn
+	fixed_point(_tFirst x, _tSecond y, enable_if_t<is_integral<_tFirst>::value
+		&& !is_same<_tSecond, raw_tag>::value, _tFirst*> = {})
+		: value((x << frac_bit_n) / y)
+	{}
+	template<typename _tFirst, typename _tSecond>
+	yconstfn
+	fixed_point(_tFirst x, _tSecond y, enable_if_t<is_floating_point<_tFirst>
+		::value && !is_same<_tSecond, raw_tag>::value, _tFirst*> = {})
+		: fixed_point(x / y)
+	{}
+	//! \since build 260
 	yconstfn
 	fixed_point(const fixed_point&) = default;
 	template<size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<base_type, _vOtherInt, _vOtherFrac>& f,
-		typename enable_if<(_vOtherInt < int_bit_n), int>::type = 0) ynothrow
+		enable_if_t<(_vOtherInt < int_bit_n), base_type*> = {}) ynothrow
 		: value(f.value >> (int_bit_n - _vOtherInt))
 	{}
 	template<size_t _vOtherInt, size_t _vOtherFrac>
 	yconstfn
 	fixed_point(const fixed_point<base_type, _vOtherInt, _vOtherFrac>& f,
-		typename enable_if<(int_bit_n < _vOtherInt), int>::type = 0) ynothrow
+		enable_if_t<(int_bit_n < _vOtherInt), base_type*> = {}) ynothrow
 		: value(f.value << (_vOtherInt - int_bit_n))
 	{}
+	template<typename _tOtherBase, size_t _vOtherInt, size_t _vOtherFrac>
+	yconstfn
+	fixed_point(const fixed_point<_tOtherBase, _vOtherInt, _vOtherFrac>& f,
+		enable_if_t<(frac_bit_n == _vOtherFrac), base_type*> = {}) ynothrow
+		: value(f.value)
+	{}
+	template<typename _tOtherBase, size_t _vOtherInt, size_t _vOtherFrac>
+	yconstfn
+	fixed_point(const fixed_point<_tOtherBase, _vOtherInt, _vOtherFrac>& f,
+		enable_if_t<(frac_bit_n < _vOtherFrac), base_type*> = {}) ynothrow
+		: value(f.value >> (_vOtherFrac - frac_bit_n))
+	{}
+	template<typename _tOtherBase, size_t _vOtherInt, size_t _vOtherFrac>
+	yconstfn
+	fixed_point(const fixed_point<_tOtherBase, _vOtherInt, _vOtherFrac>& f,
+		enable_if_t<(_vOtherFrac < frac_bit_n), base_type*> = {}) ynothrow
+		: value(f.value << (frac_bit_n - _vOtherFrac))
+	{}
+	//@}
 
 	bool
 	operator<(const fixed_point& f) const ynothrow
@@ -232,17 +265,9 @@ public:
 	fixed_point&
 	operator*=(const fixed_point& f) ynothrow
 	{
-		typename fixed_multiplicative<base_type>::type
-			tmp(value * f.value);
-		yconstexpr size_t shift_bit_n(frac_bit_n
-			+ std::is_signed<base_type>::value);
-
-		value = tmp < 0 ? -(-tmp >> shift_bit_n) : tmp >> shift_bit_n;
-	// NOTE: Code below is only fit for unsigned type, due to there exists
-	//	implementation-defined in conversion and right shifting on
-	//	operands of signed types.
-	//	value = (typename fixed_multiplicative<base_type>::type(value)
-	//		* f.value) >> shift_bit_n;
+		value = mul<frac_bit_n + std::is_signed<base_type>::value>(value,
+			f.value, integral_constant<bool, is_signed<
+			typename fixed_multiplicative<base_type>::type>::value>());
 		return *this;
 	}
 
@@ -268,25 +293,61 @@ public:
 		return *this;
 	}
 
-	template<typename _type>
+	//! \since build 439
+	template<typename _type,
+		typename = enable_if_t<is_arithmetic<_type>::value, _type>>
 	inline
 	operator _type() const
 	{
 		return this->cast<_type>();
 	}
 
+	//! \since build 439
+	yconstfn base_type
+	get() const
+	{
+		return value;
+	}
+
 private:
+	//! \since build 439
 	template<typename _type>
-	inline typename enable_if<std::is_integral<_type>::value, _type>::type
+	yconstfn enable_if_t<std::is_integral<_type>::value, _type>
 	cast() const
 	{
 		return value >> frac_bit_n;
 	}
+	//! \since build 439
 	template<typename _type>
-	typename enable_if<std::is_floating_point<_type>::value, _type>::type
+	enable_if_t<std::is_floating_point<_type>::value, _type>
 	cast() const
 	{
 		return _type(value) / base_element();
+	}
+
+	template<size_t _vShiftBits>
+	static yconstfn base_type
+	mul(base_type x, base_type y, std::true_type)
+	{
+		return mul_signed<_vShiftBits>(
+			typename fixed_multiplicative<base_type>::type(x * y));
+	}
+	template<size_t _vShiftBits>
+	static yconstfn base_type
+	mul(base_type x, base_type y, std::false_type)
+	{
+		// NOTE: Only fit for unsigned type, due to there exists
+		//	implementation-defined behavior in conversion and right shifting on
+		//	operands of signed types.
+		return (typename fixed_multiplicative<base_type>::type(x) * y)
+			>> _vShiftBits;
+	}
+
+	template<size_t _vShiftBits>
+	static yconstfn base_type
+	mul_signed(typename fixed_multiplicative<base_type>::type tmp)
+	{
+		return tmp < 0 ? -(-tmp >> _vShiftBits) : tmp >> _vShiftBits;
 	}
 
 public:
@@ -298,7 +359,7 @@ public:
 	static yconstfn base_type
 	base_element() ynothrow
 	{
-		return ystdex::exp2u<base_type, base_type>(frac_bit_n);
+		return base_type(1) << frac_bit_n;
 	}
 
 	/*!
@@ -321,30 +382,108 @@ public:
 	friend yconstfn fixed_point
 	ceil(fixed_point x)
 	{
-		return fixed_point((x.value + base_element() - 1)
-			& ~(base_element() - 1), internal_construct_tag());
+		return fixed_point(
+			(x.value + base_element() - 1) & ~(base_element() - 1), raw_tag());
 	}
 
 	friend yconstfn fixed_point
 	floor(fixed_point x)
 	{
-		return fixed_point(x.value & ~(base_element() - 1),
-			internal_construct_tag());
+		return fixed_point(x.value & ~(base_element() - 1), raw_tag());
 	}
 
 	friend yconstfn fixed_point
 	round(fixed_point x)
 	{
 		return fixed_point((x.value + (base_element() >> 1))
-			& ~(base_element() - 1), internal_construct_tag());
+			& ~(base_element() - 1), raw_tag());
 	}
 };
+
+/*!
+\brief 不同模板参数的二元操作符。
+\since build 439
+*/
+//@{
+template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
+	size_t _vInt2, size_t _vFrac2>
+yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
+	fixed_point<_tBase2, _vInt2, _vFrac2>>
+operator+(const fixed_point<_tBase1, _vInt1, _vFrac1> x,
+	const fixed_point<_tBase2, _vInt2, _vFrac2>& y)
+{
+	using result_type = common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
+		fixed_point<_tBase2, _vInt2, _vFrac2>>;
+
+	return result_type(x) + result_type(y);
+}
+
+template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
+	size_t _vInt2, size_t _vFrac2>
+yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
+	fixed_point<_tBase2, _vInt2, _vFrac2>>
+operator-(const fixed_point<_tBase1, _vInt1, _vFrac1> x,
+	const fixed_point<_tBase2, _vInt2, _vFrac2>& y)
+{
+	using result_type = common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
+		fixed_point<_tBase2, _vInt2, _vFrac2>>;
+
+	return result_type(x) - result_type(y);
+}
+
+template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
+	size_t _vInt2, size_t _vFrac2>
+yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
+	fixed_point<_tBase2, _vInt2, _vFrac2>>
+operator*(const fixed_point<_tBase1, _vInt1, _vFrac1> x,
+	const fixed_point<_tBase2, _vInt2, _vFrac2>& y)
+{
+	using result_type = common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
+		fixed_point<_tBase2, _vInt2, _vFrac2>>;
+
+	return result_type(x) * result_type(y);
+}
+
+template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
+	size_t _vInt2, size_t _vFrac2>
+yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
+	fixed_point<_tBase2, _vInt2, _vFrac2>>
+operator/(const fixed_point<_tBase1, _vInt1, _vFrac1> x,
+	const fixed_point<_tBase2, _vInt2, _vFrac2>& y)
+{
+	using result_type = common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
+		fixed_point<_tBase2, _vInt2, _vFrac2>>;
+
+	return result_type(x) / result_type(y);
+}
+//@}
 
 } // namespace ystdex;
 
 
 namespace std
 {
+
+/*!
+\brief \c std::common_type 的 \c ystdex::fixed_point 特化类型。
+\note 使用保留公共整数类型和整数位数策略选取公共类型。
+\since build 439
+*/
+template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
+	size_t _vInt2, size_t _vFrac2>
+struct common_type<ystdex::fixed_point<_tBase1, _vInt1, _vFrac1>,
+	ystdex::fixed_point<_tBase2, _vInt2, _vFrac2>>
+{
+private:
+	using common_base_type = ystdex::common_type_t<_tBase1, _tBase2>;
+
+	static yconstexpr size_t int_size = _vInt1 < _vInt2 ? _vInt2 : _vInt1;
+
+public:
+    using type = ystdex::fixed_point<common_base_type, int_size,
+		std::numeric_limits<common_base_type>::digits - int_size>;
+};
+
 
 /*!
 \brief \c std::numeric_traits 的 \c ystdex::fixed_point 特化类型。
@@ -364,14 +503,14 @@ public:
 	min() ynothrow
 	{
 		return fp_type(std::numeric_limits<base_type>::min(),
-			fp_type::internal_construct_tag());
+			ystdex::raw_tag());
 	}
 
 	static yconstfn fp_type
 	max() ynothrow
 	{
 		return fp_type(std::numeric_limits<base_type>::max(),
-			fp_type::internal_construct_tag());
+			ystdex::raw_tag());
 	}
 
 	static yconstfn fp_type
@@ -391,7 +530,7 @@ public:
 	static yconstfn fp_type
 	epsilon() ynothrow
 	{
-		return fp_type(1, fp_type::internal_construct_tag());
+		return fp_type(1, typename fp_type::raw_tag());
 	}
 
 	static yconstfn fp_type

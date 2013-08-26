@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1844
+\version r1846
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-05-04 23:58 +0800
+	2013-08-23 20:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,9 +84,9 @@ struct GUCS2Mapper<CharSet::UTF_8>
 	\brief 映射： UTF-8 。
 	\note 参考规范： RFC 3629 ，见 http://tools.ietf.org/html/rfc3629 。
 	\warning 当前实现假定编码序列完整。
-	\warning 使用 UCS-2LE 时， 4 字节编码点可能溢出。
+	\warning 使用 UCS-2LE 时， 4 字节代码点可能溢出。
 
-	实现 UTF-8 到 Unicode 编码点的映射。
+	实现 UTF-8 到 Unicode 代码点的映射。
 	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult

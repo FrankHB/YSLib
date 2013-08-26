@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4463
+\version r4475
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-08-10 05:41 +0800
+	2013-08-24 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,7 @@ private:
 	{
 		//! \since build 319
 		//@{
-		using decayed_type = typename std::decay<_tFunctor>::type;
+		using decayed_type = ystdex::decay_t<_tFunctor>;
 
 #if YB_HAS_NOEXCEPT
 		static yconstexpr bool except_helper = noexcept(std::declval<
@@ -110,12 +110,12 @@ public:
 	{}
 	/*!
 	\brief 使用函数对象。
-	\since build 327
+	\since build 439
 	*/
 	template<class _fCallable>
 	yconstfn
-	GHEvent(_fCallable&& f, typename std::enable_if<std::is_constructible<
-		BaseType, _fCallable>::value, int>::type = 0)
+	GHEvent(_fCallable&& f, ystdex::enable_if_t<
+		std::is_constructible<BaseType, _fCallable>::value, int> = 0)
 		: BaseType(yforward(f)), comp_eq(GetComparer(f, f))
 	{}
 	/*!
@@ -233,10 +233,10 @@ public:
 	yconstfn DefDeCtor(GEvent)
 	/*!
 	\brief 构造：添加事件处理器。
-	\since build 412
+	\since build 439
 	*/
-	template<typename _tHandler, typename = typename
-		std::enable_if<!std::is_same<_tHandler&, GEvent&>::value, int>::type>
+	template<typename _tHandler, typename =
+		ystdex::enable_if_t<!std::is_same<_tHandler&, GEvent&>::value, int>>
 	GEvent(_tHandler&& h)
 		: List()
 	{
@@ -254,10 +254,10 @@ public:
 
 	/*!
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
-	\since build 432
+	\since build 439
 	*/
-	template<typename _tHandler, typename = typename
-		std::enable_if<!std::is_same<_tHandler&, GEvent&>::value, int>::type>
+	template<typename _tHandler, typename =
+		ystdex::enable_if_t<!std::is_same<_tHandler&, GEvent&>::value, int>>
 	inline GEvent&
 	operator=(_tHandler&& _arg)
 	{
@@ -629,8 +629,8 @@ public:
 template<typename... _tParams>
 struct EventArgsHead
 {
-	using type = typename std::conditional<sizeof...(_tParams) == 0, void,
-		typename std::tuple_element<0, tuple<_tParams...>>::type>::type;
+	using type = ystdex::conditional_t<sizeof...(_tParams) == 0, void,
+		typename std::tuple_element<0, tuple<_tParams...>>::type>;
 };
 
 template<typename... _tParams>

@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2870
+\version r2886
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-08-02 04:13 +0800
+	2013-08-24 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -468,9 +468,8 @@ public:
 	using iterator_type = typename
 		pointer_classify<typename remove_reference<_tIterator>::type>::type;
 	using transformer_type = _fTransformer;
-	//! \since build 358
-	using transformed_type
-		= typename std::result_of<_fTransformer&(_tIterator&)>::type;
+	//! \since build 439
+	using transformed_type = result_of_t<_fTransformer&(_tIterator&)>;
 	//! \since build 415
 	using difference_type
 		= typename pointer_classify<_tIterator>::type::difference_type;
@@ -482,14 +481,15 @@ protected:
 	mutable transformer_type transformer;
 
 public:
-	//! \since build 415
-	//@{
-	template<typename _tIter, typename _tTran, typename = typename enable_if<
-		!std::is_same<_tIter&, transformed_iterator&>::value, int>::type>
+	//! \since build 439
+	template<typename _tIter, typename _tTran, typename = enable_if_t<
+		!std::is_same<_tIter&, transformed_iterator&>::value, int>>
 	explicit yconstfn
 	transformed_iterator(_tIter&& i, _tTran&& f = {})
 		: iterator_type(yforward(i)), transformer(yforward(f))
 	{}
+	//! \since build 415
+	//@{
 	transformed_iterator(const transformed_iterator&) = default;
 	//! \since build 353 as workaround for G++ 4.7.1
 #if YB_IMPL_GNUCPP >= 40800
@@ -851,10 +851,10 @@ public:
 	}
 	//@}
 
-	//! \since build 378
-	template<typename _tFirst, typename _tSecond, typename = typename
-		enable_if<is_convertible<_tMaster, _tFirst>::value
-		&& is_convertible<_tSlave, _tSecond>::value, int>::type>
+	//! \since build 439
+	template<typename _tFirst, typename _tSecond,
+		typename = enable_if_t<is_convertible<_tMaster, _tFirst>::value
+		&& is_convertible<_tSlave, _tSecond>::value, int>>
 	operator std::pair<_tFirst, _tSecond>()
 	{
 		return std::pair<_tFirst, _tSecond>(this->first, this->second);
@@ -939,8 +939,9 @@ public:
 		return (*iter).operator->();
 	}
 
-	template<typename = typename enable_if<is_constructible<bool,
-		decltype(*std::declval<iterator_type&>())>::value, int>::type>
+	//! \since build 439
+	template<typename = enable_if_t<is_constructible<bool,
+		decltype(*std::declval<iterator_type&>())>::value, int>>
 	explicit
 	operator bool() const
 //	operator bool() const ynoexcept((!is_undereferenceable(std::declval<
@@ -1013,7 +1014,7 @@ operator!=(const indirect_input_iterator<_tIterator>& x,
 /*!
 \ingroup iterators
 \brief 位段迭代器。
-\tparam _vN 段宽度。
+\tparam _vN 段宽度（ CHAR_BIT <= UCHAR_MAX 恒成立，因此使用 unsigned char ）。
 \tparam _bEndian 位序， ture 时为大端，否则为小端。
 \warning 非虚析构。
 \since build 414

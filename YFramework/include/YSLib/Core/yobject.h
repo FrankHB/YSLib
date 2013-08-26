@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3685
+\version r3688
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-05 21:00 +0800
+	2013-08-24 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,10 +247,10 @@ public:
 	/*!
 	\brief 构造：使用对象引用。
 	\pre obj 可作为转移构造参数。
-	\since build 376
+	\since build 439
 	*/
-	template<typename _type, typename = typename
-		std::enable_if<!std::is_same<_type&, ValueObject&>::value, int>::type>
+	template<typename _type, typename = ystdex::enable_if_t<
+		!std::is_same<_type&, ValueObject&>::value, int>>
 	ValueObject(_type&& obj)
 		: content(ystdex::any_ops::holder_tag(), make_unique<ValueHolder<
 		typename ystdex::remove_rcv<_type>::type>>(yforward(obj)))
