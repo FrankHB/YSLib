@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2078
+\version r2545
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-08-23 17:27 +0800
+	2013-08-29 18:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "../Core/ycutil.h"
 #include <ystdex/algorithm.hpp>
 #include <ystdex/iterator.hpp>
+#include <ystdex/rational.hpp>
 
 namespace YSLib
 {
@@ -207,6 +208,11 @@ BlitScan(_fBlitLoop loop, _tOut dst, _tIn src, _tScalar d_width,
 \since build 438
 */
 
+/*!	\defgroup PixelOperation Pixel Operations
+\brief 像素操作。
+\since build 440
+*/
+
 
 /*!
 \brief 贴图函数模板。
@@ -252,8 +258,8 @@ Blit(_fBlitLoop loop, _tOut dst, _tIn src, const Size& ds, const Size& ss,
 template<bool _bPositiveScan>
 struct BlitScannerLoop
 {
-	//! \since build 438
-	template<typename _fBlitScanner, typename _tOut, typename _tIn>
+	//! \since build 440
+	template<typename _tOut, typename _tIn, typename _fBlitScanner>
 	void
 	operator()(_fBlitScanner scanner, _tOut dst_iter, _tIn src_iter,
 		SDst delta_x, SDst delta_y, SDst dst_inc, SDst src_inc) const
@@ -297,9 +303,67 @@ BlitLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ds,
 {
 	using namespace std::placeholders;
 
-	Blit<_bSwapLR, _bSwapUD, _tOut, _tIn>(std::bind(
-		BlitScannerLoop<!_bSwapLR>(), scanner, _1, _2, _3, _4, _5, _6), dst,
-		src, ds, ss, dp, sp, sc);
+	Blit<_bSwapLR, _bSwapUD, _tOut, _tIn>(std::bind(BlitScannerLoop<!_bSwapLR>(
+		), scanner, _1, _2, _3, _4, _5, _6), dst, src, ds, ss, dp, sp, sc);
+}
+
+
+/*!
+\ingroup BlitLineScanner
+\brief 贴图扫描点循环操作。
+\tparam _bPositiveScan 正向扫描。
+\warning 不检查迭代器有效性。
+\since build 440
+*/
+template<bool _bPositiveScan>
+struct BlitLineLoop
+{
+	template<typename _tOut, typename _tIn, typename _fBlit>
+	void
+	operator()(_fBlit blit, _tOut& dst_iter, _tIn& src_iter, SDst delta_x)
+	{
+		for(SDst x(0); x < delta_x; ++x)
+		{
+			blit(dst_iter, src_iter);
+			++src_iter;
+			ystdex::xcrease<_bPositiveScan>(dst_iter);
+		}
+	}
+};
+
+
+/*!
+\brief 像素贴图函数模板。
+\tparam _bSwapLR 水平翻转镜像（关于水平中轴对称）。
+\tparam _bSwapUD 竖直翻转镜像（关于竖直中轴对称）。
+\tparam _tOut 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
+\tparam _tIn 输入迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
+\tparam _fBlit 像素操作类型。
+\param blit 像素操作。
+\param dst 目标迭代器。
+\param ds 目标迭代器所在缓冲区大小。
+\param src 源迭代器。
+\param ss 源迭代器所在缓冲区大小。
+\param dp 目标迭代器起始点所在缓冲区偏移。
+\param sp 源迭代器起始点所在缓冲区偏移。
+\param sc 源迭代器需要复制的区域大小。
+\sa Blit
+\sa BlitScannerLoop
+\sa BlitLineLoop
+\since build 440
+
+对一块矩形区域逐（水平）扫描线批量操作（如复制或贴图）。
+*/
+template<bool _bSwapLR, bool _bSwapUD, typename _tOut, typename _tIn,
+	typename _fBlit>
+void
+BlitPixels(_fBlit blit, _tOut dst, _tIn src, const Size& ds,
+	const Size& ss, const Point& dp, const Point& sp, const Size& sc)
+{
+	BlitLines<_bSwapLR, _bSwapUD, _tOut, _tIn>(
+		[blit](_tOut& dst_iter, _tIn& src_iter, SDst delta_x){
+			BlitLineLoop<!_bSwapLR>()(blit, dst_iter, src_iter, delta_x);
+		}, dst, src, ds, ss, dp, sp, sc);
 }
 
 
@@ -477,153 +541,387 @@ using MonoIteratorPair = ystdex::pair_iterator<
 
 
 /*!
+\ingroup PixelOperation
 \brief 像素迭代器透明操作。
 \warning 不检查迭代器有效性。
-\since build 437
+\since build 440
 */
-//@{
-//! \note 使用源迭代器对应像素的第 15 位表示透明性。
-template<typename _tOut, typename _tIn>
-inline void
-BlitTransparentPixel(_tOut& dst_iter, _tIn& src_iter)
+struct BlitTransparentPoint
 {
-	if(FetchAlpha(*src_iter))
-		*dst_iter = *src_iter;
-}
-//! \note 使用 Alpha 通道表示透明性。
-template<typename _tOut>
-inline void
-BlitTransparentPixel(_tOut& dst_iter, IteratorPair& src_iter)
-{
-	*dst_iter = *src_iter.base().second & 0x80 ? FetchOpaque(*src_iter)
-		: FetchOpaque(PixelType());
-}
-//@}
-
-/*!
-\ingroup BlitScanner
-\brief 扫描线：按指定扫描顺序复制一行透明像素。
-\warning 不检查迭代器有效性。
-\since build 437
-*/
-template<bool _bPositiveScan>
-struct BlitTransparentLine
-{
-	//! \since build 438
+	//! \note 使用源迭代器对应像素的第 15 位表示透明性。
 	template<typename _tOut, typename _tIn>
-	void
-	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x)
+	inline void
+	operator()(_tOut& dst_iter, _tIn& src_iter)
 	{
-		for(SDst x(0); x < delta_x; ++x)
-		{
-			BlitTransparentPixel(dst_iter, src_iter);
-			++src_iter;
-			ystdex::xcrease<_bPositiveScan>(dst_iter);
-		}
+		if(FetchAlpha(*src_iter))
+			*dst_iter = *src_iter;
+	}
+	//! \note 使用 Alpha 通道表示透明性。
+	template<typename _tOut>
+	inline void
+	operator()(_tOut& dst_iter, IteratorPair& src_iter)
+	{
+		*dst_iter = *src_iter.base().second & 0x80 ? FetchOpaque(*src_iter)
+			: FetchOpaque(PixelType());
 	}
 };
 
 
 /*!
-\brief 像素混合器基本实现。
-\tparam _tMono 分量类型。
-\tparam _tAlpha Alpha 类型。
-\since build 438
-\todo 支持浮点 Alpha 类型。
+\brief 像素组合器。
+\tparam _vDstAlphaBits 目标 Alpha 位。
+\tparam _vSrcAlphaBits 源 Alpha 位。
+\pre 源和目标 Alpha （若存在）为归一化值（可以是浮点数或定点数）。
+\note 结果 Alpha 位是源和目标 Alpha 位中的最大值（优先为目标 Alpha 类型）。
+\since build 439
+\todo 支持推导返回类型。
 */
-template<typename _tPixel, typename _tMono, typename _tAlpha>
-struct GPixelBlenderBase
+//@{
+template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits>
+struct GPixelCompositor
 {
-	static_assert(std::is_unsigned<_tAlpha>::value, "Invalid type found.");
+	/*!
+	\brief Alpha 组合 Alpha 分量。
 
-	static yconstexpr size_t AlphaBits{sizeof(_tAlpha) * CHAR_BIT};
-	static yconstexpr _tAlpha MaxAlpha{(1 << AlphaBits) - 1};
-	static yconstexpr _tAlpha BlitRound{1 << (AlphaBits - 1)};
-
-	template<class _tBlender>
-	static _tPixel
-	BlendBase(_tPixel d, _tPixel s, _tAlpha a)
+	a := 1 - (1 - sa) * (1 - da)
+		= 1 - (1 - sa - da + sa * da)
+		= sa + da - sa * da
+		= sa + da * (1 - sa)
+	*/
+	template<typename _tDstAlpha, typename _tSrcAlpha>
+	static yconstexpr ystdex::conditional_t<(_vDstAlphaBits < _vSrcAlphaBits),
+		_tSrcAlpha, _tDstAlpha>
+	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
-		return _tBlender::BlendCore(d, s, a);
+		return sa + da * (1 - sa);
 	}
 
 	/*!
-	\brief Alpha 分量混合。
+	\brief Alpha 组合非 Alpha 分量。
 
-	设归一化 Alpha 值 alpha = a / MaxAlpha ，输出结果：
-	result := (1 - alpha) * d + alpha * s
-	= ((MaxAlpha - a) * d + a * s) >> AlphaBits
-	= d + ((a * (s - d) + BlitRound) >> AlphaBits) 。
+	a != 0
+		=> c := (sa * s + (1 - sa) * da * a) / a
+		= (sa * s + (a - sa) * d) / a
+		= (sa * s + a * d - sa * d) / a
+		= (sa * (s - d) + a * d) / a
+		= sa * (s - d) / a + d
 	*/
-	static yconstfn _tMono
-	BlendComponent(_tMono d, _tMono s, _tAlpha a)
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
+		typename _tAlpha>
+	static yconstexpr _tDst
+	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
-		return d + ((a * (s - d) + BlitRound) >> AlphaBits);
+		return a != 0 ? (s < d ? d - sa * (d - s) / a : sa * (s - d) / a + d)
+			: 0;
 	}
+};
+
+//! \note 1 位源 Alpha 。
+template<size_t _vDstAlphaBits>
+struct GPixelCompositor<_vDstAlphaBits, 1>
+{
+	/*!
+	\brief Alpha 组合 Alpha 分量。
+
+	a := sa + da * (1 - sa)
+		= sa != 0 ? 1 : da
+	*/
+	template<typename _tDstAlpha, typename _tSrcAlpha>
+	static yconstexpr _tDstAlpha
+	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
+	{
+		return sa != 0 ? ystdex::normalized_max<_tDstAlpha>::value : da;
+	}
+
+	/*!
+	\brief Alpha 组合非 Alpha 分量。
+
+	a != 0
+		=> c := sa * (s - d) / a + d
+		= sa != 0 ? (s - d) / a + d : d
+	*/
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
+		typename _tAlpha>
+	static yconstexpr _tDst
+	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
+	{
+		return a != 0 ? (sa != 0 ? (s < d ? d - (d - s) / a : (s - d) / a + d)
+			: d) : 0;
+	}
+};
+
+//! \note 不透明源。
+template<size_t _vDstAlphaBits>
+struct GPixelCompositor<_vDstAlphaBits, 0>
+{
+	/*!
+	\brief Alpha 组合 Alpha 分量。
+
+	sa = 1
+		=> a := sa + da * (1 - sa)
+		= 1
+	*/
+	template<typename _tDstAlpha>
+	static yconstexpr _tDstAlpha
+	CompositeAlphaOver(_tDstAlpha da)
+	{
+		return ystdex::normalized_max<_tDstAlpha>::value;
+	}
+	template<typename _tDstAlpha, typename _tSrcAlpha>
+	static yconstexpr _tDstAlpha
+	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha)
+	{
+		return ystdex::normalized_max<_tDstAlpha>::value;
+	}
+
+	/*!
+	\brief Alpha 组合非 Alpha 分量。
+
+	sa := 1
+		=> a := 1
+		=> c := sa * (s - d) / a + d
+		= s - d + d
+		= s
+	*/
+	template<typename _tSrc>
+	static yconstexpr _tSrc
+	CompositeComponentOver(_tSrc s)
+	{
+		return s;
+	}
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
+		typename _tAlpha>
+	static yconstexpr _tSrc
+	CompositeComponentOver(_tDst, _tSrc s, _tSrcAlpha, _tAlpha)
+	{
+		return s;
+	}
+};
+
+//! \note 1 位目标 Alpha 。
+template<size_t _vSrcAlphaBits>
+struct GPixelCompositor<1, _vSrcAlphaBits>
+{
+	/*!
+	\brief Alpha 组合 Alpha 分量。
+
+	a := sa + da * (1 - sa)
+		= da != 0 ? 1 : sa
+	*/
+	template<typename _tDstAlpha, typename _tSrcAlpha>
+	static yconstexpr _tSrcAlpha
+	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
+	{
+		return da != 0 ? ystdex::normalized_max<_tSrcAlpha>::value
+			: _tSrcAlpha(sa);
+	}
+
+
+	/*!
+	\brief Alpha 组合非 Alpha 分量。
+
+	a != 0
+		=> c := sa * (s - d) / a + d
+		= sa * (s - d) + d
+	*/
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
+		typename _tAlpha>
+	static yconstexpr _tDst
+	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
+	{
+		return a != 0 ? GPixelCompositor<0, _vSrcAlphaBits>
+			::CompositeComponentOver(d, s, sa) : _tDst(0);
+	}
+};
+
+//! \note 不透明目标。
+template<size_t _vSrcAlphaBits>
+struct GPixelCompositor<0, _vSrcAlphaBits>
+{
+	/*!
+	\brief Alpha 组合 Alpha 分量。
+
+	da = 1
+		=> a := sa + da * (1 - sa)
+		= 1
+	*/
+	template<typename _tDstAlpha>
+	static yconstexpr _tDstAlpha
+	CompositeAlphaOver(_tDstAlpha)
+	{
+		return ystdex::normalized_max<_tDstAlpha>::value;
+	}
+	template<typename _tDstAlpha, typename _tSrcAlpha>
+	static yconstexpr _tDstAlpha
+	CompositeAlphaOver(_tDstAlpha, _tSrcAlpha)
+	{
+		return ystdex::normalized_max<_tDstAlpha>::value;
+	}
+
+	/*!
+	\brief Alpha 组合非 Alpha 分量。
+
+	da = 1
+		=> a := 1
+		=> c := sa * (s - d) / a + d
+		= sa * (s - d) + d
+	*/
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha>
+	static yconstexpr _tDst
+	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa)
+	{
+		return s < d ? d - sa * (d - s) : sa * (s - d) + d;
+	}
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
+		typename _tAlpha>
+	static yconstexpr _tDst
+	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha)
+	{
+		return CompositeComponentOver(d, s, sa);
+	}
+};
+
+//! \note 不透明目标和 1 位源 Alpha 。
+template<>
+struct GPixelCompositor<0, 1> : public GPixelCompositor<0, 2>
+{
+	using GPixelCompositor<0, 2>::CompositeAlphaOver;
+
+	/*!
+	\brief Alpha 组合非 Alpha 分量。
+
+	da = 1
+		=> a := 1
+		=> c := sa * (s - d) / a + d
+		= sa * (s - d) + d
+		= sa != 0 ? s : d
+	*/
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha>
+	static yconstexpr _tDst
+	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa)
+	{
+		return sa != 0 ? s : d;
+	}
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
+		typename _tAlpha>
+	static yconstexpr _tDst
+	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha)
+	{
+		return CompositeComponentOver(d, s, sa);
+	}
+};
+
+//! \note 1 位源和目标 Alpha 。
+template<>
+struct GPixelCompositor<1, 1>
+{
+	/*!
+	\brief Alpha 组合 Alpha 分量。
+
+	a := sa + da * (1 - sa)
+		= sa != 0 || da != 0
+	*/
+	template<typename _tDstAlpha, typename _tSrcAlpha>
+	static yconstexpr _tDstAlpha
+	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
+	{
+		return sa != 0 || da != 0 ? ystdex::normalized_max<_tDstAlpha>::value
+			: 0;
+	}
+
+	/*!
+	\brief Alpha 组合非 Alpha 分量。
+
+	a != 0
+		=> c := sa * (s - d) / a + d
+		= sa * (s - d) + d
+		= sa != 0 ? s : d
+	*/
+	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
+		typename _tAlpha>
+	static yconstexpr _tDst
+	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
+	{
+		return a != 0 ? GPixelCompositor<0, 1>::CompositeComponentOver(d, s, sa)
+			: 0;
+	}
+};
+
+//! \note 不透明源和目标。
+template<>
+struct GPixelCompositor<0, 0> : public GPixelCompositor<0, 2>,
+	public GPixelCompositor<2, 0>
+{
+	using GPixelCompositor<0, 2>::CompositeAlphaOver;
+	using GPixelCompositor<2, 0>::CompositeComponentOver;
 };
 //@}
 
 
 /*!
 \brief 像素混合器。
-\sa GPixelBlenderBase
-\since build 438
+\tparam _tPixel 像素类型。
+\tparam _vAlphaBits Alpha 宽度。
+\since build 439
+\todo 支持浮点 Alpha 类型。
 */
 //@{
-template<typename _tPixel, typename _tMono, typename _tAlpha>
-struct GPixelBlender : public GPixelBlenderBase<_tPixel, _tMono, _tAlpha>
+template<typename _tPixel, size_t _vAlphaBits>
+struct GPixelBlender
 {
-	using Base = GPixelBlenderBase<_tPixel, _tMono, _tAlpha>;
-	using Base::MaxAlpha;
-	using Base::BlendComponent;
+	static yconstexpr size_t AlphaBits = _vAlphaBits;
 
+	//! \brief Alpha 分量混合。
+	template<typename _tMono, typename _tAlpha>
+	static yconstfn _tMono
+	BlendComponent(_tMono d, _tMono s, _tAlpha a)
+	{
+		using namespace ystdex;
+
+		return GPixelCompositor<1, 8>::CompositeComponentOver(d, s,
+			fixed_point<u16, 8>(a, raw_tag()),
+			normalized_max<fixed_point<u16, 8>>::get());
+	//	return d + ((a * (s - d)) >> AlphaBits);
+	}
+
+	/*!
+	\brief Alpha 混合。
+
+	背景透明，输出 Alpha 饱和。
+	*/
+	template<typename _tAlpha>
 	static _tPixel
 	Blend(_tPixel d, _tPixel s, _tAlpha a)
 	{
-		return Base::template BlendBase<GPixelBlender>(d, s, a);
-	}
-
-	/*
-	\brief Alpha 混合。
-
-	使用下列公式进行像素的 Alpha 混合（其中 alpha = a / MaxAlpha）：
-	背景透明， 输出 Alpha 饱和。
-	*/
-	static _tPixel
-	BlendCore(_tPixel d, _tPixel s, _tAlpha a)
-	{
 		const Color dc(d), sc(s);
 
-		return Color(Base::BlendComponent(dc.GetR(), sc.GetR(), a),
-			Base::BlendComponent(dc.GetG(), sc.GetG(), a),
-			Base::BlendComponent(dc.GetB(), sc.GetB(), a), MaxAlpha);
+		return Color(BlendComponent(dc.GetR(), sc.GetR(), a),
+			BlendComponent(dc.GetG(), sc.GetG(), a),
+			BlendComponent(dc.GetB(), sc.GetB(), a), (1 << AlphaBits) - 1);
 	}
 };
 
-template<typename _tMono, typename _tAlpha>
-struct GPixelBlender<u16, _tMono, _tAlpha>
-	: public GPixelBlenderBase<u16, _tMono, _tAlpha>
+template<size_t _vAlphaBits>
+struct GPixelBlender<u16, _vAlphaBits>
 {
-	using Base = GPixelBlenderBase<u16, _tMono, _tAlpha>;
-	using Base::AlphaBits;
-	using Base::MaxAlpha;
-	using Base::BlitRound;
-	static yconstexpr u32 BlitRound_XZ{BlitRound | BlitRound << 16};
+	static yconstexpr size_t AlphaBits = _vAlphaBits;
 
+	template<typename _tAlpha>
 	static u16
 	Blend(u16 d, u16 s, _tAlpha a)
 	{
-		return Base::template BlendBase<GPixelBlender>(d, s, a);
+		return BlendCore(d, s, a);
 	}
 
-	/*
+	/*!
 	\brief AXYZ1555 格式 PixelType 的 Alpha 混合。
 	\since build 417
 
+	设 MaxAlpha := (1 << AlphaBits) - 1 ，
 	使用下列公式进行像素的 Alpha 混合（其中 alpha = a / MaxAlpha）：
 	输出分量： component := (1 - alpha) * d + alpha * s
 	= ((MaxAlpha - a) * d + a * s) >> AlphaBits
-	= d + ((a * (s - d) + BlitRound) >> AlphaBits) 。
+	= d + ((a * (s - d)) >> AlphaBits) 。
 	背景透明，输出 Alpha 饱和。
 	像素格式： 16 位 AXYZ1555 。
 	以 ARGB1555 为例，算法实现示意：
@@ -635,13 +933,13 @@ struct GPixelBlender<u16, _tMono, _tAlpha>
 	分解分量至 32 位寄存器以减少总指令数。
 	*/
 	static u16
-	BlendCore(u32 d, u32 s, _tAlpha a)
+	BlendCore(u32 d, u32 s, u8 a)
 	{
 		u32 dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
 
-		yunseq(dbr += ((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr) * a
-			+ BlitRound_XZ) >> AlphaBits,
-			dg += (((s & 0x3E0) - dg) * a + BlitRound) >> AlphaBits);
+		yunseq(dbr += ((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr) * a)
+			>> AlphaBits,
+			dg += (((s & 0x3E0) - dg) * a) >> AlphaBits);
 		return (dbr & 0x1F) | (dg & 0x3E0) | (dbr >> 6 & 0x7C00) | 1 << 15;
 	}
 };
@@ -649,59 +947,36 @@ struct GPixelBlender<u16, _tMono, _tAlpha>
 
 
 /*!
+\ingroup PixelOperation
 \brief 像素计算：Alpha 混合。
-\since build 438
+\since build 440
 */
-//@{
-template<typename _tOut>
-inline void
-BiltAlphaPoint(_tOut dst_iter, IteratorPair src_iter)
+struct BlitAlphaPoint
 {
-	static_assert(std::is_convertible<typename std::remove_reference<
-		decltype(*dst_iter)>::type, PixelType>::value, "Wrong type found.");
-	using Blender = GPixelBlender<PixelType, MonoType, AlphaType>;
-
-	const AlphaType a(*src_iter.base().second);
-
-	*dst_iter = Blender::Blend(*dst_iter, *src_iter, a);
-}
-template<typename _tOut, typename _tIn>
-inline void
-BiltAlphaPoint(_tOut dst_iter, ystdex::pair_iterator<
-	ystdex::pseudo_iterator<const PixelType>, _tIn> src_iter)
-{
-	static_assert(std::is_convertible<typename std::remove_reference<
-		decltype(*dst_iter)>::type, PixelType>::value, "Wrong type found.");
-	using Blender = GPixelBlender<PixelType, MonoType, AlphaType>;
-
-	const AlphaType a(*src_iter.base().second);
-
-	*dst_iter = Blender::Blend(*dst_iter, *src_iter, a);
-}
-//@}
-
-
-/*!
-\ingroup BlitScanner
-\brief 扫描线：按指定扫描顺序复制一行透明像素。
-\note 使用 Alpha 通道表示 8 位透明度。
-\warning 不检查迭代器有效性。
-\since build 437
-*/
-template<bool _bPositiveScan>
-struct BlitBlendLine
-{
-	//! \since build 438
-	template<typename _tOut, typename _tIn>
-	void
-	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x)
+	template<typename _tOut>
+	inline void
+	operator()(_tOut dst_iter, IteratorPair src_iter)
 	{
-		for(SDst x(0); x < delta_x; ++x)
-		{
-			BiltAlphaPoint(dst_iter, src_iter);
-			++src_iter;
-			ystdex::xcrease<_bPositiveScan>(dst_iter);
-		}
+		static_assert(std::is_convertible<ystdex::remove_reference_t<
+			decltype(*dst_iter)>, PixelType>::value, "Wrong type found.");
+		using Blender = GPixelBlender<PixelType, 8>;
+
+		const AlphaType a(*src_iter.base().second);
+
+		*dst_iter = Blender::Blend(*dst_iter, *src_iter, a);
+	}
+	template<typename _tOut, typename _tIn>
+	inline void
+	operator()(_tOut dst_iter, ystdex::pair_iterator<
+		ystdex::pseudo_iterator<const PixelType>, _tIn> src_iter)
+	{
+		static_assert(std::is_convertible<ystdex::remove_reference_t<
+			decltype(*dst_iter)>, PixelType>::value, "Wrong type found.");
+		using Blender = GPixelBlender<PixelType, 8>;
+
+		const AlphaType a(*src_iter.base().second);
+
+		*dst_iter = Blender::Blend(*dst_iter, *src_iter, a);
 	}
 };
 

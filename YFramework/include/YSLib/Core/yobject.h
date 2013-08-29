@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3688
+\version r3690
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-24 10:51 +0800
+	2013-08-27 18:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -426,8 +426,8 @@ public:
 	using DependentType = _type;
 	using PointerType = _tOwnerPointer;
 	using ConstReferenceType = decltype(*PointerType());
-	using ReferentType = typename std::remove_const<typename
-		std::remove_reference<ConstReferenceType>::type>::type;
+	using ReferentType = ystdex::remove_const_t<ystdex::remove_reference_t<
+		ConstReferenceType>>;
 	using ReferenceType = ReferentType&;
 
 private:

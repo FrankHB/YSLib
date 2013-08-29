@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2767
+\version r2805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-22 19:24 +0800
+	2013-08-27 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,16 +39,18 @@ namespace Drawing
 {
 
 /*!
-\brief 字符块传输。
+\brief 字符按扫描线块传输。
 \tparam _tOut 输出迭代器类型。
 \tparam _tIn 输入迭代器类型。
 \tparam _fBlitScanner 扫描线操作类型。
 \param scanner 扫描线操作。
 \param src 源迭代器。
 \param ss 源迭代器所在缓冲区大小。
-\param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
+\param pc 指定字符所在区域和渲染目标的绘制上下文，
+	其中 Location 为相对于源的坐标。
 \param neg_pitch 指定交换行渲染顺序。
 \sa Blit
+\sa BlitLines
 \since build 438
 */
 template<typename _tOut, typename _tIn, typename _fBlitScanner>
@@ -69,8 +71,41 @@ BlitGlyphLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ss,
 
 
 /*!
+\brief 字符按像素块传输。
+\tparam _tOut 输出迭代器类型。
+\tparam _tIn 输入迭代器类型。
+\tparam _fBlit 像素操作类型。
+\param blit 像素操作。
+\param src 源迭代器。
+\param ss 源迭代器所在缓冲区大小。
+\param pc 指定字符所在区域和渲染目标的绘制上下文，
+	其中 Location 为相对于源的坐标。
+\param neg_pitch 指定交换行渲染顺序。
+\sa Blit
+\sa BlitPixels
+\since build 440
+*/
+template<typename _tOut, typename _tIn, typename _fBlit>
+void
+BlitGlyphPixels(_fBlit blit, _tOut dst, _tIn src, const Size& ss,
+	const PaintContext& pc, bool neg_pitch)
+{
+	const auto& ds(pc.Target.GetSize());
+	const auto& r(pc.ClipArea);
+
+	if(neg_pitch)
+		BlitPixels<false, true>(blit, dst, src, ds, ss, r.GetPoint(),
+			pc.Location, r.GetSize());
+	else
+		BlitPixels<false, false>(blit, dst, src, ds, ss, r.GetPoint(),
+			pc.Location, r.GetSize());
+}
+
+
+/*!
 \brief 渲染单个字符。
-\param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
+\param pc 指定字符所在区域和渲染目标的绘制上下文，
+	其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
 \note 忽略 Alpha 缓冲。
 \since build 415
@@ -81,7 +116,8 @@ RenderChar(PaintContext&& pc, Color, bool, CharBitmap::BufferType,
 
 /*!
 \brief 渲染带 Alpha 缓冲的单个字符。
-\param pc 指定字符所在区域和渲染目标的绘制上下文，其中 Location 为相对于源的坐标。
+\param pc 指定字符所在区域和渲染目标的绘制上下文，
+	其中 Location 为相对于源的坐标。
 \pre 断言：缓冲区非空。
 \since build 417
 */
@@ -115,7 +151,7 @@ PrintChar(_tRenderer& r, ucs4_t c)
 }
 
 /*!
-\brief 使用指定的文本状态和行末位置（横坐标）打印并判断是否需要具体渲染单个字符。
+\brief 使用指定的文本状态和行末位置（横坐标）打印并判断是否需要渲染单个字符。
 \return 遇到行内无法容纳而换行时为 1 ，需要继续渲染为 2 ，否则为 0 。
 \since build 372
 */

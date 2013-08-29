@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1042
+\version r1128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-08-24 20:44 +0800
+	2013-08-29 10:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,11 +207,64 @@ using std::result_of;
 /*!
 \ingroup type_traits_operations
 \brief ISO C++ 1y 兼容类型操作别名。
-\since build 349
 \todo 条件编译：尽可能使用语言实现。
 */
 //@{
-//template<std::size_t _vLen, typename... _types>
+//! \since build 340
+//@{
+template<typename _type>
+using remove_const_t = typename remove_const<_type>::type;
+
+template<typename _type>
+using remove_volatile_t = typename remove_volatile<_type>::type;
+
+template<typename _type>
+using remove_cv_t = typename remove_cv<_type>::type;
+
+template<typename _type>
+using add_const_t = typename add_const<_type>::type;
+
+template<typename _type>
+using add_volatile_t = typename add_volatile<_type>::type;
+
+template<typename _type>
+using add_cv_t = typename add_cv<_type>::type;
+
+template<typename _type>
+using remove_reference_t = typename remove_reference<_type>::type;
+
+template<typename _type>
+using add_lvalue_reference_t = typename add_lvalue_reference<_type>::type;
+
+template<typename _type>
+using add_rvalue_reference_t = typename add_rvalue_reference<_type>::type;
+
+template<typename _type>
+using make_signed_t = typename make_signed<_type>::type;
+
+template<typename _type>
+using make_unsigned_t = typename make_unsigned<_type>::type;
+
+template<typename _type>
+using remove_extent_t = typename remove_extent<_type>::type;
+
+template<typename _type>
+using remove_all_extents_t = typename remove_all_extents<_type>::type;
+
+template<typename _type>
+using remove_pointer_t = typename remove_pointer<_type>::type;
+
+template<typename _type>
+using add_pointer_t = typename add_pointer<_type>::type;
+
+template<size_t _vLen,
+	size_t _vAlign = yalignof(typename std::aligned_storage<_vLen>::type)>
+using aligned_storage_t = typename aligned_storage<_vLen, _vAlign>::type;
+//@}
+
+//! \since build 339
+//@{
+//template<size_t _vLen, typename... _types>
 //using aligned_union_t = typename aligned_union<_vLen, _types...>::type;
 
 template<typename _type>
@@ -231,6 +284,7 @@ using underlying_type_t = typename underlying_type<_type>::type;
 
 template<typename _type>
 using result_of_t = typename result_of<_type>::type;
+//@}
 //@}
 
 
@@ -265,7 +319,7 @@ struct is_decayable
 */
 template<typename _type>
 struct is_class_pointer : integral_constant<bool, is_pointer<_type>::value
-	&& is_class<typename remove_pointer<_type>::type>::value>
+	&& is_class<remove_pointer_t<_type>>::value>
 {};
 
 
@@ -276,7 +330,7 @@ struct is_class_pointer : integral_constant<bool, is_pointer<_type>::value
 */
 template<typename _type>
 struct is_lvalue_class_reference : integral_constant<bool, !is_lvalue_reference<
-	_type>::value && is_class<typename remove_reference<_type>::type>::value>
+	_type>::value && is_class<remove_reference_t<_type>>::value>
 {};
 
 
@@ -335,7 +389,36 @@ namespace details
 
 
 /*!
-\def YB_TYPE_OP_TEST_2
+\brief 测试包含指定名称的嵌套成员。
+\warning 当参数包含前置下划线时可能和保留名称冲突。
+\since build 440
+*/
+#define YB_HAS_MEMBER(_n) \
+	template<class _type> \
+	struct has_mem_##_n \
+	{ \
+	private: \
+		template<typename _type2> \
+		static std::true_type \
+		test(ystdex::empty_base<typename _type2::_n>*); \
+		template<typename _type2> \
+		static std::false_type \
+		test(...); \
+	\
+	public: \
+		static yconstexpr bool value = decltype(test<_type>(nullptr))::value; \
+	};
+
+
+/*!
+\since build 440
+
+测试包含 value 成员。
+*/
+YB_HAS_MEMBER(value)
+
+
+/*!
 \brief 测试包含指定的 2 个类型的表达式是否合式。
 \since build 399
 */
@@ -345,10 +428,10 @@ namespace details
 	{ \
 	private: \
 		template<typename _type> \
-		static true_type \
-		test(enable_if_t<(_expr), int>); \
+		static std::true_type \
+		test(ystdex::enable_if_t<(_expr), int>); \
 		template<typename> \
-		static false_type \
+		static std::false_type \
 		test(...); \
 	\
 	public: \
@@ -457,6 +540,17 @@ public:
 
 
 /*!
+\ingroup unary_type_trait
+\brief 判断 _type 是否包含 value 成员。
+\since build 440
+*/
+template<class _type>
+struct has_mem_value : std::integral_constant<bool,
+	details::has_mem_value<remove_cv_t<_type>>::value>
+{};
+
+
+/*!
 \ingroup binary_type_trait
 \brief 判断是否存在合式的结果为非 void 类型的 [] 操作符接受指定类型的表达式。
 \since build 399
@@ -522,8 +616,7 @@ struct identity
 template<typename _type>
 struct remove_rcv
 {
-	using type
-		= typename remove_cv<typename remove_reference<_type>::type>::type;
+	using type = remove_cv_t<remove_reference_t<_type>>;
 };
 
 
@@ -536,8 +629,7 @@ struct remove_rcv
 template<typename _type>
 struct remove_rp
 {
-	using type
-		= typename remove_pointer<typename remove_reference<_type>::type>::type;
+	using type = remove_pointer_t<remove_reference_t<_type>>;
 };
 
 
@@ -549,7 +641,7 @@ struct remove_rp
 template<typename _type>
 struct remove_rpcv
 {
-	using type = typename remove_cv<typename remove_rp<_type>::type>::type;
+	using type = remove_cv_t<typename remove_rp<_type>::type>;
 };
 
 
@@ -579,7 +671,7 @@ template<typename _type>
 struct qualified_decay
 {
 private:
-	using value_type = typename remove_reference<_type>::type;
+	using value_type = remove_reference_t<_type>;
 
 public:
 	using type = conditional_t<is_function<value_type>::value

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4725
+\version r4729
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-08-05 21:13 +0800
+	2013-08-27 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,10 +138,10 @@ inline size_t
 CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
 	using HandlerType = typename EventTypeMapping<_vID>::HandlerType;
-	static_assert(std::is_same<typename std::remove_reference<_tEventArgs>
-		::type, typename std::remove_reference<typename EventArgsHead<typename
-		HandlerType::TupleType>::type>::type>
-		::value, "Invalid event argument type found @ CallEvent;");
+	static_assert(std::is_same<ystdex::remove_reference_t<_tEventArgs>,
+		ystdex::remove_reference_t<typename EventArgsHead<typename
+		HandlerType::TupleType>::type>>::value,
+		"Invalid event argument type found @ CallEvent;");
 
 	try
 	{

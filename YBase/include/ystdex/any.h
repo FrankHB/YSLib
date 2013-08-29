@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1327
+\version r1340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-08-24 10:22 +0800
+	2013-08-27 18:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ union non_aggregate_pod
 \note POD 的含义参考 ISO C++11 。
 \since build 351
 */
-template<typename _tPOD = typename aligned_storage<sizeof(void*)>::type>
+template<typename _tPOD = aligned_storage_t<sizeof(void*)>>
 union pod_storage
 {
 	static_assert(is_pod<_tPOD>::value, "Non-POD underlying type found.");
@@ -75,7 +75,7 @@ union pod_storage
 	template<typename _type>
 	pod_storage(_type&& x)
 	{
-		new(access()) typename remove_reference<_type>::type(yforward(x));
+		new(access()) remove_reference_t<_type>(yforward(x));
 	}
 
 	//! \note 为避免类型错误，需要确定类型时应使用显式使用 access 指定类型赋值。
@@ -83,7 +83,7 @@ union pod_storage
 	pod_storage&
 	operator=(_type&& x)
 	{
-		access<typename remove_reference<_type>::type>() = yforward(x);
+		access<remove_reference_t<_type>>() = yforward(x);
 		return *this;
 	}
 	//@}
@@ -602,8 +602,7 @@ public:
 	template<typename _type, typename
 		= enable_if_t<!is_same<_type&, any&>::value, int>>
 	any(_type&& x)
-		: manager(any_ops::value_handler<typename
-			remove_reference<_type>::type>::manage)
+		: manager(any_ops::value_handler<remove_reference_t<_type>>::manage)
 	{
 		any_ops::value_handler<typename remove_rcv<_type>::type>::init(storage,
 			yforward(x));
@@ -631,8 +630,8 @@ public:
 		: manager(any_ops::holder_handler<any_ops::value_holder<typename
 		remove_rcv<_type>::type>>::manage)
 	{
-		any_ops::holder_handler<any_ops::value_holder<typename
-			remove_cv<_type>::type>>::init(storage, yforward(x));
+		any_ops::holder_handler<any_ops::value_holder<
+			remove_cv_t<_type>>>::init(storage, yforward(x));
 	}
 	//@}
 	any(const any&);
@@ -785,7 +784,7 @@ public:
 
 /*!
 \brief 动态泛型转换。
-\return 当 <tt>p && p->type() == typeid(remove_pointer<_tPointer>::type)</tt> 时
+\return 当 <tt>p && p->type() == typeid(remove_pointer_t<_tPointer>)</tt> 时
 	为指向对象的指针，否则为空指针。
 \note 语义同 boost::any_cast 。
 \since build 398
@@ -799,25 +798,25 @@ template<typename _tPointer>
 inline _tPointer
 any_cast(any* p) ynothrow
 {
-	return p ? p->target<typename remove_pointer<_tPointer>::type>() : nullptr;
+	return p ? p->target<remove_pointer_t<_tPointer>>() : nullptr;
 }
 template<typename _tPointer>
 inline _tPointer
 any_cast(const any* p) ynothrow
 {
-	return p ? p->target<typename remove_pointer<_tPointer>::type>() : nullptr;
+	return p ? p->target<remove_pointer_t<_tPointer>>() : nullptr;
 }
 //@}
 /*!
 \throw bad_any_cast 当 <tt>x.type()
-	!= typeid(remove_reference<_tValue>::type)</tt> 。
+	!= typeid(remove_reference_t<_tValue>)</tt> 。
 */
 //@{
 template<typename _tValue>
 inline _tValue
 any_cast(any& x)
 {
-	const auto tmp(any_cast<typename remove_reference<_tValue>::type*>(&x));
+	const auto tmp(any_cast<remove_reference_t<_tValue>*>(&x));
 
 	if(!tmp)
 		throw bad_any_cast(x.type(), typeid(_tValue));
@@ -827,7 +826,7 @@ template<typename _tValue>
 _tValue
 any_cast(const any& x)
 {
-	const auto tmp(any_cast<typename remove_reference<_tValue>::type*>(&x));
+	const auto tmp(any_cast<remove_reference_t<_tValue>*>(&x));
 
 	if(!tmp)
 		throw bad_any_cast(x.type(), typeid(_tValue));

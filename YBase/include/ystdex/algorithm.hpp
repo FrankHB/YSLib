@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r442
+\version r449
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-06-14 12:59 +0800
+	2013-08-27 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ namespace ystdex
 \ingroup algorithms
 \brief POD 类型操作。
 \tparam _type 指定对象类型。
-\pre 静态断言： <tt>std::is_pod<typename std::remove_reference<_type>::type>
+\pre 静态断言： <tt>std::is_pod<typename std::remove_reference_t<_type>>
 	::value</tt> 。
 \note 不检查指针是否有效。
 \since build 304
@@ -56,8 +56,8 @@ template <class _type>
 inline _type*
 pod_fill(_type* first, _type* last, const _type& value)
 {
-	static_assert(std::is_pod<typename std::remove_reference<_type>::type>
-		::value, "Non-POD type found @ pod_fill;");
+	static_assert(is_pod<remove_reference_t<_type>>::value,
+		"Non-POD type found @ pod_fill;");
 
 	switch((last - first) & 7)
 	{
@@ -81,8 +81,8 @@ template <class _type>
 inline _type*
 pod_copy_n(const _type* first, size_t n, _type* result)
 {
-	static_assert(std::is_pod<typename std::remove_reference<_type>::type>
-		::value, "Non-POD type found @ pod_copy_n;");
+	static_assert(is_pod<remove_reference_t<_type>>::value,
+		"Non-POD type found @ pod_copy_n;");
 
 	std::memcpy(result, first, sizeof(*first) * n);
 	return result + n;
@@ -99,8 +99,8 @@ template <class _type>
 inline _type*
 pod_move_n(const _type* first, size_t n, _type* result)
 {
-	static_assert(std::is_pod<typename std::remove_reference<_type>::type>
-		::value, "Non-POD type found @ pod_move_n;");
+	static_assert(is_pod<remove_reference_t<_type>>::value,
+		"Non-POD type found @ pod_move_n;");
 
 	std::memmove(result, first, sizeof(*first) * n);
 	return result + n;

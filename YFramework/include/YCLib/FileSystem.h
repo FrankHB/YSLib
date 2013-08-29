@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1023
+\version r1029
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-08-05 20:12 +0800
+	2013-08-27 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "ycommon.h"
 #include <ystdex/utility.hpp> // for std::is_array, std::is_integral,
-//	std::remove_reference, ystdex::arrlen;
+//	ystdex::remove_reference_t, ystdex::arrlen;
 #include <ystdex/cstring.h> // for ystdex::is_null;
 #include <ystdex/string.hpp> // for ystdex::string_length, std::string;
 #include <CHRLib/encoding.h>
@@ -160,8 +160,8 @@ yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 //@{
 static_assert(std::is_integral<decltype(YCL_PATH_DELIMITER)>::value,
 	"Illegal type of delimiter found.");
-static_assert(std::is_array<typename std::remove_reference<decltype(
-	YCL_PATH_SEPARATOR)>::type>::value, "Non-array type of separator found.");
+static_assert(std::is_array<ystdex::remove_reference_t<decltype(
+	YCL_PATH_SEPARATOR)>>::value, "Non-array type of separator found.");
 static_assert(ystdex::arrlen(YCL_PATH_SEPARATOR) == 2,
 	"Wrong length of separator found.");
 static_assert(YCL_PATH_SEPARATOR[0] == YCL_PATH_DELIMITER,

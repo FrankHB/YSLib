@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2734
+\version r2736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-08-26 16:24 +0800
+	2013-08-27 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1490,7 +1490,8 @@ $4.1.3.1.4 临时性例外：
 注意有符号数溢出是未定义行为。
 四则运算、取余和向左移位均可能导致溢出。
 除数为 -1 可导致溢出，如 http://kqueue.org/blog/2012/12/31/idiv-dos/ 。
-注意 n 位无符号数保证不溢出而保证结果回绕为 2 ^ n 的余数。
+注意 n 位无符号数的内建二元 + 、二元 - 、 * 、 ++ 、 -- 、 << 及对应复合赋值和一元 - 操作遵循模算术(modular arithmetic) ，保证不溢出而保证结果回绕为 2 ^ n 的余数。
+应特别注意避免无符号数减法导致非预期的结果。参考： https://www.securecoding.cert.org/confluence/display/seccode/INT30-C.+Ensure+that+unsigned+integer+operations+do+not+wrap 。
 
 @5.8.8.3 浮点数：
 注意浮点数的舍入误差、非数值（如 NaN 和 Inf 等）和浮点环境。

@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r138
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2013-08-24 20:34 +0800
+	2013-08-29 17:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YB_INC_ystdex_cstdint_hpp_ 1
 
 #include "type_op.hpp"
+#include <limits>
 
 namespace ystdex
 {
@@ -53,13 +54,13 @@ struct integer_width
 template<typename _type, bool>
 struct make_signed_c
 {
-	using type = typename std::make_signed<_type>::type;
+	using type = make_signed_t<_type>;
 };
 
 template<typename _type>
 struct make_signed_c<_type, false>
 {
-	using type = typename std::make_unsigned<_type>::type;
+	using type = make_unsigned_t<_type>;
 };
 //@}
 
@@ -132,6 +133,34 @@ struct make_width_int<64U>
 	using unsigned_least_type = std::uint_least64_t;
 };
 //@}
+
+
+/*!
+\ingroup meta_operations
+\brief 模算术特性：取得不超过模值的最大值。
+\note 不保证值是整数，因此不从 std::integral_constant 派生。
+\note 模值 0 表示模为平凡值 1 或不支持模算术。
+\note 正确性由用户保证。一般应至少保证 + 和 * 以及相关赋值操作满足模算术语义。
+\since build 440
+*/
+template<typename _type>
+struct modular_arithmetic
+{
+	static yconstexpr _type value = is_unsigned<_type>::value
+		? std::numeric_limits<_type>::max() : _type(0);
+};
+
+
+/*!
+\ingroup binary_type_trait
+\brief 判断两个类型是否具有相同的模值。
+\since build 440
+*/
+template<typename _type1, typename _type2>
+struct have_same_modulo : integral_constant<bool, uintmax_t(modular_arithmetic<
+	_type1>::value) != 0 && uintmax_t(modular_arithmetic<_type1>::value)
+	== uintmax_t(modular_arithmetic<_type2>::value)>
+{};
 
 } // namespace ystdex;
 

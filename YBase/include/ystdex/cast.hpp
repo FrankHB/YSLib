@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r851
+\version r857
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2013-08-06 14:27 +0800
+	2013-08-27 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,8 +122,8 @@ polymorphic_downcast(_tSrc* x)
 {
 	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
 	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
-	static_assert(is_base_of<_tSrc, typename remove_cv<typename remove_pointer<
-		_pDst>::type>::type>::value, "Wrong destination type found.");
+	static_assert(is_base_of<_tSrc, remove_cv_t<
+		remove_pointer_t<_pDst>>>::value, "Wrong destination type found.");
 
 	yassume(dynamic_cast<_pDst>(x) == x);
 
@@ -145,8 +145,8 @@ polymorphic_downcast(_tSrc& x)
 	static_assert(is_reference<_rDst>::value,
 		"Non-reference destination found.");
 
-	return *ystdex::polymorphic_downcast<typename remove_reference<
-		_rDst>::type*>(std::addressof(x));
+	return *ystdex::polymorphic_downcast<remove_reference_t<_rDst>*>(
+		std::addressof(x));
 }
 
 /*!
@@ -189,8 +189,8 @@ polymorphic_crosscast(_tSrc& x)
 	static_assert(is_reference<_rDst>::value,
 		"Non-reference destination found.");
 
-	return *ystdex::polymorphic_crosscast<typename remove_reference<
-		_rDst>::type*>(std::addressof(x));
+	return *ystdex::polymorphic_crosscast<remove_reference_t<_rDst>*>(
+		std::addressof(x));
 }
 
 

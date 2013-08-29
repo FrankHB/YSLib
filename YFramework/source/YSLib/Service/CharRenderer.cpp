@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3214
+\version r3236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-23 09:38 +0800
+	2013-08-27 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,22 +48,18 @@ PixelType char_color;
 /*!
 \brief 混合 Alpha 透明度扫描线。
 \warning 不检查迭代器有效性。
-\since build 438
+\since build 440
 */
-struct BlitTextLine
+struct BlitTextPoint
 {
 	//! \bug 依赖于静态对象保存的状态，非线程安全。
 	template<typename _tOut, typename _tIn>
 	void
-	operator()(_tOut& dst_iter, _tIn& src_iter, SDst delta_x)
+	operator()(_tOut dst_iter, _tIn src_iter)
 	{
-		for(SDst x(0); x < delta_x; ++x)
-		{
-			if(*src_iter >= BLT_TEXT_ALPHA_THRESHOLD)
-				yunseq(*dst_iter.base().second = *src_iter,
-					*dst_iter = char_color);
-			yunseq(++src_iter, ++dst_iter);
-		}
+		if(*src_iter >= BLT_TEXT_ALPHA_THRESHOLD)
+			yunseq(*dst_iter.base().second = *src_iter,
+				*dst_iter = char_color);
 	}
 };
 
@@ -122,19 +118,19 @@ RenderChar(PaintContext&& pc, Color c, bool neg_pitch,
 	switch(fmt)
 	{
 	case CharBitmap::Mono:
-		BlitGlyphLines(BlitBlendLine<true>(), pc.Target.GetBufferPtr(),
+		BlitGlyphPixels(BlitAlphaPoint(), pc.Target.GetBufferPtr(),
 			MonoItPair_1(PixelIt(c), tr_buf<1>(cbuf)), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray2:
-		BlitGlyphLines(BlitBlendLine<true>(), pc.Target.GetBufferPtr(),
+		BlitGlyphPixels(BlitAlphaPoint(), pc.Target.GetBufferPtr(),
 			MonoItPair_2(PixelIt(c), tr_buf<2>(cbuf)), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray4:
-		BlitGlyphLines(BlitBlendLine<true>(), pc.Target.GetBufferPtr(),
+		BlitGlyphPixels(BlitAlphaPoint(), pc.Target.GetBufferPtr(),
 			MonoItPair_4(PixelIt(c), tr_buf<4>(cbuf)), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray:
-		BlitGlyphLines(BlitBlendLine<true>(), pc.Target.GetBufferPtr(),
+		BlitGlyphPixels(BlitAlphaPoint(), pc.Target.GetBufferPtr(),
 			MonoIteratorPair(PixelIt(c), cbuf), ss, pc, neg_pitch);
 	default:
 		break;
@@ -152,20 +148,20 @@ RenderCharAlpha(PaintContext&& pc, Color c, bool neg_pitch,
 	switch(fmt)
 	{
 	case CharBitmap::Mono:
-		BlitGlyphLines(BlitTextLine(), PairIt(pc.Target.GetBufferPtr(), alpha),
-			tr_buf<1>(cbuf), ss, pc, neg_pitch);
+		BlitGlyphPixels(BlitTextPoint(), PairIt(pc.Target.GetBufferPtr(),
+			alpha), tr_buf<1>(cbuf), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray2:
-		BlitGlyphLines(BlitTextLine(), PairIt(pc.Target.GetBufferPtr(), alpha),
-			tr_buf<2>(cbuf), ss, pc, neg_pitch);
+		BlitGlyphPixels(BlitTextPoint(), PairIt(pc.Target.GetBufferPtr(),
+			alpha), tr_buf<2>(cbuf), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray4:
-		BlitGlyphLines(BlitTextLine(), PairIt(pc.Target.GetBufferPtr(), alpha),
-			tr_buf<4>(cbuf), ss, pc, neg_pitch);
+		BlitGlyphPixels(BlitTextPoint(), PairIt(pc.Target.GetBufferPtr(),
+			alpha), tr_buf<4>(cbuf), ss, pc, neg_pitch);
 		break;
 	case CharBitmap::Gray:
-		BlitGlyphLines(BlitTextLine(), PairIt(pc.Target.GetBufferPtr(), alpha),
-			cbuf, ss, pc, neg_pitch);
+		BlitGlyphPixels(BlitTextPoint(), PairIt(pc.Target.GetBufferPtr(),
+			alpha), cbuf, ss, pc, neg_pitch);
 	default:
 		break;
 	}

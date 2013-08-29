@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r1944
+\version r1950
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-08-24 10:50 +0800
+	2013-08-27 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,7 +322,7 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 
 /*!
 \brief 清除指定的连续对象。
-\pre 设类型 T 为 <tt>std::remove_reference<decltype(*dst)>::type</tt>， 则应满足
+\pre 设类型 T 为 <tt>ystdex::remove_reference_t<decltype(*dst)></tt>， 则应满足
 	<tt>std::is_pod<T> || (std::is_nothrow_default_constructible<T>::value
 		&& std::is_nothrow_assignable<T, T>::value)</tt> 。
 \note 忽略空指针和零长度。
@@ -332,7 +332,7 @@ template<typename _tOut>
 inline void
 ClearSequence(_tOut dst, size_t n) ynothrow
 {
-	using _type = typename std::remove_reference<decltype(*dst)>::type;
+	using _type = ystdex::remove_reference_t<decltype(*dst)>;
 
 	static_assert(std::is_pod<_type>::value
 		|| (std::is_nothrow_default_constructible<_type>::value
@@ -456,7 +456,7 @@ template<typename _type>
 yconstfn auto
 CloneNonpolymorphic(const _type& p) -> decltype(&*p)
 {
-	return new typename std::remove_reference<decltype(*p)>::type(*p);
+	return new typename ystdex::remove_reference_t<decltype(*p)>(*p);
 }
 
 /*!
@@ -468,9 +468,8 @@ template<class _type>
 auto
 ClonePolymorphic(const _type& p) -> decltype(&*p)
 {
-	static_assert(std::is_polymorphic<typename
-		std::remove_reference<decltype(*p)>::type>::value,
-		"Non-polymorphic class type found.");
+	static_assert(std::is_polymorphic<ystdex::remove_reference_t<decltype(*p)>>
+		::value, "Non-polymorphic class type found.");
 
 	return p->clone();
 }

@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2886
+\version r2888
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-08-24 18:14 +0800
+	2013-08-27 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef YB_INC_ystdex_iterator_hpp_
 #define YB_INC_ystdex_iterator_hpp_ 1
 
-#include "type_op.hpp" // for std::remove_reference, ystdex::*_tag;
+#include "type_op.hpp" // for ystdex::remove_reference_t, ystdex::*_tag;
 #include "cassert.h"
 #include <iterator> // for std::make_move_iterator, std::iterator,
 //	std::iterator_traits;
@@ -466,7 +466,7 @@ public:
 	\since build 290
 	*/
 	using iterator_type = typename
-		pointer_classify<typename remove_reference<_tIterator>::type>::type;
+		pointer_classify<remove_reference_t<_tIterator>>::type;
 	using transformer_type = _fTransformer;
 	//! \since build 439
 	using transformed_type = result_of_t<_fTransformer&(_tIterator&)>;

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2435
+\version r2513
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-26 18:19 +0800
+	2013-08-29 18:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,83 @@ $import $HISTORY;
 
 $now
 (
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ %'Rational' $=
+		(
+			+ "static member function %get for defined speciliazations"
+				@ "class template %normalized_max",
+				// Since the 'value' was not defined, only non-odr using was \
+					allowed.
+			* "ambiguous binary relation operations between %fixed_point values"
+				$since b260,
+				// With constexpr restrictions(see $KNOWN_ISSUE), these \
+					operations are not available during translation.
+				$= (+ "binary %operator(==, !=, <, >) for %fixed_point"
+					@ "namespace %ystdex")
+			/ "conversion function" @ "class template %fixed_point"
+				-> "constexpr function",
+			(
+				$dep_from "%modular_arithmetic"
+				+ "specialiaztion of %modular_arithmetic for %"fixed_point"
+			)
+		)
+		/ %'CStandardInteger' $=
+		(
+			+ "meta operation template %modular_arithmetic";
+			+ "binary trait template %have_same_modulo"
+		),
+		/ %'TypeOperation' $=
+		(
+			+ $dev "alias declarations %(remove_const_t, remove_volatile_t, \
+				remove_cv_t, add_const_t, add_volatile_t, add_cv_t, \
+				remove_reference_t, add_lvalue_reference_t, \
+				add_rvalue_reference_t, make_signed_t, make_unsigned_t, \
+				remove_extent_t, remove_all_extents_t, remove_pointer_t, \
+				add_pointer_t, aligned_storage_t)" @ "namespace %ystdex"
+				// For C++1y compatibility. There seems no %std::align_union \
+					implemented by libstdc++, so %align_union_t is deferred.
+			/ "macro %YB_TYPE_OP_TEST_2 supported for use out of namespace \
+				%ystdex",
+			(
+				+ "macro %YB_HAS_MEMBER";
+				+ "unary type trait template %has_mem_value"
+			)
+		)
+	),
+	/ %'YFramework'.'YSLib'.'Service' $=
+	(
+		/ %'YBlit' $=
+		(
+			(
+				+ "template class %GPixelCompositor",
+				/ "merged class template %GPixelBlenderBase"
+					-> "class template %GPixelBlender";
+				- $comp "blit rounds",
+					// In fact the removal of the round value make it more \
+						precise to value calculated using floating point \
+						numbers.
+			),
+			+ "class template %BlitLineLoop",
+			/ "2 function templates %BlitTransparentPixel"
+				-> "class template %BlitTransparentPoint",
+			/ "2 function templates %BlitAlphaPoint" -> "class template",
+			/ $design "functor template parameter put after iterators"
+				@ "member function template %operator()"
+				@ "class tempalte %BlitScannerLoop",
+			- "class templates %(BlitBlendLine, BlitTransparentLine)
+		);
+		+ "function template %BlitGlyphPixels" @ %'CharRenderer'
+	),
+	(
+		$dep_from %'YBase'.'YStandardEx'.'TypeOperation';
+		^ DLD "alias for type traits as possible except for \
+			%YFramework::YBaseMacro" ~ "raw type traits";
+	)
+),
+
+b439
+(
 	/ %'YFramework'.'YSLib' $=
 	(
 		* $dev $build "wrong case of including header %YBlit"
@@ -40,7 +117,7 @@ $now
 		* $comp "class template %MoreConvertible" @ %'Core'.'YCoreUtilities'
 			$since b206
 	),
-	/ %'YBase'
+	/ %'YBase' $=
 	(
 		+ "alias declaration %ystdex::raw_tag" @ %'YDefinition',
 		/ %'YStandardEx' $=
@@ -75,7 +152,7 @@ $now
 				(
 					+ "template partial specialization %std::common_type for 2 \
 						%ystdex::fixed_point";
-					* $comp "ambiguity of binary operations between \
+					* "ambiguous binary arithmetic operations between \
 						%fixed_point values" $since b260
 						$= (+ "binary %operator(+, -, *, /) for %fixed_point"
 							@ "namespace %ystdex")

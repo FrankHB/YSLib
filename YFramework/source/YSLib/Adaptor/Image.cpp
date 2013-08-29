@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r294
+\version r298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-08-05 21:24 +0800
+	2013-08-28 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,7 @@ ImageCodec::Convert(const HBitmap& pixmap)
 	const Size& s(pixmap.GetSize());
 	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
 
-	FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
+	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
 		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 16, FI16_555_RED_MASK,
 		FI16_555_GREEN_MASK, FI16_555_BLUE_MASK, true);
 	return CompactPixmap(std::move(pixels), s);
@@ -237,14 +237,14 @@ ImageCodec::Convert(const HBitmap& pixmap)
 	const Size& s(pixmap.GetSize());
 	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
 
-	FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
+	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
 		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 32, FI_RGBA_RED_MASK,
 		FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, true);
 #	if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_BGR
 //#	elif FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_RGB
-	// TODO: Add support for different color order.
+	// TODO: Add support for different color orders.
 #	else
-#		error "No supported FreeImage pixel format for RGB888 found."
+#		error "No supported FreeImage pixel format found."
 #	endif
 	return CompactPixmap(std::move(pixels), s);
 #else

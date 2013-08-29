@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1372
+\version r1464
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-08-26 17:55 +0805
+	2013-08-29 17:54 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include "cstdint.hpp"
 #include "operators.hpp"
 #include <cmath> // for std::llround;
-#include <limits>
 
 namespace ystdex
 {
@@ -50,12 +49,26 @@ template<typename _type, std::uintmax_t _vNum, std::uintmax_t _vDen>
 struct normalized_max<_type, _vNum, _vDen, true>
 {
 	static yconstexpr _type value = double(_vNum / _vDen);
+
+	//! \since build 440
+	static yconstfn _type
+	get()
+	{
+		return value;
+	}
 };
 
 template<typename _type, std::uintmax_t _vNum, std::uintmax_t _vDen>
 struct normalized_max<_type, _vNum, _vDen, false>
 {
 	static yconstexpr _type value = std::numeric_limits<_type>::max();
+
+	//! \since build 440
+	static yconstfn _type
+	get()
+	{
+		return value;
+	}
 };
 //@}
 
@@ -296,7 +309,7 @@ public:
 	//! \since build 439
 	template<typename _type,
 		typename = enable_if_t<is_arithmetic<_type>::value, _type>>
-	inline
+	yconstfn
 	operator _type() const
 	{
 		return this->cast<_type>();
@@ -400,63 +413,75 @@ public:
 	}
 };
 
+//!\since build 440
+#define YB_FIX_POINT_TMPL_HEAD_2 \
+	template<typename _tBase1, size_t _vInt1, size_t _vFrac1, \
+		typename _tBase2, size_t _vInt2, size_t _vFrac2>
+//!\since build 440
+#define YB_FIX_POINT_TMPL_OP_2_PARAMS_BODY(_op) \
+	operator _op(const fixed_point<_tBase1, _vInt1, _vFrac1> x, \
+		const fixed_point<_tBase2, _vInt2, _vFrac2>& y) \
+	{ \
+		using result_type = common_type_t<fixed_point<_tBase1, _vInt1, \
+			_vFrac1>, fixed_point<_tBase2, _vInt2, _vFrac2>>; \
+	\
+		return result_type(x) _op result_type(y); \
+	}
+
 /*!
-\brief 不同模板参数的二元操作符。
+\brief 不同模板参数的二元算术操作符。
 \since build 439
 */
 //@{
-template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
-	size_t _vInt2, size_t _vFrac2>
-yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
-	fixed_point<_tBase2, _vInt2, _vFrac2>>
-operator+(const fixed_point<_tBase1, _vInt1, _vFrac1> x,
-	const fixed_point<_tBase2, _vInt2, _vFrac2>& y)
-{
-	using result_type = common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
-		fixed_point<_tBase2, _vInt2, _vFrac2>>;
+//!\since build 440
+#define YB_FIX_POINT_ARITHMETIC_2(_op) \
+	YB_FIX_POINT_TMPL_HEAD_2 \
+	yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>, \
+		fixed_point<_tBase2, _vInt2, _vFrac2>> \
+	YB_FIX_POINT_TMPL_OP_2_PARAMS_BODY(_op)
 
-	return result_type(x) + result_type(y);
-}
+YB_FIX_POINT_ARITHMETIC_2(+)
+YB_FIX_POINT_ARITHMETIC_2(-)
+YB_FIX_POINT_ARITHMETIC_2(*)
+YB_FIX_POINT_ARITHMETIC_2(/)
 
-template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
-	size_t _vInt2, size_t _vFrac2>
-yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
-	fixed_point<_tBase2, _vInt2, _vFrac2>>
-operator-(const fixed_point<_tBase1, _vInt1, _vFrac1> x,
-	const fixed_point<_tBase2, _vInt2, _vFrac2>& y)
-{
-	using result_type = common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
-		fixed_point<_tBase2, _vInt2, _vFrac2>>;
-
-	return result_type(x) - result_type(y);
-}
-
-template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
-	size_t _vInt2, size_t _vFrac2>
-yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
-	fixed_point<_tBase2, _vInt2, _vFrac2>>
-operator*(const fixed_point<_tBase1, _vInt1, _vFrac1> x,
-	const fixed_point<_tBase2, _vInt2, _vFrac2>& y)
-{
-	using result_type = common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
-		fixed_point<_tBase2, _vInt2, _vFrac2>>;
-
-	return result_type(x) * result_type(y);
-}
-
-template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
-	size_t _vInt2, size_t _vFrac2>
-yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
-	fixed_point<_tBase2, _vInt2, _vFrac2>>
-operator/(const fixed_point<_tBase1, _vInt1, _vFrac1> x,
-	const fixed_point<_tBase2, _vInt2, _vFrac2>& y)
-{
-	using result_type = common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>,
-		fixed_point<_tBase2, _vInt2, _vFrac2>>;
-
-	return result_type(x) / result_type(y);
-}
+#undef YB_FIX_POINT_ARITHMETIC_2
 //@}
+
+/*!
+\brief 不同模板参数的二元关系操作符。
+\since build 440
+*/
+//@{
+//!\since build 440
+#define YB_FIX_POINT_RATIONAL_2(_op) \
+	YB_FIX_POINT_TMPL_HEAD_2 \
+	yconstfn bool \
+	YB_FIX_POINT_TMPL_OP_2_PARAMS_BODY(_op)
+
+YB_FIX_POINT_RATIONAL_2(==)
+YB_FIX_POINT_RATIONAL_2(!=)
+YB_FIX_POINT_RATIONAL_2(<)
+YB_FIX_POINT_RATIONAL_2(<=)
+YB_FIX_POINT_RATIONAL_2(>)
+YB_FIX_POINT_RATIONAL_2(>=)
+
+#undef YB_FIX_POINT_RATIONAL_2
+//@}
+
+#undef YB_FIX_POINT_TMPL_HEAD_2
+#undef YB_FIX_POINT_TMPL_OP_2_PARAMS_BODY
+
+
+/*!
+\brief modular_arithmetic 的 fixed_point 特化类型。
+\note 使用保留公共整数类型和整数位数策略选取公共类型。
+\since build 440
+*/
+template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
+struct modular_arithmetic<fixed_point<_tBase, _vInt, _vFrac>>
+	: modular_arithmetic<typename fixed_point<_tBase, _vInt, _vFrac>::base_type>
+{};
 
 } // namespace ystdex;
 
@@ -465,7 +490,7 @@ namespace std
 {
 
 /*!
-\brief \c std::common_type 的 \c ystdex::fixed_point 特化类型。
+\brief std::common_type 的 ystdex::fixed_point 特化类型。
 \note 使用保留公共整数类型和整数位数策略选取公共类型。
 \since build 439
 */
@@ -486,7 +511,7 @@ public:
 
 
 /*!
-\brief \c std::numeric_traits 的 \c ystdex::fixed_point 特化类型。
+\brief std::numeric_traits 的 ystdex::fixed_point 特化类型。
 \since build 260
 */
 template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>

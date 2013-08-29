@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r160
+\version r162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-08-11 12:57 +0800
+	2013-08-29 13:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,6 +157,9 @@ Note that '::HBITMAP' data is raw bitmap compatible but not strict '::RGBQUAD', 
 It is believed that the data structure of input handling can hardly be modified by user code to adapt extended devices some platforms:
 	For example, DS has no extended virtual key bit to differentiate more than one touch key. It is difficult for user to simulate this feature like high-level cursor event by design.
 	So there is no need to always check the input is being with single key touched. This can be used at optimization of common GUI input state handling, etc.
+
+dep.merge:
+df.operators(https://github.com/d-frey/operators): considerable, shelved.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1846
+\version r1848
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-08-23 20:08 +0800
+	2013-08-27 18:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,8 +45,8 @@ FillByte(_tIn& i, _tState& st)
 {
 	static_assert(std::is_constructible<const byte, decltype(*i)>::value,
 		"Invalid mapping source type found.");
-	static_assert(!std::is_volatile<typename std::remove_reference<
-		_tState>::type>::value, "Volatile state is not supported.");
+	static_assert(!std::is_volatile<ystdex::remove_reference_t<_tState>>::value,
+		"Volatile state is not supported.");
 
 	if(YB_UNLIKELY(is_undereferenceable(i)))
 		return false;

@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2850
+\version r2854
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-08-22 17:30 +0800
+	2013-08-27 21:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,11 +241,11 @@ CopyTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 	if(~rot & 1 && dst && bool(buf))
 	{
 		if(rot == RDeg0)
-			BlitLines<false, false>(BlitTransparentLine<true>(), dst,
+			BlitPixels<false, false>(BlitTransparentPoint(), dst,
 				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
 				buf.GetSize(), dp, sp, sc);
 		else
-			BlitLines<true, true>(BlitTransparentLine<false>(), dst,
+			BlitPixels<true, true>(BlitTransparentPoint(), dst,
 				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
 				buf.GetSize(), dp, sp, sc);
 		return true;
@@ -260,11 +260,11 @@ BlitTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 	if(~rot & 1 && dst && bool(buf))
 	{
 		if(rot == RDeg0)
-			BlitLines<false, false>(BlitBlendLine<true>(), dst,
+			BlitPixels<false, false>(BlitAlphaPoint(), dst,
 				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
 				buf.GetSize(), dp, sp, sc);
 		else
-			BlitLines<true, true>(BlitBlendLine<false>(), dst,
+			BlitPixels<true, true>(BlitAlphaPoint(), dst,
 				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
 				buf.GetSize(), dp, sp, sc);
 		return true;
