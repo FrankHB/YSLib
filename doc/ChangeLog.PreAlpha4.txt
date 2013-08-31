@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2513
+\version r2582
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-29 18:21 +0800
+	2013-08-31 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,74 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFrmaework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'Service'.'YBlit' $=
+			(
+				- "alias %MonoIteratorPair",
+				* $dev "differenence for operands of conditional expressions",
+					@ "some specilizations of pixel compositor" $since b440
+				(
+					$dep_from %'YAdaptor';
+					/ $dev "implemented specialization of pixel blending with \
+						%PixelType" ~ "integer type" @ "platform %DS"
+				)
+			),
+			/ %'UI'.'YBrush' $=
+			(
+				+ "alias template %GBrushUpdater";
+				/ @ "class %ImageBrush"
+				(
+					+ "static member function %DefaultUpdate",
+					+ "member GBrushUpdater<const Drawing::Image&>
+						Update = DefaultUpdate;",
+					+ "updater support" @ "member function %operator()",
+					/ "member %Image" => "%ImagePtr"
+				)
+			),
+			/ %'Adaptor' $=
+			(
+				/ %'Image' $=
+				(
+					* "buffer overflow" @ "loading UCS-2 file name"
+						@ "class %HBitmap" @ %'Image' $since b431
+						// Overflow would happen when conversion from UCS-2 \
+							string to ANSI for extension check.
+					+ "support for R5G5B5 format"
+						@ "static member function %ImageCodec::Convert"
+				),
+				(
+					$dep_from %'YCLib'.'Video';
+					+ "using %platform::(BGRA, RGBA)" @ %'YAdaptor'
+				)
+			)
+		),
+		/ @ "namespace %platform" @ %'YCLib'.'Video' $=
+		(
+			+ "template class (XYZATrait; BGRA, RGBA)";
+			/ "pixel type alias" ^ "%BGRA" @ "platform %MinGW32",
+			/ @ "platform %DS" $=
+			(
+				/ "pixel type alias" ^ "%RGBA",
+				+ "constructor accepting %ColorSet directly" @ "class %Color"
+			);
+			/ $dev "unified underlying type of color space members as member \
+				of %PixelType",
+			+ DLD "alignment constraints" @ "pixel types"
+				// To ensure the pixel type has the same alignment as original \
+					type on DS, which is significant efficient, though still \
+					significant less efficient on painting under release \
+					configuration than last revision.
+		)
+	),
+	+ $doc $dev "Doxygen command '\relates' for some non-member function \
+		declarations outside class scope"
+),
+
+b440
 (
 	/ %'YBase'.'YStandardEx' $=
 	(
@@ -407,7 +475,7 @@ b434
 		-> "named struct declarations",
 		// See $2013-08 @ %Documentation::Workflow::Annual2013.
 	^ DLD "all typedef declarations except in directory %3rdparty"
-		-> "using aliases",
+		-> "alias declarations",
 		// Ditto.
 	/ %'YFramework'.'YSLib'.'UI' $=
 	(
@@ -417,7 +485,7 @@ b434
 				-> "function templates %(CreateUniqueWidget, RegisterLoader)",
 			+ "template class %GWidgetRegister";
 			(
-				/ "using alias %GWidgetCreatorMap accept function parameters \
+				/ "alias %GWidgetCreatorMap accept function parameters \
 					directly",
 				- "function templates %(FetchWidgetMapping, CreateWidget)",
 				/ "functions %(DetectWidgetNode, TransformUILayout, \

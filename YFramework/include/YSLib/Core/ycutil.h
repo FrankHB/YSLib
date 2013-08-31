@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r1950
+\version r1952
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-08-27 18:58 +0800
+	2013-08-31 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,10 +35,10 @@ namespace YSLib
 
 /*!
 \brief 转换类型选择。
+\since build 201
 
 若 \c _type 能隐式转换为 \c _tStrict 则 \c Result 为 \c _tStrict，
 	否则 \c Result 为 \c _tWeak 。
-\since build 201
 */
 template<typename _type, typename _tStrict, typename _tWeak>
 struct MoreConvertible

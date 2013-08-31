@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r976
+\version r978
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-08-05 21:04 +0800
+	2013-08-31 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,6 +149,7 @@ public:
 
 /*!
 \brief 测试是否未超时。
+\relates Timer
 \since 416
 */
 inline PDefH(bool, Test, const Timer& tmr) ynothrow

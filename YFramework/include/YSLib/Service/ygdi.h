@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3662
+\version r3674
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-08-05 21:04 +0800
+	2013-08-31 14:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,6 +79,8 @@ struct YF_API Padding
 	}
 };
 
+//! \relates Padding
+//@{
 /*!
 \brief 加法：对应分量调用 operator+ 。
 */
@@ -94,6 +96,7 @@ operator+(const Padding& x, const Padding& y)
 */
 YF_API Rect
 operator+(const Rect&, const Padding&);
+//@}
 
 
 /*!
@@ -284,7 +287,10 @@ public:
 	}
 };
 
-//! \since build 418
+/*!
+\since build 418
+\relates CompactPixmap
+*/
 inline DefSwap(ynothrow, CompactPixmap)
 
 
@@ -389,7 +395,10 @@ public:
 	}
 };
 
-//! \since build 418
+/*!
+\since build 418
+\relates CompactPixmapEx
+*/
 inline DefSwap(ynothrow, CompactPixmapEx)
 
 

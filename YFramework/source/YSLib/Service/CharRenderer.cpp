@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3236
+\version r3243
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-27 21:34 +0800
+	2013-08-30 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,6 +90,11 @@ using TIt_1 = transformed_iterator<BIt_1, tr_seg<1>> ;
 using TIt_2 = transformed_iterator<BIt_2, tr_seg<2>>;
 using TIt_4 = transformed_iterator<BIt_4, tr_seg<4>>;
 
+/*!
+\brief Alpha 单色光栅化源迭代器对。
+\since build 441
+*/
+using MonoItPair = pair_iterator<PixelIt, const AlphaType*>;
 using MonoItPair_1 = pair_iterator<PixelIt, TIt_1>;
 using MonoItPair_2 = pair_iterator<PixelIt, TIt_2>;
 using MonoItPair_4 = pair_iterator<PixelIt, TIt_4>;
@@ -131,7 +136,7 @@ RenderChar(PaintContext&& pc, Color c, bool neg_pitch,
 		break;
 	case CharBitmap::Gray:
 		BlitGlyphPixels(BlitAlphaPoint(), pc.Target.GetBufferPtr(),
-			MonoIteratorPair(PixelIt(c), cbuf), ss, pc, neg_pitch);
+			MonoItPair(PixelIt(c), cbuf), ss, pc, neg_pitch);
 	default:
 		break;
 	}

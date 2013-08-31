@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5502
+\version r5508
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-08 05:38 +0800
+	2013-08-31 14:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,8 @@ DeclI(YF_API, IWidget)
 	DeclIEntry(View& GetView() const)
 EndDecl
 
-
+//! \relates IWidget
+//@{
 /*!
 \brief 判断部件是否可见。
 \since build 259
@@ -123,7 +124,6 @@ ContainsVisible(const IWidget& wgt, const Point& pt)
 {
 	return ContainsVisible(wgt, pt.X, pt.Y);
 }
-
 
 /*!
 \ingroup helper_functions
@@ -276,7 +276,7 @@ Invalidate(IWidget&);
 YF_API void
 Invalidate(IWidget&, const Rect&);
 
-/*
+/*!
 \brief 调用指定子部件的 Paint 事件绘制参数指定的事件发送者。
 \see Renderer::Paint 。
 \since build 263
@@ -288,7 +288,7 @@ Invalidate(IWidget&, const Rect&);
 */
 YF_API void
 PaintChild(IWidget& wgt, PaintEventArgs&& e);
-/*
+/*!
 \brief 调用指定子部件的 Paint 事件绘制指定子部件。
 \return 实际绘制的区域。
 \note 使用指定子部件作为事件发送者并复制参数。
@@ -300,7 +300,6 @@ PaintChild(IWidget& wgt, PaintEventArgs&& e);
 YF_API Rect
 PaintChild(IWidget& wgt, const PaintContext& pc);
 
-
 /*!
 \brief 请求提升至容器顶端。
 \since build 192
@@ -308,7 +307,6 @@ PaintChild(IWidget& wgt, const PaintContext& pc);
 */
 YF_API void
 RequestToTop(IWidget&);
-
 
 /*!
 \brief 显示部件。
@@ -318,6 +316,7 @@ RequestToTop(IWidget&);
 */
 YF_API void
 Show(IWidget&);
+//@}
 
 
 /*!

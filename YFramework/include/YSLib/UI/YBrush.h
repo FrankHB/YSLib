@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r262
+\version r291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2013-08-17 04:09 +0800
+	2013-08-31 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,22 +56,41 @@ public:
 
 
 /*!
+\brief 画刷更新器类型。
+\tparam _type 源类型。
+\since build 441
+
+按目标绘制上下文、源和附加偏移更新目标图像的回调接口。
+*/
+template<typename _type>
+using GBrushUpdater = std::function<void(const PaintContext&, _type,
+	const Point&)>;
+
+
+/*!
 \brief 图像画刷。
 \since build 294
 */
 class YF_API ImageBrush
 {
 public:
-	mutable shared_ptr<Drawing::Image> Image;
+	/*!
+	\brief 当前使用的图像更新器。
+	\since build 441
+	*/
+	GBrushUpdater<const Drawing::Image&> Update = DefaultUpdate;
+
+	//! \since build 441
+	mutable shared_ptr<Drawing::Image> ImagePtr;
 	//! \since build 437
 	Point Offset{};
 
 	yconstfn DefDeCtor(ImageBrush)
 	ImageBrush(const shared_ptr<Drawing::Image>& h)
-		: Image(h)
+		: ImagePtr(h)
 	{}
 	ImageBrush(shared_ptr<Drawing::Image>&& h)
-		: Image(std::move(h))
+		: ImagePtr(std::move(h))
 	{}
 	DefDeCopyCtor(ImageBrush)
 	DefDeMoveCtor(ImageBrush)
@@ -79,8 +98,19 @@ public:
 	DefDeCopyAssignment(ImageBrush)
 	DefDeMoveAssignment(ImageBrush)
 
+	/*!
+	\pre 断言：更新器非空。
+	\note 图像指针为空指针忽略操作。
+	*/
 	void
 	operator()(PaintEventArgs&&);
+
+	/*!
+	\brief 默认更新：复制图像。
+	\since build 441
+	*/
+	static void
+	DefaultUpdate(const PaintContext&, const Drawing::Image&, const Point&);
 };
 
 

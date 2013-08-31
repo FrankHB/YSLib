@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2205
+\version r2209
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-08-23 17:35 +0800
+	2013-08-31 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -619,10 +619,9 @@
  UI::BufferedRenderer::Validate(IWidget&, IWidget&, const PaintContext&) 是默认缓冲渲染器提供的接口。
 
 @5.5.2.5 更新(updating) ：
-缓冲区内的图形信息复制到其它缓冲区的过程。
+缓冲区内的图形信息同步到其它缓冲区的过程。最简单的情况下是简单的逐像素复制，此外可能涉及像素格式转换等。
 带缓冲区的部件（包括窗口和桌面）实例存储无效区域状态。
- UI::Update 基于渲染器实现一般的缓冲区复制。
-成员方法 Update() 查询区域重绘状态，若区域需要重绘则忽略，否则当上层缓冲区存在时更新至上层缓冲区（对于桌面而言是屏幕）。
+渲染器的成员方法 Update() 查询区域重绘状态，若区域需要重绘则忽略，否则当上层缓冲区存在时更新至上层缓冲区（对于桌面而言是屏幕）。
 在 Shell 处理函数中可以在输入分支后添加对桌面对象的渲染操作以按需要更新最近经过重绘但未经过更新的 GUI 对象：
 绘制(@5.5.2.2) ；
 无效化(@5.5.2.3) ，延时绘制；

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1340
+\version r1345
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-08-27 18:53 +0800
+	2013-08-31 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -788,11 +788,10 @@ public:
 	为指向对象的指针，否则为空指针。
 \note 语义同 boost::any_cast 。
 \since build 398
+\relates any
 \todo 检验特定环境（如使用动态库时）比较 std::type_info::name() 的必要性。
 */
 //@{
-/*!
-*/
 //@{
 template<typename _tPointer>
 inline _tPointer
@@ -839,6 +838,7 @@ any_cast(const any& x)
 \brief 非安全动态泛型转换。
 \note 语义同 boost::unsafe_any_cast 。
 \pre 断言： <tt>p</tt> 。
+\relates any
 \since build 331
 */
 //@{

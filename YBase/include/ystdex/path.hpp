@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r581
+\version r603
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2013-08-02 03:46 +0800
+	2013-08-31 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -342,7 +342,10 @@ private:
 	}
 };
 
-//! \brief 路径比较操作。
+/*!
+\brief 路径比较操作。
+\relates path
+*/
 //@{
 template<class _tSeqCon>
 inline bool
@@ -389,7 +392,8 @@ operator>=(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
 
 /*!
 \ingroup helper_functions
-\brief 迭代器包装，用于 range-based for 。
+\brief 迭代器包装，可用于 range-based for 。
+\relates path
 */
 //@{
 template<class _tSeqCon>
@@ -419,7 +423,10 @@ end(const path<_tSeqCon>& pth) -> decltype(pth.end())
 }
 //@}
 
-//! \brief 正规化。
+/*!
+\brief 正规化。
+\relates path
+*/
 template<class _tSeqCon>
 inline void
 normalize(path<_tSeqCon>& pth)
@@ -427,7 +434,10 @@ normalize(path<_tSeqCon>& pth)
 	pth.filter_self(), pth.merge_parents();
 }
 
-//! \brief 交换。
+/*!
+\brief 交换。
+\relates path
+*/
 template<class _tSeqCon>
 inline void
 swap(path<_tSeqCon>& x, path<_tSeqCon>& y)
@@ -435,7 +445,10 @@ swap(path<_tSeqCon>& x, path<_tSeqCon>& y)
 	x.swap(y);
 }
 
-//! \brief 取字符串表示。
+/*!
+\brief 取字符串表示。
+\relates path
+*/
 template<class _tSeqCon>
 typename _tSeqCon::value_type
 to_string(const path<_tSeqCon>& pth, const typename _tSeqCon::value_type&
@@ -456,7 +469,10 @@ to_string(const path<_tSeqCon>& pth, const typename _tSeqCon::value_type&
 	return std::move(res);
 }
 
-//! \brief 取分隔符结尾的字符串表示。
+/*!
+\brief 取分隔符结尾的字符串表示。
+\relates path
+*/
 template<class _tSeqCon>
 typename _tSeqCon::value_type
 to_string_d(const path<_tSeqCon>& pth, typename string_traits<typename

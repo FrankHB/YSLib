@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r334
+\version r335
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-08-10 00:31 +0800
+	2013-08-31 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,11 +194,11 @@ ScreenBuffer::Premultiply(BitmapPtr buf) ynothrow
 	//	pixels can be supposed to be contiguous.
 	std::transform(buf, buf + size.Width * size.Height, pBuffer,
 		[](const PixelType& pixel){
-			const auto a(pixel.rgbReserved);
+			const auto a(pixel.GetA());
 
-			return PixelType{MonoType(pixel.rgbBlue * a / 0xFF),
-				MonoType(pixel.rgbGreen * a / 0xFF),
-				MonoType(pixel.rgbRed * a / 0xFF), a};
+			return PixelType{MonoType(pixel.GetB() * a / 0xFF),
+				MonoType(pixel.GetG() * a / 0xFF),
+				MonoType(pixel.GetR() * a / 0xFF), a};
 	});
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12095
+\version r12097
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-08-11 11:26 +0800
+	2013-08-31 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -878,8 +878,8 @@ using namespace platform::Discriptions;
 //基本实用例程。
 
 //文件系统例程。
-using platform::ufopen;	
-using platform::ufexists;	
+using platform::ufopen;
+using platform::ufexists;
 using platform::u16getcwd_n;
 using platform::uchdir;
 using platform::truncate;
@@ -906,6 +906,7 @@ using platform::KeyCode;
 namespace Drawing
 {
 
+using platform::(BGRA, RGBA);
 using platform::(BitmapPtr, ConstBitmapPtr);
 using platform::(MonoType, AlphaType)
 using platform::Color;

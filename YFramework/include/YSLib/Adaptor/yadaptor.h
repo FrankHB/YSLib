@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1528
+\version r1533
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2013-08-05 20:49 +0800
+	2013-08-31 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,6 +204,10 @@ using platform::KeyInput;
 namespace Drawing
 {
 
+//! \since build 441
+using platform::BGRA;
+//! \since build 441
+using platform::RGBA;
 using platform::PixelType;
 using platform::BitmapPtr;
 using platform::ConstBitmapPtr;

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3194
+\version r3199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-08-05 20:49 +0800
+	2013-08-31 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,10 @@ enum class FontStyle : u8
 	Strikeout = 8 //!< 删除线。
 };
 
-//! \since build 421
+/*!
+\relates FontStyle
+\since build 421
+*/
 DefBitmaskEnum(FontStyle)
 
 

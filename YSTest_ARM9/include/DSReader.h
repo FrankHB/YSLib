@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1829
+\version r1834
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-08-05 21:55 +0800
+	2013-08-31 14:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -346,7 +346,10 @@ public:
 	UpdateView();
 };
 
-//! \since build 421
+/*!
+\relates DualScreenReader::Command
+\since build 421
+*/
 DefBitmaskEnum(DualScreenReader::Command)
 
 } // namespace UI;

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r162
+\version r165
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-08-29 13:34 +0800
+	2013-08-30 00:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,10 +144,10 @@ Cairo: rejected.
 
 $2013-08:
 report.impl:
-The YSLib project now prefers using aliases over typedef declarations. Here's the rationale:
+The YSLib project now prefers using alias declarations over typedef declarations. Here's the rationale:
 	1. The YSLib is try to use more ISO C++11 features aggresively when proper. Using aliases relax the complexity of many declarations, and reflects a kind of commonly accepted more natural syntax style, since the type name and identifier declared are separated clearly.
-	2. A typedef declaration can introduce more than one identifier but using alias cannot. However, this can easily misleads the reader so really rarely being used, and never appears in the YSLib project.
-	3. Typedef declaration of an anonymous class has no equivalent using alias form, but it is also less commonly used in modern C++ (but not in C), and the YSLib project now deprecates this usage.
+	2. A typedef declaration can introduce more than one identifier but an alias declaration cannot. However, this can easily misleads the reader so really rarely being used, and never appears in the YSLib project.
+	3. Typedef declaration of an anonymous class has no equivalent alias declaration form, but it is also less commonly used in modern C++ (but not in C), and the YSLib project now deprecates this usage.
 	4. There should be nothing different in general in other aspects. Though the current standard text is still using 'typedef', and for an implementation of both pre-C++11/C++11, keeping 'typedef' would save some '#ifdef' text, the YSLib project has no similar requirements.
 	5. See https://groups.google.com/a/isocpp.org/forum/#!searchin/std-discussion/typedef/std-discussion/cwZ8HYQxxlM/Zzj4CTxSaskJ for the discussion of flavor in the ISO C++ standard text. No problems found for others even for using in standard proposals.
 There is nothing cannot be implemented by ISO C++14 lambda expressions which is able via std::bind, see http://stackoverflow.com/questions/17363003/why-use-stdbind-over-lambdas-in-c14 .

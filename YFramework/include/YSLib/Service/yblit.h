@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r2545
+\version r2567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-08-29 18:00 +0800
+	2013-08-31 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -531,14 +531,6 @@ struct CopyLine<false>
 */
 using IteratorPair = ystdex::pair_iterator<ConstBitmapPtr, const AlphaType*>;
 
-/*!
-\brief Alpha 单色光栅化源迭代器对。
-\since build 417
-*/
-using MonoIteratorPair = ystdex::pair_iterator<
-	ystdex::pseudo_iterator<const PixelType>, const AlphaType*>;
-
-
 
 /*!
 \ingroup PixelOperation
@@ -611,8 +603,8 @@ struct GPixelCompositor
 	static yconstexpr _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
-		return a != 0 ? (s < d ? d - sa * (d - s) / a : sa * (s - d) / a + d)
-			: 0;
+		return a != 0 ? (s < d ? _tDst(d - sa * (d - s) / a)
+			: _tDst(sa * (s - d) / a + d)) : _tDst(0);
 	}
 };
 
@@ -645,8 +637,8 @@ struct GPixelCompositor<_vDstAlphaBits, 1>
 	static yconstexpr _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
-		return a != 0 ? (sa != 0 ? (s < d ? d - (d - s) / a : (s - d) / a + d)
-			: d) : 0;
+		return a != 0 ? (sa != 0 ? (s < d ? _tDst(d - (d - s) / a)
+			: _tDst((s - d) / a + d)) : d) : _tDst(0);
 	}
 };
 
@@ -712,8 +704,7 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 	static yconstexpr _tSrcAlpha
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
-		return da != 0 ? ystdex::normalized_max<_tSrcAlpha>::value
-			: _tSrcAlpha(sa);
+		return da != 0 ? ystdex::normalized_max<_tSrcAlpha>::value : sa;
 	}
 
 
@@ -770,7 +761,7 @@ struct GPixelCompositor<0, _vSrcAlphaBits>
 	static yconstexpr _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa)
 	{
-		return s < d ? d - sa * (d - s) : sa * (s - d) + d;
+		return s < d ? _tDst(d - sa * (d - s)) : _tDst(sa * (s - d) + d);
 	}
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
@@ -800,7 +791,7 @@ struct GPixelCompositor<0, 1> : public GPixelCompositor<0, 2>
 	static yconstexpr _tDst
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa)
 	{
-		return sa != 0 ? s : d;
+		return sa != 0 ? _tDst(s) : _tDst(d);
 	}
 	template<typename _tDst, typename _tSrc, typename _tSrcAlpha,
 		typename _tAlpha>
@@ -826,7 +817,7 @@ struct GPixelCompositor<1, 1>
 	CompositeAlphaOver(_tDstAlpha da, _tSrcAlpha sa)
 	{
 		return sa != 0 || da != 0 ? ystdex::normalized_max<_tDstAlpha>::value
-			: 0;
+			: _tDstAlpha(0);
 	}
 
 	/*!
@@ -843,7 +834,7 @@ struct GPixelCompositor<1, 1>
 	CompositeComponentOver(_tDst d, _tSrc s, _tSrcAlpha sa, _tAlpha a)
 	{
 		return a != 0 ? GPixelCompositor<0, 1>::CompositeComponentOver(d, s, sa)
-			: 0;
+			: _tDst(0);
 	}
 };
 
@@ -901,16 +892,17 @@ struct GPixelBlender
 	}
 };
 
+//! \since build 441
 template<size_t _vAlphaBits>
-struct GPixelBlender<u16, _vAlphaBits>
+struct GPixelBlender<RGBA<5, 5, 5, 1>, _vAlphaBits>
 {
 	static yconstexpr size_t AlphaBits = _vAlphaBits;
 
 	template<typename _tAlpha>
-	static u16
-	Blend(u16 d, u16 s, _tAlpha a)
+	static RGBA<5, 5, 5, 1>
+	Blend(RGBA<5, 5, 5, 1> d, RGBA<5, 5, 5, 1> s, _tAlpha a)
 	{
-		return BlendCore(d, s, a);
+		return BlendCore(d.Integer, s.Integer, a);
 	}
 
 	/*!

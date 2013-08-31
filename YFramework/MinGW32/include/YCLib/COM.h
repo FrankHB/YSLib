@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r438
+\version r441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2013-08-24 10:32 +0800
+	2013-08-31 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,6 +322,8 @@ public:
 	}
 };
 
+//! \relates COMPtr
+//@{
 template<class _iCOM1, class _iCOM2>
 inline bool
 operator==(const COMPtr<_iCOM1>& x, const COMPtr<_iCOM2>& y) ynothrow
@@ -417,6 +419,7 @@ Reset(COMPtr<_iCOM>& ptr) ynothrow
 
 template<class _iCOM>
 inline DefSwap(ynothrow, COMPtr<_iCOM>)
+//@}
 //@}
 
 } // namespace platform_ex;

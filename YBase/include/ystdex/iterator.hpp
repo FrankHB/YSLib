@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2888
+\version r2915
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-08-27 18:54 +0800
+	2013-08-31 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -262,7 +262,10 @@ public:
 	}
 };
 
-//! \since build 356
+/*!
+\relates pointer_iterator
+\since build 356
+*/
 //@{
 template<typename _type>
 inline bool
@@ -426,6 +429,7 @@ public:
 
 /*!
 \brief 满足输入迭代器要求。
+\relates pseudo_iterator
 \since build 356
 */
 //@{
@@ -597,6 +601,7 @@ public:
 
 /*!
 \brief 满足输入迭代器要求。
+\relates transformed_iterator
 \since build 356
 */
 //@{
@@ -867,7 +872,10 @@ public:
 	}
 };
 
-//! \since build 356
+/*!
+\relates pair_iterator
+\since build 356
+*/
 //@{
 template<typename _tMaster, typename _tSlave>
 bool
@@ -1001,7 +1009,10 @@ public:
 	}
 };
 
-//! \since build 412
+/*!
+\relates indirect_input_iterator
+\since build 412
+*/
 template<typename _tIterator>
 inline bool
 operator!=(const indirect_input_iterator<_tIterator>& x,
@@ -1167,7 +1178,10 @@ public:
 	}
 };
 
-//! \since build 428
+/*!
+\relates bitseg_iterator
+\since build 428
+*/
 //@{
 template<size_t _vN, bool _bEndian>
 inline bool
@@ -1358,9 +1372,11 @@ public:
 };
 
 /*!
-\brief 比较成员下标迭代器的相等性。
+\relates subscriptive_iterator
 \since build 356
 */
+//@{
+//! \brief 比较成员下标迭代器的相等性。
 template<class _tCon, typename _type>
 bool
 operator==(const subscriptive_iterator<_tCon, _type>& x,
@@ -1369,10 +1385,7 @@ operator==(const subscriptive_iterator<_tCon, _type>& x,
 	return x.equals(y);
 }
 
-/*!
-\brief 比较成员下标迭代器的不等性。
-\since build 356
-*/
+//! \brief 比较成员下标迭代器的不等性。
 template<class _tCon, typename _type>
 bool
 operator!=(const subscriptive_iterator<_tCon, _type>& x,
@@ -1380,6 +1393,7 @@ operator!=(const subscriptive_iterator<_tCon, _type>& x,
 {
 	return !(x == y);
 }
+//@}
 
 } // namespace ystdex;
 

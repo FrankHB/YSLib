@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r298
+\version r306
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-08-28 17:49 +0800
+	2013-08-31 17:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,7 @@ ImageFormat
 GetFormatFromFilename(const char16_t* filename)
 {
 	const auto len(std::char_traits<char16_t>::length(filename));
-	const unique_ptr<char[]> p(new char[len]);
+	const unique_ptr<char[]> p(new char[len + 1]);
 	const auto str(p.get());
 
 	for(size_t i{}; i < len; ++i)
@@ -230,6 +230,14 @@ ImageCodec::Convert(const HBitmap& pixmap)
 	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
 		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 16, FI16_555_RED_MASK,
 		FI16_555_GREEN_MASK, FI16_555_BLUE_MASK, true);
+	return CompactPixmap(std::move(pixels), s);
+#elif (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00DDCCBB
+	const Size& s(pixmap.GetSize());
+	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
+
+	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
+		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 16,
+		FI16_555_BLUE_MASK, FI16_555_GREEN_MASK, FI16_555_RED_MASK, true);
 	return CompactPixmap(std::move(pixels), s);
 //#elif (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00DDCCBB
 //#elif (YCL_PIXEL_FORMAT_XYZ888 & 0x00FFFFFF) == 0x00BBCCDD

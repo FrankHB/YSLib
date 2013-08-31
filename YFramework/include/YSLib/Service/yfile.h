@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1100
+\version r1116
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2013-08-05 21:03 +0800
+	2013-08-31 14:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -195,9 +195,13 @@ public:
 };
 
 /*!
-\brief 从指定文件读字符。
 \param f 文件。
 \pre <tt>bool(f)</tt> 。
+\relates File
+*/
+//@{
+/*!
+\brief 从指定文件读字符。
 \since build 326
 */
 template<typename _tChar>
@@ -213,8 +217,6 @@ operator>>(File& f, typename std::char_traits<_tChar>::char_type& c)
 }
 /*!
 \brief 从指定文件读空白符分隔的字符串。
-\param f 文件。
-\pre <tt>bool(f)</tt> 。
 \since build 326
 */
 template<typename _tString>
@@ -231,11 +233,8 @@ operator>>(File& f, _tString& str)
 	return f;
 }
 
-
 /*!
 \brief 向指定文件写字符。
-\param f 文件。
-\pre <tt>bool(f)</tt> 。
 \since build 326
 */
 inline File&
@@ -248,8 +247,6 @@ operator<<(File& f, char c)
 }
 /*!
 \brief 向指定文件写字符串。
-\param f 文件。
-\pre <tt>bool(f)</tt> 。
 \since build 326
 */
 inline File&
@@ -262,8 +259,6 @@ operator<<(File& f, const char* str)
 }
 /*!
 \brief 向指定文件写字符串。
-\param f 文件。
-\pre <tt>bool(f)</tt> 。
 \since build 326
 \todo 支持非 char 元素字符串。
 */
@@ -276,6 +271,7 @@ operator<<(File& f, const _tString& str)
 	std::fputs(reinterpret_cast<const char*>(str.c_str()), f.GetPtr());
 	return f;
 }
+//@}
 
 } // namespace YSLib;
 

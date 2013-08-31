@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的 GUI 按钮控件。
-\version r2252
+\version r2255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-08-08 05:36 +0800
+	2013-08-31 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,17 +77,17 @@ public:
 	DefPred(const ynothrow, Pressed, bPressed)
 };
 
-
 /*!
 \brief 绘制指定色调的基本按钮背景。
+\relates Thumb
 \since build 302
 */
 YF_API void
 DrawThumbBackground(PaintEventArgs&& e, Thumb&, Hue);
 
-
 /*!
 \brief 装饰 Thumb 为关闭按钮。
+\relates Thumb
 \since build 302
 
 在指定 Thumb 上增加 Click 事件响应：关闭父容器；增加 Paint 事件响应：绘制“×”。

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1269
+\version r1275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-08-05 20:50 +0800
+	2013-08-31 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,7 +193,8 @@ public:
 
 /*!
 \ingroup helper_functions
-\brief 迭代器包装，用于 range-based for 。
+\brief 迭代器包装，可用于 range-based for 。
+\relates ValueNode
 \since build 330
 */
 //@{
@@ -223,6 +224,7 @@ end(const ValueNode& node) -> decltype(node.GetEnd())
 /*!
 \brief 访问节点的指定类型对象。
 \exception std::bad_cast 空实例或类型检查失败 。
+\relates ValueNode
 \since build 399
 */
 template<typename _type>
@@ -286,6 +288,7 @@ AccessNodePtr(const ValueNode::Container* p_con, const string& name)
 /*!
 \brief 访问指定名称的子节点的指定类型对象。
 \exception std::bad_cast 空实例或类型检查失败 。
+\relates ValueNode
 \since build 432
 */
 template<typename _type>
@@ -298,6 +301,7 @@ AccessChild(const ValueNode& node, const string& name)
 /*!
 \brief 访问指定名称的子节点的指定类型对象的指针。
 \exception std::bad_cast 空实例或类型检查失败 。
+\relates ValueNode
 \since build 432
 */
 //@{

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2699
+\version r2703
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-05 21:02 +0800
+	2013-08-31 14:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,7 +151,8 @@ public:
 	ResetPen(const Point&, const Padding& = {});
 };
 
-
+//! \relates TextState
+//@{
 /*!
 \brief 取当前指定文本状态的字体设置对应的行高。
 \since build 231
@@ -241,6 +242,7 @@ CarriageReturn(TextState& ts)
 */
 YF_API void
 MovePen(TextState&, ucs4_t);
+//@}
 
 } // namespace Drawing;
 

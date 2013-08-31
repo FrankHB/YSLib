@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r334
+\version r347
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-08-05 21:23 +0800
+	2013-08-31 21:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,14 @@ namespace platform
 namespace
 {
 
+//! \since build 441
+static_assert(sizeof(PixelType) == sizeof(PixelType::Trait::IntegerType),
+	"Wrong size of pixel type found.");
+static_assert(yalignof(PixelType) == yalignof(PixelType::Trait::IntegerType),
+	"Wrong alignment of pixel type found.");
+
 #if YCL_DS
+
 extern "C"
 {
 	extern const u8 default_font[];
@@ -57,7 +64,8 @@ extern "C"
 
 ::PrintConsole mainConsole{
 	{
-		reinterpret_cast<u16*>(const_cast<u8*>(default_font)), // font graphics;
+		reinterpret_cast<std::uint16_t*>(const_cast<u8*>(default_font)), \
+			// font graphics;
 		0, 0, 4, // font palette, font color count and bpp;
 		0, // first ASCII character in the set;
 		128, // number of characters in the set;
@@ -105,10 +113,10 @@ YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 		//使用 ANSI Escape 序列 CUrsor Position 指令设置光标位置为左上角。
 		std::printf("\x1b[0;0H");
 
-		PixelType* bg_palette = dspIndex ? BG_PALETTE : BG_PALETTE_SUB;
+		std::uint16_t* bg_palette = dspIndex ? BG_PALETTE : BG_PALETTE_SUB;
 
-		bg_palette[0]	= bc | BITALPHA;
-		bg_palette[255]	= fc | BITALPHA;
+		bg_palette[0] = PixelType(bc).Integer | BITALPHA;
+		bg_palette[255] = PixelType(fc).Integer | BITALPHA;
 	}
 #elif YCL_MinGW32
 YConsoleInit(std::uint8_t, Color, Color)
@@ -164,7 +172,7 @@ InitScrUp(int& id)
 	id = ::bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
 
 	//获得屏幕背景所用的显存地址。
-	return ::bgGetGfxPtr(id);
+	return reinterpret_cast<platform::BitmapPtr>(::bgGetGfxPtr(id));
 }
 
 platform::BitmapPtr
@@ -174,7 +182,7 @@ InitScrDown(int& id)
 	id = ::bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
 
 	//获得屏幕背景所用的显存地址。
-	return ::bgGetGfxPtr(id);
+	return reinterpret_cast<platform::BitmapPtr>(::bgGetGfxPtr(id));
 }
 
 void

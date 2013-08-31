@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2854
+\version r2859
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-08-27 21:32 +0800
+	2013-08-31 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,11 +225,11 @@ CopyTo(BitmapPtr dst, const Graphics& g, const Size& ds,
 	if(~rot & 1 && dst && bool(g))
 	{
 		if(rot == RDeg0)
-			BlitLines<false, false, BitmapPtr, ConstBitmapPtr>(CopyLine<true>(),
-				dst, g.GetBufferPtr(), ds, g.GetSize(), dp, sp, sc);
+			BlitLines<false, false>(CopyLine<true>(), dst, g.GetBufferPtr(),
+				ds, g.GetSize(), dp, sp, sc);
 		else
-			BlitLines<true, true, BitmapPtr, ConstBitmapPtr>(CopyLine<false>(),
-				dst, g.GetBufferPtr(), ds, g.GetSize(), dp, sp, sc);
+			BlitLines<true, true>(CopyLine<false>(), dst, g.GetBufferPtr(),
+				ds, g.GetSize(), dp, sp, sc);
 		return true;
 	}
 	return false;

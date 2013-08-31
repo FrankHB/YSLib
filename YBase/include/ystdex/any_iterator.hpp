@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r841
+\version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2013-08-24 10:35 +0800
+	2013-08-31 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -330,12 +330,15 @@ public:
 	//@}
 };
 
+//! \relates any_input_iterator
+//@{
 YB_ITERATOR_OP2(operator==, bool, any_input_iterator, x.equals(y))
 
 YB_ITERATOR_OP2(operator!=, bool, any_input_iterator, !(x == y))
 
 YB_ITERATOR_OP1(is_undereferenceable, bool, any_input_iterator,
 	i.check_undereferenceable())
+//@}
 
 using input_monomorphic_iterator
 	= any_input_iterator<void_ref, ptrdiff_t, void*, void_ref>;
@@ -373,12 +376,15 @@ public:
 	YB_ITERATOR_MEMBER_POSTFIX(++, any_forward_iterator)
 };
 
+//! \relates any_forward_iterator
+//@{
 YB_ITERATOR_OP2(operator==, bool, any_forward_iterator, x.equals(y))
 
 YB_ITERATOR_OP2(operator!=, bool, any_forward_iterator, !(x == y))
 
 YB_ITERATOR_OP1(is_undereferenceable, bool, any_forward_iterator,
 	i.check_undereferenceable())
+//@}
 
 using forward_monomorphic_iterator
 	= any_forward_iterator<void_ref, ptrdiff_t, void*, void_ref>;
@@ -425,12 +431,15 @@ public:
 	YB_ITERATOR_MEMBER_POSTFIX(--, any_bidirectional_iterator)
 };
 
+//! \relates any_bidirectional_iterator
+//@{
 YB_ITERATOR_OP2(operator==, bool, any_bidirectional_iterator, x.equals(y))
 
 YB_ITERATOR_OP2(operator!=, bool, any_bidirectional_iterator, !(x == y))
 
 YB_ITERATOR_OP1(is_undereferenceable, bool, any_bidirectional_iterator,
 	i.check_undereferenceable())
+//@}
 
 using bidirectional_monomorphic_iterator
 	= any_bidirectional_iterator<void_ref, ptrdiff_t, void*, void_ref>;

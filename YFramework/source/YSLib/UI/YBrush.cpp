@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r178
+\version r199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2013-08-17 06:45 +0800
+	2013-08-31 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include "YSLib/Service/ydraw.h"
 #include "YSLib/UI/ygui.h"
 #include "YSLib/UI/ywidget.h"
+#include "YSLib/Service/yblit.h"
 
 namespace YSLib
 {
@@ -48,14 +49,25 @@ SolidBrush::operator()(PaintEventArgs&& e)
 void
 ImageBrush::operator()(PaintEventArgs&& e)
 {
-	if(Image)
-	{
-		const auto& g(e.Target);
-		const Rect& r(e.ClipArea);
+	YAssert(bool(Update), "Null updater found.");
 
-		CopyTo(g.GetBufferPtr(), Image->GetContext(), g.GetSize(),
-			r.GetPoint(), Offset, r.GetSize());
-	}
+	if(ImagePtr)
+		Update(e, *ImagePtr, Offset);
+}
+
+void
+ImageBrush::DefaultUpdate(const PaintContext& pc, const Image& img,
+	const Point& offset)
+{
+	const auto& g(pc.Target);
+	const Rect& r(pc.ClipArea);
+	const auto& src(img.GetContext());
+
+//	CopyTo(g.GetBufferPtr(), src, g.GetSize(), r.GetPoint(), Offset,
+//		r.GetSize());
+	BlitLines<false, false>(CopyLine<true>(),
+		g.GetBufferPtr(), src.GetBufferPtr(), g.GetSize(), src.GetSize(),
+		r.GetPoint(), offset, r.GetSize());
 }
 
 

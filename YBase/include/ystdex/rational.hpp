@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1464
+\version r1467
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-08-29 17:54 +0805
+	2013-08-31 13:54 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -430,6 +430,7 @@ public:
 
 /*!
 \brief 不同模板参数的二元算术操作符。
+\relates fixed_point
 \since build 439
 */
 //@{
@@ -450,6 +451,7 @@ YB_FIX_POINT_ARITHMETIC_2(/)
 
 /*!
 \brief 不同模板参数的二元关系操作符。
+\relates fixed_point
 \since build 440
 */
 //@{

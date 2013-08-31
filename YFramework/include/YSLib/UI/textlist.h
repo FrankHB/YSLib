@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r671
+\version r675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2013-08-05 21:10 +0800
+	2013-08-31 14:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,7 @@ private:
 	SDst top_offset; //!< 列表视图首项目超出上边界的竖直偏移量。
 	/*!
 	\brief 视图变更事件。
-	
+
 	当视图长度或位置发生改变时触发的事件。
 	*/
 	DeclEvent(HViewEvent, ViewChanged)
@@ -326,7 +326,8 @@ private:
 	InvokeConfirmed(ListType::size_type);
 };
 
-
+//! \relates TextList
+//@{
 /*!
 \brief 根据文本内容调整文本列表大小。
 \note 调整大小后自动调整视图长度。
@@ -343,6 +344,7 @@ ResizeForContent(TextList&);
 */
 YF_API void
 UpdateView(TextList&, bool is_active = {});
+//@}
 
 } // namespace UI;
 
