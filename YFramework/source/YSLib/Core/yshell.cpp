@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r2374
+\version r2377
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2013-08-05 21:28 +0800
+	2013-09-01 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,8 +45,8 @@ Shell::~Shell()
 bool
 Shell::IsActive() const
 {
-	// NOTE: %raw used here for performance.
-	return raw(FetchAppInstance().GetShellHandle()) == this;
+	// NOTE: %get_raw used here for performance.
+	return get_raw(FetchAppInstance().GetShellHandle()) == this;
 }
 
 int

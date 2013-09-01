@@ -207,6 +207,7 @@
 		<Unit filename="../include/YSLib/Service/TextBase.h" />
 		<Unit filename="../include/YSLib/Service/TextLayout.h" />
 		<Unit filename="../include/YSLib/Service/TextRenderer.h" />
+		<Unit filename="../include/YSLib/Service/YPixel.h" />
 		<Unit filename="../include/YSLib/Service/textmgr.h" />
 		<Unit filename="../include/YSLib/Service/yblit.h" />
 		<Unit filename="../include/YSLib/Service/ydraw.h" />

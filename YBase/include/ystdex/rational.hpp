@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1467
+\version r1489
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-08-31 13:54 +0805
+	2013-09-01 21:36 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,6 +70,23 @@ struct normalized_max<_type, _vNum, _vDen, false>
 		return value;
 	}
 };
+//@}
+
+
+/*!
+\ingroup unary_type_trait
+\brief 判断类型是否可满足归一化要求。
+\since build 442
+*/
+//@{
+template<typename _type>
+struct is_normalizable
+	: integral_constant<bool, is_floating_point<_type>::value>
+{};
+
+template<>
+struct is_normalizable<bool> : true_type
+{};
 //@}
 
 
@@ -480,9 +497,18 @@ YB_FIX_POINT_RATIONAL_2(>=)
 \note 使用保留公共整数类型和整数位数策略选取公共类型。
 \since build 440
 */
-template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
+template<typename _tBase, size_t _vInt, size_t _vFrac>
 struct modular_arithmetic<fixed_point<_tBase, _vInt, _vFrac>>
 	: modular_arithmetic<typename fixed_point<_tBase, _vInt, _vFrac>::base_type>
+{};
+
+
+/*!
+\brief is_normalizable 的 fixed_point 特化类型。
+\since build 442
+*/
+template<typename _tBase, size_t _vInt, size_t _vFrac>
+struct is_normalizable<fixed_point<_tBase, _vInt, _vFrac>> : true_type
 {};
 
 } // namespace ystdex;

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r2628
+\version r2631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 176
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2013-08-05 20:49 +0800
+	2013-09-01 22:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,8 @@ using std::get_deleter;
 using ystdex::make_shared;
 //! \since build 292
 using ystdex::make_unique;
-using ystdex::raw;
+//! \since build 422
+using ystdex::get_raw;
 using ystdex::reset;
 using ystdex::share_raw;
 using std::shared_ptr;

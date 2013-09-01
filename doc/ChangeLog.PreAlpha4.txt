@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r2582
+\version r2649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-08-31 21:24 +0800
+	2013-09-02 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,74 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YCLib'.'Video' $=
+		(
+			+ "integer type conversion functions"
+				@ "class templates %(BGRA, RGBA)" @ %'Video';
+		),
+		/ %'YSLib'.'Service' $=
+		(
+			/ "implementation" @ "pixel blending" @ "platform %DS",
+				// Passing by reference for pixels makes it as efficient as \
+					integer type pixel format as b440, and smaller binary \
+					size(as same as b441).
+			* "non-normalized integer type used as pixel type for blending"
+				@ "platform %MinGW32" $since b440;
+				// This made the result less precise and would underflow in \
+					certain cases.
+			+ %'YPixel' $=
+			(
+				+ "namespace %Shaders" $=
+				(
+					$dep_from %'YBlit';
+					/ DLD "non-specialized blending template supported alpha \
+						bits as template argument",
+					+ DLD "static assert of alpha bits range"
+						@ "specialized template for %RGBA<5, 5, 5, 1>"
+					- "width specified from template paramter",
+					+ "template functions %(BlendComponent, BlendCore,
+						2 Blend)",
+					/ @ "template class %GPixelCompositor" $=
+					(
+						$dep_from %'YBase'.'YStandardEx'.'Rational'
+						+ $dev "static assertions to check some non-normalized types",
+							// The member templates for alpha composite need normalized \
+								values. Direct use of some integral types is forbidden by \
+								static assertions.
+						+ "explicit specialization 'struct GPixelCompositor<1, 0>'";
+						/ $design "reusing with private inheritance"
+							~ "public inheritance of specializations except for \
+							'struct GPixelCompositor<1, 0>'"
+					),
+					+ "function templates %(CompositeComponent; 3 Composite)",
+					+ DLD "static assertions for alpha blending types"
+				)
+			),
+			/ @ "namespace %Drawing" @ %'YBlit' $=
+			(
+				*= $dev "wrong use of 'yconstexpr' for member functions and \
+					function templates" @ "class template %GPixelCompositor"
+					$since b440
+					$= ("all 'yconstexpr' -> 'yconstfn'");
+				/ "class template %GPixelCompositor, structs %(
+					BlitTransparentPoint, BlitAlphaPoint)"
+					>> ("namespace %Shaders" @ %'YPixel'),
+				/ "class template %GPixelBlender" -> ("blending templates"
+					@ "namespace %Shaders" @ %'YPixel'),
+			)
+		)
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		+ "unary type trait template %is_normalizable" @ %'Rational',
+		/ "function template %ystdex::raw" @ %'Memory' => "%get_raw"
+	)
+),
+
+b441
 (
 	/ %'YFrmaework' $=
 	(

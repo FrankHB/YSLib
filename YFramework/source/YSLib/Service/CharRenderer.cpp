@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3243
+\version r3245
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-30 00:51 +0800
+	2013-09-02 01:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,6 +26,7 @@
 
 
 #include "YSLib/Service/CharRenderer.h"
+#include "YSLib/Service/YPixel.h"
 
 using namespace ystdex;
 
@@ -118,6 +119,8 @@ void
 RenderChar(PaintContext&& pc, Color c, bool neg_pitch,
 	CharBitmap::BufferType cbuf, CharBitmap::FormatType fmt, const Size& ss)
 {
+	using namespace Shaders;
+
 	YAssert(cbuf, "Invalid buffer found.");
 
 	switch(fmt)

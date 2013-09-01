@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2362
+\version r2368
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-08-25 13:07 +0800
+	2013-09-01 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -268,14 +268,14 @@
 \post 函数外可访问的存储保持不变。
 \note 假定函数保证可返回；返回类型 void 时无意义。
 \note 假定函数无外部可见的副作用：局部记忆化合并重复调用后不改变可观察行为。
-\note 假定函数调用的结果总是相同：返回值总是不可分辨的右值或指示同一个内存位置的左值。
-	任意以一次调用结果替代调用或合并重复调用时不改变可观察行为。
+\note 假定函数调用的结果总是相同：返回值总是不可分辨的右值或指示同一个内存位置的
+	左值。任意以一次调用结果替代调用或合并重复调用时不改变可观察行为。
 \note 不访问函数外部的存储；通常不调用不可被 YB_STATELESS 安全指定的函数。
 \note 可被安全指定的函数或函数模板是 YB_PURE 限定的函数或函数模板的真子集。
 \warning 要求满足指示的假定，否则行为未定义。
 \since build 373
 
-指示函数或函数模板的求值是返回值的计算，且返回值只依赖于参数的值，和其它存储无关。
+指示函数或函数模板的求值是返回值的计算，返回值只依赖于参数的值，和其它存储无关。
 若参数是对象指针或引用类型，还必须保证指向或引用的对象是其它参数，或者不被使用。
 函数实现不能调用其它不能以 YB_STATELESS 限定的函数。
 */
@@ -641,8 +641,8 @@ unsequenced(_type&& arg, _tParams&&...) -> decltype(yforward(arg))
 \note 支持嵌套使用。
 \warning 非一元形式禁止用于产生对于同一对象的未序列化的(unsequenced) 副作用
 	的表达式，否则存在未定义行为。
-\warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常且对抛出顺序
-	敏感（例如 std::bad_cast 处理顺序不同可能造成内存泄露）的表达式。
+\warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常且对抛出
+	顺序敏感（例如 std::bad_cast 处理顺序不同可能造成内存泄露）的表达式。
 \since build 266
 */
 #define yunseq ystdex::unsequenced

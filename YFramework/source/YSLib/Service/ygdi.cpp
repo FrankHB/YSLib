@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2859
+\version r2864
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-08-31 01:01 +0800
+	2013-09-02 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/Service/ygdi.h"
 #include "YSLib/Service/yblit.h"
+#include "YSLib/Service/YPixel.h"
 
 using namespace ystdex;
 
@@ -241,11 +242,11 @@ CopyTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 	if(~rot & 1 && dst && bool(buf))
 	{
 		if(rot == RDeg0)
-			BlitPixels<false, false>(BlitTransparentPoint(), dst,
+			BlitPixels<false, false>(Shaders::BlitTransparentPoint(), dst,
 				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
 				buf.GetSize(), dp, sp, sc);
 		else
-			BlitPixels<true, true>(BlitTransparentPoint(), dst,
+			BlitPixels<true, true>(Shaders::BlitTransparentPoint(), dst,
 				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
 				buf.GetSize(), dp, sp, sc);
 		return true;
@@ -260,11 +261,11 @@ BlitTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 	if(~rot & 1 && dst && bool(buf))
 	{
 		if(rot == RDeg0)
-			BlitPixels<false, false>(BlitAlphaPoint(), dst,
+			BlitPixels<false, false>(Shaders::BlitAlphaPoint(), dst,
 				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
 				buf.GetSize(), dp, sp, sc);
 		else
-			BlitPixels<true, true>(BlitAlphaPoint(), dst,
+			BlitPixels<true, true>(Shaders::BlitAlphaPoint(), dst,
 				IteratorPair(buf.GetBufferPtr(), buf.GetBufferAlphaPtr()), ds,
 				buf.GetSize(), dp, sp, sc);
 		return true;

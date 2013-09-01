@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r449
+\version r456
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2013-04-22 13:07 +0800
+	2013-09-01 22:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,32 +57,32 @@ is_undereferenceable(_type* p)
 //@}
 
 
-/*!	\defgroup raw Get Raw Pointers
+/*!	\defgroup get_raw Get get_raw Pointers
 \brief 取内建指针。
-\since build 319
+\since build 422
 */
 //@{
 template<typename _type>
 yconstfn _type*
-raw(_type* const& p) ynothrow
+get_raw(_type* const& p) ynothrow
 {
 	return p;
 }
 template<typename _type>
 yconstfn auto
-raw(const std::unique_ptr<_type>& p) ynothrow -> decltype(p.get())
+get_raw(const std::unique_ptr<_type>& p) ynothrow -> decltype(p.get())
 {
 	return p.get();
 }
 template<typename _type>
 yconstfn _type*
-raw(const std::shared_ptr<_type>& p) ynothrow
+get_raw(const std::shared_ptr<_type>& p) ynothrow
 {
 	return p.get();
 }
 template<typename _type>
 yconstfn _type*
-raw(const std::weak_ptr<_type>& p) ynothrow
+get_raw(const std::weak_ptr<_type>& p) ynothrow
 {
 	return p.lock().get();
 }

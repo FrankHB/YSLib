@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2209
+\version r2210
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-08-31 01:02 +0800
+	2013-09-02 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,6 +60,7 @@
 @1.1.5 命名空间分配：
  YSLib::Devices ：设备抽象。
  YSLib::Drawing ：图形处理。
+ YSLib::Drawing::Shaders ：着色器。
  YSLib::Messaging ：消息机制。
  YSLib::Host ：宿主环境支持，仅在宿主实现的 Helper 库([Documentation::Designation @@7.5]) 使用 。
  YSLib::IO ：输入/输出管理。

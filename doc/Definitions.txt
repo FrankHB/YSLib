@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12097
+\version r12098
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-08-31 20:04 +0800
+	2013-09-01 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -965,7 +965,7 @@ $header Adaptor::YReference
 	using std::get_deleter;
 	using ystdex::make_shared;
 	using ystdex::make_unique;
-	using ystdex::raw;
+	using ystdex::get_raw;
 	using ystdex::reset;
 	using ystdex::share_raw;
 	using std::shared_ptr;

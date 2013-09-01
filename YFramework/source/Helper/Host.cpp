@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1214
+\version r1218
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-08-05 21:17 +0800
+	2013-09-01 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,13 +89,13 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 			if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
 				&size, sizeof(::RAWINPUTHEADER)) != ::UINT(-1)))
 			{
-				const auto raw(reinterpret_cast<::RAWINPUT*>(lpb));
+				const auto p_raw(reinterpret_cast<::RAWINPUT*>(lpb));
 
-				if(YB_LIKELY(raw->header.dwType == RIM_TYPEMOUSE))
+				if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
 				{
-					if(raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
+					if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
 						p->GetHost().RawMouseButton
-							= raw->data.mouse.usButtonData;
+							= p_raw->data.mouse.usButtonData;
 				}
 			}
 		}

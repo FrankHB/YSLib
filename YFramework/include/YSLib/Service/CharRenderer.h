@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2805
+\version r2809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-27 21:26 +0800
+	2013-09-01 11:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ BlitGlyphLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ss,
 \brief 字符按像素块传输。
 \tparam _tOut 输出迭代器类型。
 \tparam _tIn 输入迭代器类型。
-\tparam _fBlit 像素操作类型。
+\tparam _fPixelShader 像素着色器类型。
 \param blit 像素操作。
 \param src 源迭代器。
 \param ss 源迭代器所在缓冲区大小。
@@ -85,9 +85,9 @@ BlitGlyphLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ss,
 \sa BlitPixels
 \since build 440
 */
-template<typename _tOut, typename _tIn, typename _fBlit>
+template<typename _tOut, typename _tIn, typename _fPixelShader>
 void
-BlitGlyphPixels(_fBlit blit, _tOut dst, _tIn src, const Size& ss,
+BlitGlyphPixels(_fPixelShader blit, _tOut dst, _tIn src, const Size& ss,
 	const PaintContext& pc, bool neg_pitch)
 {
 	const auto& ds(pc.Target.GetSize());

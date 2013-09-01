@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r688
+\version r689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-08-29 18:48 +0800
+	2013-09-01 01:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -430,6 +430,7 @@ $module_tree $=
 			(
 				'YTimer',
 				'YBlit',
+				'YPixel',
 				'YGDI',
 				'YResource',
 				'YFile',

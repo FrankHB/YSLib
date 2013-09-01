@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r848
+\version r852
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-08-31 21:04 +0800
+	2013-09-01 02:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,6 +109,9 @@ union YB_ATTR(packed) YB_ATTR(
 		| a << Trait::XYZBitsN)
 	{}
 
+	//! \since build 442
+	yconstfn DefCvt(const ynothrow, typename Trait::IntegerType, Integer)
+
 	yconstfn DefGetter(const ynothrow, typename Trait::BType, A,
 		(Integer & Trait::AMask) >> Trait::XYZBitsN)
 	yconstfn DefGetter(const ynothrow, typename Trait::BType, B,
@@ -154,6 +157,9 @@ union YB_ATTR(packed) YB_ATTR(
 		: Integer(r | g << Trait::XBitsN | b << Trait::XYBitsN
 		| a << Trait::XYZBitsN)
 	{}
+
+	//! \since build 442
+	yconstfn DefCvt(const ynothrow, typename Trait::IntegerType, Integer)
 
 	yconstfn DefGetter(const ynothrow, typename Trait::BType, A,
 		(Integer & Trait::AMask) >> Trait::XYZBitsN)

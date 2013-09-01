@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1672
+\version r1674
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-08-05 20:48 +0800
+	2013-09-01 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,7 +122,7 @@ template<class _type, class _tHandle>
 inline _type&
 HandleToReference(_tHandle h) ythrow(std::bad_cast)
 {
-	_type* _tmp(dynamic_cast<_type*>(raw(h)));
+	_type* _tmp(dynamic_cast<_type*>(get_raw(h)));
 
 	if(YB_LIKELY(!_tmp))
 		throw std::bad_cast();
