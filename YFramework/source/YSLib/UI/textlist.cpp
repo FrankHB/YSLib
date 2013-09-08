@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1122
+\version r1186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-08-23 18:16 +0800
+	2013-09-07 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/textlist.h"
 #include "YSLib/UI/ywindow.h"
-#include "YSLib/UI/YBrush.h"
+#include "YSLib/UI/Border.h"
 #include "YSLib/Service/yblit.h"
 #include "YSLib/Service/TextLayout.h"
 
@@ -57,82 +57,80 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 {
 	Margin = Padding(defMarginH, defMarginH, defMarginV, defMarginV);
 	yunseq(
-		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
-			if(viewer.GetTotal() != 0)
+	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
+		if(viewer.GetTotal() != 0)
+		{
+			using namespace KeyCodes;
+			const auto& k(e.GetKeys());
+
+			if(k.count() != 1)
+				return;
+			if(k[Up] || k[Down] || k[PgUp] || k[PgDn])
 			{
-				using namespace KeyCodes;
-				const auto& k(e.GetKeys());
+				const auto old_sel(viewer.GetSelectedIndex());
+				const auto old_off(viewer.GetOffset());
+				const auto old_hid(viewer.GetHeadIndex());
+				const auto old_top(top_offset);
 
-				if(k.count() != 1)
-					return;
-				if(k[Up] || k[Down] || k[PgUp] || k[PgDn])
 				{
-					const auto old_sel(viewer.GetSelectedIndex());
-					const auto old_off(viewer.GetOffset());
-					const auto old_hid(viewer.GetHeadIndex());
-					const auto old_top(top_offset);
+					const bool up(k[Up] || k[PgUp]);
 
+					if(viewer.IsSelected())
 					{
-						const bool up(k[Up] || k[PgUp]);
-
-						if(viewer.IsSelected())
-						{
-							viewer.IncreaseSelected((up ? -1 : 1) * (k[Up]
-								|| k[Down] ? 1 : GetHeight()
-								/ GetItemHeight()));
-							if(old_sel == viewer.GetSelectedIndex()
-								&& CyclicTraverse)
-								goto bound_select;
-							if(viewer.GetOffset() == (up ? 0 : ViewerType
-								::DifferenceType(viewer.GetLength() - 1)))
-								AdjustOffset(up);
-						}
-						else
+						viewer.IncreaseSelected((up ? -1 : 1) * (k[Up]
+							|| k[Down] ? 1 : GetHeight() / GetItemHeight()));
+						if(old_sel == viewer.GetSelectedIndex()
+							&& CyclicTraverse)
+							goto bound_select;
+						if(viewer.GetOffset() == (up ? 0 : ViewerType
+							::DifferenceType(viewer.GetLength() - 1)))
+							AdjustOffset(up);
+					}
+					else
 bound_select:
-							up ? SelectLast() : SelectFirst();
-					}
-
-					const auto new_off(viewer.GetOffset());
-
-					if(viewer.GetSelectedIndex() != old_sel)
-						CallSelected();
-					if(old_top != top_offset || viewer.GetHeadIndex()
-						!= old_hid)
-						UpdateView(*this);
-					else if(old_off != new_off)
-						InvalidateSelected2(old_off, new_off);
+						up ? SelectLast() : SelectFirst();
 				}
-				else if(viewer.IsSelected())
+
+				const auto new_off(viewer.GetOffset());
+
+				if(viewer.GetSelectedIndex() != old_sel)
+					CallSelected();
+				if(old_top != top_offset || viewer.GetHeadIndex() != old_hid)
+					UpdateView(*this);
+				else if(old_off != new_off)
+					InvalidateSelected2(old_off, new_off);
+			}
+			else if(viewer.IsSelected())
+			{
+				// NOTE: Do not confuse with %UI::Enter.
+				if(k[KeyCodes::Enter])
+					InvokeConfirmed(viewer.GetSelectedIndex());
+				else if(k[Esc])
 				{
-					// NOTE: Do not confuse with %UI::Enter.
-					if(k[KeyCodes::Enter])
-						InvokeConfirmed(viewer.GetSelectedIndex());
-					else if(k[Esc])
-					{
-						InvalidateSelected(viewer.GetOffset());
-						ClearSelected();
-					// TODO: Create new event for canceling selection.
-						CallSelected();
-					}
+					InvalidateSelected(viewer.GetOffset());
+					ClearSelected();
+				// TODO: Create new event for canceling selection.
+					CallSelected();
 				}
 			}
-		},
-		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
-		FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
+		}
+	},
+	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
+	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
+		SetSelected(e);
+		UpdateView(*this);
+	},
+	FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
+		if(&e.GetSender() == this)
+		{
 			SetSelected(e);
 			UpdateView(*this);
-		},
-		FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
-			if(&e.GetSender() == this)
-			{
-				SetSelected(e);
-				UpdateView(*this);
-			}
-		},
-		FetchEvent<Click>(*this) += [this](CursorEventArgs&& e){
-			InvokeConfirmed(CheckPoint(e));
-		},
-		FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority)
+		}
+	},
+	FetchEvent<Click>(*this) += [this](CursorEventArgs&& e){
+		InvokeConfirmed(CheckPoint(e));
+	},
+	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority)
 	);
 	AdjustViewLength();
 }

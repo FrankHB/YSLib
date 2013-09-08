@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5508
+\version r5520
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-31 14:15 +0800
+	2013-09-07 23:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,6 +183,7 @@ GetBoundsOf(const IWidget& wgt)
 
 /*!
 \brief 设置部件边界。
+\note 调用 SetLocationOf 和 SetSizeOf 。用户程序不应预期具有确定的调用顺序。
 \since build 177
 */
 YF_API void
@@ -215,13 +216,15 @@ SetInvalidationToParent(IWidget&);
 
 /*!
 \brief 设置部件左上角所在位置（相对于容器的偏移坐标）。
+\note 设置视图状态后触发 Move 事件。
 \since build 259
 */
 YF_API void
 SetLocationOf(IWidget&, const Point&);
 
-/*
+/*!
 \brief 设置部件大小。
+\note 设置视图和渲染器状态后触发 Resize 事件。
 \since build 259
 */
 YF_API void
@@ -275,6 +278,14 @@ Invalidate(IWidget&);
 */
 YF_API void
 Invalidate(IWidget&, const Rect&);
+
+/*!
+\brief 无效化部件区域对应位置的父容器区域。
+\note 若不存在父容器则忽略。
+\since build 433
+*/
+YF_API void
+InvalidateParent(IWidget&);
 
 /*!
 \brief 调用指定子部件的 Paint 事件绘制参数指定的事件发送者。
@@ -440,7 +451,7 @@ public:
 	由参数指定的信息绘制事件发送者。参数的 ClipArea 成员指定边界。
 	边界仅为暗示，允许实现忽略，但应保证调用后边界内的区域保持最新显示状态。
 	绘制结束后更新边界，表示实际被绘制的区域。
-	若部件的内部状态能够保证显示状态最新，则返回的区域可能比传入时表示的范围更小。
+	若部件的内部状态能够保证显示状态最新，则返回时边界区域可能更小。
 	*/
 	virtual void
 	Refresh(PaintEventArgs&&);

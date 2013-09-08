@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2864
+\version r2866
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-09-02 01:18 +0800
+	2013-09-04 03:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,8 +126,8 @@ CompactPixmap::SetSize(const Size& s)
 
 	try
 	{
-		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0)
-			? new PixelType[area] : nullptr);
+		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0) ? new PixelType[area]
+			: nullptr);
 		unique_ptr<PixelType[]> p_old(pBuffer);
 
 		pBuffer = p_new.release();

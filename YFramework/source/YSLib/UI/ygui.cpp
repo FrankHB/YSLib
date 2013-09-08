@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3789
+\version r3851
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-05 21:35 +0800
+	2013-09-08 05:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -311,72 +311,74 @@ GUIState::Wrap(IWidget& wgt)
 	auto& controller(wgt.GetController());
 
 	yunseq(
-		FetchEvent<KeyUp>(controller).Add([this](KeyEventArgs&& e){
+	FetchEvent<KeyUp>(controller).Add([this](KeyEventArgs&& e){
+		auto& wgt(e.GetSender());
+
+		ResetHeldState(KeyHeldState);
+		if(p_KeyDown == &wgt)
+			CallEvent<KeyPress>(wgt, e);
+		p_KeyDown = {};
+	}, 0x00),
+	FetchEvent<KeyDown>(controller).Add([this](KeyEventArgs&& e){
+		p_KeyDown = &e.GetSender();
+	}, 0xFF),
+	FetchEvent<CursorOver>(controller).Add([this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			e.Keys.reset();
+
 			auto& wgt(e.GetSender());
 
-			ResetHeldState(KeyHeldState);
-			if(p_KeyDown == &wgt)
-				CallEvent<KeyPress>(wgt, e);
-			p_KeyDown = {};
-		}, 0x00),
-		FetchEvent<KeyDown>(controller).Add([this](KeyEventArgs&& e){
-			p_KeyDown = &e.GetSender();
-		}, 0xFF),
-		FetchEvent<CursorOver>(controller).Add([this](CursorEventArgs&& e){
-			if(e.Strategy == RoutedEventArgs::Direct)
+			if(p_CursorOver != &wgt)
 			{
-				e.Keys.reset();
-
-				auto& wgt(e.GetSender());
-
-				if(p_CursorOver != &wgt)
-				{
-					if(p_CursorOver)
-						CallEvent<Leave>(*p_CursorOver, CursorEventArgs(
-							*p_CursorOver, e.Keys, e - LocateForWidget(wgt,
-							*p_CursorOver)));
-					CallEvent<Enter>(e.GetSender(), CursorEventArgs(e));
-					p_CursorOver = &wgt;
-				}
+				if(p_CursorOver)
+					CallEvent<Leave>(*p_CursorOver, CursorEventArgs(
+						*p_CursorOver, e.Keys, e - LocateForWidget(wgt,
+						*p_CursorOver)));
+				CallEvent<Enter>(e.GetSender(), CursorEventArgs(e));
+				p_CursorOver = &wgt;
 			}
-		}, 0xFF),
-		FetchEvent<TouchUp>(controller).Add([this](CursorEventArgs&& e){
-			if(e.Strategy == RoutedEventArgs::Direct)
+		}
+	}, 0xFF),
+	FetchEvent<TouchUp>(controller).Add([this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			auto& wgt(e.GetSender());
+
+			if(p_TouchDown)
 			{
-				auto& wgt(e.GetSender());
+				e.SetSender(*p_TouchDown);
+				TryLeaving(std::move(e));
+				e.SetSender(e.GetSender());
+			}
+			ResetHeldState(TouchHeldState),
+			DraggingOffset = Vec::Invalid;
+			if(p_TouchDown == &wgt)
+				CallEvent<Click>(wgt, e);
+			else if(p_TouchDown)
+				CallEvent<ClickAcross>(*p_TouchDown, e);
+			p_TouchDown = {};
+		}
+	}, 0x00),
+	FetchEvent<TouchDown>(controller).Add([this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			p_TouchDown = &e.GetSender();
+			TryEntering(std::move(e));
+		}
+	}, 0xFF),
+	FetchEvent<TouchHeld>(controller).Add([this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			auto& wgt(e.GetSender());
 
-				if(p_TouchDown)
-				{
-					e.SetSender(*p_TouchDown);
-					TryLeaving(std::move(e));
-					e.SetSender(e.GetSender());
-				}
-				ResetHeldState(TouchHeldState),
-				DraggingOffset = Vec::Invalid;
-				if(p_TouchDown == &wgt)
-					CallEvent<Click>(wgt, e);
-				p_TouchDown = {};
-			}
-		}, 0x00),
-		FetchEvent<TouchDown>(controller).Add([this](CursorEventArgs&& e){
-			if(e.Strategy == RoutedEventArgs::Direct)
-			{
-				p_TouchDown = &e.GetSender();
-				TryEntering(std::move(e));
-			}
-		}, 0xFF),
-		FetchEvent<TouchHeld>(controller).Add([this](CursorEventArgs&& e){
-			if(e.Strategy == RoutedEventArgs::Direct)
-			{
-				auto& wgt(e.GetSender());
-
-				if(p_TouchDown == &wgt)
-					TryEntering(CursorEventArgs(e));
-				else
-					TryLeaving(CursorEventArgs(*p_TouchDown, e.Keys,
-						e - LocateForWidget(wgt, *p_TouchDown)));
-			}
-		}, 0xFF)
+			if(p_TouchDown == &wgt)
+				TryEntering(CursorEventArgs(e));
+			else
+				TryLeaving(CursorEventArgs(*p_TouchDown, e.Keys,
+					e - LocateForWidget(wgt, *p_TouchDown)));
+		}
+	}, 0xFF)
 	);
 }
 

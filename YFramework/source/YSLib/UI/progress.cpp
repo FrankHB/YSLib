@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r358
+\version r363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2013-08-05 21:36 +0800
+	2013-09-07 02:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/progress.h"
 #include "YSLib/UI/ygui.h"
-#include "YSLib/UI/YBrush.h"
+#include "YSLib/UI/Border.h"
 
 namespace YSLib
 {
@@ -43,9 +43,9 @@ ProgressBar::ProgressBar(const Rect& r, ValueType m)
 
 	style.ActiveColor = pal[Styles::InactiveBorder];
 	yunseq(
-		Background = SolidBrush(pal[Styles::Track]),
-		ForeColor = pal[Styles::HotTracking],
-		FetchEvent<Paint>(*this).Add(BorderBrush(style), BoundaryPriority)
+	Background = SolidBrush(pal[Styles::Track]),
+	ForeColor = pal[Styles::HotTracking],
+	FetchEvent<Paint>(*this).Add(BorderBrush(style), BoundaryPriority)
 	);
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1477
+\version r1485
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-08-08 05:36 +0800
+	2013-09-08 05:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -303,6 +303,11 @@ enum VisualEvent
 	TouchHeld, //!< 屏幕接触保持。
 	Click, //!< 屏幕点击。
 	/*!
+	\brief 屏幕点击在不同部件上。
+	\since build 433
+	*/
+	ClickAcross,
+	/*!
 	\brief 指针设备光标悬停。
 	\since build 422
 	*/
@@ -350,6 +355,8 @@ DefEventTypeMapping(TouchUp, HCursorEvent)
 DefEventTypeMapping(TouchDown, HCursorEvent)
 DefEventTypeMapping(TouchHeld, HCursorEvent)
 DefEventTypeMapping(Click, HCursorEvent)
+//! \since build 433
+DefEventTypeMapping(ClickAcross, HCursorEvent)
 //! \since build 423
 DefEventTypeMapping(CursorWheel, HCursorWheelEvent)
 

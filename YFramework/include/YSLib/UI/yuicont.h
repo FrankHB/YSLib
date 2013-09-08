@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1796
+\version r1799
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2013-08-08 05:37 +0800
+	2013-09-03 15:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,11 +55,11 @@ FetchTopLevel(IWidget&, Point&);
 
 
 /*!
-\brief 取相对于 pWgt 指向的部件的点 pt 相对于 pEnd 指向的容器的偏移坐标。
+\brief 取相对于第三参数指向的部件的点相对于第一参数指向的容器的偏移坐标。
 \since build 229
 */
 YF_API Point
-LocateOffset(const IWidget* pEnd, Point, const IWidget* pWgt);
+LocateOffset(const IWidget*, Point, const IWidget*);
 
 /*!
 \brief 取相对部件 wgt 的点 pt 相对于 wgt 的容器的偏移坐标。

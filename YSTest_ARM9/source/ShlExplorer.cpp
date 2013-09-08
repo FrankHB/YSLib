@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r755
+\version r922
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-08-13 11:52 +0800
+	2013-09-07 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,10 +146,10 @@ SwitchScreensButton::SwitchScreensButton(ShlDS& shl, const Point& pt)
 	shell(shl)
 {
 	yunseq(
-		Text = u"％",
-		FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
-			shell.get().SwapScreens();
-		}
+	Text = u"％",
+	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
+		shell.get().SwapScreens();
+	}
 	);
 }
 
@@ -201,186 +201,186 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	WrapForSwapScreens(dsk_m, SwapMask),
 	WrapForSwapScreens(dsk_s, SwapMask),
 	yunseq(
-		dsk_m.Background = ImageBrush(FetchImage(0)),
-		dsk_s.Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
-		root.Background = nullptr,
-		root_sub.Background = nullptr,
-		lblTitle.Text = G_APP_NAME,
-		lblPath.AutoWrapLine = true, lblPath.Text = String(path),
-		lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
-	// TODO: Show current working directory properly.
-		btnOK.Text = u"确定(A)",
+	dsk_m.Background = ImageBrush(FetchImage(0)),
+	dsk_s.Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
+	root.Background = nullptr,
+	root_sub.Background = nullptr,
+	lblTitle.Text = G_APP_NAME,
+	lblPath.AutoWrapLine = true, lblPath.Text = String(path),
+	lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
+// TODO: Show current working directory properly.
+	btnOK.Text = u"确定(A)",
 #if YCL_MinGW32
-		btnMenu.Text = u"菜单(P)",
+	btnMenu.Text = u"菜单(P)",
 #else
-		btnMenu.Text = u"菜单(Start)",
+	btnMenu.Text = u"菜单(Start)",
 #endif
-		cbHex.Text = u"显示十六进制",
-		cbFPS.Text = u"显示 FPS",
-		pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
-		lblDragTest.HorizontalAlignment = TextAlignment::Left,
-	//	btnTestEx.Enabled = {},
-		btnTestEx.Font.SetStyle(FontStyle::Bold | FontStyle::Italic),
-		btnTestEx.Text = u"附加测试",
-		btnTestEx.HorizontalAlignment = TextAlignment::Left,
-		btnTestEx.VerticalAlignment = TextAlignment::Down,
-		btnEnterTest.Font.SetStyle(FontStyle::Italic),
-		btnEnterTest.Text = u"边界测试",
-		btnEnterTest.HorizontalAlignment = TextAlignment::Right,
-		btnEnterTest.VerticalAlignment = TextAlignment::Up,
-		btnPrevBackground.Font.SetStyle(FontStyle::Bold),
-		btnPrevBackground.Text = u"<<",
-		btnNextBackground.Font.SetStyle(FontStyle::Bold),
-		btnNextBackground.Text = u">>",
-		fbMain.SetPath(path),
-		Enable(btnOK, false),
-		Enable(btnPrevBackground, false),
-		dsk_s.BoundControlPtr = [&, this](const KeyInput& k)->IWidget*{
-			if(k.count() == 1)
-			{
-				if(k[YCL_KEY(A)])
-					return &btnOK;
-				if(k[YCL_KEY_Start])
-					return &btnMenu;
-			}
-			return nullptr;
-		},
-		FetchEvent<KeyUp>(dsk_s) += OnKey_Bound_TouchUp,
-		FetchEvent<KeyDown>(dsk_s) += OnKey_Bound_TouchDown,
-		FetchEvent<KeyPress>(dsk_s) += [&](KeyEventArgs&& e){
-			if(e.GetKeys()[YCL_KEY(X)])
-				SwitchVisible(pnlSetting);
-		},
-		fbMain.GetViewChanged() += [&](UIEventArgs&&){
-			lblPath.Text = String(fbMain.GetPath());
-			Invalidate(lblPath);
-		},
-		fbMain.GetSelected() += [&](IndexEventArgs&&){
-			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
-		},
-		FetchEvent<Click>(btnOK) += [&](CursorEventArgs&&){
-			if(fbMain.IsSelected())
-			{
-				const auto& path(fbMain.GetPath());
-			//	const string s(path);
-				const auto category(ClassifyFile(path));
-
-				if(category == FileCategory::Text
-					|| category == FileCategory::Binary)
-				{
-					const auto h_up(GetMainDesktopHandle());
-					const auto h_dn(GetSubDesktopHandle());
-					const bool b(category == FileCategory::Text
-						&& !cbHex.IsTicked());
-
-					PostMessage<SM_TASK>(0xF8, [=]{
-						ResetDSDesktops(*h_up, *h_dn);
-						if(b)
-							NowShellTo(ystdex::make_shared<ShlTextReader>(path,
-								h_up, h_dn));
-						else
-							NowShellTo(ystdex::make_shared<ShlHexBrowser>(path,
-								h_up, h_dn));
-					});
-				}
-			}
-		},
-		FetchEvent<Click>(cbFPS) += [this](CursorEventArgs&&){
-			SetInvalidationOf(GetSubDesktop());
-		},
-		FetchEvent<Click>(cbHex) += [&](CursorEventArgs&&){
-			Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
-			SetInvalidationOf(GetSubDesktop());
-		},
-		FetchEvent<Move>(pnlSetting) += [&](UIEventArgs&&){
-			lblDragTest.Text = to_string(GetLocationOf(pnlSetting)) + ';';
-			Invalidate(lblDragTest);
-		},
-		FetchEvent<TouchHeld>(pnlSetting) += OnTouchHeld_Dragging,
-#if YCL_DS
-		FetchEvent<TouchDown>(pnlSetting) += [&](CursorEventArgs&&){
-			struct ::mallinfo t(::mallinfo());
-
-			lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
-				t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
-			Invalidate(lblInfo);
-		},
-#endif
-		FetchEvent<Click>(pnlSetting) += [&](CursorEventArgs&&){
-			yunseq(
-				lblDragTest.ForeColor = GenerateRandomColor(),
-				lblTitle.ForeColor = GenerateRandomColor()
-			);
-			Invalidate(pnlSetting);
-		},
-		FetchEvent<Click>(btnTestEx) += [&](CursorEventArgs&& e){
-			const auto& k(e.GetKeys());
-			auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
-
-			if(lblTitle.Background)
-				lblTitle.Background = nullptr;
-			else
-				lblTitle.Background = SolidBrush(GenerateRandomColor());
-			lblInfo.Text = btn.Text + u", " + String(to_string(
-				FetchImageLoadTime())) + u";\n" + String(k.to_string());
-			Invalidate(lblTitle),
-			Invalidate(lblInfo);
-		},
-		FetchEvent<Enter>(btnEnterTest) += [](CursorEventArgs&& e){
-			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
-
-			btn.Text = u"Enter: " + String(to_string(e));
-			Invalidate(btn);
-		},
-		FetchEvent<Leave>(btnEnterTest) += [](CursorEventArgs&& e){
-			auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
-
-			btn.Text = u"Leave: " + String(to_string(e));
-			Invalidate(btn);
-		},
-		mhMain.Roots[&btnMenu] = 1u,
-		FetchEvent<Click>(btnMenu) += [this](CursorEventArgs&&){
-			auto& mnu(mhMain[1u]);
-
-			if(mhMain.IsShowing(1u))
-			{
-				mhMain.HideAll();
-				mnu.ClearSelected();
-			}
-			else
-				mhMain.Show(1u);
-			Invalidate(mnu);
-		},
-		FetchEvent<Click>(btnPrevBackground) += [&](CursorEventArgs&&){
-			auto& dsk_m(GetMainDesktop());
-			auto& dsk_s(GetSubDesktop());
-
-			if(up_i > 0)
-			{
-				--up_i;
-				Enable(btnNextBackground);
-			}
-			if(up_i == 0)
-				Enable(btnPrevBackground, false);
-			dsk_m.Background = ImageBrush(FetchImage(up_i));
-			SetInvalidationOf(dsk_m),
-			SetInvalidationOf(dsk_s);
-		},
-		FetchEvent<Click>(btnNextBackground) += [&](CursorEventArgs&&){
-			auto& dsk_m(GetMainDesktop());
-			auto& dsk_s(GetSubDesktop());
-
-			if(size_t(up_i + 1) < Image_N)
-			{
-				++up_i;
-				Enable(btnPrevBackground);
-			}
-			if(size_t(up_i + 1) == Image_N)
-				Enable(btnNextBackground, false);
-			dsk_m.Background = ImageBrush(FetchImage(up_i));
-			SetInvalidationOf(dsk_m),
-			SetInvalidationOf(dsk_s);
+	cbHex.Text = u"显示十六进制",
+	cbFPS.Text = u"显示 FPS",
+	pnlSetting.Background = SolidBrush(Color(248, 248, 120)),
+	lblDragTest.HorizontalAlignment = TextAlignment::Left,
+//	btnTestEx.Enabled = {},
+	btnTestEx.Font.SetStyle(FontStyle::Bold | FontStyle::Italic),
+	btnTestEx.Text = u"附加测试",
+	btnTestEx.HorizontalAlignment = TextAlignment::Left,
+	btnTestEx.VerticalAlignment = TextAlignment::Down,
+	btnEnterTest.Font.SetStyle(FontStyle::Italic),
+	btnEnterTest.Text = u"边界测试",
+	btnEnterTest.HorizontalAlignment = TextAlignment::Right,
+	btnEnterTest.VerticalAlignment = TextAlignment::Up,
+	btnPrevBackground.Font.SetStyle(FontStyle::Bold),
+	btnPrevBackground.Text = u"<<",
+	btnNextBackground.Font.SetStyle(FontStyle::Bold),
+	btnNextBackground.Text = u">>",
+	fbMain.SetPath(path),
+	Enable(btnOK, false),
+	Enable(btnPrevBackground, false),
+	dsk_s.BoundControlPtr = [&, this](const KeyInput& k)->IWidget*{
+		if(k.count() == 1)
+		{
+			if(k[YCL_KEY(A)])
+				return &btnOK;
+			if(k[YCL_KEY_Start])
+				return &btnMenu;
 		}
+		return nullptr;
+	},
+	FetchEvent<KeyUp>(dsk_s) += OnKey_Bound_TouchUp,
+	FetchEvent<KeyDown>(dsk_s) += OnKey_Bound_TouchDown,
+	FetchEvent<KeyPress>(dsk_s) += [&](KeyEventArgs&& e){
+		if(e.GetKeys()[YCL_KEY(X)])
+			SwitchVisible(pnlSetting);
+	},
+	fbMain.GetViewChanged() += [&](UIEventArgs&&){
+		lblPath.Text = String(fbMain.GetPath());
+		Invalidate(lblPath);
+	},
+	fbMain.GetSelected() += [&](IndexEventArgs&&){
+		Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
+	},
+	FetchEvent<Click>(btnOK) += [&](CursorEventArgs&&){
+		if(fbMain.IsSelected())
+		{
+			const auto& path(fbMain.GetPath());
+		//	const string s(path);
+			const auto category(ClassifyFile(path));
+
+			if(category == FileCategory::Text
+				|| category == FileCategory::Binary)
+			{
+				const auto h_up(GetMainDesktopHandle());
+				const auto h_dn(GetSubDesktopHandle());
+				const bool b(category == FileCategory::Text
+					&& !cbHex.IsTicked());
+
+				PostMessage<SM_TASK>(0xF8, [=]{
+					ResetDSDesktops(*h_up, *h_dn);
+					if(b)
+						NowShellTo(ystdex::make_shared<ShlTextReader>(path,
+							h_up, h_dn));
+					else
+						NowShellTo(ystdex::make_shared<ShlHexBrowser>(path,
+							h_up, h_dn));
+				});
+			}
+		}
+	},
+	FetchEvent<Click>(cbFPS) += [this](CursorEventArgs&&){
+		SetInvalidationOf(GetSubDesktop());
+	},
+	FetchEvent<Click>(cbHex) += [&](CursorEventArgs&&){
+		Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
+		SetInvalidationOf(GetSubDesktop());
+	},
+	FetchEvent<Move>(pnlSetting) += [&](UIEventArgs&&){
+		lblDragTest.Text = to_string(GetLocationOf(pnlSetting)) + ';';
+		Invalidate(lblDragTest);
+	},
+	FetchEvent<TouchHeld>(pnlSetting) += OnTouchHeld_Dragging,
+#if YCL_DS
+	FetchEvent<TouchDown>(pnlSetting) += [&](CursorEventArgs&&){
+		struct ::mallinfo t(::mallinfo());
+
+		lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
+			t.arena, t.ordblks, t.uordblks, t.fordblks, t.keepcost);
+		Invalidate(lblInfo);
+	},
+#endif
+	FetchEvent<Click>(pnlSetting) += [&](CursorEventArgs&&){
+		yunseq(
+		lblDragTest.ForeColor = GenerateRandomColor(),
+		lblTitle.ForeColor = GenerateRandomColor()
+		);
+		Invalidate(pnlSetting);
+	},
+	FetchEvent<Click>(btnTestEx) += [&](CursorEventArgs&& e){
+		const auto& k(e.GetKeys());
+		auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
+
+		if(lblTitle.Background)
+			lblTitle.Background = nullptr;
+		else
+			lblTitle.Background = SolidBrush(GenerateRandomColor());
+		lblInfo.Text = btn.Text + u", " + String(to_string(
+			FetchImageLoadTime())) + u";\n" + String(k.to_string());
+		Invalidate(lblTitle),
+		Invalidate(lblInfo);
+	},
+	FetchEvent<Enter>(btnEnterTest) += [](CursorEventArgs&& e){
+		auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
+
+		btn.Text = u"Enter: " + String(to_string(e));
+		Invalidate(btn);
+	},
+	FetchEvent<Leave>(btnEnterTest) += [](CursorEventArgs&& e){
+		auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
+
+		btn.Text = u"Leave: " + String(to_string(e));
+		Invalidate(btn);
+	},
+	mhMain.Roots[&btnMenu] = 1u,
+	FetchEvent<Click>(btnMenu) += [this](CursorEventArgs&&){
+		auto& mnu(mhMain[1u]);
+
+		if(mhMain.IsShowing(1u))
+		{
+			mhMain.HideAll();
+			mnu.ClearSelected();
+		}
+		else
+			mhMain.Show(1u);
+		Invalidate(mnu);
+	},
+	FetchEvent<Click>(btnPrevBackground) += [&](CursorEventArgs&&){
+		auto& dsk_m(GetMainDesktop());
+		auto& dsk_s(GetSubDesktop());
+
+		if(up_i > 0)
+		{
+			--up_i;
+			Enable(btnNextBackground);
+		}
+		if(up_i == 0)
+			Enable(btnPrevBackground, false);
+		dsk_m.Background = ImageBrush(FetchImage(up_i));
+		SetInvalidationOf(dsk_m),
+		SetInvalidationOf(dsk_s);
+	},
+	FetchEvent<Click>(btnNextBackground) += [&](CursorEventArgs&&){
+		auto& dsk_m(GetMainDesktop());
+		auto& dsk_s(GetSubDesktop());
+
+		if(size_t(up_i + 1) < Image_N)
+		{
+			++up_i;
+			Enable(btnPrevBackground);
+		}
+		if(size_t(up_i + 1) == Image_N)
+			Enable(btnNextBackground, false);
+		dsk_m.Background = ImageBrush(FetchImage(up_i));
+		SetInvalidationOf(dsk_m),
+		SetInvalidationOf(dsk_s);
+	}
 	);
 	RequestFocusCascade(fbMain),
 	SetInvalidationOf(dsk_m),

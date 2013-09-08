@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MapEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r260
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2013-05-04 23:58 +0800
+	2013-09-07 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,13 +48,13 @@ namespace CHRLib
 \since 早于 build 132
 */
 //@{
-yconstexpr byte cp17[] = {0};
+yconstexpr byte cp17[]{0};
 extern "C"
 {
 	extern const byte cp113[];
 	//extern const byte cp2026[13658];
 }
-yconstexpr byte cp2026[] = {0};
+yconstexpr byte cp2026[]{0};
 //@}
 #else
 

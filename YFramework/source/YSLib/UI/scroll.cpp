@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3525
+\version r3612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-08-05 21:36 +0800
+	2013-09-07 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,34 +93,34 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 {
 	SetContainerPtrOf(tmbScroll, this);
 	yunseq(
-		Background = std::bind(DrawTrackBackground, std::placeholders::_1,
-			std::ref(*this)),
-		GetThumbDrag() += [this](UIEventArgs&&){
-			LocateThumb(0, ScrollCategory::ThumbTrack);
-		},
-		FetchEvent<TouchHeld>(*this) += OnTouchHeld,
-		FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
-			if(e.Strategy == RoutedEventArgs::Direct && &e.GetSender() == this
-				&& Rect(GetSizeOf(*this)).Contains(e))
-			{
-				ScrollCategory t;
+	Background = std::bind(DrawTrackBackground, std::placeholders::_1,
+		std::ref(*this)),
+	GetThumbDrag() += [this](UIEventArgs&&){
+		LocateThumb(0, ScrollCategory::ThumbTrack);
+	},
+	FetchEvent<TouchHeld>(*this) += OnTouchHeld,
+	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct && &e.GetSender() == this
+			&& Rect(GetSizeOf(*this)).Contains(e))
+		{
+			ScrollCategory t;
 
-				switch(CheckArea(e.GetRef(IsHorizontal())))
-				{
-				case OnPrev:
-					t = ScrollCategory::LargeDecrement;
-					break;
-				case OnNext:
-					t = ScrollCategory::LargeIncrement;
-					break;
-				case None:
-					return;
-				default:
-					t = ScrollCategory::EndScroll;
-				}
-				LocateThumb(0, t);
+			switch(CheckArea(e.GetRef(IsHorizontal())))
+			{
+			case OnPrev:
+				t = ScrollCategory::LargeDecrement;
+				break;
+			case OnNext:
+				t = ScrollCategory::LargeIncrement;
+				break;
+			case None:
+				return;
+			default:
+				t = ScrollCategory::EndScroll;
 			}
+			LocateThumb(0, t);
 		}
+	}
 	);
 }
 
@@ -182,10 +182,10 @@ ATrack::CheckArea(SPos q) const
 {
 	if(q >= 0)
 	{
-		yconstexpr Area lst[] = {OnPrev, OnThumb, OnNext};
-		const SPos a[] = {SPos(), SPos(GetThumbPosition()),
+		yconstexpr Area lst[]{OnPrev, OnThumb, OnNext};
+		const SPos a[]{SPos(), SPos(GetThumbPosition()),
 			SPos(GetThumbPosition() + GetThumbLength())};
-		const size_t n(SwitchInterval(q, a, 3));
+		const auto n(SwitchInterval(q, a, 3));
 
 		if(n < 3)
 			return lst[n];
@@ -348,38 +348,38 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 	SetContainerPtrOf(btnPrev, this);
 	SetContainerPtrOf(btnNext, this);
 	yunseq(
-		FetchEvent<Resize>(*this) += [this](UIEventArgs&&){
-			auto& track(GetTrack());
-			const bool is_h(track.IsHorizontal());
-			const SDst prev_metric(GetSizeOf(btnPrev).GetRef(is_h));
-			const SDst sum(prev_metric + GetSizeOf(btnNext).GetRef(is_h));
+	FetchEvent<Resize>(*this) += [this](UIEventArgs&&){
+		auto& track(GetTrack());
+		const bool is_h(track.IsHorizontal());
+		const SDst prev_metric(GetSizeOf(btnPrev).GetRef(is_h));
+		const SDst sum(prev_metric + GetSizeOf(btnNext).GetRef(is_h));
 
-			YAssert(GetSizeOf(*this).GetRef(is_h) - sum > 0,
-				"No enough space for track.");
+		YAssert(GetSizeOf(*this).GetRef(is_h) - sum > 0,
+			"No enough space for track.");
 
-			const SDst tl(GetSizeOf(*this).GetRef(is_h) - sum);
+		const SDst tl(GetSizeOf(*this).GetRef(is_h) - sum);
 
-			yunseq(track.GetView().GetSizeRef().GetRef(is_h) = tl, btnNext
-				.GetView().GetLocationRef().GetRef(is_h) = tl + prev_metric);
-			// NOTE: No event %(Resize, Move) is raised.
-		},
-		FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUp,
-		FetchEvent<KeyDown>(*this) += OnKey_Bound_TouchDown,
-		FetchEvent<KeyHeld>(*this) += OnKeyHeld,
-		FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){
-			if(e.GetDelta() > 0)
-				LocateThumb(small_delta, ScrollCategory::SmallDecrement);
-			else if(e.GetDelta() < 0)
-				LocateThumb(small_delta, ScrollCategory::SmallIncrement);
-		},
-		FetchEvent<TouchHeld>(btnPrev) += OnTouchHeld,
-		FetchEvent<TouchDown>(btnPrev) += [this](CursorEventArgs&&){
+		yunseq(track.GetView().GetSizeRef().GetRef(is_h) = tl,
+			btnNext.GetView().GetLocationRef().GetRef(is_h) = tl + prev_metric);
+		// NOTE: No event %(Resize, Move) is raised.
+	},
+	FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUp,
+	FetchEvent<KeyDown>(*this) += OnKey_Bound_TouchDown,
+	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
+	FetchEvent<CursorWheel>(*this) += [this](CursorWheelEventArgs&& e){
+		if(e.GetDelta() > 0)
 			LocateThumb(small_delta, ScrollCategory::SmallDecrement);
-		},
-		FetchEvent<TouchHeld>(btnNext) += OnTouchHeld,
-		FetchEvent<TouchDown>(btnNext) += [this](CursorEventArgs&&){
+		else if(e.GetDelta() < 0)
 			LocateThumb(small_delta, ScrollCategory::SmallIncrement);
-		}
+	},
+	FetchEvent<TouchHeld>(btnPrev) += OnTouchHeld,
+	FetchEvent<TouchDown>(btnPrev) += [this](CursorEventArgs&&){
+		LocateThumb(small_delta, ScrollCategory::SmallDecrement);
+	},
+	FetchEvent<TouchHeld>(btnNext) += OnTouchHeld,
+	FetchEvent<TouchDown>(btnNext) += [this](CursorEventArgs&&){
+		LocateThumb(small_delta, ScrollCategory::SmallIncrement);
+	}
 	);
 
 	Size s(GetSizeOf(*this));
@@ -394,18 +394,25 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 	MoveToRight(btnNext);
 }
 
-HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
-	: AScrollBar(r, uMinThumbLength, Horizontal)
+void
+AScrollBar::InitializeArrowPainters(Rotation prev, Rotation next)
 {
 	using namespace std;
 	using namespace placeholders;
 
 	yunseq(
-		FetchEvent<Paint>(btnPrev) += bind(DrawArrow, _1, ref(btnPrev), 4,
-			RDeg180, ref(ForeColor)),
-		FetchEvent<Paint>(btnNext) += bind(DrawArrow, _1, ref(btnNext), 4,
-			RDeg0, ref(ForeColor))
+	FetchEvent<Paint>(btnPrev) += bind(DrawArrow, _1, ref(btnPrev), 4, prev,
+		ref(ForeColor)),
+	FetchEvent<Paint>(btnNext) += bind(DrawArrow, _1, ref(btnNext), 4, next,
+		ref(ForeColor))
 	);
+}
+
+
+HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
+	: AScrollBar(r, uMinThumbLength, Horizontal)
+{
+	InitializeArrowPainters(RDeg180, RDeg0);
 }
 
 IWidget*
@@ -425,15 +432,7 @@ HorizontalScrollBar::GetBoundControlPtr(const KeyInput& k)
 VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
 	: AScrollBar(r, uMinThumbLength, Vertical)
 {
-	using namespace std;
-	using namespace placeholders;
-
-	yunseq(
-		FetchEvent<Paint>(btnPrev) += bind(DrawArrow, _1, ref(btnPrev), 4,
-			RDeg90, ref(ForeColor)),
-		FetchEvent<Paint>(btnNext) += bind(DrawArrow, _1, ref(btnNext), 4,
-			RDeg270, ref(ForeColor))
-	);
+	InitializeArrowPainters(RDeg90, RDeg270);
 }
 
 IWidget*

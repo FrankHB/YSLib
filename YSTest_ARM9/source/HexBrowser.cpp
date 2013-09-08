@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r546
+\version r570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2013-08-05 22:01 +0800
+	2013-09-07 02:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,33 +51,33 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	SetVisibleOf(vsbVertical, true);
 	vsbVertical.SetSmallDelta(1);
 	yunseq(
-		vsbVertical.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
-			LocateViewPosition(round(e.GetValue()));
-		},
-		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
-			using namespace KeyCodes;
+	vsbVertical.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
+		LocateViewPosition(round(e.GetValue()));
+	},
+	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
+		using namespace KeyCodes;
 
-			const auto& k(e.GetKeys());
+		const auto& k(e.GetKeys());
 
-			if(k.count() != 1)
-				return;
+		if(k.count() != 1)
+			return;
 
-			ScrollCategory t(ScrollCategory::SmallDecrement);
+		ScrollCategory t(ScrollCategory::SmallDecrement);
 
-			if(k[Down])
-				t = ScrollCategory::SmallIncrement;
-			else if(k[PgUp])
-				t = ScrollCategory::LargeDecrement;
-			else if(k[PgDn])
-				t = ScrollCategory::LargeIncrement;
-			else if(!k[Up])
-				return;
-			vsbVertical.LocateThumb(k[Up] || k[Down]
-				? vsbVertical.GetSmallDelta() : vsbVertical.GetLargeDelta(), t);
-			RequestFocus(*this);
-			e.Handled = true;
-		},
-		FetchEvent<KeyHeld>(*this) += OnKeyHeld
+		if(k[Down])
+			t = ScrollCategory::SmallIncrement;
+		else if(k[PgUp])
+			t = ScrollCategory::LargeDecrement;
+		else if(k[PgDn])
+			t = ScrollCategory::LargeIncrement;
+		else if(!k[Up])
+			return;
+		vsbVertical.LocateThumb(k[Up] || k[Down] ? vsbVertical.GetSmallDelta()
+			: vsbVertical.GetLargeDelta(), t);
+		RequestFocus(*this);
+		e.Handled = true;
+	},
+	FetchEvent<KeyHeld>(*this) += OnKeyHeld
 	);
 	Reset();
 }

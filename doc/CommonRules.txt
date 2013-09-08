@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2740
+\version r2751
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-09-01 02:21 +0800
+	2013-09-07 02:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,10 +118,8 @@
 多范型(multiparadigm) 程序设计：过程式(procedual) 程序设计、结构化(structural) 程序设计、面向对象程序设计(OOP) 、面向接口程序设计。
 
 @2.1.2 开发模式：
-默认为迭代增量式开发。
-
-@2.1.2.1 测试：
-默认为部分整体回归测试代替单元测试。
+按需选择合适的开发策略和工程管理方法。
+如果可能，保证以上手段的可复用性。
 
 @2.1.3 架构模式(Architectural Patterns) ：
 
@@ -2150,6 +2148,9 @@ $4.1.3.1.4 临时性例外：
 （对于类模板）和转移构造函数仅有首个函数参数类型的模板参数不同的构造模板；
 接受初值符列表的构造函数；
 析构函数；
+用于逻辑初始化的 private 静态或非静态成员函数或成员模板；
+用于逻辑初始化的 protected 静态或非静态成员函数或成员模板；
+替换为包括函数或函数模板的成员声明的宏调用；
 以基类引用参数作为唯一参数的赋值操作符函数；
 以基类引用参数作为唯一参数的赋值操作符模板；
 其它赋值操作符函数或模板；
@@ -2169,6 +2170,11 @@ $4.1.3.1.4 临时性例外：
 分配/去配操作符（以 new 、new[] 、 delete 、 delete[] 的顺序）；
 转换操作符（以整数类型、枚举类型、其它基本类型、类类型顺序；整数类型之间以转换阶(conversion rank) 从小到大的顺序排列）；
 其它函数或函数模板。
+
+@6.9 宏嵌入式领域特定语言(macro embedded domain-specific language) ：
+使用 C/C++ 宏实现的领域特定语言若可约定与内建语言类似形式（函数调用等）不同的语义，则可约定以上规则的例外。
+宏调用可能被替换为表达式，称为表达式宏。
+非表达式宏结束一般不冗余语句结尾的标点（ ; 或 } ）。
 
 */
 ////

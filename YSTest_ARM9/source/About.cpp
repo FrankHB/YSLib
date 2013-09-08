@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r174
+\version r204
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-08-10 18:34 +0800
+	2013-09-07 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,36 +65,36 @@ FrmAbout::FrmAbout()
 	AddWidgets(*this, AccessWidget<Panel>(node)),
 	lblTitle.Font.SetSize(20),
 	yunseq(
-		lblTitle.Background = nullptr,
-		lblTitle.Text = G_APP_NAME,
-		lblTitle.HorizontalAlignment = TextAlignment::Left,
-		lblTitle.VerticalAlignment = TextAlignment::Down,
-		lblTitle.ForeColor = ColorSpace::Blue,
-		lblVersion.Background = nullptr,
-		lblVersion.AutoWrapLine = true,
-		lblVersion.Text = G_APP_VER + String(" @ " __DATE__ ", " __TIME__),
-		lblVersion.ForeColor = ColorSpace::Green,
-		lblCopyright.Background = nullptr,
-		lblCopyright.Text = String("(C)2009-2013 by ") + G_COMP_NAME,
-		lblCopyright.ForeColor = ColorSpace::Maroon,
-		btnClose.Text = u"关闭",
-		btnExit.Text = u"退出",
-		root.Background = SolidBrush(Color(248, 120, 120)),
-		btnClose.Background = SolidBrush(Color(176, 184, 192)),
-		FetchEvent<TouchDown>(root) += [&](CursorEventArgs&& e){
-			root.Background = SolidBrush(GenerateRandomColor());
-			SetInvalidationOf(root);
-			if(e.Strategy == RoutedEventArgs::Direct)
-				e.Handled = true;
-		},
-		FetchEvent<TouchHeld>(root) += std::bind(OnTouchHeld_DraggingRaw,
-			std::placeholders::_1, std::ref(*this)),
-		FetchEvent<Click>(btnClose) += [this](CursorEventArgs&&){
-			Hide(*this);
-		},
-		FetchEvent<Click>(btnExit) += [](CursorEventArgs&&){
-			YSLib::PostQuitMessage(0);
-		}
+	lblTitle.Background = nullptr,
+	lblTitle.Text = G_APP_NAME,
+	lblTitle.HorizontalAlignment = TextAlignment::Left,
+	lblTitle.VerticalAlignment = TextAlignment::Down,
+	lblTitle.ForeColor = ColorSpace::Blue,
+	lblVersion.Background = nullptr,
+	lblVersion.AutoWrapLine = true,
+	lblVersion.Text = G_APP_VER + String(" @ " __DATE__ ", " __TIME__),
+	lblVersion.ForeColor = ColorSpace::Green,
+	lblCopyright.Background = nullptr,
+	lblCopyright.Text = String("(C)2009-2013 by ") + G_COMP_NAME,
+	lblCopyright.ForeColor = ColorSpace::Maroon,
+	btnClose.Text = u"关闭",
+	btnExit.Text = u"退出",
+	root.Background = SolidBrush(Color(248, 120, 120)),
+	btnClose.Background = SolidBrush(Color(176, 184, 192)),
+	FetchEvent<TouchDown>(root) += [&](CursorEventArgs&& e){
+		root.Background = SolidBrush(GenerateRandomColor());
+		SetInvalidationOf(root);
+		if(e.Strategy == RoutedEventArgs::Direct)
+			e.Handled = true;
+	},
+	FetchEvent<TouchHeld>(root) += std::bind(OnTouchHeld_DraggingRaw,
+		std::placeholders::_1, std::ref(*this)),
+	FetchEvent<Click>(btnClose) += [this](CursorEventArgs&&){
+		Hide(*this);
+	},
+	FetchEvent<Click>(btnExit) += [](CursorEventArgs&&){
+		YSLib::PostQuitMessage(0);
+	}
 	);
 	SetInvalidationOf(*this);
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4435
+\version r4534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-08-10 06:40 +0800
+	2013-09-07 02:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -369,85 +369,84 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(pnlBookmark, false);
 	yunseq(
-		reader.ViewChanged = [this]{
-			if(IsVisible(boxReader))
-				boxReader.UpdateData(reader);
-			if(IsVisible(boxTextInfo))
-				boxTextInfo.UpdateData(reader);
-		},
-		mhMain.Roots[&boxReader.btnMenu] = 1U,
-		FetchEvent<Click>(boxReader.btnMenu) += [this](CursorEventArgs&&){
-			if(mhMain.IsShowing(1U))
-				mhMain.Hide(1U);
-			else
-			{
-				const auto& pt(LocateForWidget(GetSubDesktop(),
-					boxReader.btnMenu));
+	reader.ViewChanged = [this]{
+		if(IsVisible(boxReader))
+			boxReader.UpdateData(reader);
+		if(IsVisible(boxTextInfo))
+			boxTextInfo.UpdateData(reader);
+	},
+	mhMain.Roots[&boxReader.btnMenu] = 1U,
+	FetchEvent<Click>(boxReader.btnMenu) += [this](CursorEventArgs&&){
+		if(mhMain.IsShowing(1U))
+			mhMain.Hide(1U);
+		else
+		{
+			const auto& pt(LocateForWidget(GetSubDesktop(),
+				boxReader.btnMenu));
 
-				ShowMenu(1U, Point(pt.X, pt.Y - mhMain[1U].GetHeight()));
-			}
-		},
-		FetchEvent<Click>(boxReader.btnSetting) += [this](CursorEventArgs&&){
-			Execute(MR_Setting);
-		},
-		FetchEvent<Click>(boxReader.btnInfo) += [this](CursorEventArgs&&){
-			Execute(MR_FileInfo);
-		},
-		FetchEvent<Click>(boxReader.btnBookmark) += [this](CursorEventArgs&&){
-			Execute(MR_Bookmark);
-		},
-		FetchEvent<Click>(boxReader.btnReturn) += [this](CursorEventArgs&&){
-			Execute(MR_Return);
-		},
-		FetchEvent<Click>(boxReader.btnPrev) += [this](CursorEventArgs&&){
-			UpdateReadingList(true);
-		},
-		FetchEvent<Click>(boxReader.btnNext) += [this](CursorEventArgs&&){
-			UpdateReadingList(false);
-		},
-		FetchEvent<TouchDown>(boxReader.pbReader) += [this](CursorEventArgs&& e){
-			const auto s(reader.GetTextSize());
+			ShowMenu(1U, Point(pt.X, pt.Y - mhMain[1U].GetHeight()));
+		}
+	},
+	FetchEvent<Click>(boxReader.btnSetting) += [this](CursorEventArgs&&){
+		Execute(MR_Setting);
+	},
+	FetchEvent<Click>(boxReader.btnInfo) += [this](CursorEventArgs&&){
+		Execute(MR_FileInfo);
+	},
+	FetchEvent<Click>(boxReader.btnBookmark) += [this](CursorEventArgs&&){
+		Execute(MR_Bookmark);
+	},
+	FetchEvent<Click>(boxReader.btnReturn) += [this](CursorEventArgs&&){
+		Execute(MR_Return);
+	},
+	FetchEvent<Click>(boxReader.btnPrev) += [this](CursorEventArgs&&){
+		UpdateReadingList(true);
+	},
+	FetchEvent<Click>(boxReader.btnNext) += [this](CursorEventArgs&&){
+		UpdateReadingList(false);
+	},
+	FetchEvent<TouchDown>(boxReader.pbReader) += [this](CursorEventArgs&& e){
+		const auto s(reader.GetTextSize());
 
-			if(YB_LIKELY(s != 0))
-				Locate(e.X * s / boxReader.pbReader.GetWidth());
-		},
-		FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
-			auto& pb(boxReader.pbReader);
-			const auto mval(pb.GetMaxValue());
-			const auto w(pb.GetWidth() - 2);
-			auto& pt(e.Location);
+		if(YB_LIKELY(s != 0))
+			Locate(e.X * s / boxReader.pbReader.GetWidth());
+	},
+	FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
+		auto& pb(boxReader.pbReader);
+		const auto mval(pb.GetMaxValue());
+		const auto w(pb.GetWidth() - 2);
+		auto& pt(e.Location);
 
-			FillRect(e.Target, Point(pt.X + 1 + round(pb.GetValue() * w / mval),
-				pt.Y + 1), Size(round((reader.GetBottomPosition()
-				- GetReaderPosition()) * w / mval), pb.GetHeight() - 2),
-				ColorSpace::Yellow);
-		},
-		FetchEvent<Click>(pnlSetting.btnClose) += exit_session,
-		FetchEvent<Click>(pnlSetting.btnOK) += [&, this](CursorEventArgs&&){
-			pnlSetting >> CurrentSetting;
-			tmrScroll.Interval = CurrentSetting.GetTimerSetting();
-			Switch(pnlSetting.current_encoding),
-			reader.SetColor(CurrentSetting.FontColor),
-			reader.SetFont(CurrentSetting.Font);
-			reader.UpdateView();
-			yunseq(GetMainDesktop().Background = pnlSetting.lblAreaUp.Background,
-				GetSubDesktop().Background = pnlSetting.lblAreaDown.Background
-			);
-			if(IsVisible(boxReader))
-				for(auto pr(boxReader.GetChildren()); pr.first != pr.second;
-					++pr.first)
-					if(dynamic_cast<BufferedRenderer*>(
-						&pr.first->GetRenderer()))
-						Invalidate(*pr.first);
-		},
-		FetchEvent<Click>(pnlSetting.btnOK) += exit_session,
-		FetchEvent<Click>(pnlBookmark.btnClose) += exit_session,
-		FetchEvent<Click>(pnlBookmark.btnOK) += [this](CursorEventArgs&&){
-			if(pnlBookmark.lbPosition.IsSelected() && Locate(pnlBookmark
-				.bookmarks[pnlBookmark.lbPosition.GetSelectedIndex()]))
-				boxReader.UpdateData(reader);
-		},
-		FetchEvent<Click>(pnlBookmark.btnOK) += exit_session
+		FillRect(e.Target, Point(pt.X + 1 + round(pb.GetValue() * w / mval),
+			pt.Y + 1), Size(round((reader.GetBottomPosition()
+			- GetReaderPosition()) * w / mval), pb.GetHeight() - 2),
+			ColorSpace::Yellow);
+	},
+	FetchEvent<Click>(pnlSetting.btnClose) += exit_session,
+	FetchEvent<Click>(pnlSetting.btnOK) += [&, this](CursorEventArgs&&){
+		pnlSetting >> CurrentSetting;
+		tmrScroll.Interval = CurrentSetting.GetTimerSetting();
+		Switch(pnlSetting.current_encoding),
+		reader.SetColor(CurrentSetting.FontColor),
+		reader.SetFont(CurrentSetting.Font);
+		reader.UpdateView();
+		yunseq(GetMainDesktop().Background = pnlSetting.lblAreaUp.Background,
+			GetSubDesktop().Background = pnlSetting.lblAreaDown.Background
+		);
+		if(IsVisible(boxReader))
+			for(auto pr(boxReader.GetChildren()); pr.first != pr.second;
+				++pr.first)
+				if(dynamic_cast<BufferedRenderer*>(&pr.first->GetRenderer()))
+					Invalidate(*pr.first);
+	},
+	FetchEvent<Click>(pnlSetting.btnOK) += exit_session,
+	FetchEvent<Click>(pnlBookmark.btnClose) += exit_session,
+	FetchEvent<Click>(pnlBookmark.btnOK) += [this](CursorEventArgs&&){
+		if(pnlBookmark.lbPosition.IsSelected() && Locate(
+			pnlBookmark.bookmarks[pnlBookmark.lbPosition.GetSelectedIndex()]))
+			boxReader.UpdateData(reader);
+	},
+	FetchEvent<Click>(pnlBookmark.btnOK) += exit_session
 	);
 	{
 		Menu& mnu(*(ynew Menu({}, shared_ptr<Menu::ListType>(new
@@ -467,11 +466,11 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	reader.SetColor(CurrentSetting.FontColor),
 	reader.SetFont(CurrentSetting.Font),
 	yunseq(
-		dsk_m.Background = SolidBrush(CurrentSetting.UpColor),
-		dsk_s.Background = SolidBrush(CurrentSetting.DownColor),
-		FetchEvent<Click>(dsk_s).Add(*this, &ShlTextReader::OnClick),
-		FetchEvent<KeyDown>(dsk_s).Add(*this, &ShlTextReader::OnKeyDown),
-		FetchEvent<KeyHeld>(dsk_s) += OnEvent_Call<KeyDown>
+	dsk_m.Background = SolidBrush(CurrentSetting.UpColor),
+	dsk_s.Background = SolidBrush(CurrentSetting.DownColor),
+	FetchEvent<Click>(dsk_s).Add(*this, &ShlTextReader::OnClick),
+	FetchEvent<KeyDown>(dsk_s).Add(*this, &ShlTextReader::OnKeyDown),
+	FetchEvent<KeyHeld>(dsk_s) += OnEvent_Call<KeyDown>
 	);
 	reader.Attach(dsk_m, dsk_s),
 	AddWidgets(dsk_s, boxReader, boxTextInfo, pnlSetting, pnlBookmark);
@@ -770,16 +769,16 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 {
 	HexArea.SetRenderer(make_unique<BufferedRenderer>(true));
 	yunseq(
-		FetchEvent<KeyDown>(HexArea) += [this](KeyEventArgs&& e){
-			if(e.GetKeys() == 1 << KeyCodes::Esc)
-				Exit();
-		},
-		HexArea.ViewChanged += [this](HexViewArea::ViewArgs&&){
-			pnlFileInfo.lblSize.Text = u"当前位置： "
-				+ String(to_string(HexArea.GetModel().GetPosition())
-				+ " / " + to_string(HexArea.GetModel().GetSize()));
-			Invalidate(pnlFileInfo.lblSize);
-		}
+	FetchEvent<KeyDown>(HexArea) += [this](KeyEventArgs&& e){
+		if(e.GetKeys() == 1 << KeyCodes::Esc)
+			Exit();
+	},
+	HexArea.ViewChanged += [this](HexViewArea::ViewArgs&&){
+		pnlFileInfo.lblSize.Text = u"当前位置： "
+			+ String(to_string(HexArea.GetModel().GetPosition())
+			+ " / " + to_string(HexArea.GetModel().GetSize()));
+		Invalidate(pnlFileInfo.lblSize);
+	}
 	);
 
 	auto& dsk_m(GetMainDesktop());
@@ -792,10 +791,12 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 
 	//在 DeSmuME 上无效； iDSL + DSTT 上访问时间精确不到日，修改时间正常。
 	::stat(path_str.c_str(), &file_stat);
-	yunseq(pnlFileInfo.lblAccessTime.Text = u"访问时间："
+	yunseq(
+	pnlFileInfo.lblAccessTime.Text = u"访问时间："
 		+ String(TranslateTime(file_stat.st_atime)),
-		pnlFileInfo.lblModifiedTime.Text = u"修改时间："
-		+ String(TranslateTime(file_stat.st_mtime)));
+	pnlFileInfo.lblModifiedTime.Text = u"修改时间："
+		+ String(TranslateTime(file_stat.st_mtime))
+	);
 	dsk_m += pnlFileInfo;
 	HexArea.Load(path_str.c_str());
 	HexArea.UpdateData(0);

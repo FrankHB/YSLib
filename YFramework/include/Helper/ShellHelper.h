@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1674
+\version r1675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-09-01 22:19 +0800
+	2013-09-07 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,7 +98,7 @@ using EncodingInfoItem = std::pair<Encoding, const ucs2_t*>;
 \brief 编码信息。
 \since build 307
 */
-yconstexpr EncodingInfoItem Encodings[] = {{CharSet::UTF_8, u"UTF-8"},
+yconstexpr EncodingInfoItem Encodings[]{{CharSet::UTF_8, u"UTF-8"},
 	{CharSet::GBK, u"GBK"}, {CharSet::UTF_16BE, u"UTF-16 Big Endian"},
 	{CharSet::UTF_16LE, u"UTF-16 Little Endian"},
 	{CharSet::UTF_32BE, u"UTF-32 Big Endian"},

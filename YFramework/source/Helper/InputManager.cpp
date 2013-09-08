@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r330
+\version r332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-08-05 21:19 +0800
+	2013-09-05 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
 		VisualEvent touch_evt){
 #if YCL_MinGW32
-		if(keyset[YCL_KEY_Touch] || keyset[VK_RBUTTON])
+		if(keyset[YCL_KEY_Touch] || keyset[VK_RBUTTON] || keyset[VK_MBUTTON])
 #else
 		if(keyset[YCL_KEY_Touch])
 #endif

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4329
+\version r4342
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-08 05:37 +0800
+	2013-09-03 15:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,8 +64,8 @@ SetInvalidationOf(IWidget& wgt)
 void
 SetInvalidationToParent(IWidget& wgt)
 {
-	if(const auto pCon = FetchContainerPtr(wgt))
-		pCon->GetRenderer().CommitInvalidation(GetBoundsOf(wgt));
+	if(const auto p_con = FetchContainerPtr(wgt))
+		p_con->GetRenderer().CommitInvalidation(GetBoundsOf(wgt));
 }
 
 void
@@ -116,14 +116,21 @@ Invalidate(IWidget& wgt)
 void
 Invalidate(IWidget& wgt, const Rect& bounds)
 {
-	auto pWgt(&wgt);
+	auto p_wgt(&wgt);
 	Rect r(bounds);
 
 	do
 	{
-		r = pWgt->GetRenderer().CommitInvalidation(r);
-		r.GetPointRef() += GetLocationOf(*pWgt);
-	}while((pWgt = FetchContainerPtr(*pWgt)));
+		r = p_wgt->GetRenderer().CommitInvalidation(r);
+		r.GetPointRef() += GetLocationOf(*p_wgt);
+	}while((p_wgt = FetchContainerPtr(*p_wgt)));
+}
+
+void
+InvalidateParent(IWidget& wgt)
+{
+	if(const auto p_con = FetchContainerPtr(wgt))
+		Invalidate(*p_con, GetBoundsOf(wgt));
 }
 
 void

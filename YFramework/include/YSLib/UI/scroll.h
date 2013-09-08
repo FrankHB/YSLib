@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2629
+\version r2635
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2013-08-05 20:47 +0800
+	2013-09-07 02:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -327,6 +327,12 @@ public:
 	AScrollBar(const Rect& = {}, SDst = 8, Orientation = Horizontal);
 	inline DefDeMoveCtor(AScrollBar)
 
+protected:
+	//! \since build 443
+	void
+	InitializeArrowPainters(Rotation, Rotation);
+
+public:
 	//! \since build 356
 	DefWidgetMemberIteration(btnPrev, btnNext, *pTrack)
 

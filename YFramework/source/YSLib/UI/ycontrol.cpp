@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3843
+\version r3862
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-08-05 21:35 +0800
+	2013-09-07 02:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,10 +46,10 @@ FetchEnabledBoundControlPtr(KeyEventArgs&& e)
 {
 	try
 	{
-		auto pCtl(dynamic_cast<Control&>(e.GetSender()).BoundControlPtr(
+		auto p_ctl(dynamic_cast<Control&>(e.GetSender()).BoundControlPtr(
 			e.GetKeys()));
 
-		return pCtl && IsEnabled(*pCtl) ? pCtl : nullptr;
+		return p_ctl && IsEnabled(*p_ctl) ? p_ctl : nullptr;
 	}
 	catch(std::bad_function_call&)
 	{}
@@ -72,7 +72,7 @@ TouchHeld_DragWidget(IWidget* p = {})
 	//	if(st.LastControlLocation != st.ControlLocation)
 	//	{
 	// TODO: Merge state to make a more efficient implementation.
-		Invalidate(*p);
+		InvalidateParent(*p);
 		SetLocationOf(*p, st.LastControlLocation + st.DraggingOffset);
 	//	}
 	}
@@ -154,11 +154,11 @@ OnTouchHeld_DraggingRaw(CursorEventArgs&& e, IWidget& wgt)
 void
 OnKey_Bound_TouchUp(KeyEventArgs&& e)
 {
-	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
+	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		CursorEventArgs et(*pCtl, e.Keys, CursorEventArgs::Invalid);
+		CursorEventArgs et(*p_ctl, e.Keys, CursorEventArgs::Invalid);
 
-		CallEvent<TouchUp>(*pCtl, et);
+		CallEvent<TouchUp>(*p_ctl, et);
 		e.Handled = true;
 	}
 }
@@ -166,11 +166,11 @@ OnKey_Bound_TouchUp(KeyEventArgs&& e)
 void
 OnKey_Bound_TouchDown(KeyEventArgs&& e)
 {
-	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
+	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		CursorEventArgs et(*pCtl, e.Keys, CursorEventArgs::Invalid);
+		CursorEventArgs et(*p_ctl, e.Keys, CursorEventArgs::Invalid);
 
-		CallEvent<TouchDown>(*pCtl, et);
+		CallEvent<TouchDown>(*p_ctl, et);
 		e.Handled = true;
 	}
 }
@@ -178,11 +178,11 @@ OnKey_Bound_TouchDown(KeyEventArgs&& e)
 void
 OnKey_Bound_Click(KeyEventArgs&& e)
 {
-	if(const auto pCtl = FetchEnabledBoundControlPtr(std::move(e)))
+	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		CursorEventArgs et(*pCtl, e.Keys, CursorEventArgs::Invalid);
+		CursorEventArgs et(*p_ctl, e.Keys, CursorEventArgs::Invalid);
 
-		CallEvent<Click>(*pCtl, et);
+		CallEvent<Click>(*p_ctl, et);
 		e.Handled = true;
 	}
 }
@@ -210,10 +210,12 @@ Control::Control(const Rect& r, NoBackgroundTag)
 
 	FetchGUIState().Wrap(*this),
 	yunseq(
-		FetchEvent<Move>(*this) += h,
-		FetchEvent<Resize>(*this) += h,
-		FetchEvent<GotFocus>(*this) += h,
-		FetchEvent<LostFocus>(*this) += h
+	FetchEvent<Move>(*this) += [this](UIEventArgs&&){
+		InvalidateParent(*this);
+	},
+	FetchEvent<Resize>(*this) += h,
+	FetchEvent<GotFocus>(*this) += h,
+	FetchEvent<LostFocus>(*this) += h
 	);
 }
 Control::Control(const Control& ctl)

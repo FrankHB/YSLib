@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r303
+\version r409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-08-10 18:35 +0800
+	2013-09-07 02:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,107 +104,106 @@ SettingPanel::SettingPanel()
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false),
 	ddlFont.SetList(FetchFontFamilyNames()),
-	ddlEncoding.SetList(share_raw(
-		new TextList::ListType(Encodings | ystdex::get_value,
+	ddlEncoding.SetList(
+		share_raw(new TextList::ListType(Encodings | ystdex::get_value,
 		(Encodings + arrlen(Encodings)) | ystdex::get_value))),
 	yunseq(
-		root.Background = nullptr,
-		btnFontSizeDecrease.Text = u"减小字体",
-		btnFontSizeIncrease.Text = u"增大字体",
-		btnSetUpBack.Text = u"上屏颜色...",
-		btnSetDownBack.Text = u"下屏颜色...",
-		btnTextColor.Text = u"文字颜色...",
-		cbSmoothScroll.Text = u"平滑滚屏",
-	//	FetchEvent<Paint>(lblColorAreaUp).Add(BorderBrush(BorderStyle),
-	//		BoundaryPriority),
-	//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
-	//		BoundaryPriority),
-		FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
-		FetchEvent<KeyHeld>(*this) += OnEvent_StopRouting<KeyEventArgs>,
-		FetchEvent<Click>(btnFontSizeDecrease)
-			+= [this, set_font_size](CursorEventArgs&&){
-			auto size(lblAreaUp.Font.GetSize());
+	root.Background = nullptr,
+	btnFontSizeDecrease.Text = u"减小字体",
+	btnFontSizeIncrease.Text = u"增大字体",
+	btnSetUpBack.Text = u"上屏颜色...",
+	btnSetDownBack.Text = u"下屏颜色...",
+	btnTextColor.Text = u"文字颜色...",
+	cbSmoothScroll.Text = u"平滑滚屏",
+//	FetchEvent<Paint>(lblColorAreaUp).Add(BorderBrush(BorderStyle),
+//		BoundaryPriority),
+//	FetchEvent<Paint>(lblColorAreaDown).Add(BorderBrush(BorderStyle),
+//		BoundaryPriority),
+	FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
+	FetchEvent<KeyHeld>(*this) += OnEvent_StopRouting<KeyEventArgs>,
+	FetchEvent<Click>(btnFontSizeDecrease)
+		+= [this, set_font_size](CursorEventArgs&&){
+		auto size(lblAreaUp.Font.GetSize());
 
-			if(YB_LIKELY(size > Font::MinimalSize))
-				set_font_size(--size);
-		},
-		FetchEvent<Click>(btnFontSizeIncrease)
-			+= [this, set_font_size](CursorEventArgs&&){
-			auto size(lblAreaUp.Font.GetSize());
+		if(YB_LIKELY(size > Font::MinimalSize))
+			set_font_size(--size);
+	},
+	FetchEvent<Click>(btnFontSizeIncrease)
+		+= [this, set_font_size](CursorEventArgs&&){
+		auto size(lblAreaUp.Font.GetSize());
 
-			if(YB_LIKELY(size < Font::MaximalSize))
-				set_font_size(++size);
-		},
-		FetchEvent<Click>(btnTextColor) += [this](CursorEventArgs&&){
-			boxColor.SetColor(*(pColor = &lblAreaUp.ForeColor));
-			Show(boxColor);
-		},
-		FetchEvent<Click>(btnSetUpBack) += [this](CursorEventArgs&&){
-			boxColor.SetColor(*(pColor
-				= &lblAreaUp.Background.target<SolidBrush>()->Color));
-			Show(boxColor);
-		},
-		FetchEvent<Click>(btnSetDownBack) += [this](CursorEventArgs&&){
-			boxColor.SetColor(*(pColor
-				= &lblAreaDown.Background.target<SolidBrush>()->Color));
-			Show(boxColor);
-		},
-		ddlFont.GetConfirmed() += [&, this](IndexEventArgs&&){
-			if(const auto p = FetchDefaultFontCache()
-				.GetFontFamilyPtr(ddlFont.Text.GetMBCS().c_str()))
-			{
-				lblAreaUp.Font = Font(*p, lblAreaUp.Font.GetSize());
-				lblAreaDown.Font = lblAreaUp.Font;
-				Invalidate(lblAreaUp),
-				Invalidate(lblAreaDown);
-			}
-		},
-		ddlEncoding.GetConfirmed() += [this](IndexEventArgs&& e){
-			yunseq(current_encoding = Encodings[e.Value].first,
-				lblAreaDown.Text = FetchEncodingString(e.Value)),
+		if(YB_LIKELY(size < Font::MaximalSize))
+			set_font_size(++size);
+	},
+	FetchEvent<Click>(btnTextColor) += [this](CursorEventArgs&&){
+		boxColor.SetColor(*(pColor = &lblAreaUp.ForeColor));
+		Show(boxColor);
+	},
+	FetchEvent<Click>(btnSetUpBack) += [this](CursorEventArgs&&){
+		boxColor.SetColor(
+			*(pColor = &lblAreaUp.Background.target<SolidBrush>()->Color));
+		Show(boxColor);
+	},
+	FetchEvent<Click>(btnSetDownBack) += [this](CursorEventArgs&&){
+		boxColor.SetColor(
+			*(pColor = &lblAreaDown.Background.target<SolidBrush>()->Color));
+		Show(boxColor);
+	},
+	ddlFont.GetConfirmed() += [&, this](IndexEventArgs&&){
+		if(const auto p = FetchDefaultFontCache()
+			.GetFontFamilyPtr(ddlFont.Text.GetMBCS().c_str()))
+		{
+			lblAreaUp.Font = Font(*p, lblAreaUp.Font.GetSize());
+			lblAreaDown.Font = lblAreaUp.Font;
+			Invalidate(lblAreaUp),
 			Invalidate(lblAreaDown);
-		},
-		cbSmoothScroll.GetTicked() += [&, this](CheckBox::TickedArgs&& e){
-			using ystdex::get_init;
-
-			static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
-			{
-				const auto postfix(is_smooth ? u"毫秒/像素行" : u"毫秒/文本行");
-				auto& lst(*new TextList::ListType(20U));
-				const u16 delta(is_smooth ? 10 : 100);
-				u16 t(0);
-
-				std::generate(lst.begin(), lst.end(), [&, is_smooth, delta]{
-					return String(to_string(t += delta)) + postfix;
-				});
-				return share_raw(&lst);
-			});
-
-			ddlScrollTiming.SetList(e.Value ? get_init<true>(
-				fetch_scroll_durations, true) : get_init<false>(
-				fetch_scroll_durations, false));
-			ddlScrollTiming.Text = ddlScrollTiming.GetList()[(e.Value
-				? smooth_scroll_duration.count() / 10U : scroll_duration.count()
-				/ 100U) - 1U],
-			Invalidate(ddlScrollTiming);
-		},
-		ddlScrollTiming.GetConfirmed() += [&, this](IndexEventArgs&& e){
-			if(cbSmoothScroll.IsTicked())
-				smooth_scroll_duration = milliseconds((e.Value + 1U) * 10);
-			else
-				scroll_duration = milliseconds((e.Value + 1U) * 100);
-		},
-		FetchEvent<TouchHeld>(boxColor) += OnTouchHeld_Dragging,
-		FetchEvent<Click>(boxColor.btnOK) += [this](CursorEventArgs&&){
-			if(pColor)
-			{
-				// TODO: Determine less area to be invalidated.
-				*pColor = boxColor.GetColor();
-				lblAreaDown.ForeColor = lblAreaUp.ForeColor;
-				Invalidate(lblAreaUp), Invalidate(lblAreaDown);
-				pColor = {};
-			}
 		}
+	},
+	ddlEncoding.GetConfirmed() += [this](IndexEventArgs&& e){
+		yunseq(current_encoding = Encodings[e.Value].first,
+			lblAreaDown.Text = FetchEncodingString(e.Value)),
+		Invalidate(lblAreaDown);
+	},
+	cbSmoothScroll.GetTicked() += [&, this](CheckBox::TickedArgs&& e){
+		using ystdex::get_init;
+
+		static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
+		{
+			const auto postfix(is_smooth ? u"毫秒/像素行" : u"毫秒/文本行");
+			auto& lst(*new TextList::ListType(20U));
+			const u16 delta(is_smooth ? 10 : 100);
+			u16 t(0);
+
+			std::generate(lst.begin(), lst.end(), [&, is_smooth, delta]{
+				return String(to_string(t += delta)) + postfix;
+			});
+			return share_raw(&lst);
+		});
+
+		ddlScrollTiming.SetList(e.Value ? get_init<true>(fetch_scroll_durations,
+			true) : get_init<false>(fetch_scroll_durations, false));
+		ddlScrollTiming.Text = ddlScrollTiming.GetList()[(e.Value
+			? smooth_scroll_duration.count() / 10U : scroll_duration.count()
+			/ 100U) - 1U],
+		Invalidate(ddlScrollTiming);
+	},
+	ddlScrollTiming.GetConfirmed() += [&, this](IndexEventArgs&& e){
+		if(cbSmoothScroll.IsTicked())
+			smooth_scroll_duration = milliseconds((e.Value + 1U) * 10);
+		else
+			scroll_duration = milliseconds((e.Value + 1U) * 100);
+	},
+	FetchEvent<TouchHeld>(boxColor) += OnTouchHeld_Dragging,
+	FetchEvent<Click>(boxColor.btnOK) += [this](CursorEventArgs&&){
+		if(pColor)
+		{
+			// TODO: Determine less area to be invalidated.
+			*pColor = boxColor.GetColor();
+			lblAreaDown.ForeColor = lblAreaUp.ForeColor;
+			Invalidate(lblAreaUp), Invalidate(lblAreaDown);
+			pColor = {};
+		}
+	}
 	);
 }
 
@@ -215,15 +214,17 @@ SettingPanel::operator<<(const ReaderSetting& s)
 	DeclDynWidgetNode(DropDownList, ddlFont)
 	DeclDynWidgetNode(CheckButton, cbSmoothScroll)
 
-	yunseq(lblAreaUp.ForeColor = s.FontColor,
-		lblAreaUp.Background = SolidBrush(s.UpColor),
-		lblAreaUp.Font = s.Font,
-		lblAreaDown.ForeColor = s.FontColor,
-		lblAreaDown.Background = SolidBrush(s.DownColor),
-		lblAreaDown.Font = s.Font,
-		ddlFont.Text = s.Font.GetFamilyName(),
-		scroll_duration = s.ScrollDuration,
-		smooth_scroll_duration = s.SmoothScrollDuration),
+	yunseq(
+	lblAreaUp.ForeColor = s.FontColor,
+	lblAreaUp.Background = SolidBrush(s.UpColor),
+	lblAreaUp.Font = s.Font,
+	lblAreaDown.ForeColor = s.FontColor,
+	lblAreaDown.Background = SolidBrush(s.DownColor),
+	lblAreaDown.Font = s.Font,
+	ddlFont.Text = s.Font.GetFamilyName(),
+	scroll_duration = s.ScrollDuration,
+	smooth_scroll_duration = s.SmoothScrollDuration
+	),
 	cbSmoothScroll.Tick(s.SmoothScroll);
 	UpdateInfo();
 	return *this;

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1093
+\version r1148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2013-08-05 21:36 +0800
+	2013-09-07 02:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,58 +47,58 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	Margin = Padding(6, 18, 4, 4);
 	CyclicTraverse = true;
 	yunseq(
-		FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
-			if(pHost)
-			{
-				const auto& k(e.GetKeys());
+	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
+		if(pHost)
+		{
+			const auto& k(e.GetKeys());
 
-				if(k.count() == 1)
+			if(k.count() == 1)
+			{
+				if(k[KeyCodes::Right])
 				{
-					if(k[KeyCodes::Right])
-					{
-						if(IsSelected())
-							if(const auto pMnu = ShowSub(GetSelectedIndex()))
-								pMnu->SelectFirst();
-					}
-					else if(k[KeyCodes::Left] || k[KeyCodes::Esc])
-					{
-						if(const auto pMnu = GetParentPtr())
-							RequestFocus(*pMnu);
-						else if(k[KeyCodes::Esc])
-							Hide();
-					}
+					if(IsSelected())
+						if(const auto pMnu = ShowSub(GetSelectedIndex()))
+							pMnu->SelectFirst();
+				}
+				else if(k[KeyCodes::Left] || k[KeyCodes::Esc])
+				{
+					if(const auto pMnu = GetParentPtr())
+						RequestFocus(*pMnu);
+					else if(k[KeyCodes::Esc])
+						Hide();
 				}
 			}
-		},
-		FetchEvent<LostFocus>(*this) += [this](UIEventArgs&& e){
-			if(pHost)
+		}
+	},
+	FetchEvent<LostFocus>(*this) += [this](UIEventArgs&& e){
+		if(pHost)
+		{
 			{
-				{
-					const auto i(pHost->Roots.find(&e.GetSender()));
+				const auto i(pHost->Roots.find(&e.GetSender()));
 
-					if(i != pHost->Roots.end())
-					{
-						auto pMnu(this);
-
-						while(const auto pParent = pMnu->GetParentPtr())
-							pMnu = pParent;
-						if(i->second == pMnu->id)
-							return;
-					}
-				}
-				if(const auto pMnu = dynamic_cast<Menu*>(&e.GetSender()))
+				if(i != pHost->Roots.end())
 				{
-					if(pMnu->GetParentPtr() != this)
-						pHost->HideUnrelated(*this, *pMnu);
+					auto pMnu(this);
+
+					while(const auto pParent = pMnu->GetParentPtr())
+						pMnu = pParent;
+					if(i->second == pMnu->id)
+						return;
 				}
-				else
-					pHost->HideAll();
 			}
-		},
-		GetConfirmed() += [this](IndexEventArgs&& e){
-			if(Contains(e) && pHost && !ShowSub(e.Value))
+			if(const auto pMnu = dynamic_cast<Menu*>(&e.GetSender()))
+			{
+				if(pMnu->GetParentPtr() != this)
+					pHost->HideUnrelated(*this, *pMnu);
+			}
+			else
 				pHost->HideAll();
 		}
+	},
+	GetConfirmed() += [this](IndexEventArgs&& e){
+		if(Contains(e) && pHost && !ShowSub(e.Value))
+			pHost->HideAll();
+	}
 	);
 	//刷新文本状态，防止第一次绘制前不确定文本间距，无法正确根据内容重设大小。
 	RefreshTextState();

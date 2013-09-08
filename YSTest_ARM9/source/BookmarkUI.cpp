@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r174
+\version r198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-08-05 21:59 +0800
+	2013-09-07 02:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,35 +92,35 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 
 	AddWidgets(*this, lbPosition, btnAdd, btnRemove),
 	yunseq(
-		btnAdd.Text = u"+",
-		btnRemove.Text = u"-",
-		FetchEvent<KeyDown>(lbPosition) += stop_routing_after_direct,
-		FetchEvent<KeyHeld>(lbPosition) += stop_routing_after_direct,
-		FetchEvent<Click>(btnOK) += [this](CursorEventArgs&&){
-			bookmarks = ConvertToBookmarkList(lbPosition.GetList());
-		},
-		FetchEvent<Click>(btnAdd) += [this](CursorEventArgs&&){
-			auto& lst(lbPosition.GetListRef());
-			auto idx(GetSelected());
+	btnAdd.Text = u"+",
+	btnRemove.Text = u"-",
+	FetchEvent<KeyDown>(lbPosition) += stop_routing_after_direct,
+	FetchEvent<KeyHeld>(lbPosition) += stop_routing_after_direct,
+	FetchEvent<Click>(btnOK) += [this](CursorEventArgs&&){
+		bookmarks = ConvertToBookmarkList(lbPosition.GetList());
+	},
+	FetchEvent<Click>(btnAdd) += [this](CursorEventArgs&&){
+		auto& lst(lbPosition.GetListRef());
+		auto idx(GetSelected());
 
-			if(idx < 0)
-				idx = lst.size();
-			lst.insert(lst.begin() + idx, String(
-				ConvertToUIString(shell.get().GetReaderPosition(), shell)));
+		if(idx < 0)
+			idx = lst.size();
+		lst.insert(lst.begin() + idx,
+			String(ConvertToUIString(shell.get().GetReaderPosition(), shell)));
+		lbPosition.AdjustViewForContent();
+		lbPosition.UpdateView();
+	},
+	FetchEvent<Click>(btnRemove) += [this](CursorEventArgs&&){
+		auto& lst(lbPosition.GetListRef());
+		const auto idx(GetSelected());
+
+		if(idx >= 0)
+		{
+			lst.erase(lst.begin() + idx);
 			lbPosition.AdjustViewForContent();
 			lbPosition.UpdateView();
-		},
-		FetchEvent<Click>(btnRemove) += [this](CursorEventArgs&&){
-			auto& lst(lbPosition.GetListRef());
-			const auto idx(GetSelected());
-
-			if(idx >= 0)
-			{
-				lst.erase(lst.begin() + idx);
-				lbPosition.AdjustViewForContent();
-				lbPosition.UpdateView();
-			}
 		}
+	}
 	);
 }
 

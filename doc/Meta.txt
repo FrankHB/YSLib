@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r689
+\version r713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-09-01 01:28 +0800
+	2013-09-06 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,8 +67,6 @@ $dep_to; // put evaluation dependence to;
 $label; // label for locating in code portions;
 
 // Project operations:
-$design; // features changing probably only made sense to who needs to \
-	reference or modify the implementation;
 $dev; // issues concerned by developers, which end-users could ignore without \
 	risk if the code with no undefined behavior (including compile-time \
 	characteristics such as static assertions but not runtime observative \
@@ -78,6 +76,8 @@ $lib; // issues only concerned with library(only implementation changing, \
 	provided, no current code would be broken (except for which has undefined \
 	behavior), so no need for library users to modify code behavior using the \
 	library interface to adapt to the upgrading), regaradless of output targets;
+$design; // features changing probably only made sense to who needs to \
+	reference or modify the implementation;
 $build; // issues on build, such as build scripts and diagnostic messages;
 $install; // issues on installing;
 $deploy; // issues on deployment(including build environment requirement);
@@ -441,8 +441,28 @@ $module_tree $=
 			),
 			'UI'
 			(
-				'GUI',
-				'UI styles'
+				'YComponent',
+				'YRenderer'
+				'YWidgetEvent'
+				'YWidget',
+				'YControl',
+				'YUIContainer',
+				'YPanel',
+				'YBrush',
+				'YStyle',
+				'YGUI',
+				'YWindow',
+				'YDesktop',
+				'Label',
+				'Button',
+				'Border',
+				'Scroll',
+				'Selector',
+				'Progress',
+				'ComboList',
+				'UIContainerEx',
+				'Form',
+				'Console'
 			)
 		)
 		'Helper'

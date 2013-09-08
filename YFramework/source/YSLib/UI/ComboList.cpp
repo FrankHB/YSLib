@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3096
+\version r3151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2013-08-05 21:37 +0800
+	2013-09-07 02:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,59 +184,57 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 	});
 
 	yunseq(
-		Margin.Left = 4,
-		Margin.Right = 18,
-		HorizontalAlignment = TextAlignment::Left,
-		lbContent.GetView().DependencyPtr = this,
-		FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
-			if(!FetchContainerPtr(lbContent))
+	Margin.Left = 4,
+	Margin.Right = 18,
+	HorizontalAlignment = TextAlignment::Left,
+	lbContent.GetView().DependencyPtr = this,
+	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
+		if(!FetchContainerPtr(lbContent))
+		{
+			Point pt;
+
+			if(const auto p = dynamic_cast<Panel*>(&FetchTopLevel(*this, pt)))
 			{
-				Point pt;
+				// NOTE: Get height of top widget, top and bottom spaces.
+				const SDst h0(GetSizeOf(*p).Height);
+				const SDst h1(max<SPos>(0, pt.Y)), h2(max<SPos>(0, h0 - pt.Y
+					- GetHeight()));
 
-				if(const auto p = dynamic_cast<Panel*>(
-					&FetchTopLevel(*this, pt)))
+				if(IsInOpenInterval(h1, h0) || IsInOpenInterval(h2, h0))
 				{
-					// NOTE: Get height of top widget, top and bottom spaces.
-					const SDst h0(GetSizeOf(*p).Height);
-					const SDst h1(max<SPos>(0, pt.Y)), h2(max<SPos>(0, h0 - pt.Y
-						- GetHeight()));
+					lbContent.ResizeForPreferred(Size(0, max(h1, h2)),
+						Size(GetWidth(), 0));
 
-					if(IsInOpenInterval(h1, h0) || IsInOpenInterval(h2, h0))
+					const SDst h(lbContent.GetHeight());
+
+					// NOTE: Bottom space is preferred.
+					pt.Y += h2 < h ? -h : GetHeight();
+					SetLocationOf(lbContent, pt);
+					lbContent.AdjustViewLength();
 					{
-						lbContent.ResizeForPreferred(Size(0, max(h1, h2)),
-							Size(GetWidth(), 0));
+						const auto idx(lbContent.Find(Text));
 
-						const SDst h(lbContent.GetHeight());
-
-						// NOTE: Bottom space is preferred.
-						pt.Y += h2 < h ? -h : GetHeight();
-						SetLocationOf(lbContent, pt);
-						lbContent.AdjustViewLength();
-						{
-							const auto idx(lbContent.Find(Text));
-
-							if(idx + 1 != 0)
-								lbContent.SetSelected(idx);
-							else
-								lbContent.ClearSelected();
-						}
-						p->Add(lbContent, 224U); // TODO: Use non-magic number.
-						RequestFocus(lbContent);
-						e.Handled = true;
+						if(idx + 1 != 0)
+							lbContent.SetSelected(idx);
+						else
+							lbContent.ClearSelected();
 					}
+					p->Add(lbContent, 224U); // TODO: Use non-magic number.
+					RequestFocus(lbContent);
+					e.Handled = true;
 				}
 			}
-		},
-		FetchEvent<LostFocus>(*this) += detacher,
-		FetchEvent<LostFocus>(lbContent) += detacher,
-		lbContent.GetConfirmed() += [this](IndexEventArgs&& e){
-			YAssert(e.Value < lbContent.GetList().size(),
-				"Invalid index found.");
-
-			Text = lbContent.GetList()[e.Value];
-			Invalidate(*this),
-			DetachTopWidget();
 		}
+	},
+	FetchEvent<LostFocus>(*this) += detacher,
+	FetchEvent<LostFocus>(lbContent) += detacher,
+	lbContent.GetConfirmed() += [this](IndexEventArgs&& e){
+		YAssert(e.Value < lbContent.GetList().size(), "Invalid index found.");
+
+		Text = lbContent.GetList()[e.Value];
+		Invalidate(*this),
+		DetachTopWidget();
+	}
 	);
 }
 DropDownList::~DropDownList()

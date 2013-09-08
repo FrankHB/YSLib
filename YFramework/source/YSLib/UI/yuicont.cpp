@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1641
+\version r1658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2013-08-08 05:38 +0800
+	2013-09-03 15:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,33 +36,33 @@ namespace UI
 IWidget&
 FetchTopLevel(IWidget& wgt)
 {
-	auto pWgt(&wgt);
+	auto p_wgt(&wgt);
 
-	while(const auto p = FetchContainerPtr(*pWgt))
-		pWgt = p;
-	return *pWgt;
+	while(const auto p = FetchContainerPtr(*p_wgt))
+		p_wgt = p;
+	return *p_wgt;
 }
 IWidget&
 FetchTopLevel(IWidget& wgt, Point& pt)
 {
-	auto pWgt(&wgt);
+	auto p_wgt(&wgt);
 
-	while(const auto p = FetchContainerPtr(*pWgt))
+	while(const auto p = FetchContainerPtr(*p_wgt))
 	{
-		pt += GetLocationOf(*pWgt);
-		pWgt = p;
+		pt += GetLocationOf(*p_wgt);
+		p_wgt = p;
 	}
-	return *pWgt;
+	return *p_wgt;
 }
 
 
 Point
-LocateOffset(const IWidget* pEnd, Point pt, const IWidget* pWgt)
+LocateOffset(const IWidget* p_end, Point pt, const IWidget* p_wgt)
 {
-	while(pWgt && pWgt != pEnd)
+	while(p_wgt && p_wgt != p_end)
 	{
-		pt += GetLocationOf(*pWgt);
-		pWgt = FetchContainerPtr(*pWgt);
+		pt += GetLocationOf(*p_wgt);
+		p_wgt = FetchContainerPtr(*p_wgt);
 	}
 	return pt;
 }
@@ -196,10 +196,10 @@ MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 	using ystdex::get_value;
 
 	std::for_each(mWidgets.begin() | get_value, mWidgets.end() | get_value,
-		[&](IWidget* const& pWgt){
-		YAssert(pWgt, "Null pointer found.");
+		[&](IWidget* const& p_wgt){
+		YAssert(p_wgt, "Null pointer found.");
 
-		auto& wgt(*pWgt);
+		auto& wgt(*p_wgt);
 
 		if(UI::IsVisible(wgt))
 			e.ClipArea |= PaintChild(wgt, e);

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r662
+\version r665
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-08-05 21:33 +0800
+	2013-09-07 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,8 +197,8 @@ HSLToColor(hsl_t c)
 
 	mid_t t2((c.l < 0.5 ? c.l * (1 + c.s) : (c.l + c.s - c.l * c.s)) * 0x100),
 		t1((c.l * 0x200) - t2);
-	mid_t tmp[3] = {c.h + 120, c.h, c.h - 120}; \
-		// tmp 每个元素对应一个 RGB 分量，值 360 对应一个圆周。
+	mid_t tmp[3]{c.h + 120, c.h, c.h - 120}; \
+		// 每个元素对应一个 RGB 分量，值 360 对应一个圆周。
 	float dc[3]; //对应 RGB 分量。
 
 	for(size_t i(0); i < 3; ++i)

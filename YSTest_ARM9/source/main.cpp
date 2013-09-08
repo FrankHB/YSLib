@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1748
+\version r1757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-08-05 22:00 +0800
+	2013-09-07 02:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -249,14 +249,14 @@ main()
 				AddWidgets(dsk_m, lblTitle, lblStatus, pb);
 				dsk_s += lblDetails;
 				yunseq(
-					dsk_m.Background = SolidBrush(Color(240, 216, 192)),
-					dsk_s.Background
-						= SolidBrush(FetchGUIState().Colors[Styles::Desktop]),
-					//Color(240, 216, 240),
-					lblTitle.Text = G_APP_NAME,
-					lblStatus.Text = u"Now loading...",
-					lblDetails.Text = u"初始化中，请稍后……",
-					lblDetails.ForeColor = Drawing::ColorSpace::White
+				dsk_m.Background = SolidBrush(Color(240, 216, 192)),
+				dsk_s.Background
+					= SolidBrush(FetchGUIState().Colors[Styles::Desktop]),
+				//Color(240, 216, 240),
+				lblTitle.Text = G_APP_NAME,
+				lblStatus.Text = u"Now loading...",
+				lblDetails.Text = u"初始化中，请稍后……",
+				lblDetails.ForeColor = Drawing::ColorSpace::White
 				);
 				lblDetails.Background = nullptr;
 				SetInvalidationOf(dsk_m);
