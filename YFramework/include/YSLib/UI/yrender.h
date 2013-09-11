@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r596
+\version r599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2013-08-08 05:37 +0800
+	2013-09-09 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,6 +85,7 @@ public:
 
 /*!
 \brief 带缓冲的部件渲染器。
+\note 除了明确可能导致缓冲区失效的操作，缓冲区指针保持不变。
 \since build 237
 
 缓冲渲染策略：保存部件渲染状态和有效的图形接口上下文。
@@ -137,6 +138,7 @@ public:
 
 	/*!
 	\brief 设置缓冲区大小。
+	\warning 可能导致原缓冲区指针失效。
 	*/
 	void
 	SetSize(const Size&) override;

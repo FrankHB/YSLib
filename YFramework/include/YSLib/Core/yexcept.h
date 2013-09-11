@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r364
+\version r378
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2013-08-05 21:00 +0800
+	2013-09-09 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,15 +36,24 @@
 namespace YSLib
 {
 
-//! \brief YSLib 异常基类。
+/*!
+\ingroup exception_types
+\brief YSLib 异常基类。
+*/
 using Exception = std::exception;
 
 
-//! \brief 一般运行时异常事件类。
+/*!
+\ingroup exception_types
+\brief 一般运行时异常事件类。
+*/
 using GeneralEvent = std::runtime_error;
 
 
-//记录异常事件类。
+/*!
+\ingroup exception_types
+\brief 记录日志的异常事件类。
+*/
 class YF_API LoggedEvent : public GeneralEvent
 {
 public:
@@ -74,6 +83,7 @@ public:
 
 
 /*!
+\ingroup exception_types
 \brief 非日志记录的致命错误。
 \since build 332
 */

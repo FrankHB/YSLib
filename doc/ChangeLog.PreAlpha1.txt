@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r281
+\version r283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-07-01 19:01 +0800
+	2013-09-09 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -214,7 +214,8 @@ b159_b169
 (
 	+ "controls: buttons" @ "classes %(YThumb, YButton)",
 	+ "controls: listbox class",
-	+ "event mapping"
+	+ "event mapping",
+	+ "last control location state"
 ),
 
 b134_b158

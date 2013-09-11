@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r397
+\version r399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-08-27 18:55 +0800
+	2013-09-10 10:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -266,7 +266,7 @@ split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
 /*!
 \brief 转换为字符串。
 \note 可与 <tt>std::to_string</tt> 共用以避免某些类型转换警告，
-	如 g++ 的 [-Wsign-promo] 。
+	如 G++ 的 [-Wsign-promo] 。
 \since build 308
 */
 //@{

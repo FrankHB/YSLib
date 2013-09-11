@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r550
+\version r559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-08 05:38 +0800
+	2013-09-08 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,7 @@ protected:
 
 /*!
 \brief 可视状态。
+\note 成员使用非虚 \c public 实现。
 \warning 非虚析构。
 \since build 168
 */
@@ -89,25 +90,21 @@ public:
 	DefSetter(bool, Visible, visible)
 	/*!
 	\brief 设置位置：横坐标。
-	\note 非虚 \c public 实现。
 	*/
 	PDefH(void, SetX, SPos x)
 		ImplBodyBase(Visual, SetLocation, Point(x, GetY()))
 	/*!
 	\brief 设置位置：纵坐标。
-	\note 非虚 \c public 实现。
 	*/
 	PDefH(void, SetY, SPos y)
 		ImplBodyBase(Visual, SetLocation, Point(GetX(), y))
 	/*!
 	\brief 设置大小：宽。
-	\note 非虚 \c public 实现。
 	*/
 	PDefH(void, SetWidth, SDst w)
 		ImplBodyBase(Visual, SetSize, Size(w, GetHeight()))
 	/*!
 	\brief 设置大小：高。
-	\note 非虚 \c public 实现。
 	*/
 	PDefH(void, SetHeight, SDst h)
 		ImplBodyBase(Visual, SetSize, Size(GetWidth(), h))
@@ -117,18 +114,15 @@ public:
 	DefSetter(const Point&, Location, location)
 	/*!
 	\brief 设置位置。
-	\note 非虚 \c public 实现。
 	*/
 	PDefH(void, SetLocation, SPos x, SPos y)
 		ImplBodyBase(Visual, SetLocation, Point(x, y))
 	/*!
 	\brief 设置大小。
-	\note 虚 \c public 实现。
 	*/
 	DefSetter(const Size&, Size, size)
 	/*!
 	\brief 设置大小。
-	\note 非虚 \c public 实现。
 	*/
 	PDefH(void, SetSize, SDst w, SDst h)
 		ImplBodyBase(Visual, SetSize, Size(w, h))

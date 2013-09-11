@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1835
+\version r1860
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2013-08-05 21:00 +0800
+	2013-09-09 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -279,6 +279,34 @@ public:
 	*/
 	void
 	Remove(Priority);
+};
+
+
+/*!
+\ingroup exception_types
+\brief 消息异常。
+\since build 444
+*/
+class YF_API MessageException : public LoggedEvent
+{
+public:
+	MessageException(const std::string& msg = "")
+		: LoggedEvent(msg)
+	{}
+};
+
+
+/*!
+\ingroup exception_types
+\brief 消息信号：表示单一处理中断的异常。
+\since build 444
+*/
+class YF_API MessageSignal : public MessageException
+{
+public:
+	MessageSignal(const std::string& msg = "")
+		: MessageException(msg)
+	{}
 };
 
 } // namespace Messaging;

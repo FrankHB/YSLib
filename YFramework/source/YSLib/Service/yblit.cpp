@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1051
+\version r1053
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-08-23 10:16 +0800
+	2013-09-11 08:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ BlitBounds(const Point& dp, const Point& sp,
 	const Size& ds, const Size& ss, const Size& sc,
 	SDst& min_x, SDst& min_y, SDst& delta_x, SDst& delta_y)
 {
-	SDst max_x, max_y;
+	SPos max_x, max_y;
 
 	yunseq(min_x = blit_min(dp.X), min_y = blit_min(dp.Y),
 		max_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),

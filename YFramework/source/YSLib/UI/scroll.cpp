@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3612
+\version r3614
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-09-07 02:32 +0800
+	2013-09-09 00:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -297,7 +297,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 
 			if(st.CheckDraggingOffset())
 			{
-				SPos x(st.LastControlLocation.X + st.DraggingOffset.X);
+				SPos x(st.ControlLocation.X + st.DraggingOffset.X);
 
 				RestrictInClosedInterval(x, 0,
 					GetWidth() - tmbScroll.GetWidth());
@@ -322,7 +322,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 
 			if(st.CheckDraggingOffset())
 			{
-				SPos y(st.LastControlLocation.Y + st.DraggingOffset.Y);
+				SPos y(st.ControlLocation.Y + st.DraggingOffset.Y);
 
 				RestrictInClosedInterval(y, 0,
 					GetHeight() - tmbScroll.GetHeight());

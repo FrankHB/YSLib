@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1578
+\version r1580
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2013-08-05 20:50 +0800
+	2013-09-09 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,6 +75,7 @@ public:
 	/*!
 	\brief 处理消息：分发消息。
 	\pre 断言：当前 Shell 句柄有效。
+	\exception 捕获并忽略 Messaging::MessageSignal ，其它异常中立。
 	\since build 317
 	*/
 	void

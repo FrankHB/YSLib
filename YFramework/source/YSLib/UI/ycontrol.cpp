@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3862
+\version r3873
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-09-07 02:48 +0800
+	2013-09-11 08:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,13 +68,10 @@ TouchHeld_DragWidget(IWidget* p = {})
 		p = st.GetTouchDownPtr();
 	if(st.CheckDraggingOffset(p))
 	{
-	// TODO: Analyze buffered coordinate delayed painting bug.
-	//	if(st.LastControlLocation != st.ControlLocation)
-	//	{
+	// TODO: Compare subsequent states to make a more efficient implementation.
 	// TODO: Merge state to make a more efficient implementation.
 		InvalidateParent(*p);
-		SetLocationOf(*p, st.LastControlLocation + st.DraggingOffset);
-	//	}
+		SetLocationOf(*p, st.ControlLocation + st.DraggingOffset);
 	}
 }
 
@@ -139,14 +136,14 @@ OnTouchHeld(CursorEventArgs&& e)
 void
 OnTouchHeld_Dragging(CursorEventArgs&& e)
 {
-	if(e.Strategy == RoutedEventArgs::Direct)
+	if(e.Strategy == RoutedEventArgs::Direct && !e.Handled)
 		TouchHeld_DragWidget();
 }
 
 void
 OnTouchHeld_DraggingRaw(CursorEventArgs&& e, IWidget& wgt)
 {
-	if(e.Strategy == RoutedEventArgs::Direct)
+	if(e.Strategy == RoutedEventArgs::Direct && !e.Handled)
 		TouchHeld_DragWidget(&wgt);
 }
 
@@ -156,7 +153,7 @@ OnKey_Bound_TouchUp(KeyEventArgs&& e)
 {
 	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		CursorEventArgs et(*p_ctl, e.Keys, CursorEventArgs::Invalid);
+		CursorEventArgs et(*p_ctl, e.Keys, Point::Invalid);
 
 		CallEvent<TouchUp>(*p_ctl, et);
 		e.Handled = true;
@@ -168,7 +165,7 @@ OnKey_Bound_TouchDown(KeyEventArgs&& e)
 {
 	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		CursorEventArgs et(*p_ctl, e.Keys, CursorEventArgs::Invalid);
+		CursorEventArgs et(*p_ctl, e.Keys, Point::Invalid);
 
 		CallEvent<TouchDown>(*p_ctl, et);
 		e.Handled = true;
@@ -180,7 +177,7 @@ OnKey_Bound_Click(KeyEventArgs&& e)
 {
 	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
 	{
-		CursorEventArgs et(*p_ctl, e.Keys, CursorEventArgs::Invalid);
+		CursorEventArgs et(*p_ctl, e.Keys, Point::Invalid);
 
 		CallEvent<Click>(*p_ctl, et);
 		e.Handled = true;

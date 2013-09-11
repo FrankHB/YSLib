@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r134
+\version r137
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-08-13 11:52 +0800
+	2013-09-11 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define INC_YReader_ShlExplorer_h_ 1
 
 #include "About.h"
+#include <YSLib/UI/Border.h>
 
 namespace YReader
 {
@@ -49,6 +50,8 @@ class ShlExplorer : public ShlDS
 private:
 	//! \since build 437
 	CheckButton* p_ChkFPS{};
+	//! \since build 444
+	unique_ptr<BorderResizer> p_border{};
 
 protected:
 	//! \since build 436

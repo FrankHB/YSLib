@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3122
+\version r3167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-09-08 20:17 +0800
+	2013-09-11 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,52 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ "dragging and touch held handler implementation"
+			@ %('YSLib'.'UI', 'Helper'.'HostedUI') ^ "%GUIState::\
+			ControlLocation" ~ "%GUIState::LastControlLocation";
+		/ %'UI' $=
+		(
+			- $revert(b169) "last control location"
+				// To prevent potential misuse of last location during \
+					different widgets independently focused by common GUI state.
+				$= (- "data member %LastControlLocation" @ "class %GUIState"
+					@ %'YSLib'.'UI'),
+			/ %'YWidgetEvent' $=
+			(
+				$dep_from %'Core'.'YMessage';
+				+ "UI message exception class %UIEventSignal"
+			),
+			/ "touch dragging handler checked for handle flag" @ %'YControl',
+				// Now dragging behavior can be override before handled \
+					through setting 'Handled' member of cursor event argument.
+		),
+		/ %'Core' $=
+		(
+			+ "message exception classes %(MessageException; MessageSignal)"
+				@ "namespace %Messaging" @ %'YMessage';
+			/ "handled for %Messaging::MessageSignal"
+				@ "member function %Application::OnGotMessage" @ %'Application'
+		),
+		* "maximum value overflow when destination size component less than \
+			coordinate component of destination point" @ "function %BlitBounds"
+			@ %'Service'.'YBlit' $since b438;
+			// This could cause invalid iterator access when source area \
+				totally out of destination buffer boundary.
+		+ "enum class BorderArea; class %BorderResizer" @ %'Border'
+	),
+	+ $dev $doc "Doxygen group 'exception_types' for exception types"
+		@ %'YBase'.'YDefinition',
+	(
+	$dep_from %'YFramework'.'YSLib'.'UI';
+	+ "border of 4px" @ "setting panel" @ %'YReader'.'file explorer';
+		// Now invisible or translucent.
+	)
+),
+
+b443
 (
 	/ %'YFramework' $=
 	(

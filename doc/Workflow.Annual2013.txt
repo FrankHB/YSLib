@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r165
+\version r168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-08-30 00:43 +0800
+	2013-09-10 14:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,6 +160,10 @@ It is believed that the data structure of input handling can hardly be modified 
 
 dep.merge:
 df.operators(https://github.com/d-frey/operators): considerable, shelved.
+
+$2013-09:
+report.impl:
+The member function like 'std::string::c_str' cannot be wrapped in a function/function template because it returns temporary value.
 
 ////
 

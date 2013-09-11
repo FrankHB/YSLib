@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r623
+\version r625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-08-08 05:38 +0800
+	2013-09-09 16:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,7 +127,7 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 
 		CallEvent<UI::Paint>(wgt, e);
 		//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
-		rInvalidated.GetSizeRef() = Size();
+		rInvalidated.GetSizeRef() = {};
 		return e.ClipArea;
 	}
 	return {};

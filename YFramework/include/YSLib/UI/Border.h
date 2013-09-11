@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r91
+\version r146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2013-09-06 23:39 +0800
+	2013-09-11 08:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,6 +82,72 @@ public:
 
 	void
 	operator()(PaintEventArgs&&);
+};
+
+
+/*!
+\brief 边框区域。
+\since build 444
+*/
+enum class BorderArea : u8
+{
+	Left = 0,
+	Up = 0,
+	Center = 1,
+	Right = 2,
+	Down = 2
+};
+
+
+/*!
+\brief 调整大小的边框。
+\note 使用相对于指定部件的坐标系。
+\since build 444
+
+当接触点位于 Margin 指定的边界上时 TouchHeld 使用 SetBoundsOf 按内部状态调整大小
+（满足大小不小于MinSize ）并引起 Move 和 Resize 事件。
+*/
+class YF_API BorderResizer
+{
+public:
+	//! \brief 区域类型。
+	using Area = pair<BorderArea, BorderArea>;
+
+private:
+	Point orig_loc{Point::Invalid};
+	Rect orig_bounds{};
+	Area focused{BorderArea::Center, BorderArea::Center};
+	std::reference_wrapper<IWidget> widget;
+
+public:
+	//! \since 指定边框相对于部件边界以内的范围的边距。
+	Drawing::Padding Margin;
+	/*!
+	\brief 指定部件应该保持的最小大小。
+	\warning 若小于边框范围（边框重叠）则不保证通过边框调整大小的行为确定。
+	*/
+	Size MinSize;
+
+	BorderResizer(IWidget& wgt, size_t w = 4, const Size& min_size = {})
+		: widget(wgt), Margin(w, w, w, w),
+		MinSize(min_size.Width + w + w, min_size.Height + w + w)
+	{
+		Wrap();
+	}
+
+	DefGetter(const ynothrow, IWidget&, WidgetRef, widget)
+
+	//! \brief 检查相对于部件点指定区域。
+	Area
+	CheckArea(const Point&);
+
+private:
+	/*!
+	\brief 加载事件。
+	\note 优先级 E0 。
+	*/
+	void
+	Wrap();
 };
 
 } // namespace UI;

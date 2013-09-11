@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1485
+\version r1498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-09-08 05:18 +0800
+	2013-09-09 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,6 +389,7 @@ using VisualEventMap = EventMapping::MapType;
 
 
 /*!
+\ingroup exception_types
 \brief 错误或不存在的部件事件异常。
 \since build 241
 */
@@ -398,6 +399,20 @@ public:
 	//! \since build 411
 	BadEvent(const std::string& msg = "")
 		: LoggedEvent(msg)
+	{}
+};
+
+
+/*!
+\ingroup exception_types
+\brief 用户事件信号：表示携带用户事件的消息处理中断的异常。
+\since build 444
+*/
+class YF_API UIEventSignal : public Messaging::MessageSignal
+{
+public:
+	UIEventSignal(const std::string& msg = "")
+		: MessageSignal(msg)
 	{}
 };
 

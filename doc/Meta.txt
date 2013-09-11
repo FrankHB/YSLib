@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r713
+\version r720
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-09-06 23:37 +0800
+	2013-09-09 17:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,10 +172,13 @@ $KNOWN_ISSUE:
 * $known_issue(b440) "There is no clean way to split constexpr with const for \
 	member functions. This makes something like reusing compound assignment to \
 	build binary operators. This is blocked by C++11, because C++1y has some \
-	loose restrictions on constexpr."
+	loose restrictions on constexpr.";
 	// Though Clang++ 3.3 supports for this C++1y feature currently, there is \
 		no plat to migrate to C++1y because no other available \
 		implementations, and this is not specified by the normative ISO C++.
+* $known_issue(b444) "class %Rect assignment '= {}' ambiguity" $since b319;
+	// This is a minor issue, which can be resolved by specifying 'explicit' \
+		on function parameters in future version of C++.
 
 
 $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
@@ -442,8 +445,9 @@ $module_tree $=
 			'UI'
 			(
 				'YComponent',
-				'YRenderer'
-				'YWidgetEvent'
+				'YRenderer',
+				'YWidgetView',
+				'YWidgetEvent',
 				'YWidget',
 				'YControl',
 				'YUIContainer',
