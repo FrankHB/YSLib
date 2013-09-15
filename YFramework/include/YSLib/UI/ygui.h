@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2051
+\version r2056
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-09 00:30 +0800
+	2013-09-14 09:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,8 +115,11 @@ public:
 	\since build 300
 	*/
 	InputTimer HeldTimer;
-	Drawing::Point ControlLocation; \
-		//!< 最近的指针设备操作时的控件全局位置（屏幕坐标）。
+	/*!
+	\brief 最近的指针设备操作时的控件全局位置（相对于顶层部件的坐标）。
+	\since build 445
+	*/
+	Drawing::Point CursorLocation;
 	Styles::Palette Colors; //!< 调色板。
 
 private:

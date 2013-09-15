@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r390
+\version r441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2013-08-09 15:19 +0800
+	2013-09-15 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,6 +60,15 @@ public:
 	{}
 	DefDeMoveCtor(WindowReference)
 
+	//! \since build 445
+	//@{
+	YSLib::Drawing::Rect
+	GetClientBounds() const;
+	YSLib::Drawing::Point
+	GetClientLocation() const;
+	YSLib::Drawing::Size
+	GetClientSize() const;
+	//@}
 	YSLib::Drawing::Point
 	GetLocation() const;
 	DefGetter(const ynothrow, NativeWindowHandle, NativeHandle, hWindow)
@@ -74,6 +83,9 @@ public:
 	YSLib::Drawing::Size
 	GetSize() const;
 
+	//! \since build 445
+	void
+	SetClientBounds(const YSLib::Drawing::Rect&);
 	/*!
 	\brief 设置不透明度。
 	\pre 窗口启用 WS_EX_LAYERED 样式。
@@ -138,16 +150,14 @@ CreateNativeWindow(const wchar_t*, const YSLib::Drawing::Size&,
 	const wchar_t* = L"", ::DWORD = WS_POPUP, ::DWORD = WS_EX_LTRREADING);
 
 
-/*!
-\warning 非虚析构。
-\since build 435
-*/
+//! \warning 非虚析构。
 //@{
 /*!
 \brief 虚拟屏幕缓存。
 \note 像素格式和 platform::PixelType 兼容。
+\since build 445
 */
-class ScreenBuffer
+class YF_API ScreenBuffer
 {
 private:
 	//! \since build 386
@@ -162,6 +172,10 @@ public:
 	//! \since build 386
 	ScreenBuffer(ScreenBuffer&&) ynothrow;
 	~ScreenBuffer();
+
+	//! \since build 445
+	ScreenBuffer&
+	operator=(ScreenBuffer&&);
 
 	//! \since build 386
 	//@{
@@ -179,6 +193,14 @@ public:
 	Premultiply(YSLib::Drawing::BitmapPtr) ynothrow;
 
 	/*!
+	\brief 重新设置大小。
+	\note 当大小一致时无操作，否则重新分配，可导致 pBuffer 和 hBitmap 值改变。
+	\since build 445
+	*/
+	void
+	Resize(const YSLib::Drawing::Size&);
+
+	/*!
 	\brief 从缓冲区更新。
 	\post ::HBITMAP 的 rgbReserved 为 0 。
 	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
@@ -186,10 +208,24 @@ public:
 	void
 	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
 	//@}
+
+	/*
+	\brief 交换。
+	\since build 430
+	*/
+	void
+	swap(ScreenBuffer&) ynothrow;
 };
 
+//! \since build 445
+inline DefSwap(ynothrow, ScreenBuffer)
 
-//! \brief 虚拟屏幕区域缓存。
+
+/*!
+\brief 虚拟屏幕区域缓存。
+\note 像素格式和 platform::PixelType 兼容。
+\since build 435
+*/
 class YF_API ScreenRegionBuffer : private ScreenBuffer
 {
 private:
@@ -207,6 +243,8 @@ public:
 
 	//! \since build 435
 	using ScreenBuffer::Premultiply;
+	//! \since build 445
+	using ScreenBuffer::Resize;
 
 	void
 	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
@@ -384,6 +422,12 @@ public:
 	virtual
 	~HostWindow();
 
+	//! \since build 445
+	//@{
+	using WindowReference::GetClientBounds;
+	using WindowReference::GetClientLocation;
+	using WindowReference::GetClientSize;
+	//@}
 	//! \since build 427
 	//@{
 	using WindowReference::GetLocation;
@@ -392,6 +436,8 @@ public:
 	using WindowReference::GetOpacity;
 	using WindowReference::GetSize;
 
+	//! \since build 445
+	using WindowReference::SetClientBounds;
 	//! \since build 430
 	using WindowReference::SetOpacity;
 	//! \since build 428

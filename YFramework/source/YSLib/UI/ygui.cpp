@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3858
+\version r3871
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-09 00:32 +0800
+	2013-09-14 09:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,7 @@ RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
 
 GUIState::GUIState() ynothrow
 	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
-	DraggingOffset(Vec::Invalid), HeldTimer(), ControlLocation(Point::Invalid),
+	DraggingOffset(Vec::Invalid), HeldTimer(), CursorLocation(Point::Invalid),
 	Colors(), p_KeyDown(), p_CursorOver(), p_TouchDown(), entered()
 {}
 
@@ -127,7 +127,7 @@ GUIState::CheckDraggingOffset(IWidget* p)
 	if(p)
 	{
 		if(DraggingOffset == Vec::Invalid)
-			DraggingOffset = GetLocationOf(*p) - ControlLocation;
+			DraggingOffset = GetLocationOf(*p) - CursorLocation;
 		else
 			return true;
 	}
@@ -151,7 +151,7 @@ GUIState::Reset()
 	yunseq(KeyHeldState = InputTimer::Free, TouchHeldState = InputTimer::Free,
 		DraggingOffset = Vec::Invalid),
 	HeldTimer.ResetInput();
-	yunseq(ControlLocation = Point::Invalid, p_TouchDown = {}, p_KeyDown = {},
+	yunseq(CursorLocation = Point::Invalid, p_TouchDown = {}, p_KeyDown = {},
 		p_CursorOver = {}, entered = {});
 }
 
@@ -214,7 +214,7 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 void
 GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 {
-	ControlLocation = e;
+	CursorLocation = e;
 
 	auto p(&e.GetSender());
 	IWidget* pCon;
@@ -369,9 +369,15 @@ GUIState::Wrap(IWidget& wgt)
 
 			if(p_TouchDown == &wgt)
 				TryEntering(CursorEventArgs(e));
-			else
-				TryLeaving(CursorEventArgs(*p_TouchDown, e.Keys,
-					e - LocateForWidget(wgt, *p_TouchDown)));
+		//	else
+		//		TryLeaving(CursorEventArgs(*p_TouchDown, e.Keys,
+		//			e - LocateForWidget(wgt, *p_TouchDown)));
+			else if(entered)
+			{
+				CallEvent<Leave>(*p_TouchDown, CursorEventArgs(*p_TouchDown,
+					e.Keys, e - LocateForWidget(wgt, *p_TouchDown)));
+				entered = {};
+			}
 		}
 	}, 0xFF)
 	);

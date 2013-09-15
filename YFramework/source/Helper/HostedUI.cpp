@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r149
+\version r152
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-09-09 00:30 +0800
+	2013-09-14 03:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,16 +55,16 @@ WaitForHostWindow(UI::IWidget& wgt)
 void
 DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 {
-	if(e.Strategy == RoutedEventArgs::Direct)
+	if(e.Strategy == RoutedEventArgs::Direct && !e.Handled)
 	{
 		auto& st(FetchGUIState());
 
 		if(st.CheckDraggingOffset())
 		{
-			const auto offset(st.ControlLocation + st.DraggingOffset);
+			const auto offset(st.CursorLocation + st.DraggingOffset);
 
 			wnd.Move(wnd.GetLocation() + offset);
-			st.ControlLocation -= offset - GetLocationOf(e.GetSender());
+			st.CursorLocation -= offset - GetLocationOf(e.GetSender());
 		}
 	}
 }

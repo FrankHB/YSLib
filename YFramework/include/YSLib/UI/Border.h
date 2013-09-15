@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r146
+\version r158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2013-09-11 08:43 +0800
+	2013-09-15 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,11 +115,22 @@ public:
 
 private:
 	Point orig_loc{Point::Invalid};
-	Rect orig_bounds{};
+	/*!
+	\brief 锁定的部件边界。
+	\note 以此为基准调整部件的新的位置和大小。
+	\since build 445
+	*/
+	Rect locked_bounds{};
 	Area focused{BorderArea::Center, BorderArea::Center};
 	std::reference_wrapper<IWidget> widget;
 
 public:
+	/*!
+	\brief 宿主模式：指定是否在设置边界后同时调整锁定的边界位置。
+	\note 部件的实际位置需要另行修正。
+	\since build 445
+	*/
+	bool HostMode = false;
 	//! \since 指定边框相对于部件边界以内的范围的边距。
 	Drawing::Padding Margin;
 	/*!

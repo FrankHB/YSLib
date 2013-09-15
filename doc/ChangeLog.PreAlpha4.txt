@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3167
+\version r3258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-09-11 09:04 +0800
+	2013-09-15 19:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,87 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'UI' $=
+			(
+				/ @ "class %GUIState" @ %'YGUI' $=
+				(
+					/ $lib $design "deferred coordinate computation for \
+						wrapped leaving event" @ "member function %Wrap",
+						// A little performance improved when the event should \
+							not be triggered.
+					/ "%ControlLocation" => "%CursorLocation"
+				),
+				/ @ "class %BorderResizer" @ %'Border' $=
+				(
+					+ "member declaration 'bool HostMode = false;'",
+					+ "support for host mode to adjust original boundary after \
+						moving"
+				)
+			),
+			/ %'Service' $=
+			(
+				/ %'YBlit' $=
+				(
+					* "increment types" @ "%class BlitScannerLoop" @
+						$since b438,
+						// Unsigned type wrongly used instead of signed type. \
+							This would cause access violation on calling \
+							('Blit<true, false>', 'Blit<false, true>').
+					(
+					/ "function template %BlitScale with 4 full specializations"
+						-> "function template %BlitScaleComponent with 2 full \
+						specializations";
+					$dep_to "%BlitScale"
+					)
+				),
+				(
+				$dep_from "%BlitScale";
+				* $comp "wrong specializations of function template %BlitScale \
+					for ('<true, false>', '<false, true>')" $since b187
+				);
+				* $comp "access violation on calling blit for left-right or \
+					up-down swapping only mode" $since b187;
+			)
+		),
+		/ %'Helper' $=
+		(
+			/ "touch dragging handler checked for handle flag"
+				@ "function %DragWindow" @ %'HostedUI',
+				// Same as b444.
+			/ @ "class %HostRenderer" @ %'HostedUI' $=
+			(
+				* "missing resizing buffer and host window" $since b384,
+				/ "supported automatically moving host window when bound \
+					widget location is not origin";
+				(
+					$dep_from %('UI'.'Border', 'Helper'.'InputManager');
+					/ "supported moving host window for border resizer"
+				)
+			)
+		)
+		/ @ "namespace %platform_ex::Windows" %'YCLib_(MinGW32)'.'Win32GUI' $=
+		(
+			(
+			+ "class %ScreenBuffer with swap functions and user-defined move \
+				assignment operator";
+			+ 'using ScreenBuffer::Resize;' @ "class %ScreenRegionBuffer"
+			),
+			+ "member function %WindowReference::((GetClientLocation, \
+				GetClientSize; GetClientBounds), SetClientBounds)";
+			+ ('using WindowReference::GetClientLocation;',
+				'using WindowReference::GetClientSize;',
+				'using WindowReference::GetClientBounds;',
+				'using WindowReference::SetClientBounds;') @ "class %Window"
+		)
+	)
+),
+
+b444
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -69,10 +150,18 @@ $now
 	),
 	+ $dev $doc "Doxygen group 'exception_types' for exception types"
 		@ %'YBase'.'YDefinition',
+	/ %'YReader' $=
 	(
-	$dep_from %'YFramework'.'YSLib'.'UI';
-	+ "border of 4px" @ "setting panel" @ %'YReader'.'file explorer';
-		// Now invisible or translucent.
+		(
+		$dep_from %'YFramework'.'YSLib'.'UI';
+		+ "border of 4px" @ "setting panel" @ %'file explorer',
+			// Now invisible or translucent.
+		),
+		(
+		$dep_from  %'YFramework'.'YSLib'.'Service'.'YBlit';
+		* $comp "crashed after quickly dragging around the information window"
+			$since b438 @ %'text reader'
+		)
 	)
 ),
 

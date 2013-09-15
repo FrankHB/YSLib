@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r140
+\version r159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2013-09-11 08:47 +0800
+	2013-09-15 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,10 +78,11 @@ void
 BorderResizer::Wrap()
 {
 	auto& controller(widget.get().GetController());
+
 	yunseq(
 	FetchEvent<TouchDown>(controller).Add([this](CursorEventArgs&& e){
-		yunseq(orig_loc = FetchGUIState().ControlLocation,
-			orig_bounds = GetBoundsOf(widget), focused = CheckArea(e));
+		yunseq(orig_loc = FetchGUIState().CursorLocation,
+			locked_bounds = GetBoundsOf(widget), focused = CheckArea(e));
 	}, 0xE0),
 	FetchEvent<TouchHeld>(controller).Add([this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct
@@ -91,19 +92,19 @@ BorderResizer::Wrap()
 
 			if(st.CheckDraggingOffset())
 			{
-				const auto offset(st.ControlLocation - orig_loc);
-				auto bounds(orig_bounds);
+				const auto offset(st.CursorLocation - orig_loc);
+				auto bounds(locked_bounds);
 
 				switch(focused.first)
 				{
 				case BorderArea::Left:
 					bounds.Width = max<SPos>(MinSize.Width,
-						orig_bounds.Width - offset.X);
-					bounds.X += orig_bounds.Width - bounds.Width;
+						locked_bounds.Width - offset.X);
+					bounds.X += locked_bounds.Width - bounds.Width;
 					break;
 				case BorderArea::Right:
 					bounds.Width = max<SPos>(MinSize.Width,
-						orig_bounds.Width + offset.X);
+						locked_bounds.Width + offset.X);
 					break;
 				default:
 					;
@@ -112,12 +113,12 @@ BorderResizer::Wrap()
 				{
 				case BorderArea::Up:
 					bounds.Height = max<SPos>(MinSize.Height,
-						orig_bounds.Height - offset.Y);
-					bounds.Y += orig_bounds.Height - bounds.Height;
+						locked_bounds.Height - offset.Y);
+					bounds.Y += locked_bounds.Height - bounds.Height;
 					break;
 				case BorderArea::Down:
 					bounds.Height = max<SPos>(MinSize.Height,
-						orig_bounds.Height + offset.Y);
+						locked_bounds.Height + offset.Y);
 					break;
 				default:
 					;
@@ -126,8 +127,17 @@ BorderResizer::Wrap()
 				YTraceDe(Notice, "BorderResizer: new bounds = %s.\n",
 					to_string(bounds).c_str());
 
-				InvalidateParent(widget),
+				InvalidateParent(widget);
+
+				const auto& off(bounds.GetPoint() - locked_bounds.GetPoint());
+
 				SetBoundsOf(widget, bounds);
+				if(HostMode)
+				{
+					orig_loc = FetchGUIState().CursorLocation - off;
+					locked_bounds = GetBoundsOf(widget);
+					locked_bounds.GetPointRef() -= off;
+				}
 			}
 			e.Handled = true;
 			// XXX: Paint context target invalidated.
@@ -137,7 +147,7 @@ BorderResizer::Wrap()
 		CallEvent<ClickAcross>(widget, e);
 	}, 0xE0),
 	FetchEvent<ClickAcross>(controller).Add([this](CursorEventArgs&&){
-		yunseq(orig_loc = Point::Invalid, orig_bounds = Rect(),
+		yunseq(orig_loc = Point::Invalid, locked_bounds = Rect(),
 			focused = {BorderArea::Center, BorderArea::Center});
 	}, 0xE0)
 	);

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3873
+\version r3874
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-09-11 08:32 +0800
+	2013-09-14 03:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ TouchHeld_DragWidget(IWidget* p = {})
 	// TODO: Compare subsequent states to make a more efficient implementation.
 	// TODO: Merge state to make a more efficient implementation.
 		InvalidateParent(*p);
-		SetLocationOf(*p, st.ControlLocation + st.DraggingOffset);
+		SetLocationOf(*p, st.CursorLocation + st.DraggingOffset);
 	}
 }
 

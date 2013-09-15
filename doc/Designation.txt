@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9036
+\version r9038
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-08-24 10:03 +0800
+	2013-09-15 11:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -564,7 +564,7 @@ BASE_EXTENSIONS += ftbbox.c
 
 @6.1.4 指令格式和顺序：
 组相关指令在最前（且对于 \defgroup ，跟随注释首行“*”后使用一个水平制表符分隔），然后依次为实体标识指令（除了 \def ，一般省略）和其它指令。
-指定顺序的段落指令： \brief 、 \tparam 、 \param 、 \pre 、 \post 、 \return 、 \throw 、 \exception 、 \note 、 \warning 、 \bug 、 \deprecated 、 \relates 、 \sa 、 \see 、 \since  、 \todo 、 \par 。
+指定顺序的段落指令： \brief 、 \tparam 、 \param 、 \pre 、 \post 、 \invariant 、 \return 、 \throw 、 \exception 、 \note 、 \warning 、 \bug 、 \deprecated 、 \relates 、 \sa 、 \see 、 \since  、 \todo 、 \par 。
 从属的非段落指令如 \code 、 \endcode 、\tt 、 \verbatim 等不限制顺序。
 其它顺序参见 http://drupal.org/node/1354#links 。
 

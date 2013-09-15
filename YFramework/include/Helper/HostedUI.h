@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r156
+\version r157
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-08-08 22:41 +0800
+	2013-09-13 10:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ GetWindowPtrOf(UI::IWidget& wgt)
 {
 	if(const auto p_r = dynamic_cast<HostRenderer*>(&wgt.GetRenderer()))
 		return p_r->GetWindowPtr();
-	return nullptr;
+	return {};
 }
 
 /*!

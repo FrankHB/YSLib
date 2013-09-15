@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r2963
+\version r2996
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-09-02 01:17 +0800
+	2013-09-13 13:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,38 +132,21 @@ BlitBounds(const Point&, const Point&, const Size&, const Size&, const Size&,
 	SDst&, SDst&, SDst&, SDst&);
 
 /*!
-\brief 贴图偏移量计算器。
-\since build 438
+\brief 贴图偏移分量计算器。
+\since build 445
 */
 //@{
-template<bool _bSwapLR, bool _bSwapUD>
-size_t
-BlitScale(const Point&, const Size&, SDst, SDst);
-template<>
-inline size_t
-BlitScale<false, false>(const Point& dp, const Size& ds, SDst, SDst)
+template<bool>
+yconstfn size_t
+BlitScaleComponent(SPos d, SDst)
 {
-	return max<SPos>(0, dp.Y) * ds.Width + max<SPos>(0, dp.X);
+	return d < 0 ? 0 : d;
 }
 template<>
-inline size_t
-BlitScale<true, false>(const Point& dp, const Size& ds, SDst, SDst delta_y)
+yconstfn size_t
+BlitScaleComponent<true>(SPos d, SDst delta)
 {
-	return (max<SPos>(0, dp.Y) + delta_y - 1) * ds.Width + max<SPos>(0, dp.X);
-}
-template<>
-inline size_t
-BlitScale<false, true>(const Point& dp, const Size& ds, SDst delta_x, SDst)
-{
-	return max<SPos>(0, dp.Y) * ds.Width + max<SPos>(0, dp.X) + delta_x - 1;
-}
-template<>
-inline size_t
-BlitScale<true, true>(const Point& dp, const Size& ds, SDst delta_x,
-	SDst delta_y)
-{
-	return (max<SPos>(0, dp.Y) + delta_y - 1) * ds.Width + max<SPos>(0, dp.X)
-		+ delta_x - 1;
+	return d < 0 ? 0 : d + delta - 1;
 }
 //@}
 
@@ -183,6 +166,7 @@ BlitScale<true, true>(const Point& dp, const Size& ds, SDst delta_x,
 \param delta_y 实际操作的高。
 \param dst 目标迭代器。
 \param src 源迭代器。
+\warning loop 接受的最后两个参数应保证不是无符号整数类型。
 \since build 437
 
 对一块矩形区域调用指定的逐像素扫描操作。
@@ -238,9 +222,10 @@ Blit(_fBlitLoop loop, _tOut dst, _tIn src, const Size& ds, const Size& ss,
 	SDst min_x, min_y, delta_x, delta_y;
 
 	if(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y, delta_x, delta_y))
-		BlitScan<_bSwapLR != _bSwapUD>(loop, dst + BlitScale<_bSwapLR,
-			_bSwapUD>(dp, ds, delta_x, delta_y), src + (sp.Y + min_y) * ss.Width
-			+ sp.X + min_x, ds.Width, ss.Width, delta_x, delta_y);
+		BlitScan<_bSwapLR != _bSwapUD>(loop, dst + BlitScaleComponent<_bSwapUD>(
+			dp.Y, delta_y) * ds.Width + BlitScaleComponent<_bSwapLR>(dp.X,
+			delta_x), src + (sp.Y + min_y) * ss.Width + sp.X + min_x, ds.Width,
+			ss.Width, delta_x, delta_y);
 }
 
 
@@ -253,11 +238,11 @@ Blit(_fBlitLoop loop, _tOut dst, _tIn src, const Size& ds, const Size& ss,
 template<bool _bPositiveScan>
 struct BlitScannerLoop
 {
-	//! \since build 440
+	//! \since build 445
 	template<typename _tOut, typename _tIn, typename _fBlitScanner>
 	void
 	operator()(_fBlitScanner scanner, _tOut dst_iter, _tIn src_iter,
-		SDst delta_x, SDst delta_y, SDst dst_inc, SDst src_inc) const
+		SDst delta_x, SDst delta_y, SPos dst_inc, SPos src_inc) const
 	{
 		while(delta_y-- > 0)
 		{

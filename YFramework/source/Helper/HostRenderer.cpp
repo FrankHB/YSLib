@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r150
+\version r164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-08-08 18:40 +0800
+	2013-09-15 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,7 +118,8 @@ WindowThread::WindowLoop(Window& wnd)
 void
 HostRenderer::SetSize(const Size& s)
 {
-	BufferedRenderer::SetSize(s);
+	BufferedRenderer::SetSize(s),
+	rbuf.Resize(s);
 }
 
 void
@@ -127,7 +128,20 @@ HostRenderer::Update(BitmapPtr buf)
 	YAssert(GetSizeOf(widget) == rbuf.GetSize(), "Mismatched size found.");
 
 	if(const auto p_wnd = GetWindowPtr())
+	{
+		auto& view(widget.get().GetView());
+		const auto& loc(view.GetLocation());
+		auto bounds(p_wnd->GetClientBounds());
+
+		if(!loc.IsZero())
+		{
+			bounds.GetPointRef() += loc;
+			view.SetLocation({});
+		}
+		bounds.GetSizeRef() = view.GetSize();
+		p_wnd->SetClientBounds(bounds);
 		p_wnd->UpdateFrom(buf, rbuf);
+	}
 }
 
 } // namespace Host;

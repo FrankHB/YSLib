@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r335
+\version r424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-08-31 13:40 +0800
+	2013-09-15 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,18 +61,79 @@ FetchWindowRect(::HWND h_wnd)
 	return rect;
 }
 
-} // unnamed namespace;
-
-
+//! \since build 445
+//@{
 Size
-WindowReference::GetSize() const
+FetchSizeFromBounds(const ::RECT& rect)
 {
-	const auto& rect(FetchWindowRect(hWindow));
-
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
 
 	return {rect.right - rect.left, rect.bottom - rect.top};
+}
+
+inline Rect
+FetchRectFromBounds(const ::RECT& rect)
+{
+	return Rect(rect.left, rect.top, FetchSizeFromBounds(rect));
+}
+
+inline ::DWORD
+FetchWindowStyle(::HWND h_wnd)
+{
+	return ::GetWindowLongW(h_wnd, GWL_STYLE);
+}
+
+void
+AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
+{
+	if(YB_UNLIKELY(!::AdjustWindowRect(&rect, FetchWindowStyle(h_wnd), b_menu)))
+		YF_Raise_Win32Exception("AdjustWindowRect");
+
+	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
+		"Invalid boundary found.");
+}
+
+void
+SetWindowBounds(::HWND h_wnd, int x, int y, int cx, int cy)
+{
+	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, {}, x, y, cx, cy,
+		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
+		| SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER)))
+		YF_Raise_Win32Exception("SetWindowPos");
+}
+//@}
+
+} // unnamed namespace;
+
+
+Rect
+WindowReference::GetClientBounds() const
+{
+	return {GetClientLocation(), GetClientSize()};
+}
+Point
+WindowReference::GetClientLocation() const
+{
+	::POINT point{0, 0};
+
+	if(YB_UNLIKELY(!::ClientToScreen(hWindow, &point)))
+		YF_Raise_Win32Exception("ClientToScreen");
+	return {point.x, point.y};
+}
+Size
+WindowReference::GetClientSize() const
+{
+	::RECT rect;
+
+	if(YB_UNLIKELY(!::GetClientRect(hWindow, &rect)))
+		YF_Raise_Win32Exception("GetClientRect");
+	return {rect.right, rect.bottom};
+}
+Size
+WindowReference::GetSize() const
+{
+	return FetchSizeFromBounds(FetchWindowRect(hWindow));
 }
 YSLib::Drawing::AlphaType
 WindowReference::GetOpacity() const
@@ -91,6 +152,15 @@ WindowReference::GetLocation() const
 	return {rect.left, rect.top};
 }
 
+void
+WindowReference::SetClientBounds(const Rect& r)
+{
+	::RECT rect{r.X, r.Y, r.X + r.Width, r.Y + r.Height};
+
+	AdjustWindowBounds(rect, hWindow);
+	SetWindowBounds(hWindow, rect.left, rect.top, rect.right - rect.left,
+		rect.bottom - rect.top);
+}
 void
 WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
 {
@@ -138,9 +208,7 @@ WindowReference::ResizeClient(const Size& s)
 {
 	::RECT rect{0, 0, s.Width, s.Height};
 
-	if(YB_UNLIKELY(!::AdjustWindowRect(&rect,
-		::GetWindowLongW(hWindow, GWL_STYLE), false)))
-		YF_Raise_Win32Exception("AdjustWindowRect");
+	AdjustWindowBounds(rect, hWindow);
 	ResizeWindow(hWindow, rect.right - rect.left, rect.bottom - rect.top);
 }
 
@@ -187,6 +255,20 @@ ScreenBuffer::~ScreenBuffer()
 	::DeleteObject(hBitmap);
 }
 
+ScreenBuffer&
+ScreenBuffer::operator=(ScreenBuffer&& sbuf)
+{
+	sbuf.swap(*this);
+	return *this;
+}
+
+void
+ScreenBuffer::Resize(const Size& s)
+{
+	if(s != size)
+		*this = ScreenBuffer(s);
+}
+
 void
 ScreenBuffer::Premultiply(BitmapPtr buf) ynothrow
 {
@@ -208,6 +290,14 @@ ScreenBuffer::UpdateFrom(BitmapPtr buf) ynothrow
 	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
 	std::copy_n(buf, size.Width * size.Height, GetBufferPtr());
+}
+
+void
+ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
+{
+	std::swap(size, sbuf.size),
+	std::swap(pBuffer, sbuf.pBuffer),
+	std::swap(hBitmap, sbuf.hBitmap);
 }
 
 

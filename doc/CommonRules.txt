@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2752
+\version r2753
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-09-08 20:45 +0800
+	2013-09-12 10:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1865,7 +1865,7 @@ $4.1.3.1.4 临时性例外：
 
 @5.15.2.2 补充指定：
  ISO C++11 24.6.5/1 指定，除 <iterator> 外，以下头文件被包含时 24.6.5 的函数模板（即 std::begin 和 std::end ）也可用：
- <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <regex> 、 <set> 、 <string> 、 <unordered_map> 、 <unordered_set> 和 <vector>.
+ <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <regex> 、 <set> 、 <string> 、 <unordered_map> 、 <unordered_set> 和 <vector> 。
 
 @5.15.3 C 标准库：
 不使用 ISO C 标准库头文件名，以 ISO C++ 对应无扩展名的头文件代替。注意命名空间。
