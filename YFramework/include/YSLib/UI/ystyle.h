@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r427
+\version r430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-08-31 14:13 +0800
+	2013-09-19 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
 	Color c = ColorSpace::Black);
 
 /*!
-\brief 在指定图形接口上下文上画箭头。
+\brief 在指定图形接口上下文上描画箭头。
 \since build 302
 */
 YF_API void
@@ -64,7 +64,8 @@ DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
 	Color = ColorSpace::Black);
 
 /*!
-\brief 在指定图形接口上下文中的指定点为边框左上角使用指定颜色绘制交叉直线段（“×”）。
+\brief 在指定图形接口上下文中使用指定颜色描画交叉直线段（“×”）。
+\note 指定点和大小确定边界。
 \note 若不满足长和宽都大于 8 则忽略。
 \since build 302
 */

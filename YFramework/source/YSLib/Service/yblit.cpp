@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1053
+\version r1059
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-09-11 08:24 +0800
+	2013-09-21 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,17 +38,18 @@ namespace Drawing
 namespace
 {
 
-//! \since build 438
+//! \since build 446
 inline SDst
-blit_min(SPos d)
+blit_min(SPos s, SPos d)
 {
-	return max<SPos>(0, -d);
+	return max<SPos>(max<SPos>(s, s - d), 0);
 }
 
 inline SPos
 blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 {
-	return min<SPos>(min<SPos>(dl - d, sl - s), cl);
+	return min<SPos>(min<SPos>(dl - d + s, d < 0 ? sl - d : sl),
+		cl + std::abs(d < 0 ? s - d : s));
 }
 
 } // unnamed namespace;
@@ -60,7 +61,7 @@ BlitBounds(const Point& dp, const Point& sp,
 {
 	SPos max_x, max_y;
 
-	yunseq(min_x = blit_min(dp.X), min_y = blit_min(dp.Y),
+	yunseq(min_x = blit_min(sp.X, dp.X), min_y = blit_min(sp.Y, dp.Y),
 		max_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),
 		max_y = blit_max(sp.Y, dp.Y, ss.Height, ds.Height, sc.Height));
 	if(min_x < max_x && min_y < max_y)

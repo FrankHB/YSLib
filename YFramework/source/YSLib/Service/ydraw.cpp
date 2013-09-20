@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r835
+\version r896
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2013-08-05 21:30 +0800
+	2013-09-17 09:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,37 +35,35 @@ namespace Drawing
 {
 
 bool
-DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)
+PlotHLineSeg(BitmapPtr dst, const Size& ds, SPos y, SPos x1, SPos x2, Color c)
 {
-	YAssert(bool(g), "Invalid graphics context found.");
+	YAssert(dst, "Null pointer found.");
 
-	if(IsInInterval<int>(y, g.GetHeight())
-		&& !((x1 < 0 && x2 < 0) || (x1 >= g.GetWidth() && x2 >= g.GetWidth())))
+	if(IsInInterval<int>(y, ds.Height)
+		&& !((x1 < 0 && x2 < 0) || (x1 >= ds.Width && x2 >= ds.Width)))
 	{
-		RestrictInInterval(x1, 0, g.GetWidth());
-		RestrictInInterval(x2, 0, g.GetWidth());
+		RestrictInInterval(x1, 0, ds.Width);
+		RestrictInInterval(x2, 0, ds.Width);
 		RestrictLessEqual(x1, x2);
-		FillPixel<PixelType>(&g.GetBufferPtr()[y * g.GetWidth() + x1],
-			x2 - x1, c);
+		FillPixel<PixelType>(&dst[y * ds.Width + x1], x2 - x1, c);
 		return true;
 	}
 	return false;
 }
 
 bool
-DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c)
+PlotVLineSeg(BitmapPtr dst, const Size& ds, SPos x, SPos y1, SPos y2, Color c)
 {
-	YAssert(bool(g), "Invalid graphics context found.");
+	YAssert(dst, "Null pointer found.");
 
-	if(IsInInterval<int>(x, g.GetWidth())
-		&& !((y1 < 0 && y2 < 0) || (y1 >= g.GetHeight()
-		&& y2 >= g.GetHeight())))
+	if(IsInInterval<int>(x, ds.Width)
+		&& !((y1 < 0 && y2 < 0) || (y1 >= ds.Height && y2 >= ds.Height)))
 	{
-		RestrictInInterval(y1, 0, g.GetHeight());
-		RestrictInInterval(y2, 0, g.GetHeight());
+		RestrictInInterval(y1, 0, ds.Height);
+		RestrictInInterval(y2, 0, ds.Height);
 		RestrictLessEqual(y1, y2);
-		FillVerticalLine<PixelType>(&g.GetBufferPtr()[y1 * g.GetWidth() + x],
-			y2 - y1, g.GetWidth(), c);
+		FillVerticalLine<PixelType>(&dst[y1 * ds.Width + x], y2 - y1, ds.Width,
+			c);
 		return true;
 	}
 	return false;
@@ -174,19 +172,21 @@ FillRect(const Graphics& g, const Point& pt, const Size& s, Color c)
 namespace
 {
 
-//! \since build 394
-void
-Draw8Points(BitmapPtr dst, const Size& s, SPos x0, SPos y0, SPos x, SPos y,
-	Color c)
+bool
+PlotCircle(void(*plotter)(const Graphics&, SPos, SPos, SDst, SDst, Color),
+	const Graphics& g, const Point& pt, SDst r, Color c)
 {
-	PlotPixel(dst, s, x0 + x, y0 + y, c),
-	PlotPixel(dst, s, x0 - x, y0 + y, c),
-	PlotPixel(dst, s, x0 - x, y0 - y, c),
-	PlotPixel(dst, s, x0 + x, y0 - y, c),
-	PlotPixel(dst, s, x0 + y, y0 + x, c),
-	PlotPixel(dst, s, x0 - y, y0 + x, c),
-	PlotPixel(dst, s, x0 - y, y0 - x, c),
-	PlotPixel(dst, s, x0 + y, y0 - x, c);
+	if(r == 0)
+		return false;
+
+	YAssert(plotter, "Null pointer found.");
+
+	// Bresenham circle algorithm implementation.
+	// See http://willperone.net/Code/codecircle.php .
+	for(SPos x(0), y(r), p(3 - 2 * r); y >= x;
+		p += p < 0 ? (4 * x++ + 6) : (4 * (x++ - y--) + 10))
+		plotter(g, pt.X, pt.Y, x, y, c);
+	return true;
 }
 
 } // unnamed namespace;
@@ -194,27 +194,39 @@ Draw8Points(BitmapPtr dst, const Size& s, SPos x0, SPos y0, SPos x, SPos y,
 bool
 DrawCircle(const Graphics& g, const Point& pt, SDst r, Color c)
 {
-	if(r == 0)
-		return false;
+	return PlotCircle([](const Graphics& g, SPos x, SPos y, SDst dx, SDst dy,
+		Color c){
+		using namespace std;
+		using namespace placeholders;
+		const auto plot(bind(PlotPixel, g.GetBufferPtr(), cref(g.GetSize()), _1,
+			_2, c));
 
-	// Midpoint circle algorithm implementation.
-	// See http://cg.sjtu.edu.cn/lecture_site/chap2/mainframe224.htm .
-	const auto dst(g.GetBufferPtr());
-	const Size& s(g.GetSize());
-	SPos x(0), y(r), d(1 - r);
+		plot(x + dx, y + dy),
+		plot(x - dx, y + dy),
+		plot(x - dx, y - dy),
+		plot(x + dx, y - dy),
+		plot(x + dy, y + dx),
+		plot(x - dy, y + dx),
+		plot(x - dy, y - dx),
+		plot(x + dy, y - dx);
+	}, g, pt, r, c);
+}
 
-	for(SDst dt(2), db(4); x <= y; yunseq(dt += 2, db += 2, ++x))
-	{
-		Draw8Points(dst, s, pt.X, pt.Y, x, y, c);
-		if(d < 0)
-			d += dt;
-		else
-		{
-			d += db;
-			yunseq(db += 2, --y);
-		}
-	}
-	return true;
+bool
+FillCircle(const Graphics& g, const Point& pt, SDst r, Color c)
+{
+	return PlotCircle([](const Graphics& g, SPos x, SPos y, SDst dx, SDst dy,
+		Color c){
+		using namespace std;
+		using namespace placeholders;
+		const auto plot(bind(PlotHLineSeg, g.GetBufferPtr(), cref(g.GetSize()),
+			_1, _2, _3, c));
+
+		plot(y + dy, x - dx, x + dx + 1),
+		plot(y - dy, x - dx, x + dx + 1),
+		plot(y + dx, x - dy, x + dy + 1),
+		plot(y - dx, x - dy, x + dy + 1);
+	}, g, pt, r, c);
 }
 
 } // namespace Drawing;

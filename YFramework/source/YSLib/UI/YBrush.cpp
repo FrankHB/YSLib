@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r216
+\version r219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2013-09-06 23:38 +0800
+	2013-09-20 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,9 +66,8 @@ ImageBrush::DefaultUpdate(const PaintContext& pc, const Image& img,
 //	CopyTo(g.GetBufferPtr(), src, g.GetSize(), r.GetPoint(), Offset,
 //		r.GetSize());
 	BlitLines<false, false>(CopyLine<true>(), g.GetBufferPtr(),
-		src.GetBufferPtr(), g.GetSize(), src.GetSize(),
-		r.GetPoint() + dst_offset, src_offset,
-		{r.Width - dst_offset.X, r.Height - dst_offset.Y});
+		src.GetBufferPtr(), g.GetSize(), src.GetSize(), r.GetPoint(),
+		r.GetPoint() + src_offset - dst_offset, r.GetSize());
 }
 
 } // namespace UI;

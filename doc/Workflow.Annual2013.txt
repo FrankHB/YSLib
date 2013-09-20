@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r168
+\version r172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-09-10 14:01 +0800
+	2013-09-19 16:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,9 @@ FreeType:
 	'AUX_MODULES += cache' is to be removed because only the header is used currently.
 	Redundant, unused and invalid(dependency not satisfied) 'BASE_EXTENSIONS += ftfstype.c' is to be removed.
 	'BASE_EXTENSIONS += ftstroke.c' is to be removed because currently not needed.
-	'BASE_EXTENSIONS += ftsynth.c' is to be removed because this is the alpha interface(see the source) , and should be considered depolyed in client code.
+	'BASE_EXTENSIONS += ftsynth.c' is to be removed because this is the alpha interface(see the source) , and should be considered deployed in client code.
+	Performance:
+	Old version of FreeType source files are used for workaround. See $known_issue_b406 @ Meta.txt.
 
 report.impl:
 See $known_issue_b406 @ Meta.txt.
@@ -164,6 +166,7 @@ df.operators(https://github.com/d-frey/operators): considerable, shelved.
 $2013-09:
 report.impl:
 The member function like 'std::string::c_str' cannot be wrapped in a function/function template because it returns temporary value.
+Algorithm of circle rasterization in "http://cg.sjtu.edu.cn/lecture_site/chap2/mainframe224.htm" is wrong unless the circle is very small.
 
 ////
 

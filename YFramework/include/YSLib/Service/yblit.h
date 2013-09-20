@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r2996
+\version r3003
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-09-13 13:29 +0800
+	2013-09-21 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,6 +125,7 @@ struct VerticalLineTransfomer
 \brief 贴图边界计算器。
 \note 前两个 SDst 参数总是初始化为边界坐上最小值。
 	当无合适边界时后两个 SDst 参数不被修改。
+\return 是否存在合适边界。
 \since build 438
 */
 YF_API bool
@@ -208,6 +209,8 @@ BlitScan(_fBlitLoop loop, _tOut dst, _tIn src, _tScalar d_width,
 \param dp 目标迭代器起始点所在缓冲区偏移。
 \param sp 源迭代器起始点所在缓冲区偏移。
 \param sc 源迭代器需要复制的区域大小。
+\note 允许坐标分量越界。越上界时由 BlitBounds 过滤，越下界时修正为 0 。
+\sa BlitBounds
 \sa BlitScan
 \since build 437
 
@@ -223,9 +226,10 @@ Blit(_fBlitLoop loop, _tOut dst, _tIn src, const Size& ds, const Size& ss,
 
 	if(BlitBounds(dp, sp, ds, ss, sc, min_x, min_y, delta_x, delta_y))
 		BlitScan<_bSwapLR != _bSwapUD>(loop, dst + BlitScaleComponent<_bSwapUD>(
-			dp.Y, delta_y) * ds.Width + BlitScaleComponent<_bSwapLR>(dp.X,
-			delta_x), src + (sp.Y + min_y) * ss.Width + sp.X + min_x, ds.Width,
-			ss.Width, delta_x, delta_y);
+			dp.Y - (sp.Y < 0 ? sp.Y : 0), delta_y) * ds.Width
+			+ BlitScaleComponent<_bSwapLR>(dp.X - (sp.X < 0 ? sp.X : 0),
+			delta_x), src + min_y * ss.Width + min_x, ds.Width, ss.Width,
+			delta_x, delta_y);
 }
 
 

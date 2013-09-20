@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3258
+\version r3296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-09-15 19:21 +0800
+	2013-09-21 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,45 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Service' $=
+		(
+			/ %'YDraw' $=
+			(
+				/ "function %PlotPixel for %Size" -> "accepting %Rect",
+					// Conversion constructor of %Rect is used.
+				+ "functions %(PlotHLineSeg, PlotVLineSeg)",
+				* "function %DrawCircle" $since b394;
+					// See $2013-09 @ %Documentation::Workflow::Annual2013.
+				+ "function %FillCircle"
+			),
+			* "blitting boundary and overload for non-zero source offset"
+				@ %'YBlit' $since b370 $=
+			(
+				* "wrong result" @ "function %BlitBounds" $=
+				(
+					* "wrongly ignored source offset for minimal boundary \
+						components",
+						// This caused result left/top boundary wrong for \
+							positive source offset.
+					* "missing check for maximal boundary components"
+						// The maximal boundary components should be less than \
+							source size components, otherwise access could be \
+							out of range for negative source offset.
+				);
+				* "out of minimal source boundary for negative source offset"
+					@ "function template %Blit"
+			)
+		),
+		* "wrong offset and clip area for blitting" @ "implementation"
+			@ "member function %ImageBrush::DefaultUpdate" @ %'UI'.'YBrush'
+			$since b443
+	)
+),
+
+b445
 (
 	/ %'YFramework' $=
 	(

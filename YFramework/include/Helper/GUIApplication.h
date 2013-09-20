@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r297
+\version r298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-08-05 20:47 +0800
+	2013-09-19 14:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include <ystdex/cast.hpp>
 #include "Helper/GUIShell.h"
 #if YCL_MinGW32
-#	include <YCLib/Win32GUI.h>
+#	include "YCLib/Win32GUI.h"
 #endif
 
 namespace YSLib

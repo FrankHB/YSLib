@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2463
+\version r2466
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-08-08 00:43 +0800
+	2013-09-19 16:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,7 +155,8 @@ _t type
 
 //通用头定义。
 #define PDefH(_t, _n, ...) \
-	_t _n(__VA_ARGS__)
+	_t \
+	_n(__VA_ARGS__)
 #define PDefHOp(_t, _op, ...) \
 	PDefH(_t, operator _op, __VA_ARGS__)
 
