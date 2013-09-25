@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1128
+\version r1153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-08-29 10:37 +0800
+	2013-09-24 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -258,7 +258,7 @@ template<typename _type>
 using add_pointer_t = typename add_pointer<_type>::type;
 
 template<size_t _vLen,
-	size_t _vAlign = yalignof(typename std::aligned_storage<_vLen>::type)>
+	size_t _vAlign = yalignof(typename aligned_storage<_vLen>::type)>
 using aligned_storage_t = typename aligned_storage<_vLen, _vAlign>::type;
 //@}
 
@@ -367,6 +367,26 @@ struct is_pod_struct : integral_constant<bool,
 template<typename _type>
 struct is_pod_union : integral_constant<bool,
 	is_pod<_type>::value && is_union<_type>::value>
+{};
+
+
+/*!
+\ingroup binary_type_trait
+\brief 判断指定类型之间是否协变。
+\since build 447
+*/
+template<typename _tFrom, typename _tTo>
+struct is_covariant : is_convertible<_tFrom, _tTo>
+{};
+
+
+/*!
+\ingroup binary_type_trait
+\brief 判断指定类型之间是否逆变。
+\since build 447
+*/
+template<typename _tFrom, typename _tTo>
+struct is_contravariant : is_convertible<_tTo, _tFrom>
 {};
 
 
@@ -710,11 +730,13 @@ struct array_ref_decay<_type&&>
 //@}
 
 
-/*!
+/*!	\defgroup tags Tags
 \ingroup meta
 \brief 标记。
+\note 可能是类型或元类型。
+\since build 477
 */
-//@{
+
 /*!
 \ingroup meta_types
 \brief 自然数标记。
@@ -734,17 +756,16 @@ struct n_tag<0>
 //@}
 
 /*!
-\ingroup meta_types
+\ingroup tags
 \brief 第一分量标记。
 */
 using first_tag = n_tag<0>;
 
 /*!
-\ingroup meta_types
+\ingroup tags
 \brief 第二分量标记。
 */
 using second_tag = n_tag<1>;
-//@}
 
 } // namespace ystdex;
 

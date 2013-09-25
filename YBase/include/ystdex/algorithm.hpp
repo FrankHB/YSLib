@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r449
+\version r452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-08-27 19:09 +0800
+	2013-09-23 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,8 +46,7 @@ namespace ystdex
 \ingroup algorithms
 \brief POD 类型操作。
 \tparam _type 指定对象类型。
-\pre 静态断言： <tt>std::is_pod<typename std::remove_reference_t<_type>>
-	::value</tt> 。
+\pre 静态断言： <tt>is_pod<remove_reference_t<_type>>::value</tt> 。
 \note 不检查指针是否有效。
 \since build 304
 */

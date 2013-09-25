@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1345
+\version r1346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-08-31 13:45 +0800
+	2013-09-23 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,7 +244,7 @@ public:
 template<typename _type>
 class pointer_holder : public holder
 {
-	static_assert(std::is_object<_type>::value, "Invalid type found.");
+	static_assert(is_object<_type>::value, "Invalid type found.");
 
 public:
 	//! \since build 352

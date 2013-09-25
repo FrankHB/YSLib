@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2466
+\version r2533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-09-19 16:51 +0800
+	2013-09-21 17:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,79 +77,6 @@ _t type
 \since 早于 build 132
 */
 //@{
-//接口类型宏。
-
-#define _yInterface struct
-
-#define implements public
-
-/*!
-\def _yInterfaceHead
-\brief 定义接口类型头部。
-\see ImplEmptyDtor
-*/
-#define _yInterfaceHead(_n) { \
-	virtual ~_n() {}
-
-#define FwdDeclI(_n) _yInterface _n;
-
-/*
-\def DeclI
-\brief 定义接口类型。
-\since build 362
-*/
-#define DeclI(_attr, _n) \
-	_yInterface _attr _n \
-	_yInterfaceHead(_n)
-
-//对于基接口需要显式指定访问权限和继承方式。
-
-/*
-\def DeclDerivedI
-\brief 定义派生接口类型。
-\note 由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
-\since build 362
-*/
-#define DeclDerivedI(_attr, _n, ...) \
-	_yInterface _attr _n : __VA_ARGS__ \
-	_yInterfaceHead(_n)
-
-// ImplI = Implements Interface;
-#define ImplI(...) virtual
-
-//抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
-// ImplA = Implements Abstractly;
-#define ImplA(...)
-
-#define DeclIEntry(_sig) virtual _sig = 0;
-
-#define EndDecl };
-
-
-/*!
-\brief 静态接口。
-\since build 266
-*/
-#define DeclSEntry(...)
-/*!
-\brief 静态接口实现。
-\since build 266
-*/
-#define ImplS(...)
-
-
-/*!
-\brief 定义直接派生类。
-\note 仅构造函数。不定义成员，避免对象切片或其它成员存储泄漏问题。
-\since build 352
-*/
-#define DefExtendClass(_attr, _n, ...) \
-	class _attr _n : __VA_ARGS__ \
-	{ \
-	public: \
-		_n(); \
-	};
-
 
 //函数宏。
 
@@ -338,6 +265,87 @@ _t type
 	{ \
 		return (__VA_ARGS__); \
 	}
+
+
+/*!	\defgroup InterfaceTypeMacros Interface Type Macros
+\brief 接口类型宏。
+\since build 161
+*/
+//@{
+
+#define _yInterface struct
+
+#define implements public
+
+/*!
+\def _yInterfaceHead
+\brief 定义接口类型头部。
+\see ImplEmptyDtor
+*/
+#define _yInterfaceHead(_n) { \
+protected: \
+	DefDeCtor(_n) \
+\
+public: \
+	virtual DefDeDtor(_n)
+
+#define FwdDeclI(_n) _yInterface _n;
+
+/*!
+\def DeclI
+\brief 定义接口类型。
+\since build 362
+*/
+#define DeclI(_attr, _n) \
+	_yInterface _attr _n \
+	_yInterfaceHead(_n)
+
+/*
+\def DeclDerivedI
+\brief 定义派生接口类型。
+\note 由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
+\since build 362
+*/
+#define DeclDerivedI(_attr, _n, ...) \
+	_yInterface _attr _n : __VA_ARGS__ \
+	_yInterfaceHead(_n)
+
+// ImplI = Implements Interface;
+#define ImplI(...) virtual
+
+//抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
+// ImplA = Implements Abstractly;
+#define ImplA(...)
+
+#define DeclIEntry(_sig) virtual _sig = 0;
+
+#define EndDecl };
+
+
+/*!
+\brief 静态接口。
+\since build 266
+*/
+#define DeclSEntry(...)
+/*!
+\brief 静态接口实现。
+\since build 266
+*/
+#define ImplS(...)
+//@}
+
+
+/*!
+\brief 定义直接派生类。
+\note 仅构造函数。不定义成员，避免对象切片或其它成员存储泄漏问题。
+\since build 352
+*/
+#define DefExtendClass(_attr, _n, ...) \
+	class _attr _n : __VA_ARGS__ \
+	{ \
+	public: \
+		_n(); \
+	};
 
 
 /*!

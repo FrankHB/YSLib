@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r172
+\version r182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-09-19 16:16 +0800
+	2013-09-21 17:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,6 +167,17 @@ $2013-09:
 report.impl:
 The member function like 'std::string::c_str' cannot be wrapped in a function/function template because it returns temporary value.
 Algorithm of circle rasterization in "http://cg.sjtu.edu.cn/lecture_site/chap2/mainframe224.htm" is wrong unless the circle is very small.
+The type 'platform::Color' in module YCLib::Video of platform DS and MinGW32 is now comparable since it is implemented as an alias of class type which has an conversion function to integer type.
+MSVC provides '__declspec(novtable)' for classes to ignore vfptr initialization in constructor and destructor as optimization. There are several conclusions:
+	1. This is an optimization primarily for size, firstly appeared at VC++ 5.0, see http://msdn.microsoft.com/en-us/magazine/cc301398.aspx .
+	2. Some major implementations like G++ seem to have no equivalence currently.
+	3. This should be only used with most derived class object, otherwise the behavior is undefined. See http://msdn.microsoft.com/en-us/library/k13k85ky.aspx . It is fit for interface types.
+	4. This would made behavior of code in constructor of derived classes non-confoming to ISO C++ if any 'novtable' base class virtural function is called or RTTI is used. See http://stackoverflow.com/questions/1801258/does-using-declspecnovtable-on-abstract-base-classes-affect-rtti-in-any-way .
+	5. '__declspec(novtable)' should be wrapped by YBase.
+	6. It is not fit for every interface type in YFramework as default option. It is reasonable for some specific interface types which have furthur constraints.
+
+todo.deferred:
+Wrapping '__declspec(novtable)' when '_MSC_VER >= 1100'.
 
 ////
 

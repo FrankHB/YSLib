@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r441
+\version r442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2013-09-15 18:37 +0800
+	2013-09-23 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@ namespace platform_ex
 {
 
 //! \since build 389
-typedef ::HWND NativeWindowHandle;
+using NativeWindowHandle = ::HWND;
 
 inline namespace Windows
 {

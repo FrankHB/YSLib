@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	Copyright by FrankHB 2012-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r565
+\version r567
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-08-02 03:43 +0800
+	2013-09-23 11:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -423,7 +423,7 @@ inline std::array<_type, sizeof...(_tParams)>
 make_array(_tParams&&... args)
 {
 	// TODO: Use one pair of braces (depending on G++).
-	return {{decay_copy(yforward(args))...}};
+	return {{decay_copy(args)...}};
 }
 
 /*!

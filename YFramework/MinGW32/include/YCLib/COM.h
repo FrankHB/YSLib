@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r441
+\version r442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2013-08-31 14:16 +0800
+	2013-09-23 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ class COMPtr
 	friend class COMPtr;
 
 public:
-	typedef _iCOM InterfaceType;
+	using InterfaceType = _iCOM;
 
 protected:
 	InterfaceType* pInterface;

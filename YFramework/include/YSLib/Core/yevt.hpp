@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	Copyright by FrankHB 2010-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4475
+\version r4490
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-08-24 10:55 +0800
+	2013-09-25 16:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,8 @@ public:
 	using BaseType = std::function<FuncType>;
 
 private:
-	using Comparer = bool(*)(const GHEvent&, const GHEvent&); //!< 比较函数类型。
+	//! \brief 比较函数类型。
+	using Comparer = bool(*)(const GHEvent&, const GHEvent&);
 	template<class _tFunctor>
 	struct GEquality
 	{
@@ -117,6 +118,18 @@ public:
 	GHEvent(_fCallable&& f, ystdex::enable_if_t<
 		std::is_constructible<BaseType, _fCallable>::value, int> = 0)
 		: BaseType(yforward(f)), comp_eq(GetComparer(f, f))
+	{}
+	/*!
+	\brief 使用扩展函数对象。
+	\since build 477
+	\todo 推断比较相等操作。
+	*/
+	template<class _fCallable>
+	yconstfn
+	GHEvent(_fCallable&& f, ystdex::enable_if_t<
+		!std::is_constructible<BaseType, _fCallable>::value, int> = 0)
+		: BaseType(ystdex::make_expanded<_tRet(_tParams...)>(yforward(f))),
+		comp_eq(GHEvent::AreAlwaysEqual)
 	{}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。

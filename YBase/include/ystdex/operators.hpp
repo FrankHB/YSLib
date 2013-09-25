@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	Copyright by FrankHB 2011-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1435
+\version r1441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2013-08-26 14:17 +0800
+	2013-09-23 12:24 +0800
 \par 字符集:
 	UTF-8
 \par 模块名称:
@@ -377,21 +377,20 @@ YB_OP_TEMPLATE_HEADER2(random_access_iteratable)
 
 
 template<class>
-struct is_chained_base
-	: public false_type
+struct is_chained_base : false_type
 {};
 
 
 # define YB_OP_CHAIN2(_name) \
 	using ystdex::details::_name; \
 	template<class _type, class _type2, class _tBase> \
-	struct is_chained_base<_name<_type, _type2, _tBase>> : public true_type \
+	struct is_chained_base<_name<_type, _type2, _tBase>> : true_type \
 	{};
 
 # define YB_OP_CHAIN1(_name) \
 	using ystdex::details::_name; \
 	template<class _type, class _tBase> \
-	struct is_chained_base<_name<_type, _tBase>> : public true_type \
+	struct is_chained_base<_name<_type, _tBase>> : true_type \
 	{};
 
 #define YB_OP_CHAIN(_name) \
@@ -412,7 +411,7 @@ struct is_chained_base
 	\
 	template<class _type, class _type2, class _tBase, bool _b> \
 	struct is_chained_base<_name<_type, _type2, _tBase, _b>> \
-		: public true_type \
+		: true_type \
 	{}; \
 	\
 	YB_OP_CHAIN2(_name##2) \

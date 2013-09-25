@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3694
+\version r3696
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-31 14:05 +0800
+	2013-09-23 12:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ struct PointerTag
 \since build 218
 */
 template<class _tOwner, typename _type>
-struct HasOwnershipOf : public std::integral_constant<bool,
+struct HasOwnershipOf : std::integral_constant<bool,
 	std::is_base_of<OwnershipTag<_type>, _tOwner>::value>
 {};
 
@@ -82,7 +82,6 @@ struct HasOwnershipOf : public std::integral_constant<bool,
 DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 	//! \since build 353 as workaround for G++ 4.7.1
 	//@{
-	DefDeCtor(IValueHolder)
 	DefDeCopyCtor(IValueHolder)
 	DefDeMoveCtor(IValueHolder)
 	//@}

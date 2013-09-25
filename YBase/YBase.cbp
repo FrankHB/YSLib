@@ -73,6 +73,7 @@
 		<Unit filename="include/ystdex/path.hpp" />
 		<Unit filename="include/ystdex/rational.hpp" />
 		<Unit filename="include/ystdex/string.hpp" />
+		<Unit filename="include/ystdex/tuple.hpp" />
 		<Unit filename="include/ystdex/type_op.hpp" />
 		<Unit filename="include/ystdex/utility.hpp" />
 		<Unit filename="include/ystdex/variadic.hpp" />

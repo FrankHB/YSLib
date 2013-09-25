@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1275
+\version r1276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-08-31 14:02 +0800
+	2013-09-23 11:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -328,7 +328,7 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 MakeNode(_tString&& name, _tParams&&... args)
 {
-	return {0, yforward(name), ystdex::decay_copy(yforward(args))...};
+	return {0, yforward(name), ystdex::decay_copy(args)...};
 }
 
 /*!

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r186
+\version r187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-09-09 20:29 +0800
+	2013-09-23 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ class YF_API Win32Exception : public Exception
 public:
 	//! \since build 435
 	//@{
-	typedef ::DWORD ErrorCode;
+	using ErrorCode = ::DWORD;
 
 private:
 	ErrorCode err;

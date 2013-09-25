@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r399
+\version r400
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-09-10 10:38 +0800
+	2013-09-23 12:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,7 +283,7 @@ to_string(unsigned short val)
 //! \since build 439
 template<typename _type>
 inline std::string
-to_string(_type val, enable_if_t<std::is_enum<_type>::value, int> = 0)
+to_string(_type val, enable_if_t<is_enum<_type>::value, int> = 0)
 {
 	using std::to_string;
 	using ystdex::to_string;

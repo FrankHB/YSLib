@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	Copyright by FrankHB 2009-2013.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1648
+\version r1650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2013-07-22 20:25 +0800
+	2013-09-21 09:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,7 +99,7 @@ is_null(_tChar c)
 
 /*!
 \ingroup NTCTSUtil
-\brief 计算简单 NTCTS 长度。zz
+\brief 计算简单 NTCTS 长度。
 \pre 断言： <tt>s</tt> 。
 \note 语义同 std::char_traits<_tChar>::length 。
 \since build 329

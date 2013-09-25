@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3296
+\version r3383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-09-21 00:32 +0800
+	2013-09-25 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,92 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ $dev @ "macro %_yInterfaceHead" @ %'YBaseMacro' $=
+		(
+			+ "protected defaulted default constructor",
+			^ $design "%DefDeDtor for destructor declaration"
+		),
+		/ DLD "all typedef declarations" @ %'YCLib_(MinGW32)'
+			-> "alias declaration",
+			// Missed: $since b434.
+		/ %'YSLib'.'Core'.'YEvent' $=
+		(
+			$dep_from "%ystdex::make_expanded";
+			+ "constructor support for expandable callable object as \
+				initailizer" @ "%GHEvent";
+			+ $comp "support for expandable callable types" @ "%GEvent"
+		);
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		* "no sequence guarantee when %operator, overloaded for pervious call \
+			result" @ "function template %seq_apply" $since b303,
+		/ DLD "reduced directly nested 'yforward' in
+			%ystdex::(decay_forward, decay_copy) calls",
+		/ "all %decay_forward calls" -> "'yforward' invocations"
+		- DLD "'std::' prefix for" ("names declared by using declaration"
+			@ %'TypeOperations') @ "namespace %ystdex except for using \
+			declarations and macros",
+		- DLD 'public' @ "inherited %std::integral_constant \
+			instances(inclucding %std::(true_type, false_type))",
+		/ %'Functional' $=
+		(
+			(
+			+ "partial specialization for instances of %std::function for \
+				%ystdex::(make_parameter_tuple, return_of)";
+			+ $comp "instances of %std::function support for \
+				%ystdex::(parameter_of, paramlist_size)"
+			),
+			+ "specialization of templates %is_covariant for function types",
+			(
+			$dep_from "variant traits for tuple";
+			+ "specialization of templates %is_contravariant for function types"
+			),
+			(
+			+ "function templates %(call_projection; expanded_caller)";
+			+ "function template %make_expanded";
+			),
+			+ "meta operation templates %(make_parameter_tuple_t, return_of_t, \
+				parameter_of_t)",
+		),
+		/ %'Variadic' $=
+		(
+			+ "constexpr static function %size"
+				@ "class template %variadic_sequence",
+				// Like %std::integer_sequence::size in C++1y.
+			+ $doc $dev "Doxygen group %vseq_operations",
+			+ "meta operation templates %(sequence_split, sequence_split_t, \
+				sequence_cat, sequence_cat_t, make_successor_t, \
+				make_natural_sequence_t, sequence_element, sequence_element_t, \
+				sequence_project, sequence_project_t, sequence_reverse, \
+				sequence_reverse_t)",
+		),
+		/ %'TypeOperations' $=
+		(
+			+ "binary type traits templates %(is_covariant, is_contravariant)";
+			$dep_to "variant traits"
+		),
+		+ %'Tuple' $=
+		(
+			(
+			$dep_from "variant traits";
+			+ "specialization of templates %(is_covariant, is_contravariant) for \
+				%std::tuple"
+			$dep_to "variant traits for tuple";
+			),
+			(
+			$dep_from %'Variadic';
+			+ "specialization of templates %(sequence_cat, sequence_element, \
+				sequence_project, sequence_reverse) for %std::tuple"
+			)
+		)
+	)
+),
+
+b446
 (
 	/ %'YFramework' $=
 	(
@@ -763,9 +849,10 @@ b434
 	/ "all anonymous struct typedef declarations"
 		-> "named struct declarations",
 		// See $2013-08 @ %Documentation::Workflow::Annual2013.
-	^ DLD "all typedef declarations except in directory %3rdparty"
+	/ DLD "all typedef declarations except in directory %3rdparty"
 		-> "alias declarations",
 		// Ditto.
+		// $b447: @ %YCLib_(MinGW32) missed.
 	/ %'YFramework'.'YSLib'.'UI' $=
 	(
 		/ @ %'Loader' $=

@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2915
+\version r2916
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-08-31 13:51 +0800
+	2013-09-23 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -487,7 +487,7 @@ protected:
 public:
 	//! \since build 439
 	template<typename _tIter, typename _tTran, typename = enable_if_t<
-		!std::is_same<_tIter&, transformed_iterator&>::value, int>>
+		!is_same<_tIter&, transformed_iterator&>::value, int>>
 	explicit yconstfn
 	transformed_iterator(_tIter&& i, _tTran&& f = {})
 		: iterator_type(yforward(i)), transformer(yforward(f))

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r102
+\version r110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2013-09-07 02:16 +0800
+	2013-09-24 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,6 +63,7 @@
  ydef.h(@2.3) 仅依赖标准库头文件。
  LibDefect 不包含头文件或仅包含标准库头文件。
  YBase 依赖且仅依赖 YBase 文件和标准库头文件。
+ YStandardEx 相关的头文件依赖性参见 @2.4.1 。
 
 @2.3 YDefinition ：
 模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
@@ -88,6 +89,16 @@
 适用范围最广的基础设施（比标准库更严格），如序列/非序列调用、通用类型转换、元类型、函数对象、迭代器；
 直接基于标准库接口的抽象和封装，如输入/输出抽象。
 所有更具体应用问题领域相关的或特定于运行时表达形式相关的操作，如形式语言处理等，都不由 YStandardEx 直接提供接口。
+
+@2.4.1 头文件直接依赖性：
+ "type_op.hpp" 和 "variadic.hpp" 依赖于 YDefinition ；
+ "cast.hpp" 和 "functional.hpp" 依赖于 "type_op.hpp" ；
+ "functional.hpp" 依赖于 "variadic.hpp" 。
+
+@2.4.2 模板特化：
+ ystdex 的类型在声明所在的同一头文件中，可能存在 std 命名空间中的类模板的对应特化。
+ std 的成员对 ystdex 命名空间中的类模板可能存在对应特化。注意完整包含所需的头文件，而不仅是 std 成员声明的标准库头文件。当前包括以下类型：
+  std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
 
 @2.5 LibDefect ：
 用于修正依赖的标准库实现因不完善或配置问题等与标准规定的接口的偏差。

@@ -11,13 +11,13 @@
 /*!	\file cstdint.hpp
 \ingroup YStandardEx
 \brief ISO C 标准整数类型操作。
-\version r165
+\version r167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2013-08-24 20:28:18 +0800
 \par 修改时间:
-	2013-08-29 17:53 +0800
+	2013-09-23 12:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,8 +40,7 @@ namespace ystdex
 \since build 260
 */
 template<typename _tInt>
-struct integer_width
-	: public integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
+struct integer_width : integral_constant<size_t, sizeof(_tInt) * CHAR_BIT>
 {};
 
 

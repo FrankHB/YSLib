@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r254
+\version r261
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-09-15 16:35 +0800
+	2013-09-23 11:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,9 +87,8 @@ private:
 public:
 	template<typename... _tParams>
 	WindowThread(_tParams&&... args)
-		: p_wnd(), thrd(std::mem_fn(
-		&WindowThread::ThreadFunc<ystdex::decay_t<_tParams>...>), this,
-		ystdex::decay_copy(yforward(args))...)
+		: p_wnd(), thrd(std::mem_fn(&WindowThread::ThreadFunc<ystdex::decay_t<
+		_tParams>...>), this, ystdex::decay_copy(args)...)
 	{}
 	//! \since build 385
 	DefDelMoveCtor(WindowThread)
@@ -144,8 +143,8 @@ public:
 		_tParams&&... args)
 		: BufferedRenderer(),
 		widget(wgt), rbuf(GetSizeOf(wgt)),
-		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<_tWindow, ystdex
-		::decay_t<_tParams>...>), this, ystdex::decay_copy(yforward(args))...)
+		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<_tWindow,
+		ystdex::decay_t<_tParams>...>), this, ystdex::decay_copy(args)...)
 	{}
 	template<typename... _tParams>
 	HostRenderer(int, UI::IWidget& wgt, _tParams&&... args)
@@ -157,8 +156,8 @@ public:
 		_tParams&&... args)
 		: BufferedRenderer(),
 		widget(wgt), rbuf(GetSizeOf(wgt)),
-		thrd(std::mem_fn(&HostRenderer::MakeRenderWindowEx<_tWindow, ystdex
-		::decay_t<_tParams>...>), this, ystdex::decay_copy(yforward(args))...)
+		thrd(std::mem_fn(&HostRenderer::MakeRenderWindowEx<_tWindow,
+		ystdex::decay_t<_tParams>...>), this, ystdex::decay_copy(args)...)
 	{}
 	//@}
 	DefDeMoveCtor(HostRenderer)

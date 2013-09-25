@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1489
+\version r1496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-09-01 21:36 +0805
+	2013-09-23 12:18 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,7 +99,7 @@ template<typename _type>
 struct fixed_multiplicative
 {
 	using type = typename make_signed_c<typename make_width_int<integer_width<
-		_type>::value << 1>::type, std::is_signed<_type>::value>::type;
+		_type>::value << 1>::type, is_signed<_type>::value>::type;
 };
 
 template<>
@@ -138,7 +138,7 @@ template<typename _tBase = std::int32_t,
 	size_t _vFrac = std::numeric_limits<_tBase>::digits - _vInt>
 class fixed_point : public operators<fixed_point<_tBase, _vInt, _vFrac>>
 {
-	static_assert(std::is_integral<_tBase>::value, "Non-integral type found.");
+	static_assert(is_integral<_tBase>::value, "Non-integral type found.");
 	static_assert(_vInt < size_t(std::numeric_limits<_tBase>::digits),
 		"No sufficient fractional bits found.");
 	static_assert(_vInt + _vFrac == size_t(std::numeric_limits<_tBase>::digits),
@@ -295,7 +295,7 @@ public:
 	fixed_point&
 	operator*=(const fixed_point& f) ynothrow
 	{
-		value = mul<frac_bit_n + std::is_signed<base_type>::value>(value,
+		value = mul<frac_bit_n + is_signed<base_type>::value>(value,
 			f.value, integral_constant<bool, is_signed<
 			typename fixed_multiplicative<base_type>::type>::value>());
 		return *this;
@@ -342,14 +342,14 @@ public:
 private:
 	//! \since build 439
 	template<typename _type>
-	yconstfn enable_if_t<std::is_integral<_type>::value, _type>
+	yconstfn enable_if_t<is_integral<_type>::value, _type>
 	cast() const
 	{
 		return value >> frac_bit_n;
 	}
 	//! \since build 439
 	template<typename _type>
-	enable_if_t<std::is_floating_point<_type>::value, _type>
+	enable_if_t<is_floating_point<_type>::value, _type>
 	cast() const
 	{
 		return _type(value) / base_element();
@@ -357,14 +357,14 @@ private:
 
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul(base_type x, base_type y, std::true_type)
+	mul(base_type x, base_type y, true_type)
 	{
 		return mul_signed<_vShiftBits>(
 			typename fixed_multiplicative<base_type>::type(x * y));
 	}
 	template<size_t _vShiftBits>
 	static yconstfn base_type
-	mul(base_type x, base_type y, std::false_type)
+	mul(base_type x, base_type y, false_type)
 	{
 		// NOTE: Only fit for unsigned type, due to there exists
 		//	implementation-defined behavior in conversion and right shifting on

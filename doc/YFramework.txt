@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r653
+\version r655
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-09-07 02:51 +0800
+	2013-09-21 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -397,8 +397,8 @@
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
 @2.2.4 YFramework 引入的命名空间：
- platform ：平台中立：接口平台无关但实现平台相关的实用程序。 YSLib 本体间接依赖（可配置 using 声明的名称）于此命名空间。
- platform_ex ：平台扩展：接口和实现都平台相关的实用程序。 YSLib 本体不依赖于此命名空间。
+ platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）于此命名空间。
+ platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖于此命名空间。
  CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）于此命名空间。
  NPL ：子库 NPL(@2.8) 的命名空间。
  YSLib ： YSLib 库命名空间。
