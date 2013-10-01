@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r923
+\version r925
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-09-11 08:52 +0800
+	2013-09-29 10:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -274,7 +274,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 				const bool b(category == FileCategory::Text
 					&& !cbHex.IsTicked());
 
-				PostMessage<SM_TASK>(0xF8, [=]{
+				PostTask([=]{
 					ResetDSDesktops(*h_up, *h_dn);
 					if(b)
 						NowShellTo(ystdex::make_shared<ShlTextReader>(path,
@@ -282,7 +282,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 					else
 						NowShellTo(ystdex::make_shared<ShlHexBrowser>(path,
 							h_up, h_dn));
-				});
+				}, 0xF8);
 			}
 		}
 	},

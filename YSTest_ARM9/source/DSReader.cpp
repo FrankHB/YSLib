@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3144
+\version r3146
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-08-05 22:00 +0800
+	2013-09-29 10:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -491,7 +491,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 void
 DualScreenReader::Stretch(SDst h)
 {
-	RestrictInClosedInterval(h, 0, MainScreenHeight - 40);
+	RestrictInClosedInterval<SDst>(h, 0, MainScreenHeight - 40);
 	h = MainScreenHeight - h;
 
 	const SDst w(area_dn.GetWidth());

@@ -187,6 +187,7 @@
     <ClInclude Include="include\YSLib\UI\button.h" />
     <ClInclude Include="include\YSLib\UI\ComboList.h" />
     <ClInclude Include="include\YSLib\UI\form.h" />
+    <ClInclude Include="include\YSLib\UI\Hover.h" />
     <ClInclude Include="include\YSLib\UI\label.h" />
     <ClInclude Include="include\YSLib\UI\Loader.h" />
     <ClInclude Include="include\YSLib\UI\menu.h" />
@@ -271,6 +272,7 @@
     <ClCompile Include="source\YSLib\UI\button.cpp" />
     <ClCompile Include="source\YSLib\UI\ComboList.cpp" />
     <ClCompile Include="source\YSLib\UI\form.cpp" />
+    <ClCompile Include="source\YSLib\UI\Hover.cpp" />
     <ClCompile Include="source\YSLib\UI\label.cpp" />
     <ClCompile Include="source\YSLib\UI\Loader.cpp" />
     <ClCompile Include="source\YSLib\UI\menu.cpp" />

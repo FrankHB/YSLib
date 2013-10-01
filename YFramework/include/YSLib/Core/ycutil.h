@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r1952
+\version r1969
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-08-31 14:03 +0800
+	2013-09-29 12:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,15 +68,6 @@ struct SelectConvertible : MoreConvertible<_type, _tStrict, _type>
 };
 
 
-/*!
-\brief 取整数类型的零元素。
-\since build 319
-*/
-yconstfn int
-FetchZero() ynothrow
-{
-	return 0;
-}
 /*!
 \brief 取指定类型的零元素。
 \since build 319
@@ -242,21 +233,21 @@ SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 }
 
 /*!
-\brief 约束整数 i 在闭区间 [a, b] 中。
+\brief 约束 v 在闭区间 [a, b] 中。
 \pre 断言： <tt>!(b < a)</tt> 。
 \post <tt>!(i < a || b < i)</tt> 。
-\since build 319
+\since build 448
 */
 template<typename _type>
 void
-RestrictInClosedInterval(_type& i, int a, int b) ynothrow
+RestrictInClosedInterval(_type& v, const _type& a, const _type& b) ynothrow
 {
 	YAssert(!(b < a), "Upper bound is less than lower bound.");
 
-	if(i < a)
-		i = a;
-	else if(b < i)
-		i = b;
+	if(v < a)
+		v = a;
+	else if(b < v)
+		v = b;
 }
 
 /*!

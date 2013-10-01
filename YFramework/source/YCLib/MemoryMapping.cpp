@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r143
+\version r145
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2013-08-05 21:22 +0800
+	2013-10-01 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ MappedFile::MappedFile(const char* path)
 	if(p == MAP_FAILED)
 		throw std::runtime_error("Mapping failed.");
 	// TODO: Create specific exception type.
-	addr = static_cast<byte*>(p);
+	addr = static_cast<ystdex::byte*>(p);
 #else
 #	error "Unsupported platform found."
 #endif

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4490
+\version r4498
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-09-25 16:39 +0800
+	2013-09-28 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@ public:
 	{}
 	/*!
 	\brief 使用扩展函数对象。
-	\since build 477
+	\since build 447
 	\todo 推断比较相等操作。
 	*/
 	template<class _fCallable>
@@ -246,10 +246,10 @@ public:
 	yconstfn DefDeCtor(GEvent)
 	/*!
 	\brief 构造：添加事件处理器。
-	\since build 439
+	\since build 448
 	*/
-	template<typename _tHandler, typename =
-		ystdex::enable_if_t<!std::is_same<_tHandler&, GEvent&>::value, int>>
+	template<typename _tHandler,
+		typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>>
 	GEvent(_tHandler&& h)
 		: List()
 	{
@@ -267,10 +267,10 @@ public:
 
 	/*!
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
-	\since build 439
+	\since build 448
 	*/
-	template<typename _tHandler, typename =
-		ystdex::enable_if_t<!std::is_same<_tHandler&, GEvent&>::value, int>>
+	template<typename _tHandler,
+		typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>>
 	inline GEvent&
 	operator=(_tHandler&& _arg)
 	{

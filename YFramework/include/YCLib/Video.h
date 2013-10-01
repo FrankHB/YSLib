@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r852
+\version r865
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-09-01 02:03 +0800
+	2013-10-01 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,13 +112,16 @@ union YB_ATTR(packed) YB_ATTR(
 	//! \since build 442
 	yconstfn DefCvt(const ynothrow, typename Trait::IntegerType, Integer)
 
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, A,
+	//! \since build 448
+	yconstfn DefGetter(const ynothrow, typename Trait::AType, A,
 		(Integer & Trait::AMask) >> Trait::XYZBitsN)
 	yconstfn DefGetter(const ynothrow, typename Trait::BType, B,
 		Integer & Trait::XMask)
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, G,
+	//! \since build 448
+	yconstfn DefGetter(const ynothrow, typename Trait::GType, G,
 		(Integer & Trait::YMask) >> Trait::XBitsN)
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, R,
+	//! \since build 448
+	yconstfn DefGetter(const ynothrow, typename Trait::RType, R,
 		(Integer & Trait::ZMask) >> Trait::XYBitsN)
 };
 
@@ -161,13 +164,16 @@ union YB_ATTR(packed) YB_ATTR(
 	//! \since build 442
 	yconstfn DefCvt(const ynothrow, typename Trait::IntegerType, Integer)
 
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, A,
+	//! \since build 448
+	yconstfn DefGetter(const ynothrow, typename Trait::AType, A,
 		(Integer & Trait::AMask) >> Trait::XYZBitsN)
 	yconstfn DefGetter(const ynothrow, typename Trait::BType, B,
 		(Integer & Trait::ZMask) >> Trait::XYBitsN)
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, G,
+	//! \since build 448
+	yconstfn DefGetter(const ynothrow, typename Trait::GType, G,
 		(Integer & Trait::YMask) >> Trait::XBitsN)
-	yconstfn DefGetter(const ynothrow, typename Trait::BType, R,
+	//! \since build 448
+	yconstfn DefGetter(const ynothrow, typename Trait::RType, R,
 		Integer & Trait::XMask)
 };
 

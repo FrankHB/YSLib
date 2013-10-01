@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4180
+\version r4182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-09-08 05:15 +0800
+	2013-09-28 13:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,7 +124,7 @@ b398
 		(
 			/ @ "class %ValueObject" @ %'ValueObject' $=
 			(
-				* "missing 'const' at cast" @ "member template function \
+				* "missing 'const' at cast" @ "member function template \
 					'const _type& Access() const'" $since b332,
 				+ "2 member funtcion templates %AccessPtr"
 			);

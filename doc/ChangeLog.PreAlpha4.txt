@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3383
+\version r3478
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-09-25 17:50 +0800
+	2013-10-01 10:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,101 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YBase'.'YStandardEx' $=
+	(
+		/ %'Functional' $=
+		(
+			/ "class template %call_projection forwarded parameters in tuple \
+				without '&&'",
+			(
+			+ "specialization of class template %call_projection for instances \
+				of %std::function";
+			+ "support for any caller handle type which has specialized of \
+				%call_projection" @ "class template %expanded_caller"
+				// Now not only built-in function types are supported.
+			),
+			(
+			/ @ "class template %expanded_caller"
+				$=
+			(
+				* "missing overloaded selection excluding for cv-qualified \
+					copy/move candidate parameter" $since b447,
+				+ $dev "static assertion for non-object caller type"
+			),
+			* "initialized reference type instead of object type for callable \
+				object lvalue" @ "function template %make_expanded" $since b447
+				// This would cause the callable object initialized by lvalue \
+					in %expanded_caller out of lifetime when called hence the \
+					bahavior would be undefined and easily crash the program.
+			)
+		),
+		+ "meta function template %(remove_rcv_t; exclude_self_ctor_t)"
+			@ %'TypeOperations'
+	),
+	(
+	$dep_from %'YBase'.'YStandardEx'.'TypeOperations';
+	/ DLD "all constructor template overloading excluding types to prevent \
+		copy/move constructor matched" ^ "%ystdex::exclude_self_ctor_t"
+		~ "%ystdex::enable_if_t";
+		// For %YSLib::Path, etc. See below for others.
+	* $dev "some volatile reference overloading matched not prevented" $since b352
+		// For %(ystdex::any $since b352, YSLib::ValueObject $since b376). \
+			%NPL::Configuration untouched.
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'UI' $=
+			(
+				+ %'Hover'
+					$= (+ "class %HoverUpdater" @ %'YControl'),
+				/ @ %'YBrush' $=
+				(
+					+ "template function %UpdatePixels";
+						// Function template default arguments firstly \
+							intended to be used. See $ref b448 $note \
+							"CWG issue 226".
+					+ "static member function %ImageBrush::UpdateComposite"
+				)
+			),
+			/ %'Core'.'YCoreUtilities' $=
+			(
+				/ "interval parameter type of function \
+					%RestrictInClosedInterval" -> "template parameter" ~ "%int",
+				- "unnecessary overloaded function %FetchZero"
+			)
+			/ %'Service' $=
+			(
+				+ "member template %operator()"
+					@ "class template %BlitAlphaPoint" @ %'YPixel',
+				* $dev $build "odr-use involving %ystdex::normalized_max"
+					@ "several specializations"
+					@ "alpha composite implementation" $since b440
+					$= (^ "%ystdex::normalized_max::get"
+						~ "undefined entity %ystdex::normalized_max::value")
+			)
+		),
+		+ "function template %PostTask" @ %'Helper'.'ShellHelper',
+		/ %'YCLib' $=
+		(
+			/ $dev "platform %MinGW32" @ %'NativeAPI' $=
+			(
+				+ "guaranteed macro %WIN32_LEAN_AND_MEAN defined (as 1 if not \
+					defined) before including <Windows.h>",
+				+ "guaranteed macro %WINVER defined (as 0x0501 if not defined) \
+					including <Windows.h>"
+					// At least Windows XP/Windows 2003 is required. Previous \
+						MinGW32 used 0x0502 as default %WINVER.
+			),
+			* "wrong (G, R, A) component types" @ "getters"
+				@ "class templates %(BGRA, RGBA)" @ %'Video' $since b441
+		)
+	)
+),
+
+b447
 (
 	/ %'YFramework' $=
 	(

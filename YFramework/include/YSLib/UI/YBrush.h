@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r340
+\version r366
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2013-09-06 23:38 +0800
+	2013-09-29 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "ywgtevt.h"
 #include "../Service/yres.h"
+#include "../Service/yblit.h" // for Drawing::BlitPixels;
 
 namespace YSLib
 {
@@ -115,7 +116,35 @@ public:
 	static void
 	DefaultUpdate(const PaintContext&, const Drawing::Image&, const Point&,
 		const Point&);
+
+	/*!
+	\brief 更新：Alpha 组合图像。
+	\since build 448
+	*/
+	static void
+	UpdateComposite(const PaintContext&, const Drawing::Image&, const Point&,
+		const Point&);
 };
+
+
+/*!
+\brief 更新：逐像素操作。
+\sa BlitPixels
+\since build 448
+*/
+template<typename _fPixelShader, bool _bSwapLR = false, bool _bSwapUD = false>
+void
+UpdatePixels(_fPixelShader shader, const PaintContext& pc,
+	const Drawing::Image& img, const Point& dst_offset, const Point& src_offset)
+{
+	const auto& g(pc.Target);
+	const Rect& r(pc.ClipArea);
+	const auto& src(img.GetContext());
+
+	Drawing::BlitPixels<_bSwapLR, _bSwapUD>(shader, g.GetBufferPtr(),
+		src.GetBufferPtr(), g.GetSize(), src.GetSize(), r.GetPoint(),
+		r.GetPoint() + src_offset - dst_offset, r.GetSize());
+}
 
 } // namespace UI;
 

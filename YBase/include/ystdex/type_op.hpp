@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1153
+\version r1169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-09-24 23:04 +0800
+	2013-09-28 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -633,11 +633,17 @@ struct identity
 \note remove_pointer 包含 cv-qualifier 的移除，不需要对应版本。
 \since build 376
 */
+//@{
 template<typename _type>
 struct remove_rcv
 {
 	using type = remove_cv_t<remove_reference_t<_type>>;
 };
+
+//! \since build 448
+template<typename _type>
+using remove_rcv_t = typename remove_rcv<_type>::type;
+//@}
 
 
 /*!
@@ -730,11 +736,22 @@ struct array_ref_decay<_type&&>
 //@}
 
 
+/*!
+\ingroup metafunctions
+\brief 移除选择类类型的特定重载避免构造模板和复制/转移构造函数冲突。
+\sa enable_if_t
+\since build 448
+*/
+template<class _tClass, typename _tParam, typename _type = int>
+using exclude_self_ctor_t = enable_if_t<!is_same<_tClass&,
+	remove_rcv_t<_tParam>&>::value, _type>;
+
+
 /*!	\defgroup tags Tags
 \ingroup meta
 \brief 标记。
 \note 可能是类型或元类型。
-\since build 477
+\since build 447
 */
 
 /*!

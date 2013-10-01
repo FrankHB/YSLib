@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1675
+\version r1686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-09-07 00:49 +0800
+	2013-09-29 10:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -266,6 +266,18 @@ inline void
 CallStored()
 {
 	SetShellToStored<_tShl>();
+}
+
+
+/*!
+\brief 通过消息队列部署后任务。
+\since build 448
+*/
+template<typename _fCallable>
+inline void
+PostTask(_fCallable&& f, Messaging::Priority prior = 0x80)
+{
+	PostMessage<SM_TASK>(prior, yforward(f));
 }
 
 

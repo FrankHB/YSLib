@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3696
+\version r3700
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-23 12:11 +0800
+	2013-09-28 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,10 +246,10 @@ public:
 	/*!
 	\brief 构造：使用对象引用。
 	\pre obj 可作为转移构造参数。
-	\since build 439
+	\since build 448
 	*/
-	template<typename _type, typename = ystdex::enable_if_t<
-		!std::is_same<_type&, ValueObject&>::value, int>>
+	template<typename _type,
+		typename = ystdex::exclude_self_ctor_t<ValueObject, _type>>
 	ValueObject(_type&& obj)
 		: content(ystdex::any_ops::holder_tag(), make_unique<ValueHolder<
 		typename ystdex::remove_rcv<_type>::type>>(yforward(obj)))

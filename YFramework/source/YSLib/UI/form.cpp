@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file form.cpp
 \ingroup UI
 \brief 样式无关的 GUI 窗体。
-\version r568
+\version r570
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-30 00:51:36 +0800
 \par 修改时间:
-	2013-08-08 05:39 +0800
-\par 字符集:
+	2013-09-28 13:41 +0800
+\par 文本编码:
 	UTF-8
 \par 模块名称:
 	YSLib::UI::Form

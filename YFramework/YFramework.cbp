@@ -217,6 +217,7 @@
 		<Unit filename="include/YSLib/UI/Border.h" />
 		<Unit filename="include/YSLib/UI/ComboList.h" />
 		<Unit filename="include/YSLib/UI/Console.h" />
+		<Unit filename="include/YSLib/UI/Hover.h" />
 		<Unit filename="include/YSLib/UI/Loader.h" />
 		<Unit filename="include/YSLib/UI/Selector.h" />
 		<Unit filename="include/YSLib/UI/WidgetIteration.h" />
@@ -302,6 +303,7 @@
 		<Unit filename="source/YSLib/UI/Border.cpp" />
 		<Unit filename="source/YSLib/UI/ComboList.cpp" />
 		<Unit filename="source/YSLib/UI/Console.cpp" />
+		<Unit filename="source/YSLib/UI/Hover.cpp" />
 		<Unit filename="source/YSLib/UI/Loader.cpp" />
 		<Unit filename="source/YSLib/UI/Selector.cpp" />
 		<Unit filename="source/YSLib/UI/YBrush.cpp" />

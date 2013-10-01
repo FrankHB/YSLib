@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.cpp
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1085
-\author FrankHB<frankhb1989@gmail.com>
+\version r1087
+\author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:20 +0800
 \par 修改时间:
-	2013-01-02 02:40 +0800
+	2013-09-28 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

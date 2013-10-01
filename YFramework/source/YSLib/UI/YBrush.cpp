@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r219
+\version r230
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2013-09-20 13:21 +0800
+	2013-09-29 18:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,9 +27,7 @@
 
 #include "YSLib/UI/YBrush.h"
 #include "YSLib/Service/ydraw.h"
-#include "YSLib/UI/ygui.h"
-#include "YSLib/UI/ywidget.h"
-#include "YSLib/Service/yblit.h"
+#include "YSLib/Service/YPixel.h" // for Drawing::Shaders::BlitAlphaPoint;
 
 namespace YSLib
 {
@@ -68,6 +66,14 @@ ImageBrush::DefaultUpdate(const PaintContext& pc, const Image& img,
 	BlitLines<false, false>(CopyLine<true>(), g.GetBufferPtr(),
 		src.GetBufferPtr(), g.GetSize(), src.GetSize(), r.GetPoint(),
 		r.GetPoint() + src_offset - dst_offset, r.GetSize());
+}
+
+void
+ImageBrush::UpdateComposite(const PaintContext& pc, const Image& img,
+	const Point& dst_offset, const Point& src_offset)
+{
+	return UpdatePixels(Drawing::Shaders::BlitAlphaPoint(), pc, img, dst_offset,
+		src_offset);
 }
 
 } // namespace UI;

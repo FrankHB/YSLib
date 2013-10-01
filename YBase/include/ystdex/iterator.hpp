@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2916
+\version r2920
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-09-23 12:17 +0800
+	2013-09-26 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -485,9 +485,9 @@ protected:
 	mutable transformer_type transformer;
 
 public:
-	//! \since build 439
-	template<typename _tIter, typename _tTran, typename = enable_if_t<
-		!is_same<_tIter&, transformed_iterator&>::value, int>>
+	//! \since build 448
+	template<typename _tIter, typename _tTran,
+		typename = exclude_self_ctor_t<transformed_iterator, _tIter>>
 	explicit yconstfn
 	transformed_iterator(_tIter&& i, _tTran&& f = {})
 		: iterator_type(yforward(i)), transformer(yforward(f))

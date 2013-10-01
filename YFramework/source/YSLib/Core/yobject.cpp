@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright (C) by Franksoft 2009 - 2012.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,14 +11,14 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r792
-\author FrankHB<frankhb1989@gmail.com>
+\version r795
+\author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-08-05 21:27 +0800
-\par 字符集:
+	2013-09-28 13:41 +0800
+\par 文本编码:
 	UTF-8
 \par 模块名称:
 	YSLib::Core::YObject

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4534
+\version r4539
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-09-07 02:43 +0800
+	2013-09-29 10:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,11 +190,11 @@ ShlReader::Exit()
 	const auto h_up(GetMainDesktopHandle());
 	const auto h_dn(GetSubDesktopHandle());
 
-	PostMessage<SM_TASK>(0xF8, [=]{
+	PostTask([=]{
 		ResetDSDesktops(*h_up, *h_dn);
 		NowShellTo(ystdex::make_shared<ShlExplorer>(CurrentPath / u"..",
 			h_up, h_dn));
-	});
+	}, 0xF8);
 }
 
 BookmarkList
@@ -239,9 +239,9 @@ ShlReader::LoadGlobalConfiguration()
 void
 ShlReader::OnInput()
 {
-	PostMessage<SM_PAINT>(0xE0, nullptr);
+	PostMessage<SM_PAINT>(0xE0, {});
 	if(fBackgroundTask)
-		PostMessage<SM_TASK>(0x20, fBackgroundTask);
+		PostTask(fBackgroundTask, 0x20);
 }
 
 void

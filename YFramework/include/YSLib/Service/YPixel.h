@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r679
+\version r692
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2013-09-02 01:10 +0800
+	2013-10-01 10:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,7 +159,7 @@ struct GPixelCompositor<_vDstAlphaBits, 1>
 		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
 			"Non-normalizable source alpha type found.");
 
-		return sa != 0 ? ystdex::normalized_max<_tDstAlpha>::value : da;
+		return sa != 0 ? ystdex::normalized_max<_tDstAlpha>::get() : da;
 	}
 
 	/*!
@@ -207,7 +207,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 		static_assert(ystdex::is_normalizable<_tDstAlpha>::value,
 			"Non-normalizable destination alpha type found.");
 
-		return ystdex::normalized_max<_tDstAlpha>::value;
+		return ystdex::normalized_max<_tDstAlpha>::get();
 	}
 	template<typename _tDstAlpha, typename _tSrcAlpha>
 	static yconstfn _tDstAlpha
@@ -276,7 +276,7 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
 			"Non-normalizable source alpha type found.");
 
-		return da != 0 ? ystdex::normalized_max<_tSrcAlpha>::value : sa;
+		return da != 0 ? ystdex::normalized_max<_tSrcAlpha>::get() : sa;
 	}
 
 	/*!
@@ -424,7 +424,7 @@ struct GPixelCompositor<1, 1>
 		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
 			"Non-normalizable source alpha type found.");
 
-		return sa != 0 || da != 0 ? ystdex::normalized_max<_tDstAlpha>::value
+		return sa != 0 || da != 0 ? ystdex::normalized_max<_tDstAlpha>::get()
 			: _tDstAlpha(0);
 	}
 
@@ -667,6 +667,14 @@ struct BlitAlphaPoint
 		const AlphaType a(*src_iter.base().second);
 
 		*dst_iter = Blend<8>(*dst_iter, *src_iter, a);
+	}
+	//! \since build 448
+	template<typename _tOut, typename _tIn>
+	inline void
+	operator()(_tOut dst_iter, _tIn src_iter)
+	{
+		*dst_iter = Shaders::Composite<ystdex::remove_reference_t<decltype(
+			*dst_iter)>::Trait::ABitsN, 8>(*dst_iter, *src_iter);
 	}
 };
 

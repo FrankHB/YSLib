@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r2140
+\version r2144
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-08-31 14:04 +0800
+	2013-09-28 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,9 +100,9 @@ public:
 	Path(ucs2string&& str)
 		: ypath(Parse(str))
 	{}
-	//! \since build 439
-	template<typename _type, typename = ystdex::enable_if_t<!std::is_same<
-		typename ystdex::remove_rcv<_type>::type, Path>::value, int>>
+	//! \since build 448
+	template<typename _type,
+		typename = ystdex::exclude_self_ctor_t<Path, _type>>
 	Path(_type&& arg, Text::Encoding enc = CS_Path)
 		: ypath(Parse(String(yforward(arg), enc)))
 	{}

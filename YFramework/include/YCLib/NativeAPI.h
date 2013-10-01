@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r646
+\version r656
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-07-14 19:44 +0800
+	2013-10-01 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,10 +99,20 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 } // namespace platform_ex;
 
 
-#elif defined(YCL_PLATFORM_MINGW32)
+#elif YCL_MinGW32
 
 #ifndef UNICODE
 #	define UNICODE 1
+#endif
+
+#ifndef WINVER
+//! \since build 448
+#	define WINVER 0x0501
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN
+//! \since build 448
+#	define WIN32_LEAN_AND_MEAN 1
 #endif
 
 #include <Windows.h>

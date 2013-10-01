@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9052
+\version r9055
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-09-24 16:35 +0800
+	2013-10-01 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ Shell 和 Core 的关系是相对的，例如：
 关于库配置，参见 @5 。
 本节适用于 YSLib 项目的各个库，用户程序不受此限制。
 不使用和 ISO C++11 不相容的特性，包括 export 关键字([Documentation::CommonRules @@5.7.6]) 和已经在 ISO C++03 中标记为 deprected 而在 C++11 去除的特性（如 const char 数组类型左值到 char* 右值的转换）。
- YSLib 程序默认基于 ISO C++03 环境和基本的底层系统接口（由 YFramework/YCLib(@5.2.2) 支持）。
+ YSLib 程序默认基于 ISO C++11 （包括 Defect Report 修正；扩展 ISO C++03 部分受 @1.3.2.1 限制）环境和基本的底层系统接口（由 YFramework/YCLib(@5.2.2) 支持）。
 依赖 ISO C++ 独立实现或宿主实现，附加以下例外：
 需要 @1.3.2.1 列出的扩展支持；
 库要求等同于 ISO C++11 定义的宿主实现；
@@ -401,7 +401,7 @@ Shell 和 Core 的关系是相对的，例如：
  devkitARM release 41 。
 
 @5.2.4 MinGW32 平台工具链和标准库实现：
-目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP/Windows Server 2003 及以上。
+目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP/Windows Server 2003 （对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。
 系统库：使用 MinGW 间接依赖的 Win32 API 相关库（如 user32 和 gdi32 ）以及 MSVCRT(Microsoft Visual C++ Runtime Library) 的特定版本。
  build 299 前：
 无（不支持的平台）。

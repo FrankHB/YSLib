@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3616
+\version r3620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-09-14 03:21 +0800
+	2013-09-29 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,7 +142,7 @@ ATrack::SetThumbLength(SDst l)
 void
 ATrack::SetThumbPosition(SPos pos)
 {
-	RestrictInClosedInterval(pos, 0, GetScrollableLength());
+	RestrictInClosedInterval<SPos>(pos, 0, GetScrollableLength());
 
 	Point pt(GetLocationOf(tmbScroll));
 	const bool is_h(IsHorizontal());
@@ -299,7 +299,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 			{
 				SPos x(st.CursorLocation.X + st.DraggingOffset.X);
 
-				RestrictInClosedInterval(x, 0,
+				RestrictInClosedInterval<SPos>(x, 0,
 					GetWidth() - tmbScroll.GetWidth());
 				Invalidate(tmbScroll);
 				SetLocationOf(tmbScroll, Point(x, GetLocationOf(tmbScroll).Y));
@@ -324,7 +324,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 			{
 				SPos y(st.CursorLocation.Y + st.DraggingOffset.Y);
 
-				RestrictInClosedInterval(y, 0,
+				RestrictInClosedInterval<SPos>(y, 0,
 					GetHeight() - tmbScroll.GetHeight());
 				Invalidate(tmbScroll);
 				SetLocationOf(tmbScroll, Point(GetLocationOf(tmbScroll).X, y));

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1346
+\version r1350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-09-23 12:17 +0800
+	2013-09-28 13:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -598,9 +598,8 @@ public:
 	any() ynothrow
 		: storage(), manager()
 	{}
-	//! \since build 439
-	template<typename _type, typename
-		= enable_if_t<!is_same<_type&, any&>::value, int>>
+	//! \since build 448
+	template<typename _type, typename = exclude_self_ctor_t<any, _type>>
 	any(_type&& x)
 		: manager(any_ops::value_handler<remove_reference_t<_type>>::manage)
 	{

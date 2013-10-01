@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r764
+\version r803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-09-25 17:09 +0800
+	2013-09-28 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,7 +313,7 @@ struct paramlist_size : integral_constant<size_t, std::tuple_size<typename
 
 /*!
 \brief 调用投影：向原调用传递序列指定的位置的参数。
-\since build 477
+\since build 447
 */
 //@{
 template<typename, class>
@@ -322,14 +322,25 @@ struct call_projection;
 template<typename _tRet, typename... _tParams, size_t... _vSeq>
 struct call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>
 {
+	//! \since build 448
 	template<typename _fCallable>
 	static _tRet
-	call(_fCallable&& f, std::tuple<_tParams&&...>&& args, remove_reference_t<
+	call(_fCallable&& f, std::tuple<_tParams...>&& args, remove_reference_t<
 		decltype(yforward(f)(yforward(std::get<_vSeq>(std::move(args)))...))>*
 		= {})
 	{
 		yforward(f)(yforward(std::get<_vSeq>(std::move(args)))...);
 	}
+};
+
+//! \since build 448
+template<typename _tRet, typename... _tParams, size_t... _vSeq>
+struct call_projection<std::function<_tRet(_tParams...)>,
+	variadic_sequence<_vSeq...>> : private
+	call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>
+{
+	using call_projection<_tRet(_tParams...),
+		variadic_sequence<_vSeq...>>::call;
 };
 //@}
 
@@ -338,24 +349,21 @@ struct call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>
 namespace details
 {
 
-template<size_t, typename>
-struct expand_proxy;
-
-template<typename _tRet, typename... _tParams>
-struct expand_proxy<0, _tRet(_tParams...)>
-	: private call_projection<_tRet(_tParams...), variadic_sequence<>>
+//! \since build 448
+template<typename _fCallable, size_t _vLen = paramlist_size<_fCallable>::value>
+struct expand_proxy : private call_projection<_fCallable,
+	make_natural_sequence_t<_vLen>>, private expand_proxy<_fCallable, _vLen - 1>
 {
-	using call_projection<_tRet(_tParams...), variadic_sequence<>>::call;
+	using call_projection<_fCallable, make_natural_sequence_t<_vLen>>::call;
+	using expand_proxy<_fCallable, _vLen - 1>::call;
 };
 
-template<size_t _vLen, typename _tRet, typename... _tParams>
-struct expand_proxy<_vLen, _tRet(_tParams...)>
-	: private call_projection<_tRet(_tParams...), make_natural_sequence_t<
-	_vLen>>, private expand_proxy<_vLen - 1, _tRet(_tParams...)>
+//! \since build 448
+template<typename _fCallable>
+struct expand_proxy<_fCallable, 0>
+	: private call_projection<_fCallable, variadic_sequence<>>
 {
-	using call_projection<_tRet(_tParams...), make_natural_sequence_t<_vLen>>
-		::call;
-	using expand_proxy<_vLen - 1, _tRet(_tParams...)>::call;
+	using call_projection<_fCallable, variadic_sequence<>>::call;
 };
 
 } // namespace details;
@@ -369,10 +377,15 @@ struct expand_proxy<_vLen, _tRet(_tParams...)>
 template<typename _fHandler, typename _fCallable>
 struct expanded_caller
 {
+	//! \since build 448
+	static_assert(is_object<_fCallable>::value,
+		"Callable object type is needed.");
+
 	_fCallable Caller;
 
-	template<typename _fCaller, typename
-		= enable_if_t<!is_same<_fCaller&, expanded_caller&>::value, int>>
+	//! \since build 448
+	template<typename _fCaller,
+		typename = exclude_self_ctor_t<expanded_caller, _fCaller>>
 	expanded_caller(_fCaller&& f)
 		: Caller(yforward(f))
 	{}
@@ -380,12 +393,11 @@ struct expanded_caller
 	template<typename... _tParams>
 	auto
 	operator()(_tParams&&... args)
-		-> decltype(details::expand_proxy<
-		ystdex::paramlist_size<_fHandler>::value, _fHandler>
-		::call(Caller, std::forward_as_tuple(yforward(args)...)))
+		-> decltype(details::expand_proxy<_fHandler>::call(Caller,
+		std::forward_as_tuple(yforward(args)...)))
 	{
-		return details::expand_proxy<ystdex::paramlist_size<_fHandler>::value,
-			_fHandler>::call(Caller, std::forward_as_tuple(yforward(args)...));
+		return details::expand_proxy<_fHandler>::call(Caller,
+			std::forward_as_tuple(yforward(args)...));
 	}
 };
 
@@ -393,13 +405,13 @@ struct expanded_caller
 /*!
 \ingroup helper_function
 \brief 构造接受冗余参数的可调用对象。
-\since build 447
+\since build 448
 */
 template<typename _fHandler, typename _fCallable>
-yconstfn expanded_caller<_fHandler, _fCallable>
+yconstfn expanded_caller<_fHandler, decay_t<_fCallable>>
 make_expanded(_fCallable&& f)
 {
-	return expanded_caller<_fHandler, _fCallable>(yforward(f));
+	return expanded_caller<_fHandler, decay_t<_fCallable>>(yforward(f));
 }
 
 
