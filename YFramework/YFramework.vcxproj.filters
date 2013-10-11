@@ -733,6 +733,12 @@
     <ClInclude Include="include\YSLib\UI\Hover.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Core\Task.h">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\Animation.h">
+      <Filter>include\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -976,6 +982,9 @@
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\Hover.cpp">
+      <Filter>source\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\Animation.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>

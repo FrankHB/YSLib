@@ -1,64 +1,87 @@
 ﻿OVERALL LICENSE of the YSLib Project
 
-Copyright (C) 2010 - 2013, FrankHB <frankhb1989@gmail.com>.
+© 2010-2013 FrankHB <frankhb1989@gmail.com>.
 
 Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
 
+Preamble
+
 This file is the overall license document of the YSLib Project.
 This document is for the current version. See LICENSE_HISTORY.txt about licenses for history versions.
-----
-OVERALL DEFINITIONS
---
+
+TERMS AND CONDITIONS
+
+0. OVERALL DEFINITIONS
+
 The documents in following files are defined hereby as LICENSE DOCUMENTS.
+
 LICENSE.txt
 LICENSE_HISTORY.txt
 CC BY-SA 3.0 legalcode.txt
 gpl-2.0.txt
 gpl-3.0.txt
 FTL.TXT
---
+
 The documents created by the YSLib project, whose names match the pattern "Readme.*.txt", are README DOCUMENTS.
-----
-NORMATIVE REFERENCES
+
+1. NORMATIVE REFERENCES
+
 CC BY-SA 3.0 legalcode.txt:
 http://creativecommons.org/licenses/by-sa/3.0/
 http://creativecommons.org/licenses/by-sa/3.0/legalcode
 http://creativecommons.org/licenses/by-sa/3.0/legalcode.txt
+
 gpl-2.0.txt:
 http://www.gnu.org/licenses/gpl-2.0.txt
+
 gpl-2.0.txt:
 http://www.gnu.org/licenses/gpl-3.0.txt
+
 FTL.txt:
 http://www.freetype.org/FTL.TXT
-----
-The YSLib Project uses code from several external libraries(with or without modification) distributed under distinct licenses below.
-Everyone is permitted to copy and distribute the YSLib Project under *ALL* of these license agreements, or under the corresponding license for each part respectively.
-====
+
+The YSLib Project carries some copyrighted materials from several external projects(with or without modification), and distributes them according to following terms.
+These referenced documents may be used as license of each part of these external dependencies.
+
+2. Basic Permissions
+
+Unless otherwise noted by the LICENSE DOCUMENTS, redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Documents
+
 License for all documents created by the YSLib Project except for LICENSE DOCUMENTS:
+
 Creative Commons Attribution-ShareAlike 3.0 Unported - See CC BY-SA 3.0 legalcode.txt.
-====
+
 In the directory "3rdparty", if not otherwise specified in LICENSE DOCUMENTS or README DOCUMENTS in the corresponding library directories, all derived work are licensed as the same as the original materials.
-====
-License for FreeType:
-----
+
+4. External Dependencies
+
+4.1 License for FreeType
+
 At least one of the following licenses shall be used for independert distribution:
+
 The FreeType Project LICENSE - See FTL.txt;
 GNU General Public License Version 2 - See gpl-2.0.txt.
+
 FreeType License is adopted here for statically linked binaries or whole project distribution because of the license compatibility.
 See http://www.freetype.org/license.html for details.
-====
-License for FreeImage:
-----
+
+4.2 License for FreeImage
+
 At least one of the following licenses shall be used for independert distribution:
 FreeImage Public License - Version 1.0 - See license-fi.txt;
 GNU General Public License Version 2 - See gpl-2.0.txt.
-====
-License for other parts:
-GNU General Public License Version 3 - See gpl-3.0.txt.
-(License for these parts may be relicensed using some permissive licenses in future release of the YSLib project.)
-====
-Important note:
-There are several licenses incompatible to others. Some of them don't allow relicensing.
+
+5. DISCLAMER
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Appendix A. Important Note of Licensing
+
+There are several licenses can be incompatible to others. Some of them may not allow relicensing.
 Make sure choose the correct licenses before redistribution.
-====
 

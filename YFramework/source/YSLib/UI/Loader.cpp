@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r201
+\version r218
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2013-08-08 05:39 +0800
+	2013-10-11 19:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,22 +97,8 @@ WidgetLoader::DetectWidgetNode(const ValueNode& node)
 ValueNode
 WidgetLoader::LoadUILayout(const string& str)
 {
-	using namespace NPL;
-	ValueNode root;
-
-	try
-	{
-		root = TransformConfiguration(SContext::Analyze(Session(str)));
-	}
-	catch(ystdex::bad_any_cast& e)
-	{
-		// TODO: Avoid memory allocation.
-		throw LoggedEvent(ystdex::sfmt(
-			"Bad configuration found: cast failed from [%s] to [%s] .",
-			e.from(), e.to()), Warning);
-	}
-//	return std::move(root);
-	return TransformUILayout(std::move(root));
+	return TransformUILayout(NPL::LoadNPLA1(NPL::SContext::Analyze(
+		NPL::Session(str))));
 }
 
 ValueNode

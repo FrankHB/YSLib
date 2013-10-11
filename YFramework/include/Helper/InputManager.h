@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r132
+\version r134
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2013-08-05 20:47 +0800
+	2013-10-11 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef INC_Helper_InputManager_h_
 #define INC_Helper_InputManager_h_ 1
 
-#include "Helper/yglobal.h"
+#include "yglobal.h"
 #include "YSLib/UI/ygui.h"
 
 namespace YSLib

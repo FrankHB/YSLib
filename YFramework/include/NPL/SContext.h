@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1354
+\version r1357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2013-08-05 20:10 +0800
+	2013-10-11 15:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef NPL_INC_SContext_h_
 #define NPL_INC_SContext_h_ 1
 
-#include "NPL/Lexical.h"
+#include "Lexical.h"
 #include "YSLib/Core/ValueNode.h"
 #include "YSLib/Service/yftext.h"
 
@@ -115,7 +115,7 @@ Analyze(const _type& arg)
 
 	Analyze(root, arg);
 
-	return root;
+	return std::move(root);
 }
 //@}
 

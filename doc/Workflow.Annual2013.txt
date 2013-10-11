@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r182
+\version r201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-09-21 17:30 +0800
+	2013-10-10 16:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@ $WORKFLOW:
 // See ChangeLog.*.txt for accepted contents.
 
 $2013-04:
+
 report.anylatical:
 Primative image formats should be supported: bmp, jpg, png.
 Use non-GPL for license of FreeImage.
@@ -57,6 +58,7 @@ todo.designated:
 / image-reqirement-analysis, round 2;
 
 $2013-05:
+
 report.impl:
 See $known_issue_b406 @ Meta.txt.
 
@@ -69,6 +71,7 @@ note.req-env:
 WG21/N3476 is confirmend to be not needed currently.
 
 $2013-06:
+
 report.impl:
 Resolved bug $known_issue_b223.
 
@@ -86,6 +89,7 @@ UI input/output events should be asymmetry, that is, input events are far more v
 	3. Though the input from variant devices can be multiplexed, they are almost always demultiplexed by the client, if used. No need to twist them together for both input and output events.
 
 $2013-07:
+
 dep.impl:
 FreeType:
 	Modules configuration:
@@ -145,6 +149,7 @@ Cairo: rejected.
 	Reason from http://people.mozilla.com/~roc/Samsung/Mozilla2DGraphics.pdf .
 
 $2013-08:
+
 report.impl:
 The YSLib project now prefers using alias declarations over typedef declarations. Here's the rationale:
 	1. The YSLib is try to use more ISO C++11 features aggresively when proper. Using aliases relax the complexity of many declarations, and reflects a kind of commonly accepted more natural syntax style, since the type name and identifier declared are separated clearly.
@@ -164,6 +169,7 @@ dep.merge:
 df.operators(https://github.com/d-frey/operators): considerable, shelved.
 
 $2013-09:
+
 report.impl:
 The member function like 'std::string::c_str' cannot be wrapped in a function/function template because it returns temporary value.
 Algorithm of circle rasterization in "http://cg.sjtu.edu.cn/lecture_site/chap2/mainframe224.htm" is wrong unless the circle is very small.
@@ -176,8 +182,29 @@ MSVC provides '__declspec(novtable)' for classes to ignore vfptr initialization 
 	5. '__declspec(novtable)' should be wrapped by YBase.
 	6. It is not fit for every interface type in YFramework as default option. It is reasonable for some specific interface types which have furthur constraints.
 
+$2013-10:
+
+report.impl:
+Host renderer on adjusting boundary of host windows:
+	Since b448, the full validation is forced to keep the boundary of host window steady.
+	The content would still be trembling on resizing by dragging the boundary.
+	This effect is of about the same quality of resizing on a normal application window (e.g. Windows Explorer window).
+	Note that several windows of application (e.g. the image and chat windows of Tencent QQ 2013, main window of Xunlei 7.9) seem to be using other way which can still cause the boundary itself be trembling on resizing. This is similar (or even worse) to previous revisions of YFamework.
+The std::basic_string of current libstdc++ is still non-conforming to ISO C++11 which disallows use of reference counting/copy-on-write implementation due to ABI compatibility.
+	See $ref b449 "libstdc++ std::basic_string conformance" for references.
+	Using of libstdc++ vstring is proper if strict conformance is really needed.
+		See $ref b449 "libstdc++ vstring" for references.
+
 todo.deferred:
 Wrapping '__declspec(novtable)' when '_MSC_VER >= 1100'.
+
+dep.merge:
+libmagic(https://github.com/glensc/file): rejected.
+	This library implements a DSL(with BNF provided among the source files) for querying magic number database. It is heavyweight and too complex for freestanding implementations.
+	Stripping the code of extended functionality(other than MIME detection needed by YFramework) out is difficult, because functions for printing and parameters for state passing are spread in the call graph deeply.
+	For hosted implementations, operation system or desktop environment based implementations may provide alternative more benifical interfaces for integrating custom/user-specified information of content types.
+	Also the depolying overhead of the magic databace files is significant.
+	For these reasons, this library is not suitable for YFramework, though may be fit for the low level indirect implentation esp. on POSIX systems.
 
 ////
 

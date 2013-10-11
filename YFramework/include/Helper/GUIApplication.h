@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r298
+\version r303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-09-19 14:22 +0800
+	2013-10-11 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,11 @@
 #ifndef INC_Helper_GUIApplication_h_
 #define INC_Helper_GUIApplication_h_ 1
 
-#include "Helper/yglobal.h"
+#include "yglobal.h"
 #include "YCLib/NativeAPI.h"
 #include "YSLib/Core/yapp.h"
 #include <ystdex/cast.hpp>
-#include "Helper/GUIShell.h"
+#include "GUIShell.h"
 #if YCL_MinGW32
 #	include "YCLib/Win32GUI.h"
 #endif
@@ -58,12 +58,11 @@ private:
 public:
 	/*!
 	\brief 用户界面输入响应阈值。
-	\note 默认值 0x40 。
 	\see DSApplication::Run 。
 
 	用于主消息队列的消息循环中控制后台消息生成策略的全局消息优先级。
 	*/
-	Messaging::Priority UIResponseLimit;
+	Messaging::Priority UIResponseLimit = 0x40;
 
 	/*!
 	\brief \c private 构造函数：非内联。

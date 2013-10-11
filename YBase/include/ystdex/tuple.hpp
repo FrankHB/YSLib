@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r125
+\version r133
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2013-09-24 22:49 +0800
+	2013-10-07 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,6 +119,15 @@ public:
 		make_natural_sequence_t<std::tuple_size<tuple_type>::value>>>;
 };
 //@}
+
+
+//! \since build 449
+template<typename _tHead, typename... _tTail>
+struct sequence_split<std::tuple<_tHead, _tTail...>>
+{
+	using type = _tHead;
+	using tail = std::tuple<_tTail...>;
+};
 
 } // namespace ystdex;
 

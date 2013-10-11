@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r366
+\version r367
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2013-09-29 18:51 +0800
+	2013-10-06 16:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ public:
 	\brief 当前使用的图像更新器。
 	\since build 441
 	*/
-	GBrushUpdater<const Drawing::Image&> Update = DefaultUpdate;
+	GBrushUpdater<const Drawing::Image&> Update{DefaultUpdate};
 
 	//! \since build 441
 	mutable shared_ptr<Drawing::Image> ImagePtr;

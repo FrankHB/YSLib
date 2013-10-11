@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r290
+\version r292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-08-08 18:46 +0800
+	2013-10-11 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef INC_Helper_HostWindow_h_
 #define INC_Helper_HostWindow_h_ 1
 
-#include "Helper/yglobal.h"
+#include "yglobal.h"
 #if YCL_MinGW32
 #	include <YCLib/Win32GUI.h>
 #endif

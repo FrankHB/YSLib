@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r685
+\version r687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-08-05 20:47 +0800
+	2013-10-11 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #ifndef INC_Helper_Host_h_
 #define INC_Helper_Host_h_ 1
 
-#include "Helper/HostWindow.h" // for Host::Window;
+#include "HostWindow.h" // for Host::Window;
 #if YCL_MULTITHREAD == 1
 #	include <mutex>
 #	include <atomic>

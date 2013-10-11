@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r773
+\version r800
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2013-09-17 08:59 +0800
+	2013-10-04 13:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,6 +96,7 @@ DrawPoint(const Graphics& g, const Point& pt, Color c)
 }
 //@}
 
+
 /*!
 \brief 绘制水平线段：在区域 ds 绘制指定端点水平坐标 x1 、 x2 - 1 ，竖直坐标 y 。
 \pre 断言： <tt>dst</tt> 。
@@ -151,6 +152,7 @@ DrawLineSeg(const Graphics& g, const Point& p1, const Point& p2, Color c)
 }
 //@}
 
+
 /*!
 \brief 描画标准矩形。
 \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
@@ -183,6 +185,7 @@ FillRect(const Graphics& g, const Rect& r, Color c)
 	return FillRect(g, r.GetPoint(), r.GetSize(), c);
 }
 
+
 /*!
 \brief 描画圆形。
 \since build 394
@@ -196,6 +199,38 @@ DrawCircle(const Graphics&, const Point&, SDst, Color c);
 */
 YF_API bool
 FillCircle(const Graphics&, const Point&, SDst, Color c);
+
+
+/*!
+\brief 描画多边形。
+\since build 449
+*/
+template<typename _tIn>
+void
+DrawPolygon(Graphics& g, _tIn first, _tIn last, Color c)
+{
+	if(YB_LIKELY(first != last))
+	{
+		using ystdex::is_undereferenceable;
+		const _tIn old(first);
+		_tIn mid(first);
+
+		++mid;
+		while(mid != last)
+		{
+			YAssert(!is_undereferenceable(first), "Invalid iterator found.");
+			YAssert(!is_undereferenceable(mid), "Invalid iterator found.");
+
+			DrawLineSeg(g, *first, *mid, c);
+			yunseq(++first, ++mid);
+		}
+
+		YAssert(!is_undereferenceable(first), "Invalid iterator found.");
+		YAssert(!is_undereferenceable(old), "Invalid iterator found.");
+
+		DrawLineSeg(g, *first, *old, c);
+	}
+}
 
 } // namespace Drawing;
 

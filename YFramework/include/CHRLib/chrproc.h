@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r840
+\version r846
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-05-06 16:27 +0800
+	2013-10-09 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,12 +36,6 @@
 
 namespace CHRLib
 {
-
-#if 0
-size_t	UTF16toUTF8(byte*, const u16*);
-size_t	UTF8toUTF16(u16*, const byte*);
-bool	u8cmp(char*, char*);
-#endif
 
 /*!
 \brief 判断整数类型字符是否为 ASCII 字符。

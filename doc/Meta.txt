@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r791
+\version r812
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-09-29 14:50 +0800
+	2013-10-11 00:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,6 +341,15 @@ $ellipse_debug_assertion;
 
 $ref $=
 (
+b449
+(
+$note "libstdc++ std::basic_string confomance"
+$URL http://stackoverflow.com/questions/12520192/is-stdstring-refcounted-in-gcc-c11
+$URL http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52938#c8
+$URL http://gcc.gnu.org/ml/gcc/2011-10/msg00115.html
+$note "libstdc++ vstring"
+$URL http://stackoverflow.com/questions/10463851/what-is-gccs-vstring
+),
 b448
 (
 $note "CWG issue 226"
@@ -566,6 +575,10 @@ $STATE:
 	'report'.
 
 dep.merge:
+// $2012.
+Boost(http://www.boost.org): rejected.
+	Boost is too large to be a dependency before the near future.
+	If possible, corresponding individual version of Boost components(e.g. non-Boost Asio at http://www.think-async.com/) should be considered to be adopted as dependencies.
 // $2013-05.
 Microlua(github://microlua/MicroLua-Source) @ DS: considerable, shelved.
 uLibrary @ DS: rejected.
@@ -573,9 +586,16 @@ uLibrary @ DS: rejected.
 // $2013-07.
 (FTGL, GLFW, FMOD) @ !DS: considerable, shelved.
 Cairo: rejected.
-	Reason from http://people.mozilla.com/~roc/Samsung/Mozilla2DGraphics.pdf .
+	Reasons: http://people.mozilla.com/~roc/Samsung/Mozilla2DGraphics.pdf .
 // $2013-08.
 df.operators(https://github.com/d-frey/operators): considerable, shelved.
+// $2013-10.
+libmagic(https://github.com/glensc/file): rejected.
+	This library implements a DSL(with BNF provided among the source files) for querying magic number database. It is heavyweight and too complex for freestanding implementations.
+	Stripping the code of extended functionality(other than MIME detection needed by YFramework) out is difficult, because functions for printing and parameters for state passing are spread in the call graph deeply.
+	For hosted implementations, operation system or desktop environment based implementations may provide alternative more benifical interfaces for integrating custom/user-specified information of content types.
+	Also the depolying overhead of the magic databace files is significant.
+	For these reasons, this library is not suitable for YFramework, though may be fit for the low level indirect implentation esp. on POSIX systems.
 
 todo.ceased:
 // $2013-06.

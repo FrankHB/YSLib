@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1686
+\version r1698
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-09-29 10:46 +0800
+	2013-10-06 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,7 +217,8 @@ NowShellToStored()
 \since 早于 build 132
 */
 inline void
-SetShellTo(const shared_ptr<Shell>& hShl, Messaging::Priority prior = 0x80)
+SetShellTo(const shared_ptr<Shell>& hShl,
+	Messaging::Priority prior = Messaging::NormalPriority)
 {
 	// NOTE: It would make the message loop in dead lock when called more
 	//	than once specifying on same destination shell.
@@ -266,18 +267,6 @@ inline void
 CallStored()
 {
 	SetShellToStored<_tShl>();
-}
-
-
-/*!
-\brief 通过消息队列部署后任务。
-\since build 448
-*/
-template<typename _fCallable>
-inline void
-PostTask(_fCallable&& f, Messaging::Priority prior = 0x80)
-{
-	PostMessage<SM_TASK>(prior, yforward(f));
 }
 
 

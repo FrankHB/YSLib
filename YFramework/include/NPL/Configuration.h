@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r248
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2013-08-31 13:57 +0800
+	2013-10-11 18:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,22 @@ using YSLib::ValueNode;
 */
 YF_API ValueNode
 TransformConfiguration(const ValueNode&);
+
+
+/*!
+\brief 读取 NPLA1 翻译单元。
+\since build 449
+*/
+//@{
+YF_API ValueNode
+LoadNPLA1(ValueNode&&);
+template<typename _type>
+ValueNode
+LoadNPLA1(_type&& tree)
+{
+	return LoadNPLA1(tree);
+}
+//@}
 
 
 /*!

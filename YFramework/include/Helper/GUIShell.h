@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIShell.h
 \ingroup Helper
 \brief GUI Shell 类。
-\version r103
+\version r106
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:29 +0800
 \par 修改时间:
-	2013-08-05 20:47 +0800
+	2013-10-11 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YSLib/Core/yshell.h"
 #include "YSLib/Core/ystring.h"
-#include "Helper/InputManager.h"
+#include "InputManager.h"
 
 namespace YSLib
 {
@@ -77,7 +77,7 @@ public:
 	\brief 处理输入消息：发送绘制消息。
 	\note 如需要异步更新可以覆盖本方法。
 
-	默认行为：调用 OnPaint ；若为宿主实现，向宿主环境分发输入，
+	默认行为：调用 OnPaint ；若为宿主实现，更新宿主环境 GUI ，
 		之后线程内延时 IdleSleep 。
 	*/
 	virtual void

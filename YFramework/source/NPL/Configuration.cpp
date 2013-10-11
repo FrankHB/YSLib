@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r578
+\version r654
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2013-08-05 21:21 +0800
+	2013-10-12 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,10 +70,34 @@ TransformConfiguration(const ValueNode& node)
 
 	auto p_node_cont(make_unique<ValueNode::Container>());
 
-	std::for_each(i, node.GetEnd(), [&](const ValueNode& n){
-		p_node_cont->insert(TransformConfiguration(n));
+	std::for_each(i, node.GetEnd(), [&](const ValueNode& nd){
+		auto&& n(TransformConfiguration(nd));
+
+		p_node_cont->insert(n.GetName().empty() ? ValueNode{0,
+			'$' + std::to_string(p_node_cont->size()), std::move(n.Value)}
+			: std::move(n));
 	});
 	return {0, new_name, p_node_cont.release(), PointerTag()};
+}
+
+
+ValueNode
+LoadNPLA1(ValueNode&& tree)
+{
+	ValueNode root;
+
+	try
+	{
+		root = TransformConfiguration(tree);
+	}
+	catch(ystdex::bad_any_cast& e)
+	{
+		// TODO: Avoid memory allocation.
+		throw LoggedEvent(ystdex::sfmt(
+			"Bad configuration found: cast failed from [%s] to [%s] .",
+			e.from(), e.to()), Warning);
+	}
+	return std::move(root);
 }
 
 
@@ -122,6 +146,38 @@ EscapeNodeString(const string& str)
 	return c == char() ? std::move(content) : c + content + c;
 }
 
+//! \since build 449
+bool
+IsPrefixedIndexedName(const string& name)
+{
+	if(name.length() > 1 && name[0] == '$')
+		try
+		{
+			const string ss(&name[1]);
+
+			return std::to_string(std::stoul(ss)) == ss;
+		}
+		catch(std::invalid_argument&)
+		{}
+	return false;
+}
+
+//! \since build 449
+bool
+PrintNodeString(File& f, const ValueNode& node)
+{
+	try
+	{
+		const auto& s(Access<string>(node));
+
+		f << '"' << EscapeNodeString(s) << '"' << '\n';
+		return true;
+	}
+	catch(ystdex::bad_any_cast&)
+	{}
+	return false;
+}
+
 //! \since build 334
 File&
 WriteNodeC(File& f, const ValueNode& node, size_t depth)
@@ -130,28 +186,27 @@ WriteNodeC(File& f, const ValueNode& node, size_t depth)
 	f << node.GetName();
 	if(node)
 	{
-		try
-		{
-			const auto& s(Access<string>(node));
-
-			f << ' ' << '"' << EscapeNodeString(s) << '"' << '\n';
+		f << ' ';
+		if(PrintNodeString(f, node))
 			return f;
-		}
-		catch(ystdex::bad_any_cast&)
-		{}
 		f << '\n';
 		for(const auto& n : node)
 		{
 			WritePrefix(f, depth);
-			f << '(' << '\n';
-			try
+			if(IsPrefixedIndexedName(n.GetName()))
+				PrintNodeString(f, n);
+			else
 			{
-				WriteNodeC(f, n, depth + 1);
+				f << '(' << '\n';
+				try
+				{
+					WriteNodeC(f, n, depth + 1);
+				}
+				catch(std::out_of_range&)
+				{}
+				WritePrefix(f, depth);
+				f << ')' << '\n';
 			}
-			catch(std::out_of_range&)
-			{}
-			WritePrefix(f, depth);
-			f << ')' << '\n';
 		}
 	}
 	return f;
@@ -168,18 +223,8 @@ operator<<(File& f, const Configuration& conf)
 TextFile&
 operator>>(TextFile& tf, Configuration& conf)
 {
-	try
-	{
-		tf.Rewind();
-		conf.root = TransformConfiguration(SContext::Analyze(Session(tf)));
-	}
-	catch(ystdex::bad_any_cast& e)
-	{
-		// TODO: Avoid memory allocation.
-		throw LoggedEvent(ystdex::sfmt(
-			"Bad configuration found: cast failed from [%s] to [%s] .",
-			e.from(), e.to()), Warning);
-	}
+	tf.Rewind();
+	conf.root = LoadNPLA1(SContext::Analyze(Session(tf)));
 	return tf;
 }
 

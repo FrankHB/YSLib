@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r204
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-09-07 02:36 +0800
+	2013-10-04 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,8 +79,8 @@ FrmAbout::FrmAbout()
 	lblCopyright.ForeColor = ColorSpace::Maroon,
 	btnClose.Text = u"关闭",
 	btnExit.Text = u"退出",
-	root.Background = SolidBrush(Color(248, 120, 120)),
-	btnClose.Background = SolidBrush(Color(176, 184, 192)),
+	root.Background = SolidBrush({248, 120, 120}),
+	btnClose.Background = SolidBrush({176, 184, 192}),
 	FetchEvent<TouchDown>(root) += [&](CursorEventArgs&& e){
 		root.Background = SolidBrush(GenerateRandomColor());
 		SetInvalidationOf(root);

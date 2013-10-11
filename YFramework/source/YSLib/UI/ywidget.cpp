@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4342
+\version r4344
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-03 15:20 +0800
+	2013-10-06 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,7 +111,7 @@ Hide(IWidget& wgt)
 void
 Invalidate(IWidget& wgt)
 {
-	Invalidate(wgt, Rect(GetSizeOf(wgt)));
+	Invalidate(wgt, GetSizeOf(wgt));
 }
 void
 Invalidate(IWidget& wgt, const Rect& bounds)

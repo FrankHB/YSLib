@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1860
+\version r1902
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2013-09-09 20:40 +0800
+	2013-10-06 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,7 @@ namespace Messaging
 \since build 175
 */
 using ID = u32;
+
 /*!
 \brief 消息优先级。
 \since build 175
@@ -50,10 +51,10 @@ using ID = u32;
 using Priority = u8;
 
 /*!
-\brief 消息默认有效期。
-\since build 175
+\brief 默认消息优先级。
+\since build 449
 */
-const std::time_t DefTimeout(0);
+yconstexpr Priority NormalPriority(0x80);
 
 
 /*!
@@ -79,12 +80,16 @@ public:
 	{}
 	/*!
 	\brief 构造：使用消息标识和消息内容。
-	\since build 320
+	\since build 449
 	*/
 	//@{
 	//! \since build 368
-	Message(ID, const ValueObject&);
-	Message(ID, ValueObject&&);
+	Message(ID m, const ValueObject& vo)
+		: id(m), content(vo)
+	{}
+	Message(ID m, ValueObject&& vo) ynothrow
+		: id(m), content(std::move(vo))
+	{}
 	//@}
 
 	/*!
@@ -175,6 +180,8 @@ class YF_API MessageQueue : private noncopyable,
 	private multimap<Priority, Message, std::greater<Priority>>
 {
 public:
+	//! \since build 449
+	using BaseType = multimap<Priority, Message, std::greater<Priority>>;
 	using SizeType = size_type;
 	/*!
 	\brief 迭代器。
@@ -188,19 +195,37 @@ public:
 	inline DefDeCtor(MessageQueue)
 	DefDeDtor(MessageQueue)
 
-	DefPred(const ynothrow, Empty, empty()) //!< 判断消息队列是否为空。
+	//! \since build 449
+	//@{
+	using BaseType::begin;
 
-	DefGetter(const ynothrow, SizeType, Size, size()) //!< 取队列中消息容量。
-	/*!
-	\brief 取队列起始迭代器。
-	\since build 317
-	*/
-	DefGetter(const ynothrow, Iterator, Begin, begin())
-	/*!
-	\brief 取队列终止迭代器。
-	\since build 317
-	*/
-	DefGetter(const ynothrow, Iterator, End, end())
+	using BaseType::end;
+
+	using BaseType::cbegin;
+
+	using BaseType::cend;
+
+	using BaseType::rbegin;
+
+	using BaseType::rend;
+
+	using BaseType::crbegin;
+
+	using BaseType::crend;
+
+	using BaseType::size;
+
+	using BaseType::max_size;
+
+	using BaseType::empty;
+
+	using BaseType::insert;
+
+	using BaseType::erase;
+
+	using BaseType::clear;
+	//@}
+
 	/*!
 	\brief 取消息队列中消息的最大优先级。
 	\return 若消息队列为空则 0 ，否则为最大优先级。
@@ -208,20 +233,6 @@ public:
 	*/
 	DefGetter(const ynothrow, Priority, MaxPriority,
 		empty() ? 0 : begin()->first)
-
-	/*!
-	\brief 清除消息队列。
-	*/
-	PDefH(void, Clear, )
-		ImplRet(clear())
-
-	/*!
-	\brief 从队列中删除迭代器指定的消息。、
-	\pre 迭代器从属于本消息队列。
-	\since build 317
-	*/
-	PDefH(bool, Erase, Iterator i)
-		ImplRet(erase(i) != end())
 
 	/*!
 	\brief 合并消息队列：移动指定消息队列中的所有消息至此消息队列中。

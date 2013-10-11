@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2227
+\version r2234
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-09-09 21:45 +0800
+	2013-10-10 18:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,7 +204,9 @@
 
 @3.1 核心实用模块 YCoreUtilities
 
-@3.2 平台无关的基础对象 YObject
+@3.2 平台无关的基础对象 YObject ：
+包括值类型对象 ValueObject 类和相关接口。
+ ValueObject 是以 ystdex::any([Documentation::YBase @@2.4.6.4]) 为基础实现的动态泛型值类型([Documentation::YFramework @@1.6.3.4]) ，增加了比较相等的泛型操作。
 
 @3.3 对象计数器 YCounter
 
@@ -336,6 +338,10 @@
 基本程序实例。
 一个 YSLib 程序应该包含一个 Application 或其派生类的对象以访问全局资源。
  Application::OnGotMessage 分派处理消息：发送到对应的 Shell 中，捕获 Messaging::MessageSignal 异常(@3.10.5) 。
+
+@3.16 值类型节点 ValueNode ：
+以 YSLib::ValueObject(@3.2) 作为内容的树形数据结构，可以保存层次组织的任意 C++ 对象。
+可以作为语言的语法（表达式树）和语义的基础实现。
 
 @4 服务系统：
 位于 "/Service" 。

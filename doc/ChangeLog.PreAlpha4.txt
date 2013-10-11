@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3478
+\version r3595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-10-01 10:20 +0800
+	2013-10-12 02:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,124 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			+ "full validation on adjusting boundary of host windows"
+				@ "member function %HostRenderer::Update" @ %'HostRenderer',
+				// See $2013-10 @ %Documentation::Workflow::Annual2013.
+			/ DLD "data member %GUIApplication::UIResponseLimit initialization"
+				@ %'GUIApplication' ^ "member initializer",
+				// This emphasizes the magic default value as public interface.
+			/ %'ShellHelper' $=
+			(
+				$dep_from "%Messaging::NormalPriority";
+				^ 'Messaging::NormalPriority' ~ '0x80';
+				$dep_from %'YSLib'.'Core'.'Task';
+				/ "function template %PostTask" @ %'ShellHelper'
+					>> %'YSLib'.'Core'.'Task'
+			)
+		),
+		/ %'YSLib' $=
+		(
+			/ %'UI' $=
+			(
+				* "wrong point of invalidated area" @ "member functon \
+					%BufferedRenderer::SetSize" @ %.'YRenderer'$since b237,
+				* "wrong offset set when minimal size component reached in \
+					host mode" @ "member function %BorderResizer::Wrap",
+					@ %'Border' $since b445
+					// Old offset not kept from this point, so the dragged \
+						point would move.
+				+ %'Animation' $=
+				(
+					$dep_from %'Core'.'Task';
+					+ "class %AnimationTask"
+				)
+			),
+			+ "function template %DrawPolygon" @ %'Service'.'YDraw',
+			/ %'Core' $=
+			(
+				/ %'YMessage' $=
+				(
+					/ $dev @ "class %Message" %=
+					(
+						/ DLD "all constructors made inlined",
+						+ 'ynothrow' @ "constructor with 'ValueObject&&' \
+							parameter"
+					),
+					/ @ "class %MessageQueue" $=
+					(
+						+ 'using BaseType = multimap<Priority, Message, \
+							std::greater<Priority>>';
+						/ "member function %GetBegin"
+							-> "using %BaseType::(cbegin, begin)",
+						/ "member function %GetEnd"
+							-> "using %BaseType::(cend, end)",
+						/ "member function %IsEmpty"-> 'using BaseType::empty;',
+						/ "member function %Clear" -> 'using BaseType::clear;',
+						/ "member function %Erase" -> 'using BaseType::erase;',
+						/ "member function %GetSize" -> 'using BaseType::size;',
+						+ 'using BaseType::crbegin;',
+						+ 'using BaseType::crend;',
+						+ 'using BaseType::rbegin;',
+						+ 'using BaseType::rend;'
+						+ 'using BaseType::max_size;',
+						+ 'using BaseType::insert;'
+					),
+					- "object %DefTimeout",
+					+ 'yconstexpr Priority NormalPriority(0x80);'
+				),
+				+ %'Task'
+					$= (+ "class %GAutoTask")
+			)
+		),
+		(
+		$dep_from %'YSLib'.('Core'.'Task', 'UI'.'Animation');
+		+ $dev "header inclusion for %(UI::(Border, Hover, Animation),
+			Core::Task)" @ %'Build';
+		),
+		/ $dev "simplified including header paths in same 2nd level project"
+			@ "public headers",
+		/ %'NPL' $=
+		(
+			/ $design "implementation" @ "function template %Analyze"
+				@ %'SContext' ^ "%std::move";
+			/ %'Configuration' $=
+			(
+				+ "(function; function template) %LoadNPLA1"
+				/ "function %TransformConfiguration supported for multiple \
+					unnamed node value";
+				+ "output support for prefixed indexed name like '$n' as \
+					unnamed node value";
+			)
+		)
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		+ "class template specialization %sequene_split for %std::tuple"
+			@ %'Tuple',
+		/ $dev "included '<tuple>'" @ %'YContainer' -> '<ystdex/tuple.hpp>'
+			// To avoid missing of specialized meta operations for %std::tuple.
+	),
+	/ $doc "documentation" $=
+	(
+		- $dev "temporary 'TODO' lists" @ %'Documenation'.'Ex',
+		/ "reconstructed %LICENSE.TXT" $=
+		(
+			^ "new copyright notice style with copyright symbol '©'",
+			^ "2-Clause BSD style cluases for permissions(without otherwise \
+				specified)" ~ "GPLv3",
+			+ "DISCLAIMER chaper"
+		),
+		/ "%Readme.zh-CN.txt updated with brief introduce text about the YSLib \
+			project",
+	)
+),
+
+b448
 (
 	/ %'YBase'.'YStandardEx' $=
 	(

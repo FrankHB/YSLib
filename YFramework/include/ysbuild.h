@@ -20,13 +20,13 @@
 /*!	\file ysbuild.h
 \ingroup YFramework
 \brief YSLib 库配置文件。
-\version r733
+\version r740
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 21:53:55 +0800
 \par 修改时间:
-	2013-09-28 13:37 +0800
+	2013-10-06 22:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,13 +34,12 @@
 */
 
 
-#ifndef YSL_INC_YSBUILD_H_
-#define YSL_INC_YSBUILD_H_ 1
+#ifndef YSL_INC_ysbuild_h_
+#define YSL_INC_ysbuild_h_ 1
 
 #include <YSLib/Core/ydevice.h>
 #include <YSLib/UI/ydesktop.h>
 #include <YSLib/UI/ygui.h>
-#include <YSLib/UI/YBrush.h>
 #include <Helper/Initialization.h>
 #include <Helper/DSMain.h>
 #include <YSLib/Service/YBlit.h>
@@ -51,6 +50,10 @@
 #include <YSLib/UI/menu.h>
 #include <YSLib/UI/progress.h>
 #include <YSLib/UI/uicontx.h>
+#include <YSLib/Core/Task.h>
+#include <YSLib/UI/Border.h>
+#include <YSLib/UI/Hover.h>
+#include <YSLib/UI/Animation.h>
 
 #endif
 

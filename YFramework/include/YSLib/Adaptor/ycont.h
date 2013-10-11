@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r672
+\version r675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-08-05 21:04 +0800
+	2013-10-07 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "yadaptor.h"
 #include <utility>
-#include <tuple>
+#include <ystdex/tuple.hpp>
 #include "CHRLib/chrdef.h"
 
 
@@ -58,6 +58,7 @@ namespace YSLib
 
 #else
 //#	include <string>
+//#	include <ext/vstring.h>
 #endif
 #include <ystdex/string.hpp>
 

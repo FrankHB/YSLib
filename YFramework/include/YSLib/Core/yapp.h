@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1580
+\version r1586
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2013-09-09 20:53 +0800
+	2013-10-06 01:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,11 +98,8 @@ public:
 	\warning 空句柄在此处是可接受的，但继续运行可能会导致断言失败。
 	\since build 295
 	*/
-	bool
-	Switch(shared_ptr<Shell>&& h) ynothrow
-	{
-		return Switch(h);
-	}
+	PDefH(bool, Switch, shared_ptr<Shell>&& h) ynothrow
+		ImplRet(Switch(h))
 };
 
 

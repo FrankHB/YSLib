@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r164
+\version r167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-09-15 19:03 +0800
+	2013-10-02 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,6 +137,8 @@ HostRenderer::Update(BitmapPtr buf)
 		{
 			bounds.GetPointRef() += loc;
 			view.SetLocation({});
+			rInvalidated = {{}, bounds.GetSize()};
+			Validate(widget, widget, {GetContext(), Point(), rInvalidated});
 		}
 		bounds.GetSizeRef() = view.GetSize();
 		p_wnd->SetClientBounds(bounds);

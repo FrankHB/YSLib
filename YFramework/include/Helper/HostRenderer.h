@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r261
+\version r264
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-09-23 11:49 +0800
+	2013-10-11 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,13 @@
 #ifndef INC_Helper_HostRenderer_h_
 #define INC_Helper_HostRenderer_h_ 1
 
-#include "Helper/HostWindow.h" // for Host::Window;
+#include "HostWindow.h" // for Host::Window;
 #if YCL_MULTITHREAD == 1
 #	include <thread>
 #endif
 #include "YSLib/UI/yrender.h"
 #include "YSLib/UI/ywidget.h" // for UI::GetSizeOf;
-#include "Helper/ScreenBuffer.h" // for ScreenRegionBuffer;
+#include "ScreenBuffer.h" // for ScreenRegionBuffer;
 
 namespace YSLib
 {

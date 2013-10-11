@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r655
+\version r658
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-09-21 09:59 +0800
+	2013-10-10 18:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -324,7 +324,7 @@
 此外， YSLib 不排斥在部件实现([Documentation::YSLib @3.3]) 中提供（有限的）复制和转移支持以保证值语义。
 
 @1.6.3.4 泛型值类型：
-适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any 等类型实现。允许空值。
+适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.4.6.4]) 等类型实现。允许空值。
 
 @2 框架概览：
 本章描述 YSLib 项目中的 YFramework 框架库。外部依赖项和 YSLib 项目整体配置参见 [Documentation::Designation @@5] 。
@@ -354,7 +354,7 @@
 每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
 基础附加库总是被 YSLib 库的 Adaptor 或 Core 直接或间接依赖。
  YCLib 和 Helper 不保证接口或实现平台中立。其中 YCLib 不依赖于 YSLib ，被作为 YSLib 平台中立接口和实现的基础适配层； Helper 依赖于 YSLib 。
-其它附加库的没有平台扩展且保证平台中立，只依赖于 YSLib 库的 Core 和 Service ，但当前暂时不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立于 YFramework 外）。
+其它附加库没有平台扩展且保证平台中立，只依赖于 YSLib 库的 Core 和 Service ，但当前不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立于 YFramework 外）。
 
 @2.1.3 平台相关性：
 除平台扩展外的 YFramework 公开接口是平台中立的（但 YCLib 和 Helper 接口可能会限定平台集合，如宿主实现环境）；

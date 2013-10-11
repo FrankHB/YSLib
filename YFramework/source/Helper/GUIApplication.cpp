@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r228
+\version r235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-08-05 21:16 +0800
+	2013-10-06 17:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,11 +70,10 @@ Idle(Messaging::Priority prior)
 
 
 GUIApplication::GUIApplication()
-	: Application(),
+	: Application()
 #if YCL_HOSTED
-	p_hosted(),
+	, p_hosted()
 #endif
-	UIResponseLimit(0x40)
 {
 	YAssert(!YSLib::pApp, "Duplicate instance found.");
 
@@ -105,20 +104,20 @@ GUIApplication::DealMessage()
 {
 	using namespace Shells;
 
-	if(Queue.IsEmpty())
+	if(Queue.empty())
 	//	Idle(UIResponseLimit);
 		OnGotMessage(FetchIdleMessage());
 	else
 	{
 		// TODO: Consider the application queue to be locked for thread safety.
-		const auto i(Queue.GetBegin());
+		const auto i(Queue.cbegin());
 
 		if(YB_UNLIKELY(i->second.GetMessageID() == SM_QUIT))
 			return false;
 		if(i->first < UIResponseLimit)
 			Idle(UIResponseLimit);
 		OnGotMessage(i->second);
-		Queue.Erase(i);
+		Queue.erase(i);
 	}
 	return true;
 }

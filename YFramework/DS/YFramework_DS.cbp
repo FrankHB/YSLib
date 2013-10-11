@@ -185,6 +185,7 @@
 		<Unit filename="../include/YSLib/Adaptor/ycont.h" />
 		<Unit filename="../include/YSLib/Adaptor/ynew.h" />
 		<Unit filename="../include/YSLib/Adaptor/yref.hpp" />
+		<Unit filename="../include/YSLib/Core/Task.h" />
 		<Unit filename="../include/YSLib/Core/ValueNode.h" />
 		<Unit filename="../include/YSLib/Core/yapp.h" />
 		<Unit filename="../include/YSLib/Core/ycounter.hpp" />
@@ -216,6 +217,7 @@
 		<Unit filename="../include/YSLib/Service/ygdi.h" />
 		<Unit filename="../include/YSLib/Service/yres.h" />
 		<Unit filename="../include/YSLib/Service/ytimer.h" />
+		<Unit filename="../include/YSLib/UI/Animation.h" />
 		<Unit filename="../include/YSLib/UI/Border.h" />
 		<Unit filename="../include/YSLib/UI/ComboList.h" />
 		<Unit filename="../include/YSLib/UI/Console.h" />
@@ -299,6 +301,7 @@
 		<Unit filename="../source/YSLib/Service/ygdi.cpp" />
 		<Unit filename="../source/YSLib/Service/yres.cpp" />
 		<Unit filename="../source/YSLib/Service/ytimer.cpp" />
+		<Unit filename="../source/YSLib/UI/Animation.cpp" />
 		<Unit filename="../source/YSLib/UI/Border.cpp" />
 		<Unit filename="../source/YSLib/UI/ComboList.cpp" />
 		<Unit filename="../source/YSLib/UI/Console.cpp" />

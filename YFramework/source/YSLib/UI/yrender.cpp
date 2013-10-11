@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r625
+\version r627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-09-09 16:34 +0800
+	2013-10-02 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@ void
 BufferedRenderer::SetSize(const Size& s)
 {
 	GetImageBuffer().SetSize(s);
-	rInvalidated.GetSizeRef() = s;
+	rInvalidated = {{}, s};
 }
 
 Rect

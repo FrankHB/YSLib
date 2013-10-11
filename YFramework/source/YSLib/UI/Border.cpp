@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r159
+\version r172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2013-09-15 19:03 +0800
+	2013-10-03 01:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,15 +129,24 @@ BorderResizer::Wrap()
 
 				InvalidateParent(widget);
 
-				const auto& off(bounds.GetPoint() - locked_bounds.GetPoint());
-
-				SetBoundsOf(widget, bounds);
 				if(HostMode)
 				{
-					orig_loc = FetchGUIState().CursorLocation - off;
+					const auto& off(
+						bounds.GetPoint() - locked_bounds.GetPoint());
+
+					SetBoundsOf(widget, bounds);
+
+					const auto& nloc(FetchGUIState().CursorLocation - off);
+
+					if(bounds.Width != MinSize.Width)
+						orig_loc.X = nloc.X;
+					if(bounds.Height != MinSize.Height)
+						orig_loc.Y = nloc.Y;
 					locked_bounds = GetBoundsOf(widget);
 					locked_bounds.GetPointRef() -= off;
 				}
+				else
+					SetBoundsOf(widget, bounds);
 			}
 			e.Handled = true;
 			// XXX: Paint context target invalidated.

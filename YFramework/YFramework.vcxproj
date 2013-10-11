@@ -152,6 +152,7 @@
     <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
+    <ClInclude Include="include\YSLib\Core\Task.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />
     <ClInclude Include="include\YSLib\Core\yapp.h" />
     <ClInclude Include="include\YSLib\Core\ycounter.hpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="include\YSLib\Service\YPixel.h" />
     <ClInclude Include="include\YSLib\Service\yres.h" />
     <ClInclude Include="include\YSLib\Service\ytimer.h" />
+    <ClInclude Include="include\YSLib\UI\Animation.h" />
     <ClInclude Include="include\YSLib\UI\Border.h" />
     <ClInclude Include="include\YSLib\UI\button.h" />
     <ClInclude Include="include\YSLib\UI\ComboList.h" />
@@ -268,6 +270,7 @@
     <ClCompile Include="source\YSLib\Service\ygdi.cpp" />
     <ClCompile Include="source\YSLib\Service\yres.cpp" />
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
+    <ClCompile Include="source\YSLib\UI\Animation.cpp" />
     <ClCompile Include="source\YSLib\UI\Border.cpp" />
     <ClCompile Include="source\YSLib\UI\button.cpp" />
     <ClCompile Include="source\YSLib\UI\ComboList.cpp" />
