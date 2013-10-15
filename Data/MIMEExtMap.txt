@@ -1,0 +1,5092 @@
+﻿ 
+(
+	application 
+	(
+		application/1d-interleaved-parityfec ""
+	)
+	(
+		3gpp-ims+xml ""
+	)
+	(
+		activemessage ""
+	)
+	(
+		andrew-inset "ez"
+	)
+	(
+		applefile ""
+	)
+	(
+		applixware "aw"
+	)
+	(
+		atom+xml "atom"
+	)
+	(
+		atomcat+xml "atomcat"
+	)
+	(
+		atomicmail ""
+	)
+	(
+		atomsvc+xml "atomsvc"
+	)
+	(
+		auth-policy+xml ""
+	)
+	(
+		batch-smtp ""
+	)
+	(
+		beep+xml ""
+	)
+	(
+		calendar+xml ""
+	)
+	(
+		cals-1840 ""
+	)
+	(
+		ccmp+xml ""
+	)
+	(
+		ccxml+xml "ccxml"
+	)
+	(
+		cdmi-capability "cdmia"
+	)
+	(
+		cdmi-container "cdmic"
+	)
+	(
+		cdmi-domain "cdmid"
+	)
+	(
+		cdmi-object "cdmio"
+	)
+	(
+		cdmi-queue "cdmiq"
+	)
+	(
+		cea-2018+xml ""
+	)
+	(
+		cellml+xml ""
+	)
+	(
+		cfw ""
+	)
+	(
+		cnrp+xml ""
+	)
+	(
+		commonground ""
+	)
+	(
+		conference-info+xml ""
+	)
+	(
+		cpl+xml ""
+	)
+	(
+		csta+xml ""
+	)
+	(
+		cstadata+xml ""
+	)
+	(
+		cu-seeme "cu"
+	)
+	(
+		cybercash ""
+	)
+	(
+		davmount+xml "davmount"
+	)
+	(
+		dca-rft ""
+	)
+	(
+		dec-dx ""
+	)
+	(
+		dialog-info+xml ""
+	)
+	(
+		dicom ""
+	)
+	(
+		dns ""
+	)
+	(
+		docbook+xml "dbk"
+	)
+	(
+		dskpp+xml ""
+	)
+	(
+		dssc+der "dssc"
+	)
+	(
+		dssc+xml "xdssc"
+	)
+	(
+		dvcs ""
+	)
+	(
+		ecmascript "ecma"
+	)
+	(
+		edi-consent ""
+	)
+	(
+		edi-x12 ""
+	)
+	(
+		edifact ""
+	)
+	(
+		emma+xml "emma"
+	)
+	(
+		epp+xml ""
+	)
+	(
+		epub+zip "epub"
+	)
+	(
+		eshop ""
+	)
+	(
+		example ""
+	)
+	(
+		exi "exi"
+	)
+	(
+		fastinfoset ""
+	)
+	(
+		fastsoap ""
+	)
+	(
+		fits ""
+	)
+	(
+		font-tdpfr "pfr"
+	)
+	(
+		framework-attributes+xml ""
+	)
+	(
+		gml+xml "gml"
+	)
+	(
+		gpx+xml "gpx"
+	)
+	(
+		gxf "gxf"
+	)
+	(
+		h224 ""
+	)
+	(
+		held+xml ""
+	)
+	(
+		http ""
+	)
+	(
+		hyperstudio "stk"
+	)
+	(
+		ibe-key-request+xml ""
+	)
+	(
+		ibe-pkg-reply+xml ""
+	)
+	(
+		ibe-pp-data ""
+	)
+	(
+		iges ""
+	)
+	(
+		im-iscomposing+xml ""
+	)
+	(
+		index ""
+	)
+	(
+		index.cmd ""
+	)
+	(
+		index.obj ""
+	)
+	(
+		index.response ""
+	)
+	(
+		index.vnd ""
+	)
+	(
+		inkml+xml 
+		"ink"
+		"inkml"
+	)
+	(
+		iotp ""
+	)
+	(
+		ipfix "ipfix"
+	)
+	(
+		ipp ""
+	)
+	(
+		isup ""
+	)
+	(
+		java-archive "jar"
+	)
+	(
+		java-serialized-object "ser"
+	)
+	(
+		java-vm "class"
+	)
+	(
+		javascript "js"
+	)
+	(
+		json "json"
+	)
+	(
+		jsonml+json "jsonml"
+	)
+	(
+		kpml-request+xml ""
+	)
+	(
+		kpml-response+xml ""
+	)
+	(
+		lost+xml "lostxml"
+	)
+	(
+		mac-binhex40 "hqx"
+	)
+	(
+		mac-compactpro "cpt"
+	)
+	(
+		macwriteii ""
+	)
+	(
+		mads+xml "mads"
+	)
+	(
+		marc "mrc"
+	)
+	(
+		marcxml+xml "mrcx"
+	)
+	(
+		mathematica 
+		"ma"
+		"nb"
+		"mb"
+	)
+	(
+		mathml+xml "mathml"
+	)
+	(
+		mathml-content+xml ""
+	)
+	(
+		mathml-presentation+xml ""
+	)
+	(
+		mbms-associated-procedure-description+xml ""
+	)
+	(
+		mbms-deregister+xml ""
+	)
+	(
+		mbms-envelope+xml ""
+	)
+	(
+		mbms-msk+xml ""
+	)
+	(
+		mbms-msk-response+xml ""
+	)
+	(
+		mbms-protection-description+xml ""
+	)
+	(
+		mbms-reception-report+xml ""
+	)
+	(
+		mbms-register+xml ""
+	)
+	(
+		mbms-register-response+xml ""
+	)
+	(
+		mbms-user-service-description+xml ""
+	)
+	(
+		mbox "mbox"
+	)
+	(
+		media_control+xml ""
+	)
+	(
+		mediaservercontrol+xml "mscml"
+	)
+	(
+		metalink+xml "metalink"
+	)
+	(
+		metalink4+xml "meta4"
+	)
+	(
+		mets+xml "mets"
+	)
+	(
+		mikey ""
+	)
+	(
+		mods+xml "mods"
+	)
+	(
+		moss-keys ""
+	)
+	(
+		moss-signature ""
+	)
+	(
+		mosskey-data ""
+	)
+	(
+		mosskey-request ""
+	)
+	(
+		mp21 
+		"m21"
+		"mp21"
+	)
+	(
+		mp4 "mp4s"
+	)
+	(
+		mpeg4-generic ""
+	)
+	(
+		mpeg4-iod ""
+	)
+	(
+		mpeg4-iod-xmt ""
+	)
+	(
+		msc-ivr+xml ""
+	)
+	(
+		msc-mixer+xml ""
+	)
+	(
+		msword 
+		"doc"
+		"dot"
+	)
+	(
+		mxf "mxf"
+	)
+	(
+		nasdata ""
+	)
+	(
+		news-checkgroups ""
+	)
+	(
+		news-groupinfo ""
+	)
+	(
+		news-transmission ""
+	)
+	(
+		nss ""
+	)
+	(
+		ocsp-request ""
+	)
+	(
+		ocsp-response ""
+	)
+	(
+		octet-stream 
+		"bin"
+		"dms"
+		"elc"
+		"deploy"
+		"lrf"
+		"mar"
+		"so"
+		"dist"
+		"distz"
+		"pkg"
+		"bpk"
+		"dump"
+	)
+	(
+		oda "oda"
+	)
+	(
+		oebps-package+xml "opf"
+	)
+	(
+		ogg "ogx"
+	)
+	(
+		omdoc+xml "omdoc"
+	)
+	(
+		onenote 
+		"onetoc"
+		"onetoc2"
+		"onetmp"
+		"onepkg"
+	)
+	(
+		oxps "oxps"
+	)
+	(
+		parityfec ""
+	)
+	(
+		patch-ops-error+xml "xer"
+	)
+	(
+		pdf "pdf"
+	)
+	(
+		pgp-encrypted "pgp"
+	)
+	(
+		pgp-keys ""
+	)
+	(
+		pgp-signature 
+		"asc"
+		"sig"
+	)
+	(
+		pics-rules "prf"
+	)
+	(
+		pidf+xml ""
+	)
+	(
+		pidf-diff+xml ""
+	)
+	(
+		pkcs10 "p10"
+	)
+	(
+		pkcs7-mime 
+		"p7m"
+		"p7c"
+	)
+	(
+		pkcs7-signature "p7s"
+	)
+	(
+		pkcs8 "p8"
+	)
+	(
+		pkix-attr-cert "ac"
+	)
+	(
+		pkix-cert "cer"
+	)
+	(
+		pkix-crl "crl"
+	)
+	(
+		pkix-pkipath "pkipath"
+	)
+	(
+		pkixcmp "pki"
+	)
+	(
+		pls+xml "pls"
+	)
+	(
+		poc-settings+xml ""
+	)
+	(
+		postscript 
+		"ai"
+		"eps"
+		"ps"
+	)
+	(
+		prs.alvestrand.titrax-sheet ""
+	)
+	(
+		prs.cww "cww"
+	)
+	(
+		prs.nprend ""
+	)
+	(
+		prs.plucker ""
+	)
+	(
+		prs.rdf-xml-crypt ""
+	)
+	(
+		prs.xsf+xml ""
+	)
+	(
+		pskc+xml "pskcxml"
+	)
+	(
+		qsig ""
+	)
+	(
+		rdf+xml "rdf"
+	)
+	(
+		reginfo+xml "rif"
+	)
+	(
+		relax-ng-compact-syntax "rnc"
+	)
+	(
+		remote-printing ""
+	)
+	(
+		resource-lists+xml "rl"
+	)
+	(
+		resource-lists-diff+xml "rld"
+	)
+	(
+		riscos ""
+	)
+	(
+		rlmi+xml ""
+	)
+	(
+		rls-services+xml "rs"
+	)
+	(
+		rpki-ghostbusters "gbr"
+	)
+	(
+		rpki-manifest "mft"
+	)
+	(
+		rpki-roa "roa"
+	)
+	(
+		rpki-updown ""
+	)
+	(
+		rsd+xml "rsd"
+	)
+	(
+		rss+xml "rss"
+	)
+	(
+		rtf "rtf"
+	)
+	(
+		rtx ""
+	)
+	(
+		samlassertion+xml ""
+	)
+	(
+		samlmetadata+xml ""
+	)
+	(
+		sbml+xml "sbml"
+	)
+	(
+		scvp-cv-request "scq"
+	)
+	(
+		scvp-cv-response "scs"
+	)
+	(
+		scvp-vp-request "spq"
+	)
+	(
+		scvp-vp-response "spp"
+	)
+	(
+		sdp "sdp"
+	)
+	(
+		set-payment ""
+	)
+	(
+		set-payment-initiation "setpay"
+	)
+	(
+		set-registration ""
+	)
+	(
+		set-registration-initiation "setreg"
+	)
+	(
+		sgml ""
+	)
+	(
+		sgml-open-catalog ""
+	)
+	(
+		shf+xml "shf"
+	)
+	(
+		sieve ""
+	)
+	(
+		simple-filter+xml ""
+	)
+	(
+		simple-message-summary ""
+	)
+	(
+		simplesymbolcontainer ""
+	)
+	(
+		slate ""
+	)
+	(
+		smil ""
+	)
+	(
+		smil+xml 
+		"smi"
+		"smil"
+	)
+	(
+		soap+fastinfoset ""
+	)
+	(
+		soap+xml ""
+	)
+	(
+		sparql-query "rq"
+	)
+	(
+		sparql-results+xml "srx"
+	)
+	(
+		spirits-event+xml ""
+	)
+	(
+		srgs "gram"
+	)
+	(
+		srgs+xml "grxml"
+	)
+	(
+		sru+xml "sru"
+	)
+	(
+		ssdl+xml "ssdl"
+	)
+	(
+		ssml+xml "ssml"
+	)
+	(
+		tamp-apex-update ""
+	)
+	(
+		tamp-apex-update-confirm ""
+	)
+	(
+		tamp-community-update ""
+	)
+	(
+		tamp-community-update-confirm ""
+	)
+	(
+		tamp-error ""
+	)
+	(
+		tamp-sequence-adjust ""
+	)
+	(
+		tamp-sequence-adjust-confirm ""
+	)
+	(
+		tamp-status-query ""
+	)
+	(
+		tamp-status-response ""
+	)
+	(
+		tamp-update ""
+	)
+	(
+		tamp-update-confirm ""
+	)
+	(
+		tei+xml 
+		"tei"
+		"teicorpus"
+	)
+	(
+		thraud+xml "tfi"
+	)
+	(
+		timestamp-query ""
+	)
+	(
+		timestamp-reply ""
+	)
+	(
+		timestamped-data "tsd"
+	)
+	(
+		tve-trigger ""
+	)
+	(
+		ulpfec ""
+	)
+	(
+		vcard+xml ""
+	)
+	(
+		vemmi ""
+	)
+	(
+		vividence.scriptfile ""
+	)
+	(
+		vnd.3gpp.bsf+xml ""
+	)
+	(
+		vnd.3gpp.pic-bw-large "plb"
+	)
+	(
+		vnd.3gpp.pic-bw-small "psb"
+	)
+	(
+		vnd.3gpp.pic-bw-var "pvb"
+	)
+	(
+		vnd.3gpp.sms ""
+	)
+	(
+		vnd.3gpp2.bcmcsinfo+xml ""
+	)
+	(
+		vnd.3gpp2.sms ""
+	)
+	(
+		vnd.3gpp2.tcap "tcap"
+	)
+	(
+		vnd.3m.post-it-notes "pwn"
+	)
+	(
+		vnd.accpac.simply.aso "aso"
+	)
+	(
+		vnd.accpac.simply.imp "imp"
+	)
+	(
+		vnd.acucobol "acu"
+	)
+	(
+		vnd.acucorp 
+		"atc"
+		"acutc"
+	)
+	(
+		vnd.adobe.air-application-installer-package+zip "air"
+	)
+	(
+		vnd.adobe.formscentral.fcdt "fcdt"
+	)
+	(
+		vnd.adobe.fxp 
+		"fxp"
+		"fxpl"
+	)
+	(
+		vnd.adobe.partial-upload ""
+	)
+	(
+		vnd.adobe.xdp+xml "xdp"
+	)
+	(
+		vnd.adobe.xfdf "xfdf"
+	)
+	(
+		vnd.aether.imp ""
+	)
+	(
+		vnd.ah-barcode ""
+	)
+	(
+		vnd.ahead.space "ahead"
+	)
+	(
+		vnd.airzip.filesecure.azf "azf"
+	)
+	(
+		vnd.airzip.filesecure.azs "azs"
+	)
+	(
+		vnd.amazon.ebook "azw"
+	)
+	(
+		vnd.americandynamics.acc "acc"
+	)
+	(
+		vnd.amiga.ami "ami"
+	)
+	(
+		vnd.amundsen.maze+xml ""
+	)
+	(
+		vnd.android.package-archive "apk"
+	)
+	(
+		vnd.anser-web-certificate-issue-initiation "cii"
+	)
+	(
+		vnd.anser-web-funds-transfer-initiation "fti"
+	)
+	(
+		vnd.antix.game-component "atx"
+	)
+	(
+		vnd.apple.installer+xml "mpkg"
+	)
+	(
+		vnd.apple.mpegurl "m3u8"
+	)
+	(
+		vnd.arastra.swi ""
+	)
+	(
+		vnd.aristanetworks.swi "swi"
+	)
+	(
+		vnd.astraea-software.iota "iota"
+	)
+	(
+		vnd.audiograph "aep"
+	)
+	(
+		vnd.autopackage ""
+	)
+	(
+		vnd.avistar+xml ""
+	)
+	(
+		vnd.blueice.multipass "mpm"
+	)
+	(
+		vnd.bluetooth.ep.oob ""
+	)
+	(
+		vnd.bmi "bmi"
+	)
+	(
+		vnd.businessobjects "rep"
+	)
+	(
+		vnd.cab-jscript ""
+	)
+	(
+		vnd.canon-cpdl ""
+	)
+	(
+		vnd.canon-lips ""
+	)
+	(
+		vnd.cendio.thinlinc.clientconf ""
+	)
+	(
+		vnd.chemdraw+xml "cdxml"
+	)
+	(
+		vnd.chipnuts.karaoke-mmd "mmd"
+	)
+	(
+		vnd.cinderella "cdy"
+	)
+	(
+		vnd.cirpack.isdn-ext ""
+	)
+	(
+		vnd.claymore "cla"
+	)
+	(
+		vnd.cloanto.rp9 "rp9"
+	)
+	(
+		vnd.clonk.c4group 
+		"c4g"
+		"c4d"
+		"c4f"
+		"c4p"
+		"c4u"
+	)
+	(
+		vnd.cluetrust.cartomobile-config "c11amc"
+	)
+	(
+		vnd.cluetrust.cartomobile-config-pkg "c11amz"
+	)
+	(
+		vnd.collection+json ""
+	)
+	(
+		vnd.commerce-battelle ""
+	)
+	(
+		vnd.commonspace "csp"
+	)
+	(
+		vnd.contact.cmsg "cdbcmsg"
+	)
+	(
+		vnd.cosmocaller "cmc"
+	)
+	(
+		vnd.crick.clicker "clkx"
+	)
+	(
+		vnd.crick.clicker.keyboard "clkk"
+	)
+	(
+		vnd.crick.clicker.palette "clkp"
+	)
+	(
+		vnd.crick.clicker.template "clkt"
+	)
+	(
+		vnd.crick.clicker.wordbank "clkw"
+	)
+	(
+		vnd.criticaltools.wbs+xml "wbs"
+	)
+	(
+		vnd.ctc-posml "pml"
+	)
+	(
+		vnd.ctct.ws+xml ""
+	)
+	(
+		vnd.cups-pdf ""
+	)
+	(
+		vnd.cups-postscript ""
+	)
+	(
+		vnd.cups-ppd "ppd"
+	)
+	(
+		vnd.cups-raster ""
+	)
+	(
+		vnd.cups-raw ""
+	)
+	(
+		vnd.curl ""
+	)
+	(
+		vnd.curl.car "car"
+	)
+	(
+		vnd.curl.pcurl "pcurl"
+	)
+	(
+		vnd.cybank ""
+	)
+	(
+		vnd.dart "dart"
+	)
+	(
+		vnd.data-vision.rdz "rdz"
+	)
+	(
+		vnd.dece.data 
+		"uvf"
+		"uvvf"
+		"uvd"
+		"uvvd"
+	)
+	(
+		vnd.dece.ttml+xml 
+		"uvt"
+		"uvvt"
+	)
+	(
+		vnd.dece.unspecified 
+		"uvx"
+		"uvvx"
+	)
+	(
+		vnd.dece.zip 
+		"uvz"
+		"uvvz"
+	)
+	(
+		vnd.denovo.fcselayout-link "fe_launch"
+	)
+	(
+		vnd.dir-bi.plate-dl-nosuffix ""
+	)
+	(
+		vnd.dna "dna"
+	)
+	(
+		vnd.dolby.mlp "mlp"
+	)
+	(
+		vnd.dolby.mobile.1 ""
+	)
+	(
+		vnd.dolby.mobile.2 ""
+	)
+	(
+		vnd.dpgraph "dpg"
+	)
+	(
+		vnd.dreamfactory "dfac"
+	)
+	(
+		vnd.ds-keypoint "kpxx"
+	)
+	(
+		vnd.dvb.ait "ait"
+	)
+	(
+		vnd.dvb.dvbj ""
+	)
+	(
+		vnd.dvb.esgcontainer ""
+	)
+	(
+		vnd.dvb.ipdcdftnotifaccess ""
+	)
+	(
+		vnd.dvb.ipdcesgaccess ""
+	)
+	(
+		vnd.dvb.ipdcesgaccess2 ""
+	)
+	(
+		vnd.dvb.ipdcesgpdd ""
+	)
+	(
+		vnd.dvb.ipdcroaming ""
+	)
+	(
+		vnd.dvb.iptv.alfec-base ""
+	)
+	(
+		vnd.dvb.iptv.alfec-enhancement ""
+	)
+	(
+		vnd.dvb.notif-aggregate-root+xml ""
+	)
+	(
+		vnd.dvb.notif-container+xml ""
+	)
+	(
+		vnd.dvb.notif-generic+xml ""
+	)
+	(
+		vnd.dvb.notif-ia-msglist+xml ""
+	)
+	(
+		vnd.dvb.notif-ia-registration-request+xml ""
+	)
+	(
+		vnd.dvb.notif-ia-registration-response+xml ""
+	)
+	(
+		vnd.dvb.notif-init+xml ""
+	)
+	(
+		vnd.dvb.pfr ""
+	)
+	(
+		vnd.dvb.service "svc"
+	)
+	(
+		vnd.dxr ""
+	)
+	(
+		vnd.dynageo "geo"
+	)
+	(
+		vnd.easykaraoke.cdgdownload ""
+	)
+	(
+		vnd.ecdis-update ""
+	)
+	(
+		vnd.ecowin.chart "mag"
+	)
+	(
+		vnd.ecowin.filerequest ""
+	)
+	(
+		vnd.ecowin.fileupdate ""
+	)
+	(
+		vnd.ecowin.series ""
+	)
+	(
+		vnd.ecowin.seriesrequest ""
+	)
+	(
+		vnd.ecowin.seriesupdate ""
+	)
+	(
+		vnd.emclient.accessrequest+xml ""
+	)
+	(
+		vnd.enliven "nml"
+	)
+	(
+		vnd.eprints.data+xml ""
+	)
+	(
+		vnd.epson.esf "esf"
+	)
+	(
+		vnd.epson.msf "msf"
+	)
+	(
+		vnd.epson.quickanime "qam"
+	)
+	(
+		vnd.epson.salt "slt"
+	)
+	(
+		vnd.epson.ssf "ssf"
+	)
+	(
+		vnd.ericsson.quickcall ""
+	)
+	(
+		vnd.eszigno3+xml 
+		"es3"
+		"et3"
+	)
+	(
+		vnd.etsi.aoc+xml ""
+	)
+	(
+		vnd.etsi.cug+xml ""
+	)
+	(
+		vnd.etsi.iptvcommand+xml ""
+	)
+	(
+		vnd.etsi.iptvdiscovery+xml ""
+	)
+	(
+		vnd.etsi.iptvprofile+xml ""
+	)
+	(
+		vnd.etsi.iptvsad-bc+xml ""
+	)
+	(
+		vnd.etsi.iptvsad-cod+xml ""
+	)
+	(
+		vnd.etsi.iptvsad-npvr+xml ""
+	)
+	(
+		vnd.etsi.iptvservice+xml ""
+	)
+	(
+		vnd.etsi.iptvsync+xml ""
+	)
+	(
+		vnd.etsi.iptvueprofile+xml ""
+	)
+	(
+		vnd.etsi.mcid+xml ""
+	)
+	(
+		vnd.etsi.overload-control-policy-dataset+xml ""
+	)
+	(
+		vnd.etsi.sci+xml ""
+	)
+	(
+		vnd.etsi.simservs+xml ""
+	)
+	(
+		vnd.etsi.tsl+xml ""
+	)
+	(
+		vnd.etsi.tsl.der ""
+	)
+	(
+		vnd.eudora.data ""
+	)
+	(
+		vnd.ezpix-album "ez2"
+	)
+	(
+		vnd.ezpix-package "ez3"
+	)
+	(
+		vnd.f-secure.mobile ""
+	)
+	(
+		vnd.fdf "fdf"
+	)
+	(
+		vnd.fdsn.mseed "mseed"
+	)
+	(
+		vnd.fdsn.seed 
+		"seed"
+		"dataless"
+	)
+	(
+		vnd.ffsns ""
+	)
+	(
+		vnd.fints ""
+	)
+	(
+		vnd.flographit "gph"
+	)
+	(
+		vnd.fluxtime.clip "ftc"
+	)
+	(
+		vnd.font-fontforge-sfd ""
+	)
+	(
+		vnd.framemaker 
+		"fm"
+		"frame"
+		"maker"
+		"book"
+	)
+	(
+		vnd.frogans.fnc "fnc"
+	)
+	(
+		vnd.frogans.ltf "ltf"
+	)
+	(
+		vnd.fsc.weblaunch "fsc"
+	)
+	(
+		vnd.fujitsu.oasys "oas"
+	)
+	(
+		vnd.fujitsu.oasys2 "oa2"
+	)
+	(
+		vnd.fujitsu.oasys3 "oa3"
+	)
+	(
+		vnd.fujitsu.oasysgp "fg5"
+	)
+	(
+		vnd.fujitsu.oasysprs "bh2"
+	)
+	(
+		vnd.fujixerox.art-ex ""
+	)
+	(
+		vnd.fujixerox.art4 ""
+	)
+	(
+		vnd.fujixerox.ddd "ddd"
+	)
+	(
+		vnd.fujixerox.docuworks "xdw"
+	)
+	(
+		vnd.fujixerox.docuworks.binder "xbd"
+	)
+	(
+		vnd.fujixerox.hbpl ""
+	)
+	(
+		vnd.fut-misnet ""
+	)
+	(
+		vnd.fuzzysheet "fzs"
+	)
+	(
+		vnd.genomatix.tuxedo "txd"
+	)
+	(
+		vnd.geocube+xml ""
+	)
+	(
+		vnd.geogebra.file "ggb"
+	)
+	(
+		vnd.geogebra.tool "ggt"
+	)
+	(
+		vnd.geometry-explorer 
+		"gex"
+		"gre"
+	)
+	(
+		vnd.geonext "gxt"
+	)
+	(
+		vnd.geoplan "g2w"
+	)
+	(
+		vnd.geospace "g3w"
+	)
+	(
+		vnd.globalplatform.card-content-mgt ""
+	)
+	(
+		vnd.globalplatform.card-content-mgt-response ""
+	)
+	(
+		vnd.gmx "gmx"
+	)
+	(
+		vnd.google-earth.kml+xml "kml"
+	)
+	(
+		vnd.google-earth.kmz "kmz"
+	)
+	(
+		vnd.grafeq 
+		"gqf"
+		"gqs"
+	)
+	(
+		vnd.gridmp ""
+	)
+	(
+		vnd.groove-account "gac"
+	)
+	(
+		vnd.groove-help "ghf"
+	)
+	(
+		vnd.groove-identity-message "gim"
+	)
+	(
+		vnd.groove-injector "grv"
+	)
+	(
+		vnd.groove-tool-message "gtm"
+	)
+	(
+		vnd.groove-tool-template "tpl"
+	)
+	(
+		vnd.groove-vcard "vcg"
+	)
+	(
+		vnd.hal+json ""
+	)
+	(
+		vnd.hal+xml "hal"
+	)
+	(
+		vnd.handheld-entertainment+xml "zmm"
+	)
+	(
+		vnd.hbci "hbci"
+	)
+	(
+		vnd.hcl-bireports ""
+	)
+	(
+		vnd.hhe.lesson-player "les"
+	)
+	(
+		vnd.hp-hpgl "hpgl"
+	)
+	(
+		vnd.hp-hpid "hpid"
+	)
+	(
+		vnd.hp-hps "hps"
+	)
+	(
+		vnd.hp-jlyt "jlt"
+	)
+	(
+		vnd.hp-pcl "pcl"
+	)
+	(
+		vnd.hp-pclxl "pclxl"
+	)
+	(
+		vnd.httphone ""
+	)
+	(
+		vnd.hydrostatix.sof-data "sfd-hdstx"
+	)
+	(
+		vnd.hzn-3d-crossword ""
+	)
+	(
+		vnd.ibm.afplinedata ""
+	)
+	(
+		vnd.ibm.electronic-media ""
+	)
+	(
+		vnd.ibm.minipay "mpy"
+	)
+	(
+		vnd.ibm.modcap 
+		"afp"
+		"listafp"
+		"list3820"
+	)
+	(
+		vnd.ibm.rights-management "irm"
+	)
+	(
+		vnd.ibm.secure-container "sc"
+	)
+	(
+		vnd.iccprofile 
+		"icc"
+		"icm"
+	)
+	(
+		vnd.igloader "igl"
+	)
+	(
+		vnd.immervision-ivp "ivp"
+	)
+	(
+		vnd.immervision-ivu "ivu"
+	)
+	(
+		vnd.informedcontrol.rms+xml ""
+	)
+	(
+		vnd.informix-visionary ""
+	)
+	(
+		vnd.infotech.project ""
+	)
+	(
+		vnd.infotech.project+xml ""
+	)
+	(
+		vnd.innopath.wamp.notification ""
+	)
+	(
+		vnd.insors.igm "igm"
+	)
+	(
+		vnd.intercon.formnet 
+		"xpw"
+		"xpx"
+	)
+	(
+		vnd.intergeo "i2g"
+	)
+	(
+		vnd.intertrust.digibox ""
+	)
+	(
+		vnd.intertrust.nncp ""
+	)
+	(
+		vnd.intu.qbo "qbo"
+	)
+	(
+		vnd.intu.qfx "qfx"
+	)
+	(
+		vnd.iptc.g2.conceptitem+xml ""
+	)
+	(
+		vnd.iptc.g2.knowledgeitem+xml ""
+	)
+	(
+		vnd.iptc.g2.newsitem+xml ""
+	)
+	(
+		vnd.iptc.g2.newsmessage+xml ""
+	)
+	(
+		vnd.iptc.g2.packageitem+xml ""
+	)
+	(
+		vnd.iptc.g2.planningitem+xml ""
+	)
+	(
+		vnd.ipunplugged.rcprofile "rcprofile"
+	)
+	(
+		vnd.irepository.package+xml "irp"
+	)
+	(
+		vnd.is-xpr "xpr"
+	)
+	(
+		vnd.isac.fcs "fcs"
+	)
+	(
+		vnd.jam "jam"
+	)
+	(
+		vnd.japannet-directory-service ""
+	)
+	(
+		vnd.japannet-jpnstore-wakeup ""
+	)
+	(
+		vnd.japannet-payment-wakeup ""
+	)
+	(
+		vnd.japannet-registration ""
+	)
+	(
+		vnd.japannet-registration-wakeup ""
+	)
+	(
+		vnd.japannet-setstore-wakeup ""
+	)
+	(
+		vnd.japannet-verification ""
+	)
+	(
+		vnd.japannet-verification-wakeup ""
+	)
+	(
+		vnd.jcp.javame.midlet-rms "rms"
+	)
+	(
+		vnd.jisp "jisp"
+	)
+	(
+		vnd.joost.joda-archive "joda"
+	)
+	(
+		vnd.kahootz 
+		"ktz"
+		"ktr"
+	)
+	(
+		vnd.kde.karbon "karbon"
+	)
+	(
+		vnd.kde.kchart "chrt"
+	)
+	(
+		vnd.kde.kformula "kfo"
+	)
+	(
+		vnd.kde.kivio "flw"
+	)
+	(
+		vnd.kde.kontour "kon"
+	)
+	(
+		vnd.kde.kpresenter 
+		"kpr"
+		"kpt"
+	)
+	(
+		vnd.kde.kspread "ksp"
+	)
+	(
+		vnd.kde.kword 
+		"kwd"
+		"kwt"
+	)
+	(
+		vnd.kenameaapp "htke"
+	)
+	(
+		vnd.kidspiration "kia"
+	)
+	(
+		vnd.kinar 
+		"kne"
+		"knp"
+	)
+	(
+		vnd.koan 
+		"skp"
+		"skd"
+		"skt"
+		"skm"
+	)
+	(
+		vnd.kodak-descriptor "sse"
+	)
+	(
+		vnd.las.las+xml "lasxml"
+	)
+	(
+		vnd.liberty-request+xml ""
+	)
+	(
+		vnd.llamagraphics.life-balance.desktop "lbd"
+	)
+	(
+		vnd.llamagraphics.life-balance.exchange+xml "lbe"
+	)
+	(
+		vnd.lotus-1-2-3 "123"
+	)
+	(
+		vnd.lotus-approach "apr"
+	)
+	(
+		vnd.lotus-freelance "pre"
+	)
+	(
+		vnd.lotus-notes "nsf"
+	)
+	(
+		vnd.lotus-organizer "org"
+	)
+	(
+		vnd.lotus-screencam "scm"
+	)
+	(
+		vnd.lotus-wordpro "lwp"
+	)
+	(
+		vnd.macports.portpkg "portpkg"
+	)
+	(
+		vnd.marlin.drm.actiontoken+xml ""
+	)
+	(
+		vnd.marlin.drm.conftoken+xml ""
+	)
+	(
+		vnd.marlin.drm.license+xml ""
+	)
+	(
+		vnd.marlin.drm.mdcf ""
+	)
+	(
+		vnd.mcd "mcd"
+	)
+	(
+		vnd.medcalcdata "mc1"
+	)
+	(
+		vnd.mediastation.cdkey "cdkey"
+	)
+	(
+		vnd.meridian-slingshot ""
+	)
+	(
+		vnd.mfer "mwf"
+	)
+	(
+		vnd.mfmp "mfm"
+	)
+	(
+		vnd.micrografx.flo "flo"
+	)
+	(
+		vnd.micrografx.igx "igx"
+	)
+	(
+		vnd.mif "mif"
+	)
+	(
+		vnd.minisoft-hp3000-save ""
+	)
+	(
+		vnd.mitsubishi.misty-guard.trustweb ""
+	)
+	(
+		vnd.mobius.daf "daf"
+	)
+	(
+		vnd.mobius.dis "dis"
+	)
+	(
+		vnd.mobius.mbk "mbk"
+	)
+	(
+		vnd.mobius.mqy "mqy"
+	)
+	(
+		vnd.mobius.msl "msl"
+	)
+	(
+		vnd.mobius.plc "plc"
+	)
+	(
+		vnd.mobius.txf "txf"
+	)
+	(
+		vnd.mophun.application "mpn"
+	)
+	(
+		vnd.mophun.certificate "mpc"
+	)
+	(
+		vnd.motorola.flexsuite ""
+	)
+	(
+		vnd.motorola.flexsuite.adsi ""
+	)
+	(
+		vnd.motorola.flexsuite.fis ""
+	)
+	(
+		vnd.motorola.flexsuite.gotap ""
+	)
+	(
+		vnd.motorola.flexsuite.kmr ""
+	)
+	(
+		vnd.motorola.flexsuite.ttc ""
+	)
+	(
+		vnd.motorola.flexsuite.wem ""
+	)
+	(
+		vnd.motorola.iprm ""
+	)
+	(
+		vnd.mozilla.xul+xml "xul"
+	)
+	(
+		vnd.ms-artgalry "cil"
+	)
+	(
+		vnd.ms-asf ""
+	)
+	(
+		vnd.ms-cab-compressed "cab"
+	)
+	(
+		vnd.ms-color.iccprofile ""
+	)
+	(
+		vnd.ms-excel 
+		"xls"
+		"xlm"
+		"xla"
+		"xlc"
+		"xlt"
+		"xlw"
+	)
+	(
+		vnd.ms-excel.addin.macroenabled.12 "xlam"
+	)
+	(
+		vnd.ms-excel.sheet.binary.macroenabled.12 "xlsb"
+	)
+	(
+		vnd.ms-excel.sheet.macroenabled.12 "xlsm"
+	)
+	(
+		vnd.ms-excel.template.macroenabled.12 "xltm"
+	)
+	(
+		vnd.ms-fontobject "eot"
+	)
+	(
+		vnd.ms-htmlhelp "chm"
+	)
+	(
+		vnd.ms-ims "ims"
+	)
+	(
+		vnd.ms-lrm "lrm"
+	)
+	(
+		vnd.ms-office.activex+xml ""
+	)
+	(
+		vnd.ms-officetheme "thmx"
+	)
+	(
+		vnd.ms-opentype ""
+	)
+	(
+		vnd.ms-package.obfuscated-opentype ""
+	)
+	(
+		vnd.ms-pki.seccat "cat"
+	)
+	(
+		vnd.ms-pki.stl "stl"
+	)
+	(
+		vnd.ms-playready.initiator+xml ""
+	)
+	(
+		vnd.ms-powerpoint 
+		"ppt"
+		"pps"
+		"pot"
+	)
+	(
+		vnd.ms-powerpoint.addin.macroenabled.12 "ppam"
+	)
+	(
+		vnd.ms-powerpoint.presentation.macroenabled.12 "pptm"
+	)
+	(
+		vnd.ms-powerpoint.slide.macroenabled.12 "sldm"
+	)
+	(
+		vnd.ms-powerpoint.slideshow.macroenabled.12 "ppsm"
+	)
+	(
+		vnd.ms-powerpoint.template.macroenabled.12 "potm"
+	)
+	(
+		vnd.ms-printing.printticket+xml ""
+	)
+	(
+		vnd.ms-project 
+		"mpp"
+		"mpt"
+	)
+	(
+		vnd.ms-tnef ""
+	)
+	(
+		vnd.ms-wmdrm.lic-chlg-req ""
+	)
+	(
+		vnd.ms-wmdrm.lic-resp ""
+	)
+	(
+		vnd.ms-wmdrm.meter-chlg-req ""
+	)
+	(
+		vnd.ms-wmdrm.meter-resp ""
+	)
+	(
+		vnd.ms-word.document.macroenabled.12 "docm"
+	)
+	(
+		vnd.ms-word.template.macroenabled.12 "dotm"
+	)
+	(
+		vnd.ms-works 
+		"wps"
+		"wks"
+		"wcm"
+		"wdb"
+	)
+	(
+		vnd.ms-wpl "wpl"
+	)
+	(
+		vnd.ms-xpsdocument "xps"
+	)
+	(
+		vnd.mseq "mseq"
+	)
+	(
+		vnd.msign ""
+	)
+	(
+		vnd.multiad.creator ""
+	)
+	(
+		vnd.multiad.creator.cif ""
+	)
+	(
+		vnd.music-niff ""
+	)
+	(
+		vnd.musician "mus"
+	)
+	(
+		vnd.muvee.style "msty"
+	)
+	(
+		vnd.mynfc "taglet"
+	)
+	(
+		vnd.ncd.control ""
+	)
+	(
+		vnd.ncd.reference ""
+	)
+	(
+		vnd.nervana ""
+	)
+	(
+		vnd.netfpx ""
+	)
+	(
+		vnd.neurolanguage.nlu "nlu"
+	)
+	(
+		vnd.nitf 
+		"ntf"
+		"nitf"
+	)
+	(
+		vnd.noblenet-directory "nnd"
+	)
+	(
+		vnd.noblenet-sealer "nns"
+	)
+	(
+		vnd.noblenet-web "nnw"
+	)
+	(
+		vnd.nokia.catalogs ""
+	)
+	(
+		vnd.nokia.conml+wbxml ""
+	)
+	(
+		vnd.nokia.conml+xml ""
+	)
+	(
+		vnd.nokia.iptv.config+xml ""
+	)
+	(
+		vnd.nokia.isds-radio-presets ""
+	)
+	(
+		vnd.nokia.landmark+wbxml ""
+	)
+	(
+		vnd.nokia.landmark+xml ""
+	)
+	(
+		vnd.nokia.landmarkcollection+xml ""
+	)
+	(
+		vnd.nokia.n-gage.ac+xml ""
+	)
+	(
+		vnd.nokia.n-gage.data "ngdat"
+	)
+	(
+		vnd.nokia.n-gage.symbian.install "n-gage"
+	)
+	(
+		vnd.nokia.ncd ""
+	)
+	(
+		vnd.nokia.pcd+wbxml ""
+	)
+	(
+		vnd.nokia.pcd+xml ""
+	)
+	(
+		vnd.nokia.radio-preset "rpst"
+	)
+	(
+		vnd.nokia.radio-presets "rpss"
+	)
+	(
+		vnd.novadigm.edm "edm"
+	)
+	(
+		vnd.novadigm.edx "edx"
+	)
+	(
+		vnd.novadigm.ext "ext"
+	)
+	(
+		vnd.ntt-local.file-transfer ""
+	)
+	(
+		vnd.ntt-local.sip-ta_remote ""
+	)
+	(
+		vnd.ntt-local.sip-ta_tcp_stream ""
+	)
+	(
+		vnd.oasis.opendocument.chart "odc"
+	)
+	(
+		vnd.oasis.opendocument.chart-template "otc"
+	)
+	(
+		vnd.oasis.opendocument.database "odb"
+	)
+	(
+		vnd.oasis.opendocument.formula "odf"
+	)
+	(
+		vnd.oasis.opendocument.formula-template "odft"
+	)
+	(
+		vnd.oasis.opendocument.graphics "odg"
+	)
+	(
+		vnd.oasis.opendocument.graphics-template "otg"
+	)
+	(
+		vnd.oasis.opendocument.image "odi"
+	)
+	(
+		vnd.oasis.opendocument.image-template "oti"
+	)
+	(
+		vnd.oasis.opendocument.presentation "odp"
+	)
+	(
+		vnd.oasis.opendocument.presentation-template "otp"
+	)
+	(
+		vnd.oasis.opendocument.spreadsheet "ods"
+	)
+	(
+		vnd.oasis.opendocument.spreadsheet-template "ots"
+	)
+	(
+		vnd.oasis.opendocument.text "odt"
+	)
+	(
+		vnd.oasis.opendocument.text-master "odm"
+	)
+	(
+		vnd.oasis.opendocument.text-template "ott"
+	)
+	(
+		vnd.oasis.opendocument.text-web "oth"
+	)
+	(
+		vnd.obn ""
+	)
+	(
+		vnd.oftn.l10n+json ""
+	)
+	(
+		vnd.oipf.contentaccessdownload+xml ""
+	)
+	(
+		vnd.oipf.contentaccessstreaming+xml ""
+	)
+	(
+		vnd.oipf.cspg-hexbinary ""
+	)
+	(
+		vnd.oipf.dae.svg+xml ""
+	)
+	(
+		vnd.oipf.dae.xhtml+xml ""
+	)
+	(
+		vnd.oipf.mippvcontrolmessage+xml ""
+	)
+	(
+		vnd.oipf.pae.gem ""
+	)
+	(
+		vnd.oipf.spdiscovery+xml ""
+	)
+	(
+		vnd.oipf.spdlist+xml ""
+	)
+	(
+		vnd.oipf.ueprofile+xml ""
+	)
+	(
+		vnd.oipf.userprofile+xml ""
+	)
+	(
+		vnd.olpc-sugar "xo"
+	)
+	(
+		vnd.oma-scws-config ""
+	)
+	(
+		vnd.oma-scws-http-request ""
+	)
+	(
+		vnd.oma-scws-http-response ""
+	)
+	(
+		vnd.oma.bcast.associated-procedure-parameter+xml ""
+	)
+	(
+		vnd.oma.bcast.drm-trigger+xml ""
+	)
+	(
+		vnd.oma.bcast.imd+xml ""
+	)
+	(
+		vnd.oma.bcast.ltkm ""
+	)
+	(
+		vnd.oma.bcast.notification+xml ""
+	)
+	(
+		vnd.oma.bcast.provisioningtrigger ""
+	)
+	(
+		vnd.oma.bcast.sgboot ""
+	)
+	(
+		vnd.oma.bcast.sgdd+xml ""
+	)
+	(
+		vnd.oma.bcast.sgdu ""
+	)
+	(
+		vnd.oma.bcast.simple-symbol-container ""
+	)
+	(
+		vnd.oma.bcast.smartcard-trigger+xml ""
+	)
+	(
+		vnd.oma.bcast.sprov+xml ""
+	)
+	(
+		vnd.oma.bcast.stkm ""
+	)
+	(
+		vnd.oma.cab-address-book+xml ""
+	)
+	(
+		vnd.oma.cab-feature-handler+xml ""
+	)
+	(
+		vnd.oma.cab-pcc+xml ""
+	)
+	(
+		vnd.oma.cab-user-prefs+xml ""
+	)
+	(
+		vnd.oma.dcd ""
+	)
+	(
+		vnd.oma.dcdc ""
+	)
+	(
+		vnd.oma.dd2+xml "dd2"
+	)
+	(
+		vnd.oma.drm.risd+xml ""
+	)
+	(
+		vnd.oma.group-usage-list+xml ""
+	)
+	(
+		vnd.oma.pal+xml ""
+	)
+	(
+		vnd.oma.poc.detailed-progress-report+xml ""
+	)
+	(
+		vnd.oma.poc.final-report+xml ""
+	)
+	(
+		vnd.oma.poc.groups+xml ""
+	)
+	(
+		vnd.oma.poc.invocation-descriptor+xml ""
+	)
+	(
+		vnd.oma.poc.optimized-progress-report+xml ""
+	)
+	(
+		vnd.oma.push ""
+	)
+	(
+		vnd.oma.scidm.messages+xml ""
+	)
+	(
+		vnd.oma.xcap-directory+xml ""
+	)
+	(
+		vnd.omads-email+xml ""
+	)
+	(
+		vnd.omads-file+xml ""
+	)
+	(
+		vnd.omads-folder+xml ""
+	)
+	(
+		vnd.omaloc-supl-init ""
+	)
+	(
+		vnd.openofficeorg.extension "oxt"
+	)
+	(
+		vnd.openxmlformats-officedocument.custom-properties+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.customxmlproperties+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.drawing+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.drawingml.chart+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.drawingml.chartshapes+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.drawingml.diagramcolors+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.drawingml.diagramdata+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.drawingml.diagramlayout+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.drawingml.diagramstyle+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.extended-properties+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.commentauthors+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.comments+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.handoutmaster+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.notesmaster+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.notesslide+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.presentation "pptx"
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.presentation.main+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.presprops+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.slide "sldx"
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.slide+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.slidelayout+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.slidemaster+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.slideshow "ppsx"
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.slideupdateinfo+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.tablestyles+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.tags+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.template "potx"
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.template.main+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.presentationml.viewprops+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.calcchain+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.comments+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.connections+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.dialogsheet+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.externallink+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.pivotcachedefinition+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.pivotcacherecords+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.pivottable+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.querytable+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.revisionheaders+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.revisionlog+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.sharedstrings+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.sheet "xlsx"
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.sheetmetadata+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.styles+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.table+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.tablesinglecells+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.template "xltx"
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.usernames+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.volatiledependencies+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.theme+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.themeoverride+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.vmldrawing ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.comments+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.document "docx"
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.footer+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.settings+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.styles+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.template "dotx"
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml ""
+	)
+	(
+		vnd.openxmlformats-officedocument.wordprocessingml.websettings+xml ""
+	)
+	(
+		vnd.openxmlformats-package.core-properties+xml ""
+	)
+	(
+		vnd.openxmlformats-package.digital-signature-xmlsignature+xml ""
+	)
+	(
+		vnd.openxmlformats-package.relationships+xml ""
+	)
+	(
+		vnd.osa.netdeploy ""
+	)
+	(
+		vnd.osgeo.mapguide.package "mgp"
+	)
+	(
+		vnd.osgi.bundle ""
+	)
+	(
+		vnd.osgi.dp "dp"
+	)
+	(
+		vnd.osgi.subsystem "esa"
+	)
+	(
+		vnd.otps.ct-kip+xml ""
+	)
+	(
+		vnd.palm 
+		"pdb"
+		"pqa"
+		"oprc"
+	)
+	(
+		vnd.paos.xml ""
+	)
+	(
+		vnd.pawaafile "paw"
+	)
+	(
+		vnd.pg.format "str"
+	)
+	(
+		vnd.pg.osasli "ei6"
+	)
+	(
+		vnd.piaccess.application-licence ""
+	)
+	(
+		vnd.picsel "efif"
+	)
+	(
+		vnd.pmi.widget "wg"
+	)
+	(
+		vnd.poc.group-advertisement+xml ""
+	)
+	(
+		vnd.pocketlearn "plf"
+	)
+	(
+		vnd.powerbuilder6 "pbd"
+	)
+	(
+		vnd.powerbuilder6-s ""
+	)
+	(
+		vnd.powerbuilder7 ""
+	)
+	(
+		vnd.powerbuilder7-s ""
+	)
+	(
+		vnd.powerbuilder75 ""
+	)
+	(
+		vnd.powerbuilder75-s ""
+	)
+	(
+		vnd.preminet ""
+	)
+	(
+		vnd.previewsystems.box "box"
+	)
+	(
+		vnd.proteus.magazine "mgz"
+	)
+	(
+		vnd.publishare-delta-tree "qps"
+	)
+	(
+		vnd.pvi.ptid1 "ptid"
+	)
+	(
+		vnd.pwg-multiplexed ""
+	)
+	(
+		vnd.pwg-xhtml-print+xml ""
+	)
+	(
+		vnd.qualcomm.brew-app-res ""
+	)
+	(
+		vnd.quark.quarkxpress 
+		"qxd"
+		"qxt"
+		"qwd"
+		"qwt"
+		"qxl"
+		"qxb"
+	)
+	(
+		vnd.quobject-quoxdocument ""
+	)
+	(
+		vnd.radisys.moml+xml ""
+	)
+	(
+		vnd.radisys.msml+xml ""
+	)
+	(
+		vnd.radisys.msml-audit+xml ""
+	)
+	(
+		vnd.radisys.msml-audit-conf+xml ""
+	)
+	(
+		vnd.radisys.msml-audit-conn+xml ""
+	)
+	(
+		vnd.radisys.msml-audit-dialog+xml ""
+	)
+	(
+		vnd.radisys.msml-audit-stream+xml ""
+	)
+	(
+		vnd.radisys.msml-conf+xml ""
+	)
+	(
+		vnd.radisys.msml-dialog+xml ""
+	)
+	(
+		vnd.radisys.msml-dialog-base+xml ""
+	)
+	(
+		vnd.radisys.msml-dialog-fax-detect+xml ""
+	)
+	(
+		vnd.radisys.msml-dialog-fax-sendrecv+xml ""
+	)
+	(
+		vnd.radisys.msml-dialog-group+xml ""
+	)
+	(
+		vnd.radisys.msml-dialog-speech+xml ""
+	)
+	(
+		vnd.radisys.msml-dialog-transform+xml ""
+	)
+	(
+		vnd.rainstor.data ""
+	)
+	(
+		vnd.rapid ""
+	)
+	(
+		vnd.realvnc.bed "bed"
+	)
+	(
+		vnd.recordare.musicxml "mxl"
+	)
+	(
+		vnd.recordare.musicxml+xml "musicxml"
+	)
+	(
+		vnd.renlearn.rlprint ""
+	)
+	(
+		vnd.rig.cryptonote "cryptonote"
+	)
+	(
+		vnd.rim.cod "cod"
+	)
+	(
+		vnd.rn-realmedia "rm"
+	)
+	(
+		vnd.rn-realmedia-vbr "rmvb"
+	)
+	(
+		vnd.route66.link66+xml "link66"
+	)
+	(
+		vnd.rs-274x ""
+	)
+	(
+		vnd.ruckus.download ""
+	)
+	(
+		vnd.s3sms ""
+	)
+	(
+		vnd.sailingtracker.track "st"
+	)
+	(
+		vnd.sbm.cid ""
+	)
+	(
+		vnd.sbm.mid2 ""
+	)
+	(
+		vnd.scribus ""
+	)
+	(
+		vnd.sealed.3df ""
+	)
+	(
+		vnd.sealed.csf ""
+	)
+	(
+		vnd.sealed.doc ""
+	)
+	(
+		vnd.sealed.eml ""
+	)
+	(
+		vnd.sealed.mht ""
+	)
+	(
+		vnd.sealed.net ""
+	)
+	(
+		vnd.sealed.ppt ""
+	)
+	(
+		vnd.sealed.tiff ""
+	)
+	(
+		vnd.sealed.xls ""
+	)
+	(
+		vnd.sealedmedia.softseal.html ""
+	)
+	(
+		vnd.sealedmedia.softseal.pdf ""
+	)
+	(
+		vnd.seemail "see"
+	)
+	(
+		vnd.sema "sema"
+	)
+	(
+		vnd.semd "semd"
+	)
+	(
+		vnd.semf "semf"
+	)
+	(
+		vnd.shana.informed.formdata "ifm"
+	)
+	(
+		vnd.shana.informed.formtemplate "itp"
+	)
+	(
+		vnd.shana.informed.interchange "iif"
+	)
+	(
+		vnd.shana.informed.package "ipk"
+	)
+	(
+		vnd.simtech-mindmapper 
+		"twd"
+		"twds"
+	)
+	(
+		vnd.smaf "mmf"
+	)
+	(
+		vnd.smart.notebook ""
+	)
+	(
+		vnd.smart.teacher "teacher"
+	)
+	(
+		vnd.software602.filler.form+xml ""
+	)
+	(
+		vnd.software602.filler.form-xml-zip ""
+	)
+	(
+		vnd.solent.sdkm+xml 
+		"sdkm"
+		"sdkd"
+	)
+	(
+		vnd.spotfire.dxp "dxp"
+	)
+	(
+		vnd.spotfire.sfs "sfs"
+	)
+	(
+		vnd.sss-cod ""
+	)
+	(
+		vnd.sss-dtf ""
+	)
+	(
+		vnd.sss-ntf ""
+	)
+	(
+		vnd.stardivision.calc "sdc"
+	)
+	(
+		vnd.stardivision.draw "sda"
+	)
+	(
+		vnd.stardivision.impress "sdd"
+	)
+	(
+		vnd.stardivision.math "smf"
+	)
+	(
+		vnd.stardivision.writer 
+		"sdw"
+		"vor"
+	)
+	(
+		vnd.stardivision.writer-global "sgl"
+	)
+	(
+		vnd.stepmania.package "smzip"
+	)
+	(
+		vnd.stepmania.stepchart "sm"
+	)
+	(
+		vnd.street-stream ""
+	)
+	(
+		vnd.sun.wadl+xml ""
+	)
+	(
+		vnd.sun.xml.calc "sxc"
+	)
+	(
+		vnd.sun.xml.calc.template "stc"
+	)
+	(
+		vnd.sun.xml.draw "sxd"
+	)
+	(
+		vnd.sun.xml.draw.template "std"
+	)
+	(
+		vnd.sun.xml.impress "sxi"
+	)
+	(
+		vnd.sun.xml.impress.template "sti"
+	)
+	(
+		vnd.sun.xml.math "sxm"
+	)
+	(
+		vnd.sun.xml.writer "sxw"
+	)
+	(
+		vnd.sun.xml.writer.global "sxg"
+	)
+	(
+		vnd.sun.xml.writer.template "stw"
+	)
+	(
+		vnd.sus-calendar 
+		"sus"
+		"susp"
+	)
+	(
+		vnd.svd "svd"
+	)
+	(
+		vnd.swiftview-ics ""
+	)
+	(
+		vnd.symbian.install 
+		"sis"
+		"sisx"
+	)
+	(
+		vnd.syncml+xml "xsm"
+	)
+	(
+		vnd.syncml.dm+wbxml "bdm"
+	)
+	(
+		vnd.syncml.dm+xml "xdm"
+	)
+	(
+		vnd.syncml.dm.notification ""
+	)
+	(
+		vnd.syncml.ds.notification ""
+	)
+	(
+		vnd.tao.intent-module-archive "tao"
+	)
+	(
+		vnd.tcpdump.pcap 
+		"pcap"
+		"cap"
+		"dmp"
+	)
+	(
+		vnd.tmobile-livetv "tmo"
+	)
+	(
+		vnd.trid.tpt "tpt"
+	)
+	(
+		vnd.triscape.mxs "mxs"
+	)
+	(
+		vnd.trueapp "tra"
+	)
+	(
+		vnd.truedoc ""
+	)
+	(
+		vnd.ubisoft.webplayer ""
+	)
+	(
+		vnd.ufdl 
+		"ufd"
+		"ufdl"
+	)
+	(
+		vnd.uiq.theme "utz"
+	)
+	(
+		vnd.umajin "umj"
+	)
+	(
+		vnd.unity "unityweb"
+	)
+	(
+		vnd.uoml+xml "uoml"
+	)
+	(
+		vnd.uplanet.alert ""
+	)
+	(
+		vnd.uplanet.alert-wbxml ""
+	)
+	(
+		vnd.uplanet.bearer-choice ""
+	)
+	(
+		vnd.uplanet.bearer-choice-wbxml ""
+	)
+	(
+		vnd.uplanet.cacheop ""
+	)
+	(
+		vnd.uplanet.cacheop-wbxml ""
+	)
+	(
+		vnd.uplanet.channel ""
+	)
+	(
+		vnd.uplanet.channel-wbxml ""
+	)
+	(
+		vnd.uplanet.list ""
+	)
+	(
+		vnd.uplanet.list-wbxml ""
+	)
+	(
+		vnd.uplanet.listcmd ""
+	)
+	(
+		vnd.uplanet.listcmd-wbxml ""
+	)
+	(
+		vnd.uplanet.signal ""
+	)
+	(
+		vnd.vcx "vcx"
+	)
+	(
+		vnd.vd-study ""
+	)
+	(
+		vnd.vectorworks ""
+	)
+	(
+		vnd.verimatrix.vcas ""
+	)
+	(
+		vnd.vidsoft.vidconference ""
+	)
+	(
+		vnd.visio 
+		"vsd"
+		"vst"
+		"vss"
+		"vsw"
+	)
+	(
+		vnd.visionary "vis"
+	)
+	(
+		vnd.vividence.scriptfile ""
+	)
+	(
+		vnd.vsf "vsf"
+	)
+	(
+		vnd.wap.sic ""
+	)
+	(
+		vnd.wap.slc ""
+	)
+	(
+		vnd.wap.wbxml "wbxml"
+	)
+	(
+		vnd.wap.wmlc "wmlc"
+	)
+	(
+		vnd.wap.wmlscriptc "wmlsc"
+	)
+	(
+		vnd.webturbo "wtb"
+	)
+	(
+		vnd.wfa.wsc ""
+	)
+	(
+		vnd.wmc ""
+	)
+	(
+		vnd.wmf.bootstrap ""
+	)
+	(
+		vnd.wolfram.mathematica ""
+	)
+	(
+		vnd.wolfram.mathematica.package ""
+	)
+	(
+		vnd.wolfram.player "nbp"
+	)
+	(
+		vnd.wordperfect "wpd"
+	)
+	(
+		vnd.wqd "wqd"
+	)
+	(
+		vnd.wrq-hp3000-labelled ""
+	)
+	(
+		vnd.wt.stf "stf"
+	)
+	(
+		vnd.wv.csp+wbxml ""
+	)
+	(
+		vnd.wv.csp+xml ""
+	)
+	(
+		vnd.wv.ssp+xml ""
+	)
+	(
+		vnd.xara "xar"
+	)
+	(
+		vnd.xfdl "xfdl"
+	)
+	(
+		vnd.xfdl.webform ""
+	)
+	(
+		vnd.xmi+xml ""
+	)
+	(
+		vnd.xmpie.cpkg ""
+	)
+	(
+		vnd.xmpie.dpkg ""
+	)
+	(
+		vnd.xmpie.plan ""
+	)
+	(
+		vnd.xmpie.ppkg ""
+	)
+	(
+		vnd.xmpie.xlim ""
+	)
+	(
+		vnd.yamaha.hv-dic "hvd"
+	)
+	(
+		vnd.yamaha.hv-script "hvs"
+	)
+	(
+		vnd.yamaha.hv-voice "hvp"
+	)
+	(
+		vnd.yamaha.openscoreformat "osf"
+	)
+	(
+		vnd.yamaha.openscoreformat.osfpvg+xml "osfpvg"
+	)
+	(
+		vnd.yamaha.remote-setup ""
+	)
+	(
+		vnd.yamaha.smaf-audio "saf"
+	)
+	(
+		vnd.yamaha.smaf-phrase "spf"
+	)
+	(
+		vnd.yamaha.through-ngn ""
+	)
+	(
+		vnd.yamaha.tunnel-udpencap ""
+	)
+	(
+		vnd.yellowriver-custom-menu "cmp"
+	)
+	(
+		vnd.zul 
+		"zir"
+		"zirz"
+	)
+	(
+		vnd.zzazz.deck+xml "zaz"
+	)
+	(
+		voicexml+xml "vxml"
+	)
+	(
+		vq-rtcpxr ""
+	)
+	(
+		watcherinfo+xml ""
+	)
+	(
+		whoispp-query ""
+	)
+	(
+		whoispp-response ""
+	)
+	(
+		widget "wgt"
+	)
+	(
+		winhlp "hlp"
+	)
+	(
+		wita ""
+	)
+	(
+		wordperfect5.1 ""
+	)
+	(
+		wsdl+xml "wsdl"
+	)
+	(
+		wspolicy+xml "wspolicy"
+	)
+	(
+		x-7z-compressed "7z"
+	)
+	(
+		x-abiword "abw"
+	)
+	(
+		x-ace-compressed "ace"
+	)
+	(
+		x-amf ""
+	)
+	(
+		x-apple-diskimage "dmg"
+	)
+	(
+		x-authorware-bin 
+		"aab"
+		"x32"
+		"u32"
+		"vox"
+	)
+	(
+		x-authorware-map "aam"
+	)
+	(
+		x-authorware-seg "aas"
+	)
+	(
+		x-bcpio "bcpio"
+	)
+	(
+		x-bittorrent "torrent"
+	)
+	(
+		x-blorb 
+		"blb"
+		"blorb"
+	)
+	(
+		x-bzip "bz"
+	)
+	(
+		x-bzip2 
+		"bz2"
+		"boz"
+	)
+	(
+		x-cbr 
+		"cbr"
+		"cba"
+		"cbt"
+		"cbz"
+		"cb7"
+	)
+	(
+		x-cdlink "vcd"
+	)
+	(
+		x-cfs-compressed "cfs"
+	)
+	(
+		x-chat "chat"
+	)
+	(
+		x-chess-pgn "pgn"
+	)
+	(
+		x-compress ""
+	)
+	(
+		x-conference "nsc"
+	)
+	(
+		x-cpio "cpio"
+	)
+	(
+		x-csh "csh"
+	)
+	(
+		x-debian-package 
+		"deb"
+		"udeb"
+	)
+	(
+		x-dgc-compressed "dgc"
+	)
+	(
+		x-director 
+		"dir"
+		"dcr"
+		"dxr"
+		"cst"
+		"cct"
+		"cxt"
+		"w3d"
+		"fgd"
+		"swa"
+	)
+	(
+		x-doom "wad"
+	)
+	(
+		x-dtbncx+xml "ncx"
+	)
+	(
+		x-dtbook+xml "dtb"
+	)
+	(
+		x-dtbresource+xml "res"
+	)
+	(
+		x-dvi "dvi"
+	)
+	(
+		x-envoy "evy"
+	)
+	(
+		x-eva "eva"
+	)
+	(
+		x-font-bdf "bdf"
+	)
+	(
+		x-font-dos ""
+	)
+	(
+		x-font-framemaker ""
+	)
+	(
+		x-font-ghostscript "gsf"
+	)
+	(
+		x-font-libgrx ""
+	)
+	(
+		x-font-linux-psf "psf"
+	)
+	(
+		x-font-otf "otf"
+	)
+	(
+		x-font-pcf "pcf"
+	)
+	(
+		x-font-snf "snf"
+	)
+	(
+		x-font-speedo ""
+	)
+	(
+		x-font-sunos-news ""
+	)
+	(
+		x-font-ttf 
+		"ttf"
+		"ttc"
+	)
+	(
+		x-font-type1 
+		"pfa"
+		"pfb"
+		"pfm"
+		"afm"
+	)
+	(
+		x-font-vfont ""
+	)
+	(
+		x-font-woff "woff"
+	)
+	(
+		x-freearc "arc"
+	)
+	(
+		x-futuresplash "spl"
+	)
+	(
+		x-gca-compressed "gca"
+	)
+	(
+		x-glulx "ulx"
+	)
+	(
+		x-gnumeric "gnumeric"
+	)
+	(
+		x-gramps-xml "gramps"
+	)
+	(
+		x-gtar "gtar"
+	)
+	(
+		x-gzip ""
+	)
+	(
+		x-hdf "hdf"
+	)
+	(
+		x-install-instructions "install"
+	)
+	(
+		x-iso9660-image "iso"
+	)
+	(
+		x-java-jnlp-file "jnlp"
+	)
+	(
+		x-latex "latex"
+	)
+	(
+		x-lzh-compressed 
+		"lzh"
+		"lha"
+	)
+	(
+		x-mie "mie"
+	)
+	(
+		x-mobipocket-ebook 
+		"prc"
+		"mobi"
+	)
+	(
+		x-ms-application "application"
+	)
+	(
+		x-ms-shortcut "lnk"
+	)
+	(
+		x-ms-wmd "wmd"
+	)
+	(
+		x-ms-wmz "wmz"
+	)
+	(
+		x-ms-xbap "xbap"
+	)
+	(
+		x-msaccess "mdb"
+	)
+	(
+		x-msbinder "obd"
+	)
+	(
+		x-mscardfile "crd"
+	)
+	(
+		x-msclip "clp"
+	)
+	(
+		x-msdownload 
+		"exe"
+		"dll"
+		"com"
+		"bat"
+		"msi"
+	)
+	(
+		x-msmediaview 
+		"mvb"
+		"m13"
+		"m14"
+	)
+	(
+		x-msmetafile 
+		"wmf"
+		"wmz"
+		"emf"
+		"emz"
+	)
+	(
+		x-msmoney "mny"
+	)
+	(
+		x-mspublisher "pub"
+	)
+	(
+		x-msschedule "scd"
+	)
+	(
+		x-msterminal "trm"
+	)
+	(
+		x-mswrite "wri"
+	)
+	(
+		x-netcdf 
+		"nc"
+		"cdf"
+	)
+	(
+		x-nzb "nzb"
+	)
+	(
+		x-pkcs12 
+		"p12"
+		"pfx"
+	)
+	(
+		x-pkcs7-certificates 
+		"p7b"
+		"spc"
+	)
+	(
+		x-pkcs7-certreqresp "p7r"
+	)
+	(
+		x-rar-compressed "rar"
+	)
+	(
+		x-research-info-systems "ris"
+	)
+	(
+		x-sh "sh"
+	)
+	(
+		x-shar "shar"
+	)
+	(
+		x-shockwave-flash "swf"
+	)
+	(
+		x-silverlight-app "xap"
+	)
+	(
+		x-sql "sql"
+	)
+	(
+		x-stuffit "sit"
+	)
+	(
+		x-stuffitx "sitx"
+	)
+	(
+		x-subrip "srt"
+	)
+	(
+		x-sv4cpio "sv4cpio"
+	)
+	(
+		x-sv4crc "sv4crc"
+	)
+	(
+		x-t3vm-image "t3"
+	)
+	(
+		x-tads "gam"
+	)
+	(
+		x-tar "tar"
+	)
+	(
+		x-tcl "tcl"
+	)
+	(
+		x-tex "tex"
+	)
+	(
+		x-tex-tfm "tfm"
+	)
+	(
+		x-texinfo 
+		"texinfo"
+		"texi"
+	)
+	(
+		x-tgif "obj"
+	)
+	(
+		x-ustar "ustar"
+	)
+	(
+		x-wais-source "src"
+	)
+	(
+		x-x509-ca-cert 
+		"der"
+		"crt"
+	)
+	(
+		x-xfig "fig"
+	)
+	(
+		x-xliff+xml "xlf"
+	)
+	(
+		x-xpinstall "xpi"
+	)
+	(
+		x-xz "xz"
+	)
+	(
+		x-zmachine 
+		"z1"
+		"z2"
+		"z3"
+		"z4"
+		"z5"
+		"z6"
+		"z7"
+		"z8"
+	)
+	(
+		x400-bp ""
+	)
+	(
+		xaml+xml "xaml"
+	)
+	(
+		xcap-att+xml ""
+	)
+	(
+		xcap-caps+xml ""
+	)
+	(
+		xcap-diff+xml "xdf"
+	)
+	(
+		xcap-el+xml ""
+	)
+	(
+		xcap-error+xml ""
+	)
+	(
+		xcap-ns+xml ""
+	)
+	(
+		xcon-conference-info+xml ""
+	)
+	(
+		xcon-conference-info-diff+xml ""
+	)
+	(
+		xenc+xml "xenc"
+	)
+	(
+		xhtml+xml 
+		"xhtml"
+		"xht"
+	)
+	(
+		xhtml-voice+xml ""
+	)
+	(
+		xml 
+		"xml"
+		"xsl"
+	)
+	(
+		xml-dtd "dtd"
+	)
+	(
+		xml-external-parsed-entity ""
+	)
+	(
+		xmpp+xml ""
+	)
+	(
+		xop+xml "xop"
+	)
+	(
+		xproc+xml "xpl"
+	)
+	(
+		xslt+xml "xslt"
+	)
+	(
+		xspf+xml "xspf"
+	)
+	(
+		xv+xml 
+		"mxml"
+		"xhvml"
+		"xvml"
+		"xvm"
+	)
+	(
+		yang "yang"
+	)
+	(
+		yin+xml "yin"
+	)
+	(
+		zip "zip"
+	)
+)
+(
+	audio 
+	(
+		1d-interleaved-parityfec ""
+	)
+	(
+		32kadpcm ""
+	)
+	(
+		3gpp ""
+	)
+	(
+		3gpp2 ""
+	)
+	(
+		ac3 ""
+	)
+	(
+		adpcm "adp"
+	)
+	(
+		amr ""
+	)
+	(
+		amr-wb ""
+	)
+	(
+		amr-wb+ ""
+	)
+	(
+		asc ""
+	)
+	(
+		atrac-advanced-lossless ""
+	)
+	(
+		atrac-x ""
+	)
+	(
+		atrac3 ""
+	)
+	(
+		basic 
+		"au"
+		"snd"
+	)
+	(
+		bv16 ""
+	)
+	(
+		bv32 ""
+	)
+	(
+		clearmode ""
+	)
+	(
+		cn ""
+	)
+	(
+		dat12 ""
+	)
+	(
+		dls ""
+	)
+	(
+		dsr-es201108 ""
+	)
+	(
+		dsr-es202050 ""
+	)
+	(
+		dsr-es202211 ""
+	)
+	(
+		dsr-es202212 ""
+	)
+	(
+		dv ""
+	)
+	(
+		dvi4 ""
+	)
+	(
+		eac3 ""
+	)
+	(
+		evrc ""
+	)
+	(
+		evrc-qcp ""
+	)
+	(
+		evrc0 ""
+	)
+	(
+		evrc1 ""
+	)
+	(
+		evrcb ""
+	)
+	(
+		evrcb0 ""
+	)
+	(
+		evrcb1 ""
+	)
+	(
+		evrcwb ""
+	)
+	(
+		evrcwb0 ""
+	)
+	(
+		evrcwb1 ""
+	)
+	(
+		example ""
+	)
+	(
+		fwdred ""
+	)
+	(
+		g719 ""
+	)
+	(
+		g722 ""
+	)
+	(
+		g7221 ""
+	)
+	(
+		g723 ""
+	)
+	(
+		g726-16 ""
+	)
+	(
+		g726-24 ""
+	)
+	(
+		g726-32 ""
+	)
+	(
+		g726-40 ""
+	)
+	(
+		g728 ""
+	)
+	(
+		g729 ""
+	)
+	(
+		g7291 ""
+	)
+	(
+		g729d ""
+	)
+	(
+		g729e ""
+	)
+	(
+		gsm ""
+	)
+	(
+		gsm-efr ""
+	)
+	(
+		gsm-hr-08 ""
+	)
+	(
+		ilbc ""
+	)
+	(
+		ip-mr_v2.5 ""
+	)
+	(
+		isac ""
+	)
+	(
+		l16 ""
+	)
+	(
+		l20 ""
+	)
+	(
+		l24 ""
+	)
+	(
+		l8 ""
+	)
+	(
+		lpc ""
+	)
+	(
+		midi 
+		"mid"
+		"midi"
+		"kar"
+		"rmi"
+	)
+	(
+		mobile-xmf ""
+	)
+	(
+		mp4 "mp4a"
+	)
+	(
+		mp4a-latm ""
+	)
+	(
+		mpa ""
+	)
+	(
+		mpa-robust ""
+	)
+	(
+		mpeg 
+		"mpga"
+		"mp2"
+		"mp2a"
+		"mp3"
+		"m2a"
+		"m3a"
+	)
+	(
+		mpeg4-generic ""
+	)
+	(
+		musepack ""
+	)
+	(
+		ogg 
+		"oga"
+		"ogg"
+		"spx"
+	)
+	(
+		opus ""
+	)
+	(
+		parityfec ""
+	)
+	(
+		pcma ""
+	)
+	(
+		pcma-wb ""
+	)
+	(
+		pcmu ""
+	)
+	(
+		pcmu-wb ""
+	)
+	(
+		prs.sid ""
+	)
+	(
+		qcelp ""
+	)
+	(
+		red ""
+	)
+	(
+		rtp-enc-aescm128 ""
+	)
+	(
+		rtp-midi ""
+	)
+	(
+		rtx ""
+	)
+	(
+		s3m "s3m"
+	)
+	(
+		silk "sil"
+	)
+	(
+		smv ""
+	)
+	(
+		smv-qcp ""
+	)
+	(
+		smv0 ""
+	)
+	(
+		sp-midi ""
+	)
+	(
+		speex ""
+	)
+	(
+		t140c ""
+	)
+	(
+		t38 ""
+	)
+	(
+		telephone-event ""
+	)
+	(
+		tone ""
+	)
+	(
+		uemclip ""
+	)
+	(
+		ulpfec ""
+	)
+	(
+		vdvi ""
+	)
+	(
+		vmr-wb ""
+	)
+	(
+		vnd.3gpp.iufp ""
+	)
+	(
+		vnd.4sb ""
+	)
+	(
+		vnd.audiokoz ""
+	)
+	(
+		vnd.celp ""
+	)
+	(
+		vnd.cisco.nse ""
+	)
+	(
+		vnd.cmles.radio-events ""
+	)
+	(
+		vnd.cns.anp1 ""
+	)
+	(
+		vnd.cns.inf1 ""
+	)
+	(
+		vnd.dece.audio 
+		"uva"
+		"uvva"
+	)
+	(
+		vnd.digital-winds "eol"
+	)
+	(
+		vnd.dlna.adts ""
+	)
+	(
+		vnd.dolby.heaac.1 ""
+	)
+	(
+		vnd.dolby.heaac.2 ""
+	)
+	(
+		vnd.dolby.mlp ""
+	)
+	(
+		vnd.dolby.mps ""
+	)
+	(
+		vnd.dolby.pl2 ""
+	)
+	(
+		vnd.dolby.pl2x ""
+	)
+	(
+		vnd.dolby.pl2z ""
+	)
+	(
+		vnd.dolby.pulse.1 ""
+	)
+	(
+		vnd.dra "dra"
+	)
+	(
+		vnd.dts "dts"
+	)
+	(
+		vnd.dts.hd "dtshd"
+	)
+	(
+		vnd.dvb.file ""
+	)
+	(
+		vnd.everad.plj ""
+	)
+	(
+		vnd.hns.audio ""
+	)
+	(
+		vnd.lucent.voice "lvp"
+	)
+	(
+		vnd.ms-playready.media.pya "pya"
+	)
+	(
+		vnd.nokia.mobile-xmf ""
+	)
+	(
+		vnd.nortel.vbk ""
+	)
+	(
+		vnd.nuera.ecelp4800 "ecelp4800"
+	)
+	(
+		vnd.nuera.ecelp7470 "ecelp7470"
+	)
+	(
+		vnd.nuera.ecelp9600 "ecelp9600"
+	)
+	(
+		vnd.octel.sbc ""
+	)
+	(
+		vnd.qcelp ""
+	)
+	(
+		vnd.rhetorex.32kadpcm ""
+	)
+	(
+		vnd.rip "rip"
+	)
+	(
+		vnd.sealedmedia.softseal.mpeg ""
+	)
+	(
+		vnd.vmx.cvsd ""
+	)
+	(
+		vorbis ""
+	)
+	(
+		vorbis-config ""
+	)
+	(
+		webm "weba"
+	)
+	(
+		x-aac "aac"
+	)
+	(
+		x-aiff 
+		"aif"
+		"aiff"
+		"aifc"
+	)
+	(
+		x-caf "caf"
+	)
+	(
+		x-flac "flac"
+	)
+	(
+		x-matroska "mka"
+	)
+	(
+		x-mpegurl "m3u"
+	)
+	(
+		x-ms-wax "wax"
+	)
+	(
+		x-ms-wma "wma"
+	)
+	(
+		x-pn-realaudio 
+		"ram"
+		"ra"
+	)
+	(
+		x-pn-realaudio-plugin "rmp"
+	)
+	(
+		x-tta "tta"
+	)
+	(
+		x-wav "wav"
+	)
+	(
+		xm "xm"
+	)
+)
+(
+	chemical 
+	(
+		x-cdx "cdx"
+	)
+	(
+		x-cif "cif"
+	)
+	(
+		x-cmdf "cmdf"
+	)
+	(
+		x-cml "cml"
+	)
+	(
+		x-csml "csml"
+	)
+	(
+		x-pdb ""
+	)
+	(
+		x-xyz "xyz"
+	)
+)
+(
+	image 
+	(
+		bmp "bmp"
+	)
+	(
+		cgm "cgm"
+	)
+	(
+		example ""
+	)
+	(
+		fits ""
+	)
+	(
+		g3fax "g3"
+	)
+	(
+		gif "gif"
+	)
+	(
+		ief "ief"
+	)
+	(
+		jp2 ""
+	)
+	(
+		jpeg 
+		"jpeg"
+		"jpg"
+		"jpe"
+	)
+	(
+		jpm ""
+	)
+	(
+		jpx ""
+	)
+	(
+		ktx "ktx"
+	)
+	(
+		naplps ""
+	)
+	(
+		png "png"
+	)
+	(
+		prs.btif "btif"
+	)
+	(
+		prs.pti ""
+	)
+	(
+		sgi "sgi"
+	)
+	(
+		svg+xml 
+		"svg"
+		"svgz"
+	)
+	(
+		t38 ""
+	)
+	(
+		tiff 
+		"tiff"
+		"tif"
+	)
+	(
+		tiff-fx ""
+	)
+	(
+		vnd.adobe.photoshop "psd"
+	)
+	(
+		vnd.cns.inf2 ""
+	)
+	(
+		vnd.dece.graphic 
+		"uvi"
+		"uvvi"
+		"uvg"
+		"uvvg"
+	)
+	(
+		vnd.djvu 
+		"djvu"
+		"djv"
+	)
+	(
+		vnd.dvb.subtitle "sub"
+	)
+	(
+		vnd.dwg "dwg"
+	)
+	(
+		vnd.dxf "dxf"
+	)
+	(
+		vnd.fastbidsheet "fbs"
+	)
+	(
+		vnd.fpx "fpx"
+	)
+	(
+		vnd.fst "fst"
+	)
+	(
+		vnd.fujixerox.edmics-mmr "mmr"
+	)
+	(
+		vnd.fujixerox.edmics-rlc "rlc"
+	)
+	(
+		vnd.globalgraphics.pgb ""
+	)
+	(
+		vnd.microsoft.icon ""
+	)
+	(
+		vnd.mix ""
+	)
+	(
+		vnd.ms-modi "mdi"
+	)
+	(
+		vnd.ms-photo "wdp"
+	)
+	(
+		vnd.net-fpx "npx"
+	)
+	(
+		vnd.radiance ""
+	)
+	(
+		vnd.sealed.png ""
+	)
+	(
+		vnd.sealedmedia.softseal.gif ""
+	)
+	(
+		vnd.sealedmedia.softseal.jpg ""
+	)
+	(
+		vnd.svf ""
+	)
+	(
+		vnd.wap.wbmp "wbmp"
+	)
+	(
+		vnd.xiff "xif"
+	)
+	(
+		webp "webp"
+	)
+	(
+		x-3ds "3ds"
+	)
+	(
+		x-cmu-raster "ras"
+	)
+	(
+		x-cmx "cmx"
+	)
+	(
+		x-freehand 
+		"fh"
+		"fhc"
+		"fh4"
+		"fh5"
+		"fh7"
+	)
+	(
+		x-icon "ico"
+	)
+	(
+		x-mrsid-image "sid"
+	)
+	(
+		x-pcx "pcx"
+	)
+	(
+		x-pict 
+		"pic"
+		"pct"
+	)
+	(
+		x-portable-anymap "pnm"
+	)
+	(
+		x-portable-bitmap "pbm"
+	)
+	(
+		x-portable-graymap "pgm"
+	)
+	(
+		x-portable-pixmap "ppm"
+	)
+	(
+		x-rgb "rgb"
+	)
+	(
+		x-tga "tga"
+	)
+	(
+		x-xbitmap "xbm"
+	)
+	(
+		x-xpixmap "xpm"
+	)
+	(
+		x-xwindowdump "xwd"
+	)
+)
+(
+	message 
+	(
+		cpim ""
+	)
+	(
+		delivery-status ""
+	)
+	(
+		disposition-notification ""
+	)
+	(
+		example ""
+	)
+	(
+		external-body ""
+	)
+	(
+		feedback-report ""
+	)
+	(
+		global ""
+	)
+	(
+		global-delivery-status ""
+	)
+	(
+		global-disposition-notification ""
+	)
+	(
+		global-headers ""
+	)
+	(
+		http ""
+	)
+	(
+		imdn+xml ""
+	)
+	(
+		news ""
+	)
+	(
+		partial ""
+	)
+	(
+		rfc822 
+		"eml"
+		"mime"
+	)
+	(
+		s-http ""
+	)
+	(
+		sip ""
+	)
+	(
+		sipfrag ""
+	)
+	(
+		tracking-status ""
+	)
+	(
+		vnd.si.simp ""
+	)
+)
+(
+	model 
+	(
+		example ""
+	)
+	(
+		iges 
+		"igs"
+		"iges"
+	)
+	(
+		mesh 
+		"msh"
+		"mesh"
+		"silo"
+	)
+	(
+		vnd.collada+xml "dae"
+	)
+	(
+		vnd.dwf "dwf"
+	)
+	(
+		vnd.flatland.3dml ""
+	)
+	(
+		vnd.gdl "gdl"
+	)
+	(
+		vnd.gs-gdl ""
+	)
+	(
+		vnd.gs.gdl ""
+	)
+	(
+		vnd.gtw "gtw"
+	)
+	(
+		vnd.moml+xml ""
+	)
+	(
+		vnd.mts "mts"
+	)
+	(
+		vnd.parasolid.transmit.binary ""
+	)
+	(
+		vnd.parasolid.transmit.text ""
+	)
+	(
+		vnd.vtu "vtu"
+	)
+	(
+		vrml 
+		"wrl"
+		"vrml"
+	)
+	(
+		x3d+binary 
+		"x3db"
+		"x3dbz"
+	)
+	(
+		x3d+vrml 
+		"x3dv"
+		"x3dvz"
+	)
+	(
+		x3d+xml 
+		"x3d"
+		"x3dz"
+	)
+)
+(
+	multipart 
+	(
+		alternative ""
+	)
+	(
+		appledouble ""
+	)
+	(
+		byteranges ""
+	)
+	(
+		digest ""
+	)
+	(
+		encrypted ""
+	)
+	(
+		example ""
+	)
+	(
+		form-data ""
+	)
+	(
+		header-set ""
+	)
+	(
+		mixed ""
+	)
+	(
+		parallel ""
+	)
+	(
+		related ""
+	)
+	(
+		report ""
+	)
+	(
+		signed ""
+	)
+	(
+		voice-message ""
+	)
+)
+(
+	text 
+	(
+		1d-interleaved-parityfec ""
+	)
+	(
+		cache-manifest "appcache"
+	)
+	(
+		calendar 
+		"ics"
+		"ifb"
+	)
+	(
+		css "css"
+	)
+	(
+		csv "csv"
+	)
+	(
+		directory ""
+	)
+	(
+		dns ""
+	)
+	(
+		ecmascript ""
+	)
+	(
+		enriched ""
+	)
+	(
+		example ""
+	)
+	(
+		fwdred ""
+	)
+	(
+		html 
+		"html"
+		"htm"
+	)
+	(
+		javascript "js"
+	)
+	(
+		n3 "n3"
+	)
+	(
+		parityfec ""
+	)
+	(
+		plain 
+		"txt"
+		"text"
+		"conf"
+		"def"
+		"ini"
+		"list"
+		"log"
+		"in"
+	)
+	(
+		prs.fallenstein.rst ""
+	)
+	(
+		prs.lines.tag "dsc"
+	)
+	(
+		red ""
+	)
+	(
+		rfc822-headers ""
+	)
+	(
+		richtext "rtx"
+	)
+	(
+		rtf ""
+	)
+	(
+		rtp-enc-aescm128 ""
+	)
+	(
+		rtx ""
+	)
+	(
+		sgml 
+		"sgml"
+		"sgm"
+	)
+	(
+		t140 ""
+	)
+	(
+		tab-separated-values "tsv"
+	)
+	(
+		troff 
+		"t"
+		"tr"
+		"roff"
+		"man"
+		"me"
+		"ms"
+	)
+	(
+		turtle "ttl"
+	)
+	(
+		ulpfec ""
+	)
+	(
+		uri-list 
+		"uri"
+		"uris"
+		"urls"
+	)
+	(
+		vcard "vcard"
+	)
+	(
+		vnd.abc ""
+	)
+	(
+		vnd.curl "curl"
+	)
+	(
+		vnd.curl.dcurl "dcurl"
+	)
+	(
+		vnd.curl.mcurl "mcurl"
+	)
+	(
+		vnd.curl.scurl "scurl"
+	)
+	(
+		vnd.dmclientscript ""
+	)
+	(
+		vnd.dvb.subtitle "sub"
+	)
+	(
+		vnd.esmertec.theme-descriptor ""
+	)
+	(
+		vnd.fly "fly"
+	)
+	(
+		vnd.fmi.flexstor "flx"
+	)
+	(
+		vnd.graphviz "gv"
+	)
+	(
+		vnd.in3d.3dml "3dml"
+	)
+	(
+		vnd.in3d.spot "spot"
+	)
+	(
+		vnd.iptc.newsml ""
+	)
+	(
+		vnd.iptc.nitf ""
+	)
+	(
+		vnd.latex-z ""
+	)
+	(
+		vnd.motorola.reflex ""
+	)
+	(
+		vnd.ms-mediapackage ""
+	)
+	(
+		vnd.net2phone.commcenter.command ""
+	)
+	(
+		vnd.radisys.msml-basic-layout ""
+	)
+	(
+		vnd.si.uricatalogue ""
+	)
+	(
+		vnd.sun.j2me.app-descriptor "jad"
+	)
+	(
+		vnd.trolltech.linguist ""
+	)
+	(
+		vnd.wap.si ""
+	)
+	(
+		vnd.wap.sl ""
+	)
+	(
+		vnd.wap.wml "wml"
+	)
+	(
+		vnd.wap.wmlscript "wmls"
+	)
+	(
+		x-asm 
+		"s"
+		"asm"
+	)
+	(
+		x-c 
+		"c"
+		"h"
+		"inl"
+	)
+	(
+		x-c++ 
+		"c++"
+		"cc"
+		"cpp"
+		"cxx"
+		"h"
+		"h++"
+		"hh"
+		"hpp"
+		"hxx"
+		"inl"
+	)
+	(
+		x-fortran 
+		"f"
+		"for"
+		"f77"
+		"f90"
+	)
+	(
+		x-java-source "java"
+	)
+	(
+		x-nfo "nfo"
+	)
+	(
+		x-opml "opml"
+	)
+	(
+		x-pascal 
+		"p"
+		"pas"
+	)
+	(
+		x-setext "etx"
+	)
+	(
+		x-sfv "sfv"
+	)
+	(
+		x-uuencode "uu"
+	)
+	(
+		x-vcalendar "vcs"
+	)
+	(
+		x-vcard "vcf"
+	)
+	(
+		xml "xml"
+	)
+	(
+		xml-external-parsed-entity ""
+	)
+)
+(
+	video 
+	(
+		1d-interleaved-parityfec ""
+	)
+	(
+		3gpp "3gp"
+	)
+	(
+		3gpp-tt ""
+	)
+	(
+		3gpp2 "3g2"
+	)
+	(
+		bmpeg ""
+	)
+	(
+		bt656 ""
+	)
+	(
+		celb ""
+	)
+	(
+		dv ""
+	)
+	(
+		example ""
+	)
+	(
+		h261 "h261"
+	)
+	(
+		h263 "h263"
+	)
+	(
+		h263-1998 ""
+	)
+	(
+		h263-2000 ""
+	)
+	(
+		h264 "h264"
+	)
+	(
+		h264-rcdo ""
+	)
+	(
+		h264-svc ""
+	)
+	(
+		jpeg "jpgv"
+	)
+	(
+		jpeg2000 ""
+	)
+	(
+		jpm 
+		"jpm"
+		"jpgm"
+	)
+	(
+		mj2 
+		"mj2"
+		"mjp2"
+	)
+	(
+		mp1s ""
+	)
+	(
+		mp2p ""
+	)
+	(
+		mp2t ""
+	)
+	(
+		mp4 
+		"mp4"
+		"mp4v"
+		"mpg4"
+	)
+	(
+		mp4v-es ""
+	)
+	(
+		mpeg 
+		"mpeg"
+		"mpg"
+		"mpe"
+		"m1v"
+		"m2v"
+	)
+	(
+		mpeg4-generic ""
+	)
+	(
+		mpv ""
+	)
+	(
+		nv ""
+	)
+	(
+		ogg "ogv"
+	)
+	(
+		parityfec ""
+	)
+	(
+		pointer ""
+	)
+	(
+		quicktime 
+		"qt"
+		"mov"
+	)
+	(
+		raw ""
+	)
+	(
+		rtp-enc-aescm128 ""
+	)
+	(
+		rtx ""
+	)
+	(
+		smpte292m ""
+	)
+	(
+		ulpfec ""
+	)
+	(
+		vc1 ""
+	)
+	(
+		vnd.cctv ""
+	)
+	(
+		vnd.dece.hd 
+		"uvh"
+		"uvvh"
+	)
+	(
+		vnd.dece.mobile 
+		"uvm"
+		"uvvm"
+	)
+	(
+		vnd.dece.mp4 ""
+	)
+	(
+		vnd.dece.pd 
+		"uvp"
+		"uvvp"
+	)
+	(
+		vnd.dece.sd 
+		"uvs"
+		"uvvs"
+	)
+	(
+		vnd.dece.video 
+		"uvv"
+		"uvvv"
+	)
+	(
+		vnd.directv.mpeg ""
+	)
+	(
+		vnd.directv.mpeg-tts ""
+	)
+	(
+		vnd.dlna.mpeg-tts ""
+	)
+	(
+		vnd.dvb.file "dvb"
+	)
+	(
+		vnd.fvt "fvt"
+	)
+	(
+		vnd.hns.video ""
+	)
+	(
+		vnd.iptvforum.1dparityfec-1010 ""
+	)
+	(
+		vnd.iptvforum.1dparityfec-2005 ""
+	)
+	(
+		vnd.iptvforum.2dparityfec-1010 ""
+	)
+	(
+		vnd.iptvforum.2dparityfec-2005 ""
+	)
+	(
+		vnd.iptvforum.ttsavc ""
+	)
+	(
+		vnd.iptvforum.ttsmpeg2 ""
+	)
+	(
+		vnd.motorola.video ""
+	)
+	(
+		vnd.motorola.videop ""
+	)
+	(
+		vnd.mpegurl 
+		"mxu"
+		"m4u"
+	)
+	(
+		vnd.ms-playready.media.pyv "pyv"
+	)
+	(
+		vnd.nokia.interleaved-multimedia ""
+	)
+	(
+		vnd.nokia.videovoip ""
+	)
+	(
+		vnd.objectvideo ""
+	)
+	(
+		vnd.sealed.mpeg1 ""
+	)
+	(
+		vnd.sealed.mpeg4 ""
+	)
+	(
+		vnd.sealed.swf ""
+	)
+	(
+		vnd.sealedmedia.softseal.mov ""
+	)
+	(
+		vnd.uvvu.mp4 
+		"uvu"
+		"uvvu"
+	)
+	(
+		vnd.vivo "viv"
+	)
+	(
+		webm "webm"
+	)
+	(
+		x-f4v "f4v"
+	)
+	(
+		x-fli "fli"
+	)
+	(
+		x-flv "flv"
+	)
+	(
+		x-m4v "m4v"
+	)
+	(
+		x-matroska 
+		"mkv"
+		"mk3d"
+		"mks"
+	)
+	(
+		x-mng "mng"
+	)
+	(
+		x-ms-asf 
+		"asf"
+		"asx"
+	)
+	(
+		x-ms-vob "vob"
+	)
+	(
+		x-ms-wm "wm"
+	)
+	(
+		x-ms-wmv "wmv"
+	)
+	(
+		x-ms-wmx "wmx"
+	)
+	(
+		x-ms-wvx "wvx"
+	)
+	(
+		x-msvideo "avi"
+	)
+	(
+		x-sgi-movie "movie"
+	)
+	(
+		x-smv "smv"
+	)
+)
+(
+	x-conference 
+	(
+		x-cooltalk "ice"
+	)
+)

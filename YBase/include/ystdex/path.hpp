@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r603
+\version r607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2013-08-31 13:53 +0800
+	2013-10-13 19:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,10 @@ class path_norm
 {
 public:
 	using value_type = _type;
+
+	//! \since build 450
+	virtual
+	~path_norm() = default;
 
 	virtual bool
 	is_compatible_with(const path_norm&) const ynothrow

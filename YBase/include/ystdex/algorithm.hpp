@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r452
+\version r458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-09-23 12:15 +0800
+	2013-10-13 02:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,13 +125,13 @@ pod_move(const _type* first, const _type* last, _type* result)
 \note 使用 ADL 交换。
 \since build 265
 */
-template<typename _tForward>
-_tForward
-stable_range_unique(_tForward first, _tForward last)
+template<typename _tFwd>
+_tFwd
+stable_range_unique(_tFwd first, _tFwd last)
 {
-	_tForward result(first);
+	_tFwd result(first);
 
-	for(_tForward i(first); i != last; ++i)
+	for(_tFwd i(first); i != last; ++i)
 		if(std::find(first, result, *i) == result)
 		{
 			using std::swap;

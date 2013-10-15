@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r218
+\version r219
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2013-10-11 19:07 +0800
+	2013-10-12 03:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,7 +127,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 					}
 					catch(ystdex::bad_any_cast&)
 					{}
-			res += ValueNode{0, "$children", p_cont.release(), PointerTag()};
+			res += ValueNode{0, "$children", std::move(p_cont), PointerTag()};
 		}
 		res += ValueNode{0, "$pointer",
 			shared_ptr<IWidget>(std::move(p_new_widget))};

@@ -11,13 +11,13 @@
 /*!	\file Animation.cpp
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r47
+\version r49
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-10-06 22:12:10 +0800
 \par 修改时间:
-	2013-10-06 22:28 +0800
+	2013-10-15 14:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,11 +34,11 @@ namespace UI
 {
 
 void
-AnimationTask::Start(IWidget& wgt, const Rect& r)
+AnimationTask::Renew(IWidget& wgt, const Rect& r)
 {
 	PostTask([=, &wgt]{
 		if(Update(wgt, r))
-			Start(wgt, r);
+			Renew(wgt, r);
 	}, TaskPriority);
 }
 

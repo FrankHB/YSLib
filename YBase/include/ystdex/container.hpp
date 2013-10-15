@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r567
+\version r572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-09-23 11:48 +0800
+	2013-10-13 02:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -328,9 +328,9 @@ erase_all(_tRange& c, const typename _tRange::value_type& val)
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
-template<typename _tCon, typename _tForward, typename _tValue>
+template<typename _tCon, typename _tFwd, typename _tValue>
 void
-erase_all(_tCon& c, _tForward first, _tForward last, const _tValue& value)
+erase_all(_tCon& c, _tFwd first, _tFwd last, const _tValue& value)
 {
 	while(first != last)
 		if(*first == value)
@@ -357,9 +357,9 @@ erase_all_if(_tRange& c, _fPred pred)
 \pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
 \since build 289
 */
-template<typename _tCon, typename _tForward, typename _fPred>
+template<typename _tCon, typename _tFwd, typename _fPred>
 void
-erase_all_if(_tCon& c, _tForward first, _tForward last, _fPred pred)
+erase_all_if(_tCon& c, _tFwd first, _tFwd last, _fPred pred)
 {
 	while(first != last)
 		if(pred(*first))

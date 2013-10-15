@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r400
+\version r471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-09-23 12:18 +0800
+	2013-10-13 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,6 +83,83 @@ string_length(const _tString& str)
 {
 	return str.size();
 }
+//@}
+
+
+//! \since build 450
+namespace details
+{
+
+//! \todo 支持 std::forward_iterator_tag 重载。
+template<typename _tFwd1, typename _tFwd2, typename _fPred>
+bool
+ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
+	_fPred comp, std::bidirectional_iterator_tag)
+{
+	auto i(e);
+	auto it(et);
+
+	while(i != b && it != bt)
+		if(!comp(*--i, *--it))
+			return false;
+	return it == bt;
+}
+
+} // namespace details;
+
+/*!
+\ingroup string_algorithms
+\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\note 除 ADL 外接口同 Boost.StringAlgo 。
+\since build 450
+*/
+//@{
+//! \brief 判断第一个参数指定的串是否以第二个参数起始。
+//@{
+template<typename _tRange1, typename _tRange2, typename _fPred>
+bool
+starts_width(const _tRange1& input, const _tRange2& test, _fPred comp)
+{
+	using std::begin;
+	using std::end;
+	const auto e(end(input));
+	const auto et(end(test));
+	auto i(begin(input));
+	auto it(begin(test));
+
+	for(; i != e && it != et; yunseq(++i, ++it))
+		if(!comp(*i, *it))
+			return false;
+	return it == et;
+}
+template<typename _tRange1, typename _tRange2>
+inline bool
+starts_width(const _tRange1& input, const _tRange2& test)
+{
+	return ystdex::starts_width(input, test, is_equal());
+}
+//@}
+
+//! \brief 判断第一个参数指定的串是否以第二个参数结束。
+//@{
+template<typename _tRange1, typename _tRange2, typename _fPred>
+inline bool
+ends_with(const _tRange1& input, const _tRange2& test, _fPred comp)
+{
+	using std::begin;
+	using std::end;
+
+	return details::ends_with_iter_dispatch(begin(input), end(input),
+		begin(test), end(test), comp, typename std::iterator_traits<
+		remove_reference_t<decltype(begin(input))>>::iterator_category());
+}
+template<typename _tRange1, typename _tRange2>
+inline bool
+ends_with(const _tRange1& input, const _tRange2& test)
+{
+	return ystdex::ends_with(input, test, is_equal());
+}
+//@}
 //@}
 
 
@@ -226,8 +303,8 @@ split(_tRange&& c, _fPred is_delim, _fInsert insert)
 /*!
 \ingroup string_algorithms
 \brief 以指定字符分割字符序列。
-\note 只保留除了分隔字符外非空的结果；
-	结果保留起始分隔字符，除非是起始非分隔字符第一次匹配。
+\note 只保留非空的结果；
+	在起始保留分隔字符，除首个字符为非分隔字符时的第一次匹配。
 \since build 408
 */
 template<typename _fPred, typename _fInsert, typename _tIn>

@@ -10,12 +10,12 @@
 ====
 2013-10-12(build 449)
  build 449 起使用 2-Clause BSD 许可证风格的条款进行基本授权。
-Config:
+[Config]
 外部依赖库移至 "/3rdparty" ，其中 FreeType 需要在头文件中显式依赖。（需要对显式依赖项指定搜索包含路径 "/3rdparty/include" 。）
-YBase:
+[YBase]
 增加容器适配器和序列容器适配器模板。
 增加路径类模板 ystdex::path 。
-YFramework:
+[YFramework]
 用户 Shell 可以设置延时；
 使用 MinGW 的 ::dirent 和 ::opendir 等。
  BufferedRenderer 支持更换缓冲区。
@@ -23,7 +23,7 @@ YFramework:
 调整 YCLib 文件系统接口。
 重新设计 Path 类（使用ystdex::path）。
 清理 YSLib 文件系统接口。
-MinGW: COM通用代码（需要自行增加链接库）。
+[MinGW] COM通用代码（需要自行增加链接库）。
 修复非 255 阶灰度字符位图（包括矢量字体的内嵌位图）渲染错误。
 增加图像读取支持（使用 FreeImage 实现）。
 不使用 FreeType Cache Subsystem 重新实现字体缓存（减少大小并提高加载效率）。
@@ -31,11 +31,11 @@ MinGW: COM通用代码（需要自行增加链接库）。
  TouchEventArgs 重命名为 CursorEventArgs 。
  TouchMove 事件合并至 TouchHeld 事件。原逻辑固定。
 支持新的 UI 事件 CursorOver 和 CursorWheel （在 DS 无法自动产生但可以由用户程序触发）。
-MinGW: 修复 GUI 响应坐标转换。
+[MinGW] 修复 GUI 响应坐标转换。
 按键绑定自动生成复合事件，不需要单独绑定 KeyPress 到 Click 。
 滚动条和列表框控件支持滚轮事件。
 增加 DS 屏幕切换功能。
-MinGW: 允许设置顶层窗口透明性或使用 Alpha 位图。
+[MinGW] 允许设置顶层窗口透明性或使用 Alpha 位图。
 增加简单的动态界面加载。
 增加像素格式模板。
 扩展 Alpha 组合算法为模板。
@@ -44,7 +44,7 @@ MinGW: 允许设置顶层窗口透明性或使用 Alpha 位图。
 增加填充圆绘制。
 事件处理器支持省略末尾部分参数的可调用类型。
  NPLA1 配置增加读写多个未命名节点项。
-YReader:
+[YReader]
 更改界面：缩减背景，增大文件选择区域。
 ====
 2013-04-24(PreAlpha 4)

@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r654
+\version r670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2013-10-12 01:53 +0800
+	2013-10-12 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ TransformConfiguration(const ValueNode& node)
 			'$' + std::to_string(p_node_cont->size()), std::move(n.Value)}
 			: std::move(n));
 	});
-	return {0, new_name, p_node_cont.release(), PointerTag()};
+	return {0, new_name, std::move(p_node_cont), PointerTag()};
 }
 
 
@@ -148,22 +148,6 @@ EscapeNodeString(const string& str)
 
 //! \since build 449
 bool
-IsPrefixedIndexedName(const string& name)
-{
-	if(name.length() > 1 && name[0] == '$')
-		try
-		{
-			const string ss(&name[1]);
-
-			return std::to_string(std::stoul(ss)) == ss;
-		}
-		catch(std::invalid_argument&)
-		{}
-	return false;
-}
-
-//! \since build 449
-bool
 PrintNodeString(File& f, const ValueNode& node)
 {
 	try
@@ -193,7 +177,7 @@ WriteNodeC(File& f, const ValueNode& node, size_t depth)
 		for(const auto& n : node)
 		{
 			WritePrefix(f, depth);
-			if(IsPrefixedIndexedName(n.GetName()))
+			if(IsPrefixedIndex(n.GetName()))
 				PrintNodeString(f, n);
 			else
 			{

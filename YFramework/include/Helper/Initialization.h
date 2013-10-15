@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r712
+\version r733
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-08-05 20:47 +0800
+	2013-10-13 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "NPL/Configuration.h"
 #include "YSLib/Service/yftext.h"
 #include "YSLib/Adaptor/Font.h" // for Drawing::FontCache;
+#include "YSLib/Service/ContentType.h" // for MIMEBiMapping;
 
 namespace YSLib
 {
@@ -41,6 +42,18 @@ namespace YSLib
 */
 YB_NORETURN YF_API void
 HandleFatalError(const FatalError&) ynothrow;
+
+
+/*!
+\brief 载入 NPLA1 配置文件。
+\param show_info 是否在标准输出中显示信息。
+\return 读取的配置。
+\note 预设行为、配置文件和配置项参考 YSLib.txt 。
+\since build 450
+*/
+YF_API ValueNode
+LoadNPLA1File(const char* disp, const char* path,
+	ValueNode(*creator)(), bool show_info = {});
 
 
 /*!
@@ -61,13 +74,12 @@ WriteConfiguration(TextFile&, const ValueNode&);
 
 /*!
 \brief 载入默认配置。
-\param bInfo 是否在标准输出中显示信息。
 \return 读取的配置。
-\note 预设行为、配置文件和配置项参考 YSLib.txt 。
+\see LoadNPLA1File
 \since build 344
 */
 YF_API ValueNode
-LoadConfiguration(bool bInfo = {});
+LoadConfiguration(bool = {});
 
 /*!
 \brief 保存默认配置。
@@ -128,6 +140,13 @@ FetchRoot();
 */
 YF_API Drawing::FontCache&
 FetchDefaultFontCache();
+
+/*!
+\brief 取 MIME 类型名和文件扩展名双向映射对象。
+\since build 450
+*/
+YF_API MIMEBiMapping&
+FetchMIMEBiMapping();
 
 } // namespace YSLib;
 

@@ -172,6 +172,7 @@
     <ClInclude Include="include\YSLib\Core\ystring.h" />
     <ClInclude Include="include\YSLib\Service\AccessHistory.hpp" />
     <ClInclude Include="include\YSLib\Service\CharRenderer.h" />
+    <ClInclude Include="include\YSLib\Service\ContentType.h" />
     <ClInclude Include="include\YSLib\Service\TextBase.h" />
     <ClInclude Include="include\YSLib\Service\TextLayout.h" />
     <ClInclude Include="include\YSLib\Service\textmgr.h" />
@@ -259,6 +260,7 @@
     <ClCompile Include="source\YSLib\Core\ymsg.cpp" />
     <ClCompile Include="source\YSLib\Core\ystring.cpp" />
     <ClCompile Include="source\YSLib\Service\CharRenderer.cpp" />
+    <ClCompile Include="source\YSLib\Service\ContentType.cpp" />
     <ClCompile Include="source\YSLib\Service\TextBase.cpp" />
     <ClCompile Include="source\YSLib\Service\TextLayout.cpp" />
     <ClCompile Include="source\YSLib\Service\textmgr.cpp" />

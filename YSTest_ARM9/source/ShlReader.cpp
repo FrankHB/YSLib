@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4539
+\version r4540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-09-29 10:49 +0800
+	2013-10-13 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,7 +210,7 @@ ShlReader::LoadBookmarks(const string& group)
 			int)>(std::isspace), [&](string::iterator b, string::iterator e){
 				try
 				{
-					bookmarks.push_back(std::stoi(ystdex::ltrim(string(b, e))));
+					bookmarks.push_back(stoul(ystdex::ltrim(string(b, e))));
 				}
 				catch(std::invalid_argument&)
 				{}

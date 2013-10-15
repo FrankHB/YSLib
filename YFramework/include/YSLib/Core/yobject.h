@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3700
+\version r3726
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-28 13:44 +0800
+	2013-10-12 03:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,7 +257,7 @@ public:
 	/*!
 	\brief 构造：使用对象指针。
 	\note 得到包含指针指向的指定对象的实例，并获得所有权。
-	\note 使用 PointerHolder 管理资源（默认使用不限定作用域的 delete 释放资源）。
+	\note 使用 PointerHolder 管理资源（默认使用 delete 释放资源）。
 	\since build 340
 	*/
 	template<typename _type>
@@ -265,6 +265,18 @@ public:
 		: content(ystdex::any_ops::holder_tag(), make_unique<PointerHolder<
 		_type>>(p))
 	{}
+	/*!
+	\brief 构造：使用对象 unique_ptr 指针。
+	\note 得到包含指针指向的指定对象的实例，并获得所有权。
+	\note 使用 PointerHolder 管理资源（默认使用 delete 释放资源）。
+	\since build 450
+	*/
+	template<typename _type>
+	ValueObject(unique_ptr<_type>&& p, PointerTag)
+		: ValueObject(p.get(), PointerTag())
+	{
+		p.release();
+	}
 	/*!
 	\brief 复制构造：默认实现。
 	\since build 332
@@ -391,23 +403,11 @@ public:
 		ImplBodyMem(content, swap, vo.content)
 };
 
-//! \relates ValueObject
-//@{
 /*!
-\ingroup helper_functions
-\brief 使用指针构造 ValueObject 实例。
-\since build 233
+\relates ValueObject
+\since build 409
 */
-template<typename _type>
-inline ValueObject
-MakeValueObjectByPtr(_type* p)
-{
-	return ValueObject(p, PointerTag());
-}
-
-//! \since build 409
 inline DefSwap(ynothrow, ValueObject)
-//@}
 
 
 /*!

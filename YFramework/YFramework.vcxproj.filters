@@ -739,6 +739,9 @@
     <ClInclude Include="include\YSLib\UI\Animation.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Service\CcontentType.h">
+      <Filter>include\YSLib\Service</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -986,6 +989,9 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\Animation.cpp">
       <Filter>source\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\ContentType.cpp">
+      <Filter>source\YSLib\Service</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

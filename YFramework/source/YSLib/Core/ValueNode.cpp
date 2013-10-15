@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r324
+\version r338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-08-05 21:24 +0800
+	2013-10-12 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,6 +99,22 @@ AccessNodePtr(const ValueNode::Container& con, const string& name)
 	const auto i(con.find(ValueNode(0, name)));
 
 	return i != end(con) ? &*i : nullptr;
+}
+
+
+bool
+IsPrefixedIndex(const string& name, char prefix)
+{
+	if(name.length() > 1 && name[0] == prefix)
+		try
+		{
+			const string ss(&name[1]);
+
+			return std::to_string(std::stoul(ss)) == ss;
+		}
+		catch(std::invalid_argument&)
+		{}
+	return false;
 }
 
 } // namespace YSLib;

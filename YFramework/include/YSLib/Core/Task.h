@@ -11,13 +11,13 @@
 /*!	\file Task.h
 \ingroup Core
 \brief 任务处理。
-\version r75
+\version r85
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-06 22:08:26 +0800
 \par 修改时间:
-	2013-10-06 22:28 +0800
+	2013-10-15 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,15 +57,24 @@ class GAutoTask
 	static_assert(std::is_object<_fCallable>::value,
 		"Callable object type is needed.");
 public:
-	_fCallable Update;
-	Priority TaskPriority = 0x80;
+	//! \since build 450
+	using Callable = _fCallable;
 
+	_fCallable Update;
+	Priority TaskPriority;
+
+	//! \since build 450
 	template<typename _fUpdater>
-	GAutoTask(_fUpdater&& f)
-		: Update(yforward(f))
+	GAutoTask(_fUpdater&& f, Priority prior = NormalPriority)
+		: Update(yforward(f)), TaskPriority(prior)
 	{}
 
 	virtual DefDeDtor(GAutoTask)
+
+	//! \since build 450
+	DefCvt(ynothrow, Callable&, *this)
+	//! \since build 450
+	DefCvt(const ynothrow, const Callable&, *this)
 };
 
 } // namespace Messaging;

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1797
+\version r1889
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-08-05 21:19 +0800
+	2013-10-13 02:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include "YSLib/Core/yfilesys.h"
 #include <cstring> // for std::strcmp;
 //#include <clocale>
+#include "NPL/SContext.h"
 
 using namespace ystdex;
 using namespace platform;
@@ -55,9 +56,40 @@ ValueNode* p_root;
 Drawing::FontCache* p_font_cache;
 //@}
 #if !CHRLIB_NODYNAMIC_MAPPING
-//! \since build 324;
+//! \since build 324
 platform::MappedFile* p_mapped;
 #endif
+//! \since build 450
+MIMEBiMapping* p_mapping;
+//! \since build 450
+const char TU_MIME[]{u8R"NPLA1(
+(application
+	(octet-stream "bin" "so")
+	(x-msdownload "exe" "dll" "com" "bat" "msi")
+	(x-font-ttf "ttf" "ttc")
+	(xml "xml")
+	(zip "zip")
+)
+(audio
+	(midi "mid" "midi" "rmi")
+	(mpeg "mp3")
+	(x-mpegurl "m3u")
+	(x-wav "wav")
+)
+(image
+	(bmp "bmp")
+	(gif "gif")
+	(jpeg "jpeg" "jpg")
+	(png "png")
+	(tif "tif" "tiff")
+)
+(text
+	(html "html" "htm")
+	(plain "txt" "conf" "def" "ini" "log" "in")
+	(x-c "c" "h" "inl")
+	(x-c++ "cc" "cpp" "cxx" "h" "hh" "hpp" "hxx" "inl")
+)
+)NPLA1"};
 
 #if YCL_DS
 #	define ROOTW
@@ -123,6 +155,33 @@ HandleFatalError(const FatalError& e) ynothrow
 
 
 ValueNode
+LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
+	bool show_info)
+{
+	if(!ufexists(path))
+	{
+		if(show_info)
+			std::printf("Creating %s '%s'...\n", disp, path);
+		if(creator)
+		{
+			if(TextFile tf{path, std::ios_base::out | std::ios_base::trunc})
+				tf << NPL::Configuration(creator());
+			else
+				throw LoggedEvent("Cannot create file.");
+		}
+		else
+			return {};
+	}
+
+	TextFile tf(path);
+
+	if(show_info)
+		std::printf("Found %s '%s'.\n", disp, path);
+	return ReadConfiguration(tf);
+}
+
+
+ValueNode
 ReadConfiguration(TextFile& tf)
 {
 	if(YB_LIKELY(tf))
@@ -148,26 +207,14 @@ WriteConfiguration(TextFile& tf, const ValueNode& node)
 }
 
 ValueNode
-LoadConfiguration(bool bInfo)
+LoadConfiguration(bool show_info)
 {
-	if(!ufexists(CONF_PATH))
-	{
-		if(bInfo)
-			std::printf("Creating configuration file '%s'...\n", CONF_PATH);
-		if(TextFile tf{CONF_PATH, std::ios_base::out | std::ios_base::trunc})
-			tf << NPL::Configuration(PackNodes("YFramework", MakeNode(
-				"DataDirectory", string(DATA_DIRECTORY)), MakeNode("FontFile",
-				string(DEF_FONT_PATH)),
-				MakeNode("FontDirectory", string(DEF_FONT_DIRECTORY))));
-		else
-			throw LoggedEvent("Cannot create file.");
-	}
-
-	TextFile tf(CONF_PATH);
-
-	if(bInfo)
-		std::printf("Found configuration file '%s'.\n", CONF_PATH);
-	return ReadConfiguration(tf);
+	return LoadNPLA1File("configuration file", CONF_PATH, []{
+		return PackNodes("YFramework", MakeNode("DataDirectory",
+			string(DATA_DIRECTORY)), MakeNode("FontFile",
+			string(DEF_FONT_PATH)), MakeNode("FontDirectory",
+			string(DEF_FONT_DIRECTORY)));
+	}, show_info);
 }
 
 void
@@ -358,6 +405,25 @@ FetchDefaultFontCache()
 			AccessChild<string>(node, "FontDirectory"));
 	}
 	return *p_font_cache;
+}
+
+MIMEBiMapping&
+FetchMIMEBiMapping()
+{
+	if(YB_UNLIKELY(!p_mapping))
+	{
+		p_mapping = ynew MIMEBiMapping;
+		app_exit.push([]{
+			ydelete(p_mapping);
+		});
+		AddMIMEItems(*p_mapping, LoadNPLA1File("MIME database",
+			(AccessChild<string>(FetchRoot()["YFramework"], "DataDirectory")
+			+ "MIMEExtMap.txt").c_str(), []{
+			return
+				NPL::LoadNPLA1(NPL::SContext::Analyze(NPL::Session(TU_MIME)));
+		}, true));
+	}
+	return *p_mapping;
 }
 
 } // namespace YSLib;

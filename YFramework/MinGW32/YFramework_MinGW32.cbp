@@ -259,6 +259,7 @@
 		<Unit filename="../include/YSLib/Core/ystring.h" />
 		<Unit filename="../include/YSLib/Service/AccessHistory.hpp" />
 		<Unit filename="../include/YSLib/Service/CharRenderer.h" />
+		<Unit filename="../include/YSLib/Service/ContentType.h" />
 		<Unit filename="../include/YSLib/Service/TextBase.h" />
 		<Unit filename="../include/YSLib/Service/TextLayout.h" />
 		<Unit filename="../include/YSLib/Service/TextRenderer.h" />
@@ -344,6 +345,7 @@
 		<Unit filename="../source/YSLib/Core/yshell.cpp" />
 		<Unit filename="../source/YSLib/Core/ystring.cpp" />
 		<Unit filename="../source/YSLib/Service/CharRenderer.cpp" />
+		<Unit filename="../source/YSLib/Service/ContentType.cpp" />
 		<Unit filename="../source/YSLib/Service/TextBase.cpp" />
 		<Unit filename="../source/YSLib/Service/TextLayout.cpp" />
 		<Unit filename="../source/YSLib/Service/TextRenderer.cpp" />

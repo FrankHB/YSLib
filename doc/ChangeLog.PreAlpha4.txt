@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3595
+\version r3687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-10-12 02:14 +0800
+	2013-10-15 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,90 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'Core' $=
+			(
+				+ "function %IsPrefixedIndex" @ %'ValueNode',
+				/ %'YObject' $=
+				(
+					- "function template %MakeValueObjectByPtr",
+					(
+					+ "constroctor template for instance of %std::unique_ptr \
+						with default deleter" @ "class %ValueObject";
+					$dep_to "node %unique_ptr constructor"
+					),
+					+ "function template %operator[] for paths of instances \
+						of %ystdex::path" @ "class %ValueNode"
+				),
+				/ @ "class template %GAutoTask" @ %'Task' $=
+				(
+					(
+					+ 'using Callable = _fCallable;';
+					+ "conversion operators to %(Callable&, const Callable&)"
+					),
+					(
+					+ "priority paramter with default argument" @ "constructor template",
+						// Default priority unchanged.
+					- "member initializer" @ "%TaskPriority"
+					)
+				)
+			),
+			+ %'ContentType' @ %'Service';
+			/ %'Animation' $=
+			(
+				(
+				+ "constexpr object %AnimationPriority",
+				$dep_from %'Core'.'Task';
+				+ "priority paramter with default argument"
+					@ "constructor template" @ "class %AnimationTask"
+					// Default priority changed.
+				),
+				/ "member function %Start" => "%Renew"
+			);
+		),
+		(
+		$dep_from "node %unique_ptr constructor";
+		* "exception safety not kept when constructing %ValueObject failed"
+			@ ("function template %PackNodes" @ %'YSLib'.'Core'.'ValueNode'
+			$since b340), ("function %TransformConfiguration"
+			@ %'NPL'.'Configuration' $since b341),
+			("function %WidgetLoader::TransformUILayout"
+			@ %'YSLib'.'UI'.'Loader' $since b433)
+		),
+		/ %'Helper'.'Initialzation',
+		(
+			+ "function %LoadNPLA1File",
+			$dep_from %'YSLib'.'Serivce'.'ContentType';
+			+ "function %FetchMIMEBiMapping"
+		)
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		(
+		+ "struct %is_equal" @ %'Functional';
+		+ "function templates %(2 starts_with, 2 ends_with)" @ %'String'
+		),
+		* "missing destructor" @ "class template %path_norm"
+			@ %'Path' $since b408
+	),
+	/ %'YReader' $=
+	(
+		(
+		$dep_from %'Helper'.'Initialization';
+		/ "selection of readers" ^ "MIME type/file extension mapping"
+			@ %'ShlExplorer'
+		),
+		/ "reading line number for bookmark" ^ "%stoul" ~ "%(stoi, std::stoi)"
+	),
+	/ DLD "normalized template parameters as convention"
+		$= ("%_tForward" => "%_tFwd")
+),
+
+b449
 (
 	/ %'YFramework' $=
 	(
@@ -583,7 +667,7 @@ b442
 					- "width specified from template paramter",
 					+ "template functions %(BlendComponent, BlendCore,
 						2 Blend)",
-					/ @ "template class %GPixelCompositor" $=
+					/ @ "class template %GPixelCompositor" $=
 					(
 						$dep_from %'YBase'.'YStandardEx'.'Rational'
 						+ $dev "static assertions to check some non-normalized types",
@@ -668,7 +752,7 @@ b441
 		),
 		/ @ "namespace %platform" @ %'YCLib'.'Video' $=
 		(
-			+ "template class (XYZATrait; BGRA, RGBA)";
+			+ "class template %(XYZATrait; BGRA, RGBA)";
 			/ "pixel type alias" ^ "%BGRA" @ "platform %MinGW32",
 			/ @ "platform %DS" $=
 			(
@@ -739,7 +823,7 @@ b440
 		/ %'YBlit' $=
 		(
 			(
-			+ "template class %GPixelCompositor",
+			+ "class template %GPixelCompositor",
 			/ "merged class template %GPixelBlenderBase"
 				-> "class template %GPixelBlender";
 			- $comp "blit rounds",
@@ -1072,7 +1156,7 @@ b434
 		(
 			/ "class template %GWidgetFactory"
 				-> "function templates %(CreateUniqueWidget, RegisterLoader)",
-			+ "template class %GWidgetRegister";
+			+ "class template %GWidgetRegister";
 			(
 				/ "alias %GWidgetCreatorMap accept function parameters \
 					directly",
@@ -1157,12 +1241,12 @@ b433
 				+ "constructor template with base parameters"
 			)
 			* "type error implementation" @ "member function %is_delimiter"
-				@ "template class specialization %file_path_norm" $since b409
+				@ "class template specialization %file_path_norm" $since b409
 		),
 		- "function templates %ystdex::at" @ %'Container'
 	),
-	/ DLD "normalized template parameters as convention: %(_tCont, _tSeqCont)" \
-		=> "%(_tCon, _tSeqCon)"
+	/ DLD "normalized template parameters as convention"
+		$= ("%(_tCont, _tSeqCont)" => "%(_tCon, _tSeqCon)")
 ),
 
 b432
@@ -2381,7 +2465,7 @@ b413
 						- "typedef name %EventArgsType"
 					),
 					+ "typedef name %TupleType" @ "class template %GEvent",
-					+ "template class %EventArgsTypeHead"
+					+ "class template %EventArgsTypeHead"
 				),
 				+ "member function String& operator*=(size_t)" @ "class %String"
 					@ %'YString'
@@ -2883,7 +2967,7 @@ b404
 		!^ DLD "magic number of image pointer array size"
 	),
 	(
-	+ "access history model template class %GAccessList"
+	+ "access history model class template %GAccessList"
 		@ %'YFramework'.'YSLib'.'Service';
 	/ $dev "simplified implementation" @ "reading list"
 		@ %'YReader'.'text reader'

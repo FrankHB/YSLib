@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1276
+\version r1296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-09-23 11:50 +0800
+	2013-10-13 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #define YSL_INC_Core_ValueNode_h_ 1
 
 #include "yobject.h"
+#include <ystdex/path.hpp>
 
 namespace YSLib
 {
@@ -145,6 +146,17 @@ public:
 	//! \since build 398
 	const ValueNode&
 	operator[](const string&) const;
+	//! \since build 497
+	template<class _tCont>
+	const ValueNode&
+	operator[](const ystdex::path<_tCont>& pth) const
+	{
+		auto p(this);
+
+		for(const auto& n : pth)
+			p = &(*p)[n];
+		return *p;
+	}
 
 	//! \since build 336
 	explicit DefCvt(const ynothrow, bool, bool(Value))
@@ -395,8 +407,17 @@ inline ValueNode
 PackNodes(_tString&& name, _tParams&&... args)
 {
 	return {0, yforward(name), CollectNodes(UnpackToNode(
-		yforward(args))...).release(), PointerTag()};
+		yforward(args))...), PointerTag()};
 }
+
+
+/*!
+\brief 判断字符串是否是一个指定字符和非负整数的组合。
+\note 要求整数能被 unsigned long 表示。
+\since build 450
+*/
+YF_API bool
+IsPrefixedIndex(const string&, char = '$');
 
 } // namespace YSLib;
 

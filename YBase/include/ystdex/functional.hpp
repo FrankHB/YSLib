@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r803
+\version r818
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-09-28 13:43 +0800
+	2013-10-13 02:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -530,6 +530,22 @@ hash_range(size_t& seed, _tIn first, _tIn last)
 \note 函数对象包含函数指针和仿函数。
 \since build 243
 */
+
+/*!
+\ingroup functors
+\brief 相等关系仿函数。
+\note 同 boost::is_equal 。
+\since build 450
+*/
+struct is_equal
+{
+	template<typename _type1, typename _type2>
+	yconstfn bool
+	operator()(const _type1& x, const _type2& y) const
+	{
+		return x == y;
+	}
+};
 
 /*!
 \ingroup functors

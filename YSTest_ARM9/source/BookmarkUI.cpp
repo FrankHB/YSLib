@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r198
+\version r200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-09-07 02:37 +0800
+	2013-10-13 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ ConvertToBookmarkList(const vector<String>& lst)
 
 	bookmarks.reserve(lst.size());
 	for(const auto& str : lst)
-		bookmarks.push_back(stoi(str.GetMBCS()));
+		bookmarks.push_back(stoul(str.GetMBCS()));
 	return bookmarks;
 }
 

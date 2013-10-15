@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2234
+\version r2251
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-10-10 18:05 +0800
+	2013-10-13 02:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -358,8 +358,11 @@
 
 @4.2.3 平台无关的图像块操作 YBlit
 
+@4.2.4 体系结构中立的像素操作 YPixel
+
 @4.3 基础文本显示：
-通用的字符/字符串光栅化处理。字符串本身的逻辑处理在 Core::YString 中，而不在此处。
+通用的字符/字符串光栅化/布局处理。
+字符串处理位于 Core::YString ，不在此处。
 
 @4.3.1 文本基础抽象 TextBase ：
 包含笔样式 PenStyle 、文本状态 TextState 等。
@@ -384,6 +387,19 @@
 @4.6 扩展服务
 
 @4.6.1 文本管理类 TextManager
+
+@4.6.2 访问历史记录 AccessHistory
+
+@4.6.3 内容类型接口 ContentType
+检查和访问特定内容类型的接口。
+当前支持 MIME 类型和文件扩展名的双向映射，基于 NPLA1 配置([Documentation::NPL @@5.8]) 实现 ，但初始化逻辑在 Helper::Initialization 中。
+支持外部配置文件。默认外部配置位于 "Data/MIMEExtMap.txt" ，内容由 https://github.com/dvv/mimetypes/blob/master/priv/mime.types 转换，并进行以下修正：
+修正 text/plain 扩展名 "ini" ；
+修正 text/x-c 的扩展名；
+增加 audio/x-tta 的扩展名 "tta" ；
+增加 text/javascript 的扩展名 "js" ；
+增加 text/x-cpp 项。
+配置读取失败时生成较少的默认配置，内容参见 YFramework 源文件 "Helper/Initialization.cpp" 。
 
 @5 界面系统：
 位于 "/UI" 。
@@ -953,6 +969,10 @@ Bookmarks
 )
 整数值表示在文件的字节位置。
 空白符除了作为间隔以外会被忽略。以空白符分组后，非整数值起始的项时此项和之后所有项都会被删除。
+
+@10.1.3.3 build 450 起：
+增加 MIME 类型和文件扩展名映射配置文件，参见 @4.6.3 。
+所有配置按 NPLA1 读取，共享实现。
 
 @11 测试注记：
 示例测试项目 YSTest 包含 @9 和 @10 提到的测试。

@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9055
+\version r9057
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-10-01 01:30 +0800
+	2013-10-13 01:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,6 +219,7 @@ Shell 和 Core 的关系是相对的，例如：
 
 @4.1.2 惯用函数命名：
 基本内容参见 [Documentation::CommonRules @@4.1.7] 。
+若在同一个作用域中出现多个不同的以下约定相同类别内的名称，可以后缀正整数以示区分。
 
 @4.1.2.1 YBase 和 YFramework 约定：
 使用以下固定含义的模板形式参数名称（前缀参见 @4.1.1.3 ）：
@@ -231,7 +232,7 @@ Shell 和 Core 的关系是相对的，例如：
  _fPred ：谓词函数类型；
  _tIn ：输入迭代器类型；
  _tOut ：输出迭代器类型；
- _tForward ：前向迭代器类型；
+ _tFwd ：前向迭代器类型；
  _tBi ：双向迭代器类型；
  _tRandom ：随机访问迭代器类型；
  _tRange ：一般范围类型；

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3231
+\version r3234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-09-07 03:11 +0800
+	2013-10-14 12:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -760,7 +760,7 @@ b288
 	(
 		/ %'TypeOperations' $=
 		(
-			+ "template class %n_tag";
+			+ "class template %n_tag";
 			+ "typedef n_tag<0> %first_tag",
 			+ "typedef n_tag<0> %second_tag"
 		),
@@ -2043,7 +2043,7 @@ b240
 			),
 			/ $dev %'YEvent' $=
 			(
-				+ "abstract member funtion %Clone" @ "template class GIHEvent";
+				+ "abstract member funtion %Clone" @ "class template %GIHEvent";
 				/ @ "class template %GEventMap" $=
 				(
 					+ "member function %Clone",

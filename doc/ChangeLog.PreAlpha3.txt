@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4182
+\version r4185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-09-28 13:38 +0800
+	2013-10-14 12:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1748,7 +1748,7 @@ b352
 		* "union %non_aggregate_pod misspelled as %non_aggreate_pod"
 			$since b351,
 		(
-			/ @ "union template class %pod_storage" $=
+			/ @ "union class template %pod_storage" $=
 			(
 				+ "explicitly defaulted constructor",
 				+ "constructor template for objects",
@@ -2247,7 +2247,7 @@ b339
 			+ "unary type trait %is_decayable"
 		),
 		/ "trailing return type" @ "member template %operator()"
-			@ "template class %container_inserter" @ %Containers
+			@ "class template %container_inserter" @ %Containers
 			// More compatibility for devkitPro G++ 4.7.1.
 	),
 	/ DLD "reader setting" @ %'YReader'.'text reader',
@@ -2412,7 +2412,7 @@ b333
 		/ %'YEvent' $=
 		(
 			+ "support for variant handler for initialization"
-				@ "template class %GHEvent"
+				@ "class template %GHEvent"
 				// As same as %std::function.
 			/ "improved template parameter declaration"
 				^ "function type and parameter pack",

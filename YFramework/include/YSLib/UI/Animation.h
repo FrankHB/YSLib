@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r76
+\version r96
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2013-10-06 22:27 +0800
+	2013-10-15 14:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,8 +38,17 @@ namespace UI
 {
 
 /*!
+\brief 默认背景动画任务消息优先级。
+\since build 450
+*/
+yconstexpr Messaging::Priority AnimationPriority(0x20);
+
+
+/*!
 \brief 动画自动更新任务。
 \since build 449
+
+通过根据更新操作发送指定优先级的 SM_TASK 消息无效化部件区域实现动画。
 */
 class YF_API AnimationTask : public
 	Messaging::GAutoTask<std::function<bool(UI::IWidget&, const Rect&)>>
@@ -51,15 +60,24 @@ public:
 	AnimationTask()
 		: BaseType(DefaultUpdate)
 	{}
+	//! \since build 450
 	template<typename _fUpdater>
-	AnimationTask(_fUpdater&& f)
-		: BaseType(yforward(f))
+	AnimationTask(_fUpdater&& f, Messaging::Priority prior = AnimationPriority)
+		: BaseType(yforward(f), prior)
 	{}
 
-	PDefH(void, Start, IWidget& wgt)
-		ImplExpr(Start(wgt, GetSizeOf(wgt)))
+	/*!
+	\warning 发送的 SM_TASK 消息依赖参数指定部件的生存期。
+	\since build 450
+
+	调用更新操作，当结果为 true 时发送基类成员指定优先级的 SM_TASK 消息。
+	*/
+	//@{
+	PDefH(void, Renew, IWidget& wgt)
+		ImplExpr(Renew(wgt, GetSizeOf(wgt)))
 	void
-	Start(IWidget&, const Rect&);
+	Renew(IWidget&, const Rect&);
+	//@}
 
 	static bool
 	DefaultUpdate(IWidget& wgt, const Rect& r)

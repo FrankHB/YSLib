@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r926
+\version r943
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-10-04 23:01 +0800
+	2013-10-13 02:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,14 +51,25 @@ enum class FileCategory
 bool
 CheckTextFileExtensions(string ext)
 {
-	static yconstexpr const char* exts[]{
-		"txt", "c", "cpp", "h", "hpp", "ini", "xml"};
-
 	for(auto& c : ext)
 		c = std::tolower(c);
-	return std::any_of(exts, exts + arrlen(exts), [&](const char* str){
-		return std::strcmp(ext.c_str(), str) == 0;
-	});
+	try
+	{
+		const auto& m(FetchMIMEBiMapping().GetExtensionMap());
+		const auto i(m.find(ext));
+
+		// TODO: Compare for multiple values.
+		if(i != m.end())
+		{
+			const auto& pth(i->second);
+
+			return !pth.empty() && (pth.front() == "text"
+				|| ystdex::ends_with(pth.back(), "xml"));
+		}
+	}
+	catch(std::out_of_range&)
+	{}
+	return false;
 }
 
 FileCategory
