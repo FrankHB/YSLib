@@ -11,13 +11,13 @@
 /*!	\file Animation.cpp
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r49
+\version r67
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-10-06 22:12:10 +0800
 \par 修改时间:
-	2013-10-15 14:40 +0800
+	2013-10-15 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,27 @@ namespace YSLib
 
 namespace UI
 {
+
+bool
+AnimationTask::StateUpdater::operator()(UI::IWidget& wgt, const Rect& r)
+{
+	Invalidate(wgt, r);
+	return Ready;
+}
+
+bool
+AnimationTask::AlwaysUpdate(IWidget& wgt, const Rect& r)
+{
+	Invalidate(wgt, r);
+	return true;
+}
+
+bool
+AnimationTask::UpdateOnce(IWidget& wgt, const Rect& r)
+{
+	Invalidate(wgt, r);
+	return false;
+}
 
 void
 AnimationTask::Renew(IWidget& wgt, const Rect& r)

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3687
+\version r3724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-10-15 14:51 +0800
+	2013-10-17 02:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,44 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ @ "class %AnimationTask" @ %'UI'.'Animation' $=
+		(
+			+ "priority paramter with default argument" @ "constructor",
+				// Default priority changed.
+			(
+			+ "static member function %AlwaysUpdate" @ "class %AnimationTask";
+			/ "initialization default %Update" @ "constructor"
+				^ "%UpdateOnce" ~ "%AlwaysUpdate";
+			+ "static member function %DefaultUpdate" => "%UpdateOnce"
+			),
+			/ "parameter to initialize %std::function instance" @ "constructor template"
+				^ "non-reference type"
+		),
+		/ "parameter to initialize %std::function instance"
+			@ "constructor template" ^ "non-reference type"
+			@ "class template %GAutoTask" @ %'Core'.'Task',
+		/ %'Service'.'YBlit' $=
+		(
+			/ DLD "implementation" @ "%operator()" @ "struct %RectTransformer"
+				^ "%Blit",
+			* "wrong check for maximal boundary components calculated"
+				@ "function %BlitBounds" $since b446,
+				// It caused wrong boundary calculated for %FillRect and other \
+					functions for negative source or destination minimum \
+					boundary components.
+		)
+	),
+	/ %'YReader'.'ShlExplorer' $=
+	(
+		/ "detatched test UI with setting panel as new independent test panel",
+		+ "simple animation test";
+	)
+),
+
+b450
 (
 	/ %'YFramework' $=
 	(

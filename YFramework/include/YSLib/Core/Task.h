@@ -11,13 +11,13 @@
 /*!	\file Task.h
 \ingroup Core
 \brief 任务处理。
-\version r85
+\version r88
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-06 22:08:26 +0800
 \par 修改时间:
-	2013-10-15 14:18 +0800
+	2013-10-15 19:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,10 +63,10 @@ public:
 	_fCallable Update;
 	Priority TaskPriority;
 
-	//! \since build 450
+	//! \since build 451
 	template<typename _fUpdater>
-	GAutoTask(_fUpdater&& f, Priority prior = NormalPriority)
-		: Update(yforward(f)), TaskPriority(prior)
+	GAutoTask(_fUpdater f, Priority prior = NormalPriority)
+		: Update(f), TaskPriority(prior)
 	{}
 
 	virtual DefDeDtor(GAutoTask)

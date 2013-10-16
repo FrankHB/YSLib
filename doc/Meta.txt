@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r812
+\version r975
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-10-11 00:25 +0800
+	2013-10-16 02:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -402,169 +402,6 @@ $bin_image_eq $=
 	"platform %DS" (b313, b314)
 );
 
-$module_tree $=
-	// 'Documentation' is hidden.
-(
-	'YBase'
-	(
-		'YDefinition',
-		'YStandardEx'
-		(
-			$with_base_namespace "ystdex";
-			'TypeOperations',
-			'Any',
-			'CStandardIO',
-			'CString',
-			'Iterator',
-			'Functional',
-			'Algorithms',
-			'Utilities',
-			'Memory',
-			'String',
-			'Rational',
-			'Operators',
-			'Containers',
-			'AnyIterator',
-			'Path',
-			'CAssert'
-		),
-		'LibDefect'
-		(
-			'String'
-		),
-		'YTest'
-		(
-			'Timing'
-		)
-	),
-	'YFramework'
-	(
-		'CHRLib'
-		(
-			$with_base_namespace "CHRLib";
-			'CharacterMapping',
-			'encoding conversion',
-			'StaticMapping',
-			'MapEx',
-			'Convert'
-		),
-		'YCLib'
-		(
-			'Platform', // platform definition;
-			'NativeAPI', // native APIs;
-			'YCommon', // common utilities;
-			'Input', // common input APIs;
-			'Video', // common video APIs;
-			'FileSystem', // common file system APIs;
-			'Debug', // debug helpers;
-			'MemoryMapping' //memory mapping APIs;
-		);
-		'YCLib_(MinGW32)'
-		(
-			'MinGW32';
-			'COM'
-		);
-		'YSLib'
-		(
-			$with_base_namespace "YSLib";
-			'Adaptor', // adaptors;
-			'Core' // core;
-			(
-				'YBaseMacro', // basic macros,
-				'YObject', // basic objects;
-				'YCoreUtilities', // core utilities;
-				'YGDIBase', // GDI base;
-				'YDevice', // devices;
-				'YMessage', // messaging;
-				'YMessageDefinition', // message definitions;
-				'YEvent', // events;
-				'YShell', // shell abstraction;
-				'YFileSystem', // file system abstraction;
-				'YApplication', // application abstraction;
-				'ValueNode' // value nodes;
-			),
-			'Service' // services;
-			(
-				'YTimer',
-				'YBlit',
-				'YPixel',
-				'YGDI',
-				'YResource',
-				'YFile',
-				'YFile_(Text)',
-				'TextRenderer',
-				'TextManager',
-				'AccesHistory'
-			),
-			'UI'
-			(
-				'YComponent',
-				'YRenderer',
-				'YWidgetView',
-				'YWidgetEvent',
-				'YWidget',
-				'YControl',
-				'YUIContainer',
-				'YPanel',
-				'YBrush',
-				'YStyle',
-				'YGUI',
-				'YWindow',
-				'YDesktop',
-				'Label',
-				'Button',
-				'Border',
-				'Scroll',
-				'Selector',
-				'Progress',
-				'ComboList',
-				'UIContainerEx',
-				'Form',
-				'Console'
-			)
-		)
-		'Helper'
-		(
-			'YGlobal', // global helper unit;
-			'GUIShell',
-			'GUIApplication';
-			'Shell_DS'; // shells for DS;
-			'Initialization', // initialization;
-			'InputManager' // input manager;,
-			'HostWindow',
-			'HostedUI',
-		),
-		'Helper_(MinGW32)'
-		(
-			'DSMain' // DS main unit;
-		),
-		'NPL'
-		(
-			'Lexical';
-			'SContext';
-			'Configuration'
-		)
-	),
-	'Tools'
-	(
-		'PredefinedMacroDetector',
-		'CreationTimeManager'
-	),
-	'YReader'
-	(
-		'main',
-		'shells',
-		'about form',
-		'file explorer',
-		'shells test example',
-		(
-			'ReadingList',
-			'ReaderSetting';
-			'text reader'
-		),
-		'hexadecimal browser'
-	)
-);
 
 $STATE:
 	$LINE-WIDTH-RESTRICT 0;

@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r96
+\version r136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2013-10-15 14:40 +0800
+	2013-10-15 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,15 +56,47 @@ class YF_API AnimationTask : public
 public:
 	using BaseType
 		= Messaging::GAutoTask<std::function<bool(UI::IWidget&, const Rect&)>>;
+	/*!
+	\brief 状态更新器。
+	\since build 451
+	*/
+	struct StateUpdater
+	{
+		bool Ready = {};
 
-	AnimationTask()
-		: BaseType(DefaultUpdate)
+		//! \brief 更新函数：无效化后根据成员指定是否需要发送 SM_TASK 消息。
+		bool
+		operator()(UI::IWidget&, const Rect&);
+	};
+
+	//! \since build 451
+	//@{
+	AnimationTask(Messaging::Priority prior = AnimationPriority)
+		: BaseType(AlwaysUpdate, prior)
 	{}
-	//! \since build 450
 	template<typename _fUpdater>
-	AnimationTask(_fUpdater&& f, Messaging::Priority prior = AnimationPriority)
-		: BaseType(yforward(f), prior)
+	AnimationTask(_fUpdater f, Messaging::Priority prior = AnimationPriority)
+		: BaseType(f, prior)
 	{}
+	DefDeCopyCtor(AnimationTask)
+	DefDeMoveCtor(AnimationTask)
+	//@}
+
+	/*!
+	\brief 更新操作：总是要求更新后发送 SM_TASK 消息。
+	\note 应确保无效化部件不会引起调用 Renew 或其它引起发送消息的操作。
+	\since build 451
+	*/
+	static bool
+	AlwaysUpdate(IWidget&, const Rect&);
+
+	/*!
+	\brief 更新操作：不在更新后发送 SM_TASK 消息。
+	\note 当无效化部件引起调用 Renew 或其它引起发送消息的操作时能持续发送消息。
+	\since build 451
+	*/
+	static bool
+	UpdateOnce(IWidget&, const Rect&);
 
 	/*!
 	\warning 发送的 SM_TASK 消息依赖参数指定部件的生存期。
@@ -78,13 +110,6 @@ public:
 	void
 	Renew(IWidget&, const Rect&);
 	//@}
-
-	static bool
-	DefaultUpdate(IWidget& wgt, const Rect& r)
-	{
-		Invalidate(wgt, r);
-		return false;
-	}
 };
 
 } // namespace UI;

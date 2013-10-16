@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1059
+\version r1063
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-09-21 00:27 +0800
+	2013-10-16 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,14 +42,13 @@ namespace
 inline SDst
 blit_min(SPos s, SPos d)
 {
-	return max<SPos>(max<SPos>(s, s - d), 0);
+	return max<SPos>(max<SPos>(0, s), s - d);
 }
 
 inline SPos
 blit_max(SPos s, SPos d, SDst sl, SDst dl, SDst cl)
 {
-	return min<SPos>(min<SPos>(dl - d + s, d < 0 ? sl - d : sl),
-		cl + std::abs(d < 0 ? s - d : s));
+	return min<SPos>(min<SPos>(sl, s + cl), s + dl - d);
 }
 
 } // unnamed namespace;

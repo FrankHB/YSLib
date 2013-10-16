@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1417
+\version r1419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-08-05 21:06 +0800
+	2013-10-17 02:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -690,6 +690,7 @@ Size::Size(const Rect& r) ynothrow
 
 /*!
 \brief 二维图形接口上下文。
+\warning 非虚析构。
 \since build 164
 */
 class YF_API Graphics

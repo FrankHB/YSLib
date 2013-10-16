@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r943
+\version r1000
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-10-13 02:22 +0800
+	2013-10-16 11:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,6 +110,27 @@ CheckReaderEnability(FileBox& fb, CheckBox& hex)
 }
 
 
+//! \since build 451
+//@{
+static yconstexpr auto PI = 3.14159265358979323;
+static yconstexpr auto PI_2 = PI * 2;
+static yconstexpr auto PI_4 = PI * 4;
+
+void
+DrawStar(Graphics& g, Color c, const Point& pt, SDst r, float a,
+	size_t n = 5)
+{
+	static yconstexpr auto PI_4 = PI * 4;
+	vector<Point> pts(n);
+
+	for(size_t i = 0; i < n; ++i)
+		pts[i] = {int(-std::cos(PI_4 / n * i + a) * r + pt.X),
+			int(std::sin(PI_4 / n * i + a) * r + pt.Y)};
+	DrawPolygon(g, pts.cbegin(), pts.cend(), c);
+}
+//@}
+
+
 //! \since build 436
 const char TU_Explorer_Main[]{u8R"NPL(root
 ($type "Panel")($bounds "0 0 256 192")
@@ -135,16 +156,19 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 		($type "CheckButton")($bounds "10 60 100 18"))
 	(cbFPS
 		($type "CheckButton")($bounds "10 80 72 18"))
+	(btnPrevBackground
+		($type "Button")($bounds "120 60 30 22"))
+	(btnNextBackground
+		($type "Button")($bounds "164 60 30 22"))
+)
+(pnlTest1
+	($type "Panel")($bounds "10 20 224 144")
 	(btnEnterTest
 		($type "Button")($bounds "8 32 104 22"))
 	(lblDragTest
 		($type "Label")($bounds "4 4 104 22"))
 	(btnTestEx
 		($type "Button")($bounds "116 32 104 22"))
-	(btnPrevBackground
-		($type "Button")($bounds "120 60 30 22"))
-	(btnNextBackground
-		($type "Button")($bounds "164 60 30 22"))
 )
 )NPL"};
 
@@ -191,24 +215,30 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidget(Panel, pnlSetting, node_pnlSetting)
 	DeclDynWidgetN(CheckButton, cbHex, node_pnlSetting)
 	DeclDynWidgetN(CheckButton, cbFPS, node_pnlSetting)
-	DeclDynWidgetN(Label, lblDragTest, node_pnlSetting)
-	DeclDynWidgetN(Button, btnEnterTest, node_pnlSetting)
-	DeclDynWidgetN(Button, btnTestEx, node_pnlSetting)
 	DeclDynWidgetN(Button, btnPrevBackground, node_pnlSetting)
 	DeclDynWidgetN(Button, btnNextBackground, node_pnlSetting)
+	auto& node_pnlTest1(node_sub.at("$children").at("pnlTest1"));
+	DeclDynWidget(Panel, pnlTest1, node_pnlTest1)
+	DeclDynWidgetN(Label, lblDragTest, node_pnlTest1)
+	DeclDynWidgetN(Button, btnEnterTest, node_pnlTest1)
+	DeclDynWidgetN(Button, btnTestEx, node_pnlTest1)
 
-	p_border.reset(new BorderResizer(pnlSetting, 4));
+	p_border.reset(new BorderResizer(pnlTest1, 4));
 	p_ChkFPS = &cbFPS;
 	dsk_m += root,
 	dsk_m.Add(btnSwitchMain, 96),
 	dsk_s += root_sub,
-	root_sub -= pnlSetting;
+	// XXX: NPL script should be used to describe Z-order without re-attaching.
+	root_sub -= pnlSetting,
+	root_sub -= pnlTest1;
 	dsk_s.Add(btnSwitchSub, 96),
-	AddWidgetsZ(dsk_s, DefaultWindowZOrder, pnlSetting, *pFrmAbout);
+	AddWidgetsZ(dsk_s, DefaultWindowZOrder, pnlSetting, pnlTest1, *pFrmAbout);
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
+	pnlTest1.SetRenderer(make_unique<BufferedRenderer>()),
 	cbHex.SetRenderer(make_unique<BufferedRenderer>()),
 	SetVisibleOf(pnlSetting, false),
+	SetVisibleOf(pnlTest1, false),
 	SetVisibleOf(*pFrmAbout, false),
 	WrapForSwapScreens(dsk_m, SwapMask),
 	WrapForSwapScreens(dsk_s, SwapMask),
@@ -229,7 +259,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 #endif
 	cbHex.Text = u"显示十六进制",
 	cbFPS.Text = u"显示 FPS",
-	pnlSetting.Background = SolidBrush({248, 248, 120}),
+	pnlSetting.Background = SolidBrush({248, 120, 248}),
+	pnlTest1.Background = SolidBrush({248, 248, 120}),
 	lblDragTest.HorizontalAlignment = TextAlignment::Left,
 //	btnTestEx.Enabled = {},
 	btnTestEx.Font.SetStyle(FontStyle::Bold | FontStyle::Italic),
@@ -325,6 +356,17 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		);
 		Invalidate(pnlSetting);
 	},
+	FetchEvent<TouchHeld>(pnlTest1) += OnTouchHeld_Dragging,
+	FetchEvent<Paint>(pnlTest1) += [&, this](PaintEventArgs&& e){
+		const auto& pt(GetLocationOf(pnlTest1));
+
+		DrawStar(e.Target, ColorSpace::Red, pt + Point{96, 96}, 48, rad);
+		DrawStar(e.Target, ColorSpace::Green, pt + Point{96, 96}, 48, rad + PI);
+		rad += 0.02;
+		if(rad > PI_2)
+			rad -= PI_2;
+		e.ClipArea = Rect({}, GetSizeOf(e.GetSender()));
+	},
 	FetchEvent<Click>(btnTestEx) += [&](CursorEventArgs&& e){
 		const auto& k(e.GetKeys());
 		auto& btn(polymorphic_downcast<Button&>(e.GetSender()));
@@ -394,6 +436,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		SetInvalidationOf(dsk_s);
 	}
 	);
+	ani.Renew(pnlTest1, Rect(48, 48, 96, 96));
 	RequestFocusCascade(fbMain),
 	SetInvalidationOf(dsk_m),
 	SetInvalidationOf(dsk_s);
@@ -416,11 +459,13 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			YSLib::PostQuitMessage(0);
 		}
 	},
+	m2.GetConfirmed() += [&](IndexEventArgs&& e){
 #if YCL_MinGW32
-	m2.GetConfirmed() += [](IndexEventArgs&& e){
 		MinGW32::TestFramework(e.Value);
-	},
 #endif
+		if(e.Value == 0)
+			SwitchVisible(pnlTest1);
+	},
 	mhMain += m1, mhMain += m2,
 	m1 += make_pair(0u, &m2);
 	ResizeForContent(m1), ResizeForContent(m2),

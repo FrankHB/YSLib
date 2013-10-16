@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2251
+\version r2252
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-10-13 02:39 +0800
+	2013-10-15 15:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -993,7 +993,7 @@ Bookmarks
  build 438 前测试环境 Windows 7 Ultimate x64 。
  build 438 起测试环境 Windows 2012 Datacenter x64 。
 
-@11.1.1 非正式支持平台：
+@11.1.3 非正式支持平台：
  2013-02-13: ArchLinux x86-64 使用 wine-1.5.23 i386 (WOW64) 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。
  2013-07-17: Chakra x86-64 使用 wine-1.5.31 i386 (WOW64) 测试 MinGW32 平台版本 b429 ，基本同上；性能明显降低（ debug 版本慢于 DS 版本）；覆盖配置会导致路径问题而不能再次启动（需要在 ":" 后补充 "\" ）；此外因为权限读写失败时程序错误退出，否则有可能成功。
 

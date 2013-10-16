@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3003
+\version r3030
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-09-21 00:27 +0800
+	2013-10-16 18:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,10 +123,12 @@ struct VerticalLineTransfomer
 
 /*!
 \brief 贴图边界计算器。
-\note 前两个 SDst 参数总是初始化为边界坐上最小值。
-	当无合适边界时后两个 SDst 参数不被修改。
 \return 是否存在合适边界。
 \since build 438
+
+按指定的目标区域位置、源区域位置、目标边界大小、源边界大小和贴图区域大小计算和最
+终边界相关的值。前两个 SDst 参数总是赋值为源坐标系的边界左上最小值。当无合适边
+界时后两个 SDst 参数不被修改，否则赋值为最终贴图区域的宽和高。
 */
 YF_API bool
 BlitBounds(const Point&, const Point&, const Size&, const Size&, const Size&,
@@ -367,36 +369,33 @@ struct RectTransformer
 	//@{
 	template<typename _tOut, class _fTransformPixel, class _fTransformLine>
 	void
-	operator()(_tOut dst, const Size& ds, const Point& dp, const Size& ss,
+	operator()(_tOut dst, const Size& ds, const Point& dp, const Size& sc,
 		_fTransformPixel tp, _fTransformLine tl)
 	{
-		SDst min_x, min_y, delta_x, delta_y;
-
-		if(BlitBounds(dp, Point(), ds, ss, ss, min_x, min_y, delta_x, delta_y))
-		{
-			dst += max<SPos>(0, dp.Y) * ds.Width + max<SPos>(0, dp.X);
+		Blit<false, false>([&](_tOut dst_iter, _tOut, SDst delta_x,
+			SDst delta_y, SPos dst_inc, SPos){
 			while(delta_y-- > 0)
 			{
-				tl(dst, delta_x, tp);
-				dst += ds.Width;
+				tl(dst_iter, delta_x, tp);
+				dst_iter += dst_inc + delta_x;
 			}
-		}
+		}, dst, dst, ds, ds, dp, dp, sc);
 	}
 	template<typename _tOut, class _fTransformPixel, class _fTransformLine>
 	inline void
-	operator()(_tOut dst, const Size& ds, const Rect& rSrc,
-		_fTransformPixel tp, _fTransformLine tl)
+	operator()(_tOut dst, const Size& ds, const Rect& r, _fTransformPixel tp,
+		_fTransformLine tl)
 	{
 		operator()<_tOut, _fTransformPixel, _fTransformLine>(dst, ds,
-			rSrc.GetPoint(), rSrc.GetSize(), tp, tl);
+			r.GetPoint(), r.GetSize(), tp, tl);
 	}
 	template<typename _tOut, class _fTransformPixel, class _fTransformLine>
 	inline void
-	operator()(_tOut dst, SDst dw, SDst dh, SPos dx, SPos dy,
-		SDst sw, SDst sh, _fTransformPixel tp, _fTransformLine tl)
+	operator()(_tOut dst, SDst dw, SDst dh, SPos x, SPos y,
+		SDst w, SDst h, _fTransformPixel tp, _fTransformLine tl)
 	{
 		operator()<_tOut, _fTransformPixel, _fTransformLine>(
-			dst, Size(dw, dh), Point(dx, dy), Size(sw, sh), tp, tl);
+			dst, {dw, dh}, {x, y}, {w, h}, tp, tl);
 	}
 	//@}
 };
@@ -446,10 +445,10 @@ FillVerticalLine(_tOut dst, size_t n, SDst dw, _tPixel c)
 */
 template<typename _tPixel, typename _tOut>
 inline void
-FillRect(_tOut dst, const Size& ds, const Point& sp, const Size& ss,
+FillRect(_tOut dst, const Size& ds, const Point& sp, const Size& sc,
 	_tPixel c)
 {
-	RectTransformer()(dst, ds, sp, ss, PixelFiller<_tPixel>(c),
+	RectTransformer()(dst, ds, sp, sc, PixelFiller<_tPixel>(c),
 		SequenceTransformer());
 }
 /*!
@@ -457,9 +456,9 @@ FillRect(_tOut dst, const Size& ds, const Point& sp, const Size& ss,
 */
 template<typename _tPixel, typename _tOut>
 inline void
-FillRect(_tOut dst, const Size& ds, const Rect& rSrc, _tPixel c)
+FillRect(_tOut dst, const Size& ds, const Rect& r, _tPixel c)
 {
-	RectTransformer()(dst, ds, rSrc, PixelFiller<_tPixel>(c),
+	RectTransformer()(dst, ds, r, PixelFiller<_tPixel>(c),
 		SequenceTransformer());
 }
 /*!
@@ -467,10 +466,9 @@ FillRect(_tOut dst, const Size& ds, const Rect& rSrc, _tPixel c)
 */
 template<typename _tPixel, typename _tOut>
 inline void
-FillRect(_tOut dst, SDst dw, SDst dh, SPos sx, SPos sy, SDst sw, SDst sh,
-	_tPixel c)
+FillRect(_tOut dst, SDst dw, SDst dh, SPos x, SPos y, SDst w, SDst h, _tPixel c)
 {
-	RectTransformer()(dst, dw, dh, sx, sy, sw, sh, PixelFiller<_tPixel>(c),
+	RectTransformer()(dst, dw, dh, x, y, w, h, PixelFiller<_tPixel>(c),
 		SequenceTransformer());
 }
 //@}
