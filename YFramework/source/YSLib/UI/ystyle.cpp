@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r665
+\version r673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-09-07 00:51 +0800
+	2013-10-17 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ namespace YSLib
 namespace Drawing
 {
 
-bool
+void
 DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
 {
 	const SPos x1(pt.X + 1), y1(pt.Y + 1), x2(pt.X + s.Width - 1),
@@ -44,11 +44,10 @@ DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
 
 	if(YB_LIKELY(x1 <= x2 && y1 <= y2))
 	{
-		bool b(DrawVLineSeg(g, x1 - 1, y1, y2, c));
-
-		b |= DrawHLineSeg(g, y2, x1, x2, c);
-		b |= DrawVLineSeg(g, x2, y1, y2, c);
-		b |= DrawHLineSeg(g, y1 - 1, x1, x2, c);
+		DrawVLineSeg(g, x1 - 1, y1, y2, c),
+		DrawHLineSeg(g, y2, x1, x2, c),
+		DrawVLineSeg(g, x2, y1, y2, c),
+		DrawHLineSeg(g, y1 - 1, x1, x2, c);
 		if(YB_LIKELY(s.Width > 4 && s.Height > 4))
 		{
 			DrawPoint(g, x1, y1, c);
@@ -56,9 +55,7 @@ DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
 			DrawPoint(g, x2 - 1, y2 - 1, c);
 			DrawPoint(g, x2 - 1, y1, c);
 		}
-		return b;
 	}
-	return false;
 }
 
 

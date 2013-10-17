@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1419
+\version r1423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-10-17 02:03 +0800
+	2013-10-17 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -662,17 +662,17 @@ operator-(const Rect& r, const Vec& v) ynothrow
 /*!
 \brief 求两个屏幕标准矩形的交。
 \see Rect::operator&= 。
-\since build 320
+\since build 452
 */
-Rect
+YF_API Rect
 operator&(const Rect&, const Rect&) ynothrow;
 
 /*!
 \brief 求两个屏幕标准矩形的并。
 \see Rect::operator|= 。
-\since build 320
+\since build 452
 */
-Rect
+YF_API Rect
 operator|(const Rect&, const Rect&) ynothrow;
 
 

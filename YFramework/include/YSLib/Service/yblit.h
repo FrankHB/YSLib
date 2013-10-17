@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3030
+\version r3043
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-10-16 18:28 +0800
+	2013-10-17 22:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -439,34 +439,32 @@ FillVerticalLine(_tOut dst, size_t n, SDst dw, _tPixel c)
 {
 	VerticalLineTransfomer()(dst, n, dw, PixelFiller<_tPixel>(c));
 }
+//@}
 
 /*!
 \brief 使用指定像素填充指定的标准矩形区域。
+\since build 452
 */
+//@{
 template<typename _tPixel, typename _tOut>
 inline void
-FillRect(_tOut dst, const Size& ds, const Point& sp, const Size& sc,
+FillRectRaw(_tOut dst, const Size& ds, const Point& sp, const Size& sc,
 	_tPixel c)
 {
 	RectTransformer()(dst, ds, sp, sc, PixelFiller<_tPixel>(c),
 		SequenceTransformer());
 }
-/*!
-\brief 使用指定像素填充指定的标准矩形区域。
-*/
 template<typename _tPixel, typename _tOut>
 inline void
-FillRect(_tOut dst, const Size& ds, const Rect& r, _tPixel c)
+FillRectRaw(_tOut dst, const Size& ds, const Rect& r, _tPixel c)
 {
 	RectTransformer()(dst, ds, r, PixelFiller<_tPixel>(c),
 		SequenceTransformer());
 }
-/*!
-\brief 使用指定像素填充指定的标准矩形区域。
-*/
 template<typename _tPixel, typename _tOut>
 inline void
-FillRect(_tOut dst, SDst dw, SDst dh, SPos x, SPos y, SDst w, SDst h, _tPixel c)
+FillRectRaw(_tOut dst, SDst dw, SDst dh, SPos x, SPos y, SDst w, SDst h,
+	_tPixel c)
 {
 	RectTransformer()(dst, dw, dh, x, y, w, h, PixelFiller<_tPixel>(c),
 		SequenceTransformer());

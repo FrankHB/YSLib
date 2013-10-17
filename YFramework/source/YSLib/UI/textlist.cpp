@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1186
+\version r1188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-09-07 02:33 +0800
+	2013-10-17 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -307,7 +307,7 @@ TextList::DrawItem(const Graphics& g, const Rect& mask, const Rect& unit,
 void
 TextList::DrawItemBackground(const PaintContext& pc, const Rect& r)
 {
-	FillRect<PixelType>(pc.Target.GetBufferPtr(), pc.Target.GetSize(),
+	FillRectRaw<PixelType>(pc.Target.GetBufferPtr(), pc.Target.GetSize(),
 		pc.ClipArea & Rect(r.X + 1, r.Y, r.Width - 2, r.Height),
 		HilightBackColor);
 }

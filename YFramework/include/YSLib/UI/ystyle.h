@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r430
+\version r433
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-09-19 20:56 +0800
+	2013-10-17 03:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,9 +41,9 @@ namespace Drawing
 /*!
 \brief 绘制部件边框用空心标准矩形。
 \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
-\since build 215
+\since build 452
 */
-YF_API bool
+YF_API void
 DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
 
 

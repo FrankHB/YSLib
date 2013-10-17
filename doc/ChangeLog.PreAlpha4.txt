@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3724
+\version r3771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-10-17 02:18 +0800
+	2013-10-17 22:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,54 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Service' $=
+		(
+			/ %'YDraw' $=
+			(
+				/ "all return type" @ "functions ('Draw*', 'Plot*', 'Put*', \
+					'Fill*')" -> "%void" ~ "%bool",
+					// Several return values are difficult to determine.
+				- "all validity check of %Graphics object for functions \
+						%DrawPoint",
+					// Now all drawing and plotting functions have no check. \
+						User code should check the validity. This also has \
+						same effect on functions 'Draw*' or some other \
+						internal drawing functions of %YStyle and other UI \
+						modules.
+				+ "function %PlotLineSeg",
+				+ $doc "group %Grpahics2D" @ %'YDraw',
+				/ "functions 'Plot*' supported for custom boundary other than \
+					boundary of buffer",
+				+ "graphics functions 'Draw*' with alternative boundary \
+					parameter"
+					// "%FillRect" @ %'YDraw' with boundary parameter has an \
+						intersection operation. Use "%FillRect" @ %'YBlit' if \
+						it is not needed.
+				+ "functions %FillRect for boundary which is same as input \
+					area",
+			),
+			* "no effect drawing with oblique lines which has endpoint not in \
+				area" $since $before b132,
+				// Runtime check make some worse performance.
+			/ "all function templats %FillRect" @ %'YBlit' => "%FillRectRaw"
+				// To avoid ambiguity with %FillRect @ %'YDraw'.
+		),
+		/ "return type" @ "function %DrawRectRoundCorner" @ %'UI'.'YStyle'
+			-> "%void" ~ "%bool",
+		/ %'Core'.'YGDIBase' $=
+		(
+			* "wrong result when augument rectangle at right or bottom line"
+				@ "member functions %(Contains, ContainsStrict)" @ "class %Rect"
+				@  $since b224,
+			* "missing 'YF_API'" @ "%operator(&, |) for %Rect" $since b362
+		)
+	)
+),
+
+b451
 (
 	/ %'YFramework' $=
 	(

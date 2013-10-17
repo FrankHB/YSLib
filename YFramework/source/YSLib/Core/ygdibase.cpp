@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r601
+\version r607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2013-08-05 21:27 +0800
+	2013-10-17 17:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,13 +44,14 @@ const Rect Rect::Invalid(Size::Invalid);
 bool
 Rect::Contains(int px, int py) const ynothrow
 {
-	return Width > 0 && Height > 0 && IsInInterval<int>(px - X, Width)
+	return IsInInterval<int>(px - X, Width)
 		&& IsInInterval<int>(py - Y, Height);
 }
 bool
 Rect::Contains(const Rect& r) const ynothrow
 {
-	return Contains(r.GetPoint()) && Contains(r.GetPoint() + r.GetSize());
+	return r.GetSize() && Contains(r.GetPoint())
+		&& Contains(r.GetPoint() + r.GetSize() - Vec(1, 1));
 }
 
 bool
@@ -62,8 +63,8 @@ Rect::ContainsStrict(int px, int py) const ynothrow
 bool
 Rect::ContainsStrict(const Rect& r) const ynothrow
 {
-	return ContainsStrict(r.GetPoint())
-		&& ContainsStrict(r.GetPoint() + r.GetSize());
+	return r.GetSize() && ContainsStrict(r.GetPoint())
+		&& ContainsStrict(r.GetPoint() + r.GetSize() - Vec(1, 1));
 }
 
 Rect&
