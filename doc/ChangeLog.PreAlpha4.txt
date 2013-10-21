@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3771
+\version r3870
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-10-17 22:43 +0800
+	2013-10-21 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,99 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'UI' $=
+		(
+			/ "parameter" @ "function %(DrawRectRoundCorner, RectDrawArrow)"
+				^ 'const PaintContext&' ~ 'const Graphics&, const Point&',
+			/ "protected member function 'void PaintBox(const Graphics&, \
+				const Rect&)'" @ "class %CheckBox" %'Selector'
+				-> 'void PaintBox(const PaintContext&, const Size&)',
+			(
+			$dep_from %'Service'.'YDraw';
+			/ @ "function %DrawTrackBackground" @ %'Scroll' $=
+			(
+				- "unnecessary clip area update";
+				* "out of range clip area assignment for widgets"
+					@ "!defined %YSL_UI_ATRACK_PARTIAL_INVALIDATION" $since b295
+			),
+			- "unnecessary clip area update" @ "member function %Refresh" \
+				@ "classes %(Button, Label, ProgressBar, CheckBox, \
+					CheckButton, TextList)",
+				// Since all drawing is now friendly to partial invalidation.
+			/ "clip area passed with directly for drawing text"
+				@ "Button::Refresh";
+			+ $comp "restricted area painting guarantee for basic renderer of \
+				widgets";
+				// The invalidated area is guaranteed not to be enlarged by \
+					painting.
+			* $comp "previous frame form buffered renderer of desktop did not \
+				be handled properly for clipping area enlarged when updating"
+				$since b294;
+				// Namely, the actual painted area is not the same as \
+					accumulated invalidated bounding region, which essentially \
+					cause over painting.
+			)
+		),
+		/ %'Core'.'YGDIBase' $=
+		(
+			+ "functions %(UpdateClipArea; UpdateClipArea)",
+			/ @ "class %Rect" @ %'YGDIBase' $=
+			(
+				/ "nothrow default constructor"
+					-> "explicitly defaulted default constructor",
+				/ "excluded unstrictly empty rectangle argument as not \
+					contained" @ "member functions %(Contains, ContainsStrict)",
+				* "assertion failed for function %Contains when the rectangle \
+					is unstrictly empty" $since b452;
+			),
+		),
+		/ %'Service' $=
+		(
+			/ %'YDraw' $=
+			(
+				$dep_from %"class %Rect";
+				- "graphics functions 'Draw*' without boundary parameter",				
+				* "too strict assertion with unstrictly empty boundary argument"
+					@ "functions %(DrawPoint, DrawHLineSeg, DrawVLineSeg, \
+					DrawLineSeg)" $since b452,
+				/ "assertion failed for zero with or height boundary"
+					@ "functions %(PlotVLineSeg, PlotHLineSeg)" $since b446;
+					"function %PlotLineSeg" $since b452; "function \
+					%(DrawHLineSeg, DrawVLineSeg, DrawLineSeg)" $since b446),
+				(
+				* "end point restricted to be invisible when just at right or \
+					bottom edge of the boundary"
+					@ "functions %(PlotHLineSeg, PlotVLineSeg)" $since b452;
+				* $comp "end point restricted to be invisible when just at \
+					right or bottom edge of the boundary" @ "functions \
+					%(DrawHLineSeg, DrawVLineSeg)" $since $before b132;
+				* $comp "right bottom point invisible for coincident boundary"
+					@ "%DrawRect" $since $before b132
+				)
+			)
+			/ @ "%(SequenceTransformer, VerticalLineTransfomer)::operator()"
+				 @ %'YBlit' $=
+			(
+				(
+				/ "dereferenceable check"
+					-> "assertion checking for being not undereferceable",
+					// It is user's responsibility.
+				* $comp "unsupported for iterator type without 'opeator&&' \
+					with 'size_t' for pixel sequence tranformers" @ %'Service'
+					$since $before b132
+				),
+				+ 'const'
+			)
+		)
+	)
+	* $dev "slash of 'Source/LibJPEG/simd' file list which would cause object \
+		file of assembly source not be cleaned by 'make clean' call" $since b431
+),
+
+b452
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -70,9 +163,13 @@ $now
 			-> "%void" ~ "%bool",
 		/ %'Core'.'YGDIBase' $=
 		(
-			* "wrong result when augument rectangle at right or bottom line"
-				@ "member functions %(Contains, ContainsStrict)" @ "class %Rect"
-				@  $since b224,
+			/ @ "member functions %(Contains, ContainsStrict)"
+				@ "class %Rect" $=
+			(
+				* "wrong result when augument rectangle at right or bottom line"
+					$since b224,
+				/ "excluded empty rectangle argument as not contained"
+			),
 			* "missing 'YF_API'" @ "%operator(&, |) for %Rect" $since b362
 		)
 	)

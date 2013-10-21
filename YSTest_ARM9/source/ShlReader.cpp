@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4540
+\version r4543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-10-13 18:04 +0800
+	2013-10-18 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,7 +136,7 @@ TextInfoBox::Refresh(PaintEventArgs&& e)
 	DialogBox::Refresh(std::move(e));
 
 	unseq_apply(ChildPainter(e), lblEncoding, lblSize, lblTop, lblBottom);
-	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
+	UpdateClipSize(e, GetSizeOf(*this));
 }
 
 void
@@ -417,8 +417,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		const auto w(pb.GetWidth() - 2);
 		auto& pt(e.Location);
 
-		FillRect(e.Target, Point(pt.X + 1 + round(pb.GetValue() * w / mval),
-			pt.Y + 1), Size(round((reader.GetBottomPosition()
+		FillRect(e.Target, e.ClipArea, Rect(pt.X + 1 + round(pb.GetValue()
+			* w / mval), pt.Y + 1, round((reader.GetBottomPosition()
 			- GetReaderPosition()) * w / mval), pb.GetHeight() - 2),
 			ColorSpace::Yellow);
 	},

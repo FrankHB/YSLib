@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1009
+\version r1017
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2013-10-17 22:33 +0800
+	2013-10-19 04:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,15 +41,16 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 	YAssert(dst, "Null pointer found."),
 	YAssert(bounds.Width <= w, "Wrong boundary or width found.");
 
-	if(IsInInterval<SPos>(y - bounds.Y, bounds.Height))
+	if(!bounds.IsUnstrictlyEmpty()
+		&& IsInInterval<SPos>(y - bounds.Y, bounds.Height))
 	{
 		const auto bx(bounds.X);
 		const auto bxw(bx + bounds.Width);
 
 		if(!((x1 < bx && x2 < bx) || (x1 >= bxw && x2 >= bxw)))
 		{
-			RestrictInInterval(x1, bx, bxw);
-			RestrictInInterval(x2, bx, bxw);
+			RestrictInInterval(x1, bx, bxw),
+			RestrictInInterval(x2, bx, bxw + 1);
 			RestrictLessEqual(x1, x2);
 			FillPixel<PixelType>(&dst[y * w + x1], x2 - x1, c);
 		}
@@ -63,15 +64,16 @@ PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 	YAssert(dst, "Null pointer found."),
 	YAssert(bounds.Width <= w, "Wrong boundary or width found.");
 
-	if(IsInInterval<SPos>(x - bounds.X, bounds.Width))
+	if(!bounds.IsUnstrictlyEmpty()
+		&& IsInInterval<SPos>(x - bounds.X, bounds.Width))
 	{
 		const auto by(bounds.Y);
 		const auto byh(by + bounds.Height);
 
 		if(!((y1 < by && y2 < by) || (y1 >= byh && y2 >= byh)))
 		{
-			RestrictInInterval(y1, by, byh);
-			RestrictInInterval(y2, by, byh);
+			RestrictInInterval(y1, by, byh),
+			RestrictInInterval(y2, by, byh + 1);
 			RestrictLessEqual(y1, y2);
 			FillVerticalLine<PixelType>(&dst[y1 * w + x], y2 - y1, w, c);
 		}

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2809
+\version r2811
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-09-01 11:36 +0800
+	2013-10-21 14:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,7 +151,7 @@ PrintChar(_tRenderer& r, ucs4_t c)
 }
 
 /*!
-\brief 使用指定的文本状态和行末位置（横坐标）打印并判断是否需要渲染单个字符。
+\brief 使用指定的文本状态和行末位置（横坐标）按需打印换行并判断是否需要渲染单个字符。
 \return 遇到行内无法容纳而换行时为 1 ，需要继续渲染为 2 ，否则为 0 。
 \since build 372
 */

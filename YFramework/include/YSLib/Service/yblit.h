@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3043
+\version r3065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-10-17 22:28 +0800
+	2013-10-19 02:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,6 +61,7 @@ struct PixelFiller
 
 	/*!
 	\brief 像素填充函数。
+	\warning 无访问检查。
 	\since build 438
 	*/
 	template<typename _tOut>
@@ -80,19 +81,20 @@ struct SequenceTransformer
 	/*!
 	\brief 渲染连续像素。
 	\tparam _tOut 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
-	\since build 438
+	\pre 断言：对于非零参数起始迭代器不能判定为不可解引用。
+	\since build 453
 	*/
 	template<typename _tOut, class _fTransformPixel>
 	void
-	operator()(_tOut dst, size_t n, _fTransformPixel tp)
+	operator()(_tOut dst, size_t n, _fTransformPixel tp) const
 	{
-		if(YB_LIKELY(dst && n))
-		{
-			_tOut p(dst + n);
+		using ystdex::is_undereferenceable;
 
-			while(--p >= dst)
-				tp(p);
-		}
+		YAssert(n == 0 || !is_undereferenceable(dst),
+			"Invalid iterator found.");
+
+		for(const auto e(dst + n); dst != e; ++dst)
+			tp(dst);
 	}
 };
 
@@ -105,18 +107,23 @@ struct VerticalLineTransfomer
 	/*!
 	\brief 渲染竖直线上的像素。
 	\tparam _tOut 输出迭代器类型（需要支持 += 操作，一般应是随机迭代器）。
-	\since build 438
+	\pre 断言：对于非零参数起始迭代器不能判定为不可解引用。
+	\since build 453
 	*/
 	template<typename _tOut, class _fTransformPixel>
 	void
-	operator()(_tOut dst, size_t n, SDst dw, _fTransformPixel tp)
+	operator()(_tOut dst, size_t n, SDst dw, _fTransformPixel tp) const
 	{
-		if(YB_LIKELY(dst && n))
-			while(n--)
-			{
-				tp(dst);
-				dst += dw;
-			}
+		using ystdex::is_undereferenceable;
+
+		YAssert(n == 0 || !is_undereferenceable(dst),
+			"Invalid iterator found.");
+
+		while(n-- != 0)
+		{
+			tp(dst);
+			dst += dw;
+		}
 	}
 };
 

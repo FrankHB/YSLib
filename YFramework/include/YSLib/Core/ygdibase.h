@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1423
+\version r1457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-10-17 19:38 +0800
+	2013-10-18 19:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -437,18 +437,10 @@ public:
 
 
 	/*!
-	\brief 无参数构造。
-	\note 零初始化。
-	\since build 319
+	\brief 无参数构造：默认实现。
+	\since build 453
 	*/
-	yconstfn
-	Rect() ynothrow
-		: Point(), Size()
-	{}
-	/*!
-	\brief 复制构造：默认实现。
-	*/
-	yconstfn DefDeCopyCtor(Rect)
+	yconstfn DefDeCtor(Rect)
 	/*!
 	\brief 构造：使用屏幕二维点。
 	\since build 319
@@ -497,6 +489,10 @@ public:
 	Rect(SPos x, SPos y, SDst w, SDst h) ynothrow
 		: Point(x, y), Size(w, h)
 	{}
+	/*!
+	\brief 复制构造：默认实现。
+	*/
+	yconstfn DefDeCopyCtor(Rect)
 
 	DefDeCopyAssignment(Rect)
 	//! \since build 319
@@ -558,11 +554,12 @@ public:
 	PDefH(bool, Contains, const Point& pt) const ynothrow
 		ImplRet(Contains(pt.X, pt.Y))
 	/*!
-	\brief 判断矩形 r 是否在矩形内或边上。
+	\brief 判断矩形是否在矩形内或边上。
+	\note 空矩形总是不被包含。
 	\since build 319
 	*/
 	bool
-	Contains(const Rect& r) const ynothrow;
+	Contains(const Rect&) const ynothrow;
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内。
@@ -577,11 +574,12 @@ public:
 	PDefH(bool, ContainsStrict, const Point& pt) const ynothrow
 		ImplRet(ContainsStrict(pt.X, pt.Y))
 	/*!
-	\brief 判断矩形 r 是否在矩形内或边上。
+	\brief 判断矩形是否在矩形内或边上。
+	\note 空矩形总是不被包含。
 	\since build 319
 	*/
 	bool
-	ContainsStrict(const Rect& r) const ynothrow;
+	ContainsStrict(const Rect&) const ynothrow;
 
 	/*!
 	\brief 判断矩形是否为线段：长和宽中有且一个数值等于 0 。
@@ -815,6 +813,25 @@ struct YF_API PaintContext
 	*/
 	Rect ClipArea;
 };
+
+/*!
+\brief 根据目标的边界更新剪切区域。
+\relates PaintContext
+\since build 453
+*/
+//@{
+inline void
+UpdateClipArea(PaintContext& pc, const Rect& r)
+{
+	pc.ClipArea = r & pc.Target.GetSize();
+}
+
+inline void
+UpdateClipSize(PaintContext& pc, const Size& s)
+{
+	UpdateClipArea(pc, {pc.Location, s});
+}
+//@}
 
 
 /*!

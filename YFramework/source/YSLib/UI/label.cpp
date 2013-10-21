@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1295
+\version r1297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2013-08-05 21:36 +0800
+	2013-10-21 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,6 @@ void
 Label::Refresh(PaintEventArgs&& e)
 {
 	DrawText(GetSizeOf(*this), ForeColor, e);
-	e.ClipArea = Rect(e.Location, GetSizeOf(*this));
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1025
+\version r1107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2013-10-17 22:31 +0800
+	2013-10-18 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,25 +98,15 @@ PlotPixel(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y, Color c)
 inline void
 DrawPoint(const Graphics& g, const Rect& bounds, SPos x, SPos y, Color c)
 {
-	YAssert(Rect(g.GetSize()).Contains(bounds),
+	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
 
 	PlotPixel(g.GetBufferPtr(), bounds, g.GetWidth(), x, y, c);
 }
 inline void
-DrawPoint(const Graphics& g, SPos x, SPos y, Color c)
-{
-	DrawPoint(g, g.GetSize(), x, y, c);
-}
-inline void
 DrawPoint(const Graphics& g, const Rect& bounds, const Point& pt, Color c)
 {
 	DrawPoint(g, bounds, pt.X, pt.Y, c);
-}
-inline void
-DrawPoint(const Graphics& g, const Point& pt, Color c)
-{
-	DrawPoint(g, g.GetSize(), pt, c);
 }
 //@}
 
@@ -136,23 +126,16 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 \pre 断言： bounds 在 g 指定的边界内。
 \sa PlotHLineSeg
 */
-//@{
 inline void
 DrawHLineSeg(const Graphics& g, const Rect& bounds, SPos y, SPos x1, SPos x2,
 	Color c)
 {
 	YAssert(bool(g), "Invalid graphics context found."),
-	YAssert(Rect(g.GetSize()).Contains(bounds),
+	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
 
 	PlotHLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), y, x1, x2, c);
 }
-inline void
-DrawHLineSeg(const Graphics& g, SPos y, SPos x1, SPos x2, Color c)
-{
-	DrawHLineSeg(g, g.GetSize(), y, x1, x2, c);
-}
-//@}
 
 /*!
 \brief 绘制竖直线段：在宽 w 的缓冲区内的区域 bounds 绘制指定竖直水平坐标 x ，
@@ -169,23 +152,16 @@ PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 \pre 断言： bounds 在 g 指定的边界内。
 \sa PlotVLineSeg
 */
-//@{
 inline void
 DrawVLineSeg(const Graphics& g, const Rect& bounds, SPos x, SPos y1, SPos y2,
 	Color c)
 {
 	YAssert(bool(g), "Invalid graphics context found."),
-	YAssert(Rect(g.GetSize()).Contains(bounds),
+	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
 
 	PlotVLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x, y1, y2, c);
 }
-inline void
-DrawVLineSeg(const Graphics& g, SPos x, SPos y1, SPos y2, Color c)
-{
-	DrawVLineSeg(g, g.GetSize(), x, y1, y2, c);
-}
-//@}
 
 /*!
 \brief 绘制线段：在宽 w 的缓冲区内的区域 bounds 绘制端点为 p1(x1, y1)
@@ -207,15 +183,10 @@ DrawLineSeg(const Graphics& g, const Rect& bounds, SPos x1, SPos y1, SPos x2,
 	SPos y2, Color c)
 {
 	YAssert(bool(g), "Invalid graphics context found."),
-	YAssert(Rect(g.GetSize()).Contains(bounds),
+	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
 
 	PlotLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x1, y1, x2, y2, c);
-}
-inline void
-DrawLineSeg(const Graphics& g, SPos x1, SPos y1, SPos x2, SPos y2, Color c)
-{
-	DrawLineSeg(g, g.GetSize(), x1, y1, x2, y2, c);
 }
 inline void
 DrawLineSeg(const Graphics& g, const Rect& bounds, const Point& p1,
@@ -223,40 +194,21 @@ DrawLineSeg(const Graphics& g, const Rect& bounds, const Point& p1,
 {
 	DrawLineSeg(g, bounds, p1.X, p1.Y, p2.X, p2.Y, c);
 }
-inline void
-DrawLineSeg(const Graphics& g, const Point& p1, const Point& p2, Color c)
-{
-	DrawLineSeg(g, g.GetSize(), p1, p2, c);
-}
 //@}
 
 
 //! \brief 描画标准矩形。
 //@{
 //! \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
-//@{
 YF_API void
 DrawRect(const Graphics& g, const Rect& bounds, const Point& pt,
 	const Size& s, Color c);
-inline void
-DrawRect(const Graphics& g, const Point& pt, const Size& s, Color c)
-{
-	DrawRect(g, g.GetSize(), pt, s, c);
-}
-//@}
 //! \note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
-//@{
 inline void
 DrawRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 {
 	DrawRect(g, bounds, r.GetPoint(), r.GetSize(), c);
 }
-inline void
-DrawRect(const Graphics& g, const Rect& r, Color c)
-{
-	DrawRect(g, g.GetSize(), r.GetPoint(), r.GetSize(), c);
-}
-//@}
 //@}
 
 //! \brief 填充标准矩形。
@@ -270,44 +222,20 @@ FillRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 {
 	FillRect(g, bounds & r, c);
 }
-inline void
-FillRect(const Graphics& g, const Point& pt, const Size& s,
-	Color c)
-{
-	FillRect(g, {pt, s}, c);
-}
 //@}
 //@}
 
 
 //! \brief 描画圆形。
-//@{
 YF_API void
 DrawCircle(const Graphics&, const Rect&, const Point&, SDst, Color c);
-inline void
-DrawCircle(const Graphics& g, const Point& pt, SDst r, Color c)
-{
-	DrawCircle(g, g.GetSize(), pt, r, c);
-}
-//@}
 
 //! \brief 填充圆形。
-//@{
 YF_API void
 FillCircle(const Graphics&, const Rect&, const Point&, SDst, Color c);
-inline void
-FillCircle(const Graphics& g, const Point& pt, SDst r, Color c)
-{
-	FillCircle(g, g.GetSize(), pt, r, c);
-}
-//@}
-//@}
 
 
 //! \brief 描画多边形。
-//@{
-//! \since build 452
-
 template<typename _tIn>
 void
 DrawPolygon(Graphics& g, const Rect& bounds, _tIn first, _tIn last, Color c)
@@ -333,13 +261,6 @@ DrawPolygon(Graphics& g, const Rect& bounds, _tIn first, _tIn last, Color c)
 
 		DrawLineSeg(g, bounds, *first, *old, c);
 	}
-}
-//! \since build 449
-template<typename _tIn>
-void
-DrawPolygon(Graphics& g, _tIn first, _tIn last, Color c)
-{
-	DrawPolygon(g, g.GetSize(), first, last, c);
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r643
+\version r670
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2013-10-16 12:22 +0800
+	2013-10-21 17:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,14 +48,21 @@ Diminish(Rect& r, SDst off1 = 1, SDst off2 = 2)
 
 using namespace Drawing;
 
+//! \since build 453
 void
-RectDrawCheckBox(const Graphics& g, const Rect& r, bool is_pressed = {},
+RectDrawCheckBox(const PaintContext& pc, const Size& s, bool is_pressed = {},
 	bool is_locked = {}, bool is_ticked = {}, bool is_focused = {},
 	Color c = Color(85, 184, 163))
 {
-	YAssert(bool(g), "Invalid context found.");
+	const auto& g(pc.Target);
 
-	DrawRect(g, r, is_focused ? c : Color(85, 134, 223));
+	YAssert(bool(g), "Invalid graphics context found.");
+
+	const auto& pt(pc.Location);
+	const auto& bounds(pc.ClipArea);
+	Rect r(pt, s);
+
+	DrawRect(g, bounds, r, is_focused ? c : Color(85, 134, 223));
 	if(YB_LIKELY(r.Width > 10 && r.Height > 10))
 	{
 		Rect rt(r);
@@ -72,11 +79,11 @@ RectDrawCheckBox(const Graphics& g, const Rect& r, bool is_pressed = {},
 				c = HSLToColor(tmp);
 			}
 		Diminish(rt);
-		DrawRect(g, rt, cs[0]);
+		DrawRect(g, bounds, rt, cs[0]);
 		Diminish(rt);
-		DrawRect(g, rt, cs[1]);
+		DrawRect(g, bounds, rt, cs[1]);
 		Diminish(rt);
-		FillRect(g, rt, cs[2]);
+		FillRect(g, bounds, rt, cs[2]);
 	}
 	if(is_ticked)
 	{
@@ -85,17 +92,17 @@ RectDrawCheckBox(const Graphics& g, const Rect& r, bool is_pressed = {},
 			r.Y + r.Height - 3), p3(r.X + r.Width - 2, r.Y + 1);
 
 		p2 += Vec(0, -1);
-		DrawLineSeg(g, p1 + Vec(1, 0), p2, c2);
-		DrawLineSeg(g, p2, p3 + Vec(-1, 0), c2);
+		DrawLineSeg(g, bounds, p1 + Vec(1, 0), p2, c2);
+		DrawLineSeg(g, bounds, p2, p3 + Vec(-1, 0), c2);
 		p2 += Vec(0, 2);
-		DrawLineSeg(g, p1 + Vec(0, 1), p2, c2);
-		DrawLineSeg(g, p2, p3 + Vec(0, 1), c2);
+		DrawLineSeg(g, bounds, p1 + Vec(0, 1), p2, c2);
+		DrawLineSeg(g, bounds, p2, p3 + Vec(0, 1), c2);
 		p2 += Vec(0, -1);
-		DrawLineSeg(g, p1, p2, c1);
-		DrawLineSeg(g, p2, p3, c1);
+		DrawLineSeg(g, bounds, p1, p2, c1);
+		DrawLineSeg(g, bounds, p2, p3, c1);
 	}
 	if(is_pressed)
-		TransformRect(g, r, transform_pixel_ex<56, 24, 32>);
+		TransformRect(g, bounds & r, transform_pixel_ex<56, 24, 32>);
 }
 
 } // unnamed namespace;
@@ -128,16 +135,18 @@ CheckBox::Tick(bool b)
 }
 
 void
-CheckBox::PaintBox(const Graphics& g, const Rect& r)
+CheckBox::PaintBox(const PaintContext& pc, const Size& s)
 {
-	RectDrawCheckBox(g, r, bPressed, IsFocusedByShell(*this), bTicked,
+	RectDrawCheckBox(pc, s, bPressed, IsFocusedByShell(*this), bTicked,
 		IsFocused(*this));
 }
 
 void
 CheckBox::Refresh(PaintEventArgs&& e)
 {
-	PaintBox(e.Target, (e.ClipArea = Rect(e.Location, GetSizeOf(*this))));
+	const auto& s(GetSizeOf(*this));
+
+	PaintBox(e, s);
 }
 
 
@@ -150,13 +159,12 @@ CheckButton::CheckButton(const Rect& r)
 void
 CheckButton::Refresh(PaintEventArgs&& e)
 {
-	const auto& pt(e.Location);
+	const auto& s(GetSizeOf(*this));
 
-	PaintBox(e.Target, Rect(pt, 13, 13));
+	PaintBox(e, {13, 13});
 	Margin.Left += 13;
-	DrawText(GetSizeOf(*this), ForeColor, e);
+	DrawText(s, ForeColor, e);
 	Margin.Left -= 13;
-	e.ClipArea = Rect(pt, GetSizeOf(*this));
 }
 
 } // namespace UI;

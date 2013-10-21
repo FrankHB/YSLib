@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2866
+\version r2870
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-09-04 03:23 +0800
+	2013-10-21 14:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,9 +57,8 @@ FetchMargin(const Rect& r, const Size& s)
 Point
 ClipBounds(Rect& clip, const Rect& bounds)
 {
-	if(!clip.IsUnstrictlyEmpty() && Clip(clip, bounds)
-		&& !clip.IsUnstrictlyEmpty())
-			return clip.GetPoint() - bounds.GetPoint();
+	if(!clip.IsUnstrictlyEmpty() && Clip(clip, bounds))
+		return clip.GetPoint() - bounds.GetPoint();
 	clip.GetSizeRef() = {};
 	return {};
 }

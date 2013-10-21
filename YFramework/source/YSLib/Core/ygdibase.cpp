@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r607
+\version r646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2013-10-17 17:58 +0800
+	2013-10-18 21:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,33 +38,67 @@ namespace Drawing
 const Size Size::Invalid(std::numeric_limits<SDst>::lowest(),
 		std::numeric_limits<SDst>::lowest());
 
+//! \since build 453
+namespace
+{
+
+bool
+RectContainsRaw(const Rect& r, int px, int py) ynothrow
+{
+	YAssert(r.Width > 0, "Invalid width found."),
+	YAssert(r.Height > 0, "Invalid height found.");
+
+	return IsInInterval<int>(px - r.X, r.Width)
+		&& IsInInterval<int>(py - r.Y, r.Height);
+}
+inline bool
+RectContainsRaw(const Rect& r, const Point& pt) ynothrow
+{
+	return RectContainsRaw(r, pt.X, pt.Y);
+}
+
+bool
+RectContainsStrictRaw(const Rect& r, int px, int py) ynothrow
+{
+	YAssert(r.Width > 1, "Invalid width found."),
+	YAssert(r.Height > 1, "Invalid height found.");
+
+	return IsInOpenInterval<int>(px - r.X, r.Width - 1)
+		&& IsInOpenInterval<int>(py - r.Y, r.Height - 1);
+}
+inline bool
+RectContainsStrictRaw(const Rect& r, const Point& pt) ynothrow
+{
+	return RectContainsStrictRaw(r, pt.X, pt.Y);
+}
+
+} // unnamed namespace;
 
 const Rect Rect::Invalid(Size::Invalid);
 
 bool
 Rect::Contains(int px, int py) const ynothrow
 {
-	return IsInInterval<int>(px - X, Width)
-		&& IsInInterval<int>(py - Y, Height);
+	return !IsUnstrictlyEmpty() && RectContainsRaw(*this, px, py);
 }
 bool
 Rect::Contains(const Rect& r) const ynothrow
 {
-	return r.GetSize() && Contains(r.GetPoint())
-		&& Contains(r.GetPoint() + r.GetSize() - Vec(1, 1));
+	return !IsUnstrictlyEmpty() && RectContainsRaw(*this, r.GetPoint())
+		&& RectContainsRaw(*this, r.GetPoint() + r.GetSize() - Vec(1, 1));
 }
 
 bool
 Rect::ContainsStrict(int px, int py) const ynothrow
 {
-	return Width > 1 && Height > 1 && IsInOpenInterval<int>(px - X,
-		Width - 1) && IsInOpenInterval<int>(py - Y, Height - 1);
+	return Width > 1 && Height > 1 && RectContainsStrictRaw(*this, px, py);
 }
 bool
 Rect::ContainsStrict(const Rect& r) const ynothrow
 {
-	return r.GetSize() && ContainsStrict(r.GetPoint())
-		&& ContainsStrict(r.GetPoint() + r.GetSize() - Vec(1, 1));
+	return Width > 1 && Height > 1 && !r.IsUnstrictlyEmpty()
+		&& RectContainsStrictRaw(*this, r.GetPoint())
+		&& RectContainsStrictRaw(*this, r.GetPoint() + r.GetSize() - Vec(1, 1));
 }
 
 Rect&

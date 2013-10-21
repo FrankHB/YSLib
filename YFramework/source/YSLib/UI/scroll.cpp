@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3620
+\version r3627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-09-29 10:51 +0800
+	2013-10-21 17:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,8 +267,8 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 		RestrictInInterval(y, r.Y, r.Y + r.Height),
 		RestrictInInterval(yr, r.Y, r.Y + r.Height);
 #endif
-		DrawHLineSeg(g, pt.Y, pt.X, xr, c),
-		DrawHLineSeg(g, yr, pt.X, xr, c);
+		DrawHLineSeg(g, r, pt.Y, pt.X, xr, c),
+		DrawHLineSeg(g, r, yr, pt.X, xr, c);
 	}
 	else
 	{
@@ -276,12 +276,9 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 		RestrictInInterval(x, r.X, r.X + r.Width),
 		RestrictInInterval(xr, r.X, r.X + r.Width);
 #endif
-		DrawVLineSeg(g, pt.X, pt.Y, yr, c),
-		DrawVLineSeg(g, xr, pt.Y, yr, c);
+		DrawVLineSeg(g, r, pt.X, pt.Y, yr, c),
+		DrawVLineSeg(g, r, xr, pt.Y, yr, c);
 	}
-#ifndef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-	e.ClipArea = r;
-#endif
 }
 
 

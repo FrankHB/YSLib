@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r673
+\version r698
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-10-17 03:15 +0800
+	2013-10-18 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,34 +37,40 @@ namespace Drawing
 {
 
 void
-DrawRectRoundCorner(const Graphics& g, const Point& pt, const Size& s, Color c)
+DrawRectRoundCorner(const PaintContext& pc, const Size& s, Color c)
 {
+	const auto& g(pc.Target);
+	const auto& pt(pc.Location);
+	const auto& r(pc.ClipArea);
 	const SPos x1(pt.X + 1), y1(pt.Y + 1), x2(pt.X + s.Width - 1),
 		y2(pt.Y + s.Height - 1);
 
 	if(YB_LIKELY(x1 <= x2 && y1 <= y2))
 	{
-		DrawVLineSeg(g, x1 - 1, y1, y2, c),
-		DrawHLineSeg(g, y2, x1, x2, c),
-		DrawVLineSeg(g, x2, y1, y2, c),
-		DrawHLineSeg(g, y1 - 1, x1, x2, c);
+		DrawVLineSeg(g, r, x1 - 1, y1, y2, c),
+		DrawHLineSeg(g, r, y2, x1, x2, c),
+		DrawVLineSeg(g, r, x2, y1, y2, c),
+		DrawHLineSeg(g, r, y1 - 1, x1, x2, c);
 		if(YB_LIKELY(s.Width > 4 && s.Height > 4))
 		{
-			DrawPoint(g, x1, y1, c);
-			DrawPoint(g, x1, y2 - 1, c);
-			DrawPoint(g, x2 - 1, y2 - 1, c);
-			DrawPoint(g, x2 - 1, y1, c);
+			DrawPoint(g, r, x1, y1, c);
+			DrawPoint(g, r, x1, y2 - 1, c);
+			DrawPoint(g, r, x2 - 1, y2 - 1, c);
+			DrawPoint(g, r, x2 - 1, y1, c);
 		}
 	}
 }
 
 
 void
-RectDrawArrow(const Graphics& g, const Point& pt, SDst half_size, Rotation rot,
-	Color c)
+RectDrawArrow(const PaintContext& pc, SDst half_size, Rotation rot, Color c)
 {
+	const auto& g(pc.Target);
+
 	YAssert(bool(g), "Invalid graphics context found.");
 
+	const auto& pt(pc.Location);
+	const auto& r(pc.ClipArea);
 	SDst x(pt.X), y(pt.Y);
 
 	switch(rot)
@@ -74,7 +80,7 @@ RectDrawArrow(const Graphics& g, const Point& pt, SDst half_size, Rotation rot,
 			SDst t(pt.Y);
 
 			for(SDst i(0); i < half_size; ++i)
-				DrawVLineSeg(g, x--, y--, t++, c);
+				DrawVLineSeg(g, r, x--, y--, t++, c);
 		}
 		break;
 	case RDeg90:
@@ -82,7 +88,7 @@ RectDrawArrow(const Graphics& g, const Point& pt, SDst half_size, Rotation rot,
 			SDst t(pt.X);
 
 			for(SDst i(0); i < half_size; ++i)
-				DrawHLineSeg(g, y++, x--, t++, c);
+				DrawHLineSeg(g, r, y++, x--, t++, c);
 		}
 		break;
 	case RDeg180:
@@ -90,7 +96,7 @@ RectDrawArrow(const Graphics& g, const Point& pt, SDst half_size, Rotation rot,
 			SDst t(pt.Y);
 
 			for(SDst i(0); i < half_size; ++i)
-				DrawVLineSeg(g, x++, y--, t++, c);
+				DrawVLineSeg(g, r, x++, y--, t++, c);
 		}
 		break;
 	case RDeg270:
@@ -98,7 +104,7 @@ RectDrawArrow(const Graphics& g, const Point& pt, SDst half_size, Rotation rot,
 			SDst t(pt.X);
 
 			for(SDst i(0); i < half_size; ++i)
-				DrawHLineSeg(g, y--, x--, t++, c);
+				DrawHLineSeg(g, r, y--, x--, t++, c);
 		}
 	default:
 		break;
@@ -127,7 +133,7 @@ DrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
 	default:
 		break;
 	}
-	RectDrawArrow(g, Point(x, y), half_size, rot, c);
+	RectDrawArrow({g, Point(x, y), r}, half_size, rot, c);
 }
 
 void
@@ -135,11 +141,12 @@ DrawCross(const Graphics& g, const Point& pt, const Size& s, Color c)
 {
 	if(YB_LIKELY(s.Width > 8 && s.Height > 8))
 	{
+		const Rect r(pt, s);
 		const SPos xmin(pt.X + 4), xmax(xmin + s.Width - 8),
 			ymin(pt.Y + 4), ymax(ymin + s.Height - 8);
 
-		DrawLineSeg(g, xmin, ymin, xmax, ymax, c),
-		DrawLineSeg(g, xmax - 1, ymin, xmin - 1, ymax, c);
+		DrawLineSeg(g, r, xmin, ymin, xmax, ymax, c),
+		DrawLineSeg(g, r, xmax - 1, ymin, xmin - 1, ymax, c);
 	}
 }
 

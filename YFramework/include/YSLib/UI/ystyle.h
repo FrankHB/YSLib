@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r433
+\version r441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-10-17 03:16 +0800
+	2013-10-18 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,20 +40,21 @@ namespace Drawing
 
 /*!
 \brief 绘制部件边框用空心标准矩形。
-\note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
-\since build 452
+\note 右下角顶点坐标
+	(pc.Location.X + s.Width - 1, pc.Location.Y + s.Height - 1) 。
+\since build 453
 */
 YF_API void
-DrawRectRoundCorner(const Graphics&, const Point&, const Size&, Color);
+DrawRectRoundCorner(const PaintContext& pc, const Size& s, Color);
 
 
 /*!
-\brief 在指定图形接口上下文的矩形上画箭头。
-\since build 215
+\brief 在指定上下文的矩形中画箭头。
+\since build 453
 */
 YF_API void
-RectDrawArrow(const Graphics&, const Point&, SDst, Rotation = RDeg0,
-	Color c = ColorSpace::Black);
+RectDrawArrow(const PaintContext&, SDst, Rotation = RDeg0,
+	Color = ColorSpace::Black);
 
 /*!
 \brief 在指定图形接口上下文上描画箭头。

@@ -1,26 +1,26 @@
 VER_MAJOR = 3
 VER_MINOR = 15.4
 
-libsimd_SOURCES = Source\LibJPEG\simd\jsimd_i386.c \
-	Source\LibJPEG\simd\jsimdcpu.asm Source\LibJPEG\simd\jccolmmx.asm Source\LibJPEG\simd\jdcolmmx.asm Source\LibJPEG\simd\jcgrammx.asm \
-	Source\LibJPEG\simd\jcsammmx.asm Source\LibJPEG\simd\jdsammmx.asm Source\LibJPEG\simd\jdmermmx.asm Source\LibJPEG\simd\jcqntmmx.asm \
-	Source\LibJPEG\simd\jfmmxfst.asm Source\LibJPEG\simd\jfmmxint.asm Source\LibJPEG\simd\jimmxred.asm Source\LibJPEG\simd\jimmxint.asm \
-	Source\LibJPEG\simd\jimmxfst.asm Source\LibJPEG\simd\jcqnt3dn.asm Source\LibJPEG\simd\jf3dnflt.asm Source\LibJPEG\simd\ji3dnflt.asm \
-	Source\LibJPEG\simd\jcqntsse.asm Source\LibJPEG\simd\jfsseflt.asm Source\LibJPEG\simd\jisseflt.asm Source\LibJPEG\simd\jccolss2.asm \
-	Source\LibJPEG\simd\jdcolss2.asm Source\LibJPEG\simd\jcgrass2.asm Source\LibJPEG\simd\jcsamss2.asm Source\LibJPEG\simd\jdsamss2.asm \
-	Source\LibJPEG\simd\jdmerss2.asm Source\LibJPEG\simd\jcqnts2i.asm Source\LibJPEG\simd\jfss2fst.asm Source\LibJPEG\simd\jfss2int.asm \
-	Source\LibJPEG\simd\jiss2red.asm Source\LibJPEG\simd\jiss2int.asm Source\LibJPEG\simd\jiss2fst.asm Source\LibJPEG\simd\jcqnts2f.asm \
-	Source\LibJPEG\simd\jiss2flt.asm
+libsimd_SOURCES = Source/LibJPEG/simd/jsimd_i386.c \
+	Source/LibJPEG/simd/jsimdcpu.asm Source/LibJPEG/simd/jccolmmx.asm Source/LibJPEG/simd/jdcolmmx.asm Source/LibJPEG/simd/jcgrammx.asm \
+	Source/LibJPEG/simd/jcsammmx.asm Source/LibJPEG/simd/jdsammmx.asm Source/LibJPEG/simd/jdmermmx.asm Source/LibJPEG/simd/jcqntmmx.asm \
+	Source/LibJPEG/simd/jfmmxfst.asm Source/LibJPEG/simd/jfmmxint.asm Source/LibJPEG/simd/jimmxred.asm Source/LibJPEG/simd/jimmxint.asm \
+	Source/LibJPEG/simd/jimmxfst.asm Source/LibJPEG/simd/jcqnt3dn.asm Source/LibJPEG/simd/jf3dnflt.asm Source/LibJPEG/simd/ji3dnflt.asm \
+	Source/LibJPEG/simd/jcqntsse.asm Source/LibJPEG/simd/jfsseflt.asm Source/LibJPEG/simd/jisseflt.asm Source/LibJPEG/simd/jccolss2.asm \
+	Source/LibJPEG/simd/jdcolss2.asm Source/LibJPEG/simd/jcgrass2.asm Source/LibJPEG/simd/jcsamss2.asm Source/LibJPEG/simd/jdsamss2.asm \
+	Source/LibJPEG/simd/jdmerss2.asm Source/LibJPEG/simd/jcqnts2i.asm Source/LibJPEG/simd/jfss2fst.asm Source/LibJPEG/simd/jfss2int.asm \
+	Source/LibJPEG/simd/jiss2red.asm Source/LibJPEG/simd/jiss2int.asm Source/LibJPEG/simd/jiss2fst.asm Source/LibJPEG/simd/jcqnts2f.asm \
+	Source/LibJPEG/simd/jiss2flt.asm
 
-libsimd_64_SOURCES = Source\LibJPEG\simd\jsimd_x86_64.c \
-	Source\LibJPEG\simd\jfsseflt-64.asm Source\LibJPEG\simd\jcgrass2-64.asm \
-	Source\LibJPEG\simd\jccolss2-64.asm Source\LibJPEG\simd\jdcolss2-64.asm Source\LibJPEG\simd\jcsamss2-64.asm \
-	Source\LibJPEG\simd\jdsamss2-64.asm Source\LibJPEG\simd\jdmerss2-64.asm Source\LibJPEG\simd\jcqnts2i-64.asm \
-	Source\LibJPEG\simd\jfss2fst-64.asm Source\LibJPEG\simd\jfss2int-64.asm Source\LibJPEG\simd\jiss2red-64.asm \
-	Source\LibJPEG\simd\jiss2int-64.asm Source\LibJPEG\simd\jiss2fst-64.asm Source\LibJPEG\simd\jcqnts2f-64.asm \
-	Source\LibJPEG\simd\jiss2flt-64.asm
+libsimd_64_SOURCES = Source/LibJPEG/simd/jsimd_x86_64.c \
+	Source/LibJPEG/simd/jfsseflt-64.asm Source/LibJPEG/simd/jcgrass2-64.asm \
+	Source/LibJPEG/simd/jccolss2-64.asm Source/LibJPEG/simd/jdcolss2-64.asm Source/LibJPEG/simd/jcsamss2-64.asm \
+	Source/LibJPEG/simd/jdsamss2-64.asm Source/LibJPEG/simd/jdmerss2-64.asm Source/LibJPEG/simd/jcqnts2i-64.asm \
+	Source/LibJPEG/simd/jfss2fst-64.asm Source/LibJPEG/simd/jfss2int-64.asm Source/LibJPEG/simd/jiss2red-64.asm \
+	Source/LibJPEG/simd/jiss2int-64.asm Source/LibJPEG/simd/jiss2fst-64.asm Source/LibJPEG/simd/jcqnts2f-64.asm \
+	Source/LibJPEG/simd/jiss2flt-64.asm
 
-libsimd_ARM_SOURCES = Source\LibJPEG\simd\jsimd_arm.c Source\LibJPEG\simd\jsimd_arm_neon.S
+libsimd_ARM_SOURCES = Source/LibJPEG/simd/jsimd_arm.c Source/LibJPEG/simd/jsimd_arm_neon.S
 
 
 SRCS = Source/FreeImage/BitmapAccess.cpp Source/FreeImage/ColorLookup.cpp Source/FreeImage/FreeImage.cpp \

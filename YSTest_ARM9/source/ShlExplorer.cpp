@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1000
+\version r1010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-10-16 11:39 +0800
+	2013-10-18 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,9 +116,10 @@ static yconstexpr auto PI = 3.14159265358979323;
 static yconstexpr auto PI_2 = PI * 2;
 static yconstexpr auto PI_4 = PI * 4;
 
+//! \since build 452
 void
-DrawStar(Graphics& g, Color c, const Point& pt, SDst r, float a,
-	size_t n = 5)
+DrawStar(Graphics& g, const Rect& bounds, Color c, const Point& pt, SDst r,
+	float a, size_t n = 5)
 {
 	static yconstexpr auto PI_4 = PI * 4;
 	vector<Point> pts(n);
@@ -126,7 +127,7 @@ DrawStar(Graphics& g, Color c, const Point& pt, SDst r, float a,
 	for(size_t i = 0; i < n; ++i)
 		pts[i] = {int(-std::cos(PI_4 / n * i + a) * r + pt.X),
 			int(std::sin(PI_4 / n * i + a) * r + pt.Y)};
-	DrawPolygon(g, pts.cbegin(), pts.cend(), c);
+	DrawPolygon(g, bounds, pts.cbegin(), pts.cend(), c);
 }
 //@}
 
@@ -358,14 +359,16 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	},
 	FetchEvent<TouchHeld>(pnlTest1) += OnTouchHeld_Dragging,
 	FetchEvent<Paint>(pnlTest1) += [&, this](PaintEventArgs&& e){
+		auto& g(e.Target);
 		const auto& pt(GetLocationOf(pnlTest1));
+		auto& r(e.ClipArea);
 
-		DrawStar(e.Target, ColorSpace::Red, pt + Point{96, 96}, 48, rad);
-		DrawStar(e.Target, ColorSpace::Green, pt + Point{96, 96}, 48, rad + PI);
+		DrawStar(g, r, ColorSpace::Red, pt + Point{96, 96}, 48, rad);
+		DrawStar(g, r, ColorSpace::Green, pt + Point{96, 96}, 48, rad + PI);
 		rad += 0.02;
 		if(rad > PI_2)
 			rad -= PI_2;
-		e.ClipArea = Rect({}, GetSizeOf(e.GetSender()));
+		UpdateClipArea(e, {{}, GetSizeOf(e.GetSender())});
 	},
 	FetchEvent<Click>(btnTestEx) += [&](CursorEventArgs&& e){
 		const auto& k(e.GetKeys());

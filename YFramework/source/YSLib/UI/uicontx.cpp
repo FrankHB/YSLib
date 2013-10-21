@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r242
+\version r244
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2013-09-07 02:33 +0800
+	2013-10-17 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ DialogPanel::DialogPanel(const Rect& r)
 		Close(*this);
 	},
 	FetchEvent<Paint>(btnOK) += [this](PaintEventArgs&& e){
-		DrawCircle(e.Target, {e.Location.X + 8, e.Location.Y + 8},
+		DrawCircle(e.Target, e.ClipArea, {e.Location.X + 8, e.Location.Y + 8},
 			4, IsEnabled(btnOK) ? btnOK.ForeColor
 			: FetchGUIState().Colors[Styles::Workspace]);
 	}

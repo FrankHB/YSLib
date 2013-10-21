@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2253
+\version r2258
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-10-17 02:53 +0800
+	2013-10-19 21:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -986,13 +986,15 @@ Bookmarks
 所有 DS 版本通过 PC 测试。测试环境 Windows 7 Ultimate x64 + DeSmuME(x86/x64) 0.9.6 或以上（含 SVN 版本）。
 以下版本通过 iDSL+DSTT 实机测试：
  build 132 前的所有版本；
- build 412 及之前的 DS 提交版本（除 build 387 rev 20[release] ） ；
- build 424 及之前的 DS release 提交版本。
+ build 416 及之前的 DS 提交版本（除 build 387 rev 20[release] ） ；
+ build 428 之前的 DS release 提交版本。
+ build 428 - build 452 每 4 个 DS release 提交版本。
 
 @11.1.2 MinGW ：
 所有 MinGW32 版本通过 PC 测试。
  build 438 前测试环境 Windows 7 Ultimate x64 。
- build 438 起测试环境 Windows 2012 Datacenter x64 。
+ build 438 - build 452 测试环境 Windows 2012 Datacenter x64 。
+ build 453 起测试环境 Windows 2012 R2 Datacenter x64 。
 
 @11.1.3 非正式支持平台：
  2013-02-13: ArchLinux x86-64 使用 wine-1.5.23 i386 (WOW64) 测试 MinGW32 平台版本 b346 、 b352 、 b360 、 b372 和 b379 可正常载入配置和退出，但打开文件时候程序失败。

@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r172
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2013-10-03 01:08 +0800
+	2013-10-17 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,8 +49,8 @@ BorderBrush::operator()(PaintEventArgs&& e)
 {
 	auto& sender(e.GetSender());
 
-	DrawRect(e.Target, Rect(e.Location, GetSizeOf(sender)), IsFocused(sender)
-		? Style.ActiveColor : Style.InactiveColor);
+	DrawRect(e.Target, e.ClipArea, Rect(e.Location, GetSizeOf(sender)),
+		IsFocused(sender) ? Style.ActiveColor : Style.InactiveColor);
 }
 
 
