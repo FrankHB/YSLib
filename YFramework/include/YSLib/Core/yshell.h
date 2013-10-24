@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r1944
+\version r1947
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2013-08-05 21:06 +0800
+	2013-10-24 04:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,8 +61,9 @@ public:
 	\brief 默认 Shell 处理函数。
 	\note 调用默认 Shell 函数为应用程序没有处理的 Shell 消息提供默认处理，
 		确保每一个消息得到处理。
+	\since build 454
 	*/
-	static int
+	static void
 	DefShlProc(const Message&);
 
 	/*!

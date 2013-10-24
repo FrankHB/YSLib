@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9065
+\version r9068
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-10-21 01:37 +0800
+	2013-10-23 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,7 +305,8 @@ Shell 和 Core 的关系是相对的，例如：
 基于 YBase 的平台隔离用库 YCLib(@5.2.2) ，包含于 YFramework 中。
  ISO C++ 实现定义行为要求：
 至少支持 std::placeholder::_6 。
-当前仅经过实际验证支持的实现包括 G++ 4.7.1 以上版本。其它实现不保证支持。
+当前仅经过实际验证支持的实现包括 G++ 4.7.1 以上版本（ G++ 4.7.1 包括若干 workaround）。 YBase （包括若干 workaround ） 支持 Microsoft Visual C++ 2013 。
+除以上列出外的其它实现不保证支持。
 未来可能会提升实现的最低支持版本要求，并移除针对特定版本的 workaround 代码。
 
 @5.2.1 YBase ：
@@ -599,7 +600,6 @@ BASE_EXTENSIONS += ftbbox.c
 自定义应用程序 Shell 类，继承默认 Shells::Shell 类或其派生类并产生实例。
 完成自定义 Shell 类的消息处理过程。一般把多个处理过程的响应封装为单一函数。
 对于支持实现对应 Shell 的窗口封装为窗体（Form）类（一般继承自 Window 类），在此自定义类中添加所需的 GUI 部件的定义，并实现界面效果。
-在响应 SM_ACTIVATED 的处理过程中添加需要初始化的资源或子 Shell ，在 SM_DEACTIVATED 的处理过程中添加退出程序或转移线程控制权的指令。
 在响应输入等事件消息的处理过程中添加对应的代码。
 
 @7.1 初始化：

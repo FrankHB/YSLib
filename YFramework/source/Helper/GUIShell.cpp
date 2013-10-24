@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIShell.cpp
 \ingroup Helper
 \brief GUI Shell 类。
-\version r104
+\version r107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:22 +0800
 \par 修改时间:
-	2013-08-05 21:17 +0800
+	2013-10-23 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,10 +50,10 @@ GUIShell::OnGotMessage(const Message& msg)
 {
 	switch(msg.GetMessageID())
 	{
-	case SM_PAINT:
+	case SM_Paint:
 		GUIShell::OnInput();
 		return;
-	case SM_INPUT:
+	case SM_Input:
 		if(const auto p_wgt = imMain.Update())
 			imMain.DispatchInput(*p_wgt);
 		OnInput();

@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1169
+\version r1175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-09-28 13:43 +0800
+	2013-10-24 20:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -430,12 +430,15 @@ namespace details
 	};
 
 
+//! \since build 454 as workaround for Visual C++ 2013
+#if !YB_IMPL_MSCPP
 /*!
 \since build 440
 
 测试包含 value 成员。
 */
 YB_HAS_MEMBER(value)
+#endif
 
 
 /*!
@@ -559,6 +562,8 @@ public:
 } // namespace details;
 
 
+//! \since build 454 as workaround for Visual C++ 2013
+#if !YB_IMPL_MSCPP
 /*!
 \ingroup unary_type_trait
 \brief 判断 _type 是否包含 value 成员。
@@ -568,6 +573,7 @@ template<class _type>
 struct has_mem_value : std::integral_constant<bool,
 	details::has_mem_value<remove_cv_t<_type>>::value>
 {};
+#endif
 
 
 /*!

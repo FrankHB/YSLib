@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r208
+\version r213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-10-15 19:39 +0800
+	2013-10-23 01:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,6 +201,11 @@ For type parameter of function template as generic algorithms or initialization 
 	4. It is OK for rvalue-reference type parameters used for general templates with large categroies(like "all input iterator types" or "all callable types"), because there are no obvious requirements of call-by-value semantics.
 	5. It is also OK for some callable proxies like asynchronous handlers to have non-call-by-value semantics of the callable parameters types, like some other parts of interface of the standard library(e.g. constructor of std::thread) .
 Use member initializers properly to eliminite need of initialization in constructor as possible unless the initializer is intended to be the implementation details or some internal interface which should not be depend on by users.
+There is a buf about template parameter declaration of Clang++ 3.4, up to 2013-10-21:
+	The template parameter declaration 'bool = {}' should be accecpted, because it can be reduced as: template-parameter → parameter-declaration → decl-specifier-seq declarator = initializer-clause, with initializer-clause is '{}'.
+	However, Clang++ rejects this code wrongly, though 'bool = false' can be accepted.
+	Actually this code is in the parameter-declaration-list of declaration of class template ystdex::bitseg_iterator in YStandard::Iterator.
+	Because currently Clang++ is not formally supported as the available compiler to build YSLib, the workaround above is not adopted.
 
 todo.deferred:
 Wrapping '__declspec(novtable)' when '_MSC_VER >= 1100'.

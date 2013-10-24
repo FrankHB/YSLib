@@ -11,17 +11,17 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r572
+\version r605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-10-13 02:10 +0800
+	2013-10-24 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YStandardEx::Containers
+	YStandardEx::Container
 */
 
 
@@ -78,7 +78,14 @@ public:
 		: base(std::move(first), std::move(last))
 	{}
 	container_adaptor(const container_adaptor&) = default;
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	container_adaptor(container_adaptor&& con)
+		: base(static_cast<base&&>(con))
+	{}
+#else
 	container_adaptor(container_adaptor&&) = default;
+#endif
 	//@}
 	container_adaptor(std::initializer_list<value_type> il)
 		: base(il)
@@ -89,7 +96,16 @@ public:
 	container_adaptor&
 	operator=(const container_adaptor&) = default;
 	container_adaptor&
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	operator=(container_adaptor&& con)
+	{
+		static_cast<base&>(*this) = static_cast<base&&>(con);
+		return *this;
+	}
+#else
 	operator=(container_adaptor&&) = default;
+#endif
 	//@}
 	container_adaptor&
 	operator=(std::initializer_list<value_type> il)
@@ -187,7 +203,14 @@ public:
 		: base(std::move(first), std::move(last))
 	{}
 	sequence_container_adaptor(const sequence_container_adaptor&) = default;
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	sequence_container_adaptor(sequence_container_adaptor&& con)
+		: base(static_cast<base&&>(con))
+	{}
+#else
 	sequence_container_adaptor(sequence_container_adaptor&&) = default;
+#endif
 	sequence_container_adaptor(std::initializer_list<value_type> il)
 		: base(il)
 	{};
@@ -195,7 +218,16 @@ public:
 	sequence_container_adaptor&
 	operator=(const sequence_container_adaptor&) = default;
 	sequence_container_adaptor&
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	operator=(sequence_container_adaptor&& con)
+	{
+		static_cast<base&>(*this) = static_cast<base&&>(con);
+		return *this;
+	}
+#else
 	operator=(sequence_container_adaptor&&) = default;
+#endif
 	sequence_container_adaptor&
 	operator=(std::initializer_list<value_type> il)
 	{

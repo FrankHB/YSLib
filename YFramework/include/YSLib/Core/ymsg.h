@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1902
+\version r1949
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2013-10-06 21:17 +0800
+	2013-10-24 00:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,32 +102,20 @@ public:
 	*/
 	DefDeMoveCtor(Message)
 
-	Message&
-	operator=(const ValueObject& c)
-	{
-		content = c;
-		return *this;
-	}
+	PDefHOp(Message&, = , const ValueObject& c) ynothrow
+		ImplRet(content = c, *this)
 	/*!
 	\brief 成员赋值：使用值类型对象。
 	\since build 296
 	*/
-	Message&
-	operator=(ValueObject&& c) ynothrow
-	{
-		content = std::move(c);
-		return *this;
-	}
+	PDefHOp(Message&, =, ValueObject&& c) ynothrow
+		ImplRet(content = std::move(c), *this)
 	/*
 	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
 	\since build 331
 	*/
-	Message&
-	operator=(Message msg) ynothrow
-	{
-		msg.swap(*this);
-		return *this;
-	}
+	PDefHOp(Message&, =, Message msg) ynothrow
+		ImplRet(msg.swap(*this), *this)
 
 	/*!
 	\brief 判断无效性。
@@ -138,15 +126,10 @@ public:
 
 	/*!
 	\brief 比较：相等关系。
+	\since build 454
 	*/
-	friend bool
+	YF_API friend bool
 	operator==(const Message&, const Message&);
-	/*!
-	\brief 消息优先级比较函数。
-	\since build 272
-	*/
-	friend bool
-	operator<(const Message&, const Message&);
 
 	/*!
 	\brief 判断有效性。
@@ -246,43 +229,27 @@ public:
 	\since build 271
 	*/
 	void
-	Peek(Message& msg) const
-	{
-		if(YB_LIKELY(!empty()))
-			msg = begin()->second;
-	}
+	Peek(Message&) const;
 
 	/*!
 	\brief 丢弃消息队列中优先级最高的消息。
 	\note 消息队列为空时忽略。
 	*/
 	void
-	Pop()
-	{
-		if(YB_LIKELY(!empty()))
-			erase(begin());
-	}
+	Pop();
 
 	/*!
 	\brief 若消息有效，以指定优先级插入至消息队列中。
 	\since build 317
 	*/
 	void
-	Push(const Message& msg, Priority prior)
-	{
-		if(msg)
-			insert(make_pair(prior, msg));
-	}
+	Push(const Message&, Priority);
 	/*!
 	\brief 若消息有效，以指定优先级插入至消息队列中。
-	\since build 317
+	\since build 454
 	*/
 	void
-	Push(const Message&& msg, Priority prior)
-	{
-		if(msg)
-			insert(make_pair(prior, std::move(msg)));
-	}
+	Push(Message&&, Priority);
 
 	/*!
 	\brief 移除不大于指定优先级的消息。

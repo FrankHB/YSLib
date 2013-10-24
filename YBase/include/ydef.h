@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2373
+\version r2401
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-09-09 20:22 +0800
+	2013-10-24 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,6 +85,10 @@
 #	error "This header is only for C++."
 #endif
 
+#if YB_IMPL_MSCPP >= 1400
+//! \since build 454
+#	define _CRT_SECURE_NO_WARNINGS
+#endif
 //@}
 
 #include <cstddef> // for std::nullptr_t, std::size_t, std::ptrdiff_t, offsetof;
@@ -96,25 +100,36 @@
 #include <type_traits> // for std::is_class, std::is_standard_layout;
 
 
+/*!	\defgroup preprocessor_helpers Perprocessor Helpers
+\brief 预处理器通用助手宏。
+\since build 454
+*/
+//@{
+//! \brief 替换为空的预处理记号。
+#define YPP_Empty
+
+/*!
+\brief 替换为逗号的预处理记号。
+\note 可用于代替宏的实际参数中出现的逗号。
+*/
+#define YPP_Comma ,
+
 /*
-\def yjoin
 \brief 带宏替换的记号连接。
 \see http://gcc.gnu.org/onlinedocs/cpp/Concatenation.html 。
 \see https://www.securecoding.cert.org/confluence/display/cplusplus/PRE05-CPP.+Understand+macro+replacement+when+concatenating+tokens+or+performing+stringification 。
-\since build 409
 
- ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
+注意 ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
 注意 GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，此宏不会被展开。
 */
-#define yjoin(x, y) yJOIN(x, y)
+#define YPP_Join(x, y) YPP_Concat(x, y)
 
 /*
-\def yJOIN
 \brief 记号连接。
-\sa yjoin
-\since build 304
+\sa YPP_Join
 */
-#define yJOIN(x, y) x ## y
+#define YPP_Concat(x, y) x ## y
+//@}
 
 
 /*!	\defgroup lang_impl_features Language Implementation Features
@@ -225,8 +240,8 @@
 #	define YB_UNLIKELY(expr) (__builtin_expect(bool(expr), 0))
 #else
 #	define YB_EXPECT(expr, constant) (expr)
-#	define YB_LIKELY (expr) (expr)
-#	define YB_UNLIKELY (expr) (expr)
+#	define YB_LIKELY(expr) (expr)
+#	define YB_UNLIKELY(expr) (expr)
 #endif
 
 /*!

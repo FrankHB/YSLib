@@ -11,13 +11,13 @@
 /*!	\file Task.h
 \ingroup Core
 \brief 任务处理。
-\version r88
+\version r89
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-06 22:08:26 +0800
 \par 修改时间:
-	2013-10-15 19:07 +0800
+	2013-10-23 19:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ template<typename _fCallable>
 inline void
 PostTask(_fCallable&& f, Messaging::Priority prior = Messaging::NormalPriority)
 {
-	PostMessage<SM_TASK>(prior, yforward(f));
+	PostMessage<SM_Task>(prior, yforward(f));
 }
 
 namespace Messaging

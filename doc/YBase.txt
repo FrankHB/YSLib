@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r160
+\version r161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2013-10-10 17:59 +0800
+	2013-10-24 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,7 +103,7 @@
 
 @2.4.3 不依赖其它 YStandardEx 文件的基本头文件：
 
-@2.4.3.1 C++ 类型操作 TypeOperations ：
+@2.4.3.1 C++ 类型操作 TypeOperation ：
 扩展了标准库头文件 <type_traits> ，包括元编程设施等。
 
 @2.4.3.2 C++ 变长参数相关操作 Variadic ：

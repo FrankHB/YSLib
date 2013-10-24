@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3726
+\version r3783
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-10-12 03:14 +0800
+	2013-10-24 00:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "yexcept.h"
 #include "../Adaptor/ycont.h"
 #include <ystdex/any.h> // for ystdex::any_holder, ystdex::any;
-#include <ystdex/examiner.hpp> // for ystdex::equal_examiner;
+#include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 
 namespace YSLib
 {
@@ -90,10 +90,62 @@ DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
 EndDecl
 
 
+//! \since build 454
+//@{
+/*!
+\brief 判断动态泛型的持有值是否相等。
+\return 若可通过 == 比较则为比较结果，否则为 true 。
+*/
+//@{
+template<typename _type1, typename _type2>
+struct HeldEqual : private ystdex::examiners::equal_examiner
+{
+	using ystdex::examiners::equal_examiner::are_equal;
+};
+
+template<typename _type1, typename _type2>
+struct HeldEqual<weak_ptr<_type1>, weak_ptr<_type2>>
+{
+	static inline bool
+	are_equal(const weak_ptr<_type1>& x, const weak_ptr<_type2>& y)
+	{
+		return x == y;
+	}
+};
+
+template<typename _type1, typename _type2, typename _type3, typename _type4>
+struct HeldEqual<pair<_type1, _type2>, pair<_type3, _type4>>
+{
+	static yconstfn bool
+	are_equal(const pair<_type1, _type2>& x, const pair<_type3, _type4>& y)
+	{
+		return x.first == y.first && x.second == y.second;
+	}
+};
+//@}
+
+
+/*!
+\brief 判断动态泛型的持有值是否相等。
+\note 不直接使用 ystdex::examiners::equal_examiner 判断，
+	因为可以有其它重载操作符。
+\since build 454
+*/
+template<typename _type1, typename _type2>
+yconstfn bool
+AreEqualHeld(const _type1& x, const _type2& y)
+{
+	return HeldEqual<_type1, _type2>::are_equal(x, y);
+}
+//@}
+
+
 /*!
 \brief 带等于接口的值类型动态泛型持有者。
-\see ystdex::value_holder 。
 \note 成员命名参照 ystdex::value_holder 。
+\note 比较使用 AreEqualHeld ，可有 ADL 重载。
+\sa ystdex::value_holder
+\sa AreEqualHeld
 \since build 332
 */
 template<typename _type>
@@ -128,8 +180,7 @@ public:
 	ImplI(IValueHolder) bool
 	operator==(const IValueHolder& obj) const override
 	{
-		return ystdex::examiners::equal_examiner::are_equal(held,
-			static_cast<const ValueHolder&>(obj).held);
+		return AreEqualHeld(held, static_cast<const ValueHolder&>(obj).held);
 	}
 
 	//! \since build 409
@@ -153,8 +204,10 @@ public:
 
 /*!
 \brief 带等于接口的指针类型动态泛型持有者。
-\see ystdex::pointer_holder 。
 \note 成员命名参照 ystdex::pointer_holder 。
+\note 比较使用 AreEqualHeld ，可有 ADL 重载。
+\sa ystdex::pointer_holder
+\sa AreEqualHeld
 \since build 332
 */
 template<typename _type>
@@ -198,8 +251,8 @@ public:
 	ImplI(IValueHolder) bool
 	operator==(const IValueHolder& obj) const
 	{
-		return ystdex::examiners::equal_examiner::are_equal(*p_held,
-			*static_cast<const PointerHolder&>(obj).p_held);
+		return AreEqualHeld(*p_held,
+				*static_cast<const PointerHolder&>(obj).p_held);
 	}
 
 	//! \since build 409

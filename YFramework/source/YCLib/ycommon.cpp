@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2708
+\version r2710
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2013-08-05 21:23 +0800
+	2013-10-23 03:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ terminate() ynothrow
 	for(;;)
 		::swiWaitForVBlank();
 #else
-	std::terminate();
+	std::abort();
 #endif
 }
 

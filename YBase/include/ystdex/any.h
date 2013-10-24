@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1351
+\version r1364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-10-18 02:24 +0800
+	2013-10-24 22:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,14 +72,20 @@ union pod_storage
 	//! \since build 352
 	//@{
 	pod_storage() = default;
-	template<typename _type>
+	//! \since build 454
+	template<typename _type,
+		typename = ystdex::exclude_self_ctor_t<pod_storage, _type>>
 	pod_storage(_type&& x)
 	{
 		new(access()) remove_reference_t<_type>(yforward(x));
 	}
 
-	//! \note 为避免类型错误，需要确定类型时应使用显式使用 access 指定类型赋值。
-	template<typename _type>
+	/*
+	\note 为避免类型错误，需要确定类型时应使用显式使用 access 指定类型赋值。
+	\since build 454
+	*/
+	template<typename _type,
+		typename = ystdex::exclude_self_ctor_t<pod_storage, _type>>
 	pod_storage&
 	operator=(_type&& x)
 	{
@@ -152,17 +158,19 @@ namespace any_ops
 
 /*!
 \brief 抽象动态泛型持有者接口。
-\since build 331
+\since build 454
 */
-class holder
+class YB_API holder
 {
 public:
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 47200
 	//! \since build 353 as workaround for G++ 4.7.1
 	//@{
 	holder() = default;
 	holder(const holder&) = default;
 	holder(holder&&) = default;
 	//@}
+#endif
 	virtual
 	~holder()
 	{}

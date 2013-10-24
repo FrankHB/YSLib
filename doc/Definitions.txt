@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12098
+\version r12113
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-09-01 22:20 +0800
+	2013-10-24 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,7 @@ $region $synopsis $begin
 
 // YBase 既定宏污染列表。
 // YB_* 保留给 YBase 使用。（除了 ydef.h 中定义的宏和包含守护宏外，可能使用后被 #undef 取消定义。）
+// YPP_* 是通用于预处理阶段的辅助宏。
 $dir YBase
 {
 $header *
@@ -66,7 +67,10 @@ $header YDefinition
 YB_IMPL_CPP
 YB_IMPL_MSCPP
 YB_IMPL_GNUCPP
-yJOIN
+YPP_Empty
+YPP_Comma
+YPP_Join
+YPP_Concat
 YB_HAS_ALIGNAS
 YB_HAS_ALIGNOF
 YB_HAS_BUILTIN_NULLPTR
@@ -99,7 +103,7 @@ yunseq
 }
 $dir ystdex
 {
-$header TypeOperations
+$header TypeOperation
 {
 YB_TYPE_OP_TEST_2(_n, _expr)
 }
@@ -285,12 +289,13 @@ DefExtendEventMap(_n, _b)
 }
 $header YMessageDefinition
 {
-SM_NULL
-SM_SET
-SM_PAINT
-SM_QUIT
-SM_TASK
-SM_INPUT
+SM_Null
+SM_Set
+SM_Quit
+SM_Bound
+SM_Task
+SM_Paint
+SM_Input
 DefMessageTarget
 }
 } //$dir Core;

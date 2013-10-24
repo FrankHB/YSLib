@@ -11,20 +11,20 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3234
+\version r3238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-10-14 12:12 +0800
+	2013-10-24 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	Documentation::ChangeLog::PreAlpha2
 */
 
-// See "Meta.cpp" for meta discriptions.
+// See %Documentation::Meta for meta discriptions.
 
 $import $HISTORY;
 
@@ -670,7 +670,7 @@ b290
 b289
 (
 	/ "algorithm function templates %(erase_all, erase_all_if)"
-		@ %'YBase'.'Algorithms' $=
+		@ %'YBase'.'Algorithm' $=
 	(
 		/ "return value" @ "overloading for sequence containers",
 		(
@@ -758,7 +758,7 @@ b288
 (
 	/ DLD %'YBase'.'YStandardEx' $=
 	(
-		/ %'TypeOperations' $=
+		/ %'TypeOperation' $=
 		(
 			+ "class template %n_tag";
 			+ "typedef n_tag<0> %first_tag",
@@ -771,7 +771,7 @@ b288
 			+ "function template %make_transform",
 			),
 			+ "class template %pair_iterate for selecting members";
-			$dep_from %'TypeOperations';
+			$dep_from %'TypeOperation';
 			+ "manipulators for selection members";
 			+ "pipe operators for selecting members"
 		),

@@ -11,20 +11,20 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4185
+\version r4199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-10-14 12:13 +0800
+	2013-10-24 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	Documentation::ChangeLog::PreAlpha3
 */
 
-// See "Meta.cpp" for meta discriptions.
+// See %Documentation::Meta for meta discriptions.
 
 $import $HISTORY;
 
@@ -812,7 +812,7 @@ b376
 	/ %'YBase'.'YStandardEx' $-
 	(
 		(
-		+ "metafunctions %(remove_rcv, remove_rcvp)" %'TypeOperations';
+		+ "metafunctions %(remove_rcv, remove_rcvp)" %'TypeOperation';
 		$dep_to "%remove_rcv"
 		),
 		/ DLD "explicitly" !^ 'std::' @ "%wrap_handler" @ %'AnyIterator',
@@ -1072,7 +1072,7 @@ b371
 		/ $dev "allowed single line exceeding 80 characters for URLs for \
 			sources";
 		* $comp "backslash" @ "EOL" @ "URL" @ "comment" @ (
-			%'YStandardEx'.'Any' $since b331, 'YStandardEx'.'TypeOperations'
+			%'YStandardEx'.'Any' $since b331, 'YStandardEx'.'TypeOperation'
 			$since b333, 'YDefinition' $since b245),
 		),
 	),
@@ -1248,7 +1248,7 @@ b366
 	* $doc "typo" @ "(Doxygen command, version number)" @ "member %pColor"
 		@ "class %SettingPanel" @ %'YReader'.'ReaderSetting' $since b279,
 	* $doc "typo" @ "param names" @ "Doxygen command" @ "function template \
-		%stable_range_unique" @ %'YBase'.'YStandardEx'.'Algorithms' $since b265,
+		%stable_range_unique" @ %'YBase'.'YStandardEx'.'Algorithm' $since b265,
 	/ DLP "library using"
 		$= (^ "updated library freetype 2.4.11" ~ "modified freetype 2.4.10"),
 	+ 'using ystdex::size_t' @ "namespace %timing" @ %'YTest'.'Timing'
@@ -1796,7 +1796,7 @@ b351
 			/ "union %any_pod_t" @ "union template %pod_storage",
 			/ "union %no_copy_t" -> "union %non_aggreate_pod"
 		),
-		+ "class template %(is_pod_struct, is_pod_union)" @ %'TypeOperations',
+		+ "class template %(is_pod_struct, is_pod_union)" @ %'TypeOperation',
 		/ "class-key struct" -> "class" @ "class template specialization \
 			%std::numeric_limits" @ %'Rational'
 		// See $KNOWN_ISSUE. In fact, according to ISO C++ synopsis, the \
@@ -2238,7 +2238,7 @@ b339
 (
 	/ %'YBase'.'YStandardEx' $=
 	(
-		/ %'TypeOperations' $=
+		/ %'TypeOperation' $=
 		(
 			* "implementation" @ "unary type trait %is_class_pointer"
 				$since b333,
@@ -2247,7 +2247,7 @@ b339
 			+ "unary type trait %is_decayable"
 		),
 		/ "trailing return type" @ "member template %operator()"
-			@ "class template %container_inserter" @ %Containers
+			@ "class template %container_inserter" @ %'Container'
 			// More compatibility for devkitPro G++ 4.7.1.
 	),
 	/ DLD "reader setting" @ %'YReader'.'text reader',
@@ -2372,7 +2372,7 @@ b334
 (
 	/ %'YBase'.'YStandardEx' $=
 	(
-		+ "class template %identity" @ %'TypeOperations',
+		+ "class template %identity" @ %'TypeOperation',
 			// Same to %boost::identity or previously standardized %std::identity.
 		* "implementation" @ "all 3 function template %any_cast"
 			@ %'Any' $since b331
@@ -2419,9 +2419,9 @@ b333
 			/ "implementation" @ "macro %(DeclDelegate, EventT)"
 		)
 	),
-	/ %'YBase'.'YStandardEx'.'TypeOperations' $=
+	/ %'YBase'.'YStandardEx'.'TypeOperation' $=
 	(
-		/ %'TypeOperations' $=
+		/ %'TypeOperation' $=
 		(
 			/ $doc "Doxygen comments" $=
 			(
@@ -2457,7 +2457,7 @@ b332
 		),
 		/ $dev "headers including" $=
 		(
-		- "header %TypeOperations",
+		- "header %TypeOperation",
 		* "strict ISO C++11 code compatibility" $since b331
 			$= (* "missing <typeinfo>")
 			// The program temporarily is not ill-formed for libstdc++'s \
@@ -2516,7 +2516,7 @@ b331
 		/ $lib "implementation" @ "macro %(ynothrow, ynoexcept)"
 			@ %'YDefinition',
 		/ "exception specifications" ^ "%ynothrow" ~ "%throw()"
-			@ %'TypeOperations',
+			@ %'TypeOperation',
 		/ %'YBase'.'Any' $=
 		(
 			(
@@ -3342,7 +3342,7 @@ b306
 		/ "macro %YSL_DLL"
 			-> "macro %(YCL_DLL; YCL_FUNCTION_NO_EQUALITY_GUARANTEE)"
 	),
-	/ %'YBase'.'YStandardEx'.'TypeOperations' $=
+	/ %'YBase'.'YStandardEx'.'TypeOperation' $=
 	(
 		/ $doc "grouping",
 		/ $dev "traits according to ISO C++11" ^ "%integral_constant",
@@ -3396,7 +3396,7 @@ b304
 	/ $lib $design "simplified assertion strings",
 	/ %'YBase' $=
 	(
-		/ DLD "parameter" @ "function template %pod_fill" @ %'Algorithms',
+		/ DLD "parameter" @ "function template %pod_fill" @ %'Algorithm',
 			// Using const lvalue reference to reduce probable unnecessary \
 				copy of instantiated template functions.
 		* "wrong return type when instantiated with array version of \

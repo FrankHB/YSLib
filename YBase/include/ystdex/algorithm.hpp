@@ -11,17 +11,17 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r458
+\version r459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-10-13 02:08 +0800
+	2013-10-24 20:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YStandardEx::Algorithms
+	YStandardEx::Algorithm
 */
 
 

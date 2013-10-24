@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="debug|Win32">
+    <ProjectConfiguration Include="debug|ARM">
       <Configuration>debug</Configuration>
-      <Platform>Win32</Platform>
+      <Platform>ARM</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="release|Win32">
+    <ProjectConfiguration Include="release|ARM">
       <Configuration>release</Configuration>
-      <Platform>Win32</Platform>
+      <Platform>ARM</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -15,13 +15,13 @@
     <RootNamespace>YSTest_DS</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -30,47 +30,43 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(Configuration)\</IntDir>
-    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -j -r BUILD=$(Configuration)</NMakeBuildCommandLine>
-    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -j -r BUILD=$(Configuration)</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -j -r BUILD=$(Configuration) rebuild</NMakeReBuildCommandLine>
-    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -j -r BUILD=$(Configuration) rebuild</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='release|Win32'">make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
-    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
-    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
-    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
-    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='release|Win32'">NDEBUG;__GXX_EXPERIMENTAL_CXX0X__;__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__NO_INLINE__;__GNUC_GNU_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__SIG_ATOMIC_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__UINT8_TYPE__;__UINT16_TYPE__;__UINT32_TYPE__;__UINT64_TYPE__;__INT_LEAST8_TYPE__;__INT_LEAST16_TYPE__;__INT_LEAST32_TYPE__;__INT_LEAST64_TYPE__;__UINT_LEAST8_TYPE__;__UINT_LEAST16_TYPE__;__UINT_LEAST32_TYPE__;__UINT_LEAST64_TYPE__;__INT_FAST8_TYPE__;__INT_FAST16_TYPE__;__INT_FAST32_TYPE__;__INT_FAST64_TYPE__;__UINT_FAST8_TYPE__;__UINT_FAST16_TYPE__;__UINT_FAST32_TYPE__;__UINT_FAST64_TYPE__;__INTPTR_TYPE__;__UINTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__WINT_MAX__;__SIZE_MAX__;__PTRDIFF_MAX__;__INTMAX_MAX__;__UINTMAX_MAX__;__SIG_ATOMIC_MAX__;__INT8_MAX__;__INT16_MAX__;__INT32_MAX__;__INT64_MAX__;__UINT8_MAX__;__UINT16_MAX__;__UINT32_MAX__;__UINT64_MAX__;__INT_LEAST8_MAX__;__INT_LEAST16_MAX__;__INT_LEAST32_MAX__;__INT_LEAST64_MAX__;__UINT_LEAST8_MAX__;__UINT_LEAST16_MAX__;__UINT_LEAST32_MAX__;__UINT_LEAST64_MAX__;__INT_FAST8_MAX__;__INT_FAST16_MAX__;__INT_FAST32_MAX__;__INT_FAST64_MAX__;__UINT_FAST8_MAX__;__UINT_FAST16_MAX__;__UINT_FAST32_MAX__;__UINT_FAST64_MAX__;__INTPTR_MAX__;__UINTPTR_MAX__;__WCHAR_MIN__;__WINT_MIN__;__SIG_ATOMIC_MIN__;__INT8_C;__INT16_C;__INT32_C;__INT64_C;__UINT8_C;__UINT16_C;__UINT32_C;__UINT64_C;__INTMAX_C;__UINTMAX_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__FLOAT_WORD_ORDER__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_WEAK__;__TIMESTAMP__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">_GLIBCXX_DEBUG;__GXX_EXPERIMENTAL_CXX0X__;__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__NO_INLINE__;__GNUC_GNU_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__SIG_ATOMIC_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__UINT8_TYPE__;__UINT16_TYPE__;__UINT32_TYPE__;__UINT64_TYPE__;__INT_LEAST8_TYPE__;__INT_LEAST16_TYPE__;__INT_LEAST32_TYPE__;__INT_LEAST64_TYPE__;__UINT_LEAST8_TYPE__;__UINT_LEAST16_TYPE__;__UINT_LEAST32_TYPE__;__UINT_LEAST64_TYPE__;__INT_FAST8_TYPE__;__INT_FAST16_TYPE__;__INT_FAST32_TYPE__;__INT_FAST64_TYPE__;__UINT_FAST8_TYPE__;__UINT_FAST16_TYPE__;__UINT_FAST32_TYPE__;__UINT_FAST64_TYPE__;__INTPTR_TYPE__;__UINTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__WINT_MAX__;__SIZE_MAX__;__PTRDIFF_MAX__;__INTMAX_MAX__;__UINTMAX_MAX__;__SIG_ATOMIC_MAX__;__INT8_MAX__;__INT16_MAX__;__INT32_MAX__;__INT64_MAX__;__UINT8_MAX__;__UINT16_MAX__;__UINT32_MAX__;__UINT64_MAX__;__INT_LEAST8_MAX__;__INT_LEAST16_MAX__;__INT_LEAST32_MAX__;__INT_LEAST64_MAX__;__UINT_LEAST8_MAX__;__UINT_LEAST16_MAX__;__UINT_LEAST32_MAX__;__UINT_LEAST64_MAX__;__INT_FAST8_MAX__;__INT_FAST16_MAX__;__INT_FAST32_MAX__;__INT_FAST64_MAX__;__UINT_FAST8_MAX__;__UINT_FAST16_MAX__;__UINT_FAST32_MAX__;__UINT_FAST64_MAX__;__INTPTR_MAX__;__UINTPTR_MAX__;__WCHAR_MIN__;__WINT_MIN__;__SIG_ATOMIC_MIN__;__INT8_C;__INT16_C;__INT32_C;__INT64_C;__UINT8_C;__UINT16_C;__UINT32_C;__UINT64_C;__INTMAX_C;__UINTMAX_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__FLOAT_WORD_ORDER__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_WEAK__;__TIMESTAMP__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
-    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
-    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
-    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
-    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
-    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
-    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(ReferencePath)</ReferencePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" />
-    <SourcePath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'" />
-    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(ReferencePath)</ReferencePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='release|Win32'" />
-    <SourcePath Condition="'$(Configuration)|$(Platform)'=='release|Win32'" />
-    <ExcludePath Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">$(ExcludePath)</ExcludePath>
-    <ExcludePath Condition="'$(Configuration)|$(Platform)'=='release|Win32'">$(ExcludePath)</ExcludePath>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|ARM'">make -j -r BUILD=$(Configuration)</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">make -j -r BUILD=$(Configuration)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|ARM'">make -j -r BUILD=$(Configuration) rebuild</NMakeReBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">make -j -r BUILD=$(Configuration) rebuild</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='release|ARM'">make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='release|ARM'">NDEBUG;__GXX_EXPERIMENTAL_CXX0X__;__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__NO_INLINE__;__GNUC_GNU_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__SIG_ATOMIC_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__UINT8_TYPE__;__UINT16_TYPE__;__UINT32_TYPE__;__UINT64_TYPE__;__INT_LEAST8_TYPE__;__INT_LEAST16_TYPE__;__INT_LEAST32_TYPE__;__INT_LEAST64_TYPE__;__UINT_LEAST8_TYPE__;__UINT_LEAST16_TYPE__;__UINT_LEAST32_TYPE__;__UINT_LEAST64_TYPE__;__INT_FAST8_TYPE__;__INT_FAST16_TYPE__;__INT_FAST32_TYPE__;__INT_FAST64_TYPE__;__UINT_FAST8_TYPE__;__UINT_FAST16_TYPE__;__UINT_FAST32_TYPE__;__UINT_FAST64_TYPE__;__INTPTR_TYPE__;__UINTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__WINT_MAX__;__SIZE_MAX__;__PTRDIFF_MAX__;__INTMAX_MAX__;__UINTMAX_MAX__;__SIG_ATOMIC_MAX__;__INT8_MAX__;__INT16_MAX__;__INT32_MAX__;__INT64_MAX__;__UINT8_MAX__;__UINT16_MAX__;__UINT32_MAX__;__UINT64_MAX__;__INT_LEAST8_MAX__;__INT_LEAST16_MAX__;__INT_LEAST32_MAX__;__INT_LEAST64_MAX__;__UINT_LEAST8_MAX__;__UINT_LEAST16_MAX__;__UINT_LEAST32_MAX__;__UINT_LEAST64_MAX__;__INT_FAST8_MAX__;__INT_FAST16_MAX__;__INT_FAST32_MAX__;__INT_FAST64_MAX__;__UINT_FAST8_MAX__;__UINT_FAST16_MAX__;__UINT_FAST32_MAX__;__UINT_FAST64_MAX__;__INTPTR_MAX__;__UINTPTR_MAX__;__WCHAR_MIN__;__WINT_MIN__;__SIG_ATOMIC_MIN__;__INT8_C;__INT16_C;__INT32_C;__INT64_C;__UINT8_C;__UINT16_C;__UINT32_C;__UINT64_C;__INTMAX_C;__UINTMAX_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__FLOAT_WORD_ORDER__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_WEAK__;__TIMESTAMP__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">_GLIBCXX_DEBUG;__GXX_EXPERIMENTAL_CXX0X__;__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__NO_INLINE__;__GNUC_GNU_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__SIG_ATOMIC_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__UINT8_TYPE__;__UINT16_TYPE__;__UINT32_TYPE__;__UINT64_TYPE__;__INT_LEAST8_TYPE__;__INT_LEAST16_TYPE__;__INT_LEAST32_TYPE__;__INT_LEAST64_TYPE__;__UINT_LEAST8_TYPE__;__UINT_LEAST16_TYPE__;__UINT_LEAST32_TYPE__;__UINT_LEAST64_TYPE__;__INT_FAST8_TYPE__;__INT_FAST16_TYPE__;__INT_FAST32_TYPE__;__INT_FAST64_TYPE__;__UINT_FAST8_TYPE__;__UINT_FAST16_TYPE__;__UINT_FAST32_TYPE__;__UINT_FAST64_TYPE__;__INTPTR_TYPE__;__UINTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__WINT_MAX__;__SIZE_MAX__;__PTRDIFF_MAX__;__INTMAX_MAX__;__UINTMAX_MAX__;__SIG_ATOMIC_MAX__;__INT8_MAX__;__INT16_MAX__;__INT32_MAX__;__INT64_MAX__;__UINT8_MAX__;__UINT16_MAX__;__UINT32_MAX__;__UINT64_MAX__;__INT_LEAST8_MAX__;__INT_LEAST16_MAX__;__INT_LEAST32_MAX__;__INT_LEAST64_MAX__;__UINT_LEAST8_MAX__;__UINT_LEAST16_MAX__;__UINT_LEAST32_MAX__;__UINT_LEAST64_MAX__;__INT_FAST8_MAX__;__INT_FAST16_MAX__;__INT_FAST32_MAX__;__INT_FAST64_MAX__;__UINT_FAST8_MAX__;__UINT_FAST16_MAX__;__UINT_FAST32_MAX__;__UINT_FAST64_MAX__;__INTPTR_MAX__;__UINTPTR_MAX__;__WCHAR_MIN__;__WINT_MIN__;__SIG_ATOMIC_MIN__;__INT8_C;__INT16_C;__INT32_C;__INT64_C;__UINT8_C;__UINT16_C;__UINT32_C;__UINT64_C;__INTMAX_C;__UINTMAX_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__FLOAT_WORD_ORDER__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_WEAK__;__TIMESTAMP__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(ReferencePath)</ReferencePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" />
+    <SourcePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" />
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(ReferencePath)</ReferencePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='release|ARM'" />
+    <SourcePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'" />
+    <ExcludePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(ExcludePath)</ExcludePath>
+    <ExcludePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(ExcludePath)</ExcludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

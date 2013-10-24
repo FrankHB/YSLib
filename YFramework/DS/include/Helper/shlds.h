@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1328
+\version r1331
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-08-06 01:51 +0800
+	2013-10-23 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,8 +132,8 @@ public:
 	\since build 317
 
 	处理以下消息：
-	绘制消息 SM_PAINT ：调用 ShlDS::OnInput 。
-	输入消息 SM_INPUT ：分发按键处理后调用 OnInput。
+	绘制消息 SM_Paint ：调用 ShlDS::OnInput 。
+	输入消息 SM_Input ：分发按键处理后调用 OnInput。
 	其它消息传递至 GUIShell::OnGotMessage 。
 	*/
 	void

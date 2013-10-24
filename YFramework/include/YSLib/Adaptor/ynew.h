@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1165
+\version r1179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2013-08-05 21:04 +0800
+	2013-10-24 20:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,9 @@
 #include <list>
 #include <map>
 #include <cstdio>
-#include <ext/malloc_allocator.h> // for libstdc++ malloc allocator;
+#if YB_IMPL_GNUCPP
+#	include <ext/malloc_allocator.h> // for libstdc++ malloc allocator;
+#endif
 #include <ystdex/utility.hpp> // for ystdex::noncopyable;
 
 
@@ -85,6 +87,16 @@ class MemoryList;
 */
 YF_API MemoryList&
 GetDebugMemoryList();
+
+
+//! \since build 454
+template<typename _type>
+using MemoryListAllocator
+#if YB_IMPL_GNUCPP
+	= __gnu_cxx::malloc_allocator<_type>;
+#else
+	= std::allocator<_type>;
+#endif
 
 
 /*!
@@ -141,9 +153,9 @@ public:
 	};
 
 	using MapType = std::map<const void*, BlockInfo, std::less<const void*>,
-		__gnu_cxx::malloc_allocator<std::pair<const void* const, BlockInfo>>>;
+		MemoryListAllocator<std::pair<const void* const, BlockInfo>>>;
 	using ListType = std::list<std::pair<const void*, BlockInfo>,
-		__gnu_cxx::malloc_allocator<std::pair<const void*, BlockInfo>>>;
+		MemoryListAllocator<std::pair<const void*, BlockInfo>>>;
 
 	MapType Blocks;
 	ListType DuplicateDeletedBlocks;

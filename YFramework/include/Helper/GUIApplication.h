@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r303
+\version r304
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-10-11 01:00 +0800
+	2013-10-23 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,7 @@ public:
 	\note 优先级小于 UIResponseLimit 的消息时视为后台消息，否则为前台消息。
 
 	若主消息队列为空，处理空闲消息，否则从主消息队列取出并分发消息。
-	当取出的消息的标识为 SM_QUIT 时视为终止循环。
+	当取出的消息的标识为 SM_Quit 时视为终止循环。
 	对于后台消息，分发前调用后台消息处理程序：分发空闲消息并可进行时序控制。
 	*/
 	bool

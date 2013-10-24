@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1010
+\version r1013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-10-18 23:59 +0800
+	2013-10-23 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -439,7 +439,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		SetInvalidationOf(dsk_s);
 	}
 	);
-	ani.Renew(pnlTest1, Rect(48, 48, 96, 96));
+	ani.Update = AnimationTask::StateUpdater(&pnlTest1, true);
+	ani.Renew();
 	RequestFocusCascade(fbMain),
 	SetInvalidationOf(dsk_m),
 	SetInvalidationOf(dsk_s);
@@ -484,7 +485,7 @@ ShlExplorer::OnPaint()
 	auto& cbFPS(*p_ChkFPS);
 
 	// NOTE: Overriding member function %OnInput using %SM_TASK is also valid
-	//	because the %SM_INPUT message is sent continuously, but less efficient.
+	//	because the %SM_Input message is sent continuously, but less efficient.
 	if(cbFPS.IsTicked())
 	{
 		using namespace ColorSpace;

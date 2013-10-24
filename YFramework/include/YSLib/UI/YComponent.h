@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2373
+\version r2376
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2013-08-05 21:10 +0800
+	2013-10-23 19:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,7 +124,8 @@ using Drawing::PaintContext;
 namespace Messaging
 {
 
-DefMessageTarget(SM_PAINT, shared_ptr<UI::IWidget>)
+//! \since build 454
+DefMessageTarget(SM_Paint, shared_ptr<UI::IWidget>)
 
 } // namespace Messaging;
 

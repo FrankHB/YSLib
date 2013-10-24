@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1029
+\version r1034
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-08-27 18:58 +0800
+	2013-10-23 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ namespace platform
 \since build 409
 */
 #define YCL_FS_StringIsCurrent(_s, _p) \
-	(ystdex::string_length(_s) == 1 && _s[0] == yJOIN(_p, '.'))
+	(ystdex::string_length(_s) == 1 && _s[0] == YPP_Concat(_p, '.'))
 
 /*
 \brief 判断字符串是否是父目录。
@@ -71,7 +71,7 @@ namespace platform
 */
 #define YCL_FS_StringIsParent(_s, _p) \
 	(ystdex::string_length(_s) == 2 \
-	&& _s[0] == yJOIN(_p, '.') && _s[1] == yJOIN(_p, '.'))
+	&& _s[0] == YPP_Concat(_p, '.') && _s[1] == YPP_Concat(_p, '.'))
 
 /*
 \def YCL_FS_CharIsDelimiter
@@ -107,7 +107,7 @@ namespace platform
 */
 using NativePathCharType = char;
 
-#	define YCL_FS_CharIsDelimiter(_c, _p) (_c == yjoin(_p, YCL_PATH_DELIMITER))
+#	define YCL_FS_CharIsDelimiter(_c, _p) (_c == YPP_Join(_p, YCL_PATH_DELIMITER))
 #	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
 
 /*!
@@ -142,7 +142,7 @@ yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
 using NativePathCharType = char;
 
 #	define YCL_FS_CharIsDelimiter(_c, _p) \
-	(_c == yJOIN(_p, '/') || _c == yJOIN(_p, '\\'))
+	(_c == YPP_Concat(_p, '/') || _c == YPP_Concat(_p, '\\'))
 #	define YCL_FS_StringIsRoot(_s, _p) \
 		(ystdex::string_length(_s) == 3 \
 		&& _s[1] == ':' && YCL_FS_CharIsDelimiter(_s[2], _p))

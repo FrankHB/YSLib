@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r235
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-10-06 17:04 +0800
+	2013-10-23 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ GUIApplication* pApp;
 inline Message
 FetchIdleMessage()
 {
-	return Message(SM_INPUT);
+	return Message(SM_Input);
 }
 
 /*!
@@ -112,7 +112,7 @@ GUIApplication::DealMessage()
 		// TODO: Consider the application queue to be locked for thread safety.
 		const auto i(Queue.cbegin());
 
-		if(YB_UNLIKELY(i->second.GetMessageID() == SM_QUIT))
+		if(YB_UNLIKELY(i->second.GetMessageID() == SM_Quit))
 			return false;
 		if(i->first < UIResponseLimit)
 			Idle(UIResponseLimit);

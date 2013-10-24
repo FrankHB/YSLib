@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1356
+\version r1359
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-08-06 01:49 +0800
+	2013-10-23 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,10 +84,10 @@ ShlDS::OnGotMessage(const Message& msg)
 {
 	switch(msg.GetMessageID())
 	{
-	case SM_PAINT:
+	case SM_Paint:
 		ShlDS::OnInput();
 		return;
-	case SM_INPUT:
+	case SM_Input:
 #if YCL_HOSTED
 		if(const auto p_wgt = imMain.Update())
 			imMain.DispatchInput(*p_wgt);

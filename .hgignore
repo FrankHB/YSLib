@@ -24,6 +24,9 @@ __gen_*.*
 *doc/header.*
 *.tlog
 *.lastbuildstate
+*.lastcodeanalysissucceeded
+*.nativecodeanalysis.all.xml
+*.nativecodeanalysis.xml
 *.unsuccessfulbuild
 *.ncb
 *.suo

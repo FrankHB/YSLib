@@ -11,26 +11,229 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r3870
+\version r4076
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-10-21 17:51 +0800
+	2013-10-25 03:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	Documentation::ChangeLog::PreAlpha4
 */
 
-// See "Meta.cpp" for meta discriptions.
+// See %Documentation::Meta for meta discriptions.
 
 $import $HISTORY;
 
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			/ %'Core' $=
+			(
+				/ %'YMessage' $=
+				(
+					/ @ "class %MessageQueue" $=
+					(
+						* $dev "wrong 'const Message&&' parameter"
+							@ "function %Push" $since b317,
+							// It should be 'Message&&' to enable move \
+								semantics.
+						/ DLD "all member functions except constructors"
+							-> "non-inlined member functions or with macros \
+							%(PDefH, ImplRet)"
+					),
+					/ @ "class %Message" $=
+					(
+						* "redundant declaration of %operator<" $since b317,
+						(
+						+ 'mutable' @ "declaration of member data %content";
+						- "const qualifier" @ "return type"
+							@ "member function %GetContent"
+						)
+					),
+					* "missing 'YF_API'" @ "friend function %operator== for \
+						%Message" $since b362
+				),
+				/ %'YMessageDefinition' $=
+				(
+					/ @ "enum %MessageSpace" $=
+					(
+						/ "value" @ "enumerator %Paint" -> '0x002F' ~ '0x00AF',
+						+ "enumerator declaration 'Bound = 0x0014,'"
+					),
+					/ "shell message macros" $=
+					(
+						/ "case of cases" -> "partial camel case"
+							~ "all capital" $=
+						(
+							/ "SM_NULL" = > "SM_Null",
+							/ "SM_SET" = > "SM_Set",
+							/ "SM_PAINT" = > "SM_Paint",
+							/ "SM_TASK" = > "SM_Task",
+							/ "SM_INPUT" = > "SM_Input"
+						),
+						/ "substitution with prefix 'YSLib::Messaging::'"
+							~ 'Messaging::',
+						(
+						(
+						$dep_from "%MessageSpace";
+						+ "macro %SM_Bound"
+						),
+						$dep_from "%YPP_Comma",
+						+ 'DefMessageTarget(SM_Bound, pair<shared_ptr<Shell>, \
+							Message>)'
+						),
+						(
+						$dep_from "%Message",
+						- "const qualifier" @ "return type"
+							@ "function template %FetchTarget"
+						)
+					)
+				),
+				/ @ "static member function %Shell::DefShlProc" @ %'YShell' $=
+				(
+					(
+					$dep_from %'YMessageDefinition';
+					+ "handling for %SM_Bound"
+					),
+					/ "return type" -> "%void" ~ "%int"
+				),
+				/ %'YObject' $=
+				(
+					+ "class template %HeldEqual";
+					+ "function template %AreEqualHeld";
+					/ "member function %operator="
+						@ "class templates %(ValueHolder, PointerHolder)"
+							^ "%AreEqualHeld"
+						~ "%ystdex::examiners::equal_examiner::are_equal"
+						// To keep weak_ptr equal comparable for holders.
+				),
+
+			),
+			/ @ "%class Animation" @ %'UI'.'Animation' $=
+			(
+				/ @ "class %StateUpdater" $=
+				(
+					* "missing 'YF_API'" $since b451,
+					(
+					+ "member 'IWidget* WidgetPtr'";
+					/ "member initializer"
+						-> "default constructor with 2 default arguments";
+					/ "updating" ^ "widget pointer"
+						~ "widget reference passed by parameter",
+					/ 'bool operator()(UI::IWidget&, const Rect&)'
+						-> 'bool operator()() const'
+					),
+					+ "explicitly defaulted copy constructor",
+					+ "explicitly defaulted copy %operator="
+				),
+				/ "constructor" ^ "%StateUpdate object as default";
+				+ "constructor with widget reference and priority as \
+					parameters",
+				- "static member functions %(AlwaysUpdate, UpdateOnce)",
+				- "all ('IWidget&', 'const Rect&')"
+					@ "type signatures except which in constructors"
+			),
+			/ %'Adaptor' $=
+			(
+				/ @ "namespace %YSLib" @ %'YReference' $=
+				(
+					+ 'using std::owner_less',
+					+ "function templates %operator(==; !=) for %weak_ptr",
+					- "unnecessary comparison template functions(==, !=) for \
+						'shared_ptr&&'",
+					+ DLD "explicit 'inline' for all comparison function \
+						templates"
+				),
+				/ $dev "made to be compatible with non-GNU implementation"
+					@ %'YNew' $=
+				(
+					/ "including '<ext/malloc_allocator.h>' only"
+						@ 'YB_IMPL_GNUCPP',
+					+ "alias template %MemoryListAllocator"
+				)
+			)
+		),
+		* "%platform::terminate wrongly called %std::terminate"
+			@ !"platform %DS" @ %'YCLib'.'YCommon' $since b296,
+		// This would cause infinite recusive call to %std::terminate, as \
+			currently did when initialized by %Helper::Initialization which \
+			set the C++ standard library terminate handler as \
+			%platform::terminate.
+	),
+	(
+	$dep_from %'YFramework'.'YSLib'.'UI'.'Animation';
+	* $comp "incomplete update of test animation" $since b451;
+	),
+	/ %'YBase' $=
+	(
+		/ %'YDefinition' $=
+		(
+			+ $doc "group %preprocessor_helpers"
+				$= (+ "macros %(YPP_Empty, YPP_Comma)"),
+			/ "macro %yjoin" => "YPP_Join",
+			/ "macro %yJOIN" => "YPP_Concat";
+			/ "macros %(YPP_Join, YPP_Concat)" => "group %preprocessor_helpers",
+			+ "macro definition %_CRT_SECURE_NO_WARNINGS"
+				@ 'YB_IMPL_MSCPP >= 1400',
+			* "wrong definition of macros %(YB_LIKELY, YB_UNLIKELY)"
+				@ !'YB_IMPL_GNUCPP >= 29600' $since b313
+		),
+		/ @ %'YStandardEx' $=
+		(
+			/ %'Any' $=
+			(
+				/ @ "class %any_ops::holder" $=
+				(
+					+ 'YB_API',
+					/ $dev "explicitly defaulted constructors as workaround \
+						guarded by conditional inclusion 'YB_IMPL_GNUCPP && \
+						YB_IMPL_GNUCPP < 47200'"
+						// Visual C++ 2013 complains about explicitly \
+							defaulted move constructor.
+				),
+				* $dev "missing excluding of 'pod_storage&'" @ "member \
+					(constructor template, function template %operator=)"
+					@ "class template %pod_storage" $since b352
+			),
+			+ "defaulted operator=" @ "class templates %(any_input_iterator, \
+				any_forward_iterator, any_bidirectional_iterator)"
+				@ %'AnyIterator';
+			+ "Microsoft Visual C++ 2013 compatibility" $=
+			(
+				+ "conditional not included corresponding code as workaround \
+					of compiler crash about 'YB_HAS_MEMBER(value)', \
+					%ystdex::has_mem_value"
+					@ 'YB_IMPL_MSCPP' @ %'TypeOperations',
+				+ "workaround of unsupported explicitly defaulted move \
+					constructor and move %operator=" @ "class templates" \
+					("%(container_adaptor, sequence_container_adaptor)"
+					@ %'Container', "%input_any_iterator" @ %'AnyIterator')
+			)
+		)
+	),
+	/ $dev $build "VC++ projects" $=
+	(
+		/ "set DS projects as platform %ARM",
+		/ "set Win32 projects with uniformed settings on project targets, \
+			optimization options(to default), VC++ directories, \
+			warning level('/W3'), character set(to default) and linker \
+			options(to default)"
+	),
+	+ $dev $repo "pattern globs ('*.lastcodeanalysissucceeded', \
+		'*.nativecodeanalysis.all.xml', '*.nativecodeanalysis.xml')"
+		@ "file %.hgignore"
+),
+
+b453
 (
 	/ %'YFramework'.'YSLib' $=
 	(
@@ -446,10 +649,10 @@ b448
 			)
 		),
 		+ "meta function template %(remove_rcv_t; exclude_self_ctor_t)"
-			@ %'TypeOperations'
+			@ %'TypeOperation'
 	),
 	(
-	$dep_from %'YBase'.'YStandardEx'.'TypeOperations';
+	$dep_from %'YBase'.'YStandardEx'.'TypeOperation';
 	/ DLD "all constructor template overloading excluding types to prevent \
 		copy/move constructor matched" ^ "%ystdex::exclude_self_ctor_t"
 		~ "%ystdex::enable_if_t";
@@ -538,7 +741,7 @@ b447
 			%ystdex::(decay_forward, decay_copy) calls",
 		/ "all %decay_forward calls" -> "'yforward' invocations"
 		- DLD "'std::' prefix for" ("names declared by using declaration"
-			@ %'TypeOperations') @ "namespace %ystdex except for using \
+			@ %'TypeOperation') @ "namespace %ystdex except for using \
 			declarations and macros",
 		- DLD 'public' @ "inherited %std::integral_constant \
 			instances(inclucding %std::(true_type, false_type))",
@@ -574,7 +777,7 @@ b447
 				sequence_project, sequence_project_t, sequence_reverse, \
 				sequence_reverse_t)",
 		),
-		/ %'TypeOperations' $=
+		/ %'TypeOperation' $=
 		(
 			+ "binary type traits templates %(is_covariant, is_contravariant)";
 			$dep_to "variant traits"
@@ -2673,7 +2876,7 @@ b412
 			- "typedef names %(const_path_t, path_t)" @ %'CStandardIO',
 			(
 			+ %'Variadic';
-			/ "variadic meta types" @ %'TypeOperations' >> %'Variadic'
+			/ "variadic meta types" @ %'TypeOperation' >> %'Variadic'
 			),
 			+ "struct %variadic_param; function template %varg" @ %'Functional',
 			/ %'Iterator' $=

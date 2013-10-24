@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r851
+\version r924
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2013-08-31 13:45 +0800
+	2013-10-24 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -260,8 +260,32 @@ public:
 	}
 	//! \since build 356
 	any_input_iterator(const any_input_iterator&) = default;
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	any_input_iterator(any_input_iterator&& i)
+		: any(static_cast<any&&>(i))
+	{}
+#else
 	//! \since build 356
 	any_input_iterator(any_input_iterator&&) = default;
+#endif
+
+	//! \since build 454
+	//@{
+	any_input_iterator&
+	operator=(const any_input_iterator&) = default;
+	any_input_iterator&
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	operator=(any_input_iterator&& i)
+	{
+		static_cast<any&>(*this) = static_cast<any&&>(i);
+		return *this;
+	}
+#else
+	operator=(any_input_iterator&&) = default;
+#endif
+	//@}
 
 	reference
 	operator*() const
@@ -365,7 +389,32 @@ public:
 		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
 	{}
 	any_forward_iterator(const any_forward_iterator&) = default;
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	any_forward_iterator(any_forward_iterator&& i)
+		: any_input_iterator(static_cast<any_input_iterator&&>(i))
+	{}
+#else
 	any_forward_iterator(any_forward_iterator&&) = default;
+#endif
+
+	//! \since build 454
+	//@{
+	any_forward_iterator&
+	operator=(const any_forward_iterator&) = default;
+	any_forward_iterator&
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	operator=(any_forward_iterator&& i)
+	{
+		static_cast<any_input_iterator&>(*this)
+			= static_cast<any_input_iterator&&>(i);
+		return *this;
+	}
+#else
+	operator=(any_forward_iterator&&) = default;
+#endif
+	//@}
 
 	any_forward_iterator&
 	operator++()
@@ -410,7 +459,32 @@ public:
 		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
 	{}
 	any_bidirectional_iterator(const any_bidirectional_iterator&) = default;
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	any_bidirectional_iterator(any_bidirectional_iterator&& i)
+		: any_forward_iterator(static_cast<any_forward_iterator&&>(i))
+	{}
+#else
 	any_bidirectional_iterator(any_bidirectional_iterator&&) = default;
+#endif
+
+	//! \since build 454
+	//@{
+	any_bidirectional_iterator&
+	operator=(const any_bidirectional_iterator&) = default;
+	any_bidirectional_iterator&
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	operator=(any_bidirectional_iterator&& i)
+	{
+		static_cast<any_forward_iterator&>(*this)
+			= static_cast<any_forward_iterator&&>(i);
+		return *this;
+	}
+#else
+	operator=(any_bidirectional_iterator&&) = default;
+#endif
+	//@}
 
 	any_bidirectional_iterator&
 	operator++()

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r2377
+\version r2398
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2013-09-01 22:20 +0800
+	2013-10-25 03:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,26 +49,35 @@ Shell::IsActive() const
 	return get_raw(FetchAppInstance().GetShellHandle()) == this;
 }
 
-int
+void
 Shell::DefShlProc(const Message& msg)
 {
 	switch(msg.GetMessageID())
 	{
-	case SM_SET:
+	case SM_Set:
 		{
-			auto h(FetchTarget<SM_SET>(msg));
+			auto h(FetchTarget<SM_Set>(msg));
 
-			return -!FetchAppInstance().Switch(h);
+			FetchAppInstance().Switch(h);
 		}
-	case SM_QUIT:
-		std::exit(FetchTarget<SM_QUIT>(msg));
 		break;
-	case SM_TASK:
-		FetchTarget<SM_TASK>(msg)();
+	case SM_Quit:
+		std::exit(FetchTarget<SM_Quit>(msg));
+		break;
+	case SM_Bound:
+		{
+			const auto& pr(FetchTarget<SM_Bound>(msg));
+			const auto h_shl(pr.first.lock());
+
+			if(YB_LIKELY(h_shl))
+				h_shl->OnGotMessage(pr.second);
+		}
+		break;
+	case SM_Task:
+		FetchTarget<SM_Task>(msg)();
 	default:
 		break;
 	}
-	return 0;
 }
 
 } // namespace Shells;

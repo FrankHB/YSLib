@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r2631
+\version r2650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 176
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2013-09-01 22:18 +0800
+	2013-10-23 23:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,8 @@ using ystdex::make_shared;
 using ystdex::make_unique;
 //! \since build 422
 using ystdex::get_raw;
+//! \since build 454
+using std::owner_less;
 using ystdex::reset;
 using ystdex::share_raw;
 using std::shared_ptr;
@@ -74,24 +76,25 @@ reset(_type*& p) ynothrow
 //@}
 
 /*!
-\brief 比较： shared_ptr 左值和内建指针类型的相等关系。
+\brief 比较： shared_ptr 和内建指针类型的相等关系。
 \since build 209
 */
 template<typename _type>
-bool
+inline bool
 operator==(const shared_ptr<_type>& sp, _type* p)
 {
 	return sp.get() == p;
 }
 /*!
-\brief 比较： shared_ptr 右值和内建指针类型的相等关系。
-\since build 209
+\brief 比较： weak_ptr 相等关系。
+\note 注意和 shared_ptr 比较托管对象指针的语义不同。
+\since build 454
 */
-template<typename _type>
-bool
-operator==(shared_ptr<_type>&& sp, _type* p)
+template<typename _type1, typename _type2>
+inline bool
+operator==(const weak_ptr<_type1>& x, const weak_ptr<_type2>& y)
 {
-	return sp.get() == p;
+	return !x.owner_before(y) && !y.owner_before(x);
 }
 
 /*!
@@ -99,20 +102,21 @@ operator==(shared_ptr<_type>&& sp, _type* p)
 \since build 209
 */
 template<typename _type>
-bool
+inline bool
 operator!=(const shared_ptr<_type>& sp, _type* p)
 {
 	return sp.get() != p;
 }
 /*!
-\brief 比较： shared_ptr 右值和内建指针类型的不等关系。
+\brief 比较： weak_ptr 不等关系。
+\note 注意和 shared_ptr 比较托管对象指针的语义不同。
 \since build 209
 */
-template<typename _type>
-bool
-operator!=(shared_ptr<_type>&& sp, _type* p)
+template<typename _type1, typename _type2>
+inline bool
+operator!=(const weak_ptr<_type1>& x, const weak_ptr<_type2>& y)
 {
-	return sp.get() != p;
+	return !(x == y);
 }
 
 } // namespace YSLib;

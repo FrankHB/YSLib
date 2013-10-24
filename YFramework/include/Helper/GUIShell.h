@@ -11,13 +11,13 @@
 /*!	\file GUIShell.h
 \ingroup Helper
 \brief GUI Shell 类。
-\version r106
+\version r108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:29 +0800
 \par 修改时间:
-	2013-10-11 01:00 +0800
+	2013-10-23 19:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,8 +66,8 @@ public:
 	\brief 消息处理函数。
 
 	处理以下消息：
-	绘制消息 SM_PAINT ：调用 GUIShell::OnInput 。
-	输入消息 SM_INPUT ：分发按键处理后调用 OnInput。
+	绘制消息 SM_Paint ：调用 GUIShell::OnInput 。
+	输入消息 SM_Input ：分发按键处理后调用 OnInput。
 	其它消息传递至 Shell::OnGotMessage 。
 	*/
 	void
