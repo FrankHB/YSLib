@@ -11,13 +11,13 @@
 /*!	\file Task.h
 \ingroup Core
 \brief 任务处理。
-\version r89
+\version r102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-06 22:08:26 +0800
 \par 修改时间:
-	2013-10-23 19:04 +0800
+	2013-11-02 03:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,20 @@ PostTask(_fCallable&& f, Messaging::Priority prior = Messaging::NormalPriority)
 
 namespace Messaging
 {
+
+/*!
+\brief 按更新条件和优先级通过消息队列部署任务。
+\since build 455
+*/
+template<typename _fCallable>
+void
+Renew(_fCallable update, Priority prior = Messaging::NormalPriority)
+{
+	PostTask([=]{
+		if(update())
+			Messaging::Renew(update, prior);
+	}, prior);
+}
 
 /*!
 \brief 可执行更新操作的任务。

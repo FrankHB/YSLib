@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4076
+\version r4141
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-10-25 03:44 +0800
+	2013-11-07 07:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,72 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	- $dev $build "redundant solution platforms %('Any CPU', 'Mixed Platforms')"
+		@ "VC++ project platform configuration",
+	/ %'YFramework' $=
+	(
+		/ %'Helper' $=
+		(
+			* "Win32 exception unhandled when host window has been destroyed"
+				@ "member function %HostRenderer::Update" @ "platform %Win32"
+				$since b426;
+		),
+		/ %'YSLib' $=
+		(
+			+ "function template %Messaging::Renew" @ %'Core'.'Task',
+			/ %'UI' $=
+			(
+				/ @ "namespace %UI" @ %'Animation' $=
+				(
+					(
+					$dep_from %'Core'.'Task';
+					+ "function templates \
+						%(AnimateTask; AnimateConnection; Animate)"
+					),
+					(
+					/ "class %StateUpdater" @ "class %AnimationTask"
+						-> "class %InvalidationUpdater" @ "namespace %UI";
+					- "class %AnimationTask",
+					+ "member function %InvalidationUpdater::IsLast",
+					+ "function %ResetState for %InvalidationUpdater"
+					),
+					+ "class template %GAnimationSession"
+					(
+					$dep_from %'YWidget';
+					/ "reduced invalidation when invisible to improve \
+						animation performance"
+					)
+				),
+				/ %'YWidget' $=
+				(
+					/ DLD "non-inline function %Invalidate of 1 parameter"
+						-> "inline function",
+					+ 2 "functions %InvalidateVisible"
+				)
+
+			)
+		),
+		/ $design "attached function name to several Win32 exception descriptions to \
+			distinguish different exception sources" @ %''
+			// Specially, only 4 %SetWindowPos are effected. It is primarily for \
+				debugging convenience, so function names in unnamed namespace are \
+				also used without any change.
+	),
+	/ %'YReader'.'ShlExplorer'
+	(
+		(
+		/ DLD "animation implementation" ^ %"GAnimationSession";
+		* "crashing on reentering reader shell" $since b451
+		),
+		(
+		$dep_from %'YFramework'.'YSLib'.'UI'.'Animation';
+		+ "button to control animation" @ %'YReader'.'ShlExplorer'
+		)
+	)
+),
+
+b454
 (
 	/ %'YFramework' $=
 	(

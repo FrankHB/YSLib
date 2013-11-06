@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r187
+\version r189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-09-23 19:04 +0800
+	2013-11-04 08:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,7 +106,7 @@ public:
 };
 
 /*!
-\brief 按 ::GetLastError 的结果和指定参数抛出 MinGW32::Win32Exception 对象。
+\brief 按 ::GetLastError 的结果和指定参数抛出 Windows::Win32Exception 对象。
 \since build 426
 */
 #	define YF_Raise_Win32Exception(...) \

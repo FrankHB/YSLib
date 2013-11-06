@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5520
+\version r5557
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-07 23:42 +0800
+	2013-11-06 15:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,25 +267,51 @@ YF_API void
 Hide(IWidget&);
 
 /*!
-\brief 无效化：使部件区域在直接和间接的窗口缓冲区中无效。
-\since build 224
-*/
-YF_API void
-Invalidate(IWidget&);
-/*!
 \brief 无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
 \since build 268
 */
 YF_API void
 Invalidate(IWidget&, const Rect&);
+/*!
+\brief 无效化：使部件区域在直接和间接的窗口缓冲区中无效。
+\since build 224
+*/
+inline PDefH(void, Invalidate, IWidget& wgt)
+	ImplExpr(Invalidate(wgt, GetSizeOf(wgt)))
 
 /*!
 \brief 无效化部件区域对应位置的父容器区域。
 \note 若不存在父容器则忽略。
+\sa Invalidate
 \since build 433
 */
 YF_API void
 InvalidateParent(IWidget&);
+
+//! \since build 455
+//@{
+/*!
+\brief 无效化：使相对于可见的部件的指定区域在直接和间接的窗口缓冲区中无效。
+\sa Invalidate
+*/
+YF_API void
+InvalidateVisible(IWidget&, const Rect&);
+/*!
+\brief 无效化：使可见的部件区域在直接和间接的窗口缓冲区中无效。
+\sa Invalidate
+*/
+inline PDefH(void, InvalidateVisible, IWidget& wgt)
+	ImplExpr(InvalidateVisible(wgt, GetSizeOf(wgt)))
+
+/*!
+\brief 无效化可见的部件区域对应位置的父容器区域。
+\note 若不存在可见的父容器则忽略。
+\sa InvalidateParent
+\sa InvalidateVisible
+*/
+YF_API void
+InvalidateVisibleParent(IWidget&);
+//@}
 
 /*!
 \brief 调用指定子部件的 Paint 事件绘制参数指定的事件发送者。

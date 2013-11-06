@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r311
+\version r316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-08-14 16:02 +0800
+	2013-11-07 06:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,7 +234,10 @@ public:
 		ImplExpr(std::swap(bitmap, pixmap.bitmap))
 };
 
-//! \since build 430
+/*!
+\relates HBitmap
+\since build 430
+*/
 inline DefSwap(ynothrow, HBitmap)
 
 

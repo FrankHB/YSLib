@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9068
+\version r9073
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-10-23 21:07 +0800
+	2013-11-05 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,9 +171,10 @@ Shell 和 Core 的关系是相对的，例如：
 为了利用以类为单位的封装性（包括访问权限控制），一般类内的成员函数以最小接口为主，而人本接口在类外紧接类定义声明为第一个参数为类的引用类型的非成员函数。
 可以适当使用友元简化接口和实现。
 
-@3.2.2 函数参数：
-尽量避免使用输出参数，特别是在最小接口中。
+@3.2.2 函数参数和返回类型：
+尽量使用返回值而不是输出参数传递结果，特别是在最小接口中。
 合理使用默认函数参数减少需要的函数重载版本。
+参数和返回类型选取规则参见 [Documentation::ProjectRules @@5.12.2] 。
 
 @3.2.3 模板参数：
 合理使用 ISO C++11 支持的函数模板的模板默认参数简化实现，减少需要的函数重载版本。
@@ -543,13 +544,14 @@ BASE_EXTENSIONS += ftbbox.c
 除了 MinGW32 的平台运行时外，所有外部链接库为静态库。除了 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 中。这样有利于以子库为单位的移植。
 
 @5.6 全局命名空间：
+基本规则参见 [Documentation::ProjectRules @@3.5] 。
 除了使用标准库命名空间 std 外如下所列。
 
 @5.6.1 标准库实现提供的附加命名空间：
  __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::Adaptor 使用。
 
 @5.6.2 YBase 引入的命名空间：
- YBase 使用的命名空间。
+ YBase 引入的主要命名空间唯一且和次级子项目的模块名称一致（但 YDefinition 此处同 YStandardEx ）。
  ystdex ：从 std 扩充的平台无关的实用程序 YStandard 。 YSLib 本体直接依赖于此命名空间。
  ytest ：测试框架设施 YTest 。
 

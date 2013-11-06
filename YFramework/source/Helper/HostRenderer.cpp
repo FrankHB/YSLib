@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r167
+\version r188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-10-02 22:52 +0800
+	2013-10-31 04:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,22 +128,27 @@ HostRenderer::Update(BitmapPtr buf)
 	YAssert(GetSizeOf(widget) == rbuf.GetSize(), "Mismatched size found.");
 
 	if(const auto p_wnd = GetWindowPtr())
-	{
-		auto& view(widget.get().GetView());
-		const auto& loc(view.GetLocation());
-		auto bounds(p_wnd->GetClientBounds());
-
-		if(!loc.IsZero())
+		try
 		{
-			bounds.GetPointRef() += loc;
-			view.SetLocation({});
-			rInvalidated = {{}, bounds.GetSize()};
-			Validate(widget, widget, {GetContext(), Point(), rInvalidated});
+			const auto& cbounds(p_wnd->GetClientBounds());
+			auto bounds(cbounds);
+			auto& view(widget.get().GetView());
+			const auto& loc(view.GetLocation());
+
+			if(!loc.IsZero())
+			{
+				bounds.GetPointRef() += loc;
+				view.SetLocation({});
+				rInvalidated = {{}, bounds.GetSize()};
+				Validate(widget, widget, {GetContext(), Point(), rInvalidated});
+			}
+			bounds.GetSizeRef() = view.GetSize();
+			if(bounds != cbounds)
+				p_wnd->SetClientBounds(bounds);
+			p_wnd->UpdateFrom(buf, rbuf);
 		}
-		bounds.GetSizeRef() = view.GetSize();
-		p_wnd->SetClientBounds(bounds);
-		p_wnd->UpdateFrom(buf, rbuf);
-	}
+		catch(Win32Exception&)
+		{}
 }
 
 } // namespace Host;

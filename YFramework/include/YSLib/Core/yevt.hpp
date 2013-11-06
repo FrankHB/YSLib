@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4500
+\version r4504
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-10-23 19:58 +0800
+	2013-11-07 06:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -506,7 +506,10 @@ AddUnique(GEvent<_tRet(_tParams...)>& evt, _type& obj,
 }
 //@}
 
-//! \since build 409
+/*!
+\relates GEvent
+\since build 409
+*/
 template<typename _tRet, typename... _tParams>
 inline DefSwap(ynothrow, GEvent<_tRet(_tParams...)>)
 

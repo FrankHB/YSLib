@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r182
+\version r295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2013-10-23 19:08 +0800
+	2013-11-06 19:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,66 +44,105 @@ namespace UI
 yconstexpr Messaging::Priority AnimationPriority(0x20);
 
 
-/*!
-\brief 动画自动更新任务。
-\since build 449
+//! \since build 455
+//@{
+//! \brief 按更新条件和优先级通过消息队列部署动画任务。
+template<typename _fCallable>
+void
+AnimateTask(_fCallable update,
+	Messaging::Priority prior = UI::AnimationPriority)
+{
+	Messaging::Renew(update, prior);
+}
 
-通过根据更新操作发送指定优先级的 SM_Task 消息无效化部件区域实现动画。
-*/
-class YF_API AnimationTask
-	: public Messaging::GAutoTask<std::function<bool()>>
+//! \brief 按指定的连接对象更新动画任务。
+template<typename _fCallable>
+void
+AnimateConnection(const shared_ptr<_fCallable>& conn,
+	Messaging::Priority prior = UI::AnimationPriority)
+{
+	YAssert(bool(conn), "Null pointer found.");
+
+	AnimateTask([=]{
+		return (*conn)();
+	}, prior);
+}
+
+//! \brief 按指定的可调用对象初始化为连接对象更新动画任务。
+template<typename _fCallable>
+void
+Animate(_fCallable&& f, Messaging::Priority prior = UI::AnimationPriority)
+{
+	using Callable = ystdex::decay_t<_fCallable>;
+
+	AnimateConnection(ystdex::make_shared<Callable>(yforward(f)), prior);
+}
+
+
+//! \brief 动画会话。
+template<typename _tCallable = std::function<bool()>>
+class GAnimationSession final
 {
 public:
-	using BaseType = Messaging::GAutoTask<std::function<bool()>>;
-	/*!
-	\brief 状态更新器。
-	\since build 454
-	*/
-	struct YF_API StateUpdater
+	using Connection = ystdex::decay_t<_tCallable>;
+	using ConnectionPtr = shared_ptr<Connection>;
+
+private:
+	ConnectionPtr conn;
+
+public:
+	DefDeCtor(GAnimationSession)
+	//! \brief 使用 ADL 调用 ResetState 函数复位连接对象状态以确保安全。
+	~GAnimationSession()
 	{
-		//! \since build 454
-		IWidget* WidgetPtr = {};
-		bool Ready = {};
+		if(conn)
+			ResetState(*conn);
+	}
 
-		//! \since build 454
-		StateUpdater(IWidget* p_wgt = {}, bool ready = {})
-			: WidgetPtr(p_wgt), Ready(ready)
-		{}
-
-		/*!
-		\brief 更新函数：无效化后根据成员指定是否需要发送 SM_Task 消息。
-		\since build 454
-		*/
-		bool
-		operator()() const;
-	};
-
-	//! \since build 451
-	//@{
-	AnimationTask(Messaging::Priority prior = AnimationPriority)
-		: BaseType(StateUpdater(), prior)
-	{}
-	//! \since build 454
-	AnimationTask(IWidget& wgt, Messaging::Priority prior = AnimationPriority)
-		: BaseType(StateUpdater(&wgt), prior)
-	{}
-	template<typename _fUpdater>
-	AnimationTask(_fUpdater f, Messaging::Priority prior = AnimationPriority)
-		: BaseType(f, prior)
-	{}
-	DefDeCopyCtor(AnimationTask)
-	DefDeMoveCtor(AnimationTask)
-	//@}
-
-	/*!
-	\warning 发送的 SM_Task 消息依赖参数指定部件的生存期。
-	\since build 454
-
-	调用更新操作，当结果为 true 时发送基类成员指定优先级的 SM_Task 消息。
-	*/
+	template<typename... _tParams>
 	void
-	Renew();
+	Reset(_tParams&&... args)
+	{
+		conn.reset(new Connection(yforward(args)...));
+	}
+
+	//! \brief 使用 ADL 调用 AnimateConnection 开始动画。
+	PDefH(void, Start, ) const
+		ImplExpr(AnimateConnection(conn))
+
+	DefGetter(const ynothrow, Connection&, ConnectionRef,
+		(YAssert(bool(conn), "Null pointer found."), *conn))
+	DefGetter(const ynothrow, const ConnectionPtr&, ConnectionPtr, conn)
 };
+
+
+//! \brief 状态更新器。
+class YF_API InvalidationUpdater
+{
+public:
+	IWidget* WidgetPtr;
+	bool Ready;
+
+private:
+	//! \brief 最后持续状态：保存更新函数的最后结果。
+	mutable bool last = {};
+
+public:
+	InvalidationUpdater(IWidget* p_wgt = {}, bool ready = {})
+		: WidgetPtr(p_wgt), Ready(ready)
+	{}
+
+	DefPred(const ynothrow, Last, last)
+
+	//! \brief 更新函数：无效化后根据成员指定是否需要发送 SM_Task 消息。
+	bool
+	operator()() const;
+};
+
+//! \relates InvalidationUpdater
+inline PDefH(void, ResetState, InvalidationUpdater& updater)
+	ImplExpr(updater.WidgetPtr = {})
+//@}
 
 } // namespace UI;
 

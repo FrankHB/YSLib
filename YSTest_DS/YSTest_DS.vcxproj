@@ -59,14 +59,14 @@
     <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\libnds\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.7.1\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
-    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(ReferencePath)</ReferencePath>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">
+    </ReferencePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" />
     <SourcePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" />
-    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(ReferencePath)</ReferencePath>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">
+    </ReferencePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='release|ARM'" />
     <SourcePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'" />
-    <ExcludePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(ExcludePath)</ExcludePath>
-    <ExcludePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(ExcludePath)</ExcludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>

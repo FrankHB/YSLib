@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1013
+\version r1032
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-10-23 19:09 +0800
+	2013-11-06 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,6 +170,8 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 		($type "Label")($bounds "4 4 104 22"))
 	(btnTestEx
 		($type "Button")($bounds "116 32 104 22"))
+	(btnTestAni
+		($type "Button")($bounds "8 64 104 22"))
 )
 )NPL"};
 
@@ -223,6 +225,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidgetN(Label, lblDragTest, node_pnlTest1)
 	DeclDynWidgetN(Button, btnEnterTest, node_pnlTest1)
 	DeclDynWidgetN(Button, btnTestEx, node_pnlTest1)
+	DeclDynWidgetN(Button, btnTestAni, node_pnlTest1)
 
 	p_border.reset(new BorderResizer(pnlTest1, 4));
 	p_ChkFPS = &cbFPS;
@@ -243,6 +246,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	SetVisibleOf(*pFrmAbout, false),
 	WrapForSwapScreens(dsk_m, SwapMask),
 	WrapForSwapScreens(dsk_s, SwapMask),
+	ani.Reset(&pnlTest1),
 	yunseq(
 	dsk_m.Background = ImageBrush(FetchImage(0)),
 	dsk_s.Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
@@ -268,6 +272,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	btnTestEx.Text = u"附加测试",
 	btnTestEx.HorizontalAlignment = TextAlignment::Left,
 	btnTestEx.VerticalAlignment = TextAlignment::Down,
+	btnTestAni.Text = u"开始动画",
 	btnEnterTest.Font.SetStyle(FontStyle::Italic),
 	btnEnterTest.Text = u"边界测试",
 	btnEnterTest.HorizontalAlignment = TextAlignment::Right,
@@ -383,6 +388,18 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Invalidate(lblTitle),
 		Invalidate(lblInfo);
 	},
+	FetchEvent<Click>(btnTestAni) += [&](CursorEventArgs&&){
+		auto& conn(ani.GetConnectionRef());
+
+		if(conn.IsLast())
+			yunseq(btnTestAni.Text = u"停止动画", conn.Ready = {});
+		else
+		{
+			yunseq(btnTestAni.Text = u"开始动画", conn.Ready = true),
+			ani.Start();
+		}
+		Invalidate(btnTestAni);
+	},
 	FetchEvent<Enter>(btnEnterTest) += [](CursorEventArgs&& e){
 		auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
@@ -439,8 +456,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		SetInvalidationOf(dsk_s);
 	}
 	);
-	ani.Update = AnimationTask::StateUpdater(&pnlTest1, true);
-	ani.Renew();
 	RequestFocusCascade(fbMain),
 	SetInvalidationOf(dsk_m),
 	SetInvalidationOf(dsk_s);

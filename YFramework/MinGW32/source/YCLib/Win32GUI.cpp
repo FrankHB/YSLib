@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r424
+\version r428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-09-15 18:56 +0800
+	2013-11-04 11:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, {}, 0, 0, w, h,
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
 		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos");
+		YF_Raise_Win32Exception("SetWindowPos @ ResizeWindow");
 }
 
 //! \since build 427
@@ -100,7 +100,7 @@ SetWindowBounds(::HWND h_wnd, int x, int y, int cx, int cy)
 	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, {}, x, y, cx, cy,
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
 		| SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos");
+		YF_Raise_Win32Exception("SetWindowPos @ SetWindowBounds");
 }
 //@}
 
@@ -194,7 +194,7 @@ WindowReference::Move(const Point& pt)
 	if(YB_UNLIKELY(!::SetWindowPos(hWindow, {}, pt.X, pt.Y, 0, 0,
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW
 		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos");
+		YF_Raise_Win32Exception("SetWindowPos @ WindowReference::Move");
 }
 
 void
@@ -410,7 +410,7 @@ HostWindow::HostWindow(NativeWindowHandle h)
 	if(YB_UNLIKELY(!::SetWindowPos(hWindow, {}, 0, 0, 0, 0, SWP_NOACTIVATE
 		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING
 		| SWP_NOSIZE | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos");
+		YF_Raise_Win32Exception("SetWindowPos @ HostWindow::HostWindow");
 
 	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
 

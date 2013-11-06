@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r143
+\version r145
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-10-16 02:30 +0800
+	2013-11-06 05:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,9 +52,9 @@ private:
 	//! \since build 444
 	unique_ptr<BorderResizer> p_border{};
 	//! \since build 451
-	AnimationTask ani{};
-	//! \since build 451
 	float rad = 0;
+	//! \since build 455
+	GAnimationSession<InvalidationUpdater> ani;
 
 protected:
 	//! \since build 436

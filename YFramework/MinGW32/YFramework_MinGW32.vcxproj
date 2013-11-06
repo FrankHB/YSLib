@@ -5,7 +5,7 @@
       <Configuration>debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="release__|Win32">
+    <ProjectConfiguration Include="release|Win32">
       <Configuration>release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>

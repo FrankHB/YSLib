@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4344
+\version r4367
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-10-06 16:29 +0800
+	2013-11-06 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,11 +109,6 @@ Hide(IWidget& wgt)
 }
 
 void
-Invalidate(IWidget& wgt)
-{
-	Invalidate(wgt, GetSizeOf(wgt));
-}
-void
 Invalidate(IWidget& wgt, const Rect& bounds)
 {
 	auto p_wgt(&wgt);
@@ -131,6 +126,29 @@ InvalidateParent(IWidget& wgt)
 {
 	if(const auto p_con = FetchContainerPtr(wgt))
 		Invalidate(*p_con, GetBoundsOf(wgt));
+}
+
+void
+InvalidateVisible(IWidget& wgt, const Rect& bounds)
+{
+	auto p_wgt(&wgt);
+	Rect r(bounds);
+
+	while(IsVisible(*p_wgt))
+	{
+		r = p_wgt->GetRenderer().CommitInvalidation(r);
+		r.GetPointRef() += GetLocationOf(*p_wgt);
+		if(!(p_wgt = FetchContainerPtr(*p_wgt)))
+			break;
+	}
+}
+
+void
+InvalidateVisibleParent(IWidget& wgt)
+{
+	if(IsVisible(wgt))
+		if(const auto p_con = FetchContainerPtr(wgt))
+			InvalidateVisible(*p_con, GetBoundsOf(wgt));
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file Animation.cpp
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r85
+\version r98
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-10-06 22:12:10 +0800
 \par 修改时间:
-	2013-10-22 11:53 +0800
+	2013-11-06 19:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,23 +34,16 @@ namespace UI
 {
 
 bool
-AnimationTask::StateUpdater::operator()() const
+InvalidationUpdater::operator()() const
 {
 	if(WidgetPtr)
 	{
-		Invalidate(*WidgetPtr);
-		return Ready;
+		InvalidateVisible(*WidgetPtr);
+		last = Ready;
 	}
-	return false;
-}
-
-void
-AnimationTask::Renew()
-{
-	PostTask([=]{
-		if(Update())
-			Renew();
-	}, TaskPriority);
+	else
+		last = false;
+	return last;
 }
 
 } // namespace UI;
