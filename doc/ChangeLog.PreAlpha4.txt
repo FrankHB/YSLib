@@ -11,26 +11,97 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4141
+\version r4225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-11-07 07:09 +0800
+	2013-11-10 16:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	Documentation::ChangeLog::PreAlpha4
 */
 
-// See %Documentation::Meta for meta discriptions.
+// See %Documentation::Meta for meta descriptions.
 
 $import $HISTORY;
 
 // Scope: [b400, $now];
 
 $now
+(
+	/ @ "library %FreeImage" $=
+	(
+		/ "simplified plugin functions" $=
+		(
+			/ "exposed struct %PluginNode",
+			+ "function %FreeImageEx_GetPluginNodeFromFIF",
+			- "functions %(FreeImage_GetFormatFromFIF, FreeImage_GetFIFMimeType, \
+				FreeImage_GetFIFExtensionList, FreeImage_GetFIFDescription, \
+				FreeImage_GetFIFRegExpr, FreeImage_FIFSupportsReading, \
+				FreeImage_FIFSupportsWriting, FreeImage_FIFSupportsExportBPP, \
+				FreeImage_FIFSupportsExportType, FreeImage_FIFSupportsICCProfiles, \
+				FreeImage_FIFSupportsNoPixels"
+				// These functions are unnecessary once struct %PluginNode is \
+					exposed.
+		),
+		/ $dev $build @ "makefiles" $=
+		(
+			+ "-std=c++11" @ "%CXXFLAGS" @ "MinGW32 makefile",
+			+ "-Wno-attribute" @ "%(CFLAGS, CXXFLAGS)" @ "MinGW32 makefile",
+			+ "-pipe" @ "%(CFLAGS, CXXFLAGS)" @ "(DS, MinGW32) makefiles",
+			- "-fpermissive" @ "%(CFLAGS, CXXFLAGS)" @ "DS makefile"
+		);
+		/ @ "recompiled"
+	),
+	/ %'YFramework' $=
+	(
+		/ %'YSLib'.'Adaptor'.'Image' $=
+		(
+			(
+			+ "class name declaration %MultiBitmapData";
+			+ "class %HMultiBitmap";
+			+ "function %swap for %HMultiBitmap"
+			),
+			/ @ "constructor %ImageCodec" $=
+			(
+				+ "FreeImage debug output process setting with 'YDTraceDe'",
+				+ "saving and restoring 'errno' during initializing FreeImage"
+			)
+		),
+		/ @ "namespace %platform" @ %'YCLib'.'YCommon' $=
+		(
+			$dep_from "namespace spelling error";
+			+ "function %FetchTraceThreshold";
+			/ "macro %YF_TraceLevel" ^ 'platform::FetchTraceThreshold()'
+				~ 'platform::Discriptions::Informative'
+		),
+
+	),
+	* $design "some spelling errors" $=
+	(
+		/ $doc @ "meta documentations" $since b393,
+		(
+		* "namespace %Discriptions" => "%Descriptions" @ %'YCommon' $since b432;
+		$dep_to "namespace spelling error"
+		),
+		/ $doc %'Documentation'.'ProjectRules' $since b436
+	),
+	/ DLB "project build options" $=
+	(
+		- $revert(b299) "all macro definitions of %_GLIBCXX_DEBUG"
+			@ "Code::Blocks projects" @ "platform %MinGW32",
+		- $revert(b297) '-D_GLIBCXX_DEBUG' @ "all macro %CFLAGS" @ "makefiles"
+			@ "platform %DS"
+		// See $2013-11 @ %Documentation::Workflow::Annual2013.
+	),
+	* "wrong button text" @ "animation test" @ %'YReader'.'ShlExplorer'
+		$since b455
+),
+
+b455
 (
 	- $dev $build "redundant solution platforms %('Any CPU', 'Mixed Platforms')"
 		@ "VC++ project platform configuration",
@@ -387,9 +458,15 @@ b453
 				+ 'const'
 			)
 		)
+	),
+	/ @ "recompiled library %FreeImage" $=
+	(
+		^ "libpng-1.6.6 with standard configuration header file \
+			%Source/LibPNG/pnglibconf.h" ~ "libpng-1.6.3",
+		* $dev "slash of 'Source/LibJPEG/simd' file list which would cause \
+			object file of assembly source not be cleaned by 'make clean' call"
+			$since b431
 	)
-	* $dev "slash of 'Source/LibJPEG/simd' file list which would cause object \
-		file of assembly source not be cleaned by 'make clean' call" $since b431
 ),
 
 b452
@@ -1892,7 +1969,7 @@ b431
 				/ "removed all spaces at end of lines",
 				/ "saved as UTF8 + BOM"
 			),
-			- "function only supported in Win32: %(FreeImage_LoadU, \
+			- "functions only supported in Win32: %(FreeImage_LoadU, \
 				FreeImage_SaveU, FreeImage_GetFileTypeU, \
 				FreeImage_GetFIFFromFilenameU, FreeImage_JPEGTransformU, \
 				FreeImage_JPEGCropU"),
@@ -1910,13 +1987,13 @@ b431
 					+ "SIMD assembly files" @ "source list",
 					+ "modified MinGW makefile"
 				),
-				^ "libpng-1.6.3 with stadard configuration header file \
+				^ "libpng-1.6.3 with standard configuration header file \
 					%Source/LibPNG/pnglibconf.h" ~ "libpng-1.5.13",
 				^ "zlib-1.2.8" ~ "zlib-1.2.7"
 			)
 		),
-		* $doc "missing license for FreeImage" $since b417;
-		+ $dev $doc "warning for using patched FreeType",
+		* $doc "missing license for FreeImage" $since b417,
+		+ $dev $doc "warning for using patched FreeType"
 	),
 	/ $dev $build "merged directories for %(YBase, YFramework) platform \
 		extensions"

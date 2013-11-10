@@ -27,6 +27,8 @@
 //	Normalized all EOL marker as CR+LF.
 //	Removed all spaces at end of lines.
 //	Saved as UTF8 + BOM.
+// Modified by FrankHB <frankhb1989@gmail.com>, 2013-11-09:
+//	Added typedef declaration of "Plugin" to keep source compatibility.
 
 #ifndef UTILITIES_H
 #define UTILITIES_H
@@ -72,6 +74,9 @@ void FreeImage_Aligned_Free(void* mem);
 #if defined(__cplusplus)
 extern "C" {
 #endif
+
+struct FI_PluginRec;
+typedef FI_PluginRec Plugin;
 
 /**
 Allocate a FIBITMAP with possibly no pixel data

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r306
+\version r440
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-08-31 17:25 +0800
+	2013-11-10 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,13 @@ static_assert(int(SamplingFilter::Box) == FILTER_BOX && int(
 //! \since build 431
 namespace
 {
+
+//! \since build 456
+void DLL_CALLCONV
+FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
+{
+	YTraceDe(Warning, "FreeImage failed, format = %d: %s.\n", int(fif), msg);
+}
 
 ::FreeImageIO u8_io{
 	[](void *buffer, unsigned size, unsigned nmemb, fi_handle h){
@@ -100,6 +107,20 @@ GetFormatFromFilename(const char16_t* filename)
 		str[i] = CHRLib::ToASCII(filename[i]);
 	str[len] = u'\0';
 	return ::FreeImage_GetFIFFromFilename(str);
+}
+
+FI_PluginRec&
+LookupPlugin(::FREE_IMAGE_FORMAT fif)
+{
+	if(auto p_node = ::FreeImageEx_GetPluginNodeFromFIF(fif))
+	{
+		if(const auto p_plugin = p_node->m_plugin)
+			return *p_plugin;
+		else
+			throw LoggedEvent("Invalid plugin node found.");
+	}
+	else
+		throw LoggedEvent("No proper plugin found.");
 }
 
 } // unnamed namespace;
@@ -200,9 +221,141 @@ HBitmap::Rescale(const Size& s, SamplingFilter sf)
 }
 
 
+class MultiBitmapData final
+{
+private:
+	bool read;
+	::fi_handle handle;
+	int load_flags;
+	std::reference_wrapper< ::FreeImageIO> io_ref;
+	std::reference_wrapper< ::FI_PluginRec> plugin_ref;
+	size_t page_count = 0;
+	void* data = {};
+
+public:
+	MultiBitmapData(::fi_handle, int, ::FI_PluginRec&, ::FreeImageIO& = u8_io,
+		bool = true) ynothrow;
+	MultiBitmapData(ImageFormat, std::FILE&, int = 0, ::FreeImageIO& = u8_io,
+		bool = true) ynothrow;
+	DefDelCopyCtor(MultiBitmapData)
+	~MultiBitmapData() ynothrow;
+
+	DefPred(const ynothrow, OpenForRead, read)
+
+	DefGetter(const ynothrow, size_t, PageCount, page_count)
+
+	::FIBITMAP*
+	LockPage(size_t = 0) const ynothrow;
+};
+
+MultiBitmapData::MultiBitmapData(::fi_handle h, int flags,
+	::FI_PluginRec& plugin, ::FreeImageIO& io, bool open_for_reading) ynothrow
+	: read(open_for_reading), handle(h), load_flags(flags), io_ref(io),
+	plugin_ref(plugin)
+{
+	io.seek_proc(handle, 0, SEEK_SET);
+	if(const auto open = plugin.open_proc)
+	{
+		data = open(&io_ref.get(), handle, open_for_reading);
+		if(const auto proc = plugin_ref.get().pagecount_proc)
+			page_count = proc(&io_ref.get(), handle, data);
+		else
+			page_count = 1;
+	}
+}
+MultiBitmapData::MultiBitmapData(ImageFormat fmt, std::FILE& f, int flags,
+	::FreeImageIO& io, bool open_for_reading) ynothrow
+	: MultiBitmapData(::fi_handle(&f), flags,
+	LookupPlugin(::FREE_IMAGE_FORMAT(fmt)), io, open_for_reading)
+{}
+MultiBitmapData::~MultiBitmapData() ynothrow
+{
+	if(const auto close = plugin_ref.get().close_proc)
+		close(&io_ref.get(), handle, data);
+}
+
+::FIBITMAP*
+MultiBitmapData::LockPage(size_t index) const ynothrow
+{
+	YAssert(index < page_count, "Invalid page index found.");
+
+	if(const auto load = plugin_ref.get().load_proc)
+		return load(&io_ref.get(), handle, int(index), load_flags, data);
+	return {};
+}
+
+
+//! \since build 456
+namespace
+{
+
+MultiBitmapData*
+LoadImagePages(ImageFormat fmt, std::FILE* fp, int flags) ynothrow
+{
+	if(fp)
+		try
+		{
+			return new MultiBitmapData(fmt, *fp, flags);
+		}
+		catch(std::exception&)
+		{}
+	return {};
+}
+MultiBitmapData*
+LoadImagePages(ImageFormat fmt, const char* filename, int flags = 0) ynothrow
+{
+	return LoadImagePages(fmt, ufopen(filename, "rb"), flags);
+}
+MultiBitmapData*
+LoadImagePages(ImageFormat fmt, const char16_t* filename, int flags = 0)
+	ynothrow
+{
+	return LoadImagePages(fmt, ufopen(filename, u"rb"), flags);
+}
+
+} // unnamed namespace;
+
+
+HMultiBitmap::HMultiBitmap(const char* filename)
+	: HMultiBitmap(filename, ::FreeImage_GetFIFFromFilename(filename))
+{}
+HMultiBitmap::HMultiBitmap(const char* filename, ImageFormat fmt)
+	: pages(LoadImagePages(fmt, filename))
+{
+	if(!pages)
+		throw LoggedEvent("Loading image pages failed.");
+}
+HMultiBitmap::HMultiBitmap(const char16_t* filename)
+	: HMultiBitmap(filename, GetFormatFromFilename(filename))
+{}
+HMultiBitmap::HMultiBitmap(const char16_t* filename, ImageFormat fmt)
+	: pages(LoadImagePages(fmt, filename))
+{
+	if(!pages)
+		throw LoggedEvent("Loading image pages failed.");
+}
+
+size_t
+HMultiBitmap::GetPageCount() const ynothrow
+{
+	return pages ? pages->GetPageCount() : 0;
+}
+
+HBitmap
+HMultiBitmap::Lock(size_t i) const
+{
+	return pages ? pages->LockPage(i) : nullptr;
+}
+
+
 ImageCodec::ImageCodec()
 {
+	// XXX: Thread safety of errno.
+	const auto old_errno(errno);
+
 	::FreeImage_Initialise(false);
+	::FreeImage_SetOutputMessageStdCall(FI_OutputMessage);
+	errno = old_errno;
 }
 ImageCodec::~ImageCodec() ynothrow
 {

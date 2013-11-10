@@ -11,20 +11,20 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r213
+\version r223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-10-23 01:47 +0800
+	2013-11-10 11:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	Documentation::Workflow::Annual2013
 */
 
-// See "Meta.cpp" for meta discriptions.
+// See "Meta.cpp" for meta descriptions.
 
 $import $WORKFLOW;
 $LINE-WIDTH-RESTRICT 0;
@@ -217,6 +217,17 @@ libmagic(https://github.com/glensc/file): rejected.
 	For hosted implementations, operation system or desktop environment based implementations may provide alternative more benifical interfaces for integrating custom/user-specified information of content types.
 	Also the depolying overhead of the magic databace files is significant.
 	For these reasons, this library is not suitable for YFramework, though may be fit for the low level indirect implentation esp. on POSIX systems.
+
+$2013-11:
+
+report.impl:
+	Marco '_GLIBCXX_DEBUG' should be removed as default, even in debug configuration.
+		The standard libray debugging interface introduced by macro '_GLIBCXX_DEBUG' of libstdc++ may be incompatible with libraries not built with this macro.
+		Though YSLib libraries are built with debug-aware configuration, currently the dependent libraries are not.
+		This particularly has effect on libFreeImage.a, which uses containers of C++ standard library internally. The instantialized template class across libraries are not the same, and not guaranteed to be binary compatible.
+			This would cause some functions of YSLib::Adaptor::Image go wrong.
+		Alternatively, if the debug interface of libstdc++ is needed, namespace 'std::__debug' can be explicitly used.
+		Removed such debug interface can also lead to smaller binaries and a little more runtime performance for debug configurations.
 
 ////
 

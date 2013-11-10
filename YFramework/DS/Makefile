@@ -1,5 +1,5 @@
 #
-#	Copyright by FrankHB 2009 - 2013.
+#	(C) 2009-2013 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r1875
+# Version = r1877
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2013-07-25 16:35 +0800
+# Updated = 2013-11-10 11:53 +0800
 # Encoding = ANSI
 
 
@@ -84,7 +84,7 @@ ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
 else
 ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -fno-omit-frame-pointer -D_GLIBCXX_DEBUG
+CFLAGS	+=	-g -O0 -fno-omit-frame-pointer
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++11 \

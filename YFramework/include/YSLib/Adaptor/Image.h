@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r316
+\version r383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-11-07 06:23 +0800
+	2013-11-09 17:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -239,6 +239,85 @@ public:
 \since build 430
 */
 inline DefSwap(ynothrow, HBitmap)
+
+
+//! \since build 456
+//@{
+/*!
+\brief 多页面位图数据。
+\note 仅公开类名。
+*/
+class MultiBitmapData;
+
+/*!
+\brief 多页面位图句柄：指向多页面位图数据。
+\note 共享复制且可转移。
+\todo 增加使用 ImageMemory 的构造函数。
+*/
+class YF_API HMultiBitmap final
+{
+public:
+	using DataPtr = shared_ptr<MultiBitmapData>;
+
+private:
+	DataPtr pages;
+
+public:
+	//! \throw LoggedEvent 读取失败。
+	//@{
+	/*
+	\brief 构造：使用指定 UTF-8 文件名。
+	\throw UnknownImageFormat 未知图像格式。
+	*/
+	HMultiBitmap(const char*);
+	//! \brief 构造：使用指定 UTF-8 文件名和指定格式。
+	HMultiBitmap(const char*, ImageFormat);
+	/*
+	\brief 构造：使用指定 UTF-16LE 文件名。
+	\throw UnknownImageFormat 未知图像格式。
+	*/
+	HMultiBitmap(const char16_t*);
+	//! \brief 构造：使用指定 UTF-16LE 文件名和指定格式。
+	HMultiBitmap(const char16_t*, ImageFormat);
+	/*
+	\brief 构造：使用指定字符串文件名。
+	\throw UnknownImageFormat 未知图像格式。
+	*/
+	template<class _tString, typename = decltype(&_tString()[0])>
+	HMultiBitmap(const _tString& filename)
+		: HMultiBitmap(&filename[0])
+	{}
+	//! \brief 构造：使用指定字符串文件名。
+	template<class _tString, typename = decltype(&_tString()[0])>
+	HMultiBitmap(const _tString& filename, ImageFormat fmt)
+		: HMultiBitmap(&filename[0], fmt)
+	{}
+	//@}
+	DefDeCopyCtor(HMultiBitmap)
+	DefDeMoveCtor(HMultiBitmap)
+
+	DefDeCopyAssignment(HMultiBitmap)
+	DefDeMoveAssignment(HMultiBitmap)
+
+	PDefHOp(bool, !, ) const ynothrow
+		ImplRet(!pages)
+
+	explicit DefCvt(const ynothrow, bool, bool(pages))
+
+	size_t
+	GetPageCount() const ynothrow;
+
+	HBitmap
+	Lock(size_t = 0) const;
+
+	//! \brief 交换。
+	PDefH(void, swap, HMultiBitmap& multi_pixmap) ynothrow
+		ImplExpr(std::swap(pages, multi_pixmap.pages))
+};
+
+//! \relates HMultiBitmap
+inline DefSwap(ynothrow, HMultiBitmap)
+//@}
 
 
 //! \since build 417

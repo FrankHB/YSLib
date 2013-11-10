@@ -3,6 +3,45 @@ Several files are modified based on official FreeImage version.
 Each file is licensed the same as the original project.
 Modifying are listed below.
 
+= Compatibility caveat
+Source and binary compatibility was kept before b456.
+Since b456, the "Plugin" struct is renamed (to avoid global namespace pollution), new interface are introduced, and some functions are removed.
+Unmodified library code should compile, but wrappers based on old code might not work as before.
+
+= Since build 456:
+Based on previous revision b431:
+Removed plugin functions: "FreeImage_GetFormatFromFIF", "FreeImage_GetFIFMimeType", "FreeImage_GetFIFExtensionList", "FreeImage_GetFIFDescription", "FreeImage_GetFIFRegExpr", "FreeImage_FIFSupportsReading", "FreeImage_FIFSupportsWriting", "FreeImage_FIFSupportsExportBPP", "FreeImage_FIFSupportsExportType", "FreeImage_FIFSupportsICCProfiles", "FreeImage_FIFSupportsNoPixels", "FreeImage_SetPluginEnabled", "FreeImage_IsPluginEnabled".
+In "../include/FreeImage.h",:
+  Exposed struct "PluginNode" as "FI_PluginNodeRec".
+  Added declaration of function "FreeImageEx_GetPluginNodeFromFIF".
+  Added macro "nullptr" for C compatibility.
+  Renamed struct "Plugin" to "FI_PluginRec".
+In "Source/Utilities.h"
+  Added typedef declaration of "Plugin" to keep source compatibility.
+In "Source/Plugin.h"
+  Removed unnecessary class name declaration "Plugin".
+  Moved struct "PluginNode" to public header.
+  Removed declaration of function "FreeImage_stricmp".
+  Removed including "Utilities.h".
+  Added typedef declaration of "PluginNode" to keep source compatibility.
+In "Source/FreeImage/Plugin.cpp"
+  Added definition of function "FreeImageEx_GetPluginNodeFromFIF".
+  Simplified implementation using C++11.
+  Made "PluginList::AddFakeNode" call "FreeImage_OutputMessageProc" on fail.
+
+= Since build 431:
+Based on previous revision b417:
+In "../include/FreeImage.h", "Source/FreeImage/Plugin.cpp", "Source/FreeImage/GetType.cpp" and "Source/FreeImageToolkit/JPEGTransform.cpp":
+  Removed functions only supported in Win32: "FreeImage_LoadU", "FreeImage_SaveU", "FreeImage_GetFileTypeU", "FreeImage_GetFIFFromFilenameU", "FreeImage_JPEGTransformU", "FreeImage_JPEGCropU".
+Confirmed for all modified above:
+  Removed all spaces at end of lines.
+  Saved as UTF-8 + BOM.
+  All EOL markers are normalized as CR+LF.
+Note: "Source/FreeImageToolkit/JPEGTransform.cpp" is excluded in the source list. The file is reserved for future use.
+Additional source of libjpeg-turbo-1.3.0 is now used to replace libjpeg-8d in "Source/LibJPEG".
+"Makefile.srcs" is edited properly to exclude unused files and to add libjepg-turbo source files.
+"Makefile.mingw" is modified to handle assembly files with NASM.
+
 = Since build 417:
 Based on official version 3.15.4:
 Removed "#include <memory.h>" in "Source/Utilities.h" to make it conforming to the ISO C/C++ standard.
@@ -13,20 +52,12 @@ In "../include/FreeImage.h":
 Disabled unused plugins and make placeholders in plugin list in "Source/Plugin.h" and "Source/FreeImage/Plugin.cpp".
 "Makefile.srcs" is edited properly to exclude unused files.
 
-= Since build 431:
-Based on previous revision b417:
-In "../include/FreeImage.h", "Source/FreeImage/Plugin.cpp", "Source/FreeImage/GetType.cpp" and "Source/FreeImageToolkit/JPEGTransform.cpp":
-Removed functions only supported in Win32: "FreeImage_LoadU", "FreeImage_SaveU", "FreeImage_GetFileTypeU", "FreeImage_GetFIFFromFilenameU", "FreeImage_JPEGTransformU", "FreeImage_JPEGCropU".
-Confirmed for all modified above:
-  Removed all spaces at end of lines.
-  Saved as UTF-8 + BOM.
-  All EOL markers are normalized as CR+LF.
-Note: "Source/FreeImageToolkit/JPEGTransform.cpp" is excluded in the source list. The file is reserved for future use.
-Additional source of libjpeg-turbo-1.3.0 is now used to replace libjpeg-8d in "Source/LibJPEG".
-"Makefile.srcs" is edited properly to exclude unused files and to add libjepg-turbo source files.
-"Makefile.mingw" is modified to handle assembly files with NASM.
-
 == Additional source replacement
+
+= Since build 452:
+Based on previous revision b431:
+Source files of libpng are updated to 1.6.6 from 1.6.3.
+Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16/1.6.6/lpng166.7z .
 
 = Since build 431:
 Based on official version 3.15.4:
@@ -38,20 +69,16 @@ Get the zlib source from http://sourceforge.net/projects/libpng/files/zlib/1.2.8
 Source files of libpng are updated to 1.6.3 from 1.5.13.
 Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16/older-releases/1.6.3/lpng163.7z .
 
-= Since build 452:
-Based on previous revision b431:
-Source files of libpng are updated to 1.6.6 from 1.6.3.
-Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16/1.6.6/lpng166.7z .
-
 == FreeImage build instructions
 FreeImage source files are required.
 Get the source from http://sourceforge.net/projects/freeimage/files/Source%20Distribution/3.15.4/FreeImage3154.zip .
-Note that the content of header file "FreeImage.h" is actually equivalent with the original file. It is not need to replace the original file for building the library.
 The output files of different platform will be put in the same directory "dist". Make sure it is cleaned before each build.
+See following sections before build.
 
 = Patching
 Use additional source above to replace specific parts of FreeImage source by directly copying(and overwriting existed files) to "Source/LibJPEG", "Source/ZLib" and "Source/LibPNG" respectively.
 Copy all files except this document in this directory to the source directory and overwrite original files before building the library.
+It is now required to replace the original header file "FreeImage.h" for building the library, though the content of header file "FreeImage.h" is actually equivalent with the original file before b456.
 
 = DS
 Currently only building on Windows is supported.

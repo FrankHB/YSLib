@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3485
+\version r3498
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-08-05 20:14 +0800
+	2013-11-10 11:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,9 +60,9 @@ terminate() ynothrow;
 
 /*!
 \brief 平台描述空间。
-\since build 432
+\since build 456
 */
-namespace Discriptions
+namespace Descriptions
 {
 
 /*!
@@ -81,7 +81,17 @@ enum RecordLevel : std::uint8_t
 	Debug = 0x70
 };
 
-} // namespace Discriptions;
+} // namespace Descriptions;
+
+
+/*!
+\brief 取动态跟踪等级阈值。
+\note 初始值 platform::Descriptions::Informative 。
+\warning 对于不支持 TLS 的实现非线程安全。
+\since build 456
+*/
+YF_API Descriptions::RecordLevel&
+FetchTraceThreshold();
 
 
 #if YB_Use_YTrace
@@ -91,7 +101,7 @@ enum RecordLevel : std::uint8_t
 \since build 432
 */
 #	ifndef YF_TraceLevel
-#		define YF_TraceLevel platform::Discriptions::Informative
+#		define YF_TraceLevel platform::FetchTraceThreshold()
 #	endif
 
 /*!

@@ -26,6 +26,12 @@
 //	Normalized all EOL marker as CR+LF.
 //	Removed all spaces at end of lines.
 //	Saved as UTF8 + BOM.
+// Modified by FrankHB <frankhb1989@gmail.com>, 2013-11-10:
+//	Removed unnecessary class name declaration "Plugin".
+//	Moved struct "PluginNode" to public header.
+//	Removed declaration of function "FreeImage_stricmp".
+//	Removed including "Utilities.h".
+//	Added typedef declaration of "PluginNode" to keep source compatibility.
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4786) // identifier was truncated to 'number' characters
@@ -35,84 +41,59 @@
 #define PLUGIN_H
 
 #include "FreeImage.h"
-#include "Utilities.h"
+#include <memory>
 
-// ==========================================================
-
-struct Plugin;
-
-// =====================================================================
-//  Plugin Node
-// =====================================================================
-
-FI_STRUCT (PluginNode) {
-	/** FREE_IMAGE_FORMAT attached to this plugin */
-	int m_id;
-	/** Handle to a user plugin DLL (NULL for standard plugins) */
-	void *m_instance;
-	/** The actual plugin, holding the function pointers */
-	Plugin *m_plugin;
-	/** Enable/Disable switch */
-	BOOL m_enabled;
-
-	/** Unique format string for the plugin */
-	const char *m_format;
-	/** Description string for the plugin */
-	const char *m_description;
-	/** Comma separated list of file extensions indicating what files this plugin can open */
-	const char *m_extension;
-	/** optional regular expression to help	software identifying a bitmap type */
-	const char *m_regexpr;
-};
+typedef FI_PluginNodeRec PluginNode;
 
 // =====================================================================
 //  Internal Plugin List
 // =====================================================================
 
-class PluginList {
+class PluginList
+{
 public :
+	std::map<int, std::unique_ptr<PluginNode>> m_plugin_map;
+
 	PluginList();
 	~PluginList();
 
-	FREE_IMAGE_FORMAT AddNode(FI_InitProc proc, void *instance = NULL, const char *format = 0, const char *description = 0, const char *extension = 0, const char *regexpr = 0);
+	FREE_IMAGE_FORMAT
+	AddNode(FI_InitProc proc, void *instance = {},
+		const char* format = {}, const char *description = {},
+		const char* extension = {}, const char *regexpr = {});
 
 	// Make placeholder for unused plugin.
 	FREE_IMAGE_FORMAT
 	AddFakeNode(const char* format);
 
-	PluginNode *FindNodeFromFormat(const char *format);
-	PluginNode *FindNodeFromMime(const char *mime);
-	PluginNode *FindNodeFromFIF(int node_id);
-
-	int Size() const;
-	BOOL IsEmpty() const;
-
-private :
-	std::map<int, PluginNode *> m_plugin_map;
-	int m_node_count;
+	PluginNode*
+	FindNodeFromFormat(const char *format);
+	PluginNode*
+	FindNodeFromMime(const char *mime);
+	PluginNode*
+	FindNodeFromFIF(int node_id);
 };
 
 // ==========================================================
 //   Plugin Initialisation Callback
 // ==========================================================
 
-void DLL_CALLCONV FreeImage_OutputMessage(int fif, const char *message, ...);
-
-// =====================================================================
-// Reimplementation of stricmp (it is not supported on some systems)
-// =====================================================================
-
-int FreeImage_stricmp(const char *s1, const char *s2);
+void DLL_CALLCONV
+FreeImage_OutputMessage(int fif, const char *message, ...);
 
 // ==========================================================
 //   Internal functions
 // ==========================================================
 
 extern "C" {
-	BOOL DLL_CALLCONV FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle);
-    void * DLL_CALLCONV FreeImage_Open(PluginNode *node, FreeImageIO *io, fi_handle handle, BOOL open_for_reading);
-    void DLL_CALLCONV FreeImage_Close(PluginNode *node, FreeImageIO *io, fi_handle handle, void *data); // plugin.cpp
-    PluginList * DLL_CALLCONV FreeImage_GetPluginList(); // plugin.cpp
+	BOOL DLL_CALLCONV
+	FreeImage_Validate(FREE_IMAGE_FORMAT fif, FreeImageIO *io, fi_handle handle);
+    void* DLL_CALLCONV
+	FreeImage_Open(PluginNode *node, FreeImageIO *io, fi_handle handle, BOOL open_for_reading);
+    void DLL_CALLCONV
+	FreeImage_Close(PluginNode *node, FreeImageIO *io, fi_handle handle, void *data); // plugin.cpp
+    PluginList*
+	DLL_CALLCONV FreeImage_GetPluginList(); // plugin.cpp
 }
 
 // ==========================================================

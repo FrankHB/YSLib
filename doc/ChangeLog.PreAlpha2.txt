@@ -11,20 +11,20 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3238
+\version r3239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2013-10-24 20:53 +0800
+	2013-11-10 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	Documentation::ChangeLog::PreAlpha2
 */
 
-// See %Documentation::Meta for meta discriptions.
+// See %Documentation::Meta for meta descriptions.
 
 $import $HISTORY;
 

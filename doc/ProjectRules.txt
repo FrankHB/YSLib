@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r302
+\version r303
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-11-07 06:57 +0800
+	2013-11-10 09:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,7 +161,7 @@
 和项目运行和质量直接相关的问题应被记录。记录内容参见 [Documentation::Meta] 。
 间接的问题和备忘可记录于汇总的年度报告(annual report) 中。
 
-@2.3.2 工程描述文档(enginerring discription document) ：
+@2.3.2 工程描述文档(enginerring description document) ：
 以工程方式控制项目运行和质量的规则描述文档称为工程描述文档，包括本文档和 [Documentation::Designation] 。
 
 @2.3.3 缺陷(defect) ：

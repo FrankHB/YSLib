@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r669
+\version r674
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-11-05 12:26 +0800
+	2013-11-09 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -539,7 +539,12 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 @3 API 设计和风格概述：
 基本内容参见 [Documentation::Designation @@3] 。
 
-@3.1 字符编码：
+@3.1 异常使用规则：
+尽量保持异常中立。
+除了接口或实现非平台中立的部分（参见 @2.1.3 ），避免 catch(...) 以避免错误地捕获非 C++ 异常，参见 [Documentation::CommonRules @@5.10.5.6] 。
+所有平台中立的内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::CommonRules @@5.10.5.1.3]) 。
+
+@3.2 字符编码：
  YFramework 使用 UTF-8 作为外部文本编码。
 除非显式指定表示编码的参数或另有说明，以 char 作为字符类型的 C 风格字符串使用外部文本编码。
 关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.6] 。

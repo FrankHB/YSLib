@@ -29,6 +29,12 @@
 //	Saved as UTF8 + BOM.
 // Modified by FrankHB <frankhb1989@gmail.com>, 2013-07-20:
 //	Removed declarations of function only supported in Win32: "FreeImage_LoadU", "FreeImage_SaveU", "FreeImage_GetFileTypeU", "FreeImage_GetFIFFromFilenameU", "FreeImage_JPEGTransformU" and "FreeImage_JPEGCropU".
+// Modified by FrankHB <frankhb1989@gmail.com>, 2013-11-10:
+//	Exposed struct "PluginNode" as "FI_PluginNodeRec".
+//	Added declaration of function "FreeImageEx_GetPluginNodeFromFIF".
+//	Added macro "nullptr" for C compatibility.
+//  Removed declarations of function: "FreeImage_GetFormatFromFIF", "FreeImage_GetFIFMimeType", "FreeImage_GetFIFExtensionList", "FreeImage_GetFIFDescription", "FreeImage_GetFIFRegExpr", "FreeImage_FIFSupportsReading", "FreeImage_FIFSupportsWriting", "FreeImage_FIFSupportsExportBPP", "FreeImage_FIFSupportsExportType", "FreeImage_FIFSupportsICCProfiles", "FreeImage_FIFSupportsNoPixels", "FreeImage_SetPluginEnabled", "FreeImage_IsPluginEnabled".
+//	Renamed struct "Plugin" to "FI_PluginRec".
 
 #ifndef FREEIMAGE_H
 #define FREEIMAGE_H
@@ -105,6 +111,7 @@
 #define FI_ENUM(x)      enum x
 #define FI_STRUCT(x)	struct x
 #else
+#define nullptr NULL
 #define FI_DEFAULT(x)
 #define FI_ENUM(x)      typedef int x; enum x
 #define FI_STRUCT(x)	typedef struct x x; struct x
@@ -630,7 +637,7 @@ typedef BOOL (DLL_CALLCONV *FI_SupportsExportTypeProc)(FREE_IMAGE_TYPE type);
 typedef BOOL (DLL_CALLCONV *FI_SupportsICCProfilesProc)(void);
 typedef BOOL (DLL_CALLCONV *FI_SupportsNoPixelsProc)(void);
 
-FI_STRUCT (Plugin) {
+FI_STRUCT (FI_PluginRec) {
 	FI_FormatProc format_proc;
 	FI_DescriptionProc description_proc;
 	FI_ExtensionListProc extension_proc;
@@ -649,7 +656,27 @@ FI_STRUCT (Plugin) {
 	FI_SupportsNoPixelsProc supports_no_pixels_proc;
 };
 
-typedef void (DLL_CALLCONV *FI_InitProc)(Plugin *plugin, int format_id);
+FI_STRUCT (FI_PluginNodeRec) {
+	/** FREE_IMAGE_FORMAT attached to this plugin */
+	int m_id;
+	/** Handle to a user plugin DLL (NULL for standard plugins) */
+	void *m_instance;
+	/** The actual plugin, holding the function pointers */
+	FI_PluginRec* m_plugin;
+	/** Enable/Disable switch */
+	BOOL m_enabled;
+
+	/** Unique format string for the plugin */
+	const char *m_format;
+	/** Description string for the plugin */
+	const char *m_description;
+	/** Comma separated list of file extensions indicating what files this plugin can open */
+	const char *m_extension;
+	/** optional regular expression to help	software identifying a bitmap type */
+	const char *m_regexpr;
+};
+
+typedef void (DLL_CALLCONV *FI_InitProc)(FI_PluginRec* plugin, int format_id);
 
 #endif // PLUGINS
 
@@ -815,22 +842,14 @@ DLL_API BOOL DLL_CALLCONV FreeImage_SaveMultiBitmapToMemory(FREE_IMAGE_FORMAT fi
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterLocalPlugin(FI_InitProc proc_address, const char *format FI_DEFAULT(nullptr), const char *description FI_DEFAULT(nullptr), const char *extension FI_DEFAULT(nullptr), const char *regexpr FI_DEFAULT(nullptr));
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_RegisterExternalPlugin(const char *path, const char *format FI_DEFAULT(nullptr), const char *description FI_DEFAULT(nullptr), const char *extension FI_DEFAULT(nullptr), const char *regexpr FI_DEFAULT(nullptr));
 DLL_API int DLL_CALLCONV FreeImage_GetFIFCount(void);
-DLL_API int DLL_CALLCONV FreeImage_SetPluginEnabled(FREE_IMAGE_FORMAT fif, BOOL enable);
-DLL_API int DLL_CALLCONV FreeImage_IsPluginEnabled(FREE_IMAGE_FORMAT fif);
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFormat(const char *format);
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromMime(const char *mime);
-DLL_API const char *DLL_CALLCONV FreeImage_GetFormatFromFIF(FREE_IMAGE_FORMAT fif);
-DLL_API const char *DLL_CALLCONV FreeImage_GetFIFExtensionList(FREE_IMAGE_FORMAT fif);
-DLL_API const char *DLL_CALLCONV FreeImage_GetFIFDescription(FREE_IMAGE_FORMAT fif);
-DLL_API const char *DLL_CALLCONV FreeImage_GetFIFRegExpr(FREE_IMAGE_FORMAT fif);
-DLL_API const char *DLL_CALLCONV FreeImage_GetFIFMimeType(FREE_IMAGE_FORMAT fif);
 DLL_API FREE_IMAGE_FORMAT DLL_CALLCONV FreeImage_GetFIFFromFilename(const char *filename);
-DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsReading(FREE_IMAGE_FORMAT fif);
-DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsWriting(FREE_IMAGE_FORMAT fif);
-DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsExportBPP(FREE_IMAGE_FORMAT fif, int bpp);
-DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsExportType(FREE_IMAGE_FORMAT fif, FREE_IMAGE_TYPE type);
-DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsICCProfiles(FREE_IMAGE_FORMAT fif);
-DLL_API BOOL DLL_CALLCONV FreeImage_FIFSupportsNoPixels(FREE_IMAGE_FORMAT fif);
+
+// New Plugin Interface
+
+DLL_API const FI_PluginNodeRec* DLL_CALLCONV
+FreeImageEx_GetPluginNodeFromFIF(FREE_IMAGE_FORMAT);
 
 // Multipaging interface ----------------------------------------------------
 

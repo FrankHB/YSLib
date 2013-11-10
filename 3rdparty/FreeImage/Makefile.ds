@@ -27,9 +27,9 @@ INCDIR ?= $(DESTDIR)/usr/include
 
 MODULES = $(SRCS:.c=.o)
 MODULES := $(MODULES:.cpp=.o)
-CFLAGS ?= -c -O3 -Wno-attributes -fvisibility=hidden -DNO_LCMS
+CFLAGS ?= -c -O3 -pipe -Wno-attributes -fvisibility=hidden -DNO_LCMS
 CFLAGS += $(INCLUDE)
-CXXFLAGS ?= -c -O3 -Wno-attributes -fpermissive -fvisibility=hidden -Wno-ctor-dtor-privacy
+CXXFLAGS ?= -std=c++11 -c -O3 -pipe -Wno-attributes -fvisibility=hidden -Wno-ctor-dtor-privacy
 CXXFLAGS += $(INCLUDE)
 
 TARGET  = FreeImage

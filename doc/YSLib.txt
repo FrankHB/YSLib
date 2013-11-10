@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2280
+\version r2281
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-10-23 19:29 +0800
+	2013-11-09 16:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,7 +155,7 @@
 负责衔接和封装外部库，便于移植。
 除了 C++ 标准库以外，其它外部库的名称需要在此声明。
 直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
-除非另有说明，仅保证必要文件[Documentation::YFramework @@2.1.1] 提供接口中的可重入性和线程安全性同本体(@2.1) 。
+除非另有说明，仅保证必要文件[Documentation::YFramework @@2.1.1] 提供接口中的可重入性和线程安全性同本体([Documentation::YFramework @@2.1.4]) 。
 
 @2.1 外部库关联 YAdaptor ：
 默认行为如下：

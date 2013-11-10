@@ -11,20 +11,20 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r976
+\version r977
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-10-24 19:17 +0800
+	2013-11-10 09:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
 	Documentation::Meta
 */
 
-// This file contains meta discriptions and formal project information.
+// This file contains meta descriptions and formal project information.
 
 $META:
 //$configureation_for_custom_NPL_script_parser:
