@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r222
+\version r226
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2013-08-05 21:58 +0800
+	2013-11-14 19:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ using BookmarkList = vector<Bookmark::PositionType>;
 \warning 非虚析构。
 \since build 286
 */
-class ReadingList : private GAccessList<Bookmark>
+class ReadingList : private GAccessList<Bookmark>, private noncopyable
 {
 public:
 	/*!
@@ -101,8 +101,7 @@ public:
 	\brief 默认构造：阅读迭代器指向阅读记录末尾。
 	\since build 404
 	*/
-	ReadingList() = default;
-	DefDelCopyCtor(ReadingList)
+	DefDeCtor(ReadingList)
 	DefDelMoveCtor(ReadingList)
 
 	//! \since build 399

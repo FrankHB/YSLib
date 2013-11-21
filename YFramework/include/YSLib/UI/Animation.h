@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r295
+\version r316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2013-11-06 19:30 +0800
+	2013-11-21 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,27 +116,41 @@ public:
 };
 
 
-//! \brief 状态更新器。
+/*!
+\brief 无效状态更新器。
+\warning 非虚析构。
+*/
 class YF_API InvalidationUpdater
 {
 public:
+	//! \since build 457
+	using Invalidator = std::function<bool(IWidget*)>;
 	IWidget* WidgetPtr;
-	bool Ready;
+	//! \brief 准备和最后持续状态：更新函数的最后结果。
+	mutable bool Ready;
 
-private:
-	//! \brief 最后持续状态：保存更新函数的最后结果。
-	mutable bool last = {};
+	/*!
+	\build 指示对于 WidgetPtr 用于判断是否继续动作的检查和无效化动作。
+	\note 当值为空时表示不执行动作。
+	\since build 457
+	*/
+	Invalidator Invalidate{DefaultInvalidate};
 
 public:
 	InvalidationUpdater(IWidget* p_wgt = {}, bool ready = {})
 		: WidgetPtr(p_wgt), Ready(ready)
 	{}
 
-	DefPred(const ynothrow, Last, last)
-
 	//! \brief 更新函数：无效化后根据成员指定是否需要发送 SM_Task 消息。
 	bool
 	operator()() const;
+
+	/*!
+	\build 默认无效化：对非空指针指向的部件调用 InvalidateVisible 。
+	\since build 457
+	*/
+	static bool
+	DefaultInvalidate(IWidget*);
 };
 
 //! \relates InvalidationUpdater

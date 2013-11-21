@@ -146,7 +146,11 @@ ifile_iterator::operator++()
 	if(YB_UNLIKELY(val == EOF))
 		stream = {};
 	else
-		value = val;
+	{
+		yassume(byte(val) == val);
+
+		value = byte(val);
+	}
 	return *this;
 }
 

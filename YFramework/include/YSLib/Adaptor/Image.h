@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r383
+\version r497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-11-09 17:58 +0800
+	2013-11-11 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,11 +55,55 @@ using BitPerPixel = u8;
 
 /*!
 \brief 图像格式。
-\note 和 ::FREE_IMAGE_FORMAT 兼容。
+\note 枚举值和 ::FREE_IMAGE_FORMAT 兼容。
 \see FreeImage 宏 FI_ENUM 。
-\since build 417
+\since build 457
 */
-using ImageFormat = int;
+enum class ImageFormat : int
+{
+	Unknown = -1,
+	BMP = 0,
+	ICO = 1,
+	JPEG = 2,
+	GIF = 25
+};
+
+
+/*!
+\brief 图像解码器标识。
+\note 数值对应 FreeImage 实现。
+\since build 457
+*/
+enum class ImageDecoderFlags : int
+{
+	Default = 0,
+	GIF_Load256 = 1,
+	GIF_Playback = 2,
+	ICO_MakeAlpha = 1,
+	JPEG_Fast = 0x0001,
+	JPEG_Accurate = 0x0002,
+	JPEG_CMYK = 0x0004,
+	JPEG_EXIFRotate = 0x0008,
+	JPEG_GreyScale = 0x0010,
+	JPEG_QualitySuperb = 0x80,
+	JPEG_QualityGood = 0x0100,
+	JPEG_QualityNormal = 0x0200,
+	JPEG_QualityAverage = 0x0400,
+	JPEG_QualityBad = 0x0800,
+	JPEG_Progressive = 0x2000,
+	JPEG_Subsampling_411 = 0x1000,
+	JPEG_Subsampling_420 = 0x4000,
+	JPEG_Subsampling_422 = 0x8000,
+	JPEG_Subsampling_444 = 0x10000,
+	JPEG_Optimize = 0x20000,
+	JPEG_Baseline = 0x40000
+};
+
+/*!
+\relates ImageDecoderFlags
+\since build 457
+*/
+DefBitmaskEnum(ImageDecoderFlags)
 
 
 /*!
@@ -141,41 +185,48 @@ public:
 	HBitmap(const Size&, BitPerPixel = 0);
 	/*!
 	\throw LoggedEvent 读取失败。
-	\since build 431
+	\since build 457
 	*/
 	//@{
 	/*
-	\brief 构造：使用指定 UTF-8 文件名。
+	\brief 构造：使用指定 UTF-8 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
-	HBitmap(const char*);
-	//! \brief 构造：使用指定 UTF-8 文件名和指定格式。
-	HBitmap(const char*, ImageFormat);
+	HBitmap(const char*, ImageDecoderFlags = ImageDecoderFlags::Default);
+	//! \brief 构造：使用指定 UTF-8 文件名、指定格式和解码器标识。
+	HBitmap(const char*, ImageFormat,
+		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*
-	\brief 构造：使用指定 UTF-16LE 文件名。
+	\brief 构造：使用指定 UTF-16LE 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
-	HBitmap(const char16_t*);
-	//! \brief 构造：使用指定 UTF-16LE 文件名和指定格式。
-	HBitmap(const char16_t*, ImageFormat);
+	HBitmap(const char16_t*, ImageDecoderFlags = ImageDecoderFlags::Default);
+	//! \brief 构造：使用指定 UTF-16LE 文件名、指定格式和解码器标识。
+	HBitmap(const char16_t*, ImageFormat,
+		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*
-	\brief 构造：使用指定字符串文件名。
+	\brief 构造：使用指定字符串文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
 	template<class _tString, typename = decltype(&_tString()[0])>
-	HBitmap(const _tString& filename)
+	HBitmap(const _tString& filename,
+		ImageDecoderFlags = ImageDecoderFlags::Default)
 		: HBitmap(&filename[0])
 	{}
-	//! \brief 构造：使用指定字符串文件名。
+	//! \brief 构造：使用指定字符串文件名和解码器标识。
 	template<class _tString, typename = decltype(&_tString()[0])>
-	HBitmap(const _tString& filename, ImageFormat fmt)
+	HBitmap(const _tString& filename, ImageFormat fmt,
+		ImageDecoderFlags = ImageDecoderFlags::Default)
 		: HBitmap(&filename[0], fmt)
 	{}
 	//@}
+	/*!
+	\throw LoggedEvent 读取失败。
+	\since build 457
+	*/
+	HBitmap(const ImageMemory&, ImageDecoderFlags = ImageDecoderFlags::Default);
 	//! \since build 417
 	//@{
-	//! \throw LoggedEvent 读取失败。
-	HBitmap(const ImageMemory&);
 	/*!
 	\brief 构造指定图像缩放至指定大小的副本。
 	\throw LoggedEvent 缩放失败。
@@ -263,34 +314,42 @@ private:
 	DataPtr pages;
 
 public:
-	//! \throw LoggedEvent 读取失败。
+	/*!
+	\throw LoggedEvent 读取失败。
+	\since build 457
+	*/
 	//@{
 	/*
-	\brief 构造：使用指定 UTF-8 文件名。
+	\brief 构造：使用指定 UTF-8 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
-	HMultiBitmap(const char*);
-	//! \brief 构造：使用指定 UTF-8 文件名和指定格式。
-	HMultiBitmap(const char*, ImageFormat);
+	HMultiBitmap(const char*, ImageDecoderFlags = ImageDecoderFlags::Default);
+	//! \brief 构造：使用指定 UTF-8 文件名、指定格式和解码器标识。
+	HMultiBitmap(const char*, ImageFormat,
+		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*
-	\brief 构造：使用指定 UTF-16LE 文件名。
+	\brief 构造：使用指定 UCS-2LE 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
-	HMultiBitmap(const char16_t*);
-	//! \brief 构造：使用指定 UTF-16LE 文件名和指定格式。
-	HMultiBitmap(const char16_t*, ImageFormat);
+	HMultiBitmap(const char16_t*,
+		ImageDecoderFlags = ImageDecoderFlags::Default);
+	//! \brief 构造：使用指定 UCS-2LE 文件名、指定格式和解码器标识。
+	HMultiBitmap(const char16_t*, ImageFormat,
+		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*
-	\brief 构造：使用指定字符串文件名。
+	\brief 构造：使用指定字符串文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
 	template<class _tString, typename = decltype(&_tString()[0])>
-	HMultiBitmap(const _tString& filename)
-		: HMultiBitmap(&filename[0])
+	HMultiBitmap(const _tString& filename,
+		ImageDecoderFlags flags = ImageDecoderFlags::Default)
+		: HMultiBitmap(&filename[0], flags)
 	{}
-	//! \brief 构造：使用指定字符串文件名。
+	//! \brief 构造：使用指定字符串文件名和解码器标识。
 	template<class _tString, typename = decltype(&_tString()[0])>
-	HMultiBitmap(const _tString& filename, ImageFormat fmt)
-		: HMultiBitmap(&filename[0], fmt)
+	HMultiBitmap(const _tString& filename, ImageFormat fmt,
+		ImageDecoderFlags flags = ImageDecoderFlags::Default)
+		: HMultiBitmap(&filename[0], fmt, flags)
 	{}
 	//@}
 	DefDeCopyCtor(HMultiBitmap)
@@ -329,15 +388,31 @@ public:
 	~ImageCodec() ynothrow;
 
 	//! \since build 418
-	//@{
-	static CompactPixmap
-	Load(const vector<octet>&);
-
 	static CompactPixmap
 	Convert(const HBitmap&);
-	//@}
 //	static CompactPixmap
 //	Convert(HBitmap&&);
+
+	/*!
+	\brief 检测图像格式。
+	\note 对于文件，若根据内容检测失败则根据扩展名判断（不保证正确性）。
+	\since build 457
+	*/
+	//@{
+	//! \note 使用图像内存的本机句柄和大小。
+	static ImageFormat
+	DetectFormat(ImageMemory::NativeHandle, size_t);
+	//! \note 使用指定 UTF-8 文件名。
+	static ImageFormat
+	DetectFormat(const char*);
+	//! \note 使用指定 UCS-2LE 文件名。
+	static ImageFormat
+	DetectFormat(const char16_t*);
+	//@}
+
+	//! \since build 418
+	static CompactPixmap
+	Load(const vector<octet>&);
 };
 
 } // namespace Drawing;

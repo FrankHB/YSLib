@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r449
+\version r452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2013-08-05 21:56 +0800
+	2013-11-14 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ namespace UI
 \warning 非虚析构。
 \since build 257
 */
-class HexModel
+class HexModel : private noncopyable
 {
 private:
 	/*!
@@ -62,7 +62,6 @@ public:
 	HexModel(const char* path)
 		: pSource(new File(path))
 	{}
-	DefDelCopyCtor(HexModel)
 	DefDeMoveCtor(HexModel)
 
 	DefDeMoveAssignment(HexModel)

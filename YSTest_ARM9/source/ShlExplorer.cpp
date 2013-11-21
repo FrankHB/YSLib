@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1034
+\version r1035
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-11-10 16:31 +0800
+	2013-11-20 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,7 +391,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	FetchEvent<Click>(btnTestAni) += [&](CursorEventArgs&&){
 		auto& conn(ani.GetConnectionRef());
 
-		if(conn.IsLast())
+		if(conn.Ready)
 			yunseq(btnTestAni.Text = u"开始动画", conn.Ready = {});
 		else
 		{

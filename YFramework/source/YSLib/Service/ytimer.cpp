@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r805
+\version r813
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-08-05 21:31 +0800
+	2013-11-14 21:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,16 +38,15 @@ namespace
 
 bool NotInitialized(true);
 
+//! \since build 457
 void
-Init(Timer& tmr, bool b)
+InitClock()
 {
 	if(YB_UNLIKELY(NotInitialized))
 	{
 		StartTicks();
 		NotInitialized = {};
 	}
-	if(b)
-		Activate(tmr);
 }
 
 
@@ -72,12 +71,16 @@ Delay(const TimeSpan& ms)
 Timer::Timer(const Duration& i, bool b)
 	: nBase(), Interval(i)
 {
-	Init(*this, b);
+	InitClock();
+	if(b)
+		Activate(*this);
 }
 
 bool
 Timer::Refresh()
 {
+	YAssert(Interval != Duration::zero(), "Zero interval found.");
+
 	const auto tick(HighResolutionClock::now());
 
 	if(YB_LIKELY(tick < nBase + Interval))

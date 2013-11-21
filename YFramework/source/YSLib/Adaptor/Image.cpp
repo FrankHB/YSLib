@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r440
+\version r529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-11-10 15:52 +0800
+	2013-11-14 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,9 @@ void DLL_CALLCONV
 FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
 {
 	YTraceDe(Warning, "FreeImage failed, format = %d: %s.\n", int(fif), msg);
+
+	yunused(fif),
+	yunused(msg);
 }
 
 ::FreeImageIO u8_io{
@@ -96,6 +99,33 @@ LoadImage(ImageFormat fmt, const char16_t* filename, int flags = 0) ynothrow
 	return LoadImage(fmt, ufopen(filename, u"rb"), flags);
 }
 
+//! \since build 457
+//@{
+ImageFormat
+GetFileType(std::FILE* fp)
+{
+	if(fp)
+	{
+		const auto
+			fif(::FreeImage_GetFileTypeFromHandle(&u8_io, ::fi_handle(fp)));
+
+		std::fclose(fp);
+		return ImageFormat(fif);
+	}
+	return ImageFormat::Unknown;
+}
+ImageFormat
+GetFileType(const char* filename)
+{
+	return GetFileType(ufopen(filename, "rb"));
+}
+ImageFormat
+GetFileType(const char16_t* filename)
+{
+	return GetFileType(ufopen(filename, u"rb"));
+}
+//@}
+
 ImageFormat
 GetFormatFromFilename(const char16_t* filename)
 {
@@ -106,7 +136,7 @@ GetFormatFromFilename(const char16_t* filename)
 	for(size_t i{}; i < len; ++i)
 		str[i] = CHRLib::ToASCII(filename[i]);
 	str[len] = u'\0';
-	return ::FreeImage_GetFIFFromFilename(str);
+	return ImageFormat(::FreeImage_GetFIFFromFilename(str));
 }
 
 FI_PluginRec&
@@ -128,7 +158,7 @@ LookupPlugin(::FREE_IMAGE_FORMAT fif)
 
 ImageMemory::ImageMemory(octet* p, size_t size)
 	: handle(::FreeImage_OpenMemory(static_cast<byte*>(p), static_cast<
-	::DWORD>(size))), format(::FreeImage_GetFileTypeFromMemory(handle, size))
+	::DWORD>(size))), format(ImageCodec::DetectFormat(handle, size))
 {
 	if(!handle)
 		throw LoggedEvent("Opening image memory failed.");
@@ -145,27 +175,28 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 	if(!bitmap)
 		throw BadImageAlloc();
 }
-HBitmap::HBitmap(const char* filename)
-	: HBitmap(filename, ::FreeImage_GetFIFFromFilename(filename))
+HBitmap::HBitmap(const char* filename, ImageDecoderFlags flags)
+	: HBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
-HBitmap::HBitmap(const char* filename, ImageFormat fmt)
-	: bitmap(LoadImage(fmt, filename))
+HBitmap::HBitmap(const char* filename, ImageFormat fmt, ImageDecoderFlags flags)
+	: bitmap(LoadImage(fmt, filename, int(flags)))
 {
 	if(!bitmap)
 		throw LoggedEvent("Loading image failed.");
 }
-HBitmap::HBitmap(const char16_t* filename)
-	: HBitmap(filename, GetFormatFromFilename(filename))
+HBitmap::HBitmap(const char16_t* filename, ImageDecoderFlags flags)
+	: HBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
-HBitmap::HBitmap(const char16_t* filename, ImageFormat fmt)
-	: bitmap(LoadImage(fmt, filename))
+HBitmap::HBitmap(const char16_t* filename, ImageFormat fmt,
+	ImageDecoderFlags flags)
+	: bitmap(LoadImage(fmt, filename, int(flags)))
 {
 	if(!bitmap)
 		throw LoggedEvent("Loading image failed.");
 }
-HBitmap::HBitmap(const ImageMemory& mem)
+HBitmap::HBitmap(const ImageMemory& mem, ImageDecoderFlags flags)
 	: bitmap(::FreeImage_LoadFromMemory(::FREE_IMAGE_FORMAT(mem.GetFormat()),
-	mem.GetNativeHandle(), 0))
+	mem.GetNativeHandle(), int(flags)))
 {
 	if(!bitmap)
 		throw LoggedEvent("Loading image failed.");
@@ -221,7 +252,7 @@ HBitmap::Rescale(const Size& s, SamplingFilter sf)
 }
 
 
-class MultiBitmapData final
+class MultiBitmapData final : private noncopyable
 {
 private:
 	bool read;
@@ -237,7 +268,6 @@ public:
 		bool = true) ynothrow;
 	MultiBitmapData(ImageFormat, std::FILE&, int = 0, ::FreeImageIO& = u8_io,
 		bool = true) ynothrow;
-	DefDelCopyCtor(MultiBitmapData)
 	~MultiBitmapData() ynothrow;
 
 	DefPred(const ynothrow, OpenForRead, read)
@@ -316,20 +346,22 @@ LoadImagePages(ImageFormat fmt, const char16_t* filename, int flags = 0)
 } // unnamed namespace;
 
 
-HMultiBitmap::HMultiBitmap(const char* filename)
-	: HMultiBitmap(filename, ::FreeImage_GetFIFFromFilename(filename))
+HMultiBitmap::HMultiBitmap(const char* filename, ImageDecoderFlags flags)
+	: HMultiBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
-HMultiBitmap::HMultiBitmap(const char* filename, ImageFormat fmt)
-	: pages(LoadImagePages(fmt, filename))
+HMultiBitmap::HMultiBitmap(const char* filename, ImageFormat fmt,
+	ImageDecoderFlags flags)
+	: pages(LoadImagePages(fmt, filename, int(flags)))
 {
 	if(!pages)
 		throw LoggedEvent("Loading image pages failed.");
 }
-HMultiBitmap::HMultiBitmap(const char16_t* filename)
-	: HMultiBitmap(filename, GetFormatFromFilename(filename))
+HMultiBitmap::HMultiBitmap(const char16_t* filename, ImageDecoderFlags flags)
+	: HMultiBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
-HMultiBitmap::HMultiBitmap(const char16_t* filename, ImageFormat fmt)
-	: pages(LoadImagePages(fmt, filename))
+HMultiBitmap::HMultiBitmap(const char16_t* filename, ImageFormat fmt,
+	ImageDecoderFlags flags)
+	: pages(LoadImagePages(fmt, filename, int(flags)))
 {
 	if(!pages)
 		throw LoggedEvent("Loading image pages failed.");
@@ -360,17 +392,6 @@ ImageCodec::ImageCodec()
 ImageCodec::~ImageCodec() ynothrow
 {
 	::FreeImage_DeInitialise();
-}
-
-CompactPixmap
-ImageCodec::Load(const vector<octet>& vec)
-{
-	ImageMemory mem(const_cast<octet*>(&vec[0]), vec.size());
-
-	if(mem.GetFormat() == FIF_UNKNOWN)
-		throw UnknownImageFormat("Unknown image format found when loading.");
-
-	return Convert(HBitmap(mem));
 }
 
 CompactPixmap
@@ -411,6 +432,38 @@ ImageCodec::Convert(const HBitmap& pixmap)
 #else
 #	error "Unsupported pixel format found."
 #endif
+}
+
+ImageFormat
+ImageCodec::DetectFormat(ImageMemory::NativeHandle handle, size_t size)
+{
+	return ImageFormat(::FreeImage_GetFileTypeFromMemory(handle, size));
+}
+ImageFormat
+ImageCodec::DetectFormat(const char* filename)
+{
+	const auto fmt(GetFileType(filename));
+
+	return fmt == ImageFormat::Unknown
+		? ImageFormat(::FreeImage_GetFIFFromFilename(filename)) : fmt;
+}
+ImageFormat
+ImageCodec::DetectFormat(const char16_t* filename)
+{
+	const auto fmt(GetFileType(filename));
+
+	return fmt == ImageFormat::Unknown ? GetFormatFromFilename(filename) : fmt;
+}
+
+CompactPixmap
+ImageCodec::Load(const vector<octet>& vec)
+{
+	ImageMemory mem(const_cast<octet*>(&vec[0]), vec.size());
+
+	if(mem.GetFormat() == ImageFormat::Unknown)
+		throw UnknownImageFormat("Unknown image format found when loading.");
+
+	return Convert(HBitmap(mem));
 }
 
 } // namespace Drawing;

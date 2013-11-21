@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4225
+\version r4284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-11-10 16:35 +0800
+	2013-11-21 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,66 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib' $=
+	(
+		/ %'Adaptor'.'Image' $=
+		(
+			+ "3 static member functions %DetectFormat" @ "class %ImageCodec";
+			/ "detected file format firstly by type before by file extensions"
+				@ "classes %(HBitmap, HMultiBitmap)"
+			),
+			/ "FreeImage message output routine not produced warnings"
+				^ "%yunused",
+			(
+			+ "enum class %ImageDecoderFlag",
+				// Currently only values of GIF/ICO/JPEG are supported.
+			+ "decoder flags support" @ "constructors"
+				@ "classes %(HBitmap, HMultiBitmap)"
+			),
+			/ 'using ImageFormat = int;' -> "enum class %ImageFormat"
+		),
+		/ %'Service'.'Timer' $=
+		(
+			+ "assertion of non-zero interval" @ "member function %Timer::Refresh",
+			+ "function %Timers::CheckTimeout for %Timer"
+		),
+		/ %'UI' $=
+		(
+			(
+				$dep_from "%Timers::CheckTimeout";
+				/ "input state refreshing supported for zero interval"
+					@ "class %InputTimer" @ %'YGUI'
+			),
+			/ @ "class %InvalidationUpdater" @ %'Animation' $=
+			(
+				/ "merged last state as ready state" $=
+				(
+					+ 'mutable' @ "data member %Ready",
+						// Now the ready state would be modified if the \
+							animation is not lasted.
+					- "member function %IsLast"
+				),
+				(
+				+ 'using Invalidator = std::function<bool(IWidget*)>;',
+				+ "static member function %DefaultUpdater";
+				+ 'Invalidator Invalidate{DefaultInvalidate};';
+				/ "enabled custom invalidator" @ "member function %operator()"
+				)
+			)
+		)
+	),
+	/ %'YBase' $=
+	(
+		+ $design "assertion for non-EOF value" @ "%ifile_iterator::operator++"
+			@ %'YStandardEx'.'CStandardIO',
+		/ "warning level" @ "VC++ project" -> '/W4' ~ '/W3'
+	),
+	^ DLD "%noncopyable" ~ "all use of %DelCopyCtor" @ "class definitions",
+	^ "%DefDeCtor" ~ "class %ReadingList" @ %'YReader'.'ReadingList'
+),
+
+b456
 (
 	/ @ "library %FreeImage" $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file Animation.cpp
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r98
+\version r110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-10-06 22:12:10 +0800
 \par 修改时间:
-	2013-11-06 19:34 +0800
+	2013-11-21 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,14 +36,20 @@ namespace UI
 bool
 InvalidationUpdater::operator()() const
 {
-	if(WidgetPtr)
+	if(bool(Invalidate) && !Invalidate(WidgetPtr))
+		Ready = false;
+	return Ready;
+}
+
+bool
+InvalidationUpdater::DefaultInvalidate(IWidget* p_wgt)
+{
+	if(p_wgt)
 	{
-		InvalidateVisible(*WidgetPtr);
-		last = Ready;
+		InvalidateVisible(*p_wgt);
+		return true;
 	}
-	else
-		last = false;
-	return last;
+	return false;
 }
 
 } // namespace UI;

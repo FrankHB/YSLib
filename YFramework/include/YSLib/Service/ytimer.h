@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r978
+\version r996
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-08-31 14:11 +0800
+	2013-11-15 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,6 +125,10 @@ public:
 
 	DefGetter(const ynothrow, TimePoint, BaseTick, nBase)
 
+	//! \brief 激活：当时间间隔非零时同步时间基点。
+	YF_API friend void
+	Activate(Timer&);
+
 	/*!
 	\brief 延时。
 	\note 非阻塞，立即返回。
@@ -134,23 +138,26 @@ public:
 		ImplExpr(nBase += d)
 
 	/*!
-	\brief 刷新。
-	\return 是否有效。
+	\brief 刷新：对于非零时间间隔判断有效性并都更新时间基点。
+	\pre <tt>Interval != Duration::zero()</tt> 。
+	\return 是否有效：当前时刻已达到基点后的时间间隔。
 	*/
 	bool
 	Refresh();
-
-	/*!
-	\brief 激活：当时间间隔非零时同步时间基点。
-	*/
-	YF_API friend void
-	Activate(Timer&);
 };
+
+/*!
+\brief 检查超时：当前时刻到达计时器的时间基点后时间间隔指定的预定时刻。
+\relates Timer
+\since build 457
+*/
+inline PDefH(bool, CheckTimeout, Timer& tmr) ynothrow
+	ImplRet(tmr.Interval == Duration::zero() || tmr.Refresh())
 
 /*!
 \brief 测试是否未超时。
 \relates Timer
-\since 416
+\since build 416
 */
 inline PDefH(bool, Test, const Timer& tmr) ynothrow
 	ImplRet(HighResolutionClock::now() < tmr.GetBaseTick() + tmr.Interval)
