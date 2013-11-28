@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSWindow.h
 \ingroup Helper
 \brief DS 宿主窗口。
-\version r77
+\version r79
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2013-08-06 01:49 +0800
+	2013-11-26 19:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -34,7 +34,7 @@
 namespace YSLib
 {
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 

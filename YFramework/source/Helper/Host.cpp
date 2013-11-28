@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1218
+\version r1228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-09-01 22:19 +0800
+	2013-11-26 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ using namespace Drawing;
 namespace
 {
 
-#if YCL_MinGW32 && 0
+#if YCL_Win32 && 0
 yconstexpr double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 #endif
@@ -44,14 +44,14 @@ std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 } // unnamed namespace;
 
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 
 namespace
 {
 
-#	if YCL_MinGW32
+#	if YCL_Win32
 ::LRESULT CALLBACK
 WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 {
@@ -113,13 +113,13 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 
 Environment::Environment()
 	: wnd_map(), wmap_mtx()
-#	if YCL_MULTITHREAD == 1
+#	if YF_Multithread == 1
 	, wnd_thrd_count(),
-#		if YCL_MinGW32
+#		if YCL_Win32
 	RawMouseButton(0),
 #		endif
 	ExitOnAllWindowThreadCompleted()
-#		if YCL_MinGW32
+#		if YCL_Win32
 	, window_class(WindowClassName, WndProc)
 #		endif
 #	endif
@@ -139,7 +139,7 @@ Environment::~Environment()
 Window*
 Environment::GetForegroundWindow() const ynothrow
 {
-#ifdef YCL_MinGW32
+#ifdef YCL_Win32
 	return FindWindow(::GetForegroundWindow());
 #endif
 	return nullptr;
@@ -167,7 +167,7 @@ void
 Environment::HostLoop()
 {
 	YCL_DEBUG_PUTS("Host loop beginned.");
-#	if YCL_MinGW32
+#	if YCL_Win32
 	while(true)
 	{
 		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}}; //!< 本机消息。
@@ -194,7 +194,7 @@ Environment::HostLoop()
 	YCL_DEBUG_PUTS("Host loop ended.");
 }
 
-#	if YCL_MULTITHREAD == 1
+#	if YF_Multithread == 1
 void
 Environment::LeaveWindowThread()
 {

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r338
+\version r341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-08-08 20:45 +0800
+	2013-11-26 20:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,11 +34,11 @@ namespace YSLib
 
 using namespace Drawing;
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 
-#	if YCL_MinGW32
+#	if YCL_Win32
 Window::Window(NativeWindowHandle h)
 	: Window(h, FetchEnvironment())
 {}

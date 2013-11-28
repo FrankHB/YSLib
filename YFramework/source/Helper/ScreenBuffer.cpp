@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.cpp
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r170
+\version r173
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-08-05 21:19 +0800
+	2013-11-26 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,10 +33,10 @@ namespace YSLib
 
 using namespace Drawing;
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
-#	if YCL_MinGW32
+#	if YCL_Win32
 
 #	endif
 } // namespace Host;

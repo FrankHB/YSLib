@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r674
+\version r676
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-11-09 16:49 +0800
+	2013-11-28 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -360,7 +360,7 @@
 @2.1.3 平台相关性：
 除平台扩展外的 YFramework 公开接口是平台中立的（但 YCLib 和 Helper 接口可能会限定平台集合，如宿主实现环境）；
  YSLib 没有平台扩展。对 YSLib 的平台特定的功能扩展由 Helper 提供。
-平台扩展一般直接作为目标平台的接口，但也可以包括仅供实际目标平台模拟的接口。使用 YCL/Platform.h 中定义的平台宏([Documentation Designation @@5.2.2.3.1]) 确定程序实际运行的目标平台。
+平台扩展一般直接作为目标平台的接口，但也可以包括仅供实际目标平台模拟的接口。使用 YCL/Platform.h 中定义的平台宏([Documentation Designation @@5.2.2.4.1]) 确定程序实际运行的目标平台。
 
 @2.1.4 YSLib Adaptor 和本体：
  YSLib 中，目录 "/YFramework/Adaptor/" 下的部分称为 Adaptor [Documentation::YSLib @@2] ，其它部分总称为本体。
@@ -398,6 +398,7 @@
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
 @2.2.4 YFramework 引入的命名空间：
+ YCLib 在全局命名空间内引入命名空间 platform 和 platform_ex ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。
  除 YCLib 外， YFramework 引入的主要命名空间唯一且和次级子项目的模块名称一致。
  platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）于此命名空间。
  platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖于此命名空间。

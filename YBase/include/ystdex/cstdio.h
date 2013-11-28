@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r401
+\version r417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2013-08-02 03:44 +0800
+	2013-11-27 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,7 @@
 #ifndef YB_INC_ystdex_cstdio_h_
 #define YB_INC_ystdex_cstdio_h_ 1
 
-#include "../ydef.h"
-#include <cstdio>
+#include "cassert.h" // for ../ydef.h, <cstdio> and yconstraint;
 #include <ios> // for std::ios_base::openmode;
 #include <iterator>
 #include "memory.hpp" // for ystdex::is_undereferenceable;
@@ -80,10 +79,13 @@ protected:
 
 public:
 	using char_type = byte;
-	using istream_type = std::FILE;
 
 private:
-	istream_type* stream; //!< 流指针。
+	/*!
+	\brief 流指针。
+	\since build 458
+	*/
+	std::FILE* stream;
 	char_type value;
 
 public:
@@ -99,12 +101,16 @@ public:
 	{}
 	/*!
 	\brief 构造：使用流引用。
-	\pre <tt>stream</tt>。
-	\post <tt>stream == &s</tt> 。
+	\pre <tt>ptr</tt>。
+	\post <tt>stream == ptr</tt> 。
+	\since build 458
 	*/
-	ifile_iterator(istream_type& s)
-		: stream(&s)
+	explicit
+	ifile_iterator(std::FILE* ptr)
+		: stream(ptr)
 	{
+		yconstraint(ptr);
+
 		++*this;
 	}
 	/*!
@@ -158,7 +164,7 @@ public:
 		return x.stream == y.stream;
 	}
 
-	yconstfn istream_type*
+	yconstfn std::FILE*
 	get_stream() const
 	{
 		return stream;

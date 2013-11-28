@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r145
+\version r146
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2013-10-01 01:37 +0800
+	2013-11-26 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include <stdexcept> // for std::runtime_error;
 #if YCL_DS
 #	include <unistd.h>
-#elif YCL_MinGW32
+#elif YCL_Win32
 #	include <Windows.h>
 #	include <sys/stat.h>
 
@@ -75,7 +75,7 @@ MappedFile::MappedFile(const char* path)
 	addr = new ystdex::byte[st.st_size];
 
 	::read(fd, addr, st.st_size);
-#elif YCL_MinGW32
+#elif YCL_Win32
 //	const auto p(::mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0)));
 	const auto p(map_file(st.st_size, fd));
 
@@ -91,7 +91,7 @@ MappedFile::~MappedFile()
 {
 #if YCL_DS
 	delete addr;
-#elif YCL_MinGW32
+#elif YCL_Win32
 //	::munmap(addr, st.st_size);
 	::UnmapViewOfFile(addr);
 #endif

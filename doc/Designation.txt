@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9073
+\version r9087
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-11-05 12:25 +0800
+	2013-11-28 08:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -290,11 +290,14 @@ Shell 和 Core 的关系是相对的，例如：
 以下如无特别说明，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
 @5.1 平台配置：
-目标平台配置和 YCLib 平台定义文件(@5.2.2.3.1) 中定义的可支持平台对应。
+关于平台的详细含义参见 [Documentation::ProjectRules @@1.2] 。
+和本机语言实现相关的平台环境可使用经典系统类型名称(canonical system type name) 描述： architecture/vendor/OS/C library 四元组或 architecture/vendor/OS 三元组，除第一项外可能省略。
+ YFramework 平台配置不一定一一对应。
+目标平台配置和 YCLib 平台定义文件(@5.2.2.4.1) 中定义的公共平台对应。
 当前正式支持的目标平台：
-非宿主实现目标平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等）；
-宿主实现目标平台 MinGW32 （对应三元组 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
-目前除了 MinGW32 外，仅使用静态链接库链接至静态或动态目标。
+非宿主实现目标平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等，对应系统名 arm-eabi 或 arm-none-eabi ）；
+宿主实现目标平台 MinGW32 （对应系统名 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
+目前 DS 仅使用静态链接库链接至静目标。
 
 @5.1.1 配置管理：
 基本配置管理参见 [Documentation::ProjectRules @@2.1]。
@@ -341,17 +344,18 @@ Shell 和 Core 的关系是相对的，例如：
 但也存在例外， 如使用 ::OutputDebugStringA 。此时注意应该使相关字符串保持和 ANSI 及相关代码页的编码兼容，一般应仅使用 ASCII 。
 不使用被标记为过时的 API 如 IsBadReadPtr 。
 
-@5.2.2.3 平台文件：
+@5.2.2.4 平台文件：
 引入平台相关特性。
 
-@5.2.2.3.1 <Platform.h> ：
-定义了必要的平台支持。
-对正式支持的平台定义 YCL_ 起始的宏，保证替换得到的值非零。使用 #if （而不需要 #ifdef ）直接检测这些宏以确定是否支持。
+@5.2.2.4.1 <Platform.h> ：
+定义了必要的平台支持。另见 @5.1 。
+对正式支持的独立平台定义 YF_Platform_ 起始的宏。宏 YF_Platform 指示实际的独立平台。
+对正式支持的公共平台定义 YCL_ 起始的宏，保证替换得到的值非零。使用 #if （而不需要 #ifdef ）直接检测这些宏以确定是否支持。
 
-@5.2.2.3.2 <NativeAPI.h> ：
+@5.2.2.4.2 <NativeAPI.h> ：
 定义了扩展的平台 API 。
 
-@5.2.2.4 公共约束：
+@5.2.2.5 公共约束：
 命名空间 platform 的成员满足以下约束（具体要求的定义参见 ISO C++11 ）。
  YCLib::Viedo 的 PixelType 满足 EqualityComparable 要求。
 

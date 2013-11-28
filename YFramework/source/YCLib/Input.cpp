@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r206
+\version r211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2013-08-05 21:22 +0800
+	2013-11-26 20:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "YCLib/Input.h"
-#if YCL_MULTITHREAD == 1
+#if YF_Multithread == 1
 #	include <mutex>
 #	define YCL_DEF_LOCKGUARD(_lck, _mutex) \
 	std::lock_guard<std::mutex> _lck(_mutex);
@@ -66,7 +66,7 @@ namespace
 platform::KeyInput KeyStateA, KeyStateAKeyStateB;
 platform::KeyInput *pKeyState(&KeyStateA), *pOldKeyState(&KeyStateAKeyStateB);
 //@}
-#if YCL_MULTITHREAD == 1
+#if YF_Multithread == 1
 //! \since build 321
 std::mutex CompKeyMutex;
 std::mutex KeyMutex;
@@ -135,7 +135,7 @@ UpdateKeyStates()
 #endif
 #if YCL_DS
 	KeyState = ::keysCurrent();
-#elif YCL_MinGW32
+#elif YCL_Win32
 	// NOTE: 0x00 and 0xFF should be invalid.
 	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		pKeyState->set(i, ::GetAsyncKeyState(i) & 0x8000);
@@ -154,7 +154,7 @@ WriteCursor(platform::CursorInfo& tp)
 	else
 		// NOTE: %YSLib::Point::Invalid.
 		yunseq(tp.px = std::uint16_t(-1), tp.py = std::uint16_t(-1));
-#elif YCL_MinGW32
+#elif YCL_Win32
 	::GetCursorPos(&tp);
 #else
 #	error "Unsupported platform found."

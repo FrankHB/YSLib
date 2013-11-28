@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1034
+\version r1041
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-10-23 19:59 +0800
+	2013-11-27 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,10 @@
 //	ystdex::remove_reference_t, ystdex::arrlen;
 #include <ystdex/cstring.h> // for ystdex::is_null;
 #include <ystdex/string.hpp> // for ystdex::string_length, std::string;
-#include <CHRLib/encoding.h>
+#include "CHRLib/encoding.h"
+#if YCL_DS || YCL_MinGW32
 #include <dirent.h>
+#endif
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 
 namespace platform
@@ -115,7 +117,7 @@ using NativePathCharType = char;
 \since build 402
 */
 yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
-#elif YCL_MinGW32
+#elif YCL_Win32
 	/*!
 	\brief 文件路径分隔符。
 	\since build 296
@@ -162,12 +164,15 @@ static_assert(std::is_integral<decltype(YCL_PATH_DELIMITER)>::value,
 	"Illegal type of delimiter found.");
 static_assert(std::is_array<ystdex::remove_reference_t<decltype(
 	YCL_PATH_SEPARATOR)>>::value, "Non-array type of separator found.");
+//! \since build 458 as workaround for Visual C++ 2013
+#if YB_HAS_CONSTEXPR
 static_assert(ystdex::arrlen(YCL_PATH_SEPARATOR) == 2,
 	"Wrong length of separator found.");
 static_assert(YCL_PATH_SEPARATOR[0] == YCL_PATH_DELIMITER,
 	"Mismatched path delimiter and separator found.");
 static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 	"Non-null-terminator as end of separator.");
+#endif
 //@}
 
 //类型定义。

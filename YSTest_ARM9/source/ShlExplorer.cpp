@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1035
+\version r1037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-11-20 21:38 +0800
+	2013-11-26 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,7 +257,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	lblInfo.AutoWrapLine = true, lblInfo.Text = u"文件列表：请选择一个文件。",
 // TODO: Show current working directory properly.
 	btnOK.Text = u"确定(A)",
-#if YCL_MinGW32
+#if YCL_Win32
 	btnMenu.Text = u"菜单(P)",
 #else
 	btnMenu.Text = u"菜单(Start)",
@@ -479,7 +479,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		}
 	},
 	m2.GetConfirmed() += [&](IndexEventArgs&& e){
-#if YCL_MinGW32
+#if YCL_Win32
 		MinGW32::TestFramework(e.Value);
 #endif
 		if(e.Value == 0)

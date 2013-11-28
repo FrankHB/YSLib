@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2920
+\version r2964
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-09-26 13:43 +0800
+	2013-11-26 21:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,8 +167,6 @@ public:
 	{}
 	inline
 	pointer_iterator(const pointer_iterator&) = default;
-	inline
-	pointer_iterator(pointer_iterator&&) = default;
 
 	//! \since build 356
 	pointer_iterator&
@@ -338,15 +336,31 @@ public:
 	pseudo_iterator(value_type v)
 		: value(v)
 	{}
-	yconstfn inline
+	yconstfn
 	pseudo_iterator(const pseudo_iterator&) = default;
-	yconstfn inline
+	yconstfn
+#if YB_IMPL_MSCPP
+	//! \since build 458 as workaround for Visual C++ 2013
+	pseudo_iterator(pseudo_iterator&& i)
+		: value(std::move(i.value))
+	{}
+#else
 	pseudo_iterator(pseudo_iterator&&) = default;
+#endif
 
 	pseudo_iterator&
 	operator=(const pseudo_iterator&) = default;
 	pseudo_iterator&
+#if YB_IMPL_MSCPP
+	//! \since build 458 as workaround for Visual C++ 2013
+	operator=(pseudo_iterator&& i)
+	{
+		value = std::move(i.value);
+		return *this;
+	}
+#else
 	operator=(pseudo_iterator&&) = default;
+#endif
 
 	//! \since build 356
 	pseudo_iterator&
@@ -760,7 +774,17 @@ public:
 	inline pair_iterator&
 	operator=(const pair_iterator&) = default;
 	inline pair_iterator&
+#if YB_IMPL_MSCPP
+	//! \since build 458 as workaround for Visual C++ 2013
+	operator=(pair_iterator&& i)
+	{
+		static_cast<std::pair<_tMaster, _tSlave>&>(*this)
+			= static_cast<std::pair<_tMaster, _tSlave>&&>(i);
+		return *this;
+	}
+#else
 	operator=(pair_iterator&&) = default;
+#endif
 
 	//! \since build 356
 	pair_iterator&
@@ -939,7 +963,16 @@ public:
 	indirect_input_iterator&
 	operator=(const indirect_input_iterator&) = default;
 	indirect_input_iterator&
+#if YB_IMPL_MSCPP
+	//! \since build 458 as workaround for Visual C++ 2013
+	operator=(indirect_input_iterator&& i)
+	{
+		iter = std::move(i.iter);
+		return *this;
+	}
+#else
 	operator=(indirect_input_iterator&&) = default;
+#endif
 
 	pointer
 	operator->() const
@@ -1033,7 +1066,12 @@ operator!=(const indirect_input_iterator<_tIterator>& x,
 
 对字节分段提供的随机访问迭代器。
 */
+//! \note since build 458 as workaround for Visual C++ 2013 and Clang++ 3.4
+#if YB_IMPL_MSCPP || YB_IMPL_CLANGPP
+template<unsigned char _vN, bool _bEndian = false>
+#else
 template<unsigned char _vN, bool _bEndian = {}>
+#endif
 class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
 	byte, ptrdiff_t, byte*, byte&>
 {

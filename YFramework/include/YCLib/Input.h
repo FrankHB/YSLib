@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r405
+\version r408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2013-08-05 20:12 +0800
+	2013-11-26 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ struct YF_API CursorInfo final
 	 : public ::touchPosition
 #	define YCL_CURSOR_X px
 #	define YCL_CURSOR_Y py
-#elif YCL_MinGW32
+#elif YCL_Win32
 	 : public ::POINT
 #	define YCL_CURSOR_X x
 #	define YCL_CURSOR_Y y
@@ -104,7 +104,7 @@ namespace platform_ex
 \note 单线程环境且 KeyBitsetWidth 较小时适合指定直接定义。
 \since build 321
 */
-#if YCL_MULTITHREAD // || ...
+#if YF_Multithread // || ...
 #	define YCL_KEYSTATE_DIRECT 0
 #elif defined(YCL_DS)
 #	define YCL_KEYSTATE_DIRECT 1

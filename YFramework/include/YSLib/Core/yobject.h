@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3783
+\version r3785
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-10-24 00:53 +0800
+	2013-11-26 21:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,11 +80,13 @@ struct HasOwnershipOf : std::integral_constant<bool,
 \since build 332
 */
 DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 47200
 	//! \since build 353 as workaround for G++ 4.7.1
 	//@{
 	DefDeCopyCtor(IValueHolder)
 	DefDeMoveCtor(IValueHolder)
 	//@}
+#endif
 
 	DeclIEntry(bool operator==(const IValueHolder&) const)
 EndDecl

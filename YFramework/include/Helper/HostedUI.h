@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r159
+\version r161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-10-11 01:02 +0800
+	2013-11-26 20:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 namespace YSLib
 {
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 
@@ -107,7 +107,7 @@ WrapRenderer(UI::Widget& wgt, _tParams&&... args)
 YF_API void
 DragWindow(Window&, UI::CursorEventArgs&&);
 
-#	if YCL_MinGW32
+#	if YCL_Win32
 
 /*!
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。

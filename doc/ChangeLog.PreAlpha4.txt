@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4284
+\version r4381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-11-21 20:16 +0800
+	2013-11-28 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,104 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ $dev %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			+ "(2 static member function; function template) \
+				ImageCodec::LoadForPlaying" @ %'Adaptor'.'Image',
+			/ $dev "explicitly defaulted constructors as workaround \
+				guarded by conditional inclusion 'YB_IMPL_GNUCPP && \
+				YB_IMPL_GNUCPP < 47200'" @ "%IValueHolder" @ %'Core'.'YObject'
+		)
+		/ %'YCLib' $=
+		(
+			/ %'Platform' $=
+			(
+				/ "macro %YCL_PLATFORM_DS" => "%YF_Platform_DS",
+				/ "macro %YCL_PLATFORM_MINGW32" => "%YF_Platform_MinGW32",
+				/ "macro %YCL_PLATFORM" => "%YF_Platform",
+				/ "macro %YCL_HOSTED" => "%YF_Hosted",
+				(
+				+ "macro %YF_Platform_Win32",
+				+ "macro %YCL_Min32" @ "defined(YF_Platform == \
+					YF_Platform_MinGW32 || YF_Platform == YF_Platform_Win32)";
+				/ "macro %YCL_MULTITHREAD" -> "%YF_Multithread"
+					// Now defined as non-zero for Win32 platforms only when \
+						%_MT is defined.
+				)
+			),
+			(
+			$dep_from "%YCL_Win32",
+			/ $dev "all %YCL_MinGW32 without MinGW interface dependencies"
+				-> "%YCL_Win32"
+			),
+			+ $build "workaround of color enumerator constant definition without \
+				'constexpr' for Visual C++ 2013" @ %'Video';
+		),
+		* "missing '../MinGW/include' for inclusion" @ "Code::Blocks project"
+			@ "platform %MinGW32" $since b431
+	),
+	/ %'YBase' $=
+	(
+		/ $dev $build "specified option '/Za'" @ "VC++ project configuration",
+			// Disabled extensions.
+		/ %'YStandardEx' $=
+		(
+			* "wrong use of %yconstexpr for function templates" @ %'CString'
+				$since b329 $= (^ "%yconstfn" ~ "%yconstexpr"),
+				// This would cause warning C4180 on VC++ 2013 with warning \
+				level /W1.
+			/ $dev %'Iterator' $=
+			(
+				/ @ "class template %pointer_iterator" $=
+				(
+					- "explicitly defaulted move constructor";
+					* $comp "missing workaround of move constructor for Visual \
+						C++ 2013" $since b454
+				),
+				/ @ "class template %pseudo_iterator" $=
+				(
+					- "all 'yconstfn inline'" -> 'yconstfn',
+						// This would cause warning C4141 on VC++ 2013 with \
+							warning level /W1.
+					* "missing workaround of move constructor and move \
+						%operator= for Visual C++ 2013" $since b454
+				),
+				* "missing workaround of move %operator= for Visual C++ 2013"
+					@ "class templates %(pair_iterator, \
+					indirect_input_iterator)" $since b454
+				(
+				$dep_from "%YB_IMPL_CLANGPP";
+				+ "workaround for Visual C++ 2013 and Clang++ 3.4 of ''"
+				)
+			),
+			/ @ "class %ifile_iteraotr" @ %'CStandardIO' $=
+			(
+				/ "constructor for stream reference"
+					-> "explicit constructor for %std::FILE",
+				/ "return type" @ "member function %get_type" -> 'std::FILE*'
+					~ 'istream_type*';
+				- "%istream_type",
+				* $comp "incompatible for implementations with %std::FILE* \
+					as cv-void" $since b245
+					// See $2013-11 @ %Documentation::Workflow::Annual2013.
+			)
+		),
+		/ $dev %'YDefinition' $=
+		(
+			+ "macro %YB_IMPL_CLANGPP for LLVM/Clang++ implemntation",
+			+ '#	define ynothrow __attribute__ ((nothrow))'
+				@ "!YB_HAS_NOEXCEPT && YB_IMPL_GNUCPP >= 30300";
+				// For Visual C++ when 'YB_IMPL_MSCPP >= 1200', there exists \
+					'__declspec(nothrow)' with almost same semantics with \
+					'throw()' but different syntax.
+		)
+	)
+),
+
+b457
 (
 	/ %'YFramework'.'YSLib' $=
 	(

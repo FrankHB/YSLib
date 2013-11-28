@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief ARM9 主源文件。
-\version r1759
+\version r1760
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-10-04 23:01 +0800
+	2013-11-26 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,7 +217,7 @@ Repaint(Desktop& dsk)
 } // namespace YSLib;
 
 int
-#if YCL_MinGW32
+#if YCL_Win32
 WINAPI
 WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 //WinMain(HINSTANCE hThis, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmd)

@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r687
+\version r693
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-10-11 01:01 +0800
+	2013-11-26 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_Helper_Host_h_ 1
 
 #include "HostWindow.h" // for Host::Window;
-#if YCL_MULTITHREAD == 1
+#if YF_Multithread == 1
 #	include <mutex>
 #	include <atomic>
 #endif
@@ -37,7 +37,7 @@
 namespace YSLib
 {
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 
@@ -61,7 +61,7 @@ private:
 	\since build 381
 	*/
 	mutable std::mutex wmap_mtx;
-#	if YCL_MULTITHREAD == 1
+#	if YF_Multithread == 1
 	/*!
 	\brief 窗口线程计数。
 	\sa EnterWindowThrad, LeaveWindowThread
@@ -70,7 +70,7 @@ private:
 	std::atomic<size_t> wnd_thrd_count;
 
 public:
-#if YCL_MinGW32
+#if YCL_Win32
 	/*!
 	\brief 鼠标键输入。
 	\since build 423
@@ -110,7 +110,7 @@ public:
 	void
 	AddMappedItem(NativeWindowHandle, Window*);
 
-#	if YCL_MULTITHREAD == 1
+#	if YF_Multithread == 1
 	/*!
 	\brief 标记开始窗口线程，增加窗口线程计数。
 	\note 线程安全。
@@ -138,7 +138,7 @@ public:
 	static void
 	HostLoop();
 
-#	if YCL_MULTITHREAD == 1
+#	if YF_Multithread == 1
 	/*!
 	\brief 标记结束窗口线程，减少窗口线程计数并在计数为零时执行附加操作。
 	\since build 399

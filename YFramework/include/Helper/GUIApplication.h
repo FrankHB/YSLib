@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r304
+\version r308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2013-10-23 19:11 +0800
+	2013-11-26 20:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include "YSLib/Core/yapp.h"
 #include <ystdex/cast.hpp>
 #include "GUIShell.h"
-#if YCL_MinGW32
+#if YCL_Win32
 #	include "YCLib/Win32GUI.h"
 #endif
 
@@ -47,7 +47,7 @@ namespace YSLib
 */
 class YF_API GUIApplication : public Application
 {
-#if YCL_HOSTED
+#if YF_Hosted
 private:
 	/*!
 	\brief 宿主状态。
@@ -74,7 +74,7 @@ public:
 	*/
 	~GUIApplication() override;
 
-#if YCL_HOSTED
+#if YF_Hosted
 	Host::Environment&
 	GetHost();
 #endif
@@ -110,7 +110,7 @@ FetchGlobalInstance() ynothrow
 }
 //@}
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 

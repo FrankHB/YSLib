@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r656
+\version r658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-10-01 01:33 +0800
+	2013-11-26 20:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include <ydef.h>
 #include "YBaseMacro.h"
 
-#ifndef YCL_PLATFORM
+#ifndef YF_Platform
 #	error "Unknown platform found."
 #endif
 
@@ -99,7 +99,7 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 } // namespace platform_ex;
 
 
-#elif YCL_MinGW32
+#elif YCL_Win32
 
 #ifndef UNICODE
 #	define UNICODE 1

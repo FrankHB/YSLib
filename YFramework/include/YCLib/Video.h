@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r865
+\version r878
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-10-01 10:16 +0800
+	2013-11-27 22:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,7 +225,7 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 #	define DefColorH_(hex, name) name = \
 	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
 	| 1 << 15)
-#elif YCL_MinGW32
+#elif YCL_Win32
 	/*!
 	\brief 标识 XYZ888 像素格式。
 	\note 值表示按整数表示的顺序从高位到低位为 ARGB 。
@@ -268,6 +268,13 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 	AlphaType r, AlphaType g, AlphaType b) ynothrow
 	ImplRet(r | g << 8 | std::uint32_t(b) << 16)
 
+//! \since build 458 as workaround for Visual C++ 2013
+#	if YB_HAS_CONSTEXPR
+#		define YCL_FetchPixel(r, g, b) platform::FetchPixel(r, g, b)
+#	else
+#		define YCL_FetchPixel(r, g, b) ((r) | (g) << 8 | std::uint32_t(b) << 16)
+#	endif
+
 /*!
 \brief 定义 Windows DIB 格式兼容像素。
 \note 得到的 32 位整数和 ::RGBQUAD 在布局上兼容。
@@ -276,7 +283,7 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 \since build 296
 */
 #	define DefColorH_(hex, name) \
-	name = (FetchPixel((((hex) >> 16) & 0xFF), \
+	name = (YCL_FetchPixel((((hex) >> 16) & 0xFF), \
 		(((hex) >> 8) & 0xFF), ((hex) & 0xFF)) << 8 | 0xFF)
 #else
 #	error "Unsupported platform found."
@@ -318,6 +325,7 @@ enum ColorSet : PixelType::Trait::IntegerType
 	DefColorH(FFFF00, Yellow)
 };
 
+#undef YCL_FetchPixel
 #undef DefColorH
 #undef DefColorH_
 #undef HexAdd0x
@@ -360,7 +368,7 @@ public:
 #if YCL_DS
 		: r(px.GetR() << 3), g(px.GetG() << 3), b(px.GetB() << 3),
 		a(FetchAlpha(px) ? 0xFF : 0x00)
-#elif YCL_MinGW32
+#elif YCL_Win32
 		: r(px.GetR()), g(px.GetG()), b(px.GetB()), a(px.GetA())
 #endif
 	{}
@@ -372,7 +380,7 @@ public:
 	Color(ColorSet cs) ynothrow
 #if YCL_DS
 		: Color(PixelType(cs))
-#elif YCL_MinGW32
+#elif YCL_Win32
 		: r((cs & 0xFF00) >> 8), g((cs & 0xFF0000) >> 16),
 		b((cs & 0xFF000000) >> 24), a(0xFF)
 #endif
@@ -405,7 +413,7 @@ public:
 	{
 #if YCL_DS
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
-#elif YCL_MinGW32
+#elif YCL_Win32
 		return {b, g, r, a};
 #endif
 	}
@@ -528,7 +536,7 @@ YF_API void
 ScreenSynchronize(platform::PixelType*, const platform::PixelType*) ynothrow;
 #endif
 
-#if YCL_DS || YCL_HOSTED
+#if YCL_DS || YF_Hosted
 /*!
 \brief DS 显示状态。
 \note 对于 DS 提供实际的状态设置；对于宿主实现，仅保存状态。
@@ -536,7 +544,7 @@ ScreenSynchronize(platform::PixelType*, const platform::PixelType*) ynothrow;
 */
 class YF_API DSVideoState
 {
-#if YCL_HOSTED
+#if YF_Hosted
 private:
 	bool LCD_main_on_top = true;
 #endif

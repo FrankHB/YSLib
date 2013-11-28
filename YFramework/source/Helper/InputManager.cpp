@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r332
+\version r341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-09-05 12:40 +0800
+	2013-11-26 20:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ namespace Devices
 
 InputManager::InputManager()
 	: GUI_state(FetchGUIState()), cursor_state()
-#if YCL_HOSTED
+#if YF_Hosted
 	, env(Host::FetchEnvironment())
 #endif
 {}
@@ -49,7 +49,7 @@ InputManager::InputManager()
 #if YCL_DS
 #	define YCL_KEY_Touch KeyCodes::Touch
 #	define YCL_CURSOR_VALID
-#elif YCL_MinGW32
+#elif YCL_Win32
 #	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
 #else
@@ -60,7 +60,7 @@ InputManager::DispatchInput(IWidget& wgt)
 {
 	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
 		VisualEvent touch_evt){
-#if YCL_MinGW32
+#if YCL_Win32
 		if(keyset[YCL_KEY_Touch] || keyset[VK_RBUTTON] || keyset[VK_MBUTTON])
 #else
 		if(keyset[YCL_KEY_Touch])
@@ -83,7 +83,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	KeyInput keys(platform_ex::FetchKeyUpState());
 
 	disp(keys, KeyUp, TouchUp);
-#if YCL_MinGW32
+#if YCL_Win32
 	YCL_CURSOR_VALID
 	{
 		CursorEventArgs e(wgt, keys, cursor_state);
@@ -95,7 +95,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	disp(keys, KeyDown, TouchDown);
 	keys = platform_ex::FetchKeyState();
 	disp(keys, KeyHeld, TouchHeld);
-#if YCL_MinGW32
+#if YCL_Win32
 	const UI::WheelDelta raw_mouse(env.get().RawMouseButton);
 
 	if(raw_mouse != 0)
@@ -111,7 +111,7 @@ InputManager::DispatchInput(IWidget& wgt)
 IWidget*
 InputManager::Update()
 {
-#if YCL_MinGW32
+#if YCL_Win32
 	const auto p_wnd(env.get().GetForegroundWindow());
 
 	if(!p_wnd)
@@ -137,7 +137,7 @@ InputManager::Update()
 		platform_ex::WriteCursor(cursor);
 #if YCL_DS
 		cursor_state = cursor.operator Point();
-#elif YCL_MinGW32
+#elif YCL_Win32
 		::ScreenToClient(p_wnd->GetNativeHandle(), &cursor);
 
 		const auto& pr(p_wnd->GetInputBounds());
@@ -152,7 +152,7 @@ InputManager::Update()
 			cursor_state = Point::Invalid;
 #endif
 	}
-#if YCL_HOSTED
+#if YF_Hosted
 	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd))
 		return &p_render_wnd->GetRenderer().GetWidgetRef();
 #endif

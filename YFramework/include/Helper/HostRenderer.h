@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r264
+\version r266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-10-11 01:01 +0800
+	2013-11-26 19:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_Helper_HostRenderer_h_ 1
 
 #include "HostWindow.h" // for Host::Window;
-#if YCL_MULTITHREAD == 1
+#if YF_Multithread == 1
 #	include <thread>
 #endif
 #include "YSLib/UI/yrender.h"
@@ -39,7 +39,7 @@
 namespace YSLib
 {
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 

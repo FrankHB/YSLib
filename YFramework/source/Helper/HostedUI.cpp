@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r152
+\version r156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-09-14 03:21 +0800
+	2013-11-26 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ namespace YSLib
 using namespace Drawing;
 using namespace UI;
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 
@@ -69,7 +69,7 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 	}
 }
 
-#	if YCL_MinGW32
+#	if YCL_Win32
 
 void
 ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
@@ -85,7 +85,7 @@ ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
 void
 ShowTopLevelDraggable(UI::Widget& wgt)
 {
-#	if YCL_MinGW32
+#	if YCL_Win32
 	ShowTopLevel(wgt, WS_POPUP);
 #else
 #	error "Currently only Windows is supported."

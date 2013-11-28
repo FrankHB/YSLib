@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2403
+\version r2411
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2013-11-11 01:36 +0800
+	2013-11-28 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,11 +66,23 @@
 定义为 100 进位制的三重版本编号和。
 */
 
+/*!
+\def YB_IMPL_CLANGCPP
+\brief LLVM/Clang++ 实现支持版本。
+\since build 458
+
+定义为 100 进位制的三重版本编号和。
+*/
+
 #ifdef __cplusplus
 #	define YB_IMPL_CPP __cplusplus
 #	ifdef _MSC_VER
 #		undef YB_IMPL_MSCPP
 #		define YB_IMPL_MSCPP _MSC_VER
+#	elif defined(__clang__)
+#		undef YB_IMPL_CLANGPP
+#		define YB_IMPL_CLANGPP (__clang__ * 10000 + __clang_minor__ * 100 \
+			+ __clang_patchlevel__)
 #	elif defined(__GNUC__)
 #		undef YB_IMPL_GNUCPP
 #		define YB_IMPL_GNUCPP (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
@@ -424,9 +436,13 @@
 \ingroup YBase_pseudo_keyword
 \def ynothrow
 \brief YSLib 无异常抛出保证：若支持 noexcept 关键字，指定特定的 noexcept 异常规范。
+\note YB_IMPL_MSCPP >= 1200 时支持 __declspec(nothrow) 行为和 throw() 基本一致，
+	但语法（顺序）不同。
 */
 #if YB_HAS_NOEXCEPT
 #	define ynothrow ynoexcept
+#elif YB_IMPL_GNUCPP >= 30300
+#	define ynothrow __attribute__ ((nothrow))
 #else
 #	define ynothrow ythrow()
 #endif

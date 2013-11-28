@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r529
+\version r543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-11-14 19:54 +0800
+	2013-11-23 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -464,6 +464,23 @@ ImageCodec::Load(const vector<octet>& vec)
 		throw UnknownImageFormat("Unknown image format found when loading.");
 
 	return Convert(HBitmap(mem));
+}
+
+HMultiBitmap
+ImageCodec::LoadForPlaying(const char* path)
+{
+	const auto fmt(DetectFormat(path));
+
+	return HMultiBitmap(path, fmt, fmt == ImageFormat::GIF
+		? ImageDecoderFlags::GIF_Playback : ImageDecoderFlags::Default);
+}
+HMultiBitmap
+ImageCodec::LoadForPlaying(const char16_t* path)
+{
+	const auto fmt(DetectFormat(path));
+
+	return HMultiBitmap(path, fmt, fmt == ImageFormat::GIF
+		? ImageDecoderFlags::GIF_Playback : ImageDecoderFlags::Default);
 }
 
 } // namespace Drawing;

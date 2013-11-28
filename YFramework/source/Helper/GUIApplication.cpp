@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r237
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-10-23 19:05 +0800
+	2013-11-26 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "Helper/GUIApplication.h"
 #include "Helper/Host.h"
 #include "Helper/Initialization.h"
-#if YCL_MULTITHREAD == 1
+#if YF_Multithread == 1
 #	include <thread> // for std::this_thread::*;
 #endif
 
@@ -71,7 +71,7 @@ Idle(Messaging::Priority prior)
 
 GUIApplication::GUIApplication()
 	: Application()
-#if YCL_HOSTED
+#if YF_Hosted
 	, p_hosted()
 #endif
 {
@@ -79,7 +79,7 @@ GUIApplication::GUIApplication()
 
 	YSLib::pApp = this;
 	InitializeEnviornment();
-#if YCL_HOSTED
+#if YF_Hosted
 	p_hosted = make_unique<Host::Environment>();
 #endif
 }
@@ -89,7 +89,7 @@ GUIApplication::~GUIApplication()
 	Uninitialize();
 }
 
-#if YCL_HOSTED
+#if YF_Hosted
 Host::Environment&
 GUIApplication::GetHost()
 {
@@ -141,7 +141,7 @@ FetchAppInstance() ynothrow
 void
 Execute(GUIApplication& app, shared_ptr<Shell> p_shl)
 {
-#if YCL_HOSTED
+#if YF_Hosted
 	Host::FetchEnvironment().ExitOnAllWindowThreadCompleted = true;
 #endif
 	if(YB_UNLIKELY(!Activate(p_shl)))

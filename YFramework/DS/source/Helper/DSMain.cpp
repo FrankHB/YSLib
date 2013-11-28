@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3095
+\version r3103
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-08-08 00:42 +0800
+	2013-11-26 20:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ using namespace Drawing;
 namespace
 {
 
-#if YCL_MinGW32
+#if YCL_Win32
 yconstexpr double g_max_free_fps(1000);
 std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 #endif
@@ -62,7 +62,7 @@ DSApplication* pApp;
 DSApplication::DSApplication()
 	: GUIApplication(), DSVideoState(),
 	scrs()
-#if YCL_MinGW32
+#if YCL_Win32
 	, p_wnd_thrd()
 #endif
 {
@@ -83,7 +83,7 @@ DSApplication::DSApplication()
 		GetAreaOf(scrs[0]->GetSize()), ColorSpace::Blue),
 	FillPixel<PixelType>(scrs[1]->GetCheckedBufferPtr(),
 		GetAreaOf(scrs[1]->GetSize()), ColorSpace::Green);
-#elif YCL_MinGW32
+#elif YCL_Win32
 
 	using namespace Host;
 
@@ -107,7 +107,7 @@ DSApplication::DSApplication()
 
 DSApplication::~DSApplication()
 {
-#if YCL_MinGW32
+#if YCL_Win32
 	p_wnd_thrd.reset();
 	YCL_DEBUG_PUTS("Host thread dropped.");
 #endif
@@ -150,7 +150,7 @@ DSApplication::SwapScreens()
 {
 	UI::FetchGUIState().Reset();
 	SwapLCD();
-#if YCL_HOSTED
+#if YF_Hosted
 	std::swap(GetDSScreenUp().Offset, GetDSScreenDown().Offset);
 	if(const auto p_wnd = GetHost().GetForegroundWindow())
 		p_wnd->Invalidate();
@@ -170,7 +170,7 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
-#elif YCL_MinGW32
+#elif YCL_Win32
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType)
 {
 #else
@@ -190,7 +190,7 @@ ShowFatalError(const char* s)
 	terminate();
 }
 
-#if YCL_MinGW32
+#if YCL_Win32
 namespace MinGW32
 {
 

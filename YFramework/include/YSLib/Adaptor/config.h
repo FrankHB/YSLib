@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief YSLib 库配置。
-\version r625
+\version r627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-07-27 03:32 +0800
+	2013-11-26 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@
 \since build 161
 */
 #undef YSL_USE_COPY_ON_WRITE
-#if YCL_MULTITHREAD != 0
+#if YF_Multithread != 0
 #	define YSL_USE_COPY_ON_WRITE 0
 #else
 #	define YSL_USE_COPY_ON_WRITE 1

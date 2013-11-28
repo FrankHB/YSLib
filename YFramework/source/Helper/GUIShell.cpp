@@ -11,13 +11,13 @@
 /*!	\file GUIShell.cpp
 \ingroup Helper
 \brief GUI Shell 类。
-\version r107
+\version r108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:22 +0800
 \par 修改时间:
-	2013-10-23 19:01 +0800
+	2013-11-26 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ void
 GUIShell::OnInput()
 {
 	OnPaint();
-#if YCL_HOSTED
+#if YF_Hosted
 	// TODO: Use host reference stored by shell.
 	Host::FetchEnvironment().UpdateRenderWindows();
 	std::this_thread::sleep_for(IdleSleep);

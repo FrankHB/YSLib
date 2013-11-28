@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r134
+\version r135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2013-10-11 01:03 +0800
+	2013-11-26 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ private:
 	\note 没有必要把输入内容以消息队列传输，因为总是有且仅有一个实例被同时处理。
 	*/
 	Drawing::Point cursor_state;
-#if YCL_HOSTED
+#if YF_Hosted
 	/*!
 	\brief 宿主环境。
 	\since build 381

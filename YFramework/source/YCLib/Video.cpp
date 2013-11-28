@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012-2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r347
+\version r350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-08-31 21:05 +0800
+	2013-11-26 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,7 +118,7 @@ YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 		bg_palette[0] = PixelType(bc).Integer | BITALPHA;
 		bg_palette[255] = PixelType(fc).Integer | BITALPHA;
 	}
-#elif YCL_MinGW32
+#elif YCL_Win32
 YConsoleInit(std::uint8_t, Color, Color)
 {
 // TODO: Implementation.
@@ -196,7 +196,7 @@ ScreenSynchronize(platform::PixelType* buf, const platform::PixelType* src)
 }
 #endif
 
-#if YCL_DS || YCL_HOSTED
+#if YCL_DS || YF_Hosted
 bool
 DSVideoState::IsLCDMainOnTop() const
 {

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r824
+\version r828
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-08-05 19:57 +0800
+	2013-11-26 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 namespace YSLib
 {
 
-#if YCL_DS || YCL_HOSTED
+#if YCL_DS || YF_Hosted
 #	ifndef SCREEN_WIDTH
 #		define SCREEN_WIDTH 256
 #	endif
@@ -77,7 +77,7 @@ private:
 	*/
 	array<unique_ptr<Devices::DSScreen>, 2> scrs;
 
-#	if YCL_MinGW32
+#	if YCL_Win32
 	/*!
 	\brief 宿主窗口线程。
 	\since build 398
@@ -155,7 +155,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 YF_API void
 ShowFatalError(const char*);
 
-#	if YCL_MinGW32
+#	if YCL_Win32
 namespace MinGW32
 {
 

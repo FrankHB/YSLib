@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1650
+\version r1659
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2013-09-21 09:45 +0800
+	2013-11-26 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 \since build 329
 */
 template<typename _tChar>
-yconstexpr YB_STATELESS bool
+yconstfn YB_STATELESS bool
 is_null(_tChar c)
 {
 	return std::char_traits<_tChar>::eq(c, _tChar());
@@ -168,7 +168,7 @@ ntctsicmp(const _tChar* s1, const _tChar* s2)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr YB_PURE size_t
+yconstfn YB_PURE size_t
 const_ntctslen(const _tChar* s)
 {
 	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctslen(s + 1) + 1;
@@ -181,7 +181,7 @@ const_ntctslen(const _tChar* s)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr YB_PURE size_t
+yconstfn YB_PURE size_t
 const_ntctscnt(const _tChar* s, _tChar c)
 {
 	return ystdex::is_null(*s) ? 0 : ystdex::const_ntctscnt(s + 1, c)
@@ -196,7 +196,7 @@ const_ntctscnt(const _tChar* s, _tChar c)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr YB_PURE typename std::char_traits<_tChar>::int_type
+yconstfn YB_PURE typename std::char_traits<_tChar>::int_type
 const_ntctscmp(const _tChar* s1, const _tChar* s2)
 {
 	return !std::char_traits<_tChar>::eq(*s1, *s2) || ystdex::is_null(*s1)
@@ -211,7 +211,7 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr YB_PURE typename std::char_traits<_tChar>::int_type
+yconstfn YB_PURE typename std::char_traits<_tChar>::int_type
 const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 {
 	return n == 0 ? _tChar() : (!std::char_traits<_tChar>::eq(*s1, *s2)
@@ -227,7 +227,7 @@ const_ntctscmp(const _tChar* s1, const _tChar* s2, size_t n)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr YB_PURE size_t
+yconstfn YB_PURE size_t
 const_ntctschr(const _tChar* s, _tChar c)
 {
 	return ystdex::is_null(*s) || std::char_traits<_tChar>::eq(*s, c)
@@ -242,7 +242,7 @@ const_ntctschr(const _tChar* s, _tChar c)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr YB_PURE size_t
+yconstfn YB_PURE size_t
 const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 {
 	return n == 0 || ystdex::is_null(*s) ? 0 : (std::char_traits<_tChar>
@@ -258,7 +258,7 @@ const_ntctschrn(const _tChar* s, _tChar c, size_t n)
 \since build 329
 */
 template<typename _tChar>
-yconstexpr YB_PURE size_t
+yconstfn YB_PURE size_t
 const_ntctsstr(const _tChar* s1, const _tChar* s2)
 {
 	return ystdex::is_null(*s1) ? 0 : (ystdex::const_ntctscmp(s1, s2,

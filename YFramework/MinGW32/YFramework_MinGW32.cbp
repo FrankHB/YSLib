@@ -97,6 +97,7 @@
 			<Add option="-DFREEIMAGE_LIB" />
 			<Add directory="../include" />
 			<Add directory="../DS/include" />
+			<Add directory="../MinGW32/include" />
 			<Add directory="../../YBase/include" />
 			<Add directory="../../3rdparty/include" />
 		</Compiler>

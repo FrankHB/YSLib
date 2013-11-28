@@ -15,13 +15,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3498
+\version r3499
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-11-10 11:45 +0800
+	2013-11-26 20:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,7 +137,7 @@ namespace platform_ex
 YF_API bool
 AllowSleep(bool);
 
-#elif YCL_MinGW32
+#elif YCL_Win32
 
 #else
 #	error "Unsupported platform found."

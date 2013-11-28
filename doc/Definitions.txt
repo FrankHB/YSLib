@@ -11,7 +11,7 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12114
+\version r12130
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
@@ -137,20 +137,24 @@ $dir YCLib
 {
 $header Platform
 {
-YCL_YCOMMON_H
-YSL_YSBUILD_H
-YCL_DLL
-YCL_FUNCTION_NO_EQUALITY_GUARANTEE
-YCL_PLATFORM_*
+YF_API
+YF_DLL
+YF_Platform_*
+YF_Platform
+YF_Multithread
+YF_Hosted
 YCL_API_*
-YCL_MUITITHREAD
-YCL_HOSTED
 YCL_DS
-YCL_MINGW32
+YCL_MinGW32
 }
 $header YCommon
 {
-YTraceEx
+YTraceDe
+}
+$header NativeAPI
+{
+YCL_YCOMMON_H
+YSL_YSBUILD_H
 }
 $header FileSystem
 {

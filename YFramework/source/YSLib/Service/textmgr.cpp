@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3734
+\version r3738
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-08-05 21:31 +0800
+	2013-11-27 19:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,7 +146,7 @@ TextFileBuffer::operator[](size_t idx)
 
 			size_t n_byte(0);
 			ucs2_t c;
-			ystdex::ifile_iterator i(*File.GetPtr());
+			ystdex::ifile_iterator i(File.GetPtr());
 
 			while(n_byte < len)
 			{
@@ -191,7 +191,7 @@ TextFileBuffer::GetIterator(size_t pos)
 			File.Locate(idx * BlockSize);
 
 			size_t n_byte(0), n_char(0);
-			ystdex::ifile_iterator i(*File.GetPtr());
+			ystdex::ifile_iterator i(File.GetPtr());
 
 			while(n_byte < pos)
 			{
@@ -237,7 +237,7 @@ TextFileBuffer::GetPosition(TextFileBuffer::Iterator i)
 
 		YAssert(it <= mid, "Wrong iterator found.");
 
-		ystdex::ifile_iterator i(*File.GetPtr());
+		ystdex::ifile_iterator i(File.GetPtr());
 		size_t n_byte(0);
 
 		while(it != mid)

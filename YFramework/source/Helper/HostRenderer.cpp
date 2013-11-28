@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r188
+\version r191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-10-31 04:40 +0800
+	2013-11-26 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@ namespace YSLib
 
 using namespace Drawing;
 
-#if YCL_HOSTED
+#if YF_Hosted
 namespace Host
 {
 
@@ -102,14 +102,14 @@ WindowThread::ThreadLoop(unique_ptr<Window> p)
 void
 WindowThread::WindowLoop(Window& wnd)
 {
-#	if YCL_MULTITHREAD
+#	if YF_Multithread
 	auto& env(wnd.GetHost());
 
 	env.EnterWindowThread();
 #	endif
 	wnd.Show();
 	Environment::HostLoop();
-#	if YCL_MULTITHREAD
+#	if YF_Multithread
 	env.LeaveWindowThread();
 #	endif
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1006
+\version r1013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-08-08 00:43 +0800
+	2013-08-08 20:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 
 //! \since build 341
 extern "C" int	_EXFUN(fileno, (FILE *));
-#elif YCL_MinGW32
+#elif YCL_Win32
 #	include <Shlwapi.h> // for ::PathIsRelativeW;
 #endif
 
@@ -42,14 +42,14 @@ namespace platform
 {
 
 static_assert(std::is_same<CHRLib::ucs2_t, char16_t>::value,
-	"Wrong character type!");
+	"Wrong character type found.");
 static_assert(std::is_same<CHRLib::ucs4_t, char32_t>::value,
-	"Wrong character type!");
-#if YCL_MinGW32
+	"Wrong character type found.");
+#if YCL_Win32
 static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
-	"Wrong character type!");
+	"Wrong character type found.");
 static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
-	"Inconsist alignment between character types!");
+	"Inconsistent alignment between character types found.");
 #endif
 
 namespace

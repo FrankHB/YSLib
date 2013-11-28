@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r497
+\version r518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-11-11 21:44 +0800
+	2013-11-28 12:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -296,7 +296,7 @@ inline DefSwap(ynothrow, HBitmap)
 //@{
 /*!
 \brief 多页面位图数据。
-\note 仅公开类名。
+\note 非公开实现。
 */
 class MultiBitmapData;
 
@@ -413,6 +413,27 @@ public:
 	//! \since build 418
 	static CompactPixmap
 	Load(const vector<octet>&);
+
+	/*!
+	\brief 读取指定路径的图片文件为用于直接呈现的帧序列。
+	\note 对多帧图片自动选择解码器标识（当前仅支持 GIF 格式）；其它为默认参数。
+	\since build 458
+	*/
+	//@{
+	//! \note 使用指定 UTF-8 文件名。
+	static HMultiBitmap
+	LoadForPlaying(const char*);
+	//! \note 使用指定 UCS-2LE 文件名。
+	static HMultiBitmap
+	LoadForPlaying(const char16_t*);
+	//! \brief 构造：使用指定字符串文件名。
+	template<class _tString, typename = decltype(&_tString()[0])>
+	static HMultiBitmap
+	LoadForPlaying(const _tString& filename)
+	{
+		return LoadForPlaying(&filename[0]);
+	}
+	//@}
 };
 
 } // namespace Drawing;

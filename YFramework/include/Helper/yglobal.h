@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1888
+\version r1892
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-08-05 20:48 +0800
+	2013-11-26 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 
 //包含 YCLib 公用部分。
 #include "YCLib/ycommon.h"
-#if YCL_MinGW32
+#if YCL_Win32
 #	include "YCLib/MinGW32.h"
 #endif
 #include "YSLib/Core/ygdibase.h"
@@ -69,7 +69,7 @@ namespace UI
 class Desktop;
 } // namespace UI;
 
-#if YCL_HOSTED
+#if YF_Hosted
 /*!
 \brief 宿主环境支持。
 \since build 378
@@ -101,7 +101,7 @@ namespace DS
 using namespace platform_ex;
 
 } // namespace DS;
-#elif YCL_MinGW32
+#elif YCL_Win32
 //! \since build 383
 namespace MinGW32
 {

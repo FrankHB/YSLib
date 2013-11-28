@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Timer.cpp
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r196
+\version r202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:44:52 +0800
 \par 修改时间:
-	2013-08-05 21:23 +0800
+	2013-11-26 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/Timer.h"
 #include "YCLib/NativeAPI.h"
-#if YCL_MinGW32
+#if YCL_Win32
 #	include <mmsystem.h> // for multimedia timers;
 #endif
 
@@ -45,7 +45,7 @@ namespace
 	{
 		++system_tick;
 	}
-#elif YCL_MinGW32
+#elif YCL_Win32
 	std::uint32_t(*p_tick_getter)(); //!< 计时器指针。
 	std::uint64_t(*p_tick_getter_nano)(); //!< 高精度计时器指针。
 	union
@@ -113,7 +113,7 @@ StartTicks()
 #endif
 		::timerStart(2, ::ClockDivider_1, u16(TIMER_FREQ(1000)),
 			timer_callback);
-#elif YCL_MinGW32
+#elif YCL_Win32
 		if(::QueryPerformanceFrequency(&g_ticks.hi.tps))
 		{
 			yunseq(p_tick_getter = get_ticks_hi_res,
@@ -141,7 +141,7 @@ GetTicks()
 	StartTicks();
 #if YCL_DS
 	return system_tick;
-#elif YCL_MinGW32
+#elif YCL_Win32
 	return p_tick_getter();
 #endif
 }
@@ -153,7 +153,7 @@ GetHighResolutionTicks()
 #if YCL_DS
 	return system_tick * 1000000ULL
 		+ TIMER2_DATA * 1000000ULL / BUS_CLOCK;
-#elif YCL_MinGW32
+#elif YCL_Win32
 	return p_tick_getter_nano();
 #endif
 }

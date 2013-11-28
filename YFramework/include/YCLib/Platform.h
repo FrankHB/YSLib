@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -24,13 +24,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r457
+\version r490
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2013-08-11 12:54 +0800
+	2013-11-27 21:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,48 +60,52 @@
 #endif
 
 /*!
-\def YCL_MULTITHREAD
+\def YF_Multithread
 \brief 多线程环境。
 \li 0 不支持多线程。
 \li 1 支持 ISO C++11 多线程。
-\since build 321
+\since build 458
 */
 
 /*!
-\def YCL_HOSTED
+\def YF_Hosted
 \brief 宿主环境。
 \li 0 非宿主支持。
 \li 1 单一宿主支持。
-\since build 322
+\since build 458
 */
 
 /*!
 \ingroup Platforms
 \brief 目标平台标识。
-\since build 296
+\since build 458
 */
 //@{
 /*!
 \brief DS 平台。
 */
-#define YCL_PLATFORM_DS 0x4001
+#define YF_Platform_DS 0x4001
+
+//! \brief MinGW32 平台。
+#define YF_Platform_Win32 0x4101
 
 /*!
 \brief MinGW32 平台。
-\since build 435
 */
-#define YCL_PLATFORM_MINGW32 0x4002
+#define YF_Platform_MinGW32 0x4102
 
 /*!
-\def YCL_PLATFORM
+\def YF_Platform
 \brief 目标平台。
 */
 #ifdef __MINGW32__
 //#ifdef _WIN32
-#	define YCL_PLATFORM YCL_PLATFORM_MINGW32
-#elif !defined(YCL_PLATFORM)
+#	define YF_Platform YF_Platform_MinGW32
+#elif defined(_WIN32)
+#	define YF_Platform YF_Platform_Win32
+#elif !defined(YF_Platform)
 //当前默认以 DS 作为目标平台。
-#	define YCL_PLATFORM YCL_PLATFORM_DS
+#	define YF_Platform YF_Platform_DS
 #endif
 //@}
 
@@ -114,20 +118,31 @@
 */
 
 
-#if YCL_PLATFORM == YCL_PLATFORM_DS
+#if YF_Platform == YF_Platform_DS
 #	define YCL_DS 1
-#	define YCL_HOSTED 0
-#	define YCL_MULTITHREAD 0
+#	define YF_Hosted 0
+#	define YF_Multithread 0
 #	define YCL_API_FILESYSTEM_POSIX //!< 文件系统 API 支持。
 #	define YCL_API_USE_UNISTD
 #	define YCL_API_USE_SYS_DIR
 #	define YCL_Device_Cursor_FixedKey 1
-#elif YCL_PLATFORM == YCL_PLATFORM_MINGW32
+#elif YF_Platform == YF_Platform_MinGW32
 #	define YCL_MinGW32 1
-#	define YCL_HOSTED 1
-#	define YCL_MULTITHREAD 1
+#	define YCL_Win32 1
+#	define YF_Hosted 1
+#elif YF_Platform == YF_Platform_Win32
+#	define YCL_Win32 1
+#	define YF_Hosted 1
 #else
 #	error "Unsupported platform found."
+#endif
+
+#if YCL_Win32
+#	ifdef _MT
+#		define YF_Multithread 1
+#	else
+#		define YF_Multithread 0
+#	endif
 #endif
 
 #endif
