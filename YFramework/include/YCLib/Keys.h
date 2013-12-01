@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r179
+\version r195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2013-11-26 20:37 +0800
+	2013-11-30 23:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,29 +96,22 @@ const NativeSet
 	PgUp = L,
 	PgDn = R;
 #elif YCL_Win32
-#define VK_RETURN 0x0D
-#define VK_ESCAPE 0x1B
-#define VK_PRIOR 0x21
-#define VK_NEXT 0x22
-#define VK_LEFT 0x25
-#define VK_UP 0x26
-#define VK_RIGHT 0x27
-#define VK_DOWN 0x28
 /*!
 \brief 基本公用按键集合。
+\note 值和 WinSDK 的 VK_* 宏替换结果对应。
 \since build 416
 */
 enum NativeSet
 {
 	Empty	= 0,
-	Enter	= VK_RETURN,
-	Esc		= VK_ESCAPE,
-	PgUp	= VK_PRIOR,
-	PgDn	= VK_NEXT,
-	Left	= VK_LEFT,
-	Up		= VK_UP,
-	Right	= VK_RIGHT,
-	Down	= VK_DOWN
+	Enter	= 0x0D, //!< 同 VK_RETURN 。
+	Esc		= 0x1B, //!< 同 VK_ESCAPE 。
+	PgUp	= 0x21, //!< 同 VK_PRIOR 。
+	PgDn	= 0x22, //!< 同 VK_NEXT 。
+	Left	= 0x25, //!< 同 VK_LEFT 。
+	Up		= 0x26, //!< 同 VK_UP 。
+	Right	= 0x27, //!< 同 VK_RIGHT 。
+	Down	= 0x28 //!< 同 VK_DOWN 。
 };
 #undef VK_RETURN
 #undef VK_ESCAPE

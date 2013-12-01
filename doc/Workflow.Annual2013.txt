@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r227
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-11-27 19:43 +0800
+	2013-11-30 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,6 +231,16 @@ report.impl:
 The bug of 'bool = {}' is same to Visual C++ 2013 as Clang++ 3.4(see $2013-10 report.impl).
 ISO required 'std::FILE*' as an object type. Different to C++, (possible cv-qualified) void is object type.
 	There exists actual C implementation with cv-void as 'std::FILE*'. For example, in the standard header from the CeGCC project it is 'void'.
+Notes for disabling some VC++ warning:
+	Used project configuration (for YFramework) but not '#pragma' for clean code and making users have choice to decide further.
+	C4520 warns about multiple constructors found for the same class.
+		It would wrongly detect the situation of exactly one non-template default constructor and one default constructor template, which should be well-formed and safe.
+	C4800 warns about coercion to 'bool' type.
+		It is marked as a "performance warning" by MSDN, though the performance decrease almost never happened for modern C++ code with reasonable C++ implementation in reality. It might be useful for finding the (bad-style) mix use of built-in 'bool' and 'BOOL' or other integral types.
+		MSDN also says it is by design to treat cast as same as coercion here. Keeping the solution recommended by adding '!= 0' effectively make code lengthy with actually no benifit, thus it simply not fit for modern C++ in most cases.
+		In C++ (but not in C), coercion or cast to 'bool' is quite safe. Comparaing to null pointer value explicitly is OK, but not required. On the contrast, it might be standard way to test null pointer (but not compare to zero), particular in the ISO C++11 wording "contextually convertible to bool" as some requirements for types including pointers.
+		Too bad copying '!= 0' or similar mouthy stuff ('!= nullptr') everywhere in C++ code.
+The workaround of move constructor and %operator= for Visual C++ 2013 is currently some slower than it should be with fully supported ISO C++11 implementation, because the 'noexcept' operator is missing, and no throwing specification is not guaranteed to work everywhere.
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r676
+\version r678
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-11-28 09:04 +0800
+	2013-11-30 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -398,10 +398,11 @@
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
 @2.2.4 YFramework 引入的命名空间：
- YCLib 在全局命名空间内引入命名空间 platform 和 platform_ex ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。
+ YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。
  除 YCLib 外， YFramework 引入的主要命名空间唯一且和次级子项目的模块名称一致。
  platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）于此命名空间。
  platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖于此命名空间。
+ platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖于此命名空间，但可能依赖于该命名空间中成员包装的宏。
  CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）于此命名空间。
  NPL ：子库 NPL(@2.8) 的命名空间。
  YSLib ： YSLib 库命名空间。

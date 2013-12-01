@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r658
+\version r696
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-11-26 20:36 +0800
+	2013-11-30 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,6 +51,14 @@
 \note Windows API 冲突时显式使用带 A 或 W 的全局函数名称。
 \since build 381
 */
+
+
+/*!
+\brief 平台替代命名空间。
+\since build 298
+*/
+namespace platform_replace
+{} // namespace platform_replace;
 
 
 #ifdef YCL_API_USE_UNISTD
@@ -116,6 +124,7 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 #endif
 
 #include <Windows.h>
+#include <direct.h> // for ::_mkdir;
 #include <sys/stat.h>
 
 /*!
@@ -168,10 +177,6 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 #define		S_IXOTH 0
 
 
-/*!
-\brief 平台替代命名空间。
-\since build 298
-*/
 namespace platform_replace
 {
 
@@ -183,7 +188,7 @@ namespace platform_replace
 inline int
 makedir(char const* dir, mode_t)
 {
-	return ::mkdir(dir);
+	return ::_mkdir(dir);
 }
 
 } // namespace platform_replace;

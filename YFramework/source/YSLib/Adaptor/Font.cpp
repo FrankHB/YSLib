@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3332
+\version r3334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-08-05 21:24 +0800
+	2013-11-30 16:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 //#include FT_GLYPH_H
 //#include FT_OUTLINE_H
 //#include FT_SYNTHESIS_H
-#include <freetype/internal/internal.h> // for FreeType internal macros;
+#include <internal/internal.h> // for FreeType internal macros;
 #include FT_INTERNAL_OBJECTS_H // for FT_Face_InternalRec_;
 #include FT_INTERNAL_TRUETYPE_TYPES_H // for TT_Face, TT_FaceRec_;
 

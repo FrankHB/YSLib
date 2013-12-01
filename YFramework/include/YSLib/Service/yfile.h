@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfile.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1116
+\version r1118
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2013-08-31 14:09 +0800
+	2013-12-01 22:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,7 @@ public:
 	\brief 文件指针返回到文件头，语义同 std::rewind 。
 	*/
 	PDefH(void, Rewind, ) const
-		ImplRet(std::rewind(fp))
+		ImplExpr(std::rewind(fp))
 
 	/*!
 	\brief 截断文件。

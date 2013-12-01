@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4381
+\version r4431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-11-28 21:48 +0800
+	2013-12-01 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,47 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ $dev $build "disabled warning (C4520, C4800)" @ "VC++ project",
+			// See $2013-11 @ %Documentation::Workflow::Annual2013.
+		/ $dev %'YCLib' $=
+		(
+			- "all 8 macros 'VK_*'" @ "platform %Win32" @ %'Keys',
+				// To prevent macro pollution and redefinition of macros \
+					in "winuser.h".
+			/ %'NativeAPI' $=
+			(
+				/ "namespace %platform_replace" @ "platform %Win32"
+					>> "all platforms",
+				(
+					+ "header inclusion '<direct.h>'";
+					* "deprecated function '::mkdir' used" @ "platform %Win32"
+						$since b298
+						$= (^ '::_mkdir' ~ '::mkdir')
+						// The POSIX function 'mkdir' in global namespace \
+							scope is deprecated by Microsoft for ISO C++ \
+							conformance.
+				)
+			)
+		),
+		/ DLD "implementation" @ "member function %File::Rewind"
+			 @ %'YSLib'.'Service'.'YFile' ^ "macro %ImplExpr" ~ "macro %ImplRet"
+			// 'ImplRet' is intended to use return statement while 'ImplExpr' \
+				is intended to return a void typed expression. The latter is \
+				clearer in this case.
+	),
+	/ DLP "updated library %freetype" @ "library using" $=
+	(
+		/ "made use of common makefile to be actual used by platform %MinGW32";
+		^ "updated FreeType 2.5.1 with several files remained from FreeType 2.4.11"
+			~ "FreeType 2.5.0.1"
+			// See [Documentation::Designation @@5.4.1.3] .
+	)
+),
+
+b458
 (
 	/ $dev %'YFramework' $=
 	(
@@ -56,7 +97,11 @@ $now
 					YF_Platform_MinGW32 || YF_Platform == YF_Platform_Win32)";
 				/ "macro %YCL_MULTITHREAD" -> "%YF_Multithread"
 					// Now defined as non-zero for Win32 platforms only when \
-						%_MT is defined.
+						%_MT is defined. Note this is a breaking change \
+						because for MinGW32 because now user should use \
+						'-mthreads' in the compiler command line, otherwise \
+						'YF_Multithread' would not indicate a multithreaded \
+						environment.
 				)
 			),
 			(
@@ -64,8 +109,8 @@ $now
 			/ $dev "all %YCL_MinGW32 without MinGW interface dependencies"
 				-> "%YCL_Win32"
 			),
-			+ $build "workaround of color enumerator constant definition without \
-				'constexpr' for Visual C++ 2013" @ %'Video';
+			+ $build "workaround of color enumerator constant definition \
+				without 'constexpr' for Visual C++ 2013" @ %'Video'
 		),
 		* "missing '../MinGW/include' for inclusion" @ "Code::Blocks project"
 			@ "platform %MinGW32" $since b431
@@ -2805,13 +2850,13 @@ b420
 				the destructor is missing, this problem is not explicit @ \
 				b419, but resource leaks.
 	),
-	/ DLP "updated library freetype" @ "library using" $=
+	/ DLP "updated library %freetype" @ "library using" $=
 	(
 		- "module configuration ('HINTING_MODULES += autofit',
 			'AUX_MODULES += cache', 'BASE_EXTENSIONS += ftfstype.c',
 			'BASE_EXTENSIONS += ftstroke.c', 'BASE_EXTENSIONS += ftsynth.c');
-		^ "updated freetype 2.5.0.1 with several files remained"
-			~ "freetype 2.4.11"
+		^ "updated FreeType 2.5.0.1 with several files remained"
+			~ "FreeType 2.4.11"
 			// See [Documentation::Designation @@5.4.1.3] .
 	)
 ),
