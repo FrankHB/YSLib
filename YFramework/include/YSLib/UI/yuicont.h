@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1801
+\version r1817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2013-09-09 16:33 +0800
+	2013-12-08 23:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,8 +167,8 @@ public:
 	using WidgetMap = multimap<ZOrderType, ItemType>; \
 		//!< 部件映射表类型：映射 Z 顺序至部件。
 	using PairType = WidgetMap::value_type;
-	//! \since build 357
-	using Iterator = WidgetIterator;
+	//! \since build 460
+	using iterator = WidgetIterator;
 
 protected:
 	/*
@@ -208,13 +208,6 @@ public:
 	bool
 	Contains(IWidget&);
 
-	//! \since build 357
-	Iterator
-	GetBegin();
-	//! \since build 357
-	Iterator
-	GetEnd();
-
 	/*!
 	\brief 向部件组添加部件。
 
@@ -231,6 +224,15 @@ protected:
 	*/
 	void
 	PaintVisibleChildren(PaintEventArgs&);
+
+public:
+	//! \since build 460
+	iterator
+	begin();
+
+	//! \since build 460
+	iterator
+	end();
 };
 
 

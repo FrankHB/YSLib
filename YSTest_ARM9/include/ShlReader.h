@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1782
+\version r1785
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-08-05 19:49 +0800
+	2013-12-08 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,8 +40,8 @@ namespace YReader
 class ReaderBox : public Control
 {
 public:
-	//! \since build 357
-	using Iterator = ystdex::subscriptive_iterator<ReaderBox, IWidget>;
+	//! \since build 460
+	using iterator = ystdex::subscriptive_iterator<ReaderBox, IWidget>;
 
 	/*!
 	\brief 弹出菜单按钮。

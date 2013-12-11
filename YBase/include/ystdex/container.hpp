@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r605
+\version r607
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-10-24 22:01 +0800
+	2013-12-08 22:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -357,7 +357,7 @@ erase_all(_tRange& c, const typename _tRange::value_type& val)
 /*!
 \ingroup algorithms
 \brief 删除指定容器中迭代器区间中和指定值的相等的元素。
-\pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
+\pre first 和 last 是 c 的有效的或表示序列终止位置的迭代器。
 \since build 289
 */
 template<typename _tCon, typename _tFwd, typename _tValue>
@@ -386,7 +386,7 @@ erase_all_if(_tRange& c, _fPred pred)
 /*!
 \ingroup algorithms
 \brief 删除指定容器中迭代器区间中满足条件的元素。
-\pre first 和 last 是 c 的有效的迭代器或 <tt>c.end()</tt> 。
+\pre first 和 last 是 c 的有效的或表示序列终止位置的迭代器。
 \since build 289
 */
 template<typename _tCon, typename _tFwd, typename _fPred>

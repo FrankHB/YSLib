@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3738
+\version r3773
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-11-27 19:52 +0800
+	2013-12-10 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,18 +49,18 @@ yconstexpr auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult(
 } // unnamed namespace;
 
 
-TextFileBuffer::Iterator::Iterator(TextFileBuffer* pBuf, size_t b, size_t idx)
+TextFileBuffer::iterator::iterator(TextFileBuffer* p_buf, size_t b, size_t idx)
 	ynothrow
-	: pBuffer(pBuf), block(b), index(idx)
+	: p_buffer(p_buf), block(b), index(idx)
 {}
 
-TextFileBuffer::Iterator&
-TextFileBuffer::Iterator::operator++() ynothrow
+TextFileBuffer::iterator&
+TextFileBuffer::iterator::operator++() ynothrow
 {
-	YAssert(pBuffer, "Null pointer found.");
-	YAssert(block < pBuffer->nBlock, "End iterator found.");
+	YAssert(p_buffer, "Null pointer found.");
+	YAssert(block < p_buffer->nBlock, "End iterator found.");
 
-	auto& vec((*pBuffer)[block].first);
+	auto& vec((*p_buffer)[block].first);
 
 	YAssert(index < vec.size(), "Invalid index found.");
 
@@ -69,32 +69,32 @@ TextFileBuffer::Iterator::operator++() ynothrow
 	return *this;
 }
 
-TextFileBuffer::Iterator&
-TextFileBuffer::Iterator::operator--() ynothrow
+TextFileBuffer::iterator&
+TextFileBuffer::iterator::operator--() ynothrow
 {
-	YAssert(pBuffer, "Null buffer pointer found.");
+	YAssert(p_buffer, "Null buffer pointer found.");
 	YAssert(block != 0 || index != 0, "Begin iterator found."),
-	YAssert(block < pBuffer->nBlock || *this == pBuffer->GetEnd(),
+	YAssert(block < p_buffer->nBlock || *this == p_buffer->end(),
 		"Invalid iterator found.");
 
 	if(index == 0)
 	{
-		index = (*pBuffer)[--block].first.size();
+		index = (*p_buffer)[--block].first.size();
 
 		YAssert(index != 0, "Invalid index found.");
 	}
 	else
-		YAssert(index < (*pBuffer)[block].first.size(), "Invalid index found.");
+		YAssert(index < (*p_buffer)[block].first.size(), "Invalid index found.");
 	--index;
 	return *this;
 }
 
-ucs2_t
-TextFileBuffer::Iterator::operator*() const ynothrow
+TextFileBuffer::iterator::reference
+TextFileBuffer::iterator::operator*() const ynothrow
 {
-	YAssert(pBuffer, "Null pointer found.");
+	YAssert(p_buffer, "Null pointer found.");
 
-	auto& vec((*pBuffer)[block].first);
+	auto& vec((*p_buffer)[block].first);
 
 	YAssert(!vec.empty(), "Empty block found.");
 	YAssert(index < vec.size(), "Invalid index found.");
@@ -103,10 +103,10 @@ TextFileBuffer::Iterator::operator*() const ynothrow
 }
 
 bool
-operator==(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator& y)
+operator==(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator& y)
 	ynothrow
 {
-	YAssert(x.pBuffer == y.pBuffer, "Iterators to different buffer are not"
+	YAssert(x.p_buffer == y.p_buffer, "Iterators to different buffer are not"
 		" comparable.");
 
 	return x.block == y.block && x.index == y.index;
@@ -163,17 +163,17 @@ TextFileBuffer::operator[](size_t idx)
 	return b;
 }
 
-TextFileBuffer::Iterator
-TextFileBuffer::GetBegin() ynothrow
+TextFileBuffer::iterator
+TextFileBuffer::begin() ynothrow
 {
-	return TextFileBuffer::Iterator(this);
+	return TextFileBuffer::iterator(this);
 }
-TextFileBuffer::Iterator
-TextFileBuffer::GetEnd() ynothrow
+TextFileBuffer::iterator
+TextFileBuffer::end() ynothrow
 {
-	return TextFileBuffer::Iterator(this, nBlock);
+	return TextFileBuffer::iterator(this, nBlock);
 }
-TextFileBuffer::Iterator
+TextFileBuffer::iterator
 TextFileBuffer::GetIterator(size_t pos)
 {
 	if(pos < nTextSize)
@@ -182,7 +182,7 @@ TextFileBuffer::GetIterator(size_t pos)
 
 		pos %= BlockSize;
 		if(fixed_width == max_width)
-			return TextFileBuffer::Iterator(this, idx, pos / max_width);
+			return TextFileBuffer::iterator(this, idx, pos / max_width);
 
 		YAssert(bool(File), "Invalid file found.");
 
@@ -203,16 +203,16 @@ TextFileBuffer::GetIterator(size_t pos)
 				n_byte += GetCountOf(st);
 			}
 			std::ungetc(*i, File.GetPtr());
-			return TextFileBuffer::Iterator(this, idx, n_char);
+			return TextFileBuffer::iterator(this, idx, n_char);
 		}
-		return TextFileBuffer::Iterator(this, idx, 0);
+		return TextFileBuffer::iterator(this, idx, 0);
 	}
-	return GetEnd();
+	return end();
 }
 size_t
-TextFileBuffer::GetPosition(TextFileBuffer::Iterator i)
+TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 {
-	if(i == GetEnd())
+	if(i == end())
 		return nTextSize;
 
 	auto idx(i.GetBlockN());
@@ -259,7 +259,7 @@ string
 CopySliceFrom(TextFileBuffer& buf, size_t pos, size_t len)
 	ythrow(std::out_of_range)
 {
-	const auto i_end(buf.GetEnd());
+	const auto i_end(buf.end());
 	auto i_beg(buf.GetIterator(pos));
 
 	if(i_beg == i_end)

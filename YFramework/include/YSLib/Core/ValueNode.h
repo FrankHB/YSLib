@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1296
+\version r1343
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-10-13 00:24 +0800
+	2013-12-08 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,10 @@ class YF_API ValueNode
 {
 public:
 	using Container = set<ValueNode>;
+	//! \since build 460
+	using iterator = Container::iterator;
+	//! \since build 460
+	using const_iterator = Container::const_iterator;
 
 private:
 	string name;
@@ -162,15 +166,11 @@ public:
 	explicit DefCvt(const ynothrow, bool, bool(Value))
 	DefCvt(const ynothrow, const string&, name);
 
-	DefGetter(, Container::iterator, Begin, GetContainer().begin())
-	DefGetter(const, Container::const_iterator, Begin, GetContainer().begin())
 	//! \since build 340
 	DefGetter(const, Container&, Container, Value.Access<Container>())
 	//! \since build 398
 	DefGetter(const ynothrow, Container*, ContainerPtr,
 		Value.AccessPtr<Container>())
-	DefGetter(, Container::iterator, End, GetContainer().end())
-	DefGetter(const, Container::const_iterator, End, GetContainer().end())
 	DefGetter(const ynothrow, const string&, Name, name)
 	size_t
 	GetSize() const ynothrow;
@@ -201,37 +201,20 @@ public:
 	//! \since build 433
 	const ValueNode&
 	at(const string&) const;
+
+	//! \since build 460
+	//@{
+	PDefH(iterator, begin, )
+		ImplRet(GetContainer().begin())
+	PDefH(const_iterator, begin, ) const
+		ImplRet(GetContainer().begin())
+
+	PDefH(iterator, end, )
+		ImplRet(GetContainer().end())
+	PDefH(const_iterator, end, ) const
+		ImplRet(GetContainer().end())
+	//@}
 };
-
-/*!
-\ingroup helper_functions
-\brief 迭代器包装，可用于 range-based for 。
-\relates ValueNode
-\since build 330
-*/
-//@{
-inline auto
-begin(ValueNode& node) -> decltype(node.GetBegin())
-{
-	return node.GetBegin();
-}
-inline auto
-begin(const ValueNode& node) -> decltype(node.GetBegin())
-{
-	return node.GetBegin();
-}
-
-inline auto
-end(ValueNode& node) -> decltype(node.GetEnd())
-{
-	return node.GetEnd();
-}
-inline auto
-end(const ValueNode& node) -> decltype(node.GetEnd())
-{
-	return node.GetEnd();
-}
-//@}
 
 /*!
 \brief 访问节点的指定类型对象。

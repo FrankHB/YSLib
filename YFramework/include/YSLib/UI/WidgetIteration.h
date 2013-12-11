@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file WidgetIteration.h
 \ingroup UI
 \brief 部件迭代接口。
-\version r179
+\version r195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 356
 \par 创建时间:
 	2012-11-25 16:36:34 +0800
 \par 修改时间:
-	2013-08-05 21:10 +0800
+	2013-12-08 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,33 +90,27 @@ namespace UI
 \since build 356
 */
 #define DefWidgetBegin(_tIter) \
-	_tIter \
-	GetBegin() \
-	{ \
-		return _tIter(*this, 0); \
-	}
+	PDefH(_tIter, begin, ) \
+		ImplRet(_tIter(*this, 0))
+
 /*!
 \def DefWidgetEnd
 \brief 使用指定部件引用和索引定义迭代器结束。
 \since build 356
 */
 #define DefWidgetEnd(_tIter) \
-	_tIter \
-	GetEnd() \
-	{ \
-		return _tIter(*this, GetChildrenCount()); \
-	}
+	PDefH(_tIter, end, ) \
+		ImplRet(_tIter(*this, GetChildrenCount()))
 
 /*!
 \def DefWidgetChildrenGetter
 \brief 定义部件成员迭代器范围操作。
 \since build 357
 
-使用 GetBegin() 和 GetEnd() 实现 GetChildren() 。
+使用 begin() 和 end() 实现 GetChildren() 。
 */
 #define DefWidgetChildrenGetter \
-	DefGetter(override, WidgetRange, Children, \
-		WidgetRange(GetBegin(), GetEnd()))
+	DefGetter(override, WidgetRange, Children, WidgetRange(begin(), end()))
 
 /*!
 \def DefWidgetMemberIterationOperations
@@ -134,7 +128,7 @@ namespace UI
 \since build 356
 */
 #define DefWidgetMemberIteration(...) \
-	DefWidgetMemberIterationOperations(Iterator) \
+	DefWidgetMemberIterationOperations(iterator) \
 	DefWidgetSubscriptor(__VA_ARGS__)
 /*!
 \def DefWidgetMemberIterationBase
@@ -142,7 +136,7 @@ namespace UI
 \since build 357
 */
 #define DefWidgetMemberIterationBase(_tBase, ...) \
-	DefWidgetMemberIterationOperations(Iterator) \
+	DefWidgetMemberIterationOperations(iterator) \
 	DefWidgetSubscriptorBase(_tBase, __VA_ARGS__)
 
 } // namespace UI;

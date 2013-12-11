@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r409
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2013-08-16 18:08 +0800
+	2013-12-08 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,13 +60,11 @@ public:
 
 	using MUIContainer::Contains;
 
-	//! \since build 357
-	//@{
-	using MUIContainer::GetBegin;
-	using MUIContainer::GetEnd;
-	DefGetter(override, WidgetRange, Children,
-		WidgetRange(GetBegin(), GetEnd()))
-	//@}
+	/*!
+	\since build 357
+	\note 不使用 DefWidgetChildrenGetter 以避免对非必要文件的依赖。
+	*/
+	DefGetter(override, WidgetRange, Children, WidgetRange(begin(), end()))
 
 	/*!
 	\brief 按指定 Z 顺序向部件组添加部件，并设置指针。
@@ -99,6 +97,13 @@ public:
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
+
+	//! \since build 460
+	//@{
+	using MUIContainer::begin;
+
+	using MUIContainer::end;
+	//@}
 };
 
 } // namespace UI;

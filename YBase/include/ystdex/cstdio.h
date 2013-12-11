@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r417
+\version r418
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2013-11-27 19:47 +0800
+	2013-12-11 21:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "cassert.h" // for ../ydef.h, <cstdio> and yconstraint;
 #include <ios> // for std::ios_base::openmode;
 #include <iterator>
-#include "memory.hpp" // for ystdex::is_undereferenceable;
+#include "iterator.hpp" // for ystdex::is_undereferenceable;
 
 namespace ystdex
 {

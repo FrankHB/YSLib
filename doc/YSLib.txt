@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2281
+\version r2283
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-11-09 16:39 +0800
+	2013-12-10 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,8 @@
 在 Core 中，以下依赖关系对于头文件包含是确定的：
  "ysdef.h" 依赖于 Adaptor 的 "yadaptor.h" 和 "yref.hpp" ；
 除了 "ybasemac.h" 和 "ysdef.h" 外都直接或间接依赖于 "ysdef.h"；
- "yobject.h" 依赖于 "ycutil.h" 和 "yexcept.h" ；
+ "ycutil.h" 依赖于 "yexcept.h" ；
+ "yobject.h" 依赖于 "ycutil.h"；
  "ystring.h" 、 "ymsg.h" 依赖于 "yobject.h" ；
  "ystring.h" 依赖于 Adaptor 的 "YTextBase.h" ；
  "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.hpp" ；

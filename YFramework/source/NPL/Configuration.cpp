@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r670
+\version r672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2013-10-12 03:15 +0800
+	2013-12-08 23:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ TransformConfiguration(const ValueNode& node)
 	if(s == 0)
 		return {0, "", node ? Deliteralize(Access<string>(node)) : string()};
 
-	auto i(node.GetBegin());
+	auto i(node.begin());
 
 	if(s == 1)
 		return TransformConfiguration(*i);
@@ -70,7 +70,7 @@ TransformConfiguration(const ValueNode& node)
 
 	auto p_node_cont(make_unique<ValueNode::Container>());
 
-	std::for_each(i, node.GetEnd(), [&](const ValueNode& nd){
+	std::for_each(i, node.end(), [&](const ValueNode& nd){
 		auto&& n(TransformConfiguration(nd));
 
 		p_node_cont->insert(n.GetName().empty() ? ValueNode{0,

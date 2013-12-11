@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1834
+\version r1842
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-08-31 14:17 +0800
+	2013-12-08 16:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,11 +89,11 @@ private:
 
 	文本区域的起点和终点在文本缓冲区的迭代器，构成一个左闭右开区间。
 	\note 若因为读入换行符而换行，则迭代器指向的字符此换行符。
-	\since build 273
+	\since build 460
 	*/
 	//@{
-	Text::TextFileBuffer::Iterator i_top;
-	Text::TextFileBuffer::Iterator i_btm;
+	Text::TextFileBuffer::iterator i_top;
+	Text::TextFileBuffer::iterator i_btm;
 	//@}
 	/*!
 	\brief 读入文件结束后的空行数。
@@ -148,9 +148,10 @@ public:
 
 	//! \since build 374
 	DefPred(const ynothrow, BufferReady, bool(p_text));
-	DefPred(const ynothrow, TextTop, i_top == p_text->GetBegin()) \
+	DefPred(const ynothrow, TextTop, i_top == p_text->begin()) \
+
 		//!< 判断输出位置是否到文本顶端。
-	DefPred(const ynothrow, TextBottom, i_btm == p_text->GetEnd()) \
+	DefPred(const ynothrow, TextBottom, i_btm == p_text->end()) \
 		//!< 判断输出位置是否到文本底端。
 
 	/*!
@@ -298,8 +299,8 @@ private:
 	void
 	MoveUpForLastLine(ptrdiff_t, size_t);
 
-	//! \since build 375
-	Text::TextFileBuffer::Iterator
+	//! \since build 460
+	Text::TextFileBuffer::iterator
 	PutLastLine();
 
 public:

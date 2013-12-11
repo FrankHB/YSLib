@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3146
+\version r3160
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-09-29 10:52 +0800
+	2013-12-08 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,9 @@ template<typename _tIn, class _tArea, class _tCon>
 inline void
 AdjustForNewline(_tArea& area, _tIn& i, _tCon& c)
 {
-	i = FindLineFeed(area, next_if_eq(i, '\n'), c.GetEnd());
+	using std::end;
+
+	i = FindLineFeed(area, next_if_eq(i, '\n'), end(c));
 }
 
 /*!
@@ -123,7 +125,9 @@ template<typename _tIn, class _tArea, class _tCon>
 inline void
 AdjustPrevious(_tArea& area, _tIn& i, _tCon& c)
 {
-	i = FindPreviousLineFeed(area, i, c.GetBegin());
+	using std::begin;
+
+	i = FindPreviousLineFeed(area, i, begin(c));
 }
 
 /*!
@@ -339,7 +343,7 @@ DualScreenReader::Execute(Command cmd)
 			SetCurrentTextLineNOf(area_up, 0);
 			AdjustForPrevNewline();
 			CarriageReturn(area_up);
-			PutLine(area_up, next_if_eq(i_top, '\n'), p_text->GetEnd(), '\n');
+			PutLine(area_up, next_if_eq(i_top, '\n'), p_text->end(), '\n');
 			if(overread_line_n > 0)
 				--overread_line_n;
 			else
@@ -399,7 +403,7 @@ DualScreenReader::Locate(size_t pos)
 		return;
 	}
 	if(pos == 0)
-		i_top = p_text->GetBegin();
+		i_top = p_text->begin();
 	else if(pos < s)
 	{
 		i_top = p_text->GetIterator(pos);
@@ -417,7 +421,7 @@ DualScreenReader::LoadText(TextFile& file)
 	if(YB_LIKELY(file))
 	{
 		p_text = make_unique<Text::TextFileBuffer>(file);
-		yunseq(i_top = p_text->GetBegin(), i_btm = p_text->GetEnd());
+		yunseq(i_top = p_text->begin(), i_btm = p_text->end());
 		UpdateView();
 	}
 	else
@@ -441,10 +445,10 @@ DualScreenReader::MoveUpForLastLine(ptrdiff_t off, size_t h)
 	SetCurrentTextLineNOf(area_dn, --n);
 }
 
-Text::TextFileBuffer::Iterator
+Text::TextFileBuffer::iterator
 DualScreenReader::PutLastLine()
 {
-	return PutLine(area_dn, next_if_eq(i_btm, '\n'), p_text->GetEnd(), '\n');
+	return PutLine(area_dn, next_if_eq(i_btm, '\n'), p_text->end(), '\n');
 }
 
 void
@@ -468,7 +472,7 @@ DualScreenReader::ScrollByPixel(Drawing::FontSize h)
 	YAssert(scroll_offset < ln_h_ex, "Invalid scroll offset found."),
 	YAssert(bool(p_text), "Null text buffer found.");
 
-	if(YB_UNLIKELY(i_btm == p_text->GetEnd() || scroll_offset + h > ln_h_ex))
+	if(YB_UNLIKELY(i_btm == p_text->end() || scroll_offset + h > ln_h_ex))
 		return 0;
 	MoveUpForLastLine(-h, h);
 	//注意缓冲区不保证以空字符结尾。
@@ -504,8 +508,8 @@ DualScreenReader::Stretch(SDst h)
 void
 DualScreenReader::UnloadText()
 {
-	yunseq(i_top = Text::TextFileBuffer::Iterator(),
-		i_btm = Text::TextFileBuffer::Iterator(),
+	yunseq(i_top = Text::TextFileBuffer::iterator(),
+		i_btm = Text::TextFileBuffer::iterator(),
 		p_text = nullptr);
 }
 
@@ -517,16 +521,16 @@ DualScreenReader::UpdateView()
 	Reset();
 	{
 		auto i_new(PutString(area_up, next_if_eq(i_top, '\n'),
-			p_text->GetEnd()));
+			p_text->end()));
 
-		if(YB_UNLIKELY(i_new == p_text->GetEnd()))
+		if(YB_UNLIKELY(i_new == p_text->end()))
 		{
 			i_btm = i_new;
 			overread_line_n = CheckOverRead(area_up) + area_dn.GetTextLineNEx();
 		}
 		else
 		{
-			i_btm = PutString(area_dn, i_new, p_text->GetEnd());
+			i_btm = PutString(area_dn, i_new, p_text->end());
 			overread_line_n = CheckOverRead(area_dn);
 		}
 	}

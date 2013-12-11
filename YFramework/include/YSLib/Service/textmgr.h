@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3783
+\version r3822
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-08-05 21:07 +0800
+	2013-12-11 08:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,16 +61,18 @@ public:
 	using MapType = map<size_t, BlockType>;
 	/*!
 	\brief 目标编码迭代器类型。
-	\since build 273
+	\since build 460
 	*/
-	class YF_API Iterator : public std::iterator<
-		std::bidirectional_iterator_tag, ucs2_t,
-		ptrdiff_t, const ucs2_t, const ucs2_t&>
+	//@{
+	class YF_API iterator : public std::iterator<
+		std::bidirectional_iterator_tag, ucs2_t, ptrdiff_t, const ucs2_t*,
+		const ucs2_t&>
 	{
 		friend class TextFileBuffer;
 
 	private:
-		TextFileBuffer* pBuffer;
+		//! \since build 460
+		TextFileBuffer* p_buffer;
 		//文本读取位置。
 		size_t block;
 		size_t index;
@@ -79,34 +81,36 @@ public:
 		/*!
 		\brief 构造：指定文本读取位置。
 		*/
-		Iterator(TextFileBuffer* = {}, size_t = 0, size_t = 0) ynothrow;
+		iterator(TextFileBuffer* = {}, size_t = 0, size_t = 0) ynothrow;
 
 		/*!
 		\brief 迭代：循环向后遍历。
 		*/
-		Iterator&
+		iterator&
 		operator++() ynothrow;
 
 		/*!
 		\brief 迭代：循环向前遍历。
 		*/
-		Iterator&
+		iterator&
 		operator--() ynothrow;
 
-		ucs2_t
+		//! \since build 460
+		reference
 		operator*() const ynothrow;
-
 
 		/*!
 		\brief 比较：相等关系。
 		*/
 		YF_API friend bool
-		operator==(const Iterator&, const Iterator&) ynothrow;
+		operator==(const iterator&, const iterator&) ynothrow;
 
-		DefGetter(const ynothrow, TextFileBuffer*, BufferPtr, pBuffer)
+		DefGetter(const ynothrow, TextFileBuffer*, BufferPtr, p_buffer)
 		DefGetter(const ynothrow, size_t, BlockN, block)
 		DefGetter(const ynothrow, size_t, IndexN, index)
 	};
+	using const_iterator = iterator;
+	//@}
 
 	/*!
 	\brief 默认文本区块大小。
@@ -175,36 +179,44 @@ public:
 	DefGetter(const ynothrow, Encoding, Encoding, File.Encoding)
 	DefGetterMem(const ynothrow, size_t, Size, File)
 	DefGetter(const ynothrow, size_t, TextSize, nTextSize)
-	/*!
-	\brief 取文本缓冲区起始迭代器。
-	\note 指向起始字符。
-	\since build 273
-	*/
-	Iterator
-	GetBegin() ynothrow;
-	/*!
-	\brief 取文本缓冲区终止迭代器。
-	\note 指向终止字符后一位置。
-	\since build 273
-	*/
-	Iterator
-	GetEnd() ynothrow;
+
 	/*!
 	\brief 取文本字节位置对应的迭代器。
 	\since build 273
 	*/
-	Iterator
+	iterator
 	GetIterator(size_t);
 	/*!
 	\brief 取迭代器对应的文本字节位置。
 	\since build 273
 	*/
 	size_t
-	GetPosition(Iterator);
+	GetPosition(iterator);
+
+	//! \since build 460
+	//@{
+	/*!
+	\brief 取文本缓冲区起始迭代器。
+	\note 指向起始字符。
+	*/
+	iterator
+	begin() ynothrow;
+
+	/*!
+	\brief 取文本缓冲区终止迭代器。
+	\note 指向终止字符后一位置。
+	*/
+	iterator
+	end() ynothrow;
+	//@}
 };
 
+/*
+\relates TextFileBuffer::iterator
+\since build 460
+*/
 inline bool
-operator!=(const TextFileBuffer::Iterator& x, const TextFileBuffer::Iterator y)
+operator!=(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator y)
 	ynothrow
 {
 	return !(x == y);

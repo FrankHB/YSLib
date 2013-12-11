@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3334
+\version r3349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-11-30 16:45 +0800
+	2013-12-10 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,6 @@
 
 #include "YSLib/Adaptor/Font.h"
 #include "YSLib/Core/yapp.h"
-#include "YSLib/Core/yexcept.h"
 #include "YSLib/Core/yfilesys.h"
 #include <Helper/Initialization.h>
 #include "YCLib/Debug.h"
@@ -320,23 +319,10 @@ Typeface::operator<(const Typeface& rhs) const
 Typeface::SmallBitmapData&
 Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
 {
-	auto i(bitmap_cache.find(key));
-
-	if(i == bitmap_cache.end())
-	{
-		LookupSize(key.Size).Activate();
-		::FT_Set_Transform(&ref.second.get(),
-			bool(key.Style & FontStyle::Italic) ? &italic_matrix : nullptr, {});
-
-		const auto pr(bitmap_cache.emplace(key, SmallBitmapData(::FT_Load_Glyph(
-			&ref.second.get(), key.GlyphIndex, key.Flags | FT_LOAD_RENDER) == 0
-			? ref.second.get().glyph : nullptr, key.Style)));
-
-		if(YB_UNLIKELY(!pr.second))
-			throw LoggedEvent("Bitmap cache insertion failed.", Alert);
-		i = pr.first;
-	}
-	return i->second;
+	return CacheLookup(bitmap_cache, key, [&]{return SmallBitmapData(
+		::FT_Load_Glyph(&ref.second.get(), key.GlyphIndex,
+		key.Flags | FT_LOAD_RENDER) == 0 ? ref.second.get().glyph : nullptr,
+		key.Style);});
 }
 
 ::FT_UInt

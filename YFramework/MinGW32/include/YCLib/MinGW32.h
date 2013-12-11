@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r189
+\version r190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-11-04 08:30 +0800
+	2013-12-05 12:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,7 +187,7 @@ private:
 public:
 	RegisterKey(::HKEY h_parent, const wchar_t* key)
 	{
-		if(!::RegOpenKeyEx(h_parent, key, 0, KEY_READ, &h_key))
+		if(!::RegOpenKeyExW(h_parent, key, 0, KEY_READ, &h_key))
 			YF_Raise_Win32Exception("RegOpenKeyEx");
 	}
 	~RegisterKey()

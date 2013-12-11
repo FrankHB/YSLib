@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r333
+\version r336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2013-08-08 05:38 +0800
+	2013-12-08 23:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,8 +45,8 @@ namespace UI
 class YF_API DialogBox : public Control
 {
 public:
-	//! \since build 357
-	using Iterator = ystdex::subscriptive_iterator<DialogBox, IWidget>;
+	//! \since build 460
+	using iterator = ystdex::subscriptive_iterator<DialogBox, IWidget>;
 
 protected:
 	/*!

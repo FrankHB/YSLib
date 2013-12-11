@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4431
+\version r4507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-12-01 23:07 +0800
+	2013-12-11 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,83 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		* $dev "constructor %RegisterKey" @ "%UNICODE undefined"
+			@ %'YCLib_(MinGW32)' $since build b435
+			$= (^ "%RegOpenKeyExW" ~ "%RegOpenKeyEx"),
+		/ %'YSLib' $=
+		(
+			/ @ "class %TextManager" @ %'Service'.'TextManager' $=
+			(
+				/ "class %Iterator" => "%iterator";
+				+ 'using const_iterator = iterator',
+				/ "member functions %(GetBegin, GetEnd)" -> "%(begin, end)"
+					// Note that %(cbegin, cend) is not very necessary \
+						because of C++1y's %std::(cbegin, cend).
+				/ %"class iterator" $=
+				(
+					* "non-reference return type incompatible to ISO C++ \
+						bidirectional iterator requirements" $since b273,
+					* "wrong %pointer_type of base" $sivce b273
+				),
+				(
+					+ "function template %CacheLookup" @ %'YCoreUtilities';
+					/ DLD "simplified cache lookup with slightly different \
+						exception string" ^ %"CacheLookup" @ %'YFont'
+				)
+			),
+			/ %'Core'.'ValueNode' $=
+			(
+				- "2 functions %(begin, end) for %ValueNode",
+					// Member functions and %std::(begin, end)are enough.
+				/ @ %"class %ValueNode" $=
+				(
+					+ 'using iterator = Container::iterator;',
+					+ 'using const_iterator = Container::const_iterator;',
+					/ "member functions %(GetBegin, GetEnd)" -> "%(begin, end)"
+				)
+			),
+			/ %'UI' $=
+			(
+				/ %'WidgetIterator' $=
+				(
+					/ "widget iterator member function names %(GetBegin, \
+						GetEnd)" => "%(begin, end)"
+						@ "macro %DefWidgetChildrenGetter",
+					/ "widget iterator type name %Iterator" => "%iterator"
+						@ "macros %(DefWidgetBegin, DefWidgetEnd, \
+						DefWidgetMemberIteration, DefWidgetMemberIterationBase)"
+				),
+				/ @ "class %(UIContainer, Panel)" $=
+				(
+					/ "member type %Iterator" => "%iterator",
+					/ "member functions %(GetBegin, GetEnd)" -> "%(begin, end)"
+				),
+				/ "member type %Iterator" => "%iterator"
+					@ ("classes %(ListBox, DropDownList)" @ %'ComboList',
+					"classes %(ATrack, AScrollBar, ScrollableContainer)"
+					@ %'Scroll', "class %DialogBox" @ %'UIContainerEx'),
+				/ 'using Iterator = const_iterator;' -> "using declarations of \
+					base class members %(iterator, const_iterator)"
+			),
+		)
+		/ "template parameter" @ "function template %MakeUCS2LEString#2"
+			@ %'CHRLib'.'CharacterProcessing' ^ "ADL and %std::begin"
+			~ "member function %begin"
+	),
+	/ %'YBase'.'YStandardEx' $=
+	(
+		- "2 function templates %(begin, end) for %path" @ %'Path',
+			// Member functions and %std::(begin, end) are enough.
+		/ "function templates %is_undereferenceable" @ %'Memory' >> %'Iterator'
+	)
+	/ $dev "member type %Iterator" => "%iterator" @ "class %ReaderBox"
+		@ %'ShlReader'
+),
+
+b459
 (
 	/ %'YFramework' $=
 	(

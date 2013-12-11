@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r846
+\version r848
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-10-09 19:31 +0800
+	2013-12-08 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,8 +217,9 @@ MakeUCS2LEString(const ucs2_t* s, Encoding = CharSet::ISO_10646_UCS_2)
 
 	_tDst str(std::char_traits<ucs2_t>::length(s),
 		typename ystdex::string_traits<_tDst>::value_type());
+	using std::begin;
 
-	std::copy_n(s, str.size(), str.begin());
+	std::copy_n(s, str.size(), begin(str));
 	return std::move(str);
 }
 //! \brief 复制 UCS-4 字符串为指定类型的 UCS2-LE 字符串。

@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r607
+\version r638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2013-10-13 19:34 +0800
+	2013-12-08 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -391,39 +391,6 @@ bool
 operator>=(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
 {
 	return !(x < y);
-}
-//@}
-
-/*!
-\ingroup helper_functions
-\brief 迭代器包装，可用于 range-based for 。
-\relates path
-*/
-//@{
-template<class _tSeqCon>
-inline auto
-begin(path<_tSeqCon>& pth) -> decltype(pth.begin())
-{
-	return pth.begin();
-}
-template<class _tSeqCon>
-inline auto
-begin(const path<_tSeqCon>& pth) -> decltype(pth.begin())
-{
-	return pth.begin();
-}
-
-template<class _tSeqCon>
-inline auto
-end(path<_tSeqCon>& pth) -> decltype(pth.end())
-{
-	return pth.end();
-}
-template<class _tSeqCon>
-inline auto
-end(const path<_tSeqCon>& pth) -> decltype(pth.end())
-{
-	return pth.end();
 }
 //@}
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r456
+\version r478
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2013-09-01 22:16 +0800
+	2013-09-01 12:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,29 +33,6 @@
 
 namespace ystdex
 {
-
-/*!	\defgroup is_undereferenceable Is Undereferenceable Iterator
-\brief 判断迭代器实例是否为可解引用。
-\tparam _tIterator 迭代器类型。
-\note 注意返回 \c false 不表示参数实际可解引用。
-\note 默认实现对参数转换为 \c bool 类型判断是否为 false 。
-\since build 400
-*/
-//@{
-template<typename _tIterator>
-yconstfn bool
-is_undereferenceable(const _tIterator&)
-{
-	return false;
-}
-template<typename _type>
-yconstfn bool
-is_undereferenceable(_type* p)
-{
-	return !bool(p);
-}
-//@}
-
 
 /*!	\defgroup get_raw Get get_raw Pointers
 \brief 取内建指针。

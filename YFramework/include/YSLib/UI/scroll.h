@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2635
+\version r2642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2013-09-07 02:44 +0800
+	2013-12-08 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,8 +137,8 @@ public:
 	};
 	//注意值类型需要和继承的 GMRange 的 ValueType 一致。
 	using ValueType = ScrollEventArgs::ValueType; //!< 值类型。
-	//! \since build 356
-	using Iterator = ystdex::subscriptive_iterator<ATrack, IWidget>;
+	//! \since build 460
+	using iterator = ystdex::subscriptive_iterator<ATrack, IWidget>;
 
 protected:
 	/*!
@@ -294,8 +294,8 @@ class YF_API AScrollBar : public Control
 {
 public:
 	using ValueType = ATrack::ValueType; //!< 值类型。
-	//! \since build 356
-	using Iterator = ystdex::subscriptive_iterator<AScrollBar, IWidget>;
+	//! \since build 460
+	using iterator = ystdex::subscriptive_iterator<AScrollBar, IWidget>;
 
 private:
 	unique_ptr<ATrack> pTrack; //轨道。
@@ -420,8 +420,8 @@ protected:
 class YF_API ScrollableContainer : public Control
 {
 public:
-	//! \since build 356
-	using Iterator
+	//! \since build 460
+	using iterator
 		= ystdex::subscriptive_iterator<ScrollableContainer, IWidget>;
 
 protected:
