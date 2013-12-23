@@ -742,6 +742,12 @@
     <ClInclude Include="include\YSLib\Service\ContentType.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Core\Cache.hpp">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YModules.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">

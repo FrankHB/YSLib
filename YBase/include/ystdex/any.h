@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1364
+\version r1366
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-10-24 22:10 +0800
+	2013-12-12 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -277,8 +277,9 @@ public:
 		h.p_held = {};
 	}
 	//@}
+	//! \since build 461
 	virtual
-	~pointer_holder() ynothrow
+	~pointer_holder()
 	{
 		delete p_held;
 	}

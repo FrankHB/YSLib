@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r675
+\version r679
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-10-07 00:28 +0800
+	2013-12-22 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,6 +113,10 @@ using std::multiset;
 using std::set;
 
 using std::unordered_map;
+//! \since build 461
+using std::unordered_multimap;
+//! \since build 461
+using std::unordered_multiset;
 using std::unordered_set;
 
 using std::stack;

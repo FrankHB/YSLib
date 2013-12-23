@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3349
+\version r3353
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-12-10 20:53 +0800
+	2013-12-22 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ NativeFontSize::NativeFontSize(NativeFontSize&& ns) ynothrow
 {
 	ns.size = {};
 }
-NativeFontSize::~NativeFontSize() ynothrow
+NativeFontSize::~NativeFontSize()
 {
 	::FT_Done_Size(size);
 }
@@ -271,7 +271,7 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 			p_ff.reset(new FontFamily(cache, family_name));
 		return pair<std::reference_wrapper<FontFamily>,
 			std::reference_wrapper< ::FT_FaceRec_>>(*p_ff.get(), *face);
-	}()), bitmap_cache(), glyph_index_cache()
+	}()), bitmap_cache(2047U), glyph_index_cache()
 {
 	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(ref.second.get().num_charmaps),
 		"Invalid CMap index found.");
@@ -279,7 +279,7 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 	style_name = ref.second.get().style_name;
 	ref.first.get() += *this;
 }
-Typeface::~Typeface() ynothrow
+Typeface::~Typeface()
 {
 	size_cache.clear();
 	glyph_index_cache.clear();
@@ -390,7 +390,7 @@ FontCache::FontCache(size_t /*cache_size*/)
 			ystdex::sfmt("Font init failed: %08x\n;", error).c_str(), Alert);
 	}
 }
-FontCache::~FontCache() ynothrow
+FontCache::~FontCache()
 {
 	ClearContainers();
 	::FT_Done_FreeType(library);

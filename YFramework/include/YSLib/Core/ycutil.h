@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r1990
+\version r2010
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-12-10 20:52 +0800
+	2013-12-22 20:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -463,30 +463,6 @@ ClonePolymorphic(const _type& p) -> decltype(&*p)
 		::value, "Non-polymorphic class type found.");
 
 	return p->clone();
-}
-
-
-/*!
-\brief 以指定的关键字查找作为缓存的无序关联容器，
-	若没有找到使用指定的可调用对象和参数初始化内容。
-\since build 460
-*/
-template<class _tMap, typename _tKey, typename _fCallable, typename... _tParams>
-auto
-CacheLookup(_tMap& cache, const _tKey& key, _fCallable init,
-	_tParams&&... args) -> decltype((cache.begin()->second))
-{
-    auto i(cache.find(key));
-
-    if(i == cache.end())
-	{
-		const auto pr(cache.emplace(key, init(yforward(args)...)));
-
-		if(YB_UNLIKELY(!pr.second))
-			throw LoggedEvent("Cache insertion failed.", Alert);
-		i = pr.first;
-	}
-	return i->second;
 }
 
 } // namespace YSLib;

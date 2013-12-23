@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r2988
+\version r3027
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-12-11 21:00 +0800
+	2013-12-13 12:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,18 +58,18 @@ namespace ystdex
 \brief 判断迭代器实例是否不可解引用。
 \tparam _tIterator 迭代器类型。
 \note 注意返回 \c false 不表示参数实际可解引用。
-\since build 400
+\since build 461
 */
 //@{
 template<typename _tIterator>
 yconstfn bool
-is_undereferenceable(const _tIterator&)
+is_undereferenceable(const _tIterator&) ynothrow
 {
 	return false;
 }
 template<typename _type>
 yconstfn bool
-is_undereferenceable(_type* p)
+is_undereferenceable(_type* p) ynothrow
 {
 	return !bool(p);
 }
@@ -214,8 +214,9 @@ public:
 		return *this;
 	}
 
+	//! \since build 461
 	reference
-	operator*() const
+	operator*() const ynothrowv
 	{
 		yconstraint(raw);
 
@@ -977,7 +978,7 @@ public:
 		++*this;
 	}
 	indirect_input_iterator(const indirect_input_iterator&) = default;
-	//! \note 使用 ADL 。
+	//! \note 使用 std::swap 和 ADL 。
 	indirect_input_iterator(indirect_input_iterator&& i) ynothrow
 		: iter()
 	{
@@ -1020,9 +1021,10 @@ public:
 	/*!
 	\brief 间接操作。
 	\pre 断言：<tt>!is_undereferenceable(iter)</tt> 。
+	\since build 461
 	*/
 	reference
-	operator*() const ynothrow
+	operator*() const
 	{
 		yconstraint(!is_undereferenceable(iter));
 
@@ -1121,19 +1123,21 @@ protected:
 	mutable byte value;
 
 public:
+	//! \since build 461
+	//@{
 	/*!
 	\brief 构造：使用基指针和偏移位。
 	\note value 具有未决定值。
 	\post 断言： <tt>shift < seg_n</tt> 。
 	*/
-	bitseg_iterator(byte* p = {}, unsigned char n = 0)
+	bitseg_iterator(byte* p = {}, unsigned char n = 0) ynothrow
 		: base(p), shift(n)
 	{
 		yassume(shift < seg_n);
 	}
 
 	bitseg_iterator&
-	operator+=(difference_type n)
+	operator+=(difference_type n) ynothrowv
 	{
 		yconstraint(base);
 		yassume(shift < seg_n);
@@ -1145,14 +1149,14 @@ public:
 	}
 
 	bitseg_iterator&
-	operator-=(difference_type n)
+	operator-=(difference_type n) ynothrowv
 	{
 		base += -n;
 		return *this;
 	}
 
 	reference
-	operator*() const
+	operator*() const ynothrowv
 	{
 		yconstraint(base);
 
@@ -1161,13 +1165,13 @@ public:
 	}
 
 	yconstfn pointer
-	operator->() const
+	operator->() const ynothrowv
 	{
 		return &**this;
 	}
 
 	inline bitseg_iterator&
-	operator++()
+	operator++() ynothrowv
 	{
 		yconstraint(base);
 		yassume(shift < seg_n);
@@ -1178,7 +1182,7 @@ public:
 	}
 	//! \since build 415
 	bitseg_iterator
-	operator++(int)
+	operator++(int) ynothrowv
 	{
 		auto i(*this);
 
@@ -1187,7 +1191,7 @@ public:
 	}
 
 	inline bitseg_iterator&
-	operator--()
+	operator--() ynothrowv
 	{
 		yconstraint(base);
 		yassume(shift < seg_n);
@@ -1200,7 +1204,7 @@ public:
 	}
 	//! \since build 415
 	bitseg_iterator
-	operator--(int)
+	operator--(int) ynothrowv
 	{
 		auto i(*this);
 
@@ -1209,7 +1213,7 @@ public:
 	}
 
 	reference
-	operator[](difference_type n) const
+	operator[](difference_type n) const ynothrowv
 	{
 		const auto i(*this);
 
@@ -1218,28 +1222,29 @@ public:
 	}
 
 	yconstfn bitseg_iterator
-	operator+(difference_type n) const
+	operator+(difference_type n) const ynothrow
 	{
 		return bitseg_iterator(base + n);
 	}
 
 	yconstfn bitseg_iterator
-	operator-(difference_type n) const
+	operator-(difference_type n) const ynothrow
 	{
 		return bitseg_iterator(base - n);
 	}
 
 	yconstfn explicit
-	operator pointer() const
+	operator pointer() const ynothrow
 	{
 		return base;
 	}
 
 	yconstfn size_t
-	get_shift() const
+	get_shift() const ynothrow
 	{
 		return shift;
 	}
+	//@}
 };
 
 /*!
@@ -1348,26 +1353,28 @@ public:
 		return *this;
 	}
 
+	//! \since build 461
+	//@{
 	reference
-	operator*()
+	operator*() const
 	{
 		return (*con_ptr)[idx];
 	}
 
 	pointer
-	operator->()
+	operator->() const
 	{
 		return std::addressof(**this);
 	}
 
 	subscriptive_iterator&
-	operator++()
+	operator++() ynothrow
 	{
 		++idx;
 		return *this;
 	}
 	subscriptive_iterator
-	operator++(int)
+	operator++(int) ynothrow
 	{
 		auto i(*this);
 
@@ -1376,19 +1383,20 @@ public:
 	}
 
 	subscriptive_iterator
-	operator--()
+	operator--() ynothrow
 	{
 		--idx;
 		return *this;
 	}
 	subscriptive_iterator
-	operator--(int)
+	operator--(int) ynothrow
 	{
 		auto i(*this);
 
 		--*this;
 		return std::move(i);
 	}
+	//@}
 
 	reference
 	operator[](difference_type n) const
@@ -1414,22 +1422,23 @@ public:
 		return subscriptive_iterator(*con_ptr, idx - n);
 	}
 
-	//! \since build 357
+	//! \since build 461
 	_tCon*
-	container() const
+	container() const ynothrow
 	{
 		return con_ptr;
 	}
 
+	//! \since build 461
 	bool
-	equals(const subscriptive_iterator<_tCon, _type>& i) const
+	equals(const subscriptive_iterator<_tCon, _type>& i) const ynothrow
 	{
 		return con_ptr == i.con_ptr && idx == i.idx;
 	}
 
-	//! \since build 357
+	//! \since build 461
 	size_t
-	index() const
+	index() const ynothrow
 	{
 		return idx;
 	}
@@ -1437,14 +1446,14 @@ public:
 
 /*!
 \relates subscriptive_iterator
-\since build 356
+\since build 461
 */
 //@{
 //! \brief 比较成员下标迭代器的相等性。
 template<class _tCon, typename _type>
 bool
 operator==(const subscriptive_iterator<_tCon, _type>& x,
-	const subscriptive_iterator<_tCon, _type>& y)
+	const subscriptive_iterator<_tCon, _type>& y) ynothrow
 {
 	return x.equals(y);
 }
@@ -1453,7 +1462,7 @@ operator==(const subscriptive_iterator<_tCon, _type>& x,
 template<class _tCon, typename _type>
 bool
 operator!=(const subscriptive_iterator<_tCon, _type>& x,
-	const subscriptive_iterator<_tCon, _type>& y)
+	const subscriptive_iterator<_tCon, _type>& y) ynothrow
 {
 	return !(x == y);
 }

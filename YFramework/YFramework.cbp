@@ -175,6 +175,7 @@
 		<Unit filename="include/YCLib/Timer.h" />
 		<Unit filename="include/YCLib/Video.h" />
 		<Unit filename="include/YCLib/ycommon.h" />
+		<Unit filename="include/YModules.h" />
 		<Unit filename="include/YSLib/Adaptor/Font.h" />
 		<Unit filename="include/YSLib/Adaptor/Image.h" />
 		<Unit filename="include/YSLib/Adaptor/YTextBase.h" />
@@ -183,6 +184,7 @@
 		<Unit filename="include/YSLib/Adaptor/ycont.h" />
 		<Unit filename="include/YSLib/Adaptor/ynew.h" />
 		<Unit filename="include/YSLib/Adaptor/yref.hpp" />
+		<Unit filename="include/YSLib/Core/Cache.hpp" />
 		<Unit filename="include/YSLib/Core/Task.h" />
 		<Unit filename="include/YSLib/Core/ValueNode.h" />
 		<Unit filename="include/YSLib/Core/yapp.h" />

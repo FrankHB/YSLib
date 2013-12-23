@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1013
+\version r1014
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-08-08 20:52 +0800
+	2013-12-12 14:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -332,7 +332,7 @@ DirectorySession::DirectorySession(const char* path)
 	if(!dir)
 		throw FileOperationFailure("Opening directory failed.");
 }
-DirectorySession::~DirectorySession() ynothrow
+DirectorySession::~DirectorySession()
 {
 #if YCL_DS
 	const auto res(::closedir(dir));

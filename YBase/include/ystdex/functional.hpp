@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r818
+\version r825
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-10-13 02:33 +0800
+	2013-12-22 20:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,25 +230,25 @@ using return_of_t = typename return_of<_fCallable>::type;
 template<typename _tRet, typename... _tParams>
 struct return_of<_tRet(_tParams...)>
 {
-    using type = _tRet;
+	using type = _tRet;
 };
 
 template<typename _tRet, typename... _tParams>
 struct return_of<_tRet(*)(_tParams...)>
 {
-    using type = _tRet;
+	using type = _tRet;
 };
 
 template<typename _tRet, typename... _tParams>
 struct return_of<_tRet(&)(_tParams...)>
 {
-    using type = _tRet;
+	using type = _tRet;
 };
 
 template<typename _tRet, class _tClass, typename... _tParams>
 struct return_of<_tRet(_tClass::*)(_tParams...)>
 {
-    using type = _tRet;
+	using type = _tRet;
 };
 
 //! \since build 358
@@ -256,19 +256,19 @@ struct return_of<_tRet(_tClass::*)(_tParams...)>
 template<typename _tRet, class _tClass, typename... _tParams>
 struct return_of<_tRet(_tClass::*)(_tParams...) const>
 {
-    using type = _tRet;
+	using type = _tRet;
 };
 
 template<typename _tRet, class _tClass, typename... _tParams>
 struct return_of<_tRet(_tClass::*)(_tParams...) volatile>
 {
-    using type = _tRet;
+	using type = _tRet;
 };
 
 template<typename _tRet, class _tClass, typename... _tParams>
 struct return_of<_tRet(_tClass::*)(_tParams...) const volatile>
 {
-    using type = _tRet;
+	using type = _tRet;
 };
 //@}
 

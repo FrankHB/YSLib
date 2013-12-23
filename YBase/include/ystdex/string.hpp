@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r471
+\version r477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-10-13 02:32 +0800
+	2013-12-22 20:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -380,16 +380,16 @@ template<typename _tChar>
 std::basic_string<_tChar>
 sfmt(const _tChar* fmt, ...)
 {
-    std::va_list args;
+	std::va_list args;
 
-    va_start(args, fmt);
+	va_start(args, fmt);
 
-    std::string str(static_cast<size_t>(std::vsnprintf(nullptr, 0, fmt, args)),
+	std::string str(static_cast<size_t>(std::vsnprintf(nullptr, 0, fmt, args)),
 		_tChar());
 
-    std::vsprintf(&str[0], fmt, args);
-    va_end(args);
-    return str;
+	std::vsprintf(&str[0], fmt, args);
+	va_end(args);
+	return str;
 }
 
 /*!

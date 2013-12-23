@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r543
+\version r555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-11-23 16:56 +0800
+	2013-12-14 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,7 +163,7 @@ ImageMemory::ImageMemory(octet* p, size_t size)
 	if(!handle)
 		throw LoggedEvent("Opening image memory failed.");
 }
-ImageMemory::~ImageMemory() ynothrow
+ImageMemory::~ImageMemory()
 {
 	::FreeImage_CloseMemory(handle);
 }
@@ -219,7 +219,7 @@ HBitmap::HBitmap(HBitmap&& pixmap) ynothrow
 {
 	pixmap.bitmap = {};
 }
-HBitmap::~HBitmap() ynothrow
+HBitmap::~HBitmap()
 {
 	::FreeImage_Unload(bitmap);
 }
@@ -268,7 +268,8 @@ public:
 		bool = true) ynothrow;
 	MultiBitmapData(ImageFormat, std::FILE&, int = 0, ::FreeImageIO& = u8_io,
 		bool = true) ynothrow;
-	~MultiBitmapData() ynothrow;
+	//! \since build 461
+	~MultiBitmapData();
 
 	DefPred(const ynothrow, OpenForRead, read)
 
@@ -298,7 +299,7 @@ MultiBitmapData::MultiBitmapData(ImageFormat fmt, std::FILE& f, int flags,
 	: MultiBitmapData(::fi_handle(&f), flags,
 	LookupPlugin(::FREE_IMAGE_FORMAT(fmt)), io, open_for_reading)
 {}
-MultiBitmapData::~MultiBitmapData() ynothrow
+MultiBitmapData::~MultiBitmapData()
 {
 	if(const auto close = plugin_ref.get().close_proc)
 		close(&io_ref.get(), handle, data);
@@ -346,6 +347,13 @@ LoadImagePages(ImageFormat fmt, const char16_t* filename, int flags = 0)
 } // unnamed namespace;
 
 
+bool
+operator==(const HMultiBitmap::iterator& x, const HMultiBitmap::iterator& y)
+	ynothrow
+{
+	return x.p_bitmaps == y.p_bitmaps && (!x.p_bitmaps || x.index == y.index);
+}
+
 HMultiBitmap::HMultiBitmap(const char* filename, ImageDecoderFlags flags)
 	: HMultiBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
@@ -389,7 +397,7 @@ ImageCodec::ImageCodec()
 	::FreeImage_SetOutputMessageStdCall(FI_OutputMessage);
 	errno = old_errno;
 }
-ImageCodec::~ImageCodec() ynothrow
+ImageCodec::~ImageCodec()
 {
 	::FreeImage_DeInitialise();
 }

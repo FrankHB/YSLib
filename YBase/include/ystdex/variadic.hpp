@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r232
+\version r234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2013-09-23 22:07 +0800
+	2013-12-22 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,7 +147,7 @@ private:
 
 public:
 	static yconstexpr auto value = sub::value;
-    using type = typename sub::type;
+	using type = typename sub::type;
 };
 //@}
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1496
+\version r1498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-09-23 12:18 +0805
+	2013-12-22 20:42 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -533,7 +533,7 @@ private:
 	static yconstexpr size_t int_size = _vInt1 < _vInt2 ? _vInt2 : _vInt1;
 
 public:
-    using type = ystdex::fixed_point<common_base_type, int_size,
+	using type = ystdex::fixed_point<common_base_type, int_size,
 		std::numeric_limits<common_base_type>::digits - int_size>;
 };
 

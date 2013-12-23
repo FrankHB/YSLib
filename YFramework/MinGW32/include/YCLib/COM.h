@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r442
+\version r446
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2013-09-23 19:05 +0800
+	2013-12-12 15:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,8 @@ public:
 	{
 		ptr.pInterface = nullptr;
 	}
-	~COMPtr() ynothrow
+	//! \since build 461
+	~COMPtr()
 	{
 		InternalRelease();
 	}
@@ -191,8 +192,9 @@ public:
 		return *this;
 	}
 
+	//! \since build 461
 	_iCOM&
-	operator*() const ynothrow
+	operator*() const ynothrowv
 	{
 		yconstraint(pInterface);
 

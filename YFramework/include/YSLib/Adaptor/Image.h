@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r518
+\version r605
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-11-28 12:54 +0800
+	2013-12-14 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,8 +150,8 @@ private:
 
 public:
 	ImageMemory(octet* = {}, size_t = 0);
-	//! \since build 428
-	~ImageMemory() ynothrow;
+	//! \since build 461
+	~ImageMemory();
 
 	DefGetter(const ynothrow, ImageFormat, Format, format)
 	DefGetter(const ynothrow, NativeHandle, NativeHandle, handle)
@@ -236,8 +236,8 @@ public:
 	//! \throw BadImageAlloc 分配空间失败。
 	HBitmap(const HBitmap&);
 	HBitmap(HBitmap&&) ynothrow;
-	//! \since build 428
-	~HBitmap() ynothrow;
+	//! \since build 461
+	~HBitmap();
 	//@}
 
 	//! \since build 430
@@ -309,6 +309,38 @@ class YF_API HMultiBitmap final
 {
 public:
 	using DataPtr = shared_ptr<MultiBitmapData>;
+	//! \since build 460
+	//@{
+	class YF_API iterator : public std::iterator<std::input_iterator_tag,
+		HBitmap, ptrdiff_t, const HBitmap*, HBitmap>
+	{
+	private:
+		const HMultiBitmap* p_bitmaps;
+		size_t index;
+
+	public:
+		iterator()
+			: p_bitmaps()
+		{}
+		iterator(const HMultiBitmap& bmps, size_t idx = 0)
+			: p_bitmaps(&bmps), index(idx)
+		{}
+
+		iterator&
+		operator++() ynothrowv;
+
+		reference
+		operator*() const;
+
+		YF_API friend bool
+		operator==(const iterator&, const iterator&) ynothrow;
+
+		DefGetter(const ynothrow, const HMultiBitmap*, HMultiBitmapPtr,
+			p_bitmaps)
+		DefGetter(const ynothrow, size_t, Index, index)
+	};
+	using const_iterator = iterator;
+	//@}
 
 private:
 	DataPtr pages;
@@ -316,6 +348,7 @@ private:
 public:
 	/*!
 	\throw LoggedEvent 读取失败。
+	\note 非多页面读取结果为空。
 	\since build 457
 	*/
 	//@{
@@ -372,7 +405,49 @@ public:
 	//! \brief 交换。
 	PDefH(void, swap, HMultiBitmap& multi_pixmap) ynothrow
 		ImplExpr(std::swap(pages, multi_pixmap.pages))
+
+	//! \since build 461
+	//@{
+	PDefH(iterator, begin, ) const ynothrow
+		ImplRet(GetPageCount() != 0 ? HMultiBitmap::iterator(*this)
+			: HMultiBitmap::iterator())
+
+	PDefH(iterator, end, ) const ynothrow
+		ImplRet(HMultiBitmap::iterator())
+	//@}
 };
+
+inline HMultiBitmap::iterator&
+HMultiBitmap::iterator::operator++() ynothrowv
+{
+	YAssert(p_bitmaps, "Null pointer found.");
+
+	if(++index == p_bitmaps->GetPageCount())
+		p_bitmaps = {};
+	return *this;
+}
+
+inline HMultiBitmap::iterator::reference
+HMultiBitmap::iterator::operator*() const
+{
+	YAssert(p_bitmaps, "Null pointer found.");
+
+	return p_bitmaps->Lock(index);
+}
+
+inline bool
+operator!=(const HMultiBitmap::iterator& x, const HMultiBitmap::iterator& y)
+	ynothrow
+{
+	return !(x == y);
+}
+
+//! \relates HMultiBitmap::iterator
+inline bool
+is_undereferenceable(const HMultiBitmap::iterator& i) ynothrow
+{
+	return !i.GetHMultiBitmapPtr();
+}
 
 //! \relates HMultiBitmap
 inline DefSwap(ynothrow, HMultiBitmap)
@@ -384,8 +459,8 @@ class YF_API ImageCodec final
 {
 public:
 	ImageCodec();
-	//! \since build 428
-	~ImageCodec() ynothrow;
+	//! \since build 461
+	~ImageCodec();
 
 	//! \since build 418
 	static CompactPixmap
@@ -415,8 +490,9 @@ public:
 	Load(const vector<octet>&);
 
 	/*!
-	\brief 读取指定路径的图片文件为用于直接呈现的帧序列。
-	\note 对多帧图片自动选择解码器标识（当前仅支持 GIF 格式）；其它为默认参数。
+	\brief 读取指定路径的多页面图片文件为用于直接呈现的帧序列。
+	\note 非多页面读取结果为空。
+	\note 对多页面图片自动选择解码器标识（当前仅支持 GIF 格式）；其它为默认参数。
 	\since build 458
 	*/
 	//@{
@@ -434,6 +510,24 @@ public:
 		return LoadForPlaying(&filename[0]);
 	}
 	//@}
+
+	/*!
+	\brief 读取指定路径的图片文件为用于直接呈现的帧序列。
+	\note 使用 LoadForPlaying 按多页面读取，若结果为空按单页面读取。
+	\sa LoadForPlaying
+	\since build 461
+	*/
+	template<class _tSeqCon, typename _type>
+	static _tSeqCon
+	LoadSequence(const _type& path)
+	{
+		const auto multi_bitmap(LoadForPlaying(path));
+		_tSeqCon con{multi_bitmap.begin(), multi_bitmap.end()};
+
+		if(con.empty())
+			con.emplace_back(path);
+		return std::move(con);
+	}
 };
 
 } // namespace Drawing;

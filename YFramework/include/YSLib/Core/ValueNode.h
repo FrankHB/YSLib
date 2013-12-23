@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1343
+\version r1345
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-12-08 22:57 +0800
+	2013-12-13 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,9 +151,9 @@ public:
 	const ValueNode&
 	operator[](const string&) const;
 	//! \since build 497
-	template<class _tCont>
+	template<class _tCon>
 	const ValueNode&
-	operator[](const ystdex::path<_tCont>& pth) const
+	operator[](const ystdex::path<_tCon>& pth) const
 	{
 		auto p(this);
 

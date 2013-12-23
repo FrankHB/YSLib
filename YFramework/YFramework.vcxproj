@@ -143,6 +143,7 @@
     <ClInclude Include="include\YCLib\Timer.h" />
     <ClInclude Include="include\YCLib\Video.h" />
     <ClInclude Include="include\YCLib\ycommon.h" />
+    <ClInclude Include="include\YModules.h" />
     <ClInclude Include="include\ysbuild.h" />
     <ClInclude Include="include\YSLib\Adaptor\config.h" />
     <ClInclude Include="include\YSLib\Adaptor\Image.h" />
@@ -152,6 +153,7 @@
     <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
+    <ClInclude Include="include\YSLib\Core\Cache.hpp" />
     <ClInclude Include="include\YSLib\Core\Task.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />
     <ClInclude Include="include\YSLib\Core\yapp.h" />

@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12134
+\version r12135
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2013-11-30 23:11 +0800
+	2013-12-23 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,6 +118,7 @@ YTrace(*)
 // YFramework 既定宏污染列表。
 //以下保留宏名可能被 #undef 取消定义。
 // YF_* 保留给 YFramework 使用。
+// YFM_* 保留给 YFramework 使用作为模块包含文件宏。
 // YCL_* 保留给 YFramework/YCLib 使用。
 // YSL_* 保留给 YFramework/YSLib 使用。
 // NPL_* 保留给 YFramework/NPL 使用。

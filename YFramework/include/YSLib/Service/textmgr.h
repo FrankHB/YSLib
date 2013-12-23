@@ -11,13 +11,13 @@
 /*!	\file textmgr.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3822
+\version r3824
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-12-11 08:59 +0800
+	2013-12-12 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,9 +95,9 @@ public:
 		iterator&
 		operator--() ynothrow;
 
-		//! \since build 460
+		//! \since build 461
 		reference
-		operator*() const ynothrow;
+		operator*() const;
 
 		/*!
 		\brief 比较：相等关系。

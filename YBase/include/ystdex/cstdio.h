@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r418
+\version r422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2013-12-11 21:02 +0800
+	2013-12-13 12:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,8 +120,9 @@ public:
 	ifile_iterator(const ifile_iterator&) = default;
 	~ifile_iterator() = default;
 
+	//! \since build 461
 	yconstfn reference
-	operator*() const
+	operator*() const ynothrow
 	{
 		return value;
 	}
@@ -181,10 +182,10 @@ operator!=(const ifile_iterator& x, const ifile_iterator& y)
 /*!
 \ingroup is_undereferenceable
 \brief 判断 ifile_iterator 实例是否确定为不可解引用。
-\since build 400
+\since build 461
 */
 inline bool
-is_undereferenceable(const ifile_iterator& i)
+is_undereferenceable(const ifile_iterator& i) ynothrow
 {
 	return !i.get_stream();
 }

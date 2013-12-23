@@ -8,52 +8,44 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup YFramework YFramework Library
-\brief YFramework 框架库。
-*/
-
-/*!	\defgroup YSLib YShell Library
-\ingroup YFramework
-\brief YShell 库。
-*/
-
 /*!	\file ysbuild.h
 \ingroup YFramework
 \brief YSLib 库配置文件。
-\version r740
+\version r767
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 21:53:55 +0800
 \par 修改时间:
-	2013-10-06 22:31 +0800
+	2013-12-23 18:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Build
+	YSBuild
 */
 
 
-#ifndef YSL_INC_ysbuild_h_
-#define YSL_INC_ysbuild_h_ 1
+#ifndef YF_INC_ysbuild_h_
+#define YF_INC_ysbuild_h_ 1
 
-#include <YSLib/Core/ydevice.h>
-#include <YSLib/UI/ydesktop.h>
-#include <YSLib/UI/ygui.h>
-#include <Helper/Initialization.h>
+#include <YModules.h>
+#include YFM_YSLib_Core_YDevice
+#include YFM_YSLib_UI_YDesktop
+#include YFM_YSLib_UI_YGUI
+#include YFM_Helper_Initialization
 #include <Helper/DSMain.h>
-#include <YSLib/Service/YBlit.h>
-#include <YSLib/Service/textmgr.h>
-#include <YSLib/UI/Selector.h>
-#include <YSLib/UI/form.h>
-#include <YSLib/UI/ComboList.h>
-#include <YSLib/UI/menu.h>
-#include <YSLib/UI/progress.h>
-#include <YSLib/UI/uicontx.h>
-#include <YSLib/Core/Task.h>
-#include <YSLib/UI/Border.h>
-#include <YSLib/UI/Hover.h>
-#include <YSLib/UI/Animation.h>
+#include YFM_YSLib_Service_YBlit
+#include YFM_YSLib_Service_TextManager
+#include YFM_YSLib_UI_Selector
+#include YFM_YSLib_UI_Form
+#include YFM_YSLib_UI_ComboList
+#include YFM_YSLib_UI_Menu
+#include YFM_YSLib_UI_Progress
+#include YFM_YSLib_UI_UIContainerEx
+#include YFM_YSLib_Core_Task
+#include YFM_YSLib_UI_Border
+#include YFM_YSLib_UI_Hover
+#include YFM_YSLib_UI_Animation
 
 #endif
 

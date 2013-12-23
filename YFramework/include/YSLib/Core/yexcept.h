@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r378
+\version r383
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2013-09-09 20:25 +0800
+	2013-12-23 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,10 +73,6 @@ public:
 	\since build 432
 	*/
 	LoggedEvent(const GeneralEvent&, LevelType = Emergent) ynothrow;
-	/*!
-	\brief 析构：默认实现。
-	*/
-	~LoggedEvent() ynothrow override = default;
 
 	DefGetter(const ynothrow, LevelType, Level, level)
 };

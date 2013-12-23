@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r756
+\version r759
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-09 20:43:52 +0800
 \par 修改时间:
-	2013-08-05 21:00 +0800
+	2013-12-12 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,9 +76,9 @@ protected:
 	/*!
 	\brief 析构。
 	\note 实例计数自减。
-	\since build 319
+	\since build 461
 	*/
-	~GMCounter() ynothrow
+	~GMCounter()
 	{
 		--nTotal;
 	}

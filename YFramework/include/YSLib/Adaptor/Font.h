@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3199
+\version r3207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-08-31 14:00 +0800
+	2013-12-22 22:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include <string>
 #include "../Core/yexcept.h"
 #include "YTextBase.h"
+#include "../Core/Cache.hpp"
 
 //包含 FreeType2 。
 
@@ -145,7 +146,8 @@ public:
 	//! \since build 420
 	NativeFontSize(::FT_FaceRec&, FontSize);
 	NativeFontSize(NativeFontSize&&) ynothrow;
-	~NativeFontSize() ynothrow;
+	//! \since build 461
+	~NativeFontSize();
 
 	::FT_SizeRec&
 	GetSizeRec() const;
@@ -269,8 +271,8 @@ private:
 	//! \since build 420
 	pair<std::reference_wrapper<FontFamily>,
 		std::reference_wrapper< ::FT_FaceRec_>> ref;
-	//! \since build 419
-	mutable unordered_map<BitmapKey, SmallBitmapData, BitmapKeyHash>
+	//! \since build 461
+	mutable GMRUCache<BitmapKey, SmallBitmapData, BitmapKeyHash>
 		bitmap_cache;
 	//! \since build 419
 	mutable unordered_map<ucs4_t, ::FT_UInt> glyph_index_cache;
@@ -283,8 +285,8 @@ public:
 	\post 断言： \c cmap_index 在 face 接受的范围内。
 	*/
 	Typeface(FontCache&, const FontPath&, u32 = 0);
-	//! since build 428
-	~Typeface() ynothrow;
+	//! since build 461
+	~Typeface();
 
 	/*!
 	\brief 比较：相等关系。
@@ -451,9 +453,9 @@ public:
 	FontCache(size_t = DefaultGlyphCacheSize);
 	/*!
 	\brief 析构：释放空间。
-	\since build 428
+	\since build 461
 	*/
-	~FontCache() ynothrow;
+	~FontCache();
 
 public:
 	/*!
