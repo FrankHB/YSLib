@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9113
+\version r9115
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-11-30 16:57 +0800
+	2013-12-24 20:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -538,6 +538,8 @@ BASE_EXTENSIONS += ftsynth.c
 AUX_MODULES += gzip
  MinGW32 改为使用同 DS 一致的 modules.cfg 。
 重新编译 DS 和 MinGW32 库文件。
+ 2013-12-24(build 462) 起：
+使用 FreeType 2.5.2 ，替换文件同上。
 
 @5.4.2
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。

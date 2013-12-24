@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1148
+\version r1154
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2013-09-07 02:30 +0800
+	2013-12-23 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,11 @@
 */
 
 
-#include "YSLib/UI/menu.h"
-#include "YSLib/UI/ywindow.h"
-#include "YSLib/UI/YBrush.h"
-#include "YSLib/Service/TextRenderer.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_Menu
+#include YFM_YSLib_UI_YWindow
+#include YFM_YSLib_UI_YBrush
+#include YFM_YSLib_Service_TextRenderer
 
 namespace YSLib
 {

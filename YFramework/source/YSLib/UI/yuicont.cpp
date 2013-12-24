@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1716
+\version r1718
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2013-12-08 23:29 +0800
+	2013-12-23 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "YSLib/UI/ydesktop.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YDesktop
 
 namespace YSLib
 {

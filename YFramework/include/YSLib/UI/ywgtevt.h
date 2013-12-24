@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1498
+\version r1502
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-09-09 21:08 +0800
+	2013-12-24 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_UI_ywgtevt_h_
 #define YSL_INC_UI_ywgtevt_h_ 1
 
-#include "YComponent.h"
-#include "../Core/yevt.hpp"
+#include "YModules.h"
+#include YFM_YSLib_UI_YComponent
+#include YFM_YSLib_Core_YEvent
 
 namespace YSLib
 {

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2813
+\version r2817
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-05 21:02 +0800
+	2013-12-23 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_Service_TextRenderer_h_
 #define YSL_INC_Service_TextRenderer_h_ 1
 
-#include "CharRenderer.h"
-#include "../Core/ystring.h"
+#include "YModules.h"
+#include YFM_YSLib_Service_CharRenderer
+#include YFM_YSLib_Core_YString
 
 namespace YSLib
 {

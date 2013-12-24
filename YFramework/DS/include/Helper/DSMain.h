@@ -11,13 +11,13 @@
 /*!	\file DSMain.h
 \ingroup Helper
 \brief DS 平台框架。
-\version r828
+\version r831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-11-26 20:20 +0800
+	2013-12-24 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef INC_Helper_DSMain_h_
 #define INC_Helper_DSMain_h_ 1
 
-#include "Helper/GUIApplication.h"
-#include "YCLib/Video.h"
+#include "Helper/YModules.h"
+#include YFM_Helper_GUIApplication
+#include YFM_YCLib_Video
 
 namespace YSLib
 {

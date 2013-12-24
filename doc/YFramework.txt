@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r679
+\version r688
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-12-14 00:28 +0800
+	2013-12-24 10:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -395,6 +395,15 @@
  YSLib/Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
 本体的必要文件不依赖 YSLib 以外的文件。
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
+ Adaptor 的头文件依赖于 YFramework 的 "YBaseMacro.h" 。
+实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
+对于公开的头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对于 YFramework/include 的路径）。
+下层的 <YModules.h> 包含 "../YModules.h" 。除此之外，以下包含关系是确定的：
+ <CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；
+ <YSLib/Core/YModules.h> 包含 "../Adaptor/YModules.h" ；
+ <YSLib/Service/YModules.h> 包含 "../Core/YModules.h" ；
+ <YSLib/UI/YModules.h> 和 <NPL/YModules.h> 包含 "../Service/YModules.h" ；
+ <YSLib/Helper/YModules.h> 包含 "../YSLib/UI/YModules.h" 和 "../NPL/YModules.h" 。
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
 @2.2.4 YFramework 引入的命名空间：

@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1297
+\version r1301
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2013-10-21 16:49 +0800
+	2013-12-23 23:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/label.h"
-#include "YSLib/Service/TextLayout.h"
-#include "YSLib/UI/ywgtevt.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_Label
+#include YFM_YSLib_Service_TextLayout
+#include YFM_YSLib_UI_YWidgetEvent
 
 namespace YSLib
 {

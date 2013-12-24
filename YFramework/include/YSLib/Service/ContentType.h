@@ -11,13 +11,13 @@
 /*!	\file ContentType.h
 \ingroup Service
 \brief 内容类型接口。
-\version r96
+\version r99
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-10 06:03:37 +0800
 \par 修改时间:
-	2013-10-12 12:23 +0800
+	2013-12-23 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YSL_INC_Service_ContentType_h_
 #define YSL_INC_Service_ContentType_h_ 1
 
-#include "../Core/ValueNode.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_ValueNode
 #include <ystdex/path.hpp>
-#include "../Adaptor/ycont.h"
+#include YFM_YSLib_Adaptor_YContainer
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3103
+\version r3107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-11-26 20:21 +0800
+	2013-12-23 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,9 +26,9 @@
 
 
 #include "DSScreen.h"
-#include "Helper/HostRenderer.h" // for Host::WindowThread;
-#include "Helper/Initialization.h"
-#include "YSLib/Adaptor/Font.h"
+#include YFM_Helper_HostRenderer // for Host::WindowThread;
+#include YFM_Helper_Initialization
+#include YFM_YSLib_Adaptor_Font
 #include "DSWindow.h"
 #if YCL_MULTITHREAD == 1
 #	include <thread> // for std::this_thread::*;
@@ -36,8 +36,8 @@
 #ifdef YCL_DS
 #	include "YSLib/Service/yblit.h" // for Drawing::FillPixel;
 #endif
-#include "YCLib/Debug.h"
-#include <Helper/Host.h>
+#include YFM_YCLib_Debug
+#include YFM_Helper_Host
 
 namespace YSLib
 {

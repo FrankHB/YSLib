@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r559
+\version r562
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-08 20:48 +0800
+	2013-12-24 09:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_UI_ywgtview_h_
 #define YSL_INC_UI_ywgtview_h_ 1
 
-#include "YComponent.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YComponent
 
 namespace YSLib
 {

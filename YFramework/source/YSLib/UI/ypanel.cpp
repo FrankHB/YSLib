@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r265
+\version r268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:44:51 +0800
 \par 修改时间:
-	2013-08-08 05:38 +0800
+	2013-12-23 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "YSLib/UI/ypanel.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YPanel
 
 namespace YSLib
 {

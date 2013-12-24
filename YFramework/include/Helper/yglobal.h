@@ -8,21 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup Helper Helper
-\ingroup YFramework
-\brief YFramework 助手模块。
-*/
-
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1892
+\version r1902
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-11-26 20:25 +0800
+	2013-12-23 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,14 +28,15 @@
 #ifndef INC_Helper_YGlobal_h_
 #define INC_Helper_YGlobal_h_ 1
 
-//包含 YCLib 公用部分。
-#include "YCLib/ycommon.h"
+#include "YModules.h"
+#include "../YCLib/YModules.h"
+#include YFM_YCLib_YCommon
 #if YCL_Win32
 #	include "YCLib/MinGW32.h"
 #endif
-#include "YSLib/Core/ygdibase.h"
-#include "YSLib/Core/ymsgdef.h"
-#include "YSLib/Core/ydevice.h"
+#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YMessageDefinition
+#include YFM_YSLib_Core_YDevice
 
 namespace YSLib
 {

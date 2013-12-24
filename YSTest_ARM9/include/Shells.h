@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -15,13 +15,13 @@
 /*!	\file Shells.h
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r2909
+\version r2916
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2013-08-05 21:58 +0800
+	2013-12-24 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,13 @@
 #ifndef INC_YReader_Shells_h_
 #define INC_YReader_Shells_h_ 1
 
+#include <YCLib/YModules.h>
+#include <YSLib/UI/YModules.h>
 #include <Helper/shlds.h>
-#include <Helper/ShellHelper.h>
-#include <YCLib/Debug.h>
-#include <YCLib/Input.h>
-#include <YSLib/UI/Loader.h>
+#include YFM_Helper_ShellHelper
+#include YFM_YCLib_Debug
+#include YFM_YCLib_Input
+#include YFM_YSLib_UI_Loader
 
 namespace YSLib
 {

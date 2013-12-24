@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3160
+\version r3162
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-12-08 22:00 +0800
+	2013-12-23 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +27,8 @@
 
 #include "DSReader.h"
 #include <algorithm> // for std::copy_n;
-#include <YSLib/UI/ywindow.h>
-#include <YSLib/Service/TextLayout.h>
+#include YFM_YSLib_UI_YWindow
+#include YFM_YSLib_Service_TextLayout
 
 namespace YSLib
 {

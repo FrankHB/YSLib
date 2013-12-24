@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r887
+\version r890
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2013-08-05 21:00 +0800
+	2013-12-23 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Core_yfunc_hpp_
 #define YSL_INC_Core_yfunc_hpp_ 1
 
-#include "ysdef.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YShellDefinition
 #include <functional>
 #include <typeinfo>
 

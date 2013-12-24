@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1817
+\version r1819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2013-12-08 23:27 +0800
+	2013-12-23 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_UI_yuicont_h_
 #define YSL_INC_UI_yuicont_h_ 1
 
-#include "ywidget.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YWidget
 #include <ystdex/iterator.hpp>
 
 namespace YSLib

@@ -11,13 +11,13 @@
 /*!	\file yshell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r1947
+\version r1950
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2013-10-24 04:45 +0800
+	2013-12-23 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_Core_yshell_h_
 #define YSL_INC_Core_yshell_h_ 1
 
-#include "ymsgdef.h"
-#include "yfunc.hpp"
+#include "YModules.h"
+#include YFM_YSLib_Core_YMessageDefinition
+#include YFM_YSLib_Core_YFunc
 
 namespace YSLib
 {

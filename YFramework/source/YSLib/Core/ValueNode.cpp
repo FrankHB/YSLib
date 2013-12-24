@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r338
+\version r340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2013-10-12 12:02 +0800
+	2013-12-23 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "YSLib/Core/ValueNode.h"
+#include "YSLib/Core/YModules.h"
+#include YFM_YSLib_Core_ValueNode
 
 namespace YSLib
 {

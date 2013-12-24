@@ -11,13 +11,13 @@
 /*!	\file yobject.cpp
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r795
+\version r797
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-28 13:41 +0800
+	2013-12-24 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "YSLib/Core/yobject.h"
+#include "YSLib/Core/YModules.h"
+#include YFM_YSLib_Core_YObject
 
 namespace YSLib
 {

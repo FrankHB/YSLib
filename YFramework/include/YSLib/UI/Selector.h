@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r327
+\version r330
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2013-10-18 01:49 +0800
+	2013-12-23 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_UI_Selector_h_
 #define YSL_INC_UI_Selector_h_ 1
 
-#include "button.h"
-#include "ystyle.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_Button
+#include YFM_YSLib_UI_YStyle
 
 namespace YSLib
 {

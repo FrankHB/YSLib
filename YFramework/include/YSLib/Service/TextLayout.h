@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2633
+\version r2636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-05 21:07 +0800
+	2013-12-24 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Service_TextLayout_h_
 #define YSL_INC_Service_TextLayout_h_ 1
 
-#include "TextRenderer.h"
+#include "YModules.h"
+#include YFM_YSLib_Service_TextRenderer
 
 namespace YSLib
 {

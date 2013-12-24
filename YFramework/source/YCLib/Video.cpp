@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r350
+\version r353
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-11-26 20:23 +0800
+	2013-12-24 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YCLib/Video.h"
-#include "YCLib/NativeAPI.h"
+#include "YCLib/YModules.h"
+#include YFM_YCLib_Video
+#include YFM_YCLib_NativeAPI
 
 namespace platform_ex
 {

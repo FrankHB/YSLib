@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r672
+\version r675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2013-12-08 23:05 +0800
+	2013-12-24 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "NPL/Configuration.h"
-#include "NPL/SContext.h"
+#include "NPL/YModules.h"
+#include YFM_NPL_Configuration
+#include YFM_NPL_SContext
 
 using namespace YSLib;
 

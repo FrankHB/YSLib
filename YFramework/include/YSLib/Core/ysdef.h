@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,21 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup Core Core
-\ingroup YSLib
-\brief YSLib 核心模块。
-*/
-
 /*!	\file ysdef.h
 \ingroup Core
 \brief 宏定义和类型描述。
-\version r1580
+\version r1588
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-24 15:29:11 +0800
 \par 修改时间:
-	2013-08-05 20:57 +0800
+	2013-12-23 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,11 +28,13 @@
 #ifndef YSL_INC_Core_ysder_h_
 #define YSL_INC_Core_ysder_h_ 1
 
+#include "YModules.h"
+
 //适配器模块。
-#include "../Adaptor/yadaptor.h"
+#include YFM_YSLib_Adaptor_YAdaptor
 
 //间接访问类模块。
-#include "../Adaptor/yref.hpp"
+#include YFM_YSLib_Adaptor_YReference
 
 namespace YSLib
 {

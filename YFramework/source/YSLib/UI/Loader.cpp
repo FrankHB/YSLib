@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r219
+\version r225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2013-10-12 03:17 +0800
+	2013-12-24 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,13 @@
 */
 
 
-#include "YSLib/UI/Loader.h"
+#include "YSLib/UI/YModules.h"
+#include "NPL/YModules.h"
+#include YFM_YSLib_UI_Loader
 #include <sstream>
-#include "YSLib/UI/ypanel.h"
-#include "NPL/SContext.h"
-#include "NPL/Configuration.h"
+#include YFM_YSLib_UI_YPanel
+#include YFM_NPL_SContext
+#include YFM_NPL_Configuration
 
 namespace YSLib
 {

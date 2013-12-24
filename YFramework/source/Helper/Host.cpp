@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1229
+\version r1232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-12-15 12:05 +0800
+	2013-12-24 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "Helper/Host.h"
-#include "Helper/ShellHelper.h" // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
+#include "Helper/YModules.h"
+#include YFM_Helper_Host
+#include YFM_Helper_ShellHelper // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
 
 namespace YSLib
 {

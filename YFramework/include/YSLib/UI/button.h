@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的 GUI 按钮控件。
-\version r2255
+\version r2260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-08-31 14:11 +0800
+	2013-12-23 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YSL_INC_UI_button_h_
 #define YSL_INC_UI_button_h_ 1
 
-#include "ycontrol.h"
-#include "label.h"
-#include "ystyle.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YControl
+#include YFM_YSLib_UI_Label
+#include YFM_YSLib_UI_YStyle
 
 namespace YSLib
 {

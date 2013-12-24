@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r437
+\version r441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:10:27 +0800
 \par 修改时间:
-	2013-08-05 21:35 +0800
+	2013-12-23 23:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/UI/textarea.h"
-#include "YSLib/UI/ywgtevt.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_TextArea
+#include YFM_YSLib_UI_YWidgetEvent
 
 namespace YSLib
 {

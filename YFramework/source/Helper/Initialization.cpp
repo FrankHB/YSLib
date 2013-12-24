@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1889
+\version r1898
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-10-13 02:37 +0800
+	2013-12-24 00:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,16 +25,17 @@
 */
 
 
-#include "Helper/Initialization.h"
-#include "YSLib/Core/yapp.h"
-#include "Helper/GUIApplication.h"
-#include "YCLib/Debug.h"
-#include "CHRLib/MapEx.h"
-#include "YCLib/MemoryMapping.h"
-#include "YSLib/Core/yfilesys.h"
+#include "Helper/YModules.h"
+#include YFM_Helper_Initialization
+#include YFM_YSLib_Core_YApplication
+#include YFM_Helper_GUIApplication
+#include YFM_YCLib_Debug
+#include YFM_CHRLib_MappingEx
+#include YFM_YCLib_MemoryMapping
+#include YFM_YSLib_Core_YFileSystem
 #include <cstring> // for std::strcmp;
 //#include <clocale>
-#include "NPL/SContext.h"
+#include YFM_NPL_SContext
 
 using namespace ystdex;
 using namespace platform;

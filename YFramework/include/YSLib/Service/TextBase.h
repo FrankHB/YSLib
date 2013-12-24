@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2703
+\version r2708
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-08-31 14:06 +0800
+	2013-12-23 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YSL_INC_Service_TextBase_h_
 #define YSL_INC_Service_TextBase_h_ 1
 
-#include "ygdi.h"
-#include "../Adaptor/Font.h"
-#include "../Core/ystorage.hpp"
+#include "YModules.h"
+#include YFM_YSLib_Service_YGDI
+#include YFM_YSLib_Adaptor_Font
+#include YFM_YSLib_Core_YStorage
 
 namespace YSLib
 {

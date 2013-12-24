@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2870
+\version r2874
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-10-21 14:06 +0800
+	2013-12-23 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/Service/ygdi.h"
-#include "YSLib/Service/yblit.h"
-#include "YSLib/Service/YPixel.h"
+#include "YSLib/Service/YModules.h"
+#include YFM_YSLib_Service_YGDI
+#include YFM_YSLib_Service_YBlit
+#include YFM_YSLib_Service_YPixel
 
 using namespace ystdex;
 

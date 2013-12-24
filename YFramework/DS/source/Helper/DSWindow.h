@@ -11,13 +11,13 @@
 /*!	\file DSWindow.h
 \ingroup Helper
 \brief DS 宿主窗口。
-\version r79
+\version r81
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2013-11-26 19:52 +0800
+	2013-12-24 00:16 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,7 +28,8 @@
 #ifndef Inc_Helper_DSWindow_h_
 #define Inc_Helper_DSWindow_h_ 1
 
-#include "Helper/HostWindow.h" // for Host::Environment, Host::Window;
+#include "Helper/YModules.h"
+#include YFM_Helper_HostWindow // for Host::Environment, Host::Window;
 #include "DSScreen.h" // for Devices::DSScreen;
 
 namespace YSLib

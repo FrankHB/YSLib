@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r126
+\version r128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2013-08-08 00:59 +0800
+	2013-12-24 10:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,8 @@
 */
 
 
-#include "YCLib/MinGW32.h"
+#include "YCLib/YModules.h"
+#include YFM_MinGW32_YCLib_MinGW32
 
 using namespace YSLib;
 

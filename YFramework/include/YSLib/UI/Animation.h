@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r316
+\version r324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2013-11-21 19:47 +0800
+	2013-12-24 20:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_UI_Animation_h_
 #define YSL_INC_UI_Animation_h_ 1
 
-#include "ywidget.h"
-#include "../Core/Task.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YWidget
+#include YFM_YSLib_Core_Task
 
 namespace YSLib
 {
@@ -123,8 +124,8 @@ public:
 class YF_API InvalidationUpdater
 {
 public:
-	//! \since build 457
-	using Invalidator = std::function<bool(IWidget*)>;
+	//! \since build 462
+	using Invalidator = std::function<bool(IWidget&)>;
 	IWidget* WidgetPtr;
 	//! \brief 准备和最后持续状态：更新函数的最后结果。
 	mutable bool Ready;
@@ -146,11 +147,11 @@ public:
 	operator()() const;
 
 	/*!
-	\build 默认无效化：对非空指针指向的部件调用 InvalidateVisible 。
-	\since build 457
+	\build 默认无效化：对部件调用 InvalidateVisible 。
+	\since build 462
 	*/
 	static bool
-	DefaultInvalidate(IWidget*);
+	DefaultInvalidate(IWidget&);
 };
 
 //! \relates InvalidationUpdater

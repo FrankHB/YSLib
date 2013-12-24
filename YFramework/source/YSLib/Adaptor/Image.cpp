@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r555
+\version r561
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-12-14 00:26 +0800
+	2013-12-24 00:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,13 @@
 */
 
 
-#include "YSLib/Adaptor/Image.h"
+#include "YSLib/Service/YModules.h"
+#include "CHRLib/YModules.h"
+#include YFM_YSLib_Adaptor_Image
 #include <FreeImage.h>
-#include "YSLib/Service/yblit.h"
-#include "YSLib/Service/ygdi.h"
-#include <CHRLib/chrproc.h> // for CHRLib::ToASCII;
+#include YFM_YSLib_Service_YBlit
+#include YFM_YSLib_Service_YGDI
+#include YFM_CHRLib_CharacterProcessing // for CHRLib::ToASCII;
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r226
+\version r227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2013-11-14 19:57 +0800
+	2013-12-23 21:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define INC_YReader_ReadingList_h_ 1
 
 #include "Shells.h"
-#include <YSLib/Service/AccessHistory.hpp>
+#include YFM_YSLib_Service_AccessHistory
 
 namespace YReader
 {

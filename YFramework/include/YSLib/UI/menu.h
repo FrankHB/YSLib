@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r830
+\version r834
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2013-08-05 20:46 +0800
+	2013-12-23 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_UI_menu_h_
 #define YSL_INC_UI_menu_h_ 1
 
-#include "textlist.h"
-#include "yuicont.h" // for UI::ZOrderType;
+#include "YModules.h"
+#include YFM_YSLib_UI_TextList
+#include YFM_YSLib_UI_YUIContainer // for UI::ZOrderType;
 
 namespace YSLib
 {

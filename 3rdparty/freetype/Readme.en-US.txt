@@ -8,7 +8,7 @@ Since build b420, the following files from version 2.4.11 should replace files f
  "src/sfnt/ttmtx.c".
 WARNING: The patched library has a bug of leaking TrueType font resource on releasing.
 Currently it is not planned to be solved by modifying source code of FreeType. See module "YSLib::Adaptor::Font" of YFramework for the client-side workaround.
-There is a known bug in build system of version 2.5.1 for Win32. Make junction "builds/windows" back to "build/win32" as older versions to workaround.
+There is a known bug in build system of version 2.5.1 and 2.5.2 for Win32. Make junction "builds/windows" back to "build/win32" as older versions to workaround.
 
 = DS
 Currently only building on Windows is supported.

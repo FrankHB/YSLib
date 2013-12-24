@@ -8,21 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup Adaptor Adaptor
-\ingroup YSLib
-\brief YSLib 适配器模块。
-*/
-
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1536
+\version r1547
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2013-10-11 09:25 +0800
+	2013-12-24 00:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +28,10 @@
 #ifndef YSL_INC_Adaptor_yadaptor_h_
 #define YSL_INC_Adaptor_yadaptor_h_ 1
 
+#include "YModules.h"
+
 //引入平台设置和存储调试设施。
-#include "ynew.h"
+#include YFM_YSLib_Adaptor_YNew
 
 // 确保包含标准库必要部分。
 #include <cmath>
@@ -46,11 +43,11 @@
 #include <ystdex/string.hpp> // for std::to_string, ystdex::to_string;
 
 //包含 YCLib 公用部分。
-#include "YCLib/ycommon.h"
-#include "YCLib/Keys.h"
-#include "YCLib/Timer.h"
-#include "YCLib/FileSystem.h"
-#include "YCLib/Video.h"
+#include YFM_YCLib_YCommon
+#include YFM_YCLib_Keys
+#include YFM_YCLib_Timer
+#include YFM_YCLib_FileSystem
+#include YFM_YCLib_Video
 
 /*
 !\brief YSLib 命名空间。

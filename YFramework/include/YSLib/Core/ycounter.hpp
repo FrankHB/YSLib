@@ -11,13 +11,13 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r759
+\version r761
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-09 20:43:52 +0800
 \par 修改时间:
-	2013-12-12 14:47 +0800
+	2013-12-23 23:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Core_ycounter_hpp_
 #define YSL_INC_Core_ycounter_hpp_ 1
 
-#include "ysdef.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YShellDefinition
 
 namespace YSLib
 {

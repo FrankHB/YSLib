@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r408
+\version r411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2013-11-26 20:38 +0800
+	2013-12-24 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YCL_INC_Inupt_h_
 #define YCL_INC_Inupt_h_ 1
 
-#include "Keys.h"
-#include "NativeAPI.h"
+#include "YModules.h"
+#include YFM_YCLib_Keys
+#include YFM_YCLib_NativeAPI
 
 namespace platform
 {

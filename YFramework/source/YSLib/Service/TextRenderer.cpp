@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2680
+\version r2684
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-10-21 13:09 +0800
+	2013-12-23 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/Service/TextRenderer.h"
-#include "YSLib/Service/yblit.h"
-#include "YSLib/Service/TextLayout.h" // for FetchLastLineBasePosition;
+#include "YSLib/Service/YModules.h"
+#include YFM_YSLib_Service_TextRenderer
+#include YFM_YSLib_Service_YBlit
+#include YFM_YSLib_Service_TextLayout // for FetchLastLineBasePosition;
 
 using namespace ystdex;
 

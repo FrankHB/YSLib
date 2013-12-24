@@ -8,21 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup UI UI
-\ingroup YSLib
-\brief YSLib UI 模块。
-*/
-
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2376
+\version r2385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2013-10-23 19:02 +0800
+	2013-12-23 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,10 +28,11 @@
 #ifndef YSL_INC_UI_YComponent_h_
 #define YSL_INC_UI_YComponent_h_ 1
 
-#include "../Core/ygdibase.h"
-#include "../Core/yfunc.hpp"
-#include "../Core/ymsgdef.h"
-#include "../Adaptor/ycont.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YFunc
+#include YFM_YSLib_Core_YMessageDefinition
+#include YFM_YSLib_Adaptor_YContainer
 
 namespace YSLib
 {

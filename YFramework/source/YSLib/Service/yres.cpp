@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yres.cpp
 \ingroup Service
 \brief 应用程序资源管理模块。
-\version r272
+\version r276
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2013-09-03 15:44 +0800
+	2013-12-23 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/Service/yres.h"
-#include "YSLib/Core/yshell.h"
+#include "YSLib/Service/YModules.h"
+#include YFM_YSLib_Service_YResource
+#include YFM_YSLib_Core_YShell
 
 namespace YSLib
 {

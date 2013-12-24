@@ -748,6 +748,30 @@
     <ClInclude Include="include\YModules.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\CHRLib\YModules.h">
+      <Filter>include\CHRLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Helper\YModules.h">
+      <Filter>include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NPL\YModules.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YCLib\YModules.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Adaptor\YModules.h">
+      <Filter>include\YSLib\Adaptor</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\YModules.h">
+      <Filter>include\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\YModules.h">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\YModules.h">
+      <Filter>include\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">

@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r244
+\version r248
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2013-10-17 20:50 +0800
+	2013-12-23 23:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/uicontx.h"
-#include "YSLib/UI/ygui.h"
-#include "YSLib/UI/Border.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_UIContainerEx
+#include YFM_YSLib_UI_YGUI
+#include YFM_YSLib_UI_Border
 
 namespace YSLib
 {

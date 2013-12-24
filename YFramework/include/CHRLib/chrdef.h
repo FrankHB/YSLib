@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,21 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup CHRLib CHRLib
-\ingroup YFramework
-\brief 字符编码处理库。
-*/
-
 /*!	\file chrdef.h
 \ingroup CHRLib
 \brief CHRLib 类型定义。
-\version r659
+\version r668
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-08-02 19:14 +0800
+	2013-12-24 09:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,12 +25,13 @@
 */
 
 
-#ifndef INC_CHRLib_chrdef_h_
-#define INC_CHRLib_chrdef_h_ 1
+#ifndef YF_INC_CHRLib_chrdef_h_
+#define YF_INC_CHRLib_chrdef_h_ 1
 
+#include "YModules.h"
 #include <ydef.h>
 #include <string> // for std::char_traits;
-#include "YCLib/Platform.h" // for YF_API;
+#include YFM_YCLib_Platform // for YF_API;
 
 namespace CHRLib
 {

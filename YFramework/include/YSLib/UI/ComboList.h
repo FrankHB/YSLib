@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2580
+\version r2585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2013-12-08 23:35 +0800
+	2013-12-23 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,11 @@
 #ifndef YSL_INC_UI_ComboList_h_
 #define YSL_INC_UI_ComboList_h_ 1
 
-#include "textlist.h"
-#include "scroll.h"
-#include "../Core/yfilesys.h"
-//#include "ystyle.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_TextList
+#include YFM_YSLib_UI_Scroll
+#include YFM_YSLib_Core_YFileSystem
+//#include YFM_YSLib_UI_YStyle
 
 namespace YSLib
 {

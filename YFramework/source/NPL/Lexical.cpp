@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1289
+\version r1292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2013-08-05 21:21 +0800
+	2013-12-24 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "NPL/Lexical.h"
+#include "NPL/YModules.h"
+#include YFM_NPL_Lexical
 #include <ystdex/string.hpp> // for ystdex::get_mid;
 
 namespace NPL

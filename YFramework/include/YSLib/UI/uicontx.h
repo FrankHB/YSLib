@@ -11,13 +11,13 @@
 /*!	\file uicontx.h
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r336
+\version r340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 08:59:34 +0800
 \par 修改时间:
-	2013-12-08 23:40 +0800
+	2013-12-23 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YSL_INC_UI_uicontx_h_
 #define YSL_INC_UI_uicontx_h_ 1
 
-#include "ypanel.h"
-#include "button.h"
-#include "WidgetIteration.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YPanel
+#include YFM_YSLib_UI_Button
+#include YFM_YSLib_UI_WidgetIteration
 
 namespace YSLib
 {

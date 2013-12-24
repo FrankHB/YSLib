@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.h
 \ingroup YReader
 \brief 拾色器。
-\version r146
+\version r150
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2012-01-06 20:46:10 +0800
 \par 修改时间:
-	2013-08-05 21:55 +0800
+	2013-12-24 00:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef INC_YReader_ColorPicker_h_
 #define INC_YReader_ColorPicker_h_ 1
 
-#include <YSLib/UI/uicontx.h>
-#include <YSLib/UI/scroll.h>
+#include <YSLib/UI/YModules.h>
+#include YFM_YSLib_UI_UIContainerEx
+#include YFM_YSLib_UI_Scroll
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4584
+\version r4611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-12-23 18:57 +0800
+	2013-12-24 21:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,32 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		$dev
+		(
+		/ %'YModules' $=
+		(
+			* "wrong macro for text interface of %Service" $since b461,
+			* "wrong file name of %YFM_YSLib_Core_YFunc" @ $since b461
+		);
+		+ %('CHRLib', 'YCLib'.'YSLib'.'Adaptor', 'YSLib'.'Core',
+			'YSLib'.'Service', 'YSLib'.'UI', 'NPL', 'Helper').'YModules';
+		^ "macros %'YFM_*'"
+		),
+		/ "parameter type 'IWidget*'" -> 'IWidget&' @ "static member function \
+			%DefaultInvalidate; using alias %Invalidator"
+			@ "class %InvalidationUpdater" @ %'YSLib'.'UI'.'Animation'
+	),
+	^ $dev "macros %'YFM_*'" @ %'YReader',
+	/ DLP "updated library %freetype" @ "library using"
+		$= (^ "updated FreeType 2.5.1 with several files remained from \
+			FreeType 2.4.11" ~ "FreeType 2.5.0.1")
+		// See [Documentation::Designation @@5.4.1.3].
+),
+
+b461
 (
 	/ %'YBase' $=
 	(
@@ -84,9 +110,9 @@ $now
 			)
 		),
 		(
-		+ %'YModules'
+		+ $dev %'YModules'
 			$= (+ "macros %'YFM_*'");
-		^ "macros %'YFM_*'" @ %'YSBuild'
+		^ $dev "macros %'YFM_*'" @ %'YSBuild'
 		)
 	)
 ),

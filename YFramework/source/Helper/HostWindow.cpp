@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r341
+\version r345
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-11-26 20:24 +0800
+	2013-12-24 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "Helper/Host.h"
-#include "Helper/GUIApplication.h" // for FetchEnvironent;
-#include "YCLib/Input.h" // for platform::ClearKeyStates;
+#include "Helper/YModules.h"
+#include YFM_Helper_Host
+#include YFM_Helper_GUIApplication // for FetchEnvironent;
+#include YFM_YCLib_Input // for platform::ClearKeyStates;
 
 namespace YSLib
 {

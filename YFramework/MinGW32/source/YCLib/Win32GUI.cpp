@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r428
+\version r430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-11-04 11:10 +0800
+	2013-12-12 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,8 @@
 */
 
 
-#include "YCLib/Win32GUI.h"
+#include "YCLib/YModules.h"
+#include YFM_MinGW32_YCLib_Win32GUI
 
 using namespace YSLib;
 using namespace Drawing;

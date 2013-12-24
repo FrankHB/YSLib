@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r646
+\version r649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2013-10-18 21:15 +0800
+	2013-12-23 23:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/Core/ygdibase.h"
-#include "YSLib/Core/ycutil.h"
+#include "YSLib/Core/YModules.h"
+#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YCoreUtilities
 #include <ystdex/algorithm.hpp>
 
 namespace YSLib

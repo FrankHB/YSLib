@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009-2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2056
+\version r2061
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-09-14 09:45 +0800
+	2013-12-23 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YSL_INC_UI_ygui_h_
 #define YSL_INC_UI_ygui_h_ 1
 
-#include "ywgtevt.h"
-#include "../Service/ytimer.h"
-#include "ystyle.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YWidgetEvent
+#include YFM_YSLib_Service_YTimer
+#include YFM_YSLib_UI_YStyle
 
 namespace YSLib
 {

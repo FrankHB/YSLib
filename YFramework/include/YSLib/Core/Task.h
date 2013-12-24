@@ -11,13 +11,13 @@
 /*!	\file Task.h
 \ingroup Core
 \brief 任务处理。
-\version r102
+\version r104
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-06 22:08:26 +0800
 \par 修改时间:
-	2013-11-02 03:39 +0800
+	2013-12-24 09:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Core_Task_h_
 #define YSL_INC_Core_Task_h_ 1
 
-#include "yapp.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YApplication
 
 namespace YSLib
 {

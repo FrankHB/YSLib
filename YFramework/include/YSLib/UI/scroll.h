@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2642
+\version r2647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2013-12-08 23:38 +0800
+	2013-12-23 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,13 @@
 #ifndef YSL_INC_UI_scroll_h_
 #define YSL_INC_UI_scroll_h_ 1
 
-#include "button.h"
-#include "yuicont.h"
-#include "WidgetIteration.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_Button
+#include YFM_YSLib_UI_YUIContainer
+#include YFM_YSLib_UI_WidgetIteration
 //#include <ystdex/rational.hpp>
-//#include "../Core/yres.h"
-//#include "ystyle.h"
+//#include YFM_YSLib_Service_YResource
+//#include YFM_YSLib_UI_YStyle
 
 namespace YSLib
 {

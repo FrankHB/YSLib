@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r878
+\version r880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-11-27 22:45 +0800
+	2013-12-24 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YCL_INC_Video_h_
 #define YCL_INC_Video_h_ 1
 
-#include "ycommon.h"
+#include "YModules.h"
+#include YFM_YCLib_YCommon
 #include <ystdex/cstdint.hpp>
 
 namespace platform

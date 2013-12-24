@@ -11,13 +11,13 @@
 /*!	\file yshell.cpp
 \ingroup Core
 \brief Shell 定义。
-\version r2398
+\version r2401
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2013-10-25 03:45 +0800
+	2013-12-23 23:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/Core/yshell.h"
-#include "YSLib/Core/yapp.h"
+#include "YSLib/Core/YModules.h"
+#include YFM_YSLib_Core_YShell
+#include YFM_YSLib_Core_YApplication
 
 namespace YSLib
 {

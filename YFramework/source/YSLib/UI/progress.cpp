@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r368
+\version r372
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2013-10-21 17:05 +0800
+	2013-12-23 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/progress.h"
-#include "YSLib/UI/ygui.h"
-#include "YSLib/UI/Border.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_Progress
+#include YFM_YSLib_UI_YGUI
+#include YFM_YSLib_UI_Border
 
 namespace YSLib
 {

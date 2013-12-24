@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2811
+\version r2814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-10-21 14:05 +0800
+	2013-10-23 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_Service_CharRenderer_h_
 #define YSL_INC_Service_CharRenderer_h_ 1
 
-#include "TextBase.h"
-#include "YSLib/Service/yblit.h"
+#include "YModules.h"
+#include YFM_YSLib_Service_TextBase
+#include YFM_YSLib_Service_YBlit
 #include <cwctype>
 
 namespace YSLib

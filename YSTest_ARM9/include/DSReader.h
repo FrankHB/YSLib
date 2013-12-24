@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1842
+\version r1847
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-12-08 16:51 +0800
+	2013-12-24 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,11 +28,12 @@
 #ifndef INC_YReader_DSReader_h_
 #define INC_YReader_DSReader_h_ 1
 
-#include <YSLib/UI/textarea.h>
-#include <YSLib/Service/yftext.h>
-#include <YSLib/Service/textmgr.h>
+#include <YSLib/UI/YModules.h>
+#include YFM_YSLib_UI_TextArea
+#include YFM_YSLib_Service_YFile_Text_
+#include YFM_YSLib_Service_TextManager
 #include <Helper/DSMain.h>
-#include <Helper/Initialization.h>
+#include YFM_Helper_Initialization
 
 namespace YSLib
 {

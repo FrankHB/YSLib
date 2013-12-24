@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r190
+\version r195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-12-05 12:38 +0800
+	2013-12-24 10:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,11 @@
 #ifndef YCL_MinGW32_INC_MinGW32_h_
 #define YCL_MinGW32_INC_MinGW32_h_ 1
 
-#include "YCLib/ycommon.h"
-#include <YCLib/NativeAPI.h>
-#include "YSLib/Core/yexcept.h" // for YSLib::LoggedEvent;
+#include "YCLib/YModules.h"
+#include "YSLib/Core/YModules.h"
+#include YFM_YCLib_YCommon
+#include YFM_YCLib_NativeAPI
+#include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 
 #if !YCL_MinGW32
 #	error "This file is only for MinGW32."

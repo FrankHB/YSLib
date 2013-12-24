@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2716
+\version r2719
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2013-11-10 11:48 +0800
+	2013-12-24 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,12 @@
 */
 
 
-#include "YCLib/Debug.h"
+#include "YCLib/YModules.h"
+#include YFM_YCLib_Debug
 #include <cstring>
 #include <cerrno>
 #include <cstdarg>
-#include "YCLib/NativeAPI.h"
+#include YFM_YCLib_NativeAPI
 
 namespace platform
 {

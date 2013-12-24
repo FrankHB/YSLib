@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r157
+\version r161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-08-05 21:35 +0800
+	2013-12-23 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/UI/ywgtevt.h"
-#include "YSLib/UI/ywidget.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YWidgetEvent
+#include YFM_YSLib_UI_YWidget
 
 namespace YSLib
 {

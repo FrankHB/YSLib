@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1360
+\version r1367
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-11-26 19:51 +0800
+	2013-12-24 10:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,12 +26,13 @@
 */
 
 
-#include "Helper/shlds.h"
-#include "Helper/DSMain.h"
-#include "Helper/ShellHelper.h"
-#include "YSLib/UI/ydesktop.h"
-#include "YSLib/UI/ygui.h"
-#include <YCLib/Input.h>
+#include "Helper/YModules.h"
+#include YFM_DS_Helper_Shell_DS
+#include YFM_DS_Helper_DSMain
+#include YFM_Helper_ShellHelper
+#include YFM_YSLib_UI_YDesktop
+#include YFM_YSLib_UI_YGUI
+#include YFM_YCLib_Input
 
 namespace YSLib
 {

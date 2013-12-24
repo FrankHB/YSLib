@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r679
+\version r683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-12-22 20:14 +0800
+	2013-12-24 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,12 @@
 #ifndef YSL_INC_Adaptor_ycont_h_
 #define YSL_INC_Adaptor_ycont_h_ 1
 
-#include "yadaptor.h"
+#include "YModules.h"
+#include "CHRLib/YModules.h"
+#include YFM_YSLib_Adaptor_YAdaptor
 #include <utility>
 #include <ystdex/tuple.hpp>
-#include "CHRLib/chrdef.h"
+#include YFM_CHRLib_CHRDefinition
 
 
 //包含 flex_string 。

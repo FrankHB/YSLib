@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r848
+\version r851
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-12-08 22:04 +0800
+	2013-12-24 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef INC_CHRLib_chrproc_h_
 #define INC_CHRLib_chrproc_h_ 1
 
-#include "chrmap.h"
+#include "YModules.h"
+#include YFM_CHRLib_CharacterMapping
 #include <cstdio>
 #include <memory> // for std::move;
 #include <ystdex/string.hpp> // for ystdex::string_traits;

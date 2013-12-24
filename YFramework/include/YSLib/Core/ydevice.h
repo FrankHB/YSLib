@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r1997
+\version r2001
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2013-08-05 20:50 +0800
+	2013-12-23 23:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_Core_YDevice_h_
 #define YSL_INC_Core_YDevice_h_ 1
 
-#include "yobject.h"
-#include "ygdibase.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YObject
+#include YFM_YSLib_Core_YGDIBase
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4545
+\version r4546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-11-26 20:20 +0800
+	2013-12-24 00:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "ShlReader.h"
 #include "ShlExplorer.h"
-#include <NPL/Lexical.h>
+#include YFM_NPL_Lexical
 
 namespace YReader
 {

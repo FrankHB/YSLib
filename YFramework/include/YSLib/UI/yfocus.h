@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010 - 2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1722
+\version r1725
 \author FrankHB <frankhb1989@gmail.com>
 \since build 168
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-08-05 21:13 +0800
+	2013-12-24 09:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_UI_yfocus_h_
 #define YSL_INC_UI_yfocus_h_ 1
 
-#include "YComponent.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YComponent
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r266
+\version r271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-11-26 19:53 +0800
+	2013-12-23 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,14 @@
 #ifndef INC_Helper_HostRenderer_h_
 #define INC_Helper_HostRenderer_h_ 1
 
-#include "HostWindow.h" // for Host::Window;
+#include "YModules.h"
+#include YFM_Helper_HostWindow // for Host::Window;
 #if YF_Multithread == 1
 #	include <thread>
 #endif
-#include "YSLib/UI/yrender.h"
-#include "YSLib/UI/ywidget.h" // for UI::GetSizeOf;
-#include "ScreenBuffer.h" // for ScreenRegionBuffer;
+#include YFM_YSLib_UI_YRenderer
+#include YFM_YSLib_UI_YWidget // for UI::GetSizeOf;
+#include YFM_Helper_ScreenBuffer // for ScreenRegionBuffer;
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r367
+\version r371
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2013-10-06 16:44 +0800
+	2013-12-23 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YSL_INC_UI_YBrush_h_
 #define YSL_INC_UI_YBrush_h_ 1
 
-#include "ywgtevt.h"
-#include "../Service/yres.h"
-#include "../Service/yblit.h" // for Drawing::BlitPixels;
+#include "YModules.h"
+#include YFM_YSLib_UI_YWidgetEvent
+#include YFM_YSLib_Service_YResource
+#include YFM_YSLib_Service_YBlit // for Drawing::BlitPixels;
 
 namespace YSLib
 {

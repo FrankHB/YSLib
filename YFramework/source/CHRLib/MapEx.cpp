@@ -11,13 +11,13 @@
 /*!	\file MapEx.cpp
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r55
+\version r57
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:43 +0800
 \par 修改时间:
-	2013-09-28 13:40 +0800
+	2013-12-24 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "CHRLib/MapEx.h"
+#include "CHRLib/YModules.h"
+#include YFM_CHRLib_MappingEx
 
 namespace CHRLib
 {

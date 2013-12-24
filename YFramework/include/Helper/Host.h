@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r693
+\version r695
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2013-11-26 20:25 +0800
+	2013-12-23 23:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef INC_Helper_Host_h_
 #define INC_Helper_Host_h_ 1
 
-#include "HostWindow.h" // for Host::Window;
+#include "YModules.h"
+#include YFM_Helper_HostWindow // for Host::Window;
 #if YF_Multithread == 1
 #	include <mutex>
 #	include <atomic>

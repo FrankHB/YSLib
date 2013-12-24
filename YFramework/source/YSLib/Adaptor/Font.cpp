@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3353
+\version r3359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-12-22 22:32 +0800
+	2013-12-24 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,11 +25,12 @@
 */
 
 
-#include "YSLib/Adaptor/Font.h"
-#include "YSLib/Core/yapp.h"
-#include "YSLib/Core/yfilesys.h"
-#include <Helper/Initialization.h>
-#include "YCLib/Debug.h"
+#include "Helper/YModules.h"
+#include YFM_YSLib_Adaptor_Font
+#include YFM_YSLib_Core_YApplication
+#include YFM_YSLib_Core_YFileSystem
+#include YFM_Helper_Initialization
+#include YFM_YCLib_Debug
 #include <algorithm> // for std::for_each;
 #include FT_SIZES_H
 #include FT_BITMAP_H

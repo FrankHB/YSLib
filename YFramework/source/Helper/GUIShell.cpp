@@ -11,13 +11,13 @@
 /*!	\file GUIShell.cpp
 \ingroup Helper
 \brief GUI Shell 类。
-\version r108
+\version r112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:22 +0800
 \par 修改时间:
-	2013-11-26 19:59 +0800
+	2013-12-24 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "Helper/GUIShell.h"
-#include "Helper/GUIApplication.h" // for FetchEnvironent;
-#include "Helper/Host.h"
+#include "Helper/YModules.h"
+#include YFM_Helper_GUIShell
+#include YFM_Helper_GUIApplication // for FetchEnvironent;
+#include YFM_Helper_Host
 #include <thread> // for std::this_thread::sleep_for;
 
 namespace YSLib

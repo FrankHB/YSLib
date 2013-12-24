@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r670
+\version r674
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2013-10-21 17:07 +0800
+	2013-12-23 23:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/Selector.h"
-#include "YSLib/Service/yblit.h"
-#include "YSLib/UI/ygui.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_Selector
+#include YFM_YSLib_Service_YBlit
+#include YFM_YSLib_UI_YGUI
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r2650
+\version r2652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 176
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2013-10-23 23:08 +0800
+	2013-12-23 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Adaptor_yref_hpp_
 #define YSL_INC_Adaptor_yref_hpp_ 1
 
-#include "yadaptor.h"
+#include "YModules.h"
+#include YFM_YSLib_Adaptor_YAdaptor
 #include <utility>
 #include <ystdex/memory.hpp>
 

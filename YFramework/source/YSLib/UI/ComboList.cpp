@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3151
+\version r3156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2013-09-07 02:30 +0800
+	2013-12-23 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/ComboList.h"
-#include "YSLib/UI/ystyle.h"
-#include "YSLib/UI/ypanel.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_ComboList
+#include YFM_YSLib_UI_YStyle
+#include YFM_YSLib_UI_YPanel
 
 namespace YSLib
 {

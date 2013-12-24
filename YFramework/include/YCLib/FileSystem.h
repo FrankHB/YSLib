@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1046
+\version r1048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-12-12 14:28 +0800
+	2013-12-24 09:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YCL_INC_FileSystem_h_
 #define YCL_INC_FileSystem_h_ 1
 
-#include "ycommon.h"
+#include "YModules.h"
+#include YFM_YCLib_YCommon
 #include <ystdex/utility.hpp> // for std::is_array, std::is_integral,
 //	ystdex::remove_reference_t, ystdex::arrlen;
 #include <ystdex/cstring.h> // for ystdex::is_null;

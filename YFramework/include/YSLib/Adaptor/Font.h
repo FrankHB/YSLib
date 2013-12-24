@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3207
+\version r3213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-12-22 22:31 +0800
+	2013-12-23 00:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,12 +28,13 @@
 #ifndef YSL_INC_Adaptor_Font_h_
 #define YSL_INC_Adaptor_Font_h_ 1
 
-#include "../Core/yfunc.hpp"
-#include "../Core/yobject.h"
+#include "../Core/YModules.h"
+#include YFM_YSLib_Core_YFunc
+#include YFM_YSLib_Core_YObject
 #include <string>
-#include "../Core/yexcept.h"
-#include "YTextBase.h"
-#include "../Core/Cache.hpp"
+#include YFM_YSLib_Core_YException
+#include YFM_YSLib_Adaptor_YTextBase
+#include YFM_YSLib_Core_Cache
 
 //包含 FreeType2 。
 

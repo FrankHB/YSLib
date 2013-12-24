@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r174
+\version r179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2013-10-17 21:03 +0800
+	2013-12-23 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,11 @@
 */
 
 
-#include "YSLib/UI/Border.h"
-#include "YSLib/Service/ydraw.h"
-#include "YSLib/UI/ygui.h"
-#include "YSLib/UI/ycontrol.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_Border
+#include YFM_YSLib_Service_YDraw
+#include YFM_YSLib_UI_YGUI
+#include YFM_YSLib_UI_YControl
 
 namespace YSLib
 {

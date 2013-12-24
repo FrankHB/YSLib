@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r158
+\version r161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2013-09-15 17:43 +0800
+	2013-12-24 09:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_UI_Border_h_
 #define YSL_INC_UI_Border_h_ 1
 
-#include "YBrush.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YBrush
 
 namespace YSLib
 {

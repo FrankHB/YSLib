@@ -11,13 +11,13 @@
 /*!	\file ymsgdef.h
 \ingroup Core
 \brief 标准 Shell 消息列表。
-\version r1974
+\version r1976
 \author FrankHB <frankhb1989@gmail.com>
 \since build 217
 \par 创建时间:
 	2009-12-08 12:05:26 +0800
 \par 修改时间:
-	2013-10-23 20:11 +0800
+	2013-12-24 09:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_CORE_ymsgdef_h_
 #define YSL_INC_CORE_ymsgdef_h_ 1
 
-#include "ymsg.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YMessage
 #include <functional> // for std::function;
 
 namespace YSLib

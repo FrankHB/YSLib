@@ -11,13 +11,13 @@
 /*!	\file Cache.h
 \ingroup Core
 \brief 高速缓冲模板。
-\version r200
+\version r203
 \author FrankHB <frankhb1989@gmail.com>
 \since build 461
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2013-12-22 22:37 +0800
+	2013-12-23 23:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YSL_INC_Core_Cache_hpp_
 #define YSL_INC_Core_Cache_hpp_ 1
 
-#include "ysdef.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YShellDefinition
 #include <ystdex/iterator.hpp> // for ystdex::is_undereferenceable;
-#include "../Adaptor/ycont.h"
+#include YFM_YSLib_Adaptor_YContainer
 
 namespace YSLib
 {

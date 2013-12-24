@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1306
+\version r1312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2013-08-05 21:09 +0800
+	2013-12-23 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,11 @@
 #ifndef YSL_INC_UI_label_h_
 #define YSL_INC_UI_label_h_ 1
 
-#include "ywidget.h"
-//#include "../Core/yres.h"
-#include "../Core/ystring.h"
-#include "../Service/TextBase.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YWidget
+//#include YFM_YSLib_Service_YResource
+#include YFM_YSLib_Core_YString
+#include YFM_YSLib_Service_TextBase
 
 namespace YSLib
 {

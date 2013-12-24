@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YTextBase.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r56
+\version r61
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-24 00:02:44 +0800
 \par 修改时间:
-	2013-08-05 20:49 +0800
+	2013-12-23 23:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,12 @@
 #ifndef YSL_INC_Adaptor_YTextBase_H_
 #define YSL_INC_Adaptor_YTextBase_H_ 1
 
-#include "yadaptor.h"
+#include "YModules.h"
+#include YFM_YSLib_Adaptor_YAdaptor
 
 //包含 CHRLib 。
-#include "CHRLib/chrproc.h"
+#include "../../CHRLib/YModules.h"
+#include YFM_CHRLib_CharacterProcessing
 
 namespace YSLib
 {

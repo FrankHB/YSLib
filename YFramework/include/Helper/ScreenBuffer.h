@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.h
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r374
+\version r377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-11-26 20:35 +0800
+	2013-12-23 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef INC_Helper_ScreenBuffer_h_
 #define INC_Helper_ScreenBuffer_h_ 1
 
-#include "YSLib/Core/ygdibase.h"
-#include "YCLib/NativeAPI.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YGDIBase
+#include YFM_YCLib_NativeAPI
 #if YF_Multithread == 1
 #	include <mutex>
 #endif

@@ -11,13 +11,13 @@
 /*!	\file chrmap.cpp
 \ingroup CHRLib
 \brief 字符映射。
-\version r760
+\version r762
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-09-28 13:40 +0800
+	2013-12-24 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "CHRLib/chrmap.h"
+#include "CHRLib/YModules.h"
+#include YFM_CHRLib_CharacterMapping
 
 namespace CHRLib
 {

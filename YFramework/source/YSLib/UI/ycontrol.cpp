@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2010-2013.
+	© 2010-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3874
+\version r3881
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-09-14 03:21 +0800
+	2013-12-23 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,12 +25,13 @@
 */
 
 
-#include "YSLib/UI/ycontrol.h"
-#include "YSLib/UI/ygui.h"
-#include "YSLib/UI/yuicont.h"
-#include "YSLib/Core/ystorage.hpp"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YControl
+#include YFM_YSLib_UI_YGUI
+#include YFM_YSLib_UI_YUIContainer
+#include YFM_YSLib_Core_YStorage
 #include <ystdex/algorithm.hpp>
-#include "YSLib/UI/YBrush.h"
+#include YFM_YSLib_UI_YBrush
 
 namespace YSLib
 {

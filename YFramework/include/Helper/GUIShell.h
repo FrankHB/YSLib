@@ -11,13 +11,13 @@
 /*!	\file GUIShell.h
 \ingroup Helper
 \brief GUI Shell 类。
-\version r108
+\version r112
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:29 +0800
 \par 修改时间:
-	2013-10-23 19:09 +0800
+	2013-12-23 23:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef INC_Helper_GUIShell_h_
 #define INC_Helper_GUIShell_h_ 1
 
-#include "YSLib/Core/yshell.h"
-#include "YSLib/Core/ystring.h"
-#include "InputManager.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YShell
+#include YFM_YSLib_Core_YString
+#include YFM_Helper_InputManager
 
 namespace YSLib
 {

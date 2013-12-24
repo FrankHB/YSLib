@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1017
+\version r1020
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2013-10-19 04:07 +0800
+	2013-12-23 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/Service/ydraw.h"
-#include "YSLib/Service/yblit.h"
+#include "YSLib/Service/YModules.h"
+#include YFM_YSLib_Service_YDraw
+#include YFM_YSLib_Service_YBlit
 
 namespace YSLib
 {

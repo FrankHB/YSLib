@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r140
+\version r143
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2013-06-08 13:56 +0800
+	2013-12-24 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YCL_INC_Debug_h_
 #define YCL_INC_Debug_h_ 1
 
-#include "ycommon.h"
+#include "YModules.h"
+#include YFM_YCLib_YCommon
 
 /*!	\defgroup diagnostic Diagnostic
 \brief 诊断设施。

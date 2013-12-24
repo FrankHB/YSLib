@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r1230
+\version r1232
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2013-10-21 23:58 +0800
+	2013-12-24 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "YSLib/Core/ymsg.h"
+#include "YSLib/Core/YModules.h"
+#include YFM_YSLib_Core_YMessage
 #include <ystdex/algorithm.hpp>
 
 namespace YSLib

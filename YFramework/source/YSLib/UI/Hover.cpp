@@ -11,13 +11,13 @@
 /*!	\file Hover.cpp
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r54
+\version r57
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:52:39 +0800
 \par 修改时间:
-	2013-09-28 13:47 +0800
+	2013-12-23 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/UI/Hover.h"
-#include "YSLib/UI/ycontrol.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_Hover
+#include YFM_YSLib_UI_YControl
 
 namespace YSLib
 {

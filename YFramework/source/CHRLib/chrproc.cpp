@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1180
+\version r1184
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-11-27 19:49 +0800
+	2013-12-24 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,14 +25,15 @@
 */
 
 
-#include "CHRLib/chrproc.h"
-#include "CHRLib/MapEx.h"
+#include "CHRLib/YModules.h"
+#include YFM_CHRLib_CharacterProcessing
+#include YFM_CHRLib_MappingEx
 #include <cctype>
 #include <cstdlib>
 #include <cwchar>
 #include <ystdex/cstdio.h>
 #include <ystdex/cstring.h>
-#include "CHRLib/Convert.hpp"
+#include YFM_CHRLib_Convert
 
 namespace CHRLib
 {

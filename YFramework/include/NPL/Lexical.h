@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,20 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup NPL Naming Protocol Language
-\brief 命名协议语言。
-*/
-
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1257
+\version r1265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2013-08-05 20:08 +0800
+	2013-12-24 09:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,10 +25,11 @@
 */
 
 
-#ifndef NPL_INC_Lexical_h_
-#define NPL_INC_Lexical_h_
+#ifndef YF_INC_NPL_Lexical_h_
+#define YF_INC_NPL_Lexical_h_ 1
 
-#include "YSLib/Adaptor/ycont.h"
+#include "YModules.h"
+#include YFM_YSLib_Adaptor_YContainer
 #include <cctype> // for std::isgraph;
 
 namespace NPL

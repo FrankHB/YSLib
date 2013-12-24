@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3065
+\version r3068
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-10-19 02:32 +0800
+	2013-12-23 23:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YSL_INC_Service_yblit_h_
 #define YSL_INC_Service_yblit_h_ 1
 
-#include "../Core/ygdibase.h"
-#include "../Core/ycutil.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YCoreUtilities
 #include <ystdex/algorithm.hpp>
 #include <ystdex/iterator.hpp>
 #include <ystdex/rational.hpp>

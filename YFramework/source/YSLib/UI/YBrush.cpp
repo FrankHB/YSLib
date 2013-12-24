@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r230
+\version r234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2013-09-29 18:52 +0800
+	2013-12-23 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/YBrush.h"
-#include "YSLib/Service/ydraw.h"
-#include "YSLib/Service/YPixel.h" // for Drawing::Shaders::BlitAlphaPoint;
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YBrush
+#include YFM_YSLib_Service_YDraw
+#include YFM_YSLib_Service_YPixel // for Drawing::Shaders::BlitAlphaPoint;
 
 namespace YSLib
 {

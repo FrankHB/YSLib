@@ -11,13 +11,13 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r813
+\version r815
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-11-14 21:52 +0800
+	2013-12-23 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "YSLib/Service/ytimer.h"
+#include "YSLib/Service/YModules.h"
+#include YFM_YSLib_Service_YTimer
 
 namespace YSLib
 {

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file AccessHistory.hpp
 \ingroup Service
 \brief 访问历史记录。
-\version r119
+\version r122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-12 07:42:35 +0800
 \par 修改时间:
-	2013-08-05 21:03 +0800
+	2013-12-23 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Service_AccessHistory_hpp_
 #define YSL_INC_Service_AccessHistory_hpp_ 1
 
-#include "../Adaptor/ycont.h" // for list;
+#include "YModules.h"
+#include YFM_YSLib_Adaptor_YContainer // for list;
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r295
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-11-26 20:26 +0800
+	2013-12-23 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef INC_Helper_HostWindow_h_
 #define INC_Helper_HostWindow_h_ 1
 
-#include "yglobal.h"
+#include "YModules.h"
+#include YFM_Helper_YGlobal
 #if YCL_Win32
 #	include <YCLib/Win32GUI.h>
 #endif

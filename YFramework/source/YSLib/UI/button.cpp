@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3074
+\version r3078
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-10-21 16:48 +0800
+	2013-12-23 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/button.h"
-#include "YSLib/Service/yblit.h"
-#include "YSLib/UI/ygui.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_Button
+#include YFM_YSLib_Service_YBlit
+#include YFM_YSLib_UI_YGUI
 
 namespace YSLib
 {

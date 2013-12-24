@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Convert.hpp
 \ingroup CHRLib
 \brief 转换模板。
-\version r61
+\version r64
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-23 10:18:20 +0800
 \par 修改时间:
-	2013-06-03 16:24 +0800
+	2013-12-24 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef INC_CHRLib_Convert_hpp
 #define INC_CHRLib_Convert_hpp 1
 
-#include "chrmap.h"
+#include "YModules.h"
+#include YFM_CHRLib_CharacterMapping
 #include <ystdex/any_iterator.hpp> // for ystdex::input_monomorphic_iterator;
 
 namespace CHRLib

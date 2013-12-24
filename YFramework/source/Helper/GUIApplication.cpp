@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r242
+\version r246
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-11-26 20:01 +0800
+	2013-12-24 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "Helper/GUIApplication.h"
-#include "Helper/Host.h"
-#include "Helper/Initialization.h"
+#include "Helper/YModules.h"
+#include YFM_Helper_GUIApplication
+#include YFM_Helper_Host
+#include YFM_Helper_Initialization
 #if YF_Multithread == 1
 #	include <thread> // for std::this_thread::*;
 #endif

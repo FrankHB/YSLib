@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1699
+\version r1702
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-10-23 19:02 +0800
+	2013-12-23 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,9 @@
 
 #include "../ysbuild.h"
 #include <ystdex/cast.hpp>
-#include "YCLib/Debug.h"
-#include "YSLib/Service/ytimer.h" // for Timers::HighResolutionClock;
-#include "YSLib/UI/textlist.h" // for UI::TextList::ListType;
+#include YFM_YCLib_Debug
+#include YFM_YSLib_Service_YTimer // for Timers::HighResolutionClock;
+#include YFM_YSLib_UI_TextList // for UI::TextList::ListType;
 
 namespace YSLib
 {

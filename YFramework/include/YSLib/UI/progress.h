@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011 - 2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r306
+\version r311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:57:48 +0800
 \par 修改时间:
-	2013-08-05 20:46 +0800
+	2013-12-23 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef YSL_INC_UI_progress_h_
 #define YSL_INC_UI_progress_h_ 1
 
-#include "ycontrol.h"
-//#include "../Core/yres.h"
-//#include "ystyle.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YControl
+//#include YFM_YSLib_Service_YResource
+//#include YFM_YSLib_UI_YStyle
 
 namespace YSLib
 {

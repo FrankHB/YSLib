@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1063
+\version r1065
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-10-16 19:00 +0800
+	2013-12-23 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "YSLib/Service/yblit.h"
+#include "YSLib/Service/YModules.h"
+#include YFM_YSLib_Service_YBlit
 
 using namespace ystdex;
 

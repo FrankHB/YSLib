@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r698
+\version r701
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-10-18 01:09 +0800
+	2013-12-23 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/UI/ystyle.h"
-#include "YSLib/UI/ywindow.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YStyle
+#include YFM_YSLib_UI_YWindow
 
 using namespace ystdex;
 

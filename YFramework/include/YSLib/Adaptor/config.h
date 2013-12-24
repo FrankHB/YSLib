@@ -11,13 +11,13 @@
 /*!	\file config.h
 \ingroup Adaptor
 \brief YSLib 库配置。
-\version r627
+\version r629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-11-26 19:45 +0800
+	2013-12-24 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Adaptor_config_h_
 #define YSL_INC_Adaptor_config_h_ 1
 
-#include "YCLib/Platform.h"
+#include "YCLib/YModules.h"
+#include YFM_YCLib_Platform
 
 //#define NDEBUG //!< 非调试模式。
 

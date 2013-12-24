@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1357
+\version r1361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2013-10-11 15:13 +0800
+	2013-12-24 00:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,10 @@
 #ifndef NPL_INC_SContext_h_
 #define NPL_INC_SContext_h_ 1
 
-#include "Lexical.h"
-#include "YSLib/Core/ValueNode.h"
-#include "YSLib/Service/yftext.h"
+#include "YModules.h"
+#include YFM_NPL_Lexical
+#include YFM_YSLib_Core_ValueNode
+#include YFM_YSLib_Service_YFile_Text_
 
 namespace NPL
 {

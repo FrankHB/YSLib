@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3787
+\version r3790
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-12-12 14:51 +0800
+	2013-12-23 22:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 #ifndef YSL_INC_Core_yobject_h_
 #define YSL_INC_Core_yobject_h_ 1
 
-#include "ycutil.h"
-#include "yexcept.h"
-#include "../Adaptor/ycont.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YCoreUtilities
+#include YFM_YSLib_Adaptor_YContainer
 #include <ystdex/any.h> // for ystdex::any_holder, ystdex::any;
 #include <ystdex/examiner.hpp> // for ystdex::examiners::equal_examiner;
 

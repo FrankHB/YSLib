@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r446
+\version r447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2013-12-12 15:13 +0800
+	2013-12-24 10:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #ifndef YCL_MinGW32_INC_COMPtr_h_
 #define YCL_MinGW32_INC_COMPtr_h_ 1
 
-#include "MinGW32.h"
+#include "YCLib/YModules.h"
+#include YFM_MinGW32_YCLib_MinGW32
 #include <objbase.h>
 
 namespace platform_ex

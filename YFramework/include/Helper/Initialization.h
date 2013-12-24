@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r733
+\version r738
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-10-13 00:19 +0800
+	2013-10-24 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,11 @@
 #ifndef INC_Helper_Initialization_h_
 #define INC_Helper_Initialization_h_ 1
 
-#include "NPL/Configuration.h"
-#include "YSLib/Service/yftext.h"
-#include "YSLib/Adaptor/Font.h" // for Drawing::FontCache;
-#include "YSLib/Service/ContentType.h" // for MIMEBiMapping;
+#include "YModules.h"
+#include YFM_NPL_Configuration
+#include YFM_YSLib_Service_YFile_Text_
+#include YFM_YSLib_Adaptor_Font // for Drawing::FontCache;
+#include YFM_YSLib_Service_ContentType // for MIMEBiMapping;
 
 namespace YSLib
 {

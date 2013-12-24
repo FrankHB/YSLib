@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1345
+\version r1347
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-12-13 13:57 +0800
+	2013-12-23 22:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Core_ValueNode_h_
 #define YSL_INC_Core_ValueNode_h_ 1
 
-#include "yobject.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YObject
 #include <ystdex/path.hpp>
 
 namespace YSLib

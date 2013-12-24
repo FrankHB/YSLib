@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r627
+\version r631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-10-02 22:52 +0800
+	2013-12-23 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/yrender.h"
-#include "YSLib/UI/ycontrol.h"
-#include "YSLib/Service/ygdi.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YRenderer
+#include YFM_YSLib_UI_YControl
+#include YFM_YSLib_Service_YGDI
 
 namespace YSLib
 {

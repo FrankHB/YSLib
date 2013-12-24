@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的 GUI 窗口。
-\version r3409
+\version r3413
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2013-08-08 05:38 +0800
+	2013-12-23 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,9 @@
 */
 
 
-#include "YSLib/UI/ydesktop.h"
-#include "YSLib/UI/YBrush.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YDesktop
+#include YFM_YSLib_UI_YBrush
 
 namespace YSLib
 {

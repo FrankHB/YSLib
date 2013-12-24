@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r383
+\version r385
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2013-12-23 18:56 +0800
+	2013-12-23 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_Core_yexcept_h_
 #define YSL_INC_Core_yexcept_h_ 1
 
-#include "ysdef.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YShellDefinition
 #include <exception>
 #include <stdexcept>
 #include <string>

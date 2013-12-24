@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r191
+\version r195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-11-26 19:59 +0800
+	2013-12-24 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "Helper/HostRenderer.h"
-#include "Helper/Host.h" // for Host::Environment;
-//#include "Helper/GUIApplication.h"
+#include "Helper/YModules.h"
+#include YFM_Helper_HostRenderer
+#include YFM_Helper_Host // for Host::Environment;
+//#include YFM_Helper_GUIApplication
 
 namespace YSLib
 {

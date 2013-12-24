@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r110
+\version r114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2013-07-31 13:29 +0800
+	2013-12-24 09:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YCL_INC_MemoryMapping_h_
 #define YCL_INC_MemoryMapping_h_ 1
 
-#include "ycommon.h"
-#include "NativeAPI.h" // for struct ::stat;
+#include "YModules.h"
+#include YFM_YCLib_YCommon
+#include YFM_YCLib_NativeAPI // for struct ::stat;
 
 namespace platform
 {

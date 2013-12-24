@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r156
+\version r161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-11-26 20:25 +0800
+	2013-12-24 00:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,10 +25,11 @@
 */
 
 
-#include "Helper/HostedUI.h"
-#include "Helper/HostRenderer.h"
-#include <YSLib/UI/ycontrol.h> // for UI::FetchEvent;
-#include <YSLib/UI/ygui.h> // for FetchGUIState;
+#include "Helper/YModules.h"
+#include YFM_Helper_HostedUI
+#include YFM_Helper_HostRenderer
+#include YFM_YSLib_UI_YControl // for UI::FetchEvent;
+#include YFM_YSLib_UI_YGUI // for FetchGUIState;
 
 namespace YSLib
 {

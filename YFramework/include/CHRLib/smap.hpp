@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1848
+\version r1851
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-08-27 18:57 +0800
+	2013-12-24 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef INC_CHRLib_smap_hpp_
 #define INC_CHRLib_smap_hpp_ 1
 
-#include "chrmap.h"
+#include "YModules.h"
+#include YFM_CHRLib_CharacterMapping
 #include <ystdex/cstdio.h>
 #include <ystdex/any.h> // for ystdex::pseudo_object;
 

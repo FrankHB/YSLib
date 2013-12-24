@@ -11,13 +11,13 @@
 /*!	\file WidgetIteration.h
 \ingroup UI
 \brief 部件迭代接口。
-\version r195
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 356
 \par 创建时间:
 	2012-11-25 16:36:34 +0800
 \par 修改时间:
-	2013-12-08 23:29 +0800
+	2013-12-23 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YSL_INC_UI_WidgetIteration_h_
 #define YSL_INC_UI_WidgetIteration_h_ 1
 
-#include "ywidget.h"
+#include "YModules.h"
+#include YFM_YSLib_UI_YWidget
 
 namespace YSLib
 {

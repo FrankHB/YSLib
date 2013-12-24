@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2283
+\version r2315
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-12-10 20:38 +0800
+	2013-12-24 09:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,39 +112,37 @@
 
 @1.2.8 内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件。
- Adaptor 的头文件依赖于 YFramework 的 "YBaseMacro.h" 。
 实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
-在 Core 中，以下依赖关系对于头文件包含是确定的：
- "ysdef.h" 依赖于 Adaptor 的 "yadaptor.h" 和 "yref.hpp" ；
-除了 "ybasemac.h" 和 "ysdef.h" 外都直接或间接依赖于 "ysdef.h"；
- "ycutil.h" 依赖于 "yexcept.h" ；
- "yobject.h" 依赖于 "ycutil.h"；
- "ystring.h" 、 "ymsg.h" 依赖于 "yobject.h" ；
- "ystring.h" 依赖于 Adaptor 的 "YTextBase.h" ；
- "yevt.hpp" 依赖于 "yobject.h" 和 "yfunc.hpp" ；
- "ymsgdef.h" 依赖于 "ymsg.h" ；
- "yshell.h" 依赖于 "ymsgdef.h" ；
- "yfilesys.h" 依赖于 "ystring.h"；
- "yapp.h" 依赖于 "yshell.h" 和 Adaptor 的 "ycont.h" 。
-在 Service 中，以下依赖关系对于头文件包含是确定的：
- "ytimer.h" 依赖于 Core 的 "ysdef.h" ；
- "yblit.h" 、 "ydraw.h" 和 "ygdi.h" 依赖于 Core 的 "ygdibase.h" ；
- "yblit.h" 依赖于 Core 的 "ycutil.h" ；
-在 UI 中，以下依赖关系对于头文件包含是确定的：
- "YComponent.h" 依赖于 Core 的 "ygdibase.h" 、 "yfunc.hpp" 和 "ysmsgdef.h" 以及 Adaptor 的 "ycont.h" ；
- "yfocus.h" 依赖于 "YComponent.h" ；
- "yrender.h" 依赖于 "YComponent.h" ；
- "ystyle.h" 依赖于 "YComponent.h" 和 Service 的 "ydraw.h" ；
- "ywgtview.h" 依赖于 "YComponent.h" ；
- "ywgtevt.h" 依赖于 "YComponent.h" 和 Core 的 "yevt.hpp" ；
- "YBrush.h" 依赖于 "ywgtview.h" 和 Service 的 "yres.h" ；
- "ywidget.h" 依赖于 "yfocus.h" 和 "ywgtview.h" ；
- "ygui.h" 依赖于 "ywgtevt.h" 、 "ystyle.h" 和 Service 的 "ytimer.h" ；
- "yuicont.h" 依赖于 "ywidget.h" ；
- "ycontrol.h" 依赖于 "ywidget.h" 和 "ywgtevt.h" ；
- "ypanel.h" 依赖于 "ycontrol.h" 和 "yuicont.h" ；
- "ywindow.h" 依赖于 "ypanel.h" 、 "yrender.h" 和 Service 的 "yres.h" ；
- "ydesktop.h" 依赖于 "ywindow.h" 和 Core 的 "ydevice.h" 。
+在 Core 中，以下模块对应的头文件依赖关系是确定的：
+ YShellDefinition 依赖 Adaptor::YAdaptor 和 Adaptor::YReference ；
+除了 YShellDefinition 外都直接或间接依赖 YShellDefinition；
+ YCoreUtilities 和 YGDIBase 依赖 YException ；
+ YObject 依赖 YCoreUtilities ；
+ YDevice 、 YString 和 YMessage 依赖 YObject ；
+ YDevice 依赖 YGDIBase ；
+ YString 依赖 Adaptor::YTextBase ；
+ YEvent 依赖 YObject 和 YFunc ；
+ YMessageDefinition 依赖 YMessage ；
+ YShell 依赖 YMessageDefinition ；
+ YFileSystem 依赖 YString；
+ YApplication 依赖 YShell 和 Adaptor::YContainer 。
+在 Service 中，以下模块对应的头文件依赖关系是确定的：
+ YTimer 依赖 Core::YShellDefinition ；
+ YBlit 、 YDraw 和 YGDI 依赖 Core::YGDIBase ；
+ YBlit 依赖 Core::YCoreUtilities ；
+在 UI 中，以下模块对应的头文件依赖关系是确定的：
+ YComponent 依赖 Core::YGDIBase 、 Core::YFunc 、 Core::YMessageDefinition 和 Adaptor::YContainer ；
+除了 YComponent 外都直接或间接依赖 YComponent；
+ YStyle 依赖 Service::YDraw ；
+ YWidgetEvent 依赖 Core::YEvent ；
+ YBrush 依赖 YWidgetView 和 Service::YResource ；
+ YWidget 依赖 YFocus 和 YWidgetView ；
+ YGUI 依赖 YWidgetEvent 、 YStyle 和 Service::YTimer ；
+ YUIContainer 依赖 YWidget ；
+ YControl 依赖 YWidget 和 YWidgetEvent ；
+ YPanel 依赖 YControl 和 YUIContainer ；
+ YWindow 依赖 YPanel 、 YRenderer 和 Service::YResource ；
+ YDesktop 依赖 YWindow 和 Core::YDevice 。
 在整个 YSLib 头文件中根据以上确定的依赖关系，包含尽可能少（数量相同时从上至下应用依赖关系）的头文件。
 
 @1.3 YSLib 可重入性和线程安全性：

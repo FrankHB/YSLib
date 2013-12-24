@@ -8,21 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup Service Service
-\ingroup YSLib
-\brief YSLib 服务模块。
-*/
-
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r996
+\version r1002
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-11-15 20:38 +0800
+	2013-12-24 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +28,8 @@
 #ifndef YSL_INC_Service_ytimer_h_
 #define YSL_INC_Service_ytimer_h_ 1
 
-#include "../Core/ysdef.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_YShellDefinition
 #include <chrono>
 
 namespace YSLib

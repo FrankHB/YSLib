@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4367
+\version r4371
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-11-06 15:11 +0800
+	2013-12-23 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,9 +25,10 @@
 */
 
 
-#include "YSLib/UI/ydesktop.h"
-#include "YSLib/UI/YBrush.h"
-#include "YSLib/UI/YGUI.h"
+#include "YSLib/UI/YModules.h"
+#include YFM_YSLib_UI_YDesktop
+#include YFM_YSLib_UI_YBrush
+#include YFM_YSLib_UI_YGUI
 
 namespace YSLib
 {

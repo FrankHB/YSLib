@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2013 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r675
+\version r681
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2013-08-31 14:12 +0800
+	2013-12-23 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +28,11 @@
 #ifndef YSL_INC_UI_textlist_h_
 #define YSL_INC_UI_textlist_h_ 1
 
-#include "ycontrol.h"
-#include "ygui.h"
-#include "label.h"
-#include "viewer.hpp"
+#include "YModules.h"
+#include YFM_YSLib_UI_YControl
+#include YFM_YSLib_UI_YGUI
+#include YFM_YSLib_UI_Label
+#include YFM_YSLib_UI_Viewer
 
 namespace YSLib
 {

@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1454
+\version r1456
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2013-11-27 19:51 +0800
+	2013-12-24 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,7 +25,8 @@
 */
 
 
-#include "NPL/SContext.h"
+#include "NPL/YModules.h"
+#include YFM_NPL_SContext
 
 using namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r263
+\version r266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2013-10-11 18:53 +0800
+	2013-12-24 00:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef NPL_INC_Configuration_h_
 #define NPL_INC_Configuration_h_
 
-#include "YSLib/Core/ValueNode.h"
-#include "YSLib/Service/yftext.h"
+#include "YModules.h"
+#include YFM_YSLib_Core_ValueNode
+#include YFM_YSLib_Service_YFile_Text_
 
 namespace NPL
 {

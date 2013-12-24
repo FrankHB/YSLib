@@ -11,13 +11,13 @@
 /*!	\file DSScreen.h
 \ingroup Helper
 \brief DS 屏幕。
-\version r421
+\version r425
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2013-11-26 20:19 +0800
+	2013-12-24 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -28,9 +28,10 @@
 #ifndef Inc_Helper_DSScreen_h_
 #define Inc_Helper_DSScreen_h_ 1
 
-#include "Helper/DSMain.h" // for ScreenWidth, ScreenHeight, Host::Environment;
-#include "YSLib/Core/ydevice.h"
-#include "Helper/ScreenBuffer.h"
+#include "Helper/YModules.h"
+#include YFM_DS_Helper_DSMain // for ScreenWidth, ScreenHeight, Host::Environment;
+#include YFM_YSLib_Core_YDevice
+#include YFM_Helper_ScreenBuffer
 #if YCL_MULTITHREAD == 1
 #	include <mutex>
 #endif
