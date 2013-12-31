@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r674
+\version r679
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2013-12-23 23:53 +0800
+	2013-12-31 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,7 +103,11 @@ RectDrawCheckBox(const PaintContext& pc, const Size& s, bool is_pressed = {},
 		DrawLineSeg(g, bounds, p2, p3, c1);
 	}
 	if(is_pressed)
-		TransformRect(g, bounds & r, transform_pixel_ex<56, 24, 32>);
+		TransformRect(g, bounds & r, [](BitmapPtr dst){
+			const Color d(*dst);
+
+			*dst = Color(d.GetR() ^ 56, d.GetG() ^ 24, d.GetB() ^ 32);
+		});
 }
 
 } // unnamed namespace;
@@ -138,7 +142,7 @@ CheckBox::Tick(bool b)
 void
 CheckBox::PaintBox(const PaintContext& pc, const Size& s)
 {
-	RectDrawCheckBox(pc, s, bPressed, IsFocusedByShell(*this), bTicked,
+	RectDrawCheckBox(pc, s, IsPressed(), IsFocusedByShell(*this), bTicked,
 		IsFocused(*this));
 }
 

@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3078
+\version r3124
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-12-23 23:54 +0800
+	2013-12-31 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,53 +43,63 @@ using Drawing::Hue;
 
 /*!
 \brief 色调偏移。
-\since build 302
+\since build 463
 */
-inline Hue
-change_hue(Hue base_h, Hue h)
+inline Color
+RollColor(hsl_t hsl, Hue delta)
 {
-	base_h += h;
-	return base_h < 360 ? base_h : base_h - 360;
+	delta += hsl.h;
+	hsl.h = delta < 360 ? delta : delta - 360;
+	return HSLToColor(hsl);
 }
 
-//! \since build 453
+//! \since build 463
+inline Color
+ThumbRollColor(hsl_t hsl, Hue delta, MonoType gr, bool over)
+{
+	return over ? RollColor(hsl, delta) : Color(gr, gr, gr);
+}
+
+//! \since build 463
 void
 RectDrawButton(const PaintContext& pc, Size s, Hue base_hue,
-	bool is_pressed = {}, bool is_enabled = true)
+	CursorState cursor_state, bool is_enabled = true)
 {
+	const bool inside(cursor_state != CursorState::Outside);
+	const auto roll([=](const hsl_t& hsl, MonoType gr){
+		return ThumbRollColor(hsl, base_hue, gr, inside);
+	});
 	const auto& g(pc.Target);
 
 	YAssert(bool(g), "Invalid graphics context found.");
 
-	DrawRectRoundCorner(pc, s, is_enabled ? HSLToColor(
-		{change_hue(base_hue, 25.640625F), 0.493671F, 0.462891F})
-		: FetchGUIState().Colors[Styles::Workspace]);
+	DrawRectRoundCorner(pc, s, is_enabled ? roll({25.640625F, 0.493671F,
+		0.462891F}, 112) : FetchGUIState().Colors[Styles::Workspace]);
 	if(YB_LIKELY(s.Width > 2 && s.Height > 2))
 	{
 		auto pt(pc.Location);
 		const auto& r(pc.ClipArea);
 
 		yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
-		FillRect(g, r, {pt, s}, is_enabled ? HSLToColor({change_hue(base_hue,
-			11.304688F), 0.990431F, 0.591797F}) : Color(244, 244, 244));
+		FillRect(g, r, {pt, s}, is_enabled ? roll(
+			{11.304688F, 0.990431F, 0.591797F}, 243) : Color(244, 244, 244));
 		if(is_enabled)
 		{
 			if(s.Width > 2 && s.Height > 2)
 			{
 				Rect rp(pt.X + 1, pt.Y + 1, s.Width - 2, (s.Height - 2) / 2);
 
-				FillRect(g, r, rp, HSLToColor({change_hue(base_hue,
-					39.132872F), 0.920000F, 0.951172F}));
+				FillRect(g, r, rp,
+					roll({39.132872F, 0.920000F, 0.951172F}, 239));
 				rp.Y += rp.Height;
 				if(s.Height % 2 != 0)
 					++rp.Height;
-				FillRect(g, r, rp, HSLToColor({change_hue(base_hue,
-					29.523438F), 0.969231F, 0.873047F}));
+				FillRect(g, r, rp,
+					roll({29.523438F, 0.969231F, 0.873047F}, 214));
 			}
-			if(is_pressed)
+			if(cursor_state == CursorState::Pressed)
 			{
-				const Color tc(HSLToColor({change_hue(base_hue, 165), 0.4F,
-					0.16F}));
+				const Color tc(RollColor({165, 0.4F, 0.16F}, base_hue));
 
 				TransformRect(g, r & Rect(pt, s), [=](BitmapPtr dst){
 					const Color d(*dst);
@@ -113,20 +123,28 @@ Thumb::Thumb(const Rect& r, Hue hue)
 }
 Thumb::Thumb(const Rect& r, NoBackgroundTag)
 	: Control(r, NoBackgroundTag()),
-	bPressed(false)
+	csCurrent(CursorState::Outside)
 {
 	yunseq(
-	FetchEvent<Enter>(*this) += [this](CursorEventArgs&& e){
-		if(!bPressed && e.Keys.any())
+	FetchEvent<CursorOver>(*this) += [this](CursorEventArgs&&)
+	{
+		if(csCurrent == CursorState::Outside)
 		{
-			bPressed = true;
+			csCurrent = CursorState::Over;
+			Invalidate(*this);
+		}
+	},
+	FetchEvent<Enter>(*this) += [this](CursorEventArgs&& e){
+		if(!IsPressed() && e.Keys.any())
+		{
+			csCurrent = CursorState::Pressed;
 			Invalidate(*this);
 		}
 	},
 	FetchEvent<Leave>(*this) += [this](CursorEventArgs&& e){
-		if(bPressed && e.Keys.any())
+		if(csCurrent == CursorState::Over || (IsPressed() && e.Keys.any()))
 		{
-			bPressed = {};
+			csCurrent = CursorState::Outside;
 			Invalidate(*this);
 		}
 	}
@@ -142,12 +160,13 @@ DrawThumbBackground(PaintEventArgs&& e, Thumb& tmb, Hue base_hue)
 	auto& r(e.ClipArea);
 	Size s(GetSizeOf(tmb));
 
-	RectDrawButton(e, s, base_hue, tmb.IsPressed(), enabled);
+	RectDrawButton(e, s, base_hue, tmb.GetCursorState(), enabled);
 	if(enabled && IsFocused(tmb) && YB_LIKELY(s.Width > 6 && s.Height > 6))
 	{
 		yunseq(s.Width -= 6, s.Height -= 6);
 		DrawRect(e.Target, r, pt + Vec(3, 3), s,
-			HSLToColor({base_hue, 1, 0.5F}));
+			tmb.GetCursorState() == CursorState::Outside ? Color(178, 178, 178)
+			: HSLToColor({base_hue, 1, 0.5F}));
 	}
 }
 

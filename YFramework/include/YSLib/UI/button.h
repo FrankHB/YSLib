@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的 GUI 按钮控件。
-\version r2260
+\version r2266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-12-23 22:54 +0800
+	2013-12-31 10:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,10 +47,10 @@ class YF_API Thumb : public Control
 {
 protected:
 	/*!
-	\brief 按下状态：表示按钮当前是否处于按下状态。
-	\since build 288
+	\brief 指针设备光标状态。
+	\since build 463
 	*/
-	bool bPressed;
+	CursorState csCurrent;
 
 public:
 	/*!
@@ -75,7 +75,10 @@ public:
 	\brief 判断按钮当前是否处于按下状态。
 	\since build 302
 	*/
-	DefPred(const ynothrow, Pressed, bPressed)
+	DefPred(const ynothrow, Pressed, csCurrent == CursorState::Pressed)
+
+	//! \since build 463
+	DefGetter(const ynothrow, CursorState, CursorState, csCurrent)
 };
 
 /*!

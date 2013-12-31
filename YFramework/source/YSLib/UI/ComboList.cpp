@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3156
+\version r3160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2013-12-23 23:43 +0800
+	2013-12-31 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -252,11 +252,12 @@ DropDownList::DetachTopWidget()
 void
 DropDownList::Refresh(PaintEventArgs&& e)
 {
-	bool b(bPressed);
+	const auto cs(GetCursorState());
 
-	bPressed = bPressed || FetchContainerPtr(lbContent);
+	if(FetchContainerPtr(lbContent))
+		csCurrent = CursorState::Pressed;
 	Button::Refresh(std::move(e));
-	bPressed = b;
+	csCurrent = cs;
 	DrawArrow(e.Target, Rect(e.Location + Vec(GetWidth() - 16, 0),
 		Size(16, GetHeight())), 4, RDeg270, ForeColor);
 }

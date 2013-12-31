@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9115
+\version r9117
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-12-24 20:31 +0800
+	2013-12-27 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -297,6 +297,7 @@ Shell 和 Core 的关系是相对的，例如：
 当前正式支持的目标平台：
 非宿主实现目标平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等，对应系统名 arm-eabi 或 arm-none-eabi ）；
 宿主实现目标平台 MinGW32 （对应系统名 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
+当前只保证 MinGW-W64 的运行时可以正常构建。使用 MinGW.org 的运行时未经测试，未被证实支持。
 目前 DS 仅使用静态链接库链接至静目标。
 
 @5.1.1 配置管理：
@@ -425,7 +426,7 @@ Shell 和 Core 的关系是相对的，例如：
  2013-06-03(build 411) 起：
 使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/32-bit/threads-posix/sjlj/x32-4.8.1-release-posix-sjlj-rev0.7z 。
  2013-07-20(build 431) 起：
-增加依赖项 NASM 2.07 ：http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download 。
+增加依赖项 NASM 2.07 ： http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download 。
 当前不直接用于构建 YSLib ，仅用于构建依赖项。
  2013-10-20(build 453) 起：
 使用 http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-posix/dwarf/i686-4.8.2-release-posix-dwarf-rt_v3-rev0.7z 。

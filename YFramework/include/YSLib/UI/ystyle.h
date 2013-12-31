@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r444
+\version r455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-12-24 09:27 +0800
+	2013-12-30 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,20 +73,6 @@ DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
 */
 YF_API void
 DrawCross(const Graphics&, const Point&, const Size&, Color);
-
-
-/*!
-\brief 矩形区域颜色转换。
-\since build 417
-*/
-template<MonoType r, MonoType g, MonoType b>
-inline void
-transform_pixel_ex(BitmapPtr dst)
-{
-	const Color d(*dst);
-
-	*dst = Color(d.GetR() ^ r, d.GetG() ^ g, d.GetB() ^ b);
-}
 
 
 //平台无关色彩系统类型和转换。

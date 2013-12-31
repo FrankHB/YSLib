@@ -1,10 +1,87 @@
 ﻿ YSLib 项目自述文件
 
-> YSLib 项目组成概要
+> 项目组成概要
 ====
  YSLib 项目包括 YBase 和 YFramework 两个库，以及测试项目 YSTest 和其它一些小工具。
  YBase 提供一些 C++ 语言特性封装和公用设施的基本支持。 YFramework 是跨平台的框架，可用于开发本机 GUI 程序。
 当前支持的平台有 DS 和 MinGW32 。
+
+> 根目录结构和文件说明
+====
+/.git
+ Git 目录
+/.hg
+ Mercurial 目录
+/3rdparty
+第三方依赖项
+/Data
+最终用户环境中部署的数据目录
+/doc
+开发文档
+/doc/vsd
+架构示意 Visio 文档
+/Tools
+开发使用的（辅助）工具
+/YBase
+顶级子项目 YBase
+/YFramework
+顶级子项目 YFramework
+/YSTest_ARM7
+示例项目 YReader 的 ARM7 项目（仅用于 DS 平台，用于生成 ARM7 ELF 二进制映像）
+/YSTest_ARM9
+示例项目 YReader 的 ARM9 项目（包括 DS 平台 ARM9 部分，于生成 ARM9 ELF 二进制映像；源代码和其它平台共享）
+/YSTest_DS
+示例项目 YReader 的 DS 平台可执行文件项目（仅用于 DS 平台，用于生成 NDS 文件）
+/YSTest_MinGW32
+示例项目 YReader 的 MinGW32 平台可执行文件项目（仅用于 MinGW32 平台，用于生成 EXE 文件）
+/.hgignore
+ Mercurial 忽略文件
+/.hgtags
+ Mercurial 标签文件
+/CC BY-SA 3.0 legalcode.txt
+文档许可证： Creative Commons Legal Code Attribution-ShareAlike 3.0 Unported
+/Doxyfile
+ Doxygen 配置文件
+/FTL.TXT
+许可证： The FreeType Project LICENSE
+/gpl-2.0.txt
+许可证： GNU GENERAL PUBLIC LICENSE Version 2
+/gpl-3.0.txt
+许可证： GNU GENERAL PUBLIC LICENSE Version 3
+/LICENSE.txt
+整体许可证
+/LICENSE_HISTORY.txt
+整体许可证：历史版本
+/license-fi.txt
+许可证： FreeImage Public License - Version 1.0
+/Readme.zh-CN.txt
+本自述文件
+/YSTest.sln
+ Visual Studio 解决方案文件
+/YSTest.workspace
+ Code::Blocks 工作空间文件
+
+> 构建说明
+====
+构建平台/宿主平台： Windows 或类 UNIX 系统。
+目标平台： DS 和 MinGW32 。
+详细参见 doc/Designation.txt @5.1 。
+按 doc/Designation.txt @5.2.2 或 @5.2.3 下载搭建目标平台对应的开发环境。
+使用 Microsoft Visual Studio 2012 或以上版本打开 .sln （仅 Windows ；当前仅用于生成 DS 平台文件）；
+使用 Code::Blocks 12.11 或以上版本打开 .workspace 。
+
+ DS
+==
+使用 devkitPro 至少需要以下环境变量（具体路径仅为示例，下同）：
+DEVKITARM = /F/devkitPro/devkitARM
+DEVKITPRO = /F/devkitPro
+使用 Microsoft Visual Studio 打开文件，还需要以下环境变量以保证路径解析正确：
+DKP_HOME = F:\devkitPro
+需要保证有可用的 UNIX shell ； Windows 下可能需要另外加入 devkitPro 安装目录下 msys/bin 至 %PATH% 。
+
+其它
+==
+详细的其它选项参照 https://bitbucket.org/FrankHB/yslib/wiki/Home 。
 
 > YSLib PreAlpha 更新说明
 ====

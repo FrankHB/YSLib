@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r237
+\version r249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-11-30 00:27 +0800
+	2013-12-26 10:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,6 +241,20 @@ Notes for disabling some VC++ warning:
 		In C++ (but not in C), coercion or cast to 'bool' is quite safe. Comparaing to null pointer value explicitly is OK, but not required. On the contrast, it might be standard way to test null pointer (but not compare to zero), particular in the ISO C++11 wording "contextually convertible to bool" as some requirements for types including pointers.
 		Too bad copying '!= 0' or similar mouthy stuff ('!= nullptr') everywhere in C++ code.
 The workaround of move constructor and %operator= for Visual C++ 2013 is currently some slower than it should be with fully supported ISO C++11 implementation, because the 'noexcept' operator is missing, and no throwing specification is not guaranteed to work everywhere.
+
+$2013-12:
+
+report.impl:
+	The reference-counted 'std::basic_string' implementation in libstdc++ is still not conforming to ISO C++11.
+		See $2013-10 report.impl.
+		See $ref b449 "libstdc++ std::basic_string conformance" for references.
+		Though ABI has changed before, the string implementation is not included, and even other breaking changes like 'std::list::size' implementation are reverted: http://gcc.gnu.org/wiki/Cxx11AbiCompatibility .
+		It seems that the ABI would not switched in near future, or at early as of GCC 4.9: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166 .
+		Use libstdc++ '__gnu_cxx::__versa_string' from <ext/vstring.h> instead, if necessary.
+			See $2013-10 report.impl.
+			See $ref b449 "libstdc++ vstring" for references.
+			Note no 'std::stringstream' counterpart, see: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166#c4 .
+			Be cautious to performace decrese: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54393 .
 
 ////
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4611
+\version r4639
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-12-24 21:01 +0800
+	2013-12-31 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,32 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	+ $dev $repo "tags (from 'V0.2' to 'V0.4' for build revisions 'b200', 'b300' \
+		and 'b400' respectively), of 3 'PreAlpha' revisions",
+	+ $doc "directory structure and build instructions" @ "readme document",
+	/ %'YFramework'.'YSLib'.'UI' $=
+	(
+		+ "function templates %(Restart; 2 Setup; SetupByTimer)" @ %'Animation',
+		- "function template %transform_pixel_ex" @ %'YStyle',
+		(
+		+ "enum class %CursorState" @ %'YControl';
+		/ @ "class %Thumb" $=
+		(
+			/ "protected memeber 'bool bPressed;'" -> 'CursorState csCurrent;'";
+			+ "member function %GetCursorState"
+		);
+		/ "drawing for thumb when cursor out of the boundary" @ %'Button' $=
+		(
+			/ "drawing background with gray colors",
+			/ "drawing focus box with gray color"
+				@ "function %DrawThumbBackground";
+		)
+		)
+	)
+),
+
+b461
 (
 	/ %'YFramework' $=
 	(
@@ -794,7 +820,7 @@ b453
 			/ %'YDraw' $=
 			(
 				$dep_from %"class %Rect";
-				- "graphics functions 'Draw*' without boundary parameter",				
+				- "graphics functions 'Draw*' without boundary parameter",
 				* "too strict assertion with unstrictly empty boundary argument"
 					@ "functions %(DrawPoint, DrawHLineSeg, DrawVLineSeg, \
 					DrawLineSeg)" $since b452,
@@ -1169,7 +1195,8 @@ b448
 		copy/move constructor matched" ^ "%ystdex::exclude_self_ctor_t"
 		~ "%ystdex::enable_if_t";
 		// For %YSLib::Path, etc. See below for others.
-	* $dev "some volatile reference overloading matched not prevented" $since b352
+	* $dev "some volatile reference overloading matched not prevented"
+		$since b352
 		// For %(ystdex::any $since b352, YSLib::ValueObject $since b376). \
 			%NPL::Configuration untouched.
 	),
