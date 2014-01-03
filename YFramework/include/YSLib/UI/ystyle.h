@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r455
+\version r465
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2013-12-30 23:38 +0800
+	2014-01-04 01:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,6 +76,18 @@ DrawCross(const Graphics&, const Point&, const Size&, Color);
 
 
 //平台无关色彩系统类型和转换。
+
+//! \since build 464
+//@{
+//! \brief 按指定分量取灰度色。
+yconstfn PDefH(Color, MakeGray, MonoType g)
+	ImplRet(Color(g, g, g))
+
+//! \brief 按指定颜色或分量选取彩色或灰度色。
+yconstfn PDefH(Color, MakeGrayOrColor, Color c, MonoType g, bool colored)
+	ImplRet(colored ? c : Color(g, g, g))
+//@}
+
 
 /*!
 \brief 色调。

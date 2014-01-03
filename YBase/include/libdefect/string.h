@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 <tt><string></tt> 修正。
-\version r535
+\version r543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2013-04-13 06:38 +0800
+	2014-01-02 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,10 +36,10 @@
 #include <string>
 
 // See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015 .
-// NOTE: Fixed @ 4.8.
+// NOTE: Fixed @ 4.8 for MinGW-W64.
 
-#if defined(__GLIBCXX__) && __GLIBCXX__ <= 20120920 \
-	&& defined(__GXX_EXPERIMENTAL_CXX0X__) \
+#if defined(__GLIBCXX__) \
+	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& !(defined(_GLIBCXX_USE_C99) && !defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF))
 
 #include <ext/string_conversions.h>
@@ -75,13 +75,13 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
 #define YB_LIBDEFECT_STOI(_s, _n, _t, _cfname) \
 	inline _t \
-	_n(const _s& __str, size_t* __idx = 0, int __base = 10) \
+	_n(const _s& __str, size_t* __idx = {}, int __base = 10) \
 	{ \
 		return __gnu_cxx::__stoa(&_cfname, #_n, __str.c_str(), __idx, __base); \
 	}
 
 inline int
-stoi(const string& __str, size_t* __idx = 0, int __base = 10)
+stoi(const string& __str, size_t* __idx = {}, int __base = 10)
 {
 	return __gnu_cxx::__stoa<long, int>(&std::strtol, "stoi", __str.c_str(),
 		__idx, __base);
@@ -92,7 +92,7 @@ YB_LIBDEFECT_STOI(string, stoll, long long, std::strtoll)
 YB_LIBDEFECT_STOI(string, stoull, unsigned long long, std::strtoull)
 #ifdef _GLIBCXX_USE_WCHAR_T
 inline int
-stoi(const wstring& __str, size_t* __idx = 0, int __base = 10)
+stoi(const wstring& __str, size_t* __idx = {}, int __base = 10)
 {
 	return __gnu_cxx::__stoa<long, int>(&std::wcstol, "stoi", __str.c_str(),
 		__idx, __base);
@@ -108,7 +108,7 @@ YB_LIBDEFECT_STOI(wstring, stoull, unsigned long long, std::wcstoull)
 
 #define YB_LIBDEFECT_STOF(_s, _n, _t, _cfname) \
 	inline _t \
-	_n(const _s& __str, size_t* __idx = 0) \
+	_n(const _s& __str, size_t* __idx = {}) \
 	{ \
 		return __gnu_cxx::__stoa(&_cfname, #_n, __str.c_str(), __idx); \
 	}

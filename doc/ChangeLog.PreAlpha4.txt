@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4639
+\version r4723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2013-12-31 19:01 +0800
+	2014-01-04 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,87 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework' $=
+	(
+		/ %'YSLib' $=
+		(
+			* "missing size activation and italic matrix set
+				@ "member function %Typeface::LookupBitmap" @ %'Adaptor'.'Font',
+				$since b460
+				// This would cause the size corrupt and missing of italic \
+					style effect.
+			/ %'UI' $=
+			(
+				+ "functions %(MakeGray, MakeGrayOrColor)" @ 'YStyle';
+				/ DLD "simplified background rendering implementation"
+					@ "class %Thumb" @ %'Button'
+			)
+		),
+		/ %'YCLib' $=
+		(
+			/ $dev 'makedir(char const* dir, mode_t)'
+				-> 'makedir(char const* dir, ::mode_t)' @ %'NativeAPI',
+			/ $dep "implementation kept compatible to MinGW.org runtime"
+				@ "platform %MinGW32" %'YFileSystem'$=
+			(
+				+ $dev "private declarations for C function %(_fileno, \
+					_wfopen) copied from MinGW header"
+					@ 'defined(__MINGW32__) && \
+						!defined(__MINGW64_VERSION_MAJOR)',
+					// These functions are not declared when macro \
+						%__STRICT_ANSI__ is defined. For MinGW-W64 predefined \
+						macros, see $2014-01 \
+						@ %Documentation::Workflow::Annual2013 for details.
+				^ $dev ('::_stat' ~ '::stat', '::_wstat' ~ '::wstat')
+					@ "implementation" @ "function %HDirectory::IsDirectory"
+			)
+		)
+	)
+	/ $dev %'YBase'.'LibDefect'.'String' $=
+	(
+		(
+			/ @ "improved condition macro check" $=
+			(
+				+ "C++11 check with '__cplusplus >= 201103L'",
+				- "libstdc++ version check"
+					// It was fixed for MinGW-W64 by removal of macro \
+						definition %_GLIBCXX_HAVE_BROKEN_VSWPRINTF", so no \
+						necessity for version number to be explicitly filtered.
+			);
+			+ $comp "support for non MinGW-W64 runtime like MinGW.org"
+		),
+		^ '{}' ~ '0' "as pointer object initializers to eliminate \
+			warning [-Wzero-as-null-pointer-constant]."
+	),
+	/ $dev $build @ "project configurations" $=
+	(
+		/ @ "Code::Block project files" $=
+		(
+			/ "set compiler as 'null'" @ "raw projects %(YBase, YFramework)",
+			+ "-Wcast-align" @ "project %YBase" @ "platform MinGW32",
+				// Cast increasing alignment is in some 'reinterpret_cast' in \
+					CHRLib.
+			+ "-Wnon-virtual-dtor -Wunreachable-code" @ "all projects"
+				@ "platform MinGW32"
+				// Some like "-Winit-self" remain untouched because they are \
+					already enabled by some other options like "-Wall" or \
+					"-Wextra".
+		),
+		/ @ "makefiles" @ "platform %DS" $=
+		(
+			+ ("-Wunreachable-code" @ "%CFLAGS",  "-Wnon-virtual-dtor"
+				@ "%CXXFLAGS"),
+			+ "-Wcast-align" @ "%CFLAGS" @ "project %(YBase, YSTest_ARM7)"
+		)
+	),
+	^ "light green color as background" @ "setting panel"
+		@ %'YReader'.'ShlExplorer';
+		// To avoid ilusion of checkbox border thickness, see $2014-01 @ \
+			%Documentation::Workflow::Annual2013 for details.
+),
+
+b463
 (
 	+ $dev $repo "tags (from 'V0.2' to 'V0.4' for build revisions 'b200', 'b300' \
 		and 'b400' respectively), of 3 'PreAlpha' revisions",
@@ -56,7 +137,7 @@ $now
 	)
 ),
 
-b461
+b462
 (
 	/ %'YFramework' $=
 	(
@@ -774,7 +855,7 @@ b453
 			/ "parameter" @ "function %(DrawRectRoundCorner, RectDrawArrow)"
 				^ 'const PaintContext&' ~ 'const Graphics&, const Point&',
 			/ "protected member function 'void PaintBox(const Graphics&, \
-				const Rect&)'" @ "class %CheckBox" %'Selector'
+				const Rect&)'" @ "class %CheckBox" @ %'Selector'
 				-> 'void PaintBox(const PaintContext&, const Size&)',
 			(
 			$dep_from %'Service'.'YDraw';
@@ -4056,7 +4137,7 @@ b400
 			)
 		),
 		/ $dev "cleanup" @ %('main', 'shells')
-			// Eliminated warning[-Wmissing-declarations].
+			// To eliminate [-Wmissing-declarations].
 	),
 	/ %'YBase'.'YStandardEx' $=
 	(

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r308
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2013-11-30 23:16 +0800
+	2014-01-02 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,6 +181,28 @@
 @2.5 质量保证：
 静态验证优先于测试。
 默认使用部分整体回归测试代替所有单元测试，以避免过大的测试维护的开销。
+
+@2.6 版本库(repository) 规则：
+除了版本控制(@2.2) 外版本库管理根据本节约定。
+本节文件限制仅作用于被版本控制系统跟踪的文件，不包括未被跟踪的版本控制自身的数据（如 Mercurial 的 /.hg 和 Git 的 /.git）或其它文件。
+注意一些专版本控制的文件（如 Mercurial 的 .hgignore 和 .hgtags 和 Git 的 .gitignore）一般属于被跟踪的文件。
+
+@2.6.1 版本管理工具：
+当前使用 Mercurial(hg) 管理版本库，使用 hg-git 制作 Git 镜像。
+不使用未被分布式版本控制程序广泛实现的特性。
+若需使用 hook ，需要在文档中约定。
+
+@2.6.2 文件系统限制：
+注意版本控制工具可能只跟踪文件。避免可能无法实现的操作，例如跟踪空目录。
+不使用没有被普遍移植的文件系统特性，包括 NTFS 备选流、加密、目录链接(junction) 等。
+不使用文件系统支持的硬链接(hard link) ，避免对特定文件系统和路径的限制。
+不使用文件系统支持的符号链接(symbolic link) ，避免对特定文件的限制。若有必要且可实现，在文档中约定后可以通过其它方式模拟。
+不在文件系统层次使用元数据（如权限设置，包括 POSIX ACL 和 NTFS ACL ）。若需要此类配置，保存为元数据文件。
+
+@2.6.3 内容转换特性限制：
+对于文本文件限制内容转换特性以保证不同版本库之间的一致性。
+不使用自动行末字符(EOL) 转换（主要是 LF/CR+LF ）。注意 Windows 上的 Git 可能自动使用 autocrlf 配置，应予关闭（配置为 false ）。
+不使用自动编码转换。
 
 @3 组织约定：
 

@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2013 FrankHB.
+#	(C) 2009-2014 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1290
+# Version = r1293
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2013-11-10 11:53 +0800
+# Updated = 2014-01-02 20:19 +0800
 # Encoding = ANSI
 
 
@@ -59,7 +59,7 @@ ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
 
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
-CFLAGS	:=	-Wall -Wextra \
+CFLAGS	:=	-Wall -Wextra -Wunreachable-code \
  			-Wmissing-declarations -Winvalid-pch \
  			-flto=jobserver \
  			-ffast-math \
@@ -77,7 +77,7 @@ LDFLAGS	+=	-g
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit \
- 			-std=c++11 -Wctor-dtor-privacy -Wsign-promo
+ 			-std=c++11 -Wctor-dtor-privacy -Wnon-virtual-dtor -Wsign-promo
 # 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
 
 #CFLAGS	:=	-g -Wformat=2 -Winline -Wall \

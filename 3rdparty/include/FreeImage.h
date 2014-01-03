@@ -24,7 +24,7 @@
 // ==========================================================
 
 // Modified by FrankHB <frankhb1989@gmail.com>, 2013-06-26:
-//	Replaced all function default argument for pointer type parameters from "NULL" or "0" to "nullptr" to "nullptr", to avoid possible G++ warning[-Wzero - as - null - pointer - constant].This requires the "nullptr" keyword being supported.
+//	Replaced all function default argument for pointer type parameters from "NULL" or "0" to "nullptr" to "nullptr", to avoid possible G++ warning [-Wzero-as-null-pointer-constant]. This requires the "nullptr" keyword being supported.
 //	Removed all spaces at end of lines.
 //	Saved as UTF8 + BOM.
 // Modified by FrankHB <frankhb1989@gmail.com>, 2013-07-20:

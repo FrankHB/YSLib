@@ -1,0 +1,50 @@
+﻿/*
+	© 2014 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Workflow.Annual2013.txt
+\ingroup Documentation
+\brief 工作流汇总报告 - 2013 年度。
+\version r49
+\author FrankHB <frankhb1989@gmail.com>
+\since build 464
+\par 创建时间:
+	2014-01-01 00:46:52 +0800
+\par 修改时间:
+	2014-01-01 01:26 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::Workflow::Annual2014
+*/
+
+// See "Meta.cpp" for meta descriptions.
+
+$import $WORKFLOW;
+$LINE-WIDTH-RESTRICT 0;
+
+$WORKFLOW:
+// Following lines are only for logging informal project information.
+// See Meta.txt for formal project information.
+// See ChangeLog.*.txt for accepted contents.
+
+$2014-01:
+
+report.impl:
+The MinGW.org and MinGW-W64 runtime can be distinguished by predefined macros, though version macros are not predefined:
+	See http://sourceforge.net/mailarchive/forum.php?thread_name=CAEwic4b-B8%3DQ%3DSV2ptwO36SsCQW%2B6b0N%3DX41t3NHPoDQV%2BKeTw%40mail.gmail.com&forum_name=mingw-w64-public .
+	See also http://sourceforge.net/p/predef/wiki/Compilers/ .
+There may be some wrong impression of border thickness due to the colors.
+	It is easy to see the left vertical line of boundary of the checkbox is thicker in setting panel with violet background.
+	When the panel background color is some lighter, here is no such illusion.
+	Indeed they have the same thickness. It would be obvious after zoomed (esp. > 2x).
+	Actually, no rendering code of checkbox has been changed.
+
+////
+

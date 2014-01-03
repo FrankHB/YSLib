@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r249
+\version r267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-12-26 10:42 +0800
+	2013-12-26 00:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,13 +221,13 @@ libmagic(https://github.com/glensc/file): rejected.
 $2013-11:
 
 report.impl:
-	Marco '_GLIBCXX_DEBUG' should be removed as default, even in debug configuration.
-		The standard libray debugging interface introduced by macro '_GLIBCXX_DEBUG' of libstdc++ may be incompatible with libraries not built with this macro.
-		Though YSLib libraries are built with debug-aware configuration, currently the dependent libraries are not.
-		This particularly has effect on libFreeImage.a, which uses containers of C++ standard library internally. The instantialized template class across libraries are not the same, and not guaranteed to be binary compatible.
-			This would cause some functions of YSLib::Adaptor::Image go wrong.
-		Alternatively, if the debug interface of libstdc++ is needed, namespace 'std::__debug' can be explicitly used.
-		Removed such debug interface can also lead to smaller binaries and a little more runtime performance for debug configurations.
+Marco '_GLIBCXX_DEBUG' should be removed as default, even in debug configuration.
+	The standard libray debugging interface introduced by macro '_GLIBCXX_DEBUG' of libstdc++ may be incompatible with libraries not built with this macro.
+	Though YSLib libraries are built with debug-aware configuration, currently the dependent libraries are not.
+	This particularly has effect on libFreeImage.a, which uses containers of C++ standard library internally. The instantialized template class across libraries are not the same, and not guaranteed to be binary compatible.
+		This would cause some functions of YSLib::Adaptor::Image go wrong.
+	Alternatively, if the debug interface of libstdc++ is needed, namespace 'std::__debug' can be explicitly used.
+	Removed such debug interface can also lead to smaller binaries and a little more runtime performance for debug configurations.
 The bug of 'bool = {}' is same to Visual C++ 2013 as Clang++ 3.4(see $2013-10 report.impl).
 ISO required 'std::FILE*' as an object type. Different to C++, (possible cv-qualified) void is object type.
 	There exists actual C implementation with cv-void as 'std::FILE*'. For example, in the standard header from the CeGCC project it is 'void'.
@@ -245,16 +245,16 @@ The workaround of move constructor and %operator= for Visual C++ 2013 is current
 $2013-12:
 
 report.impl:
-	The reference-counted 'std::basic_string' implementation in libstdc++ is still not conforming to ISO C++11.
+The reference-counted 'std::basic_string' implementation in libstdc++ is still not conforming to ISO C++11.
+	See $2013-10 report.impl.
+	See $ref b449 "libstdc++ std::basic_string conformance" for references.
+	Though ABI has changed before, the string implementation is not included, and even other breaking changes like 'std::list::size' implementation are reverted: http://gcc.gnu.org/wiki/Cxx11AbiCompatibility .
+	It seems that the ABI would not switched in near future, or at early as of GCC 4.9: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166 .
+	Use libstdc++ '__gnu_cxx::__versa_string' from <ext/vstring.h> instead, if necessary.
 		See $2013-10 report.impl.
-		See $ref b449 "libstdc++ std::basic_string conformance" for references.
-		Though ABI has changed before, the string implementation is not included, and even other breaking changes like 'std::list::size' implementation are reverted: http://gcc.gnu.org/wiki/Cxx11AbiCompatibility .
-		It seems that the ABI would not switched in near future, or at early as of GCC 4.9: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166 .
-		Use libstdc++ '__gnu_cxx::__versa_string' from <ext/vstring.h> instead, if necessary.
-			See $2013-10 report.impl.
-			See $ref b449 "libstdc++ vstring" for references.
-			Note no 'std::stringstream' counterpart, see: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166#c4 .
-			Be cautious to performace decrese: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54393 .
+		See $ref b449 "libstdc++ vstring" for references.
+		Note no 'std::stringstream' counterpart, see: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56166#c4 .
+		Be cautious to performace decrese: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54393 .
 
 ////
 

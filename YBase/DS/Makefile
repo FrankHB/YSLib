@@ -1,5 +1,5 @@
 #
-#	(C) 2009-2013 FrankHB.
+#	(C) 2009-2014 FrankHB.
 #
 #	This file is part of the YSLib project, and may only be used,
 #	modified, and distributed under the terms of the YSLib project
@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r1870
+# Version = r1874
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2013-11-10 11:52 +0800
+# Updated = 2014-01-02 20:09 +0800
 # Encoding = ANSI
 
 
@@ -67,6 +67,7 @@ ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
 CFLAGS	:=	-Wall -Wextra \
+ 			-Wcast-align -Wunreachable-code \
  			-Wmissing-declarations -Wredundant-decls -Winvalid-pch \
  			-flto=jobserver \
  			-ffast-math \
@@ -82,7 +83,8 @@ CFLAGS	+=	-g -O0 -fno-omit-frame-pointer
 endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++11 \
- 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
+ 			-Wctor-dtor-privacy -Wnoexcept -Wnon-virtual-dtor -Wold-style-cast \
+ 			-Wsign-promo
 
 endif
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3124
+\version r3133
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2013-12-31 13:13 +0800
+	2014-01-04 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,20 +54,13 @@ RollColor(hsl_t hsl, Hue delta)
 }
 
 //! \since build 463
-inline Color
-ThumbRollColor(hsl_t hsl, Hue delta, MonoType gr, bool over)
-{
-	return over ? RollColor(hsl, delta) : Color(gr, gr, gr);
-}
-
-//! \since build 463
 void
 RectDrawButton(const PaintContext& pc, Size s, Hue base_hue,
 	CursorState cursor_state, bool is_enabled = true)
 {
 	const bool inside(cursor_state != CursorState::Outside);
 	const auto roll([=](const hsl_t& hsl, MonoType gr){
-		return ThumbRollColor(hsl, base_hue, gr, inside);
+		return MakeGrayOrColor(RollColor(hsl, base_hue), gr, inside);
 	});
 	const auto& g(pc.Target);
 
@@ -82,7 +75,7 @@ RectDrawButton(const PaintContext& pc, Size s, Hue base_hue,
 
 		yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
 		FillRect(g, r, {pt, s}, is_enabled ? roll(
-			{11.304688F, 0.990431F, 0.591797F}, 243) : Color(244, 244, 244));
+			{11.304688F, 0.990431F, 0.591797F}, 243) : MakeGray(244));
 		if(is_enabled)
 		{
 			if(s.Width > 2 && s.Height > 2)

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4200
+\version r4203
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2013-11-10 09:23 +0800
+	2014-01-02 11:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -327,11 +327,11 @@ b392
 			),
 			/ "all 'NULL'" -> 'nullptr'
 				@ "unit %(ScreenBuffer, Host, HostWindow)"
-				// To eliminate warning[-Wzero-as-null-pointer-constant].
+				// To eliminate [-Wzero-as-null-pointer-constant].
 		),
 		/ $dev $build "all 'NULL'" -> 'nullptr' @ "unit %(NativeAPI, YCommon)"
 			@ %'YCLib'
-			// To eliminate warning[-Wzero-as-null-pointer-constant].
+			// To eliminate [-Wzero-as-null-pointer-constant].
 	),
 	+ "bookmark list adding and removing UI" @ %'YReader',
 	/ DLD %'YBase' $=

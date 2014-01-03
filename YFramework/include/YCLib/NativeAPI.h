@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r700
+\version r701
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-12-24 09:34 +0800
+	2013-01-01 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,7 +187,7 @@ namespace platform_replace
 忽略第二参数。
 */
 inline int
-makedir(char const* dir, mode_t)
+makedir(char const* dir, ::mode_t)
 {
 	return ::_mkdir(dir);
 }

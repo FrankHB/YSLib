@@ -5,19 +5,19 @@
 		<Option title="YBase" />
 		<Option makefile_is_custom="1" />
 		<Option pch_mode="2" />
-		<Option compiler="gnu_armeabi_gcc_compiler" />
+		<Option compiler="null" />
 		<MakeCommands>
 			<Build command="$make -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
 			<CompileFile command="$make -f $makefile $file" />
 			<Clean command="$make -f $makefile -r BUILD=$target clean" />
 			<DistClean command="$make -f $makefile distclean$target" />
 			<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-			<SilentBuild command="$make -s -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
+			<SilentBuild command="$make -f $makefile -r BUILD=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27 &gt; $(CMD_NULL)" />
 		</MakeCommands>
 		<Build>
 			<Target title="debug">
 				<Option type="4" />
-				<Option compiler="gnu_armeabi_gcc_compiler" />
+				<Option compiler="null" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -34,7 +34,7 @@
 				<Option output="release/YBase" prefix_auto="1" extension_auto="1" />
 				<Option object_output="release/" />
 				<Option type="1" />
-				<Option compiler="gnu_armeabi_gcc_compiler" />
+				<Option compiler="null" />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>
@@ -47,7 +47,7 @@
 					<Clean command="$make -f $makefile -r BUILD=$target clean" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r BUILD=$target rebuild" />
-					<SilentBuild command="$make -s -f $makefile -r BUILD=$target" />
+					<SilentBuild command="$make -f $makefile -r BUILD=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 		</Build>

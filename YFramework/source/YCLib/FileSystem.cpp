@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1019
+\version r1034
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2013-12-24 00:48 +0800
+	2014-01-03 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,19 @@
 //! \since build 341
 extern "C" int	_EXFUN(fileno, (FILE *));
 #elif YCL_Win32
+#	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+// At least one headers of <stdlib.h>, <stdio.h>, <windows.h>, <windef.h>
+//	(and probably more) should have been included to make the MinGW-W64 macro
+//	available if it is really being used.
+//! \since build 464
+//@{
+extern "C" _CRTIMP int __cdecl __MINGW_NOTHROW
+_fileno(::FILE*);
+
+extern "C" _CRTIMP ::FILE* __cdecl __MINGW_NOTHROW
+_wfopen(const wchar_t*, const wchar_t*);
+//@}
+#	endif
 #	include <Shlwapi.h> // for ::PathIsRelativeW;
 #endif
 
@@ -379,9 +392,9 @@ HDirectory::IsDirectory() const ynothrow
 #if YCL_DS
 		return p_dirent->d_type & DT_DIR;
 #elif YCL_MinGW32
-		struct ::stat st;
+		struct ::_stat st;
 
-		::wstat(p_dirent->d_name, &st);
+		::_wstat(p_dirent->d_name, &st);
 		return S_ISDIR(st.st_mode);
 #endif
 	}

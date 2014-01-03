@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3359
+\version r3367
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-12-24 00:51 +0800
+	2013-12-31 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -320,10 +320,15 @@ Typeface::operator<(const Typeface& rhs) const
 Typeface::SmallBitmapData&
 Typeface::LookupBitmap(const Typeface::BitmapKey& key) const
 {
-	return CacheLookup(bitmap_cache, key, [&]{return SmallBitmapData(
-		::FT_Load_Glyph(&ref.second.get(), key.GlyphIndex,
-		key.Flags | FT_LOAD_RENDER) == 0 ? ref.second.get().glyph : nullptr,
-		key.Style);});
+	return CacheLookup(bitmap_cache, key, [&]{
+		LookupSize(key.Size).Activate();
+		::FT_Set_Transform(&ref.second.get(),
+			bool(key.Style & FontStyle::Italic) ? &italic_matrix : nullptr, {});
+
+		return SmallBitmapData(::FT_Load_Glyph(&ref.second.get(),
+			key.GlyphIndex, key.Flags | FT_LOAD_RENDER) == 0
+			? ref.second.get().glyph : nullptr, key.Style);
+	});
 }
 
 ::FT_UInt
