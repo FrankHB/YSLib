@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r701
+\version r706
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-01-01 23:51 +0800
+	2013-01-04 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,6 +205,13 @@ extern "C"
 \since build 298
 */
 #define mkdir platform_replace::makedir
+
+
+#	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+//! \since build 465
+YF_API struct ::tm* __cdecl __MINGW_NOTHROW
+_gmtime32(const ::__time32_t*);
+#	endif
 
 } // extern "C";
 

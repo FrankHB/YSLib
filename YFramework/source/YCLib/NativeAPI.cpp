@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r499
+\version r510
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2013-12-24 00:49 +0800
+	2014-01-04 23:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include "CHRLib/YModules.h"
 #include YFM_YCLib_NativeAPI
 #include <ydef.h>
+#include <ctime>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -48,6 +49,17 @@ namespace
 
 extern "C"
 {
+
+#	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+// See FileSystem.cpp, line 40.
+//! \since build 465
+struct ::tm* __cdecl __MINGW_NOTHROW
+_gmtime32(const ::__time32_t* p)
+{
+	return std::gmtime(p);
+}
+#	endif
+
 } // extern "C";
 
 #endif

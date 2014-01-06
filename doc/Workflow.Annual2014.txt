@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r49
+\version r104
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-01-01 01:26 +0800
+	2014-01-04 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,61 @@ There may be some wrong impression of border thickness due to the colors.
 	When the panel background color is some lighter, here is no such illusion.
 	Indeed they have the same thickness. It would be obvious after zoomed (esp. > 2x).
 	Actually, no rendering code of checkbox has been changed.
+Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Microsoft Visual C++ library(MSVCRT). There are some issues:
+	Different verstions of MSVCRT define different symbols with some subtle problems. So they should be same in different toolchain configurations for best compatibility.
+		Both of them support at least version 6.0, which is probably the most wide-adopted by Microsoft Windows(they came by default install). The library file name is "msvcrt.lib" for Microsoft Visual C++, accordingly "msvcrt.dll" of the dynamic library and "libmsvcrt.a" as static library for both runtime.
+			Though acceptable, but deployment depend on it is not good. The are not publicly guaranteed to be compatible within different versions of Windows.
+		For newer versions, the dyanmic libraries name schema is "msvcrXX.dll", in which "XX" is the corresponding concatenated Microsoft Visual C++ main and minor version numbers. For example "msvcrt90.dll" is of VS2008.
+			The architecture names (such as "x86" or "amd64") are not related of the file names.
+			They are required to be deployed along with the applications, or the end users might able to install correspoinding version of Microsoft Visual C++ Redistributable Package.
+		MinGW.org uses 6.0 as default. Things about MinGW-W64 are some complicated, see below.
+		Currently MinGW.org's distribution has "libmsvcrt.a", "libmsvcp60.a"(the C++ runtime of VC++ 6.0), and "libmsvcr70.a" to "libmsvcr100.a"(the whole "XX" are 70, 71, 80, 90, 100). It also has corresponding debug versions for latter, i.e. "libmsvcr70d.a" to "libmsvcr100d.a". No newer MSVCRT are supported.
+		On the other hand, MinGW.org's distribution also has "libmsvcrt.a", "libmsvcp60.a", and "libmsvcr80.a" to "libmsvcr100.a", but neither other versions("libmsvcr70.a", "libmsvcr71.a") nor debug libraries. However, it has "libmsvcr110.a", which MinGW.org's does not supported.
+	There is one extra library, "oldname.lib", to contains the original version of symbol names deprecated by Microsoft (such as POSIX-specific functions, because they are not strictly comforming to ISO C), to map to new names(usually added prefix underscore).
+		They are also different in MinGW.org's and MinGW-W64's runtime. There are "libmoldname.a" and "libmoldnameXX.a"("XX" here is also the version numbers, see above) for the former, and only one "libmoldname.a" for the latter.
+		See http://sourceforge.net/mailarchive/message.php?msg_id=30556805 .
+	Most notable problem is backward compatibility. For example if new "secure" functions(ISO TR 24731-1) like "scanf_s" are used, MSVCRT older than version 8.0 can not be used.
+		Actually it is not version 6.0 of MinGW-W64's "libmsvcrt.a". It even exports "__gmtime32" comes from version 8.0.
+	Both toolchains use the same built-in specs in compiler driver for use of these libraries, i.e. "-lmsvcrt".
+		For better compatiblity, lirary not older than "libsvcrt80.a" should be put explicitly in the linker options to override the default linked "libmsvcrt.a".
+		Allocation and deallocation should always be carefully matched within the boundary, i.e. make sure the allocation function and deallocation function for same storage are from the same library.
+		Using 2 C runtime library and directly overriding symbols are dangerous.
+			Note that libgcc, startfiles or some other library with "atexit" or thread-local storage can be involved with C runtime library's free storage allocation.
+		Specs file can be used to specifying completely substition of the C runtime library. It is safer but less convenient.
+	Both define the macro "__MSVCRT_VERSION__" in <_mingw.h> to control what version of MSVCRT used.
+		If not explicitly specified (i.e. not defined "__MSVCRT_VERSION__" before inclusion of <_mingw.h> or through command line option), both would defined a hard-coded integer value.
+		The default values in the libraries are different. It is "0x0600" in MinGW's but "0x0700" in MinGW-W64's.
+		A subtle problem is, which not only effected by the version macro. One notable extra macro is "__STRICT_ANSI__", which introduced by several GCC compiler options like "-ansi" or "-pedantic".
+		There is a horrible bug in the MinGW.org's <time.h>: if "__MSVCRT_VERSION__ >= 0x800" and "__STRICT_ANSI__" is also defined, then some ISO C functions like "time" are not declared.
+			This directly caused <ctime> of libstdc++ (which has 'using ::time;', etc) unusable.
+			Maybe more similar bugs, also in different headers.
+	The "YFramework.dll" can compiled from b464 after some changes in "YCLib/FileSystem.cpp" but cannot be linked as DLL without changes of some project options.
+		The error is of the unresolved symbol "_gmtime32", comes from "pngwrite.o" in "libFreeImage.a".
+			It is introduced directly by a call of "gmtime" in function "png_convert_from_time_t" when the configure macro "PNG_CONVERT_tIME_SUPPORTED" is defined.
+				The "PNG_CONVERT_tIME_SUPPORTED" configuration is not supported by every platforms, for example Windows CE.
+				It is considerable to remove "PNG_CONVERT_tIME_SUPPORTED" in "pnglibconf.h". But it is not a fix for the problems here.
+			Currently FreeImage is built with MinGW-W64 toolchain.
+			Actually both toolchains can map "gmtime" to "_gmtime32".
+			The reason of failure for MinGW.org is that "_gmtime32" is not contained by "libmsvcrt.a" of MinGW.org's, but do contained by MinGW-W64's.
+	There are several optional version of MSVCRT containing "_gmtime32", but no one are proper for this scene.
+		No MSVCRT 7.0 and 7.1 available for MinGW-W64 toolchain.
+		The deployment of MSVCRT 8.0 and 9.0 makes a lot of trouble, if there is no manifest provided.
+			For side-by-side assemblies, see http://msdn.microsoft.com/en-us/library/ms235624%28v=vs.80%29.aspx .
+			For newer VC++ deployment, see http://stackoverflow.com/questions/6623780/visual-c-2010-changes-to-msvc-runtime-deployment-no-more-sxs-with-manifest .
+		For MSVCRT 10.0, symbols "_wstat", "_imp__findfirst" and "_imp__findnext" are not defined.
+		No MSVCRT 11.0 or newer available for MinGW.org toolchain.
+	Though rebuilt libraries are needed sooner or later, now it is better to have a fix in the project configurations.
+		For maintaince reason, the configuration should be the same, without need for users to select one out of two set of configurations.
+		Note that a value of "__MSVCRT_VERSION__" not less than 0x0800 causes bugs in MinGW.org's headers when "__STRICT_ANSI__" is defined.
+			If this macro is set, only 0x0600 to 0x0700 can be used.
+			This macro can be set explicitly to 0x0600 for compatibilities (also for library rebuild).
+		For convenience and sanity, no manifest should be introduced.
+			There is even no dependency on MSVCRT other than "libmsvcrt.a" in MinGW-W64. It is only to be compatible with the buggy MinGW.org runtime.
+			Though introduced a newer dependency, it is somewhat acceptable. YFramework might use some features in that newer version of MSVCRT.
+			To introduce manifest only for MinGW.org's compatibility is too expensive.
+		Note that mix use of different versions of MSVCRT is dangerous.
+		It is relatively safe to use a newer library together with older headers.
+		So the final resolution is to implement a custom "_gmtime32" function for MinGW.org toolchain.
 
 ////
 

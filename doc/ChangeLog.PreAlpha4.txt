@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4723
+\version r4735
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-01-04 01:31 +0800
+	2014-01-06 21:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,18 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	(
+	+ "function %_gmtime32" @ 'defined(__MINGW32__) \
+		&& !defined(__MINGW64_VERSION_MAJOR)' @ "platform %MinGW32"
+		@ %'YFramework'.'YCLib'.'NativeAPI';
+			// MinGW.org toolchain links to MSVCRT 6.0 as default.
+	+ $comp "MinGW.org runtime support" @ "platform %MinGW32"
+	),
+	+ "check button for disabling other settings" @ %'YReader'.'ShlExplorer'
+),
+
+b464
 (
 	/ %'YFramework' $=
 	(
@@ -62,7 +74,7 @@ $now
 					// These functions are not declared when macro \
 						%__STRICT_ANSI__ is defined. For MinGW-W64 predefined \
 						macros, see $2014-01 \
-						@ %Documentation::Workflow::Annual2013 for details.
+						@ %Documentation::Workflow::Annual2014 for details.
 				^ $dev ('::_stat' ~ '::stat', '::_wstat' ~ '::wstat')
 					@ "implementation" @ "function %HDirectory::IsDirectory"
 			)

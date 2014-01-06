@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9117
+\version r9121
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-12-27 00:06 +0800
+	2014-01-04 23:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -297,7 +297,8 @@ Shell 和 Core 的关系是相对的，例如：
 当前正式支持的目标平台：
 非宿主实现目标平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等，对应系统名 arm-eabi 或 arm-none-eabi ）；
 宿主实现目标平台 MinGW32 （对应系统名 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
-当前只保证 MinGW-W64 的运行时可以正常构建。使用 MinGW.org 的运行时未经测试，未被证实支持。
+当前只保证 MinGW-W64 的运行时可以正常构建。
+使用 MinGW.org 的运行时自 b465 起支持。
 目前 DS 仅使用静态链接库链接至静目标。
 
 @5.1.1 配置管理：
@@ -432,6 +433,7 @@ Shell 和 Core 的关系是相对的，例如：
 使用 http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-posix/dwarf/i686-4.8.2-release-posix-dwarf-rt_v3-rev0.7z 。
  mingw-builds 已被合并至 mingw-w64 官方仓库。改变异常模型以兼容 i686 的 LLVM/Clang++ 工具链，这导致二进制兼容性不被保持。
 注意之前由于 mingw-w64 的 bug （参见 http://sourceforge.net/mailarchive/message.php?msg_id=31045447 ），即使不改变异常模型也不能保持二进制兼容性。
+ 2014-01-04(build 465) 起同时支持 MinGW.org 工具链，但由于实现质量等原因，不用于默认发布。
 
 @5.2.4.1 MinGW32 库部署：
  YSLib 内部使用固定的相对路径，不依赖库的部署。
