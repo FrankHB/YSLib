@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3881
+\version r3886
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2013-12-23 23:52 +0800
+	2014-01-08 10:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ TouchHeld_DragWidget(IWidget* p = {})
 	auto& st(FetchGUIState());
 
 	if(!p)
-		p = st.GetTouchDownPtr();
+		p = st.GetIndependentFocusPtr();
 	if(st.CheckDraggingOffset(p))
 	{
 	// TODO: Compare subsequent states to make a more efficient implementation.
@@ -128,9 +128,9 @@ OnTouchHeld(CursorEventArgs&& e)
 	{
 		auto& st(FetchGUIState());
 
-		if(st.GetTouchDownPtr() && st.HeldTimer.RefreshHeld(st.TouchHeldState,
-			Timers::TimeSpan(240), Timers::TimeSpan(80)))
-			CallEvent<TouchDown>(*st.GetTouchDownPtr(), e);
+		if(st.GetIndependentFocusPtr() && st.HeldTimer.RefreshHeld(
+			st.TouchHeldState, Timers::TimeSpan(240), Timers::TimeSpan(80)))
+			CallEvent<TouchDown>(*st.GetIndependentFocusPtr(), e);
 	}
 }
 

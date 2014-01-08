@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2063
+\version r2076
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-01-03 12:31 +0800
+	2014-01-08 10:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,14 +124,16 @@ public:
 	Styles::Palette Colors; //!< 调色板。
 
 private:
-	//独立焦点指针：自由状态时即时输入（按下）状态捕获的控件指针。
-	IWidget* p_KeyDown;
 	/*!
 	\brief 光标设备指针对应的部件。
 	\since build 422
 	*/
 	IWidget* p_CursorOver;
-	IWidget* p_TouchDown;
+	/*!
+	\brief 独立焦点指针：自由状态时即时输入（按下）状态捕获的控件指针。
+	\since build 464
+	*/
+	IWidget* p_indp_focus;
 	/*!
 	\brief 记录按键时的光标是否在部件内部。
 	\since build 422
@@ -146,10 +148,9 @@ public:
 
 	//! \since build 422
 	DefGetter(const ynothrow, IWidget*, CursorOverPtr, p_CursorOver)
-	DefGetter(const ynothrow, IWidget*, KeyDownPtr, p_KeyDown) \
-		//独立键焦点指针。
-	DefGetter(const ynothrow, IWidget*, TouchDownPtr, p_TouchDown) \
-		//独立屏幕焦点指针。
+	//! \since build 464
+	DefGetter(const ynothrow, IWidget*, IndependentFocusPtr, p_indp_focus) \
+		//独立焦点指针。
 
 	/*!
 	\brief 若拖放偏移量无效则按指定部件的屏幕坐标更新拖放偏移量。
@@ -162,7 +163,7 @@ public:
 
 	/*!
 	\brief 清除状态对指定部件的引用。
-	\post p_KeyDown 、 p_CursorOver 和 p_TouchDown 和指定部件的指针不相等。
+	\post p_CursorOver 和 p_indp_focus 和指定部件的指针不相等。
 	\note 若没有找到对指定部件的引用则不改变状态。
 	\since build 428
 	*/
@@ -254,7 +255,7 @@ FetchGUIState();
 inline bool
 IsFocusedByShell(const IWidget& wgt, const GUIState& st = FetchGUIState())
 {
-	return st.GetTouchDownPtr() == &wgt;
+	return st.GetIndependentFocusPtr() == &wgt;
 }
 
 } // namespace UI;

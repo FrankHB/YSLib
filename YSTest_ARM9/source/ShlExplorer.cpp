@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1048
+\version r1050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-01-06 21:13 +0800
+	2014-01-07 01:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -463,6 +463,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	{
 		SetEnabledOf(cbFPS, !e),
 		SetEnabledOf(cbHex, !e);
+		Invalidate(cbFPS),
+		Invalidate(cbHex);
 	}
 	);
 	RequestFocusCascade(fbMain),

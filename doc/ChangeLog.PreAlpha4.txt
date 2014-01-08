@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r4735
+\version r4756
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-01-06 21:20 +0800
+	2014-01-08 21:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,27 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %'YFramework'.'YSLib'.'UI' $=
+	(
+		/ @ "drawing" @ "class %CheckBox" $=
+		(
+			+ "missing different look when disabled",
+			/ "background colors",
+			/ "drawing with gray colors when cursor out of the boundary"
+		),
+		/ @ "class %GUIState" $=
+		(
+			/ "merged key and touch independent focus pointers",
+			/ "functions %(GetKeyDownPtr, GetTouchDownPtr)"
+				-> "function %GetIndependentFocusPtr"
+		)
+	),
+	* "missing invalidation after switching checkbox enablity"
+		@ 'YReader'.'ShlExplorer' $since b465
+),
+
+b465
 (
 	(
 	+ "function %_gmtime32" @ 'defined(__MINGW32__) \
@@ -136,7 +157,7 @@ b463
 		+ "enum class %CursorState" @ %'YControl';
 		/ @ "class %Thumb" $=
 		(
-			/ "protected memeber 'bool bPressed;'" -> 'CursorState csCurrent;'";
+			/ "protected member 'bool bPressed;'" -> 'CursorState csCurrent;'";
 			+ "member function %GetCursorState"
 		);
 		/ "drawing for thumb when cursor out of the boundary" @ %'Button' $=

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3877
+\version r3903
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-12-23 23:51 +0800
+	2014-01-08 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,14 +117,14 @@ RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
 GUIState::GUIState() ynothrow
 	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
 	DraggingOffset(Vec::Invalid), HeldTimer(), CursorLocation(Point::Invalid),
-	Colors(), p_KeyDown(), p_CursorOver(), p_TouchDown(), entered()
+	Colors(), p_CursorOver(), p_indp_focus(), entered()
 {}
 
 bool
 GUIState::CheckDraggingOffset(IWidget* p)
 {
 	if(!p)
-		p = p_TouchDown;
+		p = p_indp_focus;
 	if(p)
 	{
 		if(DraggingOffset == Vec::Invalid)
@@ -138,12 +138,10 @@ GUIState::CheckDraggingOffset(IWidget* p)
 void
 GUIState::CleanupReferences(IWidget& wgt)
 {
-	if(p_KeyDown == &wgt)
-		p_KeyDown = {};
 	if(p_CursorOver == &wgt)
 		p_CursorOver = {};
-	if(p_TouchDown == &wgt)
-		p_TouchDown = {};
+	if(p_indp_focus == &wgt)
+		p_indp_focus = {};
 }
 
 void
@@ -152,8 +150,8 @@ GUIState::Reset()
 	yunseq(KeyHeldState = InputTimer::Free, TouchHeldState = InputTimer::Free,
 		DraggingOffset = Vec::Invalid),
 	HeldTimer.ResetInput();
-	yunseq(CursorLocation = Point::Invalid, p_TouchDown = {}, p_KeyDown = {},
-		p_CursorOver = {}, entered = {});
+	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
+		p_indp_focus = {}, entered = {});
 }
 
 void
@@ -264,8 +262,8 @@ GUIState::ResponseCursorBase(CursorEventArgs& e, UI::VisualEvent op)
 	switch(op)
 	{
 	case TouchHeld:
-		if(e.Strategy == RoutedEventArgs::Direct && p_TouchDown)
-			CallEvent<TouchHeld>(*p_TouchDown, e);
+		if(e.Strategy == RoutedEventArgs::Direct && p_indp_focus)
+			CallEvent<TouchHeld>(*p_indp_focus, e);
 		break;
 	case TouchUp:
 	case TouchDown:
@@ -311,12 +309,12 @@ GUIState::Wrap(IWidget& wgt)
 		auto& wgt(e.GetSender());
 
 		ResetHeldState(KeyHeldState);
-		if(p_KeyDown == &wgt)
+		if(p_indp_focus == &wgt)
 			CallEvent<KeyPress>(wgt, e);
-		p_KeyDown = {};
+		p_indp_focus = {};
 	}, 0x00),
 	FetchEvent<KeyDown>(controller).Add([this](KeyEventArgs&& e){
-		p_KeyDown = &e.GetSender();
+		p_indp_focus = &e.GetSender();
 	}, 0xFF),
 	FetchEvent<CursorOver>(controller).Add([this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
@@ -341,25 +339,25 @@ GUIState::Wrap(IWidget& wgt)
 		{
 			auto& wgt(e.GetSender());
 
-			if(p_TouchDown)
+			if(p_indp_focus)
 			{
-				e.SetSender(*p_TouchDown);
+				e.SetSender(*p_indp_focus);
 				TryLeaving(std::move(e));
 				e.SetSender(e.GetSender());
 			}
 			ResetHeldState(TouchHeldState),
 			DraggingOffset = Vec::Invalid;
-			if(p_TouchDown == &wgt)
+			if(p_indp_focus == &wgt)
 				CallEvent<Click>(wgt, e);
-			else if(p_TouchDown)
-				CallEvent<ClickAcross>(*p_TouchDown, e);
-			p_TouchDown = {};
+			else if(p_indp_focus)
+				CallEvent<ClickAcross>(*p_indp_focus, e);
+			p_indp_focus = {};
 		}
 	}, 0x00),
 	FetchEvent<TouchDown>(controller).Add([this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
-			p_TouchDown = &e.GetSender();
+			p_indp_focus = &e.GetSender();
 			TryEntering(std::move(e));
 		}
 	}, 0xFF),
@@ -368,15 +366,15 @@ GUIState::Wrap(IWidget& wgt)
 		{
 			auto& wgt(e.GetSender());
 
-			if(p_TouchDown == &wgt)
+			if(p_indp_focus == &wgt)
 				TryEntering(CursorEventArgs(e));
 		//	else
-		//		TryLeaving(CursorEventArgs(*p_TouchDown, e.Keys,
-		//			e - LocateForWidget(wgt, *p_TouchDown)));
+		//		TryLeaving(CursorEventArgs(*p_indp_focus, e.Keys,
+		//			e - LocateForWidget(wgt, *p_indp_focus)));
 			else if(entered)
 			{
-				CallEvent<Leave>(*p_TouchDown, CursorEventArgs(*p_TouchDown,
-					e.Keys, e - LocateForWidget(wgt, *p_TouchDown)));
+				CallEvent<Leave>(*p_indp_focus, CursorEventArgs(*p_indp_focus,
+					e.Keys, e - LocateForWidget(wgt, *p_indp_focus)));
 				entered = {};
 			}
 		}
