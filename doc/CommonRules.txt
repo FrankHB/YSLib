@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2800
+\version r2803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2013-12-12 14:35 +0800
+	2014-01-15 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2149,6 +2149,9 @@ $4.1.3.1.4 临时性例外：
 涉及特殊成员函数的重载以默认构造函数、其它构造函数/构造模板、复制构造函数、转移构造函数、析构函数、其它赋值操作符函数/模板、复制赋值操作符函数、转移复制操作符函数的顺序声明，优先于以下子区段规则。
 仅限定符不同或仅修饰相同位置参数中的限定符构成重载的区段：首先按 cv-qualifier 以无限定、const 、volatile 、const volatile 排列，其次按 ref-qualifier 以无限定、 & 、 && 排列；但命名空间作用域中若在接口语义或实现中存在声明（调用）依赖则允许使用其它顺序（但应尽少改变）。
 类型和所有的限定符一致的成员函数先于成员函数模板。
+
+@6.8.5.3.4 伪重载区段：
+以 const_ 前缀修饰类型名同 @6.8.5.3.3 规则排列，如 iterator 先于 const_iterator 。
 
 @6.8.6 一般具体声明顺序：
 以下同一区段内，按约定顺序排列；约定同类顺序的， @6.8.5.3.1 的规则排列。

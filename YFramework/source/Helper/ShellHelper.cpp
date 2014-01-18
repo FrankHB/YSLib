@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r464
+\version r471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2013-12-23 23:39 +0800
+	2014-01-11 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,6 +143,13 @@ SwitchVisible(IWidget& wgt)
 {
 	SetVisibleOf(wgt, !IsVisible(wgt));
 	Invalidate(wgt);
+}
+
+void
+SwitchVisibleToFront(IWidget& wgt)
+{
+	SetVisibleOf(wgt, !IsVisible(wgt));
+	RequestToFront(wgt);
 }
 
 } // namespace UI;

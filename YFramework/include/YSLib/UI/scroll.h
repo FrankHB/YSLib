@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2647
+\version r2655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2013-12-23 22:56 +0800
+	2014-01-11 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,7 +164,7 @@ public:
 	*/
 	explicit
 	ATrack(const Rect& = {}, SDst = 8);
-	inline DefDeMoveCtor(ATrack)
+	DefDeMoveCtor(ATrack)
 
 	DefPred(const ynothrow, Horizontal, GetOrientation() == Horizontal)
 	DefPred(const ynothrow, Vertical, GetOrientation() == Vertical)
@@ -259,7 +259,7 @@ public:
 	*/
 	explicit
 	HorizontalTrack(const Rect& = {}, SDst = 8);
-	inline DefDeMoveCtor(HorizontalTrack)
+	DefDeMoveCtor(HorizontalTrack)
 
 	ImplI(ATrack)
 	DefGetter(const ynothrow, Orientation, Orientation, Horizontal)
@@ -280,7 +280,7 @@ public:
 	*/
 	explicit
 	VerticalTrack(const Rect& = {}, SDst = 8);
-	inline DefDeMoveCtor(VerticalTrack)
+	DefDeMoveCtor(VerticalTrack)
 
 	ImplI(ATrack)
 	DefGetter(const ynothrow, Orientation, Orientation, Vertical)
@@ -326,7 +326,7 @@ public:
 	*/
 	explicit
 	AScrollBar(const Rect& = {}, SDst = 8, Orientation = Horizontal);
-	inline DefDeMoveCtor(AScrollBar)
+	DefDeMoveCtor(AScrollBar)
 
 protected:
 	//! \since build 443
@@ -381,7 +381,7 @@ public:
 	//! \since build 337
 	explicit
 	HorizontalScrollBar(const Rect& = {}, SDst = 8);
-	inline DefDeMoveCtor(HorizontalScrollBar)
+	DefDeMoveCtor(HorizontalScrollBar)
 
 public:
 	ImplI(ATrack) DefGetter(const ynothrow, Orientation, Orientation,
@@ -403,7 +403,7 @@ public:
 	//! \since build 337
 	explicit
 	VerticalScrollBar(const Rect& = {}, SDst = 8);
-	inline DefDeMoveCtor(VerticalScrollBar)
+	DefDeMoveCtor(VerticalScrollBar)
 
 public:
 	ImplI(ATrack) DefGetter(const ynothrow, Orientation, Orientation, Vertical)
@@ -441,7 +441,7 @@ public:
 	//! \since build 337
 	explicit
 	ScrollableContainer(const Rect& = {});
-	inline DefDeMoveCtor(ScrollableContainer)
+	DefDeMoveCtor(ScrollableContainer)
 
 	//! \since build 356
 	DefWidgetMemberIteration(hsbHorizontal, vsbVertical)

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r453
+\version r456
 \author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2013-12-23 22:57 +0800
+	2014-01-11 11:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ public:
 	\since build 296
 	*/
 	TextArea(const Drawing::Rect&, Drawing::FontCache&);
-	inline DefDeMoveCtor(TextArea)
+	DefDeMoveCtor(TextArea)
 
 	using Widget::GetWidth;
 	using Widget::GetHeight;
@@ -85,7 +85,7 @@ public:
 	\since build 296
 	*/
 	BufferedTextArea(const Drawing::Rect&, Drawing::FontCache&);
-	inline DefDeMoveCtor(BufferedTextArea)
+	DefDeMoveCtor(BufferedTextArea)
 
 	using Widget::GetWidth;
 	using Widget::GetHeight;

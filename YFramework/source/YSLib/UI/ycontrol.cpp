@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3886
+\version r3889
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2014-01-08 10:42 +0800
+	2014-01-11 12:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,12 +109,12 @@ OnKeyHeld(KeyEventArgs&& e)
 }
 
 void
-OnTouchDown_RequestToTopFocused(CursorEventArgs&& e)
+OnTouchDown_RequestToFrontFocused(CursorEventArgs&& e)
 {
 	IWidget& wgt(e.GetSender());
 
 	if(e.Strategy != RoutedEventArgs::Bubble)
-		RequestToTop(wgt);
+		RequestToFront(wgt);
 	if(e.Strategy == RoutedEventArgs::Direct)
 		ClearFocusingOf(wgt);
 	if(e.Strategy != RoutedEventArgs::Tunnel)
@@ -188,7 +188,7 @@ OnKey_Bound_Click(KeyEventArgs&& e)
 
 Control::ControlEventMap::ControlEventMap()
 {
-	FetchEvent<TouchDown>(*this) += OnTouchDown_RequestToTopFocused;
+	FetchEvent<TouchDown>(*this) += OnTouchDown_RequestToFrontFocused;
 }
 
 Control::Control(const Rect& r)

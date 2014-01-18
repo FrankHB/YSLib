@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r311
+\version r313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:57:48 +0800
 \par 修改时间:
-	2013-12-23 22:56 +0800
+	2014-01-11 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ public:
 	//! \since build 337
 	explicit
 	ProgressBar(const Rect& = {}, ValueType = 0xFF);
-	inline DefDeMoveCtor(ProgressBar)
+	DefDeMoveCtor(ProgressBar)
 
 	/*!
 	\brief 设置进度关联值最大取值。

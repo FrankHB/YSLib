@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfilesys.h
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r2146
+\version r2153
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2013-12-24 09:17 +0800
+	2014-01-11 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	inline DefDeCtor(Path)
+	DefDeCtor(Path)
 	Path(const ucs2_t* str)
 		: ypath(Parse(str))
 	{}
@@ -111,23 +111,23 @@ public:
 	/*!
 	\brief 复制构造：默认实现。
 	*/
-	inline DefDeCopyCtor(Path)
+	DefDeCopyCtor(Path)
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	inline DefDeMoveCtor(Path)
-	inline DefDeDtor(Path)
+	DefDeMoveCtor(Path)
+	DefDeDtor(Path)
 
 	/*!
 	\brief 复制赋值：默认实现。
 	\since build 295
 	*/
-	inline DefDeCopyAssignment(Path)
+	DefDeCopyAssignment(Path)
 	/*!
 	\brief 转移赋值：默认实现。
 	\since build 295
 	*/
-	inline DefDeMoveAssignment(Path)
+	DefDeMoveAssignment(Path)
 
 	//! \brief 追加路径。
 	//@{

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4203
+\version r4205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-01-02 11:21 +0800
+	2014-01-12 13:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2373,7 +2373,8 @@ b334
 	/ %'YBase'.'YStandardEx' $=
 	(
 		+ "class template %identity" @ %'TypeOperation',
-			// Same to %boost::identity or previously standardized %std::identity.
+			// Same to %boost::mpl::identity or previously standardized ISO \
+				C++0x (but not in the final draft) %std::identity.
 		* "implementation" @ "all 3 function template %any_cast"
 			@ %'Any' $since b331
 	),

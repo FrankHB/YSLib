@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycounter.hpp
 \ingroup Core
 \brief 对象计数器。
-\version r761
+\version r763
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-09 20:43:52 +0800
 \par 修改时间:
-	2013-12-23 23:08 +0800
+	2014-01-11 11:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ public:
 	\brief 转移构造。
 	\brief 转移构造：默认实现。
 	*/
-	inline DefDeMoveCtor(GMCounter)
+	DefDeMoveCtor(GMCounter)
 
 protected:
 	/*!

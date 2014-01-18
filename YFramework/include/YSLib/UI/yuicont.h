@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1819
+\version r1821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2013-12-23 22:48 +0800
+	2014-01-11 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,7 +182,7 @@ protected:
 	\brief 无参数构造：默认实现。
 	*/
 	DefDeCtor(MUIContainer)
-	inline DefDeMoveCtor(MUIContainer)
+	DefDeMoveCtor(MUIContainer)
 
 	/*!
 	\brief 向部件组添加部件。

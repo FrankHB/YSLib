@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r426
+\version r430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2013-12-23 22:51 +0800
+	2014-01-11 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ public:
 	*/
 	explicit
 	Panel(const Rect& = {});
-	inline DefDeMoveCtor(Panel)
+	DefDeMoveCtor(Panel)
 
 	virtual void
 	operator+=(IWidget&);
@@ -85,12 +85,12 @@ public:
 
 	/*!
 	\brief 提升部件至 Z 顺序相等的同组部件的顶端。
-	\since build 279
+	\since build 467
 
 	子部件组中查找指定部件并重新插入至顶端。
 	*/
 	bool
-	MoveToTop(IWidget&);
+	MoveToFront(IWidget&);
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

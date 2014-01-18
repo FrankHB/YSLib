@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2585
+\version r2589
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2013-12-23 22:53 +0800
+	2014-01-11 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@ public:
 	//! \since build 337
 	explicit
 	ListBox(const Rect& = {}, const shared_ptr<ListType>& = {});
-	inline DefDeMoveCtor(ListBox)
+	DefDeMoveCtor(ListBox)
 
 	//! \since build 357
 	DefWidgetMemberIterationBase(ScrollableContainer, tlContent)
@@ -172,7 +172,7 @@ public:
 	//! \since build 337
 	explicit
 	FileBox(const Rect& = {});
-	inline DefDeMoveCtor(FileBox)
+	DefDeMoveCtor(FileBox)
 
 	/*!
 	\brief 导航至绝对路径。
@@ -254,7 +254,7 @@ public:
 	//! \since build 337
 	explicit
 	DropDownList(const Rect& = {}, const shared_ptr<ListType>& = {});
-	inline DefDeMoveCtor(DropDownList)
+	DefDeMoveCtor(DropDownList)
 	/*!
 	\brief 析构：分离顶层子部件。
 	\since build 283

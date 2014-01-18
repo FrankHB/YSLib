@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1312
+\version r1316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2013-12-23 22:59 +0800
+	2014-01-11 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ protected:
 	*/
 	explicit
 	MLabel(const Drawing::Font& = {}, TextAlignment = TextAlignment::Left);
-	inline DefDeMoveCtor(MLabel)
+	DefDeMoveCtor(MLabel)
 
 	/*!
 	\brief 绘制文本。
@@ -117,7 +117,7 @@ public:
 	Label(const Rect& r = {}, const Drawing::Font& fnt = {})
 		: Widget(r), MLabel(fnt)
 	{}
-	inline DefDeMoveCtor(Label)
+	DefDeMoveCtor(Label)
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
@@ -155,7 +155,7 @@ protected:
 	*/
 	explicit
 	MTextList(const shared_ptr<ListType>& = {}, const Drawing::Font& = {});
-	inline DefDeMoveCtor(MTextList)
+	DefDeMoveCtor(MTextList)
 
 	//void
 	//PaintTextList(Widget&, const Point&);

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM7
-# Version = r1254
+# Version = r1258
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-01-02 20:09 +0800
+# Updated = 2014-01-18 15:24 +0800
 # Encoding = ANSI
 
 
@@ -59,15 +59,17 @@ ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 CFLAGS	:=	-Wall -Wextra \
  			-Wcast-align -Wunreachable-code \
  			-Wmissing-declarations -Winvalid-pch \
- 			-flto=jobserver \
+ 			-fdata-sections -ffunction-sections \
  			-ffast-math \
+ 			-flto=jobserver \
  			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM7
-LDFLAGS :=	-specs=ds_arm7.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS :=	-specs=ds_arm7.specs $(ARCH) -Wl,--gc-sections -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(BUILD),debug)
 CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
+LDFLAGS	+=	-s
 else
 ASFLAGS	+=	-g
 CFLAGS	+=	-g -O0 -fno-omit-frame-pointer

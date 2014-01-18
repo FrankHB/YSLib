@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r602
+\version r606
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2013-12-24 09:28 +0800
+	2014-01-11 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,9 +46,9 @@ namespace UI
 class YF_API Renderer
 {
 public:
-	inline DefDeCtor(Renderer)
-	inline DefDeCopyCtor(Renderer)
-	inline DefDeMoveCtor(Renderer)
+	DefDeCtor(Renderer)
+	DefDeCopyCtor(Renderer)
+	DefDeMoveCtor(Renderer)
 	virtual DefDeDtor(Renderer)
 
 	/*!

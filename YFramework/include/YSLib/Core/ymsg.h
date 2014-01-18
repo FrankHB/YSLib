@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1961
+\version r1980
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2013-12-23 23:08 +0800
+	2014-01-15 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,39 +182,8 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	inline DefDeCtor(MessageQueue)
+	DefDeCtor(MessageQueue)
 	DefDeDtor(MessageQueue)
-
-	//! \since build 449
-	//@{
-	using BaseType::begin;
-
-	using BaseType::end;
-
-	using BaseType::cbegin;
-
-	using BaseType::cend;
-
-	using BaseType::rbegin;
-
-	using BaseType::rend;
-
-	using BaseType::crbegin;
-
-	using BaseType::crend;
-
-	using BaseType::size;
-
-	using BaseType::max_size;
-
-	using BaseType::empty;
-
-	using BaseType::insert;
-
-	using BaseType::erase;
-
-	using BaseType::clear;
-	//@}
 
 	/*!
 	\brief 取消息队列中消息的最大优先级。
@@ -264,6 +233,37 @@ public:
 	*/
 	void
 	Remove(Priority);
+
+	//! \since build 449
+	//@{
+	using BaseType::begin;
+
+	using BaseType::cbegin;
+
+	using BaseType::cend;
+
+	using BaseType::clear;
+
+	using BaseType::crbegin;
+
+	using BaseType::crend;
+
+	using BaseType::empty;
+
+	using BaseType::end;
+
+	using BaseType::erase;
+
+	using BaseType::insert;
+
+	using BaseType::max_size;
+
+	using BaseType::rbegin;
+
+	using BaseType::rend;
+
+	using BaseType::size;
+	//@}
 };
 
 

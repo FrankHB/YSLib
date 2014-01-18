@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r1874
+# Version = r1876
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-01-02 20:09 +0800
+# Updated = 2014-01-18 15:23 +0800
 # Encoding = ANSI
 
 
@@ -69,8 +69,9 @@ ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 CFLAGS	:=	-Wall -Wextra \
  			-Wcast-align -Wunreachable-code \
  			-Wmissing-declarations -Wredundant-decls -Winvalid-pch \
- 			-flto=jobserver \
+ 			-fdata-sections -ffunction-sections \
  			-ffast-math \
+ 			-flto=jobserver \
  			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -pedantic-errors -DARM9

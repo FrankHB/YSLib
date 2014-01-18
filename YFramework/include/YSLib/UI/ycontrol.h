@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4743
+\version r4746
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2013-12-31 10:12 +0800
+	2014-01-11 12:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,7 +197,7 @@ OnKeyHeld(KeyEventArgs&&);
 \since build 422
 */
 YF_API void
-OnTouchDown_RequestToTopFocused(CursorEventArgs&&);
+OnTouchDown_RequestToFrontFocused(CursorEventArgs&&);
 
 /*!
 \brief 处理屏幕接触保持事件。
@@ -295,7 +295,7 @@ public:
 	\brief 构造：使用指定边界，无背景。
 	\note 使用扩展控件事件表加载的事件处理器。
 	\note 加载事件处理器： Move 、 Resize 、 GotFocus 和 LostFocus 时自动无效化。
-	\note 加载事件处理器： OnTouchDown_RequestToTopFocused 。
+	\note 加载事件处理器： OnTouchDown_RequestToFrontFocused 。
 	\since build 350
 	*/
 	Control(const Rect&, NoBackgroundTag);

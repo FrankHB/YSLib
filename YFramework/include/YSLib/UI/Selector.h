@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r330
+\version r332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2013-12-23 22:50 +0800
+	2014-01-11 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ public:
 	*/
 	explicit
 	CheckBox(const Rect& = {});
-	inline DefDeMoveCtor(CheckBox)
+	DefDeMoveCtor(CheckBox)
 
 	DefPred(const ynothrow, Ticked, bTicked)
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1502
+\version r1505
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2013-12-24 09:27 +0800
+	2014-01-11 11:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ public:
 	\brief 复制构造：默认实现。
 	\since build 295
 	*/
-	inline DefDeCopyCtor(UIEventArgs)
+	DefDeCopyCtor(UIEventArgs)
 	//! \since build 423
 	virtual DefDeDtor(UIEventArgs)
 
@@ -75,7 +75,7 @@ public:
 	\brief 复制赋值：默认实现。
 	\since build 295
 	*/
-	inline DefDeCopyAssignment(UIEventArgs)
+	DefDeCopyAssignment(UIEventArgs)
 
 	DefGetter(const ynothrow, IWidget&, Sender, *pSender)
 	PDefH(void, SetSender, IWidget& wgt)

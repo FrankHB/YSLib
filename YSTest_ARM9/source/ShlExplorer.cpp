@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1050
+\version r1053
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-01-07 01:21 +0800
+	2014-01-11 13:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -302,7 +302,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	FetchEvent<KeyDown>(dsk_s) += OnKey_Bound_TouchDown,
 	FetchEvent<KeyPress>(dsk_s) += [&](KeyEventArgs&& e){
 		if(e.GetKeys()[YCL_KEY(X)])
-			SwitchVisible(pnlSetting);
+			SwitchVisibleToFront(pnlSetting);
 	},
 	fbMain.GetViewChanged() += [&](UIEventArgs&&){
 		lblPath.Text = String(fbMain.GetPath());
@@ -483,7 +483,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			Show(*pFrmAbout);
 			break;
 		case 2U:
-			SwitchVisible(pnlSetting);
+			SwitchVisibleToFront(pnlSetting);
 			break;
 		case 3U:
 			YSLib::PostQuitMessage(0);
@@ -494,7 +494,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		MinGW32::TestFramework(e.Value);
 #endif
 		if(e.Value == 0)
-			SwitchVisible(pnlTest1);
+			SwitchVisibleToFront(pnlTest1);
 	},
 	mhMain += m1, mhMain += m2,
 	m1 += make_pair(0u, &m2);

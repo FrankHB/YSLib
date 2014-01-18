@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1187
+\version r1197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2013-12-12 14:47 +0800
+	2014-01-12 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -628,8 +628,15 @@ struct has_common_nonempty_virtual_base : integral_constant<bool,
 /*!
 \ingroup metafunctions
 \brief 恒等元函数。
-\note 功能可以使用 common_type 的单一参数实例替代。
-\note 这里的实现保证不是 common_type 的实例。
+\note 功能可以使用 ISO C++ 11 的 std::common_type 的单一参数实例替代。
+\note ISO C++ LWG 2141 建议更改 std::common 的实现，无法替代。
+\note 这里的实现不依赖 std::common_type 。
+\note 同 boost::mpl::identity 。
+\note Microsoft Visual C++ 2013 使用 LWG 2141 建议的实现。
+\see http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2141
+\see http://www.boost.org/doc/libs/1_55_0/libs/mpl/doc/refmanual/identity.html
+\see http://msdn.microsoft.com/en-us/library/vstudio/bb531344%28v=vs.120%29.aspx
+\see http://lists.cs.uiuc.edu/pipermail/cfe-commits/Week-of-Mon-20131007/090403.html
 \since build 334
 */
 template<typename _type>

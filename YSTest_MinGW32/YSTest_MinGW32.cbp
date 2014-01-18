@@ -108,9 +108,11 @@
 			<Add option="-std=c++11" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-Winvalid-pch" />
+			<Add option="-fdata-sections" />
+			<Add option="-ffunction-sections" />
 			<Add option="-flto=jobserver" />
 			<Add option="-mthreads" />
+			<Add option="-Winvalid-pch" />
 			<Add directory="../YSTest_ARM9/include" />
 			<Add directory="../YFramework/DS/include" />
 			<Add directory="../YFramework/MinGW32/include" />
@@ -118,6 +120,9 @@
 			<Add directory="../YBase/include" />
 			<Add directory="../3rdparty/include" />
 		</Compiler>
+		<Linker>
+			<Add option="-Wl,--gc-sections" />
+		</Linker>
 		<Unit filename="../YSTest_ARM9/include/About.h" />
 		<Unit filename="../YSTest_ARM9/include/BookmarkUI.h" />
 		<Unit filename="../YSTest_ARM9/include/ColorPicker.h" />

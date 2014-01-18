@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1702
+\version r1714
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2013-12-23 23:39 +0800
+	2014-01-11 13:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -439,6 +439,13 @@ namespace UI
 YF_API void
 SwitchVisible(IWidget&);
 
+/*!
+\brief 切换部件显示状态并请求提升至前端。
+\since build 467
+*/
+YF_API void
+SwitchVisibleToFront(IWidget&);
+
 
 /*!
 \brief 序列设置仿函数。
@@ -457,11 +464,9 @@ public:
 		: Container(con)
 	{}
 
-	void
-	operator()(IWidget& wgt)
-	{
-		SetContainerPtrOf(wgt, &Container.get());
-	}
+	//! \since build 467
+	PDefHOp(void, (), IWidget& wgt) const
+		ImplExpr(SetContainerPtrOf(wgt, &Container.get()))
 };
 
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4507
+\version r4517
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2013-12-23 23:09 +0800
+	2014-01-13 23:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,14 +134,15 @@ public:
 	{}
 	/*!
 	\brief 构造：使用对象引用和成员函数指针。
+	\warning 使用空成员指针构造的函数对象调用引起未定义行为。
 	\since build 413
 	*/
 	template<class _type>
 	yconstfn
 	GHEvent(_type& obj, _tRet(_type::*pm)(_tParams...))
-		: BaseType(ExpandMemberFirstBinder<_type, _tRet, _tParams...>(obj,
-		pm)), comp_eq(GEquality<ExpandMemberFirstBinder<_type, _tRet,
-		_tParams...>>::AreEqual)
+		: GHEvent([&, pm](_tParams... args){
+			return (obj.*pm)(yforward(args)...);
+		})
 	{}
 	yconstfn DefDeCopyCtor(GHEvent)
 	yconstfn DefDeMoveCtor(GHEvent)
@@ -452,19 +453,19 @@ public:
 	/*!
 	\brief 取列表中的响应数。
 	*/
-	inline DefGetter(const ynothrow, SizeType, Size, List.size())
+	DefGetter(const ynothrow, SizeType, Size, List.size())
 
 	/*!
 	\brief 清除：移除所有事件响应。
 	*/
-	inline PDefH(void, Clear, )
+	PDefH(void, Clear, )
 		ImplRet(List.clear())
 
 	/*
 	\brief 交换。
 	\since build 409
 	*/
-	inline PDefH(void, swap, GEvent& e) ynothrow
+	PDefH(void, swap, GEvent& e) ynothrow
 		ImplRet(List.swap(e))
 };
 //@}
@@ -632,12 +633,12 @@ public:
 	/*!
 	\brief 取列表中的响应数。
 	*/
-	inline DefGetterMem(const ynothrow, SizeType, Size, this->GetRef())
+	DefGetterMem(const ynothrow, SizeType, Size, this->GetRef())
 
 	/*!
 	\brief 清除：移除所有事件响应。
 	*/
-	inline PDefH(void, Clear, )
+	PDefH(void, Clear, )
 		ImplBodyMem(this->GetNewRef(), Clear, )
 };
 

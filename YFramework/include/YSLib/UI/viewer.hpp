@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r332
+\version r337
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2013-12-24 09:30 +0800
+	2014-01-11 11:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,14 +85,14 @@ public:
 		: p_con(&con), head(0), selected(0), length(1), is_selected(false)
 	{}
 
-	inline PDefHOp(GSequenceViewer&, ++, ) //!< 选中项目的索引自增。
+	PDefHOp(GSequenceViewer&, ++, ) //!< 选中项目的索引自增。
 		ImplRet(IncreaseSelected(1))
-	inline PDefHOp(GSequenceViewer&, --, ) //!< 选中项目的索引自减。
+	PDefHOp(GSequenceViewer&, --, ) //!< 选中项目的索引自减。
 		ImplRet(IncreaseSelected(-1))
-	inline PDefHOp(GSequenceViewer&, ++, int) \
+	PDefHOp(GSequenceViewer&, ++, int) \
 		//!< 视图中首个项目的索引自增。
 		ImplRet(IncreaseHead(1))
-	inline PDefHOp(GSequenceViewer&, --, int) \
+	PDefHOp(GSequenceViewer&, --, int) \
 		//!< 视图中首个项目的索引自减。
 		ImplRet(IncreaseHead(-1))
 

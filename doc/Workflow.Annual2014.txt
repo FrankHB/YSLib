@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r104
+\version r108
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-01-04 23:00 +0800
+	2014-01-18 21:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,6 +100,10 @@ Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Micro
 		Note that mix use of different versions of MSVCRT is dangerous.
 		It is relatively safe to use a newer library together with older headers.
 		So the final resolution is to implement a custom "_gmtime32" function for MinGW.org toolchain.
+Currently object files compiled with '-ffunction-sections -fdata-sections' for GNU ld doesn't work for MinGW PE-COFF targets. It might be fixed in future.
+	See https://sourceware.org/bugzilla/show_bug.cgi?id=11539 .
+	See http://cygwin.com/ml/binutils/2012-08/msg00216.html .
+	See http://sourceforge.net/mailarchive/forum.php?thread_name=CALc40c_v46OnoopJXWbPpQk651JAxWU3UYFmDJy998mPKzD9DA%40mail.gmail.com&forum_name=mingw-w64-public .
 
 ////
 

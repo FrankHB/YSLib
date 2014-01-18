@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r1890
+# Version = r1892
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-01-02 20:19 +0800
+# Updated = 2014-01-18 15:23 +0800
 # Encoding = ANSI
 
 
@@ -74,8 +74,9 @@ ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
 CFLAGS	:=	-Wall -Wextra -Wunreachable-code \
  			-Wmissing-declarations -Winvalid-pch \
- 			-flto=jobserver \
+ 			-fdata-sections -ffunction-sections \
  			-ffast-math \
+ 			-flto=jobserver \
  			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9

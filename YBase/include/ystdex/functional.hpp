@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r825
+\version r831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2013-12-22 20:42 +0800
+	2014-01-18 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -470,7 +470,7 @@ unref(const std::reference_wrapper<_type>& x) ynothrow
 \warning 实现（ Boost 文档作为 Effects ）可能改变，不应作为接口依赖。
 */
 template<typename _type>
-inline void
+yconstfn void
 hash_combine(size_t& seed, const _type& val)
 {
 	seed ^= std::hash<_type>()(val) + 0x9E3779B9 + (seed << 6) + (seed >> 2);
@@ -483,15 +483,13 @@ hash_combine(size_t& seed, const _type& val)
 */
 //@{
 template<typename _type>
-inline size_t
+yconstfn size_t
 hash_combine_seq(size_t seed, const _type& val)
 {
-	ystdex::hash_combine(seed, val);
-
-	return seed;
+	return ystdex::hash_combine(seed, val), seed;
 }
 template<typename _type, typename... _tParams>
-inline size_t
+yconstfn size_t
 hash_combine_seq(size_t seed, const _type& x, const _tParams&... args)
 {
 	return ystdex::hash_combine_seq(ystdex::hash_combine_seq(seed, x), args...);

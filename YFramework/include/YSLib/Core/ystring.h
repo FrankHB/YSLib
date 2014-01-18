@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2144
+\version r2151
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2013-12-23 23:08 +0800
+	2014-01-11 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,15 +50,15 @@ public:
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
-	inline DefDeCtor(String)
+	DefDeCtor(String)
 	/*!
 	\brief 复制构造：默认实现。
 	*/
-	inline DefDeCopyCtor(String)
+	DefDeCopyCtor(String)
 	/*!
 	\brief 转移构造：默认实现。
 	*/
-	inline DefDeMoveCtor(String)
+	DefDeMoveCtor(String)
 	/*!
 	\brief 构造：使用 UCS-2LE 字符指针表示的等宽 NTCTS 。
 	*/
@@ -94,18 +94,18 @@ public:
 	String(const std::basic_string<_tChar>& s, Encoding enc = CS_Default)
 		: String(s.c_str(), enc)
 	{}
-	inline DefDeDtor(String)
+	DefDeDtor(String)
 
 	/*!
 	\brief 复制赋值：默认实现。
 	\since build 295
 	*/
-	inline DefDeCopyAssignment(String)
+	DefDeCopyAssignment(String)
 	/*!
 	\brief 转移赋值：默认实现。
 	\since build 295
 	*/
-	inline DefDeMoveAssignment(String)
+	DefDeMoveAssignment(String)
 
 	/*!
 	\brief 重复串接。

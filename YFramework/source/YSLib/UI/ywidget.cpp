@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4371
+\version r4374
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-12-23 23:51 +0800
+	2014-01-11 12:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,10 +171,10 @@ PaintChild(IWidget& wgt, const PaintContext& pc)
 }
 
 void
-RequestToTop(IWidget& wgt)
+RequestToFront(IWidget& wgt)
 {
 	if(const auto p_pnl = dynamic_cast<Panel*>(FetchContainerPtr(wgt)))
-		p_pnl->MoveToTop(wgt);
+		p_pnl->MoveToFront(wgt);
 }
 
 void

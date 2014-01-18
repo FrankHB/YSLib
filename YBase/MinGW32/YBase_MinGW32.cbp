@@ -76,11 +76,16 @@
 			<Add option="-std=c++11" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-Winvalid-pch" />
+			<Add option="-fdata-sections" />
+			<Add option="-ffunction-sections" />
 			<Add option="-flto=jobserver" />
 			<Add option="-mthreads" />
+			<Add option="-Winvalid-pch" />
 			<Add directory="../include" />
 		</Compiler>
+		<Linker>
+			<Add option="-Wl,--gc-sections" />
+		</Linker>
 		<Unit filename="../include/libdefect/string.h" />
 		<Unit filename="../include/ydef.h" />
 		<Unit filename="../include/ystdex/algorithm.hpp" />

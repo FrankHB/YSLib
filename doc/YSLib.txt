@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2315
+\version r2319
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2013-12-24 09:14 +0800
+	2014-01-15 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,11 +101,12 @@
 @1.2.5 本体的头文件中显式包含的 C++ 标准库依赖项：
  "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
  "Core/yfunc.hpp" 包含 <functional> 和 <typeinfo> ；
- "Service/ytimer.h" 包含 <chrono> 。
+ "Service/ytimer.h" 包含 <chrono> ；
+ "UI/ystyle.h" 包含 <typeindex> 。
 其它： <iterator> 。
 
 @1.2.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
- <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 、 <typeindex> 和 <valarray> 。
+ <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 和 <valarray> 。
 
 @1.2.7 本体头文件对 YBase 依赖性：
  "yblit.h" 依赖于 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
