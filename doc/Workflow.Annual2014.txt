@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r108
+\version r155
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-01-18 21:21 +0800
+	2014-01-20 08:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,10 +100,56 @@ Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Micro
 		Note that mix use of different versions of MSVCRT is dangerous.
 		It is relatively safe to use a newer library together with older headers.
 		So the final resolution is to implement a custom "_gmtime32" function for MinGW.org toolchain.
-Currently object files compiled with '-ffunction-sections -fdata-sections' for GNU ld doesn't work for MinGW PE-COFF targets. It might be fixed in future.
+Currently object files compiled with '-ffunction-sections -fdata-sections' for GNU ld with '--gc-sections' doesn't work for MinGW PE-COFF targets. It might be fixed in future.
 	See https://sourceware.org/bugzilla/show_bug.cgi?id=11539 .
 	See http://cygwin.com/ml/binutils/2012-08/msg00216.html .
 	See http://sourceforge.net/mailarchive/forum.php?thread_name=CALc40c_v46OnoopJXWbPpQk651JAxWU3UYFmDJy998mPKzD9DA%40mail.gmail.com&forum_name=mingw-w64-public .
+Skin is the top level of GUI an application's shell to reflect look and feel. For a reusable GUI toolkit, a visual style is a set of visualized features for UI elements, being a major part of the skin.
+YFramework should implement the visual style support. It has been planned from very early reversions.
+	Basically, the styles are not for each widgets. They are only effective to style-related widgets.
+	The major interface is of namespace "YSLib::UI::Styles", providing abstraction to be stored within the GUI state.
+	The previously implemented interface is the palette, which contains a vector of colors to be used in style-related widgets rendering.
+	Now the visual style states should be implemented as sets of runtime swichable states.
+		The style should be swichable by user code via the GUI state interface. It is the wrapper of the major interface.
+		For convenience, the type "string" is used as the key to identify a style.
+		It is intended that switching of styles should take effect on classes of widgets. For each paticular instance of widgets, it should be possibly doable to switch in future.
+		Switching to a different style should be efficient. That means iteration of each widgets to modify the state is generally inacceptable.
+		The basic idea is to bind each styled rendering process as an event handler with parameter type 'PaintEventArgs&&' and to be added to event 'Paint' of the target widget instance.
+		The binding of event handler needs a type containing the common implmentation against to code bloat. If per widget style state can also supported here if necessary.
+		There should be a way to identify the widget class types. Indexable RTTI type ('std::type_index') is preferred for convenience.
+		Choice has been made for the lower layer of the implemention details:
+			Static polymorphism is not feasible for some runtime-determinated properties.
+			Both interface types(i.e. polymorphic classes having only pure virtual member functions) and manually indexing of handlers are feasible.
+			Pros of interface types:
+				It is flexible to describe complex details.
+				Different sets of explicitly-typed shared state can be stored in the implementation directly.
+				Type safety is easily gained through function signatures.
+				Inheritance can reduce some common code.
+			Cons of interface types:
+				Probably more code to write. In the worst case, each interface type should provided to corresponding style-related widget class manually, being hard to reuse.
+				Some extraordinary code bloats, linear complexity of total number of style-related widgets.
+				Performance decreased for unnecessary virtual calls, though can be optimized away, but not guaranteed and likely not. Note that dispatch of event handler calls are already polymorphic in runtime through 'std::function'.
+				It is difficult to use because the concrete interface type should be get statically. This causes it impossible to store all interface types for different widget classes together within the same GUI state without some tricks.
+					Type erause or base interface type can be used. Both are expensive in performance and inconvenient to implement.
+					Explicitly casts should be used for each binding, obviously inconvenient.
+				The ABI is likely complex and not steady. Modifying interface of per class interface is very likely to leads to the user code to be built again.
+			Pros of manually indexing of handlers:
+				It is simple and direct for event handler binding.
+				Code generation and performance is easier to control by the user.
+				It is flexible and convenient to use.
+				The ABI is likely simpler, and steady when no modification to the indices.
+				Indices can have aliases through enumerator or 'const' object declarations.
+			Cons of manually indexing of handlers:
+				Some lower level details can not be exposed through the interface, which can be inconvenient to use.
+				The handler type is limited to event 'Paint'. If needed, the major style interface should be modified.
+				Shared states can be supported through the interface should be unique.
+					If needed, some additional interface should be added to the GUI state.
+					Type erasure or similar techniques can be used to get some intended effects.
+				Almost no higher level of optimization at all. The implementation of the language is not aware to the indexing.
+			For current requirements, the latter is better.
+				It is easy to implement and use.
+				It is not very hard to add functionality. Although if needed, the major interface might be modified, but not very probable.
+				Indices are not needed to be assigned manually if using enumeration type.
 
 ////
 

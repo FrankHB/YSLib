@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2076
+\version r2082
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-01-08 10:17 +0800
+	2014-01-19 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,6 +122,11 @@ public:
 	*/
 	Drawing::Point CursorLocation;
 	Styles::Palette Colors; //!< 调色板。
+	/*!
+	\brief 样式映射。
+	\since build 468
+	*/
+	Styles::StyleMap Styles;
 
 private:
 	/*!
@@ -184,7 +189,6 @@ public:
 	void
 	ResetHeldState(InputTimer::HeldStateType&);
 
-public:
 	//! \since build 424
 	//@{
 	/*!

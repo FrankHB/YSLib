@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的 GUI 按钮控件。
-\version r2269
+\version r2291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-01-11 11:28 +0800
+	2014-01-20 19:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,12 +45,27 @@ namespace UI
 */
 class YF_API Thumb : public Control
 {
+public:
+	/*!
+	\brief 视觉样式项目。
+	\since build 468
+	*/
+	enum StyleItem : Styles::StyleItem
+	{
+		ThumbBackground,
+		EndStyle
+	};
+
 protected:
 	/*!
 	\brief 指针设备光标状态。
 	\since build 463
 	*/
 	CursorState csCurrent;
+
+private:
+	//! \since build 468
+	Drawing::Hue hue = 180;
 
 public:
 	/*!
@@ -79,15 +94,9 @@ public:
 
 	//! \since build 463
 	DefGetter(const ynothrow, CursorState, CursorState, csCurrent)
+	//! \since build 468
+	DefGetter(const ynothrow, Hue, Hue, hue)
 };
-
-/*!
-\brief 绘制指定色调的基本按钮背景。
-\relates Thumb
-\since build 302
-*/
-YF_API void
-DrawThumbBackground(PaintEventArgs&& e, Thumb&, Hue);
 
 /*!
 \brief 装饰 Thumb 为关闭按钮。

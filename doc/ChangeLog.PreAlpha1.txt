@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r286
+\version r290
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-11-10 09:22 +0800
+	2014-01-19 17:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ b198
 	* "%ListBox scroll bar length",
 	* "handle constructors",
 	- "class %ShlGUI" @ "unit %Shell_DS" @ $design "shells for DS",
-	/ %'YFramework'.'YSLib'.'UI'.'GUI' $=
+	/ %YFramework.YSLib.UI.GUI $=
 	(
 		/ DLD "using pointers"
 			~ "references in parameters of container methods",
@@ -223,7 +223,7 @@ b134_b158
 	+ DLD "core utility templates",
 	/ "smart pointers",
 	+ "GUI focus",
-	+ "shells" @ %'YReader' $=
+	+ "shells" @ %YReader $=
 	+ "controls",
 	+ "virtual inheritance" @ "control classes",
 	+ "exceptions",
@@ -246,7 +246,7 @@ b132
 	/ "basic log interfaces",
 	+ "backup message queue object" @ "the application class",
 	/ "automatically clearing screen windows when deactivating class %ShlGUI",
-	+ "background image indexing" @ %'YReader'
+	+ "background image indexing" @ %YReader
 ),
 
 b1_b131

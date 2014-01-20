@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3133
+\version r3167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-01-04 01:16 +0800
+	2014-01-20 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include YFM_YSLib_UI_Button
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_UI_YGUI
+#include <ystdex/cast.hpp>
 
 namespace YSLib
 {
@@ -105,14 +106,42 @@ RectDrawButton(const PaintContext& pc, Size s, Hue base_hue,
 	}
 }
 
+//! \since build 468
+void
+DrawThumbBackground(PaintEventArgs&& e)
+{
+	const auto& tmb(ystdex::polymorphic_downcast<Thumb&>(e.GetSender()));
+	const auto base_hue(tmb.GetHue());
+	const bool enabled(IsEnabled(tmb));
+	Size s(GetSizeOf(tmb));
+
+	RectDrawButton(e, s, base_hue, tmb.GetCursorState(), enabled);
+	if(enabled && IsFocused(tmb) && YB_LIKELY(s.Width > 6 && s.Height > 6))
+	{
+		yunseq(s.Width -= 6, s.Height -= 6);
+		DrawRect(e.Target, e.ClipArea, e.Location + Vec(3, 3), s,
+			tmb.GetCursorState() == CursorState::Outside ? Color(178, 178, 178)
+			: HSLToColor({base_hue, 1, 0.5F}));
+	}
+}
+
 } // unnamed namespace;
 
 
-Thumb::Thumb(const Rect& r, Hue hue)
+Thumb::Thumb(const Rect& r, Hue h)
 	: Thumb(r, NoBackgroundTag())
 {
-	Background = std::bind(DrawThumbBackground, std::placeholders::_1,
-		std::ref(*this), hue);
+	using namespace Styles;
+	static struct Init
+	{
+		Init()
+		{
+			FetchDefault().insert({{typeid(Thumb), ThumbBackground},
+				DrawThumbBackground});
+		}
+	} init;
+
+	yunseq(hue = h, Background = Painter(typeid(Thumb), ThumbBackground));
 }
 Thumb::Thumb(const Rect& r, NoBackgroundTag)
 	: Control(r, NoBackgroundTag()),
@@ -142,25 +171,6 @@ Thumb::Thumb(const Rect& r, NoBackgroundTag)
 		}
 	}
 	);
-}
-
-
-void
-DrawThumbBackground(PaintEventArgs&& e, Thumb& tmb, Hue base_hue)
-{
-	const bool enabled(IsEnabled(tmb));
-	const auto& pt(e.Location);
-	auto& r(e.ClipArea);
-	Size s(GetSizeOf(tmb));
-
-	RectDrawButton(e, s, base_hue, tmb.GetCursorState(), enabled);
-	if(enabled && IsFocused(tmb) && YB_LIKELY(s.Width > 6 && s.Height > 6))
-	{
-		yunseq(s.Width -= 6, s.Height -= 6);
-		DrawRect(e.Target, r, pt + Vec(3, 3), s,
-			tmb.GetCursorState() == CursorState::Outside ? Color(178, 178, 178)
-			: HSLToColor({base_hue, 1, 0.5F}));
-	}
 }
 
 

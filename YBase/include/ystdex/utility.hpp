@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1637
+\version r1641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-12-12 14:26 +0800
+	2014-01-20 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -329,12 +329,13 @@ public:
 \brief 使用 call_once 的静态初始化管理器。
 \tparam _tOnceFlag 初始化调用标识。
 \note 线程安全取决于 call_once 对 _tOnceFlag 的支持。
-	若对于支持 <tt><mutex></tt> 的实现，使用 std::once_flag ，对应 std::call_once ，
-	则是线程安全的；
+	若对于支持 <tt><mutex></tt> 的实现，使用 std::once_flag ，
+	对应 std::call_once ，则是线程安全的；
 	若使用 bool ，对应 ystdex::call_once ，不保证线程安全。
 	其它类型可使用用户自行定义 call_once 。
 \since build 328
 \todo 使用支持 lambda pack 展开的实现构造模板。
+\todo 支持分配器。
 
 静态初始化，使用 _tOnceFlag 类型的静态对象表示初始化和反初始化状态，
 保证所有在定义本类型的对象后已有静态对象被初始化。

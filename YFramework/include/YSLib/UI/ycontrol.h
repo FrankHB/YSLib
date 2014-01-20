@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4746
+\version r4747
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-01-11 12:53 +0800
+	2014-01-19 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -263,7 +263,7 @@ class YF_API Control : public Widget
 protected:
 	/*!
 	\brief 扩展控件事件表。
-	\note 加载 UI::OnTouchHeld 作为 TouchHeld 事件处理器。
+	\note 加载 UI::OnTouchDown_RequestToFrontFocused 作为 TouchHeld 事件处理器。
 	\since build 240
 	*/
 	DefExtendEventMap(YF_API ControlEventMap, VisualEventMap)

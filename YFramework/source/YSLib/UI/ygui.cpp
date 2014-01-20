@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3903
+\version r3904
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-01-08 10:16 +0800
+	2014-01-19 16:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,7 @@ RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
 GUIState::GUIState() ynothrow
 	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
 	DraggingOffset(Vec::Invalid), HeldTimer(), CursorLocation(Point::Invalid),
-	Colors(), p_CursorOver(), p_indp_focus(), entered()
+	Colors(), Styles(), p_CursorOver(), p_indp_focus(), entered()
 {}
 
 bool

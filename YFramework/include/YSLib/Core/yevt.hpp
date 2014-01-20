@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4517
+\version r4538
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-01-13 23:31 +0800
+	2014-01-19 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,16 +80,16 @@ private:
 		using decayed_type = ystdex::decay_t<_tFunctor>;
 
 #if YB_HAS_NOEXCEPT
-		static yconstexpr bool except_helper = noexcept(std::declval<
+		/*!
+		\brief 判断使用 noexcept 并避免 constexpr 失败。
+		\since build 468
+		*/
+		static yconstexpr bool is_noexcept_v = noexcept(std::declval<
 			const decayed_type>() == std::declval<const decayed_type>());
 #endif
 
 		static bool
-		AreEqual(const GHEvent& x, const GHEvent& y)
-#if YB_HAS_NOEXCEPT
-			// NOTE: Use helper to prevent constexpr checking fail.
-			ynoexcept(except_helper)
-#endif
+		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept(is_noexcept_v)
 		{
 			if(const auto p = x.template target<decayed_type>())
 				if(const auto q = y.template target<decayed_type>())
@@ -766,8 +766,12 @@ public:
 
 private:
 #if YB_HAS_NOEXCEPT
+	/*
+	\brief 避免 constexpr 失败的 noexcept 检查。
+	\since build 468
+	*/
 	template<typename _type>
-	struct except_helper_t
+	struct is_noexcept
 	{
 		static yconstexpr bool value
 			= noexcept(PointerType(std::declval<_type>()));
@@ -780,11 +784,7 @@ public:
 	//! \since build 319
 	template<typename _type>
 	inline
-	GEventPointerWrapper(_type&& p)
-#if YB_HAS_NOEXCEPT
-		// NOTE: Use helper to prevent constexpr checking fail.
-		ynoexcept(except_helper_t<_type>::value)
-#endif
+	GEventPointerWrapper(_type&& p) ynoexcept(is_noexcept<_type>::value)
 		: ptr(yforward(p))
 	{
 		YAssert(bool(p), "Null pointer found.");
@@ -803,7 +803,7 @@ public:
 
 
 /*!
-\brief 定义扩展事件类。
+\brief 定义扩展事件映射类。
 \since build 240
 */
 #define DefExtendEventMap(_n, _b) \

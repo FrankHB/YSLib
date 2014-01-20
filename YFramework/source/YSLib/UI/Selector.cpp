@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r741
+\version r758
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-01-07 01:17 +0800
+	2014-01-20 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include YFM_YSLib_UI_Selector
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_UI_YGUI
+#include <ystdex/cast.hpp>
 
 namespace YSLib
 {
@@ -133,6 +134,22 @@ CheckBox::CheckBox(const Rect& r)
 	: Thumb(r, NoBackgroundTag()),
 	bTicked(false)
 {
+	using namespace Styles;
+	static struct Init
+	{
+		Init()
+		{
+			FetchDefault().insert({{typeid(CheckBox), CheckBoxBackground},
+				[](PaintEventArgs&& e){
+					auto& cb(
+						ystdex::polymorphic_downcast<CheckBox&>(e.GetSender()));
+
+					cb.PaintBox(e, GetSizeOf(cb));
+				}
+			});
+		}
+	} init;
+
 	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
 		bTicked = !bTicked;
 		Ticked(TickedArgs(*this, bTicked));
@@ -165,7 +182,8 @@ CheckBox::PaintBox(const PaintContext& pc, const Size& s)
 void
 CheckBox::Refresh(PaintEventArgs&& e)
 {
-	PaintBox(e, GetSizeOf(*this));
+	FetchGUIState().Styles.PaintAsStyle({typeid(CheckBox), CheckBoxBackground},
+		std::move(e));
 }
 
 

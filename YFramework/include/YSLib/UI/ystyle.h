@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r465
+\version r559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-01-04 01:10 +0800
+	2014-01-20 19:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_UI_YComponent
 #include YFM_YSLib_Service_YDraw
 #include <ystdex/rational.hpp>
+#include <typeindex>
 
 namespace YSLib
 {
@@ -213,6 +214,133 @@ public:
 	pair<Drawing::Color, Drawing::Color>
 	GetPair(ColorListType::size_type, ColorListType::size_type) const;
 };
+
+
+//! \since build 468
+//@{
+//! \brief 标识样式渲染项的类型。
+using StyleItem = size_t;
+
+//! \brief 标识查找样式的键。
+using Key = pair<std::type_index, StyleItem>;
+
+//! \brief 样式处理器。
+using Handler = std::function<void(PaintEventArgs&&)>;
+
+//! \brief 样式处理器表。
+using HandlerTable = unordered_map<Key, Handler, ystdex::combined_hash<Key>>;
+
+//! \brief 视觉样式。
+using VisualStyle = pair<string, HandlerTable>;
+
+
+/*!
+\brief 带样式的绘制处理函数。
+\warning 非虚析构。
+*/
+class YF_API Painter
+{
+private:
+	Key key;
+
+public:
+	Painter(const Key& k)
+		: key(k)
+	{}
+	template<typename _type1, typename _type2>
+	Painter(_type1&& arg1, _type2&& arg2)
+		: key(yforward(arg1), yforward(arg2))
+	{}
+	DefDeCopyCtor(Painter)
+	DefDeMoveCtor(Painter)
+
+	DefDeCopyAssignment(Painter)
+	DefDeMoveAssignment(Painter)
+
+	DefGetter(const ynothrow, StyleItem, Item, key.second)
+	DefGetter(const ynothrow, const Key&, Key, key)
+	DefGetter(const ynothrow, std::type_index, TypeIndex, key.first)
+
+	void
+	operator()(PaintEventArgs&&) const;
+};
+
+
+/*!
+\brief 样式映射。
+\warning 非虚析构。
+*/
+class YF_API StyleMap : private noncopyable, private map<string, HandlerTable>
+{
+public:
+	using MapType = map<string, HandlerTable>;
+	using MapType::const_iterator;
+	using MapType::iterator;
+
+private:
+	const_iterator current;
+
+public:
+	StyleMap()
+		: MapType({{}}), current(cbegin())
+	{}
+	template<typename... _tParams>
+	StyleMap(_tParams&&... args)
+		: MapType({{}, yforward(args)...}), current(cbegin())
+	{}
+
+	DefGetter(const ynothrow, const HandlerTable&, Current, current->second)
+
+	template<typename... _tParams>
+	void
+	Add(_tParams&&... args)
+	{
+		emplace(yforward(args)...);
+	}
+
+	//! \note 若移除作为默认名称的空串则被忽略。
+	void
+	Remove(const string&);
+
+	PDefH(void, Paint, const Styles::Painter& painter,
+		PaintEventArgs&& e)
+		ImplExpr(PaintAsStyle(painter.GetKey(), std::move(e)))
+
+	void
+	PaintAsStyle(const Key&, PaintEventArgs&&);
+
+	void
+	Switch(const string&);
+
+	using MapType::at;
+
+	using MapType::cbegin;
+
+	using MapType::cend;
+
+	using MapType::crbegin;
+
+	using MapType::crend;
+
+	using MapType::empty;
+
+	using MapType::find;
+
+	using MapType::lower_bound;
+
+	using MapType::size;
+
+	using MapType::upper_bound;
+};
+
+
+/*!
+\brief 取默认样式处理器表。
+\note 全局共享。
+*/
+YF_API HandlerTable&
+FetchDefault();
+//@}
 
 } // namespace Styles;
 

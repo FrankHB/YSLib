@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r701
+\version r739
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-12-23 23:43 +0800
+	2014-01-20 19:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_YStyle
 #include YFM_YSLib_UI_YWindow
+#include YFM_YSLib_UI_YGUI
 
 using namespace ystdex;
 
@@ -273,6 +274,54 @@ Palette::GetPair(Palette::ColorListType::size_type n1,
 	Palette::ColorListType::size_type n2) const
 {
 	return make_pair(colors[n1], colors[n2]);
+}
+
+
+void
+Painter::operator()(PaintEventArgs&& e) const
+{
+	FetchGUIState().Styles.PaintAsStyle(key, std::move(e));
+}
+
+
+void
+StyleMap::PaintAsStyle(const Key& key, PaintEventArgs&& e)
+{
+	using ystdex::is_undereferenceable;
+
+	YAssert(!empty(), "No style found.");
+	YAssert(!is_undereferenceable(current), "Invalidate style state found.");
+
+	const auto& table(current->second);
+	const auto i(table.find(key));
+
+	(i == table.cend() ? table.cbegin() : i)->second(std::move(e));
+}
+
+void
+StyleMap::Remove(const string& name)
+{
+	if(!name.empty())
+	{
+		if(current->first == name)
+			current = cbegin();
+		erase(name);
+	}
+}
+
+void
+StyleMap::Switch(const string& name)
+{
+	const auto i(find(name));
+
+	current = i == cend() ? cbegin() : i;
+}
+
+
+HandlerTable&
+FetchDefault()
+{
+	return FetchGUIState().Styles.at({});
 }
 
 } // namespace Styles;

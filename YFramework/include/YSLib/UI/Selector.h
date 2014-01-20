@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r332
+\version r341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2014-01-11 11:33 +0800
+	2014-01-20 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,15 @@ namespace UI
 class YF_API CheckBox : public Thumb
 {
 public:
+	/*!
+	\brief 视觉样式项目。
+	\since build 468
+	*/
+	enum StyleItem : Styles::StyleItem
+	{
+		CheckBoxBackground = Thumb::EndStyle,
+		EndStyle
+	};
 	/*!
 	\brief 复选框选中状态参数类型。
 	\note bool 参数表示选中后的状态。
