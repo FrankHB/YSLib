@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r758
+\version r759
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-01-20 19:46 +0800
+	2014-01-21 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,14 +139,14 @@ CheckBox::CheckBox(const Rect& r)
 	{
 		Init()
 		{
-			FetchDefault().insert({{typeid(CheckBox), CheckBoxBackground},
+			AddHandlers<CheckBox>(FetchDefault(), {{CheckBoxBackground,
 				[](PaintEventArgs&& e){
 					auto& cb(
 						ystdex::polymorphic_downcast<CheckBox&>(e.GetSender()));
 
 					cb.PaintBox(e, GetSizeOf(cb));
 				}
-			});
+			}});
 		}
 	} init;
 

@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r559
+\version r612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-01-20 19:49 +0800
+	2014-01-21 12:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -235,6 +235,60 @@ using VisualStyle = pair<string, HandlerTable>;
 
 
 /*!
+\ingroup helper_functions
+\brief 向样式处理器表添加指定类型的处理器。
+\note 被添加的值需能表示为 StyleItem 和 Handler 的有序对，
+	使用 ADL <tt>get<0U></tt> 和 <tt>get<1U></tt> 实现访问其中的成员。
+\since build 469
+*/
+//@{
+template<typename _tIn>
+void
+AddHandlers(HandlerTable& table, std::type_index idx, _tIn first, _tIn last)
+{
+	for(; first != last; ++first)
+	{
+		auto&& ref(*first);
+
+		table.emplace(Key(idx, get<0U>(ref)), get<1U>(ref));
+	}
+}
+template<typename _type, typename _tIn>
+inline void
+AddHandlers(HandlerTable& table, _tIn first, _tIn last)
+{
+	Styles::AddHandlers(table, typeid(_type), first, last);
+}
+inline PDefH(void, AddHandlers, HandlerTable& table, std::type_index idx,
+	std::initializer_list<pair<StyleItem, Handler>> il)
+	ImplExpr(Styles::AddHandlers(table, idx, il.begin(), il.end()))
+template<typename _type>
+inline void
+AddHandlers(HandlerTable& table,
+	std::initializer_list<pair<StyleItem, Handler>> il)
+{
+	Styles::AddHandlers(table, typeid(_type), il);
+}
+//! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+//@{
+template<typename _tRange>
+inline void
+AddHandlers(HandlerTable& table, std::type_index idx, _tRange&& c)
+{
+	// XXX: Consider std::make_move_iterator.
+	Styles::AddHandlers(table, idx, begin(yforward(c)), end(yforward(c)));
+}
+template<typename _type, typename _tRange>
+inline void
+AddHandlers(HandlerTable& table, _tRange&& c)
+{
+	Styles::AddHandlers(table, typeid(_type), yforward(c));
+}
+//@}
+//@}
+
+
+/*!
 \brief 带样式的绘制处理函数。
 \warning 非虚析构。
 */
@@ -289,7 +343,8 @@ public:
 		: MapType({{}, yforward(args)...}), current(cbegin())
 	{}
 
-	DefGetter(const ynothrow, const HandlerTable&, Current, current->second)
+	//! \since build 469
+	DefGetter(const ynothrow, const_iterator, Current, current)
 
 	template<typename... _tParams>
 	void

@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3167
+\version r3202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-01-20 19:45 +0800
+	2014-01-22 02:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,29 +54,29 @@ RollColor(hsl_t hsl, Hue delta)
 	return HSLToColor(hsl);
 }
 
-//! \since build 463
+//! \since build 469
 void
 RectDrawButton(const PaintContext& pc, Size s, Hue base_hue,
-	CursorState cursor_state, bool is_enabled = true)
+	CursorState cursor_state, bool is_enabled, bool is_focused)
 {
 	const bool inside(cursor_state != CursorState::Outside);
-	const auto roll([=](const hsl_t& hsl, MonoType gr){
-		return MakeGrayOrColor(RollColor(hsl, base_hue), gr, inside);
+	const auto roll([=](bool b, MonoType gr, const hsl_t& hsl){
+		return MakeGrayOrColor(RollColor(hsl, base_hue), gr, inside || b);
 	});
 	const auto& g(pc.Target);
 
 	YAssert(bool(g), "Invalid graphics context found.");
 
-	DrawRectRoundCorner(pc, s, is_enabled ? roll({25.640625F, 0.493671F,
-		0.462891F}, 112) : FetchGUIState().Colors[Styles::Workspace]);
+	DrawRectRoundCorner(pc, s, is_enabled ? roll(is_focused, 112, {25.640625F,
+		0.493671F, 0.462891F}) : FetchGUIState().Colors[Styles::Workspace]);
 	if(YB_LIKELY(s.Width > 2 && s.Height > 2))
 	{
 		auto pt(pc.Location);
 		const auto& r(pc.ClipArea);
 
 		yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
-		FillRect(g, r, {pt, s}, is_enabled ? roll(
-			{11.304688F, 0.990431F, 0.591797F}, 243) : MakeGray(244));
+		FillRect(g, r, {pt, s}, is_enabled ? roll(is_focused, 243,
+			{11.304688F, 0.990431F, 0.591797F}) : MakeGray(244));
 		if(is_enabled)
 		{
 			if(s.Width > 2 && s.Height > 2)
@@ -84,12 +84,12 @@ RectDrawButton(const PaintContext& pc, Size s, Hue base_hue,
 				Rect rp(pt.X + 1, pt.Y + 1, s.Width - 2, (s.Height - 2) / 2);
 
 				FillRect(g, r, rp,
-					roll({39.132872F, 0.920000F, 0.951172F}, 239));
+					roll({}, 239, {39.132872F, 0.920000F, 0.951172F}));
 				rp.Y += rp.Height;
 				if(s.Height % 2 != 0)
 					++rp.Height;
 				FillRect(g, r, rp,
-					roll({29.523438F, 0.969231F, 0.873047F}, 214));
+					roll({}, 214, {29.523438F, 0.969231F, 0.873047F}));
 			}
 			if(cursor_state == CursorState::Pressed)
 			{
@@ -106,25 +106,6 @@ RectDrawButton(const PaintContext& pc, Size s, Hue base_hue,
 	}
 }
 
-//! \since build 468
-void
-DrawThumbBackground(PaintEventArgs&& e)
-{
-	const auto& tmb(ystdex::polymorphic_downcast<Thumb&>(e.GetSender()));
-	const auto base_hue(tmb.GetHue());
-	const bool enabled(IsEnabled(tmb));
-	Size s(GetSizeOf(tmb));
-
-	RectDrawButton(e, s, base_hue, tmb.GetCursorState(), enabled);
-	if(enabled && IsFocused(tmb) && YB_LIKELY(s.Width > 6 && s.Height > 6))
-	{
-		yunseq(s.Width -= 6, s.Height -= 6);
-		DrawRect(e.Target, e.ClipArea, e.Location + Vec(3, 3), s,
-			tmb.GetCursorState() == CursorState::Outside ? Color(178, 178, 178)
-			: HSLToColor({base_hue, 1, 0.5F}));
-	}
-}
-
 } // unnamed namespace;
 
 
@@ -136,8 +117,15 @@ Thumb::Thumb(const Rect& r, Hue h)
 	{
 		Init()
 		{
-			FetchDefault().insert({{typeid(Thumb), ThumbBackground},
-				DrawThumbBackground});
+			AddHandlers<Thumb>(FetchDefault(), {{ThumbBackground,
+				[](PaintEventArgs&& e){
+					const auto& tmb(
+						ystdex::polymorphic_downcast<Thumb&>(e.GetSender()));
+
+					RectDrawButton(e, GetSizeOf(tmb), tmb.GetHue(),
+						tmb.GetCursorState(), IsEnabled(tmb), IsFocused(tmb));
+				}
+			}});
 		}
 	} init;
 

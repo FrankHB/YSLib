@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4763
+\version r4767
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-01-19 18:46 +0800
+	2014-01-21 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2323,7 +2323,7 @@ b337
 					Size::Zero, RectEmpty)"
 			)
 		),
-		- $dev $lib "redundant including header %<initialize_list>" @ "header"
+		- $dev $lib "redundant including header '<initializer_list>'" @ "header"
 			@ %YCLib.Video
 	),
 	/ %YBase.YStandardEx $=
@@ -2594,13 +2594,13 @@ b329
 	(
 		* "missing declaration %ystdex::(is_dereferencable, \
 			is_undereferencable)" %Iterator $since b250
-			$= (/ "including header %<memory>" -> "header %memory.hpp"),
+			$= (/ "including header '<memory>'" -> "header 'memory.hpp'"),
 		/ %CString $=
 		(
 			/ "function template %sntctslen" => "%ntctslen",
 			(
 			(
-			+ "including header %<string>";
+			+ "including header '<string>'";
 			/ "returning types of function templates for NTCTS \
 				comparing" ^ "%std::char_traits::int_type" ~ "%wint_t",
 			/ "names of function templates for NTCTS",

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1714
+\version r1723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2014-01-11 13:26 +0800
+	2014-01-21 09:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,6 +372,7 @@ TranslateTime(const std::time_t&, const char* = DefaultTimeFormat)
 
 /*!
 \brief 取字型家族名称。
+\post 结果是指向非空列表的非空指针。
 \since build 307
 */
 YF_API shared_ptr<UI::TextList::ListType>
@@ -506,6 +507,16 @@ SetBufferRendererAndText(_tWidget& wgt, const String& s)
 	wgt.SetRenderer(make_unique<BufferedRenderer>()),
 	wgt.Text = s;
 }
+
+
+/*!
+\brief 取视觉样式名称。
+\post 结果是指向非空列表的非空指针。
+\note 使用参数替换默认名称的空串。
+\since build 469
+*/
+YF_API shared_ptr<TextList::ListType>
+FetchVisualStyleNames(String = u"<Default>");
 
 } // namespace UI;
 

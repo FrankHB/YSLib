@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1053
+\version r1062
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-01-11 13:01 +0800
+	2014-01-21 12:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,6 +153,8 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 	($type "Button")($bounds "0 170 72 22"))
 (pnlSetting
 	($type "Panel")($bounds "10 40 224 100")
+	(ddlStyle
+		($type "DropDownList")($bounds "10 24 80 22"))
 	(cbHex
 		($type "CheckButton")($bounds "10 60 100 18"))
 	(cbFPS
@@ -218,6 +220,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidgetN(Button, btnMenu, node_sub)
 	auto& node_pnlSetting(node_sub.at("$children").at("pnlSetting"));
 	DeclDynWidget(Panel, pnlSetting, node_pnlSetting)
+	DeclDynWidgetN(DropDownList, ddlStyle, node_pnlSetting)
 	DeclDynWidgetN(CheckButton, cbHex, node_pnlSetting)
 	DeclDynWidgetN(CheckButton, cbFPS, node_pnlSetting)
 	DeclDynWidgetN(Button, btnPrevBackground, node_pnlSetting)
@@ -250,6 +253,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	WrapForSwapScreens(dsk_m, SwapMask),
 	WrapForSwapScreens(dsk_s, SwapMask),
 	ani.Reset(&pnlTest1),
+	ddlStyle.SetList(FetchVisualStyleNames()),
 	yunseq(
 	dsk_m.Background = ImageBrush(FetchImage(0)),
 	dsk_s.Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
@@ -265,6 +269,13 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 #else
 	btnMenu.Text = u"菜单(Start)",
 #endif
+	ddlStyle.Text = [](const TextList::ListType& lst){
+		const auto& name(FetchGUIState().Styles.GetCurrent()->first);
+
+		YAssert(!lst.empty(), "Invalid list found.");
+
+		return name.empty() ? lst[0] : String(name);
+	}(ddlStyle.GetList()),
 	cbHex.Text = u"显示十六进制",
 	cbFPS.Text = u"显示 FPS",
 	pnlSetting.Background = SolidBrush({160, 252, 160}),

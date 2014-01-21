@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r879
+\version r880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-01-19 16:36 +0800
+	2014-01-20 23:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,7 +403,7 @@ struct expanded_caller
 
 
 /*!
-\ingroup helper_function
+\ingroup helper_functions
 \brief 构造接受冗余参数的可调用对象。
 \since build 448
 */

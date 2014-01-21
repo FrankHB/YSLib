@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r5565
+\version r5593
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-01-20 19:57 +0800
+	2014-01-22 02:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,35 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.UI $=
+		(
+			/ %YStyle $=
+			(
+				+ "(1 inline function, 5 function templates) \
+					%Styles::AddHandlers",
+				/ "return type"@ "member function Styles::StyleMap::GetCurrent"
+					@ %'YStyle' -> 'const_iterator' ~ 'const HandlerTable&'
+			),
+			(
+			$dep_from "%Styles::AddHandlers";
+			/ DLD "simplified controls default style initialization \
+				implementation"
+			),
+			/ "box" @ "focused background of buttons" @ "default style"
+				@ %Button -> "highlight edge"
+		),
+		+ "function %UI::FetchVisualStyleNames" @ %Helper.ShellHelper
+	)
+	(
+	$dep_from %YFramework.Helper.ShellHelper;
+	+ "drop down list to select visual styles" @ %YReader.ShlExplorer
+	)
+),
+
+b468
 (
 	/ %YFramework.YSLib $=
 	(

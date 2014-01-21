@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2803
+\version r2813
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2014-01-15 23:32 +0800
+	2014-01-21 10:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1837,7 +1837,7 @@ $4.1.3.1.4 临时性例外：
 
 @5.14 I/O 操作：
 注意 I/O 操作是副作用。
-其它参见 @5.15.10 。
+其它参见 @5.15.12 。
 
 @5.15 标准库：
 
@@ -1922,11 +1922,20 @@ $4.1.3.1.4 临时性例外：
 由于转移语义， C++11 能引入 std::unique_ptr 取代 C++98/03 的 std::auto_ptr ，避免后者区分转移困难、无法作为容器元素等局限。
 仅当需要共享资源时使用 shared_ptr ，否则尽量使用 unique_ptr 。
 
-@5.15.9 迭代器：
+@5.15.9 容器：
+注意容器对元素的要求。
+注意异常安全。保证无异常抛出的成员函数不一定显式使用 noexcept ，参见 @5.10.5.5.1 。
+若有可能，使用 empty 代替 size 。
+若有可能，使用 emplace 代替 insert 。
+
+@5.15.10 迭代器：
 注意迭代器类别(iterator category) 。
 注意 std::iterator 的继承应该为 public 继承，否则需要显式在派生类中声明类型名以免失效。对于迭代器类模板，依赖名称(@5.3.3.2) 若作为 std::iterator 的参数，总是需要重新声明。
 
-@5.15.10 C++ 标准 I/O
+@5.15.11 算法：
+注意部分的算法复杂度和类型满足的要求相关。
+
+@5.15.12 C++ 标准 I/O
 可以同时使用 C++ 标准流和 printf/scanf 函数族进行格式化输入/输出处理，但在考虑效率（以及目标文件大小）时应尽量避免使用 C++ 标准流。
 应注意 nifty counter idiom(http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter) 对多翻译单元程序大小的影响。
 正确使用 printf/scanf 函数族格式化输入输出的控制字符。
