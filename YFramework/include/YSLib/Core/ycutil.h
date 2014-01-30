@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2012
+\version r2040
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-12-22 22:36 +0800
+	2014-01-29 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,6 +159,34 @@ IsInInterval(_type i, _type a, _type b) ynothrow
 }
 
 /*!
+\brief 判断 i 是否在闭区间 [FetchZero<_type>(), b] 中。
+\pre 断言： <tt>FetchZero<_type>() < b</tt> 。
+\since build 470
+*/
+template<typename _type>
+inline bool
+IsInClosedInterval(_type i, _type b) ynothrow
+{
+	YAssert(FetchZero<_type>() < b,
+		"Zero element as lower bound is not less than upper bound.");
+
+	return !(i < FetchZero<_type>() || b < i);
+}
+/*!
+\brief 判断 i 是否在闭区间 [a, b] 中。
+\pre 断言： <tt>a < b</tt> 。
+\since build 470
+*/
+template<typename _type>
+inline bool
+IsInClosedInterval(_type i, _type a, _type b) ynothrow
+{
+	YAssert(a < b, "Lower bound is not less than upper bound.");
+
+	return !(i < a || b < i);
+}
+
+/*!
 \brief 判断 i 是否在开区间 (FetchZero<_type>(), b) 内。
 \pre 断言： <tt>FetchZero<_type>() < b</tt> 。
 \since build 319
@@ -170,7 +198,7 @@ IsInOpenInterval(_type i, _type b) ynothrow
 	YAssert(FetchZero<_type>() < b,
 		"Zero element as lower bound is not less than upper bound.");
 
-	return i > FetchZero<_type>() && i < b;
+	return FetchZero<_type>() < i && i < b;
 }
 /*!
 \brief 判断 i 是否在开区间 (a, b) 内。
@@ -184,7 +212,7 @@ IsInOpenInterval(_type i, _type a, _type b) ynothrow
 	YAssert(a < b,
 		"Lower bound is not less than upper bound.");
 
-	return i > a && i < b;
+	return a < i && i < b;
 }
 
 /*!

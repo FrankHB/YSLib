@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r195
+\version r198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-12-24 00:38 +0800
+	2014-01-25 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@ WindowThread::~WindowThread()
 	catch(Win32Exception&)
 	{}
 	// NOTE: If the thread has been already completed there is no effect.
-	// TODO: Exception safety: add either assertion or logging when throwing
+	// FIXME: Exception safety: add either assertion or logging when throwing
 	//	other exceptions.
 	try
 	{
@@ -91,7 +91,7 @@ WindowThread::ThreadLoop(NativeWindowHandle h_wnd)
 void
 WindowThread::ThreadLoop(unique_ptr<Window> p)
 {
-	YAssert(!p_wnd, "Repeated window initialization detected.");
+	YAssert(!p_wnd, "Duplicate window initialization detected.");
 
 	p_wnd = p.release();
 

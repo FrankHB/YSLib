@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r638
+\version r645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2013-12-08 22:02 +0800
+	2014-01-28 21:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -426,6 +426,9 @@ to_string(const path<_tSeqCon>& pth, const typename _tSeqCon::value_type&
 	seperator = &to_array<
 	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
 {
+	static_assert(is_object<typename _tSeqCon::value_type>::value,
+		"Invalid type found.");
+
 	if(pth.empty())
 		return {};
 
@@ -437,7 +440,7 @@ to_string(const path<_tSeqCon>& pth, const typename _tSeqCon::value_type&
 		res += seperator;
 		res += *i;
 	}
-	return std::move(res);
+	return res;
 }
 
 /*!
@@ -449,6 +452,8 @@ typename _tSeqCon::value_type
 to_string_d(const path<_tSeqCon>& pth, typename string_traits<typename
 	_tSeqCon::value_type>::value_type delimiter = '/')
 {
+	static_assert(is_object<typename _tSeqCon::value_type>::value,
+		"Invalid type found.");
 	typename _tSeqCon::value_type res;
 
 	for(const auto& s : pth)
@@ -456,7 +461,7 @@ to_string_d(const path<_tSeqCon>& pth, typename string_traits<typename
 		res += s;
 		res += delimiter;
 	}
-	return std::move(res);
+	return res;
 }
 //@}
 

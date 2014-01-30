@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3160
+\version r3162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2013-12-31 13:08 +0800
+	2014-01-28 05:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,7 +172,7 @@ FileBox::ListItems() const
 
 	ListFiles(pthDirectory, lst);
 	// TODO: Platform-dependent name converting.
-	return std::move(lst);
+	return lst;
 }
 
 

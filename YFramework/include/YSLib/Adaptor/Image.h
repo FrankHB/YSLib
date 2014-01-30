@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r608
+\version r690
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2013-12-24 00:51 +0800
+	2014-01-30 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,8 @@ namespace Drawing
 
 //! \since build 418
 class CompactPixmap;
-
+//! \since build 470
+class HBitmap;
 
 //! \since build 402
 using BitPerPixel = u8;
@@ -66,6 +67,8 @@ enum class ImageFormat : int
 	BMP = 0,
 	ICO = 1,
 	JPEG = 2,
+	//! \since build 470
+	PNG = 13,
 	GIF = 25
 };
 
@@ -124,13 +127,17 @@ enum class SamplingFilter
 };
 
 
-//! \since build 402
+/*!
+\brief 图像资源分配失败异常：表示存储等资源不足导致无法创建图像。
+\since build 402
+*/
 class YF_API BadImageAlloc : public std::bad_alloc
 {};
 
 
 //! \since build 417
 //@{
+//! \brief 未知图像格式异常：表示请求的操作涉及的图像格式不受库的支持。
 class YF_API UnknownImageFormat : public LoggedEvent
 {
 public:
@@ -140,20 +147,67 @@ public:
 };
 
 
+/*!
+\brief 图像内存对象；保存图像内容的数据缓冲对象。
+\note 仅当新建缓冲区时可访问缓冲区数据。
+*/
 class YF_API ImageMemory final
 {
 public:
 	using NativeHandle = ::FIMEMORY*;
+	//! \since build 470
+	using Buffer = vector<octet>;
 
 private:
+	Buffer buffer;
 	NativeHandle handle;
 	ImageFormat format;
 
 public:
-	ImageMemory(octet* = {}, size_t = 0);
+	/*!
+	\exception LoggedEvent 打开内存缓冲区失败。
+	\note 需要校验图像格式正确。
+	\since build 470
+	*/
+	//@{
+	/*!
+	\brief 构造：从现有图像打开。
+	\post <tt>GetBuffer().empty()</tt> 。
+	\throw UnknownImageFormat 未知图像格式。
+	\throw LoggedEvent 图像为空。
+	\throw LoggedEvent 图像保存到缓冲区失败。
+	*/
+	explicit
+	ImageMemory(const HBitmap&, ImageFormat = ImageFormat::BMP,
+		ImageDecoderFlags = ImageDecoderFlags::Default);
+	/*!
+	\post <tt>!GetBuffer().empty()</tt> 。
+	\exception LoggedEvent 缓冲区大小等于 0 。
+	\exception LoggedEvent 打开内存缓冲区失败。
+	*/
+	//@{
+	//! \brief 构造：打开指定的内存缓冲区。
+	ImageMemory(Buffer);
+	//! \brief 构造：以指定格式打开指定的内存缓冲区。
+	ImageMemory(Buffer, ImageFormat);
+	//! \brief 构造：新建并打开内存缓冲区。
+	template<typename _fCallable>
+	ImageMemory(_fCallable f)
+		: ImageMemory(f())
+	{}
+	//! \brief 构造：以指定格式新建并打开内存缓冲区。
+	template<typename _fCallable>
+	ImageMemory(_fCallable f, ImageFormat fmt)
+		: ImageMemory(f(), fmt)
+	{}
+	//@}
+	DefDelMoveCtor(ImageMemory)
+	//@}
 	//! \since build 461
 	~ImageMemory();
 
+	//! \since build 470
+	DefGetter(const ynothrow, const Buffer&, Buffer, buffer)
 	DefGetter(const ynothrow, ImageFormat, Format, format)
 	DefGetter(const ynothrow, NativeHandle, NativeHandle, handle)
 };
@@ -277,6 +331,29 @@ public:
 	*/
 	void
 	Rescale(const Size&, SamplingFilter = SamplingFilter::Box);
+
+	/*!
+	\return 是否保存成功。
+	\since build 471 。
+	*/
+	//@{
+	//!\ brief 保存：使用指定 UTF-8 文件名、格式和解码器标识。
+	bool
+	SaveTo(const char*, ImageFormat = ImageFormat::BMP,
+		ImageDecoderFlags = ImageDecoderFlags::Default) const ynothrow;
+	//!\ brief 保存：使用指定 UTF16-LE 文件名、格式和解码器标识。
+	bool
+	SaveTo(const char16_t*, ImageFormat = ImageFormat::BMP,
+		ImageDecoderFlags = ImageDecoderFlags::Default) const ynothrow;
+	//!\ brief 保存：使用指定字符串文件名、格式和解码器标识。
+	template<class _tString, typename = decltype(&_tString()[0])>
+	bool
+	SaveTo(const _tString& filename, ImageFormat fmt = ImageFormat::BMP,
+		ImageDecoderFlags flags = ImageDecoderFlags::Default) const
+	{
+		return SaveTo(&filename[0], fmt, flags);
+	}
+	//@}
 
 	/*
 	\brief 交换。
@@ -486,9 +563,9 @@ public:
 	DetectFormat(const char16_t*);
 	//@}
 
-	//! \since build 418
+	//! \since build 470
 	static CompactPixmap
-	Load(const vector<octet>&);
+	Load(ImageMemory::Buffer);
 
 	/*!
 	\brief 读取指定路径的多页面图片文件为用于直接呈现的帧序列。
@@ -527,7 +604,7 @@ public:
 
 		if(con.empty())
 			con.emplace_back(path);
-		return std::move(con);
+		return con;
 	}
 };
 

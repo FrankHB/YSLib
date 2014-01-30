@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r607
+\version r610
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2013-12-08 22:44 +0800
+	2014-01-28 05:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -482,7 +482,7 @@ to_array(const _tSrcElement(&src)[_vN])
 	std::array<_type, _vN> arr;
 
 	std::copy_n(std::addressof(src[0]), _vN, std::addressof(arr[0]));
-	return std::move(arr);
+	return arr;
 }
 template<typename _type, size_t _vN, typename _tSrcElement>
 inline std::array<_type, _vN>
@@ -492,7 +492,7 @@ to_array(_tSrcElement(&&src)[_vN])
 
 	std::copy_n(std::make_move_iterator(std::addressof(src[0])), _vN,
 		std::addressof(arr[0]));
-	return std::move(arr);
+	return arr;
 }
 //@}
 

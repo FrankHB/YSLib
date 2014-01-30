@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r612
+\version r615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-01-21 12:25 +0800
+	2014-01-29 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ yconstfn PDefH(Color, MakeGrayOrColor, Color c, MonoType g, bool colored)
 
 /*!
 \brief 色调。
-\note 角度制，值 360 对应一个圆周。
+\note 角度制，单位为 ° ，值 360 对应一个圆周。
 \since build 302
 */
 using Hue = ystdex::fixed_point<u16, 9>;
@@ -106,12 +106,13 @@ struct hsl_t
 {
 	/*!
 	\brief 色调。
+	\note 取值范围 [0, 360) 。
 	\since build 302
 	*/
 	Hue h;
 	/*!
 	\brief 饱和度和亮度。
-	\note 最大有效值为 1 。
+	\note 取值范围 [0, 1] 。
 	\since build 276
 	*/
 	float s, l;

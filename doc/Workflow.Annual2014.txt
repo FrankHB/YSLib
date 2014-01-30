@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r155
+\version r162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-01-20 08:52 +0800
+	2014-01-30 21:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,6 +150,13 @@ YFramework should implement the visual style support. It has been planned from v
 				It is easy to implement and use.
 				It is not very hard to add functionality. Although if needed, the major interface might be modified, but not very probable.
 				Indices are not needed to be assigned manually if using enumeration type.
+ISO C++11 still uses copy elision for some cases as C++03. There are some special rules.
+	See ISO C++11 12.8/31 for conditions.
+	If these requirements are met, move constructor of a class can be selected by the overloading resolution without explicitly using 'std::move' or rvalue reference cast. See ISO C++ 12.8/32 for details.
+	See also http://isocpp.org/blog/2012/12/quick-q-a-unique-ptr-is-not-copyable-so-why-can-i-return-one-by-value-stack .
+Since now ISO C++11 is mandated '<::' to be distinguished as '<' and '::' but not '<:' and ':' if the consequence character is not '>' or ':' , no need to always add space to between '<' and '::'.
+	G++ 4.7.1 has not supported.
+	G++ 4.8.2 is conforming.
 
 ////
 

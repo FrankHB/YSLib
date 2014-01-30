@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r225
+\version r227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2013-12-24 00:54 +0800
+	2014-01-28 05:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 		}
 		res += ValueNode{0, "$pointer",
 			shared_ptr<IWidget>(std::move(p_new_widget))};
-		return std::move(res);
+		return res;
 	}
 	return {};
 }

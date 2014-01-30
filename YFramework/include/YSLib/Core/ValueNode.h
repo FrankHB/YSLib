@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1347
+\version r1349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2013-12-23 22:42 +0800
+	2014-01-28 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -379,7 +379,7 @@ CollectNodes(_tParams&&... args)
 	auto p(make_unique<ValueNode::Container>());
 
 	ystdex::seq_insert(*p, yforward(args)...);
-	return std::move(p);
+	return p;
 }
 
 /*!

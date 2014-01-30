@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4546
+\version r4549
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2013-12-24 00:08 +0800
+	2014-01-28 05:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -220,7 +220,7 @@ ShlReader::LoadBookmarks(const string& group)
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}
-	return std::move(bookmarks);
+	return bookmarks;
 }
 
 ReaderSetting
@@ -258,7 +258,7 @@ ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
 					str += to_string(pos);
 					str += ' ';
 				}
-				return std::move(str);
+				return str;
 		}();
 	}
 	catch(std::exception& e) // TODO: Logging.

@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r739
+\version r745
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-01-20 19:13 +0800
+	2014-01-29 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -195,13 +195,16 @@ ColorToHSL(Color c)
 Color
 HSLToColor(hsl_t c)
 {
+	YAssert(IsInInterval<Hue>(c.h, 0, 360), "Invalid hue found."),
+	YAssert(IsInClosedInterval(c.s, 0.F, 1.F), "Invalid saturation found."),
+	YAssert(IsInClosedInterval(c.l, 0.F, 1.F), "Invalid light found.");
+
 	if(c.s == 0)
-		return c.l > 255.F / 0x100 ? Color(0xFF, 0xFF, 0xFF)
-			: Color(c.l * 0x100, c.l * 0x100, c.l * 0x100);
+		return MakeGray(c.l > 255.F / 0x100 ? 0xFF : c.l * 0x100);
 
 	using mid_t = float; //中间类型。
 
-	mid_t t2((c.l < 0.5 ? c.l * (1 + c.s) : (c.l + c.s - c.l * c.s)) * 0x100),
+	mid_t t2((c.l < 0.5F ? c.l * (1 + c.s) : (c.l + c.s - c.l * c.s)) * 0x100),
 		t1((c.l * 0x200) - t2);
 	mid_t tmp[3]{c.h + 120, c.h, c.h - 120}; \
 		// 每个元素对应一个 RGB 分量，值 360 对应一个圆周。

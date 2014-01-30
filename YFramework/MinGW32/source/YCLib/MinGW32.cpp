@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r128
+\version r131
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2013-12-24 10:31 +0800
+	2014-01-28 05:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 		auto res(WCSToMBCS(buf, CP_UTF8));
 
 		::LocalFree(buf);
-		return std::move(res);
+		return res;
 	}
 	catch(...)
 	{}
@@ -133,7 +133,7 @@ MBCSToWCS(const char* str, std::size_t len, int cp)
 
 	::MultiByteToWideChar(cp, 0, str, len, w_str, w_len);
 
-	return std::move(res);
+	return res;
 }
 
 } // namespace Windows;

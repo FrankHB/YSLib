@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r561
+\version r652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2013-12-24 00:52 +0800
+	2014-01-30 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,13 +77,15 @@ FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
 	}
 };
 
+//! \since build 470
+//@{
 ::FIBITMAP*
-LoadImage(ImageFormat fmt, std::FILE* fp, int flags) ynothrow
+LoadImage(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags) ynothrow
 {
 	if(fp)
 	{
 		const auto bitmap(::FreeImage_LoadFromHandle(::FREE_IMAGE_FORMAT(fmt),
-			&u8_io, ::fi_handle(fp), flags));
+			&u8_io, ::fi_handle(fp), int(flags)));
 
 		std::fclose(fp);
 		return bitmap;
@@ -91,15 +93,45 @@ LoadImage(ImageFormat fmt, std::FILE* fp, int flags) ynothrow
 	return {};
 }
 ::FIBITMAP*
-LoadImage(ImageFormat fmt, const char* filename, int flags = 0) ynothrow
+LoadImage(ImageFormat fmt, const char* filename, ImageDecoderFlags flags)
+	ynothrow
 {
 	return LoadImage(fmt, ufopen(filename, "rb"), flags);
 }
 ::FIBITMAP*
-LoadImage(ImageFormat fmt, const char16_t* filename, int flags = 0) ynothrow
+LoadImage(ImageFormat fmt, const char16_t* filename, ImageDecoderFlags flags)
+	ynothrow
 {
 	return LoadImage(fmt, ufopen(filename, u"rb"), flags);
 }
+
+bool
+SaveImage(ImageFormat fmt, ::FIBITMAP* dib, std::FILE* fp,
+	ImageDecoderFlags flags) ynothrow
+{
+	if(dib)
+	{
+		const bool res(::FreeImage_SaveToHandle(::FREE_IMAGE_FORMAT(fmt),
+			dib, &u8_io, ::fi_handle(fp), int(flags)));
+
+		std::fclose(fp);
+		return res;
+	}
+	return {};
+}
+bool
+SaveImage(ImageFormat fmt, ::FIBITMAP* dib, const char* filename,
+	ImageDecoderFlags flags) ynothrow
+{
+	return SaveImage(fmt, dib, ufopen(filename, "wb"), flags);
+}
+bool
+SaveImage(ImageFormat fmt, ::FIBITMAP* dib, const char16_t* filename,
+	ImageDecoderFlags flags) ynothrow
+{
+	return SaveImage(fmt, dib, ufopen(filename, u"wb"), flags);
+}
+//@}
 
 //! \since build 457
 //@{
@@ -158,16 +190,43 @@ LookupPlugin(::FREE_IMAGE_FORMAT fif)
 } // unnamed namespace;
 
 
-ImageMemory::ImageMemory(octet* p, size_t size)
-	: handle(::FreeImage_OpenMemory(static_cast<byte*>(p), static_cast<
-	::DWORD>(size))), format(ImageCodec::DetectFormat(handle, size))
+ImageMemory::ImageMemory(const HBitmap& pixmap, ImageFormat fmt,
+	ImageDecoderFlags flags)
+	: buffer(), handle(), format(fmt)
+{
+	if(fmt == ImageFormat::Unknown)
+		throw UnknownImageFormat("Unknown image format found when saving.");
+
+	const auto p_data(pixmap.GetDataPtr());
+
+	if(!p_data)
+		throw LoggedEvent("Source image is empty.");
+	handle = ::FreeImage_OpenMemory();
+	if(!::FreeImage_SaveToMemory(::FREE_IMAGE_FORMAT(format), p_data,
+		handle, int(flags)))
+		throw LoggedEvent("Saving image to memory failed.");
+}
+ImageMemory::ImageMemory(Buffer buf)
+	: ImageMemory(std::move(buf), ImageFormat::Unknown)
+{
+	format = ImageCodec::DetectFormat(handle, buffer.size());
+}
+ImageMemory::ImageMemory(Buffer buf, ImageFormat fmt)
+	: buffer([&]{
+		if(buf.empty())
+			throw LoggedEvent("Null buffer found.");
+		return std::move(buf);
+	}()), handle(::FreeImage_OpenMemory(
+	static_cast<byte*>(buffer.data()), static_cast< ::DWORD>(buffer.size()))),
+	format(fmt)
 {
 	if(!handle)
 		throw LoggedEvent("Opening image memory failed.");
 }
 ImageMemory::~ImageMemory()
 {
-	::FreeImage_CloseMemory(handle);
+	if(!buffer.empty())
+		::FreeImage_CloseMemory(handle);
 }
 
 
@@ -181,7 +240,7 @@ HBitmap::HBitmap(const char* filename, ImageDecoderFlags flags)
 	: HBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
 HBitmap::HBitmap(const char* filename, ImageFormat fmt, ImageDecoderFlags flags)
-	: bitmap(LoadImage(fmt, filename, int(flags)))
+	: bitmap(LoadImage(fmt, filename, flags))
 {
 	if(!bitmap)
 		throw LoggedEvent("Loading image failed.");
@@ -191,7 +250,7 @@ HBitmap::HBitmap(const char16_t* filename, ImageDecoderFlags flags)
 {}
 HBitmap::HBitmap(const char16_t* filename, ImageFormat fmt,
 	ImageDecoderFlags flags)
-	: bitmap(LoadImage(fmt, filename, int(flags)))
+	: bitmap(LoadImage(fmt, filename, flags))
 {
 	if(!bitmap)
 		throw LoggedEvent("Loading image failed.");
@@ -251,6 +310,19 @@ void
 HBitmap::Rescale(const Size& s, SamplingFilter sf)
 {
 	*this = HBitmap(*this, s, sf);
+}
+
+bool
+HBitmap::SaveTo(const char* filename, ImageFormat fmt, ImageDecoderFlags flags)
+	const ynothrow
+{
+	return SaveImage(fmt, GetDataPtr(), filename, flags);
+}
+bool
+HBitmap::SaveTo(const char16_t* filename, ImageFormat fmt,
+	ImageDecoderFlags flags) const ynothrow
+{
+	return SaveImage(fmt, GetDataPtr(), filename, flags);
 }
 
 
@@ -322,29 +394,33 @@ MultiBitmapData::LockPage(size_t index) const ynothrow
 namespace
 {
 
+//! \since build 470
+//@{
 MultiBitmapData*
-LoadImagePages(ImageFormat fmt, std::FILE* fp, int flags) ynothrow
+LoadImagePages(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags) ynothrow
 {
 	if(fp)
 		try
 		{
-			return new MultiBitmapData(fmt, *fp, flags);
+			return new MultiBitmapData(fmt, *fp, int(flags));
 		}
 		catch(std::exception&)
 		{}
 	return {};
 }
 MultiBitmapData*
-LoadImagePages(ImageFormat fmt, const char* filename, int flags = 0) ynothrow
+LoadImagePages(ImageFormat fmt, const char* filename, ImageDecoderFlags flags)
+	ynothrow
 {
 	return LoadImagePages(fmt, ufopen(filename, "rb"), flags);
 }
 MultiBitmapData*
-LoadImagePages(ImageFormat fmt, const char16_t* filename, int flags = 0)
-	ynothrow
+LoadImagePages(ImageFormat fmt, const char16_t* filename,
+	ImageDecoderFlags flags) ynothrow
 {
 	return LoadImagePages(fmt, ufopen(filename, u"rb"), flags);
 }
+//@}
 
 } // unnamed namespace;
 
@@ -361,7 +437,7 @@ HMultiBitmap::HMultiBitmap(const char* filename, ImageDecoderFlags flags)
 {}
 HMultiBitmap::HMultiBitmap(const char* filename, ImageFormat fmt,
 	ImageDecoderFlags flags)
-	: pages(LoadImagePages(fmt, filename, int(flags)))
+	: pages(LoadImagePages(fmt, filename, flags))
 {
 	if(!pages)
 		throw LoggedEvent("Loading image pages failed.");
@@ -371,7 +447,7 @@ HMultiBitmap::HMultiBitmap(const char16_t* filename, ImageDecoderFlags flags)
 {}
 HMultiBitmap::HMultiBitmap(const char16_t* filename, ImageFormat fmt,
 	ImageDecoderFlags flags)
-	: pages(LoadImagePages(fmt, filename, int(flags)))
+	: pages(LoadImagePages(fmt, filename, flags))
 {
 	if(!pages)
 		throw LoggedEvent("Loading image pages failed.");
@@ -466,9 +542,9 @@ ImageCodec::DetectFormat(const char16_t* filename)
 }
 
 CompactPixmap
-ImageCodec::Load(const vector<octet>& vec)
+ImageCodec::Load(ImageMemory::Buffer buf)
 {
-	ImageMemory mem(const_cast<octet*>(&vec[0]), vec.size());
+	ImageMemory mem(std::move(buf));
 
 	if(mem.GetFormat() == ImageFormat::Unknown)
 		throw UnknownImageFormat("Unknown image format found when loading.");

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1034
+\version r1036
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-01-03 16:55 +0800
+	2014-01-28 05:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ u16_to_u(const char16_t* u16str)
 
 	str = std::string(tstr = CHRLib::strdup(u16str));
 	std::free(tstr);
-	return std::move(str);
+	return str;
 }
 #if YCL_DS
 #elif YCL_MinGW32
@@ -95,7 +95,7 @@ u_to_w(const char* str)
 	wstr = std::wstring(reinterpret_cast<const wchar_t*>(
 		tstr = CHRLib::ucsdup(str)));
 	std::free(tstr);
-	return std::move(wstr);
+	return wstr;
 }
 #else
 #	error "Unsupported platform found."

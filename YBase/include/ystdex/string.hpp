@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r477
+\version r479
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2013-12-22 20:43 +0800
+	2014-01-28 05:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,7 +174,7 @@ alph(_tString& str)
 	_tString res(str);
 
 	ystdex::sort_unique(res);
-	return std::move(res);
+	return res;
 }
 
 /*!

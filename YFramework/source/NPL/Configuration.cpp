@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r675
+\version r677
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2013-12-24 00:40 +0800
+	2014-01-28 05:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,7 +98,7 @@ LoadNPLA1(ValueNode&& tree)
 			"Bad configuration found: cast failed from [%s] to [%s] .",
 			e.from(), e.to()), Warning);
 	}
-	return std::move(root);
+	return root;
 }
 
 

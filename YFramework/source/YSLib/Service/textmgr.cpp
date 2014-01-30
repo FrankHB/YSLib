@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3778
+\version r3780
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2013-12-23 23:28 +0800
+	2014-01-28 05:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -278,7 +278,7 @@ CopySliceFrom(TextFileBuffer& buf, size_t pos, size_t len)
 		str.push_back(*i_beg);
 		yunseq(++i_beg, --len);
 	}
-	return std::move(str);
+	return str;
 }
 
 } // namespace Text;

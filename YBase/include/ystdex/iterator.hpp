@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3027
+\version r3038
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2013-12-13 12:56 +0800
+	2014-01-28 05:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -572,7 +572,7 @@ public:
 		auto i(*this);
 
 		i += n;
-		return std::move(i);
+		return i;
 	}
 
 	//! \since build 415
@@ -582,7 +582,7 @@ public:
 		auto i(*this);
 
 		i -= n;
-		return std::move(i);
+		return i;
 	}
 
 	/*!
@@ -855,7 +855,7 @@ public:
 		auto i(*this);
 
 		++*this;
-		return std::move(i);
+		return i;
 	}
 	//@}
 
@@ -873,7 +873,7 @@ public:
 		auto i(*this);
 
 		--*this;
-		return std::move(i);
+		return i;
 	}
 	//@}
 
@@ -894,7 +894,7 @@ public:
 		auto i(*this);
 
 		yunseq(i.first += n, i.second += n);
-		return std::move(i);
+		return i;
 	}
 
 	pair_iterator
@@ -903,7 +903,7 @@ public:
 		auto i(*this);
 
 		yunseq(i.first -= n, i.second -= n);
-		return std::move(i);
+		return i;
 	}
 	//@}
 
@@ -1187,7 +1187,7 @@ public:
 		auto i(*this);
 
 		++*this;
-		return std::move(i);
+		return i;
 	}
 
 	inline bitseg_iterator&
@@ -1209,7 +1209,7 @@ public:
 		auto i(*this);
 
 		--*this;
-		return std::move(i);
+		return i;
 	}
 
 	reference
@@ -1379,7 +1379,7 @@ public:
 		auto i(*this);
 
 		++*this;
-		return std::move(i);
+		return i;
 	}
 
 	subscriptive_iterator
@@ -1394,7 +1394,7 @@ public:
 		auto i(*this);
 
 		--*this;
-		return std::move(i);
+		return i;
 	}
 	//@}
 

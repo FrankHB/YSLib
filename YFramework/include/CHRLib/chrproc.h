@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r851
+\version r856
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-12-24 09:42 +0800
+	2014-01-28 05:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,7 +157,7 @@ GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 		typename ystdex::string_traits<_tDst>::value_type());
 
 	str.resize(UCS2ToMBCS(&str[0], src.c_str(), enc));
-	return std::move(str);
+	return str;
 }
 
 
@@ -207,7 +207,7 @@ MakeUCS2LEString(const char* s, Encoding enc = CS_Default)
 		typename ystdex::string_traits<_tDst>::value_type());
 
 	str.resize(MBCSToUCS2(&str[0], s, enc));
-	return std::move(str);
+	return str;
 }
 //! \brief 复制指定类型的 UCS-2 字符串。
 template<class _tDst>
@@ -221,7 +221,7 @@ MakeUCS2LEString(const ucs2_t* s, Encoding = CharSet::ISO_10646_UCS_2)
 	using std::begin;
 
 	std::copy_n(s, str.size(), begin(str));
-	return std::move(str);
+	return str;
 }
 //! \brief 复制 UCS-4 字符串为指定类型的 UCS2-LE 字符串。
 template<class _tDst>
@@ -234,7 +234,7 @@ MakeUCS2LEString(const ucs4_t* s, Encoding = CharSet::ISO_10646_UCS_4)
 		typename ystdex::string_traits<_tDst>::value_type());
 
 	str.resize(UCS4ToUCS2(&str[0], s));
-	return std::move(str);
+	return str;
 }
 //@}
 

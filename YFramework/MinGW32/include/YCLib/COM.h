@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r447
+\version r450
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2013-12-24 10:29 +0800
+	2014-01-28 05:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,7 @@ public:
 
 		CheckHResult(pInterface->QueryInterface(riid,
 			reinterpret_cast<void**>(&res.ReleaseAndGetRef())));
-		return std::move(res);
+		return res;
 	}
 	template<class _iOther>
 	COMPtr<_iOther>
@@ -239,7 +239,7 @@ public:
 
 		CheckHResult(pInterface->QueryInterface(__uuidof(_iOther),
 			reinterpret_cast<void**>(&res.ReleaseAndGetRef())));
-		return std::move(res);
+		return res;
 	}
 
 	::HRESULT

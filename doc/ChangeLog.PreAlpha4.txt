@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r5593
+\version r5646
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-01-22 02:23 +0800
+	2014-01-30 21:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,55 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ DLD "reduced 'return std::move' usage",
+		// See $2014-01 @ %Documentation::Workflow::Annual2014.
+	/ %YFramework.YSLib $=
+	(
+		/ %Core.YCoreUtilities $=
+		(
+			 + 2 "function templates %IsInClosedInterval",
+			 / "2 function templates %IsInOpenInterval implemented without \
+				requirement of having %operator>"
+		),
+		/ @ "function %HSLToColor" @ %UI.YStyle $=
+		(
+			+ "range assertions of hue, saturation and light components of \
+				input value",
+			/ DLD "simplified implementation" ^ "function %MakeGray"
+		),
+		/ %Adaptor.Image $=
+		(
+			+ "enumerator 'Image = 13,'" @ "enum %ImageFormat",
+			/ @ "class %ImageMemory" $=
+			(
+				+ 'using Buffer = vector<octet>;';
+				+ "member function %GetBuffer",
+				/ "constructor of raw buffer"
+					-> "2 constructors and 2 constructor templates with \
+					initializing type %Buffer (and format)",
+					// For ownership safety, raw or empty buffers are no \
+						longer supported.
+				+ "explicitied deleted move constructor",
+				(
+					$dep_from "forward %HBitmap declaration"
+					+ 'explicit ImageMemory(const HBitmap&, ImageFormat \
+						= ImageFormat::BMP, ImageDecoderFlags \
+						= ImageDecoderFlags::Default);'
+				)
+			),
+			/ "parameter type of %ImageCodec::Load" -> 'ImageMemory::Buffer'
+				~ 'const vector<octet>&',
+			(
+			+ DLD 'class HBitmap;' @ "namespace %Drawing";
+			$dep_to "forward %HBitmap declaration"
+			),
+			+ "(2 function, 1 function template) %SaveTo" @ "class %HBitmap"
+		)
+	)
+),
+
+b469
 (
 	/ %YFramework $=
 	(

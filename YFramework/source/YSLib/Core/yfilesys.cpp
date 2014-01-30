@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfilesys.cpp
 \ingroup Core
 \brief 平台中立的文件系统抽象。
-\version r1875
+\version r1879
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2013-12-23 23:57 +0800
+	2014-01-28 05:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ Path::operator String() const
 
 	if(!(res.empty() || VerifyDirectory(res)))
 		res.pop_back();
-	return std::move(res);
+	return res;
 }
 
 String
@@ -77,7 +77,7 @@ Path::GetString() const
 	YAssert(res.empty() || res.back() == YCL_PATH_DELIMITER,
 		"Invalid conversion result found.");
 
-	return std::move(res);
+	return res;
 }
 
 ypath
@@ -92,7 +92,7 @@ Path::Parse(const ucs2string& str)
 		ucs2string::const_iterator e){
 		res.push_back(ucs2string(b, e));
 	});
-	return std::move(res);
+	return res;
 }
 
 
