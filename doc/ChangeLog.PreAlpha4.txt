@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r5646
+\version r5683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-01-30 21:15 +0800
+	2014-02-01 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,44 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.Adaptor.Image $=
+		(
+			/ "static member function %ImageCodec::Convert"
+				-> "member function %HBitmap::operator CompactPixmap() const",
+			/ @ "class %HBitmap" $=
+			(
+				(
+				+ "constructor with pitch delta value \
+					'explicit HBitmap(BitmapPtr, const Size&, size_t = 0)'";
+				+ "constructor 'explicit HBitmap(const CompactPixmap&)'"
+				),
+				/ "forbade non-class type overloaded as string type to prevent \
+					recursive call when passed unsupported argument such as \
+					'const wchar_t*'" @ "2 constructor templates, member \
+					function template %SaveTo",
+				+ "member function %GetPixels",
+				+ "member functions %(operator[]; GetScanLine)",
+				(
+				$dep_from "class %UnknownImageFormat";
+				+ "constructor 'HBitmap(const HBitmap&, BitPerPixel)'"
+				)
+			),
+			(
+			+ "class %UnsupportedImageFormat";
+			/ "base class %LoggedEvent" @ "class %UnknownImageFormat"
+				-> "%UnsupportedImageFormat"
+				// Inherited constructors are not supported until G++ 4.8.
+			)
+		)
+		* "VC++ project and filter did not reflect the update of freetype \
+			directory structure" $since b459
+	)
+),
+
+b470
 (
 	/ DLD "reduced 'return std::move' usage",
 		// See $2014-01 @ %Documentation::Workflow::Annual2014.

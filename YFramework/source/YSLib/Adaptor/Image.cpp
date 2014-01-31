@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r652
+\version r746
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-01-30 21:31 +0800
+	2014-02-01 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,7 +173,7 @@ GetFormatFromFilename(const char16_t* filename)
 	return ImageFormat(::FreeImage_GetFIFFromFilename(str));
 }
 
-FI_PluginRec&
+::FI_PluginRec&
 LookupPlugin(::FREE_IMAGE_FORMAT fif)
 {
 	if(auto p_node = ::FreeImageEx_GetPluginNodeFromFIF(fif))
@@ -186,6 +186,28 @@ LookupPlugin(::FREE_IMAGE_FORMAT fif)
 	else
 		throw LoggedEvent("No proper plugin found.");
 }
+
+
+#if (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00BBCCDD
+#	define YF_PixConvSpec \
+	16, FI16_555_RED_MASK, FI16_555_GREEN_MASK, FI16_555_BLUE_MASK
+#elif (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00DDCCBB
+#	define YF_PixConvSpec \
+	16, FI16_555_BLUE_MASK, FI16_555_GREEN_MASK, FI16_555_RED_MASK
+//#elif (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00DDCCBB
+//#elif (YCL_PIXEL_FORMAT_XYZ888 & 0x00FFFFFF) == 0x00BBCCDD
+#elif (YCL_PIXEL_FORMAT_XYZ888 & 0x00FFFFFF) == 0x00DDCCBB
+#	define YF_PixConvSpec \
+	32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK
+#	if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_BGR
+//#	elif FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_RGB
+	// TODO: Add support for different color orders.
+#	else
+#		error "No supported FreeImage pixel format found."
+#	endif
+#else
+#	error "Unsupported pixel format found."
+#endif
 
 } // unnamed namespace;
 
@@ -236,6 +258,21 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 	if(!bitmap)
 		throw BadImageAlloc();
 }
+HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
+	: bitmap([&]{
+		YAssert(src, "Null pointer found.");
+
+		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(src),
+			s.Width, s.Height, s.Width * sizeof(PixelType) + pitch_delta,
+			YF_PixConvSpec, true);
+	}())
+{
+	if(!bitmap)
+		throw LoggedEvent("Converting compact pixmap failed.");
+}
+HBitmap::HBitmap(const CompactPixmap& buf)
+	: HBitmap(buf.GetBufferPtr(), buf.GetSize())
+{}
 HBitmap::HBitmap(const char* filename, ImageDecoderFlags flags)
 	: HBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
@@ -262,6 +299,28 @@ HBitmap::HBitmap(const ImageMemory& mem, ImageDecoderFlags flags)
 	if(!bitmap)
 		throw LoggedEvent("Loading image failed.");
 }
+HBitmap::HBitmap(const HBitmap& pixmap, BitPerPixel bpp)
+	: bitmap([](::FIBITMAP* p_bmp, BitPerPixel bpp){
+		switch(bpp)
+		{
+		case 32:
+			return FreeImage_ConvertTo32Bits(p_bmp);
+		case 24:
+			return FreeImage_ConvertTo24Bits(p_bmp);
+		case 16:
+			return FreeImage_ConvertTo16Bits555(p_bmp);
+		case 8:
+			return FreeImage_ConvertTo8Bits(p_bmp);
+		case 4:
+			return FreeImage_ConvertTo4Bits(p_bmp);
+		default:
+			throw UnsupportedImageFormat("Unsupported bit for pixel found.");
+		}
+	}(pixmap.bitmap, bpp))
+{
+	if(!bitmap)
+		throw LoggedEvent("Converting bitmap failed.");
+}
 HBitmap::HBitmap(const HBitmap& pixmap, const Size& s, SamplingFilter sf)
 	: bitmap(::FreeImage_Rescale(pixmap.bitmap, s.Width, s.Height,
 	::FREE_IMAGE_FILTER(sf)))
@@ -285,6 +344,25 @@ HBitmap::~HBitmap()
 	::FreeImage_Unload(bitmap);
 }
 
+ystdex::byte*
+HBitmap::operator[](size_t idx) const ynothrow
+{
+	YAssert(bitmap, "Null pointer found.");
+	YAssert(idx < GetHeight(), "Index out of range.");
+
+	return ::FreeImage_GetScanLine(bitmap, idx);
+}
+
+HBitmap::operator CompactPixmap() const
+{
+	const Size& s(GetSize());
+	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
+
+	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
+		GetDataPtr(), s.Width * sizeof(PixelType), YF_PixConvSpec, true);
+	return CompactPixmap(std::move(pixels), s);
+}
+
 BitPerPixel
 HBitmap::GetBPP() const ynothrow
 {
@@ -299,6 +377,11 @@ SDst
 HBitmap::GetPitch() const ynothrow
 {
 	return ::FreeImage_GetPitch(bitmap);
+}
+ystdex::byte*
+HBitmap::GetPixels() const ynothrow
+{
+	return ::FreeImage_GetBits(bitmap);
 }
 SDst
 HBitmap::GetWidth() const ynothrow
@@ -480,46 +563,6 @@ ImageCodec::~ImageCodec()
 	::FreeImage_DeInitialise();
 }
 
-CompactPixmap
-ImageCodec::Convert(const HBitmap& pixmap)
-{
-#if (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00BBCCDD
-	const Size& s(pixmap.GetSize());
-	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
-
-	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
-		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 16, FI16_555_RED_MASK,
-		FI16_555_GREEN_MASK, FI16_555_BLUE_MASK, true);
-	return CompactPixmap(std::move(pixels), s);
-#elif (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00DDCCBB
-	const Size& s(pixmap.GetSize());
-	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
-
-	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
-		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 16,
-		FI16_555_BLUE_MASK, FI16_555_GREEN_MASK, FI16_555_RED_MASK, true);
-	return CompactPixmap(std::move(pixels), s);
-//#elif (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00DDCCBB
-//#elif (YCL_PIXEL_FORMAT_XYZ888 & 0x00FFFFFF) == 0x00BBCCDD
-#elif (YCL_PIXEL_FORMAT_XYZ888 & 0x00FFFFFF) == 0x00DDCCBB
-	const Size& s(pixmap.GetSize());
-	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
-
-	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
-		pixmap.GetDataPtr(), s.Width * sizeof(PixelType), 32, FI_RGBA_RED_MASK,
-		FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, true);
-#	if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_BGR
-//#	elif FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_RGB
-	// TODO: Add support for different color orders.
-#	else
-#		error "No supported FreeImage pixel format found."
-#	endif
-	return CompactPixmap(std::move(pixels), s);
-#else
-#	error "Unsupported pixel format found."
-#endif
-}
-
 ImageFormat
 ImageCodec::DetectFormat(ImageMemory::NativeHandle handle, size_t size)
 {
@@ -549,7 +592,7 @@ ImageCodec::Load(ImageMemory::Buffer buf)
 	if(mem.GetFormat() == ImageFormat::Unknown)
 		throw UnknownImageFormat("Unknown image format found when loading.");
 
-	return Convert(HBitmap(mem));
+	return HBitmap(mem);
 }
 
 HMultiBitmap
@@ -568,6 +611,8 @@ ImageCodec::LoadForPlaying(const char16_t* path)
 	return HMultiBitmap(path, fmt, fmt == ImageFormat::GIF
 		? ImageDecoderFlags::GIF_Playback : ImageDecoderFlags::Default);
 }
+
+#undef YF_PixConvSpec
 
 } // namespace Drawing;
 

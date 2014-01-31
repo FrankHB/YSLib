@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r690
+\version r775
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-01-30 20:53 +0800
+	2014-02-01 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,14 +135,27 @@ class YF_API BadImageAlloc : public std::bad_alloc
 {};
 
 
+/*!
+\brief 未被支持的图像格式异常：表示请求的操作涉及的图像格式不受库的支持。
+\since build 471
+*/
+class YF_API UnsupportedImageFormat : public LoggedEvent
+{
+public:
+	UnsupportedImageFormat(const std::string& str)
+		: LoggedEvent(str)
+	{}
+};
+
+
 //! \since build 417
 //@{
-//! \brief 未知图像格式异常：表示请求的操作涉及的图像格式不受库的支持。
-class YF_API UnknownImageFormat : public LoggedEvent
+//! \brief 未知图像格式异常：表示请求的操作涉及的图像格式因为不明确而不受库的支持。
+class YF_API UnknownImageFormat : public UnsupportedImageFormat
 {
 public:
 	UnknownImageFormat(const std::string& str)
-		: LoggedEvent(str)
+		: UnsupportedImageFormat(str)
 	{}
 };
 
@@ -239,6 +252,22 @@ public:
 	//! \throw BadImageAlloc 分配空间失败。
 	HBitmap(const Size&, BitPerPixel = 0);
 	/*!
+	\brief 构造：从矩形像素图缓冲区按指定大小和扫描线跨距增量复制并转换图像数据。
+	\pre 断言检查：输入指针非空。
+	\throw LoggedEvent 转换失败。
+	\note 扫描线跨距的单位为字节，
+		等于图像的宽乘以每像素字节数与输入的扫描线跨距增量之和。
+	\since build 471
+	*/
+	explicit
+	HBitmap(BitmapPtr, const Size&, size_t = 0);
+	/*!
+	\brief 构造：从标准矩形像素图缓冲区复制并转换图像数据。
+	\exception LoggedEvent 转换失败。
+	\since build 471
+	*/
+	HBitmap(const CompactPixmap&);
+	/*!
 	\throw LoggedEvent 读取失败。
 	\since build 457
 	*/
@@ -262,14 +291,20 @@ public:
 	/*
 	\brief 构造：使用指定字符串文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
+	\since build 471
 	*/
-	template<class _tString, typename = decltype(&_tString()[0])>
+	template<class _tString, typename = decltype(&_tString()[0]),
+		typename = ystdex::enable_if_t<std::is_class<_tString>::value>>
 	HBitmap(const _tString& filename,
 		ImageDecoderFlags = ImageDecoderFlags::Default)
 		: HBitmap(&filename[0])
 	{}
-	//! \brief 构造：使用指定字符串文件名和解码器标识。
-	template<class _tString, typename = decltype(&_tString()[0])>
+	/*!
+	\brief 构造：使用指定字符串文件名和解码器标识。
+	\since build 471
+	*/
+	template<class _tString, typename = decltype(&_tString()[0]),
+		typename = ystdex::enable_if_t<std::is_class<_tString>::value>>
 	HBitmap(const _tString& filename, ImageFormat fmt,
 		ImageDecoderFlags = ImageDecoderFlags::Default)
 		: HBitmap(&filename[0], fmt)
@@ -280,6 +315,14 @@ public:
 	\since build 457
 	*/
 	HBitmap(const ImageMemory&, ImageDecoderFlags = ImageDecoderFlags::Default);
+	/*!
+	\brief 构造指定图像转换为指定色深的基于 RGB 像素格式的位图副本。
+	\throw UnsupportedImageFormat 指定的色深对指定图形不被支持。
+	\throw LoggedEvent 转换失败（包括色深被支持但具体格式不被实现支持的情形）。
+	\note 对于 16 位位图使用 RGB555 。对于 32 位位图使用 RGBA8888 。
+	\since build 471
+	*/
+	HBitmap(const HBitmap&, BitPerPixel);
 	//! \since build 417
 	//@{
 	/*!
@@ -308,8 +351,25 @@ public:
 	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!bitmap)
 
+	/*!
+	\brief 取扫描线数据。
+	\pre 断言检查： <tt>bitmap</tt> 。
+	\pre 断言检查： 参数值小于高。
+	\return 扫描线数据的起始指针。
+	\note 扫描线宽为跨距。
+	\since build 471
+	*/
+	ystdex::byte*
+	operator[](size_t) const ynothrow;
+
 	explicit DefCvt(const ynothrow, bool, bitmap)
 	//@}
+
+	/*!
+	\brief 转换为标准矩形像素图缓冲区。
+	\since build 471
+	*/
+	operator CompactPixmap() const;
 
 	BitPerPixel
 	GetBPP() const ynothrow;
@@ -322,6 +382,24 @@ public:
 	//! \since build 417
 	SDst
 	GetPitch() const ynothrow;
+	/*!
+	\brief 取像素数据。
+	\return 若数据指针为空则为空指针，否则为像素数据起始非空指针。
+	\note 像素数据由连续的扫面线数据构成，数量等于高度值。
+	\since build 471
+	*/
+	ystdex::byte*
+	GetPixels() const ynothrow;
+	/*!
+	\brief 取扫描线数据。
+	\pre 间接断言检查： 参数值小于高。
+	\return 若数据指针为空则为空指针，否则为扫描线数据起始非空指针。
+	\note 使用 <tt>operator[]</tt> 实现。
+	\sa operator[]
+	\since build 471
+	*/
+	PDefH(ystdex::byte*, GetScanLine, size_t idx) const ynothrow
+		ImplRet(bitmap ? (*this)[idx] : nullptr)
 	SDst
 	GetWidth() const ynothrow;
 
@@ -345,8 +423,12 @@ public:
 	bool
 	SaveTo(const char16_t*, ImageFormat = ImageFormat::BMP,
 		ImageDecoderFlags = ImageDecoderFlags::Default) const ynothrow;
-	//!\ brief 保存：使用指定字符串文件名、格式和解码器标识。
-	template<class _tString, typename = decltype(&_tString()[0])>
+	/*!
+	\brief 保存：使用指定字符串文件名、格式和解码器标识。
+	\since build 471
+	*/
+	template<class _tString, typename = decltype(&_tString()[0]),
+		typename = ystdex::enable_if_t<std::is_class<_tString>::value>>
 	bool
 	SaveTo(const _tString& filename, ImageFormat fmt = ImageFormat::BMP,
 		ImageDecoderFlags flags = ImageDecoderFlags::Default) const
@@ -539,12 +621,6 @@ public:
 	ImageCodec();
 	//! \since build 461
 	~ImageCodec();
-
-	//! \since build 418
-	static CompactPixmap
-	Convert(const HBitmap&);
-//	static CompactPixmap
-//	Convert(HBitmap&&);
 
 	/*!
 	\brief 检测图像格式。
