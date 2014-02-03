@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r691
+\version r692
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-01-30 02:09 +0800
+	2014-02-02 18:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -375,7 +375,7 @@
  YSLib 和 Helper(@2.7) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
 关于 ISO C++11 直接指定的依赖项，参见 [Documentation::CommonRules @@5.25.2] ；其它基本代码依赖性规则如下（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
 禁止依赖于（包括包含）非头文件。
-除非另有说明，禁止重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
+除非另有说明，禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
 除非以下显式说明，禁止平台中立文件依赖于平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
  YFramework/YBaseMacro.h 仅依赖 YBase 的 ydef.h 。
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。

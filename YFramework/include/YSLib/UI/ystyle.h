@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r615
+\version r626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-01-29 21:51 +0800
+	2014-02-03 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,6 +134,14 @@ ColorToHSL(Color);
 YF_API Color
 HSLToColor(hsl_t);
 
+
+/*!
+\brief 色调偏移。
+\pre 断言检查：输入值在范围内。
+\since build 472
+*/
+YF_API Color
+RollColor(hsl_t, Hue);
 
 } // namespace Drawing;
 
@@ -351,7 +359,12 @@ public:
 	void
 	Add(_tParams&&... args)
 	{
+//! \since build 472 as workaround for G++ 4.7.1
+#if __GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ <= 47100
+		insert(value_type(yforward(args)...));
+#else
 		emplace(yforward(args)...);
+#endif
 	}
 
 	//! \note 若移除作为默认名称的空串则被忽略。

@@ -772,6 +772,15 @@
     <ClInclude Include="include\YSLib\UI\YModules.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\NPL\NPL.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NPL\NPLA1.h">
+      <Filter>include\NPL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\UI\ExStyle.h">
+      <Filter>include\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -1022,6 +1031,12 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\ContentType.cpp">
       <Filter>source\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NPL\NPLA1.cpp">
+      <Filter>source\NPL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\ExStyle.cpp">
+      <Filter>source\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

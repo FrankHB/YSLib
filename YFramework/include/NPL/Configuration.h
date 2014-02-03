@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r266
+\version r293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2013-12-24 00:00 +0800
+	2014-02-02 18:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,43 +29,16 @@
 #define NPL_INC_Configuration_h_
 
 #include "YModules.h"
-#include YFM_YSLib_Core_ValueNode
+#include YFM_NPL_NPLA1
 #include YFM_YSLib_Service_YFile_Text_
 
 namespace NPL
 {
 
-//! \since build 341
-using YSLib::string;
 //! \since build 335
 //@{
 using YSLib::File;
 using YSLib::TextFile;
-using YSLib::ValueNode;
-//@}
-
-
-/*!
-\brief 转换设置： S 表达式抽象语法树变换为 S 表达式配置。
-\since build 334
-*/
-YF_API ValueNode
-TransformConfiguration(const ValueNode&);
-
-
-/*!
-\brief 读取 NPLA1 翻译单元。
-\since build 449
-*/
-//@{
-YF_API ValueNode
-LoadNPLA1(ValueNode&&);
-template<typename _type>
-ValueNode
-LoadNPLA1(_type&& tree)
-{
-	return LoadNPLA1(tree);
-}
 //@}
 
 

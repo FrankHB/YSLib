@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r5683
+\version r5724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-01 01:33 +0800
+	2014-02-03 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,48 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			+ %NPL $=
+			(
+				+ 'using ystdex::byte',
+				+ "struct %NPL"
+			);
+			+ %NPLA1
+				$= (+ "structs (NPLA; NPLA1)");
+			/ %Configuration $=
+			(
+				/ ('using YSLib::string;', 'using YSLib::ValueNode;',
+					"function, function template" %LoadNPLA1) >> %NPLA1,
+				/ "function %TransformConfiguration" -> "function %TransformNPLA1"
+					@ %NPLA1
+			)
+		),
+		/ %YSLib.UI $=
+		(
+			/ %YStyle $=
+			(
+				+ "function %RollColor" @ "namespace %Drawing",
+				+ DLB "workaround for G++ 4.7.1"
+					@ "member function template %StyleMap::Add";
+			),
+			/ "default style for %Button",
+				// More flat.
+			+ %ExStyle $=
+			(
+				+ "function %InitExStyles",
+				+ "style %Aoi"
+			),
+			/ DLD "simplified implementation"
+				@ "member function %WidgetLoader::TransformUILayout" @ %Loader
+		)
+	)
+),
+
+b471
 (
 	/ %YFramework $=
 	(

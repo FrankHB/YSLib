@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r75
+\version r78
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2013-12-24 00:33 +0800
+	2014-02-03 03:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,6 +71,8 @@
 #define YFM_YSLib_UI_ComboList <YSLib/UI/ComboList.h>
 #define YFM_YSLib_UI_Menu <YSLib/UI/menu.h>
 //@}
+//! \since build 472
+#define YFM_YSLib_UI_ExStyle <YSLib/UI/ExStyle.h>
 
 #endif
 

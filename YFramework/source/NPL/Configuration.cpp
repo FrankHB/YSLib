@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r677
+\version r730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2014-01-28 05:26 +0800
+	2014-02-02 18:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,74 +33,6 @@ using namespace YSLib;
 
 namespace NPL
 {
-
-ValueNode
-TransformConfiguration(const ValueNode& node)
-{
-	auto s(node.GetSize());
-
-	if(s == 0)
-		return {0, "", node ? Deliteralize(Access<string>(node)) : string()};
-
-	auto i(node.begin());
-
-	if(s == 1)
-		return TransformConfiguration(*i);
-
-	const auto& new_name([&]{
-		try
-		{
-			const auto& str(Access<string>(*i));
-
-			yunseq(++i, --s);
-			return str;
-		}
-		catch(ystdex::bad_any_cast&)
-		{}
-		return string();
-	}());
-
-	if(s == 1)
-	{
-		auto&& n(TransformConfiguration(*i));
-
-		if(n.GetName().empty())
-			return {0, new_name, std::move(n.Value)};
-		return {0, new_name, ValueNode::Container{std::move(n)}};
-	}
-
-	auto p_node_cont(make_unique<ValueNode::Container>());
-
-	std::for_each(i, node.end(), [&](const ValueNode& nd){
-		auto&& n(TransformConfiguration(nd));
-
-		p_node_cont->insert(n.GetName().empty() ? ValueNode{0,
-			'$' + std::to_string(p_node_cont->size()), std::move(n.Value)}
-			: std::move(n));
-	});
-	return {0, new_name, std::move(p_node_cont), PointerTag()};
-}
-
-
-ValueNode
-LoadNPLA1(ValueNode&& tree)
-{
-	ValueNode root;
-
-	try
-	{
-		root = TransformConfiguration(tree);
-	}
-	catch(ystdex::bad_any_cast& e)
-	{
-		// TODO: Avoid memory allocation.
-		throw LoggedEvent(ystdex::sfmt(
-			"Bad configuration found: cast failed from [%s] to [%s] .",
-			e.from(), e.to()), Warning);
-	}
-	return root;
-}
-
 
 namespace
 {

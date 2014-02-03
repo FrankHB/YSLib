@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r227
+\version r233
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-01-28 05:32 +0800
+	2014-02-03 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 	{
 		ValueNode res(0, node.GetName());
 
-		if(auto p_pnl = dynamic_cast<Panel*>(p_new_widget.get()))
+		if(const auto p_pnl = dynamic_cast<Panel*>(p_new_widget.get()))
 		{
 			auto p_cont(make_unique<ValueNode::Container>());
 
@@ -120,19 +120,18 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 					{
 						if(ValueNode child{TransformUILayout(vn)})
 						{
-							auto& p_wgt(*AccessChild<shared_ptr<IWidget>>(child,
+							auto& wgt(*AccessChild<shared_ptr<IWidget>>(child,
 								"$pointer"));
 
 							if(p_cont->insert(std::move(child)).second)
-								*p_pnl += p_wgt;
+								*p_pnl += wgt;
 						}
 					}
 					catch(ystdex::bad_any_cast&)
 					{}
-			res += ValueNode{0, "$children", std::move(p_cont), PointerTag()};
+			res += {0, "$children", std::move(p_cont), PointerTag()};
 		}
-		res += ValueNode{0, "$pointer",
-			shared_ptr<IWidget>(std::move(p_new_widget))};
+		res += {0, "$pointer", shared_ptr<IWidget>(std::move(p_new_widget))};
 		return res;
 	}
 	return {};

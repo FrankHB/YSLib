@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r745
+\version r753
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-01-29 22:48 +0800
+	2014-02-03 04:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,6 +228,17 @@ HSLToColor(hsl_t c)
 			dc[i] = 0xFF;
 	}
 	return Color(dc[0], dc[1], dc[2]);
+}
+
+
+Color
+RollColor(hsl_t c, Hue delta)
+{
+	YAssert(IsInInterval<Hue>(c.h, 0, 360), "Invalid hue found."),
+
+	delta += c.h;
+	c.h = delta < 360 ? delta : delta - 360;
+	return HSLToColor(c);
 }
 
 } // namespace Drawing;

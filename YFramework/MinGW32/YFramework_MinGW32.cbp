@@ -228,6 +228,8 @@
 		<Unit filename="../include/Helper/yglobal.h" />
 		<Unit filename="../include/NPL/Configuration.h" />
 		<Unit filename="../include/NPL/Lexical.h" />
+		<Unit filename="../include/NPL/NPL.h" />
+		<Unit filename="../include/NPL/NPLA1.h" />
 		<Unit filename="../include/NPL/SContext.h" />
 		<Unit filename="../include/NPL/YModules.h" />
 		<Unit filename="../include/YBaseMacro.h" />
@@ -292,6 +294,7 @@
 		<Unit filename="../include/YSLib/UI/Border.h" />
 		<Unit filename="../include/YSLib/UI/ComboList.h" />
 		<Unit filename="../include/YSLib/UI/Console.h" />
+		<Unit filename="../include/YSLib/UI/ExStyle.h" />
 		<Unit filename="../include/YSLib/UI/Hover.h" />
 		<Unit filename="../include/YSLib/UI/Loader.h" />
 		<Unit filename="../include/YSLib/UI/Selector.h" />
@@ -338,6 +341,7 @@
 		<Unit filename="../source/Helper/yglobal.cpp" />
 		<Unit filename="../source/NPL/Configuration.cpp" />
 		<Unit filename="../source/NPL/Lexical.cpp" />
+		<Unit filename="../source/NPL/NPLA1.cpp" />
 		<Unit filename="../source/NPL/SContext.cpp" />
 		<Unit filename="../source/YCLib/Debug.cpp" />
 		<Unit filename="../source/YCLib/FileSystem.cpp" />
@@ -378,6 +382,7 @@
 		<Unit filename="../source/YSLib/UI/Border.cpp" />
 		<Unit filename="../source/YSLib/UI/ComboList.cpp" />
 		<Unit filename="../source/YSLib/UI/Console.cpp" />
+		<Unit filename="../source/YSLib/UI/ExStyle.cpp" />
 		<Unit filename="../source/YSLib/UI/Hover.cpp" />
 		<Unit filename="../source/YSLib/UI/Loader.cpp" />
 		<Unit filename="../source/YSLib/UI/Selector.cpp" />
