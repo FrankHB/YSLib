@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1062
+\version r1077
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-01-21 12:31 +0800
+	2014-02-04 00:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "ShlExplorer.h"
 #include "ShlReader.h"
+#include YFM_YSLib_UI_ExStyle
 
 namespace YReader
 {
@@ -205,6 +206,13 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	fpsCounter(std::chrono::milliseconds(500)),
 	btnSwitchMain(*this, {234, 170}), btnSwitchSub(*this, {234, 170})
 {
+	static struct Init
+	{
+		Init()
+		{
+			Styles::InitExStyles();
+		}
+	} init;
 	static int up_i(1);
 	auto& dsk_m(GetMainDesktop());
 	auto& dsk_s(GetSubDesktop());
@@ -476,6 +484,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		SetEnabledOf(cbHex, !e);
 		Invalidate(cbFPS),
 		Invalidate(cbHex);
+	},
+	ddlStyle.GetConfirmed() += [&, this](IndexEventArgs&&){
+		FetchGUIState().Styles.Switch(ddlStyle.Text.GetMBCS());
+		InvalidateAll(dsk_m),
+		InvalidateAll(dsk_s);
 	}
 	);
 	RequestFocusCascade(fbMain),

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r1876
+# Version = r1917
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-01-18 15:23 +0800
+# Updated = 2014-02-05 12:52 +0800
 # Encoding = ANSI
 
 
@@ -98,17 +98,18 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export OUTPUT	:=	$(CURDIR)/$(RELEASE)/lib$(TARGET).a
 
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)/dummy
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+					$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
+					$(DEPSDIR)
 
-CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+CFILES		:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp))
+SFILES		:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.s))
+BINFILES	:=	$(foreach dir,$(DATA),$(wildcard $(dir)/*.bin))
 
-MAPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.map)))
+MAPFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.map))
 
 #----
 # use CXX for linking C++ projects, CC for standard C
@@ -119,32 +120,28 @@ else
  	export LD	:=	$(CXX)
 endif
 
-#export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-#					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-
-export OFILES	:=	$(MAPFILES:.map=.o) $(BINFILES:.bin=.o)\
-					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES	:=	$(addsuffix .o,$(MAPFILES)) $(addsuffix .o,$(BINFILES)) \
+	$(addsuffix .o,$(CPPFILES)) $(addsuffix .o,$(CFILES)) $(addsuffix .o,$(SFILES))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-					-I$(CURDIR)/$(BUILD)
+	$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+	-I$(CURDIR)/$(BUILD)
+
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD) clean rebuild all
 
 #----
 $(BUILD):
 	@echo Building configuration: $(notdir $@) ...
-	@[ -d $@ ] || mkdir -p $@
+	@[ -d $@/dummy ] || mkdir -p $@/dummy
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 	@echo Built configuration: $(notdir $@).
 
 #----
 clean:
 	@echo Cleaning $(TARGETP) ...
-	@rm -f $(BUILD)/*.h
-	@rm -f $(BUILD)/*.d
-	@rm -f $(BUILD)/*.o
+	@rm -fr $(BUILD)/*
 	@rm -f $(OUTPUT)
 	@echo Cleaned.
 
@@ -164,7 +161,7 @@ DEPENDS	:= $(OFILES:.o=.d)
 $(OUTPUT)	:	$(OFILES)
 	@rm -f "$(OUTPUT)"
 	@echo Linking $(notdir $@) ...
-	@$(AR) rcs "$(OUTPUT)" $(OFILES)
+	@$(AR) rcs "$(OUTPUT)" $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
 
 #----
 # you need a rule like this for each extension you use as binary data
@@ -174,41 +171,41 @@ $(OUTPUT)	:	$(OFILES)
 # Compile Targets for C/C++
 #----
 
-%.o : %.cpp
-	@echo $(notdir $<)
-	@$(CXX) -MM $(CXXFLAGS) -o $*.d $<
-	@$(CXX) $(CXXFLAGS) -c $< -o$@
+%.cpp.o : %.cpp
+	@echo $<
+	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
+	@$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.cpp.d $(CXXFLAGS) -c $< -o$(DEPSDIR)/$@
 
-%.o : %.c
-	@echo $(notdir $<)
-	@$(CC) -MM $(CFLAGS) -o $*.d $<
-	@$(CC)  $(CFLAGS) -c $< -o$@
+%.c.o : %.c
+	@echo $<
+	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
+	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.c.d $(CFLAGS) -c $< -o$(DEPSDIR)/$@
 
-%.o : %.s
-	@echo $(notdir $<)
-	@$(CC) -MM $(CFLAGS) -o $*.d $<
-	@$(CC)  $(ASFLAGS) -c $< -o$@
+%.s.o : %.s
+	@echo $<
+	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
+	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.s.d -x assembler-with-cpp $(ASFLAGS) -c $< -o$(DEPSDIR)/$@
 
 
-# bin2o macro like that from libnds, slightly changed for the PALib naming conventions of resources which doesn't append the file extension to the resource name
 define bin2o
+	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
 	cp $(<) $(*)
-	bin2s $(*) | $(AS) $(ARCH_AS) -o $(@)
+	bin2s $(*) | $(AS) $(ARCH_AS) -o $(DEPSDIR)/$(@)
 	rm $(*)
 
-	echo "extern const u8" $(*)"[];" > $(*).h
-	echo "extern const u32" $(*)_size";" >> $(*).h
+	echo "extern const u8" $(notdir $(*))"[];" > $(DEPSDIR)/$(*).h
+	echo "extern const u32" $(notdir $(*))_size";" >> $(DEPSDIR)/$(*).h
 endef
 
-%.o	:	%.bin
-	@echo $(notdir $<)
+%.bin.o	:	%.bin
+	@echo $<
 	@$(bin2o)
 
-%.o	:	%.map
-	@echo $(notdir $<)
+%.map.o	:	%.map
+	@echo $<
 	@$(bin2o)
 
--include $(DEPSDIR)/*.d
+-include $(foreach file,$(DEPENDS),$(DEPSDIR)/$(file))
 
 #----
 endif

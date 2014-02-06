@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4374
+\version r4390
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-01-11 12:54 +0800
+	2014-02-04 00:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,6 +120,26 @@ Invalidate(IWidget& wgt, const Rect& bounds)
 		r = p_wgt->GetRenderer().CommitInvalidation(r);
 		r.GetPointRef() += GetLocationOf(*p_wgt);
 	}while((p_wgt = FetchContainerPtr(*p_wgt)));
+}
+
+void
+InvalidateAll(IWidget& wgt, const Rect& bounds)
+{
+	InvalidateChildren(wgt, bounds);
+	Invalidate(wgt, bounds);
+}
+
+void
+InvalidateChildren(IWidget& wgt, const Rect& bounds)
+{
+	Rect r(wgt.GetRenderer().CommitInvalidation(bounds));
+
+	for(auto pr(wgt.GetChildren()); pr.first != pr.second; ++pr.first)
+	{
+		auto& child(*pr.first);
+
+		InvalidateChildren(child, Rect(r - GetLocationOf(child)));
+	}
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r5724
+\version r5809
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-03 11:33 +0800
+	2014-02-06 20:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,92 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ @ "class %ShlExplorer" @ %YReader.ShlExplorer $=
+	(
+		+ "initialization for extra style" @ "constructor";
+		+ "switch styles action after confirming drop down list"
+			@ "class %ShlExplorer"
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI.YWidget $=
+			(
+				/ DLD "simplified inline functions" ^ "macros %(PDefH, \
+					ImplRet, ImplExpr)",
+				+ "functions %(2 InvalidateChildren; 2 InvalidateAll)",
+				/ "parameter type" @ "function %FetchFocusingPtr"
+					-> 'const IWidget&' ~ 'IWidget&'
+			),
+			(
+			$dep_from %YBase.YStandardEx.Path;
+			/ @ %Core.YFileSystem $=
+			(
+				$dep_from %YBase.YStandardEx.Path;
+				- 'using PathNorm = ystdex::file_path_norm<String>;'
+					@ "namespace %YSLib::IO";
+				/ "class template specialization %ystdex::file_path_norm< \
+					YSLib::String>" -> "class YSLib::IO::FilePathNorm";
+			),
+			$dep_from "DS makefiles";
+			/ %Core.YFileSystem -> %Service.FileSystem,
+			/ %Service $=
+			(
+				/ %YFile => %File,
+				/ %YFile_(Text) => %TextFile
+			)
+			);
+			/ @ "class %Path" @ %FileSystem $=
+			(
+				+ "using ypath::(pop_back, push_back)",
+				/ DLD "implementation" @ "member function %Normalize"
+					^ "%ImplExpr" ~ "%ImplRet"
+			)
+		),
+		/ @ %CHRLib.CharacterProcessing $=
+		(
+			+ "static assertion for type parameter"
+				@ "function template %ToASCII",
+			/ DLD "simplified 4 inline functions %MBCToUC"
+				^ "macros %(PDefH, ImplRet)"
+		),
+		/ $dev "explicitly specified endianness of UCS-2 and UTF-16 encoding \
+			as same as the endianness of type %CHRLib::ucs2_t being implemented"
+	),
+	/ @ "class template %path" @ %YBase.YStandardEx.Path $=
+	(
+		+ "template parameter with default argument \
+			'class _tNorm = ystdex::path_norm<typename _tSeqCon::value_type>'",
+		+ 'using default_norm = ystdex::conditional_t< \
+			std::is_default_constructible<norm>::value, norm, \
+			file_path_norm<value_type>>';
+		/ "default constructed object" ^ "%default_norm" ~ "%norm"
+	);
+	/ $dev $build @ "DS makefiles" $=
+	(
+		/ @ "projects %(YBase, YFramework)" $=
+		(
+			/ "generated object files with source extension",
+				// This avoids conflicts of different source files with same \
+					base name.
+			/ "generated files for each directory",
+				// This avoids conflicts of files in different directory with \
+					same name.
+			/ "dependency generation as devkitARM makefile %base_rules"
+				^ '-MMD -MP -MF' ~ '-MM -o',
+			/ "restricted %BINFILES only for '*.bin'" ~ "for '*.*'",
+				// This avoids duplicated postfix '.o' being added to the \
+					targets.
+			/ "run to remove all files under build directory" @ "target %clean",
+			* "missing '.PHONY' 'rebuild' 'all'" $since $before b132
+		),
+		- "redundant 'rebuild' target" @ "project %ARM7"
+	)
+),
+
+b472
 (
 	/ %YFramework $=
 	(

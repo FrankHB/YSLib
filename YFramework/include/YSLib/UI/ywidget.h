@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5566
+\version r5632
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-01-11 13:00 +0800
+	2014-02-04 00:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,11 +88,8 @@ EndDecl
 \brief 判断部件是否可见。
 \since build 259
 */
-inline bool
-IsVisible(const IWidget& wgt)
-{
-	return wgt.GetView().IsVisible();
-}
+inline PDefH(bool, IsVisible, const IWidget& wgt)
+	ImplRet(wgt.GetView().IsVisible())
 
 /*!
 \brief 判断点是否在部件的可视区域内。
@@ -104,11 +101,8 @@ YF_API Contains(const IWidget&, SPos, SPos);
 \brief 判断点是否在部件的可视区域内。
 \since build 167
 */
-inline bool
-Contains(const IWidget& wgt, const Point& pt)
-{
-	return Contains(wgt, pt.X, pt.Y);
-}
+inline PDefH(bool, Contains, const IWidget& wgt, const Point& pt)
+	ImplRet(Contains(wgt, pt.X, pt.Y))
 
 /*!
 \brief 判断点是否在可见部件的可视区域内。
@@ -120,11 +114,8 @@ YF_API ContainsVisible(const IWidget& wgt, SPos x, SPos y);
 \brief 判断点是否在可见部件的可视区域内。
 \since build 173
 */
-inline bool
-ContainsVisible(const IWidget& wgt, const Point& pt)
-{
-	return ContainsVisible(wgt, pt.X, pt.Y);
-}
+inline PDefH(bool, ContainsVisible, const IWidget& wgt, const Point& pt)
+	ImplRet(ContainsVisible(wgt, pt.X, pt.Y))
 
 /*!
 \ingroup helper_functions
@@ -132,55 +123,40 @@ ContainsVisible(const IWidget& wgt, const Point& pt)
 \note 使用此函数确保返回值传递的值语义。
 \since build 225
 */
-inline IWidget*
-FetchContainerPtr(const IWidget& wgt)
-{
-	return wgt.GetView().ContainerPtr;
-}
+inline PDefH(IWidget*, FetchContainerPtr, const IWidget& wgt)
+	ImplRet(wgt.GetView().ContainerPtr)
 
 /*!
 \ingroup helper_functions
 \brief 取焦点对象指针。
 \return 若为保存了子部件中的焦点对象的容器则返回指针，否则返回 \c nullptr 。
-\since build 239
+\since build 473
 */
-inline IWidget*
-FetchFocusingPtr(IWidget& wgt)
-{
-	return wgt.GetView().FocusingPtr;
-}
+inline PDefH(IWidget*, FetchFocusingPtr, const IWidget& wgt)
+	ImplRet(wgt.GetView().FocusingPtr)
 
 /*!
 \ingroup helper_functions
 \brief 取部件位置。
 \since build 239
 */
-inline const Point&
-GetLocationOf(const IWidget& wgt)
-{
-	return wgt.GetView().GetLocation();
-}
+inline PDefH(const Point&, GetLocationOf, const IWidget& wgt)
+	ImplRet(wgt.GetView().GetLocation())
 
 /*!
 \ingroup helper_functions
 \brief 取部件大小。
 \since build 259
 */
-inline const Size&
-GetSizeOf(const IWidget& wgt)
-{
-	return wgt.GetView().GetSize();
-}
+inline PDefH(const Size&, GetSizeOf, const IWidget& wgt)
+	ImplRet(wgt.GetView().GetSize())
 
 /*!
 \brief 取部件边界。
 \since build 190
 */
-inline Rect
-GetBoundsOf(const IWidget& wgt)
-{
-	return Rect(GetLocationOf(wgt), GetSizeOf(wgt));
-}
+inline PDefH(Rect, GetBoundsOf, const IWidget& wgt)
+	ImplRet({GetLocationOf(wgt), GetSizeOf(wgt)})
 
 /*!
 \brief 设置部件边界。
@@ -194,11 +170,8 @@ SetBoundsOf(IWidget&, const Rect&);
 \brief 设置部件的容器指针。
 \since build 269
 */
-inline void
-SetContainerPtrOf(IWidget& wgt, IWidget* pCon = {})
-{
-	wgt.GetView().ContainerPtr = pCon;
-}
+inline PDefH(void, SetContainerPtrOf, IWidget& wgt, IWidget* pCon = {})
+	ImplExpr(wgt.GetView().ContainerPtr = pCon)
 
 /*!
 \brief 设置部件的无效区域。
@@ -235,11 +208,8 @@ SetSizeOf(IWidget&, const Size&);
 \brief 设置部件可见性。
 \since build 259
 */
-inline void
-SetVisibleOf(IWidget& wgt, bool b)
-{
-	wgt.GetView().SetVisible(b);
-}
+inline PDefH(void, SetVisibleOf, IWidget& wgt, bool b)
+	ImplExpr(wgt.GetView().SetVisible(b))
 
 
 /*!
@@ -279,6 +249,23 @@ Invalidate(IWidget&, const Rect&);
 */
 inline PDefH(void, Invalidate, IWidget& wgt)
 	ImplExpr(Invalidate(wgt, GetSizeOf(wgt)))
+
+//! \since build 473
+//@{
+//! \brief 无效化：使相对于部件及子部件的指定区域在直接和间接的窗口缓冲区中无效。
+YF_API void
+InvalidateAll(IWidget&, const Rect&);
+//! \brief 无效化：使部件及子部件区域在直接和间接的窗口缓冲区中无效。
+inline PDefH(void, InvalidateAll, IWidget& wgt)
+	ImplExpr(InvalidateAll(wgt, GetSizeOf(wgt)))
+
+//! \brief 无效化：使相对于部件的子部件的指定区域在直接和间接的窗口缓冲区中无效。
+YF_API void
+InvalidateChildren(IWidget&, const Rect&);
+//! \brief 无效化：使部件的子部件区域在直接和间接的窗口缓冲区中无效。
+inline PDefH(void, InvalidateChildren, IWidget& wgt)
+	ImplExpr(InvalidateChildren(wgt, GetSizeOf(wgt)))
+//@}
 
 /*!
 \brief 无效化部件区域对应位置的父容器区域。

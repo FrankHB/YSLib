@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r738
+\version r740
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2013-10-24 00:01 +0800
+	2014-02-05 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_Configuration
-#include YFM_YSLib_Service_YFile_Text_
+#include YFM_YSLib_Service_TextFile
 #include YFM_YSLib_Adaptor_Font // for Drawing::FontCache;
 #include YFM_YSLib_Service_ContentType // for MIMEBiMapping;
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3421
+\version r3429
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-01-19 18:12 +0800
+	2014-02-05 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1042,7 +1042,7 @@ b280
 			/ "eliminating need of updating font"
 		),
 		* "undefined behavior raised when calculating advance of or rendering \
-			a glyph and the small bitmap descriptor is null" $since before b132
+			a glyph and the small bitmap descriptor is null" $since $before b132
 	)
 ),
 
@@ -1307,8 +1307,8 @@ b273
 			+ "runtime character width getters",
 			/ "encoding mapping APIs exposed",
 			(
-			/ DLD "UCS2 output type of encoding mapping";
-			+ "pseudo-converting-to-UCS2 APIs for width calculation"
+			/ DLD "UCS-2 output type of encoding mapping";
+			+ "pseudo-converting-to-UCS-2 APIs for width calculation"
 			),
 			/ "UTF-8 to Unicode code point mapping" $=
 			(
@@ -1318,7 +1318,7 @@ b273
 			),
 			(
 			+ "enum class %ConversionResult";
-			/ "converting-to-UCS2 APIs" ^ "enum class %ConversionResult"
+			/ "converting-to-UCS-2 APIs" ^ "enum class %ConversionResult"
 				~ "byte as return type"
 			)
 		);
@@ -1808,11 +1808,11 @@ b250
 	/ @ "library %CHRLib" $=
 	(
 		+ "valid conversion state support for %CharSet::UTF_8 to \
-			%CharSet::UCS2 mapping function",
+			%CharSet::'UCS2*' mapping function",
 		+ "invalid conversion state support for %CharSet::(UTF_8, GBK) to \
-			%CharSet::UCS2 mapping function",
+			%CharSet::'UCS2*' mapping function",
 		+ "conversion state support for %CharSet::(UTF_16LE, UTF_16BE) to \
-			%CharSet::UCS2 mapping function"
+			%CharSet::'UCS2*' mapping function"
 	);
 	* "EOF cannot be recognized by conversion routines" $since b248
 ),
@@ -1899,7 +1899,7 @@ b245
 			@ "implementation unit chrmap.cpp",
 		* "wrong behavior of mapping functions for platforms where char is a \
 			signed type"
-	) $since before '~b4x'($with_timestamp 2009-11-22, $rev("chrproc.cpp")
+	) $since $before '~b4x'($with_timestamp 2009-11-22, $rev("chrproc.cpp")
 		= r1319),
 	+ "encoding conversion from UTF-8 to UCS-2" @ "library %CHRLib";
 	* "path with non-ASCII characters cannot send to reader" @ %YReader

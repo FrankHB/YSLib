@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3367
+\version r3369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2013-12-31 22:13 +0800
+	2014-02-05 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "Helper/YModules.h"
 #include YFM_YSLib_Adaptor_Font
 #include YFM_YSLib_Core_YApplication
-#include YFM_YSLib_Core_YFileSystem
+#include YFM_YSLib_Service_FileSystem
 #include YFM_Helper_Initialization
 #include YFM_YCLib_Debug
 #include <algorithm> // for std::for_each;

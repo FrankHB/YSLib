@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2151
+\version r2155
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2014-01-11 11:26 +0800
+	2014-02-05 02:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_CORE_YSTRING_H_
-#define YSL_INC_CORE_YSTRING_H_ 1
+#ifndef YSL_INC_Core_ystring_h_
+#define YSL_INC_Core_ystring_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject
@@ -40,7 +40,7 @@ namespace Text
 {
 
 /*!
-\brief YSLib 标准字符串（使用 UCS-2LE ）。
+\brief YSLib 标准字符串（使用 UCS-2 作为内部编码）。
 \warning 非虚析构。
 \since 早于 build 132
 */
@@ -60,7 +60,7 @@ public:
 	*/
 	DefDeMoveCtor(String)
 	/*!
-	\brief 构造：使用 UCS-2LE 字符指针表示的等宽 NTCTS 。
+	\brief 构造：使用 UCS-2 字符指针表示的等宽 NTCTS 。
 	*/
 	String(const ucs2_t* s)
 		: ucs2string(s)

@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r143
+\version r149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-02-02 18:30 +0800
+	2014-02-05 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,8 +102,13 @@
 @2.1 领域模型实现：
 略。
 
-@2.2 存在问题：
-目前 Unicode 编码中仅支持基本多文种平面(BMP) 编码点。
+@2.2 字节序：
+不保证所有情形下字节序都一致。
+除非另有说明，字符类型 ucs2_t 和 ucs2_t 存储的字节序同实现使用的基本整数类型。
+接口说明中若未指定字节序，表示同时适合于大端序和小端序（如 UCS-2 指 UCS-2BE 和 UCS-2LE） 。
+
+@2.3 限制：
+目前 Unicode 编码中仅支持基本多文种平面(BMP) 编码点。对 UTF-16 编码支持仅实现兼容 UCS-2 的部分。
 
 @3 API 设计和风格概述：
 参见 [Documentation::Designation @@3] 。

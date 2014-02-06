@@ -11,13 +11,13 @@
 /*!	\file Configuration.h
 \ingroup NPL
 \brief 配置设置。
-\version r293
+\version r294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:08 +0800
 \par 修改时间:
-	2014-02-02 18:15 +0800
+	2014-02-05 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_NPL_NPLA1
-#include YFM_YSLib_Service_YFile_Text_
+#include YFM_YSLib_Service_TextFile
 
 namespace NPL
 {

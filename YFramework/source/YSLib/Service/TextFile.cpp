@@ -8,25 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\file yftext.cpp
+/*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r965
+\version r968
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2014-01-28 05:32 +0800
+	2014-02-05 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Service::YFile_(Text)
+	YSLib::Service::TextFile
 */
 
 
 #include "YSLib/Service/YModules.h"
-#include YFM_YSLib_Service_YFile_Text_
+#include YFM_YSLib_Service_TextFile
 
 namespace YSLib
 {

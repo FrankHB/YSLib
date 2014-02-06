@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MapEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r266
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2013-12-24 09:41 +0800
+	2014-02-05 02:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,8 @@ extern byte* cp2026;
 template<>
 struct GUCS2Mapper<CharSet::SHIFT_JIS>
 {
-/*	template<typename _tObj, typename _tIn, typename _tState>
+#if 0
+	template<typename _tObj, typename _tIn, typename _tState>
 	static byte
 	Map(_tObj& uc, _tIn&& i, _tState&& st)
 	{
@@ -119,12 +120,14 @@ struct GUCS2Mapper<CharSet::SHIFT_JIS>
 		else
 			uc = 0xFFFE;
 		return 2;
-	}*/
+	}
+#endif
 };
 
 template<>
 struct GUCS2Mapper<CharSet::GBK>
 {
+	//! \bug 大端序下输出缺少转换。
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
 	Map(_tObj& uc, _tIn&& i, _tState&& st)

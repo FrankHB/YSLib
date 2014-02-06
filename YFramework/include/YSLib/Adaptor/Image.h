@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r775
+\version r782
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-02-01 01:00 +0800
+	2014-02-05 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -281,11 +281,11 @@ public:
 	HBitmap(const char*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*
-	\brief 构造：使用指定 UTF-16LE 文件名和解码器标识。
+	\brief 构造：使用指定 UCS-2 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
 	HBitmap(const char16_t*, ImageDecoderFlags = ImageDecoderFlags::Default);
-	//! \brief 构造：使用指定 UTF-16LE 文件名、指定格式和解码器标识。
+	//! \brief 构造：使用指定 UCS-2 文件名、指定格式和解码器标识。
 	HBitmap(const char16_t*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*
@@ -419,7 +419,7 @@ public:
 	bool
 	SaveTo(const char*, ImageFormat = ImageFormat::BMP,
 		ImageDecoderFlags = ImageDecoderFlags::Default) const ynothrow;
-	//!\ brief 保存：使用指定 UTF16-LE 文件名、格式和解码器标识。
+	//!\ brief 保存：使用指定 UTF-16 文件名、格式和解码器标识。
 	bool
 	SaveTo(const char16_t*, ImageFormat = ImageFormat::BMP,
 		ImageDecoderFlags = ImageDecoderFlags::Default) const ynothrow;
@@ -521,12 +521,12 @@ public:
 	HMultiBitmap(const char*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*
-	\brief 构造：使用指定 UCS-2LE 文件名和解码器标识。
+	\brief 构造：使用指定 UCS-2 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
 	HMultiBitmap(const char16_t*,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
-	//! \brief 构造：使用指定 UCS-2LE 文件名、指定格式和解码器标识。
+	//! \brief 构造：使用指定 UCS-2 文件名、指定格式和解码器标识。
 	HMultiBitmap(const char16_t*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*
@@ -634,7 +634,7 @@ public:
 	//! \note 使用指定 UTF-8 文件名。
 	static ImageFormat
 	DetectFormat(const char*);
-	//! \note 使用指定 UCS-2LE 文件名。
+	//! \note 使用指定 UCS-2 文件名。
 	static ImageFormat
 	DetectFormat(const char16_t*);
 	//@}
@@ -653,7 +653,7 @@ public:
 	//! \note 使用指定 UTF-8 文件名。
 	static HMultiBitmap
 	LoadForPlaying(const char*);
-	//! \note 使用指定 UCS-2LE 文件名。
+	//! \note 使用指定 UCS-2 文件名。
 	static HMultiBitmap
 	LoadForPlaying(const char16_t*);
 	//! \brief 构造：使用指定字符串文件名。

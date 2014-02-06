@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1048
+\version r1053
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2013-12-24 09:35 +0800
+	2014-02-05 02:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,7 +211,7 @@ uopen(const char* filename, int oflag) ynothrow;
 YF_API int
 uopen(const char* filename, int oflag, int pmode) ynothrow;
 /*!
-\brief 以 UCS-2LE 文件名无缓冲打开文件。
+\brief 以 UCS-2 文件名无缓冲打开文件。
 \param filename 文件名，意义同 POSIX <tt>::open</tt> 。
 \param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \pre 断言：<tt>filename</tt> 。
@@ -220,7 +220,7 @@ uopen(const char* filename, int oflag, int pmode) ynothrow;
 YF_API int
 uopen(const char16_t* filename, int oflag) ynothrow;
 /*!
-\brief 以 UCS-2LE 文件名无缓冲打开文件。
+\brief 以 UCS-2 文件名无缓冲打开文件。
 \param filename 文件名，意义同 POSIX <tt>::open</tt> 。
 \param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
@@ -241,7 +241,7 @@ uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
 YF_API std::FILE*
 ufopen(const char* filename, const char* mode) ynothrow;
 /*!
-\brief 以 UCS-2LE 文件名打开文件。
+\brief 以 UCS-2 文件名打开文件。
 \param filename 文件名，意义同 std::fopen 。
 \param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
 \pre 断言：<tt>filename && mode && *mode != 0</tt> 。
@@ -287,7 +287,7 @@ YF_API char*
 getcwd_n(char* buf, std::size_t size) ynothrow;
 
 /*!
-\brief 当第一参数非空时取当前工作目录（ UCS2-LE 编码）复制至指定缓冲区中。
+\brief 当第一参数非空时取当前工作目录（ UCS-2 编码）复制至指定缓冲区中。
 \param buf 缓冲区起始指针。
 \param size 缓冲区长。
 \return 若成功为 buf ，否则为空指针。

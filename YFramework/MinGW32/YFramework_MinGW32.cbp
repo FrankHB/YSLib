@@ -264,7 +264,6 @@
 		<Unit filename="../include/YSLib/Core/ydevice.h" />
 		<Unit filename="../include/YSLib/Core/yevt.hpp" />
 		<Unit filename="../include/YSLib/Core/yexcept.h" />
-		<Unit filename="../include/YSLib/Core/yfilesys.h" />
 		<Unit filename="../include/YSLib/Core/yfunc.hpp" />
 		<Unit filename="../include/YSLib/Core/ygdibase.h" />
 		<Unit filename="../include/YSLib/Core/ymsg.h" />
@@ -277,7 +276,10 @@
 		<Unit filename="../include/YSLib/Service/AccessHistory.hpp" />
 		<Unit filename="../include/YSLib/Service/CharRenderer.h" />
 		<Unit filename="../include/YSLib/Service/ContentType.h" />
+		<Unit filename="../include/YSLib/Service/File.h" />
+		<Unit filename="../include/YSLib/Service/FileSystem.h" />
 		<Unit filename="../include/YSLib/Service/TextBase.h" />
+		<Unit filename="../include/YSLib/Service/TextFile.h" />
 		<Unit filename="../include/YSLib/Service/TextLayout.h" />
 		<Unit filename="../include/YSLib/Service/TextRenderer.h" />
 		<Unit filename="../include/YSLib/Service/YModules.h" />
@@ -285,7 +287,6 @@
 		<Unit filename="../include/YSLib/Service/textmgr.h" />
 		<Unit filename="../include/YSLib/Service/yblit.h" />
 		<Unit filename="../include/YSLib/Service/ydraw.h" />
-		<Unit filename="../include/YSLib/Service/yfile.h" />
 		<Unit filename="../include/YSLib/Service/yftext.h" />
 		<Unit filename="../include/YSLib/Service/ygdi.h" />
 		<Unit filename="../include/YSLib/Service/yres.h" />
@@ -359,7 +360,6 @@
 		<Unit filename="../source/YSLib/Core/yapp.cpp" />
 		<Unit filename="../source/YSLib/Core/ydevice.cpp" />
 		<Unit filename="../source/YSLib/Core/yexcept.cpp" />
-		<Unit filename="../source/YSLib/Core/yfilesys.cpp" />
 		<Unit filename="../source/YSLib/Core/ygdibase.cpp" />
 		<Unit filename="../source/YSLib/Core/ymsg.cpp" />
 		<Unit filename="../source/YSLib/Core/yobject.cpp" />
@@ -367,14 +367,15 @@
 		<Unit filename="../source/YSLib/Core/ystring.cpp" />
 		<Unit filename="../source/YSLib/Service/CharRenderer.cpp" />
 		<Unit filename="../source/YSLib/Service/ContentType.cpp" />
+		<Unit filename="../source/YSLib/Service/File.cpp" />
+		<Unit filename="../source/YSLib/Service/FileSystem.cpp" />
 		<Unit filename="../source/YSLib/Service/TextBase.cpp" />
+		<Unit filename="../source/YSLib/Service/TextFile.cpp" />
 		<Unit filename="../source/YSLib/Service/TextLayout.cpp" />
 		<Unit filename="../source/YSLib/Service/TextRenderer.cpp" />
 		<Unit filename="../source/YSLib/Service/textmgr.cpp" />
 		<Unit filename="../source/YSLib/Service/yblit.cpp" />
 		<Unit filename="../source/YSLib/Service/ydraw.cpp" />
-		<Unit filename="../source/YSLib/Service/yfile.cpp" />
-		<Unit filename="../source/YSLib/Service/yftext.cpp" />
 		<Unit filename="../source/YSLib/Service/ygdi.cpp" />
 		<Unit filename="../source/YSLib/Service/yres.cpp" />
 		<Unit filename="../source/YSLib/Service/ytimer.cpp" />

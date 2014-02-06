@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9121
+\version r9124
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-01-04 23:35 +0800
+	2014-02-05 14:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,6 +102,7 @@ Shell 和 Core 的关系是相对的，例如：
 
 @1.3.2.1 需要使用的非 ISO C++03 扩展：
 定义于 ISO C99（ISO/IEC 9899:1999）和 ISO C++11（ISO/IEC 14882:2011）中，且有一个以上完整的语言实现。
+ Default template arguments for function templates(DR226) ；
  C99 preprocessor(N1653) ；
  Static assertions(N1720) ；
  Right angle brackets(N1757) ；
@@ -335,8 +336,9 @@ Shell 和 Core 的关系是相对的，例如：
 
 @5.2.2.2.1 对于未说明字符串参数编码的文件操作接口：
 必要时的编码转换使用 CHRLib([Documentation::YFramework @@2.6]) 。
+注意 CHRLib 和 YCLib 相关接口中 UCS-2 在 Win32 下即为 UCS-2LE 。
  DS 直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
- MinGW32 直接使用 UCS2-LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL2-LE 路径，使用 _w 起始的 MSVCRT 文件函数。
+ MinGW32 直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
 
 @5.2.2.3 平台 API 使用策略：
 

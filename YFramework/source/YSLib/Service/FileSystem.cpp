@@ -8,25 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfilesys.cpp
-\ingroup Core
+/*!	\file FileSystem.cpp
+\ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1879
+\version r1886
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-01-28 05:26 +0800
+	2014-02-05 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Core::YFileSystem
+	YSLib::Service::FileSystem
 */
 
 
-#include "YSLib/Core/YModules.h"
-#include YFM_YSLib_Core_YFileSystem
+#include "YSLib/Service/YModules.h"
+#include YFM_YSLib_Service_FileSystem
 #include <ystdex/cstring.h>
 
 namespace YSLib
@@ -88,8 +88,7 @@ Path::Parse(const ucs2string& str)
 
 	ystdex::split(str, [&](ucs2_t c){
 		return norm.is_delimiter(ucs2string{c});
-	}, [&](ucs2string::const_iterator b,
-		ucs2string::const_iterator e){
+	}, [&](ucs2string::const_iterator b, ucs2string::const_iterator e){
 		res.push_back(ucs2string(b, e));
 	});
 	return res;

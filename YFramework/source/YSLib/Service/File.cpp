@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,26 +8,26 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfile.cpp
+/*!	\file File.cpp
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r518
+\version r523
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2013-12-23 23:56 +0800
+	2014-02-05 15:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Service::YFile
+	YSLib::Service::File
 */
 
 
 #include "YSLib/Service/YModules.h"
-#include YFM_YSLib_Service_YFile
-#include YFM_YSLib_Core_YFileSystem
+#include YFM_YSLib_Service_File
+#include YFM_YSLib_Service_FileSystem
 
 namespace YSLib
 {

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM7
-# Version = r1258
+# Version = r1259
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-01-18 15:24 +0800
+# Updated = 2014-02-06 03:23 +0800
 # Encoding = ANSI
 
 
@@ -288,6 +288,4 @@ endef
 #----
 endif
 #----
-
-rebuild: all
 

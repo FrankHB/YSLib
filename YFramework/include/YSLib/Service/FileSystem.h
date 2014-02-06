@@ -8,37 +8,41 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfilesys.h
-\ingroup Core
+/*!	\file FileSystem.h
+\ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2153
+\version r2180
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-01-11 11:26 +0800
+	2014-02-06 20:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Core::YFileSystem
+	YSLib::Service::FileSystem
 */
 
 
-#ifndef YSL_INC_Core_yfilesys_h_
-#define YSL_INC_Core_yfilesys_h_ 1
+#ifndef YSL_INC_Service_FileSystem_h_
+#define YSL_INC_Service_FileSystem_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YString
 #include <ystdex/path.hpp>
 
-//! \since build 409
-namespace ystdex
+namespace YSLib
 {
 
-//! \since build 409
-template<>
-class file_path_norm<YSLib::String> : public path_norm<YSLib::String>
+namespace IO
+{
+
+/*!
+\brief 文件路径范式。
+\since build 473
+*/
+class YF_API PathNorm : public ystdex::path_norm<YSLib::String>
 {
 public:
 	using value_type = YSLib::String;
@@ -55,22 +59,12 @@ public:
 	PDefH(bool, is_self, const value_type& str) ynothrow override
 		ImplRet(YCL_FS_StringIsCurrent(str, u))
 
-	DefClone(override, file_path_norm)
+	DefClone(override, PathNorm)
 };
 
-} // namespace ystdex;
-
-namespace YSLib
-{
-
-namespace IO
-{
 
 //! \since build 409
-using ypath = ystdex::path<vector<String>>;
-
-//! \since build 411
-using PathNorm = ystdex::file_path_norm<String>;
+using ypath = ystdex::path<vector<String>, PathNorm>;
 
 
 /*!
@@ -175,7 +169,7 @@ public:
 	\since build 410
 	*/
 	PDefH(void, Normalize, )
-		ImplRet(ystdex::normalize(*this))
+		ImplExpr(ystdex::normalize(*this))
 
 	//! \since build 409
 	//@{
@@ -215,7 +209,11 @@ public:
 	//! \since build 410
 	using ypath::merge_parents;
 
-	using ypath::size;
+	//! \since build 473
+	using ypath::pop_back;
+
+	//! \since build 473
+	using ypath::push_back;
 
 	using ypath::swap;
 	void

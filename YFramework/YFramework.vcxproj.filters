@@ -193,9 +193,6 @@
     <ClInclude Include="include\YSLib\Core\yexcept.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\yfilesys.h">
-      <Filter>include\YSLib\Core</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Core\yfunc.hpp">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
@@ -216,12 +213,6 @@
     </ClInclude>
     <ClInclude Include="include\ysbuild.h">
       <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Service\yfile.h">
-      <Filter>include\YSLib\Service</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Service\yftext.h">
-      <Filter>include\YSLib\Service</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\ygdibase.h">
       <Filter>include\YSLib\Core</Filter>
@@ -781,6 +772,15 @@
     <ClInclude Include="include\YSLib\UI\ExStyle.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\Service\File.h">
+      <Filter>include\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\FileSystem.h">
+      <Filter>include\YSLib\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Service\TextFile.h">
+      <Filter>include\YSLib\Service</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -795,9 +795,6 @@
     <ClCompile Include="source\YSLib\Core\yexcept.cpp">
       <Filter>source\YSLib\Core</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Core\yfilesys.cpp">
-      <Filter>source\YSLib\Core</Filter>
-    </ClCompile>
     <ClCompile Include="source\YSLib\Core\yobject.cpp">
       <Filter>source\YSLib\Core</Filter>
     </ClCompile>
@@ -808,12 +805,6 @@
       <Filter>source\YSLib\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\ytimer.cpp">
-      <Filter>source\YSLib\Service</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Service\yfile.cpp">
-      <Filter>source\YSLib\Service</Filter>
-    </ClCompile>
-    <ClCompile Include="source\YSLib\Service\yftext.cpp">
       <Filter>source\YSLib\Service</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\ygdibase.cpp">
@@ -1037,6 +1028,15 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ExStyle.cpp">
       <Filter>source\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\File.cpp">
+      <Filter>source\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\FileSystem.cpp">
+      <Filter>source\YSLib\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\Service\TextFile.cpp">
+      <Filter>source\YSLib\Service</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

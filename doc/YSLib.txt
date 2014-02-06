@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2319
+\version r2329
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-01-15 00:36 +0800
+	2014-02-05 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,7 +125,6 @@
  YEvent 依赖 YObject 和 YFunc ；
  YMessageDefinition 依赖 YMessage ；
  YShell 依赖 YMessageDefinition ；
- YFileSystem 依赖 YString；
  YApplication 依赖 YShell 和 Adaptor::YContainer 。
 在 Service 中，以下模块对应的头文件依赖关系是确定的：
  YTimer 依赖 Core::YShellDefinition ；
@@ -161,8 +160,8 @@
 默认行为如下：
 包含 "ynew.h" ，引入平台设置和存储调试设施(@2.2) 。
 包含 YBase 依赖项(@7) <ystdex/functional.hpp> 和 <ystdex/utility.hpp> 。
-包含 <YCLib/ycommon.h> 、 <YCLib/FileSystem.h> 和 <YCLib/Video.h> 。
-包含 CHRLib (@7.4.1) （<CHRLib/chrlib.h>）。
+包含 YCLib 的 YFM_YCLib_YCommon 、 YFM_YCLib_FileSystem 和 YFM_YCLib_Video 。
+包含 CHRLib [Documentation::CHRLib] 的 YFM_CHRLib_CHRDefinition 。
 在 YSLib 命名空间 using 引用必要的名称。
 
 @2.2 内存调试设施 YNew ：
@@ -198,7 +197,6 @@
 消息处理 YMessage ；
 标准 Shell 消息列表 YMessageDefinition ；
 全局静态类型存储管理 YStatic ；
-平台无关的文件处理系统 YFileSystem ；
  Shell 定义 YShell ；
 系统资源和应用程序实例抽象 YApplication 等。
 
@@ -222,7 +220,7 @@
 
 @3.6 基础字符串管理 YString
 通用字符串抽象以及相关 API 。
-包括 String 类。当前使用 UTF-16LE 作为内部编码。
+包括 String 类。当前使用 UCS-2 作为内部编码（字节序同实现的 ucs2_t 存储字节序）。
 
 @3.7 平台无关的基础图形学对象 YGDIBase ：
 
@@ -378,11 +376,13 @@
 
 @4.4 应用程序资源管理模块 YResource
 
-@4.5 文件抽象
+@4.5 文件系统和文件抽象
 
-@4.5.1 平台无关的文件抽象 YFile
+@4.5.1 平台无关的文件处理系统 FileSystem
 
-@4.5.2 平台无关的文本文件抽象 YFile_(Text)
+@4.5.2 平台无关的文件抽象 File
+
+@4.5.3 平台无关的文本文件抽象 TextFile
 
 @4.6 扩展服务
 
@@ -911,7 +911,7 @@ YFramework
 使用随机载入复杂度为 O(1) 的算法，缓冲时间和文本文件大小无关。
 
 @10.1.1 编码支持：
-支持带 BOM 的 UTF-8 、 UCS2-LE 、 UCS2-BE 、 UCS-4LE 、 UCS-4BE 编码。
+支持带 BOM 的 UTF-8 、 UCS-2LE 、 UCS-2BE 、 UCS-4LE 、 UCS-4BE 编码。
 不带 BOM 的编码只读取文件起始字节（至多 64 个）判断为 UTF-8 或 GBK 。
 按 GBK 打开时，可以顺序阅读，但不保证随机定位后读取的内容正常（GBK 无法保证随机定位时一定能选取到字符起始字节）。
 模拟器上读取 GBK 编码文件极慢（可能需要等待数十秒），因为需要在二进制文件中载入编码表，属于正常情况。

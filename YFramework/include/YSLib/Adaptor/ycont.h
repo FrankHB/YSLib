@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r683
+\version r685
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2013-12-24 00:30 +0800
+	2014-02-05 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,7 +163,7 @@ struct GSStringTemplate
 
 using string = GSStringTemplate<char>::basic_string;
 
-// YSLib 基本字符串（使用 UCS-2LE / UCS-4LE ）。
+// YSLib 基本字符串（使用 UCS-2 / UCS-4 ）。
 using ucs2string = GSStringTemplate<CHRLib::ucs2_t>::basic_string;
 using ucs4string = GSStringTemplate<CHRLib::ucs4_t>::basic_string;
 

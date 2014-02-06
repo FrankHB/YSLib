@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r645
+\version r680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2014-01-28 21:59 +0800
+	2014-02-05 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,10 @@
 namespace ystdex
 {
 
-//! \since build 408
+/*!
+\note 允许被按路径语义特化。
+\since build 408
+*/
 //@{
 //! \brief 路径范式。
 template<typename _type>
@@ -122,8 +125,11 @@ public:
 		return new file_path_norm(*this);
 	}
 };
+//@}
 
 
+//! \since build 473
+//@{
 /*!
 \brief 一般路径模板。
 \tparam _tSeqCon 可倒置的序列容器类型。
@@ -136,7 +142,8 @@ public:
 \see ISO C++11 17.6.3.1[utility.arg.requirements],
 	23.2.1[container.requirements.general] 。
 */
-template<class _tSeqCon>
+template<class _tSeqCon,
+	class _tNorm = ystdex::path_norm<typename _tSeqCon::value_type>>
 class path : private sequence_container_adaptor<_tSeqCon>
 {
 private:
@@ -144,7 +151,10 @@ private:
 
 public:
 	using value_type = typename _tSeqCon::value_type;
-	using norm = path_norm<value_type>;
+	using norm = _tNorm;
+	//! \since build 473
+	using default_norm = ystdex::conditional_t<std::is_default_constructible<
+		norm>::value, norm, file_path_norm<value_type>>;
 	using reference = typename _tSeqCon::reference;
 	using const_reference = typename _tSeqCon::const_reference;
 	using size_type = typename base::size_type;
@@ -342,7 +352,7 @@ private:
 	static std::unique_ptr<norm>
 	unique_norm(std::unique_ptr<norm>& p)
 	{
-		return p ? std::move(p) : make_unique<file_path_norm<value_type>>();
+		return p ? std::move(p) : make_unique<default_norm>();
 	}
 };
 
@@ -351,44 +361,44 @@ private:
 \relates path
 */
 //@{
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 inline bool
-operator==(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
+operator==(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
 {
 	return x.equals(y);
 }
 
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 bool
-operator!=(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
+operator!=(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
 {
 	return !(x == y);
 }
 
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 bool
-operator<(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
+operator<(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
 {
 	return x.before(y);
 }
 
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 bool
-operator<=(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
+operator<=(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
 {
 	return !(y < x);
 }
 
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 bool
-operator>(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
+operator>(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
 {
 	return y < x;
 }
 
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 bool
-operator>=(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
+operator>=(const path<_tSeqCon, _tNorm>& x, const path<_tSeqCon, _tNorm>& y)
 {
 	return !(x < y);
 }
@@ -398,9 +408,9 @@ operator>=(const path<_tSeqCon>& x, const path<_tSeqCon>& y)
 \brief 正规化。
 \relates path
 */
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 inline void
-normalize(path<_tSeqCon>& pth)
+normalize(path<_tSeqCon, _tNorm>& pth)
 {
 	pth.filter_self(), pth.merge_parents();
 }
@@ -409,9 +419,9 @@ normalize(path<_tSeqCon>& pth)
 \brief 交换。
 \relates path
 */
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 inline void
-swap(path<_tSeqCon>& x, path<_tSeqCon>& y)
+swap(path<_tSeqCon, _tNorm>& x, path<_tSeqCon, _tNorm>& y)
 {
 	x.swap(y);
 }
@@ -420,10 +430,10 @@ swap(path<_tSeqCon>& x, path<_tSeqCon>& y)
 \brief 取字符串表示。
 \relates path
 */
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 typename _tSeqCon::value_type
-to_string(const path<_tSeqCon>& pth, const typename _tSeqCon::value_type&
-	seperator = &to_array<
+to_string(const path<_tSeqCon, _tNorm>& pth,
+	const typename _tSeqCon::value_type& seperator = &to_array<
 	typename string_traits<typename _tSeqCon::value_type>::value_type>("/")[0])
 {
 	static_assert(is_object<typename _tSeqCon::value_type>::value,
@@ -447,9 +457,9 @@ to_string(const path<_tSeqCon>& pth, const typename _tSeqCon::value_type&
 \brief 取分隔符结尾的字符串表示。
 \relates path
 */
-template<class _tSeqCon>
+template<class _tSeqCon, class _tNorm>
 typename _tSeqCon::value_type
-to_string_d(const path<_tSeqCon>& pth, typename string_traits<typename
+to_string_d(const path<_tSeqCon, _tNorm>& pth, typename string_traits<typename
 	_tSeqCon::value_type>::value_type delimiter = '/')
 {
 	static_assert(is_object<typename _tSeqCon::value_type>::value,

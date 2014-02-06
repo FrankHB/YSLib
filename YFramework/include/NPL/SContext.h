@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1363
+\version r1364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2014-01-28 05:19 +0800
+	2014-02-05 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_NPL_Lexical
 #include YFM_YSLib_Core_ValueNode
-#include YFM_YSLib_Service_YFile_Text_
+#include YFM_YSLib_Service_TextFile
 
 namespace NPL
 {

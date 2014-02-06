@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r457
+\version r459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2013-12-24 00:58 +0800
+	2014-02-05 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include <YSLib/UI/YModules.h>
 #include <Helper/YModules.h>
 #include YFM_YSLib_UI_Scroll
-#include YFM_YSLib_Service_YFile
+#include YFM_YSLib_Service_File
 #include YFM_YSLib_Service_TextLayout
 #include YFM_Helper_Initialization
 

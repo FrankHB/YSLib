@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1847
+\version r1849
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2013-12-24 00:56 +0800
+	2014-02-05 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include <YSLib/UI/YModules.h>
 #include YFM_YSLib_UI_TextArea
-#include YFM_YSLib_Service_YFile_Text_
+#include YFM_YSLib_Service_TextFile
 #include YFM_YSLib_Service_TextManager
 #include <Helper/DSMain.h>
 #include YFM_Helper_Initialization
