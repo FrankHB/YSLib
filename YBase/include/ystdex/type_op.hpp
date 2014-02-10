@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1197
+\version r1199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2014-01-12 14:02 +0800
+	2014-02-08 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -762,8 +762,8 @@ struct array_ref_decay<_type&&>
 \since build 448
 */
 template<class _tClass, typename _tParam, typename _type = int>
-using exclude_self_ctor_t = enable_if_t<!is_same<_tClass&,
-	remove_rcv_t<_tParam>&>::value, _type>;
+using exclude_self_ctor_t
+	= enable_if_t<!is_same<_tClass&, remove_rcv_t<_tParam>&>::value, _type>;
 
 
 /*!	\defgroup tags Tags

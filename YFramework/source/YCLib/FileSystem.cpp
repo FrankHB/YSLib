@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1036
+\version r1151
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-01-28 05:27 +0800
+	2014-02-11 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,6 +97,118 @@ u_to_w(const char* str)
 	std::free(tstr);
 	return wstr;
 }
+
+
+//! \since build 474
+//@{
+class DirEnv
+{
+public:
+	std::wstring d_name;
+	WIN32_FIND_DATAW& find_data;
+
+	DirEnv(std::wstring&, ::WIN32_FIND_DATAW&);
+
+	DefGetter(const ynothrow, ::DWORD, Attributes, find_data.dwFileAttributes)
+};
+
+DirEnv::DirEnv(std::wstring& dir_name, ::WIN32_FIND_DATAW& win32_fdata)
+	: d_name(), find_data(win32_fdata)
+{
+	yconstraint(!dir_name.empty() && dir_name.back() != '\\');
+
+	const auto r(::GetFileAttributesW(dir_name.c_str()));
+
+	if(r != INVALID_FILE_ATTRIBUTES && r & FILE_ATTRIBUTE_DIRECTORY)
+		dir_name += L"\\*";
+	else
+		throw FileOperationFailure("Opening directory failed.");
+}
+
+
+class DirectoryData : private ystdex::noncopyable
+{
+private:
+	std::wstring dir_name;
+	::WIN32_FIND_DATAW find_data;
+	::HANDLE h_node;
+	DirEnv posix_dir;
+
+public:
+	DirectoryData(const char*);
+	~DirectoryData();
+
+	DefGetterMem(const ynothrow, ::DWORD, Attributes, posix_dir)
+
+private:
+	void
+	Close() ynothrow;
+
+public:
+	DirEnv*
+	Read();
+
+	void
+	Rewind() ynothrow;
+};
+
+DirectoryData::DirectoryData(const char* name)
+	: dir_name(ystdex::rtrim(u_to_w(name), L"/\\")),
+	find_data(), h_node(), posix_dir(dir_name, find_data)
+{}
+DirectoryData::~DirectoryData()
+{
+	if(h_node)
+		Close();
+}
+
+void
+DirectoryData::Close() ynothrow
+{
+	const auto res(::FindClose(h_node));
+
+	YAssert(res, "No valid directory found.");
+
+	yunused(res);
+}
+
+DirEnv*
+DirectoryData::Read()
+{
+	if(!h_node)
+	{
+		// NOTE: See MSDN "FindFirstFile function" for details.
+		yassume(!dir_name.empty());
+		yassume(dir_name.back() != L'\\');
+
+		if((h_node = ::FindFirstFileW(dir_name.c_str(), &find_data))
+			== INVALID_HANDLE_VALUE)
+			h_node = {};
+	}
+	else if(!::FindNextFileW(h_node, &find_data))
+	{
+		Close();
+		h_node = {};
+	}
+	if(h_node && h_node != INVALID_HANDLE_VALUE)
+	{
+		yassume(find_data.cFileName);
+
+		posix_dir.d_name = find_data.cFileName;
+	}
+	return !h_node ? nullptr : &posix_dir;
+}
+
+void
+DirectoryData::Rewind() ynothrow
+{
+	if(h_node)
+	{
+		Close();
+		h_node = {};
+	}
+}
+//@}
 #else
 #	error "Unsupported platform found."
 #endif
@@ -310,17 +422,19 @@ uchdir(const char* path) ynothrow
 bool
 mkdirs(const char* cpath) ynothrow
 {
-	PATHSTR path;
+	yassume(cpath);
 
-	std::strcpy(path, cpath);
-	for(char* slash(path); (slash = strchr(slash, YCL_PATH_DELIMITER)); ++slash)
+	std::string path(cpath);
+
+	for(char* slash(&path[0]); (slash = std::strchr(slash, YCL_PATH_DELIMITER));
+		++slash)
 	{
 		*slash = char();
-		::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO);
+		::mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 		*slash = '/';
 	}
 	//新建目录成功或目标路径已存在时返回 true 。
-	return ::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0
+	return ::mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) == 0
 		|| errno == EEXIST;
 }
 
@@ -330,7 +444,7 @@ truncate(std::FILE* fp, std::size_t size) ynothrow
 #if YCL_DS
 	return ::ftruncate(fileno(fp), ::off_t(size)) != 0;
 #else
-	return ::_chsize(_fileno(fp), long(size));
+	return ::_chsize(::_fileno(fp), long(size));
 #endif
 }
 
@@ -338,10 +452,11 @@ truncate(std::FILE* fp, std::size_t size) ynothrow
 DirectorySession::DirectorySession(const char* path)
 	: dir(
 #if YCL_DS
-		::opendir(path && *path != '\0' ? path : ".")
+		::opendir
 #else
-		::_wopendir(path && *path != '\0' ? u_to_w(path).c_str() : L".")
+		new DirectoryData
 #endif
+		(path && *path != '\0' ? path : ".")
 	)
 {
 	if(!dir)
@@ -351,13 +466,13 @@ DirectorySession::~DirectorySession()
 {
 #if YCL_DS
 	const auto res(::closedir(dir));
-#else
-	const auto res(::_wclosedir(dir));
-#endif
 
 	YAssert(res == 0, "No valid directory found.");
 
 	yunused(res);
+#else
+	delete static_cast<DirectoryData*>(dir);
+#endif
 }
 
 void
@@ -368,7 +483,7 @@ DirectorySession::Rewind() ynothrow
 #if YCL_DS
 	::rewinddir(dir);
 #else
-	::_wrewinddir(dir);
+	static_cast<DirectoryData*>(dir)->Rewind();
 #endif
 }
 
@@ -379,26 +494,26 @@ HDirectory::operator++()
 #if YCL_DS
 	p_dirent = ::readdir(GetNativeHandle());
 #else
-	p_dirent = ::_wreaddir(GetNativeHandle());
+	p_dirent = static_cast<DirectoryData*>(GetNativeHandle())->Read();
 #endif
 	return *this;
 }
 
-bool
-HDirectory::IsDirectory() const ynothrow
+NodeCategory
+HDirectory::GetNodeCategory() const ynothrow
 {
 	if(p_dirent)
 	{
 #if YCL_DS
-		return p_dirent->d_type & DT_DIR;
+		return p_dirent->d_type & DT_DIR ? NodeCategory::Directory
+			: NodeCategory::Regular;
 #elif YCL_MinGW32
-		struct ::_stat st;
-
-		::_wstat(p_dirent->d_name, &st);
-		return S_ISDIR(st.st_mode);
+		return static_cast<DirectoryData*>(GetNativeHandle())->GetAttributes()
+			& FILE_ATTRIBUTE_DIRECTORY ? NodeCategory::Directory
+			: NodeCategory::Regular;
 #endif
 	}
-	return false;
+	return NodeCategory::Empty;
 }
 
 const char*
@@ -412,7 +527,7 @@ HDirectory::GetName() const ynothrow
 		try
 		{
 			utf8_name = u16_to_u(reinterpret_cast<const char16_t*>(
-				p_dirent->d_name));
+				(static_cast<DirEnv*>(p_dirent))->d_name.c_str()));
 			return &utf8_name[0];
 		}
 		catch(...)

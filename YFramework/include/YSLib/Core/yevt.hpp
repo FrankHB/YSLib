@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4538
+\version r4540
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-01-19 23:07 +0800
+	2014-02-08 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -251,7 +251,7 @@ public:
 	\since build 448
 	*/
 	template<typename _tHandler,
-		typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>>
+		yimpl(typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>)>
 	GEvent(_tHandler&& h)
 		: List()
 	{
@@ -272,7 +272,7 @@ public:
 	\since build 448
 	*/
 	template<typename _tHandler,
-		typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>>
+		yimpl(typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>)>
 	inline GEvent&
 	operator=(_tHandler&& _arg)
 	{

@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r880
+\version r881
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-01-20 23:11 +0800
+	2014-02-08 12:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -385,7 +385,7 @@ struct expanded_caller
 
 	//! \since build 448
 	template<typename _fCaller,
-		typename = exclude_self_ctor_t<expanded_caller, _fCaller>>
+		yimpl(typename = exclude_self_ctor_t<expanded_caller, _fCaller>)>
 	expanded_caller(_fCaller&& f)
 		: Caller(yforward(f))
 	{}

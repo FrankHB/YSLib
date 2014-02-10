@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12137
+\version r12163
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2014-01-19 16:10 +0800
+	2014-02-11 00:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,6 +71,7 @@ YPP_Empty
 YPP_Comma
 YPP_Join
 YPP_Concat
+yimpl
 YB_HAS_ALIGNAS
 YB_HAS_ALIGNOF
 YB_HAS_BUILTIN_NULLPTR
@@ -162,7 +163,6 @@ mkdir
 }
 $header FileSystem
 {
-YCL_MAX_FILENAME_LENGTH
 YCL_MAX_PATH_LENGTH
 YCL_PATH_DELIMITER
 YCL_PATH_SEPARATOR
@@ -836,22 +836,22 @@ $header Adaptor::YAdaptor
 //目标平台中立接口。
 
 //通用数据类型。
-typedef std::uint8_t	u8;
-typedef std::uint16_t	u16;
-typedef std::uint32_t	u32;
-typedef std::uint64_t	u64;
-typedef std::int8_t		s8;
-typedef std::int16_t	s16;
-typedef std::int32_t	s32;
-typedef std::int64_t	s64;
-typedef volatile u8		vu8;
-typedef volatile u16	vu16;
-typedef volatile u32	vu32;
-typedef volatile u64	vu64;
-typedef volatile s8		vs8;
-typedef volatile s16	vs16;
-typedef volatile s32	vs32;
-typedef volatile s64	vs64;
+using u8 = std::uint8_t;
+using u16 = std::uint16_t;
+using u32 = std::uint32_t;
+using u64 = std::uint64_t;
+using s8 = std::int8_t;
+using s16 = std::int16_t;
+using s32 = std::int32_t;
+using s64 = std::int64_t;
+using vu8 = volatile u8;
+using vu16 = volatile u16;
+using vu32 = volatile u32;
+using vu64 = volatile u64;
+using vs8 = volatile s8;
+using vs16 = volatile s16;
+using vs32 = volatile s32;
+using vs64 = volatile s64;
 
 //调用分派。
 using ystdex::seq_apply;
@@ -934,6 +934,12 @@ namespace IO
 using platform::NativePathCharType;
 using platform::CS_Path;
 
+//! \since build 474
+//@{
+using platform::PathCategory;
+using platform::NodeCategory;
+//@}
+
 //! \since build 411
 //@{
 using platform::FileOperationFailure;
@@ -944,9 +950,6 @@ using platform::FileIterator;
 using platform::IsAbsolute;
 using platform::GetRootNameLength;
 
-//文件系统常量。
-using platform::PATHSTR;
-using platform::FILENAMESTR;
 } // namespace IO;
 
 //库适配器。

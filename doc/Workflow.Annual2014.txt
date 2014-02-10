@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r162
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-01-30 21:34 +0800
+	2014-02-10 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,6 +157,20 @@ ISO C++11 still uses copy elision for some cases as C++03. There are some specia
 Since now ISO C++11 is mandated '<::' to be distinguished as '<' and '::' but not '<:' and ':' if the consequence character is not '>' or ':' , no need to always add space to between '<' and '::'.
 	G++ 4.7.1 has not supported.
 	G++ 4.8.2 is conforming.
+
+$2014-02:
+
+report.impl:
+Trailing path delimiters are allowed in YCLib::FileSystem.
+	IEEE POSIX-1003.2 allowed trailing slashes.
+		See http://mail-index.netbsd.org/tech-kern/2002/04/28/0016.html .
+	Windows API 'FindFirstFile' does not expect trailing delimiters in pattern, so preprocessing of the path string is needed.
+		Some implementations may only consider one delimiter. See 'diropen' implemented by MinGW.org.
+Both slashes and backslashes can be supported as file system delimiter by Windows API.
+	Adding prefix '\\?\' can ignore 'MAX_PATH' limitation and enable large path support.
+		Not all API support it.
+		Currently, YCLib do not explicitly use it.
+	See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx .
 
 ////
 

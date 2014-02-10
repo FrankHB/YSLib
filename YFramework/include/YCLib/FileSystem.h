@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1053
+\version r1135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-02-05 02:48 +0800
+	2014-02-11 00:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,13 +52,6 @@ namespace platform
 #	define YCL_MAX_PATH_LENGTH MAXPATHLEN
 #else
 #	define YCL_MAX_PATH_LENGTH 256
-#endif
-
-//最大文件名长度。
-#ifdef NAME_MAX
-#	define YCL_MAX_FILENAME_LENGTH NAME_MAX
-#else
-#	define YCL_MAX_FILENAME_LENGTH YCL_MAX_PATH_LENGTH
 #endif
 
 /*
@@ -175,18 +168,6 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 	"Non-null-terminator as end of separator.");
 #endif
 //@}
-
-//类型定义。
-/*!
-\brief 本机路径字符串类型。
-\since build 286
-*/
-using PATHSTR = NativePathCharType[YCL_MAX_PATH_LENGTH];
-/*!
-\brief 本机文件名类型。
-\since build 286
-*/
-using FILENAMESTR = NativePathCharType[YCL_MAX_FILENAME_LENGTH];
 
 
 /*!
@@ -324,6 +305,61 @@ YF_API bool
 truncate(std::FILE*, std::size_t) ynothrow;
 
 
+//! \since build 412
+//@{
+//! 路径类别。
+enum class PathCategory : yimpl(std::uint32_t)
+{
+	Empty,
+	Self,
+	Parent,
+	Node
+};
+
+//! 文件系统节点类别。
+enum class NodeCategory : ystdex::underlying_type_t<PathCategory>
+{
+	Empty = ystdex::underlying_type_t<PathCategory>(PathCategory::Empty),
+	Unknown = ystdex::underlying_type_t<PathCategory>(PathCategory::Node),
+	//! \since build 474
+	//@{
+	Missing,
+	Invalid,
+	Regular,
+	//@}
+	Directory,
+	/*!
+	\note 以下枚举项具体行为依赖于文件系统和/或操作系统提供的接口。
+	\note 0x1000 起每 0x1000 一个独立区间，分别表示设备文件、通信实体、
+		无附加限制的链接点和其它特殊文件系统实体；首个枚举项表示该子类的未分类节点。
+	*/
+	//@{
+	//! \since build 474
+	//@{
+	Device = 0x1000,
+	Block,
+	Character,
+	yimpl()
+	Communicator = 0x2000,
+	FIFO,
+	Socket,
+	yimpl()
+	Link = 0x3000,
+	//@}
+	SymbolicLink,
+	HardLink,
+	//! \since build 474
+	//@{
+	Junction,
+	Special = 0x4000,
+	Reparse
+	yimpl()
+	//@}
+	//@}
+};
+//@}
+
+
 /*!
 \brief 表示文件操作失败的异常。
 \since build 411
@@ -349,7 +385,7 @@ public:
 #if YCL_DS
 	using NativeHandle = ::DIR*;
 #else
-	using NativeHandle = ::_WDIR*;
+	using NativeHandle = void*;
 #endif
 
 private:
@@ -359,7 +395,10 @@ public:
 	/*!
 	\brief 构造：打开目录路径。
 	\throw FileOperationFail 打开失败。
-	\note 当路径为空指针或空字符串时视为 "." 。
+	\note 路径可以一个或多个分隔符结尾；当路径为空指针或空字符串时视为 "." 。
+	\note 对于 MinGW32 实现， "/" 也被作为分隔符支持。
+	\note 对于 MinGW32 实现， 前缀 "\\?\" 关闭非结尾的 "/" 分隔符支持，
+		且无视 MAX_PATH 限制。
 	*/
 	explicit
 	DirectorySession(const char* path = {});
@@ -399,9 +438,9 @@ private:
 #else
 	/*!
 	\brief 节点信息。
-	\since build 402
+	\since build 474
 	*/
-	::_wdirent* p_dirent;
+	void* p_dirent;
 
 	/*!
 	\brief 节点 UTF-8 名称。
@@ -457,11 +496,13 @@ public:
 	GetName() const ynothrow;
 
 	/*!
-	\brief 从节点状态信息判断是否为目录。
-	\since build 319
+	\brief 取节点状态信息确定的文件系统节点类别。
+	\return 未迭代文件时为 NodeCategory::Empty ，否则为对应的节点类别。
+	\note 不同系统支持的可能不同，但当前都只实现了区分目录和常规文件。
+	\since build 474
 	*/
-	bool
-	IsDirectory() const ynothrow;
+	NodeCategory
+	GetNodeCategory() const ynothrow;
 
 	//! \brief 复位。
 	using DirectorySession::Rewind;

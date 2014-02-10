@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1077
+\version r1079
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-02-04 00:52 +0800
+	2014-02-09 01:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ using namespace IO;
 enum class FileCategory
 {
 	Empty = NodeCategory::Empty,
-	Unknown = NodeCategory::Normal,
+	Unknown = NodeCategory::Regular,
 	Binary,
 	Text
 };
@@ -78,7 +78,7 @@ ClassifyFile(const Path& pth)
 {
 	switch(ClassifyNode(pth))
 	{
-	case NodeCategory::Normal:
+	case NodeCategory::Regular:
 		return CheckTextFileExtensions(GetExtensionOf(pth).GetMBCS(CS_Path))
 			? FileCategory::Text : FileCategory::Binary;
 	case NodeCategory::Unknown:

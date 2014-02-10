@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1886
+\version r1889
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-02-05 14:32 +0800
+	2014-02-09 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,7 +144,8 @@ ListFiles(const Path& pth, vector<String>& lst)
 		std::for_each(FileIterator(&dir), FileIterator(),
 			[&](const std::string& name){
 			if(YB_LIKELY(!nm.is_self(name)))
-				lst.push_back(String(!nm.is_parent(name) && dir.IsDirectory()
+				lst.push_back(String(!nm.is_parent(name)
+					&& dir.GetNodeCategory() == NodeCategory::Directory
 					? name + YCL_PATH_DELIMITER : name, CS_Path));
 		});
 	}
@@ -183,7 +184,7 @@ ClassifyNode(const Path& pth)
 	default:
 		if(ufexists(string(pth)))
 			return VerifyDirectory(pth)
-				? NodeCategory::Directory : NodeCategory::Normal;
+				? NodeCategory::Directory : NodeCategory::Regular;
 	// TODO: Implementation for other categories.
 	}
 	return NodeCategory::Unknown;

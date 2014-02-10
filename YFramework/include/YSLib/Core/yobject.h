@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3792
+\version r3793
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-01-20 22:40 +0800
+	2014-02-08 12:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,7 +305,7 @@ public:
 	\since build 448
 	*/
 	template<typename _type,
-		typename = ystdex::exclude_self_ctor_t<ValueObject, _type>>
+		yimpl(typename = ystdex::exclude_self_ctor_t<ValueObject, _type>)>
 	ValueObject(_type&& obj)
 		: content(ystdex::any_ops::holder_tag(), make_unique<ValueHolder<
 		typename ystdex::remove_rcv<_type>::type>>(yforward(obj)))

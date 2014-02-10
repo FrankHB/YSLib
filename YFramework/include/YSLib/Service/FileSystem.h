@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2180
+\version r2201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-02-06 20:33 +0800
+	2014-02-08 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,7 @@ public:
 	{}
 	//! \since build 448
 	template<typename _type,
-		typename = ystdex::exclude_self_ctor_t<Path, _type>>
+		yimpl(typename = ystdex::exclude_self_ctor_t<Path, _type>)>
 	Path(_type&& arg, Text::Encoding enc = CS_Path)
 		: ypath(Parse(String(yforward(arg), enc)))
 	{}
@@ -343,28 +343,6 @@ inline PDefH(bool, VerifyDirectory, const Path& pth)
 void
 ListFiles(const Path&, vector<String>&);
 
-
-//! 路径类别。
-enum class PathCategory : u32
-{
-	Empty,
-	Self,
-	Parent,
-	Node
-};
-
-//! 文件系统节点类别。
-enum class NodeCategory : u32
-{
-	Empty = u32(PathCategory::Empty),
-	Unknown = u32(PathCategory::Node),
-	Directory,
-	HardLink,
-	SymbolicLink,
-	Pipe,
-	Socket,
-	Normal
-};
 
 /*!
 \brief 按路径类别对路径成员分类。

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1366
+\version r1370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2013-12-12 14:16 +0800
+	2014-02-08 12:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ union pod_storage
 	pod_storage() = default;
 	//! \since build 454
 	template<typename _type,
-		typename = ystdex::exclude_self_ctor_t<pod_storage, _type>>
+		yimpl(typename = ystdex::exclude_self_ctor_t<pod_storage, _type>)>
 	pod_storage(_type&& x)
 	{
 		new(access()) remove_reference_t<_type>(yforward(x));
@@ -85,7 +85,7 @@ union pod_storage
 	\since build 454
 	*/
 	template<typename _type,
-		typename = ystdex::exclude_self_ctor_t<pod_storage, _type>>
+		yimpl(typename = ystdex::exclude_self_ctor_t<pod_storage, _type>)>
 	pod_storage&
 	operator=(_type&& x)
 	{
@@ -608,7 +608,7 @@ public:
 		: storage(), manager()
 	{}
 	//! \since build 448
-	template<typename _type, typename = exclude_self_ctor_t<any, _type>>
+	template<typename _type, yimpl(typename = exclude_self_ctor_t<any, _type>)>
 	any(_type&& x)
 		: manager(any_ops::value_handler<remove_reference_t<_type>>::manage)
 	{

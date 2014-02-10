@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3429
+\version r3431
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-02-05 23:49 +0800
+	2014-02-08 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -312,7 +312,7 @@ b296
 				$dep_from "%Rect::FullScreen platform dependency from test";
 				/ @ "static member %FullScreen" @ "classes %(Rect; Size)"
 					-> "%Invalid";
-				- DLD $comp "platform dependency" @ "%FullScreen"
+				- $comp DLD "platform dependency" @ "%FullScreen"
 				),
 				/ $design "access control" @ "unit %YGDIBase" $=
 				(
@@ -385,7 +385,7 @@ b295
 				@ "classes %(CheckBox, ATrack, AScrollBar, Panel, Window)",
 			/ "improved refreshing" @ "class %AScrollBar";
 			* $comp "background of buttons over refreshed" $since b294,
-			* DLD $comp "background of scroll bars over refreshed" $since b294,
+			* $comp DLD "background of scroll bars over refreshed" $since b294,
 			/ $comp "refreshing performance improved"
 			),
 			+ $dev $lib "partial invalidation support on refreshing"

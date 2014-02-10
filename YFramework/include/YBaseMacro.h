@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2552
+\version r2555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2013-10-23 19:59 +0800
+	2014-02-08 22:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,6 @@
 #define YF_INC_YBaseMacro_h_ 1
 
 #include <ydef.h>
-
-//! \todo 检查语言实现的必要支持：可变参数宏。
-
 
 /*	\defgroup cmacro Macros For Code Compressing
 \brief 缩写代码用的宏。
@@ -101,7 +98,6 @@ _t type
 	{ \
 		return __VA_ARGS__; \
 	}
-// NOTE: Need 'ydef.h'.
 // NOTE: GCC complains about 'void(yunseq(__VA_ARGS__))'.
 #define ImplUnseq(...) \
 	{ \

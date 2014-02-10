@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2011-2013.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r570
+\version r572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2013-09-07 02:38 +0800
+	2014-02-08 21:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ HexViewArea::Load(const char* path)
 }
 
 void
-HexViewArea::LocateViewPosition(u32 line)
+HexViewArea::LocateViewPosition(size_t line)
 {
 	UpdateData(ItemPerLine * line);
 	UpdateView(true);

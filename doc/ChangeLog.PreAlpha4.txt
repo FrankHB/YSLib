@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r5809
+\version r5901
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-06 20:51 +0800
+	2014-02-11 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,99 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	$dev
+	(
+	+ "macro %yimpl" @ %YBase.YDefinition;
+	/ "all use of %ystdex::exclude_self_ctor_t treated as exposition use";
+	/ "all interface code with unspecified or for exposition" ^ "%yimpl"
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ @ "namespace YSLib::IO" @ %Service.FileSystem
+				$=(/ "enum classes %(PathCategory, NodeCategory)" 
+					>> "namespace %platform" @ %YCLib.FileSystem),
+			/ %Adaptor.YAdaptor $=
+			(
+				(
+				$dep_from "%PathCategory";
+				+ "using %platform::(PathCategory, NodeCategory)"
+				),
+				(
+				- "using alias %platform::(FILENAMESTR, PATHSTR)";
+				$dep_to "using aliases"
+				)
+			)
+		),
+		/ %YCLib.FileSystem $=
+		(
+			(
+			(
+				$dep_from %(YSLib.Service.FileSystem, YBase.Definition);
+				/ DLD "%NodeCategory"
+					^ 'ystdex::underlying_type_t<PathCategory>'
+					~ "explicit unsigned integer type as underlying type"
+			),
+			/ "enumerators %(Directory; HardLink; SymbolicLink; Pipe; Socket; \
+				Normal)" @ "enum class %Node" -> "enumerators %(Missing; \
+				Invalid; Regular; Directory; Device = 0x1000; Block; \
+				Character; Communicator = 2000; FIFO; Socket; Link = 0x3000; \
+				SymbolicLink; HardLink; Junction; Special = 0x4000; Reparse)";
+			$dep_to "%PathCategory",
+			/ DLD "implementation" @ "classes %(DirectorySession, HDirectory)"
+				@ "platform %MinGW32" ^ "Win32 API" ~ "%(_WDIR, _wdirent)";
+			/ $revert_ex(b411) @ "class %HDirectory" $=
+			(
+				(
+				/ 'bool IsDirectory() const ynothrow' -> "%GetNodeCategory",
+				* $comp "directory iteration state not get properly when using \
+					relative path" @ "platform %MinGW32" $since b411,
+				),
+				/ DLD "directory may throw %std::bad_alloc or other exceptions \
+					when internal free storage allocation failed"
+					@ "platform %MinGW32"
+			),
+			/ "paths for %(DirectorySession, HDirectory)" $=
+			(
+				/ "explicitly supported one or more trailing slash in paths",
+					// See $2014-02 @ %Documentation::Workflow::Annual2014.
+				/ $dev "explicitly specified slash as delimiter supported as \
+					well" @ "platform %MinGW32"
+					// See $2014-02 @ %Documentation::Workflow::Annual2014.
+			),
+			/ DLB $comp "implemented more compatible with Visual C++ 2013",
+			),
+			(
+			/ @ "function %mkdirs" $=
+			(
+				+ "non-null assertion for parameter",
+				/ "function %mkdirs supported path which length is explicitly \
+					limited at translation time" 
+					$= (DLD ^ "%std::string" ~ "platform::FILENAMESTR"),
+			),
+			$dep_from "using aliases";
+			- "using alias %(FILENAMESTR, PATHSTR); \
+				macro %YCL_MAX_FILENAME_LENGTH"
+			)
+		),
+		* $dev $build "generated object from source files with same name in \
+			different conflicted" @ "all Visual C++ projects with platform \
+			configuration 'Win32'" $since b473
+			$= (/ "object file name" @ "output files" @ "C/C++ options"
+				-> '$(IntDir)/%(RelativeDir)/' ~ '$(IntDir)'),
+		/ "return type" @ "function templates %(ltrim, rtrim, trim)"
+			@ %YBase.YStandardEx.String -> '_tString' ~ '_tString&';
+			// Make it convenient to use. Returned reference would be \
+				error-prone in use of lambdas.
+	),
+	/ DLD "parameter type" @ "member function HexViewArea::LocateViewPosition"
+		@ %YReader.HexBrowser -> 'size_t' ~ 'u32',
+	+ "project %SHBuild" @ %Tools;
+),
+
+b473
 (
 	/ @ "class %ShlExplorer" @ %YReader.ShlExplorer $=
 	(

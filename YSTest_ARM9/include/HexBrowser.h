@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r459
+\version r461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2014-02-05 16:06 +0800
+	2014-02-08 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,9 +187,10 @@ public:
 
 	/*!
 	\brief 定位视图顶端至指定竖直位置（行数）。
+	\since build 474
 	*/
 	void
-	LocateViewPosition(u32);
+	LocateViewPosition(size_t);
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
