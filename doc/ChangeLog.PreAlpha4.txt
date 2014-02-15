@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r5901
+\version r6034
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-11 01:00 +0800
+	2014-02-16 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,137 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YFramework.YSLib $=
+		(
+			/ %Service.FileSystem $=
+			(
+				/ "recognized %NodeCategory::Unknown"
+					@ "function %ClassifyNode",
+				/ "function %GetNowDirectory"
+					-> "function %FetchCurrentWorkingDirectory",
+				/ @ "class %Path" $=
+				(
+					/ DLD "implemented" @ "member function %swap"
+						^ "%(PDefH, ImplExpr)",
+					+ "friend function %to_string"
+				)
+			)
+			(
+			$dep_from "%ystdex::cloneable";
+			/ @ ("interface template %GIHEvent" @ %Core.YEvent,
+				"interface %IImage" @ %GDIBase, "class %AController"
+				@ %UI.YWidgetEvent)
+			(
+				+ "base interface %ystdex::cloneable",
+				+ 'override' @ "abstract member function %clone"
+			)
+			),
+			/ %Adaptor $=
+			(
+				(
+				$dep_from "%ystdex::unsupported";
+				+ "base class %ystdex::unsupported"
+					@ "class %UnsupportedImageFormat"
+				),
+				(
+				$dep_from "%platform::(umkdir, urmdir)";
+				+ ('using platform::umkdir', 'using platform::urmdir')
+					@ %YAdaptor
+				)
+			)
+		),
+		/ $lib "inline functions %(UTF8ToMBCS, WCSToMBCS, MBCSToWCS)"
+			 @ %'YCLib_(MinGW32)'.MinGW32 $=
+		(
+			/ DLD "implementation" ^ "%(PDefH, ImplRet)",
+			/ "returned expression without ADL" ^ 'Windows::'
+		),
+		/ %YCLib.FileSystem $=
+		(
+			* "wrong return value" @ "function %truncate" $since b341,
+				// Returned value is just on the contrary.
+			- "macro %YCL_MAX_PATH_LENGTH" @ %YCLib.FileSystem,
+			- $depr_clean "function %getcwd_n",
+			- "function %mkdirs",
+			+ "function %(umkdir, urmdir)"
+		),
+		/ %CHRLib $=
+		(
+			/ 'byte Sequence[4];' @ "anonymous union"
+				@ "struct %ConversionState"
+				-> 'byte Sequence[sizeof(ucsint_t)];' @ %CharacterMapping,
+			/ %CharacterProcessing $=
+			(
+				/ @ "all functions %(chrdup, ucsdup)" $=
+				(
+					(
+						/ "return type" -> "instantiations of \
+							%std::basic_string" -> "pointer types"
+							~ "allocated pointer with user-managed memroy \
+							utilizing %std::free",
+						* $comp "missing check for allocation failed"
+							@ "function %strdup" $since b305
+					),
+					/ $dev $doc "explicitly specified maximum sequence length \
+						of MBC as 'sizeof(ucsint_t)'"
+				)
+				+ "function templates %(strdup, ucsdup)"
+			)
+		),
+		(
+		$dep_from "function %CHRLib::ucsdup";
+		/ "common encoding conversion implementation" @ %YCLib.FileSystem $=
+		(
+			/ DLD "simplified implementation";
+			* $comp "missing check for %ucsdup call success" $since b313,
+				// This could cause null pointer be passed to constructor of \
+					%std::string on UCS-to-MBCS conversion, which causes \
+					undefined behavior.
+			* $comp "missing thread safety" @ "platform %MinGW32" $since b313
+		),
+		(
+			$dep_from "%ystdex::unimplemented";
+			/ "threw %ystdex::unimplemented" ~ "%LoggedEvent"
+				@ "member function %HostedRenderer::clone" @ %HostRenderer
+				@ %Helper.HostRenderer,
+		)
+	),
+	/ $doc $term $re(b338) "all '断言检查'" -> "'断言'" @ "pre conditions",
+	/ %YBase.YStandardEx $=
+	(
+		+ "exception classes %(unsupported; unimplemented), class %cloneable"
+			@ %Utilities,
+		/ %Path $=
+		(
+			$dep_from "%cloneable"
+			/ @ "class template %path_norm" $=
+			(
+				+ "public base class %cloneable",
+				+ 'const override' @ "pure virtual member function %clone"
+			);
+			+ 'const' @ "member function %clone"
+				@ "class template %file_path_norm"
+		),
+		/ "class holder" @ %Any $=
+		(
+			+ "public base class %cloneable",
+			+ 'override' @ "pure virtual member function %clone"
+		)
+	),
+	(
+	$dep_from %YFramework.Adaptor.YAdaptor;
+	/ "simplified implementation" @ %Tools.SHBuild.Main;
+	),
+	* DLD "wrong GCC version number" @ "workarounds" $since b353
+		$= ('YB_IMPL_GNUCPP < 47200' -> 'YB_IMPL_GNUCPP < 40702')
+		// Though still acceptable by higher version than 4.7.1, this was \
+			indeed wrong.
+),
+
+b474
 (
 	$dev
 	(
@@ -1872,7 +2003,7 @@ b447
 			+ "constexpr static function %size"
 				@ "class template %variadic_sequence",
 				// Like %std::integer_sequence::size in C++1y.
-			+ $doc $dev "Doxygen group %vseq_operations",
+			+ $dev $doc "Doxygen group %vseq_operations",
 			+ "meta operation templates %(sequence_split, sequence_split_t, \
 				sequence_cat, sequence_cat_t, make_successor_t, \
 				make_natural_sequence_t, sequence_element, sequence_element_t, \
@@ -2256,7 +2387,7 @@ b441
 					configuration than last revision.
 		)
 	),
-	+ $doc $dev "Doxygen command '\relates' for some non-member function \
+	+ $dev $doc "Doxygen command '\relates' for some non-member function \
 		declarations outside class scope"
 ),
 
@@ -2684,7 +2815,7 @@ b434
 
 b433
 (
-	/ $doc $dev Documentation $=
+	/ $dev $doc Documentation $=
 	(
 		+ $doc "basic namespace rules" @ %NPL,
 		(

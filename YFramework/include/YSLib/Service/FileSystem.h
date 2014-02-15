@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2201
+\version r2212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-02-08 22:07 +0800
+	2014-02-15 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,8 @@ public:
 	PDefH(bool, is_self, const value_type& str) ynothrow override
 		ImplRet(YCL_FS_StringIsCurrent(str, u))
 
-	DefClone(override, PathNorm)
+	//! \since build 475
+	DefClone(const override, PathNorm)
 };
 
 
@@ -216,11 +217,13 @@ public:
 	using ypath::push_back;
 
 	using ypath::swap;
-	void
-	swap(Path& pth)
-	{
-		static_cast<ypath&>(pth).swap(*this);
-	}
+	PDefH(void, swap, Path& pth)
+		ImplExpr(static_cast<ypath&>(pth).swap(*this))
+
+	//! \since build 475
+	friend PDefH(String, to_string, const Path& pth)
+		ImplRet(to_string(
+			static_cast<const ypath&>(pth), ucs2string{YCL_PATH_DELIMITER}))
 	//@}
 };
 
@@ -291,11 +294,12 @@ GetExtensionOf(const Path& pth)
 
 /*!
 \brief 取当前工作目录。
+\post 结果长度不大于参数。
 \note 不含结尾分隔符。
-\since build 304
+\since build 475
 */
 YF_API String
-GetNowDirectory();
+FetchCurrentWorkingDirectory(size_t = 1 << 10);
 
 
 //! \since build 410

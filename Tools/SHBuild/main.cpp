@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r322
+\version r353
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-02-10 23:28 +0800
+	2014-02-15 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ static_assert(yalignof(wchar_t) == yalignof(ucs2_t),
 \brief 默认构建根目录路径。
 \note 末尾的分隔符需要必须存在。
 */
-yconstexpr auto build_path(L".shbuild\\");
+yconstexpr auto build_path(u8".shbuild\\");
 
 
 int
@@ -97,7 +97,23 @@ Search(const string& path, const wstring& opath, const wstring& flags)
 	const auto uopath(WCSToMBCS(opath, CP_UTF8));
 
 	cout << "Purging path: " << lopath << " ..." << endl;
-	if(!platform::mkdirs(lopath.c_str()))
+	
+	// XXX: Simplify implementation.
+	if(![&](std::string path){
+		for(char* slash(&path[0]); (slash = std::strchr(slash,
+			YCL_PATH_DELIMITER)); ++slash)
+		{
+			*slash = char();
+			if(!umkdir(path.c_str()) && errno != EEXIST)
+			{
+				cerr << "ERROR Failed creating directory '" << lopath << "'."
+					<< endl;
+				throw 3;
+			}
+			*slash = YCL_PATH_DELIMITER;
+		}
+		return umkdir(path.c_str()) == 0 || errno == EEXIST;
+	}(uopath))
 	{
 		cerr << "ERROR Failed creating directory '" << lopath << "'." << endl;
 		throw 3;
@@ -231,31 +247,19 @@ Build(const vector<wstring>& args)
 			return 1;
 		}
 		if(ipath.is_relative())
-		{
-			ucs2_t buf[1 << 15];
-
-			platform::u16getcwd_n(buf, 1 << 15);
-
-			ipath = Path(buf) / ipath;
-		}
+			ipath = Path(FetchCurrentWorkingDirectory()) / ipath;
 		ipath.Normalize();
 
 		YAssert(ipath.is_absolute(), "Invalid path converted.");
 
-		cout << "Absolute path recognized: " << '\n';
-		for(const auto& dir : ipath)
-		{
-			cout << WCSToMBCS(reinterpret_cast<const wchar_t*>(dir.c_str()))
-				<< YCL_PATH_DELIMITER;
-		}
-		cout << endl;
+		cout << "Absolute path recognized: " << '\n' << WCSToMBCS(
+			reinterpret_cast<const wchar_t*>(to_string(ipath).c_str())) << endl;
 		if(!VerifyDirectory(WCSToMBCS(in, CP_UTF8)))
 		{
 			cerr << "ERROR: SRCPATH is not exist." << endl;
 			return 1;
 		}
-		if(::CreateDirectoryW(build_path, {}) == 0
-			&& ::GetLastError() != ERROR_ALREADY_EXISTS)
+		if(!umkdir(build_path) && errno != EEXIST)
 		{
 			cerr << "ERROR: Failed creating build directory." << endl;
 			return 2;
@@ -269,7 +273,7 @@ Build(const vector<wstring>& args)
 			flags += opt;
 		});
 
-		wstring opath(build_path);
+		wstring opath(MBCSToWCS(build_path, CP_UTF8));
 
 		if(!ipath.empty())
 		{

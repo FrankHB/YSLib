@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r889
+\version r933
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-02-05 13:29 +0800
+	2014-02-14 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,36 +159,45 @@ GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 
 
 /*!
-\brief 复制 UCS-2 字符串为多字节字符串。
-\pre 断言： 指针参数非空 。
-\note 空间由 std::free 释放。
-\since build 305
+\pre 输入字符串最大多字节不超过 <tt>sizeof(ucsint_t)</tt> 字节。
+\since build 475
 */
-YF_API char*
+//@{
+//! \brief 复制 UCS-2 字符串为多字节字符串。
+//@{
+//! \pre 断言： 指针参数非空 。
+YF_API std::string
 strdup(const ucs2_t*, Encoding = CS_Default);
+template<class _tString>
+std::string
+strdup(const _tString& str)
+{
+	return CHRLib::strdup(str.c_str());
+}
+//@}
 
-/*!
-\brief 复制多字节字符串为 UCS-2 字符串。
-\pre 断言： 指针参数非空 。
-\note 空间由 std::free 释放。
-\since build 291
-*/
-YF_API ucs2_t*
+//! \since build 475
+//@{
+//! \pre 断言： 指针参数非空 。
+//@{
+//! \brief 复制多字节字符串为 UCS-2 字符串。
+YF_API std::basic_string<ucs2_t>
 ucsdup(const char*, Encoding = CS_Default);
-/*!
-\brief 复制 UCS-2 字符串。
-\pre 断言： 指针参数非空 。
-\note 空间由 std::free 释放。
-*/
-YF_API ucs2_t*
+//! \brief 复制 UCS-2 字符串。
+YF_API std::basic_string<ucs2_t>
 ucsdup(const ucs2_t*);
-/*!
-\brief 复制 UCS-4 字符串为 UCS-2 字符串。
-\pre 断言： 指针参数非空 。
-\note 空间由 std::free 释放。
-*/
-YF_API ucs2_t*
+//! \brief 复制 UCS-4 字符串为 UCS-2 字符串。
+YF_API std::basic_string<ucs2_t>
 ucsdup(const ucs4_t*);
+//@}
+template<class _tString>
+std::basic_string<ucs2_t>
+ucsdup(const _tString& str)
+{
+	return CHRLib::ucsdup(str.c_str());
+}
+//@}
+//@}
 
 
 //! \since build 402

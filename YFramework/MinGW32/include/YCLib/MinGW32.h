@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r195
+\version r226
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2013-12-24 10:28 +0800
+	2014-02-13 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,42 +137,24 @@ CheckWine();
 //@{
 YF_API std::string
 UTF8ToMBCS(const char*, std::size_t, int = CP_ACP);
-inline std::string
-UTF8ToMBCS(const char* str, int cp = CP_ACP)
-{
-	return UTF8ToMBCS(str, ystdex::ntctslen(str), cp);
-}
-inline std::string
-UTF8ToMBCS(const std::string& str, int cp = CP_ACP)
-{
-	return UTF8ToMBCS(str.c_str(), str.length(), cp);
-}
+inline PDefH(std::string, UTF8ToMBCS, const char* str, int cp = CP_ACP)
+	ImplRet(Windows::UTF8ToMBCS(str, ystdex::ntctslen(str), cp))
+inline PDefH(std::string, UTF8ToMBCS, const std::string& str, int cp = CP_ACP)
+	ImplRet(Windows::UTF8ToMBCS(str.c_str(), str.length(), cp))
 
 YF_API std::string
 WCSToMBCS(const wchar_t*, std::size_t, int = CP_ACP);
-inline std::string
-WCSToMBCS(const wchar_t* str, int cp = CP_ACP)
-{
-	return WCSToMBCS(str, ystdex::ntctslen(str), cp);
-}
-inline std::string
-WCSToMBCS(const std::wstring& str, int cp = CP_ACP)
-{
-	return WCSToMBCS(str.c_str(), str.length(), cp);
-}
+inline PDefH(std::string, WCSToMBCS, const wchar_t* str, int cp = CP_ACP)
+	ImplRet(Windows::WCSToMBCS(str, ystdex::ntctslen(str), cp))
+inline PDefH(std::string, WCSToMBCS, const std::wstring& str, int cp = CP_ACP)
+	ImplRet(Windows::WCSToMBCS(str.c_str(), str.length(), cp))
 
 YF_API std::wstring
 MBCSToWCS(const char*, std::size_t, int = CP_ACP);
-inline std::wstring
-MBCSToWCS(const char* str, int cp = CP_ACP)
-{
-	return MBCSToWCS(str, ystdex::ntctslen(str), cp);
-}
-inline std::wstring
-MBCSToWCS(const std::string& str, int cp = CP_ACP)
-{
-	return MBCSToWCS(str.c_str(), str.length(), cp);
-}
+inline PDefH(std::wstring, MBCSToWCS, const char* str, int cp = CP_ACP)
+	ImplRet(Windows::MBCSToWCS(str, ystdex::ntctslen(str), cp))
+inline PDefH(std::wstring, MBCSToWCS, const std::string& str, int cp = CP_ACP)
+	ImplRet(Windows::MBCSToWCS(str.c_str(), str.length(), cp))
 //@}
 
 

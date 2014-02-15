@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r149
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2013-12-24 00:41 +0800
+	2014-02-14 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_MemoryMapping
-#include YFM_YCLib_FileSystem // for platform::uopen;
+#include YFM_YCLib_FileSystem // for platform::uopen, platform::GetFileSizeOf;
 #include <fcntl.h>
 #include <stdexcept> // for std::runtime_error;
 #if YCL_DS
@@ -69,16 +69,15 @@ namespace platform
 {
 
 MappedFile::MappedFile(const char* path)
-	: fd(uopen(path, O_RDONLY, S_IRUSR | S_IWUSR))
+	: fd(uopen(path, O_RDONLY, S_IRUSR | S_IWUSR)), size(GetFileSizeOf(fd))
 {
-	::fstat(fd, &st);
 #if YCL_DS
-	addr = new ystdex::byte[st.st_size];
+	addr = new ystdex::byte[size];
 
-	::read(fd, addr, st.st_size);
+	::read(fd, addr, size);
 #elif YCL_Win32
-//	const auto p(::mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0)));
-	const auto p(map_file(st.st_size, fd));
+//	const auto p(::mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0)));
+	const auto p(map_file(size, fd));
 
 	if(p == MAP_FAILED)
 		throw std::runtime_error("Mapping failed.");
@@ -93,16 +92,10 @@ MappedFile::~MappedFile()
 #if YCL_DS
 	delete addr;
 #elif YCL_Win32
-//	::munmap(addr, st.st_size);
+//	::munmap(addr, size);
 	::UnmapViewOfFile(addr);
 #endif
 	::close(fd);
-}
-
-size_t
-MappedFile::GetSize() const
-{
-	return st.st_size;
 }
 
 } // namespace platform;

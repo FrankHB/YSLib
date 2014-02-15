@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r626
+\version r627
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-02-03 11:31 +0800
+	2014-02-14 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,7 +137,7 @@ HSLToColor(hsl_t);
 
 /*!
 \brief 色调偏移。
-\pre 断言检查：输入值在范围内。
+\pre 断言：输入值在范围内。
 \since build 472
 */
 YF_API Color

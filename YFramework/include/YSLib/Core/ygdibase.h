@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1459
+\version r1463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2013-12-24 09:10 +0800
+	2014-02-16 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YException
 #include <limits>
+#include <ystdex/utility.hpp> // for ystdex::cloneable;
 
 namespace YSLib
 {
@@ -781,13 +782,13 @@ public:
 \brief 图像接口。
 \since build 405
 */
-DeclI(YF_API, IImage)
+DeclDerivedI(YF_API, IImage, ystdex::cloneable)
 	//! \since build 406
 	DeclIEntry(const Graphics& GetContext() const ynothrow)
 	DeclIEntry(void SetSize(const Size&))
 
 	//! \since build 409
-	DeclIEntry(IImage* clone() const)
+	DeclIEntry(IImage* clone() const override)
 EndDecl
 
 

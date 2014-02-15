@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1135
+\version r1191
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-02-11 00:44 +0800
+	2014-02-15 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,15 +44,6 @@ namespace platform
 {
 
 //平台相关的全局常量。
-
-//最大路径长度。
-#ifdef PATH_MAX
-#	define YCL_MAX_PATH_LENGTH PATH_MAX
-#elif defined(MAXPATHLEN)
-#	define YCL_MAX_PATH_LENGTH MAXPATHLEN
-#else
-#	define YCL_MAX_PATH_LENGTH 256
-#endif
 
 /*
 \brief 判断字符串是否是当前路径。
@@ -175,7 +166,6 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 \param filename 文件名，意义同 POSIX <tt>::open</tt> 。
 \param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \pre 断言：<tt>filename</tt> 。
-\bug MinGW32 环境下非线程安全。
 \since build 324
 */
 YF_API int
@@ -186,7 +176,6 @@ uopen(const char* filename, int oflag) ynothrow;
 \param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
 \pre 断言：<tt>filename</tt> 。
-\bug MinGW32 环境下非线程安全。
 \since build 324
 */
 YF_API int
@@ -216,7 +205,6 @@ uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
 \param filename 文件名，意义同 std::fopen 。
 \param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
 \pre 断言：<tt>filename && mode && *mode != 0</tt> 。
-\bug MinGW32 环境下非线程安全。
 \since build 299
 */
 YF_API std::FILE*
@@ -257,17 +245,6 @@ inline PDefH(bool, ufexists, const _tString& str) ynothrow
 	ImplRet(ufexists(str.c_str()))
 
 /*!
-\brief 当第一参数非空时取当前工作目录复制至指定缓冲区中。
-\param buf 缓冲区起始指针。
-\param size 缓冲区长。
-\return 若成功为 buf ，否则为空指针。
-\deprecated 特定平台上的编码不保证是 UTF-8 。
-\since build 324
-*/
-YF_API char*
-getcwd_n(char* buf, std::size_t size) ynothrow;
-
-/*!
 \brief 当第一参数非空时取当前工作目录（ UCS-2 编码）复制至指定缓冲区中。
 \param buf 缓冲区起始指针。
 \param size 缓冲区长。
@@ -279,30 +256,63 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 
 /*!
 \brief 切换当前工作路径至指定的 UTF-8 字符串。
-\bug MinGW32 环境下非线程安全。
 \since build 412
 */
 YF_API int
 uchdir(const char*) ynothrow;
 
 /*!
-\brief 按路径新建一个或多个目录。
-\since build 412
+\brief 按 UTF-8 路径以默认权限新建一个目录。
+\pre 断言：参数非空。
+\return 是否创建成功。
+\note 权限由实现定义： DS 使用最大权限； MinGW32 使用 _wmkdir 指定的默认权限。
+\note <tt>errno</tt> 在出错时会被设置。
+\since build 475
 */
 YF_API bool
-mkdirs(const char*) ynothrow;
+umkdir(const char*) ynothrow;
+
+/*!
+\brief 按 UTF-8 路径删除一个目录。
+\pre 断言：参数非空。
+\return 是否删除成功。
+\note <tt>errno</tt> 在出错时会被设置。
+\since build 475
+*/
+YF_API bool
+urmdir(const char*) ynothrow;
 
 /*!
 \brief 截断文件至指定长度。
 \pre 指定文件需已经打开并可写。
 \return 操作是否成功。
 \note 不改变文件读写位置。
+\note <tt>errno</tt> 在出错时会被设置。
 \since build 341
+\todo 使用 errno 抛出异常。
 
 若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
 */
 YF_API bool
 truncate(std::FILE*, std::size_t) ynothrow;
+
+
+/*!
+\brief 取文件的大小。
+\return 以字节计算的文件大小。
+\throw std::runtime_error 抛出异常。
+\note <tt>errno</tt> 在出错时会被设置。
+\since build 475
+\todo 使用 errno 决定异常。
+*/
+//@{
+//! \pre 输入有效的文件描述符。
+YF_API std::uint64_t
+GetFileSizeOf(int);
+//! \pre 断言：输入非空指针。
+YF_API std::uint64_t
+GetFileSizeOf(std::FILE*);
+//@}
 
 
 //! \since build 412

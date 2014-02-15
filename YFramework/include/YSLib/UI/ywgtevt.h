@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1505
+\version r1507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-01-11 11:30 +0800
+	2014-02-16 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -422,7 +422,7 @@ public:
 \brief 控制器抽象类。
 \since build 243
 */
-class YF_API AController
+class YF_API AController : public ystdex::cloneable
 {
 private:
 	bool enabled; //!< 控件可用性。
@@ -463,7 +463,7 @@ public:
 	\brief 复制实例。
 	\since build 409
 	*/
-	DeclIEntry(AController* clone() const)
+	DeclIEntry(AController* clone() const override)
 };
 
 

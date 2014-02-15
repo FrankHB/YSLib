@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r680
+\version r686
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2014-02-05 13:54 +0800
+	2014-02-16 00:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace ystdex
 //@{
 //! \brief 路径范式。
 template<typename _type>
-class path_norm
+class path_norm : public cloneable
 {
 public:
 	using value_type = _type;
@@ -75,8 +75,9 @@ public:
 //	virtual bool
 //	is_wildcard(const value_type&) ynothrow = 0;
 
+	//! \since build 475
 	virtual path_norm*
-	clone() = 0;
+	clone() const override = 0;
 };
 
 
@@ -119,8 +120,9 @@ public:
 		return str.length() == 1 && str[0] == '.';
 	}
 
+	//! \since build 475
 	file_path_norm*
-	clone() override
+	clone() const override
 	{
 		return new file_path_norm(*this);
 	}

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.h
 \ingroup YCLib
 \brief 内存映射文件。
-\version r114
+\version r120
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:48:15 +0800
 \par 修改时间:
-	2013-12-24 09:31 +0800
+	2014-02-14 09:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,21 +30,20 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
-#include YFM_YCLib_NativeAPI // for struct ::stat;
 
 namespace platform
 {
 
 /*!
 \brief 只读内存映射文件。
-\note 对于不支持内存映射的实现，使用 C 标准 IO 模拟。
+\note 对于不支持内存映射的实现，使用 POSIX 标准 IO 模拟。
 \since build 324
 */
 class YF_API MappedFile
 {
 private:
 	int fd;
-	struct ::stat st;
+	std::uint64_t size;
 	ystdex::byte* addr;
 
 public:
@@ -64,8 +63,8 @@ public:
 
 	//! \since build 413
 	DefGetter(const ynothrow, ystdex::byte*, Ptr, addr)
-	size_t
-	GetSize() const;
+	//! \since build 475
+	DefGetter(const ynothrow, std::uint64_t, Size, size)
 };
 
 } // namespace platform;

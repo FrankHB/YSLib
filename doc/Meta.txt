@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r977
+\version r989
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2013-11-10 09:24 +0800
+	2014-02-15 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ $dep_all_from; // take all evaluation dependence from;
 $dep_to; // put evaluation dependence to;
 $label; // label for locating in code portions;
 
-// Project operations:
+// Project stakeholders:
 $dev; // issues concerned by developers, which end-users could ignore without \
 	risk if the code with no undefined behavior (including compile-time \
 	characteristics such as static assertions but not runtime observative \
@@ -78,20 +78,28 @@ $lib; // issues only concerned with library(only implementation changing, \
 	library interface to adapt to the upgrading), regaradless of output targets;
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
+
+// Project usage:
 $build; // issues on build, such as build scripts and diagnostic messages;
 $install; // issues on installing;
 $deploy; // issues on deployment(including build environment requirement);
+
+// Project contents:
 $comp; // features consist of dependencies with no additional work;
-$repo; // for repositories of version control system;
 $doc; // for documents target;
+$repo; // for repositories of version control system;
 $term; // for terminology;
-$workaround; // for issues currently or temporarily cannot be resolved through \
-	a preferred clean way for certain reasons, but exist alternative ways to \
-	get being settled and work expectedly for outer observers of the system.
+
+// Project management:
+$depr_clean; // for deprecated contents cleanup,
+$re($rev_list); // for repeated operations,
 $revert($rev_list); // for actions reverting changes in previous revision(s), \
 	with all explicit modification and effection restored to the original state.
 $revert_ex($rev_list); // same for $revert except for the modification not \
 	reset to the original state.
+$workaround; // for issues currently or temporarily cannot be resolved through \
+	a preferred clean way for certain reasons, but exist alternative ways to \
+	get being settled and work expectedly for outer observers of the system.
 
 // General features modification:
 $add_features +; // features added;

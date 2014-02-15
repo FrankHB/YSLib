@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1151
+\version r1232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-02-11 00:40 +0800
+	2014-02-15 22:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,9 @@ _wfopen(const wchar_t*, const wchar_t*);
 #	include <Shlwapi.h> // for ::PathIsRelativeW;
 #endif
 
+//! \since build 475
+using namespace CHRLib;
+
 namespace platform
 {
 
@@ -70,32 +73,12 @@ static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
 namespace
 {
 
-std::string
-u16_to_u(const char16_t* u16str)
-{
-	yconstraint(u16str);
-
-	static char* tstr;
-	std::string str;
-
-	str = std::string(tstr = CHRLib::strdup(u16str));
-	std::free(tstr);
-	return str;
-}
 #if YCL_DS
 #elif YCL_MinGW32
 std::wstring
 u_to_w(const char* str)
 {
-	yconstraint(str);
-
-	static CHRLib::ucs2_t* tstr;
-	std::wstring wstr;
-
-	wstr = std::wstring(reinterpret_cast<const wchar_t*>(
-		tstr = CHRLib::ucsdup(str)));
-	std::free(tstr);
-	return wstr;
+	return std::wstring(reinterpret_cast<const wchar_t*>(ucsdup(str).c_str()));
 }
 
 
@@ -258,7 +241,7 @@ uopen(const char16_t* filename, int oflag) ynothrow
 #if YCL_DS
 	try
 	{
-		return ::open(u16_to_u(filename).c_str(), oflag);
+		return ::open(strdup(filename).c_str(), oflag);
 	}
 	catch(...)
 	{}
@@ -275,7 +258,7 @@ uopen(const char16_t* filename, int oflag, int pmode) ynothrow
 #if YCL_DS
 	try
 	{
-		return ::open(u16_to_u(filename).c_str(), oflag, pmode);
+		return ::open(strdup(filename).c_str(), oflag, pmode);
 	}
 	catch(...)
 	{}
@@ -314,7 +297,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 #if YCL_DS
 	try
 	{
-		return std::fopen(u16_to_u(filename).c_str(), u16_to_u(mode).c_str());
+		return std::fopen(strdup(filename).c_str(), strdup(mode).c_str());
 	}
 	catch(...)
 	{}
@@ -352,14 +335,6 @@ ufexists(const char16_t* filename) ynothrow
 		return true;
 	}
 	return false;
-}
-
-char*
-getcwd_n(char* buf, std::size_t size) ynothrow
-{
-	if(YB_LIKELY(buf))
-		return ::getcwd(buf, size);
-	return nullptr;
 }
 
 char16_t*
@@ -420,31 +395,67 @@ uchdir(const char* path) ynothrow
 }
 
 bool
-mkdirs(const char* cpath) ynothrow
+umkdir(const char* path) ynothrow
 {
-	yassume(cpath);
+	yconstraint(path);
 
-	std::string path(cpath);
+#if YCL_DS
+	return ::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0;
+#else
+	return ::_wmkdir(u_to_w(path).c_str()) == 0;
+#endif
+}
 
-	for(char* slash(&path[0]); (slash = std::strchr(slash, YCL_PATH_DELIMITER));
-		++slash)
-	{
-		*slash = char();
-		::mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-		*slash = '/';
-	}
-	//新建目录成功或目标路径已存在时返回 true 。
-	return ::mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) == 0
-		|| errno == EEXIST;
+bool
+urmdir(const char* path) ynothrow
+{
+	yconstraint(path);
+
+#if YCL_DS
+	return ::rmdir(path) == 0;
+#else
+	return ::_wrmdir(u_to_w(path).c_str()) == 0;
+#endif
 }
 
 bool
 truncate(std::FILE* fp, std::size_t size) ynothrow
 {
 #if YCL_DS
-	return ::ftruncate(fileno(fp), ::off_t(size)) != 0;
+	return ::ftruncate(fileno(fp), ::off_t(size)) == 0;
 #else
-	return ::_chsize(::_fileno(fp), long(size));
+	return ::_chsize(::_fileno(fp), long(size)) == 0;
+#endif
+}
+
+
+std::uint64_t
+GetFileSizeOf(int fd)
+{
+#if YCL_DS
+	struct ::stat st;
+
+	if(::fstat(fd, &st) == 0)
+		return st.st_size;
+#else
+	::LARGE_INTEGER sz;
+
+	// XXX: Error handling for indirect calls.
+	if(::GetFileSizeEx(::HANDLE(::_get_osfhandle(fd)), &sz) != 0
+		&& YB_LIKELY(sz.QuadPart >= 0))
+		return sz.QuadPart;
+#endif
+	throw std::runtime_error("Failed getting file size.");
+}
+std::uint64_t
+GetFileSizeOf(std::FILE* fp)
+{
+	yconstraint(fp);
+
+#if YCL_DS
+	return GetFileSizeOf(fileno(fp));
+#else
+	return GetFileSizeOf(::_fileno(fp));
 #endif
 }
 
@@ -526,7 +537,7 @@ HDirectory::GetName() const ynothrow
 #else
 		try
 		{
-			utf8_name = u16_to_u(reinterpret_cast<const char16_t*>(
+			utf8_name = strdup(reinterpret_cast<const char16_t*>(
 				(static_cast<DirEnv*>(p_dirent))->d_name.c_str()));
 			return &utf8_name[0];
 		}

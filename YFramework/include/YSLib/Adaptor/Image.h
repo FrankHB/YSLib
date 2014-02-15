@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r782
+\version r789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-02-05 02:49 +0800
+	2014-02-15 14:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,11 +139,12 @@ class YF_API BadImageAlloc : public std::bad_alloc
 \brief 未被支持的图像格式异常：表示请求的操作涉及的图像格式不受库的支持。
 \since build 471
 */
-class YF_API UnsupportedImageFormat : public LoggedEvent
+class YF_API UnsupportedImageFormat
+	: public LoggedEvent, public ystdex::unsupported
 {
 public:
 	UnsupportedImageFormat(const std::string& str)
-		: LoggedEvent(str)
+		: LoggedEvent(str), unsupported()
 	{}
 };
 
@@ -253,7 +254,7 @@ public:
 	HBitmap(const Size&, BitPerPixel = 0);
 	/*!
 	\brief 构造：从矩形像素图缓冲区按指定大小和扫描线跨距增量复制并转换图像数据。
-	\pre 断言检查：输入指针非空。
+	\pre 断言：输入指针非空。
 	\throw LoggedEvent 转换失败。
 	\note 扫描线跨距的单位为字节，
 		等于图像的宽乘以每像素字节数与输入的扫描线跨距增量之和。
@@ -353,8 +354,8 @@ public:
 
 	/*!
 	\brief 取扫描线数据。
-	\pre 断言检查： <tt>bitmap</tt> 。
-	\pre 断言检查： 参数值小于高。
+	\pre 断言： <tt>bitmap</tt> 。
+	\pre 断言： 参数值小于高。
 	\return 扫描线数据的起始指针。
 	\note 扫描线宽为跨距。
 	\since build 471
@@ -392,7 +393,7 @@ public:
 	GetPixels() const ynothrow;
 	/*!
 	\brief 取扫描线数据。
-	\pre 间接断言检查： 参数值小于高。
+	\pre 间接断言： 参数值小于高。
 	\return 若数据指针为空则为空指针，否则为扫描线数据起始非空指针。
 	\note 使用 <tt>operator[]</tt> 实现。
 	\sa operator[]

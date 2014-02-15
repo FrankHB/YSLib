@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1889
+\version r1895
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-02-09 01:20 +0800
+	2014-02-15 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,11 +110,12 @@ GetExtensionOf(const String& fname)
 
 
 String
-GetNowDirectory()
+FetchCurrentWorkingDirectory(size_t len)
 {
-	ucs2_t buf[YCL_MAX_PATH_LENGTH];
+	ucs2string str(len, ucs2_t());
 
-	return u16getcwd_n(buf, YCL_MAX_PATH_LENGTH - 1) ? String(buf) : String();
+	u16getcwd_n(&str[0], len);
+	return str;
 }
 
 
@@ -185,6 +186,8 @@ ClassifyNode(const Path& pth)
 		if(ufexists(string(pth)))
 			return VerifyDirectory(pth)
 				? NodeCategory::Directory : NodeCategory::Regular;
+		else
+			return NodeCategory::Missing;
 	// TODO: Implementation for other categories.
 	}
 	return NodeCategory::Unknown;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r145
+\version r147
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2013-11-06 05:34 +0800
+	2014-02-15 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ public:
 	\sa ShlDS::ShlDS
 	\since build 395
 	*/
-	ShlExplorer(const IO::Path& = IO::GetNowDirectory(),
+	ShlExplorer(const IO::Path& = IO::FetchCurrentWorkingDirectory(),
 		const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 
 	/*!

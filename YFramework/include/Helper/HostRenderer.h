@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r271
+\version r274
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2013-12-23 23:25 +0800
+	2014-02-15 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,7 +171,8 @@ public:
 
 	//! \since build 409
 	YB_NORETURN PDefH(HostRenderer*, clone, ) const override
-		ImplExpr(throw LoggedEvent("HostRenderer::clone: Not implemented."));
+		ImplExpr(
+			throw ystdex::unimplemented("HostRenderer::clone unimplemented."));
 //	DefClone(const override, HostRenderer)
 
 	//! \since build 430

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r315
+\version r317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-02-08 12:10 +0800
+	2014-02-14 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ public:
 
 /*!
 \brief 取全局应用程序实例。
-\pre 内部断言检查存在应用程序实例。
+\pre 内部断言存在应用程序实例。
 \note 需要保证应用程序实例初始化后才能使用。
 \since build 398
 */

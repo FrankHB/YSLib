@@ -3,7 +3,7 @@ This is a command line tool for recursively call native complier to generate bin
 The output can be object/archive/executable files.
 
 = Precondition
-This project depends on YSLib b474.
+This project depends on YSLib b475.
 YSLib headers should be put in proper directories to be found by the compiler.
 YSLib libraries should be put in proper directories to be found by the linker.
 YBase.dll and YFramework.dll should be found in PATH.

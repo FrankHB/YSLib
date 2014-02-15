@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4540
+\version r4543
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-02-08 12:05 +0800
+	2014-02-16 00:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include YFM_YSLib_Core_YFunc
 #include <ystdex/iterator.hpp> // for ystdex::get_value;
 #include <ystdex/container.hpp> // for ystdex::erase_all_if;
+#include <ystdex/utility.hpp> // for ystdex::cloneable;
 
 namespace YSLib
 {
@@ -42,10 +43,10 @@ namespace YSLib
 \since build 333
 */
 template<typename... _tParams>
-DeclI(, GIHEvent)
+DeclDerivedI(, GIHEvent, ystdex::cloneable)
 	DeclIEntry(size_t operator()(_tParams...) const)
 	//! \since build 409
-	DeclIEntry(GIHEvent* clone() const)
+	DeclIEntry(GIHEvent* clone() const override)
 EndDecl
 
 

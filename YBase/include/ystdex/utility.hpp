@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1641
+\version r1692
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-01-20 19:31 +0800
+	2014-02-16 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,44 @@
 #include "type_op.hpp" // for ../ydef.h, ystdex::qualified_decay;
 #include "cassert.h"
 #include <utility>
+#include <stdexcept> // for std::logic_error;
 
 namespace ystdex
 {
 
-/*
-\brief 不可复制对象：禁止继承此类的对象调用默认原型的复制构造函数和复制赋值操作符。
+//! \since build 475
+//@{
+//! \brief 异常：不支持的操作。
+class YB_API unsupported : public std::logic_error
+{
+public:
+	unsupported()
+		: logic_error("Unsupported operation found.")
+	{}
+	template<typename _type>
+	unsupported(_type&& arg)
+		: logic_error(yforward(arg))
+	{}
+};
+
+
+//! \brief 异常：未实现的操作。
+class YB_API unimplemented : public unsupported
+{
+public:
+	unimplemented()
+		: unsupported("Unimplemented operation found.")
+	{}
+	template<typename _type>
+	unimplemented(_type&& arg)
+		: unsupported(yforward(arg))
+	{}
+};
+//@}
+
+
+/*!
+\brief 不可复制对象：禁止派生类调用默认原型的复制构造函数和复制赋值操作符。
 \warning 非虚析构。
 \since build 373
 */
@@ -100,6 +132,30 @@ public:
 	*/
 	nonmovable&
 	operator=(const nonmovable&) = delete;
+};
+
+
+/*!
+\brief 可动态复制的抽象基类。
+\since build 475
+*/
+class YB_API cloneable
+{
+public:
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 40702
+	//! \since build 475 as workaround for G++ 4.7.1
+	//@{
+	cloneable() = default;
+	cloneable(const cloneable&) = default;
+	cloneable(cloneable&&) = default;
+	//@}
+#endif
+	virtual cloneable*
+	clone() const = 0;
+
+	virtual
+	~cloneable()
+	{}
 };
 
 

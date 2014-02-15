@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3431
+\version r3432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-02-08 23:30 +0800
+	2014-02-14 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1332,7 +1332,7 @@ b273
 	/ "view" @ "class %TextInfoBox" @ %YReader.'text reader',
 		// Efficiency for opening and random access operations to large files \
 			improved obviously due to using of mapping buffering.
-	* $doc $dev $design "several minor Doxygen warnings" @ $since b196
+	* $dev $doc $design "several minor Doxygen warnings" @ $since b196
 ),
 
 b272

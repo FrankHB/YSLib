@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1282
+\version r1288
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2013-12-24 09:44 +0800
+	2014-02-14 22:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,11 @@ struct ConversionState
 	union
 	{
 		ucsint_t Wide;
-		byte Sequence[4];
+		/*!
+		\brief 字节序列：宽字符的字节表示。
+		\since build 475
+		*/
+		byte Sequence[sizeof(ucsint_t)];
 	} Value;
 
 	yconstfn

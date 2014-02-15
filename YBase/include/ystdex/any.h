@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1370
+\version r1375
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-02-08 12:01 +0800
+	2014-02-16 00:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,7 @@
 #ifndef YB_INC_ystdex_any_h_
 #define YB_INC_ystdex_any_h_ 1
 
-#include "type_op.hpp"
-#include "cassert.h"
+#include "utility.hpp"
 #include <memory> // for std::addressof, std::unique_ptr;
 #include <typeinfo> // for typeid, std::bad_cast;
 
@@ -160,10 +159,10 @@ namespace any_ops
 \brief 抽象动态泛型持有者接口。
 \since build 454
 */
-class YB_API holder
+class YB_API holder : public cloneable
 {
 public:
-#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 47200
+#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 40702
 	//! \since build 353 as workaround for G++ 4.7.1
 	//@{
 	holder() = default;
@@ -180,7 +179,7 @@ public:
 	get() const = 0;
 
 	virtual holder*
-	clone() const = 0;
+	clone() const override = 0;
 
 	//! \since build 340
 	virtual const std::type_info&

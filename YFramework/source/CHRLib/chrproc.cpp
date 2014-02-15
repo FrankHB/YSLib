@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1184
+\version r1206
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2013-12-24 00:37 +0800
+	2014-02-14 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,52 +157,48 @@ UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
 }
 
 
-char*
+std::string
 strdup(const ucs2_t* s, Encoding enc)
 {
 	yconstraint(s);
 
-	// FIXME: size for max MBC sequence length > 4;
-	const auto str(static_cast<char*>(malloc((ntctslen(s) << 2) + 1)));
+	std::string
+		str((ntctslen(s) * sizeof(ucsint_t) / sizeof(ucs2_t)) + 1U, char());
 
-	UCS2ToMBCS(str, s, enc);
+	UCS2ToMBCS(&str[0], s, enc);
 	return str;
 }
 
-ucs2_t*
+std::basic_string<ucs2_t>
 ucsdup(const char* s, Encoding enc)
 {
 	yconstraint(s);
 
-	const auto p(static_cast<ucs2_t*>(malloc((ntctslen(s) + 1) << 1)));
+	std::basic_string<ucs2_t> str(ntctslen(s) + 1U, ucs2_t());
 
-	if(YB_LIKELY(p))
-		MBCSToUCS2(p, s, enc);
-	return p;
+	MBCSToUCS2(&str[0], s, enc);
+	return str;
 }
-ucs2_t*
+std::basic_string<ucs2_t>
 ucsdup(const ucs2_t* s)
 {
 	yconstraint(s);
 
-	const size_t n(ntctslen(s) * sizeof(ucs2_t));
-	const auto p(static_cast<ucs2_t*>(malloc(n + sizeof(ucs2_t))));
+	const size_t n(ntctslen(s) + 1U);
+	std::basic_string<ucs2_t> str(n, ucs2_t());
 
-	if(YB_LIKELY(p))
-		std::copy_n(s, n, p);
-	return p;
+	std::copy_n(s, n, &str[0]);
+	return str;
 }
-ucs2_t*
+std::basic_string<ucs2_t>
 ucsdup(const ucs4_t* s)
 {
 	yconstraint(s);
 
-	const auto p(static_cast<ucs2_t*>(malloc((ntctslen(s) + 1)
-		* sizeof(ucs2_t))));
+	std::basic_string<ucs2_t> str(ntctslen(s) + 1U, ucs2_t());
 
-	if(YB_LIKELY(p))
-		UCS4ToUCS2(p, s);
-	return p;
+	UCS4ToUCS2(&str[0], s);
+	return str;
 }
 
 } // namespace CHRLib;

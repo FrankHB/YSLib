@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r880
+\version r883
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2013-12-24 09:32 +0800
+	2014-02-13 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,8 @@ union YB_ATTR(packed) YB_ATTR(
 {
 	using Trait = XYZATrait<_vB, _vG, _vR, _vA>;
 
-	static_assert(Trait::BitsN <= 64, "Width larger than 64 unimplemented");
+	static_assert(Trait::BitsN <= 64,
+		"Width larger than 64 bits is unimplemented");
 
 	typename Trait::ArrayType Bytes;
 	typename Trait::IntegerType Integer;
