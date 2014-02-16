@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1191
+\version r1221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-02-15 22:56 +0800
+	2014-02-16 01:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,47 +254,60 @@ inline PDefH(bool, ufexists, const _tString& str) ynothrow
 YF_API char16_t*
 u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 
+/*
+\pre 断言：参数非空。
+\return 操作是否成功。
+\note <tt>errno</tt> 在出错时会被设置，具体值由实现定义。
+\note DS 使用 newlib 实现。 MinGW32 使用 MSVCRT 实现。
+*/
+//@{
 /*!
 \brief 切换当前工作路径至指定的 UTF-8 字符串。
-\since build 412
+\since build 476
 */
-YF_API int
+YF_API bool
 uchdir(const char*) ynothrow;
 
 /*!
 \brief 按 UTF-8 路径以默认权限新建一个目录。
-\pre 断言：参数非空。
-\return 是否创建成功。
 \note 权限由实现定义： DS 使用最大权限； MinGW32 使用 _wmkdir 指定的默认权限。
-\note <tt>errno</tt> 在出错时会被设置。
 \since build 475
 */
 YF_API bool
 umkdir(const char*) ynothrow;
 
 /*!
-\brief 按 UTF-8 路径删除一个目录。
-\pre 断言：参数非空。
-\return 是否删除成功。
-\note <tt>errno</tt> 在出错时会被设置。
+\brief 按 UTF-8 路径删除一个空目录。
 \since build 475
 */
 YF_API bool
 urmdir(const char*) ynothrow;
 
 /*!
+\brief 按 UTF-8 路径删除一个非目录文件。
+\since build 476
+*/
+YF_API bool
+uunlink(const char*) ynothrow;
+
+/*!
+\brief 按 UTF-8 路径删除一个文件。
+\since build 476
+*/
+YF_API bool
+uremove(const char*) ynothrow;
+
+/*!
 \brief 截断文件至指定长度。
 \pre 指定文件需已经打开并可写。
-\return 操作是否成功。
 \note 不改变文件读写位置。
-\note <tt>errno</tt> 在出错时会被设置。
 \since build 341
-\todo 使用 errno 抛出异常。
 
 若文件不足指定长度，扩展并使用空字节填充；否则保留起始指定长度的字节。
 */
 YF_API bool
 truncate(std::FILE*, std::size_t) ynothrow;
+//@}
 
 
 /*!

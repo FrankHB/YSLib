@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r353
+\version r434
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-02-15 23:06 +0800
+	2014-02-16 17:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,8 @@ using namespace YSLib;
 using namespace IO;
 using platform_ex::MBCSToWCS;
 using platform_ex::WCSToMBCS;
+//! \since build 476
+using platform_ex::MBCSToMBCS;
 
 namespace
 {
@@ -59,19 +61,6 @@ yconstexpr auto build_path(u8".shbuild\\");
 
 
 int
-Call(const char* cmd)
-{
-	YAssert(cmd, "Null pointer found.");
-
-	cout << cmd << endl;
-	return system(cmd); 
-}
-int
-Call(const string& cmd)
-{
-	return Call(cmd.c_str()); 
-}
-int
 Call(const wchar_t* cmd)
 {
 	YAssert(cmd, "Null pointer found.");
@@ -84,42 +73,39 @@ Call(const wstring& cmd)
 {
 	return Call(cmd.c_str()); 
 }
+int
+Call(const char* cmd)
+{
+	return Call(MBCSToWCS(cmd)); 
+}
+int
+Call(const string& cmd)
+{
+	return Call(cmd.c_str()); 
+}
 
-
+//! \since build 476
 void
-Search(const string& path, const wstring& opath, const wstring& flags)
+Search(const string& path, const string& opath, const string& flags)
 {
 	YAssert(path.size() > 1 && path.back() == wchar_t(YCL_PATH_DELIMITER),
 		"Invalid path found.");
 
-	PathNorm nm;
-	const auto lopath(WCSToMBCS(opath));
-	const auto uopath(WCSToMBCS(opath, CP_UTF8));
+	const auto lopath(MBCSToMBCS(opath));
 
 	cout << "Purging path: " << lopath << " ..." << endl;
-	
-	// XXX: Simplify implementation.
-	if(![&](std::string path){
-		for(char* slash(&path[0]); (slash = std::strchr(slash,
-			YCL_PATH_DELIMITER)); ++slash)
-		{
-			*slash = char();
-			if(!umkdir(path.c_str()) && errno != EEXIST)
-			{
-				cerr << "ERROR Failed creating directory '" << lopath << "'."
-					<< endl;
-				throw 3;
-			}
-			*slash = YCL_PATH_DELIMITER;
-		}
-		return umkdir(path.c_str()) == 0 || errno == EEXIST;
-	}(uopath))
+	try
 	{
-		cerr << "ERROR Failed creating directory '" << lopath << "'." << endl;
+		EnsureDirectory(opath);
+	}
+	catch(std::system_error& e)
+	{
+		cerr << "ERROR: Failed creating directory '" << lopath << "':" 
+			<< e.what() << '.' << endl;
 		throw 3;
 	}
 	{
-		HDirectory dir(uopath.c_str());
+		HDirectory dir(opath.c_str());
 
 		for_each(FileIterator(&dir), FileIterator(),
 			[&](const string& name){
@@ -132,10 +118,9 @@ Search(const string& path, const wstring& opath, const wstring& flags)
 
 					if(ext == u"a" || ext == u"o")
 					{
-						const auto wname(MBCSToWCS(name, CP_UTF8));
-						const auto lname(WCSToMBCS(wname));
+						const auto lname(MBCSToMBCS(name));
 
-						if(::_wremove((opath + wname).c_str()) != 0)
+						if(!uremove((opath + name).c_str()))
 						{
 							cerr << "ERROR: Failed deleting file '" + lname
 								+ "'." << endl;
@@ -146,10 +131,7 @@ Search(const string& path, const wstring& opath, const wstring& flags)
 				}
 		});
 	}
-
-	const auto wpath(MBCSToWCS(path, CP_UTF8));
-
-	cout << "Searching path: " << WCSToMBCS(wpath) << " ..." << endl;
+	cout << "Searching path: " << MBCSToMBCS(path) << " ..." << endl;
 	{
 		HDirectory dir(path.c_str());
 
@@ -166,19 +148,17 @@ Search(const string& path, const wstring& opath, const wstring& flags)
 					if(ext == u"c" || ext == u"cc" || ext == u"cpp"
 						|| ext == u"cxx")
 					{
-						const auto wname(MBCSToWCS(name, CP_UTF8));
-
-						const int ret(Call((ext == u"c" ? L"gcc -c" : L"g++ -c")
-							+ flags + L' ' + wpath + wname + L" -o " + opath
-							+ wname + L".o"));
+						const int ret(Call((ext == u"c" ? u8"gcc -c"
+							: u8"g++ -c") + flags + ' ' + path + name
+							+ u8" -o " + opath + name + u8".o"));
 
 						if(ret != 0)
 							throw 0x10000 + ret;
 					}
 				}
 				else
-					Search(path + name + YCL_PATH_DELIMITER, opath + MBCSToWCS(
-						name, CP_UTF8) + wchar_t(YCL_PATH_DELIMITER), flags);
+					Search(path + name + YCL_PATH_DELIMITER,
+						opath + name + YCL_PATH_DELIMITER, flags);
 			}
 		});
 	}
@@ -186,7 +166,7 @@ Search(const string& path, const wstring& opath, const wstring& flags)
 	size_t anum(0), onum(0);
 
 	{
-		HDirectory dir(uopath.c_str());
+		HDirectory dir(opath.c_str());
 
 		for_each(FileIterator(&dir), FileIterator(),
 			[&](const string& name){
@@ -211,11 +191,11 @@ Search(const string& path, const wstring& opath, const wstring& flags)
 		if(str.back() == YCL_PATH_DELIMITER)
 			str.pop_back();
 
-		str = L"ar rcs \"" + str + L".a\"";
+		str = u8"ar rcs \"" + str + u8".a\"";
 		if(anum != 0)
-			str += L' ' + opath + L"*.a";
+			str += ' ' + opath + u8"*.a";
 		if(onum != 0)
-			str += L' ' + opath + L"*.o";
+			str += ' ' + opath + u8"*.o";
 
 		const int ret(Call(str));
 
@@ -227,8 +207,9 @@ Search(const string& path, const wstring& opath, const wstring& flags)
 } // unnamed namespace;
 
 
+//! \since build 476
 int
-Build(const vector<wstring>& args)
+Build(const vector<string>& args)
 {
 	YAssert(args.size() > 0, "Wrong argument number found.");
 
@@ -236,51 +217,56 @@ Build(const vector<wstring>& args)
 	{
 		auto in(args[0]);
 
-		ystdex::rtrim(in, L"/\\");
+		ystdex::rtrim(in, "/\\");
 		in += YCL_PATH_DELIMITER;
 
-		Path ipath(String(reinterpret_cast<const ucs2_t*>(in.c_str())));
+		Path ipath(in);
 
 		if(ipath.empty())
 		{
 			cerr << "ERROR: Empty SRCPATH found." << endl;
 			return 1;
 		}
-		if(ipath.is_relative())
+		if(IsRelative(ipath))
 			ipath = Path(FetchCurrentWorkingDirectory()) / ipath;
 		ipath.Normalize();
 
-		YAssert(ipath.is_absolute(), "Invalid path converted.");
+		YAssert(IsAbsolute(ipath), "Invalid path converted.");
 
 		cout << "Absolute path recognized: " << '\n' << WCSToMBCS(
 			reinterpret_cast<const wchar_t*>(to_string(ipath).c_str())) << endl;
-		if(!VerifyDirectory(WCSToMBCS(in, CP_UTF8)))
+		if(!VerifyDirectory(in))
 		{
 			cerr << "ERROR: SRCPATH is not exist." << endl;
 			return 1;
 		}
-		if(!umkdir(build_path) && errno != EEXIST)
+		try
 		{
-			cerr << "ERROR: Failed creating build directory." << endl;
-			return 2;
+			EnsureDirectory(build_path);
+		}
+		catch(std::system_error&)
+		{
+			cerr << "ERROR: Failed creating build directory."  << 
+				'\'' << build_path << '\'' << endl;
+			throw 2;
 		}
 
-		wstring flags;
+		string flags;
 		auto b(args.begin());
 
-		for_each(++b, args.end(), [&](const wstring& opt){
-			flags += L' ';
+		for_each(++b, args.end(), [&](const string& opt){
+			flags += ' ';
 			flags += opt;
 		});
 
-		wstring opath(MBCSToWCS(build_path, CP_UTF8));
+		string opath(build_path);
 
 		if(!ipath.empty())
 		{
-			opath += reinterpret_cast<const wchar_t*>(ipath.back().c_str());
-			opath += wchar_t(YCL_PATH_DELIMITER);
+			opath += ipath.back().GetMBCS();
+			opath += YCL_PATH_DELIMITER;
 		}
-		Search(WCSToMBCS(in, CP_UTF8).c_str(), opath, flags);
+		Search(in, opath, flags);
 		return 0;
 	}
 	catch(FileOperationFailure&)
@@ -315,10 +301,10 @@ main(int argc, char* argv[])
 {
 	if(argc > 1)
 	{
-		vector<wstring> args;
+		vector<string> args;
 
 		for(int i(1); i < argc; ++i)
-			args.emplace_back(MBCSToWCS(argv[i]));
+			args.emplace_back(MBCSToMBCS(argv[i], CP_ACP, CP_UTF8));
 		return Build(args);
 	}
 	else if(argc == 1)

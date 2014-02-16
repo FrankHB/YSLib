@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1206
+\version r1218
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-02-14 22:53 +0800
+	2014-02-16 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include <cwchar>
 #include <ystdex/cstdio.h>
 #include <ystdex/cstring.h>
+#include <ystdex/memory.hpp> // for ystdex::make_unique;
 #include YFM_CHRLib_Convert
 
 namespace CHRLib
@@ -44,6 +45,8 @@ using std::tolower;
 using ystdex::input_monomorphic_iterator;
 using ystdex::is_null;
 using ystdex::ntctslen;
+//! \since build 476
+using ystdex::make_unique;
 
 ConversionResult
 MBCToUC(ucs2_t& uc, const char*& c, Encoding enc, ConversionState&& st)
@@ -162,11 +165,11 @@ strdup(const ucs2_t* s, Encoding enc)
 {
 	yconstraint(s);
 
-	std::string
-		str((ntctslen(s) * sizeof(ucsint_t) / sizeof(ucs2_t)) + 1U, char());
+	const auto str(make_unique<char[]>(
+		(ntctslen(s) * sizeof(ucsint_t) / sizeof(ucs2_t)) + 1));
 
 	UCS2ToMBCS(&str[0], s, enc);
-	return str;
+	return &str[0];
 }
 
 std::basic_string<ucs2_t>
@@ -174,10 +177,10 @@ ucsdup(const char* s, Encoding enc)
 {
 	yconstraint(s);
 
-	std::basic_string<ucs2_t> str(ntctslen(s) + 1U, ucs2_t());
+	const auto str(make_unique<ucs2_t[]>(ntctslen(s) + 1));
 
 	MBCSToUCS2(&str[0], s, enc);
-	return str;
+	return &str[0];
 }
 std::basic_string<ucs2_t>
 ucsdup(const ucs2_t* s)
@@ -185,20 +188,20 @@ ucsdup(const ucs2_t* s)
 	yconstraint(s);
 
 	const size_t n(ntctslen(s) + 1U);
-	std::basic_string<ucs2_t> str(n, ucs2_t());
+	const auto str(make_unique<ucs2_t[]>(n));
 
 	std::copy_n(s, n, &str[0]);
-	return str;
+	return &str[0];
 }
 std::basic_string<ucs2_t>
 ucsdup(const ucs4_t* s)
 {
 	yconstraint(s);
 
-	std::basic_string<ucs2_t> str(ntctslen(s) + 1U, ucs2_t());
+	const auto str(make_unique<ucs2_t[]>(ntctslen(s) + 1));
 
 	UCS4ToUCS2(&str[0], s);
-	return str;
+	return &str[0];
 }
 
 } // namespace CHRLib;

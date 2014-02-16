@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r131
+\version r136
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-01-28 05:30 +0800
+	2014-02-16 07:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,18 +99,18 @@ CheckWine()
 
 
 std::string
-UTF8ToMBCS(const char* str, std::size_t len, int cp)
+MBCSToMBCS(const char* str, std::size_t len, int cp_src, int cp_dst)
 {
-	if (cp == CP_UTF8)
+	if (cp_src == cp_dst)
 		return str;
 
-	const int w_len(::MultiByteToWideChar(CP_UTF8, 0, str, len, {}, 0));
+	const int w_len(::MultiByteToWideChar(cp_src, 0, str, len, {}, 0));
 	std::wstring wstr(w_len, wchar_t());
 	wchar_t* w_str = &wstr[0];
 
-	::MultiByteToWideChar(CP_UTF8, 0, str, len, w_str, w_len);
+	::MultiByteToWideChar(cp_src, 0, str, len, w_str, w_len);
 
-	return WCSToMBCS(w_str, w_len, cp);
+	return WCSToMBCS(w_str, w_len, cp_dst);
 }
 
 std::string

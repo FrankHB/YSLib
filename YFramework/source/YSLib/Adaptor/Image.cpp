@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r746
+\version r748
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-02-01 01:05 +0800
+	2014-02-16 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,7 +164,7 @@ ImageFormat
 GetFormatFromFilename(const char16_t* filename)
 {
 	const auto len(std::char_traits<char16_t>::length(filename));
-	const unique_ptr<char[]> p(new char[len + 1]);
+	const auto p(ystdex::make_unique<char[]>(len + 1));
 	const auto str(p.get());
 
 	for(size_t i{}; i < len; ++i)
@@ -356,7 +356,7 @@ HBitmap::operator[](size_t idx) const ynothrow
 HBitmap::operator CompactPixmap() const
 {
 	const Size& s(GetSize());
-	unique_ptr<PixelType[]> pixels(new PixelType[GetAreaOf(s)]);
+	auto pixels(ystdex::make_unique<PixelType[]>(GetAreaOf(s)));
 
 	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
 		GetDataPtr(), s.Width * sizeof(PixelType), YF_PixConvSpec, true);

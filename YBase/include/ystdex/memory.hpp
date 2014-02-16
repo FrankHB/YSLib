@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r478
+\version r496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2013-09-01 12:27 +0800
+	2014-02-16 17:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_memory_hpp_
 #define YB_INC_ystdex_memory_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h and is_pointer;
+#include "type_op.hpp" // for ../ydef.h, is_pointer, is_array, extent,
+//	enable_if_t and remove_extent_t;
 #include <memory>
 
 namespace ystdex
@@ -203,15 +204,27 @@ share_raw(nullptr_t) ynothrow
 \brief 使用 new 和指定参数构造指定类型的 std::unique_ptr 实例。
 \tparam _type 被指向类型。
 \see http://herbsutter.com/gotw/_102/ 。
-\since build 293
-\todo 其它 deleter 的重载。
+\see ISO WG21/N3797 20.7.2[memory.syn] 。
+\since build 476
 */
+//@{
 template<typename _type, typename... _tParams>
-yconstfn std::unique_ptr<_type>
+yconstfn yimpl(enable_if_t<!is_array<_type>::value, std::unique_ptr<_type>>)
 make_unique(_tParams&&... args)
 {
 	return std::unique_ptr<_type>(new _type(yforward(args)...));
 }
+template<typename _type, typename... _tParams>
+yconstfn yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value == 0,
+	std::unique_ptr<_type>>)
+make_unique(size_t size)
+{
+	return std::unique_ptr<_type>(new remove_extent_t<_type>[size]());
+}
+template<typename _type,  typename... _tParams>
+yimpl(enable_if_t<extent<_type>::value != 0, void>)
+make_unique(_tParams&&...) = delete;
+//@}
 
 /*!
 \ingroup helper_functions

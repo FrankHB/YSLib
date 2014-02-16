@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3679
+\version r3692
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-12-23 23:01 +0800
+	2014-02-16 20:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,23 +229,11 @@ public:
 	}
 
 	/*
-	\brief 复制赋值：使用复制构造函数和交换函数。
+	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\since build 476
 	*/
-	CompactPixmap&
-	operator=(const CompactPixmap& buf)
-	{
-		CompactPixmap(buf).swap(*this);
-		return *this;
-	}
-	/*
-	\brief 转移赋值：使用转移构造函数和交换函数。
-	*/
-	CompactPixmap&
-	operator=(CompactPixmap&& buf) ynothrow
-	{
-		buf.swap(*this);
-		return *this;
-	}
+	PDefHOp(CompactPixmap&, =, CompactPixmap msg) ynothrow
+		ImplRet(msg.swap(*this), *this)
 
 	/*!
 	\brief 设置内容。
@@ -281,11 +269,8 @@ public:
 	/*
 	\brief 交换。
 	*/
-	void
-	swap(CompactPixmap& buf) ynothrow
-	{
-		std::swap<Graphics>(*this, buf);
-	}
+	PDefH(void, swap, CompactPixmap& buf) ynothrow
+		ImplExpr(std::swap<Graphics>(*this, buf))
 };
 
 /*!

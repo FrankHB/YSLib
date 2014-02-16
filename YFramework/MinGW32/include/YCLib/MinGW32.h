@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台扩展公共头文件。
-\version r226
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-02-13 22:05 +0800
+	2014-02-16 07:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,12 +135,18 @@ CheckWine();
 \since build 431
 */
 //@{
+/*!
+\brief 转换第一个 int 参数指定编码的字符串为第二个 int 参数指定的编码。
+\since build 476
+*/
 YF_API std::string
-UTF8ToMBCS(const char*, std::size_t, int = CP_ACP);
-inline PDefH(std::string, UTF8ToMBCS, const char* str, int cp = CP_ACP)
-	ImplRet(Windows::UTF8ToMBCS(str, ystdex::ntctslen(str), cp))
-inline PDefH(std::string, UTF8ToMBCS, const std::string& str, int cp = CP_ACP)
-	ImplRet(Windows::UTF8ToMBCS(str.c_str(), str.length(), cp))
+MBCSToMBCS(const char*, std::size_t, int = CP_UTF8, int = CP_ACP);
+inline PDefH(std::string, MBCSToMBCS, const char* str, int cp_src = CP_UTF8,
+	int cp_dst = CP_ACP)
+	ImplRet(Windows::MBCSToMBCS(str, ystdex::ntctslen(str), cp_src, cp_dst))
+inline PDefH(std::string, MBCSToMBCS, const std::string& str,
+	int cp_src = CP_UTF8, int cp_dst = CP_ACP)
+	ImplRet(Windows::MBCSToMBCS(str.c_str(), str.length(), cp_src, cp_dst))
 
 YF_API std::string
 WCSToMBCS(const wchar_t*, std::size_t, int = CP_ACP);

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6034
+\version r6107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-16 00:03 +0800
+	2014-02-16 20:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,79 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib.FileSystem $=
+		(
+			/ "return type with meaning change" @ "function %uchdir" -> 'bool'
+				~ 'int',
+				// Now returned value is 'true' on success.
+			+ "functions %(uunlink, uremove)",
+			* "exception violation of 'ynothrow'" @ "allocation failed"
+				@ "platform %MinGW32" @ "functions %(umkdir, urmdir)"
+				$since b475
+		),
+		/ %YSLib $=
+		(
+			/ %Service.YFileSystem $=
+			(
+				* $doc "wrong comments" @ "functions %(IsAbsolute, IsRelative)"
+					$since b410,
+				+ "3 functions %(EnsureDirectory)",
+				/ DLD "implementation" @ "inline function %GetExtensionOf"
+					^ "%(PDefH, ImplRet)",
+				+ "function %GetExtensionOf for %string parameter",
+				/ DLD "implementation" @ "overloaded operators for %Path"
+					^ "%(PDefHOp, ImplRet)",
+				/ DLD "implementation" @ "%swap for %Path" ^ "%DefSwap"
+			),
+			(
+			$dep_from %YBase.YStandardEx.Memory;
+			/ DLD "simplified implementation"
+				^ "%make_unique for %unique_ptr with array type argument"
+				@ "%(GetFormatFromFilename, HBitmap::operator CompactPixmap)"
+				@ %Adaptor.Image,
+			),
+			/ %Core.YGDI $=
+			(
+				/ @ "class %CompactPixmap" $=
+				(
+					/ DLD "implementation" @ "member function %swap"
+						^ "%(PDefH, ImplExpr)";
+					/ @ "%operator=" $=
+					(
+						/ "merged copy and move assignment operators as \
+							unifying assignment";
+						+ $comp "no throw guarantee" @ "move assignment"
+					)
+				)
+			)
+		),
+		(
+		$dep_from %YBase.YStandardEx.Memory;
+		* "missing cutting of trailing characters after NUL" @ "functions \
+			%(strdup, ucsdup)" @ %CHRLib.CharacterProcessing $since b475
+		),
+		/ "functions %MBCSToUTF8" -> "functions %MBCSToMBCS"
+			@ %'YCLib_(MinGW32)'.MinGW32
+	),
+	/ "completed %make_unique" @ %YBase.YStandardEx.Memory $=
+	(
+		/ "restricted old declaration only for %unique_ptr with non-array type \
+			argument"
+		+ "template making %unique_ptr with array type argument declaration",
+		+ "explicitly deleted template invalid with array type argument declaration"
+	),
+	/ DLD "implementation" @ %Tools.SHBuild.Main $=
+	(
+		$dep_from %YFramework.YSLib.Service.FileSystem;
+		/ "wide string operations" -> "UTF-8 based string operatiions",
+		^ "%EnsureDirectory"
+	)
+),
+
+b475
 (
 	/ %YFramework $=
 	(
@@ -842,7 +915,7 @@ b460
 	/ %YFramework $=
 	(
 		* $dev "constructor %RegisterKey" @ "%UNICODE undefined"
-			@ %'YCLib_(MinGW32)' $since build b435
+			@ %'YCLib_(MinGW32)'.MinGW32 $since build b435
 			$= (^ "%RegOpenKeyExW" ~ "%RegOpenKeyEx"),
 		/ %YSLib $=
 		(

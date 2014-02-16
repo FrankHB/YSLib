@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2874
+\version r2876
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2013-12-23 23:45 +0800
+	2014-02-16 17:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,7 +191,6 @@ CompactPixmapEx::SetSize(const Size& s)
 			: nullptr);
 		unique_ptr<AlphaType[]> p_new_alpha(YB_LIKELY(area != 0)
 			? new AlphaType[area] : nullptr);
-
 		unique_ptr<PixelType[]> p_old(pBuffer);
 		unique_ptr<AlphaType[]> p_old_alpha(pBufferAlpha);
 

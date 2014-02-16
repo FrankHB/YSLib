@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1232
+\version r1272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-02-15 22:49 +0800
+	2014-02-16 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,45 +378,56 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 	return nullptr;
 }
 
-int
-uchdir(const char* path) ynothrow
-{
+//! \since build 476
+#define YCL_FileSystem_ufunc_impl1(_n) \
+bool \
+_n(const char* path) ynothrow \
+{ \
+	yconstraint(path); \
+\
+
 #if YCL_DS
-	return ::chdir(path);
-#else
-	try
-	{
-		return path ? ::_wchdir(u_to_w(path).c_str()) : -1;
-	}
-	catch(...)
-	{}
-	return -1;
-#endif
+//! \since build 476
+#define YCL_FileSystem_ufunc_impl2(_fn, _wfn) \
+	return _fn(path) == 0; \
 }
+#else
+//! \since build 476
+#define YCL_FileSystem_ufunc_impl2(_fn, _wfn) \
+	try \
+	{ \
+		return _wfn(u_to_w(path).c_str()) == 0; \
+	} \
+	catch(...) \
+	{} \
+	return false; \
+}
+#endif
 
-bool
-umkdir(const char* path) ynothrow
-{
-	yconstraint(path);
+//! \since build 476
+#define YCL_FileSystem_ufunc_impl(_n, _fn, _wfn) \
+	YCL_FileSystem_ufunc_impl1(_n) \
+	YCL_FileSystem_ufunc_impl2(_fn, _wfn)
 
+YCL_FileSystem_ufunc_impl(uchdir, ::chdir, ::_wchdir)
+
+YCL_FileSystem_ufunc_impl1(umkdir)
 #if YCL_DS
 	return ::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0;
-#else
-	return ::_wmkdir(u_to_w(path).c_str()) == 0;
-#endif
 }
-
-bool
-urmdir(const char* path) ynothrow
-{
-	yconstraint(path);
-
-#if YCL_DS
-	return ::rmdir(path) == 0;
 #else
-	return ::_wrmdir(u_to_w(path).c_str()) == 0;
+	YCL_FileSystem_ufunc_impl2(_unused_, ::_wmkdir)
 #endif
-}
+
+YCL_FileSystem_ufunc_impl(urmdir, ::rmdir, ::_wrmdir)
+
+YCL_FileSystem_ufunc_impl(uunlink, ::unlink, ::_wunlink)
+
+YCL_FileSystem_ufunc_impl(uremove, std::remove, ::_wremove)
+
+#undef YCL_FileSystem_ufunc_impl1
+#undef YCL_FileSystem_ufunc_impl2
+#undef YCL_FileSystem_ufunc_impl
 
 bool
 truncate(std::FILE* fp, std::size_t size) ynothrow

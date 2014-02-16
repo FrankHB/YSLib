@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9124
+\version r9125
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-02-05 14:45 +0800
+	2014-02-16 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,7 @@ Shell 和 Core 的关系是相对的，例如：
  Range-based for(N2930) ；
  Converting Lambdas to Function Pointers(N3052) ；
  Explicit virtual overrides v1.0(N3272) 。
-接口和实现仅使用 ISO C++11 中新增头文件 <array> 、 <atomic> 、 <chrono> 、 <condition_variable> 、 <forward_list> 、 <mutex> 、 <thread> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
+接口和实现仅使用 ISO C++11 中新增头文件 <array> 、 <atomic> 、 <chrono> 、 <condition_variable> 、 <forward_list> 、 <mutex> 、 <system_error> 、 <thread> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 的特性。
 
 @1.3.2.2
  YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([Documentation::CommonRules @@2.2.2.1]) 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。

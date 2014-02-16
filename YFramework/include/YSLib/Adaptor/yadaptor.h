@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1560
+\version r1564
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-02-15 22:51 +0800
+	2014-02-16 01:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,6 +178,10 @@ using platform::uchdir;
 using platform::umkdir;
 //! \since build 475
 using platform::urmdir;
+//! \since build 476
+using platform::uunlink;
+//! \since build 476
+using platform::uremove;
 //! \since build 341
 using platform::truncate;
 //@}

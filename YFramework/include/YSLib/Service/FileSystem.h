@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2212
+\version r2279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-02-15 17:11 +0800
+	2014-02-16 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,50 +229,26 @@ public:
 
 //! \relates Path
 //@{
-inline bool
-operator==(const Path& x, const Path& y)
-{
-	return static_cast<const ypath&>(x) == static_cast<const ypath&>(y);
-}
-inline bool
-operator!=(const Path& x, const Path& y)
-{
-	return !(x == y);
-}
-inline bool
-operator<(const Path& x, const Path& y)
-{
-	return static_cast<const ypath&>(x) < static_cast<const ypath&>(y);
-}
-inline bool
-operator<=(const Path& x, const Path& y)
-{
-	return !(y < x);
-}
-inline bool operator>(const Path& x, const Path& y)
-{
-	return y < x;
-}
-inline bool
-operator>=(const Path& x, const Path& y)
-{
-	return !(x < y);
-}
+inline PDefHOp(bool, ==, const Path& x, const Path& y)
+	ImplRet(static_cast<const ypath&>(x) == static_cast<const ypath&>(y))
+inline PDefHOp(bool, !=, const Path& x, const Path& y)
+	ImplRet(!(x == y))
+inline PDefHOp(bool, <, const Path& x, const Path& y)
+	ImplRet(static_cast<const ypath&>(x) < static_cast<const ypath&>(y))
+inline PDefHOp(bool, <=, const Path& x, const Path& y)
+	ImplRet(!(y < x))
+inline PDefHOp(bool, >, const Path& x, const Path& y)
+	ImplRet(y < x)
+inline PDefHOp(bool, >=, const Path& x, const Path& y)
+	ImplRet(!(x < y))
 
-inline Path
-operator/(const Path& x, const Path& y)
-{
-	return std::move(Path(x) /= y);
-}
+inline PDefHOp(Path, /, const Path& x, const Path& y)
+	ImplRet(std::move(Path(x) /= y))
 
 /*!
 \brief 交换。
 */
-inline void
-swap(Path& x, Path& y)
-{
-	x.swap(y);
-}
+inline DefSwap(ynothrow, Path)
 //@}
 
 
@@ -284,11 +260,11 @@ swap(Path& x, Path& y)
 //@{
 YF_API String
 GetExtensionOf(const String&);
-inline String
-GetExtensionOf(const Path& pth)
-{
-	return pth.empty() ? String() : GetExtensionOf(pth.back());
-}
+//! \since build 476
+inline PDefH(String, GetExtensionOf, const string& path)
+	ImplRet(String(path, CS_Path))
+inline PDefH(String, GetExtensionOf, const Path& pth)
+	ImplRet(pth.empty() ? String() : GetExtensionOf(pth.back()))
 //@}
 
 
@@ -304,7 +280,7 @@ FetchCurrentWorkingDirectory(size_t = 1 << 10);
 
 //! \since build 410
 //@{
-//! \brief 验证路径表示的目录是否存在。
+//! \brief 判断路径表示绝对路径。
 //@{
 inline PDefH(bool, IsAbsolute, const string& path)
 	ImplRet(IsAbsolute(path.c_str()))
@@ -314,7 +290,7 @@ inline PDefH(bool, IsAbsolute, const Path& pth)
 	ImplRet(!pth.empty() && IsAbsolute(pth.GetString()))
 //@}
 
-//! \brief 验证路径表示的目录是否存在。
+//! \brief 判断路径表示相对路径（包括空路径）。
 //@{
 inline PDefH(bool, IsRelative, const char* path)
 	ImplRet(!IsAbsolute(path))
@@ -337,6 +313,28 @@ inline PDefH(bool, VerifyDirectory, const String& path)
 	ImplRet(VerifyDirectory(path.GetMBCS(CS_Path)))
 inline PDefH(bool, VerifyDirectory, const Path& pth)
 	ImplRet(!pth.empty() && VerifyDirectory(pth.GetString()))
+//@}
+
+
+/*!
+\brief 验证路径表示的目录是否存在，若不存在则逐级创建。
+\post 断言：使用 VerifyDirectory 验证目录存在。
+\throw std::system_error 失败时根据 <tt>errno</tt> 抛出的异常。
+\note 使用 umkdir 实现。
+\since build 476
+*/
+//@{
+YF_API void
+EnsureDirectory(const Path&) ythrow(std::system_error);
+inline PDefH(void, EnsureDirectory, const char* path)
+	ythrow(std::system_error)
+	ImplExpr(EnsureDirectory(Path(path)))
+inline PDefH(void, EnsureDirectory, const string& path)
+	ythrow(std::system_error)
+	ImplExpr(EnsureDirectory(path.c_str()))
+inline PDefH(void, EnsureDirectory, const String& path)
+	ythrow(std::system_error)
+	ImplExpr(EnsureDirectory(path.GetMBCS(CS_Path)))
 //@}
 
 
