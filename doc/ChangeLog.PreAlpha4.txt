@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6107
+\version r6144
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-16 20:27 +0800
+	2014-02-18 23:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,41 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "alias template %tuple_element_t" @ %Tuple,
+			// See https://github.com/cplusplus/draft/issues/247 .
+		+ "class %boxed_value; metafunction %classify_value_t" @ %'Utilities';
+		+ "%Mixin"
+			$= (+ "class %mixin; metafunction %wrap_mixin_t" @ %'Utilities'),
+		/ "returned '_tString&&'" ~ '_tString'
+			@ "function templates %(ltrim, rtrim, trim)" @ %String
+			// Direct binding of reference used instead of 1 possible \
+				redundant move. The interface is also clearer to recall users \
+				'_tString' is a reference even if 1st argument is of lvalue \
+				reference type.
+	),
+	(
+	$dep_from "%ystdex::tuple_element_t";
+	/ DLD "simplified all use 'typename std::tuple_element'"
+		^ "%tuple_element_t" ~ "%std::tuple_element"
+	),
+	+ "macro %ImplThrow" @ %YFramework.YBaseMacro,
+	(
+	$dep_from %YBase.YStandardEx.Mixin;
+	/ "simplified implementation" @ %Tools.SHBuild.Main
+		^ "%ystdex::mixin, nested exceptions"
+	),
+	(
+	+ $dev $lib $doc "descriptions of code formatting algorithm in natural \
+		language";
+	/ DLD "specified by rules of code formatting algorithm specific to '(' at \
+		EOL"
+	)
+),
+
+b476
 (
 	/ %YFramework $=
 	(
@@ -312,9 +347,9 @@ b474
 				macro %YCL_MAX_FILENAME_LENGTH"
 			)
 		),
-		* $dev $build "generated object from source files with same name in \
-			different conflicted" @ "all Visual C++ projects with platform \
-			configuration 'Win32'" $since b473
+		* $dev $build "warning MSB8027 caused by generated object from source \
+			files with same name in different directories" @ "all Visual C++ \
+			projects with platform configuration 'Win32'" $since b473
 			$= (/ "object file name" @ "output files" @ "C/C++ options"
 				-> '$(IntDir)/%(RelativeDir)/' ~ '$(IntDir)'),
 		/ "return type" @ "function templates %(ltrim, rtrim, trim)"

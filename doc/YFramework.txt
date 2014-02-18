@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r694
+\version r696
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-02-05 15:39 +0800
+	2014-02-18 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -585,11 +585,11 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 接口类型的实现应在基类列表中连续结尾，和其它基类之间半紧缩分行([Documentation::CommonRules @@6.4.3.3]) 。
 
 @4.2.2 成员声明顺序规则：
-一般规则参见 [Documentation::CommonRules @@6.8.6] 。
+一般规则参见 [Documentation::CommonRules @@6.9.6] 。
 访问器[Documentation::CommonRules @@3.11.3] （以谓词([Documentation::CommonRules @@3.11.2]) 、其它获取器([Documentation::CommonRules @@3.11.4]) 、设置器([Documentation::CommonRules @@3.11.4]) 排列）在转换操作符后和其它函数或函数模板前声明。
 
 @4.3 附加规则：
-对于 YDefinition([Documentation::YBase @@2.3]) 中的每个表达式宏([Documentation::CommonRules @@6.9]) M ，使用特定的以下规则：
+对于 YDefinition([Documentation::YBase @@2.3]) 中的每个表达式宏([Documentation::CommonRules @@6.10]) M ，使用特定的以下规则：
 删除 M( 和对应的 ) 、删除原紧接 ) 之后的 ; 之前的空白符并去除多余的空行后应保证余下的代码遵循其它规则。
 这避免表达式宏参数内的多行代码使用过多的缩进而影响可读性，且可能减少重构需要修改的代码。
 

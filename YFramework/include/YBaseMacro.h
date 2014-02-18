@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2555
+\version r2560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2014-02-08 22:31 +0800
+	2014-02-17 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,6 +97,11 @@ _t type
 #define ImplRet(...) \
 	{ \
 		return __VA_ARGS__; \
+	}
+//! \since build 477
+#define ImplThrow(...) \
+	{ \
+		throw __VA_ARGS__; \
 	}
 // NOTE: GCC complains about 'void(yunseq(__VA_ARGS__))'.
 #define ImplUnseq(...) \

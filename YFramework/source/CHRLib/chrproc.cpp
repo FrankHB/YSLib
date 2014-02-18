@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1218
+\version r1219
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-02-16 17:28 +0800
+	2014-02-18 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,7 +166,7 @@ strdup(const ucs2_t* s, Encoding enc)
 	yconstraint(s);
 
 	const auto str(make_unique<char[]>(
-		(ntctslen(s) * sizeof(ucsint_t) / sizeof(ucs2_t)) + 1));
+		ntctslen(s) * sizeof(ucsint_t) / sizeof(ucs2_t) + 1));
 
 	UCS2ToMBCS(&str[0], s, enc);
 	return &str[0];

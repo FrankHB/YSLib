@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r748
+\version r750
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-02-16 17:48 +0800
+	2014-02-18 00:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,9 +238,8 @@ ImageMemory::ImageMemory(Buffer buf, ImageFormat fmt)
 		if(buf.empty())
 			throw LoggedEvent("Null buffer found.");
 		return std::move(buf);
-	}()), handle(::FreeImage_OpenMemory(
-	static_cast<byte*>(buffer.data()), static_cast< ::DWORD>(buffer.size()))),
-	format(fmt)
+	}()), handle(::FreeImage_OpenMemory(static_cast<byte*>(buffer.data()),
+	static_cast< ::DWORD>(buffer.size()))), format(fmt)
 {
 	if(!handle)
 		throw LoggedEvent("Opening image memory failed.");

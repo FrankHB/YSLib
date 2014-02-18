@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r174
+\version r185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-02-10 13:51 +0800
+	2014-02-16 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,6 +171,17 @@ Both slashes and backslashes can be supported as file system delimiter by Window
 		Not all API support it.
 		Currently, YCLib do not explicitly use it.
 	See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx .
+There are some issues against aggresive optimization of moving an object in several contexts.
+	For initialization of exception objects, the copy elision would not be performed.
+		See N3690 comment CA 23 and CWG 1493.
+		See also http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3771.pdf .
+	Currently moving from returned object is tied closely to the criteria for copy elision.
+		See N3690 comment US 13 and CWG 1579.
+		Explicit use of 'std::move' can be a workaround.
+		This issue was accepted.
+	See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3852.html for N3690 comments list.
+	There was no consensus for the suggested change for other contexts. See N3690 comment US 12 .
+	Therefore, explicitly use of 'std::move' and 'std::move_if_noexcept' only should occured when necessary.
 
 ////
 

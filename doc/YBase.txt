@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r167
+\version r169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2013-11-09 16:48 +0800
+	2014-02-18 01:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,7 @@
 模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
 若其它文件不依赖此文件，则也不依赖其它 YBase 文件。
 文件內容为系统环境和公用类型和宏的基础定义，包括对实现环境的检测、实现特性的封装、部分未被实现关键字替代以及一些语言层次上的公共基础设施。
-以下名称以 y 起始的宏是表达式宏([Documentation::CommonRules @@6.9]) 。
+以下名称以 y 起始的宏是表达式宏([Documentation::CommonRules @@6.10]) 。
 
 @2.3.1 宏 yunused ：
 用于标记未使用的表达式。

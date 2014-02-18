@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3068
+\version r3071
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2013-12-23 23:02 +0800
+	2014-02-18 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -402,8 +402,8 @@ struct RectTransformer
 	operator()(_tOut dst, SDst dw, SDst dh, SPos x, SPos y,
 		SDst w, SDst h, _fTransformPixel tp, _fTransformLine tl)
 	{
-		operator()<_tOut, _fTransformPixel, _fTransformLine>(
-			dst, {dw, dh}, {x, y}, {w, h}, tp, tl);
+		operator()<_tOut, _fTransformPixel, _fTransformLine>(dst, {dw, dh},
+			{x, y}, {w, h}, tp, tl);
 	}
 	//@}
 };

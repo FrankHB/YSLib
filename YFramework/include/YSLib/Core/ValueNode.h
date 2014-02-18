@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1349
+\version r1351
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-01-28 05:23 +0800
+	2014-02-18 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -390,8 +390,8 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 PackNodes(_tString&& name, _tParams&&... args)
 {
-	return {0, yforward(name), CollectNodes(UnpackToNode(
-		yforward(args))...), PointerTag()};
+	return {0, yforward(name), CollectNodes(UnpackToNode(yforward(args))...),
+		PointerTag()};
 }
 
 

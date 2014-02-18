@@ -101,6 +101,7 @@
 		<Unit filename="../include/ystdex/functional.hpp" />
 		<Unit filename="../include/ystdex/iterator.hpp" />
 		<Unit filename="../include/ystdex/memory.hpp" />
+		<Unit filename="../include/ystdex/mixin.hpp" />
 		<Unit filename="../include/ystdex/operators.hpp" />
 		<Unit filename="../include/ystdex/path.hpp" />
 		<Unit filename="../include/ystdex/rational.hpp" />

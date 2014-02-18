@@ -26,6 +26,7 @@
     <ClInclude Include="include\ystdex\functional.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
     <ClInclude Include="include\ystdex\memory.hpp" />
+    <ClInclude Include="include\ystdex\mixin.hpp" />
     <ClInclude Include="include\ystdex\operators.hpp" />
     <ClInclude Include="include\ystdex\path.hpp" />
     <ClInclude Include="include\ystdex\rational.hpp" />

@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r485
+\version r505
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-02-10 13:24 +0800
+	2014-02-10 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,42 +203,36 @@ concat(_tString& str, size_t n)
 
 /*!
 \ingroup string_algorithms
-\brief 删除字符串中指定的连续前缀字符。
 \since build 474
 */
+//@{
+//! \brief 删除字符串中指定的连续前缀字符。
 template<class _tString>
-inline _tString
+inline _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
-	return str.erase(0, str.find_first_not_of(t));
+	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
 }
 
-/*!
-\ingroup string_algorithms
-\brief 删除字符串中指定的连续后缀字符。
-\since build 474
-*/
+//! \brief 删除字符串中指定的连续后缀字符。
 template<class _tString>
-inline _tString
+inline _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
-	return str.erase(str.find_last_not_of(t) + 1);
+	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
 }
 
-/*!
-\ingroup string_algorithms
-\brief 删除字符串中指定的连续前缀与后缀字符。
-\since build 474
-*/
+//! \brief 删除字符串中指定的连续前缀与后缀字符。
 template<class _tString>
-inline _tString
+inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 	= &to_array<typename string_traits<_tString>::value_type>("\n\r\t\v ")[0])
 {
-	return ystdex::ltrim(ystdex::rtrim(str, t));
+	return static_cast<_tString&&>(ystdex::ltrim(ystdex::rtrim(str, t)));
 }
+//@}
 
 /*!
 \ingroup string_algorithms

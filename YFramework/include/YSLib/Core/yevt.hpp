@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4543
+\version r4544
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-02-16 00:02 +0800
+	2014-02-16 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -649,7 +649,7 @@ template<typename... _tParams>
 struct EventArgsHead
 {
 	using type = ystdex::conditional_t<sizeof...(_tParams) == 0, void,
-		typename std::tuple_element<0, tuple<_tParams...>>::type>;
+		ystdex::tuple_element_t<0, tuple<_tParams...>>>;
 };
 
 template<typename... _tParams>

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r133
+\version r142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2013-10-07 00:18 +0800
+	2014-02-17 00:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,14 @@
 
 namespace ystdex
 {
+
+/*!
+\ingroup metafunctions
+\since build 477
+*/
+template<size_t _vIdx, typename _type>
+using tuple_element_t = typename std::tuple_element<_vIdx, _type>::type;
+
 
 //! \since build 447
 //@{
@@ -103,8 +111,8 @@ struct sequence_element<_vIdx, std::tuple<_types...>>
 template<typename... _types, size_t... _vIdxSeq>
 struct sequence_project<std::tuple<_types...>, variadic_sequence<_vIdxSeq...>>
 {
-	using type = std::tuple<
-		typename std::tuple_element<_vIdxSeq, std::tuple<_types...>>::type...>;
+	using type
+		= std::tuple<tuple_element_t<_vIdxSeq, std::tuple<_types...>>...>;
 };
 
 

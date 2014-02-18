@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r124
+\version r126
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-02-03 05:49 +0800
+	2014-02-18 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,8 +107,8 @@ InitExStyles()
 	HandlerTable ht;
 	AddHandlers<Thumb>(ht, {{Thumb::ThumbBackground,
 		[](PaintEventArgs&& e){
-			const auto& tmb(
-				ystdex::polymorphic_downcast<Thumb&>(e.GetSender()));
+			const auto&
+				tmb(ystdex::polymorphic_downcast<Thumb&>(e.GetSender()));
 
 			RectDrawButton_Aoi(e, GetSizeOf(tmb), tmb.GetHue(),
 				tmb.GetCursorState(), IsEnabled(tmb), IsFocused(tmb));

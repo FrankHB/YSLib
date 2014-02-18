@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1692
+\version r1723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-02-16 00:03 +0800
+	2014-02-17 00:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,6 +207,44 @@ arrlen(_type(&&)[_vN])
 	return _vN;
 }
 //@}
+
+
+/*!
+\brief 包装类类型的值的对象。
+\warning 非虚析构。
+\since build 477
+*/
+template<typename _type>
+struct boxed_value
+{
+	_type value;
+
+	template<typename... _tParams>
+	yconstfn
+	boxed_value(_tParams&&... args)
+		: value(yforward(args)...)
+	{}
+
+	operator _type&() ynothrow
+	{
+		return value;
+	}
+
+	operator const _type&() const ynothrow
+	{
+		return value;
+	}
+};
+
+
+/*!
+\ingroup metafunctions
+\brief 包装非类类型为类类型。
+\since build 477
+*/
+template<typename _type>
+using classify_value_t = conditional_t<std::is_class<_type>::value, _type,
+	boxed_value<_type>>;
 
 
 /*!

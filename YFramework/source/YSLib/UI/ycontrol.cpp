@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3889
+\version r3891
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2014-01-11 12:54 +0800
+	2014-02-18 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,8 +47,8 @@ FetchEnabledBoundControlPtr(KeyEventArgs&& e)
 {
 	try
 	{
-		auto p_ctl(dynamic_cast<Control&>(e.GetSender()).BoundControlPtr(
-			e.GetKeys()));
+		auto p_ctl(
+			dynamic_cast<Control&>(e.GetSender()).BoundControlPtr(e.GetKeys()));
 
 		return p_ctl && IsEnabled(*p_ctl) ? p_ctl : nullptr;
 	}

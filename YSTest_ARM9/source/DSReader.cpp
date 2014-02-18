@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3162
+\version r3165
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2013-12-23 21:42 +0800
+	2014-02-18 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,8 +156,8 @@ CopyScrollArea(YSLib::UI::BufferedTextArea& src_area,
 	yunseq(src_offset *= w, dst_offset *= w, n *= w);
 	dst_area.Scroll(offset);
 	yunseq(std::copy_n(src_area.GetBufferPtr() + src_offset, n,
-		dst_area.GetBufferPtr() + dst_offset), std::copy_n(
-		src_area.GetBufferAlphaPtr() + src_offset, n,
+		dst_area.GetBufferPtr() + dst_offset),
+		std::copy_n(src_area.GetBufferAlphaPtr() + src_offset, n,
 		dst_area.GetBufferAlphaPtr() + dst_offset));
 	src_area.Scroll(offset);
 }
