@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3162
+\version r3163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2014-01-28 05:32 +0800
+	2014-02-22 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 	vsbVertical.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
 		tlContent.LocateViewPosition(SDst(round(e.GetValue())));
 	},
-	tlContent.GetViewChanged() += [this](ViewArgs&& e){
+	tlContent.ViewChanged += [this](ViewArgs&& e){
 		if(!e.Value && GetWidth() > defMinScrollBarWidth)
 		{
 			const Size view_arena(GetWidth() - defMinScrollBarWidth,

@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r341
+\version r456
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2014-01-20 19:39 +0800
+	2014-02-23 08:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,11 +38,104 @@ namespace YSLib
 namespace UI
 {
 
+//! \since build 478
+//@{
+/*!
+\ingroup UIModels
+\brief 选择器模型模板。
+\tparam _type 状态类型。
+\warning 非虚析构。
+*/
+template<typename _type>
+class GMSelector
+{
+public:
+	//! \brief 状态类型。
+	using StateType = _type;
+	//! \brief 选中状态参数类型。
+	using SelectedArgs = GValueEventArgs<StateType>;
+	//! \brief 选中事件委托模板。
+	DeclDelegate(HSelectedEvent, SelectedArgs)
+
+	//! \brief 状态。
+	StateType State;
+
+	GMSelector()
+		: State()
+	{}
+	GMSelector(StateType st)
+		: State(st)
+	{}
+
+	/*
+	\brief 更新状态。
+	\return 是否和旧状态相同。
+	*/
+	bool
+	UpdateState(StateType st)
+	{
+		const StateType old(State);
+
+		State = st;
+		return st != old;
+	}
+};
+
+
+/*!
+\brief 选择框模块。
+\warning 非虚析构。
+
+用于提供公共类型而非具体控件功能的模块。
+*/
+class YF_API MSelectorBox
+{
+public:
+	//! \brief 选择框选中状态类型。
+	using StateType = enum SelectedState : yimpl(size_t)
+	{
+		Unchecked = 0,
+		Checked = 1,
+		Partial = 2
+	};
+	using MSelector = GMSelector<StateType>;
+	/*!
+	\brief 选择框选中状态参数类型。
+	\note StateType 参数表示选中后的状态。
+	*/
+	using TickedArgs = MSelector::SelectedArgs;
+	//! \brief 选择框选中事件委托类型。
+	using HTickedEvent = MSelector::HSelectedEvent;
+};
+
+
+/*!
+\brief 复选框模块。
+\warning 非虚析构。
+*/
+class YF_API MCheckBox : protected MSelectorBox
+{
+protected:
+	MSelector mSelector;
+
+public:
+	//! \brief 复选框选中事件。
+	DeclEvent(HTickedEvent, Ticked)
+
+	MCheckBox(StateType st = Unchecked)
+		: mSelector(st)
+	{}
+
+	DefGetter(const ynothrow, StateType, State, mSelector.State)
+};
+//@}
+
+
 /*!
 \brief 复选框。
 \since build 205
 */
-class YF_API CheckBox : public Thumb
+class YF_API CheckBox : public Thumb, protected MCheckBox
 {
 public:
 	/*!
@@ -54,27 +147,20 @@ public:
 		CheckBoxBackground = Thumb::EndStyle,
 		EndStyle
 	};
-	/*!
-	\brief 复选框选中状态参数类型。
-	\note bool 参数表示选中后的状态。
-	\since build 292
-	*/
-	using TickedArgs = GValueEventArgs<bool>;
-	/*!
-	\brief 复选框选中事件委托类型。
-	\since build 292
-	*/
-	DeclDelegate(HTickedEvent, TickedArgs)
+	//! \since build 479
+	//@{
+	using MCheckBox::StateType;
+	using MCheckBox::Checked;
+	using MCheckBox::Unchecked;
+	using MCheckBox::Partial;
+	//@}
+	//! \since build 292
+	using MCheckBox::TickedArgs;
+	//! \since build 292
+	using MCheckBox::HTickedEvent;
 
-protected:
-	bool bTicked; //选中状态。
-
-private:
-	/*!
-	\brief 复选框选中事件。
-	\since build 292
-	*/
-	DeclEvent(HTickedEvent, Ticked)
+	//! \since build 478
+	using MCheckBox::Ticked;
 
 public:
 	/*!
@@ -85,29 +171,17 @@ public:
 	CheckBox(const Rect& = {});
 	DefDeMoveCtor(CheckBox)
 
-	DefPred(const ynothrow, Ticked, bTicked)
-
-	/*!
-	\brief 复选框选中事件。
-	\since build 292
-	*/
-	DefEventGetter(ynothrow, HTickedEvent, Ticked, Ticked)
+	DefPred(const ynothrow, Ticked, GetState() == Checked)
+	//! \since build 478
+	using MCheckBox::GetState;
 
 	/*!
 	\brief 设置选中状态并检查复选框选中事件。
 	\note 若选中状态发生改变则引起复选框选中事件。
-	\since build 292
+	\since build 488
 	*/
 	void
-	SetTicked(bool);
-
-	/*!
-	\brief 设置选中状态并触发复选框选中事件。
-	\note 不检查状态改变。
-	\since build 307
-	*/
-	void
-	Tick(bool);
+	SetTicked(StateType);
 
 protected:
 	/*!
@@ -124,6 +198,14 @@ public:
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
+
+	/*!
+	\brief 设置选中状态并触发复选框选中事件。
+	\note 不检查状态改变。
+	\since build 488
+	*/
+	void
+	Tick(StateType);
 };
 
 

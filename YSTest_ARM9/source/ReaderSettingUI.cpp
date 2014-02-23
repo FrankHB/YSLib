@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r409
+\version r413
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2013-09-07 02:39 +0800
+	2014-02-22 12:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,7 +164,7 @@ SettingPanel::SettingPanel()
 			lblAreaDown.Text = FetchEncodingString(e.Value)),
 		Invalidate(lblAreaDown);
 	},
-	cbSmoothScroll.GetTicked() += [&, this](CheckBox::TickedArgs&& e){
+	cbSmoothScroll.Ticked += [&, this](CheckBox::TickedArgs&& e){
 		using ystdex::get_init;
 
 		static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
@@ -225,7 +225,8 @@ SettingPanel::operator<<(const ReaderSetting& s)
 	scroll_duration = s.ScrollDuration,
 	smooth_scroll_duration = s.SmoothScrollDuration
 	),
-	cbSmoothScroll.Tick(s.SmoothScroll);
+	cbSmoothScroll.Tick(s.SmoothScroll ? CheckBox::Checked
+		: CheckBox::Unchecked);
 	UpdateInfo();
 	return *this;
 }

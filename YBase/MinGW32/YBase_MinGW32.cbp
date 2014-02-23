@@ -8,9 +8,9 @@
 		<Option extended_obj_names="1" />
 		<Build>
 			<Target title="debug">
-				<Option output="debug/YBased" prefix_auto="1" extension_auto="1" />
+				<Option output="../../build/MinGW32/YBase/debug/YBased" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="debug/static/" />
+				<Option object_output="../../build/MinGW32/YBase/debug/static/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
@@ -19,9 +19,9 @@
 				</Compiler>
 			</Target>
 			<Target title="release">
-				<Option output="release/YBase" prefix_auto="1" extension_auto="1" />
+				<Option output="../../build/MinGW32/YBase/release/YBase" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="release/static/" />
+				<Option object_output="../../build/MinGW32/YBase/release/static/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
@@ -36,8 +36,8 @@
 				</Linker>
 			</Target>
 			<Target title="debug_DLL">
-				<Option output="debug/YBased" prefix_auto="1" extension_auto="1" />
-				<Option object_output="debug/dynamic/" />
+				<Option output="../../build/MinGW32/YBase/debug/YBased" prefix_auto="1" extension_auto="1" />
+				<Option object_output="../../build/MinGW32/YBase/debug/dynamic/" />
 				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
@@ -47,8 +47,8 @@
 				</Compiler>
 			</Target>
 			<Target title="release_DLL">
-				<Option output="release/YBase" prefix_auto="1" extension_auto="1" />
-				<Option object_output="release/dynamic/" />
+				<Option output="../../build/MinGW32/YBase/release/YBase" prefix_auto="1" extension_auto="1" />
+				<Option object_output="../../build/MinGW32/YBase/release/dynamic/" />
 				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />

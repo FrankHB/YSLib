@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r683
+\version r693
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-01-11 11:32 +0800
+	2014-02-22 14:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,26 +82,30 @@ public:
 private:
 	ViewerType viewer; //!< 列表视图。
 	SDst top_offset; //!< 列表视图首项目超出上边界的竖直偏移量。
+
+public:
 	/*!
 	\brief 视图变更事件。
+	\since build 478
 
 	当视图长度或位置发生改变时触发的事件。
 	*/
 	DeclEvent(HViewEvent, ViewChanged)
 	/*!
 	\brief 项目选择状态变更事件。
+	\since build 478
 
 	当项目被选中或取消选中时触发的事件。
 	*/
 	DeclEvent(HIndexEvent, Selected)
 	/*!
 	\brief 项目选中确认事件。
+	\since build 478
 
 	当前选中项目被确定时触发的事件。
 	*/
 	DeclEvent(HIndexEvent, Confirmed)
 
-public:
 	/*!
 	\brief 构造：使用指定边界、文本列表和高亮背景色/文本色对。
 	\since build 337
@@ -115,13 +119,6 @@ public:
 	DefPredMem(const ynothrow, Selected, viewer)
 	PDefH(bool, Contains, ListType::size_type i)
 		ImplBodyMem(viewer, Contains, i)
-
-	DefEventGetter(ynothrow, HViewEvent, ViewChanged, ViewChanged) \
-		//!< 视图变更事件。
-	DefEventGetter(ynothrow, HIndexEvent, Selected, Selected) \
-		//!< 项目选择状态变更事件。
-	DefEventGetter(ynothrow, HIndexEvent, Confirmed, Confirmed) \
-		//!< 项目选中确定事件。
 
 	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, viewer)
 	using MTextList::GetItemHeight;

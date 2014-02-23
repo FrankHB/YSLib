@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5632
+\version r5636
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-02-04 00:45 +0800
+	2014-02-22 09:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,11 @@ namespace YSLib
 
 namespace UI
 {
+
+/*!	\defgroup UIModels User Interface Models
+\ingroup UI
+\brief 用户界面模型。
+*/
 
 /*!
 \brief 通用部件迭代器。

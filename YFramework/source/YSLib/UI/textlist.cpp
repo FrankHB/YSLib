@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1195
+\version r1199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2013-12-23 23:44 +0800
+	2014-02-22 14:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,14 +403,14 @@ TextList::SelectLast()
 void
 TextList::CallSelected()
 {
-	GetSelected()(IndexEventArgs(*this, viewer.GetSelectedIndex()));
+	Selected(IndexEventArgs(*this, viewer.GetSelectedIndex()));
 }
 
 void
 TextList::InvokeConfirmed(ListType::size_type idx)
 {
 	if(CheckConfirmed(idx))
-		GetConfirmed()(IndexEventArgs(*this, idx));
+		Confirmed(IndexEventArgs(*this, idx));
 }
 
 
@@ -425,7 +425,7 @@ ResizeForContent(TextList& tl)
 void
 UpdateView(TextList& tl, bool is_active)
 {
-	tl.GetViewChanged()(TextList::ViewArgs(tl, is_active));
+	tl.ViewChanged(TextList::ViewArgs(tl, is_active));
 	tl.AdjustViewLength();
 	Invalidate(tl);
 }

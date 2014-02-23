@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r185
+\version r186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-02-16 23:29 +0800
+	2014-02-23 01:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,6 +182,8 @@ There are some issues against aggresive optimization of moving an object in seve
 	See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3852.html for N3690 comments list.
 	There was no consensus for the suggested change for other contexts. See N3690 comment US 12 .
 	Therefore, explicitly use of 'std::move' and 'std::move_if_noexcept' only should occured when necessary.
+'YSTest402r16.nds' cases DeSmuME 0.9.9 x64 crash for unknown reasons.
+
 
 ////
 

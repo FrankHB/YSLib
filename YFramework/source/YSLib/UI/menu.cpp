@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1154
+\version r1156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2013-12-23 23:49 +0800
+	2014-02-22 14:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 				pHost->HideAll();
 		}
 	},
-	GetConfirmed() += [this](IndexEventArgs&& e){
+	Confirmed += [this](IndexEventArgs&& e){
 		if(Contains(e) && pHost && !ShowSub(e.Value))
 			pHost->HideAll();
 	}

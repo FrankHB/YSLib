@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6144
+\version r6188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-18 23:53 +0800
+	2014-02-23 08:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,54 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	$dev $build "default build location" $=
+	(
+		+ "build library '/build/'";
+		/ "Code::Blocks projects",
+		/ "Visual C++ projects",
+		/ "DS makefiles" $=
+		(
+			* "unsupported relative paths" @ "macro %bin2o" $since $before b132,
+			+ "macros %(PROJNAME; BUILDPATH; RELEASEPATH)",
+			- "macro %(TARGETP, GBUILD)",
+			/ "macro %BUILD" => "%CONF",
+			/ "unified default value" @ "platform macro %PLATFORM as 'DS'"
+		)
+	),
+	/ $repo "ignored items" @ '.hgignore' $=
+	(
+		+ 'build/',
+		- 'YSTest_MinGW32/config.txt',
+		- 'YSTest_MinGW32/yconf.txt'
+	),
+	/ $dev $doc "completed outline of %YSLib::UI documentation"
+		@ %Documentation.YSLib,
+	/ %YFramework.YSLib.UI $=
+	(
+		/ %Selector $=
+		(
+			+ "class template %GMSelector",
+			+ "class %MSelectorBox";
+			+ "class %MCheckBox";
+			/ @ "class %CheckBox" $=
+			(
+				+ "inheritance protected %MCheckBox",
+				/ "tick event and handler types" -> "using declarations",
+				+ "using %MCheckBox::(StateType, Unchecked, Checked, Partial, \
+					GetState, Ticked)",
+				/ "parameter type" @ "member function %(SetTicked, Tick)"
+					-> 'StateType' ~ 'bool',
+				- "member function %GetTicked"
+			)
+		),
+		/ "merged member functions %(GetViewChanged, GetSelected, GetConfirmed)"
+			-> "events %(ViewChanged, Selected, Confirmed) respectively"
+			@ "class %TextList" @ %TextList
+	)
+),
+
+b477
 (
 	/ %YBase.YStandardEx $=
 	(

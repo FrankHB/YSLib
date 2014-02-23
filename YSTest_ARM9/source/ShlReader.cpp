@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4549
+\version r4550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-01-28 05:31 +0800
+	2014-02-22 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -453,7 +453,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 			Menu::ListType{"返回", "设置...", "文件信息...", "书签...",
 			"向上一行", "向下一行", "向上一屏", "向下一屏"}), 1u)));
 
-		mnu.GetConfirmed() += [this](IndexEventArgs&& e){
+		mnu.Confirmed += [this](IndexEventArgs&& e){
 			Execute(e.Value);
 		};
 		mhMain += mnu;

@@ -41,6 +41,5 @@ UpgradeLog.XML
 *.idc
 *.cccc/
 *.cscope_file_list
+build/
 */.shbuild*
-YSTest_MinGW32/config.txt
-YSTest_MinGW32/yconf.txt

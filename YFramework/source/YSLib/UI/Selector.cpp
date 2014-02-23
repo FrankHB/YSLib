@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r759
+\version r772
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-01-21 00:42 +0800
+	2014-02-22 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,6 @@ Diminish(Rect& r, SDst off1 = 1, SDst off2 = 2)
 
 //! \since build 465
 //@{
-
 void
 RectDrawCheckBox(const PaintContext& pc, const Size& s,
 	CursorState cursor_state, bool is_locked = {}, bool is_ticked = {},
@@ -131,8 +130,7 @@ RectDrawCheckBox(const PaintContext& pc, const Size& s,
 
 
 CheckBox::CheckBox(const Rect& r)
-	: Thumb(r, NoBackgroundTag()),
-	bTicked(false)
+	: Thumb(r, NoBackgroundTag()), MCheckBox()
 {
 	using namespace Styles;
 	static struct Init
@@ -151,32 +149,28 @@ CheckBox::CheckBox(const Rect& r)
 	} init;
 
 	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
-		bTicked = !bTicked;
-		Ticked(TickedArgs(*this, bTicked));
+		Tick(mSelector.State == Checked ? Unchecked : Checked);
 	};
 }
 
 void
-CheckBox::SetTicked(bool b)
+CheckBox::SetTicked(StateType st)
 {
-	const bool old_tick(bTicked);
-
-	bTicked = b;
-	if(bTicked != old_tick)
-		Ticked(TickedArgs(*this, b));
+	if(mSelector.UpdateState(st))
+		Ticked(TickedArgs(*this, st));
 }
 
 void
-CheckBox::Tick(bool b)
+CheckBox::Tick(StateType st)
 {
-	Ticked(TickedArgs(*this, bTicked = b));
+	Ticked(TickedArgs(*this, mSelector.State = st));
 }
 
 void
 CheckBox::PaintBox(const PaintContext& pc, const Size& s)
 {
-	RectDrawCheckBox(pc, s, GetCursorState(), IsFocusedByShell(*this), bTicked,
-		IsFocused(*this), IsEnabled(*this));
+	RectDrawCheckBox(pc, s, GetCursorState(), IsFocusedByShell(*this),
+		IsTicked(), IsFocused(*this), IsEnabled(*this));
 }
 
 void

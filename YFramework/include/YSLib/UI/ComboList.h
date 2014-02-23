@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2590
+\version r2593
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2014-02-05 16:08 +0800
+	2014-02-22 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,11 +85,11 @@ public:
 	DefGetterMem(const ynothrow, const ListType&, List, tlContent)
 	//! \since build 392
 	DefGetterMem(ynothrow, ListType&, ListRef, tlContent)
-	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, tlContent) \
+	DefEventGetter(ynothrow, HViewEvent, ViewChanged, tlContent.ViewChanged) \
 		//!< 视图变更事件。
-	DefEventGetterMem(ynothrow, HIndexEvent, Selected, tlContent) \
+	DefEventGetter(ynothrow, HIndexEvent, Selected, tlContent.Selected) \
 		//!< 项目选择状态变更事件。
-	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, tlContent) \
+	DefEventGetter(ynothrow, HIndexEvent, Confirmed, tlContent.Confirmed) \
 		//!< 项目选中确定事件。
 
 	/*!

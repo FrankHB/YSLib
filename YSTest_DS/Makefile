@@ -1,36 +1,51 @@
+#
+#	(C) 2009-2014 FrankHB.
+#
+#	This file is part of the YSLib project, and may only be used,
+#	modified, and distributed under the terms of the YSLib project
+#	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+#	this file you indicate that you have read the license and
+#	understand and accept it fully.
+#
 # DS Makefile for YSTest by FrankHB 2009 - 2013
-# CodePage = ANSI / GBK
-# CTime = 2009-11-12 21:26:30 +0800
-# UTime = 2013-02-19 05:41 +0800
-# Version = r1079
+# Version = r1121
+# Created = 2009-11-12 21:26:30 +0800
+# Updated = 2014-02-21 06:27 +0800
+# Encoding = ANSI
 
 # This makefile is written based on devkitPro example template.
 
 #----
 .SUFFIXES:
 #----
-export PLATFORM		?= devkitARM
-
-ifeq ($(PLATFORM),devkitARM)
-
+export PLATFORM		?= DS
+ifeq ($(PLATFORM),DS)
 	ifeq ($(strip $(DEVKITARM)),)
 		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 	endif
-
 	include $(DEVKITARM)/ds_rules
-
 endif
 
-export TOPDIR		?=	$(CURDIR)/..
-
+#----
+# PROJNAME is the name of the project
+# CONF is the configuration name
+# RELEASE is the directory name for object files and intermediate files will be placed
+# TOPDIR is the top directory path of the project
+# BUILDDIR is the path for intermediate files
+# RELEASEDIR is the path for target files
+# TARGET is the name of the file to output
+# OUTPUT is the path of output without extension
 #----
 
-export TARGET		:=	YSTest
+export PROJNAME		?=	YSTest
+export CONF			?=	release
+export RELEASE		=	$(CONF)
+export TOPDIR		?=	$(CURDIR)/..
+export BUILDDIR		?=	$(TOPDIR)/build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
+export RELEASEDIR	?=	$(BUILDDIR)
+export TARGET		:=	$(PROJNAME)
 #export TARGET		:=	$(shell basename $(CURDIR))
-export BUILD		?=	release
-export RELEASE		=	$(BUILD)
-export GBUILD		=	$(CURDIR)/$(BUILD)/$(TARGET)
-export OUTPUT		=	$(CURDIR)/$(RELEASE)/$(TARGET)
+export OUTPUT		=	$(BUILDDIR)/$(TARGET)
 
 #----
 # Be sure to change these default banner TEXTs. This is the name your project will
@@ -38,9 +53,9 @@ export OUTPUT		=	$(CURDIR)/$(RELEASE)/$(TARGET)
 # icon for your project, too!
 #----
 
-TITLE		:= YSTest
+TITLE		:= $(PROJNAME)
 SUBTITLE1 	:= FrankHB
-SUBTITLE2 	:= 2009 - 2013
+SUBTITLE2 	:= 2009 - 2014
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
 #----
@@ -48,26 +63,26 @@ ICON		:= -b $(CURDIR)/data/logo.bmp
 #----
 #USE_EFS = YES
 
-PROGNAME = YSTest
+PROGNAME = $(PROJNAME)
 OFILES +=
 ADD_LIBS +=
 
-ARM7OBJ := $(TOPDIR)/$(TARGET)_ARM7/$(BUILD)/$(TARGET)_ARM7.arm7
-ARM9OBJ := $(TOPDIR)/$(TARGET)_ARM9/$(BUILD)/$(TARGET)_ARM9.arm9
+ARM7OBJ := $(BUILDDIR)/../../$(TARGET)_ARM7/$(CONF)/$(TARGET)_ARM7.arm7
+ARM9OBJ := $(BUILDDIR)/../../$(TARGET)_ARM9/$(CONF)/$(TARGET)_ARM9.arm9
 
-.PHONY: $(BUILD) clean rebuild
+.PHONY: $(CONF) clean rebuild
 
 #----
 # main targets
 #----
-all : $(BUILD) $(OUTPUT).nds
+all : $(CONF) $(OUTPUT).nds
 #----
 
 %.ds.gba: %.nds
 	@dsbuild $<
 	@echo Built: $(notdir $(OUTPUT)).nds .
 	@echo Built: $(notdir $@) .
-#	@cp $(CURDIR)/$(RELEASE)/$(notdir $@) $(CURDIR)/$(RELEASE)/$(notdir $(OUTPUT)).sc.nds
+#	@cp $(RELEASEDIR)/$(notdir $@) $(BUILDDIR)/$(notdir $(OUTPUT)).sc.nds
 #	@echo Built: $(notdir $(OUTPUT)).sc.nds .
 ifeq ($(strip $(USE_EFS)), YES)
 	@$(CURDIR)/../efs $(OUTPUT).nds
@@ -86,7 +101,7 @@ else
 endif
 	@echo Built $(notdir $@) .
 
-$(BUILD):
+$(CONF):
 # Before compiling, show any warning messages that might have detected
 ifneq ($(strip $(TEXT_TO_SAY_1)),)
 ifeq ($(strip $(MSG_IS_ERROR)),)
@@ -121,17 +136,16 @@ endif
 	@echo.
 endif
 ifeq ($(strip $(MSG_IS_ERROR)),)
-	@[ -d $(CURDIR)/$(RELEASE) ] || mkdir -p $(CURDIR)/$(RELEASE)
-	@[ -d $(CURDIR)/$(BUILD) ] || mkdir -p $(CURDIR)/$(BUILD)
-	@[ -d $@ ] || mkdir -p $@
-#	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
+	@[ -d $(RELEASEDIR) ] || mkdir -p $(RELEASEDIR)
+#	@make --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile
 endif
 
 clean:
 	@echo Cleaning releases ...
-	@rm -f $(BUILD)/*.d
-	@rm -f $(BUILD)/*.o
-	@rm -f $(RELEASE)/*.*ds*
+	@rm -f $(BUILDDIR)/*.d
+	@rm -f $(BUILDDIR)/*.o
+	@rm -f $(RELEASEDIR)/*.*ds*
 	@echo Cleaned.
 
 #----

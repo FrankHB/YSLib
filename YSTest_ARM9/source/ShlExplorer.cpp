@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1079
+\version r1080
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-02-09 01:27 +0800
+	2014-02-22 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -478,7 +478,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		SetInvalidationOf(dsk_m),
 		SetInvalidationOf(dsk_s);
 	},
-	cbDisableSetting.GetTicked() += [&](CheckBox::TickedArgs&& e)
+	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e)
 	{
 		SetEnabledOf(cbFPS, !e),
 		SetEnabledOf(cbHex, !e);
@@ -500,7 +500,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	auto& m2(*(ynew Menu({},
 		share_raw(new TextList::ListType{u"项目1", u"项目2"}), 2u)));
 
-	m1.GetConfirmed() += [&](IndexEventArgs&& e){
+	m1.Confirmed += [&](IndexEventArgs&& e){
 		switch(e.Value)
 		{
 		case 1U:
@@ -513,7 +513,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			YSLib::PostQuitMessage(0);
 		}
 	},
-	m2.GetConfirmed() += [&](IndexEventArgs&& e){
+	m2.Confirmed += [&](IndexEventArgs&& e){
 #if YCL_Win32
 		MinGW32::TestFramework(e.Value);
 #endif

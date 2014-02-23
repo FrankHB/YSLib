@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1297
+# Version = r1322
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-01-18 15:24 +0800
+# Updated = 2014-02-21 06:13 +0800
 # Encoding = ANSI
 
 
@@ -19,33 +19,43 @@
 #----
 .SUFFIXES:
 #----
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+export PLATFORM		?= DS
+
+ifeq ($(PLATFORM),DS)
+	ifeq ($(strip $(DEVKITARM)),)
+		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+	endif
+	include $(DEVKITARM)/ds_rules
 endif
 
-include $(DEVKITARM)/ds_rules
-
-export TOPDIR		?=	$(CURDIR)
-
 #----
+# PROJNAME is the name of the project
+# CONF is the configuration name
+# RELEASE is the directory name for object files and intermediate files will be placed
+# TOPDIR is the top directory path of the project
+# BUILDDIR is the path for intermediate files
+# RELEASEDIR is the path for target files
 # TARGET is the name of the file to output
-# BUILD is the directory where object files and intermediate files will be placed
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
 # GRAPHICS is a list of directories containing image files to be converted with grit
 #----
 
-export TARGET		:= $(shell basename $(CURDIR))
-export BUILD		?= release
-export RELEASE		= $(BUILD)
-export SOURCES		:= source data
-export INCLUDES		:= include data ../YSTest/include \
+export PROJNAME		?=	YSTest_ARM9
+export CONF			?=	release
+export RELEASE		=	$(CONF)
+export TOPDIR		?=	$(CURDIR)
+export BUILDDIR		?=	$(TOPDIR)/../build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
+export RELEASEDIR	?=	$(BUILDDIR)
+export TARGET		:=	$(shell basename $(CURDIR))
+export SOURCES		:=	source data
+export INCLUDES		:=	include data ../YSTest/include \
 	../YFramework/include ../YFramework/DS/include \
 	../3rdparty/include ../YBase/include
-export DATA			:= data
-#export GRAPHICS	:= gfx
-#export MUSIC		:= music
+export DATA			:=	data
+#export GRAPHICS	:=	gfx
+#export MUSIC		:=	music
 
 #----
 # options for code generation
@@ -69,7 +79,7 @@ CFLAGS	:=	-Wall -Wextra -Wunreachable-code \
 CFLAGS	+=	$(INCLUDE) -DARM9
 LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -Wl,--gc-sections -Wl,-Map,$(notdir $*.map)
 
-ifneq ($(BUILD),debug)
+ifneq ($(CONF),debug)
 CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
 LDFLAGS	+=	-s
 else
@@ -105,8 +115,8 @@ LIBS	:=	-lfat -lnds9
 LIBPATHEX	:= -L$(TOPDIR)/../YFramework/DS/lib
 LIBEX		:= -lFreeImage -lfreetype #-lagg -lloki
 
-YBASE_A := $(TOPDIR)/../YBase/DS/$(RELEASE)/libYBase.a
-YFRAMEWORK_A := $(TOPDIR)/../YFramework/DS/$(RELEASE)/libYFramework.a
+YBASE_A := $(BUILDDIR)/../../YBase/$(RELEASE)/libYBase.a
+YFRAMEWORK_A := $(BUILDDIR)/../../YFramework/$(RELEASE)/libYFramework.a
 
 #----
 
@@ -120,12 +130,12 @@ LIBDIRS	:=	$(LIBNDS)
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
 #----
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(CONF),$(notdir $(CURDIR)))
 #----
 
-export ARM9BIN	:=	$(CURDIR)/$(RELEASE)/$(TARGET).arm9
-export ARM9ELF	:=	$(CURDIR)/$(BUILD)/$(TARGET).arm9.elf
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+export ARM9BIN	:=	$(RELEASEDIR)/$(TARGET).arm9
+export ARM9ELF	:=	$(BUILDDIR)/$(TARGET).arm9.elf
+export DEPSDIR	:=	$(BUILDDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -178,35 +188,36 @@ export OFILES	:=	$(MAPFILES:.map=.o) $(RAWFILES:.raw=.o) $(PALFILES:.pal=.o) $(B
 
 #export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 #			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-#			-I$(CURDIR)/$(BUILD)
+#			-I$(CURDIR)/$(CONF)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include/nds) \
-					-I$(CURDIR)/$(BUILD)
+					-I$(CURDIR)/$(CONF)
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) rebuild clean
+.PHONY: $(CONF) rebuild clean
 
 #----
-$(BUILD):
+$(CONF):
 	@echo Building configuration: $(notdir $@) ...
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
+	@[ -d $(RELEASEDIR) ] || mkdir -p $(RELEASEDIR)
+	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile
 	@echo Built configuration: $(notdir $@) .
 
 #----
 clean:
 	@echo Cleaning $(TARGET) ...
-	@rm -f $(BUILD)/.map
-	@rm -f $(BUILD)/*.d
-	@rm -f $(BUILD)/*.o
+	@rm -f $(CONF)/.map
+	@rm -f $(CONF)/*.d
+	@rm -f $(CONF)/*.o
 	@rm -f $(ARM9BIN)
 	@rm -f $(ARM9ELF)
 
 rebuild: all
 
-all: $(BUILD) $(OUTPUT)
+all: $(CONF) $(OUTPUT)
 
 #----
 else
@@ -255,9 +266,9 @@ $(ARM9ELF)	:	$(OFILES)
 
 # bin2o macro like that from libnds, slightly changed for the PALib naming conventions of resources which doesn't append the file extension to the resource name
 define bin2o
-	cp $(<) $(*)
-	bin2s $(*) | $(AS) $(ARCH_AS) -o $(@)
-	rm $(*)
+	cp $(<) $(notdir $(*))
+	bin2s $(notdir $(*)) | $(AS) $(ARCH_AS) -o $(DEPSDIR)/$(@)
+	rm $(notdir $(*))
 
 	echo "extern const u8" $(*)"[];" > $(*).h
 	echo "extern const u32" $(*)_size";" >> $(*).h

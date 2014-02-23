@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r1971
+# Version = r2009
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-02-05 12:52 +0800
+# Updated = 2014-02-23 08:45 +0800
 # Encoding = ANSI
 
 
@@ -22,43 +22,45 @@
 export PLATFORM		?= DS
 
 ifeq ($(PLATFORM),DS)
-
 	ifeq ($(strip $(DEVKITARM)),)
 		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 	endif
-
 	include $(DEVKITARM)/ds_rules
-
 endif
 
-export TOPDIR		?=	$(CURDIR)
-
 #----
+# PROJNAME is the name of the project
+# CONF is the configuration name
+# RELEASE is the directory name for object files and intermediate files will be placed
+# TOPDIR is the top directory path of the project
+# BUILDDIR is the path for intermediate files
+# RELEASEDIR is the path for target files
 # TARGET is the name of the file to output
-# BUILD is the configuration name
-# RELEASE is the directory where object files and intermediate files will be placed
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
 # GRAPHICS is a list of directories containing image files to be converted with grit
 #----
 
-export TARGET		:= YFramework
-export TARGETP		:= $(TARGET)_$(PLATFORM)
-export REFDIR		:= ..
-export BUILD		?= release
-export RELEASE		= $(BUILD)
-export SOURCES		:= source data \
+export PROJNAME		?=	YFramework
+export CONF			?=	release
+export RELEASE		=	$(CONF)
+export TOPDIR		?=	$(CURDIR)
+export BUILDDIR		?=	$(TOPDIR)/../../build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
+export RELEASEDIR	?=	$(BUILDDIR)
+export TARGET		:=	$(PROJNAME)
+export REFDIR		:=	..
+export SOURCES		:=	source data \
 	$(REFDIR)/source/CHRLib \
 	$(REFDIR)/source/YCLib $(REFDIR)/source/YSLib \
 	$(REFDIR)/source/YSLib/Adaptor $(REFDIR)/source/YSLib/Core \
 	$(REFDIR)/source/YSLib/Service $(REFDIR)/Source/YSLib/UI \
 	$(REFDIR)/source/NPL $(REFDIR)/source/Helper \
 	$(REFDIR)/DS/source/Helper
-export INCLUDES		:= include data ../../YBase/include $(REFDIR)/include ../../3rdparty/include
-export DATA			:= data $(REFDIR)/data
-#export GRAPHICS	:= gfx
-#export MUSIC		:= music
+export INCLUDES		:=	include data ../../YBase/include $(REFDIR)/include ../../3rdparty/include
+export DATA			:=	data $(REFDIR)/data
+#export GRAPHICS	:=	gfx
+#export MUSIC		:=	music
 
 #----
 # options for code generation
@@ -82,7 +84,7 @@ CFLAGS	:=	-Wall -Wextra -Wunreachable-code \
 
 CFLAGS	+=	$(INCLUDE) -DARM9
 
-ifneq ($(BUILD),debug)
+ifneq ($(CONF),debug)
 CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
 else
 ASFLAGS	+=	-g
@@ -110,12 +112,12 @@ LIBDIRS	:=	$(LIBNDS) #lib
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
 #----
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(CONF),$(notdir $(CURDIR)))
 #----
 
-export OUTPUT	:=	$(CURDIR)/$(RELEASE)/lib$(TARGET).a
+export OUTPUT	:=	$(RELEASEDIR)/lib$(TARGET).a
 
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)/dummy
+export DEPSDIR	:=	$(BUILDDIR)/dummy
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
@@ -172,29 +174,30 @@ export OFILES	:=	$(addsuffix .o,$(MAPFILES)) $(addsuffix .o,$(RAWFILES)) \
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 	$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 	$(foreach dir,$(LIBDIRS),-I$(dir)/include/nds) \
-	-I$(CURDIR)/$(BUILD)
+	-I$(CURDIR)/$(CONF)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean rebuild all
+.PHONY: $(CONF) clean rebuild all
 
 #----
-$(BUILD):
+$(CONF):
 	@echo Building configuration: $(notdir $@) ...
-	@[ -d $@/dummy ] || mkdir -p $@/dummy
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@[ -d $(BUILDDIR)/dummy ] || mkdir -p $(BUILDDIR)/dummy
+	@[ -d $(RELEASEDIR) ] || mkdir -p $(RELEASEDIR)
+	@$(MAKE) --no-print-directory -C $(BUILDDIR) -f $(CURDIR)/Makefile
 	@echo Built configuration: $(notdir $@).
 
 #----
 clean:
-	@echo Cleaning $(TARGETP) ...
-	@rm -fr $(BUILD)/*
+	@echo Cleaning $(TARGET) of $(PLATFORM) ...
+	@rm -fr $(BUILDDIR)/*
 	@rm -f $(OUTPUT)
 	@echo Cleaned.
 
 rebuild: all
 
-all: $(BUILD) $(OUTPUT)
+all: $(CONF) $(OUTPUT)
 
 #----
 else
@@ -235,9 +238,9 @@ $(OUTPUT)	:	$(OFILES)
 
 define bin2o
 	@[ -d $(dir $(DEPSDIR)/$@) ] || mkdir -p $(dir $(DEPSDIR)/$@)
-	cp $(<) $(*)
-	bin2s $(*) | $(AS) $(ARCH_AS) -o $(DEPSDIR)/$(@)
-	rm $(*)
+	cp $(<) $(notdir $(*))
+	bin2s $(notdir $(*)) | $(AS) $(ARCH_AS) -o $(DEPSDIR)/$(@)
+	rm $(notdir $(*))
 
 	echo "extern const u8" $(notdir $(*))"[];" > $(DEPSDIR)/$(*).h
 	echo "extern const u32" $(notdir $(*))_size";" >> $(DEPSDIR)/$(*).h

@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2329
+\version r2454
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-02-05 16:04 +0800
+	2014-02-22 05:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -696,64 +696,176 @@
 典型的全局绘制操作可以是刷新。
 当多个桌面的显示需要保持同步时，一般不直接调用刷新，而是显式地验证和更新，即分别调用需要同步显示的桌面的 Desktop::Validate 和 Desktop::Update 。
 
-@5.6 GUI 特性抽象
+@5.6 界面基础
 
-@5.6.1 GUI 样式 YStyle
+@5.6.1 YComponent
+被用于声明常用的用户界面类型。
 
-@5.6.2 GUI 焦点特性 YFocus
+@5.6.2 YView
+实现部件视图。提供非共享的部件外观状态的实现。
+主要类型：
+ View 类；
+ Visual 类。
 
-@5.6.3 平台无关的 GUI YGUI
-
-@5.7 组件
-
-@5.7.1 平台无关的 Shell 组件 YComponent
-
-@5.7.2 控制台
-
-@5.8 默认部件
-
-@5.8.1 样式无关的 GUI 部件 YWidget ：
+@5.6.2 YRenderer
+渲染器。负责实现渲染方式和具体 GUI 元素和非渲染机制的分离。
 主要类型：
  Renderer 类；
- BufferedRenderer 类；
- IWidget 接口；
- Visual 类；
- Widget 类。
+ BufferedRenderer 类。
 渲染器 BufferedRenderer 可以设置是否忽略背景（注意忽略背景可能影响子部件的渲染行为）。
 
-@5.8.2 样式无关的 GUI 容器 YUIContainer ：
+@5.6.3 YFocus
+提供 GUI 焦点特性的公共实现。
+
+@5.6.4 YWidgetEvent
+定义 GUI 公共事件和事件处理器类型以及控制器基类。
+主要类型：
+ VisualEvent 枚举；
+ UIEventArgs 类；
+ AController 抽象类。
+
+@5.6.5 YStyle
+提供样式抽象。
+主要类型：
+ Styles::Area 枚举；
+ Styles::Palette 类；
+ Styles::Painter 类；
+ Styles::StyleMap 类。
+
+@5.6.6 YGUI
+实现 GUI 公共状态(@5.1.1) ，提供公共事件处理。
+主要类型：
+ GUIState 类。
+
+@5.6.7 WidgetIteration
+对部件(@5.7.1) 提供迭代器实现支持。
+
+@5.6.8 GUI 加载器 Loader ：
+可实现运行时 GUI 加载 NPLA1[Documentation::NPL @@5] 格式的部件视图组织，包括额外定义的名称和边界。
+当前仅支持 Panel(@5.8.2) 作为部件容器(@5.1.4.4) 。
+当前加载器维护的部件组织实现为 ValueNode 保存所有权的附加部件树(@5.1.4.4) ，通过名称访问的性能略低于静态确定的部件组织，注意避免频繁调用导致性能问题。
+
+@5.7 默认部件和部件支持
+
+@5.7.1 YWidget ：
+主要类型：
+ IWidget 接口；
+ Widget 类。
+Widget 提供 IWidget 的默认实现，仅支持响应 Paint 事件。
+
+@5.7.2 YUIContainer ：
 主要类型：
  MUIContainer 类。
+ MUIContainer 类是样式无关的 GUI 容器，实现对子部件的添加和删除操作。
+
+@5.7.3 YBrush
+主要类型：
+ SolidBrush 类；
+ ImageBrush 类。
+
+@5.8 扩展部件和其它 UI 支持
+
+@5.8.1 Console
+主要类型：
+ Console 类；
+ Console 类实现控制台。
+
+@5.8.2 Viewer
+主要类型和模板：
+ SequenceViewer 类模板。
+
+@5.8.3 Animation
+主要类型和模板：
+ GAnimationSession 类模板；
+ InvalidationUpdater 类。
+ GAnimationSession 类模板用于实现通用动画支持。
+ InvalidationUpdater 类用于实现无效化更新的动画。
+
+@5.8.4 Border
+主要类型：
+ BorderStyle 类；
+ BorderBrush 类。
+实现可复用的边框。
+
+@5.8.5 Hover
+主要类型：
+ HoverUpdater 类。
+用于简化指针设备移至部件上的操作。
+
+@5.8.6 ExStyle
+提供扩展样式。
 
 @5.9 默认控件
 
 @5.9.1 样式无关的控件 YControl ：
 主要类型：
  Control 类。
+ Control 类是 Widget 的派生类，提供了 Paint 事件以外的支持。
 
-@5.9.2 样式无关的 GUI 面板 Panel ：
+@5.9.2 YPanel ：
 主要类型：
  Panel 类。
+ Panel 类使用 MUIContainer(@5.7.2) 实现样式无关的 GUI 面板。
 
-@5.9.3 样式无关的 GUI 窗口 YWindow ：
+@5.9.3 YWindow ：
 主要类型：
  Window 类。
+ Window 类作为样式无关的 GUI 窗口。相对于面板(@5.8.2) ，默认使用 BufferedRenderer(@5.6.2) 缓冲背景。
 
-@5.9.4 桌面 YDesktop ：
-命名空间 UI 中的 Desktop 类是桌面的抽象，自带显示缓冲区，和 Screen 关联，负责把窗体和其它桌面对象输出至屏幕。
+@5.9.4 YDesktop ：
+主要类型：
+ Desktop 类。
+ Desktop 类是桌面的抽象，自带显示缓冲区，和 Devices::Screen 关联，负责把窗体和其它桌面对象输出至屏幕。
 
 @5.10 扩展部件
 
-@5.10.1 样式无关的用户界面标签 Label ：
+@5.10.1 Label ：
 主要类型：
  Label 类。
 
+@5.10.2 TextArea ：
+主要类型：
+ TextArea 类。
+
 @5.11 扩展控件
 
-@5.12 GUI 加载器 Loader ：
-可实现运行时 GUI 加载 NPLA1[Documentation::NPL @@5] 格式的部件视图组织，包括额外定义的名称和边界。
-当前仅支持 Panel(@5.9.2) 作为部件容器(@5.1.4.4) 。
-当前加载器维护的部件组织实现为 ValueNode 保存所有权的附加部件树(@5.1.4.4) ，通过名称访问的性能略低于静态确定的部件组织，注意避免频繁调用导致性能问题。
+@5.11.1 Button ：
+主要类型：
+ Thumb 类；
+ Button 类。
+
+@5.11.2 TextList ：
+主要类型：
+ TextList 类。
+
+@5.11.3 Selector ：
+主要类型：
+ CheckBox 类；
+ CheckButton 类。
+
+@5.11.4 Scroll ：
+主要类型：
+ ScrollCategory 枚举；
+ ScrollEventArgs 类。
+ ATrack 抽象类；
+ HorizontalTrack 类；
+ VerticalTrack 类；
+ AScrollBar 抽象类；
+ HorizontalScrollBar 类；
+ VerticalScrollBar 类；
+ ScrollableContainer 类。
+
+@5.11.5 Progress ：
+主要类型：
+ ProgressBar 类。
+
+@5.11.6 UIContainerEx ：
+ DialogBox 类：
+ DialogPanel 类。
+
+@5.11.7 Menu ：
+ Menu 类：
+ MenuHost 类。
 
 @6 Shell 消息列表：
 以下概述默认支持的消息、一般使用目的和在 Shell 类的默认处理方式。
