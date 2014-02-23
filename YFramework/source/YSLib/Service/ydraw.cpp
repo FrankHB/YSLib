@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1020
+\version r1022
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2013-12-23 23:48 +0800
+	2014-02-23 15:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,6 +147,8 @@ DrawRect(const Graphics& g, const Rect& bounds, const Point& pt, const Size& s,
 void
 FillRect(const Graphics& g, const Rect& bounds, Color c)
 {
+	YAssert(bool(g), "Invalid graphics context found.");
+
 	FillRectRaw<PixelType>(g.GetBufferPtr(), g.GetSize(), bounds, c);
 }
 

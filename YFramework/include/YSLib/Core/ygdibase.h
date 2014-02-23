@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1463
+\version r1477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-02-16 00:01 +0800
+	2014-02-23 15:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -618,6 +618,8 @@ public:
 	DefGetter(ynothrow, Size&, SizeRef, static_cast<Size&>(*this))
 };
 
+//! \relates Rect
+//@{
 /*!
 \brief 比较：屏幕标准矩形相等关系。
 \since build 319
@@ -674,6 +676,20 @@ operator&(const Rect&, const Rect&) ynothrow;
 */
 YF_API Rect
 operator|(const Rect&, const Rect&) ynothrow;
+
+/*!
+\brief 按指定大小缩小矩形。
+\pre 断言：矩形的当前大小足够缩小。
+\since build 479
+*/
+inline void
+Diminish(Rect& r, SDst off1 = 1, SDst off2 = 2)
+{
+	YAssert(r.Width > off2 && r.Height > off2, "Boundary is too small.");
+
+	yunseq(r.X += off1, r.Y += off1, r.Width -= off2, r.Height -= off2);
+}
+//@}
 
 
 template<typename _type>

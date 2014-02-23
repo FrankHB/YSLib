@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r753
+\version r754
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-02-03 04:35 +0800
+	2014-02-23 15:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,9 +68,6 @@ void
 RectDrawArrow(const PaintContext& pc, SDst half_size, Rotation rot, Color c)
 {
 	const auto& g(pc.Target);
-
-	YAssert(bool(g), "Invalid graphics context found.");
-
 	const auto& pt(pc.Location);
 	const auto& r(pc.ClipArea);
 	SDst x(pt.X), y(pt.Y);

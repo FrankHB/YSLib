@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r789
+\version r790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-02-15 14:24 +0800
+	2014-02-23 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -393,7 +393,7 @@ public:
 	GetPixels() const ynothrow;
 	/*!
 	\brief 取扫描线数据。
-	\pre 间接断言： 参数值小于高。
+	\pre 间接断言：参数值小于高。
 	\return 若数据指针为空则为空指针，否则为扫描线数据起始非空指针。
 	\note 使用 <tt>operator[]</tt> 实现。
 	\sa operator[]

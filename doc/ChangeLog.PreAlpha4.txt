@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6188
+\version r6212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-23 08:26 +0800
+	2014-02-23 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,31 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework.YSLib $=
+	(
+		/ %UI $=
+		(
+			/ %Selector $=
+			(
+				/ DLD 'MCheckBox' -> 'MSelectorBox' @ "using declarations \
+					excluding 'MCheckBox::Ticked'" @ "class %CheckBox",
+				+ "classes %(MRadioBox; RadioBox; RadioButton)",
+				- "function %PaintBox" @ "class %CheckBox",
+				/ "default style for %CheckBox" @ %Selector
+					// More flat.
+			),
+			- $design "all assertions" @ "widget drawing",
+				// Assertions in drawing routines should be enough.
+			+ "style %Aoi for %CheckBox with hue support" @ %ExStyle
+		),
+		+ "assertion for valid graphics" @ "non-inline function %FillRect"
+			@ %Service.YDraw,
+	)
+	+ "function %Diminish" @ %YGDIBase,
+),
+
+b478
 (
 	$dev $build "default build location" $=
 	(

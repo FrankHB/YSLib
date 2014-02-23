@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1109
+\version r1121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2013-12-23 23:01 +0800
+	2014-02-23 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,7 +198,10 @@ DrawLineSeg(const Graphics& g, const Rect& bounds, const Point& p1,
 //@}
 
 
-//! \brief 描画标准矩形。
+/*!
+\brief 描画标准矩形。
+\pre 间接断言：图形接口上下文有效。
+*/
 //@{
 //! \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
 YF_API void
@@ -212,7 +215,10 @@ DrawRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 }
 //@}
 
-//! \brief 填充标准矩形。
+/*!
+\brief 填充标准矩形。
+\pre 断言：图形接口上下文有效。
+*/
 //@{
 //! \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
 //@{
@@ -227,6 +233,8 @@ FillRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 //@}
 
 
+//! \pre 间接断言：图形接口缓冲区指针非空。
+//@{
 //! \brief 描画圆形。
 YF_API void
 DrawCircle(const Graphics&, const Rect&, const Point&, SDst, Color c);
@@ -234,6 +242,7 @@ DrawCircle(const Graphics&, const Rect&, const Point&, SDst, Color c);
 //! \brief 填充圆形。
 YF_API void
 FillCircle(const Graphics&, const Rect&, const Point&, SDst, Color c);
+//@}
 
 
 //! \brief 描画多边形。

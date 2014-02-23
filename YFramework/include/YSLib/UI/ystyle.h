@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r627
+\version r630
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-02-14 22:11 +0800
+	2014-02-23 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,8 @@ namespace YSLib
 namespace Drawing
 {
 
+//! \pre 间接断言：图形上下文接口有效。
+//@{
 /*!
 \brief 绘制部件边框用空心标准矩形。
 \note 右下角顶点坐标
@@ -74,6 +76,7 @@ DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
 */
 YF_API void
 DrawCross(const Graphics&, const Point&, const Size&, Color);
+//@}
 
 
 //平台无关色彩系统类型和转换。

@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r772
+\version r950
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-02-22 10:16 +0800
+	2014-02-23 18:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,89 +42,68 @@ namespace UI
 namespace
 {
 
+//! \since build 479
 void
-Diminish(Rect& r, SDst off1 = 1, SDst off2 = 2)
+RectDrawCheckBox(const PaintContext& pc, const Size& s, Hue base_hue,
+	CursorState cursor_state, bool is_ticked, bool is_enabled)
 {
-	YAssert(r.Width > 2 && r.Height > 2, "Boundary is too small.");
-
-	yunseq(r.X += off1, r.Y += off1, r.Width -= off2, r.Height -= off2);
-}
-
-
-//! \since build 465
-//@{
-void
-RectDrawCheckBox(const PaintContext& pc, const Size& s,
-	CursorState cursor_state, bool is_locked = {}, bool is_ticked = {},
-	bool is_focused = {}, bool is_enabled = {})
-{
+	const bool inside(cursor_state != CursorState::Outside);
+	const bool is_pressed(cursor_state == CursorState::Pressed);
+	const SDst rad(min(s.Width, s.Height));
 	const auto& g(pc.Target);
-
-	YAssert(bool(g), "Invalid graphics context found.");
-
-	const auto& pt(pc.Location);
+	const auto pt(pc.Location + Size(rad, rad));
 	const auto& bounds(pc.ClipArea);
-	static yconstexpr Color
-		cc0[]{MakeGray(177), MakeGray(143), {85, 134, 163}, {44, 98, 139}};
-	static yconstexpr Color
-		cc1[]{MakeGray(246), MakeGray(244), {222, 249, 250}, {194, 228, 246}};
-	static yconstexpr Color
-		cc2[]{{174, 179, 185}, {121, 198, 249}, {94, 182, 247}};
-	static yconstexpr Color
-		cc3[]{MakeGray(232), {196, 234, 253}, {180, 227, 252}};
-	auto c_idx([](CursorState s)->size_t{
-		switch(s)
-		{
-		case CursorState::Outside:
-			return 1;
-		case CursorState::Over:
-			return 2;
-		case CursorState::Pressed:
-			return 3;
-		default:
-			YAssert(false, "Invalid state found.");
-		};
-		return 0;
-	}(cursor_state));
-	Rect r(pt, s);
+	const Rect r(pc.Location, s);
 
-	DrawRect(g, bounds, r, cc0[is_enabled ? c_idx : 0]);
-	// XXX: Minimal size.
-	if(YB_LIKELY(r.Width > 10 && r.Height > 10))
-	{
-		Rect rt(r);
+	FillRect(g, bounds, r, is_enabled ? (inside ? RollColor(is_pressed
+		? hsl_t{30.F, 1.F, .925F} : hsl_t{30.F, 1.F, .976F}, base_hue)
+		: ColorSpace::White) : MakeGray(230));
+	DrawRect(g, bounds, r, is_enabled ? (inside ? RollColor(is_pressed
+		? hsl_t{26.5F, 1.F, .435F} : hsl_t{30.F, 1.F, .6F}, base_hue)
+		: MakeGray(112)) : MakeGray(188));
 
-		Diminish(rt);
-		FillRect(g, bounds, rt,
-			cc1[is_locked || is_focused ? 2 : is_enabled ? c_idx : 0]);
-		if(is_enabled)
-		{
-			--c_idx;
-			Diminish(rt);
-			DrawRect(g, bounds, rt, cc2[c_idx]);
-			Diminish(rt);
-			FillRect(g, bounds, rt, cc3[c_idx]);
-		}
-	}
 	if(is_ticked)
 	{
-		const auto c1(is_enabled ? Color(4, 34, 113) : MakeGray(190)),
-			c2(is_enabled ? Color(108, 166, 208) : MakeGray(199));
-		Point p1(r.X + 2, r.Y + r.Height / 2), p2(r.X + r.Width / 2 - 1,
-			r.Y + r.Height - 3), p3(r.X + r.Width - 2, r.Y + 1);
+		const auto c(is_enabled ? ColorSpace::Black : MakeGray(112));
+		const Point p1(r.X + 2, r.Y + r.Height / 2),
+			p3(r.X + r.Width - 2, r.Y + 1);
+		Point p2(r.X + r.Width / 2 - 1, r.Y + r.Height - 3);
 
 		p2 += Vec(0, -1);
-		DrawLineSeg(g, bounds, p1 + Vec(1, 0), p2, c2);
-		DrawLineSeg(g, bounds, p2, p3 + Vec(-1, 0), c2);
+		DrawLineSeg(g, bounds, p1 + Vec(1, 0), p2, c);
+		DrawLineSeg(g, bounds, p2, p3 + Vec(-1, 0), c);
 		p2 += Vec(0, 2);
-		DrawLineSeg(g, bounds, p1 + Vec(0, 1), p2, c2);
-		DrawLineSeg(g, bounds, p2, p3 + Vec(0, 1), c2);
+		DrawLineSeg(g, bounds, p1 + Vec(0, 1), p2, c);
+		DrawLineSeg(g, bounds, p2, p3 + Vec(0, 1), c);
 		p2 += Vec(0, -1);
-		DrawLineSeg(g, bounds, p1, p2, c1);
-		DrawLineSeg(g, bounds, p2, p3, c1);
+		DrawLineSeg(g, bounds, p1, p2, c);
+		DrawLineSeg(g, bounds, p2, p3, c);
 	}
 }
-//@}
+
+//! \since build 479
+void
+RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
+	CursorState cursor_state, bool is_ticked, bool is_enabled)
+{
+	const bool inside(cursor_state != CursorState::Outside);
+	const bool is_pressed(cursor_state == CursorState::Pressed);
+	const SDst rad(min(s.Width / 2, s.Height / 2));
+	const auto& g(pc.Target);
+	const auto pt(pc.Location + Size(rad, rad));
+	const auto& bounds(pc.ClipArea);
+	const Rect r(pc.Location, s);
+
+	FillCircle(g, bounds, pt, rad, is_enabled ? (inside ? RollColor(is_pressed
+		? hsl_t{30.F, 1.F, .925F} : hsl_t{30.F, 1.F, .976F}, base_hue)
+		: MakeGray(112)) : MakeGray(188));
+	DrawCircle(g, bounds, pt, rad, is_enabled ? (inside ? RollColor(is_pressed
+		? hsl_t{26.5F, 1.F, .435F} : hsl_t{30.F, 1.F, .6F}, base_hue)
+		: ColorSpace::White) : MakeGray(230));
+	// XXX: Minimal size.
+	if(is_ticked && YB_LIKELY(r.Width > 4 && r.Height > 4))
+		FillCircle(g, bounds, pt, rad - 2, ColorSpace::Black);
+}
 
 } // unnamed namespace;
 
@@ -142,14 +121,15 @@ CheckBox::CheckBox(const Rect& r)
 					auto& cb(
 						ystdex::polymorphic_downcast<CheckBox&>(e.GetSender()));
 
-					cb.PaintBox(e, GetSizeOf(cb));
+					RectDrawCheckBox(e, GetSizeOf(cb), cb.GetHue(),
+						cb.GetCursorState(), cb.IsTicked(), IsEnabled(cb));
 				}
 			}});
 		}
 	} init;
 
 	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
-		Tick(mSelector.State == Checked ? Unchecked : Checked);
+		Tick(GetState() == Checked ? Unchecked : Checked);
 	};
 }
 
@@ -164,13 +144,6 @@ void
 CheckBox::Tick(StateType st)
 {
 	Ticked(TickedArgs(*this, mSelector.State = st));
-}
-
-void
-CheckBox::PaintBox(const PaintContext& pc, const Size& s)
-{
-	RectDrawCheckBox(pc, s, GetCursorState(), IsFocusedByShell(*this),
-		IsTicked(), IsFocused(*this), IsEnabled(*this));
 }
 
 void
@@ -190,9 +163,81 @@ CheckButton::CheckButton(const Rect& r)
 void
 CheckButton::Refresh(PaintEventArgs&& e)
 {
-	const auto& s(GetSizeOf(*this));
+	auto& view(GetView());
+	const Size s(GetSizeOf(*this));
 
-	PaintBox(e, {13, 13});
+	view.GetSizeRef() = {13, 13};
+	CheckBox::Refresh(std::move(e));
+	view.GetSizeRef() = s;
+	Margin.Left += 13;
+	DrawText(s, ForeColor, e);
+	Margin.Left -= 13;
+}
+
+
+RadioBox::RadioBox(const Rect& r)
+	: Thumb(r, NoBackgroundTag()), MRadioBox()
+{
+	using namespace Styles;
+	static struct Init
+	{
+		Init()
+		{
+			AddHandlers<RadioBox>(FetchDefault(), {{RadioBoxBackground,
+				[](PaintEventArgs&& e){
+					auto& rb(
+						ystdex::polymorphic_downcast<RadioBox&>(e.GetSender()));
+
+					RectDrawRadioBox(e, GetSizeOf(rb), rb.GetHue(),
+						rb.GetCursorState(), rb.IsTicked(), IsEnabled(rb));
+				}
+			}});
+		}
+	} init;
+
+	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
+		Tick(GetState() == Checked ? Unchecked : Checked);
+	};
+}
+
+void
+RadioBox::SetTicked(StateType st)
+{
+	if(UpdateState(st))
+		Tick(st);
+}
+
+void
+RadioBox::Tick(StateType st)
+{
+	SetState(st),
+	SetWidgetPtr(this),
+	Ticked(TickedArgs(*this, st));
+}
+
+void
+RadioBox::Refresh(PaintEventArgs&& e)
+{
+	FetchGUIState().Styles.PaintAsStyle({typeid(RadioBox), RadioBoxBackground},
+		std::move(e));
+}
+
+
+RadioButton::RadioButton(const Rect& r)
+	: RadioBox(r)
+{
+	Margin.Top = 0;
+}
+
+void
+RadioButton::Refresh(PaintEventArgs&& e)
+{
+	auto& view(GetView());
+	const Size s(GetSizeOf(*this));
+
+	view.GetSizeRef() = {13, 13};
+	RadioBox::Refresh(std::move(e));
+	view.GetSizeRef() = s;
 	Margin.Left += 13;
 	DrawText(s, ForeColor, e);
 	Margin.Left -= 13;

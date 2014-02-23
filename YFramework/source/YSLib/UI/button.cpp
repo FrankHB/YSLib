@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3257
+\version r3259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-02-03 11:05 +0800
+	2014-02-23 15:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,10 +49,8 @@ RectDrawButton(const PaintContext& pc, const Size& s, Hue base_hue,
 {
 	const bool inside(cursor_state != CursorState::Outside);
 	const bool is_pressed(cursor_state == CursorState::Pressed);
-	const Rect r(pc.Location, s);
 	const auto& g(pc.Target);
-
-	YAssert(bool(g), "Invalid graphics context found.");
+	const Rect r(pc.Location, s);
 
 	FillRect(g, pc.ClipArea, r, is_enabled ? (inside ? RollColor(is_pressed
 		? hsl_t{29.2F, .86F, .916F} : hsl_t{30.F, .786F, .945F}, base_hue)
