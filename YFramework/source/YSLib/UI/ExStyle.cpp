@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r207
+\version r223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-02-23 18:03 +0800
+	2014-02-23 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,23 +152,8 @@ RectDrawCheckBox_Aoi(const PaintContext& pc, const Size& s, Hue base_hue,
 		}
 	}
 	if(is_ticked)
-	{
-		const auto c1(is_enabled ? Color(4, 34, 113) : MakeGray(190)),
-			c2(is_enabled ? Color(108, 166, 208) : MakeGray(199));
-		const Point p1(r.X + 2, r.Y + r.Height / 2),
-			p3(r.X + r.Width - 2, r.Y + 1);
-		Point p2(r.X + r.Width / 2 - 1, r.Y + r.Height - 3);
-
-		p2 += Vec(0, -1);
-		DrawLineSeg(g, bounds, p1 + Vec(1, 0), p2, c2);
-		DrawLineSeg(g, bounds, p2, p3 + Vec(-1, 0), c2);
-		p2 += Vec(0, 2);
-		DrawLineSeg(g, bounds, p1 + Vec(0, 1), p2, c2);
-		DrawLineSeg(g, bounds, p2, p3 + Vec(0, 1), c2);
-		p2 += Vec(0, -1);
-		DrawLineSeg(g, bounds, p1, p2, c1);
-		DrawLineSeg(g, bounds, p2, p3, c1);
-	}
+		DrawTick(g, bounds, r, is_enabled ? Color(4, 34, 113) : MakeGray(190),
+			is_enabled ? Color(108, 166, 208) : MakeGray(199));
 }
 
 } // unnamed namespace;

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1723
+\version r1724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-02-17 00:29 +0800
+	2014-02-25 09:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,7 +142,7 @@ public:
 class YB_API cloneable
 {
 public:
-#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 40702
+#if YB_IMPL_GNUCPP < 40702
 	//! \since build 475 as workaround for G++ 4.7.1
 	//@{
 	cloneable() = default;

@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r950
+\version r1001
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-02-23 18:10 +0800
+	2014-02-25 10:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,22 +63,7 @@ RectDrawCheckBox(const PaintContext& pc, const Size& s, Hue base_hue,
 		: MakeGray(112)) : MakeGray(188));
 
 	if(is_ticked)
-	{
-		const auto c(is_enabled ? ColorSpace::Black : MakeGray(112));
-		const Point p1(r.X + 2, r.Y + r.Height / 2),
-			p3(r.X + r.Width - 2, r.Y + 1);
-		Point p2(r.X + r.Width / 2 - 1, r.Y + r.Height - 3);
-
-		p2 += Vec(0, -1);
-		DrawLineSeg(g, bounds, p1 + Vec(1, 0), p2, c);
-		DrawLineSeg(g, bounds, p2, p3 + Vec(-1, 0), c);
-		p2 += Vec(0, 2);
-		DrawLineSeg(g, bounds, p1 + Vec(0, 1), p2, c);
-		DrawLineSeg(g, bounds, p2, p3 + Vec(0, 1), c);
-		p2 += Vec(0, -1);
-		DrawLineSeg(g, bounds, p1, p2, c);
-		DrawLineSeg(g, bounds, p2, p3, c);
-	}
+		DrawTick(g, bounds, r, is_enabled ? ColorSpace::Black : MakeGray(112));
 }
 
 //! \since build 479
@@ -96,10 +81,10 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 
 	FillCircle(g, bounds, pt, rad, is_enabled ? (inside ? RollColor(is_pressed
 		? hsl_t{30.F, 1.F, .925F} : hsl_t{30.F, 1.F, .976F}, base_hue)
-		: MakeGray(112)) : MakeGray(188));
+		: ColorSpace::White) : MakeGray(230));
 	DrawCircle(g, bounds, pt, rad, is_enabled ? (inside ? RollColor(is_pressed
 		? hsl_t{26.5F, 1.F, .435F} : hsl_t{30.F, 1.F, .6F}, base_hue)
-		: ColorSpace::White) : MakeGray(230));
+		: MakeGray(112)) : MakeGray(188));
 	// XXX: Minimal size.
 	if(is_ticked && YB_LIKELY(r.Width > 4 && r.Height > 4))
 		FillCircle(g, bounds, pt, rad - 2, ColorSpace::Black);
@@ -136,14 +121,8 @@ CheckBox::CheckBox(const Rect& r)
 void
 CheckBox::SetTicked(StateType st)
 {
-	if(mSelector.UpdateState(st))
+	if(mSelector.State != st)
 		Ticked(TickedArgs(*this, st));
-}
-
-void
-CheckBox::Tick(StateType st)
-{
-	Ticked(TickedArgs(*this, mSelector.State = st));
 }
 
 void
@@ -151,6 +130,12 @@ CheckBox::Refresh(PaintEventArgs&& e)
 {
 	FetchGUIState().Styles.PaintAsStyle({typeid(CheckBox), CheckBoxBackground},
 		std::move(e));
+}
+
+void
+CheckBox::Tick(StateType st)
+{
+	Ticked(TickedArgs(*this, mSelector.State = st));
 }
 
 
@@ -175,6 +160,13 @@ CheckButton::Refresh(PaintEventArgs&& e)
 }
 
 
+void
+MRadioBox::ShareTo(MRadioBox& rb) const
+{
+	rb.p_selector = p_selector;
+}
+
+
 RadioBox::RadioBox(const Rect& r)
 	: Thumb(r, NoBackgroundTag()), MRadioBox()
 {
@@ -189,30 +181,28 @@ RadioBox::RadioBox(const Rect& r)
 						ystdex::polymorphic_downcast<RadioBox&>(e.GetSender()));
 
 					RectDrawRadioBox(e, GetSizeOf(rb), rb.GetHue(),
-						rb.GetCursorState(), rb.IsTicked(), IsEnabled(rb));
+						rb.GetCursorState(), rb.IsSelected(), IsEnabled(rb));
 				}
 			}});
 		}
 	} init;
 
 	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
-		Tick(GetState() == Checked ? Unchecked : Checked);
+		SetSelected();
 	};
 }
 
 void
-RadioBox::SetTicked(StateType st)
+RadioBox::SetSelected()
 {
-	if(UpdateState(st))
-		Tick(st);
-}
+	const auto p_wgt(GetState());
 
-void
-RadioBox::Tick(StateType st)
-{
-	SetState(st),
-	SetWidgetPtr(this),
-	Ticked(TickedArgs(*this, st));
+	if(p_wgt != this)
+	{
+		if(p_wgt)
+			Invalidate(*p_wgt);
+		Select();
+	}
 }
 
 void
@@ -220,6 +210,19 @@ RadioBox::Refresh(PaintEventArgs&& e)
 {
 	FetchGUIState().Styles.PaintAsStyle({typeid(RadioBox), RadioBoxBackground},
 		std::move(e));
+}
+
+void
+RadioBox::Select()
+{
+	UpdateState(this);
+	Selected(SelectedArgs(*this, this));
+}
+
+void
+RadioBox::ShareTo(RadioBox& rb) const
+{
+	MRadioBox::ShareTo(rb);
 }
 
 

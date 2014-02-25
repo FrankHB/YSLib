@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r754
+\version r790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-02-23 15:34 +0800
+	2014-02-25 09:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,16 +136,37 @@ DrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
 }
 
 void
-DrawCross(const Graphics& g, const Point& pt, const Size& s, Color c)
+DrawCross(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 {
-	if(YB_LIKELY(s.Width > 8 && s.Height > 8))
+	if(YB_LIKELY(r.Width > 8 && r.Height > 8))
 	{
-		const Rect r(pt, s);
-		const SPos xmin(pt.X + 4), xmax(xmin + s.Width - 8),
-			ymin(pt.Y + 4), ymax(ymin + s.Height - 8);
+		const SPos xmin(r.X + 4), xmax(xmin + r.Width - 8),
+			ymin(r.Y + 4), ymax(ymin + r.Height - 8);
 
-		DrawLineSeg(g, r, xmin, ymin, xmax, ymax, c),
-		DrawLineSeg(g, r, xmax - 1, ymin, xmin - 1, ymax, c);
+		DrawLineSeg(g, bounds, xmin, ymin, xmax, ymax, c),
+		DrawLineSeg(g, bounds, xmax - 1, ymin, xmin - 1, ymax, c);
+	}
+}
+
+void
+DrawTick(const Graphics& g, const Rect& bounds, const Rect& r, Color c1,
+	Color c2)
+{
+	if(YB_LIKELY(r.Width > 8 && r.Height > 8))
+	{
+		const Point p1(r.X + 2, r.Y + r.Height / 2),
+			p3(r.X + r.Width - 2, r.Y + 1);
+		Point p2(r.X + r.Width / 2 - 1, r.Y + r.Height - 3);
+
+		--p2.Y;
+		DrawLineSeg(g, bounds, p1 + Vec(1, 0), p2, c2);
+		DrawLineSeg(g, bounds, p2, p3 + Vec(-1, 0), c2);
+		p2.Y += 2;
+		DrawLineSeg(g, bounds, p1 + Vec(0, 1), p2, c2);
+		DrawLineSeg(g, bounds, p2, p3 + Vec(0, 1), c2);
+		--p2.Y;
+		DrawLineSeg(g, bounds, p1, p2, c1);
+		DrawLineSeg(g, bounds, p2, p3, c1);
 	}
 }
 
@@ -304,9 +325,17 @@ StyleMap::PaintAsStyle(const Key& key, PaintEventArgs&& e)
 	YAssert(!is_undereferenceable(current), "Invalidate style state found.");
 
 	const auto& table(current->second);
-	const auto i(table.find(key));
+	auto i(table.find(key));
 
-	(i == table.cend() ? table.cbegin() : i)->second(std::move(e));
+	if(i == table.cend())
+	{
+		const auto& de_table(cbegin()->second);
+
+		i = de_table.find(key);
+		if(i == de_table.end())
+			return;
+	}
+	i->second(std::move(e));
 }
 
 void

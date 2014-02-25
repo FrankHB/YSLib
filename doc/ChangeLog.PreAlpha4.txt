@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6212
+\version r6317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-23 19:16 +0800
+	2014-02-25 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,89 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework.YSLib.UI $=
+	(
+		/ %YStyle $=
+		(
+			+ "2 functions %DrawTick";
+			/ "simplified implementation" @ "checkbox visual styles"
+				@ %(Selector, ExStyle),
+			/ @ "function %DrawCross" $=
+			(
+				+ "parameter to specify boundary",
+				/ "graphics location and size" ^ "%Rect parameter"
+					~ 'const Point&, const Size&'
+			)
+		),
+		/ %Selector $=
+		(
+			(
+			/ @ "class %MRadioBox" $=
+			(
+				/ "constructor for state" ^ "%shared_ptr<MSelector>"
+					~ "%shared_ptr<StatePair>",
+				/ "using declaration %StatePair"
+					-> 'using StateType = IWidget*';
+				(
+				+ 'using MSelector = GMSelector<StateType>;';
+				+ 'using SelectedArgs = MSelector::SelectedArgs;',
+				+ 'using HSelectedEvent = MSelector::HSelectedEvent;',
+				- "using declarations %MRadioBox::(Checked, Unchecked, Partial)"
+				/ 'DeclEvent(HTickedEvent, Ticked)'
+					-> 'DeclEvent(HSelectedEvent, Selected)',
+				),
+				- "protected base class %MSelectorBox",
+				- "member function %SetWidgetPtr",
+				/ "member function %IsTicked" -> "%IsSelected",
+				/ "member function %SetTicked" -> "%SetSelected",
+				/ "member function %Tick" -> "%Select"
+			),
+			/ @ "class %RadioBox" $=
+			(
+				/ "all 'TickedArgs'" -> 'SelectedArgs',
+				/ "all 'HTickedEvent'" -> 'HSelectedEvent',
+				/ "all 'Ticked'" -> 'Selected',
+				/ "all 'MSelectorBox::'" -> 'MRadioBox::'
+			);
+			/ "merged class %MSelectorBox" -> "class %MCheckBox",
+			),
+			/ $revert(b479) "all 'MSelectorBox::'" @ "class %CheckBox"
+				-> 'MCheckBox::',
+			/ "invalidation for other selected widget"
+				@ "member function %SetSelected" @ "class %RadioButton",
+			+ "member function %ShareTo" @ "classes %(MRadioBox, RadioBox)",
+			* "wrong color" @ "background" @ "default visual style"
+				@ "%RadioBox",
+			/ DLD "simplified implementation" @ "member function \
+				%(CheckBox::SetTicked, RadioBox::SetSelected)" !^ "%UpdateState"
+				// Reduced unnecessary duplicate update of state.
+		)
+	),
+	/ %'YReader' $=
+	(
+		+ "%RadioButton support" @ "function %FetchWidgetLoader" @ %Shells;
+		/ "reader mode setting" ^ "%RadioButton" ~ "%CheckButton" @ %ShlExplorer
+	),
+	/ DLB "detection for G++ version" @ "workaround" $=
+	(
+		/ "normalized using" $=
+		(
+			^ "less-than expressions" ~ "greater-or-equal-than expressions",
+				// For feature detection in <ydef.h>, '>=' is still used.
+			- "all unnecessary 'YB_IMPL_GNUCPP && '" @ %YBase.YStandardEx
+		),
+		^ "macro %YB_IMPL_GNUCPP"
+			~ "predefined macros %(__GNUC__, __GNU_MINOR__, __GNUC_PATCHLEVEL__)"
+			@ %YFramework;
+	),
+	* "wrong handler entry used" @ "non-inline member function \
+		%StyleMap::PaintAsStyle" @ %YStyle $since b468
+		// This would cause failure in %debug configuration or wrong \
+			type/style painting.
+),
+
+b479
 (
 	/ %YFramework.YSLib $=
 	(
@@ -201,7 +284,8 @@ b476
 		/ "restricted old declaration only for %unique_ptr with non-array type \
 			argument"
 		+ "template making %unique_ptr with array type argument declaration",
-		+ "explicitly deleted template invalid with array type argument declaration"
+		+ "explicitly deleted template invalid with array type argument \
+			declaration"
 	),
 	/ DLD "implementation" @ %Tools.SHBuild.Main $=
 	(
@@ -538,8 +622,8 @@ b472
 			(
 				/ ('using YSLib::string;', 'using YSLib::ValueNode;',
 					"function, function template" %LoadNPLA1) >> %NPLA1,
-				/ "function %TransformConfiguration" -> "function %TransformNPLA1"
-					@ %NPLA1
+				/ "function %TransformConfiguration"
+					-> "function %TransformNPLA1" @ %NPLA1
 			)
 		),
 		/ %YSLib.UI $=
@@ -907,8 +991,8 @@ b464
 
 b463
 (
-	+ $dev $repo "tags (from 'V0.2' to 'V0.4' for build revisions 'b200', 'b300' \
-		and 'b400' respectively), of 3 'PreAlpha' revisions",
+	+ $dev $repo "tags (from 'V0.2' to 'V0.4' for build revisions 'b200', \
+		'b300' and 'b400' respectively), of 3 'PreAlpha' revisions",
 	+ $doc "directory structure and build instructions" @ "readme document",
 	/ %YFramework.YSLib.UI $=
 	(
@@ -1260,7 +1344,8 @@ b457
 		),
 		/ %Service.Timer $=
 		(
-			+ "assertion of non-zero interval" @ "member function %Timer::Refresh",
+			+ "assertion of non-zero interval"
+				@ "member function %Timer::Refresh",
 			+ "function %Timers::CheckTimeout for %Timer"
 		),
 		/ %UI $=
@@ -1805,8 +1890,8 @@ b451
 				^ "%UpdateOnce" ~ "%AlwaysUpdate";
 			+ "static member function %DefaultUpdate" => "%UpdateOnce"
 			),
-			/ "parameter to initialize %std::function instance" @ "constructor template"
-				^ "non-reference type"
+			/ "parameter to initialize %std::function instance"
+				@ "constructor template" ^ "non-reference type"
 		),
 		/ "parameter to initialize %std::function instance"
 			@ "constructor template" ^ "non-reference type"
@@ -1856,7 +1941,8 @@ b450
 					+ "conversion operators to %(Callable&, const Callable&)"
 					),
 					(
-					+ "priority paramter with default argument" @ "constructor template",
+					+ "priority paramter with default argument"
+						@ "constructor template",
 						// Default priority unchanged.
 					- "member initializer" @ "%TaskPriority"
 					)
@@ -2200,8 +2286,8 @@ b447
 		(
 			(
 			$dep_from "variant traits";
-			+ "specialization of templates %(is_covariant, is_contravariant) for \
-				%std::tuple"
+			+ "specialization of templates %(is_covariant, is_contravariant) \
+				for %std::tuple"
 			$dep_to "variant traits for tuple";
 			),
 			(
@@ -2470,14 +2556,16 @@ b442
 					/ @ "class template %GPixelCompositor" $=
 					(
 						$dep_from %YBase.YStandardEx.Rational
-						+ $dev "static assertions to check some non-normalized types",
-							// The member templates for alpha composite need normalized \
-								values. Direct use of some integral types is forbidden by \
-								static assertions.
-						+ "explicit specialization 'struct GPixelCompositor<1, 0>'";
+						+ $dev "static assertions to check some non-normalized \
+							types",
+							// The member templates for alpha composite need \
+								normalized values. Direct use of some integral \
+								types is forbidden by static assertions.
+						+ "explicit specialization \
+							'struct GPixelCompositor<1, 0>'";
 						/ $design "reusing with private inheritance"
-							~ "public inheritance of specializations except for \
-							'struct GPixelCompositor<1, 0>'"
+							~ "public inheritance of specializations except \
+							for 'struct GPixelCompositor<1, 0>'"
 					),
 					+ "function templates %(CompositeComponent; 3 Composite)",
 					+ DLD "static assertions for alpha blending types"

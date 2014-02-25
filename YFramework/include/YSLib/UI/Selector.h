@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r556
+\version r623
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2014-02-23 16:33 +0800
+	2014-02-25 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,14 +83,14 @@ public:
 
 
 /*!
-\brief 选择框模块。
+\brief 复选框模块。
 \warning 非虚析构。
-
-用于提供公共类型而非具体控件功能的模块。
 */
-class YF_API MSelectorBox
+class YF_API MCheckBox
 {
 public:
+	//! \since build 480
+	//@{
 	//! \brief 选择框选中状态类型。
 	using StateType = enum SelectedState : yimpl(size_t)
 	{
@@ -106,15 +106,8 @@ public:
 	using TickedArgs = MSelector::SelectedArgs;
 	//! \brief 选择框选中事件委托类型。
 	using HTickedEvent = MSelector::HSelectedEvent;
-};
+	//@}
 
-
-/*!
-\brief 复选框模块。
-\warning 非虚析构。
-*/
-class YF_API MCheckBox : protected MSelectorBox
-{
 protected:
 	MSelector mSelector;
 
@@ -149,15 +142,15 @@ public:
 	};
 	//! \since build 479
 	//@{
-	using MSelectorBox::StateType;
-	using MSelectorBox::Checked;
-	using MSelectorBox::Unchecked;
-	using MSelectorBox::Partial;
+	using MCheckBox::StateType;
+	using MCheckBox::Checked;
+	using MCheckBox::Unchecked;
+	using MCheckBox::Partial;
 	//@}
 	//! \since build 292
-	using MSelectorBox::TickedArgs;
+	using MCheckBox::TickedArgs;
 	//! \since build 292
-	using MSelectorBox::HTickedEvent;
+	using MCheckBox::HTickedEvent;
 
 	//! \since build 478
 	using MCheckBox::Ticked;
@@ -229,37 +222,56 @@ public:
 \brief 单选框模块。
 \warning 非虚析构。
 */
-class YF_API MRadioBox : protected MSelectorBox
+class YF_API MRadioBox
 {
 public:
-	using StatePair = pair<MSelector, IWidget*>;
+	//! \since build 480
+	//@{
+	//! \brief 单选框选中状态类型。
+	using StateType = IWidget*;
+	using MSelector = GMSelector<StateType>;
+	//! \brief 单选框选中状态参数类型。
+	using SelectedArgs = MSelector::SelectedArgs;
+	//! \brief 单选框选中事件委托类型。
+	using HSelectedEvent = MSelector::HSelectedEvent;
+	//@}
 
 private:
 	/*
 	\brief 共享状态。
 	\note 保证非空。
+	\since build 480
 	*/
-	shared_ptr<StatePair> selected;
+	shared_ptr<MSelector> p_selector;
 
 public:
+	//! \since build 480
+	//@{
 	//! \brief 单选框选中事件。
-	DeclEvent(HTickedEvent, Ticked)
+	DeclEvent(HSelectedEvent, Selected)
 
-	MRadioBox(StateType st = Unchecked)
-		: selected(ystdex::make_shared<StatePair>(st, nullptr))
+	MRadioBox(StateType st = {})
+		: p_selector(ystdex::make_shared<MSelector>(st))
 	{}
-	MRadioBox(shared_ptr<StatePair> p_st)
-		: selected(p_st ? std::move(p_st)
-		: ystdex::make_shared<StatePair>(Unchecked, nullptr))
+	MRadioBox(shared_ptr<MSelector> p_sel, StateType st = {})
+		: p_selector(p_sel ? std::move(p_sel)
+		: ystdex::make_shared<MSelector>(st))
 	{}
+	//@}
 
-	DefGetter(const ynothrow, StateType, State, selected->first.State)
+	DefGetter(const ynothrow, StateType, State, p_selector->State)
 
-	DefSetter(StateType, State, selected->first.State)
-	DefSetter(IWidget*, WidgetPtr, selected->second)
+	DefSetter(StateType, State, p_selector->State)
+
+	/*!
+	\brief 向其它对象覆盖状态。
+	\since build 480
+	*/
+	void
+	ShareTo(MRadioBox&) const;
 
 	PDefH(bool, UpdateState, StateType st)
-		ImplRet(selected->first.UpdateState(st))
+		ImplRet(p_selector->UpdateState(st))
 };
 
 
@@ -273,14 +285,14 @@ public:
 		RadioBoxBackground = Thumb::EndStyle,
 		EndStyle
 	};
-	using MSelectorBox::StateType;
-	using MSelectorBox::Checked;
-	using MSelectorBox::Unchecked;
-	using MSelectorBox::Partial;
-	using MSelectorBox::TickedArgs;
-	using MSelectorBox::HTickedEvent;
+	using MRadioBox::StateType;
+	//! \since build 480
+	using MRadioBox::SelectedArgs;
+	//! \since build 480
+	using MRadioBox::HSelectedEvent;
 
-	using MRadioBox::Ticked;
+	//! \since build 480
+	using MRadioBox::Selected;
 
 public:
 	//! \brief 构造：使用指定边界。
@@ -288,27 +300,37 @@ public:
 	RadioBox(const Rect& = {});
 	DefDeMoveCtor(RadioBox)
 
-	DefPred(const ynothrow, Ticked, GetState() == Checked)
+	//! \since build 480
+	DefPred(const ynothrow, Selected, GetState() == this)
 
 	using MRadioBox::GetState;
 
 	/*!
-	\brief 设置选中状态并检查复选框选中事件。
-	\note 若选中状态发生改变则引起复选框选中事件。
+	\brief 设置选中状态并检查单选框选中事件。
+	\note 选中状态发生改变时若旧的选中部件存在则无效化，引起单选框选中事件。
+	\since build 480
 	*/
 	void
-	SetTicked(StateType);
+	SetSelected();
 
 	//! \brief 刷新：按指定参数绘制界面并更新状态。
 	void
 	Refresh(PaintEventArgs&&) override;
 
 	/*!
-	\brief 设置选中状态并触发复选框选中事件。
+	\brief 设置选中状态并触发单选框选中事件。
 	\note 不检查状态改变。
+	\since build 480
 	*/
 	void
-	Tick(StateType);
+	Select();
+
+	/*!
+	\brief 向其它对象覆盖状态。
+	\since build 480
+	*/
+	void
+	ShareTo(RadioBox&) const;
 };
 
 

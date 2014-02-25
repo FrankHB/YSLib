@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1080
+\version r1104
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-02-22 14:57 +0800
+	2014-02-25 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,8 +92,9 @@ ClassifyFile(const Path& pth)
 }
 //@}
 
+//! \since build 480
 bool
-CheckReaderEnability(FileBox& fb, CheckBox& hex)
+CheckReaderEnability(FileBox& fb, RadioBox& hex)
 {
 	if(fb.IsSelected())
 	{
@@ -102,7 +103,7 @@ CheckReaderEnability(FileBox& fb, CheckBox& hex)
 		case FileCategory::Text:
 			return true;
 		case FileCategory::Binary:
-			return hex.IsTicked();
+			return hex.GetState() == &hex;
 		default:
 			;
 		}
@@ -156,10 +157,12 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 	($type "Panel")($bounds "10 40 224 100")
 	(ddlStyle
 		($type "DropDownList")($bounds "10 24 80 22"))
-	(cbHex
-		($type "CheckButton")($bounds "10 60 100 18"))
+	(rbTxt
+		($type "RadioButton")($bounds "120 18 100 18"))
+	(rbHex
+		($type "RadioButton")($bounds "120 36 100 18"))
 	(cbFPS
-		($type "CheckButton")($bounds "10 80 72 18"))
+		($type "CheckButton")($bounds "10 60 72 18"))
 	(btnPrevBackground
 		($type "Button")($bounds "120 60 30 22"))
 	(btnNextBackground
@@ -229,7 +232,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	auto& node_pnlSetting(node_sub.at("$children").at("pnlSetting"));
 	DeclDynWidget(Panel, pnlSetting, node_pnlSetting)
 	DeclDynWidgetN(DropDownList, ddlStyle, node_pnlSetting)
-	DeclDynWidgetN(CheckButton, cbHex, node_pnlSetting)
+	DeclDynWidgetN(RadioButton, rbTxt, node_pnlSetting)
+	DeclDynWidgetN(RadioButton, rbHex, node_pnlSetting)
 	DeclDynWidgetN(CheckButton, cbFPS, node_pnlSetting)
 	DeclDynWidgetN(Button, btnPrevBackground, node_pnlSetting)
 	DeclDynWidgetN(Button, btnNextBackground, node_pnlSetting)
@@ -254,7 +258,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	pnlTest1.SetRenderer(make_unique<BufferedRenderer>()),
-	cbHex.SetRenderer(make_unique<BufferedRenderer>()),
 	SetVisibleOf(pnlSetting, false),
 	SetVisibleOf(pnlTest1, false),
 	SetVisibleOf(*pFrmAbout, false),
@@ -262,6 +265,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	WrapForSwapScreens(dsk_s, SwapMask),
 	ani.Reset(&pnlTest1),
 	ddlStyle.SetList(FetchVisualStyleNames()),
+	rbTxt.ShareTo(rbHex),
+	rbTxt.Select(),
 	yunseq(
 	dsk_m.Background = ImageBrush(FetchImage(0)),
 	dsk_s.Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
@@ -284,7 +289,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 
 		return name.empty() ? lst[0] : String(name);
 	}(ddlStyle.GetList()),
-	cbHex.Text = u"显示十六进制",
+	rbTxt.Text = u"文本阅读",
+	rbHex.Text = u"十六进制浏览",
 	cbFPS.Text = u"显示 FPS",
 	pnlSetting.Background = SolidBrush({160, 252, 160}),
 	pnlTest1.Background = SolidBrush({248, 248, 120}),
@@ -295,7 +301,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	btnTestEx.HorizontalAlignment = TextAlignment::Left,
 	btnTestEx.VerticalAlignment = TextAlignment::Down,
 	btnTestAni.Text = u"开始动画",
-	cbDisableSetting.Text = u"禁用设置复选框",
+	cbDisableSetting.Text = u"禁用设置选择框",
 	btnEnterTest.Font.SetStyle(FontStyle::Italic),
 	btnEnterTest.Text = u"边界测试",
 	btnEnterTest.HorizontalAlignment = TextAlignment::Right,
@@ -328,7 +334,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Invalidate(lblPath);
 	},
 	fbMain.GetSelected() += [&](IndexEventArgs&&){
-		Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
+		Enable(btnOK, CheckReaderEnability(fbMain, rbHex));
 	},
 	FetchEvent<Click>(btnOK) += [&](CursorEventArgs&&){
 		if(fbMain.IsSelected())
@@ -343,7 +349,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 				const auto h_up(GetMainDesktopHandle());
 				const auto h_dn(GetSubDesktopHandle());
 				const bool b(category == FileCategory::Text
-					&& !cbHex.IsTicked());
+					&& rbTxt.IsSelected());
 
 				PostTask([=]{
 					ResetDSDesktops(*h_up, *h_dn);
@@ -360,8 +366,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	FetchEvent<Click>(cbFPS) += [this](CursorEventArgs&&){
 		SetInvalidationOf(GetSubDesktop());
 	},
-	FetchEvent<Click>(cbHex) += [&](CursorEventArgs&&){
-		Enable(btnOK, CheckReaderEnability(fbMain, cbHex));
+	FetchEvent<Click>(rbHex) += [&](CursorEventArgs&&){
+		Enable(btnOK, CheckReaderEnability(fbMain, rbHex));
 		SetInvalidationOf(GetSubDesktop());
 	},
 	FetchEvent<Move>(pnlSetting) += [&](UIEventArgs&&){
@@ -481,9 +487,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e)
 	{
 		SetEnabledOf(cbFPS, !e),
-		SetEnabledOf(cbHex, !e);
+		SetEnabledOf(rbTxt, !e);
+		SetEnabledOf(rbHex, !e);
 		Invalidate(cbFPS),
-		Invalidate(cbHex);
+		Invalidate(rbTxt);
+		Invalidate(rbHex);
 	},
 	ddlStyle.GetConfirmed() += [&, this](IndexEventArgs&&){
 		FetchGUIState().Styles.Switch(ddlStyle.Text.GetMBCS());

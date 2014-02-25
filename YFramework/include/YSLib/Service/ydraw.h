@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1121
+\version r1122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-02-23 15:30 +0800
+	2014-02-23 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -167,7 +167,7 @@ DrawVLineSeg(const Graphics& g, const Rect& bounds, SPos x, SPos y1, SPos y2,
 /*!
 \brief 绘制线段：在宽 w 的缓冲区内的区域 bounds 绘制端点为 p1(x1, y1)
 	和 p2(x2, y2) 的线段。
-\pre 断言： <tt>dst</tt> 。
+\pre 间接断言： <tt>dst</tt> 。
 */
 YF_API void
 PlotLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x1, SPos y1,

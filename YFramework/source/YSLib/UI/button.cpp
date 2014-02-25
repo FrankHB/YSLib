@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3259
+\version r3262
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-02-23 15:21 +0800
+	2014-02-23 20:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,8 +127,9 @@ DecorateAsCloseButton(Thumb& tmb)
 			Close(*pCon);
 	},
 	FetchEvent<Paint>(tmb) += [&](PaintEventArgs&& e){
-		DrawCross(e.Target, e.Location, GetSizeOf(tmb), IsEnabled(tmb)
-			? tmb.ForeColor : FetchGUIState().Colors[Styles::Workspace]);
+		DrawCross(e.Target, e.ClipArea, {e.Location, GetSizeOf(tmb)},
+			IsEnabled(tmb) ? tmb.ForeColor
+			: FetchGUIState().Colors[Styles::Workspace]);
 	}
 	);
 }

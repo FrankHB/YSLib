@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r630
+\version r649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-02-23 15:35 +0800
+	2014-02-25 09:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,12 +70,28 @@ DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
 
 /*!
 \brief 在指定图形接口上下文中使用指定颜色描画交叉直线段（“×”）。
-\note 指定点和大小确定边界。
+\note 第二个参数指定边界；绘制的图形顶点为第三个参数指定的矩形的顶点或边的中点。
 \note 若不满足长和宽都大于 8 则忽略。
-\since build 302
+\since build 480
 */
 YF_API void
-DrawCross(const Graphics&, const Point&, const Size&, Color);
+DrawCross(const Graphics&, const Rect&, const Rect&, Color);
+
+/*
+\brief 在指定图形接口上下文中使用指定颜色描画对勾（“√”）。
+\note 第二个参数指定边界；绘制的图形顶点为第三个参数指定的矩形的顶点或边的中点。
+\note 若指定的矩形不满足长和宽都大于 8 则忽略。
+\since build 480
+*/
+//@{
+//! \note 使用指定颜色以及底色。
+YF_API void
+DrawTick(const Graphics&, const Rect&, const Rect&, Color, Color);
+//! \note 使用单一颜色。
+inline PDefH(void, DrawTick, const Graphics& g, const Rect& bounds,
+	const Rect& r, Color c)
+	ImplExpr(DrawTick(g, bounds, r, c, c))
+//@}
 //@}
 
 
@@ -363,7 +379,7 @@ public:
 	Add(_tParams&&... args)
 	{
 //! \since build 472 as workaround for G++ 4.7.1
-#if __GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ <= 47100
+#if YB_IMPL_GNUCPP < 40702
 		insert(value_type(yforward(args)...));
 #else
 		emplace(yforward(args)...);
