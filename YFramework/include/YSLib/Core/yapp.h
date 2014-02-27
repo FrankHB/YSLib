@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1588
+\version r1618
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2013-12-24 09:15 +0800
+	2014-02-27 20:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,9 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YShell
+#if YF_Multithread == 1
+#	include <mutex>
+#endif
 
 namespace YSLib
 {
@@ -42,10 +45,21 @@ using Messaging::MessageQueue;
 */
 class YF_API Application : public Shell
 {
-public:
-	MessageQueue Queue; //!< 主消息队列：在程序实例中实现以保证单线程。
+#if YF_Multithread == 1
+private:
+	/*
+	\brief 主消息队列互斥锁。
+	\since build 481
+	*/
+	std::recursive_mutex queue_mutex;
+#endif
 
 protected:
+	/*
+	\brief 主消息队列。
+	\since build 481
+	*/
+	MessageQueue qMain;
 	/*!
 	\brief 当前 Shell 句柄：指示当前线程空间中运行的 Shell 。
 	\note 全局单线程，生存期与进程相同。
@@ -72,6 +86,22 @@ public:
 	\brief 取得线程空间中当前运行的 Shell 的句柄。
 	*/
 	DefGetter(const ynothrow, shared_ptr<Shell>, ShellHandle, hShell)
+
+	/*!
+	\brief 执行消息队列操作。
+	\note 线程安全：全局消息队列互斥访问。
+	\since build 481
+	*/
+	template<typename _fCallable>
+	auto
+	AccessQueue(_fCallable f) -> decltype(f(qMain))
+	{
+#if YF_Multithread == 1
+		std::lock_guard<std::recursive_mutex> lck(queue_mutex);
+
+#endif
+		return f(qMain);
+	}
 
 	/*!
 	\brief 处理消息：分发消息。

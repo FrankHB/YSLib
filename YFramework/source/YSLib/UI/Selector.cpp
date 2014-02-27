@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1001
+\version r1003
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-02-25 10:19 +0800
+	2014-02-25 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,8 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 		: MakeGray(112)) : MakeGray(188));
 	// XXX: Minimal size.
 	if(is_ticked && YB_LIKELY(r.Width > 4 && r.Height > 4))
-		FillCircle(g, bounds, pt, rad - 2, ColorSpace::Black);
+		FillCircle(g, bounds, pt, rad - 2,
+			is_enabled ? ColorSpace::Black : MakeGray(112));
 }
 
 } // unnamed namespace;

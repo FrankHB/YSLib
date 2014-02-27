@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r483
+\version r486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2014-01-21 12:40 +0800
+	2014-02-26 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,9 @@ RemoveGlobalTasks()
 {
 	auto& app(FetchGlobalInstance());
 
-	app.Queue.Remove(app.UIResponseLimit);
+	app.AccessQueue([&](MessageQueue& mq){
+		return mq.Remove(app.UIResponseLimit);
+	});
 }
 
 

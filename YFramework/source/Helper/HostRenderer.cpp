@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r198
+\version r225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-01-25 12:34 +0800
+	2014-02-27 20:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,19 +67,33 @@ WindowThread::~WindowThread()
 
 	try
 	{
-		p_wnd_val->Close();
+		try
+		{
+			p_wnd_val->Close();
+		}
+		catch(Win32Exception&)
+		{}
+		// NOTE: If the thread has been already completed there is no effect.
+		if(thrd.joinable())
+			thrd.join();
 	}
-	catch(Win32Exception&)
-	{}
-	// NOTE: If the thread has been already completed there is no effect.
-	// FIXME: Exception safety: add either assertion or logging when throwing
-	//	other exceptions.
-	try
+	catch(std::system_error& e)
 	{
-		thrd.join();
+		YTraceDe(Warning, "Caught std::system_error: %s.\n", e.what());
+
+		yunused(e);
 	}
-	catch(std::invalid_argument&)
-	{}
+	catch(std::exception& e)
+	{
+		YTraceDe(Alert, "Caught std::exception[%s]: %s.\n", typeid(e).name(),
+			e.what());
+
+		yunused(e);
+	}
+	catch(...)
+	{
+		YTraceDe(Alert, "Caught unknown exception.\n");
+	}
 	delete p_wnd_val;
 }
 

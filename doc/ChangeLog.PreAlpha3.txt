@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4768
+\version r4770
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-02-15 21:55 +0800
+	2014-02-27 13:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2079,7 +2079,8 @@ b343
 		(
 			/ %Initialization $=
 			(
-				// Fully implemented b341 interface. See %YSLib.txt for details.
+				// Fully implemented b341 interface. See %Documentation.YSLib \
+					for details.
 				/ "configuration loading" ^ "NPL" ~ "naive raw strings",
 				/ "configuration path",
 				/ $dev $lib "macro names for default configuration"

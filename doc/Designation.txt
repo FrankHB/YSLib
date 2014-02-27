@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9125
+\version r9131
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-02-16 02:21 +0800
+	2014-02-27 13:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -335,7 +335,7 @@ Shell 和 Core 的关系是相对的，例如：
 @5.2.2.2 实现定义行为：
 
 @5.2.2.2.1 对于未说明字符串参数编码的文件操作接口：
-必要时的编码转换使用 CHRLib([Documentation::YFramework @@2.6]) 。
+必要时的编码转换使用 CHRLib([Documentation::YFramework @@2.7]) 。
 注意 CHRLib 和 YCLib 相关接口中 UCS-2 在 Win32 下即为 UCS-2LE 。
  DS 直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
  MinGW32 直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
@@ -453,9 +453,9 @@ Shell 和 Core 的关系是相对的，例如：
 
 @5.4 专用库：
 包含于 YFramework 中的子库。
-关于 CHRLib ，参见 [Documentation::YFramework @@2.6] 。
-关于 Helper ，参见 [Documentation::YFramework @@2.7] 。
-关于 NPL ，参见 [Documentation::YFramework @@2.8] 。
+关于 CHRLib ，参见 [Documentation::YFramework @@2.7] 。
+关于 Helper ，参见 [Documentation::YFramework @@2.8] 。
+关于 NPL ，参见 [Documentation::YFramework @@2.9] 和 [Documentation::NPL]。
 本节余下内容描述第三方专用库。
 
 @5.4.1
@@ -566,7 +566,7 @@ AUX_MODULES += gzip
 在上一版本的基础上更新 libpng ，并重新编译 MinGW32 库文件。
 
 @5.5 库基础结构：
-平台设置在 <Platform.h>(@5.2.2.3.1) 中。
+平台设置在 <YCLib/Platform.h>(@5.2.2.4.1) 中。
 除了 MinGW32 的平台运行时外，所有外部链接库为静态库。除了 YCLib 外，对外部库未经过封装的使用仅在 Adaptor 中。这样有利于以子库为单位的移植。
 
 @5.6 全局命名空间：
@@ -582,7 +582,7 @@ AUX_MODULES += gzip
  ytest ：测试框架设施 YTest 。
 
 @5.6.3 YFramework 引入的命名空间：
-参见 [Documentation::YFramework @@2.2.4] 。
+参见 [Documentation::YFramework @@2.3.2] 。
 
 @6 编码风格导引：
 仅叙述之前章节未涉及的内容。

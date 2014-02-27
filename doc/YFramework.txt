@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r696
+\version r739
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-02-18 01:23 +0800
+	2014-02-27 13:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
 基本内容参见 [Documentation::Designation @@1] 。
 
 @1.1 设计的基本原理和表达形式：
- YSLib 项目的框架主体。
+ YSLib 项目的框架容器。
 
 @1.2 理论背景、工具和依据：
 基本内容参见 [Documentation::CommonRules @@2.1] 。
@@ -71,7 +71,7 @@
 消息、消息队列、消息分派和消息循环的实现参见 [Documentation::YSLib @@2.5.10] 。
 
 @1.4.1.4 可重入性和线程安全性：
-除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.7 、 [Documentation::Designation @@5.2] 、 [Documentation::YSLib @@1.3] 和 [Documentation::CHRLib] 。
+除本条外， YSLib 及其部分依赖项的可重入性和线程安全性参见 @2.8 、 [Documentation::Designation @@5.2] 、 [Documentation::YSLib @@1.3] 和 [Documentation::CHRLib] 。
 
 @1.4.1.4.1 一般准则：
 中断服务例程应保证可重入性。
@@ -105,7 +105,7 @@
  Shell 实体（简称 Shell ）是一种包含状态的有限片段控制流抽象，是动态映像(@1.5.1.1) 或静态映像(@1.5.1.2) 之一。
 
 @1.4.5 会话(session) ：
-会话是用于在一段连续的时间间隔内访问连接(@2.5.4) 且所有权不属于此连接的实体，其中的连接称为会话连接。
+会话是用于在一段连续的时间间隔内访问连接(@2.6.4) 且所有权不属于此连接的实体，其中的连接称为会话连接。
 会话通常用于在一段连续的时间间隔内跟踪连接的客户端([Documentation::CommonRules @@2.5.4.1]) 的操作。会话连接一般包含于客户端中，由客户端控制。
 
 @1.4.5.1 网络通信会话：
@@ -157,7 +157,7 @@
 
 @1.5.1.5 Shell 通信：
  Shell 的必要的基本通信机制是消息机制(@1.4.1.3) 。
-使用消息机制， Shell 切换是用户程序可知的(@2.5.11) 。
+使用消息机制， Shell 切换是用户程序可知的(@2.6.11) 。
 用户可以自定义具体 Shell 的特定机制。
  Shell 可能是连接对象([Documentation::CommonRules @@2.5.4]) 。
 
@@ -331,6 +331,10 @@
 本章描述 YSLib 项目中的 YFramework 框架库。外部依赖项和 YSLib 项目整体配置参见 [Documentation::Designation @@5] 。
 模块化设计原则参见 [Documentation::CommonRules @@3.7.1] 。
 一个模块目录([Documentation::ProjectRules @@3.2]) 中的模块组成一个系统。
+名称使用前提约束：参见 [Documentation::CommonRules @@7.2] 。
+关于源代码组织，参见 [Documentation::ProjectRules @@3.3] 。
+关于文件名和目录名，参见 [Documentation::ProjectRules @@3.4] 。
+使用嵌套命名空间，避免过长的标识符命名。
 关于一些文件的文件名的额外约定参见 @2.2 。
 
 @2.1 框架组成和依赖项规则：
@@ -347,8 +351,8 @@
 
 @2.1.2 附加库：
 除了 YSLib 和第三方库 YFramework 也集成了一些附加的库作为非第三方次级子项目。这些库不直接在 YSLib 命名空间中添加声明（参见 @2.2.4 ）。
-其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖于 YSLib ，称为基础附加库，包括 CHRLib(@2.6) 和 YCLib([Documentation::Designation @@5.2.2]) 。
-另一部分依赖于 YSLib ，包括 NPL(@2.8) 和 Helper(@2.7) 。其它具体说明参见 [Documentation::Designation @@5] 。
+其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖于 YSLib ，称为基础附加库，包括 CHRLib(@2.7) 和 YCLib([Documentation::Designation @@5.2.2]) 。
+另一部分依赖于 YSLib ，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
 综上所述， YFramework 有以下非第三方次级子项目： CHRLib 、 YCLib 、 YSLib 、 NPL 和 Helper 。
 
 @2.1.2.1 组织和依赖准则：
@@ -372,7 +376,7 @@
 以下部分指定 YFramework 中明确或明确禁止依赖的文件，排除构建的中间文件。非公开头文件的适用规则同非头文件。以下头文件指公开头文件。
 
 @2.2.1 基本文件依赖性（适用于 YFramework ）：
- YSLib 和 Helper(@2.7) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
+ YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
 关于 ISO C++11 直接指定的依赖项，参见 [Documentation::CommonRules @@5.25.2] ；其它基本代码依赖性规则如下（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
 禁止依赖于（包括包含）非头文件。
 除非另有说明，禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
@@ -381,7 +385,7 @@
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 必要文件不依赖非必要文件。
 任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头文件以及 YBase 头文件。
- YCLib 和 Helper 文件可依赖具体平台相关的外部依赖项。关于 Helper 的文件附加依赖规则参见 @2.7 。
+ YCLib 和 Helper 文件可依赖具体平台相关的外部依赖项。关于 Helper 的文件附加依赖规则参见 @2.8 。
 
 @2.2.2 YCLib 文件依赖性：
  YCLib 的实现可依赖 YCLib 的对应平台扩展。
@@ -406,19 +410,24 @@
  <YSLib/Helper/YModules.h> 包含 "../YSLib/UI/YModules.h" 和 "../NPL/YModules.h" 。
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
-@2.2.4 YFramework 引入的命名空间：
+@2.3 名称：
+
+@2.3.1 标识符限制：
+公开头文件不使用保留标识符([Documentation::CommonRules @@5.15.1]) ，包括使用实现扩展提供的宏。使用 ydef.h([Documentation::YBase @@2.3]) 包装的宏代替。
+
+@2.3.2 YFramework 引入的命名空间：
  YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。
  除 YCLib 外， YFramework 引入的主要命名空间唯一且和次级子项目的模块名称一致。
  platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）于此命名空间。
  platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖于此命名空间。
  platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖于此命名空间，但可能依赖于该命名空间中成员包装的宏。
  CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）于此命名空间。
- NPL ：子库 NPL(@2.8) 的命名空间。
+ NPL ：子库 NPL(@2.9) 的命名空间。
  YSLib ： YSLib 库命名空间。
 
-@2.3 实体实现规则：
+@2.4 实体实现规则：
 
-@2.3.1 对象准则：
+@2.4.1 对象准则：
 局部对象在声明时同时初始化。
 函数内变量尽可能置于最小作用域内——除非效率原因，尽可能使用语句块级对象代替函数级局部对象。
 避免在嵌套类中定义被嵌套类的定义，除非能够确保此定义的实现无关性。
@@ -427,7 +436,7 @@
 除非程序明确为单线程的，禁止使用非 POD(plain-old data) 类型的全局对象。若非必要，用内建 (built-in) 类型代替 POD 结构体全局对象。
 多线程程序中，禁止使用非 const 全局对象。
 
-@2.3.2 对象引用和所有权管理：
+@2.4.2 对象引用和所有权管理：
 基本概念参见 [Documentation::CommonRules @@2.3.4] 。
 注意基于非透明引用计数实现的非侵入式智能指针（如 boost::shared_ptr/std::tr1::shared_ptr 以及 C++11 的 std::shared_ptr ）具有以下固有的缺点：
 无法修改引用计数并直接转移所有权，资源实例的生存期依赖于至少一个具体智能指针对象的生存期；
@@ -440,7 +449,7 @@
 对于需要保持所有权但又要避免重复引用计数的开销的情况，使用 std::unique_ptr 。
 其它情况下，使用不含所有权的内建指针，以保持用户程序对资源管理的选择自由和灵活性。若没有在注释或文档注明所有权关系，均应视为由用户程序对象具有指针参数指向对象的所有权。
 
-@2.3.2.1 所有权标签：
+@2.4.2.1 所有权标签：
 以下独占所有权关系中，被托管对象类不是直接的成员或明确具有所有权语义的指针指向的对象。使用 OwnershipTag 模板标识这些类型。
 所有者（基类）中 private 继承了 OwnershipTag<_type> 。被托管对象的实际类型可能是 _type 的派生类（需要是虚析构的多态类）。除了 Helper 外的实例包括：
  Drawing::FontCache 具有 Drawing::Typeface 和 Drawing::FontFamily 的所有权；
@@ -448,38 +457,38 @@
  Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
 可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。
 
-@2.4 语言特性和扩展支持：
-除了 YBaseMacro(@2.4.1) 外，主要位于 YBase[Documentation::YBase] 、 YFramework::YCLib 和 YFrameowrk::YSLib::Core[Documentation::YSLib @@3] 中。
+@2.5 语言特性和扩展支持：
+除了 YBaseMacro(@2.5.1) 外，主要位于 YBase[Documentation::YBase] 、 YFramework::YCLib 和 YFrameowrk::YSLib::Core[Documentation::YSLib @@3] 中。
  YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无关的宏，用于简化代码。具体使用参见 @6.2.1 。
 
-@2.4.1 接口
+@2.5.1 接口
 
-@2.4.2 断言
+@2.5.2 断言
 
-@2.4.3 成员函数简写（代码生成器）
+@2.5.3 成员函数简写（代码生成器）
 
-@2.5 类型构建：
+@2.6 类型构建：
 
-@2.5.1 基本约束：
+@2.6.1 基本约束：
 命名必须和标识符命名规约(@4) 兼容。
 
-@2.5.2 类型特性：
+@2.6.2 类型特性：
 除了 I 和 A 前缀的类，都不含有纯虚函数。
 命名中按以下列出的顺序确定分类。
 
-@2.5.3 I 前缀类名的类：
+@2.6.3 I 前缀类名的类：
 接口类型([Documentation::CommonRules @@2.4.1]) 或纯虚类。
 
-@2.5.4 A 前缀类名的类：
+@2.6.4 A 前缀类名的类：
 抽象类。
 成员函数中至少存在一个纯虚函数；不能被实例化。
 
-@2.5.5 S 前缀类名的类：
+@2.6.5 S 前缀类名的类：
 静态类。
 除了类型定义外，应仅包含静态成员。但编译时不作检查。
 可参与多重继承，例如作为特征类(traits class) 。
 
-@2.5.6 M 前缀类名的类：
+@2.6.6 M 前缀类名的类：
 模块类。
 具有 public 或 protected 的无参数（或所有参数都有默认参数）的构造函数。不一定能够被复制构造（可能显式地被禁止）。
 用于提供实现而非规范接口，可定义人本接口成员。
@@ -487,26 +496,26 @@
 当作为非多态类时析构函数应为 protected （除非它的所有派生类都没有在它的基础上扩展域，或都满足析构函数为 protected ），且不可作为类的成员或被实例化。
 其它情况下可实例化，但通常仅用于作为类实例的子对象（混入实例）。此时应尽可能减少虚表体积，并降低额外的运行时效率开销（例如，不使用引用类型的成员）。
 
-@2.5.7 H 前缀类名的类型：
+@2.6.7 H 前缀类名的类型：
 从属于相近但不同的两类：
 句柄(handles) ：具有间接访问语义的类型（例如指针、引用或迭代器）。
 处理器(handlers) ：具有回调功能的类型（例如事件处理器或 std::function 的实例）。
 
-@2.5.8 无前缀类名的类型：
+@2.6.8 无前缀类名的类型：
 一般类型。
 其它类型。无其它限制和特性保证。
 
-@2.5.9 异常类总览：
+@2.6.9 异常类总览：
 专用于被 C++ 异常机制捕获的类称为异常类。
 异常类不一定在特定的命名空间中定义，但 YSLib 集中使用某些异常，参见 [Documentation::YSLib @@3.5] 。
 
-@2.6 字符表示结构支持库 CHRLib ：
+@2.7 字符表示结构支持库 CHRLib ：
 位于 "/CHRLib" 。非外部依赖项。
 支持字符相关构造（编码和字符集等）的抽象。
 支持特定编码字符串的转换。
 参见 [Documentation::CHRLib] 。
 
-@2.7 助手(Helper) 库：
+@2.8 助手(Helper) 库：
 位于 "/Helper" 。非外部依赖项。
 除 @2.2.1 的限制， Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
 可能平台相关的外部库，可以提供宿主实现、加入插件等，一般由库用户自行配置。
@@ -515,7 +524,7 @@
  main 函数由 Helper 的其它源文件封装，或由用户提供。
  Helper 定义的类型若适用于不同平台，不保证二进制兼容性，除非另有说明。
 
-@2.7.1 YGlobal 单元：
+@2.8.1 YGlobal 单元：
 平台相关的全局对象和函数定义。
 除了以下接口，其它都是不确定的：
 const SDst MainScreenWidth, MainScreenHeight;
@@ -529,11 +538,11 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
  YSLib 不依赖这些接口以外的特性。
 
-@2.7.2 Application 派生类：
+@2.8.2 Application 派生类：
 适应于具体平台的应用程序实例抽象。
 包含默认消息循环等。
 
-@2.7.3 初始化 Initialization ：
+@2.8.3 初始化 Initialization ：
 关于配置文件格式和内容参见 [Documentation::YSLib @@8] 。
 初始化的重要策略之一是在程序启动时减少不必要的初始化，以达到以下的优势：
 减少可能的外部依赖（如不需要使用文字的程序就不初始化字体缓存，也不需要依赖外部字体文件和字体配置等）；
@@ -544,7 +553,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
  FetchDefaultFontCache ：取默认字体缓存。
 其它如 ImageCodec 因为未包含复杂副作用，当前不提供接口。用户可以自行初始化这些对象。
 
-@2.8 NPL 库：
+@2.9 NPL 库：
 实现基于 S 表达式的名称协议语言，当前仅用于用户配置设置。
 
 @3 API 设计和风格概述：
@@ -564,7 +573,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 基本内容参见 [Documentation::Designation @@6] 。
 
 @4.1 YFramework 宏使用：
- YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacro(@2.3) 定义的宏，而不是其展开形式。
+ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacro(@2.4) 定义的宏，而不是其展开形式。
 使用宏 YSL_BEGIN 和 YSL_END 标识 YSLib 命名空间；
 使用宏 YSL_BEGIN_NAMESPACE 和 YSL_END 标识 YSLib 命名空间下的子命名空间；
 使用宏声明接口类型([Documentation::CommonRules @@2.4.1]) 。

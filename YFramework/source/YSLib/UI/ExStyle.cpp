@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r223
+\version r333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-02-23 19:54 +0800
+	2014-02-23 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,27 +97,44 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 	}
 }
 
-//! \since build 479
-void
-RectDrawCheckBox_Aoi(const PaintContext& pc, const Size& s, Hue base_hue,
-	CursorState cursor_state, bool is_locked, bool is_ticked, bool is_focused,
-	bool is_enabled)
+
+//! \since build 481
+//@{
+enum SelectorIndex_Aoi
 {
-	const auto& g(pc.Target);
-	const auto& pt(pc.Location);
-	const auto& bounds(pc.ClipArea);
+	SelectorIndex_Aoi_C1 = 4,
+	SelectorIndex_Aoi_C2 = 8,
+	SelectorIndex_Aoi_C3 = 11,
+	SelectorIndex_Aoi_End = 14
+};
+
+enum ControlState : yimpl(size_t)
+{
+	ControlState_Focused = 0,
+	ControlState_Enabled = 1,
+	ControlState_Locked = 2,
+	ControlState_Ticked = 3
+};
+
+
+void
+RectDrawSelector_Aoi(void(*f)(const PaintContext&, const Size&, const bool[],
+	const Color[], size_t), const PaintContext& pc, Thumb& tmb, bool is_ticked)
+{
+	const Hue base_hue(tmb.GetHue());
 	const auto roll([=](float h, float s, float l){
 		return RollColor({h, s, l}, base_hue);
 	});
-	const Color cc0[]{MakeGray(177), MakeGray(143), roll(2.3F, .315F, .486F),
-		roll(25.9F, .519F, .359F)};
-	const Color cc1[]{MakeGray(246), MakeGray(244), roll(2.1F, .737F, .925F),
-		roll(20.8F, .743F, .863F)};
-	const Color cc2[]{roll(32.7F, .073F, .704F), roll(23.9F, .914F, .725F),
-		roll(25.5F, .905F, .669F)};
-	const Color cc3[]{MakeGray(232), roll(20.F, .934F, .88F),
+	const Color colors[]{MakeGray(177), MakeGray(143), roll(2.3F, .315F, .486F),
+		roll(25.9F, .519F, .359F), MakeGray(246), MakeGray(244),
+		roll(2.1F, .737F, .925F), roll(20.8F, .743F, .863F),
+		roll(32.7F, .073F, .704F), roll(23.9F, .914F, .725F),
+		roll(25.5F, .905F, .669F), MakeGray(232), roll(20.F, .934F, .88F),
 		roll(20.8F, .923F, .847F)};
-	auto c_idx([](CursorState s)->size_t{
+	const bool ctl_states[]{IsFocused(tmb), IsEnabled(tmb),
+		IsFocusedByShell(tmb), is_ticked};
+	
+	f(pc, GetSizeOf(tmb), ctl_states, colors, [](CursorState s)->size_t{
 		switch(s)
 		{
 		case CursorState::Outside:
@@ -130,31 +147,83 @@ RectDrawCheckBox_Aoi(const PaintContext& pc, const Size& s, Hue base_hue,
 			YAssert(false, "Invalid state found.");
 		};
 		return 0;
-	}(cursor_state));
-	const Rect r(pt, s);
-
-	DrawRect(g, bounds, r, cc0[is_enabled ? c_idx : 0]);
-	// XXX: Minimal size.
-	if(YB_LIKELY(r.Width > 10 && r.Height > 10))
-	{
-		Rect rt(r);
-
-		Diminish(rt);
-		FillRect(g, bounds, rt,
-			cc1[is_locked || is_focused ? 2 : is_enabled ? c_idx : 0]);
-		if(is_enabled)
-		{
-			--c_idx;
-			Diminish(rt);
-			DrawRect(g, bounds, rt, cc2[c_idx]);
-			Diminish(rt);
-			FillRect(g, bounds, rt, cc3[c_idx]);
-		}
-	}
-	if(is_ticked)
-		DrawTick(g, bounds, r, is_enabled ? Color(4, 34, 113) : MakeGray(190),
-			is_enabled ? Color(108, 166, 208) : MakeGray(199));
+	}(tmb.GetCursorState()));
 }
+
+
+void
+RectDrawCheckBox_Aoi(const PaintContext& pc, CheckBox& cb)
+{
+	RectDrawSelector_Aoi([](const PaintContext& pc, const Size& s,
+		const bool cst[], const Color ccs[], size_t c_idx){
+		const auto& g(pc.Target);
+		const auto& pt(pc.Location);
+		const auto& bounds(pc.ClipArea);
+		const Rect r(pt, s);
+		const bool is_enabled(cst[ControlState_Enabled]);
+
+		DrawRect(g, bounds, r, ccs[is_enabled ? c_idx : 0]);
+		// XXX: Minimal size.
+		if(YB_LIKELY(r.Width > 10 && r.Height > 10))
+		{
+			Rect rt(r);
+
+			Diminish(rt);
+			FillRect(g, bounds, rt, ccs[SelectorIndex_Aoi_C1
+				+ (cst[ControlState_Locked] || cst[ControlState_Focused]
+				? 2 : is_enabled ? c_idx : 0)]);
+			if(is_enabled)
+			{
+				--c_idx;
+				Diminish(rt);
+				DrawRect(g, bounds, rt, ccs[SelectorIndex_Aoi_C2 + c_idx]);
+				Diminish(rt);
+				FillRect(g, bounds, rt, ccs[SelectorIndex_Aoi_C3 + c_idx]);
+			}
+		}
+		if(cst[ControlState_Ticked])
+			DrawTick(g, bounds, r, is_enabled ? Color(4, 34, 113)
+				: MakeGray(190), is_enabled ? Color(108, 166, 208)
+				: MakeGray(199));
+	}, pc, cb, cb.IsTicked());
+}
+
+void
+RectDrawRadioBox_Aoi(const PaintContext& pc, RadioBox& rb)
+{
+	RectDrawSelector_Aoi([](const PaintContext& pc, const Size& s,
+		const bool cst[], const Color ccs[], size_t c_idx){
+		const auto& g(pc.Target);
+		const SDst rad(min(s.Width / 2, s.Height / 2));
+		const auto pt(pc.Location + Size(rad, rad));
+		const auto& bounds(pc.ClipArea);
+		const Rect r(pc.Location, s);
+		const bool is_enabled(cst[ControlState_Enabled]);
+
+		DrawCircle(g, bounds, pt, rad, ccs[is_enabled ? c_idx : 0]);
+		// XXX: Minimal size.
+		if(YB_LIKELY(r.Width > 10 && r.Height > 10))
+		{
+			SDst radt(rad);
+
+			FillCircle(g, bounds, pt, --radt, ccs[SelectorIndex_Aoi_C1
+				+ (cst[ControlState_Locked] || cst[ControlState_Focused]
+				? 2 : is_enabled ? c_idx : 0)]);
+			if(is_enabled)
+			{
+				--c_idx;
+				DrawCircle(g, bounds, pt, --radt,
+					ccs[SelectorIndex_Aoi_C2 + c_idx]);
+				DrawCircle(g, bounds, pt, --radt,
+					ccs[SelectorIndex_Aoi_C3 + c_idx]);
+			}
+		}
+		if(cst[ControlState_Ticked])
+			FillCircle(g, bounds, pt, rad - 2, is_enabled ? Color(11, 130, 199)
+				: MakeGray(190));
+	}, pc, rb, rb.IsSelected());
+}
+//@}
 
 } // unnamed namespace;
 
@@ -175,12 +244,14 @@ InitExStyles()
 	}}),
 	AddHandlers<CheckBox>(ht, {{CheckBox::CheckBoxBackground,
 		[](PaintEventArgs&& e){
-			auto& cb(
+			RectDrawCheckBox_Aoi(e,
 				ystdex::polymorphic_downcast<CheckBox&>(e.GetSender()));
-
-			RectDrawCheckBox_Aoi(e, GetSizeOf(cb), cb.GetHue(),
-				cb.GetCursorState(), IsFocusedByShell(cb), cb.IsTicked(),
-				IsFocused(cb), IsEnabled(cb));
+		}
+	}}),
+	AddHandlers<RadioBox>(ht, {{CheckBox::CheckBoxBackground,
+		[](PaintEventArgs&& e){
+			RectDrawRadioBox_Aoi(e,
+				ystdex::polymorphic_downcast<RadioBox&>(e.GetSender()));
 		}
 	}});
 	FetchGUIState().Styles.Add("Aoi", std::move(ht));

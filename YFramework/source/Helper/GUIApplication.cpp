@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r246
+\version r265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2013-12-24 00:38 +0800
+	2014-02-26 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,24 +103,25 @@ GUIApplication::GetHost()
 bool
 GUIApplication::DealMessage()
 {
-	using namespace Shells;
+	return AccessQueue([this](MessageQueue& mq){
+		using namespace Shells;
 
-	if(Queue.empty())
-	//	Idle(UIResponseLimit);
-		OnGotMessage(FetchIdleMessage());
-	else
-	{
-		// TODO: Consider the application queue to be locked for thread safety.
-		const auto i(Queue.cbegin());
+		if(mq.empty())
+		//	Idle(UIResponseLimit);
+			OnGotMessage(FetchIdleMessage());
+		else
+		{
+			const auto i(mq.cbegin());
 
-		if(YB_UNLIKELY(i->second.GetMessageID() == SM_Quit))
-			return false;
-		if(i->first < UIResponseLimit)
-			Idle(UIResponseLimit);
-		OnGotMessage(i->second);
-		Queue.erase(i);
-	}
-	return true;
+			if(YB_UNLIKELY(i->second.GetMessageID() == SM_Quit))
+				return false;
+			if(i->first < UIResponseLimit)
+				Idle(UIResponseLimit);
+			OnGotMessage(i->second);
+			mq.erase(i);
+		}
+		return true;
+	});
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6317
+\version r6369
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-25 19:03 +0800
+	2014-02-27 20:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,62 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ "style %Aoi" @ %ExStyle $=
+				(
+					+ "style for %RadioBox",
+					/ DLD "simplified implementation for %CheckBox"
+				),
+				* "missing gray color for disabled control foreground"
+					@ "default style" @ "%RadioBox" @ %Selector $since b479;
+			),
+			/ %Core $=
+			(
+				* "global queue thread safety" $since b299 $=
+				(
+					/ "public %Application::Queue"
+						-> "protected 'MessageQueue qMain'",
+					+ "member function template %AccessQueue"
+				),
+				* "thread safety" @ "functions %PostMessage" @ %Yapplication
+					$since b299
+			)
+		),
+		/ %Helper $=
+		(
+			* "wrong 'ynothrow'" @ "function %InitDSScreen" @ %DSScreen
+				$since b380,
+			/ "destructor" @ "class WindowThread" @ "platform %MinGW32"
+				@ %Helper $=
+			(
+				* "caught wrong exceptions" $since b399
+					$= (/ "caught %std::system_error"
+					 ~ "%joinable check, catching %std::invalid_argument"),
+				* "missing nothrow guarantee" $since b384
+				+ "logging" @ "caught exceptions"
+			),
+			(
+			$dep_from "class %YSLib::Application";
+			* "thread safety" @ "function %RemoveGlobalTasks" @ %ShellHelper
+				$since b303
+			)
+		),
+		/ @ "class %Win32Exception" @ %'YCLib_(MinGW32)'.MinGW32 $=
+		(
+			/ "made constructor throwable",
+			/ "made static member function %FormatMessage throwable"
+		)
+	),
+	+ "function template %guarded_call" @ %YBase.YStandardEx.Functional
+),
+
+b480
 (
 	/ %YFramework.YSLib.UI $=
 	(
