@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1507
+\version r1547
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-02-16 00:01 +0800
+	2014-03-02 18:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_UI_YComponent
 #include YFM_YSLib_Core_YEvent
+#include YFM_YSLib_Core_YString
 
 namespace YSLib
 {
@@ -112,14 +113,6 @@ public:
 
 
 /*!
-\brief 屏幕（指针设备）输入事件参数模块类。
-\warning 非虚析构。
-\since build 160
-*/
-using MScreenPositionEventArgs = Drawing::Point;
-
-
-/*!
 \brief 输入事件参数类。
 \since 早于 build 132
 */
@@ -172,11 +165,13 @@ public:
 \brief 指针设备输入事件参数类。
 \since build 422
 */
-struct YF_API CursorEventArgs : public InputEventArgs,
-	public MScreenPositionEventArgs
+struct YF_API CursorEventArgs : public InputEventArgs
 {
 public:
 	using InputType = Drawing::Point; //!< 输入类型。
+
+	//! \since build 482
+	InputType Position;
 
 	/*!
 	\brief 构造：使用按键输入类型对象、输入类型对象和事件路由策略。
@@ -184,6 +179,12 @@ public:
 	*/
 	CursorEventArgs(IWidget&, const KeyInput&, const InputType& = {},
 		RoutingStrategy = Direct);
+
+	/*!
+	\brief 转换为输入类型。
+	\since build 482
+	*/
+	DefCvt(const ynothrow, const InputType&, Position)
 };
 
 
@@ -208,6 +209,21 @@ public:
 		const InputType& = {}, RoutingStrategy = Direct);
 
 	DefGetter(const ynothrow, WheelDelta, Delta, delta)
+};
+
+
+/*!
+\brief 文本输入事件参数。
+\since build 482
+*/
+class YF_API TextInputEventArgs : public InputEventArgs
+{
+public:
+	String Text;
+
+	TextInputEventArgs(IWidget&, String, const KeyInput& = {},
+		RoutingStrategy = Direct);
+	TextInputEventArgs(InputEventArgs, String);
 };
 
 
@@ -263,6 +279,11 @@ DeclDelegate(HPaintEvent, PaintEventArgs&&)
 \since build 425
 */
 DeclDelegate(HCursorWheelEvent, CursorWheelEventArgs&&)
+/*!
+\brief 文本输入事件。
+\since build 482
+*/
+DeclDelegate(HTextInputEvent, TextInputEventArgs&&)
 //DefDelegate(HPointEvent, Drawing::Point&&)
 //DefDelegate(HSizeEvent, Size&&)
 
@@ -318,6 +339,11 @@ enum VisualEvent
 	\since build 423
 	*/
 	CursorWheel,
+	/*!
+	\brief 文本输入。
+	\since build 482
+	*/
+	TextInput,
 
 	// GUI 输出事件。
 	Paint, //!< 界面绘制。
@@ -360,6 +386,8 @@ DefEventTypeMapping(Click, HCursorEvent)
 DefEventTypeMapping(ClickAcross, HCursorEvent)
 //! \since build 423
 DefEventTypeMapping(CursorWheel, HCursorWheelEvent)
+//! \since build 482
+DefEventTypeMapping(TextInput, HTextInputEvent)
 
 DefEventTypeMapping(Paint, HPaintEvent)
 

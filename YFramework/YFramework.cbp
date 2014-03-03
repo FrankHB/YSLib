@@ -235,6 +235,7 @@
 		<Unit filename="include/YSLib/UI/Hover.h" />
 		<Unit filename="include/YSLib/UI/Loader.h" />
 		<Unit filename="include/YSLib/UI/Selector.h" />
+		<Unit filename="include/YSLib/UI/TextBox.h" />
 		<Unit filename="include/YSLib/UI/WidgetIteration.h" />
 		<Unit filename="include/YSLib/UI/YBrush.h" />
 		<Unit filename="include/YSLib/UI/YComponent.h" />
@@ -326,6 +327,7 @@
 		<Unit filename="source/YSLib/UI/Hover.cpp" />
 		<Unit filename="source/YSLib/UI/Loader.cpp" />
 		<Unit filename="source/YSLib/UI/Selector.cpp" />
+		<Unit filename="source/YSLib/UI/TextBox.cpp" />
 		<Unit filename="source/YSLib/UI/YBrush.cpp" />
 		<Unit filename="source/YSLib/UI/YComponent.cpp" />
 		<Unit filename="source/YSLib/UI/button.cpp" />

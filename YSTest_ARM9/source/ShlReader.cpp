@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4550
+\version r4551
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-02-22 14:58 +0800
+	2014-03-02 18:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -409,7 +409,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		const auto s(reader.GetTextSize());
 
 		if(YB_LIKELY(s != 0))
-			Locate(e.X * s / boxReader.pbReader.GetWidth());
+			Locate(e.Position.X * s / boxReader.pbReader.GetWidth());
 	},
 	FetchEvent<Paint>(boxReader.pbReader) += [this](PaintEventArgs&& e){
 		auto& pb(boxReader.pbReader);

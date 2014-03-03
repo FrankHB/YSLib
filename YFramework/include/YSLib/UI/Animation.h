@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r368
+\version r377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2013-12-29 12:39 +0800
+	2014-03-02 17:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,10 +148,19 @@ public:
 
 	/*!
 	\build 默认无效化：对部件调用 InvalidateVisible 。
+	\return <tt>true</tt> 。
 	\since build 462
 	*/
 	static bool
 	DefaultInvalidate(IWidget&);
+
+	/*!
+	\build 默认无效化：对调用 IsEnabled 返回 true 的部件调用 InvalidateVisible 。
+	\return <tt>true</tt> 。
+	\since build 482
+	*/
+	static bool
+	DefaultInvalidateControl(IWidget&);
 };
 
 //! \relates InvalidationUpdater

@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3904
+\version r3908
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-01-19 16:55 +0800
+	2014-03-02 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -237,7 +237,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 		e.SetSender(*p);
 		ResponseCursorBase(e, op);
 		p = t;
-		e -= GetLocationOf(*p);
+		e.Position -= GetLocationOf(*p);
 	};
 
 	YAssert(p, "Null pointer found.");
@@ -248,7 +248,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 	e.Strategy = UI::RoutedEventArgs::Bubble;
 	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
 	{
-		e += GetLocationOf(*p);
+		e.Position += GetLocationOf(*p);
 		e.SetSender(*(p = pCon));
 		ResponseCursorBase(e, op);
 	}
@@ -327,7 +327,7 @@ GUIState::Wrap(IWidget& wgt)
 			{
 				if(p_CursorOver)
 					CallEvent<Leave>(*p_CursorOver, CursorEventArgs(
-						*p_CursorOver, e.Keys, e - LocateForWidget(wgt,
+						*p_CursorOver, e.Keys, e.Position - LocateForWidget(wgt,
 						*p_CursorOver)));
 				CallEvent<Enter>(e.GetSender(), CursorEventArgs(e));
 				p_CursorOver = &wgt;
@@ -370,11 +370,11 @@ GUIState::Wrap(IWidget& wgt)
 				TryEntering(CursorEventArgs(e));
 		//	else
 		//		TryLeaving(CursorEventArgs(*p_indp_focus, e.Keys,
-		//			e - LocateForWidget(wgt, *p_indp_focus)));
+		//			e.Position - LocateForWidget(wgt, *p_indp_focus)));
 			else if(entered)
 			{
 				CallEvent<Leave>(*p_indp_focus, CursorEventArgs(*p_indp_focus,
-					e.Keys, e - LocateForWidget(wgt, *p_indp_focus)));
+					e.Keys, e.Position - LocateForWidget(wgt, *p_indp_focus)));
 				entered = {};
 			}
 		}

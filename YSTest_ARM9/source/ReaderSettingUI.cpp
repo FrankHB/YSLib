@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r413
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2014-02-22 12:33 +0800
+	2014-03-02 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,6 +81,7 @@ SettingPanel::SettingPanel()
 	boxColor(Point(4, 80)), pColor(), current_encoding(),
 	scroll_duration(), smooth_scroll_duration()
 {
+	// NOTE: Values of durations keep uninitialized. Use carefully.
 	auto& node(dynWgts.WidgetNode);
 	DeclDynWidget(Panel, root, node)
 	DeclDynWidgetNode(Button, btnFontSizeDecrease)

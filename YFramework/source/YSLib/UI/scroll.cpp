@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3631
+\version r3635
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2013-12-23 23:53 +0800
+	2014-03-02 22:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,7 +106,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 		{
 			ScrollCategory t;
 
-			switch(CheckArea(e.GetRef(IsHorizontal())))
+			switch(CheckArea(e.Position.GetRef(IsHorizontal())))
 			{
 			case OnPrev:
 				t = ScrollCategory::LargeDecrement;
@@ -346,16 +346,16 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 	SetContainerPtrOf(btnPrev, this);
 	SetContainerPtrOf(btnNext, this);
 	yunseq(
-	FetchEvent<Resize>(*this) += [this](UIEventArgs&&){
+	FetchEvent<Resize>(*this) += [this](UIEventArgs&& e){
 		auto& track(GetTrack());
 		const bool is_h(track.IsHorizontal());
 		const SDst prev_metric(GetSizeOf(btnPrev).GetRef(is_h));
 		const SDst sum(prev_metric + GetSizeOf(btnNext).GetRef(is_h));
 
-		YAssert(GetSizeOf(*this).GetRef(is_h) - sum > 0,
+		YAssert(GetSizeOf(e.GetSender()).GetRef(is_h) - sum > 0,
 			"No enough space for track.");
 
-		const SDst tl(GetSizeOf(*this).GetRef(is_h) - sum);
+		const SDst tl(GetSizeOf(e.GetSender()).GetRef(is_h) - sum);
 
 		yunseq(track.GetView().GetSizeRef().GetRef(is_h) = tl,
 			btnNext.GetView().GetLocationRef().GetRef(is_h) = tl + prev_metric);

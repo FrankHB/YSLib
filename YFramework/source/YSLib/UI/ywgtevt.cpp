@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.cpp
 \ingroup UI
 \brief 标准部件事件定义。
-\version r161
+\version r170
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-12-23 23:24 +0800
+	2014-03-02 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,13 +48,22 @@ KeyEventArgs::KeyEventArgs(IWidget& wgt, const InputType& k, RoutingStrategy s)
 
 CursorEventArgs::CursorEventArgs(IWidget& wgt, const KeyInput& k,
 	const InputType& pt, RoutingStrategy s)
-	: InputEventArgs(wgt, k, s), MScreenPositionEventArgs(pt)
+	: InputEventArgs(wgt, k, s), Position(pt)
 {}
 
 
 CursorWheelEventArgs::CursorWheelEventArgs(IWidget& wgt, WheelDelta d,
 	const KeyInput& k, const InputType& pt, RoutingStrategy s)
 	: CursorEventArgs(wgt, k, pt, s), delta(d)
+{}
+
+
+TextInputEventArgs::TextInputEventArgs(IWidget& wgt, String str,
+	const KeyInput& k, RoutingStrategy s)
+	: InputEventArgs(wgt, k, s), Text(std::move(str))
+{}
+TextInputEventArgs::TextInputEventArgs(InputEventArgs e, String str)
+	: InputEventArgs(std::move(e)), Text(std::move(str))
 {}
 
 

@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6329
+\version r6333
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2014-02-25 00:20 +0800
+	2014-03-02 17:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,9 +135,10 @@ FetchWidgetLoader()
 		Init()
 		{
 			wgt_ldr.Bounds.Register<Widget, Control, Panel, Window, Label,
-				Button, CheckButton, RadioButton, DropDownList, FileBox>(
-				{"Widget", "Control", "Panel", "Window", "Label", "Button",
-				"CheckButton", "RadioButton", "DropDownList", "FileBox"});
+				Button, CheckButton, RadioButton, DropDownList, FileBox,
+				TextBox>({"Widget", "Control", "Panel", "Window", "Label",
+				"Button", "CheckButton", "RadioButton", "DropDownList",
+				"FileBox", "TextBox"});
 		}
 	} obj;
 

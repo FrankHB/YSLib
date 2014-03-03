@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2445
+\version r2449
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2014-02-08 22:33 +0800
+	2014-03-01 09:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,12 +81,12 @@
 #		define YB_IMPL_MSCPP _MSC_VER
 #	elif defined(__clang__)
 #		undef YB_IMPL_CLANGPP
-#		define YB_IMPL_CLANGPP (__clang__ * 10000 + __clang_minor__ * 100 \
-			+ __clang_patchlevel__)
+#		define YB_IMPL_CLANGPP \
+			(__clang__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
 #	elif defined(__GNUC__)
 #		undef YB_IMPL_GNUCPP
-#		define YB_IMPL_GNUCPP (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
-			+ __GNUC_PATCHLEVEL__)
+#		define YB_IMPL_GNUCPP \
+			(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #	else
 // TODO: Complete version checking for compiler and library implementations.
 //#ifdef __GNUC__

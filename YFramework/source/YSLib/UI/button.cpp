@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3262
+\version r3266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-02-23 20:16 +0800
+	2014-03-02 21:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,26 +91,26 @@ Thumb::Thumb(const Rect& r, NoBackgroundTag)
 	csCurrent(CursorState::Outside)
 {
 	yunseq(
-	FetchEvent<CursorOver>(*this) += [this](CursorEventArgs&&)
+	FetchEvent<CursorOver>(*this) += [this](CursorEventArgs&& e)
 	{
 		if(csCurrent == CursorState::Outside)
 		{
 			csCurrent = CursorState::Over;
-			Invalidate(*this);
+			Invalidate(e.GetSender());
 		}
 	},
 	FetchEvent<Enter>(*this) += [this](CursorEventArgs&& e){
 		if(!IsPressed() && e.Keys.any())
 		{
 			csCurrent = CursorState::Pressed;
-			Invalidate(*this);
+			Invalidate(e.GetSender());
 		}
 	},
 	FetchEvent<Leave>(*this) += [this](CursorEventArgs&& e){
 		if(csCurrent == CursorState::Over || (IsPressed() && e.Keys.any()))
 		{
 			csCurrent = CursorState::Outside;
-			Invalidate(*this);
+			Invalidate(e.GetSender());
 		}
 	}
 	);

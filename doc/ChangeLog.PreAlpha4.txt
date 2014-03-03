@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6369
+\version r6428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-02-27 20:54 +0800
+	2014-03-03 20:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,66 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ DLD "simplified" ^ "macros" @ "common window procedure"
+			@ "platform %MinGW32" @ %Helper.Host,
+		* "enumerator %Debug" @ "enum %Descriptions::RecordLevel"
+			@ %YCLib.YCommon $since b432
+			$= (/ '0x70' -> '0xE0'),
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ %YWidgetEvent $=
+				(
+					/ @ "class %CursorEventArgs" $=
+					(
+						/ "public inheritance %MScreenPositionEventArgs"
+							-> "member 'InputType Position;'",
+						+ "operator %InputType"
+					);
+					- "using alias %MScreenPositionEventArgs"
+				);
+				+ "static member function %DefaultInvalidateControl"
+					@ "class %InvalidationUpdater" @ %Animation,
+				/ %YWidgetEvent $=
+				(
+					+ "event %TextInput",
+					(
+					+ "class %TextInputEventArgs";
+					+ 'DeclDelegate(HTextInputEvent, TextInputEventArgs&&)'
+					);
+					+ 'DefEventTypeMapping(TextInput, HTextInputEvent)'
+				),
+				+ %TextBox
+					$= (+ "class %TextBox"),
+				/ "defaulted using sender" ~ "captured 'this'" @ "common event \
+					handlers symmetrically handled on senders and destinations \
+					where the sender and destination is the same widget" @ %UI
+					$= (/ '*this' -> 'e.GetSender()' @ "handlers capturing \
+						'this' and added to '*this'" @ "classes %(Thumb, \
+						DropDownList, Control, AScrollBar)"),
+					// See $2014-03 @ %Documentation::Workflow::Annual2014.
+				+ "function %IsFocusedCascade" @ %YFocus
+			),
+			+ "member function %Timer::(RefreshDelta, RefreshRemainder)"
+				@ %Service.YTimer
+		),
+		(
+		$dep_from %YSLib.UI.TextBox;
+		+ "include 'YFM_YSLib_UI_TextBox'" @ %YSBuild
+		)
+	),
+	/ %'YReader' $=
+	(
+		+ "%TextBox support" @ "function %FetchWidgetLoader" @ %Shells;
+		+ "test for %TextBox" @ %ShlExplorer
+	)
+),
+
+b481
 (
 	/ %YFramework $=
 	(

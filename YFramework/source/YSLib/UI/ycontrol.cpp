@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3891
+\version r3895
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2014-02-18 01:01 +0800
+	2014-03-02 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,14 +202,14 @@ Control::Control(const Rect& r, NoBackgroundTag)
 	BoundControlPtr(std::bind(&Control::GetBoundControlPtr, this,
 		std::placeholders::_1))
 {
-	const auto h([this](UIEventArgs&&){
-		Invalidate(*this);
+	const auto h([](UIEventArgs&& e){
+		Invalidate(e.GetSender());
 	});
 
 	FetchGUIState().Wrap(*this),
 	yunseq(
-	FetchEvent<Move>(*this) += [this](UIEventArgs&&){
-		InvalidateParent(*this);
+	FetchEvent<Move>(*this) += [](UIEventArgs&& e){
+		InvalidateParent(e.GetSender());
 	},
 	FetchEvent<Resize>(*this) += h,
 	FetchEvent<GotFocus>(*this) += h,

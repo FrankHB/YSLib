@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3505
+\version r3507
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2013-12-24 09:36 +0800
+	2014-03-02 13:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,7 +75,7 @@ enum RecordLevel : std::uint8_t
 	Warning = 0x80,
 	Notice = 0xA0,
 	Informative = 0xC0,
-	Debug = 0x70
+	Debug = 0xE0
 };
 
 } // namespace Descriptions;

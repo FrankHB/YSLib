@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1104
+\version r1110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-02-25 10:26 +0800
+	2014-03-02 18:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -174,6 +174,8 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 		($type "Button")($bounds "8 32 104 22"))
 	(lblDragTest
 		($type "Label")($bounds "4 4 104 22"))
+	(tbTest
+		($type "TextBox")($bounds "116 4 104 22"))
 	(btnTestEx
 		($type "Button")($bounds "116 32 104 22"))
 	(btnTestAni
@@ -241,6 +243,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidget(Panel, pnlTest1, node_pnlTest1)
 	DeclDynWidgetN(Label, lblDragTest, node_pnlTest1)
 	DeclDynWidgetN(Button, btnEnterTest, node_pnlTest1)
+	DeclDynWidgetN(TextBox, tbTest, node_pnlTest1)
 	DeclDynWidgetN(Button, btnTestEx, node_pnlTest1)
 	DeclDynWidgetN(Button, btnTestAni, node_pnlTest1)
 	DeclDynWidgetN(CheckButton, cbDisableSetting, node_pnlTest1)
@@ -282,6 +285,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 #else
 	btnMenu.Text = u"菜单(Start)",
 #endif
+	tbTest.Text = u"测试文本",
 	ddlStyle.Text = [](const TextList::ListType& lst){
 		const auto& name(FetchGUIState().Styles.GetCurrent()->first);
 
@@ -432,13 +436,13 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	FetchEvent<Enter>(btnEnterTest) += [](CursorEventArgs&& e){
 		auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
-		btn.Text = u"Enter: " + String(to_string(e));
+		btn.Text = u"Enter: " + String(to_string(e.Position));
 		Invalidate(btn);
 	},
 	FetchEvent<Leave>(btnEnterTest) += [](CursorEventArgs&& e){
 		auto& btn(ystdex::polymorphic_downcast<Button&>(e.GetSender()));
 
-		btn.Text = u"Leave: " + String(to_string(e));
+		btn.Text = u"Leave: " + String(to_string(e.Position));
 		Invalidate(btn);
 	},
 	mhMain.Roots[&btnMenu] = 1u,

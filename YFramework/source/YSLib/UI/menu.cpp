@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1156
+\version r1178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-02-22 14:54 +0800
+	2014-03-02 21:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,13 +58,13 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 				if(k[KeyCodes::Right])
 				{
 					if(IsSelected())
-						if(const auto pMnu = ShowSub(GetSelectedIndex()))
-							pMnu->SelectFirst();
+						if(const auto p_mnu = ShowSub(GetSelectedIndex()))
+							p_mnu->SelectFirst();
 				}
 				else if(k[KeyCodes::Left] || k[KeyCodes::Esc])
 				{
-					if(const auto pMnu = GetParentPtr())
-						RequestFocus(*pMnu);
+					if(const auto p_mnu = GetParentPtr())
+						RequestFocus(*p_mnu);
 					else if(k[KeyCodes::Esc])
 						Hide();
 				}
@@ -79,18 +79,18 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 
 				if(i != pHost->Roots.end())
 				{
-					auto pMnu(this);
+					auto p_mnu(this);
 
-					while(const auto pParent = pMnu->GetParentPtr())
-						pMnu = pParent;
-					if(i->second == pMnu->id)
+					while(const auto pParent = p_mnu->GetParentPtr())
+						p_mnu = pParent;
+					if(i->second == p_mnu->id)
 						return;
 				}
 			}
-			if(const auto pMnu = dynamic_cast<Menu*>(&e.GetSender()))
+			if(const auto p_mnu = dynamic_cast<Menu*>(&e.GetSender()))
 			{
-				if(pMnu->GetParentPtr() != this)
-					pHost->HideUnrelated(*this, *pMnu);
+				if(p_mnu->GetParentPtr() != this)
+					pHost->HideUnrelated(*this, *p_mnu);
 			}
 			else
 				pHost->HideAll();
@@ -314,9 +314,9 @@ MenuHost::ShowAll(ZOrderType z)
 	using ystdex::get_value;
 
 	std::for_each(mMenus.cbegin() | get_value, mMenus.cend() | get_value,
-		[this, z](const ItemType& pMnu){
-		if(pMnu)
-			ShowRaw(*pMnu, z);
+		[this, z](const ItemType& p_mnu){
+		if(p_mnu)
+			ShowRaw(*p_mnu, z);
 	});
 }
 
@@ -344,9 +344,9 @@ MenuHost::HideAll()
 	using ystdex::get_value;
 
 	std::for_each(mMenus.cbegin() | get_value, mMenus.cend() | get_value,
-		[this](const ItemType& pMnu){
-		if(pMnu)
-			HideRaw(*pMnu);
+		[this](const ItemType& p_mnu){
+		if(p_mnu)
+			HideRaw(*p_mnu);
 	});
 }
 
@@ -364,17 +364,17 @@ MenuHost::HideUnrelated(Menu& mnu, Menu& mnuParent)
 {
 	if(Contains(mnuParent))
 	{
-		auto pMnu(&mnu);
+		auto p_mnu(&mnu);
 
-		while(pMnu && pMnu != &mnuParent)
+		while(p_mnu && p_mnu != &mnuParent)
 		{
-			const auto i(mMenus.find(pMnu->GetID()));
+			const auto i(mMenus.find(p_mnu->GetID()));
 
 			if(i != mMenus.end())
 				HideRaw(*i->second);
-			pMnu = pMnu->GetParentPtr();
+			p_mnu = p_mnu->GetParentPtr();
 		}
-		if(!pMnu)
+		if(!p_mnu)
 			HideAll();
 	}
 	else

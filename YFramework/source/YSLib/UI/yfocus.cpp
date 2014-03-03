@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r568
+\version r583
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2013-12-23 23:20 +0800
+	2014-03-03 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,6 +103,22 @@ ClearFocusingOf(IWidget& wgt)
 		wgt.GetView().FocusingPtr = {};
 		CallEvent<LostFocus>(*p, UIEventArgs(wgt));
 	}
+}
+
+bool
+IsFocusedCascade(const IWidget& wgt, const IWidget* p_top)
+{
+	auto p_wgt(&wgt);
+
+	while(auto p_con = FetchContainerPtr(*p_wgt)) 
+	{
+		if(p_con == p_top)
+			break;
+		if(FetchFocusingPtr(*p_con) != p_wgt)
+			return false;
+		p_wgt = p_con;
+	}
+	return true;
 }
 
 void

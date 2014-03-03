@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1002
+\version r1019
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2013-12-24 10:08 +0800
+	2014-03-02 23:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,6 +140,24 @@ public:
 	*/
 	bool
 	Refresh();
+
+	/*!
+	\brief 刷新：对于非零时间间隔判断有效性并都更新时间基点。
+	\pre <tt>Interval != Duration::zero()</tt> 。
+	\return 当前时刻达到基点前的时间间隔。
+	\since build 482
+	*/
+	Duration
+	RefreshDelta();
+
+	/*!
+	\brief 刷新：对于非零时间间隔判断有效性并都更新时间基点。
+	\pre <tt>Interval != Duration::zero()</tt> 。
+	\return 当前时刻达到基点前的时间间隔于最小时间间隔的余数。
+	\since build 482
+	*/
+	Duration
+	RefreshRemainder();
 };
 
 /*!

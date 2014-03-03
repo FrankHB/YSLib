@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r186
+\version r201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-02-23 01:54 +0800
+	2014-03-02 22:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,6 +183,23 @@ There are some issues against aggresive optimization of moving an object in seve
 	There was no consensus for the suggested change for other contexts. See N3690 comment US 12 .
 	Therefore, explicitly use of 'std::move' and 'std::move_if_noexcept' only should occured when necessary.
 'YSTest402r16.nds' cases DeSmuME 0.9.9 x64 crash for unknown reasons.
+
+
+$2014-03:
+report.impl:
+Now for YSLib::UI, the default UI event handlers treat the senders to be processed instead of destination widgets where the identity of the sender and the destination widget is true.
+	The old rules mean 'this == e.GetSender()' is always true for calling of some events in implementation of YSLib::UI.
+		There is no guarantee or guildlines to specify either sender or destination widgets to be used actually in the hanlders in or not in implementation of YSLib::UI.
+	The new rules mean senders should always to be considered to be processed at first.
+		Actually, the senders are the widgets to be process as possible as it can, i.e. if no dynamic cast needed, 'e.GetSender()' is used instead of '*this' in implementation of YSLib::UI.
+	User-provided handlers now can use this assumption to transfer different senders.
+	Note that for user-called event, 'this == e.GetSender()' might be false.
+	For source different than destination like close button in 'DialogPanel' or widget in 'HoverUpdater', this transformation is obviously not correct for logical reason.
+Note that default constructor of instances of 'std::chrono::duration' and similar types are defaulted.
+	The underlying values might not always be initialized if there default-initialization is no initialization(see ISO C++ 8.5.3 for details).
+	Use interface like 'std::chrono::duration_value::zero()' to get specific zero values.
+	Currently there are several use of these types with explicitly default-initialization, which is indeterminated, but not direct used before assignment.
+	Consider to use explicit initialization in class definitions to emphasize they are already initialized, if necessary.
 
 
 ////

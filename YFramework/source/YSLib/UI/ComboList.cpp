@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3163
+\version r3166
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2014-02-22 14:53 +0800
+	2014-03-02 21:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,7 +194,8 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 		{
 			Point pt;
 
-			if(const auto p = dynamic_cast<Panel*>(&FetchTopLevel(*this, pt)))
+			if(const auto p
+				= dynamic_cast<Panel*>(&FetchTopLevel(e.GetSender(), pt)))
 			{
 				// NOTE: Get height of top widget, top and bottom spaces.
 				const SDst h0(GetSizeOf(*p).Height);
@@ -233,7 +234,7 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 		YAssert(e.Value < lbContent.GetList().size(), "Invalid index found.");
 
 		Text = lbContent.GetList()[e.Value];
-		Invalidate(*this),
+		Invalidate(e.GetSender()),
 		DetachTopWidget();
 	}
 	);
