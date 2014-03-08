@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3039
+\version r3049
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-02-08 12:02 +0800
+	2014-03-04 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,19 @@ namespace ystdex
 \ingroup iterators
 \brief 迭代器适配器。
 */
+
+
+/*!
+\ingroup metafunctions
+\brief 选择迭代器类型的特定重载避免和其它类型冲突。
+\sa enable_if_t
+\since build 483
+*/
+template<typename _tParam, typename = yimpl(std::pair<
+	decltype(*std::declval<_tParam&>()), decltype(++std::declval<_tParam&>())>)>
+using enable_for_iterator_t = enable_if_t<
+	is_same<decltype(++std::declval<_tParam&>()), _tParam&>::value, int>;
+
 
 /*!	\defgroup iterator_operations Iterator Operations
 \ingroup iterators

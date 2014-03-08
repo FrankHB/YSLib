@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3166
+\version r3168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2014-03-02 21:11 +0800
+	2014-03-07 11:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,8 +180,9 @@ DropDownList::DropDownList(const Rect& r, const shared_ptr<ListType>& h)
 	: Button(r),
 	lbContent({}, h)
 {
-	const auto detacher([this](UIEventArgs&&){
-		DetachTopWidget();
+	const auto detacher([this](UIEventArgs&& e){
+		if(!dynamic_cast<RoutedEventArgs*>(&e))
+			DetachTopWidget();
 	});
 
 	yunseq(

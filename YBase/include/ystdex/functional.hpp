@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r883
+\version r884
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-02-16 23:58 +0800
+	2014-03-08 02:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -470,7 +470,7 @@ unref(const std::reference_wrapper<_type>& x) ynothrow
 \warning 实现（ Boost 文档作为 Effects ）可能改变，不应作为接口依赖。
 */
 template<typename _type>
-yconstfn void
+inline void
 hash_combine(size_t& seed, const _type& val)
 {
 	seed ^= std::hash<_type>()(val) + 0x9E3779B9 + (seed << 6) + (seed >> 2);

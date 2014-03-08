@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式无关的用户界面文本框。
-\version r91
+\version r119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-03-03 19:32 +0800
+	2014-03-07 16:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,37 @@ namespace UI
 {
 
 /*!
+\brief 插入符光标。
+\since build 483
+*/
+class YF_API Caret final
+{
+private:
+	//! \brief 插入符闪烁动画。
+	static GAnimationSession<InvalidationUpdater> caret_animation;
+
+public:
+	//! \brief 决定是否显示插入符的计时器。
+	Timers::Timer CaretTimer{std::chrono::seconds(1)};
+
+	/*!
+	\brief 构造：注册插入符光标动画的事件处理器。
+	\note 通过 GotFocus 事件启动动画，通过 OnLostFocus 停止动画。
+	*/
+	Caret(IWidget&);
+	~Caret();
+
+	//! \brief 检查是否需要对指定部件进行绘制。
+	bool
+	Check(IWidget&);
+
+	//! \brief 停止插入符光标动画。
+	static void
+	Stop();
+};
+
+
+/*!
 \brief 文本框。
 \sa Label
 \since build 482
@@ -62,12 +93,10 @@ public:
 	size_t YOffset = 0;
 	//! \brief 插入符画刷。
 	HBrush CaretBrush;
-	//! \brief 决定是否显示插入符的计时器。
-	Timers::Timer CaretTimer{std::chrono::seconds(1)};
 
 private:
-	//! brief 插入符闪烁动画。
-	GAnimationSession<InvalidationUpdater> caret_animation;
+	//! brief 插入符光标。
+	Caret caret;
 
 public:
 	//! \brief 构造：使用指定边界和字体。

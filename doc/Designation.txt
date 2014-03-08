@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9131
+\version r9132
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-02-27 13:38 +0800
+	2014-03-04 13:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -232,6 +232,7 @@ Shell 和 Core 的关系是相对的，例如：
  _tSeq ：表示序列的类型参数（一般需要是类类型；注意可以是元类型的实例，而不一定是容器类型）。
  _tScalar ：标量类型（和向量类型相对；注意不一定是 ISO C++ 定义的标量类型，即不需要保证满足 std::is_scalar 类型特征）；
  _fPred ：谓词函数类型；
+ _tIter ：迭代器类型；
  _tIn ：输入迭代器类型；
  _tOut ：输出迭代器类型；
  _tFwd ：前向迭代器类型；

@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r505
+\version r519
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-02-10 21:43 +0800
+	2014-03-04 14:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,20 +40,31 @@ namespace ystdex
 
 /*!
 \brief 字符串特征。
-\note 支持字符类型指针表示的 C 风格字符串和随机序列容器（含 basic_string ）字符串。
+\note 支持字符类型指针表示的 C 风格字符串和随机序列容器及 std::basic_string 。
 \since build 304
 */
 template<typename _tString>
 struct string_traits
 {
-	using string_type = remove_reference_t<_tString>;
-	using value_type
-		= typename remove_rcv<decltype(std::declval<string_type>()[0])>::type;
+	using string_type = decay_t<_tString>;
+	using value_type = remove_rcv_t<decltype(std::declval<string_type>()[0])>;
 	using traits_type = typename std::char_traits<value_type>;
 	using pointer = value_type*;
 	using const_pointer = const value_type*;
 	using initializer = std::initializer_list<value_type>;
 };
+
+
+/*!
+\ingroup metafunctions
+\brief 选择字符串类类型的特定重载避免和其它非字符串类型冲突。
+\sa enable_if_t
+\since build 483
+*/
+template<typename _tParam,
+	typename = yimpl(decltype(std::declval<_tParam>()[0]))>
+using enable_for_string_class_t
+	= enable_if_t<is_class<decay_t<_tParam>>::value, int>;
 
 
 /*!	\defgroup string_algorithms String Algorithms

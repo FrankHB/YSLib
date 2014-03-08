@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6428
+\version r6510
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-03-03 20:22 +0800
+	2014-03-08 08:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,88 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YBase.StandardEx $=
+	(
+		/ %String $=
+		(
+			/ "using alias %string_type" @ "traits %string_traits" ^ "%decay_t"
+				~ "%remove_reference_t",
+			+ "metafunction %enable_string_class_t"
+		),
+		+ "metafunction %enable_for_iterator_t" @ %Iterator,
+		* "missing workaround for Visual C++" @ "move constructor"
+			@ "class %cloneable" @ %Utilities $since b475,
+		* $revert(b467) "wrong 'yconstfn' for function template %hash_combine"
+			@ %Functional $since b467
+	),
+	/ %YFramework.YSLib $=
+	(
+		/ %Adaptor.Image $=
+		(
+			$dep_from %YBase.YStandardEx.String;
+			/ DLD "selection of string parameters for member overloads"
+				@ "class %HBitmap" ^ 'ystdex::enable_string_class_t',
+			/ "selection of string parameters for member overloads"
+				@ "class %HMultiBitmap" $=
+			(
+				// If the parameter is a character type
+				^ DLD 'ystdex::enable_string_class_t',
+				* $comp "non overloaded non-class argument selected for \
+					infinite recursion" ~ "translation-time diagnostics"
+					$since build 471
+			)
+			/ "selection of string parameters for overloads"
+				@ "%ImageCodec::LoadForPlaying" $=
+			(
+				^ DLD 'ystdex::enable_string_class_t',
+				* $comp "non overloaded non-class argument selected for \
+					infinite recursion" ~ "translation-time diagnostics"
+					$since build 458
+			)
+		),
+		/ %Service $=
+		(
+			$dep_from %YBase.YStandardEx.Iterator;
+			/ "all function templates accepting input iterator"
+				@ %(TextRenderer, TextLayout) -> "function templates acception \
+				iterator" ^ 'ystdex::enable_for_iterator_t',
+			/ "all" ("function templates accepting %String"
+				@ %(TextRenderer, TextLayout)
+				"inline functions %FetchStringWidth" @ %TextLayout)
+				-> "function templates acception string class template argument"
+				^ 'ystdex::enable_for_string_class_t', ('[0]' ~ .c_str()'')
+		),
+		/ %UI $=
+		(
+			/ DLD "functions %(RequestFocus, ReleaseFocus)" @ %YFocus
+				^ "macros %(PDefH, ImplExpr)",
+			(
+			/ @ "static assertion" @ "function template %CallEvent to allow \
+				event argument conversion" @ %YControl;
+				// Now the argument is of polymorphic type, so different type \
+					of argument should be availableb.
+			/ @ "class %GUIState" @ %YGUI $=
+			(
+				/ $dev "made explicit use of '{}' for private states and \
+					simplified the implementation of the default constructor",
+				+ "cascade focus with events %(LostFocus, GotFocus) for direct \
+					routing event hanling support",
+				/ "filter out widget that is invisible or not enabled for key \
+					route events" @ "member function %ResponseKey"
+			);
+			/ "ignored event %LostFocus when the dynamic type of the event \
+				argument is convervtible to %RoutedEventArgs"
+				@ "class %DropDownList" %ComboList,
+			+ "class %Caret" @ %TextBox
+				// This makes more efficient for caret blink with cascade \
+					focus event hanlding support.
+			)
+		)
+	)
+),
+
+b482
 (
 	/ %YFramework $=
 	(
@@ -1365,7 +1447,7 @@ b458
 						%_MT is defined. Note this is a breaking change \
 						because for MinGW32 because now user should use \
 						'-mthreads' in the compiler command line, otherwise \
-						YF_Multithread would not indicate a multithreaded \
+						%YF_Multithread would not indicate a multithreaded \
 						environment.
 				)
 			),

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1724
+\version r1731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-02-25 09:36 +0800
+	2014-03-07 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,7 +147,14 @@ public:
 	//@{
 	cloneable() = default;
 	cloneable(const cloneable&) = default;
+#if YB_IMPL_MSCPP
+	//! \since build 483 as workaround for Visual C++ 2013
+	cloneable(cloneable&&)
+	{};
+#else
 	cloneable(cloneable&&) = default;
+#endif
+#else
 	//@}
 #endif
 	virtual cloneable*

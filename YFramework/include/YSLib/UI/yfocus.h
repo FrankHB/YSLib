@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1736
+\version r1748
 \author FrankHB <frankhb1989@gmail.com>
 \since build 168
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-03-03 19:51 +0800
+	2014-03-06 13:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ IsFocused(const IWidget&);
 /*!
 \brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
 \param release_event 是否在需要释放已有焦点时触发事件。
-\return 是否成功。
+\return 是否成功改变了焦点。
 \since build 315
 */
 YF_API bool
@@ -54,7 +54,7 @@ DoRequestFocus(IWidget&, bool release_event = {});
 
 /*!
 \brief 释放焦点，并指定 LostFocus 事件发送控件。
-\return 是否成功。
+\return 是否成功改变了焦点。
 \since build 315
 */
 YF_API bool
@@ -82,21 +82,15 @@ ReleaseFocusFrom(IWidget& dst, IWidget& src);
 \ingroup helper_functions
 \brief 向部件容器释放获得焦点，成功后向自身发送 GotFocus 事件。
 */
-inline void
-RequestFocus(IWidget& wgt)
-{
-	RequestFocusFrom(wgt, wgt);
-}
+inline PDefH(void, RequestFocus, IWidget& wgt)
+	ImplExpr(RequestFocusFrom(wgt, wgt))
 
 /*!
 \ingroup helper_functions
 \brief 释放焦点，成功后向自身发送 LostFocus 事件。
 */
-inline void
-ReleaseFocus(IWidget& wgt)
-{
-	ReleaseFocusFrom(wgt, wgt);
-}
+inline PDefH(void, ReleaseFocus, IWidget& wgt)
+	ImplExpr(ReleaseFocusFrom(wgt, wgt))
 
 /*!
 \brief 清除焦点指针并以此部件作为事件源调用被清除焦点部件的 LostFocus 事件。

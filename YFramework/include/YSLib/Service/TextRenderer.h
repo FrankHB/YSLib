@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2817
+\version r2877
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-12-23 23:00 +0800
+	2014-03-04 13:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,11 +44,12 @@ namespace Drawing
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
 \note 迭代直至字符串结束符。
-\since build 190
+\since build 483
 */
-template<typename _tIn, class _tRenderer>
-_tIn
-PrintLine(_tRenderer& r, _tIn s)
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PrintLine(_tRenderer& r, _tIter s)
 {
 	while(*s != 0 && *s != '\n')
 	{
@@ -65,11 +66,12 @@ PrintLine(_tRenderer& r, _tIn s)
 \param c 指向迭代终止的字符。
 \return 指向结束位置的迭代器。
 \note 迭代直至 g 指定的位置或指定位置的字符为 c 。
-\since build 251
+\since build 483
 */
-template<typename _tIn, class _tRenderer>
-_tIn
-PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PrintLine(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
 {
 	while(s != g && ucs4_t(*s) != c && *s != '\n')
 	{
@@ -83,13 +85,14 @@ PrintLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 \param r 使用的字符渲染器。
 \param str 被输出的字符串。
 \return 打印字符数。
-\since build 190
+\since build 483
 */
-template<class _tRenderer>
+template<class _tRenderer, class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline String::size_type
-PrintLine(_tRenderer& r, const String& str)
+PrintLine(_tRenderer& r, const _tString& str)
 {
-	return PrintLine(r, str.c_str()) - str.c_str();
+	return PrintLine(r, &str[0]) - &str[0];
 }
 
 /*!
@@ -99,11 +102,12 @@ PrintLine(_tRenderer& r, const String& str)
 \return 指向结束位置的迭代器。
 \note 迭代直至字符串结束符。
 \note 当行内无法容纳完整字符时换行。
-\since build 190
+\since build 483
 */
-template<typename _tIn, class _tRenderer>
-_tIn
-PutLine(_tRenderer& r, _tIn s)
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PutLine(_tRenderer& r, _tIter s)
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.Pen.Y);
@@ -122,11 +126,12 @@ PutLine(_tRenderer& r, _tIn s)
 \return 指向结束位置的迭代器。
 \note 迭代直至 g 指定的位置或指定位置的字符为 c 。
 \note 当行内无法容纳完整字符时换行。
-\since build 251
+\since build 483
 */
-template<typename _tIn, class _tRenderer>
-_tIn
-PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PutLine(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
 {
 	TextState& ts(r.GetTextState());
 	const SPos fpy(ts.Pen.Y);
@@ -142,13 +147,14 @@ PutLine(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 \param str 被输出的字符串。
 \return 打印字符数。
 \note 当行内无法容纳完整字符时换行。
-\since build 190
+\since build 483
 */
-template<class _tRenderer>
+template<class _tRenderer, class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline String::size_type
-PutLine(_tRenderer& r, const String& str)
+PutLine(_tRenderer& r, const _tString& str)
 {
-	return PutLine(r, str.c_str()) - str.c_str();
+	return PutLine(r, &str[0]) - &str[0];
 }
 
 /*!
@@ -157,11 +163,12 @@ PutLine(_tRenderer& r, const String& str)
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
 \note 迭代直至字符串结束符。
-\since build 190
+\since build 483
 */
-template<typename _tIn, class _tRenderer>
-_tIn
-PrintString(_tRenderer& r, _tIn s)
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PrintString(_tRenderer& r, _tIter s)
 {
 	while(*s != 0 && *s != '\n')
 		PrintChar(r, *s++);
@@ -175,11 +182,12 @@ PrintString(_tRenderer& r, _tIn s)
 \param c 指向迭代终止的字符。
 \return 指向结束位置的迭代器。
 \note 迭代直至 g 指定的位置或指定位置的字符为 c 。
-\since build 251
+\since build 483
 */
-template<typename _tIn, class _tRenderer>
-_tIn
-PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PrintString(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
 {
 	while(s != g && ucs4_t(*s) != c && *s != '\n')
 		PrintChar(r, *s++);
@@ -190,13 +198,14 @@ PrintString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 \param r 使用的字符渲染器。
 \param str 被输出的字符串。
 \return 打印字符数。
-\since build 190
+\since build 483
 */
-template<class _tRenderer>
+template<class _tRenderer, class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline String::size_type
-PrintString(_tRenderer& r, const String& str)
+PrintString(_tRenderer& r, const _tString& str)
 {
-	return PrintString(r, str.c_str()) - str.c_str();
+	return PrintString(r, &str[0]) - &str[0];
 }
 
 /*!
@@ -206,11 +215,12 @@ PrintString(_tRenderer& r, const String& str)
 \return 指向结束位置的迭代器。
 \note 迭代直至字符串结束符。
 \note 当行内无法容纳完整字符时换行。
-\since build 190
+\since build 483
 */
-template<typename _tIn, class _tRenderer>
-_tIn
-PutString(_tRenderer& r, _tIn s)
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PutString(_tRenderer& r, _tIter s)
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
@@ -229,11 +239,12 @@ PutString(_tRenderer& r, _tIn s)
 \return 指向结束位置的迭代器。
 \note 迭代直至 g 指定的位置或指定位置的字符为 c 。
 \note 当行内无法容纳完整字符时换行。
-\since build 251
+\since build 483
 */
-template<typename _tIn, class _tRenderer>
-_tIn
-PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
+template<typename _tIter, class _tRenderer,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+_tIter
+PutString(_tRenderer& r, _tIter s, _tIter g, ucs4_t c = {})
 {
 	TextState& ts(r.GetTextState());
 	const SPos mpy(FetchLastLineBasePosition(ts, r.GetHeight()));
@@ -249,13 +260,14 @@ PutString(_tRenderer& r, _tIn s, _tIn g, ucs4_t c = {})
 \param str 被输出的字符串。
 \return 打印字符数。
 \note 当行内无法容纳完整字符时换行。
-\since build 190
+\since build 483
 */
-template<class _tRenderer>
+template<class _tRenderer, class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline String::size_type
-PutString(_tRenderer& r, const String& str)
+PutString(_tRenderer& r, const _tString& str)
 {
-	return PutString(r, str.c_str()) - str.c_str();
+	return PutString(r, &str[0]) - &str[0];
 }
 
 

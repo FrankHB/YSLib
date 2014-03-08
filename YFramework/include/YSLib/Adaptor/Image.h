@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r790
+\version r820
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-02-23 15:30 +0800
+	2014-03-04 12:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,7 +151,9 @@ public:
 
 //! \since build 417
 //@{
-//! \brief 未知图像格式异常：表示请求的操作涉及的图像格式因为不明确而不受库的支持。
+/*!
+\brief 未知图像格式异常：表示请求的操作涉及的图像格式因为不明确而不受库的支持。
+*/
 class YF_API UnknownImageFormat : public UnsupportedImageFormat
 {
 public:
@@ -281,7 +283,7 @@ public:
 	//! \brief 构造：使用指定 UTF-8 文件名、指定格式和解码器标识。
 	HBitmap(const char*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
-	/*
+	/*!
 	\brief 构造：使用指定 UCS-2 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
@@ -289,23 +291,23 @@ public:
 	//! \brief 构造：使用指定 UCS-2 文件名、指定格式和解码器标识。
 	HBitmap(const char16_t*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
-	/*
+	/*!
 	\brief 构造：使用指定字符串文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
-	\since build 471
+	\since build 483
 	*/
-	template<class _tString, typename = decltype(&_tString()[0]),
-		typename = ystdex::enable_if_t<std::is_class<_tString>::value>>
+	template<class _tString,
+		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 	HBitmap(const _tString& filename,
 		ImageDecoderFlags = ImageDecoderFlags::Default)
 		: HBitmap(&filename[0])
 	{}
 	/*!
 	\brief 构造：使用指定字符串文件名和解码器标识。
-	\since build 471
+	\since build 483
 	*/
-	template<class _tString, typename = decltype(&_tString()[0]),
-		typename = ystdex::enable_if_t<std::is_class<_tString>::value>>
+	template<class _tString,
+		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 	HBitmap(const _tString& filename, ImageFormat fmt,
 		ImageDecoderFlags = ImageDecoderFlags::Default)
 		: HBitmap(&filename[0], fmt)
@@ -426,10 +428,10 @@ public:
 		ImageDecoderFlags = ImageDecoderFlags::Default) const ynothrow;
 	/*!
 	\brief 保存：使用指定字符串文件名、格式和解码器标识。
-	\since build 471
+	\since build 483
 	*/
-	template<class _tString, typename = decltype(&_tString()[0]),
-		typename = ystdex::enable_if_t<std::is_class<_tString>::value>>
+	template<class _tString,
+		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 	bool
 	SaveTo(const _tString& filename, ImageFormat fmt = ImageFormat::BMP,
 		ImageDecoderFlags flags = ImageDecoderFlags::Default) const
@@ -513,7 +515,7 @@ public:
 	\since build 457
 	*/
 	//@{
-	/*
+	/*!
 	\brief 构造：使用指定 UTF-8 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
@@ -521,7 +523,7 @@ public:
 	//! \brief 构造：使用指定 UTF-8 文件名、指定格式和解码器标识。
 	HMultiBitmap(const char*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
-	/*
+	/*!
 	\brief 构造：使用指定 UCS-2 文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
@@ -530,21 +532,26 @@ public:
 	//! \brief 构造：使用指定 UCS-2 文件名、指定格式和解码器标识。
 	HMultiBitmap(const char16_t*, ImageFormat,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
-	/*
+	//! \since build 483
+	//@{
+	/*!
 	\brief 构造：使用指定字符串文件名和解码器标识。
 	\throw UnknownImageFormat 未知图像格式。
 	*/
-	template<class _tString, typename = decltype(&_tString()[0])>
+	template<class _tString,
+		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 	HMultiBitmap(const _tString& filename,
 		ImageDecoderFlags flags = ImageDecoderFlags::Default)
 		: HMultiBitmap(&filename[0], flags)
 	{}
 	//! \brief 构造：使用指定字符串文件名和解码器标识。
-	template<class _tString, typename = decltype(&_tString()[0])>
+	template<class _tString,
+		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 	HMultiBitmap(const _tString& filename, ImageFormat fmt,
 		ImageDecoderFlags flags = ImageDecoderFlags::Default)
 		: HMultiBitmap(&filename[0], fmt, flags)
 	{}
+	//@}
 	//@}
 	DefDeCopyCtor(HMultiBitmap)
 	DefDeMoveCtor(HMultiBitmap)
@@ -657,8 +664,12 @@ public:
 	//! \note 使用指定 UCS-2 文件名。
 	static HMultiBitmap
 	LoadForPlaying(const char16_t*);
-	//! \brief 构造：使用指定字符串文件名。
-	template<class _tString, typename = decltype(&_tString()[0])>
+	/*!
+	\brief 构造：使用指定字符串文件名。
+	\since build 483
+	*/
+	template<class _tString,
+		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 	static HMultiBitmap
 	LoadForPlaying(const _tString& filename)
 	{

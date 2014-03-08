@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2082
+\version r2099
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-01-19 16:54 +0800
+	2014-03-07 15:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,17 +133,22 @@ private:
 	\brief 光标设备指针对应的部件。
 	\since build 422
 	*/
-	IWidget* p_CursorOver;
+	IWidget* p_CursorOver = {};
 	/*!
-	\brief 独立焦点指针：自由状态时即时输入（按下）状态捕获的控件指针。
+	\brief 独立焦点指针：自由状态时即时输入（按下）状态捕获的部件指针。
 	\since build 464
 	*/
-	IWidget* p_indp_focus;
+	IWidget* p_indp_focus = {};
+	/*!
+	\brief 级联焦点指针：缓冲最后一次通过直接策略路由事件的进入的部件状态。
+	\since build 483
+	*/
+	IWidget* p_cascade_focus = {};
 	/*!
 	\brief 记录按键时的光标是否在部件内部。
 	\since build 422
 	*/
-	bool entered;
+	bool entered = {};
 
 public:
 	GUIState() ynothrow;
@@ -175,6 +180,15 @@ public:
 	void
 	CleanupReferences(IWidget&);
 
+private:
+	/*!
+	\brief 处理级联焦点指针，保证指向的部件具有焦点。
+	\since build 483
+	*/
+	void
+	HandleCascade(RoutedEventArgs&, IWidget&);
+
+public:
 	/*!
 	\brief 复位图形用户界面状态。
 	\note 需要在没有销毁时自动释放焦点的相关控件对象被销毁后立即调用，

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4747
+\version r4749
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-01-19 22:54 +0800
+	2014-03-07 10:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,7 @@ FetchEvent(IWidget& wgt)
 
 /*!
 \brief 调用部件事件，并忽略 BadEvent 异常。
-\note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
+\pre 事件参数需可转换为 EventTypeMapping 的 EventType 。
 \note 若控件事件不存在则忽略。
 */
 template<VisualEvent _vID, typename _tEventArgs>
@@ -139,7 +139,7 @@ inline size_t
 CallEvent(IWidget& wgt, _tEventArgs&& e)
 {
 	using HandlerType = typename EventTypeMapping<_vID>::HandlerType;
-	static_assert(std::is_same<ystdex::remove_reference_t<_tEventArgs>,
+	static_assert(std::is_convertible<ystdex::remove_reference_t<_tEventArgs>,
 		ystdex::remove_reference_t<typename EventArgsHead<typename
 		HandlerType::TupleType>::type>>::value,
 		"Invalid event argument type found @ CallEvent;");

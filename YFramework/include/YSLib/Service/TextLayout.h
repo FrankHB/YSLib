@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2636
+\version r2667
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-12-24 09:22 +0800
+	2014-03-04 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,11 +99,12 @@ FetchCharWidth(const Font&, ucs4_t);
 /*!
 \brief 取迭代器指定的字符串在字体指定、无边界限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
-\since build 214
+\since build 483
 */
-template<typename _tIn>
+template<typename _tIter,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 SDst
-FetchStringWidth(const Font& fnt, _tIn s)
+FetchStringWidth(const Font& fnt, _tIter s)
 {
 	SDst w(0);
 
@@ -114,11 +115,12 @@ FetchStringWidth(const Font& fnt, _tIn s)
 /*!
 \brief 取迭代器指定的单行字符串在字体指定、无边界限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
-\since build 251
+\since build 483
 */
-template<typename _tIn>
+template<typename _tIter,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 SDst
-FetchStringWidth(const Font& fnt, _tIn s, _tIn g, ucs4_t c = {})
+FetchStringWidth(const Font& fnt, _tIter s, _tIter g, ucs4_t c = {})
 {
 	SDst w(0);
 
@@ -128,22 +130,25 @@ FetchStringWidth(const Font& fnt, _tIn s, _tIn g, ucs4_t c = {})
 }
 /*!
 \brief 取单行字符串在字体指定、无边界限制时的显示宽度。
-\since build 214
+\since build 483
 */
+template<class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline SDst
-FetchStringWidth(const Font& fnt, const String& str)
+FetchStringWidth(const Font& fnt, const _tString& str)
 {
-	return FetchStringWidth(fnt, str.c_str());
+	return FetchStringWidth(fnt, &str[0]);
 }
 /*!
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至字符串结束符。
 \note 字体由文本状态指定。
-\since build 197
+\since build 483
 */
-template<typename _tIn>
+template<typename _tIter,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 SDst
-FetchStringWidth(TextState& ts, SDst h, _tIn s)
+FetchStringWidth(TextState& ts, SDst h, _tIter s)
 {
 	const SPos x(ts.Pen.X);
 	EmptyTextRenderer r(ts, h);
@@ -155,11 +160,12 @@ FetchStringWidth(TextState& ts, SDst h, _tIn s)
 \brief 取迭代器指定的单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 迭代器 s 指向字符串首字符，迭代直至边界迭代器 g 或指定字符 c 。
 \note 字体由文本状态指定。
-\since build 251
+\since build 483
 */
-template<typename _tIn>
+template<typename _tIter,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 SDst
-FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, ucs4_t c = {})
+FetchStringWidth(TextState& ts, SDst h, _tIter s, _tIter g, ucs4_t c = {})
 {
 	const SPos x(ts.Pen.X);
 	EmptyTextRenderer r(ts, h);
@@ -170,22 +176,25 @@ FetchStringWidth(TextState& ts, SDst h, _tIn s, _tIn g, ucs4_t c = {})
 /*!
 \brief 取单行字符串在指定文本状态和高度限制时的显示宽度。
 \note 字体由文本状态指定。
-\since build 197
+\since build 483
 */
+template<class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline SDst
-FetchStringWidth(TextState& ts, SDst h, const String& str)
+FetchStringWidth(TextState& ts, SDst h, const _tString& str)
 {
-	return FetchStringWidth(ts, h, str.c_str());
+	return FetchStringWidth(ts, h, &str[0]);
 }
 
 
 /*!
 \brief 取指定字体显示的迭代器范围中的文本的最大宽度。
-\since build 282
+\since build 483
 */
-template<typename _tIn>
+template<typename _tIter,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
 SDst
-FetchMaxTextWidth(const Font& font, _tIn first, _tIn last)
+FetchMaxTextWidth(const Font& font, _tIter first, _tIter last)
 {
 	SDst max_width(0);
 

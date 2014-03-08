@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3908
+\version r3949
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-02 14:51 +0800
+	2014-03-08 08:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,17 @@ FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
 		if(Contains(wgt, pt) && IsEnabled(wgt) && IsVisible(wgt))
 			return &wgt;
 	}
-	return nullptr;
+	return {};
+}
+
+//! \since build 483
+IWidget*
+FetchVisibleEnabledFocusingPtr(IWidget& con)
+{
+	if(const auto p = FetchFocusingPtr(con))
+		if(IsVisible(*p) && IsEnabled(*p))
+			return p;
+	return {};
 }
 
 } // unnamed namespace;
@@ -117,7 +127,7 @@ RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
 GUIState::GUIState() ynothrow
 	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
 	DraggingOffset(Vec::Invalid), HeldTimer(), CursorLocation(Point::Invalid),
-	Colors(), Styles(), p_CursorOver(), p_indp_focus(), entered()
+	Colors(), Styles()
 {}
 
 bool
@@ -142,6 +152,20 @@ GUIState::CleanupReferences(IWidget& wgt)
 		p_CursorOver = {};
 	if(p_indp_focus == &wgt)
 		p_indp_focus = {};
+	if(p_cascade_focus == &wgt)
+		p_cascade_focus = {};
+}
+
+void
+GUIState::HandleCascade(RoutedEventArgs& e, IWidget& wgt)
+{
+	if(p_cascade_focus != &wgt && IsFocused(e.GetSender()))
+	{
+		if(p_cascade_focus)
+			CallEvent<LostFocus>(*p_cascade_focus, e);
+		p_cascade_focus = &wgt;
+		CallEvent<GotFocus>(*p_cascade_focus, e);
+	}
 }
 
 void
@@ -151,7 +175,7 @@ GUIState::Reset()
 		DraggingOffset = Vec::Invalid),
 	HeldTimer.ResetInput();
 	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
-		p_indp_focus = {}, entered = {});
+		p_indp_focus = {}, p_cascade_focus = {}, entered = {});
 }
 
 void
@@ -165,18 +189,18 @@ void
 GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 {
 	auto p(&e.GetSender());
-	IWidget* pCon;
+	IWidget* p_con;
 
 	e.Strategy = UI::RoutedEventArgs::Tunnel;
 	while(true)
 	{
 		if(!(IsVisible(*p) && IsEnabled(*p)) || e.Handled)
 			return;
-		pCon = p;
+		p_con = p;
 
-		const auto t(FetchFocusingPtr(*pCon));
+		const auto t(FetchVisibleEnabledFocusingPtr(*p_con));
 
-		if(!t || t == pCon)
+		if(!t || t == p_con)
 		{
 			if(e.Handled)
 				return;
@@ -193,10 +217,12 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);
 	ResponseKeyBase(e, op);
+	if(op == KeyDown)
+		HandleCascade(e, *p);
 	e.Strategy = UI::RoutedEventArgs::Bubble;
-	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
+	while(!e.Handled && (p_con = FetchContainerPtr(*p)))
 	{
-		e.SetSender(*(p = pCon));
+		e.SetSender(*(p = p_con));
 		ResponseKeyBase(e, op);
 	}
 }
@@ -216,18 +242,18 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 	CursorLocation = e;
 
 	auto p(&e.GetSender());
-	IWidget* pCon;
+	IWidget* p_con;
 
 	e.Strategy = UI::RoutedEventArgs::Tunnel;
 	while(true)
 	{
 		if(!(IsVisible(*p) && IsEnabled(*p)) || e.Handled)
 			return;
-		pCon = p;
+		p_con = p;
 
-		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*pCon, e));
+		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*p_con, e));
 
-		if(!t || t == pCon)
+		if(!t || t == p_con)
 		{
 			if(e.Handled)
 				return;
@@ -245,11 +271,13 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);
 	ResponseCursorBase(e, op);
+	if(op == TouchDown)
+		HandleCascade(e, *p);
 	e.Strategy = UI::RoutedEventArgs::Bubble;
-	while(!e.Handled && (pCon = FetchContainerPtr(*p)))
+	while(!e.Handled && (p_con = FetchContainerPtr(*p)))
 	{
 		e.Position += GetLocationOf(*p);
-		e.SetSender(*(p = pCon));
+		e.SetSender(*(p = p_con));
 		ResponseCursorBase(e, op);
 	}
 }
