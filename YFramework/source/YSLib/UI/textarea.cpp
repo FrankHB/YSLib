@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r441
+\version r451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:10:27 +0800
 \par 修改时间:
-	2013-12-23 23:22 +0800
+	2014-03-09 22:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,25 +37,26 @@ using namespace Drawing;
 namespace UI
 {
 
-TextArea::TextArea(const Rect& r)
-	: Widget(r), TextState(), TextRenderer(*this),
+TextArea::TextArea(const Rect& r, HBrush b, Drawing::Color c)
+	: Widget(r, b, c), TextState(), TextRenderer(*this),
 	Rotation(Drawing::RDeg0)
 {}
-TextArea::TextArea(const Rect& r, FontCache& fc)
-	: Widget(r), TextState(fc), TextRenderer(*this),
+TextArea::TextArea(const Rect& r, FontCache& fc, HBrush b, Drawing::Color c)
+	: Widget(r, b, c), TextState(fc), TextRenderer(*this),
 	Rotation(Drawing::RDeg0)
 {}
 
 
-BufferedTextArea::BufferedTextArea(const Rect& r)
-	: Widget(r), TextRegion(),
+BufferedTextArea::BufferedTextArea(const Rect& r, HBrush b, Drawing::Color c)
+	: Widget(r, b, c), TextRegion(),
 	Rotation(Drawing::RDeg0)
 {
 	//初始化视图。
 	TextRegion::SetSize(GetWidth(), GetHeight());
 }
-BufferedTextArea::BufferedTextArea(const Rect& r, FontCache& fc)
-	: Widget(r), TextRegion(fc),
+BufferedTextArea::BufferedTextArea(const Rect& r, FontCache& fc, HBrush b,
+	Drawing::Color c)
+	: Widget(r, b, c), TextRegion(fc),
 	Rotation(Drawing::RDeg0)
 {
 	//初始化视图。

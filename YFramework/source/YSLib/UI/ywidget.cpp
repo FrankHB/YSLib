@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4390
+\version r4403
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-02-04 00:51 +0800
+	2014-03-09 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,10 +206,15 @@ Show(IWidget& wgt)
 }
 
 
-Widget::Widget(const Rect& r, Color b, Color f)
+Widget::Widget(const Rect& r)
 	: view_ptr(new View(r)), renderer_ptr(new Renderer()),
-	controller_ptr(new WidgetController(false)),
-	Background(SolidBrush(b)), ForeColor(f)
+	controller_ptr(new WidgetController(false)), Background()
+{
+	InitializeEvents();
+}
+Widget::Widget(const Rect& r, HBrush b, Color f)
+	: view_ptr(new View(r)), renderer_ptr(new Renderer()),
+	controller_ptr(new WidgetController(false)), Background(b), ForeColor(f)
 {
 	InitializeEvents();
 }
@@ -229,6 +234,12 @@ Widget::InitializeEvents()
 {
 	(FetchEvent<Paint>(*this).Add(std::ref(Background), BackgroundPriority))
 		+= std::bind(&Widget::Refresh, this, std::placeholders::_1);
+}
+
+HBrush
+Widget::GetBlankBrush()
+{
+	return SolidBrush(ColorSpace::White);
 }
 
 void

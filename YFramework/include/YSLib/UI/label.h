@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1316
+\version r1321
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-01-11 11:34 +0800
+	2014-03-09 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,12 +110,13 @@ public:
 */
 
 	/*!
-	\brief 构造：使用指定边界和字体。
-	\since build 337
+	\brief 构造：使用指定边界、字体、背景画刷和文字颜色。
+	\since build 484
 	*/
 	explicit
-	Label(const Rect& r = {}, const Drawing::Font& fnt = {})
-		: Widget(r), MLabel(fnt)
+	Label(const Rect& r = {}, const Drawing::Font& fnt = {},
+		HBrush b = GetBlankBrush(), Color c = Drawing::ColorSpace::Black)
+		: Widget(r, b, c), MLabel(fnt)
 	{}
 	DefDeMoveCtor(Label)
 

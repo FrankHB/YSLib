@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2449
+\version r2484
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2014-03-01 09:37 +0800
+	2014-03-08 12:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,8 +81,14 @@
 #		define YB_IMPL_MSCPP _MSC_VER
 #	elif defined(__clang__)
 #		undef YB_IMPL_CLANGPP
+#		if defined(__apple_build_version__)
 #		define YB_IMPL_CLANGPP \
-			(__clang__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
+			(40300 + __clang_patchlevel__)
+#		else
+#			define YB_IMPL_CLANGPP \
+				(__clang__ * 10000 + __clang_minor__ * 100 \
+					+ __clang_patchlevel__)
+#		endif
 #	elif defined(__GNUC__)
 #		undef YB_IMPL_GNUCPP
 #		define YB_IMPL_GNUCPP \
@@ -100,6 +106,20 @@
 #if YB_IMPL_MSCPP >= 1400
 //! \since build 454
 #	define _CRT_SECURE_NO_WARNINGS
+#endif
+//@}
+
+/*!
+\brief 特性检测宏补充定义：若不可用则替换为预处理记号 0 。
+\since build 484
+*/
+//@{
+#ifndef __has_feature
+#	define __has_feature(...) 0
+#endif
+
+#ifndef __has_extension
+#	define __has_extension(...) 0
 #endif
 //@}
 
@@ -169,7 +189,9 @@
 \since build 389
 */
 #undef YB_HAS_ALIGNAS
-#define YB_HAS_ALIGNAS (YB_IMPL_GNUCPP >= 40800)
+#define YB_HAS_ALIGNAS \
+	(__has_feature(cxx_alignas) || __has_extension(cxx_alignas) || \
+		YB_IMPL_GNUCPP >= 40800)
 
 /*!
 \def YB_HAS_ALIGNOF
@@ -185,8 +207,10 @@
 \since build 313
 */
 #undef YB_HAS_BUILTIN_NULLPTR
-#define YB_HAS_BUILTIN_NULLPTR (YB_IMPL_CPP >= 201103L \
-	|| YB_IMPL_GNUCPP >= 40600 || YB_IMPL_MSCPP >= 1600)
+#define YB_HAS_BUILTIN_NULLPTR \
+	(__has_feature(cxx_nullptr) || __has_extension(cxx_nullptr) || \
+		YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600 || \
+		YB_IMPL_MSCPP >= 1600)
 
 /*!
 \def YB_HAS_CONSTEXPR
@@ -194,7 +218,9 @@
 \since build 313
 */
 #undef YB_HAS_CONSTEXPR
-#define YB_HAS_CONSTEXPR (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
+#define YB_HAS_CONSTEXPR \
+	(__has_feature(cxx_constexpr) || YB_IMPL_CPP >= 201103L || \
+		YB_IMPL_GNUCPP >= 40600)
 
 /*!
 \def YB_HAS_NOEXCPT
@@ -202,7 +228,9 @@
 \since build 319
 */
 #undef YB_HAS_NOEXCEPT
-#define YB_HAS_NOEXCEPT (YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
+#define YB_HAS_NOEXCEPT \
+	(__has_feature(cxx_noexcept) || __has_extension(cxx_noexcept) || \
+		YB_IMPL_CPP >= 201103L || YB_IMPL_GNUCPP >= 40600)
 
 /*!
 \def YB_HAS_THREAD_LOCAL
@@ -212,7 +240,8 @@
 */
 #undef YB_HAS_THREAD_LOCAL
 #define YB_HAS_THREAD_LOCAL \
-	((YB_IMPL_CPP >= 201103L && !YB_IMPL_GNUCPP) || YB_IMPL_GNUCPP >= 40800)
+	(__has_feature(cxx_thread_local) || (YB_IMPL_CPP >= 201103L \
+		&& !YB_IMPL_GNUCPP) || YB_IMPL_GNUCPP >= 40800)
 //@}
 
 

@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5636
+\version r5653
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-02-22 09:09 +0800
+	2014-03-09 22:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,12 +381,14 @@ public:
 	\since build 294
 	*/
 	mutable HBrush Background;
-	Color ForeColor; //!< 默认前景色。
+	Color ForeColor = Drawing::ColorSpace::Black; //!< 默认前景色。
 
-	//! \since build 337
+	//! \since build 384
 	explicit
-	Widget(const Rect& = {}, Color = Drawing::ColorSpace::White,
-		Color = Drawing::ColorSpace::Black);
+	Widget(const Rect& = {});
+	//! \since build 384
+	explicit
+	Widget(const Rect&, HBrush, Color = Drawing::ColorSpace::Black);
 	/*!
 	\brief 构造：使用视图指针、渲染器指针和控制器指针，无背景。
 	\param pView_ 视图指针。
@@ -400,8 +402,7 @@ public:
 		_tRenderer&& pRenderer_ = make_unique<Renderer>(),
 		_tController&& pController_ = {})
 		: view_ptr(yforward(pView_)), renderer_ptr(yforward(pRenderer_)),
-		controller_ptr(yforward(pController_)),
-		Background(), ForeColor(Drawing::ColorSpace::Black)
+		controller_ptr(yforward(pController_)), Background()
 	{
 		YAssert(bool(view_ptr) && bool(renderer_ptr), "Null pointer found.");
 
@@ -433,6 +434,15 @@ private:
 public:
 	//! \since build 357
 	ImplI(IWidget) DefGetter(override, WidgetRange, Children, WidgetRange())
+	/*!
+	\brief 取空白画刷。
+	\return 颜色为 ColorSpace::Black 的 SolidBrush 对象初始化的 HBrush 对象。
+	\note 为减少包含头文件，使用非 inline 实现。
+	\sa SolidBrush
+	\since build 484
+	*/
+	static HBrush
+	GetBlankBrush();
 	ImplI(IWidget)
 		DefGetter(const override, AController&, Controller, *controller_ptr)
 	DefGetterMem(const ynothrow, SDst, Height, GetView())

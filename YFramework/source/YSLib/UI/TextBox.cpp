@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本框。
-\version r121
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-03-07 16:35 +0800
+	2014-03-09 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include YFM_YSLib_UI_Border
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_Service_TextLayout
+#include <ystdex/cast.hpp>
 
 namespace YSLib
 {
@@ -39,12 +40,17 @@ namespace UI
 
 GAnimationSession<InvalidationUpdater> Caret::caret_animation;
 
-Caret::Caret(IWidget& wgt)
+Caret::Caret(IWidget& wgt, HBrush caret_brush,
+	InvalidationUpdater::Invalidator inv)
+	: CaretBrush(caret_brush), CursorInvalidator(inv)
 {
 	yunseq(
+	FetchEvent<Paint>(wgt) += [this](PaintEventArgs&& e){
+		if(Check(e.GetSender()))
+			CaretBrush(std::move(e));
+	},
 	FetchEvent<GotFocus>(wgt) += [this](UIEventArgs&& e){
-		Restart(caret_animation, e.GetSender(),
-			InvalidationUpdater::DefaultInvalidateControl);
+		Restart(caret_animation, e.GetSender(), CursorInvalidator);
 	},
 	FetchEvent<LostFocus>(wgt) += [this](UIEventArgs&&){
 		Stop();
@@ -80,16 +86,28 @@ Caret::Stop()
 
 TextBox::TextBox(const Rect& r, const Drawing::Font& fnt)
 	: Control(r), MLabel(fnt),
-	CaretBrush(std::bind(&TextBox::PaintDefaultCaret, this,
-	std::placeholders::_1)), caret(*this)
+	Selection(), CursorCaret(*this, std::bind(&TextBox::PaintDefaultCaret, this,
+	std::placeholders::_1), InvalidateDefaultCaret), h_offset()
 {
 	yunseq(
-	FetchEvent<Paint>(*this) += [this](PaintEventArgs&& e){
-		if(caret.Check(e.GetSender()))
-			CaretBrush(std::move(e));
+	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
+		Selection.Range.second = GetCaretPosition(e.Position);
+		Selection.Range.first = Selection.Range.second;
 	},
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority)
 	);
+}
+
+TextSelection::Position
+TextBox::GetCaretPosition(const Point& pt)
+{
+	const SDst max_w(max(pt.X + h_offset - Margin.Left, 0));
+	auto pr(FetchStringOffsets(max_w, Font, Text));
+
+	if(pr.first > 0
+		&& FetchCharWidth(Font, Text[pr.first - 1]) / 2 < pr.second - max_w)
+		--pr.first;
+	return {pr.first, 0};
 }
 
 void
@@ -98,16 +116,32 @@ TextBox::Refresh(PaintEventArgs&& e)
 	DrawText(GetSizeOf(*this), ForeColor, e);
 }
 
+bool
+TextBox::InvalidateDefaultCaret(IWidget& wgt)
+{
+	auto& tb(ystdex::polymorphic_downcast<TextBox&>(wgt));
+	const Rect inner_bounds(Rect(GetSizeOf(wgt)) + tb.Margin);
+	const auto lh(tb.Font.GetHeight());
+	const auto& cur_pos(tb.Selection.Range.second);
+	const auto
+		x(inner_bounds.X + FetchStringWidth(tb.Font, tb.Text, cur_pos.X));
+	const auto y(cur_pos.Y * lh + inner_bounds.X);
+
+	InvalidateVisible(tb, Rect(x, y, 1, lh + GetVerticalOf(tb.Margin)));
+	return true;
+}
+
 void
 TextBox::PaintDefaultCaret(PaintEventArgs&& e)
 {
 	const Rect inner_bounds(Rect(e.Location, GetSizeOf(*this)) + Margin);
 	const auto lh(Font.GetHeight());
-	const auto nmargin(FetchMargin(inner_bounds, e.Target.GetSize()));
+	const auto mask(FetchMargin(inner_bounds, e.Target.GetSize()));
+	const auto& cur_pos(Selection.Range.second);
 
 	DrawVLineSeg(e.Target, e.ClipArea, inner_bounds.X + FetchStringWidth(Font,
-		Text.substr(0, min(XOffset, Text.length()))), YOffset * lh
-		+ nmargin.Top, YOffset * lh + lh + GetVerticalOf(nmargin), ForeColor);
+		Text, cur_pos.X) - h_offset, cur_pos.Y * lh + mask.Top,
+		cur_pos.Y * lh + lh + mask.Top, ForeColor);
 }
 
 } // namespace UI;

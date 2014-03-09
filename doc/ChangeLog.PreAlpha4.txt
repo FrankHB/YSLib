@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6510
+\version r6590
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-03-08 08:37 +0800
+	2014-03-09 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,87 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ @ %YBase.YDefinition $=
+	(
+		+ "'__apple_build_version__' detection",
+		(
+		+ "macros %(__has_feature, __has_extension)" @ "undefined";
+		+ "feature tests" @ "macros %(YB_HAS_ALIGNAS, YB_HAS_BUILTIN_NULLPTR, \
+			YB_HAS_NOEXCEPT)"
+			^ "macros %(__has_feature, __has_extension)",
+		+ "feature tests" @ "macros %(YB_HAS_CONSTEXPR, YB_HAS_THREAD_LOCAL)"
+			^ "macros %__has_feature"
+		)
+	),
+	/ %YFramework.YSLib $=
+	(
+		/ %UI $=
+		(
+			/ %TextBox $=
+			(
+				+ "class %TextSelection",
+				/ @ "class %Cursor" $=
+				(
+					+ 'InvalidationUpdater::Invalidator CursorInvalidator;';
+					/ "needed to specify animation parameters for constructor"
+				),
+				/ @ "class %TextBox" $=
+				(
+					(
+					/ "member %CaretBrush, handler of event %Paint"
+						>> "class %Caret",
+					$dep_from "class %TextSelection";
+					/ "members %(XOffset, YOffset)"
+						-> 'TextSelection Selection;'
+					),
+					+ 'Caret CursorCaret;',
+					+ "static member function %InvalidateDefaultCaret",
+						// To make invalidation area smaller so it uses less \
+							CPU time.
+					* "cursor bottom point wrongly added by margin bottom"
+						$since b482,
+					(
+					+ "function %GetCaretPosition";
+					+ "caret positioning support when triggered event \
+						%TouchDown"
+					)
+				)
+			),
+			/ @ "class %Widget" @ %YWidget $=
+			(
+				+ "static member function %GetBlankBackground",
+				(
+				+ "member initializer '= Drawing::ColorSpace::Black'"
+					@ "data member %ForeColor",
+				/ "parameters" @ "constructor"
+					-> 'const Rect&, HBrush, Color = Drawing::ColorSpace::Black'
+					-> 'const Rect& = {}, Color = Drawing::ColorSpace::White, \
+					Drawing::Color = Drawing::ColorSpace::Black';
+				/ DLD "simplified ctor-initializer" @ "constructor template",
+				+ "explicit constructor 'Widget(const Rect& = {})'"
+				)
+			),
+			+ "parameters 'HBrush = GetBlankBrush(), Color = \
+				Drawing::ColorSpace::Black'" @ "constructors" @ "classes" \
+				("%Label" @ %Label, "%(TextArea, TextRegion)) @ %TextArea"
+		),
+		/ %Service.TextLayout $=
+		(
+			/ "function templates %FetchStringWidth" $=
+			(
+				+ "assertions for iterator not undereferenceable",
+				* "postfix %operator++ contradicted with loosed iterator \
+					requirement" $since b483,
+				+ "overload for most n times iteration",
+				+ "overload for most front n characters for string parameter"
+			);
+			+ "5 function templates %FetchStringOffsets"
+		)
+	)
+),
+
+b483
 (
 	/ %YBase.StandardEx $=
 	(
