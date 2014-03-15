@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -17,7 +17,7 @@
 \par 创建时间:
 	2012-01-06 21:37:51 +0800
 \par 修改时间:
-	2013-12-23 21:40 +0800
+	2014-03-11 21:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,10 +42,10 @@ namespace
 
 ColorBox::ColorBox(const Point& pt, Color c)
 	: DialogPanel({pt, 200, 96}),
-	ctlColorArea({164, 32, 32, 32}), trRed({4, 24, track_size}),
-	trGreen({4, 48, track_size}), trBlue({4, 72, track_size}),
-	lblRed({120, 24, label_size}), lblGreen({120, 48, label_size}),
-	lblBlue({120, 72, label_size})
+	ctlColorArea({164, 32, 32, 32}, MakeBlankBrush()),
+	trRed({4, 24, track_size}), trGreen({4, 48, track_size}),
+	trBlue({4, 72, track_size}), lblRed({120, 24, label_size}),
+	lblGreen({120, 48, label_size}), lblBlue({120, 72, label_size})
 {
 	const auto update_color([this](ScrollEventArgs&&){
 		SetColor(Color(trRed.GetValue(), trGreen.GetValue(),

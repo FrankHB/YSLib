@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式无关的用户界面文本框。
-\version r179
+\version r188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-03-09 21:46 +0800
+	2014-03-14 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,6 +98,13 @@ struct YF_API TextSelection final
 
 	//! \brief 选择的范围。
 	Span Range;
+
+	/*!
+	\brief 折叠选择范围到结束。
+	\since build 485
+	*/
+	PDefH(void, Collapse, )
+		ImplExpr(Range.first = Range.second)
 };
 
 
@@ -149,6 +156,10 @@ public:
 	*/
 	TextSelection::Position
 	GetCaretPosition(const Point&);
+
+	//! \since build 485
+	void
+	DrawClippedText(const Graphics&, const Rect&, TextState&) override;
 
 	//! \brief 刷新：按指定参数绘制界面并更新状态。
 	void

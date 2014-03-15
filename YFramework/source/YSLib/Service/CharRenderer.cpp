@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3249
+\version r3251
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-12-23 23:44 +0800
+	2014-03-15 10:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ using BIt_1 = bitseg_iterator<1, true>;
 using BIt_2 = bitseg_iterator<2, true>;
 using BIt_4 = bitseg_iterator<4, true>;
 
-using TIt_1 = transformed_iterator<BIt_1, tr_seg<1>> ;
+using TIt_1 = transformed_iterator<BIt_1, tr_seg<1>>;
 using TIt_2 = transformed_iterator<BIt_2, tr_seg<2>>;
 using TIt_4 = transformed_iterator<BIt_4, tr_seg<4>>;
 

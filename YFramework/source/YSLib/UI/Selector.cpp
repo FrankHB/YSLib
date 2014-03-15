@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1003
+\version r1005
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-02-25 22:55 +0800
+	2014-03-10 02:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,7 +95,7 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 
 
 CheckBox::CheckBox(const Rect& r)
-	: Thumb(r, NoBackgroundTag()), MCheckBox()
+	: Thumb(r, ystdex::raw_tag()), MCheckBox()
 {
 	using namespace Styles;
 	static struct Init
@@ -169,7 +169,7 @@ MRadioBox::ShareTo(MRadioBox& rb) const
 
 
 RadioBox::RadioBox(const Rect& r)
-	: Thumb(r, NoBackgroundTag()), MRadioBox()
+	: Thumb(r, ystdex::raw_tag()), MRadioBox()
 {
 	using namespace Styles;
 	static struct Init

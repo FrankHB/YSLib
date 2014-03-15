@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5653
+\version r5662
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-09 22:26 +0800
+	2014-03-10 02:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -356,14 +356,6 @@ Show(IWidget&);
 */
 class YF_API Widget : implements IWidget
 {
-public:
-	/*!
-	\brief 无背景标记。
-	\since build 311
-	*/
-	struct NoBackgroundTag
-	{};
-
 private:
 	/*!
 	\since build 346
@@ -439,10 +431,10 @@ public:
 	\return 颜色为 ColorSpace::Black 的 SolidBrush 对象初始化的 HBrush 对象。
 	\note 为减少包含头文件，使用非 inline 实现。
 	\sa SolidBrush
-	\since build 484
+	\since build 485
 	*/
 	static HBrush
-	GetBlankBrush();
+	MakeBlankBrush();
 	ImplI(IWidget)
 		DefGetter(const override, AController&, Controller, *controller_ptr)
 	DefGetterMem(const ynothrow, SDst, Height, GetView())

@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的 GUI 按钮控件。
-\version r2291
+\version r2293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-01-20 19:37 +0800
+	2014-03-10 02:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,10 +78,10 @@ public:
 protected:
 	/*!
 	\brief 无背景构造：使用指定边界。
-	\since build 311
+	\since build 485
 	*/
 	explicit
-	Thumb(const Rect&, NoBackgroundTag);
+	Thumb(const Rect&, ystdex::raw_tag);
 
 public:
 	DefDeMoveCtor(Thumb)

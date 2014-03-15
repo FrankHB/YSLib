@@ -11,13 +11,13 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r270
+\version r271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:44:51 +0800
 \par 修改时间:
-	2014-01-11 12:55 +0800
+	2014-03-10 02:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ namespace UI
 {
 
 Panel::Panel(const Rect& r)
-	: Control(r), MUIContainer()
+	: Control(r, MakeBlankBrush()), MUIContainer()
 {}
 
 void

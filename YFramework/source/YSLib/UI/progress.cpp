@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r372
+\version r374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2013-12-23 23:54 +0800
+	2013-03-10 02:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ namespace UI
 {
 
 ProgressBar::ProgressBar(const Rect& r, ValueType m)
-	: Control(r, NoBackgroundTag()), GMRange<float>(m == 0 ? 1 : m, 0)
+	: Control(r), GMRange<float>(m == 0 ? 1 : m, 0)
 {
 	auto& pal(FetchGUIState().Colors);
 	BorderStyle style;

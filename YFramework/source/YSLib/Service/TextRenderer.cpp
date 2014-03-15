@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2684
+\version r2695
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-12-23 23:45 +0800
+	2014-03-15 10:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,8 +80,8 @@ FetchBMPSrcWidth(const CharBitmap& cbmp)
 template<typename _tCharRenderer, _tCharRenderer& _fCharRenderer,
 	typename... _tParams>
 void
-RenderCharFrom(ucs4_t c, const Graphics& g,
-	TextState& ts, const Rect& clip, _tParams&&... args)
+RenderCharFrom(ucs4_t c, const Graphics& g, TextState& ts, const Rect& clip,
+	_tParams&&... args)
 {
 	const auto cbmp(ts.Font.GetGlyph(c));
 
@@ -216,10 +216,7 @@ DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 {
 	TextRenderer tr(ts, g, mask);
 
-	if(line_wrap)
-		PutString(tr, str);
-	else
-		PutLine(tr, str);
+	PutText(line_wrap, tr, str);
 }
 void
 DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
@@ -250,10 +247,7 @@ void
 DrawText(TextRegion& tr, const Graphics& g, const Point& pt, const Size& s,
 	const String& str, bool line_wrap)
 {
-	if(line_wrap)
-		PutString(tr, str);
-	else
-		PutLine(tr, str);
+	PutText(line_wrap, tr, str);
 	BlitTo(g.GetBufferPtr(), tr, g.GetSize(), Point(), pt, s);
 }
 

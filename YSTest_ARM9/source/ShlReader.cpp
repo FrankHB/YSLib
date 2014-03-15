@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4551
+\version r4552
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-03-02 18:22 +0800
+	2014-03-10 02:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ enum MNU_READER : Menu::IndexType
 
 
 ReaderBox::ReaderBox(const Rect& r)
-	: Control(r),
+	: Control(r, MakeBlankBrush()),
 	btnMenu({4, 12, 16, 16}), btnSetting({24, 12, 16, 16}),
 	btnInfo({44, 12, 16, 16}), btnBookmark({64, 12, 16, 16}),
 	btnReturn({84, 12, 16, 16}),

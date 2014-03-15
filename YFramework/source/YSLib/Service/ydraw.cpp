@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1022
+\version r1024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2014-02-23 15:28 +0800
+	2014-03-15 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,13 +164,11 @@ PlotCircle(void(*plotter)(const Graphics&, const Rect&, SPos, SPos, SDst, SDst,
 	YAssert(plotter, "Null pointer found.");
 
 	if(r != 0)
-	{
 		// Bresenham circle algorithm implementation.
 		// See http://willperone.net/Code/codecircle.php .
 		for(SPos x(0), y(r), p(3 - 2 * r); y >= x;
 			p += p < 0 ? (4 * x++ + 6) : (4 * (x++ - y--) + 10))
 			plotter(g, bounds, pt.X, pt.Y, x, y, c);
-	}
 }
 
 } // unnamed namespace;

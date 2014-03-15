@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2877
+\version r2935
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-03-04 13:39 +0800
+	2014-03-15 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace Drawing
 {
 
 /*!
-\brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
+\brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
 \param r 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
@@ -59,7 +59,7 @@ PrintLine(_tRenderer& r, _tIter s)
 	return s;
 }
 /*!
-\brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
+\brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
 \param r 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \param g 指示迭代终止位置的输入迭代器。
@@ -96,7 +96,7 @@ PrintLine(_tRenderer& r, const _tString& str)
 }
 
 /*!
-\brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
+\brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
 \param r 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
@@ -118,7 +118,7 @@ PutLine(_tRenderer& r, _tIter s)
 	return s;
 }
 /*!
-\brief 打印迭代器指定的字符串，直至行尾或字符迭代终止。
+\brief 打印迭代器指定的起始字符的字符串，直至行尾或字符迭代终止。
 \param r 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \param g 指示迭代终止位置的输入迭代器。
@@ -158,7 +158,7 @@ PutLine(_tRenderer& r, const _tString& str)
 }
 
 /*!
-\brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
+\brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
 \param r 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
@@ -175,7 +175,7 @@ PrintString(_tRenderer& r, _tIter s)
 	return s;
 }
 /*!
-\brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
+\brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
 \param r 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \param g 指示迭代终止位置的输入迭代器。
@@ -209,7 +209,7 @@ PrintString(_tRenderer& r, const _tString& str)
 }
 
 /*!
-\brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
+\brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
 \param r 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \return 指向结束位置的迭代器。
@@ -231,7 +231,7 @@ PutString(_tRenderer& r, _tIter s)
 	return s;
 }
 /*!
-\brief 打印迭代器指定的字符串，直至区域末尾或字符迭代终止。
+\brief 打印迭代器指定的起始字符的字符串，直至区域末尾或字符迭代终止。
 \param r 使用的字符渲染器。
 \param s 指向字符串起始字符的输入迭代器。
 \param g 指示迭代终止位置的输入迭代器。
@@ -270,6 +270,22 @@ PutString(_tRenderer& r, const _tString& str)
 	return PutString(r, &str[0]) - &str[0];
 }
 
+/*!
+\brief 打印文本。
+\param multi 指定是否可输出多行。
+\param args 传递给 PutString 或 PutLine 的参数。
+\since build 485
+*/
+template<typename... _tParams>
+void
+PutText(bool multi, _tParams&&... args)
+{
+	if(multi)
+		PutString(yforward(args)...);
+	else
+		PutLine(yforward(args)...);
+}
+
 
 /*!	\defgroup TextRenderers Text Renderers
 \brief 文本渲染器。
@@ -294,11 +310,8 @@ public:
 	/*!
 	\brief 渲染单个字符：仅移动笔，不绘制。
 	*/
-	void
-	operator()(ucs4_t c)
-	{
-		MovePen(State, c);
-	}
+	PDefHOp(void, (), ucs4_t c)
+		ImplExpr(MovePen(State, c))
 
 	DefGetter(const ynothrow, const TextState&, TextState, State)
 	DefGetter(ynothrow, TextState&, TextState, State)
@@ -341,11 +354,9 @@ public:
 
 /*!
 \ingroup TextRenderers
-\brief 文本渲染器。
+\brief 文本渲染器：简单实现。
 \warning 非虚析构。
 \since build 190
-
-文本渲染器：简单实现。
 */
 class YF_API TextRenderer : public GTextRendererBase<TextRenderer>
 {
@@ -398,10 +409,42 @@ public:
 
 /*!
 \ingroup TextRenderers
+\brief 定制文本渲染器：使用自定义的渲染函数替代的 TextRenderer 。
+\warning 非虚析构。
+\since build 485
+*/
+class YF_API CustomTextRenderer : public TextRenderer,
+	public GTextRendererBase<CustomTextRenderer>
+{
+public:
+	using RenderFunctionType = std::function<void(TextRenderer&, ucs4_t)>;
+
+	RenderFunctionType RenderFunction;
+
+	CustomTextRenderer(RenderFunctionType f, TextState& ts, const Graphics& g)
+		: TextRenderer(ts, g), RenderFunction(f)
+	{}
+	CustomTextRenderer(RenderFunctionType f, TextState& ts, const Graphics& g,
+		const Rect& mask)
+		: TextRenderer(ts, g, mask), RenderFunction(f)
+	{}
+
+	/*!
+	\brief 渲染单个字符。
+	\note 使用 RenderFunction 。
+	*/
+	PDefHOp(void, (), ucs4_t c)
+		ImplExpr(RenderFunction(*this, c))
+};
+
+
+/*!
+\ingroup TextRenderers
 \brief 文本区域。
+\warning 非虚析构。
+\since 早于 build 132
 
 自带缓冲区的文本渲染器，通过 Alpha 贴图刷新至位图缓冲区显示光栅化文本。
-\since 早于 build 132
 */
 class YF_API TextRegion : public GTextRendererBase<TextRegion>,
 	public TextState, public CompactPixmapEx

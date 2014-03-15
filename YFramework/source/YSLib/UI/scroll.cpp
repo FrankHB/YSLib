@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3635
+\version r3638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-03-02 22:01 +0800
+	2014-03-10 02:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
 
 ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	: Control({r.GetPoint(), max<SDst>(defMinScrollBarWidth, r.Width),
-	max<SDst>(defMinScrollBarHeight, r.Height)}, NoBackgroundTag()),
+	max<SDst>(defMinScrollBarHeight, r.Height)}),
 	GMRange<ValueType>(0xFF, 0),
 	tmbScroll(Size(defMinScrollBarWidth, defMinScrollBarHeight)),
 	min_thumb_length(uMinThumbLength), large_delta(min_thumb_length)
@@ -334,7 +334,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 
 
 AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
-	: Control(r, NoBackgroundTag()),
+	: Control(r),
 	pTrack(o == Horizontal
 		? static_cast<ATrack*>(new HorizontalTrack(
 			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), uMinThumbSize))
@@ -448,7 +448,7 @@ VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)
 
 
 ScrollableContainer::ScrollableContainer(const Rect& r)
-	: Control(r),
+	: Control(r, MakeBlankBrush()),
 	hsbHorizontal(Size(r.Width, defMinScrollBarHeight)),
 	vsbVertical(Size(defMinScrollBarWidth, r.Height))
 {

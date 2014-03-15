@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r472
+\version r476
 \author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2014-03-09 22:29 +0800
+	2014-03-10 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,14 +53,14 @@ public:
 	\since build 484
 	*/
 	explicit
-	TextArea(const Drawing::Rect& = {}, HBrush = GetBlankBrush(),
+	TextArea(const Drawing::Rect& = {}, HBrush = MakeBlankBrush(),
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!
 	\brief 构造：使用指定边界、字体缓存背景画刷和文字颜色。
 	\since build 484
 	*/
 	TextArea(const Drawing::Rect&, Drawing::FontCache&,
-		HBrush = GetBlankBrush(), Drawing::Color = Drawing::ColorSpace::Black);
+		HBrush = MakeBlankBrush(), Drawing::Color = Drawing::ColorSpace::Black);
 	DefDeMoveCtor(TextArea)
 
 	using Widget::GetWidth;
@@ -81,14 +81,14 @@ public:
 	\since build 484
 	*/
 	explicit
-	BufferedTextArea(const Drawing::Rect& = {}, HBrush = GetBlankBrush(),
+	BufferedTextArea(const Drawing::Rect& = {}, HBrush = MakeBlankBrush(),
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!
 	\brief 构造：使用指定边界、字体缓存背景画刷和文字颜色。
 	\since build 484
 	*/
 	BufferedTextArea(const Drawing::Rect&, Drawing::FontCache&,
-		HBrush = GetBlankBrush(), Drawing::Color = Drawing::ColorSpace::Black);
+		HBrush = MakeBlankBrush(), Drawing::Color = Drawing::ColorSpace::Black);
 	DefDeMoveCtor(BufferedTextArea)
 
 	using Widget::GetWidth;

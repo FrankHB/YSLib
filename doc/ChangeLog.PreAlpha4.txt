@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6590
+\version r6641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-03-09 22:38 +0800
+	2014-03-15 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,58 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework.YSLib $=
+	(
+		/ %UI $=
+		(
+			/ "constructor 'Thumb(const Rect&, NoBackgroundTag);" @ "class \
+				%Thumb" @ %Button -> 'Thumb(const Rect&, ystdex::raw_tag);',
+			/ "constructors" @ "class %Control" @ %YControl $=
+			(
+				$dep_from %Button;
+				/ "merged 2 constructors";
+				+ "explicit constructor 'Control(const Rect&, HBrush, \
+					Drawing::Color = Drawing::ColorSpace::Black)"
+			),
+			/ @ "class %YWidget" @ %YWidget $=
+			(
+				/ "static member function %GetBlankBrush" => "%MakeBlankBrush",
+				(
+				$dep_from %YControl;
+				- "struct %Widget::NoBackgroundTag" @ %YWidget
+				)
+			),
+			/ %'TextBox'$=
+			(
+				+ "member function %TextSelection::Collapse,
+				+ "single line text selection block support" @ "class %TextBox" $=
+				(
+					(
+					$dep_from "%MLabel::DrawClippedText";
+					+ "overriding function %DrawClippedText"
+					),
+					+ "event handlers for %(TouchHeld, LostFocus)"
+				)
+			)
+		),
+		/ %Service $=
+		(
+			/ "implementation"
+				@ "member function %EmptyTextRenderer::operator()"
+				@ %TextRenderer ^ "%(PDefHOp, ImplExpr)",
+			/ %TextRenderer $=
+			(
+				+ "function template %PutText";
+				/ "simplified implementation" @ "functions %DrawClippedText"
+					^ "%PutText",
+				+ "class %CustomTextRenderer" @ %TextRenderer
+			)
+		)
+	)
+),
+
+b484
 (
 	/ @ %YBase.YDefinition $=
 	(

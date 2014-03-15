@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1301
+\version r1309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2013-12-23 23:23 +0800
+	2014-03-14 10:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,8 +93,14 @@ MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
 			break;
 		}
 	}
-	DrawClippedText(e.Target, e.ClipArea & (bounds + Margin), ts, Text,
-		AutoWrapLine);
+	DrawClippedText(e.Target, e.ClipArea & (bounds + Margin), ts);
+}
+
+void
+MLabel::DrawClippedText(const Graphics& g, const Rect& mask,
+	Drawing::TextState& ts)
+{
+	Drawing::DrawClippedText(g, mask, ts, Text, AutoWrapLine);
 }
 
 

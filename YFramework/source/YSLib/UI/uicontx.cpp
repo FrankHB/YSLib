@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r248
+\version r250
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2013-12-23 23:53 +0800
+	2014-03-10 02:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@ namespace UI
 {
 
 DialogBox::DialogBox(const Rect& r)
-	: Control(r),
+	: Control(r, MakeBlankBrush()),
 	btnClose(Rect(GetWidth() - 20, 4, 16, 16), 330)
 {
 	DecorateAsCloseButton(btnClose),

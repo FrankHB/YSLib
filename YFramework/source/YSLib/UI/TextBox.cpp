@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本框。
-\version r163
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-03-09 21:48 +0800
+	2014-03-15 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,16 +85,27 @@ Caret::Stop()
 
 
 TextBox::TextBox(const Rect& r, const Drawing::Font& fnt)
-	: Control(r), MLabel(fnt),
+	: Control(r, MakeBlankBrush()), MLabel(fnt),
 	Selection(), CursorCaret(*this, std::bind(&TextBox::PaintDefaultCaret, this,
 	std::placeholders::_1), InvalidateDefaultCaret), h_offset()
 {
 	yunseq(
 	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
 		Selection.Range.second = GetCaretPosition(e.Position);
-		Selection.Range.first = Selection.Range.second;
+		Selection.Collapse();
 	},
-	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority)
+	FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
+		if(&e.GetSender() == this)
+		{
+			Selection.Range.second = GetCaretPosition(e.Position);
+			// XXX: Optimization for block.
+			Invalidate(*this);
+		}
+	},
+	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
+	FetchEvent<LostFocus>(*this) += [this](UIEventArgs&&){
+		Selection.Collapse();
+	}
 	);
 }
 
@@ -108,6 +119,40 @@ TextBox::GetCaretPosition(const Point& pt)
 		&& FetchCharWidth(Font, Text[pr.first - 1]) / 2 < pr.second - max_w)
 		--pr.first;
 	return {pr.first, 0};
+}
+
+void
+TextBox::DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts)
+{
+	auto p(&Text[0]);
+	auto x1(Selection.Range.first.X), x2(Selection.Range.second.X);
+
+	if(x1 == x2)
+		MLabel::DrawClippedText(g, mask, ts);
+	else
+	{
+		if(x2 < x1)
+			std::swap(x1, x2);
+
+		// TODO: Use C++14 lambda initializers to simplify implementation.
+		const auto q1(p + x1), q2(p + x2);
+		CustomTextRenderer ctr([=, &ts, &p](TextRenderer& tr, ucs4_t c){
+			if(IsInInterval(p, q1, q2))
+			{
+				// TODO: Use colors from %Styles::Palette.
+				FillRect(g, tr.ClipArea, Rect(ts.Pen.X,
+					ts.Pen.Y - ts.Font.GetAscender(), ts.Font.GetAdvance(c),
+					GetTextLineHeightOf(ts)), {51, 153, 255});
+				ts.Color = ColorSpace::White;
+			}
+			else
+				ts.Color = ForeColor;
+			tr(c);
+			++p;
+		}, ts, g, mask);
+
+		PutText(AutoWrapLine, ctr, p);
+	}
 }
 
 void
