@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1337
+\version r1357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-03-14 10:07 +0800
+	2014-03-15 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,6 +229,29 @@ public:
 	*/
 	void
 	RefreshTextState();
+};
+
+
+/*!
+\brief 高亮文本模块。
+\warning 非虚析构。
+\since build 486
+*/
+class YF_API MHilightText
+{
+public:
+	//! \brief 高亮背景色。
+	Color HilightBackColor;
+	//! \brief 高亮文本色。
+	Color HilightTextColor;
+
+	MHilightText(const Color& bc, const Color& fc)
+		: HilightBackColor(bc), HilightTextColor(fc)
+	{}
+	template<class _type>
+	MHilightText(const _type& pr)
+		: MHilightText(get<0>(pr), get<1>(pr))
+	{}
 };
 
 } // namespace UI;

@@ -10,14 +10,14 @@
 
 /*!	\file TextBox.cpp
 \ingroup UI
-\brief 样式无关的用户界面文本框。
-\version r207
+\brief 样式相关的用户界面文本框。
+\version r238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-03-15 11:41 +0800
+	2014-03-20 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,8 @@ Caret::Caret(IWidget& wgt, HBrush caret_brush,
 			CaretBrush(std::move(e));
 	},
 	FetchEvent<GotFocus>(wgt) += [this](UIEventArgs&& e){
+		// NOTE: Necessary cleanup.
+		Stop();
 		Restart(caret_animation, e.GetSender(), CursorInvalidator);
 	},
 	FetchEvent<LostFocus>(wgt) += [this](UIEventArgs&&){
@@ -80,16 +82,31 @@ void
 Caret::Stop()
 {
 	// TODO: Consider possible per-object optimization.
-	caret_animation.Reset();
+	if(auto p = caret_animation.GetConnectionPtr())
+		p->Ready = {};
 }
 
 
-TextBox::TextBox(const Rect& r, const Drawing::Font& fnt)
-	: Control(r, MakeBlankBrush()), MLabel(fnt),
+TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
+	const pair<Color, Color>& hilight_pair)
+	: Control(r, MakeBlankBrush()), MLabel(fnt), MHilightText(hilight_pair),
 	Selection(), CursorCaret(*this, std::bind(&TextBox::PaintDefaultCaret, this,
 	std::placeholders::_1), InvalidateDefaultCaret), h_offset()
 {
 	yunseq(
+	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
+		auto& sender(e.GetSender());
+		const auto& keys(e.Keys);
+		const size_t idx(FindFirstKey(keys));
+		const ucs2_t buf[]{YB_UNLIKELY(idx == KeyBitsetWidth) ? u'\0'
+			: ucs2_t(keys[idx]), u'\0'};
+
+		// XXX: Use key translation from virtual key code to character.
+		// TODO: Proper multiple keys handling.
+		CallEvent<TextInput>(sender,
+			TextInputEventArgs(sender, String(buf), keys));
+	},
+	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
 		Selection.Range.second = GetCaretPosition(e.Position);
 		Selection.Collapse();
@@ -102,9 +119,14 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt)
 			Invalidate(*this);
 		}
 	},
+	FetchEvent<TextInput>(*this) += [this](TextInputEventArgs&& e){
+		Text += e.Text;
+	},
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
-	FetchEvent<LostFocus>(*this) += [this](UIEventArgs&&){
+	FetchEvent<GotFocus>(*this) += OnUIEvent_Invalidate,
+	FetchEvent<LostFocus>(*this) += [this](UIEventArgs&& e){
 		Selection.Collapse();
+		Invalidate(e.GetSender());
 	}
 	);
 }
@@ -136,14 +158,12 @@ TextBox::DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts)
 
 		// TODO: Use C++14 lambda initializers to simplify implementation.
 		const auto q1(p + x1), q2(p + x2);
-		CustomTextRenderer ctr([=, &ts, &p](TextRenderer& tr, ucs4_t c){
+		CustomTextRenderer ctr([&, q1, q2](TextRenderer& tr, ucs4_t c){
 			if(IsInInterval(p, q1, q2))
 			{
 				// TODO: Use colors from %Styles::Palette.
-				FillRect(g, tr.ClipArea, Rect(ts.Pen.X,
-					ts.Pen.Y - ts.Font.GetAscender(), ts.Font.GetAdvance(c),
-					GetTextLineHeightOf(ts)), {51, 153, 255});
-				ts.Color = ColorSpace::White;
+				FillRect(g, tr.ClipArea, ts.GetCharBounds(c), HilightBackColor);
+				ts.Color = HilightTextColor;
 			}
 			else
 				ts.Color = ForeColor;

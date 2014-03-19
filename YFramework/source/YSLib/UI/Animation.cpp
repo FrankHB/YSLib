@@ -11,13 +11,13 @@
 /*!	\file Animation.cpp
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r129
+\version r130
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-10-06 22:12:10 +0800
 \par 修改时间:
-	2014-03-02 18:06 +0800
+	2014-03-18 16:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ bool
 InvalidationUpdater::operator()() const
 {
 	if(bool(Invalidate) && !(WidgetPtr && Invalidate(*WidgetPtr)))
-		Ready = false;
+		Ready = {};
 	return Ready;
 }
 

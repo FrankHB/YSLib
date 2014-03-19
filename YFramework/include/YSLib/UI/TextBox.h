@@ -10,14 +10,14 @@
 
 /*!	\file TextBox.h
 \ingroup UI
-\brief 样式无关的用户界面文本框。
-\version r188
+\brief 样式相关的用户界面文本框。
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-03-14 12:17 +0800
+	2014-03-18 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_UI_YControl
 #include YFM_YSLib_UI_Label
 #include YFM_YSLib_Service_YTimer
+#include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_UI_Animation
 
 namespace YSLib
@@ -47,7 +48,10 @@ namespace UI
 class YF_API Caret final
 {
 private:
-	//! \brief 插入符闪烁动画。
+	/*!
+	\brief 插入符闪烁动画。
+	\todo 使用 TLS 以保证指向动画对象的线程安全性。
+	*/
 	static GAnimationSession<InvalidationUpdater> caret_animation;
 
 public:
@@ -114,7 +118,7 @@ struct YF_API TextSelection final
 \since build 482
 \todo 实现插入符光标移动、文本选中和插入。
 */
-class YF_API TextBox : public Control, protected MLabel
+class YF_API TextBox : public Control, protected MLabel, protected MHilightText
 {
 public:
 	using MLabel::Font;
@@ -123,6 +127,10 @@ public:
 	using MLabel::VerticalAlignment;
 	using MLabel::AutoWrapLine;
 	using MLabel::Text;
+	//! \since build 486
+	using MHilightText::HilightBackColor;
+	//! \since build 486
+	using MHilightText::HilightTextColor;
 
 	/*!
 	\brief 选择区域：结束位置指示插入符光标逻辑位置。
@@ -143,9 +151,14 @@ private:
 	SDst h_offset;
 
 public:
-	//! \brief 构造：使用指定边界和字体。
+	/*!
+	\brief 构造：使用指定边界、字体和高亮背景色/文本色对。
+	\since build 486
+	*/
 	explicit
-	TextBox(const Rect& = {}, const Drawing::Font& = {});
+	TextBox(const Rect& = {}, const Drawing::Font& = {}, const
+		pair<Drawing::Color, Drawing::Color>& = FetchGUIState().Colors.GetPair(
+		Styles::Highlight, Styles::HighlightText));
 	DefDeMoveCtor(TextBox)
 
 	/*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r197
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2013-12-24 09:35 +0800
+	2014-03-18 01:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,6 +60,15 @@ yconstexpr std::size_t KeyBitsetWidth(256);
 支持并行按键的缓冲区数据类型。
 */
 using KeyInput = std::bitset<KeyBitsetWidth>;
+
+/*!
+\brief 找到输入缓冲区记录中最小的按键编码。
+\return 若存在编码则最小值，否则为 KeyBitsetWidth 。
+\since build 486
+\todo 支持 libstdc++ 以外的实现。
+*/
+YF_API size_t
+FindFirstKey(const KeyInput&);
 
 
 /*!
@@ -126,7 +135,7 @@ enum NativeSet
 
 } // namespace KeyCodes;
 
-} // namespace platform_ex;
+} // namespace platform;
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6641
+\version r6740
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-03-15 11:56 +0800
+	2014-03-20 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,105 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ @ "class %TextState" @ %Service.CharBase $=
+			(
+				+ "member function %GetCharBounds",
+				/ DLD "simplified implementation" @ "member functions %operator="
+					^ "%(PDefHOp, ImplExpr)"
+			),
+			/ %UI $=
+			(
+				/ %TextBox $=
+				(
+					/ @ "class %TextBox" $=
+					(
+						(
+						$dep_from "%TextState::GetCharBounds";
+						/ "simplified implementation" @ "member function \
+							%DrawClippedText" ^ "%TextState::GetCharBounds"
+						),
+						(
+						$dep_from "class %MHilightText";
+						+ "protected inheritance %MHilightText";
+						/ 'Color HilightBackColor;'
+							-> 'using MHlightText::HilightBackColor;',
+						/ 'Color HilightTextColor;'
+							-> 'using MHlightText::HilightTextColor;'
+						),
+						/ DLD "last parameter of constructor" -> 'const \
+							pair<Color, Color>&' ~ 'pair<Color, Color>',
+						(
+						$dep_from "class %MHilightText";
+						+ "mutable highlight support" $=
+						(
+							+ "protected inheritance %MHilightText";
+							+ 'using MHlightText::HilightBackColor;',
+							+ 'using MHlightText::HilightTextColor;',
+							+ "parameter 'const pair<Color, Color>& = \
+								FetchGUIState().Colors.GetPair( \
+								Styles::Highlight, Styles::HighlightText)'"
+								@ "constructor"
+						)
+						),
+						+ "default handlers for events %(KeyDown, KeyHeld, \
+							TextInput)" @ "constructor"
+					),
+					* "missing stopping caret animation before the restart"
+						@ "class %Caret" $since b355
+						// This would cause the animation invalidation message \
+							kept in queue even if it is not animated.
+				),
+				+ "class %MHilightText" @ %Label,
+				+ "calling %LostFocus with %RoutedEventArgs"
+					@ "release for parent controls" @ "function %DoRequestFocus"
+					@ %YFocus,
+				* $comp "invalid cascade state" @ "focus lost through call out \
+					of routed event from %GUIState" $since b483,
+				/ %YControl $=
+				(
+					+ "function %OnUIEvent_Invalidate",
+					/ @ "constructor %Control" $=
+					(
+						- "handlers" @ "events %(GotFocus, LostFocus)",
+						(
+						$dep_from "function %OnUIEvent_Invalidate"
+						/ DLD "simplified implementation"
+						)
+					)
+				),
+				+ "manually invalidation handlers"
+					@ "event %(GotFocus, LostFocus)" @ "controls"
+					// Only %TextBox is modified. See $2014-03 \
+						@ %Documentation::Workflow::Annual2014.
+			),
+			/ @ %YAdaptor.Adaptor $=
+			(
+				(
+				$dep_from %YCLib.Keys;
+				+ 'using platform::FindFirstKey'
+				),
+				+ 'using platform::KeyBitsetWidth'
+			)
+		),
+		+ "function %FindFirstKey" @ %YCLib.Keys
+	),
+	/ $design "implementation" @ "function %ytrace" @ %YBase.StandardEx.CAssert
+		^ '#' ~ '0x';
+		// Only different for zero value, and 'X' instead of 'x' after prefix \
+			'0'.
+	(
+	$dep_from @ %YFramework.YSLib.UI.YGUI;
+	* $comp "assertion for %TextBox cascade focus failed"
+		@ "hot key for menu pressed" @ "%ShlExplorer"
+	)
+),
+
+b485
 (
 	/ %YFramework.YSLib $=
 	(
@@ -68,7 +167,7 @@ $now
 		),
 		/ %Service $=
 		(
-			/ "implementation"
+			/ DLD "simplified implementation"
 				@ "member function %EmptyTextRenderer::operator()"
 				@ %TextRenderer ^ "%(PDefHOp, ImplExpr)",
 			/ %TextRenderer $=

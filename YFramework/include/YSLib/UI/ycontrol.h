@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4761
+\version r4767
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-03-10 02:09 +0800
+	2014-03-19 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,6 +180,15 @@ OnEvent_StopRouting(_tEventArgs&& e)
 {
 	e.Handled = true;
 }
+
+
+/*!
+\brief 处理用户界面事件：无效化发送者。
+\since build 486
+*/
+YF_API void
+OnUIEvent_Invalidate(UIEventArgs&&);
+
 
 /*!
 \brief 处理键接触保持事件。

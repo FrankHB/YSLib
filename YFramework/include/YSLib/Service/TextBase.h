@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2708
+\version r2729
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-12-23 22:47 +0800
+	2014-03-15 17:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,21 +114,22 @@ public:
 	/*!
 	\brief 赋值：笔样式。
 	*/
-	TextState&
-	operator=(const PenStyle& ps)
-	{
-		PenStyle::operator=(ps);
-		return *this;
-	}
+	PDefHOp(TextState&, =, const PenStyle& ps)
+		ImplRet(PenStyle::operator=(ps), *this)
 	/*!
 	\brief 赋值：边距。
 	*/
-	TextState&
-	operator=(const Padding& ms)
-	{
-		Margin = ms;
-		return *this;
-	}
+	PDefHOp(TextState&, =, const Padding& ms)
+		ImplRet(Margin = ms, *this)
+
+	/*!
+	\brief 取当前状态下继续在行内打印指定字符占据的边界。
+	\note 不考虑换行。
+	\since build 486
+	*/
+	PDefH(Rect, GetCharBounds, ucs4_t c) const ynothrow
+		ImplRet(Rect(Pen.X, Pen.Y - Font.GetAscender(), Font.GetAdvance(c),
+			Font.GetHeight()))
 
 	/*!
 	\brief 打印换行。

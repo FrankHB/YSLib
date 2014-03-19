@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.cpp
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r67
+\version r69
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2012-07-27 04:13:34 +0800
 \par 修改时间:
-	2013-07-27 15:46 +0800
+	2014-03-17 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ ytrace(std::FILE* stream, std::uint8_t lv, std::uint8_t t, const char* file,
 {
 	if(lv < t)
 	{
-		std::fprintf(stream, "Trace[0x%X] @ \"%s\":%i:\n", unsigned(lv), file,
+		std::fprintf(stream, "Trace[%#X] @ \"%s\":%i:\n", unsigned(lv), file,
 			line);
 
 		std::va_list args;

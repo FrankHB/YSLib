@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1202
+\version r1207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-03-14 10:09 +0800
+	2014-03-15 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,11 +50,9 @@ namespace
 
 
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
-	pair<Color, Color> hilight_pair)
-	: Control(r, MakeBlankBrush()), MTextList(h),
-	HilightBackColor(hilight_pair.first),
-	HilightTextColor(hilight_pair.second), CyclicTraverse(false),
-	viewer(GetListRef()), top_offset(0)
+	const pair<Color, Color>& hilight_pair)
+	: Control(r, MakeBlankBrush()), MTextList(h), MHilightText(hilight_pair),
+	CyclicTraverse(false), viewer(GetListRef()), top_offset(0)
 {
 	Margin = Padding(defMarginH, defMarginH, defMarginV, defMarginV);
 	yunseq(

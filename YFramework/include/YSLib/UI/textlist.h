@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r693
+\version r702
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-02-22 14:13 +0800
+	2014-03-15 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,8 @@ DeclDelegate(HIndexEvent, IndexEventArgs)
 \brief 文本列表。
 \since build 212
 */
-class YF_API TextList : public Control, protected MTextList
+class YF_API TextList
+	: public Control, protected MTextList, protected MHilightText
 {
 public:
 	using MTextList::ItemType;
@@ -75,8 +76,10 @@ public:
 	using MTextList::HorizontalAlignment;
 	using MTextList::VerticalAlignment;
 	using MTextList::Text;
-	Color HilightBackColor; //!< 高亮背景色。
-	Color HilightTextColor; //!< 高亮文本色。
+	//! \since build 486
+	using MHilightText::HilightBackColor;
+	//! \since build 486
+	using MHilightText::HilightTextColor;
 	bool CyclicTraverse; //!< 循环选择遍历。
 
 private:
@@ -108,12 +111,12 @@ public:
 
 	/*!
 	\brief 构造：使用指定边界、文本列表和高亮背景色/文本色对。
-	\since build 337
+	\since build 486
 	*/
 	explicit
 	TextList(const Rect& = {}, const shared_ptr<ListType>& = {},
-		pair<Color, Color> = FetchGUIState().Colors.GetPair(Styles::Highlight,
-		Styles::HighlightText));
+		const pair<Color, Color>& = FetchGUIState().Colors.GetPair(
+		Styles::Highlight, Styles::HighlightText));
 	DefDeMoveCtor(TextList)
 
 	DefPredMem(const ynothrow, Selected, viewer)

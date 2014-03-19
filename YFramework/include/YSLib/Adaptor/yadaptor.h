@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1564
+\version r1568
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-02-16 01:42 +0800
+	2014-03-18 02:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,7 +203,12 @@ using platform::StartTicks;
 
 //输入类型。
 namespace KeyCodes = platform::KeyCodes;
+//! \since build 486
+using platform::KeyBitsetWidth;
 using platform::KeyInput;
+
+//! \since build 486
+using platform::FindFirstKey;
 
 //! \brief 图形处理。
 namespace Drawing

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1375
+\version r1378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-02-16 00:02 +0800
+	2014-03-17 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -340,7 +340,7 @@ struct holder_tag
 \brief 动态泛型对象处理器。
 \since build 355
 */
-template<typename _type, bool bStoredLocally = sizeof(_type)
+template<typename _type, bool _bStoredLocally = sizeof(_type)
 	<= sizeof(any_storage) && yalignof(_type) <= yalignof(any_storage)
 	&& yalignof(any_storage) % yalignof(_type) == 0>
 class value_handler
@@ -349,12 +349,12 @@ public:
 	//! \since build 352
 	//@{
 	using value_type = _type;
-	using local_storage = integral_constant<bool, bStoredLocally>;
+	using local_storage = integral_constant<bool, _bStoredLocally>;
 
 	static value_type*
 	get_pointer(const any_storage& s)
 	{
-		return const_cast<value_type*>(bStoredLocally ? std::addressof(
+		return const_cast<value_type*>(_bStoredLocally ? std::addressof(
 			s.access<value_type>()) : s.access<const value_type*>());
 	}
 	//@}
