@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file Workflow.Annual2013.txt
+/*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
-\brief 工作流汇总报告 - 2013 年度。
-\version r210
+\brief 工作流汇总报告 - 2014 年度。
+\version r222
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-03-20 00:04 +0800
+	2014-03-20 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,13 +202,20 @@ Note that default constructor of instances of 'std::chrono::duration' and simila
 	Consider to use explicit initialization in class definitions to emphasize they are already initialized, if necessary.
 Some event-based invalidation of "YSLib::UI::Control" class is removed.
 	This is because these invaliadation operations are not always necessary. They are also harmful to performance when not needed.
-	Event if the operation is handled, other handlers for painting with same or lower priority would need a more invalidation, so the former invalidation is redundant.
+	Even if the operation is handled, other handlers for painting with same or lower priority might need a more invalidation when more area should be invalidated.
+	Invalidation should be performed for controls that painted with different look between focused and non-focused states.
+		These controls are all style-related.
+		They are "Thumb", "TextList", "ProgressBar", "DialogBox", "DialogPanel", and their derived classes.
+			For derived classes, no explicit handlers need to be added. These base classes are directly derived from "Control".
 	For "LostFocus" event, following cases are considered:
 		For "DropDownList", no further invalidation is needed. The detacher has nothing to do with dropped down list itself.
 		For "Menu", no further invalidation is needed. Only the hiding operations perform the invalidation, which is done in "MenuHost::HideRaw".
-		For "TextBox", a further invalidation is needed and added in the handler. Note that the invalidation for caret is not enough.
+			But it should be used for focus border painting.
+		For "TextBox", a further invalidation is needed and added in the handler for focus border painting.
+			Note that the invalidation for caret is not enough.
 	For "GotFocus" event, only one case is considered:
-		For "TextBox", a further invalidation is needed and added as a new handler.
+		For "Menu", further invalidation for showing is needed. It should be used also for focus border painting.
+		For "TextBox", a further invalidation is needed and added as a new handler for focus border painting.
 
 
 ////

@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r207
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-03-18 16:57 +0800
+	2014-03-23 10:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,7 +116,8 @@ struct YF_API TextSelection final
 \brief 文本框。
 \sa Label
 \since build 482
-\todo 实现插入符光标移动、文本选中和插入。
+\todo 支持选中删除、退格和非字母符号和方向键光标移动。
+\todo 支持多行模式的插入符光标移动、文本选中和插入。
 */
 class YF_API TextBox : public Control, protected MLabel, protected MHilightText
 {

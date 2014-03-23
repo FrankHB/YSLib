@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1110
+\version r1132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-03-02 18:25 +0800
+	2014-03-23 00:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,11 +112,28 @@ CheckReaderEnability(FileBox& fb, RadioBox& hex)
 }
 
 
+//! \since build 487
+inline bool
+CheckMenuKey(const KeyInput& k)
+{
+#if YCL_Win32
+	auto ke(k);
+
+	ke.set(VK_CONTROL, {});
+	ke.set(VK_LCONTROL, {});
+	ke.set(VK_RCONTROL, {});
+	return ke.none() && k[VK_CONTROL];
+#else
+	return k.count() == 1 && k[YCL_KEY_Start];
+#endif
+}
+
+
 //! \since build 451
 //@{
-static yconstexpr auto PI = 3.14159265358979323;
-static yconstexpr auto PI_2 = PI * 2;
-static yconstexpr auto PI_4 = PI * 4;
+yconstexpr auto PI = 3.14159265358979323;
+yconstexpr auto PI_2 = PI * 2;
+yconstexpr auto PI_4 = PI * 4;
 
 //! \since build 452
 void
@@ -281,7 +298,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 // TODO: Show current working directory properly.
 	btnOK.Text = u"确定(A)",
 #if YCL_Win32
-	btnMenu.Text = u"菜单(P)",
+	btnMenu.Text = u"菜单(Ctrl)",
 #else
 	btnMenu.Text = u"菜单(Start)",
 #endif
@@ -322,9 +339,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		{
 			if(k[YCL_KEY(A)])
 				return &btnOK;
-			if(k[YCL_KEY_Start])
-				return &btnMenu;
 		}
+		else if(CheckMenuKey(k))
+			return &btnMenu;
 		return nullptr;
 	},
 	FetchEvent<KeyUp>(dsk_s) += OnKey_Bound_TouchUp,

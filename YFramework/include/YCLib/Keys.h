@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r207
+\version r248
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-03-18 01:55 +0800
+	2014-03-22 12:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,12 +63,41 @@ using KeyInput = std::bitset<KeyBitsetWidth>;
 
 /*!
 \brief 找到输入缓冲区记录中最小的按键编码。
-\return 若存在编码则最小值，否则为 KeyBitsetWidth 。
+\return 若存在编码则为最小值，否则为 KeyBitsetWidth 。
 \since build 486
 \todo 支持 libstdc++ 以外的实现。
 */
 YF_API size_t
 FindFirstKey(const KeyInput&);
+
+/*!
+\brief 找到输入缓冲区记录中大于指定编码的最小的按键编码。
+\return 若存在编码则为大于指定编码的最小值，否则为 KeyBitsetWidth 。
+\since build 487
+\todo 支持 libstdc++ 以外的实现。
+*/
+YF_API size_t
+FindNextKey(const KeyInput&, size_t);
+
+/*!
+\brief 映射按键到键入的字符。
+\return 若未找到对应按键或不支持为 char() ，否则为对应的字符。
+\note 对于 Win32 ，返回值不大于 0x80 。
+\since build 487
+*/
+//@{
+#if YCL_Win32
+YF_API char
+MapKeyChar(size_t);
+YF_API char
+MapKeyChar(const KeyInput&);
+#else
+yconstexpr PDefH(char, MapKeyChar, size_t)
+	ImplRet(char())
+yconstexpr PDefH(char, MapKeyChar, const KeyInput&)
+	ImplRet(char())
+#endif
+//@}
 
 
 /*!
@@ -100,11 +129,7 @@ enum NativeSet
 };
 
 //按键别名。
-const NativeSet
-	Enter = A,
-	Esc = B,
-	PgUp = L,
-	PgDn = R;
+yconstexpr NativeSet Enter = A, Esc = B, PgUp = L, PgDn = R;
 #elif YCL_Win32
 /*!
 \brief 基本公用按键集合。
@@ -123,14 +148,6 @@ enum NativeSet
 	Right	= 0x27, //!< 同 VK_RIGHT 。
 	Down	= 0x28 //!< 同 VK_DOWN 。
 };
-#undef VK_RETURN
-#undef VK_ESCAPE
-#undef VK_PRIOR
-#undef VK_NEXT
-#undef VK_LEFT
-#undef VK_UP
-#undef VK_RIGHT
-#undef VK_DOWN
 #endif
 
 } // namespace KeyCodes;

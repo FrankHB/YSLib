@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2099
+\version r2121
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-07 15:37 +0800
+	2014-03-23 10:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,17 +150,42 @@ private:
 	*/
 	bool entered = {};
 
+	/*!
+	\brief 记录检查时的按键输入。
+	\sa CheckDistinctHeld
+	\since build 487
+	*/
+	KeyInput checked_held{};
+
 public:
 	GUIState() ynothrow;
 
 	//! \since build 422
 	DefPred(const ynothrow, Entered, entered)
 
+	//! \since build 487
+	DefGetter(const ynothrow, const KeyInput&, CheckedHeldKeys, checked_held)
 	//! \since build 422
 	DefGetter(const ynothrow, IWidget*, CursorOverPtr, p_CursorOver)
 	//! \since build 464
 	DefGetter(const ynothrow, IWidget*, IndependentFocusPtr, p_indp_focus) \
 		//独立焦点指针。
+
+	/*!
+	\brief 检查输入保持状态。
+	\note 接受的按键参数一般是按下状态或保持状态。
+	\since build 487
+
+	若被记录的按键状态为空则记录参数指定的按键状态；否则若当记录的按键状态和
+	参数不等时追加（位或）更新记录的按键状态并设置为参数，同时设置保持状态为
+	InputTimer::Free 。
+	*/
+	//@{
+	PDefH(bool, CheckHeldState, KeyInput& keys)
+		ImplRet(CheckHeldState(keys, KeyHeldState))
+	bool
+	CheckHeldState(KeyInput&, InputTimer::HeldStateType&);
+	//@}
 
 	/*!
 	\brief 若拖放偏移量无效则按指定部件的屏幕坐标更新拖放偏移量。

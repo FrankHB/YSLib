@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3269
+\version r3275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-03-10 02:31 +0800
+	2014-03-20 13:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,6 +90,10 @@ Thumb::Thumb(const Rect& r, ystdex::raw_tag)
 	: Control(r),
 	csCurrent(CursorState::Outside)
 {
+	const auto invalidator([this](UIEventArgs&&){
+		Invalidate(*this);
+	});
+
 	yunseq(
 	FetchEvent<CursorOver>(*this) += [this](CursorEventArgs&& e)
 	{
@@ -112,7 +116,9 @@ Thumb::Thumb(const Rect& r, ystdex::raw_tag)
 			csCurrent = CursorState::Outside;
 			Invalidate(e.GetSender());
 		}
-	}
+	},
+	FetchEvent<GotFocus>(*this) += invalidator,
+	FetchEvent<LostFocus>(*this) += invalidator
 	);
 }
 

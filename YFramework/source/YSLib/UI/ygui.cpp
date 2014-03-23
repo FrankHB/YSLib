@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3949
+\version r3984
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-08 08:25 +0800
+	2014-03-23 10:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,6 +131,16 @@ GUIState::GUIState() ynothrow
 {}
 
 bool
+GUIState::CheckHeldState(KeyInput& keys, InputTimer::HeldStateType& s)
+{
+	if(checked_held.none())
+		checked_held = keys;
+	else if(checked_held != keys)
+		yunseq(keys = checked_held |= keys, s = InputTimer::Free);
+	return true;
+}
+
+bool
 GUIState::CheckDraggingOffset(IWidget* p)
 {
 	if(!p)
@@ -173,7 +183,8 @@ GUIState::Reset()
 {
 	yunseq(KeyHeldState = InputTimer::Free, TouchHeldState = InputTimer::Free,
 		DraggingOffset = Vec::Invalid),
-	HeldTimer.ResetInput();
+	HeldTimer.ResetInput(),
+	checked_held = {};
 	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
 		p_indp_focus = {}, p_cascade_focus = {}, entered = {});
 }
@@ -182,7 +193,8 @@ void
 GUIState::ResetHeldState(InputTimer::HeldStateType& s)
 {
 	s = InputTimer::Free,
-	HeldTimer.ResetInput();
+	HeldTimer.ResetInput(),
+	checked_held = {};
 }
 
 void

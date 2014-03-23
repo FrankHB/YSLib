@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r238
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-03-20 00:05 +0800
+	2014-03-23 10:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,16 +95,22 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 {
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
-		auto& sender(e.GetSender());
-		const auto& keys(e.Keys);
-		const size_t idx(FindFirstKey(keys));
-		const ucs2_t buf[]{YB_UNLIKELY(idx == KeyBitsetWidth) ? u'\0'
-			: ucs2_t(keys[idx]), u'\0'};
+		if(e.Strategy == RoutedEventArgs::Direct
+			&& FetchGUIState().CheckHeldState(e.Keys))
+		{
+			const auto& keys(e.Keys);
+			const char c(MapKeyChar(keys));
+			auto& sender(e.GetSender());
 
-		// XXX: Use key translation from virtual key code to character.
-		// TODO: Proper multiple keys handling.
-		CallEvent<TextInput>(sender,
-			TextInputEventArgs(sender, String(buf), keys));
+			// TODO: Proper multiple keys handling for non-alphabetical.
+			if(c != char())
+			{
+				const ucs2_t buf[]{ucs2_t(c), u'\0'};
+
+				CallEvent<TextInput>(sender,
+					TextInputEventArgs(sender, String(buf), keys));
+			}
+		}
 	},
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
@@ -120,13 +126,21 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 		}
 	},
 	FetchEvent<TextInput>(*this) += [this](TextInputEventArgs&& e){
-		Text += e.Text;
-	},
-	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
-	FetchEvent<GotFocus>(*this) += OnUIEvent_Invalidate,
-	FetchEvent<LostFocus>(*this) += [this](UIEventArgs&& e){
+		auto& r(Selection.Range);
+
+		Text = Text.substr(0, r.first.X) + e.Text
+			+ Text.substr(min(Text.length(), r.second.X));
+		r.second.X = r.first.X + e.Text.length(),
 		Selection.Collapse();
 		Invalidate(e.GetSender());
+	},
+	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
+	FetchEvent<GotFocus>(*this) += [this](UIEventArgs&&){
+		Invalidate(*this);
+	},
+	FetchEvent<LostFocus>(*this) += [this](UIEventArgs&&){
+		Selection.Collapse();
+		Invalidate(*this);
 	}
 	);
 }

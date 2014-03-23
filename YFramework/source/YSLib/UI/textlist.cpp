@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1207
+\version r1213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-03-15 22:02 +0800
+	2014-03-20 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,6 +54,10 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	: Control(r, MakeBlankBrush()), MTextList(h), MHilightText(hilight_pair),
 	CyclicTraverse(false), viewer(GetListRef()), top_offset(0)
 {
+	const auto invalidator([this](UIEventArgs&&){
+		Invalidate(*this);
+	});
+
 	Margin = Padding(defMarginH, defMarginH, defMarginV, defMarginV);
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
@@ -129,7 +133,9 @@ bound_select:
 	FetchEvent<Click>(*this) += [this](CursorEventArgs&& e){
 		InvokeConfirmed(CheckPoint(e));
 	},
-	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority)
+	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority),
+	FetchEvent<GotFocus>(*this) += invalidator,
+	FetchEvent<LostFocus>(*this) += invalidator
 	);
 	AdjustViewLength();
 }

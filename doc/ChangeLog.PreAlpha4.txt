@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6740
+\version r6790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-03-20 00:20 +0800
+	2014-03-23 11:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,57 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				(
+				* "missing explicit invalidation handlers" @ "handling event \
+					%(GotFocus, LostFocus)" @ "class %(Thumb, TextList, \
+					ProgressBar, DialogBox, DialogPanel)" @ $since b486;
+				* $comp "submenus not shown" $since b486
+				),
+				(
+				* "wrong invalidation targets" $since b482
+					$= (/ $comp $revert_ex(b482) "invalidation for captured \
+						reference of widgets" ~ "event senders");
+				* $comp "missing border repainting immediately" $since b482
+				),
+				+ "member functions %GUIState::(GetCheckedKey, \
+					2 CheckedHeldState)" @ %YGUI,
+				/ @ "class %TextBox" $=
+				(
+					+ "selection replacement support;",
+					* "single character input" $since b486,
+					+ "support of alphabetical character input with \
+						'Shift' handled"
+				)
+			),
+			/ %Adaptor.YAdaptor $=
+			(
+				$dep_from %YCLib.Keys;
+				+ 'using platform::FindNextKey;',
+				+ 'using platform::MapKeyChar;'
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %Input $=
+			(
+				/ $dev ('const' -> 'yconstexpr') @ "native set key code aliases"
+					@ "platform %DS",
+				- $dev "all redundant '#undef' 'VK_*'" @ "platform %Win32"
+			),
+			+ "function %(2 MapKeyChar, FindNextKey)" @ %Keys
+		)
+	),
+	/ "menu key" -> "Ctrl" @ "platform %Win32" @ %YReader.ShlExplorer
+),
+
+b486
 (
 	/ %YFramework $=
 	(
