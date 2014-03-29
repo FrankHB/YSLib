@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r631
+\version r648
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2013-12-23 23:25 +0800
+	2014-03-28 01:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,8 @@ Renderer::Paint(IWidget& wgt, PaintEventArgs&& e)
 {
 	YAssert(&e.GetSender().GetRenderer() == this, "Invalid widget found.");
 
-	CallEvent<UI::Paint>(wgt, e);
+	if(YB_LIKELY(!e.ClipArea.IsUnstrictlyEmpty()))
+		CallEvent<UI::Paint>(wgt, e);
 	return e.ClipArea;
 }
 
@@ -116,20 +117,23 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 
 		const Rect& clip(pc.ClipArea & (rInvalidated + l));
 
-		if(!IgnoreBackground && FetchContainerPtr(sender))
+		if(!clip.IsUnstrictlyEmpty())
 		{
-			const auto& g(GetContext());
+			if(!IgnoreBackground && FetchContainerPtr(sender))
+			{
+				const auto& g(GetContext());
 
-			CopyTo(g.GetBufferPtr(), pc.Target, g.GetSize(),
-				clip.GetPoint() - pc.Location, clip.GetPoint(), clip.GetSize());
+				CopyTo(g.GetBufferPtr(), pc.Target, g.GetSize(), clip.GetPoint()
+					- pc.Location, clip.GetPoint(), clip.GetSize());
+			}
+
+			PaintEventArgs e(sender, {GetContext(), Point(), clip - l});
+
+			CallEvent<UI::Paint>(wgt, e);
+			//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
+			rInvalidated.GetSizeRef() = {};
+			return e.ClipArea;
 		}
-
-		PaintEventArgs e(sender, {GetContext(), Point(), clip - l});
-
-		CallEvent<UI::Paint>(wgt, e);
-		//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
-		rInvalidated.GetSizeRef() = {};
-		return e.ClipArea;
 	}
 	return {};
 }

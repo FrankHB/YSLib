@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r225
+\version r239
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-02-27 20:55 +0800
+	2014-03-26 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,16 @@ using namespace Drawing;
 namespace Host
 {
 
+RenderWindow::RenderWindow(HostRenderer& r, NativeWindowHandle h)
+	: Window(h), renderer(r)
+{
+	MessageMap[WM_PAINT] += [this]{
+		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
+
+		renderer.get().UpdateToSurface(sf);
+	};
+}
+
 void
 RenderWindow::Refresh()
 {
@@ -48,14 +58,6 @@ RenderWindow::Refresh()
 	if(rd.Validate(wgt, wgt,
 		{rd.GetContext(), Point(), rd.GetInvalidatedArea()}))
 		rd.Update(rd.GetContext().GetBufferPtr());
-}
-
-void
-RenderWindow::OnPaint()
-{
-	GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
-
-	renderer.get().UpdateToSurface(sf);
 }
 
 

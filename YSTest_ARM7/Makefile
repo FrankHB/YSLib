@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM7
-# Version = r1306
+# Version = r1307
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-02-20 23:19 +0800
+# Updated = 2014-03-29 14:37 +0800
 # Encoding = ANSI
 
 
@@ -66,7 +66,7 @@ ARCH	:=	$(ARCH_AS) -mtune=arm7tdmi
 
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
-CFLAGS	:=	-Wall -Wextra \
+CFLAGS	:=	-Wall -Wextra -Wno-psabi \
  			-Wcast-align -Wunreachable-code \
  			-Wmissing-declarations -Winvalid-pch \
  			-fdata-sections -ffunction-sections \

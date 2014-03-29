@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1284
+\version r1335
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-03-01 09:43 +0800
+	2014-03-27 01:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,60 +56,42 @@ namespace
 ::LRESULT CALLBACK
 WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 {
-#		define YSL_WndProc_BeginCase(_n) \
-			case YPP_Join(WM_, _n): \
-				if(YB_LIKELY(p)) \
-				{
-#		define YSL_WndProc_BeginCase_Trace(_n) \
-			case YPP_Join(WM_, _n): \
-				YCL_DEBUG_PUTS("Handling of WM_" #_n "."); \
-				if(YB_LIKELY(p)) \
-				{ \
-					YSL_DEBUG_DECL_TIMER(tmr, "WM_" #_n)
-#		define YSL_WndProc_EndCase() \
-		} \
-		break;
-
-//	YSL_DEBUG_DECL_TIMER(tmr, "WndProc")
 	const auto p(reinterpret_cast<Window*>(::GetWindowLongPtrW(h_wnd,
 		GWLP_USERDATA)));
 
-	switch(msg)
+	if(YB_LIKELY(p))
 	{
-	YSL_WndProc_BeginCase_Trace(PAINT)
-		p->OnPaint();
-	YSL_WndProc_EndCase()
-	YSL_WndProc_BeginCase_Trace(KILLFOCUS)
-		p->OnLostFocus();
-	YSL_WndProc_EndCase()
-	YSL_WndProc_BeginCase_Trace(DESTROY)
-		p->OnDestroy();
-	YSL_WndProc_EndCase()
-	YSL_WndProc_BeginCase(INPUT)
-		::UINT size(sizeof(::RAWINPUT));
-		byte lpb[sizeof(::RAWINPUT)]{};
+		YSL_DEBUG_DECL_TIMER(tmr, std::to_string(msg));
 
-		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
-			&size, sizeof(::RAWINPUTHEADER)) != ::UINT(-1)))
+		if(msg == WM_INPUT)
 		{
-			const auto p_raw(reinterpret_cast< ::RAWINPUT*>(lpb));
+			::UINT size(sizeof(::RAWINPUT));
+			byte lpb[sizeof(::RAWINPUT)]{};
 
-			if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
+			if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
+				&size, sizeof(::RAWINPUTHEADER)) != ::UINT(-1)))
 			{
-				if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
-					p->GetHost().RawMouseButton
-						= p_raw->data.mouse.usButtonData;
+				const auto p_raw(reinterpret_cast< ::RAWINPUT*>(lpb));
+
+				if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
+				{
+					if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
+						p->GetHost().RawMouseButton
+							= p_raw->data.mouse.usButtonData;
+				}
 			}
 		}
-	YSL_WndProc_EndCase()
-	default:
-	//	YCL_DEBUG_PUTS("Handling of default procedure.");
-		return ::DefWindowProcW(h_wnd, msg, w_param, l_param);
+
+		auto& m(p->MessageMap);
+		const auto i(m.find(msg));
+			
+		if(i != m.cend())
+		{
+			i->second(w_param, l_param);
+			return 0;
+		}
 	}
-	return 0;
-#		undef YSL_WndProc_BeginCase
-#		undef YSL_WndProc_BeginCase_Trace
-#		undef YSL_WndProc_EndCase
+	return ::DefWindowProcW(h_wnd, msg, w_param, l_param);
 }
 #	endif
 

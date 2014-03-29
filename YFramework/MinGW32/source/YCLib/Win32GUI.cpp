@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r430
+\version r447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2013-12-12 10:30 +0800
+	2014-03-26 23:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,7 +389,8 @@ WindowClass::~WindowClass()
 
 
 HostWindow::HostWindow(NativeWindowHandle h)
-	: WindowReference(h)
+	: WindowReference(h),
+	MessageMap()
 {
 	YAssert(::IsWindow(h), "Invalid window handle found.");
 	YAssert(::GetWindowThreadProcessId(h, {}) == ::GetCurrentThreadId(),
@@ -417,6 +418,9 @@ HostWindow::HostWindow(NativeWindowHandle h)
 
 	if(YB_UNLIKELY(!::RegisterRawInputDevices(&rid, 1, sizeof(rid))))
 		YF_Raise_Win32Exception("RegisterRawInputDevices");
+	MessageMap[WM_DESTROY] += []{
+		::PostQuitMessage(0);
+	};
 }
 HostWindow::~HostWindow()
 {
@@ -425,20 +429,6 @@ HostWindow::~HostWindow()
 	if(::IsWindow(hWindow))
 		::DestroyWindow(hWindow);
 }
-
-void
-HostWindow::OnDestroy()
-{
-	::PostQuitMessage(0);
-}
-
-void
-HostWindow::OnLostFocus()
-{}
-
-void
-HostWindow::OnPaint()
-{}
 
 } // namespace Windows;
 

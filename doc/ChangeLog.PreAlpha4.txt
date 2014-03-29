@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6790
+\version r6873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-03-23 11:02 +0800
+	2014-03-29 14:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,89 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %'YCLib_(MinGW32)' @ "platform %MinGW32" $=
+		(
+			/ @ "class %MinGW32::HostWindow" @ %.Win32GUI $=
+			(
+				/ "virtual functions %(OnDestroy, OnPaint, OnLostFocus)"
+					-> 'std::map<::UINT, \
+					YSLib::GEvent<void(::WPARAM, ::LPARAM)>> MessageMap;';
+				+ "implemented message handler" ^ 'MessageMap',
+			),
+			/ "bound event dispatching with data members for windows messages \
+				%(WM_SIZE, WM_MOVE)" @ %Host,
+				// Output message painted differently, for all non-specific \
+					messages with message IDs instead of message names.
+		),
+		/ %Helper @ "platform %MinGW32" $=
+		(
+			(
+			$dep_from %'YCLib_(MinGW32)';
+			/ @ "class %Host::Window" @ %HostWindow $=
+			(
+				/ DLD "virtual destructor" ^ 'override',
+				- "overriders for event %OnLostFocus",
+				+ "implemented message handler" ^ 'MessageMap'
+			),
+			/ @ "class %RenderWindow" @ %HostRenderer $=
+			(
+				- "overrider for event %OnPaint",
+				/ DLD "non-inlined constructor",
+				+ "implemented message handler" ^ 'MessageMap'
+			),
+			/ DLD "events implementation" @ "DS window"
+			),
+			(
+			$dep_from %YSLib.UI.YRenderer;
+			* $comp "assertion failed for empty hosted window client area"
+				$since b479
+			)
+		),
+		/ %YSLib $=
+		(
+			(
+			$dep_from "%ystdex::exists";
+			/ DLD "simplified implementation" ^ "%ystdex::exists"
+			),
+			/ %UI $=
+			(
+				+ "exited for Empty clipped area" @ "member functions \
+					%(Renderer::Paint, BufferedRenderer::Validate)"
+					@ %YRenderer,
+				/ @ "member function %CheckHeldState" @ "class %GUIState"
+					@ %YGUI $=
+				(
+					/ "support const argument as input",
+						// Now the key should be updated in the caller if \
+							necessary.
+					* "missing returning 'false' for unchanged key state"
+							$since b487
+							// Though undocumented, it is intended to be \
+								distinguished.
+				),
+				* "wrong insertion position for inversed selection"
+					@ "%TextInput handler" @ "class %TextBox" $since b487
+			)
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "function template %exists" @ %Container,
+		/ %String $=
+		(
+			+ "function template %vsfmt";
+			/ DLD "simplified implementation" @ "function template %sfmt"
+				^ "%vsfmt"
+		)
+	),
+	+ DLB '-Wno-psabi' @ "CFLAGS" @ "makefiles" @ "platform %DS"
+		// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=42748 .
+),
+
+b487
 (
 	/ %YFramework $=
 	(

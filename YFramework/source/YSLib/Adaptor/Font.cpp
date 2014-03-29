@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3369
+\version r3370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-02-05 15:45 +0800
+	2014-03-27 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,7 +247,7 @@ Typeface::SmallBitmapData::~SmallBitmapData()
 
 Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 	: Path(path), face_index(i), cmap_index(-1), style_name(), ref([&, this]{
-		if(YB_UNLIKELY(cache.sFaces.find(this) != cache.sFaces.end()))
+		if(YB_UNLIKELY(ystdex::exists(cache.sFaces, this)))
 			throw LoggedEvent("Duplicate typeface found.", Critical);
 
 		::FT_Face face;

@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r263
+\version r270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-03-23 10:56 +0800
+	2014-03-29 14:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,10 +95,13 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 {
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
-		if(e.Strategy == RoutedEventArgs::Direct
-			&& FetchGUIState().CheckHeldState(e.Keys))
+		if(e.Strategy == RoutedEventArgs::Direct)
 		{
 			const auto& keys(e.Keys);
+
+			if(FetchGUIState().CheckHeldState(keys))
+				e.Keys = FetchGUIState().GetCheckedHeldKeys();
+
 			const char c(MapKeyChar(keys));
 			auto& sender(e.GetSender());
 
@@ -128,6 +131,9 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 	FetchEvent<TextInput>(*this) += [this](TextInputEventArgs&& e){
 		auto& r(Selection.Range);
 
+		// XXX: Make it correct for multiline input.
+		if(r.second.X < r.first.X)
+			std::swap(r.first, r.second);
 		Text = Text.substr(0, r.first.X) + e.Text
 			+ Text.substr(min(Text.length(), r.second.X));
 		r.second.X = r.first.X + e.Text.length(),

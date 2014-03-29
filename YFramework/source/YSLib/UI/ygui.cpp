@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3984
+\version r3990
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-23 10:44 +0800
+	2014-03-29 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,13 +131,16 @@ GUIState::GUIState() ynothrow
 {}
 
 bool
-GUIState::CheckHeldState(KeyInput& keys, InputTimer::HeldStateType& s)
+GUIState::CheckHeldState(const KeyInput& keys, InputTimer::HeldStateType& s)
 {
 	if(checked_held.none())
 		checked_held = keys;
 	else if(checked_held != keys)
-		yunseq(keys = checked_held |= keys, s = InputTimer::Free);
-	return true;
+	{
+		yunseq(checked_held |= keys, s = InputTimer::Free);
+		return true;
+	}
+	return {};
 }
 
 bool

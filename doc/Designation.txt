@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9132
+\version r9138
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-03-04 13:05 +0800
+	2014-03-24 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -447,6 +447,13 @@ Shell 和 Core 的关系是相对的，例如：
 在链接器命令行中引用 $LIB 指定库。静态库链接时同时需要在之前使用 -Wl,-dn 选项以避免链接至动态库（默认链接器优先链接 $(LIB).dll.a 而不是 lib$(LIB).a ）。
 以上部署方式中链接器搜索路径中的静态库和动态库的调试版本和非调试版本可以在一个目录内，不产生冲突。
 
+@5.2.5 Windows 构建宿主公共环境：
+ Msys 用于 Windows 上版本的构建环境。
+ build 458 前：
+使用 devkitPro 附带的实现。
+ 2013-11-22(build 458) 起：
+对于 MinGW32 ，使用 http://sourceforge.net/projects/mingwbuilds/files/external-binary-packages/msys%2B7za%2Bwget%2Bsvn%2Bgit%2Bmercurial%2Bcvs-rev13.7z 。
+
 @5.3 通用库：
 
 @5.3.1
@@ -561,7 +568,7 @@ AUX_MODULES += gzip
  2013-06-26(build 417) 起：
 使用裁剪的 FreeImage 3.15.4 。对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
  2013-07-21(build 431) 起：
-使用裁剪的 FreeImage 3.15.4 ，并使用 libjpeg-turbo-1.3.0 替换 libjpeg-8d 。对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
+使用裁剪的 FreeImage 3.15.4 ，并使用 libjpeg-turbo-1.3.0 替换 libjpeg-8d ，更新了 zlib 和 libpng 。对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
 注意增加的 libjpeg SIMD 代码在 MinGW32 依赖于 NASM(@5.2.4) 构建。
  2013-10-21(build 453) 起：
 在上一版本的基础上更新 libpng ，并重新编译 MinGW32 库文件。

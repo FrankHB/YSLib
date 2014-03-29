@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r447
+\version r460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2013-12-24 10:29 +0800
+	2014-03-26 23:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "YCLib/YModules.h"
 #include YFM_MinGW32_YCLib_MinGW32
 #include YFM_YSLib_Core_YGDIBase
+#include YFM_YSLib_Core_YEvent
 #include <mutex> // for std::mutex;
 #include <atomic>
 
@@ -416,6 +417,12 @@ public:
 	*/
 	std::atomic<bool> BoundsLimited{false};
 
+	/*!
+	\brief 窗口消息转发事件映射。
+	\since build 488
+	*/
+	std::map< ::UINT, YSLib::GEvent<void(::WPARAM, ::LPARAM)>> MessageMap;
+
 	//! \throw LoggedEvent 窗口类名不是 WindowClassName 。
 	HostWindow(NativeWindowHandle);
 	DefDelMoveCtor(HostWindow)
@@ -450,15 +457,6 @@ public:
 
 	using WindowReference::Move;
 	//@}
-
-	virtual void
-	OnDestroy();
-
-	virtual void
-	OnLostFocus();
-
-	virtual void
-	OnPaint();
 
 	//! \since build 427
 	//@{

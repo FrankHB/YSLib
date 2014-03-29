@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r274
+\version r280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-02-15 14:27 +0800
+	2014-03-26 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,19 +54,13 @@ private:
 	std::reference_wrapper<HostRenderer> renderer;
 
 public:
-	RenderWindow(HostRenderer& r, NativeWindowHandle h)
-		: Window(h), renderer(r)
-	{}
+	RenderWindow(HostRenderer&, NativeWindowHandle);
 
 	DefGetter(const ynothrow, HostRenderer&, Renderer, renderer)
 
 	//! \since build 387
 	void
 	Refresh() override;
-
-	//! \since build 387
-	void
-	OnPaint() override;
 };
 
 

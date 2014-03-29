@@ -14,7 +14,7 @@ There is a known bug in build system of version 2.5.1 and 2.5.2 for Win32. Make 
 Currently only building on Windows is supported.
 Msys and devkitARM are required.
 The environment variable "DEVKITARM" should be set properly like "/C/devkitPro", to make sure the toolchain files can be found.
-Copy the directory "build" to the freetype source directory, change current working directory to "builds" and run "build-ds.cmd" to build the static library.
+Copy the directory "builds" to the freetype source directory, change current working directory to "builds" and run "build-ds.cmd" to build the static library.
 The script will clean "objs" directory in the freetype source directory, then copy necessary files, call "make -j -f buildlib.mk".
 The output is "objs/ds/libfreetype.a" in the freetype source directory.
 

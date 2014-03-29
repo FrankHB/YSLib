@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r297
+\version r302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2013-12-23 23:55 +0800
+	2014-03-26 23:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,8 +81,7 @@ public:
 	Window(NativeWindowHandle);
 	Window(NativeWindowHandle, Environment&);
 	//@}
-	virtual
-	~Window();
+	~Window() override;
 
 	DefGetter(const ynothrow, Environment&, Host, env)
 	/*!
@@ -92,9 +91,6 @@ public:
 	*/
 	virtual pair<YSLib::Drawing::Point, YSLib::Drawing::Point>
 	GetInputBounds() const ynothrow;
-
-	void
-	OnLostFocus() override;
 
 	/*!
 	\brief 刷新：保持渲染状态同步。

@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r610
+\version r640
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-01-28 05:14 +0800
+	2014-03-27 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -339,6 +339,41 @@ inline void
 seq_insert(_tCon& c, _tParams&&... args)
 {
 	ystdex::seq_apply(container_inserter<_tCon>(c), yforward(args)...);
+}
+
+
+//! \since build 488
+namespace details
+{
+
+template<class _tCon, typename _tKey>
+bool
+exists(const _tCon& con, const _tKey& key,
+	decltype(std::declval<_tCon>().count()) = 1U)
+{
+	return con.count(key) != 0;
+}
+template<class _tCon, typename _tKey>
+bool
+exists(const _tCon& con, const _tKey& key, ...)
+{
+	return con.find(key) != end(con);
+}
+
+} // namespace details;
+
+/*!
+\brief 判断指定的容器中存在指定的键。
+\note 当容器对象右值可使用返回以整数初始化的类型的成员 <tt>count()</tt> 时使用成
+	员 count() 实现；否则使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定的容器迭代
+	器，使用成员 find 实现。
+\since build 488
+*/
+template<class _tCon, typename _tKey>
+inline bool
+exists(const _tCon& con, const _tKey& key)
+{
+	return details::exists(con, key);
 }
 
 

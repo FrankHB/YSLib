@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r161
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2013-12-24 00:38 +0800
+	2014-03-25 23:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,6 @@ ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
 {
 	WrapRenderer(wgt, CreateNativeWindow, WindowClassName, GetSizeOf(wgt),
 		title, wstyle, wstyle_ex);
-
 	WaitForHostWindow(wgt);
 }
 #	endif

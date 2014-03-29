@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r1954
+# Version = r1955
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-02-23 08:45 +0800
+# Updated = 2014-03-29 14:38 +0800
 # Encoding = ANSI
 
 
@@ -66,7 +66,7 @@ ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
 
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
-CFLAGS	:=	-Wall -Wextra \
+CFLAGS	:=	-Wall -Wextra -Wno-psabi \
  			-Wcast-align -Wunreachable-code \
  			-Wmissing-declarations -Wredundant-decls -Winvalid-pch \
  			-fdata-sections -ffunction-sections \

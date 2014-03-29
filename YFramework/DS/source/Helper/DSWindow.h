@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSWindow.h
 \ingroup Helper
 \brief DS 宿主窗口。
-\version r81
+\version r86
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2013-12-24 00:16 +0800
+	2014-03-26 23:33 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -58,12 +58,6 @@ public:
 
 	pair<Drawing::Point, Drawing::Point>
 	GetInputBounds() const ynothrow override;
-
-	void
-	OnDestroy() override;
-
-	void
-	OnPaint() override;
 };
 
 } // namespace Host;

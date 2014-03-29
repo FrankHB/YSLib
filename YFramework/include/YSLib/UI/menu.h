@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r834
+\version r836
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2013-12-23 22:52 +0800
+	2014-03-27 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,7 +247,7 @@ public:
 	\brief 判断菜单组中是否存在菜单标识指定的菜单。
 	*/
 	PDefH(bool, Contains, Menu::ID id)
-		ImplRet(mMenus.find(id) != mMenus.end())
+		ImplRet(ystdex::exists(mMenus, id))
 	/*!
 	\brief 判断菜单组中是否存在指定的菜单。
 	*/

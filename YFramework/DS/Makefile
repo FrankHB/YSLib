@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r2009
+# Version = r2010
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-02-23 08:45 +0800
+# Updated = 2014-03-29 14:38 +0800
 # Encoding = ANSI
 
 
@@ -75,7 +75,7 @@ ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
 
 ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 
-CFLAGS	:=	-Wall -Wextra -Wunreachable-code \
+CFLAGS	:=	-Wall -Wextra -Wno-psabi -Wunreachable-code \
  			-Wmissing-declarations -Winvalid-pch \
  			-fdata-sections -ffunction-sections \
  			-ffast-math \

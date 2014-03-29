@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2491
+\version r2493
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-03-07 11:07 +0800
+	2014-03-28 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -570,6 +570,7 @@
 @5.2.1.3 GUI 输出事件：
  Paint 事件在绘制界面时触发，表示事件订阅者应对发送者进行渲染等操作以便完成绘制。
  Paint 事件的参数中包含上下文信息 PaintContext ，表示绘制必要的信息，如重绘区域 ClipArea 。
+ YSLib 约定所有经过 Paint 事件处理的 ClipArea 需满足非空条件即 !ClipArea.IsUnrestrictlyEmpty() ，因此可直接使用 Drawing::FillRect 等进行绘制而无需额外检查。
  YSLib 的 UI 实现保证顶层部件向下传递的 PaintContext 中包含的图形接口上下文有效。用户直接调用渲染逻辑相关接口(@5.5.3) 时应自行保证类似的有效性。
 事件发送者为被绘制的部件，订阅者为实际提供绘制方法的部件。
 默认通过 YRenderer 单元实现。
@@ -655,6 +656,7 @@
 渲染器可在运行时向指定部件设置。
 渲染器可以通过成员方法 SetSize 设置大小。应保证渲染器逻辑大小和部件的大小一致。
 注意 BufferedRenderer::SetSize 可能导致缓冲区失效。
+默认实现的渲染器仅当 ClipArea 满足非空条件(@5.2.1.3) 时触发 Paint 事件。
 
 @5.5.2.2 渲染器绘制(painting) ：
 渲染器的使用部件和渲染状态绘制的过程。

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r345
+\version r354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2013-12-24 00:38 +0800
+	2014-03-26 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,9 @@ Window::Window(NativeWindowHandle h, Environment& e)
 	: HostWindow(h), env(e)
 {
 	e.AddMappedItem(h, this);
+	MessageMap[WM_KILLFOCUS] += []{
+		platform_ex::ClearKeyStates();
+	};
 }
 Window::~Window()
 {
@@ -65,12 +68,6 @@ Window::GetInputBounds() const ynothrow
 		"Invalid boundary found.");
 
 	return {Point(rect.left, rect.top), Point(rect.right, rect.bottom)};
-}
-
-void
-Window::OnLostFocus()
-{
-	platform_ex::ClearKeyStates();
 }
 
 void

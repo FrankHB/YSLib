@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r519
+\version r536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-03-04 14:01 +0800
+	2014-03-27 01:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -377,9 +377,25 @@ to_string(_type val, enable_if_t<is_enum<_type>::value, int> = 0)
 
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
+\since build 488
 \todo 提供 char 以外的模板参数的正确实现。
+*/
+template<typename _tChar>
+std::basic_string<_tChar>
+vsfmt(const _tChar* fmt, std::va_list args)
+{
+	std::string str(size_t(std::vsnprintf({}, 0, fmt, args)), _tChar());
+
+	std::vsprintf(&str[0], fmt, args);
+	va_end(args);
+	return str;
+}
+
+/*!
+\brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
 \note Clang++ 对于模板声明直接提示格式字符串类型错误。
 \since build 322
+\todo 提供 char 以外的模板参数的正确实现。
 */
 template<typename _tChar>
 std::basic_string<_tChar>
@@ -389,10 +405,8 @@ sfmt(const _tChar* fmt, ...)
 
 	va_start(args, fmt);
 
-	std::string str(static_cast<size_t>(std::vsnprintf(nullptr, 0, fmt, args)),
-		_tChar());
+	std::string str(vsfmt(fmt, args));
 
-	std::vsprintf(&str[0], fmt, args);
 	va_end(args);
 	return str;
 }
