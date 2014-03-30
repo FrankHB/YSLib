@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r270
+\version r279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-03-29 14:21 +0800
+	2014-03-30 17:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include YFM_YSLib_UI_Border
 #include YFM_YSLib_UI_YGUI
 #include YFM_YSLib_Service_TextLayout
+#include YFM_YSLib_UI_YUIContainer // for LocateForWidget;
 #include <ystdex/cast.hpp>
 
 namespace YSLib
@@ -97,12 +98,8 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
+			const char c(FetchGUIState().UpdateChar(e.Keys));
 			const auto& keys(e.Keys);
-
-			if(FetchGUIState().CheckHeldState(keys))
-				e.Keys = FetchGUIState().GetCheckedHeldKeys();
-
-			const char c(MapKeyChar(keys));
 			auto& sender(e.GetSender());
 
 			// TODO: Proper multiple keys handling for non-alphabetical.
@@ -121,9 +118,12 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 		Selection.Collapse();
 	},
 	FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
-		if(&e.GetSender() == this)
+		if(FetchGUIState().GetIndependentFocusPtr() == this)
 		{
-			Selection.Range.second = GetCaretPosition(e.Position);
+			const auto& sender(e.GetSender());
+
+			Selection.Range.second = GetCaretPosition(&sender == this
+				? e.Position : LocateForWidget(*this, sender) + e.Position);
 			// XXX: Optimization for block.
 			Invalidate(*this);
 		}

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6873
+\version r6924
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-03-29 14:39 +0800
+	2014-03-30 18:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,58 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ @ "class %GUIState" @ %YGUI $=
+				(
+					+ "parameter for reset of checked held state"
+						@ "member function %ResetHeldState",
+					* $comp "wrongly reset all held state" @ "handlers for
+						%(KeyUp, TouchUp)" $since b487
+				);
+				/ @ "class %TextBox" @ %TextBox $=
+				(
+					* $comp "held key overridden only by less value key"
+						$since b487,
+					* "continuous multiple key held not handled" $since b487,
+					* "selection failed when touch out of the boundary"
+						$since b485;
+
+				),
+				+ 'const' @ "reference parameters"
+					@ "function %LocateForWidgets" @ %YUIContainer
+			),
+			(
+			$dep_from %YCLib.Keys;
+			+ 'using namespace platform::KeyCategory;' @ %Adaptors.YAdaptor
+			)
+		),
+		/ %YCLib.Keys $=
+		(
+			/ $re(b428) $dev "all subsequent tokens"
+				@ "preprocessing directive '#error'" -> "string literal",
+			+ "namespace %KeyCategory" $=
+			(
+				+ "enum %Category";
+				+ "functions %((ClassifyKey; IsComposedKey), \
+					FindFirstKeyInCategroy)"
+			),
+			/ @ "function %MapKeyChar with %KeyInput parameter" $=
+			(
+				/ "supported main virtual key code parameter",
+				+ "support of non-alphabetical keys and 'Caps Lock' state"
+					^ "Win32 API '::ToASCII'"
+			)
+		)
+	)
+),
+
+b488
 (
 	/ %YFramework $=
 	(

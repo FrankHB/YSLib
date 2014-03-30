@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r333
+\version r338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-02-23 22:57 +0800
+	2014-03-29 23:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,10 +63,10 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 	if(YB_LIKELY(s.Width > 2 && s.Height > 2))
 	{
 		auto pt(pc.Location);
-		const auto& r(pc.ClipArea);
+		const auto& bounds(pc.ClipArea);
 
 		yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
-		FillRect(g, r, {pt, s}, is_enabled ? roll(is_focused, 243,
+		FillRect(g, bounds, {pt, s}, is_enabled ? roll(is_focused, 243,
 			{11.304688F, 0.990431F, 0.591797F}) : MakeGray(244));
 		if(is_enabled)
 		{
@@ -74,19 +74,19 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 			{
 				Rect rp(pt.X + 1, pt.Y + 1, s.Width - 2, (s.Height - 2) / 2);
 
-				FillRect(g, r, rp,
+				FillRect(g, bounds, rp,
 					roll({}, 239, {39.132872F, 0.920000F, 0.951172F}));
 				rp.Y += rp.Height;
 				if(s.Height % 2 != 0)
 					++rp.Height;
-				FillRect(g, r, rp,
+				FillRect(g, bounds, rp,
 					roll({}, 214, {29.523438F, 0.969231F, 0.873047F}));
 			}
 			if(cursor_state == CursorState::Pressed)
 			{
 				const Color tc(RollColor({165, 0.4F, 0.16F}, base_hue));
 
-				TransformRect(g, r & Rect(pt, s), [=](BitmapPtr dst){
+				TransformRect(g, bounds & Rect(pt, s), [=](BitmapPtr dst){
 					const Color d(*dst);
 
 					*dst = Color(d.GetR() ^ tc.GetR(), d.GetG() ^ tc.GetG(),

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1718
+\version r1722
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2013-12-23 23:50 +0800
+	2014-03-30 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,12 +69,12 @@ LocateOffset(const IWidget* p_end, Point pt, const IWidget* p_wgt)
 }
 
 Point
-LocateForWidget(IWidget& a, IWidget& b)
+LocateForWidget(const IWidget& a, const IWidget& b)
 {
-	list<pair<IWidget*, Point>> lst;
+	list<pair<const IWidget*, Point>> lst;
 
 	Point pt;
-	IWidget* pCon(&a);
+	const IWidget* pCon(&a);
 
 	while(pCon)
 	{

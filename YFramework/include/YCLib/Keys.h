@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r248
+\version r326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-03-22 12:53 +0800
+	2014-03-30 15:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,6 +61,7 @@ yconstexpr std::size_t KeyBitsetWidth(256);
 */
 using KeyInput = std::bitset<KeyBitsetWidth>;
 
+
 /*!
 \brief 找到输入缓冲区记录中最小的按键编码。
 \return 若存在编码则为最小值，否则为 KeyBitsetWidth 。
@@ -79,6 +80,87 @@ FindFirstKey(const KeyInput&);
 YF_API size_t
 FindNextKey(const KeyInput&, size_t);
 
+
+//! \since build 489
+//@{
+namespace KeyCategory
+{
+
+//! \brief 按键类别。
+enum Category : size_t
+{
+	//! \brief 表示未分配或保留的键。
+	None = 0,
+	//! \brief 表示产生字母字符的键。
+	Alphabetic = 1 << 1,
+	//! \brief 表示产生数字字符的键。
+	Numeric = 1 << 2,
+	//! \brief 表示产生字母或数字字符的键。
+	Alphanumeric = Alphabetic | Numeric,
+	//! \brief 表示产生标点字符的键。
+	Punctuation = 1 << 3,
+	//! \brief 表示产生字符的键。
+	Character = Alphanumeric | Punctuation,
+	//! \brief 表示按键顺序相关的组合键。
+	Dead = 1 << 4,
+	//! \brief 表示锁定键。
+	Lock = 2 << 4,
+	//! \brief 表示修饰键。
+	Modifier = 3 << 4,
+	//! \brief 表示功能键。
+	Function = 4 << 4,
+	//! \brief 表示导航键（如方向键和 PgUp ）、菜单键和 Esc 。
+	Navigation = 5 << 4,
+	//! \brief 表示编辑键（如回车、空格、退格、插入、删除和制表符）
+	Editing = 6 << 4,
+	//! \brief 表示系统键（如 SysRq/PrintScr 、 Break/Pause 和电源管理）。
+	System = 7 << 4,
+	//! \brief 表示输入法模式键（一般用于日文和韩文）。
+	IME = 8 << 4,
+	//! \brief 表示默认由设备制造商指定。
+	OEM = 1 << 10,
+	//! \brief 表示菜单键（如 Menu 和 Win ）。
+	Menu = 1 << 11,
+	//! \brief 表示小键盘键。
+	Keypad = 1 << 12,
+	//! \brief 表示非键盘键（如鼠标键）。
+	NonKeyboard = 2 << 12,
+	//! \brief 表示通过多个物理按键组合构成的键。
+	Composed = 1 << 14,
+	//! \brief 表示没有对应物理按键的虚拟键。
+	Virtual = 2 << 14
+};
+
+//! \relates Category
+DefBitmaskEnum(Category)
+
+
+/*!
+\brief 取按键编码对应的按键类别。
+\pre 断言：参数小于 KeyBitsetWidth 。
+*/
+YF_API YB_PURE Category
+ClassifyKey(size_t);
+
+/*!
+\brief 找到第一个在指定类别的按键编码。
+\note 使用位与运算。
+*/
+YF_API size_t
+FindFirstKeyInCategroy(const KeyInput&, size_t);
+
+//! \brief 判断指定按键编码是否通过多个物理按键组合构成。
+#if YCL_Win32
+inline YB_PURE PDefH(bool, IsComposedKey, size_t code)
+	ImplRet(ClassifyKey(code))
+#else
+yconstfn PDefH(bool, IsComposedKey, size_t)
+	ImplRet({})
+#endif
+} // namespace KeyCategory;
+//@}
+
+
 /*!
 \brief 映射按键到键入的字符。
 \return 若未找到对应按键或不支持为 char() ，否则为对应的字符。
@@ -89,12 +171,14 @@ FindNextKey(const KeyInput&, size_t);
 #if YCL_Win32
 YF_API char
 MapKeyChar(size_t);
+//! \since build 489
 YF_API char
-MapKeyChar(const KeyInput&);
+MapKeyChar(const KeyInput&, size_t);
 #else
 yconstexpr PDefH(char, MapKeyChar, size_t)
 	ImplRet(char())
-yconstexpr PDefH(char, MapKeyChar, const KeyInput&)
+//! \since build 489
+yconstexpr PDefH(char, MapKeyChar, const KeyInput&, size_t)
 	ImplRet(char())
 #endif
 //@}
@@ -129,7 +213,7 @@ enum NativeSet
 };
 
 //按键别名。
-yconstexpr NativeSet Enter = A, Esc = B, PgUp = L, PgDn = R;
+yconstexpr NativeSet Enter(A), Esc(B), PgUp(L), PgDn(R);
 #elif YCL_Win32
 /*!
 \brief 基本公用按键集合。

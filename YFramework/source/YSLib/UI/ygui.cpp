@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r3990
+\version r4010
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-29 13:23 +0800
+	2014-03-30 14:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,11 +193,14 @@ GUIState::Reset()
 }
 
 void
-GUIState::ResetHeldState(InputTimer::HeldStateType& s)
+GUIState::ResetHeldState(InputTimer::HeldStateType& s, const KeyInput& k)
 {
-	s = InputTimer::Free,
-	HeldTimer.ResetInput(),
-	checked_held = {};
+	checked_held &= ~k;
+	if(checked_held.none())
+	{
+		s = InputTimer::Free,
+		HeldTimer.ResetInput();
+	}
 }
 
 void
@@ -342,6 +345,18 @@ GUIState::TryLeaving(CursorEventArgs&& e)
 	}
 }
 
+char
+GUIState::UpdateChar(KeyInput& keys)
+{
+	if(keys != checked_held)
+	{
+		master_key = FindFirstKeyInCategroy(keys, KeyCategory::Character);
+
+		yunseq(keys = checked_held |= keys, KeyHeldState = InputTimer::Free);
+	}
+	return MapKeyChar(checked_held, master_key);
+}
+
 void
 GUIState::Wrap(IWidget& wgt)
 {
@@ -351,7 +366,9 @@ GUIState::Wrap(IWidget& wgt)
 	FetchEvent<KeyUp>(controller).Add([this](KeyEventArgs&& e){
 		auto& wgt(e.GetSender());
 
-		ResetHeldState(KeyHeldState);
+	master_key = FindFirstKeyInCategroy(checked_held, KeyCategory::Character);
+
+		ResetHeldState(KeyHeldState, e.Keys);
 		if(p_indp_focus == &wgt)
 			CallEvent<KeyPress>(wgt, e);
 		p_indp_focus = {};
@@ -388,7 +405,7 @@ GUIState::Wrap(IWidget& wgt)
 				TryLeaving(std::move(e));
 				e.SetSender(e.GetSender());
 			}
-			ResetHeldState(TouchHeldState),
+			ResetHeldState(TouchHeldState, e.Keys),
 			DraggingOffset = Vec::Invalid;
 			if(p_indp_focus == &wgt)
 				CallEvent<Click>(wgt, e);

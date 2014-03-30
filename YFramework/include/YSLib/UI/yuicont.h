@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1821
+\version r1823
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-01-11 11:31 +0800
+	2014-03-30 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,10 +74,10 @@ LocateContainerOffset(const IWidget& wgt, const Point& pt)
 
 /*!
 \brief 取第二参数指定的部件相对于第一参数指定的部件的偏移坐标。
-\since build 169
+\since build 489
 */
 YF_API Point
-LocateForWidget(IWidget&, IWidget&);
+LocateForWidget(const IWidget&, const IWidget&);
 
 /*!
 \brief 取指定部件相对于视图树中的直接节点指针的偏移坐标。
