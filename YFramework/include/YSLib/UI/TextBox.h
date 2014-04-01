@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r209
+\version r223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-03-23 10:50 +0800
+	2014-04-01 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,6 +104,12 @@ struct YF_API TextSelection final
 	Span Range;
 
 	/*!
+	\brief 判断是否为空。
+	\since build 490
+	*/
+	DefPred(const ynothrow, Empty, Range.first == Range.second)
+
+	/*!
 	\brief 折叠选择范围到结束。
 	\since build 485
 	*/
@@ -175,10 +181,6 @@ public:
 	void
 	DrawClippedText(const Graphics&, const Rect&, TextState&) override;
 
-	//! \brief 刷新：按指定参数绘制界面并更新状态。
-	void
-	Refresh(PaintEventArgs&&) override;
-
 	/*!
 	\brief 无效化默认插入符。
 	\pre 参数对象的动态类型为 TextBox 或其派生类。
@@ -187,6 +189,17 @@ public:
 	*/
 	static bool
 	InvalidateDefaultCaret(IWidget&);
+
+	//! \brief 刷新：按指定参数绘制界面并更新状态。
+	void
+	Refresh(PaintEventArgs&&) override;
+
+	/*!
+	\brief 替换选中文本并无效化。
+	\since build 490
+	*/
+	void
+	ReplaceSelection(const String&);
 
 	//! \brief 绘制默认插入符。
 	void

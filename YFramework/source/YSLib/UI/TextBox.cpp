@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r279
+\version r366
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-03-30 17:39 +0800
+	2014-04-01 22:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,8 +98,10 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
+			using namespace KeyCategory;
+			using namespace KeyCodes;
+			const auto& k(e.GetKeys());
 			const char c(FetchGUIState().UpdateChar(e.Keys));
-			const auto& keys(e.Keys);
 			auto& sender(e.GetSender());
 
 			// TODO: Proper multiple keys handling for non-alphabetical.
@@ -108,7 +110,70 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 				const ucs2_t buf[]{ucs2_t(c), u'\0'};
 
 				CallEvent<TextInput>(sender,
-					TextInputEventArgs(sender, String(buf), keys));
+					TextInputEventArgs(sender, String(buf), k));
+				return;
+			}
+
+			auto ek(FindFirstKeyInCategroy(k, Editing));
+
+			if(ek == KeyBitsetWidth)
+				ek = FindFirstKeyInCategroy(k, Navigation);
+			if(ek != KeyBitsetWidth)
+			{
+				const bool shifted(k[Shift]);
+				auto& range(Selection.Range);
+
+				// TODO: Support 'Insert' key.
+				switch(ek)
+				{
+				case Backspace:
+				case Delete:
+					if(Selection.IsEmpty())
+					{
+						if(ek == Backspace)
+						{
+							if(range.second.X == 0)
+								break;
+							--range.second.X;
+						}
+						else
+						{
+							if(range.second.X >= Text.length())
+								break;
+							++range.second.X;
+						}
+					}
+					ReplaceSelection(u"");
+					break;
+				case Left:
+					if(Selection.IsEmpty() || shifted)
+					{
+						if(ek == Left)
+						{
+							if(range.second.X == 0)
+								break;
+							--range.second.X;
+							if(shifted)
+								break;
+						}
+						else
+						{
+							if(range.second.X >= Text.length())
+								break;
+							++range.second.X;
+							if(shifted)
+								break;
+						}
+					}
+					else
+						range.second.X = (ek == Left) == (range.first.X
+							< range.second.X) ? range.first.X : range.second.X;
+					Selection.Collapse();
+					break;
+				case Right:
+					break;
+				}
+				return;
 			}
 		}
 	},
@@ -129,16 +194,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 		}
 	},
 	FetchEvent<TextInput>(*this) += [this](TextInputEventArgs&& e){
-		auto& r(Selection.Range);
-
-		// XXX: Make it correct for multiline input.
-		if(r.second.X < r.first.X)
-			std::swap(r.first, r.second);
-		Text = Text.substr(0, r.first.X) + e.Text
-			+ Text.substr(min(Text.length(), r.second.X));
-		r.second.X = r.first.X + e.Text.length(),
-		Selection.Collapse();
-		Invalidate(e.GetSender());
+		ReplaceSelection(e.Text);
 	},
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
 	FetchEvent<GotFocus>(*this) += [this](UIEventArgs&&){
@@ -214,6 +270,21 @@ TextBox::InvalidateDefaultCaret(IWidget& wgt)
 
 	InvalidateVisible(tb, Rect(x, y, 1, lh + GetVerticalOf(tb.Margin)));
 	return true;
+}
+
+void
+TextBox::ReplaceSelection(const String& text)
+{
+	auto& r(Selection.Range);
+
+	// XXX: Make it correct for multiline input.
+	if(r.second.X < r.first.X)
+		std::swap(r.first, r.second);
+	Text = Text.substr(0, r.first.X) + text
+		+ Text.substr(min(Text.length(), r.second.X));
+	r.second.X = r.first.X + text.length(),
+	Selection.Collapse();
+	Invalidate(*this);
 }
 
 void

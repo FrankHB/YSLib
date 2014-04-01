@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6924
+\version r6974
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-03-30 18:00 +0800
+	2014-04-01 22:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,57 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib.Keys $=
+		(
+			+ 'using KeyIndex = std::size_t;' @ %Keys;
+			/ ("type" @ "using aliase %KeyBitsetWidth", \
+				"all function return and parameter types", "underlying type"
+				@ "%KeyCategory::Category") -> "%KeyIndex" ~ 'std::size_t',
+			/ @ "platform %DS" $=
+			(
+				+ 'yconstexpr NativeSet Home(X), End(Y);',
+				+ "enum %ExtendedSet with enumerator of keys %(Backspace = 14, \
+					Tab, Shift, Ctrl, Alt, Pause, CapsLock, Insert, Delete)",
+				+ "key category identification for keys" @ "enum %ExtendedSet"
+			),
+			+ "enumerator of keys %(Backspace, Tab, Shift, Ctrl, Alt, Pause, \
+				CapsLock, End, Home, Insert, Delete)" @ "enum %NativeSet"
+				@ "platform %Win32",
+			+ 'ynothrow' @ "all functions",
+			+ "functions %KeyCodes::(FetchLockState, ToggleLockState)",
+			/ "supported caps locked state"
+				@ "2 paramater version of function %MapKeyChar"
+		);
+		/ %YSLib $=
+		(
+			(
+			+ 'using platform::KeyIndex' @ %Adaptors.YAdatpor;
+			+ "class %KeyInpuDevice" @ %Core.YDevice
+			),
+			/ %UI $=
+			(
+				/ @ "class KeyEventArgs" @ %WidgetYEvent $=
+				(
+					$dep_from %Core.YDevice;
+					+ 'Devices::KeyInputDevice::Tester \
+						Tester{Devices::KeyInputDevice::DefaultTest};';
+					+ "member function %operator[]"
+				),
+				/ @ "class %TextBox" $=
+				(
+					+ "member function %ReplaceSelection",
+					+ "support for navigation(with arrow keys) and \
+						deletion(with backspace or delete keys)"
+				);
+			)
+		)
+	)
+),
+
+b489
 (
 	/ %YFramework $=
 	(

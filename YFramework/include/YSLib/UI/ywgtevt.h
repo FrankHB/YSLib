@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1547
+\version r1561
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-03-02 18:04 +0800
+	2014-04-01 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,8 @@
 #include YFM_YSLib_UI_YComponent
 #include YFM_YSLib_Core_YEvent
 #include YFM_YSLib_Core_YString
+#include YFM_YSLib_Core_YDevice // for Devices::KeyInputDevice::Tester,
+//	Devices::KeyInputDevice::DefaultTest;
 
 namespace YSLib
 {
@@ -120,6 +122,12 @@ struct YF_API InputEventArgs : public RoutedEventArgs
 {
 public:
 	/*!
+	\brief 按键状态测试器。
+	\since build 490
+	*/
+	Devices::KeyInputDevice::Tester
+		Tester{Devices::KeyInputDevice::DefaultTest};
+	/*!
 	\brief 包含的按键代码。
 	\since build 298
 	*/
@@ -136,6 +144,13 @@ public:
 	\since build 298
 	*/
 	DefCvt(const ynothrow, const KeyInput&, Keys)
+
+	/*!
+	\brief 使用 Tester 和 Keys 判断按键状态。
+	\since build 490
+	*/
+	PDefHOp(bool, [], KeyIndex code) const
+		ImplRet(Tester(Keys, code))
 
 	/*!
 	\brief 取按键代码。

@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r326
+\version r460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-03-30 15:31 +0800
+	2014-04-01 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,20 +35,26 @@
 namespace platform
 {
 
+/*!
+\brief 按键索引类型：标识特定的按键在按键集合中的位置。
+\since build 490
+*/
+using KeyIndex = std::size_t;
+
 #if YCL_DS
 /*!
 \brief 按键并行位宽。
 \note 不少于实际表示的 KeyPad 按键数。
-\since build 298
+\since build 490
 */
-yconstexpr std::size_t KeyBitsetWidth(32);
+yconstexpr KeyIndex KeyBitsetWidth(32);
 #elif YCL_Win32
 /*!
 \brief 按键并行位宽。
 \note 不少于实际表示的键盘按键数。
-\since build 298
+\since build 490
 */
-yconstexpr std::size_t KeyBitsetWidth(256);
+yconstexpr KeyIndex KeyBitsetWidth(256);
 #else
 #	error "Unsupported platform found."
 #endif
@@ -65,20 +71,20 @@ using KeyInput = std::bitset<KeyBitsetWidth>;
 /*!
 \brief 找到输入缓冲区记录中最小的按键编码。
 \return 若存在编码则为最小值，否则为 KeyBitsetWidth 。
-\since build 486
+\since build 490
 \todo 支持 libstdc++ 以外的实现。
 */
-YF_API size_t
-FindFirstKey(const KeyInput&);
+YF_API KeyIndex
+FindFirstKey(const KeyInput&) ynothrow;
 
 /*!
 \brief 找到输入缓冲区记录中大于指定编码的最小的按键编码。
 \return 若存在编码则为大于指定编码的最小值，否则为 KeyBitsetWidth 。
-\since build 487
+\since build 490
 \todo 支持 libstdc++ 以外的实现。
 */
-YF_API size_t
-FindNextKey(const KeyInput&, size_t);
+YF_API KeyIndex
+FindNextKey(const KeyInput&, KeyIndex) ynothrow;
 
 
 //! \since build 489
@@ -87,7 +93,7 @@ namespace KeyCategory
 {
 
 //! \brief 按键类别。
-enum Category : size_t
+enum Category : KeyIndex
 {
 	//! \brief 表示未分配或保留的键。
 	None = 0,
@@ -135,28 +141,31 @@ enum Category : size_t
 DefBitmaskEnum(Category)
 
 
+//! \since build 490
+//@{
 /*!
 \brief 取按键编码对应的按键类别。
 \pre 断言：参数小于 KeyBitsetWidth 。
 */
 YF_API YB_PURE Category
-ClassifyKey(size_t);
+ClassifyKey(KeyIndex) ynothrow;
 
 /*!
 \brief 找到第一个在指定类别的按键编码。
 \note 使用位与运算。
 */
-YF_API size_t
-FindFirstKeyInCategroy(const KeyInput&, size_t);
+YF_API KeyIndex
+FindFirstKeyInCategroy(const KeyInput&, KeyIndex) ynothrow;
 
 //! \brief 判断指定按键编码是否通过多个物理按键组合构成。
 #if YCL_Win32
-inline YB_PURE PDefH(bool, IsComposedKey, size_t code)
+inline YB_PURE PDefH(bool, IsComposedKey, KeyIndex code) ynothrow
 	ImplRet(ClassifyKey(code))
 #else
-yconstfn PDefH(bool, IsComposedKey, size_t)
+yconstfn PDefH(bool, IsComposedKey, KeyIndex) ynothrow
 	ImplRet({})
 #endif
+//@}
 } // namespace KeyCategory;
 //@}
 
@@ -165,20 +174,19 @@ yconstfn PDefH(bool, IsComposedKey, size_t)
 \brief 映射按键到键入的字符。
 \return 若未找到对应按键或不支持为 char() ，否则为对应的字符。
 \note 对于 Win32 ，返回值不大于 0x80 。
-\since build 487
+\since build 490
 */
 //@{
 #if YCL_Win32
 YF_API char
-MapKeyChar(size_t);
-//! \since build 489
+MapKeyChar(KeyIndex) ynothrow;
 YF_API char
-MapKeyChar(const KeyInput&, size_t);
+MapKeyChar(const KeyInput&, KeyIndex) ynothrow;
 #else
-yconstexpr PDefH(char, MapKeyChar, size_t)
+yconstexpr PDefH(char, MapKeyChar, KeyIndex) ynothrow
 	ImplRet(char())
 //! \since build 489
-yconstexpr PDefH(char, MapKeyChar, const KeyInput&, size_t)
+yconstexpr PDefH(char, MapKeyChar, const KeyInput&, KeyIndex) ynothrow
 	ImplRet(char())
 #endif
 //@}
@@ -196,24 +204,50 @@ namespace KeyCodes
 //! \since build 416
 enum NativeSet
 {
-	A		= 0,
-	B		= 1,
-	Select	= 2,
-	Start	= 3,
-	Right	= 4,
-	Left	= 5,
-	Up		= 6,
-	Down	= 7,
-	R		= 8,
-	L		= 9,
-	X		= 10,
-	Y		= 11,
-	Touch	= 12,
-	Lid		= 13
+	//! \warning 不保证名称可移植。
+	//@{
+	A = 0,
+	B = 1,
+	Select = 2,
+	Start = 3,
+	//@}
+	Right = 4,
+	Left = 5,
+	Up = 6,
+	Down = 7,
+	//! \warning 不保证名称可移植。
+	//@{
+	R = 8,
+	L = 9,
+	X = 10,
+	Y = 11,
+	Touch = 12,
+	Lid = 13
+	//@}
 };
 
 //按键别名。
 yconstexpr NativeSet Enter(A), Esc(B), PgUp(L), PgDn(R);
+//! \since build 490
+yconstexpr NativeSet Home(X), End(Y);
+
+/*!
+\brief 扩展集：作为 DS 可直接被 KeyInput 表示的非物理键按键编码。
+\note LibNDS 不使用 14 及以上的移位值。
+\since build 490
+*/
+enum ExtendedSet
+{
+	Backspace = 14,
+	Tab,
+	Shift,
+	Ctrl,
+	Alt,
+	Pause,
+	CapsLock,
+	Insert,
+	Delete
+};
 #elif YCL_Win32
 /*!
 \brief 基本公用按键集合。
@@ -222,17 +256,76 @@ yconstexpr NativeSet Enter(A), Esc(B), PgUp(L), PgDn(R);
 */
 enum NativeSet
 {
-	Empty	= 0,
-	Enter	= 0x0D, //!< 同 VK_RETURN 。
-	Esc		= 0x1B, //!< 同 VK_ESCAPE 。
-	PgUp	= 0x21, //!< 同 VK_PRIOR 。
-	PgDn	= 0x22, //!< 同 VK_NEXT 。
-	Left	= 0x25, //!< 同 VK_LEFT 。
-	Up		= 0x26, //!< 同 VK_UP 。
-	Right	= 0x27, //!< 同 VK_RIGHT 。
-	Down	= 0x28 //!< 同 VK_DOWN 。
+	Empty = 0,
+	//! \since build 490
+	//@{
+	//! \note 同 VK_BACK 。
+	Backspace = 0x08,
+	//! \note 同 VK_TAB 。
+	Tab = 0x09,
+	//@}
+	//! \note 同 VK_RETURN 。
+	Enter = 0x0D,
+	//! \since build 490
+	//@{
+	//! \note 同 VK_SHIFT 。
+	Shift = 0x10,
+	//! \note 同 VK_CONTROL 。
+	Ctrl = 0x11,
+	//! \note 同 VK_MENU 。
+	Alt = 0x12,
+	//! \note 同 VK_PAUSE 。
+	Pause = 0x13,
+	//! \note 同 VK_CAPITAL 。
+	CapsLock = 0x14,
+	//@}
+	//! \note 同 VK_ESCAPE 。
+	Esc = 0x1B,
+	//! \note 同 VK_PRIOR 。
+	PgUp = 0x21,
+	//! \note 同 VK_NEXT 。
+	PgDn = 0x22,
+	//! \since build 490
+	//@{
+	//! \note 同 VK_END 。
+	End = 0x23,
+	//! \note 同 VK_HOME 。
+	Home = 0x24,
+	//@}
+	//! \note 同 VK_LEFT 。
+	Left = 0x25,
+	//! \note 同 VK_UP 。
+	Up = 0x26,
+	//! \note 同 VK_RIGHT 。
+	Right = 0x27,
+	//! \note 同 VK_DOWN 。
+	Down = 0x28,
+	//! \since build 490
+	//@{
+	//! \note 同 VK_INSERT 。
+	Insert = 0x2D,
+	//! \note 同 VK_DELETE 。
+	Delete = 0x2E
+	//@}
 };
 #endif
+
+
+/*!
+\brief 取锁定键状态。
+\return 若参数指定可锁定的键则取状态，否则总是 false 。
+\since build 490
+*/
+YF_API bool
+FetchLockState(KeyIndex) ynothrow;
+
+/*!
+\brief 切换锁定键状态。
+\return 若参数指定可锁定的键则切换状态，否则忽略。
+\since build 490
+*/
+YF_API void
+ToggleLockState(KeyIndex) ynothrow;
 
 } // namespace KeyCodes;
 

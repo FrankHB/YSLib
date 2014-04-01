@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r399
+\version r468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2014-03-30 18:49 +0800
+	2014-04-01 22:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,8 @@
 namespace platform
 {
 
-size_t
-FindFirstKey(const KeyInput& keys)
+KeyIndex
+FindFirstKey(const KeyInput& keys) ynothrow
 {
 #if _GLIBCXX_BITSET
 	return keys._Find_first();
@@ -42,8 +42,8 @@ FindFirstKey(const KeyInput& keys)
 #endif
 }
 
-size_t
-FindNextKey(const KeyInput& keys, size_t key)
+KeyIndex
+FindNextKey(const KeyInput& keys, KeyIndex key) ynothrow
 {
 #if _GLIBCXX_BITSET
 	return keys._Find_next(key);
@@ -75,7 +75,16 @@ yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
 	Navigation, // KEY_X is an extended navigation key.
 	Navigation, // KEY_Y is an extended navigation key.
 	NonKeyboard, // KEY_TOUCH is a key of cursor device.
-	NonKeyboard // KEY_LID is a key of lid.
+	NonKeyboard, // KEY_LID is a key of lid.
+	Editing | Virtual, // Backapce is an editing key.
+	Editing | Virtual, // Tab is an editing key.
+	Modifier | Virtual, // Shift is an modifier key.
+	Modifier | Virtual, // Ctrl is an modifier key.
+	Modifier | Menu | Virtual, // Alt is an modifier menu key.
+	System | Virtual, // Pause is a system key.
+	Lock | Virtual, // CapsLock is an lock key.
+	Editing | Virtual, // Insert is an editing key.
+	Editing | Virtual // Delete is an editing key.
 };
 #elif YCL_Win32
 yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
@@ -341,15 +350,15 @@ yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 } // unnamed namespace;
 
 Category
-ClassifyKey(size_t code)
+ClassifyKey(KeyIndex code) ynothrow
 {
 	yconstraint(code < KeyBitsetWidth);
 
 	return KeyCategoryTable[code];
 }
 
-size_t
-FindFirstKeyInCategroy(const KeyInput& keys, size_t cat)
+KeyIndex
+FindFirstKeyInCategroy(const KeyInput& keys, KeyIndex cat) ynothrow
 {
 	for(auto code(FindFirstKey(keys)); code != KeyBitsetWidth;
 		code = FindNextKey(keys, code))
@@ -361,14 +370,30 @@ FindFirstKeyInCategroy(const KeyInput& keys, size_t cat)
 } // namespace KeyCategory;
 
 
+//! \since build 490
+namespace
+{
+
+#if !YCL_DS
+inline char
+switch_key(char s) ynothrow
+{
+	using namespace KeyCodes;
+
+	return std::isalpha(s) && FetchLockState(CapsLock) ? s ^ 0x20 : s;
+}
+#endif
+
+} // unnamed namespace;
+
 #if YCL_Win32
 char
-MapKeyChar(size_t code)
+MapKeyChar(KeyIndex code) ynothrow
 {
 	return ::MapVirtualKeyW(unsigned(code), MAPVK_VK_TO_CHAR) & 0x7F;
 }
 char
-MapKeyChar(const KeyInput& keys, size_t code)
+MapKeyChar(const KeyInput& keys, KeyIndex code) ynothrow
 {
 	ystdex::byte state[256];
 	unsigned short s;
@@ -377,8 +402,54 @@ MapKeyChar(const KeyInput& keys, size_t code)
 	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		state[i] = keys[i] ? 0x80 : 0;
 	return ::ToAscii(code, ::MapVirtualKeyW(code, MAPVK_VK_TO_VSC), state, &s,
-		0) == 1 ? char(s) & 0x7F : char();
+		0) == 1 ? switch_key(char(s) & 0x7F) : char();
 }
+
+namespace KeyCodes
+{
+
+//! \since build 490
+namespace
+{
+
+#if YCL_DS
+bool caps_lock;
+#endif
+
+} // unnamed namespace;
+
+bool
+FetchLockState(KeyIndex code) ynothrow
+{
+#if YCL_DS
+	return code == CapsLock ? caps_lock : false;
+#elif YCL_Win32
+	return (::GetKeyState(code) & 0x0001) != 0;
+#endif
+}
+
+void
+ToggleLockState(KeyIndex code) ynothrow
+{
+#if YCL_DS
+	if(code == CapsLock)
+		caps_lock = !caps_lock;
+#elif YCL_Win32
+	if(KeyCategory::ClassifyKey(code) & KeyCategory::Lock)
+	{
+		::INPUT input[2]{{INPUT_KEYBOARD, {}}, {INPUT_KEYBOARD, {}}};
+
+		yunseq(
+		input[0].ki.wVk = code, input[1].ki.wVk = code,
+		input[1].ki.dwFlags = KEYEVENTF_KEYUP
+		);
+		::SendInput(2, input, sizeof(::INPUT));
+	}
+#endif
+}
+
+}
+
 #endif
 
 }

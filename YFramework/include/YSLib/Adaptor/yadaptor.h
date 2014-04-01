@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1574
+\version r1579
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-03-30 14:40 +0800
+	2014-04-01 10:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,12 +202,14 @@ using platform::GetHighResolutionTicks;
 using platform::StartTicks;
 
 //输入类型。
-//! \since build 489
-namespace KeyCategory = platform::KeyCategory;
-namespace KeyCodes = platform::KeyCodes;
+//! \since build 490
+using platform::KeyIndex;
 //! \since build 486
 using platform::KeyBitsetWidth;
 using platform::KeyInput;
+//! \since build 489
+namespace KeyCategory = platform::KeyCategory;
+namespace KeyCodes = platform::KeyCodes;
 
 //! \since build 486
 using platform::FindFirstKey;
