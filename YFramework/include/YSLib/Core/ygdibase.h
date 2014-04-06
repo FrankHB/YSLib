@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1477
+\version r1487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-02-23 15:44 +0800
+	2014-04-06 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,6 +91,16 @@ public:
 	yconstfn
 	GBinaryGroup(_tScalar1 x, _tScalar2 y) ynothrow
 		: X(x), Y(y)
+	{}
+	/*!
+	\brief 构造：使用纯量对。
+	\note 使用 std::get 取分量。仅取前两个分量。
+	\since build 481
+	*/
+	template<typename _tPair>
+	yconstfn
+	GBinaryGroup(const _tPair& pr) ynothrow
+		: X(std::get<0>(pr)), Y(std::get<1>(pr))
 	{}
 
 	/*!

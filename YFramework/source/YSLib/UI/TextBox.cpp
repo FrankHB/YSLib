@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r366
+\version r374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-04-01 22:32 +0800
+	2014-04-02 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 
 				CallEvent<TextInput>(sender,
 					TextInputEventArgs(sender, String(buf), k));
+				Invalidate(e.GetSender());
 				return;
 			}
 
@@ -123,7 +124,6 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 				const bool shifted(k[Shift]);
 				auto& range(Selection.Range);
 
-				// TODO: Support 'Insert' key.
 				switch(ek)
 				{
 				case Backspace:
@@ -146,6 +146,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 					ReplaceSelection(u"");
 					break;
 				case Left:
+				case Right:
 					if(Selection.IsEmpty() || shifted)
 					{
 						if(ek == Left)
@@ -170,9 +171,10 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 							< range.second.X) ? range.first.X : range.second.X;
 					Selection.Collapse();
 					break;
-				case Right:
-					break;
+				case Space:
+					ReplaceSelection(u" ");
 				}
+				Invalidate(e.GetSender());
 				return;
 			}
 		}
@@ -284,7 +286,6 @@ TextBox::ReplaceSelection(const String& text)
 		+ Text.substr(min(Text.length(), r.second.X));
 	r.second.X = r.first.X + text.length(),
 	Selection.Collapse();
-	Invalidate(*this);
 }
 
 void

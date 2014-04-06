@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r6974
+\version r7024
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-04-01 22:39 +0800
+	2014-04-06 14:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,57 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %Keys $=
+			(
+				(
+				+ "enumerator %Space" @ "enums" ("%ExtendedSet"
+					@ "platform %DS", "%NativeSet" @ "platform %Win32"),
+				$dep_to "space virtual key"
+				),
+				* "missing virtual key code 'VK_ADD'" @ "category enumeration"
+					@ "platform %Win32" @ %Keys $since b489
+					// Thus key coder not less than VK_ADD(0x6B) were all \
+						mispositioned.
+			),
+			/ %Input $=
+			(
+				(
+				/ "function %WriteCursor" -> ("function %FetchCursor"
+					@ "platform %DS");
+				- "struct %CursorInfo"
+				),
+				/ $dev "inline functions %(WaitForKeypad, WaitForFrontKey, \
+					WaitForFrontKeypad, WaitForArrowKey, WaitForABXY)"
+					@ "platform %DS" -> "non-inline function";
+				- $dev "header %NativeAPI dependency" @ "header"
+			)
+		),
+		/ %YSLib $=
+		(
+			/ @ "class %TextBox" @ %UI.TextBox $=
+			(
+				(
+				$dep_from "space virtual key";
+				+ "space input support"
+				),
+				* "missing processing for key %Right" @ $since b490
+				- "invalidation" @ "member function %ReplaceSelection",
+				* "missing invalidation after cursor move" $since b490,
+			),
+			+ "constructor for pair type with 'std::get'"
+				@ "class template %GBinaryGroup" @ %Core.YGDIBase
+		),
+		/ DLD "initialization" @ "%Environment::RawMouseButton"
+			@ "platform %Win32" @ %Helper.Host ^ "member-initializer" 
+	)
+),
+
+b490
 (
 	/ %YFramework $=
 	(

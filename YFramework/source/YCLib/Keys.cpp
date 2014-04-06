@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r468
+\version r469
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2014-04-01 22:29 +0800
+	2014-04-01 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,6 +194,7 @@ yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	Numeric | Keypad,
 	Numeric | Keypad,
 	Numeric | Keypad, // VK_NUMPAD9.
+	Punctuation | Keypad, // VK_ADD.
 	Punctuation | Keypad, // VK_MULTIPLY.
 	Punctuation | Keypad, // VK_SEPARATOR.
 	Punctuation | Keypad, // VK_SUBTRACT.

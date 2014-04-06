@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r347
+\version r363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2013-12-24 00:39 +0800
+	2014-04-06 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,7 @@ InputManager::InputManager()
 void
 InputManager::DispatchInput(IWidget& wgt)
 {
+	auto& st(GUI_state.get());
 	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
 		VisualEvent touch_evt){
 #if YCL_Win32
@@ -71,14 +72,14 @@ InputManager::DispatchInput(IWidget& wgt)
 			{
 				CursorEventArgs e(wgt, keyset, cursor_state);
 
-				GUI_state.get().ResponseCursor(e, touch_evt);
+				st.ResponseCursor(e, touch_evt);
 			}
 		}
 		else if(keyset.any())
 		{
 			KeyEventArgs e(wgt, keyset);
 
-			GUI_state.get().ResponseKey(e, key_evt);
+			st.ResponseKey(e, key_evt);
 		}
 	});
 	KeyInput keys(platform_ex::FetchKeyUpState());
@@ -89,7 +90,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	{
 		CursorEventArgs e(wgt, keys, cursor_state);
 
-		GUI_state.get().ResponseCursor(e, CursorOver);
+		st.ResponseCursor(e, CursorOver);
 	}
 #endif
 	keys = platform_ex::FetchKeyDownState();
@@ -103,7 +104,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	{
 		CursorWheelEventArgs e(wgt, raw_mouse, keys, cursor_state);
 
-		GUI_state.get().ResponseCursor(e, CursorWheel);
+		st.ResponseCursor(e, CursorWheel);
 		env.get().RawMouseButton = 0;
 	}
 #endif
@@ -131,14 +132,12 @@ InputManager::Update()
 	if(platform_ex::FetchKeyState()[YCL_KEY_Touch])
 #endif
 	{
-		using namespace Drawing;
-
-		platform::CursorInfo cursor;
-
-		platform_ex::WriteCursor(cursor);
 #if YCL_DS
-		cursor_state = cursor.operator Point();
+		cursor_state = platform_ex::FetchCursor();
 #elif YCL_Win32
+		::POINT cursor;
+
+		::GetCursorPos(&cursor);
 		::ScreenToClient(p_wnd->GetNativeHandle(), &cursor);
 
 		const auto& pr(p_wnd->GetInputBounds());
@@ -150,14 +149,14 @@ InputManager::Update()
 			yunseq(cursor_state.X = cursor.x - pr.first.X,
 				cursor_state.Y = cursor.y - pr.first.Y);
 		else
-			cursor_state = Point::Invalid;
+			cursor_state = Drawing::Point::Invalid;
 #endif
 	}
 #if YF_Hosted
 	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd))
 		return &p_render_wnd->GetRenderer().GetWidgetRef();
 #endif
-	return nullptr;
+	return {};
 }
 #undef YCL_CURSOR_VALID
 #undef YCL_KEY_Touch

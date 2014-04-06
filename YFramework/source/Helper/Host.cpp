@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1335
+\version r1338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-03-27 01:10 +0800
+	2014-04-06 12:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,9 +102,6 @@ Environment::Environment()
 	: wnd_map(), wmap_mtx()
 #	if YF_Multithread == 1
 	, wnd_thrd_count(),
-#		if YCL_Win32
-	RawMouseButton(0),
-#		endif
 	ExitOnAllWindowThreadCompleted()
 #		if YCL_Win32
 	, window_class(WindowClassName, WndProc)

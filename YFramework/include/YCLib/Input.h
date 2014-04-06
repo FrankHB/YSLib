@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r411
+\version r472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2013-12-24 09:33 +0800
+	2014-04-06 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,49 +30,10 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Keys
-#include YFM_YCLib_NativeAPI
+#include YFM_YCLib_Video // for SPos;
 
 namespace platform
 {
-
-//! \brief 屏幕指针设备光标信息。
-struct YF_API CursorInfo final
-#if YCL_DS
-	 : public ::touchPosition
-#	define YCL_CURSOR_X px
-#	define YCL_CURSOR_Y py
-#elif YCL_Win32
-	 : public ::POINT
-#	define YCL_CURSOR_X x
-#	define YCL_CURSOR_Y y
-#else
-#	error "Unsupported platform found."
-#endif
-{
-	/*!
-	\brief 转换为二元组。
-	\since build 321
-	*/
-	template<class _tBinary>
-	operator _tBinary() const
-	{
-		return _tBinary(YCL_CURSOR_X, YCL_CURSOR_Y);
-	}
-
-	/*!
-	\brief 取横坐标。
-	\since build 413
-	*/
-	yconstfn DefGetter(const ynothrow, std::uint16_t, X, YCL_CURSOR_X)
-	/*!
-	\brief 取纵坐标。
-	\since build 413
-	*/
-	yconstfn DefGetter(const ynothrow, std::uint16_t, Y, YCL_CURSOR_Y)
-#undef YCL_CURSOR_Y
-#undef YCL_CURSOR_X
-};
-
 
 /*!
 \defgroup YCL_KEY_OVERRIDE YCLib Key Overridden Values
@@ -179,15 +140,15 @@ inline PDefH(platform::KeyInput, FetchKeyUpState, )
 #endif
 
 
+#if YCL_DS
 /*!
 \brief 写入当前指针设备信息。
-\since build 272
+\since build 481
 */
-YF_API void
-WriteCursor(platform::CursorInfo&);
+YF_API std::pair<std::int16_t, std::int16_t>
+FetchCursor();
 
 
-#if YCL_DS
 /*!
 \brief 等待掩码指定的按键。
 \since build 298
@@ -198,38 +159,32 @@ WaitForKey(platform::KeyInput);
 /*!
 \brief 等待任意按键（除触摸屏、翻盖外）。
 */
-inline PDefH(void, WaitForKeypad, )
-	ImplExpr(WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y | KEY_L | KEY_R
-		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		| KEY_START | KEY_SELECT))
+YF_API void
+WaitForKeypad();
 
 /*!
 \brief 等待任意按键（除 L 、 R 和翻盖外）。
 */
-inline PDefH(void, WaitForFrontKey, )
-	ImplExpr(WaitForKey(KEY_TOUCH | KEY_A | KEY_B | KEY_X | KEY_Y
-		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		| KEY_START | KEY_SELECT))
+YF_API void
+WaitForFrontKey();
 
 /*!
 \brief 等待任意按键（除 L 、 R 、触摸屏和翻盖外）。
 */
-inline PDefH(void, WaitForFrontKeypad, )
-	ImplExpr(WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y
-		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		|KEY_START | KEY_SELECT))
+YF_API void
+WaitForFrontKeypad();
 
 /*!
 \brief 等待方向键。
 */
-inline PDefH(void, WaitForArrowKey, )
-	ImplExpr(WaitForKey(KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN))
+YF_API void
+WaitForArrowKey();
 
 /*!
 \brief 等待按键 A 、 B 、 X 、 Y 键。
 */
-inline PDefH(void, WaitForABXY, )
-	ImplExpr(WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y))
+YF_API void
+WaitForABXY();
 #endif
 
 } // namespace platform_ex;

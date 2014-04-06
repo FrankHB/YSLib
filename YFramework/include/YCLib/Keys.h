@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r460
+\version r467
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-04-01 22:27 +0800
+	2014-04-02 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,6 +245,8 @@ enum ExtendedSet
 	Alt,
 	Pause,
 	CapsLock,
+	//! \since build 491
+	Space,
 	Insert,
 	Delete
 };
@@ -281,6 +283,11 @@ enum NativeSet
 	//@}
 	//! \note 同 VK_ESCAPE 。
 	Esc = 0x1B,
+	/*!
+	\note 同 VK_SPACE 。
+	\since build 491
+	*/
+	Space = 0x20,
 	//! \note 同 VK_PRIOR 。
 	PgUp = 0x21,
 	//! \note 同 VK_NEXT 。

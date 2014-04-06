@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r739
+\version r741
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-02-27 13:39 +0800
+	2014-04-06 13:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -389,6 +389,7 @@
 
 @2.2.2 YCLib 文件依赖性：
  YCLib 的实现可依赖 YCLib 的对应平台扩展。
+ YCLib 非平台扩展头文件不依赖 YSLib 文件和 YCLib::NativeAPI 。
  YCLib 平台扩展可依赖 YSLib/Core 的必要头文件。
  YCLib 平台扩展的实现文件可依赖 YSLib/Core 或 YSLib/Servic 的公开头文件。
  YCLib 中除 YCLib/Platform.h 外的文件仅可被 YCLib 、 YSLib 和 Helper 依赖。

@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r223
+\version r224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-04-01 19:50 +0800
+	2014-04-02 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -195,7 +195,7 @@ public:
 	Refresh(PaintEventArgs&&) override;
 
 	/*!
-	\brief 替换选中文本并无效化。
+	\brief 替换选中文本。
 	\since build 490
 	*/
 	void
