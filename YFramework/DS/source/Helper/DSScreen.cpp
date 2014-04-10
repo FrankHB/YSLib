@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSScreen.cpp
 \ingroup Helper
 \brief DS 屏幕。
-\version r259
+\version r261
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2013-11-26 20:22 +0800
+	2014-04-10 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -47,7 +47,7 @@ DSScreen::Update(BitmapPtr buf) ynothrow
 {
 	DS::ScreenSynchronize(GetCheckedBufferPtr(), buf);
 }
-#elif YCL_Win32
+#elif YCL_Win32 || YCL_Android
 DSScreen::DSScreen(bool b) ynothrow
 	: Screen(MainScreenWidth, MainScreenHeight),
 	Offset(), WindowHandle(),

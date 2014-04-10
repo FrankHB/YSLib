@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r467
+\version r533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-04-02 00:56 +0800
+	2014-04-10 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,23 +41,23 @@ namespace platform
 */
 using KeyIndex = std::size_t;
 
-#if YCL_DS
 /*!
 \brief 按键并行位宽。
 \note 不少于实际表示的 KeyPad 按键数。
 \since build 490
 */
+//@{
+#if YCL_DS
 yconstexpr KeyIndex KeyBitsetWidth(32);
 #elif YCL_Win32
-/*!
-\brief 按键并行位宽。
-\note 不少于实际表示的键盘按键数。
-\since build 490
-*/
+yconstexpr KeyIndex KeyBitsetWidth(256);
+#elif YCL_Android
+//! \since build 492
 yconstexpr KeyIndex KeyBitsetWidth(256);
 #else
 #	error "Unsupported platform found."
 #endif
+//@}
 
 /*!
 \brief 本机输入类型。
@@ -133,7 +133,7 @@ enum Category : KeyIndex
 	NonKeyboard = 2 << 12,
 	//! \brief 表示通过多个物理按键组合构成的键。
 	Composed = 1 << 14,
-	//! \brief 表示没有对应物理按键的虚拟键。
+	//! \brief 表示没有对应单一物理按键的虚拟键。
 	Virtual = 2 << 14
 };
 
@@ -175,6 +175,7 @@ yconstfn PDefH(bool, IsComposedKey, KeyIndex) ynothrow
 \return 若未找到对应按键或不支持为 char() ，否则为对应的字符。
 \note 对于 Win32 ，返回值不大于 0x80 。
 \since build 490
+\todo Android 实现。
 */
 //@{
 #if YCL_Win32
@@ -315,6 +316,57 @@ enum NativeSet
 	Delete = 0x2E
 	//@}
 };
+#elif YCL_Android
+/*!
+\brief 基本公用按键集合。
+\note 值和 Android SDK 的 android.view.KeyEvent 的 KEYCODE_* 值对应。
+\since build 492
+*/
+enum NativeSet
+{
+	//! \note 同 KEYCODE_UNKNOWN 。
+	Empty = 0,
+	//! \note 同 KEYCODE_DPAD_UP 。
+	Up = 0x13,
+	//! \note 同 KEYCODE_DPAD_DOWN 。
+	Down = 0x14,
+	//! \note 同 KEYCODE_DPAD_LEFT 。
+	Left = 0x15,
+	//! \note 同 KEYCODE_DPAD_RIGHT 。
+	Right = 0x16,
+	//! \note 同 KEYCODE_ALT_LEFT 。
+	Alt = 0x39,
+	//! \note 同 KEYCODE_SHIFT_LEFT 。
+	Shift = 0x3B,
+	//! \note 同 KEYCODE_TAB 。
+	Tab = 0x3D,
+	//! \note 同 KEYCODE_SPACE 。
+	Space = 0x3E,
+	//! \note 同 KEYCODE_ENTER 。
+	Enter = 0x42,
+	//! \note 同 KEYCODE_DEL 。
+	Backspace = 0x43,
+	//! \note 同 KEYCODE_PAGE_UP 。
+	PgUp = 0x5C,
+	//! \note 同 KEYCODE_PAGE_DOWN 。
+	PgDn = 0x5D,
+	//! \note 同 KEYCODE_ESCAPE 。
+	Esc = 0x6F,
+	//! \note 同 KEYCODE_FORWARD_DEL 。
+	Delete = 0x70,
+	//! \note 同 KEYCODE_CTRL_LEFT 。
+	Ctrl = 0x71,
+	//! \note 同 KEYCODE_CAPS_LOCK 。
+	CapsLock = 0x73,
+	//! \note 同 KEYCODE_BREAK 。
+	Pause = 0x79,
+	//! \note 同 KEYCODE_MOVE_HOME 。
+	Home = 0x7A,
+	//! \note 同 KEYCODE_MOVE_END 。
+	End = 0x7B,
+	//! \note 同 KEYCODE_INSERT 。
+	Insert = 0x7C
+};
 #endif
 
 
@@ -322,6 +374,7 @@ enum NativeSet
 \brief 取锁定键状态。
 \return 若参数指定可锁定的键则取状态，否则总是 false 。
 \since build 490
+\todo Android 实现。
 */
 YF_API bool
 FetchLockState(KeyIndex) ynothrow;
@@ -330,6 +383,7 @@ FetchLockState(KeyIndex) ynothrow;
 \brief 切换锁定键状态。
 \return 若参数指定可锁定的键则切换状态，否则忽略。
 \since build 490
+\todo Android 实现。
 */
 YF_API void
 ToggleLockState(KeyIndex) ynothrow;

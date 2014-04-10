@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1221
+\version r1227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-02-16 01:36 +0800
+	2014-04-08 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #include <ystdex/cstring.h> // for ystdex::is_null;
 #include <ystdex/string.hpp> // for ystdex::string_length, std::string;
 #include "CHRLib/encoding.h"
-#if YCL_DS || YCL_MinGW32
+#if YCL_DS || YCL_MinGW32 || YCL_Android
 #include <dirent.h>
 #endif
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
@@ -94,7 +94,8 @@ namespace platform
 */
 using NativePathCharType = char;
 
-#	define YCL_FS_CharIsDelimiter(_c, _p) (_c == YPP_Join(_p, YCL_PATH_DELIMITER))
+#	define YCL_FS_CharIsDelimiter(_c, _p) \
+	(_c == YPP_Join(_p, YCL_PATH_DELIMITER))
 #	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
 
 /*!
@@ -405,7 +406,7 @@ public:
 class YF_API DirectorySession
 {
 public:
-#if YCL_DS
+#if !YCL_Win32
 	using NativeHandle = ::DIR*;
 #else
 	using NativeHandle = void*;
@@ -452,7 +453,7 @@ public:
 class YF_API HDirectory final : private DirectorySession
 {
 private:
-#if YCL_DS
+#if !YCL_Win32
 	/*!
 	\brief 节点信息。
 	\since build 298
@@ -558,7 +559,7 @@ GetRootNameLength(const char*);
 namespace platform_ex
 {
 
-#if YCL_DS
+#if !YCL_Win32
 //! \since build 409
 char16_t
 FS_IsRoot(const char16_t*);

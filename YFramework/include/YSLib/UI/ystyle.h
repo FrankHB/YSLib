@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r649
+\version r654
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-02-25 09:06 +0800
+	2014-04-06 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,12 +378,7 @@ public:
 	void
 	Add(_tParams&&... args)
 	{
-//! \since build 472 as workaround for G++ 4.7.1
-#if YB_IMPL_GNUCPP < 40702
-		insert(value_type(yforward(args)...));
-#else
 		emplace(yforward(args)...);
-#endif
 	}
 
 	//! \note 若移除作为默认名称的空串则被忽略。

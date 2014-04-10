@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1272
+\version r1308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-02-16 01:39 +0800
+	2014-04-08 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,6 +51,10 @@ _wfopen(const wchar_t*, const wchar_t*);
 //@}
 #	endif
 #	include <Shlwapi.h> // for ::PathIsRelativeW;
+#elif YCL_Android
+#	include <fcntl.h>
+#	include <dirent.h>
+#	include <sys/stat.h>
 #endif
 
 //! \since build 475
@@ -73,7 +77,7 @@ static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
 namespace
 {
 
-#if YCL_DS
+#if YCL_DS || YCL_Android
 #elif YCL_MinGW32
 std::wstring
 u_to_w(const char* str)
@@ -204,7 +208,7 @@ uopen(const char* filename, int oflag) ynothrow
 {
 	yconstraint(filename);
 
-#if YCL_DS
+#if !YCL_Win32
 	return ::open(filename, oflag);
 #else
 	try
@@ -221,7 +225,7 @@ uopen(const char* filename, int oflag, int pmode) ynothrow
 {
 	yconstraint(filename);
 
-#if YCL_DS
+#if !YCL_Win32
 	return ::open(filename, oflag, pmode);
 #else
 	try
@@ -238,7 +242,7 @@ uopen(const char16_t* filename, int oflag) ynothrow
 {
 	yconstraint(filename);
 
-#if YCL_DS
+#if !YCL_Win32
 	try
 	{
 		return ::open(strdup(filename).c_str(), oflag);
@@ -255,7 +259,7 @@ uopen(const char16_t* filename, int oflag, int pmode) ynothrow
 {
 	yconstraint(filename);
 
-#if YCL_DS
+#if !YCL_Win32
 	try
 	{
 		return ::open(strdup(filename).c_str(), oflag, pmode);
@@ -275,7 +279,7 @@ ufopen(const char* filename, const char* mode) ynothrow
 	yconstraint(mode);
 	yconstraint(*mode != char());
 
-#if YCL_DS
+#if !YCL_Win32
 	return std::fopen(filename, mode);
 #else
 	try
@@ -294,7 +298,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 	yconstraint(mode);
 	yconstraint(*mode != char());
 
-#if YCL_DS
+#if !YCL_Win32
 	try
 	{
 		return std::fopen(strdup(filename).c_str(), strdup(mode).c_str());
@@ -311,7 +315,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 bool
 ufexists(const char* filename) ynothrow
 {
-#if YCL_DS
+#if !YCL_Win32
 	return ystdex::fexists(filename);
 #else
 	yconstraint(filename);
@@ -349,7 +353,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 		using namespace CHRLib;
 
 		if(YB_LIKELY(buf))
-#if YCL_DS
+#if !YCL_Win32
 		{
 			const auto p(static_cast<ucs2_t*>(malloc((size + 1)
 				* sizeof(ucs2_t))));
@@ -386,14 +390,14 @@ _n(const char* path) ynothrow \
 	yconstraint(path); \
 \
 
-#if YCL_DS
+#if !YCL_Win32
 //! \since build 476
-#define YCL_FileSystem_ufunc_impl2(_fn, _wfn) \
+#	define YCL_FileSystem_ufunc_impl2(_fn, _wfn) \
 	return _fn(path) == 0; \
 }
 #else
 //! \since build 476
-#define YCL_FileSystem_ufunc_impl2(_fn, _wfn) \
+#	define YCL_FileSystem_ufunc_impl2(_fn, _wfn) \
 	try \
 	{ \
 		return _wfn(u_to_w(path).c_str()) == 0; \
@@ -412,7 +416,7 @@ _n(const char* path) ynothrow \
 YCL_FileSystem_ufunc_impl(uchdir, ::chdir, ::_wchdir)
 
 YCL_FileSystem_ufunc_impl1(umkdir)
-#if YCL_DS
+#if !YCL_Win32
 	return ::mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0;
 }
 #else
@@ -432,7 +436,7 @@ YCL_FileSystem_ufunc_impl(uremove, std::remove, ::_wremove)
 bool
 truncate(std::FILE* fp, std::size_t size) ynothrow
 {
-#if YCL_DS
+#if !YCL_Win32
 	return ::ftruncate(fileno(fp), ::off_t(size)) == 0;
 #else
 	return ::_chsize(::_fileno(fp), long(size)) == 0;
@@ -443,7 +447,7 @@ truncate(std::FILE* fp, std::size_t size) ynothrow
 std::uint64_t
 GetFileSizeOf(int fd)
 {
-#if YCL_DS
+#if !YCL_Win32
 	struct ::stat st;
 
 	if(::fstat(fd, &st) == 0)
@@ -463,7 +467,7 @@ GetFileSizeOf(std::FILE* fp)
 {
 	yconstraint(fp);
 
-#if YCL_DS
+#ifdef YCL_API_FILESYSTEM_POSIX
 	return GetFileSizeOf(fileno(fp));
 #else
 	return GetFileSizeOf(::_fileno(fp));
@@ -473,7 +477,7 @@ GetFileSizeOf(std::FILE* fp)
 
 DirectorySession::DirectorySession(const char* path)
 	: dir(
-#if YCL_DS
+#if !YCL_Win32
 		::opendir
 #else
 		new DirectoryData
@@ -486,7 +490,7 @@ DirectorySession::DirectorySession(const char* path)
 }
 DirectorySession::~DirectorySession()
 {
-#if YCL_DS
+#if !YCL_Win32
 	const auto res(::closedir(dir));
 
 	YAssert(res == 0, "No valid directory found.");
@@ -502,7 +506,7 @@ DirectorySession::Rewind() ynothrow
 {
 	YAssert(dir, "Invalid native handle found.");
 
-#if YCL_DS
+#if !YCL_Win32
 	::rewinddir(dir);
 #else
 	static_cast<DirectoryData*>(dir)->Rewind();
@@ -513,7 +517,7 @@ DirectorySession::Rewind() ynothrow
 HDirectory&
 HDirectory::operator++()
 {
-#if YCL_DS
+#if !YCL_Win32
 	p_dirent = ::readdir(GetNativeHandle());
 #else
 	p_dirent = static_cast<DirectoryData*>(GetNativeHandle())->Read();
@@ -526,10 +530,10 @@ HDirectory::GetNodeCategory() const ynothrow
 {
 	if(p_dirent)
 	{
-#if YCL_DS
+#if !YCL_Win32
 		return p_dirent->d_type & DT_DIR ? NodeCategory::Directory
 			: NodeCategory::Regular;
-#elif YCL_MinGW32
+#else
 		return static_cast<DirectoryData*>(GetNativeHandle())->GetAttributes()
 			& FILE_ATTRIBUTE_DIRECTORY ? NodeCategory::Directory
 			: NodeCategory::Regular;
@@ -543,7 +547,7 @@ HDirectory::GetName() const ynothrow
 {
 	if(p_dirent)
 	{
-#if YCL_DS
+#if !YCL_Win32
 		return p_dirent->d_name;
 #else
 		try
@@ -563,7 +567,7 @@ HDirectory::GetName() const ynothrow
 bool
 IsAbsolute(const char* path)
 {
-#if YCL_DS
+#if !YCL_Win32
 	if(path)
 	{
 		if(*path == '/')
@@ -574,10 +578,8 @@ IsAbsolute(const char* path)
 		return p && p != path && !std::strstr(p, ":/");
 	}
 	return false;
-#elif YCL_MinGW32
-	return !::PathIsRelativeW(u_to_w(path).c_str());
 #else
-#	error "Unsupported platform found."
+	return !::PathIsRelativeW(u_to_w(path).c_str());
 #endif
 }
 
@@ -594,13 +596,16 @@ GetRootNameLength(const char* path)
 namespace platform_ex
 {
 
-#if YCL_DS
+#if !YCL_Win32
 char16_t
 FS_IsRoot(const char16_t* str)
 {
 	const std::u16string ustr(str);
-
+#if YCL_DS
 	return ustr == u"/" || ustr == u"fat:/" || ustr == u"sd:/";
+#else
+	return ustr == u"/";
+#endif
 }
 #endif
 

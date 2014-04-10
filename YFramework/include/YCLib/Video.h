@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r883
+\version r890
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-02-13 22:59 +0800
+	2014-04-10 12:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,7 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 #	define DefColorH_(hex, name) name = \
 	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
 	| 1 << 15)
-#elif YCL_Win32
+#elif YCL_Win32 || YCL_Android
 	/*!
 	\brief 标识 XYZ888 像素格式。
 	\note 值表示按整数表示的顺序从高位到低位为 ARGB 。
@@ -238,8 +238,9 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 /*!
 \brief Windows DIB 格式兼容像素。
 \note MSDN 注明此处第 4 字节保留为 0 ，但此处使用作为 8 位 Alpha 值使用。
-	即 ARGB8888 （考虑字节序为BGRA8888）。
+	即 ARGB8888 （考虑字节序为 BGRA8888 ）。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
+\note Android 设备可选各种格式，为了简便共用实现。
 \warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
 \since build 441
 \todo 断言对齐，保证类型兼容。
@@ -370,7 +371,7 @@ public:
 #if YCL_DS
 		: r(px.GetR() << 3), g(px.GetG() << 3), b(px.GetB() << 3),
 		a(FetchAlpha(px) ? 0xFF : 0x00)
-#elif YCL_Win32
+#elif YCL_Win32 || YCL_Android
 		: r(px.GetR()), g(px.GetG()), b(px.GetB()), a(px.GetA())
 #endif
 	{}
@@ -382,7 +383,7 @@ public:
 	Color(ColorSet cs) ynothrow
 #if YCL_DS
 		: Color(PixelType(cs))
-#elif YCL_Win32
+#elif YCL_Win32 || YCL_Android
 		: r((cs & 0xFF00) >> 8), g((cs & 0xFF0000) >> 16),
 		b((cs & 0xFF000000) >> 24), a(0xFF)
 #endif
@@ -415,7 +416,7 @@ public:
 	{
 #if YCL_DS
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
-#elif YCL_Win32
+#elif YCL_Win32 || YCL_Android
 		return {b, g, r, a};
 #endif
 	}
@@ -490,6 +491,7 @@ yconstexpr platform::Color ConsoleColors[]{ColorSpace::Black, ColorSpace::Navy,
 /*!
 \brief 启动控制台。
 \note fc 为前景色，bc为背景色。
+\todo Win32 和 Android 实现。
 */
 YF_API void
 YConsoleInit(std::uint8_t dspIndex, Color fc = ColorSpace::White,

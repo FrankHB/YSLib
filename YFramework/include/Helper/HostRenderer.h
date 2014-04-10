@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r280
+\version r281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-03-26 23:32 +0800
+	2014-04-10 01:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_Helper_HostWindow // for Host::Window;
 #if YF_Multithread == 1
+#	include <atomic>
 #	include <thread>
 #endif
 #include YFM_YSLib_UI_YRenderer

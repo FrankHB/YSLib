@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3638
+\version r3641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-03-10 02:26 +0800
+	2014-04-06 17:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	yunseq(
 	Background = std::bind(DrawTrackBackground, std::placeholders::_1,
 		std::ref(*this)),
-	GetThumbDrag() += [this](UIEventArgs&&){
+	GetThumbDrag() += [this]{
 		LocateThumb(0, ScrollCategory::ThumbTrack);
 	},
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld,
@@ -371,11 +371,11 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 			LocateThumb(small_delta, ScrollCategory::SmallIncrement);
 	},
 	FetchEvent<TouchHeld>(btnPrev) += OnTouchHeld,
-	FetchEvent<TouchDown>(btnPrev) += [this](CursorEventArgs&&){
+	FetchEvent<TouchDown>(btnPrev) += [this]{
 		LocateThumb(small_delta, ScrollCategory::SmallDecrement);
 	},
 	FetchEvent<TouchHeld>(btnNext) += OnTouchHeld,
-	FetchEvent<TouchDown>(btnNext) += [this](CursorEventArgs&&){
+	FetchEvent<TouchDown>(btnNext) += [this]{
 		LocateThumb(small_delta, ScrollCategory::SmallIncrement);
 	}
 	);

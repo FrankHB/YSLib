@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3049
+\version r3052
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-03-04 14:11 +0800
+	2014-04-06 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -549,10 +549,7 @@ public:
 	//! \since build 415
 	//@{
 	transformed_iterator(const transformed_iterator&) = default;
-	//! \since build 353 as workaround for G++ 4.7.1
-#if YB_IMPL_GNUCPP >= 40800
 	transformed_iterator(transformed_iterator&&) = default;
-#endif
 	//@}
 
 	//! \since build 415

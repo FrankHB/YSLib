@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9138
+\version r9142
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-03-24 21:43 +0800
+	2014-04-06 15:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -313,7 +313,7 @@ Shell 和 Core 的关系是相对的，例如：
 基于 YBase 的平台隔离用库 YCLib(@5.2.2) ，包含于 YFramework 中。
  ISO C++ 实现定义行为要求：
 至少支持 std::placeholder::_6 。
-当前仅经过实际验证支持的实现包括 G++ 4.7.1 以上版本（ G++ 4.7.1 包括若干 workaround）。 YBase （包括若干 workaround ） 支持 Microsoft Visual C++ 2013 。
+当前仅经过实际验证支持的实现包括 G++ 4.8.2 或以上版本。 YBase （包括若干 workaround ） 支持 Microsoft Visual C++ 2013 。
 除以上列出外的其它实现不保证支持。
 未来可能会提升实现的最低支持版本要求，并移除针对特定版本的 workaround 代码。
 
@@ -391,7 +391,7 @@ Shell 和 Core 的关系是相对的，例如：
  2011-02-16(build 192) 起：
  libnds 1.5.0 / default arm7 0.5.20 / libfat 1.0.9 。
  2011-06-24(build 221) 起：
- devkitARM release 33 / libnds 1.5.0 / default arm7 0.5.20 。
+ devkitARM release 33 / libnds 1.5.0 。
 注：文件系统目录访问接口变化，需要使用 devkitARM release 33 或自行配置所需的 POSIX API 。
  2011-07-03(build 223) 起：
  libnds 1.5.1 / default arm7 0.5.21 。
@@ -411,6 +411,8 @@ Shell 和 Core 的关系是相对的，例如：
  devkitARM release 40 / libfat 1.0.11 。
  2012-06-29(build 321) 起：
  devkitARM release 41 。
+ 2014-04-06(build 492) 起：
+ devkitARM release 42 / libnds 1.5.8 / libfat 1.0.12 / default arm7 0.5.25 。
 
 @5.2.4 MinGW32 平台工具链和标准库实现：
 目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP/Windows Server 2003 （对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。

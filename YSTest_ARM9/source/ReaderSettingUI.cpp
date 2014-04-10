@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r414
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2014-03-02 22:38 +0800
+	2014-04-06 17:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,35 +122,33 @@ SettingPanel::SettingPanel()
 //		BoundaryPriority),
 	FetchEvent<KeyDown>(*this) += OnEvent_StopRouting<KeyEventArgs>,
 	FetchEvent<KeyHeld>(*this) += OnEvent_StopRouting<KeyEventArgs>,
-	FetchEvent<Click>(btnFontSizeDecrease)
-		+= [this, set_font_size](CursorEventArgs&&){
+	FetchEvent<Click>(btnFontSizeDecrease) += [this, set_font_size]{
 		auto size(lblAreaUp.Font.GetSize());
 
 		if(YB_LIKELY(size > Font::MinimalSize))
 			set_font_size(--size);
 	},
-	FetchEvent<Click>(btnFontSizeIncrease)
-		+= [this, set_font_size](CursorEventArgs&&){
+	FetchEvent<Click>(btnFontSizeIncrease) += [this, set_font_size]{
 		auto size(lblAreaUp.Font.GetSize());
 
 		if(YB_LIKELY(size < Font::MaximalSize))
 			set_font_size(++size);
 	},
-	FetchEvent<Click>(btnTextColor) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnTextColor) += [this]{
 		boxColor.SetColor(*(pColor = &lblAreaUp.ForeColor));
 		Show(boxColor);
 	},
-	FetchEvent<Click>(btnSetUpBack) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnSetUpBack) += [this]{
 		boxColor.SetColor(
 			*(pColor = &lblAreaUp.Background.target<SolidBrush>()->Color));
 		Show(boxColor);
 	},
-	FetchEvent<Click>(btnSetDownBack) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnSetDownBack) += [this]{
 		boxColor.SetColor(
 			*(pColor = &lblAreaDown.Background.target<SolidBrush>()->Color));
 		Show(boxColor);
 	},
-	ddlFont.GetConfirmed() += [&, this](IndexEventArgs&&){
+	ddlFont.GetConfirmed() += [&, this]{
 		if(const auto p = FetchDefaultFontCache()
 			.GetFontFamilyPtr(ddlFont.Text.GetMBCS().c_str()))
 		{
@@ -195,7 +193,7 @@ SettingPanel::SettingPanel()
 			scroll_duration = milliseconds((e.Value + 1U) * 100);
 	},
 	FetchEvent<TouchHeld>(boxColor) += OnTouchHeld_Dragging,
-	FetchEvent<Click>(boxColor.btnOK) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(boxColor.btnOK) += [this]{
 		if(pColor)
 		{
 			// TODO: Determine less area to be invalidated.

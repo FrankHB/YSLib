@@ -7,12 +7,12 @@
 		<Option pch_mode="2" />
 		<Option compiler="gnu_armeabi_gcc_compiler" />
 		<MakeCommands>
-			<Build command="$make -j -f $makefile -r CONF=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
+			<Build command="$make -j8 -f $makefile -r CONF=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27" />
 			<CompileFile command="$make -f $makefile $file" />
 			<Clean command="$make -f $makefile -r CONF=$target clean" />
 			<DistClean command="$make -f $makefile distclean$target" />
 			<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
-			<SilentBuild command="$make -j -f $makefile -r CONF=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27 &gt; $(CMD_NULL)" />
+			<SilentBuild command="$make -j8 -f $makefile -r CONF=$target 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27 &gt; $(CMD_NULL)" />
 		</MakeCommands>
 		<Build>
 			<Target title="debug">
@@ -22,12 +22,12 @@
 					<Add option="-g" />
 				</Compiler>
 				<MakeCommands>
-					<Build command="$make -j -f $makefile -r CONF=$target" />
+					<Build command="$make -j8 -f $makefile -r CONF=$target" />
 					<CompileFile command="$make -f $makefile $file" />
 					<Clean command="$make -f $makefile -r CONF=$target clean" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
-					<SilentBuild command="$make -j -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
+					<SilentBuild command="$make -j8 -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="release">
@@ -40,12 +40,12 @@
 					<Add option="-s" />
 				</Linker>
 				<MakeCommands>
-					<Build command="$make -j -f $makefile -r CONF=$target" />
+					<Build command="$make -j8 -f $makefile -r CONF=$target" />
 					<CompileFile command="$make -f $makefile $file" />
 					<Clean command="$make -f $makefile -r CONF=$target clean" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
-					<SilentBuild command="$make -j -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
+					<SilentBuild command="$make -j8 -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 		</Build>

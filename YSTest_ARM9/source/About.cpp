@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r207
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2013-10-04 23:00 +0800
+	2014-04-06 17:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,10 +89,10 @@ FrmAbout::FrmAbout()
 	},
 	FetchEvent<TouchHeld>(root) += std::bind(OnTouchHeld_DraggingRaw,
 		std::placeholders::_1, std::ref(*this)),
-	FetchEvent<Click>(btnClose) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnClose) += [this]{
 		Hide(*this);
 	},
-	FetchEvent<Click>(btnExit) += [](CursorEventArgs&&){
+	FetchEvent<Click>(btnExit) += []{
 		YSLib::PostQuitMessage(0);
 	}
 	);

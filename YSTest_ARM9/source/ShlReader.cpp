@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4552
+\version r4562
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-03-10 02:14 +0800
+	2014-04-06 17:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -360,7 +360,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 {
 	using ystdex::get_key;
 
-	const auto exit_session([this](CursorEventArgs&&){
+	const auto exit_session([this]{
 		session_ptr.reset();
 	});
 
@@ -376,7 +376,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 			boxTextInfo.UpdateData(reader);
 	},
 	mhMain.Roots[&boxReader.btnMenu] = 1U,
-	FetchEvent<Click>(boxReader.btnMenu) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(boxReader.btnMenu) += [this]{
 		if(mhMain.IsShowing(1U))
 			mhMain.Hide(1U);
 		else
@@ -387,22 +387,22 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 			ShowMenu(1U, Point(pt.X, pt.Y - mhMain[1U].GetHeight()));
 		}
 	},
-	FetchEvent<Click>(boxReader.btnSetting) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(boxReader.btnSetting) += [this]{
 		Execute(MR_Setting);
 	},
-	FetchEvent<Click>(boxReader.btnInfo) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(boxReader.btnInfo) += [this]{
 		Execute(MR_FileInfo);
 	},
-	FetchEvent<Click>(boxReader.btnBookmark) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(boxReader.btnBookmark) += [this]{
 		Execute(MR_Bookmark);
 	},
-	FetchEvent<Click>(boxReader.btnReturn) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(boxReader.btnReturn) += [this]{
 		Execute(MR_Return);
 	},
-	FetchEvent<Click>(boxReader.btnPrev) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(boxReader.btnPrev) += [this]{
 		UpdateReadingList(true);
 	},
-	FetchEvent<Click>(boxReader.btnNext) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(boxReader.btnNext) += [this]{
 		UpdateReadingList(false);
 	},
 	FetchEvent<TouchDown>(boxReader.pbReader) += [this](CursorEventArgs&& e){
@@ -423,7 +423,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 			ColorSpace::Yellow);
 	},
 	FetchEvent<Click>(pnlSetting.btnClose) += exit_session,
-	FetchEvent<Click>(pnlSetting.btnOK) += [&, this](CursorEventArgs&&){
+	FetchEvent<Click>(pnlSetting.btnOK) += [&, this]{
 		pnlSetting >> CurrentSetting;
 		tmrScroll.Interval = CurrentSetting.GetTimerSetting();
 		Switch(pnlSetting.current_encoding),
@@ -441,7 +441,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	},
 	FetchEvent<Click>(pnlSetting.btnOK) += exit_session,
 	FetchEvent<Click>(pnlBookmark.btnClose) += exit_session,
-	FetchEvent<Click>(pnlBookmark.btnOK) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(pnlBookmark.btnOK) += [this]{
 		if(pnlBookmark.lbPosition.IsSelected() && Locate(
 			pnlBookmark.bookmarks[pnlBookmark.lbPosition.GetSelectedIndex()]))
 			boxReader.UpdateData(reader);

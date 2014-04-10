@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r239
+\version r249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-03-26 23:38 +0800
+	2014-04-10 11:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,11 +42,13 @@ namespace Host
 RenderWindow::RenderWindow(HostRenderer& r, NativeWindowHandle h)
 	: Window(h), renderer(r)
 {
+#	if YCL_Win32
 	MessageMap[WM_PAINT] += [this]{
 		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
 
 		renderer.get().UpdateToSurface(sf);
 	};
+#	endif
 }
 
 void
@@ -73,7 +75,11 @@ WindowThread::~WindowThread()
 		{
 			p_wnd_val->Close();
 		}
+#	if YCL_Win32
 		catch(Win32Exception&)
+#	else
+		catch(Exception&) // XXX: Use proper platform-dependent type.
+#	endif
 		{}
 		// NOTE: If the thread has been already completed there is no effect.
 		if(thrd.joinable())
@@ -164,7 +170,11 @@ HostRenderer::Update(BitmapPtr buf)
 				p_wnd->SetClientBounds(bounds);
 			p_wnd->UpdateFrom(buf, rbuf);
 		}
+#	if YCL_Win32
 		catch(Win32Exception&)
+#	else
+		catch(Exception&) // XXX: Use proper platform-dependent type.
+#	endif
 		{}
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r353
+\version r355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2013-12-24 00:41 +0800
+	2014-04-08 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,7 @@ YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 		bg_palette[0] = PixelType(bc).Integer | BITALPHA;
 		bg_palette[255] = PixelType(fc).Integer | BITALPHA;
 	}
-#elif YCL_Win32
+#elif YCL_Win32 || YCL_Android
 YConsoleInit(std::uint8_t, Color, Color)
 {
 // TODO: Implementation.

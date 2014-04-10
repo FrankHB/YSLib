@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Timer.cpp
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r205
+\version r218
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:44:52 +0800
 \par 修改时间:
-	2013-12-24 00:41 +0800
+	2014-04-08 00:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ namespace
 void
 StartTicks()
 {
-	if(bUninitializedTimers)
+	if(YB_UNLIKELY(bUninitializedTimers))
 	{
 #if YCL_DS
 		// f = 33.513982MHz;
@@ -129,6 +129,7 @@ StartTicks()
 			// FIXME: ::timeEndPeriod shall be used at exit;
 			g_ticks.start = ::timeGetTime();
 		}
+#elif YCL_Android
 #else
 #	error "Unsupported platform found."
 #endif
@@ -144,6 +145,11 @@ GetTicks()
 	return system_tick;
 #elif YCL_Win32
 	return p_tick_getter();
+#elif YCL_Android
+	::timespec now;
+
+	::clock_gettime(CLOCK_MONOTONIC, &now);
+	return now.tv_sec * 1000ULL + now.tv_nsec / 1000000;
 #endif
 }
 
@@ -152,10 +158,14 @@ GetHighResolutionTicks()
 {
 	StartTicks();
 #if YCL_DS
-	return system_tick * 1000000ULL
-		+ TIMER2_DATA * 1000000ULL / BUS_CLOCK;
+	return system_tick * 1000000ULL + TIMER2_DATA * 1000000ULL / BUS_CLOCK;
 #elif YCL_Win32
 	return p_tick_getter_nano();
+#elif YCL_Android
+	::timespec now;
+
+	::clock_gettime(CLOCK_MONOTONIC, &now);
+	return now.tv_sec * 1000000000ULL + now.tv_nsec;
 #endif
 }
 

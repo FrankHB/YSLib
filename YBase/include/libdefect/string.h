@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 <tt><string></tt> 修正。
-\version r543
+\version r559
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2014-01-02 11:16 +0800
+	2014-04-10 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,22 +49,30 @@ namespace std _GLIBCXX_VISIBILITY(default)
 
 #ifndef _GLIBCXX_USE_C99
 
+#	ifndef __BIONIC__
 extern "C" long long int
 (strtoll)(const char* __restrict, char** __restrict, int) throw();
 extern "C" unsigned long long int
 (strtoull)(const char* __restrict, char** __restrict, int) throw();
-using ::strtof;
 using ::strtold;
 extern "C" int
 (vsnprintf)(char* __restrict, std::size_t, const char* __restrict,
 	__gnuc_va_list) throw();
+#	else
+//! \since build 492
+using ::vsnprintf;
+#	endif
+
+using ::strtof;
 using ::wcstol;
 using ::wcstoul;
+using ::wcstod;
+#	ifndef __BIONIC__
 using ::wcstoll;
 using ::wcstoull;
 using ::wcstof;
-using ::wcstod;
 using ::wcstold;
+#	endif
 
 #endif
 
@@ -88,8 +96,10 @@ stoi(const string& __str, size_t* __idx = {}, int __base = 10)
 }
 YB_LIBDEFECT_STOI(string, stol, long, std::strtol)
 YB_LIBDEFECT_STOI(string, stoul, unsigned long, std::strtoul)
+#ifndef __BIONIC__
 YB_LIBDEFECT_STOI(string, stoll, long long, std::strtoll)
 YB_LIBDEFECT_STOI(string, stoull, unsigned long long, std::strtoull)
+#endif
 #ifdef _GLIBCXX_USE_WCHAR_T
 inline int
 stoi(const wstring& __str, size_t* __idx = {}, int __base = 10)
@@ -99,8 +109,10 @@ stoi(const wstring& __str, size_t* __idx = {}, int __base = 10)
 }
 YB_LIBDEFECT_STOI(wstring, stol, long, std::wcstol)
 YB_LIBDEFECT_STOI(wstring, stoul, unsigned long, std::wcstoul)
+#	ifndef __BIONIC__
 YB_LIBDEFECT_STOI(wstring, stoll, long long, std::wcstoll)
 YB_LIBDEFECT_STOI(wstring, stoull, unsigned long long, std::wcstoull)
+#	endif
 #endif
 
 #undef YB_LIBDEFECT_STOI
@@ -113,6 +125,8 @@ YB_LIBDEFECT_STOI(wstring, stoull, unsigned long long, std::wcstoull)
 		return __gnu_cxx::__stoa(&_cfname, #_n, __str.c_str(), __idx); \
 	}
 
+#	ifndef __BIONIC__
+// NOTE: Seems to be a bug of Clang++ 3.4.
 // NOTE: strtof vs strtod.
 YB_LIBDEFECT_STOF(string, stof, float, std::strtof)
 YB_LIBDEFECT_STOF(string, stod, double, std::strtod)
@@ -123,6 +137,7 @@ YB_LIBDEFECT_STOF(wstring, stof, float, std::wcstof)
 YB_LIBDEFECT_STOF(wstring, stod, double, std::wcstod)
 YB_LIBDEFECT_STOF(wstring, stold, long double, std::wcstold)
 #endif
+#	endif
 
 #undef YB_LIBDEFECT_STOF
 

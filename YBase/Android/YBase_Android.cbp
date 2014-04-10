@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="YBase_Android" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gnu_gcc_compiler_for_android" />
+		<MakeCommands>
+			<Build command="$make -j8 -f $makefile -r CONF=$target" />
+			<CompileFile command="$make -f $makefile -r CONF=$target $file" />
+			<Clean command="$make -f $makefile -r CONF=$target clean" />
+			<DistClean command="$make -f $makefile distclean$target" />
+			<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
+			<SilentBuild command="$make -j8 -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
+		</MakeCommands>
+		<Build>
+			<Target title="debug">
+				<Option type="4" />
+				<Option compiler="gnu_gcc_compiler_for_android" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -j8 -f $makefile -r CONF=$target" />
+					<CompileFile command="$make -f -r CONF=$target $makefile $file" />
+					<Clean command="$make -f $makefile -r CONF=$target clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
+					<SilentBuild command="$make -j8 -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="release">
+				<Option type="4" />
+				<Option compiler="gnu_gcc_compiler_for_android" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+				<MakeCommands>
+					<Build command="$make -j8 -f $makefile -r CONF=$target" />
+					<CompileFile command="$make -f -r CONF=$target $makefile $file" />
+					<Clean command="$make -f $makefile -r CONF=$target clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile -r CONF=$target rebuild" />
+					<SilentBuild command="$make -j8 -f $makefile -r CONF=$target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../include/libdefect/string.h" />
+		<Unit filename="../include/ydef.h" />
+		<Unit filename="../include/ystdex/algorithm.hpp" />
+		<Unit filename="../include/ystdex/any.h" />
+		<Unit filename="../include/ystdex/any_iterator.hpp" />
+		<Unit filename="../include/ystdex/cassert.h" />
+		<Unit filename="../include/ystdex/cast.hpp" />
+		<Unit filename="../include/ystdex/container.hpp" />
+		<Unit filename="../include/ystdex/cstdint.hpp" />
+		<Unit filename="../include/ystdex/cstdio.h" />
+		<Unit filename="../include/ystdex/cstring.h" />
+		<Unit filename="../include/ystdex/examiner.hpp" />
+		<Unit filename="../include/ystdex/functional.hpp" />
+		<Unit filename="../include/ystdex/iterator.hpp" />
+		<Unit filename="../include/ystdex/memory.hpp" />
+		<Unit filename="../include/ystdex/mixin.hpp" />
+		<Unit filename="../include/ystdex/operators.hpp" />
+		<Unit filename="../include/ystdex/path.hpp" />
+		<Unit filename="../include/ystdex/rational.hpp" />
+		<Unit filename="../include/ystdex/string.hpp" />
+		<Unit filename="../include/ystdex/tuple.hpp" />
+		<Unit filename="../include/ystdex/type_op.hpp" />
+		<Unit filename="../include/ystdex/utility.hpp" />
+		<Unit filename="../include/ystdex/variadic.hpp" />
+		<Unit filename="../include/ytest/timing.hpp" />
+		<Unit filename="../source/ystdex/any.cpp" />
+		<Unit filename="../source/ystdex/cassert.cpp" />
+		<Unit filename="../source/ystdex/cstdio.cpp" />
+		<Unit filename="../source/ystdex/cstring.cpp" />
+		<Unit filename="Makefile" />
+		<Extensions>
+			<DoxyBlocks>
+				<comment_style block="1" line="1" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
+			<code_completion />
+			<envvars set="default" />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

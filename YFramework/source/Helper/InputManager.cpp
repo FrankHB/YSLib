@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r363
+\version r374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-04-06 13:44 +0800
+	2014-04-10 11:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,11 +47,9 @@ InputManager::InputManager()
 #endif
 {}
 
-#if YCL_DS
-#	define YCL_KEY_Touch KeyCodes::Touch
+#if YCL_DS || YCL_Android
 #	define YCL_CURSOR_VALID
 #elif YCL_Win32
-#	define YCL_KEY_Touch VK_LBUTTON
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
 #else
 #	error "Unsupported platform found."
@@ -62,10 +60,12 @@ InputManager::DispatchInput(IWidget& wgt)
 	auto& st(GUI_state.get());
 	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
 		VisualEvent touch_evt){
-#if YCL_Win32
-		if(keyset[YCL_KEY_Touch] || keyset[VK_RBUTTON] || keyset[VK_MBUTTON])
+#if YCL_DS
+		if(keyset[KeyCodes::Touch])
+#elif YCL_Win32
+		if(keyset[VK_LBUTTON] || keyset[VK_RBUTTON] || keyset[VK_MBUTTON])
 #else
-		if(keyset[YCL_KEY_Touch])
+		if(true) // FIXME: Correction.
 #endif
 		{
 			YCL_CURSOR_VALID
@@ -113,7 +113,7 @@ InputManager::DispatchInput(IWidget& wgt)
 IWidget*
 InputManager::Update()
 {
-#if YCL_Win32
+#if YF_Hosted
 	const auto p_wnd(env.get().GetForegroundWindow());
 
 	if(!p_wnd)
@@ -129,7 +129,7 @@ InputManager::Update()
 	platform_ex::UpdateKeyStates();
 
 #if YCL_DS
-	if(platform_ex::FetchKeyState()[YCL_KEY_Touch])
+	if(platform_ex::FetchKeyState()[KeyCodes::Touch])
 #endif
 	{
 #if YCL_DS
@@ -159,7 +159,6 @@ InputManager::Update()
 	return {};
 }
 #undef YCL_CURSOR_VALID
-#undef YCL_KEY_Touch
 
 } // namespace Devices;
 

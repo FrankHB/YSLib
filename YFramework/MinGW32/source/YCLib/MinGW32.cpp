@@ -11,14 +11,14 @@
 /*!	\file MinGW32.cpp
 \ingroup YCLib
 \ingroup MinGW32
-\brief YCLib MinGW32 平台扩展公共头文件。
-\version r136
+\brief YCLib MinGW32 平台公共扩展。
+\version r139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-02-16 07:32 +0800
+	2014-04-09 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,10 +33,6 @@ using namespace YSLib;
 
 namespace platform_ex
 {
-
-Exception::Exception(const std::string& s, LevelType l) ynothrow
-	: LoggedEvent(s, l)
-{}
 
 namespace Windows
 {

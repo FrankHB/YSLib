@@ -11,13 +11,13 @@
 /*!	\file DSWindow.cpp
 \ingroup Helper
 \brief DS 宿主窗口。
-\version r121
+\version r123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:36:43 +0800
 \par 修改时间:
-	2014-03-26 23:37 +0800
+	2014-04-10 11:25 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -42,6 +42,7 @@ DSWindow::DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
 	Environment& e)
 	: Window(h, e), scr_up(s_up), scr_dn(s_dn)
 {
+#	if YCL_Win32
 	yunseq(
 	BoundsLimited = true,
 	MessageMap[WM_DESTROY] += []{
@@ -59,6 +60,7 @@ DSWindow::DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
 		scr_dn.UpdateToSurface(sf);
 	}
 	);
+#	endif
 }
 
 pair<Point, Point>

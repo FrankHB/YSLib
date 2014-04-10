@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r469
+\version r699
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2014-04-01 13:33 +0800
+	2014-04-10 12:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,7 @@ yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
 	Editing | Virtual // Delete is an editing key.
 };
 #elif YCL_Win32
+// See http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx .
 yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	None, // 0 is not assigned.
 	Editing | NonKeyboard, // VK_LBUTTON is a mouse key.
@@ -344,6 +345,233 @@ yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	None, // VK_PA1.
 	OEM | Function // VK_OEM_CLEAR.
 };
+#elif YCL_Android
+// See http://developer.android.com/reference/android/view/KeyEvent.html .
+yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
+	None, // KEYCODE_UNKNOWN.
+	Function, // KEYCODE_SOFT_LEFT.
+	Function, // KEYCODE_SOFT_RIGHT .
+	System, // KEYCODE_HOME is handled by the framework.
+	Navigation, // KEYCODE_BACK.
+	Function, // KEYCODE_CALL.
+	Function, // KEYCODE_ENDCALL.
+	Numeric, // 0 key.
+	Numeric,
+	Numeric,
+	Numeric,
+	Numeric,
+	Numeric,
+	Numeric,
+	Numeric,
+	Numeric,
+	Numeric, // 9 key.
+	Punctuation, // KEYCODE_STAR.
+	Punctuation, // KEYCODE_POUND.
+	Navigation | Keypad, // KEYCODE_DPAD_UP.
+	Navigation | Keypad, // KEYCODE_DPAD_DOWN.
+	Navigation | Keypad, // KEYCODE_DPAD_LEFT.
+	Navigation | Keypad, // KEYCODE_DPAD_RIGHT.
+	Navigation | Keypad, // KEYCODE_DPAD_CENTER.
+	Function, // KEYCODE_VOLUME_UP.
+	Function, // KEYCODE_VOLUME_DOWN.
+	System, // KEYCODE_POWER.
+	Function, // KEYCODE_CAMERA.
+	Editing, // KEYCODE_CLEAR.
+	Alphabetic, // A key.
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic,
+	Alphabetic, // Z key.
+	Punctuation, // KEYCODE_COMMA.
+	Punctuation, // KEYCODE_PERIOD.
+	Modifier | Menu, // KEYCODE_ALT_LEFT.
+	Modifier | Menu, // KEYCODE_ALT_RIGHT.
+	Modifier, // KEYCODE_SHIFT_LEFT.
+	Modifier, // KEYCODE_SHIFT_RIGHT.
+	Editing, // KEYCODE_TAB.
+	Editing, // KEYCODE_SPACE.
+	Modifier, // KEYCODE_SYM.
+	Function, // KEYCODE_EXPLORER.
+	Function, // KEYCODE_ENVELOPE.
+	Editing, // KEYCODE_ENTER.
+	Editing, // KEYCODE_DEL.
+	Punctuation, // KEYCODE_GRAVE.
+	Punctuation, // KEYCODE_MINUS.
+	Punctuation, // KEYCODE_EQUALS.
+	Punctuation, // KEYCODE_LEFT_BRACKET.
+	Punctuation, // KEYCODE_RIGHT_BRACKET.
+	Punctuation, // KEYCODE_BACKSLASH.
+	Punctuation, // KEYCODE_SEMICOLON.
+	Punctuation, // KEYCODE_APOSTROPHE.
+	Punctuation, // KEYCODE_SLASH.
+	Punctuation, // KEYCODE_AT.
+	Modifier, // KEYCODE_NUM.
+	NonKeyboard, // KEYCODE_HEADSETHOOK.
+	Function, // KEYCODE_FOCUS.
+	Punctuation, // KEYCODE_PLUS.
+	Function | Menu, // KEYCODE_MENU.
+	Function, // KEYCODE_NOTIFICATION.
+	Function, // KEYCODE_SEARCH.
+	Function, // KEYCODE_MEDIA_PLAY_PAUSE.
+	Function, // KEYCODE_MEDIA_STOP.
+	Function, // KEYCODE_MEDIA_NEXT.
+	Function, // KEYCODE_MEDIA_PREVIOUS.
+	Function, // KEYCODE_MEDIA_REWIND.
+	Function, // KEYCODE_MEDIA_FAST_FORWARD.
+	Function, // KEYCODE_MUTE.
+	Navigation, // KEYCODE_PAGE_UP.
+	Navigation, // KEYCODE_PAGE_DOWN.
+	Modifier, // KEYCODE_PICTSYMBOLS.
+	IME | Modifier, // KEYCODE_SWITCH_CHARSET.
+	Function | Keypad, // KEYCODE_BUTTON_A.
+	Function | Keypad, // KEYCODE_BUTTON_B.
+	Function | Keypad, // KEYCODE_BUTTON_C.
+	Function | Keypad, // KEYCODE_BUTTON_X.
+	Function | Keypad, // KEYCODE_BUTTON_Y.
+	Function | Keypad, // KEYCODE_BUTTON_Z.
+	Function | Keypad, // KEYCODE_BUTTON_L1.
+	Function | Keypad, // KEYCODE_BUTTON_R1.
+	Function | Keypad, // KEYCODE_BUTTON_L2.
+	Function | Keypad, // KEYCODE_BUTTON_R2.
+	Function | Keypad, // KEYCODE_BUTTON_THUMBL.
+	Function | Keypad, // KEYCODE_BUTTON_THUMBR.
+	Function | Keypad, // KEYCODE_BUTTON_START.
+	Function | Keypad, // KEYCODE_BUTTON_SELECT.
+	Function | Keypad, // KEYCODE_BUTTON_MODE.
+	Navigation, // KEYCODE_ESCAPE.
+	Editing, // KEYCODE_FORWARD_DEL.
+	Modifier, // KEYCODE_CTRL_LEFT.
+	Modifier, // KEYCODE_CTRL_RIGHT.
+	Lock, // KEYCODE_CAPS_LOCK.
+	Lock, // KEYCODE_SCROLL_LOCK.
+	Modifier, // KEYCODE_META_LEFT.
+	Modifier, // KEYCODE_META_RIGHT.
+	Function | Modifier, // KEYCODE_FUNCTION.
+	System, // KEYCODE_SYSRQ.
+	System, // KEYCODE_BREAK.
+	Navigation, // KEYCODE_MOVE_HOME.
+	Navigation, // KEYCODE_MOVE_END.
+	Editing, // Editing.
+	Navigation, // KEYCODE_FORWARD.
+	Function, // KEYCODE_MEDIA_PLAY.
+	Function, // KEYCODE_MEDIA_PAUSE.
+	Function, // KEYCODE_MEDIA_CLOSE.
+	Function, // KEYCODE_MEDIA_EJECT.
+	Function, // KEYCODE_MEDIA_RECORD.
+	Function, // KEYCODE_F1.
+	Function,
+	Function,
+	Function,
+	Function,
+	Function,
+	Function,
+	Function,
+	Function,
+	Function,
+	Function,
+	Function, // KEYCODE_F12.
+	Lock, // KEYCODE_NUM_LOCK.
+	Numeric | Keypad, // KEYCODE_NUMPAD_0.
+	Numeric | Keypad,
+	Numeric | Keypad,
+	Numeric | Keypad,
+	Numeric | Keypad,
+	Numeric | Keypad,
+	Numeric | Keypad,
+	Numeric | Keypad,
+	Numeric | Keypad,
+	Numeric | Keypad, // KEYCODE_NUMPAD_9.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_DIVIDE.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_MULTIPLY.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_SUBTRACT.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_ADD.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_DOT.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_COMMA.
+	Editing | Keypad, // KEYCODE_NUMPAD_ENTER.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_EQUALS.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_LEFT_PAREN.
+	Punctuation | Keypad, // KEYCODE_NUMPAD_RIGHT_PAREN.
+	Function, // KEYCODE_VOLUME_MUTE.
+	Function, // KEYCODE_INFO.
+	Function, // KEYCODE_CHANNEL_UP.
+	Function, // KEYCODE_CHANNEL_DOWN.
+	Function, // KEYCODE_ZOOM_IN.
+	Function, // KEYCODE_ZOOM_OUT.
+	Function, // KEYCODE_TV.
+	Function, // KEYCODE_WINDOW.
+	Function, // KEYCODE_GUIDE.
+	Function, // KEYCODE_DVR.
+	Function, // KEYCODE_BOOKMARK.
+	Function, // KEYCODE_CAPTIONS.
+	Function, // KEYCODE_SETTINGS.
+	System, // KEYCODE_TV_POWER.
+	Function, // KEYCODE_TV_INPUT.
+	System, // KEYCODE_STB_POWER.
+	Function, // KEYCODE_STB_INPUT.
+	System, // KEYCODE_AVR_POWER.
+	Function, // KEYCODE_AVR_INPUT.
+	Function, // KEYCODE_PROG_RED.
+	Function, // KEYCODE_PROG_GREEN.
+	Function, // KEYCODE_PROG_YELLOW.
+	Function, // KEYCODE_PROG_BLUE.
+	Function, // KEYCODE_APP_SWITCH.
+	Function | Keypad, // KEYCODE_BUTTON_1.
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad,
+	Function | Keypad, // KEYCODE_BUTTON_16.
+	IME, // KEYCODE_LANGUAGE_SWITCH.
+	Function, // KEYCODE_MANNER_MODE.
+	Function, // KEYCODE_3D_MODE.
+	Function, // KEYCODE_CONTACTS.
+	Function, // KEYCODE_CALENDAR.
+	Function, // KEYCODE_MUSIC.
+	Function, // KEYCODE_CALCULATOR.
+	IME, // KEYCODE_ZENKAKU_HANKAKU.
+	IME, // KEYCODE_EISU.
+	IME, // KEYCODE_MUHENKAN.
+	IME, // KEYCODE_HENKAN.
+	IME, // KEYCODE_KATAKANA_HIRAGANA.
+	Punctuation, // KEYCODE_YEN.
+	Punctuation, // KEYCODE_RO.
+	IME, // KEYCODE_KANA.
+	System, // KEYCODE_ASSIST is not delivered to applications.
+	Function, // KEYCODE_BRIGHTNESS_DOWN.
+	Function, // KEYCODE_BRIGHTNESS_UP.
+	Function // KEYCODE_MEDIA_AUDIO_TRACK.
+};
 #else
 #	error "Unsupported platform found."
 #endif
@@ -422,7 +650,7 @@ bool caps_lock;
 bool
 FetchLockState(KeyIndex code) ynothrow
 {
-#if YCL_DS
+#if YCL_DS || YCL_Android
 	return code == CapsLock ? caps_lock : false;
 #elif YCL_Win32
 	return (::GetKeyState(code) & 0x0001) != 0;
@@ -432,7 +660,7 @@ FetchLockState(KeyIndex code) ynothrow
 void
 ToggleLockState(KeyIndex code) ynothrow
 {
-#if YCL_DS
+#if YCL_DS || YCL_Android
 	if(code == CapsLock)
 		caps_lock = !caps_lock;
 #elif YCL_Win32

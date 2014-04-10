@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r380
+\version r381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2013-03-20 13:02 +0800
+	2013-04-06 17:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace UI
 ProgressBar::ProgressBar(const Rect& r, ValueType m)
 	: Control(r), GMRange<float>(m == 0 ? 1 : m, 0)
 {
-	const auto invalidator([this](UIEventArgs&&){
+	const auto invalidator([this]{
 		Invalidate(*this);
 	});
 	auto& pal(FetchGUIState().Colors);

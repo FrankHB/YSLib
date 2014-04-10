@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r7024
+\version r7168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-04-06 14:01 +0800
+	2014-04-10 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,122 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ DLP "toolchain and library using" @ "platform %DS" $=
+	(
+		^ $re_ex(b321) "updated devkitARM release 42" ~ "devkitARM release 41",
+		^ $re_ex(b308) "updated libnds 1.5.8" ~ "libnds 1.5.7",
+		^ $re_ex(b308) "updated default arm7 0.5.25" ~ "default arm7 0.5.24",
+		^ $re_ex(b308) "updated libfat 1.0.12" ~ "libfat 1.0.11"
+	),
+	/ $dev $build "only use 'thread_local' with also defined(_MT)"
+		@ "macro %ythread" @ %YDefinition,
+	- $dev $build "all workaround for G++ whose version less than 4.8.2",
+	- DLD "all redundant unused parameter for expanded caller"
+		@ "parameter list of lambda expressions",
+	/ %'YFrameowork' $=
+	(
+		/ %YSLib $=
+		(
+			/ DLD "reordered %IImage at last" @ "base classes list"
+				@ "class %BasicImage" @ %YGDI,
+			- DLD "redundant 'break' after %std::exit call"
+				@ "%Shell::DefShlProc" @ %Core.YShell
+		),
+		/ %YCLib $=
+		(
+			(
+			/ %Platform $=
+			(
+				+ "macro %YF_Platform_Android_ARM";
+				+ "Android platform detection",
+					// Currently all Android platforms are treated as ARM.
+				+ "macro %(YCL_Android, YCL_API_FILESYSTEM_POSIX)"
+					@ "defined %YF_Platform_Android_ARM"
+			),
+			$dep_from "platform %Android";
+			/ @ "no-error compilation supported" @ "headers"
+				@ "platform %Android" $=
+			(
+				/ "allowed %YCL_Android as valid target platform category",
+				+ 'yconstexpr KeyIndex KeyBitsetWidth(256);' @ %Keys,
+				+ "combined with %YCL_Win32" @ %Video
+				/ "conditional directives" @ %Video,
+				+ "native APIs implementation for %YCL_Android"
+					@ %(Timer, MemoryMapping, FileSystem),
+			),
+			+ "common key and key category support" @ "platform %Android"
+				@ %Keys
+			),
+			/ @ %Helper $=
+			(
+				$dep_from %YCLib_(Android).Android;
+				+ "platform %Android support" @ %ScreenBuffer;
+				* "missing use of YFM_*" %(HostWindow, YGlobal, ScreenBuffer,
+					GUIApplication) $since b461,
+				+ "namespace %YSLib::Android" @ "platform %Android" @ %YGlobal,
+				/ "base class" @ "class %Window" -> "%platform::HostWindow"
+					~ "%MinGW32::HostWindow",
+				+ "platform %Android support"
+			),
+			/ "class %WindowReference" @ %YCL_(MinGW32).Win32GUI $=
+			(
+				* "wrongly defaulted move constructor" $since b430,
+				+ "defaulted copy constructor"
+			),
+			(
+				+ %Host;
+				/ "class %platform_Exception" @ %YCLib_(MinGW32).MinGW32
+					>> %YCLib_(Host).Host
+			),
+			/ DLD "decoupled lock implementation" @ "functions 'Fetch*'"
+				@ %Input
+		),
+		(
+		$dep_from %YCLib.Platform;
+		+ %YCLib_(Android)
+			$= (+ %Android)
+		),
+		* DLD "missing explicit return type" @ "lambda expression"
+			@ "implementation" @ "%NPL::TransformNPLA1" @ %NPL $since b344
+	),
+	/ $dev @ "macros list" @ %Tools.PredefinedMacroDetector $=
+	(
+		+ "macros %(__GCC_IEC_559, __GCC_IEC_COMPLEX)",
+			// See http://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#Common-Predefined-Macros .
+		+ "Clang++ support" 
+			// See http://clang.llvm.org/docs/LanguageExtensions.html .
+	),
+	/ $dev @ "Visual C++ projects" $=
+	(
+		/ "predefined macros" $=
+		(
+			/ "updated definitions",
+			* "optimization options" @ "non-debug configurations" $since b
+		),
+		+ $dev "relative header searching paths" @ "platform %DS"
+	),
+	+ "platform %Android" $=
+	(
+		+ "toolchain package script 'make-clang-android.sh'" @ %Tools,
+		+ "project %YBase_Android",
+		/ "supported for bionic libc" @ %YBase.LibDefect.String,
+			// Without support of %std::(wcstoll, wcstoull, wcstof, wcstold, \
+				stof, stod, stold).
+		+ "project %YFramework_Android"
+	),
+	+ $repo 'Tools/*.tar.*' @ "ignored items" @ '.hgignore',
+	* "wrong build target types for configurations %release"
+		@ "Code::Blocks projects" $since b217,
+	/ $dev $build "makefiles" $=
+	(
+		* "invalid %VPATH setting" @ "empty %DATA" @ "platform %DS" $since b473,
+		/ $build "limited makefiles parallel number as 8"
+			// Mainly to prevent some memory overhead.
+	)
+),
+
+b491
 (
 	/ %YFramework $=
 	(
@@ -1742,7 +1858,7 @@ b462
 		/ %YModules $=
 		(
 			* "wrong macro for text interface of %Service" $since b461,
-			* "wrong file name of %YFM_YSLib_Core_YFunc" @ $since b461
+			* "wrong file name" @ "%YFM_YSLib_Core_YFunc" $since b461
 		);
 		+ %(CHRLib, YCLib.YSLib.Adaptor, YSLib.Core, YSLib.Service, YSLib.UI,
 			NPL, Helper).YModules;
@@ -1754,8 +1870,8 @@ b462
 	),
 	^ $dev "macros %'YFM_*'" @ %YReader,
 	/ DLP "updated library %freetype" @ "library using"
-		$= (^ "updated FreeType 2.5.1 with several files remained from \
-			FreeType 2.4.11" ~ "FreeType 2.5.0.1")
+		$= (^ $re_ex(b459) "updated freetype 2.5.1 with several files remained \
+			from freetype 2.4.11" ~ "freetype 2.5.0.1")
 		// See [Documentation::Designation @@5.4.1.3].
 ),
 
@@ -1932,8 +2048,8 @@ b459
 	/ DLP "updated library %freetype" @ "library using" $=
 	(
 		/ "made use of common makefile to be actual used by platform %MinGW32";
-		^ "updated FreeType 2.5.1 with several files remained from FreeType \
-			2.4.11" ~ "FreeType 2.5.0.1"
+		^ $re_ex(b420) "updated freetype 2.5.1 with several files remained \
+			from freetype 2.4.11" ~ "freetype 2.5.0.1"
 			// See [Documentation::Designation @@5.4.1.3] .
 	)
 ),
@@ -2532,13 +2648,23 @@ b453
 			)
 		)
 	),
-	/ @ "recompiled library %FreeImage" $=
+	/ $dev $build @ "platform %MinGW32" $=
 	(
-		^ "libpng-1.6.6 with standard configuration header file \
-			%Source/LibPNG/pnglibconf.h" ~ "libpng-1.6.3",
-		* $dev "slash of 'Source/LibJPEG/simd' file list which would cause \
-			object file of assembly source not be cleaned by 'make clean' call"
-			$since b431
+		^ DLP $re_ex(b411) "MinGW[gcc version 4.8.2 (Built by MinGW-W64 \
+			project)] i686-4.8.2-release-posix-dwarf-rt_v3-rev0"
+			~ "MinGW[gcc version 4.8.1 (Built by MinGW-builds project)] \
+			x32-4.8.1-release-posix-sjlj-rev0 [release-sjlj]";
+			@ "platform %MinGW32",
+				// Unchanged: Target=i686-w64-mingw32, Thread model: posix. \
+					Changed exceptions implementation: Dwarf2.
+		/ @ "recompiled library %FreeImage" $=
+		(
+			^ "libpng-1.6.6 with standard configuration header file \
+				%Source/LibPNG/pnglibconf.h" ~ "libpng-1.6.3",
+			* $dev "slash of 'Source/LibJPEG/simd' file list which would cause \
+				object file of assembly source not be cleaned by 'make clean' \
+				call" $since b431
+		)
 	)
 ),
 
@@ -4731,7 +4857,7 @@ b420
 		- "module configuration ('HINTING_MODULES += autofit',
 			'AUX_MODULES += cache', 'BASE_EXTENSIONS += ftfstype.c',
 			'BASE_EXTENSIONS += ftstroke.c', 'BASE_EXTENSIONS += ftsynth.c');
-		^ "updated FreeType 2.5.0.1 with several files remained"
+		^ $re_ex(b366) "updated FreeType 2.5.0.1 with several files remained"
 			~ "FreeType 2.4.11"
 			// See [Documentation::Designation @@5.4.1.3] .
 	)
@@ -5181,13 +5307,14 @@ b411
 (
 	/ $dev $build @ "platform %MinGW32" $=
 	(
-		^ DLP "MinGW[gcc version 4.8.1 (Built by MinGW-builds project)] \
-			x32-4.8.1-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.8.0 \
-			(Built by MinGW-builds project)] x32-4.8.0-release-posix-sjlj-rev0 \
-			[release-sjlj]" @ "platform %MinGW32",
+		^ DLP $re_ex(b392) "MinGW[gcc version 4.8.1 (Built by MinGW-builds \
+			project)] x32-4.8.1-release-posix-sjlj-rev0" ~ "MinGW[gcc version \
+			4.8.0 (Built by MinGW-builds project)] \
+			x32-4.8.0-release-posix-sjlj-rev0 [release-sjlj]"
+			@ "platform %MinGW32",
 				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 					Exceptions implementation: SjLj.
-		/ $dev $build "compiler flag" "'-Og'" -> '-O' @ "debug configurations"
+		/ "compiler flag" "'-Og'" -> '-O' @ "debug configurations"
 			// $revert(b392) Code::Blocks can't debugging with '-Og' well.
 	),
 	/ %YFramework $=

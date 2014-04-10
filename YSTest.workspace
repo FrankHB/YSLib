@@ -4,6 +4,7 @@
 		<Project filename="YBase/YBase.cbp" />
 		<Project filename="YBase/DS/YBase_DS.cbp" />
 		<Project filename="YBase/MinGW32/YBase_MinGW32.cbp" />
+		<Project filename="YBase/Android/YBase_Android.cbp" />
 		<Project filename="YFramework/YFramework.cbp">
 			<Depends filename="YBase/YBase.cbp" />
 		</Project>
@@ -13,6 +14,7 @@
 		<Project filename="YFramework/MinGW32/YFramework_MinGW32.cbp">
 			<Depends filename="YBase/MinGW32/YBase_MinGW32.cbp" />
 		</Project>
+		<Project filename="YFramework/Android/YFramework_Android.cbp" />
 		<Project filename="YSTest_ARM7/YSTest_ARM7.cbp" />
 		<Project filename="YSTest_ARM9/YSTest_ARM9.cbp">
 			<Depends filename="YBase/DS/YBase_DS.cbp" />

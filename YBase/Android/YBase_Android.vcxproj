@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug|ARM">
+      <Configuration>debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="release|ARM">
+      <Configuration>release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C713494C-E435-4D29-B3B6-DFECD22EBAEC}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <ProjectName>YBase_Android</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" Label="Configuration">
+    <PlatformToolset>v110</PlatformToolset>
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'" Label="Configuration">
+    <PlatformToolset>v110</PlatformToolset>
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">
+    <NMakePreprocessorDefinitions>__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__STRICT_ANSI__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__NO_INLINE__;__GNUC_GNU_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__INTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__SIZE_MAX__;__INTMAX_MAX__;__WCHAR_MIN__;__INT64_C;__UINT64_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_EXPERIMENTAL_CXX0X__;__GXX_WEAK__;__TIMESTAMP__;__has_feature;__has_extension;__has_attribute;__has_include;__has_include_next;__has_warning;__clang__;__clang_major__;__clang_minor__;__clang_patchlevel__;__clang_version__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.7.1\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <IncludePath>$(Project)..\..\YBase\include;$(ProjectDir)..\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath>
+    </ReferencePath>
+    <NMakeBuildCommandLine>make -j -r CONF=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make -j -r CONF=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make -j -r CONF=$(Configuration) clean</NMakeCleanCommandLine>
+    <LibraryPath />
+    <SourcePath />
+    <OutDir>$(SolutionDir)build\Android\YBase\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\Android\YBase\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'">
+    <NMakePreprocessorDefinitions>NDEBUG;__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__STRICT_ANSI__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__OPTIMIZE__;__GNUC_GNU_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__INTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__SIZE_MAX__;__INTMAX_MAX__;__WCHAR_MIN__;__INT64_C;__UINT64_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_EXPERIMENTAL_CXX0X__;__GXX_WEAK__;__TIMESTAMP__;__has_feature;__has_extension;__has_attribute;__has_include;__has_include_next;__has_warning;__clang__;__clang_major__;__clang_minor__;__clang_patchlevel__;__clang_version__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <NMakeBuildCommandLine>make -j -r CONF=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>make -j -r CONF=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>make -j -r CONF=$(Configuration) clean</NMakeCleanCommandLine>
+    <IncludePath>$(Project)..\..\YBase\include;$(ProjectDir)..\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath>
+    </ReferencePath>
+    <LibraryPath />
+    <SourcePath />
+    <OutDir>$(SolutionDir)build\Android\YBase\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\Android\YBase\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">
+    <BuildLog>
+      <Path>$(SolutionDir)build\Android\YBase\$(Configuration)\$(MSBuildProjectName).log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'">
+    <BuildLog>
+      <Path>$(SolutionDir)build\Android\YBase\$(Configuration)\$(MSBuildProjectName).log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

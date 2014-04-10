@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1902
+\version r1912
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2013-12-23 00:20 +0800
+	2014-04-09 18:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,9 @@
 #include "../YCLib/YModules.h"
 #include YFM_YCLib_YCommon
 #if YCL_Win32
-#	include "YCLib/MinGW32.h"
+#	include YFM_MinGW32_YCLib_MinGW32
+#elif YCL_Android
+#	include YFM_Android_YCLib_Android
 #endif
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Core_YMessageDefinition
@@ -105,6 +107,14 @@ namespace MinGW32
 using namespace platform_ex;
 
 } // namespace MinGW32;
+#elif YCL_Android
+//! \since build 492
+namespace Android
+{
+
+using namespace platform_ex;
+
+}
 #endif
 
 //! \since build 388

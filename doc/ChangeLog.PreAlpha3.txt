@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4770
+\version r4796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-02-27 13:00 +0800
+	2014-04-06 16:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,10 +341,11 @@ b392
 	),
 	/ $dev $build @ "platform %MinGW32" $=
 	(
-		^ DLP "MinGW[gcc version 4.8.0 (Built by MinGW-builds project)] \
-			x32-4.8.0-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.7.2 \
-			(Built by MinGW-builds project)] x32-4.7.2-release-posix-sjlj-rev0 \
-			[release-sjlj]" @ "platform %MinGW32",
+		^ DLP $re_ex(b346)"MinGW[gcc version 4.8.0 (Built by MinGW-builds \
+			project)] x32-4.8.0-release-posix-sjlj-rev0" ~ "MinGW[gcc version \
+			4.7.2 (Built by MinGW-builds project)] \
+			x32-4.7.2-release-posix-sjlj-rev0 [release-sjlj]"
+			@ "platform %MinGW32",
 				// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 					Exceptions implementation: SjLj.
 		/ $dev $build "compiler flag" ("'-O'" -> '-Og' @ "debug configurations",
@@ -1249,7 +1250,8 @@ b366
 	* $doc "typo" @ "param names" @ "Doxygen command" @ "function template \
 		%stable_range_unique" @ %YBase.YStandardEx.Algorithm $since b265,
 	/ DLP "library using"
-		$= (^ "updated library freetype 2.4.11" ~ "modified freetype 2.4.10"),
+		$= (^ $re_ex(b318) "updated library freetype 2.4.11"
+			~ "modified freetype 2.4.10"),
 	+ 'using ystdex::size_t' @ "namespace %timing" @ %YTest.Timing
 ),
 
@@ -1998,10 +2000,10 @@ b347
 
 b346
 (
-	^ DLP "MinGW[gcc version 4.7.2 (Built by MinGW-builds project)] \
-		x32-4.7.2-release-posix-sjlj-rev0" ~ "MinGW[gcc version 4.7.1 \
-		(Built by MinGW-builds project)] i686-mingw32-gcc-4.7.1 [release-sjlj]"
-		@ "platform %MinGW32",
+	^ DLP $re_ex(b319) "MinGW[gcc version 4.7.2 (Built by MinGW-builds \
+		project)] x32-4.7.2-release-posix-sjlj-rev0" ~ "MinGW[gcc version \
+		4.7.1 (Built by MinGW-builds project)] i686-mingw32-gcc-4.7.1 \
+		[release-sjlj]" @ "platform %MinGW32",
 			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 				Exceptions implementation: SjLj.
 	/ %YFramework.YSLib.UI.GUI $=
@@ -2824,8 +2826,9 @@ b321
 	+ $doc "comments about reentrancy and thread-safety"
 		@ "project %(YBase, YFramework)",
 	/ DLD "macro names" @ %YBase.YStandardEx.Operators,
-	/ DLP "library using" @ "platform %DS"
-		$= (^ "updated devkitARM release 41" ~ "devkitARM release 40"),
+	/ DLP "toolchain and library using" @ "platform %DS"
+		$= (^ $re_ex(b308) "updated devkitARM release 41"
+			~ "devkitARM release 40"),
 	/ DLP "all -std=c++0x" -> "-std=c++11" @ "platform %MinGW32"
 		@ "Code::Blocks project configuration";
 	/ %YFramework $=
@@ -2889,7 +2892,7 @@ b320
 
 b319
 (
-	^ "MinGW[gcc version 4.7.1 (Built by MinGW-builds project)] \
+	^ $re_ex(b299) "MinGW[gcc version 4.7.1 (Built by MinGW-builds project)] \
 		i686-mingw32-gcc-4.7.1 [release-sjlj]" ~ "i686-mingw32-gcc-4.7.0"
 		@ "platform %MinGW32",
 			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
@@ -3006,7 +3009,8 @@ b318
 		)
 	)
 	/ DLP "library using"
-		$= (^ "updated library freetype 2.4.10" ~ "modified freetype 2.4.9"),
+		$= (^ $re_ex(b292) "updated library freetype 2.4.10"
+			~ "modified freetype 2.4.9"),
 	^ DLB "parallel command line option '-j'"
 		@ "all Visual C++ projects makefile command lines",
 	/ %YReader.'shells test example' $=
@@ -3275,10 +3279,10 @@ b309
 
 b308
 (
-	/ DLP "library using" @ "platform %DS" $=
+	/ DLP "toolchain and library using" @ "platform %DS" $=
 	(
-		^ "updated devkitARM release 40" ~ "devkitARM release 39",
-		^ "updated libfat 1.0.10" ~ "libnds 1.0.11"
+		^ $re_ex(b306) "updated devkitARM release 40" ~ "devkitARM release 39",
+		^ $re_ex(b252) "updated libfat 1.0.11" ~ "libnds 1.0.10"
 	),
 	/ $dev $lib %YBase
 		$= (+ "library %LibDefect"
@@ -3321,9 +3325,9 @@ b307
 
 b306
 (
-	/ DLP "library using" @ "platform %DS" $=
+	/ DLP "toolchain and library using" @ "platform %DS" $=
 	(
-		^ "updated devkitARM release 39" ~ "devkitARM release 38",
+		^ $re_ex(b300) "updated devkitARM release 39" ~ "devkitARM release 38",
 		^ "updated libnds 1.5.7" ~ "libnds 1.5.5"
 	),
 	/ "class %ShlReader" @ %YReader.'text reader' $=
@@ -3593,11 +3597,11 @@ b300
 	- "deprecated file %GBKEX.cpp";
 	/ $doc "directory %doc moved to top directory",
 	- $doc @ "Code::Blocks project file",
-	/ DLP "library using" @ "platform %DS" $=
+	/ DLP "toolchain and library using" @ "platform %DS" $=
 	(
-		^ "updated devkitARM release 38" ~ "devkitARM release 37",
-		^ "updated libnds 1.5.5 with default arm7 0.5.24"
-			~ "libnds 1.5.4 with default arm7 0.5.23"
+		^ $re_ex(b291) "updated devkitARM release 38" ~ "devkitARM release 37",
+		^ "updated libnds 1.5.5" ~ "libnds 1.5.4",
+		^ $re_ex(b236) "updated default arm7 0.5.24" ~ "default arm7 0.5.23"
 	)
 );
 

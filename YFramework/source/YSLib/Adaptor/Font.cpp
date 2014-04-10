@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3370
+\version r3377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-03-27 01:31 +0800
+	2014-04-06 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,13 +208,11 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 
 #define SBIT_CHECK_CHAR(d) (temp = ::FT_Char(d), temp == d)
 #define SBIT_CHECK_BYTE(d) (temp = ::FT_Byte(d), temp == d)
-		if(SBIT_CHECK_BYTE(bitmap.rows) &&
-			SBIT_CHECK_BYTE(bitmap.width) &&
-			SBIT_CHECK_CHAR(bitmap.pitch) &&
-			SBIT_CHECK_CHAR(slot->bitmap_left) &&
-			SBIT_CHECK_CHAR(slot->bitmap_top) &&
-			SBIT_CHECK_CHAR(xadvance) &&
-			SBIT_CHECK_CHAR(yadvance))
+		if(SBIT_CHECK_BYTE(bitmap.rows) && SBIT_CHECK_BYTE(bitmap.width)
+			&& SBIT_CHECK_CHAR(bitmap.pitch)
+			&& SBIT_CHECK_CHAR(slot->bitmap_left)
+			&& SBIT_CHECK_CHAR(slot->bitmap_top) && SBIT_CHECK_CHAR(xadvance)
+			&& SBIT_CHECK_CHAR(yadvance))
 		{
 			sbit = {::FT_Byte(bitmap.width), ::FT_Byte(bitmap.rows),
 				::FT_Char(slot->bitmap_left), ::FT_Char(slot->bitmap_top),

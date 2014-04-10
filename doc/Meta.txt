@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r989
+\version r1013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-02-15 22:01 +0800
+	2014-04-06 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,6 +93,7 @@ $term; // for terminology;
 // Project management:
 $depr_clean; // for deprecated contents cleanup,
 $re($rev_list); // for repeated operations,
+$re_ex($rev_list); // for repeated operations with evolution(update),
 $revert($rev_list); // for actions reverting changes in previous revision(s), \
 	with all explicit modification and effection restored to the original state.
 $revert_ex($rev_list); // same for $revert except for the modification not \
@@ -136,8 +137,8 @@ DLB $dev $lib $build;
 // Identifier '$non_env_fix' indicates that the issue was resolved by \
 	modifying project files as non-workaround rather fixing the known problem \
 	of environment.
-// Identifier '$no(*)' indicate the ordinal number of issue tracking system. The \
-	first issue is reserved as 'META'.
+// Identifiers '$no(*)' indicate the ordinal number of issue tracking system. \
+	The first issue is reserved as 'META'.
 
 
 $KNOWN_ISSUE:
@@ -184,11 +185,6 @@ $no(15) $deferred
 		http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54118 .
 	// Release configuration using '-flto=jobserver' would obviously enlarge \
 		the size of execution file.
-$no(21) $open
-* $known_issue(b427) "G++ 4.7.1 of devkitPro would crash(ICE: segfault) when \
-	compiling copy constructor of %YSLib::Drawing::BasicImage after put the \
-	interface %IImage at the end of base class list";
-	// OK for MinGW G++ 4.8.1.
 $no(22) $deferred
 * $known_issue(b440) "no clean way to split constexpr with const for member \
 	functions";
@@ -212,13 +208,6 @@ $no(10)
 * $known_issue(b350) $workaround(b350) "Clang++ always complains about wrong \
 	format when format attribute used on a function template";
 	// Use attribute only for explicit instantiation of 'char' as workaround.
-$no(16)
-* $workaround(b353) "G++ 4.7.1 wrongly treats some special function as \
-	implicitly deleted";
-	// This issue is a compiler bug. It is fixed in G++ 4.7.2.
-	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54506 for details.
-	// Since devkitPro is still remained with G++ 4.7.1 @ b353, so explicitly \
-		defaulted functions are used at several contexts as the workaround.
 $no(8)
 * $known_issue(b298) $orig_defect $workaround(b377)
 	"sorry, unimplemented: use of 'type_pack_expansion' \
@@ -270,7 +259,7 @@ $no(19)
 
 
 $RESOLVED_ENVIRONMENT_ISSUE:
-// Issues only for recursive analysis and testing if necessary.
+// Issues only for regressions and testing if necessary.
 // Ordered by resolved reversion and then known revision.
 $no(5)
 * $resolved(b293) "G++ 4.5.2 fails on compiling code with defaulted move \
@@ -298,6 +287,21 @@ $no(13)
 		code in "ygdibase.h" which concerned with static_cast of private bases \
 		in class scope and accepted by G++ 4.8.0 correctly.
 	// Clang++ 3.4 (trunk186265) tested fixed.
+$no(16)
+* $workaround(b353) $resolved(b492) "G++ 4.7.1 wrongly treats some special \
+	function as implicitly deleted" @ $interval([b353, b492));
+	// This issue is a compiler bug. It is fixed in G++ 4.7.2.
+	// See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54506 for details.
+	// Since devkitPro is still remained with G++ 4.7.1 @ b353, so explicitly \
+		defaulted functions are used at several contexts as the workaround.
+	// devkitPro G++ 4.8.2 tested fixed @ b492.
+$no(21)
+* $known_issue(b427) $resolved(b492) "G++ 4.7.1 of devkitPro would crash(ICE: \
+	segfault) when compiling copy constructor of %YSLib::Drawing::BasicImage \
+	after put the interface %IImage at the end of base class list"
+	@ $interval([b427, b492));
+	// OK for MinGW G++ 4.8.1.
+	// devkitPro G++ 4.8.2 tested fixed @ b492.
 
 
 $RESOLVED_BUG:

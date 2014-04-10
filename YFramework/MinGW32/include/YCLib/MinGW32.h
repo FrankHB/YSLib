@@ -11,14 +11,14 @@
 /*!	\file MinGW32.h
 \ingroup YCLib
 \ingroup MinGW32
-\brief YCLib MinGW32 平台扩展公共头文件。
-\version r237
+\brief YCLib MinGW32 平台公共扩展。
+\version r254
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-02-16 07:16 +0800
+	2014-04-09 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,11 +30,7 @@
 #define YCL_MinGW32_INC_MinGW32_h_ 1
 
 #include "YCLib/YModules.h"
-#include "YSLib/Core/YModules.h"
-#include YFM_YCLib_YCommon
-#include YFM_YCLib_NativeAPI
-#include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
-
+#include YFM_YCLib_Host
 #if !YCL_MinGW32
 #	error "This file is only for MinGW32."
 #endif
@@ -48,19 +44,6 @@
 
 namespace platform_ex
 {
-
-/*!
-\ingroup exception_types
-\brief 宿主异常。
-\since build 426
-*/
-class YF_API Exception : public YSLib::LoggedEvent
-{
-public:
-	//! \since build 432
-	Exception(const std::string& = "unknown host exception",
-		LevelType = {}) ynothrow;
-};
 
 /*!
 \brief Windows 平台扩展接口。

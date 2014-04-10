@@ -11,13 +11,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3507
+\version r3508
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2014-03-02 13:00 +0800
+	2014-04-07 18:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,7 @@ YF_API bool
 AllowSleep(bool);
 
 #elif YCL_Win32
-
+#elif YCL_Android
 #else
 #	error "Unsupported platform found."
 #endif

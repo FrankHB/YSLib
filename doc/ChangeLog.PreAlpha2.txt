@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3432
+\version r3460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-02-14 22:24 +0800
+	2014-04-06 16:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -575,7 +575,8 @@ b292
 		+ "automatic scrolling duration settings"
 	),
 	/ DLP "library using"
-		$= (^ "updated library freetype 2.4.9" ~ "modified freetype 2.4.8")
+		$= (^ $re_ex(b266) "updated library freetype 2.4.9"
+			~ "modified freetype 2.4.8")
 ),
 
 b291
@@ -607,8 +608,9 @@ b291
 			^ "high resolution counter" ~ "milliseconds" @ "class %Timer"
 		)
 	),
-	/ DLP "library using"
-		$= (^ "updated devkitARM release 37" ~ "devkitARM release 35"),
+	/ DLP "toolchain and library using"
+		$= (^ $re_ex(b252) "updated devkitARM release 37"
+			~ "devkitARM release 35"),
 	/ %YReader $=
 	(
 		/ "more accurate FPS counter" @ %'shells test example',
@@ -1543,7 +1545,8 @@ b267
 b266
 (
 	/ DLP "library using"
-		$=(^ "updated modified freetype 2.4.8" ~ "modified freetype 2.4.5"),
+		$=(^ $re_ex(b224) "updated modified freetype 2.4.8"
+			~ "modified freetype 2.4.5"),
 	/ %YFramework.YSLib $=
 	(
 		/ %UI.GUI $=
@@ -1779,8 +1782,8 @@ b252
 	+ DLD "nested-use support" @ "implementation" @ "macro %yunsequenced",
 	/ DLP "libraries using" $=
 	(
-		^ "updated devkitARM release 35" ~ "devkitARM release 34",
-		^ "updated libfat 1.0.10" ~ "libfat 1.0.9"
+		^ $re_ex(b223) "updated devkitARM release 35" ~ "devkitARM release 34",
+		^ $re_ex(b192) "updated libfat 1.0.10" ~ "libfat 1.0.9"
 	),
 	* "implementation" @ "installation checking" $since b245
 ),
@@ -2114,8 +2117,11 @@ b237
 
 b236
 (
-	^ "updated libnds 1.5.4 with default arm7 0.5.23"
-		~ "libnds 1.5.1 with default arm7 0.5.21",
+	/ DLP "library using" $=
+	(
+		^ $re_ex(b223) "updated libnds 1.5.4" ~ "libnds 1.5.1",
+		^ $re_ex(b223) "updated default arm7 0.5.23" ~ "default arm7 0.5.21"
+	),
 	/ %YFramework.YSLib.UI.GUI $=
 	(
 		+ "controllers",
@@ -2382,8 +2388,9 @@ b225
 
 b224
 (
-	* "wrong ascending when switching font size" $since b224
-		$= (^ "freetype 2.4.4 cache system" ~ "freetype 2.4.5 cache system"),
+	* "wrong ascending when switching font size" $since b223
+		$= (^ $revert_ex(b223) "freetype 2.4.4 cache system"
+			~ "freetype 2.4.5 cache system"),
 		// It seems a new bug in freetype 2.4.5 cache system.
 	+ "containing test" @ "class %Rect",
 	+ DLP "WinGDB settings" @ "main project file",
@@ -2408,16 +2415,18 @@ b223
 	* "declaration of function %GetStemFrom" @ "header %yfilesys.h" $since b161,
 	/ DLP "updated library freetype" @ "library using" $=
 	(
-		^ "updated freetype 2.4.5" ~ "freetype 2.4.4",
+		^ $re_ex(b185) "updated freetype 2.4.5" ~ "freetype 2.4.4",
 		+ "exact bounding box calculation",
 		+ "path stroker",
 		+ "support for synthetic emboldening and slanting of fonts",
 		- "obsolete header %/freetype/internal/pcftypes.h" $since b185
 	),
-	^ "updated libnds 1.5.1 with default arm7 0.5.21"
-		~ "libnds 1.5.0 with default arm 7 0.5.20",
-	/ DLP "library using"
-		$=(^ "updated devkitARM release 34" ~ "devkitARM release 33")
+	/ DLP "toolchain and library using" $=
+	(
+		^ $re_ex(b221) "updated devkitARM release 34" ~ "devkitARM release 33",
+		^ $re_ex(b221) "updated libnds 1.5.1" ~ "libnds 1.5.0",
+		^ $re_ex(b221) "updated default arm7 0.5.21" ~ "default arm7 0.5.20"
+	)
 ),
 
 b222
@@ -2457,11 +2466,10 @@ b221
 		/ "simplified key-to-touch event mapping implementation"
 			@ "class %Control"
 	),
-	/ DLP "library using" $=
+	/ DLP "toolchain and library using" $=
 	(
-		^ "updated devkitARM release 33" ~ "devkitARM release 32",
-		^ "updated libnds 1.5.0 with default arm7 0.5.20"
-			~ "libnds 1.4.8 with default arm 7 0.5.17"
+		^ $re_ex(b192) "updated devkitARM release 33" ~ "devkitARM release 32",
+		^ $re_ex(b192) "updated libnds 1.5.0" ~ "libnds 1.4.8"
 	),
 	/ DLP "header search path of VS2010 projects",
 	/ "event map interfaces" $=

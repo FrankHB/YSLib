@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r200
+\version r204
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2013-10-13 18:03 +0800
+	2014-04-06 17:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,10 +96,10 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 	btnRemove.Text = u"-",
 	FetchEvent<KeyDown>(lbPosition) += stop_routing_after_direct,
 	FetchEvent<KeyHeld>(lbPosition) += stop_routing_after_direct,
-	FetchEvent<Click>(btnOK) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnOK) += [this]{
 		bookmarks = ConvertToBookmarkList(lbPosition.GetList());
 	},
-	FetchEvent<Click>(btnAdd) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnAdd) += [this]{
 		auto& lst(lbPosition.GetListRef());
 		auto idx(GetSelected());
 
@@ -110,7 +110,7 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 		lbPosition.AdjustViewForContent();
 		lbPosition.UpdateView();
 	},
-	FetchEvent<Click>(btnRemove) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnRemove) += [this]{
 		auto& lst(lbPosition.GetListRef());
 		const auto idx(GetSelected());
 

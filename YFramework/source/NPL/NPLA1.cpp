@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r104
+\version r105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2014-02-02 18:13 +0800
+	2014-04-07 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,7 @@ TransformNPLA1(const ValueNode& node)
 	if(s == 1)
 		return TransformNPLA1(*i);
 
-	const auto& new_name([&]{
+	const auto& new_name([&]()->string{
 		try
 		{
 			const auto& str(Access<string>(*i));

@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3692
+\version r3694
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-02-16 20:14 +0800
+	2014-04-06 17:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,8 +164,8 @@ ClipMargin(PaintContext&, const Padding&, const Size&);
 \brief 使用 Graphics 定义的基本图像。
 \since build 406
 */
-class YF_API BasicImage : implements IImage,
-	protected Graphics
+class YF_API BasicImage : protected Graphics,
+	implements IImage
 {
 public:
 	DefDeCtor(BasicImage)

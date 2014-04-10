@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r290
+\version r296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-01-19 17:57 +0800
+	2014-04-06 15:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,9 +121,12 @@ b192
 		@ "class %YWindow",
 	/ DLB "arm9 makefile",
 	/ "scroll controls implementation",
-	^ "updated libnds 1.4.9" ~ "libnds 1.5.0",
-	^ "updated default arm7 0.5.20" ~ "default arm7 0.5.18",
-	^ "updated libfat 1.0.9" ~ "libfat 1.0.7"
+	/ DLP "toolchain and library using" $=
+	(
+		^ "updated libnds 1.5.0" ~ "libnds 1.4.9",
+		^ "updated default arm7 0.5.20" ~ "default arm7 0.5.18",
+		^ "updated libfat 1.0.9" ~ "libfat 1.0.7"
+	)
 ),
 
 b191

@@ -31,9 +31,7 @@
 				</MakeCommands>
 			</Target>
 			<Target title="release">
-				<Option output="release/YBase" prefix_auto="1" extension_auto="1" />
-				<Option object_output="release/" />
-				<Option type="1" />
+				<Option type="4" />
 				<Option compiler="null" />
 				<Compiler>
 					<Add option="-O2" />

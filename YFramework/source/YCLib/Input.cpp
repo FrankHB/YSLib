@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r271
+\version r302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-04-06 13:34 +0800
+	2014-04-10 13:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,26 +76,54 @@ platform::KeyInput *pKeyState(&KeyStateA), *pOldKeyState(&KeyStateB);
 std::mutex CompKeyMutex;
 std::mutex KeyMutex;
 #endif
+
+//! \since build 492
+//@{
+inline const platform::KeyInput&
+FetchKeyStateRaw()
+{
+	YAssert(pKeyState, "Null pointer found.");
+
+	return *pKeyState;
+}
+
+inline const platform::KeyInput&
+FetchOldKeyStateRaw()
+{
+	YAssert(pOldKeyState, "Null pointer found.");
+
+	return *pOldKeyState;
+}
+
+inline platform::KeyInput
+FetchKeyDownStateRaw()
+{
+	return FetchKeyStateRaw() & ~FetchOldKeyStateRaw();
+}
+
+inline platform::KeyInput
+FetchKeyUpStateRaw()
+{
+	return (FetchKeyStateRaw() ^ FetchOldKeyStateRaw()) & ~FetchKeyStateRaw();
+}
+//@}
+
 } //unnamed namespace;
 
 const platform::KeyInput&
 FetchKeyState()
 {
-	YAssert(pKeyState, "Null pointer found.");
-
 	YCL_Def_LockGuard(lck, KeyMutex)
 
-	return *pKeyState;
+	return FetchKeyStateRaw();
 }
 
 const platform::KeyInput&
 FetchOldKeyState()
 {
-	YAssert(pOldKeyState, "Null pointer found.");
-
 	YCL_Def_LockGuard(lck, KeyMutex)
 
-	return *pOldKeyState;
+	return FetchOldKeyStateRaw();
 }
 
 platform::KeyInput
@@ -103,7 +131,7 @@ FetchKeyDownState()
 {
 	YCL_Def_LockGuard(comp_lck, CompKeyMutex)
 
-	return FetchKeyState() & ~FetchOldKeyState();
+	return FetchKeyDownStateRaw();
 }
 
 platform::KeyInput
@@ -111,7 +139,7 @@ FetchKeyUpState()
 {
 	YCL_Def_LockGuard(comp_lck, CompKeyMutex)
 
-	return (FetchKeyState() ^ FetchOldKeyState()) & ~FetchKeyState();
+	return FetchKeyUpStateRaw();
 }
 
 void
@@ -144,6 +172,7 @@ UpdateKeyStates()
 	// NOTE: 0x00 and 0xFF should be invalid.
 	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		pKeyState->set(i, ::GetAsyncKeyState(i) & 0x8000);
+#elif YCL_Android
 #endif
 }
 
@@ -187,7 +216,7 @@ WaitForFrontKeypad()
 {
 	return WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y
 		| KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN
-		|KEY_START | KEY_SELECT);
+		| KEY_START | KEY_SELECT);
 }
 
 void

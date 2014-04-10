@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1132
+\version r1148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-03-23 00:22 +0800
+	2014-04-06 17:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,7 +212,7 @@ SwitchScreensButton::SwitchScreensButton(ShlDS& shl, const Point& pt)
 {
 	yunseq(
 	Text = u"％",
-	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(*this) += [this]{
 		shell.get().SwapScreens();
 	}
 	);
@@ -350,14 +350,14 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		if(e.GetKeys()[YCL_KEY(X)])
 			SwitchVisibleToFront(pnlSetting);
 	},
-	fbMain.GetViewChanged() += [&](UIEventArgs&&){
+	fbMain.GetViewChanged() += [&]{
 		lblPath.Text = String(fbMain.GetPath());
 		Invalidate(lblPath);
 	},
-	fbMain.GetSelected() += [&](IndexEventArgs&&){
+	fbMain.GetSelected() += [&]{
 		Enable(btnOK, CheckReaderEnability(fbMain, rbHex));
 	},
-	FetchEvent<Click>(btnOK) += [&](CursorEventArgs&&){
+	FetchEvent<Click>(btnOK) += [&]{
 		if(fbMain.IsSelected())
 		{
 			const auto& path(fbMain.GetPath());
@@ -384,20 +384,20 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			}
 		}
 	},
-	FetchEvent<Click>(cbFPS) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(cbFPS) += [this]{
 		SetInvalidationOf(GetSubDesktop());
 	},
-	FetchEvent<Click>(rbHex) += [&](CursorEventArgs&&){
+	FetchEvent<Click>(rbHex) += [&]{
 		Enable(btnOK, CheckReaderEnability(fbMain, rbHex));
 		SetInvalidationOf(GetSubDesktop());
 	},
-	FetchEvent<Move>(pnlSetting) += [&](UIEventArgs&&){
+	FetchEvent<Move>(pnlSetting) += [&]{
 		lblDragTest.Text = to_string(GetLocationOf(pnlSetting)) + ';';
 		Invalidate(lblDragTest);
 	},
 	FetchEvent<TouchHeld>(pnlSetting) += OnTouchHeld_Dragging,
 #if YCL_DS
-	FetchEvent<TouchDown>(pnlSetting) += [&](CursorEventArgs&&){
+	FetchEvent<TouchDown>(pnlSetting) += [&]{
 		struct ::mallinfo t(::mallinfo());
 
 		lblInfo.Text = ystdex::sfmt("%d,%d,%d,%d,%d;",
@@ -405,7 +405,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Invalidate(lblInfo);
 	},
 #endif
-	FetchEvent<Click>(pnlSetting) += [&](CursorEventArgs&&){
+	FetchEvent<Click>(pnlSetting) += [&]{
 		yunseq(
 		lblDragTest.ForeColor = GenerateRandomColor(),
 		lblTitle.ForeColor = GenerateRandomColor()
@@ -438,7 +438,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Invalidate(lblTitle),
 		Invalidate(lblInfo);
 	},
-	FetchEvent<Click>(btnTestAni) += [&](CursorEventArgs&&){
+	FetchEvent<Click>(btnTestAni) += [&]{
 		auto& conn(ani.GetConnectionRef());
 
 		if(conn.Ready)
@@ -463,7 +463,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Invalidate(btn);
 	},
 	mhMain.Roots[&btnMenu] = 1u,
-	FetchEvent<Click>(btnMenu) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnMenu) += [this]{
 		auto& mnu(mhMain[1u]);
 
 		if(mhMain.IsShowing(1u))
@@ -475,7 +475,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			mhMain.Show(1u);
 		Invalidate(mnu);
 	},
-	FetchEvent<Click>(btnPrevBackground) += [&](CursorEventArgs&&){
+	FetchEvent<Click>(btnPrevBackground) += [&]{
 		auto& dsk_m(GetMainDesktop());
 		auto& dsk_s(GetSubDesktop());
 
@@ -490,7 +490,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		SetInvalidationOf(dsk_m),
 		SetInvalidationOf(dsk_s);
 	},
-	FetchEvent<Click>(btnNextBackground) += [&](CursorEventArgs&&){
+	FetchEvent<Click>(btnNextBackground) += [&]{
 		auto& dsk_m(GetMainDesktop());
 		auto& dsk_s(GetSubDesktop());
 
@@ -514,7 +514,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Invalidate(rbTxt);
 		Invalidate(rbHex);
 	},
-	ddlStyle.GetConfirmed() += [&, this](IndexEventArgs&&){
+	ddlStyle.GetConfirmed() += [&, this]{
 		FetchGUIState().Styles.Switch(ddlStyle.Text.GetMBCS());
 		InvalidateAll(dsk_m),
 		InvalidateAll(dsk_s);
@@ -578,7 +578,8 @@ ShlExplorer::OnPaint()
 			yconstexpr Rect r(176, 0, 80, 20);
 			char strt[20];
 
-			std::sprintf(strt, "FPS: %u.%03u", t / 1000, t % 1000);
+			std::sprintf(strt, "FPS: %u.%03u", unsigned(t / 1000),
+				unsigned(t % 1000));
 			FillRect(g, r, Blue);
 			DrawText(g, r, strt, DefaultMargin, White, false);
 			bUpdateUp = true;

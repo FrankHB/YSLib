@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2561
+\version r2568
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2014-02-25 09:07 +0800
+	2014-04-06 16:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,15 +143,8 @@ _t type
 #define DefDelMoveCtor(_t) \
 	_t(_t&&) = delete;
 
-//! \since build 413 as workaround for G++ 4.7.1
-#if YB_IMPL_GNUCPP < 40702
-#define DefDeDtor(_t) \
-	~_t() \
-	{}
-#else
 #define DefDeDtor(_t) \
 	~_t() = default;
-#endif
 #define DefDelDtor(_t) \
 	~_t() = delete;
 

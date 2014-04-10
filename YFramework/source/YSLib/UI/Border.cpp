@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r182
+\version r183
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2014-02-18 00:59 +0800
+	2014-04-06 17:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,7 +156,7 @@ BorderResizer::Wrap()
 	FetchEvent<Click>(controller).Add([this](CursorEventArgs&& e){
 		CallEvent<ClickAcross>(widget, e);
 	}, 0xE0),
-	FetchEvent<ClickAcross>(controller).Add([this](CursorEventArgs&&){
+	FetchEvent<ClickAcross>(controller).Add([this]{
 		yunseq(orig_loc = Point::Invalid, locked_bounds = Rect(),
 			focused = {BorderArea::Center, BorderArea::Center});
 	}, 0xE0)

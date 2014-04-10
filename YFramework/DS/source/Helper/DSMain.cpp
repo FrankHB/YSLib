@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3107
+\version r3109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2013-12-23 00:01 +0800
+	2014-04-10 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,7 +170,7 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 		YConsoleInit(false, fc, bc);
 	else
 		return false;
-#elif YCL_Win32
+#elif YCL_Win32 || YCL_Android
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType)
 {
 #else

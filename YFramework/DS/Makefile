@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r2010
+# Version = r2011
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-03-29 14:38 +0800
+# Updated = 2014-04-10 12:24 +0800
 # Encoding = ANSI
 
 
@@ -121,7 +121,7 @@ export DEPSDIR	:=	$(BUILDDIR)/dummy
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
-					$(DEPSDIR)
+					$(CURDIR)/. $(DEPSDIR)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(wildcard $(dir)/*.cpp))

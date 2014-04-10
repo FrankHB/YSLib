@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r697
+\version r701
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-04-06 12:23 +0800
+	2014-04-10 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,14 +71,14 @@ private:
 	std::atomic<size_t> wnd_thrd_count;
 
 public:
-#if YCL_Win32
+#		if YCL_Win32
 	/*!
 	\brief 鼠标键输入。
 	\since build 423
 	*/
 	std::atomic<short> RawMouseButton{0};
 
-#endif
+#		endif
 	/*!
 	\brief 退出标记。
 	\sa LeaveWindowThread
@@ -87,8 +87,10 @@ public:
 	std::atomic<bool> ExitOnAllWindowThreadCompleted;
 
 private:
+#		if YCL_Win32
 	//! \since build 432
 	WindowClass window_class;
+#		endif
 #	endif
 
 public:

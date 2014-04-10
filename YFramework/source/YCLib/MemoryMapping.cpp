@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r163
+\version r182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2014-02-14 09:07 +0800
+	2014-04-08 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,6 +63,11 @@ map_file(size_t len, int fd)
 
 } // unnamed namespace;
 
+#elif YCL_Android
+#	include <sys/mman.h>
+#	include <sys/stat.h>
+#else
+#	error "Unsupported platform found."
 #endif
 
 namespace platform
@@ -75,16 +80,17 @@ MappedFile::MappedFile(const char* path)
 	addr = new ystdex::byte[size];
 
 	::read(fd, addr, size);
-#elif YCL_Win32
-//	const auto p(::mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0)));
+#else
+#	if YCL_Win32
 	const auto p(map_file(size, fd));
+#	else
+	const auto p(::mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0));
+#	endif
 
 	if(p == MAP_FAILED)
 		throw std::runtime_error("Mapping failed.");
 	// TODO: Create specific exception type.
 	addr = static_cast<ystdex::byte*>(p);
-#else
-#	error "Unsupported platform found."
 #endif
 }
 MappedFile::~MappedFile()
@@ -92,8 +98,9 @@ MappedFile::~MappedFile()
 #if YCL_DS
 	delete addr;
 #elif YCL_Win32
-//	::munmap(addr, size);
 	::UnmapViewOfFile(addr);
+#else
+	::munmap(addr, size);
 #endif
 	::close(fd);
 }

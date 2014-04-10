@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1378
+\version r1386
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-03-17 00:28 +0800
+	2014-04-06 16:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,14 +162,6 @@ namespace any_ops
 class YB_API holder : public cloneable
 {
 public:
-#if YB_IMPL_GNUCPP && YB_IMPL_GNUCPP < 40702
-	//! \since build 353 as workaround for G++ 4.7.1
-	//@{
-	holder() = default;
-	holder(const holder&) = default;
-	holder(holder&&) = default;
-	//@}
-#endif
 	virtual
 	~holder()
 	{}

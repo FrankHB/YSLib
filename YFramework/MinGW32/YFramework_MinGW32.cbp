@@ -235,6 +235,7 @@
 		<Unit filename="../include/YBaseMacro.h" />
 		<Unit filename="../include/YCLib/Debug.h" />
 		<Unit filename="../include/YCLib/FileSystem.h" />
+		<Unit filename="../include/YCLib/Host.h" />
 		<Unit filename="../include/YCLib/Input.h" />
 		<Unit filename="../include/YCLib/Keys.h" />
 		<Unit filename="../include/YCLib/MemoryMapping.h" />
@@ -347,6 +348,7 @@
 		<Unit filename="../source/NPL/SContext.cpp" />
 		<Unit filename="../source/YCLib/Debug.cpp" />
 		<Unit filename="../source/YCLib/FileSystem.cpp" />
+		<Unit filename="../source/YCLib/Host.cpp" />
 		<Unit filename="../source/YCLib/Input.cpp" />
 		<Unit filename="../source/YCLib/Keys.cpp" />
 		<Unit filename="../source/YCLib/MemoryMapping.cpp" />

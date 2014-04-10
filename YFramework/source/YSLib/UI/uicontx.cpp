@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r264
+\version r267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2014-03-22 13:28 +0800
+	2014-04-06 17:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ DialogBox::DialogBox(const Rect& r)
 	: Control(r, MakeBlankBrush()),
 	btnClose(Rect(GetWidth() - 20, 4, 16, 16), 330)
 {
-	const auto invalidator([this](UIEventArgs&&){
+	const auto invalidator([this]{
 		Invalidate(*this);
 	});
 
@@ -59,7 +59,7 @@ DialogPanel::DialogPanel(const Rect& r)
 	btnClose(Rect(GetWidth() - 20, 4, 16, 16), 330),
 	btnOK(Rect(GetWidth() - 40, 4, 16, 16), 120)
 {
-	const auto invalidator([this](UIEventArgs&&){
+	const auto invalidator([this]{
 		Invalidate(*this);
 	});
 
@@ -67,7 +67,7 @@ DialogPanel::DialogPanel(const Rect& r)
 	DecorateAsCloseButton(btnClose),
 	yunseq(
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
-	FetchEvent<Click>(btnOK) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(btnOK) += [this]{
 		Close(*this);
 	},
 	FetchEvent<Paint>(btnOK) += [this](PaintEventArgs&& e){

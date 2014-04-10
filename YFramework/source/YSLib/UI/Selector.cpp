@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1005
+\version r1007
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-03-10 02:30 +0800
+	2014-04-06 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,7 +114,7 @@ CheckBox::CheckBox(const Rect& r)
 		}
 	} init;
 
-	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(*this) += [this]{
 		Tick(GetState() == Checked ? Unchecked : Checked);
 	};
 }
@@ -188,7 +188,7 @@ RadioBox::RadioBox(const Rect& r)
 		}
 	} init;
 
-	FetchEvent<Click>(*this) += [this](CursorEventArgs&&){
+	FetchEvent<Click>(*this) += [this]{
 		SetSelected();
 	};
 }

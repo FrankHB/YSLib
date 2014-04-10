@@ -43,3 +43,4 @@ UpgradeLog.XML
 *.cscope_file_list
 build/
 */.shbuild*
+Tools/*.tar.*

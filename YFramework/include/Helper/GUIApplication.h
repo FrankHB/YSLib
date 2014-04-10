@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r318
+\version r321
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-02-26 23:07 +0800
+	2014-04-10 01:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,9 @@
 #include <ystdex/cast.hpp>
 #include YFM_Helper_GUIShell
 #if YCL_Win32
-#	include "YCLib/Win32GUI.h"
+#	include YFM_MinGW32_YCLib_Win32GUI
+#elif YCL_Android
+#	include YFM_Android_YCLib_Android
 #endif
 
 namespace YSLib

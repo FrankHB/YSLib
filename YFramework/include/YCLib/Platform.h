@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -20,17 +20,22 @@
 \brief MinGW 实现的 Win32 平台。
 \since build 296
 */
+/*!	\defgroup Android Android
+\ingroup Platforms
+\brief Android 平台。
+\since build 492
+*/
 
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r490
+\version r510
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2013-11-27 21:47 +0800
+	2014-04-10 01:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,6 +100,13 @@
 #define YF_Platform_MinGW32 0x4102
 
 /*!
+\brief Android ARM 平台。
+\note 兼容 API Level 9 。
+\since build 492
+*/
+#define YF_Platform_Android_ARM 0x4201
+
+/*!
 \def YF_Platform
 \brief 目标平台。
 */
@@ -103,6 +115,9 @@
 #	define YF_Platform YF_Platform_MinGW32
 #elif defined(_WIN32)
 #	define YF_Platform YF_Platform_Win32
+#elif defined(__ANDROID__)
+// FIXME: Architecture detection.
+#	define YF_Platform YF_Platform_Android_ARM
 #elif !defined(YF_Platform)
 //当前默认以 DS 作为目标平台。
 #	define YF_Platform YF_Platform_DS
@@ -133,11 +148,15 @@
 #elif YF_Platform == YF_Platform_Win32
 #	define YCL_Win32 1
 #	define YF_Hosted 1
+#elif YF_Platform == YF_Platform_Android_ARM
+#	define YCL_Android 1
+#	define YF_Hosted 1
+#	define YCL_API_FILESYSTEM_POSIX
 #else
 #	error "Unsupported platform found."
 #endif
 
-#if YCL_Win32
+#if YCL_Win32 || YCL_Android
 #	ifdef _MT
 #		define YF_Multithread 1
 #	else

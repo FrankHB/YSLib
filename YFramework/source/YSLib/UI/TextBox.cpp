@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r374
+\version r377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-04-02 01:12 +0800
+	2014-04-06 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ Caret::Caret(IWidget& wgt, HBrush caret_brush,
 		Stop();
 		Restart(caret_animation, e.GetSender(), CursorInvalidator);
 	},
-	FetchEvent<LostFocus>(wgt) += [this](UIEventArgs&&){
+	FetchEvent<LostFocus>(wgt) += [this]{
 		Stop();
 	}
 	);
@@ -199,10 +199,10 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 		ReplaceSelection(e.Text);
 	},
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
-	FetchEvent<GotFocus>(*this) += [this](UIEventArgs&&){
+	FetchEvent<GotFocus>(*this) += [this]{
 		Invalidate(*this);
 	},
-	FetchEvent<LostFocus>(*this) += [this](UIEventArgs&&){
+	FetchEvent<LostFocus>(*this) += [this]{
 		Selection.Collapse();
 		Invalidate(*this);
 	}
