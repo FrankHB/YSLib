@@ -14,31 +14,31 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\About.h" />
-    <ClInclude Include="include\BookmarkUI.h" />
-    <ClInclude Include="include\ColorPicker.h" />
-    <ClInclude Include="include\DSReader.h" />
-    <ClInclude Include="include\HexBrowser.h" />
-    <ClInclude Include="include\ReaderSetting.h" />
-    <ClInclude Include="include\ReaderSettingUI.h" />
-    <ClInclude Include="include\ReadingList.h" />
-    <ClInclude Include="include\Shells.h" />
-    <ClInclude Include="include\ShlExplorer.h" />
-    <ClInclude Include="include\ShlReader.h" />
+    <ClInclude Include="..\include\About.h" />
+    <ClInclude Include="..\include\BookmarkUI.h" />
+    <ClInclude Include="..\include\ColorPicker.h" />
+    <ClInclude Include="..\include\DSReader.h" />
+    <ClInclude Include="..\include\HexBrowser.h" />
+    <ClInclude Include="..\include\ReaderSetting.h" />
+    <ClInclude Include="..\include\ReaderSettingUI.h" />
+    <ClInclude Include="..\include\ReadingList.h" />
+    <ClInclude Include="..\include\Shells.h" />
+    <ClInclude Include="..\include\ShlExplorer.h" />
+    <ClInclude Include="..\include\ShlReader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\About.cpp" />
-    <ClCompile Include="source\BookmarkUI.cpp" />
-    <ClCompile Include="source\ColorPicker.cpp" />
-    <ClCompile Include="source\DSReader.cpp" />
-    <ClCompile Include="source\HexBrowser.cpp" />
-    <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\ReaderSetting.cpp" />
-    <ClCompile Include="source\ReaderSettingUI.cpp" />
-    <ClCompile Include="source\ReadingList.cpp" />
-    <ClCompile Include="source\Shells.cpp" />
-    <ClCompile Include="source\ShlExplorer.cpp" />
-    <ClCompile Include="source\ShlReader.cpp" />
+    <ClCompile Include="..\source\About.cpp" />
+    <ClCompile Include="..\source\BookmarkUI.cpp" />
+    <ClCompile Include="..\source\ColorPicker.cpp" />
+    <ClCompile Include="..\source\DSReader.cpp" />
+    <ClCompile Include="..\source\HexBrowser.cpp" />
+    <ClCompile Include="..\source\main.cpp" />
+    <ClCompile Include="..\source\ReaderSetting.cpp" />
+    <ClCompile Include="..\source\ReaderSettingUI.cpp" />
+    <ClCompile Include="..\source\ReadingList.cpp" />
+    <ClCompile Include="..\source\Shells.cpp" />
+    <ClCompile Include="..\source\ShlExplorer.cpp" />
+    <ClCompile Include="..\source\ShlReader.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{501944E8-ADCC-40E6-87F0-08816CFAA343}</ProjectGuid>
@@ -72,7 +72,7 @@
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <IncludePath>$(ProjectDir)..\YFramework\include;$(ProjectDir)..\YBase\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\YFramework\include;$(ProjectDir)..\..\YBase\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\..\YBase\include;$(ProjectDir)..\..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>
     </ReferencePath>
     <NMakeBuildCommandLine>make -j -r CONF=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
@@ -92,7 +92,7 @@
     <NMakeBuildCommandLine>make -j -r CONF=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>make -j -r CONF=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make -j -r CONF=$(Configuration) clean</NMakeCleanCommandLine>
-    <IncludePath>$(ProjectDir)..\YFramework\include;$(ProjectDir)..\YBase\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\YBase\include;$(ProjectDir)..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\YFramework\include;$(ProjectDir)..\..\YBase\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\..\YBase\include;$(ProjectDir)..\..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
     <ReferencePath>
     </ReferencePath>
     <LibraryPath />

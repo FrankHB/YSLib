@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r374
+\version r387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-04-10 11:21 +0800
+	2014-04-14 19:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,9 +47,9 @@ InputManager::InputManager()
 #endif
 {}
 
-#if YCL_DS || YCL_Android
+#if YCL_DS
 #	define YCL_CURSOR_VALID
-#elif YCL_Win32
+#elif YF_Hosted
 #	define YCL_CURSOR_VALID if(cursor_state != Point::Invalid)
 #else
 #	error "Unsupported platform found."
@@ -60,13 +60,8 @@ InputManager::DispatchInput(IWidget& wgt)
 	auto& st(GUI_state.get());
 	const auto disp([&](const KeyInput& keyset, VisualEvent key_evt,
 		VisualEvent touch_evt){
-#if YCL_DS
-		if(keyset[KeyCodes::Touch])
-#elif YCL_Win32
-		if(keyset[VK_LBUTTON] || keyset[VK_RBUTTON] || keyset[VK_MBUTTON])
-#else
-		if(true) // FIXME: Correction.
-#endif
+		if(keyset[KeyCodes::Primary] || keyset[KeyCodes::Secondary]
+			|| keyset[KeyCodes::Tertiary])
 		{
 			YCL_CURSOR_VALID
 			{
@@ -85,7 +80,7 @@ InputManager::DispatchInput(IWidget& wgt)
 	KeyInput keys(platform_ex::FetchKeyUpState());
 
 	disp(keys, KeyUp, TouchUp);
-#if YCL_Win32
+#if YF_Hosted
 	YCL_CURSOR_VALID
 	{
 		CursorEventArgs e(wgt, keys, cursor_state);
@@ -117,7 +112,7 @@ InputManager::Update()
 	const auto p_wnd(env.get().GetForegroundWindow());
 
 	if(!p_wnd)
-		return nullptr;
+		return {};
 
 #endif
 	using namespace platform::KeyCodes;
@@ -129,7 +124,7 @@ InputManager::Update()
 	platform_ex::UpdateKeyStates();
 
 #if YCL_DS
-	if(platform_ex::FetchKeyState()[KeyCodes::Touch])
+	if(platform_ex::FetchKeyState()[Touch])
 #endif
 	{
 #if YCL_DS
@@ -144,8 +139,8 @@ InputManager::Update()
 
 		if(YB_LIKELY(pr.first.X != pr.second.X && pr.first.Y != pr.second.Y)
 			&& (!p_wnd->BoundsLimited
-			|| (IsInInterval< ::LONG>(cursor.x, pr.first.X, pr.second.X)
-			&& IsInInterval< ::LONG>(cursor.y, pr.first.Y, pr.second.Y))))
+			|| (IsInInterval<::LONG>(cursor.x, pr.first.X, pr.second.X)
+			&& IsInInterval<::LONG>(cursor.y, pr.first.Y, pr.second.Y))))
 			yunseq(cursor_state.X = cursor.x - pr.first.X,
 				cursor_state.Y = cursor.y - pr.first.Y);
 		else

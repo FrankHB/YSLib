@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r302
+\version r381
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-04-10 13:25 +0800
+	2014-04-14 13:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,9 @@
 	std::lock_guard<std::mutex> _lck(_mutex);
 #else
 #	define YCL_Def_LockGuard(...)
+#endif
+#if	YCL_Android
+#	include <android/input.h>
 #endif
 
 namespace platform
@@ -76,35 +79,43 @@ platform::KeyInput *pKeyState(&KeyStateA), *pOldKeyState(&KeyStateB);
 std::mutex CompKeyMutex;
 std::mutex KeyMutex;
 #endif
+#if YCL_Android
+//! \since build 493
+std::mutex CursorMutex;
+//! \since build 493
+float LastCursorPosX, LastCursorPosY;
+#endif
 
-//! \since build 492
-//@{
-inline const platform::KeyInput&
-FetchKeyStateRaw()
+//! \since build 493
+inline platform::KeyInput&
+FetchKeyStateRef()
 {
 	YAssert(pKeyState, "Null pointer found.");
 
 	return *pKeyState;
 }
 
-inline const platform::KeyInput&
-FetchOldKeyStateRaw()
+//! \since build 493
+inline platform::KeyInput&
+FetchOldKeyStateRef()
 {
 	YAssert(pOldKeyState, "Null pointer found.");
 
 	return *pOldKeyState;
 }
 
+//! \since build 492
+//@{
 inline platform::KeyInput
 FetchKeyDownStateRaw()
 {
-	return FetchKeyStateRaw() & ~FetchOldKeyStateRaw();
+	return FetchKeyStateRef() & ~FetchOldKeyStateRef();
 }
 
 inline platform::KeyInput
 FetchKeyUpStateRaw()
 {
-	return (FetchKeyStateRaw() ^ FetchOldKeyStateRaw()) & ~FetchKeyStateRaw();
+	return (FetchKeyStateRef() ^ FetchOldKeyStateRef()) & ~FetchKeyStateRef();
 }
 //@}
 
@@ -115,7 +126,7 @@ FetchKeyState()
 {
 	YCL_Def_LockGuard(lck, KeyMutex)
 
-	return FetchKeyStateRaw();
+	return FetchKeyStateRef();
 }
 
 const platform::KeyInput&
@@ -123,7 +134,7 @@ FetchOldKeyState()
 {
 	YCL_Def_LockGuard(lck, KeyMutex)
 
-	return FetchOldKeyStateRaw();
+	return FetchOldKeyStateRef();
 }
 
 platform::KeyInput
@@ -229,6 +240,68 @@ void
 WaitForABXY()
 {
 	return WaitForKey(KEY_A | KEY_B | KEY_X | KEY_Y);
+}
+#elif YCL_Android
+std::pair<float, float>
+FetchCursor()
+{
+	YCL_Def_LockGuard(lck, CursorMutex)
+
+	return {LastCursorPosX, LastCursorPosY};
+}
+
+void
+SaveInput(const ::AInputEvent& e)
+{
+	const auto update_key([](std::int32_t action, const std::uint8_t keycode){
+		YCL_Def_LockGuard(lck, KeyMutex)
+			// TODO: Track Alt/Shift/Sym key states.
+		//	const auto meta(::AKeyEvent_getMetaState(&e));
+
+			switch(action)
+			{
+			case ::AKEY_EVENT_ACTION_DOWN:
+			case ::AKEY_EVENT_ACTION_UP:
+				FetchKeyStateRef().set(keycode,
+					action == ::AKEY_EVENT_ACTION_DOWN);
+				break;
+			case ::AKEY_EVENT_ACTION_MULTIPLE:
+				// TODO: Record.
+				break;
+			}
+	});
+
+	switch(::AInputEvent_getType(&e))
+	{
+	case AINPUT_EVENT_TYPE_KEY:
+		if(~::AKeyEvent_getFlags(&e) & ::AKEY_EVENT_FLAG_CANCELED)
+			update_key(::AKeyEvent_getAction(&e),
+				::AKeyEvent_getKeyCode(&e) & 0xFF);
+		break;
+	case AINPUT_EVENT_TYPE_MOTION:
+		// TODO: Detect multiple pointers using 'AMotionEvent_getPointerCount'.
+		// TODO: Support multiple pointers handlers.
+		// TODO: Detect edges using 'AMotionEvent_getEdgeFlags'.
+		// TODO: Record pressure using 'AMotionEvent_getPressure'.
+		// TODO: Record touch area size using 'AMotionEvent_getSize'.
+		// TODO: Track historical motion using 'AMotionEvent_getHistorical*'.
+		if(::AMotionEvent_getFlags(&e) != AMOTION_EVENT_FLAG_WINDOW_IS_OBSCURED)
+			switch(::AKeyEvent_getAction(&e) & AMOTION_EVENT_ACTION_MASK)
+			{
+			case AMOTION_EVENT_ACTION_CANCEL:
+			//	AMOTION_EVENT_ACTION_UP:
+			//	AMOTION_EVENT_ACTION_DOWN:
+			//	AMOTION_EVENT_ACTION_MOVE:
+				break;
+			default:
+				{
+					YCL_Def_LockGuard(lck, CursorMutex)
+
+					yunseq(LastCursorPosX = ::AMotionEvent_getRawX(&e, 0),
+						LastCursorPosY = ::AMotionEvent_getRawY(&e, 0));
+				}
+			}
+	}
 }
 #endif
 

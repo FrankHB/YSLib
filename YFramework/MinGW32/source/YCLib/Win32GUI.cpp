@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r447
+\version r448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-03-26 23:20 +0800
+	2014-04-11 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,7 +354,7 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 
 	// NOTE: Unlocked intentionally for performance.
 	if(YB_UNLIKELY(!::UpdateLayeredWindow(h_wnd, h_owner_dc,
-		reinterpret_cast< ::POINT*>(&rect), &size, h_mem_dc, &ptx, 0, &bfunc,
+		reinterpret_cast<::POINT*>(&rect), &size, h_mem_dc, &ptx, 0, &bfunc,
 		ULW_ALPHA)))
 	{
 		// TODO: Use RAII.

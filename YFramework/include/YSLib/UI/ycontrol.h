@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4767
+\version r4771
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-03-19 23:58 +0800
+	2014-04-16 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,11 @@ namespace YSLib
 
 namespace UI
 {
+
+/*!	\defgroup ControlModels Control Models
+\ingroup UI
+\brief 控件模型。
+*/
 
 using namespace Drawing;
 

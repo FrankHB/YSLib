@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1338
+\version r1339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-04-06 12:24 +0800
+	2014-04-11 00:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 			if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
 				&size, sizeof(::RAWINPUTHEADER)) != ::UINT(-1)))
 			{
-				const auto p_raw(reinterpret_cast< ::RAWINPUT*>(lpb));
+				const auto p_raw(reinterpret_cast<::RAWINPUT*>(lpb));
 
 				if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
 				{

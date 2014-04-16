@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2385
+\version r2390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2013-12-23 23:04 +0800
+	2014-04-16 21:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,11 @@
 
 namespace YSLib
 {
+
+/*!	\defgroup DataModel Data Models
+\ingroup UI
+\brief 数据模型。
+*/
 
 namespace Drawing
 {

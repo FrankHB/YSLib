@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3213
+\version r3216
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2013-12-23 00:49 +0800
+	2014-04-13 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -224,7 +224,7 @@ public:
 \brief 字型标识。
 \since build 145
 */
-class YF_API Typeface final : private noncopyable
+class YF_API Typeface final : private noncopyable, private nonmovable
 {
 	//! \since build 419
 	friend class Font;
@@ -271,7 +271,7 @@ private:
 	StyleName style_name;
 	//! \since build 420
 	pair<std::reference_wrapper<FontFamily>,
-		std::reference_wrapper< ::FT_FaceRec_>> ref;
+		std::reference_wrapper<::FT_FaceRec_>> ref;
 	//! \since build 461
 	mutable GMRUCache<BitmapKey, SmallBitmapData, BitmapKeyHash>
 		bitmap_cache;

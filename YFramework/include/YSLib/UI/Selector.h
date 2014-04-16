@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r623
+\version r644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2014-02-25 00:03 +0800
+	2014-04-16 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,6 +83,7 @@ public:
 
 
 /*!
+\ingroup ControlModels
 \brief 复选框模块。
 \warning 非虚析构。
 */
@@ -216,13 +217,13 @@ public:
 };
 
 
-//! \since build 479
-//@{
 /*!
+\ingroup ControlModels
 \brief 单选框模块。
 \warning 非虚析构。
+\since build 493
 */
-class YF_API MRadioBox
+class YF_API MSharedSelection
 {
 public:
 	//! \since build 480
@@ -245,15 +246,18 @@ private:
 	shared_ptr<MSelector> p_selector;
 
 public:
-	//! \since build 480
-	//@{
-	//! \brief 单选框选中事件。
+	/*!
+	\since build 480
+	\brief 单选框选中事件。
+	*/
 	DeclEvent(HSelectedEvent, Selected)
 
-	MRadioBox(StateType st = {})
+	//! \since build 493
+	//@{
+	MSharedSelection(StateType st = {})
 		: p_selector(ystdex::make_shared<MSelector>(st))
 	{}
-	MRadioBox(shared_ptr<MSelector> p_sel, StateType st = {})
+	MSharedSelection(shared_ptr<MSelector> p_sel, StateType st = {})
 		: p_selector(p_sel ? std::move(p_sel)
 		: ystdex::make_shared<MSelector>(st))
 	{}
@@ -268,15 +272,17 @@ public:
 	\since build 480
 	*/
 	void
-	ShareTo(MRadioBox&) const;
+	ShareTo(MSharedSelection&) const;
 
 	PDefH(bool, UpdateState, StateType st)
 		ImplRet(p_selector->UpdateState(st))
 };
 
 
+//! \since build 479
+//@{
 //! \brief 单选框。
-class YF_API RadioBox : public Thumb, protected MRadioBox
+class YF_API RadioBox : public Thumb, protected MSharedSelection
 {
 public:
 	//! \brief 视觉样式项目。
@@ -285,14 +291,14 @@ public:
 		RadioBoxBackground = Thumb::EndStyle,
 		EndStyle
 	};
-	using MRadioBox::StateType;
+	using MSharedSelection::StateType;
 	//! \since build 480
-	using MRadioBox::SelectedArgs;
+	using MSharedSelection::SelectedArgs;
 	//! \since build 480
-	using MRadioBox::HSelectedEvent;
+	using MSharedSelection::HSelectedEvent;
 
 	//! \since build 480
-	using MRadioBox::Selected;
+	using MSharedSelection::Selected;
 
 public:
 	//! \brief 构造：使用指定边界。
@@ -303,7 +309,7 @@ public:
 	//! \since build 480
 	DefPred(const ynothrow, Selected, GetState() == this)
 
-	using MRadioBox::GetState;
+	using MSharedSelection::GetState;
 
 	/*!
 	\brief 设置选中状态并检查单选框选中事件。

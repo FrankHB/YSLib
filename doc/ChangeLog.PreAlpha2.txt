@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3460
+\version r3461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-04-06 16:21 +0800
+	2014-04-16 22:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1545,7 +1545,7 @@ b267
 b266
 (
 	/ DLP "library using"
-		$=(^ $re_ex(b224) "updated modified freetype 2.4.8"
+		$= (^ $re_ex(b224) "updated modified freetype 2.4.8"
 			~ "modified freetype 2.4.5"),
 	/ %YFramework.YSLib $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3377
+\version r3384
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-04-06 14:36 +0800
+	2014-04-13 12:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,7 +102,6 @@ NativeFontSize::GetSizeRec() const
 	return *size;
 }
 
-//! \brief 替代 ::FT_Activate_Size 。
 void
 NativeFontSize::Activate() const
 {
@@ -182,7 +181,6 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 
 			if(xstr == 0)
 				xstr = 1 << 6;
-
 			if(::FT_GlyphSlot_Own_Bitmap(slot) == FT_Err_Ok
 				&& ::FT_Bitmap_Embolden(library, &bitmap, xstr, ystr)
 				== FT_Err_Ok)
@@ -249,8 +247,8 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 			throw LoggedEvent("Duplicate typeface found.", Critical);
 
 		::FT_Face face;
-		::FT_Error error(::FT_New_Face(cache.library, Path.c_str(),
-			face_index, &face));
+		auto error(::FT_New_Face(cache.library, Path.c_str(), face_index,
+			&face));
 
 		if(YB_LIKELY(!error))
 			if(YB_LIKELY(!(error = ::FT_Select_Charmap(face,
@@ -269,7 +267,7 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 		if(!p_ff)
 			p_ff.reset(new FontFamily(cache, family_name));
 		return pair<std::reference_wrapper<FontFamily>,
-			std::reference_wrapper< ::FT_FaceRec_>>(*p_ff.get(), *face);
+			std::reference_wrapper<::FT_FaceRec_>>(*p_ff.get(), *face);
 	}()), bitmap_cache(2047U), glyph_index_cache()
 {
 	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(ref.second.get().num_charmaps),
@@ -289,14 +287,15 @@ Typeface::~Typeface()
 
 	YAssert(face, "Null pointer found.");
 	YAssert(face->internal->refcount == 1,
-		"Invalid face reference cout found.");
+		"Invalid face reference count found.");
 
 	// XXX: Hack for using %ttmtx.c and %sfobjs.c of FreeType 2.4.11.
 	if(FT_IS_SFNT(face))
 	{
-		const auto ttface(reinterpret_cast< ::TT_Face>(face));
+		const auto ttface(reinterpret_cast<::TT_Face>(face));
 
 		// NOTE: See %Typeface::SmallBitmapData::SmallBitmapData.
+		// NOTE: %sfnt_done_face in "sfobjs.c" still releases vertical metrics.
 		std::free(ttface->horizontal.long_metrics),
 		std::free(ttface->horizontal.short_metrics);
 	}

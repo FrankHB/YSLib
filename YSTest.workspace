@@ -15,16 +15,16 @@
 			<Depends filename="YBase/MinGW32/YBase_MinGW32.cbp" />
 		</Project>
 		<Project filename="YFramework/Android/YFramework_Android.cbp" />
-		<Project filename="YSTest_ARM7/YSTest_ARM7.cbp" />
-		<Project filename="YSTest_ARM9/YSTest_ARM9.cbp">
+		<Project filename="YSTest/DS_ARM7/YSTest_ARM7.cbp" />
+		<Project filename="YSTest/DS_ARM9/YSTest_ARM9.cbp">
 			<Depends filename="YBase/DS/YBase_DS.cbp" />
 			<Depends filename="YFramework/DS/YFramework_DS.cbp" />
 		</Project>
-		<Project filename="YSTest_DS/YSTest_DS.cbp">
-			<Depends filename="YSTest_ARM7/YSTest_ARM7.cbp" />
-			<Depends filename="YSTest_ARM9/YSTest_ARM9.cbp" />
+		<Project filename="YSTest/DS/YSTest_DS.cbp">
+			<Depends filename="YSTest/DS_ARM7/YSTest_ARM7.cbp" />
+			<Depends filename="YSTest/DS_ARM9/YSTest_ARM9.cbp" />
 		</Project>
-		<Project filename="YSTest_MinGW32/YSTest_MinGW32.cbp">
+		<Project filename="YSTest/MinGW32/YSTest_MinGW32.cbp">
 			<Depends filename="YBase/MinGW32/YBase_MinGW32.cbp" />
 			<Depends filename="YFramework/MinGW32/YFramework_MinGW32.cbp" />
 		</Project>

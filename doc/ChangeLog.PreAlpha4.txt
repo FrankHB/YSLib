@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r7168
+\version r7247
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-04-10 22:19 +0800
+	2014-04-16 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,82 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ DLD "all '< ::'" -> '<::',
+		// Since now ISO C++11 is mandated, no need to add space to \
+			distinguish these preprocessing tokens.
+	^ DLP $re_ex(b453) "MinGW[gcc version 4.8.2 (Rev6, Built by MSYS2 \
+		project)] mingw32/mingw-w64-i686-gcc-4.8.2-7"
+		~ "MinGW[gcc version 4.8.2 (Built by MinGW-W64 project)] \
+		i686-4.8.2-release-posix-dwarf-rt_v3-rev0";
+		@ "platform %MinGW32",
+		// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+			Exceptions implementation: Dwarf2.
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ @ "class %Typeface" @ %Adaptor.Font $=
+			(
+				* $lib $design "spell error" @ "assertion string" @ "destructor"
+					$since b425,
+				+ $design "inheritance %nonmovable"
+			),
+			/ "class %MRadioBox" => "%MSharedSelection" @ %UI.Selector
+		),
+		/ %YCLib $=
+		(
+			+ "portable cursor device key names" @ %Key $=
+			(
+				+ 'yconstexpr NativeSet Primary(Touch);' @ "platform %DS",
+				+ "enumerators %(Secondary, Tertiary)" @ "enum %ExtendedSet"
+					@ "platform %DS",
+				+ "enumerators %(Primary, Secondary, Tertiary)"
+					@ "enum %NativeSet" @ "platform %Win32",
+				+ "enumerators %(Primary, Secondary, Tertiary)"
+					@ "enum %ExtendedSet" @ "platform %Android",
+				+ "key category identification"
+					@ "%(Primary, Secondary, Tertiary)"
+					@ "platforms %(DS, Android)"
+			),
+			/ @ "platform %Android" @ %Input $=
+			(
+				(
+				+ "declaration" @ "struct %::AInputEvent";
+				+ "functions %SaveInput"
+				),
+				+ "functions %FetchCursor"
+			)
+		),
+		/ "implementation" @ "member function %InputManager::DispatchInput"
+			@ %Helper.InputManager $=
+		(
+			$dep_from %YCLib.Keys
+			^ "%KeyCodes(Primary, Secondary, Tertiary) as cursor event \
+				condition" @ "all platforms",
+			^ "cursor validation" @ "all hosted platforms"
+		)
+	),
+	/ @ "freetype" @ "3rdparty libraries" $=
+	(
+		/ @ "platform %DS" $=
+		(
+			+ '-fdata-sections -ffunction-sections' @ "%CFLAGS"
+				@ "freetype %config.mk",
+			+ "build script %build-ds.sh for UNIX shell"
+		);
+		/ "rebuilt"
+	),
+	/ $dev $build $re_ex(b431) "merged directories for %YSTest platform builds" $=
+	(
+		/ "project %YSText_DS" >> "directory 'YSTest/DS'",
+		/ "project %YSText_ARM7" >> "directory 'YSTest/DS_ARM7'",
+		/ "project %YSText_ARM9" >> "directory 'YSTest/DS_ARM9'",
+		/ "project %YSText_MinGW32" >> "directory 'YSTest/MinGW32'"
+	)
+),
+
+b492
 (
 	/ DLP "toolchain and library using" @ "platform %DS" $=
 	(
@@ -2650,13 +2726,13 @@ b453
 	),
 	/ $dev $build @ "platform %MinGW32" $=
 	(
-		^ DLP $re_ex(b411) "MinGW[gcc version 4.8.2 (Built by MinGW-W64 \
-			project)] i686-4.8.2-release-posix-dwarf-rt_v3-rev0"
+		^ $dev $deploy $re_ex(b411) "MinGW[gcc version 4.8.2 (Built by \
+			MinGW-W64 project)] i686-4.8.2-release-posix-dwarf-rt_v3-rev0"
 			~ "MinGW[gcc version 4.8.1 (Built by MinGW-builds project)] \
 			x32-4.8.1-release-posix-sjlj-rev0 [release-sjlj]";
 			@ "platform %MinGW32",
-				// Unchanged: Target=i686-w64-mingw32, Thread model: posix. \
-					Changed exceptions implementation: Dwarf2.
+			// Unchanged: Target=i686-w64-mingw32, Thread model: posix. \
+				Changed exceptions implementation: Dwarf2.
 		/ @ "recompiled library %FreeImage" $=
 		(
 			^ "libpng-1.6.6 with standard configuration header file \

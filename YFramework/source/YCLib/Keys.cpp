@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r699
+\version r706
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2014-04-10 12:34 +0800
+	2014-04-14 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,9 @@ yconstexpr Category KeyCategoryTable[KeyBitsetWidth]{
 	System | Virtual, // Pause is a system key.
 	Lock | Virtual, // CapsLock is an lock key.
 	Editing | Virtual, // Insert is an editing key.
-	Editing | Virtual // Delete is an editing key.
+	Editing | Virtual, // Delete is an editing key.
+	Editing | NonKeyboard, // Extended secondary key.
+	Editing | NonKeyboard // Extended tertiary key.
 };
 #elif YCL_Win32
 // See http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx .
@@ -570,7 +572,10 @@ yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 	System, // KEYCODE_ASSIST is not delivered to applications.
 	Function, // KEYCODE_BRIGHTNESS_DOWN.
 	Function, // KEYCODE_BRIGHTNESS_UP.
-	Function // KEYCODE_MEDIA_AUDIO_TRACK.
+	Function, // KEYCODE_MEDIA_AUDIO_TRACK.
+	Editing | NonKeyboard, // Extended primary key.
+	Editing | NonKeyboard, // Extended secondary key.
+	Editing | NonKeyboard // Extended tertiary key.
 };
 #else
 #	error "Unsupported platform found."

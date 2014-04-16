@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YSTest by FrankHB 2009 - 2013
-# Version = r1121
+# Version = r1120
 # Created = 2009-11-12 21:26:30 +0800
-# Updated = 2014-02-21 06:27 +0800
+# Updated = 2014-04-14 23:59 +0800
 # Encoding = ANSI
 
 # This makefile is written based on devkitPro example template.
@@ -40,8 +40,8 @@ endif
 export PROJNAME		?=	YSTest
 export CONF			?=	release
 export RELEASE		=	$(CONF)
-export TOPDIR		?=	$(CURDIR)/..
-export BUILDDIR		?=	$(TOPDIR)/build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
+export TOPDIR		?=	$(CURDIR)
+export BUILDDIR		?=	$(TOPDIR)/../../build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
 export RELEASEDIR	?=	$(BUILDDIR)
 export TARGET		:=	$(PROJNAME)
 #export TARGET		:=	$(shell basename $(CURDIR))
@@ -106,11 +106,11 @@ $(CONF):
 ifneq ($(strip $(TEXT_TO_SAY_1)),)
 ifeq ($(strip $(MSG_IS_ERROR)),)
 	@echo " ===================================="
-	@echo "/ YShell Project Compilation Warning /"
+	@echo "/ YSLib Project Compilation Warning /"
 	@echo "==================================== "
 else
 	@echo " =================================="
-	@echo "/ YShell Project Compilation Error /"
+	@echo "/ YSLib Project Compilation Error /"
 	@echo "================================== "
 endif
 	@echo.

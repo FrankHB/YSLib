@@ -21,75 +21,75 @@
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\About.h">
+    <ClInclude Include="..\include\About.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\ColorPicker.h">
+    <ClInclude Include="..\include\ColorPicker.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\DSReader.h">
+    <ClInclude Include="..\include\DSReader.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\HexBrowser.h">
+    <ClInclude Include="..\include\HexBrowser.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\ReaderSetting.h">
+    <ClInclude Include="..\include\ReaderSetting.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\ReaderSettingUI.h">
+    <ClInclude Include="..\include\ReaderSettingUI.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\ReadingList.h">
+    <ClInclude Include="..\include\ReadingList.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\Shells.h">
+    <ClInclude Include="..\include\Shells.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\ShlExplorer.h">
+    <ClInclude Include="..\include\ShlExplorer.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\ShlReader.h">
+    <ClInclude Include="..\include\ShlReader.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\BookmarkUI.h">
+    <ClInclude Include="..\include\BookmarkUI.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\About.cpp">
+    <ClCompile Include="..\source\About.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\ColorPicker.cpp">
+    <ClCompile Include="..\source\ColorPicker.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\DSReader.cpp">
+    <ClCompile Include="..\source\DSReader.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\HexBrowser.cpp">
+    <ClCompile Include="..\source\HexBrowser.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\main.cpp">
+    <ClCompile Include="..\source\main.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\ReaderSetting.cpp">
+    <ClCompile Include="..\source\ReaderSetting.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\ReaderSettingUI.cpp">
+    <ClCompile Include="..\source\ReaderSettingUI.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\ReadingList.cpp">
+    <ClCompile Include="..\source\ReadingList.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\Shells.cpp">
+    <ClCompile Include="..\source\Shells.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\ShlExplorer.cpp">
+    <ClCompile Include="..\source\ShlExplorer.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\ShlReader.cpp">
+    <ClCompile Include="..\source\ShlReader.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="source\BookmarkUI.cpp">
+    <ClCompile Include="..\source\BookmarkUI.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

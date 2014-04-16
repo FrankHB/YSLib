@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1357
+\version r1360
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-03-15 21:57 +0800
+	2014-04-16 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,6 +52,7 @@ enum class TextAlignment
 
 
 /*!
+\ingroup UIModels
 \brief 标签模块。
 */
 class YF_API MLabel : private noncopyable
@@ -136,6 +137,7 @@ public:
 
 
 /*!
+\ingroup UIModels
 \brief 文本列表模块。
 \warning 非虚析构。
 */
@@ -233,6 +235,7 @@ public:
 
 
 /*!
+\ingroup UIModels
 \brief 高亮文本模块。
 \warning 非虚析构。
 \since build 486

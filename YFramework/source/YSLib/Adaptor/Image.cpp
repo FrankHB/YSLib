@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r750
+\version r752
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-02-18 00:58 +0800
+	2014-04-11 00:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -414,8 +414,8 @@ private:
 	bool read;
 	::fi_handle handle;
 	int load_flags;
-	std::reference_wrapper< ::FreeImageIO> io_ref;
-	std::reference_wrapper< ::FI_PluginRec> plugin_ref;
+	std::reference_wrapper<::FreeImageIO> io_ref;
+	std::reference_wrapper<::FI_PluginRec> plugin_ref;
 	size_t page_count = 0;
 	void* data = {};
 

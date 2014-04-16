@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9142
+\version r9165
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-04-06 15:42 +0800
+	2014-04-15 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -316,6 +316,7 @@ Shell 和 Core 的关系是相对的，例如：
 当前仅经过实际验证支持的实现包括 G++ 4.8.2 或以上版本。 YBase （包括若干 workaround ） 支持 Microsoft Visual C++ 2013 。
 除以上列出外的其它实现不保证支持。
 未来可能会提升实现的最低支持版本要求，并移除针对特定版本的 workaround 代码。
+本节内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
 
 @5.2.1 YBase ：
 参见 [Documentation::YBase] 。
@@ -363,6 +364,18 @@ Shell 和 Core 的关系是相对的，例如：
 @5.2.2.5 公共约束：
 命名空间 platform 的成员满足以下约束（具体要求的定义参见 ISO C++11 ）。
  YCLib::Viedo 的 PixelType 满足 EqualityComparable 要求。
+
+@5.2.2.6 命名空间 platform ：
+命名空间 platform 中除以下另有说明外的实体和宏保持各个平台中可用且语义一致。
+
+@5.2.2.6.1 命名空间 platform::KeyCodes
+命名空间 platform::KeyCodes 用于公开输入设备的按键设置。其中的成员的一部分满足平台中立接口。
+具体的按键由可以转换为 platform::KeyIndex 类型的实体标识。
+按键值的数值不大于 platform::KeyBitsetWidth ，用于按键类别（由 platform::KeyCategory 的成员定义）判断，但不作为接口。
+平台支持的按键值使用枚举类型 NativeSet 表示，按键值的数值由具体平台定义，一般不变。
+不由平台直接支持的按键值使用枚举类型 ExtendedSet 表示，按键值的数值由 YCLib 定义，作为 ABI 的一部分，但不保证长期稳定。
+此外，为了兼容提供 constexpr 对象作为按键别名。
+ NativeSet 外的按键名都可以兼容以实现平台中立。当前 NativeSet 以 Win32 平台为基准的按键名称都保证兼容，因此平台中立按键名即当前 Win32 实现的按键集合。
 
 @5.2.3 DS 平台工具链和标准库实现：
 目标平台 DS ，实现环境参见 @5.1 。
@@ -413,6 +426,8 @@ Shell 和 Core 的关系是相对的，例如：
  devkitARM release 41 。
  2014-04-06(build 492) 起：
  devkitARM release 42 / libnds 1.5.8 / libfat 1.0.12 / default arm7 0.5.25 。
+ 2014-04-13(build 493) 起：
+参见 @5.2.5 。在 Windows 上使用 MSys2 环境的包 make 代替 devkitPro/msys 。
 
 @5.2.4 MinGW32 平台工具链和标准库实现：
 目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP/Windows Server 2003 （对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。
@@ -439,6 +454,9 @@ Shell 和 Core 的关系是相对的，例如：
  mingw-builds 已被合并至 mingw-w64 官方仓库。改变异常模型以兼容 i686 的 LLVM/Clang++ 工具链，这导致二进制兼容性不被保持。
 注意之前由于 mingw-w64 的 bug （参见 http://sourceforge.net/mailarchive/message.php?msg_id=31045447 ），即使不改变异常模型也不能保持二进制兼容性。
  2014-01-04(build 465) 起同时支持 MinGW.org 工具链，但由于实现质量等原因，不用于默认发布。
+ 2014-04-15(build 493) 起：
+参见 @5.2.5 。使用包 mingw32/mingw-w64-i686-gcc-4.8.2-7 。
+使用的工具链版本、线程模型和异常模型及外部库的依赖和之前保持一致，因此二进制兼容。
 
 @5.2.4.1 MinGW32 库部署：
  YSLib 内部使用固定的相对路径，不依赖库的部署。
@@ -455,6 +473,9 @@ Shell 和 Core 的关系是相对的，例如：
 使用 devkitPro 附带的实现。
  2013-11-22(build 458) 起：
 对于 MinGW32 ，使用 http://sourceforge.net/projects/mingwbuilds/files/external-binary-packages/msys%2B7za%2Bwget%2Bsvn%2Bgit%2Bmercurial%2Bcvs-rev13.7z 。
+ 2014-04-12(build 493) 起：
+使用 http://sourceforge.net/projects/msys2/files/Base/i686/msys2-base-i686-20140216.tar.xz 作为基础环境。
+同时使用 "Tools/msys2-update-pacman.sh" 更新包。每次主分支版本前同步 msys 环境至最新版本，但保证只依赖对于基础环境向后兼容的特性。
 
 @5.3 通用库：
 
@@ -555,6 +576,9 @@ AUX_MODULES += gzip
 重新编译 DS 和 MinGW32 库文件。
  2013-12-24(build 462) 起：
 使用 FreeType 2.5.2 ，替换文件同上。
+ 2014-04-13(build 493) 起：
+使用 FreeType 2.5.3 ，替换文件同上。
+ MinGW32 库文件： 使用命令行显式设置 CFLAGS="-c -O3 -Wall -fomit-frame-pointer -DNDEBUG" 重新编译。
 
 @5.4.2
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。

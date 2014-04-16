@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r533
+\version r556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-04-10 12:34 +0800
+	2014-04-14 11:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,6 +231,8 @@ enum NativeSet
 yconstexpr NativeSet Enter(A), Esc(B), PgUp(L), PgDn(R);
 //! \since build 490
 yconstexpr NativeSet Home(X), End(Y);
+//! \since build 493
+yconstexpr NativeSet Primary(Touch);
 
 /*!
 \brief 扩展集：作为 DS 可直接被 KeyInput 表示的非物理键按键编码。
@@ -249,7 +251,11 @@ enum ExtendedSet
 	//! \since build 491
 	Space,
 	Insert,
-	Delete
+	Delete,
+	//! \since build 493
+	Secondary,
+	//! \since build 493
+	Tertiary
 };
 #elif YCL_Win32
 /*!
@@ -260,6 +266,15 @@ enum ExtendedSet
 enum NativeSet
 {
 	Empty = 0,
+	//! \since build 493
+	//@{
+	//! \note 同 VK_LBUTTON 。
+	Primary = 0x01,
+	//! \note 同 VK_RBUTTON 。
+	Secondary = 0x02,
+	//! \note 同 VK_MBUTTON 。
+	Tertiary = 0x04,
+	//@}
 	//! \since build 490
 	//@{
 	//! \note 同 VK_BACK 。
@@ -367,6 +382,15 @@ enum NativeSet
 	//! \note 同 KEYCODE_INSERT 。
 	Insert = 0x7C
 };
+
+//! \since build 493
+enum ExtendedSet
+{
+	Primary = 0xE0,
+	Secondary = 0xE1,
+	Tertiary = 0xE2
+};
+
 #endif
 
 

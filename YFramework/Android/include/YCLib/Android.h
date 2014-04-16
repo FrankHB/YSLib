@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r276
+\version r277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-04-10 01:40 +0800
+	2014-04-11 00:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,7 +143,7 @@ public:
 	\brief 窗口消息转发事件映射。
 	\since build 488
 	*/
-//	std::map< ::UINT, YSLib::GEvent<void(::WPARAM, ::LPARAM)>> MessageMap;
+//	std::map<::UINT, YSLib::GEvent<void(::WPARAM, ::LPARAM)>> MessageMap;
 
 	HostWindow(NativeWindowHandle);
 	DefDelMoveCtor(HostWindow)

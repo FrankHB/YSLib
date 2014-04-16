@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r472
+\version r491
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2014-04-06 13:33 +0800
+	2014-04-14 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,6 +57,11 @@ YF_API void
 WaitForInput();
 
 } // namespace platform;
+
+#if YCL_Android
+//! \since build 493
+struct AInputEvent;
+#endif
 
 namespace platform_ex
 {
@@ -142,7 +147,7 @@ inline PDefH(platform::KeyInput, FetchKeyUpState, )
 
 #if YCL_DS
 /*!
-\brief 写入当前指针设备信息。
+\brief 取当前指针设备光标位置。
 \since build 481
 */
 YF_API std::pair<std::int16_t, std::int16_t>
@@ -185,6 +190,21 @@ WaitForArrowKey();
 */
 YF_API void
 WaitForABXY();
+#elif YCL_Android
+/*!
+\brief 取当前指针设备光标位置。
+\since build 493
+*/
+YF_API std::pair<float, float>
+FetchCursor();
+
+/*!
+\brief 记录输入事件。
+\sa UpdateKeyStates
+\since build 493
+*/
+void
+SaveInput(const ::AInputEvent&);
 #endif
 
 } // namespace platform_ex;
