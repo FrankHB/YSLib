@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r884
+\version r886
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-03-08 02:08 +0800
+	2014-04-19 15:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -339,8 +339,8 @@ struct call_projection<std::function<_tRet(_tParams...)>,
 	variadic_sequence<_vSeq...>> : private
 	call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>
 {
-	using call_projection<_tRet(_tParams...),
-		variadic_sequence<_vSeq...>>::call;
+	using
+		call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>::call;
 };
 //@}
 

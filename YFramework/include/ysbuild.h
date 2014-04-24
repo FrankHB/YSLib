@@ -11,13 +11,13 @@
 /*!	\file ysbuild.h
 \ingroup YFramework
 \brief YSLib 库配置文件。
-\version r771
+\version r772
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 21:53:55 +0800
 \par 修改时间:
-	2014-03-02 17:57 +0800
+	2014-04-24 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,7 @@
 #include YFM_YSLib_UI_Progress
 #include YFM_YSLib_UI_UIContainerEx
 #include YFM_YSLib_UI_TextBox
+#include YFM_YSLib_UI_TabControl
 #include YFM_YSLib_Core_Task
 #include YFM_YSLib_UI_Border
 #include YFM_YSLib_UI_Hover

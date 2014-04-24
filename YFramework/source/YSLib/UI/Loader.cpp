@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r235
+\version r237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-02-18 01:01 +0800
+	2014-04-24 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,11 +85,11 @@ WidgetLoader::DetectWidgetNode(const ValueNode& node)
 			{
 				const Rect& bounds(ParseRect(*p_bounds_str));
 
-				return Bounds.CreateWidget(type_str, bounds);
+				return Bounds.Call(type_str, bounds);
 			}
 			catch(std::invalid_argument&)
 			{}
-		return Default.CreateWidget(type_str);
+		return Default.Call(type_str);
 	}
 	catch(ystdex::bad_any_cast&)
 	{}

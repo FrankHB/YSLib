@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3052
+\version r3058
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-04-06 16:25 +0800
+	2014-04-20 17:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -525,7 +525,7 @@ public:
 	*/
 	using iterator_type = typename
 		pointer_classify<remove_reference_t<_tIterator>>::type;
-	using transformer_type = _fTransformer;
+	using transformer_type = decay_t<_fTransformer>;
 	//! \since build 439
 	using transformed_type = result_of_t<_fTransformer&(_tIterator&)>;
 	//! \since build 415
@@ -542,9 +542,10 @@ public:
 	//! \since build 448
 	template<typename _tIter, typename _tTran,
 		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIter>)>
+	//! \since build 494
 	explicit yconstfn
-	transformed_iterator(_tIter&& i, _tTran&& f = {})
-		: iterator_type(yforward(i)), transformer(yforward(f))
+	transformed_iterator(_tIter&& i, _tTran f = {})
+		: iterator_type(yforward(i)), transformer(f)
 	{}
 	//! \since build 415
 	//@{
@@ -678,15 +679,15 @@ operator!=(const transformed_iterator<_type, _fTransformer>& x,
 \ingroup helper_functions
 \brief 创建转换迭代器。
 \note 使用 ADL 。
-\since build 288
+\since build 494
 */
 template<typename _tIterator, typename _fTransformer>
 inline transformed_iterator<typename array_ref_decay<_tIterator>::type,
 	_fTransformer>
-make_transform(_tIterator&& i, _fTransformer&& f)
+make_transform(_tIterator&& i, _fTransformer f)
 {
 	return transformed_iterator<typename array_ref_decay<_tIterator>::type,
-		_fTransformer>(yforward(i), yforward(f));
+		_fTransformer>(yforward(i), f);
 }
 
 

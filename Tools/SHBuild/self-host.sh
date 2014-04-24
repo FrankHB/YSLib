@@ -6,7 +6,7 @@ set -e
 
 CXXFLAGS="-O3 -pipe -s -DNDEBUG -DYB_DLL -DYF_DLL -std=c++11 -Wall"
 INCLUDES="-I/include"
-LIBS="-lYFramework -lYBase"
+LIBS="-L/lib -lYFramework -lYBase"
 ARGS="${CXXFLAGS} ${INCLUDES} ${LIBS}"
 
 ./shbuild . ${ARGS}

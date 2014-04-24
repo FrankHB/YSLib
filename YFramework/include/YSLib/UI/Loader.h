@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r361
+\version r435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2013-12-23 22:58 +0800
+	2014-04-24 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,10 +82,9 @@ AccessWidget(const ValueNode& node, _tParams&&... args)
 //@}
 
 
-//! \since build 434
+//! \since build 494
 template<typename... _tParams>
-using GWidgetCreatorMap
-	= unordered_map<string, unique_ptr<IWidget>(*)(_tParams...)>;
+using GWidgetCreator = unique_ptr<IWidget>(*)(_tParams...);
 
 
 /*!
@@ -98,77 +97,28 @@ using GWidgetCreatorMap
 
 	reg.Register<Widget, Control, Panel>({"Widget", "Control", "Panel"});
 \endcode
+\brief 取加载器注册接口处理器：用于加载一个或多个键和类初始化例程。
+\since build 494
+\sa GRegister
 */
 template<typename... _tParams>
-struct GWidgetRegister
+class GWidgetRegister : public GHandlerRegisterBase<
+	GWidgetRegister<_tParams...>, string, GWidgetCreator<_tParams...>>
 {
-private:
-	GWidgetCreatorMap<_tParams...> wgt_map;
-
 public:
-	unique_ptr<IWidget>
-	CreateWidget(const string& type_str, _tParams&&... args)
-	{
-		if(const auto f = wgt_map[type_str])
-		{
-			YTraceDe(Notice, "Found widget creator: %s.\n", type_str.c_str());
+	using Base = GHandlerRegisterBase<GWidgetRegister<_tParams...>, string,
+		GWidgetCreator<_tParams...>>;
 
-			return f(yforward(args)...);
-		}
-		return {};
+	ImplS(Base) template<typename _tWidget, typename _fHandler>
+	static GWidgetCreator<_tParams...>
+	GetRegister(const string&)
+	{
+		return &CreateUniqueWidget<_tWidget, _tParams...>;
 	}
 
-	template<class _tWidget>
-	void
-	Register(const string& key)
-	{
-		wgt_map.emplace(key, &CreateUniqueWidget<_tWidget, _tParams...>);
-	}
-	template<typename _tIn, class _tWidget, class _tTuple>
-	void
-	Register(_tIn first, _tIn last)
-	{
-		YAssert(first != last && std::distance(first, last)
-			== std::tuple_size<_tTuple>::value + 1, "Wrong range found.");
+	using Base::Call;
 
-		Register<_tWidget>(*first);
-		++first;
-
-		YAssert((first == last) == (std::tuple_size<_tTuple>::value == 0),
-			"Wrong number of parameters found.");
-
-	//	static_if(std::tuple_size<_tTuple>::value != 0)
-	//		RegisterTail<_tIn, std::tuple_element<0, _tTuple>,
-	//			typename tuple_split<_tTuple>::tail>(first, last);
-		RegisterTail<_tIn>(static_cast<_tTuple*>(nullptr), first, last);
-	}
-	template<class _tWidget, class... _tWidgets>
-	void
-	Register(std::initializer_list<string> il)
-	{
-		YAssert(il.size() == sizeof...(_tWidgets) + 1,
-			"Wrong size of initializer list found.");
-
-		Register<std::initializer_list<string>::const_iterator, _tWidget,
-			tuple<_tWidgets...>>(il.begin(), il.end());
-	}
-
-private:
-	template<typename _tIn>
-	void
-	RegisterTail(tuple<>*, _tIn first, _tIn last)
-	{
-		YAssert(first == last, "Wrong size of initializer list found.");
-
-		yunused(first),
-		yunused(last);
-	}
-	template<typename _tIn, class _tWidget, class... _tWidgets>
-	void
-	RegisterTail(tuple<_tWidget, _tWidgets...>*, _tIn first, _tIn last)
-	{
-		Register<_tIn, _tWidget, tuple<_tWidgets...>>(first, last);
-	}
+	using Base::Register;
 };
 
 

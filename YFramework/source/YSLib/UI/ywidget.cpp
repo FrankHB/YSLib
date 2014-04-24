@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4404
+\version r4430
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-10 02:16 +0800
+	2014-04-23 10:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,16 +72,22 @@ SetInvalidationToParent(IWidget& wgt)
 void
 SetLocationOf(IWidget& wgt, const Point& pt)
 {
-	wgt.GetView().SetLocation(pt);
-	CallEvent<Move>(wgt, UIEventArgs(wgt));
+	if(GetLocationOf(wgt) != pt)
+	{
+		wgt.GetView().SetLocation(pt);
+		CallEvent<Move>(wgt, UIEventArgs(wgt));
+	}
 }
 
 void
 SetSizeOf(IWidget& wgt, const Size& s)
 {
-	wgt.GetRenderer().SetSize(s);
-	wgt.GetView().SetSize(s);
-	CallEvent<Resize>(wgt, UIEventArgs(wgt));
+	if(GetSizeOf(wgt) != s)
+	{
+		wgt.GetRenderer().SetSize(s);
+		wgt.GetView().SetSize(s);
+		CallEvent<Resize>(wgt, UIEventArgs(wgt));
+	}
 }
 
 
@@ -191,6 +197,13 @@ PaintChild(IWidget& wgt, const PaintContext& pc)
 }
 
 void
+PaintVisibleChild(IWidget& wgt, PaintEventArgs& e)
+{
+	if(IsVisible(wgt))
+		e.ClipArea |= PaintChild(wgt, e);
+}
+
+void
 RequestToFront(IWidget& wgt)
 {
 	if(const auto p_pnl = dynamic_cast<Panel*>(FetchContainerPtr(wgt)))
@@ -259,16 +272,8 @@ void
 Widget::Refresh(PaintEventArgs&& e)
 {
 	if(!e.ClipArea.IsUnstrictlyEmpty())
-	{
-		auto pr(GetChildren());
-
-		while(pr.first != pr.second)
-		{
-			if(IsVisible(*pr.first))
-				e.ClipArea |= PaintChild(*pr.first, e);
-			++pr.first;
-		}
-	}
+		for(auto pr = GetChildren(); pr.first != pr.second; ++pr.first)
+			PaintVisibleChild(*pr.first, e);
 }
 
 } // namespace UI;

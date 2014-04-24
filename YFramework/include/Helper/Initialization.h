@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r740
+\version r741
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-02-05 16:03 +0800
+	2014-04-23 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ WriteConfiguration(TextFile&, const ValueNode&);
 /*!
 \brief 载入默认配置。
 \return 读取的配置。
-\see LoadNPLA1File
+\sa LoadNPLA1File
 \since build 344
 */
 YF_API ValueNode

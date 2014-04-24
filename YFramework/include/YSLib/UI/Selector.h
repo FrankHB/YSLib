@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r644
+\version r645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2014-04-16 22:05 +0800
+	2014-04-23 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,7 +240,7 @@ public:
 private:
 	/*
 	\brief 共享状态。
-	\note 保证非空。
+	\invariant <tt>bool(p_selector)</tt> 。
 	\since build 480
 	*/
 	shared_ptr<MSelector> p_selector;

@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r462
+\version r463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2014-04-16 21:52 +0800
+	2014-04-23 00:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ class HexModel : private noncopyable
 private:
 	/*!
 	\brief 文件数据源。
-	\note 保证非空。
+	\invariant <tt>bool(pSource)</tt>。
 	\since build 270
 	*/
 	unique_ptr<File> pSource;

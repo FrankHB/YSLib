@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r377
+\version r384
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-03-02 17:36 +0800
+	2014-04-20 13:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,14 +69,15 @@ AnimateConnection(const shared_ptr<_fCallable>& conn,
 	}, prior);
 }
 
-//! \brief 按指定的可调用对象初始化为连接对象更新动画任务。
+/*!
+\brief 按指定的可调用对象初始化为连接对象更新动画任务。
+\since build 494
+*/
 template<typename _fCallable>
 void
-Animate(_fCallable&& f, Messaging::Priority prior = UI::AnimationPriority)
+Animate(_fCallable f, Messaging::Priority prior = UI::AnimationPriority)
 {
-	using Callable = ystdex::decay_t<_fCallable>;
-
-	AnimateConnection(ystdex::make_shared<Callable>(yforward(f)), prior);
+	AnimateConnection(ystdex::make_shared<_fCallable>(f), prior);
 }
 
 

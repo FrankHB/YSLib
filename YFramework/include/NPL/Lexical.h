@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1265
+\version r1267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2013-12-24 09:37 +0800
+	2014-04-23 01:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,7 +150,7 @@ Deliteralize(const string&);
 
 /*!
 \brief 转义字符串：替换指定字符串中的可转义字符。
-\see LexicalAnalyzer 。
+\sa LexicalAnalyzer
 \since build 335
 */
 YF_API string

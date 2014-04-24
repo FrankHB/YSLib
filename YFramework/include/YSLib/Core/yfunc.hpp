@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r890
+\version r965
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2013-12-23 23:07 +0800
+	2014-04-24 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Core_YShellDefinition
 #include <functional>
 #include <typeinfo>
+#include YFM_YSLib_Adaptor_YContainer
 
 namespace YSLib
 {
@@ -315,6 +316,92 @@ public:
 	{}
 };
 #endif
+
+
+/*!
+\brief 注册处理器抽象模板：供派生类加载一个或多个键和指定类型关联的例程。
+\note 加载的键的数量和类型的数量需要保持一致。
+\warning 非虚析构。
+\since build 494
+*/
+template<class _tDerived, typename _tKey, typename _fHandler>
+struct GHandlerRegisterBase
+{
+private:
+	unordered_map<_tKey, _fHandler> registered_map{};
+
+public:	
+	DeclSEntry(template<_type, _fHandler> _fHandler GetRegister() const)
+
+	template<typename... _tParams>
+	auto
+	Call(const _tKey& key, _tParams&&... args)
+		-> ystdex::result_of_t<_fHandler&(_tParams&&...)>
+	{
+		if(const auto f = registered_map[key])
+		{
+			// TODO: Do right trace.
+		//	YTraceDe(Notice, "Found registered handler: %s.\n",
+		//		to_string(key).c_str());
+
+			return f(yforward(args)...);
+		}
+		return {};
+	}
+
+	template<class _type>
+	void
+	Register(const _tKey& key)
+	{
+		registered_map.emplace(key, static_cast<_tDerived*>(this)
+			->template GetRegister<_type, _fHandler>(key));
+	}
+	template<typename _tIn, class _type, class _tTuple>
+	void
+	Register(_tIn first, _tIn last)
+	{
+		YAssert(first != last && std::distance(first, last)
+			== std::tuple_size<_tTuple>::value + 1, "Wrong range found.");
+
+		Register<_type>(*first);
+		++first;
+
+		YAssert((first == last) == (std::tuple_size<_tTuple>::value == 0),
+			"Wrong number of parameters found.");
+
+	//	static_if(std::tuple_size<_tTuple>::value != 0)
+	//		RegisterTail<_tIn, std::tuple_element<0, _tTuple>,
+	//			typename tuple_split<_tTuple>::tail>(first, last);
+		RegisterTail<_tIn>(static_cast<_tTuple*>(nullptr), first, last);
+	}
+	template<class _type, class... _types>
+	void
+	Register(std::initializer_list<string> il)
+	{
+		YAssert(il.size() == sizeof...(_types) + 1,
+			"Wrong size of initializer list found.");
+
+		Register<std::initializer_list<string>::const_iterator, _type,
+			tuple<_types...>>(il.begin(), il.end());
+	}
+
+private:
+	template<typename _tIn>
+	void
+	RegisterTail(tuple<>*, _tIn first, _tIn last)
+	{
+		YAssert(first == last, "Wrong size of initializer list found.");
+
+		yunused(first),
+		yunused(last);
+	}
+	template<typename _tIn, class _type, class... _types>
+	void
+	RegisterTail(tuple<_type, _types...>*, _tIn first, _tIn last)
+	{
+		Register<_tIn, _type, tuple<_types...>>(first, last);
+	}
+};
 
 } // namespace YSLib;
 

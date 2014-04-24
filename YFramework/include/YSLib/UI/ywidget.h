@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5662
+\version r5672
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-10 02:16 +0800
+	2014-04-23 10:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,7 +203,7 @@ SetLocationOf(IWidget&, const Point&);
 
 /*!
 \brief 设置部件大小。
-\note 设置视图和渲染器状态后触发 Resize 事件。
+\note 依次设置渲染器和视图状态，然后触发 Resize 事件。
 \since build 259
 */
 YF_API void
@@ -308,7 +308,7 @@ InvalidateVisibleParent(IWidget&);
 
 /*!
 \brief 调用指定子部件的 Paint 事件绘制参数指定的事件发送者。
-\see Renderer::Paint 。
+\sa Renderer::Paint
 \since build 263
 
 以 e.Sender() 作为绘制目标，判断其边界是否和区域 e.ClipArea 相交，
@@ -329,6 +329,13 @@ PaintChild(IWidget& wgt, PaintEventArgs&& e);
 */
 YF_API Rect
 PaintChild(IWidget& wgt, const PaintContext& pc);
+
+/*!
+\brief 调用 PaintChild 指定子部件并合并参数的重绘区域。
+\since build 494
+*/
+YF_API void
+PaintVisibleChild(IWidget&, PaintEventArgs&);
 
 /*!
 \brief 请求提升至容器前端。
@@ -466,8 +473,8 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\see PaintContext 。
 	\note 默认按 GetChildren() 得到的迭代器范围绘制可见子部件。
+	\sa PaintContext
 	\since build 294
 
 	由参数指定的信息绘制事件发送者。参数的 ClipArea 成员指定边界。

@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1722
+\version r1773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-03-30 16:23 +0800
+	2014-04-24 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,8 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_YDesktop
+
+using namespace ystdex;
 
 namespace YSLib
 {
@@ -87,8 +89,6 @@ LocateForWidget(const IWidget& a, const IWidget& b)
 	while(pCon)
 	{
 		{
-			using ystdex::get_key;
-
 			auto i(std::find(lst.begin() | get_key, lst.end() | get_key, pCon));
 
 			if(i != lst.cend())
@@ -145,17 +145,69 @@ MoveToBottom(IWidget& wgt)
 
 
 bool
+RemoveFrom(IWidget& wgt, IWidget& con)
+{
+	if(FetchContainerPtr(wgt) == &con)
+	{
+		SetContainerPtrOf(wgt);
+		if(FetchFocusingPtr(con) == &wgt)
+			con.GetView().FocusingPtr = {};
+		return true;
+	}
+	return {};
+}
+
+
+void
+MLinearUIContainer::operator+=(IWidget& wgt)
+{
+	if(!Contains(wgt))
+		vWidgets.push_back(&wgt);
+}
+
+bool
+MLinearUIContainer::operator-=(IWidget& wgt)
+{
+	auto t(vWidgets.size());
+
+	erase_all(vWidgets, &wgt);
+	t -= vWidgets.size();
+
+	YAssert(t <= 1, "Duplicate widget pointer found.");
+
+	return t != 0;
+}
+
+bool
+MLinearUIContainer::Contains(IWidget& wgt)
+{
+	return
+		std::find(vWidgets.cbegin(), vWidgets.cend(), &wgt) != vWidgets.end();
+}
+
+MLinearUIContainer::iterator
+MLinearUIContainer::begin()
+{
+	return vWidgets.rbegin() | get_indirect;
+}
+
+MLinearUIContainer::iterator
+MLinearUIContainer::end()
+{
+	return vWidgets.rend() | get_indirect;
+}
+
+
+bool
 MUIContainer::operator-=(IWidget& wgt)
 {
-	using namespace ystdex;
-
 	auto t(mWidgets.size());
 
 	erase_all(mWidgets, mWidgets.begin() | get_value, mWidgets.end()
 		| get_value, &wgt);
 	t -= mWidgets.size();
 
-	YAssert(t <= 1, "Duplicate desktop object pointer found.");
+	YAssert(t <= 1, "Duplicate widget pointer found.");
 
 	return t != 0;
 }
@@ -170,8 +222,6 @@ MUIContainer::Add(IWidget& wgt, ZOrderType z)
 bool
 MUIContainer::Contains(IWidget& wgt)
 {
-	using ystdex::get_value;
-
 	return std::find(mWidgets.cbegin() | get_value, mWidgets.cend() | get_value,
 		&wgt) != mWidgets.end();
 }
@@ -179,32 +229,25 @@ MUIContainer::Contains(IWidget& wgt)
 void
 MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 {
-	using ystdex::get_value;
-
 	std::for_each(mWidgets.begin() | get_value, mWidgets.end() | get_value,
 		[&](IWidget* const& p_wgt){
 		YAssert(p_wgt, "Null pointer found.");
 
 		auto& wgt(*p_wgt);
 
-		if(UI::IsVisible(wgt))
-			e.ClipArea |= PaintChild(wgt, e);
+		PaintVisibleChild(wgt, e);
 	});
 }
 
 MUIContainer::iterator
 MUIContainer::begin()
 {
-	using namespace ystdex;
-
 	return mWidgets.rbegin() | get_value | get_indirect;
 }
 
 MUIContainer::iterator
 MUIContainer::end()
 {
-	using namespace ystdex;
-
 	return mWidgets.rend() | get_value | get_indirect;
 }
 

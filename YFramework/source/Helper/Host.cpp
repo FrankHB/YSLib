@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1339
+\version r1342
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-04-11 00:55 +0800
+	2014-04-16 21:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,8 +125,9 @@ Environment::GetForegroundWindow() const ynothrow
 {
 #ifdef YCL_Win32
 	return FindWindow(::GetForegroundWindow());
+#else
+	return {};
 #endif
-	return nullptr;
 }
 
 void

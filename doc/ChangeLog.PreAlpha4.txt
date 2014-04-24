@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r7247
+\version r7255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-04-16 22:15 +0800
+	2014-04-24 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,10 +32,14 @@ $import $HISTORY;
 
 $now
 (
+),
+
+b493
+(
 	/ DLD "all '< ::'" -> '<::',
 		// Since now ISO C++11 is mandated, no need to add space to \
 			distinguish these preprocessing tokens.
-	^ DLP $re_ex(b453) "MinGW[gcc version 4.8.2 (Rev6, Built by MSYS2 \
+	^ DLP $re_ex(b453) "MinGW[gcc version 4.8.2 (Rev7, Built by MSYS2 \
 		project)] mingw32/mingw-w64-i686-gcc-4.8.2-7"
 		~ "MinGW[gcc version 4.8.2 (Built by MinGW-W64 project)] \
 		i686-4.8.2-release-posix-dwarf-rt_v3-rev0";
@@ -190,7 +194,7 @@ b492
 	(
 		+ "macros %(__GCC_IEC_559, __GCC_IEC_COMPLEX)",
 			// See http://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html#Common-Predefined-Macros .
-		+ "Clang++ support" 
+		+ "Clang++ support"
 			// See http://clang.llvm.org/docs/LanguageExtensions.html .
 	),
 	/ $dev @ "Visual C++ projects" $=
@@ -269,7 +273,7 @@ b491
 				@ "class template %GBinaryGroup" @ %Core.YGDIBase
 		),
 		/ DLD "initialization" @ "%Environment::RawMouseButton"
-			@ "platform %Win32" @ %Helper.Host ^ "member-initializer" 
+			@ "platform %Win32" @ %Helper.Host ^ "member-initializer"
 	)
 ),
 
@@ -1349,7 +1353,7 @@ b474
 		/ %YSLib $=
 		(
 			/ @ "namespace YSLib::IO" @ %Service.FileSystem
-				$=(/ "enum classes %(PathCategory, NodeCategory)" 
+				$=(/ "enum classes %(PathCategory, NodeCategory)"
 					>> "namespace %platform" @ %YCLib.FileSystem),
 			/ %Adaptor.YAdaptor $=
 			(
@@ -1406,7 +1410,7 @@ b474
 			(
 				+ "non-null assertion for parameter",
 				/ "function %mkdirs supported path which length is explicitly \
-					limited at translation time" 
+					limited at translation time"
 					$= (DLD ^ "%std::string" ~ "platform::FILENAMESTR"),
 			),
 			$dep_from "using aliases";

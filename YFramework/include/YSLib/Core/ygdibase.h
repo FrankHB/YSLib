@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1487
+\version r1497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-04-06 13:44 +0800
+	2014-04-23 01:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -424,25 +424,25 @@ public:
 
 	/*!
 	\brief 左上角横坐标。
-	\see Point::X 。
+	\sa Point::X
 	\since build 296
 	*/
 	using Point::X;
 	/*!
 	\brief 左上角纵坐标。
-	\see Point::Y 。
+	\sa Point::Y
 	\since build 296
 	*/
 	using Point::Y;
 	/*!
 	\brief 长。
-	\see Size::Width 。
+	\sa Size::Width
 	\since build 296
 	*/
 	using Size::Width;
 	/*!
 	\brief 宽。
-	\see Size::Height 。
+	\sa Size::Height
 	\since build 296
 	*/
 	using Size::Height;
@@ -541,14 +541,14 @@ public:
 
 	/*!
 	\brief 判断是否为空。
-	\see Size::operator! 。
+	\sa Size::operator!
 	\since build 320
 	*/
 	using Size::operator!;
 
 	/*!
 	\brief 判断是否非空。
-	\see Size::bool 。
+	\sa Size::bool
 	\since build 320
 	*/
 	using Size::operator bool;
@@ -595,13 +595,13 @@ public:
 
 	/*!
 	\brief 判断矩形是否为线段：长和宽中有且一个数值等于 0 。
-	\see Size::IsLineSegment 。
+	\sa Size::IsLineSegment
 	\since build 296
 	*/
 	using Size::IsLineSegment;
 	/*!
 	\brief 判断矩形是否为不严格的空矩形区域：包括空矩形和线段。
-	\see Size::IsUnstrictlyEmpty 。
+	\sa Size::IsUnstrictlyEmpty
 	\since build 296
 	*/
 	using Size::IsUnstrictlyEmpty;
@@ -673,7 +673,7 @@ operator-(const Rect& r, const Vec& v) ynothrow
 
 /*!
 \brief 求两个屏幕标准矩形的交。
-\see Rect::operator&= 。
+\sa Rect::operator&=
 \since build 452
 */
 YF_API Rect
@@ -681,7 +681,7 @@ operator&(const Rect&, const Rect&) ynothrow;
 
 /*!
 \brief 求两个屏幕标准矩形的并。
-\see Rect::operator|= 。
+\sa Rect::operator|=
 \since build 452
 */
 YF_API Rect

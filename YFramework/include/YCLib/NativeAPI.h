@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r706
+\version r707
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-01-04 23:21 +0800
+	2013-04-23 01:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,7 +201,7 @@ extern "C"
 /*!
 \def mkdir
 \brief 修正 MinGW 中的 mkdir 参数问题。
-\see platform_replace::makedir
+\sa platform_replace::makedir
 \since build 298
 */
 #define mkdir platform_replace::makedir

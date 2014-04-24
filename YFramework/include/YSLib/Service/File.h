@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1127
+\version r1128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-02-05 15:47 +0800
+	2014-04-23 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,7 +177,7 @@ public:
 
 	/*!
 	\brief 截断文件。
-	\see platform::truncate 。
+	\sa platform::truncate
 	\note 派生类可能覆盖默认行为。
 	\since build 341
 	*/

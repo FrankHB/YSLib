@@ -210,6 +210,7 @@
     <ClInclude Include="include\YSLib\UI\progress.h" />
     <ClInclude Include="include\YSLib\UI\scroll.h" />
     <ClInclude Include="include\YSLib\UI\Selector.h" />
+    <ClInclude Include="include\YSLib\UI\TabControl.h" />
     <ClInclude Include="include\YSLib\UI\textarea.h" />
     <ClInclude Include="include\YSLib\UI\TextBox.h" />
     <ClInclude Include="include\YSLib\UI\textlist.h" />
@@ -302,6 +303,7 @@
     <ClCompile Include="source\YSLib\UI\progress.cpp" />
     <ClCompile Include="source\YSLib\UI\scroll.cpp" />
     <ClCompile Include="source\YSLib\UI\Selector.cpp" />
+    <ClCompile Include="source\YSLib\UI\TabControl.cpp" />
     <ClCompile Include="source\YSLib\UI\textarea.cpp" />
     <ClCompile Include="source\YSLib\UI\TextBox.cpp" />
     <ClCompile Include="source\YSLib\UI\textlist.cpp" />

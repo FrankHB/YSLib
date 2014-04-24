@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4544
+\version r4584
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-02-16 23:58 +0800
+	2014-04-20 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,13 +113,13 @@ public:
 	{}
 	/*!
 	\brief 使用函数对象。
-	\since build 439
+	\since build 494
 	*/
 	template<class _fCallable>
 	yconstfn
-	GHEvent(_fCallable&& f, ystdex::enable_if_t<
+	GHEvent(_fCallable f, ystdex::enable_if_t<
 		std::is_constructible<BaseType, _fCallable>::value, int> = 0)
-		: BaseType(yforward(f)), comp_eq(GetComparer(f, f))
+		: BaseType(f), comp_eq(GetComparer(f, f))
 	{}
 	/*!
 	\brief 使用扩展函数对象。
@@ -723,7 +723,49 @@ struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
 
 
 /*!
-\brief 事件处理器包装类模板。
+\brief 事件处理器适配器模板。
+\warning 非虚析构。
+\since build 494
+*/
+template<typename _type, typename _fCallable = std::function<void(_type&)>>
+class GHandlerAdaptor
+{
+public:
+	using CallerType = ystdex::decay_t<_fCallable>;
+
+	std::reference_wrapper<_type> ObjectRef;
+	CallerType Caller;
+
+	GHandlerAdaptor(_type& obj, CallerType f)
+		: ObjectRef(obj), Caller(f)
+	{}
+	template<typename _fCaller>
+	GHandlerAdaptor(_type& obj, _fCaller&& f)
+		: ObjectRef(obj), Caller(ystdex::make_expanded<CallerType>(yforward(f)))
+	{}
+
+	//! \todo 使用 <tt>noexpcept</tt> 。
+	template<typename... _tParams>
+	void
+	operator()(_tParams&&... args) const
+	{
+		try
+		{
+			Caller(yforward(args)...);
+		}
+		catch(std::bad_function_call&)
+		{}
+	}
+
+	//! \todo 实现比较 Function 相等。
+	PDefHOp(bool, ==, const GHandlerAdaptor& adaptor) const ynothrow
+		ImplRet(std::addressof(adaptor.ObjectRef.get())
+			== std::addressof(ObjectRef.get()))
+};
+
+
+/*!
+\brief 事件包装类模板。
 \since build 173
 */
 template<class _tEvent, typename _tBaseArgs>

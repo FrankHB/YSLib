@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2729
+\version r2730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-03-15 17:00 +0800
+	2014-04-23 10:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -216,7 +216,7 @@ SetCurrentTextLineNOf(TextState&, u16);
 \brief 按指定显示区域和文本区域的宽重新设置右边距。
 \note 右边距参与行的结尾位置计算。
 \note 单独使用时，需要设置笔的起始位置（横坐标），否则只适用于单行显示。
-\see PutChar 。
+\sa PutChar
 \since build 372
 */
 inline void

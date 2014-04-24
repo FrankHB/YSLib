@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r321
+\version r322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-04-10 01:39 +0800
+	2014-04-23 01:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ private:
 public:
 	/*!
 	\brief 用户界面输入响应阈值。
-	\see DSApplication::Run 。
+	\sa DSApplication::Run
 
 	用于主消息队列的消息循环中控制后台消息生成策略的全局消息优先级。
 	*/

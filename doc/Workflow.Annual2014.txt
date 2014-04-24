@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r222
+\version r254
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-03-20 12:44 +0800
+	2014-04-24 23:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -180,12 +180,13 @@ There are some issues against aggresive optimization of moving an object in seve
 		Explicit use of 'std::move' can be a workaround.
 		This issue was accepted.
 	See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3852.html for N3690 comments list.
-	There was no consensus for the suggested change for other contexts. See N3690 comment US 12 .
+	There was no consensus for the suggested change for other contexts. See N3690 comment US 12.
 	Therefore, explicitly use of 'std::move' and 'std::move_if_noexcept' only should occured when necessary.
 'YSTest402r16.nds' cases DeSmuME 0.9.9 x64 crash for unknown reasons.
 
 
 $2014-03:
+
 report.impl:
 Now for YSLib::UI, the default UI event handlers treat the senders to be processed instead of destination widgets where the identity of the sender and the destination widget is true.
 	The old rules mean 'this == e.GetSender()' is always true for calling of some events in implementation of YSLib::UI.
@@ -216,6 +217,40 @@ Some event-based invalidation of "YSLib::UI::Control" class is removed.
 	For "GotFocus" event, only one case is considered:
 		For "Menu", further invalidation for showing is needed. It should be used also for focus border painting.
 		For "TextBox", a further invalidation is needed and added as a new handler for focus border painting.
+
+$2014-04:
+
+report.impl:
+Call by value or by rvalue refernce for a callable object, a call wrapper or an iterator might be significant different.
+	For the notion of call wrappers, see ISO C++11 20.8.1, which was intially introduced in http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2004/n1673.html .
+		A call wrapper "holds" a callable object, not necessarily "owns" a callable object. Be cautious for the lifetime of the underlying callable object.
+	Note a call wrapper is MoveConstructible; a call wrapper can be not CopyConstructible; A simple call wrapper is CopyConstructible. See ISO C++11 20.8.2/4.
+		Exceptions are strictly restricted to be thrown. No exception are allowed to be thrown in copying a simple call wrapper.
+		For moved-only types(which is not CopyConstructible), it should be treated as forwarding call wrapper, i.e. passed as '_fCallable&&'.
+		Otherwise, for simplicity, a callable object should be passed by '_tCallable', except when necessarily treated as forwarding call wrapper by design.
+			Most uses of callable objects or call wrappers are plainly passed by value.
+				Such as the function parameter of the constructor of 'std::function' with exactly 1 parameter.
+				The function templates in algorithm library accept callable objects or simple call wrappers passed by value.
+			The are two important exceptions:
+				The first parameter for the constructor of 'std::bind'.
+					The forwarding call wrapper should have been accepted by design.
+					See http://wg21.cmeerw.net/lwg/issue817 for details.
+				The first parameter for the constructor of 'std::thread'.
+					The use cases and reasons are similiar.
+					See http://wg21.cmeerw.net/lwg/issue929 for details.
+	As of ISO C++ 12.8/32, if the object designated as lvalue is a parameter, it would be firstly moved event if copy ellision criteria in ISO C++ 12.8/31 are not met.
+		If used as forwarding of a passed by value callable object, no redundant 'std::move' should be used.
+	Similarly, in the standard library, the iteraors in the algorithms are passed by reference primarily.
+	For simplicity in YSLib, if and only if noncopyable callable object is intendedly acceptable by design, pass-by-value '_tCallable' should always be used instead of '_fCallable&&'.
+		This also means most callable objects should be CopyConstrictible.
+		The major general exception is for forwarding function templates, which have templated function parameters like '_tParams&&...'. Some examples:
+			General forwarding function templates like 'ystdex::seq_apply', 'ystdex::unseq_apply' and 'ystdex::call_projection::call' in YBase::Functional. They are used for reordering the evaluation as well as forwarding the parameters, so just behave as 'std::bind'.
+			General forwarding call wrappers as 'ystdex::expanded_caller', also the helper 'ystdex::make_expanded', in YBase::Functional.
+			Forwarding functions templates in YTest::Timing.
+			Callers which use 'ystdex::expanded_caller' as underlying implementation in YSLib::Core::YEvent.
+	For simplicity in YSLib, an iterator should be passed by value, unless it is an iterator adaptor to generally provide adaption for any other iterator types.
+		The general iterator adaptors include, for example, 'ystdex::any_iterator' or 'ystdex::transformed_iterator'.
+		All current declarations are conforming. No modification need to be performed.
 
 
 ////

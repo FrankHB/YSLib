@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1823
+\version r1910
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-03-30 16:23 +0800
+	2014-04-23 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,6 +157,101 @@ const ZOrderType DefaultWindowZOrder(128);
 
 
 /*!
+\brief 从容器中移除部件。
+\return 是否移除成功。
+\note 第二个参数指定的部件作为容器检查和尝试移除第一个参数指定的部件。
+\note 若移除成功同时移除焦点指针。
+\since build 494
+*/
+YF_API bool
+RemoveFrom(IWidget&, IWidget&);
+
+
+/*!
+\brief 线性部件容器模块。
+\note 不支持 Z 顺序，但支持随机访问。
+\warning 非虚析构。
+\since build 494
+*/
+class YF_API MLinearUIContainer
+{
+public:
+	//! \brief 部件组项目类型。
+	using ItemType = IWidget*;
+	//! \brief 部件组类型。
+	using WidgetVector = vector<ItemType>;
+	using iterator = WidgetIterator;
+
+protected:
+	/*
+	\brief 部件组：存储非空部件指针。
+	\invariant <tt>std::all_of(mWidgets.begin(), mWidget.end(),
+		[](ItemType item){return bool(item);})</tt> 。
+	*/
+	WidgetVector vWidgets;
+
+	//! \brief 无参数构造：默认实现。
+	DefDeCtor(MLinearUIContainer)
+	DefDeMoveCtor(MLinearUIContainer)
+
+	/*!
+	\brief 向部件组添加部件。
+	\note 部件已存在时忽略。
+	*/
+	void
+	operator+=(IWidget&);
+
+	/*!
+	\brief 从部件组移除部件。
+	\return 存在指定部件且移除成功。
+
+	从部件组移除部件。
+	*/
+	bool
+	operator-=(IWidget&);
+
+public:
+	//! \brief 取指定索引的部件引用。
+	//@{
+	PDefHOp(IWidget&, [], size_t idx) ynothrowv
+		ImplRet(YAssert(vWidgets[idx], "Null pointer found."), *vWidgets[idx])
+	PDefHOp(IWidget&, [], size_t idx) const ynothrowv
+		ImplRet(YAssert(vWidgets[idx], "Null pointer found."), *vWidgets[idx])
+	//@}
+
+	//! \brief 判断是否包含指定部件。
+	bool
+	Contains(IWidget&);
+
+protected:
+	//! \brief 绘制可视子部件。
+	void
+	PaintVisibleChildren(PaintEventArgs&);
+
+public:
+	/*!
+	\brief 取指定索引的部件引用。
+	\exception std::out_of_range 异常中立：由 vWidgets.at 抛出。
+	\note 仅抛出以上异常。
+	*/
+	//@{
+	PDefH(IWidget&, at, size_t idx) ythrow(std::out_of_range)
+		ImplRet(YAssert(vWidgets.at(idx), "Null pointer found."),
+			*vWidgets.at(idx))
+	PDefH(IWidget&, at, size_t idx) const ythrow(std::out_of_range)
+		ImplRet(YAssert(vWidgets.at(idx), "Null pointer found."),
+			*vWidgets.at(idx))
+	//@}
+
+	iterator
+	begin();
+
+	iterator
+	end();
+};
+
+
+/*!
 \brief 部件容器模块。
 \warning 非虚析构。
 \since build 167
@@ -174,6 +269,8 @@ public:
 protected:
 	/*
 	\brief 部件映射：存储 Z 顺序映射至非空部件指针。
+	\invariant <tt>std::all_of(mWidgets.begin(), mWidget.end(),
+		[](const PairType& pr){return bool(pr.second);})</tt> 。
 	\since build 279
 	*/
 	WidgetMap mWidgets;
@@ -186,18 +283,18 @@ protected:
 
 	/*!
 	\brief 向部件组添加部件。
-
-	向焦点对象组添加焦点对象，同时向部件组按默认 Z 顺序值添加部件。
 	\note 部件已存在时忽略。
+
+	向部件组按默认 Z 顺序值添加部件。
 	*/
 	PDefHOp(void, +=, IWidget& wgt)
 		ImplRet(Add(wgt))
 
 	/*!
 	\brief 从部件组移除部件。
-
-	从部件组移除部件，同时从焦点对象组移除焦点对象。
 	\return 存在指定部件且移除成功。
+
+	从部件组移除部件。
 	*/
 	bool
 	operator-=(IWidget&);

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1386
+\version r1387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-04-06 16:24 +0800
+	2014-04-23 01:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -737,7 +737,7 @@ swap(any& x, any& y) ynothrow
 /*!
 \brief 动态泛型转换失败异常。
 \note 基本接口和语义同 boost::bad_any_cast 。
-\see any_cast 。
+\sa any_cast
 \since build 331
 */
 class bad_any_cast : public std::bad_cast

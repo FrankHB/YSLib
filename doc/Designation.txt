@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9165
+\version r9169
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-04-15 19:15 +0800
+	2014-04-24 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -455,7 +455,8 @@ Shell 和 Core 的关系是相对的，例如：
 注意之前由于 mingw-w64 的 bug （参见 http://sourceforge.net/mailarchive/message.php?msg_id=31045447 ），即使不改变异常模型也不能保持二进制兼容性。
  2014-01-04(build 465) 起同时支持 MinGW.org 工具链，但由于实现质量等原因，不用于默认发布。
  2014-04-15(build 493) 起：
-参见 @5.2.5 。使用包 mingw32/mingw-w64-i686-gcc-4.8.2-7 。
+基础环境更改参见 @5.2.5 。
+使用包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.8.2-7 。
 使用的工具链版本、线程模型和异常模型及外部库的依赖和之前保持一致，因此二进制兼容。
 
 @5.2.4.1 MinGW32 库部署：
@@ -475,7 +476,8 @@ Shell 和 Core 的关系是相对的，例如：
 对于 MinGW32 ，使用 http://sourceforge.net/projects/mingwbuilds/files/external-binary-packages/msys%2B7za%2Bwget%2Bsvn%2Bgit%2Bmercurial%2Bcvs-rev13.7z 。
  2014-04-12(build 493) 起：
 使用 http://sourceforge.net/projects/msys2/files/Base/i686/msys2-base-i686-20140216.tar.xz 作为基础环境。
-同时使用 "Tools/msys2-update-pacman.sh" 更新包。每次主分支版本前同步 msys 环境至最新版本，但保证只依赖对于基础环境向后兼容的特性。
+同时使用 "Tools/msys2-update-pacman.sh" 更新包。
+每次主分支版本前同步 MSys 环境（ @5.2.4 中明确提到的除外）至最新版本，但保证只依赖对于基础环境向后兼容的特性，因此应可直接升级到更新版本使用。
 
 @5.3 通用库：
 

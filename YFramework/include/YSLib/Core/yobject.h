@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3802
+\version r3803
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-04-06 16:26 +0800
+	2014-04-23 01:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ struct HasOwnershipOf : std::integral_constant<bool,
 
 /*!
 \brief 带等于接口的动态泛型持有者接口。
-\see ystdex::any_holder 。
+\sa ystdex::any_holder
 \since build 332
 */
 DeclDerivedI(YF_API, IValueHolder, ystdex::any_ops::holder)
