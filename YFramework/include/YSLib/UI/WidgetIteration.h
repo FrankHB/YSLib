@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file WidgetIteration.h
 \ingroup UI
 \brief 部件迭代接口。
-\version r197
+\version r202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 356
 \par 创建时间:
 	2012-11-25 16:36:34 +0800
 \par 修改时间:
-	2013-12-23 22:55 +0800
+	2014-04-26 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,8 +43,8 @@ namespace YSLib
 	_type& \
 	operator[](size_t idx) _q \
 	{ \
-		return std::initializer_list<std::reference_wrapper<_type>> \
-			{__VA_ARGS__}.begin()[idx]; \
+		return ystdex::forward_as_array<std::reference_wrapper<_type>>( \
+			__VA_ARGS__).begin()[idx]; \
 	}
 /*!
 \def DefSubscriptorBase
@@ -56,8 +56,8 @@ namespace YSLib
 	operator[](size_t idx) _q \
 	{ \
 		return idx < _vBaseN ? _tBase::operator[](idx) \
-			: std::initializer_list<std::reference_wrapper<_type>> \
-			{__VA_ARGS__}.begin()[idx - _vBaseN].get(); \
+			: ystdex::forward_as_array<std::reference_wrapper<_type>>( \
+			__VA_ARGS__).begin()[idx - _vBaseN].get(); \
 	}
 
 

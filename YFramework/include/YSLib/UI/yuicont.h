@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1910
+\version r1944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-04-23 23:39 +0800
+	2014-04-27 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,17 +211,39 @@ protected:
 	operator-=(IWidget&);
 
 public:
-	//! \brief 取指定索引的部件引用。
+	/*!
+	\brief 取指定索引的部件引用。
+	\pre 断言：参数小于部件数。
+	*/
 	//@{
 	PDefHOp(IWidget&, [], size_t idx) ynothrowv
-		ImplRet(YAssert(vWidgets[idx], "Null pointer found."), *vWidgets[idx])
+		ImplRet(YAssertNonnull(vWidgets[idx]),
+			YAssert(idx < GetCount(), "Index is out of range."), *vWidgets[idx])
 	PDefHOp(IWidget&, [], size_t idx) const ynothrowv
-		ImplRet(YAssert(vWidgets[idx], "Null pointer found."), *vWidgets[idx])
+		ImplRet(YAssertNonnull(vWidgets[idx]),
+			YAssert(idx < GetCount(), "Index is out of range."), *vWidgets[idx])
 	//@}
 
-	//! \brief 判断是否包含指定部件。
+	/*!
+	\brief 判断是否包含指定部件。
+	\since build 495
+	*/
 	bool
-	Contains(IWidget&);
+	Contains(IWidget&) const;
+
+	/*!
+	\brief 取部件数。
+	\since build 495
+	*/
+	DefGetter(const ynothrow, size_t, Count, vWidgets.size())
+
+	/*!
+	\brief 查找部件。
+	\return 若找到则为部件的索引，否则等于部件数。
+	\since build 495
+	*/
+	size_t
+	Find(IWidget&) const;
 
 protected:
 	//! \brief 绘制可视子部件。
@@ -236,11 +258,9 @@ public:
 	*/
 	//@{
 	PDefH(IWidget&, at, size_t idx) ythrow(std::out_of_range)
-		ImplRet(YAssert(vWidgets.at(idx), "Null pointer found."),
-			*vWidgets.at(idx))
+		ImplRet(YAssertNonnull(vWidgets.at(idx)), *vWidgets.at(idx))
 	PDefH(IWidget&, at, size_t idx) const ythrow(std::out_of_range)
-		ImplRet(YAssert(vWidgets.at(idx), "Null pointer found."),
-			*vWidgets.at(idx))
+		ImplRet(YAssertNonnull(vWidgets.at(idx)), *vWidgets.at(idx))
 	//@}
 
 	iterator
@@ -305,6 +325,12 @@ public:
 	*/
 	bool
 	Contains(IWidget&);
+
+	/*!
+	\brief 取部件数。
+	\since build 495
+	*/
+	DefGetter(const ynothrow, size_t, Count, mWidgets.size())
 
 	/*!
 	\brief 向部件组添加部件。

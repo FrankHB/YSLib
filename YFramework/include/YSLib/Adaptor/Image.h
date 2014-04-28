@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r820
+\version r822
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-03-04 12:51 +0800
+	2014-04-25 09:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -588,7 +588,7 @@ public:
 inline HMultiBitmap::iterator&
 HMultiBitmap::iterator::operator++() ynothrowv
 {
-	YAssert(p_bitmaps, "Null pointer found.");
+	YAssertNonnull(p_bitmaps);
 
 	if(++index == p_bitmaps->GetPageCount())
 		p_bitmaps = {};
@@ -598,7 +598,7 @@ HMultiBitmap::iterator::operator++() ynothrowv
 inline HMultiBitmap::iterator::reference
 HMultiBitmap::iterator::operator*() const
 {
-	YAssert(p_bitmaps, "Null pointer found.");
+	YAssertNonnull(p_bitmaps);
 
 	return p_bitmaps->Lock(index);
 }

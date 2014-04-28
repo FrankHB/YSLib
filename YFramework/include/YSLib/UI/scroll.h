@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2655
+\version r2675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2014-01-11 11:33 +0800
+	2014-04-25 10:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -339,35 +339,28 @@ public:
 
 	/*!
 	\brief 取轨道引用。
-	\note 断言： bool(pTrack) 。
+	\pre 断言： bool(pTrack) 。
 	*/
-	ATrack&
-	GetTrack() const ynothrow
-	{
-		YAssert(bool(pTrack), "Null pointer found.");
-
-		return *pTrack;
-	}
-	DefGetterMem(const ynothrow, ValueType, MaxValue, GetTrack())
-	DefGetterMem(const ynothrow, ValueType, Value, GetTrack())
-	DefGetterMem(const ynothrow, ValueType, LargeDelta, GetTrack())
+	DefGetter(const ynothrow, ATrack&, TrackRef,
+		(YAssertNonnull(pTrack), *pTrack))
+	DefGetterMem(const ynothrow, ValueType, MaxValue, GetTrackRef())
+	DefGetterMem(const ynothrow, ValueType, Value, GetTrackRef())
+	DefGetterMem(const ynothrow, ValueType, LargeDelta, GetTrackRef())
 	DefGetter(const ynothrow, ValueType, SmallDelta, small_delta)
 
-	DefSetterMem(ValueType, MaxValue, GetTrack())
-	DefSetterMem(ValueType, Value, GetTrack())
-	DefSetterMem(ValueType, LargeDelta, GetTrack())
+	DefSetterMem(ValueType, MaxValue, GetTrackRef())
+	DefSetterMem(ValueType, Value, GetTrackRef())
+	DefSetterMem(ValueType, LargeDelta, GetTrackRef())
 	DefSetter(ValueType, SmallDelta, small_delta)
 
 	/*!
 	\brief 定位滑块。
-	\note 调用 GetTrack() 的同名函数指定滚动事件关联值设置滑块位置并触发对应事件。
+	\note 调用 GetTrackRef() 的同名函数指定滚动事件关联值设置滑块位置，
+		并触发对应事件。
 	*/
-	void
-	LocateThumb(ValueType val,
+	PDefH(void, LocateThumb, ValueType val,
 		ScrollCategory t = ScrollCategory::ThumbPosition)
-	{
-		return GetTrack().LocateThumb(val, t);
-	}
+		ImplRet(GetTrackRef().LocateThumb(val, t))
 };
 
 

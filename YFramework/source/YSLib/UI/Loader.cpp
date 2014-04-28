@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r237
+\version r250
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-04-24 15:53 +0800
+	2014-04-27 23:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,11 +65,18 @@ ParseRect(const string& str)
 IWidget&
 AccessWidget(const ValueNode& node)
 {
-	const auto& p(AccessChild<shared_ptr<IWidget>>(node, "$pointer"));
+	try
+	{
+		const auto& p(AccessChild<shared_ptr<IWidget>>(node, "$pointer"));
 
-	YAssert(bool(p), "Null pointer found.");
+		YAssertNonnull(p);
 
-	return *p;
+		return *p;
+	}
+	catch(std::out_of_range&)
+	{
+		throw WidgetNotFound(node.GetName(), "Widget pointer not found.");
+	}
 }
 
 
@@ -109,8 +116,9 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 	if(unique_ptr<IWidget> p_new_widget{DetectWidgetNode(node)})
 	{
 		ValueNode res(0, node.GetName());
+		const auto& key(AccessChild<string>(node, "$type"));
 
-		if(const auto p_pnl = dynamic_cast<Panel*>(p_new_widget.get()))
+		if(Insert.Contains(key))
 		{
 			auto p_cont(make_unique<ValueNode::Container>());
 
@@ -124,7 +132,7 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 								"$pointer"));
 
 							if(p_cont->insert(std::move(child)).second)
-								*p_pnl += wgt;
+								Insert.Call(key, *p_new_widget, wgt);
 						}
 					}
 					catch(ystdex::bad_any_cast&)

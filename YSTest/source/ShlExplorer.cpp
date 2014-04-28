@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1148
+\version r1195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-04-06 17:33 +0800
+	2014-04-28 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,6 +150,19 @@ DrawStar(Graphics& g, const Rect& bounds, Color c, const Point& pt, SDst r,
 }
 //@}
 
+//! \since build 495
+void AddButtonTabBar(TabControl& tc, const ValueNode& node, const string& name,
+	const String& text, SDst w = 64)
+{
+	auto& tb(tc.GetTabBarRef());
+	auto p_tab(make_shared<Button>(Rect(0, 0, w, tc.BarHeight)));
+
+	p_tab->Text = text,
+	tb += *p_tab,
+	tc.Attach(*p_tab);
+	node += {0, name, std::move(p_tab)};
+}
+
 
 //! \since build 436
 const char TU_Explorer_Main[]{u8R"NPL(root
@@ -187,18 +200,29 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 )
 (pnlTest1
 	($type "Panel")($bounds "10 20 224 144")
-	(btnEnterTest
-		($type "Button")($bounds "8 32 104 22"))
-	(lblDragTest
-		($type "Label")($bounds "4 4 104 22"))
-	(tbTest
-		($type "TextBox")($bounds "116 4 104 22"))
-	(btnTestEx
-		($type "Button")($bounds "116 32 104 22"))
-	(btnTestAni
-		($type "Button")($bounds "8 64 104 22"))
-	(cbDisableSetting
-		($type "CheckButton")($bounds "116 64 104 22"))
+	(tcTest1
+		($type "TabControl")
+		($bounds "3 3 218 138")
+		(pnlPage1
+			($type "Panel")
+			(btnEnterTest
+				($type "Button")($bounds "8 32 104 22"))
+			(lblDragTest
+				($type "Label")($bounds "4 4 104 22"))
+			(tbTest
+				($type "TextBox")($bounds "116 4 104 22"))
+			(btnTestEx
+				($type "Button")($bounds "116 32 104 22"))
+			(btnTestAni
+				($type "Button")($bounds "8 64 104 22"))
+			(cbDisableSetting
+				($type "CheckButton")($bounds "116 64 104 22"))
+		)
+		(pnlPage2
+			($type "Panel"))
+		(pnlPage3
+			($type "Panel"))
+	)
 )
 )NPL"};
 
@@ -257,14 +281,21 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidgetN(Button, btnPrevBackground, node_pnlSetting)
 	DeclDynWidgetN(Button, btnNextBackground, node_pnlSetting)
 	auto& node_pnlTest1(node_sub.at("$children").at("pnlTest1"));
+	auto& node_tcTest1(node_pnlTest1.at("$children").at("tcTest1"));
 	DeclDynWidget(Panel, pnlTest1, node_pnlTest1)
-	DeclDynWidgetN(Label, lblDragTest, node_pnlTest1)
-	DeclDynWidgetN(Button, btnEnterTest, node_pnlTest1)
-	DeclDynWidgetN(TextBox, tbTest, node_pnlTest1)
-	DeclDynWidgetN(Button, btnTestEx, node_pnlTest1)
-	DeclDynWidgetN(Button, btnTestAni, node_pnlTest1)
-	DeclDynWidgetN(CheckButton, cbDisableSetting, node_pnlTest1)
+	DeclDynWidgetN(TabControl, tcTest1, node_pnlTest1)
+	auto& node_pnlPage1(node_tcTest1.at("$children").at("pnlPage1"));
+	DeclDynWidgetN(Label, lblDragTest, node_pnlPage1)
+	DeclDynWidgetN(Button, btnEnterTest, node_pnlPage1)
+	DeclDynWidgetN(TextBox, tbTest, node_pnlPage1)
+	DeclDynWidgetN(Button, btnTestEx, node_pnlPage1)
+	DeclDynWidgetN(Button, btnTestAni, node_pnlPage1)
+	DeclDynWidgetN(CheckButton, cbDisableSetting, node_pnlPage1)
 
+	AddButtonTabBar(tcTest1, node_pnlTest1, "btnTab1", u"测试标签1");
+	AddButtonTabBar(tcTest1, node_pnlTest1, "btnTab2", u"测试标签2");
+	AddButtonTabBar(tcTest1, node_pnlTest1, "btnTab3", u"测试标签3");
+	tcTest1.UpdateTabPages();
 	p_border.reset(new BorderResizer(pnlTest1, 4));
 	p_ChkFPS = &cbFPS;
 	dsk_m += root,

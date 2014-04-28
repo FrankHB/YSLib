@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r640
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-03-27 10:30 +0800
+	2014-04-26 19:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -491,6 +491,18 @@ make_array(_tParams&&... args)
 {
 	// TODO: Use one pair of braces (depending on G++).
 	return {{decay_copy(args)...}};
+}
+
+/*!
+\brief 取指定参数转移至 std::array 对象。
+\since build 495
+*/
+template<typename _type, typename... _tParams>
+inline std::array<_type, sizeof...(_tParams)>
+forward_as_array(_tParams&&... args)
+{
+	// TODO: Use one pair of braces (depending on G++).
+	return {{yforward(args)...}};
 }
 
 /*!

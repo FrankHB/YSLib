@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r254
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-04-24 23:06 +0800
+	2014-04-26 02:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -251,6 +251,40 @@ Call by value or by rvalue refernce for a callable object, a call wrapper or an 
 	For simplicity in YSLib, an iterator should be passed by value, unless it is an iterator adaptor to generally provide adaption for any other iterator types.
 		The general iterator adaptors include, for example, 'ystdex::any_iterator' or 'ystdex::transformed_iterator'.
 		All current declarations are conforming. No modification need to be performed.
+Unless otherwise specified, the assumption of a resonably reliable C++ implementation should be used for YSLib.
+	Differently to Boost, no defensive programing techniques are encouraged to be used to make a poor implementation work.
+		Such as double-destruction protection on exception classes.
+Rules for exception handling should be uniformed.
+	Exceptions handling should generally make use of custom exception classes.
+		Pay attention to implicitly declared special member funtions.
+		The following rules are forced:
+			Make sure no resource could be leak.
+			Make sure the destructor is virtual.
+			Make sure the move constructor, if any, have nothrow guarantee.
+		For YSLib, the exception objects should be MoveConstructible or at least CopyConstructible with trivially copy can be performed. See below for reasons.
+	Boost exception handling guildlines are reviewed. See http://www.boost.org/community/error_handling.html . Note it is pre-ISO C++11.
+	However, currently most of these rules are not used in YSLib. YSLib follows closely to ISO C++ standard library.
+	It's goot to make exception classes derived from std::exception. YSLib follows this guideline. But no assumption should be make generally in user code.
+	Virtual inheritance with tagging is not used as Boost library. Because:
+		It is somewhat less efficient both in time and space. This is a minor reason, but it nodoubtly exists.
+		It might be complex and error-prone.
+		The tag dispatching is not always useful.
+		States of context might be significant, so no guarantee to not use data members stored in exception.
+	There should be no exception thrown during copying an exception object.
+		The stricter "not embedding" rule is only necessary when the move constructor is not usable. It is reasonable to not embedded a subobject without nothrow-copy guarantee into an exception object for pre-C++11 code.
+		Make the exception object movable, ideally only the initially creation of the excetpion object is concerned with the copy failure.
+			This is not guaranteed to be available. See $2014-12 report.impl about non-mandantory of move exception objects.
+		But anyway, for std::bad_alloc, even calling of std::terminate is still probably acceptable. Note this handler can be set by std::set_terminate.
+		Some standard library classes, notably std::exception, are according to this guideline. Some others are not guaranteed to be according this, like std::runtime_error, which uses object of std::string as a constructor parameter.
+		See also http://stackoverflow.com/questions/15831029/not-using-stdstring-in-exceptions .
+		Because the YSLib exception objects are MoveConstructible or can be copied trivially, "not embedding" rule is not forced.
+	Generally the constructor should throw no exceptions. But this is also not always guaranteed.
+		Some standard library classes, notably std::exception, are according to this guideline. Some others are not guaranteed to be according this, like std::runtime_error, whose constructors are without 'noexcept'.
+		This guideline is also not forced for YSLib exception objects.
+	The what() member function should be overriden only necessary.
+		It is usually memroy-sensitive to format the message string.
+		YSLib rarely override the what() member function.
+	For both implemention and semantics reasons, do not use 'catch(...)' without rethrowing unless really necessary. See also %Documentation::CommonRules @5.10.5.6.
 
 
 ////

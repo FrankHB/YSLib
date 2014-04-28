@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1024
+\version r1029
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2014-03-15 10:58 +0800
+	2014-04-26 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ void
 PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 	SPos x2, Color c)
 {
-	YAssert(dst, "Null pointer found."),
+	YAssertNonnull(dst),
 	YAssert(bounds.Width <= w, "Wrong boundary or width found.");
 
 	if(!bounds.IsUnstrictlyEmpty()
@@ -62,7 +62,7 @@ void
 PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 	SPos y2, Color c)
 {
-	YAssert(dst, "Null pointer found."),
+	YAssertNonnull(dst),
 	YAssert(bounds.Width <= w, "Wrong boundary or width found.");
 
 	if(!bounds.IsUnstrictlyEmpty()
@@ -145,11 +145,11 @@ DrawRect(const Graphics& g, const Rect& bounds, const Point& pt, const Size& s,
 }
 
 void
-FillRect(const Graphics& g, const Rect& bounds, Color c)
+FillRect(const Graphics& g, const Rect& r, Color c)
 {
 	YAssert(bool(g), "Invalid graphics context found.");
 
-	FillRectRaw<PixelType>(g.GetBufferPtr(), g.GetSize(), bounds, c);
+	FillRectRaw<PixelType>(g.GetBufferPtr(), g.GetSize(), r, c);
 }
 
 namespace
@@ -161,7 +161,7 @@ PlotCircle(void(*plotter)(const Graphics&, const Rect&, SPos, SPos, SDst, SDst,
 	Color), const Graphics& g, const Rect& bounds, const Point& pt, SDst r,
 	Color c)
 {
-	YAssert(plotter, "Null pointer found.");
+	YAssertNonnull(plotter);
 
 	if(r != 0)
 		// Bresenham circle algorithm implementation.

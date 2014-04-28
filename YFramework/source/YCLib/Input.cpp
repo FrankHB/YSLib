@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r381
+\version r385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-04-14 13:37 +0800
+	2014-04-25 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,7 @@ float LastCursorPosX, LastCursorPosY;
 inline platform::KeyInput&
 FetchKeyStateRef()
 {
-	YAssert(pKeyState, "Null pointer found.");
+	YAssertNonnull(pKeyState);
 
 	return *pKeyState;
 }
@@ -99,7 +99,7 @@ FetchKeyStateRef()
 inline platform::KeyInput&
 FetchOldKeyStateRef()
 {
-	YAssert(pOldKeyState, "Null pointer found.");
+	YAssertNonnull(pOldKeyState);
 
 	return *pOldKeyState;
 }
@@ -156,7 +156,8 @@ FetchKeyUpState()
 void
 ClearKeyStates()
 {
-	YAssert(pKeyState && pOldKeyState, "Null pointer found.");
+	YAssertNonnull(pKeyState),
+	YAssertNonnull(pOldKeyState);
 
 	YCL_Def_LockGuard(comp_lck, CompKeyMutex)
 	YCL_Def_LockGuard(lck, KeyMutex)

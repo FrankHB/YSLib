@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1065
+\version r1068
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2013-12-23 23:45 +0800
+	2014-04-25 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,8 +76,8 @@ BlitBounds(const Point& dp, const Point& sp,
 void
 CopyBuffer(const Graphics& dst, const Graphics& src)
 {
-	YAssert(dst.GetBufferPtr(), "Null pointer found.");
-	YAssert(src.GetBufferPtr(), "Null pointer found.");
+	YAssertNonnull(dst.GetBufferPtr()),
+	YAssertNonnull(src.GetBufferPtr());
 	YAssert(dst.GetSize() == src.GetSize(), "Source and destination sizes"
 		"are not same.");
 

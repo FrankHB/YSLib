@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3641
+\version r3642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-04-06 17:27 +0800
+	2014-04-25 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -347,7 +347,7 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 	SetContainerPtrOf(btnNext, this);
 	yunseq(
 	FetchEvent<Resize>(*this) += [this](UIEventArgs&& e){
-		auto& track(GetTrack());
+		auto& track(GetTrackRef());
 		const bool is_h(track.IsHorizontal());
 		const SDst prev_metric(GetSizeOf(btnPrev).GetRef(is_h));
 		const SDst sum(prev_metric + GetSizeOf(btnNext).GetRef(is_h));

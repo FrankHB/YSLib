@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3461
+\version r3538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-04-16 22:13 +0800
+	2014-04-27 10:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,8 @@ b299
 			- "message backup interface" @ %Core.Application,
 			/ %Helpers $=
 			(
-				/ DLD "input dispatching" @ "member function \
-					%ShlDS::OnGotMessage" >> %DSMain ~ %Shell_DS,
+				/ DLD "input dispatching" @ "function %ShlDS::OnGotMessage"
+					>> %DSMain ~ %Shell_DS,
 				/ "function %InitConsole" @ %YGlobal >> DSMain,
 				/ %DSMain $=
 				(
@@ -130,7 +130,7 @@ b298
 					/ "simplified interface",
 					/ "iteration performance improved for removal of copying \
 						node names",
-					* "broken member function %IsDirectory" $since b221,
+					* "broken function %IsDirectory" $since b221,
 					^ "class name %HFileNode" ~ "%HDirectory"
 				)
 			)
@@ -146,7 +146,7 @@ b298
 				$dep_from "file list interface";
 				/ DLD "implementation" @ "class %FileBox"
 				),
-				+ "member function %Reset" @ "class template %GSequenceViewer",
+				+ "function %Reset" @ "class template %GSequenceViewer",
 				/ "default holding intervals"
 					// Key: (240ms, 120ms) -> (240ms, 60ms); \
 						Touch: (240ms, 60ms) -> (240ms, 80ms).
@@ -157,7 +157,7 @@ b298
 				/ @ "class %Path" $=
 				(
 					* "directory path validation" $since b153;
-					+ "member function %NormalizeTrailingSlash"
+					+ "function %NormalizeTrailingSlash"
 				);
 				/ "class %FileList" @ $=
 				(
@@ -267,8 +267,7 @@ b296
 					* $doc "comments for destructor wrongly designed to copy \
 						constructor" $since b240,
 					* "implementation" @ "move constructor" $since b241;
-					+ "member function %Swap with exception specification \
-						%ynothrow";
+					+ "function %Swap with exception specification %ynothrow";
 						// The using of %std::swap for %BitmapBuffer forbids \
 							the move assignment operator throwing exceptions \
 							or the no throwing specification will be broken.
@@ -284,7 +283,7 @@ b296
 				),
 				+ "explicitly defaulted copy and move constructors and \
 					assignment operators" @ "class %TextRegion",
-				- "member function %BitmapBuffer::BeFilledWith"
+				- "function %BitmapBuffer::BeFilledWith"
 			),
 			/ %Core $=
 			(
@@ -404,12 +403,12 @@ b295
 		/ %Helpers $=
 		(
 			- "global desktop" @ %YGlobal,
-			/ %Shell_DS $=
+			/ @ "shell classes" @ %Shell_DS $=
 			(
 				^ "dynamically allocated individual desktop objects"
 					~ "shared static desktop objects",
-				- DLD "member functions %OnDeactivated",
-				/ "member functions %OnActivated merged to constructors"
+				- DLD "functions %OnDeactivated",
+				/ "functions %OnActivated merged to constructors"
 			);
 			$dep_to "DS shell member functions"
 		),
@@ -503,7 +502,7 @@ b293
 		/ DLD "helper function usings" @ "header yref.hpp" @ %Adaptor,
 			// Using of std::make_shared leads to code bloat for RTTI.
 		* "member function template parameter types missing '&&'"
-			@ "header %(yevent.hpp, yfunc.hpp)" @ %Core $since b210,
+			@ %(YEvent, YFunc) @ %Core $since b210,
 		* "constructor template parameter type missing '&&'" @ "class %Widget"
 			@ UI.GUI $since b258,
 		/ %UI.GUI $=
@@ -515,8 +514,8 @@ b293
 					// Now calling event %Paint instead of widget member \
 						function %Refresh.
 				(
-					/ "member function %Refresh" -> "%Paint",
-					/ "member function %Validate" @ "class %BufferedRenderer"
+					/ "function %Refresh" -> "%Paint",
+					/ "function %Validate" @ "class %BufferedRenderer"
 				),
 				/ "function %Render",
 					// Now calling widget member function %Refresh instead of \
@@ -556,11 +555,11 @@ b292
 					/ "fixed position of arrow and right margin",
 					/ "refreshing as pressed down when list shown"
 				),
-				* "member function %ListBox::ResizeForPreferred when limit \
-					width is zero" $since b282,
+				* "function %ListBox::ResizeForPreferred when limit width is \
+					zero" $since b282,
 				(
 				+ "container setter" @ "class template %GSequenceViewer";
-				+ "member function %SetList"
+				+ "function %SetList"
 					@ "classes %(MTextList, TextList, ListBox, DropDownList)"
 				)
 			)
@@ -688,7 +687,7 @@ b289
 			(
 				+ "exposed const current message getter",
 				/ DLD "implementation" @ "main message loop"
-					@ "member function %DSApplication::Run"
+					@ "function %DSApplication::Run"
 			)
 		),
 		(
@@ -712,7 +711,7 @@ b289
 			/ @ "class %Timer" $=
 			(
 				(
-				+ "member function %IsActive";
+				+ "function %IsActive";
 				$dep_to %YReader.'text reader'
 				),
 				/ "implementation" @ "friend functions %(Activate, Deactivate)"
@@ -743,7 +742,7 @@ b289
 			(
 				+ "buffered rendering",
 				(
-				+ "empty file check" @ "member function %UpdateData";
+				+ "empty file check" @ "function %UpdateData";
 				* $comp "crash on opening empty file" $since b273
 				),
 				/ "action for empty file canceled"
@@ -784,8 +783,8 @@ b288
 		/ DLD "implementation" @ "idle handling",
 		/ %Core $=
 		(
-			+ "member function %MessageQueue::GetMaxPriority"
-				@ "implementation" @ "message peeking" @ %YMessage,
+			+ "function %MessageQueue::GetMaxPriority" @ "implementation"
+				@ "message peeking" @ %YMessage,
 			$dep_to "implementation" @ "main message loop";
 			/ %YMessageDefinition $=
 			(
@@ -794,7 +793,7 @@ b288
 			)
 		),
 		/ DLD "implementation" @ "main message loop"
-			@ "member function %DSApplication::Run" @ %YGlobal
+			@ "function %DSApplication::Run" @ %YGlobal
 	),
 	/ %YReader $=
 	(
@@ -819,8 +818,8 @@ b287
 		(
 			/ "right component of margin" @ "constructor"
 				@ "class %DropDownList",
-			* "wrong vertical alignment get"
-				@ "member function %MLabel::PaintText" $since b208,
+			* "wrong vertical alignment get" @ "function %MLabel::PaintText"
+				$since b208,
 			+ "focus requesting/releasing" @ "functions %(Show, Hide)"
 				@ "unit %YWidget",
 			* $comp "wrong alignment when refreshing widget"
@@ -835,7 +834,7 @@ b287
 		),
 		/ "string and path interface" $=
 		(
-			+ "member function %String::GetMBCS",
+			+ "function %String::GetMBCS",
 			- "function %MBCSToString",
 			/ DLD "inheritance" @ "class %Path"
 				@ %Core.YFileSystem ^ "class %String",
@@ -890,7 +889,7 @@ b286
 			>> "class %ShlReader",
 		/ $design "simplified implementation of activating and deactivating",
 		/ "functions of key %'(X, Y, L, R, Left, Right)' down",
-		* "random locating error" @ "member function %DualScreenReader::Locate"
+		* "random locating error" @ "function %DualScreenReader::Locate"
 			$since b271
 	)
 ),
@@ -900,7 +899,7 @@ b285
 	/ %YFramework.YSLib.UI.GUI $=
 	(
 		- "hosted menu referent pointer" @ "unit %Menu",
-		+ "member functions %(SetSelected, ClearSelected)" @ "class %ListBox";
+		+ "functions %(SetSelected, ClearSelected)" @ "class %ListBox";
 		+ "item text matching when list shown" @ "class %DropDownList",
 		* "viewer length of text list no synchronized when initialized"
 			$since b203
@@ -1089,10 +1088,9 @@ b278
 			/ "font APIs" $=
 			(
 				* "memory leak when loading duplicate typefaces"
-					@ "member function %FontCache::LoadTypefaces" $since b277,
-				/ DLD "font file loading implementation"
-					@ "constructor of class %Typeface"
-					~ "member function FontCache::LoadTypefaces"
+					@ "function %FontCache::LoadTypefaces" $since b277,
+				/ DLD "font file loading implementation" @ "constructor of \
+					class %Typeface" ~ "function FontCache::LoadTypefaces"
 			),
 			/ UI.GUI $=
 			(
@@ -1160,8 +1158,8 @@ b276
 		(
 			* "wrong implementation" @ "casting to floating types" $since b260,
 			* DLD "wrong comments" $since b260,
-			* "wrong implementation" @ "member function %operator*= for signed \
-				types" $since b260,
+			* "wrong implementation" @ "function %operator*= for signed types"
+				$since b260,
 			- "explicit @ casting operator"
 		)
 	);
@@ -1176,7 +1174,7 @@ b276
 				distinct to class type" @ "class %GEvent",
 			/ %UI.GUI $=
 			(
-				+ DLD "member function %OnTouch_Close" @ "class %Control";
+				+ DLD "function %OnTouch_Close" @ "class %Control";
 				+ "class %ToolBox",
 				/ "simplified color conversion APIs" @ "unit %YStyle",
 				/ "color conversion APIs" ^ "%ystdex::fixed_point",
@@ -1207,7 +1205,7 @@ b275
 				+ "control default handler for requesting to top and focus \
 					for event %TouchDown",
 				- "%TouchDown handling for requesting to top and focus"
-					@ "member function %GUIShell::ResponseTouch";
+					@ "function %GUIShell::ResponseTouch";
 					// Clearing focusing pointer of containers is reserved in \
 						%GUIShell::ResponseTouch, but now can only occur \
 						before the control requesting for focus \
@@ -1222,10 +1220,10 @@ b275
 					+ "function %Close for hiding and releasing focus"
 				)
 				* "missing thumb refreshing when invalidated area not \
-				  intersecting with thumb" @ "member function %ATrack::Refresh"
+				  intersecting with thumb" @ "function %ATrack::Refresh"
 				  $since b235,
 				* "wrong position argument" @ "implementation"
-					@ "member function %Button::Refresh" $since b266
+					@ "function %Button::Refresh" $since b266
 			),
 			- DLD "dependency of header %platform.h" @ "header %ynew.h",
 		),
@@ -1270,8 +1268,8 @@ b274
 				@ "function %FetchResizedBottomMargin" $since b273,
 			* $lib $design "assertion string" @ "function %FetchResizedLineN"
 				$since b252,
-			* "implementation" @ "member function %TextLineNEx"
-				@ "class template %GTextRendererBase" $since b267，
+			* "implementation" @ "function %TextLineNEx"
+				@ "class template %GTextRendererBase" $since b267,
 			* "implementation" @ "function %FetchLastLineBasePosition"
 				$since $before b132 ^ "ascender" ~ "descender",
 			* "implementation" @ "function %FetchResizedLineN" $since b252
@@ -1284,7 +1282,7 @@ b274
 		(
 			+ $design "common margin",
 			* $design "wrong line number"
-				@ "member functions %(UpdateView, Execute)" $since b270,
+				@ "functions %(UpdateView, Execute)" $since b270,
 			* "wrong view area shown after set line gaps" $since $before b132,
 			+ "reading area resizing interface",
 			* "wrong behavior for scrolling line up when top margins differed"
@@ -1328,7 +1326,7 @@ b273
 		(
 			+ "mapping buffering" @ "class %TextFileBuffer"
 				@ "unit %TextManager" @ %Service,
-			/ DLD "member functions and types" @ "classes %(File, TextFile)"
+			/ DLD "functions and types" @ "classes %(File, TextFile)"
 		),
 	),
 	/ "view" @ "class %TextInfoBox" @ %YReader.'text reader',
@@ -1360,7 +1358,7 @@ b272
 			/ "efficiency improved" @ "function %Idle",
 			/ DLD "simplified implementation" @ "function %::main"
 		),
-		^ "rounding" @ "member function %ProgressBar::Refresh" @ %UI.GUI
+		^ "rounding" @ "function %ProgressBar::Refresh" @ %UI.GUI
 	),
 	/ %YReader.'text reader' $=
 	(
@@ -1399,9 +1397,9 @@ b271
 			/ %YMessage $=
 			(
 				/ DLD "implementation of copying" @ "class %Message",
-				/ @ "class MessageQueue" $=
+				/ @ "class %MessageQueue" $=
 				(
-					- "redundant member functions",
+					- "redundant functions",
 					+ DLD "copy assignment and move assignment merged as \
 						unifying assignment" $=
 					(
@@ -1446,8 +1444,8 @@ b270
 	),
 	/ "implementation" @ "class %FontCache" $=
 	(
-		/ DLD "interface" @ "member function %GetGlyph";
-		/ "avoiding unnecessary rendering" @ "member function %GetAdvance"
+		/ DLD "interface" @ "function %GetGlyph";
+		/ "avoiding unnecessary rendering" @ "function %GetAdvance"
 	)
 ),
 
@@ -1505,7 +1503,7 @@ b268
 				@ "classes %(HorizontalTrack, VerticalTrack, ATrack)"
 				$since b224,
 			* "minor line segments length on background"
-				@ "member function ATrack::Refresh" $since b167,
+				@ "function ATrack::Refresh" $since b167,
 			- "widget visibility check" @ "function %BufferedRenderer::Refresh",
 			/= DLD "confirmed no need of partial invalidation support on event \
 				%Selected" @ "class %ATrack",
@@ -1580,7 +1578,7 @@ b265
 				+ "support for unbuffered windows",
 				/ "minor efficiency improvement"
 			),
-			+ "member function %Panel::Refresh",
+			+ "function %Panel::Refresh",
 			+ "partial invalidation support"
 				@ "classes %(MLabel, TextList, Menu)",
 			(
@@ -1850,7 +1848,7 @@ b248
 		safety",
 	/ %YFramework.YSLib.UI.GUI $=
 	(
-		* "wrong return value" @ "member function %Refresh" @ "classes \
+		* "wrong return value" @ "function %Refresh" @ "classes \
 			%(Widget, Label, Progress, TextArea, Control, AWindow)" $since b226,
 		* "wrong overlapping condition" @ "(function %RenderChild, member \
 			function %Frame::DrawContents)" $since b226;
@@ -1936,8 +1934,8 @@ b243
 		/ "rendering of function %Render" ^ "mutable rvalue reference \
 			parameter to store the result" ~ "returning";
 		+ "event handler %Render" @ "constructor" @ "%WidgetController";
-		/ "rendering logic" @ "member function %Frame::DrawContents"
-			^ "event %Paint" ~ "directly call function %Render";
+		/ "rendering logic" @ "function %Frame::DrawContents" ^ "event %Paint"
+			~ "directly call function %Render";
 		/ DLD "simplified updating" @ "renderer classes",
 		/ DLD "simplified refreshing" @ "class %TextList"
 	)
@@ -1955,8 +1953,8 @@ b242
 	/ "simplified event mapping" $=
 	(
 		+ "class template %GEventPointerWrapper",
-		^ "non-member algorithm implementation" ~ ("member function"
-			@ "class template %GEventMap");
+		^ "non-member algorithm implementation"
+			~ ("functions" @ "class template %GEventMap");
 		- "class template %GEventMap"
 	),
 	/ DLD ^ "lambda expressions" ~ "most of member function handlers"
@@ -1964,7 +1962,7 @@ b242
 	/ "simplified screen object interface and implementation" $=
 	(
 		/ "class template %GBinaryGroup" ~ "classes %(BinaryGroup, Point, Vec)",
-		/ ("member functions %(GetPoint, GetSize) return const references"
+		/ ("functions %(GetPoint, GetSize) return const references"
 			~ "object type values") @ "class %Rect";
 		/ ("platform independent static const member %Invalid"
 			@ "(class template %GBinaryGroup, class %Size)")
@@ -1984,8 +1982,8 @@ b241
 	/ "event mapping interfaces" $=
 	(
 		+ "pointer type values confined as non-null",
-		/ "member function %at returns %ItemType&" ~ "%PointerType&",
-		/ DLD "member function templates %(GetEvent, DoEvent)"
+		/ "function %at returns %ItemType&" ~ "%PointerType&",
+		/ DLD "function templates %(GetEvent, DoEvent)"
 			@ "class template %GEventMap" >> "unit %(YWidgetEvent, YControl) \
 			as non-member"
 	),
@@ -2029,7 +2027,7 @@ b240
 					support" @ "class %WidgetController";
 				+ DLD "%CopyConstructible and %MoveConstructible support"
 					@ "classes %(Widget; Control)";
-				+ "virtual member function %Clone"
+				+ "virtual function %Clone"
 					@ "renderers, focus responsers and widget classes"
 			)
 		),
@@ -2047,8 +2045,8 @@ b240
 				+ "abstract member funtion %Clone" @ "class template %GIHEvent";
 				/ @ "class template %GEventMap" $=
 				(
-					+ "member function %Clone",
-					* DLD "member function %Insert unavailable for %unique_ptr"
+					+ "function %Clone",
+					* DLD "function %Insert unavailable for %unique_ptr"
 						$since b221,
 					+ DLD "%CopyConstructible, %MoveConstructible support"
 						%GEventMap"
@@ -2106,7 +2104,7 @@ b237
 		/ "support of moving widget to the top" @ "class %MUIContainer"
 			~ "class %Desktop";
 		- "class %IControl",
-		/ DLD "member function %GetTopWidgetPtr" $=
+		/ DLD "function %GetTopWidgetPtr" $=
 		(
 			- "containing test",
 			+ "predicate parameter"
@@ -2135,7 +2133,7 @@ b236
 			requesting" $=
 		(
 			^ DLD "class %IControl" ~ "class %AFocusRequester"
-				@ "member functions" @ "controls",
+				@ "functions" @ "controls",
 			- DLD "class %AFocusRequester"
 		)
 	)
@@ -2154,8 +2152,8 @@ b235
 	),
 	/ %YFramework.YSLib.UI.GUI $=
 	(
-		- DLD "redundant refreshing" $since b226
-			@ "efficiency improved" @ "member function %ATrack::Refresh",
+		- DLD "redundant refreshing" @ "efficiency improved"
+			@ "function %ATrack::Refresh" $since b226,
 		/ "GUI shell" $=
 		(
 			/ "a little improvement of efficiency"
@@ -2191,7 +2189,7 @@ b233
 	/ %YFramework.YSLib.UI.GUI $=
 	(
 		/ "partial invalidation for hosted menus",
-		/ "partial invalidation for member function %Desktop::MoveToTop",
+		/ "partial invalidation for function %Desktop::MoveToTop",
 		/ "partial invalidation for class %TextArea"
 	),
 	/ %YReader $=
@@ -2215,8 +2213,7 @@ b232
 	(
 		/ "background images" @ "class %ShlExplorer",
 		/ $design "simplified reader refreshing implementation",
-		- $design "member function ShlProc"
-			@ "classes %(ShlExplorer, ShlReader)",
+		- $design "function %ShlProc" @ "classes %(ShlExplorer, ShlReader)"
 	),
 	/ %YFramework.YSLib.UI.GUI $=
 	(
@@ -2225,7 +2222,7 @@ b232
 		(
 			+ "hiding unrelated non-parent menus"
 		),
-		* "GUI class member function %ClearFocusingPtr implementation"
+		* "GUI class function %ClearFocusingPtr implementation"
 			$since b194 $=
 		(
 			@ "class %AFrame" $since b194,
@@ -2255,7 +2252,7 @@ b231
 				$since b228
 		),
 		+ "free function %SetInvalidationOf for class %IWidget"
-			~ "member function AWindow::SetInvalidation"
+			~ "function %AWindow::SetInvalidation"
 	),
 	/ DLD "style of free setters/getters naming"
 ),
@@ -2348,7 +2345,7 @@ b226
 (
 	/ "widget rendering efficiency improvement" $=
 	(
-		+ "return value of actually drew area for member function %Refresh"
+		+ "return value of actually drew area for function %Refresh"
 			@ "widgets",
 		- "unnecessary drawing of overlaid windows" @ "windows refreshing",
 		+ "partial refreshing optimization" @ "class %Widget"
@@ -2364,14 +2361,14 @@ b225
 	(
 		/ "windows partial invalidation committing for class %IWindow"
 			~ "class %AWindow",
-		+ "widget validation abstract member function" @ "class %IWidget",
+		+ "widget validation abstract function" @ "class %IWidget",
 		/ "widget invalidation interface as non-member function"
-			~ ("abstract member function" @ "class %IWindow")
+			~ ("abstract function" @ "class %IWindow")
 	),
 	+ $dev $lib "assignment operators" @ "class %Rect",
 	/ "widget rendering improvement" $=
 	(
-		+ $dev $lib "parameters for member function %Refresh" @ "widgets",
+		+ $dev $lib "parameters for function %Refresh" @ "widgets",
 		/ "background refreshing" ^ "invalidation" @ "class %AWindow",
 		/ "without validating old invalidated areas" @ "windows invalidating",
 		+ "partial invalidation" @ "control default %TouchMove event handler \
@@ -2437,7 +2434,7 @@ b222
 		* "implementation" @ "%ystdex::fexists" $since b151
 	),
 	+ "default GUI event %Paint",
-	/ "controls drawing" ^ "event Paint" ~ "member function %Draw"
+	/ "controls drawing" ^ "event Paint" ~ "function %Draw"
 		@ "classes %(Frame, YGUIShell)",
 	/ "GUI controls enhancement" $=
 	(
@@ -2605,8 +2602,8 @@ b215
 	* "disabled control touch event handling" $b199,
 	/ + "checkbox and disabling test" @ %YReader,
 	+ "visible arrow indicating multi-level menus",
-	/ "creating list" @ ("constructor of class %MTextList"
-		~ "member function %GetList"),
+	/ "creating list"
+		@ ("constructor of class %MTextList" ~ "function %GetList"),
 	+ "event handler supporting for types not met %EqualityComparable \
 		requirement interface including closure types",
 	* DLD "access of interitance of class std::function"
@@ -2785,7 +2782,7 @@ b204
 	* "track background painting ignored" $since b191,
 	+ "class %nullptr_t" @ "namespace ystdex",
 	^ "nullptr at YSLib",
-	/ DLD "widgets virtual member functions"
+	/ DLD "widgets virtual functions"
 ),
 
 b203

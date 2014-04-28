@@ -11,13 +11,13 @@
 /*!	\file TabControl.h
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r178
+\version r236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:43 +0800
 \par 修改时间:
-	2014-04-24 13:33 +0800
+	2014-04-28 11:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YPanel
-#include YFM_YSLib_UI_Selector
 #include YFM_YSLib_UI_WidgetIteration
 
 namespace YSLib
@@ -43,16 +42,10 @@ namespace UI
 \brief 标签栏控件。
 \since build 494
 */
-class YF_API TabBar : public Control, protected MLinearUIContainer,
-	protected MSharedSelection
+class YF_API TabBar : public Control, protected MLinearUIContainer
 {
 public:
-	using MSharedSelection::HSelectedEvent;
-	using MSharedSelection::SelectedArgs;
-	using MSharedSelection::StateType;
 	using TabPtrType = unique_ptr<Control>;
-
-	using MSharedSelection::Selected;
 
 	//! \brief 首个标签所在的起始偏移位置。
 	SPos Offset = 0;
@@ -83,9 +76,15 @@ public:
 
 	using MLinearUIContainer::Contains;
 
+	//! \since build 495
+	using MLinearUIContainer::GetCount;
+
 	//! \brief 绘制默认标签页边框。
 	static void
 	DefaultPaintTabBorder(PaintEventArgs&&);
+
+	//! \since build 495
+	using MLinearUIContainer::Find;
 
 	/*!
 	\brief 布局。
@@ -103,8 +102,6 @@ public:
 	*/
 	bool
 	SwitchPage(Control&);
-
-	using MSharedSelection::UpdateState;
 };
 
 
@@ -117,6 +114,9 @@ class YF_API TabControl : public Control
 public:
 	using iterator = ystdex::subscriptive_iterator<TabControl, IWidget>;
 
+	//! \brief 标签栏初始高。
+	SDst BarHeight = 24;
+
 private:
 	/*!
 	\brief 标签栏。
@@ -127,9 +127,6 @@ private:
 	vector<Panel*> tab_pages{};
 
 public:
-	//! \brief 标签栏初始高。
-	SDst BarHeight = 24;
-
 	explicit
 	TabControl(const Rect& = {});
 	DefDeMoveCtor(TabControl)
@@ -137,25 +134,50 @@ public:
 	DefWidgetMemberIterationOperations(iterator)
 
 	PDefHOp(IWidget&, [], size_t idx) ynoexcept
-		ImplRet(*(std::initializer_list<IWidget*>{p_bar.get(), p_page})
-			.begin()[idx])
+		ImplRet(YAssertNonnull(idx == 0 || p_page), *ystdex::forward_as_array<
+			IWidget*>(p_bar.get(), p_page).begin()[idx])
+
+	/*!
+	\brief 添加部件并隐藏。
+	\pre 参数对应的部件的动态类型是 Panel 或其派生类。
+	\exception std::bad_cast 参数不能 dynamic_cast 为 Panel& 。
+	*/
+	void
+	operator+=(IWidget&);
 
 	DefGetter(const ynothrow, size_t, ChildrenCount, p_page ? 2 : 1)
-
 	//! \brief 取页面边界。
 	Rect
 	GetPageBounds() const ynothrow;
-	DefGetter(ynothrow, TabBar&, TabBarRef,
-		(YAssert(bool(p_bar), "Null pointer found."), *p_bar))
+	//! \since build 495
+	DefGetter(const ynothrow, TabBar&, TabBarRef,
+		(YAssertNonnull(p_bar), *p_bar))
+	/*!
+	\brief 取标签数。
+	\since build 495
+	*/
+	DefGetter(const ynothrow, size_t, TabCount, GetTabBarRef().GetCount())
 	DefGetter(const ynothrow, const vector<Panel*>&, Pages, tab_pages)
 
-	//! \exception std::bad_cast 参数不能 dynamic_cast 为 Panel 。
-	void
-	operator+=(IWidget&);
 
 	//! \brief 附加：添加 TouchDown 事件处理器。
 	void
 	Attach(Control&);
+
+	/*!
+	\brief 查找页面部件。
+	\return 若找到则为页面部件的索引，否则等于页面数。
+	\since build 495
+	*/
+	size_t
+	Find(IWidget&) const;
+
+	/*!
+	\brief 按标签切换页面。
+	\since build 495
+	*/
+	bool
+	SwitchTab(Control&);
 
 	/*!
 	\brief 切换页面。
@@ -169,6 +191,17 @@ public:
 	bool
 	SwitchPage(Control&);
 	//@}
+
+	/*!
+	\brief 更新标签页状态。
+	\sa UpdatePageLayout
+	\since build 495
+
+	调整标签栏布局；选中第一个存在对应页面的标签；
+	若存在选中页面则设置可视状态并调整大小；最后无效化。
+	*/
+	void
+	UpdateTabPages();
 };
 
 } // namespace UI;

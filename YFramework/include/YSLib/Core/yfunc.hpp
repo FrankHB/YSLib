@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r965
+\version r969
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2014-04-24 22:07 +0800
+	2014-04-27 21:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -330,7 +330,11 @@ struct GHandlerRegisterBase
 private:
 	unordered_map<_tKey, _fHandler> registered_map{};
 
-public:	
+public:
+	//! \since build 495
+	PDefH(bool, Contains, const _tKey& key) const
+		ImplRet(registered_map.count(key) != 0)
+
 	DeclSEntry(template<_type, _fHandler> _fHandler GetRegister() const)
 
 	template<typename... _tParams>
@@ -346,7 +350,7 @@ public:
 
 			return f(yforward(args)...);
 		}
-		return {};
+		return ystdex::result_of_t<_fHandler&(_tParams&&...)>();
 	}
 
 	template<class _type>

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2013.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r109
+\version r115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2013-07-27 15:40 +0800
+	2014-04-25 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,12 +58,11 @@ namespace ystdex
 #define yassume assert
 
 
-//断言。
 #if YB_Use_YAssert
 #	undef YAssert
 
 /*!
-\brief YCLib 默认断言函数。
+\brief YBase 默认断言函数。
 \note 当定义宏 YB_Use_YAssert 不等于 0 时，宏 YAssert 操作由此函数实现。
 \since build 432
 */
@@ -74,9 +73,11 @@ yassert(bool, const char*, const char*, int, const char*);
 	ystdex::yassert(_expr, #_expr, __FILE__, __LINE__, _msg)
 
 #else
-#	define YAssert(exp, message) assert(exp)
+#	define YAssert(_expr, _msg) assert(exp)
 #endif
 
+//! \since build 495
+#define YAssertNonnull(_expr) YAssert(bool(_expr), "Null pointer found.")
 
 #if YB_Use_YTrace
 //! \since build 432

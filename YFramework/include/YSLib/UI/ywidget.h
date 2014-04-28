@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5672
+\version r5674
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-04-23 10:44 +0800
+	2014-04-25 09:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,7 +403,8 @@ public:
 		: view_ptr(yforward(pView_)), renderer_ptr(yforward(pRenderer_)),
 		controller_ptr(yforward(pController_)), Background()
 	{
-		YAssert(bool(view_ptr) && bool(renderer_ptr), "Null pointer found.");
+		YAssertNonnull(view_ptr),
+		YAssertNonnull(renderer_ptr);
 
 		InitializeEvents();
 	}

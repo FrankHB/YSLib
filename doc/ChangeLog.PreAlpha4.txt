@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r7255
+\version r7766
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-04-24 21:57 +0800
+	2014-04-28 19:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,298 @@ $import $HISTORY;
 
 $now
 (
+	/ %YBase.YStandardEx $=
+	(
+		+ "macro %YAssertNonnull" @ %YBase.CAssert,
+		+ "function template %forward_as_array" @ %Container
+	),
+	(
+	$dep_from %YBase.YStandardEx.CAssert;
+	/ DLD "simplified non-null pointer assertions implementations"
+		^ "%YAssertNonnull"
+	),
+	/ %YFramework.YSLib $=
+	(
+		/ %UI $=
+		(
+			/ $dev @ "class %AScrollBar" @ %Scroll $=
+			(
+				(
+				$dep_from %YBase.YStandardEx.CAssert;
+				/ "function %GetTrack" -> "%GetTrackRef"
+					^ "%(DefGetter, YAssertNonnull)"
+				)
+				/ "implementation" @ "function %LocateThumb"
+					^ "%(PDefH, ImplRet)"
+			),
+			/ @ %YUIContainer $=
+			(
+
+				/ @ "class %MLinearUIContainer" $=
+				(
+					* "wrong iteration order" @ "functions %(begin, end)"
+						$since b494,
+						// This would cause wrong hit test result for \
+							overlapped controls.
+					(
+					+ "function %GetCount";
+					+ "assertions" @ "member functions %operator[]"
+						^ "%GetCount"
+					),
+					+ "function %Find",
+					* "missing 'const'" @ "function %Contains" $since b494
+				)
+			),
+			/ %Loader $=
+			(
+				(
+				+ "exception class %WidgetNotFound";
+				/ "wrapped %AccessWidget to throw %WidgetNotFound"
+					~ "%std::out_of_range on widget node not found"
+				),
+				- "redundant using 'Base::Call', 'Base::Register'"
+					@ "class template GWidgetRegister",
+				(
+				(
+				+ "function template %InsertWidget",
+				+ "alias template %GWidgetInserter";
+				+ "class template %GWidgetInserterRegister";
+				/ @ "class %WidgetLoader" $=
+				(
+					+ 'GWidgetInserterRegister<IWidget&> Insert;',
+					/ "supported result of %GWidgetInserter<IWidget&>"
+						@ "function %DetectWidgetNode"
+				),
+				$dep_from %Core.YFunc
+				);
+				+ "support for widget insertion with container type other than \
+					%Panel";
+				$dep_to "non-Panel container loading support"
+				)
+			),
+			(
+			* "invalid use of %std::initializer_list as a prvalue with \
+				non-standard constructor" @ "macros %(DefSubscriptor, \
+				DefSubscriptorBase)" @ %WidgetIteration $since b357
+				$= (^ "ystdex::forward_as_array" ~ "std::initializer_list"),
+				// G++ accepted this but Clang++ doesn't.
+			),
+			/ %TabControl $=
+			(
+				/ @ "class %TabBar" $=
+				(
+					/ @ "member function %PerformLayout" $=
+					(
+						+ "assertion for pointer",
+						* "wrong width used" $since b494
+					),
+					/ DLD "simplified %DrawRect call"
+						@ "static member function %DefaultPaintTabBorder",
+					* "wrong location for children not at origin of the \
+						container" @ "function %Refresh" $since b494,
+					+ "call to %PerformLayout"
+						@ "member functions %operator(+=, -=)",
+					(
+					$dep_from "class %MLinearUIContainer";
+					+ "using declarations %MLinearUIContainer::(GetCount,\
+						 Find)";
+					$dep_to "%MLinearUIContainer using"
+					),
+					(
+					- "using aliases from %MSharedSelection";
+					- "redundant protected base class %MSharedSelection"
+					)
+				),
+				/ @ "class %TabControl" $=
+				(
+					* "wrong initial bar height bar" $since b494
+						$= (/ "data member order"),
+					/ @ "member function %operator[]" $=
+					(
+						+ "assertion for pointer",
+						* "invalid use of %std::initializer_list as a prvalue \
+							with non-standard constructor" $since b494
+							$= (^ "ystdex::forward_as_array"
+								~ "std::initializer_list")
+							// G++ accepted this but Clang++ doesn't. And this \
+								would actually cause wrong widget pointer \
+								value retrived and a crash when using \
+								YFramework DLL.
+					),
+					+ "member function %UpdateTabPages",
+					(
+					+ 'const' @ "function %GetTabBarRef",
+					(
+					$dep_from "%MLinearUIContainer using",
+					+ "function %SwitchTab";
+					* "wrong control called for switching tab which leads to \
+						assertion failure" @ "function %Attach" $since b494
+					);
+					+ "function %GetTabCount"
+					),
+					* "wrong implementation" @ "function %GetPageBounds",
+					+ "function %Find",
+					/ $design "assertion string" @ "function %SwitchPage"
+				),
+				/ @ "function %operator+=" $=
+				(
+					/ "made visibility false after successfully insertion of \
+						widget",
+					* "missing set parent pointer of child widget" $since b494
+				),
+				/ "set visibility" @ "function %UpdateTabPages"
+				/ "invalidated" @ "function %Attach"
+			),
+			/ DLD "simplified %DrawRect call"
+				@ "member function %BorderBrush::operator()" @ %Border,
+			/ DLD "all initialization of children widgets for iteration from \
+				%GetChildren calls" ^ "direct initialization"
+				~ "copy initialization",
+				// This would improve a little performance theoretically, at \
+					least for %debug configurations. Also to be better \
+					conforming to %Documentation::CommonRules.
+		),
+		/ %YFunc $=
+		(
+			/ @ "class template %GHandlerRegisterBase" $=
+			(
+				+ "function %Container",
+				/ "supported return void types" @ "function template %Call"
+			)
+		)
+	),
+	/ $dev $doc $design "normalized terminology used"
+		@ %Documentation::ChangeLog $=
+	(
+		- "all 'member' when unnecessary",
+		/ "all 'member data'" => 'data member',
+			// Only %Documentation::ChangeLog::PreAlpha4 is effecied.
+		- "redundant '$dep_to' when the entity was new and able to be deducted \
+			from '$dep_from'"
+			// Only %Documentation::ChangeLog::PreAlpha3 is effecied.
+	),
+	/ %YReader $=
+	(
+		/ "function %FetchWidgetLoader" @ %Shells;
+		(
+			(
+			$dep_from "non-Panel container loading support";
+			+ "insert registration of classes %(Panel, TabBar, TabControl)"
+			),
+			+ "defualt initialization support"
+		),
+		+ "tab control test" @ %ShlExplorer
+	)
+),
+
+b494
+(
+	+ $dev $build '-L/lib' @ "build scripts" @ %Tools.SHBuild,
+		// It seems to be better not keep '-L/include' alone.
+	* "function type might be used as data member"
+		@ "class template %transformed_iterator"
+		@ %YBase.YStandardEx.Iterator $since b288 $=
+		// Though G++ up to 4.8.2 is always silent, G++ 4.9.0 and Clang++ \
+			3.4 have detected it.
+		(/ 'using transformer_type = _fTransformer'
+			-> 'using transformer_type = decay_t<_fTransformer>'),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				* "friend function %Activate had default arguments" @ %Console
+					$since b203 $=
+					// See http://clang-developers.42468.n3.nabble.com/Clang-compile-error-td4033809.html .
+					// See also http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59480 .
+				(
+					- "default argument" @ "friend function",
+					+ "non-friend overloading"
+				),
+				/ %YWidget $=
+				(
+					(
+					+ "function %PaintVisibleChild";
+					/ DLD "simplified implementation"
+						@ "function %Widget::Refresh" ^ "%PaintVisibleChild"
+					),
+					/ "functions %(SetLocationOf, SetSizeOf; $comp \
+						SetBoundsOf) would be no actions when the parameter \
+						value is equal to the old value";
+						// Including the event calls.
+				),
+				/ %"YUIContainer" $=
+				(
+					(
+					$dep_from "%PaintVisibleChild";
+					/ DLD "simplified implementation"
+						@ "function %MUIContainer::PaintVisibleChildren"
+						^ "%PaintVisibleChild"
+					),
+					/ "assertion text"
+						@ "function %MUIContainer::operator-=",
+					+ "class %MLinearUIContainer,
+					+ "function %RemoveFrom"
+				),
+				(
+				$dep_from "function %RemoveFrom" @ %YPanel;
+				/ DLD "simplified implementation"
+					@ "function %Panel::operator-="
+				),
+				+ %TabControl
+					$= (+ "classes %(TabBar; TabControl")),
+				/ %Loader $=
+				(
+					+ "alias template %GWidgetCreator",
+					$dep_from %Core.YFunc;
+					(
+					/ $dev "implementation" @ "class template \
+						%(GWidgetCreator, GHandlerRegisterBase)";
+					- $comp "trace"
+					);
+					- "alias template %GWidgetCreatorMap"
+				)
+			),
+			/ %Core $=
+			(
+				/ %Core.YEvent $=
+				(
+					+ "class template %GHandlerAdatpor";
+					/ %YWidgetEvent $=
+					(
+						+ "alias template %GWidgetHandlerAdaptor";
+						+ "function templates %(MakeWidgetHandlerAdaptor, \
+							AddWidgetHandlerAdaptor)"
+					)
+				),
+				+ "class template %GHandlerRegisterBase" @ %YFunc
+			)
+		),
+		- DLD "redundant unreachable code"
+			@ "function %Environment::GetForegroundWindow" @ %Host,
+		(
+		$dep_from %YSLib.UI.TabControl;
+		+ '#include YFM_YSLib_UI_TabControl' @ %YSBuild
+		)
+	),
+	/ "rvalue references for callable type like '_fCallable&&'"
+		-> "directly '_fCallable'" @ "all function templates unless \
+		underlying forwarding call objects used";
+		// Only transformer parameter @ %ystdex::(transformed_iterator, \
+			make_transform) and one of constructor templates of \
+			%YSLib::GHEvent are modified. See $2014-04 \
+			@ %Documentation::Workflow::Annual2014.
+	/ $dev $doc "interface comments" $=
+	(
+		^ '\invariant' ~ '\note' @ "non-null guarantee",
+		^ '\sa' ~ '\see' @ "all YSLib internal references"
+	),
+	(
+	$dep_from %YSLib.UI.TabControl;
+	+ "controls %(TabBar, TabControl) dynamic loader registered"
+		@ %YReader.Shells
+	)
 ),
 
 b493
@@ -82,10 +374,10 @@ b493
 				+ "functions %FetchCursor"
 			)
 		),
-		/ "implementation" @ "member function %InputManager::DispatchInput"
+		/ "implementation" @ "function %InputManager::DispatchInput"
 			@ %Helper.InputManager $=
 		(
-			$dep_from %YCLib.Keys
+			$dep_from %YCLib.Keys;
 			^ "%KeyCodes(Primary, Secondary, Tertiary) as cursor event \
 				condition" @ "all platforms",
 			^ "cursor validation" @ "all hosted platforms"
@@ -202,7 +494,8 @@ b492
 		/ "predefined macros" $=
 		(
 			/ "updated definitions",
-			* "optimization options" @ "non-debug configurations" $since b
+			* "predefined optimization macros" @ "non-debug configurations"
+				$since b431
 		),
 		+ $dev "relative header searching paths" @ "platform %DS"
 	),
@@ -266,7 +559,7 @@ b491
 				+ "space input support"
 				),
 				* "missing processing for key %Right" @ $since b490
-				- "invalidation" @ "member function %ReplaceSelection",
+				- "invalidation" @ "function %ReplaceSelection",
 				* "missing invalidation after cursor move" $since b490,
 			),
 			+ "constructor for pair type with 'std::get'"
@@ -315,11 +608,11 @@ b490
 					$dep_from %Core.YDevice;
 					+ 'Devices::KeyInputDevice::Tester \
 						Tester{Devices::KeyInputDevice::DefaultTest};';
-					+ "member function %operator[]"
+					+ "function %operator[]"
 				),
 				/ @ "class %TextBox" $=
 				(
-					+ "member function %ReplaceSelection",
+					+ "function %ReplaceSelection",
 					+ "support for navigation(with arrow keys) and \
 						deletion(with backspace or delete keys)"
 				);
@@ -339,7 +632,7 @@ b489
 				/ @ "class %GUIState" @ %YGUI $=
 				(
 					+ "parameter for reset of checked held state"
-						@ "member function %ResetHeldState",
+						@ "function %ResetHeldState",
 					* $comp "wrongly reset all held state" @ "handlers for
 						%(KeyUp, TouchUp)" $since b487
 				);
@@ -430,10 +723,10 @@ b488
 			),
 			/ %UI $=
 			(
-				+ "exited for Empty clipped area" @ "member functions \
-					%(Renderer::Paint, BufferedRenderer::Validate)"
+				+ "exited for Empty clipped area"
+					@ "functions %(Renderer::Paint, BufferedRenderer::Validate)"
 					@ %YRenderer,
-				/ @ "member function %CheckHeldState" @ "class %GUIState"
+				/ @ "function %CheckHeldState" @ "class %GUIState"
 					@ %YGUI $=
 				(
 					/ "support const argument as input",
@@ -483,8 +776,8 @@ b487
 						reference of widgets" ~ "event senders");
 				* $comp "missing border repainting immediately" $since b482
 				),
-				+ "member functions %GUIState::(GetCheckedKey, \
-					2 CheckedHeldState)" @ %YGUI,
+				+ "functions %GUIState::(GetCheckedKey, 2 CheckedHeldState)"
+					@ %YGUI,
 				/ @ "class %TextBox" $=
 				(
 					+ "selection replacement support;",
@@ -522,8 +815,8 @@ b486
 		(
 			/ @ "class %TextState" @ %Service.CharBase $=
 			(
-				+ "member function %GetCharBounds",
-				/ DLD "simplified implementation" @ "member functions %operator="
+				+ "function %GetCharBounds",
+				/ DLD "simplified implementation" @ "functions %operator="
 					^ "%(PDefHOp, ImplExpr)"
 			),
 			/ %UI $=
@@ -534,7 +827,7 @@ b486
 					(
 						(
 						$dep_from "%TextState::GetCharBounds";
-						/ "simplified implementation" @ "member function \
+						/ "simplified implementation" @ "function \
 							%DrawClippedText" ^ "%TextState::GetCharBounds"
 						),
 						(
@@ -630,7 +923,7 @@ b485
 			),
 			/ @ "class %YWidget" @ %YWidget $=
 			(
-				/ "static member function %GetBlankBrush" => "%MakeBlankBrush",
+				/ "static function %GetBlankBrush" => "%MakeBlankBrush",
 				(
 				$dep_from %YControl;
 				- "struct %Widget::NoBackgroundTag" @ %YWidget
@@ -638,7 +931,7 @@ b485
 			),
 			/ %'TextBox'$=
 			(
-				+ "member function %TextSelection::Collapse,
+				+ "function %TextSelection::Collapse,
 				+ "single line text selection block support" @ "class %TextBox" $=
 				(
 					(
@@ -652,7 +945,7 @@ b485
 		/ %Service $=
 		(
 			/ DLD "simplified implementation"
-				@ "member function %EmptyTextRenderer::operator()"
+				@ "function %EmptyTextRenderer::operator()"
 				@ %TextRenderer ^ "%(PDefHOp, ImplExpr)",
 			/ %TextRenderer $=
 			(
@@ -701,7 +994,7 @@ b484
 						-> 'TextSelection Selection;'
 					),
 					+ 'Caret CursorCaret;',
-					+ "static member function %InvalidateDefaultCaret",
+					+ "static function %InvalidateDefaultCaret",
 						// To make invalidation area smaller so it uses less \
 							CPU time.
 					* "cursor bottom point wrongly added by margin bottom"
@@ -715,7 +1008,7 @@ b484
 			),
 			/ @ "class %Widget" @ %YWidget $=
 			(
-				+ "static member function %GetBlankBackground",
+				+ "static function %GetBlankBackground",
 				(
 				+ "member initializer '= Drawing::ColorSpace::Black'"
 					@ "data member %ForeColor",
@@ -815,7 +1108,7 @@ b483
 				+ "cascade focus with events %(LostFocus, GotFocus) for direct \
 					routing event hanling support",
 				/ "filter out widget that is invisible or not enabled for key \
-					route events" @ "member function %ResponseKey"
+					route events" @ "function %ResponseKey"
 			);
 			/ "ignored event %LostFocus when the dynamic type of the event \
 				argument is convervtible to %RoutedEventArgs"
@@ -851,7 +1144,7 @@ b482
 					);
 					- "using alias %MScreenPositionEventArgs"
 				);
-				+ "static member function %DefaultInvalidateControl"
+				+ "static function %DefaultInvalidateControl"
 					@ "class %InvalidationUpdater" @ %Animation,
 				/ %YWidgetEvent $=
 				(
@@ -873,7 +1166,7 @@ b482
 					// See $2014-03 @ %Documentation::Workflow::Annual2014.
 				+ "function %IsFocusedCascade" @ %YFocus
 			),
-			+ "member function %Timer::(RefreshDelta, RefreshRemainder)"
+			+ "function %Timer::(RefreshDelta, RefreshRemainder)"
 				@ %Service.YTimer
 		),
 		(
@@ -910,7 +1203,7 @@ b481
 				(
 					/ "public %Application::Queue"
 						-> "protected 'MessageQueue qMain'",
-					+ "member function template %AccessQueue"
+					+ "function template %AccessQueue"
 				),
 				* "thread safety" @ "functions %PostMessage" @ %Yapplication
 					$since b299
@@ -938,7 +1231,7 @@ b481
 		/ @ "class %Win32Exception" @ %'YCLib_(MinGW32)'.MinGW32 $=
 		(
 			/ "made constructor throwable",
-			/ "made static member function %FormatMessage throwable"
+			/ "made static function %FormatMessage throwable"
 		)
 	),
 	+ "function template %guarded_call" @ %YBase.YStandardEx.Functional
@@ -978,10 +1271,10 @@ b480
 					-> 'DeclEvent(HSelectedEvent, Selected)',
 				),
 				- "protected base class %MSelectorBox",
-				- "member function %SetWidgetPtr",
-				/ "member function %IsTicked" -> "%IsSelected",
-				/ "member function %SetTicked" -> "%SetSelected",
-				/ "member function %Tick" -> "%Select"
+				- "function %SetWidgetPtr",
+				/ "function %IsTicked" -> "%IsSelected",
+				/ "function %SetTicked" -> "%SetSelected",
+				/ "function %Tick" -> "%Select"
 			),
 			/ @ "class %RadioBox" $=
 			(
@@ -995,11 +1288,11 @@ b480
 			/ $revert(b479) "all 'MSelectorBox::'" @ "class %CheckBox"
 				-> 'MCheckBox::',
 			/ "invalidation for other selected widget"
-				@ "member function %SetSelected" @ "class %RadioButton",
-			+ "member function %ShareTo" @ "classes %(MRadioBox, RadioBox)",
+				@ "function %SetSelected" @ "class %RadioButton",
+			+ "function %ShareTo" @ "classes %(MRadioBox, RadioBox)",
 			* "wrong color" @ "background" @ "default visual style"
 				@ "%RadioBox",
-			/ DLD "simplified implementation" @ "member function \
+			/ DLD "simplified implementation" @ "function \
 				%(CheckBox::SetTicked, RadioBox::SetSelected)" !^ "%UpdateState"
 				// Reduced unnecessary duplicate update of state.
 		)
@@ -1021,8 +1314,8 @@ b480
 			~ "predefined macros %(__GNUC__, __GNU_MINOR__, __GNUC_PATCHLEVEL__)"
 			@ %YFramework;
 	),
-	* "wrong handler entry used" @ "non-inline member function \
-		%StyleMap::PaintAsStyle" @ %YStyle $since b468
+	* "wrong handler entry used" @ "non-inline function %StyleMap::PaintAsStyle"
+		@ %YStyle $since b468
 		// This would cause failure in %debug configuration or wrong \
 			type/style painting.
 ),
@@ -1089,12 +1382,12 @@ b478
 				/ "tick event and handler types" -> "using declarations",
 				+ "using %MCheckBox::(StateType, Unchecked, Checked, Partial, \
 					GetState, Ticked)",
-				/ "parameter type" @ "member function %(SetTicked, Tick)"
+				/ "parameter type" @ "function %(SetTicked, Tick)"
 					-> 'StateType' ~ 'bool',
-				- "member function %GetTicked"
+				- "function %GetTicked"
 			)
 		),
-		/ "merged member functions %(GetViewChanged, GetSelected, GetConfirmed)"
+		/ "merged functions %(GetViewChanged, GetSelected, GetConfirmed)"
 			-> "events %(ViewChanged, Selected, Confirmed) respectively"
 			@ "class %TextList" @ %TextList
 	)
@@ -1174,7 +1467,7 @@ b476
 			(
 				/ @ "class %CompactPixmap" $=
 				(
-					/ DLD "implementation" @ "member function %swap"
+					/ DLD "implementation" @ "function %swap"
 						^ "%(PDefH, ImplExpr)";
 					/ @ "%operator=" $=
 					(
@@ -1223,7 +1516,7 @@ b475
 					-> "function %FetchCurrentWorkingDirectory",
 				/ @ "class %Path" $=
 				(
-					/ DLD "implemented" @ "member function %swap"
+					/ DLD "implemented" @ "function %swap"
 						^ "%(PDefH, ImplExpr)",
 					+ "friend function %to_string"
 				)
@@ -1235,7 +1528,7 @@ b475
 				@ %UI.YWidgetEvent)
 			(
 				+ "base interface %ystdex::cloneable",
-				+ 'override' @ "abstract member function %clone"
+				+ 'override' @ "abstract function %clone"
 			)
 			),
 			/ %Adaptor $=
@@ -1304,7 +1597,7 @@ b475
 		(
 			$dep_from "%ystdex::unimplemented";
 			/ "threw %ystdex::unimplemented" ~ "%LoggedEvent"
-				@ "member function %HostedRenderer::clone" @ %HostRenderer
+				@ "function %HostedRenderer::clone" @ %HostRenderer
 				@ %Helper.HostRenderer,
 		)
 	),
@@ -1319,15 +1612,15 @@ b475
 			/ @ "class template %path_norm" $=
 			(
 				+ "public base class %cloneable",
-				+ 'const override' @ "pure virtual member function %clone"
+				+ 'const override' @ "pure virtual function %clone"
 			);
-			+ 'const' @ "member function %clone"
+			+ 'const' @ "function %clone"
 				@ "class template %file_path_norm"
 		),
 		/ "class holder" @ %Any $=
 		(
 			+ "public base class %cloneable",
-			+ 'override' @ "pure virtual member function %clone"
+			+ 'override' @ "pure virtual function %clone"
 		)
 	),
 	(
@@ -1353,7 +1646,7 @@ b474
 		/ %YSLib $=
 		(
 			/ @ "namespace YSLib::IO" @ %Service.FileSystem
-				$=(/ "enum classes %(PathCategory, NodeCategory)"
+				$= (/ "enum classes %(PathCategory, NodeCategory)"
 					>> "namespace %platform" @ %YCLib.FileSystem),
 			/ %Adaptor.YAdaptor $=
 			(
@@ -1428,7 +1721,7 @@ b474
 			// Make it convenient to use. Returned reference would be \
 				error-prone in use of lambdas.
 	),
-	/ DLD "parameter type" @ "member function HexViewArea::LocateViewPosition"
+	/ DLD "parameter type" @ "function %HexViewArea::LocateViewPosition"
 		@ %YReader.HexBrowser -> 'size_t' ~ 'u32',
 	+ "project %SHBuild" @ %Tools;
 ),
@@ -1474,8 +1767,8 @@ b473
 			/ @ "class %Path" @ %FileSystem $=
 			(
 				+ "using ypath::(pop_back, push_back)",
-				/ DLD "implementation" @ "member function %Normalize"
-					^ "%ImplExpr" ~ "%ImplRet"
+				/ DLD "implementation" @ "function %Normalize" ^ "%ImplExpr"
+					~ "%ImplRet"
 			)
 		),
 		/ @ %CHRLib.CharacterProcessing $=
@@ -1546,7 +1839,7 @@ b472
 			(
 				+ "function %RollColor" @ "namespace %Drawing",
 				+ DLB "workaround for G++ 4.7.1"
-					@ "member function template %StyleMap::Add";
+					@ "function template %StyleMap::Add";
 			),
 			/ "default style for %Button",
 				// More flat.
@@ -1556,7 +1849,7 @@ b472
 				+ "style %Aoi"
 			),
 			/ DLD "simplified implementation"
-				@ "member function %WidgetLoader::TransformUILayout" @ %Loader
+				@ "function %WidgetLoader::TransformUILayout" @ %Loader
 		)
 	)
 ),
@@ -1567,8 +1860,8 @@ b471
 	(
 		/ %YSLib.Adaptor.Image $=
 		(
-			/ "static member function %ImageCodec::Convert"
-				-> "member function %HBitmap::operator CompactPixmap() const",
+			/ "static function %ImageCodec::Convert"
+				-> "function %HBitmap::operator CompactPixmap() const",
 			/ @ "class %HBitmap" $=
 			(
 				(
@@ -1580,8 +1873,8 @@ b471
 					recursive call when passed unsupported argument such as \
 					'const wchar_t*'" @ "2 constructor templates, member \
 					function template %SaveTo",
-				+ "member function %GetPixels",
-				+ "member functions %(operator[]; GetScanLine)",
+				+ "function %GetPixels",
+				+ "functions %(operator[]; GetScanLine)",
 				(
 				$dep_from "class %UnknownImageFormat";
 				+ "constructor 'HBitmap(const HBitmap&, BitPerPixel)'"
@@ -1623,7 +1916,7 @@ b470
 			/ @ "class %ImageMemory" $=
 			(
 				+ 'using Buffer = vector<octet>;';
-				+ "member function %GetBuffer",
+				+ "function %GetBuffer",
 				/ "constructor of raw buffer"
 					-> "2 constructors and 2 constructor templates with \
 					initializing type %Buffer (and format)",
@@ -1658,7 +1951,7 @@ b469
 			(
 				+ "(1 inline function, 5 function templates) \
 					%Styles::AddHandlers",
-				/ "return type"@ "member function Styles::StyleMap::GetCurrent"
+				/ "return type"@ "function %Styles::StyleMap::GetCurrent"
 					@ %'YStyle' -> 'const_iterator' ~ 'const HandlerTable&'
 			),
 			(
@@ -1708,7 +2001,7 @@ b468
 				/ @ "class %Thumb" $=
 				(
 					+ 'Drawing::Hue hue = 180;';
-					+ "member function %GetHue,
+					+ "function %GetHue,
 					+ "enum %StyleItem";
 					/ "paint event handlers" ^ "styles"
 				),
@@ -1741,16 +2034,16 @@ b467
 					@ %YUIContainer,
 				/ "function %OnTouchDown_RequestToTopFocused"
 					=> "OnTouchDown_RequestToFrontFocused" @ %YControl,
-				/ "member function %Panel::MoveToTop" => "%MoveToFront"
-					@ %YPanel
+				/ "function %Panel::MoveToTop" => "%MoveToFront" @ %YPanel
 			),
-			/ "constructor with member function pointer"
+			/ "constructor with pointer to member function"
 				@ "class template %GHEvent" @ %Core.YEvent $=
 			(
 				/ "implementation" ^ "lambda expression"
 					~ "class template %ExpandMemberFirstBinder";
 					// This made calling a handler initialized by a null \
-						member function pointer would raise undefined behavior.
+						pointer to member function would raise undefined \
+						behavior.
 				* $comp "wrong instance of function template \
 					%ExpandMemberFirstBinder used with more than 1 handler \
 					parameter" $since b333
@@ -1759,8 +2052,7 @@ b467
 		/ %Helper.ShellHelper $=
 		(
 			+ "function %SwitchVisibleToFront",
-			+ const @ "member function %ContainerSetter::operator()"
-				@ %ShellHelper,
+			+ const @ "function %ContainerSetter::operator()" @ %ShellHelper
 		)
 	),
 	(
@@ -1828,9 +2120,8 @@ b464
 	(
 		/ %YSLib $=
 		(
-			* "missing size activation and italic matrix set
-				@ "member function %Typeface::LookupBitmap" @ %Adaptor.Font,
-				$since b460
+			* "missing size activation and italic matrix set" @ "function \
+				%Typeface::LookupBitmap" @ %Adaptor.Font $since b460,
 				// This would cause the size corrupt and missing of italic \
 					style effect.
 			/ %UI $=
@@ -1917,7 +2208,7 @@ b463
 		/ @ "class %Thumb" $=
 		(
 			/ "protected member 'bool bPressed;'" -> 'CursorState csCurrent;'";
-			+ "member function %GetCursorState"
+			+ "function %GetCursorState"
 		);
 		/ "drawing for thumb when cursor out of the boundary" @ %Button $=
 		(
@@ -2029,7 +2320,7 @@ b460
 			(
 				/ "class %Iterator" => "%iterator";
 				+ 'using const_iterator = iterator',
-				/ "member functions %(GetBegin, GetEnd)" -> "%(begin, end)"
+				/ "functions %(GetBegin, GetEnd)" -> "%(begin, end)"
 					// Note that %(cbegin, cend) is not very necessary \
 						because of C++1y's %std::(cbegin, cend).
 				/ %"class iterator" $=
@@ -2052,7 +2343,7 @@ b460
 				(
 					+ 'using iterator = Container::iterator;',
 					+ 'using const_iterator = Container::const_iterator;',
-					/ "member functions %(GetBegin, GetEnd)" -> "%(begin, end)"
+					/ "functions %(GetBegin, GetEnd)" -> "%(begin, end)"
 				)
 			),
 			/ %UI $=
@@ -2069,7 +2360,7 @@ b460
 				/ @ "class %(UIContainer, Panel)" $=
 				(
 					/ "member type %Iterator" => "%iterator",
-					/ "member functions %(GetBegin, GetEnd)" -> "%(begin, end)"
+					/ "functions %(GetBegin, GetEnd)" -> "%(begin, end)"
 				),
 				/ "member type %Iterator" => "%iterator"
 					@ ("classes %(ListBox, DropDownList)" @ %ComboList,
@@ -2081,7 +2372,7 @@ b460
 		)
 		/ "template parameter" @ "function template %MakeUCS2LEString#2"
 			@ %CHRLib.CharacterProcessing ^ "ADL and %std::begin"
-			~ "member function %begin"
+			~ "function %begin"
 	),
 	/ %YBase.YStandardEx $=
 	(
@@ -2119,7 +2410,7 @@ b459
 				)
 			)
 		),
-		/ DLD "implementation" @ "member function %File::Rewind"
+		/ DLD "implementation" @ "function %File::Rewind"
 			 @ %YSLib.Service.YFile ^ "macro %ImplExpr" ~ "macro %ImplRet"
 			// 'ImplRet' is intended to use return statement while 'ImplExpr' \
 				is intended to return a void typed expression. The latter is \
@@ -2216,7 +2507,7 @@ b458
 			(
 				/ "constructor for stream reference"
 					-> "explicit constructor for %std::FILE",
-				/ "return type" @ "member function %get_type" -> 'std::FILE*'
+				/ "return type" @ "function %get_type" -> 'std::FILE*'
 					~ 'istream_type*';
 				- "%istream_type",
 				* $comp "incompatible for implementations with %std::FILE* \
@@ -2242,7 +2533,7 @@ b457
 	(
 		/ %Adaptor.Image $=
 		(
-			+ "3 static member functions %DetectFormat" @ "class %ImageCodec";
+			+ "3 static functions %DetectFormat" @ "class %ImageCodec";
 			/ "detected file format firstly by type before by file extensions"
 				@ "classes %(HBitmap, HMultiBitmap)"
 			),
@@ -2259,7 +2550,7 @@ b457
 		/ %Service.Timer $=
 		(
 			+ "assertion of non-zero interval"
-				@ "member function %Timer::Refresh",
+				@ "function %Timer::Refresh",
 			+ "function %Timers::CheckTimeout for %Timer"
 		),
 		/ %UI $=
@@ -2276,13 +2567,13 @@ b457
 					+ mutable @ "data member %Ready",
 						// Now the ready state would be modified if the \
 							animation is not lasted.
-					- "member function %IsLast"
+					- "function %IsLast"
 				),
 				(
 				+ 'using Invalidator = std::function<bool(IWidget*)>;',
-				+ "static member function %DefaultUpdater";
+				+ "static function %DefaultUpdater";
 				+ 'Invalidator Invalidate{DefaultInvalidate};';
-				/ "enabled custom invalidator" @ "member function %operator()"
+				/ "enabled custom invalidator" @ "function %operator()"
 				)
 			)
 		)
@@ -2378,7 +2669,7 @@ b455
 		/ %Helper $=
 		(
 			* "Win32 exception unhandled when host window has been destroyed"
-				@ "member function %HostRenderer::Update" @ "platform %Win32"
+				@ "function %HostRenderer::Update" @ "platform %Win32"
 				$since b426;
 		),
 		/ %YSLib $=
@@ -2397,7 +2688,7 @@ b455
 					/ "class %StateUpdater" @ "class %AnimationTask"
 						-> "class %InvalidationUpdater" @ "namespace %UI";
 					- "class %AnimationTask",
-					+ "member function %InvalidationUpdater::IsLast",
+					+ "function %InvalidationUpdater::IsLast",
 					+ "function %ResetState for %InvalidationUpdater"
 					),
 					+ "class template %GAnimationSession"
@@ -2460,9 +2751,9 @@ b454
 					(
 						* "redundant declaration of %operator<" $since b317,
 						(
-						+ mutable @ "declaration of member data %content";
+						+ mutable @ "declaration of data member %content";
 						- "const qualifier" @ "return type"
-							@ "member function %GetContent"
+							@ "function %GetContent"
 						)
 					),
 					* "missing 'YF_API'" @ "friend function %operator== for \
@@ -2504,7 +2795,7 @@ b454
 						)
 					)
 				),
-				/ @ "static member function %Shell::DefShlProc" @ %YShell $=
+				/ @ "static function %Shell::DefShlProc" @ %YShell $=
 				(
 					(
 					$dep_from %YMessageDefinition;
@@ -2516,7 +2807,7 @@ b454
 				(
 					+ "class template %HeldEqual";
 					+ "function template %AreEqualHeld";
-					/ "member function %operator="
+					/ "function %operator="
 						@ "class templates %(ValueHolder, PointerHolder)"
 							^ "%AreEqualHeld"
 						~ "%ystdex::examiners::equal_examiner::are_equal"
@@ -2544,7 +2835,7 @@ b454
 				/ "constructor" ^ "%StateUpdate object as default";
 				+ "constructor with widget reference and priority as \
 					parameters",
-				- "static member functions %(AlwaysUpdate, UpdateOnce)",
+				- "static functions %(AlwaysUpdate, UpdateOnce)",
 				- "all ('IWidget&', 'const Rect&')"
 					@ "type signatures except which in constructors"
 			),
@@ -2658,9 +2949,9 @@ b453
 				* "out of range clip area assignment for widgets"
 					@ "!defined %YSL_UI_ATRACK_PARTIAL_INVALIDATION" $since b295
 			),
-			- "unnecessary clip area update" @ "member function %Refresh" \
-				@ "classes %(Button, Label, ProgressBar, CheckBox, \
-					CheckButton, TextList)",
+			- "unnecessary clip area update"
+				@ "function %Refresh" @ "classes %(Button, Label, \
+				ProgressBar, CheckBox, CheckButton, TextList)",
 				// Since all drawing is now friendly to partial invalidation.
 			/ "clip area passed with directly for drawing text"
 				@ "Button::Refresh";
@@ -2684,7 +2975,7 @@ b453
 				/ "nothrow default constructor"
 					-> "explicitly defaulted default constructor",
 				/ "excluded unstrictly empty rectangle argument as not \
-					contained" @ "member functions %(Contains, ContainsStrict)",
+					contained" @ "functions %(Contains, ContainsStrict)",
 				* "assertion failed for function %Contains when the rectangle \
 					is unstrictly empty" $since b452;
 			),
@@ -2788,7 +3079,7 @@ b452
 			-> "%void" ~ "%bool",
 		/ %Core.YGDIBase $=
 		(
-			/ @ "member functions %(Contains, ContainsStrict)"
+			/ @ "functions %(Contains, ContainsStrict)"
 				@ "class %Rect" $=
 			(
 				* "wrong result when augument rectangle at right or bottom line"
@@ -2809,10 +3100,10 @@ b451
 			+ "priority paramter with default argument" @ "constructor",
 				// Default priority changed.
 			(
-			+ "static member function %AlwaysUpdate" @ "class %AnimationTask";
+			+ "static function %AlwaysUpdate" @ "class %AnimationTask";
 			/ "initialization default %Update" @ "constructor"
 				^ "%UpdateOnce" ~ "%AlwaysUpdate";
-			+ "static member function %DefaultUpdate" => "%UpdateOnce"
+			+ "static function %DefaultUpdate" => "%UpdateOnce"
 			),
 			/ "parameter to initialize %std::function instance"
 				@ "constructor template" ^ "non-reference type"
@@ -2882,7 +3173,7 @@ b450
 					@ "constructor template" @ "class %AnimationTask"
 					// Default priority changed.
 				),
-				/ "member function %Start" => "%Renew"
+				/ "function %Start" => "%Renew"
 			);
 		),
 		(
@@ -2930,7 +3221,7 @@ b449
 		/ %Helper $=
 		(
 			+ "full validation on adjusting boundary of host windows"
-				@ "member function %HostRenderer::Update" @ %HostRenderer,
+				@ "function %HostRenderer::Update" @ %HostRenderer,
 				// See $2013-10 @ %Documentation::Workflow::Annual2013.
 			/ DLD "data member %GUIApplication::UIResponseLimit initialization"
 				@ %GUIApplication ^ "member initializer",
@@ -2951,7 +3242,7 @@ b449
 				* "wrong point of invalidated area" @ "member functon \
 					%BufferedRenderer::SetSize" @ %YRenderer $since b237,
 				* "wrong offset set when minimal size component reached in \
-					host mode" @ "member function %BorderResizer::Wrap",
+					host mode" @ "function %BorderResizer::Wrap",
 					@ %Border $since b445
 					// Old offset not kept from this point, so the dragged \
 						point would move.
@@ -2976,14 +3267,14 @@ b449
 					(
 						+ 'using BaseType = multimap<Priority, Message, \
 							std::greater<Priority>>';
-						/ "member function %GetBegin"
+						/ "function %GetBegin"
 							-> "using %BaseType::(cbegin, begin)",
-						/ "member function %GetEnd"
+						/ "function %GetEnd"
 							-> "using %BaseType::(cend, end)",
-						/ "member function %IsEmpty"-> 'using BaseType::empty;',
-						/ "member function %Clear" -> 'using BaseType::clear;',
-						/ "member function %Erase" -> 'using BaseType::erase;',
-						/ "member function %GetSize" -> 'using BaseType::size;',
+						/ "function %IsEmpty"-> 'using BaseType::empty;',
+						/ "function %Clear" -> 'using BaseType::clear;',
+						/ "function %Erase" -> 'using BaseType::erase;',
+						/ "function %GetSize" -> 'using BaseType::size;',
 						+ 'using BaseType::crbegin;',
 						+ 'using BaseType::crend;',
 						+ 'using BaseType::rbegin;',
@@ -3099,7 +3390,7 @@ b448
 						// Function template default arguments firstly \
 							intended to be used. See $ref b448 $note \
 							"CWG issue 226".
-					+ "static member function %ImageBrush::UpdateComposite"
+					+ "static function %ImageBrush::UpdateComposite"
 				)
 			),
 			/ %Core.YCoreUtilities $=
@@ -3257,8 +3548,7 @@ b446
 			)
 		),
 		* "wrong offset and clip area for blitting" @ "implementation"
-			@ "member function %ImageBrush::DefaultUpdate" @ %UI.YBrush
-			$since b443
+			@ "function %ImageBrush::DefaultUpdate" @ %UI.YBrush $since b443
 	)
 ),
 
@@ -3273,7 +3563,7 @@ b445
 				/ @ "class %GUIState" @ %YGUI $=
 				(
 					/ $lib $design "deferred coordinate computation for \
-						wrapped leaving event" @ "member function %Wrap",
+						wrapped leaving event" @ "function %Wrap",
 						// A little performance improved when the event should \
 							not be triggered.
 					/ "%ControlLocation" => "%CursorLocation"
@@ -3333,7 +3623,7 @@ b445
 				assignment operator";
 			+ 'using ScreenBuffer::Resize;' @ "class %ScreenRegionBuffer"
 			),
-			+ "member function %WindowReference::((GetClientLocation, \
+			+ "function %WindowReference::((GetClientLocation, \
 				GetClientSize; GetClientBounds), SetClientBounds)";
 			+ ('using WindowReference::GetClientLocation;',
 				'using WindowReference::GetClientSize;',
@@ -3371,7 +3661,7 @@ b444
 			+ "message exception classes %(MessageException; MessageSignal)"
 				@ "namespace %Messaging" @ %YMessage;
 			/ "handled for %Messaging::MessageSignal"
-				@ "member function %Application::OnGotMessage" @ %Application
+				@ "function %Application::OnGotMessage" @ %Application
 		),
 		* "maximum value overflow when destination size component less than \
 			coordinate component of destination point" @ "function %BlitBounds"
@@ -3538,10 +3828,10 @@ b441
 				+ "alias template %GBrushUpdater";
 				/ @ "class %ImageBrush"
 				(
-				+ "static member function %DefaultUpdate",
-				+ "member GBrushUpdater<const Drawing::Image&> \
-					Update = DefaultUpdate;",
-				+ "updater support" @ "member function %operator()",
+				+ "static function %DefaultUpdate",
+				+ "member 'GBrushUpdater<const Drawing::Image&> \
+					Update = DefaultUpdate;'",
+				+ "updater support" @ "function %operator()",
 				/ "member %Image" => "%ImagePtr"
 				)
 			),
@@ -3554,7 +3844,7 @@ b441
 						// Overflow would happen when conversion from UCS-2 \
 							string to ANSI for extension check.
 					+ "support for R5G5B5 format"
-						@ "static member function %ImageCodec::Convert"
+						@ "static function %ImageCodec::Convert"
 				),
 				(
 				$dep_from %YCLib.Video;
@@ -3590,7 +3880,7 @@ b440
 	(
 		/ %Rational $=
 		(
-			+ "static member function %get for defined speciliazations"
+			+ "static function %get for defined speciliazations"
 				@ "class template %normalized_max",
 				// Since the 'value' was not defined, only non-odr using was \
 					allowed.
@@ -3647,7 +3937,7 @@ b440
 				-> "class template %BlitTransparentPoint",
 			/ "2 function templates %BlitAlphaPoint" -> "class template",
 			/ $design "functor template parameter put after iterators"
-				@ "member function template %operator()"
+				@ "function template %operator()"
 				@ "class tempalte %BlitScannerLoop",
 			- "class templates %(BlitBlendLine, BlitTransparentLine)
 		);
@@ -3700,7 +3990,7 @@ b439
 					/ "operators inheritance" ^ "class template %operators"
 						@ "class template %fixed_point",
 						// The modulo is not implemented yet.
-					+ "member function %get"
+					+ "function %get"
 				),
 				(
 				+ "template partial specialization %std::common_type for 2 \
@@ -3810,8 +4100,7 @@ b437
 	),
 	/ %YFramework $=
 	(
-		+ "member function %Win32Exception::GetMessage"
-			@ %'YCLib_(MinGW32)'.MinGW32,
+		+ "function %Win32Exception::GetMessage" @ %'YCLib_(MinGW32)'.MinGW32,
 		/ %YSLib $=
 		(
 			+ "member 'Point Offset;' as image drawing offset"
@@ -3916,9 +4205,9 @@ b435
 				/ @ "class %Win32Exception" @ %MinGW32 $=
 				(
 					+ 'typedef ::DWORD ErrorCode;';
-					+ "member function 'explicit operator ErrorCode()'",
+					+ "function 'explicit operator ErrorCode()'",
 					(
-					+ "static member function %FormatMessage";
+					+ "static function %FormatMessage";
 					/ "initialized exception message with Win32 error message"
 					)
 				),
@@ -3941,8 +4230,8 @@ b435
 				@ %HostWindow $=
 				// Top level hit test is also based on non-zero alpha value.
 			(
-				+ "member data %(UseOpacity, Opacity)",
-				+ "member function %UpdateFrom"
+				+ "data member %(UseOpacity, Opacity)",
+				+ "function %UpdateFrom"
 			)
 			),
 			- $revert(b431) "automatically set opacity as '0xFF' when \
@@ -3987,7 +4276,7 @@ b434
 			// Check of offset for touch held event now is removed for client \
 				hanlders.
 			- "invalid offset check" @ "basic cursor handler for %TouchHeld",
-			+ "member function %CheckOffset"
+			+ "function %CheckOffset"
 		);
 		+ "function %OnTouchHeld_DraggingRaw for user-specified dragging target"
 			@ %YControl
@@ -4034,7 +4323,7 @@ b433
 		),
 		/ %Core.ValueNode $=
 		(
-			/ "member function %GetNode" @ "class %ValueNode" => "%at",
+			/ "function %GetNode" @ "class %ValueNode" => "%at",
 			+ "function %AccessNode for container pointer";
 			/ $design "inlined function %AccessNode for container reference"
 		)
@@ -4052,7 +4341,7 @@ b433
 				),
 				+ "constructor template with base parameters"
 			)
-			* "type error implementation" @ "member function %is_delimiter"
+			* "type error implementation" @ "function %is_delimiter"
 				@ "class template specialization %file_path_norm" $since b409
 		),
 		- "function templates %ystdex::at" @ %Container
@@ -4332,8 +4621,7 @@ b430
 		)
 		/ %'YCLib_(MinGW32)'.Win32GUI $=
 		(
-			+ "member functions %(GetOpacity, SetOpacity)"
-				@ "class %WindowReference",
+			+ "functions %(GetOpacity, SetOpacity)" @ "class %WindowReference",
 			+ "class %HostWindow" @ "namespace %platform_ex::Windows"
 		)
 		/ %YSLib.YAdaptor.Image $=
@@ -4344,7 +4632,7 @@ b430
 				/ "allowed nullptr as default argument"
 					@ "constructor with data pointer",
 					// As "handle".
-				+ "member function %swap",
+				+ "function %swap",
 				+ "unifying assignment",
 				+ "converter 'explicit operator bool() const ynothrow'",
 				+ 'operator!() const ynothrow',
@@ -4352,12 +4640,12 @@ b430
 				$dep_from "%SamplingFilter";
 				+ "constructor 'HBitmap(const HBitmap&, const Size&, \
 					SamplingFilter)'";
-				+ "member function %HBitmap::Rescale"
+				+ "function %HBitmap::Rescale"
 				)
 			),
 			(
 			$dep_from "%HBitmap::swap";
-			+ "non-member function %swap for class %HBitmap"
+			+ "non-function %swap for class %HBitmap"
 			)
 		)
 	),
@@ -4370,7 +4658,7 @@ b429
 	(
 		+ "class %platform_ex::DSVideoState" @ 'YCL_DS || YCL_HOSTED'
 			@ %YCLib.Video,
-		+ "member function %WindowReference::Invalidate"
+		+ "function %WindowReference::Invalidate"
 			@ %'YCLib_(MinGW32)'.Win32GUI,
 		/ %Helper $=
 		(
@@ -4390,27 +4678,25 @@ b429
 					+ 'using DSVideoState::IsLCDMainOnTop;'
 					),
 					$dep_from %HostWindow;
-					+ "member function %SwapScreens"
+					+ "function %SwapScreens"
 				)
 			),
 			/ @ "class %ShlDS" @ %Shell_DS $=
 			(
 				(
 				+ "cursor desktop pointer";
-				+ "member functions %(GetCursorDesktopHandle, GetCursorDesktop)"
+				+ "functions %(GetCursorDesktopHandle, GetCursorDesktop)"
 				),
 				(
 				$dep_from "class %DSApplication";
-				+ "member function %SwapScreens";
+				+ "function %SwapScreens";
 				+ "function %WrapForSwapScreens"
 				),
-				+ "member function %SwapDesktops",
-				/ "member function %GetDesktopDown" => "%GetSubDesktop",
-				/ "member function %GetDesktopDownHandle"
-					=> "%GetSubDesktopHandle",
-				/ "member function %GetDesktopUp" => "%GetMainDesktop",
-				/ "member function %GetDesktopUpHandle"
-					=> "%GetMainDesktopHandle"
+				+ "function %SwapDesktops",
+				/ "function %GetDesktopDown" => "%GetSubDesktop",
+				/ "function %GetDesktopDownHandle" => "%GetSubDesktopHandle",
+				/ "function %GetDesktopUp" => "%GetMainDesktop",
+				/ "function %GetDesktopUpHandle" => "%GetMainDesktopHandle"
 			)
 		),
 		/ %YSLib.UI $=
@@ -4445,11 +4731,11 @@ b428
 					(
 					/ "explicitly defualted move constuctor"
 						-> "explicitly deleted";
-					/ $revert(b426) "simplified member functions \
+					/ $revert(b426) "simplified functions \
 						%(GetRenderer, View) as inline function without \
 						exception",
 						// For performance.
-					/ "simplified member function %GetController as inline \
+					/ "simplified function %GetController as inline \
 						function without exception"
 						// Ditto.
 					),
@@ -4458,7 +4744,7 @@ b428
 					/ "automatically cleanup references on destruction"
 					)
 				)
-				+ "member function %GUIState::CleanupReference" @ %YGUI
+				+ "function %GUIState::CleanupReference" @ %YGUI
 			),
 			/ @ "class %Graphic" @ %Core.YGDIBase $=
 			(
@@ -4471,7 +4757,7 @@ b428
 		(
 			(
 			+ "function %CreateNativeWindow",
-			+ "member function %WindowReference::SetText"
+			+ "function %WindowReference::SetText"
 			),
 			(
 			+ "class %(ScreenBuffer; ScreenRegionBuffer)",
@@ -4532,7 +4818,7 @@ b427
 		(
 			/ @ "class %Window" @ %HostWindow $=
 			(
-				* "missing checking failure" @ "member function \
+				* "missing checking failure" @ "function \
 					%Window::GetInputBounds" @ "platform %MinGW32" $since b388
 				+ $dev 'using namespace platform_ex' @ "namespace %Host"
 					@ "platform %MinGW32" @ %HostWindow,
@@ -4548,12 +4834,12 @@ b427
 				$dep_to "window cursor boundary"
 				)
 			),
-			/ @ "member function %InputManager::Update" @ "platform %MinGW32"
+			/ @ "function %InputManager::Update" @ "platform %MinGW32"
 				@ %InputManager $=
 			(
 				$dep_from %'YCLib_(MinGW32)'.Win32GUI;
 				* "missing checking input boundary validity"
-					@ "member function %InputManager::Update" $since b388,
+					@ "function %InputManager::Update" $since b388,
 					// Win32 API call can faile, though it's rare.
 				(
 				$dep_from "window cursor boundary";
@@ -4619,7 +4905,7 @@ b426
 				/ "header %ycomp.h" => "%YComponent.h",
 				+ "implementation unit %YComponent.cpp"
 			),
-			/ "inline 'ynothrow' member functions %(GetRenderer, GetView)"
+			/ "inline 'ynothrow' functions %(GetRenderer, GetView)"
 				@ "class %Widget" @ %YWidget -> "non-inline member functions \
 				without exception specifications";
 				// It should be note that the internal pointer could be null \
@@ -4638,10 +4924,9 @@ b426
 			(
 				/ @ "class %Host::Window" $=
 				(
-					/ "returning type of member function %Show" -> "'bool'"
+					/ "returning type of function %Show" -> "'bool'"
 						~ "'void' to report asynchronous result",
-					+ "member function %(Move, GetLocation)"
-						@ "class %Host::Window"
+					+ "function %(Move, GetLocation)" @ "class %Host::Window"
 				);
 				/ "all Win32 API call failures not producing as result \
 					wrapped by %MinGW::Win32Exception" @ "platform %MinGW32"
@@ -4756,7 +5041,7 @@ b424
 			/ @ "class %GUIState" @ %YGUI $=
 			(
 				(
-				/ $revert(b421) "member function %GUIState::ResponseKey \
+				/ $revert(b421) "function %GUIState::ResponseKey \
 					allowed routed events,
 				/ "events %(TouchUp, TouchDown) handled by wrapped handlers";
 					// So manually sent touch events can be handled with GUI \
@@ -4768,8 +5053,7 @@ b424
 				/ "events %(KeyUp, KeyDown) handled by wrapped handlers",
 					// So manually sent key events can be handled with GUI \
 						state changes.
-				/ "all returning value of member function %'Response*' \
-					discarded"
+				/ "all returning value of function %'Response*' discarded"
 			),
 			(
 			$dep_from "triggling %KeyUp",
@@ -4836,8 +5120,8 @@ b422
 				+ "responsing event %CursorOver",
 				+ "independent cursor focus pointer";
 				+ "support for %(Enter, Leave) generated by %CursorOver",
-				/ "member function %IsControlEntered" => "%IsEntered",
-				+ "member function %(GetCursorOverPtr, Wrap)",
+				/ "function %IsControlEntered" => "%IsEntered",
+				+ "function %(GetCursorOverPtr, Wrap)",
 			),
 			/ "%(Enter, Leave) now only generated for derived classes of \
 				%Control as default"
@@ -4859,7 +5143,7 @@ b421
 			(
 				$dep_from %YBase.YStandardEx.Functional;
 				+ "style hashing" @ "glyph bitmap cacheing",
-				/ "member function %Font::SetStyle to allow non-regular style \
+				/ "function %Font::SetStyle to allow non-regular style \
 					setting when typeface exists";
 				+ "support for bold and italic bitmap glyphs"
 					// But no support of typefaces for specific styles \
@@ -4887,7 +5171,7 @@ b421
 						/ "independent focus pointer now unconditionally reset",
 						/ "(held state, dragging offset) now maintained"
 					),
-					/ "member function %GUIState::ResponseKey now only allowed \
+					/ "function %GUIState::ResponseKey now only allowed \
 						event called without other side effects (i.e. access \
 						independent focus event and trying KeyPress when \
 						possible) for indirect routing stratagy
@@ -4920,7 +5204,7 @@ b420
 		(
 			+ $dev "private inheritance %noncopyable",
 			/ $dev "constructor accept reference" ~ "pointer",
-			+ "member function %Activate",
+			+ "function %Activate",
 			- "redundant check"
 		),
 		* "destructor" @ "class %FontCache wrongly release library before \
@@ -4954,17 +5238,17 @@ b419
 			(
 				* "missing glyph index cache insertion failure check"
 					$since b418,
-				+ "2 member functions %GetTypefaceRef",
+				+ "2 functions %GetTypefaceRef",
 				(
 				+ "glyph bitmap cache";
-				+ "member function %ClearBitmapCache"
+				+ "function %ClearBitmapCache"
 				)
 			);
 			- @ "class %FontCache" $=
 			(
 				- "size cache";
 				- "FreeType cache manager";
-				- "member function %(ResetGlyphCache, Reset)"
+				- "function %(ResetGlyphCache, Reset)"
 			),
 			/ @ "class %Font" $=
 			(
@@ -4977,7 +5261,7 @@ b419
 		/ $dev "access control" @ "inheriting class %LoggedEvent"
 			@ "class %BadEvent" @ %UI.YWidgetEvent -> public ~ private,
 		* $design "platform-dependent bool type xor operation" @ "assertion"
-			@ "member function %(CompactPixmap, CompactPixmapEx)::SetSize, \
+			@ "function %(CompactPixmap, CompactPixmapEx)::SetSize, \
 			CompactPixmapEx::SetSize" $since b176
 			@ %'(BitmapBuffer, BitmapBufferEx)::SetSize'
 	),
@@ -5005,7 +5289,7 @@ b418
 				(
 					^ "%unordered_map with %unique_ptr for %FontFamily \
 						stored",
-					/ "member function %ClearCache" => "%Reset",
+					/ "function %ClearCache" => "%Reset",
 					- "FreeType CMap cacheing"
 						// Binary size enlarged. No performance impact.
 				),
@@ -5048,7 +5332,7 @@ b417
 				+ "constructor 'BitmapBuffer(unique_ptr<PixelType[]>, \
 					const Size&) ynothrow'",
 				* "wrong source offset"
-					@ "member function %ImageBrush::operator()" $since b294
+					@ "function %ImageBrush::operator()" $since b294
 			)
 		),
 		(
@@ -5069,19 +5353,18 @@ b416
 		(
 			/ "class %Timer" @ %Service.Timer $=
 			(
-				* "redundant member function declaration %Timer::RefreshAll"
-					$since b405,
-				+ "member function %Test",
+				* "redundant function declaration %RefreshAll" $since b405,
+				+ "function %Test",
 				+ "virtual destructor"
 			);
 			/ @ "class %InputTimer" %UI.GUI $=
 			(
 				(
-				- "member functions %(Delay, Reset)",
-				/ "member function %Reset" => "%ResetInput";
+				- "functions %(Delay, Reset)",
+				/ "function %Reset" => "%ResetInput";
 				/ "publicly inherited class %Timers::Timer"
 				),
-				+ "member function %RefreshClick"
+				+ "function %RefreshClick"
 			)
 		)
 	),
@@ -5121,8 +5404,8 @@ b415
 	(
 		/ @ \clt pointer_iterator $=
 		(
-			+ "non-null assertions" @ "several member functions",
-			- const @ "member functions postfix %operator(++, --),
+			+ "non-null assertions" @ "several functions",
+			- const @ "functions postfix %operator(++, --),
 			/ $dev "private member 'mutable pointer current'" -> 'pointer raw'
 		),
 		/ @ "class template %bitseg_iterator" $=
@@ -5130,9 +5413,9 @@ b415
 			* "yconstfn and assertions for strict ISO C++11 compatibility"
 				@ $since b414,
 				// G++ didn't complain, but Clang++ does.
-			- const @ "member functions postfix %operator(++, --)
+			- const @ "functions postfix %operator(++, --)
 		),
-		/ "implemented member functions %operator(+, -) supporting underlying \
+		/ "implemented functions %operator(+, -) supporting underlying \
 			functions which don't returning types constrctible for \
 			%pair_iterator" @ "class template %pair_iterator",
 		/ @ "class template %transformed_iterator" $=
@@ -5143,7 +5426,7 @@ b415
 			+ "explicitly defaulted move constructor",
 				// G++ 4.7.1 can't accept this overloading, so ignored as \
 					workaround.
-			+ "member functions %operator(+=, -=; +, -)"
+			+ "functions %operator(+=, -=; +, -)"
 				// Using %std::advance.
 		)
 	),
@@ -5151,8 +5434,8 @@ b415
 	(
 		/ @ "class %CharBitmap" @ %Adaptor.Font $=
 		(
-			+ "typedef %PictchType; member function %GetPitch",
-			+ "typedef %FormatType; member function %GetFormat"
+			+ "typedef %PictchType; function %GetPitch",
+			+ "typedef %FormatType; function %GetFormat"
 		);
 		/ %Service $=
 		(
@@ -5200,7 +5483,7 @@ b414
 		(
 			(
 			$dep_from %YBase.YStandardEx.String;
-			/ "implementation" @ "member function %String::operator="
+			/ "implementation" @ "function %String::operator="
 				@ %String
 				// More efficient.
 			),
@@ -5213,8 +5496,8 @@ b414
 		),
 		/ %Adaptors.Font $=
 		(
-			/ "member function %Font::Getstyle" => "GetStyle";
-			+ "member function %CharBitmap::GetGrayLevel"
+			/ "function %Font::Getstyle" => "GetStyle";
+			+ "function %CharBitmap::GetGrayLevel"
 		),
 		/ %Service $=
 		(
@@ -5243,10 +5526,10 @@ b413
 		(
 			+ 'ynothrow' @ ("constructor %FileOperationFailure" @ %YFileSystem,
 				"member funtions %CursorInfo::(GetX, GetY)" @ %Input,
-				"member function %MappedFile::GetPtr" @ %MemoryMapping,
+				"function %MappedFile::GetPtr" @ %MemoryMapping,
 				"2 functions %IsDirectory" @ "platform %MinGW32" @ %NativeAPI,
 				"all namespace scope functions %'Fecth*'" @ %Video)
-			+ 'const' @ "member function %DirectorySession::GetNativeHandle"
+			+ 'const' @ "function %DirectorySession::GetNativeHandle"
 				@ %FileSystem,
 			$dev
 			(
@@ -5280,8 +5563,7 @@ b413
 					+ "typedef name %TupleType" @ "class template %GEvent",
 					+ "class template %EventArgsTypeHead"
 				),
-				+ "member function String& operator*=(size_t)" @ "class %String"
-					@ %YString
+				+ "function 'String& String::operator*=(size_t)'" @ %YString
 			),
 			/ %UI $=
 			(
@@ -5315,7 +5597,7 @@ b412
 							still distinct with boost.iterator, whose \
 							%transform_iterator excepts a value but not \
 							iterator as input.
-					+ "2 member function %get_transformer"
+					+ "2 function %get_transformer"
 				),
 				+ "class template %indirect_input_iterator";
 			)
@@ -5327,7 +5609,7 @@ b412
 		(
 			/ @ "class %HDirectory" $=
 			(
-				+ "member function %GetName";
+				+ "function %GetName";
 				/ "%operator* now returning self reference to adapt to \
 					%indirect_input_iterator"
 			),
@@ -5423,7 +5705,7 @@ b411
 			(
 				/ @ \cl Path $=
 				(
-					/ "member function %GetNativeString" -> "%GetMBCS";
+					/ "function %GetNativeString" -> "%GetMBCS";
 					+ "conversion function operator %string"
 				);
 				- "typedef name %NativeString",
@@ -5431,7 +5713,7 @@ b411
 				/ @ "class %FileList" $=
 				(
 					/ "supported empty path as '.'",
-					/ "discarded returning type" @ "member function %ListItems"
+					/ "discarded returning type" @ "function %ListItems"
 						// Now no counting and reserving list items, and the \
 							original would be kept on exception thrown.
 				),
@@ -5444,7 +5726,7 @@ b411
 
 b410
 (
-	* "wrong implementation" @ "member functions %(filter_self, merge_parents)
+	* "wrong implementation" @ "functions %(filter_self, merge_parents)
 		@ "class template %path" @ %YBase.YStandardEx.Path $since b409;
 	/ %YFramework $=
 	(
@@ -5455,11 +5737,11 @@ b410
 			/ @ "class %Path" $=
 			(
 				+ "using %ypath::(get_norm, filter_self, merge_parents)",
-				- "member functions %(GetExtension, IsDirectory, IsAbsolute, \
+				- "functions %(GetExtension, IsDirectory, IsAbsolute, \
 					IsRelative)",
-				+ "member functions %(GetString, Normalize)"
+				+ "functions %(GetString, Normalize)"
 				* "wrong implementation for empty or absolute paths"
-					@ "member function %operator/=" $since b409;
+					@ "function %operator/=" $since b409;
 				+ "member %operator/= for %String as directly subdirectory \
 					access"
 			),
@@ -5517,14 +5799,14 @@ b409
 				),
 				/ @ %YEvent $=
 				(
-					+ "non-member function template %swap for specification of \
+					+ "non-function template %swap for specification of \
 						%GEvent",
 					* $dev "missing excluding of 'GEvent&'"
 						@ "constructor template with 1 function parameter"
 						@ "class template %GEvent" $since b293
 				),
-				+ "non-member function %swap for classes \
-					%(Message @ %YMessage, ValueObject" @ %YObject),
+				+ "non-function %swap for classes %(Message @ %YMessage, \
+					ValueObject" @ %YObject),
 				/ %YFileSystem $=
 				(
 					$dep_from %YCLib.FileSystem
@@ -5536,7 +5818,7 @@ b409
 						- "all static member object %(Slash, Now, Parent)",
 						/ $dev "implementation" ^ "inheritance %ypath"
 							~ "string member",
-						- "member functions %('Has*', 'GetRoot*',
+						- "functions %('Has*', 'GetRoot*',
 							GetRelativePath, GetParentPath, GetFilename,
 							GetStem, MakeAbsolute, RemoveFilename,
 							ReplaceExtension, NormalizeTrailingSlash),
@@ -5554,7 +5836,7 @@ b409
 					- "functions %(GetDirectoryNameOf, 2 ChangeDirectory)"
 				)
 			),
-			+ "non-member function template %swap for class %(BitmapBuffer, \
+			+ "non-function template %swap for class %(BitmapBuffer, \
 				BitmapBufferEx)" @ %Service.YGDI
 		),
 		/ $dev %YCLib.FileSystem $=
@@ -5630,8 +5912,7 @@ b407
 			/ "interface %IImage" >> Core.YGDIBase,
 			/ "all 'u8'" -> 'PixelType::AlphaType' @ %YGDI
 		),
-		+ $dev "virtual member function %GraphicDevice::GetBackBuffer"
-			@ %Core.YDevice,
+		+ $dev "virtual function %GraphicDevice::GetBackBuffer" @ %Core.YDevice,
 		/ %UI $=
 		(
 			/ "constructor" @ "%Window" ^ "renderer"
@@ -5656,7 +5937,7 @@ b407
 		),
 		/ "platform %MinGW32" @ %Helper.HostWindow $=
 		(
-			+ $dev "virtual member function %Window::Refresh" @ %HostWindow,
+			+ $dev "virtual function %Window::Refresh" @ %HostWindow,
 			/ $design
 				"increased performance of render windows updating a little",
 		)
@@ -5740,15 +6021,15 @@ b405
 				/ "class %BitmapBuffer" $=
 				(
 					- 'using Graphics::GetSizeOfBuffer',
-					/ "made member function %GetContext virtual"
+					/ "made function %GetContext virtual"
 				),
 				/ @ "classes %(BitmapBuffer, BitmapBufferEx)" $=
 				(
 					/ $dev "allocation and deallocation" ^ "%unique_ptr"
 						~ "%(ynew, ydelete_array)",
-					/ "member functions %SetSize" ^ "parameter %'const Size&'"
+					/ "functions %SetSize" ^ "parameter %'const Size&'"
 						~ "2 %SDst",
-					/ "allocation fails" @ "member functions %SetSize"
+					/ "allocation fails" @ "functions %SetSize"
 						^ "distinguishable and clearer exception strings"
 				),
 				+ 'using %BitmapBuffer::SetSize' @ "class %BitmapBufferEx"
@@ -5809,9 +6090,9 @@ b403
 					/ "simplified non-template constuctors",
 					/ "public inheritance %String" -> "explicit conversion \
 						functions to %(String&, const String&),
-					+ "member function %Swap",
+					+ "function %Swap",
 					+ "fully implementation"
-						@ "member functions %(GetExtension, GetStem)"
+						@ "functions %(GetExtension, GetStem)"
 				),
 				- "namespace scope objects %(FS_Now_X, FS_Parent_X)",
 				- "functions %(SplitPath, 2 HaveSameStems, 2 GetExtensionOf, \
@@ -5819,11 +6100,10 @@ b403
 					2 IsStemOf, 2 GetFileNameOf)
 					// Use member functions of %Path instead.
 			),
-			/ "member functions for adding and removing nodes"
-				@ "class %ValueNode" $=
+			/ "functions for adding and removing nodes" @ "class %ValueNode" $=
 			(
-				+ "member functions %(Add, Remove) returing %bool",
-				/ "member functions %operator(+=, -=) returning %ValueNode&"
+				+ "functions %(Add, Remove) returing %bool",
+				/ "functions %operator(+=, -=) returning %ValueNode&"
 			)
 		),
 		/ %YCLib.'NativeAPI $=
@@ -5911,7 +6191,7 @@ b401
 		),
 		(
 		+ "public member %IdleSleep" @ "class %GUIShell" @ %GUIShell;
-		/ "GUI sleep" @ "member function %GUIApplication::DealMessage"
+		/ "GUI sleep" @ "function %GUIApplication::DealMessage"
 			>> "class %GUIShell"
 			// It is only used on hosted environment by default for \
 				performance.

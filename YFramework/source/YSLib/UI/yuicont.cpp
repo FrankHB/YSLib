@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1773
+\version r1787
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-04-24 09:32 +0800
+	2014-04-27 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ LocateForParentContainer(const IWidget& wgt)
 void
 MoveToLeft(IWidget& wgt)
 {
-	YAssert(FetchContainerPtr(wgt), "Null pointer found.");
+	YAssertNonnull(FetchContainerPtr(wgt));
 
 	SetLocationOf(wgt, Point(0, GetLocationOf(wgt).Y));
 }
@@ -120,7 +120,7 @@ MoveToLeft(IWidget& wgt)
 void
 MoveToRight(IWidget& wgt)
 {
-	YAssert(FetchContainerPtr(wgt), "Null pointer found.");
+	YAssertNonnull(FetchContainerPtr(wgt));
 
 	SetLocationOf(wgt, Point(GetSizeOf(*FetchContainerPtr(wgt)).Width
 		- GetSizeOf(wgt).Width, GetLocationOf(wgt).Y));
@@ -129,7 +129,7 @@ MoveToRight(IWidget& wgt)
 void
 MoveToTop(IWidget& wgt)
 {
-	YAssert(FetchContainerPtr(wgt), "Null pointer found.");
+	YAssertNonnull(FetchContainerPtr(wgt));
 
 	SetLocationOf(wgt, Point(GetLocationOf(wgt).X, 0));
 }
@@ -137,7 +137,7 @@ MoveToTop(IWidget& wgt)
 void
 MoveToBottom(IWidget& wgt)
 {
-	YAssert(FetchContainerPtr(wgt), "Null pointer found.");
+	YAssertNonnull(FetchContainerPtr(wgt));
 
 	SetLocationOf(wgt, Point(GetLocationOf(wgt).X,
 		GetSizeOf(*FetchContainerPtr(wgt)).Height - GetSizeOf(wgt).Height));
@@ -179,22 +179,29 @@ MLinearUIContainer::operator-=(IWidget& wgt)
 }
 
 bool
-MLinearUIContainer::Contains(IWidget& wgt)
+MLinearUIContainer::Contains(IWidget& wgt) const
 {
 	return
 		std::find(vWidgets.cbegin(), vWidgets.cend(), &wgt) != vWidgets.end();
 }
 
+size_t
+MLinearUIContainer::Find(IWidget& wgt) const
+{
+	return
+		std::find(vWidgets.cbegin(), vWidgets.cend(), &wgt)- vWidgets.cbegin();
+}
+
 MLinearUIContainer::iterator
 MLinearUIContainer::begin()
 {
-	return vWidgets.rbegin() | get_indirect;
+	return vWidgets.begin() | get_indirect;
 }
 
 MLinearUIContainer::iterator
 MLinearUIContainer::end()
 {
-	return vWidgets.rend() | get_indirect;
+	return vWidgets.end() | get_indirect;
 }
 
 
@@ -231,7 +238,7 @@ MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 {
 	std::for_each(mWidgets.begin() | get_value, mWidgets.end() | get_value,
 		[&](IWidget* const& p_wgt){
-		YAssert(p_wgt, "Null pointer found.");
+		YAssertNonnull(p_wgt);
 
 		auto& wgt(*p_wgt);
 

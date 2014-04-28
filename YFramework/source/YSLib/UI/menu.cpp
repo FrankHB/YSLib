@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1179
+\version r1180
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-03-27 01:31 +0800
+	2014-04-25 09:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,7 +246,7 @@ MenuHost::~MenuHost()
 void
 MenuHost::operator+=(const ValueType& val)
 {
-	YAssert(val.second, "Null pointer found.");
+	YAssertNonnull(val.second);
 
 	yunseq(mMenus[val.first] = val.second,
 		val.second->id = val.first, val.second->pHost = this);

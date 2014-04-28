@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r265
+\version r267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2014-02-26 23:37 +0800
+	2014-04-25 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ GUIApplication::~GUIApplication()
 Host::Environment&
 GUIApplication::GetHost()
 {
-	YAssert(bool(p_hosted), "Null pointer found.");
+	YAssertNonnull(p_hosted);
 
 	return *p_hosted;
 }
@@ -128,7 +128,7 @@ GUIApplication::DealMessage()
 GUIApplication&
 FetchGlobalInstance() ynothrow
 {
-	YAssert(pApp, "Null pointer found.");
+	YAssertNonnull(pApp);
 
 	return *pApp;
 }

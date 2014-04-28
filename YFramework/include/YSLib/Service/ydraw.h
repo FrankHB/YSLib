@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1122
+\version r1123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-02-23 19:41 +0800
+	2014-04-25 09:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ namespace Drawing
 inline void
 PutPixel(BitmapPtr dst, SDst w, SPos x, SPos y, Color c)
 {
-	YAssert(dst, "Null pointer found.");
+	YAssertNonnull(dst);
 
 	dst[y * w + x] = c;
 }

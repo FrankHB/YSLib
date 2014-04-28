@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3109
+\version r3111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-04-10 11:26 +0800
+	2014-04-25 09:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,14 +123,14 @@ DSApplication::~DSApplication()
 Devices::DSScreen&
 DSApplication::GetDSScreenUp() const ynothrow
 {
-	YAssert(bool(scrs[0]), "Null pointer found.");
+	YAssertNonnull(scrs[0]);
 
 	return *scrs[0];
 }
 Devices::DSScreen&
 DSApplication::GetDSScreenDown() const ynothrow
 {
-	YAssert(bool(scrs[1]), "Null pointer found.");
+	YAssertNonnull(scrs[1]);
 
 	return *scrs[1];
 }

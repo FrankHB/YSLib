@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r649
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2013-12-23 23:33 +0800
+	2014-04-25 09:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,7 +143,7 @@ const Graphics Graphics::Invalid;
 BitmapPtr
 Graphics::operator[](size_t r) const ynothrow
 {
-	YAssert(pBuffer, "Null pointer found.");
+	YAssertNonnull(pBuffer);
 	YAssert(r < sGraphics.Height, "Access out of range.");
 
 	return pBuffer + r * sGraphics.Width;

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha1.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha1 。
-\version r296
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-04-06 15:51 +0800
+	2014-04-27 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,7 +134,7 @@ b191
 	/ "listbox APIs implementation",
 	/ "class template %GSequenceViewer" $=
 	(
-		* DLD "declaration of member function %Contains" @ $since b171,
+		* DLD "declaration of function %Contains" @ $since b171,
 		/ "interfaces"
 	),
 	* "implementation of function %GetTouchedVisualControlPtr" @ "unit %YGUI"

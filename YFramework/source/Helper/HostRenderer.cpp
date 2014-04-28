@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r249
+\version r251
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-04-10 11:24 +0800
+	2014-04-25 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ WindowThread::~WindowThread()
 {
 	const auto p_wnd_val(GetWindowPtr());
 
-	YAssert(bool(p_wnd_val), "Null pointer found.");
+	YAssertNonnull(p_wnd_val);
 
 	try
 	{
@@ -117,7 +117,7 @@ WindowThread::ThreadLoop(unique_ptr<Window> p)
 
 	p_wnd = p.release();
 
-	YAssert(p_wnd, "Null pointer found.");
+	YAssertNonnull(p_wnd);
 
 	WindowLoop(*p_wnd);
 }

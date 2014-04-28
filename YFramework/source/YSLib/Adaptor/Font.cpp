@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3384
+\version r3387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-04-13 12:57 +0800
+	2014-04-25 09:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,11 +105,11 @@ NativeFontSize::GetSizeRec() const
 void
 NativeFontSize::Activate() const
 {
-	YAssert(size, "Null pointer found.");
+	YAssertNonnull(size);
 
 	auto face(size->face);
 
-	YAssert(face, "Null pointer found.");
+	YAssertNonnull(face);
 
 	face->size = size;
 }
@@ -285,7 +285,7 @@ Typeface::~Typeface()
 
 	const auto face(&ref.second.get());
 
-	YAssert(face, "Null pointer found.");
+	YAssertNonnull(face);
 	YAssert(face->internal->refcount == 1,
 		"Invalid face reference count found.");
 

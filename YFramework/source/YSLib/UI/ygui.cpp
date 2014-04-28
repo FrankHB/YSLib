@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4010
+\version r4013
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-03-30 14:42 +0800
+	2014-04-27 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace
 IWidget*
 FetchTopEnabledAndVisibleWidgetPtr(IWidget& con, const Point& pt)
 {
-	for(auto pr = con.GetChildren(); pr.first != pr.second; ++pr.first)
+	for(auto pr(con.GetChildren()); pr.first != pr.second; ++pr.first)
 	{
 		IWidget& wgt(*pr.first);
 
@@ -230,7 +230,7 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 		p = t;
 	}
 
-	YAssert(p, "Null pointer found.");
+	YAssertNonnull(p);
 
 	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);
@@ -284,7 +284,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 		e.Position -= GetLocationOf(*p);
 	};
 
-	YAssert(p, "Null pointer found.");
+	YAssertNonnull(p);
 
 	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);

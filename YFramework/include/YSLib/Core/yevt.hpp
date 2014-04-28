@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4584
+\version r4585
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-04-20 16:54 +0800
+	2014-04-25 10:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -830,7 +830,7 @@ public:
 	GEventPointerWrapper(_type&& p) ynoexcept(is_noexcept<_type>::value)
 		: ptr(yforward(p))
 	{
-		YAssert(bool(p), "Null pointer found.");
+		YAssertNonnull(p);
 	}
 	/*!
 	\brief 复制构造：深复制。

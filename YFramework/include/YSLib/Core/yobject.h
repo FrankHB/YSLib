@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3803
+\version r3806
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-04-23 01:10 +0800
+	2014-04-25 09:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -374,7 +374,7 @@ private:
 	inline _type&
 	GetMutableObject() const
 	{
-		YAssert(bool(content), "Null pointer found.");
+		YAssertNonnull(content);
 		YAssert(content.type() == typeid(_type), "Invalid type found.");
 
 		return *static_cast<_type*>(content.get());
@@ -503,6 +503,7 @@ public:
 	DefGetter(ynothrow, ReferenceType, Ref, operator ReferenceType())
 	DefGetter(ynothrow, ReferenceType, NewRef, *GetCopyOnWritePtr())
 
+	//! \post 返回值非空。
 	PointerType
 	GetCopyOnWritePtr()
 	{
@@ -511,7 +512,7 @@ public:
 		else if(!ptr.unique())
 			ptr = PointerType(CloneNonpolymorphic(ptr));
 
-		YAssert(bool(ptr), "Null pointer found.");
+		YAssertNonnull(ptr);
 
 		return ptr;
 	}

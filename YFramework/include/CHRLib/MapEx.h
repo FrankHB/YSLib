@@ -11,13 +11,13 @@
 /*!	\file MapEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r272
+\version r274
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2014-02-05 02:24 +0800
+	2014-04-25 10:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,12 +35,10 @@ namespace CHRLib
 {
 
 /*!
-\def CHRLIB_NODYNAMIC_MAPPING
 \since build 324
 
 无动态映射。
 */
-
 #define CHRLIB_NODYNAMIC_MAPPING 0
 
 #if CHRLIB_NODYNAMIC_MAPPING
@@ -235,10 +233,8 @@ case enc: \
 	default:
 		break;
 	}
-
 #undef CHR_MapItem
-
-	return nullptr;
+	return {};
 }
 
 } // namespace CHRLib;

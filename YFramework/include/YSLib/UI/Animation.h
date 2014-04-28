@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r384
+\version r386
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-04-20 13:42 +0800
+	2014-04-25 09:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ void
 AnimateConnection(const shared_ptr<_fCallable>& conn,
 	Messaging::Priority prior = UI::AnimationPriority)
 {
-	YAssert(bool(conn), "Null pointer found.");
+	YAssertNonnull(conn);
 
 	AnimateTask([=]{
 		return (*conn)();
@@ -113,7 +113,7 @@ public:
 		ImplExpr(AnimateConnection(conn))
 
 	DefGetter(const ynothrow, Connection&, ConnectionRef,
-		(YAssert(bool(conn), "Null pointer found."), *conn))
+		(YAssertNonnull(conn), *conn))
 	DefGetter(const ynothrow, const ConnectionPtr&, ConnectionPtr, conn)
 };
 

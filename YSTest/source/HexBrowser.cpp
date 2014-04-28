@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r572
+\version r573
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2014-02-08 21:42 +0800
+	2014-04-25 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ HexViewArea::HexViewArea(const Rect& r, FontCache& fc)
 	SetVisibleOf(vsbVertical, true);
 	vsbVertical.SetSmallDelta(1);
 	yunseq(
-	vsbVertical.GetTrack().GetScroll() += [this](ScrollEventArgs&& e){
+	vsbVertical.GetTrackRef().GetScroll() += [this](ScrollEventArgs&& e){
 		LocateViewPosition(round(e.GetValue()));
 	},
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
