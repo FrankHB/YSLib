@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r288
+\version r291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-04-26 02:10 +0800
+	2014-05-02 00:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,6 +285,11 @@ Rules for exception handling should be uniformed.
 		It is usually memroy-sensitive to format the message string.
 		YSLib rarely override the what() member function.
 	For both implemention and semantics reasons, do not use 'catch(...)' without rethrowing unless really necessary. See also %Documentation::CommonRules @5.10.5.6.
+
+$2014-05:
+
+report.impl:
+	Select carefully between const_iterator and iterator for ODR issue. See http://wg21.cmeerw.net/lwg/issue1214 .
 
 
 ////

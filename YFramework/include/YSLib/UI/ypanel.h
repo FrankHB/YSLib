@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r431
+\version r433
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2014-04-23 01:08 +0800
+	2014-05-01 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,6 +91,9 @@ public:
 	*/
 	bool
 	MoveToFront(IWidget&);
+
+	//! \since build 496
+	using MUIContainer::QueryZ;
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

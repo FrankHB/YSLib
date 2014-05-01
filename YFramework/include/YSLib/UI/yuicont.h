@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1944
+\version r1971
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-04-27 11:34 +0800
+	2014-05-01 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -350,6 +350,14 @@ protected:
 	PaintVisibleChildren(PaintEventArgs&);
 
 public:
+	/*!
+	\brief 查询指定部件的 Z 顺序。
+	\throw std::out_of_range 不包含指定子部件。
+	\since build 496
+	*/
+	ZOrderType
+	QueryZ(IWidget&) const;
+
 	//! \since build 460
 	iterator
 	begin();
@@ -359,6 +367,28 @@ public:
 	end();
 };
 
+
+/*!
+\brief 向部件添加单一子部件。
+\since build 496
+*/
+template<class _tCon>
+inline void
+AddWidget(_tCon& con, IWidget& wgt)
+{
+	con += wgt;
+}
+
+/*!
+\brief 向部件添加指定 Z 顺序的单一子部件。
+\since build 496
+*/
+template<class _tCon>
+inline void
+AddWidget(_tCon& con, IWidget& wgt, ZOrderType z)
+{
+	con.Add(wgt, z);
+}
 
 /*!
 \brief 向部件容器添加子部件。

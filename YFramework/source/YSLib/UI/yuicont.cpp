@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1787
+\version r1795
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-04-27 10:58 +0800
+	2014-05-01 23:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,6 +244,15 @@ MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 
 		PaintVisibleChild(wgt, e);
 	});
+}
+
+ZOrderType
+MUIContainer::QueryZ(IWidget& wgt) const
+{
+	for(auto& pr : mWidgets)
+		if((YAssertNonnull(pr.second), pr.second) == &wgt)
+			return pr.first;
+	throw std::out_of_range("Widget not found.");
 }
 
 MUIContainer::iterator

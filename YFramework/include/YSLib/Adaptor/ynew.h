@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ynew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1182
+\version r1184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2013-12-24 09:20 +0800
+	2014-04-29 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,7 @@ public:
 		std::size_t size;
 		std::string file;
 		int line;
-	
+
 		explicit
 		BlockInfo(std::size_t s, const char* f, int l)
 			: size(s), file(f), line(l)
@@ -191,7 +191,6 @@ public:
 \def ynew_nothrow
 \def ydelete
 \def ydelete_array
-\bug 调试内存列表非线程安全。
 */
 #	define ynew YSLib::MemoryList::NewRecorder(__FILE__, __LINE__)->*new
 #	define ynew_nothrow new(std::nothrow, __FILE__, __LINE__)

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r459
+\version r465
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2013-10-24 20:50 +0800
+	2014-04-29 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ namespace ystdex
 \since build 304
 */
 //@{
-template <class _type>
+template<class _type>
 inline _type*
 pod_fill(_type* first, _type* last, const _type& value)
 {
@@ -76,7 +76,7 @@ pod_fill(_type* first, _type* last, const _type& value)
 	return last;
 }
 
-template <class _type>
+template<class _type>
 inline _type*
 pod_copy_n(const _type* first, size_t n, _type* result)
 {
@@ -87,14 +87,14 @@ pod_copy_n(const _type* first, size_t n, _type* result)
 	return result + n;
 }
 
-template <class _type>
+template<class _type>
 inline _type*
 pod_copy(const _type* first, const _type* last, _type* result)
 {
 	return ystdex::pod_copy_n(first, last - first, result);
 }
 
-template <class _type>
+template<class _type>
 inline _type*
 pod_move_n(const _type* first, size_t n, _type* result)
 {
@@ -105,7 +105,7 @@ pod_move_n(const _type* first, size_t n, _type* result)
 	return result + n;
 }
 
-template <class _type>
+template<class _type>
 inline _type*
 pod_move(const _type* first, const _type* last, _type* result)
 {

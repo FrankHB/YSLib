@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1195
+\version r1201
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-04-28 14:27 +0800
+	2014-05-01 16:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,7 +184,7 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 (btnMenu
 	($type "Button")($bounds "0 170 72 22"))
 (pnlSetting
-	($type "Panel")($bounds "10 40 224 100")
+	($type "Panel")($bounds "10 40 224 100")($z 128)
 	(ddlStyle
 		($type "DropDownList")($bounds "10 24 80 22"))
 	(rbTxt
@@ -199,7 +199,7 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 		($type "Button")($bounds "164 60 30 22"))
 )
 (pnlTest1
-	($type "Panel")($bounds "10 20 224 144")
+	($type "Panel")($bounds "10 20 224 144")($z 128)
 	(tcTest1
 		($type "TabControl")
 		($bounds "3 3 218 138")
@@ -301,11 +301,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	dsk_m += root,
 	dsk_m.Add(btnSwitchMain, 96),
 	dsk_s += root_sub,
-	// XXX: NPL script should be used to describe Z-order without re-attaching.
-	root_sub -= pnlSetting,
-	root_sub -= pnlTest1;
+	// XXX: NPL script should be used to describe Z-order variable.
 	dsk_s.Add(btnSwitchSub, 96),
-	AddWidgetsZ(dsk_s, DefaultWindowZOrder, pnlSetting, pnlTest1, *pFrmAbout);
+	AddWidgetsZ(root_sub, DefaultWindowZOrder, *pFrmAbout);
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	pnlTest1.SetRenderer(make_unique<BufferedRenderer>()),

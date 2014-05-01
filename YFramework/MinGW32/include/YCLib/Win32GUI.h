@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r469
+\version r470
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-04-11 00:53 +0800
+	2014-04-29 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -419,7 +419,6 @@ class YF_API HostWindow : private WindowReference, private YSLib::noncopyable
 public:
 	/*!
 	\brief 限制指针设备响应在窗口边界内。
-	\bug 必须支持 <tt>std::atomic</tt> 。
 	\since build 427
 	*/
 	std::atomic<bool> BoundsLimited{false};

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r7766
+\version r7837
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-04-28 19:53 +0800
+	2014-05-02 00:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,78 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %Iterator $=
+		(
+			/ @ "class template %transformed_iterator" $=
+			(
+				* "nonconforming to iterator requirement as not \
+					%DefaultConstructible" $since b255
+					$= (+ "explicitly defaulted constructor"),
+				/ "all overloaded member operators %(+=, -=, +, -)"
+					-> "non-member function templates",
+				+ "function template %operator[]
+			),
+			+ "function template %operator- with 2 %transformed_iterator \
+				instances",
+			+ "function templates %operator(<, <=, >, >=) for \
+				%transformed_iterator instances"
+		),
+		/ @ "supported rvalue references" @ "function templates \
+			%(polymorphic_cast, polyphic_downcast)" @ %Cast $=
+		(
+			+ $dev "static assertions to be strict to differentiate lvalue \
+				references and rvalue references";
+			+ "overloadings support for rvalue references",
+			- DLD "underscore" @ "identifiers"
+		)
+	),
+	/ %YFramework.YSLib $=
+	(
+		* "thread unsafety" @ "globally shared debug list object"
+			@ %YAdaptor.New $since b173,
+		/ %UI $=
+		(
+			/ @ %YUIContainer $=
+			(
+				+ "2 function template %AddWidget",
+				+ "function %QueryZ" @ "class %MUIContainer"
+			),
+			/ %Loader $=
+			(
+				$dep_from "%AddWidget";
+				/ "supported parameter pack" @ "function template \
+					%InsertWidget; alias template %GWidgetInserter; \
+					class template %GWidgetInserterRegister";
+				/ @ "class %WidgetLoader" $=
+				(
+					+ 'GWidgetInserterRegister<IWidget&, const ZOrderType&> \
+						InsertZOrdered;';
+					/ "supported Z-order with '$z' node as 1st extended \
+						parameter for widget insertion"
+						@ "function %TransformUILayout",
+					^ DLD "explicitly member brace initializers"
+						@ "all data members"
+				)
+			),
+			(
+			$dep_from "%MUIContainer::QueryZ";
+			+ 'using MUIContainer::QueryZ' @ "class %Panel" @ %Panel
+			)
+		)
+	),
+	/ %YReader $=
+	(
+		$dep_from %YFramework.YSLib.UI.Loader;
+		+ "insert registration with Z-order of class %Panel"
+			@ "function %FetchWidgetLoader" @ %Shells;
+		/ "simplified NPL UI script" ^ '$z' @ %ShlExplorer
+	)
+),
+
+b495
 (
 	/ %YBase.YStandardEx $=
 	(

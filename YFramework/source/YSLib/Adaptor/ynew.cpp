@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r967
+\version r978
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2013-12-24 09:46 +0800
+	2014-04-29 13:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,9 @@
 #include <cassert> // for assert;
 #include <algorithm> // for std::for_each;
 #include <functional> // for std::bind;
+#if YF_Multithread == 1
+#	include <mutex>
+#endif
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
@@ -39,7 +42,7 @@ namespace YSLib
 
 } // namespace YSLib;
 
-/*
+#if 0
 using YSLib::GetDebugMemoryList;
 
 void*
@@ -101,7 +104,7 @@ operator delete[](void* p, const std::nothrow_t&, const char* f, int l) ynothrow
 	GetDebugMemoryList().Unregister(p, f, l);
 	::operator delete[](p);
 }
-*/
+#endif
 
 namespace YSLib
 {
@@ -112,7 +115,6 @@ namespace
 /*!
 \brief 调试内存列表。
 \warning 不可用于未确定初始化顺序的命名空间作用域对象。
-\bug 非线程安全。
 \since build 298
 */
 static MemoryList DebugMemoryList(nullptr);
@@ -122,6 +124,11 @@ static MemoryList DebugMemoryList(nullptr);
 MemoryList&
 GetDebugMemoryList()
 {
+#if YF_Multithread
+	static std::mutex mtx;
+	std::unique_lock<std::mutex> lck(mtx);
+#endif
+
 	return DebugMemoryList;
 }
 

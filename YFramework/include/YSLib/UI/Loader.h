@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r513
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2014-04-27 23:38 +0800
+	2014-05-01 15:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_Loader_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YWidget
+#include YFM_YSLib_UI_YUIContainer
 #include YFM_YSLib_Core_ValueNode
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
@@ -58,14 +58,15 @@ CreateUniqueWidget(_tParams&&... args)
 
 /*!
 \brief 注册部件加载器：添加部件引用。
-\since build 495
+\since build 496
 \todo 使用 ISO C++1y 多态 lambda 表达式代替。
 */
-template<typename _tWidget, typename _tParam>
+template<typename _tWidget, typename... _tParams>
 static void
-InsertWidget(IWidget& wgt, _tParam&& arg)
+InsertWidget(IWidget& wgt, _tParams&&... args)
 {
-	ystdex::polymorphic_downcast<_tWidget&>(wgt) += yforward(arg);
+	UI::AddWidget(ystdex::polymorphic_downcast<_tWidget&>(wgt),
+		yforward(args)...);
 }
 
 
@@ -131,9 +132,9 @@ AccessWidget(const ValueNode& node, _tParams&&... args)
 template<typename... _tParams>
 using GWidgetCreator = unique_ptr<IWidget>(*)(_tParams...);
 
-//! \since build 495
-template<typename _type>
-using GWidgetInserter = void(*)(IWidget&, _type);
+//! \since build 496
+template<typename... _tParams>
+using GWidgetInserter = void(*)(IWidget&, _tParams...);
 
 
 /*!
@@ -170,7 +171,7 @@ public:
 \brief 加载器注册接口：加载一个或多个键和添加部件引用例程。
 \note 加载的键的数量和类的数量需要保持一致。
 \sa GRegister
-\since build 495
+\since build 496
 \par 调用示例:
 \code
 	static GWidgetInserterRegister<IWidget&&> reg;
@@ -179,19 +180,19 @@ public:
 \endcode
 \brief 取加载器注册接口处理器：用于加载一个或多个键和类初始化例程。
 */
-template<typename _type>
+template<typename... _tParams>
 class GWidgetInserterRegister : public GHandlerRegisterBase<
-	GWidgetInserterRegister<_type>, string, GWidgetInserter<_type>>
+	GWidgetInserterRegister<_tParams...>, string, GWidgetInserter<_tParams...>>
 {
 public:
-	using Base = GHandlerRegisterBase<GWidgetInserterRegister<_type>,
-		string, GWidgetInserter<_type>>;
+	using Base = GHandlerRegisterBase<GWidgetInserterRegister<_tParams...>,
+		string, GWidgetInserter<_tParams...>>;
 
 	ImplS(Base) template<typename _tWidget, typename _fHandler>
-	static GWidgetInserter<_type>
+	static GWidgetInserter<_tParams...>
 	GetRegister(const string&)
 	{
-		return &InsertWidget<_tWidget, _type>;
+		return &InsertWidget<_tWidget, _tParams...>;
 	}
 };
 
@@ -203,10 +204,12 @@ public:
 class YF_API WidgetLoader
 {
 public:
-	GWidgetRegister<> Default;
-	GWidgetRegister<const Rect&> Bounds;
+	GWidgetRegister<> Default{};
+	GWidgetRegister<const Rect&> Bounds{};
 	//! \since build 495
-	GWidgetInserterRegister<IWidget&> Insert;
+	GWidgetInserterRegister<IWidget&> Insert{};
+	//! \since build 496
+	GWidgetInserterRegister<IWidget&, const ZOrderType&> InsertZOrdered{};
 
 	unique_ptr<IWidget>
 	DetectWidgetNode(const ValueNode&);

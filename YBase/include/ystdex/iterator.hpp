@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3058
+\version r3192
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-04-20 17:01 +0800
+	2014-04-29 12:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -508,8 +508,9 @@ operator!=(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
 /*!
 \ingroup iterator_adaptors
 \brief 转换迭代器。
+\pre 转换器必须满足 DefaultConstructible ，否则不保证可默认构造。
+\note 对于返回新值的二元操作，复制的转换器基于第一操作数。
 \warning 非虚析构。
-\bug 迭代器类别不保证完全满足原迭代器：不保证可默认构造。
 \since build 288
 
 使用指定参数转换得到新迭代器的间接操作替代指定原始类型的间接操作的迭代器适配器。
@@ -539,10 +540,11 @@ protected:
 	mutable transformer_type transformer;
 
 public:
-	//! \since build 448
+	//! \since build 496
+	transformed_iterator() = default;
+	//! \since build 494
 	template<typename _tIter, typename _tTran,
 		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIter>)>
-	//! \since build 494
 	explicit yconstfn
 	transformed_iterator(_tIter&& i, _tTran f = {})
 		: iterator_type(yforward(i)), transformer(f)
@@ -553,22 +555,6 @@ public:
 	transformed_iterator(transformed_iterator&&) = default;
 	//@}
 
-	//! \since build 415
-	transformed_iterator&
-	operator+=(difference_type n)
-	{
-		std::advance(get(), n);
-		return *this;
-	}
-
-	//! \since build 415
-	transformed_iterator&
-	operator-=(difference_type n)
-	{
-		std::advance(get(), -n);
-		return *this;
-	}
-
 	//! \since build 357
 	inline reference
 	operator*() const
@@ -576,24 +562,13 @@ public:
 		return yforward(transformer(get()));
 	}
 
-	//! \since build 415
-	transformed_iterator
-	operator+(difference_type n) const
+	//! \since build 496
+	template<typename _tDiff>
+	enable_if_t<is_convertible<decltype(
+		std::declval<iterator_type&>()[_tDiff()]), reference>::value, reference>
+	operator[](_tDiff n)
 	{
-		auto i(*this);
-
-		i += n;
-		return i;
-	}
-
-	//! \since build 415
-	transformed_iterator
-	operator-(difference_type n) const
-	{
-		auto i(*this);
-
-		i -= n;
-		return i;
+		return get()[difference_type(n)];
 	}
 
 	/*!
@@ -671,6 +646,92 @@ operator!=(const transformed_iterator<_type, _fTransformer>& x,
 	const transformed_iterator<_type, _fTransformer>& y)
 {
 	return !(x == y);
+}
+//@}
+
+/*!
+\brief 满足随机迭代器要求。
+\relates transformed_iterator
+\since build 496
+*/
+//@{
+template<typename _type, typename _fTransformer>
+inline transformed_iterator<_type, _fTransformer>&
+operator+=(transformed_iterator<_type, _fTransformer>& i,
+	typename transformed_iterator<_type, _fTransformer>::difference_type n)
+{
+	i.get() += n;
+	return i;
+}
+
+template<typename _type, typename _fTransformer>
+inline transformed_iterator<_type, _fTransformer>&
+operator-=(transformed_iterator<_type, _fTransformer>& i,
+	typename transformed_iterator<_type, _fTransformer>::difference_type n)
+{
+	i.get() -= n;
+	return i;
+}
+
+template<typename _type, typename _fTransformer>
+transformed_iterator<_type, _fTransformer>
+operator+(const transformed_iterator<_type, _fTransformer>& i,
+	typename transformed_iterator<_type, _fTransformer>::difference_type n)
+{
+	auto it(i);
+
+	it += n;
+	return it;
+}
+
+template<typename _type, typename _fTransformer>
+transformed_iterator<_type, _fTransformer>
+operator-(const transformed_iterator<_type, _fTransformer>& i,
+	typename transformed_iterator<_type, _fTransformer>::difference_type n)
+{
+	auto it(i);
+
+	it -= n;
+	return it;
+}
+template<typename _type, typename _fTransformer>
+typename transformed_iterator<_type, _fTransformer>::difference_type
+operator-(const transformed_iterator<_type, _fTransformer>& x,
+	const transformed_iterator<_type, _fTransformer>& y)
+{
+	return x.get() - y.get();
+}
+
+template<typename _type, typename _fTransformer>
+inline bool
+operator<(const transformed_iterator<_type, _fTransformer>& x,
+	const transformed_iterator<_type, _fTransformer>& y)
+{
+	return bool(x.get() < y.get());
+}
+
+template<typename _type, typename _fTransformer>
+inline bool
+operator<=(const transformed_iterator<_type, _fTransformer>& x,
+	const transformed_iterator<_type, _fTransformer>& y)
+{
+	return !(y < x);
+}
+
+template<typename _type, typename _fTransformer>
+inline bool
+operator>(const transformed_iterator<_type, _fTransformer>& x,
+	const transformed_iterator<_type, _fTransformer>& y)
+{
+	return y < x;
+}
+
+template<typename _type, typename _fTransformer>
+inline bool
+operator>=(const transformed_iterator<_type, _fTransformer>& x,
+	const transformed_iterator<_type, _fTransformer>& y)
+{
+	return !(x < y);
 }
 //@}
 

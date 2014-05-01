@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r250
+\version r279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-04-27 23:45 +0800
+	2014-05-01 23:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,10 +117,12 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 	{
 		ValueNode res(0, node.GetName());
 		const auto& key(AccessChild<string>(node, "$type"));
+		const bool ins(Insert.Contains(key));
+		const bool insz(InsertZOrdered.Contains(key));
 
-		if(Insert.Contains(key))
+		if(ins || insz)
 		{
-			auto p_cont(make_unique<ValueNode::Container>());
+			auto p_con(make_unique<ValueNode::Container>());
 
 			for(const auto& vn : node)
 				if(CheckChildName(vn.GetName()))
@@ -130,14 +132,33 @@ WidgetLoader::TransformUILayout(const ValueNode& node)
 						{
 							auto& wgt(*AccessChild<shared_ptr<IWidget>>(child,
 								"$pointer"));
+							const auto p_z(AccessChildPtr<string>(vn, "$z"));
+							auto z(DefaultZOrder);
 
-							if(p_cont->insert(std::move(child)).second)
-								Insert.Call(key, *p_new_widget, wgt);
+							if(insz && p_z)
+								try
+								{
+									const auto r(std::stoul(*p_z));
+
+									// XXX: Do not use magic number.
+									if(r < 0x100)
+										z = r;
+								}
+								catch(std::invalid_argument&)
+								{}
+							if(p_con->insert(std::move(child)).second)
+							{
+								if(insz && (p_z || !ins))
+									InsertZOrdered.Call(key, *p_new_widget, wgt,
+										z);
+								else
+									Insert.Call(key, *p_new_widget, wgt);
+							}
 						}
 					}
 					catch(ystdex::bad_any_cast&)
 					{}
-			res += {0, "$children", std::move(p_cont), PointerTag()};
+			res += {0, "$children", std::move(p_con), PointerTag()};
 		}
 		res += {0, "$pointer", shared_ptr<IWidget>(std::move(p_new_widget))};
 		return res;
