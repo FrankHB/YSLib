@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r385
+\version r389
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2013-12-23 23:07 +0800
+	2014-05-07 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,10 +81,10 @@ public:
 
 /*!
 \ingroup exception_types
-\brief 非日志记录的致命错误。
-\since build 332
+\brief 致命错误。
+\since build 497
 */
-class YF_API FatalError : GeneralEvent
+class YF_API FatalError : public GeneralEvent
 {
 private:
 	const char* content;

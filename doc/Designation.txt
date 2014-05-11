@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9169
+\version r9189
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-04-24 21:57 +0800
+	2014-05-11 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -296,16 +296,23 @@ Shell 和 Core 的关系是相对的，例如：
 和本机语言实现相关的平台环境可使用经典系统类型名称(canonical system type name) 描述： architecture/vendor/OS/C library 四元组或 architecture/vendor/OS 三元组，除第一项外可能省略。
  YFramework 平台配置不一定一一对应。
 目标平台配置和 YCLib 平台定义文件(@5.2.2.4.1) 中定义的公共平台对应。
-当前正式支持的目标平台：
-非宿主实现目标平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等，对应系统名 arm-eabi 或 arm-none-eabi ）；
-宿主实现目标平台 MinGW32 （对应系统名 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
-当前只保证 MinGW-W64 的运行时可以正常构建。
-使用 MinGW.org 的运行时自 b465 起支持。
-目前 DS 仅使用静态链接库链接至静目标。
 
 @5.1.1 配置管理：
 基本配置管理参见 [Documentation::ProjectRules @@2.1]。
  MinGW32 为 DLL 目标追加对应 debug 和 release 的配置 debug_DLL 和 release_DLL 。
+
+@5.1.2 当前正式支持的目标平台：
+非宿主实现目标平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等，对应系统名 arm-eabi 或 arm-none-eabi ）。
+宿主实现目标平台 MinGW32 （对应系统名 i686-pc-mingw32 及其向前兼容的 i686-w64-mingw32 等）。
+保证 MinGW-W64 的运行时可以正常构建。
+使用 MinGW.org 的运行时自 b465 起支持。
+
+@5.1.3 当前试验支持或不完全支持的目标平台：
+宿主实现目标平台 Android （至少需 API Level 9 ）。
+
+@5.1.4 平台限制：
+当前 DS 仅使用静态链接库链接至目标。
+当前 Android 不支持使用 Java 语言构建（ Makefile 缺少命令）；且仅支持单一动态库（ NativeActivity 限制）。
 
 @5.2 基础环境：
 除了 ISO C++ 标准库外的非外部依赖项：
@@ -478,6 +485,13 @@ Shell 和 Core 的关系是相对的，例如：
 使用 http://sourceforge.net/projects/msys2/files/Base/i686/msys2-base-i686-20140216.tar.xz 作为基础环境。
 同时使用 "Tools/msys2-update-pacman.sh" 更新包。
 每次主分支版本前同步 MSys 环境（ @5.2.4 中明确提到的除外）至最新版本，但保证只依赖对于基础环境向后兼容的特性，因此应可直接升级到更新版本使用。
+
+@5.2.6 Android 平台工具链和标准库实现：
+ build 492 前：
+无（不支持的平台）。
+ 2012-04-07(build 492) 起：
+使用 JDK 8u5 x64 、 Android SDK 和 Android NDK r9d 。
+独立工具链目标三元组 arm-linux-androideabi ，构建脚本参见 Tools/make-clang-android.sh 。
 
 @5.3 通用库：
 

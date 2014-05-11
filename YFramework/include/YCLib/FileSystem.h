@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1227
+\version r1229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-04-08 01:05 +0800
+	2014-05-07 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -314,13 +314,12 @@ truncate(std::FILE*, std::size_t) ynothrow;
 /*!
 \brief 取文件的大小。
 \return 以字节计算的文件大小。
-\throw std::runtime_error 抛出异常。
+\throw FileOperationFailure 参数无效或文件大小查询失败。
 \note <tt>errno</tt> 在出错时会被设置。
 \since build 475
 \todo 使用 errno 决定异常。
 */
 //@{
-//! \pre 输入有效的文件描述符。
 YF_API std::uint64_t
 GetFileSizeOf(int);
 //! \pre 断言：输入非空指针。

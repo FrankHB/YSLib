@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="debug|ARM">
+      <Configuration>debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="release|ARM">
+      <Configuration>release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2834D625-9264-25B3-926A-D1B973515654}</ProjectGuid>
+    <RootNamespace>YSTest_DS</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|ARM'">make -j -r CONF=$(Configuration)</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">make -j -r CONF=$(Configuration)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='release|ARM'">make -j -r CONF=$(Configuration) rebuild</NMakeReBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">make -j -r CONF=$(Configuration) rebuild</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='release|ARM'">make -j -r CONF=$(Configuration) clean</NMakeCleanCommandLine>
+    <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">make -j -r CONF=$(Configuration) clean</NMakeCleanCommandLine>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
+    <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(Configuration)\$(ProjectName).nds</NMakeOutput>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__NO_INLINE__;__GNUC_GNU_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__SIG_ATOMIC_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__UINT8_TYPE__;__UINT16_TYPE__;__UINT32_TYPE__;__UINT64_TYPE__;__INT_LEAST8_TYPE__;__INT_LEAST16_TYPE__;__INT_LEAST32_TYPE__;__INT_LEAST64_TYPE__;__UINT_LEAST8_TYPE__;__UINT_LEAST16_TYPE__;__UINT_LEAST32_TYPE__;__UINT_LEAST64_TYPE__;__INT_FAST8_TYPE__;__INT_FAST16_TYPE__;__INT_FAST32_TYPE__;__INT_FAST64_TYPE__;__UINT_FAST8_TYPE__;__UINT_FAST16_TYPE__;__UINT_FAST32_TYPE__;__UINT_FAST64_TYPE__;__INTPTR_TYPE__;__UINTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__WINT_MAX__;__SIZE_MAX__;__PTRDIFF_MAX__;__INTMAX_MAX__;__UINTMAX_MAX__;__SIG_ATOMIC_MAX__;__INT8_MAX__;__INT16_MAX__;__INT32_MAX__;__INT64_MAX__;__UINT8_MAX__;__UINT16_MAX__;__UINT32_MAX__;__UINT64_MAX__;__INT_LEAST8_MAX__;__INT_LEAST16_MAX__;__INT_LEAST32_MAX__;__INT_LEAST64_MAX__;__UINT_LEAST8_MAX__;__UINT_LEAST16_MAX__;__UINT_LEAST32_MAX__;__UINT_LEAST64_MAX__;__INT_FAST8_MAX__;__INT_FAST16_MAX__;__INT_FAST32_MAX__;__INT_FAST64_MAX__;__UINT_FAST8_MAX__;__UINT_FAST16_MAX__;__UINT_FAST32_MAX__;__UINT_FAST64_MAX__;__INTPTR_MAX__;__UINTPTR_MAX__;__WCHAR_MIN__;__WINT_MIN__;__SIG_ATOMIC_MIN__;__INT8_C;__INT16_C;__INT32_C;__INT64_C;__UINT8_C;__UINT16_C;__UINT32_C;__UINT64_C;__INTMAX_C;__UINTMAX_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__FLOAT_WORD_ORDER__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_WEAK__;__TIMESTAMP__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='release|ARM'">NDEBUG;__COUNTER__;__GNUC__;__GNUC_MINOR__;__GNUC_PATCHLEVEL__;__GNUG__;__BASE_FILE__;__INCLUDE_LEVEL__;__ELF__;__VERSION__;__OPTIMIZE__;__GNUC_GNU_INLINE__;__CHAR_UNSIGNED__;__WCHAR_UNSIGNED__;__REGISTER_PREFIX__;__USER_LABEL_PREFIX__;__SIZE_TYPE__;__PTRDIFF_TYPE__;__WCHAR_TYPE__;__WINT_TYPE__;__INTMAX_TYPE__;__UINTMAX_TYPE__;__SIG_ATOMIC_TYPE__;__INT8_TYPE__;__INT16_TYPE__;__INT32_TYPE__;__INT64_TYPE__;__UINT8_TYPE__;__UINT16_TYPE__;__UINT32_TYPE__;__UINT64_TYPE__;__INT_LEAST8_TYPE__;__INT_LEAST16_TYPE__;__INT_LEAST32_TYPE__;__INT_LEAST64_TYPE__;__UINT_LEAST8_TYPE__;__UINT_LEAST16_TYPE__;__UINT_LEAST32_TYPE__;__UINT_LEAST64_TYPE__;__INT_FAST8_TYPE__;__INT_FAST16_TYPE__;__INT_FAST32_TYPE__;__INT_FAST64_TYPE__;__UINT_FAST8_TYPE__;__UINT_FAST16_TYPE__;__UINT_FAST32_TYPE__;__UINT_FAST64_TYPE__;__INTPTR_TYPE__;__UINTPTR_TYPE__;__CHAR_BIT__;__SCHAR_MAX__;__WCHAR_MAX__;__SHRT_MAX__;__INT_MAX__;__LONG_MAX__;__LONG_LONG_MAX__;__WINT_MAX__;__SIZE_MAX__;__PTRDIFF_MAX__;__INTMAX_MAX__;__UINTMAX_MAX__;__SIG_ATOMIC_MAX__;__INT8_MAX__;__INT16_MAX__;__INT32_MAX__;__INT64_MAX__;__UINT8_MAX__;__UINT16_MAX__;__UINT32_MAX__;__UINT64_MAX__;__INT_LEAST8_MAX__;__INT_LEAST16_MAX__;__INT_LEAST32_MAX__;__INT_LEAST64_MAX__;__UINT_LEAST8_MAX__;__UINT_LEAST16_MAX__;__UINT_LEAST32_MAX__;__UINT_LEAST64_MAX__;__INT_FAST8_MAX__;__INT_FAST16_MAX__;__INT_FAST32_MAX__;__INT_FAST64_MAX__;__UINT_FAST8_MAX__;__UINT_FAST16_MAX__;__UINT_FAST32_MAX__;__UINT_FAST64_MAX__;__INTPTR_MAX__;__UINTPTR_MAX__;__WCHAR_MIN__;__WINT_MIN__;__SIG_ATOMIC_MIN__;__INT8_C;__INT16_C;__INT32_C;__INT64_C;__UINT8_C;__UINT16_C;__UINT32_C;__UINT64_C;__INTMAX_C;__UINTMAX_C;__SIZEOF_INT__;__SIZEOF_LONG__;__SIZEOF_LONG_LONG__;__SIZEOF_SHORT__;__SIZEOF_POINTER__;__SIZEOF_FLOAT__;__SIZEOF_DOUBLE__;__SIZEOF_LONG_DOUBLE__;__SIZEOF_SIZE_T__;__SIZEOF_WCHAR_T__;__SIZEOF_WINT_T__;__SIZEOF_PTRDIFF_T__;__BYTE_ORDER__;__ORDER_LITTLE_ENDIAN__;__ORDER_BIG_ENDIAN__;__ORDER_PDP_ENDIAN__;__FLOAT_WORD_ORDER__;__DEPRECATED;__EXCEPTIONS;__GXX_RTTI;__GXX_WEAK__;__TIMESTAMP__;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeForcedIncludes Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeAssemblySearchPath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\libs\armeabi\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\include\backward;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.8\include;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.8\include-fixed;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\include;$(NDK)\platforms\android-9\arch-arm\usr\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\libs\armeabi\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\include\backward;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.8\include;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.8\include-fixed;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\include;$(NDK)\platforms\android-9\arch-arm\usr\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\libs\armeabi\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\include\backward;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.8\include;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.8\include-fixed;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\include;$(NDK)\platforms\android-9\arch-arm\usr\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\libs\armeabi\include;$(NDK)\sources\cxx-stl\gnu-libstdc++\4.8\include\backward;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.8\include;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.8\include-fixed;$(NDK)\toolchains\arm-linux-androideabi-4.8\prebuilt\windows-x86_64\include;$(NDK)\platforms\android-9\arch-arm\usr\include;$(NMakeIncludeSearchPath)</IncludePath>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">
+    </ReferencePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" />
+    <SourcePath Condition="'$(Configuration)|$(Platform)'=='debug|ARM'" />
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'">
+    </ReferencePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='release|ARM'" />
+    <SourcePath Condition="'$(Configuration)|$(Platform)'=='release|ARM'" />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">
+    <OutDir>$(SolutionDir)build\Android\YSTest\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\Android\YSTest\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'">
+    <OutDir>$(SolutionDir)build\Android\YSTest\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\Android\YSTest\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|ARM'">
+    <BuildLog>
+      <Path>$(SolutionDir)build\Android\YSTest\$(Configuration)\$(MSBuildProjectName).log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|ARM'">
+    <BuildLog>
+      <Path>$(SolutionDir)build\Android\YSTest\$(Configuration)\$(MSBuildProjectName).log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="data\logo.bmp" />
+    <None Include="data\logo_wifi.bmp" />
+    <None Include="Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="AndroidManifest.xml" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileCompilerC="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileCompilerCXX="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileRM="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileMKDIR="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileIntDir="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileDestDir="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileCFLAGS="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileCXXFLAGS="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strMakefileLDFLAGS="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteBuildCommand="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteRebuildCommand="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteCleanCommand="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteDeployCommand="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathRemoteBuildDirectory="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteBuildVariables="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bDeployBeforeStartDebugging="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bDeployOnlyIfFileChanged="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathDeployFile="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathDeployTargetDirectory="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteSolutionBuildCommand="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteSolutionRebuildCommand="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteSolutionCleanCommand="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteSolutionDeployCommand="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathRemoteSolutionBuildDirectory="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strRemoteSolutionBuildVariables="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bSolutionDeployOnlyIfFileChanged="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathSolutionDeployFile="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathSolutionDeployTargetDirectory="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathCore="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathWorkingDirectory="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strLaunchArguments="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strLaunchEnvironment="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bStopInMain="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strTarget="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathLoadProgramPath="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathExecutableOnTarget="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bServerAutoLaunch="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bUseSysroot="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathDynamicLinker="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathServerLibraryPaths="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathServerPath="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bServerPortIsForwarded="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathExecutable="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathCustomPreLoadInitScript="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathCustomInitScript="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathCustomCondPreLoadInitScript="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathCondCustomInitScript="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strAdditionalDebuggerOptions="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathSourceDirectories="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathDebugInfoDirectory="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathSysrootOnHost="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathSysrootOnTarget="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathSharedLibraryDirectories="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strVisualizerProfile="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bSourceSession="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bDisableHangReporter="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bUseProtoCtl="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathProtoCtlLogFile="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathDebugger="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_pathToolchain="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_bReuseStandardBuildCommand="false" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strDebugHostLogin="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strBuildHostLogin="" WinGDB_w4rm0OcRKG6SL9Qko90JbA_strDebugTargetLogin="" WinGDB_25tgklWSlpQat0K0-ItNrA_strProjectStateSignals="" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

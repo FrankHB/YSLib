@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file main.cpp
 \ingroup DS
-\brief ARM9 主源文件。
-\version r1760
+\brief 主源文件。
+\version r1779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2013-11-26 20:21 +0800
+	2014-05-10 17:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,24 +25,6 @@
 */
 
 
-//标识主源文件。
-#ifdef YSL_ARM9_MAIN_CPP_
-#	error "The main source file has already compiled. Try to make the macro \
-		YSL_ARM9_MAIN_CPP_ be defined iff. once in the project."
-#endif
-
-#define YSL_ARM9_MAIN_CPP_ YSL_MAIN_CPP_
-
-#ifdef YSL_MAIN_CPP_
-#	error "The main source file has already compiled. Try to make the macro \
-		YSL_MAIN_CPP_ be defined iff. once in the project."
-#endif
-#define YSL_MAIN_CPP_
-
-//定义使用 EFSLib 。
-//#define USE_EFS
-
-//包含文件。
 #include "ShlExplorer.h"
 
 using namespace platform;
@@ -217,14 +199,7 @@ Repaint(Desktop& dsk)
 } // namespace YSLib;
 
 int
-#if YCL_Win32
-WINAPI
-WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
-//WinMain(HINSTANCE hThis, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmd)
-#else
 main()
-//main(int argc, char* argv[])
-#endif
 {
 	using namespace YSLib;
 
@@ -284,9 +259,20 @@ main()
 		OnExit_DebugMemory();
 	#endif
 	}
+	catch(FatalError& e)
+	{
+		HandleFatalError(e);
+	}
+	catch(LoggedEvent& e)
+	{
+		log.FatalError("Unhandled logged event with level = "
+			+ to_string(e.GetLevel()) + " : " + e.what());
+	}
 	catch(std::exception& e)
 	{
-		log.FatalError(e.what());
+		// TODO: Distinguish errors from %std::runtime_error and YSLib-defined
+		//	exceptions.
+		log.FatalError(string("Unhandled std::exception: ") + e.what());
 	}
 	catch(...)
 	{

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r470
+\version r474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-04-29 13:03 +0800
+	2014-05-11 01:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,7 +226,10 @@ public:
 	swap(ScreenBuffer&) ynothrow;
 };
 
-//! \since build 445
+/*!
+\relates ScreenBuffer
+\since build 445
+*/
 inline DefSwap(ynothrow, ScreenBuffer)
 
 

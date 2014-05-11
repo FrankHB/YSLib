@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r277
+\version r289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-04-11 00:53 +0800
+	2014-05-11 12:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -231,7 +231,10 @@ public:
 	swap(ScreenBuffer&) ynothrow;
 };
 
-//! \since build 445
+/*!
+\relates ScreenBuffer
+\since build 445
+*/
 inline DefSwap(ynothrow, ScreenBuffer)
 
 
@@ -272,6 +275,16 @@ public:
 } // namespace Android;
 
 } // namespace platform_ex;
+
+//! \since build 497
+struct ANativeActivity;
+
+/*!
+\brief Android 默认入口函数。
+\since build 497
+*/
+YF_API extern "C" void
+ANativeActivity_onCreate(::ANativeActivity*, void*, ::size_t);
 
 #endif
 

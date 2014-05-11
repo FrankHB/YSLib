@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1308
+\version r1309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-04-08 01:07 +0800
+	2014-05-07 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -460,7 +460,7 @@ GetFileSizeOf(int fd)
 		&& YB_LIKELY(sz.QuadPart >= 0))
 		return sz.QuadPart;
 #endif
-	throw std::runtime_error("Failed getting file size.");
+	throw FileOperationFailure("Failed getting file size.");
 }
 std::uint64_t
 GetFileSizeOf(std::FILE* fp)

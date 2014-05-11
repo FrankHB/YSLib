@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r2011
+# Version = r2012
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-04-10 12:24 +0800
+# Updated = 2014-05-02 12:51 +0800
 # Encoding = ANSI
 
 
@@ -54,7 +54,7 @@ export SOURCES		:=	source data \
 	$(REFDIR)/source/CHRLib \
 	$(REFDIR)/source/YCLib $(REFDIR)/source/YSLib \
 	$(REFDIR)/source/YSLib/Adaptor $(REFDIR)/source/YSLib/Core \
-	$(REFDIR)/source/YSLib/Service $(REFDIR)/Source/YSLib/UI \
+	$(REFDIR)/source/YSLib/Service $(REFDIR)/source/YSLib/UI \
 	$(REFDIR)/source/NPL $(REFDIR)/source/Helper \
 	$(REFDIR)/DS/source/Helper
 export INCLUDES		:=	include data ../../YBase/include $(REFDIR)/include ../../3rdparty/include

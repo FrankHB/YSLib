@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4562
+\version r4566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-04-06 17:34 +0800
+	2014-05-02 04:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "ShlReader.h"
 #include "ShlExplorer.h"
 #include YFM_NPL_Lexical
+#include <sys/stat.h> // for ::stat;
 
 namespace YReader
 {
@@ -770,7 +771,9 @@ ShlHexBrowser::ShlHexBrowser(const IO::Path& pth,
 	HexArea.SetRenderer(make_unique<BufferedRenderer>(true));
 	yunseq(
 	FetchEvent<KeyDown>(HexArea) += [this](KeyEventArgs&& e){
-		if(e.GetKeys() == 1 << KeyCodes::Esc)
+		auto& keys(e.Keys);
+
+		if(keys.count() == 1 && keys[KeyCodes::Esc])
 			Exit();
 	},
 	HexArea.ViewChanged += [this](HexViewArea::ViewArgs&&){

@@ -33,3 +33,17 @@ Currently, the YSLib uses:
 
 The output is "objs/freetype.a" in the freetype source directory.
 
+= Android
+Currently only building on Windows is tested.
+Msys and android standalone toolchain compatible to arm-linux-androideabi is required.
+The environment variable "PATH" should be set properly to make sure the toolchain files can be found.
+Copy the file "builds/ds/modules.cfg" to "objs" in the freetype source directory.
+Run the configure script with "--host=arm-linux-androideabi" in the shell.
+Then run "make"(add "-j" to build concurrently) with proper options using official makefile to build static library for Android.
+Currently, the YSLib uses:
+
+	./configure --host=arm-linux-androideabi --disable-shared --with-zlib=no --with-bzip2=no --with-png=no --with-harfbuzz=no CFLAGS="-O3 -Wall -Wl,--gc-sections -s -fdata-sections -ffunction-sections -fomit-frame-pointer -DNDEBUG"
+	make
+
+The output is "objs/.libs/libfreetype.a" in the freetype source directory.
+

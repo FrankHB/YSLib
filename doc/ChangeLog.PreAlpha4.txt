@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r7837
+\version r7901
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-05-02 00:11 +0800
+	2014-05-11 13:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,70 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ $dev "3rd party" @ "platform %Android" $=
+	(
+		+ $doc "FreeType build instructions";
+		+ "built FreeType"
+	),
+	* "key bit access might out of range" @ "constructor %ShlHexBrowser"
+		@ %YReader $since b298,
+		// Only platform %Android really overrun currently.
+	/ %Tools $=
+	(
+		+ "create-android-debug-keystore.sh",
+		/ $dev @ "make-clang-android.sh" $=
+		(
+			+ '--verbose' @ "command line options" @ "shell call",
+			+ "comment of prerequisition"
+				// Not completed.
+		)
+	),
+	+ "project %YSTest_Android",
+	* "VC++ projects" @ "platform %Android" ^ "Clang++ predefined macros"
+		// However actually G++ is used.
+		$= (^ G++ ~ Clang++),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ DLD "simplified lock" ^ "%std::lock_guard" ~ "%std::unique_lock"
+				@ "%GetDebugMemoryList" @ 'YF_Multithread == 1'
+				@ %Adaptor.YNew $since b496,
+			+ 'public' @ "base class %LoggedEvent" @ "class %FatalError"
+				@ %Core.YException
+		),
+		/ %YCLib $=
+		(
+			^ "%FileOperationFailure" ~ "neutral exception %std::runtime_error"
+				@ "constructors" @ "class %MemoryMappedFile" @ %MemoryMapped,
+			^ "%FileOperationFailure" ~ "%std::runtime_error"
+				@ "functions %GetFileSizeOf" @ %FileSystem
+		),
+	),
+	/ @ "main function" @ %Main $=
+	(
+		* $revert "missing exception handler for %FatalError" $since b342,
+		+ "exception handler for %LoggedEvent",
+		+ "output text" @ "exception handler for %std::exception",
+		/ $dev "unified function type as 'int main()'" @ "all platforms"
+	),
+	/ %'YCLib_(Android)'.Android $=
+	(
+		+ "empty helper implementation",
+			// To prevent undefined symbols make failure on loading(if not \
+				forced '--Wl,--no-undefined' in linking command line, it would \
+				just fail on dynamically loading and crash).
+		+ "default entry function definition %ANativeActivity_onCreate"
+			// This is the entry name for native activity if no \
+				%android.app.func_name is set in %AndroidManifest.xml. \
+				Otherwise, the entry should be defined with the exact name as \
+				the value with C linkage. Current implementation is lack of \
+				proper exit, so hanging after print some logs is just intended.
+	)
+),
+
+b496
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -548,7 +612,7 @@ b492
 		),
 		(
 		$dep_from %YCLib.Platform;
-		+ %YCLib_(Android)
+		+ %'YCLib_(Android)'
 			$= (+ %Android)
 		),
 		* DLD "missing explicit return type" @ "lambda expression"

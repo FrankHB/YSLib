@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r978
+\version r979
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2014-04-29 13:14 +0800
+	2014-05-06 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,7 +126,7 @@ GetDebugMemoryList()
 {
 #if YF_Multithread
 	static std::mutex mtx;
-	std::unique_lock<std::mutex> lck(mtx);
+	std::lock_guard<std::mutex> lck(mtx);
 #endif
 
 	return DebugMemoryList;

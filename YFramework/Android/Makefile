@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r296
+# Version = r298
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2014-04-10 11:45 +0800
+# Updated = 2014-05-02 12:51 +0800
 # Encoding = ANSI
 
 
@@ -57,9 +57,9 @@ export SOURCES		:=	source data \
 	$(REFDIR)/source/CHRLib \
 	$(REFDIR)/source/YCLib $(REFDIR)/source/YSLib \
 	$(REFDIR)/source/YSLib/Adaptor $(REFDIR)/source/YSLib/Core \
-	$(REFDIR)/source/YSLib/Service $(REFDIR)/Source/YSLib/UI \
+	$(REFDIR)/source/YSLib/Service $(REFDIR)/source/YSLib/UI \
 	$(REFDIR)/source/NPL $(REFDIR)/source/Helper \
-	$(REFDIR)/DS/source/Helper
+	$(REFDIR)/DS/source/Helper $(REFDIR)/Android/source/YCLib
 export INCLUDES		:=	include data \
 	$(REFDIR)/DS/include $(REFDIR)/DS/data \
 	../../YBase/include $(REFDIR)/include ../../3rdparty/include
