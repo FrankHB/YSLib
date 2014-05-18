@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r448
+\version r459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-04-11 00:54 +0800
+	2014-05-18 20:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,10 +131,12 @@ WindowReference::GetClientSize() const
 		YF_Raise_Win32Exception("GetClientRect");
 	return {rect.right, rect.bottom};
 }
-Size
-WindowReference::GetSize() const
+Point
+WindowReference::GetLocation() const
 {
-	return FetchSizeFromBounds(FetchWindowRect(hWindow));
+	const auto& rect(FetchWindowRect(hWindow));
+
+	return {rect.left, rect.top};
 }
 YSLib::Drawing::AlphaType
 WindowReference::GetOpacity() const
@@ -145,12 +147,10 @@ WindowReference::GetOpacity() const
 		YF_Raise_Win32Exception("GetLayeredWindowAttributes");
 	return a;
 }
-Point
-WindowReference::GetLocation() const
+Size
+WindowReference::GetSize() const
 {
-	const auto& rect(FetchWindowRect(hWindow));
-
-	return {rect.left, rect.top};
+	return FetchSizeFromBounds(FetchWindowRect(hWindow));
 }
 
 void
@@ -273,7 +273,7 @@ ScreenBuffer::Resize(const Size& s)
 void
 ScreenBuffer::Premultiply(BitmapPtr buf) ynothrow
 {
-	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
+	// NOTE: Since the stride is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
 	std::transform(buf, buf + size.Width * size.Height, pBuffer,
 		[](const PixelType& pixel){
@@ -378,13 +378,13 @@ WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
 	if(YB_UNLIKELY(::RegisterClassW(&wnd_class) == 0))
 		YF_Raise_Win32Exception("RegisterClassW");
 	// TODO: Trace class name.
-	YTraceDe(Notice, "Window class registered.\n");
+	YTraceDe(Notice, "Window class registered.");
 }
 WindowClass::~WindowClass()
 {
 	::UnregisterClassW(WindowClassName, h_instance);
 	// TODO: Trace class name.
-	YTraceDe(Notice, "Window class unregistered.\n");
+	YTraceDe(Notice, "Window class unregistered.");
 }
 
 

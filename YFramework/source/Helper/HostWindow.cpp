@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r360
+\version r362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-05-02 12:54 +0800
+	2014-05-18 23:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,12 +81,14 @@ Window::UpdateFrom(YSLib::Drawing::BitmapPtr buf, ScreenRegionBuffer& rbuf)
 {
 	const auto h_wnd(GetNativeHandle());
 
+#	if YCL_Win32
 	if(UseOpacity)
 	{
 		rbuf.Premultiply(buf);
 		rbuf.UpdatePremultipliedTo(h_wnd, Opacity);
 	}
 	else
+#endif
 	{
 		rbuf.UpdateFrom(buf);
 		rbuf.UpdateTo(h_wnd);

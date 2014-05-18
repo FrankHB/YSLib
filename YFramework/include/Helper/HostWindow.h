@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r307
+\version r309
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-04-10 01:25 +0800
+	2014-05-18 23:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,6 +57,7 @@ private:
 	std::reference_wrapper<Environment> env;
 
 public:
+#	if YCL_Win32
 	/*!
 	\brief 标记是否使用不透明性成员。
 	\note 使用 Windows 层叠窗口实现，但和 WindowReference 实现不同：使用
@@ -72,6 +73,7 @@ public:
 	\since build 435
 	*/
 	YSLib::Drawing::AlphaType Opacity{0xFF};
+#	endif
 
 	/*!
 	\exception LoggedEvent 异常中立：窗口类名不是 WindowClassName 。

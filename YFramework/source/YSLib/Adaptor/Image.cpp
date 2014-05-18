@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r754
+\version r755
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-04-25 09:54 +0800
+	2014-05-17 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ namespace
 void DLL_CALLCONV
 FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
 {
-	YTraceDe(Warning, "FreeImage failed, format = %d: %s.\n", int(fif), msg);
+	YTraceDe(Warning, "FreeImage failed, format = %d: %s.", int(fif), msg);
 
 	yunused(fif),
 	yunused(msg);

@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r886
+\version r887
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-04-19 15:47 +0800
+	2014-05-15 00:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,7 +143,7 @@ template<typename _fCallable, typename... _tParams>
 inline void
 unseq_apply(_fCallable&& f, _tParams&&... args)
 {
-	yunseq((yforward(f)(yforward(args)), 0)...);
+	yunseq((void(yforward(f)(yforward(args))), 0)...);
 }
 
 

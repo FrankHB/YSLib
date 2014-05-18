@@ -11,13 +11,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3508
+\version r3536
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2014-04-07 18:33 +0800
+	2014-05-11 23:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,39 +79,6 @@ enum RecordLevel : std::uint8_t
 };
 
 } // namespace Descriptions;
-
-
-/*!
-\brief 取动态跟踪等级阈值。
-\note 初始值 platform::Descriptions::Informative 。
-\warning 对于不支持 TLS 的实现非线程安全。
-\since build 456
-*/
-YF_API Descriptions::RecordLevel&
-FetchTraceThreshold();
-
-
-#if YB_Use_YTrace
-/*!
-\brief YCLib 默认调试跟踪等级阈值。
-\note 默认仅小于此等级的调试跟踪信息不忽略。
-\since build 432
-*/
-#	ifndef YF_TraceLevel
-#		define YF_TraceLevel platform::FetchTraceThreshold()
-#	endif
-
-/*!
-\brief YCLib 默认调试跟踪。
-\note 使用默认的调试跟踪级别。
-\sa YF_TraceLevel
-\sa ystdex::ytrace
-*/
-#	define YTraceDe(_lv, ...) \
-	ystdex::ytrace(stderr, _lv, YF_TraceLevel, __FILE__, __LINE__, __VA_ARGS__)
-#else
-#	define YTraceDe(...)
-#endif
 
 } // namespace platform;
 

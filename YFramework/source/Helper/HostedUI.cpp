@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r168
+\version r177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2014-04-09 23:53 +0800
+	2014-05-18 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,6 +52,7 @@ WaitForHostWindow(UI::IWidget& wgt)
 	return *p_wnd;
 }
 
+#	if !YCL_Android
 
 void
 DragWindow(Window& wnd, UI::CursorEventArgs&& e)
@@ -69,6 +70,7 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 		}
 	}
 }
+#	endif
 
 #	if YCL_Win32
 
@@ -81,19 +83,20 @@ ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
 	WaitForHostWindow(wgt);
 }
 #	endif
+#	if !YCL_Android
 
 void
 ShowTopLevelDraggable(UI::Widget& wgt)
 {
-#	if YCL_Win32
+#		if YCL_Win32
 	ShowTopLevel(wgt, WS_POPUP);
-#	elif YCL_Android
-#	else
-#		error "Unsupported platform found."
-#	endif
+#		else
+#			error "Unsupported platform found."
+#		endif
 	UI::FetchEvent<UI::TouchHeld>(wgt) += std::bind(Host::DragWindow,
 		std::ref(WaitForHostWindow(wgt)), std::placeholders::_1);
 }
+#	endif
 
 } // namespace Host;
 #endif

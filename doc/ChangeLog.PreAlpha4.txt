@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r7901
+\version r8075
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-05-11 13:32 +0800
+	2014-05-19 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,180 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ "macro %YB_Use_YTrace always defined regardless of %NDEBUG"
+			@ %YDefinition,
+		* "probable extra unnecessary evaluations when %operator, overloaded \
+			for result" @ "function template %unseq_apply" @ %YStandardEx
+			$since b303
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %Debug $=
+			(
+				+ $dev $doc "Doxygen group %tracing";
+				(
+				+ "class %Logger";
+				+ "functions %(FetchCommonLogger, LogWithSource)";
+				+ "macros %(YCL_Log; YCL_Trace)"
+				),
+				+ "macro %YCL_Use_TraceSrc"
+			);
+			/ %YCommon $=
+			(
+				/ "macro %YTraceDe" >> %Debug
+					^ ("macro %YCL_Log as implementation",
+					"macro %YCL_Use_TraceSrc as condition");
+				(
+				$comp "one '\n' attached for trace",
+					// Current use of trace are all adjusted to remove \
+						redundant '\n'.
+				(
+				- "macro %YF_TraceLevel";
+				- "function %FetchTraceThreshold"
+				)
+				)
+			),
+			/ %Debug $=
+			(
+				/ @ "platform %Android" $=
+				(
+					/ @ "namespace %platform_ex" $=
+					(
+						+ "function %MapAndroidLogLevel",
+						+ "class %AndroidLogSender"
+					);
+					+ "Android logging calls" @ "class %Logger"
+				),
+				(
+				$dep_from "debug print";
+				- "macro %YCL_DEBUG_PUTS",
+				),
+				- "macro %YCL_DEBUG_PRINTF"
+			)
+		),
+		/ %YSLib $=
+		(
+			+ "inclsion %YFM_YCLib_Keys" @ %YAdaptor.Adaptor,
+				// To prevent %YTraceDe undefined.
+			/ @ %UI.Loader $=
+			(
+				+ "(function; function template) %AccessWidgetNode";
+				/ DLD "simplified implementation"
+					@ "function template %AccessWidget" ^ "%AccessWidgetNode"
+			),
+			- "using alias %SizeType" @ "class %MessageQueue" @ %Core.Message
+		),
+		/ %'YCLib_(Android)'.Android $=
+		(
+			- $revert(b497) "declarations %ANativeActivity, \
+				%ANativeActivity_onCreate)"
+				// Including "native_activity.h" would make the declarations \
+					present so redeclarating them is redundant. And here is \
+					really not fit for the entry function definition, but \
+					temporarily reserved for delevopment.
+			/ @ "class %WindowReference" $=
+			(
+				(
+				$dep_from "window using cleanup";
+				- "functions %('GetClient*', GetLocation, 'Set*', Close, \
+					Invalidate, Move, Resize, ResizeClient, Show)";
+				$dep_to "new %WindowReference members"
+				),
+				(
+				+ "functions %(GetWidth, GetHeight)";
+				/ "implemented %(GetSize)" ^ "%(GetWidth, GetHeight)"
+				)
+			),
+			/ @ "class %HostWindow" $=
+			(
+				/ "set reference count for constructor and destructor",
+				(
+				- "using declarations %WindowReference::('GetClient*', \
+					GetLocation, 'Set*', Close, Invalidate, Move, Resize, \
+					ResizeClient, Show)",
+				$dep_to "window using cleanup"
+				),
+				(
+				$dep_from "new %WindowReference members";
+				+ "using %WindowReference::(GetWidth, GetHeight)"
+				)
+			),
+			/ @ "class %ScreenBuffer" $=
+			(
+				/ "implemented" ^ "pImpl class %YSLib::Drawing::CompactBitmap",
+				+ "constructor accepting extra stride",
+				/ "implemented function %(UpdateFrom, swap)",
+				/ "function %GetSize",
+				+ "functions %(GetBufferPtr, GetStride)",
+				(
+				$dep_from "region buffer using cleanup";
+				- "function %Premultiply"
+				)
+			),
+			/ @ "class %ScreenRegionBuffer" $=
+			(
+				(
+				- 'using ScreenBuffer::Premultiply;';
+				$dep_to "region buffer using cleanup"
+				),
+				+ "constructor accepting extra stride",
+				/ "implemented functions %(UpdateFrom, UpdateTo)",
+				- "function %UpdatePremultipliedTo"
+			),
+			/ "entry function %::ANativeActivity_onCreate" @ %Android $=
+			(
+				+ "log level setting" @ '!defined NDEBUG',
+				^ "%YDebugDe" ~ "%::__android_log_print"
+			)
+		),
+		/ %Helper $=
+		(
+			+ "user-defined entry point 'extern "C" void y_android_main();'"
+				@ "platform %Android" @ %YGlobal,
+				// Temporarily only declaration is present.
+			(
+			/ $dev "all debug print" ^ "%YTraceDe" ~ "%YCL_DEBUG_PUTS",
+			$dep_to "debug print"
+			),
+			/ @ "platform %Android" $=
+			(
+				/ "modified implementation to get rid of use of window methods \
+					%(Close, *Client*, Show)" @ "platform %Android"
+					@ %(DSMain, Host, HostedUI, HostRenderer),
+				/ "made data member %Window::(UseOpacity, Opacity) only \
+					avaliable for platform %MinGW32" @ %HostWindow
+			)
+		),
+		/ DLD "implementation"
+			@ "member function %WindowMemorySurface::Update#2"
+			^ "macro %(PDefH, ImplExpr)" @ %'YCLib_(MinGW32)'.MinGW32
+	),
+	/ %YReader $=
+	(
+		(
+		$dep_from %YFramework.YSLib.UI.Loader;
+		/ DLD "simplified node access" @ "constructor %ShlExplorer",
+		@ %ShlExplorer ^ "%AccessWidget"
+		),
+		/ DLD "similifed unsequenced function calls" ^ "%unseq_apply"
+			@ %(ShlExplorer, ShlReader)
+	),
+	/ $dev $doc "cleanup" @ %Documentation.Definitions $=
+	(
+		- "namespaces list",
+			// Doxygen is preferred.
+		- "constexpr namespace objects",
+		- "friend list"
+			// Text search is preferred.
+	)
+),
+
+b497
 (
 	/ $dev "3rd party" @ "platform %Android" $=
 	(
@@ -53,7 +227,7 @@ $now
 	+ "project %YSTest_Android",
 	* "VC++ projects" @ "platform %Android" ^ "Clang++ predefined macros"
 		// However actually G++ is used.
-		$= (^ G++ ~ Clang++),
+		$= (^ "G++" ~ "Clang++"),
 	/ %YFramework $=
 	(
 		/ %YSLib $=

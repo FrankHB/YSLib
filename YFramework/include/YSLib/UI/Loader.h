@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r534
+\version r561
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2014-05-01 15:28 +0800
+	2014-05-12 09:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,6 +100,31 @@ public:
 \brief 按指定名称访问子部件节点。
 \throw WidgetNotFound 没有找到指定名称的部件。
 \note 不抛出 std::out_of_range （已全部捕获并抛出为 WidgetNotFound ）。
+\since build 498
+*/
+//@{
+yconstfn PDefH(const ValueNode&, AccessWidgetNode, const ValueNode& nd)
+	ImplRet(nd)
+template<typename... _tParams>
+const ValueNode&
+AccessWidgetNode(const ValueNode& node, const string& name, _tParams&&... args)
+{
+	try
+	{
+		return
+			AccessWidgetNode(node.at("$children").at(name), yforward(args)...);
+	}
+	catch(std::out_of_range&)
+	{
+		throw WidgetNotFound(node.GetName(), "Widget children not found.");
+	}
+}
+//@}
+
+/*!
+\brief 按指定名称访问子部件。
+\exception WidgetNotFound 没有找到指定名称的部件。
+\note 不抛出 std::out_of_range （已全部捕获并抛出为 WidgetNotFound ）。
 \since build 433
 */
 //@{
@@ -109,14 +134,7 @@ template<typename... _tParams>
 IWidget&
 AccessWidget(const ValueNode& node, const string& name, _tParams&&... args)
 {
-	try
-	{
-		return AccessWidget(node.at("$children").at(name), yforward(args)...);
-	}
-	catch(std::out_of_range& e)
-	{
-		throw WidgetNotFound(node.GetName(), "Widget children not found.");
-	}
+	return AccessWidget(AccessWidgetNode(node, name, yforward(args)...));
 }
 //! \throw std::bad_cast 不存在指定类型的部件。
 template<class _tWidget, typename... _tParams>

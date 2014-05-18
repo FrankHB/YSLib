@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r251
+\version r267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-04-25 09:52 +0800
+	2014-05-18 21:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,36 +71,38 @@ WindowThread::~WindowThread()
 
 	try
 	{
+#	if !YCL_Android
 		try
 		{
 			p_wnd_val->Close();
 		}
-#	if YCL_Win32
+#		if YCL_Win32
 		catch(Win32Exception&)
-#	else
+#		else
 		catch(Exception&) // XXX: Use proper platform-dependent type.
-#	endif
+#		endif
 		{}
+#	endif
 		// NOTE: If the thread has been already completed there is no effect.
 		if(thrd.joinable())
 			thrd.join();
 	}
 	catch(std::system_error& e)
 	{
-		YTraceDe(Warning, "Caught std::system_error: %s.\n", e.what());
+		YTraceDe(Warning, "Caught std::system_error: %s.", e.what());
 
 		yunused(e);
 	}
 	catch(std::exception& e)
 	{
-		YTraceDe(Alert, "Caught std::exception[%s]: %s.\n", typeid(e).name(),
+		YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
 			e.what());
 
 		yunused(e);
 	}
 	catch(...)
 	{
-		YTraceDe(Alert, "Caught unknown exception.\n");
+		YTraceDe(Alert, "Caught unknown exception.");
 	}
 	delete p_wnd_val;
 }
@@ -130,7 +132,9 @@ WindowThread::WindowLoop(Window& wnd)
 
 	env.EnterWindowThread();
 #	endif
+#	if !YCL_Android
 	wnd.Show();
+#	endif
 	Environment::HostLoop();
 #	if YF_Multithread
 	env.LeaveWindowThread();
@@ -153,7 +157,11 @@ HostRenderer::Update(BitmapPtr buf)
 	if(const auto p_wnd = GetWindowPtr())
 		try
 		{
+#	if YCL_Android
+			const Rect cbounds(p_wnd->GetSize());
+#	else
 			const auto& cbounds(p_wnd->GetClientBounds());
+#	endif
 			auto bounds(cbounds);
 			auto& view(widget.get().GetView());
 			const auto& loc(view.GetLocation());
@@ -166,8 +174,10 @@ HostRenderer::Update(BitmapPtr buf)
 				Validate(widget, widget, {GetContext(), Point(), rInvalidated});
 			}
 			bounds.GetSizeRef() = view.GetSize();
+#	if !YCL_Android
 			if(bounds != cbounds)
 				p_wnd->SetClientBounds(bounds);
+#	endif
 			p_wnd->UpdateFrom(buf, rbuf);
 		}
 #	if YCL_Win32

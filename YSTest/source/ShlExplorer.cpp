@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1201
+\version r1237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-05-01 16:33 +0800
+	2014-05-12 10:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,9 +119,8 @@ CheckMenuKey(const KeyInput& k)
 #if YCL_Win32
 	auto ke(k);
 
-	ke.set(VK_CONTROL, {});
-	ke.set(VK_LCONTROL, {});
-	ke.set(VK_RCONTROL, {});
+	unseq_apply([&](int vk){ke.set(vk, {});}, VK_CONTROL, VK_LCONTROL,
+		VK_RCONTROL);
 	return ke.none() && k[VK_CONTROL];
 #else
 	return k.count() == 1 && k[YCL_KEY_Start];
@@ -252,6 +251,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	fpsCounter(std::chrono::milliseconds(500)),
 	btnSwitchMain(*this, {234, 170}), btnSwitchSub(*this, {234, 170})
 {
+	using namespace std;
+	using namespace placeholders;
 	static struct Init
 	{
 		Init()
@@ -272,7 +273,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidgetN(FileBox, fbMain, node_sub)
 	DeclDynWidgetN(Button, btnOK, node_sub)
 	DeclDynWidgetN(Button, btnMenu, node_sub)
-	auto& node_pnlSetting(node_sub.at("$children").at("pnlSetting"));
+	auto& node_pnlSetting(AccessWidgetNode(node_sub, "pnlSetting"));
 	DeclDynWidget(Panel, pnlSetting, node_pnlSetting)
 	DeclDynWidgetN(DropDownList, ddlStyle, node_pnlSetting)
 	DeclDynWidgetN(RadioButton, rbTxt, node_pnlSetting)
@@ -280,11 +281,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidgetN(CheckButton, cbFPS, node_pnlSetting)
 	DeclDynWidgetN(Button, btnPrevBackground, node_pnlSetting)
 	DeclDynWidgetN(Button, btnNextBackground, node_pnlSetting)
-	auto& node_pnlTest1(node_sub.at("$children").at("pnlTest1"));
-	auto& node_tcTest1(node_pnlTest1.at("$children").at("tcTest1"));
+	auto& node_pnlTest1(AccessWidgetNode(node_sub, "pnlTest1"));
+	auto& node_tcTest1(AccessWidgetNode(node_pnlTest1, "tcTest1"));
 	DeclDynWidget(Panel, pnlTest1, node_pnlTest1)
 	DeclDynWidgetN(TabControl, tcTest1, node_pnlTest1)
-	auto& node_pnlPage1(node_tcTest1.at("$children").at("pnlPage1"));
+	auto& node_pnlPage1(AccessWidgetNode(node_tcTest1, "pnlPage1"));
 	DeclDynWidgetN(Label, lblDragTest, node_pnlPage1)
 	DeclDynWidgetN(Button, btnEnterTest, node_pnlPage1)
 	DeclDynWidgetN(TextBox, tbTest, node_pnlPage1)
@@ -307,15 +308,15 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	fbMain.SetRenderer(make_unique<BufferedRenderer>(true)),
 	pnlSetting.SetRenderer(make_unique<BufferedRenderer>()),
 	pnlTest1.SetRenderer(make_unique<BufferedRenderer>()),
-	SetVisibleOf(pnlSetting, false),
-	SetVisibleOf(pnlTest1, false),
-	SetVisibleOf(*pFrmAbout, false),
-	WrapForSwapScreens(dsk_m, SwapMask),
-	WrapForSwapScreens(dsk_s, SwapMask),
+	unseq_apply(bind(SetVisibleOf, _1, false), pnlSetting, pnlTest1,
+		*pFrmAbout),
+	unseq_apply(bind(&ShlDS::WrapForSwapScreens, this, _1, ref(SwapMask)),
+		dsk_m, dsk_s),
 	ani.Reset(&pnlTest1),
 	ddlStyle.SetList(FetchVisualStyleNames()),
 	rbTxt.ShareTo(rbHex),
 	rbTxt.Select(),
+	unseq_apply(bind(Enable, _1, false), btnOK, btnPrevBackground),
 	yunseq(
 	dsk_m.Background = ImageBrush(FetchImage(0)),
 	dsk_s.Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
@@ -361,8 +362,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	btnNextBackground.Font.SetStyle(FontStyle::Bold),
 	btnNextBackground.Text = u">>",
 	fbMain.SetPath(path),
-	Enable(btnOK, false),
-	Enable(btnPrevBackground, false),
 	dsk_s.BoundControlPtr = [&, this](const KeyInput& k)->IWidget*{
 		if(k.count() == 1)
 		{
@@ -464,8 +463,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			lblTitle.Background = SolidBrush(GenerateRandomColor());
 		lblInfo.Text = btn.Text + u", " + String(to_string(
 			FetchImageLoadTime())) + u";\n" + String(k.to_string());
-		Invalidate(lblTitle),
-		Invalidate(lblInfo);
+		unseq_apply([](IWidget& wgt){Invalidate(wgt);}, lblTitle, lblInfo);
 	},
 	FetchEvent<Click>(btnTestAni) += [&]{
 		auto& conn(ani.GetConnectionRef());
@@ -516,8 +514,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		if(up_i == 0)
 			Enable(btnPrevBackground, false);
 		dsk_m.Background = ImageBrush(FetchImage(up_i));
-		SetInvalidationOf(dsk_m),
-		SetInvalidationOf(dsk_s);
+		unseq_apply(SetInvalidationOf, dsk_m, dsk_s);
 	},
 	FetchEvent<Click>(btnNextBackground) += [&]{
 		auto& dsk_m(GetMainDesktop());
@@ -534,24 +531,17 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		SetInvalidationOf(dsk_m),
 		SetInvalidationOf(dsk_s);
 	},
-	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e)
-	{
-		SetEnabledOf(cbFPS, !e),
-		SetEnabledOf(rbTxt, !e);
-		SetEnabledOf(rbHex, !e);
-		Invalidate(cbFPS),
-		Invalidate(rbTxt);
-		Invalidate(rbHex);
+	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e){
+		unseq_apply(bind(SetEnabledOf, _1, !e), cbFPS, rbTxt, rbHex);
+		unseq_apply([](IWidget& wgt){Invalidate(wgt);}, cbFPS, rbTxt, rbHex);
 	},
 	ddlStyle.GetConfirmed() += [&, this]{
 		FetchGUIState().Styles.Switch(ddlStyle.Text.GetMBCS());
-		InvalidateAll(dsk_m),
-		InvalidateAll(dsk_s);
+		unseq_apply([](IWidget& wgt){InvalidateAll(wgt);}, dsk_m, dsk_s);
 	}
 	);
 	RequestFocusCascade(fbMain),
-	SetInvalidationOf(dsk_m),
-	SetInvalidationOf(dsk_s);
+	unseq_apply(SetInvalidationOf, dsk_m, dsk_s);
 
 	auto& m1(*(ynew Menu({}, share_raw(
 		new TextList::ListType{u"测试", u"关于", u"设置(X)", u"退出"}), 1u)));
@@ -580,7 +570,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	},
 	mhMain += m1, mhMain += m2,
 	m1 += make_pair(0u, &m2);
-	ResizeForContent(m1), ResizeForContent(m2),
+	unseq_apply(ResizeForContent, m1, m2),
 	SetLocationOf(m1, Point(btnMenu.GetX(), btnMenu.GetY() - m1.GetHeight()));
 	//m1.SetWidth(btnMenu.GetWidth() + 20);
 }

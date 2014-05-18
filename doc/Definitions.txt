@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12180
+\version r12318
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2014-04-01 10:14 +0800
+	2014-05-17 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,6 @@ $export //导出实体，显式使用表示强调无论实现如何，应向外�
 $code {} //表示（源）代码片段。
 $unit $unit_n //单元：指称一个编译单元（一般应为语言规范中定义的翻译单元）。单元名称 $unit_n 为可变部分，是语言规范中定义的标识符或关键字。
 $header $header_n //头文件：指称一个头文件。头文件名标识字符序列 $header_n 是可变部分，同语言标准中 #include $header_n 的用法，或为通配符。
-$dir //表示目录。
 $dir //表示目录。
 
 */
@@ -149,8 +148,10 @@ YCL_API_*
 YCL_DS
 YCL_MinGW32
 }
-$header YCommon
+$header Debug
 {
+YCL_Log
+YCL_Trace
 YTraceDe
 }
 $header NativeAPI
@@ -376,37 +377,18 @@ $header Core::YApplication
 } //$header Core::YApplication;
 
 $unit Helper::YGlobal
-{} //$unit Helper::YGlobal;
-
-$unit Helper::Shell_DS
 {
-	namespace Shells
-	{
-		// optional;
-		extern
-		unspecified_shell::unspecified_shell();
-	}
-} //$unit Helper::Shell_DS;
+#if YCL_Android
+	extern void
+	::y_android_main();
+#endif
+} //$unit Helper::YGlobal;
 
 
-//友元列表。
-class PlatformResource @ $header Helper::YGlobal
-{
-	friend class Application;
-} //class PlatformResource;
-
-
-//非 YGlobal 的命名空间作用域对象和类静态对象列表。
+//非 YGlobal 非 constexpr 的命名空间作用域对象和类静态对象列表。
 
 $dir YCLib
 {
-
-$unit YCommon
-{
-	namespace platform
-	{
-	}
-}
 
 $unit YDebug
 {
@@ -425,29 +407,6 @@ $unit CharacterMapping
 {
 namespace CHRLib
 {
-namespace CharSet
-{
-//别名。
-const Encoding
-	iso_ir_6(US_ASCII), ISO646_US(US_ASCII), ASCII(US_ASCII), us(US_ASCII),
-		IBM367(US_ASCII), cp367(US_ASCII), csASCII(US_ASCII),
-	MS_Kanji(SHIFT_JIS), csShiftJIS(SHIFT_JIS), windows_932_(SHIFT_JIS),
-	iso_ir_149(KS_C_5601_1987), KS_C_5601_1989(KS_C_5601_1987),
-		KSC_5601(KS_C_5601_1987), korean(KS_C_5601_1987),
-		csKSC56011987(KS_C_5601_1987), windows_949_(KS_C_5601_1987),
-	windows_65001_(UTF_8),
-	CP936(GBK), MS936(GBK), windows_936(GBK),
-	windows_54936_(GB18030),
-
-	csUnicode(ISO_10646_UCS_2),
-	csUCS4(ISO_10646_UCS_4),
-	csUnicodeASCII(ISO_10646_UCS_Basic),
-	windows_1201_(UTF_16BE),
-	windows_1200_(UTF_16LE),
-
-	csGB2312(GB2312), EUC_CN_(GB2312), windows_51936_(GB2312),
-	windows_950_(Big5);
-} // namespace CharSet;
 
 //默认字符集。
 const Encoding CP_Default = CharSet::UTF_8;
@@ -472,10 +431,6 @@ $dir Adaptor
 {
 
 $namespace.using YSLib:
-
-$unit Font
-{
-}
 
 } //$dir Adaptor;
 
@@ -547,14 +502,6 @@ $unit YFileSystem
 	}
 }
 
-$unit YApplication
-{
-class Application
-{
-//全局常量。
-};
-}
-
 $header YStorage
 {
 	//略。
@@ -583,91 +530,6 @@ $unit YTimer
 namespace std
 {
 } // namespace std;
-
-//命名空间单元分布。
-
-// YBase 。
-namespace std;
-namespace ystdex;
-namespace ystdex::details; // for impl;
-namespace ystdex::iterator_transformation; // @ <ystdex/iterator.hpp>
-namespace ystdex::operators; // @ <ystdex/operators.hpp>
-namespace ytest;
-namespace ytest::timing; // @ <ytest/timing.hpp>
-
-// YCLib 。
-namespace platform;
-namespace platform_ex;
-namespace platform_replace;
-
-// YSLib 。
-namespace UI
-{
-$unit UI::YComponents;
-$unit UI::YRenderer;
-$unit UI::YWidgetEvent;
-$unit UI::YWidgetView;
-$unit UI::YBrush;
-$unit UI::YWidget;
-$unit UI::YControl;
-$unit UI::YUIContainer;
-$unit UI::YWindow;
-$unit UI::YDesktop;
-$unit UI::Label;
-$unit UI::Button;
-$unit UI::CheckBox;
-$unit UI::UIContainerEx;
-$unit UI::Panel;
-$unit UI::TextList;
-$unit UI::Menu;
-$unit UI::ListBox;
-$unit UI::Form;
-
-namespace Styles
-{
-$unit UI::YStyle;
-} // namespace Styles;
-
-} // namespace UI;
-
-namespace Devices
-{
-$unit Core::YDevice;
-} // namespace Devices;
-
-namespace Drawing
-{
-$unit Adaptor::YFont;
-$unit Core::YObject;
-$unit Core::YResourse;
-} // namespace Drawing;
-
-namespace Messaging
-{
-$unit Core::YMessage;
-} // namespace Messaging;
-
-namespace IO
-{
-$unit Core::YFile;
-} // namespace IO;
-
-namespace Shells
-{
-$unit Core::YShell;
-$unit UI::YComponent;
-} // namespace Shells;
-
-namespace Timers
-{
-$unit Service::YTimer;
-} // namespace Timers;
-
-namespace Text
-{
-$unit Core::YString;
-$unit Service::YTextManager;
-} // namespace Text;
 
 // YCLib 全局命名空间污染列表。
 
@@ -964,12 +826,6 @@ using platform::GetRootNameLength;
 } // namespace IO;
 
 //库适配器。
-
-// Function 。
-//using Loki::Function;
-
-//使用 Loki 小对象。
-//using Loki::SmallObject;
 
 } //$header Adaptor::YAdaptor;
 

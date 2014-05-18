@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1342
+\version r1347
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-04-16 21:23 +0800
+	2014-05-18 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "Helper/YModules.h"
 #include YFM_Helper_Host
-#include YFM_Helper_ShellHelper // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
+#include YFM_Helper_ShellHelper // for YSL_DEBUG_DECL_TIMER;
 
 namespace YSLib
 {
@@ -110,14 +110,16 @@ Environment::Environment()
 {}
 Environment::~Environment()
 {
-	YCL_DEBUG_PUTS("Host environment lifetime ended.");
+	YCL_Trace(Debug, "Host environment lifetime ended.");
 
+#	if !YCL_Android
 	using ystdex::get_value;
 
 	std::for_each(wnd_map.cbegin() | get_value, wnd_map.cend() | get_value,
 		[](Window* const& p){
 			p->Close();
 	});
+#	endif
 }
 
 Window*
@@ -151,7 +153,7 @@ Environment::FindWindow(NativeWindowHandle h) const ynothrow
 void
 Environment::HostLoop()
 {
-	YCL_DEBUG_PUTS("Host loop beginned.");
+	YTraceDe(Notice, "Host loop beginned.");
 #	if YCL_Win32
 	while(true)
 	{
@@ -176,7 +178,7 @@ Environment::HostLoop()
 			::WaitMessage();
 	}
 #	endif
-	YCL_DEBUG_PUTS("Host loop ended.");
+	YTraceDe(Notice, "Host loop ended.");
 }
 
 #	if YF_Multithread == 1

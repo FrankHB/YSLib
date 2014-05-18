@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4566
+\version r4579
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-05-02 04:16 +0800
+	2014-05-12 10:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,8 +115,7 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 	}
 	else
 		InitializeProgress();
-	Invalidate(pbReader),
-	Invalidate(lblProgress);
+	unseq_apply([](IWidget& wgt){Invalidate(wgt);}, pbReader, lblProgress);
 }
 
 
@@ -148,9 +147,8 @@ TextInfoBox::UpdateData(DualScreenReader& reader)
 		lblSize.Text = "Size: " + to_string(reader.GetTextSize()) + " B;",
 		lblTop.Text = "Top: " + to_string(reader.GetTopPosition()) + " B;",
 		lblBottom.Text = "Bottom: " + to_string(reader.GetBottomPosition())
-		+ " B;");
-	Invalidate(lblEncoding),
-	Invalidate(lblSize);
+		+ " B;"),
+	unseq_apply([](IWidget& wgt){Invalidate(wgt); }, lblEncoding, lblSize);
 }
 
 
@@ -286,8 +284,8 @@ ShlTextReader::BaseSession::BaseSession(ShlTextReader& shl)
 	reader_box_shown(IsVisible(shl.boxReader))
 {
 	shl.StopAutoScroll(),
-	Hide(shl.boxReader),
-	Hide(shl.boxTextInfo);
+	unseq_apply(std::bind(Hide, std::placeholders::_1), shl.boxReader,
+		shl.boxTextInfo);
 }
 ShlTextReader::BaseSession::~BaseSession()
 {
@@ -359,16 +357,16 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	pnlSetting(), pTextFile(), mhMain(GetSubDesktop()),
 	pnlBookmark(LoadBookmarks(pth), *this), session_ptr()
 {
+	using namespace std;
+	using namespace placeholders;
 	using ystdex::get_key;
 
 	const auto exit_session([this]{
 		session_ptr.reset();
 	});
 
-	SetVisibleOf(boxReader, false),
-	SetVisibleOf(boxTextInfo, false),
-	SetVisibleOf(pnlSetting, false),
-	SetVisibleOf(pnlBookmark, false);
+	unseq_apply(bind(SetVisibleOf, _1, false), boxReader, boxTextInfo,
+		pnlSetting, pnlBookmark);
 	yunseq(
 	reader.ViewChanged = [this]{
 		if(IsVisible(boxReader))

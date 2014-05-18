@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.cpp
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r176
+\version r178
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2013-12-23 23:39 +0800
+	2014-05-17 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "Helper/YModules.h"
 #include YFM_Helper_ScreenBuffer
-#include YFM_Helper_ShellHelper // for YCL_DEBUG_PUTS, YSL_DEBUG_DECL_TIMER;
+#include YFM_Helper_ShellHelper // for YSL_DEBUG_DECL_TIMER;
 
 namespace YSLib
 {

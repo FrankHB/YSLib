@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r163
+\version r168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2013-12-24 09:38 +0800
+	2014-05-18 23:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,6 +99,7 @@ WrapRenderer(UI::Widget& wgt, _tParams&&... args)
 	wgt.SetRenderer(MakeHostRenderer(wgt, std::bind(yforward(args)...)));
 }
 
+#	if !YCL_Android
 
 /*!
 \brief 按指针设备输入事件指定的光标位置移动宿主窗口。
@@ -107,7 +108,7 @@ WrapRenderer(UI::Widget& wgt, _tParams&&... args)
 */
 YF_API void
 DragWindow(Window&, UI::CursorEventArgs&&);
-
+#	endif
 #	if YCL_Win32
 
 /*!
@@ -120,6 +121,7 @@ YF_API void
 ShowTopLevel(UI::Widget&, ::DWORD = WS_POPUP, ::DWORD = WS_EX_LAYERED,
 	const wchar_t* = L"");
 #	endif
+#	if !YCL_Android
 
 /*!
 \brief 显示控件为顶层可拖动的 GUI 对象。
@@ -129,6 +131,7 @@ ShowTopLevel(UI::Widget&, ::DWORD = WS_POPUP, ::DWORD = WS_EX_LAYERED,
 */
 YF_API void
 ShowTopLevelDraggable(UI::Widget&);
+#	endif
 
 } // namespace Host;
 #endif

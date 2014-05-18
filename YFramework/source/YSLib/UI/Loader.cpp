@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r279
+\version r280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-05-01 23:33 +0800
+	2014-05-17 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ ParseRect(const string& str)
 
 	Rect res(buf[0], buf[1], buf[2], buf[3]);
 
-	YTraceDe(Informative, "ParseRect: %s.\n", to_string(res).c_str());
+	YTraceDe(Informative, "ParseRect: %s.", to_string(res).c_str());
 
 	return res;
 }

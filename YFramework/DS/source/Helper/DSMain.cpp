@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3111
+\version r3117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-04-25 09:11 +0800
+	2014-05-18 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,6 @@ DSApplication::DSApplication()
 			WindowClassName, {256, 384}, L"YSTest", WS_TILED | WS_CAPTION
 			| WS_SYSMENU | WS_MINIMIZEBOX), *scrs[0], *scrs[1], GetHost()));
 	}));
-	// FIXME: Reduce possible data race.
 	while(!p_wnd_thrd->GetWindowPtr())
 		// TODO: Resolve magic sleep duration.
 		std::this_thread::sleep_for(host_sleep);
@@ -109,7 +108,7 @@ DSApplication::~DSApplication()
 {
 #if YCL_Win32
 	p_wnd_thrd.reset();
-	YCL_DEBUG_PUTS("Host thread dropped.");
+	YTraceDe(Notice, "Host thread dropped.");
 #endif
 	//等待并确保所有 Shell 被释放。
 //	hShell = {};
@@ -152,8 +151,10 @@ DSApplication::SwapScreens()
 	SwapLCD();
 #if YF_Hosted
 	std::swap(GetDSScreenUp().Offset, GetDSScreenDown().Offset);
+#	if !YCL_Android
 	if(const auto p_wnd = GetHost().GetForegroundWindow())
 		p_wnd->Invalidate();
+#	endif
 #endif
 }
 
@@ -197,8 +198,8 @@ namespace MinGW32
 void
 TestFramework(size_t idx)
 {
-	YCL_DEBUG_PUTS(("Test beginned, idx = " + to_string(idx) + " .").c_str());
-	YCL_DEBUG_PUTS("Test ended.");
+	YTraceDe(Notice, ("Test beginned, idx = " + to_string(idx) + " .").c_str());
+	YTraceDe(Notice, "Test ended.");
 
 	yunused(idx);
 }
