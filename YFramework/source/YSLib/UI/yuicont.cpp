@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1795
+\version r1803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-05-01 23:03 +0800
+	2014-05-23 09:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,7 +113,6 @@ void
 MoveToLeft(IWidget& wgt)
 {
 	YAssertNonnull(FetchContainerPtr(wgt));
-
 	SetLocationOf(wgt, Point(0, GetLocationOf(wgt).Y));
 }
 
@@ -121,7 +120,6 @@ void
 MoveToRight(IWidget& wgt)
 {
 	YAssertNonnull(FetchContainerPtr(wgt));
-
 	SetLocationOf(wgt, Point(GetSizeOf(*FetchContainerPtr(wgt)).Width
 		- GetSizeOf(wgt).Width, GetLocationOf(wgt).Y));
 }
@@ -130,7 +128,6 @@ void
 MoveToTop(IWidget& wgt)
 {
 	YAssertNonnull(FetchContainerPtr(wgt));
-
 	SetLocationOf(wgt, Point(GetLocationOf(wgt).X, 0));
 }
 
@@ -138,7 +135,6 @@ void
 MoveToBottom(IWidget& wgt)
 {
 	YAssertNonnull(FetchContainerPtr(wgt));
-
 	SetLocationOf(wgt, Point(GetLocationOf(wgt).X,
 		GetSizeOf(*FetchContainerPtr(wgt)).Height - GetSizeOf(wgt).Height));
 }
@@ -172,9 +168,7 @@ MLinearUIContainer::operator-=(IWidget& wgt)
 
 	erase_all(vWidgets, &wgt);
 	t -= vWidgets.size();
-
 	YAssert(t <= 1, "Duplicate widget pointer found.");
-
 	return t != 0;
 }
 
@@ -213,9 +207,7 @@ MUIContainer::operator-=(IWidget& wgt)
 	erase_all(mWidgets, mWidgets.begin() | get_value, mWidgets.end()
 		| get_value, &wgt);
 	t -= mWidgets.size();
-
 	YAssert(t <= 1, "Duplicate widget pointer found.");
-
 	return t != 0;
 }
 

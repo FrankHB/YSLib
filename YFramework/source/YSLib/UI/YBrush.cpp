@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r234
+\version r235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2013-12-23 23:48 +0800
+	2014-05-23 10:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,6 @@ void
 ImageBrush::operator()(PaintEventArgs&& e)
 {
 	YAssert(bool(Update), "Null updater found.");
-
 	if(ImagePtr)
 		Update(e, *ImagePtr, DstOffset, SrcOffset);
 }

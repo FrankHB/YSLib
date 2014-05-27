@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r948
+\version r949
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2013-12-11 21:02 +0800
+	2014-05-23 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -310,7 +310,6 @@ public:
 	operator++()
 	{
 		yassume(manager);
-
 		manager(storage, storage, any_ops::increase);
 		return *this;
 	}
@@ -343,7 +342,6 @@ public:
 	{
 		if(!*this && !i)
 			return true;
-
 		yassume(type() == i.type());
 
 		any_ops::any_storage t(&storage);
@@ -500,7 +498,6 @@ public:
 	operator--()
 	{
 		yassume(this->manager);
-
 		this->manager(this->storage, this->storage, any_ops::decrease);
 		return *this;
 	}

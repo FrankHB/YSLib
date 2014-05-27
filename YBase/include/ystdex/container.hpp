@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r651
+\version r652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-04-26 19:27 +0800
+	2014-05-23 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,7 +325,6 @@ public:
 	// NOTE: Nested %decltype could cause crashing of devkitPro G++ 4.7.1.
 	{
 		yassume(container);
-
 		return container->insert(yforward(args)...);
 	}
 };

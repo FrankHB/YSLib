@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r459
+\version r462
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-05-18 20:30 +0800
+	2014-05-26 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,7 +69,6 @@ FetchSizeFromBounds(const ::RECT& rect)
 {
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
-
 	return {rect.right - rect.left, rect.bottom - rect.top};
 }
 
@@ -90,7 +89,6 @@ AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
 {
 	if(YB_UNLIKELY(!::AdjustWindowRect(&rect, FetchWindowStyle(h_wnd), b_menu)))
 		YF_Raise_Win32Exception("AdjustWindowRect");
-
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
 }
@@ -286,11 +284,12 @@ ScreenBuffer::Premultiply(BitmapPtr buf) ynothrow
 }
 
 void
-ScreenBuffer::UpdateFrom(BitmapPtr buf) ynothrow
+ScreenBuffer::UpdateFrom(BitmapPtr p_buf) ynothrow
 {
 	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
-	std::copy_n(buf, size.Width * size.Height, GetBufferPtr());
+	YAssertNonnull(p_buf);
+	std::copy_n(p_buf, size.Width * size.Height, GetBufferPtr());
 }
 
 void

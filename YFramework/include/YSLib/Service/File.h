@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1128
+\version r1132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-04-23 01:09 +0800
+	2014-05-23 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,9 +211,7 @@ operator>>(File& f, typename std::char_traits<_tChar>::char_type& c)
 {
 	YAssert(bool(f), "Invalid file found.");
 
-	const auto fp(f.GetPtr());
-
-	c = std::fgetc(fp);
+	c = std::fgetc(f.GetPtr());
 	return f;
 }
 /*!
@@ -226,10 +224,9 @@ operator>>(File& f, _tString& str)
 {
 	YAssert(bool(f), "Invalid file found.");
 
-	const auto fp(f.GetPtr());
 	int c;
 
-	while((c = std::fgetc(fp)) > 0 && !std::iswspace(c))
+	while((c = std::fgetc(f.GetPtr())) > 0 && !std::iswspace(c))
 		str += c;
 	return f;
 }
@@ -242,7 +239,6 @@ inline File&
 operator<<(File& f, char c)
 {
 	YAssert(bool(f), "Invalid file found.");
-
 	std::fputc(c, f.GetPtr());
 	return f;
 }
@@ -254,7 +250,6 @@ inline File&
 operator<<(File& f, const char* str)
 {
 	YAssert(bool(f), "Invalid file found.");
-
 	std::fputs(str, f.GetPtr());
 	return f;
 }
@@ -268,7 +263,6 @@ File&
 operator<<(File& f, const _tString& str)
 {
 	YAssert(bool(f), "Invalid file found.");
-
 	std::fputs(reinterpret_cast<const char*>(str.c_str()), f.GetPtr());
 	return f;
 }

@@ -11,13 +11,13 @@
 /*!	\file yfocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r596
+\version r597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-03-19 09:23 +0800
+	2014-05-23 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,6 @@ DoRequestFocus(IWidget& wgt, bool release_event)
 					for(; p_sub != pFocusing; p_sub = FetchContainerPtr(*p_sub))
 					{
 						YAssert(p_sub, "Wrong child focus state found.");
-
 						if(DoReleaseFocus(*p_sub))
 							CallEvent<LostFocus>(*p_sub, RoutedEventArgs(wgt));
 					}

@@ -11,13 +11,13 @@
 /*!	\file ydevice.cpp
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r1769
+\version r1770
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:39:51 +0800
 \par 修改时间:
-	2014-04-25 09:54 +0800
+	2014-05-26 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,13 +40,13 @@ BitmapPtr
 Screen::GetCheckedBufferPtr() const ynothrow
 {
 	YAssertNonnull(GetBufferPtr());
-
 	return GetBufferPtr();
 }
 
 void
 Screen::Update(BitmapPtr buf) ynothrow
 {
+	// TODO: Explicitly assert that copy cannot throw.
 	std::copy_n(buf, GetAreaOf(GetSize()), GetCheckedBufferPtr());
 }
 

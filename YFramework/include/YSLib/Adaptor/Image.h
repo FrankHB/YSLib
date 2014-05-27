@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r822
+\version r825
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-04-25 09:12 +0800
+	2014-05-26 14:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -362,7 +362,7 @@ public:
 	\note 扫描线宽为跨距。
 	\since build 471
 	*/
-	ystdex::byte*
+	byte*
 	operator[](size_t) const ynothrow;
 
 	explicit DefCvt(const ynothrow, bool, bitmap)
@@ -391,7 +391,7 @@ public:
 	\note 像素数据由连续的扫面线数据构成，数量等于高度值。
 	\since build 471
 	*/
-	ystdex::byte*
+	byte*
 	GetPixels() const ynothrow;
 	/*!
 	\brief 取扫描线数据。
@@ -401,7 +401,7 @@ public:
 	\sa operator[]
 	\since build 471
 	*/
-	PDefH(ystdex::byte*, GetScanLine, size_t idx) const ynothrow
+	PDefH(byte*, GetScanLine, size_t idx) const ynothrow
 		ImplRet(bitmap ? (*this)[idx] : nullptr)
 	SDst
 	GetWidth() const ynothrow;
@@ -589,7 +589,6 @@ inline HMultiBitmap::iterator&
 HMultiBitmap::iterator::operator++() ynothrowv
 {
 	YAssertNonnull(p_bitmaps);
-
 	if(++index == p_bitmaps->GetPageCount())
 		p_bitmaps = {};
 	return *this;
@@ -599,7 +598,6 @@ inline HMultiBitmap::iterator::reference
 HMultiBitmap::iterator::operator*() const
 {
 	YAssertNonnull(p_bitmaps);
-
 	return p_bitmaps->Lock(index);
 }
 

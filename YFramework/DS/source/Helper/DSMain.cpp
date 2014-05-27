@@ -11,13 +11,13 @@
 /*!	\file DSMain.cpp
 \ingroup Helper
 \brief DS 平台框架。
-\version r3117
+\version r3122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-05-18 21:51 +0800
+	2014-05-27 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,8 +53,8 @@ std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 #endif
 
 
-//注册的应用程序指针。
-DSApplication* pApp;
+//! \since build 499
+DSApplication* ApplicationPtr;
 
 } // unnamed namespace;
 
@@ -68,10 +68,9 @@ DSApplication::DSApplication()
 {
 	using Devices::DSScreen;
 
-	YAssert(!YSLib::pApp, "Duplicate instance found.");
-
+	YAssert(!ApplicationPtr, "Duplicate instance found.");
 	//注册全局应用程序实例。
-	YSLib::pApp = this;
+	ApplicationPtr = this;
 	//初始化系统设备。
 #if YCL_DS
 	FetchDefaultFontCache();
@@ -88,7 +87,6 @@ DSApplication::DSApplication()
 	using namespace Host;
 
 	YAssert(IsScreenReady(), "Screen is not ready.");
-
 	p_wnd_thrd.reset(new WindowThread([this]{
 		return unique_ptr<Window>(new DSWindow(CreateNativeWindow(
 			WindowClassName, {256, 384}, L"YSTest", WS_TILED | WS_CAPTION
@@ -117,20 +115,19 @@ DSApplication::~DSApplication()
 	//释放设备。
 	reset(scrs[0]),
 	reset(scrs[1]);
+	ApplicationPtr = {};
 }
 
 Devices::DSScreen&
 DSApplication::GetDSScreenUp() const ynothrow
 {
 	YAssertNonnull(scrs[0]);
-
 	return *scrs[0];
 }
 Devices::DSScreen&
 DSApplication::GetDSScreenDown() const ynothrow
 {
 	YAssertNonnull(scrs[1]);
-
 	return *scrs[1];
 }
 Devices::Screen&
@@ -200,7 +197,6 @@ TestFramework(size_t idx)
 {
 	YTraceDe(Notice, ("Test beginned, idx = " + to_string(idx) + " .").c_str());
 	YTraceDe(Notice, "Test ended.");
-
 	yunused(idx);
 }
 

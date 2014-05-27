@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r422
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2013-12-13 12:56 +0800
+	2014-05-23 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,6 @@ public:
 		: stream(ptr)
 	{
 		yconstraint(ptr);
-
 		++*this;
 	}
 	/*!

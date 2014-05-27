@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r267
+\version r275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2014-04-25 09:51 +0800
+	2014-05-27 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,8 +41,8 @@ using namespace Drawing;
 namespace
 {
 
-//! \since build 398
-GUIApplication* pApp;
+//! \since build 499
+GUIApplication* ApplicationPtr;
 
 /*!
 \brief 取空闲消息。
@@ -76,9 +76,8 @@ GUIApplication::GUIApplication()
 	, p_hosted()
 #endif
 {
-	YAssert(!YSLib::pApp, "Duplicate instance found.");
-
-	YSLib::pApp = this;
+	YAssert(!ApplicationPtr, "Duplicate instance found.");
+	ApplicationPtr = this;
 	InitializeEnviornment();
 #if YF_Hosted
 	p_hosted = make_unique<Host::Environment>();
@@ -88,6 +87,7 @@ GUIApplication::GUIApplication()
 GUIApplication::~GUIApplication()
 {
 	Uninitialize();
+	ApplicationPtr = {};
 }
 
 #if YF_Hosted
@@ -95,7 +95,6 @@ Host::Environment&
 GUIApplication::GetHost()
 {
 	YAssertNonnull(p_hosted);
-
 	return *p_hosted;
 }
 #endif
@@ -128,9 +127,8 @@ GUIApplication::DealMessage()
 GUIApplication&
 FetchGlobalInstance() ynothrow
 {
-	YAssertNonnull(pApp);
-
-	return *pApp;
+	YAssertNonnull(ApplicationPtr);
+	return *ApplicationPtr;
 }
 
 /* extern */Application&
@@ -147,7 +145,7 @@ Execute(GUIApplication& app, shared_ptr<Shell> p_shl)
 	Host::FetchEnvironment().ExitOnAllWindowThreadCompleted = true;
 #endif
 	if(YB_UNLIKELY(!Activate(p_shl)))
-		throw LoggedEvent("Failed launching the main shell;");
+		throw LoggedEvent("Failed activating the main shell.");
 	while(app.DealMessage())
 		;
 }

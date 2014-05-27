@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r362
+\version r364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-05-18 23:17 +0800
+	2014-05-23 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,10 +66,8 @@ Window::GetInputBounds() const ynothrow
 
 	if(YB_UNLIKELY(!::GetClientRect(GetNativeHandle(), &rect)))
 		return {};
-
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
-
 	return {Point(rect.left, rect.top), Point(rect.right, rect.bottom)};
 #	elif YCL_Android
 	return {};

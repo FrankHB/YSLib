@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r386
+\version r387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-04-25 09:15 +0800
+	2014-05-23 09:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,6 @@ AnimateConnection(const shared_ptr<_fCallable>& conn,
 	Messaging::Priority prior = UI::AnimationPriority)
 {
 	YAssertNonnull(conn);
-
 	AnimateTask([=]{
 		return (*conn)();
 	}, prior);

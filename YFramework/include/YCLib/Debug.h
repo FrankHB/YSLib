@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r339
+\version r356
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-05-17 19:32 +0800
+	2014-05-24 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,12 +247,12 @@ LogWithSource(const char*, int, const char*, ...);
 */
 #if YCL_Use_TraceSrc
 #	define YCL_Trace(_lv, ...) \
-	YCL_Log(_lv, [=]{ \
+	YCL_Log(_lv, [&]{ \
 		return platform::LogWithSource(__FILE__, __LINE__, __VA_ARGS__); \
 	})
 #else
 #	define YCL_Trace(_lv, ...) \
-	YCL_Log(_lv, [=]{return ystdex::sfmt(__VA_ARGS__);})
+	YCL_Log(_lv, [&]{return ystdex::sfmt(__VA_ARGS__);})
 #endif
 
 
@@ -275,6 +275,24 @@ namespace platform_ex
 {
 
 #if YCL_Android
+/*!
+\brief 日志断言函数。
+\note 默认断言和 ystdex::yassert 无法使用调试日志输出时的替代。
+\note 在 Android 平台上用此函数包装 NDK 函数实现。
+\sa ystdex::yassert
+\since build 499
+*/
+YF_API void
+LogAssert(bool, const char*, const char*, int, const char*);
+
+#	ifdef YAssert
+#		undef YAssert
+//! \since build 499
+#		define YAssert(_expr, _msg) \
+			platform_ex::LogAssert(_expr, #_expr, __FILE__, __LINE__, _msg)
+#	endif
+
+
 /*!
 \brief 映射 Descriptions::RecordLevel 为 Android 日志 API 使用的日志优先级。
 \post 返回值介于 ANDROID_LOG_FATAL 和 ANDROID_LOG_VERBOSE 。

@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1029
+\version r1033
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2014-04-26 00:19 +0800
+	2014-05-23 09:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,6 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 {
 	YAssertNonnull(dst),
 	YAssert(bounds.Width <= w, "Wrong boundary or width found.");
-
 	if(!bounds.IsUnstrictlyEmpty()
 		&& IsInInterval<SPos>(y - bounds.Y, bounds.Height))
 	{
@@ -64,7 +63,6 @@ PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 {
 	YAssertNonnull(dst),
 	YAssert(bounds.Width <= w, "Wrong boundary or width found.");
-
 	if(!bounds.IsUnstrictlyEmpty()
 		&& IsInInterval<SPos>(x - bounds.X, bounds.Width))
 	{
@@ -148,7 +146,6 @@ void
 FillRect(const Graphics& g, const Rect& r, Color c)
 {
 	YAssert(bool(g), "Invalid graphics context found.");
-
 	FillRectRaw<PixelType>(g.GetBufferPtr(), g.GetSize(), r, c);
 }
 
@@ -162,7 +159,6 @@ PlotCircle(void(*plotter)(const Graphics&, const Rect&, SPos, SPos, SDst, SDst,
 	Color c)
 {
 	YAssertNonnull(plotter);
-
 	if(r != 0)
 		// Bresenham circle algorithm implementation.
 		// See http://willperone.net/Code/codecircle.php .

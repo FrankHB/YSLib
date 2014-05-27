@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1123
+\version r1134
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-04-25 09:14 +0800
+	2014-05-23 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,6 @@ inline void
 PutPixel(BitmapPtr dst, SDst w, SPos x, SPos y, Color c)
 {
 	YAssertNonnull(dst);
-
 	dst[y * w + x] = c;
 }
 /*!
@@ -77,7 +76,6 @@ PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 {
 	YAssert(Rect(g.GetSize()).Contains(x, y),
 		"The pixel is out of the buffer.");
-
 	PutPixel(g.GetBufferPtr(), g.GetWidth(), x, y, c);
 }
 
@@ -101,7 +99,6 @@ DrawPoint(const Graphics& g, const Rect& bounds, SPos x, SPos y, Color c)
 {
 	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
-
 	PlotPixel(g.GetBufferPtr(), bounds, g.GetWidth(), x, y, c);
 }
 inline void
@@ -134,7 +131,6 @@ DrawHLineSeg(const Graphics& g, const Rect& bounds, SPos y, SPos x1, SPos x2,
 	YAssert(bool(g), "Invalid graphics context found."),
 	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
-
 	PlotHLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), y, x1, x2, c);
 }
 
@@ -160,7 +156,6 @@ DrawVLineSeg(const Graphics& g, const Rect& bounds, SPos x, SPos y1, SPos y2,
 	YAssert(bool(g), "Invalid graphics context found."),
 	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
-
 	PlotVLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x, y1, y2, c);
 }
 
@@ -186,15 +181,11 @@ DrawLineSeg(const Graphics& g, const Rect& bounds, SPos x1, SPos y1, SPos x2,
 	YAssert(bool(g), "Invalid graphics context found."),
 	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
-
 	PlotLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x1, y1, x2, y2, c);
 }
-inline void
-DrawLineSeg(const Graphics& g, const Rect& bounds, const Point& p1,
-	const Point& p2, Color c)
-{
-	DrawLineSeg(g, bounds, p1.X, p1.Y, p2.X, p2.Y, c);
-}
+inline PDefH(void, DrawLineSeg, const Graphics& g, const Rect& bounds,
+	const Point& p1, const Point& p2, Color c)
+	ImplExpr(DrawLineSeg(g, bounds, p1.X, p1.Y, p2.X, p2.Y, c))
 //@}
 
 
@@ -224,11 +215,9 @@ DrawRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 //@{
 YF_API void
 FillRect(const Graphics& g, const Rect&, Color c);
-inline void
-FillRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
-{
-	FillRect(g, bounds & r, c);
-}
+inline PDefH(void, FillRect, const Graphics& g, const Rect& bounds,
+	const Rect& r, Color c)
+	ImplExpr(FillRect(g, bounds & r, c))
 //@}
 //@}
 
@@ -265,10 +254,8 @@ DrawPolygon(Graphics& g, const Rect& bounds, _tIn first, _tIn last, Color c)
 			DrawLineSeg(g, bounds, *first, *mid, c);
 			yunseq(++first, ++mid);
 		}
-
 		YAssert(!is_undereferenceable(first), "Invalid iterator found.");
 		YAssert(!is_undereferenceable(old), "Invalid iterator found.");
-
 		DrawLineSeg(g, bounds, *first, *old, c);
 	}
 }

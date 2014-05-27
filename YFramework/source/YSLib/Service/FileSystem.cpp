@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1908
+\version r1909
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-02-16 17:28 +0800
+	2014-05-23 09:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,12 +72,11 @@ Path::operator String() const
 String
 Path::GetString() const
 {
-	auto res(ystdex::to_string_d(static_cast<const ypath&>(*this),
+	const auto res(ystdex::to_string_d(static_cast<const ypath&>(*this),
 		YCL_PATH_DELIMITER));
 
 	YAssert(res.empty() || res.back() == YCL_PATH_DELIMITER,
 		"Invalid conversion result found.");
-
 	return res;
 }
 
@@ -146,7 +145,6 @@ EnsureDirectory(const Path& pth)
 		if(!umkdir(upath.c_str()) && errno != EEXIST)
 			throw std::system_error(errno, std::system_category());
 	}
-
 	YAssert(VerifyDirectory(pth), "Directory verification failed.");
 }
 

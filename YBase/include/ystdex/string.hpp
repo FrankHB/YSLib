@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r536
+\version r539
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-03-27 01:26 +0800
+	2014-05-23 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -200,7 +200,6 @@ void
 concat(_tString& str, size_t n)
 {
 	yconstraint(n != 0);
-
 	if(1 < n)
 	{
 		const auto len(str.length());
@@ -257,7 +256,6 @@ inline _tString
 get_mid(const _tString& str, typename _tString::size_type l = 1)
 {
 	yassume(!(str.size() < l * 2));
-
 	return str.substr(l, str.size() - l * 2);
 }
 template<typename _tString>
@@ -266,7 +264,6 @@ get_mid(const _tString& str, typename _tString::size_type l,
 	typename _tString::size_type r)
 {
 	yassume(!(str.size() < l + r));
-
 	return str.substr(l, str.size() - l - r);
 }
 //@}

@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2040
+\version r2050
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-01-29 21:57 +0800
+	2014-05-23 09:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,7 +141,6 @@ IsInInterval(_type i, _type b) ynothrow
 {
 	YAssert(FetchZero<_type>() < b,
 		"Zero element as lower bound is not less than upper bound.");
-
 	return !(i < FetchZero<_type>()) && i < b;
 }
 /*!
@@ -154,7 +153,6 @@ inline bool
 IsInInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
-
 	return !(i < a) && i < b;
 }
 
@@ -169,7 +167,6 @@ IsInClosedInterval(_type i, _type b) ynothrow
 {
 	YAssert(FetchZero<_type>() < b,
 		"Zero element as lower bound is not less than upper bound.");
-
 	return !(i < FetchZero<_type>() || b < i);
 }
 /*!
@@ -182,7 +179,6 @@ inline bool
 IsInClosedInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
-
 	return !(i < a || b < i);
 }
 
@@ -197,7 +193,6 @@ IsInOpenInterval(_type i, _type b) ynothrow
 {
 	YAssert(FetchZero<_type>() < b,
 		"Zero element as lower bound is not less than upper bound.");
-
 	return FetchZero<_type>() < i && i < b;
 }
 /*!
@@ -211,7 +206,6 @@ IsInOpenInterval(_type i, _type a, _type b) ynothrow
 {
 	YAssert(a < b,
 		"Lower bound is not less than upper bound.");
-
 	return a < i && i < b;
 }
 
@@ -272,7 +266,6 @@ void
 RestrictInClosedInterval(_type& v, const _type& a, const _type& b) ynothrow
 {
 	YAssert(!(b < a), "Upper bound is less than lower bound.");
-
 	if(v < a)
 		v = a;
 	else if(b < v)
@@ -290,7 +283,6 @@ void
 RestrictInInterval(_type& i, int a, int b) ynothrow
 {
 	YAssert(a < b, "Lower bound is not less than upper bound.");
-
 	if(i < a)
 		i = a;
 	else if(!(i < b))
@@ -321,7 +313,6 @@ void
 RestrictUnsigned(_type& u, unsigned b) ynothrow
 {
 	YAssert(b != FetchZero<_type>(), "Zero upper bound found.");
-
 	if(!(u < b))
 		u = b - 1;
 }
@@ -353,7 +344,6 @@ inline void
 ClearSequence(_tOut dst, size_t n) ynothrow
 {
 	using _type = ystdex::remove_reference_t<decltype(*dst)>;
-
 	static_assert(std::is_pod<_type>::value
 		|| (std::is_nothrow_default_constructible<_type>::value
 		&& std::is_nothrow_assignable<_type, _type>::value),

@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3642
+\version r3644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-04-25 09:48 +0800
+	2014-05-23 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -287,7 +287,6 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 	: ATrack(r, uMinThumbLength)
 {
 	YAssert(GetWidth() > GetHeight(), "Width is not greater than height.");
-
 	FetchEvent<TouchHeld>(tmbScroll) += [this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
@@ -312,7 +311,6 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 	: ATrack(r, uMinThumbLength)
 {
 	YAssert(GetHeight() > GetWidth(), "height is not greater than width.");
-
 	FetchEvent<TouchHeld>(tmbScroll) += [this](CursorEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{

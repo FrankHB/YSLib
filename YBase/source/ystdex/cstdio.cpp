@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2009 - 2013.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r191
+\version r192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2013-07-27 04:37 +0800
+	2014-05-23 10:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,6 @@ bool
 fexists(const char* path) ynothrow
 {
 	yconstraint(path);
-
 	if(const auto fp = std::fopen(path, "rb"))
 	{
 		std::fclose(fp);
@@ -148,7 +147,6 @@ ifile_iterator::operator++()
 	else
 	{
 		yassume(byte(val) == val);
-
 		value = byte(val);
 	}
 	return *this;

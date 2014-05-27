@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1309
+\version r1310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-05-07 18:48 +0800
+	2014-05-23 10:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,7 +155,6 @@ DirectoryData::Close() ynothrow
 	const auto res(::FindClose(h_node));
 
 	YAssert(res, "No valid directory found.");
-
 	yunused(res);
 }
 
@@ -167,7 +166,6 @@ DirectoryData::Read()
 		// NOTE: See MSDN "FindFirstFile function" for details.
 		yassume(!dir_name.empty());
 		yassume(dir_name.back() != L'\\');
-
 		if((h_node = ::FindFirstFileW(dir_name.c_str(), &find_data))
 			== INVALID_HANDLE_VALUE)
 			h_node = {};
@@ -180,7 +178,6 @@ DirectoryData::Read()
 	if(h_node && h_node != INVALID_HANDLE_VALUE)
 	{
 		yassume(find_data.cFileName);
-
 		posix_dir.d_name = find_data.cFileName;
 	}
 	return !h_node ? nullptr : &posix_dir;
@@ -207,7 +204,6 @@ int
 uopen(const char* filename, int oflag) ynothrow
 {
 	yconstraint(filename);
-
 #if !YCL_Win32
 	return ::open(filename, oflag);
 #else
@@ -224,7 +220,6 @@ int
 uopen(const char* filename, int oflag, int pmode) ynothrow
 {
 	yconstraint(filename);
-
 #if !YCL_Win32
 	return ::open(filename, oflag, pmode);
 #else
@@ -241,7 +236,6 @@ int
 uopen(const char16_t* filename, int oflag) ynothrow
 {
 	yconstraint(filename);
-
 #if !YCL_Win32
 	try
 	{
@@ -258,7 +252,6 @@ int
 uopen(const char16_t* filename, int oflag, int pmode) ynothrow
 {
 	yconstraint(filename);
-
 #if !YCL_Win32
 	try
 	{
@@ -278,7 +271,6 @@ ufopen(const char* filename, const char* mode) ynothrow
 	yconstraint(filename),
 	yconstraint(mode);
 	yconstraint(*mode != char());
-
 #if !YCL_Win32
 	return std::fopen(filename, mode);
 #else
@@ -297,7 +289,6 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 	yconstraint(filename),
 	yconstraint(mode);
 	yconstraint(*mode != char());
-
 #if !YCL_Win32
 	try
 	{
@@ -319,7 +310,6 @@ ufexists(const char* filename) ynothrow
 	return ystdex::fexists(filename);
 #else
 	yconstraint(filename);
-
 	if(const auto file = ufopen(filename, "rb"))
 	{
 		std::fclose(file);
@@ -388,7 +378,6 @@ bool \
 _n(const char* path) ynothrow \
 { \
 	yconstraint(path); \
-\
 
 #if !YCL_Win32
 //! \since build 476
@@ -466,7 +455,6 @@ std::uint64_t
 GetFileSizeOf(std::FILE* fp)
 {
 	yconstraint(fp);
-
 #ifdef YCL_API_FILESYSTEM_POSIX
 	return GetFileSizeOf(fileno(fp));
 #else
@@ -494,7 +482,6 @@ DirectorySession::~DirectorySession()
 	const auto res(::closedir(dir));
 
 	YAssert(res == 0, "No valid directory found.");
-
 	yunused(res);
 #else
 	delete static_cast<DirectoryData*>(dir);
@@ -505,7 +492,6 @@ void
 DirectorySession::Rewind() ynothrow
 {
 	YAssert(dir, "Invalid native handle found.");
-
 #if !YCL_Win32
 	::rewinddir(dir);
 #else

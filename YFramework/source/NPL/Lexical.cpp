@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1294
+\version r1296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2014-01-28 05:25 +0800
+	2014-05-23 09:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,6 @@ void
 LexicalAnalyzer::HandleEscape()
 {
 	YAssert(esc <= MaxEscapeLength, "Escape sequence is too long.");
-
 	if(esc == 1)
 	{
 		switch(*escs)
@@ -236,7 +235,6 @@ Decompose(const string& src_str)
 		string str(b, e);
 
 		YAssert(!str.empty(), "Null token found.");
-
 		if(IsGraphicalDelimeter(*b))
 		{
 			dst.push_back(str.substr(0, 1));

@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r270
+\version r271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2014-04-28 15:48 +0800
+	2014-05-23 09:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -188,7 +188,6 @@ TabControl::SwitchPage(Control& ctl)
 {
 	YAssert(Find(ctl) != tab_pages.size(), "Invalid page found."),
 	YAssertNonnull(p_bar);
-
 	if(p_bar->SwitchPage(ctl))
 	{
 		if(p_page)

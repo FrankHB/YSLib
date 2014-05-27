@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Cache.h
 \ingroup Core
 \brief 高速缓冲模板。
-\version r203
+\version r204
 \author FrankHB <frankhb1989@gmail.com>
 \since build 461
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2013-12-23 23:08 +0800
+	2014-05-23 10:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,6 @@ public:
 			catch(...)
 			{
 				YAssert(!use_list.empty(), "Invalid state of use list found.");
-
 				use_list.pop_back();
 				throw;
 			}

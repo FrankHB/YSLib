@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r486
+\version r487
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2014-02-26 23:39 +0800
+	2014-05-23 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,7 +164,6 @@ FetchVisualStyleNames(String default_name)
 
 	YAssert(bool(p_list) && !p_list->empty(),
 		"Invalid style mapping state found");
-
 	p_list->front() = std::move(default_name);
 	return ystdex::make_shared<TextList::ListType>(p_list->cbegin(),
 		p_list->cend());

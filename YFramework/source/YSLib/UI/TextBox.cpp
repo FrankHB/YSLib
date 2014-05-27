@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r377
+\version r378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-04-06 17:28 +0800
+	2014-05-23 09:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,6 @@ Caret::Check(IWidget& sender)
 		&& caret_animation.GetConnectionRef().Ready)
 	{
 		YAssert(IsFocusedCascade(sender), "Wrong focus state found.");
-
 		return IsEnabled(sender)
 			&& CaretTimer.RefreshRemainder() < CaretTimer.Interval / 2;
 	}

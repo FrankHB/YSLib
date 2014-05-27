@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r701
+\version r702
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-04-10 01:51 +0800
+	2014-05-26 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ public:
 	\sa LeaveWindowThread
 	\since build 399
 	*/
-	std::atomic<bool> ExitOnAllWindowThreadCompleted;
+	std::atomic<bool> ExitOnAllWindowThreadCompleted{true};
 
 private:
 #		if YCL_Win32

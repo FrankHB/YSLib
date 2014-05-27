@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r271
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-05-18 23:44 +0800
+	2014-05-26 16:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include <android/native_activity.h>
 #include "YSLib/Service/YModules.h"
 #include YFM_YSLib_Service_YGDI
+#include <android/configuration.h>
 
 using namespace YSLib;
 using namespace Drawing;
@@ -134,21 +135,24 @@ BitmapPtr
 ScreenBuffer::GetBufferPtr() const ynothrow
 {
 	YAssertNonnull(p_impl);
-
 	return p_impl->GetBufferPtr();
+}
+const YSLib::Drawing::Graphics&
+ScreenBuffer::GetContext() const ynothrow
+{
+	YAssertNonnull(p_impl);
+	return p_impl->GetContext();
 }
 Size
 ScreenBuffer::GetSize() const ynothrow
 {
 	YAssertNonnull(p_impl);
-
 	return {width, p_impl->GetHeight()};
 }
 YSLib::SDst
 ScreenBuffer::GetStride() const ynothrow
 {
 	YAssertNonnull(p_impl);
-
 	return p_impl->GetWidth();
 }
 
@@ -157,7 +161,6 @@ ScreenBuffer::Resize(const Size& s)
 {
 	// TODO: Expand stride for given width using a proper strategy.
 	YAssertNonnull(p_impl);
-
 	p_impl->SetSize(s);
 	width = s.Width;
 }
@@ -166,8 +169,8 @@ void
 ScreenBuffer::UpdateFrom(BitmapPtr p_buf) ynothrow
 {
 	// TODO: Expand stride for given width using a proper strategy.
+	YAssertNonnull(p_buf),
 	YAssertNonnull(p_impl);
-
 	std::copy_n(p_buf, GetAreaOf(GetSize()), p_impl->GetBufferPtr());
 }
 
@@ -175,7 +178,6 @@ void
 ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 {
 	YAssertNonnull(p_impl);
-
 	p_impl->swap(*sbuf.p_impl),
 	std::swap(width, sbuf.width);
 }
@@ -203,13 +205,54 @@ ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 	YAssertNonnull(h_wnd);
 
 	const Size& s(GetSize());
-	::ANativeWindow_Buffer abuf{s.Width, s.Height, GetStride(),
-		WINDOW_FORMAT_RGBA_8888, GetBufferPtr(), {0, 0, 0, 0, 0, 0}};
+	::ANativeWindow_Buffer abuf;
 	::ARect arect{pt.X, pt.Y, pt.X + s.Width, pt.Y + s.Height};
 	std::lock_guard<std::mutex> lck(mtx);
 
 	::ANativeWindow_lock(h_wnd, &abuf, &arect);
+	CopyTo(static_cast<BitmapPtr>(abuf.bits), GetContext(),
+		WindowReference(h_wnd).GetSize(), {}, {}, s);
 	::ANativeWindow_unlockAndPost(h_wnd);
+}
+
+
+::ALooper&
+FetchNativeLooper(bool allow_non_callbacks) ythrow(Exception)
+{
+	const auto p(::ALooper_prepare(allow_non_callbacks
+		? ALOOPER_PREPARE_ALLOW_NON_CALLBACKS : 0));
+
+	if(YB_LIKELY(p))
+		return *p;
+	throw Exception("Failed get native looper pointer.");
+}
+
+void
+TraceConfiguration(::AConfiguration& cfg, platform::Logger::Level lv)
+{
+	char lang[2], country[2];
+
+	::AConfiguration_getLanguage(&cfg, lang);
+	::AConfiguration_getCountry(&cfg, country);
+	YTraceDe(lv, "Configuration: MCC = %d, MNC = %d, language code = %c%c,"
+		" country = %c%c, orientation = %d, touch screen = %d, density = %d, "
+		" keyboard = %d, navigation = %d, keysHidden = %d, navHidden = %d,"
+		" SDK version = %d, screen size = %d, screen long = %d,"
+		" UI mode type = %d, UI mode night = %d.",
+		int(::AConfiguration_getMcc(&cfg)), int(::AConfiguration_getMnc(&cfg)),
+		lang[0], lang[1], country[0], country[1],
+		int(::AConfiguration_getOrientation(&cfg)),
+		int(::AConfiguration_getTouchscreen(&cfg)),
+		int(::AConfiguration_getDensity(&cfg)),
+		int(::AConfiguration_getKeyboard(&cfg)),
+		int(::AConfiguration_getNavigation(&cfg)),
+		int(::AConfiguration_getKeysHidden(&cfg)),
+		int(::AConfiguration_getNavHidden(&cfg)),
+		int(::AConfiguration_getSdkVersion(&cfg)),
+		int(::AConfiguration_getScreenSize(&cfg)),
+		int(::AConfiguration_getScreenLong(&cfg)),
+		int(::AConfiguration_getUiModeType(&cfg)),
+		int(::AConfiguration_getUiModeNight(&cfg)));
 }
 
 } // namespace Android;

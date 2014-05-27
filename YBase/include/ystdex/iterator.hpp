@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3192
+\version r3207
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-04-29 12:35 +0800
+	2014-05-23 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,7 +100,6 @@ next_if(_tIn i, _fPred f,
 	typename std::iterator_traits<_tIn>::difference_type n = 1)
 {
 	yconstraint(!is_undereferenceable(i));
-
 	return f(*i) ? std::next(i, n) : i;
 }
 template<typename _tIn, typename _type>
@@ -109,7 +108,6 @@ next_if_eq(_tIn i, const _type& val,
 	typename std::iterator_traits<_tIn>::difference_type n = 1)
 {
 	yconstraint(!is_undereferenceable(i));
-
 	return *i == val ? std::next(i, n) : i;
 }
 //@}
@@ -212,7 +210,6 @@ public:
 	operator+=(difference_type n)
 	{
 		yconstraint(raw);
-
 		raw += n;
 		return *this;
 	}
@@ -222,7 +219,6 @@ public:
 	operator-=(difference_type n)
 	{
 		yconstraint(raw);
-
 		raw -= n;
 		return *this;
 	}
@@ -232,7 +228,6 @@ public:
 	operator*() const ynothrowv
 	{
 		yconstraint(raw);
-
 		return *raw;
 	}
 
@@ -246,7 +241,6 @@ public:
 	operator++()
 	{
 		yconstraint(raw);
-
 		++raw;
 		return *this;
 	}
@@ -1099,7 +1093,6 @@ public:
 	operator*() const
 	{
 		yconstraint(!is_undereferenceable(iter));
-
 		return **iter;
 	}
 
@@ -1111,7 +1104,6 @@ public:
 	operator++()
 	{
 		yconstraint(!is_undereferenceable(iter));
-
 		++*iter;
 		return *this;
 	}
@@ -1231,7 +1223,6 @@ public:
 	operator*() const ynothrowv
 	{
 		yconstraint(base);
-
 		return value = *base >> seg_width * (_bEndian ? seg_n - 1 - shift
 			: seg_width) & seg_width;
 	}
@@ -1247,7 +1238,6 @@ public:
 	{
 		yconstraint(base);
 		yassume(shift < seg_n);
-
 		if(++shift == seg_n)
 			yunseq(shift = 0, ++base);
 		return *this;
@@ -1267,7 +1257,6 @@ public:
 	{
 		yconstraint(base);
 		yassume(shift < seg_n);
-
 		if(shift == 0)
 			yunseq(--base, shift = seg_n - 1);
 		else
@@ -1420,7 +1409,6 @@ public:
 	operator-=(difference_type n)
 	{
 		yassume(!(idx < n));
-
 		idx -= n;
 		return *this;
 	}
@@ -1474,7 +1462,6 @@ public:
 	operator[](difference_type n) const
 	{
 		yassume(!(idx + n < 0));
-
 		return (*con_ptr)[idx + n];
 	}
 
@@ -1482,7 +1469,6 @@ public:
 	operator+(difference_type n) const
 	{
 		yassume(!(idx + n < 0));
-
 		return subscriptive_iterator(*con_ptr, idx + n);
 	}
 
@@ -1490,7 +1476,6 @@ public:
 	operator-(difference_type n) const
 	{
 		yassume(!(idx + n < 0));
-
 		return subscriptive_iterator(*con_ptr, idx - n);
 	}
 

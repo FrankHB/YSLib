@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r836
+\version r848
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2014-03-27 01:29 +0800
+	2014-05-23 09:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,13 +270,9 @@ public:
 	\brief 按指定 Z 顺序显示指定菜单 mnu 。
 	\pre 断言： Contains(mnu) 。
 	*/
-	void
-	Show(Menu& mnu, ZOrderType z = DefaultMenuZOrder)
-	{
-		YAssert(Contains(mnu), "Menu is not contained.");
-
-		ShowRaw(mnu, z);
-	}
+	PDefH(void, Show, Menu& mnu, ZOrderType z = DefaultMenuZOrder)
+		ImplExpr(YAssert(Contains(mnu), "Menu is not contained."),
+			ShowRaw(mnu, z))
 
 	/*!
 	\brief 按指定 Z 顺序显示菜单组中的所有菜单。
@@ -301,13 +297,8 @@ public:
 	\brief 隐藏指定菜单 mnu。
 	\pre 断言： Contains(mnu) 。
 	*/
-	void
-	Hide(Menu& mnu)
-	{
-		YAssert(Contains(mnu), "Menu is not contained.");
-
-		HideRaw(mnu);
-	}
+	PDefH(void, Hide, Menu& mnu)
+		ImplExpr(YAssert(Contains(mnu), "Menu is not contained."), HideRaw(mnu))
 
 	/*!
 	\brief 隐藏菜单组中的所有菜单。

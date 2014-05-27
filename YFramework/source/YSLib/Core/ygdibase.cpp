@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r651
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2014-04-25 09:55 +0800
+	2014-05-23 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,6 @@ RectContainsStrictRaw(const Rect& r, int px, int py) ynothrow
 {
 	YAssert(r.Width > 1, "Invalid width found."),
 	YAssert(r.Height > 1, "Invalid height found.");
-
 	return IsInOpenInterval<int>(px - r.X, r.Width - 1)
 		&& IsInOpenInterval<int>(py - r.Y, r.Height - 1);
 }
@@ -145,7 +144,6 @@ Graphics::operator[](size_t r) const ynothrow
 {
 	YAssertNonnull(pBuffer);
 	YAssert(r < sGraphics.Height, "Access out of range.");
-
 	return pBuffer + r * sGraphics.Width;
 }
 

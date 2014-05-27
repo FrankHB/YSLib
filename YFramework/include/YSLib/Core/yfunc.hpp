@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r970
+\version r975
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2014-05-17 19:16 +0800
+	2014-05-23 09:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -366,13 +366,10 @@ public:
 	{
 		YAssert(first != last && std::distance(first, last)
 			== std::tuple_size<_tTuple>::value + 1, "Wrong range found.");
-
 		Register<_type>(*first);
 		++first;
-
 		YAssert((first == last) == (std::tuple_size<_tTuple>::value == 0),
 			"Wrong number of parameters found.");
-
 	//	static_if(std::tuple_size<_tTuple>::value != 0)
 	//		RegisterTail<_tIn, std::tuple_element<0, _tTuple>,
 	//			typename tuple_split<_tTuple>::tail>(first, last);
@@ -384,7 +381,6 @@ public:
 	{
 		YAssert(il.size() == sizeof...(_types) + 1,
 			"Wrong size of initializer list found.");
-
 		Register<std::initializer_list<string>::const_iterator, _type,
 			tuple<_types...>>(il.begin(), il.end());
 	}
@@ -395,7 +391,6 @@ private:
 	RegisterTail(tuple<>*, _tIn first, _tIn last)
 	{
 		YAssert(first == last, "Wrong size of initializer list found.");
-
 		yunused(first),
 		yunused(last);
 	}

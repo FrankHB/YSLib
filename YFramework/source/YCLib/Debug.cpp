@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r265
+\version r279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-05-17 09:03 +0800
+	2014-05-24 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,9 +51,7 @@ inline int
 PrintAndroidLog(Descriptions::RecordLevel lv, const char* tag, const char *fmt,
 	_tParams&&... args)
 {
-	YAssertNonnull(tag),
-	YAssertNonnull(fmt);
-
+	YAssertNonnull(tag), YAssertNonnull(fmt);
 	return ::__android_log_print(platform_ex::MapAndroidLogLevel(lv), tag, fmt,
 		yforward(args)...);
 }
@@ -144,7 +142,6 @@ void
 Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 {
 	YAssertNonnull(str);
-
 	std::fprintf(stderr, "[%#X]: %s\n", unsigned(lv), str);
 }
 
@@ -167,7 +164,7 @@ Logger::DoLogException(Level level, const std::exception& e) ynothrow
 	try
 	{
 		// XXX: Log demangled type name.
-		DoLog(level, ystdex::sfmt("<%s>: %s.", typeid(e).name(), e.what()));	
+		DoLog(level, ystdex::sfmt("<%s>: %s.", typeid(e).name(), e.what()));
 	}
 	catch(std::exception& e)
 	{
@@ -227,8 +224,7 @@ FetchCommonLogger()
 std::string
 LogWithSource(const char* file, int line, const char* fmt, ...)
 {
-	YAssertNonnull(file),
-	YAssertNonnull(fmt);
+	YAssertNonnull(file), YAssertNonnull(fmt);
 
 	std::va_list args;
 
@@ -248,6 +244,17 @@ namespace platform_ex
 {
 
 #if YCL_Android
+void
+LogAssert(bool expr, const char* expr_str, const char* file, int line,
+	const char* msg)
+{
+	if(YB_UNLIKELY(!expr))
+		::__android_log_assert(expr_str, "YFramework",
+			"Assertion failed @ \"%s\":%i:\n %s .\nMessage: \n%s\n", file, line,
+			expr_str, msg);
+}
+
+
 int
 MapAndroidLogLevel(Descriptions::RecordLevel lv)
 {

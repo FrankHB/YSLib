@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r933
+\version r934
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2014-04-29 14:15 +0800
+	2014-05-23 09:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,7 +129,6 @@ polymorphic_downcast(_tSrc* x)
 		remove_pointer_t<_pDst>>>::value, "Wrong destination type found.");
 
 	yassume(dynamic_cast<_pDst>(x) == x);
-
 	return static_cast<_pDst>(x);
 }
 /*!

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r230
+# Version = r234
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-05-08 01:39 +0800
+# Updated = 2014-05-24 18:05 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -169,12 +169,12 @@ $(CONF):
 
 clean:
 	@echo Cleaning releases ...
-	@rm -f $(BUILDDIR)/*.d
-	@rm -f $(BUILDDIR)/*.o
+	@rm -f $(foreach file,$(OFILES:.o=.d),$(DEPSDIR)/$(file))
+	@rm -f $(foreach file,$(OFILES),$(DEPSDIR)/$(file))
 	@rm -f $(BUILDDIR)/.map
 	@rm -fr $(OUTPUTSODIR)
 	@rm -f $(RESOURCES)
-	@rm -f $(RELEASEDIR)/*.apk
+	@rm -f $(OUTPUT_FINAL) $(OUTPUT_SIGNED) $(OUTPUT_APK)
 	@echo Cleaned.
 
 rebuild: all
@@ -206,7 +206,7 @@ $(RESOURCES) : $(MANIFEST)
 	$(ANDROID_BUILD_TOOLS_DIR)/aapt package -f -M $(MANIFEST) -S $(RESDIR) -I $(platforms)/android.jar -F $(RESOURCES)
 
 $(OUTPUTSO) : $(OFILES)
-	@rm -f "$(OUTPUT)"
+	@rm -f "$(OUTPUTSO)"
 	@echo Linking $(notdir $@) ...
 	$(LD) -shared $(LDFLAGS) $(foreach file,$(OFILES),$(DEPSDIR)/$(file)) $(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@
 

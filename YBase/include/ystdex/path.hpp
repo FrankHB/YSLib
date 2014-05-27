@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r686
+\version r689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2014-02-16 00:02 +0800
+	2014-05-23 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -298,7 +298,6 @@ public:
 	get_norm() const ynothrow
 	{
 		yconstraint(p_norm);
-
 		return *p_norm;
 	}
 
@@ -336,9 +335,7 @@ public:
 			if(j == this->end())
 				break;
 			i = j++;
-
 			yassume(j != this->end());
-
 			i = erase(i, ++j);
 		}
 	}

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r414
+\version r438
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-05-18 23:29 +0800
+	2014-05-26 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,11 @@
 #include <android/native_window.h>
 #include YFM_YSLib_Core_YGDIBase
 #include <mutex>
+
+//! \since build 499
+struct AConfiguration;
+//! \since build 499
+struct ALooper;
 
 namespace platform_ex
 {
@@ -160,6 +165,9 @@ public:
 
 	YSLib::Drawing::BitmapPtr
 	GetBufferPtr() const ynothrow;
+	//! \since build 499
+	const YSLib::Drawing::Graphics&
+	GetContext() const ynothrow;
 	//! \since build 498
 	YSLib::Drawing::Size
 	GetSize() const ynothrow;
@@ -211,12 +219,17 @@ public:
 	ScreenRegionBuffer(const YSLib::Drawing::Size&, YSLib::SDst);
 
 	using ScreenBuffer::GetBufferPtr;
+	//! \since build 499
+	using ScreenBuffer::GetContext;
 //	using ScreenBuffer::GetNativeHandle;
 	using ScreenBuffer::GetSize;
+	//! \since build 499
+	using ScreenBuffer::GetStride;
 	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
 
 	using ScreenBuffer::Resize;
 
+	//! \pre 间接断言：参数非空。
 	void
 	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
 
@@ -226,7 +239,21 @@ public:
 };
 //@}
 
-} // namespace Android;
+
+/*!
+\brief 取当前线程的本机消息循环。
+\param 是否允许非回调。
+\throw Exception 调用失败。
+\since build 499
+*/
+YF_API ::ALooper&
+FetchNativeLooper(bool) ythrow(Exception);
+
+YF_API void
+TraceConfiguration(::AConfiguration&,
+	platform::Logger::Level = platform::Descriptions::Notice);
+
+} // inline namespace Android;
 
 } // namespace platform_ex;
 

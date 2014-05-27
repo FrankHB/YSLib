@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r267
+\version r271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-05-18 21:54 +0800
+	2014-05-23 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,6 @@ WindowThread::~WindowThread()
 	const auto p_wnd_val(GetWindowPtr());
 
 	YAssertNonnull(p_wnd_val);
-
 	try
 	{
 #	if !YCL_Android
@@ -116,11 +115,8 @@ void
 WindowThread::ThreadLoop(unique_ptr<Window> p)
 {
 	YAssert(!p_wnd, "Duplicate window initialization detected.");
-
 	p_wnd = p.release();
-
 	YAssertNonnull(p_wnd);
-
 	WindowLoop(*p_wnd);
 }
 

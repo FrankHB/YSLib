@@ -11,13 +11,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1920
+\version r1921
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2014-05-17 11:05 +0800
+	2014-05-26 09:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,7 +114,7 @@ namespace Android
 
 using namespace platform_ex;
 
-}
+} // namespace Android;
 #endif
 
 //! \since build 388

@@ -11,13 +11,13 @@
 /*!	\file DSScreen.cpp
 \ingroup Helper
 \brief DS 屏幕。
-\version r261
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-04-10 11:26 +0800
+	2014-05-26 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -59,11 +59,10 @@ DSScreen::DSScreen(bool b) ynothrow
 }
 
 void
-DSScreen::Update(Drawing::BitmapPtr buf) ynothrow
+DSScreen::Update(Drawing::BitmapPtr p_buf) ynothrow
 {
 	YAssert(bool(WindowHandle), "Null handle found.");
-
-	rbuf.UpdateFrom(buf);
+	rbuf.UpdateFrom(p_buf);
 	rbuf.UpdateTo(WindowHandle, Offset);
 }
 #else

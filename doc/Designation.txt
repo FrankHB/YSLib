@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9190
+\version r9202
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-05-12 10:49 +0800
+	2014-05-24 06:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -294,7 +294,7 @@ Shell 和 Core 的关系是相对的，例如：
 @5.1 平台配置：
 关于平台的详细含义参见 [Documentation::ProjectRules @@1.2] 。
 和本机语言实现相关的平台环境可使用经典系统类型名称(canonical system type name) 描述： architecture/vendor/OS/C library 四元组或 architecture/vendor/OS 三元组，除第一项外可能省略。
- YFramework 平台配置不一定一一对应。
+使用的实现（参见 @5.2 ）不和平台环境一一对应。一个平台环境可能有多个实现。
 目标平台配置和 YCLib 平台定义文件(@5.2.2.4.1) 中定义的公共平台对应。
 
 @5.1.1 配置管理：
@@ -314,7 +314,7 @@ Shell 和 Core 的关系是相对的，例如：
 当前 DS 仅使用静态链接库链接至目标。
 当前 Android 不支持使用 Java 语言构建（ Makefile 缺少命令）；且仅支持单一动态库（ NativeActivity 限制）。
 
-@5.2 基础环境：
+@5.2 环境实现：
 除了 ISO C++ 标准库外的非外部依赖项：
 基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx 等，独立于 YFramework 。
 基于 YBase 的平台隔离用库 YCLib(@5.2.2) ，包含于 YFramework 中。
@@ -434,7 +434,10 @@ Shell 和 Core 的关系是相对的，例如：
  2014-04-06(build 492) 起：
  devkitARM release 42 / libnds 1.5.8 / libfat 1.0.12 / default arm7 0.5.25 。
  2014-04-13(build 493) 起：
-参见 @5.2.5 。在 Windows 上使用 MSys2 环境的包 make 代替 devkitPro/msys 。
+在 Windows 上使用 MSys2 环境的包 make 代替 devkitPro/msys 。参见 @5.2.5 。
+
+@5.2.3.1 DS 平台构建说明：
+需要使用宏 DEVKITARM 指定 devkitARM 的路径。
 
 @5.2.4 MinGW32 平台工具链和标准库实现：
 目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP/Windows Server 2003 （对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。
@@ -491,7 +494,14 @@ Shell 和 Core 的关系是相对的，例如：
 无（不支持的平台）。
  2012-04-07(build 492) 起：
 使用 JDK 8u5 x64 、 Android SDK 和 Android NDK r9d 。
+使用 API level 9 ， SDK Tools 版本 19.0.3 。
 独立工具链目标三元组 arm-linux-androideabi ，构建脚本参见 Tools/make-clang-android.sh 。
+
+@5.2.6.1 Android 平台构建说明：
+需要使用宏 ANDROID_SDK 指定 Android SDK 的路径。
+构建 YSTest 主目标时不依赖 NDK ，仅需 JDK 、 Android SDK 和独立工具链。
+构建脚本会对生成的包签名，因此需要需要准备私钥。用 Tools/create-android-debug-keystore.sh 可生成默认私钥。
+构建脚本接受 APK_KEYSTORE 宏指定私钥路径，默认值为 ~/.android/debug.keystore 。可在环境中覆盖。
 
 @5.3 通用库：
 
@@ -672,6 +682,7 @@ AUX_MODULES += gzip
 在建议 [Documentation::CommonRules @@5.3.3.1] 的基础上强制要求全局名称保留前缀 :: 规则。
 全局 operator new/delete 使用前缀 :: 以强调确定使用全局版本（对应非名称的 new/delete 表达式也同样使用）。
 其它一般全局名称的使用总是保留前缀 :: 以便移植。
+同理，除非另有约定，所有外部平台基础库不使用 using namespace 省略前缀命名空间的调用，同时保持和全局名称不省略 :: 的形式一致。
 依次以部件、事件和调用形式的顺序集中添加或移除事件处理器，其中调用形式约定为操作符调用、成员函数调用和非成员函数调用；使用宽松分行([Documentation::CommonRules @@6.4.3.1]) 分隔处理器列表项。
 
 @7 一般实现导引：

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1237
+\version r1238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-05-12 10:32 +0800
+	2014-05-23 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -337,7 +337,6 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		const auto& name(FetchGUIState().Styles.GetCurrent()->first);
 
 		YAssert(!lst.empty(), "Invalid list found.");
-
 		return name.empty() ? lst[0] : String(name);
 	}(ddlStyle.GetList()),
 	rbTxt.Text = u"文本阅读",

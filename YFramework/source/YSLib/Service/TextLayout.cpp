@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextLayout.cpp
 \ingroup Service
 \brief 文本布局计算。
-\version r2475
+\version r2476
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-12-23 23:46 +0800
+	2014-05-23 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,6 @@ SDst
 FetchResizedBottomMargin(const TextState& ts, SDst h)
 {
 	YAssert(GetTextLineHeightExOf(ts) != 0, "Zero line height found.");
-
 	return ts.Margin.Bottom + (h + ts.LineGap - GetVerticalOf(ts.Margin))
 		% GetTextLineHeightExOf(ts);
 }
@@ -53,7 +52,6 @@ u16
 FetchResizedLineN(const TextState& ts, SDst h)
 {
 	YAssert(GetTextLineHeightExOf(ts) != 0, "Zero line height found.");
-
 	return (h + ts.LineGap - GetVerticalOf(ts.Margin))
 		/ GetTextLineHeightExOf(ts);
 }

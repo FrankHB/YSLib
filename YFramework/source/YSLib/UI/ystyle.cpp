@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r790
+\version r791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-02-25 09:29 +0800
+	2014-05-23 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -216,7 +216,6 @@ HSLToColor(hsl_t c)
 	YAssert(IsInInterval<Hue>(c.h, 0, 360), "Invalid hue found."),
 	YAssert(IsInClosedInterval(c.s, 0.F, 1.F), "Invalid saturation found."),
 	YAssert(IsInClosedInterval(c.l, 0.F, 1.F), "Invalid light found.");
-
 	if(c.s == 0)
 		return MakeGray(c.l > 255.F / 0x100 ? 0xFF : c.l * 0x100);
 
@@ -252,8 +251,7 @@ HSLToColor(hsl_t c)
 Color
 RollColor(hsl_t c, Hue delta)
 {
-	YAssert(IsInInterval<Hue>(c.h, 0, 360), "Invalid hue found."),
-
+	YAssert(IsInInterval<Hue>(c.h, 0, 360), "Invalid hue found.");
 	delta += c.h;
 	c.h = delta < 360 ? delta : delta - 360;
 	return HSLToColor(c);

@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3251
+\version r3253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-03-15 10:46 +0800
+	2014-05-23 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,6 @@ RenderChar(PaintContext&& pc, Color c, bool neg_pitch,
 	using namespace Shaders;
 
 	YAssert(cbuf, "Invalid buffer found.");
-
 	switch(fmt)
 	{
 	case CharBitmap::Mono:
@@ -152,7 +151,6 @@ RenderCharAlpha(PaintContext&& pc, Color c, bool neg_pitch,
 	AlphaType* alpha)
 {
 	YAssert(cbuf, "Invalid buffer found.");
-
 	char_color = c;
 	switch(fmt)
 	{

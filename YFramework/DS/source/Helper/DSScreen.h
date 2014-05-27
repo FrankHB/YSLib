@@ -11,13 +11,13 @@
 /*!	\file DSScreen.h
 \ingroup Helper
 \brief DS 屏幕。
-\version r427
+\version r430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-04-10 01:50 +0800
+	2014-05-26 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -91,8 +91,10 @@ public:
 
 	/*!
 	\brief 更新。
+	\pre 断言：本机窗口句柄非空。
+	\pre 间接断言：参数非空。
 	\note 复制到屏幕或屏幕缓冲区。
-	\note 线程安全。
+	\note 线程安全：更新到屏幕和屏幕缓冲区之间不确定有序。
 	\since build 319
 	*/
 	void

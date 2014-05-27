@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r706
+\version r707
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2014-04-14 11:04 +0800
+	2014-05-23 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -587,7 +587,6 @@ Category
 ClassifyKey(KeyIndex code) ynothrow
 {
 	yconstraint(code < KeyBitsetWidth);
-
 	return KeyCategoryTable[code];
 }
 

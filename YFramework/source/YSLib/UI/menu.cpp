@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1180
+\version r1183
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-04-25 09:58 +0800
+	2014-05-23 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,7 +137,6 @@ bool
 Menu::IsItemEnabled(ListType::size_type idx) const
 {
 	YAssert(IsInInterval(idx, GetList().size()), "Index is out of range.");
-
 	AdjustSize();
 	return !vDisabled[idx];
 }
@@ -146,7 +145,6 @@ void
 Menu::SetItemEnabled(Menu::ListType::size_type idx, bool b)
 {
 	YAssert(IsInInterval(idx, GetList().size()), "Index is out of range.");
-
 	AdjustSize();
 	vDisabled[idx] = !b;
 }
@@ -247,7 +245,6 @@ void
 MenuHost::operator+=(const ValueType& val)
 {
 	YAssertNonnull(val.second);
-
 	yunseq(mMenus[val.first] = val.second,
 		val.second->id = val.first, val.second->pHost = this);
 }

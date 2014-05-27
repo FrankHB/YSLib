@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1387
+\version r1391
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-04-23 01:09 +0800
+	2014-05-23 10:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -356,7 +356,6 @@ public:
 	get_reference(const any_storage& s)
 	{
 		yassume(get_pointer(s));
-
 		return *get_pointer(s);
 	}
 
@@ -463,7 +462,6 @@ public:
 	get_reference(const any_storage& s)
 	{
 		yassume(get_pointer(s));
-
 		return *get_pointer(s);
 	}
 
@@ -846,7 +844,6 @@ inline _type*
 unsafe_any_cast(any* p)
 {
 	yconstraint(p);
-
 	return static_cast<_type*>(p->get());
 }
 
@@ -855,7 +852,6 @@ inline const _type*
 unsafe_any_cast(const any* p)
 {
 	yconstraint(p);
-
 	return static_cast<const _type*>(p->get());
 }
 //@}

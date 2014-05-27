@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3165
+\version r3169
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2014-02-18 01:02 +0800
+	2014-05-23 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,7 +152,6 @@ CopyScrollArea(YSLib::UI::BufferedTextArea& src_area,
 	const SDst w(src_area.GetWidth());
 
 	YAssert(w == dst_area.GetWidth(), "Distinct screen widths found.");
-
 	yunseq(src_offset *= w, dst_offset *= w, n *= w);
 	dst_area.Scroll(offset);
 	yunseq(std::copy_n(src_area.GetBufferPtr() + src_offset, n,
@@ -328,10 +327,8 @@ DualScreenReader::Execute(Command cmd)
 	}
 	else if(YB_UNLIKELY(IsTextBottom()))
 		return false;
-
 	YAssert(area_up.LineGap == area_dn.LineGap, "Distinct line gaps found.");
 	// TODO: Assert the fonts are same.
-
 	cmd &= ~Scroll;
 	if(cmd & Line)
 	{
@@ -441,7 +438,6 @@ DualScreenReader::MoveUpForLastLine(ptrdiff_t off, size_t h)
 	u16 n(area_dn.GetTextLineNEx());
 
 	YAssert(n != 0, "No Enough height.");
-
 	SetCurrentTextLineNOf(area_dn, --n);
 }
 

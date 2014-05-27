@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1853
+\version r1854
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-02-05 02:47 +0800
+	2014-05-23 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -278,7 +278,6 @@ byte
 UCS2Mapper(char* d, const ucs2_t& s)
 {
 	yconstraint(d);
-
 	return UCS2Mapper_InverseMap<_vEnc>(d, s);
 }
 //@}

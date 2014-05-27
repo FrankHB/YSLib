@@ -11,13 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1288
+\version r1290
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-02-14 22:04 +0800
+	2014-05-23 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,6 @@ inline ucs2_t
 FetchBiCharBE(const char* c_ptr)
 {
 	yconstraint(c_ptr);
-
 	return (*c_ptr << CHAR_BIT) | c_ptr[1];
 }
 
@@ -65,7 +64,6 @@ inline ucs2_t
 FetchBiCharLE(const char* c_ptr)
 {
 	yconstraint(c_ptr);
-
 	return (c_ptr[1] << CHAR_BIT) | *c_ptr;
 }
 

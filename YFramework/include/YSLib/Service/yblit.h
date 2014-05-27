@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3071
+\version r3072
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2014-02-18 00:56 +0800
+	2014-05-23 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,6 @@ struct SequenceTransformer
 
 		YAssert(n == 0 || !is_undereferenceable(dst),
 			"Invalid iterator found.");
-
 		for(const auto e(dst + n); dst != e; ++dst)
 			tp(dst);
 	}

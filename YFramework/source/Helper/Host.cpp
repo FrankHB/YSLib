@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1347
+\version r1349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-05-18 21:55 +0800
+	2014-05-26 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,7 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 
 		auto& m(p->MessageMap);
 		const auto i(m.find(msg));
-			
+
 		if(i != m.cend())
 		{
 			i->second(w_param, l_param);
@@ -101,8 +101,7 @@ WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 Environment::Environment()
 	: wnd_map(), wmap_mtx()
 #	if YF_Multithread == 1
-	, wnd_thrd_count(),
-	ExitOnAllWindowThreadCompleted()
+	, wnd_thrd_count()
 #		if YCL_Win32
 	, window_class(WindowClassName, WndProc)
 #		endif

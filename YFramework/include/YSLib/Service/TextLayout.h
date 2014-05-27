@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2786
+\version r2790
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-03-09 16:57 +0800
+	2014-05-23 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,7 +115,6 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s)
 	for(; *s != char() && w < max_width; yunseq(++s, ++r))
 	{
 		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
-
 		w += FetchCharWidth(fnt, *s);
 	}
 	return {r, w};
@@ -136,7 +135,6 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, size_t n,
 	for(; n-- != 0 && *s != c && w < max_width; yunseq(++s, ++r))
 	{
 		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
-
 		w += FetchCharWidth(fnt, *s);
 	}
 	return {r, w};
@@ -157,7 +155,6 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, _tIter g,
 	for(; s != g && *s != c && w < max_width; yunseq(++s, ++r))
 	{
 		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
-
 		w += FetchCharWidth(fnt, *s);
 	}
 	return {r, w};
@@ -170,7 +167,10 @@ FetchStringOffsets(size_t max_width, const Font& fnt, const _tString& str)
 {
 	return FetchStringOffsets(max_width, fnt, &str[0]);
 }
-//! \brief 取单行字符串前不超过 n 个字符在指定字体和宽度时的最多能显示的字符数和宽。
+/*!
+\brief 取单行字符串前不超过 n 个字符在指定字体和宽度时的
+	最多能显示的字符数和宽。
+*/
 template<class _tString,
 	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 inline pair<size_t, SDst>
@@ -196,7 +196,6 @@ FetchStringWidth(const Font& fnt, _tIter s)
 	for(; *s != char(); ++s)
 	{
 		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
-
 		w += FetchCharWidth(fnt, *s);
 	}
 	return w;
@@ -216,7 +215,6 @@ FetchStringWidth(const Font& fnt, _tIter s, size_t n, ucs4_t c = {})
 	for(; n-- != 0 && *s != c; ++s)
 	{
 		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
-
 		w += FetchCharWidth(fnt, *s);
 	}
 	return w;
@@ -236,7 +234,6 @@ FetchStringWidth(const Font& fnt, _tIter s, _tIter g, ucs4_t c = {})
 	for(; s != g && *s != c; ++s)
 	{
 		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
-
 		w += FetchCharWidth(fnt, *s);
 	}
 	return w;

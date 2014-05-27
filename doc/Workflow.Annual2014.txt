@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r310
+\version r312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-05-18 04:48 +0800
+	2014-05-23 05:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -309,6 +309,8 @@ There are some similar measurement values for a given image with proper underlyi
 	For image buffers, YSLib uses stride to refer the width in pixels, and pitch to refer the width in bytes, or bits if explicitly specified.
 		The meaning of stride is harmonized with Android NDK API.
 		The meaning of pitch is harmonized with FreeType.
+It seems that ::eglSwapBuffers hangs in SharedBufferStack waitForCondition is a bug of Android platform or underlying Linux kernel.
+	See: https://code.google.com/p/android/issues/detail?id=20833 .
 
 
 ////

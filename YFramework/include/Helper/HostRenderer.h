@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r281
+\version r285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-04-10 01:47 +0800
+	2014-05-26 14:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,16 +176,14 @@ public:
 	unique_ptr<Window>
 	MakeRenderWindow(_fCallable&& f, _tParams&&... args)
 	{
-		return unique_ptr<Window>(new
-			_tWindow(*this, yforward(f)(yforward(args)...)));
+		return make_unique<_tWindow>(*this, yforward(f)(yforward(args)...));
 	}
 
 	template<class _tWindow, typename _fCallable, typename... _tParams>
 	unique_ptr<Window>
 	MakeRenderWindowEx(_fCallable&& f, _tParams&&... args)
 	{
-		return unique_ptr<Window>(new
-			_tWindow(*this, yforward(f)(), yforward(args)...));
+		return make_unique<_tWindow>(*this, yforward(f)(), yforward(args)...);
 	}
 	//@}
 

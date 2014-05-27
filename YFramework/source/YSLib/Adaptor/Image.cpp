@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r755
+\version r759
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-05-17 19:15 +0800
+	2014-05-26 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,7 +164,7 @@ ImageFormat
 GetFormatFromFilename(const char16_t* filename)
 {
 	const auto len(std::char_traits<char16_t>::length(filename));
-	const auto p(ystdex::make_unique<char[]>(len + 1));
+	const auto p(make_unique<char[]>(len + 1));
 	const auto str(p.get());
 
 	for(size_t i{}; i < len; ++i)
@@ -260,7 +260,6 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
 	: bitmap([&]{
 		YAssertNonnull(src);
-
 		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(src),
 			s.Width, s.Height, s.Width * sizeof(PixelType) + pitch_delta,
 			YF_PixConvSpec, true);
@@ -343,19 +342,18 @@ HBitmap::~HBitmap()
 	::FreeImage_Unload(bitmap);
 }
 
-ystdex::byte*
+byte*
 HBitmap::operator[](size_t idx) const ynothrow
 {
 	YAssertNonnull(bitmap);
 	YAssert(idx < GetHeight(), "Index out of range.");
-
 	return ::FreeImage_GetScanLine(bitmap, idx);
 }
 
 HBitmap::operator CompactPixmap() const
 {
 	const Size& s(GetSize());
-	auto pixels(ystdex::make_unique<PixelType[]>(GetAreaOf(s)));
+	auto pixels(make_unique<PixelType[]>(GetAreaOf(s)));
 
 	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
 		GetDataPtr(), s.Width * sizeof(PixelType), YF_PixConvSpec, true);
@@ -377,7 +375,7 @@ HBitmap::GetPitch() const ynothrow
 {
 	return ::FreeImage_GetPitch(bitmap);
 }
-ystdex::byte*
+byte*
 HBitmap::GetPixels() const ynothrow
 {
 	return ::FreeImage_GetBits(bitmap);
@@ -465,7 +463,6 @@ MultiBitmapData::~MultiBitmapData()
 MultiBitmapData::LockPage(size_t index) const ynothrow
 {
 	YAssert(index < page_count, "Invalid page index found.");
-
 	if(const auto load = plugin_ref.get().load_proc)
 		return load(&io_ref.get(), handle, int(index), load_flags, data);
 	return {};

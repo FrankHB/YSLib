@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r479
+\version r481
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-05-18 22:49 +0800
+	2014-05-26 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,6 +211,7 @@ public:
 
 	/*!
 	\brief 从缓冲区更新。
+	\pre 断言：参数非空。
 	\post ::HBITMAP 的 rgbReserved 为 0 。
 	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
 	*/
@@ -258,6 +259,7 @@ public:
 	//! \since build 445
 	using ScreenBuffer::Resize;
 
+	//! \pre 间接断言：参数非空。
 	void
 	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
 

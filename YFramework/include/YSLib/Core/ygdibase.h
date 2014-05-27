@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1497
+\version r1498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-04-23 01:06 +0800
+	2014-05-23 09:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -696,7 +696,6 @@ inline void
 Diminish(Rect& r, SDst off1 = 1, SDst off2 = 2)
 {
 	YAssert(r.Width > off2 && r.Height > off2, "Boundary is too small.");
-
 	yunseq(r.X += off1, r.Y += off1, r.Width -= off2, r.Height -= off2);
 }
 //@}

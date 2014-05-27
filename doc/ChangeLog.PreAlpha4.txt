@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8075
+\version r8159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-05-19 00:01 +0800
+	2014-05-27 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,91 @@ $import $HISTORY;
 // Scope: [b400, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib.Debug $=
+		(
+			/ $revert_ex(b298) $dev "implementation" @ "YCL_Trace"  $=
+			(
+				^ '[&]' ~ '[=]';
+				* $comp "capture failure for non-copyable bound variables"
+					$since b298
+			),
+			/ @ "platform %Android" $=
+			(
+				+ "function %LogAssert" @ "namespace %platform_ex";
+				+ "macro overrider %YAssert" ^ "%platform_ex::LogAssert"
+					// Assertion on Android didn't work well, no text would be \
+						shown using %yassert.
+			)
+		),
+		/ %YSLib $=
+		(
+			/ DLD "implementation" @ "inline functions %(DrawLineSeg, FillRect)"
+				@ %Service.YDraw ^ "macros %(PDefH, ImplExpr)",
+			/ DLD "implementation" @ "member functions %MenuHost::(Show, \
+				Hide)#2" @ %UI.Menu ^ "macros %(PDefH, ImplExpr)",
+			- DLD "redundant 'ystdex::'" @ "all 'ystdex::byte', \
+				'ystdex::make_shared'" @ %Adaptor.Image
+		),
+		/ %'YCLib_(Android)'.Android $=
+		(
+			(
+			+ "function %GetContext" @ "class %ScreenBuffer";
+			+ 'using ScreenBuffer::GetContext;' @ "class %ScreenRegionBuffer"
+			),
+			(
+			+ "declaration struct %::ALooper";
+			+ "function %FetchNativeLooper"
+			),
+			(
+			+ "declaration struct %::AConfiguration";
+			+ "function %TraceConfiguration"
+			),
+			+ 'using ScreenBuffer::GetStride;' @ "class %ScreenRegionBuffer"
+			* "wrong implementation" @ "%ScreenRegionBuffer::UpdateTo"
+				$since b498
+				// Actually nothing updated.
+		),
+		/ %Helper $=
+		(
+			* "missing explicit atomic initialization"
+				@ "%Enviornment::ExitOnAllWindowThreadCompleted"
+				@ %Host $since b399,
+			/ "message in thrown excpeiton" @ "function %Execute"
+				@ %GUIApplication,
+			/ "singleton pointer unregistered when application exit"
+				@ %Helper.(GUIApplication, DSApplication)
+				// This allows the application instance recreated for a \
+					reentrant process.
+			/ DLD "simplified implementation" ^ 'make_unique' ~ ('unique_ptr', \
+				'new') @ "function templates %(MakeRenderWindow, \
+				MakeRenderWindowEx)" @ "class %HostRenderer" @ %HostRenderer
+		),
+		+ "nonnull argument assertions"
+			@ "member function %ScreenBuffer::UpdateFrom"
+			@ %('YCLib_(MinGW32)'.Win32GUI, 'YCLib_(Android)'.Android)
+	),
+	- DLD "all empty lines only being seperator for assertions",
+	+ $dev "macro %YB_Use_YAssert defined only when not predefined"
+		@ %YBase.YDefinition,
+	/ $dev $build @ "makefile" @ "platform %Android" $=
+	(
+		* "wrong command line to remove output .so file" $since b497,
+		/ @ "target %clean" $=
+		(
+			(
+			/ "removing .d and .o files precisely by targets";
+			* $comp "missing .d and .o files in subdirectories" $since b497
+			),
+			/ "removing .apk files precisely by targets"
+				// Not all .apk files would be removed.
+		)
+	)
+),
+
+b498
 (
 	/ %YBase $=
 	(

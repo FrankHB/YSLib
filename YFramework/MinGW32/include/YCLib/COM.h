@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r450
+\version r455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2014-01-28 05:30 +0800
+	2014-05-23 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,7 +198,6 @@ public:
 	operator*() const ynothrowv
 	{
 		yconstraint(pInterface);
-
 		return *pInterface;
 	}
 
@@ -246,7 +245,6 @@ public:
 	Cast(REFIID riid, COMPtr<IUnknown>& ptr) const ynothrow
 	{
 		yconstraint(pInterface);
-
 		return pInterface->QueryInterface(riid,
 			reinterpret_cast<void**>(&ptr.ReleaseAndGetRef()));
 	}
@@ -255,7 +253,6 @@ public:
 	Cast(COMPtr<_iOther>& ptr) const ynothrow
 	{
 		yconstraint(pInterface);
-
 		return pInterface->QueryInterface(__uuidof(_iOther),
 			reinterpret_cast<void**>(&ptr.ReleaseAndGetRef()));
 	}
@@ -281,7 +278,6 @@ public:
 	CopyTo(REFIID riid, void** ptr) const ynothrow
 	{
 		yconstraint(pInterface);
-
 		return pInterface->QueryInterface(riid, ptr);
 	}
 	template<typename _type>
@@ -390,7 +386,6 @@ Attach(COMPtr<_iCOM>& ptr, typename COMPtr<_iCOM>::InterfaceType* p) ynothrow
 		const auto ref(p_interface->Release());
 
 		yunused(ref);
-
 		yassume(ref != 0 || p_interface != p);
 	}
 	ptr.GetRef() = ptr;

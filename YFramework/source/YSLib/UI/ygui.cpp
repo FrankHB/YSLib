@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4013
+\version r4018
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-04-27 01:03 +0800
+	2014-05-23 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -229,9 +229,7 @@ GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 		ResponseKeyBase(e, op);
 		p = t;
 	}
-
 	YAssertNonnull(p);
-
 	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);
 	ResponseKeyBase(e, op);
@@ -250,7 +248,6 @@ GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
 {
 	YAssert(op == KeyUp || op == KeyDown || op == KeyHeld,
 		"Invalid operation found.");
-
 	DoEvent<HKeyEvent>(e.GetSender().GetController(), op, std::move(e));
 }
 
@@ -283,9 +280,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 		p = t;
 		e.Position -= GetLocationOf(*p);
 	};
-
 	YAssertNonnull(p);
-
 	e.Strategy = UI::RoutedEventArgs::Direct;
 	e.SetSender(*p);
 	ResponseCursorBase(e, op);

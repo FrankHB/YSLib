@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1219
+\version r1221
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-02-18 00:57 +0800
+	2014-05-23 10:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,6 @@ ConversionResult
 MBCToUC(ucs2_t& uc, std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	yconstraint(fp);
-
 	if(const auto pfun = FetchMapperPtr<ConversionResult(ucs2_t&,
 		input_monomorphic_iterator&&, ConversionState&&)>(enc))
 	{
@@ -84,7 +83,6 @@ ConversionResult
 MBCToUC(std::FILE* fp, Encoding enc, ConversionState&& st)
 {
 	yconstraint(fp);
-
 	if(const auto pfun = FetchMapperPtr<ConversionResult(
 		input_monomorphic_iterator&&, ConversionState&&)>(enc))
 	{

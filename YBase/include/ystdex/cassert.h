@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r115
+\version r116
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2014-04-25 10:06 +0800
+	2014-05-24 17:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,6 +64,7 @@ namespace ystdex
 /*!
 \brief YBase 默认断言函数。
 \note 当定义宏 YB_Use_YAssert 不等于 0 时，宏 YAssert 操作由此函数实现。
+\note 参数依次为：是否触发、表达式、文件名、行号和消息文本。
 \since build 432
 */
 YB_API void

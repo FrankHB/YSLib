@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3387
+\version r3390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-04-25 09:53 +0800
+	2014-05-23 09:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,6 @@ NativeFontSize::Activate() const
 	auto face(size->face);
 
 	YAssertNonnull(face);
-
 	face->size = size;
 }
 
@@ -272,7 +271,6 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 {
 	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(ref.second.get().num_charmaps),
 		"Invalid CMap index found.");
-
 	style_name = ref.second.get().style_name;
 	ref.first.get() += *this;
 }
@@ -288,7 +286,6 @@ Typeface::~Typeface()
 	YAssertNonnull(face);
 	YAssert(face->internal->refcount == 1,
 		"Invalid face reference count found.");
-
 	// XXX: Hack for using %ttmtx.c and %sfobjs.c of FreeType 2.4.11.
 	if(FT_IS_SFNT(face))
 	{
