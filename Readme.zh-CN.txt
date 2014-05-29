@@ -8,14 +8,17 @@
 
 > 根目录结构和文件说明
 ====
+以下只包括一级目录和少数特定的二级目录说明。
 /.git
- Git 目录
+ Git 目录（可通过 hg-git 同步）
 /.hg
  Mercurial 目录
 /3rdparty
 第三方依赖项
 /Data
 最终用户环境中部署的数据目录
+/build
+默认生成文件目录
 /doc
 开发文档
 /doc/vsd
@@ -26,13 +29,15 @@
 顶级子项目 YBase
 /YFramework
 顶级子项目 YFramework
-/YSTest_ARM7
+/YSTest/Android
+示例项目 YReader 的 Android 平台项目（未完成正式支持）
+/YSTest/DS_ARM7
 示例项目 YReader 的 ARM7 项目（仅用于 DS 平台，用于生成 ARM7 ELF 二进制映像）
-/YSTest_ARM9
+/YSTest/DS_ARM9
 示例项目 YReader 的 ARM9 项目（包括 DS 平台 ARM9 部分，于生成 ARM9 ELF 二进制映像；源代码和其它平台共享）
-/YSTest_DS
+/YSTest/DS
 示例项目 YReader 的 DS 平台可执行文件项目（仅用于 DS 平台，用于生成 NDS 文件）
-/YSTest_MinGW32
+/YSTest/MinGW32
 示例项目 YReader 的 MinGW32 平台可执行文件项目（仅用于 MinGW32 平台，用于生成 EXE 文件）
 /.hgignore
  Mercurial 忽略文件
@@ -64,7 +69,7 @@
 > 构建说明
 ====
 构建平台/宿主平台： Windows 或类 UNIX 系统。
-目标平台： DS 和 MinGW32 。
+目标平台： DS 和 MinGW32 。非正式支持 Android 。
 详细参见 doc/Designation.txt @5.1 。
 按 doc/Designation.txt @5.2.2 或 @5.2.3 下载搭建目标平台对应的开发环境。
 使用 Microsoft Visual Studio 2012 或以上版本打开 .sln （仅 Windows ；当前仅用于生成 DS 平台文件）；
@@ -77,13 +82,54 @@ DEVKITARM = /F/devkitPro/devkitARM
 DEVKITPRO = /F/devkitPro
 使用 Microsoft Visual Studio 打开文件，还需要以下环境变量以保证路径解析正确：
 DKP_HOME = F:\devkitPro
-需要保证有可用的 UNIX shell ； Windows 下可能需要另外加入 devkitPro 安装目录下 msys/bin 至 %PATH% 。
+需要保证有可用的 UNIX shell ； Windows 下可能需要另外加入 devkitPro 安装目录下 msys/bin 至 %PATH% 。可使用 MSys2 替代。
+
+ Android
+==
+未正式支持。
+开发环境配置详见 doc/Designation.txt @5.2.6 。
 
 其它
 ==
 详细的其它选项参照 https://bitbucket.org/FrankHB/yslib/wiki/Home 。
 
 > YSLib PreAlpha 更新说明
+====
+2014-05-30(PreAlpha 5)
+更改输出目录结构：目标文件和源代码分离。
+添加 MinGW.org 支持（不用于发布）。
+添加非正式的 Android 支持（ YBase 外未完成）。
+更新 Doxygen 文档忽略列表，启用短文件名设置以避免含有制表符的文件名导致生成失败。
+[YBase]
+添加 Microsoft Visual Studio C++ 2013 支持。
+[YFramework]
+添加 MIME 类型和扩展名映射。
+修整光栅化接口和实现，修复未显示右下边界线段和矩形右下角的点。
+限制部件渲染区域保证绘制区域被渲染一次而正确显示。
+调整消息宏命名风格。
+添加基于界面无效化的简单逐帧动画支持。
+添加多页面图像读取支持（基于 FreeImage 独立实现）。
+添加 MRU 缓存并应用于字形缓存的实现。
+在包含中使用模块标识宏代替文件名的直接使用。
+添加 MinGW.org 运行时支持。
+按钮和单选框增加悬停控件状态并修改对应状态的外观。
+单选框禁用时渲染为灰色外观。
+添加视觉样式支持。
+添加图像缓冲区转换和保存为文件。
+未启用或隐藏的部件不响应键盘焦点。
+添加级联焦点缓冲（通过多级容器和部件的焦点确定键盘焦点）。
+添加本机按键编码分类和相关操作；支持更多虚拟按键。
+添加 TextBox 和 TabControl 控件。
+增强日志输出接口。
+[MinGW32]
+修复终止时栈溢出。
+本机窗口增加消息映射。
+[YReader]
+更改部分按键。
+添加界面风格设置。
+更改项目目录结构。
+添加界面动画、文本框和标签页测试。
+阅读器设置界面使用标签页。
 ====
 2013-10-12(build 449)
  build 449 起使用 2-Clause BSD 许可证风格的条款进行基本授权。

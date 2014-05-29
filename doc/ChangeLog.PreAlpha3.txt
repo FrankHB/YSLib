@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4936
+\version r4938
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-04-27 10:50 +0800
+	2014-05-30 00:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3288,8 +3288,9 @@ b307
 			* "wrong displayed scrolling interval" $since b301
 		)
 	),
-	/ $doc "updated Doxygen file" ^ "Doxygen 1.7.2" $=
+	/ $doc "updated Doxygen file" $=
 	(
+		^ "Doxygen 1.7.2",
 		* "wrong Doxygen root output path" $since b300,
 		/ "input ignorance"
 	),

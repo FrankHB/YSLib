@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r423
+\version r473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2014-04-06 17:31 +0800
+	2014-05-29 14:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,25 +35,35 @@ namespace
 {
 
 const char TU_ReaderSettingUI[]{u8R"NPL(root
-($type "Panel")($bounds "16 28 216 156")
-(btnFontSizeDecrease
-	($type "Button")($bounds "4 4 80 22"))
-(btnFontSizeIncrease
-	($type "Button")($bounds "132 4 80 22"))
-(btnSetUpBack
-	($type "Button")($bounds "4 36 80 22"))
-(btnSetDownBack
-	($type "Button")($bounds "132 36 80 22"))
-(btnTextColor
-	($type "Button")($bounds "4 68 80 22"))
-(ddlFont
-	($type "DropDownList")($bounds "132 68 80 22"))
-(ddlEncoding
-	($type "DropDownList")($bounds "4 100 192 22"))
-(cbSmoothScroll
-	($type "CheckButton")($bounds "4 132 72 18"))
-(ddlScrollTiming
-	($type "DropDownList")($bounds "80 132 128 22"))
+($type "TabControl")($bounds "8 24 240 160")
+(pnlPage1
+	($type "Panel")
+	(btnFontSizeDecrease
+		($type "Button")($bounds "12 12 80 22"))
+	(btnFontSizeIncrease
+		($type "Button")($bounds "148 12 80 22"))
+	(btnSetUpBack
+		($type "Button")($bounds "12 44 80 22"))
+	(btnSetDownBack
+		($type "Button")($bounds "148 44 80 22"))
+	(btnTextColor
+		($type "Button")($bounds "12 76 80 22"))
+	(ddlFont
+		($type "DropDownList")($bounds "148 76 80 22"))
+)
+(pnlPage2
+	($type "Panel")
+	(ddlEncoding
+		($type "DropDownList")($bounds "12 12 192 22"))
+)
+(pnlPage3
+	($type "Panel")
+	(cbSmoothScroll
+		($type "CheckButton")($bounds "12 12 72 18"))
+	(ddlScrollTiming
+		($type "DropDownList")($bounds "84 12 128 22"))
+)
+
 )NPL"};
 
 } // unnamed namespace;
@@ -83,16 +93,19 @@ SettingPanel::SettingPanel()
 {
 	// NOTE: Values of durations keep uninitialized. Use carefully.
 	auto& node(dynWgts.WidgetNode);
-	DeclDynWidget(Panel, root, node)
-	DeclDynWidgetNode(Button, btnFontSizeDecrease)
-	DeclDynWidgetNode(Button, btnFontSizeIncrease)
-	DeclDynWidgetNode(Button, btnSetUpBack)
-	DeclDynWidgetNode(Button, btnSetDownBack)
-	DeclDynWidgetNode(Button, btnTextColor)
-	DeclDynWidgetNode(DropDownList, ddlFont)
-	DeclDynWidgetNode(DropDownList, ddlEncoding)
-	DeclDynWidgetNode(CheckButton, cbSmoothScroll)
-	DeclDynWidgetNode(DropDownList, ddlScrollTiming)
+	DeclDynWidget(TabControl, root, node)
+	auto& node_pnlPage1(AccessWidgetNode(node, "pnlPage1"));
+	auto& node_pnlPage2(AccessWidgetNode(node, "pnlPage2"));
+	auto& node_pnlPage3(AccessWidgetNode(node, "pnlPage3"));
+	DeclDynWidgetN(Button, btnFontSizeDecrease, node_pnlPage1)
+	DeclDynWidgetN(Button, btnFontSizeIncrease, node_pnlPage1)
+	DeclDynWidgetN(Button, btnSetUpBack, node_pnlPage1)
+	DeclDynWidgetN(Button, btnSetDownBack, node_pnlPage1)
+	DeclDynWidgetN(Button, btnTextColor, node_pnlPage1)
+	DeclDynWidgetN(DropDownList, ddlFont, node_pnlPage1)
+	DeclDynWidgetN(DropDownList, ddlEncoding, node_pnlPage2)
+	DeclDynWidgetN(CheckButton, cbSmoothScroll, node_pnlPage3)
+	DeclDynWidgetN(DropDownList, ddlScrollTiming, node_pnlPage3)
 	const auto set_font_size([this](FontSize size){
 		lblAreaUp.Font.SetSize(size),
 		lblAreaDown.Font.SetSize(size);
@@ -101,6 +114,13 @@ SettingPanel::SettingPanel()
 		Invalidate(lblAreaDown);
 	});
 
+	AddButtonToTabBar(root, node_pnlPage1, "btnTabDisplay", u"显示设置");
+	AddButtonToTabBar(root, node_pnlPage2, "btnTabText", u"文本设置");
+	AddButtonToTabBar(root, node_pnlPage3, "btnTabOperation", u"操作设置");
+	root.UpdateTabPages();
+	for(const auto& p_pnl : root.GetPages())
+		if(p_pnl)
+			FetchEvent<Paint>(*p_pnl).Add(BorderBrush(), BoundaryPriority);
 	AddWidgets(*this, root),
 	Add(boxColor, 112U),
 	SetVisibleOf(boxColor, false),
@@ -210,8 +230,8 @@ SettingPanel&
 SettingPanel::operator<<(const ReaderSetting& s)
 {
 	auto& node(dynWgts.WidgetNode);
-	DeclDynWidgetNode(DropDownList, ddlFont)
-	DeclDynWidgetNode(CheckButton, cbSmoothScroll)
+	DeclDynWidgetN(DropDownList, ddlFont, node, "pnlPage1")
+	DeclDynWidgetN(CheckButton, cbSmoothScroll, node, "pnlPage3")
 
 	yunseq(
 	lblAreaUp.ForeColor = s.FontColor,

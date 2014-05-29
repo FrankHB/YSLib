@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3538
+\version r3539
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-04-27 10:12 +0800
+	2014-05-30 00:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1776,7 +1776,7 @@ b252
 	);
 	+ "POD type operations" @ "library %YStandardEx",
 	/ $dev $lib "simplified macro definitions" @ "ybasemac.h",
-	/ "updated Doxygen file" ^ "Doxygen 1.7.2",
+	/ $doc "updated Doxygen file" ^ "Doxygen 1.7.2",
 	+ DLD "nested-use support" @ "implementation" @ "macro %yunsequenced",
 	/ DLP "libraries using" $=
 	(

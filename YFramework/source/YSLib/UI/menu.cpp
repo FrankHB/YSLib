@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1183
+\version r1184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-05-23 09:51 +0800
+	2014-05-28 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -220,7 +220,7 @@ Menu::DrawItem(const Graphics& g, const Rect& mask, const Rect& unit,
 	if(YB_LIKELY(unit.Width > 16))
 		if(ystdex::exists(mSubMenus, i))
 			DrawArrow(g, Rect(unit.X + unit.Width - 16, unit.Y, 16,
-				unit.Height), 4, RDeg0, ForeColor);
+				unit.Height) & mask, 4, RDeg0, ForeColor);
 }
 
 

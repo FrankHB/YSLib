@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3644
+\version r3650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-05-23 09:52 +0800
+	2014-05-28 23:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -397,10 +397,12 @@ AScrollBar::InitializeArrowPainters(Rotation prev, Rotation next)
 	using namespace placeholders;
 
 	yunseq(
-	FetchEvent<Paint>(btnPrev) += bind(DrawArrow, _1, ref(btnPrev), 4, prev,
-		ref(ForeColor)),
-	FetchEvent<Paint>(btnNext) += bind(DrawArrow, _1, ref(btnNext), 4, next,
-		ref(ForeColor))
+	FetchEvent<Paint>(btnPrev) += [this, prev](PaintEventArgs&& e){
+		DrawArrow(e.Target, e.ClipArea, 4, prev, ForeColor);
+	},
+	FetchEvent<Paint>(btnNext) += [this, next](PaintEventArgs&& e){
+		DrawArrow(e.Target, e.ClipArea, 4, next, ForeColor);
+	}
 	);
 }
 

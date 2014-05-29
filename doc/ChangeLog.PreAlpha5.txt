@@ -1,0 +1,102 @@
+﻿/*
+	© 2014 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file ChangeLog.PreAlpha5.txt
+\ingroup Documentation
+\brief 版本更新历史记录 - PreAlpha5 。
+\version r101
+\author FrankHB <frankhb1989@gmail.com>
+\since build 500
+\par 创建时间:
+	2014-05-29 19:30:47 +0800
+\par 修改时间:
+	2014-05-30 00:01 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::ChangeLog::PreAlpha5
+*/
+
+// See %Documentation::Meta for meta descriptions.
+
+$import $HISTORY;
+
+// Scope: [b500, $now];
+
+$now
+(
+	/ %YFramework,
+	(
+		/ %YSLib.UI $=
+		(
+			* "missing clip area intersection for arrow rendering"
+				@ "member function" ("%DropDownList::Refresh" @ %ComboList,
+				"%Menu::DrawItem" @ %Menu,
+				) $since b452;
+				// An obvious example is in the reader setting UI @ YReader, \
+					moving over or dragging the scroll time setting drop down \
+					list, the arrow of behind drop down button would be \
+					wrongly rendered visible, rather than hiding hehind.
+			(
+			/ "implemented arrow rendering" ^ "function %Drawing::DrawArrow"
+				~ "function %UI::DrawArrow" @ "member function \
+				%AScrollBar::InitializeArrowPainters" @ %Scroll;
+			* $comp "wrong arrow might be rendered" $since b452,
+				// Ditto.
+			- "function %UI::DrawArrow" @ %YWidget
+			),
+			/ DLD "simplified implementation" @ "function %RectDrawArrow"
+				@ %YStyle
+		),
+		/ "default configuration" @ "platform %MinGW32" @ %Helper.Initialization
+			$=
+		(
+			/ "default root directory macro %ROOTW" -> "." ~ "H:\\NDS\\EFSRoot",
+			/ "default font path macro %DEF_FONT_PATH"
+				-> "C:\\Windows\\Fonts\\SimSun.ttc"
+				~ 'ROOTW "\\Font\\FZYTK.TTF"',
+			/ "default font directory macro %DEF_FONT_DIRECTORY"
+				-> 'ROOTW "\\Font\\"' ~ 'ROOTW "\\"',
+			/ "default data directory macro %DEF_DATA_DIRECTORY"
+				-> 'ROOTW "\\Data\\"' ~ 'ROOTW "\\"'
+		)
+	),
+	/ %YReader $=
+	(
+		/ %ShlExplorer $=
+		(
+			/ "test widget location"
+			/ @ "class %ShlExplorer"  $=
+			(
+				+ "default text" @ "test label",
+				/ "avoided potentional leak for %unique_ptr setting"
+					^ "%make_unique"~ "member function %unique_ptr::reset"
+					@ "%yunseq segments",
+				/ @ "animation test" $=
+				(
+					* "animated wrongly by irrevalent invalidation" $since b451,
+					/ "refined test animation in test tab page"
+						~ "in setting panel"
+				)
+			)
+		),
+		+ "function %AddButtonTabBar" @ %Shells,
+		+ "rearranged setting UI in 3 tab pages" @ %ReaderSettingUI
+	),
+	/ $doc "updated Doxygen file" $=
+	(
+		^ "Doxygen 1.8.7" ~ "Doxygen 1.8.2",
+		/ 'YFramework/include/freetype YFramework/include/ft2build.h'
+			@ "%EXCLUDE" -> '.git Data Tools'
+	)
+);
+
+////
+

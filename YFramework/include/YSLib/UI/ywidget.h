@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5676
+\version r5683
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-05-23 10:15 +0800
+	2014-05-28 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,14 +225,6 @@ inline PDefH(void, SetVisibleOf, IWidget& wgt, bool b)
 */
 YF_API void
 Close(IWidget&);
-
-/*!
-\brief 在指定部件中心画箭头。
-\since build 302
-*/
-YF_API void
-DrawArrow(PaintEventArgs&&, IWidget&, SDst = 4, Drawing::Rotation
-	= Drawing::RDeg0, Drawing::Color = Drawing::ColorSpace::Black);
 
 /*!
 \brief 隐藏部件。

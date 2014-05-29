@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8159
+\version r8162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-05-27 19:56 +0800
+	2014-05-28 22:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@ $import $HISTORY;
 
 // Scope: [b400, $now];
 
-$now
+b499
 (
 	/ %YFramework $=
 	(
@@ -83,7 +83,7 @@ $now
 			* "missing explicit atomic initialization"
 				@ "%Enviornment::ExitOnAllWindowThreadCompleted"
 				@ %Host $since b399,
-			/ "message in thrown excpeiton" @ "function %Execute"
+			/ "message in thrown exception" @ "function %Execute"
 				@ %GUIApplication,
 			/ "singleton pointer unregistered when application exit"
 				@ %Helper.(GUIApplication, DSApplication)
@@ -174,7 +174,7 @@ b498
 		),
 		/ %YSLib $=
 		(
-			+ "inclsion %YFM_YCLib_Keys" @ %YAdaptor.Adaptor,
+			+ "inclusion %YFM_YCLib_Keys" @ %YAdaptor.Adaptor,
 				// To prevent %YTraceDe undefined.
 			/ @ %UI.Loader $=
 			(

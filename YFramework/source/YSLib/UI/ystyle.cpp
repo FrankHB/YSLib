@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r791
+\version r815
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-05-23 09:54 +0800
+	2014-05-28 23:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,41 +69,27 @@ RectDrawArrow(const PaintContext& pc, SDst half_size, Rotation rot, Color c)
 {
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
-	const auto& r(pc.ClipArea);
+	const auto& bounds(pc.ClipArea);
 	SDst x(pt.X), y(pt.Y);
 
 	switch(rot)
 	{
 	case RDeg0:
-		{
-			SDst t(pt.Y);
-
-			for(SDst i(0); i < half_size; ++i)
-				DrawVLineSeg(g, r, x--, y--, t++, c);
-		}
-		break;
-	case RDeg90:
-		{
-			SDst t(pt.X);
-
-			for(SDst i(0); i < half_size; ++i)
-				DrawHLineSeg(g, r, y++, x--, t++, c);
-		}
-		break;
 	case RDeg180:
 		{
 			SDst t(pt.Y);
 
 			for(SDst i(0); i < half_size; ++i)
-				DrawVLineSeg(g, r, x++, y--, t++, c);
+				DrawVLineSeg(g, bounds, rot == 0 ? x-- : x++, y--, t++, c);
 		}
 		break;
+	case RDeg90:
 	case RDeg270:
 		{
 			SDst t(pt.X);
 
 			for(SDst i(0); i < half_size; ++i)
-				DrawHLineSeg(g, r, y--, x--, t++, c);
+				DrawHLineSeg(g, bounds, rot == RDeg90 ? y++ : y--, x--, t++, c);
 		}
 	default:
 		break;
@@ -111,28 +97,28 @@ RectDrawArrow(const PaintContext& pc, SDst half_size, Rotation rot, Color c)
 }
 
 void
-DrawArrow(const Graphics& g, const Rect& r, SDst half_size, Rotation rot,
+DrawArrow(const Graphics& g, const Rect& bounds, SDst half_size, Rotation rot,
 	Color c)
 {
-	SPos x(r.X), y(r.Y);
+	SPos x(bounds.X), y(bounds.Y);
 
 	switch(rot)
 	{
 	case RDeg0:
 	case RDeg180:
 		x += (rot == RDeg180
-			? (r.Width - half_size) : (r.Width + half_size)) / 2;
-		y += (r.Height + 1) / 2;
+			? (bounds.Width - half_size) : (bounds.Width + half_size)) / 2;
+		y += (bounds.Height + 1) / 2;
 		break;
 	case RDeg90:
 	case RDeg270:
 		y += (rot == RDeg90
-			? (r.Height - half_size) : (r.Height + half_size)) / 2;
-		x += (r.Width + 1) / 2;
+			? (bounds.Height - half_size) : (bounds.Height + half_size)) / 2;
+		x += (bounds.Width + 1) / 2;
 	default:
 		break;
 	}
-	RectDrawArrow({g, Point(x, y), r}, half_size, rot, c);
+	RectDrawArrow({g, Point(x, y), bounds}, half_size, rot, c);
 }
 
 void
