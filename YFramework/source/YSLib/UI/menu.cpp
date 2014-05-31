@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1184
+\version r1185
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-05-28 23:04 +0800
+	2014-06-01 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,7 +191,7 @@ Menu::ShowSub(IndexType idx, ZOrderType z)
 			return &mnu;
 		}
 	}
-	return nullptr;
+	return {};
 }
 
 bool

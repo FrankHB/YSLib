@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r224
+\version r225
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-04-02 01:09 +0800
+	2014-05-30 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,7 +170,7 @@ public:
 
 	/*!
 	\brief 取指定点所在的插入符光标逻辑位置。
-	\param 相对于部件左上角偏移。
+	\note 参数为相对于部件左上角偏移。
 	\since build 484
 	\todo AutoWrap 为 true 时判断行数。
 	*/

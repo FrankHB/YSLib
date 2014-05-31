@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3390
+\version r3391
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-05-23 09:38 +0800
+	2014-06-01 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -418,7 +418,7 @@ FontCache::GetTypefacePtr(const FamilyName& family_name,
 	const FontFamily* f(GetFontFamilyPtr(family_name));
 
 	if(YB_UNLIKELY(!f))
-		return nullptr;
+		return {};
 	return f->GetTypefacePtr(style_name);
 }
 

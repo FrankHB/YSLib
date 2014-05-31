@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1310
+\version r1314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-05-23 10:17 +0800
+	2014-06-01 02:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -280,7 +280,7 @@ ufopen(const char* filename, const char* mode) ynothrow
 	}
 	catch(...)
 	{}
-	return nullptr;
+	return {};
 #endif
 }
 std::FILE*
@@ -296,7 +296,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 	}
 	catch(...)
 	{}
-	return nullptr;
+	return {};
 #else
 	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
 		reinterpret_cast<const wchar_t*>(mode));
@@ -356,7 +356,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 				if(size < len + 1)
 				{
 				//	last_err = ERANGE;
-					return nullptr;
+					return {};
 				}
 				memcpy(buf, p, ++len * sizeof(ucs2_t));
 				return buf;
@@ -369,7 +369,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 				::_wgetcwd(reinterpret_cast<wchar_t*>(buf), size));
 #endif
 	}
-	return nullptr;
+	return {};
 }
 
 //! \since build 476

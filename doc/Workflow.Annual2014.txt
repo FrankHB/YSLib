@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r312
+\version r314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-05-23 05:17 +0800
+	2014-06-01 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,7 @@ Call by value or by rvalue refernce for a callable object, a call wrapper or an 
 	Note a call wrapper is MoveConstructible; a call wrapper can be not CopyConstructible; A simple call wrapper is CopyConstructible. See ISO C++11 20.8.2/4.
 		Exceptions are strictly restricted to be thrown. No exception are allowed to be thrown in copying a simple call wrapper.
 		For moved-only types(which is not CopyConstructible), it should be treated as forwarding call wrapper, i.e. passed as '_fCallable&&'.
-		Otherwise, for simplicity, a callable object should be passed by '_tCallable', except when necessarily treated as forwarding call wrapper by design.
+		Otherwise, for simplicity, a callable object should be passed by '_fCallable', except when necessarily treated as forwarding call wrapper by design.
 			Most uses of callable objects or call wrappers are plainly passed by value.
 				Such as the function parameter of the constructor of 'std::function' with exactly 1 parameter.
 				The function templates in algorithm library accept callable objects or simple call wrappers passed by value.
@@ -241,7 +241,7 @@ Call by value or by rvalue refernce for a callable object, a call wrapper or an 
 	As of ISO C++ 12.8/32, if the object designated as lvalue is a parameter, it would be firstly moved event if copy ellision criteria in ISO C++ 12.8/31 are not met.
 		If used as forwarding of a passed by value callable object, no redundant 'std::move' should be used.
 	Similarly, in the standard library, the iteraors in the algorithms are passed by reference primarily.
-	For simplicity in YSLib, if and only if noncopyable callable object is intendedly acceptable by design, pass-by-value '_tCallable' should always be used instead of '_fCallable&&'.
+	For simplicity in YSLib, if and only if noncopyable callable object is intendedly acceptable by design, pass-by-value '_fCallable' should always be used instead of '_fCallable&&'.
 		This also means most callable objects should be CopyConstrictible.
 		The major general exception is for forwarding function templates, which have templated function parameters like '_tParams&&...'. Some examples:
 			General forwarding function templates like 'ystdex::seq_apply', 'ystdex::unseq_apply' and 'ystdex::call_projection::call' in YBase::Functional. They are used for reordering the evaluation as well as forwarding the parameters, so just behave as 'std::bind'.

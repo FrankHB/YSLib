@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r101
+\version r154
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-05-30 00:01 +0800
+	2014-06-02 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,14 +32,61 @@ $import $HISTORY;
 
 $now
 (
+	/ $doc "Doxygen comments" @ %YFramework $=
+	(
+		* "wrong directive '\def' used" ~ '\brief' @ "macro %YCL_KEYSTATE_DIRECT"
+			@ %YCLib.Input $since b321,
+		* "wrong directive '\param' used" ~ '\note' @ "function %FetchNativeLooper"
+			@ %'YCLib_(Android)'.Android $since b499,
+		* "wrong directive '\param' used" ~ '\note'
+			@ "member function %TextBox::GetCaretPosition"
+			@ %YSLib.UI.TextBox $since b484
+	),
+	* "crash on setting saving" @ %YReader.ReaderSettingUI $since b500 $=
+		(* $dev "wrong widget path accessed" $since b500),
+		// This might corrupt the configuration file, which cause big trouble \
+			on DS.
+	/ %YFramework $=
+	(
+		/ %NPL.NPLA1 $=
+		(
+			+ 'using NodeMapper = ValueNode(const ValueNode&);';
+			+ "function %MapNPLA1Node;
+			+ "parameter with default argument 'std::function<NodeMapper> \
+				= MapNPLA1Node' @ %(TransformNPLA1Node, LoadNPLA1), function \
+				template %LoadNPLA1)"
+		)
+		/ %YSLib.Core.ValueNode $=
+		(
+			/ @ "class %ValueNode" $=
+			(
+				+ "function %swap",
+				/ $dev "member %Vaule" ^ "member initializer '{}'",
+				/ DLD "functions operator%=" -> "non-inline functions"
+			),
+			(
+			$dep_from "member function %ValueNode:swap";
+			+ "function %swap for %ValueNode"
+			),
+			/ "implementation" @ "inline functions %(AccessNode, AccessNodePtr)"
+				^ "macros %(PDefH, ImplRet)"
+		),
+		/ "implemented key tapping up and down for motion events"
+			@ "platform %Android" @ %YCLib.Input
+	),
+	+ $dev $repo "tags ('PreAlpha', 'V0.5') to revision 372",
+	/ "all 'return nullptr'" -> 'return {}'
+),
+
+b500
+(
 	/ %YFramework,
 	(
 		/ %YSLib.UI $=
 		(
 			* "missing clip area intersection for arrow rendering"
 				@ "member function" ("%DropDownList::Refresh" @ %ComboList,
-				"%Menu::DrawItem" @ %Menu,
-				) $since b452;
+				"%Menu::DrawItem" @ %Menu) $since b452;
 				// An obvious example is in the reader setting UI @ YReader, \
 					moving over or dragging the scroll time setting drop down \
 					list, the arrow of behind drop down button would be \
@@ -94,7 +141,10 @@ $now
 	(
 		^ "Doxygen 1.8.7" ~ "Doxygen 1.8.2",
 		/ 'YFramework/include/freetype YFramework/include/ft2build.h'
-			@ "%EXCLUDE" -> '.git Data Tools'
+			@ "%EXCLUDE" -> '.git Data Tools',
+		/ "set %SHORT_NAMES" -> 'YES' ~ 'NO'
+			// Workaround of error: 'could not open file for writing' with a \
+				name containing a tab.
 	)
 );
 

@@ -1,5 +1,5 @@
 ﻿/*
-	Copyright by FrankHB 2012 - 2013.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file any.cpp
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r119
+\version r122
 \author FrankHB <frankhb1989@gmail.com>
 \since build 352
 \par 创建时间:
 	2012-11-05 11:12:01 +0800
 \par 修改时间:
-	2013-06-28 05:20 +0800
+	2014-06-01 02:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ any::get() const ynothrow
 		manager(t, storage, any_ops::get_ptr);
 		return t.access<void*>();
 	}
-	return nullptr;
+	return {};
 }
 
 any_ops::holder*
@@ -68,7 +68,7 @@ any::get_holder() const
 		manager(t, storage, any_ops::get_holder_ptr);
 		return t.access<any_ops::holder*>();
 	}
-	return nullptr;
+	return {};
 }
 
 void

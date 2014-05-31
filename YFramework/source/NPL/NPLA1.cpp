@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r105
+\version r121
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2014-04-07 22:24 +0800
+	2014-05-30 10:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,14 @@ namespace NPL
 {
 
 ValueNode
-TransformNPLA1(const ValueNode& node)
+MapNPLA1Node(const ValueNode& node)
+{
+	return node.GetName().empty() ? ValueNode(0, "", std::move(node.Value))
+		: std::move(node);
+}
+
+ValueNode
+TransformNPLA1(const ValueNode& node, std::function<NodeMapper> mapper)
 {
 	auto s(node.GetSize());
 
@@ -45,7 +52,7 @@ TransformNPLA1(const ValueNode& node)
 	auto i(node.begin());
 
 	if(s == 1)
-		return TransformNPLA1(*i);
+		return TransformNPLA1(*i, mapper);
 
 	const auto& new_name([&]()->string{
 		try
@@ -62,34 +69,34 @@ TransformNPLA1(const ValueNode& node)
 
 	if(s == 1)
 	{
-		auto&& n(TransformNPLA1(*i));
+		auto&& n(TransformNPLA1(*i, mapper));
 
 		if(n.GetName().empty())
 			return {0, new_name, std::move(n.Value)};
 		return {0, new_name, ValueNode::Container{std::move(n)}};
 	}
 
-	auto p_node_cont(make_unique<ValueNode::Container>());
+	auto p_node_con(make_unique<ValueNode::Container>());
 
 	std::for_each(i, node.end(), [&](const ValueNode& nd){
-		auto&& n(TransformNPLA1(nd));
+		auto&& n(mapper(TransformNPLA1(nd, mapper)));
 
-		p_node_cont->insert(n.GetName().empty() ? ValueNode{0,
-			'$' + std::to_string(p_node_cont->size()), std::move(n.Value)}
+		p_node_con->insert(n.GetName().empty() ? ValueNode(0,
+			'$' + std::to_string(p_node_con->size()), std::move(n.Value))
 			: std::move(n));
 	});
-	return {0, new_name, std::move(p_node_cont), PointerTag()};
+	return {0, new_name, std::move(p_node_con), PointerTag()};
 }
 
 
 ValueNode
-LoadNPLA1(ValueNode&& tree)
+LoadNPLA1(ValueNode&& tree, std::function<NodeMapper> mapper)
 {
 	ValueNode root;
 
 	try
 	{
-		root = TransformNPLA1(tree);
+		root = TransformNPLA1(tree, mapper);
 	}
 	catch(ystdex::bad_any_cast& e)
 	{

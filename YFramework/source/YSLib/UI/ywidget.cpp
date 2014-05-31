@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4438
+\version r4440
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-04-28 22:55 +0800
+	2014-05-31 12:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -213,13 +213,13 @@ Show(IWidget& wgt)
 
 Widget::Widget(const Rect& r)
 	: view_ptr(new View(r)), renderer_ptr(new Renderer()),
-	controller_ptr(new WidgetController(false)), Background()
+	controller_ptr(new WidgetController({})), Background()
 {
 	InitializeEvents();
 }
 Widget::Widget(const Rect& r, HBrush b, Color f)
 	: view_ptr(new View(r)), renderer_ptr(new Renderer()),
-	controller_ptr(new WidgetController(false)), Background(b), ForeColor(f)
+	controller_ptr(new WidgetController({})), Background(b), ForeColor(f)
 {
 	InitializeEvents();
 }

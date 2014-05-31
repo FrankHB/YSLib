@@ -11,13 +11,13 @@
 /*!	\file DSScreen.h
 \ingroup Helper
 \brief DS 屏幕。
-\version r430
+\version r432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-05-26 16:02 +0800
+	2014-06-01 11:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -94,7 +94,7 @@ public:
 	\pre 断言：本机窗口句柄非空。
 	\pre 间接断言：参数非空。
 	\note 复制到屏幕或屏幕缓冲区。
-	\note 线程安全：更新到屏幕和屏幕缓冲区之间不确定有序。
+	\note 部分线程安全：在不同线程上更新到屏幕和屏幕缓冲区之间线程间未决定有序。
 	\since build 319
 	*/
 	void
@@ -122,7 +122,7 @@ InitDSScreen(unique_ptr<DSScreen>& p_up, unique_ptr<DSScreen>& p_dn) ynothrow
 {
 	try
 	{
-		p_up.reset(new DSScreen(false));
+		p_up.reset(new DSScreen({}));
 		p_dn.reset(new DSScreen(true));
 	}
 	catch(...)

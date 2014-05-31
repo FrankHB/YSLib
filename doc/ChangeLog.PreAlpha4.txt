@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8162
+\version r8164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-05-28 22:41 +0800
+	2014-05-31 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -592,10 +592,10 @@ b495
 	(
 		- "all 'member' when unnecessary",
 		/ "all 'member data'" => 'data member',
-			// Only %Documentation::ChangeLog::PreAlpha4 is effecied.
+			// Only %Documentation::ChangeLog::PreAlpha4 is effected.
 		- "redundant '$dep_to' when the entity was new and able to be deducted \
 			from '$dep_from'"
-			// Only %Documentation::ChangeLog::PreAlpha3 is effecied.
+			// Only %Documentation::ChangeLog::PreAlpha3 is effected.
 	),
 	/ %YReader $=
 	(
