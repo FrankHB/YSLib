@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r438
+\version r439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-05-26 16:04 +0800
+	2014-05-30 02:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -242,7 +242,7 @@ public:
 
 /*!
 \brief 取当前线程的本机消息循环。
-\param 是否允许非回调。
+\note 参数指定是否允许非回调。
 \throw Exception 调用失败。
 \since build 499
 */

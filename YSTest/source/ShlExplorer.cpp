@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1293
+\version r1294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-05-29 13:56 +0800
+	2014-06-01 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -361,7 +361,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		}
 		else if(CheckMenuKey(k))
 			return &btnMenu;
-		return nullptr;
+		return {};
 	},
 	FetchEvent<KeyUp>(dsk_s) += OnKey_Bound_TouchUp,
 	FetchEvent<KeyDown>(dsk_s) += OnKey_Bound_TouchDown,

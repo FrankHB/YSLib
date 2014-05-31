@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1724
+\version r1725
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2014-05-23 09:15 +0800
+	2014-06-01 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -337,7 +337,7 @@ CreateRawBitmap(const _tPixel* s, size_t n)
 		std::copy_n(s, size, d);
 		return d;
 	}
-	return nullptr;
+	return {};
 }
 
 } // namespace Drawing;

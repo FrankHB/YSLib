@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1351
+\version r1384
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-02-18 00:54 +0800
+	2014-05-31 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ private:
 
 public:
 	//! \since build 399
-	mutable ValueObject Value;
+	mutable ValueObject Value{};
 
 	DefDeCtor(ValueNode)
 	/*!
@@ -127,19 +127,9 @@ public:
 	*/
 	//@{
 	const ValueNode&
-	operator%=(const ValueNode& node) const
-	{
-		const auto& n((*this)[node.name]);
-
-		return n.Value = node.Value, n;
-	}
+	operator%=(const ValueNode&) const;
 	const ValueNode&
-	operator%=(const ValueNode&& node) const
-	{
-		const auto& n((*this)[node.name]);
-
-		return n.Value = std::move(node.Value), n;
-	}
+	operator%=(const ValueNode&&) const;
 	//@}
 
 	PDefHOp(bool, ==, const ValueNode& node) const
@@ -215,12 +205,20 @@ public:
 	PDefH(const_iterator, end, ) const
 		ImplRet(GetContainer().end())
 	//@}
+
+	/*
+	\brief 交换。
+	\since build 501
+	*/
+	void
+	swap(ValueNode&) ynothrow;
 };
 
+//! \relates ValueNode
+//@{
 /*!
 \brief 访问节点的指定类型对象。
 \exception std::bad_cast 空实例或类型检查失败 。
-\relates ValueNode
 \since build 399
 */
 template<typename _type>
@@ -251,6 +249,10 @@ AccessPtr(const ValueNode* p_node) ynothrow
 	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
 }
 
+//! \since build 501
+inline DefSwap(ynothrow, ValueNode)
+//@}
+
 
 /*!
 \brief 访问容器中的节点。
@@ -260,11 +262,9 @@ AccessPtr(const ValueNode* p_node) ynothrow
 //! \since build 433
 YF_API const ValueNode&
 AccessNode(const ValueNode::Container*, const string&);
-inline const ValueNode&
-AccessNode(const ValueNode::Container& con, const string& name)
-{
-	return AccessNode(&con, name);
-}
+inline PDefH(const ValueNode&, AccessNode, const ValueNode::Container& con,
+	const string& name)
+	ImplRet(AccessNode(&con, name))
 //@}
 
 /*!
@@ -274,11 +274,9 @@ AccessNode(const ValueNode::Container& con, const string& name)
 //@{
 YF_API const ValueNode*
 AccessNodePtr(const ValueNode::Container&, const string&);
-inline const ValueNode*
-AccessNodePtr(const ValueNode::Container* p_con, const string& name)
-{
-	return p_con ? AccessNodePtr(*p_con, name) : nullptr;
-}
+inline PDefH(const ValueNode*, AccessNodePtr, const ValueNode::Container* p_con,
+	const string& name)
+	ImplRet(p_con ? AccessNodePtr(*p_con, name) : nullptr)
 //@}
 
 /*!

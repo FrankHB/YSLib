@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r473
+\version r474
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2014-05-29 14:54 +0800
+	2014-05-30 09:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,7 +254,7 @@ SettingPanel&
 SettingPanel::operator>>(ReaderSetting& s)
 {
 	auto& node(dynWgts.WidgetNode);
-	DeclDynWidgetNode(CheckButton, cbSmoothScroll)
+	DeclDynWidgetN(CheckButton, cbSmoothScroll, node, "pnlPage3")
 
 	yunseq(s.UpColor = lblAreaUp.Background.target<SolidBrush>()->Color,
 		s.DownColor = lblAreaDown.Background.target<SolidBrush>()->Color,

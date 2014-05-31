@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPLA1
 \brief NPLA1 公共接口。
-\version r89
+\version r109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2014-02-02 18:20 +0800
+	2014-05-30 10:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,28 +60,37 @@ using YSLib::string;
 //! \since build 335
 using YSLib::ValueNode;
 
+//! \since build 501
+//@{
+//! \brief 节点映射操作类型：变换节点为另一个节点。
+using NodeMapper = ValueNode(const ValueNode&);
+
+
+//! \brief NPLA1 节点映射。
+ValueNode
+MapNPLA1Node(const ValueNode&);
 
 /*!
-\brief 转换设置： S 表达式抽象语法树变换为 NPLA1 语义结构。
-\since build 472
+\brief 变换 NPLA1 节点 S 表达式抽象语法树变换为 NPLA1 语义结构。
+\note 不修改原节点的内容。
+\note 仅在变换子节点时使用映射操作。
+\note 若映射操作返回节点名称为空则根据当前节点大小加前缀 $ 命名。
 */
 YF_API ValueNode
-TransformNPLA1(const ValueNode&);
+TransformNPLA1(const ValueNode&, std::function<NodeMapper> = MapNPLA1Node);
 
 
-/*!
-\brief 读取 NPLA1 翻译单元。
-\since build 449
-*/
+//! \brief 加载 NPLA1 翻译单元。
 //@{
 YF_API ValueNode
-LoadNPLA1(ValueNode&&);
+LoadNPLA1(ValueNode&&, std::function<NodeMapper> = MapNPLA1Node);
 template<typename _type>
 ValueNode
-LoadNPLA1(_type&& tree)
+LoadNPLA1(_type&& tree, std::function<NodeMapper> mapper = MapNPLA1Node)
 {
-	return LoadNPLA1(tree);
+	return LoadNPLA1(tree, mapper);
 }
+//@}
 //@}
 
 } // namespace NPL;

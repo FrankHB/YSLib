@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r2980
+\version r2981
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2014-05-27 13:39 +0800
+	2014-06-01 11:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1111,7 +1111,7 @@ $4.1.3.1.4 临时性例外：
 实现的语义遵循 as-is 规则：不影响可观察行为的程序行为可以被实现改变。这是可被允许的一般的优化的根本依据。
 表达式的求值(evaluation) 一般意义上包括值的计算(value computation) 和产生副作用(effect) 。
 副作用包含对 volatile 对象的访问、对对象的修改和使用 I/O 库函数，表示对环境的改变。
-求值的顺序并不一定被确定。任意两个求值之间具有先序(sequenced before) 、不确定有序(indeterminatly sequenced) 或无序(unsequenced) 二元关系之一。
+求值的顺序并不一定被确定。任意两个求值之间具有先序(sequenced before) 、未决定有序(indeterminatly sequenced) 或无序(unsequenced) 二元关系之一。
 在同一个对象上的无序求值引起未定义行为。
 
 @5.1.11 多线程执行(multi-thread execution) 环境和数据竞争(data race)：

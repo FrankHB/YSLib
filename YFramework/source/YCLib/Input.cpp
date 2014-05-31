@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r387
+\version r398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-05-23 09:37 +0800
+	2014-06-02 01:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -269,6 +269,11 @@ SaveInput(const ::AInputEvent& e)
 				break;
 			}
 	});
+	const auto update_motion_key([](bool down){
+		YCL_Def_LockGuard(lck, KeyMutex)
+
+		FetchKeyStateRef().set(platform::KeyCodes::Primary, down);
+	});
 
 	switch(::AInputEvent_getType(&e))
 	{
@@ -288,9 +293,13 @@ SaveInput(const ::AInputEvent& e)
 			switch(::AKeyEvent_getAction(&e) & AMOTION_EVENT_ACTION_MASK)
 			{
 			case AMOTION_EVENT_ACTION_CANCEL:
-			//	AMOTION_EVENT_ACTION_UP:
-			//	AMOTION_EVENT_ACTION_DOWN:
-			//	AMOTION_EVENT_ACTION_MOVE:
+				break;
+			case AMOTION_EVENT_ACTION_UP:
+				update_motion_key({});
+				break;
+			case AMOTION_EVENT_ACTION_DOWN:
+				update_motion_key(true);
+			case AMOTION_EVENT_ACTION_MOVE:
 				break;
 			default:
 				{
