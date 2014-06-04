@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r322
+\version r326
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-04-23 01:05 +0800
+	2014-06-04 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,9 +53,10 @@ class YF_API GUIApplication : public Application
 #if YF_Hosted
 private:
 	/*!
-	\brief 宿主状态。
+	\brief 环境状态。
+	\since build 502
 	*/
-	unique_ptr<Host::Environment> p_hosted;
+	unique_ptr<Environment> p_env;
 #endif
 
 public:
@@ -78,7 +79,7 @@ public:
 	~GUIApplication() override;
 
 #if YF_Hosted
-	Host::Environment&
+	Environment&
 	GetHost();
 #endif
 

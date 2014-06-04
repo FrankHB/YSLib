@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2050
+\version r2087
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-05-23 09:17 +0800
+	2014-06-04 22:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -329,6 +329,47 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 	if(b < a)
 		std::swap(a, b);
 }
+
+
+/*!
+\since build 502
+\throw LoggedEvent 范围检查失败。
+*/
+//@{
+//! \brief 检查标量数值在指定类型的范围内。
+template<typename _tDst, typename _type>
+inline _tDst
+CheckScalar(_type val, const std::string& name, LoggedEvent::LevelType lv = Err)
+{
+	if(YB_UNLIKELY(val > std::numeric_limits<_tDst>::max()))
+		throw LoggedEvent(name + " value out of range.", lv);
+	return _tDst(val);
+}
+
+//! \brief 检查非负标量数值在指定类型的范围内。
+template<typename _tDst, typename _type>
+inline _tDst
+CheckNonnegativeScalar(_type val, const std::string& name,
+	LoggedEvent::LevelType lv = Err)
+{
+	if(val < 0)
+		// XXX: Use more specified exception type.
+		throw LoggedEvent("Failed getting nonnegative " + name + " value.");
+	return CheckScalar<_tDst>(val, name, lv);
+}
+
+//! \brief 检查正标量数值在指定类型的范围内。
+template<typename _tDst, typename _type>
+inline _tDst
+CheckPositiveScalar(_type val, const std::string& name,
+	LoggedEvent::LevelType lv = Err)
+{
+	if(!(0 < val))
+		// XXX: Use more specified exception type.
+		throw LoggedEvent("Failed getting positive " + name + " value.");
+	return CheckScalar<_tDst>(val, name, lv);
+}
+//@}
 
 
 /*!

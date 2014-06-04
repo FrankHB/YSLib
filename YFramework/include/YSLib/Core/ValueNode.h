@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1384
+\version r1461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-05-31 15:10 +0800
+	2014-06-02 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,13 +52,32 @@ public:
 	using const_iterator = Container::const_iterator;
 
 private:
-	string name;
+	string name{};
+	/*!
+	\brief 子节点容器指针。
+	\since build 502
+	*/
+	mutable unique_ptr<Container> p_container{};
 
 public:
 	//! \since build 399
 	mutable ValueObject Value{};
 
 	DefDeCtor(ValueNode)
+	/*!
+	\brief 构造：使用容器对象。
+	\since build 502
+	*/
+	ValueNode(Container con)
+		: p_container(new Container(std::move(con)))
+	{}
+	/*!
+	\brief 构造：使用容器指针。
+	\since build 502
+	*/
+	ValueNode(unique_ptr<Container> p_con)
+		: p_container(std::move(p_con))
+	{}
 	/*!
 	\brief 构造：使用字符串引用和值类型对象构造参数。
 	\note 第一个参数不使用，仅用于避免参与单参数重载，便于其它类使用转换函数。
@@ -70,13 +89,31 @@ public:
 		: name(yforward(str)), Value(yforward(args)...)
 	{}
 	/*!
+	\brief 构造：使用容器对象、字符串引用和值类型对象构造参数。
+	\since build 502
+	*/
+	template<typename _tString, typename... _tParams>
+	ValueNode(Container con, _tString&& str, _tParams&&... args)
+		: name(yforward(str)), p_container(new Container(std::move(con))),
+		Value(yforward(args)...)
+	{}
+	/*!
+	\brief 构造：使用容器指针、字符串引用和值类型对象构造参数。
+	\since build 502
+	*/
+	template<typename _tString, typename... _tParams>
+	ValueNode(unique_ptr<Container> p_con, _tString&& str, _tParams&&... args)
+		: name(yforward(str)), p_container(std::move(p_con)),
+		Value(yforward(args)...)
+	{}
+	/*!
 	\brief 构造：使用输入迭代器对。
 	\since build 337
 	*/
 	template<typename _tIn>
 	inline
 	ValueNode(const pair<_tIn, _tIn>& pr)
-		: name(), Value(Container(pr.first, pr.second))
+		: p_container(new Container(pr.first, pr.second))
 	{}
 	/*!
 	\brief 构造：使用输入迭代器对、字符串引用和值参数。
@@ -85,17 +122,21 @@ public:
 	template<typename _tIn, typename _tString>
 	inline
 	ValueNode(const pair<_tIn, _tIn>& pr, _tString&& str)
-		: name(yforward(str)), Value(Container(pr.first, pr.second))
+		: name(yforward(str)), p_container(new Container(pr.first, pr.second))
 	{}
-	DefDeCopyCtor(ValueNode)
+	ValueNode(const ValueNode&);
 	DefDeMoveCtor(ValueNode)
 
-	DefDeCopyAssignment(ValueNode)
-	DefDeMoveAssignment(ValueNode)
+	/*
+	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\since build 502
+	*/
+	PDefHOp(ValueNode&, =, ValueNode node) ynothrow
+		ImplRet(node.swap(*this), *this)
 
 	//! \since build 336
 	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!Value)
+		ImplRet(!bool(*this))
 
 	//! \since build 403
 	//@{
@@ -154,14 +195,19 @@ public:
 	}
 
 	//! \since build 336
-	explicit DefCvt(const ynothrow, bool, bool(Value))
+	explicit DefCvt(const ynothrow, bool,
+		bool(Value) || (p_container && !p_container->empty()))
 	DefCvt(const ynothrow, const string&, name);
 
-	//! \since build 340
-	DefGetter(const, Container&, Container, Value.Access<Container>())
+	/*!
+	\brief 取子节点容器引用。
+	\throw ystdex::bad_any_cast 容器不存在。
+	\since build 340
+	*/
+	Container&
+	GetContainerRef() const;
 	//! \since build 398
-	DefGetter(const ynothrow, Container*, ContainerPtr,
-		Value.AccessPtr<Container>())
+	DefGetter(const ynothrow, Container*, ContainerPtr, p_container.get())
 	DefGetter(const ynothrow, const string&, Name, name)
 	size_t
 	GetSize() const ynothrow;
@@ -179,8 +225,20 @@ private:
 	CheckNodes() const;
 
 public:
+	/*!
+	\brief 清除节点。
+	\post <tt>!Value && !GetContainerPtr()</tt> 。
+	*/
 	PDefH(void, Clear, )
-		ImplExpr(Value.Clear())
+		ImplExpr(Value.Clear(), p_container.reset())
+
+	/*!
+	\brief 清除子节点。
+	\post <tt>!GetContainerPtr() || GetContainerPtr()->empty()</tt> 。
+	\since build 502
+	*/
+	PDefH(void, ClearChildren, )
+		ImplExpr(p_container ? p_container->clear() : void())
 
 	//! \since build 403
 	bool
@@ -196,14 +254,14 @@ public:
 	//! \since build 460
 	//@{
 	PDefH(iterator, begin, )
-		ImplRet(GetContainer().begin())
+		ImplRet(GetContainerRef().begin())
 	PDefH(const_iterator, begin, ) const
-		ImplRet(GetContainer().begin())
+		ImplRet(GetContainerRef().begin())
 
 	PDefH(iterator, end, )
-		ImplRet(GetContainer().end())
+		ImplRet(GetContainerRef().end())
 	PDefH(const_iterator, end, ) const
-		ImplRet(GetContainer().end())
+		ImplRet(GetContainerRef().end())
 	//@}
 
 	/*
@@ -388,8 +446,7 @@ template<typename _tString, typename... _tParams>
 inline ValueNode
 PackNodes(_tString&& name, _tParams&&... args)
 {
-	return {0, yforward(name), CollectNodes(UnpackToNode(yforward(args))...),
-		PointerTag()};
+	return {CollectNodes(UnpackToNode(yforward(args))...), yforward(name)};
 }
 
 

@@ -52,7 +52,32 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../include/About.h" />
+		<Unit filename="../include/BookmarkUI.h" />
+		<Unit filename="../include/ColorPicker.h" />
+		<Unit filename="../include/DSReader.h" />
+		<Unit filename="../include/HexBrowser.h" />
+		<Unit filename="../include/ReaderSetting.h" />
+		<Unit filename="../include/ReaderSettingUI.h" />
+		<Unit filename="../include/ReadingList.h" />
+		<Unit filename="../include/Shells.h" />
+		<Unit filename="../include/ShlExplorer.h" />
+		<Unit filename="../include/ShlReader.h" />
+		<Unit filename="../source/About.cpp" />
+		<Unit filename="../source/BookmarkUI.cpp" />
+		<Unit filename="../source/ColorPicker.cpp" />
+		<Unit filename="../source/DSReader.cpp" />
+		<Unit filename="../source/HexBrowser.cpp" />
+		<Unit filename="../source/ReaderSetting.cpp" />
+		<Unit filename="../source/ReaderSettingUI.cpp" />
+		<Unit filename="../source/ReadingList.cpp" />
+		<Unit filename="../source/Shells.cpp" />
+		<Unit filename="../source/ShlExplorer.cpp" />
+		<Unit filename="../source/ShlReader.cpp" />
+		<Unit filename="../source/main.cpp" />
 		<Unit filename="AndroidManifest.xml" />
+		<Unit filename="AndroidManifest.xml" />
+		<Unit filename="Makefile" />
 		<Unit filename="Makefile" />
 		<Extensions>
 			<DoxyBlocks>

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup Helper
 \brief Helper 库模块配置文件。
-\version r58
+\version r61
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:11 +0800
 \par 修改时间:
-	2013-12-24 14:08 +0800
+	2014-06-04 23:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,9 @@
 
 #define YFM_DS_Helper_DSMain <Helper/DSMain.h>
 #define YFM_DS_Helper_Shell_DS <Helper/shlds.h>
+
+//! \since build 502
+#define YFM_Android_Helper_AndroidHost <Helper/AndroidHost.h>
 //@}
 
 #endif

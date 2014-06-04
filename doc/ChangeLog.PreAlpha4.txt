@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8164
+\version r8168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-05-31 14:57 +0800
+	2014-06-04 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -507,17 +507,16 @@ b495
 			(
 				/ @ "class %TabBar" $=
 				(
-					/ @ "member function %PerformLayout" $=
+					/ @ "function %PerformLayout" $=
 					(
 						+ "assertion for pointer",
 						* "wrong width used" $since b494
 					),
 					/ DLD "simplified %DrawRect call"
-						@ "static member function %DefaultPaintTabBorder",
+						@ "static function %DefaultPaintTabBorder",
 					* "wrong location for children not at origin of the \
 						container" @ "function %Refresh" $since b494,
-					+ "call to %PerformLayout"
-						@ "member functions %operator(+=, -=)",
+					+ "call to %PerformLayout" @ "functions %operator(+=, -=)",
 					(
 					$dep_from "class %MLinearUIContainer";
 					+ "using declarations %MLinearUIContainer::(GetCount,\

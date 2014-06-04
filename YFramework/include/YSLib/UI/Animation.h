@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r389
+\version r392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-06-01 20:05 +0800
+	2014-06-04 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,7 @@ public:
 	mutable bool Ready;
 
 	/*!
-	\build 指示对于 WidgetPtr 用于判断是否继续动作的检查和无效化动作。
+	\brief 指示对于 WidgetPtr 用于判断是否继续动作的检查和无效化动作。
 	\note 当值为空时表示不执行动作。
 	\since build 457
 	*/
@@ -147,7 +147,7 @@ public:
 	operator()() const;
 
 	/*!
-	\build 默认无效化：对部件调用 InvalidateVisible 。
+	\brief 默认无效化：对部件调用 InvalidateVisible 。
 	\return <tt>true</tt> 。
 	\since build 462
 	*/
@@ -155,7 +155,7 @@ public:
 	DefaultInvalidate(IWidget&);
 
 	/*!
-	\build 默认无效化：对调用 IsEnabled 返回 true 的部件调用 InvalidateVisible 。
+	\brief 默认无效化：对调用 IsEnabled 返回 true 的部件调用 InvalidateVisible 。
 	\return <tt>true</tt> 。
 	\since build 482
 	*/

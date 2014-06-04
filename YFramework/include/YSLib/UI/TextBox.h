@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r225
+\version r226
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-05-30 02:13 +0800
+	2014-06-04 13:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ public:
 	Timers::Timer CaretTimer{std::chrono::seconds(1)};
 	/*!
 	\brief 插入符画刷。
-	\build 484
+	\since build 484
 	*/
 	HBrush CaretBrush;
 	/*!
