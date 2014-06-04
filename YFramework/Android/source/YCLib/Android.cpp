@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r318
+\version r377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-05-26 16:12 +0800
+	2014-06-04 16:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,8 @@
 #include "YSLib/Service/YModules.h"
 #include YFM_YSLib_Service_YGDI
 #include <android/configuration.h>
+#include YFM_YCLib_Input // for platform::SaveInput;
+#include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -44,27 +46,6 @@ namespace Android
 
 namespace
 {
-
-//! \since build 498
-template<typename _tDst, typename _type>
-inline _tDst
-CheckScalar(_type val, const std::string& name)
-{
-	if(YB_UNLIKELY(val > std::numeric_limits<_tDst>::max()))
-		throw Exception(name + " value out of range.");
-	return _tDst(val);
-}
-
-//! \since build 498
-template<typename _tDst, typename _type>
-inline _tDst
-CheckPositiveScalar(_type val, const std::string& name)
-{
-	if(val < 0)
-		// XXX: Use more specified exception type.
-		throw Exception("Failed getting " + name + " value.");
-	return CheckScalar<_tDst>(val, name);
-}
 
 //! \since build 498
 SDst
@@ -216,6 +197,39 @@ ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 }
 
 
+InputQueue::InputQueue(::ALooper& looper, ::AInputQueue& q)
+	: queue_ref(q)
+{
+	YTraceDe(Debug, "Attaching input queue to looper.");
+	::AInputQueue_attachLooper(&q, &looper, ALOOPER_POLL_CALLBACK,
+		[](int, int, void* p_data){
+			YAssertNonnull(p_data);
+
+			auto& q(*static_cast<InputQueue*>(p_data));
+			::AInputEvent* p_evt{};
+			const auto p_queue(&q.queue_ref.get());
+
+			while(::AInputQueue_getEvent(p_queue, &p_evt) >= 0)
+			{
+				YAssertNonnull(p_evt);
+				YTraceDe(Debug, "New input event: type = %d.",
+					::AInputEvent_getType(p_evt));
+				if(::AInputQueue_preDispatchEvent(p_queue, p_evt))
+					continue;
+				SaveInput(*p_evt);
+				::AInputQueue_finishEvent(p_queue, p_evt,
+					::AInputEvent_getType(p_evt)
+					== AINPUT_EVENT_TYPE_MOTION);
+			}
+			return 1;
+		}, this);
+}
+InputQueue::~InputQueue()
+{
+	::AInputQueue_detachLooper(&queue_ref.get());
+}
+
+
 ::ALooper&
 FetchNativeLooper(bool allow_non_callbacks) ythrow(Exception)
 {
@@ -258,14 +272,4 @@ TraceConfiguration(::AConfiguration& cfg, platform::Logger::Level lv)
 } // namespace Android;
 
 } // namespace YSLib;
-
-extern "C" void
-ANativeActivity_onCreate(::ANativeActivity* p_activity, void*, ::size_t)
-{
-#ifndef NDEBUG
-	platform::FetchCommonLogger().FilterLevel = platform::Descriptions::Debug;
-#endif
-	YTraceDe(Debug, "Creating: %p\n", static_cast<void*>(p_activity));
-	YTraceDe(Notice, "YSLib test succeeded.");
-}
 

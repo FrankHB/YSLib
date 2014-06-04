@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1779
+\version r1788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-05-10 17:27 +0800
+	2014-06-05 00:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -197,6 +197,17 @@ Repaint(Desktop& dsk)
 //@}
 
 } // namespace YSLib;
+
+#if YCL_Android
+//! \since build 502
+extern "C" void
+y_android_main()
+{
+	using namespace YSLib;
+
+	YTraceDe(Notice, "YSLib test succeeded.");
+}
+#endif
 
 int
 main()

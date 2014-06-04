@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r275
+\version r280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2014-05-27 14:03 +0800
+	2014-06-04 09:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,14 +73,14 @@ Idle(Messaging::Priority prior)
 GUIApplication::GUIApplication()
 	: Application()
 #if YF_Hosted
-	, p_hosted()
+	, p_env()
 #endif
 {
 	YAssert(!ApplicationPtr, "Duplicate instance found.");
 	ApplicationPtr = this;
 	InitializeEnviornment();
 #if YF_Hosted
-	p_hosted = make_unique<Host::Environment>();
+	p_env = make_unique<Environment>();
 #endif
 }
 
@@ -91,11 +91,11 @@ GUIApplication::~GUIApplication()
 }
 
 #if YF_Hosted
-Host::Environment&
+Environment&
 GUIApplication::GetHost()
 {
-	YAssertNonnull(p_hosted);
-	return *p_hosted;
+	YAssertNonnull(p_env);
+	return *p_env;
 }
 #endif
 

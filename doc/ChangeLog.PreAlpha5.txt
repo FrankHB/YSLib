@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r154
+\version r274
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-02 01:49 +0800
+	2014-06-05 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,127 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %ValueNode $=
+				(
+					/ @ "class %ValueNode" $=
+					(
+						/ "inline function %GetContainer"
+							-> "non inline function %GetContainerRef",
+						(
+						+ "children container data member";
+						/ DLD "constructor implementation for children node",
+						/ DLD "children node access implementation"
+							@ "functions %(at, begin, end)",
+						/ DLD "implementation" @ "operator(bool, !)",
+							// For backward compatibility, only treated as \
+								empty node when both value and container are \
+								empty.
+						/ "copy constructor implementation" ^ "non inline \
+							function" ~ "explicitly defaulted function",
+						/ "2 operator=" -> "unification operator=",
+						+ "constructor 'ValueNode(unique_ptr<Container>)'",
+						+ "constructor 'ValueNode(Container)'",
+						+ "2 constructor templates specifying all data members \
+							being initialized";
+						$dep_to "split value node children container"
+						),
+						(
+						$dep_from "split value node children container";
+						/ DLD "implementation" @ "function template %PackNodes"
+						)
+					)
+				),
+				+ "function templates %(CheckScalar; CheckNonnegativeScalar,
+					CheckPositiveScalar)" @ %YSLib.Core.YCoreUtilities
+			),
+			/ %UI $=
+			(
+				(
+				$dep_from "split value node children container";
+				/ DLD "implementation" @ "member function \
+					%WidgetLoader::TransformUILayout" @ %Loader
+				),
+				* $doc "wrong Doxygen directive '\build'" ~ '\brief'
+					@ "class %InvalidationUpdater" @ %Animation $=
+				(
+					* @ "data member %Invalidate" $since b457,
+					* @ "static function %DefaultInvalidate" $since b462,
+					* @ "data member %Invalidate" $since b482
+				),
+				* $doc "wrong Doxygen directive '\build'" ~ '\since'
+					@ "data member %TextBox::CaretBrush" @ %TextBox $since b484
+			)
+		),
+		(
+		$dep_from "split value node children container";
+		/ DLD "implementation" @ "function %TransformNPLA1" @ %NPLA1
+		),
+		/ %'YCLib_(Android)'.Android $=
+		(
+			* "missing tracking cursor position for motion event"
+				@ "function %SaveInput" @ "platform %Android" $since b501,
+			+ "class %platform_ex::InputQueue"
+			- "entry function definition ::ANativeActivity_onCreate"
+				>> %'Helper_(Android)'.AndroidHost
+		),
+		/ %Helper $=
+		(
+			/ @ "platform %Android" @ %InputManager $=
+			(
+				/ "implemented cursor position forwarding" 
+					@ "member function %InputManager::Update",
+				(
+				$dep_from "Android host declarations";
+				/ "implemented default widget pointer returning"
+					@ "member function %InputManager::Update"
+					// So %GUIShell is now are usable.
+				),
+				(
+				$dep_from %YSLib.Core.CoreUtilities;
+				/ DLD "simplified implementation" ^ "%CheckPositiveScalar"
+				)
+			),
+			/ %Host $=
+			(
+				/ "class %Host" @ "namespace %YSLib::Host"
+					>> "namespace %YSLib",
+				* "missing 'YF_API'" @ "class %Environment" @ %Host
+					$since b431;
+				/ @ "platform %Android" $=
+				(
+					+ "class name declaration %AndroidScreen"
+						@ "namespace %Devices",
+					+ "class name declaration %NativeHost"
+						@ "namespace %Android";
+					$dep_to "Android host declarations"
+				)
+			),
+			+ "macro %YFM_Android_Helper_AndroidHost" @ %YModule
+		),
+		+ %'Helper_(Android)' $=
+		(
+			+ "screen implementation unit",
+			+ %AndroidHost $=
+			(
+				+ "struct ConfigurationDeleter; class %NativeHost";
+				+ "native host implementation",
+				+ "function %(FetchNativeHost, FetchDefaultDesktop)"
+			)
+		),
+	),
+	+ "entry point function definition %::y_android_main" @ "platform %Android"
+		@ %Main
+		// Still not fully supported.
+),
+
+b501
 (
 	/ $doc "Doxygen comments" @ %YFramework $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r121
+\version r123
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2014-05-30 10:53 +0800
+	2014-06-02 15:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ TransformNPLA1(const ValueNode& node, std::function<NodeMapper> mapper)
 
 		if(n.GetName().empty())
 			return {0, new_name, std::move(n.Value)};
-		return {0, new_name, ValueNode::Container{std::move(n)}};
+		return {ValueNode::Container{std::move(n)}, new_name};
 	}
 
 	auto p_node_con(make_unique<ValueNode::Container>());
@@ -85,7 +85,7 @@ TransformNPLA1(const ValueNode& node, std::function<NodeMapper> mapper)
 			'$' + std::to_string(p_node_con->size()), std::move(n.Value))
 			: std::move(n));
 	});
-	return {0, new_name, std::move(p_node_con), PointerTag()};
+	return {std::move(p_node_con), new_name};
 }
 
 

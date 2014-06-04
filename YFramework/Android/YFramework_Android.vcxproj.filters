@@ -22,15 +22,33 @@
     <Filter Include="source\YCLib">
       <UniqueIdentifier>{815a3db4-9952-4878-bde7-99f986a438fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Helper">
+      <UniqueIdentifier>{5690b1c3-b91e-436c-9677-eb861b1587ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Helper">
+      <UniqueIdentifier>{4a6d25c3-0fdf-4ced-80b2-14476cbb8b8f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\YCLib\Android.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\Helper\AndroidHost.h">
+      <Filter>include\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Helper\AndroidScreen.h">
+      <Filter>source\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YCLib\Android.cpp">
       <Filter>source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\AndroidHost.cpp">
+      <Filter>source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\AndroidScreen.cpp">
+      <Filter>source\Helper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

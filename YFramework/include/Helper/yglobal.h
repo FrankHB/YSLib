@@ -11,13 +11,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1921
+\version r1924
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2014-05-26 09:47 +0800
+	2014-06-04 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,6 +68,8 @@ class Desktop;
 } // namespace UI;
 
 #if YF_Hosted
+//! \since build 502
+class Environment;
 /*!
 \brief 宿主环境支持。
 \since build 378
@@ -75,12 +77,10 @@ class Desktop;
 namespace Host
 {
 //! \since build 381
-class Environment;
 class Window;
 class RenderWindow;
 class WindowThread;
 class HostRenderer;
-class Environment;
 
 /*!
 \brief 宿主异常：平台异常。

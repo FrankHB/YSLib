@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r361
+\version r377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2014-05-31 15:10 +0800
+	2014-06-02 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,11 @@
 
 namespace YSLib
 {
+
+ValueNode::ValueNode(const ValueNode& node)
+	: name(node.name), p_container(node.p_container ?
+	CloneNonpolymorphic(node.p_container) : nullptr), Value(node.Value)
+{}
 
 const ValueNode&
 ValueNode::operator%=(const ValueNode& node) const
@@ -60,6 +65,14 @@ ValueNode::operator[](const string& name) const
 	return *i;
 }
 
+ValueNode::Container&
+ValueNode::GetContainerRef() const
+{
+	if(p_container)
+		return *p_container;
+	throw ystdex::bad_any_cast();
+}
+
 size_t
 ValueNode::GetSize() const ynothrow
 {
@@ -71,9 +84,9 @@ ValueNode::GetSize() const ynothrow
 ValueNode::Container&
 ValueNode::CheckNodes() const
 {
-	if(!Value)
-		Value = Container();
-	return GetContainer();
+	if(!p_container)
+		p_container.reset(new Container());
+	return GetContainerRef();
 }
 
 bool
@@ -99,13 +112,14 @@ ValueNode::Remove(const ValueNode& node) const
 const ValueNode&
 ValueNode::at(const string& name) const
 {
-	return AccessNode(GetContainer(), name);
+	return AccessNode(GetContainerRef(), name);
 }
 
 void
 ValueNode::swap(ValueNode& node) ynothrow
 {
 	std::swap(name, node.name),
+	std::swap(p_container, node.p_container),
 	Value.swap(node.Value);
 }
 

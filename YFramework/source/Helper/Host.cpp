@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1349
+\version r1352
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-05-26 09:27 +0800
+	2014-06-05 00:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,8 +46,7 @@ std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 
 
 #if YF_Hosted
-namespace Host
-{
+using namespace Host;
 
 namespace
 {
@@ -209,7 +208,6 @@ Environment::UpdateRenderWindows()
 			pr.second->Refresh();
 }
 
-} // namespace Host;
 #endif
 
 } // namespace YSLib;

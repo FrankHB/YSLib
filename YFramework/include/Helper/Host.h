@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r702
+\version r726
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-05-26 09:22 +0800
+	2014-06-05 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,24 +39,39 @@ namespace YSLib
 {
 
 #if YF_Hosted
-namespace Host
+#	if YCL_Android
+//! \since build 502
+//@{
+namespace Devices
+{
+class AndroidScreen;
+} // namespace Devices;
+
+namespace Android
 {
 
+class NativeHost;
+
+} // namespace Android;
+//@}
+#	endif
+
 /*!
-\brief 宿主环境。
+\brief 应用程序环境。
 \since build 378
 */
-class Environment
+class YF_API Environment
 {
 private:
 	/*!
 	\brief 本机窗口对象映射。
-	\note 不使用 ::SetWindowLongPtr 等 Windows API 保持跨平台及避免和其它代码冲突。
+	\note 不使用 ::SetWindowLongPtr 等 Windows API 保持跨平台，
+		并避免和其它代码冲突。
 	\warning 销毁窗口前移除映射，否则可能导致未定义行为。
 	\warning 非线程安全，应仅在宿主线程上操作。
 	\since build 389
 	*/
-	map<NativeWindowHandle, Window*> wnd_map;
+	map<Host::NativeWindowHandle, Host::Window*> wnd_map;
 	/*!
 	\brief 窗口对象映射锁。
 	\since build 381
@@ -89,7 +104,7 @@ public:
 private:
 #		if YCL_Win32
 	//! \since build 432
-	WindowClass window_class;
+	Host::WindowClass window_class;
 #		endif
 #	endif
 
@@ -102,7 +117,7 @@ public:
 	\since build 381
 	\todo 线程安全。
 	*/
-	Window*
+	Host::Window*
 	GetForegroundWindow() const ynothrow;
 
 	/*!
@@ -111,7 +126,7 @@ public:
 	\since build 389
 	*/
 	void
-	AddMappedItem(NativeWindowHandle, Window*);
+	AddMappedItem(Host::NativeWindowHandle, Host::Window*);
 
 #	if YF_Multithread == 1
 	/*!
@@ -131,8 +146,8 @@ public:
 	\note 线程安全。
 	\since build 389
 	*/
-	Window*
-	FindWindow(NativeWindowHandle) const ynothrow;
+	Host::Window*
+	FindWindow(Host::NativeWindowHandle) const ynothrow;
 
 	/*!
 	\brief 宿主消息循环。
@@ -158,16 +173,14 @@ public:
 	\since build 389
 	*/
 	void
-	RemoveMappedItem(NativeWindowHandle) ynothrow;
+	RemoveMappedItem(Host::NativeWindowHandle) ynothrow;
 
 	//! \since build 384
 	void
 	UpdateRenderWindows();
 };
 
-} // namespace Host;
 #endif
-
 } // namespace YSLib;
 
 #endif

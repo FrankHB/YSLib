@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r271
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-05-23 09:32 +0800
+	2014-06-04 09:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "Helper/YModules.h"
 #include YFM_Helper_HostRenderer
-#include YFM_Helper_Host // for Host::Environment;
+#include YFM_Helper_Host // for Environment;
 //#include YFM_Helper_GUIApplication
 
 namespace YSLib

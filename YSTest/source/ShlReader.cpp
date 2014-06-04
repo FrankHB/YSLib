@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4580
+\version r4581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-05-29 13:53 +0800
+	2014-06-02 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,7 +228,7 @@ ShlReader::LoadGlobalConfiguration()
 	try
 	{
 		return ReaderSetting((FetchRoot() %= LoadConfiguration().at("YReader"))
-			.at("ReaderSetting").GetContainer());
+			.at("ReaderSetting").GetContainerRef());
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}

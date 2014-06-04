@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r387
+\version r402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-04-14 19:46 +0800
+	2014-06-04 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,10 @@
 #include YFM_Helper_Host
 #include YFM_Helper_HostRenderer // for Host::Window, Host::RenderWindow;
 #include YFM_Helper_GUIApplication // for FetchEnvironment;
+#if YCL_Android
+#	include YFM_Android_Helper_AndroidHost // for Android::NativeHost;
+#	include YFM_YSLib_UI_YDesktop // for Desktop converting to IWidget;
+#endif
 
 namespace YSLib
 {
@@ -111,9 +115,11 @@ InputManager::Update()
 #if YF_Hosted
 	const auto p_wnd(env.get().GetForegroundWindow());
 
+#	if !YCL_Android
 	if(!p_wnd)
 		return {};
 
+#	endif
 #endif
 	using namespace platform::KeyCodes;
 
@@ -145,13 +151,23 @@ InputManager::Update()
 				cursor_state.Y = cursor.y - pr.first.Y);
 		else
 			cursor_state = Drawing::Point::Invalid;
+#elif YCL_Android
+		// TODO: Support floating point coordinates.
+		// TODO: Use std::round.
+		const auto& cursor(platform_ex::FetchCursor());
+
+		cursor_state = {::round(cursor.first), ::round(cursor.second)};
 #endif
 	}
 #if YF_Hosted
 	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd))
 		return &p_render_wnd->GetRenderer().GetWidgetRef();
 #endif
+#if YCL_Android
+	return &Android::FetchDefaultDesktop();
+#else
 	return {};
+#endif
 }
 #undef YCL_CURSOR_VALID
 
