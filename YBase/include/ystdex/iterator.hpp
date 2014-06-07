@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3207
+\version r3214
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-05-23 10:05 +0800
+	2014-06-05 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -546,7 +546,14 @@ public:
 	//! \since build 415
 	//@{
 	transformed_iterator(const transformed_iterator&) = default;
+#if YB_IMPL_MSCPP
+	//! \since build 503 as workaround for Visual C++ 2013
+	transformed_iterator(transformed_iterator&& i)
+		: transformer(std::move(i.transformer))
+	{}
+#else
 	transformed_iterator(transformed_iterator&&) = default;
+#endif
 	//@}
 
 	//! \since build 357

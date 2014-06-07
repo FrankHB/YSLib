@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1907
+\version r1908
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-05-29 19:19 +0800
+	2014-06-05 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -204,7 +204,7 @@ WriteConfiguration(TextFile& tf, const ValueNode& node)
 {
 	if(YB_UNLIKELY(!tf))
 		throw LoggedEvent("Invalid file found when writing configuration.");
-	tf << NPL::Configuration("", node.Value);
+	tf << NPL::Configuration(ValueNode(node.GetContainerRef()));
 }
 
 ValueNode

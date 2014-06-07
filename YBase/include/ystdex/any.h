@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1391
+\version r1453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-05-23 10:04 +0800
+	2014-06-06 02:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,20 @@ union non_aggregate_pod
 };
 
 
+/*!
+\ingroup binary_type_trait
+\brief 判断是否可对齐存储。
+\since build 503
+*/
+template<typename _type, typename _tDst>
+struct is_aligned_storable
+{
+	static yconstexpr bool value = sizeof(_type) <= sizeof(_tDst)
+		&& yalignof(_type) <= yalignof(_tDst)
+		&& yalignof(_tDst) % yalignof(_type) == 0;
+};
+
+
 /*
 \brief 任意 POD 类型存储。
 \note POD 的含义参考 ISO C++11 。
@@ -71,24 +85,30 @@ union pod_storage
 	//! \since build 352
 	//@{
 	pod_storage() = default;
+	//! \since build 503
+	pod_storage(const pod_storage&) = default;
 	//! \since build 454
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_ctor_t<pod_storage, _type>)>
+	inline
 	pod_storage(_type&& x)
 	{
-		new(access()) remove_reference_t<_type>(yforward(x));
+		new(access()) decay_t<_type>(yforward(x));
 	}
 
+	//! \since build 503
+	pod_storage&
+	operator=(const pod_storage&) = default;
 	/*
 	\note 为避免类型错误，需要确定类型时应使用显式使用 access 指定类型赋值。
 	\since build 454
 	*/
 	template<typename _type,
 		yimpl(typename = ystdex::exclude_self_ctor_t<pod_storage, _type>)>
-	pod_storage&
+	inline pod_storage&
 	operator=(_type&& x)
 	{
-		access<remove_reference_t<_type>>() = yforward(x);
+		assign(yforward(x));
 		return *this;
 	}
 	//@}
@@ -107,13 +127,27 @@ union pod_storage
 	YB_PURE _type&
 	access()
 	{
+		static_assert(is_aligned_storable<_type, pod_storage>::value,
+			"Invalid type found.");
+
 		return *static_cast<_type*>(access());
 	}
 	template<typename _type>
 	yconstfn YB_PURE const _type&
 	access() const
 	{
+		static_assert(is_aligned_storable<_type, pod_storage>::value,
+			"Invalid type found.");
+
 		return *static_cast<const _type*>(access());
+	}
+
+	//! \since build 503
+	template<typename _type>
+	inline void
+	assign(_type&& x)
+	{
+		access<decay_t<_type>>() = yforward(x);
 	}
 };
 
@@ -328,13 +362,39 @@ struct holder_tag
 //@}
 
 
+namespace details
+{
+
+//! \since build 503
+template<typename _type, bool _bStoredLocally>
+struct value_handler_op
+{
+	static const _type*
+	get_pointer(const any_storage& s)
+	{
+		return s.access<const _type*>();
+	}
+};
+
+//! \since build 503
+template<typename _type>
+struct value_handler_op<_type, true>
+{
+	static const _type*
+	get_pointer(const any_storage& s)
+	{
+		return std::addressof(s.access<_type>());
+	}
+};
+
+} // namespace details;
+
 /*!
 \brief 动态泛型对象处理器。
 \since build 355
 */
-template<typename _type, bool _bStoredLocally = sizeof(_type)
-	<= sizeof(any_storage) && yalignof(_type) <= yalignof(any_storage)
-	&& yalignof(any_storage) % yalignof(_type) == 0>
+template<typename _type,
+	bool _bStoredLocally = is_aligned_storable<_type, any_storage>::value>
 class value_handler
 {
 public:
@@ -343,11 +403,11 @@ public:
 	using value_type = _type;
 	using local_storage = integral_constant<bool, _bStoredLocally>;
 
-	static value_type*
+	static inline value_type*
 	get_pointer(const any_storage& s)
 	{
-		return const_cast<value_type*>(_bStoredLocally ? std::addressof(
-			s.access<value_type>()) : s.access<const value_type*>());
+		return const_cast<_type*>(
+			details::value_handler_op<_type, _bStoredLocally>::get_pointer(s));
 	}
 	//@}
 

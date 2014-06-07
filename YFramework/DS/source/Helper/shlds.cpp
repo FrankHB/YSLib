@@ -12,17 +12,17 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1372
+\version r1373
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2014-05-23 09:14 +0800
+	2014-06-05 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Helper::Shell_DS
+	Helper_(DS)::Shell_DS
 */
 
 

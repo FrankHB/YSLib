@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,18 +10,19 @@
 
 /*!	\file DSMain.h
 \ingroup Helper
+\ingroup DS
 \brief DS 平台框架。
-\version r831
+\version r834
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-12-24 00:17 +0800
+	2013-06-05 09:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Helper::DSMain
+	Helper_(DS)::DSMain
 */
 
 

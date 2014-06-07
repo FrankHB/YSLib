@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r254
+\version r257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-06-05 00:14 +0800
+	2014-06-06 15:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ namespace Android
 NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 	size_t state_size)
 	: activity(ac), p_config(::AConfiguration_new()),
-	looper(FetchNativeLooper({}))
+	looper(FetchNativeLooper({})), p_screen(), p_desktop()
 {
 	NativeAppHostPtr = this;
 	YAssert(NativeAppHostPtr, "Duplicate instance found.");
@@ -102,7 +102,8 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 		{
 			YTraceDe(Debug, "Starting main thread...");
 			host.thrdMain = std::thread([&host, p_window]{
-				host.p_screen.reset(new Devices::AndroidScreen(*p_window));
+				host.p_screen.reset(
+					new Devices::AndroidScreen(*p_window, FetchScreenSize()));
 				host.p_desktop.reset(
 					new Desktop(FetchNativeHostInstance().GetScreenRef()));
 				::y_android_main();

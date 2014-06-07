@@ -10,18 +10,19 @@
 
 /*!	\file DSMain.cpp
 \ingroup Helper
+\ingroup DS
 \brief DS 平台框架。
-\version r3122
+\version r3124
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-05-27 13:54 +0800
+	2014-06-05 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Helper::DSMain
+	Helper_(DS)::DSMain
 */
 
 

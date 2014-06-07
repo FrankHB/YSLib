@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r274
+\version r388
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-05 00:41 +0800
+	2014-06-07 13:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,120 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %Main_ARM9 => %Main,
+	/ %YFramework $=
+	(
+		/ %Helper_(DS) $=
+		(
+			* DLD "missing parameter" @ "submodule names" $since b431,
+			+ DLD '\ingroup DS' @ "private submodlues"
+		),
+		+ "2 function %SetChildren" @ "class %ValueNode"
+			@ %YSLib.Core.ValueNode,
+		(
+		* "implementation" @ "function %WriteConfiguration"
+			@ %Helper.Initialization $since b502;
+			$dep_to "saving empty configuration"
+		),
+		/ %Helper_(Android) $=
+		(
+			/ %AndroidScreen $=
+			(
+				/ @ "constructor %AndroidScreen" $=
+				(
+					* "hard-coded screen buffer size" @ $since b502,
+					+ "debug trace for size",
+					- "hard-coded default argument"
+					// It is worse that the default argument of the window \
+						size was not the same as the previously hard-coded \
+						screen buffer size. The width and height were \
+						occasionally swapped.
+				),
+				+ "function %FetchScreenSize"
+					// Not implemented by returning still hard-coded value \
+						'{480, 800}'.
+			),
+			/ @ "class %NativeHost" @ %AndroidHost $=
+			(
+				+ "function %GetActivityRef",
+				/ DLD "member initializer" @ "%p_desktop"
+					-> ("initialization" @ "constructor")
+					// To avoid invalid use of incomplete type.
+			)
+		)
+	),
+	/ %YReader.ShlReader $=
+	(
+		/ @ "class %ShlReader" $=
+		(
+			/ "simplified implementation" @ "function %SaveBookmarks",
+			* "wrongly cleared all content on saving"
+				@ "static function %SaveGlobalConfiguration" $since b502;
+		),
+		(
+		$dep_from "saving empty configuration",
+		$dep_from "%ShlReader::SaveGlobalConfiguration";
+		* $comp "saving empty configuration exiting reader shell"
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		* "missing workaround for Visual C++2013" @ "move constructor"
+			@ "class template %transformed_iterator" @ %Iterator $since b415,
+		/ @ "workaround for Visual C++2013" %Utilities $=
+		(
+			- DLD "redundant ';' after move constructor definition",
+			* "missing defaulted default and copy constructors" $since b483
+		),
+		/ @ "explicit speclization" @ "class template %sequence_project" $=
+		(
+			/ DLD "implementation" ^ "using alias declaration",
+				// It might improve some performance.
+			* $revert_ex(b477) "missing workaround for Visual C++2013"
+				$since b477
+		),
+		/ %Any $=
+		(
+			+ "binary type traits %is_aligned_storable",
+			/ @ "class template %value_handler" $=
+			(
+				(
+				/ DLD "implementation" @ "function %get_pointer"
+					^ "template specialization" ~ "conditional expression";
+				$dep_to "eliminated storage access overrun evaluation"
+				),
+				(
+				$dep_from "%is_aligned_storable";
+				/ $dev "simplified default template argument"
+					@ "class template %value_handler" ^ "%is_aligned_storable"
+				)
+			),
+			/ @ "class template %pod_storage" @ %Any $=
+			(
+				* "cv-qualifier not removed for access"
+					@ "copy constructor, %operator=" $since b352
+					$= (/ "implementation" ^ "%decay_t"
+						~ "%remove_reference_t"),
+				+ DLD 'inline' @ "all user-defined function templates",
+				(
+				+ "function template %assign";
+				/ "implementation" @ "function template %operator=" ^ "%assign";
+				* $comp "workaround of Visual C++ 2013 warning C4717"
+				),
+				(
+				$dep_from "eliminated storage access overrun evaluation";
+					// Otherwise static assertion would fail.
+				+ $dev "static assertion for size and alignment constraints"
+					@ "2 function templates %access"
+				),
+				+ "explicitly defaulted (copy constructor, copy %operator=)"
+			)
+		)
+	)
+),
+
+b502
 (
 	/ %YFramework $=
 	(
@@ -105,7 +219,7 @@ $now
 		(
 			/ @ "platform %Android" @ %InputManager $=
 			(
-				/ "implemented cursor position forwarding" 
+				/ "implemented cursor position forwarding"
 					@ "member function %InputManager::Update",
 				(
 				$dep_from "Android host declarations";
@@ -147,7 +261,7 @@ $now
 		),
 	),
 	+ "entry point function definition %::y_android_main" @ "platform %Android"
-		@ %Main
+		@ %Main_ARM9
 		// Still not fully supported.
 ),
 

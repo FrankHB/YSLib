@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4581
+\version r4594
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-06-02 14:55 +0800
+	2014-06-05 10:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,17 +248,12 @@ ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
 {
 	try
 	{
-		FetchRoot().at("YReader")["Bookmarks"]['"' + NPL::MakeEscape(group)
-			+ '"'].Value = [&]{
-				string str;
+		string str;
 
-				for(const auto& pos : bookmarks)
-				{
-					str += to_string(pos);
-					str += ' ';
-				}
-				return str;
-		}();
+		for(const auto& pos : bookmarks)
+			str += to_string(pos) + ' ';
+		FetchRoot().at("YReader")["Bookmarks"]['"' + NPL::MakeEscape(group)
+			+ '"'].Value = std::move(str);
 	}
 	catch(std::exception& e) // TODO: Logging.
 	{}
@@ -271,7 +266,7 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 	{
 		auto& root(FetchRoot());
 
-		root["YReader"]["ReaderSetting"].Value = ValueNode::Container(rs);
+		root["YReader"]["ReaderSetting"].SetChildren(ValueNode::Container(rs));
 		SaveConfiguration(root);
 	}
 	catch(std::exception& e) // TODO: Logging.
