@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r165
+\version r169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-06-05 00:00 +0800
+	2014-06-06 15:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,12 +86,15 @@ private:
 	mutable std::mutex state_mutex{};
 	//! \note Devices::AndroidScreen 是不完整类型，因此不能在类定义内初始化。
 	unique_ptr<Devices::AndroidScreen> p_screen;
-	unique_ptr<Desktop> p_desktop{};
+	//! \note Desktop 是不完整类型，因此不能在类定义内初始化。
+	unique_ptr<Desktop> p_desktop;
 
 public:
 	NativeHost(::ANativeActivity&, void*, size_t);
 	~NativeHost();
 
+	//! \since build 503
+	DefGetter(const ynothrow, ::ANativeActivity&, ActivityRef, activity.get())
 	DefGetter(const ynothrow, Desktop&, DesktopRef,
 		(YAssertNonnull(p_desktop), *p_desktop))
 	DefGetter(const ynothrow, Devices::AndroidScreen&, ScreenRef,

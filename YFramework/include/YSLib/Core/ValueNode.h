@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1461
+\version r1471
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-06-02 17:38 +0800
+	2014-06-05 10:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,6 +211,17 @@ public:
 	DefGetter(const ynothrow, const string&, Name, name)
 	size_t
 	GetSize() const ynothrow;
+
+	/*!
+	\brief 设置子节点容器内容。
+	\since build 503
+	*/
+	//@{
+	void
+	SetChildren(Container) const;
+	void
+	SetChildren(unique_ptr<Container>) const;
+	//@}
 
 	//! \since build 403
 	bool

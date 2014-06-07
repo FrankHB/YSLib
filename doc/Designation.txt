@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9202
+\version r9204
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-05-24 06:09 +0800
+	2014-06-05 17:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -320,13 +320,14 @@ Shell 和 Core 的关系是相对的，例如：
 基于 YBase 的平台隔离用库 YCLib(@5.2.2) ，包含于 YFramework 中。
  ISO C++ 实现定义行为要求：
 至少支持 std::placeholder::_6 。
-当前仅经过实际验证支持的实现包括 G++ 4.8.2 或以上版本。 YBase （包括若干 workaround ） 支持 Microsoft Visual C++ 2013 。
+当前仅经过实际验证支持的实现包括 G++ 4.8.2 或以上版本。
 除以上列出外的其它实现不保证支持。
 未来可能会提升实现的最低支持版本要求，并移除针对特定版本的 workaround 代码。
 本节内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
 
 @5.2.1 YBase ：
 参见 [Documentation::YBase] 。
+ YBase （包括若干 workaround ） 非正式支持 Microsoft Visual C++ 2013 。
 
 @5.2.2 YCLib ：
  YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.4.1 ）。

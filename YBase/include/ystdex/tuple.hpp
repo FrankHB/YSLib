@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r142
+\version r153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2014-02-17 00:16 +0800
+	2014-06-06 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,8 +111,18 @@ struct sequence_element<_vIdx, std::tuple<_types...>>
 template<typename... _types, size_t... _vIdxSeq>
 struct sequence_project<std::tuple<_types...>, variadic_sequence<_vIdxSeq...>>
 {
-	using type
-		= std::tuple<tuple_element_t<_vIdxSeq, std::tuple<_types...>>...>;
+private:
+	//! \since build 503
+	using tuple_type = std::tuple<_types...>;
+
+public:
+#if YB_IMPL_MSCPP
+	//! \since build 454 as workaround for Visual C++ 2013
+	using type = std::tuple<typename
+		std::tuple_element<_vIdxSeq, tuple_type>::type...>;
+#else
+	using type = std::tuple<tuple_element_t<_vIdxSeq, tuple_type>...>;
+#endif
 };
 
 

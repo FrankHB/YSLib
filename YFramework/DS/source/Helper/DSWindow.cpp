@@ -10,18 +10,19 @@
 
 /*!	\file DSWindow.cpp
 \ingroup Helper
+\ingroup DS
 \brief DS 宿主窗口。
-\version r123
+\version r125
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:36:43 +0800
 \par 修改时间:
-	2014-04-10 11:25 +0800
+	2014-06-05 09:53 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
-	Helper::DSWindow
+	Helper_(DS)::DSWindow
 */
 
 

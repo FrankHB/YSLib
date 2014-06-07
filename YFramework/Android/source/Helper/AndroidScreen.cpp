@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r60
+\version r77
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-06-04 23:17 +0800
+	2014-06-07 13:39 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -27,6 +27,7 @@
 
 
 #include "AndroidScreen.h"
+#include YFM_YSLib_UI_YComponent // for to_string;
 
 namespace YSLib
 {
@@ -36,11 +37,12 @@ using namespace Drawing;
 namespace Devices
 {
 
-#if YCL_Android
 AndroidScreen::AndroidScreen(::ANativeWindow& wnd, const Drawing::Size& size)
 	: Screen(size),
-	window_ref(wnd), rbuf(Drawing::Size(480, 800))
+	window_ref(wnd), rbuf(Drawing::Size(size))
 {
+	YTraceDe(Informative, "Screen created, size = %s.",
+		to_string(size).c_str());
 	pBuffer = rbuf.GetBufferPtr();
 	::ANativeWindow_setBuffersGeometry(&wnd, 0, 0, WINDOW_FORMAT_RGBA_8888);
 }
@@ -51,11 +53,20 @@ AndroidScreen::Update(Drawing::BitmapPtr p_buf) ynothrow
 	rbuf.UpdateFrom(p_buf);
 	rbuf.UpdateTo(&GetWindowRef(), Offset);
 }
-#else
-#	error "Unsupported platform found."
-#endif
 
 } // namespace Devices;
+
+namespace Android
+{
+
+Drawing::Size
+FetchScreenSize()
+{
+	// FIXME: Real implementation.
+	return {480, 800};
+}
+
+} // namespace Android;
 
 } // namespace YSLib;
 

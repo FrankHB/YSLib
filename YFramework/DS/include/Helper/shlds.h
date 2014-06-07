@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2013 FrankHB.
+	© 2010-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,17 +12,17 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台 Shell 类。
-\version r1333
+\version r1335
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-13 14:17:14 +0800
 \par 修改时间:
-	2013-12-24 00:16 +0800
+	2014-06-05 09:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Helper::Shell_DS
+	Helper_(DS)::Shell_DS
 */
 
 

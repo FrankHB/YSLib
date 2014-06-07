@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r377
+\version r387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2014-06-02 17:38 +0800
+	2014-06-05 10:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,17 @@ ValueNode::CheckNodes() const
 	if(!p_container)
 		p_container.reset(new Container());
 	return GetContainerRef();
+}
+
+void
+ValueNode::SetChildren(Container con) const
+{
+	SetChildren(make_unique<Container>(std::move(con)));
+}
+void
+ValueNode::SetChildren(unique_ptr<Container> p_con) const
+{
+	p_container = std::move(p_con);
 }
 
 bool

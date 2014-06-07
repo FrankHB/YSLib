@@ -10,18 +10,19 @@
 
 /*!	\file DSScreen.cpp
 \ingroup Helper
+\ingroup DS
 \brief DS 屏幕。
-\version r263
+\version r265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-05-26 16:03 +0800
+	2014-06-05 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
-	Helper::DSScreen
+	Helper_(DS)::DSScreen
 */
 
 

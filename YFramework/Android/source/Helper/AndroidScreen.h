@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r79
+\version r91
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-06-04 23:41 +0800
+	2014-06-07 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -57,7 +57,7 @@ private:
 public:
 	Drawing::Point Offset{};
 
-	AndroidScreen(::ANativeWindow&, const Drawing::Size& = {800, 480});
+	AndroidScreen(::ANativeWindow&, const Drawing::Size&);
 
 	DefGetter(const ynothrow, ::ANativeWindow&, WindowRef, window_ref)
 
@@ -73,6 +73,20 @@ public:
 };
 
 } // namespace Devices;
+
+namespace Android
+{
+
+/*!
+\brief 取屏幕大小。
+\note 当前直接返回 {480, 800} 。
+\since build 503
+\todo 因为 Android NDK 不提供直接的接口，使用 JNI 实现。
+*/
+YF_API Drawing::Size
+FetchScreenSize();
+
+} // namespace Android;
 
 } // namespace YSLib;
 
