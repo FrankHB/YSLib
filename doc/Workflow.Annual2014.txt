@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r314
+\version r322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-06-01 20:07 +0800
+	2014-06-09 11:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -311,6 +311,16 @@ There are some similar measurement values for a given image with proper underlyi
 		The meaning of pitch is harmonized with FreeType.
 It seems that ::eglSwapBuffers hangs in SharedBufferStack waitForCondition is a bug of Android platform or underlying Linux kernel.
 	See: https://code.google.com/p/android/issues/detail?id=20833 .
+
+$2014-06:
+
+report.impl:
+There is nothing can be done with "channel '*' ~ Failed to receive dispatch signal.  status=-11" error log message from "NativeActivity" on Android.
+	See https://code.google.com/p/android/issues/detail?id=41755 .
+		From http://ps3computing.blogspot.ca/2012/12/anr-application-not-responding.html .
+			From http://stackoverflow.com/questions/18316046/when-build-with-latest-android-ndk-nativeactivity-spams-to-log-on-touch-events .
+Behavior changed in ::ANativeWindow. After Android 4.0 (API level >= 14), different way to get native window size should be used.
+	See http://www.klayge.org/2013/01/23/%E5%9C%A8android%E6%A8%A1%E6%8B%9F%E5%99%A8%E4%B8%8A%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B0%8F%E9%99%B7%E9%98%B1/ .
 
 
 ////

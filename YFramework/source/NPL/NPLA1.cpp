@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r123
+\version r131
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2014-06-02 15:48 +0800
+	2014-06-08 04:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,13 +33,6 @@ using namespace YSLib;
 
 namespace NPL
 {
-
-ValueNode
-MapNPLA1Node(const ValueNode& node)
-{
-	return node.GetName().empty() ? ValueNode(0, "", std::move(node.Value))
-		: std::move(node);
-}
 
 ValueNode
 TransformNPLA1(const ValueNode& node, std::function<NodeMapper> mapper)
@@ -79,7 +72,8 @@ TransformNPLA1(const ValueNode& node, std::function<NodeMapper> mapper)
 	auto p_node_con(make_unique<ValueNode::Container>());
 
 	std::for_each(i, node.end(), [&](const ValueNode& nd){
-		auto&& n(mapper(TransformNPLA1(nd, mapper)));
+		const auto& tree(TransformNPLA1(nd, mapper));
+		auto&& n(mapper ? mapper(tree) : tree);
 
 		p_node_con->insert(n.GetName().empty() ? ValueNode(0,
 			'$' + std::to_string(p_node_con->size()), std::move(n.Value))
