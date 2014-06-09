@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r388
+\version r432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-07 13:45 +0800
+	2014-06-09 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,51 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ "simplified semantics tree mapping" @ %NPL.NPLA1 $=
+		(
+			/ $lib "accepted null mapper" @ "function %TransformNPLA1";
+				// No-op.
+			/ "default mapper argument" -> '{}' ~ 'MapNPLA1Node' @ "functions \
+				%(TransformNPLA1, LoadNPLA1), function template %LoadNPLA1";
+				// Default behavior changed. Now no children are dropped on \
+					default.
+			- "function %MapNPLA1Node"
+		),
+		/ %'Helper_(Android)' $=
+		(
+			/ %AndroidHost $=
+			(
+				/ "window creating now on native window resizing"
+					~ "on native window creating",
+				* "invalid native window access on termination" $since b502
+					$= (+ "waiting for screen object release"
+					@ "native window destroying"),
+				(
+				$dep_from "class %Devices::AndroidScreen";
+				* "hard-coded screen size initialized" @ "class %NativeHost"
+					@ %AndroidHost $since b502
+				)
+			),
+			/ %AndroidScreen $=
+			(
+				+ "constructor 'AndroidScreen(::ANativeWindow&);'"
+					@ "class %Devices::AndroidScreen"
+				- "function %Android::FetchScreenSize
+			)
+		)
+	),
+	(
+	$dep_from %YFramework.NPL.NPLA1;
+	/ "logging" ^ 'YTraceDe' @ "functions %(LoadBookmarks, \
+		LoadGlobalConfiguration, SaveBookmarks, SaveGlobalConfiguration)"
+		@ "class %ShlReader" @ %YReader
+	)
+),
+
+b503
 (
 	/ %Main_ARM9 => %Main,
 	/ %YFramework $=
