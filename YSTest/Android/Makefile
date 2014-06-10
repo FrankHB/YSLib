@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r234
+# Version = r235
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-05-24 18:05 +0800
+# Updated = 2014-06-10 21:30 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -205,7 +205,7 @@ $(RESOURCES) : $(MANIFEST)
 	$(ANDROID_BUILD_TOOLS_DIR)/aapt package -f -m -J $(TOPDIR)/gen -S $(RESDIR) -M $(MANIFEST) -I $(platforms)/android.jar
 	$(ANDROID_BUILD_TOOLS_DIR)/aapt package -f -M $(MANIFEST) -S $(RESDIR) -I $(platforms)/android.jar -F $(RESOURCES)
 
-$(OUTPUTSO) : $(OFILES)
+$(OUTPUTSO) : $(OFILES) $(YFRAMEWORK_A) $(YBASE_A)
 	@rm -f "$(OUTPUTSO)"
 	@echo Linking $(notdir $@) ...
 	$(LD) -shared $(LDFLAGS) $(foreach file,$(OFILES),$(DEPSDIR)/$(file)) $(YFRAMEWORK_A) $(YBASE_A) $(LIBPATHS) $(LIBS) $(LIBPATHEX) $(LIBEX) -o $@

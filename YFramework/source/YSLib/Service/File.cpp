@@ -11,13 +11,13 @@
 /*!	\file File.cpp
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r523
+\version r534
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2014-02-05 15:48 +0800
+	2014-06-10 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,10 @@ File::File(const String& filename, std::ios_base::openmode mode)
 
 File::~File()
 {
-	Close();
+	YTraceDe(Informative, "File pointer to be closed in destructor: %p.",
+		static_cast<void*>(fp));
+	if(*this)
+		std::fclose(fp);
 }
 
 void
@@ -78,16 +81,22 @@ File::CheckSize()
 void
 File::Close()
 {
+	YTraceDe(Informative, "File pointer to be closed: %p.",
+		static_cast<void*>(fp));
 	if(*this)
 		std::fclose(fp);
+	fp = {};
+	YTraceDe(Informative, "File closed.");
 }
 
 bool
 File::Open(const char* filename, const char* mode)
 {
-	Close();
+	if(*this)
+		std::fclose(fp);
 	if((fp = ufopen(filename, mode)))
 		CheckSize();
+	YTraceDe(Informative, "Opened file pointer: %p.", static_cast<void*>(fp));
 	return fp;
 }
 bool

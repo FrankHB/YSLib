@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r356
+\version r357
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-05-24 18:34 +0800
+	2014-06-09 21:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -285,7 +285,7 @@ namespace platform_ex
 YF_API void
 LogAssert(bool, const char*, const char*, int, const char*);
 
-#	ifdef YAssert
+#	ifdef YB_Use_YAssert
 #		undef YAssert
 //! \since build 499
 #		define YAssert(_expr, _msg) \
