@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1789
+\version r1799
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-06-05 09:34 +0800
+	2014-06-10 02:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,15 +202,10 @@ Repaint(Desktop& dsk)
 //! \since build 502
 extern "C" void
 y_android_main()
-{
-	using namespace YSLib;
-
-	YTraceDe(Notice, "YSLib test succeeded.");
-}
-#endif
-
+#else
 int
 main()
+#endif
 {
 	using namespace YSLib;
 
@@ -222,7 +217,7 @@ main()
 			//应用程序实例。
 			DSApplication app;
 
-			//platform::YDebugSetStatus(false);
+			YTraceDe(Debug, "Application initialized.");
 			{
 				using namespace YSLib::UI;
 				using YReader::Image_N;
@@ -248,6 +243,7 @@ main()
 				SetInvalidationOf(dsk_m);
 				yunseq(dsk_m.Validate(), dsk_s.Validate());
 				dsk_m.Update(), dsk_s.Update();
+				YTraceDe(Debug, "Static screens updated.");
 				//初始化所有图像资源。
 				for(size_t i(0); i < Image_N; ++i)
 				{
@@ -261,6 +257,7 @@ main()
 				pb.SetValue(Image_N);
 				Repaint(dsk_m);
 			}
+			YTraceDe(Debug, "Splash completed.");
 			Execute(app, make_shared<YReader::ShlExplorer>());
 			//释放 Shell （必要，保证释放 Shell 且避免资源泄漏）。
 			YReader::Cleanup();
@@ -290,6 +287,5 @@ main()
 		log.FatalError("Unhandled exception @ main function;");
 	}
 	// TODO: Return exit code properly.
-	return 0;
 }
 

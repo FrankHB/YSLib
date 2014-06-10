@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1352
+\version r1355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-06-05 00:06 +0800
+	2014-06-10 02:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,7 +105,9 @@ Environment::Environment()
 	, window_class(WindowClassName, WndProc)
 #		endif
 #	endif
-{}
+{
+	YCL_Trace(Debug, "Host environment lifetime beginned.");
+}
 Environment::~Environment()
 {
 	YCL_Trace(Debug, "Host environment lifetime ended.");

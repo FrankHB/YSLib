@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r742
+\version r749
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-05-18 21:23 +0800
+	2014-06-10 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -525,7 +525,12 @@
  main 函数由 Helper 的其它源文件封装，或由用户提供。
  Helper 定义的类型若适用于不同平台，不保证二进制兼容性，除非另有说明。
 
-@2.8.1 YGlobal 单元：
+@2.8.1 内联平台模块：
+使用内联模块 [Documentation::ProjectRules @@3.2.2] 提供匹配特定平台主要功能的移植支持。
+除了和目标平台一致的接口外，当前支持以下平台模拟：
+ MinGW32 模拟 DS 。
+
+@2.8.2 YGlobal 单元：
 平台相关的全局对象和函数定义。
 除了以下接口，其它都是不确定的：
 const SDst MainScreenWidth, MainScreenHeight;
@@ -539,11 +544,11 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
  YSLib 不依赖这些接口以外的特性。
 
-@2.8.2 Application 派生类：
+@2.8.3 Application 派生类：
 适应于具体平台的应用程序实例抽象。
 包含默认消息循环等。
 
-@2.8.3 初始化 Initialization ：
+@2.8.4 初始化 Initialization ：
 关于配置文件格式和内容参见 [Documentation::YSLib @@8] 。
 初始化的重要策略之一是在程序启动时减少不必要的初始化，以达到以下的优势：
 减少可能的外部依赖（如不需要使用文字的程序就不初始化字体缓存，也不需要依赖外部字体文件和字体配置等）；

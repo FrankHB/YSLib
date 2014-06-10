@@ -11,13 +11,13 @@
 /*!	\file ycutil.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2087
+\version r2089
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-06-04 22:48 +0800
+	2014-06-10 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -220,7 +220,7 @@ template<typename _type>
 size_t
 SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 {
-	YAssert(a, "Null array pointer found."),
+	YAssertNonnull(a),
 	YAssert(n != 0, "Zero length of array found.");
 	YAssert(!(v < *a), "Value less than lower bound found.");
 
@@ -243,7 +243,7 @@ template<typename _type>
 size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 {
-	YAssert(a, "Null array pointer found."),
+	YAssertNonnull(a),
 	YAssert(n != 0, "Zero length of array found.");
 	YAssert(!(v < *a), "Value less than lower bound found.");
 

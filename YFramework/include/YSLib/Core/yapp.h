@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1618
+\version r1620
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2014-02-27 20:46 +0800
+	2014-06-10 00:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,10 +163,9 @@ FetchShellHandle() ynothrow
 inline bool
 Activate(const shared_ptr<Shell>& hShl)
 {
-	YAssert(bool(hShl), "Null shell handle found.");
-
 	auto h(hShl);
 
+	YAssertNonnull(h);
 	return FetchAppInstance().Switch(h);
 }
 

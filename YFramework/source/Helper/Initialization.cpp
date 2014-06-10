@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1908
+\version r1949
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-06-05 15:29 +0800
+	2014-06-10 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,6 @@
 
 using namespace ystdex;
 using namespace platform;
-using std::puts;
 
 namespace YSLib
 {
@@ -49,6 +48,24 @@ using namespace IO;
 
 namespace
 {
+
+/*!
+\def YF_Init_printf
+\brief 初始化时使用的格式化输出函数。
+\since build 505
+*/
+/*!
+\def YF_Init_puts
+\brief 初始化时使用的行输出函数。
+\since build 505
+*/
+#if YCL_Android
+#	define YF_Init_printf(_lv, ...) YTraceDe(_lv, __VA_ARGS__)
+#	define YF_Init_puts(_lv, _str) YTraceDe(_lv, _str)
+#else
+#	define YF_Init_printf(_lv, ...) std::printf(__VA_ARGS__)
+#	define YF_Init_puts(_lv, _str) std::puts(_str)
+#endif
 
 //! \since build 425
 //@{
@@ -117,22 +134,23 @@ LoadComponents(const ValueNode& node)
 	const auto& font_dir(AccessChild<string>(node, "FontDirectory"));
 
 	if(!data_dir.empty() && !font_path.empty() && !font_dir.empty())
-		std::printf("Loaded default directory:\n%s\n"
+		YF_Init_printf(Notice, "Loaded default directory:\n%s\n"
 			"Loaded default font path:\n%s\n"
 			"Loaded default font directory:\n%s\n",
 			data_dir.c_str(), font_path.c_str(), font_dir.c_str());
 	else
 		throw LoggedEvent("Empty path loaded.");
 #if !CHRLIB_NODYNAMIC_MAPPING
-	puts("Load character mapping file...");
+	YF_Init_puts(Notice, "Load character mapping file...");
 	p_mapped = new MappedFile(data_dir + "cp113.bin");
 	if(p_mapped->GetSize() != 0)
 		CHRLib::cp113 = p_mapped->GetPtr();
 	else
 		throw LoggedEvent("CHRMapEx loading fail.");
-	puts("CHRMapEx loaded successfully.");
+	YF_Init_puts(Notice, "CHRMapEx loaded successfully.");
 #endif
-	std::printf("Trying entering directory %s ...\n", data_dir.c_str());
+	YF_Init_printf(Notice, "Trying entering directory %s ...\n",
+		data_dir.c_str());
 	if(!IO::VerifyDirectory(data_dir))
 		throw LoggedEvent("Invalid default data directory found.");
 	if(!(ufexists(font_path) || IO::VerifyDirectory(font_dir)))
@@ -149,8 +167,8 @@ HandleFatalError(const FatalError& e) ynothrow
 
 	const char* line("--------------------------------");
 
-	std::printf("%s%s%s\n%s\n%s",
-		line, e.GetTitle(), line, e.GetContent(), line);
+	YF_Init_printf(Notice, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
+		e.GetContent(), line);
 	terminate();
 }
 
@@ -161,10 +179,12 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 {
 	if(!ufexists(path))
 	{
+		YTraceDe(Debug, "Path '%s' access failed.", path);
 		if(show_info)
-			std::printf("Creating %s '%s'...\n", disp, path);
+			YF_Init_printf(Notice, "Creating %s '%s'...\n", disp, path);
 		if(creator)
 		{
+			YTraceDe(Debug, "Creator found.");
 			if(TextFile tf{path, std::ios_base::out | std::ios_base::trunc})
 				tf << NPL::Configuration(creator());
 			else
@@ -177,7 +197,7 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 	TextFile tf(path);
 
 	if(show_info)
-		std::printf("Found %s '%s'.\n", disp, path);
+		YF_Init_printf(Notice, "Found %s '%s'.\n", disp, path);
 	return ReadConfiguration(tf);
 }
 
@@ -204,7 +224,9 @@ WriteConfiguration(TextFile& tf, const ValueNode& node)
 {
 	if(YB_UNLIKELY(!tf))
 		throw LoggedEvent("Invalid file found when writing configuration.");
+	YTraceDe(Debug, "Writing configuration...");
 	tf << NPL::Configuration(ValueNode(node.GetContainerRef()));
+	YTraceDe(Debug, "Writing configuration done.");
 }
 
 ValueNode
@@ -287,7 +309,7 @@ InitializeEnviornment()
 ValueNode
 InitializeInstalled()
 {
-	puts("Checking installation...");
+	YF_Init_puts(Notice, "Checking installation...");
 	try
 	{
 		auto node(LoadConfiguration(true));
@@ -295,12 +317,12 @@ InitializeInstalled()
 		if(node.GetName() == "YFramework")
 			node = PackNodes("", std::move(node));
 		LoadComponents(node.at("YFramework"));
-		puts("OK!");
+		YF_Init_puts(Notice, "OK!");
 		return node;
 	}
 	catch(std::exception& e)
 	{
-		std::printf("Error occurred: %s\n", e.what());
+		YF_Init_printf(Err, "Error occurred: %s\n", e.what());
 	}
 	throw FatalError("      Invalid Installation      ",
 		" Please make sure the data is\n"
@@ -311,7 +333,7 @@ void
 InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 	const string& font_dir)
 {
-	puts("Loading font files...");
+	YF_Init_puts(Notice, "Loading font files...");
 	try
 	{
 		size_t nFileLoaded(fc.LoadTypefaces(fong_file) != 0);
@@ -340,13 +362,13 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 			{}
 		fc.InitializeDefaultTypeface();
 		if(const auto nFaces = fc.GetFaces().size())
-			std::printf("%u face(s) in %u font file(s)"
+			YF_Init_printf(Notice, "%u face(s) in %u font file(s)"
 				" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
 		else
 			throw LoggedEvent("No fonts found.");
-		puts("Setting default font face...");
+		YF_Init_puts(Notice, "Setting default font face...");
 		if(const auto* const pf = fc.GetDefaultTypefacePtr())
-			std::printf("\"%s\":\"%s\",\nsuccessfully.\n",
+			YF_Init_printf(Notice, "\"%s\":\"%s\",\nsuccessfully.\n",
 				pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 		else
 			throw LoggedEvent("Setting default font face failed.");
@@ -355,7 +377,7 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 	// TODO: Use %std::nested_exception.
 	catch(std::exception& e)
 	{
-		puts(e.what());
+		YF_Init_puts(Err, e.what());
 	}
 	throw FatalError("      Font Caching Failure      ",
 		" Please make sure the fonts are\n"
@@ -365,6 +387,8 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 void
 Uninitialize() ynothrow
 {
+	YF_Init_printf(Notice, "Uninitialization entered with"
+		" %u handler(s) to be called.", unsigned(app_exit.size()));
 	while(!app_exit.empty())
 	{
 		if(YB_LIKELY(app_exit.top()))
@@ -373,6 +397,7 @@ Uninitialize() ynothrow
 	}
 #if !CHRLIB_NODYNAMIC_MAPPING
 	delete p_mapped;
+	YF_Init_puts(Notice, "Character mapping deleted.");
 #endif
 }
 

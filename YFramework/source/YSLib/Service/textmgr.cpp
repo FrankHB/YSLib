@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3784
+\version r3786
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2014-04-25 10:18 +0800
+	2014-06-10 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,8 +72,8 @@ TextFileBuffer::iterator::operator++() ynothrow
 TextFileBuffer::iterator&
 TextFileBuffer::iterator::operator--() ynothrow
 {
-	YAssert(p_buffer, "Null buffer pointer found.");
-	YAssert(block != 0 || index != 0, "Begin iterator found."),
+	YAssertNonnull(p_buffer),
+	YAssert(block != 0 || index != 0, "Begin iterator found.");
 	YAssert(block < p_buffer->nBlock || *this == p_buffer->end(),
 		"Invalid iterator found.");
 	if(index == 0)

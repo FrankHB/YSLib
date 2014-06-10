@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r432
+\version r489
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-09 18:34 +0800
+	2014-06-11 00:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,64 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		* "wrong condition for defining macro %YAssert" @ %YCLib.Debug $since b499
+			$= ('ifdef YAssert' -> 'ifdef YB_Use_YAssert'),
+			// This caused unintended assertions for release configurations.
+		/ %Helper $=
+		(
+			+ "debug trace" @ "constructor %Environment" ^ 'YCL_Trace' @ %Host,
+			+ "debug trace" @ "function %Devices::InitDSScreen" ^ 'YTraceDe'
+				@ %DSScreen,
+			/ @ %Initialization $=
+			(
+				/ "trace output" @ ^ "%YTraceDe"
+					~ "directly use of standard function"
+					// For platform %Android the level is "%Notice" in normal \
+						cases and "%Err" in catch blocks. For other platforms, \
+						the level is ignored and there should be no behavior \
+						changed.
+				+ "trace output" @ "function %Uninitialize",
+				+ "debug trace output" @ "function %(LoadNPLA1File, \
+					WriteConfiguration)" ^ "%YTraceDe"
+			)
+		),
+		/ %Service $=
+		(
+			/ @ "class %File" @ %File $=
+			(
+				* "missing clean file pointer" @ "function %Close" $since
+					$before b132,
+				+ "trace" @ "function %(Open, Close), destructor" ^ "%YTraceDe"
+			),
+			* "missing check file pointer before writing BOM"
+				@ "constructor %TextFile" @ %TextFile $since b341
+				// Assertion failure.
+		)
+	)
+	/ "assert string" @ "%YAssertNonnull" -> "Null reference found."
+		~ "Null pointer found." @ %YBase.YStandardEx.CAssert,
+	/ "all nonnull handle, shell handle, array pointer, buffer pointer, text \
+		buffer pointer or updater assertions" ^ "%YAssertNonnull" ~ "YAssert",
+	/ %Main $=
+	(
+		- "explicit 'return 0;'" @ "function ::main";
+			// So both function 'int main()' with implicit 'return 0;' and \
+				entry point function with void return type can be simply \
+				coexisted without modifying return statement. Note that now \
+				the program is still not fully supported so it would crash \
+				intentionally.
+		/ "merged entry point function %::y_android_main with function %::main"
+			^ "conditional inclusion",
+		+ "debug trace" @ "function %::main" ^ 'YTraceDe' @ %Main
+	),
+	* DLB "missing dependency for target %OUTPUTSO on .a files" @ "makefile"
+		@ "platform %Android" $since b497
+),
+
+b504
 (
 	/ %YFramework $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r116
+\version r117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2014-05-24 17:50 +0800
+	2014-06-10 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ yassert(bool, const char*, const char*, int, const char*);
 #endif
 
 //! \since build 495
-#define YAssertNonnull(_expr) YAssert(bool(_expr), "Null pointer found.")
+#define YAssertNonnull(_expr) YAssert(bool(_expr), "Null reference found.")
 
 #if YB_Use_YTrace
 //! \since build 432

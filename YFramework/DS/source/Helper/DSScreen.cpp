@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r265
+\version r266
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-06-05 09:52 +0800
+	2014-06-10 00:28 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -62,7 +62,7 @@ DSScreen::DSScreen(bool b) ynothrow
 void
 DSScreen::Update(Drawing::BitmapPtr p_buf) ynothrow
 {
-	YAssert(bool(WindowHandle), "Null handle found.");
+	YAssertNonnull(WindowHandle);
 	rbuf.UpdateFrom(p_buf);
 	rbuf.UpdateTo(WindowHandle, Offset);
 }
