@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r489
+\version r528
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-11 00:29 +0800
+	2014-06-12 21:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,46 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				/ @ "function %LoadNPLA1File" $=
+				(
+					+ "debug trace after configuration creation",
+					+ "error description" @ "exception thrown when failed \
+						writing file"
+				),
+				+ "trace" @ "function %ReadConfiguration",
+				+ "default configuration" @ "platform %Android",
+				/ "working root path located at runtime",
+				/ @ "function %HandleFatalError" $=
+				(
+					/ "log level" -> 'Emergent' ~ 'Notice',
+					- "separator lines" @ "error message" @ "platforms !%DS"
+				),
+				+ "trace for character mapping file path"
+					@ "function %LoadComponents"
+			),
+			+ "support for platform %Android" @ "constructor %DSApplication"
+				@ %DSMain
+		),
+		/ %YSLib $=
+		(
+			* "missing null pointer check" @ "encoding detection"
+				@ "class %TextFile" @ %TextFile $since b290,
+			+ "32-bit ABGR pixel conversion support" @ "class %HBitmap"
+				@ %Adaptor.Image
+		)
+		+ "function %Android::FetchDefaultWindow"
+			@ %'Helper_(Android)'.AndroidHost
+	)
+),
+
+b505
 (
 	/ %YFramework $=
 	(

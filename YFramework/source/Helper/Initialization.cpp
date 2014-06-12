@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r1949
+\version r2024
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-06-10 21:25 +0800
+	2014-06-12 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,8 +33,12 @@
 #include YFM_CHRLib_MappingEx
 #include YFM_YCLib_MemoryMapping
 #include YFM_YSLib_Service_FileSystem
-#include <cstring> // for std::strcmp;
+#include <ystdex/string.hpp> // for ystdex::sfmt, std::strcmp;
+#include <cerrno> // for errno;
 //#include <clocale>
+#if YCL_Android
+#	include <unistd.h> // for ::access, F_OK;
+#endif
 #include YFM_NPL_SContext
 
 using namespace ystdex;
@@ -110,21 +114,66 @@ const char TU_MIME[]{u8R"NPLA1(
 )NPLA1"};
 
 #if YCL_DS
-#	define ROOTW
-#	define DATA_DIRECTORY ROOTW "/Data/"
-	//const char* DEF_FONT_NAME = ROOTW "方正姚体";
-	//const char* DEF_FONT_PATH = ROOTW "/Font/FZYTK.TTF";
-#	define DEF_FONT_PATH ROOTW "/Font/FZYTK.TTF"
-#	define DEF_FONT_DIRECTORY ROOTW "/Font/"
-#else
+#	define ROOTW "/"
+#	define DATA_DIRECTORY ROOTW "Data/"
+#	define DEF_FONT_PATH ROOTW "Font/FZYTK.TTF"
+#	define DEF_FONT_DIRECTORY ROOTW "Font/"
+#	define CONF_PATH "yconf.txt"
+#elif YCL_MinGW32
 #	define ROOTW "."
 #	define DATA_DIRECTORY ROOTW "\\"
-	//const char* DEF_FONT_NAME = "方正姚体";
-	//const char* DEF_FONT_PATH = ROOTW "\\Font\\FZYTK.TTF";
 #	define DEF_FONT_PATH "C:\\Windows\\Fonts\\SimSun.ttc"
 #	define DEF_FONT_DIRECTORY ROOTW "\\"
+#	define CONF_PATH "yconf.txt"
+#elif YCL_Android
+//! \since build 506
+string
+FetchWorkingRoot_Android()
+{
+	static struct Init
+	{
+		string Path;
+
+		Init()
+			: Path([]{
+				const char*
+					sd_paths[]{"/sdcard/", "/mnt/sdcard/", "/storage/sdcard0/"};
+
+				for(const auto& path : sd_paths)
+				{
+					// TODO: Encapsulate to YCLib.
+					if(::access(path, F_OK) == 0)
+					{
+						YTraceDe(Informative, "Successfully found SD card path"
+							" '%s' as root path.", path);
+						return path;
+					}
+					else
+						YTraceDe(Informative,
+							"Failed accessing SD card path '%s'.", path);
+				}
+				throw LoggedEvent("Failed finding working root path.");
+			}())
+		{}
+	} init;
+
+	return init.Path;
+}
+
+//! \since build 506
+inline string
+FetchDataDirectory_Android()
+{
+	return FetchWorkingRoot_Android() + "Data/";
+}
+#	define ROOTW FetchWorkingRoot_Android()
+#	define DATA_DIRECTORY FetchDataDirectory_Android()
+#	define DEF_FONT_PATH "/system/fonts/DroidSansFallback.ttf"
+#	define DEF_FONT_DIRECTORY "/system/fonts/"
+#	define CONF_PATH (FetchWorkingRoot_Android() + "yconf.txt").c_str()
+#else
+#	error "Unsupported platform found."
 #endif
-#define CONF_PATH "yconf.txt"
 
 void
 LoadComponents(const ValueNode& node)
@@ -141,7 +190,11 @@ LoadComponents(const ValueNode& node)
 	else
 		throw LoggedEvent("Empty path loaded.");
 #if !CHRLIB_NODYNAMIC_MAPPING
-	YF_Init_puts(Notice, "Load character mapping file...");
+
+	const string mapping_name(data_dir + "cp113.bin");
+
+	YF_Init_printf(Notice, "Load character mapping file '%s' ...",
+		mapping_name.c_str());
 	p_mapped = new MappedFile(data_dir + "cp113.bin");
 	if(p_mapped->GetSize() != 0)
 		CHRLib::cp113 = p_mapped->GetPtr();
@@ -149,7 +202,7 @@ LoadComponents(const ValueNode& node)
 		throw LoggedEvent("CHRMapEx loading fail.");
 	YF_Init_puts(Notice, "CHRMapEx loaded successfully.");
 #endif
-	YF_Init_printf(Notice, "Trying entering directory %s ...\n",
+	YF_Init_printf(Notice, "Trying entering directory '%s' ...\n",
 		data_dir.c_str());
 	if(!IO::VerifyDirectory(data_dir))
 		throw LoggedEvent("Invalid default data directory found.");
@@ -165,10 +218,14 @@ HandleFatalError(const FatalError& e) ynothrow
 	YDebugSetStatus();
 	YDebugBegin();
 
+#if YCL_DS
 	const char* line("--------------------------------");
 
-	YF_Init_printf(Notice, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
+	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
 		e.GetContent(), line);
+#else
+	YF_Init_printf(Emergent, "%s\n%s", e.GetTitle(), e.GetContent());
+#endif
 	terminate();
 }
 
@@ -188,7 +245,9 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 			if(TextFile tf{path, std::ios_base::out | std::ios_base::trunc})
 				tf << NPL::Configuration(creator());
 			else
-				throw LoggedEvent("Cannot create file.");
+				throw LoggedEvent(ystdex::sfmt("Cannot create file,"
+					" error = %d: %s.", errno, std::strerror(errno)));
+			YTraceDe(Debug, "Created configuration.");
 		}
 		else
 			return {};
@@ -207,14 +266,17 @@ ReadConfiguration(TextFile& tf)
 {
 	if(YB_LIKELY(tf))
 	{
+		YTraceDe(Debug, "Found accessible configuration file.");
 		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
 			throw LoggedEvent("Wrong encoding of configuration file.");
 
 		NPL::Configuration conf;
 
 		tf >> conf;
+		YTraceDe(Debug, "Plain configuration loaded.");
 		if(conf.GetNodeRRef().GetSize() != 0)
 			return conf.GetNodeRRef();
+		YTraceDe(Warning, "Empty configuration found.");
 	}
 	throw LoggedEvent("Invalid file found when reading configuration.");
 }

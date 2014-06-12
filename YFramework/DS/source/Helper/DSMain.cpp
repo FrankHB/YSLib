@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3124
+\version r3131
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-06-05 09:51 +0800
+	2014-06-12 01:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,9 @@
 #	include <thread> // for std::this_thread::*;
 #endif
 #ifdef YCL_DS
-#	include "YSLib/Service/yblit.h" // for Drawing::FillPixel;
+#	include YFM_YSLib_Service_YBlit // for Drawing::FillPixel;
+#elif YCL_Android
+#	include YFM_Android_Helper_AndroidHost // for Android::FetchDefaultWindow;
 #endif
 #include YFM_YCLib_Debug
 #include YFM_Helper_Host
@@ -98,6 +100,11 @@ DSApplication::DSApplication()
 		std::this_thread::sleep_for(host_sleep);
 
 	const auto h_wnd(p_wnd_thrd->GetWindowPtr()->GetNativeHandle());
+#elif YCL_Android
+
+	const auto h_wnd(&Android::FetchDefaultWindow());
+#endif
+#if YF_Hosted
 
 	yunseq(scrs[0]->WindowHandle = h_wnd, scrs[1]->WindowHandle = h_wnd);
 #endif

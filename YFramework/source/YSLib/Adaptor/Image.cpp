@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r759
+\version r762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-05-26 14:51 +0800
+	2014-06-12 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -195,7 +195,9 @@ LookupPlugin(::FREE_IMAGE_FORMAT fif)
 #	define YF_PixConvSpec \
 	16, FI16_555_BLUE_MASK, FI16_555_GREEN_MASK, FI16_555_RED_MASK
 //#elif (YCL_PIXEL_FORMAT_XYZ555 & 0x00FFFFFF) == 0x00DDCCBB
-//#elif (YCL_PIXEL_FORMAT_XYZ888 & 0x00FFFFFF) == 0x00BBCCDD
+#elif (YCL_PIXEL_FORMAT_XYZ888 & 0x00FFFFFF) == 0x00BBCCDD
+#	define YF_PixConvSpec \
+	32, FI_RGBA_BLUE_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_RED_MASK
 #elif (YCL_PIXEL_FORMAT_XYZ888 & 0x00FFFFFF) == 0x00DDCCBB
 #	define YF_PixConvSpec \
 	32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK
