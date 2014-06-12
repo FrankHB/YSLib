@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r267
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-06-09 10:09 +0800
+	2014-06-12 01:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -236,6 +236,12 @@ Desktop&
 FetchDefaultDesktop() ynothrow
 {
 	return FetchNativeHostInstance().GetDesktopRef();
+}
+
+::ANativeWindow&
+FetchDefaultWindow() ynothrow
+{
+	return FetchNativeHostInstance().GetScreenRef().GetWindowRef();
 }
 
 } // namespace Android;

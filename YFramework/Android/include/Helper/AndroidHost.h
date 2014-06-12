@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r169
+\version r172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-06-06 15:03 +0800
+	2014-06-12 01:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,6 +157,10 @@ public:
 
 YF_API Desktop&
 FetchDefaultDesktop() ynothrow;
+
+//! \since build 506
+YF_API ::ANativeWindow&
+FetchDefaultWindow() ynothrow;
 
 YF_API NativeHost&
 FetchNativeHostInstance() ynothrow;

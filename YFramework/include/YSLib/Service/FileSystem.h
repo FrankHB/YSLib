@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2281
+\version r2285
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-02-18 00:55 +0800
+	2014-06-11 11:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -303,7 +303,10 @@ inline PDefH(bool, IsRelative, const Path& pth)
 //@}
 
 
-//! \brief 验证路径表示的目录是否存在。
+/*!
+\brief 验证路径表示的目录是否存在且可打开。
+\note 受权限限制。
+*/
 //@{
 YF_API bool
 VerifyDirectory(const char*);
