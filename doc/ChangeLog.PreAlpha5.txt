@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r528
+\version r584
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-12 21:15 +0800
+	2014-06-13 20:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,64 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		(
+		+ %BitSegment;
+		/ "class template %bitseg_iterator" @ %Iterator >> %BitSegment
+		),
+		+ "meta operation templates %((sequence_split_n; sequence_split_n_t),
+			(sequence_fold; vseq_fold))" @%Variadic,
+		(
+		$dep_from (%ystdex::sequence_split_n @ %Variadic);
+		+ "meta operation specializations %sequence_split_n @ %Tuple
+		),
+		(
+		$dep_from (%ystdex::sequence_fold @ %Variadic);
+		+ "meta operation specializations %sequence_fold @ %Tuple
+		),
+		+ "binary functors %(plus, multiply)" @ %Functional
+			// Only added associative built-in operations.
+	),
+	/ %YFramework $=
+	(
+		/ @ %YCLib.Video $=
+		(
+			/ @ "struct %XYZATrait" @ %YCLib.Video $=
+			(
+				- "static data member %(GAligned, RAligned)",
+				(
+				/ "using alias %IntegerType" ^ "%BitsN" ~ "%UIntBitsN",
+				- "static data member %Width";
+				- "static data member %UIntBitsN"
+				)
+			),
+			(
+			+ "class templates %XYZAMaskTrait;
+			/ @ "class templates %(BGRA, RGBA)" $=
+			(
+				+ "using alias %MaskTrait"
+				/ "colors mask values" ^ "%MaskTrait" ~ "%Trait";
+			);
+			- "data members %(AMask, XMask, YMask, ZMask)"
+				@ "class template %XYZATrait"
+			),
+			+ "class templates %(AXYZMaskTrait; ARGB)",
+			* "pixel RGB component wrongly reversed" @ "platform %Android"
+				@ %Video $since b492
+			(
+				/ "macro definition %YCL_PIXEL_FORMAT_XYZ888 with value"
+					-> '0xAABBCCDD' ~ '0xAADDCCBB',
+				/ "using alias %PixelType" -> "%RGBA<8, 8, 8, 8>"
+					~ "%BGRA<8, 8, 8, 8>",
+				/ "implementation of functions %FetchOpaque"
+			)
+		)
+	)
+),
+
+b506
 (
 	/ %YFramework $=
 	(

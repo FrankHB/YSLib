@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r322
+\version r327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-06-09 11:03 +0800
+	2014-06-13 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -294,16 +294,16 @@ There are some similar measurement values for a given image with proper underlyi
 	Width is the magnitude of the logical image or buffer area in horizontal, or X-axis for 2D coordinates.
 	Height is the magnitude of the logical image or buffer area in vertical, or Y-axis for 2D coordinates.
 	Stride is generally the distance of two entities measured in a single unit.
-		It can be the distance between two pixels in either horizontal or vertical for an image or a buffer.
+		It can be the distance between two pixels in either horizontal or vertical of an image.
 		For a buffer, the stride is the width of the buffer area.
 			Usually it is in pixels.
-			For a buffer, it could be sometimes in memory units(esp. bytes) , so being a synonym of the pitch of the buffer, see below.
+			It could be sometimes in memory units(esp. bytes) , so being a synonym of the pitch of the buffer, see below.
 	Pitch is a particular kind of measurement for a buffer in several different units.
-		It is often the synonym of the stride, witch is in pixels.
+		It is often the synonym of the stride, which is in pixels.
 		It is more often measured in bytes for the underlying scanline of the contiguous memory area.
 	E.g for stride vs. pitch: http://msdn.microsoft.com/en-us/library/windows/desktop/aa473780%28v=vs.85%29.aspx .
 	See also: http://www.gamedev.net/topic/496278-pitch--stride-/ .
-	For images, it is clear the width is the same as the stride betwwen horizontal edge of the pixels.
+	For images, it is clear the width is the same as the stride between horizontal edge of the pixels.
 		In this sense the width is equal to the stride.
 		However, usually only width is used to be clear.
 	For image buffers, YSLib uses stride to refer the width in pixels, and pitch to refer the width in bytes, or bits if explicitly specified.
@@ -319,7 +319,7 @@ There is nothing can be done with "channel '*' ~ Failed to receive dispatch sign
 	See https://code.google.com/p/android/issues/detail?id=41755 .
 		From http://ps3computing.blogspot.ca/2012/12/anr-application-not-responding.html .
 			From http://stackoverflow.com/questions/18316046/when-build-with-latest-android-ndk-nativeactivity-spams-to-log-on-touch-events .
-Behavior changed in ::ANativeWindow. After Android 4.0 (API level >= 14), different way to get native window size should be used.
+Behavior changed in ::ANativeWindow after Android 4.0 (API level >= 14), and different way to get native window size should be used.
 	See http://www.klayge.org/2013/01/23/%E5%9C%A8android%E6%A8%A1%E6%8B%9F%E5%99%A8%E4%B8%8A%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B0%8F%E9%99%B7%E9%98%B1/ .
 
 

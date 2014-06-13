@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r887
+\version r918
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-05-15 00:35 +0800
+	2014-06-13 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -523,7 +523,7 @@ hash_range(size_t& seed, _tIn first, _tIn last)
 
 
 /*!
-\brief 使用 std::hash 和 ystdex::hash_combine_seq 实现的对特定类型的散列。 
+\brief 使用 std::hash 和 ystdex::hash_combine_seq 实现的对特定类型的散列。
 \since build 468
 */
 //@{
@@ -615,6 +615,38 @@ struct ref_eq
 	operator()(const _type& _x, const _type& _y) const
 	{
 		return &_x == &_y;
+	}
+};
+
+/*!
+\ingroup functors
+\note 支持 constexpr 。
+\brief 加法仿函数。
+*/
+struct plus
+{
+	template<typename _type>
+	yconstfn auto
+	operator()(const _type& x, const _type& y) const
+		-> decltype(x + y)
+	{
+		return x + y;
+	}
+};
+
+/*!
+\ingroup functors
+\note 支持 constexpr 。
+\brief 乘法仿函数。
+*/
+struct multiply
+{
+	template<typename _type>
+	yconstfn auto
+	operator()(const _type& x, const _type& y) const
+		-> decltype(x * y)
+	{
+		return x * y;
 	}
 };
 
