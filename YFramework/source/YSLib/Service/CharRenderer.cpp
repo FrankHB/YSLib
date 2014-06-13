@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3253
+\version r3254
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-05-23 09:41 +0800
+	2014-06-12 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "YSLib/Service/YModules.h"
 #include YFM_YSLib_Service_CharRenderer
 #include YFM_YSLib_Service_YPixel
+#include <ystdex/bitseg.hpp> // for ystdex::bitseg_iterator;
 
 using namespace ystdex;
 

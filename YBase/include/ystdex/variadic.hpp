@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r234
+\version r313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2013-12-22 20:44 +0800
+	2014-06-13 10:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,6 +203,105 @@ public:
 		sequence_split<vseq>::tail>, sequence_split_t<vseq>>;
 };
 //@}
+
+
+/*!
+\ingroup vseq_operations
+\brief 拆分序列前若干元素。
+\note 使用二分实现减少递归实例化深度。
+\since build 507
+*/
+//@{
+template<size_t, class>
+struct sequence_split_n;
+
+template<size_t _vIdx, class _tSeq>
+using sequence_split_n_t = typename sequence_split_n<_vIdx, _tSeq>::type;
+
+template<size_t... _vSeq>
+struct sequence_split_n<0, variadic_sequence<_vSeq...>>
+{
+	using type = variadic_sequence<>;
+	using tail = variadic_sequence<_vSeq...>;
+};
+
+template<size_t _vHead, size_t... _vSeq>
+struct sequence_split_n<1, variadic_sequence<_vHead, _vSeq...>>
+{
+	using type = variadic_sequence<_vHead>;
+	using tail = variadic_sequence<_vSeq...>;
+};
+
+template<size_t _vIdx, size_t... _vSeq>
+struct sequence_split_n<_vIdx, variadic_sequence<_vSeq...>>
+{
+private:
+	using half = sequence_split_n<_vIdx / 2, variadic_sequence<_vSeq...>>;
+	using last = sequence_split_n<_vIdx - _vIdx / 2, typename half::tail>;
+
+public:
+	using type = sequence_cat_t<typename half::type, typename last::type>;
+	using tail = typename last::tail;
+};
+//@}
+
+
+/*!
+\ingroup vseq_operations
+\brief 二元操作合并应用。
+\pre 二元操作符合交换律和结合律。
+\since build 507
+*/
+//@{
+template<class, typename, class>
+struct sequence_fold;
+
+template<class _fBinary, typename _tState, class _type>
+using sequence_fold_t = typename sequence_fold<_fBinary, _tState, _type>::type;
+
+template<class _fBinary, class _tState>
+struct sequence_fold<_fBinary, _tState, variadic_sequence<>>
+{
+	using type = _tState;
+
+	static yconstexpr auto value = _tState::value;
+};
+
+template<class _fBinary, class _tState, size_t _vHead>
+struct sequence_fold<_fBinary, _tState, variadic_sequence<_vHead>>
+{
+	static yconstexpr auto value = _fBinary()(_tState::value, _vHead);
+
+	using type = variadic_sequence<value>;
+};
+
+template<class _fBinary, class _tState, size_t... _vSeq>
+struct sequence_fold<_fBinary, _tState, variadic_sequence<_vSeq...>>
+{
+private:
+	using parts
+		= sequence_split_n<sizeof...(_vSeq) / 2, variadic_sequence<_vSeq...>>;
+	using head = typename parts::type;
+	using tail = typename parts::tail;
+
+public:
+	static yconstexpr auto value = sequence_fold<_fBinary,
+		std::integral_constant<size_t,
+		sequence_fold<_fBinary, _tState, head>::value>, tail>::value;
+
+	using type = variadic_sequence<value>;
+};
+//@}
+
+
+/*!
+\brief 直接接受 size_t 类型值二元操作合并应用。
+\sa sequence_fold
+\since build 507
+*/
+template<class _fBinary, size_t _vState, size_t... _vSeq>
+using vseq_fold = sequence_fold<_fBinary,
+	std::integral_constant<size_t, _vState>, variadic_sequence<_vSeq...>>;
 
 
 /*!

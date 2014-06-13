@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r153
+\version r208
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2014-06-06 00:19 +0800
+	2014-06-13 09:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,6 +95,15 @@ struct is_contravariant<std::tuple<_tFroms...>, std::tuple<_tTos...>>
 {};
 
 
+//! \since build 449
+template<typename _tHead, typename... _tTail>
+struct sequence_split<std::tuple<_tHead, _tTail...>>
+{
+	using type = _tHead;
+	using tail = std::tuple<_tTail...>;
+};
+
+
 template<typename... _types1, typename... _types2>
 struct sequence_cat<std::tuple<_types1...>, std::tuple<_types2...>>
 {
@@ -139,13 +148,64 @@ public:
 //@}
 
 
-//! \since build 449
-template<typename _tHead, typename... _tTail>
-struct sequence_split<std::tuple<_tHead, _tTail...>>
+//! \since build 507
+//@{
+template<typename... _types>
+struct sequence_split_n<0, std::tuple<_types...>>
 {
-	using type = _tHead;
-	using tail = std::tuple<_tTail...>;
+	using type = std::tuple<>;
+	using tail = std::tuple<_types...>;
 };
+
+template<typename _type, typename... _types>
+struct sequence_split_n<1, std::tuple<_type, _types...>>
+{
+	using type = std::tuple<_type>;
+	using tail = std::tuple<_types...>;
+};
+
+template<size_t _vIdx, typename... _types>
+struct sequence_split_n<_vIdx, std::tuple<_types...>>
+{
+private:
+	using half = sequence_split_n<_vIdx / 2, std::tuple<_types...>>;
+	using last = sequence_split_n<_vIdx - _vIdx / 2, typename half::tail>;
+
+public:
+	using type = sequence_cat_t<typename half::type, typename last::type>;
+	using tail = typename last::tail;
+};
+//@}
+
+
+//! \since build 507
+//@{
+template<class _fBinary, typename _tState>
+struct sequence_fold<_fBinary, _tState, std::tuple<>>
+{
+	using type = _tState;
+};
+
+template<class _fBinary, typename _tState, typename _type>
+struct sequence_fold<_fBinary, _tState, std::tuple<_type>>
+{
+	using type = typename _fBinary::template apply<_tState, _type>::type;
+};
+
+template<class _fBinary, typename _tState, typename... _types>
+struct sequence_fold<_fBinary, _tState, std::tuple<_types...>>
+{
+private:
+	using parts
+		= sequence_split_n_t<sizeof...(_types) / 2, std::tuple<_types...>>;
+	using head = typename parts::type;
+	using tail = typename parts::tail;
+
+public:
+	using type = sequence_fold_t<_fBinary,
+		sequence_fold_t<_fBinary, _tState, head>, tail>;
+};
+//@}
 
 } // namespace ystdex;
 

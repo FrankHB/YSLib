@@ -1,0 +1,260 @@
+﻿/*
+	© 2014 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file bitseg.hpp
+\ingroup YStandardEx
+\brief 位段数据结构和访问。
+\version r259
+\author FrankHB <frankhb1989@gmail.com>
+\since build 507
+\par 创建时间:
+	2014-06-12 21:42:50 +0800
+\par 修改时间:
+	2014-06-05 16:56 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	YStandardEx::BitSegment
+*/
+
+
+#ifndef YB_INC_ystdex_bitseg_hpp_
+#define YB_INC_ystdex_bitseg_hpp_ 1
+
+#include "type_op.hpp" // for byte, ptrdiff_t;
+#include <iterator> // for std::iterator, std::random_access_iterator_tag;
+
+namespace ystdex
+{
+
+/*!
+\ingroup iterators
+\brief 位段迭代器。
+\tparam _vN 段宽度（ CHAR_BIT <= UCHAR_MAX 恒成立，因此使用 unsigned char ）。
+\tparam _bEndian 位序， ture 时为大端，否则为小端。
+\warning 非虚析构。
+\since build 414
+\todo 支持 const byte* 实现的迭代器。
+
+对字节分段提供的随机访问迭代器。
+*/
+//! \note since build 458 as workaround for Visual C++ 2013 and Clang++ 3.4
+#if YB_IMPL_MSCPP || YB_IMPL_CLANGPP
+template<unsigned char _vN, bool _bEndian = false>
+#else
+template<unsigned char _vN, bool _bEndian = {}>
+#endif
+class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
+	byte, ptrdiff_t, byte*, byte&>
+{
+	static_assert(_vN != 0, "A bit segment should contain at least one bit.");
+	static_assert(_vN != CHAR_BIT, "A bit segment should not be a byte.");
+	static_assert(CHAR_BIT % _vN == 0,
+		"A byte should be divided by number of segments without padding.");
+
+public:
+	using difference_type = ptrdiff_t;
+	using pointer = byte*;
+	using reference = byte&;
+
+	static yconstexpr unsigned char seg_n = CHAR_BIT / _vN;
+	static yconstexpr unsigned char seg_size = 1 << _vN;
+	static yconstexpr unsigned char seg_width = _vN;
+
+protected:
+	byte* base;
+	unsigned char shift;
+	mutable byte value;
+
+public:
+	//! \since build 461
+	//@{
+	/*!
+	\brief 构造：使用基指针和偏移位。
+	\note value 具有未决定值。
+	\post 断言： <tt>shift < seg_n</tt> 。
+	*/
+	bitseg_iterator(byte* p = {}, unsigned char n = 0) ynothrow
+		: base(p), shift(n)
+	{
+		yassume(shift < seg_n);
+	}
+
+	bitseg_iterator&
+	operator+=(difference_type n) ynothrowv
+	{
+		yconstraint(base);
+		yassume(shift < seg_n);
+
+		const size_t new_shift(shift + n);
+
+		yunseq(base += new_shift / seg_n, shift = new_shift % seg_n);
+		return *this;
+	}
+
+	bitseg_iterator&
+	operator-=(difference_type n) ynothrowv
+	{
+		base += -n;
+		return *this;
+	}
+
+	reference
+	operator*() const ynothrowv
+	{
+		yconstraint(base);
+		return value = *base >> seg_width * (_bEndian ? seg_n - 1 - shift
+			: seg_width) & seg_width;
+	}
+
+	yconstfn pointer
+	operator->() const ynothrowv
+	{
+		return &**this;
+	}
+
+	inline bitseg_iterator&
+	operator++() ynothrowv
+	{
+		yconstraint(base);
+		yassume(shift < seg_n);
+		if(++shift == seg_n)
+			yunseq(shift = 0, ++base);
+		return *this;
+	}
+	//! \since build 415
+	bitseg_iterator
+	operator++(int) ynothrowv
+	{
+		auto i(*this);
+
+		++*this;
+		return i;
+	}
+
+	inline bitseg_iterator&
+	operator--() ynothrowv
+	{
+		yconstraint(base);
+		yassume(shift < seg_n);
+		if(shift == 0)
+			yunseq(--base, shift = seg_n - 1);
+		else
+			--shift;
+		return *this;
+	}
+	//! \since build 415
+	bitseg_iterator
+	operator--(int) ynothrowv
+	{
+		auto i(*this);
+
+		--*this;
+		return i;
+	}
+
+	reference
+	operator[](difference_type n) const ynothrowv
+	{
+		const auto i(*this);
+
+		i += n;
+		return *i.operator->();
+	}
+
+	yconstfn bitseg_iterator
+	operator+(difference_type n) const ynothrow
+	{
+		return bitseg_iterator(base + n);
+	}
+
+	yconstfn bitseg_iterator
+	operator-(difference_type n) const ynothrow
+	{
+		return bitseg_iterator(base - n);
+	}
+
+	yconstfn explicit
+	operator pointer() const ynothrow
+	{
+		return base;
+	}
+
+	yconstfn size_t
+	get_shift() const ynothrow
+	{
+		return shift;
+	}
+	//@}
+};
+
+/*!
+\relates bitseg_iterator
+\since build 428
+*/
+//@{
+template<size_t _vN, bool _bEndian>
+inline bool
+operator==(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
+{
+	using pointer = typename bitseg_iterator<_vN, _bEndian>::pointer;
+
+	return pointer(x) == pointer(y) && x.get_shift() == y.get_shift();
+}
+
+template<size_t _vN, bool _bEndian>
+inline bool
+operator!=(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
+{
+	return !(x == y);
+}
+
+template<size_t _vN, bool _bEndian>
+inline bool
+operator<(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
+{
+	using pointer = typename bitseg_iterator<_vN, _bEndian>::pointer;
+
+	return pointer(x) < pointer(y)
+		|| (pointer(x) == pointer(y) && x.get_shift() < y.get_shift());
+}
+
+template<size_t _vN, bool _bEndian>
+bool
+operator<=(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
+{
+	return !(y < x);
+}
+
+template<size_t _vN, bool _bEndian>
+bool
+operator>(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
+{
+	return y < x;
+}
+
+template<size_t _vN, bool _bEndian>
+bool
+operator>=(const bitseg_iterator<_vN, _bEndian>& x,
+	const bitseg_iterator<_vN, _bEndian>& y)
+{
+	return !(x < y);
+}
+//@}
+
+} // namespace ystdex;
+
+#endif
+
