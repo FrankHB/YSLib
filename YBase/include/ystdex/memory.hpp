@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r496
+\version r497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-02-16 17:47 +0800
+	2014-06-14 20:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,7 +201,7 @@ share_raw(nullptr_t) ynothrow
 
 /*!
 \ingroup helper_functions
-\brief 使用 new 和指定参数构造指定类型的 std::unique_ptr 实例。
+\brief 使用 new 和指定参数构造指定类型的 std::unique_ptr 对象。
 \tparam _type 被指向类型。
 \see http://herbsutter.com/gotw/_102/ 。
 \see ISO WG21/N3797 20.7.2[memory.syn] 。

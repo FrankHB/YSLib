@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r584
+\version r638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-13 20:37 +0800
+	2014-06-15 12:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,61 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %NPL $=
+		(
+			/ %NPLA1 $=
+			(
+				/ "overrode recursive %TransformNPLA1 call for children nodes"
+					@ "function %TransformNPLA1",
+					// Now the input of the mapper function is AST instead of \
+						semantics tree. This allows the AST transformation \
+						being overridden. Order of AST terms can be directly \
+						reserved.
+				+ "function %ParseNPLANodeString"
+			),
+			/ %Lexical $=
+			(
+				/ "function %MakeEscape" -> "function %Unescape" $=
+				(
+					/ DLD "reserved space of %string object at first"
+						@ "implementation",
+					* "missing unescaping quotes characters" $since b335,
+					* "missing unescaping characters with prefix backslash"
+						$since b335,
+						// The result would be wrongly escaped when containing \
+							unexpected escape sequences.
+					/ "avoided adding trailing backslash when unescapable"
+						// It is useful for literal only. See %UnescapeLiteral.
+				),
+				+ "function %UnescapeLiteral"
+					// It would add backslash when necessary.
+			),
+			/ $revert(b343) "unescaped node name" @ "%operator<<"
+				@ %Configuration
+		),
+		* "missing several '\n'" @ "tracing" @ %Helper.Initialization
+			$since b506
+	),
+	/ %YReader $=
+	(
+		/ "avoided literal conversion for unescaping names" @ "member \
+			functions %ShlReader::(LoadBookmarks, SaveBookmarks)" @ %ShlReader,
+			// Now only escaped names would be stored by NPLA1 configuration, \
+				so explicit unescaping in user code is usually redundant. \
+				However, quotes would not be automatically added.
+		$dep_from ("function %Unescape" @ %YFramework.NPL.Lexical,
+			%YFramework.NPL.Configuration);
+		* $comp "saved escaped file path for bookmark entry" @ %YReader.Bookmark
+			$since b392
+			// Loading bookmark would fail when the path containing NPL \
+				escapable sequence.
+	)
+),
+
+b507
 (
 	/ %YBase.YStandardEx $=
 	(

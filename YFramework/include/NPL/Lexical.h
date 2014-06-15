@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1267
+\version r1280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2014-04-23 01:16 +0800
+	2014-06-14 23:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,12 +149,23 @@ YF_API string
 Deliteralize(const string&);
 
 /*!
-\brief 转义字符串：替换指定字符串中的可转义字符。
+\brief 反转义字符串：替换指定字符串中的可转义字符为转义序列。
 \sa LexicalAnalyzer
-\since build 335
+\since build 508
 */
 YF_API string
-MakeEscape(const string&);
+Unescape(const string&);
+
+/*!
+\brief 反转义字符串字面量。
+\return 若参数是字符串字面量时转义其中的内容，否则为原串。
+\note 使用 Unescape 转义。
+\note 若转义后最后一个字符为 '\\' 则添加一个 '\\' 以避免转义末尾分隔符。
+\sa LexicalAnalyzer
+\since build 508
+*/
+YF_API string
+UnescapeLiteral(const string&);
 
 
 /*!

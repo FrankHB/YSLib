@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1296
+\version r1350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2014-05-23 09:35 +0800
+	2014-06-15 01:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -188,42 +188,87 @@ Deliteralize(const string& str)
 }
 
 string
-MakeEscape(const string& str)
+Unescape(const string& str)
 {
+	char last{};
 	string res;
 
+	res.reserve(str.length());
 	for(char c : str)
+	{
+		char unescaped{};
+
 		switch(c)
 		{
 		case '\a':
-			res += "\\a";
+			unescaped = 'a';
 			break;
 		case '\b':
-			res += "\\b";
+			unescaped = 'b';
 			break;
 		case '\f':
-			res += "\\f";
+			unescaped = 'f';
 			break;
 		case '\n':
-			res += "\\n";
+			unescaped = 'n';
 			break;
 		case '\r':
-			res += "\\r";
+			unescaped = 'r';
 			break;
 		case '\t':
-			res += "\\t";
+			unescaped = 't';
 			break;
 		case '\v':
-			res += "\\v";
+			unescaped = 'v';
 			break;
-		default:
-			res += c;
+		case '\'':
+		case '"':
+			unescaped = c;
 		}
-	if(!str.empty() && str.back() == '\\')
-		res += "\\";
+		if(last == '\\')
+		{
+			if(c == '\\')
+			{
+				yunseq(last = char(), res += '\\');
+				continue;
+			}
+			switch(c)
+			{
+			case 'a':
+			case 'b':
+			case 'f':
+			case 'n':
+			case 'r':
+			case 't':
+			case 'v':
+			case '\'':
+			case '"':
+				res += '\\';
+			}
+		}
+		if(unescaped == char())
+			res += c;
+		else
+		{
+			res += '\\';
+			res += unescaped;
+			unescaped = char();
+		}
+		last = c;
+	}
 	return res;
 }
 
+string
+UnescapeLiteral(const string& str)
+{
+	const char c(CheckLiteral(str));
+	auto content(Unescape(c == char() ? str : ystdex::get_mid(str)));
+
+	if(!content.empty() && content.back() == '\\')
+		content += '\\';
+	return c == char() ? std::move(content) : c + content + c;
+}
 
 list<string>
 Decompose(const string& src_str)
