@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4939
+\version r4944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-06-06 00:26 +0800
+	2014-06-15 11:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -327,7 +327,6 @@ b392
 			@ %YCLib
 			// To eliminate [-Wzero-as-null-pointer-constant].
 	),
-	+ "bookmark list adding and removing UI" @ %YReader,
 	/ DLD %YBase $=
 	(
 		/ "version marco confirmed" @ %LibDefect.String,
@@ -348,7 +347,8 @@ b392
 		+ $dev $build "compiler flag" ('-pedantic-errors'
 			@ "projects %(YFramework, YSTest)", '-Wmissing-include-dirs \
 			-Wzero-as-null-pointer-constant' @ "all projects")
-	)
+	),
+	+ "bookmark list adding and removing UI" @ %YReader
 ),
 
 b391
@@ -824,7 +824,7 @@ b376
 				reference as function parameter"
 			)
 		);
-		/ NPL $=
+		/ %NPL $=
 		(
 			/ "variadic constructor template" ^ "prefix unused parameter"
 				@ %ValueNode;
@@ -2346,7 +2346,8 @@ b335
 	/ %YFramework $=
 	(
 		* DLP "include guard macros" @ %Helper $since b303,
-		+ "library %NPL" $= (+ "units %(Lexical; SContext; Configuration)")
+		+ "library %NPL"
+			$= (+ "units %(Lexical; SContext; Configuration)")
 	)
 	// Release binary image(.nds) of this version are strictly equal with b334 \
 		on platform %DS.

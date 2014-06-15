@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2024
+\version r2028
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-06-12 01:30 +0800
+	2014-06-14 13:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,7 +193,7 @@ LoadComponents(const ValueNode& node)
 
 	const string mapping_name(data_dir + "cp113.bin");
 
-	YF_Init_printf(Notice, "Load character mapping file '%s' ...",
+	YF_Init_printf(Notice, "Load character mapping file '%s' ...\n",
 		mapping_name.c_str());
 	p_mapped = new MappedFile(data_dir + "cp113.bin");
 	if(p_mapped->GetSize() != 0)
@@ -221,10 +221,10 @@ HandleFatalError(const FatalError& e) ynothrow
 #if YCL_DS
 	const char* line("--------------------------------");
 
-	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s", line, e.GetTitle(), line,
+	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s\n", line, e.GetTitle(), line,
 		e.GetContent(), line);
 #else
-	YF_Init_printf(Emergent, "%s\n%s", e.GetTitle(), e.GetContent());
+	YF_Init_printf(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent());
 #endif
 	terminate();
 }
@@ -450,7 +450,7 @@ void
 Uninitialize() ynothrow
 {
 	YF_Init_printf(Notice, "Uninitialization entered with"
-		" %u handler(s) to be called.", unsigned(app_exit.size()));
+		" %u handler(s) to be called.\n", unsigned(app_exit.size()));
 	while(!app_exit.empty())
 	{
 		if(YB_LIKELY(app_exit.top()))

@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r730
+\version r740
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2014-02-02 18:33 +0800
+	2014-06-14 20:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,16 +69,6 @@ WriteNode(File& f, const ValueNode& node, size_t depth)
 }
 #endif
 
-//! \since build 335
-string
-EscapeNodeString(const string& str)
-{
-	const char c(CheckLiteral(str));
-	auto content(MakeEscape(c == char() ? str : ystdex::get_mid(str)));
-
-	return c == char() ? std::move(content) : c + content + c;
-}
-
 //! \since build 449
 bool
 PrintNodeString(File& f, const ValueNode& node)
@@ -87,7 +77,7 @@ PrintNodeString(File& f, const ValueNode& node)
 	{
 		const auto& s(Access<string>(node));
 
-		f << '"' << EscapeNodeString(s) << '"' << '\n';
+		f << '"' << UnescapeLiteral(s) << '"' << '\n';
 		return true;
 	}
 	catch(ystdex::bad_any_cast&)
@@ -100,7 +90,7 @@ File&
 WriteNodeC(File& f, const ValueNode& node, size_t depth)
 {
 	WritePrefix(f, depth);
-	f << node.GetName();
+	f << UnescapeLiteral(node.GetName());
 	if(node)
 	{
 		f << ' ';

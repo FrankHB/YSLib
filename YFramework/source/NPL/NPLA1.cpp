@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r131
+\version r158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2014-06-08 04:34 +0800
+	2014-06-14 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,19 @@ using namespace YSLib;
 namespace NPL
 {
 
+string
+ParseNPLANodeString(const ValueNode& node)
+{
+	try
+	{
+		return Access<string>(node);
+	}
+	catch(ystdex::bad_any_cast&)
+	{}
+	return {};
+}
+
+
 ValueNode
 TransformNPLA1(const ValueNode& node, std::function<NodeMapper> mapper)
 {
@@ -47,39 +60,29 @@ TransformNPLA1(const ValueNode& node, std::function<NodeMapper> mapper)
 	if(s == 1)
 		return TransformNPLA1(*i, mapper);
 
-	const auto& new_name([&]()->string{
-		try
-		{
-			const auto& str(Access<string>(*i));
+	const auto& name(ParseNPLANodeString(*i));
 
-			yunseq(++i, --s);
-			return str;
-		}
-		catch(ystdex::bad_any_cast&)
-		{}
-		return string();
-	}());
-
+	if(!name.empty())
+		yunseq(++i, --s);
 	if(s == 1)
 	{
 		auto&& n(TransformNPLA1(*i, mapper));
 
 		if(n.GetName().empty())
-			return {0, new_name, std::move(n.Value)};
-		return {ValueNode::Container{std::move(n)}, new_name};
+			return {0, name, std::move(n.Value)};
+		return {ValueNode::Container{std::move(n)}, name};
 	}
 
 	auto p_node_con(make_unique<ValueNode::Container>());
 
 	std::for_each(i, node.end(), [&](const ValueNode& nd){
-		const auto& tree(TransformNPLA1(nd, mapper));
-		auto&& n(mapper ? mapper(tree) : tree);
+		auto&& n(mapper ? mapper(nd) : TransformNPLA1(nd, mapper));
 
 		p_node_con->insert(n.GetName().empty() ? ValueNode(0,
 			'$' + std::to_string(p_node_con->size()), std::move(n.Value))
 			: std::move(n));
 	});
-	return {std::move(p_node_con), new_name};
+	return {std::move(p_node_con), name};
 }
 
 

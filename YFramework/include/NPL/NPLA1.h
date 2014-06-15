@@ -11,13 +11,13 @@
 /*!	\file NPLA1.h
 \ingroup NPLA1
 \brief NPLA1 公共接口。
-\version r117
+\version r133
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 17:58:24 +0800
 \par 修改时间:
-	2014-06-08 01:59 +0800
+	2014-06-14 22:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,13 @@
 namespace NPL
 {
 
+//! \since build 341
+using YSLib::string;
+
+//! \since build 335
+using YSLib::ValueNode;
+
+
 //! \since build 472
 //@{
 /*!
@@ -46,6 +53,16 @@ struct YF_API NPLA : NPL
 
 
 /*!
+\brief 解析 NPLA 节点字符串。
+\since build 508
+
+以 string 类型访问节点，若失败则结果为空串。
+*/
+YF_API string
+ParseNPLANodeString(const ValueNode&);
+
+
+/*!
 \brief NPLA1 元标签。
 \note NPLA1 是 NPLA 的具体实现。
 */
@@ -54,12 +71,6 @@ struct YF_API NPLA1 : NPLA
 //@}
 
 
-//! \since build 341
-using YSLib::string;
-
-//! \since build 335
-using YSLib::ValueNode;
-
 //! \since build 501
 //@{
 //! \brief 节点映射操作类型：变换节点为另一个节点。
@@ -67,10 +78,12 @@ using NodeMapper = ValueNode(const ValueNode&);
 
 
 /*!
-\brief 变换 NPLA1 节点 S 表达式抽象语法树变换为 NPLA1 语义结构。
-\note 仅在变换子节点时使用指定的映射操作。
-\note 对非 string 类型的叶节点变换时直接复制名称并转移值，否则不修改原节点的内容。
-\note 若映射操作返回节点名称为空则根据当前节点大小加前缀 $ 命名。
+\brief 变换 NPLA1 节点 S 表达式抽象语法树为 NPLA1 语义结构。
+
+仅在变换子节点时使用指定的映射操作。映射操作需返回被转换的节点（及子节点）。
+默认映射操作递归调用 TransformNPLA1 变换节点。
+对非 string 类型的叶节点变换时直接复制名称并转移值，否则不修改原节点的内容。
+若映射操作返回节点名称为空则根据当前节点大小加前缀 $ 命名。
 */
 YF_API ValueNode
 TransformNPLA1(const ValueNode&, std::function<NodeMapper> = {});

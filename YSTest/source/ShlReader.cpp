@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4626
+\version r4629
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-06-08 12:42 +0800
+	2014-06-14 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,7 +205,7 @@ ShlReader::LoadBookmarks(const string& group)
 	{
 		// TODO: Complete unexpected input handling.
 		const auto& value(Access<string>(FetchRoot().at("YReader")["Bookmarks"]
-			.at('"' + NPL::MakeEscape(group) + '"')));
+			.at('"' + group + '"')));
 
 		YTraceDe(Informative, "Loaded bookmark value '%s'.",
 			value.c_str());
@@ -266,8 +266,8 @@ ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
 
 		for(const auto& pos : bookmarks)
 			str += to_string(pos) + ' ';
-		FetchRoot().at("YReader")["Bookmarks"]['"' + NPL::MakeEscape(group)
-			+ '"'].Value = std::move(str);
+		FetchRoot().at("YReader")["Bookmarks"]['"' + group + '"']
+			.Value = std::move(str);
 	}
 	catch(std::exception& e)
 	{
