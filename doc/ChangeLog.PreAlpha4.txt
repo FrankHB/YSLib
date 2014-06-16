@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8168
+\version r8181
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-06-04 13:40 +0800
+	2014-06-16 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -590,11 +590,10 @@ b495
 		@ %Documentation::ChangeLog $=
 	(
 		- "all 'member' when unnecessary",
-		/ "all 'member data'" => 'data member',
-			// Only %Documentation::ChangeLog::PreAlpha4 is effected.
+		/ "all 'member data'" => 'data member' $effective
+			%Documentation::ChangeLog::PreAlpha4,
 		- "redundant '$dep_to' when the entity was new and able to be deducted \
-			from '$dep_from'"
-			// Only %Documentation::ChangeLog::PreAlpha3 is effected.
+			from '$dep_from'" $effective %Documentation::ChangeLog::PreAlpha3
 	),
 	/ %YReader $=
 	(
@@ -655,8 +654,7 @@ b494
 						@ "function %MUIContainer::PaintVisibleChildren"
 						^ "%PaintVisibleChild"
 					),
-					/ "assertion text"
-						@ "function %MUIContainer::operator-=",
+					/ "assertion text" @ "function %MUIContainer::operator-=",
 					+ "class %MLinearUIContainer,
 					+ "function %RemoveFrom"
 				),
@@ -1273,10 +1271,9 @@ b486
 						)
 					)
 				),
-				+ "manually invalidation handlers"
-					@ "event %(GotFocus, LostFocus)" @ "controls"
-					// Only %TextBox is modified. See $2014-03 \
-						@ %Documentation::Workflow::Annual2014.
+				+ "manually invalidation handlers" @ "event %(GotFocus, \
+					LostFocus)" @ "controls" $effective %TextBox
+					// See $2014-03 @ %Documentation::Workflow::Annual2014.
 			),
 			/ @ %YAdaptor.Adaptor $=
 			(
@@ -6535,7 +6532,7 @@ b402
 			(
 				/ "class %FileNode" @ "platform %MinGW32" ^ "MinGW \
 					wide-oriented directory APIs" ~ "custom UTF-8 APIs",
-				* "spell error" $since b171
+				* "spelling error" $since b171
 					$= (/ %YCL_PATH_SEPERATOR => %YCL_PATH_SEPARATOR),
 				+ "static asserts to check delimiter and separator constraints",
 				+ "file system path encoding constant %CS_Path";
@@ -6558,7 +6555,7 @@ b402
 			),
 			/ %Core.YFileSystem $=
 			(
-				* "spell error" $since $before b132
+				* "spelling error" $since $before b132
 					$= (/ %FS_Seperator => %FS_Separator),
 				(
 				$dep_from "CS_Path";
@@ -6640,7 +6637,7 @@ b400
 		- "all entities %(is_dereferncable, check_dereferncable)";
 		* $comp "spelling error" $since b249
 		),
-		* spell error $since b250 $=
+		* "spelling error" $since b250 $=
 		(
 			/ "%is_undereferencable" => "%is_undereferenceable",
 			/ "%check_undereferencable" => "%check_undereferenceable"

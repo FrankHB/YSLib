@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r815
+\version r816
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-05-28 23:25 +0800
+	2014-06-15 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -289,7 +289,7 @@ pair<Drawing::Color, Drawing::Color>
 Palette::GetPair(Palette::ColorListType::size_type n1,
 	Palette::ColorListType::size_type n2) const
 {
-	return make_pair(colors[n1], colors[n2]);
+	return {colors[n1], colors[n2]};
 }
 
 

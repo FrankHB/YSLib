@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r102
+\version r103
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-06-09 10:49 +0800
+	2014-06-15 18:27 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -58,7 +58,7 @@ AndroidScreen::AndroidScreen(::ANativeWindow& wnd)
 {}
 AndroidScreen::AndroidScreen(::ANativeWindow& wnd, const Drawing::Size& size)
 	: Screen(size),
-	window_ref(wnd), rbuf(Drawing::Size(size))
+	window_ref(wnd), rbuf(size)
 {
 	YTraceDe(Informative, "Screen created, size = %s.",
 		to_string(size).c_str());

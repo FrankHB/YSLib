@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r741
+\version r742
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-04-23 01:09 +0800
+	2014-06-16 13:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,10 +93,10 @@ SaveConfiguration(const ValueNode&);
 
 /*!
 \brief 初始化环境。
-\since build 342
+\since build 509
 */
 YF_API void
-InitializeEnviornment();
+InitializeEnvironment();
 
 /*!
 \brief 初始化已安装项：检查安装完整性并载入主配置文件的配置项。

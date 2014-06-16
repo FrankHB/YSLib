@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3694
+\version r3695
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-04-06 17:46 +0800
+	2014-06-15 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -243,7 +243,7 @@ public:
 	void
 	SetContent(ConstBitmapPtr, SDst, SDst);
 	PDefH(void, SetSize, SDst w, SDst h)
-		ImplExpr(SetSize(Size(w, h)))
+		ImplExpr(SetSize({w, h}))
 	/*!
 	\brief 重新设置缓冲区大小。
 	\note 若有一边为零则删除缓冲区；若大于缓冲区空间则重新分配；

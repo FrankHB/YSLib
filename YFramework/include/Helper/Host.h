@@ -11,13 +11,13 @@
 /*!	\file Host.h
 \ingroup Helper
 \brief 宿主环境。
-\version r726
+\version r732
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-06-05 00:05 +0800
+	2014-06-16 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,6 +166,13 @@ public:
 	void
 	LeaveWindowThread();
 #	endif
+
+	/*!
+	\brief 映射宿主光标位置到相对于顶层部件输入的光标位置。
+	\since build 509
+	*/
+	Drawing::Point
+	MapCursor() const;
 
 	/*!
 	\brief 移除窗口映射项。

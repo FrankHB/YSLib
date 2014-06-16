@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1355
+\version r1384
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-06-10 02:04 +0800
+	2014-06-16 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "Helper/YModules.h"
 #include YFM_Helper_Host
 #include YFM_Helper_ShellHelper // for YSL_DEBUG_DECL_TIMER;
+#include YFM_YCLib_Input // for platform_ex::FetchCursor.
 
 namespace YSLib
 {
@@ -137,8 +138,7 @@ Environment::AddMappedItem(NativeWindowHandle h, Window* p)
 {
 	std::unique_lock<std::mutex> lck(wmap_mtx);
 
-	// TODO: Use %emplace.
-	wnd_map.insert(make_pair(h, p));
+	wnd_map.emplace(h, p);
 }
 
 Window*
@@ -189,6 +189,37 @@ Environment::LeaveWindowThread()
 		YSLib::PostQuitMessage(0);
 }
 #	endif
+
+Point
+Environment::MapCursor() const
+{
+#	if YCL_Win32
+	if(const auto p_wnd = GetForegroundWindow())
+	{
+		::POINT cursor;
+
+		::GetCursorPos(&cursor);
+		::ScreenToClient(p_wnd->GetNativeHandle(), &cursor);
+
+		const auto& pr(p_wnd->GetInputBounds());
+
+		if(YB_LIKELY(pr.first.X != pr.second.X && pr.first.Y != pr.second.Y)
+			&& (!p_wnd->BoundsLimited
+			|| (IsInInterval<::LONG>(cursor.x, pr.first.X, pr.second.X)
+			&& IsInInterval<::LONG>(cursor.y, pr.first.Y, pr.second.Y))))
+			return {cursor.x - pr.first.X, cursor.y - pr.first.Y};
+	}
+	return Drawing::Point::Invalid;
+#	elif YCL_Android
+	// TODO: Support floating point coordinates.
+	// TODO: Use std::round.
+	const auto& cursor(platform_ex::FetchCursor());
+
+	return {::round(cursor.first), ::round(cursor.second)};
+#	else
+	return Drawing::Point::Invalid;
+#	endif
+}
 
 void
 Environment::RemoveMappedItem(NativeWindowHandle h) ynothrow

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r377
+\version r378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-06-04 16:52 +0800
+	2014-06-16 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -192,7 +192,7 @@ ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 
 	::ANativeWindow_lock(h_wnd, &abuf, &arect);
 	CopyTo(static_cast<BitmapPtr>(abuf.bits), GetContext(),
-		WindowReference(h_wnd).GetSize(), {}, {}, s);
+		WindowReference(h_wnd).GetSize(), pt, {}, s);
 	::ANativeWindow_unlockAndPost(h_wnd);
 }
 

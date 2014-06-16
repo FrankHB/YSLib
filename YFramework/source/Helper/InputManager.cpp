@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r402
+\version r428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-06-04 23:55 +0800
+	2014-06-16 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,36 +129,12 @@ InputManager::Update()
 //	platform::AllowSleep(true);
 	platform_ex::UpdateKeyStates();
 
-#if YCL_DS
+#if YF_Hosted
+	cursor_state = env.get().MapCursor();
+#elif YCL_DS
 	if(platform_ex::FetchKeyState()[Touch])
-#endif
-	{
-#if YCL_DS
 		cursor_state = platform_ex::FetchCursor();
-#elif YCL_Win32
-		::POINT cursor;
-
-		::GetCursorPos(&cursor);
-		::ScreenToClient(p_wnd->GetNativeHandle(), &cursor);
-
-		const auto& pr(p_wnd->GetInputBounds());
-
-		if(YB_LIKELY(pr.first.X != pr.second.X && pr.first.Y != pr.second.Y)
-			&& (!p_wnd->BoundsLimited
-			|| (IsInInterval<::LONG>(cursor.x, pr.first.X, pr.second.X)
-			&& IsInInterval<::LONG>(cursor.y, pr.first.Y, pr.second.Y))))
-			yunseq(cursor_state.X = cursor.x - pr.first.X,
-				cursor_state.Y = cursor.y - pr.first.Y);
-		else
-			cursor_state = Drawing::Point::Invalid;
-#elif YCL_Android
-		// TODO: Support floating point coordinates.
-		// TODO: Use std::round.
-		const auto& cursor(platform_ex::FetchCursor());
-
-		cursor_state = {::round(cursor.first), ::round(cursor.second)};
 #endif
-	}
 #if YF_Hosted
 	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd))
 		return &p_render_wnd->GetRenderer().GetWidgetRef();

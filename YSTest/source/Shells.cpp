@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6357
+\version r6358
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2014-05-29 13:55 +0800
+	2014-06-15 18:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,7 +159,7 @@ AddButtonToTabBar(TabControl& tc, const ValueNode& node, const string& name,
 	const String& text, SDst w)
 {
 	auto& tb(tc.GetTabBarRef());
-	auto p_tab(make_shared<Button>(Rect(0, 0, w, tc.BarHeight)));
+	auto p_tab(make_shared<Button>(Rect({}, w, tc.BarHeight)));
 
 	p_tab->Text = text,
 	tb += *p_tab,

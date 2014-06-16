@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r979
+\version r982
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2014-05-06 23:49 +0800
+	2014-06-15 15:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,7 +144,7 @@ void
 MemoryList::Register(const void* p, std::size_t s, const char* f, int l)
 {
 	if(p)
-		Blocks.insert(std::make_pair(p, MemoryList::BlockInfo(s, f, l)));
+		Blocks.emplace(p, MemoryList::BlockInfo(s, f, l));
 }
 
 void
@@ -155,8 +155,8 @@ MemoryList::Unregister(const void* p, const char* f, int l)
 		std::size_t n(Blocks.erase(p));
 
 		if(n != 1)
-			DuplicateDeletedBlocks.push_back(std::make_pair(p,
-				MemoryList::BlockInfo(0, f, l)));
+			DuplicateDeletedBlocks.emplace_back(p,
+				MemoryList::BlockInfo(0, f, l));
 	}
 }
 
