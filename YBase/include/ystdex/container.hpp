@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r652
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-05-23 09:59 +0800
+	2014-06-15 14:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -476,7 +476,7 @@ search_map(_tMap& m, const typename _tMap::key_type& k)
 {
 	const auto i(m.lower_bound(k));
 
-	return std::make_pair(i, (i == m.end() || m.key_comp()(k, i->first)));
+	return {i, (i == m.end() || m.key_comp()(k, i->first))};
 }
 
 

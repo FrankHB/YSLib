@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1294
+\version r1295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-06-01 02:49 +0800
+	2014-06-15 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -564,7 +564,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			SwitchVisibleToFront(pnlTest1);
 	},
 	mhMain += m1, mhMain += m2,
-	m1 += make_pair(0u, &m2);
+	m1 += {0u, &m2};
 	unseq_apply(ResizeForContent, m1, m2),
 	SetLocationOf(m1, Point(btnMenu.GetX(), btnMenu.GetY() - m1.GetHeight()));
 	//m1.SetWidth(btnMenu.GetWidth() + 20);

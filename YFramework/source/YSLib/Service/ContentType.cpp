@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ContentType.cpp
 \ingroup Service
 \brief 内容类型接口。
-\version r87
+\version r96
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-10 06:04:40 +0800
 \par 修改时间:
-	2013-12-24 00:00 +0800
+	2014-06-15 15:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,26 +35,26 @@ void
 MIMEBiMapping::operator+=(const pair<ExtensionType, MIMEType>& pr)
 {
 	ext_map.insert(pr),
-	inv_map.insert(make_pair(pr.second, pr.first));
+	inv_map.emplace(pr.second, pr.first);
 }
 void
 MIMEBiMapping::operator+=(const pair<MIMEType, ExtensionType>& pr)
 {
-	ext_map.insert(make_pair(pr.second, pr.first)),
+	ext_map.emplace(pr.second, pr.first),
 	inv_map.insert(pr);
 }
 
 void
 MIMEBiMapping::operator-=(const pair<ExtensionType, MIMEType>& pr)
 {
-	ext_map.insert(pr),
-	inv_map.insert(make_pair(pr.second, pr.first));
+	ext_map.erase(pr.first),
+	inv_map.erase(pr.second);
 }
 void
 MIMEBiMapping::operator-=(const pair<MIMEType, ExtensionType>& pr)
 {
-	ext_map.insert(make_pair(pr.second, pr.first)),
-	inv_map.insert(pr);
+	ext_map.erase(pr.second),
+	inv_map.erase(pr.first);
 }
 
 
@@ -75,9 +75,9 @@ AddMIMEItems(MIMEBiMapping& m, const ValueNode& node,
 	else
 		try
 		{
-			m += make_pair(Access<string>(node), !pth.empty()
+			m += {Access<string>(node), !pth.empty()
 				&& IsPrefixedIndex(pth.back()) ? MIMEBiMapping::MIMEType{
-				pth.cbegin(), std::prev(pth.cend())} : pth);
+				pth.cbegin(), std::prev(pth.cend())} : pth};
 		}
 		catch(ystdex::bad_any_cast&)
 		{}

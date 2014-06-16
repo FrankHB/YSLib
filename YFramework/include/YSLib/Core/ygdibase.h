@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1498
+\version r1526
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-05-23 09:19 +0800
+	2014-06-15 13:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,30 +107,19 @@ public:
 	\brief 负运算：取加法逆元。
 	\since build 319
 	*/
-	yconstfn GBinaryGroup
-	operator-() const ynothrow
-	{
-		return GBinaryGroup(-X, -Y);
-	}
+	yconstfn PDefHOp(GBinaryGroup, -, ) const ynothrow
+		ImplRet(GBinaryGroup(-X, -Y))
 
 	/*!
 	\brief 加法赋值。
 	*/
-	GBinaryGroup&
-	operator+=(const GBinaryGroup& val) ynothrow
-	{
-		yunseq(X += val.X, Y += val.Y);
-		return *this;
-	}
+	PDefHOp(GBinaryGroup&, +=, const GBinaryGroup& val) ynothrow
+		ImplRet(yunseq(X += val.X, Y += val.Y), *this)
 	/*!
 	\brief 减法赋值。
 	*/
-	GBinaryGroup&
-	operator-=(const GBinaryGroup& val) ynothrow
-	{
-		yunseq(X -= val.X, Y -= val.Y);
-		return *this;
-	}
+	PDefHOp(GBinaryGroup&, -=, const GBinaryGroup& val) ynothrow
+		ImplRet(yunseq(X -= val.X, Y -= val.Y), *this)
 
 	yconstfn DefGetter(const ynothrow, _type, X, X)
 	yconstfn DefGetter(const ynothrow, _type, Y, Y)
@@ -148,21 +137,15 @@ public:
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
 	\since build 319
 	*/
-	_type&
-	GetRef(bool b = true) ynothrow
-	{
-		return b ? X : Y;
-	}
+	PDefH(_type&, GetRef, bool b = true) ynothrow
+		ImplRet(b ? X : Y)
 	/*!
 	\brief 选择分量常量引用。
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
 	\since build 319
 	*/
-	const _type&
-	GetRef(bool b = true) const ynothrow
-	{
-		return b ? X : Y;
-	}
+	PDefH(const _type&, GetRef, bool b = true) const ynothrow
+		ImplRet(b ? X : Y)
 };
 
 template<typename _type>
@@ -452,7 +435,7 @@ public:
 	\brief 无参数构造：默认实现。
 	\since build 453
 	*/
-	yconstfn DefDeCtor(Rect)
+	DefDeCtor(Rect)
 	/*!
 	\brief 构造：使用屏幕二维点。
 	\since build 319

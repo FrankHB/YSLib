@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3391
+\version r3392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-06-01 02:47 +0800
+	2014-06-15 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,7 +121,7 @@ FontFamily::FontFamily(FontCache& cache, const FamilyName& name)
 void
 FontFamily::operator+=(Typeface& face)
 {
-	mFaces.insert(make_pair(face.GetStyleName(), &face));
+	mFaces.emplace(face.GetStyleName(), &face);
 }
 
 bool

@@ -11,7 +11,7 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4585
+\version r4612
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
@@ -292,20 +292,14 @@ public:
 	\brief 添加事件响应：使用 const 事件处理器和优先级。
 	\note 不检查是否已经在列表中。
 	*/
-	inline GEvent&
-	operator+=(const HandlerType& h)
-	{
-		return Add(h);
-	}
+	inline PDefHOp(GEvent&, +=, const HandlerType& h)
+		ImplRet(Add(h))
 	/*!
 	\brief 添加事件响应：使用事件处理器。
 	\note 不检查是否已经在列表中。
 	*/
-	inline GEvent&
-	operator+=(HandlerType&& h)
-	{
-		return Add(std::move(h));
-	}
+	inline PDefHOp(GEvent&, +=, HandlerType&& h)
+		ImplRet(Add(std::move(h)))
 	/*!
 	\brief 添加事件响应：目标为单一构造参数指定的指定事件处理器。
 	\note 不检查是否已经在列表中。
@@ -333,11 +327,8 @@ public:
 	\brief 移除事件响应：指定非 const 事件处理器。
 	\note 防止模板 <tt>operator-=</tt> 递归。
 	*/
-	inline GEvent&
-	operator-=(HandlerType&& h)
-	{
-		return *this -= static_cast<const HandlerType&>(h);
-	}
+	inline PDefHOp(GEvent&, -=, HandlerType&& h)
+		ImplRet(*this -= static_cast<const HandlerType&>(h))
 	/*!
 	\brief 移除事件响应：目标为单一构造参数指定的指定事件处理器。
 	\since build 293
@@ -354,23 +345,17 @@ public:
 	\note 不检查是否已经在列表中。
 	\since build 294
 	*/
-	inline GEvent&
-	Add(const HandlerType& h, EventPriority prior = DefaultEventPriority)
-	{
-		List.insert(make_pair(prior, h));
-		return *this;
-	}
+	inline PDefH(GEvent&, Add, const HandlerType& h,
+		EventPriority prior = DefaultEventPriority)
+		ImplRet(List.emplace(prior, h), *this)
 	/*!
 	\brief 添加事件响应：使用非 const 事件处理器和优先级。
 	\note 不检查是否已经在列表中。
 	\since build 294
 	*/
-	inline GEvent&
-	Add(HandlerType&& h, EventPriority prior = DefaultEventPriority)
-	{
-		List.insert(make_pair(prior, std::move(h)));
-		return *this;
-	}
+	inline PDefH(GEvent&, Add, HandlerType&& h,
+		EventPriority prior = DefaultEventPriority)
+		ImplRet(List.emplace(prior, std::move(h)), *this)
 	/*!
 	\brief 添加事件响应：使用单一构造参数指定的事件处理器和优先级。
 	\note 不检查是否已经在列表中。

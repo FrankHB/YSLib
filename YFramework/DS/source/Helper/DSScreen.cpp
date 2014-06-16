@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r266
+\version r267
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-06-10 00:28 +0800
+	2014-06-10 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -52,7 +52,7 @@ DSScreen::Update(BitmapPtr buf) ynothrow
 DSScreen::DSScreen(bool b) ynothrow
 	: Screen(MainScreenWidth, MainScreenHeight),
 	Offset(), WindowHandle(),
-	rbuf(Size(MainScreenWidth, MainScreenHeight))
+	rbuf({MainScreenWidth, MainScreenHeight})
 {
 	pBuffer = rbuf.GetBufferPtr();
 	if(b)

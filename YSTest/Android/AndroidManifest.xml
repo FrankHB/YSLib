@@ -5,7 +5,8 @@
 		android:versionName="1.0">
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-sdk android:minSdkVersion="9" />
-	<application android:label="YSTest" android:hasCode="false">
+	<application android:label="YSTest" android:hasCode="false"
+		android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
 		<activity android:name="android.app.NativeActivity"
 				android:label="YSTest"
 				android:configChanges="orientation|keyboardHidden">

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r638
+\version r727
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-15 12:00 +0800
+	2014-06-17 00:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,96 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ "implementation" @ "macro %YB_NORETURN" @ %YBase.YDefinition
+		^ '[[noreturn]]' @ 'YB_IMPL_GNUCPP >= 40800',
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ DLD %YGDIBase $=
+				(
+					- "explicit 'yconstfn'" @ "explicitly defaulted default \
+						constructor" @ "class %Rect",
+					/ @ "class template %GBinaryGroup" $=
+					(
+						/ "implementation" @ "functions %operator(-, +=, -=)"
+							^ "macro %(PDefHOp, ImplRet)",
+						/ "implementation" @ "all 2 functions %GetRef"
+							^ "macro %(PDefH, ImplRet)"
+					)
+				),
+				/ DLD @ "class template %GEvent" @ %YEvent $=
+				(
+					/ "implementation" @ "all non-overloaded operator functions \
+						with explicitly declared 'inline'"
+						^ "macro %(PDefH, ImplRet)",
+					/ "implementation" @ "all overloaded operator functions \
+						with explicitly declared 'inline'"
+						^ "macro %(PDefHOp, ImplRet)"
+				)
+			)
+			* "wrong implementation" @ "all 2 member functions \
+				%MIMEBiMapping::operator-=" @ Service.ContentType $since b450,
+				// These member functions wrongly performed insertion instead \
+					of deletion.
+
+		),
+		* "no effect on offset argument"
+			@ "member function %ScreenRegionBuffer::UpdateTo" @ %Android
+			@ %'Helper_(Android)'.Android $since b499
+			// All offset values were treated as 'Point()'.
+		/ %Helper $=
+		(
+			* "spelling error" @ %Initialization $since b303
+				$= (/ "%InitializeEnviornment" => "%InitializeEnvironment"),
+			(
+			+ "function %MapCursor" @ "class %Environment" @ %Host;
+			/ DLD "simplified implementation" @ "member function
+				%InputManager::Update" @ 'defined(YF_Hosted)' @ %InputManager
+			)
+		)
+	),
+	/ DLD "implementation as possible when no return type are deduced"
+		^ "braced-init-list" ~ "%make_pair" $=
+	(
+		@ "function template %search_map" @ %YBase.YStandardEx.Container,
+		/ %YFramework.YSLib $=
+		(
+			@ "member function %Palette::GetPair" @ %UI.YStyle,
+			@ "function %AddMIMEItems" @ % Service.ContentType
+		),
+		@ "constructor %ShlExplorer" @ %YReader.ShlExplorer
+	),
+	/ DLD "implementation when appropriate" ^ "container emplacing"
+		~ "insertion" $=
+	(
+		// Since G++ 4.8.2 has supported all of them.
+		^"member function %map::emplace" ~ "%(make_pair, map::insert)"
+			@ "member functions" $effective @ %YFramework,
+		^ "member function %multimap::emplace"
+			~ "%(make_pair, multimap::insert)" @ "member functions"
+			$effective @ %YFramework.YSLib,
+		^ "member function %vector::emplace_back"
+			~ "%(make_pair, vector::push_back)" @ "functions" $effective
+			@ %YFramework.YSLib,
+		(
+		$effective @ %YFramework.YSLib;
+		^ "member function %set::emplace_hint" ~ "%set::insert"
+			@ "member function %ValueNode::operator[]" @ %Core.ValueNode,
+		^ "member function %map::emplace_hint" ~ "%map::insert"
+			@ "function %GetEvent" @ %UI.YWidgetEvent
+		)
+	),
+	/ DLD "simplified some %YSLib::Drawing::Size argument passing"
+		^ "brace-init-list" ~ "explicit use of postfix-expression",
+	+ 'android:theme="@android:style/Theme.NoTitleBar.Fullscreen"'
+		@ "application configuration" @ "%AndroidManifest.xml"
+),
+
+b508
 (
 	/ %YFramework $=
 	(

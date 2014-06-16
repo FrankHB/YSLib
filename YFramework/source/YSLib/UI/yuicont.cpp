@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1803
+\version r1805
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-05-23 09:55 +0800
+	2014-06-15 15:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ LocateForWidget(const IWidget& a, const IWidget& b)
 
 	while(pCon)
 	{
-		lst.push_back(make_pair(pCon, pt));
+		lst.emplace_back(pCon, pt);
 		pt += GetLocationOf(*pCon);
 		pCon = FetchContainerPtr(*pCon);
 	}
@@ -215,7 +215,7 @@ void
 MUIContainer::Add(IWidget& wgt, ZOrderType z)
 {
 	if(!Contains(wgt))
-		mWidgets.insert(make_pair(z, ItemType(&wgt)));
+		mWidgets.emplace(z, ItemType(&wgt));
 }
 
 bool

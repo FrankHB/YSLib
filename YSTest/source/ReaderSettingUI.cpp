@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r474
+\version r475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2014-05-30 09:14 +0800
+	2014-06-15 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ SettingPanel::SettingPanel()
 	: DialogPanel(Size(MainScreenWidth, MainScreenHeight)),
 	dynWgts(FetchWidgetLoader(), TU_ReaderSettingUI),
 	lblAreaUp({20, 12, 216, 72}), lblAreaDown({20, 108, 216, 72}),
-	boxColor(Point(4, 80)), pColor(), current_encoding(),
+	boxColor({4, 80}), pColor(), current_encoding(),
 	scroll_duration(), smooth_scroll_duration()
 {
 	// NOTE: Values of durations keep uninitialized. Use carefully.
