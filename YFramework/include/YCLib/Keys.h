@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r556
+\version r558
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-04-14 11:00 +0800
+	2014-06-20 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,10 +185,10 @@ YF_API char
 MapKeyChar(const KeyInput&, KeyIndex) ynothrow;
 #else
 yconstexpr PDefH(char, MapKeyChar, KeyIndex) ynothrow
-	ImplRet(char())
+	ImplRet({})
 //! \since build 489
 yconstexpr PDefH(char, MapKeyChar, const KeyInput&, KeyIndex) ynothrow
-	ImplRet(char())
+	ImplRet({})
 #endif
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2285
+\version r2286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-06-11 11:27 +0800
+	2014-06-18 19:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,7 +223,7 @@ public:
 	//! \since build 475
 	friend PDefH(String, to_string, const Path& pth)
 		ImplRet(to_string(static_cast<const ypath&>(pth),
-			ucs2string{YCL_PATH_DELIMITER}))
+			{ucs2_t(YCL_PATH_DELIMITER)}))
 	//@}
 };
 

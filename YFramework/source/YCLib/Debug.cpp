@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r279
+\version r294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-05-24 17:50 +0800
+	2014-06-20 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,6 +143,7 @@ Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 {
 	YAssertNonnull(str);
 	std::fprintf(stderr, "[%#X]: %s\n", unsigned(lv), str);
+	std::fflush(stderr);
 }
 
 void
@@ -154,25 +155,37 @@ Logger::DoLog(Level level, const char* str)
 		std::lock_guard<std::recursive_mutex> lck(record_mtx);
 #endif
 
-		sender(level, *this, str);
+		DoLogRaw(level, str);
 	}
+}
+
+void
+Logger::DoLogRaw(Level level, const char* str)
+{
+	YAssertNonnull(str);
+
+	sender(level, *this, str);
 }
 
 void
 Logger::DoLogException(Level level, const std::exception& e) ynothrow
 {
+#if YF_Multithread == 1
+		std::lock_guard<std::recursive_mutex> lck(record_mtx);
+#endif
+
 	try
 	{
 		// XXX: Log demangled type name.
-		DoLog(level, ystdex::sfmt("<%s>: %s.", typeid(e).name(), e.what()));
+		DoLogRaw(level, ystdex::sfmt("<%s>: %s.", typeid(e).name(), e.what()));
 	}
 	catch(std::exception& e)
 	{
 		try
 		{
-			DoLog(Descriptions::Emergent,
+			DoLogRaw(Descriptions::Emergent,
 				"Another exception thrown when handling exception.");
-			DoLog(Descriptions::Emergent, e.what());
+			DoLogRaw(Descriptions::Emergent, e.what());
 		}
 		catch(...)
 		{
@@ -184,7 +197,7 @@ Logger::DoLogException(Level level, const std::exception& e) ynothrow
 	{
 		try
 		{
-			DoLog(Descriptions::Emergent,
+			DoLogRaw(Descriptions::Emergent,
 				"Another unknown exception thrown when handling exception.");
 		}
 		catch(...)

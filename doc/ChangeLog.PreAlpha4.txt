@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8181
+\version r8182
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-06-16 22:20 +0800
+	2014-06-20 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -772,7 +772,7 @@ b493
 			$dep_from %YCLib.Keys;
 			^ "%KeyCodes(Primary, Secondary, Tertiary) as cursor event \
 				condition" @ "all platforms",
-			^ "cursor validation" @ "all hosted platforms"
+			^ "cursor validation" @ "hosted platforms"
 		)
 	),
 	/ @ "freetype" @ "3rdparty libraries" $=

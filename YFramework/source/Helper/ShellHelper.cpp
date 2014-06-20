@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r487
+\version r491
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2014-05-23 09:33 +0800
+	2014-06-20 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ namespace YSLib
 DebugTimer::DebugTimer(const std::string& str)
 	: event_info(str), base_tick()
 {
-	std::printf("Start tick of [%s] :\n", event_info.c_str());
+	YTraceDe(Debug, "Start tick of [%s] :", event_info.c_str());
 	base_tick = Timers::HighResolutionClock::now();
 }
 DebugTimer::~DebugTimer()
@@ -44,7 +44,7 @@ DebugTimer::~DebugTimer()
 	const double t((Timers::HighResolutionClock::now() - base_tick).count()
 		/ 1e6);
 
-	std::printf("Performed [%s] in: %f milliseconds.\n",
+	YTraceDe(Debug, "Performed [%s] in: %f milliseconds.",
 		event_info.c_str(), t);
 }
 #endif

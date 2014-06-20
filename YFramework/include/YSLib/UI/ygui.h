@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2145
+\version r2154
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-04-29 13:08 +0800
+	2014-06-18 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -274,6 +274,17 @@ public:
 	void
 	ResponseKeyBase(KeyEventArgs&, VisualEvent);
 	//@}
+
+	/*!
+	\brief 向指定部件发送输入字符。
+	\return 是否已处理输入的字符。
+	\since build 510
+
+	若字符非空且文本输入焦点为空，
+	调用指定部件的 TextInput 事件处理指定的输入。
+	*/
+	bool
+	SendInput(IWidget&, KeyInput&);
 
 private:
 	//! \since build 423

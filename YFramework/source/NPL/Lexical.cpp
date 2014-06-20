@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1350
+\version r1351
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2014-06-15 01:24 +0800
+	2014-06-20 11:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,7 @@ void
 LexicalAnalyzer::PushEscape()
 {
 //	cbuf += '^'; // test: 未转义。
-	yunseq(cbuf += '\\', escs[esc] = char());
+	yunseq(cbuf += '\\', escs[esc] = {});
 	yunseq(cbuf += escs, esc = -1);
 }
 

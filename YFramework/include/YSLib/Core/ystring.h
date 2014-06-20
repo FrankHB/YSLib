@@ -11,13 +11,13 @@
 /*!	\file ystring.h
 \ingroup Core
 \brief 基础字符串管理。
-\version r2155
+\version r2163
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-05 22:06:05 +0800
 \par 修改时间:
-	2014-02-05 02:50 +0800
+	2014-06-18 19:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,14 @@ public:
 	template<typename _tChar>
 	String(const _tChar* s, Encoding enc = CS_Default)
 		: ucs2string(MakeUCS2LEString<ucs2string>(s, enc))
+	{}
+	/*!
+	\brief 构造：使用字符的初值符列表。
+	\since build 510
+	*/
+	template<typename _tChar>
+	String(std::initializer_list<_tChar> il)
+		: ucs2string(il.begin(), il.end())
 	{}
 	/*!
 	\brief 构造：使用 YSLib 基本字符串。

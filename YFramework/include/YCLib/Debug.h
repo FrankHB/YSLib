@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r357
+\version r370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-06-09 21:51 +0800
+	2014-06-20 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,6 +185,20 @@ public:
 		ImplRet(DoLog(lv, str.c_str()))
 	//@}
 
+private:
+	/*!
+	\brief 转发等级和日志至发送器。
+	\since build 510
+	*/
+	//@{
+	//! \note 忽略空指针参数。
+	void
+	DoLogRaw(Level, const char*);
+	PDefH(void, DoLogRaw, Level lv, const std::string& str)
+		ImplRet(DoLogRaw(lv, str.c_str()))
+	//@}
+
+public:
 	/*!
 	\brief 转发等级和异常对象至发送器。
 	\note 根据异常对象确定日志字符串。

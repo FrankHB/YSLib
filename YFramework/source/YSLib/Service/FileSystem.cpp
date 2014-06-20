@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1909
+\version r1910
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-05-23 09:42 +0800
+	2014-06-18 19:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,7 +87,7 @@ Path::Parse(const ucs2string& str)
 	auto& norm(res.get_norm());
 
 	ystdex::split(str, [&](ucs2_t c){
-		return norm.is_delimiter(ucs2string{c});
+		return norm.is_delimiter({c});
 	}, [&](ucs2string::const_iterator b, ucs2string::const_iterator e){
 		res.push_back(ucs2string(b, e));
 	});
