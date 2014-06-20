@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r378
+\version r386
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-05-23 09:50 +0800
+	2014-06-18 17:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,21 +99,16 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 		{
 			using namespace KeyCategory;
 			using namespace KeyCodes;
-			const auto& k(e.GetKeys());
-			const char c(FetchGUIState().UpdateChar(e.Keys));
+			auto& st(FetchGUIState());
 			auto& sender(e.GetSender());
 
-			// TODO: Proper multiple keys handling for non-alphabetical.
-			if(c != char())
+			if(st.SendInput(sender, e.Keys))
 			{
-				const ucs2_t buf[]{ucs2_t(c), u'\0'};
-
-				CallEvent<TextInput>(sender,
-					TextInputEventArgs(sender, String(buf), k));
-				Invalidate(e.GetSender());
+				Invalidate(sender);
 				return;
 			}
 
+			const auto& k(e.GetKeys());
 			auto ek(FindFirstKeyInCategroy(k, Editing));
 
 			if(ek == KeyBitsetWidth)

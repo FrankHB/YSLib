@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r727
+\version r814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-17 00:12 +0800
+	2014-06-21 00:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,84 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				(
+				* "missing resetting view" @ "constructor" @ "listbox" $since
+					b193;
+					// This would cased abnormal state immediately after \
+						initialization of an object of %ListBox or derived \
+						types.
+				$dep_to "missing resetting listbox view"
+				),
+				(
+				+ "member function %GUIState::SendInput" @ %YGUI;
+				/ DLD "simplified constructor %TextBox"
+					^ "%GUIState::SendInputChar"
+				)
+			),
+			/ %Core $=
+			(
+				+ "constructor template %String with initializer list parameter"
+					@ %YString,
+				(
+				$dep_from %Adaptor;
+				+ "unexpected exception logging" @ "!defined %NDEBUG"
+					@ "member function %Application::OnGotMessage"
+					@ %YApplication
+				)
+			),
+			+ "using %platform::(Logger, FetchCommonLogger)"
+				@ %Adaptor.YAdaptor
+		),
+		/ %Helper.ShellHelper
+		(
+			/ "debug trace" @ "class %DebugTimer"
+				^ "%YTraceDe, %Debug" ~ "%std::fprintf";
+				// Not display by default for %Debug priority.
+			* "possible interleaved multithreaded timer output"
+				@ "platform %MinGW32" $since b378
+		),
+		/ "class %Logger" @ "hosted platforms" @ %YCLib.Debug $=
+		(
+			* "missing explicitly %std::flush call at end"
+				@ "function %DefaultSendLogger" $since b498
+				// Though nothing to do with default %stderr stream, once the \
+					buffer is set, it might go wrong.
+			* "possible interleaved logging for exception" $since b498
+		)
+	),
+	(
+	$dep_from "missing resetting listbox view";
+	* $comp "invalid invisible or wrongly rendered vertical scrollbar state"
+		@ %YReader.BookmarkUI $since b392 $=
+	(
+		* "assertion failed after scrolling in empty list"
+			@ "debug configurations" $=
+		(
+			* "scrolling by dragging",
+			* "scrolling by event %CursorWheel" $since b443
+		),
+		* "wrong state after scrolling" @ "release configurations",
+	)
+	),
+	(
+	$dep_from %YFramework.YSLib.Core.YString;
+	/ DLD "simplified implementation" ^ "initializer list"
+		~ "explicit %ucs2string construction" $effective @ ("friend function \
+		%to_string for %Path", "member function %Path::Parse"
+		@ %YFramework.YSLib.Service.FileSystem;
+	),
+	/ DLD "all 'char()' which can be distinguished to actual type" -> '{}'
+		$effective %(YCLib.Keys, NPL.Lexical)
+),
+
+b509
 (
 	/ "implementation" @ "macro %YB_NORETURN" @ %YBase.YDefinition
 		^ '[[noreturn]]' @ 'YB_IMPL_GNUCPP >= 40800',
@@ -61,12 +139,20 @@ $now
 						with explicitly declared 'inline'"
 						^ "macro %(PDefHOp, ImplRet)"
 				)
-			)
+			),
 			* "wrong implementation" @ "all 2 member functions \
 				%MIMEBiMapping::operator-=" @ Service.ContentType $since b450,
 				// These member functions wrongly performed insertion instead \
 					of deletion.
-
+			/ %UI $=
+			(
+				/ $revert(b494) "functions %(SetLocationOf, SetSizeOf; $comp \
+					SetBoundsOf) would trigger events even if the parameter \
+					value is equal to the old value" @ %YWidget
+				* $comp "missing listbox scrollbars sometimes" $since b494
+					// For example, switching file list back to make scrollbar \
+						be shown.
+			)
 		),
 		* "no effect on offset argument"
 			@ "member function %ScreenRegionBuffer::UpdateTo" @ %Android

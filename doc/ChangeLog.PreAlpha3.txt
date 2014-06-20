@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4944
+\version r4946
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-06-15 11:58 +0800
+	2014-06-20 23:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -484,8 +484,7 @@ b388
 		/ %Helper $=
 		(
 			(
-			/ $dev $lib "implementation" @ "input manager"
-				@ "host platform",
+			/ $dev $lib "implementation" @ "input manager" @ "hosted platforms",
 			/ $dev $lib "cursor adjusting interface" @ "platform %MinGW32";
 			* "out-of-bound touch event transferred" @ "platform %MinGW32"
 				$since b377

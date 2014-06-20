@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4018
+\version r4031
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-05-23 09:52 +0800
+	2014-06-18 17:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -318,6 +318,22 @@ GUIState::ResponseCursorBase(CursorEventArgs& e, UI::VisualEvent op)
 	default:
 		YAssert(false, "Invalid operation found.");
 	}
+}
+
+bool
+GUIState::SendInput(IWidget& wgt, KeyInput& k)
+{
+	const char c(UpdateChar(k));
+
+	if(c != char())
+	{
+		const ucs2_t buf[]{ucs2_t(c), ucs2_t()};
+
+		CallEvent<TextInput>(wgt,
+			TextInputEventArgs(wgt, String(buf), k));
+		return true;
+	}
+	return {};
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3170
+\version r3172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2014-04-25 23:15 +0800
+	2014-06-17 09:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,8 +85,9 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 		}
 	},
 	RequestFocus(tlContent);
-	//刷新文本状态，防止第一次绘制时无法正确决定是否需要滚动条。
+	// NOTE: Text state refreshed for correctly showing scroll bars.
 	tlContent.RefreshTextState();
+	ResetView();
 }
 
 void
