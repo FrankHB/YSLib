@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4946
+\version r4948
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-06-20 23:54 +0800
+	2014-06-21 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2488,8 +2488,8 @@ b331
 		(
 			/ "removed reference of parameter type for events" @ %YEvent,
 			/ "exception specifications" ^ "%(ythrow, ynothrow)" ~ "%throw",
-			/ "merged copy and move assignments as unifying assignment"
-				@ "classes %(ValueObject, Message)"
+			/ "merged copy and move assignments as unifying operator="
+				@ "classes %(ValueObject, $revert(b296) Message)"
 				// The no throw exception specification can be merged for the \
 					copy is out of the block.
 		),

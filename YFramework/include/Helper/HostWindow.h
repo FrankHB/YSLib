@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r309
+\version r339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-05-18 23:16 +0800
+	2014-06-21 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,9 @@
 #include YFM_Helper_YGlobal
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_Win32GUI
+#	include YFM_YSLib_Core_YString // for YSLib::String;
+#	include <atomic>
+#	include <mutex>
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #endif
@@ -56,8 +59,8 @@ private:
 	//! \since build 380
 	std::reference_wrapper<Environment> env;
 
-public:
 #	if YCL_Win32
+public:
 	/*!
 	\brief 标记是否使用不透明性成员。
 	\note 使用 Windows 层叠窗口实现，但和 WindowReference 实现不同：使用
@@ -73,8 +76,20 @@ public:
 	\since build 435
 	*/
 	YSLib::Drawing::AlphaType Opacity{0xFF};
+	//! \since build 511
+	//@{
+	//! \brief 鼠标键输入。
+	std::atomic<short> RawMouseButton{0};
+
+private:
+	//! \brief 输入组合字符串锁。
+	std::recursive_mutex input_mutex{};
+	//! \brief 输入法组合字符串。
+	String comp_str{};
+	//@}
 #	endif
 
+public:
 	/*!
 	\exception LoggedEvent 异常中立：窗口类名不是 WindowClassName 。
 	\since build 429
@@ -100,6 +115,22 @@ public:
 	*/
 	virtual PDefH(void, Refresh, )
 		ImplExpr(void())
+
+#	if YCL_Win32
+	/*!
+	\brief 访问输入法状态。
+	\note 线程安全：互斥访问。
+	\since build 511
+	*/
+	template<typename _fCallable>
+	auto
+	AccessInputString(_fCallable f) -> decltype(f(comp_str))
+	{
+		std::lock_guard<std::recursive_mutex> lck(input_mutex);
+
+		return f(comp_str);
+	}
+#	endif
 
 	/*!
 	\brief 更新：同步缓冲区。

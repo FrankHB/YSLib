@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r814
+\version r882
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-21 00:10 +0800
+	2014-06-22 02:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,73 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "platform %Win32" @ %Helper $=
+		(
+			/ "data member %RawMouseButton" @ "class %Environment"
+				@ %Host >> ("class %Host::Window" @ %HostWindow),
+			/ DLD "%WM_INPUT handling" @ "window procedure" >> ("constructor"
+				@ "class %Host::Window" @ %HostWindow),
+			/ @ "class %Host::Window" @ %HostWindow $=
+			(
+				+ DLD "private input state";
+				+ "%WM_CHAR handling which save the Unicode character to \
+					private state",
+				+ "function template %AccessInputString"
+			),
+			(
+			$dep_from %YSLib.UI.YGUI;
+			/ "supported cross-thread text input" @ "platform %Win32"
+				@ "member function %InputManager::DispatchInput" @ %InputManager
+			)
+		),
+		/ %YSLib.UI $=
+		(
+			/ @ %YGUI $=
+			(
+				+ "2 functions %CallInputEvent",
+				/ @ "class %GUIState" $=
+				(
+					+ "data member %ExteralTextInputFocusPtr";
+					/ "clear character input states"
+						@ "function %(Reset, CleanupReferences)",
+					/ "function %SendInput" $=
+					(
+						+ "various overloaded functions",
+						/ "alternated behavior when external text input focus \
+							is set"
+							// Call %TextInput event directly without calling \
+								%UpdateChar. Note the old behavior is also \
+								dropped. Call %CallInputEvent instead to get \
+								the old behavior.
+					),
+					/ "directly return without performing any operation when \
+						external text input focus is set"
+						@ "function %UpdateChar"
+				)
+			),
+			/ %TextBox $=
+			(
+				/ "set and clear text input focus with caret animation"
+					@ "class %Caret" ^ "%GUIState::ExteralTextInputFocusPtr",
+				/ @ "constructor %TextBox" $=
+				(
+					/ DLD "%SendInput call",
+					/ "handled space character only when external text input \
+						focus is not set",
+					+ "invalidation after replacing text" @ "handler"
+						@ "event %TextInput",
+					/ "explicitly performed no-op for horizontal tab character"
+						// To avoid width problem.
+				)
+			)
+		)
+	)
+),
+
+b510
 (
 	/ %YFramework $=
 	(
@@ -601,7 +668,7 @@ b502
 								empty.
 						/ "copy constructor implementation" ^ "non inline \
 							function" ~ "explicitly defaulted function",
-						/ "2 operator=" -> "unification operator=",
+						/ "2 operator=" -> "unifying operator=",
 						+ "constructor 'ValueNode(unique_ptr<Container>)'",
 						+ "constructor 'ValueNode(Container)'",
 						+ "2 constructor templates specifying all data members \
@@ -769,7 +836,7 @@ b500
 			/ DLD "simplified implementation" @ "function %RectDrawArrow"
 				@ %YStyle
 		),
-		/ "default configuration" @ "platform %MinGW32" @ %Helper.Initialization
+		/ "default configuration" @ "platform %Win32" @ %Helper.Initialization
 			$=
 		(
 			/ "default root directory macro %ROOTW" -> "." ~ "H:\\NDS\\EFSRoot",

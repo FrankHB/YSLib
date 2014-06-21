@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r428
+\version r464
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-06-16 13:56 +0800
+	2014-06-21 22:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,9 @@
 #include YFM_Helper_Host
 #include YFM_Helper_HostRenderer // for Host::Window, Host::RenderWindow;
 #include YFM_Helper_GUIApplication // for FetchEnvironment;
-#if YCL_Android
+#if YCL_Win32
+#	include YFM_YSLib_UI_YControl // for UI::CallEvent.
+#elif YCL_Android
 #	include YFM_Android_Helper_AndroidHost // for Android::NativeHost;
 #	include YFM_YSLib_UI_YDesktop // for Desktop converting to IWidget;
 #endif
@@ -84,27 +86,55 @@ InputManager::DispatchInput(IWidget& wgt)
 	KeyInput keys(platform_ex::FetchKeyUpState());
 
 	disp(keys, KeyUp, TouchUp);
-#if YF_Hosted
+#if YCL_Win32
 	YCL_CURSOR_VALID
 	{
 		CursorEventArgs e(wgt, keys, cursor_state);
 
 		st.ResponseCursor(e, CursorOver);
 	}
+
+	const auto p_wnd = env.get().GetForegroundWindow();
+
+	if(const auto p_input = st.ExteralTextInputFocusPtr)
+		if(YB_LIKELY(p_wnd))
+			p_wnd->AccessInputString([p_input](String& ustr){
+				auto& wgt(*p_input);
+				// XXX: Save actual key state.
+				KeyInput k;
+				size_t n(0);
+
+				for(const auto c : ustr)
+				{
+					++n;
+					YTraceDe(Informative, "Host character %d found.", int(c));
+					if(std::iswprint(c))
+					{
+						// XXX: Redundant nonzero test on character value.
+						CallInputEvent(c, k, wgt);
+					}
+					else
+						break;
+				}
+				ustr.erase(ustr.begin(), ustr.begin() + n);
+			});
 #endif
 	keys = platform_ex::FetchKeyDownState();
 	disp(keys, KeyDown, TouchDown);
 	keys = platform_ex::FetchKeyState();
 	disp(keys, KeyHeld, TouchHeld);
 #if YCL_Win32
-	const UI::WheelDelta raw_mouse(env.get().RawMouseButton);
-
-	if(raw_mouse != 0)
+	if(YB_LIKELY(p_wnd))
 	{
-		CursorWheelEventArgs e(wgt, raw_mouse, keys, cursor_state);
+		const UI::WheelDelta raw_mouse(p_wnd->RawMouseButton);
 
-		st.ResponseCursor(e, CursorWheel);
-		env.get().RawMouseButton = 0;
+		if(raw_mouse != 0)
+		{
+			CursorWheelEventArgs e(wgt, raw_mouse, keys, cursor_state);
+
+			st.ResponseCursor(e, CursorWheel);
+			p_wnd->RawMouseButton = 0;
+		}
 	}
 #endif
 }

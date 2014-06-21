@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8182
+\version r8193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-06-20 23:55 +0800
+	2014-06-21 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -262,7 +262,7 @@ b498
 					%(Close, *Client*, Show)" @ "platform %Android"
 					@ %(DSMain, Host, HostedUI, HostRenderer),
 				/ "made data member %Window::(UseOpacity, Opacity) only \
-					avaliable for platform %MinGW32" @ %HostWindow
+					avaliable for platform %Win32" @ %HostWindow
 			)
 		),
 		/ DLD "implementation"
@@ -1069,9 +1069,9 @@ b488
 (
 	/ %YFramework $=
 	(
-		/ %'YCLib_(MinGW32)' @ "platform %MinGW32" $=
+		/ %'YCLib_(MinGW32)' $=
 		(
-			/ @ "class %MinGW32::HostWindow" @ %.Win32GUI $=
+			/ @ "class %MinGW32::HostWindow" @ %Win32GUI $=
 			(
 				/ "virtual functions %(OnDestroy, OnPaint, OnLostFocus)"
 					-> 'std::map<::UINT, \
@@ -1083,7 +1083,7 @@ b488
 				// Output message painted differently, for all non-specific \
 					messages with message IDs instead of message names.
 		),
-		/ %Helper @ "platform %MinGW32" $=
+		/ "platform %Win32" @ %Helper $=
 		(
 			(
 			$dep_from %'YCLib_(MinGW32)';
@@ -1517,7 +1517,7 @@ b482
 	/ %YFramework $=
 	(
 		/ DLD "simplified" ^ "macros" @ "common window procedure"
-			@ "platform %MinGW32" @ %Helper.Host,
+			@ "platform %Win32" @ %Helper.Host,
 		* "enumerator %Debug" @ "enum %Descriptions::RecordLevel"
 			@ %YCLib.YCommon $since b432
 			$= (/ '0x70' -> '0xE0'),
@@ -1604,8 +1604,8 @@ b481
 		(
 			* "wrong 'ynothrow'" @ "function %InitDSScreen" @ %DSScreen
 				$since b380,
-			/ "destructor" @ "class WindowThread" @ "platform %MinGW32"
-				@ %Helper $=
+			/ "destructor" @ "class WindowThread" @ "platform %Win32" @ %Helper
+				$=
 			(
 				* "caught wrong exceptions" $since b399
 					$= (/ "caught %std::system_error"
@@ -1830,8 +1830,7 @@ b476
 				// Now returned value is 'true' on success.
 			+ "functions %(uunlink, uremove)",
 			* "exception violation of 'ynothrow'" @ "allocation failed"
-				@ "platform %MinGW32" @ "functions %(umkdir, urmdir)"
-				$since b475
+				@ "platform %Win32" @ "functions %(umkdir, urmdir)" $since b475
 		),
 		/ %YSLib $=
 		(
@@ -2527,7 +2526,7 @@ b464
 			/ $dev 'makedir(char const* dir, mode_t)'
 				-> 'makedir(char const* dir, ::mode_t)' @ %NativeAPI,
 			/ $dep "implementation kept compatible to MinGW.org runtime"
-				@ "platform %MinGW32" %YFileSystem$=
+				@ "platform %MinGW32" @ %YFileSystem $=
 			(
 				+ $dev "private declarations for C function %(_fileno, \
 					_wfopen) copied from MinGW header"

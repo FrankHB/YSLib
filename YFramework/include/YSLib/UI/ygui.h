@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2154
+\version r2182
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-06-18 17:11 +0800
+	2014-06-21 22:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,6 +98,19 @@ RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
 
 
 /*!
+\brief 调用指定部件的 TextInput 事件处理指定的输入。
+\return 是否已处理输入的字符。
+\since build 510
+*/
+//@{
+YF_API void
+CallInputEvent(IWidget&, const String&, const KeyInput&);
+inline PDefH(bool, CallInputEvent, ucs2_t uc, const KeyInput& k, IWidget& wgt)
+	ImplRet(uc != ucs2_t() ? (CallInputEvent(wgt, {uc}, k), true) : false)
+//@}
+
+
+/*!
 \brief 图形用户界面公共状态。
 \warning 非虚析构。
 \since build 287
@@ -165,6 +178,13 @@ private:
 	size_t master_key = 0;
 
 public:
+	/*!
+	\brief 外部文本输入焦点部件指针。
+	\note 对于宿主实现，值可能由环境修改。可用于支持宿主环境的输入法相关状态。
+	\since build 510
+	*/
+	IWidget* ExteralTextInputFocusPtr = {};
+
 	GUIState() ynothrow;
 
 	//! \since build 422
@@ -276,15 +296,21 @@ public:
 	//@}
 
 	/*!
-	\brief 向指定部件发送输入字符。
+	\brief 向文本输入焦点发送输入字符。
 	\return 是否已处理输入的字符。
+	\sa UI::CallInputEvent
 	\since build 510
 
-	若字符非空且文本输入焦点为空，
-	调用指定部件的 TextInput 事件处理指定的输入。
+	若文本输入焦点为空则忽略，否则调用 SendInputEvent 触发 TextInput 事件。
 	*/
+	//@{
+	PDefH(bool, SendInput, KeyInput& k)
+		ImplRet(SendInput(UpdateChar(k), k))
+	PDefH(bool, SendInput, ucs2_t uc, const KeyInput& k)
+		ImplRet(uc != ucs2_t() ? SendInput(k, {uc}) : false)
 	bool
-	SendInput(IWidget&, KeyInput&);
+	SendInput(const KeyInput&, const String&);
+	//@}
 
 private:
 	//! \since build 423

@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1384
+\version r1403
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-06-16 23:29 +0800
+	2014-06-21 15:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,32 +56,10 @@ namespace
 ::LRESULT CALLBACK
 WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
 {
-	const auto p(reinterpret_cast<Window*>(::GetWindowLongPtrW(h_wnd,
-		GWLP_USERDATA)));
-
-	if(YB_LIKELY(p))
+	if(const auto p = reinterpret_cast<Window*>(::GetWindowLongPtrW(h_wnd,
+		GWLP_USERDATA)))
 	{
 		YSL_DEBUG_DECL_TIMER(tmr, std::to_string(msg));
-
-		if(msg == WM_INPUT)
-		{
-			::UINT size(sizeof(::RAWINPUT));
-			byte lpb[sizeof(::RAWINPUT)]{};
-
-			if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
-				&size, sizeof(::RAWINPUTHEADER)) != ::UINT(-1)))
-			{
-				const auto p_raw(reinterpret_cast<::RAWINPUT*>(lpb));
-
-				if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
-				{
-					if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
-						p->GetHost().RawMouseButton
-							= p_raw->data.mouse.usButtonData;
-				}
-			}
-		}
-
 		auto& m(p->MessageMap);
 		const auto i(m.find(msg));
 

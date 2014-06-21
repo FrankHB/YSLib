@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3539
+\version r3541
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-05-30 00:01 +0800
+	2014-06-21 02:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -273,7 +273,7 @@ b296
 							or the no throwing specification will be broken.
 					* "missing assignment operators" $since $before b132
 						$= (+ "copy and move assignment operators"),
-						// The unification assignment cannot be used here \
+						// The unifying assignment cannot be used here \
 							because the copy assignment may throw but move \
 							assignment may not.
 				),
@@ -291,7 +291,7 @@ b296
 					@ "class %ValueObject" @ %YObject;
 				/ DLD @ "class %Message" @ %message $=
 				(
-					/ "unification operator" -> "copy assignment operator \
+					/ "unifying operator=" -> "copy assignment operator \
 						without exception specification and move assignment \
 						operator with exception specification %ynothrow";
 					+ "exception specification %ynothrow" @ "member move \

@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4031
+\version r4053
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-06-18 17:11 +0800
+	2014-06-21 22:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,6 +124,13 @@ RepeatHeld(InputTimer& tmr, InputTimer::HeldStateType& st,
 }
 
 
+void
+CallInputEvent(IWidget& wgt, const String& str, const KeyInput& k)
+{
+	CallEvent<TextInput>(wgt, TextInputEventArgs(wgt, str, k));
+}
+
+
 GUIState::GUIState() ynothrow
 	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
 	DraggingOffset(Vec::Invalid), HeldTimer(), CursorLocation(Point::Invalid),
@@ -167,6 +174,8 @@ GUIState::CleanupReferences(IWidget& wgt)
 		p_indp_focus = {};
 	if(p_cascade_focus == &wgt)
 		p_cascade_focus = {};
+	if(ExteralTextInputFocusPtr == &wgt)
+		ExteralTextInputFocusPtr = {};
 }
 
 void
@@ -187,9 +196,9 @@ GUIState::Reset()
 	yunseq(KeyHeldState = InputTimer::Free, TouchHeldState = InputTimer::Free,
 		DraggingOffset = Vec::Invalid),
 	HeldTimer.ResetInput(),
-	checked_held = {};
 	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
-		p_indp_focus = {}, p_cascade_focus = {}, entered = {});
+		p_indp_focus = {}, p_cascade_focus = {}, entered = {},
+		checked_held = {}, master_key = 0, ExteralTextInputFocusPtr = {});
 }
 
 void
@@ -321,19 +330,10 @@ GUIState::ResponseCursorBase(CursorEventArgs& e, UI::VisualEvent op)
 }
 
 bool
-GUIState::SendInput(IWidget& wgt, KeyInput& k)
+GUIState::SendInput(const KeyInput& k, const String& str)
 {
-	const char c(UpdateChar(k));
-
-	if(c != char())
-	{
-		const ucs2_t buf[]{ucs2_t(c), ucs2_t()};
-
-		CallEvent<TextInput>(wgt,
-			TextInputEventArgs(wgt, String(buf), k));
-		return true;
-	}
-	return {};
+	return ExteralTextInputFocusPtr
+		? (UI::CallInputEvent(*ExteralTextInputFocusPtr, str, k), true) : false;
 }
 
 void
@@ -359,6 +359,8 @@ GUIState::TryLeaving(CursorEventArgs&& e)
 char
 GUIState::UpdateChar(KeyInput& keys)
 {
+	if(ExteralTextInputFocusPtr)
+		return {};
 	if(keys != checked_held)
 	{
 		master_key = FindFirstKeyInCategroy(keys, KeyCategory::Character);
