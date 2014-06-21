@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r386
+\version r399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-06-18 17:15 +0800
+	2014-06-22 02:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,6 +53,7 @@ Caret::Caret(IWidget& wgt, HBrush caret_brush,
 	FetchEvent<GotFocus>(wgt) += [this](UIEventArgs&& e){
 		// NOTE: Necessary cleanup.
 		Stop();
+		FetchGUIState().ExteralTextInputFocusPtr = &e.GetSender();
 		Restart(caret_animation, e.GetSender(), CursorInvalidator);
 	},
 	FetchEvent<LostFocus>(wgt) += [this]{
@@ -83,7 +84,7 @@ Caret::Stop()
 {
 	// TODO: Consider possible per-object optimization.
 	if(auto p = caret_animation.GetConnectionPtr())
-		p->Ready = {};
+		yunseq(p->Ready = {}, FetchGUIState().ExteralTextInputFocusPtr = {});
 }
 
 
@@ -102,7 +103,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 			auto& st(FetchGUIState());
 			auto& sender(e.GetSender());
 
-			if(st.SendInput(sender, e.Keys))
+			if(st.SendInput(e.Keys))
 			{
 				Invalidate(sender);
 				return;
@@ -164,9 +165,11 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 						range.second.X = (ek == Left) == (range.first.X
 							< range.second.X) ? range.first.X : range.second.X;
 					Selection.Collapse();
+				case Tab:
 					break;
 				case Space:
-					ReplaceSelection(u" ");
+					if(!st.ExteralTextInputFocusPtr)
+						ReplaceSelection(u" ");
 				}
 				Invalidate(e.GetSender());
 				return;
@@ -191,6 +194,8 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 	},
 	FetchEvent<TextInput>(*this) += [this](TextInputEventArgs&& e){
 		ReplaceSelection(e.Text);
+		// XXX: Optimization for block.
+		Invalidate(*this);
 	},
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BackgroundPriority),
 	FetchEvent<GotFocus>(*this) += [this]{
@@ -247,12 +252,6 @@ TextBox::DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts)
 	}
 }
 
-void
-TextBox::Refresh(PaintEventArgs&& e)
-{
-	DrawText(GetSizeOf(*this), ForeColor, e);
-}
-
 bool
 TextBox::InvalidateDefaultCaret(IWidget& wgt)
 {
@@ -266,6 +265,12 @@ TextBox::InvalidateDefaultCaret(IWidget& wgt)
 
 	InvalidateVisible(tb, Rect(x, y, 1, lh + GetVerticalOf(tb.Margin)));
 	return true;
+}
+
+void
+TextBox::Refresh(PaintEventArgs&& e)
+{
+	DrawText(GetSizeOf(*this), ForeColor, e);
 }
 
 void

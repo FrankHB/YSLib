@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1015
+\version r1023
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-06-15 17:35 +0800
+	2014-06-21 22:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,11 +73,14 @@ $dev; // issues concerned by developers, which end-users could ignore without \
 	risk if the code with no undefined behavior (including compile-time \
 	characteristics such as static assertions but not runtime observative \
 	behaviors like runtime assertions);
-$lib; // issues only concerned with library(only implementation changing, \
-	or interface modifying including no deletion unless some replacements are \
-	provided, no current code would be broken (except for which has undefined \
-	behavior), so no need for library users to modify code behavior using the \
-	library interface to adapt to the upgrading), regaradless of output targets;
+$lib; // issues only concerned with library as one case of following:
+	only implementation changing, no code would be broken switching both \
+		implementations, or \
+	interface modifying including no deletion unless some replacements are \
+		provided, no current code would be broken (except for which has \
+		undefined behavior), 
+	so no need for library users to modify code behavior using the \
+	library interface to adapt to the upgrading, regaradless of output targets;
 $design; // features changing probably only made sense to who needs to \
 	reference or modify the implementation;
 

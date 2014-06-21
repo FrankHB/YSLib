@@ -10,14 +10,14 @@
 
 /*!	\file HostWindow.cpp
 \ingroup Helper
-\brief 宿主环境支持的用户界面。
-\version r364
+\brief 宿主环境窗口。
+\version r387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-05-23 09:33 +0800
+	2014-06-21 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,9 +48,33 @@ Window::Window(NativeWindowHandle h, Environment& e)
 {
 #	if YCL_Win32
 	e.AddMappedItem(h, this);
+	yunseq(
 	MessageMap[WM_KILLFOCUS] += []{
 		platform_ex::ClearKeyStates();
-	};
+	},
+	MessageMap[WM_INPUT] += [this](::WPARAM, ::LPARAM l_param){
+		::UINT size(sizeof(::RAWINPUT));
+		byte lpb[sizeof(::RAWINPUT)]{};
+
+		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
+			&size, sizeof(::RAWINPUTHEADER)) != ::UINT(-1)))
+		{
+			const auto p_raw(reinterpret_cast<::RAWINPUT*>(lpb));
+
+			if(YB_LIKELY(p_raw->header.dwType == RIM_TYPEMOUSE))
+			{
+				if(p_raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
+					RawMouseButton = p_raw->data.mouse.usButtonData;
+			}
+		}
+	},
+	MessageMap[WM_CHAR] += [this](::WPARAM w_param, ::WPARAM l_param){
+		std::lock_guard<std::recursive_mutex> lck(input_mutex);
+
+		for(size_t n(l_param & 0x7FFF); n-- != 0;)
+			comp_str += ucs2_t(w_param);
+	}
+	);
 #	endif
 }
 Window::~Window()

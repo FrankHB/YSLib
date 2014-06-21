@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r327
+\version r338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-06-13 13:51 +0800
+	2014-06-21 03:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -321,6 +321,17 @@ There is nothing can be done with "channel '*' ~ Failed to receive dispatch sign
 			From http://stackoverflow.com/questions/18316046/when-build-with-latest-android-ndk-nativeactivity-spams-to-log-on-touch-events .
 Behavior changed in ::ANativeWindow after Android 4.0 (API level >= 14), and different way to get native window size should be used.
 	See http://www.klayge.org/2013/01/23/%E5%9C%A8android%E6%A8%A1%E6%8B%9F%E5%99%A8%E4%B8%8A%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B0%8F%E9%99%B7%E9%98%B1/ .
+Call-by-value for parameter with object type for classes types should be refined when the overhead is significant.
+	Not all class type object can be passed by value.
+	Note that copy ellision is not always mandated. See $2014-04 report.impl for references.
+	A notable exception is unifying assignment, when copy-and-swap idiom is needed and the move constructor is implemented with little overhead.
+		See http://stackoverflow.com/questions/8968452/who-coined-the-term-unified-or-unifying-assignment-operator .
+		Because at least one copy operation is performed, the parameter is needed.
+		Since the swapping operation is inteneded to provide nothrow guarantee, there should be a nothrow exception specification.
+			Note that even if exception is thrown by initialization of the parameter, the exception-specification is not affected.
+		The standard library is not using this style.
+			See https://github.com/cplusplus/draft/wiki/Specification-Style-Guidelines#specifying-implicitly-generated-special-member-functions .
+		For simplicity in YSLib (including YBase), using this style is preferred.
 
 
 ////
