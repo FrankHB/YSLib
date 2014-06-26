@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r226
+\version r246
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-06-04 13:35 +0800
+	2014-06-22 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,6 +169,13 @@ public:
 	DefDeMoveCtor(TextBox)
 
 	/*!
+	\brief 取插入符光标的显示位置。
+	\return 插入符光标左上角相对于部件左上角的偏移。
+	\since build 512
+	*/
+	Point
+	GetCaretLocation() const;
+	/*!
 	\brief 取指定点所在的插入符光标逻辑位置。
 	\note 参数为相对于部件左上角偏移。
 	\since build 484
@@ -176,6 +183,13 @@ public:
 	*/
 	TextSelection::Position
 	GetCaretPosition(const Point&);
+
+	/*!
+	\brief 折叠选择区域并更新插入符状态。
+	\since build 512
+	*/
+	PDefH(void, CollapsedAndUpdateCaret, )
+		ImplExpr(Selection.Collapse(), UpdateCaret())
 
 	//! \since build 485
 	void
@@ -204,6 +218,14 @@ public:
 	//! \brief 绘制默认插入符。
 	void
 	PaintDefaultCaret(PaintEventArgs&&);
+
+	/*!
+	\brief 更新插入符状态。
+	\note 仅当外部文本输入指示焦点部件为本对象时有效，否则忽略。
+	\since build 512
+	*/
+	void
+	UpdateCaret() const;
 };
 
 } // namespace UI;

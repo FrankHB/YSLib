@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r387
+\version r452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-06-21 22:05 +0800
+	2014-06-25 14:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,19 +45,25 @@ Window::Window(NativeWindowHandle h)
 {}
 Window::Window(NativeWindowHandle h, Environment& e)
 	: HostWindow(h), env(e)
+#	if YCL_Win32
+	, has_hosted_caret(::CreateCaret(h, {}, 1, 1))
+#	endif
 {
 #	if YCL_Win32
 	e.AddMappedItem(h, this);
 	yunseq(
+	MessageMap[WM_MOVE] += [this]{
+		UpdateCandidateWindowLocation();
+	},
 	MessageMap[WM_KILLFOCUS] += []{
 		platform_ex::ClearKeyStates();
 	},
 	MessageMap[WM_INPUT] += [this](::WPARAM, ::LPARAM l_param){
-		::UINT size(sizeof(::RAWINPUT));
+		unsigned size(sizeof(::RAWINPUT));
 		byte lpb[sizeof(::RAWINPUT)]{};
 
 		if(YB_LIKELY(::GetRawInputData(::HRAWINPUT(l_param), RID_INPUT, lpb,
-			&size, sizeof(::RAWINPUTHEADER)) != ::UINT(-1)))
+			&size, sizeof(::RAWINPUTHEADER)) != unsigned(-1)))
 		{
 			const auto p_raw(reinterpret_cast<::RAWINPUT*>(lpb));
 
@@ -73,13 +79,23 @@ Window::Window(NativeWindowHandle h, Environment& e)
 
 		for(size_t n(l_param & 0x7FFF); n-- != 0;)
 			comp_str += ucs2_t(w_param);
+	},
+	MessageMap[WM_IME_COMPOSITION] += [this]{
+		UpdateCandidateWindowLocation();
 	}
 	);
+	ystdex::unseq_apply([this](unsigned msg){
+		BindDefaultWindowProc(msg);
+	}, WM_MOVE, WM_IME_COMPOSITION);
 #	endif
 }
 Window::~Window()
 {
 	env.get().RemoveMappedItem(GetNativeHandle());
+#	if YCL_Win32
+	if(has_hosted_caret)
+		::DestroyCaret();
+#	endif
 }
 
 pair<Point, Point>
@@ -97,6 +113,60 @@ Window::GetInputBounds() const ynothrow
 	return {};
 #	endif
 }
+
+#	if YCL_Win32
+void
+Window::BindDefaultWindowProc(unsigned msg, EventPriority prior)
+{
+	MessageMap[msg].Add([=](::WPARAM w_param, ::LPARAM l_param){
+		::DefWindowProcW(GetNativeHandle(), msg, w_param, l_param);
+	}, prior);
+}
+
+void
+Window::UpdateCandidateWindowLocation()
+{
+	std::lock_guard<std::recursive_mutex> lck(input_mutex);
+
+	UpdateCandidateWindowLocationUnlocked();
+}
+void
+Window::UpdateCandidateWindowLocation(const Point& pt)
+{
+	if(pt != Point::Invalid)
+	{
+		std::lock_guard<std::recursive_mutex> lck(input_mutex);
+
+		caret_location = pt + GetInputBounds().first;
+		UpdateCandidateWindowLocationUnlocked();
+	}
+}
+void
+Window::UpdateCandidateWindowLocationUnlocked()
+{
+	if(YB_LIKELY(caret_location != Point::Invalid))
+	{
+		YTraceDe(Notice, "Update composition form position: %s.",
+			to_string(caret_location).c_str());
+
+		const auto h_wnd(GetNativeHandle());
+
+		YAssertNonnull(h_wnd);
+		if(const auto h_imc = ::ImmGetContext(h_wnd))
+		{
+			::CANDIDATEFORM cand_form{0, CFS_CANDIDATEPOS,
+				{caret_location.X, caret_location.Y}, {0, 0, 0, 0}};
+
+			::ImmSetCandidateWindow(h_imc, &cand_form);
+			::ImmReleaseContext(h_wnd, h_imc);
+		}
+		// FIXME: Correct implementation for non-Chinese IME.
+		// NOTE: See comment on %IMM32Manager::MoveImeWindow in
+		//	https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc .
+		::SetCaretPos(caret_location.X, caret_location.Y);
+	}
+}
+#	endif
 
 void
 Window::UpdateFrom(YSLib::Drawing::BitmapPtr buf, ScreenRegionBuffer& rbuf)

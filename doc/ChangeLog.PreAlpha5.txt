@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r882
+\version r995
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-22 02:11 +0800
+	2014-06-26 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,119 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				(
+					/ @ "class %GUIState" @ %YGUI $=
+					(
+						+ "data member %CaretLocation"
+						/ "clear caret location state" @ "function %Reset",
+					);
+					/ @ "class %TextBox" @ %TextBox $=
+					(
+						(
+						+ "function %GetCaretLocation";
+						/ DLD "simplified implementation"
+							@ "static function %InvalidateDefaultCaret"
+						),
+						+ "functions %(UpdateCaret; CollapsedAndUpdateCaret)";
+						/ "updated caret location to GUI state after caret \
+							position changes"
+					)
+				),
+				+ "trace" @ "function %InitExStyles" @ %ExStyle,
+				+ "trace" @ "member function %StyleMap::Switch" @ %YStyle
+			),
+			/ %Adaptors $=
+			(
+				$dep_from %YCLib.YCommon;
+				+ 'using platform::IsPrint;' @ "namespace %YSLib::Text"
+					@ %YTextBase,
+				- $revert($since $before b132) "special process for '\t'"
+					@ "member function %Font::GetAdvance" @ %Font
+					// The width of tab character should be determinated in \
+						concrete contexts.
+			),
+			(
+			$dep_from %Adaptor.YTextBase;
+			^ "%IsPrintf" ~ "%std::iswprint";
+			$dep_to "print character check"
+			)
+		),
+		/ %Helper $=
+		(
+			/ @ "platform %Win32" @ "class %InputManager" @ %InputManager $=
+			(
+				+ DLD "text input focus pointer cache";
+				* $comp "missing clearing coposite string after switch text \
+					input focus" $since b511,
+				/ @ "function %DispatchInput" $=
+				(
+					(
+					$dep_from "hosted caret";
+					/ "supported hosted IME following text input focus"
+					),
+					/ DLD "put host input process at the end" @ "implementation"
+				),
+				+ "caret location caching; %UpdateCandadateWindowLocation",
+				(
+				$dep_from "print character check";
+				* $comp "'\t' wrongly handled for text input" $since b511
+					// Now correctly as no-op. Press tab key in text box is \
+						with no action.
+				)
+			),
+			/ @ "class %Host::Window" @ %HostWindow $=
+			(
+				(
+				+ DLD "fake caret to support IME candidate window locating";
+				+ "function %UpdateCandidateWindowLocation";
+				+ "window caret location caching";
+				+ "support of caret update by moving hosted window",
+					// Currently it works on Windows 7 but not on Windows 2012 \
+						R2.
+				+ "support of caret update on composing the input string";
+					// Ditto.
+				$dep_to "hosted caret"
+				)
+				+ "function %BindDefaultWindowProc";
+				/ DLD "simplified implementation" @ "constructor"
+					^ "function %BindDefaultWindowProc"
+			),
+			^ DLD "macro %YFM_DS_Helper_Shell_DS" @ %Shells
+		),
+		/ DLD "simplified implementation" @ "all 5 inline functions"
+			@ "%CHRLib.CharacterMapping" ^ "%(PDefH, ImplRet),
+		+ "(2 function, 1 template) %IsPrint" @ %YCLib.YCommon
+	),
+	/ DLD "all '::UINT'" -> 'unsigned',
+	+ DLB "dynamic library dependency %imm32" @ "DLL configurations"
+		@ "Code::Blocks project %YFramework_MinGW32",
+	+ DLB "static library dependency %imm32" @ "non-DLL configurations"
+		@ "Code::Blocks project %YSTest_MinGW32",
+	/ %YReader $=
+	(
+		(
+		$dep_from %YFramework.YAdaptor.YTextBase;
+		^ "%IsPrintf" ~ "%std::iswprint" @ %DSReader
+		),
+		+ "function %FetchDefaultShellDirectory;
+		/ "default argument" @ "class %ShlExplorer"
+			-> 'FetchDefaultShellDirectory()'
+			~ 'IO::FetchCurrentWorkingDirectory()'
+			// For Android it is the data directory, since access the working \
+				directory is possibly to be rejected. For other platforms it 
+				is unchanged.
+		+ "debug trace" @ "constructor %ShlExplorer" @ %ShlExplorer;
+	)
+),
+
+b511
 (
 	/ %YFramework $=
 	(
@@ -62,7 +175,7 @@ $now
 				(
 					+ "data member %ExteralTextInputFocusPtr";
 					/ "clear character input states"
-						@ "function %(Reset, CleanupReferences)",
+						@ "functions %(Reset, CleanupReferences)",
 					/ "function %SendInput" $=
 					(
 						+ "various overloaded functions",

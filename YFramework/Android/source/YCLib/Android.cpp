@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r378
+\version r380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-06-16 00:41 +0800
+	2014-06-26 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -218,8 +218,7 @@ InputQueue::InputQueue(::ALooper& looper, ::AInputQueue& q)
 					continue;
 				SaveInput(*p_evt);
 				::AInputQueue_finishEvent(p_queue, p_evt,
-					::AInputEvent_getType(p_evt)
-					== AINPUT_EVENT_TYPE_MOTION);
+					::AInputEvent_getType(p_evt) == AINPUT_EVENT_TYPE_MOTION);
 			}
 			return 1;
 		}, this);

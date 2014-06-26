@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3392
+\version r3394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-06-15 14:55 +0800
+	2014-06-26 09:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -497,8 +497,6 @@ Font::Font(const FontFamily& family, const FontSize size, FontStyle fs)
 s8
 Font::GetAdvance(ucs4_t c, ::FTC_SBit sbit) const
 {
-	if(YB_UNLIKELY(c == '\t'))
-		return GetAdvance(' ') << 2;
 	if(!sbit)
 		sbit = GetGlyph(c, FT_LOAD_DEFAULT);
 	if(YB_LIKELY(sbit))

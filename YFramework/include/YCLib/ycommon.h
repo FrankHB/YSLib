@@ -11,13 +11,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3536
+\version r3562
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2014-05-11 23:14 +0800
+	2014-06-26 09:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@
 #include <ystdex/cassert.h>
 #include <ystdex/cstdio.h>
 #include <cstdlib>
+#include <cctype>
+#include <cwchar>
 #include <string>
 #include YFM_YBaseMacro
 
@@ -79,6 +81,34 @@ enum RecordLevel : std::uint8_t
 };
 
 } // namespace Descriptions;
+
+
+/*!
+\brief 检查默认区域下指定字符是否为可打印字符。
+\note MSVCRT 的 isprint/iswprint 实现缺陷的变通。
+\sa https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale
+\since build 512
+*/
+//@{
+inline PDefH(bool, IsPrint, char c)
+#if YCL_Win32
+	ImplRet(std::isprint(c) && c != '\t')
+#else
+	ImplRet(std::isprint(c))
+#endif
+inline PDefH(bool, IsPrint, wchar_t c)
+#if YCL_Win32
+	ImplRet(std::iswprint(c) && c != L'\t')
+#else
+	ImplRet(std::iswprint(c))
+#endif
+template<typename _tChar>
+bool
+IsPrint(_tChar c)
+{
+	return platform::IsPrint(wchar_t(c));
+}
+//@}
 
 } // namespace platform;
 

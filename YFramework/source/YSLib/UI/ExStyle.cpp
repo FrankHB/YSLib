@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r338
+\version r344
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-03-29 23:52 +0800
+	2014-06-26 15:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,7 +133,7 @@ RectDrawSelector_Aoi(void(*f)(const PaintContext&, const Size&, const bool[],
 		roll(20.8F, .923F, .847F)};
 	const bool ctl_states[]{IsFocused(tmb), IsEnabled(tmb),
 		IsFocusedByShell(tmb), is_ticked};
-	
+
 	f(pc, GetSizeOf(tmb), ctl_states, colors, [](CursorState s)->size_t{
 		switch(s)
 		{
@@ -231,8 +231,11 @@ RectDrawRadioBox_Aoi(const PaintContext& pc, RadioBox& rb)
 void
 InitExStyles()
 {
+	YTraceDe(Notice, "Initializing extra styles ...");
+
 	HandlerTable ht;
 
+	YTraceDe(Informative, "Adding Thumb style 'Aoi'...");
 	AddHandlers<Thumb>(ht, {{Thumb::ThumbBackground,
 		[](PaintEventArgs&& e){
 			const auto&
@@ -242,19 +245,23 @@ InitExStyles()
 				tmb.GetCursorState(), IsEnabled(tmb), IsFocused(tmb));
 		}
 	}}),
+	YTraceDe(Informative, "Adding CheckBox style 'Aoi'...");
 	AddHandlers<CheckBox>(ht, {{CheckBox::CheckBoxBackground,
 		[](PaintEventArgs&& e){
 			RectDrawCheckBox_Aoi(e,
 				ystdex::polymorphic_downcast<CheckBox&>(e.GetSender()));
 		}
 	}}),
+	YTraceDe(Informative, "Adding RadioBox style 'Aoi'...");
 	AddHandlers<RadioBox>(ht, {{CheckBox::CheckBoxBackground,
 		[](PaintEventArgs&& e){
 			RectDrawRadioBox_Aoi(e,
 				ystdex::polymorphic_downcast<RadioBox&>(e.GetSender()));
 		}
 	}});
+	YTraceDe(Notice, "Adding style 'Aoi'...");
 	FetchGUIState().Styles.Add("Aoi", std::move(ht));
+	YTraceDe(Notice, "Extra style(s) initialized successfully.");
 }
 
 } // namespace Styles;

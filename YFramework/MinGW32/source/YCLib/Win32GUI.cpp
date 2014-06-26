@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r462
+\version r463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-05-26 16:13 +0800
+	2014-06-24 11:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -365,7 +365,7 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 
 
 WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
-	::UINT style, ::HBRUSH h_bg)
+	unsigned style, ::HBRUSH h_bg)
 	: h_instance(::GetModuleHandleW({}))
 {
 	// NOTE: Intentionally no %CS_OWNDC or %CS_CLASSDC, so %::ReleaseDC

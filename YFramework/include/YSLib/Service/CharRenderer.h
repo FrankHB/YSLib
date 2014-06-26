@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2814
+\version r2816
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2013-10-23 23:48 +0800
+	2014-06-26 09:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,7 +147,7 @@ template<class _tRenderer>
 void
 PrintChar(_tRenderer& r, ucs4_t c)
 {
-	if(YB_LIKELY(std::iswprint(c)))
+	if(YB_LIKELY(Text::IsPrint(c)))
 		r(c);
 }
 

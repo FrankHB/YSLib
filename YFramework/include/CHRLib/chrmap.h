@@ -11,13 +11,13 @@
 /*!	\file chrmap.h
 \ingroup CHRLib
 \brief 字符映射。
-\version r1290
+\version r1318
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-05-23 10:07 +0800
+	2014-06-26 08:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "YModules.h"
 #include YFM_CHRLib_Encoding
+#include YFM_YBaseMacro
 #include <ystdex/cassert.h>
 
 namespace CHRLib
@@ -49,23 +50,15 @@ yconstexpr Encoding CS_Default = CharSet::UTF_8;
 \brief 取 c_ptr 指向的大端序双字节字符。
 \pre 断言： \c c_ptr 。
 */
-inline ucs2_t
-FetchBiCharBE(const char* c_ptr)
-{
-	yconstraint(c_ptr);
-	return (*c_ptr << CHAR_BIT) | c_ptr[1];
-}
+inline PDefH(ucs2_t, FetchBiCharBE, const char* c_ptr)
+	ImplRet(yconstraint(c_ptr), (*c_ptr << CHAR_BIT) | c_ptr[1])
 
 /*!
 \brief 取 c_ptr 指向的小端序双字节字符。
 \pre 断言： \c c_ptr 。
 */
-inline ucs2_t
-FetchBiCharLE(const char* c_ptr)
-{
-	yconstraint(c_ptr);
-	return (c_ptr[1] << CHAR_BIT) | *c_ptr;
-}
+inline PDefH(ucs2_t, FetchBiCharLE, const char* c_ptr)
+	ImplRet(yconstraint(c_ptr), (c_ptr[1] << CHAR_BIT) | *c_ptr)
 
 
 /*!
@@ -110,21 +103,12 @@ struct ConversionState
 
 //! \relates ConversionState
 //@{
-yconstfn std::uint_fast8_t&
-GetCountOf(ConversionState& st)
-{
-	return st.Count;
-}
-yconstfn ucsint_t&
-GetWideOf(ConversionState& st)
-{
-	return st.Value.Wide;
-}
-yconstfn byte*
-GetSequenceOf(ConversionState& st)
-{
-	return st.Value.Sequence;
-}
+yconstfn PDefH(std::uint_fast8_t&, GetCountOf, ConversionState& st)
+	ImplRet(st.Count)
+yconstfn PDefH(ucsint_t&, GetWideOf, ConversionState& st)
+	ImplRet(st.Value.Wide)
+yconstfn PDefH(byte*, GetSequenceOf, ConversionState& st)
+	ImplRet(st.Value.Sequence)
 //@}
 
 

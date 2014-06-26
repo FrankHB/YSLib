@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r338
+\version r386
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-06-21 03:00 +0800
+	2014-06-26 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -332,6 +332,54 @@ Call-by-value for parameter with object type for classes types should be refined
 		The standard library is not using this style.
 			See https://github.com/cplusplus/draft/wiki/Specification-Style-Guidelines#specifying-implicitly-generated-special-member-functions .
 		For simplicity in YSLib (including YBase), using this style is preferred.
+There are multiple issues for IME(Input Method Editor) support in Windows.
+	Input methods are supported through IMM32, TSF(Text Service Framework) and CUAS(Cicero Unaware Application Support) APIs.
+		IMM32 should be used for most compatibility for desktop enviornments.
+			Though it is not supported in Windows Store apps, see: http://msdn.microsoft.com/en-us/library/windows/apps/hh967425.aspx .
+		TSF is a new set of API to substitute IMM32.
+			Though only supported from Windows NT 6 systems, it can be used and suggested to be used in Windows Store apps by Microsoft.
+			It may be superior in features and extensibility.
+			It is not only about text input through keyboard devices. Other input methods and natural language technologies are also provided.
+				This might cause troubles if only keyboard input processing is intended.
+			The API is COM-based.
+				This brings some complexity on code usage and library dependencies.
+		CUAS is not as common as above other APIs.
+			Since the XP tablet is not the target, it is mentioned only for minor subtle issues.
+		YSLib now mainly uses IMM32. TSF is a candidate in future if the extra functionality is really needed.
+	Asian IMEs of different languages behaves different.
+		Now only Chinese IMEs are considered. General support should be added in future.
+	Candidate and composite windows may be combined as a single window or not.
+		For simplicity, now only the candidate window is directly touched in YSLib.
+	Following to text input cursor/caret is a mess.
+		All OS versions, IMEs and applications count.
+		Different IMEs do not always obey the interface requirement.
+			Chinese IMEs might ignore ::ImmSetCandidateWindow calls, so Win32 caret APIs have to be used.
+		Behavior are not precisely equivalent. If the cursor switched by mouse when IME candidate window is shown, the IME candidate window can follow the cursor or not.
+			For examples, tested with Baidu Pinyin IME 2.10.2.93:
+				In contexts concerned with Win32 native edit controls, it follows. These at least include:
+					Text fields in native common dialogs;
+					Text fields (e.g. combo box to input path, text box to rename a file, etc.) in Windows Explorer except the search box (see below);
+					Editor of Notepad;
+					Editor of Visual Studio 2013.
+					wxWidgets text boxes of Code::Blocks svn9778 in Windows 2012 R2;
+				In most other editors, it doesn't. These at least include:
+					wxScintilla editor Code::Blocks 13.12 in Windows 7;
+					wxWidgets text boxes of Code::Blocks 13.12 in Windows 7;
+					Editor of EditPlus 3.60;
+					Dialogs and text editor of Android Studio 0.6.1;
+					Default editor control, address bar and search box of Firefox Nightly 33.0a in Windows 2012 R2;
+				In some other contexts, it just disappears. These at least include:
+					Search box in Windows Explorer;
+					Search box in Windows Start Menu in Windows 7;
+					Search box in Windows Start Screen in Windows 2012 R2;
+					Default editor control, address bar and search box of Firefox Nightly 33.0a in Windows 7;
+					Editor of MdCharm 1.0 in Windows 7.
+				Note in some other contexts, the application is aware of IME with explicit visual effect(e.g. underlines), at least include:
+					Dialogs and text editor of Android Studio 0.6.1.
+				In Windows 2012 R2, wxScintilla editor of Code::Blocks svn9778 doesn't work at all, even before composing the input string). Seems a bug.
+				In Windows 2012 R2, (Qt-based) editor of MdCharm 1.0 and text field in Konversation 1.5 make the candidate window following only when switch fast enough. Seems a bug.
+			Currently YSLib chooses a simple implements that behaves like Scintilla of Code::Blocks as default, as well as disablility in Windows 2012 R2.
+	See also comments in https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc .
 
 
 ////

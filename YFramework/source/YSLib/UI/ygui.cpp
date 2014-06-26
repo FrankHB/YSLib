@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4053
+\version r4055
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-06-21 22:17 +0800
+	2014-06-22 22:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,7 +198,8 @@ GUIState::Reset()
 	HeldTimer.ResetInput(),
 	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
 		p_indp_focus = {}, p_cascade_focus = {}, entered = {},
-		checked_held = {}, master_key = 0, ExteralTextInputFocusPtr = {});
+		checked_held = {}, master_key = 0, ExteralTextInputFocusPtr = {},
+		CaretLocation = Point::Invalid);
 }
 
 void
