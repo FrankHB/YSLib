@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file YTextBase.h
 \ingroup Adaptor
-\brief 外部库关联。
-\version r61
+\brief 外部库关联：文本接口。
+\version r65
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-24 00:02:44 +0800
 \par 修改时间:
-	2013-12-23 23:53 +0800
+	2014-06-26 08:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,8 @@ namespace Text
 {
 
 using namespace CHRLib;
+//! \since build 512
+using platform::IsPrint;
 
 } // namespace Text;
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r481
+\version r485
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-05-26 16:06 +0800
+	2014-06-24 11:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -402,7 +402,8 @@ private:
 	::HINSTANCE h_instance;
 
 public:
-	WindowClass(const wchar_t*, ::WNDPROC, ::UINT = 0,
+	//! \since build 512
+	WindowClass(const wchar_t*, ::WNDPROC, unsigned = 0,
 		::HBRUSH = ::HBRUSH(COLOR_MENU + 1));
 	~WindowClass();
 };
@@ -427,9 +428,9 @@ public:
 
 	/*!
 	\brief 窗口消息转发事件映射。
-	\since build 488
+	\since build 512
 	*/
-	std::map<::UINT, YSLib::GEvent<void(::WPARAM, ::LPARAM)>> MessageMap;
+	std::map<unsigned, YSLib::GEvent<void(::WPARAM, ::LPARAM)>> MessageMap;
 
 	//! \throw LoggedEvent 窗口类名不是 WindowClassName 。
 	HostWindow(NativeWindowHandle);

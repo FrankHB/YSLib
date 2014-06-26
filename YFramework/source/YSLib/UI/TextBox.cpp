@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r399
+\version r428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-06-22 02:01 +0800
+	2014-06-22 22:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,7 +164,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 					else
 						range.second.X = (ek == Left) == (range.first.X
 							< range.second.X) ? range.first.X : range.second.X;
-					Selection.Collapse();
+					CollapsedAndUpdateCaret();
 				case Tab:
 					break;
 				case Space:
@@ -179,7 +179,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
 		Selection.Range.second = GetCaretPosition(e.Position);
-		Selection.Collapse();
+		CollapsedAndUpdateCaret();
 	},
 	FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
 		if(FetchGUIState().GetIndependentFocusPtr() == this)
@@ -189,6 +189,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 			Selection.Range.second = GetCaretPosition(&sender == this
 				? e.Position : LocateForWidget(*this, sender) + e.Position);
 			// XXX: Optimization for block.
+			UpdateCaret();
 			Invalidate(*this);
 		}
 	},
@@ -202,12 +203,22 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 		Invalidate(*this);
 	},
 	FetchEvent<LostFocus>(*this) += [this]{
-		Selection.Collapse();
+		CollapsedAndUpdateCaret();
 		Invalidate(*this);
 	}
 	);
 }
 
+Point
+TextBox::GetCaretLocation() const
+{
+	const Rect inner_bounds(Rect(GetSizeOf(*this)) + Margin);
+	const auto& cur_pos(Selection.Range.second);
+	const auto lh(Font.GetHeight());
+
+	return {inner_bounds.X + FetchStringWidth(Font, Text, cur_pos.X),
+		cur_pos.Y * lh + inner_bounds.X};
+}
 TextSelection::Position
 TextBox::GetCaretPosition(const Point& pt)
 {
@@ -256,14 +267,9 @@ bool
 TextBox::InvalidateDefaultCaret(IWidget& wgt)
 {
 	auto& tb(ystdex::polymorphic_downcast<TextBox&>(wgt));
-	const Rect inner_bounds(Rect(GetSizeOf(wgt)) + tb.Margin);
-	const auto lh(tb.Font.GetHeight());
-	const auto& cur_pos(tb.Selection.Range.second);
-	const auto
-		x(inner_bounds.X + FetchStringWidth(tb.Font, tb.Text, cur_pos.X));
-	const auto y(cur_pos.Y * lh + inner_bounds.X);
 
-	InvalidateVisible(tb, Rect(x, y, 1, lh + GetVerticalOf(tb.Margin)));
+	InvalidateVisible(tb, Rect(tb.GetCaretLocation(), 1, tb.Font.GetHeight()
+		+ GetVerticalOf(tb.Margin)));
 	return true;
 }
 
@@ -284,7 +290,7 @@ TextBox::ReplaceSelection(const String& text)
 	Text = Text.substr(0, r.first.X) + text
 		+ Text.substr(min(Text.length(), r.second.X));
 	r.second.X = r.first.X + text.length(),
-	Selection.Collapse();
+	CollapsedAndUpdateCaret();
 }
 
 void
@@ -298,6 +304,15 @@ TextBox::PaintDefaultCaret(PaintEventArgs&& e)
 	DrawVLineSeg(e.Target, e.ClipArea, inner_bounds.X + FetchStringWidth(Font,
 		Text, cur_pos.X) - h_offset, cur_pos.Y * lh + mask.Top,
 		cur_pos.Y * lh + lh + mask.Top, ForeColor);
+}
+
+void
+TextBox::UpdateCaret() const
+{
+	auto& st(FetchGUIState());
+
+	if(st.ExteralTextInputFocusPtr == this)
+		st.CaretLocation = GetCaretLocation();
 }
 
 } // namespace UI;

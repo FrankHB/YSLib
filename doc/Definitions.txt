@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12322
+\version r12324
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2014-06-20 13:28 +0800
+	2014-06-26 08:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -869,6 +869,8 @@ $header Adaptor::YTextBase
 namespace Text
 {
 	using namespace CHRLib;
+	//! \since build 512
+	using platform::IsPrint;
 } // namespace Text;
 using Text::ucs4_t, Text::ucs2_t, Text::ucsint_t;
 

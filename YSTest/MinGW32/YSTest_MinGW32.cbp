@@ -24,6 +24,7 @@
 					<Add library="..\..\YFramework\MinGW32\lib\libfreetype.a" />
 					<Add library="..\..\build\MinGW32\YBase\debug\libYBased.a" />
 					<Add library="gdi32" />
+					<Add library="imm32" />
 					<Add library="winmm" />
 					<Add library="Shlwapi" />
 				</Linker>
@@ -48,6 +49,7 @@
 					<Add library="..\..\YFramework\MinGW32\lib\libfreetype.a" />
 					<Add library="..\..\build\MinGW32\YBase\release\libYBase.a" />
 					<Add library="gdi32" />
+					<Add library="imm32" />
 					<Add library="winmm" />
 					<Add library="Shlwapi" />
 				</Linker>

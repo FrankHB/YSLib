@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2182
+\version r2188
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-06-21 22:18 +0800
+	2014-06-22 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,6 +184,12 @@ public:
 	\since build 510
 	*/
 	IWidget* ExteralTextInputFocusPtr = {};
+	/*!
+	\brief 相对于外部文本输入指示焦点部件的插入符光标左上角位置。
+	\note 除了复位清除为 Point::Invalid 外， GUIState 不访问此成员。
+	\since build 512
+	*/
+	Point CaretLocation{Point::Invalid};
 
 	GUIState() ynothrow;
 

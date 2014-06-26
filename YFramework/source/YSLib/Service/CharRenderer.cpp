@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3254
+\version r3255
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-06-12 22:02 +0800
+	2014-06-26 08:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,7 +184,7 @@ PutCharBase(TextState& ts, SDst eol, ucs4_t c)
 		ts.PutNewline();
 		return 0;
 	}
-	if(YB_UNLIKELY(!std::iswprint(c)))
+	if(YB_UNLIKELY(!IsPrint(c)))
 		return 0;
 #if 0
 	const int max_w(GetBufferWidthN() - 1),

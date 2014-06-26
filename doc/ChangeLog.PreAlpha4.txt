@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8193
+\version r8198
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-06-21 15:30 +0800
+	2014-06-25 11:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -5532,7 +5532,7 @@ b421
 			/ %Adaptor.Font $=
 			(
 				$dep_from %YBase.YStandardEx.Functional;
-				+ "style hashing" @ "glyph bitmap cacheing",
+				+ "style hashing" @ "glyph bitmap caching",
 				/ "function %Font::SetStyle to allow non-regular style \
 					setting when typeface exists";
 				+ "support for bold and italic bitmap glyphs"
@@ -5583,12 +5583,12 @@ b420
 (
 	/ %YFramework.Adaptor.Font $=
 	(
-		/ "small bitmap cacheing using moving" ~ "copying",
+		/ "small bitmap caching using moving" ~ "copying",
 		/ @ "class %Typeface" $=
 		(
 			/ DLD "assured non-null face",
 			* "missing destructor" $since b419,
-			+ "size cacheing"
+			+ "size caching"
 		),
 		/ @ "class %NativeFontSize" $=
 		(
@@ -5680,10 +5680,10 @@ b418
 					^ "%unordered_map with %unique_ptr for %FontFamily \
 						stored",
 					/ "function %ClearCache" => "%Reset",
-					- "FreeType CMap cacheing"
+					- "FreeType CMap caching"
 						// Binary size enlarged. No performance impact.
 				),
-				+ "CMap cacheing" ^ "%unordered_map"
+				+ "CMap caching" ^ "%unordered_map"
 			)
 		)
 	)

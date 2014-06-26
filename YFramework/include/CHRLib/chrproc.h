@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r933
+\version r934
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-02-14 22:50 +0800
+	2014-06-26 08:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "YModules.h"
 #include YFM_CHRLib_CharacterMapping
-#include YFM_YBaseMacro
 #include <cstdio> // for std::FILE;
 #include <memory> // for std::move;
 #include <ystdex/string.hpp> // for ystdex::string_traits;

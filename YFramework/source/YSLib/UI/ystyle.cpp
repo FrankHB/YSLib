@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r816
+\version r821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-06-15 15:07 +0800
+	2014-06-26 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -336,9 +336,14 @@ StyleMap::Remove(const string& name)
 void
 StyleMap::Switch(const string& name)
 {
-	const auto i(find(name));
+	YTraceDe(Notice, "Style %s requested to be switched.", name.c_str());
 
-	current = i == cend() ? cbegin() : i;
+	const auto i(find(name));
+	const bool exist(i != cend());
+
+	YTraceDe(Notice, "Style %s%sfound in style map.", name.c_str(),
+		exist ? " " : "not ");
+	current = exist ? i : cbegin();
 }
 
 

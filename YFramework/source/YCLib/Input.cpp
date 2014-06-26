@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r399
+\version r412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-06-02 22:16 +0800
+	2014-06-26 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -254,20 +254,19 @@ SaveInput(const ::AInputEvent& e)
 {
 	const auto update_key([](std::int32_t action, const std::uint8_t keycode){
 		YCL_Def_LockGuard(lck, KeyMutex)
-			// TODO: Track Alt/Shift/Sym key states.
-		//	const auto meta(::AKeyEvent_getMetaState(&e));
+		// TODO: Track Alt/Shift/Sym key states.
+	//	const auto meta(::AKeyEvent_getMetaState(&e));
 
-			switch(action)
-			{
-			case ::AKEY_EVENT_ACTION_DOWN:
-			case ::AKEY_EVENT_ACTION_UP:
-				FetchKeyStateRef().set(keycode,
-					action == ::AKEY_EVENT_ACTION_DOWN);
-				break;
-			case ::AKEY_EVENT_ACTION_MULTIPLE:
-				// TODO: Record.
-				break;
-			}
+		switch(action)
+		{
+		case ::AKEY_EVENT_ACTION_DOWN:
+		case ::AKEY_EVENT_ACTION_UP:
+			FetchKeyStateRef().set(keycode, action == ::AKEY_EVENT_ACTION_DOWN);
+			break;
+		case ::AKEY_EVENT_ACTION_MULTIPLE:
+			// TODO: Record.
+			break;
+		}
 	});
 	const auto update_motion_key([](bool down){
 		YCL_Def_LockGuard(lck, KeyMutex)

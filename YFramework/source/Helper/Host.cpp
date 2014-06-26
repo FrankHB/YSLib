@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1403
+\version r1404
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-06-21 15:25 +0800
+	2014-06-24 11:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ namespace
 
 #	if YCL_Win32
 ::LRESULT CALLBACK
-WndProc(::HWND h_wnd, ::UINT msg, ::WPARAM w_param, ::LPARAM l_param)
+WndProc(::HWND h_wnd, unsigned msg, ::WPARAM w_param, ::LPARAM l_param)
 {
 	if(const auto p = reinterpret_cast<Window*>(::GetWindowLongPtrW(h_wnd,
 		GWLP_USERDATA)))

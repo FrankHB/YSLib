@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r339
+\version r378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-06-21 22:05 +0800
+	2014-06-25 14:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,17 +75,26 @@ public:
 	\note 仅当窗口启用 WS_EX_LAYERED 样式且 UseOpacity 设置为 true 时有效。
 	\since build 435
 	*/
-	YSLib::Drawing::AlphaType Opacity{0xFF};
+	Drawing::AlphaType Opacity{0xFF};
 	//! \since build 511
 	//@{
 	//! \brief 鼠标键输入。
 	std::atomic<short> RawMouseButton{0};
 
 private:
+	/*!
+	\brief 标识宿主插入符。
+	\since build 512
+	\see https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc
+		IMM32Manager::CreateImeWindow 的注释。
+	*/
+	bool has_hosted_caret;
 	//! \brief 输入组合字符串锁。
 	std::recursive_mutex input_mutex{};
 	//! \brief 输入法组合字符串。
 	String comp_str{};
+	//! \brief 相对于窗口的宿主插入符位置缓存。
+	Drawing::Point caret_location{Drawing::Point::Invalid};
 	//@}
 #	endif
 
@@ -109,6 +118,16 @@ public:
 	virtual pair<YSLib::Drawing::Point, YSLib::Drawing::Point>
 	GetInputBounds() const ynothrow;
 
+#	if YCL_Win32
+	/*!
+	\brief 添加使用指定优先级调用 ::DefWindowProcW 处理 Windows 消息的处理器。
+	\since build 512
+	\todo 处理返回值。
+	*/
+	void
+	BindDefaultWindowProc(unsigned, EventPriority = 0);
+#	endif
+
 	/*!
 	\brief 刷新：保持渲染状态同步。
 	\since build 407
@@ -130,6 +149,28 @@ public:
 
 		return f(comp_str);
 	}
+
+	/*!
+	\brief 更新输入法编辑器候选窗口位置。
+	\note 若位置为 Drawing::Point::Invalid 则忽略。
+	\sa caret_location
+	\since build 512
+	*/
+	//@{
+	//! \note 线程安全。
+	//@{
+	//! \note 取缓存的位置。
+	void
+	UpdateCandidateWindowLocation();
+	//! \note 首先无条件更新缓存。
+	void
+	UpdateCandidateWindowLocation(const Drawing::Point&);
+	//@}
+
+	//! \note 无锁版本，仅供内部实现。
+	void
+	UpdateCandidateWindowLocationUnlocked();
+	//@}
 #	endif
 
 	/*!

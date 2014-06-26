@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r147
+\version r154
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-02-15 16:02 +0800
+	2014-06-26 14:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,14 @@
 
 namespace YReader
 {
+
+/*!
+\brief 取默认 Shell 起始路径。
+\since build 512
+*/
+String
+FetchDefaultShellDirectory();
+
 
 //! \since build 429
 class SwitchScreensButton : public Button
@@ -81,7 +89,7 @@ public:
 	\sa ShlDS::ShlDS
 	\since build 395
 	*/
-	ShlExplorer(const IO::Path& = IO::FetchCurrentWorkingDirectory(),
+	ShlExplorer(const IO::Path& = FetchDefaultShellDirectory(),
 		const shared_ptr<Desktop>& = {}, const shared_ptr<Desktop>& = {});
 
 	/*!

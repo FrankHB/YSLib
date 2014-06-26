@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r464
+\version r496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-06-21 22:22 +0800
+	2014-06-26 08:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,38 +93,13 @@ InputManager::DispatchInput(IWidget& wgt)
 
 		st.ResponseCursor(e, CursorOver);
 	}
-
-	const auto p_wnd = env.get().GetForegroundWindow();
-
-	if(const auto p_input = st.ExteralTextInputFocusPtr)
-		if(YB_LIKELY(p_wnd))
-			p_wnd->AccessInputString([p_input](String& ustr){
-				auto& wgt(*p_input);
-				// XXX: Save actual key state.
-				KeyInput k;
-				size_t n(0);
-
-				for(const auto c : ustr)
-				{
-					++n;
-					YTraceDe(Informative, "Host character %d found.", int(c));
-					if(std::iswprint(c))
-					{
-						// XXX: Redundant nonzero test on character value.
-						CallInputEvent(c, k, wgt);
-					}
-					else
-						break;
-				}
-				ustr.erase(ustr.begin(), ustr.begin() + n);
-			});
 #endif
 	keys = platform_ex::FetchKeyDownState();
 	disp(keys, KeyDown, TouchDown);
 	keys = platform_ex::FetchKeyState();
 	disp(keys, KeyHeld, TouchHeld);
 #if YCL_Win32
-	if(YB_LIKELY(p_wnd))
+	if(const auto p_wnd = env.get().GetForegroundWindow())
 	{
 		const UI::WheelDelta raw_mouse(p_wnd->RawMouseButton);
 
@@ -135,6 +110,43 @@ InputManager::DispatchInput(IWidget& wgt)
 			st.ResponseCursor(e, CursorWheel);
 			p_wnd->RawMouseButton = 0;
 		}
+
+		// TODO: Use C++14 lambda initializers to simplify implementation.
+		const auto p_input(st.ExteralTextInputFocusPtr);
+
+		p_wnd->AccessInputString([=, &st](String& ustr){
+			if(YB_UNLIKELY(p_input != p_text_focus_cache))
+			{
+				ustr.clear();
+				yunseq(p_text_focus_cache = p_input,
+					caret_location_cache = Point::Invalid);
+			}
+			else if(p_input)
+			{
+				auto& wgt(*p_input);
+				// XXX: Save actual key state.
+				KeyInput k;
+				size_t n(0);
+
+				for(const auto c : ustr)
+				{
+					++n;
+					YTraceDe(Informative, "Host character %d found.", int(c));
+					if(platform::IsPrint(c))
+					{
+						// XXX: Redundant nonzero test on character value.
+						CallInputEvent(c, k, wgt);
+					}
+					else
+						break;
+				}
+				ustr.erase(ustr.begin(), ustr.begin() + n);
+				// XXX: Duplicate locking.
+				if(st.CaretLocation != caret_location_cache)
+					p_wnd->UpdateCandidateWindowLocation(
+						caret_location_cache = st.CaretLocation);
+			}
+		});
 	}
 #endif
 }
