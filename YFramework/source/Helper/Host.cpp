@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1404
+\version r1420
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-06-24 11:13 +0800
+	2014-06-28 16:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,10 @@
 #include "Helper/YModules.h"
 #include YFM_Helper_Host
 #include YFM_Helper_ShellHelper // for YSL_DEBUG_DECL_TIMER;
-#include YFM_YCLib_Input // for platform_ex::FetchCursor.
+#include YFM_YCLib_Input // for platform_ex::FetchCursor;
+#if YCL_Android
+#	include YFM_Android_Helper_AndroidHost // for Android::FetchDefaultWindow;
+#endif
 
 namespace YSLib
 {
@@ -187,16 +190,21 @@ Environment::MapCursor() const
 			&& IsInInterval<::LONG>(cursor.y, pr.first.Y, pr.second.Y))))
 			return {cursor.x - pr.first.X, cursor.y - pr.first.Y};
 	}
-	return Drawing::Point::Invalid;
 #	elif YCL_Android
 	// TODO: Support floating point coordinates.
-	// TODO: Use std::round.
 	const auto& cursor(platform_ex::FetchCursor());
+	// FIXME: For non-DS-hosted applications.
+	const pair<Point, Point> pr(Point(0, MainScreenHeight),
+		Point(MainScreenWidth, MainScreenHeight << 1));
 
-	return {::round(cursor.first), ::round(cursor.second)};
-#	else
-	return Drawing::Point::Invalid;
+	if(YB_LIKELY(pr.first.X != pr.second.X && pr.first.Y != pr.second.Y)
+		&& (IsInInterval<float>(cursor.first, pr.first.X, pr.second.X)
+		&& IsInInterval<float>(cursor.second, pr.first.Y, pr.second.Y)))
+		// TODO: Use std::round.
+		return {::round(cursor.first - pr.first.X),
+			::round(cursor.second - pr.first.Y)};
 #	endif
+	return Drawing::Point::Invalid;
 }
 
 void

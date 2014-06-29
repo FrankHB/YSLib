@@ -113,6 +113,12 @@
     <ClInclude Include="include\ystdex\bitseg.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\cctype.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\cwctype.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">
@@ -125,6 +131,9 @@
       <Filter>source\ystdex</Filter>
     </ClCompile>
     <ClCompile Include="source\ystdex\cassert.cpp">
+      <Filter>source\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\cwctype.cpp">
       <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>

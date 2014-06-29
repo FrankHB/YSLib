@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2695
+\version r2697
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-03-15 10:38 +0800
+	2014-06-29 19:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include YFM_YSLib_Service_TextRenderer
 #include YFM_YSLib_Service_YBlit
 #include YFM_YSLib_Service_TextLayout // for FetchLastLineBasePosition;
+#include <ystdex/cwctype.h> // for ystdex::iswgraph;
 
 using namespace ystdex;
 
@@ -91,7 +92,7 @@ RenderCharFrom(ucs4_t c, const Graphics& g, TextState& ts, const Rect& clip,
 		// TODO: Use fast glyph advance fetching for non-graph characters
 		//	when possible.
 		// TODO: Handle '\t'.
-		if(std::iswgraph(c))
+		if(ystdex::iswgraph(c))
 			if(const auto cbuf = cbmp.GetBuffer())
 			{
 				auto&& pc(ClipChar(g, ts.Pen, cbmp, clip));
