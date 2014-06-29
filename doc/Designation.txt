@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9204
+\version r9205
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-06-05 17:00 +0800
+	2014-06-29 00:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -488,7 +488,7 @@ Shell 和 Core 的关系是相对的，例如：
  2014-04-12(build 493) 起：
 使用 http://sourceforge.net/projects/msys2/files/Base/i686/msys2-base-i686-20140216.tar.xz 作为基础环境。
 同时使用 "Tools/msys2-update-pacman.sh" 更新包。
-每次主分支版本前同步 MSys 环境（ @5.2.4 中明确提到的除外）至最新版本，但保证只依赖对于基础环境向后兼容的特性，因此应可直接升级到更新版本使用。
+每次主分支版本前同步 MSys 环境（ @5.2.4 中明确提到的除外）至最新版本，但保证只依赖对于基础环境向后兼容的特性，因此应可直接升级到更新版本使用，除非基础环境的根目录布局有改变（此时应该使用最新版本的基础环境后更新，或至少同步目录布局）。
 
 @5.2.6 Android 平台工具链和标准库实现：
  build 492 前：

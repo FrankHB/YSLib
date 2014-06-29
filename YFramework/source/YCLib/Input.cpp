@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r412
+\version r417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-06-26 15:58 +0800
+	2014-06-28 11:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,6 +80,8 @@ std::mutex CompKeyMutex;
 std::mutex KeyMutex;
 #endif
 #if YCL_Android
+//! \since build 513
+platform::KeyInput KeyStateBuffer;
 //! \since build 493
 std::mutex CursorMutex;
 //! \since build 493
@@ -183,6 +185,7 @@ UpdateKeyStates()
 	for(std::size_t i(1); i < platform::KeyBitsetWidth - 1; ++i)
 		pKeyState->set(i, ::GetAsyncKeyState(i) & 0x8000);
 #elif YCL_Android
+	FetchKeyStateRef() = KeyStateBuffer;
 #endif
 }
 
@@ -261,7 +264,7 @@ SaveInput(const ::AInputEvent& e)
 		{
 		case ::AKEY_EVENT_ACTION_DOWN:
 		case ::AKEY_EVENT_ACTION_UP:
-			FetchKeyStateRef().set(keycode, action == ::AKEY_EVENT_ACTION_DOWN);
+			KeyStateBuffer.set(keycode, action == ::AKEY_EVENT_ACTION_DOWN);
 			break;
 		case ::AKEY_EVENT_ACTION_MULTIPLE:
 			// TODO: Record.
@@ -271,7 +274,7 @@ SaveInput(const ::AInputEvent& e)
 	const auto update_motion_key([](bool down){
 		YCL_Def_LockGuard(lck, KeyMutex)
 
-		FetchKeyStateRef().set(platform::KeyCodes::Primary, down);
+		KeyStateBuffer.set(platform::KeyCodes::Primary, down);
 	});
 
 	switch(::AInputEvent_getType(&e))

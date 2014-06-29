@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r995
+\version r1058
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-26 19:41 +0800
+	2014-06-29 23:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,70 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ "traces" @ "member function %StyleMap::Switch" @ %YStyle $=
+			(
+				+ "quote marks around style name",
+				* "missing space when default style found" @ "2nd trace"
+			),
+			* "missing some characters to print" @ %Service.TextRenderer
+				@ "%platform %MinGW32" $since b296 $=
+				// For example, ←(U+2190) and ⑨(U+2468).
+			(
+				$dep_from %(YCommon, YBase.YStandardEx.CWideCharacterType);
+				/ $design "implementation" ^ "%ystdex::iswgraph"
+					~ "%std::iswgraph"
+			)
+		),
+		* $design "spelling error" @ "trace string" @ "constructor %NativeHost"
+			@ %'Helper_(Android)'.AndroidHost $since b504
+			$= (/ 'Wating' -> 'Waiting'),
+		/ %Helper $=
+		(
+			* "missing key state indirection" @ "platform %Android" @ %Input
+				$since b492,
+				// So key state tracked would be wrong in \
+					%Helper::InputManager after touching down.
+			* "wrong desktop pointer selected to response"
+				@ "member function %ShlDS::OnGotMessage" $since b502,
+				// Though displaying was normal, the input had not been sent \
+					to the right place.
+			* "missing calculating with hosted window input bounds"
+				@ "platform %Android"
+				@ "member function %Environment::MapCursor" @ %Host $since b509
+		),
+		* "function %IsPrint" @ %YCommon $since b512 $=
+		(
+			$dep_from %YBase.YStandardEx.CWideCharacterType;
+			/ $design "implementation" ^ "%ystdex::iswprint"
+		)
+	),
+	/ "example command line" @ %Tools.CreationTimeManager.Readme,
+		// Hidden files should not be ignored generally. So added '/A' for \
+			'DIR'.
+	/ %YBase.YStandardEx $=
+	(
+		+ %CCharacterType $=
+		(
+			+ "constexpr functions %((iscntrl_C0; iscntrl_ASCII, \
+				(iscntrl_ISO8859_11; iscntrl_ISO8859_1; isprint)), iscntrl_C1)",
+			+ "constexpr functions %(isprint_ASCII, isprint_ISO8859_1, isprint)"
+		),
+		+ %CWideCharacterType
+			$= (+ "functions %(iswprint, iswgraph)")
+	),
+	(
+	$dep_from %YFramework.YSLib.Service;
+	* $comp "missing rendering left and right arrows on buttons"
+		@ %YReader.ShlTextReader $since b299
+	)
+),
+
+b512
 (
 	/ %YFramework $=
 	(

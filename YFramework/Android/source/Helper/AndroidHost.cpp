@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r272
+\version r273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-06-12 01:43 +0800
+	2014-06-27 00:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,7 +128,7 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 			YTraceDe(Informative, "Waiting for native thread finishing...");
 			host.thrdMain.join();
 		}
-		YTraceDe(Informative, "Wating for screen being released...");
+		YTraceDe(Informative, "Waiting for screen being released...");
 		// FIXME: Thread safety.
 		while(host.p_screen)
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));

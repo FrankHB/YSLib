@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3541
+\version r3542
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-06-21 02:35 +0800
+	2014-06-29 23:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -349,7 +349,7 @@ b296
 			- "unused macro %_ATTRIBUTE" @ "header Platform.h",
 			/ ("several APIs" @ "namespace %platform"
 				>> "namespace %platform_ex") @ "unit %YCommon",
-			+ "file system interface adaptors for platform %MinGW32"
+			+ "file system interface adaptors" @ "platform %MinGW32"
 		)
 	),
 	/ $design @ %YReader $=

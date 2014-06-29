@@ -60,10 +60,12 @@
 		<Unit filename="../include/ystdex/bitseg.hpp" />
 		<Unit filename="../include/ystdex/cassert.h" />
 		<Unit filename="../include/ystdex/cast.hpp" />
+		<Unit filename="../include/ystdex/cctype.h" />
 		<Unit filename="../include/ystdex/container.hpp" />
 		<Unit filename="../include/ystdex/cstdint.hpp" />
 		<Unit filename="../include/ystdex/cstdio.h" />
 		<Unit filename="../include/ystdex/cstring.h" />
+		<Unit filename="../include/ystdex/cwctype.h" />
 		<Unit filename="../include/ystdex/examiner.hpp" />
 		<Unit filename="../include/ystdex/functional.hpp" />
 		<Unit filename="../include/ystdex/iterator.hpp" />
@@ -82,6 +84,7 @@
 		<Unit filename="../source/ystdex/cassert.cpp" />
 		<Unit filename="../source/ystdex/cstdio.cpp" />
 		<Unit filename="../source/ystdex/cstring.cpp" />
+		<Unit filename="../source/ystdex/cwctype.cpp" />
 		<Unit filename="Makefile" />
 		<Extensions>
 			<DoxyBlocks>

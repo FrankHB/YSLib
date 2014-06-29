@@ -18,7 +18,7 @@ Both non-directory files and directories are supported.
 Symbolic links are treated as ordinary files, not the targets.
 Let the program named "creation-time-manager", the specified target directory named "directory" and the output file named "backup.txt", here are the typical uses for Windows:
 	Backup creation time using following command line with full file paths in target directory saved:
-		DIR directory /B /S | creation-time-manager > backup.txt
+		DIR directory /A /B /S | creation-time-manager > backup.txt
 	Restore creation time using following command line:
 		TYPE backup.txt | creation-time-manager -w
 

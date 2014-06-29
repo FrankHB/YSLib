@@ -11,13 +11,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3562
+\version r3573
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2014-06-26 09:00 +0800
+	2014-06-26 17:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 #include <ydef.h>
 #include <ystdex/cassert.h>
 #include <ystdex/cstdio.h>
+#include <ystdex/cwctype.h>
 #include <cstdlib>
 #include <cctype>
 #include <cwchar>
@@ -91,17 +92,9 @@ enum RecordLevel : std::uint8_t
 */
 //@{
 inline PDefH(bool, IsPrint, char c)
-#if YCL_Win32
-	ImplRet(std::isprint(c) && c != '\t')
-#else
-	ImplRet(std::isprint(c))
-#endif
+	ImplRet(ystdex::isprint(c))
 inline PDefH(bool, IsPrint, wchar_t c)
-#if YCL_Win32
-	ImplRet(std::iswprint(c) && c != L'\t')
-#else
-	ImplRet(std::iswprint(c))
-#endif
+	ImplRet(ystdex::iswprint(c))
 template<typename _tChar>
 bool
 IsPrint(_tChar c)
