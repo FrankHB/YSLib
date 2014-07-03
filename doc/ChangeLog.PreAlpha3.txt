@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4948
+\version r4952
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-06-21 02:47 +0800
+	2014-07-01 02:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -863,7 +863,7 @@ b375
 		),
 		/ %YStandardEx $=
 		(
-			/ DLD "constexpr function %exp2u" @ %Rational
+			/ DLD "%yconstfn function %exp2u" @ %Rational
 				^ "macro %YB_STATELESS",
 			/ %Iterator $=
 			(
@@ -1548,7 +1548,7 @@ b356
 (
 	/ %YBase $=
 	(
-		+ "constexpr function template %sizeof_params for counting arguments"
+		+ "%yconstfn function template %sizeof_params for counting arguments"
 			@ %Functional
 		/ %Iterator $=
 		(
@@ -2344,7 +2344,7 @@ b335
 (
 	/ %YFramework $=
 	(
-		* DLP "include guard macros" @ %Helper $since b303,
+		* DLP "head inclusion" @ %Helper $since b303,
 		+ "library %NPL"
 			$= (+ "units %(Lexical; SContext; Configuration)")
 	)
@@ -2590,7 +2590,7 @@ b329
 				comparing" ^ "%std::char_traits::int_type" ~ "%wint_t",
 			/ "names of function templates for NTCTS",
 			),
-			+ "compile-time algorithm yconstexpr function template \
+			+ "compile-time algorithm %yconstfn function template \
 				%(const_ntctschr, const_ntctscnt, const_ntctslen, \
 				const_ntctscmp, const_ntctschrn, const_ntctsstr)"
 			)

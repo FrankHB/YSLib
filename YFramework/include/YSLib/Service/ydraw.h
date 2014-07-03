@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1134
+\version r1142
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-05-23 09:22 +0800
+	2014-07-03 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,19 +39,21 @@ namespace Drawing
 
 /*!	\defgroup Graphics2D Function for 2D Drawing
 \brief 2D 图形操作。
+\pre 断言：若指定边界，边界必须包含于缓冲区。
 \since build 452
 
 更改 2D 光栅图形相关数据结构的状态以显示图形。
-光栅图形以表示像素缓冲区的 BitmapPtr 或 Graphics& 类型表示。
+光栅图形以表示像素位图缓冲区的 BitmapPtr 或 Graphics& 类型表示。
 包括以下接口：
 	Put* 为基本状态修改操作；
 	Plot* 以 BitmapPtr 和 const Rect& 为首参数，为带边界检查的绘制操作；
-	Draw* 以 Graphics& 为首参数，第二个参数非表示边界的 const Rect& ，
+	Draw* 以 const Graphics& 为首参数，第二个参数非表示边界的 const Rect& ，
 		为带 Graphics 边界检查的描画操作；
-	Draw* 以 Graphics& 和表示边界的 const Rect& 为首参数，
+	Draw* 以 const Graphics& 和表示边界的 const Rect& 为首参数，
 		为带一般边界检查的描画操作；
 	Fill* 参数同 Draw* ，为带边界检查的填充操作。
-	以上边界检查指运行时忽略越界的状态修改，要求指定的边界必须包含于缓冲区。
+以上边界检查中，运行时绘制的内容相对边界参数忽略越界的状态修改；
+其它边界检查（如边界和缓冲区之间的）使用断言。
 */
 
 /*!
@@ -211,10 +213,10 @@ DrawRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 \pre 断言：图形接口上下文有效。
 */
 //@{
-//! \note 右下角顶点坐标 (pt.X + s.Width - 1, pt.Y + s.Height - 1) 。
+//! \note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
 //@{
 YF_API void
-FillRect(const Graphics& g, const Rect&, Color c);
+FillRect(const Graphics& g, const Rect& r, Color c);
 inline PDefH(void, FillRect, const Graphics& g, const Rect& bounds,
 	const Rect& r, Color c)
 	ImplExpr(FillRect(g, bounds & r, c))

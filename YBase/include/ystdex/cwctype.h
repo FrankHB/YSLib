@@ -11,13 +11,13 @@
 /*!	\file cwtype.h
 \ingroup YStandardEx
 \brief ISO C 宽字符分类操作扩展。
-\version r61
+\version r71
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 15:34:34 +0800
 \par 修改时间:
-	2014-06-29 19:07 +0800
+	2014-07-01 00:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,12 +38,21 @@ namespace ystdex
 //@{
 /*!
 \brief 区域无关的 std::isprint 实现。
-\note 当前使用基本字符集内兼容 Unicode 的简单实现（参考 MUSL libc ）。
+\note 当前使用兼容 Unicode 的简单实现（参考 MUSL libc ）。
 \note 可作为替代 MSVCRT 的实现的变通（测试表明 iswprintf 和 isprint 有类似缺陷）。
 \sa https://connect.microsoft.com/VisualStudio/feedback/details/799287/isprint-incorrectly-classifies-t-as-printable-in-c-locale
 */
 YB_API bool
 iswprint(wchar_t);
+
+/*!
+\brief 区域无关的 std::iswspace 实现。
+\note 当前使用 Unicode 5.2 实现（参考 newlib ）。
+\note 可作为替代 Android 2.3.1 的实现的变通（测试表明 iswspace 对个别字符可能返回 8 ）。
+\since build 514
+*/
+YB_API bool
+iswspace(wchar_t);
 
 /*!
 \breif 区域无关的 std::iswgraph 实现。
@@ -52,7 +61,7 @@ iswprint(wchar_t);
 inline bool
 iswgraph(wchar_t wc)
 {
-	return !std::iswspace(wc) && iswprint(wc);
+	return !iswspace(wc) && iswprint(wc);
 }
 //@}
 

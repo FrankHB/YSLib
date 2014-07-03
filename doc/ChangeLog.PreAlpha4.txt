@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8198
+\version r8199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-06-25 11:14 +0800
+	2014-07-01 02:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4281,7 +4281,7 @@ b440
 				$= (+ "binary %operator(==, !=, <, >) for %fixed_point"
 					@ "namespace %ystdex")
 			/ "conversion function" @ "class template %fixed_point"
-				-> "constexpr function",
+				-> "%yconstfn function",
 			(
 			$dep_from "%modular_arithmetic"
 			+ "specialiaztion of %modular_arithmetic for %"fixed_point"

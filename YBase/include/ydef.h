@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2492
+\version r2494
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2014-06-15 12:29 +0800
+	2014-07-01 02:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -450,12 +450,14 @@
 \def yconstexpr
 \brief 指定编译时常量表达式。
 \note 同 C++11 constepxr 作用于编译时常量的语义。
+\since build 246
 */
 /*!
 \ingroup YBase_pseudo_keyword
 \def yconstfn
 \brief 指定编译时常量函数。
 \note 同 C++11 constepxr 作用于编译时常量函数的语义。
+\since build 266
 */
 #if YB_HAS_CONSTEXPR
 #	define yconstexpr constexpr

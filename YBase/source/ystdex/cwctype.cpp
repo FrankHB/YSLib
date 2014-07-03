@@ -11,13 +11,13 @@
 /*!	\file cwtype.cpp
 \ingroup YStandardEx
 \brief ISO C 宽字符分类操作扩展。
-\version r46
+\version r54
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 15:36:20 +0800
 \par 修改时间:
-	2014-06-29 17:52 +0800
+	2014-07-01 00:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,15 @@ iswprint(wchar_t wc)
 		|| wc - 0xE000U < 0xFFF9 - 0xE000)
 		return true;
 	return !(wc - 0xFFFCU > 0x10FFFF-0xFFFC || (wc & 0xFFFE) == 0xFFFE);
+}
+
+bool
+iswspace(wchar_t wc)
+{
+	// NOTE: See https://www.sourceware.org/cgi-bin/cvsweb.cgi/src/newlib/libc/ctype/iswprint.c?cvsroot=src .
+	return (wc >= 0x0009 && wc <= 0x000D) || wc == 0x0020 || wc == 0x1680
+		|| wc == 0x180e || (wc >= 0x2000 && wc <= 0x200A && wc != 2007)
+		|| wc == 0x2028 || wc == 0x2029 || wc == 0x205F || wc == 0x3000;
 }
 
 } // namespace ystdex;

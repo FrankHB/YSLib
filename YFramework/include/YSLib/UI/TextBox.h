@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r246
+\version r268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-06-22 22:21 +0800
+	2014-07-03 16:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,15 +185,24 @@ public:
 	GetCaretPosition(const Point&);
 
 	/*!
-	\brief 折叠选择区域并更新插入符状态。
-	\since build 512
+	\brief 折叠选择区域、重置插入符光标计时器并导出插入符位置。
+	\note 若光标位置不变则无效。
+	\since build 514
 	*/
-	PDefH(void, CollapsedAndUpdateCaret, )
-		ImplExpr(Selection.Collapse(), UpdateCaret())
+	void
+	CollapseCaret();
 
 	//! \since build 485
 	void
 	DrawClippedText(const Graphics&, const Rect&, TextState&) override;
+
+	/*!
+	\brief 导出插入符位置到公共 GUI 状态。
+	\note 仅当外部文本输入指示焦点部件为本对象时有效，否则忽略。
+	\since build 514
+	*/
+	void
+	ExportCaretPosition() const;
 
 	/*!
 	\brief 无效化默认插入符。
@@ -209,6 +218,13 @@ public:
 	Refresh(PaintEventArgs&&) override;
 
 	/*!
+	\brief 重置插入符光标计时器。
+	\since build 514
+	*/
+	PDefH(void, RestoreCaretTimer, )
+		ImplExpr(Activate(CursorCaret.CaretTimer))
+
+	/*!
 	\brief 替换选中文本。
 	\since build 490
 	*/
@@ -218,14 +234,6 @@ public:
 	//! \brief 绘制默认插入符。
 	void
 	PaintDefaultCaret(PaintEventArgs&&);
-
-	/*!
-	\brief 更新插入符状态。
-	\note 仅当外部文本输入指示焦点部件为本对象时有效，否则忽略。
-	\since build 512
-	*/
-	void
-	UpdateCaret() const;
 };
 
 } // namespace UI;

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r463
+\version r473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-06-24 11:12 +0800
+	2014-07-02 09:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,8 +46,8 @@ void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
 	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, {}, 0, 0, w, h,
-		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
-		| SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER)))
+		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER
+		| SWP_NOSENDCHANGING | SWP_NOZORDER)))
 		YF_Raise_Win32Exception("SetWindowPos @ ResizeWindow");
 }
 
@@ -104,6 +104,16 @@ SetWindowBounds(::HWND h_wnd, int x, int y, int cx, int cy)
 //@}
 
 } // unnamed namespace;
+
+
+void
+BindDefaultWindowProc(NativeWindowHandle h_wnd, MessageMap& m, unsigned msg,
+	EventPriority prior)
+{
+	m[msg].Add([=](::WPARAM w_param, ::LPARAM l_param){
+		::DefWindowProcW(h_wnd, msg, w_param, l_param);
+	}, prior);
+}
 
 
 Rect

@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ctype.h
+/*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r113
+\version r128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2014-06-29 19:30 +0800
+	2014-07-01 02:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YB_INC_ystdex_ctype_h_
-#define YB_INC_ystdex_ctype_h_ 1
+#ifndef YB_INC_ystdex_cctype_h_
+#define YB_INC_ystdex_cctype_h_ 1
 
 #include "../ydef.h" // for yconstfn, CHAR_MIN, yimpl;
 
@@ -107,6 +107,19 @@ isprint(char c)
 	return yimpl(isprint_ISO8859_1(c));
 }
 //@}
+
+/*!
+\brief 区域无关的 std::isdigit 实现。
+\note ISO C 和 ISO C++ 保证基本字符集中的数字字符具有从小到大连续的整数值表示。
+\see ISO C11 5.2.1/3 。
+\see ISO C++11 2.3/3 。
+\since build 514
+*/
+yconstfn bool
+isdigit(char c)
+{
+	return (unsigned(c) - '0') < 10U;
+}
 
 } // namespace ystdex;
 
