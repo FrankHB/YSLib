@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r378
+\version r387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-06-25 14:38 +0800
+	2014-07-02 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,16 +117,6 @@ public:
 	*/
 	virtual pair<YSLib::Drawing::Point, YSLib::Drawing::Point>
 	GetInputBounds() const ynothrow;
-
-#	if YCL_Win32
-	/*!
-	\brief 添加使用指定优先级调用 ::DefWindowProcW 处理 Windows 消息的处理器。
-	\since build 512
-	\todo 处理返回值。
-	*/
-	void
-	BindDefaultWindowProc(unsigned, EventPriority = 0);
-#	endif
 
 	/*!
 	\brief 刷新：保持渲染状态同步。

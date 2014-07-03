@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r1058
+\version r1341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-06-29 23:15 +0800
+	2014-07-03 19:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,84 @@ $import $HISTORY;
 
 $now
 (
+	/ %YBase.YStandardEx.CCharacterType $=
+	(
+		(
+		+ "functions %iswspace";
+		/ "implemented functions %iswspace" ^ "%ystdex::iswspace"
+			~ "%std::iswspace"
+		),
+		* DLD "wrong guard macro" $since b513,
+		+ "%yconstfn function %isdigit"
+	),
+	(
+	$dep_from "%ystdex::iswspace" @ %YBase.YStandardEx.CCharacterType;
+	* $comp $since "several characters still unprinted" @ "platform %Android"
+		b492
+		// Because of broken Unicode support on Android NDK r9, some \
+			characters like “稍”(U+7A0D) and “选”(U+9009) still missed by \
+			wrongly returning '8' from 'iswspace' calls.
+	),
+	/ $doc "extended file name pattern of README DOCUMENTS" @ "%LICENSE.TXT",
+	/ %YFramework $=
+	(
+		/ @ "namespace %Windows" @ %'YCLib_(MinGW32)'.Win32GUI $=
+		(
+			+ 'using MessageMap = std::map<unsigned, \
+				YSLib::GEvent<void(::WPARAM, ::LPARAM)>>;'
+			/ DLD "simplified data member declaration %HostWindow::MessageMap"
+		),
+		/ %'YCLib_(MinGW32)'.Win32GUI $=
+		(
+			$dep_from %'YCLib_(MinGW32)';
+			/ @ "member function %Host::Window::BindDefaultWindowProc"
+				@ %HostWindow
+				-> "function %BindDefaultWindowProc" @ %Win32GUI
+		),
+		/ @ "enum %Categtory" @ %YCLib.Keys $=
+		(
+			* $revert_ex(b490) "underlying type" $since b489
+				$= (/ 'KeyIndex' -> 'std::uint_least32_t'),
+			* "key category wrongly overlapped for value greater than enumerator
+				%Lock" $since b489
+				// Though they should not be determinately mutually exlusive,
+					it is only safe to seperate them in different kinds for \
+					bitand operation.
+		),
+		/ %YSLib $=
+		(
+			* "missing updating key state when external input focus is not null"
+				@ "member function %GUIState::UpdateChar" @ %YGUI $since b511,
+			/ @ "class %TextBox" @ %TextBox $=
+			(
+				(
+				$dep_from %YCLib.Keys;
+				* $comp "no effect for Shift with navigation key"
+					@ "class %TextBox" $since b489
+					// Though the effect is not quite right, see below.
+				),
+				(
+				$dep_from %YGUI;
+				* $comp "potentionally wrong behavior with modifier key held"
+					$since b511;
+					// Wrong key held state updated so the initial delay would \
+						be ignored. Note if the bug of key category exists, \
+						there would actually be no effect.
+				+ "functions %RestoreCaretTimer;
+				/ "restored caret timer on modifying caret position or \
+					collapsing caret"
+				),
+				/ "function %UpdateCaret" => "%ExportCaretPosition",
+				/ "function %CollapsedAndUpdateCaret" => "%CollapseCaret"
+			),
+			+ "boundary check assertion" @ "non-inline function %FillRect"
+				@ %Service.YDraw
+		)
+	)
+),
+
+b513
+(
 	/ %YFramework $=
 	(
 		/ %YSLib $=
@@ -42,8 +120,10 @@ $now
 				* "missing space when default style found" @ "2nd trace"
 			),
 			* "missing some characters to print" @ %Service.TextRenderer
-				@ "%platform %MinGW32" $since b296 $=
-				// For example, ←(U+2190) and ⑨(U+2468).
+				@ ("%platform %MinGW32" $since b296,
+				"platform %Android" $since b492) $=
+				// For example, “←”(U+2190) and “⑨”(U+2468) on Windows, and \
+					some more characters missing on Android 2.3.1.
 			(
 				$dep_from %(YCommon, YBase.YStandardEx.CWideCharacterType);
 				/ $design "implementation" ^ "%ystdex::iswgraph"
@@ -80,9 +160,9 @@ $now
 	(
 		+ %CCharacterType $=
 		(
-			+ "constexpr functions %((iscntrl_C0; iscntrl_ASCII, \
+			+ "%yconstfn functions %((iscntrl_C0; iscntrl_ASCII, \
 				(iscntrl_ISO8859_11; iscntrl_ISO8859_1; isprint)), iscntrl_C1)",
-			+ "constexpr functions %(isprint_ASCII, isprint_ISO8859_1, isprint)"
+			+ "%yconstfn functions %(isprint_ASCII, isprint_ISO8859_1, isprint)"
 		),
 		+ %CWideCharacterType
 			$= (+ "functions %(iswprint, iswgraph)")
@@ -201,7 +281,7 @@ b512
 			-> 'FetchDefaultShellDirectory()'
 			~ 'IO::FetchCurrentWorkingDirectory()'
 			// For Android it is the data directory, since access the working \
-				directory is possibly to be rejected. For other platforms it 
+				directory is possibly to be rejected. For other platforms it
 				is unchanged.
 		+ "debug trace" @ "constructor %ShlExplorer" @ %ShlExplorer;
 	)

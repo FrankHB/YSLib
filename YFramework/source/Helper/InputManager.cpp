@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r496
+\version r498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-06-26 08:58 +0800
+	2014-07-02 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,10 +133,8 @@ InputManager::DispatchInput(IWidget& wgt)
 					++n;
 					YTraceDe(Informative, "Host character %d found.", int(c));
 					if(platform::IsPrint(c))
-					{
 						// XXX: Redundant nonzero test on character value.
 						CallInputEvent(c, k, wgt);
-					}
 					else
 						break;
 				}

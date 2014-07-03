@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r558
+\version r571
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-06-20 11:04 +0800
+	2014-07-03 15:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,7 +93,7 @@ namespace KeyCategory
 {
 
 //! \brief 按键类别。
-enum Category : KeyIndex
+enum Category : std::uint_least32_t
 {
 	//! \brief 表示未分配或保留的键。
 	None = 0,
@@ -112,29 +112,29 @@ enum Category : KeyIndex
 	//! \brief 表示锁定键。
 	Lock = 2 << 4,
 	//! \brief 表示修饰键。
-	Modifier = 3 << 4,
+	Modifier = 1 << 6,
 	//! \brief 表示功能键。
-	Function = 4 << 4,
+	Function = 1 << 7,
 	//! \brief 表示导航键（如方向键和 PgUp ）、菜单键和 Esc 。
-	Navigation = 5 << 4,
+	Navigation = 1 << 8,
 	//! \brief 表示编辑键（如回车、空格、退格、插入、删除和制表符）
-	Editing = 6 << 4,
+	Editing = 1 << 9,
 	//! \brief 表示系统键（如 SysRq/PrintScr 、 Break/Pause 和电源管理）。
-	System = 7 << 4,
+	System = 1 << 10,
 	//! \brief 表示输入法模式键（一般用于日文和韩文）。
-	IME = 8 << 4,
+	IME = 1 << 11,
 	//! \brief 表示默认由设备制造商指定。
-	OEM = 1 << 10,
+	OEM = 1 << 12,
 	//! \brief 表示菜单键（如 Menu 和 Win ）。
-	Menu = 1 << 11,
+	Menu = 1 << 13,
 	//! \brief 表示小键盘键。
-	Keypad = 1 << 12,
+	Keypad = 1 << 14,
 	//! \brief 表示非键盘键（如鼠标键）。
-	NonKeyboard = 2 << 12,
+	NonKeyboard = 2 << 14,
 	//! \brief 表示通过多个物理按键组合构成的键。
-	Composed = 1 << 14,
+	Composed = 1 << 16,
 	//! \brief 表示没有对应单一物理按键的虚拟键。
-	Virtual = 2 << 14
+	Virtual = 2 << 16
 };
 
 //! \relates Category

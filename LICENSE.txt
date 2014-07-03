@@ -1,6 +1,6 @@
 ﻿OVERALL LICENSE of the YSLib Project
 
-© 2010-2013 FrankHB <frankhb1989@gmail.com>.
+© 2010-2014 FrankHB <frankhb1989@gmail.com>.
 
 Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
 
@@ -22,7 +22,7 @@ gpl-2.0.txt
 gpl-3.0.txt
 FTL.TXT
 
-The documents created by the YSLib project, whose names match the pattern "Readme.*.txt", are README DOCUMENTS.
+The documents created by the YSLib project, whose names match the glob pattern "Readme*.*", are README DOCUMENTS.
 
 1. NORMATIVE REFERENCES
 
@@ -67,7 +67,7 @@ At least one of the following licenses shall be used for independert distributio
 The FreeType Project LICENSE - See FTL.txt;
 GNU General Public License Version 2 - See gpl-2.0.txt.
 
-FreeType License is adopted here for statically linked binaries or whole project distribution because of the license compatibility.
+FreeType License is adopted here for statically linked binaries or whole project distribution because of license compatibility.
 See http://www.freetype.org/license.html for details.
 
 4.2 License for FreeImage
@@ -83,5 +83,5 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 Appendix A. Important Note of Licensing
 
 There are several licenses can be incompatible to others. Some of them may not allow relicensing.
-Make sure choose the correct licenses before redistribution.
+Make sure choose the correct licenses before redistribution, especially for derivative work.
 

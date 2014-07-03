@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r485
+\version r500
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-06-24 11:12 +0800
+	2014-07-02 09:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,6 +44,23 @@ using NativeWindowHandle = ::HWND;
 
 inline namespace Windows
 {
+
+/*!
+\brief 窗口消息转发事件映射。
+\since build 514
+\todo 处理返回值。
+*/
+using MessageMap = std::map<unsigned, YSLib::GEvent<void(::WPARAM, ::LPARAM)>>;
+
+/*!
+\brief 添加使用指定优先级调用 ::DefWindowProcW 处理 Windows 消息的处理器。
+\since build 514
+\todo 处理返回值。
+*/
+void
+BindDefaultWindowProc(NativeWindowHandle, MessageMap&, unsigned,
+	YSLib::EventPriority = 0);
+
 
 /*!
 \brief 本机窗口引用。
@@ -430,7 +447,7 @@ public:
 	\brief 窗口消息转发事件映射。
 	\since build 512
 	*/
-	std::map<unsigned, YSLib::GEvent<void(::WPARAM, ::LPARAM)>> MessageMap;
+	Windows::MessageMap MessageMap;
 
 	//! \throw LoggedEvent 窗口类名不是 WindowClassName 。
 	HostWindow(NativeWindowHandle);

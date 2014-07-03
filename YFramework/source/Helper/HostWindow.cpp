@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r452
+\version r460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-06-25 14:37 +0800
+	2014-07-02 09:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 	}
 	);
 	ystdex::unseq_apply([this](unsigned msg){
-		BindDefaultWindowProc(msg);
+		BindDefaultWindowProc(GetNativeHandle(), MessageMap, msg);
 	}, WM_MOVE, WM_IME_COMPOSITION);
 #	endif
 }
@@ -115,14 +115,6 @@ Window::GetInputBounds() const ynothrow
 }
 
 #	if YCL_Win32
-void
-Window::BindDefaultWindowProc(unsigned msg, EventPriority prior)
-{
-	MessageMap[msg].Add([=](::WPARAM w_param, ::LPARAM l_param){
-		::DefWindowProcW(GetNativeHandle(), msg, w_param, l_param);
-	}, prior);
-}
-
 void
 Window::UpdateCandidateWindowLocation()
 {
