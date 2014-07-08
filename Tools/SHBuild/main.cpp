@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r625
+\version r633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-02-18 21:38 +0800
+	2014-07-05 04:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@ See readme file for details.
 #include <ysbuild.h>
 #include YFM_YSLib_Service_FileSystem
 #include <iostream>
+#include <iomanip> // for std::setw;
 #include <sstream>
 #include <Windows.h>
 #include <ystdex/mixin.hpp>
@@ -318,6 +319,13 @@ main(int argc, char* argv[])
 			try
 			{
 				Build(args);
+			}
+			catch(IntException& e)
+			{
+				cerr << "IntException: " << std::setw(8) << std::showbase
+					<< std::uppercase << std::hex << int(e) - 0x10000 << '.'
+					<< endl;
+				throw 3;
 			}
 			catch(std::exception& e)
 			{

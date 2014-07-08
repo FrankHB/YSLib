@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2730
+\version r2736
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-04-23 10:13 +0800
+	2014-07-08 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,16 +100,17 @@ public:
 	u8 LineGap; //!< 行距。
 
 	/*!
-	\brief 构造：使用指定字体。
-	\since build 337
+	\brief 构造：使用指定字体和边距。
+	\since build 515
 	*/
 	explicit
-	TextState(const Drawing::Font& = {});
+	TextState(const Drawing::Font& = {}, const Padding& = DefaultMargin);
 	/*!
-	\brief 构造：使用指定字体缓存。
+	\brief 构造：使用指定字体缓存和边距。
+	\since build 515
 	*/
 	explicit
-	TextState(FontCache&);
+	TextState(FontCache&, const Padding& = DefaultMargin);
 
 	/*!
 	\brief 赋值：笔样式。

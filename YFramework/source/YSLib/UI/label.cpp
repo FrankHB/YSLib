@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1309
+\version r1337
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2014-03-14 10:10 +0800
+	2014-07-08 20:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,15 +42,10 @@ MLabel::MLabel(const Drawing::Font& fnt, TextAlignment a)
 	AutoWrapLine(false), /*AutoSize(false), AutoEllipsis(false),*/ Text()
 {}
 
-void
-MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
+Point
+MLabel::GetAlignedPenOffset(const Size& s) const
 {
-	Drawing::TextState ts;
-	const Rect bounds(e.Location, s);
-
-	yunseq(ts.Font = Font, ts.Color = c,
-		ts.Margin = FetchMargin(bounds + Margin, e.Target.GetSize())),
-	ts.ResetPen(e.Location, Margin);
+	Point pt;
 
 	if(!AutoWrapLine)
 	{
@@ -59,14 +54,14 @@ MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
 		case TextAlignment::Center:
 		case TextAlignment::Right:
 			{
-				SPos horizontal_offset(bounds.Width - GetHorizontalOf(Margin)
-					- FetchStringWidth(ts.Font, Text));
+				SPos horizontal_offset(s.Width - GetHorizontalOf(Margin)
+					- FetchStringWidth(Font, Text));
 
 				if(horizontal_offset > 0)
 				{
 					if(HorizontalAlignment == TextAlignment::Center)
 						horizontal_offset /= 2;
-					ts.Pen.X += horizontal_offset;
+					pt.X += horizontal_offset;
 				}
 			}
 		case TextAlignment::Left:
@@ -78,14 +73,14 @@ MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
 		case TextAlignment::Center:
 		case TextAlignment::Down:
 			{
-				SPos vertical_offset(bounds.Height - GetVerticalOf(Margin)
-					- GetTextLineHeightOf(ts));
+				SPos vertical_offset(s.Height - GetVerticalOf(Margin)
+					- Font.GetHeight());
 
 				if(vertical_offset > 0)
 				{
 					if(VerticalAlignment == TextAlignment::Center)
 						vertical_offset /= 2;
-					ts.Pen.Y += vertical_offset;
+					pt.Y += vertical_offset;
 				}
 			}
 		case TextAlignment::Up:
@@ -93,14 +88,26 @@ MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
 			break;
 		}
 	}
-	DrawClippedText(e.Target, e.ClipArea & (bounds + Margin), ts);
+	return pt;
 }
 
 void
-MLabel::DrawClippedText(const Graphics& g, const Rect& mask,
-	Drawing::TextState& ts)
+MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
 {
-	Drawing::DrawClippedText(g, mask, ts, Text, AutoWrapLine);
+	const Rect bounds(e.Location, s);
+	const auto r(bounds + Margin);
+	Drawing::TextState ts(Font, FetchMargin(r, e.Target.GetSize()));
+
+	ts.Color = c,
+	ts.ResetPen(e.Location, Margin);
+	ts.Pen += GetAlignedPenOffset(s);
+	DrawClippedText({e.Target, e.Location, e.ClipArea & r}, ts);
+}
+
+void
+MLabel::DrawClippedText(const PaintContext& pc, Drawing::TextState& ts)
+{
+	Drawing::DrawClippedText(pc.Target, pc.ClipArea, ts, Text, AutoWrapLine);
 }
 
 

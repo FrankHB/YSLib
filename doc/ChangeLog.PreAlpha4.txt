@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8199
+\version r8205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-07-01 02:39 +0800
+	2014-07-08 16:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1096,7 +1096,7 @@ b488
 			/ @ "class %RenderWindow" @ %HostRenderer $=
 			(
 				- "overrider for event %OnPaint",
-				/ DLD "non-inlined constructor",
+				/ DLD "non-inline constructor",
 				+ "implemented message handler" ^ 'MessageMap'
 			),
 			/ DLD "events implementation" @ "DS window"
@@ -3134,7 +3134,7 @@ b454
 							// It should be 'Message&&' to enable move \
 								semantics.
 						/ DLD "all member functions except constructors"
-							-> "non-inlined member functions or with macros \
+							-> "non-inline member functions or with macros \
 							%(PDefH, ImplRet)"
 					),
 					/ @ "class %Message" $=
@@ -3351,7 +3351,7 @@ b453
 					painting.
 			* $comp "previous frame form buffered renderer of desktop did not \
 				be handled properly for clipping area enlarged when updating"
-				$since b294;
+				$since b294
 				// Namely, the actual painted area is not the same as \
 					accumulated invalidated bounding region, which essentially \
 					cause over painting.
@@ -3379,7 +3379,7 @@ b453
 				* "too strict assertion with unstrictly empty boundary argument"
 					@ "functions %(DrawPoint, DrawHLineSeg, DrawVLineSeg, \
 					DrawLineSeg)" $since b452,
-				/ "assertion failed for zero with or height boundary"
+				* "assertion failure for zero with or height boundary"
 					@ "functions %(PlotVLineSeg, PlotHLineSeg)" $since b446;
 					"function %PlotLineSeg" $since b452; "function \
 					%(DrawHLineSeg, DrawVLineSeg, DrawLineSeg)" $since b446),
@@ -5103,7 +5103,7 @@ b429
 	);
 	/ %YReader.'file explorer' $=
 	(
-		+ "swap screens when key pressed down has mask specified by mask",
+		+ "swap screens when key pressed down has mask specified",
 		+ "buttons for swapping screens on desktops"
 	)
 ),
@@ -6427,7 +6427,7 @@ b405
 		)
 		/ @ "%platform DS" @ %YCLib $=
 		(
-			+ "function inline %DMAFillWordsAsync" @ %NativeAPI,
+			+ "inline function %DMAFillWordsAsync" @ %NativeAPI,
 			/ %Video $=
 			(
 				- "cache flush before DMA copying"

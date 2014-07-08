@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1142
+\version r1166
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-07-03 19:23 +0800
+	2014-07-08 03:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,14 +46,12 @@ namespace Drawing
 光栅图形以表示像素位图缓冲区的 BitmapPtr 或 Graphics& 类型表示。
 包括以下接口：
 	Put* 为基本状态修改操作；
-	Plot* 以 BitmapPtr 和 const Rect& 为首参数，为带边界检查的绘制操作；
-	Draw* 以 const Graphics& 为首参数，第二个参数非表示边界的 const Rect& ，
-		为带 Graphics 边界检查的描画操作；
-	Draw* 以 const Graphics& 和表示边界的 const Rect& 为首参数，
-		为带一般边界检查的描画操作；
-	Fill* 参数同 Draw* ，为带边界检查的填充操作。
-以上边界检查中，运行时绘制的内容相对边界参数忽略越界的状态修改；
-其它边界检查（如边界和缓冲区之间的）使用断言。
+	Plot* 以 BitmapPtr 为首参数，为绘制操作；
+	Draw* 以 const Graphics& 为首参数，为描画操作，
+	Fill* 参数同 Draw* ，为填充操作。
+	以上接口的第二个参数若为 const Rect& ，未特别说明则表示绘制边界，
+	运行时忽略越界的状态修改；若首参数同时为 const Graphics& ，
+	则断言此边界包含于 Graphics 指定缓冲区的边界。
 */
 
 /*!
@@ -71,7 +69,8 @@ PutPixel(BitmapPtr dst, SDst w, SPos x, SPos y, Color c)
 /*!
 \ingroup Graphics2D
 \brief 修改指定位置的像素：(x, y) 。
-\pre 断言 <tt>Rect(g.GetSize()).Contains(x, y)</tt> 。
+\pre 断言： <tt>Rect(g.GetSize()).Contains(x, y)</tt> 。
+\pre 间接断言：图形接口缓冲区有效。
 */
 inline void
 PutPixel(const Graphics& g, SPos x, SPos y, Color c)
@@ -122,15 +121,14 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 
 /*!
 \brief 描画水平线段。
-\pre 断言： <tt>bool(g)</tt> 。
 \pre 断言： bounds 在 g 指定的边界内。
+\pre 间接断言：图形接口缓冲区有效。
 \sa PlotHLineSeg
 */
 inline void
 DrawHLineSeg(const Graphics& g, const Rect& bounds, SPos y, SPos x1, SPos x2,
 	Color c)
 {
-	YAssert(bool(g), "Invalid graphics context found."),
 	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
 	PlotHLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), y, x1, x2, c);
@@ -147,15 +145,14 @@ PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 
 /*!
 \brief 描画竖直线段。
-\pre 断言： <tt>bool(g)</tt> 。
 \pre 断言： bounds 在 g 指定的边界内。
+\pre 间接断言：图形接口缓冲区有效。
 \sa PlotVLineSeg
 */
 inline void
 DrawVLineSeg(const Graphics& g, const Rect& bounds, SPos x, SPos y1, SPos y2,
 	Color c)
 {
-	YAssert(bool(g), "Invalid graphics context found."),
 	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
 	PlotVLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x, y1, y2, c);
@@ -170,17 +167,15 @@ YF_API void
 PlotLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x1, SPos y1,
 	SPos x2, SPos y2, Color);
 
-//! \brief 描画线段：在区域 ds 绘制端点为 p1(x1, y1) 和 p2(x2, y2) 的线段。
-//@{
 /*
-\pre 断言： <tt>bool(g)</tt> 。
+\brief 描画线段：在区域 ds 绘制端点为 p1(x1, y1) 和 p2(x2, y2) 的线段。
 \pre 断言： bounds 在 g 指定的边界内。
 */
+//@{
 inline void
 DrawLineSeg(const Graphics& g, const Rect& bounds, SPos x1, SPos y1, SPos x2,
 	SPos y2, Color c)
 {
-	YAssert(bool(g), "Invalid graphics context found."),
 	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
 		"The boundary is out of the buffer.");
 	PlotLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x1, y1, x2, y2, c);
@@ -210,17 +205,16 @@ DrawRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
 
 /*!
 \brief 填充标准矩形。
+\note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
 \pre 断言：图形接口上下文有效。
 */
 //@{
-//! \note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
-//@{
+//! \note 无绘制边界检查。
 YF_API void
 FillRect(const Graphics& g, const Rect& r, Color c);
 inline PDefH(void, FillRect, const Graphics& g, const Rect& bounds,
 	const Rect& r, Color c)
 	ImplExpr(FillRect(g, bounds & r, c))
-//@}
 //@}
 
 

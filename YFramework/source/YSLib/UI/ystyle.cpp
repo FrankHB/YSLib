@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r824
+\version r825
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-06-26 21:42 +0800
+	2014-07-08 04:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -265,7 +265,7 @@ Palette::Palette()
 		{100, 100, 100}, // Frame;
 		{51, 153, 255}, // Highlight;
 		{158, 62, 255}, // BorderFill;
-		ColorSpace::Aqua, // ActiveBorder;
+		{86, 157, 229}, // ActiveBorder;
 		{180, 180, 180}, // InactiveBorder;
 		{153, 180, 209}, // ActiveTitle;
 		{191, 205, 219}, // InactiveTitle;

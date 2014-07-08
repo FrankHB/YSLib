@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r111
+\version r114
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-06-09 10:47 +0800
+	2014-07-06 02:35 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -35,11 +35,13 @@
 #if YCL_Android
 #	include <android/native_window.h>
 #else
-#	error "Currently only Android is supported."
+//#	error "Currently only Android is supported."
 #endif
 
 namespace YSLib
 {
+
+#if YCL_Android
 
 namespace Devices
 {
@@ -82,6 +84,8 @@ public:
 };
 
 } // namespace Devices;
+
+#endif
 
 } // namespace YSLib;
 

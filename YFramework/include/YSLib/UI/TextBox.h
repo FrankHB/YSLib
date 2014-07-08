@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r268
+\version r277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-07-03 16:14 +0800
+	2014-07-08 20:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,6 +150,13 @@ public:
 	*/
 	Caret CursorCaret;
 
+protected:
+	/*!
+	\brief 最后调用 DrawClippedText 时起始的笔左上角位置相对于部件的偏移位置。
+	\since build 515
+	*/
+	Point ptPenOffset{};
+
 private:
 	/*!
 	\brief 文字区域水平基准负偏移：文本内容在光标回退方向超出的未显示部分大小。
@@ -170,6 +177,7 @@ public:
 
 	/*!
 	\brief 取插入符光标的显示位置。
+	\note 使用 ptPenOffset 计算。
 	\return 插入符光标左上角相对于部件左上角的偏移。
 	\since build 512
 	*/
@@ -192,9 +200,9 @@ public:
 	void
 	CollapseCaret();
 
-	//! \since build 485
+	//! \since build 515
 	void
-	DrawClippedText(const Graphics&, const Rect&, TextState&) override;
+	DrawClippedText(const PaintContext&, TextState&) override;
 
 	/*!
 	\brief 导出插入符位置到公共 GUI 状态。

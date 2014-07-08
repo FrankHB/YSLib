@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r103
+\version r105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-06-15 18:27 +0800
+	2014-07-06 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -31,6 +31,8 @@
 
 namespace YSLib
 {
+
+#if YCL_Android
 
 using namespace Drawing;
 
@@ -74,6 +76,8 @@ AndroidScreen::Update(Drawing::BitmapPtr p_buf) ynothrow
 }
 
 } // namespace Devices;
+
+#endif
 
 } // namespace YSLib;
 
