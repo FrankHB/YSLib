@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4952
+\version r4956
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-07-01 02:39 +0800
+	2014-07-08 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,7 +241,7 @@ b394
 	(
 		/ %Service $=
 		(
-			+ "function inline %PlotPixel",
+			+ "inline function %PlotPixel",
 			+ "function %DrawCircle"
 		),
 		/ @ "class %DialogPanel" %GUI.UI $=
@@ -1028,8 +1028,8 @@ b372
 						boundary had not been set properly.
 				)
 			),
-			+ "function inline SPos GetTextLineBaseOf(const TextState&)",
-					$dep_to "text right margin adjustment",
+			+ "inline function 'SPos GetTextLineBaseOf(const TextState&)'",
+			$dep_to "text right margin adjustment",
 			+ "simplified character renderer APIs" @ "unit %CharRenderer",
 			/ @ "unit %YGDI" $=
 			(
@@ -1671,7 +1671,7 @@ b353
 (
 	/ %YBase.YStandardEx.Any $=
 	(
-		^ $dev "some non-inlined function implementations for class %any",
+		^ $dev "some non-inline function implementations for class %any",
 		/ DLD "simplified implementation" @ "copy constructor"
 			@ "class template %pointer_holder",
 		(

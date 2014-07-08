@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r380
+\version r390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-06-26 15:55 +0800
+	2014-07-06 02:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,11 +27,14 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_Android_YCLib_Android
-#include <android/native_activity.h>
+#include YFM_YCLib_Platform
+#if YCL_Android
+#	include YFM_Android_YCLib_Android
+#	include <android/native_activity.h>
+#	include <android/configuration.h>
+#endif
 #include "YSLib/Service/YModules.h"
 #include YFM_YSLib_Service_YGDI
-#include <android/configuration.h>
 #include YFM_YCLib_Input // for platform::SaveInput;
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
@@ -40,6 +43,8 @@ using namespace Drawing;
 
 namespace platform_ex
 {
+
+#if YCL_Android
 
 namespace Android
 {
@@ -270,5 +275,7 @@ TraceConfiguration(::AConfiguration& cfg, platform::Logger::Level lv)
 
 } // namespace Android;
 
-} // namespace YSLib;
+#endif
+
+} // namespace platform_ex;
 

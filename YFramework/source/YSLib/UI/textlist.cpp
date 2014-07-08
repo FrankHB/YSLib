@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1214
+\version r1216
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-04-06 17:41 +0800
+	2014-07-08 16:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -303,10 +303,10 @@ TextList::LocateViewPosition(SDst h)
 }
 
 void
-TextList::DrawItem(const Graphics& g, const Rect& mask, const Rect& unit,
+TextList::DrawItem(const Graphics& g, const Rect& bounds, const Rect& unit,
 	ListType::size_type i)
 {
-	Drawing::DrawClippedText(g, mask & (unit + Margin), tsList, GetList()[i],
+	Drawing::DrawClippedText(g, bounds & (unit + Margin), tsList, GetList()[i],
 		false);
 }
 

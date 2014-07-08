@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r273
+\version r278
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-06-27 00:47 +0800
+	2014-07-06 02:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,18 +28,19 @@
 
 #include "Helper/YModules.h"
 #include YFM_Android_Helper_AndroidHost
-#include <android/configuration.h>
-#include "AndroidScreen.h"
+#if YCL_Android
+#	include <android/configuration.h>
+#	include "AndroidScreen.h"
+#endif
 #include YFM_YSLib_UI_YDesktop
 #include YFM_YSLib_Core_YApplication
+
+#if YCL_Android
 
 namespace YSLib
 {
 
 using namespace Drawing;
-
-
-#if YCL_Android
 using namespace Host;
 
 namespace
@@ -264,5 +265,6 @@ ANativeActivity_onCreate(::ANativeActivity* p_activity,
 	p_activity->instance = ystdex::make_unique<NativeHost>(*p_activity,
 		saved_state, saved_state_size).release();
 }
+
 #endif
 

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r172
+\version r173
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-06-12 01:40 +0800
+	2014-07-06 02:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 #	include <android/configuration.h>
 #	include YFM_YSLib_Adaptor_YReference // for unique_ptr;
 #else
-#	error "Currently only Android is supported."
+//#	error "Currently only Android is supported."
 #endif
 
 namespace YSLib

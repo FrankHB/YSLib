@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1360
+\version r1370
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-04-16 21:58 +0800
+	2014-07-08 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,18 +84,27 @@ public:
 	virtual DefDeDtor(MLabel)
 
 	/*!
+	\brief 按参数指定的边界大小和当前状态计算笔的偏移位置。
+	\since build 515
+	*/
+	Point
+	GetAlignedPenOffset(const Size&) const;
+
+	/*!
 	\brief 绘制文本。
+	\sa AlignPen
 	\sa DrawClipText
 	*/
 	void
 	DrawText(const Size&, Color, const PaintContext&);
 
 	/*!
-	\brief 绘制剪切文本：使用指定的图形接口上下文、相对于部件的边界和文本状态。
+	\brief 绘制剪切文本：使用指定的绘制上下文和文本状态。
 	\note 被 DrawText 调用。
+	\since build 515
 	*/
 	virtual void
-	DrawClippedText(const Graphics&, const Rect&, Drawing::TextState&);
+	DrawClippedText(const PaintContext&, Drawing::TextState&);
 	//@}
 };
 

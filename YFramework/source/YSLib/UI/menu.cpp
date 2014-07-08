@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1185
+\version r1188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-06-01 02:49 +0800
+	2014-07-08 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,7 +206,7 @@ Menu::Hide()
 }
 
 void
-Menu::DrawItem(const Graphics& g, const Rect& mask, const Rect& unit,
+Menu::DrawItem(const Graphics& g, const Rect& bounds, const Rect& unit,
 	ListType::size_type i)
 {
 	Color t(tsList.Color);
@@ -215,12 +215,12 @@ Menu::DrawItem(const Graphics& g, const Rect& mask, const Rect& unit,
 
 	if(!IsItemEnabled(i))
 		tsList.Color = FetchGUIState().Colors[Styles::GrayText];
-	TextList::DrawItem(g, mask, unit, i);
+	TextList::DrawItem(g, bounds, unit, i);
 	tsList.Color = t;
 	if(YB_LIKELY(unit.Width > 16))
 		if(ystdex::exists(mSubMenus, i))
 			DrawArrow(g, Rect(unit.X + unit.Width - 16, unit.Y, 16,
-				unit.Height) & mask, 4, RDeg0, ForeColor);
+				unit.Height) & bounds, 4, RDeg0, ForeColor);
 }
 
 

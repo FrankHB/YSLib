@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1026
+\version r1027
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-07-01 02:31 +0800
+	2014-07-08 16:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ $dep_from; // take evaluation dependence from;
 $dep_all_from; // take all evaluation dependence from;
 $dep_to; // put evaluation dependence to;
 $label; // label for locating in code portions;
-$effective_in; // only have effect on the given entity, e.g. a subset of the \
+$effective; // only have effect on the given entity, e.g. a subset of the \
 	performed namespace;
 
 // Project stakeholders:

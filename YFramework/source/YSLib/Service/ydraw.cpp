@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1035
+\version r1037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2014-07-03 19:28 +0800
+	2014-07-08 03:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -146,8 +146,6 @@ void
 FillRect(const Graphics& g, const Rect& r, Color c)
 {
 	YAssert(bool(g), "Invalid graphics context found.");
-	YAssert((r | g.GetSize()) == Rect(g.GetSize()),
-		"Wrong area or buffer found.");
 	FillRectRaw<PixelType>(g.GetBufferPtr(), g.GetSize(), r, c);
 }
 

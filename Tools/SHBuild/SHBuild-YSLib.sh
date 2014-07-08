@@ -17,7 +17,7 @@ set -e
 	-Wall -Wextra \
 	-Winvalid-pch \
 	-Wzero-as-null-pointer-constant \
-	-I/include
+	-I../../YBase/include
 ./shbuild ../../YFramework -O3 -pipe -s -std=c++11 \
 	-DNDEBUG -DYB_DLL -DYF_BUILD_DLL -DFREEIMAGE_LIB \
 	-fdata-sections \
@@ -29,7 +29,9 @@ set -e
 	-Wall -Wextra \
 	-Winvalid-pch \
 	-Wzero-as-null-pointer-constant \
-	-I/include \
+	-I../../YFramework/include -I../../YFramework/Android/include \
+	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \
+	-I../../3rdparty/include -I../../YBase/include \
 	-lYBase
 
 echo Done.

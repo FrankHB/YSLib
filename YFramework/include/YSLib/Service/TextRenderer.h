@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2935
+\version r2944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-03-15 10:30 +0800
+	2014-07-08 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -373,9 +373,9 @@ public:
 	\brief 构造：使用文本状态、图形接口上下文和指定区域边界。
 	\since build 265
 	*/
-	TextRenderer(TextState& ts, const Graphics& g, const Rect& mask)
+	TextRenderer(TextState& ts, const Graphics& g, const Rect& bounds)
 		: GTextRendererBase<TextRenderer>(),
-		State(ts), Buffer(g), ClipArea(mask)
+		State(ts), Buffer(g), ClipArea(bounds)
 	{}
 
 	/*!
@@ -425,8 +425,8 @@ public:
 		: TextRenderer(ts, g), RenderFunction(f)
 	{}
 	CustomTextRenderer(RenderFunctionType f, TextState& ts, const Graphics& g,
-		const Rect& mask)
-		: TextRenderer(ts, g, mask), RenderFunction(f)
+		const Rect& bounds)
+		: TextRenderer(ts, g, bounds), RenderFunction(f)
 	{}
 
 	/*!
@@ -551,20 +551,20 @@ public:
 /*!
 \brief 绘制剪切区域的文本。
 \param g 输出图形接口上下文。
-\param mask 相对于输出图形接口上下文矩形，限定输出边界。
+\param bounds 相对于输出图形接口上下文矩形，限定输出边界。
 \param ts 输出时使用的文本状态。
 \param str 待绘制的字符串。
 \param line_wrap 自动换行。
 \since build 309
 */
 YF_API void
-DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
+DrawClippedText(const Graphics& g, const Rect& bounds, TextState& ts,
 	const String& str, bool line_wrap);
 /*!
 \brief 绘制剪切区域的文本。
 \param g 输出图形接口上下文。
-\param mask 相对于输出图形接口上下文矩形，限定输出边界。
-\param bounds 绘制区域的外边界。
+\param bounds 相对于输出图形接口上下文矩形，限定输出边界。
+\param r 绘制区域的外边界。
 \param str 待绘制的字符串。
 \param m 绘制区域边界和外边界之间的边距。
 \param line_wrap 自动换行。
@@ -572,7 +572,7 @@ DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
 \since build 309
 */
 YF_API void
-DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
+DrawClippedText(const Graphics& g, const Rect& bounds, const Rect& r,
 	const String& str, const Padding& m, Color, bool line_wrap,
 	const Font& fnt = {});
 

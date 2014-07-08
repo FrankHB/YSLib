@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r454
+\version r472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-07-03 16:15 +0800
+	2014-07-08 20:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,12 +212,11 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 Point
 TextBox::GetCaretLocation() const
 {
-	const Rect inner_bounds(Rect(GetSizeOf(*this)) + Margin);
 	const auto& cur_pos(Selection.Range.second);
 	const auto lh(Font.GetHeight());
 
-	return {inner_bounds.X + FetchStringWidth(Font, Text, cur_pos.X),
-		cur_pos.Y * lh + inner_bounds.X};
+	return {ptPenOffset.X + FetchStringWidth(Font, Text, cur_pos.X),
+		cur_pos.Y * lh + ptPenOffset.Y};
 }
 TextSelection::Position
 TextBox::GetCaretPosition(const Point& pt)
@@ -243,13 +242,16 @@ TextBox::CollapseCaret()
 }
 
 void
-TextBox::DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts)
+TextBox::DrawClippedText(const PaintContext& pc, TextState& ts)
 {
+	ptPenOffset
+		= Point(ts.Pen.X, ts.Pen.Y - ts.Font.GetAscender()) - pc.Location;
+
 	auto p(&Text[0]);
 	auto x1(Selection.Range.first.X), x2(Selection.Range.second.X);
 
 	if(x1 == x2)
-		MLabel::DrawClippedText(g, mask, ts);
+		MLabel::DrawClippedText(pc, ts);
 	else
 	{
 		if(x2 < x1)
@@ -257,6 +259,7 @@ TextBox::DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts)
 
 		// TODO: Use C++14 lambda initializers to simplify implementation.
 		const auto q1(p + x1), q2(p + x2);
+		const auto& g(pc.Target);
 		CustomTextRenderer ctr([&, q1, q2](TextRenderer& tr, ucs4_t c){
 			if(IsInInterval(p, q1, q2))
 			{
@@ -268,7 +271,7 @@ TextBox::DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts)
 				ts.Color = ForeColor;
 			tr(c);
 			++p;
-		}, ts, g, mask);
+		}, ts, g, pc.ClipArea);
 
 		PutText(AutoWrapLine, ctr, p);
 	}
@@ -288,8 +291,7 @@ TextBox::InvalidateDefaultCaret(IWidget& wgt)
 {
 	auto& tb(ystdex::polymorphic_downcast<TextBox&>(wgt));
 
-	InvalidateVisible(tb, Rect(tb.GetCaretLocation(), 1, tb.Font.GetHeight()
-		+ GetVerticalOf(tb.Margin)));
+	InvalidateVisible(tb, Rect(tb.GetCaretLocation(), 1, tb.Font.GetHeight()));
 	return true;
 }
 
@@ -316,14 +318,10 @@ TextBox::ReplaceSelection(const String& text)
 void
 TextBox::PaintDefaultCaret(PaintEventArgs&& e)
 {
-	const Rect inner_bounds(Rect(e.Location, GetSizeOf(*this)) + Margin);
-	const auto lh(Font.GetHeight());
-	const auto mask(FetchMargin(inner_bounds, e.Target.GetSize()));
-	const auto& cur_pos(Selection.Range.second);
+	const auto& caret_loc(e.Location + GetCaretLocation());
 
-	DrawVLineSeg(e.Target, e.ClipArea, inner_bounds.X + FetchStringWidth(Font,
-		Text, cur_pos.X) - h_offset, cur_pos.Y * lh + mask.Top,
-		cur_pos.Y * lh + lh + mask.Top, ForeColor);
+	DrawVLineSeg(e.Target, e.ClipArea, caret_loc.X, caret_loc.Y,
+		caret_loc.Y + Font.GetHeight(), ForeColor);
 }
 
 } // namespace UI;

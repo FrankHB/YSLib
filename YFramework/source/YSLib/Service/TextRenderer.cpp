@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2697
+\version r2703
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-06-29 19:08 +0800
+	2014-07-08 16:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -212,25 +212,25 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 
 
 void
-DrawClippedText(const Graphics& g, const Rect& mask, TextState& ts,
+DrawClippedText(const Graphics& g, const Rect& bounds, TextState& ts,
 	const String& str, bool line_wrap)
 {
-	TextRenderer tr(ts, g, mask);
+	TextRenderer tr(ts, g, bounds);
 
 	PutText(line_wrap, tr, str);
 }
 void
-DrawClippedText(const Graphics& g, const Rect& mask, const Rect& bounds,
+DrawClippedText(const Graphics& g, const Rect& bounds, const Rect& r,
 	const String& str, const Padding& m, Color c, bool line_wrap,
 	const Font& fnt)
 {
 	TextState ts(fnt);
-	const Rect txt_bounds(bounds + m);
+	const Rect txt_bounds(r + m);
 
 	ts.Margin = FetchMargin(txt_bounds, g.GetSize()),
-	ts.ResetPen(bounds.GetPoint(), m);
+	ts.ResetPen(r.GetPoint(), m);
 	ts.Color = c;
-	DrawClippedText(g, mask & txt_bounds, ts, str, line_wrap);
+	DrawClippedText(g, bounds & txt_bounds, ts, str, line_wrap);
 }
 
 void
