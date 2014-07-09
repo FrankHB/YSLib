@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3216
+\version r3224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2014-04-13 13:21 +0800
+	2014-07-10 03:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -575,14 +575,6 @@ public:
 	explicit
 	Font(const FontFamily&, FontSize = DefaultSize,
 		FontStyle = FontStyle::Regular);
-	//! \since build 419 as workaround for G++ 4.7.1
-	//@{
-	DefDeCopyCtor(Font)
-	Font(Font&& fnt)
-		: Font(fnt)
-	{}
-	DefDeCopyAssignment(Font)
-	//@}
 
 	DefPred(const ynothrow, Bold, bool(style & FontStyle::Bold))
 	DefPred(const ynothrow, Italic, bool(style & FontStyle::Italic))

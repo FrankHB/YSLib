@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8205
+\version r8206
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-07-08 16:22 +0800
+	2014-07-10 03:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -5643,7 +5643,7 @@ b419
 			/ @ "class %Font" $=
 			(
 				/ "simplified data member",
-				+ $dev $workaround "special member functions"
+				+ DLB $workaround "special member functions"
 					// For G++ 4.7.1 there are several errors about implicitly \
 						declared special member functions in derived class.
 			),

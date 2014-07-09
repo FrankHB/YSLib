@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r472
+\version r512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-07-08 20:18 +0800
+	2014-07-09 11:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,9 +161,14 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 								break;
 						}
 					}
-					else if((ek == Left) == (range.first.X < range.second.X)
-						&& range.first.X == range.second.X)
-						range.second.X = range.first.X;
+					else if(range.first.X != range.second.X)
+					{
+						if((ek == Left) == (range.first.X < range.second.X))
+							range.second.X = range.first.X;
+						else
+							range.first.X = range.second.X;
+						break;
+					}
 					CollapseCaret();
 				case Tab:
 					break;
@@ -203,7 +208,6 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 		Invalidate(*this);
 	},
 	FetchEvent<LostFocus>(*this) += [this]{
-		CollapseCaret();
 		Invalidate(*this);
 	}
 	);
@@ -215,19 +219,31 @@ TextBox::GetCaretLocation() const
 	const auto& cur_pos(Selection.Range.second);
 	const auto lh(Font.GetHeight());
 
-	return {ptPenOffset.X + FetchStringWidth(Font, Text, cur_pos.X),
+	return {ptPenOffset.X + (MaskChar == ucs4_t() ? FetchStringWidth(Font, Text,
+		cur_pos.X) : FetchCharWidth(Font, MaskChar) * cur_pos.X),
 		cur_pos.Y * lh + ptPenOffset.Y};
 }
 TextSelection::Position
 TextBox::GetCaretPosition(const Point& pt)
 {
 	const SDst max_w(max(pt.X + h_offset - Margin.Left, 0));
-	auto pr(FetchStringOffsets(max_w, Font, Text));
 
-	if(pr.first > 0
-		&& FetchCharWidth(Font, Text[pr.first - 1]) / 2 < pr.second - max_w)
-		--pr.first;
-	return {pr.first, 0};
+	if(MaskChar == ucs4_t())
+	{
+		auto pr(FetchStringOffsets(max_w, Font, Text));
+
+		if(pr.first > 0
+			&& FetchCharWidth(Font, Text[pr.first - 1]) / 2 < pr.second - max_w)
+			--pr.first;
+		return {pr.first, 0};
+	}
+
+	const SDst w(FetchCharWidth(Font, MaskChar));
+	auto n(std::min<size_t>((max_w + w - 1) / w, Text.length()));
+
+	if(n > 0 && w / 2 < w - max_w)
+		--n;
+	return {n, 0};
 }
 
 void
@@ -298,7 +314,17 @@ TextBox::InvalidateDefaultCaret(IWidget& wgt)
 void
 TextBox::Refresh(PaintEventArgs&& e)
 {
+	String str;
+	const bool b(MaskChar != ucs4_t());
+
+	if(b)
+	{
+		swap(str, Text);
+		Text = String{MaskChar} * str.length();
+	}
 	DrawText(GetSizeOf(*this), ForeColor, e);
+	if(b)
+		swap(str, Text);
 }
 
 void
@@ -309,9 +335,14 @@ TextBox::ReplaceSelection(const String& text)
 	// XXX: Make it correct for multiline input.
 	if(r.second.X < r.first.X)
 		std::swap(r.first, r.second);
-	Text = Text.substr(0, r.first.X) + text
-		+ Text.substr(min(Text.length(), r.second.X));
-	r.second.X = r.first.X + text.length(),
+
+	const auto len(Text.length());
+	const auto subst_len(r.second.X - r.first.X
+		+ (MaxLength > len ? MaxLength - len : 0));
+
+	Text = Text.substr(0, r.first.X) + text.substr(0, subst_len)
+		+ Text.substr(min<size_t>(len, r.second.X));
+	r.second.X = r.first.X + std::min(subst_len, text.length()),
 	CollapseCaret();
 }
 

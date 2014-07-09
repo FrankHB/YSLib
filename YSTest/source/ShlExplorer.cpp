@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1307
+\version r1324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-06-26 15:26 +0800
+	2014-07-10 03:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,6 +208,8 @@ const char TU_Explorer_Sub[]{u8R"NPL(root
 				($type "Button")($bounds "8 32 104 22"))
 			(cbDisableSetting
 				($type "CheckButton")($bounds "8 64 104 22"))
+			(cbShowTextBoxContent
+				($type "CheckButton")($bounds "8 88 104 22"))
 		)
 	)
 )
@@ -293,14 +295,19 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidgetN(TextBox, tbTest, node_pnlPage3)
 	DeclDynWidgetN(Button, btnTestEx, node_pnlPage3)
 	DeclDynWidgetN(CheckButton, cbDisableSetting, node_pnlPage3)
+	DeclDynWidgetN(CheckButton, cbShowTextBoxContent, node_pnlPage3)
 
 	YTraceDe(Debug, "Initialization of ShlExplorer beggined.");
 	AddButtonToTabBar(tcTest1, node_pnlTest1, "btnTab1", u"基本测试");
 	AddButtonToTabBar(tcTest1, node_pnlTest1, "btnTab2", u"动画测试");
 	AddButtonToTabBar(tcTest1, node_pnlTest1, "btnTab3", u"附加测试");
 	tcTest1.UpdateTabPages();
-	p_border = make_unique<BorderResizer>(pnlTest1, 4);
-	p_ChkFPS = &cbFPS;
+	p_border = make_unique<BorderResizer>(pnlTest1, 4),
+	p_ChkFPS = &cbFPS,
+	tpDefault.Text = u"请输入文本",
+	tpDefault.BindByFocus(tbTest, bind(&TextPlaceholder::SwapTextBox<TextBox>,
+		_1, _2));
+	tpDefault.Font.SetStyle(FontStyle::Italic);
 	dsk_m += root,
 	dsk_m.Add(btnSwitchMain, 96),
 	dsk_s += root_sub,
@@ -334,7 +341,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 #else
 	btnMenu.Text = u"菜单(Start)",
 #endif
-	tbTest.Text = u"测试文本",
+	tbTest.Text = u"测试文本框输入字符串",
+	tbTest.MaskChar = u'●',
+	tbTest.MaxLength = 8,
 	ddlStyle.Text = [](const TextList::ListType& lst){
 		const auto& name(FetchGUIState().Styles.GetCurrent()->first);
 
@@ -354,6 +363,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	btnTestEx.VerticalAlignment = TextAlignment::Down,
 	btnTestAni.Text = u"开始动画",
 	cbDisableSetting.Text = u"禁用设置选择框",
+	cbShowTextBoxContent.Text = u"显示文本框内容",
 	lblDragTest.Text = u"移动设置面板位置",
 	btnEnterTest.Font.SetStyle(FontStyle::Italic),
 	btnEnterTest.Text = u"边界测试",
@@ -540,6 +550,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	cbDisableSetting.Ticked += [&](CheckBox::TickedArgs&& e){
 		unseq_apply(bind(SetEnabledOf, _1, !e), cbFPS, rbTxt, rbHex);
 		unseq_apply([](IWidget& wgt){Invalidate(wgt);}, cbFPS, rbTxt, rbHex);
+	},
+	cbShowTextBoxContent.Ticked += [&]{
+		tpDefault.MaskChar = tbTest.MaskChar == ucs4_t() ? u'●' : ucs4_t(),
+		Invalidate(tbTest);
 	},
 	ddlStyle.GetConfirmed() += [&, this]{
 		FetchGUIState().Styles.Switch(ddlStyle.Text.GetMBCS());

@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4612
+\version r4621
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-04-25 10:02 +0800
+	2014-07-09 08:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,9 +92,12 @@ private:
 		static bool
 		AreEqual(const GHEvent& x, const GHEvent& y) ynoexcept(is_noexcept_v)
 		{
-			if(const auto p = x.template target<decayed_type>())
-				if(const auto q = y.template target<decayed_type>())
-					return p == q || *p == *q;
+			const auto p(x.template target<decayed_type>());
+
+			if(const auto q = y.template target<decayed_type>())
+				return p == q || *p == *q;
+			else
+				return !p;
 			return false;
 		}
 		//@}
@@ -105,10 +108,10 @@ private:
 public:
 	/*!
 	\brief 构造：使用函数指针。
-	\since build 351
+	\since build 516
 	*/
 	yconstfn
-	GHEvent(FuncType* f)
+	GHEvent(FuncType* f = {})
 		: BaseType(f), comp_eq(GEquality<FuncType>::AreEqual)
 	{}
 	/*!
@@ -170,6 +173,9 @@ public:
 	\brief 调用。
 	*/
 	using BaseType::operator();
+
+	//! \since build 516
+	using BaseType::operator bool;
 
 private:
 	//! \since build 319
