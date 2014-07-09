@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r1451
+\version r1500
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-07-08 20:36 +0800
+	2014-07-10 03:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,56 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework.YSLib $=
+	(
+		/ %UI.TextBox $=
+		(
+			/ @ "class %TextBox" $=
+			(
+				- "collapsing" @ "handling event %LostFocus",
+				* "wrong collapsing behavior when text selected" $since b514,
+					// It wrongly used the direction determined by selection \
+						rather than by cursor position. And now it is clear \
+						that no %CollapseCaret should be called.
+				(
+				+ "data member 'ucs4_t MaskChar = ucs4_t();'",
+				$dep_from %Core.YString;
+				/ "displayed with text determined by %GenerateDisplayedResult \
+					if nonnull"
+					@ "functions %(Refresh, GetCaretLocation, GetCaretPosition)"
+				),
+				(
+				+ "data member 'size_t MaxLength{-1};";
+				/ "restricted %Text length with %MaxLength"
+					@ "function %ReplaceSelection"
+				)
+			),
+			+ "class %TextPlaceholder"
+		),
+		/ %Core $=
+		(
+			/ @ "class template %GHEvent" @ %YEvent $=
+			(
+				/ "supported null equality comparing" @ "comparer";
+				+ "null pointer as default argument for 1 parameter \
+					constructor as fit for %DefaultConstructible requirement",
+				+ "using declarations %BaseType::operator bool"
+			),
+			+ "binary %operator* for %String" @ %Core.YString
+		),
+		- $revert(b419) DLB "special member functions as workaround for G++ \
+			4.7.1" @ "class %Font" @ %Adaptor.Font;
+	),
+	/ @ "class %ShlExplorer" @ %YReader.ShlExplorer $=
+	(
+		$dep_from %YFramework.YSLib.UI.TextBox;
+		+ "protected 'TextPlaceholder tpDefault{};'";
+		+ "mask character, max length and text placeholder tests for text box"
+	)
+),
+
+b515
 (
 	/ @ %Tools $=
 	(

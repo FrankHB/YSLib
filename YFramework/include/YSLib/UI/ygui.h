@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2188
+\version r2192
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-06-22 22:21 +0800
+	2014-07-09 07:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,8 +105,8 @@ RepeatHeld(InputTimer&, InputTimer::HeldStateType&,
 //@{
 YF_API void
 CallInputEvent(IWidget&, const String&, const KeyInput&);
-inline PDefH(bool, CallInputEvent, ucs2_t uc, const KeyInput& k, IWidget& wgt)
-	ImplRet(uc != ucs2_t() ? (CallInputEvent(wgt, {uc}, k), true) : false)
+inline PDefH(bool, CallInputEvent, ucs2_t c, const KeyInput& k, IWidget& wgt)
+	ImplRet(c != ucs2_t() ? (CallInputEvent(wgt, {c}, k), true) : false)
 //@}
 
 
@@ -312,8 +312,8 @@ public:
 	//@{
 	PDefH(bool, SendInput, KeyInput& k)
 		ImplRet(SendInput(UpdateChar(k), k))
-	PDefH(bool, SendInput, ucs2_t uc, const KeyInput& k)
-		ImplRet(uc != ucs2_t() ? SendInput(k, {uc}) : false)
+	PDefH(bool, SendInput, ucs2_t c, const KeyInput& k)
+		ImplRet(c != ucs2_t() ? SendInput(k, {c}) : false)
 	bool
 	SendInput(const KeyInput&, const String&);
 	//@}

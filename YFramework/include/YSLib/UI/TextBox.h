@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r277
+\version r347
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-07-08 20:09 +0800
+	2014-07-10 03:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,68 @@ namespace YSLib
 
 namespace UI
 {
+
+/*!
+\brief 添加默认文本到特定的部件。
+\since build 492
+*/
+class YF_API TextPlaceholder
+{
+public:
+	Drawing::Font Font{};
+	Color ForeColor{ColorSpace::Gray};
+	String Text{};
+	ucs4_t MaskChar = ucs4_t();
+
+	template<class _tControl, typename _fSwap>
+	void
+	BindByFocus(_tControl& ctl, _fSwap f)
+	{
+		yunseq(
+		FetchEvent<GotFocus>(ctl) += [&, f, this]{
+			if(Text.empty())
+				f(this, ctl);
+		},
+		FetchEvent<LostFocus>(ctl) += [&, f, this]{
+			if(ctl.Text.empty())
+				f(this, ctl);
+		}
+		);
+	}
+
+	template<class _tControl>
+	void
+	SwapLabel(_tControl& ctl)
+	{
+		SwapText(ctl);
+
+		using std::swap;
+
+		swap(ctl.Font, Font),
+		swap(ctl.ForeColor, ForeColor);
+	}
+
+	template<class _tControl>
+	void
+	SwapText(_tControl& ctl)
+	{
+		using std::swap;
+
+		swap(ctl.Text, Text);
+	}
+
+	template<class _tControl>
+	void
+	SwapTextBox(_tControl& ctl)
+	{
+		SwapLabel(ctl);
+
+		using std::swap;
+
+		swap(ctl.MaskChar, MaskChar);
+	}
+};
+
 
 /*!
 \brief 插入符光标。
@@ -122,7 +184,6 @@ struct YF_API TextSelection final
 \brief 文本框。
 \sa Label
 \since build 482
-\todo 支持选中删除、退格和非字母符号和方向键光标移动。
 \todo 支持多行模式的插入符光标移动、文本选中和插入。
 */
 class YF_API TextBox : public Control, protected MLabel, protected MHilightText
@@ -149,6 +210,21 @@ public:
 	\since build 484
 	*/
 	Caret CursorCaret;
+	/*!
+	\brief 用户界面输入文本的最大长度。
+	\note 仅限制 TextInput 事件修改 Text 。
+	\since build 516
+	*/
+	size_t MaxLength{size_t(-1)};
+	/*!
+	\brief 掩码字符。
+	\note 可作为屏蔽密码显示的字符。
+	\note 当前 ucs4_t 截取为 ucs2_t 。
+	\note 若不为空字符则默认在显示时使用此字符替换 Text 的每个字符。
+	\since build 516
+	\sa Text
+	*/
+	ucs4_t MaskChar = ucs4_t();
 
 protected:
 	/*!
@@ -234,6 +310,9 @@ public:
 
 	/*!
 	\brief 替换选中文本。
+	\note 用于默认响应 TextInput 事件。
+	\note 当文本已超出长度限制时只允许缩短文本；其余情况保证不超过限制。
+	\sa MaxLength
 	\since build 490
 	*/
 	void
