@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r465
+\version r490
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-04-29 13:36 +0800
+	2014-07-10 05:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,8 @@
 
 #include "../ydef.h"
 #include <algorithm>
+#include "type_op.hpp" // for ystdex::is_pod;
+#include "iterator.hpp" // for ystdex::is_undereferenceable;
 #include <cstring> // for std::memcpy, std::memmove;
 
 namespace ystdex
@@ -42,12 +44,35 @@ namespace ystdex
 */
 
 
+/*!
+\ingroup algorithms
+\brief 指定数量的序列转换。
+\tparam _fOp 序列操作类型。
+\tparam _tOut 表示结果的输出迭代器类型。
+\tparam _fIns 输入迭代器类型。
+\pre 迭代器可解引用。
+\warning 不检查越界。
+\since build 517
+*/
+template<typename _fOp, typename _tOut, typename... _tIns>
+void
+transform_n(_fOp op, _tOut result, size_t n, _tIns... iters)
+{
+	while(n-- != 0)
+	{
+		yunseq((yconstraint(!is_undereferenceable(result)), 0),
+			(yconstraint(!is_undereferenceable(iters)), void(iters), 0)...);
+		*result = op((*iters)...);
+		yunseq(++result, ++iters...);
+	}
+}
+
 /*!	\defgroup pod_operations POD Type Operations
 \ingroup algorithms
 \brief POD 类型操作。
 \tparam _type 指定对象类型。
 \pre 静态断言： <tt>is_pod<remove_reference_t<_type>>::value</tt> 。
-\note 不检查指针是否有效。
+\warning 不检查指针是否有效。
 \since build 304
 */
 //@{

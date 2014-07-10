@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1420
+\version r1423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-06-28 16:30 +0800
+	2014-07-10 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,9 +185,8 @@ Environment::MapCursor() const
 		const auto& pr(p_wnd->GetInputBounds());
 
 		if(YB_LIKELY(pr.first.X != pr.second.X && pr.first.Y != pr.second.Y)
-			&& (!p_wnd->BoundsLimited
-			|| (IsInInterval<::LONG>(cursor.x, pr.first.X, pr.second.X)
-			&& IsInInterval<::LONG>(cursor.y, pr.first.Y, pr.second.Y))))
+			&& (!p_wnd->BoundsLimited || (IsInInterval(cursor.x, pr.first.X,
+			pr.second.X) && IsInInterval(cursor.y, pr.first.Y, pr.second.Y))))
 			return {cursor.x - pr.first.X, cursor.y - pr.first.Y};
 	}
 #	elif YCL_Android

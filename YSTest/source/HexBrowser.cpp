@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r573
+\version r574
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2014-04-25 10:11 +0800
+	2014-07-11 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 	auto pos(model.GetPosition());
 	auto i_data(datCurrent.begin());
 
-	while(y < h && pos < fsize && i_data < datCurrent.end())
+	while((y < 0 || SDst(y) < h) && pos < fsize && i_data < datCurrent.end())
 	{
 		pen_x = TextState.Margin.Left;
 

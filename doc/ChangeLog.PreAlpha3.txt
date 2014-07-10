@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4956
+\version r4958
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-07-08 02:57 +0800
+	2014-07-10 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,8 +88,8 @@ b399
 				@ "binary trait %has_equality_operator",
 			+ "binary trait %has_subscription"
 		),
-		+ "2 function template overloadings %at" @ %Container,
-		+ "function template overloading %split for range-based object \
+		+ "2 overloaded function template %at" @ %Container,
+		+ "overloaded function template %split for range-based object \
 			representing string" @ String
 	)
 ),

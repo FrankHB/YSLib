@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1748
+\version r1763
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-06-05 19:00 +0800
+	2014-07-10 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,6 +160,24 @@ public:
 };
 
 
+/*
+\ingroup helper_functions
+\brief 交换值并返回旧值。
+\return 被替换的原值。
+\see ISO WG21/N3797 20.2.3[utility.exchange] 。
+\see http://www.open-std.org/JTC1/sc22/WG21/docs/papers/2013/n3668.html 。
+*/
+template<typename _type, typename _type2 = _type>
+_type
+exchange(_type& obj, _type2&& new_val)
+{
+	_type old_val = std::move(obj);
+
+	obj = std::forward<_type2>(new_val);
+	return old_val;
+}
+
+
 /*!
 \ingroup helper_functions
 \brief 退化复制。
@@ -173,7 +191,6 @@ decay_copy(_type&& arg)
 {
 	return std::forward<_type>(arg);
 }
-
 
 /*!
 \ingroup helper_functions

@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r512
+\version r517
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-07-09 11:44 +0800
+	2014-07-11 02:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,22 +226,22 @@ TextBox::GetCaretLocation() const
 TextSelection::Position
 TextBox::GetCaretPosition(const Point& pt)
 {
-	const SDst max_w(max(pt.X + h_offset - Margin.Left, 0));
+	const SDst max_w(max<SPos>(pt.X + h_offset - Margin.Left, 0));
 
 	if(MaskChar == ucs4_t())
 	{
 		auto pr(FetchStringOffsets(max_w, Font, Text));
 
-		if(pr.first > 0
-			&& FetchCharWidth(Font, Text[pr.first - 1]) / 2 < pr.second - max_w)
+		if(pr.first > 0 && FetchCharWidth(Font, Text[pr.first - 1]) / 2U + max_w
+			< pr.second)
 			--pr.first;
 		return {pr.first, 0};
 	}
 
 	const SDst w(FetchCharWidth(Font, MaskChar));
-	auto n(std::min<size_t>((max_w + w - 1) / w, Text.length()));
+	auto n(std::min<size_t>((max_w + w - 1U) / w, Text.length()));
 
-	if(n > 0 && w / 2 < w - max_w)
+	if(n > 0 && w / 2U + max_w < w)
 		--n;
 	return {n, 0};
 }

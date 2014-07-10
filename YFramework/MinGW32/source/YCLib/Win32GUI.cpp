@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r473
+\version r484
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-07-02 09:11 +0800
+	2014-07-11 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_MinGW32_YCLib_Win32GUI
+#include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -164,7 +165,8 @@ WindowReference::GetSize() const
 void
 WindowReference::SetClientBounds(const Rect& r)
 {
-	::RECT rect{r.X, r.Y, r.X + r.Width, r.Y + r.Height};
+	::RECT rect{r.X, r.Y, CheckScalar<SPos>(r.X + r.Width, "width"),
+		CheckScalar<SPos>(r.Y + r.Height, "height")};
 
 	AdjustWindowBounds(rect, hWindow);
 	SetWindowBounds(hWindow, rect.left, rect.top, rect.right - rect.left,
@@ -215,7 +217,8 @@ WindowReference::Resize(const Size& s)
 void
 WindowReference::ResizeClient(const Size& s)
 {
-	::RECT rect{0, 0, s.Width, s.Height};
+	::RECT rect{0, 0, CheckScalar<SPos>(s.Width, "width"),
+		CheckScalar<SPos>(s.Height, "height")};
 
 	AdjustWindowBounds(rect, hWindow);
 	ResizeWindow(hWindow, rect.right - rect.left, rect.bottom - rect.top);
@@ -232,7 +235,8 @@ NativeWindowHandle
 CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
 	const wchar_t* title, ::DWORD wstyle, ::DWORD wstyle_ex)
 {
-	::RECT rect{0, 0, s.Width, s.Height};
+	::RECT rect{0, 0, CheckScalar<SPos>(s.Width, "width"),
+		CheckScalar<SPos>(s.Height, "height")};
 
 	::AdjustWindowRect(&rect, wstyle, false);
 	return ::CreateWindowExW(wstyle_ex, class_name, title, wstyle,
@@ -246,9 +250,11 @@ ScreenBuffer::ScreenBuffer(const Size& s)
 		// NOTE: Bitmap format is hard coded here for explicit buffer
 		//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
 		//	windows.
-		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), size.Width,
-			-size.Height - 1, 1, 32, BI_RGB,
-			sizeof(PixelType) * size.Width * size.Height, 0, 0, 0, 0}, {}};
+		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER),
+			CheckPositiveScalar<SPos>(size.Width, "width"), 
+			-CheckPositiveScalar<SPos>(size.Height, "height") - 1, 1, 32,
+			BI_RGB, sizeof(PixelType) * size.Width * size.Height, 0, 0, 0, 0},
+			{}};
 
 		return ::CreateDIBSection({}, &bmi, DIB_RGB_COLORS,
 			&reinterpret_cast<void*&>(pBuffer), {}, 0);

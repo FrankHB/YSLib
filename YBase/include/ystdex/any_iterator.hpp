@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r949
+\version r956
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2014-05-23 10:11 +0800
+	2014-07-10 05:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,11 +246,11 @@ public:
 	\brief 构造：使用现有迭代器。
 	\since build 356
 	*/
-	template<typename _tIterator>
-	any_input_iterator(_tIterator&& i)
+	template<typename _tIter>
+	any_input_iterator(_tIter&& i)
 		: any()
 	{
-		using param_obj_type = typename remove_rcv<_tIterator>::type;
+		using param_obj_type = typename remove_rcv<_tIter>::type;
 		using handler = any_ops::input_iterator_handler<param_obj_type>;
 
 		static_assert(is_convertible<decltype(*std::declval<typename
@@ -384,8 +384,8 @@ public:
 	using reference = _tReference;
 
 	any_forward_iterator() = default;
-	template<typename _tIterator>
-	any_forward_iterator(_tIterator&& i)
+	template<typename _tIter>
+	any_forward_iterator(_tIter&& i)
 		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
 	{}
 	any_forward_iterator(const any_forward_iterator&) = default;
@@ -454,8 +454,8 @@ public:
 	using reference = _tReference;
 
 	any_bidirectional_iterator() = default;
-	template<typename _tIterator>
-	any_bidirectional_iterator(_tIterator&& i)
+	template<typename _tIter>
+	any_bidirectional_iterator(_tIter&& i)
 		: any_input_iterator<_type, _tPointer, _tReference>(yforward(i))
 	{}
 	any_bidirectional_iterator(const any_bidirectional_iterator&) = default;

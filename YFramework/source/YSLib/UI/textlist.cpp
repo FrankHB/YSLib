@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1216
+\version r1223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-07-08 16:29 +0800
+	2014-07-11 03:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -266,9 +266,9 @@ TextList::InvalidateSelected(ListType::difference_type offset,
 		const auto ln_h(GetItemHeight());
 		Rect r(0, ln_h * offset - top_offset, GetWidth(), ln_h * n);
 
-		if(r.Y < GetHeight())
+		if(r.Y < 0 || SDst(r.Y) < GetHeight())
 		{
-			r.Y = max<int>(0, r.Y);
+			r.Y = max<SPos>(0, r.Y);
 			RestrictUnsignedStrict(r.Height, GetHeight() - r.Y);
 			Invalidate(*this, r);
 		}
@@ -340,11 +340,12 @@ TextList::DrawItems(const PaintContext& pc)
 			AdjustViewLength();
 
 			const SPos lbound(r.Y - pt.Y);
+			// XXX: Conversion to 'SPos' might be implementation-defined.
 			const auto last(viewer.GetHeadIndex()
-				+ min<ViewerType::SizeType>((lbound + r.Height + top_offset
-				- 1) / ln_h + 1, viewer.GetValid()));
-			SPos y(ln_h * ((min<SPos>(0, lbound) + top_offset - 1) / ln_h)
-				- top_offset);
+				+ min<ViewerType::SizeType>((lbound + SPos(r.Height
+				+ top_offset) - 1) / SPos(ln_h) + 1, viewer.GetValid()));
+			SPos y(ln_h * ((min<SPos>(0, lbound) + SPos(top_offset) - 1)
+				/ SPos(ln_h)) - top_offset);
 
 			for(auto i(viewer.GetHeadIndex()); i < last; yunseq(y += ln_h, ++i))
 			{

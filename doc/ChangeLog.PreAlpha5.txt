@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r1500
+\version r1597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-07-10 03:36 +0800
+	2014-07-11 04:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,104 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	(
+	/ DLD "template parameter %_tIter" @ "constructor template \
+		%transformed_iterator" => "%_tIterOrig" @ %YBase.YStandardEx.Iterator;
+	/ DLD "all template parameters %_tIterator" => "%_tIter" $effective
+		@ %YBase.YStandardEx.(Iterator, AnyIterator);
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Algorithm $=
+		(
+			+ "function template %transform_n",
+			* "missing header for %is_pod" $since b254
+		),
+		+ "function template %exchange" @ %Utilities
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ %TextBox $=
+				(
+					/ @ "class %TextPlaceholder" $=
+					(
+						+ "captured control pointer check"
+							@ "function %BindByFocus",
+						+ "function %GetCapturedPtr"
+					),
+					(
+					* $lib "platform neutrality" @ "types %(SPos, SDst)"
+						@ "member function %TextBox::GetCaretPosition" $since
+						b484;
+						// The calculation of width accidentally depended on \
+							result of signed integers, which would turned to \
+							be unsigned when the rank of %SDst is the greatest \
+							value in the expression, e.g. 32-bit unsigned int \
+							for platform %Win32.
+					$dep_to "screen measurement platform neutrality"
+					)
+				),
+				(
+				* $lib "platform neutrality" @ "types %(SPos, SDst)"
+					@ "member function %TextList::DrawItems" @ %TextList
+					$since b346;
+				$dep_to "screen measurement platform neutrality"
+				)
+			),
+			* $lib "platform neutrality" @ "types %(SPos, SDst)" @ %YSLib $since
+				$before b132 $=
+			(
+				// To eliminate [-Wsign-compare].
+				* $design "signed and unsigned integer comparison"
+					@ (("function %PutCharBase" @ %CharRenderer $since b372,
+					"function %BlitBounds" @ %YBlit $since b438, "class \
+					%TextRegion" $since $before b132, "functions %(PlotHLineSeg,
+					PlotVLineSeg)" @ %YDraw $since $orig(%Core.YGDI) b135)
+					@ %Service, "member function %TextList::InvalidateSelected"
+					@ %UI.TextList $since b268),
+				* "missing explicit template parameter" @ "member function \
+					%TextBox::GetCaretPosition" @ %UI.TextBox $since b484;
+				$dep_to "screen measurement platform neutrality"
+			),
+			/ "checked screen position value for Win32 API"
+				^ "%YSLib::CheckPositiveScalar<SPos>"
+				@ %'Helper_MinGW32'.Win32GUI,
+		),
+		/ %YCLib.Video $=
+		(
+			+ "static assertions for screen measurement types",
+				// Now integer types are explicitly required.
+			(
+			$dep_from "screen measurement platform neutrality";
+			/ "alias declarations of %(SDst, SPos)" ^ "%(long, unsigned long)"
+				~ "%(std::int16_t, std::uint16_t) respectively"
+				@ "%platform Win32";
+			$dep_to "32-bit screen measurement types"
+			)
+		),
+		(
+		$dep_from "32-bit screen measurement types"
+		/ DLD "simplified implementation by omitting explicit template argument"
+			@ "member function %Environment::MapCursor" @ "%platform Win32"
+			@ %Helper.Host
+		)
+	)
+	/ %YReader $=
+	(
+		* "no effect when check box unchecked" @ %ShlExplorer $since b516,
+		* "platform neutrality" @ "types %(SPos, SDst)" @ "member function \
+			%HexViewArea::Refresh" @ %HexBrowser $since b253
+	),
+	* DLD "missing update search path"
+		@ "Visual C++ project %YFramework_MinGW32" $since b493,
+),
+
+b516
 (
 	/ %YFramework.YSLib $=
 	(

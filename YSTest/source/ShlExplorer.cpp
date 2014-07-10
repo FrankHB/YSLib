@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1324
+\version r1327
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-07-10 03:29 +0800
+	2014-07-10 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -551,8 +551,9 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		unseq_apply(bind(SetEnabledOf, _1, !e), cbFPS, rbTxt, rbHex);
 		unseq_apply([](IWidget& wgt){Invalidate(wgt);}, cbFPS, rbTxt, rbHex);
 	},
-	cbShowTextBoxContent.Ticked += [&]{
-		tpDefault.MaskChar = tbTest.MaskChar == ucs4_t() ? u'●' : ucs4_t(),
+	cbShowTextBoxContent.Ticked += [&](CheckBox::TickedArgs&& e){
+		(tpDefault.GetCapturedPtr() == &tbTest ? tpDefault.MaskChar
+			: tbTest.MaskChar) = e ? ucs4_t() : u'●';
 		Invalidate(tbTest);
 	},
 	ddlStyle.GetConfirmed() += [&, this]{
