@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2703
+\version r2704
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-07-08 16:24 +0800
+	2014-07-11 02:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,7 +183,7 @@ TextRegion::ClearTextLine(u16 l)
 void
 TextRegion::Scroll(ptrdiff_t n)
 {
-	if(YB_LIKELY(GetHeight() > Margin.Bottom))
+	if(YB_LIKELY(Margin.Bottom < 0 || GetHeight() > SDst(Margin.Bottom)))
 		Scroll(n, GetHeight() - Margin.Bottom);
 }
 void

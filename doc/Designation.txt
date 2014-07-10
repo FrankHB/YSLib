@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9205
+\version r9207
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-06-29 00:07 +0800
+	2014-07-10 05:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,6 @@ Shell 和 Core 的关系是相对的，例如：
 使用以下固定含义的模板形式参数名称（前缀参见 @4.1.1.3 ）：
  _type ：一般类型参数；
  _type2 ：第二类型参数；
- _types ：一般类型多参数；
  _bCond ：表示选择结果的条件的 bool 参数。
  _tSeq ：表示序列的类型参数（一般需要是类类型；注意可以是元类型的实例，而不一定是容器类型）。
  _tScalar ：标量类型（和向量类型相对；注意不一定是 ISO C++ 定义的标量类型，即不需要保证满足 std::is_scalar 类型特征）；
@@ -241,6 +240,7 @@ Shell 和 Core 的关系是相对的，例如：
  _tRange ：一般范围类型；
  _tCon ：容器类型（符合 ISO C++11 约定的容器要求的类型，或类似的在特定上下文中通过文档约定的类型如 std::string ，下同）；
  _tSeqCon ：序列容器类型。
+以上非数字结尾的类型参数加后缀 s 表示可变模板参数中的多个类型。
 使用以下非 ISO C++11 的要求中出现的其它成员名称：
  clone ：动态复制函数，返回类型为被复制的对象的指针。
  begin 和 end 以 ADL 为使用形式，一般使用命名空间作用域包装，不作为 YFramework 类的成员名称。

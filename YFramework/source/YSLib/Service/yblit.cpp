@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1070
+\version r1072
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2014-05-23 09:46 +0800
+	2014-07-11 00:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,12 +64,12 @@ BlitBounds(const Point& dp, const Point& sp,
 	yunseq(min_x = blit_min(sp.X, dp.X), min_y = blit_min(sp.Y, dp.Y),
 		max_x = blit_max(sp.X, dp.X, ss.Width, ds.Width, sc.Width),
 		max_y = blit_max(sp.Y, dp.Y, ss.Height, ds.Height, sc.Height));
-	if(min_x < max_x && min_y < max_y)
+	if(max_x >= 0 && max_y >= 0 && min_x < SDst(max_x) && min_y < SDst(max_y))
 	{
 		yunseq(delta_x = max_x - min_x, delta_y = max_y - min_y);
 		return true;
 	}
-	return false;
+	return {};
 }
 
 

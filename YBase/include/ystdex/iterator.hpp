@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3404
+\version r3451
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-06-12 21:55 +0800
+	2014-07-10 05:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,14 +69,14 @@ using enable_for_iterator_t = enable_if_t<
 
 /*!	\defgroup is_undereferenceable Is Undereferenceable Iterator
 \brief 判断迭代器实例是否不可解引用。
-\tparam _tIterator 迭代器类型。
+\tparam _tIter 迭代器类型。
 \note 注意返回 \c false 不表示参数实际可解引用。
 \since build 461
 */
 //@{
-template<typename _tIterator>
+template<typename _tIter>
 yconstfn bool
-is_undereferenceable(const _tIterator&) ynothrow
+is_undereferenceable(const _tIter&) ynothrow
 {
 	return false;
 }
@@ -346,12 +346,12 @@ struct pointer_classify<_type*>
 
 总是返回单一值的迭代器适配器。
 */
-template<typename _type, typename _tIterator = _type*,
-	typename _tTraits = std::iterator_traits<_tIterator>>
+template<typename _type, typename _tIter = _type*,
+	typename _tTraits = std::iterator_traits<_tIter>>
 class pseudo_iterator
 {
 public:
-	using iterator_type = _tIterator;
+	using iterator_type = _tIter;
 	//! \since build 400
 	using traits_type = _tTraits;
 	using iterator_category = typename traits_type::iterator_category;
@@ -481,18 +481,18 @@ public:
 \since build 356
 */
 //@{
-template<typename _type, typename _tIterator, typename _tTraits>
+template<typename _type, typename _tIter, typename _tTraits>
 inline bool
-operator==(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
-	const pseudo_iterator<_type, _tIterator, _tTraits>& y)
+operator==(const pseudo_iterator<_type, _tIter, _tTraits>& x,
+	const pseudo_iterator<_type, _tIter, _tTraits>& y)
 {
 	return x.value == y.value;
 }
 
-template<typename _type, typename _tIterator, typename _tTraits>
+template<typename _type, typename _tIter, typename _tTraits>
 inline bool
-operator!=(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
-	const pseudo_iterator<_type, _tIterator, _tTraits>& y)
+operator!=(const pseudo_iterator<_type, _tIter, _tTraits>& x,
+	const pseudo_iterator<_type, _tIter, _tTraits>& y)
 {
 	return !(x == y);
 }
@@ -510,8 +510,8 @@ operator!=(const pseudo_iterator<_type, _tIterator, _tTraits>& x,
 使用指定参数转换得到新迭代器的间接操作替代指定原始类型的间接操作的迭代器适配器。
 被替代的原始类型是迭代器类型，或除间接操作（可以不存在）外符合迭代器要求的类型。
 */
-template<typename _tIterator, typename _fTransformer>
-class transformed_iterator : public pointer_classify<_tIterator>::type
+template<typename _tIter, typename _fTransformer>
+class transformed_iterator : public pointer_classify<_tIter>::type
 {
 public:
 	/*!
@@ -519,13 +519,13 @@ public:
 	\since build 290
 	*/
 	using iterator_type = typename
-		pointer_classify<remove_reference_t<_tIterator>>::type;
+		pointer_classify<remove_reference_t<_tIter>>::type;
 	using transformer_type = decay_t<_fTransformer>;
 	//! \since build 439
-	using transformed_type = result_of_t<_fTransformer&(_tIterator&)>;
+	using transformed_type = result_of_t<_fTransformer&(_tIter&)>;
 	//! \since build 415
 	using difference_type
-		= typename pointer_classify<_tIterator>::type::difference_type;
+		= typename pointer_classify<_tIter>::type::difference_type;
 	//! \since build 357
 	using reference = decltype(std::declval<transformed_type>());
 
@@ -537,10 +537,10 @@ public:
 	//! \since build 496
 	transformed_iterator() = default;
 	//! \since build 494
-	template<typename _tIter, typename _tTran,
-		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIter>)>
+	template<typename _tIterOrig, typename _tTran,
+		yimpl(typename = exclude_self_ctor_t<transformed_iterator, _tIterOrig>)>
 	explicit yconstfn
-	transformed_iterator(_tIter&& i, _tTran f = {})
+	transformed_iterator(_tIterOrig&& i, _tTran f = {})
 		: iterator_type(yforward(i)), transformer(f)
 	{}
 	//! \since build 415
@@ -743,12 +743,12 @@ operator>=(const transformed_iterator<_type, _fTransformer>& x,
 \note 使用 ADL 。
 \since build 494
 */
-template<typename _tIterator, typename _fTransformer>
-inline transformed_iterator<typename array_ref_decay<_tIterator>::type,
+template<typename _tIter, typename _fTransformer>
+inline transformed_iterator<typename array_ref_decay<_tIter>::type,
 	_fTransformer>
-make_transform(_tIterator&& i, _fTransformer f)
+make_transform(_tIter&& i, _fTransformer f)
 {
-	return transformed_iterator<typename array_ref_decay<_tIterator>::type,
+	return transformed_iterator<typename array_ref_decay<_tIter>::type,
 		_fTransformer>(yforward(i), f);
 }
 
@@ -761,21 +761,21 @@ namespace iterator_transformation
 {
 	//! \since build 412
 	//@{
-	template<typename _tIterator>
+	template<typename _tIter>
 	static yconstfn auto
-	first(const _tIterator& i) -> decltype((i->first))
+	first(const _tIter& i) -> decltype((i->first))
 	{
 		return i->first;
 	}
-	template<typename _tIterator>
+	template<typename _tIter>
 	static yconstfn auto
-	second(const _tIterator& i) -> decltype((i->second))
+	second(const _tIter& i) -> decltype((i->second))
 	{
 		return i->second;
 	}
-	template<typename _tIterator>
+	template<typename _tIter>
 	static yconstfn auto
-	indirect(const _tIterator& i) -> decltype((**i))
+	indirect(const _tIter& i) -> decltype((**i))
 	{
 		return **i;
 	}
@@ -799,33 +799,33 @@ yconstexpr struct indirect_tag{} get_indirect{};
 \brief 管道匹配操作符。
 \since build 288
 */
-template<typename _tIterator>
+template<typename _tIter>
 inline auto
-operator|(_tIterator&& i, first_tag)
+operator|(_tIter&& i, first_tag)
 	-> decltype(make_transform(yforward(i), iterator_transformation::first<
-	typename array_ref_decay<_tIterator>::type>))
+	typename array_ref_decay<_tIter>::type>))
 {
 	return make_transform(yforward(i), iterator_transformation::first<
-		typename array_ref_decay<_tIterator>::type>);
+		typename array_ref_decay<_tIter>::type>);
 }
-template<typename _tIterator>
+template<typename _tIter>
 inline auto
-operator|(_tIterator&& i, second_tag)
+operator|(_tIter&& i, second_tag)
 	-> decltype(make_transform(yforward(i), iterator_transformation::second<
-	typename array_ref_decay<_tIterator>::type>))
+	typename array_ref_decay<_tIter>::type>))
 {
 	return make_transform(yforward(i), iterator_transformation::second<
-		typename array_ref_decay<_tIterator>::type>);
+		typename array_ref_decay<_tIter>::type>);
 }
 //! \since build 358
-template<typename _tIterator>
+template<typename _tIter>
 inline auto
-operator|(_tIterator&& i, indirect_tag)
+operator|(_tIter&& i, indirect_tag)
 	-> decltype(make_transform(yforward(i), iterator_transformation::indirect<
-	typename array_ref_decay<_tIterator>::type>))
+	typename array_ref_decay<_tIter>::type>))
 {
 	return make_transform(yforward(i), iterator_transformation::indirect<
-		typename array_ref_decay<_tIterator>::type>);
+		typename array_ref_decay<_tIter>::type>);
 }
 
 
@@ -1026,11 +1026,11 @@ operator!=(const pair_iterator<_tMaster, _tSlave>& x,
 \note 向指定类型的迭代器传递输入迭代器操作。
 \since build 412
 */
-template<typename _tIterator>
+template<typename _tIter>
 class indirect_input_iterator
 {
 public:
-	using iterator_type = _tIterator;
+	using iterator_type = _tIter;
 	using iterator_category = std::input_iterator_tag;
 	using value_type = typename std::iterator_traits<iterator_type>::value_type;
 	using difference_type
@@ -1145,10 +1145,10 @@ public:
 \relates indirect_input_iterator
 \since build 412
 */
-template<typename _tIterator>
+template<typename _tIter>
 inline bool
-operator!=(const indirect_input_iterator<_tIterator>& x,
-	const indirect_input_iterator<_tIterator>& y)
+operator!=(const indirect_input_iterator<_tIter>& x,
+	const indirect_input_iterator<_tIter>& y)
 {
 	return !(x == y);
 }

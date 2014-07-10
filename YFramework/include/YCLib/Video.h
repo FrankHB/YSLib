@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1022
+\version r1037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-06-13 20:30 +0800
+	2014-07-11 03:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,9 +35,24 @@
 namespace platform
 {
 
+#if YCL_Win32
+using SPos = long;
+using SDst = unsigned long;
+#else
 using SPos = std::int16_t; //!< 屏幕坐标度量。
 using SDst = std::uint16_t; //!< 屏幕坐标距离。
+#endif
 
+//! \since build 517
+//@{
+static_assert(std::is_signed<SPos>::value,
+	"Only signed integer is supported for screen position measurement.");
+static_assert(std::is_unsigned<SDst>::value,
+	"Only unsigned integer is supported for screen destination measurement.");
+static_assert(std::numeric_limits<SDst>::max() > std::numeric_limits<
+	SPos>::max(), "Max value of screen destination shall be grater than"
+	" max value of screen position.");
+//@}
 
 /*!
 \brief XYZA 特征。

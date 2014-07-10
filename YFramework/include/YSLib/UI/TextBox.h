@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r347
+\version r362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-07-10 03:13 +0800
+	2014-07-10 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,15 +43,22 @@ namespace UI
 
 /*!
 \brief 添加默认文本到特定的部件。
-\since build 492
+\since build 516
 */
 class YF_API TextPlaceholder
 {
+private:
+	//! \since build 517
+	IWidget* p_captured = {};
+
 public:
 	Drawing::Font Font{};
-	Color ForeColor{ColorSpace::Gray};
+	Color ForeColor = {ColorSpace::Gray};
 	String Text{};
 	ucs4_t MaskChar = ucs4_t();
+
+	//! \since build 517
+	DefGetter(const ynothrow, IWidget*, CapturedPtr, p_captured)
 
 	template<class _tControl, typename _fSwap>
 	void
@@ -59,12 +66,18 @@ public:
 	{
 		yunseq(
 		FetchEvent<GotFocus>(ctl) += [&, f, this]{
-			if(Text.empty())
+			if(p_captured == std::addressof(ctl) && Text.empty())
+			{
 				f(this, ctl);
+				p_captured = {};
+			}
 		},
 		FetchEvent<LostFocus>(ctl) += [&, f, this]{
-			if(ctl.Text.empty())
+			if(!p_captured && ctl.Text.empty())
+			{
 				f(this, ctl);
+				p_captured = std::addressof(ctl);
+			}
 		}
 		);
 	}
