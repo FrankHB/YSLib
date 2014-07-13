@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r500
+\version r522
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-07-02 09:06 +0800
+	2014-07-13 02:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,10 +54,11 @@ using MessageMap = std::map<unsigned, YSLib::GEvent<void(::WPARAM, ::LPARAM)>>;
 
 /*!
 \brief 添加使用指定优先级调用 ::DefWindowProcW 处理 Windows 消息的处理器。
-\since build 514
+\relates MessageMap
+\since build 518
 \todo 处理返回值。
 */
-void
+YF_API void
 BindDefaultWindowProc(NativeWindowHandle, MessageMap&, unsigned,
 	YSLib::EventPriority = 0);
 
@@ -95,6 +96,9 @@ public:
 	YSLib::Drawing::Size
 	GetClientSize() const;
 	//@}
+	//! \since build 518
+	YSLib::Drawing::Point
+	GetCursorLocation() const;
 	YSLib::Drawing::Point
 	GetLocation() const;
 	DefGetter(const ynothrow, NativeWindowHandle, NativeHandle, hWindow)
@@ -438,12 +442,6 @@ class YF_API HostWindow : private WindowReference, private YSLib::noncopyable
 {
 public:
 	/*!
-	\brief 限制指针设备响应在窗口边界内。
-	\since build 427
-	*/
-	std::atomic<bool> BoundsLimited{false};
-
-	/*!
 	\brief 窗口消息转发事件映射。
 	\since build 512
 	*/
@@ -461,6 +459,8 @@ public:
 	using WindowReference::GetClientLocation;
 	using WindowReference::GetClientSize;
 	//@}
+	//! \since build 518
+	using WindowReference::GetCursorLocation;
 	//! \since build 427
 	//@{
 	using WindowReference::GetLocation;
@@ -480,6 +480,16 @@ public:
 
 	//! \since build 429
 	using WindowReference::Invalidate;
+
+	/*!
+	\brief 取相对于窗口的可响应输入的点的位置。
+	\note 默认输入边界为客户区，输入总是视为有效；实现为直接返回参数。
+	\return 若参数表示的位置无效则 YSLib::Drawing::Point::Invalie ，
+		否则为相对于窗口输入边界的当前点的坐标。
+	\since build 518
+	*/
+	virtual YSLib::Drawing::Point
+	MapPoint(const YSLib::Drawing::Point&) const;
 
 	using WindowReference::Move;
 	//@}

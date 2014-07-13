@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r149
+\version r159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2014-06-25 10:33 +0800
+	2014-07-13 22:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,13 +60,16 @@ private:
 	std::reference_wrapper<Environment> env;
 #endif
 #if YCL_Win32
-	//! \since build 512
-	//@{
-	//! \brief 文本焦点缓存。
-	void* p_text_focus_cache = {};
-	//! \brief 插入符位置缓存。
+	/*!
+	\brief 文本焦点缓存。
+	\since build 518
+	*/
+	UI::IWidget* p_text_focus_cache = {};
+	/*!
+	\brief 插入符位置缓存。
+	\since build 512
+	*/
 	Drawing::Point caret_location_cache{Drawing::Point::Invalid};
-	//@}
 #endif
 
 public:

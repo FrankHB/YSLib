@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r235
+# Version = r237
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-06-10 21:30 +0800
+# Updated = 2014-07-14 00:36 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -20,7 +20,7 @@ ifeq ($(PLATFORM),Android)
 		$(error "Please set ANDROID_SDK in your environment. export ANDROID_SDK=<path to>ANDROID_SDK")
 	endif
 	ANDROID_PLATFORM := 9
-	ANDROID_SDKVER := 19.0.3
+	ANDROID_SDKVER := 20.0.0
 #	java_exe := $(shell $(ANDROID_SDK)/tools/lib/find_java)
 #	java_d := $(shell cygpath -d "$(java_exe)")
 #	export JAVA := $(shell cygpath "$(java_d)")
@@ -188,7 +188,7 @@ DEPENDS	:= $(OFILES:.o=.d)
 
 $(OUTPUT_FINAL) : $(OUTPUT_SIGNED)
 	@echo Aligning $(notdir $@) ...
-	$(ANDROID_SDK)/tools/zipalign -f -v 4 $(OUTPUT_SIGNED) $(OUTPUT_FINAL)
+	$(ANDROID_BUILD_TOOLS_DIR)/zipalign -f -v 4 $(OUTPUT_SIGNED) $(OUTPUT_FINAL)
 	@echo Built $(notdir $@) .
 
 $(OUTPUT_SIGNED) : $(OUTPUT_APK)

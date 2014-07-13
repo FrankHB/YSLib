@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r484
+\version r497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-07-11 01:51 +0800
+	2014-07-12 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,6 +139,15 @@ WindowReference::GetClientSize() const
 	if(YB_UNLIKELY(!::GetClientRect(hWindow, &rect)))
 		YF_Raise_Win32Exception("GetClientRect");
 	return {rect.right, rect.bottom};
+}
+Point
+WindowReference::GetCursorLocation() const
+{
+	::POINT cursor;
+
+	::GetCursorPos(&cursor);
+	::ScreenToClient(GetNativeHandle(), &cursor);
+	return {cursor.x, cursor.y};
 }
 Point
 WindowReference::GetLocation() const
@@ -443,6 +452,12 @@ HostWindow::~HostWindow()
 	// NOTE: The window could be already destroyed in window procedure.
 	if(::IsWindow(hWindow))
 		::DestroyWindow(hWindow);
+}
+
+Point
+HostWindow::MapPoint(const Point& pt) const
+{
+	return pt;
 }
 
 } // namespace Windows;

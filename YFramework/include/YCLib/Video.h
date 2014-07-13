@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1037
+\version r1038
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-07-11 03:20 +0800
+	2014-07-12 23:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,7 +257,7 @@ union YB_ATTR(packed) YB_ATTR(
 	ARGB(typename Trait::BType a, typename Trait::GType r,
 		typename Trait::RType g, typename Trait::AType b)
 		: Integer(a | r << MaskTrait::AMaskN | g << MaskTrait::AXMaskN
-		| MaskTrait::AXYMaskN)
+		| b << MaskTrait::AXYMaskN)
 	{}
 
 	yconstfn DefCvt(const ynothrow, typename Trait::IntegerType, Integer)

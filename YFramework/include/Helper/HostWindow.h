@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r387
+\version r400
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-07-02 09:04 +0800
+	2014-07-13 22:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_Win32GUI
 #	include YFM_YSLib_Core_YString // for YSLib::String;
+#	include YFM_YSLib_UI_YWidget // for UI::IWidget;
 #	include <atomic>
 #	include <mutex>
 #elif YCL_Android
@@ -111,12 +112,12 @@ public:
 
 	DefGetter(const ynothrow, Environment&, Host, env)
 	/*!
-	\brief 取预定的指针设备输入响应有效区域的左上角和右下角坐标。
+	\brief 取预定的指针设备输入响应有效区域的边界。
 	\note 坐标相对于客户区。
-	\since build 388
+	\since build 518
 	*/
-	virtual pair<YSLib::Drawing::Point, YSLib::Drawing::Point>
-	GetInputBounds() const ynothrow;
+	virtual YSLib::Drawing::Rect
+	GetInputBounds() const;
 
 	/*!
 	\brief 刷新：保持渲染状态同步。
@@ -142,6 +143,7 @@ public:
 
 	/*!
 	\brief 更新输入法编辑器候选窗口位置。
+	\note 位置为相对于窗口客户区的坐标。
 	\note 若位置为 Drawing::Point::Invalid 则忽略。
 	\sa caret_location
 	\since build 512
@@ -161,6 +163,13 @@ public:
 	void
 	UpdateCandidateWindowLocationUnlocked();
 	//@}
+
+	/*!
+	\brief 更新文本焦点：根据指定的部件和相对于部件的位置调整状态。
+	\since build 518
+	*/
+	virtual void
+	UpdateTextInputFocus(UI::IWidget&, const Drawing::Point&);
 #	endif
 
 	/*!
@@ -169,7 +178,7 @@ public:
 	\since build 435
 	*/
 	void
-	UpdateFrom(YSLib::Drawing::BitmapPtr, ScreenRegionBuffer&);
+	UpdateFrom(Drawing::BitmapPtr, ScreenRegionBuffer&);
 };
 
 } // namespace Host;

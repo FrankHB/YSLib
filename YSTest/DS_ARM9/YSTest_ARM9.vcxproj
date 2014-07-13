@@ -72,7 +72,7 @@
     <NMakeForcedIncludes>$(NMakeForcedIncludes)</NMakeForcedIncludes>
     <NMakeAssemblySearchPath>$(NMakeAssemblySearchPath)</NMakeAssemblySearchPath>
     <NMakeForcedUsingAssemblies>$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
-    <IncludePath>$(ProjectDir)..\..\YFramework\include;$(ProjectDir)..\..\YBase\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\..\YBase\include;$(ProjectDir)..\..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(ProjectDir)..\..\DS\include;$(ProjectDir)..\..\YFramework\include;$(ProjectDir)..\..\YBase\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include</IncludePath>
     <ReferencePath>
     </ReferencePath>
     <NMakeBuildCommandLine>make -j -r CONF=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
@@ -92,7 +92,7 @@
     <NMakeBuildCommandLine>make -j -r CONF=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>make -j -r CONF=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make -j -r CONF=$(Configuration) clean</NMakeCleanCommandLine>
-    <IncludePath>$(ProjectDir)..\..\YFramework\include;$(ProjectDir)..\..\YBase\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include;$(ProjectDir)..\..\YBase\include;$(ProjectDir)..\..\YFramework\include;$(ProjectDir)include;$(NMakeIncludeSearchPath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(ProjectDir)..\..\DS\include;$(ProjectDir)..\..\YFramework\include;$(ProjectDir)..\..\YBase\include;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\arm-none-eabi;$(DKP_HOME)\devkitARM\arm-none-eabi\include\c++\4.8.2\backward;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include;$(DKP_HOME)\devkitARM\lib\gcc\arm-none-eabi\4.8.2\include-fixed;$(DKP_HOME)\devkitARM\arm-none-eabi\include;$(DKP_HOME)\libnds\include</IncludePath>
     <ReferencePath>
     </ReferencePath>
     <LibraryPath />
