@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r192
+\version r195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-03-01 13:05 +0800
+	2014-07-12 00:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,6 +89,8 @@
 @2.3.5 库选项宏：
 辅助静态库和动态库编译。
 宏名仅使用大写字母和下划线。
+公开 API 以宏 YB_API 标识。
+在 Win32 平台上支持动态库。构建动态库时需定义 YB_BUILD_DLL ；此外，使用动态库时需定义 YB_DLL 。
 
 @2.3.6 特性选项宏：
 指示是否启用若干特性。
@@ -146,6 +148,7 @@
 
 @2.4.4.1 ISO C 断言/调试跟踪扩展 CAssert ：
 头文件扩展了标准库头文件 <cassert> ，提供若干断言函数。
+在库使用约定([Documentation::CommonRules @@3.12]) 的基础上使用方式同 <cassert> ，参见 ISO C++11 17.6.2.2/2 。
 
 @2.4.4.2 ISO C 标准整数类型操作 CStandardInteger。
 头文件间接扩展了标准库头文件 <cstdint> ，提供一些类型操作和一些整数类型的模板特化以及模算术的基本支持。

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8207
+\version r8215
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-07-10 18:10 +0800
+	2014-07-12 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -310,7 +310,8 @@ b497
 		)
 	),
 	+ "project %YSTest_Android",
-	* "VC++ projects" @ "platform %Android" ^ "Clang++ predefined macros"
+	* "Visual C++ projects" @ "platform %Android" ^ "Clang++ predefined macros"
+		$since b492
 		// However actually G++ is used.
 		$= (^ "G++" ~ "Clang++"),
 	/ %YFramework $=
@@ -3307,7 +3308,7 @@ b454
 			)
 		)
 	),
-	/ $dev $build "VC++ projects" $=
+	/ $dev $build "Visual C++ projects" $=
 	(
 		/ "set DS projects as platform %ARM",
 		/ "set Win32 projects with uniformed settings on project targets, \
@@ -3717,7 +3718,7 @@ b449
 				specified)" ~ "GPLv3",
 			+ "DISCLAIMER chaper"
 		),
-		/ "%Readme.zh-CN.txt updated with brief introduce text about the YSLib \
+		/ "%updated Readme.zh-CN.txt with brief introduce text about the YSLib \
 			project",
 	)
 ),
@@ -4486,7 +4487,7 @@ b437
 	/ %Tools $=
 	(
 		+ %CreationTimeManager,
-		+ DLD "readme file" @ "VC++ projects" @ %PredefinedMacroDetector
+		+ DLD "readme file" @ "Visual C++ projects" @ %PredefinedMacroDetector
 	),
 	/ %YFramework $=
 	(
@@ -4919,7 +4920,7 @@ b431
 			// Generator to detect predefined macros. Generated file is a C++ \
 				source file. Use preprocessing command line like "gcc -E" then \
 				compile in hosted environment to get macros for cross compilers.
-	+ DLD "common pre-defined macros" @ "platform %DS" @ "VC++ projects",
+	+ DLD "common pre-defined macros" @ "platform %DS" @ "Visual C++ projects",
 	+ $dev $repo "pattern globs ('__gen_*.*', '*.pdb', '*.idb', '*.ilk', \
 		'*.exe', '*.obj', '*.tlog', '*.lastbuildstate', '*.unsuccessfulbuild')"
 		@ "file %.hgignore",
@@ -5269,7 +5270,7 @@ b427
 			)
 		)
 	)
-	+ $dev "empty VC++ projects %YFramework_MinGW32",
+	+ $dev "empty Visual C++ projects %YFramework_MinGW32",
 		// Only for convenience, no ability for building.
 	/ $doc @ "directory %doc" $=
 	(
@@ -5280,7 +5281,7 @@ b427
 
 b426
 (
-	/ DLB "VC++ projects" $=
+	/ DLB "Visual C++ projects" $=
 	(
 		- "all filters of extensions",
 		/ "reconstructed files as directories"

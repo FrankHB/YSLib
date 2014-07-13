@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r362
+\version r364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-07-10 16:56 +0800
+	2014-07-13 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -296,10 +296,10 @@ public:
 	/*!
 	\brief 导出插入符位置到公共 GUI 状态。
 	\note 仅当外部文本输入指示焦点部件为本对象时有效，否则忽略。
-	\since build 514
+	\since build 518
 	*/
 	void
-	ExportCaretPosition() const;
+	ExportCaretLocation() const;
 
 	/*!
 	\brief 无效化默认插入符。

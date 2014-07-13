@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r498
+\version r505
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-07-02 09:56 +0800
+	2014-07-13 22:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include YFM_Helper_HostRenderer // for Host::Window, Host::RenderWindow;
 #include YFM_Helper_GUIApplication // for FetchEnvironment;
 #if YCL_Win32
-#	include YFM_YSLib_UI_YControl // for UI::CallEvent.
+#	include YFM_YSLib_UI_YControl // for UI::CallEvent;
 #elif YCL_Android
 #	include YFM_Android_Helper_AndroidHost // for Android::NativeHost;
 #	include YFM_YSLib_UI_YDesktop // for Desktop converting to IWidget;
@@ -141,8 +141,13 @@ InputManager::DispatchInput(IWidget& wgt)
 				ustr.erase(ustr.begin(), ustr.begin() + n);
 				// XXX: Duplicate locking.
 				if(st.CaretLocation != caret_location_cache)
-					p_wnd->UpdateCandidateWindowLocation(
-						caret_location_cache = st.CaretLocation);
+				{
+					caret_location_cache = st.CaretLocation;
+					YAssertNonnull(p_text_focus_cache);
+
+					p_wnd->UpdateTextInputFocus(*p_text_focus_cache,
+						caret_location_cache);
+				}
 			}
 		});
 	}

@@ -25,4 +25,7 @@
     </None>
     <None Include="Makefile" />
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="AndroidManifest.xml" />
+  </ItemGroup>
 </Project>

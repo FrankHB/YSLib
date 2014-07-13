@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r386
+\version r407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-06-26 01:18 +0800
+	2014-07-11 21:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,6 +381,29 @@ There are multiple issues for IME(Input Method Editor) support in Windows.
 			Currently YSLib chooses a simple implements that behaves like Scintilla of Code::Blocks as default, as well as disablility in Windows 2012 R2.
 	See also comments in https://src.chromium.org/viewvc/chrome/trunk/src/ui/base/ime/win/imm32_manager.cc .
 
+$2014-07:
+
+report.impl:
+The type of handles varied.
+	For the prehistoric era lacking of Documentation::Workflow of YSLib, shell handles are of the opaque handle type 'HSHL'.
+	From b175, 'GHHandle<YShell>' took place of 'HSHL'.
+		The shell class 'YShell' is the interface, and should not be hidden.
+	From b201, 'GHHandle' was renamed to 'GHandle'.
+		Because the prefix 'H' was redundant with meaning of the 'Handle'.
+	From b210, 'GHandle' was replaced by 'shared_ptr'.
+		There was no need to reinvent the wheel of handle type.
+		There was also no need to reinvent the wheel of things like 'shared_pointer_cast'.
+			Though in Helper::ShellHelper, there are still some historical interfaces available. They are not deprecated, but also to be not encouraged to use.
+		The sharing semantics should be explicit, as the interface.
+			The 'shared_ptr' is currently an alias of 'std::shared_ptr' introduced by YSLib::Adaptor::YReference.
+			Note that is not the reference counting. It is reserved to the implementation.
+	Since b243, the base shell class 'YShell' was renamed to 'Shell'.
+		Prefix of framework class prefix was restricted.
+	As a handle type, directly use of methods of the pointee is not provided.
+	However, since the 'shared_ptr<Shell>' is the public interface as well as the shell class itself, use of these method form shell is allowed.
+		This rule also fit for types with similiarily explicit use of template-id and type-id, unless otherwise explicitly stated.
+	In future, these types are going to be unchanged reasonably, unless some better interface is discussed and used.
+		
 
 ////
 

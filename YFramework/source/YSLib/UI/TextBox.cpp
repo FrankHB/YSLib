@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r517
+\version r520
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-07-11 02:53 +0800
+	2014-07-13 08:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,7 +194,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 			Selection.Range.second = GetCaretPosition(&sender == this
 				? e.Position : LocateForWidget(*this, sender) + e.Position);
 			// XXX: Optimization for block.
-			ExportCaretPosition();
+			ExportCaretLocation();
 			Invalidate(*this);
 		}
 	},
@@ -253,7 +253,7 @@ TextBox::CollapseCaret()
 	{
 		Selection.Collapse();
 		RestoreCaretTimer();
-		ExportCaretPosition();
+		ExportCaretLocation();
 	}
 }
 
@@ -294,7 +294,7 @@ TextBox::DrawClippedText(const PaintContext& pc, TextState& ts)
 }
 
 void
-TextBox::ExportCaretPosition() const
+TextBox::ExportCaretLocation() const
 {
 	auto& st(FetchGUIState());
 

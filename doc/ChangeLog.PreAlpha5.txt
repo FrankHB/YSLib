@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r1597
+\version r1697
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-07-11 04:41 +0800
+	2014-07-14 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,106 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ DLD "updated header search paths" @ "Visual C++ projects"
+		$=
+	(
+		/ "missing %Android inline module and %YBase paths"
+			@ "project %YFramework_Android" $since b492,
+		/ "missing %DS inline module path" @ "project %YFramework_DS" $since
+			b431,
+		/ "missing %Android inline module path" @ "project %YFramework_MinGW32"
+			$since b492,
+		/ "simplified and reordered paths",
+		- "all '$(NMakeIncludeSearchPath)'"
+			// NMake was already useless since Visual Studio 2010.
+	),
+	/ %YFramework $=
+	(
+		/ %'YCLib_(MinGW32)'.Win32GUI $=
+		(
+			+ "member function %WindowReference::GetCursorLocation",
+			/ @ "class %HostWindow" $=
+			(
+				(
+				$dep_from "%WindowReference::GetCursorLocation";
+				+ 'using WindowReference::GetCursorLocation' 
+				),
+				+ "virtual function %MapPoint",
+				(
+				$dep_from "removal of bounds limit";
+				- $revert(b427) "data member %BoundsLimited"
+				)
+			),
+			* "missing 'YF_API'" @ "function %BindDefaultWindowProc" $since b518
+		),
+		/ %Helper $=
+		(
+			/ @ "platform %Win32" @ %Host $=
+			(
+				$dep_from %'YCLib_(MinGW32)'.Win32GUI;
+				/ DLD "simplified implementation" @ "member function \
+					%Environment::MapCursor"
+			),
+			(
+			$dep_from "%HostWindow::MapPoint" @ %'YCLib_(MinGW32)'.Win32GUI;
+			- "simplified DS window input boundary implementation"
+				@ "platform %Win32";
+			$dep_to "removal of bounds limit"
+			),
+			/ "class %Host::Window" @ %HostWindow $=
+			(
+				/ @ "member function %GetInputBounds" $=
+				(
+					/ "return type" -> "%YSLib::Drawing::Rect"
+						~ "%pair<YSLib::Drawing::Point, YSLib::Drawing::Point>",
+					- 'ynothrow'
+				),
+				/ @ "platform %Win32" $=
+				(
+					* "missing transforming coordinate for client area"
+						@ "member function \
+						%UpdateCandidateWindowLocationUnlocked" $since b512,
+					+ "virtual function %UpdateTextInputFocus",
+					/ "member function %UpdateCandidateWindowLocation kept \
+						away input boundary transformation"
+				)
+			),
+			/ @ "platform %Win32" $=
+			(
+				/ @ "class %InputManager" @ %InputManager $=
+				(
+					* "missing transforming coordinate for top level widget"
+						"function %DispatchInput" @ %Helper.InputManager
+						$since b512,
+					/ DLD "implementation" @ "class %InputManager"
+						^ "'UI::IWidget*' as text input focus cached pointer"
+						~ 'void*',
+					/ DLD "simplified text input focus update"
+				),
+				(
+				$dep_from "%Host::Window::UpdateTextInputFocus";
+				+ DLD "DS window of text input focus transformation"
+				)
+			);
+		),
+		* "wrong blue value initialized" @ "constructor %ARGB" @ %YCLib.Video
+			$since b507,
+		/ "member function %TextBox::ExportCaretPosition" @ %TextBox @ %YSLib.UI
+			=> "%ExportCaretLocation"
+	)
+	- "name pollution list" @ %Documentation::Definitions,
+	/ "updated build notice" @ "%Readme.zh-CN.txt",
+	/ $dev $build "updated makefile" @ "platform %Android" $=
+	(
+		/ "updated %ANDROID_SDKVER value" -> "20.0.0" ~ "19.0.3",
+			// This is the Android SDK Build-tools version.
+		/ "updated zipalign path" @ "target $(OUTPUT_FINAL)"
+			// The new SDK moved zipalign to the Build-tools.
+	)
+),
+
+b517
 (
 	(
 	/ DLD "template parameter %_tIter" @ "constructor template \
@@ -124,7 +224,7 @@ $now
 		* "platform neutrality" @ "types %(SPos, SDst)" @ "member function \
 			%HexViewArea::Refresh" @ %HexBrowser $since b253
 	),
-	* DLD "missing update search path"
+	* DLD "missing update header search paths"
 		@ "Visual C++ project %YFramework_MinGW32" $since b493,
 ),
 

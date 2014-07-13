@@ -11,13 +11,13 @@
 /*!	\file Host.cpp
 \ingroup Helper
 \brief 宿主环境。
-\version r1423
+\version r1440
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-07-10 23:09 +0800
+	2014-07-12 20:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,13 +144,8 @@ Environment::HostLoop()
 		{
 			if(msg.message == WM_QUIT)
 				break;
-		//	if(!PreTranslateMessage(&msg))
-			{
-				::TranslateMessage(&msg);
-				::DispatchMessageW(&msg);
-			}
-		//	if(CheckCloseDialog(frm, false))
-			//	break;
+			::TranslateMessage(&msg);
+			::DispatchMessageW(&msg);
 		}
 		else
 		//	std::this_thread::yield();
@@ -176,19 +171,7 @@ Environment::MapCursor() const
 {
 #	if YCL_Win32
 	if(const auto p_wnd = GetForegroundWindow())
-	{
-		::POINT cursor;
-
-		::GetCursorPos(&cursor);
-		::ScreenToClient(p_wnd->GetNativeHandle(), &cursor);
-
-		const auto& pr(p_wnd->GetInputBounds());
-
-		if(YB_LIKELY(pr.first.X != pr.second.X && pr.first.Y != pr.second.Y)
-			&& (!p_wnd->BoundsLimited || (IsInInterval(cursor.x, pr.first.X,
-			pr.second.X) && IsInInterval(cursor.y, pr.first.Y, pr.second.Y))))
-			return {cursor.x - pr.first.X, cursor.y - pr.first.Y};
-	}
+		return p_wnd->MapPoint(p_wnd->GetCursorLocation());
 #	elif YCL_Android
 	// TODO: Support floating point coordinates.
 	const auto& cursor(platform_ex::FetchCursor());

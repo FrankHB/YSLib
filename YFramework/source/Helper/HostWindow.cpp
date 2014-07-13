@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r460
+\version r486
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-07-02 09:04 +0800
+	2014-07-13 22:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,15 @@
 #include YFM_Helper_Host
 #include YFM_Helper_GUIApplication // for FetchEnvironent;
 #include YFM_YCLib_Input // for platform::ClearKeyStates;
+#if YCL_Win32
+#	include YFM_YSLib_UI_YUIContainer // for UI::FetchTopLevel;
+#endif
 
 namespace YSLib
 {
 
 using namespace Drawing;
+using namespace UI;
 
 #if YF_Hosted
 namespace Host
@@ -98,17 +102,11 @@ Window::~Window()
 #	endif
 }
 
-pair<Point, Point>
-Window::GetInputBounds() const ynothrow
+Rect
+Window::GetInputBounds() const
 {
 #	if YCL_Win32
-	::RECT rect;
-
-	if(YB_UNLIKELY(!::GetClientRect(GetNativeHandle(), &rect)))
-		return {};
-	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
-		"Invalid boundary found.");
-	return {Point(rect.left, rect.top), Point(rect.right, rect.bottom)};
+	return GetClientBounds();
 #	elif YCL_Android
 	return {};
 #	endif
@@ -129,7 +127,7 @@ Window::UpdateCandidateWindowLocation(const Point& pt)
 	{
 		std::lock_guard<std::recursive_mutex> lck(input_mutex);
 
-		caret_location = pt + GetInputBounds().first;
+		caret_location = pt;
 		UpdateCandidateWindowLocationUnlocked();
 	}
 }
@@ -146,9 +144,13 @@ Window::UpdateCandidateWindowLocationUnlocked()
 		YAssertNonnull(h_wnd);
 		if(const auto h_imc = ::ImmGetContext(h_wnd))
 		{
-			::CANDIDATEFORM cand_form{0, CFS_CANDIDATEPOS,
-				{caret_location.X, caret_location.Y}, {0, 0, 0, 0}};
+			const auto client_pt(caret_location + GetClientLocation()
+				- GetClientLocation());
 
+			::CANDIDATEFORM cand_form{0, CFS_CANDIDATEPOS,
+				{client_pt.X, client_pt.Y}, {0, 0, 0, 0}};
+
+			// TODO: Error handling.
 			::ImmSetCandidateWindow(h_imc, &cand_form);
 			::ImmReleaseContext(h_wnd, h_imc);
 		}
@@ -158,10 +160,20 @@ Window::UpdateCandidateWindowLocationUnlocked()
 		::SetCaretPos(caret_location.X, caret_location.Y);
 	}
 }
+
+void
+Window::UpdateTextInputFocus(IWidget& wgt, const Point& pt)
+{
+	auto loc(pt);
+	auto& top_level(FetchTopLevel(wgt, loc));
+
+	yunused(top_level);
+	UpdateCandidateWindowLocation(loc);
+}
 #	endif
 
 void
-Window::UpdateFrom(YSLib::Drawing::BitmapPtr buf, ScreenRegionBuffer& rbuf)
+Window::UpdateFrom(Drawing::BitmapPtr buf, ScreenRegionBuffer& rbuf)
 {
 	const auto h_wnd(GetNativeHandle());
 

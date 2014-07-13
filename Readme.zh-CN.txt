@@ -71,9 +71,13 @@
 构建平台/宿主平台： Windows 或类 UNIX 系统。
 目标平台： DS 和 MinGW32 。非正式支持 Android 。
 详细参见 doc/Designation.txt @5.1 。
-按 doc/Designation.txt @5.2.2 或 @5.2.3 下载搭建目标平台对应的开发环境。
-使用 Microsoft Visual Studio 2012 或以上版本打开 .sln （仅 Windows ；当前仅用于生成 DS 平台文件）；
+按 doc/Designation.txt @5.2.3 或 @5.2.4 下载搭建目标平台对应的开发环境。
+使用 Microsoft Visual Studio 2012 或以上版本打开 .sln （仅 Windows ）；
 使用 Code::Blocks 12.11 或以上版本打开 .workspace 。
+注意：
+打开解决方案/工作空间后直接生成会失败，因为 .sln 和 .workspace 中并非所有项目都保证能生成，项目名没有平台后缀的不用于构建，仅作为项目原型便于开发；
+需要生成特定平台后缀的项目，如 Win32 上的可执行文件对应 YSTest_MinGW32 ；
+当前 Win32 依赖 Code::Blocs 内建构建工具支持，其它平台使用 makefile ，因此 Visual Studio 解决方案不支持 Win32 平台配置生成。
 
  DS
 ==

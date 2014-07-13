@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r89
+\version r107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2014-06-05 09:53 +0800
+	2014-07-13 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -57,8 +57,26 @@ public:
 	DSWindow(NativeWindowHandle, Devices::DSScreen&, Devices::DSScreen&,
 		Environment&);
 
-	pair<Drawing::Point, Drawing::Point>
-	GetInputBounds() const ynothrow override;
+	//! \since build 518
+	Drawing::Rect
+	GetInputBounds() const override;
+
+#	if YCL_Win32
+	/*!
+	\note 仅输入边界内有效。
+	\sa HostWindow::MapPoint
+	\since build 518
+	*/
+	YSLib::Drawing::Point
+	MapPoint(const YSLib::Drawing::Point&) const override;
+
+	/*!
+	\brief 更新文本焦点：根据指定的部件和相对于部件的位置调整状态。
+	\since build 518
+	*/
+	void
+	UpdateTextInputFocus(UI::IWidget&, const Drawing::Point&) override;
+#	endif
 };
 
 } // namespace Host;
