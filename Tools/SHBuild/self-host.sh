@@ -16,12 +16,14 @@ INCLUDES=" \
 	-I../../3rdparty/include -I../../YBase/include \
 	"
 
-# Coordinated with build 515.
+# Coordinated with build 519.
 LIBS=" \
+	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
 	../../YBase/source/ystdex/any.cpp \
 	../../YFramework/source/CHRLib/chrproc.cpp \
 	../../YFramework/source/CHRLib/MapEx.cpp \
+	../../YFramework/source/YCLib/Debug.cpp \
 	../../YFramework/source/YCLib/FileSystem.cpp \
 	../../YFramework/source/YCLib/Host.cpp \
 	../../YFramework/source/YSLib/Core/yexcept.cpp \

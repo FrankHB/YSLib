@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2029
+\version r2032
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-06-16 13:17 +0800
+	2014-07-14 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -215,10 +215,9 @@ LoadComponents(const ValueNode& node)
 void
 HandleFatalError(const FatalError& e) ynothrow
 {
-	YDebugSetStatus();
-	YDebugBegin();
-
 #if YCL_DS
+	YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
+
 	const char* line("--------------------------------");
 
 	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s\n", line, e.GetTitle(), line,

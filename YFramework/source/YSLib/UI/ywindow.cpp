@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的 GUI 窗口。
-\version r3413
+\version r3416
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2013-12-23 23:50 +0800
+	2014-07-14 14:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ Window::operator-=(IWidget& wgt)
 			GetView().FocusingPtr = {};
 		return MUIContainer::operator-=(wgt);
 	}
-	return false;
+	return {};
 }
 bool
 Window::operator-=(Window& wnd)
@@ -79,7 +79,7 @@ Window::operator-=(Window& wnd)
 			GetView().FocusingPtr = {};
 		return MUIContainer::operator-=(wnd);
 	}
-	return false;
+	return {};
 }
 
 void

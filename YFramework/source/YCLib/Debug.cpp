@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r294
+\version r346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-06-20 23:51 +0800
+	2014-07-15 23:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,8 +41,6 @@ namespace platform
 namespace
 {
 
-static bool bDebugStatus(true);
-
 #if YCL_Android
 
 //! \since build 498
@@ -59,65 +57,6 @@ PrintAndroidLog(Descriptions::RecordLevel lv, const char* tag, const char *fmt,
 
 } // unnamed namespace;
 
-void
-YDebugSetStatus(bool s)
-{
-	bDebugStatus = s;
-}
-
-bool
-YDebugGetStatus()
-{
-	return bDebugStatus;
-}
-
-void
-YDebugBegin()
-{
-	if(bDebugStatus)
-		YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
-}
-
-void
-YDebug()
-{
-	if(bDebugStatus)
-	{
-		YDebugBegin();
-		WaitForInput();
-	}
-}
-void
-YDebug(const char* s)
-{
-	if(bDebugStatus)
-	{
-		YDebugBegin();
-		std::puts(s);
-		WaitForInput();
-	}
-}
-
-int
-yprintf(const char* str, ...)
-{
-	int t = -1;
-
-	if(bDebugStatus)
-	{
-		YDebugBegin();
-
-		std::va_list list;
-
-		va_start(list, str);
-
-		t = std::vprintf(str, list);
-
-		va_end(list);
-		WaitForInput();
-	}
-	return t;
-}
 
 void
 Logger::SetFilter(Filter f)
@@ -126,7 +65,7 @@ Logger::SetFilter(Filter f)
 		filter = std::move(f);
 }
 void
-Logger::SetWriter(Sender s)
+Logger::SetSender(Sender s)
 {
 	if(s)
 		sender = std::move(s);

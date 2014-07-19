@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8215
+\version r8223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-07-12 23:30 +0800
+	2014-07-18 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -737,8 +737,8 @@ b493
 		(
 			/ @ "class %Typeface" @ %Adaptor.Font $=
 			(
-				* $lib $design "spell error" @ "assertion string" @ "destructor"
-					$since b425,
+				* $lib $design "spelling error" @ "assertion string"
+					@ "destructor" $since b425,
 				+ $design "inheritance %nonmovable"
 			),
 			/ "class %MRadioBox" => "%MSharedSelection" @ %UI.Selector
@@ -1423,8 +1423,8 @@ b484
 				+ "assertions for iterator not undereferenceable",
 				* "postfix %operator++ contradicted with loosed iterator \
 					requirement" $since b483,
-				+ "overload for most n times iteration",
-				+ "overload for most front n characters for string parameter"
+				+ "overloading for most n times iteration",
+				+ "overloading for most front n characters for string parameter"
 			);
 			+ "5 function templates %FetchStringOffsets"
 		)
@@ -1874,7 +1874,7 @@ b476
 		* "missing cutting of trailing characters after NUL" @ "functions \
 			%(strdup, ucsdup)" @ %CHRLib.CharacterProcessing $since b475
 		),
-		/ "functions %MBCSToUTF8" -> "functions %MBCSToMBCS"
+		/ "functions %UTF8ToMBCS" -> "functions %MBCSToMBCS"
 			@ %'YCLib_(MinGW32)'.MinGW32
 	),
 	/ "completed %make_unique" @ %YBase.YStandardEx.Memory $=
@@ -2634,7 +2634,7 @@ b462
 	/ DLP "updated library %freetype" @ "library using"
 		$= (^ $re_ex(b459) "updated freetype 2.5.1 with several files remained \
 			from freetype 2.4.11" ~ "freetype 2.5.0.1")
-		// See [Documentation::Designation @@5.4.1.3].
+		// See [Documentation::Dependencies @@2.2.3].
 ),
 
 b461
@@ -2812,7 +2812,7 @@ b459
 		/ "made use of common makefile to be actual used by platform %MinGW32";
 		^ $re_ex(b420) "updated freetype 2.5.1 with several files remained \
 			from freetype 2.4.11" ~ "freetype 2.5.0.1"
-			// See [Documentation::Designation @@5.4.1.3] .
+			// See [Documentation::Dependencies @@2.2.3] .
 	)
 ),
 
@@ -5614,7 +5614,7 @@ b420
 			'BASE_EXTENSIONS += ftstroke.c', 'BASE_EXTENSIONS += ftsynth.c');
 		^ $re_ex(b366) "updated FreeType 2.5.0.1 with several files remained"
 			~ "FreeType 2.4.11"
-			// See [Documentation::Designation @@5.4.1.3] .
+			// See [Documentation::Dependencies @@2.2.3] .
 	)
 ),
 

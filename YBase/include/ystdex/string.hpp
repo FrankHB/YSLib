@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r539
+\version r657
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-05-23 10:06 +0800
+	2014-07-17 07:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,6 +67,62 @@ using enable_for_string_class_t
 	= enable_if_t<is_class<decay_t<_tParam>>::value, int>;
 
 
+/*!
+\note 使用 ADL 访问字符串范围。
+\note 同 std::begin 和 std::end ，但字符数组除外。
+\note 此处 string_end 语义和 boost::end 相同，但对数组类型不同于 std::end 。
+\see ISO WG21/N3936 20.4.7[iterator.range] 。
+\since build 519
+*/
+//@{
+template<class _tRange>
+yconstfn auto
+string_begin(_tRange& c) -> decltype(c.begin())
+{
+	using std::begin;
+
+	return begin(c);
+}
+template<class _tRange>
+yconstfn auto
+string_begin(const _tRange& c) -> decltype(c.begin())
+{
+	using std::begin;
+
+	return begin(c);
+}
+template<typename _type, size_t _vN>
+yconstfn _type*
+string_begin(_type(&arr)[_vN]) ynothrow
+{
+	return arr;
+}
+
+template<class _tRange>
+yconstfn auto
+string_end(_tRange& c) -> decltype(c.end())
+{
+	using std::end;
+
+	return end(c);
+}
+template<class _tRange>
+yconstfn auto
+string_end(const _tRange& c) -> decltype(c.end())
+{
+	using std::end;
+
+	return end(c);
+}
+template<typename _type, size_t _vN>
+yconstfn _type*
+string_end(_type(&arr)[_vN]) ynothrow
+{
+	return arr + _vN - 1U;
+}
+//@}
+
+
 /*!	\defgroup string_algorithms String Algorithms
 \addtogroup algorithms
 \brief 字符串算法。
@@ -75,24 +131,52 @@ using enable_for_string_class_t
 */
 
 
+//! \since build 519
+namespace details
+{
+
+template<typename _type>
+struct string_length_dispatcher
+{
+	static size_t
+	length(const _type& str)
+	{
+		return str.size();
+	}
+};
+
+template<typename _type, size_t _vN>
+struct string_length_dispatcher<_type[_vN]>
+{
+	static yconstfn size_t
+	length(const _type(&)[_vN]) ynothrow
+	{
+		return _vN - 1U;
+	}
+};
+
+template<typename _type>
+struct string_length_dispatcher<_type*>
+{
+	static inline size_t
+	length(const _type* str) ynothrow
+	{
+		return std::char_traits<_type>::length(str);
+	}
+};
+
+} // namespace details;
+
 /*!
 \ingroup string_algorithms
 \brief 计算字符串长度。
-\since build 409
+\since build 519
 */
-//@{
-template<typename _tChar>
-size_t
-string_length(const _tChar* str)
+template<typename _type>
+yconstfn size_t
+string_length(const _type& str)
 {
-	return std::char_traits<_tChar>::length(str);
-}
-//! \since build 439
-template<class _tString, typename = enable_if_t<is_class<_tString>::value, int>>
-size_t
-string_length(const _tString& str)
-{
-	return str.size();
+	return details::string_length_dispatcher<_type>::length(str);
 }
 //@}
 
@@ -112,7 +196,7 @@ ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
 
 	while(i != b && it != bt)
 		if(!comp(*--i, *--it))
-			return false;
+			return {};
 	return it == bt;
 }
 
@@ -120,34 +204,29 @@ ends_with_iter_dispatch(_tFwd1 b, _tFwd1 e, _tFwd2 bt, _tFwd2 et,
 
 /*!
 \ingroup string_algorithms
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\note 使用 ADL string_begin 和 string_end 指定范围迭代器。
 \note 除 ADL 外接口同 Boost.StringAlgo 。
+\sa ystdex::string_begin, ystdex::string_end
 \since build 450
 */
 //@{
 //! \brief 判断第一个参数指定的串是否以第二个参数起始。
 //@{
+//! \since build 519
 template<typename _tRange1, typename _tRange2, typename _fPred>
 bool
-starts_width(const _tRange1& input, const _tRange2& test, _fPred comp)
+begins_with(const _tRange1& input, const _tRange2& test, _fPred comp)
 {
-	using std::begin;
-	using std::end;
-	const auto e(end(input));
-	const auto et(end(test));
-	auto i(begin(input));
-	auto it(begin(test));
-
-	for(; i != e && it != et; yunseq(++i, ++it))
-		if(!comp(*i, *it))
-			return false;
-	return it == et;
+	return ystdex::string_length(test) <= ystdex::string_length(input)
+		&& std::equal(string_begin(test), string_end(test),
+		string_begin(input));
 }
+//! \since build 519
 template<typename _tRange1, typename _tRange2>
 inline bool
-starts_width(const _tRange1& input, const _tRange2& test)
+begins_with(const _tRange1& input, const _tRange2& test)
 {
-	return ystdex::starts_width(input, test, is_equal());
+	return ystdex::begins_with(input, test, is_equal());
 }
 //@}
 
@@ -157,12 +236,11 @@ template<typename _tRange1, typename _tRange2, typename _fPred>
 inline bool
 ends_with(const _tRange1& input, const _tRange2& test, _fPred comp)
 {
-	using std::begin;
-	using std::end;
-
-	return details::ends_with_iter_dispatch(begin(input), end(input),
-		begin(test), end(test), comp, typename std::iterator_traits<
-		remove_reference_t<decltype(begin(input))>>::iterator_category());
+	// NOTE: See $2014-07 @ %Documentation::Workflow::Annual2014.
+	return details::ends_with_iter_dispatch(string_begin(input),
+		string_end(input), string_begin(test), string_end(test), comp, typename
+		std::iterator_traits<remove_reference_t<decltype(string_begin(input))>>
+		::iterator_category());
 }
 template<typename _tRange1, typename _tRange2>
 inline bool
@@ -299,7 +377,7 @@ template<typename _fPred, typename _fInsert, typename _tRange>
 inline void
 split(_tRange&& c, _fPred is_delim, _fInsert insert)
 {
-	split(begin(c), end(c), is_delim, insert);
+	split(string_begin(c), string_end(c), is_delim, insert);
 }
 
 /*!
@@ -339,7 +417,7 @@ template<typename _fPred, typename _fInsert, typename _tRange>
 inline void
 split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
 {
-	split_l(begin(c), end(c), is_delim, insert);
+	split_l(string_begin(c), string_end(c), is_delim, insert);
 }
 
 /*!

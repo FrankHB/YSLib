@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4958
+\version r4963
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-07-10 18:09 +0800
+	2014-07-17 06:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,8 +88,8 @@ b399
 				@ "binary trait %has_equality_operator",
 			+ "binary trait %has_subscription"
 		),
-		+ "2 overloaded function template %at" @ %Container,
-		+ "overloaded function template %split for range-based object \
+		+ "2 overloading function template %at" @ %Container,
+		+ "overloading function template %split for range-based object \
 			representing string" @ String
 	)
 ),
@@ -2443,8 +2443,8 @@ b332
 		/ $dev "headers including" $=
 		(
 		- "header %TypeOperation",
-		* "strict ISO C++11 code compatibility" $since b331
-			$= (* "missing <typeinfo>")
+		* $build "strict ISO C++11 code compatibility" $since b331
+			$= (* "missing including <typeinfo>")
 			// The program temporarily is not ill-formed for libstdc++'s \
 				<memory> including <typeinfo> under C++11 mode.
 		)
@@ -2861,7 +2861,7 @@ b320
 			%Helper.DSMain
 			// Significantly performance improved.
 	),
-	* $dev $build $lib "missing including path Code::Blocks project \
+	* DLB "missing including path Code::Blocks project \
 		%(YBase_MinGW32, YFramework_MinGW32)" $since b299
 ),
 

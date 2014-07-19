@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3394
+\version r3399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-06-26 09:06 +0800
+	2014-07-14 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -255,10 +255,8 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 				cmap_index = face->charmap
 					? ::FT_Get_Charmap_Index(face->charmap) : 0;
 		if(YB_UNLIKELY(error))
-		{
-			platform::yprintf("Face request error: %08x\n", error);
-			throw LoggedEvent("Face loading failed.", Critical);
-		}
+			throw LoggedEvent(ystdex::sfmt("Face loading failed"
+				" with face request error: %08x\n.", error), Critical);
 
 		const FamilyName family_name(face->family_name);
 		auto& p_ff(cache.mFamilies[family_name]);
@@ -548,7 +546,7 @@ Font::SetStyle(FontStyle fs)
 		yunseq(typeface = std::ref(*p), style = fs);
 		return true;
 	}
-	return false;
+	return {};
 }
 
 } // namespace Drawing;

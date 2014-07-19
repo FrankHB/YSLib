@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1223
+\version r1228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-07-11 03:24 +0800
+	2014-07-18 14:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -287,8 +287,12 @@ TextList::InvalidateSelected2(ListType::difference_type x,
 void
 TextList::LocateViewPosition(SDst h)
 {
-	RestrictInInterval(h, 0, GetFullViewHeight() - GetHeight());
+	SDst fvh(GetFullViewHeight());
+	const SDst height(GetHeight());
 
+	if(fvh <= height)
+		return;
+	RestrictUnsignedStrict(h, fvh - height - 1);
 	if(GetViewPosition() != h)
 	{
 		const SDst item_height(GetItemHeight());

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r161
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2013-12-24 09:24 +0800
+	2014-07-14 14:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,7 @@ public:
 	\note 部件的实际位置需要另行修正。
 	\since build 445
 	*/
-	bool HostMode = false;
+	bool HostMode = {};
 	//! \since 指定边框相对于部件边界以内的范围的边距。
 	Drawing::Padding Margin;
 	/*!

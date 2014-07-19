@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3172
+\version r3174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2014-06-17 09:38 +0800
+	2014-07-14 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,7 +141,7 @@ FileBox::operator=(const IO::Path& d)
 		pthDirectory = d;
 		return true;
 	}
-	return false;
+	return {};
 }
 bool
 FileBox::operator/=(const String& d)
@@ -163,7 +163,7 @@ FileBox::SetPath(const IO::Path& pth)
 		UpdateView();
 		return true;
 	}
-	return false;
+	return {};
 }
 
 FileBox::ListType

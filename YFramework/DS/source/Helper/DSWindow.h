@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r107
+\version r110
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:32:56 +0800
 \par 修改时间:
-	2014-07-13 22:47 +0800
+	2014-07-14 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -56,10 +56,6 @@ public:
 	//! \since build 397
 	DSWindow(NativeWindowHandle, Devices::DSScreen&, Devices::DSScreen&,
 		Environment&);
-
-	//! \since build 518
-	Drawing::Rect
-	GetInputBounds() const override;
 
 #	if YCL_Win32
 	/*!

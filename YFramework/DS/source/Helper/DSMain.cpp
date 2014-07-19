@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3131
+\version r3135
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-06-12 01:41 +0800
+	2014-07-14 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -175,7 +175,7 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 	else if(&FetchGlobalInstance<DSApplication>().GetScreenDown() == &scr)
 		YConsoleInit(false, fc, bc);
 	else
-		return false;
+		return {};
 #elif YCL_Win32 || YCL_Android
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType)
 {
@@ -190,8 +190,9 @@ ShowFatalError(const char* s)
 {
 	using namespace platform;
 
-	YDebugSetStatus();
-	YDebugBegin();
+#if YCL_DS
+	YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
+#endif
 	std::printf("Fatal Error:\n%s\n", s);
 	terminate();
 }

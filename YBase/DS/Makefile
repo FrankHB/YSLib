@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r1956
+# Version = r1958
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-04-10 12:23 +0800
+# Updated = 2014-07-17 04:11 +0800
 # Encoding = ANSI
 
 
@@ -49,7 +49,8 @@ export BUILDDIR		?=	$(TOPDIR)/../../build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
 export RELEASEDIR	?=	$(BUILDDIR)
 export TARGET		:=	$(PROJNAME)
 export REFDIR		:=	..
-export SOURCES		:=	source data $(REFDIR)/source $(REFDIR)/source/ystdex
+export SOURCES		:=	source data \
+	$(REFDIR)/source $(REFDIR)/source/ystdex $(REFDIR)/source/ytest
 export INCLUDES		:=	include data $(REFDIR)/include
 export DATA			:=	data $(REFDIR)/data
 

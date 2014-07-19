@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1327
+\version r1329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-07-10 16:56 +0800
+	2014-07-14 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ CheckTextFileExtensions(string ext)
 	}
 	catch(std::out_of_range&)
 	{}
-	return false;
+	return {};
 }
 
 FileCategory
@@ -108,7 +108,7 @@ CheckReaderEnability(FileBox& fb, RadioBox& hex)
 			;
 		}
 	}
-	return false;
+	return {};
 }
 
 

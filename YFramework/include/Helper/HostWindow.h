@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r400
+\version r407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-07-13 22:51 +0800
+	2014-07-14 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,13 +111,6 @@ public:
 	~Window() override;
 
 	DefGetter(const ynothrow, Environment&, Host, env)
-	/*!
-	\brief 取预定的指针设备输入响应有效区域的边界。
-	\note 坐标相对于客户区。
-	\since build 518
-	*/
-	virtual YSLib::Drawing::Rect
-	GetInputBounds() const;
 
 	/*!
 	\brief 刷新：保持渲染状态同步。

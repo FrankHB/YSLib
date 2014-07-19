@@ -1079,5 +1079,8 @@
     <Text Include="..\doc\ChangeLog.PreAlpha5.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\Dependencies.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>

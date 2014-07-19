@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3072
+\version r3073
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2014-05-23 09:22 +0800
+	2014-07-14 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -535,7 +535,7 @@ TransformRect(const Graphics& g, const Point& pt, const Size& s,
 			SequenceTransformer());
 		return true;
 	}
-	return false;
+	return {};
 }
 /*!
 \brief 以像素为单位变换标准矩形。

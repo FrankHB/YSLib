@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4629
+\version r4630
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-06-14 21:37 +0800
+	2014-07-14 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -578,7 +578,7 @@ ShlTextReader::Locate(Bookmark::PositionType pos)
 			return true;
 		}
 	}
-	return false;
+	return {};
 }
 
 void

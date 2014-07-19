@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r497
+\version r499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-06-14 20:34 +0800
+	2014-07-14 14:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,7 +81,7 @@ reset(std::unique_ptr<_type>& p) ynothrow
 		p.reset();
 		return true;
 	}
-	return false;
+	return {};
 }
 template<typename _type>
 inline bool
@@ -92,7 +92,7 @@ reset(std::shared_ptr<_type>& p) ynothrow
 		p.reset();
 		return true;
 	}
-	return false;
+	return {};
 }
 //@}
 

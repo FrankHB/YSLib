@@ -12,7 +12,7 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r154
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
@@ -56,8 +56,8 @@ DSWindow::DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
 	},
 	MessageMap[WM_PAINT] += [this]{
 		// NOTE: Painting using %::GetDC and manually managing clipping areas
-		//	instead of %::GetDCEx, for performance and convenience of
-		//	implementing %DSWindow::GetInputBounds.
+		//	instead of %::GetDCEx, for performance and convenience calculation
+		//	of input boundary.
 		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
 
 		scr_up.UpdateToSurface(sf),
@@ -67,17 +67,12 @@ DSWindow::DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
 #	endif
 }
 
-Rect
-DSWindow::GetInputBounds() const
-{
-	return Rect(0, MainScreenHeight, MainScreenWidth, MainScreenHeight << 1);
-}
-
 #	if YCL_Win32
 Point
 DSWindow::MapPoint(const Point& pt) const
 {
-	const auto& bounds(GetInputBounds());
+	const Rect
+		bounds(0, MainScreenHeight, MainScreenWidth, MainScreenHeight << 1);
 
 	return bounds.Contains(pt) ? pt - bounds.GetPoint() : Point::Invalid;
 }
