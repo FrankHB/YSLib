@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r195
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-07-12 00:12 +0800
+	2014-07-15 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,6 +208,9 @@
 
 @2.6 YTest ：
 提供软件测试需要的一些功能的辅助库。
+
+@2.6.1 Timing ：
+计时相关的基础设施。可用于性能测试。
 
 @3 API 设计和风格概述：
 基本内容参见 [Documentation::Designation @@3] 。

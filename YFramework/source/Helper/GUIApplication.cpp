@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r281
+\version r283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2014-06-16 13:17 +0800
+	2014-07-14 15:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,7 +102,7 @@ GUIApplication::GetHost()
 bool
 GUIApplication::DealMessage()
 {
-	return AccessQueue([this](MessageQueue& mq){
+	return AccessQueue([this](MessageQueue& mq)->bool{
 		using namespace Shells;
 
 		if(mq.empty())
@@ -113,7 +113,7 @@ GUIApplication::DealMessage()
 			const auto i(mq.cbegin());
 
 			if(YB_UNLIKELY(i->second.GetMessageID() == SM_Quit))
-				return false;
+				return {};
 			if(i->first < UIResponseLimit)
 				Idle(UIResponseLimit);
 			OnGotMessage(i->second);

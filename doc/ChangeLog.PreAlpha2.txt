@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3542
+\version r3543
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-06-29 23:15 +0800
+	2014-07-15 02:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2632,7 +2632,7 @@ b214
 	(
 		* "template parameter description" $since b189
 			$= (^ "\tparam" ~ "\param"),
-		* "\defgroup description spell error" $since b209,
+		* "\defgroup description spelling error" $since b209,
 		* DLD "operator new & delete comments" $since b203,
 		/ "simplified Doxygen file excluded paths"
 	),

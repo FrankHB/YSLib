@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1799
+\version r1801
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-06-10 02:00 +0800
+	2014-07-14 09:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,8 +157,7 @@ OnExit_DebugMemory()
 {
 	using namespace platform;
 
-	YDebugSetStatus();
-	YDebugBegin();
+	YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
 	std::puts("Normal exit;");
 
 //	std::FILE* fp(std::freopen("memdbg.log", "w", stderr));

@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r740
+\version r741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2014-06-14 20:59 +0800
+	2014-07-14 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ PrintNodeString(File& f, const ValueNode& node)
 	}
 	catch(ystdex::bad_any_cast&)
 	{}
-	return false;
+	return {};
 }
 
 //! \since build 334

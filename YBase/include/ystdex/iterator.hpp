@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3451
+\version r3453
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-07-10 05:14 +0800
+	2014-07-14 14:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,13 +78,13 @@ template<typename _tIter>
 yconstfn bool
 is_undereferenceable(const _tIter&) ynothrow
 {
-	return false;
+	return {};
 }
 template<typename _type>
 yconstfn bool
 is_undereferenceable(_type* p) ynothrow
 {
-	return !bool(p);
+	return !p;
 }
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r3016
+\version r3017
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2014-07-12 00:09 +0800
+	2014-07-15 04:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1952,7 +1952,7 @@ $4.1.3.1.4 临时性例外：
  <algorithm> 、 <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <random> 、 <regex> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <valarray> 、 <vector> 、 <utility> 包含 <initializer_list> ；
  <ios> 包含 <iosfwd> ；
  <bitset> 包含 <string> 和 <iosfwd> ；
- <isotream>包含 <ios>、<streambuf>、<istream>、<ostream>。
+ <iotream> 包含 <ios>、<streambuf>、<istream>、<ostream>。
 
 @5.15.2.2 补充指定：
  ISO C++11 24.6.5/1 指定，除 <iterator> 外，以下头文件被包含时 24.6.5 的函数模板（即 std::begin 和 std::end ）也可用：

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1314
+\version r1317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-06-01 02:48 +0800
+	2014-07-14 14:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -315,7 +315,7 @@ ufexists(const char* filename) ynothrow
 		std::fclose(file);
 		return true;
 	}
-	return false;
+	return {};
 #endif
 }
 bool
@@ -328,7 +328,7 @@ ufexists(const char16_t* filename) ynothrow
 		std::fclose(file);
 		return true;
 	}
-	return false;
+	return {};
 }
 
 char16_t*
@@ -563,7 +563,7 @@ IsAbsolute(const char* path)
 
 		return p && p != path && !std::strstr(p, ":/");
 	}
-	return false;
+	return {};
 #else
 	return !::PathIsRelativeW(u_to_w(path).c_str());
 #endif

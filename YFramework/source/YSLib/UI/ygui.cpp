@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4061
+\version r4063
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-07-02 10:37 +0800
+	2014-07-14 14:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,7 @@ InputTimer::RefreshHeld(HeldStateType& s, const Duration& initial_delay,
 		}
 		break;
 	}
-	return false;
+	return {};
 }
 
 size_t
@@ -162,7 +162,7 @@ GUIState::CheckDraggingOffset(IWidget* p)
 		else
 			return true;
 	}
-	return false;
+	return {};
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2880
+\version r2883
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-05-23 09:49 +0800
+	2014-07-14 14:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,7 +228,7 @@ CopyTo(BitmapPtr dst, const Graphics& g, const Size& ds,
 				ds, g.GetSize(), dp, sp, sc);
 		return true;
 	}
-	return false;
+	return {};
 }
 bool
 CopyTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
@@ -246,7 +246,7 @@ CopyTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 				buf.GetSize(), dp, sp, sc);
 		return true;
 	}
-	return false;
+	return {};
 }
 
 bool
@@ -265,7 +265,7 @@ BlitTo(BitmapPtr dst, const CompactPixmapEx& buf, const Size& ds,
 				buf.GetSize(), dp, sp, sc);
 		return true;
 	}
-	return false;
+	return {};
 }
 
 } // namespace Drawing;

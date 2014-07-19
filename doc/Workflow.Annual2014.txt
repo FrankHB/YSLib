@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r407
+\version r430
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-07-11 21:43 +0800
+	2014-07-17 06:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,7 +403,30 @@ The type of handles varied.
 	However, since the 'shared_ptr<Shell>' is the public interface as well as the shell class itself, use of these method form shell is allowed.
 		This rule also fit for types with similiarily explicit use of template-id and type-id, unless otherwise explicitly stated.
 	In future, these types are going to be unchanged reasonably, unless some better interface is discussed and used.
-		
+Both libstdc++-4.8 and standard library of Visual C++ 2013 have <memory> indirectly including <typeinfo> and <new>.
+	This is the implementation details, which is not in the synopsis of the standard. Don't rely on it.
+There are some implementation bugs related to std::enable_if.
+	For example, in Visual C++, there are several:
+		http://connect.microsoft.com/VisualStudio/feedback/details/632440/bug-enable-if-got-c2893-error ,
+		http://connect.microsoft.com/VisualStudio/feedback/details/811603/weird-behavior-of-std-enable-if-t-produces-c2995-in-visual-c ,
+		http://connect.microsoft.com/VisualStudio/feedback/details/894682/c-std-enable-if-breaks-within-template-alias .
+	In Visual C++ 2013, 'ystdex::exclude_self_ctor_t' or its direct implementation (using std::enable_if_t) would be wrongly ignored.
+		This would cause swapping a 'ystdex::pod_storage' leading to infinite recursive calls of constructor template, which makes ystdex::any unusable.
+		Currently workaround is not researched, as of the buggy Visual C++ 2013 is still temporaily supported only for successfully compiling YBase, but not for actually working.
+	In Clang++, std::enable_if using with template parameter pack trapped into a bug http://llvm.org/bugs/show_bug.cgi?id=11723 .
+		Workaround: http://stackoverflow.com/questions/24454664/is-there-a-nicer-workaround-for-enable-if-bug-in-clang-bug-11723 .
+		YSLib didn't be involved in it yet.
+For prefix comparison, implementation varies.
+	The current implementation of 'ystdex::begins_with' has switched to using 'std::equal'. This gains the chance to be optimized such as using '__builtin_memcmp' in libstdc++.
+		Note a length check is necessary.
+			For most cases, even the lengths are checked it is even faster.
+			The current implementation uses 'ystdex::string_length', which using 'size' member function for instances of 'std::basic_string'. It's generally fast.
+	The old implementation implementation of 'boost::starts_with' uses naive comparing. It's stable but considered not as efficient as the method above.
+	Comparing using 'std::mismatched' has also been considered. However, it has less chance to be optimized as 'std::equal'.
+		For example, libstdc++-4.8 does not dispatching iterator tag to optimize 'std::mismatch' as it does with 'std::equal'.
+		For boolean result checking whether the specified prefix exists or not, the position information returned by 'std::mismatch' is unnecessary.
+	See http://stackoverflow.com/questions/1878001/how-do-i-check-if-a-c-string-starts-with-a-certain-string-and-convert-a-sub for a variety of implementations.
+
 
 ////
 

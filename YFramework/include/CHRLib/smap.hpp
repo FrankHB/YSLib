@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1854
+\version r1855
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-05-23 10:07 +0800
+	2014-07-14 14:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ FillByte(_tIn& i, _tState& st)
 		"Volatile state is not supported.");
 
 	if(YB_UNLIKELY(is_undereferenceable(i)))
-		return false;
+		return {};
 
 	const byte r(*i);
 

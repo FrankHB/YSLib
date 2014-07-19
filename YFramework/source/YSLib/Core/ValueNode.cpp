@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r389
+\version r390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2014-06-15 15:30 +0800
+	2014-07-14 14:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,7 +163,7 @@ IsPrefixedIndex(const string& name, char prefix)
 		}
 		catch(std::invalid_argument&)
 		{}
-	return false;
+	return {};
 }
 
 } // namespace YSLib;

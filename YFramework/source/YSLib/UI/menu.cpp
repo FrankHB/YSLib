@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1188
+\version r1193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-07-08 16:25 +0800
+	2014-07-14 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,9 +128,9 @@ Menu::operator-=(IndexType idx)
 			mSubMenus.erase(i);
 			return true;
 		}
-		return false;
+		return {};
 	}
-	return false;
+	return {};
 }
 
 bool
@@ -172,7 +172,7 @@ Menu::Show(ZOrderType z)
 		pHost->Show(id, z);
 		return true;
 	}
-	return false;
+	return {};
 }
 
 Menu*
@@ -202,7 +202,7 @@ Menu::Hide()
 		pHost->Hide(id);
 		return true;
 	}
-	return false;
+	return {};
 }
 
 void
@@ -269,7 +269,7 @@ MenuHost::operator-=(Menu::ID id)
 		mMenus.erase(i);
 		return true;
 	}
-	return false;
+	return {};
 }
 
 bool

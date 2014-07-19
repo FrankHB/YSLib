@@ -1,7 +1,7 @@
 #!/usr/bin/sh
 # (C) 2014 FrankHB.
 # Script for installing headers at default location (/usr/include).
-# Required rsync.
+# Requires: rsync.
 
 set -e
 

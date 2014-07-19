@@ -71,7 +71,7 @@
 构建平台/宿主平台： Windows 或类 UNIX 系统。
 目标平台： DS 和 MinGW32 。非正式支持 Android 。
 详细参见 doc/Designation.txt @5.1 。
-按 doc/Designation.txt @5.2.3 或 @5.2.4 下载搭建目标平台对应的开发环境。
+按 doc/Dependencies.txt @1 下载搭建目标平台对应的开发环境。
 使用 Microsoft Visual Studio 2012 或以上版本打开 .sln （仅 Windows ）；
 使用 Code::Blocks 12.11 或以上版本打开 .workspace 。
 注意：
@@ -91,7 +91,14 @@ DKP_HOME = F:\devkitPro
  Android
 ==
 未正式支持。
-开发环境配置详见 doc/Designation.txt @5.2.6 。
+开发环境配置详见 doc/Dependencies.txt @1.6 。
+
+运行时依赖
+==
+ MinGW32 平台需要特定版本的 MinGW GCC 运行库，未在发布版本中打包。
+需确认 doc/Dependencies.txt @1.5.2 描述的对应版本的构建依赖。若缺少 DLL ，可在 MinGW32 GCC 发行版其中的 bin 目录下找到。
+特别注意，应当使用对应的正确的线程模型（使用 POSIX 而不是 Win32 ，后者没有实现标准库的线程支持）以及异常模型（ Dwarf2 和 SjLj 之一，特定构建版本相关）。
+配置文件 yconf.txt 在当前工作目录下生成。使用 CHRLib 转换 GBK 编码的程序若找不到 cp113.bin 可能会异常退出，需要在 yconf.txt 中指定 DataDirectory 路径，或复制 /Data 下的文件到程序所在的目录（因为默认 DataDirectory 为当前目录）。
 
 其它
 ==

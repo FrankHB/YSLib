@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r918
+\version r920
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-06-13 09:33 +0800
+	2014-07-17 07:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ template<size_t _vN>
 struct variadic_param
 {
 	template<typename _type, typename... _tParams>
-	yconstfn static auto
+	static yconstfn auto
 	get(_type&&, _tParams&&... args)
 		-> decltype(variadic_param<_vN - 1>::get(yforward(args)...))
 	{
@@ -88,7 +88,7 @@ template<>
 struct variadic_param<0U>
 {
 	template<typename _type>
-	yconstfn static auto
+	static yconstfn auto
 	get(_type&& arg) -> decltype(yforward(arg))
 	{
 		return yforward(arg);

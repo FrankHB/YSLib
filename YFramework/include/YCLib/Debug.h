@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r370
+\version r420
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-06-20 23:50 +0800
+	2014-07-15 23:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,53 +76,6 @@ namespace platform
 \ingroup diagnostic
 */
 //@{
-/*!
-\brief 调试模式：设置状态。
-\note 当且仅当状态为 true 时，以下除 YDebugGetStatus 外的调试模式函数有效。
-\warning 不保证线程安全性。
-*/
-YF_API void
-YDebugSetStatus(bool = true);
-
-/*!
-\brief 调试模式：取得状态。
-\warning 不保证线程安全性。
-*/
-YF_API bool
-YDebugGetStatus();
-
-/*!
-\brief 调试模式：显示控制台。
-\warning 控制台显示状态不保证线程安全性。
-\since build 312
-*/
-YF_API void
-YDebugBegin();
-
-/*!
-\brief 调试模式：按键继续。
-\warning 控制台显示状态不保证线程安全性。
-*/
-YF_API void
-YDebug();
-/*!
-\brief 调试模式：显示控制台字符串，按键继续。
-\warning 控制台显示状态不保证线程安全性。
-*/
-YF_API void
-YDebug(const char*);
-
-/*!
-\brief 调试模式 printf ：显示控制台格式化输出 ，按键继续。
-\warning 控制台显示状态不保证线程安全性。
-*/
-#if defined _WIN32 && !defined __USE_MINGW_ANSI_STDIO
-YB_ATTR(format (ms_printf, 1, 2))
-#else
-YB_ATTR(format (printf, 1, 2))
-#endif
-YF_API int
-yprintf(const char*, ...);
 //@}
 
 
@@ -136,6 +89,7 @@ class YF_API Logger
 public:
 	using Level = Descriptions::RecordLevel;
 	using Filter = std::function<bool(Level, Logger&)>;
+	//! \note 通过 Logger 默认实现传递的第三参数非空。
 	using Sender = std::function<void(Level, Logger&, const char*)>;
 
 	Level FilterLevel = Descriptions::Informative;
@@ -161,15 +115,19 @@ public:
 	/*!
 	\brief 设置发送器。
 	\note 忽略空发送器。
+	\since build 519
 	*/
 	void
-	SetWriter(Sender);
+	SetSender(Sender);
 
 	//! \brief 默认过滤：仅允许等级不大于阈值的日志被记录。
 	static bool
 	DefaultFilter(Level, Logger&) ynothrow;
 
-	//! \brief 默认发送器：使用 stderr 输出。
+	/*!
+	\brief 默认发送器：使用 stderr 输出。
+	\pre 断言：第三参数非空。
+	*/
 	static void
 	DefaultSendLog(Level, Logger&, const char*) ynothrowv;
 

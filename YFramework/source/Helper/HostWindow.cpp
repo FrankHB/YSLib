@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r486
+\version r495
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-07-13 22:50 +0800
+	2014-07-14 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -99,16 +99,6 @@ Window::~Window()
 #	if YCL_Win32
 	if(has_hosted_caret)
 		::DestroyCaret();
-#	endif
-}
-
-Rect
-Window::GetInputBounds() const
-{
-#	if YCL_Win32
-	return GetClientBounds();
-#	elif YCL_Android
-	return {};
 #	endif
 }
 

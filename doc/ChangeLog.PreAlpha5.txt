@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r1697
+\version r1850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-07-14 00:42 +0800
+	2014-07-19 08:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,159 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %Helper $=
+		(
+			/ DLD "simplified input boundary calculation" @ "DS host window"
+				@ "platform %Win32";
+			- "member function %Host::Window::GetInputBounds" @ %HostWindow
+		),
+		/ %YSLib $=
+		(
+			/ DLD "implementation" @ "constructor %Typeface" @ %Adaptor.Font
+				!^ "%platform::yprintf",
+				// Error code is now embedded to the description string in \
+					exception object.
+			/ DLD @ "functions %(PlotHLineSeg, PlotVLineSeg)" @ %Service.YDraw
+				$=
+			(
+				/ "implementation of screen metrics" ^ "%SPos" ~ 'auto',
+					// All arguments of %RestrictInInterval should be the same \
+						type.
+				/ $revert(b517) !^ "cast to 'SDst' for comparison"
+					// To eliminate [-Wsign-compare].
+			),
+			/ %UI $=
+			(
+				/ DLD "implementation" @ "function %DrawTrackBackground"
+					^ "cast to 'SPos'" @ %Scroll
+				/ @ "member function %TextList::LocateViewPosition" @ %TextList
+					$=
+				(
+					* "wrong value restricted when view height is less than or 
+						equal to the height" $since b261;
+					* $comp "wrong value restricted when view height is zero"
+						$since $orig(%UI.YMenu) b203
+				)
+			),
+			/ @ "function template %RestrictInInterval" @ %Core.YCoreUtilities
+				$=
+			(
+				$dep_from %(Service, UI);
+				/ "all 2 parameters 'int'" -> 'const _type&';
+				* $comp "possible undesired implementation-defined truncation \
+					of value when '_type' being instantiated as unsigned type"
+					$since b263
+					// To eliminate [-Wsign-compare].
+			)
+		),
+		(
+		$dep_from %YReader.Shells,
+		/ "implemented debug screen directly only for platform %DS"
+			^ "%YConsoleInit" ~ "call of %(YDebugSetStatus, YDebugBegin) on \
+			without platform restriction" @ ("function %HandleFatalError"
+			@ %Helper.Initialization, "main function" @ %Main,
+			"function %ShowFatalError" @ %DSMain);
+			// Actually only on DS is valid.
+		$dep_to "removal of DS debug call"
+		),
+		/ %YCLib.Debug $=
+		(
+			// Log class is preferred.
+			(
+			$dep_from %YSLib.Adaptor.Font;
+			- "function %yprintf"
+			),
+			- "all 2 functions %YDebug",
+			- "function %YDebugGetStatus",
+			$dep_from "removal of DS debug call";
+			- "functions %(YDebugSetStatus, YDebugBegin)"
+		),
+		/ DLD "missing specifying return type" @ "lambda expression with \
+			multiple return statements" @ "member function \
+			%GUIApplication::DealMessage" @ Helper.GUIApplication $since b481
+	),
+	- 'using platform::YDebugSetStatus;' @ %YReader.Shells,
+	/ DLD "all 'return {}' out of marco definition" -> 'return false',
+		// Return type of these functions are already specified.
+	(
+	/ %Documentation $=
+	(
+		+ %Dependencies;
+		/ "dependencies descriptions" %Designation >> %Dependencies 
+	);
+	/ $doc "updated build notice" @ "%Readme.zh-CN.txt"
+		$= (+ "runtime dependency description")
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			* "strict ISO C++ code compatibility" $since b352
+				$= (* "missing including <new>" @ %Any),
+				// The program temporarily is not ill-formed for libstdc++'s \
+					<memory> including <new>.
+			/ @ %String $=
+			(
+				+ "3 function templates %(string_begin, string_end)",
+				(
+				/ "all 2 function templates %start_width" => "%begin_with";
+				* "spelling error" @ %String $since b450
+				),
+				/ @ "function templates %string_length" $=
+				(
+					/ DLD "dispatched with class templates to be able to \
+						distinguish array lvalues from pointer type arguments";
+					+ "overloading for array types"
+						// Now it is based on the length of array but not \
+							compared like NTCTSs.
+				);
+				/ "all function templates implementation" ^ ("%string_begin"
+					~ "%begin", "%string_end" ~ "%end"),
+					// The behavior of prefix comparing algorithm is now \
+						adjust to the same as %boost::starts_with for array \
+						types.
+				/ DLD "prefix comparing" ^ "%std::equal" %String;
+					// See $2014-07 @ %Documentation::Workflow::Annual2014.
+			),
+			* DLD "wrong specifier order" @ "function templates %get"
+				@ "class templates %variadic_param" @ %Functional $since b412,
+				// See %Documentation::CommonRules @5.5.10.
+			* "comparing for signed 'wchar_t'" @ "function %iswprint"
+				@ %CWideCharacterType $since b513
+				// To eliminate [-Wsign-compare].
+		)
+		+ %Test @ %YTest $=
+		(
+			+ "function template %expect",
+			+ "class %group_guard"
+		),
+	),
+	+ %Test $=
+	(
+		+ %YBase $=
+		(
+			$dep_from %YStandardEx.YTest;
+			+ "2 test cases for %ystdex::transform_n",
+			(
+			$dep_from %YBase.YStandardEx.String;
+			+ "11 test cases for %ystdex::(string_length, begins_with, \
+				ends_with)"
+			)
+		);
+		+ "test script %test.sh"
+	),
+	/ %Tools.SHBuild $=
+	(
+		/ "implemented printing" ^ "%YSLib::Logger",
+		+ "option '-Wxlogfl,'",
+		+ "colored output"
+	)
+),
+
+b518
 (
 	/ DLD "updated header search paths" @ "Visual C++ projects"
 		$=
@@ -120,7 +273,7 @@ $now
 			=> "%ExportCaretLocation"
 	)
 	- "name pollution list" @ %Documentation::Definitions,
-	/ "updated build notice" @ "%Readme.zh-CN.txt",
+	/ $doc "updated build notice" @ "%Readme.zh-CN.txt",
 	/ $dev $build "updated makefile" @ "platform %Android" $=
 	(
 		/ "updated %ANDROID_SDKVER value" -> "20.0.0" ~ "19.0.3",

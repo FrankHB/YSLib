@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r337
+\version r346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2014-01-11 11:36 +0800
+	2014-07-14 14:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,7 +149,7 @@ public:
 				head = t;
 			return true;
 		}
-		return false;
+		return {};
 	}
 	/*!
 	\brief 设置长度。
@@ -162,7 +162,7 @@ public:
 			length = l;
 			return true;
 		}
-		return false;
+		return {};
 	}
 	/*!
 	\brief 设置选中项目的索引。
@@ -177,7 +177,7 @@ public:
 			is_selected = true;
 			return true;
 		}
-		return false;
+		return {};
 	}
 
 	/*!
@@ -256,7 +256,7 @@ public:
 			head = 0;
 			return true;
 		}
-		return false;
+		return {};
 	}
 
 	/*!
@@ -266,7 +266,7 @@ public:
 	MoveViewerToEnd()
 	{
 		if(GetTotal() < length)
-			return false;
+			return {};
 		head = GetTotal() - length;
 		return true;
 	}
@@ -288,11 +288,11 @@ public:
 	RestrictSelected()
 	{
 		if(GetTotal() == 0)
-			return false;
+			return {};
 		if(selected < head)
 			selected = head;
 		else if(selected < head + length)
-			return false;
+			return {};
 		else
 			selected = head + length - 1;
 		return true;
@@ -308,11 +308,11 @@ public:
 	RestrictView()
 	{
 		if(GetTotal() == 0)
-			return false;
+			return {};
 		if(selected < head)
 			head = selected;
 		else if(selected < head + length)
-			return false;
+			return {};
 		else
 			head = selected + 1 - length;
 		return true;
