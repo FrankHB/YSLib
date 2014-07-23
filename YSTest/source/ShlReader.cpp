@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4630
+\version r4631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-07-14 14:55 +0800
+	2014-07-22 16:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,7 +103,7 @@ ReaderBox::UpdateData(DualScreenReader& reader)
 			const auto tp(reader.GetTopPosition());
 			char str[5];
 
-			std::sprintf(str, "%2u%%", tp * 100 / ts);
+			std::sprintf(str, "%2zu%%", size_t(tp * 100 / ts));
 			yunseq(lblProgress.Text = str,
 				lblProgress.ForeColor = reader.GetBottomPosition() == ts
 				? ColorSpace::Green : ColorSpace::Fuchsia);

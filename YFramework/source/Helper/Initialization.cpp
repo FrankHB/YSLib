@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2032
+\version r2034
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-07-14 09:34 +0800
+	2014-07-22 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,7 @@ const char TU_MIME[]{u8R"NPLA1(
 #	define DEF_FONT_PATH ROOTW "Font/FZYTK.TTF"
 #	define DEF_FONT_DIRECTORY ROOTW "Font/"
 #	define CONF_PATH "yconf.txt"
-#elif YCL_MinGW32
+#elif YCL_MinGW
 #	define ROOTW "."
 #	define DATA_DIRECTORY ROOTW "\\"
 #	define DEF_FONT_PATH "C:\\Windows\\Fonts\\SimSun.ttc"
@@ -423,7 +423,7 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 			{}
 		fc.InitializeDefaultTypeface();
 		if(const auto nFaces = fc.GetFaces().size())
-			YF_Init_printf(Notice, "%u face(s) in %u font file(s)"
+			YF_Init_printf(Notice, "%zu face(s) in %zu font file(s)"
 				" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
 		else
 			throw LoggedEvent("No fonts found.");

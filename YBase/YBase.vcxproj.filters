@@ -122,6 +122,9 @@
     <ClInclude Include="include\ytest\test.h">
       <Filter>include\ytest</Filter>
     </ClInclude>
+    <ClInclude Include="include\ystdex\concurrency.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ystdex\cstdio.cpp">
@@ -140,6 +143,9 @@
       <Filter>source\ystdex</Filter>
     </ClCompile>
     <ClCompile Include="source\ytest\test.cpp">
+      <Filter>source\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\concurrency.cpp">
       <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>

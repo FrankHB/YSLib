@@ -14,11 +14,12 @@ INCLUDES=" \
 	-I../../3rdparty/include -I../../YBase/include \
 	"
 
-# Coordinated with build 519.
+# Coordinated with build 520.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
 	../../YBase/source/ystdex/any.cpp \
+	../../YBase/source/ystdex/concurrency.cpp \
 	../../YFramework/source/CHRLib/chrproc.cpp \
 	../../YFramework/source/CHRLib/MapEx.cpp \
 	../../YFramework/source/YCLib/Debug.cpp \
@@ -27,6 +28,7 @@ LIBS=" \
 	../../YFramework/source/YSLib/Core/yexcept.cpp \
 	../../YFramework/source/YSLib/Service/FileSystem.cpp \
 	../../YFramework/MinGW32/source/YCLib/MinGW32.cpp \
+	../../YFramework/MinGW32/source/YCLib/Consoles.cpp \
 	-lShlWapi \
 	"
 

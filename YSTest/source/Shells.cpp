@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6358
+\version r6359
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2014-06-15 18:26 +0800
+	2014-07-22 16:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ FetchGlobalImage(size_t idx)
 {
 	auto& spi(FetchGlobalResource<array<shared_ptr<Image>, 10>>(GR_BGs));
 
-	YAssert(IsInInterval(idx, 10u), "Index is out of range.");
+	YAssert(IsInInterval(idx, size_t(10)), "Index is out of range.");
 	return spi[idx];
 }
 

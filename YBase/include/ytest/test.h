@@ -1,4 +1,4 @@
-/*
+﻿/*
 	© 2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
@@ -8,16 +8,21 @@
 	understand and accept it fully.
 */
 
+/*!	\defgroup YTest YBase Test Library
+\ingroup YBase
+\brief YFramework 基础测试库。
+*/
+
 /*!	\file test.h
 \ingroup YTest
 \brief 基础测试工具。
-\version r101
+\version r105
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-17 03:56:17 +0800
 \par 修改时间:
-	2014-07-17 04:08 +0800
+	2014-07-23 06:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

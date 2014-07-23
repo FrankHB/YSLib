@@ -11,13 +11,13 @@
 /*!	\file TextFile.cpp
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r981
+\version r982
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2014-06-11 01:36 +0800
+	2014-07-22 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ InitializeTextFile(TextFile& tf, size_t& bl)
 		tf.Rewind();
 		if(bl == 0)
 		{
-#define YSL_TXT_CHECK_ENCODING_N 64U
+#define YSL_TXT_CHECK_ENCODING_N std::size_t(64U)
 			char s[YSL_TXT_CHECK_ENCODING_N + 6];
 			const auto n(min(tf.GetTextSize(), YSL_TXT_CHECK_ENCODING_N));
 #undef YSL_TXT_CHECK_ENCODING_N

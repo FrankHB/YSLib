@@ -29,6 +29,8 @@
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
+					<Add option="-ffat-lto-objects" />
+					<Add option="-flto=jobserver" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
@@ -56,6 +58,8 @@
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
+					<Add option="-ffat-lto-objects" />
+					<Add option="-flto=jobserver" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DYB_BUILD_DLL" />
 				</Compiler>
@@ -78,7 +82,6 @@
 			<Add option="-Wall" />
 			<Add option="-fdata-sections" />
 			<Add option="-ffunction-sections" />
-			<Add option="-flto=jobserver" />
 			<Add option="-mthreads" />
 			<Add option="-Winvalid-pch" />
 			<Add directory="../include" />
@@ -95,6 +98,7 @@
 		<Unit filename="../include/ystdex/cassert.h" />
 		<Unit filename="../include/ystdex/cast.hpp" />
 		<Unit filename="../include/ystdex/cctype.h" />
+		<Unit filename="../include/ystdex/concurrency.h" />
 		<Unit filename="../include/ystdex/container.hpp" />
 		<Unit filename="../include/ystdex/cstdint.hpp" />
 		<Unit filename="../include/ystdex/cstdio.h" />
@@ -117,6 +121,7 @@
 		<Unit filename="../include/ytest/timing.hpp" />
 		<Unit filename="../source/ystdex/any.cpp" />
 		<Unit filename="../source/ystdex/cassert.cpp" />
+		<Unit filename="../source/ystdex/concurrency.cpp" />
 		<Unit filename="../source/ystdex/cstdio.cpp" />
 		<Unit filename="../source/ystdex/cstring.cpp" />
 		<Unit filename="../source/ystdex/cwctype.cpp" />

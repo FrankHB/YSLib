@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9440
+\version r9441
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-07-15 03:43 +0800
+	2014-07-22 17:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -309,6 +309,7 @@ Shell 和 Core 的关系是相对的，例如：
 
 @5.1.3 当前试验支持或不完全支持的目标平台：
 当前试验支持宿主实现目标平台 Android （至少需 API Level 9 ）。
+不添加其它代码，试验支持 x86_64-w64-mingw32 目标平台。
 
 @5.1.4 平台限制：
 当前 DS 仅使用静态链接库链接至目标。

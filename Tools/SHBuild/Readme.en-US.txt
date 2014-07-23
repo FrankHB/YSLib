@@ -3,13 +3,13 @@ This is a command line tool for recursively call native complier to generate bin
 The output can be object/archive/executable files.
 
 = Precondition
-This project depends on YSLib b476.
+This project depends on YSLib b520.
 YSLib headers should be put in proper directories to be found by the compiler.
 YSLib libraries should be put in proper directories to be found by the linker.
 YBase.dll and YFramework.dll should be found in PATH.
 Currently only windows host is supported.
 The source requires (limited) ISO C++11 support.
-Only MinGW-W64 G++ 4.8.2 has been tested.
+Only MinGW-W64 G++ 4.9.1 has been tested.
 To use the script "build.cmd", the executable "g++" should be found in PATH.
 
 = Build
@@ -41,4 +41,5 @@ The program then performs recursively depth-first search for any probable source
 		Currently the linker is always "ar rcs".
 		Each output has the name of the directory, to be put at parent directory.
 Finally there should be a "SRCNAME.a" in the top level ".shbuild". Run compliler on demand manually to convert this file to an executable or library file.
+For all other options, call without arguments to see usage.
 

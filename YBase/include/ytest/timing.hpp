@@ -1,5 +1,5 @@
-/*
-	Copyright by FrankHB 2012 - 2013.
+﻿/*
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,21 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\defgroup YTest YBase Test Library
-\ingroup YBase
-\brief YFramework 基础测试库。
-*/
-
 /*!	\file timing.h
 \ingroup YTest
 \brief 运行计时测试工具。
-\version r283
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-06-23 20:01:09 +0800
 \par 修改时间:
-	2013-05-27 04:20 +0800
+	2013-07-23 06:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:

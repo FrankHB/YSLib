@@ -17,8 +17,13 @@
 */
 /*!	\defgroup MinGW32 MinGW for Win32
 \ingroup Platforms
-\brief MinGW 实现的 Win32 平台。
+\brief x86 MinGW 实现的 Win32 平台。
 \since build 296
+*/
+/*!	\defgroup MinGW64 MinGW for Win32
+\ingroup Platforms
+\brief x86_64 MinGW 实现的 Win32 平台。
+\since build 520
 */
 /*!	\defgroup Android Android
 \ingroup Platforms
@@ -29,13 +34,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r510
+\version r555
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2014-04-10 01:48 +0800
+	2014-07-22 18:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,6 +88,7 @@
 /*!
 \ingroup Platforms
 \brief 目标平台标识。
+\note 只保证不同的目标平台值为不同的非零整数。具体值可能随版本不同变动。
 \since build 458
 */
 //@{
@@ -91,13 +97,33 @@
 */
 #define YF_Platform_DS 0x4001
 
-//! \brief MinGW32 平台。
+/*!
+\brief Win32 平台。
+\note 注意 _WIN32 被预定义，但没有 _WIN64 。
+*/
 #define YF_Platform_Win32 0x4101
 
 /*!
 \brief MinGW32 平台。
+\note 注意 MinGW-w64 和 MinGW.org 同时预定义了 __MINGW32__ ，但没有 __MINGW64__ 。
 */
 #define YF_Platform_MinGW32 0x4102
+
+/*!
+\brief Win32 x86_64 平台。
+\note 通称 Win64 平台。注意 Win32 指 Windows32 子系统，并非体系结构名称。
+\note 注意 _WIN32 和 _WIN64 被同时预定义。
+\since build 520
+*/
+#define YF_Platform_Win64 0x4111
+
+/*!
+\brief MinGW-w64 x86_64 平台。
+\note 和 Win64 基本兼容的 MinGW32 平台。注意 MinGW32 指系统名称，并非体系结构名称。
+\note 注意 MinGW-w64 在 x86_64 上同时预定义了 __MINGW32__ 和 __MINGW64__ 。
+\since build 520
+*/
+#define YF_Platform_MinGW64 0x4112
 
 /*!
 \brief Android ARM 平台。
@@ -109,10 +135,14 @@
 /*!
 \def YF_Platform
 \brief 目标平台。
+\note 注意顺序。
 */
-#ifdef __MINGW32__
-//#ifdef _WIN32
+#ifdef __MINGW64__
+#	define YF_Platform YF_Platform_MinGW64
+#elif defined(__MINGW32__)
 #	define YF_Platform YF_Platform_MinGW32
+#elif defined(_WIN64)
+#	define YF_Platform YF_Platform_Win64
 #elif defined(_WIN32)
 #	define YF_Platform YF_Platform_Win32
 #elif defined(__ANDROID__)
@@ -141,12 +171,21 @@
 #	define YCL_API_USE_UNISTD
 #	define YCL_API_USE_SYS_DIR
 #	define YCL_Device_Cursor_FixedKey 1
-#elif YF_Platform == YF_Platform_MinGW32
-#	define YCL_MinGW32 1
-#	define YCL_Win32 1
-#	define YF_Hosted 1
 #elif YF_Platform == YF_Platform_Win32
 #	define YCL_Win32 1
+#	define YF_Hosted 1
+#elif YF_Platform == YF_Platform_MinGW32
+#	define YCL_MinGW 1
+#	define YCL_Win32 1
+#	define YF_Hosted 1
+#elif YF_Platform == YF_Platform_Win64
+#	define YCL_Win32 1
+#	define YCL_Win64 1
+#	define YF_Hosted 1
+#elif YF_Platform == YF_Platform_MinGW64
+#	define YCL_MinGW 1
+#	define YCL_Win32 1
+#	define YCL_Win64 1
 #	define YF_Hosted 1
 #elif YF_Platform == YF_Platform_Android_ARM
 #	define YCL_Android 1

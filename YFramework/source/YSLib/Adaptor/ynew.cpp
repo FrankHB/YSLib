@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r982
+\version r983
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2014-06-15 15:23 +0800
+	2014-07-22 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,7 +163,7 @@ MemoryList::Unregister(const void* p, const char* f, int l)
 void
 MemoryList::Print(const MapType::value_type& val, std::FILE* stream)
 {
-	std::fprintf(stream, "@%p, [%u] @ %s: %d;\n", val.first,
+	std::fprintf(stream, "@%p, [%zu] @ %s: %d;\n", val.first,
 		val.second.size, val.second.file.c_str(), val.second.line);
 }
 

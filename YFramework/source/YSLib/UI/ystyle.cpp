@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r825
+\version r827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-07-08 04:50 +0800
+	2014-07-20 11:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,7 @@ HSLToColor(hsl_t c)
 
 	mid_t t2((c.l < 0.5F ? c.l * (1 + c.s) : (c.l + c.s - c.l * c.s)) * 0x100),
 		t1((c.l * 0x200) - t2);
-	mid_t tmp[3]{c.h + 120, c.h, c.h - 120}; \
+	mid_t tmp[3]{c.h + Hue(120), c.h, c.h - Hue(120)}; \
 		// 每个元素对应一个 RGB 分量，值 360 对应一个圆周。
 	float dc[3]; //对应 RGB 分量。
 
@@ -239,7 +239,7 @@ RollColor(hsl_t c, Hue delta)
 {
 	YAssert(IsInInterval<Hue>(c.h, 0, 360), "Invalid hue found.");
 	delta += c.h;
-	c.h = delta < 360 ? delta : delta - 360;
+	c.h = delta < Hue(360) ? delta : delta - Hue(360);
 	return HSLToColor(c);
 }
 

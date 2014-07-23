@@ -11,13 +11,13 @@
 /*!	\file operators.hpp
 \ingroup YStandardEx
 \brief 重载操作符。
-\version r1444
+\version r1453
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-13 14:58:05 +0800
 \par 修改时间:
-	2014-04-29 13:37 +0800
+	2014-07-20 11:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,10 @@ namespace ystdex
 
 #define YB_OP_FRIEND(_op, _tRet, _expr, ...) \
 	friend yconstfn _tRet \
-	operator _op (__VA_ARGS__) {return (_expr);}
+	operator _op (__VA_ARGS__) \
+	{ \
+		return (_expr); \
+	}
 #define YB_OP_TEMPLATE_HEADER2(_name) \
 	template<class _type, class _type2, class _tBase = empty_base<_type>> \
 	struct _name
@@ -50,11 +53,9 @@ namespace details
 {
 
 #define YB_OP_COMPARE2(_op, _expr, _param_type, _param_type2) \
-	YB_OP_FRIEND(_op, bool, _expr, const _param_type& x, \
-	const _param_type2& y)
+	YB_OP_FRIEND(_op, bool, _expr, const _param_type& x, const _param_type2& y)
 #define YB_OP_COMPARE1(_op, _expr, _param_type) \
-	YB_OP_FRIEND(_op, bool, _expr, const _param_type& x, \
-	const _param_type& y)
+	YB_OP_FRIEND(_op, bool, _expr, const _param_type& x, const _param_type& y)
 
 
 YB_OP_TEMPLATE_HEADER2(less_than_comparable2) : _tBase
@@ -77,7 +78,7 @@ YB_OP_TEMPLATE_HEADER1(less_than_comparable1) : _tBase
 
 YB_OP_TEMPLATE_HEADER2(equality_comparable2) : _tBase
 {
-	YB_OP_COMPARE2(==, x == y,  _type2, _type)
+	YB_OP_COMPARE2(==, x == y, _type2, _type)
 	YB_OP_COMPARE2(!=, !bool(x == y), _type2, _type)
 	YB_OP_COMPARE2(!=, !bool(y == x), _type, _type2)
 };

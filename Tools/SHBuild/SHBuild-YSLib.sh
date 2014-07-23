@@ -4,35 +4,45 @@
 
 set -e
 
+SHBOPT="-xid,alternative -xid,data -xid,include"
+
+echo Options: ${SHBOPT}`printf " \"%s\"" "$@"` .
+
+COMMON_CXXFLAGS=" \
+	-O3 -pipe -s -std=c++11 \
+	-DNDEBUG \
+	-Wall \
+	-Wcast-align \
+	-Wextra \
+	-Winit-self \
+	-Winvalid-pch \
+	-Wmain \
+	-Wmissing-declarations \
+	-Wmissing-include-dirs \
+	-Wnon-virtual-dtor \
+	-Wredundant-decls \
+	-Wunreachable-code \
+	-Wzero-as-null-pointer-constant \
+	-fdata-sections \
+	-fexpensive-optimizations \
+	-ffat-lto-objects \
+	-ffunction-sections \
+	-flto=jobserver \
+	-fomit-frame-pointer \
+	-mthreads \
+	-pedantic-errors \
+	"
+
 # TODO: Run link commands.
-# FIXME: Alternative source should be excluded.
-./shbuild ../../YBase -O3 -pipe -s -std=c++11 -pedantic-errors \
-	-DNDEBUG -DYB_BUILD_DLL \
-	-fdata-sections \
-	-fexpensive-optimizations \
-	-ffunction-sections \
-	-flto=jobserver \
-	-fomit-frame-pointer \
-	-mthreads \
-	-Wall -Wextra \
-	-Winvalid-pch \
-	-Wzero-as-null-pointer-constant \
+./shbuild ${SHBOPT} "$@" ../../YBase \
+	${COMMON_CXXFLAGS} \
 	-I../../YBase/include
-./shbuild ../../YFramework -O3 -pipe -s -std=c++11 \
-	-DNDEBUG -DYB_DLL -DYF_BUILD_DLL -DFREEIMAGE_LIB \
-	-fdata-sections \
-	-fexpensive-optimizations \
-	-ffunction-sections \
-	-flto=jobserver \
-	-fomit-frame-pointer \
-	-mthreads \
-	-Wall -Wextra \
-	-Winvalid-pch \
-	-Wzero-as-null-pointer-constant \
+./shbuild ${SHBOPT} "$@" ../../YFramework \
+	${COMMON_CXXFLAGS} \
+	-DFREEIMAGE_LIB \
 	-I../../YFramework/include -I../../YFramework/Android/include \
 	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \
-	-I../../3rdparty/include -I../../YBase/include \
-	-lYBase
+	-I../../3rdparty/include -I../../YBase/include
 
 echo Done.
 

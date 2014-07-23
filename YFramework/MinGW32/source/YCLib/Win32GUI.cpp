@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r497
+\version r509
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-07-12 17:23 +0800
+	2014-07-22 16:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,7 @@ using namespace Drawing;
 namespace platform_ex
 {
 
-namespace Windows
+inline namespace Windows
 {
 
 namespace
@@ -71,12 +71,6 @@ FetchSizeFromBounds(const ::RECT& rect)
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
 	return {rect.right - rect.left, rect.bottom - rect.top};
-}
-
-inline Rect
-FetchRectFromBounds(const ::RECT& rect)
-{
-	return Rect(rect.left, rect.top, FetchSizeFromBounds(rect));
 }
 
 inline ::DWORD
@@ -259,11 +253,10 @@ ScreenBuffer::ScreenBuffer(const Size& s)
 		// NOTE: Bitmap format is hard coded here for explicit buffer
 		//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
 		//	windows.
-		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER),
-			CheckPositiveScalar<SPos>(size.Width, "width"), 
-			-CheckPositiveScalar<SPos>(size.Height, "height") - 1, 1, 32,
-			BI_RGB, sizeof(PixelType) * size.Width * size.Height, 0, 0, 0, 0},
-			{}};
+		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), CheckPositiveScalar<SPos>(
+			size.Width, "width"),  -CheckPositiveScalar<SPos>(size.Height,
+			"height") - 1, 1, 32, BI_RGB, ::DWORD(sizeof(PixelType) * size.Width
+			* size.Height), 0, 0, 0, 0}, {}};
 
 		return ::CreateDIBSection({}, &bmi, DIB_RGB_COLORS,
 			&reinterpret_cast<void*&>(pBuffer), {}, 0);
@@ -460,7 +453,7 @@ HostWindow::MapPoint(const Point& pt) const
 	return pt;
 }
 
-} // namespace Windows;
+} // inline namespace Windows;
 
 } // namespace platform_ex;
 
