@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r791
+\version r796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-04-23 10:13 +0800
+	2014-07-23 07:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,11 @@ public:
 	*/
 	string
 	GetBOM() const;
-	DefGetter(const ynothrow, u8, BOMSize, bl) //!< 取 BOM 大小。
+	/*!
+	\brief 取 BOM 大小。
+	\since build 520
+	*/
+	DefGetter(const ynothrow, size_t, BOMSize, bl)
 	DefGetter(const ynothrow, size_t, TextSize, GetSize() - GetBOMSize()) \
 		//!< 取文本区段大小。
 	DefGetter(const ynothrow, size_t, TextPosition, GetPosition() - bl) \

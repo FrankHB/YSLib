@@ -17,34 +17,34 @@ RCFILE = FreeImage.rc
 # Default: SHARED
 #FREEIMAGE_LIBRARY_TYPE = STATIC
 
-# Redefine the compiler (CC defaults to 'cc' for MinGW's make,
-# however there's only 'gcc' available with MinGW).
+# Redefine the compiler (CC defaults to ¡äcc¡ä for MinGW's make,
+# however there's only ¡ägcc¡ä available with MinGW).
 CC = gcc
 
-# Redefine the linker (we use 'g++' for linking, since MinGW's
-# command 'ld' comes with wrong (Linux) standard library search
+# Redefine the linker (we use ¡äg++¡ä for linking, since MinGW's
+# command ¡äld¡ä comes with wrong (Linux) standard library search
 # paths).
 LD = g++
 
-#Define the 'dlltool' command.
+#Define the ¡ädlltool¡ä command.
 DLLTOOL = dlltool
 
 #Define the resource compiler.
 RC = windres
 
-# Define the 'copy' command.
+# Define the ¡äcopy¡ä command.
 CP = cp
 
-# Define the 'mkdir' command.
+# Define the ¡ämkdir¡ä command.
 MD = mkdir
 
-# Define the 'remove' command.
+# Define the ¡äremove¡ä command.
 RM = rm
 
 # Define additional libraries needed.
 # libstdc++ is included by default with MinGW, however for
 # WIN32 based builds, LibRawLite needs the winsock libraries.
- LIBRARIES = -lwsock32 -lws2_32
+LIBRARIES = -lws2_32
 
 # Define some additional symboles needed for WIN32 based builds.
 WIN32_CFLAGS = -DWINVER=0x0500 $(LIB_TYPE_FLAGS) -DOPJ_STATIC
@@ -67,7 +67,7 @@ MODULES := $(MODULES:.asm=.o)
 MODULES := $(MODULES:.c=.o)
 MODULES := $(MODULES:.cpp=.o)
 RESOURCE = $(RCFILE:.rc=.coff)
-CFLAGS ?= -O3 -pipe -Wno-attributes -fexceptions -DNDEBUG $(WIN32_CFLAGS)
+CFLAGS ?= -O3 -pipe -Wno-attributes -fexceptions -DNDEBUG -DDISABLE_PERF_MEASUREMENT $(WIN32_CFLAGS)
 CFLAGS += $(INCLUDE)
 CXXFLAGS ?= -std=c++11 -O3 -pipe -Wno-attributes -fexceptions -Wno-ctor-dtor-privacy -DNDEBUG $(WIN32_CXXFLAGS)
 CXXFLAGS += $(INCLUDE)

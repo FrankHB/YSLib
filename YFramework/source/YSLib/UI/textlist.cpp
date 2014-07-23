@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1228
+\version r1230
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-07-18 14:58 +0800
+	2014-07-20 11:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,6 @@ namespace
 {
 	const SDst defMarginH(2); //!< 默认水平边距。
 	const SDst defMarginV(1); //!< 默认竖直边距。
-	const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
-//	const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
 }
 
 

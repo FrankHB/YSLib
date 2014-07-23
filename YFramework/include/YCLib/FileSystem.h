@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1233
+\version r1234
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-07-15 14:51 +0800
+	2014-07-22 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@
 #include <ystdex/cstring.h> // for ystdex::is_null;
 #include <ystdex/string.hpp> // for ystdex::string_length, std::string;
 #include "CHRLib/encoding.h"
-#if YCL_DS || YCL_MinGW32 || YCL_Android
+#if YCL_DS || YCL_MinGW || YCL_Android
 #	include <dirent.h>
 #endif
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;

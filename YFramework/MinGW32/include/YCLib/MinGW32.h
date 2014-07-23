@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r254
+\version r265
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-04-09 21:55 +0800
+	2014-07-22 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,11 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
-#if !YCL_MinGW32
-#	error "This file is only for MinGW32."
+#if !YCL_MinGW
+#	error "This file is only for MinGW."
 #endif
+#include <string> // for std::string, std::wstring;
+#include <utility> // for std::pair;
 
 /*!
 \ingroup name_collision_workarounds
@@ -171,7 +173,15 @@ public:
 	DefGetter(const ynothrow, ::HKEY, Key, h_key)
 };
 
-} // namespace Windows;
+
+/*!
+\brief 创建管道。
+\since build 520
+*/
+YF_API std::pair<UniqueHandle, UniqueHandle>
+MakePipe();
+
+} // inline namespace Windows;
 
 } // namespace platform_ex;
 

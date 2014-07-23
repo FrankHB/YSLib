@@ -29,6 +29,8 @@
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
+					<Add option="-ffat-lto-objects" />
+					<Add option="-flto=jobserver" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
@@ -67,6 +69,8 @@
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
+					<Add option="-ffat-lto-objects" />
+					<Add option="-flto=jobserver" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DYB_DLL" />
 					<Add option="-DYF_BUILD_DLL" />
@@ -98,7 +102,6 @@
 			<Add option="-Wall" />
 			<Add option="-fdata-sections" />
 			<Add option="-ffunction-sections" />
-			<Add option="-flto=jobserver" />
 			<Add option="-mthreads" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-DFREEIMAGE_LIB" />
@@ -419,8 +422,10 @@
 		<Unit filename="../source/YSLib/UI/ywidget.cpp" />
 		<Unit filename="../source/YSLib/UI/ywindow.cpp" />
 		<Unit filename="include/YCLib/COM.h" />
+		<Unit filename="include/YCLib/Consoles.h" />
 		<Unit filename="include/YCLib/MinGW32.h" />
 		<Unit filename="include/YCLib/Win32GUI.h" />
+		<Unit filename="source/YCLib/Consoles.cpp" />
 		<Unit filename="source/YCLib/MinGW32.cpp" />
 		<Unit filename="source/YCLib/Win32GUI.cpp" />
 		<Extensions>

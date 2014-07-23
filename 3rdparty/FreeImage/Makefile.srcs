@@ -1,5 +1,5 @@
 VER_MAJOR = 3
-VER_MINOR = 15.4
+VER_MINOR = 16.0
 
 libsimd_SOURCES = Source/LibJPEG/simd/jsimd_i386.c \
 	Source/LibJPEG/simd/jsimdcpu.asm Source/LibJPEG/simd/jccolmmx.asm Source/LibJPEG/simd/jdcolmmx.asm Source/LibJPEG/simd/jcgrammx.asm \

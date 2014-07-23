@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1038
+\version r1040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-07-12 23:10 +0800
+	2014-07-23 07:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,8 +49,8 @@ static_assert(std::is_signed<SPos>::value,
 	"Only signed integer is supported for screen position measurement.");
 static_assert(std::is_unsigned<SDst>::value,
 	"Only unsigned integer is supported for screen destination measurement.");
-static_assert(std::numeric_limits<SDst>::max() > std::numeric_limits<
-	SPos>::max(), "Max value of screen destination shall be grater than"
+static_assert(ystdex::integer_width<SDst>::value >= ystdex::integer_width<SPos>
+	::value, "Max value of screen destination shall be grater than"
 	" max value of screen position.");
 //@}
 

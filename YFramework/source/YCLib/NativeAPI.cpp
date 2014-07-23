@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.cpp
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r510
+\version r511
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-26 13:36:28 +0800
 \par 修改时间:
-	2014-01-04 23:21 +0800
+	2014-07-22 18:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ namespace
 #if YCL_DS
 
 
-#elif YCL_MinGW32
+#elif YCL_MinGW
 
 extern "C"
 {

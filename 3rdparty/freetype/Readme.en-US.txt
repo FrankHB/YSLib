@@ -2,6 +2,7 @@
 FreeType2 source files are needed.
 Get the source from http://freetype.org .
 Be careful with EOL. If "mingw32-make" is used to build for Windows, make sure the ".zip" source is used.
+Note that the build command might have to be run more than once because the fisrt run might only generate "ftmodule.h" and there would be no actual library output.
 
 = Patching
 Since build b420, the following files from version 2.4.11 should replace files from newer versions(since 2.4.12) respectively:
@@ -23,7 +24,7 @@ The output is "objs/ds/libfreetype.a" in the freetype source directory.
 
 = MinGW32
 Toolchain compatible to i686-pc-mingw32 is required. Only MinGW-w64 GCC has been tested.
-The environment variable "PATH" should be set properly like "C:\Windows\System32;C:\MinGW32\bin", to make sure the toolchain files can be found.
+The environment variable "PATH" should be set properly like "C:\msys\mingw32\bin;C:\Windows\System32", to make sure the toolchain files can be found.
 Note that if "PATH" is too long or UNIX shell(e.g. from MSys) can be found in the PATH, mingw32-make would probably fail.
 Copy the file "builds/ds/modules.cfg" to "objs" in the freetype source directory.
 Then run "mingw32-make"(add "-j" to build concurrently) with proper options using official makefile to build static library for MinGW32.

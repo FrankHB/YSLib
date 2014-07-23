@@ -29,6 +29,8 @@
 //	Saved as UTF8 + BOM.
 // Modified by FrankHB <frankhb1989@gmail.com>, 2013-11-09:
 //	Added typedef declaration of "Plugin" to keep source compatibility.
+// Modified by FrankHB <frankhb1989@gmail.com>, 2014-07-19:
+//	Added declaration of function "RotateExif" from base version 3.16.0.
 
 #ifndef UTILITIES_H
 #define UTILITIES_H
@@ -375,6 +377,13 @@ RGBA to RGB conversion
 @see See definition in Conversion.cpp
 */
 FIBITMAP* RemoveAlphaChannel(FIBITMAP* dib);
+
+/**
+Rotate a dib according to Exif info
+@param dib Input / Output dib to rotate
+@see Exif.cpp, PluginJPEG.cpp
+*/
+void RotateExif(FIBITMAP **dib);
 
 
 // ==========================================================

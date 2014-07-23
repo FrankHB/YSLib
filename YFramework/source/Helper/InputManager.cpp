@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r505
+\version r507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-07-13 22:44 +0800
+	2014-07-23 06:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,6 @@ InputManager::DispatchInput(IWidget& wgt)
 			}
 			else if(p_input)
 			{
-				auto& wgt(*p_input);
 				// XXX: Save actual key state.
 				KeyInput k;
 				size_t n(0);
@@ -134,7 +133,7 @@ InputManager::DispatchInput(IWidget& wgt)
 					YTraceDe(Informative, "Host character %d found.", int(c));
 					if(platform::IsPrint(c))
 						// XXX: Redundant nonzero test on character value.
-						CallInputEvent(c, k, wgt);
+						CallInputEvent(c, k, *p_input);
 					else
 						break;
 				}

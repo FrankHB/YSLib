@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r140
+\version r155
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-04-14 14:54 +0800
+	2014-07-21 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,12 +34,12 @@ using namespace YSLib;
 namespace platform_ex
 {
 
-namespace Windows
+inline namespace Windows
 {
 
 Win32Exception::Win32Exception(ErrorCode ec, const std::string& s, LevelType l)
 	ynothrow
-	: Exception([&]{
+	: Exception([&]()->std::string{
 		try
 		{
 			return s + ": " + FormatMessage(ec);
@@ -132,7 +132,24 @@ MBCSToWCS(const char* str, std::size_t len, int cp)
 	return res;
 }
 
-} // namespace Windows;
+
+std::pair<UniqueHandle, UniqueHandle>
+MakePipe()
+{
+	::HANDLE h_raw_read, h_raw_write;
+
+	if(!::CreatePipe(&h_raw_read, &h_raw_write, {}, 0))
+		YF_Raise_Win32Exception("CreatePipe");
+
+	UniqueHandle h_read(h_raw_read), h_write(h_raw_write);
+
+	if(!::SetHandleInformation(h_write.get(), HANDLE_FLAG_INHERIT,
+		HANDLE_FLAG_INHERIT))
+		YF_Raise_Win32Exception("SetHandleInformation");
+	return {std::move(h_read), std::move(h_write)};
+}
+
+} // inline namespace Windows;
 
 } // namespace YSLib;
 

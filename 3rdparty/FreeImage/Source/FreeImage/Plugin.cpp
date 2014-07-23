@@ -34,6 +34,8 @@
 //  Removed definitions of function: "FreeImage_GetFormatFromFIF", "FreeImage_GetFIFMimeType", "FreeImage_GetFIFExtensionList", "FreeImage_GetFIFDescription", "FreeImage_GetFIFRegExpr", "FreeImage_FIFSupportsReading", "FreeImage_FIFSupportsWriting", "FreeImage_FIFSupportsExportBPP", "FreeImage_FIFSupportsExportType", "FreeImage_FIFSupportsICCProfiles", "FreeImage_FIFSupportsNoPixels", "FreeImage_SetPluginEnabled", "FreeImage_IsPluginEnabled".
 //	Simplified implementation using C++11.
 //	Made "PluginList::AddFakeNode" call "FreeImage_OutputMessageProc" on fail.
+// Modified by FrankHB <frankhb1989@gmail.com>, 2014-07-19:
+//	Added fake node as entries in base version 3.16.0: "WEBP" and "JXR".
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4786) // identifier was truncated to 'number' characters
@@ -166,7 +168,7 @@ PluginList::FindNodeFromFormat(const char *format)
 		if(p->m_enabled && FreeImage_stricmp(the_format, format) == 0)
 			return p.get();
 	}
-	return{};
+	return {};
 }
 
 PluginNode*
@@ -289,6 +291,10 @@ FreeImage_Initialise(BOOL load_local_plugins_only)
 			s_plugins->AddFakeNode("PFM");
 			s_plugins->AddFakeNode("PICT");
 			s_plugins->AddFakeNode("RAW");
+			s_plugins->AddFakeNode("WEBP");
+#if !(defined(_MSC_VER) && (_MSC_VER <= 1310))
+			s_plugins->AddFakeNode("JXR");
+#endif // unsupported by MS Visual Studio 2003 !!!
 
 			// external plugin initialization
 #ifdef _WIN32

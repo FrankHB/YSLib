@@ -11,13 +11,13 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r475
+\version r477
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 20:28:23 +0800
 \par 修改时间:
-	2014-06-15 18:20 +0800
+	2014-07-20 12:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,9 +185,7 @@ SettingPanel::SettingPanel()
 	},
 	cbSmoothScroll.Ticked += [&, this](CheckBox::TickedArgs&& e){
 		using ystdex::get_init;
-
-		static yconstexpr auto fetch_scroll_durations([](bool is_smooth)
-		{
+		const auto fetch_scroll_durations([](bool is_smooth){
 			const auto postfix(is_smooth ? u"毫秒/像素行" : u"毫秒/文本行");
 			auto& lst(*new TextList::ListType(20U));
 			const u16 delta(is_smooth ? 10 : 100);

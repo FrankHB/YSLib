@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1317
+\version r1319
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-07-14 14:46 +0800
+	2014-07-23 06:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 extern "C" int	_EXFUN(fileno, (FILE *));
 #elif YCL_Win32
 #	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
-// At least one headers of <stdlib.h>, <stdio.h>, <windows.h>, <windef.h>
+// At least one headers of <stdlib.h>, <stdio.h>, <Windows.h>, <Windef.h>
 //	(and probably more) should have been included to make the MinGW-W64 macro
 //	available if it is really being used.
 //! \since build 464
@@ -78,7 +78,7 @@ namespace
 {
 
 #if YCL_DS || YCL_Android
-#elif YCL_MinGW32
+#elif YCL_MinGW
 std::wstring
 u_to_w(const char* str)
 {

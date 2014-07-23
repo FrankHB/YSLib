@@ -8,6 +8,10 @@ Source and binary compatibility was kept before b456.
 Since b456, the "Plugin" struct is renamed (to avoid global namespace pollution), new interface are introduced, and some functions are removed.
 Unmodified library code should compile, but wrappers based on old code might not work as before.
 
+= Since build 520:
+Based on previous revision b456:
+Merged base version 3.16.0 without functions with suffix "U" and real support for new formats.
+
 = Since build 456:
 Based on previous revision b431:
 Removed plugin functions: "FreeImage_GetFormatFromFIF", "FreeImage_GetFIFMimeType", "FreeImage_GetFIFExtensionList", "FreeImage_GetFIFDescription", "FreeImage_GetFIFRegExpr", "FreeImage_FIFSupportsReading", "FreeImage_FIFSupportsWriting", "FreeImage_FIFSupportsExportBPP", "FreeImage_FIFSupportsExportType", "FreeImage_FIFSupportsICCProfiles", "FreeImage_FIFSupportsNoPixels", "FreeImage_SetPluginEnabled", "FreeImage_IsPluginEnabled".
@@ -54,10 +58,18 @@ Disabled unused plugins and make placeholders in plugin list in "Source/Plugin.h
 
 == Additional source replacement
 
+= Since build 520:
+Based on base version 3.16.0:
+Source files of libpng are updated to 1.6.12 from 1.6.10.
+Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16/1.6.12/lpng1612.7z .
+Source files of libjpeg-turbo are required to replace libjpeg in original FreeImage source distribution.
+Get the libjpeg-turbo source from http://sourceforge.net/projects/libjpeg-turbo/files/1.3.1/libjpeg-turbo-1.3.1.tar.gz .
+(This version contains the newest release of zlib 1.2.8, no need to change.)
+
 = Since build 452:
 Based on previous revision b431:
 Source files of libpng are updated to 1.6.6 from 1.6.3.
-Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16/1.6.6/lpng166.7z .
+Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16/older-releases/1.6.6/lpng166.7z .
 
 = Since build 431:
 Based on official version 3.15.4:
@@ -71,7 +83,7 @@ Get the libpng source from http://sourceforge.net/projects/libpng/files/libpng16
 
 == FreeImage build instructions
 FreeImage source files are required.
-Get the source from http://sourceforge.net/projects/freeimage/files/Source%20Distribution/3.15.4/FreeImage3154.zip .
+Get the source from http://sourceforge.net/projects/freeimage/files/Source%20Distribution .
 The output files of different platform will be put in the same directory "dist". Make sure it is cleaned before each build.
 See following sections before build.
 
@@ -91,7 +103,7 @@ Run "make -f Makefile.ds clean" to delete all build files.
 = MinGW32
 MinGW-w64 GCC toolchain, the "cp" and "rm" command are required by the official or modified MinGW makefile. (MSYS should be OK.)
 NASM is required for compiling libjpeg-turbo SIMD source files.
-The environment variable "PATH" should be set properly like "C:\Windows\System32;C:\MinGW32\bin;C:\msys\bin;C:\Program Files (x86)\NASM", to make sure the toolchain files can be found.
+The environment variable "PATH" should be set properly like "C:\msys\mingw32\bin;C:\msys\usr\bin;C:\Windows\System32", to make sure the toolchain files can be found.
 The modified file "Makefile.mingw" should have been copied to the source directory and overwritten the original one.
 Run "mingw32-make FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.mingw -j" to build static library for MinGW32.
 Run "mingw32-make -f Makefile.mingw clean" to delete all build files. Note the official "clean.bat" is not enough.

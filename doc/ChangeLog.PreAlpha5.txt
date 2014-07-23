@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r1850
+\version r2132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-07-19 08:15 +0800
+	2014-07-22 07:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,281 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %'YCLib_(MinGW32)' $=
+		(
+			+ %Consoles @ 
+				$= (+ "class %WConsole"),
+			- DLD "unused redundant internal function" @ %Win32GUI,
+			* DLD "missing specifying return type" @ "lambda expression with \
+				multiple return statements" @ "constructor %Win32Exception"
+				@MinGW32 $since b435
+		)
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ DLD "simplified implementation"
+					@ "checkbox background drawing" @ %Selector,
+					// Removed unnecessary calculation.
+				- DLD "unused redundant internal constant object" @ %TextList
+			),
+			/ %Core.YEvent $=
+			(
+				/ "member function %operator==" @ "class template %GHEvent"
+					-> "friend function",
+				+ "2 function template %operator(==, !=) for %GHEvent with \
+					%std::nullptr_t",
+				+ "function template %operator!= for %GHEvent"
+			),
+			* "wrong return type" @ "member function %TextFile::GetBOMSize"
+				@ %Service.TextFile $orig(%Core.YFile_(Text)) $since b138
+				$= (/ "return type" -> "%size_t" ~ "%u8")
+				// The member type had been already changed ago but the getter \
+					wasn't be synchronized.
+		),
+		/ %YCLib $=
+		(
+			+ "(struct %HandleDeleter; alias declaration %UniqueHandle; \
+				function %MakePipe)" @ %Host,
+			/ $dev "distinguished Win64 from 32-bit Windows platforms"
+				@ %Platform $=
+			(
+				+ "platform %Win64 with macro %YF_Platform_Win64 capable with \
+					%(YCL_Win32, YCL_MinGW, YF_Hosted)",
+				(
+				+ "platform %MinGW64 with macro %YF_Platform_MinGW64 capable \
+					with %(YCL_Win64, YCL_Win32, YCL_MinGW, YF_Hosted)";
+				+ $doc "Doxygen group definition" @ "platform %MinGW64"
+				)
+			),
+			/ "static assertion for screen measurement types" @ %Video $=
+			(
+				/ "implementation" ^ "%ystdex::integer_width"
+					~ "%std::numeric_limits::max";
+				/ $comp $workaround "support for implementation without \
+					constexpr member functions of instants \
+					%std::numeric_limits",
+					// Though constexpr functions are mandated already by ISO \
+						C++11, some implementations are still conforming now.
+				/ $comp "eliminated signed and unsigned integer comparing"
+					// Otherwise it may issue a warning which is hard to \
+					overcome.
+			)
+		),
+		* DLB "ill-formed code due to narrow conversion when %std::size_t \
+			converted to 'unsigned long'" (@ %'YCLib_(MinGW32)'.MinGW32
+			$orig(%Helper)) $since b387,
+			// It would fail to compile for Win64.
+		/ DLD "simplified implementation" @ "member function \
+			%InputManager::DispatchInput" @ %Helper.InputManager
+			// Also to eliminate Visual C++ warning C4457.
+	),
+	/ %Tools.SHBuild $=
+	(
+		/ %Main $=
+		(
+			(
+			$dep_from %'YCLib_(MinGW32)'.Consoles;
+			/ DLD "implementation of colored printing"
+				^ "%platform_ex::WConsole" ~ "Windows API";
+			* $comp "color pollution of external console" $since b519
+			),
+			/ "always set logging handler in spite of number of command line \
+				arguments",
+				// Because the "catch" clause was also using logging.
+			/ "log level output" $=
+			(
+				/ DLD "implementation" ^ "std::showbase",
+				/ "shown uppercase in hexadecimal numbers"
+			),
+			/ "explicitly allowed multiple occurrence of options"
+				@ "usage information",
+			(
+			+ "option '-xid,'";
+			$dep_to "subdirectory ignorance"
+			),
+			(
+			$dep_from %YBase.YStandardEx.Concurrency;
+			+ "refactored" ^ "context class with %ystdex::thread_pool";
+			+ "option '-xj,' for multitasking with max number of paralleled \
+				jobs" ^ "threading"
+			),
+			* DLD "inconsistent use of 'u8' prefix for output" $since b519
+			- DLD "assertion for arguments number"
+		),
+		/ $lib @ "%SHBuild-YSLib.sh" $=
+		(
+			(
+			* "wrong options for build static libraries"
+				$since b474 $=
+			(
+				- '-DYB_BUILD_DLL' @ "%YBase build command" $=
+				/ @ "%YFramework build command" $=
+				(
+					- '-DYB_DLL -DYF_BUILD_DLL',
+					- '-lYBase'
+				)
+			),
+			+ "synchronized options with Code::Blocks projects setting" $=
+			(
+				+ "options '-Wcast-align -Winit-self -Wmain \
+					-Wmissing-declarations -Wmissing-include-dirs \
+					-Wnon-virtual-dtor -Wredundant-decls -ffat-lto-objects' \
+					for all 2 build commands",
+					// But no '-Wno-literal-suffix -Wno-unused-local-typedefs'.
+				+ "option '-pedantic-error'" @ "%YFramework build command"
+			);
+			/ DLD "extracted common options"
+			),
+			(
+			$dep_from "subdirectory ignorance";
+			/ "ignored by options '-xid,alternative -xid,data -xid,include'";
+			* $comp "'alternative' directory wronly compiled into library \
+				%YFramework" $since b474
+			),
+			+ DLB "parameter support"
+			+ "option echo"
+		)
+	),
+	/ %YBase $=
+	(
+		/ 'using raw_tag = empty_base<>;' @ %YBase.YDefinition
+			-> "empty struct %raw_tag",
+			// Otherwise the constructor of %YSLib::Thumb::UI using this type \
+				would make GCC 4.9.0 or GCC 4.9.1 crash (segmentation fault).
+		/ %YStandardEx $=
+		(
+			* "wrongly ignored predictor %comp" @ "function template \
+				%begins_with" @ %YStandardEx.String $since b519,
+				// Though default behavior is not affected.
+			+ %Concurrency
+				$= (+ "class %thread_pool");
+				// Currently only hosted implementation of G++ and libstdc++ \
+					is supported.
+		),
+		/ DLD %YTest $=
+		(
+			* "missing UTF-8 BOM" @ "header %test.h" $since b519,
+				// Since there is "©" which is non representable by ANSI \
+					codepage, Visual Studio would issue a warning.
+			* "missing UTF-8 BOM" @ "header %timing.h" $since b319,
+			/ $doc "Doxygen group definition" @ %Timing >> %Test
+		)
+	),
+	/ $dev $build "toolchain and library using" @ "platform %MinGW32" $=
+	(
+		$dep_from %YBase.YDefinition;
+		// Libraries have to be rebuilt, otherwise the LTO version would be \
+			incompatible, as: "lto1.exe: fatal error: bytecode stream \
+			generated with LTO version 2.2 instead of the expected 3.0".
+		^ $dev $build $re_ex(b453) "MinGW[gcc version 4.9.1 (Rev1, Built by \
+			MSYS2 project)] mingw32/mingw-w64-i686-gcc-4.9.1-1"
+			~ "MinGW[gcc version 4.8.2 (Rev7, Built by MSYS2 \
+			project)] mingw32/mingw-w64-i686-gcc-4.8.2-7";
+			@ "platform %MinGW32",
+			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
+				Exceptions implementation: Dwarf2.
+		/ "recompiled library %FreeType",
+		/ "recompiled library %FreeImage" $=
+		(
+			/ "updated base library 3.16.0" ~ "3.15.4";
+			/ "merged old modification",
+			* "wrong location of file %GetType.cpp" $since b431
+				// Thus ignored by build script since it used precise list of \
+					files.
+				$= ("%Source/GetType.cpp" >> "%Source/FreeImage"),
+			/ "updated file %Makefile.mingw as base version 3.16.0" $=
+			(
+				/ 'LIBRARIES = -lwsock32 -lws2_32' -> 'LIBRARIES = -lws2_32',
+				+ '-DDISABLE_PERF_MEASUREMENT' @ "%CFLAGS"
+			),
+			/ 'VER_MINOR = 15.4' -> 'VER_MINOR = 16.0' @ "file %Makefile.srcs",
+			^ "libpng-1.6.12 with old libpng-1.6.3 standard configuration \
+				header file %Source/LibPNG/pnglibconf.h" ~ "libpng-1.6.10",
+			^ "libjpeg-turbo 1.3.1 with old configuration headers"
+				~ "libjpeg-9a"
+		),
+		/ @ "Code::Blocks projects" $=
+		(
+			+ '-ffat-lto-objects' @ "release configurations",
+				// See $2014-07 @ %Documentation::Workflow::Annual2014.
+			/ "made '-flto=jobserver' only effective in release configurations"
+		)
+	),
+	/ "updated %Readme.zh-CN.txt with information test project and %SHBuild",
+	/ @ "made sure 'inline' is not omitted for all \
+		extension-namespace-definition of inline namespaces" $effective
+		%platform_ex::Windows @ %'YCLib_(MinGW32)',
+		// See %Documentation::CommonRules @5.5.8.3. Clang++ still complains \
+			about it.
+	/ DLB "workaround possible ambiguity" $effective @ %YFramework.YSLib $=
+	(
+		// Clang++ complains about them.
+		/ $effective @ %Service.YPixel $=
+		(
+			/ "explicitly specified functional notation of conversion to \
+				'_tAlpha'" @ "function templates %CompositeComponentOver"
+				@ "class templates and specializations %(GPixelCompositor,
+				GPixelCompositor<1, _vSrcAlphaBits>, GPixelCompositor<1, 1>, \
+				GPixelCompositor<_vDstAlphaBits, 1>)",
+			/ "explicitly specified functional notation of conversion to \
+				'_tSrcAlpha'" @ "function templates %CompositeComponentOver"
+				@ "class templates and specializations %(GPixelCompositor, \
+				GPixelCompositor<_vDstAlphaBits, 1>)"
+		),
+		/ "explicitly specified functional notation of conversion to 'HSL'"
+			$effective @ "functions %(HSLToColor, RollColor)" @ %UI.YStyle
+	),
+	/ DLD %YReader $=
+	(
+		* "wrong use of 'yconstexpr' on closure object"
+			@ "constructor %SettingPanel" @ %ReaderSettingUI $since b390,
+		/ %ShlExplorer $=
+		(
+			* "missing explicit conversion on enumerator of scoped enumeration"
+				$since b410,
+			- "unused redundant internal constant object"
+		)
+	),
+	* $dev $build "wrong format string used in call of function '*printf'"
+		@ "strict ISO C++ code compatibility" $=
+	(
+		* @ ("function %InitializeSystemFontCache" @ %Helper.Initialization
+			$since $before b132, ("member function %MemoryList::Print"
+			@ %YSLib.Adaptor.YNew $since b173) $effective @ %YFramework
+			// The %std::allocator uses %std::size_t as %size_type, which is \
+				%size_t in ISO C standard library and fit for '%zu' for
+				%fprintf.
+			$= (/ "format" ^ '%zu' ~ '%u'),
+		* @ "function %OnExit_DebugMemory_print" @ %Main $since
+			$orig("function %OnExit_DebugMemory" @ %platform.DS.Main) b300
+			$= (/ "format" ^ '%zu' ~ '%i'),
+		/ $effective %YReader $=
+		(
+			* @ "member function %HexViewArea::Refresh" @ %HexBrowser $since
+				b253
+				$= (/ "format" ^ '%tX' ~ '%X'),
+			* @ "member function %ReaderBox::UpdateData" @ %ShlReader $since
+				b271 $=
+			(
+				/ "format" ^ '%2zu' ~ '%2u',
+				/ "argument" ^ "explicitly cast to %std::size_t"
+			)
+		)
+	),
+	* DLB "wrong implementation due to ill-formed code when %std::size_t is 
+		not alias of 'unsigned' causing no suitable %min found"
+		@ (%YFramework.YSLib.Service.TextFile $since b290,
+		%YReader.Shells $since b183)
+	// It would fail to compile for Win64.
+	/ "macro %YCL_MinGW32" => "%YCL_MinGW"
+		// See $2014-07 @ %Documentation::Workflow::Annual2014.
+),
+
+b519
 (
 	/ %YFramework $=
 	(
@@ -91,6 +366,7 @@ $now
 		),
 		/ %YCLib.Debug $=
 		(
+			(
 			// Log class is preferred.
 			(
 			$dep_from %YSLib.Adaptor.Font;
@@ -100,8 +376,10 @@ $now
 			- "function %YDebugGetStatus",
 			$dep_from "removal of DS debug call";
 			- "functions %(YDebugSetStatus, YDebugBegin)"
+			),
+			/ "member function %Logger::SetWriter" => "%SetSender"
 		),
-		/ DLD "missing specifying return type" @ "lambda expression with \
+		* DLD "missing specifying return type" @ "lambda expression with \
 			multiple return statements" @ "member function \
 			%GUIApplication::DealMessage" @ Helper.GUIApplication $since b481
 	),
@@ -175,10 +453,11 @@ $now
 		);
 		+ "test script %test.sh"
 	),
-	/ %Tools.SHBuild $=
+	/ %Tools.SHBuild.Main $=
 	(
-		/ "implemented printing" ^ "%YSLib::Logger",
-		+ "option '-Wxlogfl,'",
+		/ "implemented printing" ^ "%YSLib::Logger"
+			~ "global character streams",
+		+ "option '-xlogfl,'",
 		+ "colored output"
 	)
 ),

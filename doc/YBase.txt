@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r197
+\version r199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-07-15 08:51 +0800
+	2014-07-20 05:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,8 @@
 
 @2.2 文件依赖性：
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
- ydef.h(@2.3) 仅依赖标准库头文件。
+子项目满足线性顺序依赖([Documentation::ProjectRules @@1.3.1]) ：依次为 ydef.h(@2.3) 、 LibDefect 、 YStandardEx 和 YTest 。
+ ydef.h 仅依赖标准库头文件。
  LibDefect 不包含头文件或仅包含标准库头文件。
  YBase 依赖且仅依赖 YBase 文件和标准库头文件。
  YStandardEx 相关的头文件依赖性参见 @2.4.1 。

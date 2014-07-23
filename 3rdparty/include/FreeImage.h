@@ -35,6 +35,13 @@
 //	Added macro "nullptr" for C compatibility.
 //  Removed declarations of function: "FreeImage_GetFormatFromFIF", "FreeImage_GetFIFMimeType", "FreeImage_GetFIFExtensionList", "FreeImage_GetFIFDescription", "FreeImage_GetFIFRegExpr", "FreeImage_FIFSupportsReading", "FreeImage_FIFSupportsWriting", "FreeImage_FIFSupportsExportBPP", "FreeImage_FIFSupportsExportType", "FreeImage_FIFSupportsICCProfiles", "FreeImage_FIFSupportsNoPixels", "FreeImage_SetPluginEnabled", "FreeImage_IsPluginEnabled".
 //	Renamed struct "Plugin" to "FI_PluginRec".
+// Modified by FrankHB <frankhb1989@gmail.com>, 2014-07-19:
+//	Updated version macros "FREEIMAGE_MAJOR_VERSION" and "FREEIMAGE_RELEASE_SERIAL".
+//	Added enumerators from base version 3.16.0: "FIF_WEBP" and "FIF_JXR".
+//	Added macros from base version 3.16.0: "WEBP_DEFAULT", "WEBP_LOSSLESS", "JXR_DEFAULT", "JXR_LOSSLESS" and "JXR_PROGRESSIVE".
+//	Reordered function declarations as base version 3.16.0: "FreeImage_JPEGTransform" and "FreeImage_JPEGCrop".
+//	Modified function default argument as base version 3.16.0: default value of last argument of function declaration "FreeImage_JPEGTransform" modified as "TRUE" instead of "FALSE".
+//	Added function declarations from base version 3.16.0: "FreeImage_JPEGTransformFromHandle", "FreeImage_JPEGTransformCombined" and "FreeImage_JPEGTransformCombinedFromMemory" (but no functions with suffix "U").
 
 #ifndef FREEIMAGE_H
 #define FREEIMAGE_H
@@ -42,8 +49,8 @@
 // Version information ------------------------------------------------------
 
 #define FREEIMAGE_MAJOR_VERSION   3
-#define FREEIMAGE_MINOR_VERSION   15
-#define FREEIMAGE_RELEASE_SERIAL  4
+#define FREEIMAGE_MINOR_VERSION   16
+#define FREEIMAGE_RELEASE_SERIAL  0
 
 // Compiler options ---------------------------------------------------------
 
@@ -417,7 +424,9 @@ FI_ENUM(FREE_IMAGE_FORMAT) {
 	FIF_JP2		= 31,
 	FIF_PFM		= 32,
 	FIF_PICT	= 33,
-	FIF_RAW		= 34
+	FIF_RAW		= 34,
+	FIF_WEBP	= 35,
+	FIF_JXR		= 36
 };
 
 /** Image type used in FreeImage.
@@ -771,6 +780,11 @@ typedef void (DLL_CALLCONV *FI_InitProc)(FI_PluginRec* plugin, int format_id);
 #define WBMP_DEFAULT        0
 #define XBM_DEFAULT			0
 #define XPM_DEFAULT			0
+#define WEBP_DEFAULT		0		//! save with good quality (75:1)
+#define WEBP_LOSSLESS		0x100	//! save in lossless mode
+#define JXR_DEFAULT			0		//! save with quality 80 and no chroma subsampling (4:4:4)
+#define JXR_LOSSLESS		0x0064	//! save lossless
+#define JXR_PROGRESSIVE		0x2000	//! save as a progressive-JXR (use | to combine with other save flags)
 
 // Background filling options ---------------------------------------------------------
 // Constants used in FreeImage_FillBackground and FreeImage_EnlargeCanvas
@@ -1061,6 +1075,11 @@ DLL_API const char* DLL_CALLCONV FreeImage_TagToString(FREE_IMAGE_MDMODEL model,
 
 // --------------------------------------------------------------------------
 // Image manipulation toolkit -----------------------------------------------
+DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransform(const char *src_file, const char *dst_file, FREE_IMAGE_JPEG_OPERATION operation, BOOL perfect FI_DEFAULT(TRUE));
+DLL_API BOOL DLL_CALLCONV FreeImage_JPEGCrop(const char *src_file, const char *dst_file, int left, int top, int right, int bottom);
+DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformFromHandle(FreeImageIO* src_io, fi_handle src_handle, FreeImageIO* dst_io, fi_handle dst_handle, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
+DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformCombined(const char *src_file, const char *dst_file, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
+DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformCombinedFromMemory(FIMEMORY* src_stream, FIMEMORY* dst_stream, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
 // --------------------------------------------------------------------------
 
 // rotation and flipping
@@ -1070,7 +1089,6 @@ DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Rotate(FIBITMAP *dib, double angle, con
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_RotateEx(FIBITMAP *dib, double angle, double x_shift, double y_shift, double x_origin, double y_origin, BOOL use_mask);
 DLL_API BOOL DLL_CALLCONV FreeImage_FlipHorizontal(FIBITMAP *dib);
 DLL_API BOOL DLL_CALLCONV FreeImage_FlipVertical(FIBITMAP *dib);
-DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransform(const char *src_file, const char *dst_file, FREE_IMAGE_JPEG_OPERATION operation, BOOL perfect FI_DEFAULT(FALSE));
 
 // upsampling / downsampling
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Rescale(FIBITMAP *dib, int dst_width, int dst_height, FREE_IMAGE_FILTER filter);
@@ -1100,7 +1118,6 @@ DLL_API BOOL DLL_CALLCONV FreeImage_SetComplexChannel(FIBITMAP *dst, FIBITMAP *s
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Copy(FIBITMAP *dib, int left, int top, int right, int bottom);
 DLL_API BOOL DLL_CALLCONV FreeImage_Paste(FIBITMAP *dst, FIBITMAP *src, int left, int top, int alpha);
 DLL_API FIBITMAP *DLL_CALLCONV FreeImage_Composite(FIBITMAP *fg, BOOL useFileBkg FI_DEFAULT(FALSE), RGBQUAD *appBkColor FI_DEFAULT(nullptr), FIBITMAP *bg FI_DEFAULT(nullptr));
-DLL_API BOOL DLL_CALLCONV FreeImage_JPEGCrop(const char *src_file, const char *dst_file, int left, int top, int right, int bottom);
 DLL_API BOOL DLL_CALLCONV FreeImage_PreMultiplyWithAlpha(FIBITMAP *dib);
 
 // background filling routines

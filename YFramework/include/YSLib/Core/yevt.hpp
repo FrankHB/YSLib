@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4622
+\version r4665
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-07-14 14:32 +0800
+	2014-07-14 11:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,16 +157,17 @@ public:
 	*/
 	DefDeMoveAssignment(GHEvent)
 
-	yconstfn bool
-	operator==(const GHEvent& h) const
+	//! \since build 520
+	yconstfn friend bool
+	operator==(const GHEvent& x, const GHEvent& y)
 	{
 		return
 #if defined(YF_DLL) || defined(YF_BUILD_DLL)
-			BaseType::target_type() == h.BaseType::target_type()
+			x.BaseType::target_type() == y.BaseType::target_type()
 #else
-			comp_eq == h.comp_eq
+			x.comp_eq == y.comp_eq
 #endif
-			&& (comp_eq(*this, h));
+			&& (x.comp_eq(x, y));
 	}
 
 	/*!
@@ -200,6 +201,45 @@ private:
 	}
 	//@}
 };
+//@}
+
+/*!
+\relates GHEvent
+\since build 520
+*/
+//@{
+template<typename _tRet, typename... _tParams>
+yconstfn bool
+operator==(const GHEvent<_tRet(_tParams...)>& x, std::nullptr_t)
+{
+	return !x;
+}
+template<typename _tRet, typename... _tParams>
+yconstfn bool
+operator==(std::nullptr_t, const GHEvent<_tRet(_tParams...)>& y)
+{
+	return !y;
+}
+
+template<typename _tRet, typename... _tParams>
+yconstfn bool
+operator!=(const GHEvent<_tRet(_tParams...)>& x,
+	const GHEvent<_tRet(_tParams...)>& y)
+{
+	return !(x == y);
+}
+template<typename _tRet, typename... _tParams>
+yconstfn bool
+operator!=(const GHEvent<_tRet(_tParams...)>& x, std::nullptr_t)
+{
+	return bool(x);
+}
+template<typename _tRet, typename... _tParams>
+yconstfn bool
+operator!=(std::nullptr_t, const GHEvent<_tRet(_tParams...)>& y)
+{
+	return bool(y);
+}
 //@}
 
 

@@ -93,6 +93,7 @@
     <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.h" />
     <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.h" />
     <ClInclude Include="include\YCLib\COM.h" />
+    <ClInclude Include="include\YCLib\Consoles.h" />
     <ClInclude Include="include\YCLib\MinGW32.h" />
     <ClInclude Include="include\YCLib\Win32GUI.h" />
   </ItemGroup>
@@ -101,6 +102,7 @@
     <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.cpp" />
     <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.cpp" />
     <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\shlds.cpp" />
+    <ClCompile Include="source\YCLib\Consoles.cpp" />
     <ClCompile Include="source\YCLib\MinGW32.cpp" />
     <ClCompile Include="source\YCLib\Win32GUI.cpp" />
   </ItemGroup>

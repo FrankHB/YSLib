@@ -40,6 +40,8 @@
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
+					<Add option="-ffat-lto-objects" />
+					<Add option="-flto=jobserver" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
@@ -87,6 +89,8 @@
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
+					<Add option="-ffat-lto-objects" />
+					<Add option="-flto=jobserver" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DYB_DLL" />
 					<Add option="-DYF_DLL" />
@@ -116,7 +120,6 @@
 			<Add option="-Wall" />
 			<Add option="-fdata-sections" />
 			<Add option="-ffunction-sections" />
-			<Add option="-flto=jobserver" />
 			<Add option="-mthreads" />
 			<Add option="-Winvalid-pch" />
 			<Add directory="../include" />

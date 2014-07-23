@@ -17,12 +17,6 @@
 第三方依赖项
 /Data
 最终用户环境中部署的数据目录
-/build
-默认生成文件目录
-/doc
-开发文档
-/doc/vsd
-架构示意 Visio 文档
 /Tools
 开发使用的（辅助）工具
 /YBase
@@ -39,6 +33,14 @@
 示例项目 YReader 的 DS 平台可执行文件项目（仅用于 DS 平台，用于生成 NDS 文件）
 /YSTest/MinGW32
 示例项目 YReader 的 MinGW32 平台可执行文件项目（仅用于 MinGW32 平台，用于生成 EXE 文件）
+/build
+默认生成文件目录
+/doc
+开发文档
+/doc/vsd
+架构示意 Visio 文档
+/test
+测试项目目录
 /.hgignore
  Mercurial 忽略文件
 /.hgtags
@@ -100,9 +102,19 @@ DKP_HOME = F:\devkitPro
 特别注意，应当使用对应的正确的线程模型（使用 POSIX 而不是 Win32 ，后者没有实现标准库的线程支持）以及异常模型（ Dwarf2 和 SjLj 之一，特定构建版本相关）。
 配置文件 yconf.txt 在当前工作目录下生成。使用 CHRLib 转换 GBK 编码的程序若找不到 cp113.bin 可能会异常退出，需要在 yconf.txt 中指定 DataDirectory 路径，或复制 /Data 下的文件到程序所在的目录（因为默认 DataDirectory 为当前目录）。
 
+ SHBuild
+==
+试验中的命令行构建工具。
+若使用 ConEmu 出现 0xC0000005 错误，注意升级到最新版本后勾选 Inject ConEmuHk 选项。详见 https://code.google.com/p/conemu-maximus5/wiki/MicrosoftBugs 。
+
 其它
 ==
 详细的其它选项参照 https://bitbucket.org/FrankHB/yslib/wiki/Home 。
+
+> 测试项目
+在 /test 目录中直接运行脚本测试。
+测试框架依赖 YBase::YTest 。
+当前仅提供 YBase 的有限测试。
 
 > YSLib PreAlpha 更新说明
 ====

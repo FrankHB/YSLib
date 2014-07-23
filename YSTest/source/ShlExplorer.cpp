@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1329
+\version r1332
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-07-14 14:53 +0800
+	2014-07-20 12:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,8 +43,8 @@ using namespace IO;
 
 enum class FileCategory
 {
-	Empty = NodeCategory::Empty,
-	Unknown = NodeCategory::Regular,
+	Empty = yimpl(int)(NodeCategory::Empty),
+	Unknown = yimpl(int)(NodeCategory::Regular),
 	Binary,
 	Text
 };
@@ -132,7 +132,6 @@ CheckMenuKey(const KeyInput& k)
 //@{
 yconstexpr auto PI = 3.14159265358979323;
 yconstexpr auto PI_2 = PI * 2;
-yconstexpr auto PI_4 = PI * 4;
 
 //! \since build 452
 void

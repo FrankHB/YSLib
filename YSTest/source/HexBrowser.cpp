@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r574
+\version r575
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2014-07-11 00:40 +0800
+	2014-07-22 16:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,7 +144,7 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 		{
 			char straddr[(32 >> 2) + 1];
 
-			std::sprintf(straddr, "%08X", pos);
+			std::sprintf(straddr, "%08tX", pos);
 			PutLine(tr, straddr);
 		}
 		x += w_addr;

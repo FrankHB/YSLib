@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1801
+\version r1803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-07-14 09:45 +0800
+	2014-07-22 16:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,8 @@ OnExit_DebugMemory_print(_tCon& con, const char* item_name)
 {
 	if(!con.empty())
 	{
-		std::fprintf(stderr, "%i %s(s) detected:\n", con.size(), item_name);
+		// XXX: Size of %std::size is expected.
+		std::fprintf(stderr, "%zu %s(s) detected:\n", con.size(), item_name);
 
 		typename _tCon::size_type n(0);
 

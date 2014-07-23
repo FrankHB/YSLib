@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r657
+\version r658
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-07-17 07:07 +0800
+	2014-07-20 11:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,7 +219,7 @@ begins_with(const _tRange1& input, const _tRange2& test, _fPred comp)
 {
 	return ystdex::string_length(test) <= ystdex::string_length(input)
 		&& std::equal(string_begin(test), string_end(test),
-		string_begin(input));
+		string_begin(input), comp);
 }
 //! \since build 519
 template<typename _tRange1, typename _tRange2>

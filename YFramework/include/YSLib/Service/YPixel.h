@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r694
+\version r702
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2013-12-23 23:00 +0800
+	2014-07-20 11:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ struct GPixelCompositor
 		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
 			"Non-normalizable source alpha type found.");
 
-		return sa + da * (1 - sa);
+		return sa + da * (_tSrcAlpha(1) - sa);
 	}
 
 	/*!
@@ -136,7 +136,7 @@ struct GPixelCompositor
 		static_assert(ystdex::is_normalizable<_tAlpha>::value,
 			"Non-normalizable alpha type found.");
 
-		return a != 0 ? (s < d ? _tDst(d - sa * (d - s) / a)
+		return a != _tAlpha(0) ? (s < d ? _tDst(d - sa * (d - s) / a)
 			: _tDst(sa * (s - d) / a + d)) : _tDst(0);
 	}
 };
@@ -184,8 +184,8 @@ struct GPixelCompositor<_vDstAlphaBits, 1>
 		static_assert(ystdex::is_normalizable<_tAlpha>::value,
 			"Non-normalizable alpha type found.");
 
-		return a != 0 ? (sa != 0 ? (s < d ? _tDst(d - (d - s) / a)
-			: _tDst((s - d) / a + d)) : d) : _tDst(0);
+		return a != _tAlpha(0) ? (sa != _tSrcAlpha(0) ? (s < d
+			? _tDst(d - (d - s) / a) : _tDst((s - d) / a + d)) : d) : _tDst(0);
 	}
 };
 
@@ -301,7 +301,7 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 		static_assert(ystdex::is_normalizable<_tAlpha>::value,
 			"Non-normalizable alpha type found.");
 
-		return a != 0 ? GPixelCompositor<0, _vSrcAlphaBits>
+		return a != _tAlpha(0) ? GPixelCompositor<0, _vSrcAlphaBits>
 			::CompositeComponentOver(d, s, sa) : _tDst(0);
 	}
 };
@@ -451,8 +451,8 @@ struct GPixelCompositor<1, 1>
 		static_assert(ystdex::is_normalizable<_tAlpha>::value,
 			"Non-normalizable alpha type found.");
 
-		return a != 0 ? GPixelCompositor<0, 1>::CompositeComponentOver(d, s, sa)
-			: _tDst(0);
+		return a != _tAlpha(0) ? GPixelCompositor<0, 1>
+			::CompositeComponentOver(d, s, sa) : _tDst(0);
 	}
 };
 
