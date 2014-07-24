@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup Helper
 \brief Helper 库模块配置文件。
-\version r61
+\version r63
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:11 +0800
 \par 修改时间:
-	2014-06-04 23:43 +0800
+	2014-07-24 09:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,8 @@
 #define YFM_Helper_InputManager <Helper/InputManager.h>
 #define YFM_Helper_GUIShell <Helper/GUIShell.h>
 #define YFM_Helper_GUIApplication <Helper/GUIApplication.h>
-#define YFM_Helper_Host <Helper/Host.h>
+//! \since build 521
+#define YFM_Helper_Environment <Helper/Environment.h>
 #define YFM_Helper_HostedUI <Helper/HostedUI.h>
 #define YFM_Helper_HostRenderer <Helper/HostRenderer.h>
 #define YFM_Helper_ScreenBuffer <Helper/ScreenBuffer.h>

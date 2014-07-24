@@ -8,25 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\file Host.h
+/*!	\file Environment.h
 \ingroup Helper
-\brief 宿主环境。
-\version r739
+\brief 环境。
+\version r774
 \author FrankHB <frankhb1989@gmail.com>
-\since build 379
+\since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-06-22 15:39 +0800
+	2014-07-24 17:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Helper::Host
+	Helper::Environment
 */
 
 
-#ifndef INC_Helper_Host_h_
-#define INC_Helper_Host_h_ 1
+#ifndef INC_Helper_Environment_h_
+#define INC_Helper_Environment_h_ 1
 
 #include "YModules.h"
 #include YFM_Helper_HostWindow // for Host::Window;
@@ -38,8 +38,7 @@
 namespace YSLib
 {
 
-#if YF_Hosted
-#	if YCL_Android
+#if YCL_Android
 //! \since build 502
 //@{
 namespace Devices
@@ -54,7 +53,7 @@ class NativeHost;
 
 } // namespace Android;
 //@}
-#	endif
+#endif
 
 /*!
 \brief 应用程序环境。
@@ -63,6 +62,7 @@ class NativeHost;
 class YF_API Environment
 {
 private:
+#if YF_Hosted
 	/*!
 	\brief 本机窗口对象映射。
 	\note 不使用 ::SetWindowLongPtr 等 Windows API 保持跨平台，
@@ -92,18 +92,29 @@ public:
 	\since build 399
 	*/
 	std::atomic<bool> ExitOnAllWindowThreadCompleted{true};
-
-private:
-#		if YCL_Win32
-	//! \since build 432
-	Host::WindowClass window_class;
-#		endif
 #	endif
 
+private:
+#	if YCL_Win32
+	//! \since build 432
+	Host::WindowClass window_class;
+#	endif
+#endif
+
 public:
+#	if YCL_Android
+	/*!
+	\brief 点映射例程。
+	\note 若非空则 MapCursor 调用此实现，否则使用恒等变换。
+	\since build 521
+	*/
+	Drawing::Point(*MapPoint)(const Drawing::Point&) = {};
+#	endif
+
 	Environment();
 	~Environment();
 
+#if YF_Hosted
 	/*!
 	\brief 取 GUI 前景窗口。
 	\since build 381
@@ -126,11 +137,8 @@ public:
 	\note 线程安全。
 	\since build 399
 	*/
-	void
-	EnterWindowThread()
-	{
-		++wnd_thrd_count;
-	}
+	PDefH(void, EnterWindowThread, )
+		ImplExpr(++wnd_thrd_count)
 #	endif
 
 	/*!
@@ -140,13 +148,6 @@ public:
 	*/
 	Host::Window*
 	FindWindow(Host::NativeWindowHandle) const ynothrow;
-
-	/*!
-	\brief 宿主消息循环。
-	\since build 379
-	*/
-	static void
-	HostLoop();
 
 #	if YF_Multithread == 1
 	/*!
@@ -177,9 +178,9 @@ public:
 	//! \since build 384
 	void
 	UpdateRenderWindows();
+#endif
 };
 
-#endif
 } // namespace YSLib;
 
 #endif

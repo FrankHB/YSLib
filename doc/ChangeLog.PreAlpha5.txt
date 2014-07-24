@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2132
+\version r2213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-07-22 07:50 +0800
+	2014-07-25 07:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,88 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "platform %Win32" @ %YCLib.NativeAPI $=
+		(
+			+ "macro definition %NOMINMAX when undefined before including \
+				<Windows.h>",
+				// To get rid of macros %(min, max) pollution.
+			/ "macro definition %mkdir" -> '#undef mkdir',
+			/ "function 'int makedir(char const* dir, ::mode_t)'"
+				@ "namespace %platform_replace"
+				-> "function 'int makedir(char const* dir, ::mode_t = 0777)'"
+		);
+		/ %Helper $=
+		(
+			(
+			/ %Host => %Environment
+				$= (/ "class %Host::Environment" -> "%YSLib::Environment with \
+					minimal support for non-hosted platforms");
+			/ @ %GUIApplication $=
+			(
+				/ "call of functions from %Initialization"
+					>> "class %Environment"
+				/ "function 'Environment& GetHost()'" @ 'YF_Hosted'
+					-> "'Environment& GetEnvironment() ynothrow' regardless of \
+					%YF_Hosted",
+				/ "function %Host::FetchEnvironment" >> "namespace %YSLib",
+			)
+			),
+			+ $dev "declaration of class %Environment" @ '!YF_Hosted'
+				@ %YGlobal,
+			+ DLD "environment support" @ "class %InputManager"
+				@ %InputManager,
+			/ "macro %YFM_Helper_Host" @ %YModule => "%YFM_Helper_Environment",
+			/ "class %Environment" @ %Environment $=
+			(
+				/ "static function %HostLoop"
+					>> ("class %WindowThread" @ %HostRenderer);
+					// Hosted environment only.
+				/ DLD "implementation" @ "function %EnterWindowThread"
+					^ %(PDefH, ImplExpr)
+			),
+			* "DS implementation hack" @ "platform %Android" $since b385 $=
+				// The screen mapping is specific for platform %DS. Though \
+					since b385 it is a 'FIXME', but there is even no support \
+					for earlier version.
+			(
+				/ "class %Environment" @ %Environment $=
+				(
+					+ "data member %MapPoint";
+					/ "implemented %MapCursor" ^ "%MapPoint"
+				);
+				/ DLD "set environment %MapPoint handler"
+					@ "class %DSApplication" @ %DSMain
+			)
+		)
+	),
+	(
+	/ %YFramework.YSLib.Core.Cache
+		-> %YBase.YStandardEx.Cache $=
+	(
+		/ "name of header %Cache.hpp" => "cache.hpp",
+		/ "class template %YSLib::GMRUCache" -> "%ystdex::used_list_cache" $=
+		(
+			/ "type alias %UseList" => "%used_list",
+			/ "type alias %UseCache" => "%used_cache",
+			/ "type alias %Map" => "%map_type",
+			DLD !^ "%DefDeMoveCtor",
+			/ "function %GetMaxUse" => "%get_max_use" !^ "%DefGetter",
+			/ "function %SetMaxUse" => "%set_max_use",
+			DLD ^ "%yassume" ~ "%YAssert",
+			/ DLD "minority member renaming"
+				// To conform the naming convention.
+		),
+		/ "function template %YSLib::CacheLookup" -> "%ystdex::cache_lookup"
+			$= (/ "thrown exception %LoggedEvent" -> "%std::runtime_error")
+	);
+	- "macro %YFM_YSLib_Core_Cache" @ %YFramework.YSLib.Core.YModule
+	)
+),
+
+b520
 (
 	/ %YFramework $=
 	(

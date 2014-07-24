@@ -712,9 +712,6 @@
     <ClInclude Include="include\Helper\ScreenBuffer.h">
       <Filter>include\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="include\Helper\Host.h">
-      <Filter>include\Helper</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\UI\Loader.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
@@ -731,9 +728,6 @@
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Service\ContentType.h">
-      <Filter>include\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Core\Cache.hpp">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\YModules.h">
@@ -789,6 +783,9 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\TabControl.h">
       <Filter>include\YSLib\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Helper\Environment.h">
+      <Filter>include\Helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -987,9 +984,6 @@
     <ClCompile Include="source\Helper\GUIShell.cpp">
       <Filter>source\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="source\Helper\Host.cpp">
-      <Filter>source\Helper</Filter>
-    </ClCompile>
     <ClCompile Include="source\Helper\HostedUI.cpp">
       <Filter>source\Helper</Filter>
     </ClCompile>
@@ -1055,6 +1049,9 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\TabControl.cpp">
       <Filter>source\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Helper\Environment.cpp">
+      <Filter>source\Helper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

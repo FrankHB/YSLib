@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r753
+\version r769
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-07-12 00:17 +0800
+	2014-07-25 06:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -316,7 +316,7 @@
  Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 
 @1.6.3.2 库依赖策略：
-除非必要，尽量使用标准库。例外情况下应该提供充足理由，并对用户自行替换底层接口和实现提供一定的便利性。
+参见 [Documentation::CommonRules @@3.13] 。
 
 @1.6.3.3 资源管理：
 基于对象所有权，方法参见 [Documentation::YSLib @@2.2.2] 。
@@ -387,6 +387,7 @@
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 必要文件不依赖非必要文件。
 任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头文件以及 YBase 头文件。
+ Helper 的实现可能依赖 Helper 的平台扩展接口。
  YCLib 和 Helper 文件可依赖具体平台相关的外部依赖项。关于 Helper 的文件附加依赖规则参见 @2.8 。
 
 @2.2.2 YCLib 文件依赖性：
@@ -414,9 +415,26 @@
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
 @2.3 名称：
+对于模块，基本使用参见 [Documentation::ProjectRules @@3.2] 。
+对于语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 。
 
 @2.3.1 标识符限制：
 公开头文件不使用保留标识符([Documentation::CommonRules @@5.15.1]) ，包括使用实现扩展提供的宏。使用 ydef.h([Documentation::YBase @@2.3]) 包装的宏代替。
+
+@2.3.2 模块名称宏：
+ YFramework 使用模块名称进行组织。使用公开头文件时，以模块名称（接口）代替头文件名（实现）以保持良好的兼容性。
+模块名称宏在各个公开头文件([Documentation::ProjectRules @@3.3.1]) 目录中的 YModules.h 定义。
+
+@2.3.2.1 命名变换：
+模块名称宏作为标识符的命名和模块名称对应。按以下规则变换模块名称为模块名称宏标识符：
+替换内联模块 name-expression 形式 identifier ( name-expression ) 为 identifier _ name-expression ；
+替换 module-namespace-qualifier 形式后缀 :: 为 _ ；
+删除所有以上替换引入的空白符；
+添加 YFramework 模块前缀 YFM_ 。
+
+@2.3.2.2 命名限制：
+为保证以上变换可逆，约定内联模块名和非内联模块名不重复。
+此外，为了标识符符合 ISO C++ 要求([CommonRules @@5.15.1.2.2])，任何 name-expression 需要满足此规则对标识符的命名限制，且不得以 _ 起始或结束，以避免出现 __ 。
 
 @2.3.2 YFramework 引入的命名空间：
  YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。

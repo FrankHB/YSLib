@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r311
+\version r313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2014-07-22 17:18 +0800
+	2014-07-23 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@
  2014-04-12(build 493) 起：
 使用 http://sourceforge.net/projects/msys2/files/Base/i686/msys2-base-i686-20140216.tar.xz 作为基础环境。
 同时使用 "Tools/msys2-update-pacman.sh" 更新包。
-每次主分支版本前同步 MSys 环境（ @1.5 中明确提到的除外）至最新版本，但保证只依赖对于基础环境向后兼容的特性，因此应可直接升级到更新版本使用，除非基础环境的根目录布局有改变（此时应该使用最新版本的基础环境后更新，或至少同步目录布局）。
+每次主分支版本前同步 MSYS 环境（ @1.5 中明确提到的除外）至最新版本，但保证只依赖对于基础环境向后兼容的特性，因此应可直接升级到更新版本使用，除非基础环境的根目录布局有改变（此时应该使用最新版本的基础环境后更新，或至少同步目录布局）。
 
 @1.4 DS 平台工具链和标准库实现：
 目标平台 DS ，实现环境参见 @5.1 。
@@ -106,7 +106,7 @@
  2014-04-06(build 492) 起：
  devkitARM release 42 / libnds 1.5.8 / libfat 1.0.12 / default arm7 0.5.25 。
  2014-04-13(build 493) 起：
-在 Windows 上使用 MSys2 环境的包 make 代替 devkitPro/msys 。参见 @1.3 。
+在 Windows 上使用 MSYS2 环境的包 make 代替 devkitPro/msys 。参见 @1.3 。
 
 @1.4.1 DS 平台构建说明：
 需要使用宏 DEVKITARM 指定 devkitARM 的路径。

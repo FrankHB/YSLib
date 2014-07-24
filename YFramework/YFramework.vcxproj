@@ -121,7 +121,7 @@
     <ClInclude Include="include\CHRLib\YModules.h" />
     <ClInclude Include="include\Helper\GUIApplication.h" />
     <ClInclude Include="include\Helper\GUIShell.h" />
-    <ClInclude Include="include\Helper\Host.h" />
+    <ClInclude Include="include\Helper\Environment.h" />
     <ClInclude Include="include\Helper\HostedUI.h" />
     <ClInclude Include="include\Helper\HostRenderer.h" />
     <ClInclude Include="include\Helper\HostWindow.h" />
@@ -161,7 +161,6 @@
     <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
-    <ClInclude Include="include\YSLib\Core\Cache.hpp" />
     <ClInclude Include="include\YSLib\Core\Task.h" />
     <ClInclude Include="include\YSLib\Core\ValueNode.h" />
     <ClInclude Include="include\YSLib\Core\yapp.h" />
@@ -241,7 +240,7 @@
     <ClCompile Include="source\CHRLib\MapEx.cpp" />
     <ClCompile Include="source\Helper\GUIApplication.cpp" />
     <ClCompile Include="source\Helper\GUIShell.cpp" />
-    <ClCompile Include="source\Helper\Host.cpp" />
+    <ClCompile Include="source\Helper\Environment.cpp" />
     <ClCompile Include="source\Helper\HostedUI.cpp" />
     <ClCompile Include="source\Helper\HostRenderer.cpp" />
     <ClCompile Include="source\Helper\HostWindow.cpp" />

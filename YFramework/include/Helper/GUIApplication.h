@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r326
+\version r342
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-06-04 09:27 +0800
+	2014-07-24 09:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,14 +50,12 @@ namespace YSLib
 */
 class YF_API GUIApplication : public Application
 {
-#if YF_Hosted
 private:
 	/*!
 	\brief 环境状态。
 	\since build 502
 	*/
 	unique_ptr<Environment> p_env;
-#endif
 
 public:
 	/*!
@@ -78,10 +76,9 @@ public:
 	*/
 	~GUIApplication() override;
 
-#if YF_Hosted
+	//! \since build 521
 	Environment&
-	GetHost();
-#endif
+	GetEnvironment() ynothrow;
 
 	/*!
 	\brief 处理当前消息。
@@ -115,19 +112,17 @@ FetchGlobalInstance() ynothrow
 }
 //@}
 
-#if YF_Hosted
-namespace Host
-{
 
-//! \since build 398
+/*!
+\brief 取单一环境对象引用。
+\since build 398
+*/
 inline Environment&
 FetchEnvironment() ynothrow
 {
-	return FetchGlobalInstance().GetHost();
+	return FetchGlobalInstance().GetEnvironment();
 }
 
-} // namespace Host;
-#endif
 
 /*!
 \brief 执行程序主消息循环。

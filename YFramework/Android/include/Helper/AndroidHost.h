@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r173
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-07-06 02:29 +0800
+	2014-07-24 09:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 #define INC_Android_Helper_AndroidHost_h_ 1
 
 #include "YModules.h"
-#include YFM_Helper_Host // for Devices::AndroidScreen;
+#include YFM_Helper_Environment // for Devices::AndroidScreen;
 #if YCL_Android
 #	include <thread>
 #	include <mutex>

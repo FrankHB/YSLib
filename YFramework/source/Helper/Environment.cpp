@@ -8,27 +8,28 @@
 	understand and accept it fully.
 */
 
-/*!	\file Host.cpp
+/*!	\file Environment.cpp
 \ingroup Helper
-\brief 宿主环境。
-\version r1440
+\brief 环境。
+\version r1492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-07-12 20:41 +0800
+	2014-07-25 07:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Helper::Host
+	Helper::Environment
 */
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Host
+#include YFM_Helper_Environment
 #include YFM_Helper_ShellHelper // for YSL_DEBUG_DECL_TIMER;
 #include YFM_YCLib_Input // for platform_ex::FetchCursor;
+#include YFM_Helper_Initialization // for InitializeEnvironment;
 #if YCL_Android
 #	include YFM_Android_Helper_AndroidHost // for Android::FetchDefaultWindow;
 #endif
@@ -51,11 +52,12 @@ std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
 
 #if YF_Hosted
 using namespace Host;
+#endif
 
 namespace
 {
 
-#	if YCL_Win32
+#if YCL_Win32
 ::LRESULT CALLBACK
 WndProc(::HWND h_wnd, unsigned msg, ::WPARAM w_param, ::LPARAM l_param)
 {
@@ -74,12 +76,13 @@ WndProc(::HWND h_wnd, unsigned msg, ::WPARAM w_param, ::LPARAM l_param)
 	}
 	return ::DefWindowProcW(h_wnd, msg, w_param, l_param);
 }
-#	endif
+#endif
 
 } // unnamed namespace;
 
 
 Environment::Environment()
+#if YF_Hosted
 	: wnd_map(), wmap_mtx()
 #	if YF_Multithread == 1
 	, wnd_thrd_count()
@@ -87,14 +90,16 @@ Environment::Environment()
 	, window_class(WindowClassName, WndProc)
 #		endif
 #	endif
+#endif
 {
-	YCL_Trace(Debug, "Host environment lifetime beginned.");
+	InitializeEnvironment();
+	YCL_Trace(Debug, "Environment lifetime beginned.");
 }
 Environment::~Environment()
 {
-	YCL_Trace(Debug, "Host environment lifetime ended.");
+	YCL_Trace(Debug, "Environment lifetime ended.");
 
-#	if !YCL_Android
+#	if YF_Hosted && !YCL_Android
 	using ystdex::get_value;
 
 	std::for_each(wnd_map.cbegin() | get_value, wnd_map.cend() | get_value,
@@ -102,16 +107,18 @@ Environment::~Environment()
 			p->Close();
 	});
 #	endif
+	Uninitialize();
 }
 
+#if YF_Hosted
 Window*
 Environment::GetForegroundWindow() const ynothrow
 {
-#ifdef YCL_Win32
+#	ifdef YCL_Win32
 	return FindWindow(::GetForegroundWindow());
-#else
+#	else
 	return {};
-#endif
+#	endif
 }
 
 void
@@ -129,32 +136,6 @@ Environment::FindWindow(NativeWindowHandle h) const ynothrow
 	const auto i(wnd_map.find(h));
 
 	return i == wnd_map.end() ? nullptr : i->second;
-}
-
-void
-Environment::HostLoop()
-{
-	YTraceDe(Notice, "Host loop beginned.");
-#	if YCL_Win32
-	while(true)
-	{
-		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}}; //!< 本机消息。
-
-		if(::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
-		{
-			if(msg.message == WM_QUIT)
-				break;
-			::TranslateMessage(&msg);
-			::DispatchMessageW(&msg);
-		}
-		else
-		//	std::this_thread::yield();
-		//	std::this_thread::sleep_for(host_sleep);
-			// NOTE: Failure ignored.
-			::WaitMessage();
-	}
-#	endif
-	YTraceDe(Notice, "Host loop ended.");
 }
 
 #	if YF_Multithread == 1
@@ -175,16 +156,9 @@ Environment::MapCursor() const
 #	elif YCL_Android
 	// TODO: Support floating point coordinates.
 	const auto& cursor(platform_ex::FetchCursor());
-	// FIXME: For non-DS-hosted applications.
-	const pair<Point, Point> pr(Point(0, MainScreenHeight),
-		Point(MainScreenWidth, MainScreenHeight << 1));
+	const Point pt(cursor.first, cursor.second);
 
-	if(YB_LIKELY(pr.first.X != pr.second.X && pr.first.Y != pr.second.Y)
-		&& (IsInInterval<float>(cursor.first, pr.first.X, pr.second.X)
-		&& IsInInterval<float>(cursor.second, pr.first.Y, pr.second.Y)))
-		// TODO: Use std::round.
-		return {::round(cursor.first - pr.first.X),
-			::round(cursor.second - pr.first.Y)};
+	return MapPoint ? MapPoint(pt) : pt;
 #	endif
 	return Drawing::Point::Invalid;
 }
@@ -208,7 +182,6 @@ Environment::UpdateRenderWindows()
 		if(pr.second)
 			pr.second->Refresh();
 }
-
 #endif
 
 } // namespace YSLib;

@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r495
+\version r496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-07-14 01:01 +0800
+	2014-07-24 09:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,7 @@
 
 
 #include "Helper/YModules.h"
-#include YFM_Helper_Host
+#include YFM_Helper_Environment
 #include YFM_Helper_GUIApplication // for FetchEnvironent;
 #include YFM_YCLib_Input // for platform::ClearKeyStates;
 #if YCL_Win32
