@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r507
+\version r512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2014-07-23 06:51 +0800
+	2014-07-24 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "Helper/YModules.h"
 #include YFM_Helper_InputManager
 #include YFM_YCLib_Input
-#include YFM_Helper_Host
+#include YFM_Helper_Environment
 #include YFM_Helper_HostRenderer // for Host::Window, Host::RenderWindow;
 #include YFM_Helper_GUIApplication // for FetchEnvironment;
 #if YCL_Win32
@@ -47,10 +47,7 @@ namespace Devices
 {
 
 InputManager::InputManager()
-	: GUI_state(FetchGUIState()), cursor_state()
-#if YF_Hosted
-	, env(Host::FetchEnvironment())
-#endif
+	: GUI_state(FetchGUIState()), cursor_state(), env(FetchEnvironment())
 {}
 
 #if YCL_DS

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3135
+\version r3145
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-07-14 14:55 +0800
+	2014-07-25 07:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@
 #	include YFM_Android_Helper_AndroidHost // for Android::FetchDefaultWindow;
 #endif
 #include YFM_YCLib_Debug
-#include YFM_Helper_Host
+#include YFM_Helper_Environment
 
 namespace YSLib
 {
@@ -93,7 +93,8 @@ DSApplication::DSApplication()
 	p_wnd_thrd.reset(new WindowThread([this]{
 		return unique_ptr<Window>(new DSWindow(CreateNativeWindow(
 			WindowClassName, {256, 384}, L"YSTest", WS_TILED | WS_CAPTION
-			| WS_SYSMENU | WS_MINIMIZEBOX), *scrs[0], *scrs[1], GetHost()));
+			| WS_SYSMENU | WS_MINIMIZEBOX), *scrs[0], *scrs[1],
+			GetEnvironment()));
 	}));
 	while(!p_wnd_thrd->GetWindowPtr())
 		// TODO: Resolve magic sleep duration.
@@ -103,6 +104,14 @@ DSApplication::DSApplication()
 #elif YCL_Android
 
 	const auto h_wnd(&Android::FetchDefaultWindow());
+
+	FetchEnvironment().MapPoint = [](const Point& pt){
+		// XXX: Use alternative implementation rather than Win32's.
+		const Rect
+			bounds(0, MainScreenHeight, MainScreenWidth, MainScreenHeight << 1);
+
+		return bounds.Contains(pt) ? pt - bounds.GetPoint() : Point::Invalid;
+	};
 #endif
 #if YF_Hosted
 
@@ -157,7 +166,7 @@ DSApplication::SwapScreens()
 #if YF_Hosted
 	std::swap(GetDSScreenUp().Offset, GetDSScreenDown().Offset);
 #	if !YCL_Android
-	if(const auto p_wnd = GetHost().GetForegroundWindow())
+	if(const auto p_wnd = GetEnvironment().GetForegroundWindow())
 		p_wnd->Invalidate();
 #	endif
 #endif

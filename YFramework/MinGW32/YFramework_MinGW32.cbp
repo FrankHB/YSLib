@@ -219,9 +219,9 @@
 		<Unit filename="../include/CHRLib/chrproc.h" />
 		<Unit filename="../include/CHRLib/encoding.h" />
 		<Unit filename="../include/CHRLib/smap.hpp" />
+		<Unit filename="../include/Helper/Environment.h" />
 		<Unit filename="../include/Helper/GUIApplication.h" />
 		<Unit filename="../include/Helper/GUIShell.h" />
-		<Unit filename="../include/Helper/Host.h" />
 		<Unit filename="../include/Helper/HostRenderer.h" />
 		<Unit filename="../include/Helper/HostWindow.h" />
 		<Unit filename="../include/Helper/HostedUI.h" />
@@ -260,7 +260,6 @@
 		<Unit filename="../include/YSLib/Adaptor/ycont.h" />
 		<Unit filename="../include/YSLib/Adaptor/ynew.h" />
 		<Unit filename="../include/YSLib/Adaptor/yref.hpp" />
-		<Unit filename="../include/YSLib/Core/Cache.hpp" />
 		<Unit filename="../include/YSLib/Core/Task.h" />
 		<Unit filename="../include/YSLib/Core/ValueNode.h" />
 		<Unit filename="../include/YSLib/Core/YModules.h" />
@@ -337,9 +336,9 @@
 		<Unit filename="../source/CHRLib/MapEx.cpp" />
 		<Unit filename="../source/CHRLib/chrmap.cpp" />
 		<Unit filename="../source/CHRLib/chrproc.cpp" />
+		<Unit filename="../source/Helper/Environment.cpp" />
 		<Unit filename="../source/Helper/GUIApplication.cpp" />
 		<Unit filename="../source/Helper/GUIShell.cpp" />
-		<Unit filename="../source/Helper/Host.cpp" />
 		<Unit filename="../source/Helper/HostRenderer.cpp" />
 		<Unit filename="../source/Helper/HostWindow.cpp" />
 		<Unit filename="../source/Helper/HostedUI.cpp" />

@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r272
+\version r296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-06-04 09:24 +0800
+	2014-07-24 17:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "Helper/YModules.h"
 #include YFM_Helper_HostRenderer
-#include YFM_Helper_Host // for Environment;
+#include YFM_Helper_Environment // for Environment;
 //#include YFM_Helper_GUIApplication
 
 namespace YSLib
@@ -107,6 +107,30 @@ WindowThread::~WindowThread()
 }
 
 void
+WindowThread::HostLoop()
+{
+	YTraceDe(Notice, "Host loop beginned.");
+#	if YCL_Win32
+	while(true)
+	{
+		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}}; //!< 本机消息。
+
+		if(::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
+		{
+			if(msg.message == WM_QUIT)
+				break;
+			::TranslateMessage(&msg);
+			::DispatchMessageW(&msg);
+		}
+		else
+			// NOTE: Failure ignored.
+			::WaitMessage();
+	}
+#	endif
+	YTraceDe(Notice, "Host loop ended.");
+}
+
+void
 WindowThread::ThreadLoop(NativeWindowHandle h_wnd)
 {
 	ThreadLoop(make_unique<Window>(h_wnd));
@@ -131,7 +155,7 @@ WindowThread::WindowLoop(Window& wnd)
 #	if !YCL_Android
 	wnd.Show();
 #	endif
-	Environment::HostLoop();
+	HostLoop();
 #	if YF_Multithread
 	env.LeaveWindowThread();
 #	endif

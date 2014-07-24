@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r285
+\version r291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-05-26 14:50 +0800
+	2014-07-24 14:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,6 +92,13 @@ public:
 
 	//! \note 线程安全。
 	DefGetter(const ynothrow, Window*, WindowPtr, p_wnd)
+
+	/*!
+	\brief 宿主消息循环。
+	\since build 379
+	*/
+	static void
+	HostLoop();
 
 private:
 	template<typename _fCallable, typename... _tParams>

@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 核心模块配置文件。
-\version r63
+\version r64
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:25 +0800
 \par 修改时间:
-	2014-02-05 16:09 +0800
+	2014-07-24 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,6 @@
 #define YFM_YSLib_Core_YStorage <YSLib/Core/ystorage.hpp>
 #define YFM_YSLib_Core_ValueNode <YSLib/Core/ValueNode.h>
 #define YFM_YSLib_Core_Task <YSLib/Core/Task.h>
-#define YFM_YSLib_Core_Cache <YSLib/Core/Cache.hpp>
 //@}
 
 #endif

@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r707
+\version r715
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-04-23 01:06 +0800
+	2013-07-24 02:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,6 +124,11 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 #	define WIN32_LEAN_AND_MEAN 1
 #endif
 
+#ifndef NOMINMAX
+//! \since build 521
+#	define NOMINMAX 1
+#endif
+
 #include <Windows.h>
 #include <direct.h> // for ::_mkdir;
 #include <sys/stat.h>
@@ -181,13 +186,14 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 namespace platform_replace
 {
 
+#undef mkdir
 /*!
 \brief 修正 MinGW 中的 mkdir 参数问题。
-
-忽略第二参数。
+\note 忽略第二参数。
+\since build 521
 */
 inline int
-makedir(char const* dir, ::mode_t)
+mkdir(char const* dir, ::mode_t = 0777)
 {
 	return ::_mkdir(dir);
 }

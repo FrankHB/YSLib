@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIShell.cpp
 \ingroup Helper
 \brief GUI Shell 类。
-\version r112
+\version r115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 399
 \par 创建时间:
 	2013-04-14 05:42:22 +0800
 \par 修改时间:
-	2013-12-24 00:38 +0800
+	2014-07-24 09:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "Helper/YModules.h"
 #include YFM_Helper_GUIShell
 #include YFM_Helper_GUIApplication // for FetchEnvironent;
-#include YFM_Helper_Host
+#include YFM_Helper_Environment
 #include <thread> // for std::this_thread::sleep_for;
 
 namespace YSLib
@@ -71,7 +71,7 @@ GUIShell::OnInput()
 	OnPaint();
 #if YF_Hosted
 	// TODO: Use host reference stored by shell.
-	Host::FetchEnvironment().UpdateRenderWindows();
+	FetchEnvironment().UpdateRenderWindows();
 	std::this_thread::sleep_for(IdleSleep);
 #endif
 	// NOTE: Use code below if non-hosted delay is needed.

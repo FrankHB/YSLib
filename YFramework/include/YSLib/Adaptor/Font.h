@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3224
+\version r3227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2014-07-10 03:26 +0800
+	2014-07-24 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include <string>
 #include YFM_YSLib_Core_YException
 #include YFM_YSLib_Adaptor_YTextBase
-#include YFM_YSLib_Core_Cache
+#include <ystdex/cache.hpp>
 
 //包含 FreeType2 。
 
@@ -272,8 +272,8 @@ private:
 	//! \since build 420
 	pair<std::reference_wrapper<FontFamily>,
 		std::reference_wrapper<::FT_FaceRec_>> ref;
-	//! \since build 461
-	mutable GMRUCache<BitmapKey, SmallBitmapData, BitmapKeyHash>
+	//! \since build 521
+	mutable ystdex::used_list_cache<BitmapKey, SmallBitmapData, BitmapKeyHash>
 		bitmap_cache;
 	//! \since build 419
 	mutable unordered_map<ucs4_t, ::FT_UInt> glyph_index_cache;
