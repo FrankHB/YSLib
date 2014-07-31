@@ -69,6 +69,7 @@
 		<Unit filename="include/ystdex/cstring.h" />
 		<Unit filename="include/ystdex/cwctype.h" />
 		<Unit filename="include/ystdex/examiner.hpp" />
+		<Unit filename="include/ystdex/exception.hpp" />
 		<Unit filename="include/ystdex/functional.hpp" />
 		<Unit filename="include/ystdex/iterator.hpp" />
 		<Unit filename="include/ystdex/memory.hpp" />

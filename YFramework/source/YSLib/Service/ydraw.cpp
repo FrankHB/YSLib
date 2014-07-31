@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1049
+\version r1052
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2014-07-18 14:43 +0800
+	2014-07-25 21:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,9 @@ PlotCircle(void(*plotter)(const Graphics&, const Rect&, SPos, SPos, SDst, SDst,
 	Color), const Graphics& g, const Rect& bounds, const Point& pt, SDst r,
 	Color c)
 {
-	YAssertNonnull(plotter);
+	YAssertNonnull(plotter),
+	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
+		"The boundary is out of the buffer.");
 	if(r != 0)
 		// Bresenham circle algorithm implementation.
 		// See http://willperone.net/Code/codecircle.php .

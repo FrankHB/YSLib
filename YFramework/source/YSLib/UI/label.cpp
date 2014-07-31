@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1337
+\version r1373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2014-07-08 20:00 +0800
+	2014-07-31 20:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,51 +115,6 @@ void
 Label::Refresh(PaintEventArgs&& e)
 {
 	DrawText(GetSizeOf(*this), ForeColor, e);
-}
-
-
-MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt)
-	: MLabel(fnt),
-	hList(h), tsList(Font)
-{
-	if(!hList)
-		hList = make_shared<ListType>();
-}
-
-MTextList::ItemType*
-MTextList::GetItemPtr(const IndexType& idx)
-{
-	auto& lst(GetListRef());
-
-	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
-}
-const MTextList::ItemType*
-MTextList::GetItemPtr(const IndexType& idx) const
-{
-	const auto& lst(GetList());
-
-	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
-}
-
-SDst
-MTextList::GetMaxTextWidth() const
-{
-	return FetchMaxTextWidth(Font, GetList().cbegin(), GetList().cend());
-}
-
-MTextList::IndexType
-MTextList::Find(const ItemType& text) const
-{
-	const auto& lst(GetList());
-	const auto i(std::find(lst.begin(), lst.end(), text));
-
-	return i != lst.end() ? i - lst.begin() : IndexType(-1);
-}
-
-void
-MTextList::RefreshTextState()
-{
-	yunseq(tsList.LineGap = GetVerticalOf(Margin), tsList.Font = Font);
 }
 
 } // namespace UI;

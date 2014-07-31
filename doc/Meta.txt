@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1080
+\version r1095
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-07-11 05:39 +0800
+	2014-07-31 12:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,14 +223,6 @@ $no(23) $open $prior(minor)
 * $known_issue(b444) "class %Rect assignment '= {}' ambiguity" $since b319;
 	// This is a minor issue, which can be resolved by specifying 'explicit' \
 		on function parameters in future version of C++.
-$no(24) $deferred $prior(minor) $debug
-* $known_issue(b517) $workaround(b517) $debug "GDB crash on Windows when class \
-	%YSLib::UI::TextPlaceholder used"
-	// Use of class %YSLib::UI::TextPlaceholder cause gdborig.exe of \
-		i686-pc-msys gdb 7.6.1 (mingw-builds) and gdb.exe of i686-w64-mingw32 \
-		gdb 7.7.1 (MSYS2) to crash. As per b517, the class is only in header, \
-		and the library has not directly use it yet. Just remove code from \
-		user program to workaround.
 
 
 $TO_BE_REVIEWED_ENVIRONMENT_ISSUE:
@@ -283,7 +275,7 @@ $no(19) $prior(major) $plat(DS)
 		problem can be located. So upgrading is stopped (on all platform to \
 		keep one headers version), but recompiling can be performed for \
 		optimization on binary size.
-	// FreeType 2.5.0.1 test @ b418.
+	// FreeType 2.5.0.1 tested @ b418.
 	// FreeType 2.5.0.1 without cache subsystem test @ b419.
 	// See http://savannah.nongnu.org/bugs/index.php?39383 .
 	// Recompiled the library with "sfnt/ttmtx.c" with header \
@@ -334,6 +326,15 @@ $no(21) $prior(trivial) $plat(DS)
 	@ $interval([b427, b492));
 	// OK for MinGW G++ 4.8.1.
 	// devkitPro G++ 4.8.2 tested fixed @ b492.
+$no(24) $prior(minor) $plat(MinGW32) $debug
+* $known_issue(b517) $workaround(b517) $resolved(b522) "GDB crash on Windows \
+	when class %YSLib::UI::TextPlaceholder used" @ $interval([b517, b522));
+	// Use of class %YSLib::UI::TextPlaceholder cause gdborig.exe of \
+		i686-pc-msys GDB 7.6.1 (mingw-builds) and gdb.exe of i686-w64-mingw32 \
+		GDB 7.7.1 (MSYS2) to crash. As per b517, the class is only in header, \
+		and the library has not directly use it yet. Just remove code from \
+		user program to workaround.
+	// i686-w64-mingw32 GDB 7.8-1 (MSYS2) tested fixed @ b522.
 
 
 $RESOLVED_BUG:

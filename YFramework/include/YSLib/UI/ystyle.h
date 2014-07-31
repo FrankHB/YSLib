@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r654
+\version r696
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-04-06 16:26 +0800
+	2014-07-26 11:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,9 @@ DrawRectRoundCorner(const PaintContext& pc, const Size& s, Color);
 
 
 /*!
-\brief 在指定上下文的矩形中画箭头。
+\brief 在指定上下文的矩形中描画底边和坐标轴共线的等腰直角三角形箭头。
+\pre 断言：指向值有效。
+\note 位置指定顶点；大小以高度量； RDeg0 指向右侧。
 \since build 453
 */
 YF_API void
@@ -61,12 +63,52 @@ RectDrawArrow(const PaintContext&, SDst, Rotation = RDeg0,
 	Color = ColorSpace::Black);
 
 /*!
-\brief 在指定图形接口上下文上描画箭头。
-\since build 302
+\pre 断言：指向值有效。
+\since build 522
+*/
+//@{
+/*!
+\brief 在指定上下文的矩形中描画底边和坐标轴共线的等腰直角三角形箭头轮廓。
+\note 位置指定顶点；大小以高度量； RDeg0 指向右侧。
+*/
+YF_API void
+RectDrawArrowOutline(const PaintContext&, SDst, Rotation = RDeg0,
+	Color = ColorSpace::Black);
+
+/*!
+\brief 在指定上下文的矩形中描画腰和坐标轴共线的等腰直角三角形箭头。
+\note 位置指定顶点；大小以斜边度量； RDeg0 指向右下角。
+*/
+YF_API void
+RectDrawCornerArrow(const PaintContext&, SDst, Rotation = RDeg0,
+	Color = ColorSpace::Black);
+
+/*!
+\brief 在指定上下文的矩形中描画腰和坐标轴共线的等腰直角三角形箭头轮廓。
+\note 位置指定顶点；大小以斜边度量； RDeg0 指向右下角。
+*/
+YF_API void
+RectDrawCornerArrowOutline(const PaintContext&, SDst, Rotation = RDeg0,
+	Color = ColorSpace::Black);
+
+/*!
+\brief 在指定图形接口上下文上描画底边和坐标轴共线的等腰直角三角形箭头。
+\note 位置由边界左上角决定，指定图形左上角；大小以高度量； RDeg0 指向右侧。
+\note 最后的参数决定是否仅描画轮廓。
 */
 YF_API void
 DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
-	Color = ColorSpace::Black);
+	Color = ColorSpace::Black, bool = {});
+
+/*!
+\brief 在指定图形接口上下文上描画腰和坐标轴共线的等腰直角三角形箭头。
+\note 位置由边界左上角决定，指定图形左上角；大小以斜边度量； RDeg0 指向右下角。
+\note 最后的参数决定是否仅描画轮廓。
+*/
+YF_API void
+DrawCornerArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
+	Color = ColorSpace::Black, bool = {});
+//@}
 
 /*!
 \brief 在指定图形接口上下文中使用指定颜色描画交叉直线段（“×”）。

@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1805
+\version r1806
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-06-15 15:24 +0800
+	2014-07-30 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -234,7 +234,7 @@ MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 
 		auto& wgt(*p_wgt);
 
-		PaintVisibleChild(wgt, e);
+		PaintVisibleChildAndCommit(wgt, e);
 	});
 }
 

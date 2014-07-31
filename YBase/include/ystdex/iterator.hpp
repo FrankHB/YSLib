@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3453
+\version r3589
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-07-14 14:30 +0800
+	2014-07-31 11:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -736,11 +736,10 @@ operator>=(const transformed_iterator<_type, _fTransformer>& x,
 }
 //@}
 
-
 /*!
 \ingroup helper_functions
 \brief 创建转换迭代器。
-\note 使用 ADL 。
+\relates transformed_iterator
 \since build 494
 */
 template<typename _tIter, typename _fTransformer>
@@ -1155,6 +1154,157 @@ operator!=(const indirect_input_iterator<_tIter>& x,
 
 
 /*!
+\brief 原型迭代器：共享对象引用，在解引用时进行指定的更新操作。
+\since build 522
+*/
+template<typename _type, typename _fUpdater>
+class prototyped_iterator
+{
+public:
+	using updater_type = _fUpdater;
+	using iterator_category = std::random_access_iterator_tag;
+	using value_type = _type;
+	using difference_type = ptrdiff_t;
+	using pointer = _type*;
+	using reference = _type&;
+
+protected:
+	std::reference_wrapper<value_type> proto_ref;
+	size_t idx;
+	updater_type updater;
+
+public:
+	template<typename _fCallable>
+	yconstfn
+	prototyped_iterator(value_type& proto, size_t i, _fCallable&& f)
+		: proto_ref(proto), idx(i), updater(yforward(f))
+	{}
+
+	prototyped_iterator&
+	operator+=(difference_type n)
+	{
+		idx += n;
+		return *this;
+	}
+
+	prototyped_iterator&
+	operator-=(difference_type n)
+	{
+		yassume(!(idx < n));
+		idx -= n;
+		return *this;
+	}
+
+	reference
+	operator*() const
+	{
+		updater(proto_ref.get(), idx);
+		return proto_ref;
+	}
+
+	pointer
+	operator->() const
+	{
+		return std::addressof(**this);
+	}
+
+	prototyped_iterator&
+	operator++() ynothrow
+	{
+		++idx;
+		return *this;
+	}
+	prototyped_iterator
+	operator++(int) ynothrow
+	{
+		auto i(*this);
+
+		++*this;
+		return i;
+	}
+
+	prototyped_iterator
+	operator--() ynothrow
+	{
+		--idx;
+		return *this;
+	}
+	prototyped_iterator
+	operator--(int) ynothrow
+	{
+		auto i(*this);
+
+		--*this;
+		return i;
+	}
+
+	reference
+	operator[](difference_type n) const
+	{
+		yassume(!(idx + n < 0));
+		updater(proto_ref.get(), idx + n);
+		return proto_ref;
+	}
+
+	prototyped_iterator
+	operator+(difference_type n) const
+	{
+		yassume(!(idx + n < 0));
+		return prototyped_iterator(proto_ref, idx + n, updater);
+	}
+
+	prototyped_iterator
+	operator-(difference_type n) const
+	{
+		yassume(!(idx + n < 0));
+		return prototyped_iterator(proto_ref, idx - n, updater);
+	}
+
+	bool
+	equals(const prototyped_iterator& i) const ynothrow
+	{
+		return std::addressof(proto_ref.get())
+			== std::addressof(i.proto_ref.get()) && idx == i.idx;
+	}
+};
+
+/*!
+\relates prototyped_iterator
+\since build 522
+*/
+//@{
+//! \brief 比较原型迭代器的相等性。
+template<typename _type, typename _fUpdater>
+bool
+operator==(const prototyped_iterator<_type, _fUpdater>& x,
+	const prototyped_iterator<_type, _fUpdater>& y) ynothrow
+{
+	return x.equals(y);
+}
+
+//! \brief 比较原型迭代器的不等性。
+template<typename _type, typename _fUpdater>
+bool
+operator!=(const prototyped_iterator<_type, _fUpdater>& x,
+	const prototyped_iterator<_type, _fUpdater>& y) ynothrow
+{
+	return !(x == y);
+}
+
+/*!
+\ingroup helper_functions
+\brief 创建原型迭代器。
+*/
+template<typename _type, typename _fUpdater>
+yconstfn prototyped_iterator<_type, _fUpdater>
+make_prototyped_iterator(_type& proto, size_t i, _fUpdater f)
+{
+	return prototyped_iterator<_type, _fUpdater>(proto, i, f);
+}
+//@}
+
+
+/*!
 \ingroup iterators
 \brief 成员下标迭代器。
 \warning 非虚析构。
@@ -1179,8 +1329,9 @@ protected:
 	size_t idx;
 
 public:
+	//! \since build 522
 	yconstfn
-	subscriptive_iterator(_tCon& c, size_t i)
+	subscriptive_iterator(container_type& c, size_t i)
 		: con_ptr(std::addressof(c)), idx(i)
 	{}
 
@@ -1274,7 +1425,7 @@ public:
 
 	//! \since build 461
 	bool
-	equals(const subscriptive_iterator<_tCon, _type>& i) const ynothrow
+	equals(const subscriptive_iterator& i) const ynothrow
 	{
 		return con_ptr == i.con_ptr && idx == i.idx;
 	}

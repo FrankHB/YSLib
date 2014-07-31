@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r769
+\version r772
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-07-25 06:00 +0800
+	2014-07-30 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -594,6 +594,10 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
  YFramework 使用 UTF-8 作为外部文本编码。
 除非显式指定表示编码的参数或另有说明，以 char 作为字符类型的 C 风格字符串使用外部文本编码。
 关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.6] 。
+
+@3.3 实现定义行为使用：
+基本内容参见 [Documentation::CommonRules @@5.1.3] 。以下为补充例外约定。
+允许未回绕([Documentation::CommonRules @@5.8.8.2]) 的无符号整数算术表达式计算结果向有符号整数显式转换，不需特别在接口说明范围，仅需实现注释。注意仍然禁止依赖无符号整数隐式转换为有符号整数。
 
 @4 编码风格导引：
 基本内容参见 [Documentation::Designation @@6] 。

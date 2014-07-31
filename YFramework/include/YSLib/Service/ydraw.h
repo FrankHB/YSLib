@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1166
+\version r1172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-07-08 03:39 +0800
+	2014-07-25 21:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -218,15 +218,18 @@ inline PDefH(void, FillRect, const Graphics& g, const Rect& bounds,
 //@}
 
 
-//! \pre 间接断言：图形接口缓冲区指针非空。
+/*!
+\pre 断言： bounds 在 g 指定的边界内。
+\pre 间接断言：图形接口缓冲区有效。
+*/
 //@{
 //! \brief 描画圆形。
 YF_API void
-DrawCircle(const Graphics&, const Rect&, const Point&, SDst, Color c);
+DrawCircle(const Graphics& g, const Rect& bounds, const Point&, SDst, Color);
 
 //! \brief 填充圆形。
 YF_API void
-FillCircle(const Graphics&, const Rect&, const Point&, SDst, Color c);
+FillCircle(const Graphics& g, const Rect& bounds, const Point&, SDst, Color);
 //@}
 
 

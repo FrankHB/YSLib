@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r1051
+\version r1070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-07-22 10:13 +0800
+	2014-07-29 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@ See readme file for details.
 #include <ystdex/mixin.hpp>
 #include YFM_MinGW32_YCLib_Consoles // for platform_ex::WConsole;
 #include <ystdex/concurrency.h> // for ystdex::thread_pool;
+#include <ystdex/exception.hpp> // for ystdex::raise_exception;
 
 using std::for_each;
 using std::wstring;
@@ -82,17 +83,10 @@ yconstexpr auto build_path(u8".shbuild\\");
 //! \since build 477
 //@{
 using IntException = ystdex::wrap_mixin_t<std::exception, int>;
-
-template<class _type>
-YB_ATTR(noreturn) inline void
-Raise(const _type& e)
-{
-	if(std::uncaught_exception())
-		std::throw_with_nested(e);
-	throw e;
-}
-YB_ATTR(noreturn) inline PDefH(void, Raise, int ret)
-	ImplExpr(Raise<IntException>({std::exception(), ret}));
+using ystdex::raise_exception;
+//! \since build 522
+YB_NORETURN inline PDefH(void, raise_exception, int ret)
+	ImplExpr(raise_exception<IntException>({std::exception(), ret}));
 
 template<typename _fCallable>
 void
@@ -270,7 +264,7 @@ BuildContext::Build()
 	if(ipath.empty())
 	{
 		PrintError(u8"ERROR: Empty SRCPATH found.");
-		Raise(1);
+		raise_exception(1);
 	}
 	if(IsRelative(ipath))
 		ipath = Path(FetchCurrentWorkingDirectory()) / ipath;
@@ -282,7 +276,7 @@ BuildContext::Build()
 	if(!VerifyDirectory(in))
 	{
 		PrintError(u8"ERROR: SRCPATH is not existed.");
-		Raise(1);
+		raise_exception(1);
 	}
 	try
 	{
@@ -295,7 +289,7 @@ BuildContext::Build()
 		oss << "ERROR: Failed creating build directory." << '\''
 			<< build_path << '\'';
 		PrintError(oss.str());
-		Raise(2);
+		raise_exception(2);
 	}
 
 	for_each(next(Options.begin()), Options.end(), [&](const string& opt){
@@ -357,7 +351,7 @@ BuildContext::Search(const string& path, const string& opath) const
 	}
 	catch(std::system_error& e)
 	{
-		Raise(std::runtime_error(u8"Failed creating directory '"
+		raise_exception(std::runtime_error(u8"Failed creating directory '"
 			+ opath + u8"'."));
 	}
 	Traverse(opath, [&](HDirectory& dir, const string& name){
@@ -371,8 +365,8 @@ BuildContext::Search(const string& path, const string& opath) const
 				if(ext == u"a" || ext == u"o")
 				{
 					if(!uremove((opath + name).c_str()))
-						Raise(std::runtime_error(u8"Failed deleting file '"
-							+ name + u8"'."));
+						raise_exception(std::runtime_error(
+							u8"Failed deleting file '" + name + u8"'."));
 					PrintInfo(u8"Deleted file '" + name + u8"'.");
 				}
 			}
@@ -395,7 +389,7 @@ BuildContext::Search(const string& path, const string& opath) const
 						+ u8".o"));
 
 					if(ret != 0)
-						Raise(0x10000 + ret);
+						raise_exception(0x10000 + ret);
 				}
 			}
 			else
@@ -444,7 +438,7 @@ BuildContext::Search(const string& path, const string& opath) const
 		const int ret(Call(str));
 
 		if(ret != 0)
-			Raise(ret + 0x20000);
+			raise_exception(ret + 0x20000);
 	}
 }
 //@}
