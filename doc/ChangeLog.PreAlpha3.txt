@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4963
+\version r4978
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-07-17 06:27 +0800
+	2014-07-30 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,8 +132,7 @@ b398
 				/ @ "class %ValueNode" $=
 				(
 					+ "function %GetContainerPtr",
-					/ $dev "implementation" @ "functions"
-						!^ "catching exceptions",
+					/ $dev "implemented functions" !^ "catching exceptions",
 						// It's convenient for debugging without catching \
 							such exceptions.
 					- "function 'ValueNode& ValueNode::GetNode(const string&)'",
@@ -335,7 +334,7 @@ b392
 	),
 	/ $dev $build @ "platform %MinGW32" $=
 	(
-		^ DLP $re_ex(b346)"MinGW[gcc version 4.8.0 (Built by MinGW-builds \
+		^ DLP $re_ex(b346) "MinGW[gcc version 4.8.0 (Built by MinGW-builds \
 			project)] x32-4.8.0-release-posix-sjlj-rev0" ~ "MinGW[gcc version \
 			4.7.2 (Built by MinGW-builds project)] \
 			x32-4.7.2-release-posix-sjlj-rev0 [release-sjlj]"
@@ -595,7 +594,7 @@ b384
 				b314; "as public interface" @ %ShellHelper $since b378),
 				// Wrong name caused use of this macro more than once in the \
 					same scope leading to redefinition.
-			- "assertion" @ "implementation" @ "function %ShlDS::OnGotMessage"
+			- "assertion" @ "function %ShlDS::OnGotMessage"
 		),
 		/ "macro %DefClone parameter with qualifier/specifier"
 			@ %YSLib.Core.YBaseMacro
@@ -1104,8 +1103,8 @@ b371
 				/ "remained margin clipping for %MLabel::DrawText but not \
 					%(TextList, Menu)::DrawItem",
 				)
-				/ "implementation" @ "function %Menu::DrawItem"
-					^ "call function %TextList::DrawItem"
+				/ "implemented function %Menu::DrawItem"
+					^ "function %TextList::DrawItem"
 			)
 		)
 	),
@@ -1988,17 +1987,18 @@ b346
 		[release-sjlj]" @ "platform %MinGW32",
 			// Unchanged: Target=i686-w64-mingw32, Thread model: posix, \
 				Exceptions implementation: SjLj.
-	/ %YFramework.YSLib.UI.GUI $=
+	/ %YFramework.YSLib.UI $=
 	(
-		/ $dev "pointer members" @ "class %Widget",
+		/ $dev "pointer members" @ "class %Widget" @ %YWidget,
 		+ $dev $design "keyword %override for several overriders",
-		/ $dev "simplified text state member access" @ "class %MTextList",
-		/ @ "class %TextList" @ %YFramework.YSLib.UI.GUI $=
+		/ $dev "simplified text state member access" @ "class %MTextList"
+			@ %Label,
+		/ @ "class %TextList" @ %TextList $=
 		(
 			/ "renamed several protected functions",
 			+ "protected virtual function %DrawItemBackground",
 			+ $dev $lib "more partial invalidation support on refreshing"
-				// Drawing items out of invalidated area ignored. Perhaps no \
+				// Items out of invalidated area are ignored. Perhaps no \
 					obvious performance improved for widget as part of others \
 					because invalidated area could be enlarged by other widgets.
 		)
@@ -2646,7 +2646,7 @@ b326
 				@ "(constructor, function %Open)" @ "classes %(File, TextFile)";
 			$dep_to "open_file"
 			),
-			/ DLD "implementation" @ "function template %TransformRect"
+			/ DLD "implemented function template %TransformRect"
 				@ "header %YBlit" ^ "macro %YB_LIKELY"
 		),
 		/ %Helper $=
@@ -3023,7 +3023,7 @@ b317
 				/ @ "class %MessageQueue" @ %YMessage $=
 				(
 					/ "iterator type exposed",
-					/ "implementation" @ "function %Peek for better \
+					/ $lib "implementation" @ "function %Peek for better \
 						performance",
 					/ DLD "implementation" @ "class %Message"
 						^ "%std::multimap" ~ "%std::multiset",
@@ -3047,7 +3047,7 @@ b317
 			)
 			/ @ "unit %DSMain" $=
 			(
-				/ DLD "implementation" @ "function %DSApplication::DealMessage",
+				/ DLD "implemented function %DSApplication::DealMessage",
 				/ "implementation" @ "idle function"
 					// A little better performance for broadcasting message.
 			)

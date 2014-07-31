@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1526
+\version r1528
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-06-15 13:32 +0800
+	2014-07-26 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -846,9 +846,10 @@ UpdateClipSize(PaintContext& pc, const Size& s)
 
 /*!
 \brief 逆时针旋转角度指示输出指向。
+\note 保证底层为无符号整数类型。
 \since build 416
 */
-enum Rotation
+enum Rotation : yimpl(size_t)
 {
 	RDeg0 = 0,
 	RDeg90 = 1,

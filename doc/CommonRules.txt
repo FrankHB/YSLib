@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r3025
+\version r3027
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2014-07-24 10:07 +0800
+	2014-07-30 10:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1072,8 +1072,8 @@ $4.1.3.1.4 临时性例外：
 避免程序的结果依赖于引起未指定行为(unspecified behavior) 的特性。
 禁止接口行为依赖于特定的未指定行为。
 
-@5.1.3
-需要使用引起实现定义行为(implementation-defined behavior) 的特性时，适当注释。
+@5.1.3 实现定义行为(implementation-defined behavior) ：
+需要使用引起实现定义行为的特性时，适当注释。
 禁止接口行为依赖于特定的由实现定义行为，除非存在显式的接口使用约束（同时给出注释）。
 注意 ISO C++ 中，实现定义行为不是未指定行为的子集，这点和 ISO C 不同。
 

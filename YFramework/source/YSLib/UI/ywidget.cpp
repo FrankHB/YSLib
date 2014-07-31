@@ -11,13 +11,13 @@
 /*!	\file ywidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4451
+\version r4455
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-06-16 23:22 +0800
+	2014-07-30 20:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,10 +183,9 @@ PaintChild(IWidget& wgt, const PaintContext& pc)
 }
 
 void
-PaintVisibleChild(IWidget& wgt, PaintEventArgs& e)
+PaintChildAndCommit(IWidget& wgt, PaintEventArgs& e)
 {
-	if(IsVisible(wgt))
-		e.ClipArea |= PaintChild(wgt, e);
+	e.ClipArea |= PaintChild(wgt, e);
 }
 
 void
@@ -259,7 +258,7 @@ Widget::Refresh(PaintEventArgs&& e)
 {
 	if(!e.ClipArea.IsUnstrictlyEmpty())
 		for(auto pr(GetChildren()); pr.first != pr.second; ++pr.first)
-			PaintVisibleChild(*pr.first, e);
+			PaintVisibleChildAndCommit(*pr.first, e);
 }
 
 } // namespace UI;

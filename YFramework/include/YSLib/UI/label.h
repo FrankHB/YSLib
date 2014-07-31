@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1370
+\version r1458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-07-08 20:02 +0800
+	2014-07-31 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,104 +142,6 @@ public:
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
-};
-
-
-/*!
-\ingroup UIModels
-\brief 文本列表模块。
-\warning 非虚析构。
-*/
-class YF_API MTextList : public MLabel
-{
-public:
-	using ItemType = String; //!< 项目类型：字符串。
-	using ListType = vector<ItemType>; //!< 列表类型。
-	using IndexType = typename ListType::size_type; //!< 索引类型。
-
-protected:
-	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
-	/*!
-	\brief 列表文本状态。
-	\since build 346
-	*/
-	Drawing::TextState tsList;
-
-protected:
-	/*!
-	\brief 构造：使用文本列表句柄和字体指针。
-	\note 当文本列表指针为空时新建。
-	\since build 337
-	*/
-	explicit
-	MTextList(const shared_ptr<ListType>& = {}, const Drawing::Font& = {});
-	DefDeMoveCtor(MTextList)
-
-	//void
-	//PaintTextList(Widget&, const Point&);
-
-public:
-	/*!
-	\brief 取文本列表。
-	\since build 392
-	*/
-	DefGetter(const ynothrow, const ListType&, List, *hList)
-	/*!
-	\brief 取文本列表引用。
-	\since build 392
-	*/
-	DefGetter(ynothrow, ListType&, ListRef, *hList)
-	/*!
-	\brief 取指定项目索引的项目指针。
-	\since build 392
-	*/
-	ItemType*
-	GetItemPtr(const IndexType&);
-	/*!
-	\brief 取指定项目索引的项目 const 指针。
-	\since build 392
-	*/
-	const ItemType*
-	GetItemPtr(const IndexType&) const;
-	/*!
-	\brief 取项目行高。
-	\since build 301
-	*/
-	DefGetter(const ynothrow, SDst, ItemHeight,
-		GetTextLineHeightExOf(tsList))
-
-	/*!
-	\brief 取文本列表中的最大文本宽度。
-	\since build 282
-	*/
-	SDst
-	GetMaxTextWidth() const;
-
-	/*!
-	\brief 设置文本列表。
-	\note 若参数为空则忽略。
-	\since build 292
-	*/
-	void
-	SetList(const shared_ptr<ListType>& h)
-	{
-		if(YB_LIKELY(h))
-			hList = h;
-	}
-
-	/*!
-	\brief 查找项。
-	\return 若找到则返回对应索引，否则返回 <tt>IndexType(-1)</tt> 。
-	\since build 316
-	*/
-	IndexType
-	Find(const ItemType&) const;
-
-	/*!
-	\brief 刷新文本状态。
-	*/
-	void
-	RefreshTextState();
 };
 
 

@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1230
+\version r1312
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-07-20 11:52 +0800
+	2014-07-31 20:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,8 +42,55 @@ namespace UI
 
 namespace
 {
-	const SDst defMarginH(2); //!< 默认水平边距。
-	const SDst defMarginV(1); //!< 默认竖直边距。
+
+const SDst defMarginH(2); //!< 默认水平边距。
+const SDst defMarginV(1); //!< 默认竖直边距。
+
+} // unnamed namespace;
+
+
+MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt)
+	: MLabel(fnt),
+	hList(h), tsList(Font)
+{
+	if(!hList)
+		hList = make_shared<ListType>();
+}
+
+MTextList::ItemType*
+MTextList::GetItemPtr(const IndexType& idx)
+{
+	auto& lst(GetListRef());
+
+	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
+}
+const MTextList::ItemType*
+MTextList::GetItemPtr(const IndexType& idx) const
+{
+	const auto& lst(GetList());
+
+	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
+}
+
+SDst
+MTextList::GetMaxTextWidth() const
+{
+	return FetchMaxTextWidth(Font, GetList().cbegin(), GetList().cend());
+}
+
+MTextList::IndexType
+MTextList::Find(const ItemType& text) const
+{
+	const auto& lst(GetList());
+	const auto i(std::find(lst.begin(), lst.end(), text));
+
+	return i != lst.end() ? i - lst.begin() : IndexType(-1);
+}
+
+void
+MTextList::RefreshTextState()
+{
+	yunseq(tsList.LineGap = GetVerticalOf(Margin), tsList.Font = Font);
 }
 
 
@@ -142,6 +189,14 @@ SDst
 TextList::GetFullViewHeight() const
 {
 	return GetItemHeight() * viewer.GetTotal();
+}
+Rect
+TextList::GetUnitBounds(size_t idx)
+{
+	const SDst ln_h(GetItemHeight());
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return Rect(0, -SPos(top_offset) + SPos(ln_h) * (SPos(idx)
+		- SPos(GetHeadIndex())), GetWidth(), ln_h);
 }
 SDst
 TextList::GetViewPosition() const
@@ -242,10 +297,32 @@ TextList::AdjustViewLength()
 	}
 }
 
+void
+TextList::CallSelected()
+{
+	Selected(IndexEventArgs(*this, viewer.GetSelectedIndex()));
+}
+
 bool
 TextList::CheckConfirmed(ListType::size_type idx) const
 {
 	return viewer.IsSelected() && viewer.GetSelectedIndex() == idx;
+}
+
+void
+TextList::DrawItem(const Graphics& g, const Rect& bounds, const Rect& unit,
+	ListType::size_type i)
+{
+	Drawing::DrawClippedText(g, bounds & (unit + Margin), tsList, GetList()[i],
+		false);
+}
+
+void
+TextList::DrawItemBackground(const PaintContext& pc, const Rect& r)
+{
+	FillRectRaw<PixelType>(pc.Target.GetBufferPtr(), pc.Target.GetSize(),
+		pc.ClipArea & Rect(r.X + 1, r.Y, r.Width - 2, r.Height),
+		HilightBackColor);
 }
 
 TextList::ListType::size_type
@@ -283,6 +360,13 @@ TextList::InvalidateSelected2(ListType::difference_type x,
 }
 
 void
+TextList::InvokeConfirmed(ListType::size_type idx)
+{
+	if(CheckConfirmed(idx))
+		Confirmed(IndexEventArgs(*this, idx));
+}
+
+void
 TextList::LocateViewPosition(SDst h)
 {
 	SDst fvh(GetFullViewHeight());
@@ -305,23 +389,7 @@ TextList::LocateViewPosition(SDst h)
 }
 
 void
-TextList::DrawItem(const Graphics& g, const Rect& bounds, const Rect& unit,
-	ListType::size_type i)
-{
-	Drawing::DrawClippedText(g, bounds & (unit + Margin), tsList, GetList()[i],
-		false);
-}
-
-void
-TextList::DrawItemBackground(const PaintContext& pc, const Rect& r)
-{
-	FillRectRaw<PixelType>(pc.Target.GetBufferPtr(), pc.Target.GetSize(),
-		pc.ClipArea & Rect(r.X + 1, r.Y, r.Width - 2, r.Height),
-		HilightBackColor);
-}
-
-void
-TextList::DrawItems(const PaintContext& pc)
+TextList::Refresh(PaintEventArgs&& e)
 {
 	const auto h(GetHeight());
 
@@ -329,12 +397,12 @@ TextList::DrawItems(const PaintContext& pc)
 	{
 		RefreshTextState();
 
-		const Rect& r(pc.ClipArea);
+		const Rect& r(e.ClipArea);
 
 		if(viewer.GetTotal() != 0 && bool(r))
 		{
-			const auto& g(pc.Target);
-			const auto& pt(pc.Location);
+			const auto& g(e.Target);
+			const auto& pt(e.Location);
 			const auto ln_w(GetWidth());
 			const auto ln_h(GetItemHeight());
 
@@ -362,7 +430,7 @@ TextList::DrawItems(const PaintContext& pc)
 				if(viewer.IsSelected() && i == viewer.GetSelectedIndex())
 				{
 					tsList.Color = HilightTextColor;
-					DrawItemBackground(pc, unit);
+					DrawItemBackground(e, unit);
 				}
 				else
 					tsList.Color = ForeColor;
@@ -370,16 +438,10 @@ TextList::DrawItems(const PaintContext& pc)
 				tsList.ResetPen(unit.GetPoint(), Margin);
 				if(y < 0)
 					tsList.Pen.Y -= top_offset;
-				DrawItem(g, pc.ClipArea, unit, i);
+				DrawItem(g, r, unit, i);
 			}
 		}
 	}
-}
-
-void
-TextList::Refresh(PaintEventArgs&& e)
-{
-	DrawItems(e);
 }
 
 void
@@ -406,19 +468,6 @@ TextList::SelectLast()
 {
 	viewer.SetSelectedIndex(GetList().size() - 1);
 	AdjustOffset(false);
-}
-
-void
-TextList::CallSelected()
-{
-	Selected(IndexEventArgs(*this, viewer.GetSelectedIndex()));
-}
-
-void
-TextList::InvokeConfirmed(ListType::size_type idx)
-{
-	if(CheckConfirmed(idx))
-		Confirmed(IndexEventArgs(*this, idx));
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3543
+\version r3544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-07-15 02:57 +0800
+	2014-07-30 19:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1270,7 +1270,7 @@ b274
 				$since b252,
 			* "implementation" @ "function %TextLineNEx"
 				@ "class template %GTextRendererBase" $since b267,
-			* "implementation" @ "function %FetchLastLineBasePosition"
+			* "implemented function %FetchLastLineBasePosition"
 				$since $before b132 ^ "ascender" ~ "descender",
 			* "implementation" @ "function %FetchResizedLineN" $since b252
 		),

@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5683
+\version r5699
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-05-28 22:54 +0800
+	2014-07-30 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,23 +64,28 @@ using WidgetRange = pair<WidgetIterator, WidgetIterator>;
 */
 DeclI(YF_API, IWidget)
 	/*!
-	\brief 取子部件。
+	\brief 取视图内的子部件。
 	\return 包含子部件的迭代器范围，否则返回 WidgetRange() 。
+	\note 允许实现可选优化：排除完全在部件边界外的子部件。
+	\note 迭代器有效性由派生类约定。
 	\since build 357
 	*/
 	DeclIEntry(WidgetRange GetChildren())
 	/*!
 	\brief 取控制器。
+	\note 引用有效性由派生类约定。
 	\since build 243
 	*/
 	DeclIEntry(AController& GetController() const)
 	/*!
 	\brief 取渲染器。
+	\note 引用有效性由派生类约定。
 	\since build 242
 	*/
 	DeclIEntry(Renderer& GetRenderer() const)
 	/*!
 	\brief 取部件视图。
+	\note 引用有效性由派生类约定。
 	\warning 注意修改容器指针或焦点指针时，应保持和容器包含部件的状态同步。
 	\since build 259
 	*/
@@ -216,7 +221,6 @@ SetSizeOf(IWidget&, const Size&);
 inline PDefH(void, SetVisibleOf, IWidget& wgt, bool b)
 	ImplExpr(wgt.GetView().SetVisible(b))
 
-
 /*!
 \brief 关闭部件。
 \since build 275
@@ -323,11 +327,19 @@ YF_API Rect
 PaintChild(IWidget& wgt, const PaintContext& pc);
 
 /*!
-\brief 调用 PaintChild 指定子部件并合并参数的重绘区域。
-\since build 494
+\brief 调用 PaintChild 指定子部件并提交参数的重绘区域。
+\since build 522
 */
 YF_API void
-PaintVisibleChild(IWidget&, PaintEventArgs&);
+PaintChildAndCommit(IWidget&, PaintEventArgs&);
+
+/*!
+\brief 调用可见的 PaintChild 指定子部件并提交参数的重绘区域。
+\since build 522
+*/
+inline void
+PaintVisibleChildAndCommit(IWidget& wgt, PaintEventArgs& e)
+	ImplExpr(IsVisible(wgt) ? PaintChildAndCommit(wgt, e) : void())
 
 /*!
 \brief 请求提升至容器前端。

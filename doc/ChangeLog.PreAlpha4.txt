@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8228
+\version r8259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-07-19 17:50 +0800
+	2014-07-30 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,9 +52,9 @@ b499
 		),
 		/ %YSLib $=
 		(
-			/ DLD "implementation" @ "inline functions %(DrawLineSeg, FillRect)"
+			/ DLD "implemented functions %(DrawLineSeg, FillRect)"
 				@ %Service.YDraw ^ "macros %(PDefH, ImplExpr)",
-			/ DLD "implementation" @ "member functions %MenuHost::(Show, \
+			/ DLD "implemented member functions %MenuHost::(Show, \
 				Hide)#2" @ %UI.Menu ^ "macros %(PDefH, ImplExpr)",
 			- DLD "redundant 'ystdex::'" @ "all 'ystdex::byte', \
 				'ystdex::make_shared'" @ %Adaptor.Image
@@ -265,8 +265,7 @@ b498
 					avaliable for platform %Win32" @ %HostWindow
 			)
 		),
-		/ DLD "implementation"
-			@ "member function %WindowMemorySurface::Update#2"
+		/ DLD "implemented member function %WindowMemorySurface::Update#2"
 			^ "macro %(PDefH, ImplExpr)" @ %'YCLib_(MinGW32)'.MinGW32
 	),
 	/ %YReader $=
@@ -449,8 +448,8 @@ b495
 				/ "function %GetTrack" -> "%GetTrackRef"
 					^ "%(DefGetter, YAssertNonnull)"
 				)
-				/ "implementation" @ "function %LocateThumb"
-					^ "%(PDefH, ImplRet)"
+				/ DLD "implemented function %LocateThumb"
+					^ "macros %(PDefH, ImplRet)"
 			),
 			/ @ %YUIContainer $=
 			(
@@ -1486,8 +1485,8 @@ b483
 		),
 		/ %UI $=
 		(
-			/ DLD "functions %(RequestFocus, ReleaseFocus)" @ %YFocus
-				^ "macros %(PDefH, ImplExpr)",
+			/ DLD "implemented functions %(RequestFocus, ReleaseFocus)"
+				@ %YFocus ^ "macros %(PDefH, ImplExpr)",
 			(
 			/ @ "static assertion" @ "function template %CallEvent to allow \
 				event argument conversion" @ %YControl;
@@ -1840,12 +1839,12 @@ b476
 				* $doc "wrong comments" @ "functions %(IsAbsolute, IsRelative)"
 					$since b410,
 				+ "3 functions %(EnsureDirectory)",
-				/ DLD "implementation" @ "inline function %GetExtensionOf"
-					^ "%(PDefH, ImplRet)",
+				/ DLD "implemented function %GetExtensionOf"
+					^ "macros %(PDefH, ImplRet)",
 				+ "function %GetExtensionOf for %string parameter",
-				/ DLD "implementation" @ "overloaded operators for %Path"
-					^ "%(PDefHOp, ImplRet)",
-				/ DLD "implementation" @ "%swap for %Path" ^ "%DefSwap"
+				/ DLD "implemented overloaded operators for %Path"
+					^ "macros %(PDefHOp, ImplRet)",
+				/ DLD "implemented function %swap for %Path" ^ "macro %DefSwap"
 			),
 			(
 			$dep_from %YBase.YStandardEx.Memory;
@@ -1858,8 +1857,8 @@ b476
 			(
 				/ @ "class %CompactPixmap" $=
 				(
-					/ DLD "implementation" @ "function %swap"
-						^ "%(PDefH, ImplExpr)";
+					/ DLD "implemented function %swap"
+						^ "macros %(PDefH, ImplExpr)";
 					/ @ "%operator=" $=
 					(
 						/ "merged copy and move assignment operators as \
@@ -1908,7 +1907,7 @@ b475
 				/ @ "class %Path" $=
 				(
 					/ DLD "implemented" @ "function %swap"
-						^ "%(PDefH, ImplExpr)",
+						^ "macros %(PDefH, ImplExpr)",
 					+ "friend function %to_string"
 				)
 			)
@@ -2158,8 +2157,8 @@ b473
 			/ @ "class %Path" @ %FileSystem $=
 			(
 				+ "using ypath::(pop_back, push_back)",
-				/ DLD "implementation" @ "function %Normalize" ^ "%ImplExpr"
-					~ "%ImplRet"
+				/ DLD "implemented function %Normalize" ^ "macro %ImplExpr"
+					~ "macro %ImplRet"
 			)
 		),
 		/ @ %CHRLib.CharacterProcessing $=
@@ -2537,8 +2536,8 @@ b464
 						%__STRICT_ANSI__ is defined. For MinGW-W64 predefined \
 						macros, see $2014-01 \
 						@ %Documentation::Workflow::Annual2014 for details.
-				^ $dev ('::_stat' ~ '::stat', '::_wstat' ~ '::wstat')
-					@ "implementation" @ "function %HDirectory::IsDirectory"
+				/ $dev "implemented function %HDirectory::IsDirectory"
+					^ ('::_stat' ~ '::stat', '::_wstat' ~ '::wstat')
 			)
 		)
 	)
@@ -2801,8 +2800,8 @@ b459
 				)
 			)
 		),
-		/ DLD "implementation" @ "function %File::Rewind"
-			 @ %YSLib.Service.YFile ^ "macro %ImplExpr" ~ "macro %ImplRet"
+		/ DLD "implemented function %File::Rewind" @ %YSLib.Service.YFile
+			^ "macro %ImplExpr" ~ "macro %ImplRet"
 			// 'ImplRet' is intended to use return statement while 'ImplExpr' \
 				is intended to return a void typed expression. The latter is \
 				clearer in this case.
@@ -3689,8 +3688,8 @@ b449
 			@ "public headers",
 		/ %NPL $=
 		(
-			/ $design "implementation" @ "function template %Analyze"
-				@ %SContext ^ "%std::move";
+			/ $design "implemented function template %Analyze" @ %SContext
+				^ "%std::move";
 			/ %Configuration $=
 			(
 				+ "(function; function template) %LoadNPLA1"
@@ -5874,7 +5873,7 @@ b414
 		(
 			(
 			$dep_from %YBase.YStandardEx.String;
-			/ "implementation" @ "function %String::operator="
+			/ $lib "implementation" @ "function %String::operator="
 				@ %String
 				// More efficient.
 			),

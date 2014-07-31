@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r606
+\version r611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2014-01-11 11:31 +0800
+	2014-07-30 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,11 +65,8 @@ public:
 	/*!
 	\brief 提交无效区域。
 	*/
-	virtual Rect
-	CommitInvalidation(const Rect& r)
-	{
-		return r;
-	}
+	virtual PDefH(Rect, CommitInvalidation, const Rect& r)
+		ImplRet(r)
 
 	/*!
 	\brief 按参数绘制。

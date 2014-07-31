@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r703
+\version r827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-07-08 16:31 +0800
+	2014-07-31 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,100 @@ namespace YSLib
 
 namespace UI
 {
+
+/*!
+\ingroup UIModels
+\brief 文本列表模块。
+\warning 非虚析构。
+\since build 188
+*/
+class YF_API MTextList : public MLabel
+{
+public:
+	using ItemType = String; //!< 项目类型：字符串。
+	using ListType = vector<ItemType>; //!< 列表类型。
+	using IndexType = typename ListType::size_type; //!< 索引类型。
+
+protected:
+	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
+	/*!
+	\brief 列表文本状态。
+	\since build 346
+	*/
+	Drawing::TextState tsList;
+
+protected:
+	/*!
+	\brief 构造：使用文本列表句柄和字体指针。
+	\note 当文本列表指针为空时新建。
+	\since build 337
+	*/
+	explicit
+	MTextList(const shared_ptr<ListType>& = {}, const Drawing::Font& = {});
+	DefDeMoveCtor(MTextList)
+
+public:
+	/*!
+	\brief 取文本列表。
+	\since build 392
+	*/
+	DefGetter(const ynothrow, const ListType&, List, *hList)
+	/*!
+	\brief 取文本列表引用。
+	\since build 392
+	*/
+	DefGetter(ynothrow, ListType&, ListRef, *hList)
+	/*!
+	\brief 取指定项目索引的项目指针。
+	\since build 392
+	*/
+	ItemType*
+	GetItemPtr(const IndexType&);
+	/*!
+	\brief 取指定项目索引的项目 const 指针。
+	\since build 392
+	*/
+	const ItemType*
+	GetItemPtr(const IndexType&) const;
+	/*!
+	\brief 取项目行高。
+	\since build 301
+	*/
+	DefGetter(const ynothrow, SDst, ItemHeight,
+		GetTextLineHeightExOf(tsList))
+
+	/*!
+	\brief 取文本列表中的最大文本宽度。
+	\since build 282
+	*/
+	SDst
+	GetMaxTextWidth() const;
+
+	/*!
+	\brief 设置文本列表。
+	\note 若参数为空则忽略。
+	\since build 292
+	*/
+	void
+	SetList(const shared_ptr<ListType>& h)
+	{
+		if(YB_LIKELY(h))
+			hList = h;
+	}
+
+	/*!
+	\brief 查找项。
+	\return 若找到则返回对应索引，否则返回 <tt>IndexType(-1)</tt> 。
+	\since build 316
+	*/
+	IndexType
+	Find(const ItemType&) const;
+
+	//! \brief 刷新文本状态。
+	void
+	RefreshTextState();
+};
+
 
 /*!
 \brief 索引事件。
@@ -137,6 +231,9 @@ public:
 	*/
 	SDst
 	GetFullViewHeight() const;
+	//! \since build 522
+	Rect
+	GetUnitBounds(size_t);
 	/*!
 	\brief 取视图顶端竖直位置。
 	\note 依赖于 GetItemHeight 方法的结果。
@@ -202,6 +299,14 @@ public:
 	void
 	AdjustViewLength();
 
+private:
+	/*!
+	\brief 调用选中事件处理器。
+	*/
+	void
+	CallSelected();
+
+public:
 	/*!
 	\brief 检查列表中的指定项是否有效。
 	\note 当且仅当有效时响应 Confirmed 事件。
@@ -228,6 +333,24 @@ public:
 	PDefH(void, ClearSelected, )
 		ImplBodyMem(viewer, ClearSelected, )
 
+protected:
+	/*!
+	\brief 绘制列表项。
+	\since build 346
+	*/
+	virtual void
+	DrawItem(const Graphics&, const Rect& bounds, const Rect&,
+		ListType::size_type);
+
+	/*!
+	\brief 描画列表项背景。
+	\param r 列表项有效区域边界。
+	\since build 346
+	*/
+	virtual void
+	DrawItemBackground(const PaintContext&, const Rect& r);
+
+public:
 	//! \since build 316
 	using MTextList::Find;
 
@@ -251,6 +374,13 @@ protected:
 	void
 	InvalidateSelected2(ListType::difference_type, ListType::difference_type);
 
+private:
+	/*!
+	\brief 检查和调用确认事件处理器。
+	*/
+	void
+	InvokeConfirmed(ListType::size_type);
+
 public:
 	/*!
 	\brief 定位视图顶端至指定竖直位置。
@@ -258,33 +388,9 @@ public:
 	void
 	LocateViewPosition(SDst);
 
-protected:
-	/*!
-	\brief 绘制列表项。
-	\since build 346
-	*/
-	virtual void
-	DrawItem(const Graphics&, const Rect& bounds, const Rect&,
-		ListType::size_type);
-
-	/*!
-	\brief 描画列表项背景。
-	\param r 列表项有效区域边界。
-	\since build 346
-	*/
-	virtual void
-	DrawItemBackground(const PaintContext&, const Rect& r);
-
-	/*!
-	\brief 绘制列表。
-	\since build 346
-	*/
-	virtual void
-	DrawItems(const PaintContext&);
-
-public:
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
+	\note 绘制列表。
 	\since build 294
 	*/
 	void
@@ -312,19 +418,6 @@ public:
 	*/
 	void
 	SelectLast();
-
-private:
-	/*!
-	\brief 调用选中事件处理器。
-	*/
-	void
-	CallSelected();
-
-	/*!
-	\brief 检查和调用确认事件处理器。
-	*/
-	void
-	InvokeConfirmed(ListType::size_type);
 };
 
 //! \relates TextList

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2213
+\version r2295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-07-25 07:49 +0800
+	2014-07-31 20:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,72 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ %Exception
+			$= (+ "function template %raise_exception");
+		/ %Iterator $=
+		(
+			/ @ "class template %subscriptive_iterator" $=
+			(
+				/ DLD "simplified type name" @ "member function %equals"
+					^ "template-name" ~ "simple-template-id",
+				/ "constructor" ^ 'container_type' ~ '_tCon'
+			),
+			(
+			+ "class template %prototyped_iterator";
+			+ "function templates %operator(==, !=) for %prototyped_iterator",
+			+ "function template %make_prototyped_iterator"
+			)
+		)
+	),
+	(
+	$dep_from %YBase.YStandardEx.Exception;
+	/ %Tools.SHBuild.Main
+		$= (/ DLD "simplified implementation" ^ %YBase.YStandardEx.Exception)
+	),
+	/ %YFramework.YSLib $=
+	(
+		+ "assertions for the boundary argument"
+			@ "functions %(DrawCircle, FillCircle)" @ %Service.YDraw,
+			// As %(DrawPoint, DrawHLineSeg, DrawVLineSeg).
+		/ %UI $=
+		(
+			/ %YStyle $=
+			(
+				+ "function %RectDrawArrowOutline",
+				+ "last parameter 'bool = {}' to specify drawing outline only"
+					@ "function %DrawArrow",
+				+ "assertion for rotation value"
+					@ "functions %(RectDrawArrow, RectDrawArrowOutline)",
+				+ "functions %(RectDrawCornerArrow, \
+					RectDrawCornerArrowOutline; DrawCornerArrow)"
+			),
+			/ $doc "explicitly allowed %IWidget::GetChildren to optimize out \
+				children out of boundary",
+			/ "class %TextList" @ %TextList $=
+			(
+				/ "function %DrawItems merged to %Refresh",
+				/ DLD "member functions order",
+				+ "member function %GetUnitBounds"
+			),
+			/ DLD "implemented member function %Renderer::CommitInvalidation"
+				@ %YRenderer ^ "%(PDefH, ImplRet)",
+			/ %YWidget $=
+			(
+				+ "function %PaintChildAndClip";
+				/ "function %PaintVisibleChild"
+					-> "inline function %PaintVisibleChildAndClip"
+			),
+			/ "class %MTextList" @ %Label >> %TextList
+		),
+		/ "explicitly specified unsigned integer type as underlying type"
+			@ "enum %Rotation" @ %Core.YGDIBase
+	)
+),
+
+b521
 (
 	/ %YFramework $=
 	(
@@ -70,8 +136,8 @@ $now
 				/ "static function %HostLoop"
 					>> ("class %WindowThread" @ %HostRenderer);
 					// Hosted environment only.
-				/ DLD "implementation" @ "function %EnterWindowThread"
-					^ %(PDefH, ImplExpr)
+				/ DLD "implemented function %EnterWindowThread"
+					^ "macros %(PDefH, ImplExpr)"
 			),
 			* "DS implementation hack" @ "platform %Android" $since b385 $=
 				// The screen mapping is specific for platform %DS. Though \
@@ -414,8 +480,8 @@ b519
 			),
 			/ %UI $=
 			(
-				/ DLD "implementation" @ "function %DrawTrackBackground"
-					^ "cast to 'SPos'" @ %Scroll
+				/ DLD "implemented function %DrawTrackBackground" @ %Scroll
+					^ "cast to 'SPos'",
 				/ @ "member function %TextList::LocateViewPosition" @ %TextList
 					$=
 				(
@@ -1319,20 +1385,20 @@ b509
 						constructor" @ "class %Rect",
 					/ @ "class template %GBinaryGroup" $=
 					(
-						/ "implementation" @ "functions %operator(-, +=, -=)"
-							^ "macro %(PDefHOp, ImplRet)",
-						/ "implementation" @ "all 2 functions %GetRef"
-							^ "macro %(PDefH, ImplRet)"
+						/ DLD "implemented functions %operator(-, +=, -=)"
+							^ "macros %(PDefHOp, ImplRet)",
+						/ DLD "implemented all 2 functions %GetRef"
+							^ "macros %(PDefH, ImplRet)"
 					)
 				),
 				/ DLD @ "class template %GEvent" @ %YEvent $=
 				(
-					/ "implementation" @ "all non-overloaded operator functions \
+					/ "implemented all non-overloaded operator functions \
 						with explicitly declared 'inline'"
-						^ "macro %(PDefH, ImplRet)",
-					/ "implementation" @ "all overloaded operator functions \
-						with explicitly declared 'inline'"
-						^ "macro %(PDefHOp, ImplRet)"
+						^ "macros %(PDefH, ImplRet)",
+					/ "implemented all overloaded operator functions with \
+						explicitly declared 'inline'"
+						^ "macros %(PDefHOp, ImplRet)"
 				)
 			),
 			* "wrong implementation" @ "all 2 member functions \
@@ -1670,8 +1736,8 @@ b503
 		+ "2 function %SetChildren" @ "class %ValueNode"
 			@ %YSLib.Core.ValueNode,
 		(
-		* "implementation" @ "function %WriteConfiguration"
-			@ %Helper.Initialization $since b502;
+		* "implemented function %WriteConfiguration" @ %Helper.Initialization
+			$since b502;
 			$dep_to "saving empty configuration"
 		),
 		/ %Helper_(Android) $=
@@ -1737,7 +1803,7 @@ b503
 			/ @ "class template %value_handler" $=
 			(
 				(
-				/ DLD "implementation" @ "function %get_pointer"
+				/ DLD "implemented function %get_pointer"
 					^ "template specialization" ~ "conditional expression";
 				$dep_to "eliminated storage access overrun evaluation"
 				),
@@ -1756,7 +1822,7 @@ b503
 				+ DLD 'inline' @ "all user-defined function templates",
 				(
 				+ "function template %assign";
-				/ "implementation" @ "function template %operator=" ^ "%assign";
+				/ "implemented function template %operator=" ^ "%assign";
 				* $comp "workaround of Visual C++ 2013 warning C4717"
 				),
 				(

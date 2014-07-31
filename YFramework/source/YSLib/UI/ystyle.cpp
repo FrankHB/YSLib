@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r827
+\version r932
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-07-20 11:50 +0800
+	2014-07-26 13:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,14 +91,115 @@ RectDrawArrow(const PaintContext& pc, SDst half_size, Rotation rot, Color c)
 			for(SDst i(0); i < half_size; ++i)
 				DrawHLineSeg(g, bounds, rot == RDeg90 ? y++ : y--, x--, t++, c);
 		}
-	default:
 		break;
+	default:
+		YAssert(false, "Invalid rotation found.");
 	}
 }
 
 void
-DrawArrow(const Graphics& g, const Rect& bounds, SDst half_size, Rotation rot,
+RectDrawArrowOutline(const PaintContext& pc, SDst half_size, Rotation rot,
 	Color c)
+{
+	if(half_size < 1U)
+		return;
+
+	const auto& g(pc.Target);
+	const auto& pt(pc.Location);
+	const auto& bounds(pc.ClipArea);
+	SDst x(pt.X), y(pt.Y);
+
+	switch(rot)
+	{
+	case RDeg0:
+	case RDeg180:
+		{
+			SDst t(pt.Y);
+
+			for(SDst i(0); i < half_size - 1; ++i)
+			{
+				DrawPoint(g, bounds, {x, y--}, c),
+				DrawPoint(g, bounds, {x, t++}, c);
+				rot == 0 ? --x : ++x;
+			}
+			DrawVLineSeg(g, bounds, x, y, t, c);
+		}
+		break;
+	case RDeg90:
+	case RDeg270:
+		{
+			SDst t(pt.X);
+
+			for(SDst i(0); i < half_size - 1; ++i)
+			{
+				DrawPoint(g, bounds, {x--, y}, c),
+				DrawPoint(g, bounds, {t++, y}, c);
+				rot == RDeg90 ? ++y : --y;
+			}
+			DrawHLineSeg(g, bounds, y, x, t, c);
+		}
+		break;
+	default:
+		YAssert(false, "Invalid rotation found.");
+	}
+}
+
+void
+RectDrawCornerArrow(const PaintContext& pc, SDst size, Rotation rot,
+	Color c)
+{
+	const auto& g(pc.Target);
+	const auto& pt(pc.Location);
+	const auto& bounds(pc.ClipArea);
+	const SDst x(pt.X);
+	SDst y(pt.Y);
+
+	switch(rot)
+	{
+	case RDeg0:
+	case RDeg270:
+		{
+			SDst t(x);
+
+			y -= size;
+			for(SDst i(0); i < size; ++i)
+				DrawHLineSeg(g, bounds, y++, rot == RDeg0 ? t-- : t++, x, c);
+		}
+		break;
+	case RDeg90:
+	case RDeg180:
+		{
+			SDst t(rot == RDeg90 ? x - size : x + size);
+
+			for(SDst i(0); i < size; ++i)
+				DrawHLineSeg(g, bounds, y++, rot == RDeg90 ? t++ : t--, x, c);
+		}
+		break;
+	default:
+		YAssert(false, "Invalid rotation found.");
+	}
+}
+
+void
+RectDrawCornerArrowOutline(const PaintContext& pc, SDst size, Rotation rot,
+	Color c)
+{
+	YAssert(rot < 4U, "Invalid rotation found.");
+
+	const auto& g(pc.Target);
+	const auto& pt(pc.Location);
+	const auto& bounds(pc.ClipArea);
+	const SDst x(pt.X), y(pt.Y), inv_x(rot < RDeg180 ? x - size : x + size),
+		inv_y(rot == RDeg0 || rot == RDeg270 ? y - size : y + size);
+
+	DrawVLineSeg(g, bounds, x, inv_y, y, c);
+	DrawHLineSeg(g, bounds, y, inv_x, x, c);
+	DrawLineSeg(g, bounds, x, inv_y, inv_x, y, c);
+}
+
+void
+DrawArrow(const Graphics& g, const Rect& bounds, SDst half_size, Rotation rot,
+	Color c, bool outline)
 {
 	SPos x(bounds.X), y(bounds.Y);
 
@@ -118,7 +219,22 @@ DrawArrow(const Graphics& g, const Rect& bounds, SDst half_size, Rotation rot,
 	default:
 		break;
 	}
-	RectDrawArrow({g, Point(x, y), bounds}, half_size, rot, c);
+	(outline ? RectDrawArrowOutline : RectDrawArrow)
+		({g, Point(x, y), bounds}, half_size, rot, c);
+}
+
+void
+DrawCornerArrow(const Graphics& g, const Rect& bounds, SDst size, Rotation rot,
+	Color c, bool outline)
+{
+	SPos x(bounds.X), y(bounds.Y);
+
+	if(rot < RDeg180)
+		x += size;
+	if(rot == RDeg0 || rot == RDeg270)
+		y += size;
+	(outline ? RectDrawCornerArrowOutline : RectDrawCornerArrow)
+		({g, Point(x, y), bounds}, size, rot, c);
 }
 
 void
