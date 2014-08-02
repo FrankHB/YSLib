@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2295
+\version r2378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-07-31 20:19 +0800
+	2014-08-02 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,86 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ DLD "updated header search paths" @ "Visual C++ projects" $=
+	(
+		/ "order" @ "project %YFramework_Android",
+		* "redundant slash" @ "project %YFramework" $since b518,
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib.UI $=
+		(
+			/ %TextList $=
+			(
+				/ @ "class %MTextList" $=
+				(
+					(
+					+ "alias declaration %ViewerType; protected data members \
+						%(vwText, uTopOffset), functions \
+						%(AdjustViewLengthForHeight, AdjustOffsetForHeight, \
+						AdjustViewForContent, CheckSelected, ResetView)";
+					$dep_to "text list model members"
+					),
+					/ @ "constructor" $=
+					(
+						+ "parameter of highlight color pair",
+						/ "access control" -> 'public' ~ 'protected'
+					),
+					+ "function %GetUnitLocation" @ "%MTextList"
+				),
+				/ @ "class %TextList" $=
+				(
+					/ "all data members and protected base classes except \
+						%MTextList" >> "%MTextList",
+					+ 'using MTextList::ViewerType;',
+					(
+					/ "functions %(GetViewPosition, GetFullViewHeight)"
+						>> "class %MTextList";
+					+ "using declarations %MTextList::(GetViewPosition, \
+						GetFullViewHeight)"
+					),
+					/ DLD "simplified implementation" $=
+					(
+						$dep_from "text list model members";
+						/ @ "function %AdjustViewForContent"
+							^ "macros %(PDefH, ImplExpr), \
+							function %MTextList::AdjustViewForContent",
+						/ @ "function %AdjustViewLength" ^ "macros %(PDefH, \
+							ImplExpr), function %AdjustViewLengthForHeight",
+						/ @ "function %CheckConfirmed" ^ "macros %(PDefH, \
+							ImplExpr), function %MTextList::CheckSelected",
+						/ @ "function %CheckPoint for %Point parameter"
+							^ "macros %(PDefH, ImplRet)",
+						/ @ "function %ResetView"
+							^ "function %(MTextList::ResetView, UpdateView)",
+						/ @ "function %SetSelected for %Point parameter"
+							^ "macros %(PDefH, ImplRet)"
+					),
+					(
+					$dep_from "%MTextList::GetUnitLocation";
+					/ DLD "simplified implementation"
+						@ "function %GetUnitBounds" ^ "function \
+						%MTextList::GetUnitBounds, macros %(PDefH, ImplRet)",
+					+ 'using MTextList::GetUnitLocation;'
+					)
+				)
+			),
+			/ "allowed null container pointer" @ "function %GetTotal"
+				@ "class template %GSequenceViewer" @ %Viewer
+				// If container pointer is null, the result is zero.
+		),
+		* "application not exited after global application instance destruction"
+			@ "platform %Android" $since b502 $=
+			// And when the application reentered, it would failed on \
+				assertion for nonnull pointer check for instance on debug \
+				configuration or just crash on release configuration.
+			$= (+ "%::ANativeActivity_finish call after %::y_android_main call"
+				@ "host thread"  @ %'Helper_(Android)'.AndroidHost)
+	)
+),
+
+b522
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -1551,7 +1631,7 @@ b507
 			(
 				- "static data member %(GAligned, RAligned)",
 				(
-				/ "using alias %IntegerType" ^ "%BitsN" ~ "%UIntBitsN",
+				/ "alias declaration %IntegerType" ^ "%BitsN" ~ "%UIntBitsN",
 				- "static data member %Width";
 				- "static data member %UIntBitsN"
 				)
@@ -1560,7 +1640,7 @@ b507
 			+ "class templates %XYZAMaskTrait;
 			/ @ "class templates %(BGRA, RGBA)" $=
 			(
-				+ "using alias %MaskTrait"
+				+ "alias declaration %MaskTrait"
 				/ "colors mask values" ^ "%MaskTrait" ~ "%Trait";
 			);
 			- "data members %(AMask, XMask, YMask, ZMask)"
@@ -1572,7 +1652,7 @@ b507
 			(
 				/ "macro definition %YCL_PIXEL_FORMAT_XYZ888 with value"
 					-> '0xAABBCCDD' ~ '0xAADDCCBB',
-				/ "using alias %PixelType" -> "%RGBA<8, 8, 8, 8>"
+				/ "alias declaration %PixelType" -> "%RGBA<8, 8, 8, 8>"
 					~ "%BGRA<8, 8, 8, 8>",
 				/ "implementation of functions %FetchOpaque"
 			)
@@ -1792,7 +1872,7 @@ b503
 		),
 		/ @ "explicit speclization" @ "class template %sequence_project" $=
 		(
-			/ DLD "implementation" ^ "using alias declaration",
+			/ DLD "implementation" ^ "alias declaration",
 				// It might improve some performance.
 			* $revert_ex(b477) "missing workaround for Visual C++2013"
 				$since b477
