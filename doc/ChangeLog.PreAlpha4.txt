@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8259
+\version r8271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-07-30 20:03 +0800
+	2014-07-31 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,7 +182,8 @@ b498
 				/ DLD "simplified implementation"
 					@ "function template %AccessWidget" ^ "%AccessWidgetNode"
 			),
-			- "using alias %SizeType" @ "class %MessageQueue" @ %Core.Message
+			- "alias declaration %SizeType" @ "class %MessageQueue"
+				@ %Core.Message
 		),
 		/ %'YCLib_(Android)'.Android $=
 		(
@@ -524,7 +525,7 @@ b495
 					$dep_to "%MLinearUIContainer using"
 					),
 					(
-					- "using aliases from %MSharedSelection";
+					- "using declarations from %MSharedSelection";
 					- "redundant protected base class %MSharedSelection"
 					)
 				),
@@ -969,7 +970,7 @@ b490
 		/ %YCLib.Keys $=
 		(
 			+ 'using KeyIndex = std::size_t;' @ %Keys;
-			/ ("type" @ "using aliase %KeyBitsetWidth", \
+			/ ("type" @ "alias declaration %KeyBitsetWidth", \
 				"all function return and parameter types", "underlying type"
 				@ "%KeyCategory::Category") -> "%KeyIndex" ~ 'std::size_t',
 			/ @ "platform %DS" $=
@@ -1436,8 +1437,8 @@ b483
 	(
 		/ %String $=
 		(
-			/ "using alias %string_type" @ "traits %string_traits" ^ "%decay_t"
-				~ "%remove_reference_t",
+			/ "alias declaration %string_type" @ "traits %string_traits"
+				^ "%decay_t" ~ "%remove_reference_t",
 			+ "metafunction %enable_string_class_t"
 		),
 		+ "metafunction %enable_for_iterator_t" @ %Iterator,
@@ -1533,7 +1534,7 @@ b482
 							-> "member 'InputType Position;'",
 						+ "operator %InputType"
 					);
-					- "using alias %MScreenPositionEventArgs"
+					- "alias declaration %MScreenPositionEventArgs"
 				);
 				+ "static function %DefaultInvalidateControl"
 					@ "class %InvalidationUpdater" @ %Animation,
@@ -2045,8 +2046,8 @@ b474
 				+ "using %platform::(PathCategory, NodeCategory)"
 				),
 				(
-				- "using alias %platform::(FILENAMESTR, PATHSTR)";
-				$dep_to "using aliases"
+				- "alias declaration %platform::(FILENAMESTR, PATHSTR)";
+				$dep_to "alias declarations"
 				)
 			)
 		),
@@ -2096,8 +2097,8 @@ b474
 					limited at translation time"
 					$= (DLD ^ "%std::string" ~ "platform::FILENAMESTR"),
 			),
-			$dep_from "using aliases";
-			- "using alias %(FILENAMESTR, PATHSTR); \
+			$dep_from "alias declarations";
+			- "alias declarations %(FILENAMESTR, PATHSTR); \
 				macro %YCL_MAX_FILENAME_LENGTH"
 			)
 		),
@@ -2626,7 +2627,7 @@ b462
 		^ "macros %'YFM_*'"
 		),
 		/ "parameter type 'IWidget*'" -> 'IWidget&' @ "static member function \
-			%DefaultInvalidate; using alias %Invalidator"
+			%DefaultInvalidate; alias declaration %Invalidator"
 			@ "class %InvalidationUpdater" @ %YSLib.UI.Animation
 	),
 	^ $dev "macros %'YFM_*'" @ %YReader,

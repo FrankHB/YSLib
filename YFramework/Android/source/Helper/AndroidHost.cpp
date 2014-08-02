@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r278
+\version r280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-07-06 02:31 +0800
+	2014-08-02 12:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -102,11 +102,12 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 		if(!host.thrdMain.joinable())
 		{
 			YTraceDe(Debug, "Starting main thread...");
-			host.thrdMain = std::thread([&host, p_window]{
+			host.thrdMain = std::thread([&host, p_activity, p_window]{
 				host.p_screen.reset(new Devices::AndroidScreen(*p_window));
 				host.p_desktop.reset(
 					new Desktop(FetchNativeHostInstance().GetScreenRef()));
 				::y_android_main();
+				::ANativeActivity_finish(p_activity);
 				host.p_desktop.reset();
 				host.p_screen.reset();
 			});
