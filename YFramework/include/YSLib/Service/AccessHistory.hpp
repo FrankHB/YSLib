@@ -11,13 +11,13 @@
 /*!	\file AccessHistory.hpp
 \ingroup Service
 \brief 访问历史记录。
-\version r124
+\version r125
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-12 07:42:35 +0800
 \par 修改时间:
-	2014-01-28 05:24 +0800
+	2014-08-04 05:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ public:
 
 	/*!
 	\brief 切换项。
-	\param 是否后退。
+	\param is_prev 是否后退。
 	\return 被移除的项。
 	\warning 不检查是否越界。
 

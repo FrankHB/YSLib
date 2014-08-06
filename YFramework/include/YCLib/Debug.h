@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r420
+\version r421
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-07-15 23:59 +0800
+	2014-08-03 06:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,7 +199,7 @@ FetchCommonLogger();
 \pre 断言：指针参数非空。
 \since build 498
 */
-YF_API YB_ATTR(format (printf, 3, 4)) std::string
+YF_API YB_ATTR(format (printf, 3, 4)) YB_NONNULL(1, 3) std::string
 LogWithSource(const char*, int, const char*, ...);
 
 

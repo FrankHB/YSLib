@@ -118,10 +118,11 @@
 			<Add option="-std=c++11" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
+			<Add option="-Winvalid-pch" />
 			<Add option="-fdata-sections" />
 			<Add option="-ffunction-sections" />
 			<Add option="-mthreads" />
-			<Add option="-Winvalid-pch" />
+			<Add option="-pipe" />
 			<Add directory="../include" />
 			<Add directory="../../YFramework/DS/include" />
 			<Add directory="../../YFramework/MinGW32/include" />
@@ -131,6 +132,7 @@
 		</Compiler>
 		<Linker>
 			<Add option="-Wl,--gc-sections" />
+			<Add option="-pipe" />
 		</Linker>
 		<Unit filename="../include/About.h" />
 		<Unit filename="../include/BookmarkUI.h" />

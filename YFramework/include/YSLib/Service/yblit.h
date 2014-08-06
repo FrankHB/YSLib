@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3073
+\version r3074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2014-07-14 14:32 +0800
+	2014-08-05 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -333,7 +333,7 @@ struct BlitLineLoop
 \tparam _tOut 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
 \tparam _tIn 输入迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
 \tparam _fPixelShader 像素着色器类型。
-\param blit 像素操作。
+\param shader 像素着色器。
 \param dst 目标迭代器。
 \param ds 目标迭代器所在缓冲区大小。
 \param src 源迭代器。

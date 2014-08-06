@@ -11,13 +11,13 @@
 /*!	\file cwtype.h
 \ingroup YStandardEx
 \brief ISO C 宽字符分类操作扩展。
-\version r71
+\version r72
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 15:34:34 +0800
 \par 修改时间:
-	2014-07-01 00:29 +0800
+	2014-08-04 05:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ YB_API bool
 iswspace(wchar_t);
 
 /*!
-\breif 区域无关的 std::iswgraph 实现。
+\brief 区域无关的 std::iswgraph 实现。
 \see ISO C11 7.30.2.1.6 。
 */
 inline bool

@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1482
+\version r1557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-08-01 09:59 +0800
+	2014-08-04 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,14 +51,27 @@ const SDst defMarginV(1); //!< 默认竖直边距。
 
 MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt,
 	const pair<Color, Color>& hilight_pair)
-	: MLabel(fnt), MHilightText(hilight_pair),
-	hList(h ? h : make_shared<ListType>()), tsList(Font), vwText(GetListRef())
+	: MHilightText(hilight_pair),
+	Font(fnt), hList(h ? h : make_shared<ListType>()), vwText(GetListRef())
 {}
 
+WidgetRange
+MTextList::GetChildrenByIndices(size_t idx1, size_t idx2)
+{
+	return {MakeIterator(idx1), MakeIterator(idx2)};
+}
 SDst
 MTextList::GetFullViewHeight() const
 {
 	return GetItemHeight() * vwText.GetTotal();
+}
+size_t
+MTextList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
+{
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return vwText.GetHeadIndex() + min<ViewerType::SizeType>((SPos(height
+		+ uTopOffset) - v_off - 1) / SPos(GetItemHeight()) + 1,
+		vwText.GetValid());
 }
 MTextList::ItemType*
 MTextList::GetItemPtr(const IndexType& idx)
@@ -168,10 +181,24 @@ MTextList::Find(const ItemType& text) const
 	return i != lst.end() ? i - lst.begin() : IndexType(-1);
 }
 
+WidgetIterator
+MTextList::MakeIterator(size_t item_idx)
+{
+	return ystdex::make_prototyped_iterator(lblShared, item_idx,
+		[this](IWidget& wgt, size_t idx){
+		if(idxShared != idx && idx < GetList().size())
+			SetLocationOf(wgt, GetUnitLocation(idx)),
+			yunseq(
+			lblShared.Margin = Margin,
+			lblShared.Text = GetList()[idx], idxShared = idx
+			);
+	});
+}
+
 void
 MTextList::RefreshTextState()
 {
-	yunseq(tsList.LineGap = GetVerticalOf(Margin), tsList.Font = Font);
+	LineGap = GetVerticalOf(Margin);
 }
 
 void
@@ -195,6 +222,7 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	});
 
 	Margin = Padding(defMarginH, defMarginH, defMarginV, defMarginV);
+	SetContainerPtrOf(lblShared, this);
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(vwText.GetTotal() != 0)
@@ -271,7 +299,14 @@ bound_select:
 	},
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority),
 	FetchEvent<GotFocus>(*this) += invalidator,
-	FetchEvent<LostFocus>(*this) += invalidator
+	FetchEvent<LostFocus>(*this) += invalidator,
+	lblShared.Background = [this](PaintEventArgs&& e){
+		if(vwText.IsSelected() && idxShared == vwText.GetSelectedIndex())
+			lblShared.ForeColor = HilightTextColor,
+			DrawItemBackground(e, Rect(e.Location, GetSizeOf(lblShared)));
+		else
+			lblShared.ForeColor = ForeColor;
+	}
 	);
 	AdjustViewLength();
 }
@@ -284,6 +319,12 @@ TextList::SetList(const shared_ptr<ListType>& h)
 		MTextList::SetList(h);
 		AdjustViewLength();
 	}
+}
+
+size_t
+TextList::GetLastLabelIndex() const
+{
+	return GetLastLabelIndexClipped(0, GetHeight());
 }
 
 void
@@ -310,14 +351,6 @@ void
 TextList::CallSelected()
 {
 	Selected(IndexEventArgs(*this, vwText.GetSelectedIndex()));
-}
-
-void
-TextList::DrawItem(const Graphics& g, const Rect& bounds, const Rect& unit,
-	ListType::size_type i)
-{
-	Drawing::DrawClippedText(g, bounds & (unit + Margin), tsList, GetList()[i],
-		false);
 }
 
 void
@@ -398,50 +431,20 @@ TextList::Refresh(PaintEventArgs&& e)
 
 	if(h != 0)
 	{
-		RefreshTextState();
-
 		const Rect& r(e.ClipArea);
 
-		if(vwText.GetTotal() != 0 && bool(r))
+		if(!r.IsUnstrictlyEmpty())
 		{
-			const auto& g(e.Target);
-			const auto& pt(e.Location);
-			const auto ln_w(GetWidth());
-			const auto ln_h(GetItemHeight());
-
-			//视图长度可能因为内容变化等原因改变，必须重新计算。
-			AdjustViewLength();
-
-			const SPos lbound(r.Y - pt.Y);
-			// XXX: Conversion to 'SPos' might be implementation-defined.
-			const auto last(vwText.GetHeadIndex()
-				+ min<ViewerType::SizeType>((lbound + SPos(r.Height
-				+ uTopOffset) - 1) / SPos(ln_h) + 1, vwText.GetValid()));
-			SPos y(ln_h * ((min<SPos>(0, lbound) + SPos(uTopOffset) - 1)
-				/ SPos(ln_h)) - uTopOffset);
-
-			for(auto i(vwText.GetHeadIndex()); i < last; yunseq(y += ln_h, ++i))
+			RefreshTextState();
+			if(vwText.GetTotal() != 0 && bool(r))
 			{
-				SPos top(y), tmp(y + ln_h);
-
-				RestrictInInterval<SPos>(top, 0, h);
-				RestrictInInterval<SPos>(tmp, 1, h + 1);
-				tmp -= top;
-
-				const Rect unit(pt.X, top + pt.Y, ln_w, tmp);
-
-				if(vwText.IsSelected() && i == vwText.GetSelectedIndex())
-				{
-					tsList.Color = HilightTextColor;
-					DrawItemBackground(e, unit);
-				}
-				else
-					tsList.Color = ForeColor;
-				AdjustEndOfLine(tsList, unit + Margin, g.GetWidth()),
-				tsList.ResetPen(unit.GetPoint(), Margin);
-				if(y < 0)
-					tsList.Pen.Y -= uTopOffset;
-				DrawItem(g, r, unit, i);
+				// NOTE: View length could be already changed by contents.
+				AdjustViewLength();
+				SetSizeOf(lblShared, {GetWidth(), GetItemHeight()});
+				for(auto pr(GetChildrenByIndices(GetHeadIndex(),
+					GetLastLabelIndexClipped(e.Location.Y - r.Y, r.Height)));
+					pr.first != pr.second; ++pr.first)
+					PaintVisibleChildAndCommit(*pr.first, e);
 			}
 		}
 	}

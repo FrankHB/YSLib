@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1492
+\version r1493
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-07-25 07:06 +0800
+	2014-08-05 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,6 @@ Environment::Environment()
 #if YF_Hosted
 	: wnd_map(), wmap_mtx()
 #	if YF_Multithread == 1
-	, wnd_thrd_count()
 #		if YCL_Win32
 	, window_class(WindowClassName, WndProc)
 #		endif

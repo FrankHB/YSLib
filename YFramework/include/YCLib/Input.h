@@ -11,13 +11,13 @@
 /*!	\file Input.h
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r491
+\version r492
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:37:05 +0800
 \par 修改时间:
-	2014-05-30 02:06 +0800
+	2014-08-04 04:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,6 +67,7 @@ namespace platform_ex
 {
 
 /*!
+\def YCL_KEYSTATE_DIRECT
 \brief 指定按键缓冲状态是否以外部对象直接定义。
 \note 单线程环境且 KeyBitsetWidth 较小时适合指定直接定义。
 \since build 321

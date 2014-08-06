@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r291
+\version r293
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-07-24 14:08 +0800
+	2014-08-05 18:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,13 +77,13 @@ private:
 	\note 不使用 \c unique_ptr 以便于实现线程安全的状态检查。
 	\since build 428
 	*/
-	std::atomic<Window*> p_wnd;
+	std::atomic<Window*> p_wnd{{}};
 	std::thread thrd;
 
 public:
 	template<typename... _tParams>
 	WindowThread(_tParams&&... args)
-		: p_wnd(), thrd(std::mem_fn(&WindowThread::ThreadFunc<ystdex::decay_t<
+		: thrd(std::mem_fn(&WindowThread::ThreadFunc<ystdex::decay_t<
 		_tParams>...>), this, ystdex::decay_copy(args)...)
 	{}
 	//! \since build 385

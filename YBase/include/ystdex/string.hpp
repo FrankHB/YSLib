@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r658
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-07-20 11:07 +0800
+	2014-08-03 06:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -453,7 +453,7 @@ to_string(_type val, enable_if_t<is_enum<_type>::value, int> = 0)
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
 \since build 488
-\todo 提供 char 以外的模板参数的正确实现。
+\bug char 以外的模板参数非正确实现。
 */
 template<typename _tChar>
 std::basic_string<_tChar>
@@ -468,7 +468,7 @@ vsfmt(const _tChar* fmt, std::va_list args)
 
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
-\note Clang++ 对于模板声明直接提示格式字符串类型错误。
+\note Clang++ 对于模板声明 attribute 直接提示格式字符串类型错误。
 \since build 322
 \todo 提供 char 以外的模板参数的正确实现。
 */
@@ -491,7 +491,7 @@ sfmt(const _tChar* fmt, ...)
 \sa sfmt
 \since build 350
 */
-template YB_ATTR(format (printf, 1, 2)) std::string
+template YB_ATTR(format (printf, 1, 2)) YB_NONNULL(1) std::string
 sfmt<char>(const char*, ...);
 
 } // namespace ystdex;

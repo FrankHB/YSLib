@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2378
+\version r2496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-08-02 12:58 +0800
+	2014-08-06 14:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,119 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	+ DLB '-pipe' @ "compliler and linker options" @ "Code::Blocks projects"
+		@ "platform %MinGW32",
+		// To get rid of most issues with size limitation of temporary \
+			directory (e.g. on RAM disk).
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ $revert_ex(b523) "allowed null container pointer"
+					@ "function %GetTotal" @ "class template %GSequenceViewer"
+					@ %Viewer,
+					// If container pointer is null, the result is zero.
+				/ %TextList $=
+				(
+					/ @ "class %MTextList" $=
+					(
+						(
+						+ "data members %(lblShared, idxShared); functions \
+							%(GetChildrenByIndices, GetLastLabelIndexClipped, \
+							MakeIterator)";
+						$dep_to "text list children iterations"
+						),
+						(
+						+ "data member %LineGap";
+						/ DLD "implemented function %RefreshTextState"
+							^ "%LineGap" ~ "%tsList.LineGap";
+						/ "initialized function %GetItemHeight" ^ "%(Font, \
+							LineGap)" ~ '%GetTextLineHeightExOf(tsList)';
+						- "data member %tsList",
+						),
+						(
+						$dep_from "removal of redundant members";
+						/ "base class %MLabel" -> "data members %(Font, Margin)"
+						)
+					),
+					/ @ "class %TextList" $=
+					(
+						(
+						$dep_from "text list children iterations"
+						+ "function %GetLastLabelIndex",
+						+ 'using MTextList::MakeIterator;',
+						/ "implemented function %Refresh" ^ "widget iteration \
+							and function %PaintVisibleChildAndCommit";
+						$dep_to "text list refresh"
+						),
+						(
+						- "using declarations %(HorizontalAlignment, \
+							VerticalAlignment, Text) from %MTextList",
+						$dep_to "removal of redundant members";
+
+						)
+					)
+				),
+				(
+				$dep_from "text list refresh";
+				/ "shared widget painting event handlers" @ "constructor"
+					@ "class %Menu" @ %Menu;
+				- "member function %(Menu; TextList)::DrawItem";
+				)
+			),
+			/ %Service $=
+			(
+				* $doc "missing parameter name for directive '\param'"
+					@ "Doxygen comments" @ "function %Switch" @ "class \
+					template %GAccessList" @ %AccessHistory $since b404,
+				* $doc "outdated parameter name %blit for directive '\param'"
+					~ "%shader" @ "Doxygen comments"
+					@ "function template %BlitPixels" @ %YBlit $since b442,
+				/ DLD @ "class %TextState" @ %TextBase $=
+				(
+					/ DLD "initialized data member %LineGap"
+						^ "brace-or-equal-initializer '= 0'"
+						~ "ctor-initializer",
+					/ DLD "initialized data member %Pen"
+						^ "brace-or-equal-initializer '{}'" ~ "ctor-initializer"
+				)
+			)
+		),
+		/ %YCLib $=
+		(
+			(
+			$dep_from %YBase.YDefinition;
+			+ 'YB_NONNULL(1, 3)' @ "function %LogWithSource" @ %Debug
+			),
+			* $revert_ex(b501) $dev $doc "missing '\def' directive" @ "Doxygen \
+				comments" @ "macro %YCL_KEYSTATE_DIRECT" @ %Input $since b501
+		)
+	),
+	/ %YBase $=
+	(
+		+ "macro %YB_NONNULL" @ %YDefinition,
+		/ %YStandardEx $=
+		(
+			(
+			$dep_from %YDefinition;
+			+ 'YB_NONNULL(1)' @ "function template specialization %sfmt<char>"
+				@ %String
+			),
+			* $doc "wrong directive '\breif'" ~ '\brief' @ "Doxygen comments"
+				@ "function %iswgraph" @ %CWideCharacterType $since b513
+		)
+	),
+	* "missing atomic member initialization" $effective %YFramework.Helper
+		$= (^ "brace-or-equal-initializer" ~ "empty ctor-initializer")
+		@ ("class %Environment" @ %Environment $orig(%Host) $since b399,
+		"class %WindowThread" @ %HostRenderer $orig(%Helper $impl) b428);
+		// Similar as fix @ b491.
+),
+
+b523
 (
 	/ DLD "updated header search paths" @ "Visual C++ projects" $=
 	(
@@ -96,9 +209,8 @@ $now
 					)
 				)
 			),
-			/ "allowed null container pointer" @ "function %GetTotal"
+			+ "assertion for nonnull container pointer" @ "function %GetTotal"
 				@ "class template %GSequenceViewer" @ %Viewer
-				// If container pointer is null, the result is zero.
 		),
 		* "application not exited after global application instance destruction"
 			@ "platform %Android" $since b502 $=
@@ -2042,10 +2154,10 @@ b501
 (
 	/ $doc "Doxygen comments" @ %YFramework $=
 	(
-		* "wrong directive '\def' used" ~ '\brief' @ "macro %YCL_KEYSTATE_DIRECT"
-			@ %YCLib.Input $since b321,
-		* "wrong directive '\param' used" ~ '\note' @ "function %FetchNativeLooper"
-			@ %'YCLib_(Android)'.Android $since b499,
+		* "wrong directive '\def' used" ~ '\brief'
+			@ "macro %YCL_KEYSTATE_DIRECT" @ %YCLib.Input $since b321,
+		* "wrong directive '\param' used" ~ '\note' @ "function \
+			%FetchNativeLooper" @ %'YCLib_(Android)'.Android $since b499,
 		* "wrong directive '\param' used" ~ '\note'
 			@ "member function %TextBox::GetCaretPosition"
 			@ %YSLib.UI.TextBox $since b484

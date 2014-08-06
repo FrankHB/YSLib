@@ -100,10 +100,11 @@
 			<Add option="-std=c++11" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
+			<Add option="-Winvalid-pch" />
 			<Add option="-fdata-sections" />
 			<Add option="-ffunction-sections" />
 			<Add option="-mthreads" />
-			<Add option="-Winvalid-pch" />
+			<Add option="-pipe" />
 			<Add option="-DFREEIMAGE_LIB" />
 			<Add directory="../include" />
 			<Add directory="../DS/include" />
@@ -113,6 +114,7 @@
 		</Compiler>
 		<Linker>
 			<Add option="-Wl,--gc-sections" />
+			<Add option="-pipe" />
 		</Linker>
 		<Unit filename="../../3rdparty/include/FreeImage.h" />
 		<Unit filename="../../3rdparty/include/freetype/config/ftconfig.h" />
