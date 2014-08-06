@@ -11,13 +11,13 @@
 /*!	\file viewer.hpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r349
+\version r348
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2014-08-01 09:42 +0800
+	2014-08-01 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,8 +112,7 @@ public:
 	}
 
 	//! \brief 取容器中项目个数。
-	DefGetter(const ynothrow, SizeType, Total,
-		(YAssertNonnull(p_con), p_con->size()))
+	DefGetter(const ynothrow, SizeType, Total, p_con ? p_con->size() : 0)
 	DefGetter(const ynothrow, SizeType, Length, length)
 	DefGetter(const ynothrow, SizeType, HeadIndex, head)
 	DefGetter(const ynothrow, SizeType, SelectedIndex, selected)

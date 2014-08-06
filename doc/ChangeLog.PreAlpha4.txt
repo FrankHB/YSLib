@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8271
+\version r8273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-07-31 22:27 +0800
+	2014-08-03 06:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4765,7 +4765,8 @@ b432
 			/ $dev "unified format attribute with 'printf'" ~ 'ms_printf'
 				@ "%sfmt<char>" @ %YStandardEx.String
 				// It seems that macro '__USE_MINGW_ANSI_STDIO' is always \
-					defined for C++.
+					defined for C++11 because of ISO C99 compatibility. Also \
+					to be friend for non-MinGW targets.
 			+ %CAssert $=
 			(
 				/ @ YB_USE_YTrace $=

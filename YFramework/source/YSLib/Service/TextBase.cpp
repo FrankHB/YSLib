@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2505
+\version r2506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-07-08 18:04 +0800
+	2014-08-04 08:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ namespace Drawing
 
 TextState::TextState(const Drawing::Font& font, const Padding& m)
 	: PenStyle(font),
-	Margin(m), Pen(), LineGap(0)
+	Margin(m)
 {}
 TextState::TextState(FontCache& fc, const Padding& m)
 	: TextState(Drawing::Font(fc.GetDefaultTypefacePtr()->GetFontFamily()), m)

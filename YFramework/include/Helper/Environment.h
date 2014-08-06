@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r774
+\version r775
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-07-24 17:19 +0800
+	2014-08-05 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,7 +83,7 @@ private:
 	\sa EnterWindowThrad, LeaveWindowThread
 	\since build 399
 	*/
-	std::atomic<size_t> wnd_thrd_count;
+	std::atomic<size_t> wnd_thrd_count{0};
 
 public:
 	/*!

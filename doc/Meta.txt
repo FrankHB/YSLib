@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1095
+\version r1098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-07-31 12:33 +0800
+	2014-08-05 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,12 +94,14 @@ $debug; // issues on debugging;
 // Project contents:
 $comp; // features consist of dependencies with no additional work;
 $doc; // for documents target;
+$impl; // for being used as placeholder of implementation parts;
 $repo; // for repositories of version control system;
 $term; // for terminology;
 
 // Project management:
 $depr_clean; // for deprecated contents cleanup,
-$re($rev_list); // for repeated operations,
+$re($rev_list); // for same repeated operations,
+$re_add($rev_list); // for additional similar repeated operations,
 $re_ex($rev_list); // for repeated operations with evolution(update),
 $revert($rev_list); // for actions reverting changes in previous revision(s), \
 	with all explicit modification and effection restored to the original state.

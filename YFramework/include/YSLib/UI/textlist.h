@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r967
+\version r1015
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-08-01 09:58 +0800
+	2014-08-04 09:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ namespace UI
 \warning 非虚析构。
 \since build 188
 */
-class YF_API MTextList : public MLabel, protected MHilightText
+class YF_API MTextList : protected MHilightText
 {
 public:
 	using ItemType = String; //!< 项目类型：字符串。
@@ -58,15 +58,27 @@ public:
 	*/
 	using ViewerType = GSequenceViewer<ListType>;
 
+	/*!
+	\brief 字体。
+	\since build 524
+	*/
+	Drawing::Font Font;
+	/*!
+	\brief 文本和容器的间距
+	\since build 524
+	*/
+	Drawing::Padding Margin{Drawing::DefaultMargin};
+
 protected:
 	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
-	/*!
-	\brief 列表文本状态。
-	\since build 346
-	*/
-	Drawing::TextState tsList;
 
 public:
+	/*!
+	\brief 列表文本行距。
+	\since build 524
+	*/
+	u8 LineGap = 0;
+
 	/*!
 	\brief 循环选择遍历。
 	\since build 523
@@ -84,6 +96,10 @@ protected:
 	\since build 523
 	*/
 	SDst uTopOffset = 0;
+	//! \since build 523
+	Label lblShared{};
+	//! \since build 523
+	size_t idxShared = size_t(-1);
 
 public:
 	/*!
@@ -97,13 +113,20 @@ public:
 		Styles::Highlight, Styles::HighlightText));
 	DefDeMoveCtor(MTextList)
 
+	//! \since build 523
+	//@{
+	WidgetRange
+	GetChildrenByIndices(size_t, size_t);
 	/*!
 	\brief 取完整视图高。
 	\note 依赖于 GetItemHeight 方法的结果。
-	\since build 523
 	*/
 	SDst
 	GetFullViewHeight() const;
+	size_t
+	GetLastLabelIndexClipped(SPos, SDst) const;
+	//@}
+
 	/*!
 	\brief 取文本列表。
 	\since build 392
@@ -130,8 +153,7 @@ public:
 	\brief 取项目行高。
 	\since build 301
 	*/
-	DefGetter(const ynothrow, SDst, ItemHeight,
-		GetTextLineHeightExOf(tsList))
+	DefGetter(const ynothrow, SDst, ItemHeight, Font.GetHeight() + LineGap)
 	/*!
 	\brief 取文本列表中的最大文本宽度。
 	\since build 282
@@ -202,6 +224,10 @@ public:
 	IndexType
 	Find(const ItemType&) const;
 
+	//! \since build 523
+	WidgetIterator
+	MakeIterator(size_t);
+
 	//! \brief 刷新文本状态。
 	void
 	RefreshTextState();
@@ -249,9 +275,6 @@ public:
 
 	using MTextList::Font;
 	using MTextList::Margin;
-	using MTextList::HorizontalAlignment;
-	using MTextList::VerticalAlignment;
-	using MTextList::Text;
 	//! \since build 486
 	using MHilightText::HilightBackColor;
 	//! \since build 486
@@ -298,6 +321,9 @@ public:
 	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, vwText)
 	using MTextList::GetItemHeight;
 	using MTextList::GetItemPtr;
+	//! \since build 523
+	size_t
+	GetLastLabelIndex() const;
 	using MTextList::GetList;
 	//! \since build 392
 	using MTextList::GetListRef;
@@ -308,6 +334,8 @@ public:
 	//! \since build 522
 	PDefH(Rect, GetUnitBounds, size_t idx)
 		ImplRet(Rect(GetUnitLocation(idx), GetWidth(), GetItemHeight()))
+	//! \since build 523
+	using MTextList::GetUnitLocation;
 	//! \since build 523
 	using MTextList::GetViewPosition;
 
@@ -385,14 +413,6 @@ public:
 
 protected:
 	/*!
-	\brief 绘制列表项。
-	\since build 346
-	*/
-	virtual void
-	DrawItem(const Graphics&, const Rect& bounds, const Rect&,
-		ListType::size_type);
-
-	/*!
 	\brief 描画列表项背景。
 	\param r 列表项有效区域边界。
 	\since build 346
@@ -437,6 +457,9 @@ public:
 	*/
 	void
 	LocateViewPosition(SDst);
+
+	//! \since build 523
+	using MTextList::MakeIterator;
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

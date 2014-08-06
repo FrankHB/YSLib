@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2736
+\version r2738
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-07-08 18:09 +0800
+	2014-08-04 08:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,8 +96,8 @@ public:
 	\brief 笔坐标。
 	\since build 371
 	*/
-	Point Pen;
-	u8 LineGap; //!< 行距。
+	Point Pen{};
+	u8 LineGap = 0; //!< 行距。
 
 	/*!
 	\brief 构造：使用指定字体和边距。

@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12667
+\version r12669
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2014-07-12 23:05 +0800
+	2014-08-03 06:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,6 +81,8 @@ YB_ALLOCATOR
 YB_EXPECT(expr, constant)
 YB_LIKELY(expr)
 YB_UNLIKELY(expr)
+YB_NONNULL
+YB_NORETURN
 YB_PURE
 YB_STATELESS
 !YB_DLL
