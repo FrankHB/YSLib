@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r645
+\version r649
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2014-04-23 00:56 +0800
+	2014-08-10 18:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,6 +202,8 @@ public:
 class YF_API CheckButton : public CheckBox, protected MLabel
 {
 public:
+	//! \since build 525
+	using MLabel::ForeColor;
 	using MLabel::Font;
 	using MLabel::Text;
 
@@ -344,6 +346,8 @@ public:
 class YF_API RadioButton : public RadioBox, protected MLabel
 {
 public:
+	//! \since build 525
+	using MLabel::ForeColor;
 	using MLabel::Font;
 	using MLabel::Text;
 

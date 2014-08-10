@@ -11,13 +11,13 @@
 /*!	\file textarea.h
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r476
+\version r480
 \author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:09:23 +0800
 \par 修改时间:
-	2014-03-10 02:13 +0800
+	2014-08-10 18:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,14 +49,14 @@ public:
 	Drawing::Rotation Rotation; //!< 屏幕指向。
 
 	/*!
-	\brief 构造：使用指定边界、默认字型缓存、指定背景画刷和指定文字颜色。
+	\brief 构造：使用指定边界、背景画刷、文本颜色和默认字型缓存。
 	\since build 484
 	*/
 	explicit
 	TextArea(const Drawing::Rect& = {}, HBrush = MakeBlankBrush(),
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!
-	\brief 构造：使用指定边界、字体缓存背景画刷和文字颜色。
+	\brief 构造：使用指定边界、字型缓存、背景画刷和文本颜色。
 	\since build 484
 	*/
 	TextArea(const Drawing::Rect&, Drawing::FontCache&,
@@ -77,14 +77,14 @@ public:
 	Drawing::Rotation Rotation; //!< 屏幕指向。
 
 	/*!
-	\brief 构造：使用指定边界、默认字型缓存、指定背景画刷和指定文字颜色。
+	\brief 构造：使用指定边界、背景画刷、文本颜色和默认字型缓存。
 	\since build 484
 	*/
 	explicit
 	BufferedTextArea(const Drawing::Rect& = {}, HBrush = MakeBlankBrush(),
 		Drawing::Color = Drawing::ColorSpace::Black);
 	/*!
-	\brief 构造：使用指定边界、字体缓存背景画刷和文字颜色。
+	\brief 构造：使用指定边界、字型缓存、背景画刷和文本颜色。
 	\since build 484
 	*/
 	BufferedTextArea(const Drawing::Rect&, Drawing::FontCache&,

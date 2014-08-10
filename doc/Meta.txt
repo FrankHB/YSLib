@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1098
+\version r1102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-08-05 19:11 +0800
+	2014-08-08 14:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,10 @@ __unfold __iterators.for_labeled_paragraph
 // See "ex.cpp" for escaped abbreviation schema.
 
 $parser.state.style $= $natral_NPL;
+
+// External expressions.
+$lambda(_params)(...); // The lambda abstraction form.
+$map(_f); // The map higher order function.
 
 // Abstract operations for dependencies:
 $dep_from; // take evaluation dependence from;

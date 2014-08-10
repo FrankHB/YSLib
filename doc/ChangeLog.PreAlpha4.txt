@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8273
+\version r8276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-08-03 06:31 +0800
+	2014-08-09 17:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1763,6 +1763,7 @@ b478
 		@ %Documentation.YSLib,
 	/ %YFramework.YSLib.UI $=
 	(
+		+ $dev $doc "Doxygen group %UIModels" @ "group %UI" @ %YWidget,
 		/ %Selector $=
 		(
 			+ "class template %GMSelector",
@@ -4061,7 +4062,7 @@ b444
 				totally out of destination buffer boundary.
 		+ "enum class BorderArea; class %BorderResizer" @ %Border
 	),
-	+ $dev $doc "Doxygen group 'exception_types' for exception types"
+	+ $dev $doc "Doxygen group %exception_types for exception types"
 		@ %YBase.YDefinition,
 	/ %YReader $=
 	(
@@ -6050,7 +6051,7 @@ b412
 						"Clang++ bug 8448".
 			)
 			* $dev "invalid incompelete type %Renderer used"
-				@ "construct template %Widget" @ %UI.YWidget $since b293
+				@ "constructor template %Widget" @ %UI.YWidget $since b293
 		)
 	)
 	+ DLD "'const' for 'yconstfn' functions and function templates to \

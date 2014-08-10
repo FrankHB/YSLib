@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4772
+\version r4775
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-07-14 14:45 +0800
+	2014-08-10 18:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -309,12 +309,12 @@ public:
 	explicit
 	Control(const Rect& = {});
 	/*!
-	\brief 构造：使用指定边界、背景画刷和前景色。
+	\brief 构造：使用指定边界和背景画刷。
 	\sa Control::Control
-	\since build 485
+	\since build 515
 	*/
 	explicit
-	Control(const Rect&, HBrush, Drawing::Color = Drawing::ColorSpace::Black);
+	Control(const Rect&, HBrush);
 	/*!
 	\brief 复制构造：除容器为空外深复制。
 	*/

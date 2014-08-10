@@ -11,13 +11,13 @@
 /*!	\file progress.h
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r313
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:57:48 +0800
 \par 修改时间:
-	2014-01-11 11:33 +0800
+	2014-08-10 18:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,12 @@ namespace UI
 class YF_API ProgressBar : public Control, protected GMRange<float>
 {
 public:
+	/*!
+	\brief 默认前景色。
+	\since build 525
+	*/
+	Color ForeColor{Drawing::ColorSpace::Black};
+
 	//! \since build 337
 	explicit
 	ProgressBar(const Rect& = {}, ValueType = 0xFF);

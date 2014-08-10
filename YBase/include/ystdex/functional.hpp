@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r920
+\version r1002
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-07-17 07:01 +0800
+	2014-08-09 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,30 +381,31 @@ struct expanded_caller
 	static_assert(is_object<_fCallable>::value,
 		"Callable object type is needed.");
 
-	_fCallable Caller;
+	//! \since build 525
+	_fCallable caller;
 
 	//! \since build 448
 	template<typename _fCaller,
 		yimpl(typename = exclude_self_ctor_t<expanded_caller, _fCaller>)>
 	expanded_caller(_fCaller&& f)
-		: Caller(yforward(f))
+		: caller(yforward(f))
 	{}
 
 	template<typename... _tParams>
 	auto
 	operator()(_tParams&&... args)
-		-> decltype(details::expand_proxy<_fHandler>::call(Caller,
+		-> decltype(details::expand_proxy<_fHandler>::call(caller,
 		std::forward_as_tuple(yforward(args)...)))
 	{
-		return details::expand_proxy<_fHandler>::call(Caller,
+		return details::expand_proxy<_fHandler>::call(caller,
 			std::forward_as_tuple(yforward(args)...));
 	}
 };
 
-
 /*!
 \ingroup helper_functions
 \brief 构造接受冗余参数的可调用对象。
+\relates expanded_caller
 \since build 448
 */
 template<typename _fHandler, typename _fCallable>
@@ -427,12 +428,19 @@ struct wrapped_traits : false_type
 	using type = _type;
 };
 
-template<typename _tWrapped>
+template<class _tWrapped>
 struct wrapped_traits<std::reference_wrapper<_tWrapped>> : true_type
 {
 	using type = _tWrapped;
 };
 //@}
+
+/*!
+\ingroup metafunctions
+\since build 525
+*/
+template<typename _type>
+using wrapped_traits_t = typename wrapped_traits<_type>::type;
 
 
 /*!
@@ -455,6 +463,91 @@ unref(const std::reference_wrapper<_type>& x) ynothrow
 	return x.get();
 }
 //@}
+
+
+namespace details
+{
+
+// !\since build 525
+template<typename _tRet, typename _tValue, typename _fCallable>
+struct thunk_caller
+{
+	static_assert(std::is_same<decay_t<_tValue>, _tValue>::value,
+		"Invalid type found.");
+	static_assert(std::is_same<decay_t<_fCallable>, _fCallable>::value,
+		"Invalid type found.");
+
+	using callable_type = _fCallable;
+	using return_type = _tRet;
+	using value_type = _tValue;
+
+	callable_type caller;
+
+	thunk_caller(callable_type f)
+		: caller(f)
+	{}
+	//! \todo 使用 ISO C++1y 通用 lambda 表达式以支持转移构造，避免不必要的复制。
+	thunk_caller(const value_type& arg)
+		: caller([arg]{
+			return std::forward<return_type>(arg);
+		})
+	{}
+	thunk_caller(const thunk_caller&) = default;
+	thunk_caller(thunk_caller&&) = default;
+
+	thunk_caller&
+	operator=(const thunk_caller&) = default;
+	thunk_caller&
+	operator=(thunk_caller&&) = default;
+
+	template<typename... _tParams>
+	return_type
+	operator()(_tParams&&... args) const
+	{
+		return caller(yforward(args)...);
+	}
+};
+
+} // namespace details;
+
+
+/*!
+\brief 包装惰性求值的过程。
+\see http://c2.com/cgi/wiki?ProcedureWithNoArguments 。
+\since build 525
+*/
+template<typename _tRet, typename _tValue = wrapped_traits_t<_tRet>,
+	typename _fCallable = std::function<_tValue()>>
+class thunk : private
+	details::thunk_caller<_tRet, decay_t<_tValue>, decay_t<_fCallable>>
+{
+private:
+	using base
+		= details::thunk_caller<_tRet, decay_t<_tValue>, decay_t<_fCallable>>;
+
+public:
+	using typename base::callable_type;
+	using typename base::return_type;
+	using typename base::value_type;
+
+	using base::caller;
+
+	thunk(callable_type f)
+		: base(std::move(f))
+	{}
+	thunk(const value_type& arg)
+		: base(arg)
+	{}
+	thunk(const thunk&) = default;
+	thunk(thunk&&) = default;
+
+	thunk&
+	operator=(const thunk&) = default;
+	thunk&
+	operator=(thunk&&) = default;
+
+	using base::operator();
+};
 
 
 /*!	\defgroup hash_extensions Hash Extensions

@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2675
+\version r2680
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2014-04-25 10:03 +0800
+	2014-08-10 18:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -297,6 +297,12 @@ public:
 	using ValueType = ATrack::ValueType; //!< 值类型。
 	//! \since build 460
 	using iterator = ystdex::subscriptive_iterator<AScrollBar, IWidget>;
+
+	/*!
+	\brief 默认前景色。
+	\since build 525
+	*/
+	Color ForeColor{Drawing::ColorSpace::Black};
 
 private:
 	unique_ptr<ATrack> pTrack; //轨道。

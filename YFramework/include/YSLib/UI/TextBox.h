@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r364
+\version r373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-07-13 08:51 +0800
+	2014-08-10 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ private:
 
 public:
 	Drawing::Font Font{};
-	Color ForeColor = {ColorSpace::Gray};
+	Color ForeColor{ColorSpace::Gray};
 	String Text{};
 	ucs4_t MaskChar = ucs4_t();
 
@@ -202,6 +202,8 @@ struct YF_API TextSelection final
 class YF_API TextBox : public Control, protected MLabel, protected MHilightText
 {
 public:
+	//! \since build 525
+	using MLabel::ForeColor;
 	using MLabel::Font;
 	using MLabel::Margin;
 	using MLabel::HorizontalAlignment;
@@ -289,10 +291,6 @@ public:
 	void
 	CollapseCaret();
 
-	//! \since build 515
-	void
-	DrawClippedText(const PaintContext&, TextState&) override;
-
 	/*!
 	\brief 导出插入符位置到公共 GUI 状态。
 	\note 仅当外部文本输入指示焦点部件为本对象时有效，否则忽略。
@@ -334,6 +332,10 @@ public:
 	//! \brief 绘制默认插入符。
 	void
 	PaintDefaultCaret(PaintEventArgs&&);
+
+	//! \since build 525
+	void
+	UpdateTextBoxClippedText(const PaintContext&, TextState&);
 };
 
 } // namespace UI;

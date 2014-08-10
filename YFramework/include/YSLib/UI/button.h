@@ -11,13 +11,13 @@
 /*!	\file button.h
 \ingroup UI
 \brief 样式相关的 GUI 按钮控件。
-\version r2293
+\version r2308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-03-10 02:30 +0800
+	2014-08-10 18:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,12 @@ public:
 		ThumbBackground,
 		EndStyle
 	};
+
+	/*!
+	\brief 默认前景色。
+	\since build 525
+	*/
+	Color ForeColor{Drawing::ColorSpace::Black};
 
 protected:
 	/*!
@@ -116,6 +122,8 @@ DecorateAsCloseButton(Thumb&);
 class YF_API Button : public Thumb, protected MLabel
 {
 public:
+	//! \since build 525
+	using MLabel::ForeColor;
 	using MLabel::Font;
 	using MLabel::Margin;
 	using MLabel::HorizontalAlignment;
@@ -127,18 +135,18 @@ public:
 */
 
 	/*!
-	\brief 构造：使用指定边界、字体和文本对齐样式。
-	\since build 392
+	\brief 构造：使用指定边界、字体、文本颜色和文本对齐样式。
+	\since build 525
 	*/
 	explicit
-	Button(const Rect& = {}, const Drawing::Font& = {},
-		TextAlignment = TextAlignment::Center);
+	Button(const Rect& = {}, const Drawing::Font& = {}, Color
+		= Drawing::ColorSpace::Black, TextAlignment = TextAlignment::Center);
 	/*!
-	\brief 构造：使用指定边界、色调、字体和文本对齐样式。
-	\since build 392
+	\brief 构造：使用指定边界、色调、字体、文本颜色和文本对齐样式。
+	\since build 525
 	*/
-	Button(const Rect&, Drawing::Hue, const Drawing::Font& = {},
-		TextAlignment = TextAlignment::Center);
+	Button(const Rect&, Drawing::Hue, const Drawing::Font& = {}, Color
+		= Drawing::ColorSpace::Black, TextAlignment = TextAlignment::Center);
 	DefDeMoveCtor(Button)
 
 	/*!

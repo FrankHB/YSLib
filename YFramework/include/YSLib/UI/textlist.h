@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1015
+\version r1060
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-08-04 09:32 +0800
+	2014-08-10 18:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,11 +52,6 @@ public:
 	using ItemType = String; //!< 项目类型：字符串。
 	using ListType = vector<ItemType>; //!< 列表类型。
 	using IndexType = typename ListType::size_type; //!< 索引类型。
-	/*!
-	\brief 视图类型。
-	\since build 523
-	*/
-	using ViewerType = GSequenceViewer<ListType>;
 
 	/*!
 	\brief 字体。
@@ -74,12 +69,6 @@ protected:
 
 public:
 	/*!
-	\brief 列表文本行距。
-	\since build 524
-	*/
-	u8 LineGap = 0;
-
-	/*!
 	\brief 循环选择遍历。
 	\since build 523
 	*/
@@ -88,9 +77,9 @@ public:
 protected:
 	/*!
 	\brief 列表视图。
-	\since build 523
+	\since build 525
 	*/
-	ViewerType vwText;
+	SequenceViewer vwText{};
 	/*!
 	\brief 列表视图首项目超出上边界的竖直偏移量。
 	\since build 523
@@ -153,7 +142,8 @@ public:
 	\brief 取项目行高。
 	\since build 301
 	*/
-	DefGetter(const ynothrow, SDst, ItemHeight, Font.GetHeight() + LineGap)
+	DefGetter(const ynothrow, SDst, ItemHeight,
+		Font.GetHeight() + GetVerticalOf(Margin))
 	/*!
 	\brief 取文本列表中的最大文本宽度。
 	\since build 282
@@ -210,10 +200,6 @@ public:
 	*/
 	void
 	AdjustViewLengthForHeight(SDst);
-
-	//! \brief 检查列表中的指定项是否被选中。
-	PDefH(bool, CheckSelected, ListType::size_type idx) const
-		ImplRet(vwText.IsSelected() && vwText.GetSelectedIndex() == idx)
 	//@}
 
 	/*!
@@ -227,10 +213,6 @@ public:
 	//! \since build 523
 	WidgetIterator
 	MakeIterator(size_t);
-
-	//! \brief 刷新文本状态。
-	void
-	RefreshTextState();
 
 	/*!
 	\brief 复位视图。
@@ -259,8 +241,6 @@ public:
 	using MTextList::ItemType;
 	using MTextList::ListType;
 	using MTextList::IndexType;
-	//! \since build 523
-	using MTextList::ViewerType;
 	/*!
 	\brief 视图参数类型。
 	\param 表示主动定位视图。
@@ -273,6 +253,11 @@ public:
 	*/
 	DeclDelegate(HViewEvent, ViewArgs)
 
+	/*!
+	\brief 默认前景色。
+	\since build 525
+	*/
+	Color ForeColor{Drawing::ColorSpace::Black};
 	using MTextList::Font;
 	using MTextList::Margin;
 	//! \since build 486
@@ -393,34 +378,22 @@ public:
 	\note 当且仅当有效时响应 Confirmed 事件。
 	*/
 	virtual PDefH(bool, CheckConfirmed, ListType::size_type idx) const
-		ImplRet(MTextList::CheckSelected(idx))
+		ImplRet(vwText.CheckSelected(idx))
 
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
-	\return 选择的项目索引。
+	\return 选择的项目索引，若无效则为 static_cast<ListType::size_type>(-1) 。
 	*/
+	//@{
 	ListType::size_type
 	CheckPoint(SPos, SPos);
-	/*!
-	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
-	\return 选择的项目索引，若无效则为 static_cast<ViewerType::IndexType>(-1) 。
-	*/
 	PDefH(ListType::size_type, CheckPoint, const Point& pt)
 		ImplRet(CheckPoint(pt.X, pt.Y))
+	//@}
 
 	PDefH(void, ClearSelected, )
 		ImplBodyMem(vwText, ClearSelected, )
 
-protected:
-	/*!
-	\brief 描画列表项背景。
-	\param r 列表项有效区域边界。
-	\since build 346
-	*/
-	virtual void
-	DrawItemBackground(const PaintContext&, const Rect& r);
-
-public:
 	//! \since build 316
 	using MTextList::Find;
 
@@ -468,8 +441,6 @@ public:
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
-
-	using MTextList::RefreshTextState;
 
 	/*!
 	\brief 复位视图：调用 MTextList::ResetView 和 UpdateView 。

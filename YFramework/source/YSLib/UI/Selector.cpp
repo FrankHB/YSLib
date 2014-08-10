@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1012
+\version r1030
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-07-20 11:51 +0800
+	2014-08-11 01:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,15 +147,17 @@ CheckButton::CheckButton(const Rect& r)
 void
 CheckButton::Refresh(PaintEventArgs&& e)
 {
-	auto& view(GetView());
-	const Size s(GetSizeOf(*this));
+	{
+		ystdex::swap_guard<Size, void> guard(GetView().GetSizeRef(), 13, 13);
 
-	view.GetSizeRef() = {13, 13};
-	CheckBox::Refresh(std::move(e));
-	view.GetSizeRef() = s;
-	Margin.Left += 13;
-	DrawText(s, ForeColor, e);
-	Margin.Left -= 13;
+		CheckBox::Refresh(std::move(e));
+	}
+	{
+		ystdex::swap_guard<SPos, void>
+			guard(Margin.Left, SPos(Margin.Left + 13));
+
+		(*this)(std::move(e));
+	}
 }
 
 
@@ -234,15 +236,18 @@ RadioButton::RadioButton(const Rect& r)
 void
 RadioButton::Refresh(PaintEventArgs&& e)
 {
-	auto& view(GetView());
-	const Size s(GetSizeOf(*this));
+	{
+		ystdex::swap_guard<Size, void> guard(GetView().GetSizeRef(), 13, 13);
 
-	view.GetSizeRef() = {13, 13};
-	RadioBox::Refresh(std::move(e));
-	view.GetSizeRef() = s;
-	Margin.Left += 13;
-	DrawText(s, ForeColor, e);
-	Margin.Left -= 13;
+		RadioBox::Refresh(std::move(e));
+	}
+	{
+		ystdex::swap_guard<SPos, void>
+			guard(Margin.Left, SPos(Margin.Left + 13));
+
+		(*this)(std::move(e));
+	}
+
 }
 
 } // namespace UI;

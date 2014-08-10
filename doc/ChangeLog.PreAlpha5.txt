@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2496
+\version r2684
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-08-06 14:55 +0800
+	2014-08-11 01:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,189 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework.YSLib.UI $=
+	(
+		/ %TextList $=
+		(
+			/ @ "class %TextList" $=
+			(
+				/ DLD "simplified item background drawing" ^ "%FillRect"
+					~ "%FillRectRaw";
+				- "protected function %DrawItemBackground"
+				(
+				- $revert($orig(b205)) 'using MTextList::RefreshTextState;';
+				$dep_to "removal of %RefreshTextState call of %TextList"
+				),
+				(
+				- DLD "%MTextList::(GetTotal, SetContainer) calls";
+				$dep_to "removal containers of viewer"
+				),
+				(
+				- 'using MTextList::ViewerType;' @ "class %Textist";
+				$dep_to "removal of %ViewerType";
+				)
+			),
+			/ @ "class %MTextList" $=
+			(
+				(
+				/ DLD "implemented function %GetItemHeight"
+					^ 'GetVerticalOf(Margin)' ~ 'LineGap',
+				(
+				$dep_from ("removal of %RefreshTextState call of %TextList",
+					"removal of %RefreshTextState call of %Menu";
+				- "function %RefreshTextState"
+				)
+				),
+				- $revert(b524) "data member %LineGap",
+				(
+				$dep_from "removal of %ViewerType";
+				- "alias declaration %ViewerType" @ "class %MTextList"
+				),
+				(
+				$dep_from %Viewer;
+				/ "function %CheckSelected" -> ("member function \
+					%SequenceViewer::CheckSelected" @ %Viewer)
+				)
+			),
+			/ DLD "viewer calls"
+		),
+		(
+		- DLD "calls of %MTextList::RefreshTextState" @ "classes %(TextList, \
+			Menu)",
+		$dep_to "removal of %RefreshTextState of %Menu"
+		),
+		/ %Viewer $=
+		(
+			/ "class template %GSequenceViewer" -> "class %SequenceViewer" $=
+			(
+				(
+				(
+				- "'GetTotal()' calls" @ "functions %(RestrictSelected, \
+					RestrictView, Contains)",
+				(
+					- "all prefix and postfix %operator(++, --)",
+					- "functions %(DecreaseHead, DecreaseSelected);
+					/ "implemented functions %(SetHeadIndex, \
+						MoveViewerToEnd, \
+						SetSelectedIndex, AdjustForContent, GetValid, \
+						IncreaseHead, IncreaseSelected)"
+						^ "extra parameter 'total'" ~ "'GetTotal()' calls"
+				);
+				- "function %GetTotal"
+				),
+				(
+				$dep_from "removal containers of viewer"
+				- "function %SetContainer",
+				)
+				/ "data member initialization" ^ "brace-or-equal-initializer";
+				/ "explicit constructor" -> "non-explicit explicitly defaulted \
+					constructor";
+				- DLD "container pointer state"
+				),
+				(
+				$map ($lambda(T, G)(
+				- "static assertion for %SizeType";
+				/ T -> G;
+				- "alias declaration %SizeType"
+				))(("%SizeType", "%size_type"), ("%DifferenceType",
+					"%ptrdiff_t"));
+				- "alias declaration %ContainerType"
+				),
+				/ "functions %(GetLength, SetLength)" -> "data member %Length"
+			),
+			/ DLD "header names"
+			+ DLD ".cpp file for member function implementation"
+		),
+		/ @ %YBrush $=
+		(
+			+ $dev $doc "Doxygen group %UIBrushes" @ "group %UI",
+			/ @ "alias template %GBrushUpdater" $=
+			(
+				/ "supported variadic template arguments",
+				/ "implemented" ^ "%GHEvent" ~ "%std::function"
+					// This means now omitting redundant parameters is \
+						supported.
+			),
+			- $revert(b441) "assertion" @ "function %ImageBrush::operator()"
+		),
+		/ @ "class %MLabel" @ %Label $=
+		(
+			/ "virtual function %DrawClippedText" -> "static function \
+				%DefaultUpdateClippedText; data member %UpdateClippedText",
+			- "virtual destructor"
+				// Thus %MLabel is not a polymorphic class any longer.
+			/ DLD "initilized %(VerticalAlignment, AutoWrapLine, Text, \
+				Margin)" ^ "brace-or-equal-initializer" ~ "ctor-initilizer",
+			/ @ "function %DrawText" $=
+			(
+				- "color parameter",
+					// Member %ForeColor is used instead.
+				+ 'const'
+			),
+			+ "member function %operator()"
+		),
+		/ %TextBox $=
+		(
+			/ DLD "initialization" @ "%ForeColor"
+				@ "class template %TextPlaceholder"
+				@ %TextBox ^ "brace-init-list" ~ "= initializer-clause",
+			/ "overrider function %DrawClippedText" @ "class %TextBox"
+				-> "function %UpdateTextBoxClippedText"
+		),
+		(
+		$dep_from %YBase.YStandardEx.Utilities;
+		/ "explictly supported strong exception guarantee"
+			@ "%(TextBox, Button, CheckButton, RadioButton)::Refresh"
+			^ "%ystdex::swap_guard";
+			// Thus all GUI rendering meets strong exception safety guarantee.
+		),
+		(
+		(
+		+ "data member %ForeColor" @ "class %MLabel";
+		+ "color as 2nd parameter" @ "constructors %(MLabel, Button)",
+		+ 'using MLabel::ForeColor;'
+			@ "classes %(Label, Button, CheckButton, RadioButton, TextBox)",
+		/ "foreground color directly initialized for text state rather than \
+			data member %ForeColor"
+			@ "constructors %(TextArea, BufferedTextArea)" @ %TextArea
+		),
+		+ "data member %ForeColor"
+			@ "classes %(ProgressBar, Thumb, TextList, AScrollBar)",
+		- "foreground color parameter" @ "constructors %(Control, Widget)";
+		- "data member %ForeColor" @ "class Widget"
+		),
+		(
+			$dep_from "%MLabel::operator()";
+			/ DLD "implemented %(TextBox, Label, Button, CheckButton, \
+				RadioButton)::Refresh" ^ "%MLabel::operator()"
+				~ "%MLabel::DrawText"
+		)
+	),
+	/ DLD "all 'C++14'" -> 'C++1y' !@ %Documentation::CommonRules,
+		// The standard is not published yet. Do not modify rules to \
+			minimalize future modification.
+	/ %YBase.YStandardEx $=
+	(
+		/ @ %Functional $=
+		(
+			/ "data member %Caller" @ "template class %expanded_caller"
+				=> "%caller",
+			(
+			+ "metafunction %wrapped_traits_t";
+			+ "class template %thunk"
+			)
+		),
+		(
+		$dep_from "%wrapped_traits_t" @ %Functional;
+		/ DLD "simplified implementation" @ %AnyIterator
+			^ 'wrapped_traits_t<_type>' ~ 'typename wrapped_traits<_type>::type'
+		),
+		+ "class template %swap_guard and its partial specialization" %Utilities
+	)
+),
+
+b524
 (
 	+ DLB '-pipe' @ "compliler and linker options" @ "Code::Blocks projects"
 		@ "platform %MinGW32",
@@ -108,7 +291,7 @@ $now
 						^ "brace-or-equal-initializer '= 0'"
 						~ "ctor-initializer",
 					/ DLD "initialized data member %Pen"
-						^ "brace-or-equal-initializer '{}'" ~ "ctor-initializer"
+						^ "braced-init-list '{}'" ~ "ctor-initializer"
 				)
 			)
 		),
@@ -137,10 +320,11 @@ $now
 		)
 	),
 	* "missing atomic member initialization" $effective %YFramework.Helper
-		$= (^ "brace-or-equal-initializer" ~ "empty ctor-initializer")
+		$= (^ "braced-init-list" ~ "empty ctor-initializer")
 		@ ("class %Environment" @ %Environment $orig(%Host) $since b399,
 		"class %WindowThread" @ %HostRenderer $orig(%Helper $impl) b428);
-		// Similar as fix @ b491.
+		// See $2014-08 @ %Documentation::Workflow::Annual2014. Similar as fix \
+			@ b491. 
 ),
 
 b523
@@ -724,7 +908,8 @@ b519
 			%GUIApplication::DealMessage" @ Helper.GUIApplication $since b481
 	),
 	- 'using platform::YDebugSetStatus;' @ %YReader.Shells,
-	/ DLD "all 'return {}' out of marco definition" -> 'return false',
+	/ DLD "all 'return false' out of marco definition with no 'auto' deduction"
+		-> 'return {}',
 		// Return type of these functions are already specified.
 	(
 	/ %Documentation $=

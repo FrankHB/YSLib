@@ -214,7 +214,7 @@
     <ClInclude Include="include\YSLib\UI\TextBox.h" />
     <ClInclude Include="include\YSLib\UI\textlist.h" />
     <ClInclude Include="include\YSLib\UI\uicontx.h" />
-    <ClInclude Include="include\YSLib\UI\viewer.hpp" />
+    <ClInclude Include="include\YSLib\UI\Viewer.h" />
     <ClInclude Include="include\YSLib\UI\WidgetIteration.h" />
     <ClInclude Include="include\YSLib\UI\YBrush.h" />
     <ClInclude Include="include\YSLib\UI\Console.h" />
@@ -307,6 +307,7 @@
     <ClCompile Include="source\YSLib\UI\TextBox.cpp" />
     <ClCompile Include="source\YSLib\UI\textlist.cpp" />
     <ClCompile Include="source\YSLib\UI\uicontx.cpp" />
+    <ClCompile Include="source\YSLib\UI\Viewer.cpp" />
     <ClCompile Include="source\YSLib\UI\YBrush.cpp" />
     <ClCompile Include="source\YSLib\UI\Console.cpp" />
     <ClCompile Include="source\YSLib\UI\YComponent.cpp" />

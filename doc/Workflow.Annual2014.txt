@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r521
+\version r557
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-07-23 14:23 +0800
+	2014-08-10 02:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -513,6 +513,44 @@ Distinguishing platforms should be care.
 		So no change should be made on directories.
 			Just create "MinGW64" for new MinGW64 files.
 		However, the header "MinGW32.h" might be migrated for all MinGW platforms in future. Other header may be shared for other Windows platforms.
+
+$2014-08:
+
+report.impl:
+Initialization should be cared.
+	There are several changes in ISO C++1y for initialization.
+		For value-initialization, as per WG21/N3936, from the resolution of CWG1301, the explicitly defaulted default constructors (declaring with '= default') are considered to ensure zero-initialization for members witout default constructor.
+			See http://wg21.cmeerw.net/cwg/issue1301 .
+			It differentiates with explicitly deleted constructor (declaring with '= delete') or user-provided ones.
+			Note for ISO C++11, The '= default' is not enough to ensure a value-initialized with no unitialized non-static data members. This is not intended.
+			It seems G++ 4.8 and Clang++ 4.9 have implemented it, see http://stackoverflow.com/questions/24043897/c11-value-initialization-with-defaulted-default-constructor .
+		List-initialization was also effected by CWG1301.
+			Aggregate initialization takes the first place for aggregates despite of default constructor.
+			See http://stackoverflow.com/questions/23882409/c14-value-initialization-with-deleted-constructor .
+	Note it is not enougth for arbitrary class type objects (even with '= default' constructor) using member declaration as 'T x{}' to ensure initialized.
+		The defaulted default constructor does not ensure performing initialization for each data members in subobjects.
+			As per WG21/N3936 8.4.2/5, the definition an explicitly defaulted special member function shall be provided as implicit definition.
+			As per WG21/N3936 12.1, the implicitly defined default constructor performs initialization would be performed by a user-written default constructor for that class with no ctor-initializer and an empty compound-statement.
+			As per WG21/N3936 12.6.2/8, a non-static data member without brace-or-equal-initializer in class definition and no mem-initializer in ctor-initializer can be default-initialized, which can be with no initialization at all.
+		For example, when 'T' is 'std::atomic<int>'.
+			Since it is explicitly stated "in an uninitialized state" in 29.6.5/4 in ISO C++11 and WG21/N3936, for ISO C compatible semantics.
+	There are still ways to avoid redundant initiliazation of member data for default-initialization and value-initialization via default constructors (but perhaps not copy initialization).
+		Several cases are significant, e.g. for containers as buffer.
+			Since containers using allocators to construct elements, and at least the default allocator uses value-iniitialization to construct object, so it effects.
+			Another solution is to provide user-provided allocators which provides 'construct' overriding the default implementation to eliminate unnecessary initialization.
+				But this has effect on the container types, and may be not obvious enouth.
+		The element type should usually be a class type declared like 'struct T {D data; T(){}};' where the data type D meets the requirements for container elements.
+		This is somewhat complex but still feasible for many cases.
+			However, G++ can produce code to perform zero-initialization.
+				At least for 4.8.2 and 4.9.1, specifying the optimization option '-Og', '-O1' or above. But '-O0' is expected.
+				It is not clear whether this behavior is intended.
+The "template-parameter" can be a "template-parameter" thus being declared with "brace-init-list" in default argument for non-type parameter, but no similar synax is allowed for "template-argument".
+	This is inconsistent, but precisely defined in ISO C++.
+	Clang++ 3.4.2 still wrongly rejects the use of '= {}' for template non-type parameter 'bool' at template declarations. The diagnostics reads "expect expression".
+It is intended to make the strong exception guarantee wider in whole YFramework::YSLib.
+	All APIs should meet the basic guarantee, i.e. no resource would leak.
+	However, currently not all APIs are convinced to be.
+	Thus only GUI rendereing is documented as meeting the strong guarantee after reimplemented 'TextBox::Refresh' which could previously make the 'Text' property unspecified after an exception threw.
 
 
 ////

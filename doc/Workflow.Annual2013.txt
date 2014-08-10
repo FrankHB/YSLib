@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2013.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2013 年度。
-\version r267
+\version r268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-07-31 01:27:41 +0800
 \par 修改时间:
-	2013-12-26 00:50 +0800
+	2014-08-09 12:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -157,7 +157,7 @@ The YSLib project now prefers using alias declarations over typedef declarations
 	3. Typedef declaration of an anonymous class has no equivalent alias declaration form, but it is also less commonly used in modern C++ (but not in C), and the YSLib project now deprecates this usage.
 	4. There should be nothing different in general in other aspects. Though the current standard text is still using 'typedef', and for an implementation of both pre-C++11/C++11, keeping 'typedef' would save some '#ifdef' text, the YSLib project has no similar requirements.
 	5. See https://groups.google.com/a/isocpp.org/forum/#!searchin/std-discussion/typedef/std-discussion/cwZ8HYQxxlM/Zzj4CTxSaskJ for the discussion of flavor in the ISO C++ standard text. No problems found for others even for using in standard proposals.
-There is nothing cannot be implemented by ISO C++14 lambda expressions which is able via std::bind, see http://stackoverflow.com/questions/17363003/why-use-stdbind-over-lambdas-in-c14 .
+There is nothing cannot be implemented by ISO C++1y lambda expressions which is able via std::bind, see http://stackoverflow.com/questions/17363003/why-use-stdbind-over-lambdas-in-c14 .
 For std::bind, pointers and reference wrappers arguments are almost always significant except for member function of a class type lvalue, 'std::ref(*this)' and 'this' is the same, while the YSLib code always preferred the latter(simpler). Note the difference is always significant for 'ystdex::any_iterator'.
 For 32bpp '::HBITMAP', it seems that no pitch should be considered, i.e. the storage of pixels is contiguous.
 Note that '::HBITMAP' data is raw bitmap compatible but not strict '::RGBQUAD', so the reserved 'rgbReserved' member can be used as alpha value.

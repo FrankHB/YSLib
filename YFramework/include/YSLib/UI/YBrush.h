@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r371
+\version r392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2013-12-23 22:55 +0800
+	2014-08-10 20:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,15 @@ namespace YSLib
 namespace UI
 {
 
+/*!	\defgroup UIBrushes User Interface Brushes
+\ingroup UI
+\brief 用户界面画刷。
+*/
+
 /*!
+\ingroup UIBrushes
 \brief 单色画刷。
+\warning 非虚析构。
 \since build 293
 */
 class YF_API SolidBrush
@@ -59,19 +66,18 @@ public:
 
 /*!
 \brief 画刷更新器类型。
-\tparam _type 源类型。
-\note 第三个参数为目标偏移，第四个参数为源偏移。
-\since build 441
+\since build 525
 
 按目标绘制上下文、源和附加偏移更新目标图像的回调接口。
 */
-template<typename _type>
-using GBrushUpdater = std::function<void(const PaintContext&, _type,
-	const Point&, const Point&)>;
+template<typename... _types>
+using GBrushUpdater = GHEvent<void(const PaintContext&, _types...)>;
 
 
 /*!
+\ingroup UIBrushes
 \brief 图像画刷。
+\warning 非虚析构。
 \since build 294
 */
 class YF_API ImageBrush
@@ -79,9 +85,11 @@ class YF_API ImageBrush
 public:
 	/*!
 	\brief 当前使用的图像更新器。
-	\since build 441
+	\note 第三个模板参数为目标偏移，第四个模板参数为源偏移。
+	\since build 525
 	*/
-	GBrushUpdater<const Drawing::Image&> Update{DefaultUpdate};
+	GBrushUpdater<const Drawing::Image&, const Point&, const Point&>
+		Update{DefaultUpdate};
 
 	//! \since build 441
 	mutable shared_ptr<Drawing::Image> ImagePtr;
@@ -104,8 +112,8 @@ public:
 	DefDeMoveAssignment(ImageBrush)
 
 	/*!
-	\pre 断言：更新器非空。
-	\note 图像指针为空指针忽略操作。
+	\brief 描画：调用图像更新器。
+	\note 图像指针为空指针时忽略操作。
 	*/
 	void
 	operator()(PaintEventArgs&&);

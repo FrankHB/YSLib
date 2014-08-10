@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1219
+\version r1221
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-08-04 08:41 +0800
+	2014-08-07 08:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,8 +113,6 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 				unit.Height) & e.ClipArea, 4, RDeg0, lblShared.ForeColor);
 	}
 	);
-	//刷新文本状态，防止第一次绘制前不确定文本间距，无法正确根据内容重设大小。
-	RefreshTextState();
 }
 
 void

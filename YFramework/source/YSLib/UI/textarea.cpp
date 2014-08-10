@@ -11,13 +11,13 @@
 /*!	\file textarea.cpp
 \ingroup UI
 \brief 样式无关的用户界面文本区域部件。
-\version r451
+\version r463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 222
 \par 创建时间:
 	2011-06-30 20:10:27 +0800
 \par 修改时间:
-	2014-03-09 22:30 +0800
+	2014-08-10 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,28 +38,32 @@ namespace UI
 {
 
 TextArea::TextArea(const Rect& r, HBrush b, Drawing::Color c)
-	: Widget(r, b, c), TextState(), TextRenderer(*this),
+	: Widget(r, b), TextState(), TextRenderer(*this),
 	Rotation(Drawing::RDeg0)
-{}
+{
+	Color = c;
+}
 TextArea::TextArea(const Rect& r, FontCache& fc, HBrush b, Drawing::Color c)
-	: Widget(r, b, c), TextState(fc), TextRenderer(*this),
+	: Widget(r, b), TextState(fc), TextRenderer(*this),
 	Rotation(Drawing::RDeg0)
-{}
+{
+	Color = c;
+}
 
 
 BufferedTextArea::BufferedTextArea(const Rect& r, HBrush b, Drawing::Color c)
-	: Widget(r, b, c), TextRegion(),
+	: Widget(r, b), TextRegion(),
 	Rotation(Drawing::RDeg0)
 {
-	//初始化视图。
+	Color = c,
 	TextRegion::SetSize(GetWidth(), GetHeight());
 }
 BufferedTextArea::BufferedTextArea(const Rect& r, FontCache& fc, HBrush b,
 	Drawing::Color c)
-	: Widget(r, b, c), TextRegion(fc),
+	: Widget(r, b), TextRegion(fc),
 	Rotation(Drawing::RDeg0)
 {
-	//初始化视图。
+	Color = c,
 	TextRegion::SetSize(GetWidth(), GetHeight());
 }
 

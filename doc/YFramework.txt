@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r772
+\version r774
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-07-30 10:51 +0800
+	2014-08-09 03:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,7 +403,7 @@
  YSLib/Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
 本体的必要文件不依赖 YSLib 以外的文件。
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
-对于公开的头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对于 YFramework/include 的路径）。
+对于公开的头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.1])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对于 YFramework/include 的路径）。
  Adaptor 的头文件依赖于 YFramework 的 YFM_YBaseMacro 。
 实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 下层的 <YModules.h> 包含 "../YModules.h" 。除此之外，以下包含关系是确定的：
@@ -626,6 +626,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 @4.2.2 成员声明顺序规则：
 一般规则参见 [Documentation::CommonRules @@6.9.6] 。
 访问器[Documentation::CommonRules @@3.11.3] （以谓词([Documentation::CommonRules @@3.11.2]) 、其它获取器([Documentation::CommonRules @@3.11.4]) 、设置器([Documentation::CommonRules @@3.11.4]) 排列）在转换操作符后和其它函数或函数模板前声明。
+注意非访问器的谓词不适用以上规则。
 
 @4.3 附加规则：
 对于 YDefinition([Documentation::YBase @@2.3]) 中的每个表达式宏([Documentation::CommonRules @@6.10]) M ，使用特定的以下规则：
