@@ -139,6 +139,22 @@
 		<Unit filename="../3rdparty/include/freetype/tttags.h" />
 		<Unit filename="../3rdparty/include/freetype/ttunpat.h" />
 		<Unit filename="../3rdparty/include/ft2build.h" />
+		<Unit filename="DS/source/Helper/DSMain.cpp" />
+		<Unit filename="DS/source/Helper/DSScreen.cpp" />
+		<Unit filename="DS/source/Helper/DSScreen.h" />
+		<Unit filename="DS/source/Helper/DSWindow.cpp" />
+		<Unit filename="DS/source/Helper/DSWindow.h" />
+		<Unit filename="DS/source/Helper/shlds.cpp" />
+		<Unit filename="MinGW32CE/include/YCLib/COM.h" />
+		<Unit filename="MinGW32CE/include/YCLib/MinGW32.h" />
+		<Unit filename="MinGW32CE/include/YCLib/Win32GUI.h" />
+		<Unit filename="MinGW32/include/YCLib/COM.h" />
+		<Unit filename="MinGW32/include/YCLib/Consoles.h" />
+		<Unit filename="MinGW32/include/YCLib/MinGW32.h" />
+		<Unit filename="MinGW32/include/YCLib/Win32GUI.h" />
+		<Unit filename="MinGW32/source/YCLib/Consoles.cpp" />
+		<Unit filename="MinGW32/source/YCLib/MinGW32.cpp" />
+		<Unit filename="MinGW32/source/YCLib/Win32GUI.cpp" />
 		<Unit filename="data/cp113.bin" />
 		<Unit filename="data/default_font.bin" />
 		<Unit filename="include/CHRLib/Convert.hpp" />
@@ -235,6 +251,7 @@
 		<Unit filename="include/YSLib/UI/Selector.h" />
 		<Unit filename="include/YSLib/UI/TabControl.h" />
 		<Unit filename="include/YSLib/UI/TextBox.h" />
+		<Unit filename="include/YSLib/UI/Viewer.h" />
 		<Unit filename="include/YSLib/UI/WidgetIteration.h" />
 		<Unit filename="include/YSLib/UI/YBrush.h" />
 		<Unit filename="include/YSLib/UI/YComponent.h" />
@@ -248,7 +265,6 @@
 		<Unit filename="include/YSLib/UI/textarea.h" />
 		<Unit filename="include/YSLib/UI/textlist.h" />
 		<Unit filename="include/YSLib/UI/uicontx.h" />
-		<Unit filename="include/YSLib/UI/viewer.hpp" />
 		<Unit filename="include/YSLib/UI/ycontrol.h" />
 		<Unit filename="include/YSLib/UI/ydesktop.h" />
 		<Unit filename="include/YSLib/UI/yfocus.h" />
@@ -329,6 +345,7 @@
 		<Unit filename="source/YSLib/UI/Selector.cpp" />
 		<Unit filename="source/YSLib/UI/TabControl.cpp" />
 		<Unit filename="source/YSLib/UI/TextBox.cpp" />
+		<Unit filename="source/YSLib/UI/Viewer.cpp" />
 		<Unit filename="source/YSLib/UI/YBrush.cpp" />
 		<Unit filename="source/YSLib/UI/YComponent.cpp" />
 		<Unit filename="source/YSLib/UI/button.cpp" />

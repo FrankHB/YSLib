@@ -11,13 +11,13 @@
 /*!	\file label.cpp
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1373
+\version r1391
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:32:34 +0800
 \par 修改时间:
-	2014-07-31 20:11 +0800
+	2014-08-11 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,11 +36,15 @@ namespace YSLib
 namespace UI
 {
 
-MLabel::MLabel(const Drawing::Font& fnt, TextAlignment a)
-	: Font(fnt), Margin(Drawing::DefaultMargin),
-	HorizontalAlignment(a), VerticalAlignment(TextAlignment::Center),
-	AutoWrapLine(false), /*AutoSize(false), AutoEllipsis(false),*/ Text()
+MLabel::MLabel(const Drawing::Font& fnt, Color c, TextAlignment a)
+	: ForeColor(c), Font(fnt), HorizontalAlignment(a)
 {}
+
+void
+MLabel::operator()(PaintEventArgs&& e) const
+{
+	DrawText(GetSizeOf(e.GetSender()), e);
+}
 
 Point
 MLabel::GetAlignedPenOffset(const Size& s) const
@@ -92,29 +96,31 @@ MLabel::GetAlignedPenOffset(const Size& s) const
 }
 
 void
-MLabel::DrawText(const Size& s, Color c, const PaintContext& e)
+MLabel::DrawText(const Size& s, const PaintContext& e) const
 {
 	const Rect bounds(e.Location, s);
 	const auto r(bounds + Margin);
 	Drawing::TextState ts(Font, FetchMargin(r, e.Target.GetSize()));
 
-	ts.Color = c,
+	ts.Color = ForeColor,
 	ts.ResetPen(e.Location, Margin);
 	ts.Pen += GetAlignedPenOffset(s);
-	DrawClippedText({e.Target, e.Location, e.ClipArea & r}, ts);
+	UpdateClippedText({e.Target, e.Location, e.ClipArea & r}, ts, Text,
+		AutoWrapLine);
 }
 
 void
-MLabel::DrawClippedText(const PaintContext& pc, Drawing::TextState& ts)
+MLabel::DefaultUpdateClippedText(const PaintContext& pc, Drawing::TextState& ts,
+	const String& text, bool auto_wrap_line)
 {
-	Drawing::DrawClippedText(pc.Target, pc.ClipArea, ts, Text, AutoWrapLine);
+	DrawClippedText(pc.Target, pc.ClipArea, ts, text, auto_wrap_line);
 }
 
 
 void
 Label::Refresh(PaintEventArgs&& e)
 {
-	DrawText(GetSizeOf(*this), ForeColor, e);
+	(*this)(std::move(e));
 }
 
 } // namespace UI;

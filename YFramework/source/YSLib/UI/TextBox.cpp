@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r520
+\version r566
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-07-13 08:59 +0800
+	2014-08-11 01:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,6 +95,8 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 	std::placeholders::_1), InvalidateDefaultCaret), h_offset()
 {
 	yunseq(
+	UpdateClippedText = std::bind(&TextBox::UpdateTextBoxClippedText, this,
+		std::placeholders::_1, std::placeholders::_2),
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(e.Strategy == RoutedEventArgs::Direct)
 		{
@@ -258,42 +260,6 @@ TextBox::CollapseCaret()
 }
 
 void
-TextBox::DrawClippedText(const PaintContext& pc, TextState& ts)
-{
-	ptPenOffset
-		= Point(ts.Pen.X, ts.Pen.Y - ts.Font.GetAscender()) - pc.Location;
-
-	auto p(&Text[0]);
-	auto x1(Selection.Range.first.X), x2(Selection.Range.second.X);
-
-	if(x1 == x2)
-		MLabel::DrawClippedText(pc, ts);
-	else
-	{
-		if(x2 < x1)
-			std::swap(x1, x2);
-
-		// TODO: Use C++14 lambda initializers to simplify implementation.
-		const auto q1(p + x1), q2(p + x2);
-		const auto& g(pc.Target);
-		CustomTextRenderer ctr([&, q1, q2](TextRenderer& tr, ucs4_t c){
-			if(IsInInterval(p, q1, q2))
-			{
-				// TODO: Use colors from %Styles::Palette.
-				FillRect(g, tr.ClipArea, ts.GetCharBounds(c), HilightBackColor);
-				ts.Color = HilightTextColor;
-			}
-			else
-				ts.Color = ForeColor;
-			tr(c);
-			++p;
-		}, ts, g, pc.ClipArea);
-
-		PutText(AutoWrapLine, ctr, p);
-	}
-}
-
-void
 TextBox::ExportCaretLocation() const
 {
 	auto& st(FetchGUIState());
@@ -314,17 +280,11 @@ TextBox::InvalidateDefaultCaret(IWidget& wgt)
 void
 TextBox::Refresh(PaintEventArgs&& e)
 {
-	String str;
-	const bool b(MaskChar != ucs4_t());
+	// XXX: Alternative value construction should be lazy.
+	ystdex::swap_guard<String> guard(MaskChar != ucs4_t(), Text, 
+		String{MaskChar} * Text.length());
 
-	if(b)
-	{
-		swap(str, Text);
-		Text = String{MaskChar} * str.length();
-	}
-	DrawText(GetSizeOf(*this), ForeColor, e);
-	if(b)
-		swap(str, Text);
+	(*this)(std::move(e));
 }
 
 void
@@ -353,6 +313,42 @@ TextBox::PaintDefaultCaret(PaintEventArgs&& e)
 
 	DrawVLineSeg(e.Target, e.ClipArea, caret_loc.X, caret_loc.Y,
 		caret_loc.Y + Font.GetHeight(), ForeColor);
+}
+
+void
+TextBox::UpdateTextBoxClippedText(const PaintContext& pc, TextState& ts)
+{
+	ptPenOffset
+		= Point(ts.Pen.X, ts.Pen.Y - ts.Font.GetAscender()) - pc.Location;
+
+	auto p(&Text[0]);
+	auto x1(Selection.Range.first.X), x2(Selection.Range.second.X);
+
+	if(x1 == x2)
+		DefaultUpdateClippedText(pc, ts, Text, AutoWrapLine);
+	else
+	{
+		if(x2 < x1)
+			std::swap(x1, x2);
+
+		// TODO: Use ISO C++1y lambda initializers to simplify implementation.
+		const auto q1(p + x1), q2(p + x2);
+		const auto& g(pc.Target);
+		CustomTextRenderer ctr([&, q1, q2](TextRenderer& tr, ucs4_t c){
+			if(IsInInterval(p, q1, q2))
+			{
+				// TODO: Use colors from %Styles::Palette.
+				FillRect(g, tr.ClipArea, ts.GetCharBounds(c), HilightBackColor);
+				ts.Color = HilightTextColor;
+			}
+			else
+				ts.Color = ForeColor;
+			tr(c);
+			++p;
+		}, ts, g, pc.ClipArea);
+
+		PutText(AutoWrapLine, ctr, p);
+	}
 }
 
 } // namespace UI;

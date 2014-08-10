@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1172
+\version r1174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-07-25 21:00 +0800
+	2014-08-07 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,13 +247,13 @@ DrawPolygon(Graphics& g, const Rect& bounds, _tIn first, _tIn last, Color c)
 		++mid;
 		while(mid != last)
 		{
-			YAssert(!is_undereferenceable(first), "Invalid iterator found.");
+			YAssert(!is_undereferenceable(first), "Invalid iterator found."),
 			YAssert(!is_undereferenceable(mid), "Invalid iterator found.");
 
 			DrawLineSeg(g, bounds, *first, *mid, c);
 			yunseq(++first, ++mid);
 		}
-		YAssert(!is_undereferenceable(first), "Invalid iterator found.");
+		YAssert(!is_undereferenceable(first), "Invalid iterator found."),
 		YAssert(!is_undereferenceable(old), "Invalid iterator found.");
 		DrawLineSeg(g, bounds, *first, *old, c);
 	}

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4978
+\version r4979
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-07-30 20:07 +0800
+	2014-08-10 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1775,7 +1775,7 @@ b351
 		/ %Any $=
 		(
 			+ "explicity-deleted operator=" @ "class %any_holder",
-			/ "union %any_pod_t" @ "class template %pod_storage",
+			/ "union %any_pod_t" -> "class template %pod_storage",
 			/ "union %no_copy_t" -> "union %non_aggreate_pod"
 		),
 		+ "class template %(is_pod_struct, is_pod_union)" @ %TypeOperation,

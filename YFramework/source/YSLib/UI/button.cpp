@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3276
+\version r3286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-04-06 17:26 +0800
+	2014-08-11 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,20 +141,23 @@ DecorateAsCloseButton(Thumb& tmb)
 }
 
 
-Button::Button(const Rect& r, const Drawing::Font& fnt, TextAlignment a)
-	: Button(r, 180, fnt, a)
+Button::Button(const Rect& r, const Drawing::Font& fnt, Color c,
+	TextAlignment a)
+	: Button(r, 180, fnt, c, a)
 {}
-Button::Button(const Rect& r, Hue h, const Drawing::Font& fnt, TextAlignment a)
-	: Thumb(r, h),
-	MLabel(fnt, a)
+Button::Button(const Rect& r, Hue h, const Drawing::Font& fnt, Color c,
+	TextAlignment a)
+	: Thumb(r, h), MLabel(fnt, c, a)
 {}
 
 void
 Button::Refresh(PaintEventArgs&& e)
 {
+	ystdex::swap_guard<Color> guard(!IsEnabled(*this), ForeColor,
+		FetchGUIState().Colors[Styles::Workspace]);
+
 	// NOTE: Partial invalidation made no efficiency improved here.
-	DrawText(GetSizeOf(*this), IsEnabled(*this) ? ForeColor
-		: FetchGUIState().Colors[Styles::Workspace], std::move(e));
+	(*this)(std::move(e));
 }
 
 } // namespace UI;

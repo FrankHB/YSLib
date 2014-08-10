@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r82
+\version r83
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2014-04-19 11:24 +0800
+	2014-08-08 14:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@
 #define YFM_YSLib_UI_Animation <YSLib/UI/Animation.h>
 #define YFM_YSLib_UI_Border <YSLib/UI/Border.h>
 #define YFM_YSLib_UI_Hover <YSLib/UI/Hover.h>
-#define YFM_YSLib_UI_Viewer <YSLib/UI/viewer.hpp>
+#define YFM_YSLib_UI_Viewer <YSLib/UI/Viewer.h>
 #define YFM_YSLib_UI_Loader <YSLib/UI/Loader.h>
 #define YFM_YSLib_UI_Label <YSLib/UI/label.h>
 #define YFM_YSLib_UI_Button <YSLib/UI/button.h>

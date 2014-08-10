@@ -289,9 +289,6 @@
     <ClInclude Include="include\YSLib\UI\textarea.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\viewer.hpp">
-      <Filter>include\YSLib\UI</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\UI\yrender.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
@@ -787,6 +784,9 @@
     <ClInclude Include="include\Helper\Environment.h">
       <Filter>include\Helper</Filter>
     </ClInclude>
+    <ClInclude Include="include\YSLib\UI\Viewer.h">
+      <Filter>include\YSLib\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -1052,6 +1052,9 @@
     </ClCompile>
     <ClCompile Include="source\Helper\Environment.cpp">
       <Filter>source\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YSLib\UI\Viewer.cpp">
+      <Filter>source\YSLib\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

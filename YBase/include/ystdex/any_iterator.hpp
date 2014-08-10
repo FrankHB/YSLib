@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r956
+\version r957
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2014-07-10 05:13 +0800
+	2014-08-09 17:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ enum random_access_iteartor_op : op_code
 template<typename _type>
 struct wrap_handler
 {
-	using value_type = typename wrapped_traits<_type>::type;
+	using value_type = wrapped_traits_t<_type>;
 	using type = conditional_t<wrapped_traits<_type>::value,
 		ref_handler<value_type>, value_handler<value_type>>;
 };

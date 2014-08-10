@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1763
+\version r1886
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-07-10 14:19 +0800
+	2014-08-11 00:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -517,6 +517,151 @@ private:
 		delete get_object_ptr();
 	}
 };
+
+
+namespace details
+{
+
+//! \since build 525
+template<typename _type, typename _tRef>
+struct swap_guard_impl : private noncopyable
+{
+	using value_type = _type;
+	using reference_type = _tRef;
+
+	reference_type reference;
+	union
+	{
+		value_type value;
+		byte data[sizeof(value_type)];
+	};
+
+	template<typename... _tParams>
+	void
+	construct(_tParams&&... args)
+	{
+		new(std::addressof(value)) value_type(yforward(args)...);
+	}
+
+	void
+	destroy()
+	{
+		value.~value_type();
+	}
+
+	swap_guard_impl(reference_type referent)
+		: reference(referent)
+	{}
+	~swap_guard_impl()
+	{}
+
+	//! \todo 按 ISO C++ [utility.swap] 要求确定异常规范。
+	void
+	do_swap() ynothrow
+	{
+		using std::swap;
+
+		swap(value, static_cast<value_type&>(reference));
+	}
+};
+
+} // namespace details;
+
+/*!
+\brief 使用 ADL swap 调用暂存对象的 scope guard 。
+\since build 525
+\todo 支持分配器。
+\todo 支持有限的复制和转移。
+*/
+//@{
+template<typename _type, typename _tCond = bool,
+	typename _tRef = std::reference_wrapper<_type>>
+class swap_guard : private details::swap_guard_impl<_type, _tRef>
+{
+private:
+	using base = details::swap_guard_impl<_type, _tRef>;
+
+public:
+	using typename base::value_type;
+	using typename base::reference_type;
+	using condition_type = _tCond;
+
+	using base::reference;
+	using base::value;
+	using base::data;
+	mutable condition_type enabled;
+
+	template<typename... _tParams>
+	swap_guard(condition_type cond, reference_type referent, _tParams&&... args)
+		: base(referent),
+		enabled(cond)
+	{
+		if(enabled)
+			base::construct(yforward(args)...);
+		do_swap();
+	}
+	~swap_guard()
+	{
+		do_swap();
+		release();
+	}
+
+	void
+	dismiss()
+	{
+		release();
+		enabled = condition_type();
+	}
+
+	//! \todo 按 ISO C++ [utility.swap] 要求确定异常规范。
+	void
+	do_swap() ynothrow
+	{
+		if(enabled)
+			base::do_swap();
+	}
+
+private:
+	void
+	release()
+	{
+		if(enabled)
+			base::destroy();
+	}
+};
+
+template<typename _type, typename _tRef>
+class swap_guard<_type, void, _tRef>
+	: private details::swap_guard_impl<_type, _tRef>
+{
+private:
+	using base = details::swap_guard_impl<_type, _tRef>;
+
+public:
+	using typename base::value_type;
+	using typename base::reference_type;
+	using condition_type = void;
+
+	using base::reference;
+	using base::value;
+	using base::data;
+
+	template<typename... _tParams>
+	swap_guard(reference_type referent, _tParams&&... args)
+		: base(referent)
+	{
+		base::construct(yforward(args)...);
+		do_swap();
+	}
+	~swap_guard()
+	{
+		do_swap();
+		base::destroy();
+	}
+
+	using base::do_swap;
+};
+//@}
 
 } // namespace ystdex;
 

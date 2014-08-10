@@ -235,6 +235,7 @@
 		<Unit filename="../include/YSLib/UI/Loader.h" />
 		<Unit filename="../include/YSLib/UI/Selector.h" />
 		<Unit filename="../include/YSLib/UI/TextBox.h" />
+		<Unit filename="../include/YSLib/UI/Viewer.h" />
 		<Unit filename="../include/YSLib/UI/WidgetIteration.h" />
 		<Unit filename="../include/YSLib/UI/YBrush.h" />
 		<Unit filename="../include/YSLib/UI/YComponent.h" />
@@ -248,7 +249,6 @@
 		<Unit filename="../include/YSLib/UI/textarea.h" />
 		<Unit filename="../include/YSLib/UI/textlist.h" />
 		<Unit filename="../include/YSLib/UI/uicontx.h" />
-		<Unit filename="../include/YSLib/UI/viewer.hpp" />
 		<Unit filename="../include/YSLib/UI/ycontrol.h" />
 		<Unit filename="../include/YSLib/UI/ydesktop.h" />
 		<Unit filename="../include/YSLib/UI/yfocus.h" />

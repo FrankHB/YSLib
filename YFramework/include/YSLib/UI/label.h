@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1458
+\version r1503
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-07-31 20:04 +0800
+	2014-08-11 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 //#include YFM_YSLib_Service_YResource
 #include YFM_YSLib_Core_YString
 #include YFM_YSLib_Service_TextBase
+#include YFM_YSLib_UI_YBrush
 
 namespace YSLib
 {
@@ -54,34 +55,58 @@ enum class TextAlignment
 /*!
 \ingroup UIModels
 \brief 标签模块。
+\warning 非虚析构。
 */
 class YF_API MLabel : private noncopyable
 {
 public:
+	/*!
+	\brief 当前使用的剪切文本更新器。
+	\note 第三个模板参数表示是否自动换行。
+	\note 被 DrawText 调用。
+	\since build 525
+	*/
+	GBrushUpdater<Drawing::TextState&, const String&, bool>
+		UpdateClippedText{DefaultUpdateClippedText};
+
+	/*!
+	\brief 默认前景色。
+	\since build 525
+	*/
+	Color ForeColor{Drawing::ColorSpace::Black};
 	Drawing::Font Font; //!< 字体。
-	Drawing::Padding Margin; //!< 文本和容器的间距。
+	Drawing::Padding Margin{Drawing::DefaultMargin}; //!< 文本和容器的间距。
 	/*!
 	\brief 文本水平和竖直对齐属性。
 	\note 只在停用自动换行且可完整显示时有效。
 	\since build 208
 	*/
-	TextAlignment HorizontalAlignment, VerticalAlignment;
+	TextAlignment HorizontalAlignment,
+		VerticalAlignment = TextAlignment::Center;
 	/*!
 	\brief 启用自动换行。
 	\since build 309
 	*/
-	bool AutoWrapLine;
+	bool AutoWrapLine = {};
 //	bool AutoSize; //!< 启用根据字号自动调整大小。
 //	bool AutoEllipsis; //!< 启用对超出标签宽度的文本调整大小。
-	String Text; //!< 标签文本。
+	String Text{}; //!< 标签文本。
 
-	//! \since build 485
-	//@{
-	//! \brief 构造：使用指定字体。
+	/*!
+	\brief 构造：使用指定字体、文本颜色和文本对齐样式。
+	\since build 485
+	*/
 	explicit
-	MLabel(const Drawing::Font& = {}, TextAlignment = TextAlignment::Left);
+	MLabel(const Drawing::Font& = {}, Color = Drawing::ColorSpace::Black,
+		TextAlignment = TextAlignment::Left);
 	DefDeMoveCtor(MLabel)
-	virtual DefDeDtor(MLabel)
+
+	/*!
+	\brief 描画：使用发送者的大小并调用 DrawText 绘制文本。
+	\since build 525
+	*/
+	void
+	operator()(PaintEventArgs&&) const;
 
 	/*!
 	\brief 按参数指定的边界大小和当前状态计算笔的偏移位置。
@@ -94,17 +119,18 @@ public:
 	\brief 绘制文本。
 	\sa AlignPen
 	\sa DrawClipText
+	\since build 525
 	*/
 	void
-	DrawText(const Size&, Color, const PaintContext&);
+	DrawText(const Size&, const PaintContext&) const;
 
 	/*!
 	\brief 绘制剪切文本：使用指定的绘制上下文和文本状态。
-	\note 被 DrawText 调用。
-	\since build 515
+	\since build 525
 	*/
-	virtual void
-	DrawClippedText(const PaintContext&, Drawing::TextState&);
+	static void
+	DefaultUpdateClippedText(const PaintContext&, Drawing::TextState&,
+		const String&, bool);
 	//@}
 };
 
@@ -113,6 +139,8 @@ public:
 class YF_API Label : public Widget, protected MLabel
 {
 public:
+	//! \since build 525
+	using MLabel::ForeColor;
 	using MLabel::Font;
 	using MLabel::Margin;
 	using MLabel::HorizontalAlignment;
@@ -120,10 +148,6 @@ public:
 	//! \since build 308
 	using MLabel::AutoWrapLine;
 	using MLabel::Text;
-/*
-	YImage BackgroundImage; //!< 背景图像。
-	YImage Image; //!< 前景图像。
-*/
 
 	/*!
 	\brief 构造：使用指定边界、字体、背景画刷和文字颜色。
@@ -132,7 +156,7 @@ public:
 	explicit
 	Label(const Rect& r = {}, const Drawing::Font& fnt = {},
 		HBrush b = MakeBlankBrush(), Color c = Drawing::ColorSpace::Black)
-		: Widget(r, b, c), MLabel(fnt)
+		: Widget(r, b), MLabel(fnt, c)
 	{}
 	DefDeMoveCtor(Label)
 

@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5699
+\version r5702
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-07-30 20:06 +0800
+	2014-08-10 18:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -384,14 +384,13 @@ public:
 	\since build 294
 	*/
 	mutable HBrush Background;
-	Color ForeColor = Drawing::ColorSpace::Black; //!< 默认前景色。
 
 	//! \since build 384
 	explicit
 	Widget(const Rect& = {});
-	//! \since build 384
+	//! \since build 515
 	explicit
-	Widget(const Rect&, HBrush, Color = Drawing::ColorSpace::Black);
+	Widget(const Rect&, HBrush);
 	/*!
 	\brief 构造：使用视图指针、渲染器指针和控制器指针，无背景。
 	\param pView_ 视图指针。
