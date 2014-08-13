@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1886
+\version r1898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-08-11 00:52 +0800
+	2014-08-11 19:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -600,6 +600,12 @@ public:
 			base::construct(yforward(args)...);
 		do_swap();
 	}
+	//! \since build 526
+	template<typename _fCallable, yimpl(typename = enable_if_t<
+		is_constructible<value_type, result_of_t<_fCallable()>>::value, int>)>
+	swap_guard(condition_type cond, reference_type referent, _fCallable f)
+		: swap_guard(cond, referent, f())
+	{}
 	~swap_guard()
 	{
 		do_swap();
@@ -653,6 +659,12 @@ public:
 		base::construct(yforward(args)...);
 		do_swap();
 	}
+	//! \since build 526
+	template<typename _fCallable, yimpl(typename = enable_if_t<
+		is_constructible<value_type, result_of_t<_fCallable()>>::value, int>)>
+	swap_guard(reference_type referent, _fCallable f)
+		: swap_guard(referent, f())
+	{}
 	~swap_guard()
 	{
 		do_swap();

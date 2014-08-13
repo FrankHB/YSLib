@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1030
+\version r1032
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-08-11 01:10 +0800
+	2014-08-12 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ RectDrawCheckBox(const PaintContext& pc, const Size& s, Hue base_hue,
 	const bool inside(cursor_state != CursorState::Outside);
 	const bool is_pressed(cursor_state == CursorState::Pressed);
 	const auto& g(pc.Target);
-	const auto& bounds(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	const Rect r(pc.Location, s);
 
 	FillRect(g, bounds, r, is_enabled ? (inside ? RollColor(is_pressed
@@ -74,7 +74,7 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 	const SDst rad(min(s.Width / 2, s.Height / 2));
 	const auto& g(pc.Target);
 	const auto pt(pc.Location + Size(rad, rad));
-	const auto& bounds(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	const Rect r(pc.Location, s);
 
 	FillCircle(g, bounds, pt, rad, is_enabled ? (inside ? RollColor(is_pressed

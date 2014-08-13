@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2593
+\version r2600
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2014-02-22 14:19 +0800
+	2014-08-13 20:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,14 +129,6 @@ public:
 	*/
 	PDefH(void, ClearSelected, )
 		ImplBodyMem(tlContent, ClearSelected, )
-
-	/*!
-	\brief 查找项。
-	\sa TextList::Find
-	\since build 316
-	*/
-	PDefH(IndexType, Find, const ItemType& text)
-		ImplBodyMem(tlContent, Find, text)
 
 	PDefH(void, ResetView, )
 		ImplBodyMem(tlContent, ResetView, )

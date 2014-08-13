@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r392
+\version r395
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2014-08-10 20:28 +0800
+	2014-08-12 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,12 +147,12 @@ UpdatePixels(_fPixelShader shader, const PaintContext& pc,
 	const Drawing::Image& img, const Point& dst_offset, const Point& src_offset)
 {
 	const auto& g(pc.Target);
-	const Rect& r(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	const auto& src(img.GetContext());
 
 	Drawing::BlitPixels<_bSwapLR, _bSwapUD>(shader, g.GetBufferPtr(),
-		src.GetBufferPtr(), g.GetSize(), src.GetSize(), r.GetPoint(),
-		r.GetPoint() + src_offset - dst_offset, r.GetSize());
+		src.GetBufferPtr(), g.GetSize(), src.GetSize(), bounds.GetPoint(),
+		bounds.GetPoint() + src_offset - dst_offset, bounds.GetSize());
 }
 
 } // namespace UI;

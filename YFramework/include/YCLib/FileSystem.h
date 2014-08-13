@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1234
+\version r1283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-07-22 18:56 +0800
+	2014-08-13 02:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,69 +162,57 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 //@}
 
 
+//! \since build 324
+//@{
+/*!
+\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
+\pre 断言：<tt>filename</tt> 。
+*/
+//@{
 /*!
 \brief 以 UTF-8 文件名无缓冲打开文件。
-\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
 \param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
-\pre 断言：<tt>filename</tt> 。
-\since build 324
 */
+//@{
 YF_API int
 uopen(const char* filename, int oflag) ynothrow;
-/*!
-\brief 以 UTF-8 文件名无缓冲打开文件。
-\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
-\param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
-\param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
-\pre 断言：<tt>filename</tt> 。
-\since build 324
-*/
+//! \param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
 YF_API int
 uopen(const char* filename, int oflag, int pmode) ynothrow;
+//@}
 /*!
 \brief 以 UCS-2 文件名无缓冲打开文件。
-\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
 \param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
-\pre 断言：<tt>filename</tt> 。
-\since build 324
 */
+//@{
 YF_API int
 uopen(const char16_t* filename, int oflag) ynothrow;
-/*!
-\brief 以 UCS-2 文件名无缓冲打开文件。
-\param filename 文件名，意义同 POSIX <tt>::open</tt> 。
-\param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
-\param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
-\pre 断言：<tt>filename</tt> 。
-\since build 324
-*/
+//! \param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
 YF_API int
 uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
+//@}
 
 /*!
-\brief 以 UTF-8 文件名打开文件。
-\param filename 文件名，意义同 std::fopen 。
 \param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
 \pre 断言：<tt>filename && mode && *mode != 0</tt> 。
+*/
+//@{
+/*!
+\brief 以 UTF-8 文件名打开文件。
 \since build 299
 */
 YF_API std::FILE*
 ufopen(const char* filename, const char* mode) ynothrow;
-/*!
-\brief 以 UCS-2 文件名打开文件。
-\param filename 文件名，意义同 std::fopen 。
-\param mode 打开模式，基本语义同 ISO C99 ，具体行为取决于实现。
-\pre 断言：<tt>filename && mode && *mode != 0</tt> 。
-\since build 324
-*/
+//! \brief 以 UCS-2 文件名打开文件。
 YF_API std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
+//@}
+//@}
 
 /*!
 \brief 判断指定 UTF-8 文件名的文件是否存在。
 \note 使用 ufopen 实现。
 \pre 断言：参数非空。
-\since build 324
 */
 YF_API bool
 ufexists(const char*) ynothrow;
@@ -232,14 +220,12 @@ ufexists(const char*) ynothrow;
 \brief 判断指定 UCS-2 文件名的文件是否存在。
 \note 使用 ufopen 实现。
 \pre 断言：参数非空。
-\since build 324
 */
 YF_API bool
 ufexists(const char16_t*) ynothrow;
 /*!
 \brief 判断指定字符串为文件名的文件是否存在。
 \note 使用 NTCTS 参数 ufexists 实现。
-\since build 324
 */
 template<class _tString>
 inline PDefH(bool, ufexists, const _tString& str) ynothrow
@@ -250,10 +236,10 @@ inline PDefH(bool, ufexists, const _tString& str) ynothrow
 \param buf 缓冲区起始指针。
 \param size 缓冲区长。
 \return 若成功为 buf ，否则为空指针。
-\since build 324
 */
 YF_API char16_t*
 u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
+//@}
 
 /*
 \pre 断言：参数非空。

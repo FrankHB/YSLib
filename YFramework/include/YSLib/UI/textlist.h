@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1060
+\version r1073
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-08-10 18:02 +0800
+	2014-08-13 21:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -104,8 +104,6 @@ public:
 
 	//! \since build 523
 	//@{
-	WidgetRange
-	GetChildrenByIndices(size_t, size_t);
 	/*!
 	\brief 取完整视图高。
 	\note 依赖于 GetItemHeight 方法的结果。
@@ -142,8 +140,8 @@ public:
 	\brief 取项目行高。
 	\since build 301
 	*/
-	DefGetter(const ynothrow, SDst, ItemHeight,
-		Font.GetHeight() + GetVerticalOf(Margin))
+	SDst
+	GetItemHeight() const ynothrow;
 	/*!
 	\brief 取文本列表中的最大文本宽度。
 	\since build 282
@@ -201,14 +199,6 @@ public:
 	void
 	AdjustViewLengthForHeight(SDst);
 	//@}
-
-	/*!
-	\brief 查找项。
-	\return 若找到则返回对应索引，否则返回 <tt>IndexType(-1)</tt> 。
-	\since build 316
-	*/
-	IndexType
-	Find(const ItemType&) const;
 
 	//! \since build 523
 	WidgetIterator
@@ -393,9 +383,6 @@ public:
 
 	PDefH(void, ClearSelected, )
 		ImplBodyMem(vwText, ClearSelected, )
-
-	//! \since build 316
-	using MTextList::Find;
 
 protected:
 	/*!

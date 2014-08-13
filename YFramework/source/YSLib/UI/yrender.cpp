@@ -11,13 +11,13 @@
 /*!	\file yrender.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r650
+\version r653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2014-07-08 03:44 +0800
+	2014-08-12 02:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,10 +97,10 @@ void
 BufferedRenderer::UpdateTo(const PaintContext& pc) const
 {
 	const auto& g(pc.Target);
-	const Rect& r(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 
-	CopyTo(g.GetBufferPtr(), GetContext(), g.GetSize(), r.GetPoint(),
-		r.GetPoint() - pc.Location, r.GetSize());
+	CopyTo(g.GetBufferPtr(), GetContext(), g.GetSize(), bounds.GetPoint(),
+		bounds.GetPoint() - pc.Location, bounds.GetSize());
 }
 
 Rect

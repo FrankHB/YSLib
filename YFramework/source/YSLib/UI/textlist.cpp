@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1596
+\version r1622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-08-08 19:31 +0800
+	2014-08-13 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,11 +55,6 @@ MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt,
 	Font(fnt), hList(h ? h : make_shared<ListType>())
 {}
 
-WidgetRange
-MTextList::GetChildrenByIndices(size_t idx1, size_t idx2)
-{
-	return {MakeIterator(idx1), MakeIterator(idx2)};
-}
 SDst
 MTextList::GetFullViewHeight() const
 {
@@ -79,6 +74,14 @@ MTextList::GetItemPtr(const IndexType& idx)
 	auto& lst(GetListRef());
 
 	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
+}
+SDst
+MTextList::GetItemHeight() const ynothrow
+{
+	const auto item_h(Font.GetHeight() + GetVerticalOf(Margin));
+
+	YAssert(item_h != 0, "Invalid item height found.");
+	return item_h;
 }
 const MTextList::ItemType*
 MTextList::GetItemPtr(const IndexType& idx) const
@@ -169,15 +172,6 @@ MTextList::AdjustViewLengthForHeight(SDst h)
 
 		vwText.Length = h / ln_h + (uTopOffset != 0 || h % ln_h != 0);
 	}
-}
-
-MTextList::IndexType
-MTextList::Find(const ItemType& text) const
-{
-	const auto& lst(GetList());
-	const auto i(std::find(lst.begin(), lst.end(), text));
-
-	return i != lst.end() ? i - lst.begin() : IndexType(-1);
 }
 
 WidgetIterator
@@ -419,19 +413,19 @@ TextList::Refresh(PaintEventArgs&& e)
 
 	if(h != 0)
 	{
-		const Rect& r(e.ClipArea);
+		const Rect& bounds(e.ClipArea);
 
-		if(!r.IsUnstrictlyEmpty())
+		if(!bounds.IsUnstrictlyEmpty())
 		{
-			if(!GetList().empty() && bool(r))
+			if(!GetList().empty() && bool(bounds))
 			{
 				// NOTE: View length could be already changed by contents.
 				AdjustViewLength();
 				SetSizeOf(lblShared, {GetWidth(), GetItemHeight()});
-				for(auto pr(GetChildrenByIndices(GetHeadIndex(),
-					GetLastLabelIndexClipped(e.Location.Y - r.Y, r.Height)));
-					pr.first != pr.second; ++pr.first)
-					PaintVisibleChildAndCommit(*pr.first, e);
+				for(WidgetIterator first(MakeIterator(GetHeadIndex())),
+					last(MakeIterator(GetLastLabelIndexClipped(e.Location.Y
+					- bounds.Y, bounds.Height))); first != last; ++first)
+					PaintVisibleChildAndCommit(*first, e);
 			}
 		}
 	}

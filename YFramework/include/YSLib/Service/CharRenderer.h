@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2816
+\version r2826
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-06-26 09:01 +0800
+	2014-08-12 02:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,14 +60,14 @@ BlitGlyphLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ss,
 	const PaintContext& pc, bool neg_pitch)
 {
 	const auto& ds(pc.Target.GetSize());
-	const auto& r(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 
 	if(neg_pitch)
-		BlitLines<false, true>(scanner, dst, src, ds, ss, r.GetPoint(),
-			pc.Location, r.GetSize());
+		BlitLines<false, true>(scanner, dst, src, ds, ss, bounds.GetPoint(),
+			pc.Location, bounds.GetSize());
 	else
-		BlitLines<false, false>(scanner, dst, src, ds, ss, r.GetPoint(),
-			pc.Location, r.GetSize());
+		BlitLines<false, false>(scanner, dst, src, ds, ss, bounds.GetPoint(),
+			pc.Location, bounds.GetSize());
 }
 
 
@@ -92,14 +92,14 @@ BlitGlyphPixels(_fPixelShader blit, _tOut dst, _tIn src, const Size& ss,
 	const PaintContext& pc, bool neg_pitch)
 {
 	const auto& ds(pc.Target.GetSize());
-	const auto& r(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 
 	if(neg_pitch)
-		BlitPixels<false, true>(blit, dst, src, ds, ss, r.GetPoint(),
-			pc.Location, r.GetSize());
+		BlitPixels<false, true>(blit, dst, src, ds, ss, bounds.GetPoint(),
+			pc.Location, bounds.GetSize());
 	else
-		BlitPixels<false, false>(blit, dst, src, ds, ss, r.GetPoint(),
-			pc.Location, r.GetSize());
+		BlitPixels<false, false>(blit, dst, src, ds, ss, bounds.GetPoint(),
+			pc.Location, bounds.GetSize());
 }
 
 

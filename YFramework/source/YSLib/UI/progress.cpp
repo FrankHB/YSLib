@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r381
+\version r385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2013-04-06 17:27 +0800
+	2013-08-12 02:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 {
 	const auto& g(e.Target);
 	auto pt(e.Location);
-	auto& r(e.ClipArea);
+	const Rect& bounds(e.ClipArea);
 	Size s(GetSizeOf(*this));
 
 	if(YB_LIKELY(s.Width > 2 && s.Height > 2))
@@ -80,12 +80,13 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 
 		const SDst w_bar(round(value * s.Width / max_value));
 
-		FillRect(g, r, {pt, w_bar, s.Height}, ForeColor);
+		FillRect(g, bounds, {pt, w_bar, s.Height}, ForeColor);
 		pt.X += w_bar;
 		if(s.Width > w_bar)
 			// TODO: Finish drawing with non-solid brushes.
 			if(const auto p = Background.target<SolidBrush>())
-				FillRect(g, r, Rect(pt, s.Width - w_bar, s.Height), p->Color);
+				FillRect(g, bounds, Rect(pt, s.Width - w_bar, s.Height),
+					p->Color);
 	}
 }
 
