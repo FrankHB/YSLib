@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r566
+\version r576
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-08-11 01:01 +0800
+	2014-08-11 19:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -280,9 +280,9 @@ TextBox::InvalidateDefaultCaret(IWidget& wgt)
 void
 TextBox::Refresh(PaintEventArgs&& e)
 {
-	// XXX: Alternative value construction should be lazy.
-	ystdex::swap_guard<String> guard(MaskChar != ucs4_t(), Text, 
-		String{MaskChar} * Text.length());
+	ystdex::swap_guard<String> guard(MaskChar != ucs4_t(), Text, [this]{
+		return String{MaskChar} * Text.length();
+	});
 
 	(*this)(std::move(e));
 }
@@ -318,12 +318,16 @@ TextBox::PaintDefaultCaret(PaintEventArgs&& e)
 void
 TextBox::UpdateTextBoxClippedText(const PaintContext& pc, TextState& ts)
 {
+	if(Text.empty())
+		return;
 	ptPenOffset
 		= Point(ts.Pen.X, ts.Pen.Y - ts.Font.GetAscender()) - pc.Location;
 
-	auto p(&Text[0]);
 	auto x1(Selection.Range.first.X), x2(Selection.Range.second.X);
+	const auto l(Text.length());
 
+	RestrictUnsignedStrict(x1, l),
+	RestrictUnsignedStrict(x2, l);
 	if(x1 == x2)
 		DefaultUpdateClippedText(pc, ts, Text, AutoWrapLine);
 	else
@@ -332,6 +336,7 @@ TextBox::UpdateTextBoxClippedText(const PaintContext& pc, TextState& ts)
 			std::swap(x1, x2);
 
 		// TODO: Use ISO C++1y lambda initializers to simplify implementation.
+		auto p(&Text[0]);
 		const auto q1(p + x1), q2(p + x2);
 		const auto& g(pc.Target);
 		CustomTextRenderer ctr([&, q1, q2](TextRenderer& tr, ucs4_t c){

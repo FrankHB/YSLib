@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2684
+\version r2788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-08-11 01:40 +0800
+	2014-08-13 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,111 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework.YSLib $=
+	(
+		/ %UI $=
+		(
+			/ "text drawing" @ "class %TextBox" $=
+			(
+				/ "performed no-op when %Text is empty",
+				* "missing check for %Text and %Selection.Range" $since b485
+					// Since %Text is public, the selection range can be out \
+						of bounds.
+			),
+			(
+			$dep_from %YBase.YStandardEx.Utilities;
+			/ DLD "implemented member function %(TextBox, Button)::Refresh"
+				@ %TextBox
+				^ "lazy evaluated lambda expression";
+			),
+			/ %Label $=
+			(
+				- "base class %noncopyable" @ "class %MLable",
+					// Thus it meets to %UIBrush requirement.
+				(
+				+ "function %GetItemHeight" @ "class %MLabel";
+				+ 'using MLabel::GetAlignedPenOffset;' @ "class %Label"
+				),
+				+ 'using MLabel::GetItemHeight;' @ "class %Label"
+			),
+			* "probably range out of bounds for drawing routines like \
+				%DrawHLineSeg"
+				@ "function DrawTrackBackground" @ %Scroll $since b452,
+				// The bounds intersection for drawing area is missing.
+			/ @ %ComboList $=
+			(
+				/ DLD "implemented %DropDownList"
+					!^ "member function %ListBox::Find";
+				- $revert(b316) "member function %ListBox::Find"
+			),
+			/ %TextList $=
+			(
+				/ @ "class %TextList" $=
+				(
+					$dep_from %ComboList;
+					- $revert(b316) 'using MTextList::Find;';
+					$dep_to "removal of %TextList::Find"
+				),
+				/ @ "class %MTextList" $=
+				(
+					/ DLD "implementation" @ "member function %Refresh"
+						// Note now the unit widget state is not updated on \
+							%Refresh.
+					(
+					$dep_from "removal of %TextList::Find";
+					- $revert(b316) "function %Find"
+						// Just use 'std::find' on 'GetList()' instead.
+					),
+					- $revert(b523) "function %GetChildrenByIndices",
+					+ "assertion for nonzero check" @ "function %GetItemHeight"
+				)
+			)
+		),
+		/ DLD "all local variables initialized by %ClipArea" $=
+		(
+			/ $re_ex(b489) "%r" => "%bounds" $effective @ (("function \
+				%DrawRectRoundCorner" @ %YStyle, "member function %Refresh"
+				@ ("class %ProgressBar" @ %Progress, "class %BufferedTextArea"
+				@ %TextArea, "class %TextList" @ %TextArea), "function \
+				template %UpdatePixels, static member function \
+				%ImageBrush::DefaultUpdate" @ %YBrush, "member function \
+				%BufferedRenderer::UpdateTo" @ %YRenderer) @ %UI, "function \
+				templates %(BlitGlyphLines, BlitGlyphPixels)"
+				@ %Service.CharRenderer),
+				// To eliminate possible misunderstanding.
+			/ 'const auto&' -> 'const Rect&'
+				// See %Documentation::CommonRules @5.7.9. Note '::RECT' is \
+					not the case.
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "constructor template to support lazy evaluation by callable object \
+			as argument" @ "class template %swap_guard and its partial \
+			specialization" @ %Utilities,
+		+ "function templates %make_unique_default_init" @ %Memory,
+		/ %Functional $=
+		(
+			/ @ "class template %thunk" $=
+			(
+				- "2nd template parameter",
+				/ "fixed %operator() with no parameters",
+				+ "%operator return_type"
+			),
+			+ "2 function template %make_thunk"
+		)
+	),
+	(
+	$dep_from %YFramework.YSLib.Scroll;
+	* $comp "assertion failed when dragging color setting box"
+		@ %YReader.ReaderSettingUI $since b452
+		// If there is any %Track moved out of the target bounds (e.g. ones in \
+			YReader text color setting box), the assertion failed.
+	)
+),
+
+b525
 (
 	/ %YFramework.YSLib.UI $=
 	(

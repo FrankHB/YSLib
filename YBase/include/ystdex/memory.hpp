@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r499
+\version r527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-07-14 14:31 +0800
+	2014-08-11 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -203,7 +203,12 @@ share_raw(nullptr_t) ynothrow
 \ingroup helper_functions
 \brief 使用 new 和指定参数构造指定类型的 std::unique_ptr 对象。
 \tparam _type 被指向类型。
+*/
+//@{
+/*!
+\note 使用值初始化。
 \see http://herbsutter.com/gotw/_102/ 。
+\see ISO WG21/N3656 。
 \see ISO WG21/N3797 20.7.2[memory.syn] 。
 \since build 476
 */
@@ -224,6 +229,31 @@ make_unique(size_t size)
 template<typename _type,  typename... _tParams>
 yimpl(enable_if_t<extent<_type>::value != 0, void>)
 make_unique(_tParams&&...) = delete;
+//@}
+
+/*!
+\note 使用默认初始化。
+\see ISO WG21/N3588 A4 。
+\since build 526
+*/
+//@{
+template<typename _type, typename... _tParams>
+yconstfn yimpl(enable_if_t<!is_array<_type>::value, std::unique_ptr<_type>>)
+make_unique_default_init()
+{
+	return std::unique_ptr<_type>(new _type);
+}
+template<typename _type, typename... _tParams>
+yconstfn yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value == 0,
+	std::unique_ptr<_type>>)
+make_unique_default_init(size_t size)
+{
+	return std::unique_ptr<_type>(new remove_extent_t<_type>[size]);
+}
+template<typename _type,  typename... _tParams>
+yimpl(enable_if_t<extent<_type>::value != 0, void>)
+make_unique_default_init(_tParams&&...) = delete;
+//@}
 //@}
 
 /*!

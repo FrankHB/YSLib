@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3286
+\version r3289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-08-11 01:19 +0800
+	2014-08-11 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,8 +153,9 @@ Button::Button(const Rect& r, Hue h, const Drawing::Font& fnt, Color c,
 void
 Button::Refresh(PaintEventArgs&& e)
 {
-	ystdex::swap_guard<Color> guard(!IsEnabled(*this), ForeColor,
-		FetchGUIState().Colors[Styles::Workspace]);
+	ystdex::swap_guard<Color> guard(!IsEnabled(*this), ForeColor, [this]{
+		return FetchGUIState().Colors[Styles::Workspace];
+	});
 
 	// NOTE: Partial invalidation made no efficiency improved here.
 	(*this)(std::move(e));

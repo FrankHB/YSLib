@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r344
+\version r346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-06-26 15:22 +0800
+	2014-08-12 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,7 +63,7 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 	if(YB_LIKELY(s.Width > 2 && s.Height > 2))
 	{
 		auto pt(pc.Location);
-		const auto& bounds(pc.ClipArea);
+		const Rect& bounds(pc.ClipArea);
 
 		yunseq(pt.X += 1, pt.Y += 1, s.Width -= 2, s.Height -= 2);
 		FillRect(g, bounds, {pt, s}, is_enabled ? roll(is_focused, 243,
@@ -158,7 +158,7 @@ RectDrawCheckBox_Aoi(const PaintContext& pc, CheckBox& cb)
 		const bool cst[], const Color ccs[], size_t c_idx){
 		const auto& g(pc.Target);
 		const auto& pt(pc.Location);
-		const auto& bounds(pc.ClipArea);
+		const Rect& bounds(pc.ClipArea);
 		const Rect r(pt, s);
 		const bool is_enabled(cst[ControlState_Enabled]);
 
@@ -196,7 +196,7 @@ RectDrawRadioBox_Aoi(const PaintContext& pc, RadioBox& rb)
 		const auto& g(pc.Target);
 		const SDst rad(min(s.Width / 2, s.Height / 2));
 		const auto pt(pc.Location + Size(rad, rad));
-		const auto& bounds(pc.ClipArea);
+		const Rect& bounds(pc.ClipArea);
 		const Rect r(pc.Location, s);
 		const bool is_enabled(cst[ControlState_Enabled]);
 

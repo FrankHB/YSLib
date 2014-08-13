@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1503
+\version r1512
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-08-11 01:02 +0800
+	2014-08-13 17:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,11 +53,12 @@ enum class TextAlignment
 
 
 /*!
+\ingroup UIBrushes
 \ingroup UIModels
 \brief 标签模块。
 \warning 非虚析构。
 */
-class YF_API MLabel : private noncopyable
+class YF_API MLabel
 {
 public:
 	/*!
@@ -114,6 +115,9 @@ public:
 	*/
 	Point
 	GetAlignedPenOffset(const Size&) const;
+	//! \since build 526
+	DefGetter(const ynothrow, SDst, ItemHeight,
+		Font.GetHeight() + GetVerticalOf(Margin))
 
 	/*!
 	\brief 绘制文本。
@@ -159,6 +163,11 @@ public:
 		: Widget(r, b), MLabel(fnt, c)
 	{}
 	DefDeMoveCtor(Label)
+
+	//! \since build 526
+	using MLabel::GetAlignedPenOffset;
+	//! \since build 526
+	using MLabel::GetItemHeight;
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

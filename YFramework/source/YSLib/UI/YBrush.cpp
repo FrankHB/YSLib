@@ -11,13 +11,13 @@
 /*!	\file YBrush.cpp
 \ingroup UI
 \brief 图形用户界面画刷。
-\version r237
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2014-08-10 06:15 +0800
+	2014-08-12 02:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,14 +57,14 @@ ImageBrush::DefaultUpdate(const PaintContext& pc, const Image& img,
 	const Point& dst_offset, const Point& src_offset)
 {
 	const auto& g(pc.Target);
-	const Rect& r(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	const auto& src(img.GetContext());
 
-//	CopyTo(g.GetBufferPtr(), src, g.GetSize(), r.GetPoint(), Offset,
-//		r.GetSize());
+//	CopyTo(g.GetBufferPtr(), src, g.GetSize(), bounds.GetPoint(), Offset,
+//		bounds.GetSize());
 	BlitLines<false, false>(CopyLine<true>(), g.GetBufferPtr(),
-		src.GetBufferPtr(), g.GetSize(), src.GetSize(), r.GetPoint(),
-		r.GetPoint() + src_offset - dst_offset, r.GetSize());
+		src.GetBufferPtr(), g.GetSize(), src.GetSize(), bounds.GetPoint(),
+		bounds.GetPoint() + src_offset - dst_offset, bounds.GetSize());
 }
 
 void

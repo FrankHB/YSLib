@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3656
+\version r3666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-07-18 14:44 +0800
+	2014-08-12 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,10 +244,10 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 {
 	const auto& g(e.Target);
 	const auto& pt(e.Location);
-	const Rect r(pt, GetSizeOf(trk));
+	const Rect bounds(Rect(pt, GetSizeOf(trk)) & e.ClipArea);
 	auto& pal(FetchGUIState().Colors);
 
-	FillRect(g, r, pal[Styles::Track]);
+	FillRect(g, bounds, pal[Styles::Track]);
 
 #define YSL_UI_ATRACK_PARTIAL_INVALIDATION
 	// NOTE: Partial invalidation made no efficiency improved here.
@@ -265,20 +265,20 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 	if(trk.IsHorizontal())
 	{
 #ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-		RestrictInInterval(y, r.Y, SPos(r.Y + r.Height)),
-		RestrictInInterval(yr, r.Y, SPos(r.Y + r.Height));
+		RestrictInInterval(y, bounds.Y, SPos(bounds.Y + bounds.Height)),
+		RestrictInInterval(yr, bounds.Y, SPos(bounds.Y + bounds.Height));
 #endif
-		DrawHLineSeg(g, r, pt.Y, pt.X, xr, c),
-		DrawHLineSeg(g, r, yr, pt.X, xr, c);
+		DrawHLineSeg(g, bounds, pt.Y, pt.X, xr, c),
+		DrawHLineSeg(g, bounds, yr, pt.X, xr, c);
 	}
 	else
 	{
 #ifdef YSL_UI_ATRACK_PARTIAL_INVALIDATION
-		RestrictInInterval(x, r.X, SPos(r.X + r.Width)),
-		RestrictInInterval(xr, r.X, SPos(r.X + r.Width));
+		RestrictInInterval(x, bounds.X, SPos(bounds.X + bounds.Width)),
+		RestrictInInterval(xr, bounds.X, SPos(bounds.X + bounds.Width));
 #endif
-		DrawVLineSeg(g, r, pt.X, pt.Y, yr, c),
-		DrawVLineSeg(g, r, xr, pt.Y, yr, c);
+		DrawVLineSeg(g, bounds, pt.X, pt.Y, yr, c),
+		DrawVLineSeg(g, bounds, xr, pt.Y, yr, c);
 	}
 }
 

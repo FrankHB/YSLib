@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1002
+\version r1060
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-08-09 18:14 +0800
+	2014-08-13 16:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -468,18 +468,29 @@ unref(const std::reference_wrapper<_type>& x) ynothrow
 namespace details
 {
 
-// !\since build 525
-template<typename _tRet, typename _tValue, typename _fCallable>
+//! \since build 526
+template<typename _type>
+struct thunk_call_proxy
+{
+	_type arg;
+
+	_type
+	operator()() const
+	{
+		return arg;
+	}
+};
+
+//! \since build 526
+template<typename _tRet, typename _fCallable>
 struct thunk_caller
 {
-	static_assert(std::is_same<decay_t<_tValue>, _tValue>::value,
-		"Invalid type found.");
 	static_assert(std::is_same<decay_t<_fCallable>, _fCallable>::value,
 		"Invalid type found.");
 
 	using callable_type = _fCallable;
 	using return_type = _tRet;
-	using value_type = _tValue;
+	using value_type = decay_t<wrapped_traits_t<_tRet>>;
 
 	callable_type caller;
 
@@ -499,13 +510,6 @@ struct thunk_caller
 	operator=(const thunk_caller&) = default;
 	thunk_caller&
 	operator=(thunk_caller&&) = default;
-
-	template<typename... _tParams>
-	return_type
-	operator()(_tParams&&... args) const
-	{
-		return caller(yforward(args)...);
-	}
 };
 
 } // namespace details;
@@ -514,16 +518,14 @@ struct thunk_caller
 /*!
 \brief 包装惰性求值的过程。
 \see http://c2.com/cgi/wiki?ProcedureWithNoArguments 。
-\since build 525
+\since build 526
 */
-template<typename _tRet, typename _tValue = wrapped_traits_t<_tRet>,
-	typename _fCallable = std::function<_tValue()>>
-class thunk : private
-	details::thunk_caller<_tRet, decay_t<_tValue>, decay_t<_fCallable>>
+template<typename _tRet,
+	typename _fCallable = std::function<wrapped_traits_t<_tRet>()>>
+class thunk : private details::thunk_caller<_tRet, decay_t<_fCallable>>
 {
 private:
-	using base
-		= details::thunk_caller<_tRet, decay_t<_tValue>, decay_t<_fCallable>>;
+	using base = details::thunk_caller<_tRet, decay_t<_fCallable>>;
 
 public:
 	using typename base::callable_type;
@@ -546,8 +548,41 @@ public:
 	thunk&
 	operator=(thunk&&) = default;
 
-	using base::operator();
+	//! \since build 526
+	return_type
+	operator()() const
+	{
+		return caller();
+	}
+
+	//! \since build 526
+	operator return_type() const
+	{
+		return operator();
+	}
 };
+
+/*!
+\brief 构造延迟调用对象。
+\relates thunk
+\since build 526
+*/
+//@{
+template<typename _fCallable>
+thunk<result_of_t<_fCallable()>, decay_t<_fCallable>>
+make_thunk(_fCallable&& f)
+{
+	return thunk<result_of_t<_fCallable()>, decay_t<_fCallable>>(yforward(f));
+}
+//! \todo 使用 ISO C++1y 返回值推导，直接以 lambda 表达式实现。
+template<typename _type>
+yimpl(enable_if_t<sizeof(result_of_t<_type()>) != 0,
+	details::thunk_call_proxy<_type>>)
+make_thunk(const _type& obj)
+{
+	return ystdex::make_thunk(details::thunk_call_proxy<_type>{obj});
+}
+//@}
 
 
 /*!	\defgroup hash_extensions Hash Extensions

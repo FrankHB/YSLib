@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r932
+\version r941
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-07-26 13:43 +0800
+	2014-08-12 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,22 +43,22 @@ DrawRectRoundCorner(const PaintContext& pc, const Size& s, Color c)
 {
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
-	const auto& r(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	const SPos x1(pt.X + 1), y1(pt.Y + 1), x2(pt.X + s.Width - 1),
 		y2(pt.Y + s.Height - 1);
 
 	if(YB_LIKELY(x1 <= x2 && y1 <= y2))
 	{
-		DrawVLineSeg(g, r, x1 - 1, y1, y2, c),
-		DrawHLineSeg(g, r, y2, x1, x2, c),
-		DrawVLineSeg(g, r, x2, y1, y2, c),
-		DrawHLineSeg(g, r, y1 - 1, x1, x2, c);
+		DrawVLineSeg(g, bounds, x1 - 1, y1, y2, c),
+		DrawHLineSeg(g, bounds, y2, x1, x2, c),
+		DrawVLineSeg(g, bounds, x2, y1, y2, c),
+		DrawHLineSeg(g, bounds, y1 - 1, x1, x2, c);
 		if(YB_LIKELY(s.Width > 4 && s.Height > 4))
 		{
-			DrawPoint(g, r, x1, y1, c);
-			DrawPoint(g, r, x1, y2 - 1, c);
-			DrawPoint(g, r, x2 - 1, y2 - 1, c);
-			DrawPoint(g, r, x2 - 1, y1, c);
+			DrawPoint(g, bounds, x1, y1, c);
+			DrawPoint(g, bounds, x1, y2 - 1, c);
+			DrawPoint(g, bounds, x2 - 1, y2 - 1, c);
+			DrawPoint(g, bounds, x2 - 1, y1, c);
 		}
 	}
 }
@@ -69,7 +69,7 @@ RectDrawArrow(const PaintContext& pc, SDst half_size, Rotation rot, Color c)
 {
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
-	const auto& bounds(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	SDst x(pt.X), y(pt.Y);
 
 	switch(rot)
@@ -106,7 +106,7 @@ RectDrawArrowOutline(const PaintContext& pc, SDst half_size, Rotation rot,
 
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
-	const auto& bounds(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	SDst x(pt.X), y(pt.Y);
 
 	switch(rot)
@@ -150,7 +150,7 @@ RectDrawCornerArrow(const PaintContext& pc, SDst size, Rotation rot,
 {
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
-	const auto& bounds(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	const SDst x(pt.X);
 	SDst y(pt.Y);
 
@@ -188,7 +188,7 @@ RectDrawCornerArrowOutline(const PaintContext& pc, SDst size, Rotation rot,
 
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
-	const auto& bounds(pc.ClipArea);
+	const Rect& bounds(pc.ClipArea);
 	const SDst x(pt.X), y(pt.Y), inv_x(rot < RDeg180 ? x - size : x + size),
 		inv_y(rot == RDeg0 || rot == RDeg270 ? y - size : y + size);
 

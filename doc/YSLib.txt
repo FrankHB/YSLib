@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2531
+\version r2532
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-08-10 20:38 +0800
+	2014-08-11 19:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -736,7 +736,7 @@
 当多个桌面的显示需要保持同步时，一般不直接调用刷新，而是显式地验证和更新，即分别调用需要同步显示的桌面的 Desktop::Validate 和 Desktop::Update 。
 
 @5.5.3.7 画刷(brush) ：
-画刷是可用于实现 Paint 事件的满足以下要求的可调用对象：
+画刷是可用于实现 Paint 事件的满足以下 UIBrush 要求的可调用对象：
 具有至少一个非复制和转移的 public 构造函数或模板；
 满足 MoveConstructible 要求；
 可转换为画刷回调函数 HBrush 类型；
