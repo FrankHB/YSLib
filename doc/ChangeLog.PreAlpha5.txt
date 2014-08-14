@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2788
+\version r2867
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-08-13 22:27 +0800
+	2014-08-15 06:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,89 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.UI $=
+		(
+			/ %TextList $=
+			(
+				+ "class %AMUnitList",
+				/ @ "class %TextList" $=
+				(
+					$dep_from "%MTextList::Unit";
+					+ 'using MTextList::Unit;'
+				),
+				/ @ "class %MTextList" $=
+				(
+					/ "protected data member %lblShared" -> "public %Unit",
+					/ DLD "implementation" @ "member function %Refresh"
+						// Note now the unit widget state is not updated on \
+							%Refresh.
+					- $revert(b524) "data member %(Font, Margin)",
+						// Just use members of 'Unit' instead.
+					(
+					$dep_from "class %AMUnitList";
+					+ "public base class %AMUnitList";
+						// With polymorphic methods.
+					/ "data member %vwText" => "%vwList";
+					/ "protected data members %(CyclicTraverse, vwText, \
+						uTopOffset, idxShared), functions %(GetFullViewHeight, \
+						GetViewPosition, GetUnitLocation, \
+						AdjustOffsetForHeight, AdjustViewForContent, \
+						AdjustViewLengthForHeight, ResetView)"
+						>> "class %AMUnitList";
+					/ "data member %CyclicTraverse" -> "using declaration",
+					/ DLD "simplified implementing functions %'Adjust*'",
+					/ "implemented function %GetItemHeight as overrider",
+					+ "function %(GetTotal, GetUnitRef) as overriders",
+					- "function %AdjustViewLengthForHeight"
+					),
+					- "2nd and 3rd parameter" @ "constructor"
+				),
+				/ $revert(b395) "base class %MHighlight"
+					@ "class %MTextList" >> "class %TextList",
+				- $revert(b523) "function %ResetView"
+			),
+			/ %Scroll $=
+			(
+				+ 'ynothrow' @ "abstract method %GetOrientation"
+					@ "class %ATrack",
+				(
+				/ "merged classes %(AScrollBar, HorizontalScrollBar, \
+					VerticalScrollBar)" -> "class %ScrollBar";
+				* $comp $dev "wrong 'ImplI(ATrack)'" @ "member function \
+					%GetOrientation" @ "classes %(HorizontalScrollBar, \
+					VerticalScrollBar)" @ %Scroll $since b205 $orig("classes \
+					%(YHorizontalScrollBar, YVerticlaScrollBar)"
+					@ %YGUIComponent $since b171),
+				* $comp "non-abstract class %AScrollBar named with prefix 'A'"
+					$since b171,
+					// The old abrstract class inherited %ATrack before b171.
+				/ "swapped 2nd and 3rd parameter" @ "constructor %ScrollBar"
+				)
+			)
+		),
+		/ $dev "replacement" @ "macro %ImplI(...)" -> 'override' ~ 'virtual'
+			@ %YBaseMacro,
+		/ $dev $design / "adjust 'ImplI'" @ "member function declarations"
+			!^ 'override'
+	),
+	/ %YBase.YStandardEx.YFunctional $=
+	(
+		+ "constructor with 'std::reference_wrapper<value_type>' parameter"
+			@ "class template %thunk";
+		* "ambiguity overloading resolution for callable type" $since b526 $=
+		(
+			/ "constructor for callable type" -> "constructor template",
+			+ "constructor template for instances of 'std::reference_wrapper'",
+			+ DLD 'explicit' @ "base class constructors"
+		)
+	),
+	/ $dev $doc $term $re_ex(b462) "all '依赖于'" -> '依赖'
+),
+
+b526
 (
 	/ %YFramework.YSLib $=
 	(

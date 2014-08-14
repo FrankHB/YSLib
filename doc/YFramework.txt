@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r774
+\version r791
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-08-09 03:25 +0800
+	2014-08-14 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -202,7 +202,7 @@
 
 @1.6.1 UI（User Interface ，用户界面）设计：
 为了适应不确定数量的输出设备，特定的 Shell(@1.2.1.1) 可以用于实现程序中处理 UI（User Interface ，用户界面）行为，称为 UI Shell 。
-输出特性依赖于屏幕平移坐标系(@1.5.2.2) 。
+输出特性依赖屏幕平移坐标系(@1.5.2.2) 。
 用于实现 UI 的 Shell 一般也包括实现相关消息处理。
 和 Shell 相对的 Core 不直接参与实现 UI 。
 
@@ -210,7 +210,7 @@
 界面实现使用称为 Shell-Widget 的模式，是精简的主动模型-视图-控制器模式的变体，参照窗体-控件模式。但架构模式无本质变化。
 界面实现解决的三个问题：安排状态(state) 、逻辑(logic) 和同步(synchronization) ，都可以在运行期配置。
 为了方便复用，这些属性有如下分类：
-根据是否依赖于具体的 Widget 实例分为实例的和公共的；
+根据是否依赖具体的 Widget 实例分为实例的和公共的；
 根据是否能被所有 Widget 类共用分为公用的和专用的。
 这些属性也适用于用于实现的构件。
 强化了编译期可配置性。
@@ -248,8 +248,8 @@
 @1.6.2.3.1 公用控制器：
 公用控制器用于实现公用输入逻辑，并储存了相关状态，是 UI Shell(@1.6.1) 的重要组成部分。
 用户输入由公用控制器而不是视图进行直接处理。公用控制器转发处理的结果到专用控制器(@1.6.2.3.2) 中以便被进一步处理。
-公用控制器是公共的，不依赖于实例。
-专用控制器依赖于公用控制器的行为，但不依赖其实现。
+公用控制器是公共的，不依赖实例。
+专用控制器依赖公用控制器的行为，但不依赖其实现。
 
 @1.6.2.3.2 专用控制器：
 专用控制器用于实现特定 Widget 的较高层 UI 行为。
@@ -263,7 +263,7 @@
 @1.6.2.4 Shell-Widget 模式：
 
 @1.6.2.4.1 Shell 状态和控制器：
- Shell 负责保存所有 GUI 之间的公用状态（如拖曳位置），并集成保存公用逻辑的公用控制器。它们都是公共的，不依赖于 Widget 实例。
+ Shell 负责保存所有 GUI 之间的公用状态（如拖曳位置），并集成保存公用逻辑的公用控制器。它们都是公共的，不依赖 Widget 实例。
 
 @1.6.2.4.2 Widget 状态、控制器和视图：
  Widget 负责保存单一的 GUI 非公用状态、视图的直接实现，并集成保存专用逻辑的专用控制器用于在一定范围内动态配置 UI 的行为。
@@ -353,15 +353,15 @@
 
 @2.1.2 附加库：
 除了 YSLib 和第三方库 YFramework 也集成了一些附加的库作为非第三方次级子项目。这些库不直接在 YSLib 命名空间中添加声明（参见 @2.2.4 ）。
-其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖于 YSLib ，称为基础附加库，包括 CHRLib(@2.7) 和 YCLib([Documentation::Designation @@5.2.2]) 。
-另一部分依赖于 YSLib ，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
+其中一部分除了平台扩展([ProjectRules @@3.3]) 外不依赖 YSLib ，称为基础附加库，包括 CHRLib(@2.7) 和 YCLib([Documentation::Designation @@5.2.2]) 。
+另一部分依赖 YSLib ，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
 综上所述， YFramework 有以下非第三方次级子项目： CHRLib 、 YCLib 、 YSLib 、 NPL 和 Helper 。
 
 @2.1.2.1 组织和依赖准则：
 每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
 基础附加库总是被 YSLib 库的 Adaptor 或 Core 直接或间接依赖。
- YCLib 和 Helper 不保证接口或实现平台中立。其中 YCLib 不依赖于 YSLib ，被作为 YSLib 平台中立接口和实现的基础适配层； Helper 依赖于 YSLib 。
-其它附加库没有平台扩展且保证平台中立，只依赖于 YSLib 库的 Core 和 Service ，但当前不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立于 YFramework 外）。
+ YCLib 和 Helper 不保证接口或实现平台中立。其中 YCLib 不依赖 YSLib ，被作为 YSLib 平台中立接口和实现的基础适配层； Helper 依赖 YSLib 。
+其它附加库没有平台扩展且保证平台中立，只依赖 YSLib 库的 Core 和 Service ，但当前不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立于 YFramework 外）。
 
 @2.1.3 平台相关性：
 除平台扩展外的 YFramework 公开接口是平台中立的（但 YCLib 和 Helper 接口可能会限定平台集合，如宿主实现环境）；
@@ -380,9 +380,9 @@
 @2.2.1 基本文件依赖性（适用于 YFramework ）：
  YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
 关于 ISO C++11 直接指定的依赖项，参见 [Documentation::CommonRules @@5.25.2] ；其它基本代码依赖性规则如下（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
-禁止依赖于（包括包含）非头文件。
+禁止依赖（包括包含）非头文件。
 除非另有说明，禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
-除非以下显式说明，禁止平台中立文件依赖于平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
+除非以下显式说明，禁止平台中立文件依赖平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
  YFramework/YBaseMacro.h 仅依赖 YBase 的 ydef.h 。
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 必要文件不依赖非必要文件。
@@ -404,8 +404,8 @@
 本体的必要文件不依赖 YSLib 以外的文件。
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
 对于公开的头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.1])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对于 YFramework/include 的路径）。
- Adaptor 的头文件依赖于 YFramework 的 YFM_YBaseMacro 。
-实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
+ Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。
+实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 下层的 <YModules.h> 包含 "../YModules.h" 。除此之外，以下包含关系是确定的：
  <CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；
  <YSLib/Core/YModules.h> 包含 "../Adaptor/YModules.h" ；
@@ -440,8 +440,8 @@
  YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。
  除 YCLib 外， YFramework 引入的主要命名空间唯一且和次级子项目的模块名称一致。
  platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）于此命名空间。
- platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖于此命名空间。
- platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖于此命名空间，但可能依赖于该命名空间中成员包装的宏。
+ platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖此命名空间。
+ platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖此命名空间，但可能依赖该命名空间中成员包装的宏。
  CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）于此命名空间。
  NPL ：子库 NPL(@2.9) 的命名空间。
  YSLib ： YSLib 库命名空间。
@@ -460,9 +460,9 @@
 @2.4.2 对象引用和所有权管理：
 基本概念参见 [Documentation::CommonRules @@2.3.4] 。
 注意基于非透明引用计数实现的非侵入式智能指针（如 boost::shared_ptr/std::tr1::shared_ptr 以及 C++11 的 std::shared_ptr ）具有以下固有的缺点：
-无法修改引用计数并直接转移所有权，资源实例的生存期依赖于至少一个具体智能指针对象的生存期；
+无法修改引用计数并直接转移所有权，资源实例的生存期依赖至少一个具体智能指针对象的生存期；
 资源实例对智能指针对象的上述依赖性导致智能指针类型入侵用户程序接口；
-并非完全的非侵入式实现（例如可能依赖于 enable_shared_from_this 等），可能入侵客户资源实现，导致耦合扩散；
+并非完全的非侵入式实现（例如可能依赖 enable_shared_from_this 等），可能入侵客户资源实现，导致耦合扩散；
 用户程序无法显式指定引用计数操作而造成不必要的性能负担（特别是异步流程中，无法进行基于调用栈的引用计数优化）。
 为了克服前三个缺点，可以使用侵入式方案代替，但可能会引起额外的编码复杂度。最后一个缺点所在的场景一般不适合使用引用计数策略（尽管改用侵入式引用计数方案可能减小开销）。
 因此 YSLib 仅在必要时使用基于此类智能指针实现的句柄，如跨 Shell 资源传递（包括 Shell 类实例本身）。

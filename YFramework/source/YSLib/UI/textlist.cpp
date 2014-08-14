@@ -11,13 +11,13 @@
 /*!	\file textlist.cpp
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1622
+\version r1796
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-08-13 22:02 +0800
+	2014-08-14 05:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,33 +40,117 @@ using namespace Drawing;
 namespace UI
 {
 
-namespace
+SDst
+AMUnitList::GetFullViewHeight() const
 {
-
-const SDst defMarginH(2); //!< 默认水平边距。
-const SDst defMarginV(1); //!< 默认竖直边距。
-
-} // unnamed namespace;
-
-
-MTextList::MTextList(const shared_ptr<ListType>& h, const Drawing::Font& fnt,
-	const pair<Color, Color>& hilight_pair)
-	: MHilightText(hilight_pair),
-	Font(fnt), hList(h ? h : make_shared<ListType>())
-{}
+	return GetItemHeight() * GetTotal();
+}
+SDst
+AMUnitList::GetItemHeight() const
+{
+	return GetSizeOf(GetUnitRef()).Height;
+}
+Point
+AMUnitList::GetUnitLocation(size_t idx) const
+{
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return Point(0, -SPos(uTopOffset) + SPos(GetItemHeight()) * (SPos(idx)
+		- SPos(vwList.GetHeadIndex())));
+}
+SDst
+AMUnitList::GetViewPosition() const
+{
+	return GetItemHeight() * vwList.GetHeadIndex() + uTopOffset;
+}
 
 SDst
-MTextList::GetFullViewHeight() const
+AMUnitList::AdjustBottomForHeight(SDst item_h, SDst h)
 {
-	return GetItemHeight() * GetList().size();
+	const auto d(uTopOffset);
+
+	uTopOffset = 0;
+	AdjustViewLengthForHeight(item_h, h);
+	return d;
 }
+
+SDst
+AMUnitList::AdjustOffsetForHeight(SDst h, bool is_top)
+{
+	if(GetFullViewHeight() > h)
+	{
+		const SDst ln_h(GetItemHeight());
+
+		if(YB_UNLIKELY(ln_h == 0))
+			return 0;
+		vwList.RestrictSelected();
+		if(is_top)
+			return AdjustBottomForHeight(ln_h, h);
+		else
+		{
+			const auto d((h + uTopOffset) % ln_h);
+
+			if(d != 0)
+			{
+				const auto tmp(uTopOffset + ln_h - d);
+
+				uTopOffset = tmp % ln_h;
+				AdjustViewLengthForHeight(ln_h, h);
+				vwList.IncreaseHead(tmp / ln_h, GetTotal());
+			}
+			return d;
+		}
+	}
+	return 0;
+}
+
+void
+AMUnitList::AdjustViewForContent(SDst h)
+{
+	if(vwList.AdjustForContent(GetTotal()) && vwList.IsSelected())
+	{
+		AdjustOffsetForHeight(h,
+			vwList.GetSelectedIndex() == vwList.GetHeadIndex());
+		return;
+	}
+	if(GetFullViewHeight() < GetViewPosition() + h)
+		uTopOffset = 0;
+	AdjustViewLengthForHeight(GetItemHeight(), h);
+}
+
+void
+AMUnitList::AdjustViewLengthForHeight(SDst item_h, SDst h)
+{
+	if(YB_LIKELY(item_h != 0 && h != 0))
+		vwList.Length = h / item_h + (uTopOffset != 0 || h % item_h != 0);
+}
+
+void
+AMUnitList::ResetView()
+{
+	bool b(vwList.IsSelected());
+
+	vwList.Reset();
+	if(b)
+		vwList.SetSelectedIndex(0, GetTotal());
+	uTopOffset = 0;
+}
+
+
+MTextList::MTextList(const shared_ptr<ListType>& h)
+	: AMUnitList(),
+	hList(h ? h : make_shared<ListType>())
+{
+	Unit.Margin = Padding(2, 2, 1, 1),
+	Unit.SetHeight(Unit.Font.GetHeight() + GetVerticalOf(Unit.Margin));
+}
+
 size_t
 MTextList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return vwText.GetHeadIndex() + min<size_t>((SPos(height + uTopOffset)
+	return vwList.GetHeadIndex() + min<size_t>((SPos(height + uTopOffset)
 		- v_off - 1) / SPos(GetItemHeight()) + 1,
-		vwText.GetValid(GetList().size()));
+		vwList.GetValid(GetList().size()));
 }
 MTextList::ItemType*
 MTextList::GetItemPtr(const IndexType& idx)
@@ -76,9 +160,9 @@ MTextList::GetItemPtr(const IndexType& idx)
 	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
 }
 SDst
-MTextList::GetItemHeight() const ynothrow
+MTextList::GetItemHeight() const
 {
-	const auto item_h(Font.GetHeight() + GetVerticalOf(Margin));
+	const auto item_h(Unit.Font.GetHeight() + GetVerticalOf(Unit.Margin));
 
 	YAssert(item_h != 0, "Invalid item height found.");
 	return item_h;
@@ -91,21 +175,19 @@ MTextList::GetItemPtr(const IndexType& idx) const
 	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
 }
 SDst
-MTextList::GetMaxTextWidth() const
+MTextList::GetTotal() const
 {
-	return FetchMaxTextWidth(Font, GetList().cbegin(), GetList().cend());
+	return GetList().size();
 }
-Point
-MTextList::GetUnitLocation(size_t idx) const
+IWidget&
+MTextList::GetUnitRef() const
 {
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return Point(0, -SPos(uTopOffset) + SPos(GetItemHeight()) * (SPos(idx)
-		- SPos(vwText.GetHeadIndex())));
+	return Unit;
 }
 SDst
-MTextList::GetViewPosition() const
+MTextList::GetMaxTextWidth() const
 {
-	return GetItemHeight() * vwText.GetHeadIndex() + uTopOffset;
+	return FetchMaxTextWidth(Unit.Font, GetList().cbegin(), GetList().cend());
 }
 
 void
@@ -115,101 +197,28 @@ MTextList::SetList(const shared_ptr<ListType>& h)
 		hList = h;
 }
 
-SDst
-MTextList::AdjustOffsetForHeight(SDst h, bool is_top)
-{
-	if(GetFullViewHeight() > h)
-	{
-		vwText.RestrictSelected();
-
-		if(is_top)
-		{
-			const auto d(uTopOffset);
-
-			uTopOffset = 0;
-			AdjustViewLengthForHeight(h);
-			return d;
-		}
-		else
-		{
-			const SDst ln_h(GetItemHeight());
-			const auto d((h + uTopOffset) % ln_h);
-
-			if(d != 0)
-			{
-				const auto tmp(uTopOffset + ln_h - d);
-
-				uTopOffset = tmp % ln_h;
-				AdjustViewLengthForHeight(h);
-				vwText.IncreaseHead(tmp / ln_h, GetList().size());
-			}
-			return d;
-		}
-	}
-	return 0;
-}
-
-void
-MTextList::AdjustViewForContent(SDst h)
-{
-	if(vwText.AdjustForContent(GetList().size()) && vwText.IsSelected())
-	{
-		AdjustOffsetForHeight(h,
-			vwText.GetSelectedIndex() == vwText.GetHeadIndex());
-		return;
-	}
-	if(GetFullViewHeight() < GetViewPosition() + h)
-		uTopOffset = 0;
-	AdjustViewLengthForHeight(h);
-}
-
-void
-MTextList::AdjustViewLengthForHeight(SDst h)
-{
-	if(YB_LIKELY(h != 0))
-	{
-		const auto ln_h(GetItemHeight());
-
-		vwText.Length = h / ln_h + (uTopOffset != 0 || h % ln_h != 0);
-	}
-}
-
 WidgetIterator
 MTextList::MakeIterator(size_t item_idx)
 {
-	return ystdex::make_prototyped_iterator(lblShared, item_idx,
+	return ystdex::make_prototyped_iterator(Unit, item_idx,
 		[this](IWidget& wgt, size_t idx){
 		if(idxShared != idx && idx < GetList().size())
-			SetLocationOf(wgt, GetUnitLocation(idx)),
-			yunseq(
-			lblShared.Margin = Margin,
-			lblShared.Text = GetList()[idx], idxShared = idx
-			);
+			yunseq(Unit.Text = GetList()[idx], idxShared = idx),
+			SetLocationOf(wgt, GetUnitLocation(idx));
 	});
-}
-
-void
-MTextList::ResetView()
-{
-	bool b(vwText.IsSelected());
-
-	vwText.Reset();
-	if(b)
-		vwText.SetSelectedIndex(0, GetList().size());
-	uTopOffset = 0;
 }
 
 
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	const pair<Color, Color>& hilight_pair)
-	: Control(r, MakeBlankBrush()), MTextList(h, {}, hilight_pair)
+	: Control(r, MakeBlankBrush()), MTextList(h), MHilightText(hilight_pair)
 {
 	const auto invalidator([this]{
 		Invalidate(*this);
 	});
 
-	Margin = Padding(defMarginH, defMarginH, defMarginV, defMarginV);
-	SetContainerPtrOf(lblShared, this);
+	SetContainerPtrOf(Unit, this);
+	SetSizeOf(Unit, {GetWidth(), GetItemHeight()});
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(!GetList().empty())
@@ -221,24 +230,24 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 				return;
 			if(k[Up] || k[Down] || k[PgUp] || k[PgDn])
 			{
-				const auto old_sel(vwText.GetSelectedIndex());
-				const auto old_off(vwText.GetOffset());
-				const auto old_hid(vwText.GetHeadIndex());
+				const auto old_sel(vwList.GetSelectedIndex());
+				const auto old_off(vwList.GetOffset());
+				const auto old_hid(vwList.GetHeadIndex());
 				const auto old_top(uTopOffset);
 
 				{
 					const bool up(k[Up] || k[PgUp]);
 
-					if(vwText.IsSelected())
+					if(vwList.IsSelected())
 					{
-						vwText.IncreaseSelected((up ? -1 : 1) * (k[Up]
+						vwList.IncreaseSelected((up ? -1 : 1) * (k[Up]
 							|| k[Down] ? 1 : GetHeight() / GetItemHeight()),
 							GetList().size());
-						if(old_sel == vwText.GetSelectedIndex()
+						if(old_sel == vwList.GetSelectedIndex()
 							&& CyclicTraverse)
 							goto bound_select;
-						if(vwText.GetOffset()
-							== (up ? 0 : ptrdiff_t(vwText.Length - 1)))
+						if(vwList.GetOffset()
+							== (up ? 0 : ptrdiff_t(vwList.Length - 1)))
 							AdjustOffsetForHeight(GetHeight(), up);
 					}
 					else
@@ -246,23 +255,23 @@ bound_select:
 						up ? SelectLast() : SelectFirst();
 				}
 
-				const auto new_off(vwText.GetOffset());
+				const auto new_off(vwList.GetOffset());
 
-				if(vwText.GetSelectedIndex() != old_sel)
+				if(vwList.GetSelectedIndex() != old_sel)
 					CallSelected();
-				if(old_top != uTopOffset || vwText.GetHeadIndex() != old_hid)
+				if(old_top != uTopOffset || vwList.GetHeadIndex() != old_hid)
 					UpdateView(*this);
 				else if(old_off != new_off)
 					InvalidateSelected2(old_off, new_off);
 			}
-			else if(vwText.IsSelected())
+			else if(vwList.IsSelected())
 			{
 				// NOTE: Do not confuse with %UI::Enter.
 				if(k[KeyCodes::Enter])
-					InvokeConfirmed(vwText.GetSelectedIndex());
+					InvokeConfirmed(vwList.GetSelectedIndex());
 				else if(k[Esc])
 				{
-					InvalidateSelected(vwText.GetOffset());
+					InvalidateSelected(vwList.GetOffset());
 					ClearSelected();
 				// TODO: Create new event for canceling selection.
 					CallSelected();
@@ -288,14 +297,14 @@ bound_select:
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority),
 	FetchEvent<GotFocus>(*this) += invalidator,
 	FetchEvent<LostFocus>(*this) += invalidator,
-	lblShared.Background = [this](PaintEventArgs&& e){
-		if(vwText.CheckSelected(idxShared))
-			lblShared.ForeColor = HilightTextColor,
+	Unit.Background = [this](PaintEventArgs&& e){
+		if(vwList.CheckSelected(idxShared))
+			Unit.ForeColor = HilightTextColor,
 			FillRect(e.Target, e.ClipArea, Rect(e.Location.X + 1, e.Location.Y,
-				lblShared.GetWidth() - 2, lblShared.GetHeight()),
+				Unit.GetWidth() - 2, Unit.GetHeight()),
 				HilightBackColor);
 		else
-			lblShared.ForeColor = ForeColor;
+			Unit.ForeColor = ForeColor;
 	}
 	);
 	AdjustViewLength();
@@ -320,14 +329,14 @@ TextList::GetLastLabelIndex() const
 void
 TextList::SetSelected(ListType::size_type i)
 {
-	if(vwText.Contains(i))
+	if(vwList.Contains(i))
 	{
-		const auto old_off(vwText.GetOffset());
+		const auto old_off(vwList.GetOffset());
 
-		if(vwText.SetSelectedIndex(i, GetList().size()))
+		if(vwList.SetSelectedIndex(i, GetList().size()))
 		{
 			CallSelected();
-			InvalidateSelected2(old_off, vwText.GetOffset());
+			InvalidateSelected2(old_off, vwList.GetOffset());
 		}
 	}
 }
@@ -340,14 +349,14 @@ TextList::SetSelected(SPos x, SPos y)
 void
 TextList::CallSelected()
 {
-	Selected(IndexEventArgs(*this, vwText.GetSelectedIndex()));
+	Selected(IndexEventArgs(*this, vwList.GetSelectedIndex()));
 }
 
 TextList::ListType::size_type
 TextList::CheckPoint(SPos x, SPos y)
 {
 	return Rect(GetSizeOf(*this)).Contains(x, y) ? (y + uTopOffset)
-		/ GetItemHeight() + vwText.GetHeadIndex() : ListType::size_type(-1);
+		/ GetItemHeight() + vwList.GetHeadIndex() : ListType::size_type(-1);
 }
 
 void
@@ -399,7 +408,7 @@ TextList::LocateViewPosition(SDst h)
 
 		//先保证避免部分显示的项目使视图超长，再设置视图位置。
 		AdjustViewLength();
-		vwText.SetHeadIndex(h / item_height, GetList().size());
+		vwList.SetHeadIndex(h / item_height, GetList().size());
 		uTopOffset = h % item_height;
 		//更新视图。
 		UpdateView(*this, true);
@@ -421,7 +430,7 @@ TextList::Refresh(PaintEventArgs&& e)
 			{
 				// NOTE: View length could be already changed by contents.
 				AdjustViewLength();
-				SetSizeOf(lblShared, {GetWidth(), GetItemHeight()});
+				SetSizeOf(Unit, {GetWidth(), GetItemHeight()});
 				for(WidgetIterator first(MakeIterator(GetHeadIndex())),
 					last(MakeIterator(GetLastLabelIndexClipped(e.Location.Y
 					- bounds.Y, bounds.Height))); first != last; ++first)
@@ -441,7 +450,7 @@ TextList::ResetView()
 void
 TextList::SelectFirst()
 {
-	vwText.SetSelectedIndex(0, GetList().size());
+	vwList.SetSelectedIndex(0, GetList().size());
 	AdjustOffsetForHeight(GetHeight(), true);
 }
 
@@ -450,7 +459,7 @@ TextList::SelectLast()
 {
 	const auto s(GetList().size());
 
-	vwText.SetSelectedIndex(s - 1, s);
+	vwList.SetSelectedIndex(s - 1, s);
 	AdjustOffsetForHeight(GetHeight(), {});
 }
 
@@ -458,7 +467,7 @@ TextList::SelectLast()
 void
 ResizeForContent(TextList& tl)
 {
-	SetSizeOf(tl, Size(tl.GetMaxTextWidth() + GetHorizontalOf(tl.Margin),
+	SetSizeOf(tl, Size(tl.GetMaxTextWidth() + GetHorizontalOf(tl.Unit.Margin),
 		tl.GetFullViewHeight()));
 	tl.AdjustViewLength();
 }

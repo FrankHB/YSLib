@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2532
+\version r2535
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-08-11 19:25 +0800
+	2014-08-14 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@
 根据平台特性增设全局对象的定义位于 YSLib 外部 Helper 库的 YGlobal([Documentation::Designation @@7.5]) 中。
 
 @1.1.4 特定引用规则：
- YSLib 默认显式依赖于库 YCLib ，在 Adaptor 引入 YCLib 中的名称。
+ YSLib 默认显式依赖库 YCLib ，在 Adaptor 引入 YCLib 中的名称。
 
 @1.1.5 命名空间分配：
  YSLib::Devices ：设备抽象。
@@ -107,11 +107,11 @@
  <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 和 <valarray> 。
 
 @1.2.7 本体头文件对 YBase 依赖性：
- "yblit.h" 依赖于 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
+ "yblit.h" 依赖 <ystdex/algorithm.hpp> 和 <ystdex/iterator.hpp> 。
 
 @1.2.8 内部头文件依赖性：
  Core 的头文件仅包含 Adaptor 或 Core 的头文件。
-实现源文件依赖于同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
+实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 在 Core 中，以下模块对应的头文件依赖关系是确定的：
  YShellDefinition 依赖 Adaptor::YAdaptor 和 Adaptor::YReference ；
 除了 YShellDefinition 外都直接或间接依赖 YShellDefinition；

@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1221
+\version r1228
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-08-07 08:10 +0800
+	2014-08-14 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 	id(id), pParent(nullptr), mSubMenus(), vDisabled(h ? h->size() : 0)
 {
 	Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
-	Margin = Padding(6, 18, 4, 4);
+	Unit.Margin = Padding(6, 18, 4, 4);
 	CyclicTraverse = true;
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
@@ -100,17 +100,17 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		if(Contains(e) && pHost && !ShowSub(e.Value))
 			pHost->HideAll();
 	},
-	FetchEvent<Paint>(lblShared).Add([this]{
+	FetchEvent<Paint>(Unit).Add([this]{
 		// TODO: Handle different highlight text colors.
 		if(!IsItemEnabled(idxShared))
-			lblShared.ForeColor = FetchGUIState().Colors[Styles::GrayText];
+			Unit.ForeColor = FetchGUIState().Colors[Styles::GrayText];
 	}, BackgroundPriority),
-	FetchEvent<Paint>(lblShared) += [this](PaintEventArgs&& e){
-		const auto& unit(GetBoundsOf(lblShared) + e.Location);
+	FetchEvent<Paint>(Unit) += [this](PaintEventArgs&& e){
+		const auto& unit(GetBoundsOf(Unit) + e.Location);
 
 		if(YB_LIKELY(unit.Width > 16) && ystdex::exists(mSubMenus, idxShared))
 			DrawArrow(e.Target, Rect(unit.X + unit.Width - 16, unit.Y, 16,
-				unit.Height) & e.ClipArea, 4, RDeg0, lblShared.ForeColor);
+				unit.Height) & e.ClipArea, 4, RDeg0, Unit.ForeColor);
 	}
 	);
 }
@@ -313,7 +313,7 @@ void
 MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 {
 	Frame.Add(mnu, z);
-//依赖于 mnu 的 GotFocus 事件默认会调用自身的 Invalidate 函数。
+//依赖 mnu 的 GotFocus 事件默认会调用自身的 Invalidate 函数。
 //	Invalidate(mnu);
 	RequestFocus(mnu);
 }

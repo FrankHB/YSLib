@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1060
+\version r1085
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-08-13 16:54 +0800
+	2014-08-15 03:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -503,6 +503,12 @@ struct thunk_caller
 			return std::forward<return_type>(arg);
 		})
 	{}
+	//! \since build 527
+	thunk_caller(std::reference_wrapper<value_type> arg)
+		: caller([arg]()->return_type{
+			return arg;
+		})
+	{}
 	thunk_caller(const thunk_caller&) = default;
 	thunk_caller(thunk_caller&&) = default;
 
@@ -534,11 +540,20 @@ public:
 
 	using base::caller;
 
-	thunk(callable_type f)
-		: base(std::move(f))
-	{}
 	thunk(const value_type& arg)
 		: base(arg)
+	{}
+	//! \since build 527
+	template<typename _type>
+	thunk(std::reference_wrapper<_type> arg)
+		: base(std::reference_wrapper<value_type>(arg.get()))
+	{}
+	//! \since build 527
+	template<typename _fCaller, yimpl(typename
+		= exclude_self_ctor_t<thunk, _fCaller>, typename
+		= enable_if_t<is_convertible<_fCaller&&, callable_type>::value, int>)>
+	thunk(_fCaller&& f)
+		: base(std::move(callable_type(f)))
 	{}
 	thunk(const thunk&) = default;
 	thunk(thunk&&) = default;

@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1528
+\version r1529
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-07-26 11:34 +0800
+	2014-08-15 03:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -796,7 +796,7 @@ DeclDerivedI(YF_API, IImage, ystdex::cloneable)
 	DeclIEntry(void SetSize(const Size&))
 
 	//! \since build 409
-	DeclIEntry(IImage* clone() const override)
+	DeclIEntry(IImage* clone() const ImplI(ystdex::cloneable))
 EndDecl
 
 

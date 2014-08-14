@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3808
+\version r3822
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-05-23 09:19 +0800
+	2014-08-15 04:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,25 +171,25 @@ public:
 	//! \since build 353
 	DefDeCopyAssignment(ValueHolder)
 
-	ImplI(IValueHolder) bool
-	operator==(const IValueHolder& obj) const override
+	bool
+	operator==(const IValueHolder& obj) const ImplI(IValueHolder)
 	{
 		return AreEqualHeld(held, static_cast<const ValueHolder&>(obj).held);
 	}
 
 	//! \since build 409
-	ImplI(IValueHolder) DefClone(const override, ValueHolder)
+	DefClone(const ImplI(IValueHolder), ValueHolder)
 
 	//! \since build 348
-	ImplI(IValueHolder) void*
-	get() const override
+	void*
+	get() const ImplI(IValueHolder)
 	{
 		return std::addressof(held);
 	}
 
 	//! \since build 340
-	ImplI(IValueHolder) const std::type_info&
-	type() const ynothrow override
+	const std::type_info&
+	type() const ynothrow ImplI(IValueHolder)
 	{
 		return typeid(_type);
 	}
@@ -243,26 +243,26 @@ public:
 	//! \since build 353
 	DefDeCopyAssignment(PointerHolder)
 
-	ImplI(IValueHolder) bool
-	operator==(const IValueHolder& obj) const
+	bool
+	operator==(const IValueHolder& obj) const ImplI(IValueHolder)
 	{
 		return AreEqualHeld(*p_held,
 				*static_cast<const PointerHolder&>(obj).p_held);
 	}
 
 	//! \since build 409
-	ImplI(IValueHolder) DefClone(const override, PointerHolder)
+	DefClone(const ImplI(IValueHolder), PointerHolder)
 
 	//! \since build 348
-	ImplI(IValueHolder) void*
-	get() const override
+	void*
+	get() const ImplI(IValueHolder)
 	{
 		return p_held;
 	}
 
 	//! \since build 340
-	ImplI(IValueHolder) const std::type_info&
-	type() const ynothrow override
+	const std::type_info&
+	type() const ynothrow ImplI(IValueHolder)
 	{
 		return p_held ? typeid(_type) : typeid(void);
 	}

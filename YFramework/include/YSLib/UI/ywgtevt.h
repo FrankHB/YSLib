@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1580
+\version r1585
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-04-20 13:00 +0800
+	2014-08-15 03:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -506,7 +506,7 @@ public:
 	\brief 复制实例。
 	\since build 409
 	*/
-	DeclIEntry(AController* clone() const override)
+	DeclIEntry(AController* clone() const ImplI(ystdex::cloneable))
 };
 
 
@@ -617,11 +617,11 @@ public:
 	explicit
 	WidgetController(bool = {});
 
-	ImplI(AController) EventMapping::ItemType&
-	GetItem(const VisualEvent&);
+	EventMapping::ItemType&
+	GetItem(const VisualEvent&) ImplI(AController);
 
 	//! \since build 409
-	ImplI(AController) DefClone(const override, WidgetController)
+	DefClone(const ImplI(AController), WidgetController)
 };
 
 } // namespace UI;

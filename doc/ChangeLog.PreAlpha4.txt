@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8276
+\version r8279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-08-09 17:33 +0800
+	2014-08-14 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2634,8 +2634,10 @@ b462
 	^ $dev "macros %'YFM_*'" @ %YReader,
 	/ DLP "updated library %freetype" @ "library using"
 		$= (^ $re_ex(b459) "updated freetype 2.5.1 with several files remained \
-			from freetype 2.4.11" ~ "freetype 2.5.0.1")
+			from freetype 2.4.11" ~ "freetype 2.5.0.1"),
 		// See [Documentation::Dependencies @@2.2.3].
+	/ $dev $doc $term '依赖于' -> '依赖' @ "dependency descriptions"
+		@ %Documentation::YSLib
 ),
 
 b461

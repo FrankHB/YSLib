@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3666
+\version r3713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-08-12 02:41 +0800
+	2014-08-15 06:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -331,13 +331,13 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 }
 
 
-AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
+ScrollBar::ScrollBar(const Rect& r, Orientation o, SDst min_thumb)
 	: Control(r),
 	pTrack(o == Horizontal
 		? static_cast<ATrack*>(new HorizontalTrack(
-			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), uMinThumbSize))
+			Rect(r.Height, 0, r.Width - r.Height * 2, r.Height), min_thumb))
 		: static_cast<ATrack*>(new VerticalTrack(
-			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), uMinThumbSize))),
+			Rect(0, r.Width, r.Width, r.Height - r.Width * 2), min_thumb))),
 	btnPrev(Rect()), btnNext(Rect()), small_delta(2)
 {
 	SetContainerPtrOf(*pTrack, this),
@@ -388,10 +388,14 @@ AScrollBar::AScrollBar(const Rect& r, SDst uMinThumbSize, Orientation o)
 //	Button.SetLocationOf(btnPrev, Point());
 	MoveToBottom(btnNext);
 	MoveToRight(btnNext);
+	if(o == Horizontal)
+		InitializeArrowPainters(RDeg180, RDeg0);
+	else
+		InitializeArrowPainters(RDeg90, RDeg270);
 }
 
 void
-AScrollBar::InitializeArrowPainters(Rotation prev, Rotation next)
+ScrollBar::InitializeArrowPainters(Rotation prev, Rotation next)
 {
 	using namespace std;
 	using namespace placeholders;
@@ -406,42 +410,25 @@ AScrollBar::InitializeArrowPainters(Rotation prev, Rotation next)
 	);
 }
 
-
-HorizontalScrollBar::HorizontalScrollBar(const Rect& r, SDst uMinThumbLength)
-	: AScrollBar(r, uMinThumbLength, Horizontal)
-{
-	InitializeArrowPainters(RDeg180, RDeg0);
-}
-
 IWidget*
-HorizontalScrollBar::GetBoundControlPtr(const KeyInput& k)
+ScrollBar::GetBoundControlPtr(const KeyInput& k)
 {
 	if(k.count() == 1)
 	{
-		if(k[KeyCodes::Left])
-			return &btnPrev;
-		if(k[KeyCodes::Right])
-			return &btnNext;
-	}
-	return {};
-}
-
-
-VerticalScrollBar::VerticalScrollBar(const Rect& r, SDst uMinThumbLength)
-	: AScrollBar(r, uMinThumbLength, Vertical)
-{
-	InitializeArrowPainters(RDeg90, RDeg270);
-}
-
-IWidget*
-VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)
-{
-	if(k.count() == 1)
-	{
-		if(k[KeyCodes::Up])
-			return &btnPrev;
-		if(k[KeyCodes::Down])
-			return &btnNext;
+		if(GetOrientation() == Horizontal)
+		{
+			if(k[KeyCodes::Left])
+				return &btnPrev;
+			if(k[KeyCodes::Right])
+				return &btnNext;
+		}
+		else
+		{
+			if(k[KeyCodes::Up])
+				return &btnPrev;
+			if(k[KeyCodes::Down])
+				return &btnNext;
+		}
 	}
 	return {};
 }
@@ -449,8 +436,8 @@ VerticalScrollBar::GetBoundControlPtr(const KeyInput& k)
 
 ScrollableContainer::ScrollableContainer(const Rect& r)
 	: Control(r, MakeBlankBrush()),
-	hsbHorizontal(Size(r.Width, defMinScrollBarHeight)),
-	vsbVertical(Size(defMinScrollBarWidth, r.Height))
+	hsbHorizontal(Size(r.Width, defMinScrollBarHeight), Horizontal),
+	vsbVertical(Size(defMinScrollBarWidth, r.Height), Vertical)
 {
 	// TODO: Allow user to choose whether background is drawn.
 	SetContainerPtrOf(hsbHorizontal, this),
