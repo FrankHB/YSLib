@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5702
+\version r5707
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-08-10 18:16 +0800
+	2014-08-15 03:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -434,7 +434,7 @@ private:
 
 public:
 	//! \since build 357
-	ImplI(IWidget) DefGetter(override, WidgetRange, Children, WidgetRange())
+	DefGetter(ImplI(IWidget), WidgetRange, Children, WidgetRange())
 	/*!
 	\brief 取空白画刷。
 	\return 颜色为 ColorSpace::Black 的 SolidBrush 对象初始化的 HBrush 对象。
@@ -444,11 +444,10 @@ public:
 	*/
 	static HBrush
 	MakeBlankBrush();
-	ImplI(IWidget)
-		DefGetter(const override, AController&, Controller, *controller_ptr)
+	DefGetter(const ImplI(IWidget), AController&, Controller, *controller_ptr)
 	DefGetterMem(const ynothrow, SDst, Height, GetView())
-	ImplI(IWidget) DefGetter(const override, Renderer&, Renderer, *renderer_ptr)
-	ImplI(IWidget) DefGetter(const override, View&, View, *view_ptr)
+	DefGetter(const ImplI(IWidget), Renderer&, Renderer, *renderer_ptr)
+	DefGetter(const ImplI(IWidget), View&, View, *view_ptr)
 	DefGetterMem(const ynothrow, SDst, Width, GetView())
 	DefGetterMem(const ynothrow, SPos, X, GetView())
 	DefGetterMem(const ynothrow, SPos, Y, GetView())

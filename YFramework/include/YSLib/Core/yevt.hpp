@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4665
+\version r4669
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-07-14 11:13 +0800
+	2014-08-15 03:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -814,15 +814,14 @@ public:
 	\warning 需要确保 BaseArgsType 引用的对象能够转换至 EventArgsType 。
 	\since build 331
 	*/
-	inline ImplI(GIHEvent<_tBaseArgs>) size_t
-	operator()(BaseArgsType e) const
+	size_t
+	operator()(BaseArgsType e) const ImplI(GIHEvent<_tBaseArgs>)
 	{
 		return EventType::operator()(EventArgsType(yforward(e)));
 	}
 
 	//! \since build 409
-	inline ImplI(GIHEvent<_tBaseArgs>)
-	DefClone(const override, GEventWrapper)
+	DefClone(const ImplI(GIHEvent<_tBaseArgs>), GEventWrapper)
 };
 
 

@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9441
+\version r9443
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-07-22 17:20 +0800
+	2014-08-14 22:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,7 +77,7 @@ Shell 和 Core 的关系是相对的，例如：
 @1.2.1.2 环境(environment) ：
 程序中的某一部分的外界称为环境。
 根据限定程序的范围，可以有更确切的概念定义，如实现环境（对于一类语言实现而言）、运行时环境（对于共享实现环境的一类程序而言）。
-一般地，实现环境可以分为独立环境(freestanding environment) 和宿主环境(hosted environment) ，区分依据为是否依赖于宿主（对于部署在单一计算机上的实现，一般指操作系统）的支持。
+一般地，实现环境可以分为独立环境(freestanding environment) 和宿主环境(hosted environment) ，区分依据为是否依赖宿主（对于部署在单一计算机上的实现，一般指操作系统）的支持。
 因此，环境有时指操作系统及其提供的外部服务的集合。
 一些语言，如 ISO C 和 ISO C++ ，可以同时支持宿主环境和独立环境的实现，对应地独立实现(freestanding impementation) 和宿主实现(hosted impementation) 。
 
@@ -415,7 +415,7 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 
 @5.6.2 YBase 引入的命名空间：
  YBase 引入的主要命名空间唯一且和次级子项目的模块名称一致（但 YDefinition 此处同 YStandardEx ）。
- ystdex ：从 std 扩充的平台无关的实用程序 YStandard 。 YSLib 本体直接依赖于此命名空间。
+ ystdex ：从 std 扩充的平台无关的实用程序 YStandard 。 YSLib 本体直接依赖此命名空间。
  ytest ：测试框架设施 YTest 。
 
 @5.6.3 YFramework 引入的命名空间：

@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2680
+\version r2741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2014-08-10 18:08 +0800
+	2014-08-15 06:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -175,7 +175,11 @@ public:
 	DefEventGetter(ynothrow, HUIEvent, ThumbDrag, ThumbDrag) //!< 滑块拖动事件。
 	DefEventGetter(ynothrow, HScrollEvent, Scroll, Scroll) //!< 滚动事件。
 	DefGetter(const ynothrow, SDst, MinThumbLength, min_thumb_length)
-	DeclIEntry(Orientation GetOrientation() const) //!< 取轨道方向。
+	/*!
+	\brief 取轨道方向。
+	\since build 527
+	*/
+	DeclIEntry(Orientation GetOrientation() const ynothrow)
 	DefGetter(const ynothrow, SDst, ScrollableLength,
 		GetTrackLength() - GetThumbLength()) //!< 取可滚动区域长度。
 	DefGetter(const ynothrow, SDst, ThumbLength,
@@ -261,8 +265,8 @@ public:
 	HorizontalTrack(const Rect& = {}, SDst = 8);
 	DefDeMoveCtor(HorizontalTrack)
 
-	ImplI(ATrack)
-	DefGetter(const ynothrow, Orientation, Orientation, Horizontal)
+	DefGetter(const ynothrow ImplI(ATrack), Orientation, Orientation,
+		Horizontal)
 };
 
 
@@ -282,21 +286,20 @@ public:
 	VerticalTrack(const Rect& = {}, SDst = 8);
 	DefDeMoveCtor(VerticalTrack)
 
-	ImplI(ATrack)
-	DefGetter(const ynothrow, Orientation, Orientation, Vertical)
+	DefGetter(const ynothrow ImplI(ATrack), Orientation, Orientation, Vertical)
 };
 
 
 /*!
 \brief 滚动条。
-\since build 162
+\since build 527
 */
-class YF_API AScrollBar : public Control
+class YF_API ScrollBar : public Control
 {
 public:
 	using ValueType = ATrack::ValueType; //!< 值类型。
 	//! \since build 460
-	using iterator = ystdex::subscriptive_iterator<AScrollBar, IWidget>;
+	using iterator = ystdex::subscriptive_iterator<ScrollBar, IWidget>;
 
 	/*!
 	\brief 默认前景色。
@@ -328,11 +331,11 @@ private:
 public:
 	/*!
 	\brief 构造：使用指定边界、大小和方向。
-	\since build 337
+	\since build 527
 	*/
 	explicit
-	AScrollBar(const Rect& = {}, SDst = 8, Orientation = Horizontal);
-	DefDeMoveCtor(AScrollBar)
+	ScrollBar(const Rect& = {}, Orientation = Horizontal, SDst = 8);
+	DefDeMoveCtor(ScrollBar)
 
 protected:
 	//! \since build 443
@@ -343,6 +346,14 @@ public:
 	//! \since build 356
 	DefWidgetMemberIteration(btnPrev, btnNext, *pTrack)
 
+protected:
+	//! \since build 527
+	IWidget*
+	GetBoundControlPtr(const KeyInput&) override;
+
+public:
+	//! \since build 527
+	DefGetterMem(const ynothrow, Orientation, Orientation, GetTrackRef())
 	/*!
 	\brief 取轨道引用。
 	\pre 断言： bool(pTrack) 。
@@ -371,49 +382,6 @@ public:
 
 
 /*!
-\brief 水平滚动条。
-\since build 205
-*/
-class YF_API HorizontalScrollBar : public AScrollBar
-{
-public:
-	//! \since build 337
-	explicit
-	HorizontalScrollBar(const Rect& = {}, SDst = 8);
-	DefDeMoveCtor(HorizontalScrollBar)
-
-public:
-	ImplI(ATrack) DefGetter(const ynothrow, Orientation, Orientation,
-		Horizontal)
-
-protected:
-	IWidget*
-	GetBoundControlPtr(const KeyInput&) override;
-};
-
-
-/*!
-\brief 竖直滚动条。
-\since build 205
-*/
-class YF_API VerticalScrollBar : public AScrollBar
-{
-public:
-	//! \since build 337
-	explicit
-	VerticalScrollBar(const Rect& = {}, SDst = 8);
-	DefDeMoveCtor(VerticalScrollBar)
-
-public:
-	ImplI(ATrack) DefGetter(const ynothrow, Orientation, Orientation, Vertical)
-
-protected:
-	IWidget*
-	GetBoundControlPtr(const KeyInput&) override;
-};
-
-
-/*!
 \brief 带滚动条的容器。
 \since build 192
 */
@@ -426,15 +394,10 @@ public:
 
 protected:
 	/*!
-	\brief 控制水平可视区域的水平滚动条。
-	\since build 315
+	\brief 控制水平和竖直可视区域的水平滚动条。
+	\since build 527
 	*/
-	HorizontalScrollBar hsbHorizontal;
-	/*!
-	\brief 控制竖直可视区域的竖直滚动条。
-	\since build 315
-	*/
-	VerticalScrollBar vsbVertical;
+	ScrollBar hsbHorizontal, vsbVertical;
 
 public:
 	//! \since build 337

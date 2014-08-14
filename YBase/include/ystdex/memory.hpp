@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r527
+\version r528
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-08-11 19:23 +0800
+	2014-08-14 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -260,7 +260,7 @@ make_unique_default_init(_tParams&&...) = delete;
 \ingroup helper_functions
 \brief 使用 new 和指定参数构造指定类型的 std::shared_ptr 实例。
 \tparam _type 被指向类型。
-\note 不同于 std::make_shared ，不依赖于具体 allocator 和 deleter 类型信息。
+\note 不同于 std::make_shared ，不依赖具体 allocator 和 deleter 类型信息。
 \note std::make_shared 的具体实现一般会导致目标文件增大。
 \since build 298
 */

@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3257
+\version r3258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-07-11 02:43 +0800
+	2014-08-14 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,7 +55,7 @@ PixelType char_color;
 */
 struct BlitTextPoint
 {
-	//! \bug 依赖于静态对象保存的状态，非线程安全。
+	//! \bug 依赖静态对象保存的状态，非线程安全。
 	template<typename _tOut, typename _tIn>
 	void
 	operator()(_tOut dst_iter, _tIn src_iter)

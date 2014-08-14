@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2569
+\version r2570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2014-04-23 01:11 +0800
+	2014-08-15 03:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -305,7 +305,7 @@ public: \
 	_yInterfaceHead(_n)
 
 // ImplI = Implements Interface;
-#define ImplI(...) virtual
+#define ImplI(...) override
 
 //抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
 // ImplA = Implements Abstractly;

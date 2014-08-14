@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1283
+\version r1284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-08-13 02:47 +0800
+	2014-08-14 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -338,7 +338,7 @@ enum class NodeCategory : ystdex::underlying_type_t<PathCategory>
 	//@}
 	Directory,
 	/*!
-	\note 以下枚举项具体行为依赖于文件系统和/或操作系统提供的接口。
+	\note 以下枚举项具体行为依赖文件系统和/或操作系统提供的接口。
 	\note 0x1000 起每 0x1000 一个独立区间，分别表示设备文件、通信实体、
 		无附加限制的链接点和其它特殊文件系统实体；首个枚举项表示该子类的未分类节点。
 	*/

@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3695
+\version r3700
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-06-15 18:16 +0800
+	2014-08-15 03:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,13 +181,12 @@ public:
 	using Graphics::GetHeight;
 	using Graphics::GetWidth;
 	using Graphics::GetSize;
-	ImplI(IImage) DefGetter(const ynothrow override, const Graphics&, Context,
-		*this)
+	DefGetter(const ynothrow ImplI(IImage), const Graphics&, Context, *this)
 
 	//! \since build 409
-	ImplI(IImage) DefClone(const override, BasicImage)
+	DefClone(const ImplI(IImage), BasicImage)
 
-	ImplI(IImage) DefSetter(const Size&, Size, sGraphics)
+	DefSetter(const Size&, Size, sGraphics) // ImplI(IImage)
 };
 
 

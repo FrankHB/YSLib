@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r149
+\version r150
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-02-05 02:47 +0800
+	2014-08-14 22:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,7 +120,7 @@
 当前包含于 YFramework 中，作为专用支持库，参见 [Documentation::Designation @@5] 。
 
 @5.1 依赖项：
-仅依赖于标准库、 YBase 和 YFramework 的 YCLib::Platform 。
+仅依赖标准库、 YBase 和 YFramework 的 YCLib::Platform 。
 
 @6 编码风格导引：
 参见 [Documentation::Designation @@6] 。

@@ -11,13 +11,13 @@
 /*!	\file textlist.h
 \ingroup UI
 \brief 样式相关的文本列表。
-\version r1073
+\version r1220
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-08-13 21:52 +0800
+	2014-08-15 04:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,77 +42,151 @@ namespace UI
 
 /*!
 \ingroup UIModels
-\brief 文本列表模块。
+\brief 单元部件列表模块。
 \warning 非虚析构。
-\since build 188
+\since build 527
 */
-class YF_API MTextList : protected MHilightText
+class YF_API AMUnitList
 {
-public:
-	using ItemType = String; //!< 项目类型：字符串。
-	using ListType = vector<ItemType>; //!< 列表类型。
-	using IndexType = typename ListType::size_type; //!< 索引类型。
-
-	/*!
-	\brief 字体。
-	\since build 524
-	*/
-	Drawing::Font Font;
-	/*!
-	\brief 文本和容器的间距
-	\since build 524
-	*/
-	Drawing::Padding Margin{Drawing::DefaultMargin};
-
 protected:
-	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
-
-public:
-	/*!
-	\brief 循环选择遍历。
-	\since build 523
-	*/
-	bool CyclicTraverse = {};
-
-protected:
-	/*!
-	\brief 列表视图。
-	\since build 525
-	*/
-	SequenceViewer vwText{};
+	//! \brief 列表视图。
+	SequenceViewer vwList{};
 	/*!
 	\brief 列表视图首项目超出上边界的竖直偏移量。
 	\since build 523
 	*/
 	SDst uTopOffset = 0;
 	//! \since build 523
-	Label lblShared{};
-	//! \since build 523
 	size_t idxShared = size_t(-1);
 
 public:
+	virtual DefDeDtor(AMUnitList)
+
 	/*!
-	\brief 构造：使用文本列表句柄、字体引用和高亮背景色/文本色对。
-	\note 当文本列表指针为空时新建。
+	\brief 循环选择遍历。
+	\since build 222
+	*/
+	bool CyclicTraverse = {};
+
+	/*!
+	\brief 取完整视图高。
+	\note 依赖 GetItemHeight 的结果。
+	\since build 203
+	*/
+	SDst
+	GetFullViewHeight() const;
+	/*!
+	\brief 取项目行高。
+	\note 默认实现为取单元部件的高。
+	\since build 203
+	*/
+	virtual SDst
+	GetItemHeight() const;
+	//! \brief 取单元总数。
+	DeclIEntry(SDst GetTotal() const)
+	//! \brief 取单元部件引用。
+	DeclIEntry(IWidget& GetUnitRef() const)
+	/*!
+	\brief 取单元部件的位置。
+	\note 参数为项目索引。
 	\since build 523
 	*/
-	explicit
-	MTextList(const shared_ptr<ListType>& = {}, const Drawing::Font& = {},
-		const pair<Color, Color>& = FetchGUIState().Colors.GetPair(
-		Styles::Highlight, Styles::HighlightText));
-	DefDeMoveCtor(MTextList)
+	Point
+	GetUnitLocation(size_t) const;
+	/*!
+	\brief 取视图顶端竖直位置。
+	\note 依赖 GetItemHeight 的结果。
+	\since build 203
+	*/
+	SDst
+	GetViewPosition() const;
+
+	/*!
+	\brief 调整列表视图底项目（可能不完全）超出下边界以上的竖直偏移量为零。
+	\post 若调整则 <tt>uTopOffset == 0</tt> 。
+	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
+	\note 不限定选择项。
+
+	第一参数指定单元部件的高。
+	第二参数指定视图可视区域的高。
+	*/
+	SDst
+	AdjustBottomForHeight(SDst, SDst);
 
 	//! \since build 523
 	//@{
 	/*!
-	\brief 取完整视图高。
-	\note 依赖于 GetItemHeight 方法的结果。
+	\brief 调整列表视图底项目的竖直偏移量为零。
+	\post 若调整则 <tt>uTopOffset == 0</tt> 。
+	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
+	\note 若没有底项目则不调整，返回 0 。
+
+	第一参数指定视图可视区域的高。
+	第二参数为 <tt>true</tt> 时，调整列表视图底项目（可能不完全）超出下边界以上的竖直
+	偏移量为零；否则，调整列表视图首项目（可能不完全）超出上边界以上的竖直偏移量为零。
 	*/
 	SDst
-	GetFullViewHeight() const;
+	AdjustOffsetForHeight(SDst, bool);
+
+	/*!
+	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
+	\note 参数指定视图可视区域的高。
+	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
+	*/
+	void
+	AdjustViewForContent(SDst);
+
+	/*!
+	\brief 根据指定的单元部件的高和视图可视区域的高调整视图长度。
+	\note 视图长为当项目数足够时所有在视图中显示的（可能不完全）项目总数。
+	\note 当视图可视区域的高为 0 时忽略。
+	\warning 设置大小或列表内容后不调用此方法可能导致显示错误。
+	*/
+	void
+	AdjustViewLengthForHeight(SDst, SDst);
+
+	/*!
+	\brief 复位视图。
+	\note 若项目列表非空则选择首个项目。
+	*/
+	void
+	ResetView();
+	//@}
+};
+
+
+/*!
+\ingroup UIModels
+\brief 文本列表模块。
+\warning 非虚析构。
+\since build 188
+*/
+class YF_API MTextList : public AMUnitList
+{
+public:
+	using ItemType = String; //!< 项目类型：字符串。
+	using ListType = vector<ItemType>; //!< 列表类型。
+	using IndexType = typename ListType::size_type; //!< 索引类型。
+
+protected:
+	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
+
+public:
+	//! \since build 527
+	mutable Label Unit{};
+
+	/*!
+	\brief 构造：使用文本列表句柄。
+	\note 当文本列表指针为空时新建。
+	\since build 527
+	*/
+	explicit
+	MTextList(const shared_ptr<ListType>& = {});
+	DefDeMoveCtor(MTextList)
+
+	//! \since build 523
 	size_t
 	GetLastLabelIndexClipped(SPos, SDst) const;
-	//@}
 
 	/*!
 	\brief 取文本列表。
@@ -141,23 +215,17 @@ public:
 	\since build 301
 	*/
 	SDst
-	GetItemHeight() const ynothrow;
+	GetItemHeight() const ImplI(AMUnitList);
 	/*!
 	\brief 取文本列表中的最大文本宽度。
 	\since build 282
 	*/
 	SDst
 	GetMaxTextWidth() const;
-	//! \since build 523
-	Point
-	GetUnitLocation(size_t) const;
-	/*!
-	\brief 取视图顶端竖直位置。
-	\note 依赖于 GetItemHeight 方法的结果。
-	\since build 523
-	*/
 	SDst
-	GetViewPosition() const;
+	GetTotal() const ImplI(AMUnitList);
+	IWidget&
+	GetUnitRef() const ImplI(AMUnitList);
 
 	/*!
 	\brief 设置文本列表。
@@ -168,49 +236,8 @@ public:
 	SetList(const shared_ptr<ListType>&);
 
 	//! \since build 523
-	//@{
-	/*!
-	\brief 调整列表视图底项目的竖直偏移量为零。
-	\post 若调整则 <tt>uTopOffset == 0</tt> 。
-	\return 返回调整前的偏移量值（取值区间 [0, <tt>GetItemHeight()</tt>) ）。
-	\note 若没有底项目则不调整，返回 0 。
-
-	第一参数指定视图可视区域的高。
-	第二参数为 <tt>true</tt> 时，调整列表视图底项目（可能不完全）超出下边界以上的竖直
-	偏移量为零；否则，调整列表视图首项目（可能不完全）超出上边界以上的竖直偏移量为零。
-	*/
-	SDst
-	AdjustOffsetForHeight(SDst, bool);
-
-	/*!
-	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
-	\note 参数指定视图可视区域的高。
-	\warning 若视图大小变化后不调用此方法调整视图，可能导致选择项越界而行为未定义。
-	*/
-	void
-	AdjustViewForContent(SDst);
-
-	/*!
-	\brief 根据指定的视图可视区域的高调整视图长度。
-	\note 视图长为当项目数足够时所有在视图中显示的（可能不完全）项目总数。
-	\note 当高为 0 时忽略。
-	\warning 设置大小或列表内容后不调用此方法可能导致显示错误。
-	*/
-	void
-	AdjustViewLengthForHeight(SDst);
-	//@}
-
-	//! \since build 523
 	WidgetIterator
 	MakeIterator(size_t);
-
-	/*!
-	\brief 复位视图。
-	\note 若项目列表非空则选择首个项目。
-	\since build 523
-	*/
-	void
-	ResetView();
 };
 
 
@@ -225,7 +252,8 @@ DeclDelegate(HIndexEvent, IndexEventArgs)
 \brief 文本列表。
 \since build 212
 */
-class YF_API TextList : public Control, protected MTextList
+class YF_API TextList
+	: public Control, protected MTextList, protected MHilightText
 {
 public:
 	using MTextList::ItemType;
@@ -248,14 +276,14 @@ public:
 	\since build 525
 	*/
 	Color ForeColor{Drawing::ColorSpace::Black};
-	using MTextList::Font;
-	using MTextList::Margin;
 	//! \since build 486
 	using MHilightText::HilightBackColor;
 	//! \since build 486
 	using MHilightText::HilightTextColor;
 	//! \since build 523
 	using MTextList::CyclicTraverse;
+	//! \since build 527
+	using MTextList::Unit;
 
 	/*!
 	\brief 视图变更事件。
@@ -289,11 +317,11 @@ public:
 		Styles::Highlight, Styles::HighlightText));
 	DefDeMoveCtor(TextList)
 
-	DefPredMem(const ynothrow, Selected, vwText)
+	DefPredMem(const ynothrow, Selected, vwList)
 	PDefH(bool, Contains, ListType::size_type i)
-		ImplBodyMem(vwText, Contains, i)
+		ImplBodyMem(vwList, Contains, i)
 
-	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, vwText)
+	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, vwList)
 	using MTextList::GetItemHeight;
 	using MTextList::GetItemPtr;
 	//! \since build 523
@@ -303,7 +331,7 @@ public:
 	//! \since build 392
 	using MTextList::GetListRef;
 	using MTextList::GetMaxTextWidth;
-	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex, vwText)
+	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex, vwList)
 	//! \since build 523
 	using MTextList::GetFullViewHeight;
 	//! \since build 522
@@ -353,7 +381,7 @@ public:
 	\since build 285
 	*/
 	PDefH(void, AdjustViewLength, )
-		ImplExpr(AdjustViewLengthForHeight(GetHeight()))
+		ImplExpr(AdjustViewLengthForHeight(GetItemHeight(), GetHeight()))
 
 private:
 	/*!
@@ -368,7 +396,7 @@ public:
 	\note 当且仅当有效时响应 Confirmed 事件。
 	*/
 	virtual PDefH(bool, CheckConfirmed, ListType::size_type idx) const
-		ImplRet(vwText.CheckSelected(idx))
+		ImplRet(vwList.CheckSelected(idx))
 
 	/*!
 	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
@@ -382,7 +410,7 @@ public:
 	//@}
 
 	PDefH(void, ClearSelected, )
-		ImplBodyMem(vwText, ClearSelected, )
+		ImplBodyMem(vwList, ClearSelected, )
 
 protected:
 	/*!
@@ -430,8 +458,8 @@ public:
 	Refresh(PaintEventArgs&&) override;
 
 	/*!
-	\brief 复位视图：调用 MTextList::ResetView 和 UpdateView 。
-	\sa MTextList::ResetView
+	\brief 复位视图：调用 MUnitList::ResetView 和 UpdateView 。
+	\sa MUnitList::ResetView
 	\sa UpdateView
 	*/
 	void
@@ -439,14 +467,14 @@ public:
 
 	/*!
 	\brief 选择第一个项目。
-	\note 仅操作 vwText 并调整视图偏移量，不更新视图。
+	\note 仅操作 vwList 并调整视图偏移量，不更新视图。
 	*/
 	void
 	SelectFirst();
 
 	/*!
 	\brief 选择最后一个项目。
-	\note 仅操作 vwText 并调整视图偏移量，不更新视图。
+	\note 仅操作 vwList 并调整视图偏移量，不更新视图。
 	*/
 	void
 	SelectLast();

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r200
+\version r206
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-07-24 10:07 +0800
+	2014-08-14 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,8 +50,8 @@
 @2 实现约束、组成和架构：
 
 @2.1 LibDefect 以外的设计和实现原则：
-除了去除后不影响语义正确性和可观察行为的扩展，遵守 ISO C++ ，不使用不兼容于 ISO C++11 的特性或依赖于特定平台实现的接口。
-注意 YDefinition 实现及判断语言特性的接口可能依赖于具体语言实现的特性限制。
+除了去除后不影响语义正确性和可观察行为的扩展，遵守 ISO C++ ，不使用不兼容于 ISO C++11 的特性或依赖特定平台实现的接口。
+注意 YDefinition 实现及判断语言特性的接口可能依赖具体语言实现的特性限制。
 关于当前允许使用的非 ISO C++03 扩展参见 [Documentation::Designation @1.3.2.1] 。
 尽量严格遵守 ISO C++11 ，涉及未确定行为和实现定义的行为时应附文档说明。
 除非另有说明， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
@@ -113,16 +113,16 @@
 参见 [Documentation::CommonRules @@6.4.3.3] 。
 
 @2.4 YStandardEx ：
- YStandardEx 直接扩充标准库，包含仅依赖于标准库而非标准库的接口。
+ YStandardEx 直接扩充标准库，包含仅依赖标准库而非标准库的接口。
 实现的内容限制为以下两个部分：
 适用范围最广的基础设施（比标准库更严格），如序列/非序列调用、通用类型转换、元类型、函数对象、迭代器；
 直接基于标准库接口的抽象和封装，如输入/输出抽象。
 所有更具体应用问题领域相关的或特定于运行时表达形式相关的操作，如形式语言处理等，都不由 YStandardEx 直接提供接口。
 
 @2.4.1 头文件直接依赖性：
- "type_op.hpp" 和 "variadic.hpp" 依赖于 YDefinition ；
- "cast.hpp" 和 "functional.hpp" 依赖于 "type_op.hpp" ；
- "functional.hpp" 依赖于 "variadic.hpp" 。
+ "type_op.hpp" 和 "variadic.hpp" 依赖 YDefinition ；
+ "cast.hpp" 和 "functional.hpp" 依赖 "type_op.hpp" ；
+ "functional.hpp" 依赖 "variadic.hpp" 。
 另见 @2.4.3 、 @2.4.4 和 @2.4.5 。
 
 @2.4.2 模板特化：
