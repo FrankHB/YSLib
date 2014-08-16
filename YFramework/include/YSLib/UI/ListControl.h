@@ -8,25 +8,25 @@
 	understand and accept it fully.
 */
 
-/*!	\file textlist.h
+/*!	\file ListControl.h
 \ingroup UI
-\brief 样式相关的文本列表。
-\version r1220
+\brief 列表控件。
+\version r1319
 \author FrankHB <frankhb1989@gmail.com>
-\since build 214
+\since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-08-15 04:53 +0800
+	2014-08-16 17:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::UI::TextList
+	YSLib::UI::ListControl
 */
 
 
-#ifndef YSL_INC_UI_textlist_h_
-#define YSL_INC_UI_textlist_h_ 1
+#ifndef YSL_INC_UI_ListControl_h_
+#define YSL_INC_UI_ListControl_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YControl
@@ -43,7 +43,6 @@ namespace UI
 /*!
 \ingroup UIModels
 \brief 单元部件列表模块。
-\warning 非虚析构。
 \since build 527
 */
 class YF_API AMUnitList
@@ -82,6 +81,13 @@ public:
 	*/
 	virtual SDst
 	GetItemHeight() const;
+	//! \since build 523
+	size_t
+	GetLastLabelIndexClipped(SPos, SDst) const;
+	//! \since build 528
+	DefGetter(const ynothrow, size_t, SharedIndex, idxShared)
+	//! \since build 528
+	DefGetter(const ynothrow, SDst, TopOffset, uTopOffset)
 	//! \brief 取单元总数。
 	DeclIEntry(SDst GetTotal() const)
 	//! \brief 取单元部件引用。
@@ -146,22 +152,74 @@ public:
 	AdjustViewLengthForHeight(SDst, SDst);
 
 	/*!
+	\brief 检查点（相对于左上角）是否在选择范围内，
+	\return 选择的项目索引，若无效则为 static_cast<size_t>(-1) 。
+	\since build 528
+	*/
+	size_t
+	CheckPoint(const Size&, const Point&);
+
+	/*!
 	\brief 复位视图。
 	\note 若项目列表非空则选择首个项目。
 	*/
 	void
 	ResetView();
+
+	//! \since build 528
+	template<typename _fCallable>
+	WidgetIterator
+	MakeIterator(size_t item_idx, _fCallable f)
+	{
+		return ystdex::make_prototyped_iterator(GetUnitRef(), item_idx,
+			[this, f](IWidget& wgt, size_t idx){
+			if(idxShared != idx && idx < GetTotal())
+			{
+				f(idx);
+				idxShared = idx,
+				SetLocationOf(wgt, GetUnitLocation(idx));
+			}
+		});
+	}
 	//@}
 };
 
 
 /*!
 \ingroup UIModels
+\brief 控件列表模块。
+\since build 528
+*/
+class YF_API AMUnitControlList : public AMUnitList
+{
+private:
+	unique_ptr<IWidget> p_unit;
+	
+public:
+	/*!
+	\brief 构造：使用部件指针。
+	\note 当文本列表指针为空时新建。
+	\since build 527
+	*/
+	explicit
+	AMUnitControlList(unique_ptr<IWidget>&&);
+	DefDeMoveCtor(AMUnitControlList)
+
+	//! \since build 527
+	IWidget&
+	GetUnitRef() const ImplI(AMUnitList);
+
+	void
+	SetUnit(unique_ptr<IWidget>&&);
+};
+
+
+/*!
+\ingroup UIModels
 \brief 文本列表模块。
-\warning 非虚析构。
 \since build 188
 */
-class YF_API MTextList : public AMUnitList
+class YF_API MTextList : public AMUnitControlList
 {
 public:
 	using ItemType = String; //!< 项目类型：字符串。
@@ -172,9 +230,6 @@ protected:
 	mutable shared_ptr<ListType> hList; //!< 文本列表句柄。
 
 public:
-	//! \since build 527
-	mutable Label Unit{};
-
 	/*!
 	\brief 构造：使用文本列表句柄。
 	\note 当文本列表指针为空时新建。
@@ -184,10 +239,9 @@ public:
 	MTextList(const shared_ptr<ListType>& = {});
 	DefDeMoveCtor(MTextList)
 
-	//! \since build 523
-	size_t
-	GetLastLabelIndexClipped(SPos, SDst) const;
-
+	//! \since build 528
+	Label&
+	GetLabelRef() const;
 	/*!
 	\brief 取文本列表。
 	\since build 392
@@ -199,33 +253,14 @@ public:
 	*/
 	DefGetter(ynothrow, ListType&, ListRef, *hList)
 	/*!
-	\brief 取指定项目索引的项目指针。
-	\since build 392
-	*/
-	ItemType*
-	GetItemPtr(const IndexType&);
-	/*!
-	\brief 取指定项目索引的项目 const 指针。
-	\since build 392
-	*/
-	const ItemType*
-	GetItemPtr(const IndexType&) const;
-	/*!
 	\brief 取项目行高。
 	\since build 301
 	*/
 	SDst
-	GetItemHeight() const ImplI(AMUnitList);
-	/*!
-	\brief 取文本列表中的最大文本宽度。
-	\since build 282
-	*/
-	SDst
-	GetMaxTextWidth() const;
+	GetItemHeight() const override;
+	//! \since build 527
 	SDst
 	GetTotal() const ImplI(AMUnitList);
-	IWidget&
-	GetUnitRef() const ImplI(AMUnitList);
 
 	/*!
 	\brief 设置文本列表。
@@ -282,8 +317,6 @@ public:
 	using MHilightText::HilightTextColor;
 	//! \since build 523
 	using MTextList::CyclicTraverse;
-	//! \since build 527
-	using MTextList::Unit;
 
 	/*!
 	\brief 视图变更事件。
@@ -323,14 +356,14 @@ public:
 
 	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, vwList)
 	using MTextList::GetItemHeight;
-	using MTextList::GetItemPtr;
+	//! \since build 528
+	using MTextList::GetLabelRef;
 	//! \since build 523
 	size_t
 	GetLastLabelIndex() const;
 	using MTextList::GetList;
 	//! \since build 392
 	using MTextList::GetListRef;
-	using MTextList::GetMaxTextWidth;
 	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex, vwList)
 	//! \since build 523
 	using MTextList::GetFullViewHeight;
@@ -357,13 +390,8 @@ public:
 	/*!
 	\brief 按接触点设置选中项目。
 	*/
-	void
-	SetSelected(SPos, SPos);
-	/*!
-	\brief 按接触点设置选中项目。
-	*/
 	PDefH(void, SetSelected, const Point& pt)
-		ImplExpr(SetSelected(pt.X, pt.Y))
+		ImplExpr(SetSelected(CheckPoint(pt)))
 
 	/*!
 	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
@@ -399,15 +427,11 @@ public:
 		ImplRet(vwList.CheckSelected(idx))
 
 	/*!
-	\brief 检查点（相对于所在缓冲区的控件坐标）是否在选择范围内，
+	\brief 检查点（相对于左上角）是否在选择范围内，
 	\return 选择的项目索引，若无效则为 static_cast<ListType::size_type>(-1) 。
 	*/
-	//@{
-	ListType::size_type
-	CheckPoint(SPos, SPos);
 	PDefH(ListType::size_type, CheckPoint, const Point& pt)
-		ImplRet(CheckPoint(pt.X, pt.Y))
-	//@}
+		ImplRet(MTextList::CheckPoint(GetSizeOf(*this), pt))
 
 	PDefH(void, ClearSelected, )
 		ImplBodyMem(vwList, ClearSelected, )

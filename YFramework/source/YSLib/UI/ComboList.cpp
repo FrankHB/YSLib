@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3180
+\version r3184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2014-08-14 01:01 +0800
+	2014-08-16 17:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include YFM_YSLib_UI_ComboList
 #include YFM_YSLib_UI_YStyle
 #include YFM_YSLib_UI_YPanel
+#include YFM_YSLib_Service_TextLayout // for FetchMaxTextWidth;
 
 namespace YSLib
 {
@@ -93,8 +94,9 @@ void
 ListBox::ResizeForPreferred(const Size& sup, Size s)
 {
 	if(s.Width == 0)
-		s.Width = tlContent.GetMaxTextWidth()
-			+ GetHorizontalOf(tlContent.Unit.Margin);
+		s.Width = FetchMaxTextWidth(tlContent.GetLabelRef().Font,
+			tlContent.GetList().cbegin(), tlContent.GetList().cend())
+			+ GetHorizontalOf(tlContent.GetLabelRef().Margin);
 	if(s.Height == 0)
 		s.Height = tlContent.GetFullViewHeight();
 	if(sup.Width != 0 && s.Width > sup.Width)

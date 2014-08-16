@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1228
+\version r1236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-08-14 21:57 +0800
+	2014-08-16 08:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,10 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		Styles::HighlightText)),
 	id(id), pParent(nullptr), mSubMenus(), vDisabled(h ? h->size() : 0)
 {
+	auto& lbl(GetLabelRef());
+
 	Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
-	Unit.Margin = Padding(6, 18, 4, 4);
+	lbl.Margin = Padding(6, 18, 4, 4);
 	CyclicTraverse = true;
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
@@ -100,17 +102,18 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		if(Contains(e) && pHost && !ShowSub(e.Value))
 			pHost->HideAll();
 	},
-	FetchEvent<Paint>(Unit).Add([this]{
+	FetchEvent<Paint>(lbl).Add([this]{
 		// TODO: Handle different highlight text colors.
 		if(!IsItemEnabled(idxShared))
-			Unit.ForeColor = FetchGUIState().Colors[Styles::GrayText];
+			GetLabelRef().ForeColor = FetchGUIState().Colors[Styles::GrayText];
 	}, BackgroundPriority),
-	FetchEvent<Paint>(Unit) += [this](PaintEventArgs&& e){
-		const auto& unit(GetBoundsOf(Unit) + e.Location);
+	FetchEvent<Paint>(lbl) += [this](PaintEventArgs&& e){
+		auto& lbl(GetLabelRef());
+		const auto& unit(GetBoundsOf(lbl) + e.Location);
 
 		if(YB_LIKELY(unit.Width > 16) && ystdex::exists(mSubMenus, idxShared))
 			DrawArrow(e.Target, Rect(unit.X + unit.Width - 16, unit.Y, 16,
-				unit.Height) & e.ClipArea, 4, RDeg0, Unit.ForeColor);
+				unit.Height) & e.ClipArea, 4, RDeg0, lbl.ForeColor);
 	}
 	);
 }

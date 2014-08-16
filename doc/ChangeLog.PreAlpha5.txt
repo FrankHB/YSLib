@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2867
+\version r2944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-08-15 06:26 +0800
+	2014-08-16 18:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,87 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ %TextList => %ListControl $=
+				(
+					(
+					- 'using MTextList::GetItemPtr;' @ "class %TextList";
+						// Use %GetList and its interface instread.
+					- "all 2 member function %MTextList::GetItemPtr"
+					),
+					(
+					+ "function template %MakeIterator" @ "class %MUnitList";
+					/ DLD "implemented function %MTextList::MakeIterator"
+						^ "%MUnitList::MakeIterator"
+					),
+					+ "functions %(GetSharedIndex, GetTopOffset, CheckPoint)"
+						@ "class %AMUnitList",
+					/ @ "class %MTextList" $=
+					(
+						/ "function %GetLastLabelIndex" >> "class %AMUnitList",
+						+ "function %GetLabelRef",
+						(
+						$dep_from "class %AMUnitControlList";
+						/ "base class %AMUnitList" -> "%AMUnitControlList";
+						/ "function %GetUnitRef" >> "class %AMUnitControlList",
+						/ DLD "text unit implementation",
+						$dep_from "removal of %Unit";
+						- "data member %Unit"
+						),
+						(
+						$dep_from "removal of %GetMaxTextWidth";
+						- $revert($orig(b282))
+							"member function %GetMaxTextWidth" $orig(%Label)
+						)
+					),
+					/ @ "class %TextList" $=
+					(
+						(
+						$dep_from "function %MTextList::CheckPoint";
+						/ "merged 2 functions %CheckPoint"
+							^ "%AMUnitList::CheckPoint"
+						),
+						/ "merged 2 functions %SetSelected for point as with \
+							parameter 'const Point&'",
+						/ DLD "simplified implementation" @ "function %Refresh",
+						(
+						$dep_from "%MTextList::GetLabelRef";
+						/ 'using MTextList::Unit'
+							-> 'using MTextList::GetLabelRef';
+						$dep_to "removal of %Unit"
+						),
+						(
+						- 'using MTextList::GetMaxTextWidth;';
+						$dep_to "removal of %GetMaxTextWidth"
+						)
+					),
+					+ "class %AMUnitControlList"
+				),
+				/ "macro %YFM_YSLib_UI_TextList" @ %UI.YModule
+					=> "%YFM_YSLib_UI_ListControl"
+			),
+			/ %Core.YGDIBase $=
+			(
+				/ "all parameter type %int" @ "member functions \
+					%Rect::(Contains, ContainsStrict)" -> "%SPos",
+				/ $re_ex(b509) DLD "implemented all 2 functions %Size::GetRef"
+					^ "macros %(PDefH, ImplRet)"
+			)
+		),
+		^ "ADL for %is_undereferenceable" @ %YFramework $effective @ ("3 \
+			function templates %(FetchStringOffsets, FetchStringWidth)"
+			@ %YSLib.Service.TextLayout, "2nd constructor" @ "class %Session"
+			@ %NPL.SContext)
+	)
+),
+
+b527
 (
 	/ %YFramework $=
 	(

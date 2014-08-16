@@ -8,29 +8,30 @@
 	understand and accept it fully.
 */
 
-/*!	\file textlist.cpp
+/*!	\file ListControl.cpp
 \ingroup UI
-\brief 样式相关的文本列表。
-\version r1796
+\brief 列表控件。
+\version r1896
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-08-14 05:04 +0800
+	2014-08-16 17:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::UI::TextList
+	YSLib::UI::ListControl
 */
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_TextList
+#include YFM_YSLib_UI_ListControl
 #include YFM_YSLib_UI_YWindow
 #include YFM_YSLib_UI_Border
 #include YFM_YSLib_Service_YBlit
-#include YFM_YSLib_Service_TextLayout
+#include YFM_YSLib_Service_TextLayout // for FetchMaxTextWidth;
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace YSLib
 {
@@ -49,6 +50,14 @@ SDst
 AMUnitList::GetItemHeight() const
 {
 	return GetSizeOf(GetUnitRef()).Height;
+}
+size_t
+AMUnitList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
+{
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return vwList.GetHeadIndex() + min<size_t>((SPos(height + uTopOffset)
+		- v_off - 1) / SPos(GetItemHeight()) + 1,
+		vwList.GetValid(GetTotal()));
 }
 Point
 AMUnitList::GetUnitLocation(size_t idx) const
@@ -124,6 +133,13 @@ AMUnitList::AdjustViewLengthForHeight(SDst item_h, SDst h)
 		vwList.Length = h / item_h + (uTopOffset != 0 || h % item_h != 0);
 }
 
+size_t
+AMUnitList::CheckPoint(const Size& s, const Point& pt)
+{
+	return Rect(s).Contains(pt) ? (pt.Y + uTopOffset)
+		/ GetItemHeight() + vwList.GetHeadIndex() : size_t(-1);
+}
+
 void
 AMUnitList::ResetView()
 {
@@ -136,58 +152,53 @@ AMUnitList::ResetView()
 }
 
 
-MTextList::MTextList(const shared_ptr<ListType>& h)
+AMUnitControlList::AMUnitControlList(unique_ptr<IWidget>&& p_wgt)
 	: AMUnitList(),
+	p_unit(std::move(p_wgt))
+{}
+
+IWidget&
+AMUnitControlList::GetUnitRef() const
+{
+	YAssertNonnull(p_unit);
+	return *p_unit;
+}
+
+void
+AMUnitControlList::SetUnit(unique_ptr<IWidget>&& p)
+{
+	p_unit = std::move(p);
+}
+
+
+MTextList::MTextList(const shared_ptr<ListType>& h)
+	: AMUnitControlList(make_unique<Label>()),
 	hList(h ? h : make_shared<ListType>())
 {
-	Unit.Margin = Padding(2, 2, 1, 1),
-	Unit.SetHeight(Unit.Font.GetHeight() + GetVerticalOf(Unit.Margin));
+	auto& lbl(GetLabelRef());
+
+	lbl.Margin = Padding(2, 2, 1, 1),
+	lbl.SetHeight(GetItemHeight());
 }
 
-size_t
-MTextList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
+Label&
+MTextList::GetLabelRef() const
 {
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return vwList.GetHeadIndex() + min<size_t>((SPos(height + uTopOffset)
-		- v_off - 1) / SPos(GetItemHeight()) + 1,
-		vwList.GetValid(GetList().size()));
-}
-MTextList::ItemType*
-MTextList::GetItemPtr(const IndexType& idx)
-{
-	auto& lst(GetListRef());
-
-	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
+	return ystdex::polymorphic_downcast<Label&>(GetUnitRef());
 }
 SDst
 MTextList::GetItemHeight() const
 {
-	const auto item_h(Unit.Font.GetHeight() + GetVerticalOf(Unit.Margin));
+	auto& lbl(GetLabelRef());
+	const auto item_h(lbl.Font.GetHeight() + GetVerticalOf(lbl.Margin));
 
 	YAssert(item_h != 0, "Invalid item height found.");
 	return item_h;
-}
-const MTextList::ItemType*
-MTextList::GetItemPtr(const IndexType& idx) const
-{
-	const auto& lst(GetList());
-
-	return IsInInterval<IndexType>(idx, lst.size()) ? &lst[idx] : nullptr;
 }
 SDst
 MTextList::GetTotal() const
 {
 	return GetList().size();
-}
-IWidget&
-MTextList::GetUnitRef() const
-{
-	return Unit;
-}
-SDst
-MTextList::GetMaxTextWidth() const
-{
-	return FetchMaxTextWidth(Unit.Font, GetList().cbegin(), GetList().cend());
 }
 
 void
@@ -200,11 +211,8 @@ MTextList::SetList(const shared_ptr<ListType>& h)
 WidgetIterator
 MTextList::MakeIterator(size_t item_idx)
 {
-	return ystdex::make_prototyped_iterator(Unit, item_idx,
-		[this](IWidget& wgt, size_t idx){
-		if(idxShared != idx && idx < GetList().size())
-			yunseq(Unit.Text = GetList()[idx], idxShared = idx),
-			SetLocationOf(wgt, GetUnitLocation(idx));
+	return AMUnitList::MakeIterator(item_idx, [this](size_t idx){
+		GetLabelRef().Text = GetList()[idx];
 	});
 }
 
@@ -216,9 +224,10 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	const auto invalidator([this]{
 		Invalidate(*this);
 	});
+	auto& lbl(GetLabelRef());
 
-	SetContainerPtrOf(Unit, this);
-	SetSizeOf(Unit, {GetWidth(), GetItemHeight()});
+	SetContainerPtrOf(lbl, this);
+	SetSizeOf(lbl, {GetWidth(), GetItemHeight()});
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(!GetList().empty())
@@ -297,14 +306,16 @@ bound_select:
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority),
 	FetchEvent<GotFocus>(*this) += invalidator,
 	FetchEvent<LostFocus>(*this) += invalidator,
-	Unit.Background = [this](PaintEventArgs&& e){
+	lbl.Background = [this](PaintEventArgs&& e){
+		auto& lbl(GetLabelRef());
+
 		if(vwList.CheckSelected(idxShared))
-			Unit.ForeColor = HilightTextColor,
+			lbl.ForeColor = HilightTextColor,
 			FillRect(e.Target, e.ClipArea, Rect(e.Location.X + 1, e.Location.Y,
-				Unit.GetWidth() - 2, Unit.GetHeight()),
+				lbl.GetWidth() - 2, lbl.GetHeight()),
 				HilightBackColor);
 		else
-			Unit.ForeColor = ForeColor;
+			lbl.ForeColor = ForeColor;
 	}
 	);
 	AdjustViewLength();
@@ -340,23 +351,11 @@ TextList::SetSelected(ListType::size_type i)
 		}
 	}
 }
-void
-TextList::SetSelected(SPos x, SPos y)
-{
-	SetSelected(CheckPoint(x, y));
-}
 
 void
 TextList::CallSelected()
 {
 	Selected(IndexEventArgs(*this, vwList.GetSelectedIndex()));
-}
-
-TextList::ListType::size_type
-TextList::CheckPoint(SPos x, SPos y)
-{
-	return Rect(GetSizeOf(*this)).Contains(x, y) ? (y + uTopOffset)
-		/ GetItemHeight() + vwList.GetHeadIndex() : ListType::size_type(-1);
 }
 
 void
@@ -418,24 +417,19 @@ TextList::LocateViewPosition(SDst h)
 void
 TextList::Refresh(PaintEventArgs&& e)
 {
-	const auto h(GetHeight());
-
-	if(h != 0)
+	if(GetHeight() != 0)
 	{
 		const Rect& bounds(e.ClipArea);
 
-		if(!bounds.IsUnstrictlyEmpty())
+		if(!bounds.IsUnstrictlyEmpty() && !GetList().empty())
 		{
-			if(!GetList().empty() && bool(bounds))
-			{
-				// NOTE: View length could be already changed by contents.
-				AdjustViewLength();
-				SetSizeOf(Unit, {GetWidth(), GetItemHeight()});
-				for(WidgetIterator first(MakeIterator(GetHeadIndex())),
-					last(MakeIterator(GetLastLabelIndexClipped(e.Location.Y
-					- bounds.Y, bounds.Height))); first != last; ++first)
-					PaintVisibleChildAndCommit(*first, e);
-			}
+			// NOTE: View length could be already changed by contents.
+			AdjustViewLength();
+			SetSizeOf(GetLabelRef(), {GetWidth(), GetItemHeight()});
+			for(WidgetIterator first(MakeIterator(GetHeadIndex())), last(
+				MakeIterator(GetLastLabelIndexClipped(e.Location.Y - bounds.Y,
+				bounds.Height))); first != last; ++first)
+				PaintVisibleChildAndCommit(*first, e);
 		}
 	}
 }
@@ -467,8 +461,9 @@ TextList::SelectLast()
 void
 ResizeForContent(TextList& tl)
 {
-	SetSizeOf(tl, Size(tl.GetMaxTextWidth() + GetHorizontalOf(tl.Unit.Margin),
-		tl.GetFullViewHeight()));
+	SetSizeOf(tl, Size(FetchMaxTextWidth(tl.GetLabelRef().Font,
+		tl.GetList().cbegin(), tl.GetList().cend())
+		+ GetHorizontalOf(tl.GetLabelRef().Margin), tl.GetFullViewHeight()));
 	tl.AdjustViewLength();
 }
 

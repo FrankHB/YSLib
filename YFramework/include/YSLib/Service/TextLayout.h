@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2790
+\version r2802
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-05-23 09:22 +0800
+	2014-08-16 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,7 +114,9 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s)
 
 	for(; *s != char() && w < max_width; yunseq(++s, ++r))
 	{
-		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
+		using ystdex::is_undereferenceable;
+
+		YAssert(!is_undereferenceable(s), "Invalid iterator found.");
 		w += FetchCharWidth(fnt, *s);
 	}
 	return {r, w};
@@ -134,7 +136,9 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, size_t n,
 
 	for(; n-- != 0 && *s != c && w < max_width; yunseq(++s, ++r))
 	{
-		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
+		using ystdex::is_undereferenceable;
+
+		YAssert(!is_undereferenceable(s), "Invalid iterator found.");
 		w += FetchCharWidth(fnt, *s);
 	}
 	return {r, w};
@@ -154,7 +158,9 @@ FetchStringOffsets(size_t max_width, const Font& fnt, _tIter s, _tIter g,
 
 	for(; s != g && *s != c && w < max_width; yunseq(++s, ++r))
 	{
-		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
+		using ystdex::is_undereferenceable;
+
+		YAssert(!is_undereferenceable(s), "Invalid iterator found.");
 		w += FetchCharWidth(fnt, *s);
 	}
 	return {r, w};
@@ -195,7 +201,9 @@ FetchStringWidth(const Font& fnt, _tIter s)
 
 	for(; *s != char(); ++s)
 	{
-		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
+		using ystdex::is_undereferenceable;
+
+		YAssert(!is_undereferenceable(s), "Invalid iterator found.");
 		w += FetchCharWidth(fnt, *s);
 	}
 	return w;
@@ -214,7 +222,9 @@ FetchStringWidth(const Font& fnt, _tIter s, size_t n, ucs4_t c = {})
 
 	for(; n-- != 0 && *s != c; ++s)
 	{
-		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
+		using ystdex::is_undereferenceable;
+
+		YAssert(!is_undereferenceable(s), "Invalid iterator found.");
 		w += FetchCharWidth(fnt, *s);
 	}
 	return w;
@@ -233,7 +243,9 @@ FetchStringWidth(const Font& fnt, _tIter s, _tIter g, ucs4_t c = {})
 
 	for(; s != g && *s != c; ++s)
 	{
-		YAssert(!ystdex::is_undereferenceable(s), "Invalid iterator found.");
+		using ystdex::is_undereferenceable;
+
+		YAssert(!is_undereferenceable(s), "Invalid iterator found.");
 		w += FetchCharWidth(fnt, *s);
 	}
 	return w;

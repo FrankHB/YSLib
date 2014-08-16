@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r653
+\version r664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2014-05-23 09:41 +0800
+	2014-08-16 05:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,14 +43,16 @@ const Size Size::Invalid(std::numeric_limits<SDst>::lowest(),
 namespace
 {
 
+//! \since build 528
 bool
-RectContainsRaw(const Rect& r, int px, int py) ynothrow
+RectContainsRaw(const Rect& r, SPos px, SPos py) ynothrow
 {
 	YAssert(r.Width > 0, "Invalid width found."),
 	YAssert(r.Height > 0, "Invalid height found.");
 
-	return IsInInterval<int>(px - r.X, r.Width)
-		&& IsInInterval<int>(py - r.Y, r.Height);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return IsInInterval<SPos>(px - r.X, SPos(r.Width))
+		&& IsInInterval<SPos>(py - r.Y, SPos(r.Height));
 }
 inline bool
 RectContainsRaw(const Rect& r, const Point& pt) ynothrow
@@ -59,12 +61,13 @@ RectContainsRaw(const Rect& r, const Point& pt) ynothrow
 }
 
 bool
-RectContainsStrictRaw(const Rect& r, int px, int py) ynothrow
+RectContainsStrictRaw(const Rect& r, SPos px, SPos py) ynothrow
 {
 	YAssert(r.Width > 1, "Invalid width found."),
 	YAssert(r.Height > 1, "Invalid height found.");
-	return IsInOpenInterval<int>(px - r.X, r.Width - 1)
-		&& IsInOpenInterval<int>(py - r.Y, r.Height - 1);
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return IsInOpenInterval<SPos>(px - r.X, SPos(r.Width - 1))
+		&& IsInOpenInterval<SPos>(py - r.Y, SPos(r.Height - 1));
 }
 inline bool
 RectContainsStrictRaw(const Rect& r, const Point& pt) ynothrow
@@ -77,7 +80,7 @@ RectContainsStrictRaw(const Rect& r, const Point& pt) ynothrow
 const Rect Rect::Invalid(Size::Invalid);
 
 bool
-Rect::Contains(int px, int py) const ynothrow
+Rect::Contains(SPos px, SPos py) const ynothrow
 {
 	return !IsUnstrictlyEmpty() && RectContainsRaw(*this, px, py);
 }
@@ -89,7 +92,7 @@ Rect::Contains(const Rect& r) const ynothrow
 }
 
 bool
-Rect::ContainsStrict(int px, int py) const ynothrow
+Rect::ContainsStrict(SPos px, SPos py) const ynothrow
 {
 	return Width > 1 && Height > 1 && RectContainsStrictRaw(*this, px, py);
 }

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3544
+\version r3546
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-07-30 19:58 +0800
+	2014-08-16 17:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -974,7 +974,8 @@ b282
 			),
 			- "assertion" @ "constructor"
 				@ "classes %(HorizontalScrollBar, VerticalScrollBar),
-			* "wrong comments" @ "constructors of track classes" $since b173
+			* "wrong comments" @ "constructors of track classes" $since b173,
+			+ "member function %MTextList::GetMaxTextWidth"
 		),
 		* "wrong result for function %Intersect" @ "unit %YGDIBase" $since b227
 	);

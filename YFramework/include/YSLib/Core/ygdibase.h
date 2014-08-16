@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1529
+\version r1555
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-08-15 03:28 +0800
+	2014-08-16 05:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,15 +137,12 @@ public:
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
 	\since build 319
 	*/
+	//@{
 	PDefH(_type&, GetRef, bool b = true) ynothrow
 		ImplRet(b ? X : Y)
-	/*!
-	\brief 选择分量常量引用。
-	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 319
-	*/
 	PDefH(const _type&, GetRef, bool b = true) const ynothrow
 		ImplRet(b ? X : Y)
+	//@}
 };
 
 template<typename _type>
@@ -318,21 +315,12 @@ public:
 	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
 	\since build 319
 	*/
-	SDst&
-	GetRef(bool b = true) ynothrow
-	{
-		return b ? Width : Height;
-	}
-	/*!
-	\brief 选择分量常量引用。
-	\note 第二参数为 true 时选择第一分量，否则选择第二分量。
-	\since build 319
-	*/
-	const SDst&
-	GetRef(bool b = true) const ynothrow
-	{
-		return b ? Width : Height;
-	}
+	//@{
+	PDefH(SDst&, GetRef, bool b = true) ynothrow
+		ImplRet(b ? Width : Height)
+	PDefH(const SDst&, GetRef, bool b = true) const ynothrow
+		ImplRet(b ? Width : Height)
+	//@}
 };
 
 /*!
@@ -538,10 +526,10 @@ public:
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内或边上。
-	\since build 319
+	\since build 528
 	*/
 	bool
-	Contains(int px, int py) const ynothrow;
+	Contains(SPos px, SPos py) const ynothrow;
 	/*!
 	\brief 判断点 pt 是否在矩形内或边上。
 	\since build 319
@@ -558,10 +546,10 @@ public:
 
 	/*!
 	\brief 判断点 (px, py) 是否在矩形内。
-	\since build 319
+	\since build 528
 	*/
 	bool
-	ContainsStrict(int px, int py) const ynothrow;
+	ContainsStrict(SPos px, SPos py) const ynothrow;
 	/*!
 	\brief 判断点 pt 是否在矩形内。
 	\since build 319

@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r83
+\version r85
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2014-08-08 14:41 +0800
+	2014-08-16 08:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,8 @@
 #define YFM_YSLib_UI_Scroll <YSLib/UI/scroll.h>
 #define YFM_YSLib_UI_Progress <YSLib/UI/progress.h>
 #define YFM_YSLib_UI_TextArea <YSLib/UI/textarea.h>
-#define YFM_YSLib_UI_TextList <YSLib/UI/textlist.h>
+//! \since build 528
+#define YFM_YSLib_UI_ListControl <YSLib/UI/ListControl.h>
 #define YFM_YSLib_UI_ComboList <YSLib/UI/ComboList.h>
 #define YFM_YSLib_UI_Menu <YSLib/UI/menu.h>
 //@}

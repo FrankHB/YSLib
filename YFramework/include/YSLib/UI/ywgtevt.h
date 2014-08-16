@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1585
+\version r1586
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-08-15 03:29 +0800
+	2014-08-16 06:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -462,7 +462,7 @@ public:
 
 
 /*!
-\brief 控制器抽象类。
+\brief 抽象控制器。
 \since build 243
 */
 class YF_API AController : public ystdex::cloneable
