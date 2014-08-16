@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1456
+\version r1459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2013-12-24 00:40 +0800
+	2014-08-16 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,8 @@ Session::Session(const string& line)
 }
 Session::Session(const TextFile& tf)
 {
-	ystdex::ifile_iterator i(tf.GetPtr());
+	using namespace ystdex;
+	ifile_iterator i(tf.GetPtr());
 
 	while(!tf.CheckEOF())
 	{

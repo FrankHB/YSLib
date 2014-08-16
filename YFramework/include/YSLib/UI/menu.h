@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r857
+\version r858
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2014-08-02 21:22 +0800
+	2014-08-16 08:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YSL_INC_UI_menu_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_TextList
+#include YFM_YSLib_UI_ListControl
 #include YFM_YSLib_UI_YUIContainer // for UI::ZOrderType;
 
 namespace YSLib

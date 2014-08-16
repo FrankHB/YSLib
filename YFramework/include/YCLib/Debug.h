@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r421
+\version r422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-08-03 06:50 +0800
+	2014-08-16 04:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,7 +267,7 @@ LogAssert(bool, const char*, const char*, int, const char*);
 
 /*!
 \brief 映射 Descriptions::RecordLevel 为 Android 日志 API 使用的日志优先级。
-\post 返回值介于 ANDROID_LOG_FATAL 和 ANDROID_LOG_VERBOSE 。
+\return 介于 ANDROID_LOG_FATAL 和 ANDROID_LOG_VERBOSE 的日志优先级。
 \sa platform::Descriptions::RecordLevel
 \since build 498
 

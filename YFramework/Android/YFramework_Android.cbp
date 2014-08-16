@@ -247,7 +247,7 @@
 		<Unit filename="../include/YSLib/UI/progress.h" />
 		<Unit filename="../include/YSLib/UI/scroll.h" />
 		<Unit filename="../include/YSLib/UI/textarea.h" />
-		<Unit filename="../include/YSLib/UI/textlist.h" />
+		<Unit filename="../include/YSLib/UI/ListControl.h" />
 		<Unit filename="../include/YSLib/UI/uicontx.h" />
 		<Unit filename="../include/YSLib/UI/ycontrol.h" />
 		<Unit filename="../include/YSLib/UI/ydesktop.h" />
@@ -335,7 +335,7 @@
 		<Unit filename="../source/YSLib/UI/progress.cpp" />
 		<Unit filename="../source/YSLib/UI/scroll.cpp" />
 		<Unit filename="../source/YSLib/UI/textarea.cpp" />
-		<Unit filename="../source/YSLib/UI/textlist.cpp" />
+		<Unit filename="../source/YSLib/UI/ListControl.cpp" />
 		<Unit filename="../source/YSLib/UI/uicontx.cpp" />
 		<Unit filename="../source/YSLib/UI/ycontrol.cpp" />
 		<Unit filename="../source/YSLib/UI/ydesktop.cpp" />
