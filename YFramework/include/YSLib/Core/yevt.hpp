@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4669
+\version r4716
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-08-15 03:32 +0800
+	2014-08-24 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -692,65 +692,15 @@ struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
 \brief 事件类型宏。
 \since build 188
 */
-//@{
 #define EventT(_tEventHandler) \
 	GEvent<void(typename EventArgsHead<_tEventHandler::TupleType>::type)>
-#define DepEventT(_tEventHandler) \
-	typename GDependencyEvent(EventT(_tEventHandler))
-//@}
 
 /*!
 \brief 声明事件。
 \since build 188
 */
-//@{
 #define DeclEvent(_tEventHandler, _name) \
 	EventT(_tEventHandler) _name;
-#define DeclDepEvent(_tEventHandler, _name) \
-	DepEventT(_tEventHandler) _name;
-//@}
-
-/*!
-\brief 声明事件引用。
-\since build 188
-*/
-//@{
-#define DeclEventRef(_tEventHandler, _name) \
-	EventT(_tEventHandler)& _name;
-#define DeclDepEventRef(_tEventHandler, _name) \
-	DepEventT(_tEventHandler)& _name;
-//@}
-
-/*!
-\brief 声明事件接口函数。
-*/
-//@{
-//! since build 166
-#define DeclIEventEntry(_tEventHandler, _name) \
-	DeclIEntry(const EventT(_tEventHandler)& YPP_Concat(Get, _name)() const)
-//! since build 188
-#define DeclIDepEventEntry(_tEventHandler, _name) \
-	DeclIEntry(const DepEventT(_tEventHandler)& YPP_Concat(Get, _name)() const)
-//@}
-
-/*!
-\brief 定义事件访问器。
-\since build 188
-*/
-//@{
-#define DefEventGetter(_q, _tEventHandler, _name, _member) \
-	DefGetter(_q, EventT(_tEventHandler)&, _name, _member)
-#define DefEventGetterBase(_q, _tEventHandler, _name, _base) \
-	DefGetterBase(_q, EventT(_tEventHandler)&, _name, _base)
-#define DefEventGetterMem(_q, _tEventHandler, _name, _member) \
-	DefGetterMem(_q, EventT(_tEventHandler)&, _name, _member)
-#define DefDepEventGetter(_q, _tEventHandler, _name, _member) \
-	DefGetter(_q, DepEventT(_tEventHandler)&, _name, _member)
-#define DefDepEventGetterBase(_q, _tEventHandler, _name, _base) \
-	DefGetterBase(_q, DepEventT(_tEventHandler)&, _name, _base)
-#define DefDepEventGetterMem(_q, _tEventHandler, _name, _member) \
-	DefGetterMem(_q, DepEventT(_tEventHandler)&, _name, _member)
-//@}
 
 
 /*!

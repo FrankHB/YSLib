@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r392
+\version r393
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-06-04 13:36 +0800
+	2014-08-23 15:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ template<typename _fCallable>
 void
 Animate(_fCallable f, Messaging::Priority prior = UI::AnimationPriority)
 {
-	AnimateConnection(ystdex::make_shared<_fCallable>(f), prior);
+	AnimateConnection(make_shared<_fCallable>(f), prior);
 }
 
 

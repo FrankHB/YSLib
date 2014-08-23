@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2601
+\version r2610
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2014-08-16 08:18 +0800
+	2014-08-24 00:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,12 +85,12 @@ public:
 	DefGetterMem(const ynothrow, const ListType&, List, tlContent)
 	//! \since build 392
 	DefGetterMem(ynothrow, ListType&, ListRef, tlContent)
-	DefEventGetter(ynothrow, HViewEvent, ViewChanged, tlContent.ViewChanged) \
-		//!< 视图变更事件。
-	DefEventGetter(ynothrow, HIndexEvent, Selected, tlContent.Selected) \
-		//!< 项目选择状态变更事件。
-	DefEventGetter(ynothrow, HIndexEvent, Confirmed, tlContent.Confirmed) \
-		//!< 项目选中确定事件。
+	//! \brief 视图变更事件。
+	DefGetter(ynothrow, EventT(HViewEvent)&, ViewChanged, tlContent.ViewChanged)
+	//! \brief 项目选择状态变更事件。
+	DefGetter(ynothrow, EventT(HIndexEvent)&, Selected, tlContent.Selected)
+	//! \brief 项目选中确定事件。
+	DefGetter(ynothrow, EventT(HIndexEvent)&, Confirmed, tlContent.Confirmed)
 
 	/*!
 	\brief 设置文本列表。
@@ -264,17 +264,17 @@ public:
 	\brief 取视图变更事件。
 	\since build 283
 	*/
-	DefEventGetterMem(ynothrow, HViewEvent, ViewChanged, lbContent)
+	DefGetterMem(ynothrow, EventT(HViewEvent)&, ViewChanged, lbContent)
 	/*!
 	\brief 取项目选择状态变更事件。
 	\since build 283
 	*/
-	DefEventGetterMem(ynothrow, HIndexEvent, Selected, lbContent)
+	DefGetterMem(ynothrow, EventT(HIndexEvent)&, Selected, lbContent)
 	/*!
 	\brief 取项目选中确定事件。
 	\since build 283
 	*/
-	DefEventGetterMem(ynothrow, HIndexEvent, Confirmed, lbContent)
+	DefGetterMem(ynothrow, EventT(HIndexEvent)&, Confirmed, lbContent)
 
 	/*!
 	\brief 设置文本列表。

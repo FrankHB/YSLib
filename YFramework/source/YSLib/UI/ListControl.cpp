@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r1896
+\version r2045
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-08-16 17:51 +0800
+	2014-08-22 10:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,117 +41,6 @@ using namespace Drawing;
 namespace UI
 {
 
-SDst
-AMUnitList::GetFullViewHeight() const
-{
-	return GetItemHeight() * GetTotal();
-}
-SDst
-AMUnitList::GetItemHeight() const
-{
-	return GetSizeOf(GetUnitRef()).Height;
-}
-size_t
-AMUnitList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
-{
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return vwList.GetHeadIndex() + min<size_t>((SPos(height + uTopOffset)
-		- v_off - 1) / SPos(GetItemHeight()) + 1,
-		vwList.GetValid(GetTotal()));
-}
-Point
-AMUnitList::GetUnitLocation(size_t idx) const
-{
-	// XXX: Conversion to 'SPos' might be implementation-defined.
-	return Point(0, -SPos(uTopOffset) + SPos(GetItemHeight()) * (SPos(idx)
-		- SPos(vwList.GetHeadIndex())));
-}
-SDst
-AMUnitList::GetViewPosition() const
-{
-	return GetItemHeight() * vwList.GetHeadIndex() + uTopOffset;
-}
-
-SDst
-AMUnitList::AdjustBottomForHeight(SDst item_h, SDst h)
-{
-	const auto d(uTopOffset);
-
-	uTopOffset = 0;
-	AdjustViewLengthForHeight(item_h, h);
-	return d;
-}
-
-SDst
-AMUnitList::AdjustOffsetForHeight(SDst h, bool is_top)
-{
-	if(GetFullViewHeight() > h)
-	{
-		const SDst ln_h(GetItemHeight());
-
-		if(YB_UNLIKELY(ln_h == 0))
-			return 0;
-		vwList.RestrictSelected();
-		if(is_top)
-			return AdjustBottomForHeight(ln_h, h);
-		else
-		{
-			const auto d((h + uTopOffset) % ln_h);
-
-			if(d != 0)
-			{
-				const auto tmp(uTopOffset + ln_h - d);
-
-				uTopOffset = tmp % ln_h;
-				AdjustViewLengthForHeight(ln_h, h);
-				vwList.IncreaseHead(tmp / ln_h, GetTotal());
-			}
-			return d;
-		}
-	}
-	return 0;
-}
-
-void
-AMUnitList::AdjustViewForContent(SDst h)
-{
-	if(vwList.AdjustForContent(GetTotal()) && vwList.IsSelected())
-	{
-		AdjustOffsetForHeight(h,
-			vwList.GetSelectedIndex() == vwList.GetHeadIndex());
-		return;
-	}
-	if(GetFullViewHeight() < GetViewPosition() + h)
-		uTopOffset = 0;
-	AdjustViewLengthForHeight(GetItemHeight(), h);
-}
-
-void
-AMUnitList::AdjustViewLengthForHeight(SDst item_h, SDst h)
-{
-	if(YB_LIKELY(item_h != 0 && h != 0))
-		vwList.Length = h / item_h + (uTopOffset != 0 || h % item_h != 0);
-}
-
-size_t
-AMUnitList::CheckPoint(const Size& s, const Point& pt)
-{
-	return Rect(s).Contains(pt) ? (pt.Y + uTopOffset)
-		/ GetItemHeight() + vwList.GetHeadIndex() : size_t(-1);
-}
-
-void
-AMUnitList::ResetView()
-{
-	bool b(vwList.IsSelected());
-
-	vwList.Reset();
-	if(b)
-		vwList.SetSelectedIndex(0, GetTotal());
-	uTopOffset = 0;
-}
-
-
 AMUnitControlList::AMUnitControlList(unique_ptr<IWidget>&& p_wgt)
 	: AMUnitList(),
 	p_unit(std::move(p_wgt))
@@ -170,27 +59,41 @@ AMUnitControlList::SetUnit(unique_ptr<IWidget>&& p)
 	p_unit = std::move(p);
 }
 
+WidgetIterator
+AMUnitControlList::MakeIterator(size_t item_idx)
+{
+	return ystdex::make_prototyped_iterator(GetUnitRef(), item_idx,
+		[this](IWidget& wgt, size_t idx){
+		if(idxShared != idx && idx < GetTotal())
+		{
+			Iterated(idx);
+			idxShared = idx,
+			SetLocationOf(wgt, GetUnitLocation(idx));
+		}
+	});
+}
+
 
 MTextList::MTextList(const shared_ptr<ListType>& h)
-	: AMUnitControlList(make_unique<Label>()),
+	: AMUnitControlList(make_unique<Control>()),
 	hList(h ? h : make_shared<ListType>())
 {
-	auto& lbl(GetLabelRef());
+	auto& unit(GetUnitRef());
 
-	lbl.Margin = Padding(2, 2, 1, 1),
-	lbl.SetHeight(GetItemHeight());
+	LabelBrush.Margin = Padding(2, 2, 1, 1),
+	unit.GetView().GetSizeRef().Height = GetItemHeight(),
+	Iterated += [this](size_t idx){
+		YAssert(idx < GetTotal(), "Index is out of range.");
+		LabelBrush.Text = GetList()[idx];
+	},
+	FetchEvent<Paint>(unit) = std::ref(LabelBrush);
 }
 
-Label&
-MTextList::GetLabelRef() const
-{
-	return ystdex::polymorphic_downcast<Label&>(GetUnitRef());
-}
 SDst
 MTextList::GetItemHeight() const
 {
-	auto& lbl(GetLabelRef());
-	const auto item_h(lbl.Font.GetHeight() + GetVerticalOf(lbl.Margin));
+	const auto
+		item_h(LabelBrush.Font.GetHeight() + GetVerticalOf(LabelBrush.Margin));
 
 	YAssert(item_h != 0, "Invalid item height found.");
 	return item_h;
@@ -208,14 +111,6 @@ MTextList::SetList(const shared_ptr<ListType>& h)
 		hList = h;
 }
 
-WidgetIterator
-MTextList::MakeIterator(size_t item_idx)
-{
-	return AMUnitList::MakeIterator(item_idx, [this](size_t idx){
-		GetLabelRef().Text = GetList()[idx];
-	});
-}
-
 
 TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	const pair<Color, Color>& hilight_pair)
@@ -224,10 +119,11 @@ TextList::TextList(const Rect& r, const shared_ptr<ListType>& h,
 	const auto invalidator([this]{
 		Invalidate(*this);
 	});
-	auto& lbl(GetLabelRef());
+	auto& unit(GetUnitRef());
 
-	SetContainerPtrOf(lbl, this);
-	SetSizeOf(lbl, {GetWidth(), GetItemHeight()});
+	SetContainerPtrOf(unit, this),
+	// TODO: Implement auto fit.
+	SetSizeOf(unit, {GetWidth(), GetItemHeight()}),
 	yunseq(
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(!GetList().empty())
@@ -306,17 +202,17 @@ bound_select:
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority),
 	FetchEvent<GotFocus>(*this) += invalidator,
 	FetchEvent<LostFocus>(*this) += invalidator,
-	lbl.Background = [this](PaintEventArgs&& e){
-		auto& lbl(GetLabelRef());
+	FetchEvent<Paint>(unit).Add([this](PaintEventArgs&& e){
+		auto& unit(GetUnitRef());
 
 		if(vwList.CheckSelected(idxShared))
-			lbl.ForeColor = HilightTextColor,
+			LabelBrush.ForeColor = HilightTextColor,
 			FillRect(e.Target, e.ClipArea, Rect(e.Location.X + 1, e.Location.Y,
-				lbl.GetWidth() - 2, lbl.GetHeight()),
+				GetSizeOf(unit).Width - 2, GetSizeOf(unit).Height),
 				HilightBackColor);
 		else
-			lbl.ForeColor = ForeColor;
-	}
+			LabelBrush.ForeColor = ForeColor;
+	}, BackgroundPriority)
 	);
 	AdjustViewLength();
 }
@@ -395,8 +291,7 @@ TextList::InvokeConfirmed(ListType::size_type idx)
 void
 TextList::LocateViewPosition(SDst h)
 {
-	SDst fvh(GetFullViewHeight());
-	const SDst height(GetHeight());
+	const SDst fvh(GetFullViewHeight()), height(GetHeight());
 
 	if(fvh <= height)
 		return;
@@ -425,7 +320,7 @@ TextList::Refresh(PaintEventArgs&& e)
 		{
 			// NOTE: View length could be already changed by contents.
 			AdjustViewLength();
-			SetSizeOf(GetLabelRef(), {GetWidth(), GetItemHeight()});
+			SetSizeOf(GetUnitRef(), {GetWidth(), GetItemHeight()});
 			for(WidgetIterator first(MakeIterator(GetHeadIndex())), last(
 				MakeIterator(GetLastLabelIndexClipped(e.Location.Y - bounds.Y,
 				bounds.Height))); first != last; ++first)
@@ -461,9 +356,11 @@ TextList::SelectLast()
 void
 ResizeForContent(TextList& tl)
 {
-	SetSizeOf(tl, Size(FetchMaxTextWidth(tl.GetLabelRef().Font,
-		tl.GetList().cbegin(), tl.GetList().cend())
-		+ GetHorizontalOf(tl.GetLabelRef().Margin), tl.GetFullViewHeight()));
+	const auto& lst(tl.GetList());
+
+	SetSizeOf(tl, Size(FetchMaxTextWidth(tl.LabelBrush.Font, lst.cbegin(),
+		lst.cend()) + GetHorizontalOf(tl.LabelBrush.Margin),
+		tl.GetFullViewHeight()));
 	tl.AdjustViewLength();
 }
 

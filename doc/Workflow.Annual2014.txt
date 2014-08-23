@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r557
+\version r569
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-08-10 02:58 +0800
+	2014-08-24 01:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -551,6 +551,17 @@ It is intended to make the strong exception guarantee wider in whole YFramework:
 	All APIs should meet the basic guarantee, i.e. no resource would leak.
 	However, currently not all APIs are convinced to be.
 	Thus only GUI rendereing is documented as meeting the strong guarantee after reimplemented 'TextBox::Refresh' which could previously make the 'Text' property unspecified after an exception threw.
+For types satisfying 'CopyConstructible' and 'Swappable' requirements but not 'CopyAssignable' requirement, a wrapper could be used to support additional assignment operation.
+	For example, the closure types.
+	See http://stackoverflow.com/questions/12672372/boost-transform-iterator-and-c11-lambda for example of usage.
+	If 'Swappable' requirement is supported for the type, copy-and-swap idiom can be used to ensure strong exception safety guarantee.
+	Otherwise, 'std::ref' can be used for local variables of type lacking of 'CopyAssignment' requirement support, as a workaround when the support is needed to be properly used.
+		For example, like transformer of the 'boost::transform_iterator' or 'ystdex::transformed_iterator'.
+Though it might probably a problem for 'std::make_shared' to enlarge the binary size of a file, but this is an implementation-specific problem.
+	It seems now this has little impact on devkitPro r42 with optimization enabled.
+	Thus the interface should be simpler.
+	On the other hand, 'std::make_shared' providing opportunity to optimize the allocation, which is not done by naive 'new' and constructing.
+	The 'ystdex::make_shared' is now only providing an extra overloading for instances of 'std::initializer_list' as parameter.
 
 
 ////

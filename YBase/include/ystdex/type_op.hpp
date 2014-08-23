@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1199
+\version r1203
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2014-02-08 12:04 +0800
+	2014-08-17 02:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -303,12 +303,12 @@ struct is_returnable : integral_constant<bool, !is_array<_type>::value
 
 /*!
 \ingroup unary_type_trait
-\brief 判断是否可被退化。
-\since build 339
+\brief 判断指定类型是否已退化。
+\since build 529
 */
 template<typename _type>
-struct is_decayable
-	: integral_constant<bool, !is_same<decay_t<_type>, _type>::value>
+struct is_decayed
+	: integral_constant<bool, is_same<decay_t<_type>, _type>::value>
 {};
 
 

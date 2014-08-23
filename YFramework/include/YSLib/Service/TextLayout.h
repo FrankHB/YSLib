@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2802
+\version r2814
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-08-16 17:49 +0800
+	2014-08-17 03:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -329,16 +329,20 @@ template<typename _tIter,
 SDst
 FetchMaxTextWidth(const Font& font, _tIter first, _tIter last)
 {
-	SDst max_width(0);
+	if(YB_UNLIKELY(first == last))
+		return 0;
 
-	std::for_each(first, last,
-		[&](decltype(*first)& str){
-			SDst ln_width(FetchStringWidth(font, str));
-
-			if(ln_width > max_width)
-				max_width = ln_width;
+	using namespace ystdex;
+	const auto tran([&](_tIter i){
+		YAssert(!is_undereferenceable(i), "Invalid iterator found.");
+		return FetchStringWidth(font, *i);
 	});
-	return max_width;
+	const auto res(std::max_element(make_transform(first, std::ref(tran)),
+		make_transform(last, std::ref(tran))));
+
+	YAssert(res.get() == last || !is_undereferenceable(res),
+		"Invalid iterator found.");
+	return res.get() == last ? 0 : *res;
 }
 
 } // namespace Drawing;

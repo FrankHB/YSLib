@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3184
+\version r3187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2014-08-16 17:40 +0800
+	2014-08-24 00:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
 {
 	Background = nullptr,
 	SetContainerPtrOf(tlContent, this),
-	vsbVertical.GetTrackRef().GetScroll() += [this](ScrollEventArgs&& e){
+	vsbVertical.GetTrackRef().Scroll += [this](ScrollEventArgs&& e){
 		tlContent.LocateViewPosition(SDst(round(e.GetValue())));
 	},
 	tlContent.ViewChanged += [this](ViewArgs&& e){
@@ -94,9 +94,9 @@ void
 ListBox::ResizeForPreferred(const Size& sup, Size s)
 {
 	if(s.Width == 0)
-		s.Width = FetchMaxTextWidth(tlContent.GetLabelRef().Font,
+		s.Width = FetchMaxTextWidth(tlContent.LabelBrush.Font,
 			tlContent.GetList().cbegin(), tlContent.GetList().cend())
-			+ GetHorizontalOf(tlContent.GetLabelRef().Margin);
+			+ GetHorizontalOf(tlContent.LabelBrush.Margin);
 	if(s.Height == 0)
 		s.Height = tlContent.GetFullViewHeight();
 	if(sup.Width != 0 && s.Width > sup.Width)
