@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r491
+\version r495
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2014-06-20 23:48 +0800
+	2014-08-23 15:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,7 +107,7 @@ FetchFontFamilyNames()
 {
 	const auto& mFamilies(FetchDefaultFontCache().GetFamilyIndices());
 
-	return ystdex::make_shared<UI::TextList::ListType>(mFamilies.cbegin()
+	return make_shared<UI::TextList::ListType>(mFamilies.cbegin()
 		| ystdex::get_key, mFamilies.cend() | ystdex::get_key);
 }
 
@@ -159,14 +159,13 @@ shared_ptr<TextList::ListType>
 FetchVisualStyleNames(String default_name)
 {
 	const auto& styles(FetchGUIState().Styles);
-	auto p_list(ystdex::make_shared<TextList::ListType>(styles.cbegin()
+	auto p_list(make_shared<TextList::ListType>(styles.cbegin()
 		| ystdex::get_key, styles.cend() | ystdex::get_key));
 
 	YAssert(bool(p_list) && !p_list->empty(),
 		"Invalid style mapping state found");
 	p_list->front() = std::move(default_name);
-	return ystdex::make_shared<TextList::ListType>(p_list->cbegin(),
-		p_list->cend());
+	return make_shared<TextList::ListType>(p_list->cbegin(), p_list->cend());
 }
 
 } // namespace UI;

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4631
+\version r4633
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-07-22 16:10 +0800
+	2014-08-23 15:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,8 +191,7 @@ ShlReader::Exit()
 
 	PostTask([=]{
 		ResetDSDesktops(*h_up, *h_dn);
-		NowShellTo(ystdex::make_shared<ShlExplorer>(CurrentPath / u"..",
-			h_up, h_dn));
+		NowShellTo(make_shared<ShlExplorer>(CurrentPath / u"..", h_up, h_dn));
 	}, 0xF8);
 }
 

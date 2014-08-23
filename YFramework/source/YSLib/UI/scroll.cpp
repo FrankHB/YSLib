@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3713
+\version r3717
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-08-15 06:01 +0800
+	2014-08-24 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ ATrack::ATrack(const Rect& r, SDst uMinThumbLength)
 	yunseq(
 	Background = std::bind(DrawTrackBackground, std::placeholders::_1,
 		std::ref(*this)),
-	GetThumbDrag() += [this]{
+	ThumbDrag += [this]{
 		LocateThumb(0, ScrollCategory::ThumbTrack);
 	},
 	FetchEvent<TouchHeld>(*this) += OnTouchHeld,
@@ -235,7 +235,7 @@ ATrack::LocateThumb(ValueType val, ScrollCategory t)
 			;
 		}
 	}
-	GetScroll()(ScrollEventArgs(*this, t, value, old_value));
+	Scroll(ScrollEventArgs(*this, t, value, old_value));
 }
 
 
@@ -300,7 +300,7 @@ HorizontalTrack::HorizontalTrack(const Rect& r, SDst uMinThumbLength)
 					GetWidth() - tmbScroll.GetWidth());
 				Invalidate(tmbScroll);
 				SetLocationOf(tmbScroll, Point(x, GetLocationOf(tmbScroll).Y));
-				GetThumbDrag()(UIEventArgs(*this));
+				ThumbDrag(UIEventArgs(*this));
 			}
 		}
 	};
@@ -324,7 +324,7 @@ VerticalTrack::VerticalTrack(const Rect& r, SDst uMinThumbLength)
 					GetHeight() - tmbScroll.GetHeight());
 				Invalidate(tmbScroll);
 				SetLocationOf(tmbScroll, Point(GetLocationOf(tmbScroll).X, y));
-				GetThumbDrag()(UIEventArgs(*this));
+				ThumbDrag(UIEventArgs(*this));
 			}
 		}
 	};

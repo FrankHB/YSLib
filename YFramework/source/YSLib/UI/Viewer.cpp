@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r157
+\version r256
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2014-08-08 14:45 +0800
+	2014-08-18 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_Viewer
+#include YFM_YSLib_UI_YWidget // for UI::GetSizeOf;
 
 namespace YSLib
 {
@@ -150,6 +151,117 @@ SequenceViewer::RestrictView()
 	else
 		head = selected + 1 - Length;
 	return true;
+}
+
+
+SDst
+AMUnitList::GetFullViewHeight() const
+{
+	return GetItemHeight() * GetTotal();
+}
+SDst
+AMUnitList::GetItemHeight() const
+{
+	return GetSizeOf(GetUnitRef()).Height;
+}
+size_t
+AMUnitList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
+{
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return vwList.GetHeadIndex() + min<size_t>((SPos(height + uTopOffset)
+		- v_off - 1) / SPos(GetItemHeight()) + 1,
+		vwList.GetValid(GetTotal()));
+}
+Point
+AMUnitList::GetUnitLocation(size_t idx) const
+{
+	// XXX: Conversion to 'SPos' might be implementation-defined.
+	return Point(0, -SPos(uTopOffset) + SPos(GetItemHeight()) * (SPos(idx)
+		- SPos(vwList.GetHeadIndex())));
+}
+SDst
+AMUnitList::GetViewPosition() const
+{
+	return GetItemHeight() * vwList.GetHeadIndex() + uTopOffset;
+}
+
+SDst
+AMUnitList::AdjustBottomForHeight(SDst item_h, SDst h)
+{
+	const auto d(uTopOffset);
+
+	uTopOffset = 0;
+	AdjustViewLengthForHeight(item_h, h);
+	return d;
+}
+
+SDst
+AMUnitList::AdjustOffsetForHeight(SDst h, bool is_top)
+{
+	if(GetFullViewHeight() > h)
+	{
+		const SDst ln_h(GetItemHeight());
+
+		if(YB_UNLIKELY(ln_h == 0))
+			return 0;
+		vwList.RestrictSelected();
+		if(is_top)
+			return AdjustBottomForHeight(ln_h, h);
+		else
+		{
+			const auto d((h + uTopOffset) % ln_h);
+
+			if(d != 0)
+			{
+				const auto tmp(uTopOffset + ln_h - d);
+
+				uTopOffset = tmp % ln_h;
+				AdjustViewLengthForHeight(ln_h, h);
+				vwList.IncreaseHead(tmp / ln_h, GetTotal());
+			}
+			return d;
+		}
+	}
+	return 0;
+}
+
+void
+AMUnitList::AdjustViewForContent(SDst h)
+{
+	if(vwList.AdjustForContent(GetTotal()) && vwList.IsSelected())
+	{
+		AdjustOffsetForHeight(h,
+			vwList.GetSelectedIndex() == vwList.GetHeadIndex());
+		return;
+	}
+	if(GetFullViewHeight() < GetViewPosition() + h)
+		uTopOffset = 0;
+	AdjustViewLengthForHeight(GetItemHeight(), h);
+}
+
+void
+AMUnitList::AdjustViewLengthForHeight(SDst item_h, SDst h)
+{
+	if(YB_LIKELY(item_h != 0 && h != 0))
+		vwList.Length = h / item_h + (uTopOffset != 0 || h % item_h != 0);
+}
+
+size_t
+AMUnitList::CheckPoint(const Size& s, const Point& pt)
+{
+	return Rect(s).Contains(pt) ? (pt.Y + uTopOffset)
+		/ GetItemHeight() + vwList.GetHeadIndex() : size_t(-1);
+}
+
+void
+AMUnitList::ResetView()
+{
+	bool b(vwList.IsSelected());
+
+	vwList.Reset();
+	if(b)
+		vwList.SetSelectedIndex(0, GetTotal());
+	uTopOffset = 0;
 }
 
 } // namespace UI;

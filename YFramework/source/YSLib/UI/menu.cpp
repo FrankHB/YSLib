@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1236
+\version r1252
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-08-16 08:04 +0800
+	2014-08-22 09:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,12 +44,12 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		Styles::HighlightText)),
 	id(id), pParent(nullptr), mSubMenus(), vDisabled(h ? h->size() : 0)
 {
-	auto& lbl(GetLabelRef());
+	auto& unit(GetUnitRef());
 
-	Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
-	lbl.Margin = Padding(6, 18, 4, 4);
-	CyclicTraverse = true;
 	yunseq(
+	Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
+	LabelBrush.Margin = Padding(6, 18, 4, 4),
+	CyclicTraverse = true,
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
 		if(pHost)
 		{
@@ -102,18 +102,20 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		if(Contains(e) && pHost && !ShowSub(e.Value))
 			pHost->HideAll();
 	},
-	FetchEvent<Paint>(lbl).Add([this]{
+	Iterated += [this](size_t idx){
+		SetEnabledOf(GetUnitRef(), IsItemEnabled(idx));
+	},
+	FetchEvent<Paint>(unit).Add([this]{
 		// TODO: Handle different highlight text colors.
-		if(!IsItemEnabled(idxShared))
-			GetLabelRef().ForeColor = FetchGUIState().Colors[Styles::GrayText];
+		if(!IsEnabled(GetUnitRef()))
+			LabelBrush.ForeColor = FetchGUIState().Colors[Styles::GrayText];
 	}, BackgroundPriority),
-	FetchEvent<Paint>(lbl) += [this](PaintEventArgs&& e){
-		auto& lbl(GetLabelRef());
-		const auto& unit(GetBoundsOf(lbl) + e.Location);
+	FetchEvent<Paint>(unit) += [this](PaintEventArgs&& e){
+		const auto& ubound(GetBoundsOf(GetUnitRef()) + e.Location);
 
-		if(YB_LIKELY(unit.Width > 16) && ystdex::exists(mSubMenus, idxShared))
-			DrawArrow(e.Target, Rect(unit.X + unit.Width - 16, unit.Y, 16,
-				unit.Height) & e.ClipArea, 4, RDeg0, lbl.ForeColor);
+		if(YB_LIKELY(ubound.Width > 16) && ystdex::exists(mSubMenus, idxShared))
+			DrawArrow(e.Target, Rect(ubound.X + ubound.Width - 16, ubound.Y, 16,
+				ubound.Height) & e.ClipArea, 4, RDeg0, LabelBrush.ForeColor);
 	}
 	);
 }

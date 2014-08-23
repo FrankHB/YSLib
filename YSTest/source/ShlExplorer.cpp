@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1332
+\version r1336
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-07-20 12:10 +0800
+	2014-08-23 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -414,11 +414,11 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 				PostTask([=]{
 					ResetDSDesktops(*h_up, *h_dn);
 					if(b)
-						NowShellTo(ystdex::make_shared<ShlTextReader>(path,
-							h_up, h_dn));
+						NowShellTo(
+							make_shared<ShlTextReader>(path, h_up, h_dn));
 					else
-						NowShellTo(ystdex::make_shared<ShlHexBrowser>(path,
-							h_up, h_dn));
+						NowShellTo(
+							make_shared<ShlHexBrowser>(path, h_up, h_dn));
 				}, 0xF8);
 			}
 		}

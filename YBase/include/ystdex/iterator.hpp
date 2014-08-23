@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3589
+\version r3610
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-07-31 11:37 +0800
+	2014-08-17 03:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -511,23 +511,27 @@ operator!=(const pseudo_iterator<_type, _tIter, _tTraits>& x,
 被替代的原始类型是迭代器类型，或除间接操作（可以不存在）外符合迭代器要求的类型。
 */
 template<typename _tIter, typename _fTransformer>
-class transformed_iterator : public pointer_classify<_tIter>::type
+class transformed_iterator : public pointer_classify<decay_t<_tIter>>::type
 {
+	//! \since build 529
+	static_assert(is_decayed<_tIter>::value, "Invalid type found.");
+	//! \since build 529
+	static_assert(is_decayed<_fTransformer>::value, "Invalid type found.");
+
 public:
 	/*!
 	\brief 原迭代器类型。
 	\since build 290
 	*/
-	using iterator_type = typename
-		pointer_classify<remove_reference_t<_tIter>>::type;
+	using iterator_type = typename pointer_classify<_tIter>::type;
 	using transformer_type = decay_t<_fTransformer>;
 	//! \since build 439
-	using transformed_type = result_of_t<_fTransformer&(_tIter&)>;
+	using transformed_type = result_of_t<transformer_type&(_tIter&)>;
 	//! \since build 415
 	using difference_type
-		= typename pointer_classify<_tIter>::type::difference_type;
+		= typename std::iterator_traits<iterator_type>::difference_type;
 	//! \since build 357
-	using reference = decltype(std::declval<transformed_type>());
+	using reference = add_rvalue_reference_t<transformed_type>;
 
 protected:
 	//! \note 当为空类时作为第一个成员可启用空基类优化。
@@ -555,6 +559,13 @@ public:
 	transformed_iterator(transformed_iterator&&) = default;
 #endif
 	//@}
+
+	//! \since build 529
+	transformed_iterator&
+	operator=(const transformed_iterator&) = default;
+	//! \since build 529
+	transformed_iterator&
+	operator=(transformed_iterator&&) = default;
 
 	//! \since build 357
 	inline reference
@@ -740,15 +751,13 @@ operator>=(const transformed_iterator<_type, _fTransformer>& x,
 \ingroup helper_functions
 \brief 创建转换迭代器。
 \relates transformed_iterator
-\since build 494
+\since build 529
 */
 template<typename _tIter, typename _fTransformer>
-inline transformed_iterator<typename array_ref_decay<_tIter>::type,
-	_fTransformer>
+inline transformed_iterator<decay_t<_tIter>, _fTransformer>
 make_transform(_tIter&& i, _fTransformer f)
 {
-	return transformed_iterator<typename array_ref_decay<_tIter>::type,
-		_fTransformer>(yforward(i), f);
+	return transformed_iterator<decay_t<_tIter>, _fTransformer>(yforward(i), f);
 }
 
 

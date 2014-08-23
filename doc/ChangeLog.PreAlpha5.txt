@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r2944
+\version r3070
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-08-16 18:00 +0800
+	2014-08-24 01:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,133 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		(
+		/ "metafunction %is_decayable" @ %TypeOperation -> "%is_decayed";
+			// The new one is the opposite of the old one, which meaning is \
+				more explicit.
+		/ DLD "simplified static assertion" @ "implementation"
+			@ "class template %thunk" @ %Functional ^ "%is_decayed"
+		),
+		/ %Iterator $=
+		(
+			/ @ "class template %transformed_iterator" $=
+			(
+				/ "base class",
+				+ "2 static assertions to forbid template parameters not \
+					decayed" ^ "%is_delayed",
+				/ "simplified using aliases %(iterator_type, transformed_type, \
+					reference)",
+				/ "using alias %difference_type" ^ "%std::iterator_traits",
+				+ "explicitly defaulted copy and move constructors"
+			),
+			/ "return type" @ "function template %make_transformed"
+				^ "%decay_t" ~ "%array_type_decay"
+		),
+		/ %Memory $=
+		(
+			- $revert(b298) "function template %make_shared as replacement of \
+				%std::make_shared",
+				// See $2014-08 @ %Documentation::Workflow::Annual2014.
+			+ "function template %make_shared for instances of \
+				$std::initializer as parameter"
+				// For convenience.
+		)
+	),
+	/ %YFramework.YSLib $=
+	(
+		/ DLD "implemented function template %FetchMaxTextWidth"
+			@ %Service.TextLayout
+			^ "%(ystdex::make_transform, std::max_element)",
+		/ %UI $=
+		(
+			/ %ListControl $=
+			(
+				/ $revert_ex(b528) 'using MTextList::GetLabelRef'
+					-> 'using MTextList::LabelBrush;' @ "class %TextList",
+				/ @ "class %MTextList" $=
+				(
+					/ "function %GetLabelRef" -> "data member %LabelBrush",
+					/ $dev "unit control" -> "%Control" ~ "%Label"
+				),
+				(
+				/ "alias declaration %IndexEventArgs" ^ "%size_t"
+					~ "%MTextList::IndexType";
+					// At least currently they are compatible.
+				$dep_to
+					"eliminating dependency of %IndexEventArgs on %MTextList"
+				),
+				/ @ "class %TextList" $=
+				(
+					/ "access control" @ "base class %MTextList" -> 'public'
+						~ 'protected',
+					(
+					$dep_from "eliminating dependency of %IndexEventArgs on \
+						%MTextList";
+					/ "members %(ViewArgs, HViewEvent, ViewChanged, Selected, \
+						Confirmed)" >> "class %AMUnitControlList"
+					),
+					- "all using aliases from %MTextList",
+				),
+				/ @ "class %AMUnitControlList $=
+				(
+					/ "access control" @ "base class %AMUnitList" -> 'protected'
+						~ 'public',
+					+ 'using AMUnitList::GetFullViewHeight;',
+					+ 'GEvent<void(size_t)> Iterated;'
+				),
+				(
+				- "function template %AMUnitList::MakeIterator"
+					@ "class %AMUnitList";
+				/ "class %AMUnitList" >> %Viewer
+				),
+				/ @ "class %MTextList" $=
+				(
+					$dep_from "%AMUnitControlList::Iterated";
+					/ "function %MakeIterator" >> "class %AMUnitControlList",
+					+ "assertion for index on unit widget iteration"
+				)
+			),
+			/ @ "class %Menu" @ %Menu $=
+			(
+				$dep_from "%AMUnitControlList::Iterated";
+				+ "enablility setting on iteration";
+				/ "unit widget painting accroding to enablility of unit widget"
+					// The state of item is set indirectly and client code now \
+						has opportunity to modify this default behavior.
+			),
+			/ DLD %ComboList $=
+			(
+				^ "%DefGetterMem" @ "class %DropDownList"
+					~ "%DefEventGetterMem",
+				^ "%DefGetter" @ "class %ListBox" ~ "%DefEventGetter"
+			),
+			/ DLD @ "class %ATrack" @ %Scroll $=
+			(
+				/ "access Control" @ "events %(ThumbDrag, Scroll)" -> 'public'
+					~ 'private',
+				- "member functions %(GetThumbDrag, GetScroll)"
+			)
+		),
+		+ 'using std::make_shared' @ %Adaptor.YReference,
+		/ %Core.YEvent $=
+		(
+			- $revert(b195) "all 3 macros 'DefDepEventGetter*'",
+			(
+			$dep_from %UI.(ComboList, Scroll);
+			- $revert(b162) "all 3 macros 'DefEventGetter*'"
+			),
+			- $revert(b195) "macros %(DeclEventRef, DeclDepEventRef, \
+				DeclIDepEventEntry, DeclDepEvent)",
+			- $revert(b162) "macro %DeclIEventEntry"
+		)
+	),
+	/ DLD "all call of 'ystdex::make_shared'" -> "call of 'make_shared'"
+),
+
+b528
 (
 	/ %YFramework $=
 	(

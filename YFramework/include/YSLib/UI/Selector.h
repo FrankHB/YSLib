@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r649
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2014-08-10 18:12 +0800
+	2014-08-23 15:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -257,11 +257,11 @@ public:
 	//! \since build 493
 	//@{
 	MSharedSelection(StateType st = {})
-		: p_selector(ystdex::make_shared<MSelector>(st))
+		: p_selector(make_shared<MSelector>(st))
 	{}
 	MSharedSelection(shared_ptr<MSelector> p_sel, StateType st = {})
 		: p_selector(p_sel ? std::move(p_sel)
-		: ystdex::make_shared<MSelector>(st))
+		: make_shared<MSelector>(st))
 	{}
 	//@}
 

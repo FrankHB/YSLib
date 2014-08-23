@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1085
+\version r1087
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-08-15 03:16 +0800
+	2014-08-17 02:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -485,8 +485,8 @@ struct thunk_call_proxy
 template<typename _tRet, typename _fCallable>
 struct thunk_caller
 {
-	static_assert(std::is_same<decay_t<_fCallable>, _fCallable>::value,
-		"Invalid type found.");
+	//! \since build 529
+	static_assert(is_decayed<_fCallable>::value, "Invalid type found.");
 
 	using callable_type = _fCallable;
 	using return_type = _tRet;

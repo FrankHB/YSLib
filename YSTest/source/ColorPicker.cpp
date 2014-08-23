@@ -11,13 +11,13 @@
 /*!	\file ColorPicker.cpp
 \ingroup YReader
 \brief Shell 拾色器。
-\version r272
+\version r275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2012-01-06 21:37:51 +0800
 \par 修改时间:
-	2014-04-06 17:30 +0800
+	2014-08-24 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,9 +59,9 @@ ColorBox::ColorBox(const Point& pt, Color c)
 	trBlue.SetMaxValue(255),
 	yunseq(
 	FetchEvent<Paint>(ctlColorArea).Add(BorderBrush(), BoundaryPriority),
-	trRed.GetScroll() += update_color,
-	trGreen.GetScroll() += update_color,
-	trBlue.GetScroll() += update_color
+	trRed.Scroll += update_color,
+	trGreen.Scroll += update_color,
+	trBlue.Scroll += update_color
 	);
 	SetColor(c);
 }
