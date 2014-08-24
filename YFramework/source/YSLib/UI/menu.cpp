@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1252
+\version r1259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-08-22 09:24 +0800
+	2014-08-25 03:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -114,8 +114,8 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 		const auto& ubound(GetBoundsOf(GetUnitRef()) + e.Location);
 
 		if(YB_LIKELY(ubound.Width > 16) && ystdex::exists(mSubMenus, idxShared))
-			DrawArrow(e.Target, Rect(ubound.X + ubound.Width - 16, ubound.Y, 16,
-				ubound.Height) & e.ClipArea, 4, RDeg0, LabelBrush.ForeColor);
+			DrawArrow(e.Target, e.ClipArea, Rect(ubound.X + ubound.Width - 16,
+				ubound.Y, 16, ubound.Height), 4, RDeg0, LabelBrush.ForeColor);
 	}
 	);
 }
@@ -171,12 +171,6 @@ Menu::AdjustSize() const
 
 	if(vDisabled.size() != list_size)
 		vDisabled.resize(list_size);
-}
-
-bool
-Menu::CheckConfirmed(Menu::ListType::size_type idx) const
-{
-	return TextList::CheckConfirmed(idx) && IsItemEnabled(idx);
 }
 
 bool

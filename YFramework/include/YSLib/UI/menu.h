@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r858
+\version r867
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2014-08-16 08:18 +0800
+	2014-08-25 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,8 +44,10 @@ const ZOrderType DefaultMenuZOrder(224); //!< 默认菜单 Z 顺序值。
 
 
 /*!
-\brief 文本菜单。
+\brief 菜单。
+\note LabelBrush 非强异常安全：不抛出异常时保持每次绘制最后项目的状态。
 \since build 252
+\todo 允许表示非文本内容。
 */
 class YF_API Menu : public TextList
 {
@@ -129,13 +131,6 @@ protected:
 	AdjustSize() const;
 
 public:
-	/*!
-	\brief 检查列表中的指定项是否可用。
-	\note 当且仅当可用时响应 Confirmed 事件。
-	*/
-	bool
-	CheckConfirmed(ListType::size_type) const override;
-
 	/*!
 	\brief 按指定 Z 顺序显示菜单。
 	\note 菜单宿主指针为空时忽略。

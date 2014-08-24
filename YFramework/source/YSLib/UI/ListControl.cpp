@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2045
+\version r2072
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-08-22 10:12 +0800
+	2014-08-25 03:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,23 +185,23 @@ bound_select:
 		}
 	},
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
-	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
-		SetSelected(e);
-		UpdateView(*this);
-	},
-	FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
-		if(&e.GetSender() == this)
-		{
-			SetSelected(e);
-			UpdateView(*this);
-		}
-	},
-	FetchEvent<Click>(*this) += [this](CursorEventArgs&& e){
-		InvokeConfirmed(CheckPoint(e));
-	},
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority),
 	FetchEvent<GotFocus>(*this) += invalidator,
 	FetchEvent<LostFocus>(*this) += invalidator,
+	FetchEvent<Click>(unit) += [this]{
+		InvokeConfirmed(idxShared);
+	},
+	FetchEvent<TouchDown>(unit) += [this]{
+		SetSelected(idxShared);
+		UpdateView(*this);
+	},
+	FetchEvent<TouchHeld>(unit) += [this](CursorEventArgs&& e){
+		if(&e.GetSender() == &GetUnitRef())
+		{
+			SetSelected(idxShared);
+			UpdateView(*this);
+		}
+	},
 	FetchEvent<Paint>(unit).Add([this](PaintEventArgs&& e){
 		auto& unit(GetUnitRef());
 
@@ -284,7 +284,7 @@ TextList::InvalidateSelected2(ListType::difference_type x,
 void
 TextList::InvokeConfirmed(ListType::size_type idx)
 {
-	if(CheckConfirmed(idx))
+	if(vwList.CheckSelected(idx))
 		Confirmed(IndexEventArgs(*this, idx));
 }
 
@@ -321,8 +321,8 @@ TextList::Refresh(PaintEventArgs&& e)
 			// NOTE: View length could be already changed by contents.
 			AdjustViewLength();
 			SetSizeOf(GetUnitRef(), {GetWidth(), GetItemHeight()});
-			for(WidgetIterator first(MakeIterator(GetHeadIndex())), last(
-				MakeIterator(GetLastLabelIndexClipped(e.Location.Y - bounds.Y,
+			for(WidgetIterator first(begin()), last(MakeIterator(
+				GetLastLabelIndexClipped(e.Location.Y - bounds.Y,
 				bounds.Height))); first != last; ++first)
 				PaintVisibleChildAndCommit(*first, e);
 		}
@@ -350,6 +350,18 @@ TextList::SelectLast()
 
 	vwList.SetSelectedIndex(s - 1, s);
 	AdjustOffsetForHeight(GetHeight(), {});
+}
+
+WidgetIterator
+TextList::begin()
+{
+	return MakeIterator(GetHeadIndex());
+}
+
+WidgetIterator
+TextList::end()
+{
+	return MakeIterator(GetLastLabelIndexClipped(0, GetHeight()));
 }
 
 

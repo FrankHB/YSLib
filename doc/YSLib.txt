@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2535
+\version r2538
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-08-14 21:58 +0800
+	2014-08-24 05:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,14 +96,14 @@
  <iostream> 、 <locale> 和 <strstream> 。
 其它要点参见 [Documentation::CommonRules @@5.22] 。
 
-@1.2.5 本体的头文件中显式包含的 C++ 标准库依赖项：
+@1.2.5 本体的必要头文件中显式包含的 C++ 标准库依赖项：
  "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
  "Core/yfunc.hpp" 包含 <functional> 和 <typeinfo> ；
  "Service/ytimer.h" 包含 <chrono> ；
  "UI/ystyle.h" 包含 <typeindex> 。
 其它： <iterator> 。
 
-@1.2.6 本体的头文件中未限定（可能会在将来版本显式包含）的 C++ 标准库依赖项：
+@1.2.6 本体的头文件中未限定（可能显式包含）的 C++ 标准库依赖项：
  <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 和 <valarray> 。
 
 @1.2.7 本体头文件对 YBase 依赖性：
@@ -705,6 +705,7 @@
 
 @5.5.3 默认 GUI 绘制(@5.5.3.5) 逻辑：
 若无另行说明，所有默认 GUI 绘制操作具有强异常安全保证([Documentation::CommonRules @@5.10.5.1.2]) 。
+另见 [Documentation::CommonRules @@5.10.5.1.5] 。
 
 @5.5.3.1 渲染状态同步：
 部件通过与渲染器的交互保证渲染状态。
