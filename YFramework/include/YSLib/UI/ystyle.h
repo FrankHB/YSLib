@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r696
+\version r705
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-07-26 11:51 +0800
+	2014-08-24 16:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,21 +93,25 @@ RectDrawCornerArrowOutline(const PaintContext&, SDst, Rotation = RDeg0,
 
 /*!
 \brief 在指定图形接口上下文上描画底边和坐标轴共线的等腰直角三角形箭头。
-\note 位置由边界左上角决定，指定图形左上角；大小以高度量； RDeg0 指向右侧。
+\note 第二参数指定边界；第三参数指定矩形外框，图形位于正中。
+\note 图形大小以第四参数指定的高度量； RDeg0 指向右侧。
 \note 最后的参数决定是否仅描画轮廓。
+\since build 530
 */
 YF_API void
-DrawArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
+DrawArrow(const Graphics&, const Rect&, const Rect&, SDst = 4, Rotation = RDeg0,
 	Color = ColorSpace::Black, bool = {});
 
 /*!
 \brief 在指定图形接口上下文上描画腰和坐标轴共线的等腰直角三角形箭头。
-\note 位置由边界左上角决定，指定图形左上角；大小以斜边度量； RDeg0 指向右下角。
+\note 第二参数指定边界；第三参数指定图形左上角。
+\note 图形大小以第四参数指定的斜边度量； RDeg0 指向右下角。
 \note 最后的参数决定是否仅描画轮廓。
+\since build 530
 */
 YF_API void
-DrawCornerArrow(const Graphics&, const Rect&, SDst = 4, Rotation = RDeg0,
-	Color = ColorSpace::Black, bool = {});
+DrawCornerArrow(const Graphics&, const Rect&, const Point&, SDst = 4,
+	Rotation = RDeg0, Color = ColorSpace::Black, bool = {});
 //@}
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1543
+\version r1577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-08-22 08:49 +0800
+	2014-08-25 03:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,11 @@ public:
 	void
 	SetUnit(unique_ptr<IWidget>&&);
 
-	//! \since build 523
+	/*!
+	\brief 构造共享子部件迭代器。
+	\note 非强异常安全：状态和最后一次调用此方法相关。
+	\since build 523
+	*/
 	WidgetIterator
 	MakeIterator(size_t);
 };
@@ -185,6 +189,7 @@ public:
 
 /*!
 \brief 文本列表。
+\note LabelBrush 非强异常安全：不抛出异常时保持每次绘制最后项目的状态。
 \since build 212
 */
 class YF_API TextList : public Control, public MTextList, protected MHilightText
@@ -214,6 +219,8 @@ public:
 	PDefH(bool, Contains, ListType::size_type i)
 		ImplBodyMem(vwList, Contains, i)
 
+	//! \since build 530
+	DefGetter(override, WidgetRange, Children, WidgetRange(begin(), end()))
 	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, vwList)
 	//! \since build 523
 	size_t
@@ -235,11 +242,6 @@ public:
 	*/
 	void
 	SetSelected(ListType::size_type);
-	/*!
-	\brief 按接触点设置选中项目。
-	*/
-	PDefH(void, SetSelected, const Point& pt)
-		ImplExpr(SetSelected(CheckPoint(pt)))
 
 	/*!
 	\brief 按内容大小依次调整视图中选中和首个项目的索引，然后按需调整竖直偏移量。
@@ -267,20 +269,6 @@ private:
 	CallSelected();
 
 public:
-	/*!
-	\brief 检查列表中的指定项是否有效。
-	\note 当且仅当有效时响应 Confirmed 事件。
-	*/
-	virtual PDefH(bool, CheckConfirmed, ListType::size_type idx) const
-		ImplRet(vwList.CheckSelected(idx))
-
-	/*!
-	\brief 检查点（相对于左上角）是否在选择范围内，
-	\return 选择的项目索引，若无效则为 static_cast<ListType::size_type>(-1) 。
-	*/
-	PDefH(ListType::size_type, CheckPoint, const Point& pt)
-		ImplRet(MTextList::CheckPoint(GetSizeOf(*this), pt))
-
 	PDefH(void, ClearSelected, )
 		ImplBodyMem(vwList, ClearSelected, )
 
@@ -320,7 +308,8 @@ public:
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
-	\note 绘制列表。
+	\note 非强异常安全：不抛出异常时保持每次绘制最后项目的状态。
+	\sa AMUnitControlList::MakeIterator
 	\since build 294
 	*/
 	void
@@ -347,6 +336,15 @@ public:
 	*/
 	void
 	SelectLast();
+
+	//! \since build 530
+	//@{
+	WidgetIterator
+	begin();
+
+	WidgetIterator
+	end();
+	//@}
 };
 
 //! \relates TextList

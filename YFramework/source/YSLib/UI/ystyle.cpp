@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r941
+\version r955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-08-12 02:41 +0800
+	2014-08-24 16:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -198,43 +198,43 @@ RectDrawCornerArrowOutline(const PaintContext& pc, SDst size, Rotation rot,
 }
 
 void
-DrawArrow(const Graphics& g, const Rect& bounds, SDst half_size, Rotation rot,
-	Color c, bool outline)
+DrawArrow(const Graphics& g, const Rect& bounds, const Rect& r, SDst half_size,
+	Rotation rot, Color c, bool outline)
 {
-	SPos x(bounds.X), y(bounds.Y);
+	SPos x(r.X), y(r.Y);
 
 	switch(rot)
 	{
 	case RDeg0:
 	case RDeg180:
 		x += (rot == RDeg180
-			? (bounds.Width - half_size) : (bounds.Width + half_size)) / 2;
-		y += (bounds.Height + 1) / 2;
+			? (r.Width - half_size) : (r.Width + half_size)) / 2;
+		y += (r.Height + 1) / 2;
 		break;
 	case RDeg90:
 	case RDeg270:
 		y += (rot == RDeg90
-			? (bounds.Height - half_size) : (bounds.Height + half_size)) / 2;
-		x += (bounds.Width + 1) / 2;
+			? (r.Height - half_size) : (r.Height + half_size)) / 2;
+		x += (r.Width + 1) / 2;
 	default:
 		break;
 	}
-	(outline ? RectDrawArrowOutline : RectDrawArrow)
-		({g, Point(x, y), bounds}, half_size, rot, c);
+	(outline ? RectDrawArrowOutline : RectDrawArrow)({g, {x, y}, bounds},
+		half_size, rot, c);
 }
 
 void
-DrawCornerArrow(const Graphics& g, const Rect& bounds, SDst size, Rotation rot,
-	Color c, bool outline)
+DrawCornerArrow(const Graphics& g, const Rect& bounds, const Point& pt,
+	SDst size, Rotation rot, Color c, bool outline)
 {
-	SPos x(bounds.X), y(bounds.Y);
+	SPos x(pt.X), y(pt.Y);
 
 	if(rot < RDeg180)
 		x += size;
 	if(rot == RDeg0 || rot == RDeg270)
 		y += size;
-	(outline ? RectDrawCornerArrowOutline : RectDrawCornerArrow)
-		({g, Point(x, y), bounds}, size, rot, c);
+	(outline ? RectDrawCornerArrowOutline : RectDrawCornerArrow)(
+		{g, {x, y}, bounds}, size, rot, c);
 }
 
 void

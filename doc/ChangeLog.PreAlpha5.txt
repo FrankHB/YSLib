@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3070
+\version r3117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-08-24 01:02 +0800
+	2014-08-25 04:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,54 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework.YSLib $=
+	(
+		/ "function template %FetchMaxTextWidth" @ %Service.TextLayout $=
+		(
+			/ $revert_ex(b529) DLD "implemented" ^ "%(std::accumulate, max)"
+				~ "%(std::max_element, ystdex::make_transform)";
+				// To eliminate redundant evaluation with calls of \
+					%FetchStringWidth.
+			* $comp "wrong value calculated" $since b529
+				// See $2014-08 @ %Documentation::Workflow::Annual2014.
+		),
+		/ "member function %Clear" => "%clear" @ ("class templates \
+			%(GEvent, GDependencyEvent)" @ %Core.YEvent;
+			// To necessarily meet associative container requirements.
+		/ %UI $=
+		(
+			/ %YStyle $=
+			(
+				/ "split rectangle parameter to boundary and bounding box \
+					parameters" @ "function %DrawArrow",
+				/ "split rectangle parameter to boundary and location \
+					parameters" @ "function %DrawCornerArrow"
+			),
+			* "position of arrow wrongly decided by clip area" @ "member \
+				function %InitializeArrowPainters" @ "class %ScrollBar"
+				@ %Scroll $orig("class %AScrollBar" $since b453);
+			- "function %CheckConfirmed" @ "class %Menu" @ %Menu,
+			/ @ "class %TextList" $=
+			(
+				(
+				+ "member functions %(begin, end; GetChildren)";
+				/ DLD "implemented control events for items"
+					^ "unit control events" ~ "container control events"
+				);
+				(
+				$dep_from %Menu;
+				/ DLD "implemented %InvokeConfirmed" !^ "%CheckConfirmed";
+				- "function %CheckConfirmed"
+				),
+				- "function %(SetSelected; CheckPoint) with 'const Point&' \
+					parameter"
+			)
+		)
+	)
+),
+
+b529
 (
 	/ %YBase.YStandardEx $=
 	(

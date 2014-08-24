@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r256
+\version r260
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2014-08-18 20:10 +0800
+	2014-08-25 03:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,8 +169,7 @@ AMUnitList::GetLastLabelIndexClipped(SPos v_off, SDst height) const
 {
 	// XXX: Conversion to 'SPos' might be implementation-defined.
 	return vwList.GetHeadIndex() + min<size_t>((SPos(height + uTopOffset)
-		- v_off - 1) / SPos(GetItemHeight()) + 1,
-		vwList.GetValid(GetTotal()));
+		- v_off - 1) / SPos(GetItemHeight()) + 1, vwList.GetValid(GetTotal()));
 }
 Point
 AMUnitList::GetUnitLocation(size_t idx) const
@@ -249,8 +248,8 @@ AMUnitList::AdjustViewLengthForHeight(SDst item_h, SDst h)
 size_t
 AMUnitList::CheckPoint(const Size& s, const Point& pt)
 {
-	return Rect(s).Contains(pt) ? (pt.Y + uTopOffset)
-		/ GetItemHeight() + vwList.GetHeadIndex() : size_t(-1);
+	return Rect(s).Contains(pt) ? (pt.Y + uTopOffset) / GetItemHeight()
+		+ vwList.GetHeadIndex() : size_t(-1);
 }
 
 void
