@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r280
+\version r281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-08-02 12:37 +0800
+	2014-08-28 17:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,7 +208,7 @@ NativeHost::RestoreSavedState(byte* p_byte) const
 	YAssertNonnull(p_byte);
 	std::lock_guard<std::mutex> lck(state_mutex);
 
-	std::copy_n(vecSavedState.begin(), vecSavedState.size(), p_byte);
+	std::copy_n(vecSavedState.cbegin(), vecSavedState.size(), p_byte);
 }
 
 void*

@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r983
+\version r986
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2014-07-22 15:53 +0800
+	2014-08-28 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,14 +170,15 @@ MemoryList::Print(const MapType::value_type& val, std::FILE* stream)
 void
 MemoryList::PrintAll(std::FILE* stream)
 {
-	std::for_each(Blocks.begin(), Blocks.end(),
+	std::for_each(Blocks.cbegin(), Blocks.cend(),
 		std::bind(MemoryList::Print, std::placeholders::_1, stream));
 }
 
 void
 MemoryList::PrintAllDuplicate(std::FILE* stream)
 {
-	std::for_each(DuplicateDeletedBlocks.begin(), DuplicateDeletedBlocks.end(),
+	std::for_each(DuplicateDeletedBlocks.cbegin(),
+		DuplicateDeletedBlocks.cend(),
 		std::bind(MemoryList::Print, std::placeholders::_1, stream));
 }
 

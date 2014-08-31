@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.h
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r464
+\version r470
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:13:04 +0800
 \par 修改时间:
-	2014-05-17 19:32 +0800
+	2014-08-28 07:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -154,11 +154,6 @@ public:
 	\since build 269
 	*/
 	using ViewArgs = GValueEventArgs<bool>;
-	/*!
-	\brief 视图事件委托类型。
-	\since build 269
-	*/
-	DeclDelegate(HViewEvent, ViewArgs)
 
 private:
 	/*!
@@ -171,7 +166,7 @@ public:
 	\brief 视图变更事件。
 	\since build 269
 	*/
-	DeclEvent(HViewEvent, ViewChanged)
+	GEvent<void(ViewArgs)> ViewChanged;
 
 	//! \since build 396
 	explicit

@@ -11,13 +11,13 @@
 /*!	\file ymsg.cpp
 \ingroup Core
 \brief 消息处理。
-\version r1235
+\version r1238
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2014-06-15 14:59 +0800
+	2014-08-30 08:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ operator==(const Message& x, const Message& y)
 void
 MessageQueue::Merge(MessageQueue& mq)
 {
-	std::for_each(mq.begin(), mq.end(), [this](decltype(*mq.begin())& pr){
+	std::for_each(mq.begin(), mq.end(), [this](decltype(*mq.begin()) pr){
 		if(pr.second)
 			insert(std::move(pr));
 	});
@@ -63,14 +63,14 @@ void
 MessageQueue::Peek(Message& msg) const
 {
 	if(!empty())
-		msg = begin()->second;
+		msg = cbegin()->second;
 }
 
 void
 MessageQueue::Pop()
 {
 	if(!empty())
-		erase(begin());
+		erase(cbegin());
 }
 
 void

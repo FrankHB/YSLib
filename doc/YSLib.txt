@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2538
+\version r2539
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-08-24 05:50 +0800
+	2014-08-28 07:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -272,7 +272,7 @@
  KeyEventArgs ，键盘输入事件参数类。
 以下用模板定义用于事件处理机制的接口和实现类：
 事件处理器接口模板 GIHEvent ，提供两个参数的 operator() 抽象方法。
-事件处理器模板 GHEvent ，标准版 HEvent ；基于 Function 和 list 实现。
+事件处理器模板 GHEvent ，标准版 HEvent ；基于 Function 和 multimap 实现。
 事件模板 GEvent 为多播版本。（单播版本已被移除。）
 事件依赖项模板 GDependencyEvent ；基于 YObject 单元中的类模板 GDependency 实现共享事件以节约空间。
 事件包装类 GEventWrapper ；实现基于复杂性考虑，直接使用 GEvent 而不是 GDependencyEvent 的实例。

@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2610
+\version r2626
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2014-08-24 00:50 +0800
+	2014-08-28 07:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,6 @@ class YF_API ListBox : public ScrollableContainer
 public:
 	using ListType = TextList::ListType;
 	using ViewArgs = TextList::ViewArgs;
-	using HViewEvent = TextList::HViewEvent;
 	//! \since build 316
 	using IndexType = TextList::IndexType;
 	//! \since build 316
@@ -86,11 +85,14 @@ public:
 	//! \since build 392
 	DefGetterMem(ynothrow, ListType&, ListRef, tlContent)
 	//! \brief 视图变更事件。
-	DefGetter(ynothrow, EventT(HViewEvent)&, ViewChanged, tlContent.ViewChanged)
+	DefGetter(ynothrow, GEvent<void(ViewArgs)>&, ViewChanged,
+		tlContent.ViewChanged)
 	//! \brief 项目选择状态变更事件。
-	DefGetter(ynothrow, EventT(HIndexEvent)&, Selected, tlContent.Selected)
+	DefGetter(ynothrow, GEvent<void(IndexEventArgs)>&, Selected,
+		tlContent.Selected)
 	//! \brief 项目选中确定事件。
-	DefGetter(ynothrow, EventT(HIndexEvent)&, Confirmed, tlContent.Confirmed)
+	DefGetter(ynothrow, GEvent<void(IndexEventArgs)>&, Confirmed,
+		tlContent.Confirmed)
 
 	/*!
 	\brief 设置文本列表。
@@ -229,12 +231,6 @@ public:
 	\since build 283
 	*/
 	using ViewArgs = ListBox::ViewArgs;
-	/*!
-	\brief 视图事件委托类型。
-	\sa TextList::HViewEvent
-	\since build 283
-	*/
-	using HViewEvent = ListBox::HViewEvent;
 	//! \since build 460
 	using iterator = ystdex::subscriptive_iterator<DropDownList, IWidget>;
 
@@ -264,17 +260,17 @@ public:
 	\brief 取视图变更事件。
 	\since build 283
 	*/
-	DefGetterMem(ynothrow, EventT(HViewEvent)&, ViewChanged, lbContent)
+	DefGetterMem(ynothrow, GEvent<void(ViewArgs)>&, ViewChanged, lbContent)
 	/*!
 	\brief 取项目选择状态变更事件。
 	\since build 283
 	*/
-	DefGetterMem(ynothrow, EventT(HIndexEvent)&, Selected, lbContent)
+	DefGetterMem(ynothrow, GEvent<void(IndexEventArgs)>&, Selected, lbContent)
 	/*!
 	\brief 取项目选中确定事件。
 	\since build 283
 	*/
-	DefGetterMem(ynothrow, EventT(HIndexEvent)&, Confirmed, lbContent)
+	DefGetterMem(ynothrow, GEvent<void(IndexEventArgs)>&, Confirmed, lbContent)
 
 	/*!
 	\brief 设置文本列表。

@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4778
+\version r4781
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-08-15 03:24 +0800
+	2014-08-28 07:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -284,10 +284,6 @@ protected:
 
 public:
 	//标准控件事件见 VisualEvent 。
-
-	//其它扩展控件事件示例。
-//	DeclEvent(H1Event, Ext1) //!< 扩展事件 1 。
-//	DeclEvent(H2Event, Ext2) //!< 扩展事件 2 。
 
 	//事件组映射。
 	/*!

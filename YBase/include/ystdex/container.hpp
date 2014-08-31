@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r653
+\version r728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-06-15 14:36 +0800
+	2014-08-31 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,9 +132,9 @@ public:
 	using container_type::cend;
 
 	void
-	swap(container_adaptor& c) ynothrow
+	swap(container_adaptor& con) ynothrow
 	{
-		return base::swap(static_cast<container_type&>(c));
+		return base::swap(static_cast<container_type&>(con));
 	}
 
 	using base::size;
@@ -286,15 +286,15 @@ swap(sequence_container_adaptor<_tSeqCon>& x,
 //@{
 template<class _tCon, typename... _tParams>
 inline void
-assign(_tCon& c, _tParams&&... args)
+assign(_tCon& con, _tParams&&... args)
 {
-	c.assign(yforward(args)...);
+	con.assign(yforward(args)...);
 }
 template<class _tCon, typename _type, size_t _vN>
 inline void
-assign(_tCon& c, const _type(&arr)[_vN])
+assign(_tCon& con, const _type(&arr)[_vN])
 {
-	c.assign(arr, arr + _vN);
+	con.assign(arr, arr + _vN);
 }
 //@}
 
@@ -314,8 +314,8 @@ protected:
 	_tCon* container;
 
 public:
-	container_inserter(_tCon& c)
-		: container(&c)
+	container_inserter(_tCon& con)
+		: container(&con)
 	{}
 
 	template<typename... _tParams>
@@ -335,9 +335,9 @@ public:
 */
 template<typename _tCon, typename... _tParams>
 inline void
-seq_insert(_tCon& c, _tParams&&... args)
+seq_insert(_tCon& con, _tParams&&... args)
 {
-	ystdex::seq_apply(container_inserter<_tCon>(c), yforward(args)...);
+	ystdex::seq_apply(container_inserter<_tCon>(con), yforward(args)...);
 }
 
 
@@ -378,87 +378,108 @@ exists(const _tCon& con, const _tKey& key)
 
 /*!
 \ingroup algorithms
-\brief 删除指定序列范围中和指定值的相等的元素。
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定容器迭代器。
+\brief 删除指定序列容器中和指定值的相等的元素。
+\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 289
 */
-template<typename _tRange>
+template<typename _tCon>
 void
-erase_all(_tRange& c, const typename _tRange::value_type& val)
+erase_all(_tCon& con, const typename _tCon::value_type& val)
 {
-	c.erase(std::remove(begin(c), end(c), val), end(c));
+	con.erase(std::remove(begin(con), end(con), val), end(con));
 }
 /*!
 \ingroup algorithms
 \brief 删除指定容器中迭代器区间中和指定值的相等的元素。
-\pre first 和 last 是 c 的有效的或表示序列终止位置的迭代器。
+\pre first 和 last 是 con 的有效的或表示序列终止位置的迭代器。
 \since build 289
 */
 template<typename _tCon, typename _tFwd, typename _tValue>
 void
-erase_all(_tCon& c, _tFwd first, _tFwd last, const _tValue& value)
+erase_all(_tCon& con, _tFwd first, _tFwd last, const _tValue& value)
 {
 	while(first != last)
 		if(*first == value)
-			c.erase(first++);
+			con.erase(first++);
 		else
 			++first;
 }
 
 /*!
 \ingroup algorithms
-\brief 删除指定序列范围中满足条件的元素。
+\brief 删除指定序列容器中满足条件的元素。
 \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 289
 */
-template<typename _tRange, typename _fPred>
+template<typename _tCon, typename _fPred>
 void
-erase_all_if(_tRange& c, _fPred pred)
+erase_all_if(_tCon& con, _fPred pred)
 {
-	c.erase(std::remove_if(begin(c), end(c), pred), end(c));
+	con.erase(std::remove_if(begin(con), end(con), pred), end(con));
 }
 /*!
 \ingroup algorithms
 \brief 删除指定容器中迭代器区间中满足条件的元素。
-\pre first 和 last 是 c 的有效的或表示序列终止位置的迭代器。
+\pre first 和 last 是 con 的有效的或表示序列终止位置的迭代器。
 \since build 289
 */
 template<typename _tCon, typename _tFwd, typename _fPred>
 void
-erase_all_if(_tCon& c, _tFwd first, _tFwd last, _fPred pred)
+erase_all_if(_tCon& con, _tFwd first, _tFwd last, _fPred pred)
 {
 	while(first != last)
 		if(pred(*first))
-			c.erase(first++);
+			con.erase(first++);
 		else
 			++first;
 }
 
-
 /*!
-\brief 排序指定序列范围，保留不重复元素的区间。
-\return 不重复元素的区间末尾。
-\since build 414
+\brief 删除指定容器中指定迭代器起始指定数量的元素。
+\pre 指定的迭代器是指定容器的迭代器。
+\pre 断言检查：删除的范围不超出容器。
+\since build 531
 */
-template<typename _tRandom>
-inline _tRandom
-sort_unique(_tRandom first, _tRandom last)
+template<typename _tCon>
+typename _tCon::const_iterator
+erase_n(_tCon& con, typename _tCon::const_iterator i,
+	typename _tCon::difference_type n)
 {
-	std::sort(first, last);
-	return std::unique(first, last);
+	yassume(n <= std::distance(i, con.cend()));
+	return con.erase(i, std::next(i, n));
 }
 
+
 /*!
-\brief 排序指定容器，保留不重复元素。
+\ingroup algorithms
+\brief 排序指定序列容器，保留不重复元素。
 \pre 容器的迭代器满足随机迭代器要求。
+\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 414
 */
 template<class _tCon>
-void
-sort_unique(_tCon& c)
+inline void
+sort_unique(_tCon& con)
 {
-	ystdex::sort_unique(begin(c), last(c));
-	c.erase(ystdex::sort_unique(begin(c), last(c)), end(c));
+	con.erase(ystdex::sort_unique(begin(con), end(con)), end(con));
+}
+
+
+/*!
+\ingroup helper_functions
+\brief 替换关联容器的值。
+\note 使用 <tt>end</tt> 指定范围迭代器。
+\since build 531
+\todo 支持没有 \c emplace_hint 成员的关联容器。
+*/
+template<class _tAssocCon, typename _tKey, typename _fCallable>
+auto
+replace_value(_tAssocCon& con, const _tKey& k, _fCallable f)
+	-> decltype(con.emplace_hint(con.erase(con.find(k)), f(*con.find(k))))
+{
+	auto i(con.find(k));
+
+	return i != end(con) ? con.emplace_hint(con.erase(i), f(*i)) : i;
 }
 
 
@@ -481,7 +502,7 @@ search_map(_tMap& m, const typename _tMap::key_type& k)
 
 
 /*!
-\brief 取指定参数初始化的 std::array 对象。
+\brief 构造指定参数初始化的 std::array 对象。
 \since build 337
 */
 template<typename _type, typename... _tParams>
@@ -493,7 +514,7 @@ make_array(_tParams&&... args)
 }
 
 /*!
-\brief 取指定参数转移至 std::array 对象。
+\brief 转移指定参数至 std::array 对象。
 \since build 495
 */
 template<typename _type, typename... _tParams>
@@ -505,7 +526,7 @@ forward_as_array(_tParams&&... args)
 }
 
 /*!
-\brief 取指定参数转换为 std::array 对象。
+\brief 转换指定参数为 std::array 对象。
 \since build 337
 */
 //@{

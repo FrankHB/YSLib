@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r206
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-08-14 22:00 +0800
+	2014-08-31 11:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,9 @@
 @2.3.7.3 宏 yunseq ：
 用于标记无序列依赖表达式组，以支持非序列优化。
 参见 [Documentation::CommonRules @@6.4.3.3] 。
+调用宏 yunseq 对代码格式化目的视为特别约定([Documentation::CommonRules @@6.4.3.3]) ，按以下规则处理：
+参数不包含块结构（如 lambda 表达式）且不超过 3 行时，视为函数调用格式化，或表示此处代码未完成（需要继续扩展）时使用以下规则；
+其它情况下宏名、每个参数和调用的 ) 单独占据独立的行，每个参数视为语句，但不需要添加额外的 { 和 } 组成块的边界。
 
 @2.4 YStandardEx ：
  YStandardEx 直接扩充标准库，包含仅依赖标准库而非标准库的接口。

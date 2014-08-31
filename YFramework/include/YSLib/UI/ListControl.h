@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1577
+\version r1586
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-08-25 03:58 +0800
+	2014-08-28 07:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,6 @@ namespace UI
 \since build 268
 */
 using IndexEventArgs = GValueEventArgs<size_t>;
-DeclDelegate(HIndexEvent, IndexEventArgs)
 
 
 /*!
@@ -62,11 +61,6 @@ public:
 	\since build 268
 	*/
 	using ViewArgs = GValueEventArgs<bool>;
-	/*!
-	\brief 视图事件委托类型。
-	\since build 268
-	*/
-	DeclDelegate(HViewEvent, ViewArgs)
 
 	/*!
 	\brief 视图变更事件。
@@ -74,21 +68,21 @@ public:
 
 	当视图长度或位置发生改变时触发的事件。
 	*/
-	DeclEvent(HViewEvent, ViewChanged)
+	GEvent<void(ViewArgs)> ViewChanged;
 	/*!
 	\brief 项目选择状态变更事件。
 	\since build 478
 
 	当项目被选中或取消选中时触发的事件。
 	*/
-	DeclEvent(HIndexEvent, Selected)
+	GEvent<void(IndexEventArgs)> Selected;
 	/*!
 	\brief 项目选中确认事件。
 	\since build 478
 
 	当前选中项目被确定时触发的事件。
 	*/
-	DeclEvent(HIndexEvent, Confirmed)
+	GEvent<void(IndexEventArgs)> Confirmed;
 	/*!
 	\brief 迭代器迭代事件。
 	\since build 529

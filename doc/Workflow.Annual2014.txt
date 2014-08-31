@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r574
+\version r604
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-08-24 03:43 +0800
+	2014-08-29 10:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ Both the runtime from MinGW.org and MinGW-W64 support multiple versions of Micro
 			Though acceptable, but deployment depend on it is not good. The are not publicly guaranteed to be compatible within different versions of Windows.
 		For newer versions, the dyanmic libraries name schema is "msvcrXX.dll", in which "XX" is the corresponding concatenated Microsoft Visual C++ main and minor version numbers. For example "msvcrt90.dll" is of VS2008.
 			The architecture names (such as "x86" or "amd64") are not related of the file names.
-			They are required to be deployed along with the applications, or the end users might able to install correspoinding version of Microsoft Visual C++ Redistributable Package.
+			They are required to be deployed along with the applications, or the end users might able to install corresponding version of Microsoft Visual C++ Redistributable Package.
 		MinGW.org uses 6.0 as default. Things about MinGW-W64 are some complicated, see below.
 		Currently MinGW.org's distribution has "libmsvcrt.a", "libmsvcp60.a"(the C++ runtime of VC++ 6.0), and "libmsvcr70.a" to "libmsvcr100.a"(the whole "XX" are 70, 71, 80, 90, 100). It also has corresponding debug versions for latter, i.e. "libmsvcr70d.a" to "libmsvcr100d.a". No newer MSVCRT are supported.
 		On the other hand, MinGW.org's distribution also has "libmsvcrt.a", "libmsvcp60.a", and "libmsvcr80.a" to "libmsvcr100.a", but neither other versions("libmsvcr70.a", "libmsvcr71.a") nor debug libraries. However, it has "libmsvcr110.a", which MinGW.org's does not supported.
@@ -567,6 +567,35 @@ A bug found in 'FetchStringWidth' of module 'YSLib::Service::TextLayout' in YFra
 		The 'release' configuration (statically linked) in platform 'MinGW32' shows a large with. All other release configuration seems to suggest a zero value of width.
 	The reason is not clear and not further investigated yet.
 		The libstdc++ code seems to be OK. Perhaps there are bugs in 'ystdex::make_transform' and so on, or there are bugs concerned with optimized code generation of G++.
+Function 'cbegin' and 'cend' are preferred to 'begin' and 'end' in some cases.
+	They are expected to return an iterator to indicate boundary of a range.
+	These functions, as well as instances of corresponding function templates defined by ISO C++ [iterator.range] since C++11, are collectively for range access.
+		Note 'cbegin' and 'cend' are defined since ISO C++14.
+	The type of accessed range usually meets Container requirements.
+		Instances of 'std::initializer_list' are excluded.
+	Note that 'begin' and 'end' are usually 2 overloading functions respectively.
+		One is for const-qualified range, and the other is for cv-unqualified range.
+		The 'auto' keyword cannot deduce the const-qualified version for cv-unqualified range.
+	The 'cbegin' and 'cend' are only expected for const-qualified range.
+		The 'auto' keyword is OK to deduce for const-unqualified range.
+	In general, 'begin' and 'end' are friendly in compatibility aspect.
+	However, 'cbegin' and 'cend' may be more precise and clear to show the intent.
+	For associative containers, ISO C++ [associative.reqmts]/6 explicitly points out the 'iterator' and 'const_iterator' type can be same, and one can always use 'const_iterator' to avoid ODR violation.
+	When the iterators indicating the range boundary are needed, the general rules are:
+		Only use qualified-id of these names when really necessary.
+		When using non-members, names with ADL (unqualified-id) are preferred.
+		For range typed by type parameter in a template or in a macro, non-member templates are always preferred to member functions; otherwise, member functions are always preferred than non-member templates.
+		For range typed by type parameter in a template or in a macro, if range with no 'cbegin' or 'cend' are intended to be excluded (e.g. SFINAE), 'cbegin' and 'cend' shall be used.
+		Otherwise, if there is no 'cbegin' and 'cend' available, or non-const iterator is explicitly needed, 'begin' and 'end' shall be used.
+		Otherwise, for implementation of functions by directly forwarding calls, corresponding names shall be used.
+		Otherwise, 'cbegin' and 'cend' shall be used.
+	There may exist some bugs for implementations.
+		For example, https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60278 .
+		Use 'begin' and 'end' instead of 'cbegin' and 'cend' as workaround when necessary.
+English allows bare passive clause, which omits the auxiliary verb (typically 'is').
+	See http://en.wikipedia.org/wiki/English_passive_voice .
+	In YSLib, for English passive voice in assertion strings or titles, this form is preferred to canonical form (e.g. "file not found"), even in a separate sentence.
+	For formal descriptions otherwise, auxiliary verbs should not be omitted.
 
 
 ////

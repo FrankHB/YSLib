@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r204
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2014-04-06 17:30 +0800
+	2014-08-28 17:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,6 +50,8 @@ ConvertToUIString(Bookmark::PositionType pos, ShlTextReader& shl)
 		if(i != string::npos)
 			line.erase(i);
 		if(b)
+			// XXX: Use cbegin after libstdc++ bug resolved.
+			//	See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60278 .
 			line.erase(line.begin());
 	}
 	return to_string(pos) + "  " + std::move(line);
@@ -116,6 +118,7 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 
 		if(idx >= 0)
 		{
+			// TODO: Use 'lst.erase(lst.cbegin() + idx)' for libstdc++ 4.9.
 			lst.erase(lst.begin() + idx);
 			lbPosition.AdjustViewForContent();
 			lbPosition.UpdateView();

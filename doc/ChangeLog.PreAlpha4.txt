@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8279
+\version r8280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-08-14 22:05 +0800
+	2014-08-27 16:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4792,7 +4792,7 @@ b432
 			(
 			/ $dev "assertion function" $=
 			(
-				/ "parameter order and assert string",
+				/ "parameter order and assertion string",
 				^ DLD 'std::terminate' ~ "'std::abort' as termination",
 				^ "standard output to 'stderr'"
 					~ "platform dependent output function"
