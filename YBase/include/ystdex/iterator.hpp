@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3610
+\version r3630
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-08-17 03:15 +0800
+	2014-08-29 17:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,22 +136,35 @@ prev_if_eq(_tBi i, const _type& val,
 //@}
 
 
+//! \ingroup helper_functions
+//@{
 /*!
-\ingroup helper_functions
-\brief 取转移迭代器对。
+\brief 构造反向迭代器。
+\see WG21/N3936 24.5.1.3.21[reverse.iter.make] 。
+\see http://wg21.cmeerw.net/lwg/issue2285 。
+\since build 531
+*/
+template<typename _tIter>
+std::reverse_iterator<_tIter>
+make_reverse_iterator(_tIter i)
+{
+	return std::reverse_iterator<_tIter>(i);
+}
+
+/*!
+\brief 构造转移迭代器对。
 \since build 337
 */
-template<typename _tIterator1, typename _tIterator2>
+template<typename _tIter1, typename _tIter2>
 inline auto
-make_move_iterator_pair(_tIterator1 it1, _tIterator2 it2) -> decltype(
+make_move_iterator_pair(_tIter1 it1, _tIter2 it2) -> decltype(
 	std::make_pair(std::make_move_iterator(it1), std::make_move_iterator(it2)))
 {
 	return std::make_pair(std::make_move_iterator(it1),
 		std::make_move_iterator(it2));
 }
 /*!
-\ingroup helper_functions
-\brief 取指定序列范围（包含序列容器及内建数组等）的转移迭代器对。
+\brief 构造指定序列范围（包含序列容器及内建数组等）的转移迭代器对。
 \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 337
 */
@@ -162,6 +175,7 @@ make_move_iterator_pair(_tRange& c)
 {
 	return ystdex::make_move_iterator_pair(begin(c), end(c));
 }
+//@}
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1087
+\version r1100
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-08-17 02:44 +0800
+	2014-08-30 08:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "tuple.hpp"
 #include <functional>
 #include <string> // for std::char_traits;
+#include <numeric> // for std::accumulate;
 
 namespace ystdex
 {
@@ -603,7 +604,7 @@ make_thunk(const _type& obj)
 /*!	\defgroup hash_extensions Hash Extensions
 \brief 散列扩展接口。
 \note 当前使用 Boost 定义的接口和近似实现。
-\see http://www.boost.org/doc/libs/1_54_0/doc/html/hash/reference.html#boost.hash_combine
+\see http://www.boost.org/doc/libs/1_54_0/doc/html/hash/reference.html#boost.hash_combine 。
 \since build 421
 */
 //@{
@@ -644,23 +645,22 @@ hash_combine_seq(size_t seed, const _type& x, const _tParams&... args)
 \note 使用 ADL 。
 */
 //@{
+//! \since build 531
+template<typename _tIn>
+inline size_t
+hash_range(size_t seed, _tIn first, _tIn last)
+{
+	return std::accumulate(first, last, seed,
+		[](size_t seed, decltype(*first) val){
+		hash_combine(seed, val);
+		return seed;
+	});
+}
 template<typename _tIn>
 inline size_t
 hash_range(_tIn first, _tIn last)
 {
-	size_t seed(0);
-
-	for(; first != last; ++first)
-		hash_combine(seed, *first);
-	return seed;
-}
-template<typename _tIn>
-inline size_t
-hash_range(size_t& seed, _tIn first, _tIn last)
-{
-	for(; first != last; ++first)
-		 hash_combine(seed, *first);
-	return seed;
+	return ystdex::hash_range(0, first, last);
 }
 //@}
 

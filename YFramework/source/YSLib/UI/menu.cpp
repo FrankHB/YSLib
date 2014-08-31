@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1259
+\version r1263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-08-25 03:51 +0800
+	2014-08-28 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -264,7 +264,7 @@ MenuHost::operator-=(Menu::ID id)
 }
 
 bool
-MenuHost::IsShowing(Menu::ID id)
+MenuHost::IsShowing(Menu::ID id) const
 {
 	const auto i(mMenus.find(id));
 
@@ -272,12 +272,12 @@ MenuHost::IsShowing(Menu::ID id)
 }
 
 bool
-MenuHost::Contains(Menu& mnu)
+MenuHost::Contains(Menu& mnu) const
 {
 	using ystdex::get_value;
 
-	return std::find(mMenus.begin() | get_value, mMenus.end() | get_value, &mnu)
-		!= mMenus.end();
+	return std::find(mMenus.cbegin() | get_value, mMenus.cend() | get_value,
+		&mnu) != mMenus.cend();
 }
 
 void

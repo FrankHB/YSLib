@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r934
+\version r961
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2014-05-23 09:58 +0800
+	2014-08-31 11:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,38 @@ namespace ystdex
 \brief 显式类型转换。
 \since build 243
 */
+
+
+/*!
+\ingroup cast
+\pre 源类型和目标类型退化后相同。
+\note 指定源类型优先，可自动推导目标类型。
+\since build 531
+*/
+//@{
+//! \brief 允许添加限定符转换。
+template<typename _tSrc, typename _tDst = const decay_t<_tSrc>&&>
+yconstfn _tDst
+qualify(_tSrc&& arg) ynothrow
+{
+	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>::value,
+		"Non-qualification conversion found.");
+
+	return static_cast<_tDst>(arg);
+}
+
+//! \brief 允许去除限定符转换。
+template<typename _tSrc,
+	typename _tDst = typename array_ref_decay<_tSrc>::reference>
+yconstfn _tDst
+unqualify(_tSrc&& arg) ynothrow
+{
+	static_assert(is_same<decay_t<_tSrc>, decay_t<_tDst>>::value,
+		"Non-qualification conversion found.");
+
+	return const_cast<_tDst>(arg);
+}
+//@}
 
 
 /*!

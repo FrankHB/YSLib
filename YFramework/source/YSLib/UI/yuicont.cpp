@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1806
+\version r1810
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-07-30 19:39 +0800
+	2014-08-28 17:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,8 @@ LocateForWidget(const IWidget& a, const IWidget& b)
 	while(pCon)
 	{
 		{
-			auto i(std::find(lst.begin() | get_key, lst.end() | get_key, pCon));
+			const auto i(
+				std::find(lst.cbegin() | get_key, lst.cend() | get_key, pCon));
 
 			if(i != lst.cend())
 				return pt - i.get()->second;
@@ -204,7 +205,7 @@ MUIContainer::operator-=(IWidget& wgt)
 {
 	auto t(mWidgets.size());
 
-	erase_all(mWidgets, mWidgets.begin() | get_value, mWidgets.end()
+	erase_all(mWidgets, mWidgets.cbegin() | get_value, mWidgets.cend()
 		| get_value, &wgt);
 	t -= mWidgets.size();
 	YAssert(t <= 1, "Duplicate widget pointer found.");
@@ -228,7 +229,7 @@ MUIContainer::Contains(IWidget& wgt)
 void
 MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 {
-	std::for_each(mWidgets.begin() | get_value, mWidgets.end() | get_value,
+	std::for_each(mWidgets.cbegin() | get_value, mWidgets.cend() | get_value,
 		[&](IWidget* const& p_wgt){
 		YAssertNonnull(p_wgt);
 

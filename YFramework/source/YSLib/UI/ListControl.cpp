@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2072
+\version r2078
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-08-25 03:54 +0800
+	2014-08-26 07:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,7 +68,7 @@ AMUnitControlList::MakeIterator(size_t item_idx)
 		{
 			Iterated(idx);
 			idxShared = idx,
-			SetLocationOf(wgt, GetUnitLocation(idx));
+			wgt.GetView().SetLocation(GetUnitLocation(idx));
 		}
 	});
 }
@@ -183,6 +183,7 @@ bound_select:
 				}
 			}
 		}
+		e.Handled = true;
 	},
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 	FetchEvent<Paint>(*this).Add(BorderBrush(), BoundaryPriority),
@@ -193,14 +194,10 @@ bound_select:
 	},
 	FetchEvent<TouchDown>(unit) += [this]{
 		SetSelected(idxShared);
-		UpdateView(*this);
 	},
 	FetchEvent<TouchHeld>(unit) += [this](CursorEventArgs&& e){
 		if(&e.GetSender() == &GetUnitRef())
-		{
 			SetSelected(idxShared);
-			UpdateView(*this);
-		}
 	},
 	FetchEvent<Paint>(unit).Add([this](PaintEventArgs&& e){
 		auto& unit(GetUnitRef());

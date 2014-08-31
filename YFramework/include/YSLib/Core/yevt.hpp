@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4721
+\version r4736
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-08-24 05:18 +0800
+	2014-08-30 08:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -363,8 +363,8 @@ public:
 	GEvent&
 	operator-=(const HandlerType& h)
 	{
-		ystdex::erase_all_if<ContainerType>(List, List.begin(), List.end(),
-			[&](decltype(*List.begin())& pr){
+		ystdex::erase_all_if<ContainerType>(List, List.cbegin(), List.cend(),
+			[&](decltype(*List.cbegin()) pr){
 			return pr.second == h;
 		});
 		return *this;
@@ -578,14 +578,6 @@ public:
 
 
 /*!
-\brief 定义事件处理器委托类型。
-\since build 268
-*/
-#define DeclDelegate(_name, _tEventArgs) \
-	using _name = GHEvent<void(_tEventArgs)>;
-
-
-/*!
 \brief 依赖事件项类模板。
 \warning 非虚析构。
 \since build 195
@@ -696,13 +688,6 @@ struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
 */
 #define EventT(_tEventHandler) \
 	GEvent<void(typename EventArgsHead<_tEventHandler::TupleType>::type)>
-
-/*!
-\brief 声明事件。
-\since build 188
-*/
-#define DeclEvent(_tEventHandler, _name) \
-	EventT(_tEventHandler) _name;
 
 
 /*!

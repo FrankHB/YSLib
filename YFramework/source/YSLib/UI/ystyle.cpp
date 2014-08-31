@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r955
+\version r958
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-08-24 16:00 +0800
+	2014-08-28 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,9 +120,9 @@ RectDrawArrowOutline(const PaintContext& pc, SDst half_size, Rotation rot,
 			{
 				DrawPoint(g, bounds, {x, y--}, c),
 				DrawPoint(g, bounds, {x, t++}, c);
-				rot == 0 ? --x : ++x;
+				rot == RDeg0 ? --x : ++x;
 			}
-			DrawVLineSeg(g, bounds, x, y, t, c);
+			DrawVLineSeg(g, bounds, x, y, ++t, c);
 		}
 		break;
 	case RDeg90:
@@ -136,7 +136,7 @@ RectDrawArrowOutline(const PaintContext& pc, SDst half_size, Rotation rot,
 				DrawPoint(g, bounds, {t++, y}, c);
 				rot == RDeg90 ? ++y : --y;
 			}
-			DrawHLineSeg(g, bounds, y, x, t, c);
+			DrawHLineSeg(g, bounds, y, x, ++t, c);
 		}
 		break;
 	default:

@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1459
+\version r1461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2014-08-16 17:35 +0800
+	2014-08-28 17:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,10 +100,10 @@ Analyze(ValueNode& root, const TokenList& token_list)
 	if(token_list.empty())
 		throw LoggedEvent("Empty token list found;", Alert);
 #endif
-	if(Validate(token_list.begin(), token_list.end()) != token_list.end())
+	if(Validate(token_list.cbegin(), token_list.cend()) != token_list.cend())
 		throw LoggedEvent("Redundant ')' found.", Alert);
 
-	const auto res(Reduce(root, token_list.begin(), token_list.end()));
+	const auto res(Reduce(root, token_list.cbegin(), token_list.cend()));
 
 	yassume(res == token_list.end());
 }

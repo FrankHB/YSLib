@@ -11,17 +11,17 @@
 /*!	\file AccessHistory.hpp
 \ingroup Service
 \brief 访问历史记录。
-\version r125
+\version r128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-12 07:42:35 +0800
 \par 修改时间:
-	2014-08-04 05:17 +0800
+	2014-08-28 17:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::Service::YFile_(Text)
+	YSLib::Service::AccessHistory
 */
 
 
@@ -62,8 +62,8 @@ public:
 	DefDeCopyCtor(GAccessList)
 	DefDeMoveCtor(GAccessList)
 
-	DefPred(const, AtBegin, itCurrent == lstRecord.begin())
-	DefPred(const, AtEnd, itCurrent == lstRecord.end())
+	DefPred(const, AtBegin, itCurrent == lstRecord.cbegin())
+	DefPred(const, AtEnd, itCurrent == lstRecord.cend())
 
 	DefGetter(const ynothrow, const ListType&, List, lstRecord)
 

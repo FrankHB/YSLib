@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r867
+\version r873
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2014-08-25 03:52 +0800
+	2014-08-28 17:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,20 +225,23 @@ public:
 
 	/*!
 	\brief 判断框架窗口中是否正在显示菜单标识指定的菜单。
+	\since build 531
 	*/
 	bool
-	IsShowing(Menu::ID);
+	IsShowing(Menu::ID) const;
 
 	/*!
 	\brief 判断菜单组中是否存在菜单标识指定的菜单。
+	\since build 531
 	*/
-	PDefH(bool, Contains, Menu::ID id)
+	PDefH(bool, Contains, Menu::ID id) const
 		ImplRet(ystdex::exists(mMenus, id))
 	/*!
 	\brief 判断菜单组中是否存在指定的菜单。
+	\since build 531
 	*/
 	bool
-	Contains(Menu&);
+	Contains(Menu&) const;
 
 	/*!
 	\brief 清除菜单组。

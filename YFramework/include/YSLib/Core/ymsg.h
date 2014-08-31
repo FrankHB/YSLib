@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1982
+\version r1983
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2014-05-18 16:59 +0800
+	2014-08-28 17:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,7 +190,7 @@ public:
 	\since build 288
 	*/
 	DefGetter(const ynothrow, Priority, MaxPriority,
-		empty() ? 0 : begin()->first)
+		empty() ? 0 : cbegin()->first)
 
 	/*!
 	\brief 合并消息队列：移动指定消息队列中的所有消息至此消息队列中。

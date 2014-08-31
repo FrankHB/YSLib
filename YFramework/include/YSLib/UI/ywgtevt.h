@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1586
+\version r1595
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-08-16 06:57 +0800
+	2014-08-28 07:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -283,24 +283,22 @@ struct YF_API PaintEventArgs : public UIEventArgs, public PaintContext
 
 
 //事件处理器类型。
-DeclDelegate(HUIEvent, UIEventArgs&&)
-DeclDelegate(HInputEvent, InputEventArgs&&)
-DeclDelegate(HKeyEvent, KeyEventArgs&&)
+using HUIEvent = GHEvent<void(UIEventArgs&&)>;
+using HInputEvent = GHEvent<void(InputEventArgs&&)>;
+using HKeyEvent = GHEvent<void(KeyEventArgs&&)>;
 //! \since build 422
-DeclDelegate(HCursorEvent, CursorEventArgs&&)
-DeclDelegate(HPaintEvent, PaintEventArgs&&)
+using HCursorEvent = GHEvent<void(CursorEventArgs&&)>;
+using HPaintEvent = GHEvent<void(PaintEventArgs&&)>;
 /*!
 \brief 指针设备滚轮事件。
 \since build 425
 */
-DeclDelegate(HCursorWheelEvent, CursorWheelEventArgs&&)
+using HCursorWheelEvent = GHEvent<void(CursorWheelEventArgs&&)>;
 /*!
 \brief 文本输入事件。
 \since build 482
 */
-DeclDelegate(HTextInputEvent, TextInputEventArgs&&)
-//DefDelegate(HPointEvent, Drawing::Point&&)
-//DefDelegate(HSizeEvent, Size&&)
+using HTextInputEvent = GHEvent<void(TextInputEventArgs&&)>;
 
 
 #define DefEventTypeMapping(_name, _tEventHandler) \

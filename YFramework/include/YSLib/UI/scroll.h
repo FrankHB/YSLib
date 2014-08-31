@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2744
+\version r2749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2014-08-24 00:30 +0800
+	2014-08-28 07:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -115,8 +115,6 @@ public:
 	DefSetter(ValueType, OldValue, first)
 };
 
-DeclDelegate(HScrollEvent, ScrollEventArgs)
-
 
 /*!
 \brief 轨道。
@@ -156,8 +154,10 @@ private:
 	// MRange::value 实际最大取值为 MRange::max_value - large_delta 。
 
 public:
-	DeclEvent(HUIEvent, ThumbDrag) //!< 滑块拖动事件。
-	DeclEvent(HScrollEvent, Scroll) //!< 滚动事件。
+	//! \brief 滑块拖动事件。
+	GEvent<void(UIEventArgs&&)> ThumbDrag;
+	//! \brief 滚动事件。
+	GEvent<void(ScrollEventArgs&&)> Scroll;
 
 	/*!
 	\brief 构造：使用指定边界和大小。

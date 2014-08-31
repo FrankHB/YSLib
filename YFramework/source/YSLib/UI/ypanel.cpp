@@ -11,13 +11,13 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r281
+\version r284
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:44:51 +0800
 \par 修改时间:
-	2014-07-14 14:49 +0800
+	2014-08-28 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,10 +71,10 @@ Panel::MoveToFront(IWidget& wgt)
 {
 	using ystdex::get_value;
 
-	auto i(std::find(mWidgets.begin() | get_value, mWidgets.end() | get_value,
-		&wgt));
+	const auto i(std::find(mWidgets.cbegin() | get_value,
+		mWidgets.cend() | get_value, &wgt));
 
-	if(i != mWidgets.end())
+	if(i != mWidgets.cend())
 	{
 		const ZOrderType z(i.get()->first);
 

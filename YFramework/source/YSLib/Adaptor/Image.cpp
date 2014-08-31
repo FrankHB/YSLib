@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r762
+\version r763
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-06-12 19:05 +0800
+	2014-08-27 16:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -348,7 +348,7 @@ byte*
 HBitmap::operator[](size_t idx) const ynothrow
 {
 	YAssertNonnull(bitmap);
-	YAssert(idx < GetHeight(), "Index out of range.");
+	YAssert(idx < GetHeight(), "Index is out of range.");
 	return ::FreeImage_GetScanLine(bitmap, idx);
 }
 

@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r576
+\version r580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2014-08-24 00:32 +0800
+	2014-08-28 17:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -133,9 +133,9 @@ HexViewArea::Refresh(PaintEventArgs&& e)
 	auto& pen_x(TextState.Pen.X);
 	TextRenderer tr(TextState, e.Target);
 	auto pos(model.GetPosition());
-	auto i_data(datCurrent.begin());
+	auto i_data(datCurrent.cbegin());
 
-	while((y < 0 || SDst(y) < h) && pos < fsize && i_data < datCurrent.end())
+	while((y < 0 || SDst(y) < h) && pos < fsize && i_data < datCurrent.cend())
 	{
 		pen_x = TextState.Margin.Left;
 
@@ -180,7 +180,7 @@ HexViewArea::UpdateData(u32 pos)
 		datCurrent.resize(n);
 
 		auto b(datCurrent.begin());
-		const auto e(datCurrent.end());
+		const auto e(datCurrent.cend());
 
 		while(!model.CheckEOF() && b != e)
 		{
@@ -192,7 +192,7 @@ HexViewArea::UpdateData(u32 pos)
 			*b++ = l > '9' ? l + 'A' - '9' - 1 : l;
 		}
 	//	vsbVertical.SetValue(pos / ItemPerLine);
-		datCurrent.resize(b - datCurrent.begin());
+		datCurrent.resize(b - datCurrent.cbegin());
 		model.SetPosition(pos, SEEK_SET); // Refresh 需要据此判断接近文件结尾。
 	}
 }

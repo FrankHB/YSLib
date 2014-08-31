@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r390
+\version r398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2014-07-14 14:53 +0800
+	2014-08-28 17:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,6 +131,16 @@ ValueNode::swap(ValueNode& node) ynothrow
 	std::swap(name, node.name),
 	std::swap(p_container, node.p_container),
 	Value.swap(node.Value);
+}
+
+const ValueNode&
+at(const ValueNode& node, size_t n)
+{
+	auto& con(node.GetContainerRef());
+
+	if(n < con.size())
+		return *std::next(con.cbegin(), n);
+	throw std::out_of_range("Index is out of range.");
 }
 
 

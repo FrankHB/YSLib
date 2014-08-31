@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1471
+\version r1518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-06-05 10:56 +0800
+	2014-08-30 08:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject
 #include <ystdex/path.hpp>
+#include <numeric> // for std::accumulate;
 
 namespace YSLib
 {
@@ -258,7 +259,11 @@ public:
 	PDefH(bool, Remove, const string& str) const
 		ImplRet(Remove({0, str}))
 
-	//! \since build 433
+	/*!
+	\exception ystdex::bad_any_cast 容器不存在。
+	\throw std::out_of_range 未找到对应节点。
+	\since build 433
+	*/
 	const ValueNode&
 	at(const string&) const;
 
@@ -317,6 +322,38 @@ AccessPtr(const ValueNode* p_node) ynothrow
 {
 	return p_node ? AccessPtr<_type>(*p_node) : nullptr;
 }
+
+/*!
+\brief 访问节点。
+\exception ystdex::bad_any_cast 容器不存在。
+\throw std::out_of_range 未找到对应节点。
+\since build 531
+*/
+//@{
+//! \note 时间复杂度 O(n) 。
+YF_API const ValueNode&
+at(const ValueNode&, size_t);
+//! \note 调用对应成员函数。
+inline PDefH(const ValueNode&, at, const ValueNode& node, const string& name)
+	ImplRet(node.at(name))
+//! \note 使用 ADL 指定使用的 at 调用。
+template<typename _tIn>
+const ValueNode&
+at(const ValueNode& node, _tIn first, _tIn last)
+{
+	return std::accumulate(first, last, std::ref(node),
+		[](const ValueNode& nd, decltype(*first) c){
+		return std::ref(at(nd, c));
+	});
+}
+//! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+template<typename _tRange>
+inline const ValueNode&
+at(const ValueNode& node, const _tRange& c)
+{
+	return YSLib::at(node, begin(c), end(c));
+}
+//@}
 
 //! \since build 501
 inline DefSwap(ynothrow, ValueNode)
@@ -411,16 +448,10 @@ StringifyToNode(_tString&& name, _tParams&&... args)
 \since build 338
 */
 //@{
-inline const ValueNode&
-UnpackToNode(const ValueNode& arg)
-{
-	return arg;
-}
-inline ValueNode&&
-UnpackToNode(ValueNode&& arg)
-{
-	return std::move(arg);
-}
+inline PDefH(const ValueNode&, UnpackToNode, const ValueNode& arg)
+	ImplRet(arg)
+inline PDefH(ValueNode&&, UnpackToNode, ValueNode&& arg)
+	ImplRet(std::move(arg))
 //@}
 /*!
 \brief 从参数取以指定分量为初始化参数的值类型节点。

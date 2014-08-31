@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2826
+\version r2830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-08-24 04:36 +0800
+	2014-08-24 08:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -325,12 +325,12 @@ FetchStringWidth(TextState& ts, SDst h, const _tString& str)
 \brief 取指定字体显示的迭代器范围中的文本的最大宽度。
 \since build 483
 */
-template<typename _tIter,
-	yimpl(typename = ystdex::enable_for_iterator_t<_tIter>)>
+template<typename _tIn,
+	yimpl(typename = ystdex::enable_for_iterator_t<_tIn>)>
 SDst
-FetchMaxTextWidth(const Font& font, _tIter first, _tIter last)
+FetchMaxTextWidth(const Font& font, _tIn first, _tIn last)
 {
-	return std::accumulate(first, last, 0, [&](SDst val, decltype(*first)& str){
+	return std::accumulate(first, last, 0, [&](SDst val, decltype(*first) str){
 		return max(val, FetchStringWidth(font, str));
 	});
 }

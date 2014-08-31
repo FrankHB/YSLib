@@ -11,13 +11,13 @@
 /*!	\file Selector.h
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r651
+\version r665
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:17:17 +0800
 \par 修改时间:
-	2014-08-23 15:03 +0800
+	2014-08-28 07:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,8 +54,6 @@ public:
 	using StateType = _type;
 	//! \brief 选中状态参数类型。
 	using SelectedArgs = GValueEventArgs<StateType>;
-	//! \brief 选中事件委托模板。
-	DeclDelegate(HSelectedEvent, SelectedArgs)
 
 	//! \brief 状态。
 	StateType State;
@@ -105,8 +103,6 @@ public:
 	\note StateType 参数表示选中后的状态。
 	*/
 	using TickedArgs = MSelector::SelectedArgs;
-	//! \brief 选择框选中事件委托类型。
-	using HTickedEvent = MSelector::HSelectedEvent;
 	//@}
 
 protected:
@@ -114,7 +110,7 @@ protected:
 
 public:
 	//! \brief 复选框选中事件。
-	DeclEvent(HTickedEvent, Ticked)
+	GEvent<void(TickedArgs)> Ticked;
 
 	MCheckBox(StateType st = Unchecked)
 		: mSelector(st)
@@ -150,13 +146,10 @@ public:
 	//@}
 	//! \since build 292
 	using MCheckBox::TickedArgs;
-	//! \since build 292
-	using MCheckBox::HTickedEvent;
 
 	//! \since build 478
 	using MCheckBox::Ticked;
 
-public:
 	/*!
 	\brief 构造：使用指定边界。
 	\since build 337
@@ -235,8 +228,6 @@ public:
 	using MSelector = GMSelector<StateType>;
 	//! \brief 单选框选中状态参数类型。
 	using SelectedArgs = MSelector::SelectedArgs;
-	//! \brief 单选框选中事件委托类型。
-	using HSelectedEvent = MSelector::HSelectedEvent;
 	//@}
 
 private:
@@ -252,7 +243,7 @@ public:
 	\since build 480
 	\brief 单选框选中事件。
 	*/
-	DeclEvent(HSelectedEvent, Selected)
+	GEvent<void(SelectedArgs)> Selected;
 
 	//! \since build 493
 	//@{
@@ -296,13 +287,10 @@ public:
 	using MSharedSelection::StateType;
 	//! \since build 480
 	using MSharedSelection::SelectedArgs;
-	//! \since build 480
-	using MSharedSelection::HSelectedEvent;
 
 	//! \since build 480
 	using MSharedSelection::Selected;
 
-public:
 	//! \brief 构造：使用指定边界。
 	explicit
 	RadioBox(const Rect& = {});
