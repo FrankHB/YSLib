@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r373
+\version r376
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-08-10 18:41 +0800
+	2014-09-03 14:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -243,7 +243,7 @@ public:
 
 protected:
 	/*!
-	\brief 最后调用 DrawClippedText 时起始的笔左上角位置相对于部件的偏移位置。
+	\brief 最后调用 DrawClippedText 时起始的笔左上角位置相对部件的偏移位置。
 	\since build 515
 	*/
 	Point ptPenOffset{};
@@ -269,14 +269,14 @@ public:
 	/*!
 	\brief 取插入符光标的显示位置。
 	\note 使用 ptPenOffset 计算。
-	\return 插入符光标左上角相对于部件左上角的偏移。
+	\return 插入符光标左上角相对部件左上角的偏移。
 	\since build 512
 	*/
 	Point
 	GetCaretLocation() const;
 	/*!
 	\brief 取指定点所在的插入符光标逻辑位置。
-	\note 参数为相对于部件左上角偏移。
+	\note 参数为相对部件左上角偏移。
 	\since build 484
 	\todo AutoWrap 为 true 时判断行数。
 	*/

@@ -11,13 +11,13 @@
 /*!	\file mixin.hpp
 \ingroup YStandardEx
 \brief 基于类继承的混入接口。
-\version r147
+\version r148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 477
 \par 创建时间:
 	2014-02-17 00:07:20 +0800
 \par 修改时间:
-	2014-02-18 00:51 +0800
+	2014-09-03 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -135,7 +135,7 @@ struct wrap_mixin_helper<variadic_sequence<_vSeq...>, std::tuple<_types...>>
 /*!
 \ingroup metafunctions
 \brief 包装为混入类。
-\note 对于非类类型首先使用 classify_value_t 包装。
+\note 对非类类型首先使用 classify_value_t 包装。
 */
 template<typename... _types>
 using wrap_mixin_t = typename details::wrap_mixin_helper<

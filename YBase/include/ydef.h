@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2511
+\version r2514
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2014-08-14 22:03 +0800
+	2014-09-03 13:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -753,9 +753,10 @@ unsequenced(_type&& arg, _tParams&&...) -> decltype(yforward(arg))
 \ingroup YBase_pseudo_keyword
 \brief 无序列依赖表达式组求值。
 \note 由于实现限制，无法用于 void 类型表达式组。
-\note 使用一元形式 %yunsequenced((_expr)) 的形式标记表达式组但不取消序列关系。
+\note 使用一元形式 <tt>yunsequenced((_expr))</tt> 的形式标记表达式组
+	但不取消序列关系。
 \note 支持嵌套使用。
-\warning 非一元形式禁止用于产生对于同一对象的未序列化的(unsequenced) 副作用
+\warning 非一元形式禁止用于产生对同一对象的未序列化的(unsequenced) 副作用
 	的表达式，否则存在未定义行为。
 \warning 非一元形式不适用于对顺序有依赖的表达式，包括所有可能抛出异常且对抛出
 	顺序敏感（例如 std::bad_cast 处理顺序不同可能造成内存泄露）的表达式。

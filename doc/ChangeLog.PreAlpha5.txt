@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3229
+\version r3337
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-08-31 16:34 +0800
+	2014-09-06 13:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,110 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			+ "function template %CollectNodes with parameter \
+				'initializer_list<_type>'" @ %Core.ValueNode,
+			/ %UI $=
+			(
+				+ %TreeView $=
+					(+ "class %TreeList"),
+				+ "macro %YFM_Android_Helper_AndroidHost" @ %YModule,
+				/ @ "class %GUIState" @ %YGUI $=
+				(
+					/ $design "data member order",
+						// Now all by alphabetical.
+					(
+					/ DLD "data members %(KeyHeldState, TouchHeldState, \
+						DraggingOffset, HeldTimer, CursorLocation, Colors, \
+						Styles) initialization" ^ "brace-or-equal-initializer";
+					- "default constructor"
+						// Not it is implicitly defaulted. Old 'ynothrow' \
+							exception specification should be also removed.
+					),
+					(
+					+ 'size_t WidgetIdentity = size_t(-1);';
+					+ "member function %GetOldWidgetIdentity",
+					/ "supported distinguishing shared widget by \
+						%WidgetSwitched even if the pointer is equal";
+					$dep_to "distinguishing shared widget"
+					)
+				),
+				(
+				$dep_from "distinguishing shared widget";
+				+ "set switched widget state" @ "member function \
+					%AMUnitControlList::MakeIterator" @ %ListControl
+				)
+			)
+		),
+		(
+		$dep_from %YSLib.UI;
+		+ '#include YFM_YSLib_UI_TreeView' @ %YSBuild
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "4 function templates %make_container" @ %Container,
+		+ %Array,
+		/ @ "class template %transformed_iterator" @ %Iterator $=
+		(
+			/ DLD $revert(b494) "simplified %transformer_type" !^ "%decay_t"
+				// Since b529 it had been already decayed.
+			(
+			+ "3rd template parameter 'typename _tReference = void'";
+			/ "%reference" ^ "%_tReference"
+			// See $2014-09 @ %Documentation::Workflow::Annual2014.
+			),
+			(
+			$dep_from %Array;
+			/ "function templates %(make_array, forward_as_array, 4 to_array)"
+				>> %Array
+			)
+		),
+		/ $dev $design "trailing-return-type"
+			@ "function template %make_move_iterator_pair" @ %Iterator
+			^ "member function" ~ "ADL-based function call",
+			// This is a workaround to coordinate with %(string_begin, \
+				string_end) in %String. Wait for ISO C++14 to eliminate use of \
+				trailing-return-type.
+		+ "function templates %(insert_ordered, insert_ordered_reversed)"
+			@ %Container,
+		* "missing predicate binding" @ "function template %stable_unique"
+			@ %Algorithm $since b531,
+			// Clang++ warning: unused parameter 'pred' [-Wunused-parameter].
+		+ "function template %erase_n for %iterator member" @ %Container
+			// Only %iterator rather than %const_iterator is required to be \
+				the parameter type of member %erase in container requirement.
+	),
+	+ "'using std::begin;', 'using std::end'" @ "all ADL-enabled %(begin, end) \
+		calls" $effective @ %(YBase.YStandardEx.(Container, Iterator),
+		YFramework.YSLib.(Core.ValueNode, UI.YStyle)),
+	/ $dev $doc $term "normalized by explicitly filtered regular expression \
+		pattern '[^大小等同始终多少早晚高低快慢长短先后难易由关用处位置属介适基至限\
+过碍便利在(等价)(包含)(相似)(平行)(垂直)(取决)(独立)(特定)(相当)]于[^ ]'" $=
+	(
+		// All matching '于' as single preposition is also matching '于 '.
+		/ "all 238 '对于'" -> '对',
+			// Including 60 '相对于' -> '相对'.
+		/ "all 3 '起始于'" -> '始于',
+		/ "all 1 '终止于'" -> '终于',
+		/ "all 1 '相较于'" -> '相较',
+		/ "all 1 '鉴于'" -> '由于',
+		/ "all 3 '保存于'" -> '保存在',
+		/ $re_ex(b527) "all 2 '依赖（(.*)）于'" -> "'依赖（$1）'",
+		/ "all 1 '适合于'" -> '适于',
+		/ "all 1 '适应于'" -> '适应',
+		/ "all 5 '对应于'" -> '对应',
+		/ "all 5 '兼容于'" -> '兼容',
+		/ "other prepositions rewriting performed"
+			// E.g. '于' -> '在'.
+	)
+),
+
+b531
 (
 	/ %YFramework.YSLib $=
 	(
@@ -106,7 +210,7 @@ $now
 		YSLib.((Core.(YEvent, YMessage), Service.(AccessHistory,TextManager)),
 		Adaptor.(YNew, Font), UI.(YUIContainer, YPanel)), NPL.SContext,
 		'Helper_(Android)'.AndroidHost), YReader.(BookmarkUI, HexBrowser)),
-		// See $2014-08 @ %Documentation::Workflow::Annual2014
+		// See $2014-08 @ %Documentation::Workflow::Annual2014.
 	/ %YBase.YStandardEx $=
 	(
 		+ "function templates %(qualify, unqualify)" @ %Cast,
@@ -662,7 +766,8 @@ b525
 				$dep_from "removal containers of viewer"
 				- "function %SetContainer",
 				)
-				/ "data member initialization" ^ "brace-or-equal-initializer";
+				/ DLD "data member initialization"
+					^ "brace-or-equal-initializer";
 				/ "explicit constructor" -> "non-explicit explicitly defaulted \
 					constructor";
 				- DLD "container pointer state"
@@ -1121,7 +1226,8 @@ b520
 			- DLD "unused redundant internal function" @ %Win32GUI,
 			* DLD "missing specifying return type" @ "lambda expression with \
 				multiple return statements" @ "constructor %Win32Exception"
-				@MinGW32 $since b435
+				@MinGW32 $since b435,
+			+ "macro %YFM_MinGW32_YCLib_Consoles" @ %YModule
 		)
 		/ %YSLib $=
 		(

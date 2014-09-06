@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2192
+\version r2256
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-07-09 07:48 +0800
+	2014-09-06 12:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,29 +119,74 @@ class YF_API GUIState : private noncopyable, private nonmovable
 {
 public:
 	/*!
+	\brief 相对外部文本输入指示焦点部件的插入符光标左上角位置。
+	\note 除了复位清除为 Point::Invalid 外， GUIState 不访问此成员。
+	\since build 512
+	*/
+	Point CaretLocation{Point::Invalid};
+	Styles::Palette Colors{}; //!< 调色板。
+	/*!
+	\brief 最近的指针设备操作时的控件全局位置（相对顶层部件的坐标）。
+	\since build 445
+	*/
+	Drawing::Point CursorLocation{Point::Invalid};
+	Drawing::Vec DraggingOffset{Vec::Invalid}; //!< 拖放偏移量。
+	/*!
+	\brief 外部文本输入焦点部件指针。
+	\note 对宿主实现，值可能由环境修改。可用于支持宿主环境的输入法相关状态。
+	\since build 510
+	*/
+	IWidget* ExteralTextInputFocusPtr = {};
+	/*!
 	\brief 输入接触状态。
 	\since build 300
 	*/
-	InputTimer::HeldStateType KeyHeldState, TouchHeldState;
-	Drawing::Vec DraggingOffset; //!< 拖放偏移量。
 	/*!
 	\brief 输入接触保持计时器。
 	\since build 300
 	*/
-	InputTimer HeldTimer;
-	/*!
-	\brief 最近的指针设备操作时的控件全局位置（相对于顶层部件的坐标）。
-	\since build 445
-	*/
-	Drawing::Point CursorLocation;
-	Styles::Palette Colors; //!< 调色板。
+	InputTimer HeldTimer{};
+	InputTimer::HeldStateType KeyHeldState = InputTimer::Free,
+		TouchHeldState = InputTimer::Free;
 	/*!
 	\brief 样式映射。
 	\since build 468
 	*/
-	Styles::StyleMap Styles;
+	Styles::StyleMap Styles{};
+	/*!
+	\brief 指定共享部件的附加参数。
+	\note 用于区分光标状态记录的部件指针相等时标记不同部件。
+	\note 区分相同部件对象后立即被复位为 size_t(-1) 。
+	\sa p_CursorOver
+	\since build 532
+	*/
+	size_t WidgetIdentity = size_t(-1);
 
 private:
+	/*!
+	\brief 记录检查时的按键输入。
+	\sa CheckHeldState
+	\since build 487
+	*/
+	KeyInput checked_held{};
+	/*!
+	\brief 记录按键时的光标是否在部件内部。
+	\since build 422
+	*/
+	bool entered = {};
+	/*!
+	\brief 记录需要映射的主要字符的按键编码。
+	\sa UpdateChar
+	\since build 487
+	*/
+	size_t master_key = 0;
+	/*!
+	\brief 指定共享部件的附加参数的历史值。
+	\note 在区分同一个共享部件的不同部件时更新。
+	\sa WidgetIentity
+	\since build 532
+	*/
+	size_t old_widget_identity = size_t(-1);
 	/*!
 	\brief 光标设备指针对应的部件。
 	\since build 422
@@ -157,42 +202,8 @@ private:
 	\since build 483
 	*/
 	IWidget* p_cascade_focus = {};
-	/*!
-	\brief 记录按键时的光标是否在部件内部。
-	\since build 422
-	*/
-	bool entered = {};
-
-	/*!
-	\brief 记录检查时的按键输入。
-	\sa CheckHeldState
-	\since build 487
-	*/
-	KeyInput checked_held{};
-
-	/*!
-	\brief 记录需要映射的主要字符的按键编码。
-	\sa UpdateChar
-	\since build 487
-	*/
-	size_t master_key = 0;
 
 public:
-	/*!
-	\brief 外部文本输入焦点部件指针。
-	\note 对于宿主实现，值可能由环境修改。可用于支持宿主环境的输入法相关状态。
-	\since build 510
-	*/
-	IWidget* ExteralTextInputFocusPtr = {};
-	/*!
-	\brief 相对于外部文本输入指示焦点部件的插入符光标左上角位置。
-	\note 除了复位清除为 Point::Invalid 外， GUIState 不访问此成员。
-	\since build 512
-	*/
-	Point CaretLocation{Point::Invalid};
-
-	GUIState() ynothrow;
-
 	//! \since build 422
 	DefPred(const ynothrow, Entered, entered)
 
@@ -203,6 +214,8 @@ public:
 	//! \since build 464
 	DefGetter(const ynothrow, IWidget*, IndependentFocusPtr, p_indp_focus) \
 		//独立焦点指针。
+	//! \since build 532
+	DefGetter(const ynothrow, size_t, OldWidgetIdentity, old_widget_identity)
 
 	/*!
 	\brief 检查输入保持状态。
@@ -277,7 +290,7 @@ public:
 	\brief 响应标准指针设备状态。
 	\note 无视事件路由，直接响应。
 	\note 支持 \c Touch* 和 \c Cursor* 事件。
-	\note 对于 \c TouchHeld 请求实现记录坐标偏移（用于拖放）或触发事件。
+	\note 对 \c TouchHeld 请求实现记录坐标偏移（用于拖放）或触发事件。
 	\warning 调用的事件和参数的动态类型必须匹配。
 	*/
 	void

@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1852
+\version r1854
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2014-02-14 22:11 +0800
+	2014-09-03 14:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,10 +179,10 @@ public:
 		p_text ? p_text->GetTextSize() : 0)
 	/*!
 	\brief 取阅读位置。
-
-	取文本区域起始位置的输入迭代器相对于文本缓冲区迭代器的偏移。
 	\note 单位为字节。
 	\since build 272
+
+	取文本区域起始位置的输入迭代器相对文本缓冲区迭代器的偏移。
 	*/
 	//@{
 	DefGetter(const ynothrow, size_t, TopPosition,

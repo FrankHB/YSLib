@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4979
+\version r4980
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-08-10 23:48 +0800
+	2014-09-01 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -3355,7 +3355,7 @@ b304
 			(
 			$dep_from "%u16getcwd_n";
 			/ "function %GetNowDirectory" @ %Core.YFileSystem
-				^ "returning type %String" ~ "%string";
+				^ "return type %String" ~ "%string";
 			$dep_to "non-ASCII path correction"
 			)
 		),

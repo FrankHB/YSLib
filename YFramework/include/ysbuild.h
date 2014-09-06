@@ -11,13 +11,13 @@
 /*!	\file ysbuild.h
 \ingroup YFramework
 \brief YSLib 库配置文件。
-\version r772
+\version r773
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 21:53:55 +0800
 \par 修改时间:
-	2014-04-24 13:03 +0800
+	2014-08-15 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,7 @@
 #include YFM_YSLib_UI_Selector
 #include YFM_YSLib_UI_Form
 #include YFM_YSLib_UI_ComboList
+#include YFM_YSLib_UI_TreeView
 #include YFM_YSLib_UI_Menu
 #include YFM_YSLib_UI_Progress
 #include YFM_YSLib_UI_UIContainerEx

@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r728
+\version r869
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-08-31 16:13 +0800
+	2014-09-06 13:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,9 +29,10 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "functional.hpp"
-#include "cassert.h"
-#include <array> // for std::array;
-#include <algorithm> // for std::copy_n;
+#include "algorithm.hpp" // for ystdex::sort_unique;
+#include "iterator.hpp" // for ystdex::make_transform,
+//	ystdex::is_undereferenceable;
+#include <initializer_list> // for std::initializer_list;
 
 namespace ystdex
 {
@@ -279,6 +280,48 @@ swap(sequence_container_adaptor<_tSeqCon>& x,
 
 
 /*!
+\ingroup helper_functions
+\brief 构造指定类型的容器。
+\since build 532
+*/
+//@{
+template<class _tCon, typename _tIter>
+inline _tCon
+make_container(_tIter first, _tIter last)
+{
+	return _tCon(first, last);
+}
+//! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+template<class _tCon, typename _tRange>
+inline _tCon
+make_container(_tRange&& c)
+{
+	using std::begin;
+	using std::end;
+
+	return _tCon(begin(c), end(c));
+}
+//! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+template<class _tCon, typename _tRange, typename _fCallable>
+inline _tCon
+make_container(_tRange&& c, _fCallable f)
+{
+	using std::begin;
+	using std::end;
+
+	return _tCon(ystdex::make_transform(begin(c), f),
+		ystdex::make_transform(end(c), f));
+}
+template<class _tCon, typename _type>
+inline _tCon
+make_container(std::initializer_list<_type> il)
+{
+	return _tCon(il.begin(), il.end());
+}
+//@}
+
+
+/*!
 \ingroup algorithms
 \brief 插入参数指定的元素到容器。
 \since build 274
@@ -297,6 +340,33 @@ assign(_tCon& con, const _type(&arr)[_vN])
 	con.assign(arr, arr + _vN);
 }
 //@}
+
+
+/*!
+\ingroup algorithms
+\brief 逆向插入范围到容器的指定位置。
+\param con 指定的容器。
+\param i 指定起始插入位置的迭代器。
+\param first 输入范围起始迭代器。
+\param last 输入范围终止迭代器。
+\pre i 是 con 的迭代器。
+\since build 532
+
+调用带有迭代器参数的 insert 成员函数插入迭代器指定的范围到容器的指定位置。
+对 con 是关联容器时，范围内元素有序可被优化。
+*/
+template<typename _tCon, typename _tIn>
+typename _tCon::const_iterator
+insert_reversed(_tCon& con, typename _tCon::const_iterator i, _tIn first,
+	_tIn last)
+{
+	for(; first != last; ++first)
+	{
+		yconstraint(!is_undereferenceable(first));
+		i = con.insert(i, *first);
+	}
+	return i;
+}
 
 
 /*!
@@ -386,6 +456,9 @@ template<typename _tCon>
 void
 erase_all(_tCon& con, const typename _tCon::value_type& val)
 {
+	using std::begin;
+	using std::end;
+
 	con.erase(std::remove(begin(con), end(con), val), end(con));
 }
 /*!
@@ -415,6 +488,9 @@ template<typename _tCon, typename _fPred>
 void
 erase_all_if(_tCon& con, _fPred pred)
 {
+	using std::begin;
+	using std::end;
+
 	con.erase(std::remove_if(begin(con), end(con), pred), end(con));
 }
 /*!
@@ -440,6 +516,7 @@ erase_all_if(_tCon& con, _tFwd first, _tFwd last, _fPred pred)
 \pre 断言检查：删除的范围不超出容器。
 \since build 531
 */
+//@{
 template<typename _tCon>
 typename _tCon::const_iterator
 erase_n(_tCon& con, typename _tCon::const_iterator i,
@@ -448,6 +525,16 @@ erase_n(_tCon& con, typename _tCon::const_iterator i,
 	yassume(n <= std::distance(i, con.cend()));
 	return con.erase(i, std::next(i, n));
 }
+//! \since build 532
+template<typename _tCon>
+typename _tCon::iterator
+erase_n(_tCon& con, typename _tCon::iterator i,
+	typename _tCon::difference_type n)
+{
+	yassume(n <= std::distance(i, con.end()));
+	return con.erase(i, std::next(i, n));
+}
+//@}
 
 
 /*!
@@ -461,6 +548,9 @@ template<class _tCon>
 inline void
 sort_unique(_tCon& con)
 {
+	using std::begin;
+	using std::end;
+
 	con.erase(ystdex::sort_unique(begin(con), end(con)), end(con));
 }
 
@@ -499,69 +589,6 @@ search_map(_tMap& m, const typename _tMap::key_type& k)
 
 	return {i, (i == m.end() || m.key_comp()(k, i->first))};
 }
-
-
-/*!
-\brief 构造指定参数初始化的 std::array 对象。
-\since build 337
-*/
-template<typename _type, typename... _tParams>
-inline std::array<_type, sizeof...(_tParams)>
-make_array(_tParams&&... args)
-{
-	// TODO: Use one pair of braces (depending on G++).
-	return {{decay_copy(args)...}};
-}
-
-/*!
-\brief 转移指定参数至 std::array 对象。
-\since build 495
-*/
-template<typename _type, typename... _tParams>
-inline std::array<_type, sizeof...(_tParams)>
-forward_as_array(_tParams&&... args)
-{
-	// TODO: Use one pair of braces (depending on G++).
-	return {{yforward(args)...}};
-}
-
-/*!
-\brief 转换指定参数为 std::array 对象。
-\since build 337
-*/
-//@{
-template<typename _type, size_t _vN, typename _tSrc>
-yconstfn std::array<_type, _vN>
-to_array(const _tSrc& src)
-{
-	return std::array<_type, _vN>(src);
-}
-template<typename _type, size_t _vN>
-yconstfn std::array<_type, _vN>
-to_array(const std::array<_type, _vN>& src)
-{
-	return src;
-}
-template<typename _type, size_t _vN, typename _tSrcElement>
-inline std::array<_type, _vN>
-to_array(const _tSrcElement(&src)[_vN])
-{
-	std::array<_type, _vN> arr;
-
-	std::copy_n(std::addressof(src[0]), _vN, std::addressof(arr[0]));
-	return arr;
-}
-template<typename _type, size_t _vN, typename _tSrcElement>
-inline std::array<_type, _vN>
-to_array(_tSrcElement(&&src)[_vN])
-{
-	std::array<_type, _vN> arr;
-
-	std::copy_n(std::make_move_iterator(std::addressof(src[0])), _vN,
-		std::addressof(arr[0]));
-	return arr;
-}
-//@}
 
 } // namespace ystdex;
 

@@ -213,6 +213,7 @@
     <ClInclude Include="include\YSLib\UI\textarea.h" />
     <ClInclude Include="include\YSLib\UI\TextBox.h" />
     <ClInclude Include="include\YSLib\UI\ListControl.h" />
+    <ClInclude Include="include\YSLib\UI\TreeView.h" />
     <ClInclude Include="include\YSLib\UI\uicontx.h" />
     <ClInclude Include="include\YSLib\UI\Viewer.h" />
     <ClInclude Include="include\YSLib\UI\WidgetIteration.h" />
@@ -306,6 +307,7 @@
     <ClCompile Include="source\YSLib\UI\textarea.cpp" />
     <ClCompile Include="source\YSLib\UI\TextBox.cpp" />
     <ClCompile Include="source\YSLib\UI\ListControl.cpp" />
+    <ClCompile Include="source\YSLib\UI\TreeView.cpp" />
     <ClCompile Include="source\YSLib\UI\uicontx.cpp" />
     <ClCompile Include="source\YSLib\UI\Viewer.cpp" />
     <ClCompile Include="source\YSLib\UI\YBrush.cpp" />

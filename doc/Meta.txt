@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1102
+\version r1132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-08-08 14:17 +0800
+	2014-09-05 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,7 +152,7 @@ DLB $dev $lib $build;
 	of environment.
 // Identifiers '$no(*)' indicate the ordinal number of issue tracking system. \
 	The first issue is reserved as 'META'.
-// Identifiers 'type(*)' indicate the type property of issue on the issue \
+// Identifiers '$type(*)' indicate the type property of issue on the issue \
 	tracking system.
 // Identifiers '$prior(*)' indicate the priority property of issue on the \
 	issue tracking system.
@@ -341,6 +341,13 @@ $no(24) $prior(minor) $plat(MinGW32) $debug
 		and the library has not directly use it yet. Just remove code from \
 		user program to workaround.
 	// i686-w64-mingw32 GDB 7.8-1 (MSYS2) tested fixed @ b522.
+	// MSYS2 rollbacked this version. See \
+		https://github.com/Alexpux/MINGW-packages/commit/c4b375970a0c45a80a59320ad6d0b36cf4a63980 , \
+		also https://gcc.gnu.org/bugzilla/show_bug.cgi?id=62279 and \
+		https://sourceware.org/bugzilla/show_bug.cgi?id=14963#c33 .
+	// However, there seems to be another problem, though probably the root \
+		reason is the same. GDB 7.8 misbehaves, but does not crash in \
+		Code::Blocks. Thus this bug is not reopened.
 
 
 $RESOLVED_BUG:
@@ -384,7 +391,9 @@ $long_term_code_evolution $=
 	"Doxygen comments and file header with copyright notice" $at b170,
 	"formatted comments" $interval([b176, b169]) $end_at b169,
 	"unified YSLib file and modules paths naming schema" $interval([b275, $now])
-		// Case included.
+		// Case included. The names is not restricted as 8.3 DOS format, since \
+			ISO C++11 headers names is also not directly fit for these \
+			filesystems any more.
 );
 
 $ellipse_refactoring;
@@ -484,6 +493,26 @@ libmagic(https://github.com/glensc/file): rejected.
 	For hosted implementations, operation system or desktop environment based implementations may provide alternative more benifical interfaces for integrating custom/user-specified information of content types.
 	Also the depolying overhead of the magic databace files is significant.
 	For these reasons, this library is not suitable for YFramework, though may be fit for the low level indirect implentation esp. on POSIX systems.
+// $2014-09.
+Boost.Trie(https://github.com/ithlony/Boost.Trie): tentatively rejected.
+	This is a project of Boost GSoC 2013.
+	Despite the whole Boost had been rejected before($2012), it was probable to be accepted to merge. However, it is not proper now.
+	It is not being actively developed for months.
+	It was considered not peer review ready, see https://groups.google.com/d/topic/boost-devel-archive/KjerA9jlLbo for some details.
+	There seems to be no documentation ready.
+		No stable interface is clearly stated.
+		No characteristics like complexity is clearly stated and ensured.
+	The standard container like 'std::map' are used directly in the data structure as members.
+		Though acceptable, just a note: many operations would be limited by the QoI of the standard library.
+		Many operations would be more expansive than standard library calls, and often beated the purpose to introduce a trie (to replace a 'std::set' or 'std::unordered_set', etc).
+		It is also not very memory-efficient, e.g. duplicate node sizes were stored.
+tx-trie(https://code.google.com/p/tx-trie/): rejected.
+	It is not being actively developed for years.
+	It is for paticular string type and not templated.
+	There exists quality problems, e.g. macro names pollution, directly used unqualified-id of C standard library functions, memory allocation, etc.
+marisa-trie(https://code.google.com/p/marisa-trie/): considerable, tentatively shelved.
+	It has some similar problems of interface like tx-trie. However, it seems to be fit for other use.
+
 
 todo.ceased:
 // $2013-06.

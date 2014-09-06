@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2826
+\version r2830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-08-12 02:35 +0800
+	2014-09-03 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,7 +48,7 @@ namespace Drawing
 \param src 源迭代器。
 \param ss 源迭代器所在缓冲区大小。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，
-	其中 Location 为相对于源的坐标。
+	其中 Location 为相对源的坐标。
 \param neg_pitch 指定交换行渲染顺序。
 \sa Blit
 \sa BlitLines
@@ -80,7 +80,7 @@ BlitGlyphLines(_fBlitScanner scanner, _tOut dst, _tIn src, const Size& ss,
 \param src 源迭代器。
 \param ss 源迭代器所在缓冲区大小。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，
-	其中 Location 为相对于源的坐标。
+	其中 Location 为相对源的坐标。
 \param neg_pitch 指定交换行渲染顺序。
 \sa Blit
 \sa BlitPixels
@@ -106,7 +106,7 @@ BlitGlyphPixels(_fPixelShader blit, _tOut dst, _tIn src, const Size& ss,
 /*!
 \brief 渲染单个字符。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，
-	其中 Location 为相对于源的坐标。
+	其中 Location 为相对源的坐标。
 \pre 断言：缓冲区非空。
 \note 忽略 Alpha 缓冲。
 \since build 415
@@ -118,7 +118,7 @@ RenderChar(PaintContext&& pc, Color, bool, CharBitmap::BufferType,
 /*!
 \brief 渲染带 Alpha 缓冲的单个字符。
 \param pc 指定字符所在区域和渲染目标的绘制上下文，
-	其中 Location 为相对于源的坐标。
+	其中 Location 为相对源的坐标。
 \pre 断言：缓冲区非空。
 \since build 417
 */

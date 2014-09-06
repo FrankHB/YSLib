@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r85
+\version r87
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2014-08-16 08:17 +0800
+	2014-09-04 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,6 +72,8 @@
 #define YFM_YSLib_UI_ComboList <YSLib/UI/ComboList.h>
 #define YFM_YSLib_UI_Menu <YSLib/UI/menu.h>
 //@}
+//! \since build 532
+#define YFM_YSLib_UI_TreeView <YSLib/UI/TreeView.h>
 //! \since build 494
 #define YFM_YSLib_UI_TabControl <YSLib/UI/TabControl.h>
 //! \since build 482

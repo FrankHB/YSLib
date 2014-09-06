@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r661
+\version r665
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-08-03 06:43 +0800
+	2014-09-03 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,8 @@
 #ifndef YB_INC_ystdex_string_hpp_
 #define YB_INC_ystdex_string_hpp_ 1
 
-#include "container.hpp" // for ../ydef.h, std::underlying_type,
-//	ystdex::sort_unique, ystdex::to_array;
+#include "array.hpp" // for ../ydef.h, ystdex::to_array;
+#include "container.hpp" // for ystdex::sort_unique;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	and std::to_string;
 #include <cstdio> // for std::vsnprintf
@@ -71,6 +71,7 @@ using enable_for_string_class_t
 \note 使用 ADL 访问字符串范围。
 \note 同 std::begin 和 std::end ，但字符数组除外。
 \note 此处 string_end 语义和 boost::end 相同，但对数组类型不同于 std::end 。
+\bug decltype 指定的返回类型不能使用 ADL 。
 \see ISO WG21/N3936 20.4.7[iterator.range] 。
 \since build 519
 */
@@ -468,7 +469,7 @@ vsfmt(const _tChar* fmt, std::va_list args)
 
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
-\note Clang++ 对于模板声明 attribute 直接提示格式字符串类型错误。
+\note Clang++ 对模板声明 attribute 直接提示格式字符串类型错误。
 \since build 322
 \todo 提供 char 以外的模板参数的正确实现。
 */

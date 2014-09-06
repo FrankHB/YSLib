@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3074
+\version r3076
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2014-08-05 05:21 +0800
+	2014-09-03 13:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,7 +82,7 @@ struct SequenceTransformer
 	/*!
 	\brief 渲染连续像素。
 	\tparam _tOut 输出迭代器类型（需要支持 + 操作，一般应是随机迭代器）。
-	\pre 断言：对于非零参数起始迭代器不能判定为不可解引用。
+	\pre 断言：对非零参数起始迭代器不能判定为不可解引用。
 	\since build 453
 	*/
 	template<typename _tOut, class _fTransformPixel>
@@ -107,7 +107,7 @@ struct VerticalLineTransfomer
 	/*!
 	\brief 渲染竖直线上的像素。
 	\tparam _tOut 输出迭代器类型（需要支持 += 操作，一般应是随机迭代器）。
-	\pre 断言：对于非零参数起始迭代器不能判定为不可解引用。
+	\pre 断言：对非零参数起始迭代器不能判定为不可解引用。
 	\since build 453
 	*/
 	template<typename _tOut, class _fTransformPixel>

@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5707
+\version r5712
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-08-15 03:35 +0800
+	2014-09-03 14:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -199,7 +199,7 @@ YF_API void
 SetInvalidationToParent(IWidget&);
 
 /*!
-\brief 设置部件左上角所在位置（相对于容器的偏移坐标）。
+\brief 设置部件左上角所在位置（相对容器的偏移坐标）。
 \note 设置视图状态后触发 Move 事件。
 \since build 259
 */
@@ -239,7 +239,7 @@ YF_API void
 Hide(IWidget&);
 
 /*!
-\brief 无效化：使相对于部件的指定区域在直接和间接的窗口缓冲区中无效。
+\brief 无效化：使相对部件的指定区域在直接和间接的窗口缓冲区中无效。
 \since build 268
 */
 YF_API void
@@ -253,14 +253,14 @@ inline PDefH(void, Invalidate, IWidget& wgt)
 
 //! \since build 473
 //@{
-//! \brief 无效化：使相对于部件及子部件的指定区域在直接和间接的窗口缓冲区中无效。
+//! \brief 无效化：使相对部件及子部件的指定区域在直接和间接的窗口缓冲区中无效。
 YF_API void
 InvalidateAll(IWidget&, const Rect&);
 //! \brief 无效化：使部件及子部件区域在直接和间接的窗口缓冲区中无效。
 inline PDefH(void, InvalidateAll, IWidget& wgt)
 	ImplExpr(InvalidateAll(wgt, GetSizeOf(wgt)))
 
-//! \brief 无效化：使相对于部件的子部件的指定区域在直接和间接的窗口缓冲区中无效。
+//! \brief 无效化：使相对部件的子部件的指定区域在直接和间接的窗口缓冲区中无效。
 YF_API void
 InvalidateChildren(IWidget&, const Rect&);
 //! \brief 无效化：使部件的子部件区域在直接和间接的窗口缓冲区中无效。
@@ -280,7 +280,7 @@ InvalidateParent(IWidget&);
 //! \since build 455
 //@{
 /*!
-\brief 无效化：使相对于可见的部件的指定区域在直接和间接的窗口缓冲区中无效。
+\brief 无效化：使相对可见的部件的指定区域在直接和间接的窗口缓冲区中无效。
 \sa Invalidate
 */
 YF_API void

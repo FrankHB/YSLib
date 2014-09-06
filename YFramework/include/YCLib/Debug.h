@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r422
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-08-16 04:57 +0800
+	2014-09-03 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -272,7 +272,7 @@ LogAssert(bool, const char*, const char*, int, const char*);
 \since build 498
 
 逆序对应映射 Descriptions::Critical 起的枚举值到 ANDROID_LOG_FATAL 起的枚举值。
-对于不属于枚举值的区间中间值，使用较大优先级（较小 RecordLevel 值）：
+对不属于枚举值的区间中间值，使用较大优先级（较小 RecordLevel 值）：
 例如 0x80 和 0x81 都映射为 ANDROID_LOG_WARNING 。
 同时小于 Descriptions::Critical 的值都映射为 ANDROID_LOG_FATAL 。
 */

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8280
+\version r8283
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-08-27 16:52 +0800
+	2014-09-01 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -5319,7 +5319,7 @@ b426
 			(
 				/ @ "class %Host::Window" $=
 				(
-					/ "returning type of function %Show" -> "'bool'"
+					/ "return type of function %Show" -> "'bool'"
 						~ "'void' to report asynchronous result",
 					+ "function %(Move, GetLocation)" @ "class %Host::Window"
 				);
@@ -5952,7 +5952,7 @@ b413
 					/ @ "class templates %(GHEvent; GEvent; GDependencyEvent)"
 						$=
 					(
-						/ "supported non-void returning type",
+						/ "supported non-void return type",
 						- "typedef name %EventArgsType"
 					),
 					+ "typedef name %TupleType" @ "class template %GEvent",
@@ -6108,7 +6108,7 @@ b411
 				/ @ "class %FileList" $=
 				(
 					/ "supported empty path as '.'",
-					/ "discarded returning type" @ "function %ListItems"
+					/ "discarded return type" @ "function %ListItems"
 						// Now no counting and reserving list items, and the \
 							original would be kept on exception thrown.
 				),

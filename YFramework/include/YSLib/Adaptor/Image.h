@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r825
+\version r827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-05-26 14:40 +0800
+	2014-09-03 14:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -322,7 +322,7 @@ public:
 	\brief 构造指定图像转换为指定色深的基于 RGB 像素格式的位图副本。
 	\throw UnsupportedImageFormat 指定的色深对指定图形不被支持。
 	\throw LoggedEvent 转换失败（包括色深被支持但具体格式不被实现支持的情形）。
-	\note 对于 16 位位图使用 RGB555 。对于 32 位位图使用 RGBA8888 。
+	\note 对 16 位位图使用 RGB555 。对 32 位位图使用 RGBA8888 。
 	\since build 471
 	*/
 	HBitmap(const HBitmap&, BitPerPixel);
@@ -630,7 +630,7 @@ public:
 
 	/*!
 	\brief 检测图像格式。
-	\note 对于文件，若根据内容检测失败则根据扩展名判断（不保证正确性）。
+	\note 对文件，若根据内容检测失败则根据扩展名判断（不保证正确性）。
 	\since build 457
 	*/
 	//@{

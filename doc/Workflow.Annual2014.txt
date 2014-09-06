@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r604
+\version r662
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-08-29 10:52 +0800
+	2014-09-05 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -244,8 +244,8 @@ Call by value or by rvalue refernce for a callable object, a call wrapper or an 
 	For simplicity in YSLib, if and only if noncopyable callable object is intendedly acceptable by design, pass-by-value '_fCallable' should always be used instead of '_fCallable&&'.
 		This also means most callable objects should be CopyConstrictible.
 		The major general exception is for forwarding function templates, which have templated function parameters like '_tParams&&...'. Some examples:
-			General forwarding function templates like 'ystdex::seq_apply', 'ystdex::unseq_apply' and 'ystdex::call_projection::call' in YBase::Functional. They are used for reordering the evaluation as well as forwarding the parameters, so just behave as 'std::bind'.
-			General forwarding call wrappers as 'ystdex::expanded_caller', also the helper 'ystdex::make_expanded', in YBase::Functional.
+			General forwarding function templates like 'ystdex::seq_apply', 'ystdex::unseq_apply' and 'ystdex::call_projection::call' in YBase::StandardEx::Functional. They are used for reordering the evaluation as well as forwarding the parameters, so just behave as 'std::bind'.
+			General forwarding call wrappers as 'ystdex::expanded_caller', also the helper 'ystdex::make_expanded', in YBase::StandardEx::Functional.
 			Forwarding functions templates in YTest::Timing.
 			Callers which use 'ystdex::expanded_caller' as underlying implementation in YSLib::Core::YEvent.
 	For simplicity in YSLib, an iterator should be passed by value, unless it is an iterator adaptor to generally provide adaption for any other iterator types.
@@ -596,6 +596,65 @@ English allows bare passive clause, which omits the auxiliary verb (typically 'i
 	See http://en.wikipedia.org/wiki/English_passive_voice .
 	In YSLib, for English passive voice in assertion strings or titles, this form is preferred to canonical form (e.g. "file not found"), even in a separate sentence.
 	For formal descriptions otherwise, auxiliary verbs should not be omitted.
+
+$2014-09:
+
+There is some confilicts in 'ForwardIterator' requirements onwards ISO C++11 with some iterator adaptor implementations.
+	It requires that the iterator shall satisfy the 'DefaultConstructible' requirements.
+		If the underlying iterator does not satisfy 'DefaultConstructible', it is hard to implement efficiently.
+			However, if the underlying iterator does not satisfy 'ForwardIterator' requirements, an explicitly defaulted default constructor is enough.
+	It requires that the 'reference' member should be a reference type.
+		This is generally hard to implement for underlying iterator does not store a long-lived object as result.
+		For example, 'boost::transform_iterator' is not strictly conforming to this.
+			See $2014-08 for other issues related to iterator requirements and 'boost::transform_iterator'.
+		This is a currently known problem, but not treated as a defect. See http://wg21.cmeerw.net/lwg/issue2107 .
+	To reasonably resolve these problems, 'ystdex::transformed_iterator' in YBase::StandardEx::Functional now provide a third template parameter to allow the user to specify the 'reference' type.
+		If not explicitly specified, default argument 'void' is used, like 'use_default' in Boost iterator library.
+			Note now it is not conforming to ISO C++ if 'ForwardIterator' requirements are required and the default argument is used.
+		It is convenient and efficient for users to pass a callable object returning an object (rather than reference to a long-lived object) as transformer in default cases.
+Keys of associative containers are const-qualified.
+	This means they are usually readonly.
+	It is important to make the strict weak ordering stable to guarantee the container to work.
+	Nothing implied it would be OK to 'const_cast' it and back even the order is maintained. The implementation is free to cache the keys.
+	The key is not free to modify. It leads to several problems.
+		See http://stackoverflow.com/questions/3884572/how-to-modify-key-values-in-stdmap-container .
+			This is also the same problem met in implementation of tree list in YFramework::YSLib::UI.
+		See http://wg21.cmeerw.net/lwg/issue839 and http://wg21.cmeerw.net/lwg/issue1041 .
+		See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3645.pdf for proposal to resolve this issue (but not in the current standard).
+		See http://stackoverflow.com/questions/5743545/what-is-the-fastest-way-to-change-a-key-of-an-element-inside-stdmap for the problem and the status of the paper above.
+		The available resolustion are:
+			First, to erase and re-insert the value.
+				See http://stackoverflow.com/questions/3884572/how-to-modify-key-values-in-stdmap-container to the first method.
+				This is generally not efficient for multiple keys/values.
+				Function template 'ystdex::replace_value' has already reflect this resolution.
+				Anothor implementation is http://www.codeproject.com/Articles/36326/How-To-Update-Your-Const-Key-Fields-in-a-Map-Multi . It is not preferred to 'ystdex::replace_key' because:
+					It is for a range rather than a single element, so generally less efficient.
+					It is limited to map types.
+					It explicitly use 'key_comp'. This is unnecessary.
+					It is for pre-ISO C++11, so no 'emplace_hint' is used to perform better.
+			Second, to construct a new container then copy or move the elements e.g. by 'std::move'.
+				See http://stackoverflow.com/questions/9585083/how-to-move-all-pairs-from-one-stdmap-to-another for examples.
+				This is generally more efficient than the first method.
+
+dep.merge:
+Boost.Trie(https://github.com/ithlony/Boost.Trie): tentatively rejected.
+	This is a project of Boost GSoC 2013.
+	Despite the whole Boost had been rejected before($2012), it was probable to be accepted to merge. However, it is not proper now.
+	It is not being actively developed for months.
+	It was considered not peer review ready, see https://groups.google.com/d/topic/boost-devel-archive/KjerA9jlLbo for some details.
+	There seems to be no documentation ready.
+		No stable interface is clearly stated.
+		No characteristics like complexity is clearly stated and ensured.
+	The standard container like 'std::map' are used directly in the data structure as members.
+		Though acceptable, just a note: many operations would be limited by the QoI of the standard library.
+		Many operations would be more expansive than standard library calls, and often beated the purpose to introduce a trie (to replace a 'std::set' or 'std::unordered_set', etc).
+		It is also not very memory-efficient, e.g. duplicate node sizes were stored.
+tx-trie(https://code.google.com/p/tx-trie/): rejected.
+	It is not being actively developed for years.
+	It is for paticular string type and not templated.
+	There exists quality problems, e.g. macro names pollution, directly used unqualified-id of C standard library functions, memory allocation, etc.
+marisa-trie(https://code.google.com/p/marisa-trie/): considerable, tentatively shelved.
+	It has some similar problems of interface like tx-trie. However, it seems to be fit for other use.
 
 
 ////

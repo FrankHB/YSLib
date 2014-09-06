@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2078
+\version r2079
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-08-26 07:58 +0800
+	2014-09-06 12:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,7 +67,7 @@ AMUnitControlList::MakeIterator(size_t item_idx)
 		if(idxShared != idx && idx < GetTotal())
 		{
 			Iterated(idx);
-			idxShared = idx,
+			yunseq(FetchGUIState().WidgetIdentity = idx, idxShared = idx),
 			wgt.GetView().SetLocation(GetUnitLocation(idx));
 		}
 	});

@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3700
+\version r3702
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-08-15 03:39 +0800
+	2014-09-03 13:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,7 +120,7 @@ GetVerticalOf(const Padding& m)
 
 
 /*!
-\brief 取内边界相对于外边界的边距。
+\brief 取内边界相对外边界的边距。
 */
 YF_API Padding
 FetchMargin(const Rect&, const Size&);
@@ -413,7 +413,7 @@ CopyTo(BitmapPtr, const CompactPixmapEx&, const Size&,
 \since build 337
 
 以第一个参数作为目标，以指定输出指向复制第二个参数的缓冲区内容
-	至相对于目标缓冲区的点。
+	至相对目标缓冲区的点。
 */
 inline bool
 CopyTo(const Graphics& dst, const Graphics& src,

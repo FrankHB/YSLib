@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1518
+\version r1530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-08-30 08:01 +0800
+	2014-09-01 20:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -351,6 +351,9 @@ template<typename _tRange>
 inline const ValueNode&
 at(const ValueNode& node, const _tRange& c)
 {
+	using std::begin;
+	using std::end;
+
 	return YSLib::at(node, begin(c), end(c));
 }
 //@}
@@ -466,6 +469,16 @@ UnpackToNode(_tPack&& pk)
 		ValueObject(ystdex::decay_copy(get<1>(yforward(pk))))};
 }
 
+/*!
+\brief 取指定值类型节点为成员的节点容器。
+\since build 532
+*/
+template<typename _type>
+inline unique_ptr<ValueNode::Container>
+CollectNodes(std::initializer_list<_type> il)
+{
+	return make_unique<ValueNode::Container>(il);
+}
 /*!
 \brief 取指定值类型节点为成员的节点容器。
 \since build 399

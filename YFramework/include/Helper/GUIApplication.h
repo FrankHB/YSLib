@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r342
+\version r344
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-07-24 09:56 +0800
+	2014-09-03 13:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,7 +88,7 @@ public:
 
 	若主消息队列为空，处理空闲消息，否则从主消息队列取出并分发消息。
 	当取出的消息的标识为 SM_Quit 时视为终止循环。
-	对于后台消息，分发前调用后台消息处理程序：分发空闲消息并可进行时序控制。
+	对后台消息，分发前调用后台消息处理程序：分发空闲消息并可进行时序控制。
 	*/
 	bool
 	DealMessage();
@@ -126,7 +126,7 @@ FetchEnvironment() ynothrow
 
 /*!
 \brief 执行程序主消息循环。
-\note 对于宿主实现，设置退出所有窗口时向 YSLib 发送退出消息。
+\note 对宿主实现，设置退出所有窗口时向 YSLib 发送退出消息。
 \since build 399
 */
 YF_API void

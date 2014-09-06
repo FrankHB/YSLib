@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r407
+\version r410
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-07-14 01:01 +0800
+	2014-09-03 13:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ private:
 	std::recursive_mutex input_mutex{};
 	//! \brief 输入法组合字符串。
 	String comp_str{};
-	//! \brief 相对于窗口的宿主插入符位置缓存。
+	//! \brief 相对窗口的宿主插入符位置缓存。
 	Drawing::Point caret_location{Drawing::Point::Invalid};
 	//@}
 #	endif
@@ -136,7 +136,7 @@ public:
 
 	/*!
 	\brief 更新输入法编辑器候选窗口位置。
-	\note 位置为相对于窗口客户区的坐标。
+	\note 位置为相对窗口客户区的坐标。
 	\note 若位置为 Drawing::Point::Invalid 则忽略。
 	\sa caret_location
 	\since build 512
@@ -158,7 +158,7 @@ public:
 	//@}
 
 	/*!
-	\brief 更新文本焦点：根据指定的部件和相对于部件的位置调整状态。
+	\brief 更新文本焦点：根据指定的部件和相对部件的位置调整状态。
 	\since build 518
 	*/
 	virtual void

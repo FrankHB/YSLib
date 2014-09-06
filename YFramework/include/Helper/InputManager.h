@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r161
+\version r162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2014-07-24 09:49 +0800
+	2014-09-03 13:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ public:
 	/*!
 	\brief 更新输入状态。
 	\return 非宿主实现总是 nullptr ，否则是待分发输入状态的顶层部件指针。
-	\note 对于宿主实现，当前忽略顶层窗口不是 Host::Window 的情形。
+	\note 对宿主实现，当前忽略顶层窗口不是 Host::Window 的情形。
 	\since build 387
 	*/
 	UI::IWidget*

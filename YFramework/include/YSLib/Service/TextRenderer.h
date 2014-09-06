@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2944
+\version r2947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-07-08 16:23 +0800
+	2014-09-03 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -551,7 +551,7 @@ public:
 /*!
 \brief 绘制剪切区域的文本。
 \param g 输出图形接口上下文。
-\param bounds 相对于输出图形接口上下文矩形，限定输出边界。
+\param bounds 相对输出图形接口上下文矩形，限定输出边界。
 \param ts 输出时使用的文本状态。
 \param str 待绘制的字符串。
 \param line_wrap 自动换行。
@@ -563,7 +563,7 @@ DrawClippedText(const Graphics& g, const Rect& bounds, TextState& ts,
 /*!
 \brief 绘制剪切区域的文本。
 \param g 输出图形接口上下文。
-\param bounds 相对于输出图形接口上下文矩形，限定输出边界。
+\param bounds 相对输出图形接口上下文矩形，限定输出边界。
 \param r 绘制区域的外边界。
 \param str 待绘制的字符串。
 \param m 绘制区域边界和外边界之间的边距。
@@ -603,7 +603,7 @@ DrawText(const Graphics& g, const Rect& bounds, const String& str,
 \brief 绘制文本。
 \param r 文本区域。
 \param g 输出图形接口上下文。
-\param pt 绘制区域左上角相对于图形接口上下文的位置偏移。
+\param pt 绘制区域左上角相对图形接口上下文的位置偏移。
 \param s 绘制区域大小。
 \param str 待绘制的字符串。
 \param line_wrap 自动换行。
