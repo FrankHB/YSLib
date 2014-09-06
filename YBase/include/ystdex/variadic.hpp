@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r313
+\version r314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2014-06-13 10:00 +0800
+	2014-09-03 13:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ struct variadic_sequence
 形式为模板类名声明和特化的相关操作，被操作的序列是类类型。
 除此处对 ystdex::variadic_sequence 外的特化外，可有其它类类型的特化。
 特化至少需保证具有表示和此处特化意义相同的 type 类型成员。
-对于非类型元素，成员 value 表示结果，成员 type 表示对应的序列类型。
+对非类型元素，成员 value 表示结果，成员 type 表示对应的序列类型。
 */
 
 

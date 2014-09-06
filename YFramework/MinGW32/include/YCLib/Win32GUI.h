@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r523
+\version r528
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-07-20 11:40 +0800
+	2014-09-03 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -299,7 +299,7 @@ public:
 //@{
 /*!
 \brief 窗口内存表面：储存窗口上的二维图形绘制状态。
-\note 仅对于内存上下文有所有权。
+\note 仅对内存上下文有所有权。
 */
 class YF_API WindowMemorySurface
 {
@@ -361,7 +361,7 @@ public:
 
 /*!
 \brief 窗口设备上下文。
-\note 仅对于设备上下文有所有权。
+\note 仅对设备上下文有所有权。
 */
 class YF_API WindowDeviceContext : public WindowDeviceContextBase
 {
@@ -378,7 +378,7 @@ protected:
 
 /*!
 \brief 窗口区域设备上下文。
-\note 仅对于设备上下文有所有权。
+\note 仅对设备上下文有所有权。
 */
 class YF_API WindowRegionDeviceContext : public WindowDeviceContextBase
 {
@@ -482,10 +482,10 @@ public:
 	using WindowReference::Invalidate;
 
 	/*!
-	\brief 取相对于窗口的可响应输入的点的位置。
+	\brief 取相对窗口的可响应输入的点的位置。
 	\note 默认输入边界为客户区，输入总是视为有效；实现为直接返回参数。
 	\return 若参数表示的位置无效则 YSLib::Drawing::Point::Invalie ，
-		否则为相对于窗口输入边界的当前点的坐标。
+		否则为相对窗口输入边界的当前点的坐标。
 	\since build 518
 	*/
 	virtual YSLib::Drawing::Point

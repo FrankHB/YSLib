@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3630
+\version r3645
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-08-29 17:47 +0800
+	2014-09-03 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -166,13 +166,17 @@ make_move_iterator_pair(_tIter1 it1, _tIter2 it2) -> decltype(
 /*!
 \brief 构造指定序列范围（包含序列容器及内建数组等）的转移迭代器对。
 \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\bug decltype 指定的返回类型不能使用 ADL 。
 \since build 337
 */
 template<typename _tRange>
 inline auto
 make_move_iterator_pair(_tRange& c)
-	-> decltype(ystdex::make_move_iterator_pair(begin(c), end(c)))
+	-> decltype(ystdex::make_move_iterator_pair(c.begin(), c.end()))
 {
+	using std::begin;
+	using std::end;
+
 	return ystdex::make_move_iterator_pair(begin(c), end(c));
 }
 //@}
@@ -517,14 +521,14 @@ operator!=(const pseudo_iterator<_type, _tIter, _tTraits>& x,
 \ingroup iterator_adaptors
 \brief 转换迭代器。
 \pre 转换器必须满足 DefaultConstructible ，否则不保证可默认构造。
-\note 对于返回新值的二元操作，复制的转换器基于第一操作数。
+\note 对返回新值的二元操作复制的转换器基于第一操作数。
 \warning 非虚析构。
-\since build 288
+\since build 532
 
 使用指定参数转换得到新迭代器的间接操作替代指定原始类型的间接操作的迭代器适配器。
 被替代的原始类型是迭代器类型，或除间接操作（可以不存在）外符合迭代器要求的类型。
 */
-template<typename _tIter, typename _fTransformer>
+template<typename _tIter, typename _fTransformer, typename _tReference = void>
 class transformed_iterator : public pointer_classify<decay_t<_tIter>>::type
 {
 	//! \since build 529
@@ -538,14 +542,18 @@ public:
 	\since build 290
 	*/
 	using iterator_type = typename pointer_classify<_tIter>::type;
-	using transformer_type = decay_t<_fTransformer>;
+	using transformer_type = _fTransformer;
 	//! \since build 439
 	using transformed_type = result_of_t<transformer_type&(_tIter&)>;
 	//! \since build 415
 	using difference_type
 		= typename std::iterator_traits<iterator_type>::difference_type;
-	//! \since build 357
-	using reference = add_rvalue_reference_t<transformed_type>;
+	/*!
+	\note 仅当参数 _tReference 为引用时可符合 ISO C++ 对 ForwardIterator 的要求。
+	\since build 357
+	*/
+	using reference = conditional_t<is_same<_tReference, void>::value,
+		transformed_type, _tReference>;
 
 protected:
 	//! \note 当为空类时作为第一个成员可启用空基类优化。
@@ -585,7 +593,7 @@ public:
 	inline reference
 	operator*() const
 	{
-		return yforward(transformer(get()));
+		return transformer(get());
 	}
 
 	//! \since build 496

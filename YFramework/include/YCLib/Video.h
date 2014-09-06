@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1040
+\version r1042
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-07-23 07:10 +0800
+	2014-09-03 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -334,7 +334,7 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 \note MSDN 注明此处第 4 字节保留为 0 ，但此处使用作为 8 位 Alpha 值使用。
 	即小端序整数 ARGB8888 （存储序 BGRA8888 ）。
 \note 转换 DIB 在设备上下文绘制时无需转换格式，比 ::COLORREF 更高效。
-\warning 仅用于屏幕绘制，不保证无条件兼容于所有 DIB 。
+\warning 仅用于屏幕绘制，不保证无条件兼容所有 DIB 。
 \since build 441
 \todo 断言对齐，保证类型兼容。
 */
@@ -657,7 +657,7 @@ ScreenSynchronize(platform::PixelType*, const platform::PixelType*) ynothrow;
 #if YCL_DS || YF_Hosted
 /*!
 \brief DS 显示状态。
-\note 对于 DS 提供实际的状态设置；对于宿主实现，仅保存状态。
+\note 对 DS 提供实际的状态设置；对宿主实现，仅保存状态。
 \since build 429
 */
 class YF_API DSVideoState

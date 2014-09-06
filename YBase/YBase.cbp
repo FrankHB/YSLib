@@ -57,6 +57,7 @@
 		<Unit filename="include/ystdex/algorithm.hpp" />
 		<Unit filename="include/ystdex/any.h" />
 		<Unit filename="include/ystdex/any_iterator.hpp" />
+		<Unit filename="include/ystdex/array.hpp" />
 		<Unit filename="include/ystdex/bitseg.hpp" />
 		<Unit filename="include/ystdex/cache.hpp" />
 		<Unit filename="include/ystdex/cassert.h" />

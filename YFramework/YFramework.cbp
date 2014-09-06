@@ -247,10 +247,12 @@
 		<Unit filename="include/YSLib/UI/Console.h" />
 		<Unit filename="include/YSLib/UI/ExStyle.h" />
 		<Unit filename="include/YSLib/UI/Hover.h" />
+		<Unit filename="include/YSLib/UI/ListControl.h" />
 		<Unit filename="include/YSLib/UI/Loader.h" />
 		<Unit filename="include/YSLib/UI/Selector.h" />
 		<Unit filename="include/YSLib/UI/TabControl.h" />
 		<Unit filename="include/YSLib/UI/TextBox.h" />
+		<Unit filename="include/YSLib/UI/TreeView.h" />
 		<Unit filename="include/YSLib/UI/Viewer.h" />
 		<Unit filename="include/YSLib/UI/WidgetIteration.h" />
 		<Unit filename="include/YSLib/UI/YBrush.h" />
@@ -263,7 +265,6 @@
 		<Unit filename="include/YSLib/UI/progress.h" />
 		<Unit filename="include/YSLib/UI/scroll.h" />
 		<Unit filename="include/YSLib/UI/textarea.h" />
-		<Unit filename="include/YSLib/UI/ListControl.h" />
 		<Unit filename="include/YSLib/UI/uicontx.h" />
 		<Unit filename="include/YSLib/UI/ycontrol.h" />
 		<Unit filename="include/YSLib/UI/ydesktop.h" />
@@ -341,10 +342,12 @@
 		<Unit filename="source/YSLib/UI/Console.cpp" />
 		<Unit filename="source/YSLib/UI/ExStyle.cpp" />
 		<Unit filename="source/YSLib/UI/Hover.cpp" />
+		<Unit filename="source/YSLib/UI/ListControl.cpp" />
 		<Unit filename="source/YSLib/UI/Loader.cpp" />
 		<Unit filename="source/YSLib/UI/Selector.cpp" />
 		<Unit filename="source/YSLib/UI/TabControl.cpp" />
 		<Unit filename="source/YSLib/UI/TextBox.cpp" />
+		<Unit filename="source/YSLib/UI/TreeView.cpp" />
 		<Unit filename="source/YSLib/UI/Viewer.cpp" />
 		<Unit filename="source/YSLib/UI/YBrush.cpp" />
 		<Unit filename="source/YSLib/UI/YComponent.cpp" />
@@ -355,7 +358,6 @@
 		<Unit filename="source/YSLib/UI/progress.cpp" />
 		<Unit filename="source/YSLib/UI/scroll.cpp" />
 		<Unit filename="source/YSLib/UI/textarea.cpp" />
-		<Unit filename="source/YSLib/UI/ListControl.cpp" />
 		<Unit filename="source/YSLib/UI/uicontx.cpp" />
 		<Unit filename="source/YSLib/UI/ycontrol.cpp" />
 		<Unit filename="source/YSLib/UI/ydesktop.cpp" />

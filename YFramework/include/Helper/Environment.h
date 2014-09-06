@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r775
+\version r776
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-08-05 18:39 +0800
+	2014-09-03 13:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -161,7 +161,7 @@ public:
 #	endif
 
 	/*!
-	\brief 映射宿主光标位置到相对于顶层部件输入的光标位置。
+	\brief 映射宿主光标位置到相对顶层部件输入的光标位置。
 	\since build 509
 	*/
 	Drawing::Point

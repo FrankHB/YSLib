@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3822
+\version r3825
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-08-15 04:19 +0800
+	2014-09-05 18:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,7 +40,7 @@ namespace YSLib
 //特征类策略：对象类型标签模板。
 
 /*!
-\brief 指定对于参数指定类型的成员具有所有权的标签。
+\brief 指定对参数指定类型的成员具有所有权的标签。
 \since build 218
 */
 template<typename>
@@ -459,15 +459,15 @@ inline DefSwap(ynothrow, ValueObject)
 
 
 /*!
-\brief 依赖项类模板。
-
-基于被依赖的默认对象，可通过写时复制策略创建新对象；可能为空。
+\brief 依赖项模板。
 \tparam _type 被依赖的对象类型，需能被无参数构造。
 \tparam _tOwnerPointer 依赖所有者指针类型。
 \warning 依赖所有者指针需要实现所有权语义，
 	否则出现无法释放资源导致内存泄漏或其它非预期行为。
 \since build 195
 \todo 线程模型及安全性。
+
+基于被依赖的默认对象，可通过写时复制策略创建新对象；可能为空。
 */
 template<typename _type, class _tOwnerPointer = shared_ptr<_type>>
 class GDependency

@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1586
+\version r1587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-08-28 07:44 +0800
+	2014-09-03 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -270,7 +270,7 @@ protected:
 	/*!
 	\brief 无效化偏移量对应的列表项区域。
 	\param offset 起始偏移量。
-	\param diff 终止偏移量相对于起始偏移量的距离偏移量。
+	\param diff 终止偏移量相对起始偏移量的距离偏移量。
 	\since build 318
 	*/
 	void

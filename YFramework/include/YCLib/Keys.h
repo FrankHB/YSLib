@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r571
+\version r572
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-07-03 15:08 +0800
+	2014-09-03 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,7 +173,7 @@ yconstfn PDefH(bool, IsComposedKey, KeyIndex) ynothrow
 /*!
 \brief 映射按键到键入的字符。
 \return 若未找到对应按键或不支持为 char() ，否则为对应的字符。
-\note 对于 Win32 ，返回值不大于 0x80 。
+\note 对 Win32 ，返回值不大于 0x80 。
 \since build 490
 \todo Android 实现。
 */

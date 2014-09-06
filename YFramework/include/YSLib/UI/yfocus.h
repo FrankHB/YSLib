@@ -11,13 +11,13 @@
 /*!	\file yfocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1748
+\version r1749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 168
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-03-06 13:47 +0800
+	2014-09-03 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@ YF_API void
 ClearFocusingOf(IWidget&);
 
 /*!
-\brief 判断部件相对于指针指定的部件是否具有级联焦点。
+\brief 判断部件相对指针指定的部件是否具有级联焦点。
 \note 逐级向父部件判断。
 \note 若指针指定的部件不包含指定判断焦点的部件或为空，则判断到顶层部件。
 \note 和 IsFocused 不同，若无父部件则认为是焦点。

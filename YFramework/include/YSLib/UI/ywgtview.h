@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ywgtview.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r562
+\version r564
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-12-24 09:26 +0800
+	2014-09-03 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,7 +65,7 @@ class YF_API Visual
 {
 private:
 	bool visible; //!< 可见性。
-	Point location; //!< 左上角所在位置（相对于容器的偏移坐标）。
+	Point location; //!< 左上角所在位置（相对容器的偏移坐标）。
 	Size size; //!< 部件大小。
 
 public:

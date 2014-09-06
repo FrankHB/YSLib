@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r586
+\version r587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-08-31 12:37 +0800
+	2014-09-06 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,7 +225,7 @@ stable_unique(_tFwd first, _tFwd last, _fPred pred)
 
 	for(_tFwd i(first); i != last; ++i)
 		if(std::find_if(first, result,
-			std::bind(std::ref(*i), std::placeholders::_1)) == result)
+			std::bind(pred, std::ref(*i), std::placeholders::_1)) == result)
 		{
 			using std::swap;
 

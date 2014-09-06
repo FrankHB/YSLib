@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4063
+\version r4072
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-07-14 14:50 +0800
+	2014-09-06 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -130,12 +130,6 @@ CallInputEvent(IWidget& wgt, const String& str, const KeyInput& k)
 	CallEvent<TextInput>(wgt, TextInputEventArgs(wgt, str, k));
 }
 
-
-GUIState::GUIState() ynothrow
-	: KeyHeldState(InputTimer::Free), TouchHeldState(InputTimer::Free),
-	DraggingOffset(Vec::Invalid), HeldTimer(), CursorLocation(Point::Invalid),
-	Colors(), Styles()
-{}
 
 bool
 GUIState::CheckHeldState(const KeyInput& keys, InputTimer::HeldStateType& s)
@@ -396,14 +390,16 @@ GUIState::Wrap(IWidget& wgt)
 
 			auto& wgt(e.GetSender());
 
-			if(p_CursorOver != &wgt)
+			if(p_CursorOver != &wgt || WidgetIdentity != old_widget_identity)
 			{
 				if(p_CursorOver)
 					CallEvent<Leave>(*p_CursorOver, CursorEventArgs(
 						*p_CursorOver, e.Keys, e.Position - LocateForWidget(wgt,
 						*p_CursorOver)));
+				// FIXME: Wrong position entered for shared widget.
 				CallEvent<Enter>(e.GetSender(), CursorEventArgs(e));
-				p_CursorOver = &wgt;
+				yunseq(p_CursorOver = &wgt,
+					old_widget_identity = WidgetIdentity);
 			}
 		}
 	}, 0xFF),

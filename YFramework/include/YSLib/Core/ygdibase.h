@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1555
+\version r1556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-08-16 05:52 +0800
+	2014-09-03 14:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -806,7 +806,7 @@ struct YF_API PaintContext
 	/*!
 	\brief 剪切区域。
 
-	相对于图形接口上下文的标准矩形，指定需要保证被刷新的边界区域。
+	相对图形接口上下文的标准矩形，指定需要保证被刷新的边界区域。
 	如无额外说明，剪切区域的位置坐标选取渲染目标左上角为原点的屏幕坐标系。
 	*/
 	Rect ClipArea;

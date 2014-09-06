@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r461
+\version r462
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-06-24 11:11 +0800
+	2014-09-03 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,7 +238,7 @@ public:
 
 /*!
 \brief 输入队列。
-\note 对于按键，处理后转交给系统继续处理。
+\note 按键的处理后转交给系统继续处理。
 \warning 非虚析构。
 \since build 502
 \todo 添加定制处理后是否转交的接口。

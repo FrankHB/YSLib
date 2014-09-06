@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1132
+\version r1133
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-05-23 09:20 +0800
+	2014-09-03 13:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,7 +142,7 @@ public:
 	/*!
 	\brief 以指定方式打开指定路径的文件。
 	\note 语义同 \c std::fopen 。
-	\note 对于输入 \c openmode ，使用 ystdex::openmode_conv 转换。
+	\note 对输入 \c openmode ，使用 ystdex::openmode_conv 转换。
 	\see ISO C11 7.21.5.3 。
 	\since build 326
 	*/

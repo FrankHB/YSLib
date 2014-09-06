@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r117
+\version r119
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2014-06-10 00:24 +0800
+	2014-09-03 13:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace ystdex
 \ingroup YBase_pseudo_keyword
 \def yconstraint
 \brief 约束：接口语义。
-\note 和普通断言相比强调接口契约。对于移植特定的平台实现时应予以特别注意。
+\note 和普通断言相比强调接口契约。对移植特定的平台实现时应予以特别注意。
 \since build 298
 
 运行时检查的接口语义约束断言。不满足此断言的行为是接口明确地未定义的，行为不可预测。
@@ -50,7 +50,7 @@ namespace ystdex
 \ingroup YBase_pseudo_keyword
 \def yassume
 \brief 假定：环境语义。
-\note 和普通断言相比强调非接口契约。对于移植特定的平台实现时应予以特别注意。
+\note 和普通断言相比强调非接口契约。对移植特定的平台实现时应予以特别注意。
 \since build 298
 
 运行时检查的环境条件约束断言。用于明确地非 yconstraint 适用的情形。

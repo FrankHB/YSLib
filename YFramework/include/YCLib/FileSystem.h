@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1284
+\version r1286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-08-14 21:57 +0800
+	2014-09-03 13:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -405,8 +405,8 @@ public:
 	\brief 构造：打开目录路径。
 	\throw FileOperationFailure 打开失败。
 	\note 路径可以一个或多个分隔符结尾；当路径为空指针或空字符串时视为 "." 。
-	\note 对于 MinGW32 实现， "/" 也被作为分隔符支持。
-	\note 对于 MinGW32 实现， 前缀 "\\?\" 关闭非结尾的 "/" 分隔符支持，
+	\note 对 MinGW32 实现， "/" 也被作为分隔符支持。
+	\note 对 MinGW32 实现， 前缀 "\\?\" 关闭非结尾的 "/" 分隔符支持，
 		且无视 MAX_PATH 限制。
 	*/
 	explicit

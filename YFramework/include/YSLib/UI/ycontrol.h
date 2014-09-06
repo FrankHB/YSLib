@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4781
+\version r4782
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-08-28 07:25 +0800
+	2014-09-03 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -335,7 +335,7 @@ public:
 
 
 /*!
-\brief 指针设备光标相对于控件的状态。
+\brief 指针设备光标相对控件的状态。
 \since build 463
 */
 enum class CursorState

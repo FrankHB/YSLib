@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1280
+\version r1281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2014-06-14 23:56 +0800
+	2014-09-03 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ using YSLib::string;
 
 /*!
 \brief 词法分析器。
-\pre 输入兼容于单字节的基本字符集的编码，如基本字符集为 ASCII 时分析 UTF-8 文本。
+\pre 输入兼容单字节的基本字符集的编码，如基本字符集为 ASCII 时分析 UTF-8 文本。
 \post 解析中间结果除了字面量外不存在空格以外的空白符，但可能有连续的空格。
 \since build 329
 

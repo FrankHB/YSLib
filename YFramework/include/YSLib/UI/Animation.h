@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r393
+\version r394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-08-23 15:04 +0800
+	2014-09-03 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,7 @@ public:
 	mutable bool Ready;
 
 	/*!
-	\brief 指示对于 WidgetPtr 用于判断是否继续动作的检查和无效化动作。
+	\brief 指示对 WidgetPtr 用于判断是否继续动作的检查和无效化动作。
 	\note 当值为空时表示不执行动作。
 	\since build 457
 	*/
