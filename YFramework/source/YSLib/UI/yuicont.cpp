@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1810
+\version r1839
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-08-28 17:49 +0800
+	2014-09-06 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,6 +58,22 @@ FetchTopLevel(IWidget& wgt, Point& pt)
 	return *p_wgt;
 }
 
+vector<pair<const IWidget*, Point>>
+FetchTrace(const IWidget& wgt)
+{
+	vector<pair<const IWidget*, Point>> lst;
+
+	Point pt;
+	auto p_wgt(&wgt);
+
+	do
+	{
+		lst.emplace_back(p_wgt, pt);
+		pt += GetLocationOf(*p_wgt);
+	}while((p_wgt = FetchContainerPtr(*p_wgt)));
+	return std::move(lst);
+}
+
 
 Point
 LocateOffset(const IWidget* p_end, Point pt, const IWidget* p_wgt)
@@ -71,33 +87,23 @@ LocateOffset(const IWidget* p_end, Point pt, const IWidget* p_wgt)
 }
 
 Point
-LocateForWidget(const IWidget& a, const IWidget& b)
+LocateForTrace(const vector<pair<const IWidget*, Point>>& lst,
+	const IWidget& wgt)
 {
-	list<pair<const IWidget*, Point>> lst;
-
 	Point pt;
-	const IWidget* pCon(&a);
+	auto p_wgt(&wgt);
 
-	while(pCon)
-	{
-		lst.emplace_back(pCon, pt);
-		pt += GetLocationOf(*pCon);
-		pCon = FetchContainerPtr(*pCon);
-	}
-	pCon = &b;
-	pt = {};
-	while(pCon)
+	do
 	{
 		{
 			const auto i(
-				std::find(lst.cbegin() | get_key, lst.cend() | get_key, pCon));
+				std::find(lst.cbegin() | get_key, lst.cend() | get_key, p_wgt));
 
 			if(i != lst.cend())
 				return pt - i.get()->second;
 		}
-		pt += GetLocationOf(*pCon);
-		pCon = FetchContainerPtr(*pCon);
-	}
+		pt += GetLocationOf(*p_wgt);
+	}while((p_wgt = FetchContainerPtr(*p_wgt)));
 	return Point::Invalid;
 }
 

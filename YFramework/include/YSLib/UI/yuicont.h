@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1977
+\version r1998
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-09-03 14:05 +0800
+	2014-09-06 20:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,6 +54,14 @@ FetchTopLevel(IWidget&);
 YF_API IWidget&
 FetchTopLevel(IWidget&, Point&);
 
+/*!
+\brief 取指定部件向上遍历的轨迹：相对于自身和所有父部件的位置。
+\return 部件视图树向上遍历的指针和对应相对于其指向的部件相对位置序列。
+\since build 533
+*/
+YF_API vector<pair<const IWidget*, Point>>
+FetchTrace(const IWidget&);
+
 
 /*!
 \brief 取相对第三参数指向的部件的点相对第一参数指向的容器的偏移坐标。
@@ -66,18 +74,22 @@ LocateOffset(const IWidget*, Point, const IWidget*);
 \brief 取相对部件 wgt 的点 pt 相对 wgt 的容器的偏移坐标。
 \since build 167
 */
-inline Point
-LocateContainerOffset(const IWidget& wgt, const Point& pt)
-{
-	return pt + GetLocationOf(wgt);
-}
+inline PDefH(Point, LocateContainerOffset, const IWidget& wgt, const Point& pt)
+	ImplRet(pt + GetLocationOf(wgt))
 
 /*!
-\brief 取第二参数指定的部件相对第一参数指定的部件的偏移坐标。
-\since build 489
+\brief 取指定部件相对轨迹的偏移坐标。
+\since build 533
 */
 YF_API Point
-LocateForWidget(const IWidget&, const IWidget&);
+LocateForTrace(const vector<pair<const IWidget*, Point>>&, const IWidget&);
+
+/*!
+\brief 取部件 wgt 相对部件 base 指定的部件的偏移坐标。
+\since build 489
+*/
+inline PDefH(Point, LocateForWidget, const IWidget& base, const IWidget& wgt)
+	ImplRet(LocateForTrace(FetchTrace(base), wgt))
 
 /*!
 \brief 取指定部件相对视图树中的直接节点指针的偏移坐标。

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3337
+\version r3380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-09-06 13:23 +0800
+	2014-09-08 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,49 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFrameowrk.YSLib.UI $=
+	(
+		/ @ "class %GUIState" @ %YGUI $=
+		(
+			* $doc "wrong comment on %WidgetIdentity",
+				// Actually not reset after distinguishing shared widgets.
+			/ "member function %GetOldWidgetIdentity"
+				=> "%GetSharedWidgetIdentity",
+			/ @ "handling event %CursorOver"
+			(
+				/ "implemented" ^ "recording %FetchTopLevel state"
+					~ "%LocateForWidget",
+				* $comp "wrong %Enter position for shared widget" $since b532
+			)
+		),
+		/ %YUIContainer $=
+		(
+			/ DLD "implemented inline function %LocateContainerOffset"
+				^ "macros %(PDefH, ImplRet)",
+			(
+			+ "functions %(FetchTrace; LocateForTrace)";
+			/ DLD "implemented function %LocateForWidget as inline function"
+				^ "%(LocateForTrace, PDefH, ImplRet)"
+				// To be generally slightly efficient to use %vector instead \
+					of %list.
+			)
+		),
+		/ @ "class %TreeList" @ %TreeView $=
+		(
+			(
+			+ "function %GetIndentBoxSize";
+			/ "implemented function %GetIndentBox" ^ "%GetIndentBoxSize",
+			+ "function %GetIndentBoxBounds"
+			),
+			/ $lib "optimized %CursorOver handling"
+				// Now the CPU time is not dedicate to invalidating and \
+					repainting.
+		)
+	)
+);
+
+b532
 (
 	/ %YFramework $=
 	(

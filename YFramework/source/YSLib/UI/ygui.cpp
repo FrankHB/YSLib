@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4072
+\version r4085
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-09-06 12:43 +0800
+	2014-09-07 07:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -390,16 +390,22 @@ GUIState::Wrap(IWidget& wgt)
 
 			auto& wgt(e.GetSender());
 
-			if(p_CursorOver != &wgt || WidgetIdentity != old_widget_identity)
+			if(p_CursorOver != &wgt || WidgetIdentity != shared_wgt_id)
 			{
 				if(p_CursorOver)
-					CallEvent<Leave>(*p_CursorOver, CursorEventArgs(
-						*p_CursorOver, e.Keys, e.Position - LocateForWidget(wgt,
-						*p_CursorOver)));
-				// FIXME: Wrong position entered for shared widget.
-				CallEvent<Enter>(e.GetSender(), CursorEventArgs(e));
-				yunseq(p_CursorOver = &wgt,
-					old_widget_identity = WidgetIdentity);
+				{
+					Point pt;
+					const auto p_toplevel(&FetchTopLevel(wgt, pt));
+
+					if(YB_LIKELY(p_toplevel == p_entered_toplevel))
+						CallEvent<Leave>(*p_CursorOver,
+							CursorEventArgs(*p_CursorOver, e.Keys,
+							e.Position - entered_top_location + pt));
+				}
+				CallEvent<Enter>(wgt, CursorEventArgs(e));
+				entered_top_location = {};
+				p_entered_toplevel = &FetchTopLevel(wgt, entered_top_location);
+				yunseq(p_CursorOver = &wgt, shared_wgt_id = WidgetIdentity);
 			}
 		}
 	}, 0xFF),

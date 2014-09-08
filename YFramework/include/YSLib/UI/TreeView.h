@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r149
+\version r158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2014-09-04 19:23 +0800
+	2014-09-07 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,8 +113,17 @@ public:
 		Styles::Highlight, Styles::HighlightText));
 	DefDeMoveCtor(TreeList)
 
+	//! \brief 取相对单元部件的基准缩进框边界。
 	Rect
 	GetIndentBox() const;
+	/*!
+	\brief 取相对部件的指定索引的缩进框边界。
+	\since build 533
+	*/
+	Rect
+	GetIndentBoxBounds(IndexType) const;
+	//! \since build 533
+	DefGetter(const ynothrow, Size, IndentBoxSize, Size(16, GetItemHeight()))
 	//! \since build 532
 	DefGetter(const ynothrow, const IndentMap&, IndentMap, indent_map)
 	SDst
