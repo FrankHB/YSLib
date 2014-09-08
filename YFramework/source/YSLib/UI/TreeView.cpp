@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r369
+\version r400
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2014-09-06 13:26 +0800
+	2014-09-08 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -69,19 +69,6 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 	: TextList(r, h, hilight_pair)
 {
 	auto& unit(GetUnitRef());
-	const auto inv_indent_box([this, &unit](const CursorEventArgs& e, bool in){
-		ystdex::swap_guard<SPos, void> guard(LabelBrush.Margin.Left,
-			LabelBrush.Margin.Left + GetIndentWidth(idxShared));
-		const Rect& box(GetIndentBox());
-		const auto old(idxCursorOver);
-
-		idxCursorOver = in && box.Contains(e) ? idxShared : size_t(-1);
-		// TODO: Optimize.
-		if(old != size_t(-1))
-			Invalidate(*this);
-		else if(!in || old != idxCursorOver)
-			Invalidate(e.GetSender(), box);
-	});
 
 	yunseq(
 	FetchEvent<TouchDown>(unit) += [this](CursorEventArgs&& e){
@@ -221,13 +208,21 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 			}
 		}
 	},
-	FetchEvent<CursorOver>(unit) += [this, inv_indent_box](CursorEventArgs&& e)
+	FetchEvent<CursorOver>(unit) += [this](CursorEventArgs&& e)
 	{
-		inv_indent_box(e, true);
+		const Rect& box(GetIndentBoxBounds(idxShared));
+		const auto old(idxCursorOver);
+
+		idxCursorOver = box.Contains(e) ? idxShared : size_t(-1);
+		if(old != idxCursorOver)
+			Invalidate(e.GetSender(), box);
 	},
-	FetchEvent<Leave>(unit) += [this, inv_indent_box](CursorEventArgs&& e){
+	FetchEvent<Leave>(unit) += [this](CursorEventArgs&& e){
 		if(idxCursorOver != size_t(-1))
-			inv_indent_box(e, {});
+		{
+			Invalidate(e.GetSender(), GetIndentBoxBounds(idxCursorOver));
+			idxCursorOver = size_t(-1);
+		}
 	},
 	// TODO: + AddFront;
 	FetchEvent<Paint>(unit).Add([this](PaintEventArgs&& e){
@@ -271,9 +266,15 @@ TreeList::ExtractNodeName(const ValueNode& node)
 Rect
 TreeList::GetIndentBox() const
 {
-	return
-		Rect(LabelBrush.Margin.Left - UnitIndent - 2, 0, 16, GetItemHeight());
+	return Rect(LabelBrush.Margin.Left - UnitIndent - 2, 0, GetIndentBoxSize());
 }
+Rect
+TreeList::GetIndentBoxBounds(size_t idx) const
+{
+	return GetIndentBox() + Vec(GetIndentWidth(idx),
+		(ptrdiff_t(idx) - ptrdiff_t(idxShared)) * GetItemHeight());
+}
+
 SDst
 TreeList::GetIndentWidth(IndexType idx) const
 {

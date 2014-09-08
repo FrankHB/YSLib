@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2256
+\version r2276
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-09-06 12:45 +0800
+	2014-09-07 07:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,7 +156,6 @@ public:
 	/*!
 	\brief 指定共享部件的附加参数。
 	\note 用于区分光标状态记录的部件指针相等时标记不同部件。
-	\note 区分相同部件对象后立即被复位为 size_t(-1) 。
 	\sa p_CursorOver
 	\since build 532
 	*/
@@ -175,6 +174,11 @@ private:
 	*/
 	bool entered = {};
 	/*!
+	\brief 指定最近 CursorOver 中触发 Enter 事件的部件相对所在的顶层部件的位置。
+	\since build 533
+	*/
+	Point entered_top_location{};
+	/*!
 	\brief 记录需要映射的主要字符的按键编码。
 	\sa UpdateChar
 	\since build 487
@@ -184,24 +188,29 @@ private:
 	\brief 指定共享部件的附加参数的历史值。
 	\note 在区分同一个共享部件的不同部件时更新。
 	\sa WidgetIentity
-	\since build 532
+	\since build 533
 	*/
-	size_t old_widget_identity = size_t(-1);
+	size_t shared_wgt_id = size_t(-1);
 	/*!
 	\brief 光标设备指针对应的部件。
 	\since build 422
 	*/
 	IWidget* p_CursorOver = {};
 	/*!
-	\brief 独立焦点指针：自由状态时即时输入（按下）状态捕获的部件指针。
-	\since build 464
-	*/
-	IWidget* p_indp_focus = {};
-	/*!
 	\brief 级联焦点指针：缓冲最后一次通过直接策略路由事件的进入的部件状态。
 	\since build 483
 	*/
 	IWidget* p_cascade_focus = {};
+	/*!
+	\brief 指定最近 CursorOver 中触发 Enter 事件的部件所在的顶层部件。
+	\since build 533
+	*/
+	IWidget* p_entered_toplevel = {};
+	/*!
+	\brief 独立焦点指针：自由状态时即时输入（按下）状态捕获的部件指针。
+	\since build 464
+	*/
+	IWidget* p_indp_focus = {};
 
 public:
 	//! \since build 422
@@ -214,8 +223,8 @@ public:
 	//! \since build 464
 	DefGetter(const ynothrow, IWidget*, IndependentFocusPtr, p_indp_focus) \
 		//独立焦点指针。
-	//! \since build 532
-	DefGetter(const ynothrow, size_t, OldWidgetIdentity, old_widget_identity)
+	//! \since build 533
+	DefGetter(const ynothrow, size_t, SharedWidgetIdentity, shared_wgt_id)
 
 	/*!
 	\brief 检查输入保持状态。
