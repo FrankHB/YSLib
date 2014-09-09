@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2626
+\version r2674
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2014-08-28 07:44 +0800
+	2014-09-10 02:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,7 @@ namespace UI
 
 /*!
 \brief 带滚动条的文本列表框。
+\invariant <tt>dynamic_cast<TextList*>(pTextList.get())</tt> 。
 \since build 205
 \todo 实现 Resize 事件调整内容布局。
 */
@@ -59,10 +60,14 @@ public:
 
 protected:
 	/*
-	\brief 文本列表。
-	\since build 391
+	\brief 文本列表指针。
+	\since build 534
 	*/
-	TextList tlContent;
+	unique_ptr<TextList> pTextList;
+
+	//! \since build 534
+	explicit
+	ListBox(const Rect&, unique_ptr<TextList>&&);
 
 public:
 	//! \since build 337
@@ -71,41 +76,44 @@ public:
 	DefDeMoveCtor(ListBox)
 
 	//! \since build 357
-	DefWidgetMemberIterationBase(ScrollableContainer, tlContent)
+	DefWidgetMemberIterationBase(ScrollableContainer, GetTextListRef())
 
-	DefPredMem(const ynothrow, Selected, tlContent)
+	DefPredMem(const ynothrow, Selected, GetTextListRef())
 	PDefH(bool, Contains, ListType::size_type i)
-		ImplBodyMem(tlContent, Contains, i)
+		ImplBodyMem(GetTextListRef(), Contains, i)
 
-	DefGetterMem(const ynothrow, ListType::size_type, HeadIndex, tlContent)
-	DefGetterMem(const ynothrow, ListType::size_type, SelectedIndex,
-		tlContent)
-	//! \since build 392
-	DefGetterMem(const ynothrow, const ListType&, List, tlContent)
-	//! \since build 392
-	DefGetterMem(ynothrow, ListType&, ListRef, tlContent)
-	//! \brief 视图变更事件。
-	DefGetter(ynothrow, GEvent<void(ViewArgs)>&, ViewChanged,
-		tlContent.ViewChanged)
-	//! \brief 项目选择状态变更事件。
-	DefGetter(ynothrow, GEvent<void(IndexEventArgs)>&, Selected,
-		tlContent.Selected)
+	//! \since build 534
+	//@{
 	//! \brief 项目选中确定事件。
-	DefGetter(ynothrow, GEvent<void(IndexEventArgs)>&, Confirmed,
-		tlContent.Confirmed)
+	DefGetter(, GEvent<void(IndexEventArgs)>&, Confirmed,
+		GetTextListRef().Confirmed)
+	DefGetterMem(const, ListType::size_type, HeadIndex, GetTextListRef())
+	DefGetterMem(const, ListType::size_type, SelectedIndex, GetTextListRef())
+	DefGetterMem(const, const ListType&, List, GetTextListRef())
+	DefGetterMem(, ListType&, ListRef, GetTextListRef())
+	//! \brief 项目选择状态变更事件。
+	DefGetter(, GEvent<void(IndexEventArgs)>&, Selected,
+		GetTextListRef().Selected)
+	//! \brief 取文本列表引用。
+	DefGetter(const, TextList&, TextListRef,
+		(YAssertNonnull(pTextList), *pTextList))
+	//! \brief 视图变更事件。
+	DefGetter(, GEvent<void(ViewArgs)>&, ViewChanged,
+		GetTextListRef().ViewChanged)
+	//@}
 
 	/*!
 	\brief 设置文本列表。
 	\since build 292
 	*/
-	DefSetterMem(const shared_ptr<ListType>&, List, tlContent)
+	DefSetterMem(const shared_ptr<ListType>&, List, GetTextListRef())
 	/*!
 	\brief 设置选中项。
 	\sa TextList::SetSelected
-	\since build 285。
+	\since build 285
 	*/
 	PDefH(void, SetSelected, ListType::size_type i)
-		ImplBodyMem(tlContent, SetSelected, i)
+		ImplBodyMem(GetTextListRef(), SetSelected, i)
 
 	/*!
 	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
@@ -114,7 +122,7 @@ public:
 	\since build 392
 	*/
 	PDefH(void, AdjustViewForContent, )
-		ImplBodyMem(tlContent, AdjustViewForContent, )
+		ImplBodyMem(GetTextListRef(), AdjustViewForContent, )
 
 	/*!
 	\brief 调整视图长度。
@@ -122,7 +130,7 @@ public:
 	\since build 285
 	*/
 	PDefH(void, AdjustViewLength, )
-		ImplBodyMem(tlContent, AdjustViewLength, )
+		ImplBodyMem(GetTextListRef(), AdjustViewLength, )
 
 	/*!
 	\brief 清除选中项。
@@ -130,10 +138,10 @@ public:
 	\since build 285
 	*/
 	PDefH(void, ClearSelected, )
-		ImplBodyMem(tlContent, ClearSelected, )
+		ImplBodyMem(GetTextListRef(), ClearSelected, )
 
 	PDefH(void, ResetView, )
-		ImplBodyMem(tlContent, ResetView, )
+		ImplBodyMem(GetTextListRef(), ResetView, )
 
 	/*!
 	\brief 按指定大小上限和内容调整大小。
@@ -145,7 +153,7 @@ public:
 	ResizeForPreferred(const Size& sup, Size s = {});
 
 	PDefH(void, UpdateView, )
-		ImplExpr(UI::UpdateView(tlContent))
+		ImplExpr(UI::UpdateView(GetTextListRef()))
 };
 
 

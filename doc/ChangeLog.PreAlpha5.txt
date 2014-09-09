@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3380
+\version r3452
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-09-08 19:14 +0800
+	2014-09-10 02:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,78 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework.YSLib.UI $=
+	(
+		/ %TreeView $=
+		(
+			/ @ "class %TreeList" $=
+			(
+				/ $lib "optimized non branch or expanded %CursorOver handling",
+					// This reduces unnecessary highlight invalidation on \
+						indent boxes.
+				+ "default argument '= size_t(-1)'" @ "function %Bind",
+				+ "function %BindView"
+			),
+			+ "class %TreeView"
+		),
+		+ "nonnull assertion" @ "functions %(GetController, GetRenderer, \
+			GetView)" @ "class %Widget" @ %YWidget,
+		/ @ "class %ListBox" @ %ComboList $=
+		(
+			/ "implemented content control data member"
+				^ "%unique_ptr<TextList>" ~ "%TextList";
+			+ "protected constructor with parameter %unique_ptr<TextList>&&",
+			(
+			+ "function %GetTextListRef";
+			/ "implemented member functions" ^ "%GetTextListRef"
+				~ "content control data member"
+			- "all 'ynothrow'" @ "member functions calling %GetTextListRef"
+			)
+		),
+		* "missing call of %ResetView after expanding or collapsing branches"
+			@ "class %TreeList" $since b531
+	),
+	/ $dev $doc $term "normalized" $=
+	(
+		/ "all 7 '额外说明', 19 '另有说明', 11 '另行说明', 2 '另外说明'"
+			-> '另行约定',
+		/ "all 3 '附加说明' exception in Doxygen directive" -> '另行约定',
+		/ "normalized by explicitly filtered regular expression \
+			pattern '[^ （，例形]如[^ 上下何果]', \
+			'若无[^法效(歧义)(容器)(父部件)]'" $=
+		(
+			/ "all 20 '如无'" -> '若无';
+			(
+			/ "all '若无另行'" -> '除非另行';
+			/ "other 3 '若无'" -> '除非',
+			),
+			/ "other prepositions rewriting performed"
+				// E.g. "'如' as prefix of a sentence" -> ('若'|'例如').
+		),
+		/ "all '特别(说明|指明)'" -> '另行约定',
+		/ "all 4 '统一赋值'" -> '合一赋值'
+			// To be same as in %Documentation::CommonRules;
+	),
+	/ %YReader $=
+	(
+		(
+		$dep_from %YFramework.YSLib.UI.TreeView;
+		+ "classes %(TreeList, TreeView) support"
+			@ "function %FetchWidgetLoader" @ %Shells
+		),
+		/ @ "constructor %ShlExplorer" @ %ShlExplorer $=
+		(
+			* $design "spelling error" @ "trace string" $since b512,
+			(
+			$dep_from %Shells;
+			+ "test for class %TreeView"
+			)
+		)
+	)
+),
+
+b533
 (
 	/ %YFrameowrk.YSLib.UI $=
 	(
@@ -562,7 +634,7 @@ b527
 				/ @ "class %MTextList" $=
 				(
 					/ "protected data member %lblShared" -> "public %Unit",
-					/ DLD "implementation" @ "member function %Refresh"
+					/ DLD "implementation" @ "function %Refresh"
 						// Note now the unit widget state is not updated on \
 							%Refresh.
 					- $revert(b524) "data member %(Font, Margin)",

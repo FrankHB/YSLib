@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1174
+\version r1175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-08-07 09:34 +0800
+	2014-09-09 20:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ namespace Drawing
 	Plot* 以 BitmapPtr 为首参数，为绘制操作；
 	Draw* 以 const Graphics& 为首参数，为描画操作，
 	Fill* 参数同 Draw* ，为填充操作。
-	以上接口的第二个参数若为 const Rect& ，未特别说明则表示绘制边界，
+	以上接口的第二个参数若为 const Rect& ，除非另行约定，否则表示绘制边界，
 	运行时忽略越界的状态修改；若首参数同时为 const Graphics& ，
 	则断言此边界包含于 Graphics 指定缓冲区的边界。
 */

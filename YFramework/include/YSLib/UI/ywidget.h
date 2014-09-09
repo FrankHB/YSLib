@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5712
+\version r5718
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-09-03 14:04 +0800
+	2014-09-09 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -444,10 +444,13 @@ public:
 	*/
 	static HBrush
 	MakeBlankBrush();
-	DefGetter(const ImplI(IWidget), AController&, Controller, *controller_ptr)
+	DefGetter(const ImplI(IWidget), AController&, Controller,
+		(YAssertNonnull(controller_ptr), *controller_ptr))
 	DefGetterMem(const ynothrow, SDst, Height, GetView())
-	DefGetter(const ImplI(IWidget), Renderer&, Renderer, *renderer_ptr)
-	DefGetter(const ImplI(IWidget), View&, View, *view_ptr)
+	DefGetter(const ImplI(IWidget), Renderer&, Renderer,
+		(YAssertNonnull(renderer_ptr), *renderer_ptr))
+	DefGetter(const ImplI(IWidget), View&, View,
+		(YAssertNonnull(view_ptr), *view_ptr))
 	DefGetterMem(const ynothrow, SDst, Width, GetView())
 	DefGetterMem(const ynothrow, SPos, X, GetView())
 	DefGetterMem(const ynothrow, SPos, Y, GetView())

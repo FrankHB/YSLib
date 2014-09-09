@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1983
+\version r1984
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2014-08-28 17:53 +0800
+	2014-09-09 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,7 +112,7 @@ public:
 	PDefHOp(Message&, =, ValueObject&& c) ynothrow
 		ImplRet(content = std::move(c), *this)
 	/*
-	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
 	\since build 331
 	*/
 	PDefHOp(Message&, =, Message msg) ynothrow

@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r400
+\version r414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2014-09-08 11:31 +0800
+	2014-09-10 01:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,20 +205,25 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 						Collapse(idxShared);
 					}
 				}
+				ResetView();
 			}
 		}
 	},
 	FetchEvent<CursorOver>(unit) += [this](CursorEventArgs&& e)
 	{
-		const Rect& box(GetIndentBoxBounds(idxShared));
-		const auto old(idxCursorOver);
+		if(CheckNodeState(idxShared) != NodeState::None)
+		{
+			const Rect& box(GetIndentBoxBounds(idxShared));
+			const auto old(idxCursorOver);
 
-		idxCursorOver = box.Contains(e) ? idxShared : size_t(-1);
-		if(old != idxCursorOver)
-			Invalidate(e.GetSender(), box);
+			idxCursorOver = box.Contains(e) ? idxShared : size_t(-1);
+			if(old != idxCursorOver)
+				Invalidate(e.GetSender(), box);
+		}
 	},
 	FetchEvent<Leave>(unit) += [this](CursorEventArgs&& e){
-		if(idxCursorOver != size_t(-1))
+		if(idxCursorOver != size_t(-1)
+			&& CheckNodeState(idxCursorOver) != NodeState::None)
 		{
 			Invalidate(e.GetSender(), GetIndentBoxBounds(idxCursorOver));
 			idxCursorOver = size_t(-1);
@@ -364,6 +369,11 @@ TreeList::CheckNodeState(IndexType idx) const
 	}
 	return NodeState::None;
 }
+
+
+TreeView::TreeView(const Rect& r, const shared_ptr<ListType>& h)
+	: ListBox(r, unique_ptr<TextList>(new TreeList(Rect(r.GetSize()), h)))
+{}
 
 } // namespace UI;
 

@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r158
+\version r217
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2014-09-07 22:00 +0800
+	2014-09-10 02:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,9 @@
 #define YSL_INC_UI_TreeView_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_ListControl
+#include YFM_YSLib_UI_ComboList
 #include YFM_YSLib_Core_ValueNode // for YSLib::ValueNode;
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace YSLib
 {
@@ -43,6 +44,7 @@ namespace UI
 \note 展开或收缩节点不保证强异常安全性：若抛出异常则未指定状态（可能不一致）。
 \warning 使用 SetList 或 GetListRef 替换列表或减少列表元素后不保证状态一致，
 	可能导致未定义行为。
+\warning 若修改 idxShared 则不保证状态一致。
 \since build 531
 */
 class YF_API TreeList : public TextList
@@ -62,8 +64,6 @@ public:
 	//! \since build 532
 	using NodePath = vector<IndexType>;
 
-	//! \warning 若修改 idxShared 则不保证状态一致。
-	//@{
 	//! \brief 收缩节点后的回调。
 	GEvent<void(IndexType)> Collapse;
 	//! \brief 展开节点前的回调。
@@ -75,8 +75,10 @@ public:
 	\since build 532
 	*/
 	Color CursorOverColor{39, 199, 247};
-	//@}
-	//! \brief 数据源。
+	/*!
+	\brief 数据源。
+	\warning 修改当前已展开的节点不保证状态一致；减少节点可能导致未定义行为。
+	*/
 	ValueNode TreeRoot{};
 	//! \brief 单元缩进：指定在界面上显示层次的水平距离和缩进值的比。
 	SDst UnitIndent = 16;
@@ -135,11 +137,21 @@ public:
 	GetNodeRef(IndexType) const;
 
 	/*!
-	\brief 绑定数据源，展开不超过指定深度节点。
+	\brief 绑定数据源，展开不超过指定深度的节点。
 	\note 清除未指定的不一致状态；不调用事件。
+	\since build 534
 	*/
 	void
-	Bind(size_t);
+	Bind(size_t = size_t(-1));
+
+	/*!
+	\brief 绑定数据源并更新视图。
+	\sa Bind
+	\sa TextList::ResetView
+	\since build 534
+	*/
+	PDefH(void, BindView, size_t max_depth = size_t(-1))
+		ImplExpr(Bind(max_depth), ResetView())
 
 	NodeState
 	CheckNodeState(IndexType) const;
@@ -149,6 +161,52 @@ public:
 
 	static String
 	ExtractNodeName(const ValueNode&);
+};
+
+
+/*!
+\brief 带滚动条的树形视图。
+\invariant dynamic_cast<TreeList*>(pTextList.get())
+\since build 534
+\todo 实现 Resize 事件调整内容布局。
+*/
+class YF_API TreeView : public ListBox
+{
+public:
+	using NodePath = TreeList::NodePath;
+	using IndentMap = TreeList::IndentMap;
+
+	explicit
+	TreeView(const Rect& = {}, const shared_ptr<ListType>& = {});
+	DefDeMoveCtor(TreeView)
+
+	DefGetter(, GEvent<void(IndexType)>&, Collapse, GetTreeListRef().Collapse)
+	DefGetter(, GEvent<void(IndexType)>&, Expand, GetTreeListRef().Expand)
+	DefGetter(, std::function<String(const ValueNode&)>&, ExtractText,
+		GetTreeListRef().ExtractText)
+	DefGetterMem(const, Rect, IndentBox, GetTreeListRef())
+	PDefH(Rect, GetIndentBoxBounds, IndexType idx) const
+		ImplRet(GetTreeListRef().GetIndentBoxBounds(idx))
+	DefGetterMem(const ynothrow, Size, IndentBoxSize, GetTreeListRef())
+	DefGetterMem(const ynothrow, const IndentMap&, IndentMap, GetTreeListRef())
+	PDefH(SDst, GetIndentWidth, IndexType idx) const
+		ImplRet(GetTreeListRef().GetIndentWidth(idx))
+	PDefH(NodePath, GetNodePath, IndexType idx) const
+		ImplRet(GetTreeListRef().GetNodePath(idx))
+	PDefH(const ValueNode&, GetNodeRef, IndexType idx) const
+		ImplRet(GetTreeListRef().GetNodeRef(idx))
+	DefGetter(const, TreeList&, TreeListRef,
+		*ystdex::polymorphic_downcast<TreeList*>(pTextList.get()))
+	DefGetter(const, ValueNode&, TreeRootRef, GetTreeListRef().TreeRoot)
+
+	PDefH(void, Bind, size_t max_depth = size_t(-1))
+		ImplExpr(GetTreeListRef().Bind(max_depth))
+
+	PDefH(void, BindView, size_t max_depth = size_t(-1))
+		ImplExpr(GetTreeListRef().BindView(max_depth))
+
+	PDefH(void, CheckNodeState, IndexType idx)
+		ImplExpr(GetTreeListRef().CheckNodeState(idx))
 };
 
 } // namespace UI;

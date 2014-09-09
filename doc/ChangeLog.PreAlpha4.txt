@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8283
+\version r8286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-09-01 20:02 +0800
+	2014-09-09 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -533,7 +533,7 @@ b495
 				(
 					* "wrong initial bar height bar" $since b494
 						$= (/ "data member order"),
-					/ @ "member function %operator[]" $=
+					/ @ "function %operator[]" $=
 					(
 						+ "assertion for pointer",
 						* "invalid use of %std::initializer_list as a prvalue \
@@ -545,7 +545,7 @@ b495
 								value retrived and a crash when using \
 								YFramework DLL.
 					),
-					+ "member function %UpdateTabPages",
+					+ "function %UpdateTabPages",
 					(
 					+ 'const' @ "function %GetTabBarRef",
 					(
@@ -4834,7 +4834,7 @@ b432
 					+ "2 function templates %AccessChildPtr"
 				),
 				* $dev "missing excluding of 'GEvent&'" @ %GEvent
-					@ "member template %operator= with 1 function parameter"
+					@ "template %operator= with 1 function parameter"
 					@ "class template %GEvent" $since b293
 					// This would cause recursive calls by self.
 			),
