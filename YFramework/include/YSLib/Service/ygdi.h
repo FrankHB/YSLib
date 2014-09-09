@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3702
+\version r3703
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-09-03 13:59 +0800
+	2014-09-09 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -228,7 +228,7 @@ public:
 	}
 
 	/*
-	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
 	\since build 476
 	*/
 	PDefHOp(CompactPixmap&, =, CompactPixmap msg) ynothrow

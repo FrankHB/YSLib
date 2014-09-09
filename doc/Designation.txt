@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9460
+\version r9464
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-09-03 14:29 +0800
+	2014-09-09 20:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
  YSLib 项目(the YSLib project) 包括 YFramework 和 YBase([Documentation::YBase]) 。
-本文档适用于 YFramework 的开发。除非有特别说明，编码细节和其它规范也适用于 YBase 。
+本文档适用于 YFramework 的开发。除非另行约定，编码细节和其它规范也适用于 YBase 。
 
 @1 设计：
 
@@ -295,7 +295,7 @@ Shell 和 Core 的关系是相对的，例如：
  YSLib 项目的依赖项都是库，其中一部分是不由 YSLib 项目维护的第三方的外部依赖项。
 外部依赖项中，系统库（ system library ，符合 GNU GPL v2 和 v3 条例定义）在平台配置中描述，可被所有非外部依赖项。
 其它外部依赖项都被 YFramework 引用，如 FreeType2(@5.4.1) 。
-以下如无特别说明，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
+以下除非另行约定，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
 @5.1 平台配置：
 关于平台的详细含义参见 [Documentation::ProjectRules @@1.2] 。
@@ -339,7 +339,7 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 @5.2.2 YCLib ：
  YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.4.1 ）。
  YCLib 允许平台中立的接口具有实现定义的行为差异。平台中立的接口的对应实体一般位于 namespace platform 。
-除非另有说明， YCLib 仅保证非成员或静态成员函数的线程安全性。
+除非另行约定， YCLib 仅保证非成员或静态成员函数的线程安全性。
 平台定义文件 Platform.h(@5.2.4.4.1) 不包含其它文件。
 
 @5.2.2.1 环境资源占用：
@@ -382,7 +382,7 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
  YCLib::Viedo 的 PixelType 满足 EqualityComparable 要求。
 
 @5.2.2.6 命名空间 platform ：
-命名空间 platform 中除以下另有说明外的实体和宏保持各个平台中可用且语义一致。
+命名空间 platform 中除以下另行约定外的实体和宏保持各个平台中可用且语义一致。
 
 @5.2.2.6.1 命名空间 platform::KeyCodes
 命名空间 platform::KeyCodes 用于公开输入设备的按键设置。其中的成员的一部分满足平台中立接口。

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r211
+\version r212
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-09-03 14:57 +0800
+	2014-09-09 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@
 注意 YDefinition 实现及判断语言特性的接口可能依赖具体语言实现的特性限制。
 关于当前允许使用的非 ISO C++03 扩展参见 [Documentation::Designation @1.3.2.1] 。
 尽量严格遵守 ISO C++11 ，涉及未确定行为和实现定义的行为时应附文档说明。
-除非另有说明， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
+除非另行约定， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
 除非有显著性能问题，否则非成员或静态成员接口应保证线程安全性。
 不降低性能时尽量保证可重入性。
 

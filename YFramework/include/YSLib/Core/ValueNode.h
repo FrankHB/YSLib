@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1530
+\version r1531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-09-01 20:10 +0800
+	2014-09-09 23:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,7 +129,7 @@ public:
 	DefDeMoveCtor(ValueNode)
 
 	/*
-	\brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
 	\since build 502
 	*/
 	PDefHOp(ValueNode&, =, ValueNode node) ynothrow

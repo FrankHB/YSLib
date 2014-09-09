@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r316
+\version r320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2014-09-03 13:48 +0800
+	2014-09-09 20:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,8 +194,8 @@
 历史记录、版本信息和构建方法详见 "3rdparty/freetype/Readme.en-US.txt" 。
 
 @2.2.1 使用版本：
-以下库配置若之前版本已存在，除非另行说明，保持不变。
-除非另行说明，使用当时 devkitPro(@1.4) 自行编译 DS 库文件，使用当时 MinGW32(@1.5) 自行编译 MinGW32 库文件。
+以下库配置若之前版本已存在，除非另行约定，保持不变。
+除非另行约定，使用当时 devkitPro(@1.4) 自行编译 DS 库文件，使用当时 MinGW32(@1.5) 自行编译 MinGW32 库文件。
 
 @2.2.2 DS 库配置：
  build 185 前：
@@ -295,8 +295,8 @@ AUX_MODULES += gzip
 历史记录、版本信息和构建方法详见 "3rdparty/FreeImage/Readme.en-US.txt" 。
 
 @2.4.1 使用版本：
-以下库配置若之前版本已存在，除非另行说明，保持不变。
-除非另行说明，使用当时 devkitPro(@1.4) 自行编译 DS 库文件，使用当时 MinGW32(@1.5) 自行编译 MinGW32 库文件。
+以下库配置若之前版本已存在，除非另行约定，保持不变。
+除非另行约定，使用当时 devkitPro(@1.4) 自行编译 DS 库文件，使用当时 MinGW32(@1.5) 自行编译 MinGW32 库文件。
  2013-06-26(build 417) 起：
 使用裁剪的 FreeImage 3.15.4 。对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
  2013-07-21(build 431) 起：

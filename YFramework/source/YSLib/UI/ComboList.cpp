@@ -11,13 +11,13 @@
 /*!	\file ComboList.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r3189
+\version r3227
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:33:05 +0800
 \par 修改时间:
-	2014-08-24 16:05 +0800
+	2014-09-10 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,66 +39,71 @@ namespace UI
 
 namespace
 {
-	const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
-//	const SDst defMinScrollBarHeight(16); //!< 默认最小滚动条高。
+
+const SDst defMinScrollBarWidth(16); //!< 默认最小滚动条宽。
 
 
-	/*!
-	\brief 从容器分离指定部件并无效化部件区域。
-	\since build 282
-	*/
-	void
-	Detach(IWidget* pCon, IWidget& wgt)
+/*!
+\brief 从容器分离指定部件并无效化部件区域。
+\since build 282
+*/
+void
+Detach(IWidget* pCon, IWidget& wgt)
+{
+	if(const auto p = dynamic_cast<Panel*>(pCon))
 	{
-		if(const auto p = dynamic_cast<Panel*>(pCon))
-		{
-			Invalidate(wgt);
-			*p -= wgt;
-		}
+		Invalidate(wgt);
+		*p -= wgt;
 	}
 }
 
+} // unnamed namespace;
 
-ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
+
+ListBox::ListBox(const Rect& r, unique_ptr<TextList>&& p_textlist)
 	: ScrollableContainer(r),
-	tlContent(Rect(r.GetSize()), h)
+	pTextList(std::move(p_textlist))
 {
 	Background = nullptr,
-	SetContainerPtrOf(tlContent, this),
+	SetContainerPtrOf(GetTextListRef(), this),
 	vsbVertical.GetTrackRef().Scroll += [this](ScrollEventArgs&& e){
-		tlContent.LocateViewPosition(SDst(round(e.GetValue())));
+		GetTextListRef().LocateViewPosition(SDst(round(e.GetValue())));
 	},
-	tlContent.ViewChanged += [this](ViewArgs&& e){
+	GetTextListRef().ViewChanged += [this](ViewArgs&& e){
 		if(!e.Value && GetWidth() > defMinScrollBarWidth)
 		{
 			const Size view_arena(GetWidth() - defMinScrollBarWidth,
-				tlContent.GetFullViewHeight());
+				GetTextListRef().GetFullViewHeight());
 
-			SetSizeOf(tlContent, FixLayout(view_arena));
-			if(view_arena.Height > tlContent.GetHeight())
+			SetSizeOf(GetTextListRef(), FixLayout(view_arena));
+			if(view_arena.Height > GetTextListRef().GetHeight())
 			{
-				vsbVertical.SetSmallDelta(tlContent.GetItemHeight());
+				vsbVertical.SetSmallDelta(GetTextListRef().GetItemHeight());
 				vsbVertical.SetMaxValue(view_arena.Height
-					- tlContent.GetHeight());
-				vsbVertical.SetLargeDelta(tlContent.GetHeight());
-				vsbVertical.SetValue(tlContent.GetViewPosition());
+					- GetTextListRef().GetHeight());
+				vsbVertical.SetLargeDelta(GetTextListRef().GetHeight());
+				vsbVertical.SetValue(GetTextListRef().GetViewPosition());
 			}
 		}
 	},
-	RequestFocus(tlContent);
+	RequestFocus(GetTextListRef());
 	// NOTE: Text state refreshed for correctly showing scroll bars.
 	ResetView();
 }
+ListBox::ListBox(const Rect& r, const shared_ptr<ListType>& h)
+	: ListBox(r, make_unique<TextList>(Rect(r.GetSize()), h))
+{}
 
 void
 ListBox::ResizeForPreferred(const Size& sup, Size s)
 {
 	if(s.Width == 0)
-		s.Width = FetchMaxTextWidth(tlContent.LabelBrush.Font,
-			tlContent.GetList().cbegin(), tlContent.GetList().cend())
-			+ GetHorizontalOf(tlContent.LabelBrush.Margin);
+		s.Width = FetchMaxTextWidth(GetTextListRef().LabelBrush.Font,
+			GetTextListRef().GetList().cbegin(),
+			GetTextListRef().GetList().cend())
+			+ GetHorizontalOf(GetTextListRef().LabelBrush.Margin);
 	if(s.Height == 0)
-		s.Height = tlContent.GetFullViewHeight();
+		s.Height = GetTextListRef().GetFullViewHeight();
 	if(sup.Width != 0 && s.Width > sup.Width)
 		s.Width = sup.Width;
 	if(sup.Height != 0 && s.Height > sup.Height)
@@ -108,7 +113,7 @@ ListBox::ResizeForPreferred(const Size& sup, Size s)
 			s.Width = sup.Width;
 	}
 	SetSizeOf(*this, s);
-	SetSizeOf(tlContent, FixLayout(s));
+	SetSizeOf(GetTextListRef(), FixLayout(s));
 	UpdateView();
 }
 

@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r827
+\version r829
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-09-03 14:06 +0800
+	2014-09-09 23:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -343,7 +343,7 @@ public:
 
 	//! \since build 430
 	//@{
-	//! \brief 统一赋值：使用值参数和交换函数进行复制或转移赋值。
+	//! \brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
 	HBitmap&
 	operator=(HBitmap pixmap) ynothrow
 	{
@@ -415,7 +415,7 @@ public:
 
 	/*!
 	\return 是否保存成功。
-	\since build 471 。
+	\since build 471
 	*/
 	//@{
 	//!\ brief 保存：使用指定 UTF-8 文件名、格式和解码器标识。

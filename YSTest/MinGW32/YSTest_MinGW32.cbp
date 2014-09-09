@@ -19,10 +19,10 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="..\..\build\MinGW32\YFramework\debug\libYFrameworkd.a" />
-					<Add library="..\..\YFramework\MinGW32\lib\libFreeImage.a" />
-					<Add library="..\..\YFramework\MinGW32\lib\libfreetype.a" />
-					<Add library="..\..\build\MinGW32\YBase\debug\libYBased.a" />
+					<Add library="../../build/MinGW32/YFramework/debug/libYFrameworkd.a" />
+					<Add library="../../YFramework/MinGW32/lib/libFreeImage.a" />
+					<Add library="../../YFramework/MinGW32/lib/libfreetype.a" />
+					<Add library="../../build/MinGW32/YBase/debug/libYBased.a" />
 					<Add library="gdi32" />
 					<Add library="imm32" />
 					<Add library="winmm" />
@@ -46,10 +46,10 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="..\..\build\MinGW32\YFramework\release\libYFramework.a" />
-					<Add library="..\..\YFramework\MinGW32\lib\libFreeImage.a" />
-					<Add library="..\..\YFramework\MinGW32\lib\libfreetype.a" />
-					<Add library="..\..\build\MinGW32\YBase\release\libYBase.a" />
+					<Add library="../../build/MinGW32/YFramework/release/libYFramework.a" />
+					<Add library="../../YFramework/MinGW32/lib/libFreeImage.a" />
+					<Add library="../../YFramework/MinGW32/lib/libfreetype.a" />
+					<Add library="../../build/MinGW32/YBase/release/libYBase.a" />
 					<Add library="gdi32" />
 					<Add library="imm32" />
 					<Add library="winmm" />
@@ -70,8 +70,8 @@
 					<Add option="-DYF_DLL" />
 				</Compiler>
 				<Linker>
-					<Add library="..\..\build\MinGW32\YFramework\debug\YFrameworkd.dll" />
-					<Add library="..\..\build\MinGW32\YBase\debug\YBased.dll" />
+					<Add library="../../build/MinGW32/YFramework/debug/YFrameworkd.dll" />
+					<Add library="../../build/MinGW32/YBase/debug/YBased.dll" />
 				</Linker>
 				<ExtraCommands>
 					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YBase\debug\YBased.dll&quot; &quot;..\..\build\MinGW32\YSTest\debug\YBased.dll&quot;' />
@@ -97,8 +97,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="..\..\build\MinGW32\YFramework\release\YFramework.dll" />
-					<Add library="..\..\build\MinGW32\YBase\release\YBase.dll" />
+					<Add library="../../build/MinGW32/YFramework/release/YFramework.dll" />
+					<Add library="../../build/MinGW32/YBase/release/YBase.dll" />
 				</Linker>
 				<ExtraCommands>
 					<Add before='CMD /C ECHO F | XCOPY /D /Y &quot;..\..\build\MinGW32\YBase\release\YBase.dll&quot; &quot;..\..\build\MinGW32\YSTest\release\YBase.dll&quot;' />

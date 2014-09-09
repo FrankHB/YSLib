@@ -11,13 +11,13 @@
 /*!	\file Shells.cpp
 \ingroup YReader
 \brief Shell 框架逻辑。
-\version r6359
+\version r6371
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-06 21:38:16 +0800
 \par 修改时间:
-	2014-07-22 16:11 +0800
+	2014-09-10 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,19 +134,20 @@ FetchWidgetLoader()
 	{
 		Init()
 		{
-			wgt_ldr.Default.Register<Widget, Control, Panel, Window, Label,
-				Button, CheckButton, RadioButton, DropDownList, FileBox,
-				TextBox, TabBar, TabControl>({"Widget", "Control", "Panel",
-				"Window", "Label", "Button", "CheckButton", "RadioButton",
-				"DropDownList", "FileBox", "TextBox", "TabBar", "TabControl"}),
-			wgt_ldr.Bounds.Register<Widget, Control, Panel, Window, Label,
-				Button, CheckButton, RadioButton, DropDownList, FileBox,
-				TextBox, TabBar, TabControl>({"Widget", "Control", "Panel",
-				"Window", "Label", "Button", "CheckButton", "RadioButton",
-				"DropDownList", "FileBox", "TextBox", "TabBar", "TabControl"}),
+#define YSL_RegWidget Widget, Control, Panel, Window, Label, \
+	Button, CheckButton, RadioButton, DropDownList, FileBox, \
+	TextBox, TabBar, TabControl, TreeList, TreeView
+#define YSL_RegWidget_Str {"Widget", "Control", "Panel", "Window", "Label", \
+	"Button", "CheckButton", "RadioButton", "DropDownList", "FileBox", \
+	"TextBox", "TabBar", "TabControl", "TreeList", "TreeView"}
+
+			wgt_ldr.Default.Register<YSL_RegWidget>(YSL_RegWidget_Str),
+			wgt_ldr.Bounds.Register<YSL_RegWidget>(YSL_RegWidget_Str),
 			wgt_ldr.Insert.Register<Panel, TabBar, TabControl>({"Panel",
 				"TabBar", "TabControl"}),
 			wgt_ldr.InsertZOrdered.Register<Panel>({"Panel"});
+#undef YSL_RegWidget_Str
+#undef YSL_RegWidget
 		}
 	} obj;
 
