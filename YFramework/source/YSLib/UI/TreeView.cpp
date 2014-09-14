@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r414
+\version r415
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2014-09-10 01:27 +0800
+	2014-09-10 19:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -205,7 +205,7 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 						Collapse(idxShared);
 					}
 				}
-				ResetView();
+				UpdateView(*this);
 			}
 		}
 	},

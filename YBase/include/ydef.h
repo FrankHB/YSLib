@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2514
+\version r2552
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2014-09-03 13:40 +0800
+	2014-09-14 16:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,9 +121,15 @@
 #ifndef __has_extension
 #	define __has_extension(...) 0
 #endif
+
+//! \since build 535
+#ifndef __has_builtin
+#	define __has_builtin(...) 0
+#endif
 //@}
 
 #include <cstddef> // for std::nullptr_t, std::size_t, std::ptrdiff_t, offsetof;
+#include <cstdlib> // for std::abort;
 #include <climits> // for CHAR_BIT;
 #include <cassert> // for assert;
 #include <cstdint>
@@ -154,13 +160,13 @@
 注意 ISO/IEC C++ 未确定宏定义内 # 和 ## 操作符求值顺序。
 注意 GCC 中，宏定义内 ## 操作符修饰的形式参数为宏时，此宏不会被展开。
 */
-#define YPP_Join(x, y) YPP_Concat(x, y)
+#define YPP_Join(_x, _y) YPP_Concat(_x, _y)
 
 /*
 \brief 记号连接。
 \sa YPP_Join
 */
-#define YPP_Concat(x, y) x ## y
+#define YPP_Concat(_x, _y) _x ## _y
 //@}
 
 
@@ -245,6 +251,19 @@
 //@}
 
 
+/*!
+\def YB_ABORT
+\brief 非正常终止程序。
+\note 可能使用体系结构相关实现或标准库 std::abort 函数等。
+\since build 535
+*/
+#if __has_builtin(__builtin_trap) || YB_IMPL_GNUCPP >= 40203
+#	define YB_ABORT __builtin_trap()
+#else
+#	define YB_ABORT std::abort()
+#endif
+
+
 /*!	\defgroup lang_impl_hints Language Implementation Hints
 \brief 语言实现的提供的附加提示。
 \since build 294
@@ -252,7 +271,6 @@
 保证忽略时不导致运行时语义差异的提示，主要用于便于实现可能的优化。
 */
 //@{
-
 /*!
 \def YB_ATTR
 \brief 属性。
@@ -282,6 +300,21 @@
 #endif
 
 /*!
+\def YB_ASSUME(expr)
+\brief 假定表达式总是成立。
+\note 若假定成立有利于优化。
+\warning 若假定不成立则行为未定义。
+\since build 535
+*/
+#if YB_IMPL_MSCPP >= 1200
+#	define YB_ASSUME(_expr) __assume(_expr)
+#elif __has_builtin(__builtin_unreachable) || YB_IMPL_GNUCPP >= 40500
+#	define YB_ASSUME(_expr) (_expr) ? void(0) : __builtin_unreachable()
+#else
+#	define YB_ASSUME(_expr) (_expr) ? void(0) : YB_ABORT
+#endif
+
+/*!
 \def YB_EXPECT(expr, constant)
 \def YB_LIKELY(expr)
 \def YB_UNLIKELY(expr)
@@ -289,13 +322,13 @@
 \since build 313
 */
 #if YB_IMPL_GNUCPP >= 29600
-#	define YB_EXPECT(expr, constant) (__builtin_expect(expr, constant))
-#	define YB_LIKELY(expr) (__builtin_expect(bool(expr), 1))
-#	define YB_UNLIKELY(expr) (__builtin_expect(bool(expr), 0))
+#	define YB_EXPECT(_expr, _constant) (__builtin_expect(_expr, _constant))
+#	define YB_LIKELY(_expr) (__builtin_expect(bool(_expr), 1))
+#	define YB_UNLIKELY(_expr) (__builtin_expect(bool(_expr), 0))
 #else
-#	define YB_EXPECT(expr, constant) (expr)
-#	define YB_LIKELY(expr) (expr)
-#	define YB_UNLIKELY(expr) (expr)
+#	define YB_EXPECT(_expr, _constant) (_expr)
+#	define YB_LIKELY(_expr) (_expr)
+#	define YB_UNLIKELY(_expr) (_expr)
 #endif
 
 /*!

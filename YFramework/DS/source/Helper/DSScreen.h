@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r436
+\version r437
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-06-10 22:44 +0800
+	2014-09-10 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -45,7 +45,7 @@ namespace Devices
 
 /*!
 \brief DS 屏幕。
-\since 早于 build 218 。
+\since 早于 build 218
 */
 class DSScreen : public Screen
 {

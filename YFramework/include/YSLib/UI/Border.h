@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r166
+\version r167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2014-09-03 14:00 +0800
+	2014-09-10 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,7 +132,7 @@ public:
 	\since build 445
 	*/
 	bool HostMode = {};
-	//! \since 指定边框相对部件边界以内的范围的边距。
+	//! \brief 指定边框相对部件边界以内的范围的边距。
 	Drawing::Padding Margin;
 	/*!
 	\brief 指定部件应该保持的最小大小。

@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1455
+\version r1456
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-07-17 04:06 +0800
+	2014-09-10 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -241,7 +241,7 @@ public:
 	/*!
 	\brief 转移构造。
 	\note 不一定保证无异常抛出；不被 ystdex::any 直接使用。
-	\since build 352 。
+	\since build 352
 	*/
 	value_holder(_type&& value) ynoexcept(ynoexcept(_type(std::move(value))))
 		: held(std::move(value))

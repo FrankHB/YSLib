@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9464
+\version r9465
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-09-09 20:19 +0800
+	2014-09-11 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -450,6 +450,7 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 组(group) 相关指令（ \defgroup 、 \ingroup 、 \name 等）、实体标识指令（ \def 、 \fn 等）以及 \author 、\par 、 \sa 、 \since 、 \version 不使用句为单位（不使用全角标点）；其它指令后的内容以句为单位（对中文注释以全角标点结束；不成句的不视为完整的注释）。
  \defgroup 指令在所有文件中应保持无歧义地出现一次以避免错误。
  \par 指令以半角“:”结尾。
+ \sa 指定的名称在注释出现的声明区域按 ISO C++ 规则进行名称查找，同时使用 ADL 相关规则([Documentation::CommonRules @@5.3.3.1]) 。
 实体注释中详细注释放在最后，和之前的指令相隔一个空行。
 
 @6.1.4 指令格式和顺序：

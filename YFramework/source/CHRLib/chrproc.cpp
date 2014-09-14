@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1221
+\version r1237
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-05-23 10:08 +0800
+	2014-09-13 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,6 @@
 #include <cstdlib>
 #include <cwchar>
 #include <ystdex/cstdio.h>
-#include <ystdex/cstring.h>
 #include <ystdex/memory.hpp> // for ystdex::make_unique;
 #include YFM_CHRLib_Convert
 
@@ -159,36 +158,26 @@ UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
 
 
 std::string
-strdup(const ucs2_t* s, Encoding enc)
+strdup(const ucs2_t* s, size_t n, Encoding enc)
 {
 	yconstraint(s);
 
-	const auto str(make_unique<char[]>(
-		ntctslen(s) * sizeof(ucsint_t) / sizeof(ucs2_t) + 1));
+	const auto w(FetchMaxVariantCharWidth(enc));
+	const auto
+		str(make_unique<char[]>(n * (w == 0 ? sizeof(ucsint_t) : w) + 1));
 
 	UCS2ToMBCS(&str[0], s, enc);
 	return &str[0];
 }
 
 std::basic_string<ucs2_t>
-ucsdup(const char* s, Encoding enc)
+ucsdup(const char* s, size_t n, Encoding enc)
 {
 	yconstraint(s);
 
-	const auto str(make_unique<ucs2_t[]>(ntctslen(s) + 1));
+	const auto str(make_unique<ucs2_t[]>(n + 1));
 
 	MBCSToUCS2(&str[0], s, enc);
-	return &str[0];
-}
-std::basic_string<ucs2_t>
-ucsdup(const ucs2_t* s)
-{
-	yconstraint(s);
-
-	const size_t n(ntctslen(s) + 1U);
-	const auto str(make_unique<ucs2_t[]>(n));
-
-	std::copy_n(s, n, &str[0]);
 	return &str[0];
 }
 std::basic_string<ucs2_t>
