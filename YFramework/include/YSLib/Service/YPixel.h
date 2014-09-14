@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r702
+\version r713
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2014-07-20 11:29 +0800
+	2014-09-10 19:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -563,11 +563,12 @@ BlendCore(u32 d, u32 s, u8 a)
 \brief 像素混合：使用指定的源 Alpha 。
 \note 背景透明，输出 Alpha 饱和。
 \note 使用引用传递像素类型以便优化。
-\sa BlendComponent
+\sa Drawing::BlendComponent
 \since build 442
 \todo 支持浮点数。
 */
 //@{
+//! \note 使用 ADL <tt>BlendComponent</tt> 指定混合像素分量。
 template<size_t _vSrcAlphaBits, typename _tPixel, typename _tSrcAlphaInt>
 yconstfn _tPixel
 Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
@@ -579,6 +580,7 @@ Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 		BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa), BlendComponent<
 		_vSrcAlphaBits>(d.GetB(), s.GetB(), sa), (1 << _vSrcAlphaBits) - 1);
 }
+//! \note 使用 ADL <tt>BlendCore</tt> 代理混合像素调用。
 template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
 RGBA<5, 5, 5, 1>
 Blend(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s, _tSrcAlphaInt sa)
@@ -592,12 +594,15 @@ Blend(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s, _tSrcAlphaInt sa)
 
 /*!
 \note 使用引用传递像素类型以便优化。
-\sa CompositeComponent
+\sa Drawing::CompositeComponent
 \since build 442
 \todo 支持浮点数。
 */
 //@{
-//! \brief 像素组合：使用指定的源 Alpha 和结果 Alpha 。
+/*
+\brief 像素组合：使用指定的源 Alpha 和结果 Alpha 。
+\note 使用 ADL <tt>CompositeComponent</tt> 指定组合像素分量。
+*/
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 	typename _tSrcAlphaInt, typename _tAlphaInt>
 yconstfn _tPixel
@@ -613,6 +618,8 @@ Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa, _tAlphaInt a)
 		d.GetG(), s.GetG(), sa, a), CompositeComponent<_vDstAlphaBits,
 		_vSrcAlphaBits>(d.GetB(), s.GetB(), sa, a), a);
 }
+//! \note 使用 ADL <tt>Composite</tt> 代理组合像素调用。
+//@{
 //! \brief 像素组合：使用指定的结果 Alpha 。
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 	typename _tAlphaInt>
@@ -636,6 +643,7 @@ Composite(const _tPixel& d, const _tPixel& s)
 		_vDstAlphaBits, _vSrcAlphaBits>::CompositeAlphaOver(pixd(d.GetA(),
 		raw_tag()), pix(s.GetA(), raw_tag())).get());
 }
+//@}
 //@}
 
 

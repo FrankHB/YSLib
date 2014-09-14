@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2079
+\version r2080
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-09-06 12:33 +0800
+	2014-09-11 12:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -378,6 +378,7 @@ UpdateView(TextList& tl, bool is_active)
 {
 	tl.ViewChanged(TextList::ViewArgs(tl, is_active));
 	tl.AdjustViewLength();
+	SetInvalidationOf(tl.GetUnitRef()),
 	Invalidate(tl);
 }
 

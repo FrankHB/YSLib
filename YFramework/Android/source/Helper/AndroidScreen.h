@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r114
+\version r115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-07-06 02:35 +0800
+	2014-09-10 19:16 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -48,7 +48,7 @@ namespace Devices
 
 /*!
 \brief Android 屏幕。
-\since build 502 。
+\since build 502
 */
 class AndroidScreen : public Screen
 {

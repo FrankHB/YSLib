@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r934
+\version r963
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-06-26 08:57 +0800
+	2014-09-12 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include <memory> // for std::move;
 #include <ystdex/string.hpp> // for ystdex::string_traits;
 #include <algorithm> // for std::copy_n;
+#include <ystdex/cstring.h> // for ystdex::ntctslen;
 
 namespace CHRLib
 {
@@ -164,36 +165,51 @@ GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 //@{
 //! \brief 复制 UCS-2 字符串为多字节字符串。
 //@{
-//! \pre 断言： 指针参数非空 。
+/*!
+\pre 断言： 指针参数非空。
+\warning 不检查 \c size_t 参数指定的源字符串长度，若不足可能引起未定义行为。
+\since build 535
+*/
 YF_API std::string
-strdup(const ucs2_t*, Encoding = CS_Default);
+strdup(const ucs2_t*, size_t, Encoding = CS_Default);
+//! \pre 断言： 指针参数非空 。
+inline PDefH(std::string, strdup, const ucs2_t* s, Encoding enc = CS_Default)
+	ImplRet(strdup(s, ystdex::ntctslen(s), enc))
+//! \since build 535
 template<class _tString>
 std::string
-strdup(const _tString& str)
+strdup(const _tString& str, Encoding enc = CS_Default)
 {
-	return CHRLib::strdup(str.c_str());
+	return CHRLib::strdup(str.c_str(), str.length(), enc);
 }
 //@}
 
+/*!
+\brief 复制多字节字符串为 UCS-2 字符串。
+\pre 断言： 指针参数非空。
+\warning 不检查 \c size_t 参数指定的源字符串长度，若不足可能引起未定义行为。
+\since build 535
+*/
+YF_API std::basic_string<ucs2_t>
+ucsdup(const char*, size_t, Encoding = CS_Default);
 //! \since build 475
 //@{
 //! \pre 断言： 指针参数非空 。
 //@{
 //! \brief 复制多字节字符串为 UCS-2 字符串。
-YF_API std::basic_string<ucs2_t>
-ucsdup(const char*, Encoding = CS_Default);
-//! \brief 复制 UCS-2 字符串。
-YF_API std::basic_string<ucs2_t>
-ucsdup(const ucs2_t*);
+inline PDefH(std::basic_string<ucs2_t>, ucsdup, const char* s,
+	Encoding enc = CS_Default)
+	ImplRet(ucsdup(s, ystdex::ntctslen(s), enc))
 //! \brief 复制 UCS-4 字符串为 UCS-2 字符串。
 YF_API std::basic_string<ucs2_t>
 ucsdup(const ucs4_t*);
 //@}
+//! \since build 535
 template<class _tString>
 std::basic_string<ucs2_t>
-ucsdup(const _tString& str)
+ucsdup(const _tString& str, Encoding enc = CS_Default)
 {
-	return CHRLib::ucsdup(str.c_str());
+	return CHRLib::ucsdup(str.c_str(), str.length(), enc);
 }
 //@}
 //@}

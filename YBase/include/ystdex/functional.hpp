@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1101
+\version r1102
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-09-03 13:36 +0800
+	2014-09-10 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,7 +56,7 @@ struct is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
 
 /*!
 \brief 统计函数参数列表中的参数个数。
-\since build 360 。
+\since build 360
 */
 template<typename... _tParams>
 yconstfn size_t

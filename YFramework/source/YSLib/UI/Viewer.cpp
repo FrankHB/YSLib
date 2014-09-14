@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r260
+\version r261
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2014-08-25 03:37 +0800
+	2014-09-11 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -260,7 +260,7 @@ AMUnitList::ResetView()
 	vwList.Reset();
 	if(b)
 		vwList.SetSelectedIndex(0, GetTotal());
-	uTopOffset = 0;
+	yunseq(uTopOffset = 0, idxShared = size_t(-1));
 }
 
 } // namespace UI;

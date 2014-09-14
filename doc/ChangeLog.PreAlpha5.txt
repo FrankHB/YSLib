@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3452
+\version r3548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-09-10 02:55 +0800
+	2014-09-14 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,94 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ $dev $doc "explicitly allowing ADL calls"
+				@ "function templates %(Blend, Composite)" @ %Service.YPixel,
+			/ %UI $=
+			(
+				* "wrongly reset view when handling %TouchDown"
+					@ "class %TreeList" @ %TreeView $since b534
+					$= (/ "implemented" ^ "%UpdateView" ~ "%ResetView"),
+				/ %ListControl $=
+				(
+					* "missing committing invalidation of unit control"
+						@ "function %UpdateView" @  $since b530,
+						// Only effective when buffered renderer is set.
+					$dep_from %Viewer,
+					* $comp "missing invalidating first line when %ResetView \
+						called" @ "class %MTextList" @ %ListControl $since b530
+						// Because the shared index is buffered, it would be \
+							checked to perform iteration only when the new \
+							value is not equal to old one. If it was 0 and not \
+							reset, the text of line with index 0 would not be \
+							updated.
+				),
+				* "missing reset shared index" @ "member function \
+					%AMUnitList::ResetView" @ %Viewer $orig(%TextList)
+					$since b527
+			)
+		),
+		/ %CHRLib.CharacterProcessing $=
+		(
+			* "buffer overrun" @ "function %strdup" $since b475,
+			/ @ "(functions, function templates) %(strdup, ucsdup)" $=
+			(
+				+ "functions with %size_t parameter";
+				/ "functions without %size_t but %Encoding"
+					-> "inline functions",
+				/ @ "function templates" $=
+				(
+					+ "%Encoding parameter",
+					/ "implemented" ^ "%length"
+				)
+			),
+			- "function %ucsdup to copy UCS-2 string"
+				// This is redundant, just use constructor of \
+					%basic_string<ucs2_t> instead.
+		)
+	)
+	/ $dev $doc "normalized Doxygen comments by explicitly filtered regular \
+		expression '\\(defgroup|ingroup|name|def|fn|author|par|sa|since|version\
+) .*[，、：；—“”‘’。]'" $=
+		// %Documentation::Designation @6.1.3.
+	(
+		* "wrong directive '\since' used" ~ '\brief' @ "Doxygen comments"
+			@ "member %BorderResizer::Margin" @ %YFramework.YSLib.UI.Border
+			$since b444,
+		/ "remove '。' at end of the directives" $effective
+			@ %(YBase.YStandardEx.(Any, Functional, Iterator),
+			YFrameowrk.Helper_(Android, DS))
+	),
+	/ %YBase $=
+	(
+		/ %YDefinition $=
+		(
+			+ "macros %(__has_builtin; YB_ABORT; YB_ASSUME)",
+			+ DLD "prefix '_'" @ "macro parameters"
+		),
+		/ @ "macro definitions %(yconstraint, yassume)" @ % CAssert $=
+		(
+			/ "explicitly required exactly one macro parameter",
+			(
+			$dep_from "%YB_ASSUME";
+			/ "expanded" ^ "%YB_ASSUME" @ "!defined %NDEBUG"
+			),
+			/ "macro definition %YAssert" @ "!defined %YB_Use_YAssert" $=
+			(
+				/ "expanded" ^ "%yassume";
+				* $comp "wrong argument of %assert" $since b495
+					// This is OK when the macro %assert of C standard library \
+						is used because ISO C specified it is not used.
+			)
+		)
+	)
+),
+
+b534
 (
 	/ %YFramework.YSLib.UI $=
 	(
@@ -1091,8 +1179,9 @@ b524
 			+ 'YB_NONNULL(1)' @ "function template specialization %sfmt<char>"
 				@ %String
 			),
-			* $doc "wrong directive '\breif'" ~ '\brief' @ "Doxygen comments"
-				@ "function %iswgraph" @ %CWideCharacterType $since b513
+			* $doc "wrong directive '\breif' used" ~ '\brief'
+				@ "Doxygen comments" @ "function %iswgraph"
+				@ %CWideCharacterType $since b513
 		)
 	),
 	* "missing atomic member initialization" $effective %YFramework.Helper
@@ -1766,8 +1855,7 @@ b519
 
 b518
 (
-	/ DLD "updated header search paths" @ "Visual C++ projects"
-		$=
+	/ DLD "updated header search paths" @ "Visual C++ projects" $=
 	(
 		/ "missing %Android inline module and %YBase paths"
 			@ "project %YFramework_Android" $since b492,
@@ -2135,7 +2223,7 @@ b514
 	),
 	(
 	$dep_from "%ystdex::iswspace" @ %YBase.YStandardEx.CCharacterType;
-	* $comp $since "several characters still unprinted" @ "platform %Android"
+	* $comp "several characters still unprinted" @ "platform %Android" $since
 		b492
 		// Because of broken Unicode support on Android NDK r9, some \
 			characters like “稍”(U+7A0D) and “选”(U+9009) still missed by \
@@ -2937,9 +3025,9 @@ b503
 	),
 	/ %YBase.YStandardEx $=
 	(
-		* "missing workaround for Visual C++2013" @ "move constructor"
+		* "missing workaround for Visual C++ 2013" @ "move constructor"
 			@ "class template %transformed_iterator" @ %Iterator $since b415,
-		/ @ "workaround for Visual C++2013" %Utilities $=
+		/ @ "workaround for Visual C++ 2013" %Utilities $=
 		(
 			- DLD "redundant ';' after move constructor definition",
 			* "missing defaulted default and copy constructors" $since b483
@@ -2948,7 +3036,7 @@ b503
 		(
 			/ DLD "implementation" ^ "alias declaration",
 				// It might improve some performance.
-			* $revert_ex(b477) "missing workaround for Visual C++2013"
+			* $revert_ex(b477) "missing workaround for Visual C++ 2013"
 				$since b477
 		),
 		/ %Any $=

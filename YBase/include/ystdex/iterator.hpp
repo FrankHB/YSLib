@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3645
+\version r3646
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-09-03 13:36 +0800
+	2014-09-10 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1339,7 +1339,7 @@ make_prototyped_iterator(_type& proto, size_t i, _fUpdater f)
 \ingroup iterators
 \brief 成员下标迭代器。
 \warning 非虚析构。
-\since build 356 。
+\since build 356
 
 根据指定类型提供的下标操作枚举其成员的随机访问迭代器。
 */
