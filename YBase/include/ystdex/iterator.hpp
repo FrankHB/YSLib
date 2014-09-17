@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3646
+\version r3692
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-09-10 19:15 +0800
+	2014-09-17 03:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -789,27 +789,39 @@ make_transform(_tIter&& i, _fTransformer f)
 */
 namespace iterator_transformation
 {
-	//! \since build 412
-	//@{
-	template<typename _tIter>
-	static yconstfn auto
-	first(const _tIter& i) -> decltype((i->first))
-	{
-		return i->first;
-	}
-	template<typename _tIter>
-	static yconstfn auto
-	second(const _tIter& i) -> decltype((i->second))
-	{
-		return i->second;
-	}
-	template<typename _tIter>
-	static yconstfn auto
-	indirect(const _tIter& i) -> decltype((**i))
-	{
-		return **i;
-	}
-	//@}
+
+//! \since build 412
+//@{
+template<typename _tIter>
+static yconstfn auto
+first(const _tIter& i) -> decltype((i->first))
+{
+	return i->first;
+}
+
+//! \since build 536
+template<typename _tIter>
+static yconstfn auto
+get(const _tIter& i) -> decltype(((*i).get()))
+{
+	return (*i).get();
+}
+
+template<typename _tIter>
+static yconstfn auto
+indirect(const _tIter& i) -> decltype((**i))
+{
+	return **i;
+}
+
+template<typename _tIter>
+static yconstfn auto
+second(const _tIter& i) -> decltype((i->second))
+{
+	return i->second;
+}
+//@}
+
 } // namespace iterator_transformation;
 
 
@@ -822,6 +834,8 @@ yconstexpr first_tag get_first{}, get_key{};
 yconstexpr second_tag get_second{}, get_value{};
 //! \since build 358
 yconstexpr struct indirect_tag{} get_indirect{};
+//! \since build 536
+yconstexpr struct get_tag{} get_get{};
 //@}
 
 
@@ -855,6 +869,16 @@ operator|(_tIter&& i, indirect_tag)
 	typename array_ref_decay<_tIter>::type>))
 {
 	return make_transform(yforward(i), iterator_transformation::indirect<
+		typename array_ref_decay<_tIter>::type>);
+}
+//! \since build 536
+template<typename _tIter>
+inline auto
+operator|(_tIter&& i, get_tag)
+	-> decltype(make_transform(yforward(i), iterator_transformation::get<
+	typename array_ref_decay<_tIter>::type>))
+{
+	return make_transform(yforward(i), iterator_transformation::get<
 		typename array_ref_decay<_tIter>::type>);
 }
 

@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r576
+\version r580
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-08-11 19:07 +0800
+	2014-09-14 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ Caret::Caret(IWidget& wgt, HBrush caret_brush,
 	FetchEvent<GotFocus>(wgt) += [this](UIEventArgs&& e){
 		// NOTE: Necessary cleanup.
 		Stop();
-		FetchGUIState().ExteralTextInputFocusPtr = &e.GetSender();
+		FetchGUIState().ExternalTextInputFocusPtr = &e.GetSender();
 		Restart(caret_animation, e.GetSender(), CursorInvalidator);
 	},
 	FetchEvent<LostFocus>(wgt) += [this]{
@@ -84,7 +84,7 @@ Caret::Stop()
 {
 	// TODO: Consider possible per-object optimization.
 	if(auto p = caret_animation.GetConnectionPtr())
-		yunseq(p->Ready = {}, FetchGUIState().ExteralTextInputFocusPtr = {});
+		yunseq(p->Ready = {}, FetchGUIState().ExternalTextInputFocusPtr = {});
 }
 
 
@@ -175,7 +175,7 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 				case Tab:
 					break;
 				case Space:
-					if(!st.ExteralTextInputFocusPtr)
+					if(!st.ExternalTextInputFocusPtr)
 						ReplaceSelection(u" ");
 				}
 				Invalidate(e.GetSender());
@@ -264,7 +264,7 @@ TextBox::ExportCaretLocation() const
 {
 	auto& st(FetchGUIState());
 
-	if(st.ExteralTextInputFocusPtr == this)
+	if(st.ExternalTextInputFocusPtr == this)
 		st.CaretLocation = GetCaretLocation();
 }
 

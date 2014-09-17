@@ -11,13 +11,13 @@
 /*!	\file ProjectRules.txt
 \ingroup Documentation
 \brief 项目组织和管理规则。
-\version r408
+\version r409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 381
 \par 创建时间:
 	2013-02-14 17:59:49 +0800
 \par 修改时间:
-	2014-09-09 20:25 +0800
+	2014-09-14 19:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,7 +226,7 @@
 
 @3.1 单元(unit) ：
 编译单元简称单元，是一组包含源代码的文本文件，包含一个不作为头文件包含的源文件（默认后缀名 .cpp ）和若干个被这个源文件直接或间接包含的头文件，经过预处理后成为翻译单元(translation unit) 。
-编译单元可以包含类/结构体等类型，以及 API（Application Programming Interface ，应用程序编程接口）的实现。
+编译单元可以包含类/结构体等类型，以及 API（Application Programing Interface ，应用程序编程接口）的实现。
 单元可以作为测试的基本单位之一，即进行单元测试(unit testing) 。
 
 @3.2 模块和模块命名空间：

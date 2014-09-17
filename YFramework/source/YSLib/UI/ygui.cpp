@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4085
+\version r4156
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-09-07 07:50 +0800
+	2014-09-16 11:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,8 +168,8 @@ GUIState::CleanupReferences(IWidget& wgt)
 		p_indp_focus = {};
 	if(p_cascade_focus == &wgt)
 		p_cascade_focus = {};
-	if(ExteralTextInputFocusPtr == &wgt)
-		ExteralTextInputFocusPtr = {};
+	if(ExternalTextInputFocusPtr == &wgt)
+		ExternalTextInputFocusPtr = {};
 }
 
 void
@@ -192,7 +192,7 @@ GUIState::Reset()
 	HeldTimer.ResetInput(),
 	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
 		p_indp_focus = {}, p_cascade_focus = {}, entered = {},
-		checked_held = {}, master_key = 0, ExteralTextInputFocusPtr = {},
+		checked_held = {}, master_key = 0, ExternalTextInputFocusPtr = {},
 		CaretLocation = Point::Invalid);
 }
 
@@ -208,67 +208,19 @@ GUIState::ResetHeldState(InputTimer::HeldStateType& s, const KeyInput& k)
 }
 
 void
-GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
-{
-	auto p(&e.GetSender());
-	IWidget* p_con;
-
-	e.Strategy = UI::RoutedEventArgs::Tunnel;
-	while(true)
-	{
-		if(!(IsVisible(*p) && IsEnabled(*p)) || e.Handled)
-			return;
-		p_con = p;
-
-		const auto t(FetchVisibleEnabledFocusingPtr(*p_con));
-
-		if(!t || t == p_con)
-		{
-			if(e.Handled)
-				return;
-			else
-				break;
-		}
-		e.SetSender(*p);
-		ResponseKeyBase(e, op);
-		p = t;
-	}
-	YAssertNonnull(p);
-	e.Strategy = UI::RoutedEventArgs::Direct;
-	e.SetSender(*p);
-	ResponseKeyBase(e, op);
-	if(op == KeyDown)
-		HandleCascade(e, *p);
-	e.Strategy = UI::RoutedEventArgs::Bubble;
-	while(!e.Handled && (p_con = FetchContainerPtr(*p)))
-	{
-		e.SetSender(*(p = p_con));
-		ResponseKeyBase(e, op);
-	}
-}
-
-void
-GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
-{
-	YAssert(op == KeyUp || op == KeyDown || op == KeyHeld,
-		"Invalid operation found.");
-	DoEvent<HKeyEvent>(e.GetSender().GetController(), op, std::move(e));
-}
-
-void
 GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 {
 	CursorLocation = e;
 
-	auto p(&e.GetSender());
+	auto wgt_ref(std::ref(e.GetSender()));
 	IWidget* p_con;
 
 	e.Strategy = UI::RoutedEventArgs::Tunnel;
 	while(true)
 	{
-		if(!(IsVisible(*p) && IsEnabled(*p)) || e.Handled)
+		if(!(IsVisible(wgt_ref) && IsEnabled(wgt_ref)) || e.Handled)
 			return;
-		p_con = p;
+		p_con = &wgt_ref.get();
 
 		const auto t(FetchTopEnabledAndVisibleWidgetPtr(*p_con, e));
 
@@ -279,22 +231,20 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 			else
 				break;
 		}
-		e.SetSender(*p);
+		e.SetSender(wgt_ref);
 		ResponseCursorBase(e, op);
-		p = t;
-		e.Position -= GetLocationOf(*p);
+		e.Position -= GetLocationOf(wgt_ref = *t);
 	};
-	YAssertNonnull(p);
 	e.Strategy = UI::RoutedEventArgs::Direct;
-	e.SetSender(*p);
+	e.SetSender(wgt_ref);
 	ResponseCursorBase(e, op);
 	if(op == TouchDown)
-		HandleCascade(e, *p);
+		HandleCascade(e, wgt_ref);
 	e.Strategy = UI::RoutedEventArgs::Bubble;
-	while(!e.Handled && (p_con = FetchContainerPtr(*p)))
+	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref)))
 	{
-		e.Position += GetLocationOf(*p);
-		e.SetSender(*(p = p_con));
+		e.Position += GetLocationOf(wgt_ref);
+		e.SetSender(wgt_ref = *p_con);
 		ResponseCursorBase(e, op);
 	}
 }
@@ -324,11 +274,58 @@ GUIState::ResponseCursorBase(CursorEventArgs& e, UI::VisualEvent op)
 	}
 }
 
+void
+GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
+{
+	auto wgt_ref(std::ref(e.GetSender()));
+	IWidget* p_con;
+
+	e.Strategy = UI::RoutedEventArgs::Tunnel;
+	while(true)
+	{
+		if(!(IsVisible(wgt_ref) && IsEnabled(wgt_ref)) || e.Handled)
+			return;
+		p_con = &wgt_ref.get();
+
+		const auto t(FetchVisibleEnabledFocusingPtr(*p_con));
+
+		if(!t || t == p_con)
+		{
+			if(e.Handled)
+				return;
+			else
+				break;
+		}
+		e.SetSender(wgt_ref);
+		ResponseKeyBase(e, op);
+		wgt_ref = *t;
+	}
+	e.Strategy = UI::RoutedEventArgs::Direct;
+	e.SetSender(wgt_ref);
+	ResponseKeyBase(e, op);
+	if(op == KeyDown)
+		HandleCascade(e, wgt_ref);
+	e.Strategy = UI::RoutedEventArgs::Bubble;
+	while(!e.Handled && (p_con = FetchContainerPtr(wgt_ref)))
+	{
+		e.SetSender(wgt_ref = *p_con);
+		ResponseKeyBase(e, op);
+	}
+}
+
+void
+GUIState::ResponseKeyBase(KeyEventArgs& e, UI::VisualEvent op)
+{
+	YAssert(op == KeyUp || op == KeyDown || op == KeyHeld,
+		"Invalid operation found.");
+	DoEvent<HKeyEvent>(e.GetSender().GetController(), op, std::move(e));
+}
+
 bool
 GUIState::SendInput(const KeyInput& k, const String& str)
 {
-	return ExteralTextInputFocusPtr
-		? (UI::CallInputEvent(*ExteralTextInputFocusPtr, str, k), true) : false;
+	return ExternalTextInputFocusPtr
+		? (UI::CallInputEvent(*ExternalTextInputFocusPtr, str, k), true) : false;
 }
 
 void
@@ -360,7 +357,7 @@ GUIState::UpdateChar(KeyInput& keys)
 
 		yunseq(keys = checked_held |= keys, KeyHeldState = InputTimer::Free);
 	}
-	return ExteralTextInputFocusPtr ? char()
+	return ExternalTextInputFocusPtr ? char()
 		: MapKeyChar(checked_held, master_key);
 }
 

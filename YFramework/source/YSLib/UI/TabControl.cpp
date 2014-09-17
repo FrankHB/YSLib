@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r271
+\version r276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2014-05-23 09:49 +0800
+	2014-09-17 02:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,18 +76,15 @@ TabBar::PerformLayout()
 	const SDst h(GetHeight());
 	SPos x(Offset);
 
-	for(const auto& p_wgt : vWidgets)
+	for(const auto& wgt_ref : vWidgets)
 	{
-		YAssertNonnull(p_wgt);
-
-		auto& wgt(*p_wgt);
-		Size s(GetSizeOf(wgt));
+		Size s(GetSizeOf(wgt_ref));
 
 		if(s.Width < MinWidth)
 			s.Width = MinWidth;
 		if(h < s.Height)
 			s.Height = h;
-		SetBoundsOf(wgt, Rect(x, 0, s));
+		SetBoundsOf(wgt_ref, Rect(x, 0, s));
 		x += s.Width;
 	}
 	return x;

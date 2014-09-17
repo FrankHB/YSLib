@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2276
+\version r2285
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-09-07 07:50 +0800
+	2014-09-16 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,9 +134,9 @@ public:
 	/*!
 	\brief 外部文本输入焦点部件指针。
 	\note 对宿主实现，值可能由环境修改。可用于支持宿主环境的输入法相关状态。
-	\since build 510
+	\since build 535
 	*/
-	IWidget* ExteralTextInputFocusPtr = {};
+	IWidget* ExternalTextInputFocusPtr = {};
 	/*!
 	\brief 输入接触状态。
 	\since build 300
@@ -321,7 +321,6 @@ public:
 	*/
 	void
 	ResponseKeyBase(KeyEventArgs&, VisualEvent);
-	//@}
 
 	/*!
 	\brief 向文本输入焦点发送输入字符。
@@ -354,7 +353,7 @@ public:
 	\brief 当指定按键状态和按键保持状态不同时按需更新映射的字符和参数。
 	\note 一般用于响应 KeyDown 事件。通过参数区分是否由 KeyHeld 引起而按需更新。
 	\return 更新后的字符。
-	\sa MapKeyChar
+	\sa KeyCodes::MapKeyChar
 	\since build 489
 	*/
 	char
@@ -379,11 +378,9 @@ FetchGUIState();
 \brief 判断指定部件是否被句柄指定的图形用户界面状态锁定为独立焦点。
 \since build 287
 */
-inline bool
-IsFocusedByShell(const IWidget& wgt, const GUIState& st = FetchGUIState())
-{
-	return st.GetIndependentFocusPtr() == &wgt;
-}
+inline PDefH(bool, IsFocusedByShell, const IWidget& wgt,
+	const GUIState& st = FetchGUIState())
+	ImplRet(st.GetIndependentFocusPtr() == &wgt)
 
 } // namespace UI;
 

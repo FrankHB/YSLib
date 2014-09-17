@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1102
+\version r1131
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-09-10 19:15 +0800
+	2014-09-17 11:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,11 @@
 #ifndef YB_INC_ystdex_functional_hpp_
 #define YB_INC_ystdex_functional_hpp_ 1
 
-#include "type_op.hpp" // for ../ydef.h, ystdex::remove_reference_t;
-#include "tuple.hpp"
+#include "tuple.hpp" // for ../ydef.h, ystdex::remove_reference_t,
+//	ystdex::make_natural_sequence_t, std::tuple_size,
+//	ystdex::make_natural_sequence_t;
 #include <functional>
+#include <memory> // for std::addressof;
 #include <string> // for std::char_traits;
 #include <numeric> // for std::accumulate;
 
@@ -734,7 +736,7 @@ struct combined_hash<std::pair<_type1, _type2>>
 /*!
 \ingroup functors
 \brief 相等关系仿函数。
-\note 同 boost::is_equal 。
+\note 除 reference_wrapper 相关的重载外同 boost::is_equal 。
 \since build 450
 */
 struct is_equal
@@ -745,6 +747,30 @@ struct is_equal
 	{
 		return x == y;
 	}
+	//! \since build 536
+	//@{
+	template<typename _type1, typename _type2>
+	yconstfn bool
+	operator()(const std::reference_wrapper<_type1>& x, const _type2& y) const
+		ynothrow
+	{
+		return std::addressof(x.get()) == std::addressof(y);
+	}
+	template<typename _type1, typename _type2>
+	yconstfn bool
+	operator()(const _type1& x, const std::reference_wrapper<_type2>& y) const
+		ynothrow
+	{
+		return std::addressof(x) == std::addressof(y.get());
+	}
+	template<typename _type1, typename _type2>
+	yconstfn bool
+	operator()(const std::reference_wrapper<_type1>& x,
+		const std::reference_wrapper<_type2>& y) const ynothrow
+	{
+		return std::addressof(x.get()) == std::addressof(y.get());
+	}
+	//@}
 };
 
 /*!
