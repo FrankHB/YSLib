@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1998
+\version r2013
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-09-06 20:03 +0800
+	2014-09-17 02:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -189,16 +189,14 @@ class YF_API MLinearUIContainer
 {
 public:
 	//! \brief 部件组项目类型。
-	using ItemType = IWidget*;
+	using ItemType = std::reference_wrapper<IWidget>;
 	//! \brief 部件组类型。
 	using WidgetVector = vector<ItemType>;
 	using iterator = WidgetIterator;
 
 protected:
 	/*
-	\brief 部件组：存储非空部件指针。
-	\invariant <tt>std::all_of(mWidgets.begin(), mWidget.end(),
-		[](ItemType item){return bool(item);})</tt> 。
+	\brief 部件组：存储部件引用。
 	*/
 	WidgetVector vWidgets;
 
@@ -229,11 +227,11 @@ public:
 	*/
 	//@{
 	PDefHOp(IWidget&, [], size_t idx) ynothrowv
-		ImplRet(YAssertNonnull(vWidgets[idx]),
-			YAssert(idx < GetCount(), "Index is out of range."), *vWidgets[idx])
+		ImplRet(YAssert(idx < GetCount(), "Index is out of range."),
+			vWidgets[idx])
 	PDefHOp(IWidget&, [], size_t idx) const ynothrowv
-		ImplRet(YAssertNonnull(vWidgets[idx]),
-			YAssert(idx < GetCount(), "Index is out of range."), *vWidgets[idx])
+		ImplRet(YAssert(idx < GetCount(), "Index is out of range."),
+			vWidgets[idx])
 	//@}
 
 	/*!
@@ -270,9 +268,9 @@ public:
 	*/
 	//@{
 	PDefH(IWidget&, at, size_t idx) ythrow(std::out_of_range)
-		ImplRet(YAssertNonnull(vWidgets.at(idx)), *vWidgets.at(idx))
+		ImplRet(vWidgets.at(idx))
 	PDefH(IWidget&, at, size_t idx) const ythrow(std::out_of_range)
-		ImplRet(YAssertNonnull(vWidgets.at(idx)), *vWidgets.at(idx))
+		ImplRet(vWidgets.at(idx))
 	//@}
 
 	iterator
@@ -291,7 +289,8 @@ public:
 class YF_API MUIContainer
 {
 public:
-	using ItemType = IWidget*; //!< 部件组项目类型。
+	//! \brief 部件组项目类型。
+	using ItemType = std::reference_wrapper<IWidget>;
 	using WidgetMap = multimap<ZOrderType, ItemType>; \
 		//!< 部件映射表类型：映射 Z 顺序至部件。
 	using PairType = WidgetMap::value_type;
@@ -300,9 +299,7 @@ public:
 
 protected:
 	/*
-	\brief 部件映射：存储 Z 顺序映射至非空部件指针。
-	\invariant <tt>std::all_of(mWidgets.begin(), mWidget.end(),
-		[](const PairType& pr){return bool(pr.second);})</tt> 。
+	\brief 部件映射：存储 Z 顺序映射至部件引用。
 	\since build 279
 	*/
 	WidgetMap mWidgets;

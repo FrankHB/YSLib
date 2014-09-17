@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1839
+\version r1874
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-09-06 23:30 +0800
+	2014-09-17 04:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,8 @@
 #include YFM_YSLib_UI_YDesktop
 
 using namespace ystdex;
+using std::bind;
+using namespace std::placeholders;
 
 namespace YSLib
 {
@@ -39,23 +41,23 @@ namespace UI
 IWidget&
 FetchTopLevel(IWidget& wgt)
 {
-	auto p_wgt(&wgt);
+	auto wgt_ref(std::ref(wgt));
 
-	while(const auto p = FetchContainerPtr(*p_wgt))
-		p_wgt = p;
-	return *p_wgt;
+	while(const auto p = FetchContainerPtr(wgt_ref))
+		wgt_ref = *p;
+	return wgt_ref;
 }
 IWidget&
 FetchTopLevel(IWidget& wgt, Point& pt)
 {
-	auto p_wgt(&wgt);
+	auto wgt_ref(std::ref(wgt));
 
-	while(const auto p = FetchContainerPtr(*p_wgt))
+	while(const auto p = FetchContainerPtr(wgt_ref))
 	{
-		pt += GetLocationOf(*p_wgt);
-		p_wgt = p;
+		pt += GetLocationOf(wgt_ref);
+		wgt_ref = *p;
 	}
-	return *p_wgt;
+	return wgt_ref;
 }
 
 vector<pair<const IWidget*, Point>>
@@ -165,7 +167,7 @@ void
 MLinearUIContainer::operator+=(IWidget& wgt)
 {
 	if(!Contains(wgt))
-		vWidgets.push_back(&wgt);
+		vWidgets.push_back(std::ref(wgt));
 }
 
 bool
@@ -173,7 +175,7 @@ MLinearUIContainer::operator-=(IWidget& wgt)
 {
 	auto t(vWidgets.size());
 
-	erase_all(vWidgets, &wgt);
+	erase_all_if(vWidgets, bind(is_equal(), _1, std::ref(wgt)));
 	t -= vWidgets.size();
 	YAssert(t <= 1, "Duplicate widget pointer found.");
 	return t != 0;
@@ -182,27 +184,27 @@ MLinearUIContainer::operator-=(IWidget& wgt)
 bool
 MLinearUIContainer::Contains(IWidget& wgt) const
 {
-	return
-		std::find(vWidgets.cbegin(), vWidgets.cend(), &wgt) != vWidgets.end();
+	return std::count_if(vWidgets.cbegin(), vWidgets.cend(),
+		bind(is_equal(), _1, std::ref(wgt))) != 0;
 }
 
 size_t
 MLinearUIContainer::Find(IWidget& wgt) const
 {
-	return
-		std::find(vWidgets.cbegin(), vWidgets.cend(), &wgt)- vWidgets.cbegin();
+	return std::find_if(vWidgets.cbegin(), vWidgets.cend(),
+		bind(is_equal(), _1, std::ref(wgt))) - vWidgets.cbegin();
 }
 
 MLinearUIContainer::iterator
 MLinearUIContainer::begin()
 {
-	return vWidgets.begin() | get_indirect;
+	return vWidgets.begin() | get_get;
 }
 
 MLinearUIContainer::iterator
 MLinearUIContainer::end()
 {
-	return vWidgets.end() | get_indirect;
+	return vWidgets.end() | get_get;
 }
 
 
@@ -211,8 +213,10 @@ MUIContainer::operator-=(IWidget& wgt)
 {
 	auto t(mWidgets.size());
 
-	erase_all(mWidgets, mWidgets.cbegin() | get_value, mWidgets.cend()
-		| get_value, &wgt);
+	erase_all_if(mWidgets, mWidgets.cbegin(), mWidgets.cend(),
+		[&](decltype(*mWidgets.cend()) pr){
+		return is_equal()(pr.second, wgt);
+	});
 	t -= mWidgets.size();
 	YAssert(t <= 1, "Duplicate widget pointer found.");
 	return t != 0;
@@ -222,26 +226,24 @@ void
 MUIContainer::Add(IWidget& wgt, ZOrderType z)
 {
 	if(!Contains(wgt))
-		mWidgets.emplace(z, ItemType(&wgt));
+		mWidgets.emplace(z, std::ref(wgt));
 }
 
 bool
 MUIContainer::Contains(IWidget& wgt)
 {
-	return std::find(mWidgets.cbegin() | get_value, mWidgets.cend() | get_value,
-		&wgt) != mWidgets.end();
+	return std::count_if(mWidgets.cbegin(), mWidgets.cend(),
+		[&](decltype(*mWidgets.cend()) pr){
+		return is_equal()(pr.second, wgt);
+	}) != 0;
 }
 
 void
 MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 {
 	std::for_each(mWidgets.cbegin() | get_value, mWidgets.cend() | get_value,
-		[&](IWidget* const& p_wgt){
-		YAssertNonnull(p_wgt);
-
-		auto& wgt(*p_wgt);
-
-		PaintVisibleChildAndCommit(wgt, e);
+		[&](const ItemType& wgt_ref){
+		PaintVisibleChildAndCommit(wgt_ref, e);
 	});
 }
 
@@ -249,7 +251,7 @@ ZOrderType
 MUIContainer::QueryZ(IWidget& wgt) const
 {
 	for(auto& pr : mWidgets)
-		if((YAssertNonnull(pr.second), pr.second) == &wgt)
+		if(is_equal()(pr.second, wgt))
 			return pr.first;
 	throw std::out_of_range("Widget not found.");
 }
@@ -257,13 +259,13 @@ MUIContainer::QueryZ(IWidget& wgt) const
 MUIContainer::iterator
 MUIContainer::begin()
 {
-	return mWidgets.rbegin() | get_value | get_indirect;
+	return mWidgets.rbegin() | get_value | get_get;
 }
 
 MUIContainer::iterator
 MUIContainer::end()
 {
-	return mWidgets.rend() | get_value | get_indirect;
+	return mWidgets.rend() | get_value | get_get;
 }
 
 } // namespace UI;

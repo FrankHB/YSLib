@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3548
+\version r3608
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-09-14 16:53 +0800
+	2014-09-17 12:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,67 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework.YSLib $=
+	(
+		/ %UI $=
+		(
+			/ %GUI $=
+			(
+				/ @ "class %GUIState" $=
+				(
+					* "spelling error" @ "data member" $since b511
+						$= (/ "%ExteralTextInputFocusPtr"
+							=> "%ExternalTextInputFocusPtr"),
+					/ $lib $design @ "member functions %(ResponseCursorBase, \
+						ResponseKeyBase)" $=
+					(
+						^ $dev "%std::ref" ~ "direct use of pointer for \
+							iteration",
+						- "assertion for null pointer after iteration for \
+							%Tunnel routed event"
+					)
+				)
+				/ DLD "implemented inline functions %IsFocusedByShell" @ %YGUI
+					^ "macros %(PDefH, ImplRet)",
+			),
+			/ %YUIContainer $=
+			(
+				^ DLD "%std::ref" ~ "direct use of pointer for iteration"
+					@ "all 2 functions %FetchTopLevel",
+				/ @ "classes %(MLinearUIContainer, MUIContainer)" $=
+				(
+					/ 'using ItemType = IWidget*;'
+						-> 'using ItemType = std::reference_wrapper<IWidget>;',
+					- $lib $design "assertion for null pointer",
+					/ DLD "implemented functions %Contains" ~ "%std::find",
+					/ DLD "simplified indirection implementation"
+				)
+			)
+		),
+		/ DLD "implemented function %Contains" @ "class template %GEvent"
+			@ %Core.YEvent ^ "%std::count" ~ "%std::find",
+		/ @ "functions %(OnKey_Bound_TouchUp, \
+			OnKey_Bound_TouchDown, OnKey_Bound_Click)" @ %YControl $=
+		(
+			/ DLD "reused common implementation",
+			/ "allowed %std::function and %std::cast propogation out of \
+				%Control::BoundControlPtr"
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		+ "3 function %operator()" @ "struct %is_equal" @ %Functional,
+		/ %Iterator $=
+		(
+			+ "function template %get" @ "namespace %iterator_transformation",
+			+ 'yconstexpr struct get_tag{} get_get{};';
+			+ "function template %operator| for %get_tag"
+		)
+	)
+),
+
+b535
 (
 	/ %YFramework $=
 	(

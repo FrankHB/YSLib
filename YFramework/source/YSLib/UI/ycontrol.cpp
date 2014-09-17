@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3918
+\version r3955
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2014-08-10 18:11 +0800
+	2014-09-17 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,21 +42,27 @@ namespace UI
 namespace
 {
 
-IWidget*
-FetchEnabledBoundControlPtr(KeyEventArgs&& e)
+//! \since build 536
+void
+OnKey_Bound_Events(KeyEventArgs& e, VisualEvent id)
 {
-	try
-	{
-		auto p_ctl(
-			dynamic_cast<Control&>(e.GetSender()).BoundControlPtr(e.GetKeys()));
+	if(const auto p_control = dynamic_cast<Control*>(&e.GetSender()))
+		if(p_control->BoundControlPtr)
+		{
+			auto p_ctl(p_control->BoundControlPtr(e.GetKeys()));
 
-		return p_ctl && IsEnabled(*p_ctl) ? p_ctl : nullptr;
-	}
-	catch(std::bad_function_call&)
-	{}
-	catch(std::bad_cast&)
-	{}
-	return {};
+			if(p_ctl && IsEnabled(*p_ctl))
+			{
+				try
+				{
+					DoEvent<HCursorEvent>(p_ctl->GetController(), id,
+						CursorEventArgs(*p_ctl, e.Keys, Point::Invalid));
+				}
+				catch(BadEvent&)
+				{}
+				e.Handled = true;
+			}
+		}
 }
 
 //! \since build 434
@@ -158,37 +164,19 @@ OnTouchHeld_DraggingRaw(CursorEventArgs&& e, IWidget& wgt)
 void
 OnKey_Bound_TouchUp(KeyEventArgs&& e)
 {
-	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
-	{
-		CursorEventArgs et(*p_ctl, e.Keys, Point::Invalid);
-
-		CallEvent<TouchUp>(*p_ctl, et);
-		e.Handled = true;
-	}
+	OnKey_Bound_Events(e, TouchUp);
 }
 
 void
 OnKey_Bound_TouchDown(KeyEventArgs&& e)
 {
-	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
-	{
-		CursorEventArgs et(*p_ctl, e.Keys, Point::Invalid);
-
-		CallEvent<TouchDown>(*p_ctl, et);
-		e.Handled = true;
-	}
+	OnKey_Bound_Events(e, TouchDown);
 }
 
 void
 OnKey_Bound_Click(KeyEventArgs&& e)
 {
-	if(const auto p_ctl = FetchEnabledBoundControlPtr(std::move(e)))
-	{
-		CursorEventArgs et(*p_ctl, e.Keys, Point::Invalid);
-
-		CallEvent<Click>(*p_ctl, et);
-		e.Handled = true;
-	}
+	OnKey_Bound_Events(e, Click);
 }
 
 
