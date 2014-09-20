@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r873
+\version r951
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2014-08-28 17:34 +0800
+	2014-09-20 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_UI_ListControl
 #include YFM_YSLib_UI_YUIContainer // for UI::ZOrderType;
+#include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace YSLib
 {
@@ -40,7 +41,7 @@ namespace UI
 
 class MenuHost;
 
-const ZOrderType DefaultMenuZOrder(224); //!< 默认菜单 Z 顺序值。
+yconstexpr const ZOrderType DefaultMenuZOrder(224); //!< 默认菜单 Z 顺序值。
 
 
 /*!
@@ -54,12 +55,8 @@ class YF_API Menu : public TextList
 	friend class MenuHost;
 
 public:
-	using ID = size_t; //!< 菜单标识类型。
 	using SubMap = map<IndexType, Menu*>; //!< 子菜单映射表类型。
 	using ValueType = SubMap::value_type; //!< 子菜单映射表项目类型。
-
-private:
-	ID id; //!< 菜单标识。
 
 protected:
 	MenuHost* pHost; //!< 宿主指针。
@@ -70,23 +67,16 @@ protected:
 public:
 	/*!
 	\brief 构造：使用指定边界、文本列表和菜单标识。
-	\since build 327
+	\since build 537
 	*/
 	explicit
-	Menu(const Rect& = {}, const shared_ptr<ListType>& = {}, ID = 0);
+	Menu(const Rect& = {}, const shared_ptr<ListType>& = {});
 	/*!
 	\brief 禁止转移构造。
 	\since build 379
 	\todo 实现转移操作。
 	*/
 	DefDelMoveCtor(Menu)
-
-	/*!
-	\brief 访问索引指定的子菜单。
-	\exception std::out_of_range 异常中立：由 at 抛出。
-	*/
-	PDefHOp(Menu&, [], size_t idx)
-		ImplRet(*mSubMenus.at(idx))
 
 	/*!
 	\brief 向子菜单组添加关联索引和指针指定的菜单。
@@ -110,7 +100,6 @@ public:
 	bool
 	IsItemEnabled(ListType::size_type) const;
 
-	DefGetter(const ynothrow, ID, ID, id)
 	DefGetter(const ynothrow, Menu*, ParentPtr, pParent)
 
 	/*!
@@ -153,11 +142,19 @@ public:
 	*/
 	bool
 	Hide();
-};
 
+	/*!
+	\brief 访问索引指定的子菜单。
+	\exception std::out_of_range 异常中立：由 at 抛出。
+	\since build 537
+	*/
+	PDefH(Menu&, at, size_t idx)
+		ImplRet(*mSubMenus.at(idx))
+};
 
 /*!
 \brief 定位菜单：以第二个参数作为参考父菜单，按指定参考偏移索引定位菜单。
+\relates Menu
 */
 YF_API void
 LocateMenu(Menu&, const Menu&, Menu::IndexType);
@@ -165,43 +162,36 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 
 /*!
 \brief 菜单宿主。
+\warning 非虚析构。
 \since build 252
 */
-class YF_API MenuHost : private noncopyable, private OwnershipTag<Menu>
+class YF_API MenuHost : private noncopyable
 {
 public:
-	using ItemType = Menu*; //!< 菜单组项目类型：记录菜单控件指针。
-	using MenuMap = map<Menu::ID, ItemType>; //!< 菜单组类型。
-	using ValueType = MenuMap::value_type;
-
 	Window& Frame; //!< 框架窗口。
 
-protected:
-	MenuMap mMenus; //!< 菜单组：存储非空菜单指针。
+private:
+	//! \since build 537
+	set<std::reference_wrapper<Menu>, ystdex::composed<std::less<Menu*>,
+		ystdex::composed<ystdex::addressof_op<Menu>,
+		ystdex::mem_get<std::reference_wrapper<Menu>>>>> menus{};
 
 public:
 	/*!
-	\since build 363
 	\brief 根菜单关联映射。
+	\since build 537
 
 	指定向指定部件转移焦点时不进行隐藏的菜单的映射。
 	*/
-	map<IWidget*, Menu::ID> Roots;
+	map<IWidget*, Menu*> Roots{};
 
 	MenuHost(Window&);
 	/*!
 	\brief 析构。
 	\note 隐藏菜单组中的所有菜单并清理菜单组。
 	*/
-	virtual
 	~MenuHost();
 
-	/*!
-	\brief 向菜单组添加标识和指针指定的菜单。
-	\note 覆盖菜单对象的菜单标识成员；若菜单项已存在则覆盖旧菜单项。
-	*/
-	void
-	operator+=(const ValueType&);
 	/*!
 	\brief 向菜单组添加菜单。
 	\note 标识由菜单对象的菜单标识成员指定；若菜单项已存在则覆盖旧菜单项。
@@ -210,38 +200,26 @@ public:
 	operator+=(Menu&);
 
 	/*!
-	\brief 从菜单组移除菜单标识指定的菜单。
+	\brief 从菜单组移除指定的菜单。
 	\note 同时置菜单宿主指针为空。
+	\since build 537
 	*/
 	bool
-	operator-=(Menu::ID);
+	operator-=(Menu&);
 
 	/*!
-	\brief 访问菜单标识指定的菜单。
-	\exception std::out_of_range 异常中立：由 at 抛出。
-	*/
-	PDefHOp(Menu&, [], Menu::ID id)
-		ImplRet(*mMenus.at(id))
-
-	/*!
-	\brief 判断框架窗口中是否正在显示菜单标识指定的菜单。
-	\since build 531
+	\brief 判断窗口中是否正在显示指定的菜单。
+	\since build 537
 	*/
 	bool
-	IsShowing(Menu::ID) const;
+	IsShowing(Menu&) const;
 
-	/*!
-	\brief 判断菜单组中是否存在菜单标识指定的菜单。
-	\since build 531
-	*/
-	PDefH(bool, Contains, Menu::ID id) const
-		ImplRet(ystdex::exists(mMenus, id))
 	/*!
 	\brief 判断菜单组中是否存在指定的菜单。
 	\since build 531
 	*/
-	bool
-	Contains(Menu&) const;
+	PDefH(bool, Contains, Menu& mnu) const
+		ImplRet(ystdex::exists(menus, std::ref(mnu)))
 
 	/*!
 	\brief 清除菜单组。
@@ -251,17 +229,12 @@ public:
 	Clear();
 
 	/*!
-	\brief 按指定 Z 顺序显示菜单组中菜单标识指定的菜单。
+	\brief 按指定 Z 顺序显示菜单组中指定的菜单。
+	\note 若不在菜单组中则忽略。
+	\since build 537
 	*/
 	void
-	Show(Menu::ID, ZOrderType = DefaultMenuZOrder);
-	/*!
-	\brief 按指定 Z 顺序显示指定菜单 mnu 。
-	\pre 断言： Contains(mnu) 。
-	*/
-	PDefH(void, Show, Menu& mnu, ZOrderType z = DefaultMenuZOrder)
-		ImplExpr(YAssert(Contains(mnu), "Menu is not contained."),
-			ShowRaw(mnu, z))
+	Show(Menu&, ZOrderType = DefaultMenuZOrder);
 
 	/*!
 	\brief 按指定 Z 顺序显示菜单组中的所有菜单。
@@ -272,22 +245,18 @@ public:
 private:
 	/*!
 	\brief 按指定 Z 顺序显示指定菜单 mnu 。
+	\pre 断言： Contains(mnu) 。
 	*/
 	void
 	ShowRaw(Menu& mnu, ZOrderType = DefaultMenuZOrder);
 
 public:
 	/*!
-	\brief 隐藏菜单组中菜单标识指定的菜单。
+	\brief 隐藏菜单组中指定的菜单。
+	\since build 537
 	*/
 	void
-	Hide(Menu::ID);
-	/*!
-	\brief 隐藏指定菜单 mnu。
-	\pre 断言： Contains(mnu) 。
-	*/
-	PDefH(void, Hide, Menu& mnu)
-		ImplExpr(YAssert(Contains(mnu), "Menu is not contained."), HideRaw(mnu))
+	Hide(Menu&);
 
 	/*!
 	\brief 隐藏菜单组中的所有菜单。
@@ -298,6 +267,7 @@ public:
 private:
 	/*!
 	\brief 隐藏指定菜单 mnu。
+	\pre 断言： Contains(mnu) 。
 	*/
 	void
 	HideRaw(Menu& mnu);

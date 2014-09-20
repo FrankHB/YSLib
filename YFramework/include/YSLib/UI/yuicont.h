@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2013
+\version r2037
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-09-17 02:39 +0800
+	2014-09-20 14:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,8 +55,8 @@ YF_API IWidget&
 FetchTopLevel(IWidget&, Point&);
 
 /*!
-\brief 取指定部件向上遍历的轨迹：相对于自身和所有父部件的位置。
-\return 部件视图树向上遍历的指针和对应相对于其指向的部件相对位置序列。
+\brief 取指定部件向上遍历的轨迹：相对自身和所有父部件的位置。
+\return 部件视图树向上遍历的指针和对应相对其指向的部件相对位置序列。
 \since build 533
 */
 YF_API vector<pair<const IWidget*, Point>>
@@ -200,6 +200,9 @@ protected:
 	*/
 	WidgetVector vWidgets;
 
+public:
+	//! \since build 537
+	//@{
 	//! \brief 无参数构造：默认实现。
 	DefDeCtor(MLinearUIContainer)
 	DefDeMoveCtor(MLinearUIContainer)
@@ -219,8 +222,8 @@ protected:
 	*/
 	bool
 	operator-=(IWidget&);
+	//@}
 
-public:
 	/*!
 	\brief 取指定索引的部件引用。
 	\pre 断言：参数小于部件数。
@@ -255,12 +258,13 @@ public:
 	size_t
 	Find(IWidget&) const;
 
-protected:
-	//! \brief 绘制可视子部件。
+	/*!
+	\brief 绘制可视子部件。
+	\since build 537
+	*/
 	void
 	PaintVisibleChildren(PaintEventArgs&);
 
-public:
 	/*!
 	\brief 取指定索引的部件引用。
 	\exception std::out_of_range 异常中立：由 vWidgets.at 抛出。
@@ -275,6 +279,10 @@ public:
 
 	iterator
 	begin();
+
+	//! \since build 537
+	PDefH(void, clear, ) ynothrow
+		ImplExpr(vWidgets.clear())
 
 	iterator
 	end();
@@ -304,6 +312,9 @@ protected:
 	*/
 	WidgetMap mWidgets;
 
+public:
+	//! \since build 537
+	//@{
 	/*!
 	\brief 无参数构造：默认实现。
 	*/
@@ -327,8 +338,8 @@ protected:
 	*/
 	bool
 	operator-=(IWidget&);
+	//@}
 
-public:
 	/*!
 	\brief 判断是否包含指定部件。
 	*/
@@ -350,15 +361,13 @@ public:
 	void
 	Add(IWidget&, ZOrderType = DefaultZOrder);
 
-protected:
 	/*!
 	\brief 绘制可视子部件。
-	\since build 295
+	\since build 537
 	*/
 	void
 	PaintVisibleChildren(PaintEventArgs&);
 
-public:
 	/*!
 	\brief 查询指定部件的 Z 顺序。
 	\throw std::out_of_range 不包含指定子部件。
@@ -370,6 +379,10 @@ public:
 	//! \since build 460
 	iterator
 	begin();
+
+	//! \since build 537
+	PDefH(void, clear, ) ynothrow
+		ImplExpr(mWidgets.clear())
 
 	//! \since build 460
 	iterator

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3608
+\version r3718
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-09-17 12:17 +0800
+	2014-09-20 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,115 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YReader $=
+	(
+		/ "key %X handling" @ "class %ShlExplorer" $=
+		(
+			(
+			/ "responded by %KeyDown" ~ "KeyPress";
+			* $comp "no response on key %X when focused in file list" $since
+				b531
+			),
+			/ "explicitly request focus"
+				// This would cause the menu to be hidden, distinctive with \
+					than previous behavior.
+		),
+		/ DLD %(ShlExplorer, ShlReader) $=
+		(
+			$dep_from "removal of menu ownership";
+			/ "owned menu objects by data members of %unique_ptr instances";
+			/ "menu access" ^ "data members" ~ "%MenuHost member functions";
+			$dep_to "removal of menu access from host"
+		)
+	),
+	/ %YFramework.YSLib $=
+	(
+		/ @ "class template %GHandlerAdaptor" %Core.YEvent $=
+		(
+			+ "template specialization for parameter %_type with \
+				%void";
+			+ $design "simplified main template by inheritance %void \
+				specialization",
+			+ "explicitly defaulted (copy, move) (constructor, %operator=)"
+		),
+		/ %UI $=
+		(
+			/ %YMenu $=
+			(
+				+ 'yconstexpr' @ "object %DefaultMenuZOrder",
+				/ @ "class %MenuHost" $=
+				(
+					(
+					- "%operator+= with %ValueType parameter";
+					- "alias declaration %ValueType"
+					),
+					(
+					- "ownership of menus";
+					* $comp "menu object leak" @ "%operator+=" $since b214;
+					$dep_to "removal of menu ownership"
+					),
+					(
+					^ DLD "implemented" ^ "%MLinearUIContainer";
+					- "protected data member %mMenus";
+					- "using alias %(MenuMap; ItemType)"
+					),
+					(
+					/ "type of data member %Roots"
+						-> 'map<IWidget*, Menu*>' ~ 'map<IWidget*, Menu::ID>',
+					(
+					$dep_from "removal of menu access from host";
+					- "function %operator[]",
+					/ "parameter %Menu::ID" @ "functions %(operator-=, \
+						IsShowing, Contains)" -> 'Menu&',
+					- "functions %(Show, Hide) with %Menu::ID parameter"
+					);
+					$dep_to "removal %Menu::ID @ %MenuHost"
+					),
+					/ DLD "initialized %Roots" ^ "brace-initializer"
+						~ "ctor-initializer",
+					- 'virtual' @ "destructor",
+					+ "assertions" @ "function %(Show, Hide) with 'Menu&' \
+						parameter"
+				),
+				/ @ "class %Menu" $=
+				(
+					(
+					- "member function %GetID",
+					- "%ID parameter" @ "constructor",
+					- DLD "menu identifier",
+					$dep_from "removal %Menu::ID @ %MenuHost";
+					- "using alias %ID"
+					),
+					/ "function %operator[]" -> "%at"
+						// To conform the exception handling style of standard \
+							library API.
+				)
+			),
+			/ @ "classes %(MLinearUIContainer, MUIContainer)" %YUIContainer $=
+			(
+				/ "access control of all protected (constructors, \
+					member functions)" -> 'public',
+				* $lib $design "missing updating assertion strings"
+					@ "member function %operator-=",
+				+ "member function %clear"
+			)
+		),
+	),
+	/ %YBase.YStandardEx.Functional $=
+	(
+		+ 'const' @ "2 member functions %operator()"
+			@ "2 specializations @ class template %xcrease_t",
+		+ "2 function templates %chain_apply",
+		(
+		+ "class template %composed",
+		+ "function template %compose"
+		),
+		+ "class template %(addressof_op, mem_get)"
+	)
+),
+
+b536
 (
 	/ %YFramework.YSLib $=
 	(
@@ -1068,8 +1177,8 @@ b525
 				%DefaultUpdateClippedText; data member %UpdateClippedText",
 			- "virtual destructor"
 				// Thus %MLabel is not a polymorphic class any longer.
-			/ DLD "initilized %(VerticalAlignment, AutoWrapLine, Text, \
-				Margin)" ^ "brace-or-equal-initializer" ~ "ctor-initilizer",
+			/ DLD "initialized %(VerticalAlignment, AutoWrapLine, Text, \
+				Margin)" ^ "brace-or-equal-initializer" ~ "ctor-initializer",
 			/ @ "function %DrawText" $=
 			(
 				- "color parameter",

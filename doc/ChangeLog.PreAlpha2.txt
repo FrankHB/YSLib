@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3546
+\version r3556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-08-16 17:54 +0800
+	2014-09-17 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -291,11 +291,11 @@ b296
 					@ "class %ValueObject" @ %YObject;
 				/ DLD @ "class %Message" @ %message $=
 				(
-					/ "unifying operator=" -> "copy assignment operator \
-						without exception specification and move assignment \
-						operator with exception specification %ynothrow";
+					/ "unifying %operator=" -> "copy %operator= \
+						without exception specification and move %operator= \
+						with exception specification %ynothrow";
 					+ "exception specification %ynothrow" @ "member move \
-						assignment operator with parameter type ValueObject&&"
+						%operator= with parameter type ValueObject&&"
 				),
 				(
 				/ DLD "accessors interface" @ "class %GraphicDevice",
@@ -392,7 +392,7 @@ b295
 			/ DLD "refreshing" ^ "border brush" @ "class %ProgressBar",
 			* "memory leak" $since b243
 				$= (+ "missing destructor" @ "class %AController"),
-			+ DLD "copy and move assignment operators" @ "class %View"
+			+ DLD "(copy, move) %operator=" @ "class %View"
 		),
 		/ %Core.YShell $=
 		(
@@ -1401,12 +1401,12 @@ b271
 				/ @ "class %MessageQueue" $=
 				(
 					- "redundant functions",
-					+ DLD "copy assignment and move assignment merged as \
-						unifying assignment" $=
+					+ DLD "(copy, move) %operator= merged as unifying \
+						%operator=" $=
 					(
 						+ "minor efficiency",
 						+ "ability to use copy-elision optimization",
-						* "exception safety of move assignment" $since b211
+						* "exception safety of move %operator=" $since b211
 					)
 				)
 			)
@@ -1519,7 +1519,7 @@ b268
 				@ "class %TextList"
 			)
 		),
-		* $design "ill-formed implementation of copy assignment function"
+		* $design "ill-formed implementation of copy %operator="
 			@ "class template %GEvent" $since b207,
 		/ $design "macro %ImplExpr for compatibility" @ "header %ybasemac.h"
 	),
@@ -2260,7 +2260,7 @@ b231
 
 b230
 (
-	+ DLD "move constructors and move assignment operators"
+	+ DLD "move (constructors, %operator=)"
 		@ "class templates %(pseudo_iterator, pair_iterator)"
 		@ "header %YCLib::YStandardExtend::Iterator",
 	/ DLD "simplified GUI" $=

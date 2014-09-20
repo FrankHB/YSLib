@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r844
+\version r845
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-09-10 02:39 +0800
+	2014-09-20 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,7 +474,6 @@
 以下独占所有权关系中，被托管对象类不是直接的成员或明确具有所有权语义的指针指向的对象。使用 OwnershipTag 模板标识这些类型。
 所有者（基类）中 private 继承了 OwnershipTag<_type> 。被托管对象的实际类型可能是 _type 的派生类（需要是虚析构的多态类）。除了 Helper 外的实例包括：
  Drawing::FontCache 具有 Drawing::Typeface 和 Drawing::FontFamily 的所有权；
- UI::MenuHost 具有 UI::Menu 的所有权；
  Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
 可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。
 

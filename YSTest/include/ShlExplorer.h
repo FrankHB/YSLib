@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r156
+\version r158
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-07-10 01:25 +0800
+	2014-09-20 16:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,6 +63,8 @@ private:
 	float rad = 0;
 	//! \since build 455
 	GAnimationSession<InvalidationUpdater> ani;
+	//! \since build 537
+	unique_ptr<Menu> p_m0{}, p_m1{};
 
 protected:
 	//! \since build 436
