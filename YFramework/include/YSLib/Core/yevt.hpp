@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4741
+\version r4790
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-09-05 03:30 +0800
+	2014-09-17 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -695,22 +695,68 @@ struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
 \warning 非虚析构。
 \since build 494
 */
+//@{
 template<typename _type, typename _fCallable = std::function<void(_type&)>>
-class GHandlerAdaptor
+class GHandlerAdaptor : private GHandlerAdaptor<void, _fCallable>
+{
+private:
+	//! \since build 537
+	using Base = GHandlerAdaptor<void, _fCallable>;
+
+public:
+	//! \since build 537
+	using typename Base::CallerType;
+
+	//! \since build 537
+	using Base::Caller;
+	std::reference_wrapper<_type> ObjectRef;
+
+	GHandlerAdaptor(_type& obj, CallerType f)
+		: Base(f), ObjectRef(obj)
+	{}
+	template<typename _fCaller>
+	GHandlerAdaptor(_type& obj, _fCaller&& f)
+		: Base(ystdex::make_expanded<CallerType>(yforward(f))), ObjectRef(obj)
+	{}
+	//! \since build 537
+	//@{
+	DefDeCopyCtor(GHandlerAdaptor)
+	DefDeMoveCtor(GHandlerAdaptor)
+
+	DefDeCopyAssignment(GHandlerAdaptor)
+	DefDeMoveAssignment(GHandlerAdaptor)
+
+	using Base::operator();
+	//@}
+
+	//! \todo 实现比较 Function 相等。
+	PDefHOp(bool, ==, const GHandlerAdaptor& adaptor) const ynothrow
+		ImplRet(std::addressof(adaptor.ObjectRef.get())
+			== std::addressof(ObjectRef.get()))
+};
+
+//! \since build 537
+template<typename _fCallable>
+class GHandlerAdaptor<void, _fCallable>
 {
 public:
 	using CallerType = ystdex::decay_t<_fCallable>;
 
-	std::reference_wrapper<_type> ObjectRef;
 	CallerType Caller;
 
-	GHandlerAdaptor(_type& obj, CallerType f)
-		: ObjectRef(obj), Caller(f)
+	GHandlerAdaptor(CallerType f)
+		: Caller(f)
 	{}
-	template<typename _fCaller>
-	GHandlerAdaptor(_type& obj, _fCaller&& f)
-		: ObjectRef(obj), Caller(ystdex::make_expanded<CallerType>(yforward(f)))
+	template<typename _fCaller, yimpl(
+		typename = ystdex::exclude_self_ctor_t<GHandlerAdaptor, _fCaller>)>
+	GHandlerAdaptor(_fCaller&& f)
+		: Caller(ystdex::make_expanded<CallerType>(yforward(f)))
 	{}
+	DefDeCopyCtor(GHandlerAdaptor)
+	DefDeMoveCtor(GHandlerAdaptor)
+
+	DefDeCopyAssignment(GHandlerAdaptor)
+	DefDeMoveAssignment(GHandlerAdaptor)
 
 	//! \todo 使用 <tt>noexpcept</tt> 。
 	template<typename... _tParams>
@@ -727,9 +773,9 @@ public:
 
 	//! \todo 实现比较 Function 相等。
 	PDefHOp(bool, ==, const GHandlerAdaptor& adaptor) const ynothrow
-		ImplRet(std::addressof(adaptor.ObjectRef.get())
-			== std::addressof(ObjectRef.get()))
+		ImplRet(this == &adaptor)
 };
+//@}
 
 
 /*!

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4980
+\version r4983
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-09-01 20:01 +0800
+	2014-09-17 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1679,14 +1679,14 @@ b353
 		- "constexpr object %(max_any_size, max_any_align)
 		),
 		(
-		- "explicit deleted copy assignment operator" @ "class %any_holder";
+		- "explicitly deleted copy %operator=" @ "class %any_holder";
 		$dep_to "removal of %any_holder copy assignment deletion"
 		)
 	),
 	/ $dev %YFramework.YSLib.YObject $=
 	(
 		$dep_from "removal of %any_holder copy assignment deletion";
-		* "missing explicitly defaulted copy assignment operator"
+		* "missing explicitly defaulted copy %operator="
 			@ "class templates %(ValueHolder, PointerHolder)" $since b332
 	);
 	+ DLB $workaround "for G++ 4.7.1"
@@ -2488,7 +2488,7 @@ b331
 		(
 			/ "removed reference of parameter type for events" @ %YEvent,
 			/ "exception specifications" ^ "%(ythrow, ynothrow)" ~ "%throw",
-			/ "merged copy and move assignments as unifying operator="
+			/ "merged (copy, move) %operator= as unifying %operator="
 				@ "classes %(ValueObject, $revert(b296) Message)"
 				// The no throw exception specification can be merged for the \
 					copy is out of the block.

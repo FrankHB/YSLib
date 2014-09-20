@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1785
+\version r1791
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2013-12-08 23:41 +0800
+	2014-09-20 16:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -252,6 +252,10 @@ public:
 	*/
 	ReaderSetting CurrentSetting;
 
+private:
+	//! \since build 537
+	unique_ptr<Menu> p_mnu_reader{};
+
 protected:
 	/*!
 	\brief 滚屏计时器。
@@ -349,8 +353,9 @@ public:
 	Scroll();
 
 private:
+	//! \since build 537
 	void
-	ShowMenu(Menu::ID, const Point&);
+	ShowMenu(Menu&, const Point&);
 
 	/*!
 	\brief 开始自动滚屏。

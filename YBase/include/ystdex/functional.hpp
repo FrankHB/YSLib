@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1131
+\version r1237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-09-17 11:34 +0800
+	2014-09-20 18:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,9 +117,30 @@ varg(_tParams&&... args)
 //@}
 
 
+//! \see 关于调用参数类型： ISO C++11 30.3.1.2[thread.thread.constr] 。
+//@{
+/*!
+\brief 顺序链式调用。
+\since build 537
+*/
+//@{
+template<typename _fCallable>
+yconstfn void
+chain_apply(_fCallable&& f)
+{
+	return yforward(f);
+}
+template<typename _fCallable, typename _type, typename... _tParams>
+yconstfn void
+chain_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
+{
+	return ystdex::chain_apply(yforward(yforward(f)(yforward(arg))),
+		yforward(args)...);
+}
+//@}
+
 /*!
 \brief 顺序递归调用。
-\see 关于调用参数类型： ISO C++11 30.3.1.2[thread.thread.constr] 。
 \since build 327
 */
 //@{
@@ -136,10 +157,8 @@ seq_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
 }
 //@}
 
-
 /*!
 \brief 无序调用。
-\see 关于调用参数类型： ISO C++11 30.3.1.2[thread.thread.constr] 。
 \since build 327
 */
 template<typename _fCallable, typename... _tParams>
@@ -148,6 +167,7 @@ unseq_apply(_fCallable&& f, _tParams&&... args)
 {
 	yunseq((void(yforward(f)(yforward(args))), 0)...);
 }
+//@}
 
 
 /*!
@@ -312,6 +332,45 @@ template<typename _fCallable>
 struct paramlist_size : integral_constant<size_t, std::tuple_size<typename
 	make_parameter_tuple<_fCallable>::type>::value>
 {};
+
+
+//! \since build 537
+//@{
+//! \brief 复合函数。
+template<typename _fCallable1, typename _fCallable2>
+struct composed
+{
+	_fCallable1 f;
+	_fCallable2 g;
+
+	template<typename... _tParams>
+	auto
+	operator()(_tParams&&... args) const -> decltype(f(g(yforward(args))...))
+	{
+		return f(g(yforward(args))...);
+	}
+};
+
+/*!
+\brief 函数复合。
+\note 第一个参数最后被调用，可以为多元函数；其它被复合的函数需要保证有一个参数。
+\relates composed
+\return 复合的可调用对象。
+*/
+template<typename _fCallable1, typename _fCallable2>
+composed<_fCallable1, _fCallable2>
+compose(_fCallable1 f, _fCallable2 g)
+{
+	return composed<_fCallable1, _fCallable2>{f, g};
+}
+template<typename _fCallable1, typename _fCallable2, typename... _fCallables>
+yconstfn auto
+compose(_fCallable1 f, _fCallable2 g, _fCallables... args)
+	-> decltype(ystdex::compose(ystdex::compose(f, g), args...))
+{
+	return ystdex::compose(ystdex::compose(f, g), args...);
+}
+//@}
 
 
 /*!
@@ -734,6 +793,48 @@ struct combined_hash<std::pair<_type1, _type2>>
 */
 
 /*!
+\brief std::addressof 仿函数。
+\since build 537
+*/
+template<typename _type>
+struct addressof_op
+{
+	_type*
+	operator()(_type& x) const ynothrow
+	{
+		return std::addressof(x);
+	}
+};
+
+/*!
+\brief 成员 get 操作。
+\since build 537
+*/
+//@{
+template<typename _type = void>
+struct mem_get
+{
+	auto
+	operator()(const _type& x) const -> decltype(x.get())
+	{
+		return yforward(x.get());
+	}
+};
+
+template<>
+struct mem_get<void>
+{
+	template<typename _type>
+	auto
+	operator()(_type&& x) const ynoexcept(std::declval<_type&&>().get())
+		-> decltype(x.get())
+	{
+		return yforward(x.get());
+	}
+};
+//@}
+
+/*!
 \ingroup functors
 \brief 相等关系仿函数。
 \note 除 reference_wrapper 相关的重载外同 boost::is_equal 。
@@ -796,8 +897,7 @@ struct plus
 {
 	template<typename _type>
 	yconstfn auto
-	operator()(const _type& x, const _type& y) const
-		-> decltype(x + y)
+	operator()(const _type& x, const _type& y) const -> decltype(x + y)
 	{
 		return x + y;
 	}
@@ -812,8 +912,7 @@ struct multiply
 {
 	template<typename _type>
 	yconstfn auto
-	operator()(const _type& x, const _type& y) const
-		-> decltype(x * y)
+	operator()(const _type& x, const _type& y) const -> decltype(x * y)
 	{
 		return x * y;
 	}
@@ -827,8 +926,9 @@ struct multiply
 template<bool, typename _tScalar>
 struct xcrease_t
 {
+	//! \since build 537
 	inline _tScalar&
-	operator()(_tScalar& _x)
+	operator()(_tScalar& _x) const
 	{
 		return ++_x;
 	}
@@ -836,8 +936,9 @@ struct xcrease_t
 template<typename _tScalar>
 struct xcrease_t<false, _tScalar>
 {
+	//! \since build 537
 	inline _tScalar&
-	operator()(_tScalar& _x)
+	operator()(_tScalar& _x) const
 	{
 		return --_x;
 	}

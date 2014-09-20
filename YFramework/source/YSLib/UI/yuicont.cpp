@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1874
+\version r1876
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-09-17 04:00 +0800
+	2014-09-20 14:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -177,7 +177,7 @@ MLinearUIContainer::operator-=(IWidget& wgt)
 
 	erase_all_if(vWidgets, bind(is_equal(), _1, std::ref(wgt)));
 	t -= vWidgets.size();
-	YAssert(t <= 1, "Duplicate widget pointer found.");
+	YAssert(t <= 1, "Duplicate widget references found.");
 	return t != 0;
 }
 
@@ -218,7 +218,7 @@ MUIContainer::operator-=(IWidget& wgt)
 		return is_equal()(pr.second, wgt);
 	});
 	t -= mWidgets.size();
-	YAssert(t <= 1, "Duplicate widget pointer found.");
+	YAssert(t <= 1, "Duplicate widget references found.");
 	return t != 0;
 }
 

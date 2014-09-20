@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1263
+\version r1324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-08-28 17:35 +0800
+	2014-09-20 18:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,10 +39,10 @@ using namespace Drawing;
 namespace UI
 {
 
-Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
+Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 	: TextList(r, h, FetchGUIState().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText)),
-	id(id), pParent(nullptr), mSubMenus(), vDisabled(h ? h->size() : 0)
+	pParent(), mSubMenus(), vDisabled(h ? h->size() : 0)
 {
 	auto& unit(GetUnitRef());
 
@@ -85,7 +85,7 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h, ID id)
 
 					while(const auto pParent = p_mnu->GetParentPtr())
 						p_mnu = pParent;
-					if(i->second == p_mnu->id)
+					if(i->second == p_mnu)
 						return;
 				}
 			}
@@ -178,7 +178,7 @@ Menu::Show(ZOrderType z)
 {
 	if(pHost)
 	{
-		pHost->Show(id, z);
+		pHost->Show(*this, z);
 		return true;
 	}
 	return {};
@@ -208,12 +208,11 @@ Menu::Hide()
 {
 	if(pHost)
 	{
-		pHost->Hide(id);
+		pHost->Hide(*this);
 		return true;
 	}
 	return {};
 }
-
 
 void
 LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
@@ -224,93 +223,65 @@ LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 
 
 MenuHost::MenuHost(Window& frm)
-	: Frame(frm), mMenus(), Roots()
+	: Frame(frm)
 {}
 MenuHost::~MenuHost()
 {
+	// TODO: Explicit exception specification.
 	HideAll();
 	Clear();
 }
 
 void
-MenuHost::operator+=(const ValueType& val)
-{
-	YAssertNonnull(val.second);
-	yunseq(mMenus[val.first] = val.second,
-		val.second->id = val.first, val.second->pHost = this);
-}
-
-void
 MenuHost::operator+=(Menu& mnu)
 {
-	mMenus[mnu.id] = &mnu;
+	menus.insert(mnu);
 	mnu.pHost = this;
 }
 
 bool
-MenuHost::operator-=(Menu::ID id)
+MenuHost::operator-=(Menu& mnu)
 {
-	const auto i(mMenus.find(id));
-
-	if(i != mMenus.end())
+	if(menus.erase(mnu) != 0)
 	{
-		auto& mnu(*i->second);
-
 		mnu.pHost = {};
-		mMenus.erase(i);
 		return true;
 	}
 	return {};
 }
 
 bool
-MenuHost::IsShowing(Menu::ID id) const
+MenuHost::IsShowing(Menu& mnu) const
 {
-	const auto i(mMenus.find(id));
-
-	return i == mMenus.end() ? false : Frame.Contains(*i->second);
-}
-
-bool
-MenuHost::Contains(Menu& mnu) const
-{
-	using ystdex::get_value;
-
-	return std::find(mMenus.cbegin() | get_value, mMenus.cend() | get_value,
-		&mnu) != mMenus.cend();
+	return Contains(mnu) ? Frame.Contains(mnu) : false;
 }
 
 void
 MenuHost::Clear()
 {
-	std::for_each(mMenus.begin(), mMenus.end(), delete_second_mem());
-	mMenus.clear();
+	menus.clear();
 }
 
 void
-MenuHost::Show(Menu::ID id, ZOrderType z)
+MenuHost::Show(Menu& mnu, ZOrderType z)
 {
-	const auto i(mMenus.find(id));
-
-	if(i != mMenus.end())
-		ShowRaw(*i->second, z);
+	if(Contains(mnu))
+		ShowRaw(mnu, z);
 }
 
 void
 MenuHost::ShowAll(ZOrderType z)
 {
-	using ystdex::get_value;
-
-	std::for_each(mMenus.cbegin() | get_value, mMenus.cend() | get_value,
-		[this, z](const ItemType& p_mnu){
-		if(p_mnu)
-			ShowRaw(*p_mnu, z);
+	std::for_each(menus.begin(), menus.end(), [this, z](IWidget& wgt){
+		ShowRaw(ystdex::polymorphic_downcast<Menu&>(wgt), z);
 	});
 }
 
 void
 MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 {
+	YAssert(Contains(mnu), "Invalid menu found.");
+
 	Frame.Add(mnu, z);
 //依赖 mnu 的 GotFocus 事件默认会调用自身的 Invalidate 函数。
 //	Invalidate(mnu);
@@ -318,29 +289,25 @@ MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
 }
 
 void
-MenuHost::Hide(Menu::ID id)
+MenuHost::Hide(Menu& mnu)
 {
-	const auto i(mMenus.find(id));
-
-	if(i != mMenus.end())
-		HideRaw(*i->second);
+	if(Contains(mnu))
+		HideRaw(mnu);
 }
 
 void
 MenuHost::HideAll()
 {
-	using ystdex::get_value;
-
-	std::for_each(mMenus.cbegin() | get_value, mMenus.cend() | get_value,
-		[this](const ItemType& p_mnu){
-		if(p_mnu)
-			HideRaw(*p_mnu);
+	std::for_each(menus.begin(), menus.end(), [this](Menu& mnu){
+		HideRaw(mnu);
 	});
 }
 
 void
 MenuHost::HideRaw(Menu& mnu)
 {
+	YAssert(Contains(mnu), "Invalid menu found.");
+
 	ReleaseFocus(mnu);
 	if(IsVisible(mnu))
 		Invalidate(mnu);
@@ -348,20 +315,15 @@ MenuHost::HideRaw(Menu& mnu)
 }
 
 void
-MenuHost::HideUnrelated(Menu& mnu, Menu& mnuParent)
+MenuHost::HideUnrelated(Menu& mnu, Menu& mnu_parent)
 {
-	if(Contains(mnuParent))
+	if(Contains(mnu_parent))
 	{
 		auto p_mnu(&mnu);
 
-		while(p_mnu && p_mnu != &mnuParent)
-		{
-			const auto i(mMenus.find(p_mnu->GetID()));
-
-			if(i != mMenus.end())
-				HideRaw(*i->second);
-			p_mnu = p_mnu->GetParentPtr();
-		}
+		for(; p_mnu && p_mnu != &mnu_parent; p_mnu = p_mnu->GetParentPtr())
+			// XXX: %Hide or %HideRaw?
+			Hide(*p_mnu);
 		if(!p_mnu)
 			HideAll();
 	}

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1353
+\version r1399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-09-10 02:41 +0800
+	2014-09-20 18:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -402,9 +402,12 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	},
 	FetchEvent<KeyUp>(dsk_s) += OnKey_Bound_TouchUp,
 	FetchEvent<KeyDown>(dsk_s) += OnKey_Bound_TouchDown,
-	FetchEvent<KeyPress>(dsk_s) += [&](KeyEventArgs&& e){
-		if(e.GetKeys()[YCL_KEY(X)])
+	FetchEvent<KeyDown>(dsk_s) += [&](KeyEventArgs&& e){
+		if(e.Strategy != RoutedEventArgs::Bubble && e.GetKeys()[YCL_KEY(X)])
+		{
 			SwitchVisibleToFront(pnlSetting);
+			RequestFocusCascade(pnlSetting);
+		}
 	},
 	fbMain.GetViewChanged() += [&]{
 		lblPath.Text = String(fbMain.GetPath());
@@ -521,17 +524,16 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		btn.Text = u"Leave: " + String(to_string(e.Position));
 		Invalidate(btn);
 	},
-	mhMain.Roots[&btnMenu] = 1u,
 	FetchEvent<Click>(btnMenu) += [this]{
-		auto& mnu(mhMain[1u]);
+		auto& mnu(*p_m0);
 
-		if(mhMain.IsShowing(1u))
+		if(mhMain.IsShowing(mnu))
 		{
 			mhMain.HideAll();
 			mnu.ClearSelected();
 		}
 		else
-			mhMain.Show(1u);
+			mhMain.Show(mnu);
 		Invalidate(mnu);
 	},
 	FetchEvent<Click>(btnPrevBackground) += [&]{
@@ -580,36 +582,42 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	RequestFocusCascade(fbMain),
 	unseq_apply(SetInvalidationOf, dsk_m, dsk_s);
 
-	auto& m1(*(ynew Menu({}, share_raw(
-		new TextList::ListType{u"测试", u"关于", u"设置(X)", u"退出"}), 1u)));
-	auto& m2(*(ynew Menu({},
-		share_raw(new TextList::ListType{u"项目1", u"项目2"}), 2u)));
+	{
+		p_m0.reset(new Menu({}, share_raw(
+			new TextList::ListType{u"测试", u"关于", u"设置(X)", u"退出"})));
+		p_m1.reset(new Menu({},
+			share_raw(new TextList::ListType{u"项目1", u"项目2"})));
+		auto& m0(*p_m0);
+		auto& m1(*p_m1);
 
-	m1.Confirmed += [&](IndexEventArgs&& e){
-		switch(e.Value)
-		{
-		case 1U:
-			Show(*pFrmAbout);
-			break;
-		case 2U:
-			SwitchVisibleToFront(pnlSetting);
-			break;
-		case 3U:
-			YSLib::PostQuitMessage(0);
-		}
-	},
-	m2.Confirmed += [&](IndexEventArgs&& e){
+		m0.Confirmed += [&](IndexEventArgs&& e){
+			switch(e.Value)
+			{
+			case 1U:
+				Show(*pFrmAbout);
+				break;
+			case 2U:
+				SwitchVisibleToFront(pnlSetting);
+				break;
+			case 3U:
+				YSLib::PostQuitMessage(0);
+			}
+		},
+		m1.Confirmed += [&](IndexEventArgs&& e){
 #if YCL_Win32
-		MinGW32::TestFramework(e.Value);
+			MinGW32::TestFramework(e.Value);
 #endif
-		if(e.Value == 0)
-			SwitchVisibleToFront(pnlTest1);
-	},
-	mhMain += m1, mhMain += m2,
-	m1 += {0u, &m2};
-	unseq_apply(ResizeForContent, m1, m2),
-	SetLocationOf(m1, Point(btnMenu.GetX(), btnMenu.GetY() - m1.GetHeight()));
-	//m1.SetWidth(btnMenu.GetWidth() + 20);
+			if(e.Value == 0)
+				SwitchVisibleToFront(pnlTest1);
+		},
+		mhMain += m0, mhMain += m1,
+		m0 += {0u, &m1};
+		mhMain.Roots[&btnMenu] = &m0;
+		unseq_apply(ResizeForContent, m0, m1),
+		SetLocationOf(m0,
+			Point(btnMenu.GetX(), btnMenu.GetY() - m0.GetHeight()));
+		//m0.SetWidth(btnMenu.GetWidth() + 20);
+	}
 	YTraceDe(Debug, "Initialization of ShlExplorer ended.");
 }
 

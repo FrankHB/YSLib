@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4633
+\version r4653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-08-23 15:08 +0800
+	2014-09-20 18:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -390,16 +390,16 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 		if(IsVisible(boxTextInfo))
 			boxTextInfo.UpdateData(reader);
 	},
-	mhMain.Roots[&boxReader.btnMenu] = 1U,
 	FetchEvent<Click>(boxReader.btnMenu) += [this]{
-		if(mhMain.IsShowing(1U))
-			mhMain.Hide(1U);
+		if(mhMain.IsShowing(*p_mnu_reader))
+			mhMain.Hide(*p_mnu_reader);
 		else
 		{
 			const auto& pt(LocateForWidget(GetSubDesktop(),
 				boxReader.btnMenu));
 
-			ShowMenu(1U, Point(pt.X, pt.Y - mhMain[1U].GetHeight()));
+			ShowMenu(*p_mnu_reader,
+				Point(pt.X, pt.Y - p_mnu_reader->GetHeight()));
 		}
 	},
 	FetchEvent<Click>(boxReader.btnSetting) += [this]{
@@ -464,16 +464,19 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	FetchEvent<Click>(pnlBookmark.btnOK) += exit_session
 	);
 	{
-		Menu& mnu(*(ynew Menu({}, shared_ptr<Menu::ListType>(new
+		p_mnu_reader.reset(new Menu({}, shared_ptr<Menu::ListType>(new
 			Menu::ListType{"返回", "设置...", "文件信息...", "书签...",
-			"向上一行", "向下一行", "向上一屏", "向下一屏"}), 1u)));
+			"向上一行", "向下一行", "向上一屏", "向下一屏"})));
+
+		Menu& mnu(*p_mnu_reader);
 
 		mnu.Confirmed += [this](IndexEventArgs&& e){
 			Execute(e.Value);
 		};
-		mhMain += mnu;
+		mhMain += mnu,
+		mhMain.Roots[&boxReader.btnMenu] = &mnu,
+		ResizeForContent(mnu);
 	}
-	ResizeForContent(mhMain[1u]);
 
 	auto& dsk_m(GetMainDesktop());
 	auto& dsk_s(GetSubDesktop());
@@ -594,23 +597,20 @@ ShlTextReader::Scroll()
 }
 
 void
-ShlTextReader::ShowMenu(Menu::ID id, const Point& pt)
+ShlTextReader::ShowMenu(Menu& mnu, const Point& pt)
 {
-	if(!mhMain.IsShowing(id))
+	if(!mhMain.IsShowing(mnu))
 	{
-		auto& mnu(mhMain[id]);
-
 		mnu.ClearSelected();
-		switch(id)
+		if(&mnu == p_mnu_reader.get())
 		{
-		case 1u:
 			mnu.SetItemEnabled(MR_LineUp, !reader.IsTextTop());
 			mnu.SetItemEnabled(MR_LineDown, !reader.IsTextBottom());
 			mnu.SetItemEnabled(MR_ScreenUp, !reader.IsTextTop());
 			mnu.SetItemEnabled(MR_ScreenDown, !reader.IsTextBottom());
 		}
 		SetLocationOf(mnu, pt);
-		mhMain.Show(id);
+		mhMain.Show(mnu);
 	}
 }
 
@@ -668,7 +668,7 @@ ShlTextReader::OnClick(CursorEventArgs&& e)
 #if YCL_Win32
 	if(e.Keys[VK_RBUTTON])
 	{
-		ShowMenu(1U, e);
+		ShowMenu(*p_mnu_reader, e);
 		return;
 	}
 #else
@@ -704,7 +704,7 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 	using namespace Timers;
 	using namespace KeyCodes;
 
-	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(1u)
+	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(*p_mnu_reader)
 		&& RepeatHeld(tmrInput, FetchGUIState().KeyHeldState,
 		TimeSpan(240), TimeSpan(60)))
 	{

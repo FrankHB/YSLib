@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8290
+\version r8294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-09-14 15:13 +0800
+	2014-09-17 19:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1863,9 +1863,9 @@ b476
 						^ "macros %(PDefH, ImplExpr)";
 					/ @ "%operator=" $=
 					(
-						/ "merged copy and move assignment operators as \
-							unifying assignment";
-						+ $comp "no throw guarantee" @ "move assignment"
+						/ "merged (copy, move) %operator= as unifying \
+							%operator=";
+						+ $comp "no throw guarantee" @ "move %operator="
 					)
 				)
 			)
@@ -5028,7 +5028,7 @@ b430
 					@ "constructor with data pointer",
 					// As "handle".
 				+ "function %swap",
-				+ "unifying assignment",
+				+ "unifying %operator=",
 				+ "converter 'explicit operator bool() const ynothrow'",
 				+ 'operator!() const ynothrow',
 				(
