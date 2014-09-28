@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r665
+\version r669
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-09-03 13:36 +0800
+	2014-09-22 23:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,7 @@ struct string_traits
 template<typename _tParam,
 	typename = yimpl(decltype(std::declval<_tParam>()[0]))>
 using enable_for_string_class_t
-	= enable_if_t<is_class<decay_t<_tParam>>::value, int>;
+	= enable_if_t<is_class<decay_t<_tParam>>::value>;
 
 
 /*!
@@ -438,10 +438,10 @@ to_string(unsigned short val)
 {
 	return std::to_string(unsigned(val));
 }
-//! \since build 439
+//! \since build 538
 template<typename _type>
 inline std::string
-to_string(_type val, enable_if_t<is_enum<_type>::value, int> = 0)
+to_string(_type val, yimpl(enable_if_t<is_enum<_type>::value>* = {}))
 {
 	using std::to_string;
 	using ystdex::to_string;
@@ -489,7 +489,7 @@ sfmt(const _tChar* fmt, ...)
 
 /*!
 \brief 显式实例化：以 C 标准输出格式的输出 std::string 对象。
-\sa sfmt
+\sa ystdex::sfmt
 \since build 350
 */
 template YB_ATTR(format (printf, 1, 2)) YB_NONNULL(1) std::string

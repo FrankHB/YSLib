@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r535
+\version r537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-08-23 14:51 +0800
+	2014-09-22 23:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,7 @@ make_unique(size_t size)
 	return std::unique_ptr<_type>(new remove_extent_t<_type>[size]());
 }
 template<typename _type,  typename... _tParams>
-yimpl(enable_if_t<extent<_type>::value != 0, void>)
+yimpl(enable_if_t<extent<_type>::value != 0>)
 make_unique(_tParams&&...) = delete;
 //@}
 
@@ -251,7 +251,7 @@ make_unique_default_init(size_t size)
 	return std::unique_ptr<_type>(new remove_extent_t<_type>[size]);
 }
 template<typename _type,  typename... _tParams>
-yimpl(enable_if_t<extent<_type>::value != 0, void>)
+yimpl(enable_if_t<extent<_type>::value != 0>)
 make_unique_default_init(_tParams&&...) = delete;
 //@}
 //@}

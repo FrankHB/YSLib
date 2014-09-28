@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r829
+\version r832
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-09-09 23:10 +0800
+	2014-09-24 18:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -143,9 +143,8 @@ class YF_API UnsupportedImageFormat
 	: public LoggedEvent, public ystdex::unsupported
 {
 public:
-	UnsupportedImageFormat(const std::string& str)
-		: LoggedEvent(str), unsupported()
-	{}
+	//! \since build 538
+	using LoggedEvent::LoggedEvent;
 };
 
 

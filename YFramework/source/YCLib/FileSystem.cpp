@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1319
+\version r1363
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-07-23 06:41 +0800
+	2014-09-28 08:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 
 #include "YCLib/YModules.h"
-#include "CHRLib/YModules.h"
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_NativeAPI
 #include YFM_CHRLib_CharacterProcessing
@@ -63,17 +62,6 @@ using namespace CHRLib;
 namespace platform
 {
 
-static_assert(std::is_same<CHRLib::ucs2_t, char16_t>::value,
-	"Wrong character type found.");
-static_assert(std::is_same<CHRLib::ucs4_t, char32_t>::value,
-	"Wrong character type found.");
-#if YCL_Win32
-static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
-	"Wrong character type found.");
-static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
-	"Inconsistent alignment between character types found.");
-#endif
-
 namespace
 {
 
@@ -105,11 +93,15 @@ DirEnv::DirEnv(std::wstring& dir_name, ::WIN32_FIND_DATAW& win32_fdata)
 	yconstraint(!dir_name.empty() && dir_name.back() != '\\');
 
 	const auto r(::GetFileAttributesW(dir_name.c_str()));
+	yconstexpr const char* msg("Opening directory failed.");
 
-	if(r != INVALID_FILE_ATTRIBUTES && r & FILE_ATTRIBUTE_DIRECTORY)
+	if(YB_UNLIKELY(r == INVALID_FILE_ATTRIBUTES))
+		// TODO: Call %::GetLastError to distinguish concreate errors.
+		throw FileOperationFailure(EINVAL, std::generic_category(), msg);
+	if(r & FILE_ATTRIBUTE_DIRECTORY)
 		dir_name += L"\\*";
 	else
-		throw FileOperationFailure("Opening directory failed.");
+		throw FileOperationFailure(ENOTDIR, std::generic_category(), msg);
 }
 
 
@@ -334,39 +326,35 @@ ufexists(const char16_t* filename) ynothrow
 char16_t*
 u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 {
-	if(size == 0)
-	//	last_err = EINVAL;
-		;
+	if(YB_UNLIKELY(!buf || size == 0))
+		errno = EINVAL;
 	else
 	{
 		using namespace std;
 		using namespace CHRLib;
 
-		if(YB_LIKELY(buf))
 #if !YCL_Win32
-		{
-			const auto p(static_cast<ucs2_t*>(malloc((size + 1)
-				* sizeof(ucs2_t))));
-
-			if(YB_LIKELY(p))
+		if(const auto cwd = ::getcwd(reinterpret_cast<char*>(buf), size))
+			try
 			{
-				auto len(MBCSToUCS2(p,
-					::getcwd(reinterpret_cast<char*>(buf), size)));
+				const auto res(ucsdup(cwd));
+				const auto len(res.length());
 
 				if(size < len + 1)
+					errno = ERANGE;
+				else
 				{
-				//	last_err = ERANGE;
-					return {};
+					std::copy(res.begin(), res.end(), buf);
+					return buf;
 				}
-				memcpy(buf, p, ++len * sizeof(ucs2_t));
-				return buf;
 			}
-		//	else
-			//	last_err = ENOMEM;
-		}
+			catch(std::bad_alloc&)
+			{
+				errno = ENOMEM;
+			}
 #else
-			return reinterpret_cast<ucs2_t*>(
-				::_wgetcwd(reinterpret_cast<wchar_t*>(buf), size));
+		return reinterpret_cast<ucs2_t*>(
+			::_wgetcwd(reinterpret_cast<wchar_t*>(buf), size));
 #endif
 	}
 	return {};
@@ -448,8 +436,10 @@ GetFileSizeOf(int fd)
 	if(::GetFileSizeEx(::HANDLE(::_get_osfhandle(fd)), &sz) != 0
 		&& YB_LIKELY(sz.QuadPart >= 0))
 		return sz.QuadPart;
+	// TODO: Get correct error condition.
 #endif
-	throw FileOperationFailure("Failed getting file size.");
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed getting file size.");
 }
 std::uint64_t
 GetFileSizeOf(std::FILE* fp)
@@ -474,7 +464,8 @@ DirectorySession::DirectorySession(const char* path)
 	)
 {
 	if(!dir)
-		throw FileOperationFailure("Opening directory failed.");
+		throw FileOperationFailure(errno, std::generic_category(),
+			"Opening directory failed.");
 }
 DirectorySession::~DirectorySession()
 {

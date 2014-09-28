@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2286
+\version r2341
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-06-18 19:34 +0800
+	2014-09-27 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,12 +341,68 @@ inline PDefH(void, EnsureDirectory, const String& path)
 //@}
 
 
-/*!
-\brief 遍历目录中的项目，更新至列表。
-\since build 414
-*/
+//! \since build 538
+//@{
+//! \brief 目录遍历操作。
+//@{
+template<typename _fCallable>
 void
+Traverse(HDirectory& dir, _fCallable f)
+{
+	PathNorm nm;
+
+	std::for_each(FileIterator(&dir), FileIterator(),
+		[&, f](const std::string& name){
+		YAssert(!name.empty(), "Empty name found.");
+		if(!nm.is_self(name))
+			f(dir.GetNodeCategory(), name, nm);
+	});
+}
+template<typename _fCallable>
+inline void
+Traverse(const char* path, _fCallable f)
+{
+	HDirectory dir(path);
+
+	IO::Traverse(dir, f);
+}
+template<typename _fCallable>
+inline void
+Traverse(const std::string& path, _fCallable f)
+{
+	IO::Traverse(path.c_str(), f);
+}
+template<typename _fCallable>
+inline void
+Traverse(const Path& pth, _fCallable f)
+{
+	IO::Traverse(std::string(pth), f);
+}
+
+template<typename _fCallable>
+void
+TraverseChildren(const std::string& path, _fCallable f)
+{
+	IO::Traverse(path,
+		[f](NodeCategory c, const std::string& name, PathNorm& nm){
+		if(!nm.is_parent(name))
+			f(c, name);
+	});
+}
+//@}
+
+//! \brief 删除参数指定路径的目录树。
+//@{
+YF_API void
+DeleteTree(const Path&);
+inline PDefH(void, DeleteTree, const std::string& pth)
+	ImplRet(IO::DeleteTree(Path(pth)))
+//@}
+
+//! \brief 遍历目录中的项目，更新至列表。
+YF_API void
 ListFiles(const Path&, vector<String>&);
+//@}
 
 
 /*!

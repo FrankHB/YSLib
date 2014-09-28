@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1595
+\version r1599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-08-28 07:18 +0800
+	2014-09-24 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -438,10 +438,8 @@ using VisualEventMap = EventMapping::MapType;
 class YF_API BadEvent : public LoggedEvent
 {
 public:
-	//! \since build 411
-	BadEvent(const std::string& msg = "")
-		: LoggedEvent(msg)
-	{}
+	//! \since build 538
+	using LoggedEvent::LoggedEvent;
 };
 
 

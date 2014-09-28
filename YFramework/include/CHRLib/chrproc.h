@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r963
+\version r967
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-09-12 18:45 +0800
+	2014-09-27 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,7 +176,8 @@ strdup(const ucs2_t*, size_t, Encoding = CS_Default);
 inline PDefH(std::string, strdup, const ucs2_t* s, Encoding enc = CS_Default)
 	ImplRet(strdup(s, ystdex::ntctslen(s), enc))
 //! \since build 535
-template<class _tString>
+template<class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 std::string
 strdup(const _tString& str, Encoding enc = CS_Default)
 {
@@ -205,7 +206,8 @@ YF_API std::basic_string<ucs2_t>
 ucsdup(const ucs4_t*);
 //@}
 //! \since build 535
-template<class _tString>
+template<class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
 std::basic_string<ucs2_t>
 ucsdup(const _tString& str, Encoding enc = CS_Default)
 {

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8294
+\version r8295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-09-17 19:20 +0800
+	2014-09-22 21:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -6033,7 +6033,7 @@ b412
 						the restrictions as allowing this invalid C++11 \
 						construct. Note another restriction is already relaxed \
 						in the draft WG21/N3691. See $ref b412 $note "N3652".
-				* $dev "wrong yconstfn" @ "constructor %Message" @ %YMessage
+				* $dev "wrong %yconstfn" @ "constructor %Message" @ %YMessage
 					$since b368,
 					// Though G++ accepts invalid code, it is conforming \
 						because "no diagnostics required" is explicitly stated \

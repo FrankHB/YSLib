@@ -3,10 +3,12 @@
 # Example script for build YSLib using SHBuild.
 
 set -e
+SHBuild_BaseDir=`dirname $0`
+SHBuild_BaseDir=`(cd ${SHBuild_BaseDir}; pwd)`
+SHBuild_Me=`basename $0`
+source ${SHBuild_BaseDir}/common.sh
 
 SHBOPT="-xid,alternative -xid,data -xid,include"
-
-echo Options: ${SHBOPT}`printf " \"%s\"" "$@"` .
 
 COMMON_CXXFLAGS=" \
 	-O3 -pipe -s -std=c++11 \
@@ -33,6 +35,12 @@ COMMON_CXXFLAGS=" \
 	-pedantic-errors \
 	"
 
+SHBuild_EchoVar "SHBOPT" "${SHBOPT}"
+SHBuild_EchoVar "COMMON_CXXFLAGS" "${COMMON_CXXFLAGS}"
+
+SHBuild_Pushd
+cd ${SHBuild_BaseDir}
+
 # TODO: Run link commands.
 ./shbuild ${SHBOPT} "$@" ../../YBase \
 	${COMMON_CXXFLAGS} \
@@ -44,5 +52,6 @@ COMMON_CXXFLAGS=" \
 	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \
 	-I../../3rdparty/include -I../../YBase/include
 
+SHBuild_Popd
 echo Done.
 

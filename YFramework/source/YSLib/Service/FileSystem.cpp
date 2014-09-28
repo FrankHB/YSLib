@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1911
+\version r1929
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-07-14 14:47 +0800
+	2014-09-27 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,19 +150,27 @@ EnsureDirectory(const Path& pth)
 
 
 void
+DeleteTree(const Path& pth)
+{
+	TraverseChildren(pth, [&](NodeCategory c, const std::string& name){
+		const auto child(pth / name);
+
+		if(c == NodeCategory::Directory)
+			DeleteTree(child);
+		uremove(std::string(child).c_str());
+	});
+}
+
+void
 ListFiles(const Path& pth, vector<String>& lst)
 {
 	try
 	{
-		HDirectory dir(string(pth).c_str());
-		PathNorm nm;
-
-		std::for_each(FileIterator(&dir), FileIterator(),
-			[&](const std::string& name){
-			if(YB_LIKELY(!nm.is_self(name)))
-				lst.push_back(String(!nm.is_parent(name)
-					&& dir.GetNodeCategory() == NodeCategory::Directory
-					? name + YCL_PATH_DELIMITER : name, CS_Path));
+		Traverse(pth,
+			[&](NodeCategory c, const std::string& name, PathNorm& nm){
+			lst.push_back(String(!nm.is_parent(name)
+				&& c == NodeCategory::Directory
+				? name + YCL_PATH_DELIMITER : name, CS_Path));
 		});
 	}
 	catch(FileOperationFailure&)

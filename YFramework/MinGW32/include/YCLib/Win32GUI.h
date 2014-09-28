@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r528
+\version r533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-09-03 14:03 +0800
+	2014-09-25 08:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,6 +110,9 @@ public:
 	*/
 	YSLib::Drawing::AlphaType
 	GetOpacity() const;
+	//! \since build 538
+	WindowReference
+	GetParent() const;
 	YSLib::Drawing::Size
 	GetSize() const;
 
@@ -467,6 +470,8 @@ public:
 	using WindowReference::GetNativeHandle;
 	//! \since build 430
 	using WindowReference::GetOpacity;
+	//! \since build 538
+	using WindowReference::GetParent;
 	using WindowReference::GetSize;
 
 	//! \since build 445
