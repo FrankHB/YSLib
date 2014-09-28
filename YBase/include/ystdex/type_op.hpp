@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1207
+\version r1209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2014-08-29 16:07 +0800
+	2014-09-22 23:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -759,9 +759,9 @@ struct array_ref_decay<_type&&>
 \ingroup metafunctions
 \brief 移除选择类类型的特定重载避免构造模板和复制/转移构造函数冲突。
 \sa enable_if_t
-\since build 448
+\since build 538
 */
-template<class _tClass, typename _tParam, typename _type = int>
+template<class _tClass, typename _tParam, typename _type = void>
 using exclude_self_ctor_t
 	= enable_if_t<!is_same<_tClass&, remove_rcv_t<_tParam>&>::value, _type>;
 

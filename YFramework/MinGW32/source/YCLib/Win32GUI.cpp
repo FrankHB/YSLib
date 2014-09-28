@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r509
+\version r514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-07-22 16:02 +0800
+	2014-09-25 08:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -181,6 +181,12 @@ WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
 	if(YB_UNLIKELY(!SetLayeredWindowAttributes(hWindow, 0, a, LWA_ALPHA)))
 		YF_Raise_Win32Exception("SetLayeredWindowAttributes");
 }
+WindowReference
+WindowReference::GetParent() const
+{
+	return GetParent();
+}
+
 void
 WindowReference::SetText(const wchar_t* str)
 {

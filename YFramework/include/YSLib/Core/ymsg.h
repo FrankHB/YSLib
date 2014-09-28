@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1984
+\version r1987
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2014-09-09 23:09 +0800
+	2014-09-24 23:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -274,9 +274,8 @@ public:
 class YF_API MessageException : public LoggedEvent
 {
 public:
-	MessageException(const std::string& msg = "")
-		: LoggedEvent(msg)
-	{}
+	//! \since build 538
+	using LoggedEvent::LoggedEvent;
 };
 
 

@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r281
+\version r286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2014-07-24 18:59 +0800
+	2014-09-27 16:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace ystdex
 \brief 按最近最多使用策略刷新的缓存。
 \since build 521
 \todo 加入异常安全的复制构造函数和复制赋值操作符。
-\todo 扩展为 MLU 列表。
+\todo 支持其它刷新策略。
 */
 template<typename _tKey, typename _tMapped, typename _fHash = std::hash<_tKey>,
 	typename _fEqual = std::equal_to<_tKey>,
@@ -99,8 +99,7 @@ public:
 	void
 	set_max_use(size_type s)
 	{
-		if(s < 1)
-			s = 1;
+		max_use = s < 1 ? 1 : s;
 		check_max_used();
 	}
 
@@ -113,8 +112,6 @@ public:
 		used_list.clear(),
 		used_cache.clear();
 	}
-
-	using map_type::end;
 
 	template<typename... _tParams>
 	std::pair<typename map_type::iterator, bool>
@@ -140,12 +137,15 @@ public:
 			catch(...)
 			{
 				yassume(!used_list.empty());
+				map_type::erase(pr.first),
 				used_list.pop_back();
 				throw;
 			}
 		}
 		return pr;
 	}
+
+	using map_type::end;
 
 	iterator
 	find(const key_type& k)

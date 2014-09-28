@@ -11,13 +11,13 @@
 /*!	\file concurrency.cpp
 \ingroup YStandardEx
 \brief 并发操作。
-\version r89
+\version r100
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 19:09:18 +0800
 \par 修改时间:
-	2014-07-21 19:17 +0800
+	2014-09-23 00:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,12 +43,12 @@ thread_pool::thread_pool(size_t n)
 				std::unique_lock<std::mutex> lck(queue_mutex);
 
 				condition.wait(lck, [this]{
-					return stop || !tasks.empty();
+					return stopped || !tasks.empty();
 				});
 				if(tasks.empty())
 				{
 					// NOTE: Do nothing for spurious wake up.
-					if(stop)
+					if(stopped)
 						return;
 				}
 				else
@@ -67,7 +67,7 @@ thread_pool::~thread_pool()
 	{
 		std::unique_lock<std::mutex> lck(queue_mutex);
 
-		stop = true;
+		stopped = true;
 	}
 	condition.notify_all();
 	for(auto& worker : workers)
@@ -80,9 +80,18 @@ thread_pool::size() const
 {
 	std::unique_lock<std::mutex> lck(queue_mutex);
 
-	return tasks.size();
+	return size_unlocked();
 }
 
+
+void
+task_pool::reset()
+{
+	auto& threads(static_cast<thread_pool&>(*this));
+
+	threads.~thread_pool();
+	::new(&threads) thread_pool(max_tasks);
+}
 
 } // namespace ystdex;
 

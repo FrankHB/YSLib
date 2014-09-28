@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r102
+\version r117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2014-07-17 06:32 +0800
+	2014-09-20 20:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,7 @@
 #include <ystdex/functional.hpp>
 #include <vector>
 #include <list>
+#include <cmath>
 #include <iostream>
 #include <ystdex/algorithm.hpp>
 #include <ystdex/string.hpp>
@@ -64,6 +65,20 @@ main()
 	});
 
 	// TODO: Check stream error.
+	// 2 cases covering: ystdex::compose.
+	seq_apply(make_guard("YStandard.Functional").get(pass, fail),
+		0.5 == compose(static_cast<double(&)(double)>(sin),
+			static_cast<double(&)(double)>(asin))(0.5),
+		expect(145, []{
+			return compose([](int x, int y){
+				return x + y + 1;
+			}, [](int x){
+				return x * 2;
+			}, [](int x){
+				return x - 1;
+			})(42, 32);
+		})
+	);
 	// 2 cases covering: ystdex::transform_n.
 	seq_apply(make_guard("YStandard.Algorithm").get(pass, fail),
 		expect(vector<int>{-2, 5, 16, 16}, []{

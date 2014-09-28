@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1286
+\version r1311
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-09-03 13:56 +0800
+	2014-09-28 08:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,9 @@
 //	ystdex::remove_reference_t, ystdex::arrlen;
 #include <ystdex/cstring.h> // for ystdex::is_null;
 #include <ystdex/string.hpp> // for ystdex::string_length, std::string;
-#include "CHRLib/encoding.h"
+#include "CHRLib/YModules.h"
+#include YFM_CHRLib_Encoding
+#include <system_error>
 #if YCL_DS || YCL_MinGW || YCL_Android
 #	include <dirent.h>
 #endif
@@ -43,7 +45,19 @@
 namespace platform
 {
 
-//平台相关的全局常量。
+//! \since build 538
+//@{
+static_assert(std::is_same<CHRLib::ucs2_t, char16_t>::value,
+	"Wrong character type found.");
+static_assert(std::is_same<CHRLib::ucs4_t, char32_t>::value,
+	"Wrong character type found.");
+#if YCL_Win32
+static_assert(sizeof(wchar_t) == sizeof(CHRLib::ucs2_t),
+	"Wrong character type found.");
+static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
+	"Inconsistent alignment between character types found.");
+#endif
+//@}
 
 /*
 \brief 判断字符串是否是当前路径。
@@ -232,10 +246,13 @@ inline PDefH(bool, ufexists, const _tString& str) ynothrow
 	ImplRet(ufexists(str.c_str()))
 
 /*!
-\brief 当第一参数非空时取当前工作目录（ UCS-2 编码）复制至指定缓冲区中。
+\brief 取当前工作目录（ UCS-2 编码）复制至指定缓冲区中。
 \param buf 缓冲区起始指针。
 \param size 缓冲区长。
 \return 若成功为 buf ，否则为空指针。
+\note 当 <tt>!buf || size == 0</tt> 时失败，设置 \c errno 为 \c EINVAL 。
+\note 指定的 size 不能容纳结果时失败，设置 \c errno 为 \c ERANGE 。
+\note 若分配存储失败，设置 \c errno 为 \c ENOMEM 。
 */
 YF_API char16_t*
 u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
@@ -373,13 +390,11 @@ enum class NodeCategory : ystdex::underlying_type_t<PathCategory>
 \brief 表示文件操作失败的异常。
 \since build 411
 */
-class YF_API FileOperationFailure : public std::runtime_error
+class YF_API FileOperationFailure : public std::system_error
 {
 public:
-	//! \since build 413
-	FileOperationFailure(const std::string& msg = "") ynothrow
-		: runtime_error(msg)
-	{}
+	//! \since build 538
+	using system_error::system_error;
 };
 
 

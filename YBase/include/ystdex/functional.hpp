@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1237
+\version r1240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-09-20 18:14 +0800
+	2014-09-22 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,13 +125,13 @@ varg(_tParams&&... args)
 */
 //@{
 template<typename _fCallable>
-yconstfn void
+inline void
 chain_apply(_fCallable&& f)
 {
 	return yforward(f);
 }
 template<typename _fCallable, typename _type, typename... _tParams>
-yconstfn void
+inline void
 chain_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
 {
 	return ystdex::chain_apply(yforward(yforward(f)(yforward(arg))),
@@ -613,7 +613,7 @@ public:
 	//! \since build 527
 	template<typename _fCaller, yimpl(typename
 		= exclude_self_ctor_t<thunk, _fCaller>, typename
-		= enable_if_t<is_convertible<_fCaller&&, callable_type>::value, int>)>
+		= enable_if_t<is_convertible<_fCaller&&, callable_type>::value>)>
 	thunk(_fCaller&& f)
 		: base(std::move(callable_type(f)))
 	{}

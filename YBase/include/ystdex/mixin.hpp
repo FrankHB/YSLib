@@ -11,13 +11,13 @@
 /*!	\file mixin.hpp
 \ingroup YStandardEx
 \brief 基于类继承的混入接口。
-\version r148
+\version r153
 \author FrankHB <frankhb1989@gmail.com>
 \since build 477
 \par 创建时间:
 	2014-02-17 00:07:20 +0800
 \par 修改时间:
-	2014-09-03 13:36 +0800
+	2014-09-23 00:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,7 +53,7 @@ public:
 		yimpl(typename = exclude_self_ctor_t<mixin, _tParam>)>
 	yconstfn
 	mixin(_tParam&& arg)
-		: _tBases(yforward(arg))
+		: _tBases(yforward(arg))...
 	{}
 	template<typename _tParam1, typename _tParam2, typename... _tParams>
 	yconstfn
@@ -64,25 +64,25 @@ public:
 	template<typename... _tParams>
 	yconstfn
 	mixin(const std::tuple<_tParams...>& tp,
-		yimpl(enable_if_t<sizeof...(_tBases) == 1>* = {}))
+		yimpl(enable_if_t<(sizeof(tp), sizeof...(_tBases) == 1)>* = {}))
 		: mixin(std::get<0>(tp))
 	{}
 	template<typename... _tParams>
 	yconstfn
 	mixin(std::tuple<_tParams...>&& tp,
-		yimpl(enable_if_t<sizeof...(_tBases) == 1>* = {}))
+		yimpl(enable_if_t<(sizeof(tp), sizeof...(_tBases) == 1)>* = {}))
 		: mixin(std::get<0>(std::move(tp)))
 	{}
 	template<typename... _tParams>
 	yconstfn
 	mixin(const std::tuple<_tParams...>& tp,
-		yimpl(enable_if_t<(sizeof...(_tBases) > 1)>* = {}))
+		yimpl(enable_if_t<(sizeof(tp), sizeof...(_tBases) > 1)>* = {}))
 		: mixin(make_natural_sequence_t<sizeof...(_tParams)>(), tp)
 	{}
 	template<typename... _tParams>
 	yconstfn
 	mixin(std::tuple<_tParams...>&& tp,
-		yimpl(enable_if_t<(sizeof...(_tBases) > 1)>* = {}))
+		yimpl(enable_if_t<(sizeof(tp), sizeof...(_tBases) > 1)>* = {}))
 		: mixin(make_natural_sequence_t<sizeof...(_tParams)>(), std::move(tp))
 	{}
 	template<size_t... _vSeq, typename... _tParams>

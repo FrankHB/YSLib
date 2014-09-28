@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r1070
+\version r1217
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-07-29 18:45 +0800
+	2014-09-27 16:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,8 @@ See readme file for details.
 #include <ystdex/exception.hpp> // for ystdex::raise_exception;
 
 using std::for_each;
+//! \since build 538
+using std::string;
 using std::wstring;
 //! \since build 520
 using std::ostringstream;
@@ -50,10 +52,6 @@ using platform_ex::MBCSToMBCS;
 
 namespace
 {
-
-static_assert(sizeof(wchar_t) == sizeof(ucs2_t), "Character type unsupported.");
-static_assert(yalignof(wchar_t) == yalignof(ucs2_t),
-	"Character type unsupported.");
 
 /*!
 \brief 默认构建根目录路径。
@@ -85,31 +83,16 @@ yconstexpr auto build_path(u8".shbuild\\");
 using IntException = ystdex::wrap_mixin_t<std::exception, int>;
 using ystdex::raise_exception;
 //! \since build 522
-YB_NORETURN inline PDefH(void, raise_exception, int ret)
+inline PDefH(void, raise_exception, int ret)
 	ImplExpr(raise_exception<IntException>({std::exception(), ret}));
 
-template<typename _fCallable>
+//! \since build 538
 void
-Traverse(const string& path, _fCallable f)
+PrintInfo(const string& line, RecordLevel lv = Notice)
 {
-	HDirectory dir(path.c_str());
-
-	for_each(FileIterator(&dir), FileIterator(),
-		std::bind(f, std::ref(dir), std::placeholders::_1));
-}
-
-//! \since build 519
-void
-PrintInfo(const string& line)
-{
-	YTraceDe(Notice, "%s", MBCSToMBCS(line).c_str());
-}
-
-//! \since build 519
-void
-PrintError(const string& line)
-{
-	YTraceDe(Err, "%s", MBCSToMBCS(line).c_str());
+	FetchCommonLogger().Log(lv, [&]{
+		return line;
+	});
 }
 
 void
@@ -119,17 +102,13 @@ PrintException(const std::exception& e, size_t level = 0)
 	{
 		ostringstream oss;
 
-		oss << string(level, ' ') << "ERROR: " << MBCSToMBCS(e.what());
-		PrintError(oss.str());
+		oss << string(level, ' ') << u8"ERROR: " << e.what();
+		PrintInfo(oss.str());
 		std::rethrow_if_nested(e);
 	}
-	catch(std::bad_cast&)
+	catch(FileOperationFailure& e)
 	{
-		throw;
-	}
-	catch(FileOperationFailure&)
-	{
-		PrintError(u8"ERROR: File operation failure.");
+		PrintInfo(u8"ERROR: File operation failure.", Err);
 		PrintException(e, ++level);
 		throw 1;
 	}
@@ -139,7 +118,7 @@ PrintException(const std::exception& e, size_t level = 0)
 	}
 	catch(...)
 	{
-		PrintError(u8"ERROR: PrintException.");
+		PrintInfo(u8"ERROR: PrintException.", Err);
 	}
 }
 //@}
@@ -176,18 +155,18 @@ TryParseOptionUL(const string& name, const string& val, _fCallable f)
 		const auto uval(stoul(val));
 
 		if(!f(uval))
-			cerr << "Warning: Value '" << MBCSToMBCS(val) << "' of "
-				<< MBCSToMBCS(name) << " out of range." << endl;
+			PrintInfo(u8"Warning: Value '" + val + u8"' of " + name
+				+ u8" out of range.", Warning);
 	}
 	catch(std::invalid_argument&)
 	{
-		cerr << "Warning: Value '" << MBCSToMBCS(val) << "' of "
-			<< MBCSToMBCS(name) << " is invalid." << endl;
+		PrintInfo(u8"Warning: Value '" + val + u8"' of " + name
+			+ u8" is invalid.", Warning);
 	}
 	catch(std::out_of_range&)
 	{
-		cerr << "Warning: Value of " << MBCSToMBCS(name) << " out of range."
-			<< endl;
+		PrintInfo(u8"Warning: Value '" + val + u8"' of " + name
+			+ u8" out of range.", Warning);
 	}
 }
 
@@ -212,20 +191,27 @@ ParsePrefixedOptionUL(const string& arg, const _type& prefix,
 class BuildContext final : private ystdex::noncopyable
 {
 private:
-	mutable size_t max_jobs;
-	mutable ystdex::thread_pool pool;
+	//! \since build 538
+	mutable ystdex::task_pool jobs;
 	mutable std::mutex job_mtx{};
 	mutable int result = 0;
-	mutable std::condition_variable cv{};
 	string flags{};
 
 public:
 	set<string> IgnoredDirs{};
 	vector<string> Options{};
+	//! \since build 538
+	string CC = "gcc";
+	//! \since build 538
+	string CXX = "g++";
 
 	BuildContext(size_t n)
-		: max_jobs(n), pool(max_jobs)
+		: jobs(n)
 	{}
+
+	//! \since build 538
+	string
+	GetCommandName(const String&) const;
 
 	void
 	Build();
@@ -246,11 +232,21 @@ public:
 	Search(const string&, const string&) const;
 };
 
+string
+BuildContext::GetCommandName(const String& ext) const
+{
+	if(ext == u"c")
+		return CC;
+	if(ext == u"cc" || ext == u"cpp" || ext == u"cxx")
+		return CXX;
+	return "";
+}
+
 void
 BuildContext::Build()
 {
 	PrintInfo(ystdex::sfmt("Ready to run, job max count: %u.",
-		max_jobs));
+		jobs.get_max_task_num()));
 
 	if(Options.empty())
 	{
@@ -263,7 +259,7 @@ BuildContext::Build()
 
 	if(ipath.empty())
 	{
-		PrintError(u8"ERROR: Empty SRCPATH found.");
+		PrintInfo(u8"ERROR: Empty SRCPATH found.", Err);
 		raise_exception(1);
 	}
 	if(IsRelative(ipath))
@@ -275,7 +271,7 @@ BuildContext::Build()
 	PrintInfo(u8"Absolute path recognized: " + to_string(ipath).GetMBCS());
 	if(!VerifyDirectory(in))
 	{
-		PrintError(u8"ERROR: SRCPATH is not existed.");
+		PrintInfo(u8"ERROR: SRCPATH is not existed.", Err);
 		raise_exception(1);
 	}
 	try
@@ -288,7 +284,7 @@ BuildContext::Build()
 
 		oss << "ERROR: Failed creating build directory." << '\''
 			<< build_path << '\'';
-		PrintError(oss.str());
+		PrintInfo(oss.str(), Err);
 		raise_exception(2);
 	}
 
@@ -308,7 +304,7 @@ BuildContext::Call(const wchar_t* cmd) const
 {
 	YAssert(cmd, "Null pointer found.");
 	std::cout << platform_ex::WCSToMBCS(cmd) << std::endl;
-	return max_jobs <= 1 ? ::_wsystem(cmd) : RunTask(cmd);
+	return jobs.get_max_task_num() <= 1 ? ::_wsystem(cmd) : RunTask(cmd);
 }
 
 int
@@ -316,15 +312,10 @@ BuildContext::RunTask(const wchar_t* cmd) const
 {
 	YAssert(cmd, "Null pointer found.");
 
-	std::unique_lock<std::mutex> lck(job_mtx);
 	wstring cmd_str(cmd);
 
-	while(!(pool.size() < max_jobs))
-		cv.wait_for(lck, std::chrono::milliseconds(80), [this]{
-			return pool.size() < max_jobs;
-		});
-
-	auto fut(pool.enqueue([&, cmd_str]{
+	// TODO: Use ISO C++1y lambda initializers to simplify implementation.
+	jobs.wait_for(std::chrono::milliseconds(80), [&, cmd_str]{
 		const int res(::_wsystem(cmd_str.c_str()));
 		{
 			std::lock_guard<std::mutex> lck(job_mtx);
@@ -332,9 +323,7 @@ BuildContext::RunTask(const wchar_t* cmd) const
 			result = res;
 		}
 		return res;
-	}));
-
-	yunused(fut);
+	});
 	return result;
 }
 
@@ -354,65 +343,74 @@ BuildContext::Search(const string& path, const string& opath) const
 		raise_exception(std::runtime_error(u8"Failed creating directory '"
 			+ opath + u8"'."));
 	}
-	Traverse(opath, [&](HDirectory& dir, const string& name){
-		YAssert(!name.empty(), "Empty name found.");
+	TraverseChildren(opath, [&](NodeCategory c, const std::string& name){
+		if(name[0] == '.')
+			return;
+		if(c == NodeCategory::Regular)
+		{
+			const auto ext(GetExtensionOf(String(name, CS_Path)));
 
-		if(YB_LIKELY(name[0] != '.'))
-			if(dir.GetNodeCategory() == NodeCategory::Regular)
+			if(ext == u"a" || ext == u"o")
 			{
-				const auto ext(GetExtensionOf(String(name, CS_Path)));
-
-				if(ext == u"a" || ext == u"o")
-				{
-					if(!uremove((opath + name).c_str()))
-						raise_exception(std::runtime_error(
-							u8"Failed deleting file '" + name + u8"'."));
-					PrintInfo(u8"Deleted file '" + name + u8"'.");
-				}
+				if(!uremove((opath + name).c_str()))
+					raise_exception(std::runtime_error(
+						u8"Failed deleting file '" + name + u8"'."));
+				PrintInfo(u8"Deleted file '" + name + u8"'.");
 			}
+		}
 	});
 	PrintInfo(u8"Searching path: " + path + u8" ...");
-	Traverse(path, [&](HDirectory& dir, const string& name){
-		YAssert(!name.empty(), "Empty name found.");
-
-		if(YB_LIKELY(name[0] != '.'))
+	TraverseChildren(path, [&, this](NodeCategory c, const std::string& name){
+		if(name[0] == '.')
+			return;
+		if(c == NodeCategory::Regular)
 		{
-			if(dir.GetNodeCategory() == NodeCategory::Regular)
+			const auto ext(GetExtensionOf(String(name, CS_Path)));
+			const auto& cmd(GetCommandName(ext));
+
+			if(!cmd.empty())
 			{
-				const auto ext(GetExtensionOf(String(name, CS_Path)));
+				const int ret(Call(cmd + u8" -c" + flags + ' ' + path + name
+					+ u8" -o " + opath + name + u8".o"));
 
-				if(ext == u"c" || ext == u"cc" || ext == u"cpp"
-					|| ext == u"cxx")
-				{
-					const int ret(Call((ext == u"c" ? u8"gcc -c" : u8"g++ -c")
-						+ flags + ' ' + path + name + u8" -o " + opath + name
-						+ u8".o"));
-
-					if(ret != 0)
-						raise_exception(0x10000 + ret);
-				}
+				if(ret != 0)
+					raise_exception(0x10000 + ret);
 			}
 			else
-			{
-				const auto& fpath(path + name + YCL_PATH_DELIMITER);
+				PrintInfo(u8"Ignored non source file '" + name + u8"'.");
+		}
+		else
+		{
+			const auto& fpath(path + name + YCL_PATH_DELIMITER);
 
-				if(ystdex::exists(IgnoredDirs, name))
-					PrintInfo(ystdex::sfmt("Subdirectory %s is ignored.",
-						fpath.c_str()));
-				else
-					Search(path + name + YCL_PATH_DELIMITER,
-						opath + name + YCL_PATH_DELIMITER);
-			}
+			if(ystdex::exists(IgnoredDirs, name))
+				PrintInfo(ystdex::sfmt(u8"Subdirectory %s is ignored.",
+					fpath.c_str()));
+			else
+				Search(path + name + YCL_PATH_DELIMITER,
+					opath + name + YCL_PATH_DELIMITER);
 		}
 	});
 
 	size_t anum(0), onum(0);
 
-	Traverse(opath, [&](HDirectory& dir, const string& name){
-		YAssert(!name.empty(), "Empty name found.");
+	// TODO: Optimize for job dependency.
+	if(jobs.get_max_task_num() > 1)
+	{
+		// XXX: Acquire lock.
+		unsigned active_num(jobs.size());
 
-		if(YB_LIKELY(name[0] != '.')
-			&& dir.GetNodeCategory() == NodeCategory::Regular)
+		if(active_num > 0)
+		{
+			PrintInfo(ystdex::sfmt("Wait for unfinished %u task(s) before"
+				" linking ...", unsigned(jobs.size())));
+			jobs.reset();
+		}
+	}
+	TraverseChildren(opath, [&](NodeCategory c, const std::string& name){
+		if(name[0] == '.')
+			return;
+		if(c == NodeCategory::Regular)
 		{
 			const auto ext(GetExtensionOf(String(name, CS_Path)));
 
@@ -463,14 +461,14 @@ PrintUsage(const char* prog)
 		u8" default value is 0. If this value is not more than 1, only one"
 		u8" task would be load and run at each time.\n"
 		u8"\tIf this option occurs more than once, only the last one is"
-		u8" effective.\n"
+		u8" effective.\n\n"
 		u8"  " OPT_pfx_xlogfl "LOG_LEVEL\n"
 		u8"\tThe unsigned integer log level threshold of the logger.\n"
 		u8"\tOnly log with level less than this value would be present in the"
 		u8" out put stream.\n"
 		u8"\tIf this option occurs more than once, only the last one is"
-		u8" effective."
-		<< std::endl;
+		u8" effective.\n\n"
+		<< std::flush;
 }
 
 
@@ -485,11 +483,13 @@ main(int argc, char* argv[])
 
 		logger.FilterLevel = Logger::Level::Debug;
 		logger.SetSender([&](Logger::Level lv, Logger&, const char* str){
-			auto& out(lv <= Err ? std::cerr : std::cout);
+			auto& out(lv <= Warning ? std::cerr : std::cout);
 			using namespace std;
 
 			if(lv <= Err)
 				wcon_err.UpdateForeColor(platform::Consoles::Red);
+			else if(lv <= Warning)
+				wcon_err.UpdateForeColor(platform::Consoles::Yellow);
 			else
 				wcon_err.RestoreAttributes();
 			YAssertNonnull(str);
@@ -541,7 +541,7 @@ main(int argc, char* argv[])
 
 				oss << "IntException: " << std::setw(8) << std::showbase
 					<< std::uppercase << std::hex << int(e) - 0x10000 << '.';
-				PrintError(oss.str());
+				PrintInfo(oss.str(), Err);
 				throw 3;
 			}
 			catch(std::exception& e)
@@ -555,18 +555,18 @@ main(int argc, char* argv[])
 	}
 	catch(std::bad_alloc&)
 	{
-		PrintError(u8"ERROR: Allocation failed.");
+		PrintInfo(u8"ERROR: Allocation failed.", Err);
 		return 3;
 	}
 	catch(int ret)
 	{
 		if(ret == 3)
-			PrintError(u8"ERROR: Failed calling command.");
+			PrintInfo(u8"ERROR: Failed calling command.", Err);
 		return ret;
 	}
 	catch(...)
 	{
-		PrintError(u8"ERROR: Unknown failure.");
+		PrintInfo(u8"ERROR: Unknown failure.", Err);
 		return 3;
 	}
 }

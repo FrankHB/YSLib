@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file timing.h
+/*!	\file timing.hpp
 \ingroup YTest
 \brief 运行计时测试工具。
-\version r288
+\version r315
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-06-23 20:01:09 +0800
 \par 修改时间:
-	2013-07-23 06:21 +0800
+	2013-09-26 22:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ once_c(_fCallable&& f, _tParams&&... args)
 	const std::clock_t cl(std::clock());
 
 	yforward(f)(yforward(args)...);
-	return double(clock() - cl) / CLOCKS_PER_SEC;
+	return double(std::clock() - cl) / CLOCKS_PER_SEC;
 }
 
 
@@ -111,7 +111,7 @@ total_c(size_t n, _fCallable&& f, _tParams&&... args)
 
 	for(size_t i(0); i != n; ++i)
 		yforward(f)(yforward(args)...);
-	return double(clock() - cl) / CLOCKS_PER_SEC;
+	return double(std::clock() - cl) / CLOCKS_PER_SEC;
 }
 
 
@@ -125,6 +125,32 @@ average(size_t n, _tParams&&... args)
 	-> decltype(timing::total(n, yforward(args)...) / n)
 {
 	return timing::total(n, yforward(args)...) / n;
+}
+
+/*!
+\brief 测试累计平均时间。
+\since build 538
+*/
+template<typename _tDuration, typename _fCallable>
+_tDuration
+average_elapsed(_fCallable f, size_t n = 1, _tDuration elapsed = {})
+{
+	f(n, elapsed);
+	return elapsed / n;
+}
+
+/*!
+\brief 测试不超过期限的累计平均时间。
+\since build 538
+*/
+template<typename _tDuration, typename _fCallable>
+_tDuration
+average_in_duration(_fCallable f, _tDuration d)
+{
+	return average_elapsed<_tDuration>([=](size_t& cnt, _tDuration& elapsed){
+		for(; elapsed < d; ++cnt)
+			elapsed += f();
+	});
 }
 
 } // namespace timing;

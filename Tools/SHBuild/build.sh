@@ -3,36 +3,16 @@
 # Build script for SHBuild.
 
 set -e
+SHBuild_BaseDir=`dirname $0`
+SHBuild_BaseDir=`(cd ${SHBuild_BaseDir}; pwd)`
+SHBuild_Me=`basename $0`
+source ${SHBuild_BaseDir}/common-bootstrap.sh
 
-CXXFLAGS="-O3 -pipe -DNDEBUG -std=c++11 -Wall"
+SHBuild_Pushd
+cd ${SHBuild_BaseDir}
 
-LDFLAGS="-s -Wl,--dn -Wl,--gc-sections"
+${CXX} main.cpp -oSHBuild ${CXXFLAGS} ${LDFLAGS} ${INCLUDES} ${LIBS}
 
-INCLUDES=" \
-	-I../../YFramework/include -I../../YFramework/Android/include \
-	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \
-	-I../../3rdparty/include -I../../YBase/include \
-	"
-
-# Coordinated with build 520.
-LIBS=" \
-	../../YBase/source/ystdex/cassert.cpp \
-	../../YBase/source/ystdex/cstdio.cpp \
-	../../YBase/source/ystdex/any.cpp \
-	../../YBase/source/ystdex/concurrency.cpp \
-	../../YFramework/source/CHRLib/chrproc.cpp \
-	../../YFramework/source/CHRLib/MapEx.cpp \
-	../../YFramework/source/YCLib/Debug.cpp \
-	../../YFramework/source/YCLib/FileSystem.cpp \
-	../../YFramework/source/YCLib/Host.cpp \
-	../../YFramework/source/YSLib/Core/yexcept.cpp \
-	../../YFramework/source/YSLib/Service/FileSystem.cpp \
-	../../YFramework/MinGW32/source/YCLib/MinGW32.cpp \
-	../../YFramework/MinGW32/source/YCLib/Consoles.cpp \
-	-lShlWapi \
-	"
-
-g++ main.cpp -oSHBuild ${CXXFLAGS} ${LDFLAGS} ${INCLUDES} ${LIBS}
-
+SHBuild_Popd
 echo Done.
 

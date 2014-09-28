@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3718
+\version r3950
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-09-20 19:11 +0800
+	2014-09-28 09:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,242 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	+ "2 test cases for %ystdex::compose" @ %Test.YBase,
+	/ %Tools.SHBuild $=
+	(
+		(
+		+ $dev "%common.sh" $=
+		(
+			+ "functions %(SHBuild_Pushd, SHBuild_Popd) for silently \
+				restoring directory",
+			+ "function %SHBuild_EchoVar to output colored variable value",
+		);
+		+ "%common-bootstrap.sh" $=
+		(
+			+ "shell variable definitions for building",
+			+ "colored variable value output",
+			+ "allowed overriding %(CXX, CXXFLAGS, LDFLAGS)"
+		);
+		$dep_to "common build scripts"
+		),
+		/ @ "%(build.sh, self-host.sh, SHBuild-YSLib.sh)" $=
+		(
+			* $build "linking failure" $since b535,
+			(
+			$dep_from "common build scripts";
+			/ "implemented" ^ "common build scripts";
+			+ $comp "support for variable value output"
+			)
+		),
+		/ %Main $=
+		(
+			(
+			$dep_from "%TraverseChildren" @ %YFramework.YSLib.FileSystem;
+			/ DLD "simplified traverse implementation" ^ "%TraverseChildren",
+			)
+			+ $dev "data members for setting compiler" @ "class %BuildContext",
+			+ "printed message when ignored non source files for compiling",
+			(
+			$dep_from %YBase.YStandardEx.Concurrency;
+			/ $dev "simplified implementation of job control"
+				^ "%ystdex::task_pool",
+			(
+			* "missing parallel compiling synchronization with linking" $since
+				b520;
+				// Thus the 'ar' command might or might not be executed.
+			+ "printed message for unfinished tasks"
+			)
+			),
+			- $dev "static assertions for character types",
+				// %YFramework.YCLib.FileSystem is already included.
+			/ "simplified message printing" $=
+			(
+				/ @ "function %PrintInfo" $=
+				(
+					+ DLD "level parameter with default argument 'Notice'",
+					^ "implemented" ^ "%FetchCommonLogger" ~ "%YTraceDe"
+						// This trace is for users rather than developers, so \
+							the source line information is not needed. The \
+							source line is now to be not shown regardless of \
+							the build configuration.
+				),
+				- DLD "function %PrintError",
+					// Use %PrintInfo instead.
+				* "duplicate call of %MBCSToMBCS to perform encoding \
+					conversion from UTF-8 to current code page" $=
+				(
+					@ "function %PrintException" $since b519,
+					@ "function %PrintInfo" $since b520
+					// Since the logger has taken over the output and \
+						converted the output in custom handler, there should \
+						be no redundant conversion elsewhere.
+				),
+				/ DLD "warning message" ^ "logging" ~ "direct use of %cerr",
+				/ "logging for warning message" $=
+				(
+					^ "%cerr" ~ "%cout",
+					^ "colored %platform::Consoles::Yellow output"
+				)
+			),
+			* "missing newline at end of some options" @ "function %PrintUsage"
+				$since b520,
+			/ @ "function %PrintException" $=
+			(
+				* "wrong %FileOperationFailure handling" $since b477,
+					// Probably infinite recursive until stack overflow.
+				- "transparent handling %std::bad_cast"
+			)
+		)
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			/ %Concurrency $=
+			(
+				/ $dev "improved strict ISO C++ code compatibility"
+					$= (+ "including <functional>, <memory> and <mutex>"),
+					// For %std::make_shared and %std::bind used in \
+						implementation in template. The program temporarily is \
+						not ill-formed even if these headers are missing when \
+						instantiated, for libstdc++'s <thread> and <future> \
+						including <functional>, <thread> including <memory>, \
+						<condition_variable> and <future> including <mutex>.
+				(
+				+ "alias template %packed_task_t";
+				+ "function templates %(pack_task, pack_shared_task)"
+				),
+				(
+				+ "function template %wait_to_enqueue, function %size_unlocked"
+					@ "class %thread_pool";
+				+ "class %task_pool"
+				)
+			),
+			* $dev "wrong %yconstfn" @ "function templates %chain_apply"
+				@ %Functional $since b537,
+			* $dev $build "constructor templates" @ "class %mixin" @ %Mixin
+				$since  b477 $=
+				// G++ 4.9.1 did not detect these errors but Clang++ 3.5 \
+					complained.
+			(
+				* "missing base class pack expansion" @ "ctor-initializer"
+					@ "constructor template with 1 argument",
+				* "%enable_if depended with no template parameters of 4 \
+					constructors"
+					$= (+ "'sizeof(tp)' before operand of 'sizeof...(_tBases)'")
+			),
+			- DLD "redundant second template argument" @ "%enable_if_t"
+				$effective @ "%(String, Functional)",
+				// Multiple overloading with %enable_if_t are not touched to \
+					avoid ambiguity.
+			/ "default template argument" @ "alias template
+				%exclude_self_ctor_t" @ %TypeOperations -> 'void' ~ 'int',
+				// To be as same as %enable_if_t.
+			/ %Exception $=
+			(
+				* "%std::terminate called if there is exception uncaught"
+					@ "function template %raise_exception" $since b522,
+				+ "function templates %(iterate_exceptions, \
+					get_nested_exception_ptr)"
+			),
+			/ @ "class template %used_list_cache" @ %Cache $orig
+				@ "class template %GMRUCache" @ %YFramework.YSLib.Core.Cache $=
+			(
+				* "argument ignored" @ "function %set_max_use" $since b521 $orig
+					"function %SetMaxUse" $since b461,
+				* "missing erasing inserted of cache item when throwing"
+					@ "function template %emplace" $since b461
+			)
+		),
+		/ %Test.Timing $=
+		(
+			* DLD "missing 'std::' for 'clock()' call"
+				@ "function templates %once_c, total_c" $since b319,
+			+ "function templates %(average_elapsed, average_in_duration)"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			+ "default argument '""' for string parameter"
+				@ "constructor %LoggedEvent" @ %Core.YException,
+			/ "constructor" @ ("class %UnsupportedImageFormat" @ %Adaptor.Image,
+				"class %MessageException" @ %Core.YMessage, "class %BadEvent"
+				@ %UI.YWidgetEvent)
+				-> "inherited constructor %LoggedEvent::LoggedEvent",
+				// See revision b471.
+			/ %Service.FileSystem $=
+			(
+				+ "4 function templates %Traverse";
+				+ "function template %TraverseChildren",
+				/ @ "function %ListDirectory" $=
+				(
+					(
+					$dep_from "%Traverse";
+					/ DLD "implemented" ^ "%Traverse",
+					),
+					* "missing 'YF_API'" $orig $since b414 @ %YFileSystem
+				),
+				+ "2 functions %DeleteTree"
+			)
+		),
+		/ %YCLib_(MinGW32).MinGW32GUI $=
+		(
+			+ "function %GetParent" @ "class %WindowReference";
+			+ 'using WindowReference::GetParent;' @ "class %HostWindow"
+		),
+		/ "selection of string parameters for overloads" @ "function templates \
+			%(strdup, ucsdup)" @ %CHRLib.CharacterProcessing $=
+		(
+			/ "limited selected parameter to be class instance"
+				^ DLD 'ystdex::enable_string_class_t',
+			^ "subscription" ~ "%c_str";
+			* $comp "non overloaded non-class argument selected" $since b535
+		),
+		/ %YCLib $=
+		(
+			/ %FileSystem $=
+			(
+				+ $dev "static assertions for character types",
+				(
+				/ @ "class %FileOperationFailure" $=
+				(
+					/ "inherited %std::system_error" ~ "%std::runtime_error";
+					/ "constructor"
+						-> "inherited constructor %system_error::system_error";
+					/ $comp "single empty message is not allowed and made the \
+						class not meet %DefaultConstructible"
+				);
+				/ "distinguished error code thrown with exception \
+					%FileOperationFailure"
+				),
+				/ @ "function %u16getcwd_n" $=
+				(
+					/ "set %errno to %EINVAL when buffer pointer is null or \
+					size \
+						is zero",
+					/ @ "!platform %Win32" $=
+					(
+						/ "set %errno to %ERANGE when size is too small to \
+							contain the converted string",
+						/ "set %errno to %ENOMEM when allocation failed",
+						* "memory leak" $since b304 $orig @ %YCommon
+					)
+				)
+			);
+			(
+			$dep_from "%FileOperationFailure" @ %FileSystem;
+			/ "distinguished error code thrown with exception \
+				%FileOperationFailure" @ "constructor %MappedFile"
+				@ %MemoryMapping
+			)
+		)
+	)
+),
+
+b537
 (
 	/ %YReader $=
 	(

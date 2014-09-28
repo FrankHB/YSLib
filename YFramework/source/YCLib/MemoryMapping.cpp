@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r187
+\version r189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2014-05-07 18:55 +0800
+	2014-09-28 08:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,8 @@ namespace platform
 MappedFile::MappedFile(const char* path)
 	: fd(uopen(path, O_RDONLY, S_IRUSR | S_IWUSR)), size([](int fd){
 		if(fd == -1)
-			throw FileOperationFailure("Failed mapping file.");
+			throw FileOperationFailure(errno, std::generic_category(),
+				"Failed mapping file.");
 		return GetFileSizeOf(fd);
 	}(fd))
 {
