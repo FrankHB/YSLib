@@ -193,10 +193,10 @@
 		<Unit filename="../include/YSLib/Adaptor/yref.hpp" />
 		<Unit filename="../include/YSLib/Core/Task.h" />
 		<Unit filename="../include/YSLib/Core/ValueNode.h" />
+		<Unit filename="../include/YSLib/Core/YCoreUtilities.h" />
 		<Unit filename="../include/YSLib/Core/YModules.h" />
 		<Unit filename="../include/YSLib/Core/yapp.h" />
 		<Unit filename="../include/YSLib/Core/ycounter.hpp" />
-		<Unit filename="../include/YSLib/Core/ycutil.h" />
 		<Unit filename="../include/YSLib/Core/ydevice.h" />
 		<Unit filename="../include/YSLib/Core/yevt.hpp" />
 		<Unit filename="../include/YSLib/Core/yexcept.h" />
@@ -296,6 +296,7 @@
 		<Unit filename="../source/YSLib/Adaptor/Image.cpp" />
 		<Unit filename="../source/YSLib/Adaptor/ynew.cpp" />
 		<Unit filename="../source/YSLib/Core/ValueNode.cpp" />
+		<Unit filename="../source/YSLib/Core/YCoreUtilities.cpp" />
 		<Unit filename="../source/YSLib/Core/yapp.cpp" />
 		<Unit filename="../source/YSLib/Core/ydevice.cpp" />
 		<Unit filename="../source/YSLib/Core/yexcept.cpp" />

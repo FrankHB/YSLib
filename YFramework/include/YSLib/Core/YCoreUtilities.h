@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ycutil.h
+/*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2091
+\version r2102
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-07-18 14:41 +0800
+	2014-10-01 09:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
+#include YFM_YSLib_Adaptor_YContainer // for YSLib::string;
 
 namespace YSLib
 {
@@ -524,6 +525,16 @@ ClonePolymorphic(const _type& p) -> decltype(&*p)
 
 	return p->clone();
 }
+
+
+/*!
+\brief 查询第二参数指定名称的环境变量写入第一参数。
+\note 若不存在则不修改第一参数。
+\return 是否修改第一参数。
+\since build 539
+*/
+YF_API bool
+WriteEnvironmentVariable(string&, const string&);
 
 } // namespace YSLib;
 

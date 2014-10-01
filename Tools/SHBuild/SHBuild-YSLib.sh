@@ -8,7 +8,7 @@ SHBuild_BaseDir=`(cd ${SHBuild_BaseDir}; pwd)`
 SHBuild_Me=`basename $0`
 source ${SHBuild_BaseDir}/common.sh
 
-SHBOPT="-xid,alternative -xid,data -xid,include"
+SHBOPT="-xid,alternative -xid,data -xid,include -xid,Android"
 
 COMMON_CXXFLAGS=" \
 	-O3 -pipe -s -std=c++11 \
@@ -27,7 +27,6 @@ COMMON_CXXFLAGS=" \
 	-Wzero-as-null-pointer-constant \
 	-fdata-sections \
 	-fexpensive-optimizations \
-	-ffat-lto-objects \
 	-ffunction-sections \
 	-flto=jobserver \
 	-fomit-frame-pointer \
@@ -42,10 +41,10 @@ SHBuild_Pushd
 cd ${SHBuild_BaseDir}
 
 # TODO: Run link commands.
-./shbuild ${SHBOPT} "$@" ../../YBase \
+AR=gcc-ar ./shbuild ${SHBOPT} "$@" ../../YBase \
 	${COMMON_CXXFLAGS} \
 	-I../../YBase/include
-./shbuild ${SHBOPT} "$@" ../../YFramework \
+AR=gcc-ar ./shbuild ${SHBOPT} "$@" ../../YFramework \
 	${COMMON_CXXFLAGS} \
 	-DFREEIMAGE_LIB \
 	-I../../YFramework/include -I../../YFramework/Android/include \

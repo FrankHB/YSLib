@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r662
+\version r703
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-09-05 10:26 +0800
+	2014-10-01 03:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -599,6 +599,7 @@ English allows bare passive clause, which omits the auxiliary verb (typically 'i
 
 $2014-09:
 
+report.impl:
 There is some confilicts in 'ForwardIterator' requirements onwards ISO C++11 with some iterator adaptor implementations.
 	It requires that the iterator shall satisfy the 'DefaultConstructible' requirements.
 		If the underlying iterator does not satisfy 'DefaultConstructible', it is hard to implement efficiently.
@@ -635,6 +636,41 @@ Keys of associative containers are const-qualified.
 			Second, to construct a new container then copy or move the elements e.g. by 'std::move'.
 				See http://stackoverflow.com/questions/9585083/how-to-move-all-pairs-from-one-stdmap-to-another for examples.
 				This is generally more efficient than the first method.
+Implementations of clocks are cared.
+	For Windows systems, QPC is preferred for high resolution uses.
+		The related Windows APIs are fit for Windows 2000 or later, e.g. http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx . 
+		See http://stackoverflow.com/questions/22942123/is-queryperformancefrequency-acurate-when-using-hpet for some reasons.
+		See http://msdn.microsoft.com/en-us/library/windows/desktop/dn553408(v=vs.85).aspx for deteils.
+		For Windows 8, the RTC is buggy to be reliable for overlocking benchmarking.
+			See http://hwbot.org/news/9824_breaking_windows_8_benchmark_results_no_longer_accepted_at_hwbot/ .
+	In current libstdc++ (in inline namespace 'std::chrono::_V2' or somewhat earlier), the static 'now' function of clocks in <chrono> uses different configurations.
+		The 'std::high_resolution clock' is alias of 'std::system_clock'.
+		For 'std::system_clock', if '_GLIBCXX_USE_CLOCK_REALTIME' is not defined, it uses fallback 'std::time' call.
+		For 'std::steady', if '_GLIBCXX_USE_CLOCK_MONOTONIC' is not defined, it uses one in 'std::system_clock'.
+		Otherwise, both are implemented as following, respectively:
+			If '_GLIBCXX_USE_CLOCK_GETTIME_SYSCALL' is defined, it is implemented as a system call.
+			Otherwise, 'clock_gettime' is used.
+		The libstdc++ for MinGW-W64 is implemented on top of 'clock_gettime' with corresponding clock id ('CLOCK_REALTIME' or 'CLOCK_MONOTONIC') in winpthreads.
+			The winpthreads implementation uses different Win32 APIs to implement 'clock_gettime' for years.
+				For 'CLOCK_REALTIME', 'GetSystemTimeAsFileTime' is used.
+				For 'CLOCK_MONOTONIC', QPC APIs are used.
+				For 'CLOCK_PROCESS_CPUTIME_ID', 'GetProcessTimes' is used.
+				For 'CLOCK_THREAD_CPUTIME_ID', 'GetCurrentThread' is used.
+				So it should be resonably high accurate at least for 'std::steady_clock' in <chrono>.
+			It is tested to be significantly worse than 'boost::chrono' (using QPC APIs) on accuracy with 'i686-4.8.2-release-win32-dwarf-rt_v3-rev0.7z' even using 'std::steady_clock'.
+				See http://sourceforge.net/p/mingw-w64/mailman/message/31672495/ .
+				However, the zero results can not be reproduced on Windows 2012 R2 x64 machine with current MSYS2 GCC 4.9.1.
+					But it can be reproduced using 'std::system_clock' instead of 'std::steady_clock'.
+					As per the libstdc++-v3 source in GCC repository, the reason seemed to be the 'std::steady_clock' is an alias before 'std::chrono::_V2' was introduced.
+				See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63400 for the issue.
+			As a side note, function '_pthread_time_in_ms' around inside winpthreads, which used '_ftime'.
+				It is improved by a recent update in git master branch of MinGW-W64 winpthreads repository at 2014-09-27 02:00:15: "winpthread: use GetSystemTimeAsFileTime instead of _ftime".
+					Quoted: First, _ftime is not present in all msvcrt versions, then, _ftime is the "current local time".
+					The modified function was "_pthread_time_in_ms".
+					This is certainly not updated in released version of MinGW distributions.
+	See also http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking#GetSystemTimeAsFileTimeandGetsystemTimePreciseAsFileTimenbsp for variable interfaces of getting the real time suited for benchmarking.
+	YFramework implementation for getting real time in Windows is adjusted.
+		Whether the timers in ISO C++11 standard library are usable or not, at least the multimedia timer APIs are no longer needed because the mainly targeting systems are rare to be the exception cases. So it is now removed.
 
 dep.merge:
 Boost.Trie(https://github.com/ithlony/Boost.Trie): tentatively rejected.
@@ -655,6 +691,14 @@ tx-trie(https://code.google.com/p/tx-trie/): rejected.
 	There exists quality problems, e.g. macro names pollution, directly used unqualified-id of C standard library functions, memory allocation, etc.
 marisa-trie(https://code.google.com/p/marisa-trie/): considerable, tentatively shelved.
 	It has some similar problems of interface like tx-trie. However, it seems to be fit for other use.
+
+$2014-09:
+
+report.impl:
+Now ar from MSYS2 supports linker plugin.
+	So removed '-ffat-lto-objects' option for compiler by defualt and use 'gcc-ar' to replace 'ar'.
+		If use 'ar' with '-flto' enabled there would still be unresolved symbols.
+	See $2014-07 for previous details.
 
 
 ////
