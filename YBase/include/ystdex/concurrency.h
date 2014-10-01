@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r167
+\version r200
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2014-09-23 00:39 +0800
+	2014-10-01 01:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,25 +42,26 @@ namespace ystdex
 {
 
 //! \since build 358
-//@{
 template<typename _fCallable, typename... _tParams>
 using packed_task_t
 	= std::packaged_task<result_of_t<_fCallable&&(_tParams&&...)>()>;
 
 
+//! \since build 359
+//@{
 template<typename _fCallable, typename... _tParams>
-packed_task_t<_fCallable&&(_tParams&&...)>
+packed_task_t<_fCallable&&, _tParams&&...>
 pack_task(_fCallable&& f, _tParams&&... args)
 {
-	return packed_task_t<_fCallable&&(_tParams&&...)>(std::bind(yforward(f),
+	return packed_task_t<_fCallable&&, _tParams&&...>(std::bind(yforward(f),
 		yforward(args)...));
 }
 
 template<typename _fCallable, typename... _tParams>
-std::shared_ptr<packed_task_t<_fCallable&&(_tParams&&...)>>
+std::shared_ptr<packed_task_t<_fCallable&&, _tParams&&...>>
 pack_shared_task(_fCallable&& f, _tParams&&... args)
 {
-	return std::make_shared<packed_task_t<_fCallable&&(_tParams&&...)>>(
+	return std::make_shared<packed_task_t<_fCallable&&, _tParams&&...>>(
 		std::bind(yforward(f), yforward(args)...));
 }
 //@}
@@ -123,9 +124,8 @@ public:
 	std::future<result_of_t<_fCallable&&(_tParams&&...)>>
 	wait_to_enqueue(_fWaiter wait, _fCallable&& f, _tParams&&... args)
 	{
-		using return_type = result_of_t<_fCallable&&(_tParams&&...)>;
-		auto task(std::make_shared<std::packaged_task<return_type()>>(
-			std::bind(yforward(f), yforward(args)...)));
+		const auto
+			task(ystdex::pack_shared_task(yforward(f), yforward(args)...));
 		auto res(task->get_future());
 
 		{
@@ -179,6 +179,19 @@ public:
 
 	using thread_pool::size;
 
+	//! \since build 539
+	template<typename _fCallable, typename... _tParams>
+	auto
+	wait(_fCallable&& f, _tParams&&... args)
+		-> decltype(enqueue(yforward(f), yforward(args)...))
+	{
+		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
+			enqueue_condition.wait(lck, [this]{
+				return can_enqueue_unlocked();
+			});
+		}, yforward(f), yforward(args)...);
+	}
+
 	template<typename _tDuration, typename _fCallable, typename... _tParams>
 	auto
 	wait_for(const _tDuration& duration, _fCallable&& f, _tParams&&... args)
@@ -200,6 +213,19 @@ public:
 			[=](std::unique_lock<std::mutex>& lck){
 			while(!can_enqueue_unlocked())
 				wait(lck);
+		}, yforward(f), yforward(args)...);
+	}
+
+	//! \since build 539
+	template<typename _tTimePoint, typename _fCallable, typename... _tParams>
+	auto
+	wait_until(const _tTimePoint& abs_time, _fCallable&& f, _tParams&&... args)
+		-> decltype(enqueue(yforward(f), yforward(args)...))
+	{
+		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
+			enqueue_condition.wait_until(lck, abs_time, [this]{
+				return can_enqueue_unlocked();
+			});
 		}, yforward(f), yforward(args)...);
 	}
 };

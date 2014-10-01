@@ -11,13 +11,13 @@
 /*!	\file ycommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3573
+\version r3583
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2014-06-26 17:56 +0800
+	2014-10-02 01:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,9 +37,6 @@
 #include <ystdex/cassert.h>
 #include <ystdex/cstdio.h>
 #include <ystdex/cwctype.h>
-#include <cstdlib>
-#include <cctype>
-#include <cwchar>
 #include <string>
 #include YFM_YBaseMacro
 
@@ -102,6 +99,15 @@ IsPrint(_tChar c)
 	return platform::IsPrint(wchar_t(c));
 }
 //@}
+
+
+/*!
+\brief 执行 UTF-8 字符串的环境命令。
+\note 使用 \t std::system 实现；若参数为空则和 \t std::system 行为一致。
+\since build 539
+*/
+YF_API int
+usystem(const char*);
 
 } // namespace platform;
 

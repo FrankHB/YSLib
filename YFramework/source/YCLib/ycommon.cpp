@@ -11,13 +11,13 @@
 /*!	\file ycommon.cpp
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r2727
+\version r2739
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 22:14:42 +0800
 \par 修改时间:
-	2014-07-22 18:55 +0800
+	2014-10-02 02:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,9 @@
 #include <cerrno>
 #include <cstdarg>
 #include YFM_YCLib_NativeAPI
+#if YCL_Win32
+#	include YFM_MinGW32_YCLib_MinGW32
+#endif
 
 namespace platform
 {
@@ -43,6 +46,16 @@ terminate() ynothrow
 		::swiWaitForVBlank();
 #else
 	std::abort();
+#endif
+}
+
+int
+usystem(const char* cmd)
+{
+#if YCL_Win32
+	return ::_wsystem(platform_ex::MBCSToWCS(cmd, CP_UTF8).c_str());
+#else
+	return std::system(cmd);
 #endif
 }
 

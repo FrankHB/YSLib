@@ -12,7 +12,7 @@ SHBuild_Pushd
 cd ${SHBuild_BaseDir}
 
 ./shbuild . ${CXXFLAGS} ${INCLUDES}
-${CXX} ${SHBuild_BuildDir}/SHBuild.a -o${SHBuild_BuildDir}/SHBuild \
+${LD} ${SHBuild_BuildDir}/SHBuild.a -o${SHBuild_BuildDir}/SHBuild \
 	${CXXFLAGS} ${LDFLAGS} ${INCLUDES} ${LIBS}
 
 SHBuild_Popd

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r3950
+\version r4149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-09-28 09:01 +0800
+	2014-10-02 02:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,206 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			(
+			/ DLD ^ "timer initialization" ^"%GetTicks" ~ "%StartTicks"
+				%Service.Timer;
+			- 'using platform::StartTicks;' @ %Adaptor.YAdaptor
+			),
+			/ %Core.YCoreUtilities $=
+			(
+				/ DLB "file %ycutil.h" => "%YCoreUtilities.h",
+				+ DLB "file %YCoreUtilities.cpp";
+				+ "function %WriteEnvironmentVariable"
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %Timer $=
+			(
+				- "function %StartTicks",
+					// For platform %DS, this is implicit called when \
+						necessary. For other platforms this is not needed.
+				/ $lib "implemented timer" @ "platform %Win32" $=
+				(
+					^ "%std::chrono::steady_clock" ~ "multimedia and QPC APIs";
+					* $comp "missing call to '::timeEndPeriod' on exit" $orig
+						@ %YCommon $since b298
+				),
+				/ $lib "implemented timer" @ "platform %Android"
+					^ "%std::chrono::steady_clock" ~ "::clock_gettime"
+			),
+			+ "function %platform::usystem" @ %YCommon
+		),
+		/ @ "platform %MinGW32" $=
+		(
+			$dep_from "platform %Win32" @ %YFramework.YCLib.Timer;
+			- "linked library %winmm" @ "Code::Blocks projects"
+		)
+	),
+	- $doc "issues" @ %Documentation::Meta;
+		// Issues are now fully tracked on \
+			https://bitbucket.org/FrankHB/yslib/issues .
+	/ %YBase.YStandardEx $=
+	(
+		/ %Concurrency $=
+		(
+			* "wrong return type"
+				@ "function templates %(pack_task, pack_shared_task)"
+				$since b358;
+			/ @ "class %thread_pool" $=
+			(
+				$dep_from "%pack_shared_task"
+				/ DLD "implemented function template %wait_to_enqueue"
+					 ^ "%pack_shared_task"
+				+ "function templates %(wait, wait_until)" @ "class %task_pool"
+			)
+		),
+		/ @ "function template %boxed_value" @ %Utilities $=
+		(
+			* "missing excluding of 'boxed_value&'"
+				@ "constructor template with 1 function parameter"
+				$since b477
+				$= (/ "constructor template" -> "explicitly defaulted \
+					(default, copy, move) constructors and 2 constructor \
+					templates"),
+			+ "explicitly default (copy, move) %operator="
+		),
+		/ %Exception $=
+		(
+			* $revert_ex "function template %raise_exception" @ %Exception
+				$since b538,
+			/ DLD 'typename' @ "parameter"
+				@ "function template %get_nested_exception_ptr" -> 'class',
+			+ "function template %handle_nested"
+		),
+	),
+	/ %Tools.SHBuild $=
+	(
+		/ %Main $=
+		(
+			/ @ "class %BuildContext" $=
+			(
+				(
+				/ "parallel build" @ "function %Call" $=
+				(
+					/ "stopped launching new task once non-zero result is met",
+					+ "parameter and default argument to allow force \
+						serialized build"
+				),
+				+ "function %CheckResult";
+				+ "function %CallWithException"
+				),
+				+ "function %GetLastResult",
+				/ @ "function %Search" $=
+				(
+					* "broken archive output for parallel build" $since b520 $=
+					(
+						(
+						$dep_from "functions %(GetLastResult, CheckResult)",
+						* "missing check for non-zero result to raising \
+							exception after compiling and before linking" $since
+							b520
+							// Missing objects which failed to compile as the \
+								linked result.
+						),
+						* "missing synchronization after linking with children"
+							$since b520,
+							// Probable missing to link some linker output of \
+								children.
+						(
+						- $revert_ex(b538)
+							"showing number unfinished waiting tasks";
+							// The total number of unfinished tasks can not be \
+								fetched in general if no counter elsewhere.
+						* "missing waiting of unfinished tasks not in queue"
+							$since b538
+							// The reset operation of task pool should be \
+								performed unconditionally.
+						)
+					),
+					(
+					$dep_from "function %CallWithException";
+					/ DLD "simplified exception handling" ^ "%CallWithException"
+						~ "%Call"
+					)
+					+ "logged for numbers of scanned .a and .o files"
+				)
+			),
+			/ "all failure exit code" -> 'EXIT_FAILURE' ~ '3',
+			/ @ "function %main" $=
+			(
+				- "handler with return value other than 'EXIT_FAILURE' or '0'",
+					// Now the exit code of the program is 0 on success, \
+						otherwise %EXIT_FAILURE.
+				- "multilevel try blocks",
+				/ "merged %IntException handling" -> "function %PrintException"
+			),
+			(
+			+ "function template %raise_exception";
+			(
+			/ "explicitly stated command failure" @ "function %raise_exception";
+			/ "alias declaration %IntException" ^ "%std::runtime_error"
+				~ "%std::exception";
+			),
+			/ DLD "some printed information before exception throwing"
+				-> "exception messages"
+			),
+			* "missing set %Err as log argument" @ "function %PrintException"
+				$since b538,
+			/ @ "function %PrintException" $=
+			(
+				- "throw clause" @ "handlers",
+				$dep_from "%ystdex::handle_nested"
+					@ %YBase.YStandardEx.Exception;
+				/ "nested exception handling" ^ "%ystdex::handle_nested"
+					~ "%std::rethrow_if_nested"
+			),
+			/ DLD "simplified command line calls",
+			- "magic number to make offset of error code",
+			(
+			+ 'string AR = "ar"' @ "class %BuildContext";
+			+ "print value of %(CC, CXX, AS) before build",
+			(
+			$dep_from %YFramework.YSLib.Core.YCoreUtilities;
+			+ "read environment setting for %(CC, CXX, AS) before build";
+			$dep_to "support overwriting command name"
+			)
+			),
+			* "missing quoting linked object paths" $since b474
+				// If the path contained space, the command was then wrong.
+		),
+		/ DLB @ "%SHBuild-YSLib.sh" $=
+		(
+			- '-ffat-lto-objects' @ "%COMMON_CXXFLAGS",
+			(
+			$dep_from "support overwriting command name",
+			+ "'CC=gcc-ar' before command"
+				// Otherwise further linking using the output would probable \
+					fail due to lack of '-ffat-lto-objects'
+			),
+			+ '-xid,Android' @ "%SHBOPT"
+				// Make it same as the Code::Blocks project.
+		),
+		(
+		+ "%common-toolchain.sh"
+			$= (+ "setting of %LD");
+		/ DLB "merged toolchain setting" @ "%common-bootstrap.sh"
+			-> "%common-toolchain.sh",
+		/ DLB "build" @ "%self-host.sh" ^ "%LD" ~ "%CXX"
+		)
+	),
+	- DLB "all '-ffat-lto-objects'" @ "all release configurations"
+		@ "platform %MinGW32" @ "Code::Blocks projects";
+		// 'gcc-ar' with linker plugin support must be used instead of 'ar'. \
+			And size of the output static library would be less.
+),
+
+b538
 (
 	+ "2 test cases for %ystdex::compose" @ %Test.YBase,
 	/ %Tools.SHBuild $=

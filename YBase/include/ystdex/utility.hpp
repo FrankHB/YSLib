@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1900
+\version r1920
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-09-03 13:38 +0800
+	2014-09-30 01:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -237,11 +237,29 @@ struct boxed_value
 {
 	_type value;
 
-	template<typename... _tParams>
+	//! \since build 539
+	//@{
 	yconstfn
-	boxed_value(_tParams&&... args)
-		: value(yforward(args)...)
+	boxed_value() = default;
+	template<typename _tParam,
+		yimpl(typename = exclude_self_ctor_t<boxed_value, _tParam>)>
+	yconstfn
+	boxed_value(_tParam&& arg)
+		: value(yforward(arg))
 	{}
+	template<typename _tParam1, typename _tParam2, typename... _tParams>
+	yconstfn
+	boxed_value(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
+		: value(yforward(arg1), yforward(arg2), yforward(args)...)
+	{}
+	boxed_value(const boxed_value&) = default;
+	boxed_value(boxed_value&&) = default;
+
+	boxed_value&
+	operator=(const boxed_value&) = default;
+	boxed_value&
+	operator=(boxed_value&&) = default;
+	//@}
 
 	operator _type&() ynothrow
 	{

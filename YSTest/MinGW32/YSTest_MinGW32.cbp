@@ -25,7 +25,6 @@
 					<Add library="../../build/MinGW32/YBase/debug/libYBased.a" />
 					<Add library="gdi32" />
 					<Add library="imm32" />
-					<Add library="winmm" />
 					<Add library="Shlwapi" />
 				</Linker>
 			</Target>
@@ -40,7 +39,6 @@
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
-					<Add option="-ffat-lto-objects" />
 					<Add option="-flto=jobserver" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
@@ -52,7 +50,6 @@
 					<Add library="../../build/MinGW32/YBase/release/libYBase.a" />
 					<Add library="gdi32" />
 					<Add library="imm32" />
-					<Add library="winmm" />
 					<Add library="Shlwapi" />
 				</Linker>
 			</Target>
@@ -89,7 +86,6 @@
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
-					<Add option="-ffat-lto-objects" />
 					<Add option="-flto=jobserver" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DYB_DLL" />
