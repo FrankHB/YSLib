@@ -3,49 +3,34 @@
 # Example script for build YSLib using SHBuild.
 
 set -e
-SHBuild_BaseDir=`dirname $0`
-SHBuild_BaseDir=`(cd ${SHBuild_BaseDir}; pwd)`
-SHBuild_Me=`basename $0`
-source ${SHBuild_BaseDir}/common.sh
+[[ ${SHBuild_BaseDir} ]] || SHBuild_BaseDir=$(cd `dirname "$0"`; pwd)
+[[ ${SHBuild_ToolDir} ]] || SHBuild_ToolDir=${SHBuild_BaseDir}
+source ${SHBuild_ToolDir}/common.sh
+AR=gcc-ar
+source ${SHBuild_ToolDir}/common-toolchain.sh
 
 SHBOPT="-xid,alternative -xid,data -xid,include -xid,Android"
 
-COMMON_CXXFLAGS=" \
-	-O3 -pipe -s -std=c++11 \
-	-DNDEBUG \
-	-Wall \
-	-Wcast-align \
-	-Wextra \
-	-Winit-self \
-	-Winvalid-pch \
-	-Wmain \
-	-Wmissing-declarations \
-	-Wmissing-include-dirs \
-	-Wnon-virtual-dtor \
-	-Wredundant-decls \
-	-Wunreachable-code \
-	-Wzero-as-null-pointer-constant \
-	-fdata-sections \
-	-fexpensive-optimizations \
-	-ffunction-sections \
-	-flto=jobserver \
-	-fomit-frame-pointer \
-	-mthreads \
-	-pedantic-errors \
-	"
+unset CXXFLAGS_OPT_DBG
+unset CXXFLAGS_COMMON
+unset CXXFLAGS
+unset LDFLAGS
+source ${SHBuild_ToolDir}/SHBuild-options.sh
+LDFLAGS="${LDFLAGS} -Wl,--dn"
 
 SHBuild_EchoVar "SHBOPT" "${SHBOPT}"
-SHBuild_EchoVar "COMMON_CXXFLAGS" "${COMMON_CXXFLAGS}"
+SHBuild_EchoVar "CXXFLAGS" "${CXXFLAGS}"
+SHBuild_EchoVar "LDFLAGS" "${LDFLAGS}"
 
 SHBuild_Pushd
 cd ${SHBuild_BaseDir}
 
 # TODO: Run link commands.
-AR=gcc-ar ./shbuild ${SHBOPT} "$@" ../../YBase \
-	${COMMON_CXXFLAGS} \
+${SHBuild_ToolDir}/SHBuild ${SHBOPT} "$@" ../../YBase \
+	${CXXFLAGS} \
 	-I../../YBase/include
-AR=gcc-ar ./shbuild ${SHBOPT} "$@" ../../YFramework \
-	${COMMON_CXXFLAGS} \
+${SHBuild_ToolDir}/SHBuild ${SHBOPT} "$@" ../../YFramework \
+	${CXXFLAGS} \
 	-DFREEIMAGE_LIB \
 	-I../../YFramework/include -I../../YFramework/Android/include \
 	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \

@@ -2,11 +2,9 @@
 # (C) 2014 FrankHB.
 # Common source script: toolchain configuration.
 
-[[ ${CC} ]] || CC="gcc"
-[[ ${CXX} ]] || CXX="g++"
-[[ ${AR} ]] || AR="ar"
-[[ ${ARFLAGS} ]] || ARFLAGS="rcs"
-[[ ${LD} ]] || LD=${CXX}
-[[ ${CXXFLAGS} ]]  || CXXFLAGS="-O3 -pipe -DNDEBUG -std=c++11 -Wall"
-[[ ${LDFLAGS} ]]  || LDFLAGS="-s -Wl,--dn -Wl,--gc-sections"
+[[ ${CC} ]] || export CC="gcc"
+[[ ${CXX} ]] || export CXX="g++"
+[[ ${AR} ]] || export AR="ar"
+[[ ${ARFLAGS} ]] || export ARFLAGS="rcs"
+[[ ${LD} ]] || export LD=${CXX}
 

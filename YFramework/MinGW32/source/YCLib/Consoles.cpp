@@ -11,13 +11,13 @@
 /*!	\file Consoles.cpp
 \ingroup NBuilder
 \brief 控制台。
-\version r175
+\version r205
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2014-07-22 11:23 +0800
+	2014-10-02 13:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ WConsole::SetBackColor(std::uint8_t bc)
 {
 	const auto arr(DecomposeAttributes(Attributes));
 
-	Attributes = ComposeAttributes(arr[0], bc, arr[2]);
+	Attributes = ComposeAttributes(arr[0], bc);
 }
 void
 WConsole::SetCursorPosition(::COORD pos)
@@ -84,21 +84,13 @@ WConsole::SetForeColor(std::uint8_t fc)
 {
 	const auto arr(DecomposeAttributes(Attributes));
 
-	Attributes = ComposeAttributes(fc, arr[1], arr[2]);
-}
-void
-WConsole::SetStyle(std::uint8_t style)
-{
-	const auto arr(DecomposeAttributes(Attributes));
-
-	Attributes = ComposeAttributes(arr[0], arr[1], style);
+	Attributes = ComposeAttributes(fc, arr[1]);
 }
 
 ::WORD
-WConsole::ComposeAttributes(std::uint8_t fore, std::uint8_t back,
-	std::uint8_t style)
+WConsole::ComposeAttributes(std::uint8_t fore, std::uint8_t back)
 {
-	return fore | (back << 4) | style;
+	return (fore & 15) | ((back & 15) << 4);
 }
 
 void
@@ -112,11 +104,10 @@ WConsole::CursorUp(size_t num_rows)
 	}
 }
 
-std::array<std::uint8_t, 3>
+std::array<std::uint8_t, 2>
 WConsole::DecomposeAttributes(::WORD value)
 {
-	return {{std::uint8_t(value & 7), std::uint8_t((value >> 4) & 7),
-		std::uint8_t(value & Style::Bright)}};
+	return {{std::uint8_t(value & 15), std::uint8_t((value >> 4) & 15)}};
 }
 
 void
@@ -164,13 +155,6 @@ void
 WConsole::UpdateForeColor(std::uint8_t fc)
 {
 	SetForeColor(fc);
-	Update();
-}
-
-void
-WConsole::UpdateStyle(std::uint8_t style)
-{
-	SetStyle(style);
 	Update();
 }
 

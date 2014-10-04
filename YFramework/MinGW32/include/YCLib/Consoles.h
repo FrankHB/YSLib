@@ -11,13 +11,13 @@
 /*!	\file Consoles.h
 \ingroup NBuilder
 \brief 控制台。
-\version r189
+\version r202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2014-07-20 12:16 +0800
+	2014-10-02 13:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,16 +90,12 @@ public:
 	//! \since build 519
 	void
 	SetBackColor(std::uint8_t);
-	PDefH(void, SetColor, std::uint8_t color)
-		ImplExpr(::SetConsoleTextAttribute(h_console, color))
 	//! \since build 519
 	//@{
 	void
 	SetCursorPosition(::COORD);
 	void
 	SetForeColor(std::uint8_t);
-	void
-	SetStyle(std::uint8_t);
 	//@}
 	static PDefH(void, SetSystemColor, )
 		ImplExpr(std::system("COLOR"))
@@ -111,13 +107,15 @@ public:
 
 	//! \since build 519
 	//@{
+	//! \since build 540
 	static ::WORD
-	ComposeAttributes(std::uint8_t, std::uint8_t, std::uint8_t);
+	ComposeAttributes(std::uint8_t, std::uint8_t);
 
 	void
 	CursorUp(size_t);
 
-	static std::array<std::uint8_t, 3>
+	//! \since build 540
+	static std::array<std::uint8_t, 2>
 	DecomposeAttributes(::WORD);
 
 	void
@@ -126,23 +124,20 @@ public:
 	void
 	Fill(::COORD, size_t, wchar_t = L' ');
 
+	//! \brief 重置属性。
+	void
+	RestoreAttributes() ynothrow;
+
 	void
 	Update();
 	void
 	Update(::WORD);
-
-	//! \brief 重置属性。
-	void
-	RestoreAttributes() ynothrow;
 
 	void
 	UpdateBackColor(std::uint8_t);
 
 	void
 	UpdateForeColor(std::uint8_t);
-
-	void
-	UpdateStyle(std::uint8_t);
 	//@}
 };
 

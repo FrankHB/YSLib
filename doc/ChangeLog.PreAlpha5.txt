@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r4149
+\version r4295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-02 02:13 +0800
+	2014-10-04 12:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,150 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib_(MinGW32) $=
+		(
+			+ "3 inline functions %(WCSToUTF8, UTF8ToWCS)" @ %MinGW32,
+			/ @ "class %WConsole" @ %YCLib_(MinGW32).Consoles $=
+			(
+				* "missing limit 4-bit value for color components"
+					@ "function %ComposeAttributes" $since b519,
+				- "style component" @ "static functions %(ComposeAttributes, \
+					DecomposeAttributes)",
+					// The 2 color components are now 4-bit with dark/bright \
+						style.
+				- "functions %(UpdateStyle; SetStyle)",
+				- "function %SetColor"
+					// Use %Update with argument instead.
+			)
+		),
+		(
+		$dep_from %YCLib_(MinGW32).MinGW32;
+		/ DLD "simplified Unicode conversion" @ "platform %Win32"
+			@ %YCLib.FileSystem ^ (("%platform_ex::UCS8ToWCS"
+			~ "%CHRLib::ucsdup"), ("%platform_ex::WCSToUTF8"
+			~ "%CHRLib::strdup"));
+		),
+		/ %YSLib $=
+		(
+			+ "function template %NormalizeDirecoryPathTail"
+				@ %Service.FileSystem,
+			/ %UI $=
+			(
+				/ @ "class %GUIState" @ %YGUI $=
+				(
+					+ 'InputTimer TapTimer{};',
+					+ "function %RefreshTap";
+					+ "implemented tap state refreshing";
+					+ "function %GetTapCount"
+				),
+				/ @ "class %TreeList" @ %TreeView $=
+				(
+					/ DLD "split node collapse and expanding implementation";
+					+ "functions %(CollapseNode, ExpandNode)"
+				)
+			)
+		)
+	),
+	/ %Tools.SHBuild $=
+	(
+		/ %Main $=
+		(
+			+ "build directory switching support",
+			(
+			/ DLD "simplified namespace scope using-directives";
+			* DLB $comp "ambiguity when %string in %YSLib and %std is not the \
+				same" $since b538
+				// Default is the same, configured in \
+					%YFramework::YSLib::Adaptor::YContainer.
+			),
+			* "unhandled exception if console object failed to construct" $since
+				b520,
+				// For example, when the output is redirected.
+			/ "message output" $=
+			(
+				+ "fill '0'" @ "hexadecimal error code output",
+				/ DLD "implemented" ^ "C standard I/O" ~ "I/O streams",
+					// This make some implementation simpler and leads to \
+						significantly smaller binary file.
+				/ "executed command echo" ^ "%PrintInfo"
+					~ "directly standard I/O",
+				/ "reset color attributes for error code output",
+				+ "more colored output for different levels"
+					// %Magenta for %Notice and %DarkGreen for %Informative.
+			),
+			/ DLD "simplified command call" ^ "%platform::usystem"
+				~ "%::_wsystem",
+			+ '-MMD' @ "compiler command"
+				// To generate .d file for dependencies.
+		),
+		/ DLB "build scripts" $=
+		(
+			(
+			+ "%SHBuild-options.sh" $=
+			(
+				+ "split %(CFLAGS_WARNING, CXXFLAGS_STD, CXXFLAGS_WARNING, \
+					CXXFLAGS_COMMON, CXXFLAGS_OPT_DBG) from %COMMON_CFLAGS"
+					@ "%SHBuild-YSLib.sh";
+				/ "allowing overriding for all variables",
+				+ '-Wsign-promo' @ "%CFLAGS_WARNING",
+				+ '-Wctor-dtor-privacy' @ "%CFLAGS_WARNING"
+					// To make it same as DS Makefile. '-Wnoexcept' is not \
+						added now because the lambda to pointer conversion \
+						would issue.
+			);
+			/ DLD "implemented %SHBuild-YSLib.sh" ^ "%SHBuild-options.sh" $=
+			(
+				- "%COMMON_CFLAGS";
+				/ "explicitly unset %(CXXFLAGS_OPT_DBG, CXXFLAGS_COMMON, \
+					CXXFLAGS, LDFLAGS) and then specified %LDFLAGS"
+					// Use default values in %SHBuild-options.sh for unset \
+						variables.
+			)
+			),
+			/ DLD "simplified %SHBuild_BaseDir implemented by one assignment",
+			(
+			/ "only set value of %SHBuild_BuildDir when not set"
+				@ "%(build.sh, self-host.sh, SHBuild-YSLib.sh)";
+			/ "set default value of %SHBuild_ToolDir as '${SHBuild_Build_Dir}'"
+				@ "%(build.sh, self-host.sh, SHBuild-YSLib.sh)";
+				// The default tool is used within build directory.
+			/ "differentiate tools directory variable as %SHBuild_ToolDir"
+				~ "%SHBuild_BaseDir" @ "%(common-bootstrap.sh; build.sh, \
+				self-host.sh, SHBuild-YSLib.sh)",
+			/ "%SHBuild calls" ^ '${SHBuild_ToolDir}/SHBuild' ~ './shbuild'
+				@ "%SHBuild-YSLib.sh",
+			),
+			/ DLD $revert_ex(b539) "simplified toolchain setting"
+				@ "%SHBuild-YSLib.sh" $=
+			(
+				+ 'export AR=gcc-ar',
+				+ 'source ${SHBuild_ToolDir}/common-toolchain.sh';
+				- "'AR=gcc-ar' before commands"
+			),
+			- "all unused %SHBuild_Me",
+			/ @ "%common-bootstrap.sh" $=
+			(
+				+ 'export AR="gcc-ar"',
+				+ 'export' @ "default value setting" @ "%(CXXFLAGS, LDFLAGS)",
+				+ "%AR echo"
+			)
+		)
+	),
+	+ DLB '-Wsign-promo -Wctor-dtor-privacy' @ "options"
+		@ "Code::Blocks projects" @ "platform %MinGW32",
+	/ $dev $lib @ "class %ShlTextReader" @ %YReader.ShlReader $=
+	(
+		$dep_from %YFramework.YSLib.UI.YGUI;
+		/ "double click implementation" ^ 'FetchGUIState().TapTimer'
+			~ "%ShlTextReader::tmrInput"
+		- "protected data members %ShlTextReader::(tmrInput, nClick)"
+	)
+),
+
+b539
 (
 	/ %YFramework $=
 	(
@@ -194,10 +338,10 @@ $now
 			- "magic number to make offset of error code",
 			(
 			+ 'string AR = "ar"' @ "class %BuildContext";
-			+ "print value of %(CC, CXX, AS) before build",
+			+ "print value of %(CC, CXX, AR) before build",
 			(
 			$dep_from %YFramework.YSLib.Core.YCoreUtilities;
-			+ "read environment setting for %(CC, CXX, AS) before build";
+			+ "read environment setting for %(CC, CXX, AR) before build";
 			$dep_to "support overwriting command name"
 			)
 			),
@@ -209,7 +353,7 @@ $now
 			- '-ffat-lto-objects' @ "%COMMON_CXXFLAGS",
 			(
 			$dep_from "support overwriting command name",
-			+ "'CC=gcc-ar' before command"
+			+ "'AR=gcc-ar' before command"
 				// Otherwise further linking using the output would probable \
 					fail due to lack of '-ffat-lto-objects'
 			),

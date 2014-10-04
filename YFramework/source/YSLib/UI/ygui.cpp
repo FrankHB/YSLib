@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4156
+\version r4164
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-09-16 11:58 +0800
+	2014-10-04 10:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,12 +184,21 @@ GUIState::HandleCascade(RoutedEventArgs& e, IWidget& wgt)
 	}
 }
 
+size_t
+GUIState::RefreshTap()
+{
+	const auto taps(TapTimer.RefreshClick(tap_count));
+
+	tap_count = taps > 1 ? 0 : 1;
+	return taps;
+}
+
 void
 GUIState::Reset()
 {
 	yunseq(KeyHeldState = InputTimer::Free, TouchHeldState = InputTimer::Free,
 		DraggingOffset = Vec::Invalid),
-	HeldTimer.ResetInput(),
+	HeldTimer.ResetInput(), TapTimer.ResetInput();
 	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
 		p_indp_focus = {}, p_cascade_focus = {}, entered = {},
 		checked_held = {}, master_key = 0, ExternalTextInputFocusPtr = {},

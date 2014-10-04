@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r415
+\version r636
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2014-09-10 19:36 +0800
+	2014-10-02 12:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,130 +81,7 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 			box.X += GetIndentWidth(idxShared);
 			if(box.Contains(e))
 			{
-				const auto& branch_pth(GetNodePath(idxShared));
-
-				if(YB_UNLIKELY(branch_pth.empty()))
-					throw std::runtime_error("Invalid state found.");
-				if(st == NodeState::Branch)
-				{
-					Expand(idxShared);
-					// TODO: Check state.
-					expanded.insert(branch_pth);
-
-					const auto& branch(at(TreeRoot, branch_pth));
-					auto i(ystdex::qualify(indent_map).lower_bound(idxShared));
-
-					YAssert(i != indent_map.cend(), "Invalid state found.");
-
-					const auto idt(i->second);
-					auto j(i);
-
-					if(i->first != idxShared)
-						j = indent_map.emplace_hint(i, idxShared, idt);
-					else
-					{
-						++i;
-						YAssert(i == indent_map.cend() || i->second <= idt,
-							"Invalid state found.");
-					}
-
-					IndexType index(idxShared);
-					IndentType indent(idt + 1);
-					vector<pair<IndexType, IndentType>> vec_ins;
-					vector<String> text_list;
-
-					// TODO: Optimize implementation.
-					bind_node(branch, [&, this](const ValueNode& node,
-						const NodePath&, size_t depth){
-						text_list.push_back(ExtractText(node));
-						if(indent != depth)
-						{
-							vec_ins.emplace_back(index, indent);
-							indent = depth;
-						}
-						++index;
-					}, [this](const NodePath& pth, size_t){
-						return ystdex::exists(expanded, pth);
-					}, branch_pth, idt);
-					YAssert(index != idxShared, "Invalid state found.");
-					vec_ins.emplace_back(index, indent);
-					YAssert(vec_ins.back().first > j->first,
-						"Invalid insertion sequence found");
-					// TODO: Strong exception guarantee.
-					// See $2014-09 @ %Documentation::Workflow::Annual2014.
-					{
-						// XXX: Use %std::make_move_iterator if proper.
-						vector<pair<IndentType, IndexType>>
-							vec(i, indent_map.cend());
-						const auto n(vec_ins.back().first - j->first);
-
-						for(auto& pr : vec)
-							pr.first += n;
-						i = ystdex::insert_reversed(indent_map,
-							indent_map.erase(i, indent_map.end()),
-							vec.rbegin(), vec.rend());
-					}
-					ystdex::insert_reversed(indent_map, i,
-						vec_ins.crbegin(), vec_ins.crend());
-
-					auto& lst(GetListRef());
-
-					// XXX: Reuse previous operation.
-					// XXX: Use %cbegin after switched to libstdc++ 4.9.
-					lst.insert(lst.begin() + idxShared + 1,
-						std::make_move_iterator(text_list.begin()),
-						std::make_move_iterator(text_list.end()));
-				}
-				else
-				{
-					auto i(ystdex::qualify(indent_map).find(idxShared));
-
-					YAssert(i != indent_map.cend(), "Invalid state found.");
-
-					const auto idt(i->second);
-
-					if(++i != indent_map.cend())
-					{
-						auto& lst(GetListRef());
-
-						YAssert(idxShared < i->first, "Invalid state found.");
-						YAssert(i->first < lst.size(), "Invalid list found.");
-
-						auto j(std::find_if_not(i, indent_map.cend(),
-							[&, idt](decltype(*i) pr){
-							return idt < pr.second;
-						}));
-
-						const auto n(std::prev(j)->first - idxShared);
-
-						// XXX: Use %cbegin after switched to libstdc++ 4.9.
-						yunseq(ystdex::erase_n(lst, std::next(lst.begin(),
-							idxShared + 1), n), indent_map.erase(i, j));
-#if 1
-						{
-							// XXX: Use %std::make_move_iterator if proper.
-							vector<pair<IndentType, IndexType>>
-								vec(j, indent_map.cend());
-
-							for(auto& pr : vec)
-								pr.first -= n;
-							ystdex::insert_reversed(indent_map,
-								indent_map.erase(j, indent_map.end()),
-								vec.rbegin(), vec.rend());
-						}
-#else
-						// See $2014-09 @ %Documentation::Workflow::Annual2014.
-						for(; j != indent_map.cend(); ++j)
-							j = ystdex::replace_value(indent_map, j->first,
-								[n](decltype(*indent_map.cbegin()) pr){
-									return make_pair(pr.first - n, pr.second);
-								});
-#endif
-						// TODO: Check state.
-						expanded.erase(branch_pth);
-						Collapse(idxShared);
-					}
-				}
+				ExpandOrCollapseNodeImpl(CheckNodeState(idxShared), idxShared);
 				UpdateView(*this);
 			}
 		}
@@ -229,7 +106,7 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 			idxCursorOver = size_t(-1);
 		}
 	},
-	// TODO: + AddFront;
+	// TODO: Add %AddFront method.
 	FetchEvent<Paint>(unit).Add([this](PaintEventArgs&& e){
 		tmp_margin_left = LabelBrush.Margin.Left;
 		LabelBrush.Margin.Left += GetIndentWidth(idxShared);
@@ -249,8 +126,7 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 		default:
 			;
 		}
-	}, BackgroundPriority - 1)
-	.Add([this]{
+	}, BackgroundPriority - 1).Add([this]{
 		LabelBrush.Margin.Left = tmp_margin_left;
 	}, 0)
 	);
@@ -368,6 +244,143 @@ TreeList::CheckNodeState(IndexType idx) const
 			? NodeState::Expanded : NodeState::Branch;
 	}
 	return NodeState::None;
+}
+
+bool
+TreeList::ExpandOrCollapseNode(NodeState expected, size_t idx)
+{
+	return CheckNodeState(idx) == expected
+		? (ExpandOrCollapseNodeImpl(expected, idx), true) : false;
+}
+
+void
+TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
+{
+	YAssert(CheckNodeState(idx) == st, "Invalid internal state found."),
+	YAssert(st != NodeState::None, "Invalid state argument found.");
+
+	const auto& branch_pth(GetNodePath(idx));
+
+	if(YB_UNLIKELY(branch_pth.empty()))
+		throw std::runtime_error("Invalid state found.");
+	if(st == NodeState::Branch)
+	{
+		Expand(idx);
+		// TODO: Check state.
+		expanded.insert(branch_pth);
+
+		const auto& branch(at(TreeRoot, branch_pth));
+		auto i(ystdex::qualify(indent_map).lower_bound(idx));
+
+		YAssert(i != indent_map.cend(), "Invalid state found.");
+
+		const auto idt(i->second);
+		auto j(i);
+
+		if(i->first != idx)
+			j = indent_map.emplace_hint(i, idx, idt);
+		else
+		{
+			++i;
+			YAssert(i == indent_map.cend() || i->second <= idt,
+				"Invalid state found.");
+		}
+
+		IndexType index(idx);
+		IndentType indent(idt + 1);
+		vector<pair<IndexType, IndentType>> vec_ins;
+		vector<String> text_list;
+
+		// TODO: Optimize implementation.
+		bind_node(branch,
+			[&, this](const ValueNode& node, const NodePath&, size_t depth){
+			text_list.push_back(ExtractText(node));
+			if(indent != depth)
+			{
+				vec_ins.emplace_back(index, indent);
+				indent = depth;
+			}
+			++index;
+		}, [this](const NodePath& pth, size_t){
+			return ystdex::exists(expanded, pth);
+		}, branch_pth, idt);
+		YAssert(index != idx, "Invalid state found.");
+		vec_ins.emplace_back(index, indent);
+		YAssert(vec_ins.back().first > j->first,
+			"Invalid insertion sequence found");
+		// TODO: Strong exception guarantee.
+		// See $2014-09 @ %Documentation::Workflow::Annual2014.
+		{
+			// XXX: Use %std::make_move_iterator if proper.
+			vector<pair<IndentType, IndexType>>
+				vec(i, indent_map.cend());
+			const auto n(vec_ins.back().first - j->first);
+
+			for(auto& pr : vec)
+				pr.first += n;
+			i = ystdex::insert_reversed(indent_map,
+				indent_map.erase(i, indent_map.end()),
+				vec.rbegin(), vec.rend());
+		}
+		ystdex::insert_reversed(indent_map, i,
+			vec_ins.crbegin(), vec_ins.crend());
+
+		auto& lst(GetListRef());
+
+		// XXX: Reuse previous operation.
+		// XXX: Use %cbegin after switched to libstdc++ 4.9.
+		lst.insert(lst.begin() + idx + 1, std::make_move_iterator(
+			text_list.begin()), std::make_move_iterator(text_list.end()));
+	}
+	else
+	{
+		auto i(ystdex::qualify(indent_map).find(idx));
+
+		YAssert(i != indent_map.cend(), "Invalid state found.");
+
+		const auto idt(i->second);
+
+		if(++i != indent_map.cend())
+		{
+			auto& lst(GetListRef());
+
+			YAssert(idx < i->first, "Invalid state found.");
+			YAssert(i->first < lst.size(), "Invalid list found.");
+
+			auto j(std::find_if_not(i, indent_map.cend(),
+				[&, idt](decltype(*i) pr){
+				return idt < pr.second;
+			}));
+
+			const auto n(std::prev(j)->first - idx);
+
+			// XXX: Use %cbegin after switched to libstdc++ 4.9.
+			yunseq(ystdex::erase_n(lst, std::next(lst.begin(),
+				idx + 1), n), indent_map.erase(i, j));
+#if 1
+			{
+				// XXX: Use %std::make_move_iterator if proper.
+				vector<pair<IndentType, IndexType>>
+					vec(j, indent_map.cend());
+
+				for(auto& pr : vec)
+					pr.first -= n;
+				ystdex::insert_reversed(indent_map, indent_map.erase(j,
+					indent_map.end()), vec.rbegin(), vec.rend());
+			}
+#else
+			// See $2014-09 @ %Documentation::Workflow::Annual2014.
+			for(; j != indent_map.cend(); ++j)
+				j = ystdex::replace_value(indent_map, j->first,
+					[n](decltype(*indent_map.cbegin()) pr){
+						return make_pair(pr.first - n, pr.second);
+					});
+#endif
+			// TODO: Check state.
+			expanded.erase(branch_pth);
+			Collapse(idx);
+		}
+	}
 }
 
 

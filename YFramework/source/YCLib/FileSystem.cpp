@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1363
+\version r1387
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-09-28 08:43 +0800
+	2014-10-02 02:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,13 +28,16 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_NativeAPI
-#include YFM_CHRLib_CharacterProcessing
 #include <cstring> // for std::strcpy, std::strchr;
 #if YCL_DS
+#	include YFM_CHRLib_CharacterProcessing
 #	include <fcntl.h>
 
 //! \since build 341
 extern "C" int	_EXFUN(fileno, (FILE *));
+
+//! \since build 475
+using namespace CHRLib;
 #elif YCL_Win32
 #	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
 // At least one headers of <stdlib.h>, <stdio.h>, <Windows.h>, <Windef.h>
@@ -50,14 +53,19 @@ _wfopen(const wchar_t*, const wchar_t*);
 //@}
 #	endif
 #	include <Shlwapi.h> // for ::PathIsRelativeW;
+#	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS;
+
+//! \since build 540
+using platform_ex::UTF8ToWCS;
 #elif YCL_Android
+#	include YFM_CHRLib_CharacterProcessing
 #	include <fcntl.h>
 #	include <dirent.h>
 #	include <sys/stat.h>
-#endif
 
 //! \since build 475
 using namespace CHRLib;
+#endif
 
 namespace platform
 {
@@ -67,13 +75,6 @@ namespace
 
 #if YCL_DS || YCL_Android
 #elif YCL_MinGW
-std::wstring
-u_to_w(const char* str)
-{
-	return std::wstring(reinterpret_cast<const wchar_t*>(ucsdup(str).c_str()));
-}
-
-
 //! \since build 474
 //@{
 class DirEnv
@@ -132,7 +133,7 @@ public:
 };
 
 DirectoryData::DirectoryData(const char* name)
-	: dir_name(ystdex::rtrim(u_to_w(name), L"/\\")),
+	: dir_name(ystdex::rtrim(UTF8ToWCS(name), L"/\\")),
 	find_data(), h_node(), posix_dir(dir_name, find_data)
 {}
 DirectoryData::~DirectoryData()
@@ -201,7 +202,7 @@ uopen(const char* filename, int oflag) ynothrow
 #else
 	try
 	{
-		return ::_wopen(u_to_w(filename).c_str(), oflag);
+		return ::_wopen(UTF8ToWCS(filename).c_str(), oflag);
 	}
 	catch(...)
 	{}
@@ -217,7 +218,7 @@ uopen(const char* filename, int oflag, int pmode) ynothrow
 #else
 	try
 	{
-		return ::_wopen(u_to_w(filename).c_str(), oflag, pmode);
+		return ::_wopen(UTF8ToWCS(filename).c_str(), oflag, pmode);
 	}
 	catch(...)
 	{}
@@ -268,7 +269,7 @@ ufopen(const char* filename, const char* mode) ynothrow
 #else
 	try
 	{
-		return ::_wfopen(u_to_w(filename).c_str(), u_to_w(mode).c_str());
+		return ::_wfopen(UTF8ToWCS(filename).c_str(), UTF8ToWCS(mode).c_str());
 	}
 	catch(...)
 	{}
@@ -331,7 +332,6 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 	else
 	{
 		using namespace std;
-		using namespace CHRLib;
 
 #if !YCL_Win32
 		if(const auto cwd = ::getcwd(reinterpret_cast<char*>(buf), size))
@@ -353,7 +353,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 				errno = ENOMEM;
 			}
 #else
-		return reinterpret_cast<ucs2_t*>(
+		return reinterpret_cast<char16_t*>(
 			::_wgetcwd(reinterpret_cast<wchar_t*>(buf), size));
 #endif
 	}
@@ -377,7 +377,7 @@ _n(const char* path) ynothrow \
 #	define YCL_FileSystem_ufunc_impl2(_fn, _wfn) \
 	try \
 	{ \
-		return _wfn(u_to_w(path).c_str()) == 0; \
+		return _wfn(UTF8ToWCS(path).c_str()) == 0; \
 	} \
 	catch(...) \
 	{} \
@@ -529,8 +529,8 @@ HDirectory::GetName() const ynothrow
 #else
 		try
 		{
-			utf8_name = strdup(reinterpret_cast<const char16_t*>(
-				(static_cast<DirEnv*>(p_dirent))->d_name.c_str()));
+			utf8_name = platform_ex::WCSToUTF8(
+				(static_cast<DirEnv*>(p_dirent))->d_name);
 			return &utf8_name[0];
 		}
 		catch(...)
@@ -556,7 +556,7 @@ IsAbsolute(const char* path)
 	}
 	return {};
 #else
-	return !::PathIsRelativeW(u_to_w(path).c_str());
+	return !::PathIsRelativeW(UTF8ToWCS(path).c_str());
 #endif
 }
 
