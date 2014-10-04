@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2285
+\version r2309
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-09-16 11:56 +0800
+	2014-10-04 05:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -154,6 +154,12 @@ public:
 	*/
 	Styles::StyleMap Styles{};
 	/*!
+	\brief 重复输入保持计时器。
+	\note 独立计时，排除路由事件干扰。
+	\since build 540
+	*/
+	InputTimer TapTimer{};
+	/*!
 	\brief 指定共享部件的附加参数。
 	\note 用于区分光标状态记录的部件指针相等时标记不同部件。
 	\sa p_CursorOver
@@ -211,6 +217,13 @@ private:
 	\since build 464
 	*/
 	IWidget* p_indp_focus = {};
+	/*!
+	\brief 重复输入计数。
+	\sa RefreshTap
+	\sa TapTimer
+	\since build 540
+	*/
+	size_t tap_count = 0;
 
 public:
 	//! \since build 422
@@ -225,6 +238,8 @@ public:
 		//独立焦点指针。
 	//! \since build 533
 	DefGetter(const ynothrow, size_t, SharedWidgetIdentity, shared_wgt_id)
+	//! \since build 540
+	DefGetter(const ynothrow, size_t, TapCount, tap_count)
 
 	/*!
 	\brief 检查输入保持状态。
@@ -270,6 +285,16 @@ private:
 	HandleCascade(RoutedEventArgs&, IWidget&);
 
 public:
+	/*!
+	\brief 刷新重复输入状态。
+	\note 刷新内部计数，用于实现双击等。
+	\sa HeldTimer
+	\sa RefreshClick
+	\since build 540
+	*/
+	size_t
+	RefreshTap();
+
 	/*!
 	\brief 复位图形用户界面状态。
 	\note 需要在没有销毁时自动释放焦点的相关控件对象被销毁后立即调用，

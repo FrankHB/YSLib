@@ -4,16 +4,21 @@
 
 echo "Bootstrap beginned."
 
-source ${SHBuild_BaseDir}/common.sh
+SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
+source ${SHBuild_ToolDir}/common.sh
 
 SHBuild_EchoVar "SHBuild.BaseDir" "${SHBuild_BaseDir}"
-SHBuild_EchoVar "SHBuild.Me" "${SHBuild_Me}"
+SHBuild_EchoVar "SHBuild.ToolDir" "${SHBuild_ToolDir}"
 
 echo "Configuring ..."
 
 SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
-source ${SHBuild_BaseDir}/common-toolchain.sh
+source ${SHBuild_ToolDir}/common-toolchain.sh
+
+export AR="gcc-ar"
+[[ ${CXXFLAGS} ]]  || export CXXFLAGS="-O3 -pipe -DNDEBUG -std=c++11 -Wall"
+[[ ${LDFLAGS} ]]  || export LDFLAGS="-s -Wl,--dn -Wl,--gc-sections"
 
 INCLUDES=" \
 	-I../../YFramework/include -I../../YFramework/Android/include \
@@ -21,7 +26,7 @@ INCLUDES=" \
 	-I../../3rdparty/include -I../../YBase/include \
 	"
 
-# Coordinated with build 539.
+# Coordinated with build 540.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
@@ -33,6 +38,7 @@ LIBS=" \
 	../../YFramework/source/YCLib/Debug.cpp \
 	../../YFramework/source/YCLib/FileSystem.cpp \
 	../../YFramework/source/YCLib/Host.cpp \
+	../../YFramework/source/YCLib/YCommon.cpp \
 	../../YFramework/source/YSLib/Core/YCoreUtilities.cpp \
 	../../YFramework/source/YSLib/Core/yexcept.cpp \
 	../../YFramework/source/YSLib/Service/FileSystem.cpp \
@@ -44,6 +50,7 @@ LIBS=" \
 SHBuild_EchoVar "SHBuild.BuildDir" "${SHBuild_BuildDir}"
 SHBuild_EchoVar "CXX" "${CXX}"
 SHBuild_EchoVar "CXXFLAGS" "${CXXFLAGS}"
+SHBuild_EchoVar "AR" "${AR}"
 SHBuild_EchoVar "LD" "${LD}"
 SHBuild_EchoVar "LDFLAGS" "${LDFLAGS}"
 SHBuild_EchoVar "INCLUDES" "${INCLUDES}"

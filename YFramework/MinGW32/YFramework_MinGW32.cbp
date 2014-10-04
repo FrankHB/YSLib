@@ -96,7 +96,9 @@
 			<Add option="-std=c++11" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
+			<Add option="-Wctor-dtor-privacy" />
 			<Add option="-Winvalid-pch" />
+			<Add option="-Wsign-promo" />
 			<Add option="-fdata-sections" />
 			<Add option="-ffunction-sections" />
 			<Add option="-mthreads" />

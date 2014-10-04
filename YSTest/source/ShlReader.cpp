@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4653
+\version r4663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-09-20 18:28 +0800
+	2014-10-04 08:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -368,8 +368,8 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	: ShlReader(pth, h_dsk_up, h_dsk_dn),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
 	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
-	CurrentSetting.GetTimerSetting()), tmrScrollActive(false), tmrInput(),
-	nClick(), reader(), boxReader({0, 160, 256, 32}), boxTextInfo(),
+	CurrentSetting.GetTimerSetting()), tmrScrollActive(false), reader(),
+	boxReader({0, 160, 256, 32}), boxTextInfo(),
 	pnlSetting(), pTextFile(), mhMain(GetSubDesktop()),
 	pnlBookmark(LoadBookmarks(pth), *this), session_ptr()
 {
@@ -678,13 +678,8 @@ ShlTextReader::OnClick(CursorEventArgs&& e)
 		StopAutoScroll();
 	else
 	{
-		if((nClick = tmrInput.RefreshClick(nClick)) > 1)
-		{
-			nClick = 0;
+		if(FetchGUIState().RefreshTap() > 1)
 			StartAutoScroll();
-		}
-		else if(nClick == 0)
-			++nClick;
 		if(IsVisible(boxReader))
 		{
 			Close(boxReader);
@@ -705,7 +700,7 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 	using namespace KeyCodes;
 
 	if(e.Strategy != RoutedEventArgs::Tunnel && !mhMain.IsShowing(*p_mnu_reader)
-		&& RepeatHeld(tmrInput, FetchGUIState().KeyHeldState,
+		&& RepeatHeld(FetchGUIState().TapTimer, FetchGUIState().KeyHeldState,
 		TimeSpan(240), TimeSpan(60)))
 	{
 		const auto ntick(HighResolutionClock::now());
@@ -771,7 +766,7 @@ ShlTextReader::OnKeyDown(KeyEventArgs&& e)
 			reader.Execute(DualScreenReader::ScreenDownScroll);
 		else
 			return;
-		tmrInput.Delay(HighResolutionClock::now() - ntick);
+		FetchGUIState().TapTimer.Delay(HighResolutionClock::now() - ntick);
 		e.Handled = true;
 	}
 }

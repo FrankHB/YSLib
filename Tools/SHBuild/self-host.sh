@@ -3,10 +3,9 @@
 # Test script for self-hosting SHBuild.
 
 set -e
-SHBuild_BaseDir=`dirname $0`
-SHBuild_BaseDir=`(cd ${SHBuild_BaseDir}; pwd)`
-SHBuild_Me=`basename $0`
-source ${SHBuild_BaseDir}/common-bootstrap.sh
+[[ ${SHBuild_BaseDir} ]] || SHBuild_BaseDir=$(cd `dirname "$0"`; pwd)
+[[ ${SHBuild_ToolDir} ]] || SHBuild_ToolDir=${SHBuild_BaseDir}
+source ${SHBuild_ToolDir}/common-bootstrap.sh
 
 SHBuild_Pushd
 cd ${SHBuild_BaseDir}

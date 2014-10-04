@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2341
+\version r2355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-09-27 16:49 +0800
+	2014-10-02 03:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,21 @@ namespace YSLib
 
 namespace IO
 {
+
+/*!
+\brief 目录路径结尾正规化。
+\since build 540
+*/
+template<class _tString>
+inline ystdex::decay_t<_tString>
+NormalizeDirecoryPathTail(_tString&& str, typename
+	ystdex::string_traits<_tString>::const_pointer t = &ystdex::to_array<
+	typename ystdex::string_traits<_tString>::value_type>("/\\")[0])
+{
+	return ystdex::rtrim(yforward(str)) + typename
+		ystdex::string_traits<_tString>::value_type(YCL_PATH_DELIMITER);
+}
+
 
 /*!
 \brief 文件路径范式。
@@ -322,7 +337,7 @@ inline PDefH(bool, VerifyDirectory, const Path& pth)
 /*!
 \brief 验证路径表示的目录是否存在，若不存在则逐级创建。
 \post 断言：使用 VerifyDirectory 验证目录存在。
-\throw std::system_error 失败时根据 <tt>errno</tt> 抛出的异常。
+\throw std::system_error 失败时根据 \c errno 抛出的异常。
 \note 使用 umkdir 实现。
 \since build 476
 */
