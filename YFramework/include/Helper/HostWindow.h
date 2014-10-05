@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r410
+\version r412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-09-03 13:55 +0800
+	2014-10-04 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,9 +125,9 @@ public:
 	\note 线程安全：互斥访问。
 	\since build 511
 	*/
-	template<typename _fCallable>
+	template<typename _func>
 	auto
-	AccessInputString(_fCallable f) -> decltype(f(comp_str))
+	AccessInputString(_func f) -> decltype(f(comp_str))
 	{
 		std::lock_guard<std::recursive_mutex> lck(input_mutex);
 

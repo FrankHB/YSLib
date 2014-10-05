@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r108
+\version r113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2014-09-30 08:01 +0800
+	2014-10-04 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,10 +40,9 @@ namespace ystdex
 \brief 迭代处理异常。
 \since build 538
 */
-template<typename _fCallable>
+template<typename _func>
 void
-iterate_exceptions(_fCallable&& f,
-	std::exception_ptr p = std::current_exception())
+iterate_exceptions(_func&& f, std::exception_ptr p = std::current_exception())
 {
 	while(p)
 		p = yforward(f)(p);
@@ -82,10 +81,10 @@ raise_exception(const _type& e)
 \brief 处理嵌套异常。
 \since build 539
 */
-template<typename _tEx, typename _fCallable,
+template<typename _tEx, typename _func,
 	typename _tExCaught = remove_cv_t<_tEx>&>
 void
-handle_nested(_tEx& e, _fCallable&& f)
+handle_nested(_tEx& e, _func&& f)
 {
 	try
 	{

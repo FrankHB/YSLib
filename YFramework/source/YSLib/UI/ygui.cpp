@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4164
+\version r4182
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-10-04 10:56 +0800
+	2014-10-05 07:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ InputTimer::RefreshHeld(HeldStateType& s, const Duration& initial_delay,
 }
 
 size_t
-InputTimer::RefreshClick(size_t s, const Duration& delay)
+InputTimer::RefreshTap(size_t s, const Duration& delay)
 {
 	if(s == 0 || YB_UNLIKELY(!CheckTimeout(*this)))
 		Interval = delay;
@@ -185,11 +185,24 @@ GUIState::HandleCascade(RoutedEventArgs& e, IWidget& wgt)
 }
 
 size_t
-GUIState::RefreshTap()
+GUIState::RefreshTap(const Point& pt, const Timers::Duration& delay, size_t n)
 {
-	const auto taps(TapTimer.RefreshClick(tap_count));
+	if(tap_count == 0)
+		tap_location = Point::Invalid;
 
-	tap_count = taps > 1 ? 0 : 1;
+	const auto taps(TapTimer.RefreshTap(tap_count, delay));
+
+	if(pt != Point::Invalid)
+	{
+		if(tap_location == Point::Invalid)
+			tap_location = pt;
+		else if(!Rect(TapArea).Contains(pt - tap_location))
+		{
+			tap_location = Point::Invalid;
+			return 1;
+		}
+	}
+	tap_count = taps < n ? std::max<size_t>(taps, 1) : 0;
 	return taps;
 }
 
@@ -202,7 +215,8 @@ GUIState::Reset()
 	yunseq(CursorLocation = Point::Invalid, p_CursorOver = {},
 		p_indp_focus = {}, p_cascade_focus = {}, entered = {},
 		checked_held = {}, master_key = 0, ExternalTextInputFocusPtr = {},
-		CaretLocation = Point::Invalid);
+		CaretLocation = Point::Invalid, tap_location = Point::Invalid,
+		tap_count = 0);
 }
 
 void

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1311
+\version r1316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-09-28 08:09 +0800
+	2014-10-05 09:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -474,9 +474,12 @@ private:
 #endif
 
 public:
-	//! \brief 构造：使用目录路径。
+	/*!
+	\brief 构造：使用目录路径。
+	\since build 541
+	*/
 	explicit
-	HDirectory(const char* path) ynothrow
+	HDirectory(const char* path)
 		: DirectorySession(path)
 	{}
 

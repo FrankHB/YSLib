@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r975
+\version r980
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2014-05-23 09:18 +0800
+	2014-10-04 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -261,18 +261,18 @@ public:
 
 #if 0
 //! \brief 逆向柯里化：在参数列表起始添加一个形式参数。
-template<class _fCallable, typename _tParm>
+template<class _func, typename _tParm>
 struct InversedCurrying
 {
-	using Result = typename _fCallable::Result;
-	using Parm1 = typename _fCallable::Parm1;
+	using Result = typename _func::Result;
+	using Parm1 = typename _func::Parm1;
 
-	_fCallable f;
+	_func f;
 
 	/*!
 	\brief 构造：使用函数对象。
 	*/
-	InversedCurrying(_fCallable f_)
+	InversedCurrying(_func f_)
 		: f(f_)
 	{}
 

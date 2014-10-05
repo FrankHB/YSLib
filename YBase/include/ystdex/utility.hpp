@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1920
+\version r1927
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-09-30 01:55 +0800
+	2014-10-04 15:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -287,6 +287,7 @@ using classify_value_t = conditional_t<std::is_class<_type>::value, _type,
 \brief 按标识调用函数，保证调用一次。
 \note 类似 std::call_once ，但不保证线程安全性。
 \note ISO C++11（至 N3691 ） 30.4 synopsis 处的声明存在错误。
+\bug 未实现支持成员指针。
 \see https://github.com/cplusplus/draft/issues/151 。
 \since build 327
 
@@ -619,9 +620,9 @@ public:
 		do_swap();
 	}
 	//! \since build 526
-	template<typename _fCallable, yimpl(typename = enable_if_t<
-		is_constructible<value_type, result_of_t<_fCallable()>>::value, int>)>
-	swap_guard(condition_type cond, reference_type referent, _fCallable f)
+	template<typename _func, yimpl(typename = enable_if_t<
+		is_constructible<value_type, result_of_t<_func()>>::value, int>)>
+	swap_guard(condition_type cond, reference_type referent, _func f)
 		: swap_guard(cond, referent, f())
 	{}
 	~swap_guard()
@@ -678,9 +679,9 @@ public:
 		do_swap();
 	}
 	//! \since build 526
-	template<typename _fCallable, yimpl(typename = enable_if_t<
-		is_constructible<value_type, result_of_t<_fCallable()>>::value, int>)>
-	swap_guard(reference_type referent, _fCallable f)
+	template<typename _func, yimpl(typename = enable_if_t<
+		is_constructible<value_type, result_of_t<_func()>>::value, int>)>
+	swap_guard(reference_type referent, _func f)
 		: swap_guard(referent, f())
 	{}
 	~swap_guard()

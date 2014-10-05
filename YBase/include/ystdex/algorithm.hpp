@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r587
+\version r597
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-09-06 09:51 +0800
+	2014-10-04 15:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,7 @@
 
 #include "../ydef.h"
 #include <algorithm>
-#include "type_op.hpp" // for ystdex::is_pod;
-#include "iterator.hpp" // for ystdex::is_undereferenceable;
+#include "iterator.hpp" // for ystdex::is_pod, ystdex::is_undereferenceable;
 #include <cstring> // for std::memcpy, std::memmove;
 
 namespace ystdex
@@ -51,11 +50,11 @@ namespace ystdex
 */
 //@{
 /*
-\tparam _fCallable 用于遍历范围的操作的可调用类型。
+\tparam _func 用于遍历范围的操作的可调用类型。
 \param first 输入范围起始迭代器。
 \param last 输入范围终止迭代器。
 \param f 遍历操作。
-\pre _fCallable 满足 MoveConstructible 要求。
+\pre _func 满足 MoveConstructible 要求。
 \pre _type 满足 EqualityComparable 要求。
 \return 转移的 f 。
 \note 时间复杂度： 不大于 <tt>last - first</tt> 次 \c f 的调用。
@@ -67,18 +66,18 @@ namespace ystdex
 \li <tt>pred(*i) != false</tt>
 */
 //@{
-template<typename _tIn, typename _fCallable, typename _type>
-_fCallable
-for_each_equal(_tIn first, _tIn last, const _type& value, _fCallable f)
+template<typename _tIn, typename _func, typename _type>
+_func
+for_each_equal(_tIn first, _tIn last, const _type& value, _func f)
 {
     for(; first != last; first = std::find(++first, last, value))
    		f(*first);
     return std::move(f);
 }
 
-template<typename _tIn, typename _fCallable, typename _fPred>
-_fCallable
-for_each_if(_tIn first, _tIn last, _fPred pred, _fCallable f)
+template<typename _tIn, typename _func, typename _fPred>
+_func
+for_each_if(_tIn first, _tIn last, _fPred pred, _func f)
 {
     for(; first != last; first = std::find_if(++first, last, pred))
    		f(*first);

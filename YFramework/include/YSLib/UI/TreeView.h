@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r240
+\version r248
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2014-10-04 11:50 +0800
+	2014-10-04 16:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,11 +158,11 @@ public:
 
 	/*!
 	\brief 满足节点折叠条件（状态为 NodeState::Expanded ）时折叠节点。
-	\return 折叠前节点已满足折叠条件。
+	\return 折叠前节点的状态。
 	\note 若满足状态不设置 idxShared 并调用 Collpase 。
-	\since build 540
+	\since build 541
 	*/
-	PDefH(bool, CollapseNode, size_t idx)
+	PDefH(NodeState, CollapseNode, size_t idx)
 		ImplRet(ExpandOrCollapseNode(NodeState::Expanded, idx))
 
 	static String
@@ -171,20 +171,21 @@ public:
 	static String
 	ExtractNodeName(const ValueNode&);
 
-	//! \since build 540
+	//! \since build 541
 	//@{
 	/*!
 	\brief 满足节点展开条件（状态为 NodeState::Branch ）时展开节点。
-	\return 展开前节点已满足展开条件。
+	\return 折叠前节点的状态。
 	\note 设置 idxShared 并调用 Expand 。
 	*/
-	PDefH(bool, ExpandNode, size_t idx)
+	PDefH(NodeState, ExpandNode, size_t idx)
 		ImplRet(ExpandOrCollapseNode(NodeState::Branch, idx))
 
 private:
-	bool
+	NodeState
 	ExpandOrCollapseNode(NodeState, size_t);
 
+	//! \since build 540
 	void
 	ExpandOrCollapseNodeImpl(NodeState, size_t);
 	//@}
