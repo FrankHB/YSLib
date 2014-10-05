@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2309
+\version r2338
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-10-04 05:24 +0800
+	2014-10-05 07:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,10 +73,10 @@ public:
 	/*!
 	\brief 重复检测连续点击状态。
 	\return 保持的点击次数：若不超过延时则为输入次数增加 1 ，否则为 0 。
-	\since build 416
+	\since build 541
 	*/
 	size_t
-	RefreshClick(size_t, const Duration& = Timers::TimeSpan(400));
+	RefreshTap(size_t, const Duration& = Timers::TimeSpan(400));
 
 	/*!
 	\brief 复位输入计时状态。
@@ -160,6 +160,11 @@ public:
 	*/
 	InputTimer TapTimer{};
 	/*!
+	\brief 指针设备重复输入引起连续动作允许的误差范围。
+	\since build 541
+	*/
+	Size TapArea{4, 4};
+	/*!
 	\brief 指定共享部件的附加参数。
 	\note 用于区分光标状态记录的部件指针相等时标记不同部件。
 	\sa p_CursorOver
@@ -224,6 +229,14 @@ private:
 	\since build 540
 	*/
 	size_t tap_count = 0;
+	/*!
+	\brief 重复输入的指针设备的起始位置。
+	\note 不保证相对于特定坐标系。
+	\sa RefreshTap
+	\sa TapArea
+	\since build 541
+	*/
+	Point tap_location{Point::Invalid};
 
 public:
 	//! \since build 422
@@ -240,6 +253,8 @@ public:
 	DefGetter(const ynothrow, size_t, SharedWidgetIdentity, shared_wgt_id)
 	//! \since build 540
 	DefGetter(const ynothrow, size_t, TapCount, tap_count)
+	//! \since build 541
+	DefGetter(const ynothrow, const Point&, TapLocation, tap_location)
 
 	/*!
 	\brief 检查输入保持状态。
@@ -286,14 +301,21 @@ private:
 
 public:
 	/*!
-	\brief 刷新重复输入状态。
-	\note 刷新内部计数，用于实现双击等。
+	\brief 刷新重复输入状态并记录相对位置。
+	\note 刷新内部计数。
+	\param pt 输入的相对位置，等于 \c Point::Invalid 时忽略。
+	\param delay 延迟超时。
+	\param n 触发计数复位的次数（默认对应双击）。
+	\return 不考虑复位时被解释为连续操作的计数。
+	\note 用户自行保证记录的位置使用的坐标系。
 	\sa HeldTimer
-	\sa RefreshClick
-	\since build 540
+	\sa InputTimer::RefreshTap
+	\sa TapArea
+	\since build 541
 	*/
 	size_t
-	RefreshTap();
+	RefreshTap(const Point& pt = Point::Invalid,
+		const Timers::Duration& delay = Timers::TimeSpan(400), size_t n = 2);
 
 	/*!
 	\brief 复位图形用户界面状态。

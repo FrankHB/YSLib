@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1620
+\version r1627
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2014-06-10 00:25 +0800
+	2014-10-04 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,9 +92,9 @@ public:
 	\note 线程安全：全局消息队列互斥访问。
 	\since build 481
 	*/
-	template<typename _fCallable>
+	template<typename _func>
 	auto
-	AccessQueue(_fCallable f) -> decltype(f(qMain))
+	AccessQueue(_func f) -> decltype(f(qMain))
 	{
 #if YF_Multithread == 1
 		std::lock_guard<std::recursive_mutex> lck(queue_mutex);
@@ -148,11 +148,8 @@ FetchAppInstance() ynothrow;
 \brief 取当前应用程序线程空间中活动的 Shell 句柄。
 \warning 应用程序实例初始化前不保证线程安全性。
 */
-inline shared_ptr<Shell>
-FetchShellHandle() ynothrow
-{
-	return FetchAppInstance().GetShellHandle();
-}
+inline PDefH(shared_ptr<Shell>, FetchShellHandle, ) ynothrow
+	ImplRet(FetchAppInstance().GetShellHandle())
 
 /*!
 \ingroup helper_functions

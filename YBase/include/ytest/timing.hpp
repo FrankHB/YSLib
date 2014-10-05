@@ -11,13 +11,13 @@
 /*!	\file timing.hpp
 \ingroup YTest
 \brief 运行计时测试工具。
-\version r315
+\version r338
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-06-23 20:01:09 +0800
 \par 修改时间:
-	2013-09-26 22:09 +0800
+	2014-10-04 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,9 +54,9 @@ namespace timing
 \note 使用 _fNow 函数指定当前时刻进行计时。
 \since build 327
 */
-template<typename _fNow, typename _fCallable, typename... _tParams>
+template<typename _fNow, typename _func, typename... _tParams>
 inline auto
-once(_fNow now, _fCallable&& f, _tParams&&... args) -> decltype(now() - now())
+once(_fNow now, _func&& f, _tParams&&... args) -> decltype(now() - now())
 {
 	const auto cl(now());
 
@@ -69,9 +69,9 @@ once(_fNow now, _fCallable&& f, _tParams&&... args) -> decltype(now() - now())
 \note 使用 std::clock() 计时。
 \since build 327
 */
-template<typename _fCallable, typename... _tParams>
+template<typename _func, typename... _tParams>
 inline double
-once_c(_fCallable&& f, _tParams&&... args)
+once_c(_func&& f, _tParams&&... args)
 {
 	const std::clock_t cl(std::clock());
 
@@ -86,9 +86,9 @@ once_c(_fCallable&& f, _tParams&&... args)
 \pre _tClock 满足 TrivialClock 要求。
 \since build 327
 */
-template<class _fNow, typename _fCallable, typename... _tParams>
+template<class _fNow, typename _func, typename... _tParams>
 inline auto
-total(size_t n, _fNow now, _fCallable&& f, _tParams&&... args)
+total(size_t n, _fNow now, _func&& f, _tParams&&... args)
 	-> decltype(now() - now())
 {
 	const auto cl(now());
@@ -103,9 +103,9 @@ total(size_t n, _fNow now, _fCallable&& f, _tParams&&... args)
 \note 使用 std::clock() 计时。
 \since build 327
 */
-template<typename _fCallable, typename... _tParams>
+template<typename _func, typename... _tParams>
 inline double
-total_c(size_t n, _fCallable&& f, _tParams&&... args)
+total_c(size_t n, _func&& f, _tParams&&... args)
 {
 	const std::clock_t cl(std::clock());
 
@@ -131,9 +131,9 @@ average(size_t n, _tParams&&... args)
 \brief 测试累计平均时间。
 \since build 538
 */
-template<typename _tDuration, typename _fCallable>
+template<typename _tDuration, typename _func>
 _tDuration
-average_elapsed(_fCallable f, size_t n = 1, _tDuration elapsed = {})
+average_elapsed(_func f, size_t n = 1, _tDuration elapsed = {})
 {
 	f(n, elapsed);
 	return elapsed / n;
@@ -143,9 +143,9 @@ average_elapsed(_fCallable f, size_t n = 1, _tDuration elapsed = {})
 \brief 测试不超过期限的累计平均时间。
 \since build 538
 */
-template<typename _tDuration, typename _fCallable>
+template<typename _tDuration, typename _func>
 _tDuration
-average_in_duration(_fCallable f, _tDuration d)
+average_in_duration(_func f, _tDuration d)
 {
 	return average_elapsed<_tDuration>([=](size_t& cnt, _tDuration& elapsed){
 		for(; elapsed < d; ++cnt)

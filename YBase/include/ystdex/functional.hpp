@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1240
+\version r1279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-09-22 23:47 +0800
+	2014-10-04 15:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,15 +124,15 @@ varg(_tParams&&... args)
 \since build 537
 */
 //@{
-template<typename _fCallable>
+template<typename _func>
 inline void
-chain_apply(_fCallable&& f)
+chain_apply(_func&& f)
 {
 	return yforward(f);
 }
-template<typename _fCallable, typename _type, typename... _tParams>
+template<typename _func, typename _type, typename... _tParams>
 inline void
-chain_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
+chain_apply(_func&& f, _type&& arg, _tParams&&... args)
 {
 	return ystdex::chain_apply(yforward(yforward(f)(yforward(arg))),
 		yforward(args)...);
@@ -144,13 +144,13 @@ chain_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
 \since build 327
 */
 //@{
-template<typename _fCallable>
+template<typename _func>
 inline void
-seq_apply(_fCallable&&)
+seq_apply(_func&&)
 {}
-template<typename _fCallable, typename _type, typename... _tParams>
+template<typename _func, typename _type, typename... _tParams>
 inline void
-seq_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
+seq_apply(_func&& f, _type&& arg, _tParams&&... args)
 {
 	yforward(f)(yforward(arg));
 	ystdex::seq_apply(yforward(f), yforward(args)...);
@@ -161,9 +161,9 @@ seq_apply(_fCallable&& f, _type&& arg, _tParams&&... args)
 \brief 无序调用。
 \since build 327
 */
-template<typename _fCallable, typename... _tParams>
+template<typename _func, typename... _tParams>
 inline void
-unseq_apply(_fCallable&& f, _tParams&&... args)
+unseq_apply(_func&& f, _tParams&&... args)
 {
 	yunseq((void(yforward(f)(yforward(args))), 0)...);
 }
@@ -337,11 +337,11 @@ struct paramlist_size : integral_constant<size_t, std::tuple_size<typename
 //! \since build 537
 //@{
 //! \brief 复合函数。
-template<typename _fCallable1, typename _fCallable2>
+template<typename _func1, typename _func2>
 struct composed
 {
-	_fCallable1 f;
-	_fCallable2 g;
+	_func1 f;
+	_func2 g;
 
 	template<typename... _tParams>
 	auto
@@ -357,15 +357,15 @@ struct composed
 \relates composed
 \return 复合的可调用对象。
 */
-template<typename _fCallable1, typename _fCallable2>
-composed<_fCallable1, _fCallable2>
-compose(_fCallable1 f, _fCallable2 g)
+template<typename _func1, typename _func2>
+composed<_func1, _func2>
+compose(_func1 f, _func2 g)
 {
-	return composed<_fCallable1, _fCallable2>{f, g};
+	return composed<_func1, _func2>{f, g};
 }
-template<typename _fCallable1, typename _fCallable2, typename... _fCallables>
+template<typename _func1, typename _func2, typename... _funcs>
 yconstfn auto
-compose(_fCallable1 f, _fCallable2 g, _fCallables... args)
+compose(_func1 f, _func2 g, _funcs... args)
 	-> decltype(ystdex::compose(ystdex::compose(f, g), args...))
 {
 	return ystdex::compose(ystdex::compose(f, g), args...);
@@ -385,9 +385,9 @@ template<typename _tRet, typename... _tParams, size_t... _vSeq>
 struct call_projection<_tRet(_tParams...), variadic_sequence<_vSeq...>>
 {
 	//! \since build 448
-	template<typename _fCallable>
+	template<typename _func>
 	static _tRet
-	call(_fCallable&& f, std::tuple<_tParams...>&& args, remove_reference_t<
+	call(_func&& f, std::tuple<_tParams...>&& args, remove_reference_t<
 		decltype(yforward(f)(yforward(std::get<_vSeq>(std::move(args)))...))>*
 		= {})
 	{
@@ -544,19 +544,21 @@ struct thunk_call_proxy
 };
 
 //! \since build 526
-template<typename _tRet, typename _fCallable>
+template<typename _tRet, typename _func>
 struct thunk_caller
 {
 	//! \since build 529
-	static_assert(is_decayed<_fCallable>::value, "Invalid type found.");
+	static_assert(is_decayed<_func>::value, "Invalid type found.");
 
-	using callable_type = _fCallable;
+	//! \since build 541
+	using caller_type = _func;
 	using return_type = _tRet;
 	using value_type = decay_t<wrapped_traits_t<_tRet>>;
 
-	callable_type caller;
+	//! \since build 541
+	caller_type caller;
 
-	thunk_caller(callable_type f)
+	thunk_caller(caller_type f)
 		: caller(f)
 	{}
 	//! \todo 使用 ISO C++1y 通用 lambda 表达式以支持转移构造，避免不必要的复制。
@@ -589,14 +591,15 @@ struct thunk_caller
 \since build 526
 */
 template<typename _tRet,
-	typename _fCallable = std::function<wrapped_traits_t<_tRet>()>>
-class thunk : private details::thunk_caller<_tRet, decay_t<_fCallable>>
+	typename _func = std::function<wrapped_traits_t<_tRet>()>>
+class thunk : private details::thunk_caller<_tRet, decay_t<_func>>
 {
 private:
-	using base = details::thunk_caller<_tRet, decay_t<_fCallable>>;
+	using base = details::thunk_caller<_tRet, decay_t<_func>>;
 
 public:
-	using typename base::callable_type;
+	//! \since build 541
+	using typename base::caller_type;
 	using typename base::return_type;
 	using typename base::value_type;
 
@@ -613,9 +616,9 @@ public:
 	//! \since build 527
 	template<typename _fCaller, yimpl(typename
 		= exclude_self_ctor_t<thunk, _fCaller>, typename
-		= enable_if_t<is_convertible<_fCaller&&, callable_type>::value>)>
+		= enable_if_t<is_convertible<_fCaller&&, caller_type>::value>)>
 	thunk(_fCaller&& f)
-		: base(std::move(callable_type(f)))
+		: base(std::move(caller_type(f)))
 	{}
 	thunk(const thunk&) = default;
 	thunk(thunk&&) = default;
@@ -645,11 +648,11 @@ public:
 \since build 526
 */
 //@{
-template<typename _fCallable>
-thunk<result_of_t<_fCallable()>, decay_t<_fCallable>>
-make_thunk(_fCallable&& f)
+template<typename _func>
+thunk<result_of_t<_func()>, decay_t<_func>>
+make_thunk(_func&& f)
 {
-	return thunk<result_of_t<_fCallable()>, decay_t<_fCallable>>(yforward(f));
+	return thunk<result_of_t<_func()>, decay_t<_func>>(yforward(f));
 }
 //! \todo 使用 ISO C++1y 返回值推导，直接以 lambda 表达式实现。
 template<typename _type>

@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r636
+\version r679
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2014-10-02 12:06 +0800
+	2014-10-05 06:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,6 +71,47 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 	auto& unit(GetUnitRef());
 
 	yunseq(
+	FetchEvent<KeyDown>(*this) += [&](KeyEventArgs&& e){
+		if(!GetList().empty() && IsSelected())
+		{
+			using namespace KeyCodes;
+			const auto& k(e.GetKeys());
+
+			if(k.count() == 1)
+			{
+				if(k[Left])
+				{
+					const auto idx(GetSelectedIndex());
+
+					if(CollapseNode(idx) == NodeState::Expanded)
+						UpdateView(*this);
+					else
+					{
+						auto i(indent_map.lower_bound(idx));
+
+						SetSelected(
+							i != indent_map.cbegin() ? (--i)->first : 0);
+					}
+				}
+				else if(k[Right])
+				{
+					const auto idx(GetSelectedIndex());
+					const auto st(ExpandNode(idx));
+
+					if(st == NodeState::Branch)
+						UpdateView(*this);
+					else if(st == NodeState::Expanded)
+					{
+						const auto i(indent_map.lower_bound(idx + 1));
+
+						if(i != indent_map.cend() && i->first > idx)
+							SetSelected(idx + 1);
+					}
+				}
+			}
+		}
+		e.Handled = true;
+	},
 	FetchEvent<TouchDown>(unit) += [this](CursorEventArgs&& e){
 		const auto st(CheckNodeState(idxShared));
 
@@ -79,9 +120,9 @@ TreeList::TreeList(const Rect& r, const shared_ptr<ListType>& h,
 			Rect box(GetIndentBox());
 
 			box.X += GetIndentWidth(idxShared);
-			if(box.Contains(e))
+			if(box.Contains(e) || FetchGUIState().RefreshTap(e) > 1)
 			{
-				ExpandOrCollapseNodeImpl(CheckNodeState(idxShared), idxShared);
+				ExpandOrCollapseNodeImpl(st, idxShared);
 				UpdateView(*this);
 			}
 		}
@@ -246,11 +287,14 @@ TreeList::CheckNodeState(IndexType idx) const
 	return NodeState::None;
 }
 
-bool
+TreeList::NodeState
 TreeList::ExpandOrCollapseNode(NodeState expected, size_t idx)
 {
-	return CheckNodeState(idx) == expected
-		? (ExpandOrCollapseNodeImpl(expected, idx), true) : false;
+	const auto st(CheckNodeState(idx));
+
+	if(st == expected)
+		ExpandOrCollapseNodeImpl(expected, idx);
+	return st;
 }
 
 void

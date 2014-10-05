@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2355
+\version r2365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-10-02 03:41 +0800
+	2014-10-04 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -360,9 +360,9 @@ inline PDefH(void, EnsureDirectory, const String& path)
 //@{
 //! \brief 目录遍历操作。
 //@{
-template<typename _fCallable>
+template<typename _func>
 void
-Traverse(HDirectory& dir, _fCallable f)
+Traverse(HDirectory& dir, _func f)
 {
 	PathNorm nm;
 
@@ -373,30 +373,30 @@ Traverse(HDirectory& dir, _fCallable f)
 			f(dir.GetNodeCategory(), name, nm);
 	});
 }
-template<typename _fCallable>
+template<typename _func>
 inline void
-Traverse(const char* path, _fCallable f)
+Traverse(const char* path, _func f)
 {
 	HDirectory dir(path);
 
 	IO::Traverse(dir, f);
 }
-template<typename _fCallable>
+template<typename _func>
 inline void
-Traverse(const std::string& path, _fCallable f)
+Traverse(const std::string& path, _func f)
 {
 	IO::Traverse(path.c_str(), f);
 }
-template<typename _fCallable>
+template<typename _func>
 inline void
-Traverse(const Path& pth, _fCallable f)
+Traverse(const Path& pth, _func f)
 {
 	IO::Traverse(std::string(pth), f);
 }
 
-template<typename _fCallable>
+template<typename _func>
 void
-TraverseChildren(const std::string& path, _fCallable f)
+TraverseChildren(const std::string& path, _func f)
 {
 	IO::Traverse(path,
 		[f](NodeCategory c, const std::string& name, PathNorm& nm){

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Task.h
 \ingroup Core
 \brief 任务处理。
-\version r104
+\version r107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-06 22:08:26 +0800
 \par 修改时间:
-	2013-12-24 09:16 +0800
+	2014-10-04 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,9 +52,9 @@ namespace Messaging
 \brief 按更新条件和优先级通过消息队列部署任务。
 \since build 455
 */
-template<typename _fCallable>
+template<typename _fUpdater>
 void
-Renew(_fCallable update, Priority prior = Messaging::NormalPriority)
+Renew(_fUpdater update, Priority prior = Messaging::NormalPriority)
 {
 	PostTask([=]{
 		if(update())

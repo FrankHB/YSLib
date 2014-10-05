@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r168
+\version r175
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2014-05-18 23:38 +0800
+	2014-10-04 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,11 +43,8 @@ namespace Host
 \return 若渲染器类型能转换为 HostRenderer 则返回转换后的指针；否则为空。
 \since build 430
 */
-inline HostRenderer*
-GetHostRendererPtrOf(UI::IWidget& wgt)
-{
-	return dynamic_cast<HostRenderer*>(&wgt.GetRenderer());
-}
+inline PDefH(HostRenderer*, GetHostRendererPtrOf, UI::IWidget& wgt)
+	ImplRet(dynamic_cast<HostRenderer*>(&wgt.GetRenderer()))
 
 /*!
 \brief 取宿主渲染器对应的窗口。
@@ -77,9 +74,9 @@ WaitForHostWindow(UI::IWidget&);
 \return unique_ptr 包装的渲染器。
 \since build 430
 */
-template<typename _fCallable, typename... _tParams>
+template<typename _func, typename... _tParams>
 unique_ptr<HostRenderer>
-MakeHostRenderer(UI::IWidget& wgt, _fCallable&& f, _tParams&&... args)
+MakeHostRenderer(UI::IWidget& wgt, _func&& f, _tParams&&... args)
 {
 	return make_unique<HostRenderer>(wgt, yforward(f), yforward(args)...);
 }

@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r394
+\version r411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-09-03 14:00 +0800
+	2014-10-04 15:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,18 +48,17 @@ yconstexpr Messaging::Priority AnimationPriority(0x20);
 //! \since build 455
 //@{
 //! \brief 按更新条件和优先级通过消息队列部署动画任务。
-template<typename _fCallable>
+template<typename _fUpdater>
 void
-AnimateTask(_fCallable update,
-	Messaging::Priority prior = UI::AnimationPriority)
+AnimateTask(_fUpdater update, Messaging::Priority prior = UI::AnimationPriority)
 {
 	Messaging::Renew(update, prior);
 }
 
 //! \brief 按指定的连接对象更新动画任务。
-template<typename _fCallable>
+template<typename _fUpdater>
 void
-AnimateConnection(const shared_ptr<_fCallable>& conn,
+AnimateConnection(const shared_ptr<_fUpdater>& conn,
 	Messaging::Priority prior = UI::AnimationPriority)
 {
 	YAssertNonnull(conn);
@@ -72,20 +71,20 @@ AnimateConnection(const shared_ptr<_fCallable>& conn,
 \brief 按指定的可调用对象初始化为连接对象更新动画任务。
 \since build 494
 */
-template<typename _fCallable>
+template<typename _fUpdater>
 void
-Animate(_fCallable f, Messaging::Priority prior = UI::AnimationPriority)
+Animate(_fUpdater f, Messaging::Priority prior = UI::AnimationPriority)
 {
-	AnimateConnection(make_shared<_fCallable>(f), prior);
+	AnimateConnection(make_shared<_fUpdater>(f), prior);
 }
 
 
 //! \brief 动画会话。
-template<typename _fCallable = std::function<bool()>>
+template<typename _fUpdater = std::function<bool()>>
 class GAnimationSession final
 {
 public:
-	using Connection = ystdex::decay_t<_fCallable>;
+	using Connection = ystdex::decay_t<_fUpdater>;
 	using ConnectionPtr = shared_ptr<Connection>;
 
 private:
@@ -183,18 +182,18 @@ Restart(_tAnimation& ani, IWidget& wgt, _fCallable f)
 
 //! \brief 安装动画效果。
 //@{
-template<class _tAnimation, typename _fCallable>
+template<class _tAnimation, typename _func>
 void
-Setup(_tAnimation& ani, IWidget& wgt, _fCallable f)
+Setup(_tAnimation& ani, IWidget& wgt, _func f)
 {
 	UI::Restart(ani, wgt, [f](IWidget&){
 		f();
 		return true;
 	});
 }
-template<class _tAnimation, typename _fCallable, typename _fCond>
+template<class _tAnimation, typename _func, typename _fCond>
 void
-Setup(_tAnimation& ani, IWidget& wgt, _fCond cond, _fCallable f)
+Setup(_tAnimation& ani, IWidget& wgt, _fCond cond, _func f)
 {
 	UI::Restart(ani, wgt, [cond, f](IWidget&){
 		if(cond())
@@ -205,10 +204,9 @@ Setup(_tAnimation& ani, IWidget& wgt, _fCond cond, _fCallable f)
 //@}
 
 //! \brief 安装以计时器控制的动画效果。
-template<class _tAnimation, typename _fCallable, typename _tTimer>
+template<class _tAnimation, typename _func, typename _tTimer>
 void
-SetupByTimer(_tAnimation& ani, IWidget& wgt, _tTimer&& timer,
-	_fCallable f)
+SetupByTimer(_tAnimation& ani, IWidget& wgt, _tTimer&& timer, _func f)
 {
 	UI::Setup(ani, wgt, [&]{
 		return timer.Refresh();

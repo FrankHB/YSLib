@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r293
+\version r299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-08-05 18:40 +0800
+	2014-10-04 15:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,9 +101,9 @@ public:
 	HostLoop();
 
 private:
-	template<typename _fCallable, typename... _tParams>
+	template<typename _func, typename... _tParams>
 	void
-	ThreadFunc(_fCallable&& f, _tParams&&... args)
+	ThreadFunc(_func&& f, _tParams&&... args)
 	{
 		ThreadLoop(yforward(f)(yforward(args)...));
 	}
@@ -179,16 +179,16 @@ public:
 
 	//! \since build 430
 	//@{
-	template<class _tWindow, typename _fCallable, typename... _tParams>
+	template<class _tWindow, typename _func, typename... _tParams>
 	unique_ptr<Window>
-	MakeRenderWindow(_fCallable&& f, _tParams&&... args)
+	MakeRenderWindow(_func&& f, _tParams&&... args)
 	{
 		return make_unique<_tWindow>(*this, yforward(f)(yforward(args)...));
 	}
 
-	template<class _tWindow, typename _fCallable, typename... _tParams>
+	template<class _tWindow, typename _func, typename... _tParams>
 	unique_ptr<Window>
-	MakeRenderWindowEx(_fCallable&& f, _tParams&&... args)
+	MakeRenderWindowEx(_func&& f, _tParams&&... args)
 	{
 		return make_unique<_tWindow>(*this, yforward(f)(), yforward(args)...);
 	}

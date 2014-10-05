@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1599
+\version r1603
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-09-24 23:32 +0800
+	2014-10-04 15:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -580,16 +580,16 @@ template<class _tWidget, VisualEvent _vID>
 using GWidgetHandlerAdaptor = GHandlerAdaptor<_tWidget,
 	typename EventTypeMapping<_vID>::HandlerType::BaseType>;
 
-template<VisualEvent _vID, class _tWidget, typename _fCallable>
+template<VisualEvent _vID, class _tWidget, typename _func>
 GWidgetHandlerAdaptor<_tWidget, _vID>
-MakeWidgetHandlerAdaptor(_tWidget& wgt, _fCallable&& f)
+MakeWidgetHandlerAdaptor(_tWidget& wgt, _func&& f)
 {
 	return GWidgetHandlerAdaptor<_tWidget, _vID>(wgt, yforward(f));
 }
 
-template<VisualEvent _vID, class _tTarget, class _tWidget, typename _fCallable>
+template<VisualEvent _vID, class _tTarget, class _tWidget, typename _func>
 EventT(typename EventTypeMapping<_vID>::HandlerType)&
-AddWidgetHandlerAdaptor(_tTarget&& target, _tWidget& wgt, _fCallable&& f)
+AddWidgetHandlerAdaptor(_tTarget&& target, _tWidget& wgt, _func&& f)
 {
 	return FetchEvent<_vID>(yforward(target))
 		+= GWidgetHandlerAdaptor<_tWidget, _vID>(wgt, yforward(f));

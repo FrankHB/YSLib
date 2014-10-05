@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r869
+\version r875
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-09-06 13:21 +0800
+	2014-10-04 15:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,8 +29,7 @@
 #define YB_INC_ystdex_container_hpp_ 1
 
 #include "functional.hpp"
-#include "algorithm.hpp" // for ystdex::sort_unique;
-#include "iterator.hpp" // for ystdex::make_transform,
+#include "algorithm.hpp" // for ystdex::sort_unique, ystdex::make_transform,
 //	ystdex::is_undereferenceable;
 #include <initializer_list> // for std::initializer_list;
 
@@ -302,9 +301,9 @@ make_container(_tRange&& c)
 	return _tCon(begin(c), end(c));
 }
 //! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
-template<class _tCon, typename _tRange, typename _fCallable>
+template<class _tCon, typename _tRange, typename _func>
 inline _tCon
-make_container(_tRange&& c, _fCallable f)
+make_container(_tRange&& c, _func f)
 {
 	using std::begin;
 	using std::end;
@@ -562,9 +561,9 @@ sort_unique(_tCon& con)
 \since build 531
 \todo 支持没有 \c emplace_hint 成员的关联容器。
 */
-template<class _tAssocCon, typename _tKey, typename _fCallable>
+template<class _tAssocCon, typename _tKey, typename _func>
 auto
-replace_value(_tAssocCon& con, const _tKey& k, _fCallable f)
+replace_value(_tAssocCon& con, const _tKey& k, _func f)
 	-> decltype(con.emplace_hint(con.erase(con.find(k)), f(*con.find(k))))
 {
 	auto i(con.find(k));

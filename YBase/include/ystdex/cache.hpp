@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r286
+\version r289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2014-09-27 16:18 +0800
+	2014-10-04 15:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,10 +183,10 @@ public:
 	或 ystdex::used_list_cache 等。
 \since build 521
 */
-template<class _tMap, typename _tKey, typename _fCallable, typename... _tParams>
+template<class _tMap, typename _tKey, typename _func, typename... _tParams>
 auto
-cache_lookup(_tMap& cache, const _tKey& key, _fCallable init,
-	_tParams&&... args) -> decltype((cache.begin()->second))
+cache_lookup(_tMap& cache, const _tKey& key, _func init, _tParams&&... args)
+	-> decltype((cache.begin()->second))
 {
 	auto i(cache.find(key));
 

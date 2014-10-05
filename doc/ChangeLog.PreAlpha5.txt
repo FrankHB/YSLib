@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r4295
+\version r4395
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-04 12:13 +0800
+	2014-10-05 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,107 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ $dev "differentiate general callable types and function object types"
+		@ "template type parameters" $=
+	(
+		(
+		/ "animation updater" ^ "%_fUpdater" ~ "%_fCallable"
+			@ %YFramework.YSLib.UI.Animation;
+		/ "other types not suited for pointer to members" -> "%_func"
+			~ "%_fCallable" $effective @ %(YBase.(YStandardEx.(Algorithm, Cache,
+			Container, Exception, Functional, Utility), YTest.(Test, Timing)),
+			YFramework.(Helper.(HostedUI, HostedRenderer, HostedWindow),
+			YSLib.(Adaptor.Image, Core.(Task, YApplication, YEvent, YFunc),
+			Service.FileSystem, UI.(Animation, YWidgetEvent))))
+		),
+		/ "member type %callable_type" @ "class template %thunk"
+			@ %YBase.YStandardEx.Functional => "%caller_type"
+	),
+	* DLD "missing EOL normalization" @ %YTest.Timing $since b538,
+	/ %YFramework $=
+	(
+		/ DLD "implemented inline functions" ("%GetHostRendererPtrOf"
+			@ %Helper.HostedUI, ("%is_undereferenceable" @ %Adaptor.Image,
+			"%FetchShellHandle" @ %Core.YApplication) @ %YSLib)
+			^ "macros %(PDefH, ImplRet)",
+		/ %YSLib.UI $=
+		(
+			/ @ "class %TreeList" @ %TreeView $=
+			(
+				/ "functions %(CollapseNode, ExpandNode) returned previous \
+					node state" ~ "boolean value",
+				+ "support for handling left and right key to collapse or \
+					expand the node and then switch the selected position if \
+					possible",
+				(
+				/ $dep_from %YGUI;
+				+ "support for double tap to collapse or expand item like \
+					single indent box tap"
+				)
+			),
+			/ %YGUI $=
+			(
+				/ "function %RefreshClick" => "RefreshTap"
+					@ "class %InputTimer",
+				/ @ "class %GUIState" $=
+				(
+					* "missing reset tap count" @ "function %Reset" $since b540,
+					(
+					+ 'Size TapArea{4, 4}',
+					(
+					+ "tap location state";
+					+ "function %TapLocation"
+					);
+					+ "tap maximum value, location memorization and timeout \
+						duration support" @ "function %RefreshTap"
+					)
+				)
+			)
+		),
+		* "wrong 'ynothrow' exception specification" @ "constructor %HDirectory"
+			@ %YCLib.FileSystem $since b411
+			// The implementation would throw if failed, which violates the \
+				exception specification.
+	),
+	(
+	/ $dep_from %YFramework.YSLib.UI.YGUI;
+	/ "restricted double tap area" @ %YReader.ShlReader
+	),
+	/ %Tools.SHBuild.Main $=
+	(
+		/ "ensuring output directory implementation" $=
+		(
+			/ "merged with exception of int \
+				value as original top level and message string as original \
+				recursive search on error",
+			+ "message output"
+		),
+		/ @ "member function %BuildContext::Search" $=
+		(
+			- "purging files before compiling",
+				// Now the output directory is not guaranteed to be clean for \
+					only containing the files built.
+			/ DLD "stored list of files to built",
+				// To make the correct output after removed purging, the files \
+					list for the linker is recorded. This may introduce a \
+					command line out of host limit, to be fixed future.
+			/ "split search for directories and files",
+				// Now recursive search of subdirectories are always previous \
+					than the files in the same parent directory.
+			+ "message output for count of files to be built",
+			/ "created out directory only if there exists file to be built",
+			* "non-regular files treated as directories" $since b474,
+			* $re_ex(b539) "missing quoting compiler output object paths"
+				$since b474
+				// If the path contained space, the command was then wrong.
+		),
+		/ DLD "all message output except for hexadecimal number" ^ "%to_string"
+			~ "%ystdex::sfmt"
+	)
+),
+
+b540
 (
 	/ %YFramework $=
 	(

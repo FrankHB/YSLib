@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r832
+\version r841
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-09-24 18:56 +0800
+	2014-10-04 15:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -206,13 +206,13 @@ public:
 	//! \brief 构造：以指定格式打开指定的内存缓冲区。
 	ImageMemory(Buffer, ImageFormat);
 	//! \brief 构造：新建并打开内存缓冲区。
-	template<typename _fCallable>
-	ImageMemory(_fCallable f)
+	template<typename _func>
+	ImageMemory(_func f)
 		: ImageMemory(f())
 	{}
 	//! \brief 构造：以指定格式新建并打开内存缓冲区。
-	template<typename _fCallable>
-	ImageMemory(_fCallable f, ImageFormat fmt)
+	template<typename _func>
+	ImageMemory(_func f, ImageFormat fmt)
 		: ImageMemory(f(), fmt)
 	{}
 	//@}
@@ -608,11 +608,9 @@ operator!=(const HMultiBitmap::iterator& x, const HMultiBitmap::iterator& y)
 }
 
 //! \relates HMultiBitmap::iterator
-inline bool
-is_undereferenceable(const HMultiBitmap::iterator& i) ynothrow
-{
-	return !i.GetHMultiBitmapPtr();
-}
+inline PDefH(bool, is_undereferenceable, const HMultiBitmap::iterator& i)
+	ynothrow
+	ImplRet(!i.GetHMultiBitmapPtr())
 
 //! \relates HMultiBitmap
 inline DefSwap(ynothrow, HMultiBitmap)

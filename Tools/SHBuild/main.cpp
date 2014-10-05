@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r1453
+\version r1560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-10-03 14:12 +0800
+	2014-10-05 09:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,6 +184,21 @@ ParsePrefixedOptionUL(const string& arg, const _type& prefix,
 }
 //@}
 
+//! \since build 541
+void
+EnsureOutputDirectory(const string& opath)
+{
+	try
+	{
+		PrintInfo(u8"Checking output directory: '" + opath + u8"' ...");
+		EnsureDirectory(opath);
+	}
+	catch(std::system_error& e)
+	{
+		raise_exception(2, "Failed creating directory '" + opath + u8"'.");
+	}
+}
+
 } // unnamed namespace;
 
 
@@ -268,11 +283,10 @@ BuildContext::GetLastResult() const
 void
 BuildContext::Build()
 {
-	PrintInfo(ystdex::sfmt(u8"Ready to run, job max count: %u.",
-		jobs.get_max_task_num()));
+	PrintInfo(u8"Ready to run, job max count: "
+		+ to_string(jobs.get_max_task_num()) + u8".");
 	OutputDir = NormalizeDirecoryPathTail(OutputDir);
-	PrintInfo(ystdex::sfmt(u8"Normalized output directory: '%s'.",
-		OutputDir.c_str()));
+	PrintInfo(u8"Normalized output directory: '" + OutputDir + u8"'.");
 	if(Options.empty())
 	{
 		PrintInfo(u8"No options found. Stop.");
@@ -291,15 +305,7 @@ BuildContext::Build()
 	PrintInfo(u8"Absolute path recognized: " + to_string(ipath).GetMBCS());
 	if(!VerifyDirectory(in))
 		raise_exception(1, u8"SRCPATH is not existed.");
-	try
-	{
-		EnsureDirectory(OutputDir);
-	}
-	catch(std::system_error&)
-	{
-		raise_exception(2, string(u8"Failed creating build directory.")
-			+ '\'' + OutputDir + '\'');
-	}
+	EnsureOutputDirectory(OutputDir);
 	std::for_each(next(Options.begin()), Options.end(), [&](const string& opt){
 		flags += ' ' + opt;
 	});
@@ -348,62 +354,54 @@ BuildContext::Search(const string& path, const string& opath) const
 	YAssert(path.size() > 1 && path.back() == wchar_t(YCL_PATH_DELIMITER),
 		"Invalid path found.");
 
-	PrintInfo(u8"Purging path: " + opath + u8" ...");
-	try
-	{
-		EnsureDirectory(opath);
-	}
-	catch(std::system_error& e)
-	{
-		raise_exception(std::runtime_error(u8"Failed creating directory '"
-			+ opath + u8"'."));
-	}
-	TraverseChildren(opath, [&](NodeCategory c, const std::string& name){
-		if(name[0] == '.')
-			return;
-		if(c == NodeCategory::Regular)
-		{
-			const auto ext(GetExtensionOf(String(name, CS_Path)));
+	vector<string> subdirs;
+	vector<pair<string, string>> files;
 
-			if(ext == u"a" || ext == u"o")
+	PrintInfo(u8"Searching path: " + path + u8" ...");
+	TraverseChildren(path, [&, this](NodeCategory c, const std::string& name){
+		if(name[0] != '.')
+		{
+			if(c == NodeCategory::Directory)
+				subdirs.push_back(name);
+			else
 			{
-				if(!uremove((opath + name).c_str()))
-					raise_exception(std::runtime_error(
-						u8"Failed deleting file '" + name + u8"'."));
-				PrintInfo(u8"Deleted file '" + name + u8"'.");
+				const auto ext(GetExtensionOf(String(name, CS_Path)));
+				auto cmd(GetCommandName(ext));
+
+				if(!cmd.empty())
+					files.emplace_back(std::move(cmd), name);
+				else
+					PrintInfo(u8"Ignored non source file '" + name + u8"'.");
 			}
 		}
 	});
-	PrintInfo(u8"Searching path: " + path + u8" ...");
-	TraverseChildren(path, [&, this](NodeCategory c, const std::string& name){
-		if(name[0] == '.')
-			return;
-		if(c == NodeCategory::Regular)
-		{
-			const auto ext(GetExtensionOf(String(name, CS_Path)));
-			const auto& cmd(GetCommandName(ext));
-
-			if(!cmd.empty())
-				CallWithException(cmd + u8" -MMD" + u8" -c" + flags + ' '
-					+ path + name + u8" -o " + opath + name + u8".o");
-			else
-				PrintInfo(u8"Ignored non source file '" + name + u8"'.");
-		}
+	for(const auto& name : subdirs)
+	{
+		if(ystdex::exists(IgnoredDirs, name))
+			PrintInfo(u8"Subdirectory " + path + name + YCL_PATH_DELIMITER
+				+ u8" is ignored.");
 		else
+			Search(path + name + YCL_PATH_DELIMITER,
+				opath + name + YCL_PATH_DELIMITER);
+	}
+
+	const auto onum(files.size());
+
+	PrintInfo(to_string(onum) + u8" file(s) found to be built in path: "
+		+ path + u8" .");
+	if(onum != 0)
+	{
+		EnsureOutputDirectory(opath);
+		for(const auto& pr : files)
 		{
-			const auto& fpath(path + name + YCL_PATH_DELIMITER);
+			// TODO: Check timestamps.
+			const auto& cmd(pr.first);
+			const auto& name(pr.second);
 
-			if(ystdex::exists(IgnoredDirs, name))
-				PrintInfo(ystdex::sfmt(u8"Subdirectory %s is ignored.",
-					fpath.c_str()));
-			else
-				Search(path + name + YCL_PATH_DELIMITER,
-					opath + name + YCL_PATH_DELIMITER);
+			CallWithException(cmd + u8" -MMD" + u8" -c" + flags + ' '
+				+ path + name + u8" -o \"" + opath + name + u8".o\"");
 		}
-	});
-
-	size_t anum(0), onum(0);
-
+	}
 	// TODO: Optimize for job dependency.
 	if(jobs.get_max_task_num() > 1)
 	{
@@ -411,33 +409,39 @@ BuildContext::Search(const string& path, const string& opath) const
 		jobs.reset();
 	}
 	CheckResult(GetLastResult());
-	TraverseChildren(opath, [&](NodeCategory c, const std::string& name){
-		if(name[0] == '.')
-			return;
-		if(c == NodeCategory::Regular)
-		{
-			const auto ext(GetExtensionOf(String(name, CS_Path)));
 
-			if(ext == u"a")
+	size_t anum(0);
+
+	try
+	{
+		TraverseChildren(opath, [&](NodeCategory c, const std::string& name){
+			if(name[0] != '.' && c != NodeCategory::Directory
+				&& GetExtensionOf(String(name, CS_Path)) == u"a")
 				++anum;
-			else if(ext == u"o")
-				++onum;
-		}
-	});
-	PrintInfo(ystdex::sfmt("Found %u .a file(s) and %u .o file(s).",
-		unsigned(anum), unsigned(onum)));
+		});
+	}
+	catch(FileOperationFailure&)
+	{}
+	PrintInfo(u8"Found " + to_string(anum) + u8" .a file(s) and "
+		+ to_string(onum) + u8" .o file(s).");
 	if(anum != 0 || onum != 0)
 	{
+		Path pth(opath);
+
+		YAssert(!pth.empty(), "Invalid path found.");
+		pth.pop_back();
+		EnsureOutputDirectory(pth);
+
 		auto str(opath);
 	
-		if(str.back() == YCL_PATH_DELIMITER)
-			str.pop_back();
-
+		str.pop_back();
 		str = AR + u8" rcs \"" + str + u8".a\"";
 		if(anum != 0)
 			str += " \"" + opath + u8"*.a\"";
+		// FIXME: Prevent path too long.
 		if(onum != 0)
-			str += " \"" + opath + u8"*.o\"";
+			for(const auto& pr : files)
+				str += " \"" + opath + pr.second + u8".o\"";
 		CallWithException(str, 1);
 	}
 }
@@ -541,20 +545,21 @@ main(int argc, char* argv[])
 				auto&& arg(MBCSToMBCS(argv[i], CP_ACP, CP_UTF8));
 
 				if(ParsePrefixedOption(arg, OPT_pfx_xd, [&](string&& val){
-					PrintInfo(sfmt("Output directory is switched to '%s'.",
-						val.c_str()));
+					PrintInfo(u8"Output directory is switched to '" + val
+						+ u8"'.");
 					output_dir = std::move(val);
 				}))
 					;
 				else if(ParsePrefixedOption(arg, OPT_pfx_xid, [&](string&& val){
-					PrintInfo(sfmt("Subdirectory '%s' should be ignored.",
-						val.c_str()));
+					PrintInfo(u8"Subdirectory '" + val
+						+ "' should be ignored.");
 					ignored_dirs.emplace(std::move(val));
 				}))
 					;
 				else if(ParsePrefixedOptionUL(arg, OPT_pfx_xj, "job max count",
 					0x100, [&](unsigned long uval){
-					PrintInfo(sfmt("Set job max count = %lu.", uval));
+					PrintInfo(u8"Set job max count = " + to_string(uval)
+						+ u8".");
 					max_jobs = size_t(uval);
 				}))
 					;

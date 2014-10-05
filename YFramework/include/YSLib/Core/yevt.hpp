@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4790
+\version r4796
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-09-17 19:23 +0800
+	2014-10-04 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -696,12 +696,12 @@ struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
 \since build 494
 */
 //@{
-template<typename _type, typename _fCallable = std::function<void(_type&)>>
-class GHandlerAdaptor : private GHandlerAdaptor<void, _fCallable>
+template<typename _type, typename _func = std::function<void(_type&)>>
+class GHandlerAdaptor : private GHandlerAdaptor<void, _func>
 {
 private:
 	//! \since build 537
-	using Base = GHandlerAdaptor<void, _fCallable>;
+	using Base = GHandlerAdaptor<void, _func>;
 
 public:
 	//! \since build 537
@@ -736,11 +736,11 @@ public:
 };
 
 //! \since build 537
-template<typename _fCallable>
-class GHandlerAdaptor<void, _fCallable>
+template<typename _func>
+class GHandlerAdaptor<void, _func>
 {
 public:
-	using CallerType = ystdex::decay_t<_fCallable>;
+	using CallerType = ystdex::decay_t<_func>;
 
 	CallerType Caller;
 

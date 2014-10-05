@@ -11,7 +11,7 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4663
+\version r4664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
@@ -678,7 +678,7 @@ ShlTextReader::OnClick(CursorEventArgs&& e)
 		StopAutoScroll();
 	else
 	{
-		if(FetchGUIState().RefreshTap() > 1)
+		if(FetchGUIState().RefreshTap(e) > 1)
 			StartAutoScroll();
 		if(IsVisible(boxReader))
 		{
