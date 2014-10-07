@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2338
+\version r2346
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-10-05 07:04 +0800
+	2014-10-07 07:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -230,7 +230,7 @@ private:
 	*/
 	size_t tap_count = 0;
 	/*!
-	\brief 重复输入的指针设备的起始位置。
+	\brief 连续点击的指针设备的起始位置。
 	\note 不保证相对于特定坐标系。
 	\sa RefreshTap
 	\sa TapArea
@@ -247,8 +247,7 @@ public:
 	//! \since build 422
 	DefGetter(const ynothrow, IWidget*, CursorOverPtr, p_CursorOver)
 	//! \since build 464
-	DefGetter(const ynothrow, IWidget*, IndependentFocusPtr, p_indp_focus) \
-		//独立焦点指针。
+	DefGetter(const ynothrow, IWidget*, IndependentFocusPtr, p_indp_focus)
 	//! \since build 533
 	DefGetter(const ynothrow, size_t, SharedWidgetIdentity, shared_wgt_id)
 	//! \since build 540
@@ -306,16 +305,17 @@ public:
 	\param pt 输入的相对位置，等于 \c Point::Invalid 时忽略。
 	\param delay 延迟超时。
 	\param n 触发计数复位的次数（默认对应双击）。
-	\return 不考虑复位时被解释为连续操作的计数。
-	\note 用户自行保证记录的位置使用的坐标系。
+	\return 若中断连续点击则为 0 ，否则为不考虑复位时连续点击的累积计数。
+	\note 第一次点击记录起始位置，用户自行保证记录的位置使用的坐标系。
+	\note 若超时或和起始位置偏差超过 TapArea 的宽或高则中断连续点击。
 	\sa HeldTimer
 	\sa InputTimer::RefreshTap
 	\sa TapArea
-	\since build 541
+	\since build 542
 	*/
 	size_t
 	RefreshTap(const Point& pt = Point::Invalid,
-		const Timers::Duration& delay = Timers::TimeSpan(400), size_t n = 2);
+		size_t n = 2, const Timers::Duration& delay = Timers::TimeSpan(400));
 
 	/*!
 	\brief 复位图形用户界面状态。

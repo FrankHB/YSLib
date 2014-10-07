@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1498
+\version r1524
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2013-12-22 20:42 +0805
+	2014-12-08 12:09 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -430,12 +430,10 @@ public:
 	}
 };
 
-//!\since build 440
-#define YB_FIX_POINT_TMPL_HEAD_2 \
+#define YB_Impl_Rational_fp_TmplHead_2 \
 	template<typename _tBase1, size_t _vInt1, size_t _vFrac1, \
 		typename _tBase2, size_t _vInt2, size_t _vFrac2>
-//!\since build 440
-#define YB_FIX_POINT_TMPL_OP_2_PARAMS_BODY(_op) \
+#define YB_Impl_Rational_fp_TmplBody_2(_op) \
 	operator _op(const fixed_point<_tBase1, _vInt1, _vFrac1> x, \
 		const fixed_point<_tBase2, _vInt2, _vFrac2>& y) \
 	{ \
@@ -451,19 +449,18 @@ public:
 \since build 439
 */
 //@{
-//!\since build 440
-#define YB_FIX_POINT_ARITHMETIC_2(_op) \
-	YB_FIX_POINT_TMPL_HEAD_2 \
+#define YB_Impl_Rational_fp_arithmetic2(_op) \
+	YB_Impl_Rational_fp_TmplHead_2 \
 	yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>, \
 		fixed_point<_tBase2, _vInt2, _vFrac2>> \
-	YB_FIX_POINT_TMPL_OP_2_PARAMS_BODY(_op)
+	YB_Impl_Rational_fp_TmplBody_2(_op)
 
-YB_FIX_POINT_ARITHMETIC_2(+)
-YB_FIX_POINT_ARITHMETIC_2(-)
-YB_FIX_POINT_ARITHMETIC_2(*)
-YB_FIX_POINT_ARITHMETIC_2(/)
+YB_Impl_Rational_fp_arithmetic2(+)
+YB_Impl_Rational_fp_arithmetic2(-)
+YB_Impl_Rational_fp_arithmetic2(*)
+YB_Impl_Rational_fp_arithmetic2(/)
 
-#undef YB_FIX_POINT_ARITHMETIC_2
+#undef YB_Impl_Rational_fp_ar2
 //@}
 
 /*!
@@ -472,24 +469,23 @@ YB_FIX_POINT_ARITHMETIC_2(/)
 \since build 440
 */
 //@{
-//!\since build 440
-#define YB_FIX_POINT_RATIONAL_2(_op) \
-	YB_FIX_POINT_TMPL_HEAD_2 \
+#define YB_Impl_Rational_fp_rational2(_op) \
+	YB_Impl_Rational_fp_TmplHead_2 \
 	yconstfn bool \
-	YB_FIX_POINT_TMPL_OP_2_PARAMS_BODY(_op)
+	YB_Impl_Rational_fp_TmplBody_2(_op)
 
-YB_FIX_POINT_RATIONAL_2(==)
-YB_FIX_POINT_RATIONAL_2(!=)
-YB_FIX_POINT_RATIONAL_2(<)
-YB_FIX_POINT_RATIONAL_2(<=)
-YB_FIX_POINT_RATIONAL_2(>)
-YB_FIX_POINT_RATIONAL_2(>=)
+YB_Impl_Rational_fp_rational2(==)
+YB_Impl_Rational_fp_rational2(!=)
+YB_Impl_Rational_fp_rational2(<)
+YB_Impl_Rational_fp_rational2(<=)
+YB_Impl_Rational_fp_rational2(>)
+YB_Impl_Rational_fp_rational2(>=)
 
-#undef YB_FIX_POINT_RATIONAL_2
+#undef YB_Impl_Rational_fp_rational2
 //@}
 
-#undef YB_FIX_POINT_TMPL_HEAD_2
-#undef YB_FIX_POINT_TMPL_OP_2_PARAMS_BODY
+#undef YB_Impl_Rational_fp_TmplHead_2
+#undef YB_Impl_Rational_fp_TmplBody_2
 
 
 /*!

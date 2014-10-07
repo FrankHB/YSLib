@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r669
+\version r747
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-09-22 23:51 +0800
+	2014-10-06 12:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -451,6 +451,75 @@ to_string(_type val, yimpl(enable_if_t<is_enum<_type>::value>* = {}))
 //@}
 
 
+//! \since build 542
+namespace details
+{
+
+template<typename _tString, typename _type>
+struct ston_dispatcher;
+
+#define YB_Impl_String_ston_begin(_tString, _type, _n, ...) \
+	template<> \
+	struct ston_dispatcher<_tString, _type> \
+	{ \
+		static inline _type \
+		cast(const _tString& str, __VA_ARGS__) \
+		{ \
+			return _n(str
+#define YB_Impl_String_ston_end \
+			); \
+		} \
+	};
+
+#define YB_Impl_String_ston_i(_tString, _type, _n) \
+	YB_Impl_String_ston_begin(_tString, _type, _n, size_t* idx = {}, \
+		int base = 10), idx, base \
+	YB_Impl_String_ston_end
+#define YB_Impl_String_ston_i_std(_type, _n) \
+	YB_Impl_String_ston_i(std::string, _type, std::_n)
+YB_Impl_String_ston_i_std(int, stoi)
+YB_Impl_String_ston_i_std(long, stol)
+YB_Impl_String_ston_i_std(unsigned long, stoul)
+#	ifndef __BIONIC__
+YB_Impl_String_ston_i_std(long long, stoll)
+YB_Impl_String_ston_i_std(unsigned long long, stoull)
+#	endif
+#undef YB_Impl_String_ston_i_std
+#undef YB_Impl_String_ston_i
+
+#define YB_Impl_String_ston_f(_tString, _type, _n) \
+	YB_Impl_String_ston_begin(_tString, _type, _n, size_t* idx = {}), idx \
+	YB_Impl_String_ston_end
+#define YB_Impl_String_ston_f_std(_type, _n) \
+	YB_Impl_String_ston_f(std::string, _type, std::_n)
+#	ifndef __BIONIC__
+YB_Impl_String_ston_f_std(float, stof)
+YB_Impl_String_ston_f_std(double, stod)
+YB_Impl_String_ston_f_std(long double, stold)
+#	endif
+#undef YB_Impl_String_ston_f_std
+#undef YB_Impl_String_ston_f
+
+#undef YB_Impl_String_ston_end
+#undef YB_Impl_String_ston_begin
+
+} // namespace details;
+
+/*!
+\brief 转换表示数的字符串。
+\since build 542
+\todo 支持 std::string 以外类型字符串。
+\todo 支持标准库以外的转换。
+*/
+template<typename _type, typename _tString, typename... _tParams>
+inline _type
+ston(const _tString& str, _tParams&&... args)
+{
+	return details::ston_dispatcher<decay_t<_tString>, _type>::cast(str,
+		yforward(args)...);
+}
+
+
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
 \since build 488
@@ -494,6 +563,27 @@ sfmt(const _tChar* fmt, ...)
 */
 template YB_ATTR(format (printf, 1, 2)) YB_NONNULL(1) std::string
 sfmt<char>(const char*, ...);
+
+
+/*!
+\ingroup string_algorithms
+\brief 过滤前缀：存在前缀时处理移除前缀后的子串。
+\since build 520
+*/
+template<typename _type, typename _tString, typename _func>
+bool
+filter_prefix(const _tString& str, const _type& prefix, _func f)
+{
+	if(ystdex::begins_with(str, prefix))
+	{
+		auto&& sub(str.substr(string_length(prefix)));
+
+		if(!sub.empty())
+			f(std::move(sub));
+		return true;
+	}
+	return {};
+}
 
 } // namespace ystdex;
 

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2365
+\version r2382
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-10-04 15:12 +0800
+	2014-10-06 05:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -284,14 +284,20 @@ inline PDefH(String, GetExtensionOf, const Path& pth)
 
 
 /*!
+\brief 默认目录路径长度。
+\note 不小于 \c PATH_MAX 。
+\since build 542
+*/
+yconstexpr size_t MaxPathLength(yimpl(1 << 10));
+
+/*!
 \brief 取当前工作目录。
 \post 结果长度不大于参数。
 \note 不含结尾分隔符。
 \since build 475
 */
 YF_API String
-FetchCurrentWorkingDirectory(size_t = 1 << 10);
-
+FetchCurrentWorkingDirectory(size_t = MaxPathLength);
 
 //! \since build 410
 //@{
@@ -316,6 +322,17 @@ inline PDefH(bool, IsRelative, const String& path)
 inline PDefH(bool, IsRelative, const Path& pth)
 	ImplRet(!IsAbsolute(pth))
 //@}
+
+/*!
+\brief 根据当前工作目录和指定路径取绝对路径。
+\post 断言：结果是绝对路径。
+\return 若指定路径为相对路径则为正规化当前工作目录追加此路径，否则为正规化指定路径。
+\sa IO::IsRelative
+\sa Path::Normalize
+\since build 542
+*/
+YF_API Path
+MakeNormalizedAbsolute(const Path&, size_t = MaxPathLength);
 
 
 /*!

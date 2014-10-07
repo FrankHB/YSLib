@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r376
+\version r385
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-09-03 14:01 +0800
+	2014-10-06 16:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -308,9 +308,20 @@ public:
 	static bool
 	InvalidateDefaultCaret(IWidget&);
 
+	//! \brief 绘制默认插入符。
+	void
+	PaintDefaultCaret(PaintEventArgs&&);
+
 	//! \brief 刷新：按指定参数绘制界面并更新状态。
 	void
 	Refresh(PaintEventArgs&&) override;
+
+	/*!
+	\brief 全选操作。
+	\since build 542
+	*/
+	void
+	SelectAll();
 
 	/*!
 	\brief 重置插入符光标计时器。
@@ -328,10 +339,6 @@ public:
 	*/
 	void
 	ReplaceSelection(const String&);
-
-	//! \brief 绘制默认插入符。
-	void
-	PaintDefaultCaret(PaintEventArgs&&);
 
 	//! \since build 525
 	void
