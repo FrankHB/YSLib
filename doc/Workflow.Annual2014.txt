@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r703
+\version r712
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-10-01 03:26 +0800
+	2014-10-07 08:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -699,6 +699,15 @@ Now ar from MSYS2 supports linker plugin.
 	So removed '-ffat-lto-objects' option for compiler by defualt and use 'gcc-ar' to replace 'ar'.
 		If use 'ar' with '-flto' enabled there would still be unresolved symbols.
 	See $2014-07 for previous details.
+Multiple tap operations are studied.
+	This is ordinarily called "click".
+		However, multiple click is often triggered at last tap down rather than up, like in Windows desktop or text controls.
+		Otherwise it can be triggered on subsequent tap up events, e.g. image preview in Tencent QQ.
+	The behavior may differs across platforms, see http://en.wikipedia.org/wiki/Double-click .
+	For Windows, this is primarily for mouses. See register path: HKEY_CURRENT_USER/Control Panel/Mouse for settings.
+	There is an area setting for allowed error with initial tap with subsequent ones.
+		However, sometimes this is ignored and only precise subsequent (without any move) taps are allowed to avoid collision with dragging operations, e.g. for text selection.
+	Triple click is to select text in a line in general, and mostly used by browsers and text editors, see http://en.wikipedia.org/wiki/Triple-click .
 
 
 ////

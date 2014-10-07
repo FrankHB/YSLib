@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4182
+\version r4195
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-10-05 07:21 +0800
+	2014-10-07 05:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,12 +98,11 @@ InputTimer::RefreshHeld(HeldStateType& s, const Duration& initial_delay,
 size_t
 InputTimer::RefreshTap(size_t s, const Duration& delay)
 {
-	if(s == 0 || YB_UNLIKELY(!CheckTimeout(*this)))
-		Interval = delay;
-	else
-		return 0;
+	const auto res(s == 0 || YB_UNLIKELY(!CheckTimeout(*this)) ? s + 1 : 0);
+
+	Interval = delay;
 	Activate(*this);
-	return s + 1;
+	return res;
 }
 
 void
@@ -185,24 +184,22 @@ GUIState::HandleCascade(RoutedEventArgs& e, IWidget& wgt)
 }
 
 size_t
-GUIState::RefreshTap(const Point& pt, const Timers::Duration& delay, size_t n)
+GUIState::RefreshTap(const Point& pt, size_t n, const Timers::Duration& delay)
 {
-	if(tap_count == 0)
-		tap_location = Point::Invalid;
-
 	const auto taps(TapTimer.RefreshTap(tap_count, delay));
 
+	tap_count = taps < n ? std::max<size_t>(taps, 1) : 0;
 	if(pt != Point::Invalid)
 	{
-		if(tap_location == Point::Invalid)
+		if(tap_count == 0 || taps == 0 || tap_location == Point::Invalid)
 			tap_location = pt;
-		else if(!Rect(TapArea).Contains(pt - tap_location))
+		else if(!Rect(-SPos(TapArea.Width) / 2, -SPos(TapArea.Height) / 2,
+			TapArea).Contains(pt - tap_location))
 		{
 			tap_location = Point::Invalid;
-			return 1;
+			return 0;
 		}
 	}
-	tap_count = taps < n ? std::max<size_t>(taps, 1) : 0;
 	return taps;
 }
 

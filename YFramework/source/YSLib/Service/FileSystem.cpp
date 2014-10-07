@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1929
+\version r1939
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-09-27 16:49 +0800
+	2014-10-06 05:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,6 +116,18 @@ FetchCurrentWorkingDirectory(size_t len)
 
 	u16getcwd_n(&str[0], len);
 	return str;
+}
+
+Path
+MakeNormalizedAbsolute(const Path& pth, size_t len)
+{
+	Path res(pth);
+
+	if(IsRelative(res))
+		res = Path(FetchCurrentWorkingDirectory(len)) / res;
+	res.Normalize();
+	YAssert(IsAbsolute(res), "Invalid path converted.");
+	return std::move(res);
 }
 
 

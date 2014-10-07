@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r580
+\version r614
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-09-14 23:50 +0800
+	2014-10-07 08:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -185,11 +185,32 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 	},
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
-		Selection.Range.second = GetCaretPosition(e.Position);
-		CollapseCaret();
+		switch(FetchGUIState().RefreshTap(e, 3))
+		{
+		case 3:
+			SelectAll();
+			break;
+		case 2:
+			if(!Text.empty())
+			{
+				// TODO: Implement for multiline.
+				auto x(GetCaretPosition(e.Position).X);
+
+				if(x == 0)
+					++x;
+				Selection.Range = {{x - 1, 0}, {x, 0}};
+			}
+			break;
+		default:
+			Selection.Range.second = GetCaretPosition(e.Position);
+			CollapseCaret();
+		}
 	},
 	FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
-		if(FetchGUIState().GetIndependentFocusPtr() == this)
+		auto& st(FetchGUIState());
+
+		if(st.GetIndependentFocusPtr() == this && st.CheckDraggingOffset(this)
+			&& st.DraggingOffset != GetLocationOf(*this) - st.CursorLocation)
 		{
 			const auto& sender(e.GetSender());
 
@@ -278,6 +299,15 @@ TextBox::InvalidateDefaultCaret(IWidget& wgt)
 }
 
 void
+TextBox::PaintDefaultCaret(PaintEventArgs&& e)
+{
+	const auto& caret_loc(e.Location + GetCaretLocation());
+
+	DrawVLineSeg(e.Target, e.ClipArea, caret_loc.X, caret_loc.Y,
+		caret_loc.Y + Font.GetHeight(), ForeColor);
+}
+
+void
 TextBox::Refresh(PaintEventArgs&& e)
 {
 	ystdex::swap_guard<String> guard(MaskChar != ucs4_t(), Text, [this]{
@@ -307,12 +337,12 @@ TextBox::ReplaceSelection(const String& text)
 }
 
 void
-TextBox::PaintDefaultCaret(PaintEventArgs&& e)
+TextBox::SelectAll()
 {
-	const auto& caret_loc(e.Location + GetCaretLocation());
-
-	DrawVLineSeg(e.Target, e.ClipArea, caret_loc.X, caret_loc.Y,
-		caret_loc.Y + Font.GetHeight(), ForeColor);
+	// TODO: Implement for multiline.
+	Selection.Range = {{0, 0}, {Text.length(), 0}};
+	RestoreCaretTimer();
+	ExportCaretLocation();
 }
 
 void

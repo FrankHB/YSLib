@@ -11,13 +11,13 @@
 /*!	\file any_iterator.hpp
 \ingroup YStandardEx
 \brief 动态泛型迭代器。
-\version r957
+\version r986
 \author FrankHB <frankhb1989@gmail.com>
 \since build 355
 \par 创建时间:
 	2012-11-08 14:28:42 +0800
 \par 修改时间:
-	2014-08-09 17:45 +0800
+	2014-10-06 11:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -192,28 +192,24 @@ public:
 } // namespace any_ops;
 
 
-//! \since build 459
-//@{
-#define YB_IterOp1(_n, _t, _it, _e) \
+#define YB_Impl_AnyIterator_OpHead(_t) \
 	template<typename _type, typename _tDifference, typename _tPointer, \
 		typename _tReference> \
-	inline _t \
+	inline _t
+#define YB_Impl_AnyIterator_Op1(_n, _t, _it, _e) \
+	YB_Impl_AnyIterator_OpHead(_t) \
 	_n(const _it<_type, _tDifference, _tPointer, _tReference>& i) \
 	{ \
 		return _e; \
 	}
-
-#define YB_IterOp2(_n, _t, _it, _e) \
-	template<typename _type, typename _tDifference, typename _tPointer, \
-		typename _tReference> \
-	inline _t \
+#define YB_Impl_AnyIterator_Op2(_n, _t, _it, _e) \
+	YB_Impl_AnyIterator_OpHead(_t) \
 	_n(const _it<_type, _tDifference, _tPointer, _tReference>& x, \
 		const _it<_type, _tDifference, _tPointer, _tReference>& y) \
 	{ \
 		return _e; \
 	}
-
-#define YB_IterOpPost(_op, _it) \
+#define YB_Impl_AnyIterator_OpPost(_op, _it) \
 	_it \
 	operator _op(int) \
 	{ \
@@ -222,7 +218,6 @@ public:
 		_op *this; \
 		return tmp; \
 	}
-//@}
 
 //! \since build 400
 //@{
@@ -356,11 +351,11 @@ public:
 
 //! \relates any_input_iterator
 //@{
-YB_IterOp2(operator==, bool, any_input_iterator, x.equals(y))
+YB_Impl_AnyIterator_Op2(operator==, bool, any_input_iterator, x.equals(y))
 
-YB_IterOp2(operator!=, bool, any_input_iterator, !(x == y))
+YB_Impl_AnyIterator_Op2(operator!=, bool, any_input_iterator, !(x == y))
 
-YB_IterOp1(is_undereferenceable, bool, any_input_iterator,
+YB_Impl_AnyIterator_Op1(is_undereferenceable, bool, any_input_iterator,
 	i.check_undereferenceable())
 //@}
 
@@ -422,16 +417,16 @@ public:
 		any_input_iterator<_type, _tPointer, _tReference>::operator++();
 		return *this;
 	}
-	YB_IterOpPost(++, any_forward_iterator)
+	YB_Impl_AnyIterator_OpPost(++, any_forward_iterator)
 };
 
 //! \relates any_forward_iterator
 //@{
-YB_IterOp2(operator==, bool, any_forward_iterator, x.equals(y))
+YB_Impl_AnyIterator_Op2(operator==, bool, any_forward_iterator, x.equals(y))
 
-YB_IterOp2(operator!=, bool, any_forward_iterator, !(x == y))
+YB_Impl_AnyIterator_Op2(operator!=, bool, any_forward_iterator, !(x == y))
 
-YB_IterOp1(is_undereferenceable, bool, any_forward_iterator,
+YB_Impl_AnyIterator_Op1(is_undereferenceable, bool, any_forward_iterator,
 	i.check_undereferenceable())
 //@}
 
@@ -492,7 +487,7 @@ public:
 		any_forward_iterator<_type, _tPointer, _tReference>::operator++();
 		return *this;
 	}
-	YB_IterOpPost(++, any_bidirectional_iterator)
+	YB_Impl_AnyIterator_OpPost(++, any_bidirectional_iterator)
 
 	any_bidirectional_iterator&
 	operator--()
@@ -501,16 +496,17 @@ public:
 		this->manager(this->storage, this->storage, any_ops::decrease);
 		return *this;
 	}
-	YB_IterOpPost(--, any_bidirectional_iterator)
+	YB_Impl_AnyIterator_OpPost(--, any_bidirectional_iterator)
 };
 
 //! \relates any_bidirectional_iterator
 //@{
-YB_IterOp2(operator==, bool, any_bidirectional_iterator, x.equals(y))
+YB_Impl_AnyIterator_Op2(operator==, bool,
+	any_bidirectional_iterator, x.equals(y))
 
-YB_IterOp2(operator!=, bool, any_bidirectional_iterator, !(x == y))
+YB_Impl_AnyIterator_Op2(operator!=, bool, any_bidirectional_iterator, !(x == y))
 
-YB_IterOp1(is_undereferenceable, bool, any_bidirectional_iterator,
+YB_Impl_AnyIterator_Op1(is_undereferenceable, bool, any_bidirectional_iterator,
 	i.check_undereferenceable())
 //@}
 
@@ -518,9 +514,10 @@ using bidirectional_monomorphic_iterator
 	= any_bidirectional_iterator<void_ref, ptrdiff_t, void*, void_ref>;
 
 
-#undef YB_IterOp1
-#undef YB_IterOp2
-#undef YB_IterOpPost
+#undef YB_Impl_AnyIterator_OpPost
+#undef YB_Impl_AnyIterator_Op2
+#undef YB_Impl_AnyIterator_Op1
+#undef YB_Impl_AnyIterator_OpHead
 
 //@}
 

@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r1560
+\version r1675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-10-05 09:25 +0800
+	2014-10-06 13:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,8 +105,7 @@ PrintException(const std::exception& e, size_t level = 0)
 	}
 	catch(IntException& e)
 	{
-		PrintInfo(ystdex::sfmt("IntException: %#010X.", unsigned(e)).c_str(),
-			Err);
+		PrintInfo(u8"IntException: " + to_string(unsigned(e)) + u8".", Err);
 	}
 	catch(FileOperationFailure& e)
 	{
@@ -125,35 +124,15 @@ PrintException(const std::exception& e, size_t level = 0)
 //@}
 
 
-//! \since build 520
+//! \since build 542
 //@{
-template<typename _type, typename _fCallable>
-bool
-ParsePrefixedOption(const string& arg, const _type& prefix, _fCallable f)
-{
-	using namespace ystdex;
-
-	YAssertNonnull(prefix);
-	if(begins_with(arg, prefix))
-	{
-		auto&& val(arg.substr(string_length(prefix)));
-
-		if(!val.empty())
-			f(std::move(val));
-		return true;
-	}
-	return {};
-}
-
-template<typename _fCallable>
+template<typename _type, typename _func>
 void
-TryParseOptionUL(const string& name, const string& val, _fCallable f)
+TryParseOption(const string& name, const string& val, _func f)
 {
-	using namespace std;
-
 	try
 	{
-		const auto uval(stoul(val));
+		const auto uval(ystdex::ston<_type>(val));
 
 		if(!f(uval))
 			PrintInfo(u8"Warning: Value '" + val + u8"' of " + name
@@ -171,13 +150,13 @@ TryParseOptionUL(const string& name, const string& val, _fCallable f)
 	}
 }
 
-template<typename _fCallable, typename _type>
+template<typename _type, typename _fCallable, typename _tPrefix>
 bool
-ParsePrefixedOptionUL(const string& arg, const _type& prefix,
-	const string& name, unsigned long threshold, _fCallable f)
+ParsePrefixedOption(const string& str, const _tPrefix& prefix,
+	const string& name, _type threshold, _fCallable f)
 {
-	return ParsePrefixedOption(arg, prefix, [&](string&& val){
-		TryParseOptionUL(name, val, [=](unsigned long uval){
+	return ystdex::filter_prefix(str, prefix, [&](string&& val){
+		TryParseOption<_type>(name, val, [=](_type uval){
 			return uval < threshold ? (void(f(uval)), true) : false;
 		});
 	});
@@ -247,7 +226,7 @@ public:
 	//! \since build 539
 	//@{
 	PDefH(void, CallWithException, const string& cmd, size_t n = 0) const
-		ImplExpr(PrintInfo(cmd, Informative),
+		ImplExpr(PrintInfo(cmd, Debug),
 			CheckResult(Call(cmd, n)))
 
 	static PDefH(void, CheckResult, int ret)
@@ -258,8 +237,9 @@ public:
 	int
 	RunTask(const string&) const;
 
-	void
-	Search(const string&, const string&) const;
+	//! \since build 541
+	string
+	Search(const Path&, const Path&) const;
 };
 
 string
@@ -293,15 +273,9 @@ BuildContext::Build()
 		return;
 	}
 
-	auto in(NormalizeDirecoryPathTail(Options[0]));
-	Path ipath(in);
+	const auto in(NormalizeDirecoryPathTail(Options[0]));
+	const auto ipath(MakeNormalizedAbsolute(in));
 
-	if(ipath.empty())
-		raise_exception(1, u8"Empty SRCPATH found.");
-	if(IsRelative(ipath))
-		ipath = Path(FetchCurrentWorkingDirectory()) / ipath;
-	ipath.Normalize();
-	YAssert(IsAbsolute(ipath), "Invalid path converted.");
 	PrintInfo(u8"Absolute path recognized: " + to_string(ipath).GetMBCS());
 	if(!VerifyDirectory(in))
 		raise_exception(1, u8"SRCPATH is not existed.");
@@ -309,12 +283,7 @@ BuildContext::Build()
 	std::for_each(next(Options.begin()), Options.end(), [&](const string& opt){
 		flags += ' ' + opt;
 	});
-
-	string opath(OutputDir);
-
-	if(!ipath.empty())
-		opath += ipath.back().GetMBCS() + YCL_PATH_DELIMITER;
-	Search(in, opath);
+	Search(in, Path(OutputDir) / ipath.back());
 }
 
 int
@@ -348,13 +317,11 @@ BuildContext::RunTask(const string& cmd) const
 	return 0;
 }
 
-void
-BuildContext::Search(const string& path, const string& opath) const
+string
+BuildContext::Search(const Path& ipth, const Path& opth) const
 {
-	YAssert(path.size() > 1 && path.back() == wchar_t(YCL_PATH_DELIMITER),
-		"Invalid path found.");
-
-	vector<string> subdirs;
+	const auto& path(ipth.GetMBCS());
+	vector<string> subdirs, afiles;
 	vector<pair<string, string>> files;
 
 	PrintInfo(u8"Searching path: " + path + u8" ...");
@@ -362,7 +329,13 @@ BuildContext::Search(const string& path, const string& opath) const
 		if(name[0] != '.')
 		{
 			if(c == NodeCategory::Directory)
-				subdirs.push_back(name);
+			{
+				if(ystdex::exists(IgnoredDirs, name))
+					PrintInfo(u8"Subdirectory " + path + name
+						+ YCL_PATH_DELIMITER + u8" is ignored.", Informative);
+				else
+					subdirs.push_back(name);
+			}
 			else
 			{
 				const auto ext(GetExtensionOf(String(name, CS_Path)));
@@ -371,35 +344,35 @@ BuildContext::Search(const string& path, const string& opath) const
 				if(!cmd.empty())
 					files.emplace_back(std::move(cmd), name);
 				else
-					PrintInfo(u8"Ignored non source file '" + name + u8"'.");
+					PrintInfo(u8"Ignored non source file '" + name + u8"'.",
+						Informative);
 			}
 		}
 	});
 	for(const auto& name : subdirs)
 	{
-		if(ystdex::exists(IgnoredDirs, name))
-			PrintInfo(u8"Subdirectory " + path + name + YCL_PATH_DELIMITER
-				+ u8" is ignored.");
-		else
-			Search(path + name + YCL_PATH_DELIMITER,
-				opath + name + YCL_PATH_DELIMITER);
+		auto afile(Search(ipth / name, opth / name));
+
+		if(!afile.empty())
+			afiles.push_back(std::move(afile));
 	}
 
 	const auto onum(files.size());
 
 	PrintInfo(to_string(onum) + u8" file(s) found to be built in path: "
-		+ path + u8" .");
+		+ path + u8" .", Informative);
 	if(onum != 0)
 	{
-		EnsureOutputDirectory(opath);
+		EnsureOutputDirectory(opth);
 		for(const auto& pr : files)
 		{
 			// TODO: Check timestamps.
 			const auto& cmd(pr.first);
 			const auto& name(pr.second);
 
-			CallWithException(cmd + u8" -MMD" + u8" -c" + flags + ' '
-				+ path + name + u8" -o \"" + opath + name + u8".o\"");
+			PrintInfo(u8"Compile file: '" + name + u8"'.", Informative);
+			CallWithException(cmd + u8" -MMD" + u8" -c" + flags + ' ' + path
+				+ name + u8" -o \"" + opth.GetMBCS() + name + u8".o\"");
 		}
 	}
 	// TODO: Optimize for job dependency.
@@ -410,49 +383,46 @@ BuildContext::Search(const string& path, const string& opath) const
 	}
 	CheckResult(GetLastResult());
 
-	size_t anum(0);
+	const auto anum(afiles.size());
 
-	try
-	{
-		TraverseChildren(opath, [&](NodeCategory c, const std::string& name){
-			if(name[0] != '.' && c != NodeCategory::Directory
-				&& GetExtensionOf(String(name, CS_Path)) == u"a")
-				++anum;
-		});
-	}
-	catch(FileOperationFailure&)
-	{}
 	PrintInfo(u8"Found " + to_string(anum) + u8" .a file(s) and "
-		+ to_string(onum) + u8" .o file(s).");
+		+ to_string(onum) + u8" .o file(s).", Informative);
 	if(anum != 0 || onum != 0)
 	{
-		Path pth(opath);
+		Path pth(opth);
 
 		YAssert(!pth.empty(), "Invalid path found.");
 		pth.pop_back();
 		EnsureOutputDirectory(pth);
 
-		auto str(opath);
-	
-		str.pop_back();
-		str = AR + u8" rcs \"" + str + u8".a\"";
-		if(anum != 0)
-			str += " \"" + opath + u8"*.a\"";
+		auto target(to_string(opth).GetMBCS(CS_Path) + u8".a");
+		auto str(AR + u8" rcs \"" + target + '"');
+
 		// FIXME: Prevent path too long.
+		if(anum != 0)
+			for(const auto& afile : afiles)
+				str += " \"" + afile + u8"\"";		
 		if(onum != 0)
+		{
+			const auto opath(opth.GetString().GetMBCS(CS_Path));
+
 			for(const auto& pr : files)
 				str += " \"" + opath + pr.second + u8".o\"";
+		}
+		PrintInfo(u8"Link file: '" + target + u8"'.", Informative);
 		CallWithException(str, 1);
+		return std::move(target);
 	}
+	return "";
 }
 //@}
 
 
+//! \since build 542
 void
-PrintUsage(const char* prog)
+PrintUsage(const string& prog)
 {
-	std::printf("%s", (u8"Usage: " + string(prog)
-		+ u8" SRCPATH [OPTIONS ...]\n\n"
+	std::printf("%s", (u8"Usage: " + prog + u8" SRCPATH [OPTIONS ...]\n\n"
 		u8"SRCPATH\n"
 		u8"\tThe source directory to be recursively searched.\n\n"
 		u8"OPTIONS ...\n"
@@ -486,20 +456,8 @@ int
 main(int argc, char* argv[])
 {
 	using namespace platform_ex;
-	unique_ptr<WConsole> p_wcon, p_wcon_err;
+	auto p_wcon(MakeWConsole()), p_wcon_err(MakeWConsole(STD_ERROR_HANDLE));
 
-	try
-	{
-		p_wcon.reset(new WConsole());
-	}
-	catch(Win32Exception&)
-	{}
-	try
-	{
-		p_wcon_err.reset(new WConsole(STD_ERROR_HANDLE));
-	}
-	catch(Win32Exception&)
-	{}
 	try
 	{
 		auto& logger(FetchCommonLogger());
@@ -517,9 +475,9 @@ main(int argc, char* argv[])
 			{
 				using namespace platform::Consoles;
 				static const Logger::Level
-					lvs[]{Err, Warning, Notice, Informative};
+					lvs[]{Err, Warning, Notice, Informative, Debug};
 				static const Color
-					colors[]{Red, Yellow, Magenta, DarkGreen};
+					colors[]{Red, Yellow, Cyan, Magenta, DarkGreen};
 				const auto i(
 					std::lower_bound(&lvs[0], &lvs[arrlen(colors)], lv));
 
@@ -544,26 +502,27 @@ main(int argc, char* argv[])
 				using namespace ystdex;
 				auto&& arg(MBCSToMBCS(argv[i], CP_ACP, CP_UTF8));
 
-				if(ParsePrefixedOption(arg, OPT_pfx_xd, [&](string&& val){
+				if(ystdex::filter_prefix(arg, OPT_pfx_xd, [&](string&& val){
 					PrintInfo(u8"Output directory is switched to '" + val
 						+ u8"'.");
 					output_dir = std::move(val);
 				}))
 					;
-				else if(ParsePrefixedOption(arg, OPT_pfx_xid, [&](string&& val){
+				else if(ystdex::filter_prefix(arg, OPT_pfx_xid,
+					[&](string&& val){
 					PrintInfo(u8"Subdirectory '" + val
 						+ "' should be ignored.");
 					ignored_dirs.emplace(std::move(val));
 				}))
 					;
-				else if(ParsePrefixedOptionUL(arg, OPT_pfx_xj, "job max count",
-					0x100, [&](unsigned long uval){
+				else if(ParsePrefixedOption<unsigned long>(arg, OPT_pfx_xj,
+					"job max count", 0x100, [&](unsigned long uval){
 					PrintInfo(u8"Set job max count = " + to_string(uval)
 						+ u8".");
 					max_jobs = size_t(uval);
 				}))
 					;
-				else if(ParsePrefixedOptionUL(arg, OPT_pfx_xlogfl,
+				else if(ParsePrefixedOption<unsigned long>(arg, OPT_pfx_xlogfl,
 					"log filter level", 0x100, [&](unsigned long uval){
 					logger.FilterLevel = Logger::Level(uval);
 				}))

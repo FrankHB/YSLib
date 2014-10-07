@@ -11,13 +11,13 @@
 /*!	\file Consoles.cpp
 \ingroup NBuilder
 \brief 控制台。
-\version r205
+\version r217
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2014-10-02 13:48 +0800
+	2014-10-06 06:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,6 +156,20 @@ WConsole::UpdateForeColor(std::uint8_t fc)
 {
 	SetForeColor(fc);
 	Update();
+}
+
+std::unique_ptr<WConsole>
+MakeWConsole(::DWORD h)
+{
+	std::unique_ptr<WConsole> p_con;
+
+	try
+	{
+		p_con.reset(new WConsole(h));
+	}
+	catch(Win32Exception&)
+	{}
+	return p_con;
 }
 
 } // inline namespace Windows;

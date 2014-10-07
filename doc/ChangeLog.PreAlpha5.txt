@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r4395
+\version r4506
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-05 09:34 +0800
+	2014-10-07 09:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,121 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %Tools.SHBuild.Main $=
+	(
+		/ "only specified archive linked"
+			$= (/ "passed path among recursive calls of %BuildContext::Search")
+		/ "exception message output" $=
+		(
+			^ "raw number" ~ "hexadecimal number";
+			^ $re_ex(b541) "%to_string" ~ "%ystdex::sfmt"
+		),
+		/ @ "class %Build Context" $=
+		(
+			/ @ "function %Search" $=
+			(
+				/ DLD "ignored directory early in enumerating children nodes \
+					at first time",
+				/ $dev "parameters" ^ "%Path" ~ "%string"
+			),
+			/ @ "member function %Build" $=
+			(
+				$dep_from %YFramework.YSLib.Service.FileSystem;
+				/ DLD "simplified implementation" ^ "%MakeNormalizedAbsolute"
+				- $comp "check for empty %SRCPATH input"
+			)
+		),
+		/ DLD "simplified parameter type" @ "function %PrintUsage",
+		/ DLD "simplified %main" ^ $dep_from ("%MakeWConsole"
+			@ %YFramework.YCLib_(MinGW32).Consoles),
+		/ DLD "implemented option parsing" ^ $dep_from
+			("%ystdex::(ston, filter_prefix)" @ %YBase.YStandardEx.String)
+		/ "message output" $=
+		(
+			+ "%Debug level with %DarkGreen",
+			/ "%Informative level color" -> "%Magenta" ~ "%DarkGreen",
+			/ "%Notice level color" -> "%Cyan" ~ "%Magenta",
+			+ "output for to be currently built",
+				// To allow inspect the file built with detail command output \
+					disabled.
+			/ "level of command output" -> "%Debug" ~ "%Informative",
+			/ "level of counting for objects and ignoring files"
+				-> "%Informative" ~ "%Notice"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Service.FileSystem $=
+			(
+				+ 'yconstexpr size_t MaxPathLength(yimpl(1 << 10))';
+				/ $dev "default arguments"
+					@ "function %FetchCurrentWorkingDirectory"
+					^ "%MaxPathLength" ~ '1 << 10',
+				+ "function %MakeNormalizedAbsolute"
+			),
+			/ %UI $=
+			(
+				/ %YGUI $=
+				(
+					* "missing activation of timer" $orig @ "member function \
+						%InputTimer::RefreshClick" $since b416,
+					/ @ "member function %GUIState::RefreshTap" $=
+					(
+						/ "swapped 2nd and 3rd parameter",
+							// The duration are more likely default value to \
+								be simple. This is also good on compatibility \
+								after refactor once the duration setting is \
+								stored.
+						* "missing update of tap location on interruption from \
+							timer" $since b541,
+						* "returned wrong value when tap area check failed"
+							$since b541,
+							// Now it specified to be 0, not 1.
+						* "missing update of tap counter when tap area check \
+							failed" $since b541,
+						* "wrong relative tap area origin" $since b541
+							// It should be (TapArea.Width / 2, TapArea.Height \
+								/ 2) rather than (0, 0).
+					)
+				),
+				/ @ "class %TextBox" @ %TextBox $=
+				(
+					+ "function %SelectAll",
+					/ @ "handling event %TouchDown" $=
+					(
+						/ "performed no-op if move not detected" @ "%TouchHeld";
+							// This is only an optimization previously, \
+								however necessary for multiple taps now, \
+								otherwise the operation of %TouchDown would be \
+								overriden by %TouchHeld unconditionally, \
+								eventually.
+						+ "selecting all on triple tap",
+						+ "selecting one character on double tap"
+					)
+				)
+			)
+		),
+		+ "function %MakeWConsole" @ %YCLib_(MinGW32).Consoles
+	),
+	/ @ %YBase $=
+	(
+		/ DLD "all macros for implementation" @ %YSandardEx
+			-> "prefixed with %YB_Impl" $effective @ %(Operators, AnyIterator,
+			Rational),
+		/ DLD "all macros for implementation" @ %LibDefect
+			-> "prefixed with %YB_LibDefect" $effective @ %String,
+		+ "function templates %ston, filter_prefix" @ %YStandardEx.String;
+	),
+	/ "double click to auto scroll" ^ "%TouchDown handler" ~ "%Click handler"
+		%YReader.ShlReader;
+		// This is still slow in debug configurations. So sometimes it would \
+			be no effect.
+),
+
+b541
 (
 	/ $dev "differentiate general callable types and function object types"
 		@ "template type parameters" $=

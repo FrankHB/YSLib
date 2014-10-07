@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4664
+\version r4691
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-10-04 08:49 +0800
+	2014-10-07 09:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -486,6 +486,15 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	yunseq(
 	dsk_m.Background = SolidBrush(CurrentSetting.UpColor),
 	dsk_s.Background = SolidBrush(CurrentSetting.DownColor),
+	FetchEvent<TouchDown>(dsk_s) += [this](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct)
+		{
+			if(tmrScrollActive)
+				StopAutoScroll();
+			else if(FetchGUIState().RefreshTap(e) > 1)
+				StartAutoScroll();
+		}
+	},
 	FetchEvent<Click>(dsk_s).Add(*this, &ShlTextReader::OnClick),
 	FetchEvent<KeyDown>(dsk_s).Add(*this, &ShlTextReader::OnKeyDown),
 	FetchEvent<KeyHeld>(dsk_s) += OnEvent_Call<KeyDown>
@@ -675,21 +684,16 @@ ShlTextReader::OnClick(CursorEventArgs&& e)
 	yunused(e);
 #endif
 	if(tmrScrollActive)
-		StopAutoScroll();
+		;
+	else if(IsVisible(boxReader))
+	{
+		Close(boxReader);
+		reader.Stretch(0);
+	}
 	else
 	{
-		if(FetchGUIState().RefreshTap(e) > 1)
-			StartAutoScroll();
-		if(IsVisible(boxReader))
-		{
-			Close(boxReader);
-			reader.Stretch(0);
-		}
-		else
-		{
-			Show(boxReader);
-			reader.Stretch(boxReader.GetHeight());
-		}
+		Show(boxReader);
+		reader.Stretch(boxReader.GetHeight());
 	}
 }
 
