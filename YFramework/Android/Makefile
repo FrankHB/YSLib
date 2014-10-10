@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r301
+# Version = r302
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2014-06-04 23:28 +0800
+# Updated = 2014-10-07 12:24 +0800
 # Encoding = ANSI
 
 
@@ -23,7 +23,7 @@ export PLATFORM		?= Android
 
 export PREFIX ?= arm-linux-androideabi-
 
-export CC	:=	$(PREFIX)g
+export CC	:=	$(PREFIX)gcc
 export CXX	:=	$(PREFIX)g++
 export AS	:=	$(PREFIX)as
 export AR	:=	$(PREFIX)ar

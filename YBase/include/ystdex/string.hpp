@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r747
+\version r749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-10-06 12:33 +0800
+	2014-10-07 12:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -480,10 +480,8 @@ struct ston_dispatcher;
 YB_Impl_String_ston_i_std(int, stoi)
 YB_Impl_String_ston_i_std(long, stol)
 YB_Impl_String_ston_i_std(unsigned long, stoul)
-#	ifndef __BIONIC__
 YB_Impl_String_ston_i_std(long long, stoll)
 YB_Impl_String_ston_i_std(unsigned long long, stoull)
-#	endif
 #undef YB_Impl_String_ston_i_std
 #undef YB_Impl_String_ston_i
 

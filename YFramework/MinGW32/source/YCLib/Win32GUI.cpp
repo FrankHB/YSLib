@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r514
+\version r520
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-09-25 08:28 +0800
+	2014-10-07 13:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,13 @@ BindDefaultWindowProc(NativeWindowHandle h_wnd, MessageMap& m, unsigned msg,
 }
 
 
+Rect
+WindowReference::GetBounds() const
+{
+	const auto& rect(FetchWindowRect(hWindow));
+
+	return {rect.left, rect.top, FetchSizeFromBounds(rect)};
+}
 Rect
 WindowReference::GetClientBounds() const
 {

@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r861
+\version r873
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-09-20 15:54 +0800
+	2014-10-08 06:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,7 +168,7 @@
 一个类类型对象的生存期始于构造调用结束后，构造函数中的操作是受限的（例若无法正确地调用虚函数）；
 构造函数允许抛出异常。
 因此：
- Shell 切换(@1.5.1.2) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::CommonRules @@5.20.5.4]) 的；
+ Shell 切换(@1.5.1.2) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::LanguageConvention @@5.20.5.4]) 的；
 激活和停用有必要明确地与构造和析构区分。
 特定的 Shell 可作为 ISO C++11 30.2.5.1/1 定义的执行代理(execution agent) 。
 
@@ -378,7 +378,7 @@
 
 @2.2.1 基本文件依赖性（适用于 YFramework ）：
  YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
-关于 ISO C++11 直接指定的依赖项，参见 [Documentation::CommonRules @@5.25.2] ；其它基本代码依赖性规则如下（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
+关于 ISO C++11 直接指定的依赖项，参见 [Documentation::LanguageConvention @@5.25.2] ；其它基本代码依赖性规则如下（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
 禁止依赖（包括包含）非头文件。
 除非另行约定，禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
 除非以下显式说明，禁止平台中立文件依赖平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
@@ -419,7 +419,7 @@
 对语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 。
 
 @2.3.1 标识符限制：
-公开头文件不使用保留标识符([Documentation::CommonRules @@5.15.1]) ，包括使用实现扩展提供的宏。使用 ydef.h([Documentation::YBase @@2.3]) 包装的宏代替。
+公开头文件不使用保留标识符([Documentation::LanguageConvention @@5.15.1]) ，包括使用实现扩展提供的宏。使用 ydef.h([Documentation::YBase @@2.3]) 包装的宏代替。
 
 @2.3.2 模块名称宏：
  YFramework 使用模块名称进行组织。使用公开头文件时，以模块名称（接口）代替头文件名（实现）以保持良好的兼容性。
@@ -434,10 +434,10 @@
 
 @2.3.2.2 命名限制：
 为保证以上变换可逆，约定内联模块名和非内联模块名不重复。
-此外，为了标识符符合 ISO C++ 要求([CommonRules @@5.15.1.2.2])，任何 name-expression 需要满足此规则对标识符的命名限制，且不得以 _ 起始或结束，以避免出现 __ 。
+此外，为了标识符符合 ISO C++ 要求([Documentation::LanguageConvention @@5.15.1.2.2])，任何 name-expression 需要满足此规则对标识符的命名限制，且不得以 _ 起始或结束，以避免出现 __ 。
 
 @2.3.2 YFramework 引入的命名空间：
- YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。
+ YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.1]) 对应的命名空间，其中抽象平台使用内联命名空间。
  除 YCLib 外， YFramework 引入的主要命名空间唯一且和次级子项目的模块名称一致。
  platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）此命名空间。
  platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖此命名空间。
@@ -590,8 +590,8 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 @3.1 异常使用规则：
 尽量保持异常中立。
-除了接口和实现非平台中立的部分（参见 @2.1.3 ），或保证重新抛出，避免 catch(...) 以避免错误地捕获非 C++ 异常，参见 [Documentation::CommonRules @@5.10.5.6] 。
-所有平台中立的内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::CommonRules @@5.10.5.1.3]) 。
+除了接口和实现非平台中立的部分（参见 @2.1.3 ），或保证重新抛出，避免 catch(...) 以避免错误地捕获非 C++ 异常，参见 [Documentation::LanguageConvention @@5.10.5.6] 。
+所有平台中立的内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::LanguageConvention @@5.10.5.1.3]) 。
 
 @3.2 字符编码：
  YFramework 使用 UTF-8 作为外部文本编码。
@@ -599,8 +599,8 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.6] 。
 
 @3.3 实现定义行为使用：
-基本内容参见 [Documentation::CommonRules @@5.1.3] 。以下为补充例外约定。
-允许未回绕([Documentation::CommonRules @@5.8.8.2]) 的无符号整数算术表达式计算结果向有符号整数显式转换，不需特别在接口说明范围，仅需实现注释。注意仍然禁止依赖无符号整数隐式转换为有符号整数。
+基本内容参见 [Documentation::LanguageConvention @@5.1.3] 。以下为补充例外约定。
+允许未回绕([Documentation::LanguageConvention @@5.8.8.2]) 的无符号整数算术表达式计算结果向有符号整数显式转换，不需特别在接口说明范围，仅需实现注释。注意仍然禁止依赖无符号整数隐式转换为有符号整数。
 
 @4 命名和编码风格导引：
 基本内容参见 [Documentation::Designation @@4] 和 [Documentation::Designation @@6] 。
@@ -627,10 +627,10 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 返回类型为可调用类型对象的引用的。
 
 @4.2.1 接口类型实现规则：
-接口类型的实现应在基类列表中连续结尾，和其它基类之间半紧缩分行([Documentation::CommonRules @@6.4.3.3]) 。
+接口类型的实现应在基类列表中连续结尾，和其它基类之间半紧缩分行([Documentation::CommonRules @@5.4.3.3]) 。
 
 @4.2.2 成员声明顺序规则：
-一般规则参见 [Documentation::CommonRules @@6.9.6] 。
+一般规则参见 [Documentation::CommonRules @@5.9.6] 。
 
 @4.2.2.1 数据成员：
 除非对象布局需要，以下非静态数据成员在数据成员声明的最前依次声明：
@@ -644,7 +644,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 注意非访问器的谓词不适用以上规则。
 
 @4.3 附加规则：
-对 YDefinition([Documentation::YBase @@2.3]) 中的每个表达式宏([Documentation::CommonRules @@6.10]) M ，使用特定的以下规则：
+对 YDefinition([Documentation::YBase @@2.3]) 中的每个表达式宏([Documentation::CommonRules @@5.10]) M ，使用特定的以下规则：
 删除 M( 和对应的 ) 、删除原紧接 ) 之后的 ; 之前的空白符并去除多余的空行后应保证余下的代码遵循其它规则。
 这避免表达式宏参数内的多行代码使用过多的缩进而影响可读性，且可能减少重构需要修改的代码。
 另见 [Documentation::YBase @@2.3.7.3] 。

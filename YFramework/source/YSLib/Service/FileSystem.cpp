@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1939
+\version r1954
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-10-06 05:43 +0800
+	2014-10-10 14:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,18 +190,6 @@ ListFiles(const Path& pth, vector<String>& lst)
 }
 
 
-PathCategory
-ClassifyPath(const String& fname, ypath::norm&& norm)
-{
-	if(YB_UNLIKELY(fname.empty()))
-		return PathCategory::Empty;
-	if(norm.is_self(fname))
-		return PathCategory::Self;
-	if(norm.is_parent(fname))
-		return PathCategory::Parent;
-	return PathCategory::Node;
-}
-
 NodeCategory
 ClassifyNode(const Path& pth)
 {
@@ -210,12 +198,12 @@ ClassifyNode(const Path& pth)
 
 	const auto& fname(pth.back());
 
-	switch(ClassifyPath(fname, std::move(pth.get_norm())))
+	switch(ystdex::classify_path(fname, pth.get_norm()))
 	{
-	case PathCategory::Empty:
+	case ystdex::path_category::empty:
 		return NodeCategory::Empty;
-	case PathCategory::Self:
-	case PathCategory::Parent:
+	case ystdex::path_category::self:
+	case ystdex::path_category::parent:
 		break;
 	default:
 		if(ufexists(string(pth)))

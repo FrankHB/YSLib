@@ -17,8 +17,9 @@ SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 source ${SHBuild_ToolDir}/common-toolchain.sh
 
 export AR="gcc-ar"
-[[ ${CXXFLAGS} ]]  || export CXXFLAGS="-O3 -pipe -DNDEBUG -std=c++11 -Wall"
-[[ ${LDFLAGS} ]]  || export LDFLAGS="-s -Wl,--dn -Wl,--gc-sections"
+[[ ${CXXFLAGS} ]] \
+	|| export CXXFLAGS="-O3 -pipe -DNDEBUG -std=c++11 -mthreads -Wall"
+[[ ${LDFLAGS} ]] || export LDFLAGS="-s -Wl,--dn -Wl,--gc-sections"
 
 INCLUDES=" \
 	-I../../YFramework/include -I../../YFramework/Android/include \

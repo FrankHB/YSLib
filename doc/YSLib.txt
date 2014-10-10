@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2566
+\version r2571
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-09-10 02:38 +0800
+	2014-10-08 06:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,8 +93,8 @@
 
 @1.2.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性、安全性及其它因素考虑，Adaptor 和本体不直接使用以下头文件及唯一在其中声明的接口（但 Adaptor 可能会间接依赖）：
- <iostream> 、 <locale> 和 <strstream> 。
-其它要点参见 [Documentation::CommonRules @@5.22] 。
+ <csetjmp> 、 <csignal> 、 <ciso646> 、 <iostream> 、 <locale> 和 <strstream> 。
+其它要点参见 [Documentation::LanguageConvention @@5.22] 。
 
 @1.2.5 本体的必要头文件中显式包含的 C++ 标准库依赖项：
  "Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
@@ -265,7 +265,7 @@
 @3.9 事件回调 YEvent ：
 实现事件。
 用户界面事件参数基类 UIEventArgs ，可从这个类派生自定义参数类。
-除非另行约定， UIEventArgs 及其派生类的右值引用作为参数满足 [Documentation::CommonRules @@5.12.2.3.1] 的例外规则，允许使用右值引用传递不进行转移并保证之后的确定状态。
+除非另行约定， UIEventArgs 及其派生类的右值引用作为参数满足 [Documentation::LanguageConvention @@5.12.2.3.1] 的例外规则，允许使用右值引用传递不进行转移并保证之后的确定状态。
 除此之外，默认提供以下参数类：
  ScreenPositionEventArgs ，屏幕事件参数类。
  InputEventArgs ，输入事件参数模块类。
@@ -705,8 +705,8 @@
 批量验证(@5.5.2.4) 后再更新，避免多个对象直接绘制之间的明显间断。
 
 @5.5.3 默认 GUI 绘制(@5.5.3.5) 逻辑：
-除非另行约定，所有默认 GUI 绘制操作具有强异常安全保证([Documentation::CommonRules @@5.10.5.1.2]) 。
-另见 [Documentation::CommonRules @@5.10.5.1.5] 。
+除非另行约定，所有默认 GUI 绘制操作具有强异常安全保证([Documentation::LanguageConvention @@5.10.5.1.2]) 。
+另见 [Documentation::LanguageConvention @@5.10.5.1.5] 。
 
 @5.5.3.1 渲染状态同步：
 部件通过与渲染器的交互保证渲染状态。

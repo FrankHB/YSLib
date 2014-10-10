@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r605
+\version r606
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2014-09-09 20:34 +0800
+	2014-10-08 05:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -473,7 +473,7 @@
 
 @6 编码风格导引：
 仅叙述之前章节未涉及的内容。
-参见 [Documentation::CommonRules @@6] 。
+参见 [Documentation::CommonRules @@5] 。
 
 @7 一般实现导引：
 

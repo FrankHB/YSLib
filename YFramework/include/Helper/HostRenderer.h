@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r299
+\version r302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-10-04 15:10 +0800
+	2014-10-07 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -83,8 +83,8 @@ private:
 public:
 	template<typename... _tParams>
 	WindowThread(_tParams&&... args)
-		: thrd(std::mem_fn(&WindowThread::ThreadFunc<ystdex::decay_t<
-		_tParams>...>), this, ystdex::decay_copy(args)...)
+		: thrd(&WindowThread::ThreadFunc<ystdex::decay_t<_tParams>...>, this,
+		ystdex::decay_copy(args)...)
 	{}
 	//! \since build 385
 	DefDelMoveCtor(WindowThread)
@@ -101,6 +101,7 @@ public:
 	HostLoop();
 
 private:
+	//! \todo 使用 \c INVOKE 调用。
 	template<typename _func, typename... _tParams>
 	void
 	ThreadFunc(_func&& f, _tParams&&... args)

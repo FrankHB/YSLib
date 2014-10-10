@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1316
+\version r1442
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-10-05 09:09 +0800
+	2014-10-10 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 #include <ystdex/utility.hpp> // for std::is_array, std::is_integral,
 //	ystdex::remove_reference_t, ystdex::arrlen;
 #include <ystdex/cstring.h> // for ystdex::is_null;
-#include <ystdex/string.hpp> // for ystdex::string_length, std::string;
+#include <ystdex/path.hpp> // for ystdex::string_length, std::string,
+//	ystdex::path_category;
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_Encoding
 #include <system_error>
@@ -86,38 +87,7 @@ static_assert(yalignof(wchar_t) == yalignof(CHRLib::ucs2_t),
 \since build 409
 */
 
-#ifdef YCL_API_FILESYSTEM_POSIX
-	/*!
-	\brief 文件路径分隔符。
-	\since build 298
-	*/
-#	define YCL_PATH_DELIMITER '/'
-	/*!
-	\brief 文件路径分界符。
-	\since build 402
-	*/
-#	define YCL_PATH_SEPARATOR "/"
-	/*!
-	\brief 根目录路径。
-	*/
-#	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
-
-/*!
-\brief 本机路径字符类型。
-\since build 286
-*/
-using NativePathCharType = char;
-
-#	define YCL_FS_CharIsDelimiter(_c, _p) \
-	(_c == YPP_Join(_p, YCL_PATH_DELIMITER))
-#	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
-
-/*!
-\brief 路径字符串编码。
-\since build 402
-*/
-yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
-#elif YCL_Win32
+#if YCL_Win32
 	/*!
 	\brief 文件路径分隔符。
 	\since build 296
@@ -148,6 +118,37 @@ using NativePathCharType = char;
 #	define YCL_FS_StringIsRoot(_s, _p) \
 		(ystdex::string_length(_s) == 3 \
 		&& _s[1] == ':' && YCL_FS_CharIsDelimiter(_s[2], _p))
+
+/*!
+\brief 路径字符串编码。
+\since build 402
+*/
+yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
+#elif defined(YCL_API_FILESYSTEM_POSIX)
+	/*!
+	\brief 文件路径分隔符。
+	\since build 298
+	*/
+#	define YCL_PATH_DELIMITER '/'
+	/*!
+	\brief 文件路径分界符。
+	\since build 402
+	*/
+#	define YCL_PATH_SEPARATOR "/"
+	/*!
+	\brief 根目录路径。
+	*/
+#	define YCL_PATH_ROOT YCL_PATH_SEPARATOR
+
+/*!
+\brief 本机路径字符类型。
+\since build 286
+*/
+using NativePathCharType = char;
+
+#	define YCL_FS_CharIsDelimiter(_c, _p) \
+	(_c == YPP_Join(_p, YCL_PATH_DELIMITER))
+#	define YCL_FS_StringIsRoot(_s, _p) (platform_ex::FS_IsRoot(&_s[0]))
 
 /*!
 \brief 路径字符串编码。
@@ -261,8 +262,8 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 /*
 \pre 断言：参数非空。
 \return 操作是否成功。
-\note <tt>errno</tt> 在出错时会被设置，具体值由实现定义。
-\note DS 使用 newlib 实现。 MinGW32 使用 MSVCRT 实现。
+\note \c errno 在出错时会被设置，具体值由实现定义。
+\note DS 使用 newlib 实现。 MinGW32 使用 MSVCRT 实现。 Android 使用 bionic 实现。
 */
 //@{
 /*!
@@ -318,7 +319,7 @@ truncate(std::FILE*, std::size_t) ynothrow;
 \brief 取文件的大小。
 \return 以字节计算的文件大小。
 \throw FileOperationFailure 参数无效或文件大小查询失败。
-\note <tt>errno</tt> 在出错时会被设置。
+\note \c errno 在出错时会被设置。
 \since build 475
 \todo 使用 errno 决定异常。
 */
@@ -331,59 +332,48 @@ GetFileSizeOf(std::FILE*);
 //@}
 
 
-//! \since build 412
-//@{
-//! 路径类别。
-enum class PathCategory : yimpl(std::uint32_t)
+/*!
+\brief 文件系统节点类别。
+\since build 412
+*/
+enum class NodeCategory : std::uint_least32_t
 {
-	Empty,
-	Self,
-	Parent,
-	Node
+	Empty = 0,
+	//! \since build 474
+	//@{
+	Invalid = 1 << 0,
+	Regular = 1 << 1,
+	//@}
+	Unknown = Invalid | Regular,
+	//! \since build 474
+	//@{
+	Device = 1 << 9,
+	Block = Device,
+	Character = Device | 1 << 7,
+	Communicator = 2 << 9,
+	FIFO = Communicator | 1 << 6,
+	Socket = Communicator | 2 << 6,
+	//@}
+	SymbolicLink = 1 << 12,
+	MountPoint = 2 << 12,
+	Junction = MountPoint,
+	//! \since build 474
+	//@{
+	Link = SymbolicLink | Junction,
+	//@}
+	Directory = 1 << 15,
+	//! \since build 474
+	//@{
+	Missing = 1 << 16,
+	Special = Link | Missing
+	//@}
 };
 
-//! 文件系统节点类别。
-enum class NodeCategory : ystdex::underlying_type_t<PathCategory>
-{
-	Empty = ystdex::underlying_type_t<PathCategory>(PathCategory::Empty),
-	Unknown = ystdex::underlying_type_t<PathCategory>(PathCategory::Node),
-	//! \since build 474
-	//@{
-	Missing,
-	Invalid,
-	Regular,
-	//@}
-	Directory,
-	/*!
-	\note 以下枚举项具体行为依赖文件系统和/或操作系统提供的接口。
-	\note 0x1000 起每 0x1000 一个独立区间，分别表示设备文件、通信实体、
-		无附加限制的链接点和其它特殊文件系统实体；首个枚举项表示该子类的未分类节点。
-	*/
-	//@{
-	//! \since build 474
-	//@{
-	Device = 0x1000,
-	Block,
-	Character,
-	yimpl()
-	Communicator = 0x2000,
-	FIFO,
-	Socket,
-	yimpl()
-	Link = 0x3000,
-	//@}
-	SymbolicLink,
-	HardLink,
-	//! \since build 474
-	//@{
-	Junction,
-	Special = 0x4000,
-	Reparse
-	yimpl()
-	//@}
-	//@}
-};
-//@}
+/*!
+\relates NodeCategory
+\since build 543
+*/
+DefBitmaskEnum(NodeCategory)
 
 
 /*!
@@ -406,10 +396,10 @@ public:
 class YF_API DirectorySession
 {
 public:
-#if !YCL_Win32
-	using NativeHandle = ::DIR*;
-#else
+#if YCL_Win32
 	using NativeHandle = void*;
+#else
+	using NativeHandle = ::DIR*;
 #endif
 
 private:
@@ -453,13 +443,7 @@ public:
 class YF_API HDirectory final : private DirectorySession
 {
 private:
-#if !YCL_Win32
-	/*!
-	\brief 节点信息。
-	\since build 298
-	*/
-	::dirent* p_dirent;
-#else
+#if YCL_Win32
 	/*!
 	\brief 节点信息。
 	\since build 474
@@ -471,6 +455,13 @@ private:
 	\since build 402
 	*/
 	mutable std::string utf8_name;
+#else
+	/*!
+	\brief 节点信息。
+	\invariant <tt>bool(GetNativeHandle()) == bool(p_dirent)</tt>
+	\since build 298
+	*/
+	::dirent* p_dirent;
 #endif
 
 public:
@@ -482,6 +473,15 @@ public:
 	HDirectory(const char* path)
 		: DirectorySession(path)
 	{}
+	//! \since build 543
+	HDirectory(HDirectory&& h) ynothrow
+		: DirectorySession(std::move(h)), p_dirent(h.p_dirent)
+#if YCL_Win32
+		, utf8_name(std::move(h.utf8_name))
+#endif
+	{
+		h.p_dirent = {};
+	}
 
 	/*!
 	\brief 间接操作：取自身引用。
@@ -515,7 +515,7 @@ public:
 
 	/*!
 	\brief 间接操作：取节点名称。
-	\return 非空结果：子节点不可用时为 "." ，否则为子节点名称。
+	\return 非空结果：子节点不可用时为 \c "." ，否则为子节点名称。
 	\note 返回的结果在析构和下一次迭代前保持有效。
 	\since build 412
 	*/
@@ -524,8 +524,8 @@ public:
 
 	/*!
 	\brief 取节点状态信息确定的文件系统节点类别。
-	\return 未迭代文件时为 NodeCategory::Empty ，否则为对应的节点类别。
-	\note 不同系统支持的可能不同，但当前都只实现了区分目录和常规文件。
+	\return 未迭代文件时为 NodeCategory::Empty ，否则为对应的其它节点类别。
+	\note 不同系统支持的可能不同。
 	\since build 474
 	*/
 	NodeCategory
