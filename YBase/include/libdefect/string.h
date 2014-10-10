@@ -16,13 +16,13 @@
 /*!	\file string.h
 \ingroup LibDefect
 \brief 标准库实现 <tt><string></tt> 修正。
-\version r599
+\version r611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2014-10-06 11:55 +0800
+	2014-10-07 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,10 @@ extern "C" int
 (vsnprintf)(char* __restrict, std::size_t, const char* __restrict,
 	__gnuc_va_list) throw();
 #	else
+//! \since build 543
+using ::strtoll;
+//! \since build 543
+using ::strtoull;
 //! \since build 492
 using ::vsnprintf;
 #	endif
@@ -96,10 +100,8 @@ stoi(const string& __str, size_t* __idx = {}, int __base = 10)
 }
 YB_LibDefect_String_stoi(string, stol, long, std::strtol)
 YB_LibDefect_String_stoi(string, stoul, unsigned long, std::strtoul)
-#ifndef __BIONIC__
 YB_LibDefect_String_stoi(string, stoll, long long, std::strtoll)
 YB_LibDefect_String_stoi(string, stoull, unsigned long long, std::strtoull)
-#endif
 #ifdef _GLIBCXX_USE_WCHAR_T
 inline int
 stoi(const wstring& __str, size_t* __idx = {}, int __base = 10)
@@ -125,19 +127,21 @@ YB_LibDefect_String_stoi(wstring, stoull, unsigned long long, std::wcstoull)
 		return __gnu_cxx::__stoa(&_cfname, #_n, __str.c_str(), __idx); \
 	}
 
-#	ifndef __BIONIC__
+#if !(defined(__clang__) && defined(__BIONIC__))
 // NOTE: Seems to be a bug of Clang++ 3.4.
 // NOTE: strtof vs strtod.
 YB_LibDefect_String_stof(string, stof, float, std::strtof)
 YB_LibDefect_String_stof(string, stod, double, std::strtod)
+#endif
+#if !defined(__BIONIC__)
 YB_LibDefect_String_stof(string, stold, long double, std::strtold)
-#ifdef _GLIBCXX_USE_WCHAR_T
+#endif
+#if defined(_GLIBCXX_USE_WCHAR_T) && !defined(__BIONIC__)
 // NOTE: wcstof vs wcstod.
 YB_LibDefect_String_stof(wstring, stof, float, std::wcstof)
 YB_LibDefect_String_stof(wstring, stod, double, std::wcstod)
 YB_LibDefect_String_stof(wstring, stold, long double, std::wcstold)
 #endif
-#	endif
 
 #undef YB_LibDefect_String_stof
 

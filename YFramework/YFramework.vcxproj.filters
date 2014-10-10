@@ -1088,5 +1088,8 @@
     <Text Include="..\doc\Dependencies.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\LanguageConvention.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>

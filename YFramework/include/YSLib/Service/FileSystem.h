@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2382
+\version r2388
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-10-06 05:41 +0800
+	2014-10-10 14:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -436,13 +436,6 @@ YF_API void
 ListFiles(const Path&, vector<String>&);
 //@}
 
-
-/*!
-\brief 按路径类别对路径成员分类。
-\since build 411
-*/
-YF_API PathCategory
-ClassifyPath(const String&, ypath::norm&& = PathNorm());
 
 //! \brief 按文件系统节点类别对路径分类。
 YF_API NodeCategory

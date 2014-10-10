@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r533
+\version r538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-09-25 08:29 +0800
+	2014-10-07 13:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,9 @@ public:
 		r.hWindow = {};
 	}
 
+	//! \since build 543
+	YSLib::Drawing::Rect
+	GetBounds() const;
 	//! \since build 445
 	//@{
 	YSLib::Drawing::Rect
@@ -456,6 +459,8 @@ public:
 	virtual
 	~HostWindow();
 
+	//! \since build 543
+	using WindowReference::GetBounds;
 	//! \since build 445
 	//@{
 	using WindowReference::GetClientBounds;

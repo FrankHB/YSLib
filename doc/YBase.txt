@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r212
+\version r217
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-09-09 20:20 +0800
+	2014-10-08 06:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@
 模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
 若其它文件不依赖此文件，则也不依赖其它 YBase 文件。
 文件內容为系统环境和公用类型和宏的基础定义，包括对实现环境的检测、实现特性的封装、部分未被实现关键字替代以及一些语言层次上的公共基础设施。
-以下名称以 y 起始的宏是表达式宏([Documentation::CommonRules @@6.10]) 或替代关键字(@2.3.7) 。
+以下名称以 y 起始的宏是表达式宏([Documentation::CommonRules @@5.10]) 或替代关键字(@2.3.7) 。
 
 @2.3.1 实现标记宏：
  YB_IMPL_CPP 指示支持的 ISO C++ 版本。
@@ -110,8 +110,8 @@
 
 @2.3.7.3 宏 yunseq ：
 用于标记无序列依赖表达式组，以支持非序列优化。
-参见 [Documentation::CommonRules @@6.4.3.3] 。
-调用宏 yunseq 对代码格式化目的视为特别约定([Documentation::CommonRules @@6.4.3.3]) ，按以下规则处理：
+参见 [Documentation::CommonRules @@5.4.3.3] 。
+调用宏 yunseq 对代码格式化目的视为特别约定([Documentation::CommonRules @@5.4.3.3]) ，按以下规则处理：
 参数不包含块结构（如 lambda 表达式）且不超过 3 行时，视为函数调用格式化，或表示此处代码未完成（需要继续扩展）时使用以下规则；
 其它情况下宏名、每个参数和调用的 ) 单独占据独立的行，每个参数视为语句，但不需要添加额外的 { 和 } 组成块的边界。
 
@@ -221,8 +221,8 @@
 
 @3.1 异常规则：
 尽量保持异常中立。
-禁止 catch(...) 以避免错误地捕获非 C++ 异常，参见 [Documentation::CommonRules @@5.10.5.6] 。
-所有内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::CommonRules @@5.10.5.1.3]) 。
+禁止 catch(...) 以避免错误地捕获非 C++ 异常，参见 [Documentation::LanguageConvention @@5.10.5.6] 。
+所有内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::LanguageConvention @@5.10.5.1.3]) 。
 
 */
 ////

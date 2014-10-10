@@ -11,13 +11,13 @@
 /*!	\file Keys.cpp
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r707
+\version r709
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:32:37 +0800
 \par 修改时间:
-	2014-05-23 10:09 +0800
+	2014-10-10 11:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Keys
+#include YFM_YCLib_Debug
 #include YFM_YCLib_NativeAPI
 
 namespace platform
@@ -586,7 +587,7 @@ yconstexpr const Category KeyCategoryTable[KeyBitsetWidth]{
 Category
 ClassifyKey(KeyIndex code) ynothrow
 {
-	yconstraint(code < KeyBitsetWidth);
+	YAssert(code < KeyBitsetWidth, "Invalid argument found.");
 	return KeyCategoryTable[code];
 }
 

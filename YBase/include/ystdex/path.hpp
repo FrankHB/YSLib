@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r689
+\version r717
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2014-05-23 10:05 +0800
+	2014-10-10 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,6 +128,37 @@ public:
 	}
 };
 //@}
+
+
+/*!
+\brief 路径类别。
+\since build 543
+*/
+enum class path_category : yimpl(size_t)
+{
+	empty,
+	self,
+	parent,
+	node
+};
+
+/*!
+\brief 路径分类。
+\relates path_category
+\since build 543
+*/
+template<typename _tNorm, class _tString>
+ystdex::path_category
+classify_path(const _tString& name, _tNorm&& norm = _tNorm())
+{
+	if(YB_UNLIKELY(name.empty()))
+		return ystdex::path_category::empty;
+	if(norm.is_self(name))
+		return ystdex::path_category::self;
+	if(norm.is_parent(name))
+		return ystdex::path_category::parent;
+	return ystdex::path_category::node;
+}
 
 
 //! \since build 473

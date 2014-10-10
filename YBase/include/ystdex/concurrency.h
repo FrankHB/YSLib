@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r200
+\version r281
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2014-10-01 01:53 +0800
+	2014-10-09 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_concurrency_h_ 1
 
 #include "../ydef.h"
-#include "functional.hpp" // for std::bind, ystdex::result_of_t;
+#include "functional.hpp" // for ystdex::result_of_t, std::bind, std::function;
 #include <future> // for std::packaged_task, std::future;
 #include <memory> // for std::make_shared;
 #include <thread>
@@ -40,6 +40,15 @@
 
 namespace ystdex
 {
+
+/*!
+\brief 转换 \c thread::id 为字符串表示。
+\note 使用 \c operator<< 实现。
+\since build 543
+*/
+YB_API std::string
+to_string(const std::thread::id&);
+
 
 //! \since build 358
 template<typename _fCallable, typename... _tParams>
@@ -69,7 +78,7 @@ pack_shared_task(_fCallable&& f, _tParams&&... args)
 
 /*!
 \brief 线程池。
-\note 线程安全。
+\note 除非另有说明，所有公开成员函数线程安全。
 \note 未控制线程队列的长度。
 \since build 520
 */
@@ -88,7 +97,13 @@ private:
 	bool stopped = {};
 
 public:
-	thread_pool(size_t);
+	/*!
+	\brief 初始化：使用指定的初始化和退出回调指定数量的工作线程。
+	\note 若回调为空则忽略。
+	\warning 回调的执行不提供顺序和并发安全保证。
+	\since build 543
+	*/
+	thread_pool(size_t, std::function<void()> = {}, std::function<void()> = {});
 	thread_pool(const thread_pool&) = delete;
 	//! \brief 析构：合并所有执行中的线程，可能阻塞。
 	~thread_pool();
@@ -108,7 +123,10 @@ public:
 	size_t
 	size() const;
 
-	//! \since build 538
+	/*!
+	\warning 非线程安全。
+	\since build 538
+	*/
 	size_t
 	size_unlocked() const
 	{
@@ -144,6 +162,7 @@ public:
 
 /*!
 \brief 任务池：带有队列大小限制的线程池。
+\note 除非另有说明，所有公开成员函数线程安全。
 \since build 538
 \todo 允许调整队列大小限制。
 */
@@ -154,10 +173,18 @@ private:
 	std::condition_variable enqueue_condition{};
 
 public:
-	task_pool(size_t n)
-		: thread_pool(std::max<size_t>(n, 1)), max_tasks(std::max<size_t>(n, 1))
+	/*!
+	\brief 初始化：使用指定的初始化和退出回调指定数量的工作线程和最大任务数。
+	\sa thread_pool::thread_pool
+	\since build 543
+	*/
+	task_pool(size_t n, std::function<void()> on_enter = {},
+		std::function<void()> on_exit = {})
+		: thread_pool(std::max<size_t>(n, 1), on_enter, on_exit),
+		max_tasks(std::max<size_t>(n, 1))
 	{}
 
+	//! \warning 非线程安全。
 	bool
 	can_enqueue_unlocked() const ynothrow
 	{
@@ -179,29 +206,67 @@ public:
 
 	using thread_pool::size;
 
-	//! \since build 539
-	template<typename _fCallable, typename... _tParams>
+	//! \since build 543
+	//@{
+	template<typename _func, typename _fCallable, typename... _tParams>
 	auto
-	wait(_fCallable&& f, _tParams&&... args)
+	poll(_func poller, _fCallable&& f, _tParams&&... args)
 		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
 		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
-			enqueue_condition.wait(lck, [this]{
-				return can_enqueue_unlocked();
+			enqueue_condition.wait(lck, [=]{
+				return poller() && can_enqueue_unlocked();
 			});
 		}, yforward(f), yforward(args)...);
 	}
 
-	template<typename _tDuration, typename _fCallable, typename... _tParams>
+	template<typename _func, typename _tDuration, typename _fCallable,
+		typename... _tParams>
 	auto
-	wait_for(const _tDuration& duration, _fCallable&& f, _tParams&&... args)
+	poll_for(_func poller, const _tDuration& duration, _fCallable&& f,
+		_tParams&&... args) -> decltype(enqueue(yforward(f), yforward(args)...))
+	{
+		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
+			enqueue_condition.wait_for(lck, duration, [=]{
+				return poller() && can_enqueue_unlocked();
+			});
+		}, yforward(f), yforward(args)...);
+	}
+
+	template<typename _func, typename _tTimePoint, typename _fCallable,
+		typename... _tParams>
+	auto
+	poll_until(_func poller, const _tTimePoint& abs_time,
+		_fCallable&& f, _tParams&&... args)
 		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
 		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
-			enqueue_condition.wait_for(lck, duration, [this]{
-				return can_enqueue_unlocked();
+			enqueue_condition.wait_until(lck, abs_time, [=]{
+				return poller() && can_enqueue_unlocked();
 			});
 		}, yforward(f), yforward(args)...);
+	}
+	//@}
+
+	//! \since build 539
+	template<typename _fCallable, typename... _tParams>
+	inline auto
+	wait(_fCallable&& f, _tParams&&... args)
+		-> decltype(enqueue(yforward(f), yforward(args)...))
+	{
+		return poll([]{
+			return true;
+		}, yforward(f), yforward(args)...);
+	}
+
+	template<typename _tDuration, typename _fCallable, typename... _tParams>
+	inline auto
+	wait_for(const _tDuration& duration, _fCallable&& f, _tParams&&... args)
+		-> decltype(enqueue(yforward(f), yforward(args)...))
+	{
+		return poll_for([]{
+			return true;
+		}, duration, yforward(f), yforward(args)...);
 	}
 
 	template<typename _fWaiter, typename _fCallable, typename... _tParams>
@@ -218,15 +283,13 @@ public:
 
 	//! \since build 539
 	template<typename _tTimePoint, typename _fCallable, typename... _tParams>
-	auto
+	inline auto
 	wait_until(const _tTimePoint& abs_time, _fCallable&& f, _tParams&&... args)
 		-> decltype(enqueue(yforward(f), yforward(args)...))
 	{
-		return wait_to_enqueue([=](std::unique_lock<std::mutex>& lck){
-			enqueue_condition.wait_until(lck, abs_time, [this]{
-				return can_enqueue_unlocked();
-			});
-		}, yforward(f), yforward(args)...);
+		return poll_until([]{
+			return true;
+		}, abs_time, yforward(f), yforward(args)...);
 	}
 };
 

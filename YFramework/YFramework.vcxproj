@@ -330,6 +330,7 @@
     <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />
     <Text Include="..\doc\ChangeLog.PreAlpha5.txt" />
     <Text Include="..\doc\Dependencies.txt" />
+    <Text Include="..\doc\LanguageConvention.txt" />
     <Text Include="..\doc\NPL.txt" />
     <Text Include="..\doc\Workflow.Annual2013.txt" />
     <Text Include="..\doc\Workflow.Annual2014.txt" />

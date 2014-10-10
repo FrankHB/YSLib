@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r4506
+\version r4645
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-07 09:35 +0800
+	2014-10-10 20:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,146 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		* DLB "wrong %CC exported" @ "Makefile" @ "platform %Android"
+			$since b492
+			// No C source files are currently compiled so no wrong behavior \
+				has been detected.
+			$= (/ "value '$(PREFIX)g'" -> '$(PREFIX)gcc'),
+		/ %YCLib_(MinGW32) $=
+		(
+			/ %Win32GUI $=
+			(
+				+ "function %GetBounds" @ "class %WindowReference";
+				+ 'using WindowReference::GetBounds;' @ "class %HostWindow"
+			),
+			/ "all assertions" ^ ("%(YAssert, YAssertNonnull)"
+				@ %YCLib.Debug ~ "%yconstraint" $effective @ %COM,
+			/ DLD "implemented inline functions %EnsureNonNull" @ %COM
+				^ "macros %(PDefH, ImplExpr)"
+		),
+		/ DLD "simplified implementation" @ "constructor template %WindowThread"
+			@ %HostRenderer !^ "%std::mem_fn" @ %Helper.HostRenderer,
+		/ %YCLib $=
+		(
+			/ %YCLib.FileSystem $=
+			(
+				/ $dev "all conditional inclusive with %YCL_Win32 as first \
+					branch",
+					// Regardless of %YCL_API_FILESYSTEM_POSIX defined or not.
+				/ DLD "simplified directory data implementation"
+					@ "platform %Win32",
+				/ @ "class %HDirectory" $=
+				(
+					+ "move constructor to ensure moved object has a clear \
+						state and avoid redundant copy on platform %Win32";
+					+ "invariant guarantee for availability of member",
+						// Otherwise null pointer could be wrongly used.
+					+ "invariant check assertions" @ "member functions",
+					/ "supported detecting file category other than regular \
+						and directory" @ "function %GetNodeCategory"
+				),
+				(
+				(
+				$dep_from %YBase.YStandardEx.Path;
+				/ "enum class %NodeCategory" $=
+				(
+					!^ "%ystdex::path_category for enumerators",
+					^ "std::uint_least32_t as underlying type" ~ "%PathCategory",
+					(
+					/ "made %Special synonymous of 'Directory | Missing'",
+					- "%(HardLink, Reparse)",
+						// %HardLink is irrelevant to single file system node. \
+							%Reparse is too specific to the implementation \
+							(i.e. NTFS).
+					(
+					+ "enumerator %MountPont";
+					/ "made %Junction synonymous of %MountPoint",
+						// In NTFS, junctions are implemented by reparse \\
+							points sharing same tag with mount point. See \
+							http://www.codeproject.com/Articles/21202/Reparse-Points-in-Vista .
+					/ "made %Link cover %(SymbolinkLink, MountPoint)"
+					);
+					/ "made enumerators %(Directory, Link, Missing) orthogonal \
+						with other categories of values",
+					)
+				),
+				/ %YSLib.Adpator.YAdaptor;
+				- "enum class %PathCategory"
+				),
+				+ "bitmask operations for %NodeCategory"
+			),
+			/ "all assertions" ^ ("%(YAssert, YAssertNonnull)"
+				@ %Debug) ~ "%(yconstraint, yassume)"
+				$effective @ %(FileSystem, Keys)
+		),
+		/ %YSLib $=
+		(
+			- "function %ClassifyPath" @ %Service.FileSystem;
+			- 'using platform::PathCategory;' @ %Adaptor.YAdaptor
+		);
+
+	),
+	/ %YBase $=
+	(
+		/ %LibDefect.String $=
+		(
+			/ "allowed %std::(stof, stod) defined"
+				@ '!(defined(__clang__) && defined(__BIONIC__))',
+				// OK for G++ 4.8.2 on Android. Though %std::stold is still \
+					missing.
+			/ @ "namespace %std" @ "defined %__BIONIC__" $=
+			(
+				+ 'using ::strtoll;',
+				+ 'using ::strtoull;';
+				/ "allowed %(stoll, stoull) defined"
+			)
+		),
+		/ %YBase.YStandardEx $=
+		(
+			- $dev $revert(b542) "workaround for platform %Android"
+				@ "implementation" @ "%ston" @ %String @ "defined %__BIONIC__"
+				$dep_from "%std::(stoll, stoull)" @ %LibDefect.String,
+			/ %Concurrency $=
+			(
+				+ "entering and exiting callbacks as parameter"
+					@ "constructors %(thread_pool; task_pool)",
+				/ @ "class %task_pool" @  $=
+				(
+					+ "function templates %(poll, poll_for, poll_until)";
+					/ DLD "simplified function templates %(wait, wait_for, 
+						until)" ~ "%(poll, poll_for, poll_until)"
+				),
+				+ "function %to_string for %std::thread::id"
+			),
+			+ "enum class %path_category; function template %classify_path"
+				@ %Path
+		),
+	),
+	/ $doc %Documentation $=
+	(
+		+ %LanguageConvention
+			$= (+ "interoperability rules");
+		/ %CommonRules $=
+		(
+			/ "language specific rules" >> %LanguageConvention,
+			/ "updated references"
+		)
+	),
+	/ %Tools $=
+	(
+		* "spelling error" @ "comment" @ "%make-clang-android.sh" $since b497,
+		* "possible interleave output across threads" @ %Tools.SHBuild.Main
+			$since b519
+			$= (* "missing '-mthreads'" @ "default value" @ "%CXXFLAGS"
+				@ "%common-bootstrap.sh" $since b538 $orig @ ("%CXXFLAGS"
+				$since b515 $orig @ "G++ command" $since b474) @ "%build.sh"))
+	)
+),
+
+b542
 (
 	/ %Tools.SHBuild.Main $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1589
+\version r1592
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-09-29 06:08 +0800
+	2014-10-10 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,10 +267,7 @@ using platform::NativePathCharType;
 using platform::CS_Path;
 
 //! \since build 474
-//@{
-using platform::PathCategory;
 using platform::NodeCategory;
-//@}
 
 //! \since build 411
 //@{

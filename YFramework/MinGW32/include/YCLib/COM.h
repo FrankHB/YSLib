@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r455
+\version r470
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2014-05-23 10:07 +0800
+	2014-10-10 11:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_MinGW32_YCLib_MinGW32
+#include YFM_YCLib_Debug
 #include <objbase.h>
 
 namespace platform_ex
@@ -70,7 +71,7 @@ public:
 	COMException(::HRESULT h)
 		: runtime_error("COMException"), hResult(h)
 	{
-		yconstraint(FAILED(h) || h == S_FALSE);
+		YAssert(FAILED(h) || h == S_FALSE, "Invalid argument found.");
 	}
 
 	DefGetter(ynothrow, ::HRESULT, HResult, hResult)
@@ -92,12 +93,8 @@ CheckHResult(::HRESULT h) ythrow(COMException)
 /*!
 \brief 检查指针值，若为空则抛出 COMException 。
 */
-inline void
-EnsureNonNull(void* p) ythrow(COMException)
-{
-	if(!p)
-		throw COMException(S_FALSE);
-}
+inline PDefH(void, EnsureNonNull, void* p) ythrow(COMException)
+	ImplExpr(p ? void() : throw COMException(S_FALSE))
 
 
 /*
@@ -197,7 +194,7 @@ public:
 	_iCOM&
 	operator*() const ynothrowv
 	{
-		yconstraint(pInterface);
+		YAssertNonnull(pInterface);
 		return *pInterface;
 	}
 
@@ -220,7 +217,7 @@ public:
 	COMPtr<IUnknown>
 	As(REFIID riid) const ythrow(COMException)
 	{
-		yconstraint(pInterface);
+		YAssertNonnull(pInterface);
 
 		COMPtr<IUnknown> res;
 
@@ -232,7 +229,7 @@ public:
 	COMPtr<_iOther>
 	As() const ythrow(COMException)
 	{
-		yconstraint(pInterface);
+		YAssertNonnull(pInterface);
 
 		COMPtr<_iOther> res;
 
@@ -244,7 +241,7 @@ public:
 	::HRESULT
 	Cast(REFIID riid, COMPtr<IUnknown>& ptr) const ynothrow
 	{
-		yconstraint(pInterface);
+		YAssertNonnull(pInterface);
 		return pInterface->QueryInterface(riid,
 			reinterpret_cast<void**>(&ptr.ReleaseAndGetRef()));
 	}
@@ -252,7 +249,7 @@ public:
 	::HRESULT
 	Cast(COMPtr<_iOther>& ptr) const ynothrow
 	{
-		yconstraint(pInterface);
+		YAssertNonnull(pInterface);
 		return pInterface->QueryInterface(__uuidof(_iOther),
 			reinterpret_cast<void**>(&ptr.ReleaseAndGetRef()));
 	}
@@ -266,7 +263,7 @@ public:
 	void*
 	Copy(REFIID riid) const ythrow(COMException)
 	{
-		yconstraint(pInterface);
+		YAssertNonnull(pInterface);
 
 		void* p;
 
@@ -277,7 +274,7 @@ public:
 	::HRESULT
 	CopyTo(REFIID riid, void** ptr) const ynothrow
 	{
-		yconstraint(pInterface);
+		YAssertNonnull(pInterface);
 		return pInterface->QueryInterface(riid, ptr);
 	}
 	template<typename _type>
