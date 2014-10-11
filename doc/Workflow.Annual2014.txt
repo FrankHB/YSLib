@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r712
+\version r728
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-10-07 08:22 +0800
+	2014-10-11 11:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -708,6 +708,24 @@ Multiple tap operations are studied.
 	There is an area setting for allowed error with initial tap with subsequent ones.
 		However, sometimes this is ignored and only precise subsequent (without any move) taps are allowed to avoid collision with dragging operations, e.g. for text selection.
 	Triple click is to select text in a line in general, and mostly used by browsers and text editors, see http://en.wikipedia.org/wiki/Triple-click .
+
+$2014-10:
+
+report.impl:
+There is a bug on DST(daylight savings time) calculation on Windows CRT call of 'stat' family across file systems.
+	This can cause strange bugs on file system caching.
+		See comments in "src/fcstat.c"(previously in "src/fccache.c") from the FontConfig project(http://www.freedesktop.org/wiki/Software/fontconfig/).
+		See https://bugzilla.gnome.org/show_bug.cgi?id=154968 Comment 30, also https://bugs.freedesktop.org/show_bug.cgi?id=8526 .
+	See http://www.codeproject.com/Articles/1144/Beating-the-Daylight-Savings-Time-bug-and-getting for details.
+	See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724290(v=vs.85).aspx for other general information.
+	New CRT source "fstat.c" and "fstat64.c" from Visual C++ 2013 shows that the implementation has been changed.
+		The Win32 API 'FindFirstFile' was not used any longer.
+		Also the code for Window Store App uses different APIs for time conversion.
+			'FileTimeToSystemTime' and 'SystemTimeToTzSpecificLocalTime' was used instead of 'FileTimeToLocalFileTime' and 'FileTimeToSystemTime'.
+				It is reasonable because some APIs is not available.
+			It is uncleay why the desktop platform did not use these functions.
+				These functions seems to be having good compatibility with enough precision.
+				The possible difference of behavior between these platforms are to be investigated.
 
 
 ////

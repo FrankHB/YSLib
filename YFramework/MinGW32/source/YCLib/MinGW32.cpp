@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r155
+\version r174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-07-21 18:48 +0800
+	2014-10-11 15:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,6 +147,28 @@ MakePipe()
 		HANDLE_FLAG_INHERIT))
 		YF_Raise_Win32Exception("SetHandleInformation");
 	return {std::move(h_read), std::move(h_write)};
+}
+
+
+std::chrono::nanoseconds
+ConvertTime(::FILETIME& file_time)
+{
+	if(file_time.dwLowDateTime != 0 || file_time.dwHighDateTime != 0)
+	{
+		// FIXME: Local time conversion for FAT volumes.
+		// NOTE: See $2014-10 @ %Documentation::Workflow::Annual2014.
+		::LARGE_INTEGER date;
+
+		// NOTE: The epoch is Jan. 1, 1601: 134774 days to Jan. 1, 1970, i.e.
+		//	11644473600 seconds, or 116444736000000000 * 100 nanoseconds.
+		// TODO: Strip away the magic number;
+		yunseq(date.HighPart = file_time.dwHighDateTime,
+			date.LowPart = file_time.dwLowDateTime);
+		return std::chrono::nanoseconds((date.QuadPart - 116444736000000000ULL)
+			* 100U);
+	}
+	else
+		throw std::system_error(ENOSYS, std::generic_category());
 }
 
 } // inline namespace Windows;

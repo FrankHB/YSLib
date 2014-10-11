@@ -11,13 +11,13 @@
 /*!	\file cstring.h
 \ingroup YStandardEx
 \brief ISO C 标准字符串扩展。
-\version r1659
+\version r1696
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2009-12-27 17:31:14 +0800
 \par 修改时间:
-	2013-11-26 21:03 +0800
+	2014-10-11 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,7 @@
 #ifndef YB_INC_ystdex_cstring_h_
 #define YB_INC_ystdex_cstring_h_ 1
 
-#include "../ydef.h"
-#include <cstdlib>
-#include <type_traits>
+#include "type_op.hpp" // for ystdex::integral_constants;
 #include <cstring>
 #include <string> // for std::char_traits;
 #include <cctype>
@@ -78,7 +76,19 @@ strcatdup(const char*, const char*, void*(*)(size_t) = std::malloc);
 
 
 /*!
-\brief 使用 std::char_traits::eq 判断是否为空字符。
+\ingroup unary_type_trait
+\brief 判断字符类型是否被 ISO C++ 指定提供 <tt>std::char_traits</tt> 的特化。
+\since build 544
+*/
+template<typename _tChar>
+struct is_char_specialized_in_std : integral_constant<bool,
+	is_same<_tChar, char>::value || is_same<_tChar, char>::value
+	|| is_same<_tChar, char>::value || is_same<_tChar, char>::value>
+{};
+
+
+/*!
+\brief 使用 <tt>std::char_traits::eq</tt> 判断是否为空字符。
 \since build 329
 */
 template<typename _tChar>
@@ -97,6 +107,29 @@ is_null(_tChar c)
 \see ISO C++03 (17.1.12, 17.3.2.1.3.2) 。
 */
 
+//! \since build 544
+namespace details
+{
+
+template<typename _tChar>
+inline YB_PURE size_t
+ntctslen_raw(const _tChar* s, std::true_type)
+{
+	return std::char_traits<_tChar>::length(s);
+}
+template<typename _tChar>
+YB_PURE size_t
+ntctslen_raw(const _tChar* s, std::false_type)
+{
+	const _tChar* p(s);
+
+	while(!ystdex::is_null(*p))
+		++p;
+	return p - s;
+}
+
+} // namespace details;
+
 /*!
 \ingroup NTCTSUtil
 \brief 计算简单 NTCTS 长度。
@@ -105,16 +138,13 @@ is_null(_tChar c)
 \since build 329
 */
 template<typename _tChar>
-YB_PURE size_t
+inline YB_PURE size_t
 ntctslen(const _tChar* s)
 {
 	yconstraint(s);
 
-	const _tChar* p(s);
-
-	while(!ystdex::is_null(*p))
-		++p;
-	return p - s;
+	return details::ntctslen_raw(s,
+		typename is_char_specialized_in_std<_tChar>::type());
 }
 
 /*!

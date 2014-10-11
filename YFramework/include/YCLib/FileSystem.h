@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1442
+\version r1482
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-10-10 20:04 +0800
+	2014-10-11 19:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YCL_INC_FileSystem_h_ 1
 
 #include "YModules.h"
-#include YFM_YCLib_YCommon
+#include YFM_YCLib_YCommon // for std::uint64_t, std::FILE*;
 #include <ystdex/utility.hpp> // for std::is_array, std::is_integral,
 //	ystdex::remove_reference_t, ystdex::arrlen;
 #include <ystdex/cstring.h> // for ystdex::is_null;
@@ -41,6 +41,7 @@
 #if YCL_DS || YCL_MinGW || YCL_Android
 #	include <dirent.h>
 #endif
+#include <chrono> // for std::chrono::nanoseconds;
 #include <ystdex/iterator.hpp> // for ystdex::indirect_input_iterator;
 
 namespace platform
@@ -242,9 +243,13 @@ ufexists(const char16_t*) ynothrow;
 \brief 判断指定字符串为文件名的文件是否存在。
 \note 使用 NTCTS 参数 ufexists 实现。
 */
-template<class _tString>
-inline PDefH(bool, ufexists, const _tString& str) ynothrow
-	ImplRet(ufexists(str.c_str()))
+template<class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
+inline bool
+ufexists(const _tString& str) ynothrow
+{
+	return platform::ufexists(str.c_str());
+}
 
 /*!
 \brief 取当前工作目录（ UCS-2 编码）复制至指定缓冲区中。
@@ -316,12 +321,39 @@ truncate(std::FILE*, std::size_t) ynothrow;
 
 
 /*!
+\brief 取文件的修改时间。
+\return 以 POSIX 时间相同历元的时间间隔。
+\throw FileOperationFailure 参数无效或文件修改时间查询失败。
+\note 当前 Windows 使用 \c ::GetFileTime 实现，其它只保证最高精确到秒。
+\since build 544
+*/
+//@{
+YF_API std::chrono::nanoseconds
+GetFileModificationTimeOf(int);
+//! \pre 断言：输入非空指针。
+YF_API std::chrono::nanoseconds
+GetFileModificationTimeOf(std::FILE*);
+//! \pre 断言：输入非空指针。
+YF_API std::chrono::nanoseconds
+GetFileModificationTimeOf(const char*);
+//! \pre 断言：输入非空指针。
+YF_API std::chrono::nanoseconds
+GetFileModificationTimeOf(const char16_t*);
+//! \note 使用 NTCTS 参数 GetFileModificationTimeOf 实现。
+template<class _tString,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
+inline std::chrono::nanoseconds
+GetFileModificationTimeOf(const _tString& str)
+{
+	return platform::GetFileModificationTimeOf(str.c_str());
+}
+//@}
+
+/*!
 \brief 取文件的大小。
 \return 以字节计算的文件大小。
 \throw FileOperationFailure 参数无效或文件大小查询失败。
-\note \c errno 在出错时会被设置。
 \since build 475
-\todo 使用 errno 决定异常。
 */
 //@{
 YF_API std::uint64_t
@@ -458,7 +490,7 @@ private:
 #else
 	/*!
 	\brief 节点信息。
-	\invariant <tt>bool(GetNativeHandle()) == bool(p_dirent)</tt>
+	\invariant <tt>!p_dirent || bool(GetNativeHandle())</tt>
 	\since build 298
 	*/
 	::dirent* p_dirent;

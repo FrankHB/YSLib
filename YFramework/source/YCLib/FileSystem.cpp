@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1625
+\version r1749
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-10-10 20:02 +0800
+	2014-10-11 18:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,9 @@
 #include YFM_YCLib_Debug
 #include YFM_YCLib_NativeAPI
 #include <cstring> // for std::strcpy, std::strchr;
+#include <fcntl.h>
 #if YCL_DS
 #	include YFM_CHRLib_CharacterProcessing
-#	include <fcntl.h>
 
 //! \since build 341
 extern "C" int	_EXFUN(fileno, (FILE *));
@@ -54,13 +54,13 @@ _wfopen(const wchar_t*, const wchar_t*);
 //@}
 #	endif
 #	include <Shlwapi.h> // for ::PathIsRelativeW;
-#	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS;
+#	include YFM_MinGW32_YCLib_MinGW32 // for platform_ex::UTF8ToWCS,
+//	platform_ex::ConvertTime;
 
 //! \since build 540
 using platform_ex::UTF8ToWCS;
 #elif YCL_Android
 #	include YFM_CHRLib_CharacterProcessing
-#	include <fcntl.h>
 #	include <dirent.h>
 #	include <sys/stat.h>
 
@@ -73,6 +73,52 @@ namespace platform
 
 namespace
 {
+
+//! \since build 544
+struct fd_wrapper
+{
+	int file_des;
+
+	fd_wrapper(int fd) ynoexcept
+		: file_des(fd)
+	{}
+	~fd_wrapper()
+	{
+		if(file_des != -1)
+			::close(file_des);
+	}
+};
+
+
+std::string
+ensure_str(const char* s)
+{
+	return s;
+}
+std::string
+ensure_str(const char16_t* s)
+{
+#if YCL_Win32
+	return platform_ex::WCSToMBCS(reinterpret_cast<const wchar_t*>(s));
+#else
+	return MakeMBCS(s);
+#endif
+}
+
+//! \since build 544
+template<typename _tChar>
+std::chrono::nanoseconds
+GetFileModificationTimeOfImpl(const _tChar* filename)
+{
+	YAssertNonnull(filename);
+
+	const fd_wrapper fdw(uopen(filename, O_RDONLY));
+	
+	if(fdw.file_des != -1)
+		return GetFileModificationTimeOf(fdw.file_des);
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed getting file time of \"" + ensure_str(filename) + "\".");
+}
 
 #if YCL_DS || YCL_Android
 #elif YCL_Win32
@@ -232,7 +278,7 @@ uopen(const char16_t* filename, int oflag) ynothrow
 #if YCL_Win32
 	return ::_wopen(reinterpret_cast<const wchar_t*>(filename), oflag);
 #else
-	YCL_Impl_RetTryCatchAll(::open(strdup(filename).c_str(), oflag))
+	YCL_Impl_RetTryCatchAll(::open(MakeMBCS(filename).c_str(), oflag))
 	return -1;
 #endif
 }
@@ -243,7 +289,7 @@ uopen(const char16_t* filename, int oflag, int pmode) ynothrow
 #if YCL_Win32
 	return ::_wopen(reinterpret_cast<const wchar_t*>(filename), oflag, pmode);
 #else
-	YCL_Impl_RetTryCatchAll(::open(strdup(filename).c_str(), oflag, pmode))
+	YCL_Impl_RetTryCatchAll(::open(MakeMBCS(filename).c_str(), oflag, pmode))
 	return -1;
 #endif
 }
@@ -272,8 +318,8 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
 		reinterpret_cast<const wchar_t*>(mode));
 #else
-	YCL_Impl_RetTryCatchAll(std::fopen(strdup(filename).c_str(),
-		strdup(mode).c_str()))
+	YCL_Impl_RetTryCatchAll(std::fopen(MakeMBCS(filename).c_str(),
+		MakeMBCS(mode).c_str()))
 	return {};
 #endif
 }
@@ -321,7 +367,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 		if(const auto cwd = ::getcwd(reinterpret_cast<char*>(buf), size))
 			try
 			{
-				const auto res(ucsdup(cwd));
+				const auto res(MakeUCS2LE(cwd));
 				const auto len(res.length());
 
 				if(size < len + 1)
@@ -393,6 +439,56 @@ truncate(std::FILE* fp, std::size_t size) ynothrow
 #endif
 }
 
+
+std::chrono::nanoseconds
+GetFileModificationTimeOf(int fd)
+{
+#if YCL_Win32
+	// NOTE: The %::FILETIME has resolution of 100 nanoseconds.
+	::FILETIME file_time;
+
+	// XXX: Error handling for indirect calls.
+	if(!::GetFileTime(::HANDLE(::_get_osfhandle(fd)), {}, {}, &file_time))
+		YF_Raise_Win32Exception("GetFileTime");
+	try
+	{
+		return platform_ex::ConvertTime(file_time);
+	}
+	catch(std::system_error& e)
+	{
+		throw FileOperationFailure(e.code(), std::string(
+			"Failed querying file modification time: ") + e.what() + ".");
+	}
+#else
+	// TODO: Get more precise time count.
+	struct ::stat st;
+
+	if(::fstat(fd, &st) == 0)
+		return std::chrono::seconds(st.st_mtime);
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed getting file size.");
+#endif
+}
+std::chrono::nanoseconds
+GetFileModificationTimeOf(std::FILE* fp)
+{
+	YAssertNonnull(fp);
+#if YCL_Win32
+	return GetFileModificationTimeOf(::_fileno(fp));
+#else
+	return GetFileModificationTimeOf(fileno(fp));
+#endif
+}
+std::chrono::nanoseconds
+GetFileModificationTimeOf(const char* filename)
+{
+	return GetFileModificationTimeOfImpl(filename);
+}
+std::chrono::nanoseconds
+GetFileModificationTimeOf(const char16_t* filename)
+{
+	return GetFileModificationTimeOfImpl(filename);
+}
 
 std::uint64_t
 GetFileSizeOf(int fd)
@@ -467,8 +563,7 @@ DirectorySession::Rewind() ynothrow
 HDirectory&
 HDirectory::operator++()
 {
-	YAssert(bool(GetNativeHandle()) == bool(p_dirent),
-		"Invariant violation found.");
+	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
 #if YCL_Win32
 	p_dirent = static_cast<DirectoryData*>(GetNativeHandle())->Read();
 #else
@@ -480,10 +575,10 @@ HDirectory::operator++()
 NodeCategory
 HDirectory::GetNodeCategory() const ynothrow
 {
-	YAssert(bool(GetNativeHandle()) == bool(p_dirent),
-		"Invariant violation found.");
 	if(p_dirent)
 	{
+		YAssert(bool(GetNativeHandle()), "Invariant violation found.");
+
 		NodeCategory res(NodeCategory::Empty);
 #if YCL_Win32
 		const auto& dir_data(*static_cast<DirectoryData*>(GetNativeHandle()));
@@ -528,26 +623,29 @@ HDirectory::GetNodeCategory() const ynothrow
 		}
 #else
 		// FIXME: Implement for platforms without 'DT_*'.
-		const auto d_type(p_dirent->d_type);
-
-		if(YB_UNLIKELY(d_type) == DT_UNKNOWN)
+		switch(p_dirent->d_type)
+		{
+		case DT_UNKNOWN:
 			return NodeCategory::Unknown;
-		if(d_type & DT_REG)
-			res |= NodeCategory::Regular;
-		if(d_type & DT_DIR)
-			res |= NodeCategory::Directory;
-		if(d_type & DT_LNK)
-			res |= NodeCategory::SymbolicLink;
-		if(d_type & DT_CHR)
-			res |= NodeCategory::Character;
-		else if(d_type & DT_BLK)
-			res |= NodeCategory::Block;
-		if(d_type & DT_FIFO)
-			res |= NodeCategory::FIFO;
-		else if(d_type & DT_SOCK)
-			res |= NodeCategory::Socket;
-		if(d_type & DT_WHT)
-			res |= NodeCategory::Missing;
+		case DT_FIFO:
+			return NodeCategory::FIFO;
+		case DT_CHR:
+			return NodeCategory::Character;
+		case DT_DIR:
+			return NodeCategory::Directory;
+		case DT_BLK:
+			return NodeCategory::Block;
+		case DT_REG:
+			return NodeCategory::Regular;
+		case DT_LNK:
+			return NodeCategory::Link;
+		case DT_SOCK:
+			return NodeCategory::Socket;
+		case DT_WHT:
+			return NodeCategory::Missing;
+		default:
+			;
+		}
 #endif
 		return res != NodeCategory::Empty ? res : NodeCategory::Invalid;
 	}
@@ -557,8 +655,6 @@ HDirectory::GetNodeCategory() const ynothrow
 const char*
 HDirectory::GetName() const ynothrow
 {
-	YAssert(bool(GetNativeHandle()) == bool(p_dirent),
-		"Invariant violation found.");
 	if(p_dirent)
 	{
 #if !YCL_Win32

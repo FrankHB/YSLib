@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r4645
+\version r4733
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-10 20:32 +0800
+	2014-10-11 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,95 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib.FileSystem $=
+		(
+			/ @ "class %HDirectory" @ %YCLib.FileSystem $=
+			(
+				(
+				* "wrong invariant" $since b543;
+					// The initial state is not correct.
+				* $comp "assertion failed" @ "startup" @ "platform %DS" $since
+					b543
+					// Strangely, though the source code was same, it was not \
+						reproduced on platform %Android.
+				),
+				/ DLD "simplified some assertions for invariant"
+					@ "member functions",
+				* "wrong file type filtered" @ "function %GetNodeCategory"
+					@ "!platform %Win32" $since b543
+					// The 'DT_*' is not bitmask.
+			),
+			/ @ "function template %ufexists" $=
+			(
+				/ DLD $revert(b413) "implemented" !^ "macros %(PDefH, ImplRet)",
+				* "non overloaded non-class argument selected" $orig @ %YCommon
+					$since b305
+			),
+			+ "(3 functions; 1 function template) %GetFileModificationTimeOf"
+		),
+		+ "function %ConvertTime" @ %YCLib_(MinGW32).MinGW32,
+		/ DLD "implementation" ^ "%ystdex::ntctslen"
+			~ "%std::char_traits::length" $effective
+			@ %(CHRLib::CharacterProcessing, YSLib.Adaptor.Image)
+		/ %CHRLib.CharacterProcessing $=
+		(
+			/ "function template %ucsdup"
+				-> "%MakeUCS2LE with non-constructible constraint",
+			+ "function template %MakeUCS2LE for direct forwarding with \
+				constructible constraint",
+			(
+			/ "function templates %MakeUCS2LEString" => "%MakeUCS2LE"
+			+ "default argument 'std::basic_string<char16_t>'" @ "template \
+				parameter %_tDst" @ "all function templates %MakeUCS2LE"
+			),
+			/ DLD "simplified UCS-2 directly construction implementation",
+				// Not to be copy any longer.
+			- "all function %ucsdup",
+			+ "5 function templates %MakeUTF8",
+			- "all functions and function template %strdup"
+		)
+	),
+	/ $dev @ "Visual C++ projects" $=
+	(
+		/ DLD "united all VC++ include directories with NMake include search \
+			paths (if any)",
+		/ "merged All platforms based on platform %MinGW32 for IntelliSense"
+			@ "project %YFramework"
+		* "wrong NMake include search paths" @ "project %YBase"
+			@ "platform %Android" $since b492,
+		/ @ "platform %MinGW32" $=
+		(
+			/ "updated new version of toolchain",
+			* "empty paths" @ "configuration %debug" $since b518
+		)
+	),
+	/ %YBase.YStandardEx.CString $=
+	(
+		+ "unary type trait %is_char_specialized_in_std",
+		/ $lib $design "specified implementation"
+			@ "function template %ntctslen to call %std::char_traits::length \
+			if the specilization are mendated by ISO C++"
+			// This may be better for optimization.
+	),
+	/ %SHBuild.Tools $=
+	(
+		/ @ "class %BuildContext" $=
+		(
+			+ "timestamp check for direct dependency of object file"
+				@ "function %Search",
+				// Only one dependency is support, i.e. source file for .o file.
+			+ $lib $design "ending dot for 'absolute path recognized' message"
+				@ "function %Build"
+		),
+		- DLD "all 'u8' for string literal"
+			// The source file is already guaranteed to be encoded as UTF-8.
+	)
+),
+
+b543
 (
 	/ %YFramework $=
 	(
