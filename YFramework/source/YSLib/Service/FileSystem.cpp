@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1954
+\version r1955
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-10-10 14:16 +0800
+	2014-10-11 18:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -153,7 +153,7 @@ EnsureDirectory(const Path& pth)
 
 	for(const auto& name : pth)
 	{
-		upath += strdup(name.c_str(), CS_Path) + YCL_PATH_DELIMITER;
+		upath += MakeMBCS(name.c_str(), CS_Path) + YCL_PATH_DELIMITER;
 		if(!umkdir(upath.c_str()) && errno != EEXIST)
 			throw std::system_error(errno, std::system_category());
 	}

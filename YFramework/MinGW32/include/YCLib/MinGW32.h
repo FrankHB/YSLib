@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r280
+\version r288
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-10-02 02:55 +0800
+	2014-10-11 15:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,7 @@
 #endif
 #include <string> // for std::string, std::wstring;
 #include <utility> // for std::pair;
+#include <chrono> // for std::chrono::nanoseconds;
 
 /*!
 \ingroup name_collision_workarounds
@@ -199,6 +200,15 @@ public:
 */
 YF_API std::pair<UniqueHandle, UniqueHandle>
 MakePipe();
+
+
+/*!
+\brief 转换文件时间为以 POSIX 历元起始度量的时间间隔。
+\throw std::system_error 输入的时间表示不被实现支持。
+\since build 544
+*/
+YF_API std::chrono::nanoseconds
+ConvertTime(::FILETIME&);
 
 } // inline namespace Windows;
 

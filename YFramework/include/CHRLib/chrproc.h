@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r967
+\version r1111
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-09-27 21:57 +0800
+	2014-10-11 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,28 +118,29 @@ UCToMBC(char*, const ucs2_t&, Encoding);
 
 //! \note 编码字节序同实现的 ucs2_t 存储字节序。
 //@{
-/*!
-\brief 按指定编码转换 MBCS 字符串为 UCS-2 字符串，返回转换的串长。
+/*
 \pre 断言： 指针参数非空 。
+\return 转换的串长。
+*/
+//@{
+/*!
+\brief 按指定编码转换 MBCS 字符串为 UCS-2 字符串。
 \since build 291
 */
 YF_API size_t
 MBCSToUCS2(ucs2_t*, const char*, Encoding = CS_Default);
 
 /*!
-\brief 按指定编码转换 UCS-2 字符串为 MBCS 字符串，返回转换的串长。
-\pre 断言： 指针参数非空 。
+\brief 按指定编码转换 UCS-2 字符串为 MBCS 字符串。
 \since build 291
 */
 YF_API size_t
 UCS2ToMBCS(char*, const ucs2_t*, Encoding = CS_Default);
 
-/*!
-\brief 转换 UCS-4 字符串为 UCS-2 字符串，返回转换的串长。
-\pre 断言： 指针参数非空 。
-*/
+//! \brief 转换 UCS-4 字符串为 UCS-2 字符串。
 YF_API size_t
 UCS4ToUCS2(ucs2_t*, const ucs4_t*);
+//@}
 
 /*!
 \brief 取 UCS-2 字符串转换的指定编码的多字节字符串。
@@ -159,107 +160,115 @@ GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 
 
 /*!
-\pre 输入字符串最大多字节不超过 <tt>sizeof(ucsint_t)</tt> 字节。
-\since build 475
-*/
-//@{
-//! \brief 复制 UCS-2 字符串为多字节字符串。
-//@{
-/*!
+\pre 输入字符串的每个字符不超过 <tt>sizeof(ucsint_t)</tt> 字节。
 \pre 断言： 指针参数非空。
-\warning 不检查 \c size_t 参数指定的源字符串长度，若不足可能引起未定义行为。
-\since build 535
+\since build 544
 */
-YF_API std::string
-strdup(const ucs2_t*, size_t, Encoding = CS_Default);
-//! \pre 断言： 指针参数非空 。
-inline PDefH(std::string, strdup, const ucs2_t* s, Encoding enc = CS_Default)
-	ImplRet(strdup(s, ystdex::ntctslen(s), enc))
-//! \since build 535
-template<class _tString,
-	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-std::string
-strdup(const _tString& str, Encoding enc = CS_Default)
-{
-	return CHRLib::strdup(str.c_str(), str.length(), enc);
-}
-//@}
-
-/*!
-\brief 复制多字节字符串为 UCS-2 字符串。
-\pre 断言： 指针参数非空。
-\warning 不检查 \c size_t 参数指定的源字符串长度，若不足可能引起未定义行为。
-\since build 535
-*/
-YF_API std::basic_string<ucs2_t>
-ucsdup(const char*, size_t, Encoding = CS_Default);
-//! \since build 475
 //@{
-//! \pre 断言： 指针参数非空 。
-//@{
-//! \brief 复制多字节字符串为 UCS-2 字符串。
-inline PDefH(std::basic_string<ucs2_t>, ucsdup, const char* s,
-	Encoding enc = CS_Default)
-	ImplRet(ucsdup(s, ystdex::ntctslen(s), enc))
-//! \brief 复制 UCS-4 字符串为 UCS-2 字符串。
-YF_API std::basic_string<ucs2_t>
-ucsdup(const ucs4_t*);
-//@}
-//! \since build 535
-template<class _tString,
-	yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-std::basic_string<ucs2_t>
-ucsdup(const _tString& str, Encoding enc = CS_Default)
-{
-	return CHRLib::ucsdup(str.c_str(), str.length(), enc);
-}
-//@}
-//@}
-
-
-//! \since build 402
-//@{
-//! \brief 复制指定编码的多字节字符串为指定类型的 UCS-2 字符串。
-template<class _tDst>
+//! \brief 转换指定编码的多字节字符串为指定类型的 UCS-2 字符串。
+template<class _tDst = std::basic_string<ucs2_t>>
 _tDst
-MakeUCS2LEString(const char* s, Encoding enc = CS_Default)
+MakeUCS2LE(const char* s, Encoding enc = CS_Default)
 {
 	yconstraint(s);
 
-	_tDst str(std::char_traits<char>::length(s),
+	_tDst str(ystdex::ntctslen(s),
 		typename ystdex::string_traits<_tDst>::value_type());
 
 	str.resize(MBCSToUCS2(&str[0], s, enc));
 	return str;
 }
-//! \brief 复制指定类型的 UCS-2 字符串。
-template<class _tDst>
-_tDst
-MakeUCS2LEString(const ucs2_t* s, Encoding = CharSet::ISO_10646_UCS_2)
+//! \brief 构造指定类型的 UCS-2 字符串。
+template<class _tDst = std::basic_string<ucs2_t>>
+inline _tDst
+MakeUCS2LE(const ucs2_t* s, Encoding = CharSet::ISO_10646_UCS_2)
 {
 	yconstraint(s);
 
-	_tDst str(std::char_traits<ucs2_t>::length(s),
-		typename ystdex::string_traits<_tDst>::value_type());
-	using std::begin;
-
-	std::copy_n(s, str.size(), begin(str));
-	return str;
+	// FIXME: Correct conversion for encoding other than UCS2-LE.
+	return s;
 }
-//! \brief 复制 UCS-4 字符串为指定类型的 UCS-2 字符串。
-template<class _tDst>
+//! \brief 转换 UCS-4 字符串为指定类型的 UCS-2 字符串。
+template<class _tDst = std::basic_string<ucs2_t>>
 _tDst
-MakeUCS2LEString(const ucs4_t* s, Encoding = CharSet::ISO_10646_UCS_4)
+MakeUCS2LE(const ucs4_t* s, Encoding = CharSet::ISO_10646_UCS_4)
 {
 	yconstraint(s);
 
-	_tDst str(std::char_traits<ucs4_t>::length(s),
+	_tDst str(ystdex::ntctslen(s),
 		typename ystdex::string_traits<_tDst>::value_type());
 
 	str.resize(UCS4ToUCS2(&str[0], s));
 	return str;
 }
-//@}
+//! \note 转换指定类型的 UCS2-LE 字符串：仅当源类型参数不可直接构造目标类型时有效。
+template<class _tString, class _tDst = std::basic_string<ucs2_t>,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>, typename
+	= ystdex::enable_if_t<!std::is_constructible<_tDst, _tString>::value>)>
+inline _tDst
+MakeUCS2LE(const _tString& str, Encoding enc = CS_Default)
+{
+	return CHRLib::MakeUCS2LE<_tDst>(str.c_str(), str.length(), enc);
+}
+//! \note 传递指定类型的 UCS2-LE 字符串：仅当源类型参数可直接构造目标类型时有效。
+template<class _tString, class _tDst = std::basic_string<ucs2_t>,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>, typename
+	= ystdex::enable_if_t<std::is_constructible<_tDst, _tString>::value>)>
+inline _tDst
+MakeUCS2LE(_tString&& str)
+{
+	return std::forward<_tDst>(str);
+}
+
+//! \brief 构造多字节字符串。
+template<class _tDst = std::string>
+inline _tDst
+MakeMBCS(const char* s)
+{
+	yconstraint(s);
+
+	return _tDst(s);
+}
+//! \brief 转换 UTF-8 字符串为指定编码的多字节字符串。
+template<class _tDst = std::string>
+inline _tDst
+MakeMBCS(const char* s, Encoding enc)
+{
+	return enc = CS_Default ? MakeMBCS<_tDst>(s)
+		: MakeMBCS<_tDst>(MakeUCS2LE(s, CS_Default), enc);
+}
+//! \brief 转换 UCS-2LE 字符串为指定编码的多字节字符串。
+template<class _tDst = std::string>
+_tDst
+MakeMBCS(const ucs2_t* s, Encoding enc = CS_Default)
+{
+	yconstraint(s);
+
+	const auto w(FetchMaxVariantCharWidth(enc));
+	_tDst str(ystdex::ntctslen(s) * (w == 0 ? sizeof(ucsint_t) : w) + 1,
+		typename ystdex::string_traits<_tDst>::value_type());
+
+	str.resize(UCS2ToMBCS(&str[0], s, enc));
+	return str;
+}
+//! \note 转换指定类型的多字节字符串：仅当源类型参数不可直接构造目标类型时有效。
+template<class _tString, class _tDst = std::basic_string<ucs2_t>,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>, typename
+	= ystdex::enable_if_t<!std::is_constructible<_tDst, _tString>::value>)>
+inline _tDst
+MakeMBCS(const _tString& str, Encoding enc = CS_Default)
+{
+	return CHRLib::MakeUCS2LE<_tDst>(str.c_str(), str.length(), enc);
+}
+//! \note 传递指定类型的多字节字符串：仅当源类型参数可直接构造目标类型时有效。
+template<class _tString, class _tDst = std::basic_string<ucs2_t>,
+	yimpl(typename = ystdex::enable_for_string_class_t<_tString>, typename
+	= ystdex::enable_if_t<std::is_constructible<_tDst, _tString>::value>)>
+inline _tDst
+MakeMBCS(_tString&& str)
+{
+	return std::forward<_tDst>(str);
+}
 //@}
 
 } // namespace CHRLib;

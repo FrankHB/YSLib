@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r217
+\version r220
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-10-08 06:00 +0800
+	2014-10-11 08:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,6 +54,9 @@
 注意 YDefinition 实现及判断语言特性的接口可能依赖具体语言实现的特性限制。
 关于当前允许使用的非 ISO C++03 扩展参见 [Documentation::Designation @1.3.2.1] 。
 尽量严格遵守 ISO C++11 ，涉及未确定行为和实现定义的行为时应附文档说明。
+
+@2.1.1 调用安全性：
+基本内容参见 [Documentation::CommonRules @@3.11] 。
 除非另行约定， YBase 中 LibDefect 以外的接口仅保证非成员或静态成员函数的可重入性和线程安全性。
 除非有显著性能问题，否则非成员或静态成员接口应保证线程安全性。
 不降低性能时尽量保证可重入性。
@@ -152,7 +155,7 @@
 
 @2.4.4.1 ISO C 断言/调试跟踪扩展 CAssert ：
 头文件扩展了标准库头文件 <cassert> ，提供若干断言函数。
-在库使用约定([Documentation::CommonRules @@3.13]) 的基础上使用方式同 <cassert> ，参见 ISO C++11 17.6.2.2/2 。
+在库使用约定([Documentation::CommonRules @@3.13.2]) 的基础上使用方式同 <cassert> ，参见 ISO C++11 17.6.2.2/2 。
 
 @2.4.4.2 ISO C 标准整数类型操作 CStandardInteger。
 头文件间接扩展了标准库头文件 <cstdint> ，提供一些类型操作和一些整数类型的模板特化以及模算术的基本支持。
