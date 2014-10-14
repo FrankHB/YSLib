@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r749
+\version r803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-10-07 12:59 +0800
+	2014-10-14 22:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -290,10 +290,9 @@ concat(_tString& str, size_t n)
 	}
 }
 
-/*!
-\ingroup string_algorithms
-\since build 474
-*/
+//! \ingroup string_algorithms
+//@{
+//! \since build 474
 //@{
 //! \brief 删除字符串中指定的连续前缀字符。
 template<class _tString>
@@ -324,7 +323,6 @@ trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 //@}
 
 /*!
-\ingroup string_algorithms
 \brief 取删除前缀和后缀的子字符串。
 \pre 断言：删除的字符串不大于串长。
 \since build 304
@@ -347,10 +345,10 @@ get_mid(const _tString& str, typename _tString::size_type l,
 }
 //@}
 
+//! \note 只保留非空结果，不保留分隔字符。
+//@{
 /*!
-\ingroup string_algorithms
 \brief 以指定字符分割字符序列。
-\note 只保留非空结果，不保留分隔字符。
 \since build 304
 */
 template<typename _fPred, typename _fInsert, typename _tIn>
@@ -369,9 +367,7 @@ split(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 	}
 }
 /*!
-\ingroup string_algorithms
 \brief 以指定字符分割范围指定的字符串。
-\note 只保留非空结果，不保留分隔字符。
 \since build 399
 */
 template<typename _fPred, typename _fInsert, typename _tRange>
@@ -380,12 +376,46 @@ split(_tRange&& c, _fPred is_delim, _fInsert insert)
 {
 	split(string_begin(c), string_end(c), is_delim, insert);
 }
+//@}
 
 /*!
-\ingroup string_algorithms
+\brief 以满足迭代器谓词的指定字符分割字符串。
+\since build 545
+*/
+//@{
+template<typename _fPred, typename _fInsert, typename _func, typename _tIn>
+void
+split_if_iter(_tIn b, _tIn e, _fPred is_delim, _fInsert insert, _func pred)
+{
+	while(b != e)
+	{
+		_tIn i(b);
+		while(i != e && is_delim(*i) && pred(i))
+			++i;
+		for(b = i; b != e; ++b)
+		{
+			b = std::find_if(b, e, is_delim);
+			if(pred(b))
+				break;
+		}
+		if(i != b)
+			insert(i, b);
+		else
+			break;
+	}
+}
+template<typename _fPred, typename _fInsert, typename _func, typename _tRange>
+inline void
+split_if_iter(_tRange&& c, _fPred is_delim, _fInsert insert, _func pred)
+{
+	split_if_iter(string_begin(c), string_end(c), is_delim, insert, pred);
+}
+//@}
+
+//! \note 只保留非空结果；保留起始分隔字符，除非无法匹配分隔字符。
+//@{
+/*!
 \brief 以指定字符分割字符序列。
-\note 只保留非空的结果；
-	在起始保留分隔字符，除首个字符为非分隔字符时的第一次匹配。
 \since build 408
 */
 template<typename _fPred, typename _fInsert, typename _tIn>
@@ -408,10 +438,7 @@ split_l(_tIn b, _tIn e, _fPred is_delim, _fInsert insert)
 	return i;
 }
 /*!
-\ingroup string_algorithms
 \brief 以指定字符分割范围指定的字符串。
-\note 只保留除了分隔字符外非空的结果；
-	结果保留起始分隔字符，除非是起始非分隔字符第一次匹配。
 \since build 408
 */
 template<typename _fPred, typename _fInsert, typename _tRange>
@@ -420,6 +447,8 @@ split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
 {
 	split_l(string_begin(c), string_end(c), is_delim, insert);
 }
+//@}
+//@}
 
 /*!
 \brief 转换为字符串。

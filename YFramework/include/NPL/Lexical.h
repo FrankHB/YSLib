@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1281
+\version r1377
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2014-09-03 14:57 +0800
+	2014-10-14 18:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,6 +41,71 @@ using ystdex::byte;
 using YSLib::list;
 using YSLib::string;
 //@}
+//! \since build 545
+using YSLib::vector;
+
+
+/*!
+\brief 反转义上下文。
+\since build 545
+*/
+class YF_API UnescapeContext
+{
+public:
+	//! \brief 转义序列前缀。
+	string Prefix;
+
+private:
+	//! \brief 有效转义序列。
+	string sequence;
+
+public:
+	DefDeCtor(UnescapeContext)
+	DefDeCopyCtor(UnescapeContext)
+	DefDeMoveCtor(UnescapeContext)
+
+	DefDeCopyAssignment(UnescapeContext)
+	DefDeMoveAssignment(UnescapeContext)
+
+	DefPred(const ynothrow, Handling, !Prefix.empty())
+	PDefH(bool, IsHandling, const string& prefix) const
+		ImplRet(Prefix == prefix)
+
+	DefGetter(const ynothrow, const string&, Sequence, sequence)
+
+	PDefH(void, Clear, ) ynothrow
+		ImplExpr(Prefix.clear(), sequence.clear())
+
+	string
+	Done();
+
+	PDefH(bool, PopIf, byte uc)
+		ImplRet(PopIf(char(uc)))
+	PDefH(bool, PopIf, char c)
+		ImplRet(!sequence.empty() && sequence.back() == c
+			? (sequence.pop_back(), true) : false)
+	PDefH(void, Push, byte uc)
+		ImplExpr(Push(char(uc)))
+	PDefH(void, Push, char c)
+		ImplExpr(sequence += c)
+};
+
+
+/*!
+\brief NPL 转义匹配算法。
+\sa LexicalAnalyzer::Unescaper
+\since build 545
+
+支持转义序列为 "\\" 、 "\a" 、 "\b" 、 "\f" 、 "\n" 、 "\r" 、 "\t" 和 "\v" 。
+除以下说明外，转义序列语义参见 ISO C++11 （排除 raw-string-literal ）；
+	其它转义序列由派生实现定义。
+除了反斜杠转义外，其它转义仅适用于字面量。
+反斜杠转义：连续两个反斜杠被替换为一个反斜杠；
+引号转义：反斜杠之后紧接单引号或双引号时，反斜杠会被删除。
+*/
+YF_API bool
+NPLUnescape(string&, const UnescapeContext&, char);
+
 
 /*!
 \brief 词法分析器。
@@ -60,34 +125,32 @@ using YSLib::string;
 窄字符空白符替换：单字节空格、水平/垂直制表符、换行符
 	被替换为单一空格；回车符会被忽略；
 原始输出：其它字符序列逐字节输出。
-支持转义序列为 "\\" 、 "\a" 、 "\b" 、 "\f" 、 "\n" 、 "\r" 、 "\t" 和 "\v" 。
-除以下说明外，转义序列语义参见 ISO C++11 （排除 raw-string-literal ）；
-	其它转义序列由派生实现定义。
-除了反斜杠转义外，其它转义仅适用于字面量。
-反斜杠转义：连续两个反斜杠被替换为一个反斜杠；
-引号转义：反斜杠之后紧接单引号或双引号时，反斜杠会被删除。
+支持配置转义算法。默认实现参见 NPLUnescape 。
 */
 class YF_API LexicalAnalyzer
 {
 public:
 	/*!
-	\brief 最大转义序列长度。
-	\note 包括反斜杠。
+	\brief 指定匹配转义序列的反转义算法：解析转义序列并按需修改指定缓存。
+	\note 参数表示输出缓存、反转义上下文和当前正在处理的边界字符（如引号）。
+	\note 返回值表示是否已经修改了输出缓存。
+	\since build 545
 	*/
-	static yconstexpr size_t MaxEscapeLength = 8;
+	using Unescaper
+		= std::function<bool(string&, const UnescapeContext&, char)>;
 
 private:
 	/*!
-	\brief 转义状态：表示是否正在处理的有效转义序列的长度。
-	\note 不包括反斜杠。
-	\note 值为 size_t(-1) 时表示当前不处理转义字符。
+	\brief 指示当前续行符状态。
+	\since build 545
 	*/
-	size_t esc;
+	char line_concat = {};
 	/*!
-	\brief 有效转义序列。
-	\note 不包括反斜杠。
+	\brief 反转移上下文：储存反转义中间结果。
+	\note 若前缀非空表示正在处理反转义。
+	\since build 545
 	*/
-	char escs[MaxEscapeLength];
+	UnescapeContext unescape_context;
 	/*!
 	\brief 字面分隔符状态：表示正在处理字面量中的有效字符。
 	\note 值为 NUL 时表示当前不处理字面量。
@@ -99,28 +162,41 @@ private:
 	string cbuf;
 	/*!
 	\brief 字符解析中间结果中非转义的引号出现的位置的有序列表。
+	\since build 545
 	*/
-	list<size_t> qlist;
+	vector<size_t> qlist;
 
 public:
 	LexicalAnalyzer();
 
 	DefGetter(const ynothrow, const string&, Buffer, cbuf)
-	DefGetter(const ynothrow, const list<size_t>&, Quotes, qlist)
+	//! \since build 545
+	DefGetter(const ynothrow, const vector<size_t>&, Quotes, qlist)
 
 private:
-	void
-	HandleEscape();
+	//! \since build 545
+	//@{
+	bool
+	CheckEscape(byte, Unescaper);
 
-	void
-	PushEscape();
+	bool
+	CheckLineConcatnater(char, char = '\\', char = '\n');
 
 public:
 	/*
-	\brief 解析单个字符并添加至字符解析结果。
+	\warning 在同一个分析器对象上混用多种反转义算法的结果未指定。
+	\warning 在同一个分析器对象上混用 ParseByte 和 ParseQuoted 的结果未指定。
+	\since build 545
 	*/
+	//@{
+	//! \brief 解析单个字符并添加至字符解析结果。
 	void
-	ParseByte(byte);
+	ParseByte(byte, Unescaper = NPLUnescape);
+
+	//! \brief 解析单个字面量字符并添加至字符解析结果：反转义以外无视边界字符。
+	void
+	ParseQuoted(byte, Unescaper = NPLUnescape);
+	//@}
 
 	/*!
 	\brief 根据中间结果取字符串列表。
@@ -151,21 +227,21 @@ Deliteralize(const string&);
 /*!
 \brief 反转义字符串：替换指定字符串中的可转义字符为转义序列。
 \sa LexicalAnalyzer
-\since build 508
+\since build 545
 */
 YF_API string
-Unescape(const string&);
+Escape(const string&);
 
 /*!
 \brief 反转义字符串字面量。
 \return 若参数是字符串字面量时转义其中的内容，否则为原串。
-\note 使用 Unescape 转义。
+\note 使用 Escape 转义。
 \note 若转义后最后一个字符为 '\\' 则添加一个 '\\' 以避免转义末尾分隔符。
 \sa LexicalAnalyzer
-\since build 508
+\since build 545
 */
 YF_API string
-UnescapeLiteral(const string&);
+EscapeLiteral(const string&);
 
 
 /*!

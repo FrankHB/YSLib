@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r390
+\version r392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-07-06 02:39 +0800
+	2014-10-14 22:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ CheckStride(SDst buf_stride, SDst w)
 {
 	if(buf_stride < w)
 		// XXX: Use more specified exception type.
-		throw Exception("Stride is small than width");
+		throw std::runtime_error("Stride is small than width.");
 	return buf_stride;
 }
 
@@ -242,7 +242,7 @@ FetchNativeLooper(bool allow_non_callbacks) ythrow(Exception)
 
 	if(YB_LIKELY(p))
 		return *p;
-	throw Exception("Failed get native looper pointer.");
+	throw std::runtime_error("Failed get native looper pointer.");
 }
 
 void

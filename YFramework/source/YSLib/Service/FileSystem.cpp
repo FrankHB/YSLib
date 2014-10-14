@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1955
+\version r1956
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-10-11 18:42 +0800
+	2014-10-14 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,7 +127,7 @@ MakeNormalizedAbsolute(const Path& pth, size_t len)
 		res = Path(FetchCurrentWorkingDirectory(len)) / res;
 	res.Normalize();
 	YAssert(IsAbsolute(res), "Invalid path converted.");
-	return std::move(res);
+	return res;
 }
 
 

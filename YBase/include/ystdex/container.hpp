@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r875
+\version r905
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-10-04 15:07 +0800
+	2014-10-14 16:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -534,6 +534,39 @@ erase_n(_tCon& con, typename _tCon::iterator i,
 	return con.erase(i, std::next(i, n));
 }
 //@}
+
+
+/*!
+\brief 若容器末尾存在指定值的元素则移除。
+\since build 545
+*/
+template<class _tCon>
+bool
+pop_back_val(_tCon& con, const typename _tCon::value_type& val)
+{
+	if(!con.empty() && con.front() == val)
+	{
+		con.pop_front();
+		return true;
+	}
+	return {};
+}
+
+/*!
+\brief 若容器起始存在指定值的元素则移除。
+\since build 545
+*/
+template<class _tCon>
+bool
+pop_front_val(_tCon& con, const typename _tCon::value_type& val)
+{
+	if(!con.empty() && con.back() == val)
+	{
+		con.pop_back();
+		return true;
+	}
+	return {};
+}
 
 
 /*!

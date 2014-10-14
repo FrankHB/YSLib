@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r1786
+\version r2038
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-10-11 19:52 +0800
+	2014-10-14 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,6 +178,54 @@ EnsureOutputDirectory(const string& opath)
 	}
 }
 
+//! \since build 545
+//@{
+std::chrono::nanoseconds
+CheckModification(const string& path)
+{
+	PrintInfo("Checking path '" + path + "' ...", Debug);
+
+	const auto& file_time(platform::GetFileModificationTimeOf(path));
+
+	PrintInfo("Modification time: " + to_string(file_time.count()) + " .",
+		Debug);
+	return file_time;
+}
+
+PDefH(bool, CompareModification, const string& ipath, const string& opath)
+	ImplRet(CheckModification(opath) >= CheckModification(ipath))
+
+template<typename _func>
+bool
+CheckBuild(_func f, const string& opath)
+{
+	try
+	{
+		if(f())
+		{
+			PrintInfo("Output '"+ opath + "' is up-to-date, skipped.",
+				Informative);
+			return {};
+		}
+	}
+	catch(FileOperationFailure& e)
+	{
+		PrintInfo(e.what(), Debug);
+	}
+	return true;
+}
+PDefH(bool, CheckBuild, const string& ipath, const string& opath)
+	ImplRet(CheckBuild(std::bind(CompareModification, ipath, opath), opath))
+bool
+CheckBuild(const vector<string>& ipaths, const string& opath)
+{
+	return CheckBuild([&]{
+		return std::all_of(ipaths.cbegin(), ipaths.cend(),
+			std::bind(CompareModification, std::placeholders::_1, opath));
+	}, opath);
+}
+//@}
+
 } // unnamed namespace;
 
 
@@ -208,9 +256,8 @@ public:
 		: jobs(n)
 	{}
 
-	//! \since build 538
-	string
-	GetCommandName(const String&) const;
+	//! \since build 545
+	DefGetter(const ynothrow, const string&, Flags, flags)
 
 	//! \since build 538
 	int
@@ -236,20 +283,168 @@ public:
 	int
 	RunTask(const string&) const;
 
-	//! \since build 541
+	//! \since build 545
+	void
+	Wait() const;
+};
+
+
+//! \since build 545
+//@{
+using Key = pair<Path, Path>;
+using Value = string;
+using ActionContext = GRecursiveCallContext<Key, Value>;
+using BuildAction = ActionContext::CallerType;
+
+class Rule
+{
+public:
+	BuildContext& Context;
+	Key Source;
+
 	string
-	Search(const Path&, const Path&) const;
+	GetCommand(const String&) const;
 };
 
 string
-BuildContext::GetCommandName(const String& ext) const
+Rule::GetCommand(const String& ext) const
 {
 	if(ext == u"c")
-		return CC;
+		return Context.CC;
 	if(ext == u"cc" || ext == u"cpp" || ext == u"cxx")
-		return CXX;
-	return "";
+		return Context.CXX;
+	return {};
 }
+
+
+string
+BuildFile(const Rule& rule)
+{
+	const auto& bctx(rule.Context);
+	const auto& ipth(rule.Source.first);
+	const auto& cmd(rule.GetCommand(GetExtensionOf(ipth)));
+	const auto& fullname(ipth.GetMBCS());
+
+	if(!cmd.empty())
+	{
+		const auto& ofullname(rule.Source.second.GetMBCS());
+
+		// TODO: Check indirect dependencies (i.e. headers) timestamps.
+		if(CheckBuild(fullname, ofullname))
+		{
+			PrintInfo("Compile file: '" + ipth.back().GetMBCS() + "'.",
+				Informative);
+			bctx.CallWithException(cmd + " -MMD" + " -c" + bctx.GetFlags() + ' '
+				+ fullname + " -o \"" + ofullname + '"');
+		}
+		return ofullname;
+	}
+	else
+		PrintInfo("No rule found for '" + fullname + "'.", Warning);
+	return {};
+}
+
+string
+SearchDirectory(const Rule& rule, const ActionContext& actx)
+{
+	const auto& bctx(rule.Context);
+	const auto& ipth(rule.Source.first);
+	const auto& opth(rule.Source.second);
+	const auto& path(ipth.GetMBCS());
+	vector<string> subdirs, afiles, ofiles;
+	vector<pair<string, string>> src_files;
+
+	PrintInfo("Searching path: " + path + " ...");
+	TraverseChildren(path, [&](NodeCategory c, const std::string& name){
+		if(name[0] != '.')
+		{
+			if(c == NodeCategory::Directory)
+			{
+				if(ystdex::exists(bctx.IgnoredDirs, name))
+					PrintInfo("Subdirectory " + path + name
+						+ YCL_PATH_DELIMITER + " is ignored.", Informative);
+				else
+					subdirs.push_back(name);
+			}
+			else
+			{
+				auto cmd(rule.GetCommand(
+					GetExtensionOf(String(name, CS_Path))));
+
+				if(!cmd.empty())
+					src_files.emplace_back(std::move(cmd), name);
+				else
+					PrintInfo("Ignored non source file '" + name + "'.",
+						Informative);
+			}
+		}
+	});
+
+	for(const auto& name : subdirs)
+	{
+		auto afile(actx(make_pair(ipth / name, opth / name)));
+
+		if(!afile.empty())
+			afiles.push_back(std::move(afile));
+	}
+
+	const auto snum(src_files.size());
+
+	PrintInfo(to_string(snum) + " file(s) found to be built in path: " + path
+		+ " .", Informative);
+	if(snum != 0)
+	{
+		EnsureOutputDirectory(opth);
+		for(const auto& pr : src_files)
+		{
+			const auto& name(pr.second);
+			auto ofile(actx(make_pair(ipth / name, opth / (name + ".o"))));
+
+			if(!ofile.empty())
+				ofiles.push_back(std::move(ofile));
+		}
+	}
+	bctx.Wait();
+
+	const auto onum(ofiles.size());
+
+	if(snum != onum)
+		PrintInfo("Warning: " + to_string(onum) + " file(s) built, should be "
+			+ to_string(snum) + " .", Warning);
+
+	const auto anum(afiles.size());
+
+	PrintInfo("Found " + to_string(anum) + " .a file(s) and "
+		+ to_string(onum) + " .o file(s).", Informative);
+	if(anum != 0 || onum != 0)
+	{
+		Path pth(opth);
+
+		YAssert(!pth.empty(), "Invalid path found.");
+		pth.pop_back();
+		EnsureOutputDirectory(pth);
+
+		auto target(to_string(opth).GetMBCS(CS_Path) + ".a");
+
+		// TODO: Simplification.
+		ofiles.insert(ofiles.end(), std::make_move_iterator(afiles.begin()),
+			std::make_move_iterator(afiles.end()));
+		if(CheckBuild(ofiles, target))
+		{
+			auto str(bctx.AR + " rcs \"" + target + '"');
+
+			// FIXME: Prevent path too long.
+			for(const auto& ofile : ofiles)
+				str += " \"" + ofile + "\"";		
+			PrintInfo("Link file: '" + target + "'.", Informative);
+			bctx.CallWithException(str, 1);
+		}
+		return target;
+	}
+	return {};
+}
+//@}
+
 
 int
 BuildContext::GetLastResult() const
@@ -282,7 +477,17 @@ BuildContext::Build()
 	std::for_each(next(Options.begin()), Options.end(), [&](const string& opt){
 		flags += ' ' + opt;
 	});
-	Search(in, Path(OutputDir) / ipath.back());
+
+	ActionContext([this](const Key& name){
+		const shared_ptr<Rule> p_rule(new Rule{*this, name});
+
+		return VerifyDirectory(name.first)
+			? BuildAction([=](const ActionContext& actx){
+			return SearchDirectory(*p_rule, actx);
+		}) : BuildAction([=](const ActionContext&){
+			return BuildFile(*p_rule);
+		});
+	})({in, Path(OutputDir) / ipath.back()});
 }
 
 int
@@ -315,96 +520,11 @@ BuildContext::RunTask(const string& cmd) const
 	});
 	return 0;
 }
+//@}
 
-string
-BuildContext::Search(const Path& ipth, const Path& opth) const
+void
+BuildContext::Wait() const
 {
-	const auto& path(ipth.GetMBCS());
-	vector<string> subdirs, afiles;
-	vector<pair<string, string>> files;
-	const auto get_file_time([](const string& path){
-		PrintInfo("Checking path '" + path + "' ...", Debug);
-
-		const auto& file_time(platform::GetFileModificationTimeOf(path));
-
-		PrintInfo("Modification time: " + to_string(file_time.count()) + " .",
-			Debug);
-		return file_time;
-	});
-	const auto need_build([=](const string& ipath, const string& opath)->bool{
-		try
-		{
-			if(get_file_time(opath) >= get_file_time(ipath))
-			{
-				PrintInfo("Output '"+ opath + "' is up-to-date, skipped.",
-					Informative);
-				return {};
-			}
-		}
-		catch(FileOperationFailure& e)
-		{
-			PrintInfo(e.what(), Debug);
-		}
-		return true;
-	});
-
-	PrintInfo("Searching path: " + path + " ...");
-	TraverseChildren(path, [&, this](NodeCategory c, const std::string& name){
-		if(name[0] != '.')
-		{
-			if(c == NodeCategory::Directory)
-			{
-				if(ystdex::exists(IgnoredDirs, name))
-					PrintInfo("Subdirectory " + path + name + YCL_PATH_DELIMITER
-						+ " is ignored.", Informative);
-				else
-					subdirs.push_back(name);
-			}
-			else
-			{
-				const auto ext(GetExtensionOf(String(name, CS_Path)));
-				auto cmd(GetCommandName(ext));
-
-				if(!cmd.empty())
-					files.emplace_back(std::move(cmd), name);
-				else
-					PrintInfo("Ignored non source file '" + name + "'.",
-						Informative);
-			}
-		}
-	});
-	for(const auto& name : subdirs)
-	{
-		auto afile(Search(ipth / name, opth / name));
-
-		if(!afile.empty())
-			afiles.push_back(std::move(afile));
-	}
-
-	const auto onum(files.size());
-
-	PrintInfo(to_string(onum) + " file(s) found to be built in path: "
-		+ path + " .", Informative);
-	if(onum != 0)
-	{
-		const auto& opath(opth.GetMBCS());
-
-		EnsureOutputDirectory(opth);
-		for(const auto& pr : files)
-		{
-			// TODO: Check dependencies timestamps.
-			const auto& name(pr.second);
-			const auto& fullname(path + name);
-			const auto& ofullname(opath + name + ".o");
-
-			if(need_build(fullname, ofullname))
-			{
-				PrintInfo("Compile file: '" + name + "'.", Informative);
-				CallWithException(pr.first + " -MMD" + " -c" + flags + ' '
-					+ fullname + " -o \"" + ofullname + '"');
-			}
-		}
-	}
 	// TODO: Optimize for job dependency.
 	if(jobs.get_max_task_num() > 1)
 	{
@@ -412,55 +532,28 @@ BuildContext::Search(const Path& ipth, const Path& opth) const
 		jobs.reset();
 	}
 	CheckResult(GetLastResult());
-
-	const auto anum(afiles.size());
-
-	PrintInfo("Found " + to_string(anum) + " .a file(s) and "
-		+ to_string(onum) + " .o file(s).", Informative);
-	if(anum != 0 || onum != 0)
-	{
-		Path pth(opth);
-
-		YAssert(!pth.empty(), "Invalid path found.");
-		pth.pop_back();
-		EnsureOutputDirectory(pth);
-
-		auto target(to_string(opth).GetMBCS(CS_Path) + ".a");
-		auto str(AR + " rcs \"" + target + '"');
-
-		// FIXME: Prevent path too long.
-		if(anum != 0)
-			for(const auto& afile : afiles)
-				str += " \"" + afile + "\"";		
-		if(onum != 0)
-		{
-			const auto opath(opth.GetString().GetMBCS(CS_Path));
-
-			for(const auto& pr : files)
-				str += " \"" + opath + pr.second + ".o\"";
-		}
-		PrintInfo("Link file: '" + target + "'.", Informative);
-		CallWithException(str, 1);
-		return std::move(target);
-	}
-	return "";
 }
-//@}
 
 
 //! \since build 542
 void
 PrintUsage(const string& prog)
 {
-	std::printf("%s", ("Usage: " + prog + " SRCPATH [OPTIONS ...]\n\n"
+	std::printf("%s", ("Usage: [ENV ...] " + prog + " SRCPATH [OPTIONS ...]\n\n"
+		"[ENV ...]\n"
+		"\tThe environment variables settings."
+		" Currently accepted settings are listed below:\n\n"
+		"  CC\n\tThe C compiler executable. Default value is 'gcc'.\n\n"
+		"  CXX\n\tThe C++ compiler executable. Default value is 'g++'.\n\n"
+		"  AR\n\tThe archiver executable. Default value is 'ar'.\n\n"
 		"SRCPATH\n"
 		"\tThe source directory to be recursively searched.\n\n"
 		"OPTIONS ...\n"
 		"\tThe options. All other options would be sent to the backends,"
 		" except for listed below:\n\n"
 		"  " OPT_pfx_xd "DIR_NAME\n"
-		"\tThe name of output directory. "
-		"Default value is '" OPT_build_path "'.\n"
+		"\tThe name of output directory."
+		" Default value is '" OPT_build_path "'.\n"
 		"\tMultiple occurrence is allowed.\n\n"
 		"  " OPT_pfx_xid "DIR_NAME\n"
 		"\tThe name of subdirectory which should be ignored when scanning.\n"

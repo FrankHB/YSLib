@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r597
+\version r599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-10-04 15:06 +0800
+	2014-10-14 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,7 +72,7 @@ for_each_equal(_tIn first, _tIn last, const _type& value, _func f)
 {
     for(; first != last; first = std::find(++first, last, value))
    		f(*first);
-    return std::move(f);
+    return f;
 }
 
 template<typename _tIn, typename _func, typename _fPred>
@@ -81,7 +81,7 @@ for_each_if(_tIn first, _tIn last, _fPred pred, _func f)
 {
     for(; first != last; first = std::find_if(++first, last, pred))
    		f(*first);
-    return std::move(f);
+    return f;
 }
 //@}
 //@}

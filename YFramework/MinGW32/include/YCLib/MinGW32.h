@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r288
+\version r297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-10-11 15:03 +0800
+	2014-10-13 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,15 +74,24 @@ public:
 	/*!
 	\pre 错误码不等于 0 。
 	\warning 初始化参数时可能会改变 ::GetLastError() 的结果。
+	\since build 545
 	*/
 	Win32Exception(ErrorCode, const std::string& = "Win32 exception",
-		LevelType = {}) ynothrow;
+		LevelType = YSLib::Emergent);
 
 	DefGetter(const ynothrow, ErrorCode, ErrorCode, err)
 	//! \since build 437
 	DefGetter(const ynothrow, std::string, Message, FormatMessage(err))
 
 	explicit DefCvt(const ynothrow, ErrorCode, err)
+
+	/*!
+	\brief 取错误类别。
+	\return \c std::error_category 派生类的 const 引用。
+	\since build 545
+	*/
+	static const std::error_category&
+	GetErrorCategory();
 
 	/*!
 	\brief 格式化错误消息字符串。
