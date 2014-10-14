@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r391
+\version r400
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2014-09-24 23:31 +0800
+	2014-10-13 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,14 +66,14 @@ private:
 public:
 	/*!
 	\brief 构造：使用异常字符串和异常等级。
-	\since build 538
+	\since build 545
 	*/
-	LoggedEvent(const std::string& = "", LevelType = Emergent) ynothrow;
+	LoggedEvent(const std::string& = "", LevelType = Emergent);
 	/*!
 	\brief 构造：使用一般异常事件对象和异常等级。
-	\since build 432
+	\since build 545
 	*/
-	LoggedEvent(const GeneralEvent&, LevelType = Emergent) ynothrow;
+	LoggedEvent(const GeneralEvent&, LevelType = Emergent);
 
 	DefGetter(const ynothrow, LevelType, Level, level)
 };
@@ -90,8 +90,11 @@ private:
 	const char* content;
 
 public:
-	//! \brief 构造：使用标题和内容。
-	FatalError(const char*, const char*) ynothrow;
+	/*!
+	\brief 构造：使用标题和内容。
+	\since build 545
+	*/
+	FatalError(const char*, const char*);
 
 	DefGetter(const ynothrow, const char*, Content, content)
 	DefGetter(const ynothrow, const char*, Title, what())

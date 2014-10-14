@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r174
+\version r194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-10-11 15:03 +0800
+	2014-10-13 21:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,20 +37,33 @@ namespace platform_ex
 inline namespace Windows
 {
 
-Win32Exception::Win32Exception(ErrorCode ec, const std::string& s, LevelType l)
-	ynothrow
-	: Exception([&]()->std::string{
-		try
-		{
-			return s + ": " + FormatMessage(ec);
-		}
-		catch(...)
-		{}
-		return s;
-	}(), l),
-	err(ec)
+//! \since build 545
+namespace
+{
+
+class Win32ErrorCategory : public std::error_category
+{
+	PDefH(const char*, name, ) const ynothrow override
+		ImplRet("Win32Error")
+	// NOTE: For Win32 a %::DWORD can be mapped one-to-one for 32-bit %int.
+	PDefH(std::string, message, int ev) const ynothrow override
+		ImplRet(Win32Exception::FormatMessage(Win32Exception::ErrorCode(ev)))
+};
+
+} // unnamed namespace;
+
+Win32Exception::Win32Exception(ErrorCode ec, const std::string& s, LevelType lv)
+	: Exception(ec, GetErrorCategory(), s, lv)
 {
 	YAssert(ec != 0, "No error should be thrown.");
+}
+
+const std::error_category&
+Win32Exception::GetErrorCategory()
+{
+	static const Win32ErrorCategory ecat;
+
+	return ecat;
 }
 
 std::string

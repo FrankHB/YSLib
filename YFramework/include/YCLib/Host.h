@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r79
+\version r93
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2014-07-21 04:15 +0800
+	2014-10-13 21:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 #include YFM_YCLib_NativeAPI
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include <memory> // for std::unique_ptr;
+#include <system_error> // for std::system_error;
 
 #if YF_Hosted
 
@@ -46,12 +47,24 @@ namespace platform_ex
 \brief 宿主异常。
 \since build 426
 */
-class YF_API Exception : public YSLib::LoggedEvent
+class YF_API Exception : public std::system_error
 {
 public:
-	//! \since build 432
-	Exception(const std::string& = "unknown host exception",
-		LevelType = {}) ynothrow;
+	//! \since build 545
+	//@{
+	using LevelType = YSLib::LoggedEvent::LevelType;
+
+private:
+	LevelType level = YSLib::Emergent;
+
+public:
+	Exception(std::error_code, const std::string& = "unknown host exception",
+		LevelType = YSLib::Emergent);
+	Exception(int, const std::error_category&, const std::string&
+		= "unknown host exception", LevelType = YSLib::Emergent);
+
+	DefGetter(const ynothrow, LevelType, Level, level)
+	//@}
 };
 
 

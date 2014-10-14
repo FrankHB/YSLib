@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1351
+\version r1459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2014-06-20 11:04 +0800
+	2014-10-14 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,85 +32,125 @@
 namespace NPL
 {
 
-LexicalAnalyzer::LexicalAnalyzer()
-	: esc(-1), ld(), cbuf(), qlist()
-{}
-
-void
-LexicalAnalyzer::HandleEscape()
+string
+UnescapeContext::Done()
 {
-	YAssert(esc <= MaxEscapeLength, "Escape sequence is too long.");
-	if(esc == 1)
+	auto res(std::move(Prefix));
+
+	res += std::move(sequence);
+	Clear();
+	return res;
+}
+
+
+bool
+NPLUnescape(string& buf, const UnescapeContext& uctx, char ld)
+{
+	const auto& escs(uctx.GetSequence());
+
+	if(uctx.IsHandling() && escs.length() == 1)
 	{
-		switch(*escs)
+		switch(escs[0])
 		{
 		case '\\':
-			cbuf += '\\';
+			buf += '\\';
 			break;
 		case 'a':
-			cbuf += '\a';
+			buf += '\a';
 			break;
 		case 'b':
-			if(!cbuf.empty())
-				cbuf.pop_back();
+			if(!buf.empty())
+				buf.pop_back();
 			break;
 		case 'f':
-			cbuf += '\f';
+			buf += '\f';
 			break;
 		case 'n':
-			cbuf += '\n';
+			buf += '\n';
 			break;
 		case 'r':
-			cbuf += '\r';
+			buf += '\r';
 			break;
 		case 't':
-			cbuf += '\t';
+			buf += '\t';
 			break;
 		case 'v':
-			cbuf += '\v';
+			buf += '\v';
 			break;
 		case '\'':
 		case '"':
-			if(*escs == ld)
+			if(escs[0] == ld)
 			{
-				cbuf += ld;
+				buf += ld;
 				break;
 			}
 		default:
-			PushEscape();
-			return;
+			return {};
 		}
-		esc = -1;
+		return true;
 	}
-	else
-		PushEscape();
+	return {};
 }
 
-void
-LexicalAnalyzer::PushEscape()
-{
-//	cbuf += '^'; // test: 未转义。
-	yunseq(cbuf += '\\', escs[esc] = {});
-	yunseq(cbuf += escs, esc = -1);
-}
 
-void
-LexicalAnalyzer::ParseByte(byte b)
+LexicalAnalyzer::LexicalAnalyzer()
+	: unescape_context(), ld(), cbuf(), qlist()
+{}
+
+bool
+LexicalAnalyzer::CheckEscape(byte b, Unescaper unescape)
 {
 	if(!(b < 0x80))
 	{
-		//停止转义（转义序列不接受多字节字符）。
-		if(esc != size_t(-1))
-			PushEscape();
+		// NOTE: Stop unescaping. The escaped sequence should have no
+		//	multibyte characters.
+		if(unescape_context.IsHandling())
+			cbuf += unescape_context.Done();
 		cbuf += char(b);
 	}
-	else if(esc != size_t(-1))
+	else if(unescape_context.IsHandling())
 	{
-		escs[esc++] = b;
-		HandleEscape();
+		unescape_context.Push(b);
+		if(unescape(cbuf, unescape_context, ld))
+			unescape_context.Clear();
+		else
+			cbuf += unescape_context.Done();
 	}
-	else if(b == '\\' && ld != char())
-		esc = 0;
+	else
+		return {};
+	return true;
+}
+
+bool
+LexicalAnalyzer::CheckLineConcatnater(char c, char concat, char newline)
+{
+	if(line_concat == concat && c == newline)
+	{
+		if(!unescape_context.PopIf(concat))
+		{
+			auto& pfx(unescape_context.Prefix);
+	
+			if(!pfx.empty() && pfx.back() == concat)
+				pfx.pop_back();
+			else if(!cbuf.empty() && cbuf.back() == line_concat)
+				cbuf.pop_back();
+		}
+		return true;
+	}
+	else if(c == concat)
+		line_concat = concat;
+	else
+		line_concat = {};
+	return {};
+}
+
+void
+LexicalAnalyzer::ParseByte(byte b, Unescaper unescape)
+{
+	if(CheckLineConcatnater(b) || CheckEscape(b, unescape))
+		return;
+	if(b == '\\' && ld != char())
+		unescape_context.Prefix = "\\";
 	else
 	{
 		switch(b)
@@ -119,14 +159,12 @@ LexicalAnalyzer::ParseByte(byte b)
 			case '"':
 				if(ld == char())
 				{
-				//	cbuf += '{'; // test;
 					ld = b;
 					qlist.push_back(cbuf.size());
 					cbuf += char(b);
 				}
 				else if(ld == b)
 				{
-				//	cbuf += '}'; // test;
 					ld = char();
 					cbuf += char(b);
 					qlist.push_back(cbuf.size());
@@ -149,6 +187,17 @@ LexicalAnalyzer::ParseByte(byte b)
 				cbuf += char(b);
 		}
 	}
+}
+
+void
+LexicalAnalyzer::ParseQuoted(byte b, Unescaper unescape)
+{
+	if(CheckLineConcatnater(b) || CheckEscape(b, unescape))
+		return;
+	if(b == '\\')
+		unescape_context.Prefix = "\\";
+	else
+		cbuf += char(b);
 }
 
 list<string>
@@ -188,7 +237,7 @@ Deliteralize(const string& str)
 }
 
 string
-Unescape(const string& str)
+Escape(const string& str)
 {
 	char last{};
 	string res;
@@ -260,10 +309,10 @@ Unescape(const string& str)
 }
 
 string
-UnescapeLiteral(const string& str)
+EscapeLiteral(const string& str)
 {
 	const char c(CheckLiteral(str));
-	auto content(Unescape(c == char() ? str : ystdex::get_mid(str)));
+	auto content(Escape(c == char() ? str : ystdex::get_mid(str)));
 
 	if(!content.empty() && content.back() == '\\')
 		content += '\\';
@@ -275,8 +324,8 @@ Decompose(const string& src_str)
 {
 	list<string> dst;
 
-	ystdex::split_l(src_str.cbegin(), src_str.cend(), IsDelimeter, [&](
-		string::const_iterator b, string::const_iterator e){
+	ystdex::split_l(src_str, IsDelimeter,
+		[&](string::const_iterator b, string::const_iterator e){
 		string str(b, e);
 
 		YAssert(!str.empty(), "Null token found.");
@@ -285,7 +334,7 @@ Decompose(const string& src_str)
 			dst.push_back(str.substr(0, 1));
 			str.erase(0, 1);
 		}
-		// TODO: Optimize using %string_ref.
+		// TODO: Optimize using %std::experimental::string_view.
 		ystdex::trim(str);
 		if(!str.empty())
 			dst.push_back(std::move(str));

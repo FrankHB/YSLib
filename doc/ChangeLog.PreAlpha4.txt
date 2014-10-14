@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8295
+\version r8296
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-09-22 21:32 +0800
+	2014-10-14 17:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -2286,7 +2286,7 @@ b471
 
 b470
 (
-	/ DLD "reduced 'return std::move' usage",
+	/ DLD "reduced redundant 'return std::move' usage",
 		// See $2014-01 @ %Documentation::Workflow::Annual2014.
 	/ %YFramework.YSLib $=
 	(

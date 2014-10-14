@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r980
+\version r1010
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2014-10-04 15:12 +0800
+	2014-10-12 17:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -316,6 +316,42 @@ public:
 	{}
 };
 #endif
+
+
+/*!
+\brief 递归调用上下文。
+\note 用于构建依赖项。
+\since build 545
+*/
+template<typename _tKey, typename _tValue>
+class GRecursiveCallContext
+{
+public:
+	using KeyType = _tKey;
+	using ValueType = _tValue;
+	using CallerType = std::function<ValueType(const GRecursiveCallContext&)>;
+
+private:
+	std::function<CallerType(const KeyType&)> build;
+
+public:
+	template<typename _func, yimpl(typename
+		= ystdex::exclude_self_ctor_t<GRecursiveCallContext, _func>)>
+	GRecursiveCallContext(_func f)
+		: build(f)
+	{}
+	DefDeCopyCtor(GRecursiveCallContext)
+	DefDeMoveCtor(GRecursiveCallContext)
+
+	DefDeCopyAssignment(GRecursiveCallContext)
+	DefDeMoveAssignment(GRecursiveCallContext)
+
+	ValueType
+	operator()(const KeyType& key) const
+	{
+		return build(key)(*this);
+	}
+};
 
 
 /*!

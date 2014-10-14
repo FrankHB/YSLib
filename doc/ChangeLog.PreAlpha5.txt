@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r4733
+\version r4821
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-11 20:05 +0800
+	2014-10-14 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,94 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		+ "class template %GRecursiveCallContext" @ %YSLib.Core.YFunc,
+		* "wrong 'ynothrow'" @ "all exception class" $effective
+			@ %(YSLib.Core.Exception $revert(b319) $since b319, YCLib.Host
+			$since b492, YCLib_(MinGW32).MinGW32 $since b427),
+			// Since the underlying string construction could throw (though \
+				rarely), no exception guarantee is not hold.
+		/ @ "class %Exception" @ %YCLib.Host $=
+		(
+			/ "base class %YSLib::LoggedEvent" -> "%std::system_error",
+			/ "default level argument" ^ "%YSLib::Emergent" ~ '{}',
+			+ "%std::error_code parameter" @ "constructor",
+			+ "constructor with %int and 'const std::error_category&' \
+				parameters",
+			+ "function %GetLevel"
+		),
+		/ @ "class %Win32Exception" @ %YCLib_(MinGW32).MinGW32 $=
+		(
+			+ "static member function %GetErrorCategory",
+			/ "default level argument" ^ "%YSLib::Emergent" ~ '{}',
+		),
+		/ %NPL.Lexical $=
+		(
+			* "wrong function name" $since b508 $=
+			(
+				/ $revert_ex(b508) "%Unescape" => "%Escape",
+				/ "%UnescapeLiteral" => "%EscapeLiteral",
+			),
+			+ 'using YSLib::vector;',
+			+ "class %UnescapeContext",
+			+ "function %NPLUnescape",
+			/ @ "class %LexicalAnalyzer" $=
+			(
+				/ DLD "implemented intermediate list state of unescaping \
+					position" ^ "%vector" ~ "%list",
+					// Some performance improved.
+				(
+				$dep_from 'using YSLib::vector;';
+				/ "return value" @ "function %GetQuotes"
+					-> 'const vector<size_t>&' ~ 'const list<size_t>&'
+				),
+				(
+				$dep_from %"class %UnescapeContext";
+				/ DLD "implemented unescaping" ^ "%UnescapeContext";
+				- "limitation of max character number of escaped sequence; \
+					data member %MaxEscapeLength"
+				),
+				(
+				+ "alias declaration %Unescaper",
+				$dep_from "%NPLUnescape";
+				+ "unescaper parameter with default argument %NPLUnescape"
+					@ "function %ParseByte",
+				+ "function %ParseQuoted"
+				),
+				* "missing concatenating with backslash at end of lines" $since
+					b335,
+					// Unimplemented previously, but wrongly documented as \
+						feature.
+				/ DLD "implemented function %Decompose" ^ "range-based \
+					%ystdex::split_l" ~ "iterators-based %ystdex::split_l"
+			)
+		),
+		/ "thrown %std::runtime_error" ~ "%Exception" @ %YCLib_(Android).Android
+			// Because the constructors are changed, now they can not be \
+				directly constructed without error code.
+	)
+	/ %SHBuild.Main $=
+	(
+		(
+		/ $dep_from %YFramework.YSLib.YFunc;
+		/ DLD "implemented by recursive context"
+		),
+		+ "timestamp check for static linking",
+		+ "environment variable settings" @ "usage"
+	),
+	/ DLD $re_ex(b470) "reduced redundant 'return std::move' usage" $effective
+		@ %(YBase.YStandardEx.Algorithm,
+		YFramework.YSLib.(Service.YFileSystem, UI.UIContainer))
+	/ %YBase.YStandardEx $=
+	(
+		+ "function template %(pop_back_val, pop_front_val)" @ %Container,
+		+ 2 "function templates %split_if_iter" @ %String
+	)
+),
+
+b544
 (
 	/ %YFramework $=
 	(
@@ -1969,7 +2057,7 @@ b527
 		/ $dev $design / "adjust 'ImplI'" @ "member function declarations"
 			!^ 'override'
 	),
-	/ %YBase.YStandardEx.YFunctional $=
+	/ %YBase.YStandardEx.Functional $=
 	(
 		+ "constructor with 'std::reference_wrapper<value_type>' parameter"
 			@ "class template %thunk";
