@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1133
+\version r1148
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-09-03 13:58 +0800
+	2014-10-16 15:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -132,7 +132,7 @@ public:
 	\brief 刷新流。
 	\return 若成功则为 0 ，否则为 \c EOF 。
 	\note 语义同 \c std::fflush 。
-	\warning 刷新输入流或最近操作为输入的流导致未定义行为。
+	\warning 刷新输入流或最近操作为输入的流引起未定义行为。
 	\see ISO C11 7.21.5.2 。
 	\since build 329
 	*/
@@ -235,24 +235,16 @@ operator>>(File& f, _tString& str)
 \brief 向指定文件写字符。
 \since build 326
 */
-inline File&
-operator<<(File& f, char c)
-{
-	YAssert(bool(f), "Invalid file found.");
-	std::fputc(c, f.GetPtr());
-	return f;
-}
+inline PDefHOp(File&, <<, File& f, char c)
+	ImplRet(YAssert(bool(f), "Invalid file found."), std::fputc(c, f.GetPtr()),
+		f)
 /*!
 \brief 向指定文件写字符串。
 \since build 326
 */
-inline File&
-operator<<(File& f, const char* str)
-{
-	YAssert(bool(f), "Invalid file found.");
-	std::fputs(str, f.GetPtr());
-	return f;
-}
+inline PDefHOp(File&, <<, File& f, const char* str)
+	ImplRet(YAssert(bool(f), "Invalid file found."),
+		std::fputs(str, f.GetPtr()), f)
 /*!
 \brief 向指定文件写字符串。
 \since build 326

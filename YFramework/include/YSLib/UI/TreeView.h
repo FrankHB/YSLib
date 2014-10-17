@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r248
+\version r250
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2014-10-04 16:23 +0800
+	2014-10-16 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@ namespace UI
 \brief 树形列表。
 \note 展开或收缩节点不保证强异常安全性：若抛出异常则未指定状态（可能不一致）。
 \warning 使用 SetList 或 GetListRef 替换列表或减少列表元素后不保证状态一致，
-	可能导致未定义行为。
+	可能引起未定义行为。
 \warning 若修改 idxShared 则不保证状态一致。
 \since build 531
 */
@@ -77,7 +77,7 @@ public:
 	Color CursorOverColor{39, 199, 247};
 	/*!
 	\brief 数据源。
-	\warning 修改当前已展开的节点不保证状态一致；减少节点可能导致未定义行为。
+	\warning 修改当前已展开的节点不保证状态一致；减少节点可能引起未定义行为。
 	*/
 	ValueNode TreeRoot{};
 	//! \brief 单元缩进：指定在界面上显示层次的水平距离和缩进值的比。

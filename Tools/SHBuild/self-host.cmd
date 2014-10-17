@@ -1,2 +1,0 @@
-sh self-host.sh
-

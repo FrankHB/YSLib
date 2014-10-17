@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1377
+\version r1413
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2014-10-14 18:17 +0800
+	2014-10-15 09:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,10 @@ using YSLib::string;
 //@}
 //! \since build 545
 using YSLib::vector;
+//! \since build 546
+using YSLib::begin;
+//! \since build 546
+using YSLib::end;
 
 
 /*!
@@ -92,6 +96,14 @@ public:
 
 
 /*!
+\brief 设置反斜杠转义前缀：当输入 '\\' 时设置前缀为 "\\" 。
+\sa LexicalAnalyzer::PrefixHandler
+\since build 546
+*/
+YF_API bool
+HandleBackslashPrefix(char, string&);
+
+/*!
 \brief NPL 转义匹配算法。
 \sa LexicalAnalyzer::Unescaper
 \since build 545
@@ -131,9 +143,16 @@ class YF_API LexicalAnalyzer
 {
 public:
 	/*!
+	\brief 转移序列前缀处理器。
+	\note 参数为当前处理的字符和反转义上下文的转义序列前缀引用。
+	\note 返回值表示是否修改了前缀。
+	\since build 546
+	*/
+	using PrefixHandler = std::function<bool(char, string&)>;
+	/*!
 	\brief 指定匹配转义序列的反转义算法：解析转义序列并按需修改指定缓存。
 	\note 参数表示输出缓存、反转义上下文和当前正在处理的边界字符（如引号）。
-	\note 返回值表示是否已经修改了输出缓存。
+	\note 返回值表示是否修改了输出缓存。
 	\since build 545
 	*/
 	using Unescaper
@@ -168,34 +187,48 @@ private:
 
 public:
 	LexicalAnalyzer();
+	//! \since build 546
+	//@{
+	DefDeCopyCtor(LexicalAnalyzer)
+	DefDeMoveCtor(LexicalAnalyzer)
+
+	DefDeCopyAssignment(LexicalAnalyzer)
+	DefDeMoveAssignment(LexicalAnalyzer)
+	//@}
 
 	DefGetter(const ynothrow, const string&, Buffer, cbuf)
 	//! \since build 545
+	//@{
 	DefGetter(const ynothrow, const vector<size_t>&, Quotes, qlist)
 
 private:
-	//! \since build 545
-	//@{
 	bool
 	CheckEscape(byte, Unescaper);
 
 	bool
 	CheckLineConcatnater(char, char = '\\', char = '\n');
+	//@}
+
+	//! \since build 546
+	bool
+	FilterForParse(char, Unescaper, PrefixHandler);
 
 public:
 	/*
 	\warning 在同一个分析器对象上混用多种反转义算法的结果未指定。
 	\warning 在同一个分析器对象上混用 ParseByte 和 ParseQuoted 的结果未指定。
-	\since build 545
+	\since build 546
 	*/
 	//@{
 	//! \brief 解析单个字符并添加至字符解析结果。
 	void
-	ParseByte(byte, Unescaper = NPLUnescape);
+	ParseByte(byte, Unescaper = NPLUnescape,
+		PrefixHandler = HandleBackslashPrefix);
 
 	//! \brief 解析单个字面量字符并添加至字符解析结果：反转义以外无视边界字符。
 	void
-	ParseQuoted(byte, Unescaper = NPLUnescape);
+	ParseQuoted(byte, Unescaper = NPLUnescape,
+		PrefixHandler = HandleBackslashPrefix);
 	//@}
 
 	/*!

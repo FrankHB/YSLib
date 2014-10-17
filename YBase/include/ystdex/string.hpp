@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r803
+\version r823
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-10-14 22:38 +0800
+	2014-10-17 16:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -250,6 +250,29 @@ ends_with(const _tRange1& input, const _tRange2& test)
 	return ystdex::ends_with(input, test, is_equal());
 }
 //@}
+//@}
+
+
+/*!
+\brief 判断是否存在子串。
+\since build 546
+\todo 添加序列容器子串重载版本；优化：避免构造子串对象。
+*/
+//@{
+template<class _tString, typename _type>
+inline bool
+exists_substr(const _tString& str, const _type& sub)
+{
+	return str.find(sub) != _tString::npos;
+}
+template<class _tString, typename _type>
+inline bool
+exists_substr(const _tString& str, const typename _tString::value_type* p_sub)
+{
+	yconstraint(p_sub);
+
+	return str.find(p_sub) != _tString::npos;
+}
 //@}
 
 

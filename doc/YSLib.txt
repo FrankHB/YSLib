@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2572
+\version r2574
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-10-11 09:24 +0800
+	2014-10-16 09:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@
 @1.2 YSLib 头文件依赖性：
 本节描述 YSLib 和外部依赖项之间以及 YSLib 内部的头文件包含关联。
 
-@1.2.1 引入自 C 标准库的 C++ 标准库头文件依赖项：
+@1.2.1 引入自 C 标准库的 C++ 标准库头依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
  "yadaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
 
@@ -149,7 +149,7 @@
 
 @1.4 预处理附加规则：
 在头文件以及本体的其它文件内，仅允许 <YCLib/Platform.h>([Documentation::Designation @@5.2.2.4.1]) 内定义的名称以 YF_ 起始的宏用于以下上下文的条件编译：
-用于 #include 指令包含和可选的 ISO C++ 标准库头文件；
+用于 #include 指令包含和可选的 ISO C++ 标准库头；
 用于在块作用域内使用上述 ISO C++ 头文件的提供的接口；
 用于在类作用域内作为 private 成员使用上述 ISO C++ 头文件的提供的接口；
 用于其它 yimpl 宏([Documentation::YBase @@2.3.3]) 内部。

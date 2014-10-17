@@ -67,7 +67,7 @@ private:
 	\brief 本机窗口对象映射。
 	\note 不使用 ::SetWindowLongPtr 等 Windows API 保持跨平台，
 		并避免和其它代码冲突。
-	\warning 销毁窗口前移除映射，否则可能导致未定义行为。
+	\warning 销毁窗口前移除映射，否则可能引起未定义行为。
 	\warning 非线程安全，应仅在宿主线程上操作。
 	\since build 389
 	*/

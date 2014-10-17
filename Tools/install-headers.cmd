@@ -1,2 +1,0 @@
-sh install-headers.sh
-

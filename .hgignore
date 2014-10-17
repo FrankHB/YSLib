@@ -44,3 +44,4 @@ UpgradeLog.XML
 build/
 */.shbuild*
 Tools/*.tar.*
+sysroot/*

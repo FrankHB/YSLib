@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r728
+\version r742
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-10-11 11:20 +0800
+	2014-10-15 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -726,6 +726,20 @@ There is a bug on DST(daylight savings time) calculation on Windows CRT call of 
 			It is uncleay why the desktop platform did not use these functions.
 				These functions seems to be having good compatibility with enough precision.
 				The possible difference of behavior between these platforms are to be investigated.
+There are issues which make the flattened object files hardly be linked directly.
+	The linked '.a' files are not the same as '.o' files.
+		For statically linking they are OK.
+		GNU ld complains about there is no index when trying to generate a DLL.
+			Even after explicit 'ranlib' call, the result is the same.
+			However, an archive linked directly with '.o' has no such problem.
+	GNU ar supported linker script.
+		See https://sourceware.org/binutils/docs/binutils/ar-scripts.html#ar-scripts for usage.
+		It can be used to workaround this problem, but still cumbersome with limitation, e.g. no '+' can be in the name or the '.a' file.
+		See also https://lists.gnu.org/archive/html/help-make/2008-03/msg00043.html .
+	Thus it should generally directly be avoided. Direct use of '.o' to build shared library is preferred.
+		The performace is also significantly better for directories containing a few source files, because less archives should be built and waiting before linking can be reduced.
+Sometimes 'LANG=C' should be expicitly specified in the command line to prevent corrupted output from some tools built without NLS support.
+	For example, 'ar' from MSYS2 does not play with zh-CN locale well, while 'gcc-ar' has no problem.
 
 
 ////

@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1364
+\version r1402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2014-02-05 16:03 +0800
+	2014-10-15 09:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,14 +53,52 @@ using TLCIter = TokenList::const_iterator;
 */
 class YF_API Session
 {
+public:
+	//! \since build 546
+	//@{
+	using CharParser = std::function<void(LexicalAnalyzer&, char)>;
+
 private:
-	LexicalAnalyzer llex;
+	LexicalAnalyzer lexer;
 
 public:
-	Session(const string&);
-	//! \since build 330
-	Session(const TextFile&);
-	DefGetter(const, TokenList, TokenList, Tokenize(llex.Literalize()))
+	Session(const TextFile&, CharParser = DefaultParseByte);
+	template<typename _tIn>
+	Session(_tIn first, _tIn last, CharParser parse = DefaultParseByte)
+		: lexer()
+	{
+		std::for_each(first, last, [&](char c){
+			parse(lexer, c);
+		});
+	}
+	template<typename _tRange,
+		yimpl(typename = ystdex::exclude_self_ctor_t<Session, _tRange>)>
+	Session(const _tRange& c, CharParser parse = DefaultParseByte)
+		: Session(begin(c), end(c), parse)
+	{}
+	DefDeCopyCtor(Session)
+	DefDeMoveCtor(Session)
+
+	DefDeCopyAssignment(Session)
+	DefDeMoveAssignment(Session)
+
+	DefGetterMem(const ynothrow, const string&, Buffer, lexer)
+	//@}
+	DefGetter(const, TokenList, TokenList, Tokenize(lexer.Literalize()))
+
+	/*!
+	\brief 默认字符解析实现：直接使用 LexicalAnalyzer::ParseByte 。
+	\since build 546
+	*/
+	static void
+	DefaultParseByte(LexicalAnalyzer&, char);
+
+	/*!
+	\brief 默认字符解析实现：直接使用 LexicalAnalyzer::ParseQuoted 。
+	\since build 546
+	*/
+	static void
+	DefaultParseQuoted(LexicalAnalyzer&, char);
 };
 
 
