@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1167
+\version r1174
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2014-10-08 06:32 +0800
+	2014-10-16 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,7 +116,7 @@
 
 @5 C++ 语言使用规约：
 本节表述具体设计内容无关的源代码特性使用和编码风格。
-若没有另行说明， ISO C 指所有 ISO C90 及之后版本都兼容适用的规则， ISO C++ 指所有 ISO C++98 及之后版本都兼容适用的规则。
+除非另行约定， ISO C 指所有 ISO C90 及之后版本都兼容适用的规则， ISO C++ 指所有 ISO C++98 及之后版本都兼容适用的规则。
 所有没有明确指定的规则基于 ISO C++03 。
 
 @5.1 概述：
@@ -201,7 +201,7 @@
 
 @5.1.11.4 信号处理(signal handling) ：
  ISO C++11 要求信号处理函数只能修改 volatile std::sig_atomic_t 类型的对象或无锁操作的原子对象。
-之后的修订取消了这个限制，指定通过 raise 函数引起的信号处理函数后序于调用，先序于返回 [WG21 N3910, WG21 N3936]。
+之后的修订取消了这个限制，指定通过 raise 函数引起的信号处理函数后于调用，先于返回 [WG21 N3910, WG21 N3936]。
 当前只使用正式标准规定的定义。另见 @5.15.3.2 。
 
 @5.1.12 多线程执行(multi-thread execution) 环境和数据竞争(data race) [ISO C++11] ：
@@ -266,7 +266,7 @@
 
 @5.2.6.1 lambda 表达式 [ISO C++11] ：
 注意 lambda 表达式中的捕获变量规则。
-对于没有捕获的 lambda 表达式，存在非 explicit (@5.12.1) 到函数指针的转换操作符。
+没有捕获的 lambda 表达式存在非 explicit (@5.12.1) 到函数指针的转换操作符。
  lambda 表达式转换的函数指针具有 C++ 语言链接(@5.5.5.3) [CWG1557, WG21 N3690] 。
 
 @5.3 词法、预处理和内容无关的上下文编码规则：
@@ -411,7 +411,7 @@
 在可以且有必要使用 thread_local 时，不使用 static 代替。
 注意可能和 static 同时使用。
 注意 thread_local 允许动态初始化，而实现提供的类似扩展特性可能不允许。
-注意对应 ISO C11 的标识符 thread_local 不是关键字，而以宏形式在标准库头文件 <threads.h> 引入，对应关键字是 _Thread_local 。
+注意对应 ISO C11 的标识符 thread_local 不是关键字，而以宏形式在标准库头 <threads.h> 引入，对应关键字是 _Thread_local 。
 
 @5.5.4.5 和其它关键字连用：
 注意 ISO C 中的存储类关键字并不在最前的函数声明被 future language directions 标注为过时。使用如 inline static 的声明，可能引起某些编译器的警告。
@@ -1048,7 +1048,7 @@
 @5.15.1.2 保留名称：
 
 @5.15.1.2.1
-按 17.4.3.1.1/17.6.4.3.1 Marco Names [lib.extern.names] 规定，可能使用标准库头文件的用户程序翻译单元不得使用词法上等价于关键字的名称作为宏名。
+按 17.4.3.1.1/17.6.4.3.1 Marco Names [lib.extern.names] 规定，可能使用标准库头的用户程序翻译单元不得使用词法上等价于关键字的名称作为宏名。
 
 @5.15.1.2.2
 按 17.4.3.1.2/17.6.4.3.2 Global Names [lib.global.names] 规定，以下名称保留给（核心语言和标准库）实现使用：
@@ -1084,7 +1084,7 @@
  <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <regex> 、 <set> 、 <string> 、 <unordered_map> 、 <unordered_set> 和 <vector> 。
 
 @5.15.3 C 标准库：
-不使用 ISO C 标准库头文件名，以 ISO C++ 对应无扩展名的头文件代替。注意命名空间。
+不使用 ISO C 标准库头名，以 ISO C++ 对应无扩展名的头文件代替。注意命名空间。
 
 @5.15.3.1 内存管理：
 除非必要，不使用 realloc 。
@@ -1100,7 +1100,7 @@
 
 @5.15.3.2.2 signal 函数：
  ISO C11 规定多线程环境下调用 signal 函数具有未定义行为， ISO C++ 无此限制。 POSIX.1-2004 规定多线程的进程中使用 signal 函数未指定。
- signal 函数的行为很大程度依赖于实现，可能在同一个系统的不同版本（如 Linux ）中具有不同行为。若需可移植性应避免使用。对于符合 POSIX 的平台可以使用 sigaction 代替。
+ signal 函数的行为很大程度依赖实现，可能在同一个系统的不同版本（如 Linux ）中具有不同行为。若需可移植性应避免使用。对符合 POSIX 的平台可以使用 sigaction 代替。
 
 @5.15.3.2.3 C++ 互操作性：
  ISO C++ 要求信号处理器(signal handler) 具有 C 语言链接。注意 lambda 表达式转换的函数指针不符合此要求(@5.2.6.1) ，禁止在此使用。

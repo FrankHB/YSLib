@@ -11,13 +11,13 @@
 /*!	\file ycont.h
 \ingroup Adaptor
 \brief 容器、拟容器和适配器。
-\version r685
+\version r689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 161
 \par 创建时间:
 	2010-10-09 09:25:26 +0800
 \par 修改时间:
-	2014-02-05 02:49 +0800
+	2014-10-15 09:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,6 +98,10 @@ using std::tie;
 using std::tuple;
 using std::tuple_cat;
 
+//! \since build 546
+using std::begin;
+//! \since build 546
+using std::end;
 
 using std::array;
 using std::deque;

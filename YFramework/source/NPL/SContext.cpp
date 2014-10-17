@@ -11,13 +11,13 @@
 /*!	\file SContext.cpp
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1461
+\version r1479
 \author FrankHB <frankhb1989@gmail.com>
 \since build 329
 \par 创建时间:
 	2012-08-03 19:55:59 +0800
 \par 修改时间:
-	2014-08-28 17:26 +0800
+	2014-10-15 09:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,13 +33,7 @@ using namespace YSLib;
 namespace NPL
 {
 
-Session::Session(const string& line)
-	: llex()
-{
-	for(const auto& c : line)
-		llex.ParseByte(c);
-}
-Session::Session(const TextFile& tf)
+Session::Session(const TextFile& tf, CharParser parse)
 {
 	using namespace ystdex;
 	ifile_iterator i(tf.GetPtr());
@@ -48,9 +42,21 @@ Session::Session(const TextFile& tf)
 	{
 		if(YB_UNLIKELY(is_undereferenceable(i)))
 			throw LoggedEvent("Bad Source!", Critical);
-		llex.ParseByte(*i);
+		parse(lexer, *i);
 		++i;
 	}
+}
+
+void
+Session::DefaultParseByte(LexicalAnalyzer& lexer, char c)
+{
+	lexer.ParseByte(c);
+}
+
+void
+Session::DefaultParseQuoted(LexicalAnalyzer& lexer, char c)
+{
+	lexer.ParseQuoted(c);
 }
 
 

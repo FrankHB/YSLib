@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r905
+\version r1012
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-10-14 16:49 +0800
+	2014-10-15 10:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "algorithm.hpp" // for ystdex::sort_unique, ystdex::make_transform,
 //	ystdex::is_undereferenceable;
 #include <initializer_list> // for std::initializer_list;
+#include "utility.hpp" // for ystdex::arrlen;
 
 namespace ystdex
 {
@@ -320,6 +321,63 @@ make_container(std::initializer_list<_type> il)
 //@}
 
 
+//! \since build 546
+namespace details
+{
+
+template<typename _type>
+auto
+test_range_size(const _type& c) -> enable_if_t<
+	is_convertible<decltype(c.size()), size_t>::value, true_type>;
+false_type
+test_range_size(...);
+
+template<typename _tRange>
+yconstfn auto
+range_size(const _tRange& c, true_type) -> decltype(c.size())
+{
+	return c.size();
+}
+
+template<typename _tRange>
+inline auto
+range_size(const _tRange& c, false_type)
+	-> decltype(std::distance(begin(c), end(c)))
+{
+	using std::begin;
+	using std::end;
+
+	return std::distance(begin(c), end(c));
+}
+
+} // namespace details;
+
+/*!
+\brief 取范围大小。
+\note 需要时使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\since build 546
+
+对于数组直接返回大小，否则：
+若可调用结果可转换为 \c size_t 的成员函数 size() 则使用 size ；
+否则 \c size 取序列大小则使用 \c std::distance 计算范围迭代器确定范围大小。
+*/
+//{
+template<typename _tRange>
+yconstfn auto
+range_size(const _tRange& c)
+	-> decltype(details::range_size(c, decltype(details::test_range_size(c))()))
+{
+	return details::range_size(c, decltype(details::test_range_size(c))());
+}
+template<typename _type, size_t _vN>
+yconstfn size_t
+range_size(const _type(&c)[_vN])
+{
+	return ystdex::arrlen(c);
+}
+//@}
+
+
 /*!
 \ingroup algorithms
 \brief 插入参数指定的元素到容器。
@@ -342,6 +400,31 @@ assign(_tCon& con, const _type(&arr)[_vN])
 
 
 /*!
+\brief 插入元素到容器末尾。
+\since build 546
+\todo 返回非 \c void 。
+*/
+//@{
+template<class _tCon, typename _tIn>
+void
+concat(_tCon& con, _tIn first, _tIn last)
+{
+	con.insert(con.end(), std::make_move_iterator(first),
+		std::make_move_iterator(last));
+}
+template<class _tCon, typename _tRange>
+void
+concat(_tCon& con, _tRange&& c)
+{
+	using std::begin;
+	using std::end;
+
+	con.insert(con.end(), begin(c), end(c));
+}
+//@}
+
+
+/*!
 \ingroup algorithms
 \brief 逆向插入范围到容器的指定位置。
 \param con 指定的容器。
@@ -351,8 +434,8 @@ assign(_tCon& con, const _type(&arr)[_vN])
 \pre i 是 con 的迭代器。
 \since build 532
 
-调用带有迭代器参数的 insert 成员函数插入迭代器指定的范围到容器的指定位置。
-对 con 是关联容器时，范围内元素有序可被优化。
+调用带有迭代器参数的 \c insert 成员函数插入迭代器指定的范围到容器的指定位置。
+ con 是关联容器时，范围内元素有序可被优化。
 */
 template<typename _tCon, typename _tIn>
 typename _tCon::const_iterator
@@ -537,6 +620,24 @@ erase_n(_tCon& con, typename _tCon::iterator i,
 
 
 /*!
+\ingroup algorithms
+\brief 排序指定序列容器，保留不重复元素。
+\pre 容器的迭代器满足随机迭代器要求。
+\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+\since build 414
+*/
+template<class _tCon>
+inline void
+sort_unique(_tCon& con)
+{
+	using std::begin;
+	using std::end;
+
+	con.erase(ystdex::sort_unique(begin(con), end(con)), end(con));
+}
+
+
+/*!
 \brief 若容器末尾存在指定值的元素则移除。
 \since build 545
 */
@@ -570,21 +671,25 @@ pop_front_val(_tCon& con, const typename _tCon::value_type& val)
 
 
 /*!
-\ingroup algorithms
-\brief 排序指定序列容器，保留不重复元素。
-\pre 容器的迭代器满足随机迭代器要求。
-\note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
-\since build 414
+\brief 插入元素到 \c vector 末尾。
+\since build 546
 */
-template<class _tCon>
-inline void
-sort_unique(_tCon& con)
+//@{
+template<class _tVector, typename _tIn>
+void
+vector_concat(_tVector& vec, _tIn first, _tIn last)
 {
-	using std::begin;
-	using std::end;
-
-	con.erase(ystdex::sort_unique(begin(con), end(con)), end(con));
+	vec.reserve(vec.size() + std::distance(first, last));
+	ystdex::concat(vec, first, last);
 }
+template<class _tVector, typename _tRange>
+void
+vector_concat(_tVector& vec, _tRange&& c)
+{
+	vec.reserve(vec.size() + ystdex::range_size(c));
+	ystdex::concat(vec, yforward(c));
+}
+//@}
 
 
 /*!

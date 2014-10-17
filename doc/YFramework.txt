@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r882
+\version r884
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-10-11 08:56 +0800
+	2014-10-16 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,7 +226,7 @@
 @1.6.2.2.1 视图组织：
 构件对象的视图之间的联系组成的抽象整体（是一个图）称为视图组织。
 为了便于实现中以遍历为基础的算法能可靠结束，视图组织一般应是受限的、带层次的有向树（约定相邻层次的节点由父节点指向子节点），称为视图树。
-一旦存在环路，对视图的某些操作可能导致未定义行为。
+一旦存在环路，对视图的某些操作可能引起未定义行为。
 视图树的节点之间表示的显示范围存在约束。子节点可表示的区域是父节点的子集。
 
 @1.6.2.2.2 包围盒(bounding box) ：
@@ -381,7 +381,7 @@
  YFramework/YBaseMacro.h 仅依赖 YBase 的 ydef.h 。
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 必要文件不依赖非必要文件。
-任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头文件以及 YBase 头文件。
+任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头以及 YBase 头文件。
  Helper 的实现可能依赖 Helper 的平台扩展接口。
  YCLib 和 Helper 文件可依赖具体平台相关的外部依赖项。关于 Helper 的文件附加依赖规则参见 @2.8 。
 

@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2102
+\version r2103
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-10-01 09:10 +0800
+	2014-10-15 17:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -534,7 +534,7 @@ ClonePolymorphic(const _type& p) -> decltype(&*p)
 \since build 539
 */
 YF_API bool
-WriteEnvironmentVariable(string&, const string&);
+FetchEnvironmentVariable(string&, const string&);
 
 } // namespace YSLib;
 

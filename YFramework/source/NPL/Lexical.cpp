@@ -11,13 +11,13 @@
 /*!	\file Lexical.cpp
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1459
+\version r1490
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:26 +0800
 \par 修改时间:
-	2014-10-14 21:25 +0800
+	2014-10-14 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,6 +42,17 @@ UnescapeContext::Done()
 	return res;
 }
 
+
+bool
+HandleBackslashPrefix(char c, string& pfx)
+{
+	if(c == '\\')
+	{
+		pfx = "\\";
+		return true;
+	}
+	return {};
+}
 
 bool
 NPLUnescape(string& buf, const UnescapeContext& uctx, char ld)
@@ -144,14 +155,19 @@ LexicalAnalyzer::CheckLineConcatnater(char c, char concat, char newline)
 	return {};
 }
 
-void
-LexicalAnalyzer::ParseByte(byte b, Unescaper unescape)
+bool
+LexicalAnalyzer::FilterForParse(char c, Unescaper unescape,
+	PrefixHandler prefix_handler)
 {
-	if(CheckLineConcatnater(b) || CheckEscape(b, unescape))
-		return;
-	if(b == '\\' && ld != char())
-		unescape_context.Prefix = "\\";
-	else
+	return !(CheckLineConcatnater(c) || CheckEscape(c, unescape)
+		|| prefix_handler(c, unescape_context.Prefix));
+}
+
+void
+LexicalAnalyzer::ParseByte(byte b, Unescaper unescape,
+	PrefixHandler prefix_handler)
+{
+	if(FilterForParse(b, unescape, prefix_handler))
 	{
 		switch(b)
 		{
@@ -190,13 +206,10 @@ LexicalAnalyzer::ParseByte(byte b, Unescaper unescape)
 }
 
 void
-LexicalAnalyzer::ParseQuoted(byte b, Unescaper unescape)
+LexicalAnalyzer::ParseQuoted(byte b, Unescaper unescape,
+	PrefixHandler prefix_handler)
 {
-	if(CheckLineConcatnater(b) || CheckEscape(b, unescape))
-		return;
-	if(b == '\\')
-		unescape_context.Prefix = "\\";
-	else
+	if(FilterForParse(b, unescape, prefix_handler))
 		cbuf += char(b);
 }
 

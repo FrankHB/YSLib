@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2038
+\version r2249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-10-14 16:53 +0800
+	2014-10-17 16:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@ See readme file for details.
 #include YFM_MinGW32_YCLib_Consoles // for platform_ex::WConsole;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include <ystdex/exception.hpp> // for ystdex::raise_exception;
+#include YFM_NPL_SContext
 
 using namespace YSLib;
 using namespace IO;
@@ -71,6 +72,13 @@ namespace
 */
 #define OPT_pfx_xlogfl "-xlogfl,"
 
+/*!
+\brief 选项前缀：动作模式(mode) 。
+\note 默认值为 1 ，表示调用 AR 。值 2 表示调用 \c LD 。
+\since build 546
+*/
+#define OPT_pfx_xmode "-xmode,"
+
 
 //! \since build 477
 //@{
@@ -80,10 +88,10 @@ using ystdex::raise_exception;
 template<typename... _tParams>
 YB_NORETURN inline PDefH(void, raise_exception, int ret, _tParams&&... args)
 	ImplExpr(raise_exception<IntException>({
-		std::runtime_error(yforward(args)...), ret}));
+		std::runtime_error(yforward(args)...), ret}))
 //! \since build 522
 YB_NORETURN inline PDefH(void, raise_exception, int ret)
-	ImplExpr(raise_exception(ret, "Failed calling command."));
+	ImplExpr(raise_exception(ret, "Failed calling command."))
 
 //! \since build 538
 void
@@ -183,12 +191,12 @@ EnsureOutputDirectory(const string& opath)
 std::chrono::nanoseconds
 CheckModification(const string& path)
 {
-	PrintInfo("Checking path '" + path + "' ...", Debug);
+	PrintInfo("Checking path '" + path + "' ...", RecordLevel(Debug + 8));
 
 	const auto& file_time(platform::GetFileModificationTimeOf(path));
 
 	PrintInfo("Modification time: " + to_string(file_time.count()) + " .",
-		Debug);
+		RecordLevel(Debug + 8));
 	return file_time;
 }
 
@@ -214,8 +222,6 @@ CheckBuild(_func f, const string& opath)
 	}
 	return true;
 }
-PDefH(bool, CheckBuild, const string& ipath, const string& opath)
-	ImplRet(CheckBuild(std::bind(CompareModification, ipath, opath), opath))
 bool
 CheckBuild(const vector<string>& ipaths, const string& opath)
 {
@@ -225,6 +231,80 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 	}, opath);
 }
 //@}
+
+/*!
+\brief 分解 \c .d 文件的依赖项。
+\since build 546
+*/
+vector<string>
+GetDependencies(const string& path)
+{
+	using namespace ystdex;
+	using namespace NPL;
+	TextFile tf(path);
+	set<size_t> spaces;
+	Session sess(tf, [&](LexicalAnalyzer& lexer, char c){
+		lexer.ParseQuoted(c, [&](string& buf, const UnescapeContext& uctx,
+			char)->bool{
+			const auto& escs(uctx.GetSequence());
+
+			// NOTE: See comments in %munge function of 'mkdeps.c' from libcpp
+			//	of GCC.
+			if(escs.length() == 1)
+			{
+				if(uctx.Prefix == "\\")
+					switch(escs[0])
+					{
+					case ' ':
+						spaces.insert(buf.size());
+					case '\\':
+					case '#':
+						buf += escs[0];
+						return true;
+					default:
+						;
+					}
+				if(uctx.Prefix == "$" && escs[0] == '$')
+				{
+					buf += '$';
+					return true;
+				}
+			}
+			return {};
+		}, [](char c, string& pfx)->bool{
+			if(c == '\\')
+				pfx = "\\";
+			else if(c == '$')
+				pfx = "$";
+			else
+				return {};
+			return true;
+		});
+	});
+	const auto& buf(sess.GetBuffer());
+	vector<string> lst;
+
+	ystdex::split_if_iter(buf.begin(), buf.end(), [](char c){
+		return std::isspace(c);
+	}, [&](string::const_iterator b, string::const_iterator e){
+		lst.push_back(string(b, e));
+	}, [&](string::const_iterator i){
+		return !ystdex::exists(spaces, i - buf.cbegin());
+	});
+
+	const auto i_c(std::find_if(lst.cbegin(), lst.cend(), [](const string& dep){
+		return !dep.empty() && dep.back() == ':';
+	}));
+
+	if(i_c == lst.cend())
+		PrintInfo("Wrong dependencies format found.", Warning);
+	lst.erase(lst.cbegin(), i_c + 1);
+	if(lst.empty())
+		PrintInfo("Wrong dependencies format found.", Warning);
+	PrintInfo(to_string(lst.size()) + " dependenc"
+		+ (lst.size() == 1 ? "y" : "ies") + " found.", Debug);
+	return lst;
+}
 
 } // unnamed namespace;
 
@@ -251,6 +331,14 @@ public:
 	string CXX = "g++";
 	//! \since build 539
 	string AR = "ar";
+	//! \since build 546
+	//@{
+	string ARFLAGS = "rcs";
+	string LD = "ld";
+	string LDFLAGS = "";
+	string LIBS = "";
+	size_t Mode = 1;
+	//@}
 
 	BuildContext(size_t n)
 		: jobs(n)
@@ -292,7 +380,7 @@ public:
 //! \since build 545
 //@{
 using Key = pair<Path, Path>;
-using Value = string;
+using Value = vector<string>;
 using ActionContext = GRecursiveCallContext<Key, Value>;
 using BuildAction = ActionContext::CallerType;
 
@@ -317,7 +405,11 @@ Rule::GetCommand(const String& ext) const
 }
 
 
-string
+//! \since build 546
+namespace
+{
+
+Value
 BuildFile(const Rule& rule)
 {
 	const auto& bctx(rule.Context);
@@ -328,23 +420,34 @@ BuildFile(const Rule& rule)
 	if(!cmd.empty())
 	{
 		const auto& ofullname(rule.Source.second.GetMBCS());
+		bool build{true};
 
-		// TODO: Check indirect dependencies (i.e. headers) timestamps.
-		if(CheckBuild(fullname, ofullname))
+		try
+		{
+			auto dfullname(ofullname);
+
+			YAssert(!dfullname.empty(), "Invalid output name found.");
+			dfullname.back() = 'd';
+			if(!CheckBuild(GetDependencies(dfullname), ofullname))
+				build = {};
+		}
+		catch(std::exception&)
+		{}
+		if(build)
 		{
 			PrintInfo("Compile file: '" + ipth.back().GetMBCS() + "'.",
 				Informative);
 			bctx.CallWithException(cmd + " -MMD" + " -c" + bctx.GetFlags() + ' '
 				+ fullname + " -o \"" + ofullname + '"');
 		}
-		return ofullname;
+		return {ofullname};
 	}
 	else
 		PrintInfo("No rule found for '" + fullname + "'.", Warning);
 	return {};
 }
 
-string
+Value
 SearchDirectory(const Rule& rule, const ActionContext& actx)
 {
 	const auto& bctx(rule.Context);
@@ -379,14 +482,9 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 			}
 		}
 	});
-
 	for(const auto& name : subdirs)
-	{
-		auto afile(actx(make_pair(ipth / name, opth / name)));
-
-		if(!afile.empty())
-			afiles.push_back(std::move(afile));
-	}
+		ystdex::vector_concat(ofiles,
+			actx(make_pair(ipth / name, opth / name)));
 
 	const auto snum(src_files.size());
 
@@ -400,50 +498,15 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 			const auto& name(pr.second);
 			auto ofile(actx(make_pair(ipth / name, opth / (name + ".o"))));
 
-			if(!ofile.empty())
-				ofiles.push_back(std::move(ofile));
+			// XXX: Check size.
+			if(!ofile.empty() && !ofile.front().empty())
+				ofiles.push_back(std::move(ofile.front()));
 		}
 	}
-	bctx.Wait();
-
-	const auto onum(ofiles.size());
-
-	if(snum != onum)
-		PrintInfo("Warning: " + to_string(onum) + " file(s) built, should be "
-			+ to_string(snum) + " .", Warning);
-
-	const auto anum(afiles.size());
-
-	PrintInfo("Found " + to_string(anum) + " .a file(s) and "
-		+ to_string(onum) + " .o file(s).", Informative);
-	if(anum != 0 || onum != 0)
-	{
-		Path pth(opth);
-
-		YAssert(!pth.empty(), "Invalid path found.");
-		pth.pop_back();
-		EnsureOutputDirectory(pth);
-
-		auto target(to_string(opth).GetMBCS(CS_Path) + ".a");
-
-		// TODO: Simplification.
-		ofiles.insert(ofiles.end(), std::make_move_iterator(afiles.begin()),
-			std::make_move_iterator(afiles.end()));
-		if(CheckBuild(ofiles, target))
-		{
-			auto str(bctx.AR + " rcs \"" + target + '"');
-
-			// FIXME: Prevent path too long.
-			for(const auto& ofile : ofiles)
-				str += " \"" + ofile + "\"";		
-			PrintInfo("Link file: '" + target + "'.", Informative);
-			bctx.CallWithException(str, 1);
-		}
-		return target;
-	}
-	return {};
+	return ofiles;
 }
-//@}
+
+} // unnamed namespace;
 
 
 int
@@ -478,7 +541,8 @@ BuildContext::Build()
 		flags += ' ' + opt;
 	});
 
-	ActionContext([this](const Key& name){
+	const auto opth(Path(OutputDir) / ipath.back());
+	const auto& ofiles(ActionContext([this](const Key& name){
 		const shared_ptr<Rule> p_rule(new Rule{*this, name});
 
 		return VerifyDirectory(name.first)
@@ -487,7 +551,47 @@ BuildContext::Build()
 		}) : BuildAction([=](const ActionContext&){
 			return BuildFile(*p_rule);
 		});
-	})({in, Path(OutputDir) / ipath.back()});
+	})({in, opth}));
+
+	Wait();
+
+	const auto onum(ofiles.size());
+
+	PrintInfo("Found " + to_string(onum) + " .o file(s).", Informative);
+	if(onum != 0)
+	{
+		Path pth(opth);
+
+		YAssert(!pth.empty(), "Invalid path found.");
+		pth.pop_back();
+		EnsureOutputDirectory(pth);
+
+		auto target(to_string(opth).GetMBCS(CS_Path));
+		const auto& cmd(Mode == 1 ? AR + ' ' + ARFLAGS
+			: LD + ' ' + LDFLAGS + " -o");
+
+		if(Mode == 1)
+			target += ".a";
+		// FIXME: Find extension properly.
+		else
+			// FIXME: Parse %LDFLAGS.
+			target += ystdex::exists_substr(LDFLAGS, "-Bdynamic")
+				|| ystdex::exists_substr(LDFLAGS, "-shared") ? ".dll" : ".exe";
+		if(CheckBuild(ofiles, target))
+		{
+			auto str(cmd + " \"" + target + '"');
+
+			// FIXME: Prevent path too long.
+			for(const auto& ofile : ofiles)
+				str += " \"" + ofile + "\"";		
+			if(Mode == 2)
+				str += ' ' + LIBS;
+			PrintInfo("Link file: '" + target + "'.", Informative);
+			CallWithException(str, 1);
+		}
+	}
+	else
+		PrintInfo("No files to be built.", Warning);
 }
 
 int
@@ -535,17 +639,25 @@ BuildContext::Wait() const
 }
 
 
-//! \since build 542
+//! \since build 546
 void
-PrintUsage(const string& prog)
+PrintUsage(const char*);
+
+void
+PrintUsage(const char* pr)
 {
-	std::printf("%s", ("Usage: [ENV ...] " + prog + " SRCPATH [OPTIONS ...]\n\n"
+	YAssertNonnull(pr);
+	std::printf("%s%s%s", "Usage: [ENV ...] ", pr, " SRCPATH [OPTIONS ...]\n\n"
 		"[ENV ...]\n"
 		"\tThe environment variables settings."
 		" Currently accepted settings are listed below:\n\n"
 		"  CC\n\tThe C compiler executable. Default value is 'gcc'.\n\n"
 		"  CXX\n\tThe C++ compiler executable. Default value is 'g++'.\n\n"
 		"  AR\n\tThe archiver executable. Default value is 'ar'.\n\n"
+		"  ARFLAGS\n\tThe archiver flags. Default value is 'rcs'.\n\n"
+		"  LD\n\tThe linker executable. Default value is 'ld'.\n\n"
+		"  LDFLAGS\n\tThe linker flags. Default value is empty.\n\n"
+		"  LIBS\n\tExtra options for at end. Default value is empty.\n\n"
 		"SRCPATH\n"
 		"\tThe source directory to be recursively searched.\n\n"
 		"OPTIONS ...\n"
@@ -571,7 +683,14 @@ PrintUsage(const string& prog)
 		"\tOnly log with level less than this value would be present in the"
 		" out put stream.\n"
 		"\tIf this option occurs more than once, only the last one is"
-		" effective.\n\n").c_str());
+		" effective.\n\n"
+		"  " OPT_pfx_xmode "MODE\n"
+		"\tThe target action mode.\n"
+		"\tValue '1' represents call of AR for the final target, and '2' is LD."
+		" Other value is reserved and to be ignored."
+		" Default value is '1'.\n"
+		"\tIf this option occurs more than once, only the last one is"
+		" effective.\n\n");
 }
 
 
@@ -579,20 +698,25 @@ int
 main(int argc, char* argv[])
 {
 	using namespace platform_ex;
+	using namespace std::chrono;
 	auto p_wcon(MakeWConsole()), p_wcon_err(MakeWConsole(STD_ERROR_HANDLE));
 
 	try
 	{
 		auto& logger(FetchCommonLogger());
+		const auto start_time(steady_clock::now());
 
 		logger.FilterLevel = Logger::Level::Debug;
 		logger.SetSender([&](Logger::Level lv, Logger&, const char* str){
 			const auto stream(lv <= Warning ? stderr : stdout);
 			const auto& p_con(lv <= Warning ? p_wcon_err : p_wcon);
+			const auto dcnt(duration_cast<milliseconds>(steady_clock::now()
+				- start_time).count());
 
 			if(p_con)
 				p_con->RestoreAttributes();
-			std::fprintf(stream, "[%#02X]", unsigned(lv));
+			std::fprintf(stream, "[%04u.%03u][%#02X]", unsigned(dcnt / 1000U),
+				unsigned(dcnt % 1000U), unsigned(lv));
 			YAssertNonnull(str);
 			if(p_con)
 			{
@@ -619,6 +743,7 @@ main(int argc, char* argv[])
 			set<string> ignored_dirs;
 			string output_dir;
 			size_t max_jobs(0);
+			size_t mode(1);
 
 			for(int i(1); i < argc; ++i)
 			{
@@ -647,22 +772,32 @@ main(int argc, char* argv[])
 					logger.FilterLevel = Logger::Level(uval);
 				}))
 					;
+				else if(ParsePrefixedOption<unsigned long>(arg, OPT_pfx_xmode,
+					"mode", 0x3, [&](unsigned long uval){
+					if(uval == 1 || uval == 2)
+						mode = uval;
+					else
+						PrintInfo("Ignored unsupported mode '" + to_string(uval)
+							+ "'.", Warning);
+				}))
+					;
 				else
 					args.emplace_back(std::move(arg));
 			}
 
 			BuildContext ctx(max_jobs);
+			using opts = pair<string&, const char*>;
 				
-			WriteEnvironmentVariable(ctx.CC, "CC"),
-			WriteEnvironmentVariable(ctx.CXX, "CXX"),
-			WriteEnvironmentVariable(ctx.AR, "AR");
-			PrintInfo("CC = " + ctx.CC);
-			PrintInfo("CXX = " + ctx.CXX);
-			PrintInfo("AR = " + ctx.AR);
+			ystdex::seq_apply([](opts pr){
+					FetchEnvironmentVariable(pr.first, pr.second);
+					PrintInfo(pr.second + (" = " + pr.first));
+				}, opts{ctx.CC, "CC"}, opts{ctx.CXX, "CXX"}, opts{ctx.AR, "AR"},
+				opts{ctx.ARFLAGS, "ARFLAGS"}, opts{ctx.LD, "LD"},
+				opts{ctx.LDFLAGS, "LDFLAGS"}, opts{ctx.LIBS, "LIBS"});
 			if(!output_dir.empty())
 				ctx.OutputDir = std::move(output_dir);
 			yunseq(ctx.IgnoredDirs = std::move(ignored_dirs),
-				ctx.Options = std::move(args));
+				ctx.Options = std::move(args), ctx.Mode = mode);
 			PrintInfo("OutputDir = " + ctx.OutputDir);
 			ctx.Build();
 		}
