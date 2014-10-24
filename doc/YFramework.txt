@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r884
+\version r894
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-10-16 15:54 +0800
+	2014-10-23 10:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,13 +372,21 @@
 @2.2 文件依赖性：
 以下部分指定 YFramework 中明确或明确禁止依赖的文件，排除构建的中间文件。非公开头文件的适用规则同非头文件。以下头文件指公开头文件。
 
-@2.2.1 基本文件依赖性（适用于 YFramework ）：
+@2.2.1 YFramework 基本文件依赖性：
  YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
 关于 ISO C++11 直接指定的依赖项，参见 [Documentation::LanguageConvention @@5.25.2] ；其它基本代码依赖性规则如下（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
 禁止依赖（包括包含）非头文件。
+对公开的头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.1])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
 除非另行约定，禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
+实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
+下层的 <YModules.h> 包含 "../YModules.h" 。除此之外，以下包含关系是确定的：
+ <CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；
+ <YSLib/Core/YModules.h> 包含 "../Adaptor/YModules.h" ；
+ <YSLib/Service/YModules.h> 包含 "../Core/YModules.h" ；
+ <YSLib/UI/YModules.h> 和 <NPL/YModules.h> 包含 "../Service/YModules.h" ；
+ <YSLib/Helper/YModules.h> 包含 "../YSLib/UI/YModules.h" 和 "../NPL/YModules.h" 。
 除非以下显式说明，禁止平台中立文件依赖平台扩展；例外的被依赖项视为具体实现，不应作为公开接口。
- YFramework/YBaseMacro.h 仅依赖 YBase 的 ydef.h 。
+ YFramework 的 YFM_YBaseMacro 仅依赖 YBase 的 ydef.h 。
  YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 必要文件不依赖非必要文件。
 任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头以及 YBase 头文件。
@@ -399,15 +407,7 @@
  YSLib/Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
 本体的必要文件不依赖 YSLib 以外的文件。
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
-对公开的头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.1])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
  Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。
-实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
-下层的 <YModules.h> 包含 "../YModules.h" 。除此之外，以下包含关系是确定的：
- <CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；
- <YSLib/Core/YModules.h> 包含 "../Adaptor/YModules.h" ；
- <YSLib/Service/YModules.h> 包含 "../Core/YModules.h" ；
- <YSLib/UI/YModules.h> 和 <NPL/YModules.h> 包含 "../Service/YModules.h" ；
- <YSLib/Helper/YModules.h> 包含 "../YSLib/UI/YModules.h" 和 "../NPL/YModules.h" 。
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
 @2.3 名称：

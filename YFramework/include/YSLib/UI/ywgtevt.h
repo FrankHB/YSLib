@@ -11,13 +11,13 @@
 /*!	\file ywgtevt.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1603
+\version r1612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-10-04 15:13 +0800
+	2014-10-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -512,15 +512,10 @@ size_t
 DoEvent(AController& controller, const VisualEvent& id,
 	typename EventArgsHead<typename _tEventHandler::TupleType>::type&& e)
 {
-	try
-	{
-		return dynamic_cast<EventT(typename _tEventHandler)&>(
-			controller.GetItem(id))(std::move(e));
-	}
-	catch(std::out_of_range&)
-	{}
-	catch(std::bad_cast&)
-	{}
+	TryRet(dynamic_cast<EventT(typename _tEventHandler)&>(
+		controller.GetItem(id))(std::move(e)))
+	CatchIgnore(std::out_of_range&)
+	CatchIgnore(std::bad_cast&)
 	return 0;
 }
 

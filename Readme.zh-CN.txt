@@ -19,6 +19,10 @@
 最终用户环境中部署的数据目录
 /Tools
 开发使用的（辅助）工具
+/Tools/SHBuild
+ SHBuild 构建工具
+/Tools/Scripts
+用于构建和建立 SHBuild 环境的工具脚本
 /YBase
 顶级子项目 YBase
 /YFramework
@@ -104,8 +108,10 @@ DKP_HOME = F:\devkitPro
 
  SHBuild
 ==
-试验中的命令行构建工具。
+试验中的命令行构建工具。不需要引入领域特定语言的脚本，除了特定选项外传递到后端工具（编译器），递归查找目录中的源文件进行直接构建。省略选项显示使用说明。
 若使用 ConEmu 出现 0xC0000005 错误，注意升级到最新版本后勾选 Inject ConEmuHk 选项。详见 https://code.google.com/p/conemu-maximus5/wiki/MicrosoftBugs 。
+已经在 Windows 平台实现自举（需要 G++ 和 bash 但不需要 make ）。
+可使用 Tools/Scripts/install-sysroot.sh 脚本生成包含 YSLib 库和 SHBuild 工具的 sysroot ，用于进一步开发。
 
 其它
 ==

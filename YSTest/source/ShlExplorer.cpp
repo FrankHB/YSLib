@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1399
+\version r1407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-09-20 18:27 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,8 +68,7 @@ CheckTextFileExtensions(string ext)
 				|| ystdex::ends_with(pth.back(), "xml"));
 		}
 	}
-	catch(std::out_of_range&)
-	{}
+	CatchIgnore(std::out_of_range&)
 	return {};
 }
 
@@ -303,12 +302,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		DeclDynWidgetN(TreeView, tvNodes, node_pnlPage3)
 
 		tvNodes.GetExtractText() = [](const ValueNode& node)->String{
-			try
-			{
-				return TreeList::DefaultExtractText(node);
-			}
-			catch(ystdex::bad_any_cast&)
-			{}
+			TryRet(TreeList::DefaultExtractText(node))
+			CatchIgnore(ystdex::bad_any_cast&)
 			return "<NONE>";
 		};
 		tvNodes.GetTreeRootRef() = FetchRoot();

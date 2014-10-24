@@ -11,13 +11,13 @@
 /*!	\file Configuration.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r743
+\version r757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 334
 \par 创建时间:
 	2012-08-27 15:15:06 +0800
 \par 修改时间:
-	2014-10-14 08:39 +0800
+	2014-10-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,12 +56,8 @@ WriteNode(File& f, const ValueNode& node, size_t depth)
 		{
 			WritePrefix(f, depth);
 			f << '(' << '\n';
-			try
-			{
-				WriteNode(f, n, depth + 1);
-			}
-			catch(std::out_of_range&)
-			{}
+			TryExpr(WriteNode(f, n, depth + 1))
+			CatchIgnore(std::out_of_range&)
 			WritePrefix(f, depth);
 			f << ')' << '\n';
 		}
@@ -80,8 +76,7 @@ PrintNodeString(File& f, const ValueNode& node)
 		f << '"' << EscapeLiteral(s) << '"' << '\n';
 		return true;
 	}
-	catch(ystdex::bad_any_cast&)
-	{}
+	CatchIgnore(ystdex::bad_any_cast&)
 	return {};
 }
 
@@ -105,12 +100,8 @@ WriteNodeC(File& f, const ValueNode& node, size_t depth)
 			else
 			{
 				f << '(' << '\n';
-				try
-				{
-					WriteNodeC(f, n, depth + 1);
-				}
-				catch(std::out_of_range&)
-				{}
+				TryExpr(WriteNodeC(f, n, depth + 1))
+				CatchIgnore(std::out_of_range&)
 				WritePrefix(f, depth);
 				f << ')' << '\n';
 			}

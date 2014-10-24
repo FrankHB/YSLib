@@ -11,13 +11,13 @@
 /*!	\file Consoles.cpp
 \ingroup NBuilder
 \brief 控制台。
-\version r217
+\version r223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2014-10-06 06:33 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,12 +163,8 @@ MakeWConsole(::DWORD h)
 {
 	std::unique_ptr<WConsole> p_con;
 
-	try
-	{
-		p_con.reset(new WConsole(h));
-	}
-	catch(Win32Exception&)
-	{}
+	TryExpr(p_con.reset(new WConsole(h)))
+	CatchIgnore(Win32Exception&)
 	return p_con;
 }
 

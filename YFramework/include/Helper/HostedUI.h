@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r175
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2014-10-04 15:10 +0800
+	2014-10-24 21:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,6 +110,7 @@ DragWindow(Window&, UI::CursorEventArgs&&);
 
 /*!
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。
+\exception LoggedEvent 宽或高不大于 0 。
 \note WS_EX_LAYERED 被设置时默认透明，可对宿主窗口 Opacity 成员设置不透明性。
 \note 阻塞等待宿主窗口指针非空。
 \since build 430

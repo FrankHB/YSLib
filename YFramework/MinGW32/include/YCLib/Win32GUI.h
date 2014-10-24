@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r538
+\version r540
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-10-07 13:25 +0800
+	2014-10-24 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,6 +170,7 @@ public:
 
 	/*!
 	\brief 显示窗口。
+	\note 若窗口被最小化则恢复；不激活窗口。
 	\return 异步操作是否成功。
 	*/
 	bool
@@ -179,6 +180,7 @@ public:
 
 /*!
 \brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶层窗口。
+\exception LoggedEvent 宽或高不大于 0 。
 \since build 430
 */
 YF_API NativeWindowHandle

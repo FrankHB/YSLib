@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1749
+\version r1763
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-10-11 18:40 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,7 +113,7 @@ GetFileModificationTimeOfImpl(const _tChar* filename)
 	YAssertNonnull(filename);
 
 	const fd_wrapper fdw(uopen(filename, O_RDONLY));
-	
+
 	if(fdw.file_des != -1)
 		return GetFileModificationTimeOf(fdw.file_des);
 	throw FileOperationFailure(errno, std::generic_category(),
@@ -242,12 +242,8 @@ DirectoryData::Rewind() ynothrow
 
 
 #define YCL_Impl_RetTryCatchAll(...) \
-	try \
-	{ \
-		return __VA_ARGS__; \
-	} \
-	catch(...) \
-	{}
+	TryRet(__VA_ARGS__) \
+	CatchIgnore(...)
 
 int
 uopen(const char* filename, int oflag) ynothrow
@@ -378,10 +374,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow
 					return buf;
 				}
 			}
-			catch(std::bad_alloc&)
-			{
-				errno = ENOMEM;
-			}
+			CatchExpr(std::bad_alloc&, errno = ENOMEM)
 #endif
 	}
 	return {};
@@ -454,11 +447,9 @@ GetFileModificationTimeOf(int fd)
 	{
 		return platform_ex::ConvertTime(file_time);
 	}
-	catch(std::system_error& e)
-	{
+	CatchExpr(std::system_error& e,
 		throw FileOperationFailure(e.code(), std::string(
-			"Failed querying file modification time: ") + e.what() + ".");
-	}
+		"Failed querying file modification time: ") + e.what() + "."))
 #else
 	// TODO: Get more precise time count.
 	struct ::stat st;

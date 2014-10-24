@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r561
+\version r577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2014-05-12 09:48 +0800
+	2014-10-21 12:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,11 +71,8 @@ InsertWidget(IWidget& wgt, _tParams&&... args)
 
 
 //! \since build 432
-inline bool
-CheckChildName(const string& str)
-{
-	return str.size() != 0 && str[0] != '$';
-}
+inline PDefH(bool, CheckChildName, const string& str)
+	ImplRet(str.size() != 0 && str[0] != '$')
 
 
 /*!
@@ -89,8 +86,8 @@ public:
 	string NodeName;
 
 	WidgetNotFound(const string& name, const std::string& s,
-		LevelType l = Warning)
-		: LoggedEvent(s, l),
+		LevelType lv = Warning)
+		: LoggedEvent(s, lv),
 		NodeName(name)
 	{}
 };
@@ -109,15 +106,9 @@ template<typename... _tParams>
 const ValueNode&
 AccessWidgetNode(const ValueNode& node, const string& name, _tParams&&... args)
 {
-	try
-	{
-		return
-			AccessWidgetNode(node.at("$children").at(name), yforward(args)...);
-	}
-	catch(std::out_of_range&)
-	{
-		throw WidgetNotFound(node.GetName(), "Widget children not found.");
-	}
+	TryRet(AccessWidgetNode(node.at("$children").at(name), yforward(args)...))
+	CatchExpr(std::out_of_range&,
+		throw WidgetNotFound(node.GetName(), "Widget children not found."))
 }
 //@}
 

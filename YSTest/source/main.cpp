@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1803
+\version r1819
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-07-22 16:07 +0800
+	2014-10-21 12:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -267,25 +267,15 @@ main()
 		OnExit_DebugMemory();
 	#endif
 	}
-	catch(FatalError& e)
-	{
-		HandleFatalError(e);
-	}
-	catch(LoggedEvent& e)
-	{
+	CatchExpr(FatalError& e, HandleFatalError(e))
+	CatchExpr(LoggedEvent& e,
 		log.FatalError("Unhandled logged event with level = "
-			+ to_string(e.GetLevel()) + " : " + e.what());
-	}
-	catch(std::exception& e)
-	{
+		+ to_string(e.GetLevel()) + " : " + e.what()))
+	CatchExpr(std::exception& e,
 		// TODO: Distinguish errors from %std::runtime_error and YSLib-defined
 		//	exceptions.
-		log.FatalError(string("Unhandled std::exception: ") + e.what());
-	}
-	catch(...)
-	{
-		log.FatalError("Unhandled exception @ main function;");
-	}
+		log.FatalError(string("Unhandled std::exception: ") + e.what()))
+	CatchExpr(..., log.FatalError("Unhandled exception @ main function;"))
 	// TODO: Return exit code properly.
 }
 

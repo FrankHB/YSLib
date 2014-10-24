@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1174
+\version r1179
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2014-10-16 09:54 +0800
+	2014-10-24 11:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -248,7 +248,10 @@
 右值引用是 ISO C++11 支持的新的引用类型。
 关于右值引用和值类别的关系参见 @5.2.3 。
 非 const 右值对象引用用于实现转移语义。
-注意一般地，转移语义仅保证转移后目标的后置条件。被转移的对象在操作后的状态可能未指定，如标准库中满足 MoveConstructible 的对象在被转移后的状态。
+注意一般地，转移语义仅保证转移后目标的后置条件。
+被转移的对象在操作后的状态可能有效但未指定(valid but unspecified) ，如标准库中满足 MoveConstructible 的对象在未另行指定时被转移后的状态。
+相反的例子如标准库的 std::unique_ptr （通过所有权转移约定）和 std::shared_ptr （通过转移构造函数约定），保证被转移后的对象为空。
+另见 @5.12.2.3.1 。
 
 @5.2.4.2 引用折叠(reference collapsing) 和完美转发(perfect forwarding) ：
 引用折叠是 ISO C++11 引入的特殊引用规则。对特定上下文（如 typedef 和 decltype 组合引用类型）中，被左值引用修饰的引用类型为左值引用，被右值引用修饰的右值引用类型为右值引用。
@@ -1148,6 +1151,7 @@
 @5.15.10 容器：
 注意容器对元素的要求。
 注意异常安全。保证无异常抛出的成员函数不一定显式使用 noexcept ，参见 @5.10.5.5.1 。
+注意容器转移后为有效但未指定状态(@5.2.4.1) 而不保证为空。若需要空容器，先调用 clear() 清空。
 若有可能，使用 empty 代替 size 。
 若有可能，使用 emplace 代替 insert 。
 

@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r296
+\version r316
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-07-24 17:17 +0800
+	2014-10-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,33 +76,21 @@ WindowThread::~WindowThread()
 			p_wnd_val->Close();
 		}
 #		if YCL_Win32
-		catch(Win32Exception&)
+		CatchIgnore(Win32Exception&)
 #		else
-		catch(Exception&) // XXX: Use proper platform-dependent type.
+		CatchIgnore(Exception&) // XXX: Use proper platform-dependent type.
 #		endif
-		{}
 #	endif
 		// NOTE: If the thread has been already completed there is no effect.
 		if(thrd.joinable())
 			thrd.join();
 	}
-	catch(std::system_error& e)
-	{
-		YTraceDe(Warning, "Caught std::system_error: %s.", e.what());
-
-		yunused(e);
-	}
-	catch(std::exception& e)
-	{
+	CatchExpr(std::system_error& e, YTraceDe(Warning,
+		"Caught std::system_error: %s.", e.what()), yunused(e))
+	CatchExpr(std::exception& e,
 		YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
-			e.what());
-
-		yunused(e);
-	}
-	catch(...)
-	{
-		YTraceDe(Alert, "Caught unknown exception.");
-	}
+		e.what()), yunused(e))
+	CatchExpr(..., YTraceDe(Alert, "Caught unknown exception."))
 	delete p_wnd_val;
 }
 
@@ -201,11 +189,10 @@ HostRenderer::Update(BitmapPtr buf)
 			p_wnd->UpdateFrom(buf, rbuf);
 		}
 #	if YCL_Win32
-		catch(Win32Exception&)
+		CatchIgnore(Win32Exception&)
 #	else
-		catch(Exception&) // XXX: Use proper platform-dependent type.
+		CatchIgnore(Exception&) // XXX: Use proper platform-dependent type.
 #	endif
-		{}
 }
 
 } // namespace Host;

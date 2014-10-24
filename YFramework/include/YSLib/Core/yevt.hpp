@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4796
+\version r4808
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-10-04 15:12 +0800
+	2014-10-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -471,12 +471,8 @@ public:
 
 		for(const auto& pr : List)
 		{
-			try
-			{
-				pr.second(yforward(args)...);
-			}
-			catch(std::bad_function_call&)
-			{}
+			TryExpr(pr.second(yforward(args)...))
+			CatchIgnore(std::bad_function_call&)
 			++n;
 		}
 		return n;
@@ -763,12 +759,8 @@ public:
 	void
 	operator()(_tParams&&... args) const
 	{
-		try
-		{
-			Caller(yforward(args)...);
-		}
-		catch(std::bad_function_call&)
-		{}
+		TryExpr(Caller(yforward(args)...))
+		CatchIgnore(std::bad_function_call&)
 	}
 
 	//! \todo 实现比较 Function 相等。

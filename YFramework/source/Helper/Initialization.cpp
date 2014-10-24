@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2034
+\version r2044
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-07-22 18:54 +0800
+	2014-10-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,10 +381,8 @@ InitializeInstalled()
 		YF_Init_puts(Notice, "OK!");
 		return node;
 	}
-	catch(std::exception& e)
-	{
-		YF_Init_printf(Err, "Error occurred: %s\n", e.what());
-	}
+	CatchExpr(std::exception& e,
+		YF_Init_printf(Err, "Error occurred: %s\n", e.what()))
 	throw FatalError("      Invalid Installation      ",
 		" Please make sure the data is\n"
 		" stored in correct directory.\n");
@@ -419,8 +417,7 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 					}
 				});
 			}
-			catch(FileOperationFailure&)
-			{}
+			CatchIgnore(FileOperationFailure&)
 		fc.InitializeDefaultTypeface();
 		if(const auto nFaces = fc.GetFaces().size())
 			YF_Init_printf(Notice, "%zu face(s) in %zu font file(s)"
@@ -436,10 +433,7 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 		return;
 	}
 	// TODO: Use %std::nested_exception.
-	catch(std::exception& e)
-	{
-		YF_Init_puts(Err, e.what());
-	}
+	CatchExpr(std::exception& e, YF_Init_puts(Err, e.what()))
 	throw FatalError("      Font Caching Failure      ",
 		" Please make sure the fonts are\n"
 		" stored in correct path.\n");

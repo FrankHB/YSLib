@@ -5,10 +5,7 @@
 
 set -e
 
-pushd .
-
-# XXX: Location related.
-cd ..
+cd `dirname $0`/..
 
 # FIXME: Possibly header pollution.
 rsync -av 3rdparty/include/ /usr/include

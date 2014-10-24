@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2570
+\version r2620
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2014-08-15 03:17 +0800
+	2014-10-21 12:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,19 +77,22 @@ _t type
 
 //函数宏。
 
-//通用头定义。
+//! \brief 通用头定义。
 #define PDefH(_t, _n, ...) \
 	_t \
 	_n(__VA_ARGS__)
+
+//! \brief 操作符重载头定义。
 #define PDefHOp(_t, _op, ...) \
 	PDefH(_t, operator _op, __VA_ARGS__)
 
+//! \brief 转换操作头定义。
 #define PDefCvt(_t) \
 	operator _t()
 
 
-//简单通用函数实现。
-//prefix "Impl" = Implementation;
+//! \brief 简单通用函数实现。
+//@{
 #define ImplExpr(...) \
 	{ \
 		(__VA_ARGS__), void(); \
@@ -108,26 +111,56 @@ _t type
 	{ \
 		yunused(yunseq(__VA_ARGS__)); \
 	}
+//@}
 
-//基类同名函数映射和成员同名函数映射实现。
-//prefix "Impl" = Implement;
+//! \brief 基类同名函数映射和成员同名函数映射实现。
+//@{
 #define ImplBodyBase(_b, _n, ...) \
 	ImplRet(_b::_n(__VA_ARGS__))
 #define ImplBodyMem(_m, _n, ...) \
 	ImplRet((_m)._n(__VA_ARGS__))
+//@}
 
 
-//简单通用成员函数定义。
-//prefix "Def" = Define;
+//! \since build 547
+//@{
+//! \brief 指定表达式在 \c try 块中求值。
+#define TryExpr(...) \
+	try \
+	ImplExpr(__VA_ARGS__)
+//! \brief 指定表达式在 \c try 块中求值并返回。
+#define TryRet(...) \
+	try \
+	ImplRet(__VA_ARGS__)
+
+//! \brief 指定表达式作为异常处理器。
+#define CatchExpr(_ex, ...) \
+	catch(_ex) \
+	ImplExpr(__VA_ARGS__)
+//! \brief 指定异常处理器忽略指定异常。
+#define CatchIgnore(_ex) \
+	catch(_ex) \
+	{}
+//! \brief 指定返回语句作为异常处理器。
+#define CatchRet(_ex, ...) \
+	catch(_ex) \
+	ImplRet(__VA_ARGS__)
+//! \brief 指定抛出指定异常作为异常处理器。
+#define CatchThrow(_ex, ...) \
+	catch(_ex) \
+	ImplThrow(__VA_ARGS__)
+//@}
+
+
+//! \brief 简单通用成员函数定义。
+//@{
 /*!
-\def DefDeDtor
 \brief 定义默认析构函数。
 \note CWG defect 906 的解决禁止显式默认虚函数，但 CWG defect 1135
 	的解决撤销了这一限制。 ISO C++11 最终没有此限制。
 \note ISO C++11 不需要显式使用异常规范，可自动推导（参见 ISO C++11 12.4/3 ）。
 	显式异常规范导致使用隐式继承需要保证成员函数的异常规范限制。
 */
-
 #define DefDeCtor(_t) \
 	_t() = default;
 #define DefDelCtor(_t) \
@@ -209,10 +242,10 @@ _t type
 #define DefSetterDeEx(_t, _n, _m, _defv, ...) \
 	void YPP_Concat(Set, _n)(_t _tempArgName = _defv) \
 	ImplExpr((_m) = (__VA_ARGS__))
+//@}
 
 
 /*!
-\def DefClone
 \brief 动态复制。
 \note 需要在满足 \c CopyConstructible 的类的定义内。
 \note 如需要多态复制，需要显示前置 \c virtual 或加入 \c override 等指示符。
@@ -224,7 +257,6 @@ _t type
 
 
 /*!
-\def DefSwap
 \brief 交换成员。
 \note 需要对应类型具有接受两个左值引用的 swap 成员函数。
 \since build 409
@@ -272,7 +304,6 @@ _t type
 #define implements public
 
 /*!
-\def _yInterfaceHead
 \brief 定义接口类型头部。
 \sa ImplEmptyDtor
 */
@@ -286,7 +317,6 @@ public: \
 #define FwdDeclI(_n) _yInterface _n;
 
 /*!
-\def DeclI
 \brief 定义接口类型。
 \since build 362
 */
@@ -295,7 +325,6 @@ public: \
 	_yInterfaceHead(_n)
 
 /*
-\def DeclDerivedI
 \brief 定义派生接口类型。
 \note 由于接口定义为 struct 类型，因此通常只需指定是否为 virtual 继承。
 \since build 362
@@ -304,11 +333,13 @@ public: \
 	_yInterface _attr _n : __VA_ARGS__ \
 	_yInterfaceHead(_n)
 
-// ImplI = Implements Interface;
+//! \note ImplI = Implements Interface 。
 #define ImplI(...) override
 
-//抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
-// ImplA = Implements Abstractly;
+/*!
+\brief 抽象实现：保留接口供派生类实现（可以提供接口函数的默认实现）。
+\note ImplA = Implements Abstractly 。
+*/
 #define ImplA(...)
 
 #define DeclIEntry(_sig) virtual _sig = 0;
