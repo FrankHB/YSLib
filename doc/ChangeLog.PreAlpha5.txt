@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r5019
+\version r5186
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-17 17:08 +0800
+	2014-10-24 23:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,164 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		/ %YStandardEx.Functional $=
+		(
+			/ @ "class template %call_projection" $=
+			(
+				/ DLD "class-key" @ "first template parameter"
+					@ "declaration" -> 'class' ~ 'template',
+					// Since there has existed specialization for class types \
+						like instances of %std::function.
+				/ @ "static function %call"
+					@ "specialization for function types" $=
+				(
+					/ "explicitly marked last parameter with %yimpl",
+					^ "%yforward for passed function arguments" ~ "%std::move",
+					* "missing returning value" $since b447
+						// It is wrong for non-void return value.
+				),
+				(
+				+ "specialization for std::tuple instances";
+				$dep_to "apply_impl"
+				)
+			),
+			(
+			$dep_from "apply_impl";
+			+ "function template %apply"
+				// Implementated of %std::experimental::apply in WG21/N4023.
+			)
+		),
+		* "missing '&'" @ "first parameter" @ "function template %expect"
+			@ %YTest.Test,
+			// It caused failure for result value which cannot be \
+				copy-initialized or redundant copy for others.
+	),
+	/ @ %Test.YBase $=
+	(
+		/ @ "group %YStandard.Functional" $=
+		(
+			+ "1 test case for %ystdex::apply" $dep_from
+				("%ystdex::apply" @ %YBase.StandardEx.Functional),
+			+ "1 test case for %ystdex::make_expanded",
+		),
+		+ "group %YStandardEx.Mixin"
+			$= (+ "1 test case for mixin interface"),
+		+ "group %YStandardEx.Container"
+			$= (+ "4 test cases for %ystdex::range_size"),
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			+ "function templates %(FetchEpoch; FetchElapsed)"
+				@ %Service.YTimer,
+			+ "using %platform::(usystem, GetFileModificationTimeOf,
+				GetFileSizeOf)" @ %Adaptor.YAdaptor,
+			/ %UI $=
+			(
+				/ DLD "implemented inline function %CheckChildName" @ %Loader
+					^ "macros %(PDefH, ImplRet)",
+				+ "class %PseudoRenderer" @ %Renderer
+			)
+		),
+		/ %YCLib_(MinGW32) $=
+		(
+			* DLB "strict ISO C++ code compatibility" @ %MinGW32 $since b545
+				// G++ accepted but Clang++ complained. See also \
+					http://stackoverflow.com/questions/7411515/why-does-c-require-a-user-provided-default-constructor-to-default-construct-a .
+				$= (* "missing user-provided default constructor for default \
+					initialized const object"
+					@ "static member function %Win32Exception::GetErrorCategory"
+					$= (/ $design ^ "value initialization"
+						~ "default initialization")),
+			/ "specified showing window without activation"
+				@ "function %WindowReference::Show" @ %Win32GUI
+				$= (^ DLD "%SW_SHOWNOACTIVATE" ~ "%SW_SHOWNORMAL");
+		),
+		/ @ "class %Logger" @ %YCLib.Debug $=
+		(
+			* DLD $doc "wrong note" @ "comment" @ "private function %DoLogRaw"
+				$since b510,
+			/ @ "function %DoLogException" $=
+			(
+				/ $doc "explicitly specified sequential and continuation \
+					logging guarantee" @ "comment",
+				/ "merged exception handling and logging thrown when \
+					processing input exception",
+					// Simplified implementation.
+				/ "removed ending period" @ "format string"
+					// To avoid double period.
+			)
+		),
+		/ %YBaseMacro $=
+		(
+			/ $dev $doc "all interface comments" ^ "Doxygen notation"
+			+ "macros %(TryExpr, TryRet, CatchExpr, CatchIgnore, CatchRet, \
+				CatchThrow)"
+		),
+		/ DLD "simplified exception handling" ^ ($dep_from "macros %(TryExpr, \
+			TryRet, CatchExpr, CatchIgnore, CatchThrow)" @ %YBaseMacro)
+	),
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			/ DLD "simplified time printing" ^ "%FetchElapsed" $dep_from
+				%YFramework.Timers.YTimer,
+			(
+			^ "independent logger" ~ "common logger";
+			+ "message group support";
+			/ $comp $revert(b546) "shown log from"
+				%YFramework.YSLib.Service.File,
+			+ "group filtering options ('-xloggd', '-xlogge')"
+			),
+			/ DLD $revert(b545) "merged function %Wait" -> "%Build"
+				@ "class %BuildContext",
+			/ DLD "simplified exception handling" @ %Tools.SHBuild.Main
+				^ ($dep_from "macros %(TryExpr, CatchExpr, CatchIgnore, \
+				CatchRet)" @ %YBaseMacro),
+			(
+			/ DLD "simplified options and environment variables handling";
+			/ DLD "simplified implementation" @ "function %PrintUsage",
+			* $comp "wrong description for %LIBS" $since b546,
+			- $dev "option macros"
+			)
+		),
+		/ %Scripts $=
+		(
+			+ "extra arguments passed to %SHBuild command"
+				@ "%SHBuild-self-host.sh",
+			/ "%common-options.sh" $=
+			(
+				* "wrong '-Wnon-virtual-dtor' and \
+					'-Wzero-as-null-pointer-constant'" @ "default value"
+					@ "%CFLAGS_WARNING" $since b540,
+					// They are for C++/ObjC++ but not for C.
+				(
+				+ "implementation-specific options support variables \
+					%(CXXFLAGS_IMPL_WARNING, CXXFLAGS_IMPL_OPT)";
+				+ "Clang++ support"
+				)
+			),
+			/ @ "install-header.sh" $=
+			(
+				(
+				- "redundant 'pushd' call";
+				* $comp "strict POSIX shell compatibility" $since b515
+				),
+				* "behavior when the script is not at current working directory"
+					$since b515
+			)
+		)
+	),
+	/ DLD "simplified exception handling" @ %ShlReader ^ ($dep_from
+		"macros %(TryExpr, TryRet, CatchExpr, CatchIgnore)", @ %YBaseMacro)
+),
+
+b546
 (
 	/ %YFramework $=
 	(
@@ -175,8 +333,7 @@ $now
 			/ "%SHBuild-options.sh" => "%common-options.sh",
 			/ @ "%common-bootstrap.sh" $=
 			(
-				* "missing check for empty base directory" 
-					$since b538
+				* "missing check for empty base directory" $since b538
 					$= (/ "set %SHBuild_BaseDir default value as '.'"),
 				(
 				$dep_from "%common-options.sh";
@@ -514,7 +671,7 @@ b543
 				/ @ "class %task_pool" @  $=
 				(
 					+ "function templates %(poll, poll_for, poll_until)";
-					/ DLD "simplified function templates %(wait, wait_for, 
+					/ DLD "simplified function templates %(wait, wait_for,
 						until)" ~ "%(poll, poll_for, poll_until)"
 				),
 				+ "function %to_string for %std::thread::id"
@@ -2669,7 +2826,7 @@ b524
 		@ ("class %Environment" @ %Environment $orig(%Host) $since b399,
 		"class %WindowThread" @ %HostRenderer $orig(%Helper $impl) b428);
 		// See $2014-08 @ %Documentation::Workflow::Annual2014. Similar as fix \
-			@ b491. 
+			@ b491.
 ),
 
 b523
@@ -2905,7 +3062,7 @@ b520
 	(
 		/ %'YCLib_(MinGW32)' $=
 		(
-			+ %Consoles @ 
+			+ %Consoles
 				$= (+ "class %WConsole"),
 			- DLD "unused redundant internal function" @ %Win32GUI,
 			* DLD "missing specifying return type" @ "lambda expression with \
@@ -3166,7 +3323,7 @@ b520
 			)
 		)
 	),
-	* DLB "wrong implementation due to ill-formed code when %std::size_t is 
+	* DLB "wrong implementation due to ill-formed code when %std::size_t is \
 		not alias of 'unsigned' causing no suitable %min found"
 		@ (%YFramework.YSLib.Service.TextFile $since b290,
 		%YReader.Shells $since b183)
@@ -3207,7 +3364,7 @@ b519
 				/ @ "member function %TextList::LocateViewPosition" @ %TextList
 					$=
 				(
-					* "wrong value restricted when view height is less than or 
+					* "wrong value restricted when view height is less than or \
 						equal to the height" $since b261;
 					* $comp "wrong value restricted when view height is zero"
 						$since $orig(%UI.YMenu) b203
@@ -3261,7 +3418,7 @@ b519
 	/ %Documentation $=
 	(
 		+ %Dependencies;
-		/ "dependencies descriptions" %Designation >> %Dependencies 
+		/ "dependencies descriptions" %Designation >> %Dependencies
 	);
 	/ $doc "updated build notice" @ "%Readme.zh-CN.txt"
 		$= (+ "runtime dependency description")
@@ -3278,7 +3435,7 @@ b519
 			(
 				+ "3 function templates %(string_begin, string_end)",
 				(
-				/ "all 2 function templates %start_width" => "%begin_with";
+				/ "all 2 function templates %start_width" => "%begins_with";
 				* "spelling error" @ %String $since b450
 				),
 				/ @ "function templates %string_length" $=
@@ -3356,7 +3513,7 @@ b518
 			(
 				(
 				$dep_from "%WindowReference::GetCursorLocation";
-				+ 'using WindowReference::GetCursorLocation' 
+				+ 'using WindowReference::GetCursorLocation'
 				),
 				+ "virtual function %MapPoint",
 				(

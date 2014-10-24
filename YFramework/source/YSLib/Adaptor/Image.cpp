@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r764
+\version r770
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-10-11 17:06 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -481,12 +481,8 @@ MultiBitmapData*
 LoadImagePages(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags) ynothrow
 {
 	if(fp)
-		try
-		{
-			return new MultiBitmapData(fmt, *fp, int(flags));
-		}
-		catch(std::exception&)
-		{}
+		TryRet(new MultiBitmapData(fmt, *fp, int(flags)))
+		CatchIgnore(std::exception&)
 	return {};
 }
 MultiBitmapData*

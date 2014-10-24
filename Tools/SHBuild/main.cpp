@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2249
+\version r2625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-10-17 16:37 +0800
+	2014-10-22 22:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,8 @@ See readme file for details.
 
 
 #include <ysbuild.h>
+#include YFM_YSLib_Core_YStorage // for YSLib::FetchStaticRef
+#include YFM_YSLib_Service_YTimer // for YSLib::Timers::FetchElapsed;
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/mixin.hpp>
 #include YFM_MinGW32_YCLib_Consoles // for platform_ex::WConsole;
@@ -38,6 +40,12 @@ See readme file for details.
 
 using namespace YSLib;
 using namespace IO;
+//! \since build 547
+//@{
+using namespace platform_ex;
+using namespace std::chrono;
+using namespace std::placeholders;
+//@}
 
 namespace
 {
@@ -47,38 +55,6 @@ namespace
 \since build 540
 */
 #define OPT_build_path ".shbuild"
-
-/*!
-\brief 选项前缀：输出路径。
-\since build 540
-*/
-#define OPT_pfx_xd "-xd,"
-
-/*!
-\brief 选项前缀：扫描时忽略的目录(ignore directory) 。
-\since build 520
-*/
-#define OPT_pfx_xid "-xid,"
-
-/*!
-\brief 选项前缀：最大并行任务(jobs) 数。
-\since build 520
-*/
-#define OPT_pfx_xj "-xj,"
-
-/*!
-\brief 选项前缀：过滤输出日志的等级(log filter level) 。
-\since build 519
-*/
-#define OPT_pfx_xlogfl "-xlogfl,"
-
-/*!
-\brief 选项前缀：动作模式(mode) 。
-\note 默认值为 1 ，表示调用 AR 。值 2 表示调用 \c LD 。
-\since build 546
-*/
-#define OPT_pfx_xmode "-xmode,"
-
 
 //! \since build 477
 //@{
@@ -93,82 +69,166 @@ YB_NORETURN inline PDefH(void, raise_exception, int ret, _tParams&&... args)
 YB_NORETURN inline PDefH(void, raise_exception, int ret)
 	ImplExpr(raise_exception(ret, "Failed calling command."))
 
-//! \since build 538
-void
-PrintInfo(const string& line, RecordLevel lv = Notice)
+//! \since build 547
+//@{
+enum class LogGroup : yimpl(size_t)
 {
-	FetchCommonLogger().Log(lv, [&]{
+	General,
+	Search,
+	Build,
+	Command,
+	DepsCheck,
+	Max
+};
+
+using opt_uint = unsigned long;
+LogGroup LastLogGroup(LogGroup::General);
+std::mutex LastLogGroupMutex;
+std::bitset<size_t(LogGroup::Max)> LogDisabled;
+
+void
+PrintInfo(const string& line, RecordLevel lv = Notice,
+	LogGroup grp = LogGroup::General)
+{
+	std::lock_guard<std::mutex> lck(LastLogGroupMutex);
+
+	LastLogGroup = grp;
+	FetchStaticRef<Logger>().Log(lv, [&]{
 		return line;
 	});
 }
-
+//@}
 
 void
 PrintException(const std::exception& e, size_t level = 0)
 {
-	try
-	{
-		PrintInfo(string(level, ' ') + "ERROR: " + e.what(), Err);
-		throw;
-	}
-	catch(IntException& e)
-	{
-		PrintInfo("IntException: " + to_string(unsigned(e)) + ".", Err);
-	}
-	catch(FileOperationFailure& e)
-	{
-		PrintInfo("ERROR: File operation failure.", Err);
-	}
-	catch(std::exception& e)
-	{}
-	catch(...)
-	{
-		PrintInfo("ERROR: PrintException.", Err);
-	}
+	const auto print(std::bind(PrintInfo, _1, Err, LogGroup::General));
+
+	TryExpr(print(string(level, ' ') + "ERROR: " + e.what()), throw)
+	CatchExpr(IntException& e,
+		print("IntException: " + to_string(unsigned(e)) + "."))
+	CatchExpr(FileOperationFailure& e, print("ERROR: File operation failure."))
+	CatchIgnore(std::exception&)
+	CatchExpr(..., print("ERROR: PrintException."))
 	ystdex::handle_nested(e, [=](std::exception& e){
 		PrintException(e, level + 1);
 	});
 }
 //@}
 
-
-//! \since build 542
+//! \since build 547
 //@{
-template<typename _type, typename _func>
-void
-TryParseOption(const string& name, const string& val, _func f)
+#define OPT_des_mul "Multiple occurrence is allowed."
+#define OPT_des_last "If this option occurs more than once, only the last one" \
+	" is effective."
+set<string> IgnoredDirs;
+string OutputDir;
+size_t MaxJobs(0);
+size_t Mode(1);
+const struct Option
 {
-	try
-	{
-		const auto uval(ystdex::ston<_type>(val));
+	const char *prefix, *name = {}, *option_arg;
+	std::initializer_list<const char*> option_details;
+	std::function<bool(const string&)> filter;
 
-		if(!f(uval))
-			PrintInfo("Warning: Value '" + val + "' of " + name
-				+ " out of range.", Warning);
-	}
-	catch(std::invalid_argument&)
-	{
-		PrintInfo("Warning: Value '" + val + "' of " + name + " is invalid.",
-			Warning);
-	}
-	catch(std::out_of_range&)
-	{
-		PrintInfo("Warning: Value '" + val + "' of " + name + " out of range.",
-			Warning);
-	}
-}
+	Option(const char* pfx, const char* n, const char* opt_arg,
+		std::function<void(string&&)> parse,
+		std::initializer_list<const char*> il)
+		: prefix(pfx), name(n), option_arg(opt_arg), option_details(il),
+		filter(std::bind(ystdex::filter_prefix<string, string, decltype(parse)>,
+		_1, string(prefix), parse))
+	{}
+	template<typename _type, typename _func>
+	Option(const char* pfx, const char* n, const char* opt_arg, _func f,
+		_type threshold, std::initializer_list<const char*> il)
+		: Option(pfx, n, opt_arg, [=](string&& val){
+			const auto
+				print(std::bind(PrintInfo, _1, Warning, LogGroup::General));
 
-template<typename _type, typename _fCallable, typename _tPrefix>
-bool
-ParsePrefixedOption(const string& str, const _tPrefix& prefix,
-	const string& name, _type threshold, _fCallable f)
-{
-	return ystdex::filter_prefix(str, prefix, [&](string&& val){
-		TryParseOption<_type>(name, val, [=](_type uval){
-			return uval < threshold ? (void(f(uval)), true) : false;
-		});
-	});
-}
+			try
+			{
+				const auto uval(ystdex::ston<_type>(val));
+
+				if(uval < threshold)
+					f(uval);
+				else
+					print("Warning: Value '" + val + "' of " + name
+						+ " out of range.");
+			}
+			CatchExpr(std::invalid_argument&,
+				print("Warning: Value '" + val + "' of " + name
+					+ " is invalid."))
+			CatchExpr(std::out_of_range&,
+				print("Warning: Value '" + val + "' of " + name
+					+ " out of range."))
+		}, il)
+	{}
+
+	PDefHOp(bool, (), const string& arg) const
+		ImplRet(filter(arg))
+} OptionsTable[]{
+	{"-xd,", "output directory", "DIR_NAME", [](string&& val){
+		PrintInfo("Output directory is switched to '" + val
+			+ "'.");
+		OutputDir = std::move(val);
+	}, {"The name of output directory. Default value is '" OPT_build_path "'.",
+		OPT_des_mul}},
+	{"-xid,", "ignored directories", "DIR_NAME", [](string&& val){
+		PrintInfo("Subdirectory '" + val + "' should be ignored.");
+		IgnoredDirs.emplace(std::move(val));
+	}, {"The name of subdirectory which should be ignored when scanning.",
+		OPT_des_mul}},
+	{"-xj,", "job max count", "MAX_JOB_COUNT", [](opt_uint uval){
+		PrintInfo("Set job max count = " + to_string(uval) + ".");
+		MaxJobs = size_t(uval);
+	}, 0x100UL, {"Max count of parallel jobs at the same time.",
+		"This number would be used to limit the number of tasks being"
+		" spawning. If no valid value is explicitly specified, the implicit"
+		" default value is 0. If this value is not more than 1, only one"
+		" task would be load and run at each time.", OPT_des_last}},
+	{"-xlogfl,", "log filter level", "LOG_LEVEL", [](opt_uint uval){
+		FetchStaticRef<Logger>().FilterLevel = Logger::Level(uval);
+	}, 0x100UL, {"The unsigned integer log level threshold of the logger.",
+		"Only log with level less than this value and whose group is not"
+		" disabled would be present in the output stream.",
+		"See description of '-xloggd,' for information about log"
+		" groups.", OPT_des_last}},
+	{"-xloggd,", "disabled log group", "LOG_GROUP", [](opt_uint uval){
+		LogDisabled.set(uval);
+		PrintInfo("Log group disabled: " + to_string(uval) + ".");
+	}, opt_uint(LogGroup::Max), {"The log group should be disabled.",
+		"Currently these groups are supported:", "  0: General;",
+		"  1: Search;", "  2: Build;", "  3: Command;", "  4: DepsCheck.",
+		"Except for group 4, other groups are enabled by default.",
+		OPT_des_last}},
+	{"-xlogge,", "enabled log group", "LOG_GROUP", [](opt_uint uval){
+		LogDisabled.set(uval, {});
+		PrintInfo("Log group enabled: " + to_string(uval) + ".");
+	}, opt_uint(LogGroup::Max), {"The log group should be enabled.",
+		"See description of '-xloggd,'.", OPT_des_last}},
+	{"-xmode,", "mode", "MODE", [](opt_uint uval){
+		if(uval == 1 || uval == 2)
+			Mode = uval;
+		else
+			PrintInfo("Ignored unsupported mode '" + to_string(uval)
+				+ "'.", Warning);
+	}, 0x3UL, {"The target action mode.",
+		"Value '1' represents call of AR for the final target, and '2' is LD."
+		" Other value is reserved and to be ignored."
+		" Default value is '1'.",
+		"If this option occurs more than once, only the last one is"
+		" effective."}}
+};
+
+const array<const char*, 3> DeEnvs[]{
+	{{"CC", "gcc", "The C compiler executable."}},
+	{{"CXX", "g++", "The C++ compiler executable."}},
+	{{"AR", "ar", "The archiver executable."}},
+	{{"ARFLAGS", "rcs", "The archiver flags."}},
+	{{"LD", "ld", "The linker executable."}},
+	{{"LDFLAGS", "", "The linker flags."}},
+	{{"LIBS", "", "Extra options as the linker options at end."}}
+};
 //@}
 
 //! \since build 541
@@ -180,23 +240,22 @@ EnsureOutputDirectory(const string& opath)
 		PrintInfo("Checking output directory: '" + opath + "' ...");
 		EnsureDirectory(opath);
 	}
-	catch(std::system_error& e)
-	{
-		raise_exception(2, "Failed creating directory '" + opath + "'.");
-	}
+	CatchExpr(std::system_error&,
+		raise_exception(2, "Failed creating directory '" + opath + "'."))
 }
 
 //! \since build 545
 //@{
-std::chrono::nanoseconds
+nanoseconds
 CheckModification(const string& path)
 {
-	PrintInfo("Checking path '" + path + "' ...", RecordLevel(Debug + 8));
+	const auto print(std::bind(PrintInfo, _1, Debug, LogGroup::DepsCheck));
 
-	const auto& file_time(platform::GetFileModificationTimeOf(path));
+	print("Checking path '" + path + "' ...");
 
-	PrintInfo("Modification time: " + to_string(file_time.count()) + " .",
-		RecordLevel(Debug + 8));
+	const auto& file_time(GetFileModificationTimeOf(path));
+
+	print("Modification time: " + to_string(file_time.count()) + " .");
 	return file_time;
 }
 
@@ -207,19 +266,17 @@ template<typename _func>
 bool
 CheckBuild(_func f, const string& opath)
 {
+	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
+
 	try
 	{
 		if(f())
 		{
-			PrintInfo("Output '"+ opath + "' is up-to-date, skipped.",
-				Informative);
+			print("Output '"+ opath + "' is up-to-date, skipped.", Informative);
 			return {};
 		}
 	}
-	catch(FileOperationFailure& e)
-	{
-		PrintInfo(e.what(), Debug);
-	}
+	CatchExpr(FileOperationFailure& e, print(e.what(), Debug))
 	return true;
 }
 bool
@@ -227,7 +284,7 @@ CheckBuild(const vector<string>& ipaths, const string& opath)
 {
 	return CheckBuild([&]{
 		return std::all_of(ipaths.cbegin(), ipaths.cend(),
-			std::bind(CompareModification, std::placeholders::_1, opath));
+			std::bind(CompareModification, _1, opath));
 	}, opath);
 }
 //@}
@@ -295,13 +352,14 @@ GetDependencies(const string& path)
 	const auto i_c(std::find_if(lst.cbegin(), lst.cend(), [](const string& dep){
 		return !dep.empty() && dep.back() == ':';
 	}));
+	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::DepsCheck));
 
 	if(i_c == lst.cend())
-		PrintInfo("Wrong dependencies format found.", Warning);
+		print("Wrong dependencies format found.", Warning);
 	lst.erase(lst.cbegin(), i_c + 1);
 	if(lst.empty())
-		PrintInfo("Wrong dependencies format found.", Warning);
-	PrintInfo(to_string(lst.size()) + " dependenc"
+		print("Wrong dependencies format found.", Warning);
+	print(to_string(lst.size()) + " dependenc"
 		+ (lst.size() == 1 ? "y" : "ies") + " found.", Debug);
 	return lst;
 }
@@ -325,24 +383,17 @@ public:
 	//! \since build 540
 	string OutputDir{OPT_build_path};
 	vector<string> Options{};
-	//! \since build 538
-	string CC = "gcc";
-	//! \since build 538
-	string CXX = "g++";
-	//! \since build 539
-	string AR = "ar";
+	//! \since build 547
+	map<string, string> Envs;
 	//! \since build 546
-	//@{
-	string ARFLAGS = "rcs";
-	string LD = "ld";
-	string LDFLAGS = "";
-	string LIBS = "";
 	size_t Mode = 1;
-	//@}
 
 	BuildContext(size_t n)
 		: jobs(n)
-	{}
+	{
+		for(const auto& env : DeEnvs)
+			Envs.insert({env[0], env[1]});
+	}
 
 	//! \since build 545
 	DefGetter(const ynothrow, const string&, Flags, flags)
@@ -350,6 +401,9 @@ public:
 	//! \since build 538
 	int
 	GetLastResult() const;
+	//! \since build 547
+	PDefH(const string&, GetEnv, const string& name) const
+		ImplRet(Envs.at(name))
 
 	void
 	Build();
@@ -361,7 +415,8 @@ public:
 	//! \since build 539
 	//@{
 	PDefH(void, CallWithException, const string& cmd, size_t n = 0) const
-		ImplExpr(PrintInfo(cmd, Debug), CheckResult(Call(cmd, n)))
+		ImplExpr(PrintInfo(cmd, Debug, LogGroup::Command),
+			CheckResult(Call(cmd, n)))
 
 	static PDefH(void, CheckResult, int ret)
 		ImplExpr(ret == 0 ? void() : raise_exception(ret))
@@ -370,10 +425,6 @@ public:
 	//! \since build 540
 	int
 	RunTask(const string&) const;
-
-	//! \since build 545
-	void
-	Wait() const;
 };
 
 
@@ -398,9 +449,9 @@ string
 Rule::GetCommand(const String& ext) const
 {
 	if(ext == u"c")
-		return Context.CC;
+		return Context.GetEnv("CC");
 	if(ext == u"cc" || ext == u"cpp" || ext == u"cxx")
-		return Context.CXX;
+		return Context.GetEnv("CXX");
 	return {};
 }
 
@@ -416,6 +467,7 @@ BuildFile(const Rule& rule)
 	const auto& ipth(rule.Source.first);
 	const auto& cmd(rule.GetCommand(GetExtensionOf(ipth)));
 	const auto& fullname(ipth.GetMBCS());
+	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
 
 	if(!cmd.empty())
 	{
@@ -431,11 +483,10 @@ BuildFile(const Rule& rule)
 			if(!CheckBuild(GetDependencies(dfullname), ofullname))
 				build = {};
 		}
-		catch(std::exception&)
-		{}
+		CatchIgnore(std::exception&)
 		if(build)
 		{
-			PrintInfo("Compile file: '" + ipth.back().GetMBCS() + "'.",
+			print("Compile file: '" + ipth.back().GetMBCS() + "'.",
 				Informative);
 			bctx.CallWithException(cmd + " -MMD" + " -c" + bctx.GetFlags() + ' '
 				+ fullname + " -o \"" + ofullname + '"');
@@ -443,7 +494,7 @@ BuildFile(const Rule& rule)
 		return {ofullname};
 	}
 	else
-		PrintInfo("No rule found for '" + fullname + "'.", Warning);
+		print("No rule found for '" + fullname + "'.", Warning);
 	return {};
 }
 
@@ -456,16 +507,17 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 	const auto& path(ipth.GetMBCS());
 	vector<string> subdirs, afiles, ofiles;
 	vector<pair<string, string>> src_files;
+	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Search));
 
-	PrintInfo("Searching path: " + path + " ...");
+	print("Searching path: " + path + " ...", Notice);
 	TraverseChildren(path, [&](NodeCategory c, const std::string& name){
 		if(name[0] != '.')
 		{
 			if(c == NodeCategory::Directory)
 			{
 				if(ystdex::exists(bctx.IgnoredDirs, name))
-					PrintInfo("Subdirectory " + path + name
-						+ YCL_PATH_DELIMITER + " is ignored.", Informative);
+					print("Subdirectory " + path + name + YCL_PATH_DELIMITER
+						+ " is ignored.", Informative);
 				else
 					subdirs.push_back(name);
 			}
@@ -477,7 +529,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 				if(!cmd.empty())
 					src_files.emplace_back(std::move(cmd), name);
 				else
-					PrintInfo("Ignored non source file '" + name + "'.",
+					print("Ignored non source file '" + name + "'.",
 						Informative);
 			}
 		}
@@ -488,7 +540,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 
 	const auto snum(src_files.size());
 
-	PrintInfo(to_string(snum) + " file(s) found to be built in path: " + path
+	print(to_string(snum) + " file(s) found to be built in path: " + path
 		+ " .", Informative);
 	if(snum != 0)
 	{
@@ -553,11 +605,19 @@ BuildContext::Build()
 		});
 	})({in, opth}));
 
-	Wait();
+	// TODO: Optimize for job dependency.
+	if(jobs.get_max_task_num() > 1)
+	{
+		PrintInfo("Wait for unfinished tasks before linking ...",
+			Notice, LogGroup::Build);
+		jobs.reset();
+	}
+	CheckResult(GetLastResult());
 
 	const auto onum(ofiles.size());
+	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Build));
 
-	PrintInfo("Found " + to_string(onum) + " .o file(s).", Informative);
+	print("Found " + to_string(onum) + " .o file(s).", Informative);
 	if(onum != 0)
 	{
 		Path pth(opth);
@@ -567,8 +627,9 @@ BuildContext::Build()
 		EnsureOutputDirectory(pth);
 
 		auto target(to_string(opth).GetMBCS(CS_Path));
-		const auto& cmd(Mode == 1 ? AR + ' ' + ARFLAGS
-			: LD + ' ' + LDFLAGS + " -o");
+		const auto& LDFLAGS(GetEnv("LDFLAGS"));
+		const auto& cmd(Mode == 1 ? GetEnv("AR") + ' ' + GetEnv("ARFLAGS")
+			: GetEnv("LD") + ' ' + LDFLAGS + " -o");
 
 		if(Mode == 1)
 			target += ".a";
@@ -583,15 +644,15 @@ BuildContext::Build()
 
 			// FIXME: Prevent path too long.
 			for(const auto& ofile : ofiles)
-				str += " \"" + ofile + "\"";		
+				str += " \"" + ofile + "\"";
 			if(Mode == 2)
-				str += ' ' + LIBS;
-			PrintInfo("Link file: '" + target + "'.", Informative);
+				str += ' ' + GetEnv("LIBS");
+			print("Link file: '" + target + "'.", Informative);
 			CallWithException(str, 1);
 		}
 	}
 	else
-		PrintInfo("No files to be built.", Warning);
+		print("No files to be built.", Warning);
 }
 
 int
@@ -599,7 +660,7 @@ BuildContext::Call(const string& cmd, size_t n) const
 {
 	if(n == 0)
 		n = jobs.get_max_task_num();
-	return n <= 1 ? platform::usystem(cmd.c_str()) : RunTask(cmd);
+	return n <= 1 ? usystem(cmd.c_str()) : RunTask(cmd);
 }
 
 int
@@ -612,8 +673,8 @@ BuildContext::RunTask(const string& cmd) const
 			return result;
 	}
 	// TODO: Use ISO C++1y lambda initializers to simplify implementation.
-	jobs.wait_for(std::chrono::milliseconds(80), [&, cmd]{
-		const int res(platform::usystem(cmd.c_str()));
+	jobs.wait_for(milliseconds(80), [&, cmd]{
+		const int res(usystem(cmd.c_str()));
 		{
 			std::lock_guard<std::mutex> lck(job_mtx);
 
@@ -626,97 +687,61 @@ BuildContext::RunTask(const string& cmd) const
 }
 //@}
 
-void
-BuildContext::Wait() const
-{
-	// TODO: Optimize for job dependency.
-	if(jobs.get_max_task_num() > 1)
-	{
-		PrintInfo("Wait for unfinished tasks before linking ...");
-		jobs.reset();
-	}
-	CheckResult(GetLastResult());
-}
-
 
 //! \since build 546
 void
 PrintUsage(const char*);
 
 void
-PrintUsage(const char* pr)
+PrintUsage(const char* prog)
 {
-	YAssertNonnull(pr);
-	std::printf("%s%s%s", "Usage: [ENV ...] ", pr, " SRCPATH [OPTIONS ...]\n\n"
-		"[ENV ...]\n"
-		"\tThe environment variables settings."
-		" Currently accepted settings are listed below:\n\n"
-		"  CC\n\tThe C compiler executable. Default value is 'gcc'.\n\n"
-		"  CXX\n\tThe C++ compiler executable. Default value is 'g++'.\n\n"
-		"  AR\n\tThe archiver executable. Default value is 'ar'.\n\n"
-		"  ARFLAGS\n\tThe archiver flags. Default value is 'rcs'.\n\n"
-		"  LD\n\tThe linker executable. Default value is 'ld'.\n\n"
-		"  LDFLAGS\n\tThe linker flags. Default value is empty.\n\n"
-		"  LIBS\n\tExtra options for at end. Default value is empty.\n\n"
-		"SRCPATH\n"
-		"\tThe source directory to be recursively searched.\n\n"
+	YAssertNonnull(prog);
+	std::printf("%s%s%s", "Usage: [ENV ...] ", prog, " SRCPATH [OPTIONS ...]\n"
+		"\n[ENV ...]\n\tThe environment variables settings."
+		" Currently accepted settings are listed below:\n\n");
+	for(const auto& env : DeEnvs)
+		std::printf("  %s\n\t%s Default value is %s.\n\n", env[0], env[2], env[
+			1][0] == '\0' ? "empty" : ('\'' + string(env[1]) + '\'').c_str());
+	std::puts("SRCPATH\n\tThe source directory to be recursively searched.\n\n"
 		"OPTIONS ...\n"
 		"\tThe options. All other options would be sent to the backends,"
-		" except for listed below:\n\n"
-		"  " OPT_pfx_xd "DIR_NAME\n"
-		"\tThe name of output directory."
-		" Default value is '" OPT_build_path "'.\n"
-		"\tMultiple occurrence is allowed.\n\n"
-		"  " OPT_pfx_xid "DIR_NAME\n"
-		"\tThe name of subdirectory which should be ignored when scanning.\n"
-		"\tMultiple occurrence is allowed.\n\n"
-		"  " OPT_pfx_xj "MAX_JOB_COUNT\n"
-		"\tMax count of parallel jobs at the same time.\n"
-		"\tThis number would be used to limit the number of tasks being"
-		" spawning. If no valid value is explicitly specified, the implicit"
-		" default value is 0. If this value is not more than 1, only one"
-		" task would be load and run at each time.\n"
-		"\tIf this option occurs more than once, only the last one is"
-		" effective.\n\n"
-		"  " OPT_pfx_xlogfl "LOG_LEVEL\n"
-		"\tThe unsigned integer log level threshold of the logger.\n"
-		"\tOnly log with level less than this value would be present in the"
-		" out put stream.\n"
-		"\tIf this option occurs more than once, only the last one is"
-		" effective.\n\n"
-		"  " OPT_pfx_xmode "MODE\n"
-		"\tThe target action mode.\n"
-		"\tValue '1' represents call of AR for the final target, and '2' is LD."
-		" Other value is reserved and to be ignored."
-		" Default value is '1'.\n"
-		"\tIf this option occurs more than once, only the last one is"
-		" effective.\n\n");
+		" except for listed below:\n");
+	for(const auto& opt : OptionsTable)
+	{
+		std::printf("  %s%s\n", opt.prefix, opt.option_arg);
+		for(const auto& des : opt.option_details)
+			std::printf("\t%s\n", des);
+		std::puts("");
+	}
 }
 
 
 int
 main(int argc, char* argv[])
 {
-	using namespace platform_ex;
-	using namespace std::chrono;
 	auto p_wcon(MakeWConsole()), p_wcon_err(MakeWConsole(STD_ERROR_HANDLE));
 
 	try
 	{
-		auto& logger(FetchCommonLogger());
-		const auto start_time(steady_clock::now());
+		auto& logger(FetchStaticRef<Logger>());
 
+		LogDisabled.set(size_t(LogGroup::DepsCheck));
 		logger.FilterLevel = Logger::Level::Debug;
+		logger.SetFilter([](Logger::Level lv, Logger& logger){
+			return !ystdex::qualify(LogDisabled)[size_t(LastLogGroup)]
+				&& Logger::DefaultFilter(lv, logger);
+		});
 		logger.SetSender([&](Logger::Level lv, Logger&, const char* str){
 			const auto stream(lv <= Warning ? stderr : stdout);
 			const auto& p_con(lv <= Warning ? p_wcon_err : p_wcon);
-			const auto dcnt(duration_cast<milliseconds>(steady_clock::now()
-				- start_time).count());
+			const auto dcnt(duration_cast<milliseconds>(
+				Timers::FetchElapsed<steady_clock>()).count());
 
 			if(p_con)
 				p_con->RestoreAttributes();
-			std::fprintf(stream, "[%04u.%03u][%#02X]", unsigned(dcnt / 1000U),
-				unsigned(dcnt % 1000U), unsigned(lv));
+			std::fprintf(stream, "[%04u.%03u][%zu:%#02X]",
+				unsigned(dcnt / 1000U), unsigned(dcnt % 1000U),
+				size_t(LastLogGroup), unsigned(lv));
 			YAssertNonnull(str);
 			if(p_con)
 			{
@@ -740,79 +765,38 @@ main(int argc, char* argv[])
 		if(argc > 1)
 		{
 			vector<string> args;
-			set<string> ignored_dirs;
-			string output_dir;
-			size_t max_jobs(0);
-			size_t mode(1);
 
 			for(int i(1); i < argc; ++i)
 			{
-				using namespace ystdex;
 				auto&& arg(MBCSToMBCS(argv[i], CP_ACP, CP_UTF8));
 
-				if(ystdex::filter_prefix(arg, OPT_pfx_xd, [&](string&& val){
-					PrintInfo("Output directory is switched to '" + val + "'.");
-					output_dir = std::move(val);
+				if(std::none_of(begin(OptionsTable), end(OptionsTable),
+					[&](const Option& opt){
+						return opt(arg);
 				}))
-					;
-				else if(ystdex::filter_prefix(arg, OPT_pfx_xid,
-					[&](string&& val){
-					PrintInfo("Subdirectory '" + val + "' should be ignored.");
-					ignored_dirs.emplace(std::move(val));
-				}))
-					;
-				else if(ParsePrefixedOption<unsigned long>(arg, OPT_pfx_xj,
-					"job max count", 0x100, [&](unsigned long uval){
-					PrintInfo("Set job max count = " + to_string(uval) + ".");
-					max_jobs = size_t(uval);
-				}))
-					;
-				else if(ParsePrefixedOption<unsigned long>(arg, OPT_pfx_xlogfl,
-					"log filter level", 0x100, [&](unsigned long uval){
-					logger.FilterLevel = Logger::Level(uval);
-				}))
-					;
-				else if(ParsePrefixedOption<unsigned long>(arg, OPT_pfx_xmode,
-					"mode", 0x3, [&](unsigned long uval){
-					if(uval == 1 || uval == 2)
-						mode = uval;
-					else
-						PrintInfo("Ignored unsupported mode '" + to_string(uval)
-							+ "'.", Warning);
-				}))
-					;
-				else
 					args.emplace_back(std::move(arg));
 			}
 
-			BuildContext ctx(max_jobs);
-			using opts = pair<string&, const char*>;
-				
-			ystdex::seq_apply([](opts pr){
-					FetchEnvironmentVariable(pr.first, pr.second);
-					PrintInfo(pr.second + (" = " + pr.first));
-				}, opts{ctx.CC, "CC"}, opts{ctx.CXX, "CXX"}, opts{ctx.AR, "AR"},
-				opts{ctx.ARFLAGS, "ARFLAGS"}, opts{ctx.LD, "LD"},
-				opts{ctx.LDFLAGS, "LDFLAGS"}, opts{ctx.LIBS, "LIBS"});
-			if(!output_dir.empty())
-				ctx.OutputDir = std::move(output_dir);
-			yunseq(ctx.IgnoredDirs = std::move(ignored_dirs),
-				ctx.Options = std::move(args), ctx.Mode = mode);
+			BuildContext ctx(MaxJobs);
+
+			for(const auto& env : DeEnvs)
+			{
+				const string name(env[0]);
+
+				FetchEnvironmentVariable(ctx.Envs[name], name);
+				PrintInfo(name + " = " + ctx.GetEnv(name));
+			}
+			if(!OutputDir.empty())
+				ctx.OutputDir = std::move(OutputDir);
+			yunseq(ctx.IgnoredDirs = std::move(IgnoredDirs),
+				ctx.Options = std::move(args), ctx.Mode = Mode);
 			PrintInfo("OutputDir = " + ctx.OutputDir);
 			ctx.Build();
 		}
 		else if(argc == 1)
 			PrintUsage(*argv);
 	}
-	catch(std::exception& e)
-	{
-		PrintException(e);
-		return EXIT_FAILURE;
-	}
-	catch(...)
-	{
-		PrintInfo("ERROR: Unknown failure.", Err);
-		return EXIT_FAILURE;
-	}
+	CatchRet(std::exception& e, PrintException(e), EXIT_FAILURE)
+	CatchRet(..., PrintInfo("ERROR: Unknown failure.", Err), EXIT_FAILURE)
 }
 

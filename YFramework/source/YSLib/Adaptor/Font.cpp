@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3402
+\version r3408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-08-28 17:27 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -469,12 +469,8 @@ FontCache::LoadTypefaces(const FontPath& path)
 		const size_t face_n(face_num);
 
 		for(size_t i(0); i < face_n; ++i)
-			try
-			{
-				*this += *(ynew Typeface(*this, path, i));
-			}
-			catch(...)
-			{}
+			TryExpr(*this += *(ynew Typeface(*this, path, i)))
+			CatchIgnore(...)
 		return face_n;
 	}
 	return 0;

@@ -11,13 +11,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1023
+\version r1044
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2014-09-03 14:23 +0800
+	2014-10-19 11:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,6 +61,31 @@ inline HighResolutionClock::time_point
 HighResolutionClock::now() ynothrow
 {
 	return time_point(std::chrono::nanoseconds(GetHighResolutionTicks()));
+}
+
+
+/*!
+\brief 取公共历元。
+\since build 547
+*/
+template<class _tClock = HighResolutionClock>
+inline typename _tClock::time_point
+FetchEpoch()
+{
+	static auto start_time(_tClock::now());
+
+	return start_time;
+}
+
+/*!
+\brief 取自公共历元以来经历的时间。
+\since build 547
+*/
+template<class _tClock = HighResolutionClock>
+inline typename _tClock::duration
+FetchElapsed()
+{
+	return _tClock::now() - Timers::FetchEpoch<_tClock>();
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r350
+\version r394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-10-17 16:12 +0800
+	2014-10-24 21:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,7 +91,7 @@ Logger::DoLog(Level level, const char* str)
 	if(str)
 	{
 #if YF_Multithread == 1
-		std::lock_guard<std::recursive_mutex> lck(record_mtx);
+		std::lock_guard<std::recursive_mutex> lck(record_mutex);
 #endif
 
 		DoLogRaw(level, str);
@@ -107,44 +107,36 @@ Logger::DoLogRaw(Level level, const char* str)
 }
 
 void
-Logger::DoLogException(Level level, const std::exception& e) ynothrow
+Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 {
-#if YF_Multithread == 1
-		std::lock_guard<std::recursive_mutex> lck(record_mtx);
-#endif
-
-	try
-	{
-		// XXX: Log demangled type name.
-		DoLogRaw(level, ystdex::sfmt("<%s>: %s.", typeid(e).name(), e.what()));
-	}
-	catch(std::exception& e)
-	{
+	const auto do_log_excetpion_raw([this](const char* msg){
 		try
 		{
 			DoLogRaw(Descriptions::Emergent,
 				"Another exception thrown when handling exception.");
-			DoLogRaw(Descriptions::Emergent, e.what());
+			if(msg)
+				DoLogRaw(Descriptions::Emergent, msg);
 		}
-		catch(...)
-		{
+		CatchExpr(...,
 			ystdex::ytrace(stderr, Descriptions::Emergent, Descriptions::Notice,
-				__FILE__, __LINE__, "Logging error: unhandled exception#1.");
-		}
-	}
-	catch(...)
+			__FILE__, __LINE__, "Logging error: unhandled exception."))
+	});
+	const auto& msg(e.what());
+#if YF_Multithread == 1
+	std::lock_guard<std::recursive_mutex> lck(record_mutex);
+#endif
+
+	try
 	{
-		try
-		{
-			DoLogRaw(Descriptions::Emergent,
-				"Another unknown exception thrown when handling exception.");
-		}
-		catch(...)
-		{
-			ystdex::ytrace(stderr, Descriptions::Emergent, Descriptions::Notice,
-				__FILE__, __LINE__, "Logging error: unhandled exception#2.");
-		}
+		// XXX: Provide no throw guarantee and put it out of the critical
+		//	section?
+		// XXX: Log demangled type name.
+		const auto& str(ystdex::sfmt("<%s>: %s", typeid(e).name(), msg));
+
+		DoLogRaw(lv, str);
 	}
+	CatchExpr(std::exception& e, do_log_excetpion_raw(e.what()))
+	CatchExpr(..., do_log_excetpion_raw({}))
 }
 
 Logger::Sender

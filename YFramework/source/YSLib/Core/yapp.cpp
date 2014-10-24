@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1703
+\version r1720
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:36 +0800
 \par 修改时间:
-	2014-07-14 14:47 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,24 +51,12 @@ Application::OnGotMessage(const Message& msg)
 	const auto hShl(GetShellHandle());
 
 	YAssertNonnull(hShl);
-	try
-	{
-		hShl->OnGotMessage(msg);
-	}
-	catch(Messaging::MessageSignal&)
-	{}
+	TryExpr(hShl->OnGotMessage(msg))
+	CatchIgnore(Messaging::MessageSignal&)
 #ifndef NDEBUG
-	catch(std::exception& e)
-	{
-		YTraceDe(Emergent, "Unexpected exception.");
-		FetchCommonLogger().DoLogException(Emergent, e);
-		throw;
-	}
-	catch(...)
-	{
-		YTraceDe(Emergent, "Unknown unexpected exception.");
-		throw;
-	}
+	CatchExpr(std::exception& e, YTraceDe(Emergent, "Unexpected exception."),
+		FetchCommonLogger().DoLogException(Emergent, e), throw)
+	CatchExpr(..., YTraceDe(Emergent, "Unknown unexpected exception."), throw)
 #endif
 }
 

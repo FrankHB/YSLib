@@ -11,13 +11,13 @@
 /*!	\file yrender.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r611
+\version r625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2014-07-30 19:32 +0800
+	2014-10-24 10:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,6 +78,24 @@ public:
 	*/
 	virtual Rect
 	Paint(IWidget& wgt, PaintEventArgs&&);
+};
+
+
+/*!
+\brief 伪渲染器：静态类型的所有实际操作不产生可观察的副作用。
+\since build 547
+*/
+class PseudoRenderer : public Renderer
+{
+public:
+	DefDeCtor(PseudoRenderer)
+	DefDeCopyCtor(PseudoRenderer)
+	DefDeMoveCtor(PseudoRenderer)
+
+	DefClone(const override, PseudoRenderer)
+
+	PDefH(Rect, Paint, IWidget&, PaintEventArgs&&) override
+		ImplRet({})
 };
 
 

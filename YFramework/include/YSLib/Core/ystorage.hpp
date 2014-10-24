@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2013 FrankHB.
+	© 2011-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ystorage.hpp
 \ingroup Core
 \brief 全局公用存储管理。
-\version r417
+\version r420
 \author FrankHB <frankhb1989@gmail.com>
 \since build 195
 \par 创建时间:
 	2011-03-14 20:17:34 +0800
 \par 修改时间:
-	2013-12-24 09:23 +0800
+	2014-10-19 15:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,7 +47,6 @@ FetchInstance()
 
 /*!
 \brief 取指定类型的静态默认对象。
-\warning 非线程安全。
 \since build 240
 */
 template<typename _type>
@@ -61,7 +60,6 @@ FetchStaticRef()
 
 /*!
 \brief 取指定类型的静态原型对象。
-\warning 初始化前非线程安全。
 \since build 240
 */
 template<typename _type>

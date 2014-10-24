@@ -11,13 +11,13 @@
 /*!	\file ycontrol.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4782
+\version r4800
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-09-03 14:02 +0800
+	2014-10-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,12 +85,8 @@ public:
 inline bool
 IsEnabled(const IWidget& wgt)
 {
-	try
-	{
-		return wgt.GetController().IsEnabled();
-	}
-	catch(BadEvent&)
-	{}
+	TryRet(wgt.GetController().IsEnabled())
+	CatchIgnore(BadEvent&)
 	return {};
 }
 
@@ -100,12 +96,8 @@ IsEnabled(const IWidget& wgt)
 inline void
 SetEnabledOf(IWidget& wgt, bool b)
 {
-	try
-	{
-		wgt.GetController().SetEnabled(b);
-	}
-	catch(BadEvent&)
-	{}
+	TryExpr(wgt.GetController().SetEnabled(b))
+	CatchIgnore(BadEvent&)
 }
 
 /*!
@@ -149,12 +141,8 @@ CallEvent(IWidget& wgt, _tEventArgs&& e)
 		HandlerType::TupleType>::type>>::value,
 		"Invalid event argument type found @ CallEvent;");
 
-	try
-	{
-		return DoEvent<HandlerType>(wgt.GetController(), _vID, std::move(e));
-	}
-	catch(BadEvent&)
-	{}
+	TryRet(DoEvent<HandlerType>(wgt.GetController(), _vID, std::move(e)))
+	CatchIgnore(BadEvent&)
 	return 0;
 }
 

@@ -11,13 +11,13 @@
 /*!	\file ContentType.cpp
 \ingroup Service
 \brief 内容类型接口。
-\version r96
+\version r106
 \author FrankHB <frankhb1989@gmail.com>
 \since build 449
 \par 创建时间:
 	2013-10-10 06:04:40 +0800
 \par 修改时间:
-	2014-06-15 15:25 +0800
+	2014-10-21 12:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,17 +70,12 @@ AddMIMEItems(MIMEBiMapping& m, const ValueNode& node,
 				AddMIMEItems(m, nd, std::move(pth));
 				pth.pop_back();
 			}
-			catch(ystdex::bad_any_cast&)
-			{}
+			CatchIgnore(ystdex::bad_any_cast&)
 	else
-		try
-		{
-			m += {Access<string>(node), !pth.empty()
-				&& IsPrefixedIndex(pth.back()) ? MIMEBiMapping::MIMEType{
-				pth.cbegin(), std::prev(pth.cend())} : pth};
-		}
-		catch(ystdex::bad_any_cast&)
-		{}
+		TryExpr(m += {Access<string>(node), !pth.empty()
+			&& IsPrefixedIndex(pth.back()) ? MIMEBiMapping::MIMEType{
+			pth.cbegin(), std::prev(pth.cend())} : pth})
+		CatchIgnore(ystdex::bad_any_cast&)
 }
 
 } // namespace YSLib;

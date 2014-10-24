@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3556
+\version r3563
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-09-17 19:20 +0800
+	2014-10-19 15:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1975,10 +1975,14 @@ b241
 (
 	+ "new macros to simplify defaulted or deleted constructors and \
 		destructors definition" @ "header %ybase.h",
-	/ %YFramework.YSLib.UI.GUI $=
+	/ %YFramework.YSLib $=
 	(
-		+ DLD "%(MoveConstructible) support for all widget classes",
-		+ DLD "class %IController as controller interface type"
+		/ %UI $=
+		(
+			+ DLD "%(MoveConstructible) support for all widget classes",
+			+ DLD "class %IController as controller interface type"
+		),
+		/ %YStatic => %YStorage @ %Core
 	),
 	/ "event mapping interfaces" $=
 	(

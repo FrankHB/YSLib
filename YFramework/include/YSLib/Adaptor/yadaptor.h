@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1592
+\version r1598
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-10-10 13:51 +0800
+	2014-10-19 13:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,6 +162,8 @@ using namespace platform::Descriptions;
 \since build 177
 */
 //@{
+//! \since build 547
+using platform::usystem;
 //@}
 
 /*!
@@ -194,6 +196,10 @@ using platform::uunlink;
 using platform::uremove;
 //! \since build 341
 using platform::truncate;
+//! \since build 547
+using platform::GetFileModificationTimeOf;
+//! \since build 547
+using platform::GetFileSizeOf;
 //@}
 
 //系统处理函数。

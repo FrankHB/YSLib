@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3721
+\version r3723
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-08-24 16:06 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -483,8 +483,7 @@ ScrollableContainer::FixLayout(const Size& s)
 		SetVisibleOf(hsbHorizontal, p.first);
 		SetVisibleOf(vsbVertical, p.second);
 	}
-	catch(GeneralEvent&)
-	{}
+	CatchIgnore(GeneralEvent&)
 	return arena;
 }
 

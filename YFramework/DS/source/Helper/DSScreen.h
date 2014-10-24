@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r437
+\version r441
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-09-10 19:16 +0800
+	2014-10-21 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -126,10 +126,7 @@ InitDSScreen(unique_ptr<DSScreen>& p_up, unique_ptr<DSScreen>& p_dn) ynothrow
 		p_up.reset(new DSScreen({}));
 		p_dn.reset(new DSScreen(true));
 	}
-	catch(...)
-	{
-		throw LoggedEvent("Screen initialization failed.");
-	}
+	CatchThrow(..., LoggedEvent("Screen initialization failed."))
 	YTraceDe(Notice, "DS screens initialized.");
 }
 

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r742
+\version r744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-10-15 22:27 +0800
+	2014-10-21 14:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -519,7 +519,7 @@ $2014-08:
 report.impl:
 Initialization should be cared.
 	There are several changes in ISO C++1y for initialization.
-		For value-initialization, as per WG21/N3936, from the resolution of CWG1301, the explicitly defaulted default constructors (declaring with '= default') are considered to ensure zero-initialization for members witout default constructor.
+		For value-initialization, as per WG21/N3936, from the resolution of CWG1301, the explicitly defaulted default constructors (declaring with '= default') are considered to ensure zero-initialization for classes without default constructor.
 			See http://wg21.cmeerw.net/cwg/issue1301 .
 			It differentiates with explicitly deleted constructor (declaring with '= delete') or user-provided ones.
 			Note for ISO C++11, The '= default' is not enough to ensure a value-initialized with no unitialized non-static data members. This is not intended.
@@ -638,7 +638,7 @@ Keys of associative containers are const-qualified.
 				This is generally more efficient than the first method.
 Implementations of clocks are cared.
 	For Windows systems, QPC is preferred for high resolution uses.
-		The related Windows APIs are fit for Windows 2000 or later, e.g. http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx . 
+		The related Windows APIs are fit for Windows 2000 or later, e.g. http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx .
 		See http://stackoverflow.com/questions/22942123/is-queryperformancefrequency-acurate-when-using-hpet for some reasons.
 		See http://msdn.microsoft.com/en-us/library/windows/desktop/dn553408(v=vs.85).aspx for deteils.
 		For Windows 8, the RTC is buggy to be reliable for overlocking benchmarking.

@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4691
+\version r4724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-10-07 09:33 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,41 +210,27 @@ ShlReader::LoadBookmarks(const string& group)
 			value.c_str());
 		ystdex::split(value, static_cast<int(&)(int)>(std::isspace),
 			[&](string::const_iterator b, string::const_iterator e){
-				try
-				{
-					bookmarks.push_back(stoul(ystdex::ltrim(string(b, e))));
-				}
-				catch(std::invalid_argument&)
-				{}
-				catch(std::out_of_range&)
-				{}
+				TryExpr(bookmarks.push_back(stoul(ystdex::ltrim(string(b, e)))))
+				CatchIgnore(std::invalid_argument&)
+				CatchIgnore(std::out_of_range&)
 		});
 		YTraceDe(Notice, "Bookmark value '%s' parsed and stored successfully.",
 			value.c_str());
 	}
-	catch(std::exception& e)
-	{
+	CatchExpr(std::exception& e, YTraceDe(Warning,
 		// TODO: Use demangled name.
-		YTraceDe(Warning, "Loading bookmarks failed, type = [%s].",
-			typeid(e).name());
-	}
+		"Loading bookmarks failed, type = [%s].", typeid(e).name()))
 	return bookmarks;
 }
 
 ReaderSetting
 ShlReader::LoadGlobalConfiguration()
 {
-	try
-	{
-		return ReaderSetting((FetchRoot() %= LoadConfiguration().at("YReader"))
-			.at("ReaderSetting").GetContainerRef());
-	}
-	catch(std::exception& e)
-	{
+	TryRet(ReaderSetting((FetchRoot() %= LoadConfiguration().at("YReader"))
+		.at("ReaderSetting").GetContainerRef()))
+	CatchExpr(std::exception& e, YTraceDe(Warning,
 		// TODO: Use demangled name.
-		YTraceDe(Warning, "Loading global configuration failed, type = [%s].",
-			typeid(e).name());
-	}
+		"Loading global configuration failed, type = [%s].", typeid(e).name()))
 	return {};
 }
 
@@ -268,12 +254,9 @@ ShlReader::SaveBookmarks(const string& group, const BookmarkList& bookmarks)
 		FetchRoot().at("YReader")["Bookmarks"]['"' + group + '"']
 			.Value = std::move(str);
 	}
-	catch(std::exception& e)
-	{
+	CatchExpr(std::exception& e, YTraceDe(Warning,
 		// TODO: Use demangled name.
-		YTraceDe(Warning, "Saving bookmarks failed, type = [%s].",
-			typeid(e).name());
-	}
+		"Saving bookmarks failed, type = [%s].", typeid(e).name()))
 }
 
 void
@@ -286,12 +269,9 @@ ShlReader::SaveGlobalConfiguration(const ReaderSetting& rs)
 		root["YReader"]["ReaderSetting"].SetChildren(ValueNode::Container(rs));
 		SaveConfiguration(root);
 	}
-	catch(std::exception& e)
-	{
+	CatchExpr(std::exception& e, YTraceDe(Warning,
 		// TODO: Use demangled name.
-		YTraceDe(Warning, "Saving global configuration failed, type = [%s].",
-			typeid(e).name());
-	}
+		"Saving global configuration failed, type = [%s].", typeid(e).name()))
 }
 
 

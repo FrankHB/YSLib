@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r194
+\version r199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-10-13 21:45 +0800
+	2014-10-21 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ Win32Exception::Win32Exception(ErrorCode ec, const std::string& s, LevelType lv)
 const std::error_category&
 Win32Exception::GetErrorCategory()
 {
-	static const Win32ErrorCategory ecat;
+	static const Win32ErrorCategory ecat{};
 
 	return ecat;
 }
@@ -83,8 +83,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 		::LocalFree(buf);
 		return res;
 	}
-	catch(...)
-	{}
+	CatchIgnore(...)
 	return {};
 }
 
@@ -96,13 +95,12 @@ CheckWine()
 	{
 		RegisterKey k1(HKEY_CURRENT_USER, L"Software\\Wine");
 		RegisterKey k2(HKEY_LOCAL_MACHINE, L"Software\\Wine");
-		
+
 		yunused(k1),
 		yunused(k2);
 		return true;
 	}
-	catch(Win32Exception&)
-	{}
+	CatchIgnore(Win32Exception&)
 	return {};
 }
 

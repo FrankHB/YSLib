@@ -11,13 +11,13 @@
 /*!	\file ycontrol.cpp
 \ingroup UI
 \brief 样式无关的控件。
-\version r3955
+\version r3962
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-18 13:44:34 +0800
 \par 修改时间:
-	2014-09-17 12:04 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,13 +53,9 @@ OnKey_Bound_Events(KeyEventArgs& e, VisualEvent id)
 
 			if(p_ctl && IsEnabled(*p_ctl))
 			{
-				try
-				{
-					DoEvent<HCursorEvent>(p_ctl->GetController(), id,
-						CursorEventArgs(*p_ctl, e.Keys, Point::Invalid));
-				}
-				catch(BadEvent&)
-				{}
+				TryExpr(DoEvent<HCursorEvent>(p_ctl->GetController(), id,
+					CursorEventArgs(*p_ctl, e.Keys, Point::Invalid)))
+				CatchIgnore(BadEvent&)
 				e.Handled = true;
 			}
 		}

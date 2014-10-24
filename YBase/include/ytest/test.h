@@ -16,13 +16,13 @@
 /*!	\file test.h
 \ingroup YTest
 \brief 基础测试工具。
-\version r107
+\version r109
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-17 03:56:17 +0800
 \par 修改时间:
-	2014-10-04 15:09 +0800
+	2014-10-17 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,11 +48,11 @@ using ystdex::size_t;
 
 /*!
 \brief 判断可调用对象的应用求值结果是否符合预期值。
-\since build 519
+\since build 547
 */
 template<typename _type, typename _func, typename... _tParams>
 bool
-expect(const _type result, _func&& f, _tParams&&... args)
+expect(const _type& result, _func&& f, _tParams&&... args)
 {
 	return yforward(f)(yforward(args)...) == result;
 }

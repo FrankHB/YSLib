@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1957
+\version r1970
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-10-16 15:19 +0800
+	2014-10-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,8 +140,7 @@ VerifyDirectory(const char* path)
 
 		return true;
 	}
-	catch(FileOperationFailure&)
-	{}
+	CatchIgnore(FileOperationFailure&)
 	return {};
 }
 
@@ -176,17 +175,13 @@ DeleteTree(const Path& pth)
 void
 ListFiles(const Path& pth, vector<String>& lst)
 {
-	try
-	{
-		Traverse(pth,
-			[&](NodeCategory c, const std::string& name, PathNorm& nm){
-			lst.push_back(String(!nm.is_parent(name)
-				&& c == NodeCategory::Directory
-				? name + YCL_PATH_DELIMITER : name, CS_Path));
-		});
-	}
-	catch(FileOperationFailure&)
-	{}
+	TryExpr(Traverse(pth,
+		[&](NodeCategory c, const std::string& name, PathNorm& nm){
+		lst.push_back(String(!nm.is_parent(name)
+			&& c == NodeCategory::Directory
+			? name + YCL_PATH_DELIMITER : name, CS_Path));
+	}))
+	CatchIgnore(FileOperationFailure&)
 }
 
 

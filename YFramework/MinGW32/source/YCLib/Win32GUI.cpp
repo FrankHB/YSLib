@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r520
+\version r521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-10-07 13:25 +0800
+	2014-10-24 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -243,7 +243,7 @@ WindowReference::ResizeClient(const Size& s)
 bool
 WindowReference::Show() ynothrow
 {
-	return ::ShowWindowAsync(hWindow, SW_SHOWNORMAL) != 0;
+	return ::ShowWindowAsync(hWindow, SW_SHOWNOACTIVATE) != 0;
 }
 
 

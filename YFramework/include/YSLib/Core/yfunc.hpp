@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1010
+\version r1022
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2014-10-12 17:48 +0800
+	2014-10-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,12 +111,8 @@ public:
 	{
 		if(_state == _mem_func && _m_ptr._mf_ptr)
 		{
-			try
-			{
-				return dynamic_cast<_type&>(_r).*_m_ptr._mf_ptr(_x);
-			}
-			catch(std::bad_cast&)
-			{}
+			TryExpr(return dynamic_cast<_type&>(_r).*_m_ptr._mf_ptr(_x))
+			CatchIgnore(std::bad_cast&)
 		}
 	}
 };
@@ -192,12 +188,8 @@ public:
 	operator()(_tNew& o, _tPara&& arg)
 	{
 		if(YB_LIKELY(_pm))
-			try
-			{
-				return (dynamic_cast<_type&>(o).*_pm)(yforward(arg));
-			}
-			catch(std::bad_cast&)
-			{}
+			TryRet((dynamic_cast<_type&>(o).*_pm)(yforward(arg)))
+			CatchIgnore(std::bad_cast&)
 	}
 };
 
