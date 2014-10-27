@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r65
+\version r94
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2013-12-23 22:58 +0800
+	2014-10-27 13:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 #define YSL_INC_UI_Hover_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YWidget
+#include YFM_YSLib_UI_YControl
+#include YFM_YSLib_UI_YGUI
 
 namespace YSLib
 {
@@ -56,6 +57,36 @@ public:
 
 	DefPred(const ynothrow, Entered, entered)
 };
+
+
+//! \since build 548
+//@{
+//! \brief 设置悬停动作。
+template<typename _func>
+void
+ActOnHover(IWidget& sender, _func f)
+{
+	if(&sender != FetchGUIState().GetIndependentFocusPtr())
+		f();
+}
+
+//! \brief 设置悬停操作渲染器。
+//@{
+template<typename _func>
+inline void
+SetRendererOnHover(IWidget& sender, Widget& wgt, _func f)
+{
+	UI::ActOnHover(sender, std::bind(&Widget::SetRenderer, std::ref(wgt),
+		std::bind(f)));
+}
+inline PDefH(void, SetRendererOnHover, IWidget& sender, Widget& wgt)
+	ImplExpr(UI::SetRendererOnHover(sender, wgt, make_unique<Renderer>))
+//@}
+
+//! \brief 处理悬停事件：设置 Renderer 为渲染器。
+inline PDefH(void, OnHover_SetRenderer, CursorEventArgs&& e, Widget& wgt)
+	ImplExpr(UI::SetRendererOnHover(e.GetSender(), wgt))
+//@}
 
 } // namespace UI;
 

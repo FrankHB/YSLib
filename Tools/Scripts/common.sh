@@ -17,7 +17,7 @@ SHBuild_2w()
 
 SHBuild_Install()
 {
-	if hash rsync > /dev/null; then
+	if hash rsync > /dev/null 2>&1; then
 		rsync -a "$1" "$2"
 	else
 		cp -fr "$1" "$2"
@@ -26,7 +26,7 @@ SHBuild_Install()
 
 SHBuild_InstallDir()
 {
-	if command -v rsync > /dev/null; then
+	if hash rsync > /dev/null 2>&1; then
 		rsync -a "$1" "$2"
 	else
 		cp -fr "$1" "$2/.."

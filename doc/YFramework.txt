@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r894
+\version r897
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-10-23 10:29 +0800
+	2014-10-27 14:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -375,9 +375,9 @@
 @2.2.1 YFramework 基本文件依赖性：
  YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
 关于 ISO C++11 直接指定的依赖项，参见 [Documentation::LanguageConvention @@5.25.2] ；其它基本代码依赖性规则如下（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
-禁止依赖（包括包含）非头文件。
-对公开的头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.1])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
-除非另行约定，禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
+禁止依赖（包括包含）以外头文件的文件。
+对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.1])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
+除非另行约定（如 [Documentation::YBase @@2.4.4.1] ），禁止显式重复包含同一文件或循环依赖；头文件应具有守护宏([Documentation::ProjectRules @@2.2.6]) 。
 实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 下层的 <YModules.h> 包含 "../YModules.h" 。除此之外，以下包含关系是确定的：
  <CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；

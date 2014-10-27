@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 宿主窗口。
-\version r163
+\version r164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:36:43 +0800
 \par 修改时间:
-	2014-07-13 22:46 +0800
+	2014-10-25 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -64,6 +64,7 @@ DSWindow::DSWindow(NativeWindowHandle h, DSScreen& s_up, DSScreen& s_dn,
 		scr_dn.UpdateToSurface(sf);
 	}
 	);
+	Show();
 #	endif
 }
 

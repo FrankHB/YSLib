@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r540
+\version r544
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-10-24 23:34 +0800
+	2014-10-25 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,11 +170,13 @@ public:
 
 	/*!
 	\brief 显示窗口。
-	\note 若窗口被最小化则恢复；不激活窗口。
+	\note 使用 \t ::ShowWindowAsync 实现，非阻塞调用，直接传递参数。
+	\note 默认参数指定若窗口被最小化则恢复且激活窗口。
 	\return 异步操作是否成功。
+	\since build 548
 	*/
 	bool
-	Show() ynothrow;
+	Show(int = SW_SHOWNORMAL) ynothrow;
 };
 
 

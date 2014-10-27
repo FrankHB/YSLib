@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2625
+\version r2632
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-10-22 22:30 +0800
+	2014-10-27 09:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,10 +354,7 @@ GetDependencies(const string& path)
 	}));
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::DepsCheck));
 
-	if(i_c == lst.cend())
-		print("Wrong dependencies format found.", Warning);
-	lst.erase(lst.cbegin(), i_c + 1);
-	if(lst.empty())
+	if(i_c == lst.cend() || (lst.erase(lst.cbegin(), i_c + 1), lst.empty()))
 		print("Wrong dependencies format found.", Warning);
 	print(to_string(lst.size()) + " dependenc"
 		+ (lst.size() == 1 ? "y" : "ies") + " found.", Debug);
@@ -501,11 +498,10 @@ BuildFile(const Rule& rule)
 Value
 SearchDirectory(const Rule& rule, const ActionContext& actx)
 {
-	const auto& bctx(rule.Context);
 	const auto& ipth(rule.Source.first);
 	const auto& opth(rule.Source.second);
 	const auto& path(ipth.GetMBCS());
-	vector<string> subdirs, afiles, ofiles;
+	vector<string> subdirs, ofiles;
 	vector<pair<string, string>> src_files;
 	const auto print(std::bind(PrintInfo, _1, _2, LogGroup::Search));
 
@@ -515,7 +511,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 		{
 			if(c == NodeCategory::Directory)
 			{
-				if(ystdex::exists(bctx.IgnoredDirs, name))
+				if(ystdex::exists(rule.Context.IgnoredDirs, name))
 					print("Subdirectory " + path + name + YCL_PATH_DELIMITER
 						+ " is ignored.", Informative);
 				else

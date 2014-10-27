@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2574
+\version r2577
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-10-16 09:51 +0800
+	2014-10-25 11:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -604,12 +604,12 @@
 
 @5.2.1.5 边界事件：
 包括 Enter 和 Leave 事件。
-事件发送者为被关注的边界所在的部件。
-默认通过 GUIState 实现，事件发送者和订阅者相同。
+事件发送者为被关注的边界所在的部件，参数中的坐标相对此部件。
+边界事件可能由不同的事件处理触发，默认通过 GUIState 实现。
 指针设备作用于部件，触发 CursorOver 时改变光标所在的部件可以触发边界事件。此外，触发 TouchDown 事件之前判断输入焦点时触发 Enter 事件；触发 TouchHeld 同时移动指针设备出入部件边界可触发 Leave 和 Enter 事件； TouchUp 事件触发后触发 Leave 事件。
 通过 CursorOver 的事件保证按键（参数的 Keys 数据成员）会被清空。据此可以判断边界事件的触发方式。（但注意不保证非 CursorOver 对应的 Keys 一定非空，用户的事件处理器可能会重新设置按键。）
 默认不对所有部件启用触发。通过 GUIState::Wrap 指定对部件启用触发， Control 类构造时自动指定启用。判断 CursorOver 、 TouchDown 和 TouchHeld 触发时使用最高事件优先级，判断 TouchUp 触发时使用最低事件优先级。
-边界事件的事件源是被作用的边界对应的部件，且参数坐标相对此部件。
+对于 Enter 事件，默认实现的事件发送者和订阅者相同。通过比较发送者的指针和 GUIState 的 GetIndependentFocusPtr() 可以分辨 Leave 事件是否由 CursorOver 的处理引起。
 
 @5.2.2 公用和扩展事件处理程序：
  YControl 单元中定义了部分非成员函数公用事件处理器。

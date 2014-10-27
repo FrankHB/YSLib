@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r177
+\version r190
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2014-05-18 23:39 +0800
+	2014-10-25 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,13 +74,23 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 
 #	if YCL_Win32
 
-void
-ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex,
-	const wchar_t* title)
+HostRenderer&
+ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex, int n_cmd_show,
+	const wchar_t* title, bool mv)
 {
-	WrapRenderer(wgt, CreateNativeWindow, WindowClassName, GetSizeOf(wgt),
-		title, wstyle, wstyle_ex);
+	auto& res(UI::WrapRenderer<HostRenderer>(wgt, wgt, [=, &wgt]{
+		WindowReference wnd_ref(CreateNativeWindow(WindowClassName,
+			GetSizeOf(wgt), title, wstyle, wstyle_ex));
+
+		if(mv)
+			wnd_ref.Move(GetLocationOf(wgt));
+		wgt.GetView().SetLocation({});
+		wnd_ref.Show(n_cmd_show);
+		return wnd_ref;
+	}));
+
 	WaitForHostWindow(wgt);
+	return res;
 }
 #	endif
 #	if !YCL_Android

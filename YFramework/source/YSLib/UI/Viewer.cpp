@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r261
+\version r263
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2014-09-11 12:48 +0800
+	2014-10-27 18:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ SequenceViewer::IncreaseHead(ptrdiff_t d, size_t total)
 {
 	ptrdiff_t t(head + d);
 
-	RestrictInInterval(t, 0, ptrdiff_t(total));
+	RestrictInInterval(t, ptrdiff_t(0), ptrdiff_t(total));
 	SetHeadIndex(size_t(t), total);
 	return *this;
 }
@@ -104,7 +104,7 @@ SequenceViewer::IncreaseSelected(ptrdiff_t d, size_t total)
 {
 	ptrdiff_t t(selected + d);
 
-	RestrictInInterval(t, 0, ptrdiff_t(total));
+	RestrictInInterval(t, ptrdiff_t(0), ptrdiff_t(total));
 	SetSelectedIndex(size_t(t), total);
 	return *this;
 }
