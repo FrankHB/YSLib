@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r302
+\version r313
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-10-07 20:05 +0800
+	2014-10-25 12:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,6 +56,10 @@ private:
 
 public:
 	RenderWindow(HostRenderer&, NativeWindowHandle);
+	//! \since build 548
+	RenderWindow(HostRenderer& renderer, platform_ex::WindowReference wnd_ref)
+		: RenderWindow(renderer, wnd_ref.GetNativeHandle())
+	{}
 
 	DefGetter(const ynothrow, HostRenderer&, Renderer, renderer)
 
@@ -88,6 +92,10 @@ public:
 	{}
 	//! \since build 385
 	DefDelMoveCtor(WindowThread)
+	/*!
+	\brief 析构：关闭窗口。
+	\note 忽略实现抛出的异常。
+	*/
 	~WindowThread();
 
 	//! \note 线程安全。
@@ -112,6 +120,9 @@ private:
 	//! \since build 389
 	void
 	ThreadLoop(NativeWindowHandle);
+	//! \since build 548
+	PDefH(void, ThreadLoop, WindowReference wnd_ref)
+		ImplRet(ThreadLoop(wnd_ref.GetNativeHandle()))
 	void
 	ThreadLoop(unique_ptr<Window>);
 

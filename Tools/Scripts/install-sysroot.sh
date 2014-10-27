@@ -61,17 +61,17 @@ SHBuild_InstallDir "${YSLib_BaseDir}/YFramework/MinGW32/include/" \
 SHBuild_SysRoot_Stage1_SHBuild="${SHBuild_BaseDir}/.shbuild"
 SHBuild_SysRoot_Stage1_SHBuild_DLL="${SHBuild_BaseDir}/.shbuild-dll"
 
-SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild}/YFramework.a" \
-	"${SHBuild_SysRoot_Lib}/libYFramework.a"
 SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild}/YBase.a" \
 	"${SHBuild_SysRoot_Lib}/libYBase.a"
-SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YFramework.dll" \
-	"${SHBuild_SysRoot_Bin}/YFramework.dll"
+SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild}/YFramework.a" \
+	"${SHBuild_SysRoot_Lib}/libYFramework.a"
 SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YBase.dll" \
 	"${SHBuild_SysRoot_Bin}/YBase.dll"
-SHBuild_Install_Link "${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YBase.dll" \
+SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YFramework.dll" \
+	"${SHBuild_SysRoot_Bin}/YFramework.dll"
+SHBuild_Install_Link "${SHBuild_SysRoot_Bin}/YBase.dll" \
 	"${SHBuild_SysRoot_Lib}/YBase.dll.a"
-SHBuild_Install_Link "${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YFramework.dll" \
+SHBuild_Install_Link "${SHBuild_SysRoot_Bin}/YFramework.dll" \
 	"${SHBuild_SysRoot_Lib}/YFramework.dll.a"
 
 echo Finished installing headers and libraries.

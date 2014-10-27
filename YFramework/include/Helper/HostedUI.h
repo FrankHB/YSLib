@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r176
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2014-10-24 21:56 +0800
+	2014-10-25 19:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,34 +68,6 @@ GetWindowPtrOf(UI::IWidget& wgt)
 YF_API Window&
 WaitForHostWindow(UI::IWidget&);
 
-
-/*!
-\brief 制造新的宿主渲染器。
-\return unique_ptr 包装的渲染器。
-\since build 430
-*/
-template<typename _func, typename... _tParams>
-unique_ptr<HostRenderer>
-MakeHostRenderer(UI::IWidget& wgt, _func&& f, _tParams&&... args)
-{
-	return make_unique<HostRenderer>(wgt, yforward(f), yforward(args)...);
-}
-
-//! \since build 401
-template<typename _tParam>
-void
-WrapRenderer(UI::Widget& wgt, _tParam&& arg)
-{
-	wgt.SetRenderer(MakeHostRenderer(wgt, yforward(arg)));
-}
-//! \since build 401
-template<typename... _tParams>
-void
-WrapRenderer(UI::Widget& wgt, _tParams&&... args)
-{
-	wgt.SetRenderer(MakeHostRenderer(wgt, std::bind(yforward(args)...)));
-}
-
 #	if !YCL_Android
 
 /*!
@@ -110,14 +82,16 @@ DragWindow(Window&, UI::CursorEventArgs&&);
 
 /*!
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。
+\return 设置的宿主渲染器引用。
 \exception LoggedEvent 宽或高不大于 0 。
 \note WS_EX_LAYERED 被设置时默认透明，可对宿主窗口 Opacity 成员设置不透明性。
-\note 阻塞等待宿主窗口指针非空。
-\since build 430
+\note 最后一个参数指定是否按部件位置设置顶层窗口位置。
+\note 复位部件位置为原点、设置宿主渲染器并阻塞等待宿主窗口指针非空。
+\since build 548
 */
-YF_API void
+YF_API HostRenderer&
 ShowTopLevel(UI::Widget&, ::DWORD = WS_POPUP, ::DWORD = WS_EX_LAYERED,
-	const wchar_t* = L"");
+	int = SW_SHOWNORMAL, const wchar_t* = L"", bool = true);
 #	endif
 #	if !YCL_Android
 

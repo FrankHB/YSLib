@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r316
+\version r319
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-10-21 12:50 +0800
+	2014-10-25 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -139,9 +139,6 @@ WindowThread::WindowLoop(Window& wnd)
 	auto& env(wnd.GetHost());
 
 	env.EnterWindowThread();
-#	endif
-#	if !YCL_Android
-	wnd.Show();
 #	endif
 	HostLoop();
 #	if YF_Multithread

@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r823
+\version r827
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-10-17 16:46 +0800
+	2014-10-26 03:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_string_hpp_ 1
 
 #include "array.hpp" // for ../ydef.h, ystdex::to_array;
-#include "container.hpp" // for ystdex::sort_unique;
+#include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	and std::to_string;
 #include <cstdio> // for std::vsnprintf
@@ -492,13 +492,13 @@ to_string(unsigned short val)
 }
 //! \since build 538
 template<typename _type>
-inline std::string
-to_string(_type val, yimpl(enable_if_t<is_enum<_type>::value>* = {}))
+inline yimpl(enable_if_t)<is_enum<_type>::value, std::string>
+to_string(_type val)
 {
 	using std::to_string;
 	using ystdex::to_string;
 
-	return to_string(underlying_type_t<_type>(val));
+	return to_string(ystdex::underlying(val));
 }
 //@}
 

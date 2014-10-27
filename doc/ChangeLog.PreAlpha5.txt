@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r5186
+\version r5298
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-24 23:44 +0800
+	2014-10-28 01:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,119 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		+ $revert_ex(b547) "parameter %int with default argument %SW_SHOWNORMAL"
+			@ "member function %WindowReference::Show"
+			@ %'YCLib_(MinGW32)'.Win32GUI,
+		/ %YSLib.UI $=
+		(
+			+ "2 function templates %WrapRenderer" @ %Widget,
+			+ "function templates %(ActOnHover; SetRendererOnHover); functions \
+				%(SetRendererOnHover; OnHover_SetRenderer)" @ %Hover,
+			* DLB "ill-formed code due to different types of arguments"
+				@ "functions (IncreaseHead, IncreaseSelected)"
+				@ "class %SequenceViewer" @ %Viewer $since b525
+				// It would fail to compile for Win64.
+		),
+		/ %Helper $=
+		(
+			/ @ "class %WindowThread" @ %HostRenderer $=
+			(
+				- "showing window call" @ "function %WindowLoop",
+					// Now window should be shown by user on creating if \
+						necessary.
+				+ "function %ThreadLoop for %WindowReference parameter",
+				+ "constructor for %platform_ex::WindowReference as 2nd \
+					parameter" @ "class %RenderWindow"
+			),
+			/ @ "platform %Win32" @ %HostedUI $=
+			(
+				- $revert(b430) "function template %MakeHostRenderer",
+					// This was useful when %HostRenderer is not public \
+						interface. However now it is public.
+				- $revert(b401) "all 2 function templates %WrapRenderer",
+					// Ditto.
+				/ @ "function %ShowTopLevel" $=
+				(
+					(
+					+ "parameter %int with default argument %SW_SHOWNORMAL \
+						after 3rd parameter";
+					$dep_to "showing command"
+					),
+					+ "parameter %bool with default argument %true to \
+						determine whether window location is set as widget \
+						location",
+					/ "reset widget location to origin before showing",
+						// To keep invalidation and rendering available.
+					/ "returned reference of wrapped renderer" ~ "%void"
+				),
+				(
+				$dep_from "showing command",
+				* $comp "window shown without activated via call of \
+					%(ShowTopLevel, ShowTopLevelDraggable)" $since b547
+				)
+			)
+			* "missing showing main DS window with activation" @ %DSWindow
+				$since b547
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		(
+		+ "function template %underlying" @ %Utility;
+		/ DLD "implemented function %to_string" @ %String $=
+		(
+			^ $dep_from "%ystdex::underlying" ~ "%underlying_type_t",
+			^ "%enable_if_t at return type" ~ "parameter"
+		)
+		),
+		/ "explicitly allowed multiple inclusion for assertion macros"
+			@ %CAssert $=
+			// Like <cassert>.
+		(
+			/ "made macro inclusion guard no effect on macro definitions",
+			+ "'#undef' macros %(yconstraint, yassume, YAssert, YTrace, \
+				YAssertNonnull) before definitions"
+		)
+	),
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			* "iterator access out of range when colon is not found" @ ".d file"
+				$since b546,
+			/ DLD "simplified directory search implementation"
+		),
+		/ %Scripts $=
+		(
+			* "symbolic linking targets for DLLs" @ "%install-sysroot.sh"
+				$since b546
+				$= (^ "target '/bin'" ~ "intermediate build directory"),
+			/ @ "%common.sh" @ %Scripts $=
+			(
+				^ DLD 'hash' ~ 'command -v' @ "function %SHBuild_InstallDir",
+				/ "hid 'hash' error output"
+					@ "functions %(SHBuild_Install, SHBuild_InstallDir)"
+			)
+		)
+		/ @ "%msys2-pacman-update.sh" $=
+		(
+			/ @ "necessary update command line" $=
+			(
+				+ '--needed',
+				+ 'mingw32/mingw-w64-i686-binutils-git',
+				- 'make'
+			),
+			+ "echo for update command line",
+			+ 'pacman -S --needed mingw32/mingw-w64-i686-gdb \
+				mingw32/mingw-w64-i686-nasm msys/rsync'
+		)
+	)
+),
+
+b547
 (
 	/ %YBase $=
 	(
