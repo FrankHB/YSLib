@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r189
+\version r214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2014-09-28 08:41 +0800
+	2014-10-31 10:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,33 +36,7 @@
 #	include <Windows.h>
 #	include <sys/stat.h>
 
-namespace
-{
-
 #define MAP_FAILED (reinterpret_cast<void*>(-1))
-
-void*
-map_file(size_t len, int fd)
-{
-	void* p_mapped{};
-
-	if(len != 0)
-	{
-		const auto h(::HANDLE(::_get_osfhandle(fd)));
-
-		if(h != INVALID_HANDLE_VALUE)
-			if(::HANDLE fm = ::CreateFileMapping(h, nullptr, PAGE_READONLY, 0,
-				len, nullptr))
-			{
-				p_mapped = ::MapViewOfFile(fm, FILE_MAP_READ, 0, 0, len);
-				::CloseHandle(fm);
-			}
-	}
-	return p_mapped ? p_mapped : MAP_FAILED;
-}
-
-} // unnamed namespace;
-
 #elif YCL_Android
 #	include <sys/mman.h>
 #	include <sys/stat.h>
@@ -87,7 +61,20 @@ MappedFile::MappedFile(const char* path)
 	::read(fd, addr, size);
 #else
 #	if YCL_Win32
-	const auto p(map_file(size, fd));
+	void* p(MAP_FAILED);
+
+	if(size != 0)
+	{
+		const auto h(::HANDLE(::_get_osfhandle(fd)));
+
+		if(h != INVALID_HANDLE_VALUE)
+			if(::HANDLE fm = ::CreateFileMapping(h, {}, PAGE_READONLY, 0, size,
+				{}))
+			{
+				p = ::MapViewOfFile(fm, FILE_MAP_READ, 0, 0, size);
+				::CloseHandle(fm);
+			}
+	}
 #	else
 	const auto p(::mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0));
 #	endif

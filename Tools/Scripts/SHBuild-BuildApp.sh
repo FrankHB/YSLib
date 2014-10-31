@@ -1,9 +1,9 @@
 #!/usr/bin/bash
 # (C) 2014 FrankHB.
-# Example script for build YSLib using SHBuild.
+# Script for build YSLib applications using SHBuild.
 
-: ${SHBuild_ToolDir:=$(cd `dirname "$0"`; pwd)}
-: ${SHBuild_BaseDir:="${SHBuild_ToolDir}/../SHBuild"}
+: ${SHBuild_Bin:="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"}
+: ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
 
 SHBuild_PrintUsage()
 {
@@ -39,18 +39,18 @@ fi
 export SHBuild_Debug
 
 SHBOPT="-xd,.${SHBuild_Conf} -xmode,2 $@"
-source ${SHBuild_ToolDir}/common.sh
+source ${SHBuild_Bin}/SHBuild-common.sh
 if hash gcc-ar > /dev/null; then
 	export AR=gcc-ar
 fi
-source ${SHBuild_ToolDir}/common-toolchain.sh
+source ${SHBuild_Bin}/SHBuild-common-toolchain.sh
 if [ x${SHBuild_Debug} != x ]; then
 	echo Use debug configuration ${SHBuild_Conf}.
 	CXXFLAGS_OPT_DBG="-O0 -g"
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
 	LDFLAGS=" "
-	source ${SHBuild_ToolDir}/common-options.sh
+	source ${SHBuild_Bin}/SHBuild-common-options.sh
 	export SHBuild_YSLib_LibNames='-lYFrameworkd -lYBased'
 else
 	echo Use release configuration ${SHBuild_Conf}.
@@ -58,10 +58,19 @@ else
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
 	unset LDFLAGS
-	source ${SHBuild_ToolDir}/common-options.sh
+	source ${SHBuild_Bin}/SHBuild-common-options.sh
 	export LDFLAGS="${LDFLAGS} -mwindows"
 	export SHBuild_YSLib_LibNames='-lYFramework -lYBase'
 fi
+export SHBuild_YSLib_Flags="${CXXFLAGS} -DYF_DLL -DYB_DLL \
+	-I${SHBuild_Bin}/../include"
+export LIBS="-L`SHBuild_2w "${SHBuild_Bin}/../lib"` ${SHBuild_YSLib_LibNames}"
+
+SHBuild_BuildApp()
+{
+	(cd ${SHBuild_AppBaseDir}; "${SHBuild_Bin}/SHBuild" ${SHBOPT} -xid,include \
+		$@ ${SHBuild_YSLib_Flags})
+}
 
 SHBuild_EchoVar_N "CXXFLAGS"
 SHBuild_EchoVar_N "LDFLAGS"

@@ -11,13 +11,13 @@
 /*!	\file yexcept.h
 \ingroup Core
 \brief 异常处理模块。
-\version r400
+\version r405
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-15 20:30:14 +0800
 \par 修改时间:
-	2014-10-13 20:57 +0800
+	2014-10-31 12:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,16 +87,17 @@ public:
 class YF_API FatalError : public GeneralEvent
 {
 private:
-	const char* content;
+	std::string content;
 
 public:
 	/*!
 	\brief 构造：使用标题和内容。
-	\since build 545
+	\since build 549
 	*/
-	FatalError(const char*, const char*);
+	FatalError(const std::string&, const std::string&);
 
-	DefGetter(const ynothrow, const char*, Content, content)
+	//! \since build 549
+	DefGetter(const ynothrow, const std::string&, Content, content)
 	DefGetter(const ynothrow, const char*, Title, what())
 };
 

@@ -6,7 +6,7 @@ set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 : ${SHBuild_BaseDir:="${SHBuild_ToolDir}/../SHBuild"}
 : ${YSLib_BaseDir:="${SHBuild_ToolDir}/../.."}
-source ${SHBuild_ToolDir}/common.sh
+source ${SHBuild_ToolDir}/SHBuild-common.sh
 
 echo Configuring ...
 # POSIX paths may be not supported by native Windows programs without
@@ -24,7 +24,7 @@ SHBuild_SysRoot_Include="${SHBuild_SysRoot}/usr/include"
 SHBuild_SysRoot_Lib="${SHBuild_SysRoot}/usr/lib"
 SHBuild_SysRoot_SHBuild="${SHBuild_SysRoot}/.shbuild"
 export AR="gcc-ar"
-source ${SHBuild_ToolDir}/common-toolchain.sh
+source ${SHBuild_ToolDir}/SHBuild-common-toolchain.sh
 echo Done.
 
 echo Bootstraping ...
@@ -61,13 +61,14 @@ SHBuild_InstallDir "${YSLib_BaseDir}/YFramework/MinGW32/include/" \
 SHBuild_SysRoot_Stage1_SHBuild="${SHBuild_BaseDir}/.shbuild"
 SHBuild_SysRoot_Stage1_SHBuild_DLL="${SHBuild_BaseDir}/.shbuild-dll"
 
-SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild}/YBase.a" \
+SHBuild_Install_HardLink "${SHBuild_SysRoot_Stage1_SHBuild}/YBase.a" \
 	"${SHBuild_SysRoot_Lib}/libYBase.a"
-SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild}/YFramework.a" \
+SHBuild_Install_HardLink "${SHBuild_SysRoot_Stage1_SHBuild}/YFramework.a" \
 	"${SHBuild_SysRoot_Lib}/libYFramework.a"
-SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YBase.dll" \
+SHBuild_Install_HardLink "${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YBase.dll" \
 	"${SHBuild_SysRoot_Bin}/YBase.dll"
-SHBuild_Install "${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YFramework.dll" \
+SHBuild_Install_HardLink \
+	"${SHBuild_SysRoot_Stage1_SHBuild_DLL}/YFramework.dll" \
 	"${SHBuild_SysRoot_Bin}/YFramework.dll"
 SHBuild_Install_Link "${SHBuild_SysRoot_Bin}/YBase.dll" \
 	"${SHBuild_SysRoot_Lib}/YBase.dll.a"
@@ -78,7 +79,7 @@ echo Finished installing headers and libraries.
 
 export INCLUDES="${INCLUDES} -I${SHBuild_SysRoot_Include}"
 export LIBS="${LIBS} -L`SHBuild_2w ${SHBuild_SysRoot_Lib}` -lYFramework -lYBase"
-source ${SHBuild_ToolDir}/common-options.sh
+source ${SHBuild_ToolDir}/SHBuild-common-options.sh
 
 echo Building Stage 2 SHBuild ...
 ${SHBuild_BaseDir}/SHBuild ${SHBuild_BaseDir} \
@@ -87,8 +88,16 @@ ${SHBuild_BaseDir}/SHBuild ${SHBuild_BaseDir} \
 echo Finished building Stage 2 SHBuild.
 
 echo Installing Stage 2 SHBuild ...
-SHBuild_Install_Exe "${SHBuild_SysRoot_SHBuild}/SHBuild.exe" \
+SHBuild_Install_HardLink_Exe "${SHBuild_SysRoot_SHBuild}/SHBuild.exe" \
 	"${SHBuild_SysRoot_Bin}/SHBuild.exe"
+SHBuild_Install_Exe "${SHBuild_ToolDir}/SHBuild-common.sh" \
+	"${SHBuild_SysRoot_Bin}/SHBuild-common.sh"
+SHBuild_Install_Exe "${SHBuild_ToolDir}/SHBuild-common-options.sh" \
+	"${SHBuild_SysRoot_Bin}/SHBuild-common-options.sh"
+SHBuild_Install_Exe "${SHBuild_ToolDir}/SHBuild-common-toolchain.sh" \
+	"${SHBuild_SysRoot_Bin}/SHBuild-common-toolchain.sh"
+SHBuild_Install_Exe "${SHBuild_ToolDir}/SHBuild-BuildApp.sh" \
+	"${SHBuild_SysRoot_Bin}/SHBuild-BuildApp.sh"
 echo Finished installing Stage 2 SHBuild.
 
 echo Done.

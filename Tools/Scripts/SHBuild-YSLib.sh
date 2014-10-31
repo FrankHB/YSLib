@@ -5,9 +5,9 @@
 set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 : ${SHBuild_BaseDir:="${SHBuild_ToolDir}/../SHBuild"}
-source ${SHBuild_ToolDir}/common.sh
+source ${SHBuild_ToolDir}/SHBuild-common.sh
 export AR="gcc-ar"
-source ${SHBuild_ToolDir}/common-toolchain.sh
+source ${SHBuild_ToolDir}/SHBuild-common-toolchain.sh
 
 : ${SHBuild:="${SHBuild_BaseDir}/SHBuild"}
 : ${SHBuild_YSLib_Platform:="MinGW32"}
@@ -33,7 +33,7 @@ unset CXXFLAGS_OPT_DBG
 unset CXXFLAGS_COMMON
 unset CXXFLAGS
 unset LDFLAGS
-source ${SHBuild_ToolDir}/common-options.sh
+source ${SHBuild_ToolDir}/SHBuild-common-options.sh
 LDFLAGS="${LDFLAGS} -Wl,--dn"
 
 SHBuild_EchoVar "SHBOPT" "${SHBOPT}"
@@ -55,7 +55,7 @@ unset CXXFLAGS_OPT_DBG
 unset CXXFLAGS_COMMON
 unset CXXFLAGS
 unset LDFLAGS
-source ${SHBuild_ToolDir}/common-options.sh
+source ${SHBuild_ToolDir}/SHBuild-common-options.sh
 export LDFLAGS="${LDFLAGS} -shared -Wl,--dll"
 LIBS_YFramework="-L../../YFramework/${SHBuild_YSLib_Platform}/lib \
 	-lFreeImage -lfreetype"

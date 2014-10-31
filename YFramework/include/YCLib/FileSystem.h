@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1482
+\version r1519
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-10-11 19:01 +0800
+	2014-10-31 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,32 +178,41 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 //@}
 
 
+/*!
+\brief 测试路径可访问性。
+\param path 路径，意义同 POSIX <tt>::open</tt> 。
+\param amode 模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。 。
+\pre 断言：<tt>filename</tt> 。
+\note \c errno 在出错时会被设置，具体值由实现定义。
+\since build 549
+*/
+//@{
+YF_API int
+uaccess(const char* path, int amode) ynothrow;
+YF_API int
+uaccess(const char16_t* path, int amode) ynothrow;
+//@}
+
 //! \since build 324
 //@{
 /*!
 \param filename 文件名，意义同 POSIX <tt>::open</tt> 。
+\param oflag 打开标识，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 \pre 断言：<tt>filename</tt> 。
 */
 //@{
-/*!
-\brief 以 UTF-8 文件名无缓冲打开文件。
-\param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
-*/
+//! \brief 以 UTF-8 文件名无缓冲打开文件。
 //@{
 YF_API int
 uopen(const char* filename, int oflag) ynothrow;
-//! \param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
 YF_API int
 uopen(const char* filename, int oflag, int pmode) ynothrow;
 //@}
-/*!
-\brief 以 UCS-2 文件名无缓冲打开文件。
-\param oflag 打开标识，基本语义同 POSIX 2003 ，具体行为取决于实现。
-*/
+//! \brief 以 UCS-2 文件名无缓冲打开文件。
 //@{
 YF_API int
 uopen(const char16_t* filename, int oflag) ynothrow;
-//! \param pmode 打开模式，基本语义同 POSIX 2003 ，具体行为取决于实现。
+//! \param pmode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
 YF_API int
 uopen(const char16_t* filename, int oflag, int pmode) ynothrow;
 //@}
@@ -226,19 +235,17 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 //@}
 
 /*!
-\brief 判断指定 UTF-8 文件名的文件是否存在。
-\note 使用 ufopen 实现。
+\note 使用 ufopen 二进制只读模式打开测试实现。
 \pre 断言：参数非空。
 */
+//@{
+//! \brief 判断指定 UTF-8 文件名的文件是否存在。
 YF_API bool
 ufexists(const char*) ynothrow;
-/*!
-\brief 判断指定 UCS-2 文件名的文件是否存在。
-\note 使用 ufopen 实现。
-\pre 断言：参数非空。
-*/
+//! \brief 判断指定 UCS-2 文件名的文件是否存在。
 YF_API bool
 ufexists(const char16_t*) ynothrow;
+//@}
 /*!
 \brief 判断指定字符串为文件名的文件是否存在。
 \note 使用 NTCTS 参数 ufexists 实现。
@@ -459,6 +466,9 @@ public:
 	*/
 	~DirectorySession();
 
+	//! \since build 549
+	DefDeMoveAssignment(DirectorySession)
+
 	//! \since build 413
 	DefGetter(const ynothrow, NativeHandle, NativeHandle, dir)
 
@@ -514,6 +524,9 @@ public:
 	{
 		h.p_dirent = {};
 	}
+
+	//! \since build 549
+	DefDeMoveAssignment(HDirectory)
 
 	/*!
 	\brief 间接操作：取自身引用。

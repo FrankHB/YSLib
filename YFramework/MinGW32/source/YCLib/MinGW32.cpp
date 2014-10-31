@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r199
+\version r314
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-10-21 12:48 +0800
+	2014-10-29 21:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_MinGW32_YCLib_MinGW32
+#include YFM_YCLib_FileSystem // for platform::FileOperationFaiure;
 
 using namespace YSLib;
 
@@ -93,8 +94,8 @@ CheckWine()
 {
 	try
 	{
-		RegisterKey k1(HKEY_CURRENT_USER, L"Software\\Wine");
-		RegisterKey k2(HKEY_LOCAL_MACHINE, L"Software\\Wine");
+		RegistryKey k1(HKEY_CURRENT_USER, L"Software\\Wine");
+		RegistryKey k2(HKEY_LOCAL_MACHINE, L"Software\\Wine");
 
 		yunused(k1),
 		yunused(k2);
@@ -140,6 +141,136 @@ MBCSToWCS(const char* str, std::size_t len, int cp)
 
 	::MultiByteToWideChar(cp, 0, str, len, w_str, w_len);
 
+	return res;
+}
+
+
+DirectoryFindData::DirectoryFindData(std::string name)
+	: DirectoryFindData(UTF8ToWCS(name))
+{}
+DirectoryFindData::DirectoryFindData(std::wstring name)
+	: dir_name(ystdex::rtrim(name, L"/\\")), find_data()
+{
+	YAssert(!dir_name.empty() && dir_name.back() != '\\',
+		"Invalid argument found.");
+
+	using platform::FileOperationFailure;
+	const auto r(::GetFileAttributesW(dir_name.c_str()));
+	yconstexpr const char* msg("Opening directory failed.");
+
+	if(YB_UNLIKELY(r == INVALID_FILE_ATTRIBUTES))
+		// TODO: Call %::GetLastError to distinguish concreate errors.
+		throw FileOperationFailure(EINVAL, std::generic_category(), msg);
+	if(r & FILE_ATTRIBUTE_DIRECTORY)
+		dir_name += L"\\*";
+	else
+		throw FileOperationFailure(ENOTDIR, std::generic_category(), msg);
+}
+
+DirectoryFindData::~DirectoryFindData()
+{
+	if(h_node)
+		Close();
+}
+
+void
+DirectoryFindData::Close() ynothrow
+{
+	const auto res(::FindClose(h_node));
+
+	YAssert(res, "No valid directory found.");
+	yunused(res);
+}
+
+std::wstring*
+DirectoryFindData::Read()
+{
+	if(!h_node)
+	{
+		// NOTE: See MSDN "FindFirstFile function" for details.
+		YAssert(!dir_name.empty(), "Invalid directory name found.");
+		YAssert(dir_name.back() != L'\\', "Invalid directory name found.");
+		if((h_node = ::FindFirstFileW(dir_name.c_str(), &find_data))
+			== INVALID_HANDLE_VALUE)
+			h_node = {};
+	}
+	else if(!::FindNextFileW(h_node, &find_data))
+	{
+		Close();
+		h_node = {};
+	}
+	if(h_node && h_node != INVALID_HANDLE_VALUE)
+		d_name = find_data.cFileName;
+	return h_node ? &d_name : nullptr;
+}
+
+void
+DirectoryFindData::Rewind() ynothrow
+{
+	if(h_node)
+	{
+		Close();
+		h_node = {};
+	}
+}
+
+
+void
+RegistryKey::Flush()
+{
+	YF_Raise_Win32Exception_On_Failure(::RegFlushKey(h_key), "RegFlushKey");
+}
+
+std::size_t
+RegistryKey::GetSubKeyCount() const
+{
+	::DWORD res;
+
+	YF_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {},
+		&res, {}, {}, {}, {}, {}, {}, {}), "RegQueryInfoKey");
+	return size_t(res);
+}
+std::vector<std::wstring>
+RegistryKey::GetSubKeyNames() const
+{
+	const auto cnt(GetSubKeyCount());
+	std::vector<std::wstring> res;
+
+	if(cnt > 0)
+	{
+		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx .
+		wchar_t name[256];
+
+		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
+			YF_Raise_Win32Exception_On_Failure(::RegEnumKeyExW(h_key,
+				res.size(), name, {}, {}, {}, {}, {}), "RegEnumKeyExW");
+	}
+	return res;
+}
+std::size_t
+RegistryKey::GetValueCount() const
+{
+	::DWORD res;
+
+	YF_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {}, {},
+		{}, {}, &res, {}, {}, {}, {}), "RegQueryInfoKey");
+	return size_t(res);
+}
+std::vector<std::wstring>
+RegistryKey::GetValueNames() const
+{
+	const auto cnt(GetValueCount());
+	std::vector<std::wstring> res;
+
+	if(cnt > 0)
+	{
+		// NOTE: See http://msdn.microsoft.com/en-us/library/windows/desktop/ms724872(v=vs.85).aspx .
+		wchar_t name[16384];
+
+		for(res.reserve(cnt); res.size() < cnt; res.emplace_back(name))
+			YF_Raise_Win32Exception_On_Failure(::RegEnumValueW(h_key,
+				res.size(), name, {}, {}, {}, {}, {}), "RegEnumValueW");
+	}
 	return res;
 }
 

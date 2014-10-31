@@ -11,13 +11,13 @@
 /*!	\file bitseg.hpp
 \ingroup YStandardEx
 \brief 位段数据结构和访问。
-\version r259
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 507
 \par 创建时间:
 	2014-06-12 21:42:50 +0800
 \par 修改时间:
-	2014-06-05 16:56 +0800
+	2014-10-30 19:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,19 +37,20 @@ namespace ystdex
 /*!
 \ingroup iterators
 \brief 位段迭代器。
-\tparam _vN 段宽度（ CHAR_BIT <= UCHAR_MAX 恒成立，因此使用 unsigned char ）。
-\tparam _bEndian 位序， ture 时为大端，否则为小端。
+\tparam _vN 段宽度。
+\tparam _bEndian 位序， \c ture 时为小端（ LSB 0 ），否则为大端（ MSB 0 ）。
 \warning 非虚析构。
-\since build 414
+\see http://en.wikipedia.org/wiki/Bit_numbering 。
+\since build 549
 \todo 支持 const byte* 实现的迭代器。
 
 对字节分段提供的随机访问迭代器。
 */
 //! \note since build 458 as workaround for Visual C++ 2013 and Clang++ 3.4
 #if YB_IMPL_MSCPP || YB_IMPL_CLANGPP
-template<unsigned char _vN, bool _bEndian = false>
+template<size_t _vN, bool _bEndian = false>
 #else
-template<unsigned char _vN, bool _bEndian = {}>
+template<size_t _vN, bool _bEndian = {}>
 #endif
 class bitseg_iterator : public std::iterator<std::random_access_iterator_tag,
 	byte, ptrdiff_t, byte*, byte&>
@@ -64,12 +65,15 @@ public:
 	using pointer = byte*;
 	using reference = byte&;
 
+	//! \since build 549
+	static yconstexpr bool lsb = _bEndian;
 	static yconstexpr unsigned char seg_n = CHAR_BIT / _vN;
 	static yconstexpr unsigned char seg_size = 1 << _vN;
 	static yconstexpr unsigned char seg_width = _vN;
 
 protected:
 	byte* base;
+	//! \note CHAR_BIT <= UCHAR_MAX 恒成立，因此使用 unsigned char 存储。
 	unsigned char shift;
 	mutable byte value;
 
@@ -80,8 +84,9 @@ public:
 	\brief 构造：使用基指针和偏移位。
 	\note value 具有未决定值。
 	\post 断言： <tt>shift < seg_n</tt> 。
+	\since build 549
 	*/
-	bitseg_iterator(byte* p = {}, unsigned char n = 0) ynothrow
+	bitseg_iterator(byte* p = {}, size_t n = 0) ynothrow
 		: base(p), shift(n)
 	{
 		yassume(shift < seg_n);
@@ -110,8 +115,8 @@ public:
 	operator*() const ynothrowv
 	{
 		yconstraint(base);
-		return value = *base >> seg_width * (_bEndian ? seg_n - 1 - shift
-			: seg_width) & seg_width;
+		return value = *base >> seg_width * (lsb ? seg_n - 1 - shift : shift)
+			& ((1 << seg_width) - 1);
 	}
 
 	yconstfn pointer

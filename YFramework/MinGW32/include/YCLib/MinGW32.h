@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r297
+\version r390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-10-13 21:12 +0800
+	2014-10-29 21:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,7 @@
 #	error "This file is only for MinGW."
 #endif
 #include <string> // for std::string, std::wstring;
+#include <vector> // for std::vector;
 #include <utility> // for std::pair;
 #include <chrono> // for std::chrono::nanoseconds;
 
@@ -113,6 +114,18 @@ public:
 		throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
 	}
 
+/*!
+\brief 按表达式求值和指定参数抛出 Windows::Win32Exception 对象。
+\since build 549
+*/
+#	define YF_Raise_Win32Exception_On_Failure(_expr, ...) \
+	{ \
+		const auto err(_expr); \
+	\
+		if(err != ERROR_SUCCESS) \
+			throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
+	}
+
 
 /*!
 \brief 判断是否在 Wine 环境下运行。
@@ -178,28 +191,111 @@ inline PDefH(std::wstring, UTF8ToWCS, const std::string& str)
 //@}
 
 
+/*
+\brief 文件系统目录查找状态。
+\since build 489
+*/
+class YF_API DirectoryFindData : private ystdex::noncopyable
+{
+private:
+	//! \brief 查找起始的目录名称。
+	std::wstring dir_name;
+	//! \brief Win32 查找数据。
+	::WIN32_FIND_DATAW find_data;
+	//! \brief 查找节点句柄。
+	::HANDLE h_node = {};
+	//! \brief 当前查找的项目名称。
+	std::wstring d_name{};
+
+public:
+	/*!
+	\brief 构造：使用指定的目录路径。
+	\pre 断言：路径非空且不以 '\\' 结尾。
+	\throw platform::FileOperationFailure 打开路径失败，或指定的路径不是目录。
+	\note 目录路径无视结尾的斜杠和反斜杠。
+	*/
+	//@{
+	//! \note 使用 UTF-8 目录路径。
+	DirectoryFindData(std::string);
+	//! \note 使用 UTF-16 目录路径。
+	DirectoryFindData(std::wstring);
+	//@}
+	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
+	~DirectoryFindData();
+
+	DefGetter(const ynothrow, ::DWORD, Attributes, find_data.dwFileAttributes)
+	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
+	DefGetter(const ynothrow, const std::wstring&, DirName, dir_name)
+
+private:
+	/*!
+	\brief 关闭查找状态。
+	\post 断言：关闭成功。
+	*/
+	void
+	Close() ynothrow;
+
+public:
+	/*!
+	\brief 读取：迭代当前查找状态。
+	\return 若迭代结束后节点非空，表示当前查找项目名的指针；否则为空指针。
+
+	若查找节点句柄非空则迭代当前查找状态查找下一个文件系统项。
+	否则查找节点句柄为空或迭代失败则关闭查找状态并置查找节点句柄空。
+	最终查找节点非空时保存记录当前查找的项目状态。
+	*/
+	std::wstring*
+	Read();
+
+	//! \brief 复位查找状态：若查找节点句柄非空则关闭查找状态并置查找节点句柄空。
+	void
+	Rewind() ynothrow;
+};
+
+
 /*!
 \brief 注册表键。
-\since build 435
-\todo 增加和实现查询值等功能接口。
+\since build 549
+\todo 增加和实现创建和删除值等功能接口。
 */
-class YF_API RegisterKey
+class YF_API RegistryKey
 {
 private:
 	::HKEY h_key;
 
 public:
-	RegisterKey(::HKEY h_parent, const wchar_t* key)
+	RegistryKey(::HKEY h_parent, const wchar_t* name, ::DWORD ul_opt = 0,
+		::REGSAM access = KEY_READ)
 	{
-		if(!::RegOpenKeyExW(h_parent, key, 0, KEY_READ, &h_key))
-			YF_Raise_Win32Exception("RegOpenKeyEx");
+		YF_Raise_Win32Exception_On_Failure(::RegOpenKeyExW(h_parent,
+			name, ul_opt, access, &h_key), "RegOpenKeyEx");
 	}
-	~RegisterKey()
+	//! \since build 549
+	RegistryKey(RegistryKey&& key)
+		: h_key(key.h_key)
+	{
+		key.h_key = {};
+	}
+	~RegistryKey()
 	{
 		::RegCloseKey(h_key);
 	}
 
+	DefDeMoveAssignment(RegistryKey)
+
 	DefGetter(const ynothrow, ::HKEY, Key, h_key)
+	std::size_t
+	GetSubKeyCount() const;
+	std::vector<std::wstring>
+	GetSubKeyNames() const;
+	std::size_t
+	GetValueCount() const;
+	std::vector<std::wstring>
+	GetValueNames() const;
+
+	//! \throw Win32Exception 刷新失败。
+	void
+	Flush();
 };
 
 

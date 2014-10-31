@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3563
+\version r3689
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-10-19 15:41 +0800
+	2014-10-30 16:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -93,18 +93,13 @@ b299
 				+ "header %Debug.h for debugging and diagnose";
 				/ "APIs moved"
 			),
-			(
 			+ "wide character string path support" ^ %CHRLib.'encoding \
-				conversion' @ %FileSystem @ "platform %MinGW32"
-			$dep_to "wide character string path"
-			)
+				conversion' @ %FileSystem @ "platform %MinGW32" $dep_to
+				"wide character string path"
 		)
 	),
-	/ %YReader.'shells test example' $=
-	(
-		$dep_from "wide character string path";
-		+ "wide character string path support" @ "platform %MinGW32"
-	),
+	+ "wide character string path support" @ "platform %MinGW32"
+		@ %YReader.'shells test example' $dep_from "wide character string path",
 	+ "statically linked target" @ "platform %MinGW32" $=
 		(+ $deploy "projects" @ "Code::Blocks workspace");
 ),
@@ -142,10 +137,8 @@ b298
 				/ "key events response" @ "controls"
 				* "implementation" @ "class %ListBox" $since b261
 					$= (- "wrong assertion"),
-				(
-				$dep_from "file list interface";
-				/ DLD "implementation" @ "class %FileBox"
-				),
+				/ DLD "implementation" @ "class %FileBox" $dep_from
+					"file list interface",
 				+ "function %Reset" @ "class template %GSequenceViewer",
 				/ "default holding intervals"
 					// Key: (240ms, 120ms) -> (240ms, 60ms); \
@@ -161,33 +154,24 @@ b298
 				);
 				/ "class %FileList" @ $=
 				(
-					(
-					/ "simplified interface";
-					$dep_to "file list interface"
-					),
+					/ "simplified interface" $dep_to "file list interface",
 					* "directory path validation" $since b153,
 					/ "automatic normalizing trailing slash when validating \
 						path string"
 				)
 			)
 		)
-		/ $design "file system APIs" %YCLib,
-		(
-			$dep_from "make_shared",
-			^ DLD "%ystdex::make_shared" ~ "%std::make_shared"
-				// %std::make_shared with RTTI will enlarge size of object \
-					files. Several implementations may cause access violation, \
-					see $ref b298.
-		),
+		^ DLD "%ystdex::make_shared" ~ "%std::make_shared" @ "file system APIs"
+			@ %YCLib $dep_from ("%ystdex::make_shared" @ %YBase)
+			// %std::make_shared with RTTI will enlarge size of object \
+				files. Several implementations may cause access violation, \
+				see $ref b298.
 		* DLD "implementation" @ "unit %YNew" @ %Adaptor $since b203
 	),
 	/ @ %YBase $=
 	(
 		+ $design "assertion macros",
-		(
-		+ "function template %ystdex::make_shared";
-		$dep_to "make_shared"
-		)
+		+ "function template %ystdex::make_shared" $dep_to "make_shared"
 	),
 	/ %YReader $=
 	(
@@ -277,10 +261,8 @@ b296
 							because the copy assignment may throw but move \
 							assignment may not.
 				),
-				(
-				/ DLD "accessors interface" @ "class %BitmapBuffer";
-				$dep_to "simplified class %BitmapBuffer"
-				),
+				/ DLD "accessors interface" @ "class %BitmapBuffer" $dep_to
+					"simplified class %BitmapBuffer",
 				+ "explicitly defaulted copy and move constructors and \
 					assignment operators" @ "class %TextRegion",
 				- "function %BitmapBuffer::BeFilledWith"
@@ -299,18 +281,18 @@ b296
 				),
 				(
 				/ DLD "accessors interface" @ "class %GraphicDevice",
-				$dep_from "simplified class %BitmapBuffer";
-				- "polymorphisms" @ "class %Graphics"
+				- "polymorphisms" @ "class %Graphics" $dep_from
+					"simplified class %BitmapBuffer"
 				),
 				* $doc @ "static member" @ "screen object types"
 					$since $before b132,
 				(
 				- "default arguments for removal of %Size::FullScreen"
 					@ "functions %(CopyTo, BlitTo)" @ "header %GDI",
-				$dep_from "%Rect::FullScreen platform dependency from widgets",
-				$dep_from "%Rect::FullScreen platform dependency from test";
 				/ @ "static member %FullScreen" @ "classes %(Rect; Size)"
-					-> "%Invalid";
+					-> "%Invalid" $dep_from ("%Rect::FullScreen platform \
+					dependency from widgets", "%Rect::FullScreen platform \
+					dependency from test");
 				- $comp DLD "platform dependency" @ "%FullScreen"
 				),
 				/ $design "access control" @ "unit %YGDIBase" $=
@@ -327,11 +309,9 @@ b296
 			),
 			/ %UI.GUI $=
 			(
-				(
 				/ "widget size bound to screen" @ "class %Desktop"
-					~ "platform dependent %Rect::FullScreen";
-				$dep_to "%Rect::FullScreen platform dependency from widgets"
-				),
+					~ "platform dependent %Rect::FullScreen" $dep_to
+					"%Rect::FullScreen platform dependency from widgets",
 				* $doc @ "function %LocateForParentContainer"
 					@ "header yuicont.h" $since b242,
 			),
@@ -352,14 +332,8 @@ b296
 			+ "file system interface adaptors" @ "platform %MinGW32"
 		)
 	),
-	/ $design @ %YReader $=
-	(
-		/ "simplified shells",
-		(
-		!^ "%Rect::FullScreen";
-		$dep_to "%Rect::FullScreen platform dependency from test"
-		)
-	),
+	/ $design "simplified shells" !^ "%Rect::FullScreen" @ %YReader $dep_to
+		"%Rect::FullScreen platform dependency from test",
 	/ %YBase $=
 	(
 		* "empty implementation" @ "macro %(YCL_LIKELY, YCL_UNLIKELY)"
@@ -396,8 +370,8 @@ b295
 		),
 		/ %Core.YShell $=
 		(
-			/ "interface of shell switching";
-			$dep_to "DS shell member functions",
+			/ "interface of shell switching" $dep_to
+				"DS shell member functions",
 			- "message %(SM_ACTIVATED, SM_DEACTIVATED)" @ %YMessageDefinition
 		),
 		/ %Helpers $=
@@ -409,8 +383,7 @@ b295
 					~ "shared static desktop objects",
 				- DLD "functions %OnDeactivated",
 				/ "functions %OnActivated merged to constructors"
-			);
-			$dep_to "DS shell member functions"
+			) $dep_to "DS shell member functions"
 		),
 		/ DLD "more strict access controlling" @ "several classes",
 	),
@@ -436,8 +409,8 @@ b294
 		/ %Core.YEvent $=
 		(
 			+ "event priority type";
-			/ "event container" ^ "%multimap" ~ "list";
-			$dep_to "event with priority"
+			/ "event container" ^ "%multimap" ~ "list" $dep_to
+				"event with priority"
 		),
 		/ %UI.GUI $=
 		(
@@ -447,18 +420,15 @@ b294
 			/ "widget background painting" ^ ("new member %HBrush Background"
 				@ "class %Widget") ~ "function %Components::Render",
 			(
-				$dep_from "event with priority";
-				(
-				+ "paint widget event priorities" @ "header %ywgtevt.h";
-				$dep_to %YReader.'text reader'
-				),
-				/ DLD "border painting with priority"
-					@ "classes %(TextList, DialogBox, DialogPanel)"
-			),
+			+ "paint widget event priorities" @ "header %ywgtevt.h" $dep_to
+				%YReader.'text reader',
+			/ DLD "border painting with priority"
+				@ "classes %(TextList, DialogBox, DialogPanel)"
+			) $dep_from "event with priority",
 			(
 			* "missing clip area update" @ "class %BorderBrush" $since b284;
-			* $comp "border overlapping between widgets" $since b284
-			$dep_to %YReader.'text reader'
+			* $comp "border overlapping between widgets" $since b284 $dep_to
+				%YReader.'text reader'
 			),
 			/ "widget refreshing interface" $=
 			(
@@ -580,11 +550,8 @@ b292
 
 b291
 (
-	/ %YBase.YStandardEx $=
-	(
-		+ "helper 2 function templates %arrlen";
-		$dep_to YReader.'text reader'
-	),
+	+ "helper 2 function templates %arrlen" @ %YBase.YStandardEx $dep_to
+		%YReader.'text reader',
 	/ %YFramework $=
 	(
 		/ DLD "all encoding parameter type" ^ Encoding ~ 'const Encoding&'
@@ -625,10 +592,7 @@ b290
 		/ DLD @ %TypeOperation $=
 		(
 			+ "meta operation %array_decay",
-			(
-			+ "meta operation %qualified_decay";
-			$dep_to "meta qualified"
-			),
+			+ "meta operation %qualified_decay",
 			+ "meta operation %array_ref_decay"
 		),
 		/ @ %Iterator $=
@@ -637,30 +601,24 @@ b290
 			+ "meta operation to classify pointer types";
 			+ "non-class type iterator support"
 				@ "class template %transformed_iterator",
-			(
-			$dep_from "meta qualified";
-			/ DLD "qualified or array type decaying"
-				@ "function template %make_transform"
-			)
+			/ DLD "qualified or array type decaying" @ "function template \
+				%make_transform" $dep_from ("%qualified_decay" @ %TypeOperation)
 		)
 	),
 	/ %YFramework.YSLib $=
 	(
 		+ "stream encoding checking without BOM" @ "class %TextFile"
-			@ %Service,
+			@ %Service $dep_to "no BOM checking";
 			// At most first 64 bytes would be read for checking, now only for \
 				UTF-8 and GBK.
-		$dep_to "no BOM checking";
 		+ "top and down space comparing when list shown" @ "class %DropDownList"
 	);
 	/ %YReader.'text reader' $=
 	(
 		* "reader content and text information not refreshed after switched to \
 			empty file using reading list" $since b289,
-		(
-		$dep_from "no BOM checking";
-		+ $comp "automatic encoding checking of UTF-8 without BOM"
-		),
+		+ $comp "automatic encoding checking of UTF-8 without BOM" $dep_from
+			"no BOM checking",
 		+ "custom encoding switching UI"
 			// Actually switching is not implemented yet.
 	)
@@ -672,10 +630,8 @@ b289
 		@ %YBase.Algorithm $=
 	(
 		/ "return value" @ "overloading for sequence containers",
-		(
-		+ "overloading template for associative containers";
-		$dep_to %YFramework.YSLib.Core.YMessage
-		)
+		+ "overloading template for associative containers" $dep_to
+			%YFramework.YSLib.Core.YMessage
 	)
 	/ %YFramework.YSLib $=
 	(
@@ -690,17 +646,11 @@ b289
 					@ "function %DSApplication::Run"
 			)
 		),
-		(
 		/ DLD "bound control pointer assignment" @ "constructor"
-			@ "class %Control" @ !^ "std::mem_fn" @ UI.GUI;
-		$dep_to "class %ShlExplorer" @ %'shells test example'
-		),
-		/ @ %Core.YMessage $=
-		(
-			+ "removing operation with specified bound and shell"
-				@ "class %MessageQueue";
-			$dep_to %YReader.'text reader'
-		),
+			@ "class %Control" @ !^ "std::mem_fn" @ UI.GUI $dep_to
+			"class %ShlExplorer" @ %'shells test example',
+		+ "removing operation with specified bound and shell" @ "class \
+			%MessageQueue" @ %Core.YMessage $dep_to %YReader.'text reader',
 		/ @ "class %ProgressBar" %UI.GUI $=
 		(
 			/ "refreshing efficiency improved",
@@ -710,10 +660,7 @@ b289
 		(
 			/ @ "class %Timer" $=
 			(
-				(
-				+ "function %IsActive";
-				$dep_to %YReader.'text reader'
-				),
+				+ "function %IsActive" $dep_to %YReader.'text reader',
 				/ "implementation" @ "friend functions %(Activate, Deactivate)"
 			),
 			/ @ "class %TextFileBuffer" $=
@@ -721,8 +668,8 @@ b289
 				- $define "assertion of block number" @ "constructor";
 				(
 				/ "no block required for empty file";
-				/ $comp "size of empty file shown as 0 rather than 1";
-				$dep_to "reader box" @ %YReader.'text reader'
+				/ $comp "size of empty file shown as 0 rather than 1" $dep_to
+					"reader box" @ %YReader.'text reader'
 				)
 			)
 		)
@@ -770,10 +717,9 @@ b288
 			+ "function template %make_transform",
 			),
 			+ "class template %pair_iterate for selecting members";
-			$dep_from %TypeOperation;
-			+ "manipulators for selection members";
+			+ "manipulators for selection members" $dep_from %TypeOperation;
 			+ "pipe operators for selecting members"
-		),
+		);
 		$dep_to YReader.'text reader'
 	),
 	/ %YFramework.YSLib $=
@@ -784,8 +730,8 @@ b288
 		/ %Core $=
 		(
 			+ "function %MessageQueue::GetMaxPriority" @ "implementation"
-				@ "message peeking" @ %YMessage,
-			$dep_to "implementation" @ "main message loop";
+				@ "message peeking" @ %YMessage $dep_to "implementation"
+				@ "main message loop";
 			/ %YMessageDefinition $=
 			(
 				- "shell message identifier %SM_DROP",
@@ -800,9 +746,8 @@ b288
 		/ DLD "simplified event handlers" @ "class %ShlExplorer"
 			@ %'shells test example' ^ "lambda expressions"
 			~ "static member functions",
-		/ %'text reader' $=
+		/ %'text reader' $dep_from %YBase.YStandardEx.Iterator $=
 		(
-			$dep_from %YBase.YStandardEx.Iterator;
 			/ DLD "simplified implementation",
 			* "subsequent bookmarks not erased when loading a file"
 				@ "reading list" $since b287
@@ -1250,10 +1195,8 @@ b275
 	/ DLB "Makefile" @ "project %(YBase, YFramework)"
 		^ "-std=c++0x" ~ "-std=gnu++0x"
 	),
-	(
-	$dep_from %YFramework.YSLib;
-	/ DLD "header %platform.h" -> ("header %Platform.h" @ %YCLib)
-	)
+	/ DLD "header %platform.h" -> ("header %Platform.h" @ %YCLib) $dep_from
+		%YFramework.YSLib
 ),
 
 b274
@@ -2042,8 +1985,8 @@ b240
 			(
 				+ "static const reference getter function template \
 					%FetchPrototype";
-				$dep_from "static object prototyping";
 				/ "function template %GetStaticRef" => "%FetchStaticRef"
+					$dep_from "static object prototyping"
 			),
 			/ $dev %YEvent $=
 			(
@@ -2059,11 +2002,8 @@ b240
 			),
 			+ "support for types are not %EqualityComparable"
 				@ "class %ValueObject" ^ "always-be-equal strategy",
-			(
-				/ DLD "static object prototyping" ^ "%FetchProtoType"
-					~ "%FetchStaticRef"
-				$dep_to "static object prototyping"
-			)
+			/ DLD "static object prototyping" ^ "%FetchProtoType"
+				~ "%FetchStaticRef" $dep_to "static object prototyping"
 		),
 		+ DLD "%CopyConstructible and %MoveConstructible support"
 			@ "classes %(BitmapBuffer, BitmapBufferEx)" @ %Service.YGDI

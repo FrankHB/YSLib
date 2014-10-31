@@ -11,13 +11,13 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r175
+\version r220
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-10 05:09:57 +0800
 \par 修改时间:
-	2014-10-20 22:54 +0800
+	2014-10-30 18:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,10 +31,16 @@
 #include <list>
 #include <cmath>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <ystdex/algorithm.hpp>
 #include <ystdex/string.hpp>
 #include <ystdex/container.hpp>
 #include <ystdex/mixin.hpp>
+#include <ystdex/bitseg.hpp>
+
+namespace
+{
 
 void
 show_result(std::ostream& out, const std::string& name, size_t pass_n,
@@ -44,13 +50,37 @@ show_result(std::ostream& out, const std::string& name, size_t pass_n,
 		<< std::endl;
 }
 
+using namespace std;
+using namespace placeholders;
+using namespace ystdex;
+using namespace ytest;
+
+//! \since build 549
+namespace bitseg_test
+{
+
+template<size_t _vN, bool _bEndian = false>
+static bool
+expect(const string& str, vector<byte>&& seq)
+{
+	using bit = bitseg_iterator<_vN, _bEndian>;
+	const bit e(&seq[seq.size()]);
+	ostringstream oss;
+
+	oss << hex;
+	for(bit b(&seq[0]); b != e; ++b)
+		oss << int(*b);
+	return str == oss.str();
+}
+
+} // namespace bitseg_test;
+
+} // unnamed namespace;
+
+
 int
 main()
 {
-	using namespace std;
-	using namespace placeholders;
-	using namespace ystdex;
-	using namespace ytest;
 	const auto make_guard([](const string& subject){
 		return group_guard(subject, [](group_guard& printer){
 			cout << "CASES: " << printer.subject << ':' << endl;
@@ -172,6 +202,21 @@ main()
 				.to_tuple());
 			return make_pair(string(get<0>(et).what()), get<1>(et));
 		})
+	);
+	// 3 case covering: ystdex::bitseg_iterator.
+	seq_apply(make_guard("YStandard.BitSegment").get(pass, fail),
+		bitseg_test::expect<1>("1000000001000000110000001010000011101000"
+			"000000110000111111111111", {1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
+		bitseg_test::expect<1, true>("0000000100000010000000110000010100010111"
+			"110000001111000011111111", {1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
+		bitseg_test::expect<2>("10002000300011003110000300333333",
+			{1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
+		bitseg_test::expect<2, true>("00010002000300110113300033003333",
+			{1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
+		bitseg_test::expect<4>("10203050710c0fff",
+			{1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF}),
+		bitseg_test::expect<4, true>("0102030517c0f0ff",
+			{1, 2, 3, 5, 0x17, 0xC0, 0xF0, 0xFF})
 	);
 	show_result(cout, "ALL", pass_n, fail_n);
 }
