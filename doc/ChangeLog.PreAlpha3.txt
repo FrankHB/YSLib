@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha3.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha3 。
-\version r4983
+\version r5398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:14:22 +0800
 \par 修改时间:
-	2014-09-17 19:20 +0800
+	2014-10-30 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,20 +217,17 @@ b395
 	(
 		* "read uninitialized memory" @ "host message object"
 			@ "platform %MinGW32" @ %Helper $since 379,
-		/ "constructor templates" @ "class %ValueObject"
-			@ %YSLib.Core.YObject $=
-		(
-			$dep_from "any implementation";
-			* $comp "leak holders" $since b352
-		),
+		/ "constructor templates" @ "class %ValueObject" @ %YSLib.Core.YObject
+			$= (* $comp "leak holders" $since b352 $dep_from
+				"any implementation"),
 		* "leak handle called by %FindFirstFileW" @ "%readdir"
 			@ platform MinGW32 @ %YCLib.NativeAPI $since b296
 	),
 	/ %YBase.YStandardEx.Any $=
 	(
 		/ "passing ownership" ^ "%std::unique_ptr" ~ "raw pointer",
-		* "leak in local storage holder %init implementation" $since b352;
-		$dep_to "any implementation"
+		* "leak in local storage holder %init implementation" $since b352
+			$dep_to "any implementation"
 	)
 ),
 
@@ -245,10 +242,8 @@ b394
 		),
 		/ @ "class %DialogPanel" %GUI.UI $=
 		(
-			(
-			$dep_from "%DrawCircle";
-			/ "OK button painting" ^ "circle" ~ "circle character '○'"
-			),
+			/ "OK button painting" ^ "circle" ~ "circle character '○'" $dep_from
+				"%DrawCircle"
 			/ $dev "widget member access control"
 		)
 	),
@@ -361,10 +356,8 @@ b391
 				// No bookmark loading and saving, to be implemented.
 			+ "menu item and reader box button for bookmark panel"
 			),
-			(
-			$dep_from "shell session",
-			/ $dev "simplified implementation" ^ "sessions"
-			);
+			/ $dev "simplified implementation" ^ "sessions" $dep_from
+				"shell session";
 			+ $dev "bookmark session"
 		),
 		* "wrong key input instruction" @ "reader box" @ "platform %MinGW32"
@@ -372,11 +365,9 @@ b391
 	),
 	/ %YFramework $=
 	(
-		(
-		+ "class template %GShellSession" @ %Helper.ShellHelper;
-		$dep_to "shell session"
-		)
-		/ $dev %YFramework.YSLib.UI.GUI $=
+		+ "class template %GShellSession" @ %Helper.ShellHelper $dep_to
+			"shell session",
+		/ $dev %YFramework.YSLib.UI $=
 		(
 			"protected member %lstText" @ "class %ListBox" => "%tlContent",
 			"protected member %boxList" @ "class %DropDownList" => "%lbContent"
@@ -398,44 +389,30 @@ b390
 				/ "key input transmitted for touching"
 					@ ("functions %(OnKey_Bound_TouchUpAndLeave, \
 					OnKey_Bound_EnterAndTouchDown, OnKey_Bound_Click)",
-					"function %GUIState::ResponseTouchBase");
-				$dep_to "key input transmitted for touching",
+					"function %GUIState::ResponseTouchBase") $dep_to
+					"key input transmitted for touching"
 				),
-				(
 				* "wrongly passed height" ~ "width"
-					@ "function %TextList::DrawItems" $since b372;
-				$dep_to "wrong invalidate area of text list"
-				)
+					@ "function %TextList::DrawItems" $since b372 $dep_to
+					"wrong invalidate area of text list"
 			),
-			(
 			* "wrongly took" ("height" ~ "width", "Y-coordinate"
-				~ "X-coordinate") @ "function %AdjustEndOfLine"
-				@ "header %TextBase" @ %Service $since b372,
-			$dep_to "wrong EOL adjusting"
-			)
-		)
-		/ %Helper $=
-		(
-			$dep_from "key input transmitted for touching";
-			/ "key input transmitted for touching supported"
-				@ "class %InputManager";
-			$dep_to "dispatched key input transmitted for touching"
-		)
+				~ "X-coordinate") @ "function %AdjustEndOfLine" @ "header \
+				%TextBase" @ %Service $since b372 $dep_to "wrong EOL adjusting"
+		),
+		/ "key input transmitted for touching supported" @ "class %InputManager"
+			@ %Helper $dep_from "key input transmitted for touching" $dep_to
+			"dispatched key input transmitted for touching"
 	),
 	/ %YReader $=
 	(
 		/ %'text reader' $=
 		(
-			(
-			$dep_from "dispatched key input transmitted for touching";
-			+ "context menu support"
-			),
-			(
-			$dep_from "wrong invalidate area of text list",
-			$dep_from "wrong EOL adjusting";
-			* $comp "missing top right text shown" @ "context menu"
-				@  $since b372
-			)
+			+ "context menu support" $dep_from
+				"dispatched key input transmitted for touching",
+			* $comp "missing top right text shown" @ "context menu" $since b372
+				$dep_from ("wrong invalidate area of text list",
+				"wrong EOL adjusting")
 		),
 		+ $dev "unit %(About, ShlExplorer, ReaderSettingUI, BookMarkListUI)"
 	)
@@ -457,10 +434,8 @@ b389
 		4.8.0" @ %YBase.YDefinition,
 	/ %YReader $=
 	(
-		(
-		/ "removed POSIX %::strcasecmp dependency" @ 'shells test example',
-		$dep_to "POSIX dependency removal";
-		),
+		/ "removed POSIX %::strcasecmp dependency" @ 'shells test example'
+			$dep_to "POSIX dependency removal",
 		/ "ennabled positioning for menu" @ %'text reader'
 	)
 	/ "makefiles" @ "platform $DS" $=
@@ -468,11 +443,9 @@ b389
 		^ "explicit '-fno-omit-frame-pointer'" @ "%CFLAGS"
 			@ "debug configuration",
 		^ '-pedantic_errors' ~ '-pedantic' @ "%CFLAGS",
-		(
-		$dep_from "POSIX dependency removal";
-		^ "'-std=c++11'" ~ "'-std=c++0x', '-std=gnu++0x'"
-		)
-		// Thus all projects are now strictly conforming to C++.
+		^ "'-std=c++11'" ~ "'-std=c++0x', '-std=gnu++0x'" $dep_from
+			"POSIX dependency removal"
+			// Thus all projects are now strictly conforming to C++.
 	)
 ),
 
@@ -609,7 +582,7 @@ b383
 		/ "year" @ %'about form',
 		/ @ "platform MinGW32" $=
 		(
-			$dep_form "%TestFramework";
+			$dep_form ("%MinGW32::TestFramework" @ %YFramework.Helper.DSMain);
 			/ "test in menu to call test function %MinGW32::TestFramework"
 		)
 	)
@@ -623,10 +596,7 @@ b383
 		(
 			/ DLD "explicitly" !^ 'std::' @ "return type"
 				@ "function %decay_copy",
-			(
-			+ "function template %decay_forward";
-			$dep_to "%decay_forward"
-			);
+			+ "function template %decay_forward",
 			/ "function %(seq_apply, unseq_apply) supported for parameters of \
 				non decayed types"
 		)
@@ -640,12 +610,8 @@ b383
 			/ %DSMain $=
 			(
 				/ "namespace %DS" >> "platform %DS" ~ "all platforms",
-				/ @ "platform %MinGW32" $=
-				(
-					+ "namespace %MinGW32";
-					+ "function %MinGW32::TestFramework";
-					$dep_to "%TestFramework"
-				)
+				+ "namespace %MinGW32; function %MinGW32::TestFramework"
+					@ "platform %MinGW32",
 				+ "function %(GetDSScreenUp, GetScreenDown)"
 					@ "class %DSApplication"
 					// Removed dependency on public requirement of conversion \
@@ -752,10 +718,8 @@ b378
 (
 	/ %YFramework $=
 	(
-		(
-		+ $doc "group %(diagnostic, debugging)" @ %YCLib.Debug;
-		$dep_to "debug doc group"
-		),
+		+ $doc "group %(diagnostic, debugging)" @ %YCLib.Debug $dep_to
+			"debug doc group"
 		/ %Helper $=
 		(
 			/ @ "platform %MinGW32" $=
@@ -768,10 +732,8 @@ b378
 						^ "waiting for hosted environment"
 				)
 			),
-			(
-			$dep_from "debug doc group";
-			+ "class %DebugTimer" @ "!defined %NDEBUG" @ %ShellHelper
-			)
+			+ "class %DebugTimer" @ "!defined %NDEBUG" @ %ShellHelper $dep_from
+				"debug doc group"
 		)
 	)
 ),
@@ -815,12 +777,9 @@ b376
 				argument types not instantiated"
 				@ "class template %ValueHolder",
 			- "constructor tag with %MoveTag",
-			(
-			$dep_from "%remove_rcv";
 			/ "constructor template with const lvalue reference as function \
 				parameter" -> "constructor template with non-const rvalue \
-				reference as function parameter"
-			)
+				reference as function parameter" $dep_from "%remove_rcv"
 		);
 		/ %NPL $=
 		(
@@ -948,8 +907,8 @@ b373
 			(
 			/ "macro %YB_ATTRIBUTE" -> "%YB_ATTR",
 				// Duplicate parentheses should not be used any longer.
-			+ "macros %(YB_ALLOCATOR, YB_PURE, YB_STATELESS)";
-			/ $dep_to "new macros"
+			+ "macros %(YB_ALLOCATOR, YB_PURE, YB_STATELESS)" $dep_to
+				"new macros"
 			),
 			* $doc "typo" @ "group name"
 				@ "groups %(lang_impl_features, lang_impl_hints)" $since b294,
@@ -957,48 +916,34 @@ b373
 		),
 		/ %YStandardEx $=
 		(
-			(
-			$dep_from "new macros";
 			/ "functions declaration"
 				^ "macros %(YB_ATTR, YB_ALLOCATOR, YB_PURE, YB_STATELESS)"
-				@ "headers %(CString, Examiners, Any)"
-			),
+				@ "headers %(CString, Examiners, Any)" $dep_from "new macros",
 			/ %Utilities $=
 			(
-				(
-				+ "class %nonmovable";
-				/ $dep_to "class nonmovable"
-				),
+				+ "class %nonmovable",
 				/ "class %noncopyable" -> "struct %noncopyable"
 			)
 		)
 	),
 	/ %YFramework.YSLib $=
 	(
-		/ %Adaptor $=
+		/ %Adaptor $dep_from "new macros" $=
 		(
-			$dep_from "new macros";
 			+= DLD YB_ALLOCATOR @ "unused allocator declarations"
 				@ "header %YNew.h",
-			(
-			$dep_from "class nonmovable",
-			+ "using ystdex::nonmovable" @ "header %yadaptor.h",
-			)
+			+ "using ystdex::nonmovable" @ "header %yadaptor.h" $dep_from
+				("%nonmovable" @ %YBase.YStandardEx.Utilities)
 		),
-		(
 		* "wrongly took height" ~ "width" @ "function %AdjustEndOfLine"
-			@ "header %TextBase" @ %Service $since b372;
-		$dep_to "wrong invalidate area of text list"
-		)
+			@ "header %TextBase" @ %Service $since b372 $dep_to
+			"wrong invalidate area of text list"
 	),
 	/ %YReader $=
 	(
 		+ $lib "function %ReadingList::operator ValueNode" @ %ReadingList,
-		(
-		$dep_from "wrong invalidate area of text list";
-		* $comp "missing top right text shown" @ "text list"
-			@ %ReaderSetting $since b372
-		)
+		* $comp "missing top right text shown" @ "text list" @ %ReaderSetting
+			$since b372 $dep_from "wrong invalidate area of text list"
 	)
 ),
 
@@ -1009,26 +954,22 @@ b372
 		/ %Service $=
 		(
 			/ "function %ResetPenForBounds" @ "class %TextState" => "%ResetPen",
-			(
-			+ "function %AdjustEndOfLine";
-			$dep_to "text right margin adjustment"
-			),
+			+ "function %AdjustEndOfLine" $dep_to
+				"text right margin adjustment",
 			* @ "implementation" @ "function %DrawClippedText#2" $since b371 $=
 			(
 				* "wrongly treated graphic interface boundary as clipping \
 					boundary",
-				(
-				$dep_from "text right margin adjustment"
 				* "missing setting margin" @ "function %DrawClippedText#2"
+					$dep_from "text right margin adjustment"
 					// Missing of margin would likely cause wrong X pen \
 						position for multiline text. See above for probable \
 						result of missing of right margin. Missing of top or \
 						bottom might cause wrong edges displayed if the \
 						boundary had not been set properly.
-				)
 			),
-			+ "inline function 'SPos GetTextLineBaseOf(const TextState&)'",
-			$dep_to "text right margin adjustment",
+			+ "inline function 'SPos GetTextLineBaseOf(const TextState&)'"
+				$dep_to "text right margin adjustment",
 			+ "simplified character renderer APIs" @ "unit %CharRenderer",
 			/ @ "unit %YGDI" $=
 			(
@@ -1071,9 +1012,8 @@ b371
 				/ "implementation" @ "function %ClipMargin",
 				+ "function %ClipBound"
 			),
-			/ @ "%unit TextRenderer" $=
+			/ @ "%unit TextRenderer" $dep_from "%ClipBound" $=
 			(
-				$dep_from "%ClipBound";
 				/ DLD "simplified character clipping implementation";
 				- $lib "unnecessary clipping calculation"
 					@ "function %TextRenderer::operator()";
@@ -1088,31 +1028,27 @@ b371
 				(
 					/ "access control of inheritance class %PenStyle"
 						-> "protected" ~ "public",
-					(
-					/ "function %ResetForBounds" -> "%ResetPenForBounds";
-					$dep_to "removal of implicitly reset for margin"
-					),
+					/ "function %ResetForBounds" -> "%ResetPenForBounds"
+						$dep_to "removal of implicitly reset for margin",
 					/ "data member 'SPos PenX, PenY'" -> 'Point Pen'
 				)
 			),
 			/ %UI.GUI $=
 			(
 				(
-				$dep_from "removal of implicitly reset for margin",
 				/ "function %PaintText" @ "class %MLabel" => "DrawText";
 				/ "remained margin clipping for %MLabel::DrawText but not \
-					%(TextList, Menu)::DrawItem",
-				)
+					%(TextList, Menu)::DrawItem" $dep_from
+					"removal of implicitly reset for margin"
+				),
 				/ "implemented function %Menu::DrawItem"
 					^ "function %TextList::DrawItem"
 			)
 		)
 	),
-	(
-	$dep_from "removal of implicitly reset for margin";
 	/ "removed margin clipping for %HexViewArea::Refresh"
-		@ %YReader.'hexadecimal browser'
-	)
+		@ %YReader.'hexadecimal browser' $dep_from
+		"removal of implicitly reset for margin"
 ),
 
 b370
@@ -1129,16 +1065,11 @@ b370
 				relative to source rendered object. Semantic changed made on \
 				parameter of function %BlitBounds.
 		),
-		(
-		* "wrongly clipping bottom and right margin when character" $since b366;
-		$dep_to "character bottom clipping"
-		)
+		* "wrongly clipping bottom and right margin when character" $since b366
+			$dep_to "character bottom clipping"
 	),
-	(
-	$dep_from "character bottom clipping";
-	* $comp "rendering error at bottom when scrolling"
-		@ %YReader.'text reader' $since b366
-	)
+	* $comp "rendering error at bottom when scrolling" @ %YReader.'text reader'
+		$since b366 $dep_from "character bottom clipping"
 ),
 
 b369
@@ -1209,13 +1140,11 @@ b366
 	(
 		/ %YSLib $=
 		(
+			/ "struct %PaintContext" @ %UI.GUI >> %Core.YGDIBase $dep_to
+				"moved paint context as GDI base interface",
+			/ $dev @ "unit CharRenderer" %Service $dep_from
+				"moved paint context as GDI base interface" $=
 			(
-			/ "struct %PaintContext" @ %UI.GUI >> %Core.YGDIBase,
-			$dep_to "moved paint context as GDI base interface"
-			),
-			/ $dev @ "unit CharRenderer" %Service $=
-			(
-				$dep_from "moved paint context as GDI base interface";
 				+ "template %BlitChar",
 				/ $lib "simplified implementation" @ "function %RenderChar"
 			),
@@ -1250,11 +1179,7 @@ b365
 				(
 					(
 					/ "type of member of margin components" -> "%SPos"
-						~ "%SDst",
-					$dep_to "signed padding support"
-					),
-					(
-					$dep_from "signed padding support";
+						~ "%SDst";
 					/ "made function %FetchMargin support signed margin"
 					),
 					+ "default constructor",
@@ -1264,13 +1189,11 @@ b365
 				- "functions %(GetAllOf, GetAllOf)"
 			)
 		),
-		(
-		$dep_from "signed margin support";
 		* $comp "position of rendered text lines limited by the left \
-			buffer boundary" @ %UI.GUI $since b190,
+			buffer boundary" @ %UI.GUI $since b190 $dep_from
+			"signed margin support",
 			// Only first line can go out of screen when dragging the \
 				unbuffered container to clip the screen boundary.
-		)
 	),
 	/ "fixed menu items" @ %YReader.'shells test example'
 ),
@@ -1303,8 +1226,8 @@ b363
 	(
 		+ "public widget map for ignoring focus moving from menus"
 			@ "class %MenuHost";
-		/ "ignoring specified widget mapped at host" @ "class %Menu";
-		$dep_to "root menu mapping"
+		/ "ignoring specified widget mapped at host" @ "class %Menu" $dep_to
+			"root menu mapping"
 	),
 	/ %YReader $=
 	(
@@ -1407,24 +1330,20 @@ b359
 			@ "class %ScrollableContainer",
 		(
 		/ "stopped using transparent property" @ "GUI rendering",
-		$dep_from "stopped using transparent property from examples";
-		/ "removed transparent property check from brushes";
+		/ "removed transparent property check from brushes" $dep_from
+			"stopped using transparent property from examples";
 		- "transparent property from widget view"
 		)
 	),
 	/ $dev %YReader $=
 	(
-		(
 		/ "GUI top widget checking" ^ "%IWidget::GetChildren"
-			~ "%IWidget::GetTopWidgetPtr";
-		$dep_to "removed %GetTopWidgetPtr from examples"
-		),
+			~ "%IWidget::GetTopWidgetPtr" $dep_to
+			"removed %GetTopWidgetPtr from examples",
 		/ "ignored background setting" @ "class %HexViewArea"
 			@ %'hexadecimal browser',
-		(
-		/ "use of transparent property" -> "direct background setting";
-		$dep_from "stopped using transparent property from examples"
-		)
+		/ "use of transparent property" -> "direct background setting" $dep_from
+			"stopped using transparent property from examples"
 	)
 ),
 
@@ -1446,8 +1365,7 @@ b358
 				transformation operations",
 			+ "indirect tag for iterator transformation",
 			/ "return types" @ "pipe 'operator|' to support \
-				multiple chained tags";
-			$dep_to "chained iterator transformation"
+				multiple chained tags" $dep_to "chained iterator transformation"
 		),
 		/ %Functional $=
 		(
@@ -1460,13 +1378,11 @@ b358
 		+ $dev "static assertion to check dereferenced type" @ "constructor \
 			template" @ "class template %any_input_iterator" @ %AnyIterator
 	);
-	(
-	$dep_from "chained iterator transformation"
 	* "wrong dereferenced type of iterators" @ "implementation"
 		@ "function %(GetBegin, GetEnd)" @ "class %MUIContainer"
-		@ %YFramework.YSLib.UI.GUI $since b357
+		@ %YFramework.YSLib.UI.GUI $since b357 $dep_from
+		"chained iterator transformation"
 		// Fixed crashing when child is dereferenced.
-	)
 ),
 
 b357
@@ -1511,21 +1427,16 @@ b357
 					+ "typedef pair<WidgetIterator, WidgetIterator> WidgetRange",
 					+ "pure virtual function 5GetChildren"
 				);
-				(
 				+ "macros %(DefWidgetChildrenGetter, DefSubscriptorBase, \
-					DefWidgetMemberIterationBase)"
-					@ "header %WidgetIteration";
-				$dep_to "new widget iteration macros";
-				)
+					DefWidgetMemberIterationBase)" @ "header %WidgetIteration"
+					$dep_to "new widget iteration macros",
 				+ "implementation of default widget iteration without members"
 					@ "class %(Widget, (MUIContainer; Panel))",
 				* "missing track" @ "member iteration" @ "class %AScrollBar"
 					$since b356,
-				(
-				$dep_from "new widget iteration macros";
 				* "missing base members" @ "member iteration"
-					@ "class %ListBox" $since b356
-				)
+					@ "class %ListBox" $dep_from "new widget iteration macros"
+					$since b356
 			),
 			/ "macro for member iteration" @ %Core.YBaseMacro
 				>> "header %WidgetIteration" @ %UI.GUI
@@ -1557,13 +1468,9 @@ b356
 				class tempaltes %(pointer_iterator, pseudo_iterator, \
 				transformed_iterator, pair_iterator)"
 		),
-		/ %Any $=
-		(
+		* "name %init" @ "class template %value_handler cannot be used in \
+			derived classes" @ %Any $since b354 $dep_to "any init",
 			// See ISO C++ 7.3.3/17.
-			* "name %init" @ "class template %value_handler cannot be used in \
-				derived classes" @ %Any $since b354;
-			$dep_to "any init"
-		),
 		/ %AnyIterator $=
 		(
 			/ @ "class template %any_input_iterator" $=
@@ -1575,12 +1482,10 @@ b356
 				/ "explicitly deleted copy constructor"
 					-> "explicitly defaulted copy constructor"
 			),
-			(
-			$dep_from "any init;
 			* $comp "class template %(iterator_handler; \
 				input_iterator_handler; any_input_iterator) cannot be \
 				instantiated with non-reference-wrapped types" $since b355
-			),
+				$dep_from "any init",
 			- explicit @ "constructor template"
 		),
 	),
@@ -1678,17 +1583,12 @@ b353
 			for non-pointer or non-pointer-to-member types";
 		- "constexpr object %(max_any_size, max_any_align)
 		),
-		(
-		- "explicitly deleted copy %operator=" @ "class %any_holder";
-		$dep_to "removal of %any_holder copy assignment deletion"
-		)
+		- "explicitly deleted copy %operator=" @ "class %any_holder" $dep_to
+			"removal of %any_holder copy assignment deletion"
 	),
-	/ $dev %YFramework.YSLib.YObject $=
-	(
-		$dep_from "removal of %any_holder copy assignment deletion";
-		* "missing explicitly defaulted copy %operator="
-			@ "class templates %(ValueHolder, PointerHolder)" $since b332
-	);
+	* $dev "missing explicitly defaulted copy %operator=" @ "class templates \
+		%(ValueHolder, PointerHolder)" @ %YFramework.YSLib.YObject $dep_from
+		"removal of %any_holder copy assignment deletion" $since b332;
 	+ DLB $workaround "for G++ 4.7.1"
 		$= (+ "several explicitly defaulted copy and move constructors"
 		@ "abstract classes" @ "projects %(YBase, YFramework)",
@@ -1714,18 +1614,15 @@ b352
 		(
 			* "wrong exception specification" @ "constructor template"
 				$since b348,
-			(
-			+ "public typedef %value_type",
-			$dep_to "value holder issue"
-			),
+			+ "public typedef %value_type" $dep_to "value holder issue",
 			+ $dev "static assertion keeping value type as object type"
 		),
 		/ @ "class template %pointer_holder" $=
 		(
 			+ "public typedef %value_type",
 			* "missing user-provided (copy, move) constructor"
-				@ "class template %pointer_holder" $since b331,
-			$dep_to "pointer holder issue"
+				@ "class template %pointer_holder" $since b331 $dep_to
+				"pointer holder issue"
 		),
 		* "union %non_aggregate_pod misspelled as %non_aggreate_pod"
 			$since b351,
@@ -1737,30 +1634,22 @@ b352
 				+ "assignment template for objects"
 			),
 			+ "enum class %any_operation",
-			+ "typedef %any_storage",
-			$dep_from ("value holder issue", "pointer holder issue");
+			+ "typedef %any_storage";
 			(
 			+ "typedef %any_manager",
 			+ "constexpr size (max_any_size, max_any_align)",
 			+ "class templates %(any_handler; any_ref_handler, \
 				any_holder_handler)"
-			);
+			) $dep_from ("value holder issue", "pointer holder issue");
 			$dep_to "any handlers"
 		),
-		(
-		+ "empty struct %holder_tag";
-		$dep_to "holder tag"
-		)
+		+ "empty struct %holder_tag",
 		/ @ "class %any" $=
 		(
 			/ "function template %get" -> "non-template function",
 			(
-			(
-			$dep_from "holder tag";
-			/ "constructors interface" ^ "tag type %holder_tag"
-			);
-			$dep_from any_holder_hanlder;
-			/ "implementation" ^ "holders"
+			/ "constructors interface" ^ $dep_from "tag type %holder_tag";
+			/ "implementation" ^ "holders" $dep_from "%any_holder_hanlder"
 			)
 		)
 	),
@@ -1906,12 +1795,10 @@ b348
 (
 	/ %YBase.YStandardEx $=
 	(
-		+ "header %examiner.hpp" $=
-		(
-			+ "namespace %ystdex::examiners"
-				$= (+ "class templates %(equal, always_equal; equal_examiner)");
-			$dep_to "examiners"
-		),
+		+ "header %examiner.hpp"
+			$= (+ "namespace %ystdex::examiners" $dep_to "examiners"
+				$= (+ "class templates \
+				%(equal, always_equal; equal_examiner)")),
 		/ %Any $=
 		(
 			/ $dev "loosed nothrow exception specification" @ "copy constructor"
@@ -1936,11 +1823,9 @@ b348
 	),
 	/ %YFramework.YSLib.Core.YObject $=
 	(
-		(
-		$dep_from "examiners",
 		/ $dev $lib "implementation" @ "class templates %(ValueHolder, \
-			PointerHolder)" ^ "%ystdex::examiners::equal_examiner"
-		)
+			PointerHolder)" ^ "%ystdex::examiners::equal_examiner" $dep_from
+			"examiners",
 		/ "member 'public _type held'" @ "class template %ValueHolder"
 			-> "'protected mutable _type held'";
 		/ "member 'public _type* p_held'" @ "class template %PointerHolder"
@@ -2033,10 +1918,8 @@ b344
 	(
 		/ "function %TransformConfiguration" @ %NPL.Configuration $=
 		(
-			(
-			+ "support for unnamed node";
-			$dep_to "unnamed configuration node support"
-			),
+			+ "support for unnamed node" $dep_to
+				"unnamed configuration node support",
 			* "wrong behavior for non-leaf list whose size equals to 2"
 				$since b341
 		)
@@ -2044,10 +1927,8 @@ b344
 		(
 			+ "interface for saving and loading configuration items",
 				// Not fully implemented yet.
-			(
-			$dep_from "unnamed configuration node support";
-			/ "accept multiple configuration items"
-			)
+			/ "accept multiple configuration items" $dep_from
+				"unnamed configuration node support"
 		)
 	);
 	+ "interface for configuration saving and loading" @
@@ -2105,38 +1986,30 @@ b342
 		(
 			/ %Initialization $=
 			(
-				(
-				/ "simplified interfaces";
-				$dep_to "simplified initialization interface"
-				),
+				/ "simplified interfaces" $dep_to
+					"simplified initialization interface",
 				/ DLD "implementations" ^ "value nodes"
 			),
 			/ @ "class %DSApplication" @ %DSMain $=
 			(
-				- "member %(pMainConfigFile, GetMainConfigFile)";
-				$dep_to "simplified application member",
+				- "member %(pMainConfigFile, GetMainConfigFile)" $dep_to
+					"simplified application member",
 				/ DLD "simplified" @ "constructor" ^ "value nodes"
 			)
 		),
 		/ %NPL.Configuration $=
 		(
 			/ DLD "implementation" @ "output configuration as text file",
-			(
-			$dep_from "simplified initialization interface",
-			$dep_from "simplified application member";
-			- "class %ConfigurationFile"
-			)
+			- "class %ConfigurationFile" $dep_from ("simplified initialization \
+				interface", "simplified application member")
 		)
 	)
 ),
 
 b341
 (
-	(
 	* "function %openmode_conv" @ %YBase.YStandardEx.CStandardIO
-		$since b326;
-	$dep_to "%openmode_conv bug fix"
-	),
+		$since b326 $dep_to "%openmode_conv bug fix",
 	/ %YFramework $=
 	(
 		+ "function %truncate" @ %YCLib.FileSystem;
@@ -2146,12 +2019,10 @@ b341
 			(
 				/ @ "class %TextFile" $=
 				(
-					(
-					$dep_from "%openmode_conv bug fix";
-					/ "constructor implementation to support output",
-					),
-					+ "function %(GetBOM, Truncate)",
-					$ dep_to "text file output and truncate support"
+					/ "constructor implementation to support output" $dep_from
+						"%openmode_conv bug fix",
+					+ "function %(GetBOM, Truncate)" $dep_to
+						"text file output and truncate support"
 				),
 				/ $dev $lib "access control of all protected data members"
 					-> "private" @ "class %File"
@@ -2270,11 +2141,9 @@ b337
 		$since b326,
 	/ %YFramework $=
 	(
-		(
 		^ DLD "empty braced-init-list" ~ "zero-initialized objects"
-			@ "function default arguments";
-		$dep_to "brace init default arguments"
-		),
+			@ "function default arguments" $dep_to
+			"brace init default arguments",
 		/ %YSLib.Core $=
 		(
 			/ %YObject $=
@@ -2297,15 +2166,11 @@ b337
 				),
 				/ "merged implementation" @ "2 member templates %GetObject"
 					@ "class %ValueObject"
-			),
-			/ $dep_to DLD "removal use of static default graphical objects",
-			/ %YGDIBase $=
-			(
-				$dep_all_from "brace init default arguments",
-				$dep_from "removal use of static default graphical objects";
-				- "static const member objects %(GBinaryObject::Zero, \
-					Size::Zero, RectEmpty)"
-			)
+			) $dep_to DLD "removal use of static default graphical objects",
+			- "static const member objects %(GBinaryObject::Zero, Size::Zero, \
+				RectEmpty)" @ %YGDIBase $dep_all_from
+				"brace init default arguments", $dep_from
+				"removal use of static default graphical objects"
 		),
 		- $dev $lib "redundant including header '<initializer_list>'" @ "header"
 			@ %YCLib.Video
@@ -2315,11 +2180,9 @@ b337
 		+ "2 function templates %make_move_iterator_pair" @ %Iterator,
 		/ %Utilities $=
 		(
-			(
 			^ DLD "empty braced-init-list" ~ "zero-initialized objects"
-				@ "function default arguments";
-			$dep_to "brace init default arguments"
-			),
+				@ "function default arguments" $dep_to
+				"brace init default arguments"
 			+ "function template %decay_copy",
 			/ "function templates %make_array" => "%to_array";
 			+ "function template %make_array"
@@ -2448,7 +2311,6 @@ b332
 			// The program temporarily is not ill-formed for libstdc++'s \
 				<memory> including <typeinfo> under C++11 mode.
 		)
-		$dep_to "any"
 	),
 	/ %YFramework.YSLib.Core $=
 	(
@@ -2460,8 +2322,8 @@ b332
 		/ %YObject $=
 		(
 			(
-			$dep_from "any",
-			+ $lib "including header %Any" @ "header %YObject";
+			+ $lib "including header %Any" @ "header %YObject" $dep_from
+				%YBase.YStandardEx.Any;
 			(
 				$dep_from "interface declaration fix";
 				+ "interface class %IValueHolder"
@@ -2502,7 +2364,7 @@ b331
 			@ %YDefinition,
 		/ "exception specifications" ^ "%ynothrow" ~ "%throw()"
 			@ %TypeOperation,
-		/ %YBase.Any $=
+		/ %YStandardEx.Any $=
 		(
 			(
 			+ "class %any_holder";
@@ -2643,8 +2505,8 @@ b326
 			(
 			$dep_from "%openmode_conv";
 			+ "ISO C/C++ standard input/output open mode arguments"
-				@ "(constructor, function %Open)" @ "classes %(File, TextFile)";
-			$dep_to "open_file"
+				@ "(constructor, function %Open)" @ "classes %(File, TextFile)"
+				$dep_to "open_file"
 			),
 			/ DLD "implemented function template %TransformRect"
 				@ "header %YBlit" ^ "macro %YB_LIKELY"
@@ -2653,10 +2515,8 @@ b326
 		(
 			* "invalid FPS controlling" @ "platform %MinGW32"
 				@ %DSMain $since b320,
-			(
-			$dep_from "open_file";
-			/ DLD "simplified implementation" @ %Initialization
-			)
+			/ DLD "simplified implementation" @ %Initialization $dep_from
+				"open_file"
 		)
 		+ "constructor template with string argument" @ "class %MappedFile"
 			@ %YCLib.MemoryMapping
@@ -2699,14 +2559,11 @@ b324
 				+ $dev "exception specification %ynothrow"
 					@ "free functions and function template %ufexists"
 			),
-			+ %MemoryMapping $=
-			(
-				$dep_from "%ufopen";
-				+ "%unit MemoryMapping"
+			+ %MemoryMapping
 				// Memory mapping can be used on Win32 or POSIX compliant \
 					systems, while DS and other systems use unbuffered read \
 					to simulate.
-			);
+				$= (+ "%unit MemoryMapping" $dep_from "%ufopen")
 		)
 		/ %Helper.Initialization $=
 		(
@@ -2747,8 +2604,8 @@ b322
 			/ @ "class %DSScreen" @ "platform %MinGW32" $=
 			(
 				/ DLD "direct copy" ~ "pointer buffering";
-				* DLD "thread-safety" @ "function %Update" $since b299;
-				$dep_to "screen thread safety";
+				* DLD "thread-safety" @ "function %Update" $since b299 $dep_to
+					"screen thread safety"
 			),
 			- "screens checking and initialization UI",
 				// Dynamic null pointer check is eliminated. CLI interface \
@@ -2767,10 +2624,8 @@ b322
 			+ $dev $lib "macro %YCL_MULTITHREAD" @ %Platform,
 			^ DLD "attribute %format 'ms_printf'" @ "function %yprintf"
 				@ "platform %MinGW32" @ %Debug,
-			(
-			$dep_from "removal dep of mmbcpy and mmbset";
-			- "functions %ystdex::(mmbcpy, mmbset)" @ %YCommon
-			)
+			- "functions %ystdex::(mmbcpy, mmbset)" @ %YCommon $dep_from
+				"removal dep of mmbcpy and mmbset"
 		),
 		/ %YSLib $=
 		(
@@ -2782,15 +2637,13 @@ b322
 				~ "%ystdex::mmbcpy",
 			* "implementation" @ "function template %CreateRawBitmap"
 				@ "header %ShellHelper" $since $before b132;
-			- "using %ystdex::(mmbcpy, mmbset)" @ %Adaptor
-			$dep_to "removal dep of mmbcpy and mmbset"
+			- "using %ystdex::(mmbcpy, mmbset)" @ %Adaptor $dep_to
+				"removal dep of mmbcpy and mmbset"
 		)
 	),
-	(
-	$dep_from "screen thread safety";
 	* $comp "screen content corrupted" @ "platform %MinGW32" $since b299
+		$dep_from "screen thread safety",
 		// A serious bug though rarely occurred.
-	),
 	+ "function template %sfmt for format string output"
 		@ %YBase.YStandardEx.String
 		// Currently only %char output(%std::string) is supported.
@@ -2874,20 +2727,12 @@ b319
 				Exceptions implementation: SjLj.
 	/ %YBase $=
 	(
-		/ %YDefinition $=
-		(
-			+ "environment configuration macro for keyword %noexcept";
-			$dep_to "noexcept macro"
-		),
-		+ "library %YTest" $=
-		(
-			+ "header %timing.hpp" $=
-			(
-				+ "test timing function templates %(once, once_c, total, \
-					total_c, average)";
-				$dep_to "test timing"
-			)
-		)
+		+ "environment configuration macro for keyword %noexcept" @ %YDefinition
+			$dep_to "noexcept macro",
+		+ "library %YTest"
+			$= (+ "header %timing.hpp"
+				$= (+ "test timing function templates %(once, once_c, total, \
+					total_c, average)" $dep_to "test timing"))
 	),
 	/ %YFramework $=
 	(
@@ -2916,11 +2761,8 @@ b319
 					declarations" @ "unit %(YExceptionYGDIBase, YFunc, \
 					YCounter, YCoreUtilities, YDevice, YStorage)",
 					// Some minor performance improvement.
-				(
-				$dep_from "noexcept macro";
-				+ DLD "no throw exception specification"
-					@ "functions declarations" @ "unit %YEvent"
-				),
+				+ DLD "no throw exception specification" @ "functions \
+					declarations" @ "unit %YEvent" $dep_from "noexcept macro",
 				* "type checking implementation" @ "class %ValueObject"
 					@ %YObject $since b306
 					// Checking method of equality and type-id tests were \
@@ -2952,11 +2794,8 @@ b319
 			Thus G++ may complain when evaluating %noexcept expression. \
 			It seems a defect in the standard, but here just turn the warning \
 			off for convenience.
-	/ %YReader.'shell test example' $=
-	(
-		$dep_from "test timing";
-		+ "total time measuring for images loading"
-	)
+	+ "total time measuring for images loading" @ %YReader.'shell test example'
+		$dep_from "test timing"
 ),
 
 b318
@@ -2978,8 +2817,8 @@ b318
 				* "invalid height not ignored"
 					@ "function %TextList::AdjustViewLength",
 				* "missing adjusting viewer length"
-					@ "function %ResizeForContent";
-				$dep_to "wrong textlist length"
+					@ "function %ResizeForContent" $dep_to
+					"wrong textlist length"
 			)
 		)
 	)
@@ -2988,11 +2827,8 @@ b318
 			~ "modified freetype 2.4.9"),
 	^ DLB "parallel command line option '-j'"
 		@ "all Visual C++ projects makefile command lines",
-	/ %YReader.'shells test example' $=
-	(
-		$dep_from "wrong textlist length";
-		* $comp "submenu test using right arrow key" $since b285
-	)
+	* $comp "submenu test using right arrow key" $since b285
+		@ %YReader.'shells test example' $dep_from "wrong textlist length"
 ),
 
 b317
@@ -3007,11 +2843,8 @@ b317
 			(
 				/ @ "class %Shell" @ %YCoreUtilities $=
 				(
-					(
 					/ "return type discarded" @ "function \
-						%OnGotMesssage";
-					$dep_to "got msg ret tp"
-					),
+						%OnGotMesssage" $dep_to "got msg ret tp",
 					+ "public inheritance %enabled_share_from_this"
 				),
 				/ @ "class %Application" %YApplication $=
@@ -3040,11 +2873,8 @@ b317
 		),
 		/ %Helper $=
 		(
-			(
-				$dep_from "got msg ret tp";
-				/ "return type discarded" @ "function %OnGotMesssage"
-					@ "class %ShlDS"
-			)
+			/ "return type discarded" @ "function %OnGotMesssage"
+				@ "class %ShlDS" $dep_from "got msg ret tp",
 			/ @ "unit %DSMain" $=
 			(
 				/ DLD "implemented function %DSApplication::DealMessage",
@@ -3052,11 +2882,8 @@ b317
 					// A little better performance for broadcasting message.
 			)
 		),
-		(
-		$dep_from "got msg ret tp";
-		/ "return type discarded" @ "function %OnGotMesssage"
-			@ "shell classes" @ %YReader
-		)
+		/ "return type discarded" @ "function %OnGotMesssage" @ "shell classes"
+			@ %YReader $dep_from "got msg ret tp"
 	)
 ),
 
@@ -3064,10 +2891,8 @@ b316
 (
 	/ %YBase.YStandardEx $=
 	(
-		(
-		+ "function templates %raw with parameter %weak_ptr" @ %Memory;
-		$dep_to "weak raw"
-		),
+		+ "function templates %raw with parameter %weak_ptr" @ %Memory $dep_to
+			"weak raw",
 		/ DLD "no throw specification" ^ "%ynothrow" ~ "%throw()" @ %"Rational",
 		/ DLD "all parameter of type reference of %nullptr_t"
 			-> "raw %nullptr_t"
@@ -3075,9 +2900,8 @@ b316
 	/ %YFramework.YSLib $=
 	(
 		+ "function %Find" @ "class %MTextList" @ %UI.GUI,
-		/ %Core.YMessage $=
+		/ %Core.YMessage $dep_from "weak raw" $=
 		(
-			$dep_from "weak raw";
 			/ "destination shell field" ^ "%weak_ptr<Shell>"
 				~ "%shared_ptr<Shell>",
 			+ "field %bool %is_to_all designating broadcasting",
@@ -3110,10 +2934,7 @@ b315
 			@ YStandardEx.Rational,
 		/ @ "header %ydef.h" $=
 		(
-			(
-			+ "macros for alignment" @ "header %ydef.h";
-			$dep_to "align macro"
-			),
+			+ "macros for alignment" @ "header %ydef.h" $dep_to "align macro",
 			+ $doc "several comments on macros"
 		),
 		/ "implementation" @ "class templates %(deref_comp, deref_str_comp)"
@@ -3125,12 +2946,9 @@ b315
 			$= (+ "interfaces for raw focus requesting and releasing";
 				// Response focus behavior without calling events.)
 		/ DLD "simplified implementation" @ "destructor @ class %Widget",
-		(
-		$dep_from "align macro";
 		+ $dev "static assertion of alignment equality between %wchar_t and \
-			%CHRLib::ucs2_t" @ "platform MinGW32"
-			@ %YCLib.FileSystem
-		),
+			%CHRLib::ucs2_t" @ "platform MinGW32" @ %YCLib.FileSystem $dep_from
+			"align macro",
 		/ DLD "simplified implementation" @ "function template %BlitScale"
 			@ %Service
 	)
@@ -3210,16 +3028,13 @@ b310
 			* "wrong margin threshold calculated" @ "character output routine"
 				$since $before b132;
 			* $comp "rightmost character not shown when using function \
-				%DrawClippedText" @ "unit %CharRenderer" $since b309;
-			$dep_to "rchar margin"
+				%DrawClippedText" @ "unit %CharRenderer" $since b309 $dep_to
+				"rchar margin"
 		),
 		/ %UI.GUI $=
 		(
-			(
-			$dep_from "rchar margin";
 			* $comp "rightmost character not shown when label text aligned to \
-				right" $since b309
-			),
+				right" $since b309 $dep_from "rchar margin",
 			* "missing cascaded buffer background redrawing"
 				@ "class %BufferedRenderer" $since b278
 		)
@@ -3351,24 +3166,18 @@ b304
 	(
 		/ %YSLib $=
 		(
-			/ %UI.GUI $= "checkbox appearance",
-			(
-			$dep_from "%u16getcwd_n";
+			/ "checkbox appearance" @ %UI,
 			/ "function %GetNowDirectory" @ %Core.YFileSystem
-				^ "return type %String" ~ "%string";
-			$dep_to "non-ASCII path correction"
-			)
+				^ "return type %String" ~ "%string" $dep_from "%u16getcwd_n"
+				$dep_to "non-ASCII path correction"
 		),
 		+ "function %u16getcwd_n" @ %YCLib.FileSystem
 	),
 	/ %YReader $=
 	(
 		/ "size of check boxes",
-		(
-		$dep_from "non-ASCII path correction";
-		* $comp "wrong non-ASCII path get" @ %'file explorer'
-			@ "platform %MinGW32" $since b299
-		)
+		* $comp "wrong non-ASCII path get" @ %'file explorer' @ "platform \
+			%MinGW32" $since b299 $dep_from "non-ASCII path correction"
 	)
 	/ $lib $design "simplified assertion strings",
 	/ %YBase $=
@@ -3408,26 +3217,15 @@ b303
 			(
 				+ "function templates %(AddWidgets, AddWidgetsZ, RemoveWidgets)"
 					@ "header %yuicont.h" @ %UI.GUI,
-				(
-					$dep_from "timer delay";
-					+ "function %Delay" @ "class %InputTimer";
-					$dep_to "input timer delay"
-				)
+				+ "function %Delay" @ "class %InputTimer" $dep_from
+					"timer delay" $dep_to "input timer delay"
 			),
-			(
-			+ "function %Delay" @ "class %Timer" @ %Service
-			$dep_to "timer delay";
-			),
-			(
-			/ %Helpers >> %Helper;
-			$dep_to "helpers"
-			)
+			+ "function %Delay" @ "class %Timer" @ %Service $dep_to
+				"timer delay",
+			/ %Helpers >> %Helper $dep_to "helpers"
 		),
 		+ "adapting macros" @ "platform %(DS, MinGW32)" @ %YCLib.Input,
-		(
-		$dep_from "helpers";
-		/ DLD "simplified interfaces" @ %Initialization
-		)
+		/ DLD "simplified interfaces" @ %Initialization $dep_from "helpers"
 	);
 	/ %YReader $=
 	(
@@ -3442,13 +3240,11 @@ b303
 				* "wrong font size set when responding key ('X', 'Y') and \
 				  boundary font size reached"
 			),
-			(
-			$dep_from "input timer delay";
 			* "%KeyDown responded more than once when the input waiting \
-				interval is smaller than actual delay" $since b300
+				interval is smaller than actual delay" $since b300 $dep_from
+				"input timer delay"
 				// ('X', 'Y') on DS delayed and led to over setting of font \
 					size.
-			)
 		),
 		- "direct UI drawing test" @ %'shells test example',
 			// It has never been compatible on MinGW32.
@@ -3499,11 +3295,7 @@ b301
 			+ "function template %call_once",
 				// Just like %std::call_once, but with no thread safety \
 					guarantee.
-			(
-			+ "function template %parameterize_static_object";
-			+ "function template %get_init";
-			% dep_to "get_init"
-			)
+			+ "function templates %(parameterize_static_object; get_init)";
 		),
 		/ DLD "simplified implementation" ^ "constexpr brace-initializers"
 			@ "class template %iterator_operations" @ %Iterator
@@ -3511,10 +3303,8 @@ b301
 	/ %YReader $=
 	(
 		/ $design "simplified implementation" @ %main,
-		(
-		/ $dep_from "get_init";
-		/ $design "simplified implementation" @ %'text reader',
-		),
+		/ $design "simplified implementation" @ %'text reader' $dep_from
+			("%get_init" @ %YBase.YStandardEx.Utilities),
 		+ "recovering path on exiting reader" $=
 		(
 			+ "initialized with path argument" @ "class %ShlExplorer";

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2044
+\version r2104
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-10-21 12:50 +0800
+	2014-10-31 13:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,10 @@
 #include YFM_CHRLib_MappingEx
 #include YFM_YCLib_MemoryMapping
 #include YFM_YSLib_Service_FileSystem
-#include <ystdex/string.hpp> // for ystdex::sfmt, std::strcmp;
+#include <ystdex/string.hpp> // for ystdex::sfmt;
+#if YCL_Win32
+#	include <ystdex/exception.hpp> // for ystdex::handle_nested;
+#endif
 #include <cerrno> // for errno;
 //#include <clocale>
 #if YCL_Android
@@ -71,6 +74,8 @@ namespace
 #	define YF_Init_puts(_lv, _str) std::puts(_str)
 #endif
 
+//! \since build 549
+using platform::MappedFile;
 //! \since build 425
 //@{
 stack<std::function<void()>> app_exit;
@@ -78,8 +83,8 @@ ValueNode* p_root;
 Drawing::FontCache* p_font_cache;
 //@}
 #if !CHRLIB_NODYNAMIC_MAPPING
-//! \since build 324
-platform::MappedFile* p_mapped;
+//! \since build 549
+unique_ptr<MappedFile> p_mapped;
 #endif
 //! \since build 450
 MIMEBiMapping* p_mapping;
@@ -140,9 +145,7 @@ FetchWorkingRoot_Android()
 					sd_paths[]{"/sdcard/", "/mnt/sdcard/", "/storage/sdcard0/"};
 
 				for(const auto& path : sd_paths)
-				{
-					// TODO: Encapsulate to YCLib.
-					if(::access(path, F_OK) == 0)
+					if(uaccess(path, F_OK) == 0)
 					{
 						YTraceDe(Informative, "Successfully found SD card path"
 							" '%s' as root path.", path);
@@ -151,7 +154,6 @@ FetchWorkingRoot_Android()
 					else
 						YTraceDe(Informative,
 							"Failed accessing SD card path '%s'.", path);
-				}
 				throw LoggedEvent("Failed finding working root path.");
 			}())
 		{}
@@ -175,6 +177,37 @@ FetchDataDirectory_Android()
 #	error "Unsupported platform found."
 #endif
 
+//! \since build 549
+unique_ptr<MappedFile>
+LoadMappedModule(const string& path)
+{
+	TryRet(make_unique<MappedFile>(path))
+#if YCL_Win32
+	CatchExpr(..., std::throw_with_nested(
+		LoggedEvent("Load module '" + path + "' failed.")))
+#else
+	CatchThrow(..., LoggedEvent("Load module '" + path + "' failed."))
+#endif
+}
+
+//! \since build 549
+void
+ExtractException(const std::exception& e, string& res, size_t level = 0)
+{
+	const auto print([&, level](const string& str){
+		res += string(level, ' ') + str + '\n';
+	});
+
+	TryExpr(print(string("ERROR: ") + e.what()), throw)
+	CatchIgnore(std::exception&)
+	CatchExpr(..., print("Unknown exception found @ ExtractException."))
+#if YCL_Win32
+	ystdex::handle_nested(e, [&, level](std::exception& e){
+		ExtractException(e, res, level + 1);
+	});
+#endif
+}
+
 void
 LoadComponents(const ValueNode& node)
 {
@@ -195,7 +228,7 @@ LoadComponents(const ValueNode& node)
 
 	YF_Init_printf(Notice, "Load character mapping file '%s' ...\n",
 		mapping_name.c_str());
-	p_mapped = new MappedFile(data_dir + "cp113.bin");
+	p_mapped = LoadMappedModule(data_dir + "cp113.bin");
 	if(p_mapped->GetSize() != 0)
 		CHRLib::cp113 = p_mapped->GetPtr();
 	else
@@ -221,9 +254,16 @@ HandleFatalError(const FatalError& e) ynothrow
 	const char* line("--------------------------------");
 
 	YF_Init_printf(Emergent, "%s%s%s\n%s\n%s\n", line, e.GetTitle(), line,
-		e.GetContent(), line);
+		e.GetContent().c_str(), line);
 #else
-	YF_Init_printf(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent());
+#	if YCL_Win32
+	using platform_ex::MBCSToWCS;
+
+	TryExpr(::MessageBoxW({}, MBCSToWCS(e.GetContent()).c_str(),
+		MBCSToWCS(e.GetTitle()).c_str(), MB_ICONERROR))
+	CatchIgnore(...)
+#	endif
+	YF_Init_printf(Emergent, "%s\n%s\n", e.GetTitle(), e.GetContent().c_str());
 #endif
 	terminate();
 }
@@ -370,6 +410,8 @@ InitializeEnvironment()
 ValueNode
 InitializeInstalled()
 {
+	string res;
+
 	YF_Init_puts(Notice, "Checking installation...");
 	try
 	{
@@ -381,17 +423,19 @@ InitializeInstalled()
 		YF_Init_puts(Notice, "OK!");
 		return node;
 	}
-	CatchExpr(std::exception& e,
-		YF_Init_printf(Err, "Error occurred: %s\n", e.what()))
+	CatchExpr(std::exception& e, ExtractException(e, res))
+	CatchExpr(..., res += "Unknown exception @ InitializeInstalled.\n")
 	throw FatalError("      Invalid Installation      ",
-		" Please make sure the data is\n"
-		" stored in correct directory.\n");
+		(" Please make sure the data is\n"
+		" stored in correct directory.\n" + res).c_str());
 }
 
 void
 InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 	const string& font_dir)
 {
+	string res;
+
 	YF_Init_puts(Notice, "Loading font files...");
 	try
 	{
@@ -432,11 +476,11 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 			throw LoggedEvent("Setting default font face failed.");
 		return;
 	}
-	// TODO: Use %std::nested_exception.
-	CatchExpr(std::exception& e, YF_Init_puts(Err, e.what()))
+	CatchExpr(std::exception& e, ExtractException(e, res))
+	CatchExpr(..., res += "Unknown exception @ InitializeSystemFontCache.\n")
 	throw FatalError("      Font Caching Failure      ",
-		" Please make sure the fonts are\n"
-		" stored in correct path.\n");
+		(" Please make sure the fonts are\n"
+		" stored in correct path.\n" + res).c_str());
 }
 
 void
@@ -451,7 +495,7 @@ Uninitialize() ynothrow
 		app_exit.pop();
 	}
 #if !CHRLIB_NODYNAMIC_MAPPING
-	delete p_mapped;
+	p_mapped.reset();
 	YF_Init_puts(Notice, "Character mapping deleted.");
 #endif
 }

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1763
+\version r1898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2014-10-31 09:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,8 @@ _wfopen(const wchar_t*, const wchar_t*);
 
 //! \since build 540
 using platform_ex::UTF8ToWCS;
+//! \since build 549
+using platform_ex::DirectoryFindData;
 #elif YCL_Android
 #	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
@@ -100,8 +102,10 @@ ensure_str(const char16_t* s)
 {
 #if YCL_Win32
 	return platform_ex::WCSToMBCS(reinterpret_cast<const wchar_t*>(s));
-#else
+#elif YCL_DS || YCL_Android
 	return MakeMBCS(s);
+#else
+#	error "Unsupported platform found."
 #endif
 }
 
@@ -120,130 +124,36 @@ GetFileModificationTimeOfImpl(const _tChar* filename)
 		"Failed getting file time of \"" + ensure_str(filename) + "\".");
 }
 
-#if YCL_DS || YCL_Android
-#elif YCL_Win32
-//! \since build 474
-//@{
-class DirEnv
-{
-public:
-	std::wstring d_name;
-	WIN32_FIND_DATAW& find_data;
-
-	DirEnv(std::wstring&, ::WIN32_FIND_DATAW&);
-
-	DefGetter(const ynothrow, ::DWORD, Attributes, find_data.dwFileAttributes)
-};
-
-DirEnv::DirEnv(std::wstring& dir_name, ::WIN32_FIND_DATAW& win32_fdata)
-	: d_name(), find_data(win32_fdata)
-{
-	YAssert(!dir_name.empty() && dir_name.back() != '\\',
-		"Invalid argument found.");
-
-	const auto r(::GetFileAttributesW(dir_name.c_str()));
-	yconstexpr const char* msg("Opening directory failed.");
-
-	if(YB_UNLIKELY(r == INVALID_FILE_ATTRIBUTES))
-		// TODO: Call %::GetLastError to distinguish concreate errors.
-		throw FileOperationFailure(EINVAL, std::generic_category(), msg);
-	if(r & FILE_ATTRIBUTE_DIRECTORY)
-		dir_name += L"\\*";
-	else
-		throw FileOperationFailure(ENOTDIR, std::generic_category(), msg);
-}
-
-
-class DirectoryData : private ystdex::noncopyable
-{
-private:
-	std::wstring dir_name;
-	::WIN32_FIND_DATAW find_data;
-	::HANDLE h_node = {};
-	DirEnv posix_dir{dir_name, find_data};
-
-public:
-	DirectoryData(const char*);
-	~DirectoryData();
-
-	DefGetterMem(const ynothrow, ::DWORD, Attributes, posix_dir)
-	//! \since build 543
-	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
-	//! \since build 543
-	DefGetter(const ynothrow, const std::wstring&, DirName, dir_name)
-
-private:
-	void
-	Close() ynothrow;
-
-public:
-	DirEnv*
-	Read();
-
-	void
-	Rewind() ynothrow;
-};
-
-DirectoryData::DirectoryData(const char* name)
-	: dir_name(ystdex::rtrim(UTF8ToWCS(name), L"/\\")), find_data()
-{}
-DirectoryData::~DirectoryData()
-{
-	if(h_node)
-		Close();
-}
-
-void
-DirectoryData::Close() ynothrow
-{
-	const auto res(::FindClose(h_node));
-
-	YAssert(res, "No valid directory found.");
-	yunused(res);
-}
-
-DirEnv*
-DirectoryData::Read()
-{
-	if(!h_node)
-	{
-		// NOTE: See MSDN "FindFirstFile function" for details.
-		YAssert(!dir_name.empty(), "Invalid directory name found.");
-		YAssert(dir_name.back() != L'\\', "Invalid directory name found.");
-		if((h_node = ::FindFirstFileW(dir_name.c_str(), &find_data))
-			== INVALID_HANDLE_VALUE)
-			h_node = {};
-	}
-	else if(!::FindNextFileW(h_node, &find_data))
-	{
-		Close();
-		h_node = {};
-	}
-	if(h_node && h_node != INVALID_HANDLE_VALUE)
-		posix_dir.d_name = find_data.cFileName;
-	return !h_node ? nullptr : &posix_dir;
-}
-
-void
-DirectoryData::Rewind() ynothrow
-{
-	if(h_node)
-	{
-		Close();
-		h_node = {};
-	}
-}
-//@}
-#else
-#	error "Unsupported platform found."
-#endif
-
 } // unnamed namespace;
 
 
+// XXX: Catch %std::bad_alloc?
 #define YCL_Impl_RetTryCatchAll(...) \
 	TryRet(__VA_ARGS__) \
 	CatchIgnore(...)
+
+int
+uaccess(const char* path, int amode) ynothrow
+{
+	YAssertNonnull(path);
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(::_waccess(UTF8ToWCS(path).c_str(), amode))
+	return -1;
+#else
+	return ::access(path, amode);
+#endif
+}
+int
+uaccess(const char16_t* path, int amode) ynothrow
+{
+	YAssertNonnull(path);
+#if YCL_Win32
+	return ::_waccess(reinterpret_cast<const wchar_t*>(path), amode);
+#else
+	YCL_Impl_RetTryCatchAll(::access(MakeMBCS(path).c_str(), amode))
+	return -1;
+#endif
+}
 
 int
 uopen(const char* filename, int oflag) ynothrow
@@ -516,7 +426,7 @@ GetFileSizeOf(std::FILE* fp)
 DirectorySession::DirectorySession(const char* path)
 	: dir(
 #if YCL_Win32
-		new DirectoryData
+		new DirectoryFindData
 #else
 		::opendir
 #endif
@@ -535,7 +445,7 @@ DirectorySession::~DirectorySession()
 	YAssert(res == 0, "No valid directory found.");
 	yunused(res);
 #else
-	delete static_cast<DirectoryData*>(dir);
+	delete static_cast<DirectoryFindData*>(dir);
 #endif
 }
 
@@ -544,7 +454,7 @@ DirectorySession::Rewind() ynothrow
 {
 	YAssert(dir, "Invalid native handle found.");
 #if YCL_Win32
-	static_cast<DirectoryData*>(dir)->Rewind();
+	static_cast<DirectoryFindData*>(dir)->Rewind();
 #else
 	::rewinddir(dir);
 #endif
@@ -556,7 +466,7 @@ HDirectory::operator++()
 {
 	YAssert(!p_dirent || bool(GetNativeHandle()), "Invariant violation found.");
 #if YCL_Win32
-	p_dirent = static_cast<DirectoryData*>(GetNativeHandle())->Read();
+	p_dirent = static_cast<DirectoryFindData*>(GetNativeHandle())->Read();
 #else
 	p_dirent = ::readdir(GetNativeHandle());
 #endif
@@ -572,7 +482,8 @@ HDirectory::GetNodeCategory() const ynothrow
 
 		NodeCategory res(NodeCategory::Empty);
 #if YCL_Win32
-		const auto& dir_data(*static_cast<DirectoryData*>(GetNativeHandle()));
+		const auto&
+			dir_data(*static_cast<DirectoryFindData*>(GetNativeHandle()));
 		const auto& find_data(dir_data.GetFindData());
 
 		if(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -598,7 +509,7 @@ HDirectory::GetNodeCategory() const ynothrow
 		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");
 		name.pop_back();
 		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
-		if(::_wstat((name + static_cast<DirEnv*>(p_dirent)->d_name).c_str(),
+		if(::_wstat((name + *static_cast<std::wstring*>(p_dirent)).c_str(),
 			&st) == 0)
 		{
 			const auto m(st.st_mode & _S_IFMT);
@@ -652,7 +563,7 @@ HDirectory::GetName() const ynothrow
 		return p_dirent->d_name;
 #else
 		YCL_Impl_RetTryCatchAll(utf8_name = platform_ex::WCSToUTF8(
-			(static_cast<DirEnv*>(p_dirent))->d_name), &utf8_name[0])
+			*static_cast<std::wstring*>(p_dirent)), &utf8_name[0])
 #endif
 	}
 	return ".";

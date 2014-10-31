@@ -5,7 +5,7 @@
 echo Bootstrap beginned.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
-source ${SHBuild_ToolDir}/common.sh
+source ${SHBuild_ToolDir}/SHBuild-common.sh
 : ${SHBuild_BaseDir:="${SHBuild_ToolDir}/../SHBuild"}
 
 SHBuild_EchoVar_N "SHBuild.BaseDir"
@@ -15,10 +15,10 @@ echo Configuring ...
 
 SHBuild_BuildDir="${SHBuild_BaseDir}/.shbuild"
 
-source ${SHBuild_ToolDir}/common-toolchain.sh
+source ${SHBuild_ToolDir}/SHBuild-common-toolchain.sh
 
 export AR="gcc-ar"
-source ${SHBuild_ToolDir}/common-options.sh
+source ${SHBuild_ToolDir}/SHBuild-common-options.sh
 # As a workaround to G++ wronly recognized encoding of temporary directory,
 #	LTO is turned off. It is also required for '-fwhole-program', which is
 #	turned off currently due to unresolved symbols caused by possible bugs.

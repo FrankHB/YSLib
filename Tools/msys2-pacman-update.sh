@@ -11,7 +11,8 @@ echo Updating necessary tools ...
 pacman -S --needed \
 	mingw32/mingw-w64-i686-binutils-git \
 	mingw32/mingw-w64-i686-gcc \
-	mingw32/mingw-w64-i686-make
+	mingw32/mingw-w64-i686-make \
+	msys/make
 
 echo Done.
 echo Updating optional tools ...
