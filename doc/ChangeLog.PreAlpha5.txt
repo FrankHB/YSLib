@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r5947
+\version r6081
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-10-31 13:24 +0800
+	2014-11-04 00:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,137 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ $doc "updated Doxygen file" $=
+	(
+		+ "ignored path 'sysroot'",
+		(
+		/ "value of %HTML_FILE_EXTENSION" -> '.xhtml' ~ "default '.html'";
+			// For compatibility with IE 9+.
+		/ "value of %DOT_IMAGE_FORMAT" -> 'svg' ~ "default 'png'";
+			// Explicitly dropped compatibility with IE previous than IE 9.
+		/ "value of %INTERACTIVE_SVG" -> 'YES' ~ "default 'NO'"
+		),
+		/ "value of %DOT_GRAPH_MAX_NODES" -> '1024' ~ "default '50'"
+			// To eliminate warnings about too many nodes in 'YModules.h'.
+	),
+	* $dev $doc "missing escaping backslash for boundary of header names \
+		between '<tt>' and '</tt>'" $effective @ %YBase.(LibDefect.String,
+		YStandardEx.Utilities) $since b366,
+	// To eliminate warning for mismatched HTML tags.
+	/ %YBase $=
+	(
+		+ %Exception @ %LibDefect $=
+		(
+			+ "experimental fix for missing %std::(get_terminate,
+				get_unexpected)" @ "libstdc++ earlier than 4.9";
+				// It might still buggy with multithreading. The \
+					implementation of %std::rethrow_exception is still known \
+					to be broken now. However, %std::(current_exception, \
+					throw_with_nested) should be OK.
+			+ "workaround for missing %std::(exception_ptr; current_exception, \
+				rethrow_exception, nested_exception) with GCC 5.0 trunk code"
+				@ "libstdc++ when 'ATOMIC_INT_LOCK_FREE < 2'"
+				// See comments in the header file.
+		),
+		/ %YStandardEx $=
+		(
+			/ $dev ^ $dep_from %LibDefect.Exception @ %Exception
+				~ '<exception>',
+			/ %Memory $=
+			(
+				+ "deleter template parameter support"
+					@ "function template %get_raw for %std::unique_ptr",
+				+ "class template %bound_deleter"
+			),
+			/ %Concurrency $=
+			(
+				+ "class template %unlock_deleter" $dep_from
+					("class template %bound_deleter" %Memory);
+				+ "alias template %locked_ptr"
+			),
+			+ %PseudoMutex
+				$= (+ "namespace %ystdex::single_thread"
+					$=(
+					(
+					+ "structs %(defer_lock_t, try_to_lock_t, adopt_lock_t)";
+					+ "yconstexpr objects %(defer_lock, try_to_lock, \
+						adopt_lock)"
+					),
+					+ "classes %(mutex, recursive_mutex, timed_mutex, \
+						recursive_timed_mutex)",
+					+ "class templates %(lock_guard, unique_lock)",
+					+ "function templates %(lock, try_lock)"
+				))
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				+ DLD "assertion for unreachable control" $since b549,
+					// To eliminate [-Wreturn-type] for G++ 4.8.
+				+ DLD "simplified exception handling across platforms" $=
+				(
+					^ %YBase.StandardEx.Exception @ "all platforms";
+					^ "std::throw_with_nested" @ "all platforms"
+				),
+				/ DLD "simplified construction of %FatalError",
+				/ $design "some error message"
+			),
+			/ %GUIApplication $=
+			(
+				/ @ "inline function %FetchEnvironment" $=
+				(
+					/ DLD "implemented" ^ "macros %(PDefH, ImplRet)",
+					- 'ynothrow'
+				),
+				/ @ "function %FetchGlobalInstance; \
+					function template %FetchGlobalInstance, function \
+					definition %FetchAppInstance" $=
+				(
+					/ "explicitly guaranteed thread safety", 
+					/ "allowed throw exception when application inexisted"
+				)
+			)
+		),
+		+ "log messages" @ "hosted main thread"
+			@ %'Helper_(Android)'.AndroidHost,
+		/ %YSLib.Core.YApplication $=
+		(
+			/ @ "function %FetchAppInstance" $dep_from
+				("function definition %FetchAppInstance"
+				@ %Helper.GUIApplication),
+			/ @ "functions %PostMessage" $=
+			(
+				/ "explicitly guaranteed thread safety" $dep_from
+					"function %FetchAppInstance",
+				* "wrong 'ynothrow'" @ $since b297 $orig
+					"functions %SendMessage" $since b272,
+				/ DLD "implemented inline functions"
+					^ "macros %(PDefH, ImplRet)"
+			)
+		),
+		/ "macro %YF_Multithread" %YCLib.Platform $=
+		(
+			/ "defined if '__STDCPP_THREADS__' at first",
+			/ "unconditionally defined as '0' if not defined previously"
+		)
+	),
+	/ @ "platform %Android" @ %Main $=
+	(
+		/ "output using logger" ~ "standard I/O",
+		* "blocked on memory debug output with %Warning level"
+			@ "defined %YSL_USE_MEMORY_DEBUG" $since b498
+		// This mostly occurs on the %debug configuration. The main function \
+			should not wait for input when switching an Android GUI program, \
+			otherwise there would be an ANR.
+	)
+),
+
+b549
 (
 	/ %Tools $=
 	(
@@ -138,7 +269,8 @@ $now
 				/ "exception message"
 			),
 			/ "handled exceptions" ^ "nested exceptions" @ "platform %Win32"
-				// It is not supported well by G++ 4.8.
+				// It is not supported well by libstdc++ without specific \
+					atomic operations support. See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58938 .
 		)
 	),
 	/ %YBase.YStandardEx.BitSegment $=
@@ -789,6 +921,7 @@ b544
 
 b543
 (
+	/ $dev "renewed outdated keystore for signing" @ "platform %Android",
 	/ %YFramework $=
 	(
 		* DLB "wrong %CC exported" @ "Makefile" @ "platform %Android"
@@ -1037,7 +1170,7 @@ b542
 		+ "function templates %ston, filter_prefix" @ %YStandardEx.String;
 	),
 	/ "double click to auto scroll" ^ "%TouchDown handler" ~ "%Click handler"
-		%YReader.ShlReader;
+		%YReader.ShlReader
 		// This is still slow in debug configurations. So sometimes it would \
 			be no effect.
 ),

@@ -11,13 +11,13 @@
 /*!	\file yapp.h
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1627
+\version r1652
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:27 +0800
 \par 修改时间:
-	2014-10-04 15:12 +0800
+	2014-11-03 06:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,12 +136,13 @@ public:
 
 /*!
 \brief 取应用程序实例。
+\throw LoggedEvent 找不到全局应用程序实例或消息发送失败。
 \note 保证在平台相关的全局资源初始化之后初始化此实例。
-\warning 初始化前不保证线程安全性。
-\since build 398
+\note 线程安全。
+\since build 550
 */
 extern YF_API Application&
-FetchAppInstance() ynothrow;
+FetchAppInstance();
 
 /*!
 \ingroup helper_functions
@@ -169,32 +170,23 @@ Activate(const shared_ptr<Shell>& hShl)
 
 /*!
 \brief 全局默认队列消息发送函数。
-\warning 应用程序实例初始化前不保证线程安全性。
-\since build 297
+\exception LoggedEvent 找不到全局应用程序实例或消息发送失败。
+\note 线程安全。
+\since build 550
 */
 //@{
-//! \since build 317
 YF_API void
-PostMessage(const Message&, Messaging::Priority) ynothrow;
-//! \since build 320
-inline void
-PostMessage(Messaging::ID id, Messaging::Priority prior,
-	const ValueObject& vo = {}) ynothrow
-{
-	PostMessage(Message(id, vo), prior);
-}
-//! \since build 320
-inline void
-PostMessage(Messaging::ID id, Messaging::Priority prior, ValueObject&& c)
-	ynothrow
-{
-	PostMessage(Message(id, std::move(c)), prior);
-}
-//! \since build 320
+PostMessage(const Message&, Messaging::Priority);
+inline PDefH(void, PostMessage, Messaging::ID id, Messaging::Priority prior,
+	const ValueObject& vo = {})
+	ImplRet(PostMessage(Message(id, vo), prior))
+inline PDefH(void, PostMessage, Messaging::ID id, Messaging::Priority prior,
+	ValueObject&& c)
+	ImplRet(PostMessage(Message(id, std::move(c)), prior))
 template<Messaging::MessageID _vID>
 inline void
 PostMessage(Messaging::Priority prior,
-	const typename Messaging::SMessageMap<_vID>::TargetType& target) ynothrow
+	const typename Messaging::SMessageMap<_vID>::TargetType& target)
 {
 	PostMessage(_vID, prior, ValueObject(target));
 }

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2104
+\version r2117
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-10-31 13:02 +0800
+	2014-11-02 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,9 +34,7 @@
 #include YFM_YCLib_MemoryMapping
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/string.hpp> // for ystdex::sfmt;
-#if YCL_Win32
-#	include <ystdex/exception.hpp> // for ystdex::handle_nested;
-#endif
+#include <ystdex/exception.hpp> // for ystdex::handle_nested;
 #include <cerrno> // for errno;
 //#include <clocale>
 #if YCL_Android
@@ -182,12 +180,9 @@ unique_ptr<MappedFile>
 LoadMappedModule(const string& path)
 {
 	TryRet(make_unique<MappedFile>(path))
-#if YCL_Win32
 	CatchExpr(..., std::throw_with_nested(
-		LoggedEvent("Load module '" + path + "' failed.")))
-#else
-	CatchThrow(..., LoggedEvent("Load module '" + path + "' failed."))
-#endif
+		LoggedEvent("Loading module '" + path + "' failed.")))
+	YAssert(false, "Unreachable control found.");
 }
 
 //! \since build 549
@@ -226,7 +221,7 @@ LoadComponents(const ValueNode& node)
 
 	const string mapping_name(data_dir + "cp113.bin");
 
-	YF_Init_printf(Notice, "Load character mapping file '%s' ...\n",
+	YF_Init_printf(Notice, "Loading character mapping file '%s' ...\n",
 		mapping_name.c_str());
 	p_mapped = LoadMappedModule(data_dir + "cp113.bin");
 	if(p_mapped->GetSize() != 0)
@@ -426,8 +421,8 @@ InitializeInstalled()
 	CatchExpr(std::exception& e, ExtractException(e, res))
 	CatchExpr(..., res += "Unknown exception @ InitializeInstalled.\n")
 	throw FatalError("      Invalid Installation      ",
-		(" Please make sure the data is\n"
-		" stored in correct directory.\n" + res).c_str());
+		" Please make sure the data is\n"
+		" stored in correct directory.\n" + res);
 }
 
 void
@@ -479,8 +474,8 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 	CatchExpr(std::exception& e, ExtractException(e, res))
 	CatchExpr(..., res += "Unknown exception @ InitializeSystemFontCache.\n")
 	throw FatalError("      Font Caching Failure      ",
-		(" Please make sure the fonts are\n"
-		" stored in correct path.\n" + res).c_str());
+		" Please make sure the fonts are\n"
+		" stored in correct path.\n" + res);
 }
 
 void

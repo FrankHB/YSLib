@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r325
+\version r333
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2014-10-27 18:34 +0800
+	2014-11-02 17:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,6 +184,15 @@
 构建 YSTest 主目标时不依赖 NDK ，仅需 JDK 、 Android SDK 和独立工具链。
 构建脚本会对生成的包签名，因此需要需要准备私钥。用 Tools/create-android-debug-keystore.sh 可生成默认私钥。
 构建脚本接受 APK_KEYSTORE 宏指定私钥路径，默认值为 ~/.android/debug.keystore 。可在环境中覆盖。
+
+@1.6.2 Android 测试程序运行附加说明：
+使用 Tools/create-android-debug-keystore.sh 创建或更新密钥存储。
+安装不同签名的程序需先卸载旧程序，否则出现 INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES 错误，安装失败。
+ YSTest 历史更新记录如下。
+ 2014-05-12(build 498) 起：
+使用同一认证。
+ 2014-10-07(build 543) 起：
+使用 Tools/create-android-debug-keystore.sh 更新认证。
 
 @2 外部库依赖：
 本章按引入版本顺序记录历史版本使用的外部非系统库。系统库参见 @1 。

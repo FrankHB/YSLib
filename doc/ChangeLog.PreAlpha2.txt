@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha2.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha2 。
-\version r3689
+\version r3690
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:11:18 +0800
 \par 修改时间:
-	2014-10-30 16:03 +0800
+	2014-11-03 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1288,7 +1288,7 @@ b272
 			/ "simplified implementation" @ %YMessage;
 			/ %YApplication $=
 			(
-				- "messages producer calling" @ "function FetchMessage"
+				- "messages producer calling" @ "function %FetchMessage"
 				- "default log object" @ "class %Application",
 				- DLD "try blocks" @ "all 2 functions %SendMessage";
 				/ DLD "logging class %Log" >> "implementation unit %YGlobal"

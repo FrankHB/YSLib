@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r344
+\version r354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-09-03 13:55 +0800
+	2014-11-03 06:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,16 +97,16 @@ public:
 
 /*!
 \brief 取全局应用程序实例。
-\pre 内部断言存在应用程序实例。
-\note 需要保证应用程序实例初始化后才能使用。
-\since build 398
+\throw 应用程序实例不存在。
+\note 线程安全。
+\since build 550
 */
 //@{
 YF_API yimpl(GUIApplication&)
-FetchGlobalInstance() ynothrow;
+FetchGlobalInstance();
 template<class _tApp>
 inline _tApp&
-FetchGlobalInstance() ynothrow
+FetchGlobalInstance()
 {
 	return ystdex::polymorphic_downcast<_tApp&>(FetchGlobalInstance());
 }
@@ -117,11 +117,8 @@ FetchGlobalInstance() ynothrow
 \brief 取单一环境对象引用。
 \since build 398
 */
-inline Environment&
-FetchEnvironment() ynothrow
-{
-	return FetchGlobalInstance().GetEnvironment();
-}
+inline PDefH(Environment&, FetchEnvironment, )
+	ImplRet(FetchGlobalInstance().GetEnvironment())
 
 
 /*!

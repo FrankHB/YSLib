@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r297
+\version r317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2014-07-24 09:53 +0800
+	2014-11-03 06:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include YFM_Helper_Environment
 #if YF_Multithread == 1
 #	include <thread> // for std::this_thread::*;
+#	include <mutex>
 #endif
 
 namespace YSLib
@@ -39,6 +40,11 @@ using namespace Drawing;
 
 namespace
 {
+
+#if YF_Multithread == 1
+//! \since build 550
+std::recursive_mutex ApplicationMutex;
+#endif
 
 //! \since build 499
 GUIApplication* ApplicationPtr;
@@ -72,13 +78,21 @@ Idle(Messaging::Priority prior)
 GUIApplication::GUIApplication()
 	: Application(), p_env()
 {
+#if YF_Multithread == 1
+	std::unique_lock<std::recursive_mutex> lck(ApplicationMutex);
+
+#endif
 	YAssert(!ApplicationPtr, "Duplicate instance found.");
 	ApplicationPtr = this;
-	p_env = make_unique<Environment>();
+	p_env.reset(new Environment());
 }
 
 GUIApplication::~GUIApplication()
 {
+#if YF_Multithread == 1
+	std::unique_lock<std::recursive_mutex> lck(ApplicationMutex);
+
+#endif
 	ApplicationPtr = {};
 }
 
@@ -115,14 +129,19 @@ GUIApplication::DealMessage()
 
 
 GUIApplication&
-FetchGlobalInstance() ynothrow
+FetchGlobalInstance()
 {
-	YAssertNonnull(ApplicationPtr);
-	return *ApplicationPtr;
+#if YF_Multithread == 1
+	std::unique_lock<std::recursive_mutex> lck(ApplicationMutex);
+
+#endif
+	if(ApplicationPtr)
+		return *ApplicationPtr;
+	throw LoggedEvent("Application instance is not ready.");
 }
 
 /* extern */Application&
-FetchAppInstance() ynothrow
+FetchAppInstance()
 {
 	return FetchGlobalInstance();
 }

@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r269
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-10-27 13:52 +0800
+	2014-11-04 00:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,6 +238,11 @@
 
 @2.4.6.11 高速缓冲容器模板 Cache ：
 提供抽象的缓冲容器模板及操作。
+
+@2.4.7 标准库替代：
+
+@2.4.7.1 伪互斥量 PseudoMutex ：
+提供单线程环境下的互斥量和锁接口。
 
 @2.5 LibDefect ：
 用于修正依赖的标准库实现因不完善或配置问题等与标准规定的接口的偏差。
