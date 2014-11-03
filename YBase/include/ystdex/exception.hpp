@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file exception.h
+/*!	\file exception.hpp
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r113
+\version r115
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2014-10-04 15:07 +0800
+	2014-11-01 13:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #define YB_INC_ystdex_exception_hpp_ 1
 
 #include "type_op.hpp" // for ystdex::remove_cv_t;
-#include <exception>
+#include <libdefect/exception.h>
 #include <stdexcept>
 #include <memory> // for std::addressof;
 

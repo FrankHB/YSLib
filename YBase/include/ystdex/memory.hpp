@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r537
+\version r579
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-09-22 23:56 +0800
+	2014-11-03 06:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,50 @@
 namespace ystdex
 {
 
+/*!
+\brief 绑定值的删除器。
+\tparam _type 绑定的值的类型。
+\tparam _tPointer 指针类型。
+\pre _tPointer 满足 \c NullablePointer 要求。
+\since build 550
+*/
+template<typename _type, typename _tPointer = void*>
+struct bound_deleter
+{
+	using pointer = _tPointer;
+
+	mutable _type value;
+
+	yconstfn
+	bound_deleter() = default;
+	template<typename _tParam,
+		yimpl(typename = ystdex::exclude_self_ctor_t<bound_deleter, _tParam>)>
+	yconstfn
+	bound_deleter(_tParam&& arg)
+		: value(yforward(arg))
+	{}
+	template<typename _tParam1, typename _tParam2, typename... _tParams>
+	yconstfn
+	bound_deleter(_tParam1&& arg1, _tParam2&& arg2, _tParams&&... args)
+		: value(yforward(arg1), yforward(arg2), yforward(args)...)
+	{}
+	yconstfn
+	bound_deleter(const bound_deleter&) = default;
+	yconstfn
+	bound_deleter(bound_deleter&&) = default;
+
+	yconstfn bound_deleter&
+	operator=(const bound_deleter&) = default;
+	yconstfn bound_deleter&
+	operator=(bound_deleter&&) = default;
+
+	//! \brief 删除：空操作。
+	inline void
+	operator()(pointer) const ynothrow
+	{}
+};
+
+
 /*!	\defgroup get_raw Get get_raw Pointers
 \brief 取内建指针。
 \since build 422
@@ -46,9 +90,11 @@ get_raw(_type* const& p) ynothrow
 {
 	return p;
 }
-template<typename _type>
+//! \since build 550
+template<typename _type, typename _fDeleter>
 yconstfn auto
-get_raw(const std::unique_ptr<_type>& p) ynothrow -> decltype(p.get())
+get_raw(const std::unique_ptr<_type, _fDeleter>& p) ynothrow
+	-> decltype(p.get())
 {
 	return p.get();
 }

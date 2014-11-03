@@ -52,6 +52,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../include/libdefect/exception.h" />
 		<Unit filename="../include/libdefect/string.h" />
 		<Unit filename="../include/ydef.h" />
 		<Unit filename="../include/ystdex/algorithm.hpp" />
@@ -77,6 +78,7 @@
 		<Unit filename="../include/ystdex/mixin.hpp" />
 		<Unit filename="../include/ystdex/operators.hpp" />
 		<Unit filename="../include/ystdex/path.hpp" />
+		<Unit filename="../include/ystdex/pseudo_mutex.h" />
 		<Unit filename="../include/ystdex/rational.hpp" />
 		<Unit filename="../include/ystdex/string.hpp" />
 		<Unit filename="../include/ystdex/tuple.hpp" />
@@ -85,6 +87,7 @@
 		<Unit filename="../include/ystdex/variadic.hpp" />
 		<Unit filename="../include/ytest/test.h" />
 		<Unit filename="../include/ytest/timing.hpp" />
+		<Unit filename="../source/libdefect/exception.cpp" />
 		<Unit filename="../source/ystdex/any.cpp" />
 		<Unit filename="../source/ystdex/cassert.cpp" />
 		<Unit filename="../source/ystdex/cstdio.cpp" />

@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1720
+\version r1721
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:36 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2014-11-03 01:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ Application::Switch(shared_ptr<Shell>& h) ynothrow
 
 
 void
-PostMessage(const Message& msg, Messaging::Priority prior) ynothrow
+PostMessage(const Message& msg, Messaging::Priority prior)
 {
 	FetchAppInstance().AccessQueue([=, &msg](MessageQueue& mq){
 		mq.Push(msg, prior);

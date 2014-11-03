@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r281
+\version r289
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-08-28 17:46 +0800
+	2014-11-02 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,19 +101,23 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 
 		if(!host.thrdMain.joinable())
 		{
-			YTraceDe(Debug, "Starting main thread...");
+			YTraceDe(Debug, "Starting native main thread...");
 			host.thrdMain = std::thread([&host, p_activity, p_window]{
 				host.p_screen.reset(new Devices::AndroidScreen(*p_window));
 				host.p_desktop.reset(
 					new Desktop(FetchNativeHostInstance().GetScreenRef()));
 				::y_android_main();
+				YTraceDe(Debug, "Application main routine exited.");
 				::ANativeActivity_finish(p_activity);
+				YTraceDe(Debug, "Clearing desktop pointer...");
 				host.p_desktop.reset();
+				YTraceDe(Debug, "Clearing screen pointer...");
 				host.p_screen.reset();
+				YTraceDe(Informative, "Native main thread finished.");
 			});
 		}
 		else
-			YTraceDe(Err, "Native host thread already running.");
+			YTraceDe(Err, "Native main thread already running.");
 	},
 	YCL_Android_RegCb_Begin(NativeWindowDestroyed,
 		::ANativeActivity* p_activity, ::ANativeWindow* p_window)
@@ -127,7 +131,8 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 		// NOTE: If the thread has been already completed there is no effect.
 		if(host.thrdMain.joinable())
 		{
-			YTraceDe(Informative, "Waiting for native thread finishing...");
+			YTraceDe(Informative,
+				"Waiting for native main thread finishing...");
 			host.thrdMain.join();
 		}
 		YTraceDe(Informative, "Waiting for screen being released...");

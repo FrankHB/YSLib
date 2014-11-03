@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YBase
-# Version = r211
+# Version = r213
 # Created = 2014-04-07 12:41:43 +0800
-# Updated = 2014-04-08 10:59 +0800
+# Updated = 2014-11-02 15:22 +0800
 # Encoding = ANSI
 
 
@@ -52,7 +52,8 @@ export BUILDDIR		?=	$(TOPDIR)/../../build/$(PLATFORM)/$(PROJNAME)/$(RELEASE)
 export RELEASEDIR	?=	$(BUILDDIR)
 export TARGET		:=	$(PROJNAME)
 export REFDIR		:=	..
-export SOURCES		:=	source data $(REFDIR)/source $(REFDIR)/source/ystdex
+export SOURCES		:=	source data $(REFDIR)/source \
+	$(REFDIR)/source/ystdex $(REFDIR)/source/libdefect $(REFDIR)/source/ytest
 export INCLUDES		:=	include data $(REFDIR)/include
 export DATA			:=	data $(REFDIR)/data
 

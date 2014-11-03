@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1819
+\version r1828
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-10-21 12:13 +0800
+	2014-11-03 00:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,8 +118,10 @@ public:
 void
 OnExit_DebugMemory_continue()
 {
+#if !YCL_Android
 	std::puts("Input to continue...");
 	platform::WaitForInput();
+#endif
 }
 
 /*!
@@ -131,8 +133,13 @@ OnExit_DebugMemory_print(_tCon& con, const char* item_name)
 {
 	if(!con.empty())
 	{
+#if !YCL_Android
+		YTraceDe(Warning, "%u %s(s) detected:\n", unsigned(con.size()),
+			item_name);
+#else
 		// XXX: Size of %std::size is expected.
 		std::fprintf(stderr, "%zu %s(s) detected:\n", con.size(), item_name);
+#endif
 
 		typename _tCon::size_type n(0);
 
@@ -172,8 +179,10 @@ OnExit_DebugMemory()
 	DebugMemory.PrintAllDuplicate(fp);
 #endif
 //	std::fclose(fp);
+#if !YCL_Android
 	std::puts("Input to terminate...");
 	WaitForInput();
+#endif
 }
 
 #endif

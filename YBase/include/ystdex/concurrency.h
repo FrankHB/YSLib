@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r281
+\version r310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2014-10-09 15:53 +0800
+	2014-11-03 06:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 
 #include "../ydef.h"
 #include "functional.hpp" // for ystdex::result_of_t, std::bind, std::function;
+#include "memory.hpp" // for std::make_shared, ystdex::bound_deleter;
+#include <utility> // for std::declval;
 #include <future> // for std::packaged_task, std::future;
-#include <memory> // for std::make_shared;
 #include <thread>
 #include <vector>
 #include <queue>
@@ -40,6 +41,39 @@
 
 namespace ystdex
 {
+
+/*!
+\brief 解锁删除器。
+\since build 550
+*/
+template<class _tBasicLockable = std::mutex,
+	class _tLock = std::unique_lock<_tBasicLockable>>
+class unlock_deleter : private bound_deleter<_tLock>
+{
+private:
+    mutable _tLock lock;
+
+public:
+    unlock_deleter(_tBasicLockable& mtx)
+		: lock(mtx)
+	{}
+	template<typename... _tParams>
+	unlock_deleter(_tBasicLockable& mtx, _tParams&&... args) ynoexcept(
+		std::declval<_tBasicLockable&>()(std::declval<_tParams&&>()...))
+		: lock(mtx, yforward(args)...)
+	{}
+
+	using bound_deleter<_tLock>::operator();
+};
+
+
+/*!
+\brief 独占所有权的锁定指针。
+\since build 550
+*/
+template<typename _type, class _tLock = std::unique_lock<_type>>
+using locked_ptr = std::unique_ptr<_type, unlock_deleter<_type, _tLock>>;
+
 
 /*!
 \brief 转换 \c thread::id 为字符串表示。

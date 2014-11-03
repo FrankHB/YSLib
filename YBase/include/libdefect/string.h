@@ -15,14 +15,14 @@
 
 /*!	\file string.h
 \ingroup LibDefect
-\brief 标准库实现 <tt><string></tt> 修正。
-\version r611
+\brief 标准库实现 \c \<string\> 修正。
+\version r612
 \author FrankHB <frankhb1989@gmail.com>
 \since build 308
 \par 创建时间:
 	2012-05-14 20:41:08 +0800
 \par 修改时间:
-	2014-10-07 12:58 +0800
+	2014-11-01 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
