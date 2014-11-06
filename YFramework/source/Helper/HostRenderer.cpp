@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r319
+\version r322
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-10-25 13:33 +0800
+	2014-11-05 13:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,9 +81,7 @@ WindowThread::~WindowThread()
 		CatchIgnore(Exception&) // XXX: Use proper platform-dependent type.
 #		endif
 #	endif
-		// NOTE: If the thread has been already completed there is no effect.
-		if(thrd.joinable())
-			thrd.join();
+		thrd.join();
 	}
 	CatchExpr(std::system_error& e, YTraceDe(Warning,
 		"Caught std::system_error: %s.", e.what()), yunused(e))

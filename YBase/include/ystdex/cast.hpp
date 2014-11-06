@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r961
+\version r1010
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2014-08-31 11:45 +0800
+	2014-11-05 00:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,6 +140,7 @@ polymorphic_cast(_tSrc* x)
 /*!
 \ingroup cast
 \brief 多态类指针向派生类指针转换。
+\since build 551
 */
 //@{
 /*!
@@ -149,11 +150,10 @@ polymorphic_cast(_tSrc* x)
 \pre 静态断言： _pDst 是内建指针。
 \pre 静态断言： _tSrc 是 _pDst 指向的类去除修饰符后的基类。
 \pre 断言： dynamic_cast 成功。
-\since build 175
 */
 template<typename _pDst, class _tSrc>
 inline _pDst
-polymorphic_downcast(_tSrc* x)
+polymorphic_downcast(_tSrc* x) ynothrow
 {
 	static_assert(is_polymorphic<_tSrc>::value, "Non-polymorphic class found.");
 	static_assert(is_pointer<_pDst>::value, "Non-pointer destination found.");
@@ -167,15 +167,11 @@ polymorphic_downcast(_tSrc* x)
 \tparam _tSrc 源类型。
 \tparam _rDst 目标类型。
 \pre 静态断言： _rDst 是左值引用。
-\since build 496
 */
 template<typename _rDst, class _tSrc>
-yconstfn _rDst
-polymorphic_downcast(_tSrc& x)
+yconstfn enable_if_t<is_lvalue_reference<_rDst>::value, _rDst>
+polymorphic_downcast(_tSrc& x) ynothrow
 {
-	static_assert(is_lvalue_reference<_rDst>::value,
-		"Invalid destination type found.");
-
 	return *ystdex::polymorphic_downcast<remove_reference_t<_rDst>*>(
 		std::addressof(x));
 }
@@ -183,16 +179,52 @@ polymorphic_downcast(_tSrc& x)
 \tparam _tSrc 源类型。
 \tparam _rDst 目标类型。
 \pre 静态断言： _rDst 是右值引用。
-\since build 496
 */
 template<typename _rDst, class _tSrc>
-yconstfn enable_if_t<!is_reference<_tSrc>::value, _rDst>
-polymorphic_downcast(_tSrc&& x)
+yconstfn enable_if_t<is_rvalue_reference<_rDst>::value
+	&& !is_reference<_tSrc>::value, _rDst>
+polymorphic_downcast(_tSrc&& x) ynothrow
 {
-	static_assert(is_rvalue_reference<_rDst>::value,
-		"Invalid destination found.");
-
 	return std::move(ystdex::polymorphic_downcast<_rDst&>(x));
+}
+/*!
+\tparam _tSrc 源的元素类型。
+\tparam _tDst 目标的元素类型。
+\tparam _tDeleter 删除器类型。
+\pre _tDst 可通过 \c release() 取得的指针和删除器右值构造。
+\pre 断言：调用 polymorphic_downcast 转换 \c release() 取得的指针保证无异常抛出。
+\note 使用 ADL 调用 polymorphic_downcast 转换 \c release() 取得的指针。
+*/
+template<class _tDst, typename _tSrc, typename _tDeleter>
+inline yimpl(enable_if_t)<!is_reference<_tDst>::value
+	&& !is_array<_tDst>::value, std::unique_ptr<_tDst, _tDeleter>>
+polymorphic_downcast(std::unique_ptr<_tSrc, _tDeleter>&& x) ynothrow
+{
+	using dst_type = std::unique_ptr<_tDst, _tDeleter>;
+	using pointer = typename dst_type::pointer;
+	auto ptr(x.release());
+#if YB_HAS_NOEXCEPT
+	static_assert(noexcept(polymorphic_downcast<pointer>(ptr)),
+		"Invalid cast found.");
+#endif
+
+	yassume(bool(ptr));
+	return dst_type(polymorphic_downcast<pointer>(ptr),
+		std::move(x.get_deleter()));
+}
+/*!
+\tparam _tSrc 源的元素类型。
+\tparam _tDst 目标的元素类型。
+\pre _tDst 可通过 \c get() 取得的指针和删除器右值构造。
+*/
+template<class _tDst, typename _tSrc>
+inline yimpl(enable_if_t)<!is_reference<_tDst>::value
+	&& !is_array<_tDst>::value, std::shared_ptr<_tDst>>
+polymorphic_downcast(const std::unique_ptr<_tSrc>& x) ynothrow
+{
+	yassume(dynamic_cast<_tDst*>(x.get()) == x.get());
+
+	return std::static_pointer_cast<_tDst>(x);
 }
 //@}
 

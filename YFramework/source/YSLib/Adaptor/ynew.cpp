@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r986
+\version r994
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2014-08-28 17:28 +0800
+	2014-11-04 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,14 +26,11 @@
 
 
 #include "YSLib/Adaptor/YModules.h"
-#include YFM_YSLib_Adaptor_Image
+#include YFM_YSLib_Adaptor_YAdaptor
 #include <cstdlib> // for std::atexit, std::malloc & std::free;
 #include <cassert> // for assert;
 #include <algorithm> // for std::for_each;
 #include <functional> // for std::bind;
-#if YF_Multithread == 1
-#	include <mutex>
-#endif
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
@@ -124,10 +121,8 @@ static MemoryList DebugMemoryList(nullptr);
 MemoryList&
 GetDebugMemoryList()
 {
-#if YF_Multithread
-	static std::mutex mtx;
-	std::lock_guard<std::mutex> lck(mtx);
-#endif
+	static mutex mtx;
+	lock_guard<mutex> lck(mtx);
 
 	return DebugMemoryList;
 }

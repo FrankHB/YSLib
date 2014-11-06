@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r441
+\version r444
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-10-21 12:52 +0800
+	2014-11-04 17:45 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -33,9 +33,6 @@
 #include YFM_DS_Helper_DSMain // for ScreenWidth, ScreenHeight;
 #include YFM_YSLib_Core_YDevice
 #include YFM_Helper_ScreenBuffer
-#if YCL_MULTITHREAD == 1
-#	include <mutex>
-#endif
 
 namespace YSLib
 {

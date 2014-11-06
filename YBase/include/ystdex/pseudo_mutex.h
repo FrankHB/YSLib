@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file pseudo_mutex.hpp
+/*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r462
+\version r638
 \author FrankHB <frankhb1989@gmail.com>
-\since build 520
+\since build 550
 \par 创建时间:
 	2014-11-03 13:53:34 +0800
 \par 修改时间:
-	2014-11-04 00:21 +0800
+	2014-11-05 04:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,9 @@
 #ifndef YB_INC_ystdex_pseudo_mutex_h_
 #define YB_INC_ystdex_pseudo_mutex_h_ 1
 
-#include "../ydef.h"
+#include "memory.hpp" // for ydef.h, ystdex::bound_deleter;
+#include "utility.hpp" // for std::declval, ystdex::noncopyable;
+#include <chrono>
 #include <system_error> // for std::errc, std::system_error;
 
 namespace ystdex
@@ -37,7 +39,6 @@ namespace ystdex
 /*!
 \brief 单线程操作：保证单线程环境下接口及符合对应的 \c std 命名空间下的接口。
 \note 不包含本机类型相关的接口。
-\warning 多线程环境下可能引起未定义行为。
 \since build 550
 \todo 添加 ISO C++ 14 共享锁。
 */
@@ -60,18 +61,16 @@ yconstexpr try_to_lock_t try_to_lock{};
 yconstexpr adopt_lock_t adopt_lock{};
 
 
+//! \warning 不保证线程安全：多线程环境下假定线程同步语义可能引起未定义行为。
+//@{
 //! \see ISO C++11 [thread.mutex.requirements.mutex] 。
 //@{
-class YB_API mutex
+class YB_API mutex : private yimpl(noncopyable), private yimpl(nonmovable)
 {
 public:
 	yconstfn
 	mutex() yimpl(= default);
-	mutex(const mutex&) = delete;
 	~mutex() yimpl(= default);
-
-	mutex&
-	operator=(const mutex&) = delete;
 
 	//! \pre 调用线程不持有锁。
 	void
@@ -92,14 +91,11 @@ public:
 
 
 class YB_API recursive_mutex
+	: private yimpl(noncopyable), private yimpl(nonmovable)
 {
 public:
 	recursive_mutex() yimpl(= default);
-	recursive_mutex(const recursive_mutex&) = delete;
 	~recursive_mutex() yimpl(= default);
-
-	recursive_mutex&
-	operator=(const recursive_mutex&) = delete;
 
 	void
 	lock()
@@ -120,15 +116,11 @@ public:
 
 //! \see ISO C++11 [thread.timedmutex.requirements] 。
 //@{
-class YB_API timed_mutex
+class YB_API timed_mutex : private yimpl(noncopyable), private yimpl(nonmovable)
 {
 public:
 	timed_mutex() yimpl(= default);
-	timed_mutex(const timed_mutex&) = delete;
 	~timed_mutex() yimpl(= default);
-
-	timed_mutex&
-	operator=(const timed_mutex&) = delete;
 
 	//! \pre 调用线程不持有锁。
 	//@{
@@ -165,14 +157,11 @@ public:
 
 
 class YB_API recursive_timed_mutex
+	: private yimpl(noncopyable), private yimpl(nonmovable)
 {
 public:
 	recursive_timed_mutex() yimpl(= default);
-	recursive_timed_mutex(const recursive_timed_mutex&) = delete;
 	~recursive_timed_mutex() yimpl(= default);
-
-	recursive_timed_mutex&
-	operator=(const recursive_timed_mutex&) = delete;
 
 	void
 	lock()
@@ -208,21 +197,30 @@ public:
 
 
 template<class _tMutex>
-class lock_guard
+class lock_guard : private yimpl(noncopyable), private yimpl(nonmovable)
 {
+public:
+	using mutex_type = _tMutex;
+
+#ifdef NDEBUG
+	explicit
+	lock_guard(mutex_type&)
+	{}
+	lock_guard(mutex_type&, adopt_lock_t)
+	{}
+
+#else
 private:
 	mutex_type& pm;
 
 public:
-	using mutex_type = _tMutex;
-
 	/*!
 	\pre 若 mutex_type 非递归锁，调用线程不持有锁。
 	\post <tt>pm == &m</tt> 。
 	*/
 	explicit
 	lock_guard(mutex_type& m)
-		: pm(&m)
+		: pm(m)
 	{
 		m.lock();
 	}
@@ -233,27 +231,106 @@ public:
 	lock_guard(mutex_type& m, adopt_lock_t)
 		: pm(&m)
 	{}
-	lock_guard(const lock_guard&) = delete;
 	~lock_guard()
 	{
 		pm.unlock();
 	}
-
-	lock_guard&
-	operator=(const lock_guard&) = delete;
+#endif
 };
 
 
+//! \note 定义宏 \c NDEBUG 时不进行检查，优化实现为空操作。
+//@{
 template<class _tMutex>
-class unique_lock
+class unique_lock : private yimpl(noncopyable)
 {
+public:
+	using mutex_type = _tMutex;
+
+#ifdef NDEBUG
+	//! \since build 551
+	//@{
+	unique_lock() yimpl(= default);
+	explicit
+	unique_lock(mutex_type&)
+	{}
+	unique_lock(mutex_type&, defer_lock_t)
+	{}
+	unique_lock(mutex_type&, try_to_lock_t)
+	{}
+	unique_lock(mutex_type&, adopt_lock_t)
+	{}
+	template<typename _tClock, typename _tDuration>
+	unique_lock(mutex_type&,
+		const std::chrono::time_point<_tClock, _tDuration>&)
+	{}
+	template<typename _tRep, typename _tPeriod>
+	unique_lock(mutex_type&, const std::chrono::duration<_tRep, _tPeriod>&)
+	{}
+	unique_lock(unique_lock&&) yimpl(= default);
+
+	explicit
+	operator bool() const ynothrow
+	{
+		return true;
+	}
+
+	void
+	lock()
+	{}
+
+	bool
+	owns_lock() const ynothrow
+	{
+		return true;
+	}
+
+	mutex_type*
+	release() ynothrow
+	{
+		return {};
+	}
+
+	void
+	swap(unique_lock&) ynothrow
+	{}
+
+	bool
+	try_lock()
+	{
+		return true;
+	}
+
+	template<typename _tRep, typename _tPeriod>
+	bool
+	try_lock_for(const std::chrono::duration<_tRep, _tPeriod>&)
+	{
+		return true;
+	}
+
+	template<typename _tClock, typename _tDuration>
+	bool
+	try_lock_until(const std::chrono::time_point<_tClock, _tDuration>&)
+	{
+		return true;
+	}
+
+	void
+	unlock()
+	{}
+
+	mutex_type*
+	mutex() const ynothrow
+	{
+		return {};
+	}
+	//@}
+#else
 private:
 	mutex_type* pm;
 	bool owns;
 
 public:
-	using mutex_type = _tMutex;
-
 	unique_lock() ynothrow
 		: pm(), owns()
 	{}
@@ -262,7 +339,7 @@ public:
 	//@{
 	explicit
 	unique_lock(mutex_type& m)
-		: unique_lock(defer_lock)
+		: unique_lock(m, defer_lock)
 	{
 		lock();
 		owns = true;
@@ -298,7 +375,6 @@ public:
 	{}
 	//@}
 	//@}
-	unique_lock(const unique_lock&) = delete;
 	/*!
 	\post <tt>pm == u_p.pm && owns == u_p.owns</tt> 当 \c u_p 是 u 之前的状态。
 	\post <tt>!u.pm && !u.owns</tt> 。
@@ -314,8 +390,6 @@ public:
 			unlock();
 	}
 
-	unique_lock&
-	operator=(const unique_lock&) = delete;
 	/*!
 	\post <tt>pm == u_p.pm && owns == u_p.owns</tt> 当 \c u_p 是 u 之前的状态。
 	\post <tt>!u.pm && !u.owns</tt> 。
@@ -341,10 +415,14 @@ private:
 	void
 	check_lock()
 	{
+		using namespace std;
+
 		if(!pm)
-			throw std::system_error(errc::operation_not_permitted);
-		if(!owns)
-			throw std::system_error(errc::resource_deadlock_would_occur);
+			throw system_error(int(errc::operation_not_permitted),
+				generic_category());
+		if(owns)
+			throw system_error(int(errc::resource_deadlock_would_occur),
+				generic_category());
 	}
 
 	void
@@ -357,10 +435,7 @@ public:
 	void
 	lock()
 	{
-		if(!pm)
-			throw std::system_error(errc::operation_not_permitted);
-		if(!owns)
-			throw std::system_error(errc::resource_deadlock_would_occur);
+		check_lock();
 		pm->lock();
 		owns = true;
 	}
@@ -418,7 +493,8 @@ public:
 	unlock()
 	{
 		if(!owns)
-			throw std::system_error(errc::operation_not_permitted);
+			throw std::system_error(int(std::errc::operation_not_permitted),
+				std::generic_category());
 		if(pm)
 		{
 			pm->unlock();
@@ -431,7 +507,9 @@ public:
 	{
 		return pm;
 	}
+#endif
 };
+//@}
 
 //! \relates unique_lock
 template<class _tMutex>
@@ -454,8 +532,60 @@ try_lock(_tLock1&&, _tLock2&&, _tLocks&&...)
 	return -1;
 }
 //@}
+//@}
 
 } // namespace single_thread;
+
+
+/*!
+\brief 在单线程环境和多线程环境下都可用的线程同步接口。
+\since build 551
+*/
+namespace threading
+{
+
+/*!
+\brief 解锁删除器。
+\pre _tMutex 满足 \c BasicLockable 要求。
+\since build 551
+*/
+template<class _tMutex = single_thread::mutex,
+	class _tLock = single_thread::unique_lock<_tMutex>>
+class unlock_deleter : private bound_deleter<_tLock>, private noncopyable
+{
+public:
+	using mutex_type = _tMutex;
+	using lock_type = _tLock;
+
+	mutable lock_type lock;
+
+	unlock_deleter(mutex_type& mtx)
+		: lock(mtx)
+	{}
+	template<typename
+		= yimpl(enable_if_t)<is_nothrow_move_constructible<lock_type>::value>>
+	unlock_deleter(lock_type&& lck) ynothrow
+		: lock(std::move(lck))
+	{}
+	template<typename... _tParams>
+	unlock_deleter(mutex_type& mtx, _tParams&&... args) ynoexcept(
+		std::declval<mutex_type&>()(std::declval<_tParams&&>()...))
+		: lock(mtx, yforward(args)...)
+	{}
+
+	using bound_deleter<lock_type>::operator();
+};
+
+
+/*!
+\brief 独占所有权的锁定指针。
+\since build 551
+*/
+template<typename _type, class _tMutex = single_thread::mutex,
+	class _tLock = single_thread::unique_lock<_tMutex>>
+using locked_ptr = std::unique_ptr<_type, unlock_deleter<_tMutex, _tLock>>;
+
+} // namespace threading;
 
 } // namespace ystdex;
 

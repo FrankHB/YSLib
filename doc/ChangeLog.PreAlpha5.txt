@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r6081
+\version r6270
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-11-04 00:47 +0800
+	2014-11-06 15:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,194 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		/ %PseudoMutex $=
+		(
+			* "ill-formed code" $since b550 $=
+			(
+				* "missing including <chrono>",
+				* "order of alias declaration"
+					@ "class templates %(lock_guard, unique_lock)",
+				* "constructing %std::system_error" $=
+				(
+					* "missing qualified 'std::' before 'errc'",
+					* "missing category argument"
+				),
+				* "constructors" @ "class templates %(lock_guard, unique_lock) \
+					with 1 mutex parameter"
+			),
+			/ DLD "simplified implementation" @ "function %lock"
+				@ "class template %unique_lock",
+			+ "namespace %threading" %PseudoMutex $=
+				(+ "class template %unlock_deleter; alias template \
+					%locked_ptr"),
+			/ @ "class template %unique_lock" $=
+			(
+				* "%system_error of dead lock conditiona wrongly thrown when \
+					lock owns the mutex" $since b550,
+				^ DLD "%ystdex::noncopyable" ~ "explicitly defaulted as \
+					deleted (constructor, %operator=)"
+			),
+			/ "assumed locks with empty operations and always owning mutex"
+				@ "defined %NDEBUG",
+			/ DLD "simplified classes %(mutex, timed_mutex, recursive_mutex,
+				recursive_timed_mutex), class template %lock_guard"
+				^ "%ystdex::(noncopyable, nonmovable)"
+				~ "explicitly defaulted as deleted (constructor, %operator=)"
+		),
+		/ %Concurrency $=
+		(
+			(
+			/ "class template %unlock_deleter" -> "alias template",
+			* "missing mutex parameter" @ "alias template %unlock_deleter"
+			) ^ $dep_from ("%threading::unlock_deleter" @ %PseudoMutex),
+			/ DLD "simplified class %thread_pool" ^ "%ystdex::noncopyable"
+				~ "explicitly defaulted as deleted (constructor, %operator=)"
+		),
+		/ %Cast $=
+		(
+			+ "function templates %polymorphic_downcast for \
+				%std::(unique_ptr, shared_ptr)",
+			/ "static assertions" -> "explicitly returned with SFINAE check \
+				for overloaded templates with reference parameter",
+			+ 'ynothrow' @ "all function templates %polymorphic_downcast"
+		),
+		+ "using declarations %std::(is_default_constructible, \
+			is_copy_constructible, is_move_constructible, is_assignable, \
+			is_copy_assignable, is_move_assignable, is_destructible, \
+			is_nothrow_constructible, is_nothrow_default_constructible, \
+			is_nothrow_copy_constructible, is_nothrow_move_constructible, \
+			is_nothrow_assignable, is_nothrow_copy_assignable, \
+			is_nothrow_move_assignable, is_nothrow_destructible)"
+			@ "namespace %ystdex" @ %TypeOperation,
+			// Now only 'is_trivially_copyable' and 8 'is_trivially_*' which \
+				libstdc++-4.8 has not implemented yet are commented out.
+		* "wrong 'yconstfn'" @ "all 2 defaulted %operator="
+			@ "class template %bound_deleter" @ %Memory $since b550,
+			// The 'const' typed member functions cannot be defaulted.
+		/ %Utilities $=
+		(
+			* "missing explictly defaulted move (constructor, %operator=)"
+				@ "class %noncopyable" $since b230,
+			/ @ "class %nonmoveable" $=
+			(
+				* "wrongly defaulted as deleted copy (constructor, %operator=)"
+					$since b373,
+				* "missing explictly deleted move (constructor, %operator=)"
+					$since b373
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ %Mutex $dep_from %YBase.YStandardEx.PseudoMutex $=
+			(
+				+ "namespace %platform::Concurrency"
+					// No %(timed_mutex, recursive_timed_mutex) as workaround \
+						of platform with libstdc++ configured without \
+						%_GTHREAD_USE_MUTEX_TIMEDLOCK defined, e.g. Android r9d.
+					$=(+ "mutex and using aliases %(mutex, recursive_mutex, \
+						 lock_guard, unique_lock, lock, try_lock) from \
+						 %ystdex::single_thread or %std depending \
+						 on %YF_Multithread value is zero or nonzero"),
+				+ "namespace %Threading" @ "namespace %platform" $=
+				(
+					+ "using declarations %(unlock_deleter, locked_ptr) from \
+						%ystdex or %ystdex::threading depending on \
+						%YF_Multithread value is zero or nonzero"
+				)
+			);
+			/ $dev "simplified locking" $effective @ %(Debug, Input) ^ $dep_from
+				("namespace %platform::Concurrency" @ %Mutex)
+		),
+		/ %YSLib $=
+		(
+			/ %Adaptor $=
+			(
+				+ 'using namespace platform::Concurrency;' @ "namespace %YSLib"
+					@ %YAdaptor,
+				+ "using declarations %(unlock_deleter, locked_ptr) from \
+					%ystdex or %ystdex::threading depending on %YF_Multithread \
+					value is zero or nonzero" @ "namespace %YSLib"
+					@ %YReference
+					// Like %YCLib::Mutex but without the %unique_ptr \
+						necessarily in %std;
+			),
+			(
+			/ $dev "simplified locking" ^ "mutex names" ~ "names with 'std::'"
+				$effective @ %('YCLib_(Android)'.Android,
+				'Helper_(Android)'.AndroidHost, 'Helper_(DS)'.DSScreen,
+				Helper.(Environment, HostWindow, ScreenBuffer, GUIApplication),
+				YSLib.(Core.YApplication, Adaptor.YNew),
+				'YCLib_(MinGW32)'.Win32GUI) ^ $dep_from %YSLib.Adaptor.YAdaptor,
+			/ DLD "simplified locking" ^ "%lock_guard" ~ "%unique_lock"
+				$effective @ %YFramework.Helper.(GUIApplication, Environment);
+				// If lock in GUIApplication is not modified, the linker on \
+					platform %DS would crash: 'assertion fail \
+					../../../binutils-2.24/bfd/elf32-arm.c:12387'.
+					See https://sourceware.org/bugzilla/show_bug.cgi?id=16698 .
+			* $comp DLD "invalid conditional inclusion"
+				@ %'Helper_(DS)'.DSScreen $since b458
+			),
+			* $dev "wrong unnecessary file dependent on" @ %YNew $since b462
+				$= (DLD / 'YFM_YSLib_Adaptor_YAdaptor'
+					-> 'YFM_YSLib_Adaptor_YNew' @ '#include')
+		),
+		* "platform dependent files included"
+			@ "platform neutral Code::Blocks project" $since b525,
+		/ %Helper $=
+		(
+			- $design "redundant %joinable check" @ "destructor %WindowThread"
+				@ %HHostRenderer,
+				// Since the %std::system_error would be caught whether it \
+					could be join. And it should be joinable, because there is \
+					no detaching operations reachable via public interface.
+			+ "function %LockInstance" @ %GUIApplication,
+			(
+			* "crash" @ "calling again any of functions \
+				%(FetchDefaultFontCache, FetchRoot) after uninitialized"
+				@ %Initialization $since 425 $=
+				(/ $design "implemented" ^ "%unique_ptr"
+					~ "raw pointer and %(ynew, ydelete)");
+			* $comp "crash for reentered program with root node (including \
+				font cache) used" @ "platform %Android" $since b498
+			)
+		),
+		/ @ "class %NativeHost"
+			@ %'Helper_(Android)'.AndroidHost $=
+		(
+			/ @ "callback for %onNativeWindowDestroyed" $=
+			(
+				/ $design "%joinable check"
+					-> "catch clause for %std::system_error",
+					// Like in %WindowThread.
+				* "possible crash when posting quit message" $since b498
+					// This would cause %SIGSEGV on normal exit if native main \
+						thread has finished.
+					$= (/ "lock global instance to ensure it in lifetime \
+						before posting message" $dep_from
+						("%LockInstance" @ %Helper.GUIApplication)),
+				- $design "redundant screen pointer check and sleep"
+			),
+			(
+			$dep_from "%AndroidManifest.xml" @ "platform %Android",
+			- "%ANativeActivity_finish call" @ "native main thread";
+			* $comp "LogCat warning 'Duplicate finish request'" $since b
+			),
+			+ "atomic pause state handling"
+				@ "callbacks for %(onPause, onRessume)",
+			+ "function %IsPaused"
+		)
+	),
+	+ 'android:noHistory="true"' @ "%Activity tag" @ "%AndroidManifest.xml"
+		@ "platform %Android"
+),
+
+b550
 (
 	/ $doc "updated Doxygen file" $=
 	(
@@ -122,7 +310,7 @@ $now
 					function template %FetchGlobalInstance, function \
 					definition %FetchAppInstance" $=
 				(
-					/ "explicitly guaranteed thread safety", 
+					/ "explicitly guaranteed thread safety",
 					/ "allowed throw exception when application inexisted"
 				)
 			)
@@ -4067,7 +4255,7 @@ b514
 			/ DLD "simplified data member declaration %HostWindow::MessageMap"
 		),
 		/ @ "member function %Host::Window::BindDefaultWindowProc" @ %HostWindow
-			-> "function %BindDefaultWindowProc" @ %'YCLib_(MinGW32)'.Win32GUI 
+			-> "function %BindDefaultWindowProc" @ %'YCLib_(MinGW32)'.Win32GUI
 			$dep_from %'YCLib_(MinGW32)',
 		/ @ "enum %Categtory" @ %YCLib.Keys $=
 		(

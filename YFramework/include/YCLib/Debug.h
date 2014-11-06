@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r442
+\version r451
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-10-21 11:30 +0800
+	2014-11-05 04:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,10 +30,8 @@
 
 #include "YModules.h"
 #include YFM_YCLib_YCommon
+#include YFM_YCLib_Mutex
 #include <libdefect/string.h> // for std::string;
-#if YF_Multithread == 1
-#	include <mutex>
-#endif
 
 /*!	\defgroup diagnostic Diagnostic
 \brief 诊断设施。
@@ -99,16 +97,14 @@ private:
 	Filter filter{DefaultFilter};
 	//! \invariant <tt>bool(Sender)</tt> 。
 	Sender sender{FetchDefaultSender()};
-#if YF_Multithread == 1
 	/*!
 	\brief 日志记录锁。
-	\since build 547
+	\since build 551
 
 	仅 DoLog 和 DoLogException 在发送日志时使用的锁。
 	使用递归锁以允许用户在发送器中间接递归调用 DoLog 和 DoLogException 。
 	*/
-	std::recursive_mutex record_mutex;
-#endif
+	Concurrency::recursive_mutex record_mutex;
 
 public:
 	DefGetter(const ynothrow, Sender, Sender, sender)
@@ -168,7 +164,7 @@ public:
 	\brief 转发等级和异常对象至发送器。
 
 	根据异常对象确定日志字符串并发送。若转发时抛出异常，则记录此异常。
-	对于并发操作，保证串行发送，且整个过程持有锁 record_mutex 以保证连续性。
+	对并发操作保证串行发送，且整个过程持有锁 record_mutex 以保证连续性。
 	*/
 	void
 	DoLogException(Level level, const std::exception&) ynothrow;

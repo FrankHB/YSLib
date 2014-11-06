@@ -11,13 +11,13 @@
 /*!	\file ScreenBuffer.h
 \ingroup Helper
 \brief 屏幕缓冲区。
-\version r383
+\version r386
 \author FrankHB <frankhb1989@gmail.com>
 \since build 387
 \par 创建时间:
 	2013-03-08 11:34:28 +0800
 \par 修改时间:
-	2014-04-10 01:38 +0800
+	2014-11-04 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,9 +31,6 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YCLib_NativeAPI
-#if YF_Multithread == 1
-#	include <mutex>
-#endif
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_Win32GUI
 #elif YCL_Android

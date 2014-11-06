@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r523
+\version r526
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-10-25 11:49 +0800
+	2014-11-04 17:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -335,7 +335,7 @@ ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 void
 ScreenRegionBuffer::UpdateFrom(BitmapPtr buf) ynothrow
 {
-	std::lock_guard<std::mutex> lck(mtx);
+	lock_guard<mutex> lck(mtx);
 
 	ScreenBuffer::UpdateFrom(buf);
 }
@@ -344,7 +344,7 @@ void
 ScreenRegionBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
 	const Point& pt) ynothrow
 {
-	std::lock_guard<std::mutex> lck(mtx);
+	lock_guard<mutex> lck(mtx);
 	GSurface<> sf(h_wnd);
 
 	sf.UpdatePremultiplied(*this, h_wnd, a, pt);
@@ -353,7 +353,7 @@ ScreenRegionBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
 void
 ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 {
-	std::lock_guard<std::mutex> lck(mtx);
+	lock_guard<mutex> lck(mtx);
 	GSurface<> sf(h_wnd);
 
 	sf.Update(*this, pt);

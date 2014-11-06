@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r417
+\version r455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-06-28 11:00 +0800
+	2014-11-05 16:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,17 +28,13 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Input
 #include YFM_YCLib_NativeAPI
-#if YF_Multithread == 1
-#	include <mutex>
-//! \since build 489
-#	define YCL_Def_LockGuard(_lck, _mutex) \
-	std::lock_guard<std::mutex> _lck(_mutex);
-#else
-#	define YCL_Def_LockGuard(...)
-#endif
+#include YFM_YCLib_Mutex
 #if	YCL_Android
 #	include <android/input.h>
 #endif
+
+//! \since build 551
+using namespace platform::Concurrency;
 
 namespace platform
 {
@@ -47,12 +43,12 @@ void
 WaitForInput()
 {
 	while(true)
- 	{
+	{
 		platform_ex::UpdateKeyStates();
 		if(platform_ex::FetchKeyDownState().any())
 			break;
 #if YCL_DS
- 		::swiWaitForVBlank();
+		::swiWaitForVBlank();
 #endif
 	}
 }
@@ -62,11 +58,21 @@ WaitForInput()
 namespace platform_ex
 {
 
+//! \since build 551
+namespace
+{
+
+mutex CompKeyMutex;
+mutex KeyMutex;
+
+} // unnamed namespace;
+
 #if YCL_KEYSTATE_DIRECT
 platform::KeyInput KeyState, OldKeyState;
 #else
 namespace
 {
+
 //! \since build 321
 //@{
 platform::KeyInput KeyStateA;
@@ -74,16 +80,11 @@ platform::KeyInput KeyStateA;
 platform::KeyInput KeyStateB;
 platform::KeyInput *pKeyState(&KeyStateA), *pOldKeyState(&KeyStateB);
 //@}
-#if YF_Multithread == 1
-//! \since build 321
-std::mutex CompKeyMutex;
-std::mutex KeyMutex;
-#endif
 #if YCL_Android
 //! \since build 513
 platform::KeyInput KeyStateBuffer;
 //! \since build 493
-std::mutex CursorMutex;
+mutex CursorMutex;
 //! \since build 493
 float LastCursorPosX, LastCursorPosY;
 #endif
@@ -124,7 +125,7 @@ FetchKeyUpStateRaw()
 const platform::KeyInput&
 FetchKeyState()
 {
-	YCL_Def_LockGuard(lck, KeyMutex)
+	lock_guard<mutex> lck(KeyMutex);
 
 	return FetchKeyStateRef();
 }
@@ -132,7 +133,7 @@ FetchKeyState()
 const platform::KeyInput&
 FetchOldKeyState()
 {
-	YCL_Def_LockGuard(lck, KeyMutex)
+	lock_guard<mutex> lck(KeyMutex);
 
 	return FetchOldKeyStateRef();
 }
@@ -140,7 +141,7 @@ FetchOldKeyState()
 platform::KeyInput
 FetchKeyDownState()
 {
-	YCL_Def_LockGuard(comp_lck, CompKeyMutex)
+	lock_guard<mutex> comp_lck(CompKeyMutex);
 
 	return FetchKeyDownStateRaw();
 }
@@ -148,7 +149,7 @@ FetchKeyDownState()
 platform::KeyInput
 FetchKeyUpState()
 {
-	YCL_Def_LockGuard(comp_lck, CompKeyMutex)
+	lock_guard<mutex> comp_lck(CompKeyMutex);
 
 	return FetchKeyUpStateRaw();
 }
@@ -159,8 +160,8 @@ ClearKeyStates()
 	YAssertNonnull(pKeyState),
 	YAssertNonnull(pOldKeyState);
 
-	YCL_Def_LockGuard(comp_lck, CompKeyMutex)
-	YCL_Def_LockGuard(lck, KeyMutex)
+	lock_guard<mutex> comp_lck(CompKeyMutex);
+	lock_guard<mutex> lck(KeyMutex);
 
 	yunseq(pKeyState->reset(), pOldKeyState->reset());
 }
@@ -170,8 +171,8 @@ ClearKeyStates()
 void
 UpdateKeyStates()
 {
-	YCL_Def_LockGuard(comp_lck, CompKeyMutex)
-	YCL_Def_LockGuard(lck, KeyMutex)
+	lock_guard<mutex> comp_lck(CompKeyMutex);
+	lock_guard<mutex> lck(KeyMutex);
 
 #if YCL_KEYSTATE_DIRECT
 	OldKeyState = KeyState;
@@ -208,11 +209,11 @@ void
 WaitForKey(platform::KeyInput mask)
 {
 	while(true)
- 	{
+	{
 		UpdateKeyStates();
 		if((FetchKeyDownState() & mask).any())
 			break;
- 		swiWaitForVBlank();
+		swiWaitForVBlank();
 	}
 }
 
@@ -247,7 +248,7 @@ WaitForABXY()
 std::pair<float, float>
 FetchCursor()
 {
-	YCL_Def_LockGuard(lck, CursorMutex)
+	lock_guard<mutex> lck(CursorMutex);
 
 	return {LastCursorPosX, LastCursorPosY};
 }
@@ -256,7 +257,7 @@ void
 SaveInput(const ::AInputEvent& e)
 {
 	const auto update_key([](std::int32_t action, const std::uint8_t keycode){
-		YCL_Def_LockGuard(lck, KeyMutex)
+		lock_guard<mutex> lck(KeyMutex);
 		// TODO: Track Alt/Shift/Sym key states.
 	//	const auto meta(::AKeyEvent_getMetaState(&e));
 
@@ -272,7 +273,7 @@ SaveInput(const ::AInputEvent& e)
 		}
 	});
 	const auto update_motion_key([](bool down){
-		YCL_Def_LockGuard(lck, KeyMutex)
+		lock_guard<mutex> lck(KeyMutex);
 
 		KeyStateBuffer.set(platform::KeyCodes::Primary, down);
 	});
@@ -304,7 +305,7 @@ SaveInput(const ::AInputEvent& e)
 			case AMOTION_EVENT_ACTION_MOVE:
 			default:
 				{
-					YCL_Def_LockGuard(lck, CursorMutex)
+					lock_guard<mutex> lck(CursorMutex);
 
 					yunseq(LastCursorPosX = ::AMotionEvent_getRawX(&e, 0),
 						LastCursorPosY = ::AMotionEvent_getRawY(&e, 0));

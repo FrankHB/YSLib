@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r174
+\version r188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-07-24 09:19 +0800
+	2014-11-06 14:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,6 @@
 #include YFM_Helper_Environment // for Devices::AndroidScreen;
 #if YCL_Android
 #	include <thread>
-#	include <mutex>
 #	include <android/native_activity.h>
 #	include <android/configuration.h>
 #	include YFM_YSLib_Adaptor_YReference // for unique_ptr;
@@ -82,8 +81,16 @@ private:
 	unique_ptr<::AConfiguration, ConfigurationDeleter> p_config;
 	std::reference_wrapper<::ALooper> looper;
 	unique_ptr<InputQueue> p_input_queue{};
-	//! \brief 暂存状态锁。
-	mutable std::mutex state_mutex{};
+	/*!
+	\brief 暂存状态锁。
+	\since build 551
+	*/
+	mutable mutex state_mutex{};
+	/*!
+	\brief 暂停状态。
+	\since build 551
+	*/
+	std::atomic<bool> paused{{}};
 	//! \note Devices::AndroidScreen 是不完整类型，因此不能在类定义内初始化。
 	unique_ptr<Devices::AndroidScreen> p_screen;
 	//! \note Desktop 是不完整类型，因此不能在类定义内初始化。
@@ -93,6 +100,8 @@ public:
 	NativeHost(::ANativeActivity&, void*, size_t);
 	~NativeHost();
 
+	//! \since build 551
+	DefPred(const ynothrow, Paused, paused)
 	//! \since build 503
 	DefGetter(const ynothrow, ::ANativeActivity&, ActivityRef, activity.get())
 	DefGetter(const ynothrow, Desktop&, DesktopRef,
@@ -111,7 +120,7 @@ public:
 		// TODO: Wait for 'std::is_trivially_copyable' to be implemented.
 	//	static_assert(std::is_trivially_copyable<ystdex::remove_reference_t<
 	//		_type>>::value, "Invalid state type found.");
-		std::lock_guard<std::mutex> lck(state_mutex);
+		lock_guard<mutex> lck(state_mutex);
 
 		fSaveState = [&](void*& p_saved_state, size_t& saved_size){
 			p_saved_state = std::malloc(sizeof(_type));

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r289
+\version r325
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-11-02 23:41 +0800
+	2014-11-06 14:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@
 #	include "AndroidScreen.h"
 #endif
 #include YFM_YSLib_UI_YDesktop
-#include YFM_YSLib_Core_YApplication
+#include YFM_Helper_GUIApplication // for YSLib::LockInstance,
+//	YSLib::PostMessage;
 
 #if YCL_Android
 
@@ -79,13 +80,19 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	(
 	YCL_Android_RegSimpCb(Destroy, delete YCL_NativeHostPtr),
 	YCL_Android_RegSimpCb(Start, void()),
-	YCL_Android_RegSimpCb(Resume,
-		YCL_NativeHostPtr->ReleaseSavedState()),
+	YCL_Android_RegCb_Begin(Resume, ::ANativeActivity* p_activity)
+		YTraceDe(Debug, " Application resumed.");
+		YCL_NativeHostPtr->ReleaseSavedState();
+		YCL_NativeHostPtr->paused = {};
+	},
 	YCL_Android_RegCb_Begin(SaveInstanceState,
 		::ANativeActivity* p_activity, ::size_t* p_len)
 		return YCL_NativeHostPtr->SaveInstanceState(p_len);
 	},
-//	YCL_Android_RegSimpCb(Pause, void()),
+	YCL_Android_RegCb_Begin(Pause, ::ANativeActivity* p_activity)
+		YTraceDe(Debug, " Application paused.");
+		YCL_NativeHostPtr->paused = true;
+	},
 //	YCL_Android_RegSimpCb(Stop, void()),
 	YCL_Android_RegSimpCb(ConfigurationChanged,
 		YCL_NativeHostPtr->LoadConfiguration()),
@@ -108,7 +115,6 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 					new Desktop(FetchNativeHostInstance().GetScreenRef()));
 				::y_android_main();
 				YTraceDe(Debug, "Application main routine exited.");
-				::ANativeActivity_finish(p_activity);
 				YTraceDe(Debug, "Clearing desktop pointer...");
 				host.p_desktop.reset();
 				YTraceDe(Debug, "Clearing screen pointer...");
@@ -122,23 +128,25 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	YCL_Android_RegCb_Begin(NativeWindowDestroyed,
 		::ANativeActivity* p_activity, ::ANativeWindow* p_window)
 		YTraceDe(Debug, " p_window = %p.", static_cast<void*>(p_window));
-		// XXX: Use proper exit code.
-		PostQuitMessage(0);
-		YTraceDe(Debug, "YSLib quit message posted.");
 
 		auto& host(*YCL_NativeHostPtr);
 
-		// NOTE: If the thread has been already completed there is no effect.
-		if(host.thrdMain.joinable())
+		if(const auto p_app = LockInstance())
 		{
-			YTraceDe(Informative,
-				"Waiting for native main thread finishing...");
-			host.thrdMain.join();
+			// XXX: Use proper exit code.
+			PostQuitMessage(0);
+			YTraceDe(Debug, "YSLib quit message posted.");
 		}
+		YTraceDe(Informative,
+			"Waiting for native main thread finishing...");
+		TryExpr(host.thrdMain.join())
+		CatchExpr(std::system_error& e, YTraceDe(Warning,
+			"Caught std::system_error: %s.", e.what()), yunused(e))
+		CatchExpr(std::exception& e,
+			YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
+			e.what()), yunused(e))
+		CatchExpr(..., YTraceDe(Alert, "Caught unknown exception."))
 		YTraceDe(Informative, "Waiting for screen being released...");
-		// FIXME: Thread safety.
-		while(host.p_screen)
-			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		YTraceDe(Debug, "Client thread terminated.");
 	},
 	YCL_Android_RegCb_Begin(InputQueueCreated,
@@ -184,7 +192,7 @@ NativeHost::~NativeHost()
 void
 NativeHost::ClearSavedStateHandler()
 {
-	std::lock_guard<std::mutex> lck(state_mutex);
+	lock_guard<mutex> lck(state_mutex);
 
 	fSaveState = {};
 }
@@ -202,7 +210,7 @@ NativeHost::LoadConfiguration()
 void
 NativeHost::ReleaseSavedState() ynothrow
 {
-	std::lock_guard<std::mutex> lck(state_mutex);
+	lock_guard<mutex> lck(state_mutex);
 
 	vecSavedState.clear();
 }
@@ -211,7 +219,7 @@ void
 NativeHost::RestoreSavedState(byte* p_byte) const
 {
 	YAssertNonnull(p_byte);
-	std::lock_guard<std::mutex> lck(state_mutex);
+	lock_guard<mutex> lck(state_mutex);
 
 	std::copy_n(vecSavedState.cbegin(), vecSavedState.size(), p_byte);
 }
@@ -222,7 +230,7 @@ NativeHost::SaveInstanceState(size_t* p_len)
 	void* p_saved_state = {};
 
 	{
-		std::lock_guard<std::mutex> lck(state_mutex);
+		lock_guard<mutex> lck(state_mutex);
 
 		if(fSaveState)
 			fSaveState(p_saved_state, *p_len);

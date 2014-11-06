@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r354
+\version r362
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-11-03 06:37 +0800
+	2014-11-05 14:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,7 +98,7 @@ public:
 /*!
 \brief 取全局应用程序实例。
 \throw 应用程序实例不存在。
-\note 线程安全。
+\warning 调用线程安全，但不保证调用结束后实例仍在生存期内。
 \since build 550
 */
 //@{
@@ -111,6 +111,14 @@ FetchGlobalInstance()
 	return ystdex::polymorphic_downcast<_tApp&>(FetchGlobalInstance());
 }
 //@}
+
+/*!
+\brief 锁定实例。
+\note 当返回结果为空时实例生存期未开始或已结束。
+\since build 551
+*/
+YF_API locked_ptr<yimpl(GUIApplication), recursive_mutex>
+LockInstance();
 
 
 /*!

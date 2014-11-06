@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r394
+\version r402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-10-24 21:48 +0800
+	2014-11-04 05:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,6 +55,9 @@ PrintAndroidLog(Descriptions::RecordLevel lv, const char* tag, const char *fmt,
 }
 #endif
 
+//! \since build 551
+using namespace Concurrency;
+
 } // unnamed namespace;
 
 
@@ -90,9 +93,7 @@ Logger::DoLog(Level level, const char* str)
 {
 	if(str)
 	{
-#if YF_Multithread == 1
-		std::lock_guard<std::recursive_mutex> lck(record_mutex);
-#endif
+		lock_guard<recursive_mutex> lck(record_mutex);
 
 		DoLogRaw(level, str);
 	}
@@ -122,9 +123,7 @@ Logger::DoLogException(Level lv, const std::exception& e) ynothrow
 			__FILE__, __LINE__, "Logging error: unhandled exception."))
 	});
 	const auto& msg(e.what());
-#if YF_Multithread == 1
-	std::lock_guard<std::recursive_mutex> lck(record_mutex);
-#endif
+	lock_guard<recursive_mutex> lck(record_mutex);
 
 	try
 	{

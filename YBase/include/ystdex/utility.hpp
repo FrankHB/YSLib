@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1938
+\version r1968
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-10-26 00:41 +0800
+	2014-11-05 02:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,23 +81,29 @@ protected:
 	*/
 	yconstfn
 	noncopyable() = default;
-	/*!
-	\brief \c protected 析构：默认实现。
-	*/
+	//! \brief \c protected 析构：默认实现。
 	~noncopyable() = default;
 
 public:
-	/*!
-	\brief 禁止复制构造。
-	*/
+	//! \brief 禁止复制构造。
 	yconstfn
 	noncopyable(const noncopyable&) = delete;
-
 	/*!
-	\brief 禁止赋值复制。
+	\brief 允许转移构造。
+	\since build 551
 	*/
+	yconstfn
+	noncopyable(noncopyable&&) = default;
+
+	//! \brief 禁止复制赋值。
 	noncopyable&
 	operator=(const noncopyable&) = delete;
+	/*!
+	\brief 允许转移赋值。
+	\since build 551
+	*/
+	noncopyable&
+	operator=(noncopyable&&) = default;
 };
 
 
@@ -121,17 +127,22 @@ protected:
 	~nonmovable() = default;
 
 public:
-	/*!
-	\brief 禁止复制构造。
-	*/
+	//! \since build 551
+	//@{
+	//! \brief 允许复制构造。
 	yconstfn
-	nonmovable(const nonmovable&) = delete;
+	nonmovable(const nonmovable&) = default;
+	//! \brief 禁止转移构造。
+	yconstfn
+	nonmovable(nonmovable&&) = delete;
 
-	/*!
-	\brief 禁止赋值复制。
-	*/
+	//! \brief 允许复制赋值。
 	nonmovable&
-	operator=(const nonmovable&) = delete;
+	operator=(const nonmovable&) = default;
+	//! \brief 禁止转移赋值。
+	nonmovable&
+	operator=(nonmovable&&) = delete;
+	//@}
 };
 
 

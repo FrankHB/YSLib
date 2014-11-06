@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r897
+\version r899
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-10-27 14:15 +0800
+	2014-11-04 22:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,8 +403,8 @@
 
 @2.2.3 YSLib 文件依赖性：
 除 @2.1.1 和本节另有约定的外， YSLib 不依赖 CHRLib 、 YCLib 和 YSLib 以外的文件。
-除 YSLib/Adaptor/yadaptor.h 外， YSLib/Adaptor 头文件不依赖 YCLib/ycommon.h 以外的 YCLib 文件。
- YSLib/Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
+除 YSLib::Adaptor::YAdaptor 外， YSLib::Adaptor 头文件不直接依赖 YCLib::Platform 或 YCLib::Common 头文件以外的 YCLib 文件。
+ YSLib::Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
 本体的必要文件不依赖 YSLib 以外的文件。
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
  Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。

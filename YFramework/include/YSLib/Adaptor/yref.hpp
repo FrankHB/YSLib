@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r2655
+\version r2668
 \author FrankHB <frankhb1989@gmail.com>
 \since build 176
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2014-08-23 14:53 +0800
+	2014-11-05 01:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,6 +121,22 @@ operator!=(const weak_ptr<_type1>& x, const weak_ptr<_type2>& y)
 {
 	return !(x == y);
 }
+
+/*!
+\brief 解锁删除器：使用线程模型对应的互斥量和锁。
+\since build 551
+*/
+using platform::Threading::unlock_deleter;
+
+
+/*!
+\brief 独占所有权的锁定指针：使用线程模型对应的互斥量和锁以及 YSLib::unique_ptr 。
+\sa threading::locked_ptr
+\since build 551
+*/
+template<typename _type, class _tMutex = typename unlock_deleter<>::mutex_type,
+	class _tLock = typename unlock_deleter<_tMutex>::lock_type>
+using locked_ptr = unique_ptr<_type, unlock_deleter<_tMutex, _tLock>>;
 
 } // namespace YSLib;
 

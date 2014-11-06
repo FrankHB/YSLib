@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1602
+\version r1608
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-10-31 09:54 +0800
+	2014-11-04 17:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,6 +49,7 @@
 #include YFM_YCLib_Timer
 #include YFM_YCLib_FileSystem
 #include YFM_YCLib_Video
+#include YFM_YCLib_Mutex
 
 /*
 !\brief YSLib 命名空间。
@@ -151,6 +152,11 @@ using ystdex::wint_t;
 //@}
 
 
+/*!
+\brief 并发操作。
+\since build 551
+*/
+using namespace platform::Concurrency;
 /*!
 \brief 平台公用描述。
 \since build 456
