@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r496
+\version r499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-07-24 09:19 +0800
+	2014-11-04 17:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,7 +79,7 @@ Window::Window(NativeWindowHandle h, Environment& e)
 		}
 	},
 	MessageMap[WM_CHAR] += [this](::WPARAM w_param, ::WPARAM l_param){
-		std::lock_guard<std::recursive_mutex> lck(input_mutex);
+		lock_guard<recursive_mutex> lck(input_mutex);
 
 		for(size_t n(l_param & 0x7FFF); n-- != 0;)
 			comp_str += ucs2_t(w_param);
@@ -106,7 +106,7 @@ Window::~Window()
 void
 Window::UpdateCandidateWindowLocation()
 {
-	std::lock_guard<std::recursive_mutex> lck(input_mutex);
+	lock_guard<recursive_mutex> lck(input_mutex);
 
 	UpdateCandidateWindowLocationUnlocked();
 }
@@ -115,7 +115,7 @@ Window::UpdateCandidateWindowLocation(const Point& pt)
 {
 	if(pt != Point::Invalid)
 	{
-		std::lock_guard<std::recursive_mutex> lck(input_mutex);
+		lock_guard<recursive_mutex> lck(input_mutex);
 
 		caret_location = pt;
 		UpdateCandidateWindowLocationUnlocked();

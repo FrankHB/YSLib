@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r462
+\version r465
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-09-03 14:03 +0800
+	2014-11-05 14:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,6 @@
 #endif
 #include <android/native_window.h>
 #include YFM_YSLib_Core_YGDIBase
-#include <mutex>
 
 //! \since build 499
 struct AConfiguration;
@@ -203,7 +202,8 @@ inline DefSwap(ynothrow, ScreenBuffer)
 class YF_API ScreenRegionBuffer : private ScreenBuffer
 {
 private:
-	std::mutex mtx;
+	//! \since build 551
+	YSLib::mutex mtx;
 
 public:
 	ScreenRegionBuffer(const YSLib::Drawing::Size&);

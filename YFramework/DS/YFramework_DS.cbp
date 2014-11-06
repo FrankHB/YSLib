@@ -175,6 +175,7 @@
 		<Unit filename="../include/YCLib/Input.h" />
 		<Unit filename="../include/YCLib/Keys.h" />
 		<Unit filename="../include/YCLib/MemoryMapping.h" />
+		<Unit filename="../include/YCLib/Mutex.h" />
 		<Unit filename="../include/YCLib/NativeAPI.h" />
 		<Unit filename="../include/YCLib/Platform.h" />
 		<Unit filename="../include/YCLib/Timer.h" />

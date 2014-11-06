@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2117
+\version r2125
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-11-02 15:39 +0800
+	2014-11-05 19:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,8 +77,10 @@ using platform::MappedFile;
 //! \since build 425
 //@{
 stack<std::function<void()>> app_exit;
-ValueNode* p_root;
-Drawing::FontCache* p_font_cache;
+//! \since build 551
+unique_ptr<ValueNode> p_root;
+//! \since build 551
+unique_ptr<Drawing::FontCache> p_font_cache;
 //@}
 #if !CHRLIB_NODYNAMIC_MAPPING
 //! \since build 549
@@ -501,9 +503,9 @@ FetchRoot()
 {
 	if(YB_UNLIKELY(!p_root))
 	{
-		p_root = ynew ValueNode(InitializeInstalled());
+		p_root.reset(new ValueNode(InitializeInstalled()));
 		app_exit.push([]{
-			ydelete(p_root);
+			p_root.reset();
 		});
 	}
 	return *p_root;
@@ -514,9 +516,9 @@ FetchDefaultFontCache()
 {
 	if(YB_UNLIKELY(!p_font_cache))
 	{
-		p_font_cache = ynew Drawing::FontCache;
+		p_font_cache.reset(new Drawing::FontCache());
 		app_exit.push([]{
-			ydelete(p_font_cache);
+			p_font_cache.reset();
 		});
 
 		const auto& node(FetchRoot()["YFramework"]);

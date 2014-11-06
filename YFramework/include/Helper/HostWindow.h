@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r412
+\version r419
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-10-04 15:11 +0800
+	2014-11-04 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,6 @@
 #	include YFM_YSLib_Core_YString // for YSLib::String;
 #	include YFM_YSLib_UI_YWidget // for UI::IWidget;
 #	include <atomic>
-#	include <mutex>
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #endif
@@ -90,8 +89,11 @@ private:
 		IMM32Manager::CreateImeWindow 的注释。
 	*/
 	bool has_hosted_caret;
-	//! \brief 输入组合字符串锁。
-	std::recursive_mutex input_mutex{};
+	/*!
+	\brief 输入组合字符串锁。
+	\since build 551
+	*/
+	recursive_mutex input_mutex{};
 	//! \brief 输入法组合字符串。
 	String comp_str{};
 	//! \brief 相对窗口的宿主插入符位置缓存。
@@ -129,7 +131,7 @@ public:
 	auto
 	AccessInputString(_func f) -> decltype(f(comp_str))
 	{
-		std::lock_guard<std::recursive_mutex> lck(input_mutex);
+		lock_guard<recursive_mutex> lck(input_mutex);
 
 		return f(comp_str);
 	}

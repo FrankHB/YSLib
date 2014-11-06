@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1493
+\version r1497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-08-05 18:39 +0800
+	2014-11-04 21:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,7 @@ Environment::GetForegroundWindow() const ynothrow
 void
 Environment::AddMappedItem(NativeWindowHandle h, Window* p)
 {
-	std::unique_lock<std::mutex> lck(wmap_mtx);
+	lock_guard<mutex> lck(wmap_mtx);
 
 	wnd_map.emplace(h, p);
 }
@@ -131,7 +131,7 @@ Environment::AddMappedItem(NativeWindowHandle h, Window* p)
 Window*
 Environment::FindWindow(NativeWindowHandle h) const ynothrow
 {
-	std::unique_lock<std::mutex> lck(wmap_mtx);
+	lock_guard<mutex> lck(wmap_mtx);
 	const auto i(wnd_map.find(h));
 
 	return i == wnd_map.end() ? nullptr : i->second;
@@ -165,7 +165,7 @@ Environment::MapCursor() const
 void
 Environment::RemoveMappedItem(NativeWindowHandle h) ynothrow
 {
-	std::unique_lock<std::mutex> lck(wmap_mtx);
+	lock_guard<mutex> lck(wmap_mtx);
 	const auto i(wnd_map.find(h));
 
 	if(i != wnd_map.end())
@@ -175,7 +175,7 @@ Environment::RemoveMappedItem(NativeWindowHandle h) ynothrow
 void
 Environment::UpdateRenderWindows()
 {
-	std::unique_lock<std::mutex> lck(wmap_mtx);
+	lock_guard<mutex> lck(wmap_mtx);
 
 	for(const auto& pr : wnd_map)
 		if(pr.second)

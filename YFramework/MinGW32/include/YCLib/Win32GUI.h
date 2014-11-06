@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r544
+\version r547
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-10-25 13:53 +0800
+	2014-11-04 21:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,6 @@
 #include YFM_MinGW32_YCLib_MinGW32
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Core_YEvent
-#include <mutex> // for std::mutex;
 #include <atomic>
 
 namespace platform_ex
@@ -273,7 +272,8 @@ inline DefSwap(ynothrow, ScreenBuffer)
 class YF_API ScreenRegionBuffer : private ScreenBuffer
 {
 private:
-	std::mutex mtx;
+	//! \since build 551
+	YSLib::mutex mtx;
 
 public:
 	ScreenRegionBuffer(const YSLib::Drawing::Size& s)

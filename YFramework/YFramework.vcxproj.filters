@@ -790,6 +790,9 @@
     <ClInclude Include="include\YSLib\Core\YCoreUtilities.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
+    <ClInclude Include="include\YCLib\Mutex.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">

@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1209
+\version r1211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2014-09-22 23:53 +0800
+	2014-11-05 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,6 @@ using std::is_signed;
 using std::is_unsigned;
 
 using std::is_constructible;
-#if 0
 using std::is_default_constructible;
 using std::is_copy_constructible;
 using std::is_move_constructible;
@@ -97,6 +96,7 @@ using std::is_move_assignable;
 
 using std::is_destructible;
 
+#if 0
 using std::is_trivially_constructible;
 using std::is_trivially_default_constructible;
 using std::is_trivially_copy_constructible;
@@ -106,6 +106,7 @@ using std::is_trivially_assignable;
 using std::is_trivially_copy_assignable;
 using std::is_trivially_move_assignable;
 using std::is_trivially_destructible;
+#endif
 
 using std::is_nothrow_constructible;
 using std::is_nothrow_default_constructible;
@@ -117,7 +118,7 @@ using std::is_nothrow_copy_assignable;
 using std::is_nothrow_move_assignable;
 
 using std::is_nothrow_destructible;
-#endif
+
 using std::has_virtual_destructor;
 
 using std::alignment_of;

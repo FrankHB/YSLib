@@ -9,7 +9,8 @@
 		android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
 		<activity android:name="android.app.NativeActivity"
 				android:label="YSTest"
-				android:configChanges="orientation|keyboardHidden">
+				android:configChanges="orientation|keyboardHidden"
+				android:noHistory="true">
 			<meta-data android:name="android.app.lib_name"
 					android:value="YSTest" />
 			<intent-filter>

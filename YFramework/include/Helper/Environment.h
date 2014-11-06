@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r776
+\version r779
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-09-03 13:54 +0800
+	2014-11-04 17:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,6 @@
 #include "YModules.h"
 #include YFM_Helper_HostWindow // for Host::Window;
 #if YF_Multithread == 1
-#	include <mutex>
 #	include <atomic>
 #endif
 
@@ -74,9 +73,9 @@ private:
 	map<Host::NativeWindowHandle, Host::Window*> wnd_map;
 	/*!
 	\brief 窗口对象映射锁。
-	\since build 381
+	\since build 551
 	*/
-	mutable std::mutex wmap_mtx;
+	mutable mutex wmap_mtx;
 #	if YF_Multithread == 1
 	/*!
 	\brief 窗口线程计数。

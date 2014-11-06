@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r310
+\version r345
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2014-11-03 06:49 +0800
+	2014-11-05 03:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 
 #include "../ydef.h"
 #include "functional.hpp" // for ystdex::result_of_t, std::bind, std::function;
-#include "memory.hpp" // for std::make_shared, ystdex::bound_deleter;
-#include <utility> // for std::declval;
+#include "pseudo_mutex.h" // for std::make_shared,
+//	ystdex::threading::unlock_deleter;
+#include "utility.hpp" // for std::declval, ystdex::noncopyable;
 #include <future> // for std::packaged_task, std::future;
 #include <thread>
 #include <vector>
@@ -43,36 +44,23 @@ namespace ystdex
 {
 
 /*!
-\brief 解锁删除器。
-\since build 550
+\brief 解锁删除器：默认使用标准库互斥量和锁。
+\sa threading::unlock_deleter
+\since build 551
 */
-template<class _tBasicLockable = std::mutex,
-	class _tLock = std::unique_lock<_tBasicLockable>>
-class unlock_deleter : private bound_deleter<_tLock>
-{
-private:
-    mutable _tLock lock;
-
-public:
-    unlock_deleter(_tBasicLockable& mtx)
-		: lock(mtx)
-	{}
-	template<typename... _tParams>
-	unlock_deleter(_tBasicLockable& mtx, _tParams&&... args) ynoexcept(
-		std::declval<_tBasicLockable&>()(std::declval<_tParams&&>()...))
-		: lock(mtx, yforward(args)...)
-	{}
-
-	using bound_deleter<_tLock>::operator();
-};
+template<class _tMutex = std::mutex,
+	class _tLock = std::unique_lock<_tMutex>>
+using unlock_deleter = threading::unlock_deleter<_tMutex, _tLock>;
 
 
 /*!
-\brief 独占所有权的锁定指针。
-\since build 550
+\brief 独占所有权的锁定指针：默认使用标准库互斥量和锁。
+\sa threading::locked_ptr
+\since build 551
 */
-template<typename _type, class _tLock = std::unique_lock<_type>>
-using locked_ptr = std::unique_ptr<_type, unlock_deleter<_type, _tLock>>;
+template<typename _type, class _tMutex = std::mutex,
+	class _tLock = std::unique_lock<_tMutex>>
+using locked_ptr = threading::locked_ptr<_type, _tMutex, _tLock>;
 
 
 /*!
@@ -112,11 +100,11 @@ pack_shared_task(_fCallable&& f, _tParams&&... args)
 
 /*!
 \brief 线程池。
-\note 除非另有说明，所有公开成员函数线程安全。
+\note 除非另行约定，所有公开成员函数线程安全。
 \note 未控制线程队列的长度。
 \since build 520
 */
-class YB_API thread_pool
+class YB_API thread_pool : private noncopyable
 {
 private:
 	std::vector<std::thread> workers;
@@ -138,12 +126,8 @@ public:
 	\since build 543
 	*/
 	thread_pool(size_t, std::function<void()> = {}, std::function<void()> = {});
-	thread_pool(const thread_pool&) = delete;
 	//! \brief 析构：合并所有执行中的线程，可能阻塞。
 	~thread_pool();
-
-	thread_pool&
-	operator=(const thread_pool&) = delete;
 
 	//! \see wait_to_enqueue
 	template<typename _fCallable, typename... _tParams>
@@ -196,7 +180,7 @@ public:
 
 /*!
 \brief 任务池：带有队列大小限制的线程池。
-\note 除非另有说明，所有公开成员函数线程安全。
+\note 除非另行约定，所有公开成员函数线程安全。
 \since build 538
 \todo 允许调整队列大小限制。
 */
