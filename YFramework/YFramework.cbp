@@ -172,6 +172,7 @@
 		<Unit filename="include/YCLib/FileSystem.h" />
 		<Unit filename="include/YCLib/Host.h" />
 		<Unit filename="include/YCLib/Input.h" />
+		<Unit filename="include/YCLib/JNI.h" />
 		<Unit filename="include/YCLib/Keys.h" />
 		<Unit filename="include/YCLib/MemoryMapping.h" />
 		<Unit filename="include/YCLib/Mutex.h" />
@@ -289,6 +290,7 @@
 		<Unit filename="source/YCLib/FileSystem.cpp" />
 		<Unit filename="source/YCLib/Host.cpp" />
 		<Unit filename="source/YCLib/Input.cpp" />
+		<Unit filename="source/YCLib/JNI.cpp" />
 		<Unit filename="source/YCLib/Keys.cpp" />
 		<Unit filename="source/YCLib/MemoryMapping.cpp" />
 		<Unit filename="source/YCLib/NativeAPI.cpp" />

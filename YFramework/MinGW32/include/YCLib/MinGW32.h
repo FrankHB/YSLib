@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r390
+\version r447
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-10-29 21:07 +0800
+	2014-11-08 22:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -255,6 +255,7 @@ public:
 
 /*!
 \brief 注册表键。
+\warning 不检查外部进程交互：并发访问可能导致错误的结果。
 \since build 549
 \todo 增加和实现创建和删除值等功能接口。
 */
@@ -284,6 +285,20 @@ public:
 	DefDeMoveAssignment(RegistryKey)
 
 	DefGetter(const ynothrow, ::HKEY, Key, h_key)
+	/*!
+	\brief 取指定名称和类型的值的存储表示。
+	\return 成功得到的值的类型和内容。
+	\note 类型为 \c REG_NONE 时表示允许任意类型的值。
+	\since build 552
+	*/
+	//@{
+	//! \brief 断言检查：第一参数非空。
+	std::pair<::DWORD, std::vector<ystdex::byte>>
+	GetRawValue(const wchar_t*, ::DWORD = REG_NONE) const;
+	PDefH(std::pair<::DWORD YPP_Comma std::vector<ystdex::byte>>, GetRawValue,
+		const std::wstring& name, ::DWORD type = REG_NONE) const
+		ImplRet(GetRawValue(name.c_str(), type))
+	//@}
 	std::size_t
 	GetSubKeyCount() const;
 	std::vector<std::wstring>
@@ -298,6 +313,22 @@ public:
 	Flush();
 };
 
+/*!
+\brief 取注册表字符串值。
+\pre 间接断言：字符串参数非空。
+\return 若成功则为指定的值，否则为空串。
+\note 字符串内容保证不以空字符结尾。
+\relates RegistryKey
+\since build 522
+*/
+//@{
+YF_API std::wstring
+FetchRegistryString(const RegistryKey&, const wchar_t*);
+inline PDefH(std::wstring, FetchRegistryString, ::HKEY h_parent,
+	const wchar_t* key_name, const wchar_t* name)
+	ImplRet(FetchRegistryString(RegistryKey(h_parent, key_name), name))
+//@}
+
 
 /*!
 \brief 创建管道。
@@ -308,12 +339,45 @@ MakePipe();
 
 
 /*!
+\brief 取系统目录路径。
+\note 保证以一个分隔符结尾。
+\since build 552
+*/
+YF_API std::wstring
+FetchSystemPath(size_t s = MAX_PATH);
+
+/*!
 \brief 转换文件时间为以 POSIX 历元起始度量的时间间隔。
 \throw std::system_error 输入的时间表示不被实现支持。
 \since build 544
 */
 YF_API std::chrono::nanoseconds
 ConvertTime(::FILETIME&);
+
+
+/*!
+\brief 取注册表中 NLS 键中指定名称的值。
+\pre 间接断言：字符串参数非空。
+\since build 552
+*/
+YF_API std::wstring
+FetchNLSItemFromRegistry(const wchar_t*);
+
+/*!
+\brief 取注册表中指定代码页的 NLS 文件路径。
+\since build 552
+*/
+inline PDefH(std::wstring, FetchCPFileNameFromRegistry, int cp)
+	ImplRet(FetchNLSItemFromRegistry(std::to_wstring(cp).c_str()))
+
+/*!
+\brief 取指定双字节字符集代码页的映射表。
+\return 成功则为映射表的起始指针，否则为空指针。
+\note 非双字节字符集视为失败。
+\since build 552
+*/
+YF_API const unsigned short*
+FetchDBCSOffset(int) ynothrow;
 
 } // inline namespace Windows;
 

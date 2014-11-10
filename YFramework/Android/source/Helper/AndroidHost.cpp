@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r325
+\version r331
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-11-06 14:39 +0800
+	2014-11-06 20:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,7 +70,7 @@ NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 	cb.on##_n = [](__VA_ARGS__){ \
 		YAssertNonnull(static_cast<void*>(p_activity)); \
 		YTraceDe(Debug, "ANativeActivity::" #_n ": %p.", \
-			static_cast<void*>(p_activity));
+			ystdex::pvoid(p_activity));
 #define YCL_Android_RegSimpCb(_n, ...) \
 YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	__VA_ARGS__; \
@@ -103,7 +103,7 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	},
 	YCL_Android_RegCb_Begin(NativeWindowResized,
 		::ANativeActivity* p_activity, ::ANativeWindow* p_window)
-		YTraceDe(Debug, " p_window = %p.", static_cast<void*>(p_window));
+		YTraceDe(Debug, " p_window = %p.", ystdex::pvoid(p_window));
 		auto& host(*YCL_NativeHostPtr);
 
 		if(!host.thrdMain.joinable())
@@ -127,7 +127,7 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	},
 	YCL_Android_RegCb_Begin(NativeWindowDestroyed,
 		::ANativeActivity* p_activity, ::ANativeWindow* p_window)
-		YTraceDe(Debug, " p_window = %p.", static_cast<void*>(p_window));
+		YTraceDe(Debug, " p_window = %p.", ystdex::pvoid(p_window));
 
 		auto& host(*YCL_NativeHostPtr);
 
@@ -151,7 +151,7 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	},
 	YCL_Android_RegCb_Begin(InputQueueCreated,
 		::ANativeActivity* p_activity, ::AInputQueue* p_queue)
-		YTraceDe(Debug, " p_queue = %p.", static_cast<void*>(p_queue));
+		YTraceDe(Debug, " p_queue = %p.", ystdex::pvoid(p_queue));
 
 		auto& host(*YCL_NativeHostPtr);
 
@@ -160,7 +160,7 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	},
 	YCL_Android_RegCb_Begin(InputQueueDestroyed,
 		::ANativeActivity* p_activity, ::AInputQueue* p_queue)
-		YTraceDe(Debug, " p_queue = %p.", static_cast<void*>(p_queue));
+		YTraceDe(Debug, " p_queue = %p.", ystdex::pvoid(p_queue));
 		YCL_NativeHostPtr->p_input_queue.reset();
 	}
 	);
@@ -275,7 +275,7 @@ ANativeActivity_onCreate(::ANativeActivity* p_activity,
 #ifndef NDEBUG
 	platform::FetchCommonLogger().FilterLevel = platform::Descriptions::Debug;
 #endif
-	YTraceDe(Debug, "Creating activity: %p.", static_cast<void*>(p_activity));
+	YTraceDe(Debug, "Creating activity: %p.", ystdex::pvoid(p_activity));
 	p_activity->instance = ystdex::make_unique<NativeHost>(*p_activity,
 		saved_state, saved_state_size).release();
 }

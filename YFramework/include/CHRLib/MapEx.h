@@ -11,13 +11,13 @@
 /*!	\file MapEx.h
 \ingroup CHRLib
 \brief 附加编码映射。
-\version r274
+\version r291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-09 09:04:36 +0800
 \par 修改时间:
-	2014-04-25 10:01 +0800
+	2014-11-09 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,6 +70,13 @@ extern byte* cp2026;
 //@}
 
 #endif
+
+/*!
+\brief 查找编码转换序列的实现。
+\note 默认使用编码转换表指针。
+\since build 552
+*/
+extern ucs2_t(*cp113_lkp)(byte, byte);
 
 
 /*!
@@ -130,7 +137,7 @@ struct GUCS2Mapper<CharSet::GBK>
 	static ConversionResult
 	Map(_tObj& uc, _tIn&& i, _tState&& st)
 	{
-		yassume(cp113);
+		yassume(cp113_lkp);
 
 		const auto seq(GetSequenceOf(st));
 
@@ -139,7 +146,7 @@ struct GUCS2Mapper<CharSet::GBK>
 		case 0:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(cp113[seq[0]] != 0)
+			if(seq[0] < 0x80)
 			{
 				uc = seq[0];
 				break;
@@ -147,11 +154,14 @@ struct GUCS2Mapper<CharSet::GBK>
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			if(YB_LIKELY((seq[0] << 8 | seq[1]) < 0xFF7E))
 			{
-				uc = reinterpret_cast<const ucs2_t*>(cp113 + 0x0100)[
-					seq[0] << 8 | seq[1]];
-				break;
+				const auto t(cp113_lkp(seq[0], seq[1]));
+
+				if(YB_LIKELY(t != 0))
+				{
+					uc = t;
+					break;
+				}
 			}
 			return ConversionResult::Unhandled;
 		default:
@@ -229,6 +239,8 @@ case enc: \
 	CHR_MapItem(GBK)
 	CHR_MapItem(UTF_16BE)
 	CHR_MapItem(UTF_16LE)
+	CHR_MapItem(UTF_32BE)
+	CHR_MapItem(UTF_32LE)
 	CHR_MapItem(Big5)
 	default:
 		break;

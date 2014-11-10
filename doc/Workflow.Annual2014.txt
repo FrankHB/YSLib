@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r744
+\version r745
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-10-21 14:59 +0800
+	2014-11-07 16:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -284,7 +284,7 @@ Rules for exception handling should be uniformed.
 	The what() member function should be overriden only necessary.
 		It is usually memroy-sensitive to format the message string.
 		YSLib rarely override the what() member function.
-	For both implemention and semantics reasons, do not use 'catch(...)' without rethrowing unless really necessary. See also %Documentation::CommonRules @5.10.5.6.
+	For both implemention and semantics reasons, do not use 'catch(...)' without rethrowing unless really necessary. See also %Documentation::CommonRules @5.14.2.
 
 $2014-05:
 
@@ -740,7 +740,6 @@ There are issues which make the flattened object files hardly be linked directly
 		The performace is also significantly better for directories containing a few source files, because less archives should be built and waiting before linking can be reduced.
 Sometimes 'LANG=C' should be expicitly specified in the command line to prevent corrupted output from some tools built without NLS support.
 	For example, 'ar' from MSYS2 does not play with zh-CN locale well, while 'gcc-ar' has no problem.
-
 
 ////
 

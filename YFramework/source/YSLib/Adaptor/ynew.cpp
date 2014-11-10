@@ -11,13 +11,13 @@
 /*!	\file ynew.cpp
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r994
+\version r999
 \author FrankHB <frankhb1989@gmail.com>
 \since build 173
 \par 创建时间:
 	2010-12-02 19:49:41 +0800
 \par 修改时间:
-	2014-11-04 21:38 +0800
+	2014-11-09 03:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include <cassert> // for assert;
 #include <algorithm> // for std::for_each;
 #include <functional> // for std::bind;
+#include <ystdex/cast.hpp> // for ystdex::pvoid;
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
@@ -114,15 +115,15 @@ namespace
 \warning 不可用于未确定初始化顺序的命名空间作用域对象。
 \since build 298
 */
-static MemoryList DebugMemoryList(nullptr);
+MemoryList DebugMemoryList({});
 
 } // unnamed namespace;
 
 MemoryList&
 GetDebugMemoryList()
 {
-	static mutex mtx;
-	lock_guard<mutex> lck(mtx);
+	static recursive_mutex mtx;
+	lock_guard<recursive_mutex> lck(mtx);
 
 	return DebugMemoryList;
 }
@@ -158,7 +159,7 @@ MemoryList::Unregister(const void* p, const char* f, int l)
 void
 MemoryList::Print(const MapType::value_type& val, std::FILE* stream)
 {
-	std::fprintf(stream, "@%p, [%zu] @ %s: %d;\n", val.first,
+	std::fprintf(stream, "@%p, [%zu] @ %s: %d;\n", ystdex::pvoid(val.first),
 		val.second.size, val.second.file.c_str(), val.second.line);
 }
 

@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1828
+\version r1906
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-11-03 00:46 +0800
+	2014-11-10 00:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,82 +36,6 @@ namespace YSLib
 //调试功能。
 namespace
 {
-
-//! \brief 程序日志类。
-class Log : private noncopyable
-{
-public:
-	/*!
-	\brief 无参数构造：默认实现。
-	*/
-	yconstfn DefDeCtor(Log)
-	/*!
-	\brief 析构：空实现。
-	*/
-	virtual DefDeDtor(Log)
-
-	/*!
-	\brief 输出 char 字符。
-	\todo 实现。
-	*/
-	Log&
-	operator<<(char)
-	{
-		return *this;
-	}
-	/*!
-	\brief 输出字符指针表示的字符串。
-	\todo 实现。
-	*/
-	Log&
-	operator<<(const char*)
-	{
-		return *this;
-	}
-	/*!
-	\brief 输出字符串。
-	*/
-	Log&
-	operator<<(const string& s)
-	{
-		return operator<<(s.c_str());
-	}
-
-	/*!
-	\brief 提示错误。
-	\todo 实现。
-	*/
-	void
-	Error(const char*)
-	{}
-	/*!
-	\brief 提示错误。
-	*/
-	void
-	Error(const string& s)
-	{
-		Error(s.c_str());
-	}
-	/*!
-	\brief 提示致命错误。
-	\note 中止程序。
-	*/
-	void
-	FatalError(const char* s)
-	{
-		ShowFatalError(s);
-	}
-	/*!
-	\brief 提示致命错误。
-	\note 中止程序。
-	*/
-	void
-	FatalError(const string& s)
-	{
-		FatalError(s.c_str());
-	}
-};
-
 
 #ifdef YSL_USE_MEMORY_DEBUG
 
@@ -218,8 +142,6 @@ main()
 {
 	using namespace YSLib;
 
-	Log log;
-
 	try
 	{
 		{
@@ -278,13 +200,14 @@ main()
 	}
 	CatchExpr(FatalError& e, HandleFatalError(e))
 	CatchExpr(LoggedEvent& e,
-		log.FatalError("Unhandled logged event with level = "
-		+ to_string(e.GetLevel()) + " : " + e.what()))
+		YTraceDe(Emergent, "%s", ("Unhandled logged event with level = "
+		+ to_string(e.GetLevel()) + " : " + e.what()).c_str()))
 	CatchExpr(std::exception& e,
 		// TODO: Distinguish errors from %std::runtime_error and YSLib-defined
 		//	exceptions.
-		log.FatalError(string("Unhandled std::exception: ") + e.what()))
-	CatchExpr(..., log.FatalError("Unhandled exception @ main function;"))
+		YTraceDe(Emergent, "%s", (string("Unhandled std::exception: ")
+		+ e.what()).c_str()))
+	CatchExpr(..., YTraceDe(Emergent, "Unhandled exception @ main function."))
 	// TODO: Return exit code properly.
 }
 

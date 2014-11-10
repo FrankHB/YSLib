@@ -11,13 +11,13 @@
 /*!	\file Viewer.h
 \ingroup UI
 \brief 样式无关的视图。
-\version r674
+\version r684
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-04-19 23:00:28 +0800
 \par 修改时间:
-	2014-09-03 14:01 +0800
+	2014-11-09 13:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,11 @@ namespace UI
 class YF_API SequenceViewer
 {
 private:
-	size_t head = 0; //!< 视图中首个项目的索引，大于等于序列大小时无效。
+	/*!
+	\brief 视图中首个项目的索引，大于序列大小时无效。
+	\note 空序列时应等于 0 。
+	*/
+	size_t head = 0;
 	size_t selected = 0; //!< 选中项目的索引，大于等于序列大小时无效。
 	//! \since build 147
 	bool is_selected = {}; //!< 选中状态。
@@ -79,7 +83,11 @@ public:
 	DefGetter(const ynothrow, ptrdiff_t, Offset, IsSelected()
 		? GetSelectedIndex() - GetHeadIndex() : -1) \
 		//!< 取选中的项目相对视图中首个项目的的索引偏移（未选中时为 -1 ）。
-	//! \brief 取当前视图中有效项目个数。
+	/*!
+	\brief 取当前视图中有效项目个数。
+	\param total 外部列表长度。
+	\pre 断言：外部列表长度不小于首个项目的索引。
+	*/
 	size_t
 	GetValid(size_t total) const ynothrow;
 

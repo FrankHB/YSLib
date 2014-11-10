@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1346
+\version r1350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-09-29 06:08 +0800
+	2014-11-10 01:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,9 +68,11 @@ $map(_f); // The map higher order function.
 $dep_from; // take evaluation dependence from;
 $dep_all_from; // take all evaluation dependence from;
 $dep_to; // put evaluation dependence to;
-$label; // label for locating in code portions;
 $effective; // only have effect on the given entity, e.g. a subset of the \
 	performed namespace;
+$label; // label for locating in code portions;
+$orig; // original source;
+$since; // first revision involved.
 
 // Project stakeholders:
 $dev; // issues concerned by developers, which end-users could ignore without \
@@ -236,6 +238,7 @@ $bin_image_eq $=
 (
 	"platform %DS" (b361r, b362r),
 	"platform %DS" (b353, b354),
+	"platform %DS" (b334r, b335r),
 	"platform %DS" (b313, b314)
 );
 

@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3787
+\version r3810
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2014-08-28 17:32 +0800
+	2014-11-09 20:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,30 @@ yconstexpr auto& FetchMapperFunc(FetchMapperPtr<ConversionResult(ucs2_t&,
 //! \since build 400
 yconstexpr auto& FetchSkipMapperFunc(FetchMapperPtr<ConversionResult(
 	ystdex::input_monomorphic_iterator&&, ConversionState&&)>);
+
+
+//! \since build 552
+template<typename _func, typename _vPFun, typename _tIn, typename... _tParams>
+size_t
+ConvertChar(_func f, _vPFun pfun, _tIn&& i, _tParams&&... args)
+{
+	ConversionState st;
+	const auto res(ConvertCharacter(pfun, yforward(args)..., yforward(i),
+		std::move(st)));
+
+	switch(ConversionResult(YB_EXPECT(long(res), long(ConversionResult::OK))))
+	{
+	case ConversionResult::OK:
+		f(yforward(args)...);
+		break;
+//	case ConversionResult::Invalid:
+		// TODO: Insert placeholders for %ConversionResult::Invalid.
+	default:
+		YTraceDe(Warning, "Encoding conversion failed with state"
+			" = %u.", unsigned(res));
+	}
+	return GetCountOf(st);
+}
 
 } // unnamed namespace;
 
@@ -105,8 +129,8 @@ bool
 operator==(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator& y)
 	ynothrow
 {
-	YAssert(x.p_buffer == y.p_buffer, "Iterators to different buffer are not"
-		" comparable.");
+	YAssert(x.p_buffer == y.p_buffer,
+		"Iterators of different buffers are not comparable.");
 
 	return x.block == y.block && x.index == y.index;
 }
@@ -114,7 +138,7 @@ operator==(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator& y)
 
 TextFileBuffer::TextFileBuffer(TextFile& file)
 	: File(file), nTextSize(File.GetTextSize()),
-	nBlock((nTextSize + BlockSize - 1) / BlockSize), Map(),
+	nBlock((nTextSize + BlockSize - 1) / BlockSize),
 	fixed_width(FetchFixedCharWidth(File.Encoding)), max_width(fixed_width
 	== 0 ? FetchMaxVariantCharWidth(File.Encoding) : fixed_width)
 {
@@ -130,7 +154,7 @@ TextFileBuffer::operator[](size_t idx)
 {
 	YAssert(idx < nBlock, "Invalid index found.");
 
-	auto& b(Map[idx]);
+	auto& b(mBuffer[idx]);
 	auto& vec(b.first);
 
 	if(YB_UNLIKELY(vec.empty() && bool(File)))
@@ -148,14 +172,9 @@ TextFileBuffer::operator[](size_t idx)
 			ystdex::ifile_iterator i(File.GetPtr());
 
 			while(n_byte < len)
-			{
-				ConversionState st;
-
-				if(YB_LIKELY(ConvertCharacter(pfun, c, i, std::move(st))
-					== ConversionResult::OK))
+				n_byte += ConvertChar([&](ucs2_t c){
 					vec.push_back(c);
-				n_byte += GetCountOf(st);
-			}
+				}, pfun, i, c);
 			std::ungetc(*i, File.GetPtr()),
 			vec.shrink_to_fit();
 		}
@@ -193,14 +212,9 @@ TextFileBuffer::GetIterator(size_t pos)
 			ystdex::ifile_iterator i(File.GetPtr());
 
 			while(n_byte < pos)
-			{
-				ConversionState st;
-
-				if(YB_LIKELY(ConvertCharacter(pfun, i, std::move(st))
-					== ConversionResult::OK))
+				n_byte += ConvertChar([&]{
 					++n_char;
-				n_byte += GetCountOf(st);
-			}
+				}, pfun, i);
 			std::ungetc(*i, File.GetPtr());
 			return TextFileBuffer::iterator(this, idx, n_char);
 		}
@@ -240,14 +254,9 @@ TextFileBuffer::GetPosition(TextFileBuffer::iterator i)
 		size_t n_byte(0);
 
 		while(it != mid)
-		{
-			ConversionState st;
-
-			if(YB_LIKELY(ConvertCharacter(pfun, i, std::move(st))
-				== ConversionResult::OK))
+			n_byte += ConvertChar([&]{
 				++it;
-			n_byte += GetCountOf(st);
-		}
+			}, pfun, i);
 		return idx + n_byte;
 	}
 	return idx;

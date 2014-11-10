@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4143
+\version r4149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2014-11-03 18:52 +0800
+	2014-11-07 17:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,6 +48,13 @@
 
 @0.3 适用范围：
 本文档适用于一般开发。
+
+@0.4 文档约定：
+ [Documentation] 的文档中明确注明“需提供文档”表示要求至少存在以下文档来源之一：
+ [Documentation] 中的文档段落；
+ [Documentation] 中注明“正式引用”一节的文档的段落；
+项目源文件中可被 Doxygen 等工具生成文档的源代码片段；
+其它另行注明的来源。
 
 @1 绪论：
 
