@@ -11,13 +11,13 @@
 /*!	\file smap.hpp
 \ingroup CHRLib
 \brief 静态编码映射。
-\version r1855
+\version r1999
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-07-14 14:32 +0800
+	2014-11-10 00:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,6 +59,31 @@ FillByte(_tIn& i, _tState& st)
 }
 
 
+//! \since build 552
+//@{
+//! \brief 判断八元组是否组成 UTF-16 代理对起始代码的高 8 位。
+yconstfn bool
+IsSurrogateHead(octet x)
+{
+	return x >= 0xD8 && x < 0xE0;
+}
+
+//! \brief 判断八元组是否组成 UTF-16 有效代理对起始代码的高 8 位。
+yconstfn bool
+IsValidSurrogateHead(octet x)
+{
+	return x >= 0xD8 && x < 0xDE;
+}
+
+//! \brief 判断八元组是否组成 UTF-16 有效代理对终止代码的高 8 位。
+yconstfn bool
+IsValidSurrogateTail(octet x)
+{
+	return x >= 0xDC && x < 0xE0;
+}
+//@}
+
+
 /*!
 \brief 静态编码映射模板及 Unicode 编码特化。
 \since build 245
@@ -74,18 +99,19 @@ struct GUCS2Mapper<CharSet::UTF_8>
 	/*!
 	\brief 检查 UTF-8 文本序列中非法字节。
 	\note 包括： C0 、 C1 、 F5 至 FF 。
+	\since build 552
 	*/
 	static yconstfn bool
-	IsInvalid(byte b)
+	IsInvalid(octet x)
 	{
-		return b == 0xC0 || b == 0xC1 || b > 0xF4;
+		return x == 0xC0 || x == 0xC1 || x > 0xF4;
 	}
 
 	/*!
 	\brief 映射： UTF-8 。
-	\note 参考规范： RFC 3629 ，见 http://tools.ietf.org/html/rfc3629 。
 	\warning 当前实现假定编码序列完整。
 	\warning 使用 UCS-2 时， 4 字节代码点可能溢出。
+	\see 参考规范： RFC 3629 ，见 http://tools.ietf.org/html/rfc3629 。
 
 	实现 UTF-8 到 Unicode 代码点的映射。
 	*/
@@ -176,6 +202,10 @@ struct GUCS2Mapper<CharSet::UTF_8>
 template<>
 struct GUCS2Mapper<CharSet::UTF_16BE>
 {
+	/*!
+	\brief 映射： UTF-16BE 。
+	\see 参考规范： RFC 2781 ，见 http://tools.ietf.org/html/rfc2781 。
+	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
 	Map(_tObj& uc, _tIn&& i, _tState&& st)
@@ -190,7 +220,26 @@ struct GUCS2Mapper<CharSet::UTF_16BE>
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			uc = seq[0] << 8 | seq[1];
+			if(YB_UNLIKELY(IsSurrogateHead(seq[0])))
+			{
+				if(YB_UNLIKELY(!IsValidSurrogateHead(seq[0])))
+					return ConversionResult::Invalid;
+			}
+			else
+			{
+				uc = seq[0] << 8 | seq[1];
+				break;
+			}
+		case 2:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+		case 3:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+			if(YB_UNLIKELY(!IsValidSurrogateTail(seq[2])))
+				return ConversionResult::Invalid;
+			uc = (seq[0] & 0x03) << 18 | seq[1] << 10 | (seq[2] & 0x03) << 8
+				| seq[3];
 			break;
 		default:
 			return ConversionResult::BadState;
@@ -202,6 +251,10 @@ struct GUCS2Mapper<CharSet::UTF_16BE>
 template<>
 struct GUCS2Mapper<CharSet::UTF_16LE>
 {
+	/*!
+	\brief 映射： UTF-16LE 。
+	\see 参考规范： RFC 2781 ，见 http://tools.ietf.org/html/rfc2781 。
+	*/
 	template<typename _tObj, typename _tIn, typename _tState>
 	static ConversionResult
 	Map(_tObj& uc, _tIn&& i, _tState&& st)
@@ -216,7 +269,100 @@ struct GUCS2Mapper<CharSet::UTF_16LE>
 		case 1:
 			if(YB_UNLIKELY(!FillByte(i, st)))
 				return ConversionResult::BadSource;
-			uc = seq[0] | seq[1] << 8;
+			if(YB_UNLIKELY(IsSurrogateHead(seq[1])))
+			{
+				if(YB_UNLIKELY(!IsValidSurrogateHead(seq[1])))
+					return ConversionResult::Invalid;
+			}
+			else
+			{
+				uc = seq[0] | seq[1] << 8;
+				break;
+			}
+		case 2:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+		case 3:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+			if(YB_UNLIKELY(!IsValidSurrogateTail(seq[3])))
+				return ConversionResult::Invalid;
+			uc = seq[0] << 10 | (seq[1] & 0x03) << 18 | seq[2]
+				| (seq[3] & 0x03) << 8;
+			break;
+		default:
+			return ConversionResult::BadState;
+		}
+		return ConversionResult::OK;
+	}
+};
+
+//! \since build 552
+template<>
+struct GUCS2Mapper<CharSet::UTF_32BE>
+{
+	/*!
+	\brief 映射： UTF-32BE 。
+	\see 参考规范： UAX #19 ，见 http://www.unicode.org/unicode/reports/tr19/ 。
+	*/
+	template<typename _tObj, typename _tIn, typename _tState>
+	static ConversionResult
+	Map(_tObj& uc, _tIn&& i, _tState&& st)
+	{
+		const auto seq(GetSequenceOf(st));
+
+		switch(GetCountOf(st))
+		{
+		case 0:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+		case 1:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+		case 2:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+		case 3:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+			uc = seq[0] << 24 | seq[1] << 16 | seq[2] << 8 | seq[3];
+			break;
+		default:
+			return ConversionResult::BadState;
+		}
+		return ConversionResult::OK;
+	}
+};
+
+//! \since build 552
+template<>
+struct GUCS2Mapper<CharSet::UTF_32LE>
+{
+	/*!
+	\brief 映射： UTF-32LE 。
+	\see 参考规范： UAX #19 ，见 http://www.unicode.org/unicode/reports/tr19/ 。
+	*/
+	template<typename _tObj, typename _tIn, typename _tState>
+	static ConversionResult
+	Map(_tObj& uc, _tIn&& i, _tState&& st)
+	{
+		const auto seq(GetSequenceOf(st));
+
+		switch(GetCountOf(st))
+		{
+		case 0:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+		case 1:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+		case 2:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+		case 3:
+			if(YB_UNLIKELY(!FillByte(i, st)))
+				return ConversionResult::BadSource;
+			uc = seq[2] | seq[3] << 8 | seq[0] << 16 | seq[1] << 24;
 			break;
 		default:
 			return ConversionResult::BadState;

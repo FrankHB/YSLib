@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8886
+\version r8889
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-10-30 16:04 +0800
+	2014-11-09 03:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -370,7 +370,7 @@ b496
 	/ %YFramework.YSLib $=
 	(
 		* "thread unsafety" @ "globally shared debug list object"
-			@ %YAdaptor.New $since b173,
+			@ %Adaptor.YNew $since b173,
 		/ %UI $=
 		(
 			/ @ %YUIContainer $=
@@ -3868,7 +3868,7 @@ b444
 			// Now invisible or translucent.
 		* $comp "crashed after quickly dragging around the information window"
 			@ %'text reader' $since b438 $dep_from
-			%YFramework.YSLib.Service.YBlit 
+			%YFramework.YSLib.Service.YBlit
 	)
 ),
 
@@ -4427,7 +4427,7 @@ b434
 					directly",
 				- "function templates %(FetchWidgetMapping, CreateWidget)",
 				/ "functions %(DetectWidgetNode, TransformUILayout, \
-  					ConvertUILayout)" -> "class %WidgetLoader";
+					ConvertUILayout)" -> "class %WidgetLoader";
 				/ $comp "widget loader implemented with no static duaration \
 					object and being friendly to multithreading without data \
 					race"

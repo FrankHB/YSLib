@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r402
+\version r407
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-11-04 05:32 +0800
+	2014-11-10 00:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Debug
 #include YFM_YCLib_Input
-#include YFM_YCLib_Video // for platform::ColorSpace;
+#include YFM_YCLib_Video // for platform::ColorSpace, platform::YConsoleInit;
 #include <cstdarg>
 #include <ystdex/string.hpp>
 #if YCL_Android
@@ -84,6 +84,10 @@ void
 Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 {
 	YAssertNonnull(str);
+#if YCL_DS
+	if(lv <= Descriptions::Alert)
+		YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
+#endif
 	std::fprintf(stderr, "[%#X]: %s\n", unsigned(lv), str);
 	std::fflush(stderr);
 }

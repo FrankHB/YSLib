@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1519
+\version r1521
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-10-31 09:52 +0800
+	2014-11-09 18:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -496,7 +496,7 @@ private:
 	\brief 节点 UTF-8 名称。
 	\since build 402
 	*/
-	mutable std::string utf8_name;
+	mutable std::string utf8_name{};
 #else
 	/*!
 	\brief 节点信息。
@@ -513,7 +513,7 @@ public:
 	*/
 	explicit
 	HDirectory(const char* path)
-		: DirectorySession(path)
+		: DirectorySession(path), p_dirent()
 	{}
 	//! \since build 543
 	HDirectory(HDirectory&& h) ynothrow

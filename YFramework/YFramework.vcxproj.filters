@@ -793,6 +793,9 @@
     <ClInclude Include="include\YCLib\Mutex.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\YCLib\JNI.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -1067,6 +1070,9 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Core\YCoreUtilities.cpp">
       <Filter>source\YSLib\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\JNI.cpp">
+      <Filter>source\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

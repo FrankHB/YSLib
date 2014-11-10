@@ -11,13 +11,13 @@
 /*!	\file Viewer.cpp
 \ingroup UI
 \brief 样式无关的视图。
-\version r263
+\version r275
 \author FrankHB <frankhb1989@gmail.com>
 \since build 525
 \par 创建时间:
 	2014-08-08 14:39:59 +0800
 \par 修改时间:
-	2014-10-27 18:29 +0800
+	2014-11-09 13:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,9 @@ SequenceViewer::Contains(size_t i) const
 size_t
 SequenceViewer::GetValid(size_t total) const ynothrow
 {
-	return min<size_t>(total - GetHeadIndex(), Length);
+	YAssert(total >= head, "Total number of items is less than head index");
+
+	return min<size_t>(total - head, Length);
 }
 
 bool
@@ -199,24 +201,24 @@ AMUnitList::AdjustOffsetForHeight(SDst h, bool is_top)
 {
 	if(GetFullViewHeight() > h)
 	{
-		const SDst ln_h(GetItemHeight());
+		const SDst item_h(GetItemHeight());
 
-		if(YB_UNLIKELY(ln_h == 0))
+		if(YB_UNLIKELY(item_h == 0))
 			return 0;
 		vwList.RestrictSelected();
 		if(is_top)
-			return AdjustBottomForHeight(ln_h, h);
+			return AdjustBottomForHeight(item_h, h);
 		else
 		{
-			const auto d((h + uTopOffset) % ln_h);
+			const auto d((h + uTopOffset) % item_h);
 
 			if(d != 0)
 			{
-				const auto tmp(uTopOffset + ln_h - d);
+				const auto tmp(uTopOffset + item_h - d);
 
-				uTopOffset = tmp % ln_h;
-				AdjustViewLengthForHeight(ln_h, h);
-				vwList.IncreaseHead(tmp / ln_h, GetTotal());
+				uTopOffset = tmp % item_h;
+				AdjustViewLengthForHeight(item_h, h);
+				vwList.IncreaseHead(tmp / item_h, GetTotal());
 			}
 			return d;
 		}
@@ -241,8 +243,8 @@ AMUnitList::AdjustViewForContent(SDst h)
 void
 AMUnitList::AdjustViewLengthForHeight(SDst item_h, SDst h)
 {
-	if(YB_LIKELY(item_h != 0 && h != 0))
-		vwList.Length = h / item_h + (uTopOffset != 0 || h % item_h != 0);
+	if(YB_LIKELY(item_h != 0))
+		vwList.Length = (h + uTopOffset + item_h - 1) / item_h;
 }
 
 size_t

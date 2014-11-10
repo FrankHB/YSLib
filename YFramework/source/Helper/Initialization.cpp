@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2125
+\version r2169
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-11-05 19:47 +0800
+	2014-11-08 22:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,6 +39,8 @@
 //#include <clocale>
 #if YCL_Android
 #	include <unistd.h> // for ::access, F_OK;
+#elif YCL_Win32
+#	include YFM_MinGW32_YCLib_MinGW32
 #endif
 #include YFM_NPL_SContext
 
@@ -205,6 +207,27 @@ ExtractException(const std::exception& e, string& res, size_t level = 0)
 #endif
 }
 
+#if YCL_Win32
+//! \since build 552
+//@{
+
+ucs2_t(*cp113_lkp_backup)(byte, byte);
+const unsigned short* p_dbcs_off_936;
+
+void
+LoadCP936_NLS()
+{
+	using namespace platform_ex;
+
+	p_dbcs_off_936 = FetchDBCSOffset(936);
+	cp113_lkp_backup = CHRLib::cp113_lkp;
+	CHRLib::cp113_lkp = [](byte seq0, byte seq1)->ucs2_t{
+		return p_dbcs_off_936[p_dbcs_off_936[seq0] + seq1];
+	};
+}
+//@}
+#endif
+
 void
 LoadComponents(const ValueNode& node)
 {
@@ -225,11 +248,25 @@ LoadComponents(const ValueNode& node)
 
 	YF_Init_printf(Notice, "Loading character mapping file '%s' ...\n",
 		mapping_name.c_str());
-	p_mapped = LoadMappedModule(data_dir + "cp113.bin");
-	if(p_mapped->GetSize() != 0)
-		CHRLib::cp113 = p_mapped->GetPtr();
-	else
-		throw LoggedEvent("CHRMapEx loading fail.");
+
+#if YCL_Win32
+	try
+	{
+#endif
+		p_mapped = LoadMappedModule(data_dir + "cp113.bin");
+		if(p_mapped->GetSize() != 0)
+			CHRLib::cp113 = p_mapped->GetPtr();
+		else
+			throw LoggedEvent("Failed loading CHRMapEx.");
+#if YCL_Win32
+	}
+	catch(std::exception&)
+	{
+		LoadCP936_NLS();
+		YTraceDe(Notice,
+			"Module cp113.bin loading failed, NLS CP936 used as fallback.");
+	}
+#endif
 	YF_Init_puts(Notice, "CHRMapEx loaded successfully.");
 #endif
 	YF_Init_printf(Notice, "Trying entering directory '%s' ...\n",
@@ -492,6 +529,13 @@ Uninitialize() ynothrow
 		app_exit.pop();
 	}
 #if !CHRLIB_NODYNAMIC_MAPPING
+#	if YCL_Win32
+	if(cp113_lkp_backup)
+	{
+		CHRLib::cp113_lkp = cp113_lkp_backup;
+		cp113_lkp_backup = {};
+	}
+#	endif
 	p_mapped.reset();
 	YF_Init_puts(Notice, "Character mapping deleted.");
 #endif

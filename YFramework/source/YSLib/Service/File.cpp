@@ -11,13 +11,13 @@
 /*!	\file File.cpp
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r539
+\version r544
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 23:14:51 +0800
 \par 修改时间:
-	2014-10-15 09:34 +0800
+	2014-11-06 20:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "YSLib/Service/YModules.h"
 #include YFM_YSLib_Service_File
 #include YFM_YSLib_Service_FileSystem
+#include <ystdex/cast.hpp> // for ystdex::pvoid;
 
 namespace YSLib
 {
@@ -66,7 +67,7 @@ File::~File()
 {
 	// FIXME: No throw guarantee.
 	YTraceDe(Debug, "File pointer to be closed in destructor: %p.",
-		static_cast<void*>(fp));
+		ystdex::pvoid(fp));
 	if(*this)
 		std::fclose(fp);
 }
@@ -82,8 +83,7 @@ File::CheckSize()
 void
 File::Close()
 {
-	YTraceDe(Debug, "File pointer to be closed: %p.",
-		static_cast<void*>(fp));
+	YTraceDe(Debug, "File pointer to be closed: %p.", ystdex::pvoid(fp));
 	if(*this)
 		std::fclose(fp);
 	fp = {};
@@ -97,7 +97,7 @@ File::Open(const char* filename, const char* mode)
 		std::fclose(fp);
 	if((fp = ufopen(filename, mode)))
 		CheckSize();
-	YTraceDe(Debug, "Opened file pointer: %p.", static_cast<void*>(fp));
+	YTraceDe(Debug, "Opened file pointer: %p.", ystdex::pvoid(fp));
 	return fp;
 }
 bool

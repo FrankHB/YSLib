@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r345
+\version r355
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2014-11-05 03:55 +0800
+	2014-11-07 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,8 +126,14 @@ public:
 	\since build 543
 	*/
 	thread_pool(size_t, std::function<void()> = {}, std::function<void()> = {});
-	//! \brief 析构：合并所有执行中的线程，可能阻塞。
-	~thread_pool();
+	/*!
+	\brief 析构：设置停止状态并等待所有执行中的线程结束。
+	\note 断言设置停止状态时不抛出 \c std::system_error 。
+	\note 可能阻塞。忽略每个线程阻塞的 \c std::system_error 。
+	\note 无异常抛出：断言。
+	\since build 552
+	*/
+	~thread_pool() ynothrow;
 
 	//! \see wait_to_enqueue
 	template<typename _fCallable, typename... _tParams>
@@ -143,10 +149,10 @@ public:
 
 	/*!
 	\warning 非线程安全。
-	\since build 538
+	\since build 552
 	*/
 	size_t
-	size_unlocked() const
+	size_unlocked() const ynothrow
 	{
 		return tasks.size();
 	}

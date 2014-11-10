@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r6270
+\version r6475
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-11-06 15:01 +0800
+	2014-11-11 03:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,184 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase.YStandardEx $=
+	(
+		+ "function templates (2 %pvoid, %pvoid_ref)" @ %YBase.YStandardEx.Cast,
+		/ @ "class %thread_pool" @ %Concurrency $=
+		(
+			/ @ "destructor" $=
+			(
+				+ "assertion for no %std::system_error thrown for lock mutex",
+				/ "ignored %std::system_error thrown for joining each thread",
+				+ "assertion for no excepton thrown";
+				+ 'ynothrow'
+			)
+			+ 'ynothrow' @ "function %size_unlocked"
+		),
+		+ "overloadings for character type and string type"
+			@ "function templates %(ltrim, rtrim; trim)" @ %String
+			// To allow null characters to be trimmed.
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Adaptor.YNew $=
+			(
+				* "strict ISO C/C++ compatibility" @  $since b173
+					$= (/ "cast to 'void*' for argument for '%p' of \
+						'std::fprintf' call" ^ "%ystdex::pvoid" $dep_from
+						%YBase.YStandardEx.Cast),
+						// The type 'const void*' is also not allowed.
+				* $comp "undefined behavior caused by duplicate locking a \
+					non-recursive lock" @ "function %GetDebugMemoryList" $since
+					b496
+			),
+			/ %UI $=
+			(
+				/ @ "function %AMUnitList::AdjustViewLengthForHeight" $=
+				(
+					/ "set length to 0 when height is 0",
+					* "wrong result" $since b529 @ %Viewer $orig
+						("function %MTextList::AdjustViewLengthForHeight"
+						@ %ListControl $since b527) $orig
+						(@ %TextList $since b523) $orig
+						("function %TextList::AdjustViewLength" $since b262)
+						// Triggered if the top offset is not 0 and the bottom \
+							item is also partially shown by a small offset. \
+							The old implementation always assumed that it \
+							would be only 1 greater than the minimal (when the \
+							height is dividable by the item height) value, but \
+							actually it should be 2 (1 top partial item and 1 \
+							bottom partial item).
+				),
+				* $comp "missing rendering partial bottom item and being not \
+					selectable for control when the widget height not \
+					dividable by item height" @ "text list" @ %YReader $since
+					b404
+					// This was not detected before b404 because there was no \
+						text list widget with height not dividable by item \
+						height.
+			),
+			/ %Service.TextManager $=
+			(
+				/ DLD "assertion string"
+					@ "function %operator== for %TextFileBuffer::iterator",
+				/ @ "class %TextFileBuffer" $=
+				(
+					/ "protected member %Map" $=
+					(
+						/ "initialized" ^ "empty braced-init-list"
+							~ "ctor-initializer",
+						=> "mBuffer"
+					),
+					/ DLD "simplified implementation of conversions",
+					+ "log warning for failed character conversions"
+				)
+			)
+		),
+		/ %CHRLib $=
+		(
+			/ %MapingEx $=
+			(
+				(
+				+ "object %CHRLib::cp113_lkp";
+				/ "implemented GBK to UCS-2LE conversion" ^ "%cp113_lkp"
+					~ "%cp113"
+					// This allows client code providing other implementation \
+						to bypass character map if not capable.
+				),
+				+ "UTF-32 supports" @ "function template %FetchMapperPtr"
+					$dep_from "UTF-32 mapping"
+			),
+			+ 'using ystdex::octet;' @ %CHRDefinition,
+			/ %StaticMapping $dep_from %CHRDefinition $=
+			(
+				(
+				+ "yconstfn functions %(IsSurrogateHead, IsValidSurrogateHead, \
+					IsValidSurrogateTail)";
+				* "missing surrogate support" @ "function template %Map"
+					@ "class template specializations \
+					%GUCS2Mapper(<CharSet::UTF_16BE>, <CharSet::UTF_16LE>)"
+					$orig (@ %CharacterMapping $since b245)
+				),
+				/ DLD "static member function \
+					%GUCS2Mapper<CharSet::UTF_8>::IsInvalid" ^ 'octet'
+					~ "%byte as parameter",
+				+ "class template specializations %GUCS2Mapper(
+					<CharSet::UTF_32BE>, <CharSet::UTF_32LE>)" $dep_to
+					"UTF-32 mapping"
+			)
+		),
+		/ %'YCLib_(MinGW32)'.MinGW32 $=
+		(
+			+ "2 member functions %RegistryKey::GetRawValue",
+			+ "2 functions %FetchRegistryString",
+			+ "functions %(FetchNLSItemFromRegistry; \
+				FetchCPFileNameFromRegistry)",
+			+ "function %(FetchSystemPath, FetchDBCSOffset)"
+		),
+		/ %Helper $=
+		(
+			/ %Initialization $=
+			(
+				+ "support NLS CP936 as fallback when %cp113.bin loading failed"
+					@ "platform %Win32" @ '!CHRLIB_NODYNAMIC_MAPPING',
+				/ $design "exception string for failed loading %cp113.bin"
+			),
+			* "wrong description for %CharSet::UTF_32LE" @ "%Text::Encodings"
+				@ %ShellHelper $since b307 $orig
+				(%YReader.ShlReader $since b290),
+			- $revert(b175) "function %ShowFatalError" @ %DSMain $dep_from %Main
+		),
+		/ %YCLib $=
+		(
+			/ "class %HDirectory" @ %FileSyatem $=
+			(
+				* "missing initialization of member %p_dirent"
+					@ "constructor with path parameter" $since b411,
+				/ DLD "initialized member %utf8_name" ^ "empty braced-init-list"
+			),
+			/ "call %YConsoleInit for message with level less than \
+				%Descriptions::Alert" @ "platform %DS"
+				@ "static member function %Logger::DefaultSendLog" @ %Debug,
+				// The program is not expected to continue after fatal error \
+					occurred.
+			/ %Platform $=
+			(
+				+ $dev $doc "Doxygen group %PlatformOptionalFeatures",
+				+ "macro %YF_Use_JNI if undefined" @ "platform %Android"
+			),
+			+ %JNI
+				$= (+ "function %FetchJNIEnvRef" @ 'YF_Use_JNI')
+		)
+	),
+	/ DLD "simplified arguments for '%p' of '*printf' function calls"
+		^ "%ystdex::pvoid" $dep_from %YBase.YStandardEx.Cast $effective
+		@ %YFramework.(YSLib.Service.File, 'Helper_(Android)'.AndroidHost),
+	/ %YReader $=
+	(
+		* $comp "abnormal exit on multithreading environment"
+			@ "%debug configurations" $since b551 $dep_from
+			%YFramework.YSLib.Adaptor.YNew,
+			// MinGW implementation would crash on exit by closing console \
+				window, because the underlying locking operation would throw \
+				an exception of %std::system_error with %invalid_operation \
+				condition.
+		* "assertion failed at line 99 of 'textmgr.cpp' when forced UTF-32 \
+			encodings for text file" $since b292 $dep_from
+			%YFramework.CHRLib.MappingEx,
+		/ $dev %Main $=
+		(
+			/ "logging for exception function %::main" ^ "%YTraceDe"
+				~ "custom log class";
+			- DLD "custom log class"
+		)
+	)
+),
+
+b551
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -327,7 +505,7 @@ b550
 				/ "explicitly guaranteed thread safety" $dep_from
 					"function %FetchAppInstance",
 				* "wrong 'ynothrow'" @ $since b297 $orig
-					"functions %SendMessage" $since b272,
+					(@ "functions %SendMessage" $since b272),
 				/ DLD "implemented inline functions"
 					^ "macros %(PDefH, ImplRet)"
 			)
@@ -1043,8 +1221,8 @@ b544
 			/ @ "function template %ufexists" $=
 			(
 				/ DLD $revert(b413) "implemented" !^ "macros %(PDefH, ImplRet)",
-				* "non overloaded non-class argument selected" $orig @ %YCommon
-					$since b305
+				* "non overloaded non-class argument selected" $orig (@ %YCommon
+					$since b305)
 			),
 			+ "(3 functions; 1 function template) %GetFileModificationTimeOf"
 		),
@@ -1243,8 +1421,8 @@ b543
 		* "possible interleave output across threads" @ %Tools.SHBuild.Main
 			$since b519
 			$= (* "missing '-mthreads'" @ "default value" @ "%CXXFLAGS"
-				@ "%common-bootstrap.sh" $since b538 $orig @ ("%CXXFLAGS"
-				$since b515 $orig @ "G++ command" $since b474) @ "%build.sh"))
+				@ "%common-bootstrap.sh" $since b538 $orig (@ "%CXXFLAGS"
+				$since b515 $orig (@ "G++ command" $since b474)) @ "%build.sh"))
 	)
 ),
 
@@ -1308,8 +1486,8 @@ b542
 			(
 				/ %YGUI $=
 				(
-					* "missing activation of timer" $orig @ "member function \
-						%InputTimer::RefreshClick" $since b416,
+					* "missing activation of timer" $orig (@ "member function \
+						%InputTimer::RefreshClick" $since b416),
 					/ @ "member function %GUIState::RefreshTap" $=
 					(
 						/ "swapped 2nd and 3rd parameter",
@@ -1631,7 +1809,7 @@ b539
 				(
 					^ "%std::chrono::steady_clock" ~ "multimedia and QPC APIs";
 					* $comp "missing call to '::timeEndPeriod' on exit" $orig
-						@ %YCommon $since b298
+						(@ %YCommon $since b298)
 				),
 				/ $lib "implemented timer" @ "platform %Android"
 					^ "%std::chrono::steady_clock" ~ "::clock_gettime"
@@ -1926,11 +2104,11 @@ b538
 				+ "function templates %(iterate_exceptions, \
 					get_nested_exception_ptr)"
 			),
-			/ @ "class template %used_list_cache" @ %Cache $orig
-				@ "class template %GMRUCache" @ %YFramework.YSLib.Core.Cache $=
+			/ @ "class template %used_list_cache" @ %Cache $orig (@
+				"class template %GMRUCache" @ %YFramework.YSLib.Core.Cache) $=
 			(
 				* "argument ignored" @ "function %set_max_use" $since b521 $orig
-					"function %SetMaxUse" $since b461,
+					(@ "function %SetMaxUse" $since b461),
 				* "missing erasing inserted of cache item when throwing"
 					@ "function template %emplace" $since b461
 			)
@@ -2005,7 +2183,7 @@ b538
 						/ "set %errno to %ERANGE when size is too small to \
 							contain the converted string",
 						/ "set %errno to %ENOMEM when allocation failed",
-						* "memory leak" $since b304 $orig @ %YCommon
+						* "memory leak" $orig (@ %YCommon $since b304)
 					)
 				)
 			),
@@ -2211,7 +2389,7 @@ b535
 							updated.
 				),
 				* "missing reset shared index" @ "member function \
-					%AMUnitList::ResetView" @ %Viewer $orig(%TextList)
+					%AMUnitList::ResetView" @ %Viewer $orig (@ %TextList)
 					$since b527
 			)
 		),
@@ -2483,8 +2661,9 @@ b531
 			/ %ListControl $=
 			(
 				* "%Move wrongly called for switch unit control" @ ("member \
-					function %AMUnitControlList::MakeIterator" $orig("member \
-					function template %AMUnitList::MakeIterator")) $since b528;
+					function %AMUnitControlList::MakeIterator" $orig (@
+					"member function template %AMUnitList::MakeIterator"))
+					$since b528;
 				* $comp "automatically invalidation even no cursor operations \
 					performed on %TextList except when the cursor is over the \
 					first line" $since b530;
@@ -2493,7 +2672,7 @@ b531
 						regression.
 			),
 			* "redundant call for %UpdateView" @ "handling events %(TouchDown, \
-				TouchHeld)" @ "class %TextList" $orig("events %(TouchDown, \
+				TouchHeld)" @ "class %TextList" $orig (@ "events %(TouchDown, \
 				TouchMove)" @ "class %YMenu" @ %Menu $since b203),
 				// Also a serious performance problem due to call of \
 					%Invalidate the whole control in %UpdateView. And The \
@@ -2610,7 +2789,7 @@ b530
 			),
 			* "position of arrow wrongly decided by clip area" @ "member \
 				function %InitializeArrowPainters" @ "class %ScrollBar"
-				@ %Scroll $orig("class %AScrollBar" $since b453);
+				@ %Scroll $orig (@ "class %AScrollBar" $since b453);
 			- "function %CheckConfirmed" @ "class %Menu" @ %Menu,
 			/ @ "class %TextList" $=
 			(
@@ -2785,7 +2964,7 @@ b528
 						- "data member %Unit" $dep_from "removal of %Unit"
 						),
 						- $revert($orig(b282))
-							"member function %GetMaxTextWidth" $orig(%Label)
+							"member function %GetMaxTextWidth" $orig (@ %Label)
 							$dep_from "removal of %GetMaxTextWidth"
 					),
 					/ @ "class %TextList" $=
@@ -2874,8 +3053,8 @@ b527
 					VerticalScrollBar)" -> "class %ScrollBar";
 				* $comp $dev "wrong 'ImplI(ATrack)'" @ "member function \
 					%GetOrientation" @ "classes %(HorizontalScrollBar, \
-					VerticalScrollBar)" @ %Scroll $since b205 $orig("classes \
-					%(YHorizontalScrollBar, YVerticlaScrollBar)"
+					VerticalScrollBar)" @ %Scroll $since b205 $orig (@
+					"classes %(YHorizontalScrollBar, YVerticlaScrollBar)"
 					@ %YGUIComponent $since b171),
 				* $comp "non-abstract class %AScrollBar named with prefix 'A'"
 					$since b171,
@@ -3251,8 +3430,8 @@ b524
 	),
 	* "missing atomic member initialization" $effective %YFramework.Helper
 		$= (^ "braced-init-list" ~ "empty ctor-initializer")
-		@ ("class %Environment" @ %Environment $orig(%Host) $since b399,
-		"class %WindowThread" @ %HostRenderer $orig(%Helper $impl) b428);
+		@ ("class %Environment" @ %Environment $orig (@ %Host) $since b399,
+		"class %WindowThread" @ %HostRenderer $orig (@ %Helper $impl) b428);
 		// See $2014-08 @ %Documentation::Workflow::Annual2014. Similar as fix \
 			@ b491.
 ),
@@ -3512,7 +3691,7 @@ b520
 				+ "function template %operator!= for %GHEvent"
 			),
 			* "wrong return type" @ "member function %TextFile::GetBOMSize"
-				@ %Service.TextFile $orig(%Core.YFile_(Text)) $since b138
+				@ %Service.TextFile $orig (@ %Core.YFile_(Text)) $since b138
 				$= (/ "return type" -> "%size_t" ~ "%u8")
 				// The member type had been already changed ago but the getter \
 					wasn't be synchronized.
@@ -3548,7 +3727,7 @@ b520
 		),
 		* DLB "ill-formed code due to narrow conversion when %std::size_t \
 			converted to 'unsigned long'" (@ %'YCLib_(MinGW32)'.MinGW32
-			$orig(%Helper)) $since b387,
+			$orig (@ %Helper)) $since b387,
 			// It would fail to compile for Win64.
 		/ DLD "simplified implementation" @ "member function \
 			%InputManager::DispatchInput" @ %Helper.InputManager
@@ -3729,7 +3908,7 @@ b520
 				%fprintf.
 			$= (/ "format" ^ '%zu' ~ '%u'),
 		* @ "function %OnExit_DebugMemory_print" @ %Main $since
-			$orig("function %OnExit_DebugMemory" @ %platform.DS.Main) b300
+			$orig (@ "function %OnExit_DebugMemory" @ %platform.DS.Main) b300
 			$= (/ "format" ^ '%zu' ~ '%i'),
 		/ $effective %YReader $=
 		(
@@ -3788,7 +3967,7 @@ b519
 					* "wrong value restricted when view height is less than or \
 						equal to the height" $since b261;
 					* $comp "wrong value restricted when view height is zero"
-						$since $orig(%UI.YMenu) b203
+						$orig (@ %UI.YMenu $since b203)
 				)
 			),
 			/ @ "function template %RestrictInInterval" @ %Core.YCoreUtilities
@@ -4039,7 +4218,7 @@ b517
 					@ (("function %PutCharBase" @ %CharRenderer $since b372,
 					"function %BlitBounds" @ %YBlit $since b438, "class \
 					%TextRegion" $since $before b132, "functions %(PlotHLineSeg,
-					PlotVLineSeg)" @ %YDraw $since $orig(%Core.YGDI) b135)
+					PlotVLineSeg)" @ %YDraw $orig (@ %Core.YGDI $since b135))
 					@ %Service, "member function %TextList::InvalidateSelected"
 					@ %UI.TextList $since b268),
 				* "missing explicit template parameter" @ "member function \

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r834
+\version r840
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-06-05 09:50 +0800
+	2013-11-10 00:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,13 +149,6 @@ public:
 */
 YF_API bool
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
-
-/*!
-\brief 显示致命错误。
-\since build 175
-*/
-YF_API void
-ShowFatalError(const char*);
 
 #	if YCL_Win32
 namespace MinGW32

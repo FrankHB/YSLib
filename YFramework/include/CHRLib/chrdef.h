@@ -11,13 +11,13 @@
 /*!	\file chrdef.h
 \ingroup CHRLib
 \brief CHRLib 类型声明。
-\version r673
+\version r675
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-04-29 09:29 +0800
+	2014-11-09 21:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,8 @@ namespace CHRLib
 {
 
 using ystdex::byte;
+//! \since build 552
+using ystdex::octet;
 using ystdex::size_t;
 
 //! \brief 字符类型声明。

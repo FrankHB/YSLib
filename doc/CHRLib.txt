@@ -11,13 +11,13 @@
 /*!	\file CHRLib.txt
 \ingroup Documentation
 \brief CHRLib 说明。
-\version r154
+\version r157
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-09-09 20:17 +0800
+	2014-11-10 00:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,7 +108,9 @@
 接口说明中若未指定字节序，表示同时适于大端序和小端序（如 UCS-2 指 UCS-2BE 和 UCS-2LE） 。
 
 @2.3 限制：
-目前 Unicode 编码中仅支持基本多文种平面(BMP) 编码点。对 UTF-16 编码支持仅实现兼容 UCS-2 的部分。
+除 UTF-8 外编码映射 API 仅支持解码，不支持编码。
+除直接使用基于 GUCS2Mapper 实现的编码映射 API 外，当前 Unicode 转换 API 仅支持基本多文种平面(BMP) 代码点。
+当前未实现默认字符，需要用户另行处理。
 
 @3 API 设计和风格概述：
 参见 [Documentation::Designation @@3] 。

@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r827
+\version r871
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-10-26 03:16 +0800
+	2014-11-08 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -315,9 +315,23 @@ concat(_tString& str, size_t n)
 
 //! \ingroup string_algorithms
 //@{
-//! \since build 474
+//! \since build 552
 //@{
 //! \brief 删除字符串中指定的连续前缀字符。
+//@{
+template<class _tString>
+inline _tString&&
+ltrim(_tString&& str, typename string_traits<_tString>::value_type c)
+{
+	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(c)));
+}
+template<class _tString>
+inline _tString&&
+ltrim(_tString&& str, const _tString& t)
+{
+	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
+}
+//! \since build 474
 template<class _tString>
 inline _tString&&
 ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
@@ -325,8 +339,22 @@ ltrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 {
 	return static_cast<_tString&&>(str.erase(0, str.find_first_not_of(t)));
 }
+//@}
 
 //! \brief 删除字符串中指定的连续后缀字符。
+//@{
+template<class _tString>
+inline _tString&&
+rtrim(_tString&& str, typename string_traits<_tString>::value_type c)
+{
+	return static_cast<_tString&&>(str.erase(str.find_last_not_of(c) + 1));
+}
+template<class _tString>
+inline _tString&&
+rtrim(_tString&& str, const remove_reference_t<_tString>& t)
+{
+	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
+}
 template<class _tString>
 inline _tString&&
 rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
@@ -334,8 +362,22 @@ rtrim(_tString&& str, typename string_traits<_tString>::const_pointer t
 {
 	return static_cast<_tString&&>(str.erase(str.find_last_not_of(t) + 1));
 }
+//@}
 
 //! \brief 删除字符串中指定的连续前缀与后缀字符。
+//@{
+template<class _tString>
+inline _tString&&
+trim(_tString&& str, typename string_traits<_tString>::value_type c)
+{
+	return static_cast<_tString&&>(ystdex::ltrim(ystdex::rtrim(str, c)));
+}
+template<class _tString>
+inline _tString&&
+trim(_tString&& str, const _tString& t)
+{
+	return static_cast<_tString&&>(ystdex::ltrim(ystdex::rtrim(str, t)));
+}
 template<class _tString>
 inline _tString&&
 trim(_tString&& str, typename string_traits<_tString>::const_pointer t
@@ -343,6 +385,7 @@ trim(_tString&& str, typename string_traits<_tString>::const_pointer t
 {
 	return static_cast<_tString&&>(ystdex::ltrim(ystdex::rtrim(str, t)));
 }
+//@}
 //@}
 
 /*!

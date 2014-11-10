@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r273
+\version r276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-11-05 00:12 +0800
+	2014-11-07 17:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -256,9 +256,8 @@
 @3 API 设计和风格概述：
 基本内容参见 [Documentation::Designation @@3] 。
 
-@3.1 异常规则：
-尽量保持异常中立。
-禁止 catch(...) 以避免错误地捕获非 C++ 异常，参见 [Documentation::LanguageConvention @@5.10.5.6] 。
+@3.1 异常使用规则：
+基本内容参见 [Documentation::LanguageConvention @@5.10.5] 。
 所有内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::LanguageConvention @@5.10.5.1.3]) 。
 
 */

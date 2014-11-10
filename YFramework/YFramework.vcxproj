@@ -142,6 +142,7 @@
     <ClInclude Include="include\YCLib\FileSystem.h" />
     <ClInclude Include="include\YCLib\Host.h" />
     <ClInclude Include="include\YCLib\Input.h" />
+    <ClInclude Include="include\YCLib\JNI.h" />
     <ClInclude Include="include\YCLib\Keys.h" />
     <ClInclude Include="include\YCLib\MemoryMapping.h" />
     <ClInclude Include="include\YCLib\Mutex.h" />
@@ -259,6 +260,7 @@
     <ClCompile Include="source\YCLib\FileSystem.cpp" />
     <ClCompile Include="source\YCLib\Host.cpp" />
     <ClCompile Include="source\YCLib\Input.cpp" />
+    <ClCompile Include="source\YCLib\JNI.cpp" />
     <ClCompile Include="source\YCLib\Keys.cpp" />
     <ClCompile Include="source\YCLib\MemoryMapping.cpp" />
     <ClCompile Include="source\YCLib\NativeAPI.cpp" />
