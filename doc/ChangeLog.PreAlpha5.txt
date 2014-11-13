@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r6475
+\version r6625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-11-11 03:58 +0800
+	2014-11-13 20:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,156 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %Debug $=
+			(
+				* $dev $build "missing including <ystdex/string.hpp>"
+					@ "header file" $since b499,
+					// Thus 'ystdex::sfmt' would be not necessarily declared.
+				+ "function templates %(Nonnull; Deref)"
+					@ "namespace %platform",
+				+ 'ynothrow' @ "function %platform_ex::LogAssert)"
+					@ "platform %Android"
+			),
+			+ "macro %YF_Use_JNI if undefined"
+				@ "platforms %(MinGW32, MinGW64, Android)" @ %Platform,
+				// Currently, only "posix" thread model G++ is supported.
+			+ %POSIXThread
+				$= (+ "class %TLSKey" @ 'YF_Use_JNI')
+			/ @ %JNI $=
+			(
+				+ "namespace %platform_ex::JNI";
+				/ @ "namespace %JNI" $=
+				(
+					+ "class %JNIException; macro %YF_Raise_JNIExceptionOnNull",
+					(
+					/ "function %FetchJNIEnvRef" -> "class %JNIBase" $=
+					(
+						+ "functions %(GetEnvRef, GetVMRef)",
+						(
+						/ "allowing select JNI version in constructor";
+						* $comp "fixed JNI 1.6" $since b552,
+						),
+						+ "function templates %Nonnull; Deref" $dep_from
+							"%YF_Raise_JNIExceptionOnNull",
+						+ "function %ThrowOnException",
+						(
+						+ "function %EnsureDetachJNIAtThreadExit"
+							$= (+ "explicitly specified platforms without TLS \
+								or POSIX thread is not supported explicitly by \
+								throwing %ystdex::unsupported exception");
+						* $comp "missing detaching on thread exit for \
+							platforms with this capability" $since b552
+						)
+					),
+					+ @ "class %JNI" $dep_from "base class %JNIBase"
+						$= (+ "28 alias declarations for JNI types")
+				)
+			),
+			/ $dev %Platform $=
+			(
+				+ $doc "Doxygen group %PlatformAPIs",
+				/ "macro %YCL_API_FILESYSTEM_POSIX"
+					-> "%YCL_API_POSIXFileSystem with token '1'",
+				/ "macro %YCL_API_USE_UNISTD" -> "%YCL_API_Have_unistd_h of \
+					token '1'",
+				/ "macro %YCL_API_USE_SYS_DIR" -> "%YCL_API_Have_dirent_h of \
+					token '1'",
+				+ ('#	define YCL_API_Have_dirent_h 1',
+					'#	define YCL_API_Have_unistd_h 1') @ "platform %Android"
+			),
+			/ %FileSystem $=
+			(
+				+ "class %platform::file_desc";
+				+ "struct %file_desc_deleter";
+				/ DLD "simplified implementation"
+			),
+			/ %Host $=
+			(
+				+ "support" @ '!YCL_Win32 && YCL_API_Has_unistd_h'
+					@ "%HandleDeleter"
+					$= (/ "class %HandleDeleter"
+						-> 'using HandleDeleter = platform::file_desc_deleter'
+						$dep_from ("%file_desc_deleter" @ %FileSystem));
+				+ "support" @ 'YCL_API_Has_unistd_h' @ $dep_from
+					"function %MakePipe"
+			)
+		),
+		/ %YSLib $=
+		(
+			+ ('using platform::Nonnull;', 'using platform::Deref;')
+				@ %Adaptor.YAdaptor,
+				// Though it makes more difficult to locate wrong code by \
+					line, debugger is not effected because the control in \
+					terminate hanlder can be broke.
+			/ %Core $=
+			(
+				/ @ "constructor template %GEventPointerWrapper" @ %YEvent $=
+				(
+					* "missing overloaded selection excluding for cv-qualified \
+						copy/move candidate parameter" $since b242,
+					* "wrong assertion of moved after state of argument" $since
+						b242
+				),
+				/ DLD "implemented inline function %Activate" @ %YApplication
+					^ "macros %(PDefH, ImplRet)"
+			)
+		),
+		/ $lib "simplified direct assertion to indirect assertion"
+			^ "%Nonnull, Deref" $dep_from %YCLib.Debug $effective @ %(YCLib.(
+			Debug, FileSystem, Input), YCLib_(MinGW32).(COM, MinGW32, Win32GUI),
+			YCLib_(Android).Android),
+		+ "assertions for nonnull string arguments" @ "functions %(MBCSToMBCS, \
+			WCSToMBCS, MBCSToWCS)" @ %'YCLib_(MinGW32)'.MinGW32
+		/ DLD "implemented inline functions" ("%ResetDesktop"
+			@ %Helper.ShellHelper, "%(2 PutPixel, PlotPixel, DrawPoint, \
+			DrawHLineSeg, DrawVLineSeg, DrawLineSeg, DrawRect)"
+			@ %YSLib.Service.YDraw) ^ "macros %(PDefH, ImplExpr)",
+		/ DLD "implemented inline functions %(IsNowShell, NowShellTo, \
+			SetShellTo, GenerateRandomColor, CreateSharedScreenImage)"
+			@ %Helper.ShellHelper ^ "macros %(PDefH, ImplRet)",
+		+ "assertion for swapped pointer" @ "argument" 
+			"member function %ScreenBuffer::swap" @ %'YCLib_(Android)'.Android,
+		/ "function %MakePipe" @ "namespace %Windows" @ 'YCLib_(MinGW32)'
+			>> ("namespace %platform_ex" @ %Host),
+		/ @ "class %NativeHost" @ %Helper_(Android).AndroidHost $=
+		(
+			+ DLD "cross thread communication state";
+			+ $design "cross thread log",
+			+ "function %RunOnUIThread"
+			* $revert(b551) "program not exited after posting quit message \
+				until press back button"
+		)
+	),
+	/ %YBase $=
+	(
+		/ "required non-zero %_GLIBCXX_HAVE_TLS when G++ used"
+			@ "macro %YB_HAS_THREAD_LOCAL" @ %YDefinition,
+		/ %YStandardEx $=
+		(
+			+ 'ynothrow' @ "functions %(yassert, ytrace)" @ %CAssert,
+			* "missing overloaded selection excluding for cv-qualified \
+				copy/move candidate parameter" @ "classes %(unimplemented, \
+				unsupported)" @ %Utilities $since b475
+		)
+	),
+	/ $lib "simplified direct assertion to indirect assertion"
+		^ "%Nonnull, Deref" $dep_from YFrameowrk.YSLib.Adaptor.YAdaptor
+		$effective @ %(YFramework.(Helper.(ShellHelper, GUIApplication,
+		HostRenderer, HostWindow, InputManager), YSLib.(Adaptor.(Image, Font),
+		Core.(YApplication, YCoreUtilities, YEvent, YObject, YDevice, YGDIBase),
+		Service.(YDraw, TextManager, YBlit), UI.(Animation, ComboList, Scroll,
+		TabControl, YWidget, ListControl)), Helper_(DS).(DSScreen, DSMain,
+		Shell_DS), Helper_(Android).AndroidHost), YReader.DSReader);
+	- $lib "some unnecessary duplicate assertions" $effective @ %YFramework.(
+		YCLib.FileSystem, CHRLib.CharacterProcessing),
+),
+
+b552
 (
 	/ %YBase.YStandardEx $=
 	(
@@ -214,7 +364,7 @@ b551
 	(
 		/ %PseudoMutex $=
 		(
-			* "ill-formed code" $since b550 $=
+			* $dev $build "ill-formed code" $since b550 $=
 			(
 				* "missing including <chrono>",
 				* "order of alias declaration"

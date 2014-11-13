@@ -11,13 +11,13 @@
 /*!	\file chrproc.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1111
+\version r1115
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-10-11 18:37 +0800
+	2014-11-12 05:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,7 +109,7 @@ inline PDefH(ConversionResult, MBCToUC, std::FILE* fp, Encoding enc,
 
 /*!
 \brief 按指定编码转换 UCS-2 字符为字符串表示的多字节字符，返回转换的字节数。
-\pre 断言： 指针参数非空 。
+\pre 断言：指针参数非空 。
 \since build 305
 */
 YF_API size_t
@@ -119,7 +119,7 @@ UCToMBC(char*, const ucs2_t&, Encoding);
 //! \note 编码字节序同实现的 ucs2_t 存储字节序。
 //@{
 /*
-\pre 断言： 指针参数非空 。
+\pre 断言：指针参数非空 。
 \return 转换的串长。
 */
 //@{
@@ -161,7 +161,7 @@ GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 
 /*!
 \pre 输入字符串的每个字符不超过 <tt>sizeof(ucsint_t)</tt> 字节。
-\pre 断言： 指针参数非空。
+\pre 间接断言：指针参数非空。
 \since build 544
 */
 //@{
@@ -170,8 +170,6 @@ template<class _tDst = std::basic_string<ucs2_t>>
 _tDst
 MakeUCS2LE(const char* s, Encoding enc = CS_Default)
 {
-	yconstraint(s);
-
 	_tDst str(ystdex::ntctslen(s),
 		typename ystdex::string_traits<_tDst>::value_type());
 

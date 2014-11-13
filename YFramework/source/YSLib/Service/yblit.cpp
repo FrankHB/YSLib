@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1072
+\version r1074
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2014-07-11 00:14 +0800
+	2014-11-12 04:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,11 +76,10 @@ BlitBounds(const Point& dp, const Point& sp,
 void
 CopyBuffer(const Graphics& dst, const Graphics& src)
 {
-	YAssertNonnull(dst.GetBufferPtr()), YAssertNonnull(src.GetBufferPtr());
 	YAssert(dst.GetSize() == src.GetSize(), "Source and destination sizes"
 		"are not same.");
 
-	if(YB_LIKELY(dst.GetBufferPtr() != src.GetBufferPtr()))
+	if(YB_LIKELY(Nonnull(dst.GetBufferPtr()) != Nonnull(src.GetBufferPtr())))
 		std::copy_n(src.GetBufferPtr(), GetAreaOf(src.GetSize()),
 			dst.GetBufferPtr());
 }

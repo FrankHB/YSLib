@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r451
+\version r485
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-11-05 04:02 +0800
+	2014-11-12 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include "YModules.h"
 #include YFM_YCLib_YCommon
 #include YFM_YCLib_Mutex
-#include <libdefect/string.h> // for std::string;
+#include <ystdex/string.hpp> // for std::string, ystdex::sfmt;
 
 /*!	\defgroup diagnostic Diagnostic
 \brief 诊断设施。
@@ -129,7 +129,7 @@ public:
 
 	/*!
 	\brief 默认发送器：使用 stderr 输出。
-	\pre 断言：第三参数非空。
+	\pre 间接断言：第三参数非空。
 	*/
 	static void
 	DefaultSendLog(Level, Logger&, const char*) ynothrowv;
@@ -152,7 +152,7 @@ private:
 	\since build 510
 	*/
 	//@{
-	//! \pre 断言：指针参数非空。
+	//! \pre 间接断言：指针参数非空。
 	void
 	DoLogRaw(Level, const char*);
 	PDefH(void, DoLogRaw, Level lv, const std::string& str)
@@ -194,7 +194,8 @@ FetchCommonLogger();
 
 /*!
 \brief 格式输出日志字符串前追加记录源文件行号和文件名。
-\pre 断言：指针参数非空。
+\pre 断言：第一参数非空。
+\pre 间接断言：第三参数非空。
 \since build 498
 */
 YF_API YB_ATTR(format (printf, 3, 4)) YB_NONNULL(1, 3) std::string
@@ -250,10 +251,10 @@ namespace platform_ex
 \note 默认断言和 ystdex::yassert 无法使用调试日志输出时的替代。
 \note 在 Android 平台上用此函数包装 NDK 函数实现。
 \sa ystdex::yassert
-\since build 499
+\since build 553
 */
 YF_API void
-LogAssert(bool, const char*, const char*, int, const char*);
+LogAssert(bool, const char*, const char*, int, const char*) ynothrow;
 
 #	ifdef YB_Use_YAssert
 #		undef YAssert
@@ -307,6 +308,37 @@ public:
 #endif
 
 } // namespace platform_ex;
+
+namespace platform
+{
+
+/*!
+\brief 断言并返回非空指针。
+\pre 断言：指针非空。
+\since build 553
+*/
+template<typename _type>
+inline _type&&
+Nonnull(_type&& p)
+{
+	YAssertNonnull(p);
+	return yforward(p);
+}
+
+/*!
+\brief 断言并解引用非空指针。
+\pre 使用 ADL 指定的 Nonnull 调用的表达式语义等价于 platform_Nonnull 。
+\pre 间接断言：指针非空。
+\since build 553
+*/
+template<typename _type>
+inline auto
+Deref(_type&& p) -> decltype(*p)
+{
+	return *Nonnull(yforward(p));
+}
+
+} // namespace platform;
 
 #endif
 

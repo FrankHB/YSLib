@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2577
+\version r2579
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-10-25 11:31 +0800
+	2014-11-13 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,7 +37,7 @@
  YSLib 库下直接的子目录计有 Adaptor 、 Core 、 Service 和 UI 。
 
 @1.1 名称、命名空间和源代码一般规则：
-注意本体([Documentation::YFramework @@2.1.4]) 相对其它代码有更严格的准则。
+注意本体([Documentation::YFramework @@2.1.5]) 相对其它代码有更严格的准则。
 
 @1.1.1 名称使用限制：
 基本规则参见 [Documentation::YFramework @@2.3.1] 。
@@ -159,7 +159,7 @@
 负责衔接和封装外部库，便于移植。
 除了 C++ 标准库以外，其它外部库的名称需要在此声明。
 直接使用除 C++ 标准库、 POSIX / GNU C 兼容函数库、 YCLib 库之外的外部库原代码片段所在文件都从属于 Adaptor 。
-除非另行约定，仅保证必要文件[Documentation::YFramework @@2.1.1] 提供接口中的可重入性和线程安全性同本体([Documentation::YFramework @@2.1.4]) 。
+除非另行约定，仅保证必要文件[Documentation::YFramework @@2.1.1] 提供接口中的可重入性和线程安全性同本体([Documentation::YFramework @@2.1.5]) 。
 
 @2.1 外部库关联 YAdaptor ：
 默认行为如下：

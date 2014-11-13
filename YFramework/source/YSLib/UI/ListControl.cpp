@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2080
+\version r2087
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-09-11 12:38 +0800
+	2014-11-12 05:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,8 +49,7 @@ AMUnitControlList::AMUnitControlList(unique_ptr<IWidget>&& p_wgt)
 IWidget&
 AMUnitControlList::GetUnitRef() const
 {
-	YAssertNonnull(p_unit);
-	return *p_unit;
+	return Deref(p_unit);
 }
 
 void
@@ -257,8 +256,8 @@ TextList::InvalidateSelected(ListType::difference_type offset,
 {
 	if(offset >= 0 && n != 0)
 	{
-		const auto ln_h(GetItemHeight());
-		Rect r(0, ln_h * offset - uTopOffset, GetWidth(), ln_h * n);
+		const auto item_h(GetItemHeight());
+		Rect r(0, item_h * offset - uTopOffset, GetWidth(), item_h * n);
 
 		if(r.Y < 0 || SDst(r.Y) < GetHeight())
 		{
@@ -295,12 +294,12 @@ TextList::LocateViewPosition(SDst h)
 	RestrictUnsignedStrict(h, fvh - height - 1);
 	if(GetViewPosition() != h)
 	{
-		const SDst item_height(GetItemHeight());
+		const SDst item_h(GetItemHeight());
 
 		//先保证避免部分显示的项目使视图超长，再设置视图位置。
 		AdjustViewLength();
-		vwList.SetHeadIndex(h / item_height, GetList().size());
-		uTopOffset = h % item_height;
+		vwList.SetHeadIndex(h / item_h, GetList().size());
+		uTopOffset = h % item_h;
 		//更新视图。
 		UpdateView(*this, true);
 	}

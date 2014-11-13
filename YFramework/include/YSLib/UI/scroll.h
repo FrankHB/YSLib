@@ -11,13 +11,13 @@
 /*!	\file scroll.h
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r2749
+\version r2751
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:10:35 +0800
 \par 修改时间:
-	2014-08-28 07:27 +0800
+	2014-11-12 04:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -357,8 +357,7 @@ public:
 	\brief 取轨道引用。
 	\pre 断言： bool(pTrack) 。
 	*/
-	DefGetter(const ynothrow, ATrack&, TrackRef,
-		(YAssertNonnull(pTrack), *pTrack))
+	DefGetter(const ynothrow, ATrack&, TrackRef, Deref(pTrack))
 	DefGetterMem(const ynothrow, ValueType, MaxValue, GetTrackRef())
 	DefGetterMem(const ynothrow, ValueType, Value, GetTrackRef())
 	DefGetterMem(const ynothrow, ValueType, LargeDelta, GetTrackRef())

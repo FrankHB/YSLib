@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r445
+\version r464
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-11-10 01:34 +0800
+	2014-11-13 01:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,7 +111,8 @@ CheckWine()
 std::string
 MBCSToMBCS(const char* str, std::size_t len, int cp_src, int cp_dst)
 {
-	if (cp_src == cp_dst)
+	YAssertNonnull(str);
+	if(cp_src == cp_dst)
 		return str;
 
 	const int w_len(::MultiByteToWideChar(cp_src, 0, str, len, {}, 0));
@@ -126,8 +127,8 @@ MBCSToMBCS(const char* str, std::size_t len, int cp_src, int cp_dst)
 std::string
 WCSToMBCS(const wchar_t* str, std::size_t len, int cp)
 {
-	const int r_len(::WideCharToMultiByte(cp, 0, str, len,
-		nullptr, 0, nullptr, nullptr));
+	const int
+		r_len(::WideCharToMultiByte(cp, 0, Nonnull(str), len, {}, 0, {}, {}));
 	std::string mbcs(r_len, char());
 
 	::WideCharToMultiByte(cp, 0, str, len, &mbcs[0], r_len, {}, {});
@@ -137,12 +138,11 @@ WCSToMBCS(const wchar_t* str, std::size_t len, int cp)
 std::wstring
 MBCSToWCS(const char* str, std::size_t len, int cp)
 {
-	const auto w_len(::MultiByteToWideChar(cp, 0, str, len, {}, 0));
+	const auto w_len(::MultiByteToWideChar(cp, 0, Nonnull(str), len, {}, 0));
 	std::wstring res(w_len, wchar_t());
 	const auto w_str = &res[0];
 
 	::MultiByteToWideChar(cp, 0, str, len, w_str, w_len);
-
 	return res;
 }
 
@@ -226,11 +226,9 @@ RegistryKey::Flush()
 std::pair<::DWORD, std::vector<ystdex::byte>>
 RegistryKey::GetRawValue(const wchar_t* name, ::DWORD type) const
 {
-	YAssertNonnull(name);
-
 	::DWORD size;
 
-	YF_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, name,
+	YF_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, Nonnull(name),
 		{}, type == REG_NONE ? &type : nullptr, {}, &size), "RegQueryValueExW");
 
 	std::vector<ystdex::byte> res(size);
@@ -307,23 +305,6 @@ FetchRegistryString(const RegistryKey& key, const wchar_t* name)
 	catch(Win32Exception&)
 	{}
 	return {};
-}
-
-
-std::pair<UniqueHandle, UniqueHandle>
-MakePipe()
-{
-	::HANDLE h_raw_read, h_raw_write;
-
-	if(!::CreatePipe(&h_raw_read, &h_raw_write, {}, 0))
-		YF_Raise_Win32Exception("CreatePipe");
-
-	UniqueHandle h_read(h_raw_read), h_write(h_raw_write);
-
-	if(!::SetHandleInformation(h_write.get(), HANDLE_FLAG_INHERIT,
-		HANDLE_FLAG_INHERIT))
-		YF_Raise_Win32Exception("SetHandleInformation");
-	return {std::move(h_read), std::move(h_write)};
 }
 
 

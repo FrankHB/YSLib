@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1968
+\version r1974
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-11-05 02:36 +0800
+	2014-11-12 00:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,9 @@ public:
 	unsupported()
 		: logic_error("Unsupported operation found.")
 	{}
-	template<typename _type>
+	//! \since build 553
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_ctor_t<unsupported, _type>)>
 	unsupported(_type&& arg)
 		: logic_error(yforward(arg))
 	{}
@@ -59,7 +61,9 @@ public:
 	unimplemented()
 		: unsupported("Unimplemented operation found.")
 	{}
-	template<typename _type>
+	//! \since build 553
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_ctor_t<unimplemented, _type>)>
 	unimplemented(_type&& arg)
 		: unsupported(yforward(arg))
 	{}

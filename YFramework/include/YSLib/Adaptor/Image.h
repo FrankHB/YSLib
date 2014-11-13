@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r841
+\version r846
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-10-04 15:11 +0800
+	2014-11-12 05:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -255,7 +255,7 @@ public:
 	HBitmap(const Size&, BitPerPixel = 0);
 	/*!
 	\brief 构造：从矩形像素图缓冲区按指定大小和扫描线跨距增量复制并转换图像数据。
-	\pre 断言：输入指针非空。
+	\pre 间接断言：输入指针非空。
 	\throw LoggedEvent 转换失败。
 	\note 扫描线跨距的单位为字节，
 		等于图像的宽乘以每像素字节数与输入的扫描线跨距增量之和。
@@ -587,8 +587,7 @@ public:
 inline HMultiBitmap::iterator&
 HMultiBitmap::iterator::operator++() ynothrowv
 {
-	YAssertNonnull(p_bitmaps);
-	if(++index == p_bitmaps->GetPageCount())
+	if(++index == Deref(p_bitmaps).GetPageCount())
 		p_bitmaps = {};
 	return *this;
 }
@@ -596,8 +595,7 @@ HMultiBitmap::iterator::operator++() ynothrowv
 inline HMultiBitmap::iterator::reference
 HMultiBitmap::iterator::operator*() const
 {
-	YAssertNonnull(p_bitmaps);
-	return p_bitmaps->Lock(index);
+	return Deref(p_bitmaps).Lock(index);
 }
 
 inline bool

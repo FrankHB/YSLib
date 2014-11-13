@@ -11,13 +11,13 @@
 /*!	\file cassert.cpp
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r69
+\version r71
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2012-07-27 04:13:34 +0800
 \par 修改时间:
-	2014-03-17 00:30 +0800
+	2014-11-11 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ namespace ystdex
 #ifdef YB_Use_YAssert
 void
 yassert(bool expr, const char* expr_str, const char* file, int line,
-	const char* msg)
+	const char* msg) ynothrow
 {
 	if(YB_UNLIKELY(!expr))
 	{
@@ -49,7 +49,7 @@ yassert(bool expr, const char* expr_str, const char* file, int line,
 #if YB_Use_YTrace
 void
 ytrace(std::FILE* stream, std::uint8_t lv, std::uint8_t t, const char* file,
-	int line, const char* msg, ...)
+	int line, const char* msg, ...) ynothrow
 {
 	if(lv < t)
 	{

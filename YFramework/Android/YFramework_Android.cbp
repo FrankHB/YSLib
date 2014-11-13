@@ -177,6 +177,7 @@
 		<Unit filename="../include/YCLib/MemoryMapping.h" />
 		<Unit filename="../include/YCLib/Mutex.h" />
 		<Unit filename="../include/YCLib/NativeAPI.h" />
+		<Unit filename="../include/YCLib/POSIXThread.h" />
 		<Unit filename="../include/YCLib/Platform.h" />
 		<Unit filename="../include/YCLib/Timer.h" />
 		<Unit filename="../include/YCLib/Video.h" />
@@ -291,6 +292,7 @@
 		<Unit filename="../source/YCLib/Keys.cpp" />
 		<Unit filename="../source/YCLib/MemoryMapping.cpp" />
 		<Unit filename="../source/YCLib/NativeAPI.cpp" />
+		<Unit filename="../source/YCLib/POSIXThread.cpp" />
 		<Unit filename="../source/YCLib/Timer.cpp" />
 		<Unit filename="../source/YCLib/Video.cpp" />
 		<Unit filename="../source/YCLib/ycommon.cpp" />

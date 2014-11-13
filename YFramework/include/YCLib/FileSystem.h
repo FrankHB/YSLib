@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1521
+\version r1561
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-11-09 18:59 +0800
+	2014-11-13 19:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,7 +125,7 @@ using NativePathCharType = char;
 \since build 402
 */
 yconstexpr CHRLib::CharSet::Encoding CS_Path(CHRLib::CharSet::UTF_8);
-#elif defined(YCL_API_FILESYSTEM_POSIX)
+#elif defined(YCL_API_POSIXFileSystem)
 	/*!
 	\brief 文件路径分隔符。
 	\since build 298
@@ -176,6 +176,53 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 	"Non-null-terminator as end of separator.");
 #endif
 //@}
+
+
+/*!
+\brief 文件描述符包装类。
+\note 满足 NullablePointer 要求。
+\see ISO WG21/N4140 17.6.3.3[nullablepointer.requirements] 。
+\since build 553
+*/
+class YF_API file_desc
+{
+private:
+	int fd;
+
+public:
+	file_desc() ynothrow
+		: fd(-1)
+	{}
+	file_desc(int fd) ynothrow
+		: fd(fd)
+	{}
+	file_desc(std::nullptr_t) ynothrow
+		: fd(-1)
+	{}
+
+	PDefHOp(int, *, )
+		ImplRet(fd)
+
+	explicit DefCvt(const ynothrow, bool, fd != -1)
+
+	friend PDefHOp(bool, ==, const file_desc& x, const file_desc& y)
+		ImplRet(x.fd == y.fd)
+	friend PDefHOp(bool, !=, const file_desc& x, const file_desc& y)
+		ImplRet(x.fd != y.fd)
+};
+
+
+/*!
+\brief 文件描述符删除器。
+\since build 553
+*/
+struct YF_API file_desc_deleter
+{
+	using pointer = file_desc;
+
+	void
+	operator()(pointer) ynothrow;
+};
 
 
 /*!
@@ -236,7 +283,7 @@ ufopen(const char16_t* filename, const char16_t* mode) ynothrow;
 
 /*!
 \note 使用 ufopen 二进制只读模式打开测试实现。
-\pre 断言：参数非空。
+\pre 间接断言：参数非空。
 */
 //@{
 //! \brief 判断指定 UTF-8 文件名的文件是否存在。

@@ -10,15 +10,16 @@
 
 /*!	\file Host.cpp
 \ingroup YCLib
-\ingroup MinGW32
+\ingroup YCLibLimitedPlatforms
+\ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r51
+\version r89
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2014-10-13 21:40 +0800
+	2014-11-13 19:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,10 +29,20 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
+#include YFM_YCLib_NativeAPI
+#if YCL_Win32
+#	include YFM_MinGW32_YCLib_MinGW32
+#elif YF_Hosted
+#	include <fcntl.h>
+
+//! \since build 553
+using platform::FileOperationFailure;
+#endif
 
 using namespace YSLib;
 
 #if YF_Hosted
+
 namespace platform_ex
 {
 
@@ -45,6 +56,41 @@ Exception::Exception(int ev, const std::error_category& ecat,
 	level(lv)
 {}
 
+
+std::pair<UniqueHandle, UniqueHandle>
+MakePipe()
+{
+#if YCL_Win32
+	::HANDLE h_raw_read, h_raw_write;
+
+	if(!::CreatePipe(&h_raw_read, &h_raw_write, {}, 0))
+		YF_Raise_Win32Exception("CreatePipe");
+
+	UniqueHandle h_read(h_raw_read), h_write(h_raw_write);
+
+	if(!::SetHandleInformation(h_write.get(), HANDLE_FLAG_INHERIT,
+		HANDLE_FLAG_INHERIT))
+		YF_Raise_Win32Exception("SetHandleInformation");
+	return {std::move(h_read), std::move(h_write)};
+#elif YCL_API_Has_unistd_h
+	int fds[2];
+
+	if(::pipe(fds) != 0)
+		throw FileOperationFailure(errno, std::generic_category(),
+			"Failed getting file size.");
+	if(::fcntl(fds[0], F_SETFL, O_NONBLOCK) != 0)
+		throw FileOperationFailure(errno, std::generic_category(),
+			"Failed making pipe for reading.");
+	if(::fcntl(fds[1], F_SETFL, O_NONBLOCK) != 0)
+		throw FileOperationFailure(errno, std::generic_category(),
+			"Failed making pipe for writing.");
+	return {UniqueHandle(fds[0]), UniqueHandle(fds[1])};
+#else
+#	error "Unsupported platform found."
+#endif
+}
+
 } // namespace YSLib;
+
 #endif
 

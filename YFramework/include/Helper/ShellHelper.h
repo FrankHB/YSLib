@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1728
+\version r1762
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2014-11-09 19:50 +0800
+	2014-11-12 05:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -137,10 +137,7 @@ template<class _tShell>
 inline _tShell&
 FetchShell()
 {
-	auto hShl(FetchShellHandle());
-
-	YAssertNonnull(hShl);
-	return ystdex::polymorphic_downcast<_tShell&>(*hShl);
+	return ystdex::polymorphic_downcast<_tShell&>(Deref(FetchShellHandle()));
 }
 
 
@@ -173,21 +170,15 @@ ReleaseStored()
 \brief 判断句柄指定的 Shell 是否为当前线程空间中运行的 Shell 。
 \since 早于 build 132
 */
-inline bool
-IsNowShell(const shared_ptr<Shell>& hShl)
-{
-	return FetchAppInstance().GetShellHandle() == hShl;
-}
+inline PDefH(bool, IsNowShell, const shared_ptr<Shell>& hShl)
+	ImplRet(FetchAppInstance().GetShellHandle() == hShl)
 
 /*!
 \brief 向句柄指定的 Shell 对象转移线程控制权。
 \since 早于 build 132
 */
-inline errno_t
-NowShellTo(const shared_ptr<Shell>& hShl)
-{
-	return -!Activate(hShl);
-}
+inline PDefH(errno_t, NowShellTo, const shared_ptr<Shell>& hShl)
+	ImplRet(-!Activate(hShl))
 
 /*!
 \brief 向新建 Shell 对象转移控制权。
@@ -215,14 +206,11 @@ NowShellToStored()
 \brief 通过主消息队列向指定 Shell 对象转移控制权。
 \since 早于 build 132
 */
-inline void
-SetShellTo(const shared_ptr<Shell>& hShl,
+inline PDefH(void, SetShellTo, const shared_ptr<Shell>& hShl,
 	Messaging::Priority prior = Messaging::NormalPriority)
-{
 	// NOTE: It would make the message loop in dead lock when called more
 	//	than once specifying on same destination shell.
-	PostMessage<SM_Set>(prior, hShl);
-}
+	ImplRet(PostMessage<SM_Set>(prior, hShl))
 
 /*!
 \brief 通过主消息队列向新建 Shell 对象转移控制权。
@@ -275,12 +263,8 @@ CallStored()
 
 销毁每个桌面并在原存储位置创建新的对象。
 */
-inline void
-ResetDesktop(Desktop& dsk, Devices::Screen& scr)
-{
-	dsk.~Desktop();
-	new(&dsk) Desktop(scr);
-}
+inline PDefH(void, ResetDesktop, Desktop& dsk, Devices::Screen& scr)
+	ImplExpr(dsk.~Desktop(), new(&dsk) Desktop(scr))
 
 
 //资源相关定义和函数。
@@ -289,13 +273,10 @@ namespace Drawing
 {
 
 //! \since build 360
-inline Color
-GenerateRandomColor()
-{
+inline PDefH(Color, GenerateRandomColor, )
 //使用 std::time(0) 初始化随机数种子在 DeSmuME 上无效。
 //	std::srand(std::time(0));
-	return Color(std::rand(), std::rand(), std::rand(), 1);
-}
+	ImplRet(Color(std::rand(), std::rand(), std::rand(), 1))
 
 /*!
 \brief 全屏幕描点。
@@ -315,11 +296,8 @@ ScrDraw(_tOut buf, _tGen&& f)
 \brief 新建屏幕图像。
 \since build 213
 */
-inline shared_ptr<Image>
-CreateSharedScreenImage(ConstBitmapPtr p)
-{
-	return make_shared<Image>(p, MainScreenWidth, MainScreenHeight);
-}
+inline PDefH(shared_ptr<Image>, CreateSharedScreenImage, ConstBitmapPtr p)
+	ImplRet(make_shared<Image>(p, MainScreenWidth, MainScreenHeight))
 
 /*!
 \brief 使用 new 分配空间并复制无压缩位图。

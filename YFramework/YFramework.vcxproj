@@ -148,6 +148,7 @@
     <ClInclude Include="include\YCLib\Mutex.h" />
     <ClInclude Include="include\YCLib\NativeAPI.h" />
     <ClInclude Include="include\YCLib\Platform.h" />
+    <ClInclude Include="include\YCLib\POSIXThread.h" />
     <ClInclude Include="include\YCLib\Timer.h" />
     <ClInclude Include="include\YCLib\Video.h" />
     <ClInclude Include="include\YCLib\ycommon.h" />
@@ -264,6 +265,7 @@
     <ClCompile Include="source\YCLib\Keys.cpp" />
     <ClCompile Include="source\YCLib\MemoryMapping.cpp" />
     <ClCompile Include="source\YCLib\NativeAPI.cpp" />
+    <ClCompile Include="source\YCLib\POSIXThread.cpp" />
     <ClCompile Include="source\YCLib\Timer.cpp" />
     <ClCompile Include="source\YCLib\Video.cpp" />
     <ClCompile Include="source\YCLib\ycommon.cpp" />

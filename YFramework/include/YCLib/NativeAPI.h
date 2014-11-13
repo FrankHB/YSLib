@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r715
+\version r719
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2013-07-24 02:16 +0800
+	2014-11-13 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,12 +62,12 @@ namespace platform_replace
 {} // namespace platform_replace;
 
 
-#ifdef YCL_API_USE_UNISTD
-#include <unistd.h>
+#if YCL_API_Has_dirent_h
+#	include <dirent.h>
 #endif
 
-#ifdef YCL_API_USE_SYS_DIR
-#include <sys/dir.h>
+#if YCL_API_Has_unistd_h
+#	include <unistd.h>
 #endif
 
 

@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2103
+\version r2107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-10-15 17:46 +0800
+	2014-11-12 04:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -221,9 +221,8 @@ template<typename _type>
 size_t
 SwitchInterval(_type v, const _type* a, size_t n) ynothrow
 {
-	YAssertNonnull(a),
 	YAssert(n != 0, "Zero length of array found.");
-	YAssert(!(v < *a), "Value less than lower bound found.");
+	YAssert(!(v < Deref(a)), "Value less than lower bound found.");
 
 	size_t i(0);
 
@@ -244,9 +243,8 @@ template<typename _type>
 size_t
 SwitchAddedInterval(_type v, const _type* a, size_t n) ynothrow
 {
-	YAssertNonnull(a),
 	YAssert(n != 0, "Zero length of array found.");
-	YAssert(!(v < *a), "Value less than lower bound found.");
+	YAssert(!(v < Deref(a)), "Value less than lower bound found.");
 
 	_type s(*a);
 	size_t i(0);

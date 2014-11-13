@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r499
+\version r501
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-11-04 17:37 +0800
+	2014-11-12 04:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,9 +129,8 @@ Window::UpdateCandidateWindowLocationUnlocked()
 		YTraceDe(Notice, "Update composition form position: %s.",
 			to_string(caret_location).c_str());
 
-		const auto h_wnd(GetNativeHandle());
+		const auto h_wnd(Nonnull(GetNativeHandle()));
 
-		YAssertNonnull(h_wnd);
 		if(const auto h_imc = ::ImmGetContext(h_wnd))
 		{
 			const auto client_pt(caret_location + GetClientLocation()

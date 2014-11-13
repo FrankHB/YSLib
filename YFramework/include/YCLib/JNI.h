@@ -10,14 +10,15 @@
 
 /*!	\file JNI.h
 \ingroup YCLib
+\ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r47
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
-\since build 551
+\since build 552
 \par 创建时间:
 	2014-11-11 03:20:32 +0800
 \par 修改时间:
-	2014-11-11 03:52 +0800
+	2014-11-13 18:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,15 +31,160 @@
 
 #include "YModules.h"
 #include YFM_YCLib_Platform
+#include <ydef.h>
 #if YF_Use_JNI
 #	include <jni.h>
+#	include <stdexcept>
+#	include <utility>
+#	include YFM_YCLib_Debug
 
 namespace platform_ex
 {
 
-//! \since build 552
-YF_API ::JNIEnv&
-FetchJNIEnvRef(::JavaVM&);
+//! \since build 553
+//@{
+namespace JNI
+{
+
+//! \brief JNI 异常。
+class YF_API JNIException : public std::runtime_error
+{
+public:
+	using runtime_error::runtime_error;
+};
+
+
+//! \brief 当引用为空时按指定初始化并抛出 JNI 异常。
+#	define YF_Raise_JNIExceptionOnNull(_ref, ...) \
+	{ \
+		if(!_ref) \
+			throw platform_ex::JNI::JNIException(__VA_ARGS__); \
+	}
+
+
+/*!
+\brief 基本Java 本机接口包装类。
+\warning 非虚析构。
+*/
+class YF_API JNIBase
+{
+private:
+	std::reference_wrapper<::JavaVM> vm_ref;
+	std::reference_wrapper<::JNIEnv> env_ref;
+
+public:
+	/*!
+	\brief 构造：使用虚拟机引用和指定的版本。
+	\note 在必要时调用 \c AttachCurrentThread 。
+	*/
+	JNIBase(::JavaVM&, ::jint = YF_Use_JNI);
+	//! \brief 构造：使用虚拟机引用和环境引用。
+	JNIBase(::JavaVM&, ::JNIEnv&);
+	/*!
+	\brief 销毁：调用 \c DetachCurrentThread 。
+	\note 无异常抛出：因为 \c JNI 提供的接口没有异常规范，在此处明确。
+	\note 忽略 \c DetachCurrentThread 返回的错误。
+	\sa https://bugs.openjdk.java.net/browse/JDK-6616502
+	*/
+	~JNIBase() ynothrow;
+
+	DefGetter(const ynothrow, ::JNIEnv&, EnvRef, env_ref)
+	DefGetter(const ynothrow, ::JavaVM&, VMRef, vm_ref)
+
+	/*!
+	\brief 检查引用值，若非空则解引用。
+	\exception JNIException 引用为空。
+	*/
+	template<typename _type>
+	static inline auto
+	Deref(const _type& p) -> decltype(*p)
+	{
+		return *Nonnull(p);
+	}
+
+	/*!
+	\brief 保证在线程退出时调用 \c DetachCurrentThread 。
+	\throw ystdex::unsupported 不支持没有线程本地存储和 POSIX 线程的平台。
+	\note 仅抛出以上异常。
+	*/
+	static void
+	EnsureDetachJNIAtThreadExit(::JavaVM&, ::JNIEnv&)
+		ythrow(ystdex::unsupported);
+
+	/*!
+	\brief 检查引用值，若非空则返回。
+	\throw JNIException 引用为空。
+	*/
+	template<typename _type>
+	static inline _type
+	Nonnull(const _type& p)
+	{
+		YF_Raise_JNIExceptionOnNull(p, "Specific object not found.")
+		return p;
+	}
+
+	/*!
+	\brief 调用 \c ExceptionCheck 检查异常，若存在异常则抛出。
+	\throw JNIException 存在异常。
+	\note 若不存在异常则无效果。
+	*/
+	void
+	ThrowOnException() ythrow(JNIException);
+};
+
+
+/*!
+\brief Java 本机接口包装类。
+\warning 非虚析构。
+*/
+class YF_API JNI : private JNIBase
+{
+public:
+	using Boolean = ::jboolean;
+	using Byte = ::jbyte;
+	using Char = ::jchar;
+	using Short = ::jshort;
+	using Int = ::jint;
+	using Long = ::jlong;
+	using Float = ::jfloat;
+	using Double = ::jdouble;
+	using Object = ystdex::remove_pointer_t<::jobject>;
+	using Class = ystdex::remove_pointer_t<::jclass>;
+	using String = ystdex::remove_pointer_t<::jstring>;
+	using Array = ystdex::remove_pointer_t<::jarray>;
+	using ObjectArray = ystdex::remove_pointer_t<::jobjectArray>;
+	using BooleanArray = ystdex::remove_pointer_t<::jbooleanArray>;
+	using ByteArray = ystdex::remove_pointer_t<::jbyteArray>;
+	using CharArray = ystdex::remove_pointer_t<::jcharArray>;
+	using ShortArray = ystdex::remove_pointer_t<::jshortArray>;
+	using IntArray = ystdex::remove_pointer_t<::jintArray>;
+	using LongArray = ystdex::remove_pointer_t<::jlongArray>;
+	using FloatArray = ystdex::remove_pointer_t<::jfloatArray>;
+	using DoubleArray = ystdex::remove_pointer_t<::jdoubleArray>;
+	using Throwable = ystdex::remove_pointer_t<::jthrowable>;
+	using Weak = ystdex::remove_pointer_t<::jweak>;
+	using FieldID = ystdex::remove_pointer_t<::jfieldID>;
+	using MethodID = ystdex::remove_pointer_t<::jmethodID>;
+	using Value = ::jvalue;
+	using ObjectRefType = ::jobjectRefType;
+	using NativeMethod = ::JNINativeMethod;
+
+	using JNIBase::JNIBase;
+
+	using JNIBase::GetEnvRef;
+	using JNIBase::GetVMRef;
+
+	using JNIBase::Deref;
+
+	using JNIBase::EnsureDetachJNIAtThreadExit;
+
+	using JNIBase::Nonnull;
+
+	using JNIBase::ThrowOnException;
+};
+
+} // namespace JNI;
+//@}
 
 } // namespace platform_ex;
 

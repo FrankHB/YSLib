@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r447
+\version r455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-11-08 22:05 +0800
+	2014-11-13 01:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -140,6 +140,7 @@ CheckWine();
 
 /*!	\defgroup native_encoding_conv Native Encoding Conversion
 \brief 本机文本编码转换。
+\pre 断言：字符串指针参数非空。
 \since build 431
 */
 //@{
@@ -292,7 +293,7 @@ public:
 	\since build 552
 	*/
 	//@{
-	//! \brief 断言检查：第一参数非空。
+	//! \brief 间接断言：第一参数非空。
 	std::pair<::DWORD, std::vector<ystdex::byte>>
 	GetRawValue(const wchar_t*, ::DWORD = REG_NONE) const;
 	PDefH(std::pair<::DWORD YPP_Comma std::vector<ystdex::byte>>, GetRawValue,
@@ -328,14 +329,6 @@ inline PDefH(std::wstring, FetchRegistryString, ::HKEY h_parent,
 	const wchar_t* key_name, const wchar_t* name)
 	ImplRet(FetchRegistryString(RegistryKey(h_parent, key_name), name))
 //@}
-
-
-/*!
-\brief 创建管道。
-\since build 520
-*/
-YF_API std::pair<UniqueHandle, UniqueHandle>
-MakePipe();
 
 
 /*!

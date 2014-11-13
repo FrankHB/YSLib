@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r598
+\version r646
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2014-11-10 13:09 +0800
+	2014-11-13 01:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,9 +65,15 @@
 /*!	\defgroup Platforms Platforms
 \brief YSLib 库平台。
 */
+/*!	\defgroup PlatformAPIs Platform APIs
+\brief 平台 API 支持。
+\note 若未另行说明，仅当定义为非零整数值表示有效。
+\since build 553
+*/
 /*!	\defgroup PlatformOptionalFeatures Platform Optional Features
 \brief 平台可选特性支持。
 \note 仅当未被定义时 YCLib 提供定义。
+\note 若未另行说明，仅当定义为非零整数值表示有效。
 \since build 552
 */
 
@@ -161,11 +167,41 @@
 //@}
 
 
+//! \since build 553
+//@{
+/*!
+\ingroup PlatformAPI
+\def YCL_API_POSIXFileSystem
+\brief 使用 POSIX 文件系统 API 。
+*/
+
+/*!
+\ingroup PlatformAPI
+\def YCL_API_Has_dirent_h
+\brief API 可用 \c \<dirent.h\> 。
+*/
+
+/*!
+\ingroup PlatformAPI
+\def YCL_API_Have_unistd_h
+\brief API 可用 \c \<unistd.h\> 。
+*/
+
+/*!
+\ingroup PlatformOptionalFeatures
+\def YF_Use_POSIXThread
+\brief 使用 POSIX 线程接口。
+\note 当前仅支持 \c posix 线程模型 G++ 。
+\sa https://gcc.gnu.org/bugzilla/show_bug.cgi?id=11953
+*/
+//@}
+
 /*!
 \ingroup PlatformOptionalFeatures
 \def YF_Use_JNI
 \brief 使用 Java 本机接口的版本。
 \pre 若被定义，替换的记号和在 \c \<jni.h\> 中的某个 \c JNI_VERSION_* 宏一致。
+\since build 552
 */
 
 
@@ -181,9 +217,9 @@
 #	define YCL_DS 1
 #	define YF_Hosted 0
 #	define YF_Multithread 0
-#	define YCL_API_FILESYSTEM_POSIX //!< 文件系统 API 支持。
-#	define YCL_API_USE_UNISTD
-#	define YCL_API_USE_SYS_DIR
+#	define YCL_API_POSIXFileSystem 1
+#	define YCL_API_Has_dirent_h 1
+#	define YCL_API_Has_unistd_h 1
 #	define YCL_Device_Cursor_FixedKey 1
 #elif YF_Platform == YF_Platform_Win32
 #	define YCL_Win32 1
@@ -196,18 +232,29 @@
 #	define YCL_Win32 1
 #	define YCL_Win64 1
 #	define YF_Hosted 1
+#	ifndef YF_Use_POSIXThread
+#		define YF_Use_POSIXThread 1
+#	endif
 #elif YF_Platform == YF_Platform_MinGW64
 #	define YCL_MinGW 1
 #	define YCL_Win32 1
 #	define YCL_Win64 1
 #	define YF_Hosted 1
+#	ifndef YF_Use_POSIXThread
+#		define YF_Use_POSIXThread 1
+#	endif
 #elif YF_Platform == YF_Platform_Android_ARM
 #	define YCL_Android 1
 #	define YF_Hosted 1
+#	define YCL_API_POSIXFileSystem 1
+#	define YCL_API_Has_dirent_h 1
+#	define YCL_API_Has_unistd_h 1
+#	ifndef YF_Use_POSIXThread
+#		define YF_Use_POSIXThread 1
+#	endif
 #	ifndef YF_Use_JNI
 #		define YF_Use_JNI 0x00010006
 #	endif
-#	define YCL_API_FILESYSTEM_POSIX
 #else
 #	error "Unsupported platform found."
 #endif

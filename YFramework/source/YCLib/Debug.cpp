@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r407
+\version r417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-11-10 00:50 +0800
+	2014-11-12 05:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,9 +49,8 @@ inline int
 PrintAndroidLog(Descriptions::RecordLevel lv, const char* tag, const char *fmt,
 	_tParams&&... args)
 {
-	YAssertNonnull(tag), YAssertNonnull(fmt);
-	return ::__android_log_print(platform_ex::MapAndroidLogLevel(lv), tag, fmt,
-		yforward(args)...);
+	return ::__android_log_print(platform_ex::MapAndroidLogLevel(lv),
+		Nonnull(tag), Nonnull(fmt), yforward(args)...);
 }
 #endif
 
@@ -83,12 +82,11 @@ Logger::DefaultFilter(Level lv, Logger& logger) ynothrow
 void
 Logger::DefaultSendLog(Level lv, Logger&, const char* str) ynothrowv
 {
-	YAssertNonnull(str);
 #if YCL_DS
 	if(lv <= Descriptions::Alert)
 		YConsoleInit(false, ColorSpace::White, ColorSpace::Blue);
 #endif
-	std::fprintf(stderr, "[%#X]: %s\n", unsigned(lv), str);
+	std::fprintf(stderr, "[%#X]: %s\n", unsigned(lv), Nonnull(str));
 	std::fflush(stderr);
 }
 
@@ -106,9 +104,7 @@ Logger::DoLog(Level level, const char* str)
 void
 Logger::DoLogRaw(Level level, const char* str)
 {
-	YAssertNonnull(str);
-
-	sender(level, *this, str);
+	sender(level, *this, Nonnull(str));
 }
 
 void
@@ -167,7 +163,7 @@ FetchCommonLogger()
 std::string
 LogWithSource(const char* file, int line, const char* fmt, ...)
 {
-	YAssertNonnull(file), YAssertNonnull(fmt);
+	YAssertNonnull(fmt);
 
 	std::va_list args;
 
@@ -176,7 +172,7 @@ LogWithSource(const char* file, int line, const char* fmt, ...)
 	std::string str(ystdex::vsfmt(fmt, args));
 
 	va_end(args);
-	return ystdex::sfmt("\"%s\":%i:\n", file, line) + std::move(str);
+	return ystdex::sfmt("\"%s\":%i:\n", Nonnull(file), line) + std::move(str);
 }
 
 } // namespace platform;
@@ -189,7 +185,7 @@ namespace platform_ex
 #if YCL_Android
 void
 LogAssert(bool expr, const char* expr_str, const char* file, int line,
-	const char* msg)
+	const char* msg) ynothrow
 {
 	if(YB_UNLIKELY(!expr))
 		::__android_log_assert(expr_str, "YFramework",
