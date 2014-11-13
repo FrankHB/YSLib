@@ -11,13 +11,13 @@
 /*!	\file Loader.cpp
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r293
+\version r299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:39:49 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2014-11-12 04:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,14 +65,7 @@ ParseRect(const string& str)
 IWidget&
 AccessWidget(const ValueNode& node)
 {
-	try
-	{
-		const auto& p(AccessChild<shared_ptr<IWidget>>(node, "$pointer"));
-
-		YAssertNonnull(p);
-
-		return *p;
-	}
+	TryRet(Deref(AccessChild<shared_ptr<IWidget>>(node, "$pointer")))
 	CatchExpr(std::out_of_range&,
 		throw WidgetNotFound(node.GetName(), "Widget pointer not found."))
 }

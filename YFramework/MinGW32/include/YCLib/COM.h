@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r470
+\version r482
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2014-10-10 11:27 +0800
+	2014-11-12 04:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -194,8 +194,7 @@ public:
 	_iCOM&
 	operator*() const ynothrowv
 	{
-		YAssertNonnull(pInterface);
-		return *pInterface;
+		return Deref(pInterface);
 	}
 
 	_iCOM*
@@ -217,11 +216,9 @@ public:
 	COMPtr<IUnknown>
 	As(REFIID riid) const ythrow(COMException)
 	{
-		YAssertNonnull(pInterface);
-
 		COMPtr<IUnknown> res;
 
-		CheckHResult(pInterface->QueryInterface(riid,
+		CheckHResult(Deref(pInterface).QueryInterface(riid,
 			reinterpret_cast<void**>(&res.ReleaseAndGetRef())));
 		return res;
 	}
@@ -229,11 +226,9 @@ public:
 	COMPtr<_iOther>
 	As() const ythrow(COMException)
 	{
-		YAssertNonnull(pInterface);
-
 		COMPtr<_iOther> res;
 
-		CheckHResult(pInterface->QueryInterface(__uuidof(_iOther),
+		CheckHResult(Deref(pInterface).QueryInterface(__uuidof(_iOther),
 			reinterpret_cast<void**>(&res.ReleaseAndGetRef())));
 		return res;
 	}
@@ -241,8 +236,7 @@ public:
 	::HRESULT
 	Cast(REFIID riid, COMPtr<IUnknown>& ptr) const ynothrow
 	{
-		YAssertNonnull(pInterface);
-		return pInterface->QueryInterface(riid,
+		return Deref(pInterface).QueryInterface(riid,
 			reinterpret_cast<void**>(&ptr.ReleaseAndGetRef()));
 	}
 	template<class _iOther>
@@ -263,19 +257,16 @@ public:
 	void*
 	Copy(REFIID riid) const ythrow(COMException)
 	{
-		YAssertNonnull(pInterface);
-
 		void* p;
 
-		CheckHResult(pInterface->QueryInterface(riid, &p));
+		CheckHResult(Deref(pInterface).QueryInterface(riid, &p));
 		return p;
 	}
 
 	::HRESULT
 	CopyTo(REFIID riid, void** ptr) const ynothrow
 	{
-		YAssertNonnull(pInterface);
-		return pInterface->QueryInterface(riid, ptr);
+		return Deref(pInterface).QueryInterface(riid, ptr);
 	}
 	template<typename _type>
 	::HRESULT

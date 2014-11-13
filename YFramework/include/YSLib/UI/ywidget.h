@@ -11,13 +11,13 @@
 /*!	\file ywidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5746
+\version r5754
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-10-25 19:48 +0800
+	2014-11-12 05:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -445,12 +445,10 @@ public:
 	static HBrush
 	MakeBlankBrush();
 	DefGetter(const ImplI(IWidget), AController&, Controller,
-		(YAssertNonnull(controller_ptr), *controller_ptr))
+		Deref(controller_ptr))
 	DefGetterMem(const ynothrow, SDst, Height, GetView())
-	DefGetter(const ImplI(IWidget), Renderer&, Renderer,
-		(YAssertNonnull(renderer_ptr), *renderer_ptr))
-	DefGetter(const ImplI(IWidget), View&, View,
-		(YAssertNonnull(view_ptr), *view_ptr))
+	DefGetter(const ImplI(IWidget), Renderer&, Renderer, Deref(renderer_ptr))
+	DefGetter(const ImplI(IWidget), View&, View, Deref(view_ptr))
 	DefGetterMem(const ynothrow, SDst, Width, GetView())
 	DefGetterMem(const ynothrow, SPos, X, GetView())
 	DefGetterMem(const ynothrow, SPos, Y, GetView())
@@ -492,7 +490,7 @@ public:
 
 /*!
 \brief 包装渲染器：设置渲染器并返回被设置的渲染器引用。
-\pre 断言检查：指针参数非空。
+\pre 间接断言：指针参数非空。
 \relates Widget
 \since build 548
 */
@@ -501,9 +499,7 @@ template<class _tRenderer>
 inline _tRenderer&
 WrapRenderer(Widget& wgt, unique_ptr<_tRenderer> p_renderer)
 {
-	YAssertNonnull(p_renderer);
-
-	auto& res(*p_renderer);
+	auto& res(Deref(p_renderer));
 
 	wgt.SetRenderer(std::move(p_renderer));
 	return res;

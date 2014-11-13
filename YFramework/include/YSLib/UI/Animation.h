@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r411
+\version r413
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-10-04 15:13 +0800
+	2014-11-12 04:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,8 +110,7 @@ public:
 	PDefH(void, Start, ) const
 		ImplExpr(AnimateConnection(conn))
 
-	DefGetter(const ynothrow, Connection&, ConnectionRef,
-		(YAssertNonnull(conn), *conn))
+	DefGetter(const ynothrow, Connection&, ConnectionRef, Deref(conn))
 	DefGetter(const ynothrow, const ConnectionPtr&, ConnectionPtr, conn)
 };
 

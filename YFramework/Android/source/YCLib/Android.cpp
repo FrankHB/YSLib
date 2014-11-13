@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r394
+\version r415
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-11-04 17:17 +0800
+	2014-11-13 19:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,34 +120,29 @@ ScreenBuffer::~ScreenBuffer()
 BitmapPtr
 ScreenBuffer::GetBufferPtr() const ynothrow
 {
-	YAssertNonnull(p_impl);
-	return p_impl->GetBufferPtr();
+	return Deref(p_impl).GetBufferPtr();
 }
 const YSLib::Drawing::Graphics&
 ScreenBuffer::GetContext() const ynothrow
 {
-	YAssertNonnull(p_impl);
-	return p_impl->GetContext();
+	return Deref(p_impl).GetContext();
 }
 Size
 ScreenBuffer::GetSize() const ynothrow
 {
-	YAssertNonnull(p_impl);
-	return {width, p_impl->GetHeight()};
+	return {width, Deref(p_impl).GetHeight()};
 }
 YSLib::SDst
 ScreenBuffer::GetStride() const ynothrow
 {
-	YAssertNonnull(p_impl);
-	return p_impl->GetWidth();
+	return Deref(p_impl).GetWidth();
 }
 
 void
 ScreenBuffer::Resize(const Size& s)
 {
 	// TODO: Expand stride for given width using a proper strategy.
-	YAssertNonnull(p_impl);
-	p_impl->SetSize(s);
+	Deref(p_impl).SetSize(s);
 	width = s.Width;
 }
 
@@ -155,16 +150,14 @@ void
 ScreenBuffer::UpdateFrom(BitmapPtr p_buf) ynothrow
 {
 	// TODO: Expand stride for given width using a proper strategy.
-	YAssertNonnull(p_buf),
-	YAssertNonnull(p_impl);
-	std::copy_n(p_buf, GetAreaOf(GetSize()), p_impl->GetBufferPtr());
+	std::copy_n(Nonnull(p_buf), GetAreaOf(GetSize()),
+		Deref(p_impl).GetBufferPtr());
 }
 
 void
 ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 {
-	YAssertNonnull(p_impl);
-	p_impl->swap(*sbuf.p_impl),
+	Deref(p_impl).swap(Deref(sbuf.p_impl)),
 	std::swap(width, sbuf.width);
 }
 
@@ -188,14 +181,12 @@ ScreenRegionBuffer::UpdateFrom(BitmapPtr buf) ynothrow
 void
 ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 {
-	YAssertNonnull(h_wnd);
-
 	const Size& s(GetSize());
 	::ANativeWindow_Buffer abuf;
 	::ARect arect{pt.X, pt.Y, pt.X + s.Width, pt.Y + s.Height};
 	lock_guard<mutex> lck(mtx);
 
-	::ANativeWindow_lock(h_wnd, &abuf, &arect);
+	::ANativeWindow_lock(Nonnull(h_wnd), &abuf, &arect);
 	CopyTo(static_cast<BitmapPtr>(abuf.bits), GetContext(),
 		WindowReference(h_wnd).GetSize(), pt, {}, s);
 	::ANativeWindow_unlockAndPost(h_wnd);
@@ -208,17 +199,14 @@ InputQueue::InputQueue(::ALooper& looper, ::AInputQueue& q)
 	YTraceDe(Debug, "Attaching input queue to looper.");
 	::AInputQueue_attachLooper(&q, &looper, ALOOPER_POLL_CALLBACK,
 		[](int, int, void* p_data){
-			YAssertNonnull(p_data);
-
-			auto& q(*static_cast<InputQueue*>(p_data));
+			auto& q(*static_cast<InputQueue*>(Nonnull(p_data)));
 			::AInputEvent* p_evt{};
 			const auto p_queue(&q.queue_ref.get());
 
 			while(::AInputQueue_getEvent(p_queue, &p_evt) >= 0)
 			{
-				YAssertNonnull(p_evt);
 				YTraceDe(Debug, "New input event: type = %d.",
-					::AInputEvent_getType(p_evt));
+					::AInputEvent_getType(Nonnull(p_evt)));
 				if(::AInputQueue_preDispatchEvent(p_queue, p_evt))
 					continue;
 				SaveInput(*p_evt);

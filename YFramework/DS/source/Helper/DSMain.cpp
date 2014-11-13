@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3155
+\version r3159
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-11-10 00:54 +0800
+	2014-11-12 04:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -138,14 +138,12 @@ DSApplication::~DSApplication()
 Devices::DSScreen&
 DSApplication::GetDSScreenUp() const ynothrow
 {
-	YAssertNonnull(scrs[0]);
-	return *scrs[0];
+	return Deref(scrs[0]);
 }
 Devices::DSScreen&
 DSApplication::GetDSScreenDown() const ynothrow
 {
-	YAssertNonnull(scrs[1]);
-	return *scrs[1];
+	return Deref(scrs[1]);
 }
 Devices::Screen&
 DSApplication::GetScreenUp() const ynothrow

@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r664
+\version r666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2014-08-16 05:39 +0800
+	2014-11-12 04:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,9 +145,8 @@ const Graphics Graphics::Invalid;
 BitmapPtr
 Graphics::operator[](size_t r) const ynothrow
 {
-	YAssertNonnull(pBuffer);
 	YAssert(r < sGraphics.Height, "Access out of range.");
-	return pBuffer + r * sGraphics.Width;
+	return Nonnull(pBuffer) + r * sGraphics.Width;
 }
 
 BitmapPtr

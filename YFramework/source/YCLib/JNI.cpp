@@ -10,14 +10,15 @@
 
 /*!	\file JNI.cpp
 \ingroup YCLib
+\ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r73
+\version r127
 \author FrankHB <frankhb1989@gmail.com>
-\since build 492
+\since build 552
 \par 创建时间:
 	2014-11-11 03:25:23 +0800
 \par 修改时间:
-	2014-11-11 03:28 +0800
+	2014-11-13 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +28,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_JNI
-#include YFM_YCLib_Debug
-#include <ystdex/string.hpp>
+#include YFM_YCLib_POSIXThread
 
 #if YF_Use_JNI
 
@@ -36,20 +36,30 @@ namespace platform_ex
 {
 
 using namespace platform::Descriptions;
+//! \since build 553
+using platform::Deref;
+
+namespace JNI
+{
 
 #define YCL_RaiseJNIFailure(_str) \
 	(YTraceDe(Err, _str), throw std::runtime_error(_str))
 
-::JNIEnv&
-FetchJNIEnvRef(::JavaVM& vm)
+//! \since build 553
+namespace
 {
-	::JNIEnv* p_jni;
 
-	int status(vm.GetEnv(reinterpret_cast<void**>(&p_jni), JNI_VERSION_1_6));
+::JNIEnv&
+FetchJNIEnvRef(::JavaVM& vm, ::jint version)
+{
+	void* p_env;
+
+	int status(vm.GetEnv(&p_env, version));
+	auto& p_jni(reinterpret_cast<::JNIEnv*&>(p_env));
 
 	if(status == JNI_EDETACHED)
 	{
-		YTraceDe(Informative, "JNI thread has not attached.");
+		YTraceDe(Debug, "JNI thread has not attached.");
 		status = vm.AttachCurrentThread(&p_jni, {});
 		if(status != JNI_OK)
 		{
@@ -58,6 +68,8 @@ FetchJNIEnvRef(::JavaVM& vm)
 		}
 		else
 			YTraceDe(Informative, "JNI thread attached.");
+		TryExpr(JNIBase::EnsureDetachJNIAtThreadExit(vm, Deref(p_jni)))
+		CatchIgnore(ystdex::unsupported&)
 	}
 	else if(status != JNI_OK)
 	{
@@ -68,7 +80,50 @@ FetchJNIEnvRef(::JavaVM& vm)
 	return *p_jni;
 }
 
-} // namespace YSLib;
+} // unnamed namespace;
+
+JNIBase::JNIBase(::JavaVM& vm, ::jint version)
+	: JNIBase(vm, FetchJNIEnvRef(vm, version))
+{}
+JNIBase::JNIBase(::JavaVM& vm, ::JNIEnv& env)
+	: vm_ref(vm), env_ref(env)
+{}
+JNIBase::~JNIBase() ynothrow
+{
+	vm_ref.get().DetachCurrentThread();
+}
+
+void
+JNIBase::EnsureDetachJNIAtThreadExit(::JavaVM& vm, ::JNIEnv& env)
+	ythrow(ystdex::unsupported)
+{
+#	if YF_Multithread == 1
+#		if YB_HAS_THREAD_LOCAL
+	ythread JNIBase guard(vm, env);
+#		elif YF_Use_POSIXThread
+
+	static TLSKey key([](void* p){
+		delete static_cast<JNIBase*>(p);
+	});
+
+	key.SetValue(new JNIBase(vm, env));
+#		else
+	throw ystdex::unsupported("Platform without TLS or POSIX thread "
+		" unsupported to automatically detach.");
+#		endif
+#	endif
+}
+
+void
+JNIBase::ThrowOnException() ythrow(JNIException)
+{
+	if(GetEnvRef().ExceptionCheck())
+		throw JNIException("A pending exception has occurred.");
+}
+
+} // namespace JNI;
+
+} // namespace platform_ex;
 
 #endif
 

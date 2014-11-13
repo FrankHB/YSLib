@@ -11,13 +11,13 @@
 /*!	\file TabControl.h
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r236
+\version r238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:43 +0800
 \par 修改时间:
-	2014-04-28 11:05 +0800
+	2014-11-12 04:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -150,8 +150,7 @@ public:
 	Rect
 	GetPageBounds() const ynothrow;
 	//! \since build 495
-	DefGetter(const ynothrow, TabBar&, TabBarRef,
-		(YAssertNonnull(p_bar), *p_bar))
+	DefGetter(const ynothrow, TabBar&, TabBarRef, Deref(p_bar))
 	/*!
 	\brief 取标签数。
 	\since build 495

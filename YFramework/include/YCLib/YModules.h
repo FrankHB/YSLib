@@ -13,16 +13,21 @@
 \brief YFramework 公共基础库。
 */
 
+/*!	\defgroup YCLibLimitedPlatforms YCLib Limited Platforms Support
+\ingroup YCLib
+\brief YCLib 限定平台支持。
+*/
+
 /*!	\file YModules.h
 \ingroup YCLib
 \brief YCLib 库模块配置文件。
-\version r67
+\version r75
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:20 +0800
 \par 修改时间:
-	2014-11-11 03:22 +0800
+	2014-11-13 00:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,11 +52,13 @@
 #define YFM_YCLib_Keys <YCLib/Keys.h>
 #define YFM_YCLib_Input <YCLib/Input.h>
 #define YFM_YCLib_MemoryMapping <YCLib/MemoryMapping.h>
-//! \since build 492
-#define YFM_YCLib_Host <YCLib/Host.h>
 //! \since build 551
 #define YFM_YCLib_Mutex <YCLib/Mutex.h>
 
+//! \since build 492
+#define YFM_YCLib_Host <YCLib/Host.h>
+//! \since build 553
+#define YFM_YCLib_POSIXThread <YCLib/POSIXThread.h>
 //! \since build 552
 #define YFM_YCLib_JNI <YCLib/JNI.h>
 

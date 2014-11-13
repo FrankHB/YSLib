@@ -11,13 +11,13 @@
 /*!	\file yapp.cpp
 \ingroup Core
 \brief 系统资源和应用程序实例抽象。
-\version r1721
+\version r1724
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-27 17:12:36 +0800
 \par 修改时间:
-	2014-11-03 01:46 +0800
+	2014-11-12 04:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -48,10 +48,7 @@ Application::~Application()
 void
 Application::OnGotMessage(const Message& msg)
 {
-	const auto hShl(GetShellHandle());
-
-	YAssertNonnull(hShl);
-	TryExpr(hShl->OnGotMessage(msg))
+	TryExpr(Deref(GetShellHandle()).OnGotMessage(msg))
 	CatchIgnore(Messaging::MessageSignal&)
 #ifndef NDEBUG
 	CatchExpr(std::exception& e, YTraceDe(Emergent, "Unexpected exception."),

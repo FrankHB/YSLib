@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2553
+\version r2554
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2014-10-16 15:55 +0800
+	2014-11-11 16:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,7 +247,7 @@
 #undef YB_HAS_THREAD_LOCAL
 #define YB_HAS_THREAD_LOCAL \
 	(__has_feature(cxx_thread_local) || (YB_IMPL_CPP >= 201103L \
-		&& !YB_IMPL_GNUCPP) || YB_IMPL_GNUCPP >= 40800)
+		&& !YB_IMPL_GNUCPP) || (YB_IMPL_GNUCPP >= 40800 && _GLIBCXX_HAVE_TLS))
 //@}
 
 

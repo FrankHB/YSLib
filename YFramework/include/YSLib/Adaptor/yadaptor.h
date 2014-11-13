@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1608
+\version r1617
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-11-04 17:09 +0800
+	2014-11-12 04:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,6 +179,16 @@ using platform::usystem;
 //@{
 using platform::Logger;
 using platform::FetchCommonLogger;
+//@}
+
+/*!
+\brief 断言操作。
+\pre 允许对操作数使用 ADL 查找同名声明，但要求最终的表达式语义和调用这里的声明等价。
+\since build 553
+*/
+//@{
+using platform::Nonnull;
+using platform::Deref;
 //@}
 
 /*!

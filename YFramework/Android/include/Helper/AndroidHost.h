@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r188
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-11-06 14:39 +0800
+	2014-11-13 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,6 +36,8 @@
 #	include <android/native_activity.h>
 #	include <android/configuration.h>
 #	include YFM_YSLib_Adaptor_YReference // for unique_ptr;
+#	include YFM_YCLib_JNI
+#	include YFM_YCLib_Host
 #else
 //#	error "Currently only Android is supported."
 #endif
@@ -46,6 +48,11 @@ namespace YSLib
 #if YCL_Android
 namespace Android
 {
+
+//! \since build 553
+namespace JNI = platform_ex::JNI;
+//! \since build 553
+using platform_ex::UniqueHandle;
 
 /*!
 \brief 配置对象删除器。
@@ -81,6 +88,12 @@ private:
 	unique_ptr<::AConfiguration, ConfigurationDeleter> p_config;
 	std::reference_wrapper<::ALooper> looper;
 	unique_ptr<InputQueue> p_input_queue{};
+	//! \since build 553
+	//@{
+	mutex msg_mutex{};
+	std::pair<UniqueHandle, UniqueHandle> msg_pipe;
+	std::function<void()> msg_task{};
+	//@}
 	/*!
 	\brief 暂存状态锁。
 	\since build 551
@@ -104,10 +117,9 @@ public:
 	DefPred(const ynothrow, Paused, paused)
 	//! \since build 503
 	DefGetter(const ynothrow, ::ANativeActivity&, ActivityRef, activity.get())
-	DefGetter(const ynothrow, Desktop&, DesktopRef,
-		(YAssertNonnull(p_desktop), *p_desktop))
+	DefGetter(const ynothrow, Desktop&, DesktopRef, Deref(p_desktop))
 	DefGetter(const ynothrow, Devices::AndroidScreen&, ScreenRef,
-		(YAssertNonnull(p_screen), *p_screen))
+		Deref(p_screen))
 
 	/*!
 	\brief 绑定指定类型的状态设置。
@@ -159,6 +171,10 @@ public:
 	*/
 	void
 	RestoreSavedState(byte* p_byte) const;
+
+	//! \since build 553
+	void
+	RunOnUIThread(std::function<void()>);
 
 	void*
 	SaveInstanceState(size_t* p_len);

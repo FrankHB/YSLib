@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1052
+\version r1057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2014-07-25 21:03 +0800
+	2014-11-12 04:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,6 @@ void
 PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 	SPos x2, Color c)
 {
-	YAssertNonnull(dst),
 	YAssert(bounds.Width <= w, "Wrong boundary or width found.");
 	if(!bounds.IsUnstrictlyEmpty()
 		&& IsInInterval<SPos>(y - bounds.Y, bounds.Height))
@@ -53,7 +52,7 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 			RestrictInInterval(x1, bx, bxw),
 			RestrictInInterval(x2, bx, SPos(bxw + 1));
 			RestrictLessEqual(x1, x2);
-			FillPixel<PixelType>(&dst[y * w + x1], x2 - x1, c);
+			FillPixel<PixelType>(&Nonnull(dst)[y * w + x1], x2 - x1, c);
 		}
 	}
 }
@@ -62,7 +61,6 @@ void
 PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 	SPos y2, Color c)
 {
-	YAssertNonnull(dst),
 	YAssert(bounds.Width <= w, "Wrong boundary or width found.");
 	if(!bounds.IsUnstrictlyEmpty()
 		&& IsInInterval<SPos>(x - bounds.X, bounds.Width))
@@ -76,7 +74,8 @@ PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 			RestrictInInterval(y1, by, byh),
 			RestrictInInterval(y2, by, SPos(byh + 1));
 			RestrictLessEqual(y1, y2);
-			FillVerticalLine<PixelType>(&dst[y1 * w + x], y2 - y1, w, c);
+			FillVerticalLine<PixelType>(&Nonnull(dst)[y1 * w + x], y2 - y1, w,
+				c);
 		}
 	}
 }

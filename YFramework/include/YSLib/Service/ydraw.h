@@ -11,13 +11,13 @@
 /*!	\file ydraw.h
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1175
+\version r1237
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:26 +0800
 \par 修改时间:
-	2014-09-09 20:22 +0800
+	2014-11-12 04:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,25 +60,18 @@ namespace Drawing
 \pre 断言 <tt>dst</tt> 。
 \since build 394
 */
-inline void
-PutPixel(BitmapPtr dst, SDst w, SPos x, SPos y, Color c)
-{
-	YAssertNonnull(dst);
-	dst[y * w + x] = c;
-}
+inline PDefH(void, PutPixel, BitmapPtr dst, SDst w, SPos x, SPos y, Color c)
+	ImplExpr(Nonnull(dst)[y * w + x] = c)
 /*!
 \ingroup Graphics2D
 \brief 修改指定位置的像素：(x, y) 。
 \pre 断言： <tt>Rect(g.GetSize()).Contains(x, y)</tt> 。
 \pre 间接断言：图形接口缓冲区有效。
 */
-inline void
-PutPixel(const Graphics& g, SPos x, SPos y, Color c)
-{
-	YAssert(Rect(g.GetSize()).Contains(x, y),
-		"The pixel is out of the buffer.");
-	PutPixel(g.GetBufferPtr(), g.GetWidth(), x, y, c);
-}
+inline PDefH(void, PutPixel, const Graphics& g, SPos x, SPos y, Color c)
+	ImplExpr(YAssert(Rect(g.GetSize()).Contains(x, y),
+		"The pixel is out of the buffer."),
+		PutPixel(g.GetBufferPtr(), g.GetWidth(), x, y, c))
 
 /*!
 \ingroup Graphics2D
@@ -86,27 +79,20 @@ PutPixel(const Graphics& g, SPos x, SPos y, Color c)
 */
 //@{
 //! \brief 绘制指定位置的像素：(x, y) 。
-inline void
-PlotPixel(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y, Color c)
-{
-	if(bounds.Contains(x, y))
-		PutPixel(dst, w, x, y, c);
-}
+inline PDefH(void, PlotPixel, BitmapPtr dst, const Rect& bounds, SDst w, SPos x,
+	SPos y, Color c)
+	ImplExpr(bounds.Contains(x, y) ? PutPixel(dst, w, x, y, c) : void())
 
 //! \brief 描画点。
 //@{
-inline void
-DrawPoint(const Graphics& g, const Rect& bounds, SPos x, SPos y, Color c)
-{
-	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
-		"The boundary is out of the buffer.");
-	PlotPixel(g.GetBufferPtr(), bounds, g.GetWidth(), x, y, c);
-}
-inline void
-DrawPoint(const Graphics& g, const Rect& bounds, const Point& pt, Color c)
-{
-	DrawPoint(g, bounds, pt.X, pt.Y, c);
-}
+inline PDefH(void, DrawPoint, const Graphics& g, const Rect& bounds, SPos x,
+	SPos y, Color c)
+	ImplExpr(YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(
+		bounds), "The boundary is out of the buffer."),
+		PlotPixel(g.GetBufferPtr(), bounds, g.GetWidth(), x, y, c))
+inline PDefH(void, DrawPoint, const Graphics& g, const Rect& bounds,
+	const Point& pt, Color c)
+	ImplExpr(DrawPoint(g, bounds, pt.X, pt.Y, c))
 //@}
 
 
@@ -123,16 +109,13 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 \brief 描画水平线段。
 \pre 断言： bounds 在 g 指定的边界内。
 \pre 间接断言：图形接口缓冲区有效。
-\sa PlotHLineSeg
+\sa Drawing::PlotHLineSeg
 */
-inline void
-DrawHLineSeg(const Graphics& g, const Rect& bounds, SPos y, SPos x1, SPos x2,
-	Color c)
-{
-	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
-		"The boundary is out of the buffer.");
-	PlotHLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), y, x1, x2, c);
-}
+inline PDefH(void, DrawHLineSeg, const Graphics& g, const Rect& bounds, SPos y,
+	SPos x1, SPos x2, Color c)
+	ImplExpr(YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(
+		bounds), "The boundary is out of the buffer."),
+		PlotHLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), y, x1, x2, c))
 
 /*!
 \brief 绘制竖直线段：在宽 w 的缓冲区内的区域 bounds 绘制指定竖直水平坐标 x ，
@@ -147,16 +130,13 @@ PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 \brief 描画竖直线段。
 \pre 断言： bounds 在 g 指定的边界内。
 \pre 间接断言：图形接口缓冲区有效。
-\sa PlotVLineSeg
+\sa Drawing::PlotVLineSeg
 */
-inline void
-DrawVLineSeg(const Graphics& g, const Rect& bounds, SPos x, SPos y1, SPos y2,
-	Color c)
-{
-	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
-		"The boundary is out of the buffer.");
-	PlotVLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x, y1, y2, c);
-}
+inline PDefH(void, DrawVLineSeg, const Graphics& g, const Rect& bounds, SPos x,
+	SPos y1, SPos y2, Color c)
+	ImplExpr(YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(
+		bounds), "The boundary is out of the buffer."),
+		PlotVLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x, y1, y2, c))
 
 /*!
 \brief 绘制线段：在宽 w 的缓冲区内的区域 bounds 绘制端点为 p1(x1, y1)
@@ -172,14 +152,11 @@ PlotLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x1, SPos y1,
 \pre 断言： bounds 在 g 指定的边界内。
 */
 //@{
-inline void
-DrawLineSeg(const Graphics& g, const Rect& bounds, SPos x1, SPos y1, SPos x2,
-	SPos y2, Color c)
-{
-	YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(bounds),
-		"The boundary is out of the buffer.");
-	PlotLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x1, y1, x2, y2, c);
-}
+inline PDefH(void, DrawLineSeg, const Graphics& g, const Rect& bounds, SPos x1,
+	SPos y1, SPos x2, SPos y2, Color c)
+	ImplExpr(YAssert(bounds.IsUnstrictlyEmpty() || Rect(g.GetSize()).Contains(
+		bounds), "The boundary is out of the buffer."),
+		PlotLineSeg(g.GetBufferPtr(), bounds, g.GetWidth(), x1, y1, x2, y2, c))
 inline PDefH(void, DrawLineSeg, const Graphics& g, const Rect& bounds,
 	const Point& p1, const Point& p2, Color c)
 	ImplExpr(DrawLineSeg(g, bounds, p1.X, p1.Y, p2.X, p2.Y, c))
@@ -196,11 +173,9 @@ YF_API void
 DrawRect(const Graphics& g, const Rect& bounds, const Point& pt,
 	const Size& s, Color c);
 //! \note 右下角顶点坐标 (r.X + r.Width - 1, r.Y + r.Height - 1) 。
-inline void
-DrawRect(const Graphics& g, const Rect& bounds, const Rect& r, Color c)
-{
-	DrawRect(g, bounds, r.GetPoint(), r.GetSize(), c);
-}
+inline PDefH(void, DrawRect, const Graphics& g, const Rect& bounds,
+	const Rect& r, Color c)
+	ImplExpr(DrawRect(g, bounds, r.GetPoint(), r.GetSize(), c))
 //@}
 
 /*!

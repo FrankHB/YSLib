@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3408
+\version r3414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2014-11-12 04:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -105,12 +105,7 @@ NativeFontSize::GetSizeRec() const
 void
 NativeFontSize::Activate() const
 {
-	YAssertNonnull(size);
-
-	auto face(size->face);
-
-	YAssertNonnull(face);
-	face->size = size;
+	Deref(Deref(size).face).size = size;
 }
 
 
@@ -281,8 +276,7 @@ Typeface::~Typeface()
 
 	const auto face(&ref.second.get());
 
-	YAssertNonnull(face);
-	YAssert(face->internal->refcount == 1,
+	YAssert(Deref(face).internal->refcount == 1,
 		"Invalid face reference count found.");
 	// XXX: Hack for using %ttmtx.c and %sfobjs.c of FreeType 2.4.11.
 	if(FT_IS_SFNT(face))

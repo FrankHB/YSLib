@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1558
+\version r1560
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-09-09 20:22 +0800
+	2014-11-12 05:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -744,7 +744,8 @@ public:
 
 	/*!
 	\brief 取指定行首元素指针。
-	\pre 断言：缓冲区指针非空；参数不越界。
+	\pre 断言：参数不越界。
+	\pre 间接断言：缓冲区指针非空。
 	*/
 	BitmapPtr
 	operator[](size_t) const ynothrow;

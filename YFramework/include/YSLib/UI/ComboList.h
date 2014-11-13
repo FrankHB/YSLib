@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2674
+\version r2676
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2014-09-10 02:30 +0800
+	2014-11-12 04:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -95,8 +95,7 @@ public:
 	DefGetter(, GEvent<void(IndexEventArgs)>&, Selected,
 		GetTextListRef().Selected)
 	//! \brief 取文本列表引用。
-	DefGetter(const, TextList&, TextListRef,
-		(YAssertNonnull(pTextList), *pTextList))
+	DefGetter(const, TextList&, TextListRef, Deref(pTextList))
 	//! \brief 视图变更事件。
 	DefGetter(, GEvent<void(ViewArgs)>&, ViewChanged,
 		GetTextListRef().ViewChanged)

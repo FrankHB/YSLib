@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r745
+\version r761
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-11-07 16:57 +0800
+	2014-11-11 19:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -740,6 +740,23 @@ There are issues which make the flattened object files hardly be linked directly
 		The performace is also significantly better for directories containing a few source files, because less archives should be built and waiting before linking can be reduced.
 Sometimes 'LANG=C' should be expicitly specified in the command line to prevent corrupted output from some tools built without NLS support.
 	For example, 'ar' from MSYS2 does not play with zh-CN locale well, while 'gcc-ar' has no problem.
+
+$2014-11:
+There should be general no explicit exception specification for destructors. However, exceptions of this rule are also allowed.
+	In gerenal, throwing an exception in a destructor is thought to be bad practice.
+		It would terminate the program during stack unwinding.
+		There is no good way to distinct it in the implementation of a destructor.
+			See http://www.gotw.ca/gotw/047.htm .
+		ISO C++ standard library follows this practice by Destructible requirements which explictly forbids exception exceptions propagated out of the destructors.
+	However, if the assumption of never throwing exception in stack unwinding is true, this is somewhat acceptable.
+		See https://akrzemi1.wordpress.com/2011/09/21/destructors-that-throw/ and http://www.kolpackov.net/projects/c++/eh/dtor-1.xhtml .
+		The root reason is that destructors are not necessarily used in RAII style.
+		To be simple, this should still be avoid in most cases: do use destructor to reclaim resources but not to perform arbitrary operations.
+	In ISO C++11 there is a subtle change in implictly specification for destructors.
+		See https://akrzemi1.wordpress.com/2013/08/20/noexcept-destructors/ .
+		Do explicitly specify 'noexcept(false)' to allow throwing in destructors, if ultimately needed.
+	WG21/N3166 proposed to add noexcept specification on destructors by default.
+		This is not accepted by ISO C++11.
 
 ////
 

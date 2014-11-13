@@ -11,13 +11,13 @@
 /*!	\file textmgr.cpp
 \ingroup Service
 \brief 文本管理服务。
-\version r3810
+\version r3816
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2014-11-09 20:53 +0800
+	2014-11-12 04:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -82,8 +82,7 @@ TextFileBuffer::iterator::iterator(TextFileBuffer* p_buf, size_t b, size_t idx)
 TextFileBuffer::iterator&
 TextFileBuffer::iterator::operator++() ynothrow
 {
-	YAssertNonnull(p_buffer);
-	YAssert(block < p_buffer->nBlock, "End iterator found.");
+	YAssert(block < Deref(p_buffer).nBlock, "End iterator found.");
 
 	auto& vec((*p_buffer)[block].first);
 
@@ -96,9 +95,8 @@ TextFileBuffer::iterator::operator++() ynothrow
 TextFileBuffer::iterator&
 TextFileBuffer::iterator::operator--() ynothrow
 {
-	YAssertNonnull(p_buffer),
 	YAssert(block != 0 || index != 0, "Begin iterator found.");
-	YAssert(block < p_buffer->nBlock || *this == p_buffer->end(),
+	YAssert(block < Deref(p_buffer).nBlock || *this == p_buffer->end(),
 		"Invalid iterator found.");
 	if(index == 0)
 	{
@@ -116,9 +114,7 @@ TextFileBuffer::iterator::operator--() ynothrow
 TextFileBuffer::iterator::reference
 TextFileBuffer::iterator::operator*() const
 {
-	YAssertNonnull(p_buffer);
-
-	auto& vec((*p_buffer)[block].first);
+	auto& vec((Deref(p_buffer))[block].first);
 
 	YAssert(!vec.empty(), "Empty block found.");
 	YAssert(index < vec.size(), "Invalid index found.");

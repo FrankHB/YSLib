@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r331
+\version r388
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-11-06 20:15 +0800
+	2014-11-13 20:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,19 +58,18 @@ namespace Android
 NativeHost::NativeHost(::ANativeActivity& ac, void* saved_state,
 	size_t state_size)
 	: activity(ac), p_config(::AConfiguration_new()),
-	looper(FetchNativeLooper({})), p_screen(), p_desktop()
+	looper(FetchNativeLooper({})), msg_pipe(platform_ex::MakePipe()),
+	p_screen(), p_desktop()
 {
 	NativeAppHostPtr = this;
 	YAssert(NativeAppHostPtr, "Duplicate instance found.");
-	YAssertNonnull(ac.callbacks);
 
-	auto& cb(*ac.callbacks);
+	auto& cb(Deref(ac.callbacks));
 
 #	define YCL_Android_RegCb_Begin(_n, ...) \
 	cb.on##_n = [](__VA_ARGS__){ \
-		YAssertNonnull(static_cast<void*>(p_activity)); \
 		YTraceDe(Debug, "ANativeActivity::" #_n ": %p.", \
-			ystdex::pvoid(p_activity));
+			ystdex::pvoid(Nonnull(p_activity)));
 #define YCL_Android_RegSimpCb(_n, ...) \
 YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	__VA_ARGS__; \
@@ -115,6 +114,10 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 					new Desktop(FetchNativeHostInstance().GetScreenRef()));
 				::y_android_main();
 				YTraceDe(Debug, "Application main routine exited.");
+				::ANativeActivity_finish(p_activity);
+				host.RunOnUIThread([]{
+					YTraceDe(Notice, "Finish method called.");
+				});
 				YTraceDe(Debug, "Clearing desktop pointer...");
 				host.p_desktop.reset();
 				YTraceDe(Debug, "Clearing screen pointer...");
@@ -155,8 +158,8 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 
 		auto& host(*YCL_NativeHostPtr);
 
-		YAssertNonnull(p_queue);
-		host.p_input_queue.reset(new InputQueue(host.looper, *p_queue));
+		host.p_input_queue.reset(
+			new InputQueue(host.looper, Deref(p_queue)));
 	},
 	YCL_Android_RegCb_Begin(InputQueueDestroyed,
 		::ANativeActivity* p_activity, ::AInputQueue* p_queue)
@@ -177,10 +180,32 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	}
 	YTraceDe(Debug, "Loading configuration...");
 	LoadConfiguration();
+	YTraceDe(Debug, "Adding file descriptor for UI thread call...");
+	::ALooper_addFd(&looper.get(), *msg_pipe.first.get(), ALOOPER_POLL_CALLBACK,
+		ALOOPER_EVENT_INPUT, [](int, int, void* p_data){
+		auto& host(*static_cast<NativeHost*>(Nonnull(p_data)));
+		lock_guard<mutex> lck(host.msg_mutex);
+		auto& task(host.msg_task);
+		int ret;
+		const int res(read(*host.msg_pipe.first.get(), &ret, sizeof(int)));
+
+		if(res < 0)
+			YTraceDe(Warning, "Failed reading file descriptor.");
+		else if(res != sizeof(int))
+			YTraceDe(Warning, "Truncated reading with result %d.", res);
+		if(task)
+		{
+			task();
+			task = nullptr;
+		}
+		return 1;
+	}, this);
 	YTraceDe(Debug, "Native host launched.");
 }
 NativeHost::~NativeHost()
 {
+	::ALooper_removeFd(&looper.get(), *msg_pipe.first.get());
+	YTraceDe(Debug, "File descriptor for UI thread call removed.");
 	ReleaseSavedState();
 	YTraceDe(Debug, "State released.");
 	p_input_queue.reset();
@@ -200,8 +225,7 @@ NativeHost::ClearSavedStateHandler()
 void
 NativeHost::LoadConfiguration()
 {
-	YAssertNonnull(p_config);
-	::AConfiguration_fromAssetManager(p_config.get(),
+	::AConfiguration_fromAssetManager(Nonnull(p_config).get(),
 		activity.get().assetManager);
 	TraceConfiguration(*p_config);
 	YTraceDe(Debug, "Configuration loaded.");
@@ -218,10 +242,28 @@ NativeHost::ReleaseSavedState() ynothrow
 void
 NativeHost::RestoreSavedState(byte* p_byte) const
 {
-	YAssertNonnull(p_byte);
 	lock_guard<mutex> lck(state_mutex);
 
-	std::copy_n(vecSavedState.cbegin(), vecSavedState.size(), p_byte);
+	std::copy_n(vecSavedState.cbegin(), vecSavedState.size(), Nonnull(p_byte));
+}
+
+void
+NativeHost::RunOnUIThread(std::function<void()> f)
+{
+	YTraceDe(Debug, "RunOnUIThread called.");
+
+	lock_guard<mutex> lck(msg_mutex);
+	int res;
+	const int ret(1);
+
+	msg_task = f;
+	while(res = ::write(*msg_pipe.second.get(), &ret, sizeof(int)),
+		res < 0 && errno == EINTR)
+		;
+	if(res < 0)
+		YTraceDe(Warning, "Failed writing file descriptor.");
+	else if(res != sizeof(int))
+		YTraceDe(Warning, "Truncated writing with result %d.", res);
 }
 
 void*
@@ -243,8 +285,7 @@ NativeHost::SaveInstanceState(size_t* p_len)
 NativeHost&
 FetchNativeHostInstance() ynothrow
 {
-	YAssertNonnull(NativeAppHostPtr);
-	return *NativeAppHostPtr;
+	return Deref(NativeAppHostPtr);
 }
 
 Desktop&
@@ -270,12 +311,11 @@ ANativeActivity_onCreate(::ANativeActivity* p_activity,
 	using namespace YSLib;
 	using namespace YSLib::Android;
 
-	YAssertNonnull(p_activity);
-
 #ifndef NDEBUG
 	platform::FetchCommonLogger().FilterLevel = platform::Descriptions::Debug;
 #endif
-	YTraceDe(Debug, "Creating activity: %p.", ystdex::pvoid(p_activity));
+	YTraceDe(Debug, "Creating activity: %p.",
+		ystdex::pvoid(Nonnull(p_activity)));
 	p_activity->instance = ystdex::make_unique<NativeHost>(*p_activity,
 		saved_state, saved_state_size).release();
 }

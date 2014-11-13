@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1898
+\version r1931
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-10-31 09:59 +0800
+	2014-11-13 19:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,22 +76,6 @@ namespace platform
 namespace
 {
 
-//! \since build 544
-struct fd_wrapper
-{
-	int file_des;
-
-	fd_wrapper(int fd) ynoexcept
-		: file_des(fd)
-	{}
-	~fd_wrapper()
-	{
-		if(file_des != -1)
-			::close(file_des);
-	}
-};
-
-
 std::string
 ensure_str(const char* s)
 {
@@ -114,17 +98,22 @@ template<typename _tChar>
 std::chrono::nanoseconds
 GetFileModificationTimeOfImpl(const _tChar* filename)
 {
-	YAssertNonnull(filename);
-
-	const fd_wrapper fdw(uopen(filename, O_RDONLY));
-
-	if(fdw.file_des != -1)
-		return GetFileModificationTimeOf(fdw.file_des);
+	if(const std::unique_ptr<int, file_desc_deleter>
+		fdw{platform::uopen(filename, O_RDONLY)})
+		return GetFileModificationTimeOf(*fdw.get());
 	throw FileOperationFailure(errno, std::generic_category(),
 		"Failed getting file time of \"" + ensure_str(filename) + "\".");
 }
 
 } // unnamed namespace;
+
+
+void
+file_desc_deleter::operator()(file_desc_deleter::pointer p) ynothrow
+{
+	if(p)
+		::close(*p);
+}
 
 
 // XXX: Catch %std::bad_alloc?
@@ -203,9 +192,8 @@ uopen(const char16_t* filename, int oflag, int pmode) ynothrow
 std::FILE*
 ufopen(const char* filename, const char* mode) ynothrow
 {
-	YAssertNonnull(filename),
-	YAssertNonnull(mode);
-	YAssert(*mode != char(), "Invalid argument found.");
+	YAssertNonnull(filename);
+	YAssert(*Nonnull(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
 	YCL_Impl_RetTryCatchAll(::_wfopen(UTF8ToWCS(filename).c_str(),
 		UTF8ToWCS(mode).c_str()))
@@ -217,9 +205,8 @@ ufopen(const char* filename, const char* mode) ynothrow
 std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 {
-	YAssertNonnull(filename),
-	YAssertNonnull(mode);
-	YAssert(*mode != char(), "Invalid argument found.");
+	YAssertNonnull(filename);
+	YAssert(*Nonnull(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
 	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
 		reinterpret_cast<const wchar_t*>(mode));
@@ -248,7 +235,6 @@ ufexists(const char* filename) ynothrow
 bool
 ufexists(const char16_t* filename) ynothrow
 {
-	YAssertNonnull(filename);
 	if(const auto file = ufopen(filename, u"rb"))
 	{
 		std::fclose(file);
@@ -353,10 +339,7 @@ GetFileModificationTimeOf(int fd)
 	// XXX: Error handling for indirect calls.
 	if(!::GetFileTime(::HANDLE(::_get_osfhandle(fd)), {}, {}, &file_time))
 		YF_Raise_Win32Exception("GetFileTime");
-	try
-	{
-		return platform_ex::ConvertTime(file_time);
-	}
+	TryRet(platform_ex::ConvertTime(file_time))
 	CatchExpr(std::system_error& e,
 		throw FileOperationFailure(e.code(), std::string(
 		"Failed querying file modification time: ") + e.what() + "."))

@@ -11,13 +11,13 @@
 /*!	\file Input.cpp
 \ingroup YCLib
 \brief 平台相关的扩展输入接口。
-\version r455
+\version r465
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 13:38:36 +0800
 \par 修改时间:
-	2014-11-05 16:58 +0800
+	2014-11-12 05:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,15 @@
 #include YFM_YCLib_Input
 #include YFM_YCLib_NativeAPI
 #include YFM_YCLib_Mutex
+#include YFM_YCLib_Debug
 #if	YCL_Android
 #	include <android/input.h>
 #endif
 
 //! \since build 551
 using namespace platform::Concurrency;
+//! \since build 553
+using platform::Deref;
 
 namespace platform
 {
@@ -93,16 +96,14 @@ float LastCursorPosX, LastCursorPosY;
 inline platform::KeyInput&
 FetchKeyStateRef()
 {
-	YAssertNonnull(pKeyState);
-	return *pKeyState;
+	return Deref(pKeyState);
 }
 
 //! \since build 493
 inline platform::KeyInput&
 FetchOldKeyStateRef()
 {
-	YAssertNonnull(pOldKeyState);
-	return *pOldKeyState;
+	return Deref(pOldKeyState);
 }
 
 //! \since build 492
@@ -157,13 +158,10 @@ FetchKeyUpState()
 void
 ClearKeyStates()
 {
-	YAssertNonnull(pKeyState),
-	YAssertNonnull(pOldKeyState);
-
 	lock_guard<mutex> comp_lck(CompKeyMutex);
 	lock_guard<mutex> lck(KeyMutex);
 
-	yunseq(pKeyState->reset(), pOldKeyState->reset());
+	yunseq(Deref(pKeyState).reset(), Deref(pOldKeyState).reset());
 }
 
 #endif

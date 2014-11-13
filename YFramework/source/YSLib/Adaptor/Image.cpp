@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r770
+\version r776
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2014-11-12 04:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -261,10 +261,9 @@ HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
 }
 HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
 	: bitmap([&]{
-		YAssertNonnull(src);
-		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(src),
-			s.Width, s.Height, s.Width * sizeof(PixelType) + pitch_delta,
-			YF_PixConvSpec, true);
+		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(
+			Nonnull(src)), s.Width, s.Height,
+			s.Width * sizeof(PixelType) + pitch_delta, YF_PixConvSpec, true);
 	}())
 {
 	if(!bitmap)
@@ -347,9 +346,8 @@ HBitmap::~HBitmap()
 byte*
 HBitmap::operator[](size_t idx) const ynothrow
 {
-	YAssertNonnull(bitmap);
 	YAssert(idx < GetHeight(), "Index is out of range.");
-	return ::FreeImage_GetScanLine(bitmap, idx);
+	return ::FreeImage_GetScanLine(Nonnull(bitmap), idx);
 }
 
 HBitmap::operator CompactPixmap() const

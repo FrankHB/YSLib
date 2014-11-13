@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r526
+\version r528
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-11-04 17:36 +0800
+	2014-11-12 04:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -319,8 +319,7 @@ ScreenBuffer::UpdateFrom(BitmapPtr p_buf) ynothrow
 {
 	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
-	YAssertNonnull(p_buf);
-	std::copy_n(p_buf, size.Width * size.Height, GetBufferPtr());
+	std::copy_n(Nonnull(p_buf), size.Width * size.Height, GetBufferPtr());
 }
 
 void
