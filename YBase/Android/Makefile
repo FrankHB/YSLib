@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YBase
-# Version = r213
+# Version = r217
 # Created = 2014-04-07 12:41:43 +0800
-# Updated = 2014-11-02 15:22 +0800
+# Updated = 2014-11-15 22:20 +0800
 # Encoding = ANSI
 
 
@@ -26,7 +26,7 @@ export PREFIX ?= arm-linux-androideabi-
 export CC	:=	$(PREFIX)gcc
 export CXX	:=	$(PREFIX)g++
 export AS	:=	$(PREFIX)as
-export AR	:=	$(PREFIX)ar
+export AR	:=	$(PREFIX)gcc-ar
 export OBJCOPY	:=	$(PREFIX)objcopy
 export STRIP	:=	$(PREFIX)strip
 export NM	:=	$(PREFIX)nm
@@ -70,13 +70,12 @@ ASFLAGS	:=	$(ARCH)
 CFLAGS	:=	-Wall -Wextra -Wcast-align -Winvalid-pch -Wmissing-declarations \
 			-Wredundant-decls -Wunreachable-code \
  			-fdata-sections -ffunction-sections \
- 			-ffast-math -flto=jobserver \
- 			$(ARCH)
+ 			-ffast-math $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -pedantic-errors
 
 ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
+CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
 else
 ASFLAGS	+=	-g
 CFLAGS	+=	-g -O0 -fno-omit-frame-pointer

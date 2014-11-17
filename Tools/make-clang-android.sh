@@ -13,8 +13,8 @@ BASE_DIRECTORY=`(cd ${BASE_DIRECTORY}; pwd)`
 ${NDK}/build/tools/make-standalone-toolchain.sh \
 	--package-dir=${BASE_DIRECTORY} \
 	--platform=android-9 \
-	--toolchain=arm-linux-androideabi-4.8 \
-	--llvm-version=3.4 \
+	--toolchain=arm-linux-androideabi-4.9 \
+	--llvm-version=3.5 \
 	--system=windows-x86_64 \
 	--verbose
 

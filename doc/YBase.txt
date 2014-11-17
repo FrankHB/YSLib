@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r277
+\version r280
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-11-11 23:46 +0800
+	2014-11-14 23:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,7 +131,9 @@
  "functional.hpp" 依赖 "variadic.hpp" 。
 另见 @2.4.3 、 @2.4.4 和 @2.4.5 。
 
-@2.4.2 模板特化：
+@2.4.2 命名空间和模板特化：
+命名空间 ystdex 内 details 命名空间保留为非公开实现。
+除了块作用域和非公开的实现命名空间外，命名空间 ystdex 中对标准库的元编程和类型特征名称使用 using std:: 声明，禁止其它的 using 声明引入 std 成员。 
  ystdex 的类型在声明所在的同一头文件中，可能存在 std 命名空间中的类模板的对应特化。
  std 的成员对 ystdex 命名空间中的类模板可能存在对应特化。注意完整包含所需的头文件，而不仅是 std 成员声明的标准库头。当前包括以下类型：
   std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。

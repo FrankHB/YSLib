@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4815
+\version r4819
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-11-12 05:51 +0800
+	2014-11-14 23:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -556,7 +556,8 @@ class GEventGuard
 public:
 	using EventType = GEvent<_tEventArgs...>;
 	using HandlerType = GHEvent<_tEventArgs...>;
-	std::reference_wrapper<EventType> Event;
+	//! \since build 554
+	lref<EventType> Event;
 	HandlerType Handler;
 
 	template<typename _type>
@@ -705,7 +706,8 @@ public:
 
 	//! \since build 537
 	using Base::Caller;
-	std::reference_wrapper<_type> ObjectRef;
+	//! \since build 554
+	lref<_type> ObjectRef;
 
 	GHandlerAdaptor(_type& obj, CallerType f)
 		: Base(f), ObjectRef(obj)

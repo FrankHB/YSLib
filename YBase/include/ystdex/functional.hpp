@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1318
+\version r1411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-10-17 22:22 +0800
+	2014-11-16 10:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,7 @@
 #include <memory> // for std::addressof;
 #include <string> // for std::char_traits;
 #include <numeric> // for std::accumulate;
+#include "utility.hpp" // for ystdex::noncopyable;
 
 namespace ystdex
 {
@@ -510,9 +511,80 @@ make_expanded(_fCallable&& f)
 }
 
 
+//! \since build 554
+//@{
+/*!
+\brief 左值引用包装。
+\tparam _type 被包装的类型。
+
+类似 \c std::reference_wrapper 和 \c boost::reference_wrapper 公共接口兼容的
+	引用包装类实现。
+和 \c std::reference_wrapper 不同而和 \c boost::reference_wrapper 类似，
+	不要求模板参数为完整类型。
+*/
+//@{
+template<typename _type>
+class lref : private nonmovable
+{
+public:
+	using type = _type;
+
+private:
+	_type* ptr;
+
+public:
+	yconstfn
+	lref(_type& t) ynothrow
+		: ptr(std::addressof(t))
+	{}
+	yconstfn
+	lref(std::reference_wrapper<_type> t) ynothrow
+		: lref(t.get())
+	{}
+
+	operator _type&() const ynothrow
+	{
+		return *ptr;
+	}
+
+	_type&
+	get() const ynothrow
+	{
+		return *ptr;
+	}
+};
+
+/*!
+\brief 构造引用包装。
+\relates lref
+*/
+//@{
+template<typename _type>
+yconstfn lref<_type>
+ref(_type& t)
+{
+	return lref<_type>(t);
+}
+template <class _type>
+void
+ref(const _type&&) = delete;
+
+template<typename _type>
+yconstfn lref<const _type>
+cref(const _type& t)
+{
+	return lref<const _type>(t);
+}
+template<class _type>
+void
+cref(const _type&&) = delete;
+//@}
+//@}
+
+
 /*!
 \ingroup unary_type_trait
-\brief 取 std::reference_wrapper 实例特征。
+\brief 取引用包装实例特征。
 \since build 348
 */
 //@{
@@ -524,6 +596,13 @@ struct wrapped_traits : false_type
 
 template<class _tWrapped>
 struct wrapped_traits<std::reference_wrapper<_tWrapped>> : true_type
+{
+	using type = _tWrapped;
+};
+
+//! \since build 554
+template<class _tWrapped>
+struct wrapped_traits<lref<_tWrapped>> : true_type
 {
 	using type = _tWrapped;
 };
@@ -539,7 +618,7 @@ using wrapped_traits_t = typename wrapped_traits<_type>::type;
 
 /*!
 \brief 解除引用包装。
-\note 默认只对 std::reference_wrapper 的实例类型的对象重载。
+\note 默认仅提供对 \c std::reference_wrapper 和 lref 的实例类型的重载。
 \note 使用 ADL 。
 \since build 348
 */
@@ -550,9 +629,10 @@ unref(_type&& x) ynothrow
 {
 	return x;
 }
+//! \since build 554
 template<typename _type>
 _type&
-unref(const std::reference_wrapper<_type>& x) ynothrow
+unref(const lref<_type>& x) ynothrow
 {
 	return x.get();
 }
@@ -640,10 +720,10 @@ public:
 	thunk(const value_type& arg)
 		: base(arg)
 	{}
-	//! \since build 527
+	//! \since build 554
 	template<typename _type>
-	thunk(std::reference_wrapper<_type> arg)
-		: base(std::reference_wrapper<value_type>(arg.get()))
+	thunk(lref<_type> arg)
+		: base(lref<value_type>(arg.get()))
 	{}
 	//! \since build 527
 	template<typename _fCaller, yimpl(typename
@@ -747,9 +827,9 @@ inline size_t
 hash_range(size_t seed, _tIn first, _tIn last)
 {
 	return std::accumulate(first, last, seed,
-		[](size_t seed, decltype(*first) val){
-		hash_combine(seed, val);
-		return seed;
+		[](size_t s, decltype(*first) val){
+		hash_combine(s, val);
+		return s;
 	});
 }
 template<typename _tIn>
@@ -877,32 +957,33 @@ struct mem_get<void>
 */
 struct is_equal
 {
+	//! \since build 554
+	//@{
 	template<typename _type1, typename _type2>
-	yconstfn bool
+	yconstfn yimpl(enable_if_t)<!wrapped_traits<_type1>::value
+		&& !wrapped_traits<_type2>::value, bool>
 	operator()(const _type1& x, const _type2& y) const
 	{
 		return x == y;
 	}
-	//! \since build 536
-	//@{
 	template<typename _type1, typename _type2>
-	yconstfn bool
-	operator()(const std::reference_wrapper<_type1>& x, const _type2& y) const
-		ynothrow
+	yconstfn yimpl(enable_if_t)<wrapped_traits<_type1>::value
+		&& !wrapped_traits<_type2>::value, bool>
+	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return std::addressof(x.get()) == std::addressof(y);
 	}
 	template<typename _type1, typename _type2>
-	yconstfn bool
-	operator()(const _type1& x, const std::reference_wrapper<_type2>& y) const
-		ynothrow
+	yconstfn yimpl(enable_if_t)<!wrapped_traits<_type1>::value
+		&& wrapped_traits<_type2>::value, bool>
+	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return std::addressof(x) == std::addressof(y.get());
 	}
 	template<typename _type1, typename _type2>
-	yconstfn bool
-	operator()(const std::reference_wrapper<_type1>& x,
-		const std::reference_wrapper<_type2>& y) const ynothrow
+	yconstfn yimpl(enable_if_t)<wrapped_traits<_type1>::value
+		&& wrapped_traits<_type2>::value, bool>
+	operator()(const _type1& x, const _type2& y) const ynothrow
 	{
 		return std::addressof(x.get()) == std::addressof(y.get());
 	}

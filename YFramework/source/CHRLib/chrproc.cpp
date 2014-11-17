@@ -11,13 +11,13 @@
 /*!	\file chrproc.cpp
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1263
+\version r1264
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:53:21 +0800
 \par 修改时间:
-	2014-10-11 18:38 +0800
+	2014-11-14 21:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,7 +151,7 @@ UCS4ToUCS2(ucs2_t* d, const ucs4_t* s)
 	const auto p(d);
 
 	while(!is_null(*s))
-		*d++ = *s++;
+		*d++ = ucs2_t(*s++);
 	*d = 0;
 	return d - p;
 }

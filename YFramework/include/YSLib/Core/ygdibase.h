@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1560
+\version r1672
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-11-12 05:17 +0800
+	2014-11-15 15:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,12 +85,15 @@ public:
 	GBinaryGroup(const Rect&) ynothrow;
 	/*!
 	\brief 构造：使用两个纯量。
+	\tparam _tScalar1 第一分量纯量类型。
+	\tparam _tScalar2 第二分量纯量类型。
+	\warning 模板参数和 _type 符号不同时隐式转换可能改变符号，不保证唯一结果。
 	\since build 319
 	*/
 	template<typename _tScalar1, typename _tScalar2>
 	yconstfn
 	GBinaryGroup(_tScalar1 x, _tScalar2 y) ynothrow
-		: X(x), Y(y)
+		: X(_type(x)), Y(_type(y))
 	{}
 	/*!
 	\brief 构造：使用纯量对。
@@ -102,6 +105,9 @@ public:
 	GBinaryGroup(const _tPair& pr) ynothrow
 		: X(std::get<0>(pr)), Y(std::get<1>(pr))
 	{}
+
+	//! \since build 554
+	DefDeCopyAssignment(GBinaryGroup)
 
 	/*!
 	\brief 负运算：取加法逆元。
@@ -145,12 +151,11 @@ public:
 	//@}
 };
 
+//! \relates GBinaryGroup
+//@{
 template<typename _type>
 const GBinaryGroup<_type> GBinaryGroup<_type>::Invalid{
 	std::numeric_limits<_type>::lowest(), std::numeric_limits<_type>::lowest()};
-
-
-//屏幕二元组二元运算。
 
 /*!
 \brief 比较：屏幕二元组相等关系。
@@ -206,6 +211,30 @@ operator*(const GBinaryGroup<_type>& val, _tScalar l) ynothrow
 {
 	return GBinaryGroup<_type>(val.X * l, val.Y * l);
 }
+
+/*!
+\brief 取分量。
+\since build 554
+*/
+//@{
+template<size_t _vIdx, typename _type>
+yconstfn _type&
+get(GBinaryGroup<_type>& val)
+{
+	static_assert(_vIdx < 2, "Invalid index found.");
+
+	return _vIdx == 0 ? val.X : val.Y;
+}
+template<size_t _vIdx, typename _type>
+yconstfn const _type&
+get(const GBinaryGroup<_type>& val)
+{
+	static_assert(_vIdx < 2, "Invalid index found.");
+
+	return _vIdx == 0 ? val.X : val.Y;
+}
+//@}
+//@}
 
 
 /*!
@@ -279,6 +308,9 @@ public:
 		: Width(w), Height(h)
 	{}
 
+	//! \since build 554
+	DefDeCopyAssignment(Size)
+
 	/*!
 	\brief 判断是否为空。
 	\since build 320
@@ -324,24 +356,46 @@ public:
 };
 
 /*!
-\brief 比较：屏幕区域大小相等关系。
+\relates Size
 \since build 319
 */
-yconstfn bool
-operator==(const Size& a, const Size& b) ynothrow
-{
-	return a.Width == b.Width && a.Height == b.Height;
-}
+//@{
+//! \brief 比较：屏幕区域大小相等关系。
+yconstfn PDefHOp(bool, ==, const Size& a, const Size& b) ynothrow
+	ImplRet(a.Width == b.Width && a.Height == b.Height)
+
+//! \brief 比较：屏幕区域大小不等关系。
+yconstfn PDefHOp(bool, !=, const Size& a, const Size& b) ynothrow
+	ImplRet(!(a == b))
+
+//! \brief 取面积。
+yconstfn PDefH(auto, GetAreaOf, const Size& s) ynothrow
+	-> decltype(s.Width * s.Height)
+	ImplRet(s.Width * s.Height)
 
 /*!
-\brief 比较：屏幕区域大小不等关系。
-\since build 319
+\brief 取分量。
+\since build 554
 */
-yconstfn bool
-operator!=(const Size& a, const Size& b) ynothrow
+//@{
+template<size_t _vIdx>
+yconstfn SDst&
+get(Size& s)
 {
-	return !(a == b);
+	static_assert(_vIdx < 2, "Invalid index found.");
+
+	return _vIdx == 0 ? s.Width : s.Height;
 }
+template<size_t _vIdx>
+yconstfn const SDst&
+get(const Size& s)
+{
+	static_assert(_vIdx < 2, "Invalid index found.");
+
+	return _vIdx == 0 ? s.Width : s.Height;
+}
+//@}
+//@}
 
 
 /*!
@@ -365,16 +419,6 @@ yconstfn _tBinary
 Transpose(_tBinary& obj) ynothrow
 {
 	return _tBinary(obj.Y, obj.X);
-}
-
-/*!
-\brief 取面积。
-\since build 319
-*/
-yconstfn auto
-GetAreaOf(const Size& s) ynothrow -> decltype(s.Width * s.Height)
-{
-	return s.Width * s.Height;
 }
 
 
@@ -621,7 +665,6 @@ operator!=(const Rect& x, const Rect& y) ynothrow
 	return !(x == y);
 }
 
-
 /*!
 \brief 加法：使用标准矩形 r 和偏移向量 v 构造屏幕标准矩形。
 \since build 319
@@ -663,12 +706,31 @@ operator|(const Rect&, const Rect&) ynothrow;
 \pre 断言：矩形的当前大小足够缩小。
 \since build 479
 */
-inline void
-Diminish(Rect& r, SDst off1 = 1, SDst off2 = 2)
+inline PDefH(void, Diminish, Rect& r, SDst off1 = 1, SDst off2 = 2)
+	ImplExpr(YAssert(r.Width > off2 && r.Height > off2,
+		"Boundary is too small."),
+		yunseq(r.X += off1, r.Y += off1, r.Width -= off2, r.Height -= off2))
+
+/*!
+\brief 取分量。
+\since build 554
+*/
+//@{
+template<size_t _vIdx>
+yconstfn ystdex::conditional_t<_vIdx < 2, SPos, SDst>&
+get(Rect& r)
 {
-	YAssert(r.Width > off2 && r.Height > off2, "Boundary is too small.");
-	yunseq(r.X += off1, r.Y += off1, r.Width -= off2, r.Height -= off2);
+	return std::get<_vIdx>(std::tuple<SPos&, SPos&, SDst&, SDst&>(r.X, r.Y,
+		r.Width, r.Height));
 }
+template<size_t _vIdx>
+yconstfn const ystdex::conditional_t<_vIdx < 2, SPos, SDst>&
+get(const Rect& r)
+{
+	return std::get<_vIdx>(std::tuple<const SPos&, const SPos&, const SDst&,
+		const SDst&>(r.X, r.Y, r.Width, r.Height));
+}
+//@}
 //@}
 
 
@@ -819,17 +881,11 @@ struct YF_API PaintContext
 \since build 453
 */
 //@{
-inline void
-UpdateClipArea(PaintContext& pc, const Rect& r)
-{
-	pc.ClipArea = r & pc.Target.GetSize();
-}
+inline PDefH(void, UpdateClipArea, PaintContext& pc, const Rect& r)
+	ImplExpr(pc.ClipArea = r & pc.Target.GetSize())
 
-inline void
-UpdateClipSize(PaintContext& pc, const Size& s)
-{
-	UpdateClipArea(pc, {pc.Location, s});
-}
+inline PDefH(void, UpdateClipSize, PaintContext& pc, const Size& s)
+	ImplExpr(UpdateClipArea(pc, {pc.Location, s}))
 //@}
 
 

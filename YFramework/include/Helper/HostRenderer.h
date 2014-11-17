@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r313
+\version r317
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-10-25 12:21 +0800
+	2014-11-14 22:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,8 @@ namespace Host
 class YF_API RenderWindow : public Window
 {
 private:
-	std::reference_wrapper<HostRenderer> renderer;
+	//! \since build 554
+	lref<HostRenderer> renderer;
 
 public:
 	RenderWindow(HostRenderer&, NativeWindowHandle);
@@ -140,7 +141,8 @@ public:
 class YF_API HostRenderer : public UI::BufferedRenderer
 {
 private:
-	std::reference_wrapper<UI::IWidget> widget;
+	//! \since build 554
+	lref<UI::IWidget> widget;
 	//! \since build 387
 	ScreenRegionBuffer rbuf;
 	WindowThread thrd;

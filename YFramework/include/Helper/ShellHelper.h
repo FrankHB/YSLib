@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1762
+\version r1771
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2014-11-12 05:32 +0800
+	2014-11-15 23:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -434,9 +434,9 @@ struct ContainerSetter
 public:
 	/*!
 	\brief 容器。
-	\since build 302
+	\since build 554
 	*/
-	std::reference_wrapper<IWidget> Container;
+	lref<IWidget> Container;
 
 	ContainerSetter(IWidget& con)
 		: Container(con)
@@ -457,19 +457,16 @@ struct ChildPainter
 public:
 	/*!
 	\brief 绘制上下文。
-	\since build 302
+	\since build 554
 	*/
-	std::reference_wrapper<const PaintContext> Context;
+	lref<const PaintContext> Context;
 
 	ChildPainter(const PaintContext& pc)
 		: Context(pc)
 	{}
 
-	void
-	operator()(IWidget& wgt)
-	{
-		PaintChild(wgt, Context);
-	}
+	PDefHOp(void, (), IWidget& wgt)
+		ImplExpr(PaintChild(wgt, Context))
 };
 
 

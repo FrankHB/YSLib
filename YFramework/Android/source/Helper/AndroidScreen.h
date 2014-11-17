@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r115
+\version r118
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-09-10 19:16 +0800
+	2014-11-14 23:56 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -53,7 +53,8 @@ namespace Devices
 class AndroidScreen : public Screen
 {
 private:
-	std::reference_wrapper<::ANativeWindow> window_ref;
+	//! \since build 559
+	lref<::ANativeWindow> window_ref;
 	Host::ScreenRegionBuffer rbuf;
 
 public:
@@ -74,7 +75,6 @@ public:
 
 	/*!
 	\brief 更新。
-	\pre 断言：本机窗口上下文非空。
 	\pre 间接断言：参数非空。
 	\note 复制到本机窗口或本机窗口缓冲区。
 	\note 部分线程安全：在不同线程上更新到屏幕和屏幕缓冲区之间线程间未决定有序。

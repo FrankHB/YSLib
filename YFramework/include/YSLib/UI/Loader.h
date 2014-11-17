@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r577
+\version r579
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2014-10-21 12:56 +0800
+	2014-11-14 23:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -238,7 +238,8 @@ public:
 class YF_API DynamicWidget
 {
 public:
-	std::reference_wrapper<WidgetLoader> Loader;
+	//! \since build 554
+	lref<WidgetLoader> Loader;
 	ValueNode WidgetNode;
 
 	DynamicWidget(WidgetLoader& ldr, const string& str)

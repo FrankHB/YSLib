@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r2012
+# Version = r2016
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-05-02 12:51 +0800
+# Updated = 2014-11-15 22:18 +0800
 # Encoding = ANSI
 
 
@@ -78,14 +78,12 @@ ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 CFLAGS	:=	-Wall -Wextra -Wno-psabi -Wunreachable-code \
  			-Wmissing-declarations -Winvalid-pch \
  			-fdata-sections -ffunction-sections \
- 			-ffast-math \
- 			-flto=jobserver \
- 			$(ARCH)
+ 			-ffast-math $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9
 
 ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
+CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
 else
 ASFLAGS	+=	-g
 CFLAGS	+=	-g -O0 -fno-omit-frame-pointer

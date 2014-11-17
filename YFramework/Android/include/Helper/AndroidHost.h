@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r207
+\version r211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-11-13 20:38 +0800
+	2014-11-14 23:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,9 +84,11 @@ protected:
 	std::function<void(void*&, size_t&)> fSaveState{};
 
 private:
-	std::reference_wrapper<::ANativeActivity> activity;
+	//! \since build 559
+	lref<::ANativeActivity> activity;
 	unique_ptr<::AConfiguration, ConfigurationDeleter> p_config;
-	std::reference_wrapper<::ALooper> looper;
+	//! \since build 559
+	lref<::ALooper> looper;
 	unique_ptr<InputQueue> p_input_queue{};
 	//! \since build 553
 	//@{

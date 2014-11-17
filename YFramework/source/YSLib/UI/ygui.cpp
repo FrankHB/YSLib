@@ -11,13 +11,13 @@
 /*!	\file ygui.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4195
+\version r4202
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-10-07 05:57 +0800
+	2014-11-18 01:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -232,7 +232,7 @@ GUIState::ResponseCursor(CursorEventArgs& e, UI::VisualEvent op)
 {
 	CursorLocation = e;
 
-	auto wgt_ref(std::ref(e.GetSender()));
+	auto wgt_ref(ystdex::ref(e.GetSender()));
 	IWidget* p_con;
 
 	e.Strategy = UI::RoutedEventArgs::Tunnel;
@@ -297,7 +297,7 @@ GUIState::ResponseCursorBase(CursorEventArgs& e, UI::VisualEvent op)
 void
 GUIState::ResponseKey(KeyEventArgs& e, UI::VisualEvent op)
 {
-	auto wgt_ref(std::ref(e.GetSender()));
+	auto wgt_ref(ystdex::ref(e.GetSender()));
 	IWidget* p_con;
 
 	e.Strategy = UI::RoutedEventArgs::Tunnel;
@@ -476,11 +476,13 @@ GUIState::Wrap(IWidget& wgt)
 
 
 GUIState&
-FetchGUIState()
+FetchGUIState() ynothrow
 {
-	static GUIState* pState(new GUIState());
+	static_assert(std::is_nothrow_default_constructible<GUIState>::value,
+		"State class is invalid");
+	static GUIState state;
 
-	return *pState;
+	return state;
 }
 
 } // namespace UI;

@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1012
+\version r1017
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-10-15 10:06 +0800
+	2014-11-16 10:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -90,7 +90,7 @@ public:
 	//@}
 	container_adaptor(std::initializer_list<value_type> il)
 		: base(il)
-	{};
+	{}
 
 	//! \brief 满足容器要求。
 	//@{
@@ -214,7 +214,7 @@ public:
 #endif
 	sequence_container_adaptor(std::initializer_list<value_type> il)
 		: base(il)
-	{};
+	{}
 
 	sequence_container_adaptor&
 	operator=(const sequence_container_adaptor&) = default;
@@ -291,7 +291,7 @@ make_container(_tIter first, _tIter last)
 {
 	return _tCon(first, last);
 }
-//! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+//! \note 使用 ADL \c begin 和 \c end 指定范围迭代器。
 template<class _tCon, typename _tRange>
 inline _tCon
 make_container(_tRange&& c)
@@ -301,7 +301,7 @@ make_container(_tRange&& c)
 
 	return _tCon(begin(c), end(c));
 }
-//! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
+//! \note 使用 ADL \c begin 和 \c end 指定范围迭代器。
 template<class _tCon, typename _tRange, typename _func>
 inline _tCon
 make_container(_tRange&& c, _func f)
@@ -357,7 +357,7 @@ range_size(const _tRange& c, false_type)
 \note 需要时使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
 \since build 546
 
-对于数组直接返回大小，否则：
+对数组直接返回大小，否则：
 若可调用结果可转换为 \c size_t 的成员函数 size() 则使用 size ；
 否则 \c size 取序列大小则使用 \c std::distance 计算范围迭代器确定范围大小。
 */

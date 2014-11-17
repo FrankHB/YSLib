@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r6625
+\version r6803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-11-13 20:56 +0800
+	2014-11-18 01:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,181 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ "class %JNIBase" @ %JNI $=
+			(
+				* "wrongly detaching from thread even without ownership" $since
+					b553,
+					// This would get wrong behavior if the VM is already \
+						attached to current thread. On android, this would \
+						cause log like \
+						'ERROR: detaching thread with interp frames \
+						(count=12)', and then the VM would be aborted and crash. 
+				/ "explicitly specified throwing %JNIException on failure"
+					~ "%std::runtime_error" @ "constructor"
+			),
+			* "member name shadowed" @ "class %file_des" @ %FileSystem $since
+				b553,
+				// To eliminate Clang++ warning: warning: declaration shadows \
+					a field [-Wshadow].
+			* $dev $doc "wrong Doxygen directive '\t'" ~ '\c'
+				@ "function %usystem" @ %YCommon $since b539,
+				// To eliminate Clang++ warning: unknown command tag name \
+					[-Wdocumentation-unknown-command].
+			* $dev $doc "wrong Doxygen directive '\note'" ~ '\return'
+				@ "function %ToggleLockState" @ %Keys $since b490
+				// To eliminate Clang++ warning: '\return' command used in a \
+					comment that is attached to a function returning void \
+					[-Wdocumentation].
+		),
+		/ $dev $build "wrong VC++ project include directory settings"
+			@ "all configurations" @ "platform %Win32" $since b544,
+			// Instead of VC++ toolchain, MinGW headers would be used.
+		/ DLB "explicitly truncated value" @ "implementation" %CHRLib $=
+		(
+			@ "function %UCS4ToUCS2" @ %CharacterProcessing,
+				// To eliminate warning C4244 on VC++ 2015 Preview with \
+					warning level /W3.
+			@ "constructor %ConversionState" @ %CharacterMapping
+				// To eliminate warning C4267 on VC++ 2015 Preview with \
+					warning level /W3.
+		),
+		/ @ %YSLib.Adaptor.YReference $dep_from %YBase.YStandardEx.Functional $=
+		(
+			// See $2014-11 @ %Documentation::Workflow::Annual2014.
+			+ 'using ystdex::reference_wrapper;'
+		),
+		/ DLD "implemented %operator()" @ "class %ChildPainter"
+			@ %Helper.ShellHelper ^ "macros %(PDefHOp, ImplExpr)",
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %YGDIBase $=
+				(
+					/ DLD "implemented inline functions %(UpdateClipArea, \
+						UpdateClipSize, Diminish, GetAreaOf)"
+						^ "macros %(PDefH, ImplExpr)",
+					/ DLD "implemented %yconstfn functions %operator(==, !=) \
+						for %Size" ^ "macros %(PDefHOp, ImplRet)",
+					/ $lib @ "class template %GBinaryGroup" $=
+					(
+						/ "specified conversion explicitly for scalar \
+							conversion" @ "constructor template for 2 scalar \
+								types",
+							// To eliminate Clang++ warning: \
+								[-Wsign-conversion].
+						+ "explicitly defaulted copy %operator= to avoid ISO \
+							C++11 deprecation"
+							// To eliminate Clang++ warning [-Wdeprecated].
+					),
+					/ @ "class %Size" $=
+					(
+						/ $dev $design "simplified copy constructor"
+							^ "%DefDeCopyCtor" ~ "non-trivial user-defined \
+							copy constructor",
+						+ "explicitly defaulted copy %operator= to avoid ISO \
+							C++11 deprecation"
+							// To eliminate Clang++ warning [-Wdeprecated].
+					),
+					+ "2 function templates %get for (class template \
+						%GBinaryGroup, classes %(Size, Rect))"
+				),
+				/ %YCoreUtilities $=
+				(
+					+ "function templates %(HalfDifference; \
+						HalfDifferenceIfGreater)",
+					/ DLD "guard macro %YSL_INC_Core_ycutil_h_"
+						=> "%YSL_INC_Core_YCoreUtilities_h_"
+				),
+			),
+			+ %ImageProcessing @ %Service $=
+			(
+				+ "function %Zoom";
+				+ "class %ZoomedImageCache"
+			);
+			/ @ "function %FetchGUIState" @ %UI.YGUI $=
+			(
+				^ $design "statically initialization of object"
+					~ "statically initialized pointer with new-expression";
+				* "missing destruction at end of program" $since b287,
+				+ 'ynothrow'
+			)
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ @ "namespace %ystdex" @ %Functional $=
+		(
+			// See $2014-11 @ %Documentation::Workflow::Annual2014.
+			+ "class template %lref";
+			+ "class template specialization %wrapped_traits for %lref",
+			+ "function templates %(ref, cref)",
+			/ "metafunction %is_equal"
+				^ "%wrapped_traits to support %ystdex::lref"
+		),
+		^ 'lref' ~ 'std::reference_wrapper' @ "function parameters"
+			@ "namespace %ystdex" $effective @ %(Any, Functional) $dep_from
+			("%reference_wrapper" @ %Functional),
+			// See $2014-11 @ %Documentation::Workflow::Annual2014.
+		* "all 2 redundant ';' in class definitions" @ %Container $since b408,
+			// To eliminate Clang++ warning: extra ';' after member function \
+				definition [-Wextra-semi].
+		* "lambda parameter declaration name shadowing variable"
+			@ "function template %hash_combine" @ %YFunctional $since b531,
+			// To eliminate Clang++ warning: declaration shadows a local \
+				variable [-Wshadow].
+		* $doc "wrong name for '\tparam'" @ "comment"
+			@ "function template %transform_n" $since b517
+			// To eliminate Clang++ warning [-Wdocumentation].
+	),
+	(
+	// See $2014-11 @ %Documentation::Workflow::Annual2014.
+	/ $dev "simplified reference wrapper with namespace %YSLib used"
+		^ 'lref' ~ 'std::reference_wrapper' @ "data members"
+		$effective @ %YFramework.(Helper.(HostRenderer, HostWindow, \
+		InputManager, ShellHelper), YSLib.(UI.(Hover, Border, Loader, Menu), \
+		Adaptor.(Font, Image), Core.YEvent), 'Helper_(Android)'.(AndroidHost, \
+		AndroidScreen)), YReader.(BookmarkUI, ShlExplorer);
+	* $comp $build "strict ISO C++11 code compatibility" $since b380
+		$= (/ "wrongly used incomplete type %Environment as argument of \
+			%std::reference_wrapper" @ %YFramework.Helper.(HostWindow,
+			InputManager))
+	),
+	/ DLD "precisely adapted reference wrapper operations without \
+		%std::reference_wrapper concerned" ^ "%ystdex::(ref, cref)"
+		~ "%std::(ref, cref)" $effective "%std::ref" @ %YFramework.YSLib.(
+		Core.ValueNode, Adaptor.Font, UI.(Menu, YGUI, YPanel, YUIContainer)),
+	/ "updated toolchain version for NDK r10c %make-clang-android.sh" @ %Tools
+		$=
+	(
+		/ '--toolchain=arm-linux-androideabi-4.8'
+			-> '--toolchain=arm-linux-androideabi-4.9',
+		/ '--llvm-version=3.4' -> '--llvm-version=3.5'
+	),
+	/ $build "makefile" @ "platform %Android" @ %YReader $=
+	(
+		/ 'ANDROID_SDKVER := 21.0.0' -> 'ANDROID_SDKVER := 21.1.1',
+		- DLD "redundant '-shared'" @ "%LDFLAGS"
+	),
+	/ $build @ "all 3 makefiles" @ "platform %Android" $=
+	(
+		/ '$(PREFIX)ar' -> '$(PREFIX)gcc-ar' @ "%AR",
+		* "-flto=jobserver" @ "%CFLAGS even on %debug configuration" $since b497
+	),
+	* $build "-flto=jobserver" @ "%CFLAGS even on %debug configuration"
+		@ "all 4 (ARM7, ARM9) makefiles" @ "platform %DS" $since b353
+	/ $dev $build "removed use of 'typename' when unnecessary" $effecitive
+		@ ("macro %DefBitmaskOperations" @ %YFramework.YBaseMacro)
+		// To eliminate some [-Wc++98-compat] by Clang++ even if allowed by \
+			C++11, see [CWG382].
+),
+
+b553
 (
 	/ %YFramework $=
 	(
@@ -2772,7 +2947,8 @@ b532
 			@ %Container,
 		* "missing predicate binding" @ "function template %stable_unique"
 			@ %Algorithm $since b531,
-			// Clang++ warning: unused parameter 'pred' [-Wunused-parameter].
+			// To eliminate Clang++ warning: unused parameter 'pred' \
+				[-Wunused-parameter].
 		+ "function template %erase_n for %iterator member" @ %Container
 			// Only %iterator rather than %const_iterator is required to be \
 				the parameter type of member %erase in container requirement.
@@ -5406,14 +5582,14 @@ b502
 				/ DLD "implementation" @ "member function \
 					%WidgetLoader::TransformUILayout" @ %Loader
 					$dep_from "split value node children container",
-				* $doc "wrong Doxygen directive '\build'" ~ '\brief'
+				* $dev $doc "wrong Doxygen directive '\build'" ~ '\brief'
 					@ "class %InvalidationUpdater" @ %Animation $=
 				(
 					* @ "data member %Invalidate" $since b457,
 					* @ "static function %DefaultInvalidate" $since b462,
 					* @ "data member %Invalidate" $since b482
 				),
-				* $doc "wrong Doxygen directive '\build'" ~ '\since'
+				* $dev $doc "wrong Doxygen directive '\build'" ~ '\since'
 					@ "data member %TextBox::CaretBrush" @ %TextBox $since b484
 			)
 		),

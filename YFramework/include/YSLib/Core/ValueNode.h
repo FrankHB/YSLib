@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1531
+\version r1533
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-09-09 23:09 +0800
+	2014-11-15 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -341,9 +341,9 @@ template<typename _tIn>
 const ValueNode&
 at(const ValueNode& node, _tIn first, _tIn last)
 {
-	return std::accumulate(first, last, std::ref(node),
+	return std::accumulate(first, last, ystdex::ref(node),
 		[](const ValueNode& nd, decltype(*first) c){
-		return std::ref(at(nd, c));
+		return ystdex::ref(at(nd, c));
 	});
 }
 //! \note 使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定范围迭代器。
