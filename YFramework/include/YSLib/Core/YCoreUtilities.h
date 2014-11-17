@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2107
+\version r2130
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-11-12 04:02 +0800
+	2014-11-18 00:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Core_ycutil_h_
-#define YSL_INC_Core_ycutil_h_ 1
+#ifndef YSL_INC_Core_YCoreUtilities_h_
+#define YSL_INC_Core_YCoreUtilities_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
@@ -129,6 +129,29 @@ yconstfn int
 FetchSignFromInterval(const _type& d, const _type& a, const _type& b) ynothrow
 {
 	return FetchSign(a, d) * FetchSign(d, b);
+}
+
+/*!
+\brief 计算指定类型的差值的一半。
+\since build 554
+*/
+template<typename _type>
+yconstfn _type
+HalfDifference(_type x, _type y)
+{
+	return (x - y) / 2;
+}
+
+/*!
+\brief 若被减数大于减数，计算指定类型的差值的一半。
+\since build 554
+*/
+template<typename _type>
+inline void
+HalfDifferenceIfGreater(_type& res, _type x, _type y)
+{
+	if(y < x)
+		res = YSLib::HalfDifference<_type>(x, y);
 }
 
 /*!

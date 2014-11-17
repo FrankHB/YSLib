@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r176
+\version r193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:20:32 +0800
 \par 修改时间:
-	2014-11-13 18:27 +0800
+	2014-11-13 22:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,17 +71,33 @@ class YF_API JNIBase
 private:
 	std::reference_wrapper<::JavaVM> vm_ref;
 	std::reference_wrapper<::JNIEnv> env_ref;
+	//! \since build 554
+	bool owns{};
 
 public:
 	/*!
 	\brief 构造：使用虚拟机引用和指定的版本。
-	\note 在必要时调用 \c AttachCurrentThread 。
+	\throw JNIException 初始化调用失败。
+	\note 在必要时调用 \c AttachCurrentThread 并取得所有权。
 	*/
 	JNIBase(::JavaVM&, ::jint = YF_Use_JNI);
 	//! \brief 构造：使用虚拟机引用和环境引用。
-	JNIBase(::JavaVM&, ::JNIEnv&);
+	JNIBase(::JavaVM& vm, ::JNIEnv& env)
+		: vm_ref(vm), env_ref(env), owns()
+	{}
+
+private:
 	/*!
-	\brief 销毁：调用 \c DetachCurrentThread 。
+	\brief 构造：使用虚拟机引用、环境引用和所有权状态。
+	\since build 554
+	*/
+	JNIBase(::JavaVM& vm, const std::pair<::JNIEnv&, bool>& pr)
+		: vm_ref(vm), env_ref(pr.first), owns(pr.second)
+	{}
+
+public:
+	/*!
+	\brief 析构：当具有所有权时调用 \c DetachCurrentThread 。
 	\note 无异常抛出：因为 \c JNI 提供的接口没有异常规范，在此处明确。
 	\note 忽略 \c DetachCurrentThread 返回的错误。
 	\sa https://bugs.openjdk.java.net/browse/JDK-6616502

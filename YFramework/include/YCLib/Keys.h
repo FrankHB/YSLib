@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r572
+\version r573
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-09-03 13:57 +0800
+	2014-11-16 11:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -405,7 +405,7 @@ FetchLockState(KeyIndex) ynothrow;
 
 /*!
 \brief 切换锁定键状态。
-\return 若参数指定可锁定的键则切换状态，否则忽略。
+\note 若参数指定可锁定的键则切换状态，否则忽略。
 \since build 490
 \todo Android 实现。
 */

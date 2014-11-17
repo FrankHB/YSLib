@@ -11,13 +11,13 @@
 /*!	\file InputManager.h
 \ingroup Helper
 \brief 输入管理器。
-\version r162
+\version r166
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:22:04 +0800
 \par 修改时间:
-	2014-09-03 13:55 +0800
+	2014-11-14 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,8 +45,8 @@ namespace Devices
 class YF_API InputManager : private noncopyable
 {
 private:
-	//! \since build 387
-	std::reference_wrapper<UI::GUIState> GUI_state;
+	//! \since build 554
+	lref<UI::GUIState> GUI_state;
 	/*!
 	\brief 指针设备光标位置。
 	\note 没有必要把输入内容以消息队列传输，因为总是有且仅有一个实例被同时处理。
@@ -54,9 +54,9 @@ private:
 	Drawing::Point cursor_state;
 	/*!
 	\brief 宿主环境。
-	\since build 381
+	\since build 554
 	*/
-	std::reference_wrapper<Environment> env;
+	lref<Environment> env;
 
 #if YCL_Win32
 	/*!

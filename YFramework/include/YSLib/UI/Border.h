@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r167
+\version r169
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2014-09-10 19:06 +0800
+	2014-11-14 23:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,8 @@ private:
 	*/
 	Rect locked_bounds{};
 	Area focused{BorderArea::Center, BorderArea::Center};
-	std::reference_wrapper<IWidget> widget;
+	//! \since build 554
+	lref<IWidget> widget;
 
 public:
 	/*!

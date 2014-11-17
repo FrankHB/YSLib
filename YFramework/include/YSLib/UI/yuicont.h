@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2037
+\version r2047
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-09-20 14:35 +0800
+	2014-11-15 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -188,8 +188,11 @@ RemoveFrom(IWidget&, IWidget&);
 class YF_API MLinearUIContainer
 {
 public:
-	//! \brief 部件组项目类型。
-	using ItemType = std::reference_wrapper<IWidget>;
+	/*!
+	\brief 部件组项目类型。
+	\since build 554
+	*/
+	using ItemType = lref<IWidget>;
 	//! \brief 部件组类型。
 	using WidgetVector = vector<ItemType>;
 	using iterator = WidgetIterator;
@@ -297,8 +300,11 @@ public:
 class YF_API MUIContainer
 {
 public:
-	//! \brief 部件组项目类型。
-	using ItemType = std::reference_wrapper<IWidget>;
+	/*!
+	\brief 部件组项目类型。
+	\since build 554
+	*/
+	using ItemType = lref<IWidget>;
 	using WidgetMap = multimap<ZOrderType, ItemType>; \
 		//!< 部件映射表类型：映射 Z 顺序至部件。
 	using PairType = WidgetMap::value_type;

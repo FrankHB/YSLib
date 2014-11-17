@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r94
+\version r96
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2014-10-27 13:37 +0800
+	2014-11-14 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,8 @@ private:
 	bool entered = {};
 
 public:
-	std::reference_wrapper<IWidget> Widget;
+	//! \since build 554
+	lref<IWidget> Widget;
 
 	HoverUpdater(IWidget&);
 

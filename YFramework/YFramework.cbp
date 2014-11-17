@@ -216,6 +216,7 @@
 		<Unit filename="include/YSLib/Service/ContentType.h" />
 		<Unit filename="include/YSLib/Service/File.h" />
 		<Unit filename="include/YSLib/Service/FileSystem.h" />
+		<Unit filename="include/YSLib/Service/ImageProcessing.h" />
 		<Unit filename="include/YSLib/Service/TextBase.h" />
 		<Unit filename="include/YSLib/Service/TextFile.h" />
 		<Unit filename="include/YSLib/Service/TextLayout.h" />
@@ -316,6 +317,7 @@
 		<Unit filename="source/YSLib/Service/ContentType.cpp" />
 		<Unit filename="source/YSLib/Service/File.cpp" />
 		<Unit filename="source/YSLib/Service/FileSystem.cpp" />
+		<Unit filename="source/YSLib/Service/ImageProcessing.cpp" />
 		<Unit filename="source/YSLib/Service/TextBase.cpp" />
 		<Unit filename="source/YSLib/Service/TextFile.cpp" />
 		<Unit filename="source/YSLib/Service/TextLayout.cpp" />

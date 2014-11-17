@@ -380,7 +380,7 @@
     <NMakeBuildCommandLine>make -j -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>make -j -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
-    <IncludePath>$(ProjectDir)include;$(ProjectDir)DS\include;$(ProjectDir)MinGW32\include;$(ProjectDir)Android\include;$(ProjectDir)..\YBase\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include;F:\msys\mingw\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include-fixed;F:\msys\mingw\i686-w64-mingw32\include;F:\msys\mingw\include\c++\4.9.1;F:\msys\mingw\include\c++\4.9.1\i686-w64-mingw32;F:\msys\mingw\include\c++\4.9.1\backward</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(ProjectDir)DS\include;$(ProjectDir)MinGW32\include;$(ProjectDir)Android\include;$(ProjectDir)..\3rdparty\include;$(ProjectDir)..\YBase\include;$(IncludePath)</IncludePath>
     <IntDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|Win32'">
@@ -392,7 +392,7 @@
     <NMakeBuildCommandLine>make -j -r BUILD=$(Configuration) 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>make -j -r BUILD=$(Configuration) rebuild 2&gt;&amp;1 | sed -e %27s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/%27</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>make -j -r BUILD=$(Configuration) clean</NMakeCleanCommandLine>
-    <IncludePath>$(ProjectDir)include;$(ProjectDir)DS\include;$(ProjectDir)MinGW32\include;$(ProjectDir)Android\include;$(ProjectDir)..\YBase\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include;F:\msys\mingw\include;F:\msys\mingw\lib\gcc\i686-w64-mingw32\4.9.1\include-fixed;F:\msys\mingw\i686-w64-mingw32\include;F:\msys\mingw\include\c++\4.9.1;F:\msys\mingw\include\c++\4.9.1\i686-w64-mingw32;F:\msys\mingw\include\c++\4.9.1\backward</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(ProjectDir)DS\include;$(ProjectDir)MinGW32\include;$(ProjectDir)Android\include;$(ProjectDir)..\3rdparty\include;$(ProjectDir)..\YBase\include;$(IncludePath)</IncludePath>
     <IntDir>$(SolutionDir)build\Win32\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|Win32'">

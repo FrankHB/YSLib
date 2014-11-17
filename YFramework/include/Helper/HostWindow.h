@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r419
+\version r421
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-11-04 17:43 +0800
+	2014-11-14 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,8 +56,8 @@ using namespace platform_ex;
 class YF_API Window : public platform_ex::HostWindow
 {
 private:
-	//! \since build 380
-	std::reference_wrapper<Environment> env;
+	//! \since build 554
+	lref<Environment> env;
 
 #	if YCL_Win32
 public:

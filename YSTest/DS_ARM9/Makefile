@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1330
+# Version = r1334
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-04-14 23:49 +0800
+# Updated = 2014-11-15 21:57 +0800
 # Encoding = ANSI
 
 
@@ -72,15 +72,13 @@ ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
 CFLAGS	:=	-Wall -Wextra -Wno-psabi -Wunreachable-code \
  			-Wmissing-declarations -Winvalid-pch \
  			-fdata-sections -ffunction-sections \
- 			-ffast-math \
- 			-flto=jobserver \
- 			$(ARCH)
+ 			-ffast-math $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9
 LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -Wl,--gc-sections -Wl,-Map,$(notdir $*.map)
 
 ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
+CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
 LDFLAGS	+=	-s
 else
 ASFLAGS	+=	-g

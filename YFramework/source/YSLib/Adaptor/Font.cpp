@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3414
+\version r3417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-11-12 04:24 +0800
+	2014-11-15 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -258,8 +258,7 @@ Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
 
 		if(!p_ff)
 			p_ff.reset(new FontFamily(cache, family_name));
-		return pair<std::reference_wrapper<FontFamily>,
-			std::reference_wrapper<::FT_FaceRec_>>(*p_ff.get(), *face);
+		return pair<lref<FontFamily>, lref<::FT_FaceRec_>>(*p_ff.get(), *face);
 	}()), bitmap_cache(2047U), glyph_index_cache()
 {
 	YAssert(::FT_UInt(cmap_index) < ::FT_UInt(ref.second.get().num_charmaps),
@@ -533,7 +532,7 @@ Font::SetStyle(FontStyle fs)
 
 	if(p)
 	{
-		yunseq(typeface = std::ref(*p), style = fs);
+		yunseq(typeface = ystdex::ref(*p), style = fs);
 		return true;
 	}
 	return {};

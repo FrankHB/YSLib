@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 服务模块配置文件。
-\version r70
+\version r72
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:26 +0800
 \par 修改时间:
-	2014-02-05 15:52 +0800
+	2014-11-16 16:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,6 +61,8 @@
 #define YFM_YSLib_Service_ContentType <YSLib/Service/ContentType.h>
 #define YFM_YSLib_Service_AccessHistory <YSLib/Service/AccessHistory.hpp>
 //@}
+//! \since build 554
+#define YFM_YSLib_Service_ImageProcessing <YSLib/Service/ImageProcessing.h>
 
 #endif
 

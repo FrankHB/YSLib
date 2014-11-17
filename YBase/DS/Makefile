@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r1960
+# Version = r1964
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-11-01 11:48 +0800
+# Updated = 2014-11-15 22:19 +0800
 # Encoding = ANSI
 
 
@@ -71,14 +71,12 @@ CFLAGS	:=	-Wall -Wextra -Wno-psabi \
  			-Wcast-align -Wunreachable-code \
  			-Wmissing-declarations -Wredundant-decls -Winvalid-pch \
  			-fdata-sections -ffunction-sections \
- 			-ffast-math \
- 			-flto=jobserver \
- 			$(ARCH)
+ 			-ffast-math $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -pedantic-errors -DARM9
 
 ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -DNDEBUG
+CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
 else
 ASFLAGS	+=	-g
 CFLAGS	+=	-g -O0 -fno-omit-frame-pointer

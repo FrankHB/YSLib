@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9527
+\version r9530
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-10-11 11:32 +0800
+	2014-11-16 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -120,6 +120,7 @@ Shell 和 Core 的关系是相对的，例如：
  N2242: Proposed Wording for Variadic Templates (Revision 2)
  N2249: New Character Types in C++
  N2258: Templates Aliases
+ features except std::aligned_union from N2341: Adding Alignment Support to the C++ Programming Language / Wording
  N2343: Decltype (revision 7)
  N2346: Defaulted and Deleted Functions
  N2347: Strongly Typed Enums (revision 3)
@@ -131,13 +132,14 @@ Shell 和 Core 的关系是相对的，例如：
  N2540: Inheriting Constructors (revision 5)
  N2541: New Function Declarator Syntax Wording
  N2559: Nesting Exception Objects (Revision 1)
-  CWG819: rethrow_if_nested 
+  CWG819: rethrow_if_nested
  N2672: Initializer List proposed wording
  N2756: Non-static data member initializers
  N2844: Fixing a Safety Problem with Rvalue References: Proposed Wording (Revision 1)
   CWG1138: Rvalue-ness check for rvalue reference binding is wrong
  N2927: New wording for C++0x Lambdas (rev. 2)
  N2930: Range-Based For Loop Wording (Without Concepts)
+ N3050: Allowing Move Constructors to Throw (Rev. 1)
  N3052: Converting Lambdas to Function Pointers
  features except in <type_traits> from N3053: Defining Move Special Member Functions
  N3143: Proposed wording for US 90

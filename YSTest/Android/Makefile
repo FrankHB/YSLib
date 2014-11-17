@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r237
+# Version = r243
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-07-14 00:36 +0800
+# Updated = 2014-11-15 22:21 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -20,7 +20,7 @@ ifeq ($(PLATFORM),Android)
 		$(error "Please set ANDROID_SDK in your environment. export ANDROID_SDK=<path to>ANDROID_SDK")
 	endif
 	ANDROID_PLATFORM := 9
-	ANDROID_SDKVER := 20.0.0
+	ANDROID_SDKVER := 21.1.1
 #	java_exe := $(shell $(ANDROID_SDK)/tools/lib/find_java)
 #	java_d := $(shell cygpath -d "$(java_exe)")
 #	export JAVA := $(shell cygpath "$(java_d)")
@@ -40,7 +40,7 @@ export PREFIX ?= arm-linux-androideabi-
 export CC := $(PREFIX)gcc
 export CXX := $(PREFIX)g++
 export AS := $(PREFIX)as
-export AR := $(PREFIX)ar
+export AR := $(PREFIX)gcc-ar
 export OBJCOPY := $(PREFIX)objcopy
 export STRIP := $(PREFIX)strip
 export NM := $(PREFIX)nm
@@ -96,16 +96,15 @@ ASFLAGS := $(ARCH)
 CFLAGS := -Wall -Wextra -Winvalid-pch -Wmissing-declarations \
 	-Wredundant-decls -Wunreachable-code \
  	-fdata-sections -ffunction-sections \
- 	-ffast-math -flto=jobserver \
- 	$(ARCH)
+ 	-ffast-math $(ARCH)
 
 CFLAGS += $(INCLUDE) -D_MT
-LDFLAGS := $(ARCH) -shared -Wl,--gc-sections -Wl,-Map,$(notdir $*.map) \
+LDFLAGS := $(ARCH) -Wl,--gc-sections -Wl,-Map,$(notdir $*.map) \
 	-Wl,--no-undefined -Wl,--dynamic-list-data \
 	-Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo
 
 ifneq ($(CONF),debug)
-CFLAGS += -O3 -fomit-frame-pointer -DNDEBUG
+CFLAGS += -O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
 LDFLAGS += -s
 else
 ASFLAGS += -g

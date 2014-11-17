@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1877
+\version r1880
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-10-14 16:56 +0800
+	2014-11-15 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@ namespace UI
 IWidget&
 FetchTopLevel(IWidget& wgt)
 {
-	auto wgt_ref(std::ref(wgt));
+	auto wgt_ref(ystdex::ref(wgt));
 
 	while(const auto p = FetchContainerPtr(wgt_ref))
 		wgt_ref = *p;
@@ -50,7 +50,7 @@ FetchTopLevel(IWidget& wgt)
 IWidget&
 FetchTopLevel(IWidget& wgt, Point& pt)
 {
-	auto wgt_ref(std::ref(wgt));
+	auto wgt_ref(ystdex::ref(wgt));
 
 	while(const auto p = FetchContainerPtr(wgt_ref))
 	{
@@ -167,7 +167,7 @@ void
 MLinearUIContainer::operator+=(IWidget& wgt)
 {
 	if(!Contains(wgt))
-		vWidgets.push_back(std::ref(wgt));
+		vWidgets.push_back(ystdex::ref(wgt));
 }
 
 bool
@@ -226,7 +226,7 @@ void
 MUIContainer::Add(IWidget& wgt, ZOrderType z)
 {
 	if(!Contains(wgt))
-		mWidgets.emplace(z, std::ref(wgt));
+		mWidgets.emplace(z, ystdex::ref(wgt));
 }
 
 bool

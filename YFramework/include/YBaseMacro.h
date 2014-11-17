@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2620
+\version r2625
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2014-10-21 12:47 +0800
+	2014-11-16 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -419,9 +419,12 @@ public: \
 	DefBitmaskOrAssignment(_tBitmask, _tInt) \
 	DefBitmaskXorAssignment(_tBitmask, _tInt)
 
-//! \since build 421
+/*!
+\since build 421
+\note 不在类作用域内使用，因此不在类型名前使用 \c typename 。
+*/
 #define DefBitmaskEnum(_tEnum) \
-	DefBitmaskOperations(_tEnum, typename std::underlying_type<_tEnum>::type)
+	DefBitmaskOperations(_tEnum, std::underlying_type<_tEnum>::type)
 //@}
 //@}
 

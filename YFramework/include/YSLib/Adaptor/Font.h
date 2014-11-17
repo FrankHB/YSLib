@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3227
+\version r3232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2014-07-24 18:43 +0800
+	2014-11-14 23:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -269,9 +269,8 @@ private:
 	::FT_Long face_index;
 	::FT_Int cmap_index;
 	StyleName style_name;
-	//! \since build 420
-	pair<std::reference_wrapper<FontFamily>,
-		std::reference_wrapper<::FT_FaceRec_>> ref;
+	//! \since build 554
+	pair<lref<FontFamily>, lref<::FT_FaceRec_>> ref;
 	//! \since build 521
 	mutable ystdex::used_list_cache<BitmapKey, SmallBitmapData, BitmapKeyHash>
 		bitmap_cache;
@@ -550,8 +549,8 @@ public:
 		MinimalSize = 4, MaximalSize = 96;
 
 private:
-	//! \since build 419
-	std::reference_wrapper<Typeface> typeface;
+	//! \since build 554
+	lref<Typeface> typeface;
 	//! \since build 419
 	FontSize font_size;
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r599
+\version r606
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-10-14 16:56 +0800
+	2014-11-15 10:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,18 +70,18 @@ template<typename _tIn, typename _func, typename _type>
 _func
 for_each_equal(_tIn first, _tIn last, const _type& value, _func f)
 {
-    for(; first != last; first = std::find(++first, last, value))
-   		f(*first);
-    return f;
+	for(; first != last; first = std::find(++first, last, value))
+		f(*first);
+	return f;
 }
 
 template<typename _tIn, typename _func, typename _fPred>
 _func
 for_each_if(_tIn first, _tIn last, _fPred pred, _func f)
 {
-    for(; first != last; first = std::find_if(++first, last, pred))
-   		f(*first);
-    return f;
+	for(; first != last; first = std::find_if(++first, last, pred))
+		f(*first);
+	return f;
 }
 //@}
 //@}
@@ -97,7 +97,7 @@ for_each_if(_tIn first, _tIn last, _fPred pred, _func f)
 \brief 指定数量的序列转换。
 \tparam _fOp 序列操作类型。
 \tparam _tOut 表示结果的输出迭代器类型。
-\tparam _fIns 输入迭代器类型。
+\tparam _tIns 输入迭代器类型。
 \pre 迭代器可解引用。
 \warning 不检查越界。
 \since build 517

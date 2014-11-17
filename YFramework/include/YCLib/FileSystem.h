@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1561
+\version r1570
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-11-13 19:42 +0800
+	2014-11-15 11:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,28 +187,29 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 class YF_API file_desc
 {
 private:
-	int fd;
+	//! \since build 554
+	int desc;
 
 public:
 	file_desc() ynothrow
-		: fd(-1)
+		: desc(-1)
 	{}
 	file_desc(int fd) ynothrow
-		: fd(fd)
+		: desc(fd)
 	{}
 	file_desc(std::nullptr_t) ynothrow
-		: fd(-1)
+		: desc(-1)
 	{}
 
 	PDefHOp(int, *, )
-		ImplRet(fd)
+		ImplRet(desc)
 
-	explicit DefCvt(const ynothrow, bool, fd != -1)
+	explicit DefCvt(const ynothrow, bool, desc != -1)
 
 	friend PDefHOp(bool, ==, const file_desc& x, const file_desc& y)
-		ImplRet(x.fd == y.fd)
+		ImplRet(x.desc == y.desc)
 	friend PDefHOp(bool, !=, const file_desc& x, const file_desc& y)
-		ImplRet(x.fd != y.fd)
+		ImplRet(x.desc != y.desc)
 };
 
 

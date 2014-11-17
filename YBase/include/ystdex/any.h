@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1456
+\version r1461
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-09-10 19:14 +0800
+	2014-11-14 22:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include <new> // for placement ::operator new from standard library;
 #include <memory> // for std::addressof, std::unique_ptr;
 #include <typeinfo> // for typeid, std::bad_cast;
+#include "functional.hpp" // for ystdex::lref;
 
 namespace ystdex
 {
@@ -526,8 +527,9 @@ public:
 		return *get_pointer(s);
 	}
 
+	//! \since build 554
 	static void
-	init(any_storage& d, std::reference_wrapper<value_type> x)
+	init(any_storage& d, lref<value_type> x)
 	{
 		base::init(d, std::addressof(x.get()));
 	}
@@ -667,8 +669,9 @@ public:
 	}
 	//! \since build 376
 	//@{
+	//! \since build 554
 	template<typename _type>
-	any(std::reference_wrapper<_type> x)
+	any(lref<_type> x)
 		: manager(any_ops::ref_handler<_type>::manage)
 	{
 		any_ops::ref_handler<_type>::init(storage, x);

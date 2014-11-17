@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r158
+\version r160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-09-20 16:22 +0800
+	2014-11-14 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,7 +45,8 @@ FetchDefaultShellDirectory();
 class SwitchScreensButton : public Button
 {
 private:
-	std::reference_wrapper<ShlDS> shell;
+	//! \since build 554
+	lref<ShlDS> shell;
 
 public:
 	SwitchScreensButton(ShlDS&, const Point&);

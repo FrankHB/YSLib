@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r127
+\version r137
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:25:23 +0800
 \par 修改时间:
-	2014-11-13 18:36 +0800
+	2014-11-14 21:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,17 +43,17 @@ namespace JNI
 {
 
 #define YCL_RaiseJNIFailure(_str) \
-	(YTraceDe(Err, _str), throw std::runtime_error(_str))
+	(YTraceDe(Err, _str), throw platform_ex::JNI::JNIException(_str))
 
 //! \since build 553
 namespace
 {
 
-::JNIEnv&
+//! \since build 554
+std::pair<::JNIEnv&, bool>
 FetchJNIEnvRef(::JavaVM& vm, ::jint version)
 {
 	void* p_env;
-
 	int status(vm.GetEnv(&p_env, version));
 	auto& p_jni(reinterpret_cast<::JNIEnv*&>(p_env));
 
@@ -77,7 +77,7 @@ FetchJNIEnvRef(::JavaVM& vm, ::jint version)
 		YCL_RaiseJNIFailure("Failed getting JNI environment.");
 	}
 	YAssertNonnull(p_jni);
-	return *p_jni;
+	return {*p_jni, status == JNI_EDETACHED};
 }
 
 } // unnamed namespace;
@@ -85,12 +85,10 @@ FetchJNIEnvRef(::JavaVM& vm, ::jint version)
 JNIBase::JNIBase(::JavaVM& vm, ::jint version)
 	: JNIBase(vm, FetchJNIEnvRef(vm, version))
 {}
-JNIBase::JNIBase(::JavaVM& vm, ::JNIEnv& env)
-	: vm_ref(vm), env_ref(env)
-{}
 JNIBase::~JNIBase() ynothrow
 {
-	vm_ref.get().DetachCurrentThread();
+	if(owns)
+		vm_ref.get().DetachCurrentThread();
 }
 
 void
@@ -106,7 +104,7 @@ JNIBase::EnsureDetachJNIAtThreadExit(::JavaVM& vm, ::JNIEnv& env)
 		delete static_cast<JNIBase*>(p);
 	});
 
-	key.SetValue(new JNIBase(vm, env));
+	key.SetValue(new JNIBase(vm, {env, true}));
 #		else
 	throw ystdex::unsupported("Platform without TLS or POSIX thread "
 		" unsupported to automatically detach.");

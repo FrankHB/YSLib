@@ -11,13 +11,13 @@
 /*!	\file yref.hpp
 \ingroup Adaptor
 \brief 用于提供指针和引用访问的间接访问类模块。
-\version r2668
+\version r2671
 \author FrankHB <frankhb1989@gmail.com>
 \since build 176
 \par 创建时间:
 	2010-03-21 23:09:06 +0800
 \par 修改时间:
-	2014-11-05 01:37 +0800
+	2014-11-15 00:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_YSLib_Adaptor_YAdaptor
 #include <utility>
 #include <ystdex/memory.hpp>
+#include <ystdex/functional.hpp>
 
 namespace YSLib
 {
@@ -58,6 +59,9 @@ using std::static_pointer_cast;
 using ystdex::unique_raw;
 using std::unique_ptr;
 using std::weak_ptr;
+
+//! \since build 554
+using ystdex::lref;
 
 
 /*!	\defgroup reset Reset Pointers

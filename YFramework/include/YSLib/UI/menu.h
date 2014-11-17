@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r951
+\version r955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2014-09-20 18:38 +0800
+	2014-11-15 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,10 +171,9 @@ public:
 	Window& Frame; //!< 框架窗口。
 
 private:
-	//! \since build 537
-	set<std::reference_wrapper<Menu>, ystdex::composed<std::less<Menu*>,
-		ystdex::composed<ystdex::addressof_op<Menu>,
-		ystdex::mem_get<std::reference_wrapper<Menu>>>>> menus{};
+	//! \since build 554
+	set<lref<Menu>, ystdex::composed<std::less<Menu*>, ystdex::composed<
+		ystdex::addressof_op<Menu>, ystdex::mem_get<lref<Menu>>>>> menus{};
 
 public:
 	/*!
@@ -219,7 +218,7 @@ public:
 	\since build 531
 	*/
 	PDefH(bool, Contains, Menu& mnu) const
-		ImplRet(ystdex::exists(menus, std::ref(mnu)))
+		ImplRet(ystdex::exists(menus, ystdex::ref(mnu)))
 
 	/*!
 	\brief 清除菜单组。

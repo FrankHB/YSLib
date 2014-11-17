@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r761
+\version r785
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-11-11 19:28 +0800
+	2014-11-15 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -757,6 +757,30 @@ There should be general no explicit exception specification for destructors. How
 		Do explicitly specify 'noexcept(false)' to allow throwing in destructors, if ultimately needed.
 	WG21/N3166 proposed to add noexcept specification on destructors by default.
 		This is not accepted by ISO C++11.
+Note the 'std::reference_wrapper' is not equal to 'boost::reference_wrapper'.
+	The latter is simpler. 'std::reference_wrapper' has more interface about nested types and 'operator()', thus it needs a compelete type as template argument, otherwise the behavior is undefined.
+		See https://groups.google.com/a/isocpp.org/forum/?_escaped_fragment_=topic/std-discussion/_tavlfXkOrc#!topic/std-discussion/_tavlfXkOrc .
+	Currently G++ 4.9 with libstdc++ allows the invalid use and would not detect the ODR violation.
+	Visual C++ denies this use with subtle diagnostics.
+		See https://connect.microsoft.com/VisualStudio/feedback/details/750448/std-reference-wrapper-fails-with-undefined-types .
+	YBase now has introduced 'ystdex::lref' to simulate 'boost::reference_wrapper' allowing incomplete type as template argument, among with 'ref' and 'cref'.
+		Only limited interface is supported.
+			Standard library interface inconsistent with incomplete template argument are not supported.
+			Boost specific member 'get_pointer' is not supported.
+			Specialization of 'wrapped_traits' is added.
+			Constructor has overloaded to support conversion from 'std::reference_wrapper'.
+				This allowed both instances of 'std::reference_wrapper' and 'ystdex::lref' to be the function argument type.
+				To minimize dependencies, no further conversions is supported specially.
+				If more generic interface is needed, SFINAE with 'ystded::wrapped_traits' can be used.
+		The declaration 'ystdex::lref' is introduced in namespace "YSLib" by using declarations in YSLib::Adaptor::YReference unconditionally. However, the 'std::ref' and 'std::cref' are not quite same.
+			They clashed with names in 'std'.
+			In library code they should be always used with qualified prefix, otherwise the ADL can make troubles when the behavior of found entity are not equivalent as expected.
+				Note 'ystdex::ref' and 'ystdex::cref' are different with 'ystdex::make_*' for smart pointers.
+					The latter ones are overlapped with their 'std::' counterparts (if any) because they exposing same kind of functionality and return same expected types.
+					The use cases in templates where the ADL effects are rare. Even in these cases, prefix can be explicitly used.
+					The difference about prefix in semantics is implementation details rather than interface requirements.
+			They are easy to misused to construct a 'ystdex::lref' and passed it to function templates which only handles 'std::reference_wrapper' specially.
+				For examples, as 'std::bind' arguments or 'operator()' is used. In these cases the 'std::' should be used explicitly.
 
 ////
 
