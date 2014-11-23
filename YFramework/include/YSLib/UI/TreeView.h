@@ -11,13 +11,13 @@
 /*!	\file TreeView.h
 \ingroup UI
 \brief 树形视图控件。
-\version r250
+\version r251
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-04 19:48:13 +0800
 \par 修改时间:
-	2014-10-16 15:54 +0800
+	2014-11-21 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,7 +111,7 @@ public:
 	//! \brief 构造：使用指定边界、文本列表和高亮背景色/文本色对。
 	explicit
 	TreeList(const Rect& = {}, const shared_ptr<ListType>& = {},
-		const pair<Color, Color>& = FetchGUIState().Colors.GetPair(
+		const pair<Color, Color>& = FetchGUIConfiguration().Colors.GetPair(
 		Styles::Highlight, Styles::HighlightText));
 	DefDeMoveCtor(TreeList)
 

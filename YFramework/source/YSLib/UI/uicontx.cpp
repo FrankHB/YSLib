@@ -11,13 +11,13 @@
 /*!	\file uicontx.cpp
 \ingroup UI
 \brief 样式无关的 GUI 附加容器。
-\version r267
+\version r268
 \author FrankHB <frankhb1989@gmail.com>
 \since build 192
 \par 创建时间:
 	2011-02-21 09:01:13 +0800
 \par 修改时间:
-	2014-04-06 17:29 +0800
+	2014-11-21 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ DialogPanel::DialogPanel(const Rect& r)
 	FetchEvent<Paint>(btnOK) += [this](PaintEventArgs&& e){
 		DrawCircle(e.Target, e.ClipArea, {e.Location.X + 8, e.Location.Y + 8},
 			4, IsEnabled(btnOK) ? btnOK.ForeColor
-			: FetchGUIState().Colors[Styles::Workspace]);
+			: FetchGUIConfiguration().Colors[Styles::Workspace]);
 	},
 	FetchEvent<GotFocus>(*this) += invalidator,
 	FetchEvent<LostFocus>(*this) += invalidator

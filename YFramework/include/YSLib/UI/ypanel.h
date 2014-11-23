@@ -11,13 +11,13 @@
 /*!	\file ypanel.h
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r433
+\version r435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:40:51 +0800
 \par 修改时间:
-	2014-05-01 23:03 +0800
+	2014-11-21 09:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,10 +70,10 @@ public:
 	/*!
 	\brief 按指定 Z 顺序向部件组添加部件，并设置指针。
 	\sa MUIContainer::Add
-	\since build 279
+	\since build 555
 	*/
 	virtual void
-	Add(IWidget&, ZOrderType = DefaultZOrder);
+	Add(IWidget&, ZOrder = DefaultZOrder);
 
 	/*!
 	\brief 清除内容。

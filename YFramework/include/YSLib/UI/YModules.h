@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r87
+\version r88
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2014-09-04 19:54 +0800
+	2014-11-19 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,6 @@
 #define YFM_YSLib_UI_YWidgetView <YSLib/UI/ywgtview.h>
 #define YFM_YSLib_UI_YWidget <YSLib/UI/ywidget.h>
 #define YFM_YSLib_UI_YControl <YSLib/UI/ycontrol.h>
-#define YFM_YSLib_UI_YBrush <YSLib/UI/YBrush.h>
 #define YFM_YSLib_UI_YGUI <YSLib/UI/ygui.h>
 #define YFM_YSLib_UI_YUIContainer <YSLib/UI/yuicont.h>
 #define YFM_YSLib_UI_YPanel <YSLib/UI/ypanel.h>

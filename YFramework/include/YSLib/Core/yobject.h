@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3827
+\version r3878
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-11-12 04:04 +0800
+	2014-11-23 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,6 +170,8 @@ public:
 
 	//! \since build 353
 	DefDeCopyAssignment(ValueHolder)
+	//! \since build 555
+	DefDeMoveAssignment(ValueHolder)
 
 	bool
 	operator==(const IValueHolder& obj) const ImplI(IValueHolder)
@@ -181,44 +183,43 @@ public:
 	DefClone(const ImplI(IValueHolder), ValueHolder)
 
 	//! \since build 348
-	void*
-	get() const ImplI(IValueHolder)
-	{
-		return std::addressof(held);
-	}
+	PDefH(void*, get, ) const ImplI(IValueHolder)
+		ImplRet(std::addressof(held))
 
 	//! \since build 340
-	const std::type_info&
-	type() const ynothrow ImplI(IValueHolder)
-	{
-		return typeid(_type);
-	}
+	PDefH(const std::type_info&, type, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(typeid(_type))
 };
 
 
 /*!
 \brief 带等于接口的指针类型动态泛型持有者。
+\tparam _tPointer 智能指针类型。
+\pre _tPointer 具有 _type 对象所有权。
 \note 成员命名参照 ystdex::pointer_holder 。
 \note 比较使用 AreEqualHeld ，可有 ADL 重载。
 \sa ystdex::pointer_holder
 \sa AreEqualHeld
-\since build 332
+\since build 555
 */
-template<typename _type>
+template<typename _type, class _tPointer = std::unique_ptr<_type>>
 class PointerHolder : implements IValueHolder
 {
+	//! \since build 332
 	static_assert(std::is_object<_type>::value, "Invalid type found.");
 
 public:
 	//! \since build 352
 	using value_type = _type;
+	using holder_pointer = _tPointer;
+	using pointer = typename holder_pointer::pointer;
 
 protected:
-	_type* p_held;
+	holder_pointer p_held;
 
 public:
-	//! \since build 348
-	PointerHolder(_type* value)
+	//! \brief 取得所有权。
+	PointerHolder(pointer value)
 		: p_held(value)
 	{}
 	//! \since build 352
@@ -226,46 +227,28 @@ public:
 	PointerHolder(const PointerHolder& h)
 		: PointerHolder(h.p_held ? new _type(*h.p_held) : nullptr)
 	{}
-	PointerHolder(PointerHolder&& h)
-		: p_held(h.p_held)
-	{
-		h.p_held = {};
-	}
+	DefDeMoveCtor(PointerHolder)
 	//@}
-	//! \since build 461
-	virtual
-	~PointerHolder()
-	{
-		// TODO: Provide other deleters.
-		delete p_held;
-	}
 
 	//! \since build 353
 	DefDeCopyAssignment(PointerHolder)
+	DefDeMoveAssignment(PointerHolder)
 
-	bool
-	operator==(const IValueHolder& obj) const ImplI(IValueHolder)
-	{
-		return AreEqualHeld(*p_held,
-				*static_cast<const PointerHolder&>(obj).p_held);
-	}
+	//! \since build 332
+	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
+		ImplRet(AreEqualHeld(*p_held,
+			*static_cast<const PointerHolder&>(obj).p_held))
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), PointerHolder)
 
 	//! \since build 348
-	void*
-	get() const ImplI(IValueHolder)
-	{
-		return p_held;
-	}
+	PDefH(void*, get, ) const ImplI(IValueHolder)
+		ImplRet(p_held.get())
 
 	//! \since build 340
-	const std::type_info&
-	type() const ynothrow ImplI(IValueHolder)
-	{
-		return p_held ? typeid(_type) : typeid(void);
-	}
+	PDefH(const std::type_info&, type, ) const ynothrow ImplI(IValueHolder)
+		ImplRet(p_held ? typeid(_type) : typeid(void))
 };
 
 

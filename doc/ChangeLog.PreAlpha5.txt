@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r6803
+\version r7031
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-11-18 01:30 +0800
+	2014-11-23 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,234 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				+ 'ynothrow' @ "static member function %Caret::Stop" @ %TextBox,
+				- $dev "class name declarations %(SolidBrush, ImageBrush)"
+					@ %YComponent,
+				/ %YBrush $=
+				(
+					/ "all declarations" @ "namespace %UI"
+						>> "namespace YDrawing",
+					/ "member functions %operator()"
+						@ "classes %(SolidBrush, ImageBrush)" $=
+					(
+						/ "parameter 'PaintEventArgs&&'"
+							-> 'const PaintContext&' $dep_to
+							"removal of event argument type from brushes",
+						+ 'const'
+					)
+				),
+				/ %YBrush @ %UI >> %Service $dep_from
+					"removal of event argument type from brushes",
+				/ %YStyle $=
+				(
+					+ DLD 'ynothrowv' @ "member function %Palette::operator[]",
+					- "assertion for rotation value"
+						@ "function %RectDrawCornerArrowOutline"
+						// To eliminate Clang++ warning \
+							[-Wtautological-constant-out-of-range-compare].
+				),
+				/ "alias %ZOrderType" @ %YUIContainer => "%ZOrder",
+				/ %GUI $=
+				(
+					/ @ "class %InputTimer" $=
+					(
+						+ "static %yconstexpr data member %DefaultDuration";
+						+ "ensured %noexcept guarantee"
+							@ "default constructor %InputTimer" $=
+						(
+							/ "default argument" ^ "%DefaultDuration";
+							// This is not the same as default constructor of \
+								duration type, see http://stackoverflow.com/questions/22701617/should-constructors-on-stdchrono-time-point-be-noexcept-or-why-arent .
+							+ 'ynothrow'
+						)
+					),
+					+ "class %GUIConfiguration; function \
+						%FetchGUIConfiguration",
+					/ @ "class %YGUI" $=
+					(
+						- "data member %(Colors, Styles)";
+						/ $comp "made %GUIState really with %noexcept guarantee"
+					),
+					* $comp $dev $build "static assertion failure" @ "function \
+						%FetchGUIState" $since b554 $dep_from "class %YGUI",
+						// G++ wronly accepted it. Clang++ correctly rejected \
+							it.
+					+ 'ynothrow' @ "function %IsFocusedByShell"
+				)
+			),
+			/ %Service $=
+			(
+				/ %YTimer $=
+				(
+					/ @ "class %Timer" $=
+					(
+						+ 'ynothrow' @ "default constructor",
+						/ "base class %noncopyable" -> "explicitly defaulted \
+							copy (constructor, %operator=)"
+							// This makes it also satisfying %MoveConstrctible \
+								and allows it to be forward as a tuple element.
+					),
+					/ DLD "implemented static member function \
+						%HighResolutionClock::now" ^ "macros %(PDefH, ImplRet)"
+					+ 'ynothrow' @ "function %Activate"
+				),
+				/ %ImageProcessing $=
+				(
+					(
+					+ "alias declaration %ImageScale of fixed point type";
+					* $comp "missing handling invalid input ratio" $since b554,
+						// Like negative values or NaN. No it is not needed.
+					/ "all %ScaleType and 'float'" -> "%ImageScale"
+					),
+					/ @ "class %ZoomedImageCache" $=
+					(
+						/ "constructor function" -> "constructor template for \
+							any path tpyes",
+						+ "explicitly defaulted move (constructor, %operator=)"
+							// This makes it to be a move-only type.
+					),
+					+ "class %ImagePages"
+				)
+			),
+			/ %Core $=
+			(
+				/ %YGDIBase $=
+				(
+					+ "member functions %operator(&=, |=)" @ "class %Size",
+					+ "functions %operator(&, |) for %Size",
+					/ DLD "implemented functions %operator(==, !=, +, -) for \
+						%Rect" ^ "macros %(PDefHOp, ImplRet)",
+					/ $dev "functions %operator(&, |) for %Rect"
+						-> "inline functions",
+					+ "function %ScaleMin",
+				),
+				/ %YObject $=
+				(
+					/ DLD "implemented member functions %(get, type)"
+						@ "class templates %(ValueHolder, PointerHolder)"
+						^ "macros %(PDefH, ImplRet)",
+					/ @ "class template %PointerHolder" $=
+					(
+						(
+						+ "template parameter \
+							'typename _tPointer = std::unique_ptr<_type>'";
+						+ "alias declaration %holder_pointer";
+						+ "alias declaration %pointer_holder",
+						/ "implemented member pointer" ^ "%holder_pointer"
+							~ '_type*',
+						/ "user-defined move constructor"
+							-> "explicitly defaulted move constructor",
+						- "user-defined destructor"
+						),
+						/ DLD "implemented member function %operator=="
+							^ "macros %(PDefHOp, ImplRet)",
+						+ "explicitly defaulted move %operator="
+					),
+					+ "explicitly defaulted move %operator="
+						@ "class template %ValueHolder"
+				)
+			)
+		),
+		* "missing added files into filter for" %YSLib.Service.ImageProcessing
+			@ "VC++ project",
+		/ %YCLib $=
+		(
+			/ $dev %Video $=
+			(
+				/ $lib "implemented %(FetchPixel, YCL_FetchPixel)" ^ "cast",
+					// To eliminate Clang++ warning [-Wsign-conversion].
+				* "signed shifted value"
+					@ "class templates %(XYZAMaskTrait, AXYZMaskTrait)" $since
+					b507 $orig  (@ "class template %XYZATrait" $since b441),
+					// To eliminate Clang++ warning [-Wshift-sign-overflow], \
+						[-Wsign-conversion]
+				/ $lib @ "class templates %(BGRA, RGBA)" $=
+				(
+					+ 'using ArrayType = typename Trait::ArrayType',
+						'using IntegerType = typename Trait::IntegerType';
+					/ "simplified member declarations"
+						^ "%(ArrayType, IntegerType)",
+					/ "implemented constructor for components"
+						^ "cast to %Integer"
+						// To eliminate Clang++ warning [-Wsign-conversion].
+				)
+			),
+			/ "no longer performed 'defined(_MT)' check for %YF_Multithread"
+				@ %Platform,
+				// Note MinGW-G++ would define '_MT' in specs if '-mthreads' \
+					used, however <_mingw.h> would ensure it defined anyway. \
+					It is depending on different headers included, thus lead \
+					to confusion when not predefined, e.g. for Clang++.
+			+ 'ynothrow' @ "functions %(GetTicks, GetHighResolutionTicks)"
+				@ %Timer
+		),
+		/ DLD 'HWND_DESKTOP' -> '{}' @ "implementation"
+			@ "function %CreateNativeWindow" @ %'YCLib_(MinGW32)'.Win32GUI
+			// To eliminate [-Wzero-as-null-pointer-constant].
+	),
+	/ %YBase.YStandardEx $=
+	(
+		- $revert(b304) "function template %initializer_cast" @ %Cast,
+			// This function template is useless and harmful because it would \
+				only return a value with dangling reference to temporary array \
+				of initializers thus any direct use of the value would lead to \
+				undefined behavior.
+		/ $dev $lib "implemented functions %(iscntrl_C1, iscntrl_ISO8859_1, \
+			iscntrl_ISO8859_11)" @ %CCType ^ "cast to %unsigned",
+			// To eliminate Clang++ warning [-Wsign-conversion].
+		/ %Rational $=
+		(
+			* "implementation" @ "member function %epsilon" @ "class template \
+				specialization %numeric_limits for instances of \
+				%ystdex::fixed_point" $since b439
+			+ 'yconstfn' @ "friend function %fabs for %ystdex::fixed_point",
+			+ "'yconstfn' friend function %abs for %ystdex::fixed_point"
+				// Same as %fabs, but might be preferred as uniformed C++ use, \
+					with no ambiguity.
+		),
+		/ %Any $=
+		(
+			/ @ "class template %pointer_holder" $=
+			(
+				+ "template parameter \
+					'typename _tPointer = std::unique_ptr<_type>'";
+				+ "alias declaration %holder_pointer";
+				+ "alias declaration %pointer_holder",
+				/ "implemented member pointer" ^ "%holder_pointer" ~ '_type*',
+				/ "user-defined move constructor"
+					-> "explicitly defaulted move constructor",
+				- "user-defined destructor",
+				+ "explicitly defaulted (copy, move) %operator="
+			),
+			+ "explicitly defaulted (copy, move) (constructor, %operator=)"
+				@ "class template %value_holder"
+		)
+	),
+	- "-D_MT" @ "%CFLAGS" @ "makefiles" @ "platform %Android" $dep_from
+		%YFramework.YCLib.Platform,
+	/ $dev @ "%SHBuild-common-options.sh" @ %Tools.Scripts $=
+	(
+		(
+		+ "%CXXFLAGS_IMPL_COMMON with default values for G++ and Clang++";
+		/ "-mthreads" @ "default value" @ "%CXXFLAGS_COMMON"
+			>> "%CXXFLAGS_IMPL_COMMON for G++",
+			// To eliminate Clang++ warning.
+		^ "%CXXFLAGS_IMPL_COMMON" @ "default value" @ "%CXXFLAGS_COMMON"
+		),
+		/ "-s" @ "default value" @ "%CXXFLAGS_DBG_OPT"
+			>> "%CXXFLAGS_IMPL_OPT for G++"
+			// To eliminate Clang++ warning.
+	)
+),
+
+b554
 (
 	/ %YFramework $=
 	(
@@ -155,7 +383,7 @@ $now
 		* "all 2 redundant ';' in class definitions" @ %Container $since b408,
 			// To eliminate Clang++ warning: extra ';' after member function \
 				definition [-Wextra-semi].
-		* "lambda parameter declaration name shadowing variable"
+		/ $dev "avoided lambda parameter declaration name shadowing variable"
 			@ "function template %hash_combine" @ %YFunctional $since b531,
 			// To eliminate Clang++ warning: declaration shadows a local \
 				variable [-Wshadow].

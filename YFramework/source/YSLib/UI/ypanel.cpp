@@ -11,13 +11,13 @@
 /*!	\file ypanel.cpp
 \ingroup UI
 \brief 样式无关的 GUI 面板。
-\version r291
+\version r295
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-13 20:44:51 +0800
 \par 修改时间:
-	2014-11-14 00:34 +0800
+	2014-11-21 09:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ Panel::operator-=(IWidget& wgt)
 }
 
 void
-Panel::Add(IWidget& wgt, ZOrderType z)
+Panel::Add(IWidget& wgt, ZOrder z)
 {
 	MUIContainer::Add(wgt, z);
 	SetContainerPtrOf(wgt, this);
@@ -76,7 +76,7 @@ Panel::MoveToFront(IWidget& wgt)
 
 	if(i != mWidgets.cend())
 	{
-		const ZOrderType z(i->first);
+		const auto z(i->first);
 
 		mWidgets.erase(i);
 		mWidgets.emplace(z, ystdex::ref(wgt));

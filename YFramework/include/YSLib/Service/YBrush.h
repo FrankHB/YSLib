@@ -10,33 +10,33 @@
 
 /*!	\file YBrush.h
 \ingroup UI
-\brief 图形用户界面画刷。
-\version r395
+\brief 画刷。
+\version r408
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2014-08-12 02:36 +0800
+	2014-11-21 13:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::UI::YBrush
+	YSLib::Service::YBrush
 */
 
 
-#ifndef YSL_INC_UI_YBrush_h_
-#define YSL_INC_UI_YBrush_h_ 1
+#ifndef YSL_INC_Service_YBrush_h_
+#define YSL_INC_Service_YBrush_h_ 1
 
 #include "YModules.h"
-#include YFM_YSLib_UI_YWidgetEvent
 #include YFM_YSLib_Service_YResource
+#include YFM_YSLib_Core_YEvent // for YSLib::GHEvent;
 #include YFM_YSLib_Service_YBlit // for Drawing::BlitPixels;
 
 namespace YSLib
 {
 
-namespace UI
+namespace Drawing
 {
 
 /*!	\defgroup UIBrushes User Interface Brushes
@@ -59,8 +59,9 @@ public:
 		: Color(c)
 	{}
 
+	//! \since build 555
 	void
-	operator()(PaintEventArgs&&);
+	operator()(const PaintContext&) const;
 };
 
 
@@ -114,9 +115,10 @@ public:
 	/*!
 	\brief 描画：调用图像更新器。
 	\note 图像指针为空指针时忽略操作。
+	\since build 555
 	*/
 	void
-	operator()(PaintEventArgs&&);
+	operator()(const PaintContext&) const;
 
 	/*!
 	\brief 默认更新：复制图像。
@@ -138,7 +140,7 @@ public:
 
 /*!
 \brief 更新：逐像素操作。
-\sa BlitPixels
+\sa Drawing::BlitPixels
 \since build 448
 */
 template<typename _fPixelShader, bool _bSwapLR = false, bool _bSwapUD = false>
@@ -155,7 +157,7 @@ UpdatePixels(_fPixelShader shader, const PaintContext& pc,
 		bounds.GetPoint() + src_offset - dst_offset, bounds.GetSize());
 }
 
-} // namespace UI;
+} // namespace Drawing;
 
 } // namespace YSLib;
 

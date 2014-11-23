@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r707
+\version r716
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-09-01 20:10 +0800
+	2014-11-21 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -255,6 +255,7 @@ enum Area
 
 /*!
 \brief 默认调色板。
+\warning 非虚析构。
 \since build 204
 */
 class YF_API Palette
@@ -265,19 +266,13 @@ public:
 
 private:
 	ColorListType colors; //颜色组。
-//	Drawing::Color colors[EndArea];
 
 public:
-	/*!
-	\brief 无参数构造。
-	\note 得到包含默认界面颜色配置的调色板。
-	*/
+	//! \brief 无参数构造：初始化包含默认界面颜色配置的调色板。
 	Palette();
 
-	/*!
-	\brief 取颜色引用。
-	*/
-	PDefHOp(Drawing::Color&, [], size_t s)
+	//! \brief 取颜色引用。
+	PDefHOp(Drawing::Color&, [], size_t s) ynothrowv
 		ImplRet(colors[s])
 
 	DefGetter(const ynothrow, const ColorListType&, List, colors)

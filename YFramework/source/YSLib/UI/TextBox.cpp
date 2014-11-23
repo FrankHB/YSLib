@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r614
+\version r615
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-10-07 08:19 +0800
+	2014-11-18 03:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ Caret::Check(IWidget& sender)
 }
 
 void
-Caret::Stop()
+Caret::Stop() ynothrow
 {
 	// TODO: Consider possible per-object optimization.
 	if(auto p = caret_animation.GetConnectionPtr())

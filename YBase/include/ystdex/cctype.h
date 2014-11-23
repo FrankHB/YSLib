@@ -11,13 +11,13 @@
 /*!	\file cctype.h
 \ingroup YStandardEx
 \brief ISO C 字符分类操作扩展。
-\version r128
+\version r132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 513
 \par 创建时间:
 	2014-06-29 13:42:39 +0800
 \par 修改时间:
-	2014-07-01 02:49 +0800
+	2014-11-21 07:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,7 +50,7 @@ iscntrl_C0(char c)
 yconstfn bool
 iscntrl_C1(char c)
 {
-	return (c & 0xFFU) >= 0x80 && (c & 0xFFU) < 0xA0;
+	return (unsigned(c) & 0xFFU) >= 0x80 && (unsigned(c) & 0xFFU) < 0xA0;
 }
 
 /*!
@@ -67,14 +67,15 @@ iscntrl_ASCII(char c)
 yconstfn bool
 iscntrl_ISO8859_11(char c)
 {
-	return iscntrl_C0(c) || ((c & 0xFFU) >= 0x7F && (c & 0xFFU) <= 0xA0);
+	return iscntrl_C0(c)
+		|| ((unsigned(c) & 0xFFU) >= 0x7F && (unsigned(c) & 0xFFU) <= 0xA0);
 }
 
 //! \brief 使用 ISO/IEC 8859-1 字符集的 std::iscntrl 实现。
 yconstfn bool
 iscntrl_ISO8859_1(char c)
 {
-	return iscntrl_ISO8859_11(c) || (c & 0xFFU) == 0xAD;
+	return iscntrl_ISO8859_11(c) || (unsigned(c) & 0xFFU) == 0xAD;
 }
 
 

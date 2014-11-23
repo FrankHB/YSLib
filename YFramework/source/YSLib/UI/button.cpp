@@ -11,13 +11,13 @@
 /*!	\file button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3289
+\version r3292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-08-11 19:11 +0800
+	2014-11-21 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,7 +58,7 @@ RectDrawButton(const PaintContext& pc, const Size& s, Hue base_hue,
 	DrawRect(g, pc.ClipArea, r, is_enabled ? (inside ? RollColor(is_pressed
 		? hsl_t{30.2F, .733F, .618F} : hsl_t{30.F, .72F, .706F}, base_hue)
 		: (is_focused ? RollColor({30.F, 1.F, .6F}, base_hue)
-		: FetchGUIState().Colors[Styles::Workspace])) : MakeGray(217));
+		: FetchGUIConfiguration().Colors[Styles::Workspace])) : MakeGray(217));
 }
 
 } // unnamed namespace;
@@ -135,7 +135,7 @@ DecorateAsCloseButton(Thumb& tmb)
 	FetchEvent<Paint>(tmb) += [&](PaintEventArgs&& e){
 		DrawCross(e.Target, e.ClipArea, {e.Location, GetSizeOf(tmb)},
 			IsEnabled(tmb) ? tmb.ForeColor
-			: FetchGUIState().Colors[Styles::Workspace]);
+			: FetchGUIConfiguration().Colors[Styles::Workspace]);
 	}
 	);
 }
@@ -154,7 +154,7 @@ void
 Button::Refresh(PaintEventArgs&& e)
 {
 	ystdex::swap_guard<Color> guard(!IsEnabled(*this), ForeColor, [this]{
-		return FetchGUIState().Colors[Styles::Workspace];
+		return FetchGUIConfiguration().Colors[Styles::Workspace];
 	});
 
 	// NOTE: Partial invalidation made no efficiency improved here.

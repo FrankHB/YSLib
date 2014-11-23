@@ -314,7 +314,7 @@
 		<Unit filename="../include/YSLib/UI/TreeView.h" />
 		<Unit filename="../include/YSLib/UI/Viewer.h" />
 		<Unit filename="../include/YSLib/UI/WidgetIteration.h" />
-		<Unit filename="../include/YSLib/UI/YBrush.h" />
+		<Unit filename="../include/YSLib/Service/YBrush.h" />
 		<Unit filename="../include/YSLib/UI/YComponent.h" />
 		<Unit filename="../include/YSLib/UI/YModules.h" />
 		<Unit filename="../include/YSLib/UI/button.h" />
@@ -409,7 +409,7 @@
 		<Unit filename="../source/YSLib/UI/TextBox.cpp" />
 		<Unit filename="../source/YSLib/UI/TreeView.cpp" />
 		<Unit filename="../source/YSLib/UI/Viewer.cpp" />
-		<Unit filename="../source/YSLib/UI/YBrush.cpp" />
+		<Unit filename="../source/YSLib/Service/YBrush.cpp" />
 		<Unit filename="../source/YSLib/UI/YComponent.cpp" />
 		<Unit filename="../source/YSLib/UI/button.cpp" />
 		<Unit filename="../source/YSLib/UI/form.cpp" />

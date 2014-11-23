@@ -23,12 +23,14 @@ if echo ${CXX} | grep clang++ > /dev/null; then
 		-Wno-deprecated-register \
 		-Wno-mismatched-tags \
 		"
+	CXXFLAGS_IMPL_COMMON=""
 	CXXFLAGS_IMPL_OPT="-flto"
 elif echo ${CXX} | grep g++ > /dev/null; then
 	CXXFLAGS_IMPL_WARNING=" \
 		-Wzero-as-null-pointer-constant \
 		"
-	CXXFLAGS_IMPL_OPT="-fexpensive-optimizations -flto=jobserver"
+	CXXFLAGS_IMPL_COMMON="-mthreads"
+	CXXFLAGS_IMPL_OPT="-s -fexpensive-optimizations -flto=jobserver"
 fi
 
 : ${CXXFLAGS_STD:="-std=c++11"}
@@ -41,12 +43,11 @@ fi
 	-fdata-sections \
 	-ffunction-sections \
 	${CXXFLAGS_WARNING} \
-	-mthreads \
+	${CXXFLAGS_IMPL_COMMON} \
 	-pedantic-errors \
 	"}
 : ${CXXFLAGS_OPT_DBG:=" \
-	-O3 -s \
-	-DNDEBUG \
+	-O3 -DNDEBUG \
 	${CXXFLAGS_IMPL_OPT} \
 	-fomit-frame-pointer \
 	"}

@@ -11,13 +11,13 @@
 /*!	\file menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r955
+\version r971
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2014-11-15 00:59 +0800
+	2014-11-21 09:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "YModules.h"
 #include YFM_YSLib_UI_ListControl
-#include YFM_YSLib_UI_YUIContainer // for UI::ZOrderType;
+#include YFM_YSLib_UI_YUIContainer // for UI::ZOrder;
 #include <ystdex/cast.hpp> // for ystdex::polymorphic_downcast;
 
 namespace YSLib
@@ -41,7 +41,11 @@ namespace UI
 
 class MenuHost;
 
-yconstexpr const ZOrderType DefaultMenuZOrder(224); //!< 默认菜单 Z 顺序值。
+/*!
+\brief 默认菜单 Z 顺序值。
+\since build 555
+*/
+yconstexpr const ZOrder DefaultMenuZOrder(224);
 
 
 /*!
@@ -124,17 +128,19 @@ public:
 	\brief 按指定 Z 顺序显示菜单。
 	\note 菜单宿主指针为空时忽略。
 	\return 菜单宿主指针非空。
+	\since build 555
 	*/
 	bool
-	Show(ZOrderType = DefaultMenuZOrder);
+	Show(ZOrder = DefaultMenuZOrder);
 
 	/*!
 	\brief 按指定 Z 顺序显示索引指定的子菜单。
 	\note 菜单宿主指针为空时忽略。
 	\return 菜单宿主指针非空且索引指定的子菜单存在时为子菜单指针，否则为空指针。
+	\since build 555
 	*/
 	Menu*
-	ShowSub(IndexType, ZOrderType = DefaultMenuZOrder);
+	ShowSub(IndexType, ZOrder = DefaultMenuZOrder);
 
 	/*!
 	\brief 隐藏菜单。
@@ -230,24 +236,26 @@ public:
 	/*!
 	\brief 按指定 Z 顺序显示菜单组中指定的菜单。
 	\note 若不在菜单组中则忽略。
-	\since build 537
+	\since build 555
 	*/
 	void
-	Show(Menu&, ZOrderType = DefaultMenuZOrder);
+	Show(Menu&, ZOrder = DefaultMenuZOrder);
 
 	/*!
 	\brief 按指定 Z 顺序显示菜单组中的所有菜单。
+	\since build 555
 	*/
 	void
-	ShowAll(ZOrderType = DefaultMenuZOrder);
+	ShowAll(ZOrder = DefaultMenuZOrder);
 
 private:
 	/*!
 	\brief 按指定 Z 顺序显示指定菜单 mnu 。
 	\pre 断言： Contains(mnu) 。
+	\since build 555
 	*/
 	void
-	ShowRaw(Menu& mnu, ZOrderType = DefaultMenuZOrder);
+	ShowRaw(Menu& mnu, ZOrder = DefaultMenuZOrder);
 
 public:
 	/*!

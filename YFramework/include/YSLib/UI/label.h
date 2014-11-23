@@ -11,13 +11,13 @@
 /*!	\file label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1512
+\version r1514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-08-13 17:29 +0800
+	2014-11-19 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 //#include YFM_YSLib_Service_YResource
 #include YFM_YSLib_Core_YString
 #include YFM_YSLib_Service_TextBase
-#include YFM_YSLib_UI_YBrush
+#include YFM_YSLib_Service_YBrush
 
 namespace YSLib
 {
@@ -67,7 +67,7 @@ public:
 	\note 被 DrawText 调用。
 	\since build 525
 	*/
-	GBrushUpdater<Drawing::TextState&, const String&, bool>
+	Drawing::GBrushUpdater<Drawing::TextState&, const String&, bool>
 		UpdateClippedText{DefaultUpdateClippedText};
 
 	/*!

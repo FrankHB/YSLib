@@ -11,13 +11,13 @@
 /*!	\file ygdibase.cpp
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r666
+\version r676
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:23:44 +0800
 \par 修改时间:
-	2014-11-12 04:29 +0800
+	2014-11-22 19:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,18 +125,6 @@ Rect::operator|=(const Rect& r) ynothrow
 
 	return *this = Rect(mx, my, max(X + Width, r.X + r.Width) - mx,
 		max(Y + Height, r.Y + r.Height) - my);
-}
-
-Rect
-operator&(const Rect& a, const Rect& b) ynothrow
-{
-	return Rect(a) &= b;
-}
-
-Rect
-operator|(const Rect& a, const Rect& b) ynothrow
-{
-	return Rect(a) |= b;
 }
 
 

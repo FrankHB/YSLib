@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1672
+\version r1746
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-11-15 15:44 +0800
+	2014-11-22 19:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,18 +36,16 @@
 namespace YSLib
 {
 
-// GDI 基本数据类型和宏定义。
-
 namespace Drawing
 {
 
-//前向声明。
 class Size;
 class Rect;
 
 
 /*!
 \brief 屏幕二元组。
+\warning 非虚析构。
 \since build 242
 */
 template<typename _type>
@@ -253,6 +251,7 @@ using Vec = GBinaryGroup<SPos>;
 
 /*!
 \brief 屏幕区域大小。
+\warning 非虚析构。
 \since build 161
 */
 class YF_API Size
@@ -319,6 +318,24 @@ public:
 		ImplRet(Width == 0 && Height == 0)
 
 	/*!
+	\brief 求与另一个屏幕区域大小的交。
+	\note 结果由分量最小值构造。
+	\since build 555
+	*/
+	PDefHOp(Size&, &=, const Size& s) ynothrow
+		ImplRet(yunseq(Width = min(Width, s.Width),
+			Height = min(Height, s.Height)), *this)
+
+	/*!
+	\brief 求与另一个屏幕标准矩形的并。
+	\note 结果由分量最大值构造。
+	\since build 555
+	*/
+	PDefHOp(Size&, |=, const Size& s) ynothrow
+		ImplRet(yunseq(Width = max(Width, s.Width),
+			Height = max(Height, s.Height)), *this)
+
+	/*!
 	\brief 判断是否非空。
 	\since build 320
 	*/
@@ -367,6 +384,24 @@ yconstfn PDefHOp(bool, ==, const Size& a, const Size& b) ynothrow
 //! \brief 比较：屏幕区域大小不等关系。
 yconstfn PDefHOp(bool, !=, const Size& a, const Size& b) ynothrow
 	ImplRet(!(a == b))
+
+/*!
+\brief 求两个屏幕区域大小的交。
+\sa Size::operator&=
+\since build 555
+*/
+yconstfn PDefHOp(Size, &, const Size& a, const Size& b) ynothrow
+	ImplRet({a.Width < b.Width ? a.Width : b.Width,
+		a.Height < b.Height ? a.Height : b.Height})
+
+/*!
+\brief 求两个屏幕区域大小的并。
+\sa Size::operator|=
+\since build 555
+*/
+yconstfn PDefHOp(Size, |, const Size& a, const Size& b) ynothrow
+	ImplRet({a.Width < b.Width ? b.Width : a.Width,
+		a.Height < b.Height ? b.Height : a.Height})
 
 //! \brief 取面积。
 yconstfn PDefH(auto, GetAreaOf, const Size& s) ynothrow
@@ -419,6 +454,20 @@ yconstfn _tBinary
 Transpose(_tBinary& obj) ynothrow
 {
 	return _tBinary(obj.Y, obj.X);
+}
+
+
+/*!
+\brief 计算两个大小和阈值限定的最小缩放值。
+\since build 555
+*/
+template<typename _tScalar = float>
+_tScalar
+ScaleMin(const Size& x, const Size& y, _tScalar threshold = 1.F)
+{
+	return YSLib::min({threshold,
+		_tScalar(_tScalar(x.Width) / _tScalar(y.Width)),
+		_tScalar(_tScalar(x.Height) / _tScalar(y.Width))});
 }
 
 
@@ -649,57 +698,45 @@ public:
 \brief 比较：屏幕标准矩形相等关系。
 \since build 319
 */
-yconstfn bool
-operator==(const Rect& x, const Rect& y) ynothrow
-{
-	return x.GetPoint() == y.GetPoint() && x.GetSize() == y.GetSize();
-}
+yconstfn PDefHOp(bool, ==, const Rect& x, const Rect& y) ynothrow
+	ImplRet(x.GetPoint() == y.GetPoint() && x.GetSize() == y.GetSize())
 
 /*!
 \brief 比较：屏幕标准矩形不等关系。
 \since build 319
 */
-yconstfn bool
-operator!=(const Rect& x, const Rect& y) ynothrow
-{
-	return !(x == y);
-}
+yconstfn PDefHOp(bool, !=, const Rect& x, const Rect& y) ynothrow
+	ImplRet(!(x == y))
 
 /*!
 \brief 加法：使用标准矩形 r 和偏移向量 v 构造屏幕标准矩形。
 \since build 319
 */
-yconstfn Rect
-operator+(const Rect& r, const Vec& v) ynothrow
-{
-	return Rect(r.GetPoint() + v, r.GetSize());
-}
+yconstfn PDefHOp(Rect, +, const Rect& r, const Vec& v) ynothrow
+	ImplRet({r.GetPoint() + v, r.GetSize()})
 
 /*!
 \brief 减法：使用标准矩形 r 和偏移向量的加法逆元 v 构造屏幕标准矩形。
 \since build 319
 */
-yconstfn Rect
-operator-(const Rect& r, const Vec& v) ynothrow
-{
-	return Rect(r.GetPoint() - v, r.GetSize());
-}
+yconstfn PDefHOp(Rect, -, const Rect& r, const Vec& v) ynothrow
+	ImplRet({r.GetPoint() - v, r.GetSize()})
 
 /*!
 \brief 求两个屏幕标准矩形的交。
 \sa Rect::operator&=
-\since build 452
+\since build 555
 */
-YF_API Rect
-operator&(const Rect&, const Rect&) ynothrow;
+inline PDefHOp(Rect, &, const Rect& a, const Rect& b) ynothrow
+	ImplRet(Rect(a) &= b)
 
 /*!
 \brief 求两个屏幕标准矩形的并。
 \sa Rect::operator|=
-\since build 452
+\since build 555
 */
-YF_API Rect
-operator|(const Rect&, const Rect&) ynothrow;
+inline PDefHOp(Rect, |, const Rect& a, const Rect& b) ynothrow
+	ImplRet(Rect(a) |= b)
 
 /*!
 \brief 按指定大小缩小矩形。
@@ -882,7 +919,7 @@ struct YF_API PaintContext
 */
 //@{
 inline PDefH(void, UpdateClipArea, PaintContext& pc, const Rect& r)
-	ImplExpr(pc.ClipArea = r & pc.Target.GetSize())
+	ImplExpr(pc.ClipArea = r & Rect(pc.Target.GetSize()))
 
 inline PDefH(void, UpdateClipSize, PaintContext& pc, const Size& s)
 	ImplExpr(UpdateClipArea(pc, {pc.Location, s}))

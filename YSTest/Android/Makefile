@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r243
+# Version = r244
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-11-15 22:21 +0800
+# Updated = 2014-11-21 10:18 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -98,7 +98,7 @@ CFLAGS := -Wall -Wextra -Winvalid-pch -Wmissing-declarations \
  	-fdata-sections -ffunction-sections \
  	-ffast-math $(ARCH)
 
-CFLAGS += $(INCLUDE) -D_MT
+CFLAGS += $(INCLUDE)
 LDFLAGS := $(ARCH) -Wl,--gc-sections -Wl,-Map,$(notdir $*.map) \
 	-Wl,--no-undefined -Wl,--dynamic-list-data \
 	-Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo

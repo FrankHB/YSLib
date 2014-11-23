@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r646
+\version r647
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2014-11-13 01:29 +0800
+	2014-11-21 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -262,7 +262,7 @@
 // NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63287 .
 #if __STDCPP_THREADS__
 #	define YF_Multithread 1
-#elif YCL_Win32 || YCL_Android && defined(_MT)
+#elif YCL_Win32 || YCL_Android
 #	define YF_Multithread 1
 #else
 #	define YF_Multithread 0

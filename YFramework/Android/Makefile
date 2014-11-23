@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r306
+# Version = r307
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2014-10-07 22:21 +0800
+# Updated = 2014-11-21 10:18 +0800
 # Encoding = ANSI
 
 
@@ -83,7 +83,7 @@ CFLAGS	:=	-Wall -Wextra -Winvalid-pch -Wmissing-declarations \
  			-fdata-sections -ffunction-sections \
  			-ffast-math $(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -D_MT
+CFLAGS	+=	$(INCLUDE)
 
 ifneq ($(CONF),debug)
 CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG

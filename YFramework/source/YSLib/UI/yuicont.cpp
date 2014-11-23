@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1880
+\version r1882
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-11-15 00:36 +0800
+	2014-11-21 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -223,7 +223,7 @@ MUIContainer::operator-=(IWidget& wgt)
 }
 
 void
-MUIContainer::Add(IWidget& wgt, ZOrderType z)
+MUIContainer::Add(IWidget& wgt, ZOrder z)
 {
 	if(!Contains(wgt))
 		mWidgets.emplace(z, ystdex::ref(wgt));
@@ -247,7 +247,7 @@ MUIContainer::PaintVisibleChildren(PaintEventArgs& e)
 	});
 }
 
-ZOrderType
+ZOrder
 MUIContainer::QueryZ(IWidget& wgt) const
 {
 	for(auto& pr : mWidgets)

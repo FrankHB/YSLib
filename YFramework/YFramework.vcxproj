@@ -187,12 +187,14 @@
     <ClInclude Include="include\YSLib\Service\ContentType.h" />
     <ClInclude Include="include\YSLib\Service\File.h" />
     <ClInclude Include="include\YSLib\Service\FileSystem.h" />
+    <ClInclude Include="include\YSLib\Service\ImageProcessing.h" />
     <ClInclude Include="include\YSLib\Service\TextBase.h" />
     <ClInclude Include="include\YSLib\Service\TextFile.h" />
     <ClInclude Include="include\YSLib\Service\TextLayout.h" />
     <ClInclude Include="include\YSLib\Service\textmgr.h" />
     <ClInclude Include="include\YSLib\Service\TextRenderer.h" />
     <ClInclude Include="include\YSLib\Service\yblit.h" />
+    <ClInclude Include="include\YSLib\Service\YBrush.h" />
     <ClInclude Include="include\YSLib\Service\ydraw.h" />
     <ClInclude Include="include\YSLib\Service\ygdi.h" />
     <ClInclude Include="include\YSLib\Service\YModules.h" />
@@ -220,7 +222,6 @@
     <ClInclude Include="include\YSLib\UI\uicontx.h" />
     <ClInclude Include="include\YSLib\UI\Viewer.h" />
     <ClInclude Include="include\YSLib\UI\WidgetIteration.h" />
-    <ClInclude Include="include\YSLib\UI\YBrush.h" />
     <ClInclude Include="include\YSLib\UI\Console.h" />
     <ClInclude Include="include\YSLib\UI\YComponent.h" />
     <ClInclude Include="include\YSLib\UI\ycontrol.h" />
@@ -286,12 +287,14 @@
     <ClCompile Include="source\YSLib\Service\ContentType.cpp" />
     <ClCompile Include="source\YSLib\Service\File.cpp" />
     <ClCompile Include="source\YSLib\Service\FileSystem.cpp" />
+    <ClCompile Include="source\YSLib\Service\ImageProcessing.cpp" />
     <ClCompile Include="source\YSLib\Service\TextBase.cpp" />
     <ClCompile Include="source\YSLib\Service\TextFile.cpp" />
     <ClCompile Include="source\YSLib\Service\TextLayout.cpp" />
     <ClCompile Include="source\YSLib\Service\textmgr.cpp" />
     <ClCompile Include="source\YSLib\Service\TextRenderer.cpp" />
     <ClCompile Include="source\YSLib\Service\yblit.cpp" />
+    <ClCompile Include="source\YSLib\Service\YBrush.cpp" />
     <ClCompile Include="source\YSLib\Service\ydraw.cpp" />
     <ClCompile Include="source\YSLib\Service\ygdi.cpp" />
     <ClCompile Include="source\YSLib\Service\yres.cpp" />

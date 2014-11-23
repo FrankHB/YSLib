@@ -11,13 +11,13 @@
 /*!	\file Loader.h
 \ingroup UI
 \brief 动态 GUI 加载。
-\version r579
+\version r581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 433
 \par 创建时间:
 	2013-08-01 20:37:16 +0800
 \par 修改时间:
-	2014-11-14 23:42 +0800
+	2014-11-21 09:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -217,8 +217,8 @@ public:
 	GWidgetRegister<const Rect&> Bounds{};
 	//! \since build 495
 	GWidgetInserterRegister<IWidget&> Insert{};
-	//! \since build 496
-	GWidgetInserterRegister<IWidget&, const ZOrderType&> InsertZOrdered{};
+	//! \since build 555
+	GWidgetInserterRegister<IWidget&, const ZOrder&> InsertZOrdered{};
 
 	unique_ptr<IWidget>
 	DetectWidgetNode(const ValueNode&);

@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1038
+\version r1050
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2014-11-06 20:09 +0800
+	2014-11-20 09:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,20 +127,6 @@ union_cast(_tSrc x) ynothrow
 		_tDst y;
 	} u = {x};
 	return u.y;
-}
-
-
-/*!
-\brief 初值符列表转换。
-\tparam _tSrc 源类型。
-\tparam _tDst 目标类型。
-\since build 304
-*/
-template<typename _tDst, typename... _tSrc>
-yconstfn std::initializer_list<_tDst>
-initializer_cast(_tSrc&&... x)
-{
-	return {_tDst(yforward(x))...};
 }
 
 

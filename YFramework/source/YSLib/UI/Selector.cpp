@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1032
+\version r1036
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-08-12 02:40 +0800
+	2014-11-21 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,8 +127,8 @@ CheckBox::SetTicked(StateType st)
 void
 CheckBox::Refresh(PaintEventArgs&& e)
 {
-	FetchGUIState().Styles.PaintAsStyle({typeid(CheckBox), CheckBoxBackground},
-		std::move(e));
+	FetchGUIConfiguration().Styles.PaintAsStyle({typeid(CheckBox),
+		CheckBoxBackground}, std::move(e));
 }
 
 void
@@ -209,8 +209,8 @@ RadioBox::SetSelected()
 void
 RadioBox::Refresh(PaintEventArgs&& e)
 {
-	FetchGUIState().Styles.PaintAsStyle({typeid(RadioBox), RadioBoxBackground},
-		std::move(e));
+	FetchGUIConfiguration().Styles.PaintAsStyle({typeid(RadioBox),
+		RadioBoxBackground}, std::move(e));
 }
 
 void
