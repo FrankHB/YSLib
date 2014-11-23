@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r346
+\version r349
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-08-12 02:40 +0800
+	2014-11-21 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -58,8 +58,9 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 	});
 	const auto& g(pc.Target);
 
-	DrawRectRoundCorner(pc, s, is_enabled ? roll(is_focused, 112, {25.640625F,
-		0.493671F, 0.462891F}) : FetchGUIState().Colors[Styles::Workspace]);
+	DrawRectRoundCorner(pc, s, is_enabled
+		? roll(is_focused, 112, {25.640625F, 0.493671F, 0.462891F})
+		: FetchGUIConfiguration().Colors[Styles::Workspace]);
 	if(YB_LIKELY(s.Width > 2 && s.Height > 2))
 	{
 		auto pt(pc.Location);
@@ -260,7 +261,7 @@ InitExStyles()
 		}
 	}});
 	YTraceDe(Notice, "Adding style 'Aoi'...");
-	FetchGUIState().Styles.Add("Aoi", std::move(ht));
+	FetchGUIConfiguration().Styles.Add("Aoi", std::move(ht));
 	YTraceDe(Notice, "Extra style(s) initialized successfully.");
 }
 

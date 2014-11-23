@@ -11,13 +11,13 @@
 /*!	\file Timer.cpp
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r321
+\version r324
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:44:52 +0800
 \par 修改时间:
-	2014-09-29 06:37 +0800
+	2014-11-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,7 +51,7 @@ timer_callback()
 
 //! \since build 539
 void
-start_ticks()
+start_ticks() ynothrow
 {
 	if(YB_UNLIKELY(bUninitializedTimers))
 	{
@@ -73,7 +73,7 @@ start_ticks()
 } // unnamed namespace;
 
 std::uint32_t
-GetTicks()
+GetTicks() ynothrow
 {
 #if YCL_DS
 	start_ticks();
@@ -87,7 +87,7 @@ GetTicks()
 }
 
 std::uint64_t
-GetHighResolutionTicks()
+GetHighResolutionTicks() ynothrow
 {
 #if YCL_DS
 	start_ticks();

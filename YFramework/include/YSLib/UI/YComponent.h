@@ -11,13 +11,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2390
+\version r2394
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2014-04-16 21:54 +0800
+	2014-11-19 15:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -79,8 +79,6 @@ struct CursorEventArgs;
 //! \since build 422
 class GUIState;
 FwdDeclI(IWidget)
-//! \since build 294
-class ImageBrush;
 //! \since build 293
 //@{
 struct InputEventArgs;
@@ -88,8 +86,6 @@ struct KeyEventArgs;
 struct PaintEventArgs;
 class Renderer;
 struct RoutedEventArgs;
-//! \since build 294
-class SolidBrush;
 struct UIEventArgs;
 class WidgetController;
 //@}

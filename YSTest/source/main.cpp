@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup DS
 \brief 主源文件。
-\version r1906
+\version r1908
 \author FrankHB <frankhb1989@gmail.com>
 \since build 1
 \par 创建时间:
 	2009-11-12 21:26:30 +0800
 \par 修改时间:
-	2014-11-10 00:55 +0800
+	2014-11-21 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,8 +162,8 @@ main()
 				dsk_s += lblDetails;
 				yunseq(
 				dsk_m.Background = SolidBrush({240, 216, 192}),
-				dsk_s.Background
-					= SolidBrush(FetchGUIState().Colors[Styles::Desktop]),
+				dsk_s.Background = SolidBrush(
+					FetchGUIConfiguration().Colors[Styles::Desktop]),
 				//Color(240, 216, 240),
 				lblTitle.Text = G_APP_NAME,
 				lblStatus.Text = u"Now loading...",

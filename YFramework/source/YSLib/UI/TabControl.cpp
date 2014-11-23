@@ -11,13 +11,13 @@
 /*!	\file TabControl.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面标签页控件。
-\version r278
+\version r279
 \author FrankHB <frankhb1989@gmail.com>
 \since build 494
 \par 创建时间:
 	2014-04-19 11:21:05 +0800
 \par 修改时间:
-	2014-11-12 05:03 +0800
+	2014-11-21 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,7 +66,7 @@ TabBar::DefaultPaintTabBorder(PaintEventArgs&& e)
 	auto& sender(e.GetSender());
 
 	DrawRect(e.Target, e.ClipArea, Rect(e.Location, GetSizeOf(sender)),
-		 FetchGUIState().Colors[IsFocused(sender)
+		 FetchGUIConfiguration().Colors[IsFocused(sender)
 		 ? Styles::ActiveBorder : Styles::InactiveBorder]);
 }
 

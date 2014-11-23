@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r528
+\version r530
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-11-12 04:43 +0800
+	2014-11-21 16:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -256,8 +256,8 @@ CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
 
 	::AdjustWindowRect(&rect, wstyle, false);
 	return ::CreateWindowExW(wstyle_ex, class_name, title, wstyle,
-		CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left,
-		rect.bottom - rect.top, HWND_DESKTOP, {}, ::GetModuleHandleW({}), {});
+		CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom
+		- rect.top, {}/*HWND_DESKTOP*/, {}, ::GetModuleHandleW({}), {});
 }
 
 

@@ -11,13 +11,13 @@
 /*!	\file ywindow.cpp
 \ingroup UI
 \brief 样式无关的 GUI 窗口。
-\version r3416
+\version r3418
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 17:28:28 +0800
 \par 修改时间:
-	2014-07-14 14:51 +0800
+	2014-11-21 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,7 +27,7 @@
 
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_YDesktop
-#include YFM_YSLib_UI_YBrush
+#include YFM_YSLib_Service_YBrush
 
 namespace YSLib
 {
@@ -83,7 +83,7 @@ Window::operator-=(Window& wnd)
 }
 
 void
-Window::Add(IWidget& wgt, ZOrderType z)
+Window::Add(IWidget& wgt, ZOrder z)
 {
 	MUIContainer::Add(wgt, z);
 	SetContainerPtrOf(wgt, this);

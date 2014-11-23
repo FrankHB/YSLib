@@ -11,13 +11,13 @@
 /*!	\file ytimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r841
+\version r845
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2014-09-28 06:11 +0800
+	2014-11-21 12:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,9 +39,9 @@ namespace
 
 bool NotInitialized(true);
 
-//! \since build 457
+//! \since build 555
 void
-InitClock()
+InitClock() ynothrow
 {
 	if(YB_UNLIKELY(NotInitialized))
 	{
@@ -70,7 +70,7 @@ Delay(const TimeSpan& ms)
 }
 
 
-Timer::Timer(const Duration& i, bool b)
+Timer::Timer(const Duration& i, bool b) ynothrow
 	: nBase(), Interval(i)
 {
 	InitClock();
@@ -116,7 +116,7 @@ Timer::RefreshRemainder()
 }
 
 void
-Activate(Timer& tmr)
+Activate(Timer& tmr) ynothrow
 {
 	if(tmr.Interval != Duration::zero())
 		tmr.nBase = HighResolutionClock::now();

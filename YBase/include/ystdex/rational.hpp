@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1524
+\version r1537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2014-12-08 12:09 +0805
+	2014-11-22 09:38 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -403,7 +403,7 @@ public:
 		return fixed_point(base_element());
 	}
 
-	friend fixed_point
+	friend yconstfn fixed_point
 	fabs(fixed_point x)
 	{
 		return x.value < 0 ? -x : x;
@@ -430,6 +430,8 @@ public:
 	}
 };
 
+//! \relates fixed_point
+//@{
 #define YB_Impl_Rational_fp_TmplHead_2 \
 	template<typename _tBase1, size_t _vInt1, size_t _vFrac1, \
 		typename _tBase2, size_t _vInt2, size_t _vFrac2>
@@ -445,7 +447,6 @@ public:
 
 /*!
 \brief 不同模板参数的二元算术操作符。
-\relates fixed_point
 \since build 439
 */
 //@{
@@ -465,7 +466,6 @@ YB_Impl_Rational_fp_arithmetic2(/)
 
 /*!
 \brief 不同模板参数的二元关系操作符。
-\relates fixed_point
 \since build 440
 */
 //@{
@@ -486,6 +486,14 @@ YB_Impl_Rational_fp_rational2(>=)
 
 #undef YB_Impl_Rational_fp_TmplHead_2
 #undef YB_Impl_Rational_fp_TmplBody_2
+
+template<typename _tBase, size_t _vInt, size_t _vFrac>
+yconstfn fixed_point<_tBase, _vInt, _vFrac>
+abs(fixed_point<_tBase, _vInt, _vFrac> x)
+{
+	return fabs(x);
+}
+//@}
 
 
 /*!
@@ -579,7 +587,7 @@ public:
 	static yconstfn fp_type
 	epsilon() ynothrow
 	{
-		return fp_type(1, typename fp_type::raw_tag());
+		return fp_type(1, typename ystdex::raw_tag());
 	}
 
 	static yconstfn fp_type

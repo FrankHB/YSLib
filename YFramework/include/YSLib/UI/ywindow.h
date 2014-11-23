@@ -11,13 +11,13 @@
 /*!	\file ywindow.h
 \ingroup UI
 \brief 样式无关的 GUI 窗口。
-\version r3842
+\version r3844
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:46:40 +0800
 \par 修改时间:
-	2014-01-11 11:30 +0800
+	2014-11-21 09:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,8 +80,9 @@ public:
 
 	using MUIContainer::Contains;
 
+	//! \since build 555
 	void
-	Add(IWidget&, ZOrderType = DefaultZOrder) override;
+	Add(IWidget&, ZOrder = DefaultZOrder) override;
 };
 
 } // namespace UI;

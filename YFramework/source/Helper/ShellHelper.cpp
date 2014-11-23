@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r495
+\version r496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2014-08-23 15:06 +0800
+	2014-11-21 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,7 +158,7 @@ SwitchVisibleToFront(IWidget& wgt)
 shared_ptr<TextList::ListType>
 FetchVisualStyleNames(String default_name)
 {
-	const auto& styles(FetchGUIState().Styles);
+	const auto& styles(FetchGUIConfiguration().Styles);
 	auto p_list(make_shared<TextList::ListType>(styles.cbegin()
 		| ystdex::get_key, styles.cend() | ystdex::get_key));
 

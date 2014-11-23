@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2047
+\version r2078
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-11-15 00:42 +0800
+	2014-11-21 09:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,21 +151,15 @@ YF_API void
 MoveToBottom(IWidget& wgt);
 
 
-/*
-\brief Z 顺序类型：覆盖顺序，值越大表示越接近顶层。
-\since build 212
-*/
-using ZOrderType = u8;
-/*!
-\brief 默认 Z 顺序值。
-\since build 212
-*/
-const ZOrderType DefaultZOrder(64);
-/*!
-\brief 默认窗口 Z 顺序值。
-\since build 212
-*/
-const ZOrderType DefaultWindowZOrder(128);
+//! \since build 555
+//@{
+//! \brief Z 顺序类型：覆盖顺序，值越大表示越接近顶层。
+using ZOrder = u8;
+//! \brief 默认 Z 顺序值。
+const ZOrder DefaultZOrder(64);
+//! \brief 默认窗口 Z 顺序值。
+const ZOrder DefaultWindowZOrder(128);
+//@}
 
 
 /*!
@@ -305,8 +299,11 @@ public:
 	\since build 554
 	*/
 	using ItemType = lref<IWidget>;
-	using WidgetMap = multimap<ZOrderType, ItemType>; \
-		//!< 部件映射表类型：映射 Z 顺序至部件。
+	/*!
+	\brief 部件映射表类型：映射 Z 顺序至部件。
+	\since build 555
+	*/
+	using WidgetMap = multimap<ZOrder, ItemType>;
 	using PairType = WidgetMap::value_type;
 	//! \since build 460
 	using iterator = WidgetIterator;
@@ -360,12 +357,13 @@ public:
 
 	/*!
 	\brief 向部件组添加部件。
+	\note 部件已存在时忽略。
+	\since build 555
 
 	向焦点对象组添加焦点对象，同时向部件组按指定 Z 顺序值添加部件。
-	\note 部件已存在时忽略。
 	*/
 	void
-	Add(IWidget&, ZOrderType = DefaultZOrder);
+	Add(IWidget&, ZOrder = DefaultZOrder);
 
 	/*!
 	\brief 绘制可视子部件。
@@ -377,9 +375,9 @@ public:
 	/*!
 	\brief 查询指定部件的 Z 顺序。
 	\throw std::out_of_range 不包含指定子部件。
-	\since build 496
+	\since build 555
 	*/
-	ZOrderType
+	ZOrder
 	QueryZ(IWidget&) const;
 
 	//! \since build 460
@@ -409,11 +407,11 @@ AddWidget(_tCon& con, IWidget& wgt)
 
 /*!
 \brief 向部件添加指定 Z 顺序的单一子部件。
-\since build 496
+\since build 555
 */
 template<class _tCon>
 inline void
-AddWidget(_tCon& con, IWidget& wgt, ZOrderType z)
+AddWidget(_tCon& con, IWidget& wgt, ZOrder z)
 {
 	con.Add(wgt, z);
 }
@@ -435,14 +433,14 @@ AddWidgets(_tCon& con, _tWidgets&... wgts)
 /*!
 \brief 向部件容器添加指定 Z 顺序的子部件。
 \note 不保证顺序。
-\since build 303
+\since build 555
 */
 template<class _tCon, class... _tWidgets>
 inline void
-AddWidgetsZ(_tCon& con, ZOrderType z, _tWidgets&... wgts)
+AddWidgetsZ(_tCon& con, ZOrder z, _tWidgets&... wgts)
 {
-	unseq_apply(std::bind(static_cast<void(_tCon::*)(IWidget&, ZOrderType)
-		>(&_tCon::Add), std::ref(con), std::placeholders::_1, z),
+	unseq_apply(std::bind(static_cast<void(_tCon::*)(IWidget&, ZOrder)>(
+		&_tCon::Add), std::ref(con), std::placeholders::_1, z),
 		std::forward<IWidget&>(wgts)...);
 }
 

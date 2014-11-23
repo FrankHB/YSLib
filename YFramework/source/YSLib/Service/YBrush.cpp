@@ -10,46 +10,44 @@
 
 /*!	\file YBrush.cpp
 \ingroup UI
-\brief 图形用户界面画刷。
-\version r242
+\brief 画刷。
+\version r253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:56:59 +0800
 \par 修改时间:
-	2014-08-12 02:37 +0800
+	2014-11-19 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YSLib::UI::YBrush
+	YSLib::Service::YBrush
 */
 
 
 #include "YSLib/UI/YModules.h"
-#include YFM_YSLib_UI_YBrush
+#include YFM_YSLib_Service_YBrush
 #include YFM_YSLib_Service_YDraw
 #include YFM_YSLib_Service_YPixel // for Drawing::Shaders::BlitAlphaPoint;
 
 namespace YSLib
 {
 
-using namespace Drawing;
-
-namespace UI
+namespace Drawing
 {
 
 void
-SolidBrush::operator()(PaintEventArgs&& e)
+SolidBrush::operator()(const PaintContext& pc) const
 {
-	Drawing::FillRect(e.Target, e.ClipArea, Color);
+	FillRect(pc.Target, pc.ClipArea, Color);
 }
 
 
 void
-ImageBrush::operator()(PaintEventArgs&& e)
+ImageBrush::operator()(const PaintContext& pc) const
 {
 	if(ImagePtr)
-		Update(e, *ImagePtr, DstOffset, SrcOffset);
+		Update(pc, *ImagePtr, DstOffset, SrcOffset);
 }
 
 void
@@ -71,11 +69,11 @@ void
 ImageBrush::UpdateComposite(const PaintContext& pc, const Image& img,
 	const Point& dst_offset, const Point& src_offset)
 {
-	return UpdatePixels(Drawing::Shaders::BlitAlphaPoint(), pc, img, dst_offset,
+	return UpdatePixels(Shaders::BlitAlphaPoint(), pc, img, dst_offset,
 		src_offset);
 }
 
-} // namespace UI;
+} // namespace Drawing;
 
 } // namespace YSLib;
 

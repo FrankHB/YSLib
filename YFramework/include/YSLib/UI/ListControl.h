@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1587
+\version r1588
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-09-03 14:00 +0800
+	2014-11-21 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,7 +91,7 @@ public:
 
 private:
 	unique_ptr<IWidget> p_unit;
-	
+
 public:
 	/*!
 	\brief 构造：使用部件指针。
@@ -205,7 +205,7 @@ public:
 	*/
 	explicit
 	TextList(const Rect& = {}, const shared_ptr<ListType>& = {},
-		const pair<Color, Color>& = FetchGUIState().Colors.GetPair(
+		const pair<Color, Color>& = FetchGUIConfiguration().Colors.GetPair(
 		Styles::Highlight, Styles::HighlightText));
 	DefDeMoveCtor(TextList)
 

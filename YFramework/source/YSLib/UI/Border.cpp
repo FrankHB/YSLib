@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r185
+\version r187
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2014-05-17 19:15 +0800
+	2014-11-21 12:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,8 +40,8 @@ namespace UI
 {
 
 BorderStyle::BorderStyle()
-	: ActiveColor(FetchGUIState().Colors[Styles::ActiveBorder]),
-	InactiveColor(FetchGUIState().Colors[Styles::InactiveBorder])
+	: ActiveColor(FetchGUIConfiguration().Colors[Styles::ActiveBorder]),
+	InactiveColor(FetchGUIConfiguration().Colors[Styles::InactiveBorder])
 {}
 
 

@@ -11,13 +11,13 @@
 /*!	\file ygui.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2348
+\version r2380
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-10-07 01:15 +0800
+	2014-11-21 13:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,11 @@ public:
 		Held = 2
 	};
 
-	InputTimer(const Duration& = Timers::TimeSpan(1000U));
+	//! \since build 555
+	static yconstexpr Duration DefaultDuration{Timers::TimeSpan(1000U)};
+
+	//! \since build 555
+	InputTimer(const Duration& = DefaultDuration) ynothrow;
 
 	/*!
 	\brief 重复检测输入接触保持状态。
@@ -124,7 +128,6 @@ public:
 	\since build 512
 	*/
 	Point CaretLocation{Point::Invalid};
-	Styles::Palette Colors{}; //!< 调色板。
 	/*!
 	\brief 最近的指针设备操作时的控件全局位置（相对顶层部件的坐标）。
 	\since build 445
@@ -148,11 +151,6 @@ public:
 	InputTimer HeldTimer{};
 	InputTimer::HeldStateType KeyHeldState = InputTimer::Free,
 		TouchHeldState = InputTimer::Free;
-	/*!
-	\brief 样式映射。
-	\since build 468
-	*/
-	Styles::StyleMap Styles{};
 	/*!
 	\brief 重复输入保持计时器。
 	\note 独立计时，排除路由事件干扰。
@@ -231,7 +229,7 @@ private:
 	size_t tap_count = 0;
 	/*!
 	\brief 连续点击的指针设备的起始位置。
-	\note 不保证相对于特定坐标系。
+	\note 不保证相对特定坐标系。
 	\sa RefreshTap
 	\sa TapArea
 	\since build 541
@@ -412,22 +410,44 @@ public:
 	//@}
 };
 
-
 /*!
 \brief 取默认图形用户界面公共状态。
+\relates GUIState
 \since build 554
 */
 YF_API GUIState&
 FetchGUIState() ynothrow;
 
-
 /*!
 \brief 判断指定部件是否被句柄指定的图形用户界面状态锁定为独立焦点。
-\since build 287
+\relates GUIState
+\since build 555
 */
 inline PDefH(bool, IsFocusedByShell, const IWidget& wgt,
-	const GUIState& st = FetchGUIState())
+	const GUIState& st = FetchGUIState()) ynothrow
 	ImplRet(st.GetIndependentFocusPtr() == &wgt)
+
+
+/*!
+\brief 图形用户界面配置。
+\since build 555
+*/
+class YF_API GUIConfiguration
+{
+public:
+	//! \brief 调色板。
+	Styles::Palette Colors{};
+	//! \brief 样式映射。
+	Styles::StyleMap Styles{};
+};
+
+/*!
+\brief 取默认图形用户界面配置。
+\relates GUIState
+\since build 555
+*/
+YF_API GUIConfiguration&
+FetchGUIConfiguration();
 
 } // namespace UI;
 

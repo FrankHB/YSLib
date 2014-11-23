@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r958
+\version r961
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-08-28 09:34 +0800
+	2014-11-21 12:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -184,8 +184,6 @@ void
 RectDrawCornerArrowOutline(const PaintContext& pc, SDst size, Rotation rot,
 	Color c)
 {
-	YAssert(rot < 4U, "Invalid rotation found.");
-
 	const auto& g(pc.Target);
 	const auto& pt(pc.Location);
 	const Rect& bounds(pc.ClipArea);
@@ -412,7 +410,7 @@ Palette::GetPair(Palette::ColorListType::size_type n1,
 void
 Painter::operator()(PaintEventArgs&& e) const
 {
-	FetchGUIState().Styles.PaintAsStyle(key, std::move(e));
+	FetchGUIConfiguration().Styles.PaintAsStyle(key, std::move(e));
 }
 
 
@@ -466,7 +464,7 @@ StyleMap::Switch(const string& name)
 HandlerTable&
 FetchDefault()
 {
-	return FetchGUIState().Styles.at({});
+	return FetchGUIConfiguration().Styles.at({});
 }
 
 } // namespace Styles;

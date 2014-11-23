@@ -11,13 +11,13 @@
 /*!	\file scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3723
+\version r3724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2014-11-21 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,7 +245,7 @@ DrawTrackBackground(PaintEventArgs&& e, ATrack& trk)
 	const auto& g(e.Target);
 	const auto& pt(e.Location);
 	const Rect bounds(Rect(pt, GetSizeOf(trk)) & e.ClipArea);
-	auto& pal(FetchGUIState().Colors);
+	auto& pal(FetchGUIConfiguration().Colors);
 
 	FillRect(g, bounds, pal[Styles::Track]);
 

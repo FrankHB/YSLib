@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1042
+\version r1071
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-09-03 14:57 +0800
+	2014-11-21 07:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,10 +96,10 @@ struct XYZAMaskTrait
 	static yconstexpr IntegerType XMaskN = _vX;
 	static yconstexpr IntegerType XYMaskN = XMaskN + _vY;
 	static yconstexpr IntegerType XYZMaskN = XYMaskN + _vZ;
-	static yconstexpr IntegerType AMask = ((1 << _vA) - 1) << XYZMaskN;
-	static yconstexpr IntegerType XMask = (1 << _vX) - 1;
-	static yconstexpr IntegerType YMask = ((1 << _vY) - 1) << XMaskN;
-	static yconstexpr IntegerType ZMask = ((1 << _vZ) - 1) << XYMaskN;
+	static yconstexpr IntegerType AMask = ((1U << _vA) - 1) << XYZMaskN;
+	static yconstexpr IntegerType XMask = (1U << _vX) - 1;
+	static yconstexpr IntegerType YMask = ((1U << _vY) - 1) << XMaskN;
+	static yconstexpr IntegerType ZMask = ((1U << _vZ) - 1) << XYMaskN;
 };
 
 
@@ -115,10 +115,10 @@ struct AXYZMaskTrait
 	static yconstexpr IntegerType AMaskN = _vA;
 	static yconstexpr IntegerType AXMaskN = AMaskN + _vX;
 	static yconstexpr IntegerType AXYMaskN = AXMaskN + _vY;
-	static yconstexpr IntegerType AMask = (1 << _vA) - 1;
-	static yconstexpr IntegerType XMask = ((1 << _vX) - 1) << AMaskN;
-	static yconstexpr IntegerType YMask = ((1 << _vY) - 1) << AXMaskN;
-	static yconstexpr IntegerType ZMask = ((1 << _vZ) - 1) << AXYMaskN;
+	static yconstexpr IntegerType AMask = (1U << _vA) - 1;
+	static yconstexpr IntegerType XMask = ((1U << _vX) - 1) << AMaskN;
+	static yconstexpr IntegerType YMask = ((1U << _vY) - 1) << AXMaskN;
+	static yconstexpr IntegerType ZMask = ((1U << _vZ) - 1) << AXYMaskN;
 };
 
 
@@ -137,9 +137,13 @@ union YB_ATTR(packed) YB_ATTR(
 	using Trait = XYZATrait<_vB, _vG, _vR, _vA>;
 	//! \since build 507
 	using MaskTrait = XYZAMaskTrait<_vB, _vG, _vR, _vA>;
+	//! \since build 555
+	using ArrayType = typename Trait::ArrayType;
+	//! \since build 555
+	using IntegerType = typename Trait::IntegerType;
 
-	typename Trait::ArrayType Bytes;
-	typename Trait::IntegerType Integer;
+	ArrayType Bytes;
+	IntegerType Integer;
 
 //#if !LITTLE_ENDIAN
 //#	error Unsupported integer endianness found.
@@ -153,8 +157,9 @@ union YB_ATTR(packed) YB_ATTR(
 	yconstfn
 	BGRA(typename Trait::BType b, typename Trait::GType g,
 		typename Trait::RType r, typename Trait::AType a)
-		: Integer(b | g << MaskTrait::XMaskN | r << MaskTrait::XYMaskN
-		| a << MaskTrait::XYZMaskN)
+		: Integer(IntegerType(b) | IntegerType(g) << MaskTrait::XMaskN
+		| IntegerType(r) << MaskTrait::XYMaskN
+		| IntegerType(a) << MaskTrait::XYZMaskN)
 	{}
 
 	//! \since build 442
@@ -189,9 +194,13 @@ union YB_ATTR(packed) YB_ATTR(
 	using Trait = XYZATrait<_vR, _vG, _vB, _vA>;
 	//! \since build 507
 	using MaskTrait = XYZAMaskTrait<_vB, _vG, _vR, _vA>;
+	//! \since build 555
+	using ArrayType = typename Trait::ArrayType;
+	//! \since build 555
+	using IntegerType = typename Trait::IntegerType;
 
-	typename Trait::ArrayType Bytes;
-	typename Trait::IntegerType Integer;
+	ArrayType Bytes;
+	IntegerType Integer;
 
 //#if !LITTLE_ENDIAN
 //#	error Unsupported integer endianness found.
@@ -205,8 +214,9 @@ union YB_ATTR(packed) YB_ATTR(
 	yconstfn
 	RGBA(typename Trait::BType r, typename Trait::GType g,
 		typename Trait::RType b, typename Trait::AType a)
-		: Integer(r | g << MaskTrait::XMaskN | b << MaskTrait::XYMaskN
-		| a << MaskTrait::XYZMaskN)
+		: Integer(IntegerType(r) | IntegerType(g) << MaskTrait::XMaskN
+		| IntegerType(b) << MaskTrait::XYMaskN
+		| IntegerType(a) << MaskTrait::XYZMaskN)
 	{}
 
 	//! \since build 442
@@ -381,13 +391,14 @@ yconstfn PDefH(PixelType, FetchOpaque, PixelType px) ynothrow
 */
 yconstfn PDefH(std::uint32_t, FetchPixel,
 	AlphaType r, AlphaType g, AlphaType b) ynothrow
-	ImplRet(r | g << 8 | std::uint32_t(b) << 16)
+	ImplRet(std::uint32_t(r) | std::uint32_t(g) << 8 | std::uint32_t(b) << 16)
 
 //! \since build 458 as workaround for Visual C++ 2013
 #	if YB_HAS_CONSTEXPR
 #		define YCL_FetchPixel(r, g, b) platform::FetchPixel(r, g, b)
 #	else
-#		define YCL_FetchPixel(r, g, b) ((r) | (g) << 8 | std::uint32_t(b) << 16)
+#		define YCL_FetchPixel(r, g, b) \
+	(std::uint32_t(r) | std::uint32_t(g) << 8 | std::uint32_t(b) << 16)
 #	endif
 
 /*!

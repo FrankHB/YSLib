@@ -11,13 +11,13 @@
 /*!	\file progress.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面进度部件。
-\version r385
+\version r389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-20 08:59:56 +0800
 \par 修改时间:
-	2013-08-12 02:25 +0800
+	2014-11-21 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_Progress
 #include YFM_YSLib_UI_YGUI
+#include YFM_YSLib_Service_YBrush
 #include YFM_YSLib_UI_Border
 
 namespace YSLib
@@ -42,12 +43,12 @@ ProgressBar::ProgressBar(const Rect& r, ValueType m)
 	const auto invalidator([this]{
 		Invalidate(*this);
 	});
-	auto& pal(FetchGUIState().Colors);
+	auto& pal(FetchGUIConfiguration().Colors);
 	BorderStyle style;
 
 	style.ActiveColor = pal[Styles::InactiveBorder];
 	yunseq(
-	Background = SolidBrush(pal[Styles::Track]),
+	Background = Drawing::SolidBrush(pal[Styles::Track]),
 	ForeColor = pal[Styles::HotTracking],
 	FetchEvent<Paint>(*this).Add(BorderBrush(style), BoundaryPriority),
 	FetchEvent<GotFocus>(*this) += invalidator,
@@ -84,7 +85,7 @@ ProgressBar::Refresh(PaintEventArgs&& e)
 		pt.X += w_bar;
 		if(s.Width > w_bar)
 			// TODO: Finish drawing with non-solid brushes.
-			if(const auto p = Background.target<SolidBrush>())
+			if(const auto p = Background.target<Drawing::SolidBrush>())
 				FillRect(g, bounds, Rect(pt, s.Width - w_bar, s.Height),
 					p->Color);
 	}

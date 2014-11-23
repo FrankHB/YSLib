@@ -11,13 +11,13 @@
 /*!	\file ytimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1044
+\version r1063
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2014-10-19 11:27 +0800
+	2014-11-21 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,15 +53,9 @@ public:
 	static yconstexpr bool is_steady = {};
 
 	//! \warning 首次调用前非线程安全。
-	static time_point
-	now() ynothrow;
+	static PDefH(time_point, now, ) ynothrow
+		ImplRet(time_point(std::chrono::nanoseconds(GetHighResolutionTicks())))
 };
-
-inline HighResolutionClock::time_point
-HighResolutionClock::now() ynothrow
-{
-	return time_point(std::chrono::nanoseconds(GetHighResolutionTicks()));
-}
 
 
 /*!
@@ -122,7 +116,7 @@ Delay(const TimeSpan&);
 \brief 计时器。
 \since build 243
 */
-class YF_API Timer : private noncopyable
+class YF_API Timer
 {
 protected:
 	//! \brief 时间基点：计时的起点。
@@ -137,18 +131,26 @@ public:
 
 	/*!
 	\brief 构造：使用时间间隔和激活状态。
-	\since build 405
+	\since build 555
 	*/
 	explicit
-	Timer(const Duration& = {}, bool = true);
+	Timer(const Duration& = {}, bool = true) ynothrow;
+	//! \since build 555
+	DefDeCopyCtor(Timer)
 	//! \since build 416
 	virtual DefDeDtor(Timer)
 
+	//! \since build 555
+	DefDeCopyAssignment(Timer)
+
 	DefGetter(const ynothrow, TimePoint, BaseTick, nBase)
 
-	//! \brief 激活：当时间间隔非零时同步时间基点。
+	/*!
+	\brief 激活：当时间间隔非零时同步时间基点。
+	\since build 555
+	*/
 	YF_API friend void
-	Activate(Timer&);
+	Activate(Timer&) ynothrow;
 
 	/*!
 	\brief 延时。

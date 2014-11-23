@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1461
+\version r1497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-11-14 22:57 +0800
+	2014-11-23 15:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,6 +247,16 @@ public:
 	value_holder(_type&& value) ynoexcept(ynoexcept(_type(std::move(value))))
 		: held(std::move(value))
 	{}
+	//! \since build 555
+	//@{
+	value_holder(const value_holder&) = default;
+	value_holder(value_holder&&) = default;
+
+	value_holder&
+	operator=(const value_holder&) = default;
+	value_holder&
+	operator=(value_holder&&) = default;
+	//@}
 
 	value_holder*
 	clone() const override
@@ -273,43 +283,43 @@ public:
 /*!
 \brief 指针类型动态泛型持有者。
 \tparam _type 对象类型。
-\pre <tt>is_object<_type>::value</tt> 。
-\since build 331
+\tparam _tPointer 智能指针类型。
+\pre _tPointer 具有 _type 对象所有权。
+\pre 静态断言： <tt>is_object<_type>::value</tt> 。
+\since build 555
 */
-template<typename _type>
+template<typename _type, class _tPointer = std::unique_ptr<_type>>
 class pointer_holder : public holder
 {
+	//! \since build 331
 	static_assert(is_object<_type>::value, "Invalid type found.");
 
 public:
 	//! \since build 352
 	using value_type = _type;
+	using holder_pointer = _tPointer;
+	using pointer = typename holder_pointer::pointer;
 
 protected:
-	//! \since build 348
-	_type* p_held;
+	holder_pointer p_held;
 
 public:
-	pointer_holder(_type* value)
+	//! \brief 取得所有权。
+	pointer_holder(pointer value)
 		: p_held(value)
 	{}
 	//! \since build 352
 	//@{
 	pointer_holder(const pointer_holder& h)
-		: pointer_holder(h.p_held ? new _type(*h.p_held) : nullptr)
+		: pointer_holder(h.p_held ? new value_type(*h.p_held) : nullptr)
 	{}
-	pointer_holder(pointer_holder&& h)
-		: p_held(h.p_held)
-	{
-		h.p_held = {};
-	}
+	pointer_holder(pointer_holder&&) = default;
 	//@}
-	//! \since build 461
-	virtual
-	~pointer_holder()
-	{
-		delete p_held;
-	}
+
+	pointer_holder&
+	operator=(const pointer_holder&) = default;
+	pointer_holder&
+	operator=(pointer_holder&&) = default;
 
 	pointer_holder*
 	clone() const override
@@ -321,7 +331,7 @@ public:
 	void*
 	get() const override
 	{
-		return p_held;
+		return p_held.get();
 	}
 
 	//! \since build 340

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1407
+\version r1411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2014-11-21 12:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -339,7 +339,8 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	unseq_apply(bind(Enable, _1, false), btnOK, btnPrevBackground),
 	yunseq(
 	dsk_m.Background = ImageBrush(FetchImage(0)),
-	dsk_s.Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
+	dsk_s.Background
+		= SolidBrush(FetchGUIConfiguration().Colors[Styles::Panel]),
 	root.Background = nullptr,
 	root_sub.Background = nullptr,
 	lblTitle.Text = G_APP_NAME,
@@ -356,7 +357,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	tbTest.MaskChar = u'●',
 	tbTest.MaxLength = 8,
 	ddlStyle.Text = [](const TextList::ListType& lst){
-		const auto& name(FetchGUIState().Styles.GetCurrent()->first);
+		const auto& name(FetchGUIConfiguration().Styles.GetCurrent()->first);
 
 		YAssert(!lst.empty(), "Invalid list found.");
 		return name.empty() ? lst[0] : String(name);
@@ -570,7 +571,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 		Invalidate(tbTest);
 	},
 	ddlStyle.GetConfirmed() += [&, this]{
-		FetchGUIState().Styles.Switch(ddlStyle.Text.GetMBCS());
+		FetchGUIConfiguration().Styles.Switch(ddlStyle.Text.GetMBCS());
 		unseq_apply([](IWidget& wgt){InvalidateAll(wgt);}, dsk_m, dsk_s);
 	}
 	);

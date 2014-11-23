@@ -11,13 +11,13 @@
 /*!	\file Timer.h
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r96
+\version r100
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:42:34 +0800
 \par 修改时间:
-	2014-09-29 06:08 +0800
+	2014-11-21 12:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,18 +38,19 @@ namespace platform
 \brief 取 tick 数。
 \note 单位为毫秒。
 \warning 首次调用 StartTicks 前非线程安全。
+\since build 555
 */
 YF_API std::uint32_t
-GetTicks();
+GetTicks() ynothrow;
 
 /*!
 \brief 取高精度 tick 数。
 \note 单位为纳秒。
 \warning 首次调用 StartTicks 前非线程安全。
-\since build 291
+\since build 555
 */
 YF_API std::uint64_t
-GetHighResolutionTicks();
+GetHighResolutionTicks() ynothrow;
 
 } // namespace platform;
 

@@ -11,13 +11,13 @@
 /*!	\file TextBox.h
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r385
+\version r392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:17:46 +0800
 \par 修改时间:
-	2014-10-06 16:51 +0800
+	2014-11-21 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,9 +155,12 @@ public:
 	bool
 	Check(IWidget&);
 
-	//! \brief 停止插入符光标动画。
+	/*!
+	\brief 停止插入符光标动画。
+	\since build 555
+	*/
 	static void
-	Stop();
+	Stop() ynothrow;
 };
 
 
@@ -262,8 +265,8 @@ public:
 	*/
 	explicit
 	TextBox(const Rect& = {}, const Drawing::Font& = {}, const
-		pair<Drawing::Color, Drawing::Color>& = FetchGUIState().Colors.GetPair(
-		Styles::Highlight, Styles::HighlightText));
+		pair<Drawing::Color, Drawing::Color>& = FetchGUIConfiguration().Colors
+		.GetPair(Styles::Highlight, Styles::HighlightText));
 	DefDeMoveCtor(TextBox)
 
 	/*!

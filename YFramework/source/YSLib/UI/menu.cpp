@@ -11,13 +11,13 @@
 /*!	\file menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1324
+\version r1334
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-09-20 18:30 +0800
+	2014-11-21 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,7 @@
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_Menu
 #include YFM_YSLib_UI_YWindow
-#include YFM_YSLib_UI_YBrush
+#include YFM_YSLib_Service_YBrush
 #include YFM_YSLib_Service_TextRenderer
 
 namespace YSLib
@@ -40,14 +40,14 @@ namespace UI
 {
 
 Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
-	: TextList(r, h, FetchGUIState().Colors.GetPair(Styles::Highlight,
+	: TextList(r, h, FetchGUIConfiguration().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText)),
 	pParent(), mSubMenus(), vDisabled(h ? h->size() : 0)
 {
 	auto& unit(GetUnitRef());
 
 	yunseq(
-	Background = SolidBrush(FetchGUIState().Colors[Styles::Panel]),
+	Background = SolidBrush(FetchGUIConfiguration().Colors[Styles::Panel]),
 	LabelBrush.Margin = Padding(6, 18, 4, 4),
 	CyclicTraverse = true,
 	FetchEvent<KeyDown>(*this) += [this](KeyEventArgs&& e){
@@ -108,7 +108,8 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 	FetchEvent<Paint>(unit).Add([this]{
 		// TODO: Handle different highlight text colors.
 		if(!IsEnabled(GetUnitRef()))
-			LabelBrush.ForeColor = FetchGUIState().Colors[Styles::GrayText];
+			LabelBrush.ForeColor
+				= FetchGUIConfiguration().Colors[Styles::GrayText];
 	}, BackgroundPriority),
 	FetchEvent<Paint>(unit) += [this](PaintEventArgs&& e){
 		const auto& ubound(GetBoundsOf(GetUnitRef()) + e.Location);
@@ -174,7 +175,7 @@ Menu::AdjustSize() const
 }
 
 bool
-Menu::Show(ZOrderType z)
+Menu::Show(ZOrder z)
 {
 	if(pHost)
 	{
@@ -185,7 +186,7 @@ Menu::Show(ZOrderType z)
 }
 
 Menu*
-Menu::ShowSub(IndexType idx, ZOrderType z)
+Menu::ShowSub(IndexType idx, ZOrder z)
 {
 	if(pHost)
 	{
@@ -263,14 +264,14 @@ MenuHost::Clear()
 }
 
 void
-MenuHost::Show(Menu& mnu, ZOrderType z)
+MenuHost::Show(Menu& mnu, ZOrder z)
 {
 	if(Contains(mnu))
 		ShowRaw(mnu, z);
 }
 
 void
-MenuHost::ShowAll(ZOrderType z)
+MenuHost::ShowAll(ZOrder z)
 {
 	std::for_each(menus.begin(), menus.end(), [this, z](IWidget& wgt){
 		ShowRaw(ystdex::polymorphic_downcast<Menu&>(wgt), z);
@@ -278,7 +279,7 @@ MenuHost::ShowAll(ZOrderType z)
 }
 
 void
-MenuHost::ShowRaw(Menu& mnu, ZOrderType z)
+MenuHost::ShowRaw(Menu& mnu, ZOrder z)
 {
 	YAssert(Contains(mnu), "Invalid menu found.");
 
