@@ -11,13 +11,13 @@
 /*!	\file Initialization.h
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r742
+\version r746
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-06-16 13:17 +0800
+	2014-11-27 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ LoadNPLA1File(const char* disp, const char* path,
 
 /*!
 \brief 从文本文件中读取配置。
-\throw LoggedEvent 文件无效导致的读取失败。
+\throw GeneralEvent 文件无效导致的读取失败。
 \since build 344
 */
 YF_API ValueNode
@@ -67,7 +67,7 @@ ReadConfiguration(TextFile&);
 
 /*!
 \brief 写入配置至文本文件。
-\throw LoggedEvent 文件无效导致的写入失败。
+\throw GeneralEvent 文件无效导致的写入失败。
 \since build 344
 */
 YF_API void
@@ -110,6 +110,7 @@ InitializeInstalled();
 /*!
 \brief 初始化系统字体缓存。
 \pre 默认字体缓存已初始化。
+\throw FatalError 字体缓存初始化失败。
 \since build 398
 
 加载默认字体文件路径和默认字体目录中的字型至默认字体缓存。
@@ -137,6 +138,7 @@ FetchRoot();
 
 /*!
 \brief 取默认字体缓存。
+\exception FatalError 字体缓存初始化失败。
 \since build 425
 */
 YF_API Drawing::FontCache&

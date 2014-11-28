@@ -96,6 +96,7 @@
     <ClInclude Include="include\YCLib\COM.h" />
     <ClInclude Include="include\YCLib\Consoles.h" />
     <ClInclude Include="include\YCLib\MinGW32.h" />
+    <ClInclude Include="include\YCLib\NLS.h" />
     <ClInclude Include="include\YCLib\Win32GUI.h" />
   </ItemGroup>
   <ItemGroup>
@@ -105,6 +106,7 @@
     <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\shlds.cpp" />
     <ClCompile Include="source\YCLib\Consoles.cpp" />
     <ClCompile Include="source\YCLib\MinGW32.cpp" />
+    <ClCompile Include="source\YCLib\NLS.cpp" />
     <ClCompile Include="source\YCLib\Win32GUI.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

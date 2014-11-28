@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r945
+\version r948
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-11-13 00:52 +0800
+	2014-11-28 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,7 @@
  Shell 实体（简称 Shell ）是一种包含状态的有限片段控制流抽象，是动态映像(@1.5.1.1) 或静态映像(@1.5.1.2) 之一。
 
 @1.4.5 会话(session) ：
-会话是用于在一段连续的时间间隔内访问连接(@2.6.4) 且所有权不属于此连接的实体，其中的连接称为会话连接。
+会话是用于在一段连续的时间间隔内访问连接([Documentation::CommonRules @@2.5.4]) 且所有权不属于此连接的实体，其中的连接称为会话连接。
 会话通常用于在一段连续的时间间隔内跟踪连接的客户端([Documentation::CommonRules @@2.5.4.1]) 的操作。会话连接一般包含于客户端中，由客户端控制。
 
 @1.4.5.1 网络通信会话：
@@ -321,7 +321,7 @@
 此外， YSLib 不排斥在部件实现([Documentation::YSLib @3.3]) 中提供（有限的）复制和转移支持以保证值语义。
 
 @1.6.3.4 泛型值类型：
-适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.4.6.4]) 等类型实现。允许空值。
+适当使用 YBase([Documentation::YBase]) 提供的基于类型擦除的泛型值语义对象 ystdex::any([Documentation::YBase @@2.4.6.5]) 等类型实现。允许空值。
 
 @2 框架概览：
 本章描述 YSLib 项目中的 YFramework 框架库。外部依赖项和 YSLib 项目整体配置参见 [Documentation::Designation @@5] 。
@@ -386,7 +386,7 @@
 
 @2.2 文件依赖性：
  YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
-对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.1])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
+对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.2])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
 基于 @2.1.2.1 ，以下部分指定 YFramework 中明确或明确禁止直接依赖的文件，排除构建的中间文件。
 以下非公开头文件的适用规则同非头文件，统称为实现；头文件指公开头文件。
 以下规则以优先级顺序排列，即后者不满足前者的部分以前者为准。

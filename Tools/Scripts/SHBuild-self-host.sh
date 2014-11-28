@@ -5,7 +5,7 @@
 set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 : ${SHBuild_BaseDir:="${SHBuild_ToolDir}/../SHBuild"}
-source ${SHBuild_ToolDir}/SHBuild-bootstrap.sh
+. ${SHBuild_ToolDir}/SHBuild-bootstrap.sh
 
 SHBuild_Pushd
 cd ${SHBuild_BaseDir}

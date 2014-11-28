@@ -91,6 +91,7 @@
 			<Add option="-Wl,--gc-sections" />
 			<Add option="-pipe" />
 		</Linker>
+		<Unit filename="../include/libdefect/cmath.h" />
 		<Unit filename="../include/libdefect/exception.h" />
 		<Unit filename="../include/libdefect/string.h" />
 		<Unit filename="../include/ydef.h" />
@@ -98,6 +99,7 @@
 		<Unit filename="../include/ystdex/any.h" />
 		<Unit filename="../include/ystdex/any_iterator.hpp" />
 		<Unit filename="../include/ystdex/array.hpp" />
+		<Unit filename="../include/ystdex/base.h" />
 		<Unit filename="../include/ystdex/bitseg.hpp" />
 		<Unit filename="../include/ystdex/cache.hpp" />
 		<Unit filename="../include/ystdex/cassert.h" />
@@ -110,7 +112,7 @@
 		<Unit filename="../include/ystdex/cstring.h" />
 		<Unit filename="../include/ystdex/cwctype.h" />
 		<Unit filename="../include/ystdex/examiner.hpp" />
-		<Unit filename="../include/ystdex/exception.hpp" />
+		<Unit filename="../include/ystdex/exception.h" />
 		<Unit filename="../include/ystdex/functional.hpp" />
 		<Unit filename="../include/ystdex/iterator.hpp" />
 		<Unit filename="../include/ystdex/memory.hpp" />
@@ -128,11 +130,13 @@
 		<Unit filename="../include/ytest/timing.hpp" />
 		<Unit filename="../source/libdefect/exception.cpp" />
 		<Unit filename="../source/ystdex/any.cpp" />
+		<Unit filename="../source/ystdex/base.cpp" />
 		<Unit filename="../source/ystdex/cassert.cpp" />
 		<Unit filename="../source/ystdex/concurrency.cpp" />
 		<Unit filename="../source/ystdex/cstdio.cpp" />
 		<Unit filename="../source/ystdex/cstring.cpp" />
 		<Unit filename="../source/ystdex/cwctype.cpp" />
+		<Unit filename="../source/ystdex/exception.cpp" />
 		<Unit filename="../source/ytest/test.cpp" />
 		<Extensions>
 			<code_completion />

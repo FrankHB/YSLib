@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1411
+\version r1417
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-11-16 10:51 +0800
+	2014-11-28 12:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -524,7 +524,7 @@ make_expanded(_fCallable&& f)
 */
 //@{
 template<typename _type>
-class lref : private nonmovable
+class lref
 {
 public:
 	using type = _type;
@@ -541,6 +541,13 @@ public:
 	lref(std::reference_wrapper<_type> t) ynothrow
 		: lref(t.get())
 	{}
+
+	//! \since build 556
+	lref(const lref&) = default;
+
+	//! \since build 556
+	lref&
+	operator=(const lref&) = default;
 
 	operator _type&() const ynothrow
 	{

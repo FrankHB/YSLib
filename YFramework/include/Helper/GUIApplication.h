@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r362
+\version r364
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-11-05 14:10 +0800
+	2014-11-27 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,7 @@ public:
 
 /*!
 \brief 取全局应用程序实例。
-\throw 应用程序实例不存在。
+\throw GeneralEvent 不存在初始化完成的应用程序实例。
 \warning 调用线程安全，但不保证调用结束后实例仍在生存期内。
 \since build 550
 */
@@ -131,6 +131,7 @@ inline PDefH(Environment&, FetchEnvironment, )
 
 /*!
 \brief 执行程序主消息循环。
+\throw GeneralEvent 激活主 shell 失败。
 \note 对宿主实现，设置退出所有窗口时向 YSLib 发送退出消息。
 \since build 399
 */

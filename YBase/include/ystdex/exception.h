@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file exception.hpp
+/*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r115
+\version r160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2014-11-01 13:24 +0800
+	2014-11-28 12:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "type_op.hpp" // for ystdex::remove_cv_t;
 #include <libdefect/exception.h>
-#include <stdexcept>
+#include <stdexcept> // for std::logic_error;
 #include <memory> // for std::addressof;
 
 namespace ystdex
@@ -95,6 +95,55 @@ handle_nested(_tEx& e, _func&& f)
 		yforward(f)(e);
 	}
 }
+
+
+//! \since build 475
+//@{
+//! \brief 异常：不支持的操作。
+class YB_API unsupported : public std::logic_error
+{
+public:
+	unsupported()
+		: logic_error("Unsupported operation found.")
+	{}
+	//! \since build 553
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_ctor_t<unsupported, _type>)>
+	unsupported(_type&& arg)
+		: logic_error(yforward(arg))
+	{}
+
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 556
+	*/
+	virtual
+	~unsupported();
+};
+
+
+//! \brief 异常：未实现的操作。
+class YB_API unimplemented : public unsupported
+{
+public:
+	unimplemented()
+		: unsupported("Unimplemented operation found.")
+	{}
+	//! \since build 553
+	template<typename _type,
+		yimpl(typename = ystdex::exclude_self_ctor_t<unimplemented, _type>)>
+	unimplemented(_type&& arg)
+		: unsupported(yforward(arg))
+	{}
+
+	/*!
+	\brief 虚析构：类定义外默认实现。
+	\since build 556
+	*/
+	virtual
+	~unimplemented();
+};
+//@}
 
 } // namespace ystdex;
 

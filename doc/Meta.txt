@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2015 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1350
+\version r1352
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-11-10 01:12 +0800
+	2014-11-24 06:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,6 +156,7 @@ $long_term_code_evolution $=
 		$interval([$b448, $now]),
 		// Head schema: "© <year> <holder>.".
 		// See http://www.copyrightservice.co.uk/copyright/p14_universal_copyright_convention .
+		// Conforms to: %Documentation::ProjectRules @2.7.
 	"removal of spaces between years and hyphen in copyright notice"
 		$interval([b441, $now]),
 	"copyright notice and head formatting for makefiles"

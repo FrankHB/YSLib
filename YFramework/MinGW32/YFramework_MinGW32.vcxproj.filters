@@ -49,6 +49,9 @@
     <ClInclude Include="include\YCLib\Consoles.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\YCLib\NLS.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YCLib\Win32GUI.cpp">
@@ -70,6 +73,9 @@
       <Filter>source\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\YCLib\Consoles.cpp">
+      <Filter>source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\NLS.cpp">
       <Filter>source\YCLib</Filter>
     </ClCompile>
   </ItemGroup>

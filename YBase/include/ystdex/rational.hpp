@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1537
+\version r1545
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2014-11-22 09:38 +0805
+	2014-11-27 13:07 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,7 @@
 
 #include "cstdint.hpp"
 #include "operators.hpp"
-#include <cmath> // for std::llround;
+#include <libdefect/cmath.h> // for std::llround;
 
 namespace ystdex
 {
@@ -166,9 +166,7 @@ public:
 	\brief 无参数构造。
 	\warning 基本整数类型成员未被初始化，具有未决定值 ，使用可能造成未定义行为。
 	*/
-	yconstfn
-	fixed_point() ynothrow
-	{}
+	fixed_point() = default;
 
 	//! \since build 439
 	//@{
@@ -186,10 +184,8 @@ public:
 	yconstfn
 	fixed_point(_tFloat val,
 		enable_if_t<is_floating_point<_tFloat>::value, _tFloat*> = {}) ynothrow
-		: value(::llround(base_element() * val))
-	{
-		// TODO: Use std::llround.
-	}
+		: value(std::llround(base_element() * val))
+	{}
 	template<typename _tFirst, typename _tSecond>
 	yconstfn
 	fixed_point(_tFirst x, _tSecond y, enable_if_t<is_integral<_tFirst>::value

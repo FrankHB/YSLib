@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2130
+\version r2132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-11-18 00:27 +0800
+	2014-11-27 15:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -376,7 +376,7 @@ CheckNonnegativeScalar(_type val, const std::string& name,
 {
 	if(val < 0)
 		// XXX: Use more specified exception type.
-		throw LoggedEvent("Failed getting nonnegative " + name + " value.");
+		throw LoggedEvent("Failed getting nonnegative " + name + " value.", lv);
 	return CheckScalar<_tDst>(val, name, lv);
 }
 
@@ -388,7 +388,7 @@ CheckPositiveScalar(_type val, const std::string& name,
 {
 	if(!(0 < val))
 		// XXX: Use more specified exception type.
-		throw LoggedEvent("Failed getting positive " + name + " value.");
+		throw LoggedEvent("Failed getting positive " + name + " value.", lv);
 	return CheckScalar<_tDst>(val, name, lv);
 }
 //@}
