@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2169
+\version r2184
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-11-08 22:20 +0800
+	2014-11-28 13:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,13 +34,13 @@
 #include YFM_YCLib_MemoryMapping
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/string.hpp> // for ystdex::sfmt;
-#include <ystdex/exception.hpp> // for ystdex::handle_nested;
+#include <ystdex/exception.h> // for ystdex::handle_nested;
 #include <cerrno> // for errno;
 //#include <clocale>
 #if YCL_Android
 #	include <unistd.h> // for ::access, F_OK;
 #elif YCL_Win32
-#	include YFM_MinGW32_YCLib_MinGW32
+#	include YFM_MinGW32_YCLib_NLS
 #endif
 #include YFM_NPL_SContext
 
@@ -156,7 +156,7 @@ FetchWorkingRoot_Android()
 					else
 						YTraceDe(Informative,
 							"Failed accessing SD card path '%s'.", path);
-				throw LoggedEvent("Failed finding working root path.");
+				throw GeneralEvent("Failed finding working root path.");
 			}())
 		{}
 	} init;
@@ -185,7 +185,7 @@ LoadMappedModule(const string& path)
 {
 	TryRet(make_unique<MappedFile>(path))
 	CatchExpr(..., std::throw_with_nested(
-		LoggedEvent("Loading module '" + path + "' failed.")))
+		GeneralEvent("Loading module '" + path + "' failed.")))
 	YAssert(false, "Unreachable control found.");
 }
 
@@ -241,7 +241,7 @@ LoadComponents(const ValueNode& node)
 			"Loaded default font directory:\n%s\n",
 			data_dir.c_str(), font_path.c_str(), font_dir.c_str());
 	else
-		throw LoggedEvent("Empty path loaded.");
+		throw GeneralEvent("Empty path loaded.");
 #if !CHRLIB_NODYNAMIC_MAPPING
 
 	const string mapping_name(data_dir + "cp113.bin");
@@ -257,7 +257,7 @@ LoadComponents(const ValueNode& node)
 		if(p_mapped->GetSize() != 0)
 			CHRLib::cp113 = p_mapped->GetPtr();
 		else
-			throw LoggedEvent("Failed loading CHRMapEx.");
+			throw GeneralEvent("Failed loading CHRMapEx.");
 #if YCL_Win32
 	}
 	catch(std::exception&)
@@ -272,9 +272,9 @@ LoadComponents(const ValueNode& node)
 	YF_Init_printf(Notice, "Trying entering directory '%s' ...\n",
 		data_dir.c_str());
 	if(!IO::VerifyDirectory(data_dir))
-		throw LoggedEvent("Invalid default data directory found.");
+		throw GeneralEvent("Invalid default data directory found.");
 	if(!(ufexists(font_path) || IO::VerifyDirectory(font_dir)))
-		throw LoggedEvent("Invalid default font file path found.");
+		throw GeneralEvent("Invalid default font file path found.");
 }
 
 } // unnamed namespace;
@@ -318,7 +318,7 @@ LoadNPLA1File(const char* disp, const char* path, ValueNode(*creator)(),
 			if(TextFile tf{path, std::ios_base::out | std::ios_base::trunc})
 				tf << NPL::Configuration(creator());
 			else
-				throw LoggedEvent(ystdex::sfmt("Cannot create file,"
+				throw GeneralEvent(ystdex::sfmt("Cannot create file,"
 					" error = %d: %s.", errno, std::strerror(errno)));
 			YTraceDe(Debug, "Created configuration.");
 		}
@@ -341,7 +341,7 @@ ReadConfiguration(TextFile& tf)
 	{
 		YTraceDe(Debug, "Found accessible configuration file.");
 		if(YB_UNLIKELY(tf.Encoding != Text::CharSet::UTF_8))
-			throw LoggedEvent("Wrong encoding of configuration file.");
+			throw GeneralEvent("Wrong encoding of configuration file.");
 
 		NPL::Configuration conf;
 
@@ -351,14 +351,14 @@ ReadConfiguration(TextFile& tf)
 			return conf.GetNodeRRef();
 		YTraceDe(Warning, "Empty configuration found.");
 	}
-	throw LoggedEvent("Invalid file found when reading configuration.");
+	throw GeneralEvent("Invalid file found when reading configuration.");
 }
 
 void
 WriteConfiguration(TextFile& tf, const ValueNode& node)
 {
 	if(YB_UNLIKELY(!tf))
-		throw LoggedEvent("Invalid file found when writing configuration.");
+		throw GeneralEvent("Invalid file found when writing configuration.");
 	YTraceDe(Debug, "Writing configuration...");
 	tf << NPL::Configuration(ValueNode(node.GetContainerRef()));
 	YTraceDe(Debug, "Writing configuration done.");
@@ -436,7 +436,7 @@ InitializeEnvironment()
 	static yconstexpr char locale_str[]{"zh_CN.GBK"};
 
 	if(!std::setlocale(LC_ALL, locale_str))
-		throw LoggedEvent("Call of std::setlocale() with %s failed.\n",
+		throw GeneralEvent("Call of std::setlocale() with %s failed.\n",
 			locale_str);
 #endif
 }
@@ -501,13 +501,13 @@ InitializeSystemFontCache(FontCache& fc, const string& fong_file,
 			YF_Init_printf(Notice, "%zu face(s) in %zu font file(s)"
 				" are loaded\nsuccessfully.\n", nFaces, nFileLoaded);
 		else
-			throw LoggedEvent("No fonts found.");
+			throw GeneralEvent("No fonts found.");
 		YF_Init_puts(Notice, "Setting default font face...");
 		if(const auto* const pf = fc.GetDefaultTypefacePtr())
 			YF_Init_printf(Notice, "\"%s\":\"%s\",\nsuccessfully.\n",
 				pf->GetFamilyName().c_str(), pf->GetStyleName().c_str());
 		else
-			throw LoggedEvent("Setting default font face failed.");
+			throw GeneralEvent("Setting default font face failed.");
 		return;
 	}
 	CatchExpr(std::exception& e, ExtractException(e, res))

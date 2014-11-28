@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r455
+\version r481
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-11-13 01:48 +0800
+	2014-11-28 10:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -224,6 +224,13 @@ public:
 	//! \brief 析构：若查找节点句柄非空则关闭查找状态。
 	~DirectoryFindData();
 
+	//! \since build 556
+	PDefHOp(bool, !, ) const ynothrow
+		ImplRet(!h_node)
+
+	//! \since build 556
+	explicit DefCvt(const ynothrow, bool, h_node)
+
 	DefGetter(const ynothrow, ::DWORD, Attributes, find_data.dwFileAttributes)
 	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
 	DefGetter(const ynothrow, const std::wstring&, DirName, dir_name)
@@ -346,31 +353,6 @@ FetchSystemPath(size_t s = MAX_PATH);
 */
 YF_API std::chrono::nanoseconds
 ConvertTime(::FILETIME&);
-
-
-/*!
-\brief 取注册表中 NLS 键中指定名称的值。
-\pre 间接断言：字符串参数非空。
-\since build 552
-*/
-YF_API std::wstring
-FetchNLSItemFromRegistry(const wchar_t*);
-
-/*!
-\brief 取注册表中指定代码页的 NLS 文件路径。
-\since build 552
-*/
-inline PDefH(std::wstring, FetchCPFileNameFromRegistry, int cp)
-	ImplRet(FetchNLSItemFromRegistry(std::to_wstring(cp).c_str()))
-
-/*!
-\brief 取指定双字节字符集代码页的映射表。
-\return 成功则为映射表的起始指针，否则为空指针。
-\note 非双字节字符集视为失败。
-\since build 552
-*/
-YF_API const unsigned short*
-FetchDBCSOffset(int) ynothrow;
 
 } // inline namespace Windows;
 

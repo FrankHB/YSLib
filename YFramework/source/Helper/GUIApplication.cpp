@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r338
+\version r340
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2014-11-12 04:15 +0800
+	2014-11-27 15:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,7 +127,7 @@ FetchGlobalInstance()
 
 	if(ApplicationPtr)
 		return *ApplicationPtr;
-	throw LoggedEvent("Application instance is not ready.");
+	throw GeneralEvent("Application instance is not ready.");
 }
 
 /* extern */Application&
@@ -152,7 +152,7 @@ Execute(GUIApplication& app, shared_ptr<Shell> p_shl)
 	FetchEnvironment().ExitOnAllWindowThreadCompleted = true;
 #endif
 	if(YB_UNLIKELY(!Activate(p_shl)))
-		throw LoggedEvent("Failed activating the main shell.");
+		throw GeneralEvent("Failed activating the main shell.");
 	while(app.DealMessage())
 		;
 }

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r7031
+\version r7271
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-11-23 15:53 +0800
+	2014-11-28 13:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,246 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YBase $=
+	(
+		+ %CMath @ %LibDefect,
+			// To make as many as possible ISO C++11 math functions work with \
+				libstdc++ even if no %_GLIBCXX_USE_C99_MATH_TR1 is defined.
+		/ DLD ^ "%std::llround" ~ "%::round" @ %Rational $dep_from
+			%LibDefect.CMath,
+		/ DLD "swapped order of definition of macros %(YPP_Concat, YPP_Join)"
+			@ %YDefinition,
+			// To be intuitive and to prevent (unlikely) misuse between the \
+				two definitions.
+		/ %YStandardEx $=
+		(
+			/ %Iterator $=
+			(
+				/ @ "class template %subscriptive_iterator" $=
+				(
+					+ "3 parameters with default argument for member type"
+						@ "template parameter list";
+					/ "alias declarations %(difference_type, pointer, \
+						reference)" ^ "template parameter",
+					(
+					+ "friend function %is_undereferenceable";
+					+ "assertion of not %is_undereferenceable"
+						@ "function %operator*",
+					+ "friend function %less"
+					),
+					+ DLD 'ynothrowv' @ "all member functions without \
+						exception specification",
+					+ "brace-initializer for data members",
+						// To make default initialized iterator compatible \
+							with 'constexpr'.
+					+ "explicitly defaulted default constructor",
+					/ @ "function %equals" $=
+					(
+						/ "always treats iterators with null container are \
+							same",
+						+ "assertion for same container"
+					),
+					(
+					/ "function %index" => "%get_index";
+					/ DLD "renamed data member",
+					+ 'yconstfn' @ "functions %(container, get_index)"
+					)
+				),
+				+ "function templates binary %operator(<, >, <=, >=, -) for \
+					%subscriptive_iterator"
+			),
+			/ DLD "simplified constructor %fixed_point" @ %Rational,
+			(
+			+ %Base
+				$= (+ "class template %deref_self"),
+			/ DLD "class template %guard_impl" @ %Utilities !^ "%noncopyable",
+			/ $dev "class template %lref" @ %Functional ^ "explicitly \
+				defaulted copy (constructor, %operator=)" ~ "%nonmoveable";
+			/ "classes (noncopyable, nonmoveable, cloneable)" @ %Utilities
+				>> %Base;
+			/ $dev "defined virtual destructor out-of-line" @ "class %cloneable"
+				@ ".cpp file" ~ ("class definition" @ "header")
+				// To eliminate Clang++ warning: [-Wweak-vtables].
+			),
+			(
+				/ $dev %Exception $=
+				(
+					/ "header %exception.hpp" >> "%exception.h",
+					+ "source file %exception.cpp"
+				);
+				/ "classes (unsupported, unimplemented)" @ %Utilities
+					>> %Exception;
+				+ $dev "defined virtual destructor out-of-line"
+					@ "class %(unsupported, unimplemented)"
+					@ ".cpp file" ~ ("class definition" @ "header")
+					// To eliminate Clang++ warning: [-Wweak-vtables].
+			)
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %Adatpor $=
+			(
+				/ 'using ::round' -> 'using std::round' @ %YAdaptor $dep_from
+					%LibDefect.CMath,
+				/ %Image $=
+				(
+					/ @ "class %HMultiBitmap" $=
+					(
+						(
+						// These modification provide a default constructed \
+							null handle.
+						+ DLD "'{}' as initializer for pointer data member";
+						+ "explicitly defaulted default constructor"
+						),
+						/ @ "function %Lock" $=
+						(
+							+ DLD 'ynothrowv',
+							+ "locked page index and count" @ "indirect assertion"
+						),
+						(
+						+ "function %operator[]";
+						/ "class %iterator" -> "alias declaration"
+							^ "%ystdex::subscriptive_iterator" $dep_from
+							%YBase.YStandardEx.Iterator
+						),
+						* "%std::terminate called when image plugin not found"
+							@ "constructor" $since b456,
+							// This is caused by improper 'ynothrow'. This \
+								would cause crash by default instead of \
+								propagating the exception.
+					),
+					- "all 2 functions for %HMultiBitmap::iterator",
+					* "wrong call for list initialization of sequence \
+						container of iterator type" @ "static member function \
+						template %ImageCodec::LoadSequence" $since b461,
+					/ "base class %LoggedEvent" -> "GeneralEvent"
+						@ "%UnsupportedImageFormat",
+					/ "constructor %UnknownImageFormat" -> 'using \
+						UnsupportedImageFormat::UnsupportedImageFormat",
+					/ "constructors %HMultiBitmap explicitly allowed to \
+						propagate exception types %std::(bad_cast, \
+						invalid_argument)",
+					/ @ "class %HBitmap" $=
+					(
+						/ "constructors opened from file would throw \
+							%std::invalid_argument if \
+							file open failed",
+						/ "functions and function template %SaveTo would throw \
+							%std::invalid_argument if the bitmap is null or \
+							%GeneralEvent if failed otherwise"
+							~ "return %bool value",
+						/ $dev "constructor with %DataPtr parameter and \
+							default argument" -> "brace-initialized data \
+							member, explicitly defaulted constructor and \
+							constructor without default argument",
+						/ @ "function %operator[]" $=
+						(
+							/ 'ynothrow' -> 'ynothrowv',
+							* "missing assertion for nonnull bitmap pointer as \
+								documentation" $since b
+						),
+						+ "function %Release"
+					),
+					+ "class name declaration %::(FIMETADATA, FITAG); \
+						class %ImageTag"
+				)
+			),
+			* "uninitialized read of scale value caused by wrong data member \
+				initialization order" @ "constructor" @ "class %ImagePages"
+				@ Service.ImageProcessing $since b555,
+			* "missing level value when throwing %LoggedEvent object"
+				@ "function templates %(CheckNonnegativeScalar, \
+				CheckPositiveScalar)" @ %Core.YCoreUtilities $since b502
+		),
+		+ ('#include YFM_Helper_HostedUI', 'YFM_YSLib_Service_ImageProcessing')
+			@ %YSBuild,
+		/ %'YCLib_(MinGW32)' $=
+		(
+			+ %NLS;
+			/ "functions %(FetchNLSItemFromRegistry, \
+				FetchCPFileNameFromRegistry, FetchDBCSOffset)" @ %MinGW32
+				>> %NLS
+		),
+		/ "all throwing %LoggedEvent without level" -> "throwing %GeneralEvent"
+			$effective @ %(YSLib.Adaptor.Image, Helper.(GUIApplication,
+			Initialization), 'YCLib_(MinGW32)'.Win32GUI),
+		+ "member functions %operator(!, bool)" @ "class %DirectorySession"
+			@ %'YCLib_(MinGW32)'.MinGW32,
+			/ DLD "simplified class %HDirectory" @ %YCLib.FileSystem
+				^ $dep_from ("%ystdex::deref_self" @ %YBase.YStandardEx.Base)
+	),
+	+ %YDE $=
+	(
+		+ $doc "Readme.en-US.txt",
+		+ %ImageBrowser
+			$= (+ %(ImageControl; Main)),
+		+ "%build-all.sh"
+	),
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			* $comp $build "missing %MemoryMapping.cpp" @ "%LIBS"
+				@ "%SHBuild-bootstrap.sh" $since b552 $dep_from
+				%YFramework.'YCLib_(MinGW32)',
+				// Otherwise linking failed. It is needed as a side effect of \
+					%FetchDBCSOffset in %'YCLib_(MinGW32)'.
+			+ "%SHBuild-self-host-DLL.sh"
+				// XXX: Depends on DLLs in '/usr/lib'.,
+			(
+			/ @ "%install-sysroot.sh" $=
+			(
+				* "missing exported %LDFLAGS after loading default options \
+					before building stage 2 %SHBuild" $since b546,
+					// This made the binary larger than expected and necessary.
+				+ '-fno-lto -fwhole-program' @ "command line for stage 2 \
+					%SHBuild",
+					// Since the bootstrap build a single execution file, the \
+						'-fno-lto -fwhole-program' makes it better. Seems no \
+						bug like static linking (see %SHBuild-bootstrap.sh).
+				/ "default value" @ "%SHBuild_LogOpt" -> '-xlogfl,128'
+					~ '-xlogfl,192'
+					// To decrease verbosity and increase performance by \
+						default.
+				/ "default value" @ "%SHBuild_BuildOpt" -> '-xj,6' ~ '-xlogfl,8'
+					// To decrease probability to hang.
+				+ "deploying static libraries %(libfreetype.a, libFreeImage.a)"
+			);
+			/ "%install-sysroot.sh" @ %Scripts >> %Tools
+			),
+			(
+			+ "%(SHBuild-YSLib-common.sh; SHBuild-YSLib-debug.sh)";
+			+ "support for building and installing debug libraries if non \
+				empty %SHBuild_UseDebug is set" @ "%install-sysroot.sh"
+			),
+			/ @ "%SHBuild-YSLib.sh" $=
+			(
+				/ "simplified" ^ $dep_from "%SHBuild-YSLib-common.sh",
+				* "wrong command line" @ "building %YFramework.dll" $since b546
+					$= (/ '-DYB_BUILD_DLL' -> '-DYB_DLL')
+			),
+			/ "all 'source' shell builtin" -> '.',
+				// To be not verbose and compatible with other shells.
+			/ @ "%SHBuild-BuildApp.sh" $=
+			(
+				/ "auto-detecting debug modes by prefix 'debug'"
+					~ "identical match",
+				+ "static build support with variable %SHBuild_Static and \
+					auto-detecting configure name postfix 'static'",
+				+ "variable %SHBuild_NoAdjustSubsystem to allow suppressing \
+					adding '-mwindows' in release modes"
+			)
+		),
+		+ "target base name overriding option '-xn'" @ %SHBuild.Main,
+	),
+	* $dev "missing %source/ytest/test.cpp" @ "YBase.cbp" $since b519
+),
+
+b555
 (
 	/ %YFramework $=
 	(
@@ -1481,7 +1721,7 @@ b546
 	(
 		/ %YSLib $=
 		(
-			+ ('using std::begin;', 'using std::end;') @ %Adaptors.YContainer,
+			+ ('using std::begin;', 'using std::end;') @ %Adaptor.YContainer,
 			/ "level" @ "all traces" -> "%Debug" ~ "%Informative"
 				@ %Service.File,
 			/ %Core.YCoreUtilities $=

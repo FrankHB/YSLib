@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\libdefect\cmath.h" />
     <ClInclude Include="include\libdefect\exception.h" />
     <ClInclude Include="include\libdefect\string.h" />
     <ClInclude Include="include\ydef.h" />
@@ -18,6 +19,7 @@
     <ClInclude Include="include\ystdex\any.h" />
     <ClInclude Include="include\ystdex\any_iterator.hpp" />
     <ClInclude Include="include\ystdex\array.hpp" />
+    <ClInclude Include="include\ystdex\base.h" />
     <ClInclude Include="include\ystdex\bitseg.hpp" />
     <ClInclude Include="include\ystdex\cache.hpp" />
     <ClInclude Include="include\ystdex\cassert.h" />
@@ -30,7 +32,7 @@
     <ClInclude Include="include\ystdex\cstring.h" />
     <ClInclude Include="include\ystdex\cwctype.h" />
     <ClInclude Include="include\ystdex\examiner.hpp" />
-    <ClInclude Include="include\ystdex\exception.hpp" />
+    <ClInclude Include="include\ystdex\exception.h" />
     <ClInclude Include="include\ystdex\functional.hpp" />
     <ClInclude Include="include\ystdex\iterator.hpp" />
     <ClInclude Include="include\ystdex\memory.hpp" />
@@ -50,11 +52,13 @@
   <ItemGroup>
     <ClCompile Include="source\libdefect\exception.cpp" />
     <ClCompile Include="source\ystdex\any.cpp" />
+    <ClCompile Include="source\ystdex\base.cpp" />
     <ClCompile Include="source\ystdex\cassert.cpp" />
     <ClCompile Include="source\ystdex\concurrency.cpp" />
     <ClCompile Include="source\ystdex\cstdio.cpp" />
     <ClCompile Include="source\ystdex\cstring.cpp" />
     <ClCompile Include="source\ystdex\cwctype.cpp" />
+    <ClCompile Include="source\ystdex\exception.cpp" />
     <ClCompile Include="source\ytest\test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

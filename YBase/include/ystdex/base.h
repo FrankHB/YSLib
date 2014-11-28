@@ -1,0 +1,172 @@
+﻿/*
+	© 2013-2014 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file base.h
+\ingroup YStandardEx
+\brief 基类实用设施。
+\version r171
+\author FrankHB <frankhb1989@gmail.com>
+\since build 556
+\par 创建时间:
+	2014-11-28 11:59:15 +0800
+\par 修改时间:
+	2014-11-28 13:01 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	YStandardEx::Base
+*/
+
+
+#ifndef YB_INC_ystdex_base_h_
+#define YB_INC_ystdex_base_h_ 1
+
+#include "../ydef.h"
+
+namespace ystdex
+{
+
+/*!
+\brief 不可复制对象：禁止派生类调用默认原型的复制构造函数和复制赋值操作符。
+\warning 非虚析构。
+\since build 373
+*/
+class noncopyable
+{
+protected:
+	/*!
+	\brief \c protected 构造：默认实现。
+	\note 保护非多态类。
+	*/
+	yconstfn
+	noncopyable() = default;
+	//! \brief \c protected 析构：默认实现。
+	~noncopyable() = default;
+
+public:
+	//! \brief 禁止复制构造。
+	yconstfn
+	noncopyable(const noncopyable&) = delete;
+	/*!
+	\brief 允许转移构造。
+	\since build 551
+	*/
+	yconstfn
+	noncopyable(noncopyable&&) = default;
+
+	//! \brief 禁止复制赋值。
+	noncopyable&
+	operator=(const noncopyable&) = delete;
+	/*!
+	\brief 允许转移赋值。
+	\since build 551
+	*/
+	noncopyable&
+	operator=(noncopyable&&) = default;
+};
+
+
+/*
+\brief 不可转移对象：禁止继承此类的对象调用默认原型的转移构造函数和转移赋值操作符。
+\warning 非虚析构。
+\since build 373
+*/
+class nonmovable
+{
+protected:
+	/*!
+	\brief \c protected 构造：默认实现。
+	\note 保护非多态类。
+	*/
+	yconstfn
+	nonmovable() = default;
+	//! \brief \c protected 析构：默认实现。
+	~nonmovable() = default;
+
+public:
+	//! \since build 551
+	//@{
+	//! \brief 允许复制构造。
+	yconstfn
+	nonmovable(const nonmovable&) = default;
+	//! \brief 禁止转移构造。
+	yconstfn
+	nonmovable(nonmovable&&) = delete;
+
+	//! \brief 允许复制赋值。
+	nonmovable&
+	operator=(const nonmovable&) = default;
+	//! \brief 禁止转移赋值。
+	nonmovable&
+	operator=(nonmovable&&) = delete;
+	//@}
+};
+
+
+/*!
+\brief 可动态复制的抽象基类。
+\since build 475
+*/
+class YB_API cloneable
+{
+public:
+#if YB_IMPL_MSCPP
+	//! \since build 503 as workaround for Visual C++ 2013
+	cloneable() = default;
+	//! \since build 503 as workaround for Visual C++ 2013
+	cloneable(const cloneable&) = default;
+	//! \since build 483 as workaround for Visual C++ 2013
+	cloneable(cloneable&&)
+	{}
+#endif
+	virtual cloneable*
+	clone() const = 0;
+
+	//! \brief 虚析构：类定义外默认实现。
+	virtual
+	~cloneable();
+};
+
+
+/*!
+\brief 间接操作：返回派生类自身引用。
+\note 可用于 ystdex::indirect_input_iterator 和转换函数访问。
+\since build 556
+\todo 提供接口允许用户指定使用 ystdex::polymorphic_cast 等检查转换。
+*/
+template<typename _type>
+struct deref_self
+{
+	_type&
+	operator*() ynothrow
+	{
+		return *static_cast<_type*>(this);
+	}
+	const _type&
+	operator*() const ynothrow
+	{
+		return *static_cast<const _type*>(this);
+	}
+	volatile _type&
+	operator*() volatile ynothrow
+	{
+		return *static_cast<volatile _type*>(this);
+	}
+	const volatile _type&
+	operator*() const volatile ynothrow
+	{
+		return *static_cast<const volatile _type*>(this);
+	}
+};
+
+} // namespace ystdex;
+
+#endif
+

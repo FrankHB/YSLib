@@ -131,9 +131,6 @@
     <ClInclude Include="include\ystdex\cache.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
-    <ClInclude Include="include\ystdex\exception.hpp">
-      <Filter>include\ystdex</Filter>
-    </ClInclude>
     <ClInclude Include="include\ystdex\array.hpp">
       <Filter>include\ystdex</Filter>
     </ClInclude>
@@ -141,6 +138,15 @@
       <Filter>include\libdefect</Filter>
     </ClInclude>
     <ClInclude Include="include\ystdex\pseudo_mutex.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\libdefect\cmath.h">
+      <Filter>include\libdefect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\exception.h">
+      <Filter>include\ystdex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ystdex\base.h">
       <Filter>include\ystdex</Filter>
     </ClInclude>
   </ItemGroup>
@@ -168,6 +174,12 @@
     </ClCompile>
     <ClCompile Include="source\libdefect\exception.cpp">
       <Filter>source\libdefect</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\base.cpp">
+      <Filter>source\ystdex</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ystdex\exception.cpp">
+      <Filter>source\ystdex</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

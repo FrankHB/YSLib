@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r530
+\version r531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-11-21 16:15 +0800
+	2014-11-27 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -433,7 +433,7 @@ HostWindow::HostWindow(NativeWindowHandle h)
 		ystdex::arrlen(WindowClassName))))
 		YF_Raise_Win32Exception("GetClassNameW");
 	if(std::wcscmp(buf, WindowClassName) != 0)
-		throw LoggedEvent("Wrong windows class name found.");
+		throw GeneralEvent("Wrong windows class name found.");
 	::SetLastError(0);
 	if(YB_UNLIKELY(::SetWindowLongPtrW(hWindow, GWLP_USERDATA,
 		::LONG_PTR(this)) == 0 && GetLastError() != 0))

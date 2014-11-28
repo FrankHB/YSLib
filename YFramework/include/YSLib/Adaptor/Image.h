@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r846
+\version r1068
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-11-12 05:17 +0800
+	2014-11-28 13:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,12 +31,17 @@
 #include "../Core/YModules.h"
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Adaptor_YContainer
+#include <ystdex/exception.h> // for ystdex::unsupported;
 
 //包含 FreeImage 。
 //#include <FreeImage.h>
 
 //! \since build 402
 struct FIBITMAP;
+//! \since build 556
+struct FIMETADATA;
+//! \since build 556
+struct FITAG;
 //! \since build 417
 struct FIMEMORY;
 
@@ -140,11 +145,11 @@ class YF_API BadImageAlloc : public std::bad_alloc
 \since build 471
 */
 class YF_API UnsupportedImageFormat
-	: public LoggedEvent, public ystdex::unsupported
+	: public GeneralEvent, public ystdex::unsupported
 {
 public:
-	//! \since build 538
-	using LoggedEvent::LoggedEvent;
+	//! \since build 566
+	using GeneralEvent::GeneralEvent;
 };
 
 
@@ -156,9 +161,8 @@ public:
 class YF_API UnknownImageFormat : public UnsupportedImageFormat
 {
 public:
-	UnknownImageFormat(const std::string& str)
-		: UnsupportedImageFormat(str)
-	{}
+	//! \since build 566
+	using UnsupportedImageFormat::UnsupportedImageFormat;
 };
 
 
@@ -180,7 +184,7 @@ private:
 
 public:
 	/*!
-	\exception LoggedEvent 打开内存缓冲区失败。
+	\exception GeneralEvent 打开内存缓冲区失败。
 	\note 需要校验图像格式正确。
 	\since build 470
 	*/
@@ -189,16 +193,16 @@ public:
 	\brief 构造：从现有图像打开。
 	\post <tt>GetBuffer().empty()</tt> 。
 	\throw UnknownImageFormat 未知图像格式。
-	\throw LoggedEvent 图像为空。
-	\throw LoggedEvent 图像保存到缓冲区失败。
+	\throw GeneralEvent 图像为空。
+	\throw GeneralEvent 图像保存到缓冲区失败。
 	*/
 	explicit
 	ImageMemory(const HBitmap&, ImageFormat = ImageFormat::BMP,
 		ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*!
 	\post <tt>!GetBuffer().empty()</tt> 。
-	\exception LoggedEvent 缓冲区大小等于 0 。
-	\exception LoggedEvent 打开内存缓冲区失败。
+	\exception GeneralEvent 缓冲区大小等于 0 。
+	\exception GeneralEvent 打开内存缓冲区失败。
 	*/
 	//@{
 	//! \brief 构造：打开指定的内存缓冲区。
@@ -240,23 +244,29 @@ public:
 	using DataPtr = ::FIBITMAP*;
 
 private:
-	DataPtr bitmap;
+	//! \since build 556
+	DataPtr p_bitmap;
 
 public:
+	/*!
+	\post <tt>!*this</tt> 。
+	\since build 556
+	*/
+	DefDeCtor(HBitmap)
 	/*
 	\brief 构造：使用现有数据指针。
 	\note 取得所有权。
-	\since build 430
+	\since build 556
 	*/
-	HBitmap(DataPtr ptr = {}) ynothrow
-		: bitmap(ptr)
+	HBitmap(DataPtr ptr) ynothrow
+		: p_bitmap(ptr)
 	{}
 	//! \throw BadImageAlloc 分配空间失败。
 	HBitmap(const Size&, BitPerPixel = 0);
 	/*!
 	\brief 构造：从矩形像素图缓冲区按指定大小和扫描线跨距增量复制并转换图像数据。
 	\pre 间接断言：输入指针非空。
-	\throw LoggedEvent 转换失败。
+	\throw GeneralEvent 转换失败。
 	\note 扫描线跨距的单位为字节，
 		等于图像的宽乘以每像素字节数与输入的扫描线跨距增量之和。
 	\since build 471
@@ -265,13 +275,14 @@ public:
 	HBitmap(BitmapPtr, const Size&, size_t = 0);
 	/*!
 	\brief 构造：从标准矩形像素图缓冲区复制并转换图像数据。
-	\exception LoggedEvent 转换失败。
+	\exception GeneralEvent 转换失败。
 	\since build 471
 	*/
 	HBitmap(const CompactPixmap&);
 	/*!
-	\throw LoggedEvent 读取失败。
-	\since build 457
+	\throw std::invalid_argument 文件打开失败。
+	\throw GeneralEvent 读取失败。
+	\since build 556
 	*/
 	//@{
 	/*
@@ -313,14 +324,14 @@ public:
 	{}
 	//@}
 	/*!
-	\throw LoggedEvent 读取失败。
+	\throw GeneralEvent 读取失败。
 	\since build 457
 	*/
 	HBitmap(const ImageMemory&, ImageDecoderFlags = ImageDecoderFlags::Default);
 	/*!
 	\brief 构造指定图像转换为指定色深的基于 RGB 像素格式的位图副本。
 	\throw UnsupportedImageFormat 指定的色深对指定图形不被支持。
-	\throw LoggedEvent 转换失败（包括色深被支持但具体格式不被实现支持的情形）。
+	\throw GeneralEvent 转换失败（包括色深被支持但具体格式不被实现支持的情形）。
 	\note 对 16 位位图使用 RGB555 。对 32 位位图使用 RGBA8888 。
 	\since build 471
 	*/
@@ -329,7 +340,7 @@ public:
 	//@{
 	/*!
 	\brief 构造指定图像缩放至指定大小的副本。
-	\throw LoggedEvent 缩放失败。
+	\throw GeneralEvent 缩放失败。
 	\since build 430
 	*/
 	HBitmap(const HBitmap&, const Size&, SamplingFilter);
@@ -351,20 +362,20 @@ public:
 	}
 
 	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!bitmap)
+		ImplRet(!p_bitmap)
 
 	/*!
 	\brief 取扫描线数据。
-	\pre 断言： <tt>bitmap</tt> 。
+	\pre 断言： <tt>bool(*this)</tt> 。
 	\pre 断言： 参数值小于高。
 	\return 扫描线数据的起始指针。
 	\note 扫描线宽为跨距。
-	\since build 471
+	\since build 566
 	*/
 	byte*
-	operator[](size_t) const ynothrow;
+	operator[](size_t) const ynothrowv;
 
-	explicit DefCvt(const ynothrow, bool, bitmap)
+	explicit DefCvt(const ynothrow, bool, p_bitmap)
 	//@}
 
 	/*!
@@ -376,7 +387,7 @@ public:
 	BitPerPixel
 	GetBPP() const ynothrow;
 	//! \since build 417
-	DefGetter(const ynothrow, DataPtr, DataPtr, bitmap)
+	DefGetter(const ynothrow, DataPtr, DataPtr, p_bitmap)
 	SDst
 	GetHeight() const ynothrow;
 	//! \since build 417
@@ -401,9 +412,17 @@ public:
 	\since build 471
 	*/
 	PDefH(byte*, GetScanLine, size_t idx) const ynothrow
-		ImplRet(bitmap ? (*this)[idx] : nullptr)
+		ImplRet(p_bitmap ? (*this)[idx] : nullptr)
 	SDst
 	GetWidth() const ynothrow;
+
+	/*!
+	\brief 释放所有权。
+	\post <tt>!*this</tt>
+	\since build 566
+	*/
+	DataPtr
+	Release() ynothrow;
 
 	/*!
 	\brief 缩放为指定大小。
@@ -413,29 +432,30 @@ public:
 	Rescale(const Size&, SamplingFilter = SamplingFilter::Box);
 
 	/*!
-	\return 是否保存成功。
-	\since build 471
+	\throw std::invalid_argument 不存在可被保存的位图数据。
+	\throw GeneralEvent 保存失败。
+	\since build 556
 	*/
 	//@{
 	//!\ brief 保存：使用指定 UTF-8 文件名、格式和解码器标识。
-	bool
+	void
 	SaveTo(const char*, ImageFormat = ImageFormat::BMP,
-		ImageDecoderFlags = ImageDecoderFlags::Default) const ynothrow;
+		ImageDecoderFlags = ImageDecoderFlags::Default) const;
 	//!\ brief 保存：使用指定 UTF-16 文件名、格式和解码器标识。
-	bool
+	void
 	SaveTo(const char16_t*, ImageFormat = ImageFormat::BMP,
-		ImageDecoderFlags = ImageDecoderFlags::Default) const ynothrow;
+		ImageDecoderFlags = ImageDecoderFlags::Default) const;
 	/*!
 	\brief 保存：使用指定字符串文件名、格式和解码器标识。
 	\since build 483
 	*/
 	template<class _tString,
 		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
-	bool
+	void
 	SaveTo(const _tString& filename, ImageFormat fmt = ImageFormat::BMP,
 		ImageDecoderFlags flags = ImageDecoderFlags::Default) const
 	{
-		return SaveTo(&filename[0], fmt, flags);
+		SaveTo(&filename[0], fmt, flags);
 	}
 	//@}
 
@@ -444,7 +464,7 @@ public:
 	\since build 430
 	*/
 	PDefH(void, swap, HBitmap& pixmap) ynothrow
-		ImplExpr(std::swap(bitmap, pixmap.bitmap))
+		ImplExpr(std::swap(p_bitmap, pixmap.p_bitmap))
 };
 
 /*!
@@ -471,46 +491,26 @@ class YF_API HMultiBitmap final
 {
 public:
 	using DataPtr = shared_ptr<MultiBitmapData>;
+	//! \since build 556
+	using iterator = ystdex::subscriptive_iterator<const HMultiBitmap, HBitmap,
+		ptrdiff_t, const HBitmap*, HBitmap>;
 	//! \since build 460
-	//@{
-	class YF_API iterator : public std::iterator<std::input_iterator_tag,
-		HBitmap, ptrdiff_t, const HBitmap*, HBitmap>
-	{
-	private:
-		const HMultiBitmap* p_bitmaps;
-		size_t index;
-
-	public:
-		iterator()
-			: p_bitmaps()
-		{}
-		iterator(const HMultiBitmap& bmps, size_t idx = 0)
-			: p_bitmaps(&bmps), index(idx)
-		{}
-
-		iterator&
-		operator++() ynothrowv;
-
-		reference
-		operator*() const;
-
-		YF_API friend bool
-		operator==(const iterator&, const iterator&) ynothrow;
-
-		DefGetter(const ynothrow, const HMultiBitmap*, HMultiBitmapPtr,
-			p_bitmaps)
-		DefGetter(const ynothrow, size_t, Index, index)
-	};
 	using const_iterator = iterator;
-	//@}
 
 private:
-	DataPtr pages;
+	DataPtr pages{};
 
 public:
 	/*!
-	\throw LoggedEvent 读取失败。
-	\note 非多页面读取结果为空。
+	\brief 无参数构造：默认实现。
+	\post <tt>*!this</tt> 。
+	\since build 556
+	*/
+	DefDeCtor(HMultiBitmap)
+	/*!
+	\post <tt>bool(*this)</tt> 。
+	\throw std::bad_alloc 存储分配失败。
+	\throw std::invalid_argument 文件打开失败。
 	\since build 457
 	*/
 	//@{
@@ -561,13 +561,17 @@ public:
 	PDefHOp(bool, !, ) const ynothrow
 		ImplRet(!pages)
 
+	//! \since build 556
+	PDefHOp(HBitmap, [], size_t idx) const ynothrowv
+		ImplRet(Lock(idx))
+
 	explicit DefCvt(const ynothrow, bool, bool(pages))
 
 	size_t
 	GetPageCount() const ynothrow;
 
 	HBitmap
-	Lock(size_t = 0) const;
+	Lock(size_t = 0) const ynothrowv;
 
 	//! \brief 交换。
 	PDefH(void, swap, HMultiBitmap& multi_pixmap) ynothrow
@@ -576,43 +580,131 @@ public:
 	//! \since build 461
 	//@{
 	PDefH(iterator, begin, ) const ynothrow
-		ImplRet(GetPageCount() != 0 ? HMultiBitmap::iterator(*this)
-			: HMultiBitmap::iterator())
+		ImplRet(HMultiBitmap::iterator(*this, 0))
 
 	PDefH(iterator, end, ) const ynothrow
-		ImplRet(HMultiBitmap::iterator())
+		ImplRet(HMultiBitmap::iterator(*this, GetPageCount()))
 	//@}
 };
-
-inline HMultiBitmap::iterator&
-HMultiBitmap::iterator::operator++() ynothrowv
-{
-	if(++index == Deref(p_bitmaps).GetPageCount())
-		p_bitmaps = {};
-	return *this;
-}
-
-inline HMultiBitmap::iterator::reference
-HMultiBitmap::iterator::operator*() const
-{
-	return Deref(p_bitmaps).Lock(index);
-}
-
-inline bool
-operator!=(const HMultiBitmap::iterator& x, const HMultiBitmap::iterator& y)
-	ynothrow
-{
-	return !(x == y);
-}
-
-//! \relates HMultiBitmap::iterator
-inline PDefH(bool, is_undereferenceable, const HMultiBitmap::iterator& i)
-	ynothrow
-	ImplRet(!i.GetHMultiBitmapPtr())
 
 //! \relates HMultiBitmap
 inline DefSwap(ynothrow, HMultiBitmap)
 //@}
+
+
+/*!
+\brief 图像元数据标签。
+\since build 556
+*/
+class YF_API ImageTag final
+{
+public:
+	using DataPtr = ::FITAG*;
+	using ID = std::uint16_t;
+	/*!
+	\brief 元数据类型标识。
+	\note 数值对应 FreeImage 实现的 \c ::FREE_IMAGE_MDTYPE 类型。
+	*/
+	enum Type
+	{
+		NoType = 0,
+		Byte = 1,
+		ASCII = 2,
+		Short = 3,
+		Long = 4,
+		Rational = 5,
+		SByte = 6,
+		Undefined = 7,
+		SShort = 8,
+		SLong = 9,
+		SRational = 10,
+		Float = 11,
+		Double = 12,
+		IFD = 13,
+		Palette = 14,
+		Long8 = 16,
+		SLong8 = 17,
+		IFD8 = 18
+	};
+	/*!
+	\brief 元数据模型标识。
+	\note 数值对应 FreeImage 实现的 \c ::FREE_IMAGE_MDMODEL 类型。
+	*/
+	enum Model
+	{
+		NoData = -1,
+		Comments = 0,
+		EXIF_Main = 1,
+		EXIF_EXIF = 2,
+		EXIF_GPS = 3,
+		EXIF_MakerNote = 4,
+		EXIF_Interop = 5,
+		IPTC = 6,
+		XMP = 7,
+		GeoTIFF = 8,
+		Animation = 9,
+		Custom = 10,
+		EXIF_RAW = 11
+	};
+
+private:
+	DataPtr p_tag = {};
+
+public:
+	//! \post <tt>!*this</tt> 。
+	DefDeCtor(ImageTag)
+	/*
+	\brief 构造：使用现有数据指针。
+	\note 取得所有权。
+	*/
+	ImageTag(DataPtr ptr) ynothrow
+		: p_tag(ptr)
+	{}
+	ImageTag(const ImageTag&) ythrow(BadImageAlloc);
+	~ImageTag();
+
+	PDefHOp(bool, !, ) const ynothrow
+		ImplRet(!p_tag)
+
+	explicit DefCvt(const ynothrow, bool, p_tag)
+
+	size_t
+	GetCount() const ynothrow;
+	const char*
+	GetDescription() const ynothrow;
+	ID
+	GetID() const ynothrow;
+	const char*
+	GetKey() const ynothrow;
+	size_t
+	GetLength() const ynothrow;
+	Type
+	GetType() const ynothrow;
+	const void*
+	GetValue() const ynothrow;
+
+	bool
+	SetCount(size_t) const ynothrow;
+	bool
+	SetDescription(const char*) const ynothrow;
+	bool
+	SetID(ID) const ynothrow;
+	bool
+	SetKey(const char*) const ynothrow;
+	bool
+	SetLength(size_t) const ynothrow;
+	bool
+	SetType(Type) const ynothrow;
+	bool
+	SetValue(const void*) const ynothrow;
+
+	/*!
+	\brief 释放所有权。
+	\post <tt>!*this</tt> 。
+	*/
+	DataPtr
+	Release() ynothrow;
+};
 
 
 //! \since build 417
@@ -681,7 +773,7 @@ public:
 	LoadSequence(const _type& path)
 	{
 		const auto multi_bitmap(LoadForPlaying(path));
-		_tSeqCon con{multi_bitmap.begin(), multi_bitmap.end()};
+		_tSeqCon con(multi_bitmap.begin(), multi_bitmap.end());
 
 		if(con.empty())
 			con.emplace_back(path);

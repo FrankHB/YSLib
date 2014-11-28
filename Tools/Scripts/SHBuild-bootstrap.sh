@@ -5,7 +5,7 @@
 echo Bootstrap beginned.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
-source ${SHBuild_ToolDir}/SHBuild-common.sh
+. ${SHBuild_ToolDir}/SHBuild-common.sh
 : ${SHBuild_BaseDir:="${SHBuild_ToolDir}/../SHBuild"}
 
 SHBuild_EchoVar_N "SHBuild.BaseDir"
@@ -15,13 +15,16 @@ echo Configuring ...
 
 SHBuild_BuildDir="${SHBuild_BaseDir}/.shbuild"
 
-source ${SHBuild_ToolDir}/SHBuild-common-toolchain.sh
+. ${SHBuild_ToolDir}/SHBuild-common-toolchain.sh
 
 export AR="gcc-ar"
-source ${SHBuild_ToolDir}/SHBuild-common-options.sh
+. ${SHBuild_ToolDir}/SHBuild-common-options.sh
 # As a workaround to G++ wronly recognized encoding of temporary directory,
-#	LTO is turned off. It is also required for '-fwhole-program', which is
-#	turned off currently due to unresolved symbols caused by possible bugs.
+#	LTO is turned off.
+# Note '-fwhole-program' should not be used because there
+#	does exsit multiple translation units when linking with YSLib source,
+#	otherwise there would be unresolved reference to names with external
+#	linkage which had been optimized away.
 CXXFLAGS="${CXXFLAGS} -fno-lto"
 export CXXFLAGS
 LDFLAGS="${LDFLAGS} -Wl,--dn"

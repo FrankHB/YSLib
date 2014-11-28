@@ -11,13 +11,13 @@
 /*!	\file any.h
 \ingroup YStandardEx
 \brief 动态泛型类型。
-\version r1497
+\version r1499
 \author FrankHB <frankhb1989@gmail.com>
 \since build 247
 \par 创建时间:
 	2011-09-26 07:55:44 +0800
 \par 修改时间:
-	2014-11-23 15:32 +0800
+	2014-11-28 12:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,9 +30,10 @@
 
 #include "utility.hpp"
 #include <new> // for placement ::operator new from standard library;
+#include "base.h" // for ystdex::cloneable;
 #include <memory> // for std::addressof, std::unique_ptr;
-#include <typeinfo> // for typeid, std::bad_cast;
 #include "functional.hpp" // for ystdex::lref;
+#include <typeinfo> // for typeid, std::bad_cast;
 
 namespace ystdex
 {

@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r717
+\version r718
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2014-10-10 14:00 +0800
+	2014-11-28 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #ifndef YB_INC_ystdex_path_hpp_
 #define YB_INC_ystdex_path_hpp_ 1
 
+#include "base.h" // for ystdex::cloneable;
 #include "string.hpp" // for ystdex::sequence_container_adaptor,
 //	ystdex::erase_all_if, ystdex::string_traits, ystdex::to_array;
 #include "memory.hpp" // for std::unique_ptr, ystdex::make_unique;

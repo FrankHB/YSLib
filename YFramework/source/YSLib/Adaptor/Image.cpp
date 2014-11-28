@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r780
+\version r972
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-11-14 23:45 +0800
+	2014-11-28 13:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,10 +77,10 @@ FI_OutputMessage(::FREE_IMAGE_FORMAT fif, const char* msg)
 	}
 };
 
-//! \since build 470
+//! \since build 556
 //@{
 ::FIBITMAP*
-LoadImage(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags) ynothrow
+LoadImage(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags)
 {
 	if(fp)
 	{
@@ -88,24 +88,24 @@ LoadImage(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags) ynothrow
 			&u8_io, ::fi_handle(fp), int(flags)));
 
 		std::fclose(fp);
-		return bitmap;
+		if(bitmap)
+			return bitmap;
+		throw GeneralEvent("Loading image failed.");
 	}
-	return {};
+	throw std::invalid_argument("Invalid file found on loading image.");
 }
 ::FIBITMAP*
 LoadImage(ImageFormat fmt, const char* filename, ImageDecoderFlags flags)
-	ynothrow
 {
 	return LoadImage(fmt, ufopen(filename, "rb"), flags);
 }
 ::FIBITMAP*
 LoadImage(ImageFormat fmt, const char16_t* filename, ImageDecoderFlags flags)
-	ynothrow
 {
 	return LoadImage(fmt, ufopen(filename, u"rb"), flags);
 }
 
-bool
+void
 SaveImage(ImageFormat fmt, ::FIBITMAP* dib, std::FILE* fp,
 	ImageDecoderFlags flags) ynothrow
 {
@@ -115,21 +115,22 @@ SaveImage(ImageFormat fmt, ::FIBITMAP* dib, std::FILE* fp,
 			dib, &u8_io, ::fi_handle(fp), int(flags)));
 
 		std::fclose(fp);
-		return res;
+		if(!res)
+			throw GeneralEvent("Failed saving image");
 	}
-	return {};
+	throw std::invalid_argument("No valid bitmap data found on saving image.");
 }
-bool
+void
 SaveImage(ImageFormat fmt, ::FIBITMAP* dib, const char* filename,
 	ImageDecoderFlags flags) ynothrow
 {
-	return SaveImage(fmt, dib, ufopen(filename, "wb"), flags);
+	SaveImage(fmt, dib, ufopen(filename, "wb"), flags);
 }
-bool
+void
 SaveImage(ImageFormat fmt, ::FIBITMAP* dib, const char16_t* filename,
 	ImageDecoderFlags flags) ynothrow
 {
-	return SaveImage(fmt, dib, ufopen(filename, u"wb"), flags);
+	SaveImage(fmt, dib, ufopen(filename, u"wb"), flags);
 }
 //@}
 
@@ -181,10 +182,10 @@ LookupPlugin(::FREE_IMAGE_FORMAT fif)
 		if(const auto p_plugin = p_node->m_plugin)
 			return *p_plugin;
 		else
-			throw LoggedEvent("Invalid plugin node found.");
+			throw GeneralEvent("Invalid plugin node found.");
 	}
 	else
-		throw LoggedEvent("No proper plugin found.");
+		throw GeneralEvent("No proper plugin found.");
 }
 
 
@@ -224,11 +225,11 @@ ImageMemory::ImageMemory(const HBitmap& pixmap, ImageFormat fmt,
 	const auto p_data(pixmap.GetDataPtr());
 
 	if(!p_data)
-		throw LoggedEvent("Source image is empty.");
+		throw GeneralEvent("Source image is empty.");
 	handle = ::FreeImage_OpenMemory();
 	if(!::FreeImage_SaveToMemory(::FREE_IMAGE_FORMAT(format), p_data,
 		handle, int(flags)))
-		throw LoggedEvent("Saving image to memory failed.");
+		throw GeneralEvent("Saving image to memory failed.");
 }
 ImageMemory::ImageMemory(Buffer buf)
 	: ImageMemory(std::move(buf), ImageFormat::Unknown)
@@ -238,13 +239,13 @@ ImageMemory::ImageMemory(Buffer buf)
 ImageMemory::ImageMemory(Buffer buf, ImageFormat fmt)
 	: buffer([&]{
 		if(buf.empty())
-			throw LoggedEvent("Null buffer found.");
+			throw GeneralEvent("Null buffer found.");
 		return std::move(buf);
 	}()), handle(::FreeImage_OpenMemory(static_cast<byte*>(buffer.data()),
 	static_cast< ::DWORD>(buffer.size()))), format(fmt)
 {
 	if(!handle)
-		throw LoggedEvent("Opening image memory failed.");
+		throw GeneralEvent("Opening image memory failed.");
 }
 ImageMemory::~ImageMemory()
 {
@@ -254,20 +255,20 @@ ImageMemory::~ImageMemory()
 
 
 HBitmap::HBitmap(const Size& s, BitPerPixel bpp)
-	: bitmap(::FreeImage_Allocate(s.Width, s.Height, bpp, 0, 0, 0))
+	: p_bitmap(::FreeImage_Allocate(s.Width, s.Height, bpp, 0, 0, 0))
 {
-	if(!bitmap)
+	if(!p_bitmap)
 		throw BadImageAlloc();
 }
 HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
-	: bitmap([&]{
+	: p_bitmap([&]{
 		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(
 			Nonnull(src)), s.Width, s.Height,
 			s.Width * sizeof(PixelType) + pitch_delta, YF_PixConvSpec, true);
 	}())
 {
-	if(!bitmap)
-		throw LoggedEvent("Converting compact pixmap failed.");
+	if(!p_bitmap)
+		throw GeneralEvent("Converting compact pixmap failed.");
 }
 HBitmap::HBitmap(const CompactPixmap& buf)
 	: HBitmap(buf.GetBufferPtr(), buf.GetSize())
@@ -276,30 +277,24 @@ HBitmap::HBitmap(const char* filename, ImageDecoderFlags flags)
 	: HBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
 HBitmap::HBitmap(const char* filename, ImageFormat fmt, ImageDecoderFlags flags)
-	: bitmap(LoadImage(fmt, filename, flags))
-{
-	if(!bitmap)
-		throw LoggedEvent("Loading image failed.");
-}
+	: p_bitmap(Nonnull(LoadImage(fmt, filename, flags)))
+{}
 HBitmap::HBitmap(const char16_t* filename, ImageDecoderFlags flags)
 	: HBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
 HBitmap::HBitmap(const char16_t* filename, ImageFormat fmt,
 	ImageDecoderFlags flags)
-	: bitmap(LoadImage(fmt, filename, flags))
-{
-	if(!bitmap)
-		throw LoggedEvent("Loading image failed.");
-}
+	: p_bitmap(Nonnull(LoadImage(fmt, filename, flags)))
+{}
 HBitmap::HBitmap(const ImageMemory& mem, ImageDecoderFlags flags)
-	: bitmap(::FreeImage_LoadFromMemory(::FREE_IMAGE_FORMAT(mem.GetFormat()),
+	: p_bitmap(::FreeImage_LoadFromMemory(::FREE_IMAGE_FORMAT(mem.GetFormat()),
 	mem.GetNativeHandle(), int(flags)))
 {
-	if(!bitmap)
-		throw LoggedEvent("Loading image failed.");
+	if(!p_bitmap)
+		throw GeneralEvent("Loading image failed.");
 }
 HBitmap::HBitmap(const HBitmap& pixmap, BitPerPixel bpp)
-	: bitmap([](::FIBITMAP* p_bmp, BitPerPixel bpp){
+	: p_bitmap([](::FIBITMAP* p_bmp, BitPerPixel bpp){
 		switch(bpp)
 		{
 		case 32:
@@ -313,41 +308,42 @@ HBitmap::HBitmap(const HBitmap& pixmap, BitPerPixel bpp)
 		case 4:
 			return FreeImage_ConvertTo4Bits(p_bmp);
 		default:
-			throw UnsupportedImageFormat("Unsupported bit for pixel found.");
+			throw UnsupportedImageFormat("Unsupported bit per pixel found.");
 		}
-	}(pixmap.bitmap, bpp))
+	}(pixmap.p_bitmap, bpp))
 {
-	if(!bitmap)
-		throw LoggedEvent("Converting bitmap failed.");
+	if(!p_bitmap)
+		throw GeneralEvent("Converting bitmap failed.");
 }
 HBitmap::HBitmap(const HBitmap& pixmap, const Size& s, SamplingFilter sf)
-	: bitmap(::FreeImage_Rescale(pixmap.bitmap, s.Width, s.Height,
+	: p_bitmap(::FreeImage_Rescale(pixmap.p_bitmap, s.Width, s.Height,
 	::FREE_IMAGE_FILTER(sf)))
 {
-	if(!bitmap)
-		throw LoggedEvent("Rescaling image failed.");
+	if(!p_bitmap)
+		throw GeneralEvent("Rescaling image failed.");
 }
 HBitmap::HBitmap(const HBitmap& pixmap)
-	: bitmap(::FreeImage_Clone(pixmap.bitmap))
+	: p_bitmap(::FreeImage_Clone(pixmap.p_bitmap))
 {
-	if(!bitmap)
+	if(!p_bitmap)
 		throw BadImageAlloc();
 }
 HBitmap::HBitmap(HBitmap&& pixmap) ynothrow
-	: bitmap(pixmap.bitmap)
+	: p_bitmap(pixmap.p_bitmap)
 {
-	pixmap.bitmap = {};
+	pixmap.p_bitmap = {};
 }
 HBitmap::~HBitmap()
 {
-	::FreeImage_Unload(bitmap);
+	::FreeImage_Unload(p_bitmap);
 }
 
 byte*
-HBitmap::operator[](size_t idx) const ynothrow
+HBitmap::operator[](size_t idx) const ynothrowv
 {
+	YAssertNonnull(*this);
 	YAssert(idx < GetHeight(), "Index is out of range.");
-	return ::FreeImage_GetScanLine(Nonnull(bitmap), idx);
+	return ::FreeImage_GetScanLine(Nonnull(p_bitmap), idx);
 }
 
 HBitmap::operator CompactPixmap() const
@@ -363,27 +359,36 @@ HBitmap::operator CompactPixmap() const
 BitPerPixel
 HBitmap::GetBPP() const ynothrow
 {
-	return ::FreeImage_GetBPP(bitmap);
+	return ::FreeImage_GetBPP(p_bitmap);
 }
 SDst
 HBitmap::GetHeight() const ynothrow
 {
-	return ::FreeImage_GetHeight(bitmap);
+	return ::FreeImage_GetHeight(p_bitmap);
 }
 SDst
 HBitmap::GetPitch() const ynothrow
 {
-	return ::FreeImage_GetPitch(bitmap);
+	return ::FreeImage_GetPitch(p_bitmap);
 }
 byte*
 HBitmap::GetPixels() const ynothrow
 {
-	return ::FreeImage_GetBits(bitmap);
+	return ::FreeImage_GetBits(p_bitmap);
 }
 SDst
 HBitmap::GetWidth() const ynothrow
 {
-	return ::FreeImage_GetWidth(bitmap);
+	return ::FreeImage_GetWidth(p_bitmap);
+}
+
+HBitmap::DataPtr
+HBitmap::Release() ynothrow
+{
+	const auto ptr(p_bitmap);
+
+	p_bitmap = {};
+	return ptr;
 }
 
 void
@@ -392,17 +397,17 @@ HBitmap::Rescale(const Size& s, SamplingFilter sf)
 	*this = HBitmap(*this, s, sf);
 }
 
-bool
+void
 HBitmap::SaveTo(const char* filename, ImageFormat fmt, ImageDecoderFlags flags)
-	const ynothrow
+	const
 {
-	return SaveImage(fmt, GetDataPtr(), filename, flags);
+	SaveImage(fmt, GetDataPtr(), filename, flags);
 }
-bool
+void
 HBitmap::SaveTo(const char16_t* filename, ImageFormat fmt,
-	ImageDecoderFlags flags) const ynothrow
+	ImageDecoderFlags flags) const
 {
-	return SaveImage(fmt, GetDataPtr(), filename, flags);
+	SaveImage(fmt, GetDataPtr(), filename, flags);
 }
 
 
@@ -420,10 +425,12 @@ private:
 	void* data = {};
 
 public:
+	//! \since build 556
 	MultiBitmapData(::fi_handle, int, ::FI_PluginRec&, ::FreeImageIO& = u8_io,
-		bool = true) ynothrow;
+		bool = true);
+	//! \since build 556
 	MultiBitmapData(ImageFormat, std::FILE&, int = 0, ::FreeImageIO& = u8_io,
-		bool = true) ynothrow;
+		bool = true);
 	//! \since build 461
 	~MultiBitmapData();
 
@@ -436,7 +443,7 @@ public:
 };
 
 MultiBitmapData::MultiBitmapData(::fi_handle h, int flags,
-	::FI_PluginRec& plugin, ::FreeImageIO& io, bool open_for_reading) ynothrow
+	::FI_PluginRec& plugin, ::FreeImageIO& io, bool open_for_reading)
 	: read(open_for_reading), handle(h), load_flags(flags), io_ref(io),
 	plugin_ref(plugin)
 {
@@ -451,7 +458,7 @@ MultiBitmapData::MultiBitmapData(::fi_handle h, int flags,
 	}
 }
 MultiBitmapData::MultiBitmapData(ImageFormat fmt, std::FILE& f, int flags,
-	::FreeImageIO& io, bool open_for_reading) ynothrow
+	::FreeImageIO& io, bool open_for_reading)
 	: MultiBitmapData(::fi_handle(&f), flags,
 	LookupPlugin(::FREE_IMAGE_FORMAT(fmt)), io, open_for_reading)
 {}
@@ -464,7 +471,9 @@ MultiBitmapData::~MultiBitmapData()
 ::FIBITMAP*
 MultiBitmapData::LockPage(size_t index) const ynothrow
 {
-	YAssert(index < page_count, "Invalid page index found.");
+	YAssert(index < page_count, ystdex::sfmt(
+		"Invalid page index %u found, should be less than %u.",
+		unsigned(index), unsigned(page_count)).c_str());
 	if(const auto load = plugin_ref.get().load_proc)
 		return load(&io_ref.get(), handle, int(index), load_flags, data);
 	return {};
@@ -475,25 +484,23 @@ MultiBitmapData::LockPage(size_t index) const ynothrow
 namespace
 {
 
-//! \since build 470
+//! \since build 566
 //@{
 MultiBitmapData*
-LoadImagePages(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags) ynothrow
+LoadImagePages(ImageFormat fmt, std::FILE* fp, ImageDecoderFlags flags)
 {
 	if(fp)
-		TryRet(new MultiBitmapData(fmt, *fp, int(flags)))
-		CatchIgnore(std::exception&)
-	return {};
+		return new MultiBitmapData(fmt, *fp, int(flags));
+	throw std::invalid_argument("Invalid file found on loading image pages.");
 }
 MultiBitmapData*
 LoadImagePages(ImageFormat fmt, const char* filename, ImageDecoderFlags flags)
-	ynothrow
 {
 	return LoadImagePages(fmt, ufopen(filename, "rb"), flags);
 }
 MultiBitmapData*
 LoadImagePages(ImageFormat fmt, const char16_t* filename,
-	ImageDecoderFlags flags) ynothrow
+	ImageDecoderFlags flags)
 {
 	return LoadImagePages(fmt, ufopen(filename, u"rb"), flags);
 }
@@ -502,33 +509,20 @@ LoadImagePages(ImageFormat fmt, const char16_t* filename,
 } // unnamed namespace;
 
 
-bool
-operator==(const HMultiBitmap::iterator& x, const HMultiBitmap::iterator& y)
-	ynothrow
-{
-	return x.p_bitmaps == y.p_bitmaps && (!x.p_bitmaps || x.index == y.index);
-}
-
 HMultiBitmap::HMultiBitmap(const char* filename, ImageDecoderFlags flags)
 	: HMultiBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
 HMultiBitmap::HMultiBitmap(const char* filename, ImageFormat fmt,
 	ImageDecoderFlags flags)
-	: pages(LoadImagePages(fmt, filename, flags))
-{
-	if(!pages)
-		throw LoggedEvent("Loading image pages failed.");
-}
+	: pages(Nonnull(LoadImagePages(fmt, filename, flags)))
+{}
 HMultiBitmap::HMultiBitmap(const char16_t* filename, ImageDecoderFlags flags)
 	: HMultiBitmap(filename, ImageCodec::DetectFormat(filename), flags)
 {}
 HMultiBitmap::HMultiBitmap(const char16_t* filename, ImageFormat fmt,
 	ImageDecoderFlags flags)
-	: pages(LoadImagePages(fmt, filename, flags))
-{
-	if(!pages)
-		throw LoggedEvent("Loading image pages failed.");
-}
+	: pages(Nonnull(LoadImagePages(fmt, filename, flags)))
+{}
 
 size_t
 HMultiBitmap::GetPageCount() const ynothrow
@@ -537,9 +531,102 @@ HMultiBitmap::GetPageCount() const ynothrow
 }
 
 HBitmap
-HMultiBitmap::Lock(size_t i) const
+HMultiBitmap::Lock(size_t i) const ynothrowv
 {
 	return pages ? pages->LockPage(i) : nullptr;
+}
+
+
+ImageTag::ImageTag(const ImageTag& tag) ythrow(BadImageAlloc)
+	: p_tag(::FreeImage_CloneTag(tag.p_tag))
+{
+	if(bool(p_tag) != bool(tag.p_tag))
+		throw BadImageAlloc();
+}
+ImageTag::~ImageTag()
+{
+	::FreeImage_DeleteTag(p_tag);
+}
+
+size_t
+ImageTag::GetCount() const ynothrow
+{
+	return ::FreeImage_GetTagCount(p_tag);
+}
+const char*
+ImageTag::GetDescription() const ynothrow
+{
+	return ::FreeImage_GetTagDescription(p_tag);
+}
+ImageTag::ID
+ImageTag::GetID() const ynothrow
+{
+	return ::FreeImage_GetTagID(p_tag);
+}
+const char*
+ImageTag::GetKey() const ynothrow
+{
+	return ::FreeImage_GetTagKey(p_tag);
+}
+size_t
+ImageTag::GetLength() const ynothrow
+{
+	return ::FreeImage_GetTagLength(p_tag);
+}
+ImageTag::Type
+ImageTag::GetType() const ynothrow
+{
+	return ImageTag::Type(::FreeImage_GetTagType(p_tag));
+}
+const void*
+ImageTag::GetValue() const ynothrow
+{
+	return ::FreeImage_GetTagValue(p_tag);
+}
+
+bool
+ImageTag::SetCount(size_t count) const ynothrow
+{
+	return ::FreeImage_SetTagCount(p_tag, count);
+}
+bool
+ImageTag::SetDescription(const char* desc) const ynothrow
+{
+	return ::FreeImage_SetTagDescription(p_tag, desc);
+}
+bool
+ImageTag::SetID(ImageTag::ID id) const ynothrow
+{
+	return ::FreeImage_SetTagID(p_tag, id);
+}
+bool
+ImageTag::SetKey(const char* key) const ynothrow
+{
+	return ::FreeImage_SetTagKey(p_tag, key);
+}
+bool
+ImageTag::SetLength(size_t len) const ynothrow
+{
+	return ::FreeImage_SetTagLength(p_tag, len);
+}
+bool
+ImageTag::SetType(ImageTag::Type type) const ynothrow
+{
+	return ::FreeImage_SetTagType(p_tag, ::FREE_IMAGE_MDTYPE(type));
+}
+bool
+ImageTag::SetValue(const void* value) const ynothrow
+{
+	return ::FreeImage_SetTagValue(p_tag, value);
+}
+
+ImageTag::DataPtr
+ImageTag::Release() ynothrow
+{
+	const auto ptr(p_tag);
+
+	p_tag = {};
+	return ptr;
 }
 
 

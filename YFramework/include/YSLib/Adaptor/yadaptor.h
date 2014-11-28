@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1617
+\version r1621
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-11-12 04:09 +0800
+	2014-11-24 07:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,7 @@
 #include YFM_YSLib_Adaptor_YNew
 
 // 确保包含标准库必要部分。
-#include <cmath>
+#include <libdefect/cmath.h>
 #include <algorithm> // for std::min, std::max;
 
 //包含 YStandardEx 公用部分。
@@ -106,11 +106,9 @@ using ystdex::nullptr_t;
 /*!
 \brief 数学库函数。
 \since build 301
-\todo 使用 <tt>std::round</tt> g++ 4.7 后的 libstdc++ ，
-	当 !defined _GLIBCXX_USE_C99_MATH_TR1 。
 */
 //@{
-using ::round;
+using std::round;
 //@}
 
 /*!

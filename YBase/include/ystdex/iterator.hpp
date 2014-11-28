@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3692
+\version r3817
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-09-17 03:59 +0800
+	2014-11-27 11:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1363,58 +1363,70 @@ make_prototyped_iterator(_type& proto, size_t i, _fUpdater f)
 \ingroup iterators
 \brief 成员下标迭代器。
 \warning 非虚析构。
-\since build 356
+\since build 556
 
 根据指定类型提供的下标操作枚举其成员的随机访问迭代器。
 */
-template<class _tCon, typename _type>
+template<class _tCon, typename _type, typename _tDifference = ptrdiff_t,
+	typename _tPointer = _type*, typename _tReference = _type&>
 class subscriptive_iterator
 {
 public:
+	//! \since build 356
+	//@{
 	using container_type = _tCon;
 	using iterator_category = std::random_access_iterator_tag;
 	using value_type = _type;
-	using difference_type = ptrdiff_t;
-	using pointer = _type*;
-	using reference = _type&;
+	using difference_type = _tDifference;
+	using pointer = _tPointer;
+	using reference = _tReference;
+	//@}
 
 protected:
-	//! \since build 433
-	_tCon* con_ptr;
-	size_t idx;
+	_tCon* container_ptr = {};
+	size_t index = size_t(-1);
 
 public:
+	/*!
+	\post <tt>!is_undereferenceable(*this)</tt> 。
+	\since build 566
+	*/
+	subscriptive_iterator() = default;
 	//! \since build 522
 	yconstfn
-	subscriptive_iterator(container_type& c, size_t i)
-		: con_ptr(std::addressof(c)), idx(i)
+	subscriptive_iterator(container_type& c, size_t i) ynothrowv
+		: container_ptr(std::addressof(c)), index(i)
 	{}
 
+	//! \since build 356
+	//@{
 	subscriptive_iterator&
-	operator+=(difference_type n)
+	operator+=(difference_type n) ynothrowv
 	{
-		idx += n;
+		index += n;
 		return *this;
 	}
 
 	subscriptive_iterator&
-	operator-=(difference_type n)
+	operator-=(difference_type n) ynothrowv
 	{
-		yassume(!(idx < n));
-		idx -= n;
+		yassume(!(index < n));
+		index -= n;
 		return *this;
 	}
+	//@}
 
 	//! \since build 461
 	//@{
 	reference
-	operator*() const
+	operator*() const ynothrowv
 	{
-		return (*con_ptr)[idx];
+		yassume(!is_undereferenceable(*this));
+		return (*container_ptr)[index];
 	}
 
 	pointer
-	operator->() const
+	operator->() const ynothrowv
 	{
 		return std::addressof(**this);
 	}
@@ -1422,7 +1434,7 @@ public:
 	subscriptive_iterator&
 	operator++() ynothrow
 	{
-		++idx;
+		++index;
 		return *this;
 	}
 	subscriptive_iterator
@@ -1437,7 +1449,7 @@ public:
 	subscriptive_iterator
 	operator--() ynothrow
 	{
-		--idx;
+		--index;
 		return *this;
 	}
 	subscriptive_iterator
@@ -1450,70 +1462,143 @@ public:
 	}
 	//@}
 
+	//! \since build 356
+	//@{
 	reference
-	operator[](difference_type n) const
+	operator[](difference_type n) const ynothrowv
 	{
-		yassume(!(idx + n < 0));
-		return (*con_ptr)[idx + n];
+		yassume(!(index + n < 0));
+		return (*container_ptr)[index + n];
 	}
 
 	subscriptive_iterator
-	operator+(difference_type n) const
+	operator+(difference_type n) const ynothrowv
 	{
-		yassume(!(idx + n < 0));
-		return subscriptive_iterator(*con_ptr, idx + n);
+		yassume(!(index + n < 0));
+		return subscriptive_iterator(*container_ptr, index + n);
 	}
 
 	subscriptive_iterator
-	operator-(difference_type n) const
+	operator-(difference_type n) const ynothrowv
 	{
-		yassume(!(idx + n < 0));
-		return subscriptive_iterator(*con_ptr, idx - n);
+		yassume(!(index + n < 0));
+		return subscriptive_iterator(*container_ptr, index - n);
 	}
+	//@}
 
 	//! \since build 461
-	_tCon*
+	yconstfn _tCon*
 	container() const ynothrow
 	{
-		return con_ptr;
+		return container_ptr;
 	}
 
 	//! \since build 461
 	bool
 	equals(const subscriptive_iterator& i) const ynothrow
 	{
-		return con_ptr == i.con_ptr && idx == i.idx;
+		yassume(container() == i.container());
+		return is_undereferenceable(i) || index == i.index;
 	}
 
-	//! \since build 461
-	size_t
-	index() const ynothrow
+	yconstfn size_t
+	get_index() const ynothrow
 	{
-		return idx;
+		return index;
+	}
+
+	//! \since build 556
+	friend bool
+	is_undereferenceable(const subscriptive_iterator& i) ynothrow
+	{
+		return !i.container_ptr;
+	}
+
+	//! \since build 556
+	bool
+	less(const subscriptive_iterator& i) const ynothrow
+	{
+		yassume(container() == i.container());
+		return index < i.index;
 	}
 };
 
 /*!
 \relates subscriptive_iterator
-\since build 461
+\since build 556
 */
 //@{
 //! \brief 比较成员下标迭代器的相等性。
-template<class _tCon, typename _type>
-bool
-operator==(const subscriptive_iterator<_tCon, _type>& x,
-	const subscriptive_iterator<_tCon, _type>& y) ynothrow
+template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+inline bool
+operator==(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
+	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
+	_tPointer, _tReference>& y) ynothrow
 {
 	return x.equals(y);
 }
 
 //! \brief 比较成员下标迭代器的不等性。
-template<class _tCon, typename _type>
-bool
-operator!=(const subscriptive_iterator<_tCon, _type>& x,
-	const subscriptive_iterator<_tCon, _type>& y) ynothrow
+template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+inline bool
+operator!=(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
+	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
+	_tPointer, _tReference>& y) ynothrow
 {
 	return !(x == y);
+}
+
+template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+inline bool
+operator<(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
+	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
+	_tPointer, _tReference>& y) ynothrow
+{
+	return x.less(y);
+}
+
+template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+inline bool
+operator<=(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
+	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
+	_tPointer, _tReference>& y) ynothrow
+{
+	return !(y < x);
+}
+
+template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+inline bool
+operator>(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
+	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
+	_tPointer, _tReference>& y) ynothrow
+{
+	return y < x;
+}
+
+template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+inline bool
+operator>=(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
+	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
+	_tPointer, _tReference>& y) ynothrow
+{
+	return !(x < y);
+}
+
+template<class _tCon, typename _type, typename _tDifference, typename _tPointer,
+	typename _tReference>
+inline _tDifference
+operator-(const subscriptive_iterator<_tCon, _type, _tDifference, _tPointer,
+	_tReference>& x, const subscriptive_iterator<_tCon, _type, _tDifference,
+	_tPointer, _tReference>& y) ynothrow
+{
+	yconstraint(x.container() == y.container());
+	return x.get_index() - y.get_index();
 }
 //@}
 

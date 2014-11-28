@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r197
+\version r202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2014-11-22 20:17 +0800
+	2014-11-27 13:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,6 +111,10 @@ public:
 */
 class YF_API ImagePages
 {
+public:
+	ImageScale MinScale{.1F};
+	ImageScale MaxScale{16.F};
+
 private:
 	//! \since build 457
 	size_t index = 0;
@@ -124,8 +128,6 @@ private:
 	Size view_size{};
 
 public:
-	ImageScale MinScale = .1F;
-	ImageScale MaxScale = 16.F;
 	//! \since build 443
 	ImageBrush Brush{};
 

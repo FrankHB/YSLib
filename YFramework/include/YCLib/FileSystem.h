@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1570
+\version r1581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-11-15 11:33 +0800
+	2014-11-28 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -530,8 +530,12 @@ public:
 \brief 目录句柄：表示打开的目录和内容迭代状态。
 \since build 411
 */
-class YF_API HDirectory final : private DirectorySession
+class YF_API HDirectory final
+	: private DirectorySession, private ystdex::deref_self<HDirectory>
 {
+	//! \since build 556
+	friend ystdex::deref_self<HDirectory>;
+
 private:
 #if YCL_Win32
 	/*!
@@ -579,14 +583,9 @@ public:
 	/*!
 	\brief 间接操作：取自身引用。
 	\note 使用 ystdex::indirect_input_iterator 和转换函数访问。
-	\since build 412
+	\since build 556
 	*/
-	//@{
-	PDefHOp(HDirectory&, *, ) ynothrow
-		ImplRet(*this)
-	PDefHOp(const HDirectory&, *, ) const ynothrow
-		ImplRet(*this)
-	//@}
+	using ystdex::deref_self<HDirectory>::operator*;
 
 	/*!
 	\brief 迭代：向后遍历。

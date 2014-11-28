@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 # (C) 2014 FrankHB.
-# Script for build YSLib release configurations using SHBuild.
+# Script for build YSLib debug configurations using SHBuild.
 
 set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
@@ -9,14 +9,13 @@ SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 SHBuild_Pushd
 cd ${SHBuild_BaseDir}
 
-unset CXXFLAGS_OPT_DBG
+CXXFLAGS_OPT_DBG="-O0 -g"
 
-echo Building static libraries ...
+echo Building debug static libraries ...
 
-SHBOPT="${SHBOPT_IGN}"
-unset LDFLAGS
+SHBOPT="-xd,.shbuild-debug ${SHBOPT_IGN}"
 . ${SHBuild_ToolDir}/SHBuild-common-options.sh
-LDFLAGS="${LDFLAGS} -Wl,--dn"
+export LDFLAGS="-Wl,--dn"
 
 SHBuild_EchoVar "SHBOPT" "${SHBOPT}"
 SHBuild_EchoVar "CXXFLAGS" "${CXXFLAGS}"
@@ -27,12 +26,12 @@ ${SHBuild} ${SHBOPT} $@ ../../YBase \
 ${SHBuild} ${SHBOPT} $@ ../../YFramework \
 	${CXXFLAGS} -DFREEIMAGE_LIB ${INCLUDES_YFramework} ${INCLUDES_YBase}
 
-echo Finished building static libraries.
+echo Finished building debug static libraries.
 
-echo Building dynamic libraries ...
+echo Building debug dynamic libraries ...
 
-SHBOPT="-xd,.shbuild-dll ${SHBOPT_IGN} -xmode,2"
-unset LDFLAGS
+SHBOPT="-xd,.shbuild-dll-debug ${SHBOPT_IGN} -xmode,2"
+LDFLAGS="-Wl,--dn"
 . ${SHBuild_ToolDir}/SHBuild-common-options.sh
 export LDFLAGS="${LDFLAGS} -shared -Wl,--dll"
 LIBS_YFramework="-L../../YFramework/${SHBuild_YSLib_Platform}/lib \
@@ -43,17 +42,17 @@ SHBuild_EchoVar "CXXFLAGS" "${CXXFLAGS}"
 SHBuild_EchoVar "LDFLAGS" "${LDFLAGS}"
 SHBuild_EchoVar "LIBS_YFramework" "${LIBS_YFramework}"
 
-${SHBuild} ${SHBOPT} $@ ../../YBase \
+${SHBuild} ${SHBOPT} -xn,YBased $@ ../../YBase \
 	${CXXFLAGS} -DYB_BUILD_DLL ${INCLUDES_YBase}
 
-export LIBS="${LIBS_YFramework} -L.shbuild-dll -lYBase \
+export LIBS="${LIBS_YFramework} .shbuild-dll-debug/YBased.dll \
 	-lgdi32 -limm32 -lShlWapi"
 
-${SHBuild} ${SHBOPT} $@ ../../YFramework \
-	${CXXFLAGS} -DYB_BUILD_DLL -DYF_BUILD_DLL \
+${SHBuild} ${SHBOPT} -xn,YFrameworkd $@ ../../YFramework \
+	${CXXFLAGS} -DYB_DLL -DYF_BUILD_DLL \
 	-DFREEIMAGE_LIB ${INCLUDES_YFramework} ${INCLUDES_YBase}
 
-echo Finished building dynamic libraries.
+echo Finished building debug dynamic libraries.
 
 SHBuild_Popd
 echo Done.

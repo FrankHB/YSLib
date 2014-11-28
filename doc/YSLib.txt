@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2579
+\version r2580
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-11-13 00:40 +0800
+	2014-11-28 12:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -209,7 +209,7 @@
 
 @3.2 平台无关的基础对象 YObject ：
 包括值类型对象 ValueObject 类和相关接口。
- ValueObject 是以 ystdex::any([Documentation::YBase @@2.4.6.4]) 为基础实现的动态泛型值类型([Documentation::YFramework @@1.6.3.4]) ，增加了比较相等的泛型操作。
+ ValueObject 是以 ystdex::any([Documentation::YBase @@2.4.6.5]) 为基础实现的动态泛型值类型([Documentation::YFramework @@1.6.3.4]) ，增加了比较相等的泛型操作。
 
 @3.3 对象计数器 YCounter
 

@@ -434,9 +434,11 @@
 		<Unit filename="include/YCLib/COM.h" />
 		<Unit filename="include/YCLib/Consoles.h" />
 		<Unit filename="include/YCLib/MinGW32.h" />
+		<Unit filename="include/YCLib/NLS.h" />
 		<Unit filename="include/YCLib/Win32GUI.h" />
 		<Unit filename="source/YCLib/Consoles.cpp" />
 		<Unit filename="source/YCLib/MinGW32.cpp" />
+		<Unit filename="source/YCLib/NLS.cpp" />
 		<Unit filename="source/YCLib/Win32GUI.cpp" />
 		<Extensions>
 			<code_completion />

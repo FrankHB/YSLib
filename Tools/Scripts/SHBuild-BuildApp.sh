@@ -10,13 +10,24 @@ SHBuild_PrintUsage()
 	echo Usage: "$0" [-cCONF] [SHBOPT ...]
 	printf 'Build application using SHBuild.\n\n'
 	printf 'CONF\n'
-	printf '\tThe configuration name. If equals to "debug",'
+	printf '\tThe configuration name. If begins with "debug",'
 	printf ' or environment variable SHBuild_Debug is set as non null value,'
+	printf ' using debug configuration;'
+	printf ' otherwise using release configuration.'
+	printf ' If ends with "static",'
+	printf ' or environment variable SHBuild_Static is set as non null value,'
 	printf ' using debug configuration;'
 	printf ' otherwise using release configuration.\n'
 	printf '\tThe output directory is determined as ".CONF".\n\n'
 	printf 'SHBOPT ...\n'
 	printf '\tThe options remained to pass to SHBuild.\n\n'
+	printf 'There are several other environment variables to control the build.'
+	printf '\n\n'
+	printf 'SHBuild_NoAdjustSubsystem\n'
+	printf '\tIf set to non null, no adjustment for linker arguments would be'
+	printf ' performed for MinGW. Otherwise, "-mwindows" would be added in '
+	printf ' linker command line in release modes.\n'
+	printf '\n'
 	exit
 }
 
@@ -32,18 +43,23 @@ fi
 if [ x"${SHBuild_Conf}" == x ]; then
 	SHBuild_Conf=shbuild
 fi
-if [ x${SHBuild_Conf} == xdebug ]; then
+if [[ x"${SHBuild_Conf}" =~ xdebug.* ]]; then
 	echo Debug mode turned on by configuration.
 	SHBuild_Debug=${SHBuild_Conf}
 fi
+if [[ x"${SHBuild_Conf}" =~ x.*static ]]; then
+	echo Static mode turned on by configuration.
+	SHBuild_Static=${SHBuild_Conf}
+fi
 export SHBuild_Debug
+export SHBuild_Static
 
 SHBOPT="-xd,.${SHBuild_Conf} -xmode,2 $@"
-source ${SHBuild_Bin}/SHBuild-common.sh
+. ${SHBuild_Bin}/SHBuild-common.sh
 if hash gcc-ar > /dev/null; then
 	export AR=gcc-ar
 fi
-source ${SHBuild_Bin}/SHBuild-common-toolchain.sh
+. ${SHBuild_Bin}/SHBuild-common-toolchain.sh
 if [ x${SHBuild_Debug} != x ]; then
 	echo Use debug configuration ${SHBuild_Conf}.
 	CXXFLAGS_OPT_DBG="-O0 -g"
@@ -59,12 +75,26 @@ else
 	unset CXXFLAGS
 	unset LDFLAGS
 	source ${SHBuild_Bin}/SHBuild-common-options.sh
-	export LDFLAGS="${LDFLAGS} -mwindows"
+	if [ x"${SHBuild_NoAdjustSubsystem}" == x ]; then
+		LDFLAGS="${LDFLAGS} -mwindows"
+		echo Added \"-mwindows\" to LDFLAGS.
+	fi
 	export SHBuild_YSLib_LibNames='-lYFramework -lYBase'
 fi
-export SHBuild_YSLib_Flags="${CXXFLAGS} -DYF_DLL -DYB_DLL \
-	-I${SHBuild_Bin}/../include"
-export LIBS="-L`SHBuild_2w "${SHBuild_Bin}/../lib"` ${SHBuild_YSLib_LibNames}"
+export LDFLAGS
+if [ x"${SHBuild_Static}" == x ]; then
+	export SHBuild_YSLib_Flags="${CXXFLAGS} -DYF_DLL -DYB_DLL \
+		-I${SHBuild_Bin}/../include"
+	export LIBS="-L`SHBuild_2w "${SHBuild_Bin}/../lib"` \
+		${SHBuild_YSLib_LibNames}"
+else
+	export SHBuild_YSLib_Flags="${CXXFLAGS} \
+		-I${SHBuild_Bin}/../include"
+	export SHBuild_YSLib_LibNames="${SHBuild_YSLib_LibNames} \
+		-lFreeImage -lfreetype -L/usr/lib -lgdi32 -limm32 -lShlwapi"
+	export LIBS="-L`SHBuild_2w "${SHBuild_Bin}/../lib"` -Wl,-dn \
+		${SHBuild_YSLib_LibNames}"
+fi
 
 SHBuild_BuildApp()
 {

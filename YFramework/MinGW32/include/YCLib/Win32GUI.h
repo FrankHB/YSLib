@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r547
+\version r548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-11-04 21:37 +0800
+	2014-11-27 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -457,7 +457,7 @@ public:
 	*/
 	Windows::MessageMap MessageMap;
 
-	//! \throw LoggedEvent 窗口类名不是 WindowClassName 。
+	//! \throw GeneralEvent 窗口类名不是 WindowClassName 。
 	HostWindow(NativeWindowHandle);
 	DefDelMoveCtor(HostWindow)
 	virtual

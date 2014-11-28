@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r317
+\version r318
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-11-14 22:22 +0800
+	2014-11-28 12:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,6 +37,7 @@
 #include YFM_YSLib_UI_YRenderer
 #include YFM_YSLib_UI_YWidget // for UI::GetSizeOf;
 #include YFM_Helper_ScreenBuffer // for ScreenRegionBuffer;
+#include <ystdex/exception.h> // for ystdex::unimplemented;
 
 namespace YSLib
 {

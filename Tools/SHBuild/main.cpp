@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2632
+\version r2647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-10-27 09:11 +0800
+	2014-11-25 02:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,6 +125,8 @@ set<string> IgnoredDirs;
 string OutputDir;
 size_t MaxJobs(0);
 size_t Mode(1);
+//! \since build 556
+string TargetName;
 const struct Option
 {
 	const char *prefix, *name = {}, *option_arg;
@@ -217,7 +219,13 @@ const struct Option
 		" Other value is reserved and to be ignored."
 		" Default value is '1'.",
 		"If this option occurs more than once, only the last one is"
-		" effective."}}
+		" effective."}},
+	{"-xn,", "Target name", "OBJ_NAME", [](string&& val){
+		PrintInfo("Target name is switched to '" + val
+			+ "'.");
+		TargetName = std::move(val);
+	}, {"The base name of final target."
+		" Default value is same to top level directory name.", OPT_des_last}},
 };
 
 const array<const char*, 3> DeEnvs[]{
@@ -384,6 +392,8 @@ public:
 	map<string, string> Envs;
 	//! \since build 546
 	size_t Mode = 1;
+	//! \since build 556
+	string TargetName{};
 
 	BuildContext(size_t n)
 		: jobs(n)
@@ -589,7 +599,8 @@ BuildContext::Build()
 		flags += ' ' + opt;
 	});
 
-	const auto opth(Path(OutputDir) / ipath.back());
+	const auto opth(Path(OutputDir)
+		/ (TargetName.empty() ? ipath.back() : String(TargetName)));
 	const auto& ofiles(ActionContext([this](const Key& name){
 		const shared_ptr<Rule> p_rule(new Rule{*this, name});
 
@@ -786,6 +797,8 @@ main(int argc, char* argv[])
 				ctx.OutputDir = std::move(OutputDir);
 			yunseq(ctx.IgnoredDirs = std::move(IgnoredDirs),
 				ctx.Options = std::move(args), ctx.Mode = Mode);
+			if(!TargetName.empty())
+				ctx.TargetName = std::move(TargetName);
 			PrintInfo("OutputDir = " + ctx.OutputDir);
 			ctx.Build();
 		}

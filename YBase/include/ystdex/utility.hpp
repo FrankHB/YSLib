@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r1974
+\version r2101
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-11-12 00:35 +0800
+	2014-11-28 12:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,145 +35,6 @@
 
 namespace ystdex
 {
-
-//! \since build 475
-//@{
-//! \brief 异常：不支持的操作。
-class YB_API unsupported : public std::logic_error
-{
-public:
-	unsupported()
-		: logic_error("Unsupported operation found.")
-	{}
-	//! \since build 553
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<unsupported, _type>)>
-	unsupported(_type&& arg)
-		: logic_error(yforward(arg))
-	{}
-};
-
-
-//! \brief 异常：未实现的操作。
-class YB_API unimplemented : public unsupported
-{
-public:
-	unimplemented()
-		: unsupported("Unimplemented operation found.")
-	{}
-	//! \since build 553
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<unimplemented, _type>)>
-	unimplemented(_type&& arg)
-		: unsupported(yforward(arg))
-	{}
-};
-//@}
-
-
-/*!
-\brief 不可复制对象：禁止派生类调用默认原型的复制构造函数和复制赋值操作符。
-\warning 非虚析构。
-\since build 373
-*/
-class noncopyable
-{
-protected:
-	/*!
-	\brief \c protected 构造：默认实现。
-	\note 保护非多态类。
-	*/
-	yconstfn
-	noncopyable() = default;
-	//! \brief \c protected 析构：默认实现。
-	~noncopyable() = default;
-
-public:
-	//! \brief 禁止复制构造。
-	yconstfn
-	noncopyable(const noncopyable&) = delete;
-	/*!
-	\brief 允许转移构造。
-	\since build 551
-	*/
-	yconstfn
-	noncopyable(noncopyable&&) = default;
-
-	//! \brief 禁止复制赋值。
-	noncopyable&
-	operator=(const noncopyable&) = delete;
-	/*!
-	\brief 允许转移赋值。
-	\since build 551
-	*/
-	noncopyable&
-	operator=(noncopyable&&) = default;
-};
-
-
-/*
-\brief 不可转移对象：禁止继承此类的对象调用默认原型的转移构造函数和转移赋值操作符。
-\warning 非虚析构。
-\since build 373
-*/
-class nonmovable
-{
-protected:
-	/*!
-	\brief \c protected 构造：默认实现。
-	\note 保护非多态类。
-	*/
-	yconstfn
-	nonmovable() = default;
-	/*!
-	\brief \c protected 析构：默认实现。
-	*/
-	~nonmovable() = default;
-
-public:
-	//! \since build 551
-	//@{
-	//! \brief 允许复制构造。
-	yconstfn
-	nonmovable(const nonmovable&) = default;
-	//! \brief 禁止转移构造。
-	yconstfn
-	nonmovable(nonmovable&&) = delete;
-
-	//! \brief 允许复制赋值。
-	nonmovable&
-	operator=(const nonmovable&) = default;
-	//! \brief 禁止转移赋值。
-	nonmovable&
-	operator=(nonmovable&&) = delete;
-	//@}
-};
-
-
-/*!
-\brief 可动态复制的抽象基类。
-\since build 475
-*/
-class YB_API cloneable
-{
-public:
-#if YB_IMPL_MSCPP
-	//! \since build 503 as workaround for Visual C++ 2013
-	cloneable() = default;
-	//! \since build 503 as workaround for Visual C++ 2013
-	cloneable(const cloneable&) = default;
-	//! \since build 483 as workaround for Visual C++ 2013
-	cloneable(cloneable&&)
-	{}
-#endif
-	virtual cloneable*
-	clone() const = 0;
-
-	virtual
-	~cloneable()
-	{}
-};
-
 
 /*
 \ingroup helper_functions
@@ -569,7 +430,7 @@ namespace details
 
 //! \since build 525
 template<typename _type, typename _tRef>
-struct swap_guard_impl : private noncopyable
+struct swap_guard_impl
 {
 	using value_type = _type;
 	using reference_type = _tRef;
@@ -580,6 +441,9 @@ struct swap_guard_impl : private noncopyable
 		value_type value;
 		byte data[sizeof(value_type)];
 	};
+
+	//! \since build 556
+	swap_guard_impl(const swap_guard_impl&) = delete;
 
 	template<typename... _tParams>
 	void
