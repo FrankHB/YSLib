@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r871
+\version r909
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-11-08 19:29 +0800
+	2014-11-30 16:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -55,16 +55,59 @@ struct string_traits
 };
 
 
+//! \since build 557
+namespace details
+{
+
+template<typename _type>
+struct is_string_class_test
+{
+	template<typename _tParam>
+	static enable_if_t<is_object<decay_t<
+		decltype(std::declval<_tParam>()[0])>>::value, true_type>
+	test(_tParam*);
+	template<typename _tParam>
+	static false_type
+	test(...);
+
+	static yconstexpr bool value = decltype(test<_type>(nullptr))::value;
+};
+
+} // unnamed namespace;
+
+
+/*!
+\ingroup metafunctions
+\brief 判断指定类型是否为字符串类类型。
+\since build 557
+*/
+//@{
+template<typename _type>
+struct is_string_class : integral_constant<bool, std::is_class<_type>::value
+	&& details::is_string_class_test<_type>::value>
+{};
+
+//! \note 排除不完整类型的指针。
+template<typename _type>
+struct is_string_class<_type&> : false_type
+{};
+
+//! \note 排除不完整类型的引用。
+template<typename _type>
+struct is_string_class<_type*> : false_type
+{};
+//@}
+
+
 /*!
 \ingroup metafunctions
 \brief 选择字符串类类型的特定重载避免和其它非字符串类型冲突。
 \sa enable_if_t
 \since build 483
 */
-template<typename _tParam,
-	typename = yimpl(decltype(std::declval<_tParam>()[0]))>
+template<typename _tParam>
 using enable_for_string_class_t
-	= enable_if_t<is_class<decay_t<_tParam>>::value>;
+	= enable_if_t<is_string_class<decay_t<_tParam>>::value>;
 
 
 /*!

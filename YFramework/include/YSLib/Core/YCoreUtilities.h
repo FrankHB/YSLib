@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2132
+\version r2138
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-11-27 15:35 +0800
+	2014-11-30 21:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,16 +354,19 @@ RestrictLessEqual(_type& a, _type& b) ynothrow
 
 
 /*!
-\since build 502
+\since build 557
 \throw LoggedEvent 范围检查失败。
 */
 //@{
 //! \brief 检查标量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckScalar(_type val, const std::string& name, LoggedEvent::LevelType lv = Err)
+CheckScalar(_type val, const std::string& name = "",
+	LoggedEvent::LevelType lv = Err)
 {
-	if(YB_UNLIKELY(val > std::numeric_limits<_tDst>::max()))
+	using common_t = ystdex::common_type_t<_tDst, _type>;
+
+	if(YB_UNLIKELY(common_t(val) > common_t(std::numeric_limits<_tDst>::max())))
 		throw LoggedEvent(name + " value out of range.", lv);
 	return _tDst(val);
 }
@@ -371,7 +374,7 @@ CheckScalar(_type val, const std::string& name, LoggedEvent::LevelType lv = Err)
 //! \brief 检查非负标量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckNonnegativeScalar(_type val, const std::string& name,
+CheckNonnegativeScalar(_type val, const std::string& name = "",
 	LoggedEvent::LevelType lv = Err)
 {
 	if(val < 0)
@@ -383,7 +386,7 @@ CheckNonnegativeScalar(_type val, const std::string& name,
 //! \brief 检查正标量数值在指定类型的范围内。
 template<typename _tDst, typename _type>
 inline _tDst
-CheckPositiveScalar(_type val, const std::string& name,
+CheckPositiveScalar(_type val, const std::string& name = "",
 	LoggedEvent::LevelType lv = Err)
 {
 	if(!(0 < val))

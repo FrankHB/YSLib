@@ -46,11 +46,19 @@ fi
 	${CXXFLAGS_IMPL_COMMON} \
 	-pedantic-errors \
 	"}
-: ${CXXFLAGS_OPT_DBG:=" \
-	-O3 -DNDEBUG \
-	${CXXFLAGS_IMPL_OPT} \
-	-fomit-frame-pointer \
-	"}
+if [ x"$CXXFLAGS_OPT_UseAssert" == x ]; then
+	: ${CXXFLAGS_OPT_DBG:=" \
+		-O3 -DNDEBUG \
+		${CXXFLAGS_IMPL_OPT} \
+		-fomit-frame-pointer \
+		"}
+else
+	: ${CXXFLAGS_OPT_DBG:=" \
+		-O3 \
+		${CXXFLAGS_IMPL_OPT} \
+		-fomit-frame-pointer \
+		"}
+fi
 : ${CXXFLAGS:="${CXXFLAGS_COMMON} ${CXXFLAGS_OPT_DBG}"}
 
 : ${LDFLAGS:="-s -Wl,--gc-sections"}

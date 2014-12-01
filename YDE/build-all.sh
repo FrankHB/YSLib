@@ -4,7 +4,7 @@
 
 set -e
 # NOTE: SHBuild-BuildApp.sh should be in $PATH.
-source SHBuild-BuildApp.sh
+. SHBuild-BuildApp.sh
 
 : ${SHBuild_ThisDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 

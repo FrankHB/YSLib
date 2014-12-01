@@ -11,13 +11,13 @@
 /*!	\file Animation.h
 \ingroup UI
 \brief 样式无关的动画实现。
-\version r413
+\version r422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-10-06 22:11:33 +0800
 \par 修改时间:
-	2014-11-12 04:10 +0800
+	2014-12-01 09:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -92,7 +92,10 @@ private:
 
 public:
 	DefDeCtor(GAnimationSession)
-	//! \brief 使用 ADL 调用 ResetState 函数复位连接对象状态以确保安全。
+	/*!
+	\brief 使用 ADL 调用 ResetState 函数复位连接对象状态以确保安全。
+	\pre 调用的 ResetState 保证无异常抛出。
+	*/
 	~GAnimationSession()
 	{
 		if(conn)
@@ -161,8 +164,11 @@ public:
 	DefaultInvalidateControl(IWidget&);
 };
 
-//! \relates InvalidationUpdater
-inline PDefH(void, ResetState, InvalidationUpdater& updater)
+/*!
+\relates InvalidationUpdater
+\since build 557
+*/
+inline PDefH(void, ResetState, InvalidationUpdater& updater) ynothrow
 	ImplExpr(updater.WidgetPtr = {})
 //@}
 

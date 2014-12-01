@@ -36,10 +36,11 @@ INCLUDES=" \
 	-I../../3rdparty/include -I../../YBase/include \
 	"
 
-# Coordinated with build 546.
+# Coordinated with build 557.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
+	../../YBase/source/ystdex/base.cpp \
 	../../YBase/source/ystdex/any.cpp \
 	../../YBase/source/ystdex/concurrency.cpp \
 	../../YFramework/source/CHRLib/chrmap.cpp \

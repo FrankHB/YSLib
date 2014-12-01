@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1402
+\version r1406
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2014-10-15 09:18 +0800
+	2014-11-29 11:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,6 +62,10 @@ private:
 	LexicalAnalyzer lexer;
 
 public:
+	/*!
+	\throw GeneralEvent 文件无效。
+	\throw LoggedEvent 文件内容读取失败。
+	*/
 	Session(const TextFile&, CharParser = DefaultParseByte);
 	template<typename _tIn>
 	Session(_tIn first, _tIn last, CharParser parse = DefaultParseByte)

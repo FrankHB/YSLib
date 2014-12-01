@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r160
+\version r164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2014-11-28 12:21 +0800
+	2014-11-29 19:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,13 +112,11 @@ public:
 	unsupported(_type&& arg)
 		: logic_error(yforward(arg))
 	{}
-
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 556
 	*/
-	virtual
-	~unsupported();
+	~unsupported() override;
 };
 
 
@@ -135,13 +133,11 @@ public:
 	unimplemented(_type&& arg)
 		: unsupported(yforward(arg))
 	{}
-
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 556
 	*/
-	virtual
-	~unimplemented();
+	~unimplemented() override;
 };
 //@}
 
