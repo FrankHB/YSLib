@@ -11,13 +11,13 @@
 /*!	\file concurrency.h
 \ingroup YStandardEx
 \brief 并发操作。
-\version r355
+\version r361
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 18:57:13 +0800
 \par 修改时间:
-	2014-11-07 18:47 +0800
+	2014-11-30 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -158,6 +158,11 @@ public:
 	}
 
 	/*!
+	\brief 等待操作进入队列。
+	\param f 准备进入队列的操作
+	\param args 进入队列操作时的参数。
+	\param wait 等待操作。
+	\pre wait 调用后满足条件变量后置条件；断言：持有锁。
 	\warning 需要确保未被停止（未进入析构），否则不保证任务被运行。
 	\warning 使用非递归锁，等待时不能再次锁定。
 	\since build 538
@@ -174,6 +179,7 @@ public:
 			std::unique_lock<std::mutex> lck(queue_mutex);
 
 			wait(lck);
+			yassume(lck.owns_lock());
 			tasks.push([task]{
 				(*task)();
 			});

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r7271
+\version r7398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-11-28 13:49 +0800
+	2014-12-01 10:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,133 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			* DLB "missing update header name" @ $since b556
+				$= ('<ystdex/exception.hpp>' -> '<ystdex/exception.h>'),
+			* "undefined behavior when .d file not exist"  $since b546,
+				// Actually crashed on Windows XP when assertion disabled, but \
+					not Windows 7 or above.
+		),
+		* $build "missing %ystdex/exception.cpp" @ "%LIBS"
+			@ "%SHBuild-bootstrap.sh" $since b556,
+		/ %Scripts $=
+		(
+			+ "support checking for %(SHBuild_NoStatic, SHBuild_NoDynamic) to \
+				skip static or dynamic libraries building"
+				@ "%(SHBuild-YSLib.sh, SHBuild-YSLib-debug.sh)",
+			+ "variable %CXXFLAGS_OPT_UseAssert to allow omitting '-DNDEBUG' \
+				when %CXXFLAGS_OPT_DBG is empty" @ "%SHBuild-common-options.sh";
+				// To support release with assertion builds.
+			+ "'CXXFLAGS_OPT_UseAssert=true' before configure %CXXFLAGS"
+				@ "%SHBuild-build.sh"
+				// Stage 1 %SHBuild should be not so optimized for robustness.
+		),
+		/ "%install-sysroot.sh" $=
+		(
+			+ "variable %SHBuild_UseRelease with default value 'true'",
+			/ "exported %(SHBuild_NoStatic, SHBuild_NoDynamic)"
+				@ "configuration stage",
+			+ "optional building and installing libraries controlled by \
+				variables %(SHBuild_NoStatic, SHBuild_NoDynamic)",
+			+ "optional building and installing release libraries controlled \
+				by variable %SHBuild_UseRelease",
+			+ "skipping installing 3rd party libraries controlled by variable \
+				%SHBuild_No3rd"
+		)
+	),
+	/ %YFamework $=
+	(
+		/ %YSLib $=
+		(
+			/ @ "function %EnsureDirectory" @ %Service.FileSystem $=
+			(
+				+ "logging just before throwing when making directory failed",
+				- "assertion for post condition"
+					// Since the operations are actually not guaranteed to be \
+						synchronized.
+			),
+			/ %Adaptor.Image $=
+			(
+				/ @ "class %ImageTag" $=
+				(
+					+ "optional ownership",
+					+ "2 constructor function; constructor template with \
+						parameter of bitmap, model and tag name",
+					/ "enum %ImageTag::Model"
+						-> "enum class %Drawing::ImageMetadataModel",
+					/ "function %GetValue" => "%GetValuePtr",
+					+ "function template %TryGetValue",
+					+ "function %GetDataPtr"
+				),
+				(
+				+ "classes %ImageMetadataFindData; HImageMetadata";
+				+ "alias declaration %HImageMetadataIterator"
+				),
+				+ "function %to_string for %ImageTag",
+				+ "functions %(GetFrameTimeOf, GetLogicalSizeOf) for %HBitmap"
+				* $comp $dev "constructor with %DataPtr unusable"
+					@ "class %HImage" $since b483 $dep_from
+					%YBase.YStandardEx.String
+			),
+			/ %Core.YCoreUtilities $=
+			(
+				+ "empty string as default argument for 2nd parameter"
+					@ "function templates %(CheckScalar, \
+					CheckNonnegativeScalar, CheckPositiveScalar)",
+				/ $dev "implemented comparison" @ "function template \
+					%CheckScalar" ^ "cast by %ystdex::common_type_t"
+					// To eliminate warning: [-Wsign-compare] when one of \
+						template argument is signed integer type.
+			),
+			/ @ "class %ImagePages" @ %Service.ImageProcessing $=
+			(
+				(
+				$dep_from %Adaptor.Image;
+				/ "base size stored for nonempty sequence" ^ "%GetLogicalSizeOf"
+					~ "first frame",
+				/ "frame time sequence stored" ^ "%GetFrameTimeOf";
+				+ "function %GetFrameTime"
+				),
+				/ "function %GetPageIndex" => "%GetIndex",
+				/ "function %GetPagesNum" => "%GetCount"
+			),
+			+ 'ynothrow' @ "function %ResetState" @ %UI.Animation
+		)
+		* "crash for invalid file" @ "constructor %Session" @ %NPL.SContext
+			$since b335
+			// It would cause assertion failed on debug builds.
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ DLD ^ 'override' ~ 'virtual'
+			@ "destructors %(unsupported, unimplemented)" @ %Exception,
+		/ @ "class %thread_pool" @ %Concurrency $=
+		(
+			/ @ "function template %wait_to_enqueue" $=
+			(
+				/ $doc "explicitly stated precondition",
+				+ "assertion for postcondition after %wait called"
+			),
+			+ "assertion for no %std::future_error thrown out of task"
+				@ "working thread"
+		),
+		/ %String $=
+		(
+			+ "metafunction %is_string_class";
+			* "argument of pointer to incomplete class caused ill-formed"
+				@ "%enable_for_string_class_t" @ $since b483
+				^ "%is_string_class"
+		)
+	),
+	+ "frame time support for animated GIF" @ %YDE.ImageBrowser.ImageControl
+		$dep_from %YFramework.Service.ImageProcessing
+),
+
+b556
 (
 	/ %YBase $=
 	(
@@ -214,7 +341,7 @@ $now
 	(
 		/ %Scripts $=
 		(
-			* $comp $build "missing %MemoryMapping.cpp" @ "%LIBS"
+			* $comp $build "missing %YCLib/MemoryMapping.cpp" @ "%LIBS"
 				@ "%SHBuild-bootstrap.sh" $since b552 $dep_from
 				%YFramework.'YCLib_(MinGW32)',
 				// Otherwise linking failed. It is needed as a side effect of \

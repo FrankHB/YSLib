@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r898
+\version r916
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2014-11-27 12:40 +0800
+	2014-12-01 10:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,22 +85,32 @@ ImagePanel::Load(const std::wstring& path)
 {
 	session_ptr.reset(new Session(forward_as_tuple(ImagePages(reinterpret_cast<
 		const ucs2_t*>(&path[0]), min_panel_size, max_panel_size),
-		GAnimationSession<InvalidationUpdater>(),
-		Timers::Timer(std::chrono::milliseconds(1000/12)))));
+		GAnimationSession<InvalidationUpdater>(), Timers::Timer())));
 	auto& pages(GetPagesRef());
 
 	SetSizeOf(*this, pages.GetViewSize());
 	Invalidate(*this);
 
-	const auto n(pages.GetPagesNum());
+	YTraceDe(Notice, "Loaded page count = %u.", unsigned(pages.GetPagesNum()));
+	if(pages.IsAnimated())
+	{
+		const auto refresh_frame([this]{
+			const auto d(GetPagesRef().GetFrameTime());
 
-	YTraceDe(Notice, "Loaded page count = %u.", unsigned(n));
-	if(n > 1)
-		UI::SetupByTimer(get<1>(*session_ptr), *this, get<2>(*session_ptr),
-			[this]{
-			if(GetPagesRef().SwitchPageDiff(1))
-				Invalidate(*this);
+			YTraceDe(Informative, "Set frame time = %s ms.",
+				std::to_string(d.count()).c_str());
+			get<2>(*session_ptr).Interval = d;
 		});
+
+		refresh_frame();
+		UI::SetupByTimer(get<1>(*session_ptr), *this, get<2>(*session_ptr), [=]{
+			if(GetPagesRef().SwitchPageDiff(1))
+			{
+				refresh_frame();
+				Invalidate(*this);
+			}
+		});
+	}
 }
 
 void

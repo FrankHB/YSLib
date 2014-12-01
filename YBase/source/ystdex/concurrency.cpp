@@ -11,13 +11,13 @@
 /*!	\file concurrency.cpp
 \ingroup YStandardEx
 \brief 并发操作。
-\version r138
+\version r147
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 19:09:18 +0800
 \par 修改时间:
-	2014-11-07 18:51 +0800
+	2014-11-30 10:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ thread_pool::thread_pool(size_t n, std::function<void()> on_enter,
 				});
 				if(tasks.empty())
 				{
-					// NOTE: Do nothing for spurious wake up.
+					// NOTE: Do nothing for spurious wakeup.
 					if(stopped)
 						break;
 				}
@@ -71,7 +71,14 @@ thread_pool::thread_pool(size_t n, std::function<void()> on_enter,
 
 					tasks.pop();
 					lck.unlock();
-					task();
+					try
+					{
+						task();
+					}
+					catch(std::future_error&)
+					{
+						yassume(false);
+					}
 				}
 			}
 			if(on_exit)

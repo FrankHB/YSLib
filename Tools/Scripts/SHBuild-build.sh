@@ -5,6 +5,7 @@
 set -e
 : ${SHBuild_ToolDir:=$(cd `dirname "$0"`; pwd)}
 : ${SHBuild_BaseDir:="${SHBuild_ToolDir}/../SHBuild"}
+CXXFLAGS_OPT_UseAssert=true
 . ${SHBuild_ToolDir}/SHBuild-bootstrap.sh
 
 SHBuild_Pushd

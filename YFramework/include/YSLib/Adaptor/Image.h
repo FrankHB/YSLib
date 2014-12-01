@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1068
+\version r1272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-11-28 13:28 +0800
+	2014-11-30 23:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,6 +129,29 @@ enum class SamplingFilter
 	BSpline = 3,
 	CatmullRom = 4,
 	Lanczos3 = 5
+};
+
+
+/*!
+\brief 图像元数据模型标识。
+\note 数值对应 FreeImage 实现的 \c ::FREE_IMAGE_MDMODEL 类型。
+\since build 557
+*/
+enum class ImageMetadataModel
+{
+	NoData = -1,
+	Comments = 0,
+	EXIF_Main = 1,
+	EXIF_EXIF = 2,
+	EXIF_GPS = 3,
+	EXIF_MakerNote = 4,
+	EXIF_Interop = 5,
+	IPTC = 6,
+	XMP = 7,
+	GeoTIFF = 8,
+	Animation = 9,
+	Custom = 10,
+	EXIF_RAW = 11
 };
 
 
@@ -467,11 +490,33 @@ public:
 		ImplExpr(std::swap(p_bitmap, pixmap.p_bitmap))
 };
 
+//! \relates HBitmap
+//@{
+
 /*!
-\relates HBitmap
-\since build 430
+\brief 取图像延时。
+\return CheckNonnegativeScalar 检查后的元数据指定的被显示为帧的图像的时间间隔。
+\exception GeneralEvent 指定数据不存在。
+\exception LoggedEvent 数据小于 0 。
+\since build 557
 */
+YF_API std::chrono::milliseconds
+GetFrameTimeOf(const HBitmap&);
+
+/*!
+\brief 取图像逻辑大小。
+\return CheckPositiveScalar 检查后的元数据指定分量的大小，保证分量大于 0 。
+\exception GenerlError 元数据读取失败或不完整。
+\exception LoggedEvent 大小分量溢出。
+\note 当前只支持 ImageMetadataModel::Animation 模型。
+\since build 557
+*/
+YF_API Size
+GetLogicalSizeOf(const HBitmap&);
+
+//! \since build 430
 inline DefSwap(ynothrow, HBitmap)
+//@}
 
 
 //! \since build 456
@@ -594,6 +639,8 @@ inline DefSwap(ynothrow, HMultiBitmap)
 
 /*!
 \brief 图像元数据标签。
+\note 若不具有所有权则依赖特定的位图。
+\warning 被依赖的位图在标签生存期内不存在则程序行为未定义。
 \since build 556
 */
 class YF_API ImageTag final
@@ -626,41 +673,54 @@ public:
 		SLong8 = 17,
 		IFD8 = 18
 	};
-	/*!
-	\brief 元数据模型标识。
-	\note 数值对应 FreeImage 实现的 \c ::FREE_IMAGE_MDMODEL 类型。
-	*/
-	enum Model
-	{
-		NoData = -1,
-		Comments = 0,
-		EXIF_Main = 1,
-		EXIF_EXIF = 2,
-		EXIF_GPS = 3,
-		EXIF_MakerNote = 4,
-		EXIF_Interop = 5,
-		IPTC = 6,
-		XMP = 7,
-		GeoTIFF = 8,
-		Animation = 9,
-		Custom = 10,
-		EXIF_RAW = 11
-	};
 
 private:
 	DataPtr p_tag = {};
+	//! \since build 556
+	bool owns = {};
 
 public:
-	//! \post <tt>!*this</tt> 。
+	/*!
+	\post <tt>!*this</tt> 。
+	\post <tt>!owns</tt> 。
+	*/
 	DefDeCtor(ImageTag)
 	/*
 	\brief 构造：使用现有数据指针。
-	\note 取得所有权。
+	\param o 所有权标签，若为 true 取得所有权。
+	\post <tt>owns == o</tt> 。
+	\since build 557
 	*/
-	ImageTag(DataPtr ptr) ynothrow
-		: p_tag(ptr)
+	ImageTag(DataPtr ptr, bool o = true) ynothrow
+		: p_tag(ptr), owns(o)
 	{}
+	/*!
+	\pre 断言：指针参数非空。
+	\post <tt>!owns</tt> 。
+	\throw GeneralEvent 没有找到指定的标签。
+	\throw std::invalid_argument 位图为空。
+	\since build 557
+	*/
+	//@{
+	//! \brief 构造：使用依赖的位图指针、模型和元数据名称。
+	ImageTag(HBitmap::DataPtr, ImageMetadataModel, const char*);
+	//! \brief 构造：使用依赖的位图、模型和元数据名称。
+	ImageTag(const HBitmap&, ImageMetadataModel, const char*);
+	template<typename _tBitmap, class _tString,
+		yimpl(typename = ystdex::enable_for_string_class_t<_tString>)>
+	ImageTag(const _tBitmap& bmp, ImageMetadataModel model, _tString& name)
+		: ImageTag(bmp, model, &name[0])
+	{}
+	//@}
+	//! \post <tt>owns</tt> 。
 	ImageTag(const ImageTag&) ythrow(BadImageAlloc);
+	/*!
+	\post <tt>!owns</tt> 。
+	\since build 557
+	*/
+	ImageTag(const ImageTag& tag, std::false_type) ynothrow
+		: ImageTag(tag.p_tag, {})
+	{}
 	~ImageTag();
 
 	PDefHOp(bool, !, ) const ynothrow
@@ -670,6 +730,8 @@ public:
 
 	size_t
 	GetCount() const ynothrow;
+	//! \since build 557
+	DefGetter(const ynothrow, DataPtr, DataPtr, p_tag)
 	const char*
 	GetDescription() const ynothrow;
 	ID
@@ -680,8 +742,9 @@ public:
 	GetLength() const ynothrow;
 	Type
 	GetType() const ynothrow;
+	//! \since build 557
 	const void*
-	GetValue() const ynothrow;
+	GetValuePtr() const ynothrow;
 
 	bool
 	SetCount(size_t) const ynothrow;
@@ -704,7 +767,132 @@ public:
 	*/
 	DataPtr
 	Release() ynothrow;
+
+	/*!
+	\brief 取指定类型的标签值。
+	\warning 不检查类型。
+	\since build 557
+	*/
+	template<typename _type>
+	const _type&
+	TryGetValue() const ythrow(GeneralEvent)
+	{
+		if(const auto p = GetValuePtr())
+			return *static_cast<const _type*>(p);
+		throw GeneralEvent("Null tag value found.");
+	}
 };
+
+/*!
+\brief 取按指定图像元数据模型解释的标签值字符串表示。
+\note 线程安全：仅在不调用 \c ::FreeImage_TagToString 时保证。
+\relates ImageTag
+\since build 557
+*/
+YF_API string
+to_string(const ImageTag&, ImageMetadataModel);
+
+
+/*!
+\brief 图像元数据。
+\warning 若参与构造的图像被释放则继续操作的行为未定义。
+\warning 非虚析构。
+\since build 557
+*/
+class YF_API ImageMetadataFindData final : private noncopyable
+{
+public:
+	using DataPtr = ::FIMETADATA*;
+
+	/*!
+	\brief 当前生效的模型。
+
+	当前状态为空时开始第一次迭代后决定使用的模型。
+	*/
+	ImageMetadataModel CurrentModel;
+
+private:
+	HBitmap::DataPtr p_bitmap;
+	ImageTag::DataPtr p_tag = {};
+	DataPtr p_metadata = {};
+
+public:
+	//! \throw std::invalid_argument 图像指针为空。
+	//@{
+	ImageMetadataFindData(HBitmap::DataPtr, ImageMetadataModel);
+	ImageMetadataFindData(const HBitmap&, ImageMetadataModel);
+	//@}
+	//! \brief 析构：关闭查找状态。
+	~ImageMetadataFindData();
+
+	PDefHOp(bool, !, ) const ynothrow
+		ImplRet(!p_metadata)
+
+	explicit DefCvt(const ynothrow, bool, p_metadata)
+
+	DefGetter(const ynothrow, ImageTag, Tag, {p_tag, {}})
+
+private:
+	void
+	Close() ynothrow;
+
+public:
+	//! \brief 读取：迭代当前查找状态。
+	void
+	Read() ynothrow;
+
+	void
+	Rewind() ynothrow;
+};
+
+
+/*!
+\brief 元数据句柄：表示打开的元数据和内容迭代状态。
+\warning 若参与构造的图像被释放则继续操作的行为未定义。
+\since build 557
+*/
+class YF_API HImageMetadata final : private ystdex::deref_self<HImageMetadata>
+{
+	friend deref_self<HImageMetadata>;
+
+private:
+	unique_ptr<ImageMetadataFindData> p_data;
+
+public:
+	template<typename... _tParams>
+	explicit
+	HImageMetadata(_tParams&&... args)
+		: p_data(new ImageMetadataFindData(yforward(args)...))
+	{}
+	DefDeMoveCtor(HImageMetadata)
+
+	DefDeMoveAssignment(HImageMetadata)
+
+	/*!
+	\brief 间接操作：取自身引用。
+	\note 使用 ystdex::indirect_input_iterator 和转换函数访问。
+	*/
+	using deref_self<HImageMetadata>::operator*;
+
+	//! \brief 迭代：向后遍历。
+	PDefHOp(HImageMetadata&, ++, ) ynothrow
+		ImplRet(Deref(p_data).Read(), *this)
+
+	explicit DefCvt(const ynothrow, bool, bool(p_data))
+
+	//! \brief 间接操作：取图像标签。
+	operator ImageTag() const;
+
+	PDefH(void, Rewind, )
+		ImplRet(Deref(p_data).Rewind())
+};
+
+
+/*!
+\brief 元数据迭代器。
+\since build 557
+*/
+using HImageMetadataIterator = ystdex::indirect_input_iterator<HImageMetadata*>;
 
 
 //! \since build 417

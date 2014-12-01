@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.cpp
 \ingroup Service
 \brief 图像处理。
-\version r182
+\version r213
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:37:27 +0800
 \par 修改时间:
-	2014-11-22 20:14 +0800
+	2014-12-01 10:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,25 +71,52 @@ ZoomedImageCache::Lookup(ImageScale scale, size_t idx)
 
 ImagePages::ImagePages(ZoomedImageCache&& c, const Size& min_size,
 	const Size& max_size, ImageScale init_scale)
-	: cache(std::move(c)), scale([&, init_scale]()->ImageScale{
+	: cache(std::move(c)),
+	base_size([&](const ZoomedImageCache::Container& bmps)->Size{
 		YAssert(!max_size.IsUnstrictlyEmpty(), "Empty maximum size found.");
-		if(init_scale < MinScale)
-		{
-			auto& bmps(cache.GetBitmaps());
 
-			// XXX: Do every pages have same size?
-			return bmps.empty() ? 1 : ScaleMin(max_size, bmps[0].GetSize());
-		}
-		return init_scale;
+		if(bmps.empty())
+			return max_size;
+
+		const auto& first_size(bmps[0].GetSize());
+
+		TryRet(GetLogicalSizeOf(bmps[0]) | first_size)
+		CatchIgnore(GeneralEvent&)
+		return first_size;
+	}(cache.GetBitmaps())), scale([&, init_scale]()->ImageScale{
+		return init_scale < MinScale ? ImageScale(cache.GetBitmaps().empty()
+			? 1.F : ScaleMin(max_size, base_size)) : init_scale;
 	}())
 {
 	YAssert((min_size & max_size) == min_size, "Invalid size arguments found.");
+	YTraceDe(Informative, "Base size = %s.", to_string(base_size).c_str());
 	YTraceDe(Informative, "Automatically rescaled, scale = %f.", double(scale));
 	LoadContent();
 //	YTraceDe(Informative, "Format = %d.", bitmap.GetFormat());
 	yunseq(view_size = min_size | Brush.ImagePtr->GetSize(),
 		Brush.Update = ImageBrush::UpdateComposite);
 	AdjustOffset(view_size);
+	
+	// TODO: Check "Loop" metadata.
+	const auto& bmps(cache.GetBitmaps());
+	const auto n(bmps.size());
+
+	if(n > 1)
+	{
+		frame_delays.reserve(n);
+		for(const auto& bmp : bmps)
+		{
+			// TODO: Allow user set minimal frame time.
+			auto d(std::chrono::milliseconds(20));
+
+			TryExpr(d = GetFrameTimeOf(bmp))
+			CatchExpr(LoggedEvent& e,
+				YTraceDe(e.GetLevel(), "Invalid frame time found"))
+			YTraceDe(Informative, "Loaded frame time = %s milliseconds.",
+				std::to_string(d.count()).c_str());
+			frame_delays.push_back(d);
+		}
+	}
 }
 
 void
@@ -134,7 +161,7 @@ ImagePages::LoadContent()
 bool
 ImagePages::SwitchPage(size_t page)
 {
-	YAssert(ZoomedImageCache::Container::size_type(page) < GetPagesNum(),
+	YAssert(ZoomedImageCache::Container::size_type(page) < GetCount(),
 		"Invalid index found.");
 	if(page != index)
 	{

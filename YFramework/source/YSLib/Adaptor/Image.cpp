@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r972
+\version r1063
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-11-28 13:31 +0800
+	2014-12-01 00:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -410,6 +410,24 @@ HBitmap::SaveTo(const char16_t* filename, ImageFormat fmt,
 	SaveImage(fmt, GetDataPtr(), filename, flags);
 }
 
+std::chrono::milliseconds
+GetFrameTimeOf(const HBitmap& bmp)
+{
+	return std::chrono::milliseconds(CheckNonnegativeScalar<long>(ImageTag(bmp,
+		ImageMetadataModel::Animation, "FrameTime").TryGetValue<long>(),
+		"frame time", Warning));
+}
+
+Size
+GetLogicalSizeOf(const HBitmap& bmp)
+{
+	return {CheckPositiveScalar<SDst>(ImageTag(bmp,
+		ImageMetadataModel::Animation, "LogicalWidth").TryGetValue<short>(),
+		"logical width", Warning), CheckPositiveScalar<SDst>(ImageTag(bmp,
+		ImageMetadataModel::Animation, "LogicalHeight").TryGetValue<short>(),
+		"logical height", Warning)};
+}
+
 
 class MultiBitmapData final : private noncopyable
 {
@@ -538,14 +556,34 @@ HMultiBitmap::Lock(size_t i) const ynothrowv
 
 
 ImageTag::ImageTag(const ImageTag& tag) ythrow(BadImageAlloc)
-	: p_tag(::FreeImage_CloneTag(tag.p_tag))
+	: p_tag(::FreeImage_CloneTag(tag.p_tag)), owns(true)
 {
 	if(bool(p_tag) != bool(tag.p_tag))
 		throw BadImageAlloc();
 }
+ImageTag::ImageTag(HBitmap::DataPtr p_bmp, ImageMetadataModel model,
+	const char* name)
+	: p_tag([=]{
+		YAssertNonnull(name);
+		if(!p_bmp)
+			throw std::invalid_argument("Invalid bitmap found.");
+
+		::FITAG* p_new_tag{};
+
+		if(::FreeImage_GetMetadata(::FREE_IMAGE_MDMODEL(model), p_bmp, name,
+			&p_new_tag) && p_new_tag)
+			return p_new_tag;
+		throw GeneralEvent("Specified tag not found.");
+	}())
+{}
+ImageTag::ImageTag(const HBitmap& bmp, ImageMetadataModel model,
+	const char* name)
+	: ImageTag(bmp.GetDataPtr(), model, name)
+{}
 ImageTag::~ImageTag()
 {
-	::FreeImage_DeleteTag(p_tag);
+	if(owns)
+		::FreeImage_DeleteTag(p_tag);
 }
 
 size_t
@@ -579,7 +617,7 @@ ImageTag::GetType() const ynothrow
 	return ImageTag::Type(::FreeImage_GetTagType(p_tag));
 }
 const void*
-ImageTag::GetValue() const ynothrow
+ImageTag::GetValuePtr() const ynothrow
 {
 	return ::FreeImage_GetTagValue(p_tag);
 }
@@ -627,6 +665,66 @@ ImageTag::Release() ynothrow
 
 	p_tag = {};
 	return ptr;
+}
+
+string
+to_string(const ImageTag& tag, ImageMetadataModel model)
+{
+	static mutex mtx;
+	lock_guard<mutex> lck(mtx);
+
+	// XXX: The documentation does not guarantee non null return value, but
+	//	The implementation actually use static string as buffer, as well as
+	//	suggested "not thread safe".
+	return string(Nonnull(::FreeImage_TagToString(::FREE_IMAGE_MDMODEL(model),
+		tag.GetDataPtr())));
+}
+
+
+ImageMetadataFindData::ImageMetadataFindData(HBitmap::DataPtr ptr,
+	ImageMetadataModel model)
+	: CurrentModel(model), p_bitmap(ptr)
+{
+	if(!p_bitmap)
+		throw std::invalid_argument("Invalid bitmap found.");
+}
+ImageMetadataFindData::ImageMetadataFindData(const HBitmap& bmp,
+	ImageMetadataModel model)
+	: ImageMetadataFindData(bmp.GetDataPtr(), model)
+{}
+ImageMetadataFindData::~ImageMetadataFindData()
+{
+	if(p_metadata)
+		Close();
+}
+
+void
+ImageMetadataFindData::Close() ynothrow
+{
+	::FreeImage_FindCloseMetadata(p_metadata);
+}
+
+void
+ImageMetadataFindData::Read() ynothrow
+{
+	if(!p_metadata)
+		p_metadata = ::FreeImage_FindFirstMetadata(
+			::FREE_IMAGE_MDMODEL(CurrentModel), p_bitmap, &p_tag);
+	else if(!::FreeImage_FindNextMetadata(p_metadata, &p_tag))
+	{
+		Close();
+		p_metadata = {};
+	}
+}
+
+void
+ImageMetadataFindData::Rewind() ynothrow
+{
+	if(p_metadata)
+	{
+		Close();
+		p_metadata = {};
+	}
 }
 
 

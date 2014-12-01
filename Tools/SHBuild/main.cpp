@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2647
+\version r2652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-11-25 02:30 +0800
+	2014-11-29 11:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,7 @@ See readme file for details.
 #include <ystdex/mixin.hpp>
 #include YFM_MinGW32_YCLib_Consoles // for platform_ex::WConsole;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
-#include <ystdex/exception.hpp> // for ystdex::raise_exception;
+#include <ystdex/exception.h> // for ystdex::raise_exception;
 #include YFM_NPL_SContext
 
 using namespace YSLib;
@@ -291,8 +291,8 @@ bool
 CheckBuild(const vector<string>& ipaths, const string& opath)
 {
 	return CheckBuild([&]{
-		return std::all_of(ipaths.cbegin(), ipaths.cend(),
-			std::bind(CompareModification, _1, opath));
+		return ipaths.empty() ? false : std::all_of(ipaths.cbegin(),
+			ipaths.cend(), std::bind(CompareModification, _1, opath));
 	}, opath);
 }
 //@}
@@ -307,6 +307,10 @@ GetDependencies(const string& path)
 	using namespace ystdex;
 	using namespace NPL;
 	TextFile tf(path);
+
+	if(!tf)
+		return {};
+
 	set<size_t> spaces;
 	Session sess(tf, [&](LexicalAnalyzer& lexer, char c){
 		lexer.ParseQuoted(c, [&](string& buf, const UnescapeContext& uctx,
