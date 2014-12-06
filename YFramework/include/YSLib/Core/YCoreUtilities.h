@@ -11,13 +11,13 @@
 /*!	\file YCoreUtilities.h
 \ingroup Core
 \brief 核心实用模块。
-\version r2138
+\version r2140
 \author FrankHB <frankhb1989@gmail.com>
 \since build 539
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-11-30 21:24 +0800
+	2014-12-02 18:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,7 +86,7 @@ FetchZero() ynothrow
 \note 若 <tt>a < b</tt> 则返回 -1 ，否则若 <tt>a = b</tt> 则返回 0 ，否则返回 1 。
 \since build 319
 */
-yconstfn s8
+yconstfn std::int8_t
 FetchSign(int a, int b = 0) ynothrow
 {
 	return a < b ? -1 : !(a == b);
@@ -97,7 +97,7 @@ FetchSign(int a, int b = 0) ynothrow
 \since build 319
 */
 template<typename _type>
-yconstfn s8
+yconstfn std::int8_t
 FetchSign(const _type& a, const _type& b = FetchZero<_type>()) ynothrow
 {
 	return a < b ? -1 : !(a == b);

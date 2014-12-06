@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r531
+\version r536
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-11-27 15:52 +0800
+	2014-12-05 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -300,11 +300,11 @@ ScreenBuffer::Resize(const Size& s)
 }
 
 void
-ScreenBuffer::Premultiply(BitmapPtr buf) ynothrow
+ScreenBuffer::Premultiply(ConstBitmapPtr p_buf) ynothrow
 {
 	// NOTE: Since the stride is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
-	std::transform(buf, buf + size.Width * size.Height, pBuffer,
+	std::transform(p_buf, p_buf + size.Width * size.Height, pBuffer,
 		[](const PixelType& pixel){
 			const auto a(pixel.GetA());
 
@@ -315,7 +315,7 @@ ScreenBuffer::Premultiply(BitmapPtr buf) ynothrow
 }
 
 void
-ScreenBuffer::UpdateFrom(BitmapPtr p_buf) ynothrow
+ScreenBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 {
 	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
@@ -332,11 +332,11 @@ ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 
 
 void
-ScreenRegionBuffer::UpdateFrom(BitmapPtr buf) ynothrow
+ScreenRegionBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 {
 	lock_guard<mutex> lck(mtx);
 
-	ScreenBuffer::UpdateFrom(buf);
+	ScreenBuffer::UpdateFrom(p_buf);
 }
 
 void

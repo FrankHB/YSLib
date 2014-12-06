@@ -11,13 +11,13 @@
 /*!	\file ydevice.cpp
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r1772
+\version r1779
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:39:51 +0800
 \par 修改时间:
-	2014-11-12 04:28 +0800
+	2014-12-06 14:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,17 +36,11 @@ using namespace Drawing;
 namespace Devices
 {
 
-BitmapPtr
-Screen::GetCheckedBufferPtr() const ynothrow
-{
-	return Nonnull(GetBufferPtr());
-}
-
 void
-Screen::Update(BitmapPtr buf) ynothrow
+Screen::Update(ConstBitmapPtr p_buf) ynothrow
 {
 	// TODO: Explicitly assert that copy cannot throw.
-	std::copy_n(buf, GetAreaOf(GetSize()), GetCheckedBufferPtr());
+	std::copy_n(Nonnull(p_buf), GetAreaOf(GetSize()), Nonnull(GetBufferPtr()));
 }
 
 } // namespace Devices;

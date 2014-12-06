@@ -11,13 +11,13 @@
 /*!	\file yuicont.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1882
+\version r1887
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-11-21 09:22 +0800
+	2014-12-05 12:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -128,8 +128,7 @@ MoveToLeft(IWidget& wgt)
 void
 MoveToRight(IWidget& wgt)
 {
-	YAssertNonnull(FetchContainerPtr(wgt));
-	SetLocationOf(wgt, Point(GetSizeOf(*FetchContainerPtr(wgt)).Width
+	SetLocationOf(wgt, Point(GetSizeOf(Deref(FetchContainerPtr(wgt))).Width
 		- GetSizeOf(wgt).Width, GetLocationOf(wgt).Y));
 }
 
@@ -143,9 +142,8 @@ MoveToTop(IWidget& wgt)
 void
 MoveToBottom(IWidget& wgt)
 {
-	YAssertNonnull(FetchContainerPtr(wgt));
-	SetLocationOf(wgt, Point(GetLocationOf(wgt).X,
-		GetSizeOf(*FetchContainerPtr(wgt)).Height - GetSizeOf(wgt).Height));
+	SetLocationOf(wgt, Point(GetLocationOf(wgt).X, GetSizeOf(
+		Deref(FetchContainerPtr(wgt))).Height - GetSizeOf(wgt).Height));
 }
 
 

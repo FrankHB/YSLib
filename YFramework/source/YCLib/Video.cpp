@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r355
+\version r359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2014-04-08 00:17 +0800
+	2014-12-06 19:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,19 +60,19 @@ static_assert(yalignof(PixelType) == yalignof(PixelType::Trait::IntegerType),
 
 extern "C"
 {
-	extern const u8 default_font[];
+	extern const ::u8 default_font[];
 }
 
 ::PrintConsole mainConsole{
 	{
-		reinterpret_cast<std::uint16_t*>(const_cast<u8*>(default_font)), \
+		reinterpret_cast<std::uint16_t*>(const_cast<::u8*>(default_font)), \
 			// font graphics;
-		0, 0, 4, // font palette, font color count and bpp;
+		nullptr, 0, 4, // font palette, font color count and bpp;
 		0, // first ASCII character in the set;
 		128, // number of characters in the set;
 		true // convert single color;
 	},
-	0, 0, // font background map and graphics;
+	nullptr, nullptr, // font background map and graphics;
 	22, 3, // map and char base;
 	0, -1, // background layer in use and background ID;
 	0, 0, // cursor X and Y coordinates;

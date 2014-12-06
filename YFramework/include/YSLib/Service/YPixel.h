@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r713
+\version r716
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2014-09-10 19:45 +0800
+	2014-12-02 18:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -545,13 +545,13 @@ CompositeComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa, _tAlphaInt a)
 分解分量至 32 位寄存器以减少总指令数。
 */
 template<size_t _vAlphaBits>
-u16
-BlendCore(u32 d, u32 s, u8 a)
+std::uint16_t
+BlendCore(std::uint32_t d, std::uint32_t s, std::uint8_t a)
 {
 	static_assert(_vAlphaBits > 0 && _vAlphaBits < 16 - 5,
 		"Wrong number of alpha bits found.");
 
-	u32 dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
+	std::uint32_t dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
 
 	yunseq(dbr += ((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr) * a)
 		>> _vAlphaBits, dg += (((s & 0x3E0) - dg) * a) >> _vAlphaBits);

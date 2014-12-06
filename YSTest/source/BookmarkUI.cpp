@@ -11,13 +11,13 @@
 /*!	\file BookmarkUI.cpp
 \ingroup YReader
 \brief 书签界面。
-\version r207
+\version r209
 \author FrankHB <frankhb1989@gmail.com>
 \since build 391
 \par 创建时间:
 	2013-03-20 22:10:55 +0800
 \par 修改时间:
-	2014-08-28 17:59 +0800
+	2014-12-06 16:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -118,8 +118,7 @@ BookmarkPanel::BookmarkPanel(const BookmarkList& bm, ShlTextReader& shl)
 
 		if(idx >= 0)
 		{
-			// TODO: Use 'lst.erase(lst.cbegin() + idx)' for libstdc++ 4.9.
-			lst.erase(lst.begin() + idx);
+			lst.erase(lst.cbegin() + idx);
 			lbPosition.AdjustViewForContent();
 			lbPosition.UpdateView();
 		}

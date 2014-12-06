@@ -11,13 +11,13 @@
 /*!	\file DSReader.h
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r1854
+\version r1858
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:03:47 +0800
 \par 修改时间:
-	2014-09-03 14:04 +0800
+	2014-12-02 18:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,7 @@ public:
 	\brief 命令类型。
 	\since build 416
 	*/
-	enum Command : u16
+	enum Command : std::uint16_t
 	{
 		Null = 0,
 		Scroll = 1,
@@ -102,7 +102,7 @@ private:
 	最近一次 UpdateView 操作时确认文件结束后的空行数。
 	\since build 272
 	*/
-	u16 overread_line_n;
+	std::uint16_t overread_line_n;
 	/*!
 	\brief 滚屏像素偏移量。
 	\since build 292
@@ -166,7 +166,7 @@ public:
 	\since build 283
 	*/
 	DefGetter(const ynothrow, const Drawing::Font&, Font, area_up.Font)
-	DefGetter(const ynothrow, u8, LineGap, area_up.LineGap) \
+	DefGetter(const ynothrow, std::uint8_t, LineGap, area_up.LineGap) \
 		//!< 取文本区域的行距。
 	DefGetter(const ynothrow, Text::Encoding, Encoding, p_text
 		? p_text->GetEncoding() : Text::CharSet::Null) //!< 取编码。
@@ -217,7 +217,7 @@ public:
 	SetFontSize(Drawing::FontSize = Drawing::Font::DefaultSize); \
 		//!< 设置文本区域的字体大小。
 	void
-	SetLineGap(u8 = 0); //!< 设置行距。
+	SetLineGap(std::uint8_t = 0); //!< 设置行距。
 	/*!
 	\brief 设置文本区域可见性。
 	\since build 275

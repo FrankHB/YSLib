@@ -8,42 +8,15 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r244
+# Version = r296
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-11-21 10:18 +0800
+# Updated = 2014-12-06 22:25 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
-export PLATFORM		?= Android
-ifeq ($(PLATFORM),Android)
-	ifeq ($(strip $(ANDROID_SDK)),)
-		$(error "Please set ANDROID_SDK in your environment. export ANDROID_SDK=<path to>ANDROID_SDK")
-	endif
-	ANDROID_PLATFORM := 9
-	ANDROID_SDKVER := 21.1.1
-#	java_exe := $(shell $(ANDROID_SDK)/tools/lib/find_java)
-#	java_d := $(shell cygpath -d "$(java_exe)")
-#	export JAVA := $(shell cygpath "$(java_d)")
-	export JAVA := java
-	export JARSIGNER := jarsigner
-	# See https://code.google.com/p/android/issues/detail?id=19567 .
-	export JARSIGN_ALGO ?= -digestalg SHA1 -sigalg MD5withRSA
-	APK_KEYSTORE ?= ~/.android/debug.keystore
-	APK_KEYSTORE_ALIAS ?= androiddebugkey
-	APK_PASSWORD_OPT ?= -storepass android -keypass android
-	ANDROID_BUILD_TOOLS_DIR := $(ANDROID_SDK)/build-tools/$(ANDROID_SDKVER)
-	platforms := $(ANDROID_SDK)/platforms/android-$(ANDROID_PLATFORM)
-endif
 
-export PREFIX ?= arm-linux-androideabi-
-
-export CC := $(PREFIX)gcc
-export CXX := $(PREFIX)g++
-export AS := $(PREFIX)as
-export AR := $(PREFIX)gcc-ar
-export OBJCOPY := $(PREFIX)objcopy
-export STRIP := $(PREFIX)strip
-export NM := $(PREFIX)nm
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+include $(SHBuild_ToolDir)/Toolchain.Android.mk
 
 # PROJNAME is the name of the project
 # CONF is the configuration name
@@ -88,33 +61,15 @@ export MANIFEST := $(TOPDIR)/AndroidManifest.xml
 RESOURCES := $(BUILDDIR)/../../$(PROJNAME)/$(CONF)/resources.ap_
 
 # options for code generation
-ARCH_AS := -mthumb -march=armv5te
-ARCH := $(ARCH_AS)
+CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM9) $(CFLAGS_COMMON)
+CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
+	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy \
+	-Wnon-virtual-dtor -Wsign-promo
+#	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
 
-ASFLAGS := $(ARCH)
-
-CFLAGS := -Wall -Wextra -Winvalid-pch -Wmissing-declarations \
-	-Wredundant-decls -Wunreachable-code \
- 	-fdata-sections -ffunction-sections \
- 	-ffast-math $(ARCH)
-
-CFLAGS += $(INCLUDE)
-LDFLAGS := $(ARCH) -Wl,--gc-sections -Wl,-Map,$(notdir $*.map) \
-	-Wl,--no-undefined -Wl,--dynamic-list-data \
+LDFLAGS := $(LDFLAGS_OPT_DBG) $(ARCH) -Wl,--gc-sections \
+	-Wl,-Map,$(notdir $*.map) -Wl,--no-undefined -Wl,--dynamic-list-data \
 	-Wl,--dynamic-list-cpp-new -Wl,--dynamic-list-cpp-typeinfo
-
-ifneq ($(CONF),debug)
-CFLAGS += -O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
-LDFLAGS += -s
-else
-ASFLAGS += -g
-CFLAGS += -g -O0 -fno-omit-frame-pointer
-LDFLAGS += -g
-endif
-
-CXXFLAGS := $(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++11 \
- 	-Wctor-dtor-privacy -Wnon-virtual-dtor -Wsign-promo
-# 	-Wctor-dtor-privacy -Wold-style-cast -Wsign-promo
 
 # any extra libraries we wish to link with the project
 LIBS :=-llog -landroid -lEGL -lGLESv1_CM

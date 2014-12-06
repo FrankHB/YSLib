@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r326
+\version r328
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-11-12 04:15 +0800
+	2014-12-05 16:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,7 +151,7 @@ HostRenderer::SetSize(const Size& s)
 }
 
 void
-HostRenderer::Update(BitmapPtr buf)
+HostRenderer::Update(ConstBitmapPtr p_buf)
 {
 	YAssert(GetSizeOf(widget) == rbuf.GetSize(), "Mismatched size found.");
 
@@ -179,7 +179,7 @@ HostRenderer::Update(BitmapPtr buf)
 			if(bounds != cbounds)
 				p_wnd->SetClientBounds(bounds);
 #	endif
-			p_wnd->UpdateFrom(buf, rbuf);
+			p_wnd->UpdateFrom(p_buf, rbuf);
 		}
 #	if YCL_Win32
 		CatchIgnore(Win32Exception&)

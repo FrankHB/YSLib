@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1272
+\version r1273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-11-30 23:19 +0800
+	2014-12-02 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,7 +57,7 @@ class CompactPixmap;
 class HBitmap;
 
 //! \since build 402
-using BitPerPixel = u8;
+using BitPerPixel = std::uint8_t;
 
 
 /*!

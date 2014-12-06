@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r105
+\version r113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-07-06 02:34 +0800
+	2014-12-05 17:07 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -39,7 +39,8 @@ using namespace Drawing;
 namespace Devices
 {
 
-AndroidScreen::AndroidScreen(::ANativeWindow& wnd)
+AndroidScreen::AndroidScreen(::ANativeWindow& wnd,
+	const Drawing::Size& scr_size)
 	: AndroidScreen(wnd, [&wnd]()->Size{
 		// XXX: Surface might be 1x1.
 		// See http://grokbase.com/t/gg/android-ndk/123ks0p3n1/resizing-nativeactivity-and-opengl-surfaces .
@@ -56,20 +57,22 @@ AndroidScreen::AndroidScreen(::ANativeWindow& wnd)
 
 		return {CheckPositiveScalar<SDst>(abuf.width, "width"),
 			CheckPositiveScalar<SDst>(abuf.height, "height")};
-	}())
+	}(), scr_size)
 {}
-AndroidScreen::AndroidScreen(::ANativeWindow& wnd, const Drawing::Size& size)
+AndroidScreen::AndroidScreen(::ANativeWindow& wnd, const Drawing::Size& size,
+	const Drawing::Size& scr_size)
 	: Screen(size),
 	window_ref(wnd), rbuf(size)
 {
 	YTraceDe(Informative, "Screen created, size = %s.",
 		to_string(size).c_str());
 	pBuffer = rbuf.GetBufferPtr();
-	::ANativeWindow_setBuffersGeometry(&wnd, 0, 0, WINDOW_FORMAT_RGBA_8888);
+	::ANativeWindow_setBuffersGeometry(&wnd, scr_size.Width, scr_size.Height,
+		WINDOW_FORMAT_RGBA_8888);
 }
 
 void
-AndroidScreen::Update(Drawing::BitmapPtr p_buf) ynothrow
+AndroidScreen::Update(ConstBitmapPtr p_buf) ynothrow
 {
 	rbuf.UpdateFrom(p_buf);
 	rbuf.UpdateTo(&GetWindowRef(), Offset);

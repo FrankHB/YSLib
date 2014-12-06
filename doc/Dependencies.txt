@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r343
+\version r458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2014-11-15 22:24 +0800
+	2014-12-06 16:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,15 +43,15 @@
 本节内列出的构建环境经过测试并用于发布。可能有其它可用兼容环境，不在此列出。
 
 @1.2 YBase ：
- YBase （包括若干 workaround ） 非正式支持 Microsoft Visual C++ 2013 （仅保证编译成功，其中 ystdex::pod_storage::operator= 重载会被错误地递归调用因此导致 ystdex::any 不可用）。
+YBase （包括若干 workaround ） 非正式支持 Microsoft Visual C++ 2013 （仅保证编译成功，其中 ystdex::pod_storage::operator= 重载会被错误地递归调用因此导致 ystdex::any 不可用）。
 
 @1.3 Windows 构建宿主公共环境：
- Msys 用于 Windows 上版本的构建环境。
- build 458 前：
+Msys 用于 Windows 上版本的构建环境。
+build 458 前：
 使用 devkitPro 附带的实现。
- 2013-11-22(build 458) 起：
+2013-11-22(build 458) 起：
 对 MinGW32 ，使用 http://sourceforge.net/projects/mingwbuilds/files/external-binary-packages/msys%2B7za%2Bwget%2Bsvn%2Bgit%2Bmercurial%2Bcvs-rev13.7z 。
- 2014-04-12(build 493) 起：
+2014-04-12(build 493) 起：
 使用 http://sourceforge.net/projects/msys2/files/Base/i686/msys2-base-i686-20140216.tar.xz 作为基础环境。
 同时使用 "Tools/msys2-update-pacman.sh" 更新包。
 每次主分支版本前同步 MSYS 环境（ @1.5 中明确提到的除外）至最新版本，但保证只依赖对基础环境向后兼容的特性，因此应可直接升级到更新版本使用，除非基础环境的根目录布局有改变（此时应该使用最新版本的基础环境后更新，或至少同步目录布局）。
@@ -60,53 +60,55 @@
 目标平台 DS ，实现环境参见 @5.1 。
 系统库：使用 devkitPro（参见 http://devkitpro.org ） 中的 devkitARM 工具链及库文件的非 debug 版本。
 依赖 devkitARM / libnds / default arm7 / libfat 版本：
- build 131 前：
+build 131 前：
 未指定。可使用 devkitARM release 26 - 29 。
- 2009-09-20 起：
- libnds 1.3.7 / default arm7 0.5.6 。
- 2009-09-22 起：
- devkitARM release 26 / libnds 1.3.8 / libfat 1.0.4 。
- 2009-12-12 起：
- devkitARM release 27 / libnds 1.4.0 / default arm7 0.5.8 / libfat 1.0.6 。
- 2010-03-25 起：
- devkitARM release 29 / libnds 1.4.3 / default arm7 0.5.12 / libfat 1.0.7 。
- 2010-04-06(build 131) 起：
- devkitARM release 30 。
- 2010-08-08(build 139) 起：
- devkitARM release 31 / libnds 1.4.5 / default arm7 0.5.14 。
- 2010-09-19(build 244) 起：
- default arm7 0.5.15 。
- 2010-11-18(build 171) 起：
- devkitARM release 32 / libnds 1.4.8 / default arm7 0.5.17 。
- 2011-01-06(build 180) 起：
- libnds 1.4.9 / default arm7 0.5.18 。
- 2011-02-16(build 192) 起：
- libnds 1.5.0 / default arm7 0.5.20 / libfat 1.0.9 。
- 2011-06-24(build 221) 起：
- devkitARM release 33 / libnds 1.5.0 。
+2009-09-20 起：
+libnds 1.3.7 / default arm7 0.5.6 。
+2009-09-22 起：
+devkitARM release 26 / libnds 1.3.8 / libfat 1.0.4 。
+2009-12-12 起：
+devkitARM release 27 / libnds 1.4.0 / default arm7 0.5.8 / libfat 1.0.6 。
+2010-03-25 起：
+devkitARM release 29 / libnds 1.4.3 / default arm7 0.5.12 / libfat 1.0.7 。
+2010-04-06(build 131) 起：
+devkitARM release 30 。
+2010-08-08(build 139) 起：
+devkitARM release 31 / libnds 1.4.5 / default arm7 0.5.14 。
+2010-09-19(build 244) 起：
+default arm7 0.5.15 。
+2010-11-18(build 171) 起：
+devkitARM release 32 / libnds 1.4.8 / default arm7 0.5.17 。
+2011-01-06(build 180) 起：
+libnds 1.4.9 / default arm7 0.5.18 。
+2011-02-16(build 192) 起：
+libnds 1.5.0 / default arm7 0.5.20 / libfat 1.0.9 。
+2011-06-24(build 221) 起：
+devkitARM release 33 / libnds 1.5.0 。
 注：文件系统目录访问接口变化，需要使用 devkitARM release 33 或自行配置所需的 POSIX API 。
- 2011-07-03(build 223) 起：
- libnds 1.5.1 / default arm7 0.5.21 。
- 2011-07-05(build 223) 起：
- devkitARM release 34 。
- 2011-08-27(build 236) 起：
- libnds 1.5.4 / default arm7 0.5.23 。
- 2011-10-13(build 252) 起：
- devkitARM release 35 / libfat 1.0.10 。
- 2012-03-06(build 291) 起：
- devkitARM release 37 。
- 2012-04-12(build 300) 起：
- devkitARM release 38 / libnds 1.5.5 / default arm7 0.5.24 。
- 2012-05-03(build 306) 起：
- devkitARM release 39 / libnds 1.5.7 。
- 2012-05-14(build 308) 起：
- devkitARM release 40 / libfat 1.0.11 。
- 2012-06-29(build 321) 起：
- devkitARM release 41 。
- 2014-04-06(build 492) 起：
- devkitARM release 42 / libnds 1.5.8 / libfat 1.0.12 / default arm7 0.5.25 。
- 2014-04-13(build 493) 起：
+2011-07-03(build 223) 起：
+libnds 1.5.1 / default arm7 0.5.21 。
+2011-07-05(build 223) 起：
+devkitARM release 34 。
+2011-08-27(build 236) 起：
+libnds 1.5.4 / default arm7 0.5.23 。
+2011-10-13(build 252) 起：
+devkitARM release 35 / libfat 1.0.10 。
+2012-03-06(build 291) 起：
+devkitARM release 37 。
+2012-04-12(build 300) 起：
+devkitARM release 38 / libnds 1.5.5 / default arm7 0.5.24 。
+2012-05-03(build 306) 起：
+devkitARM release 39 / libnds 1.5.7 。
+2012-05-14(build 308) 起：
+devkitARM release 40 / libfat 1.0.11 。
+2012-06-29(build 321) 起：
+devkitARM release 41 。
+2014-04-06(build 492) 起：
+devkitARM release 42 / libnds 1.5.8 / libfat 1.0.12 / default arm7 0.5.25 。
+2014-04-13(build 493) 起：
 在 Windows 上使用 MSYS2 环境的包 make 代替 devkitPro/msys 。参见 @1.3 。
+2014-12-06(build 558) 起：
+devkitARM release 43 / libnds 1.5.9 / libfat 1.0.13 / default arm7 0.5.26 。
 
 @1.4.1 DS 平台构建说明：
 需要使用宏 DEVKITARM 指定 devkitARM 的路径。
@@ -114,74 +116,74 @@
 @1.5 MinGW32 平台工具链和标准库实现：
 目标三元组(target triplet) i686-w64-mingw32 ，操作系统 Windows XP/Windows Server 2003 （对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。
 系统库：使用 MinGW 间接依赖的 Win32 API 相关库（如 user32 和 gdi32 ）以及 MSVCRT(Microsoft Visual C++ Runtime Library) 的特定版本。
- build 299 前：
+build 299 前：
 无（不支持的平台）。
- 2012-04-09(build 299) 起：
+2012-04-09(build 299) 起：
 使用 http://code.google.com/p/mingw-builds 的 i686-mingw32-gcc-4.7.0-release-c,c++,fortran-sjlj 。
- 2012-06-21(build 319) 起：
+2012-06-21(build 319) 起：
 使用 http://sourceforge.net/projects/mingwbuilds/files/windows-host/4.7.1/release/i686-mingw-w64-gcc-4.7.1-release-c,c++,fortran-sjlj.7z 。
 此版本于 2012-10-06 确认已被移除。
 此版本于 2013-01-20 确认已被重命名为 x32-4.7.1-release-posix-sjlj-rev0.7z 。
- 2012-10-06(build 346) 起：
+2012-10-06(build 346) 起：
 使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.7.2/32-bit/threads-posix/sjlj/x32-4.7.2-release-posix-sjlj-rev0.7z 。
- 2013-03-23(build 392) 起：
+2013-03-23(build 392) 起：
 使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.0/32-bit/threads-posix/sjlj/x32-4.8.0-release-posix-sjlj-rev0.7z 。
- 2013-06-03(build 411) 起：
+2013-06-03(build 411) 起：
 使用 http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/32-bit/threads-posix/sjlj/x32-4.8.1-release-posix-sjlj-rev0.7z 。
- 2013-07-20(build 431) 起：
+2013-07-20(build 431) 起：
 增加依赖项 NASM 2.07 ： http://sourceforge.net/projects/nasm/files/Win32%20binaries/2.07/nasm-2.07-installer.exe/download 。
 当前不直接用于构建 YSLib ，仅用于构建依赖项。
- 2013-10-20(build 453) 起：
+2013-10-20(build 453) 起：
 使用 http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-posix/dwarf/i686-4.8.2-release-posix-dwarf-rt_v3-rev0.7z 。
- mingw-builds 已被合并至 mingw-w64 官方仓库。改变异常模型以兼容 i686 的 LLVM/Clang++ 工具链，这导致二进制兼容性不被保持。
+mingw-builds 已被合并至 mingw-w64 官方仓库。改变异常模型以兼容 i686 的 LLVM/Clang++ 工具链，这导致二进制兼容性不被保持。
 注意之前由于 mingw-w64 的 bug （参见 http://sourceforge.net/mailarchive/message.php?msg_id=31045447 ），即使不改变异常模型也不能保持二进制兼容性。
- 2014-01-04(build 465) 起同时支持 MinGW.org 工具链，但由于实现质量等原因，不用于默认发布。
- 2014-04-15(build 493) 起：
+2014-01-04(build 465) 起同时支持 MinGW.org 工具链，但由于实现质量等原因，不用于默认发布。
+2014-04-15(build 493) 起：
 基础环境更改参见 @1.3 。
 使用包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.8.2-7 。
 使用的工具链版本、线程模型和异常模型及外部库的依赖和之前保持一致，因此二进制兼容。
- 2014-07-19(build 520) 起：
+2014-07-19(build 520) 起：
 使用包 mingw32/mingw-w64-i686-gcc 和 mingw32/mingw-w64-i686-gcc-libs 版本 4.9.1-1 。
 使用包 mingw-w64-i686-nasm-2.11.02-1 代替外部依赖项 NASM 。
- 2014-07-22(build 520) 起同时非正式支持 mingw64/mingw-w64-x86_64-gcc 版本 4.9.1-1 （对 YFramework 仅支持静态链接）。
+2014-07-22(build 520) 起同时非正式支持 mingw64/mingw-w64-x86_64-gcc 版本 4.9.1-1 （对 YFramework 仅支持静态链接）。
 使用包 mingw64/mingw-w64-x86_64-FreeImage-3.16.0-3 和 mingw64/mingw-w64-x86_64-freetype 2.5.3-2 未另行编译并静态链接至 YFramework 内。
- 2014-10-01(build 539) 起：
+2014-10-01(build 539) 起：
 去除了 -ffat-lto-objects 编译选项（默认 GCC 4.9 不包括此选项），启用 -flto 时要求 ar 支持插件。
 需要使用 MSYS2 的 mingw-w64-i686-binutils-git 带插件支持的链接器（已测试 GNU ar 2.24.0.20140810 可用），参见 http://sourceforge.net/p/msys2/tickets/62/ 。
 
 @1.5.1 MinGW32 库部署：
- YSLib 内部使用固定的相对路径，不依赖库的部署。
+YSLib 内部使用固定的相对路径，不依赖库的部署。
 用户程序依赖 YSLib 库（注意静态库可包括第三方库）时，可以复制库文件或建立直接的符号链接，使用以下方法：
- 静态库文件（文件名形如 'lib$(LIB).a' ，其中 $(LIB) 是可能带有 d 后缀表示调试版本的库名，下同）置于链接器的搜索路径指定的目录内；
- 动态库文件（文件名形如 '$(LIB).dll' ）置于链接器的搜索路径指定的目录内，但重命名为 $(LIB).dll.a ；
- 动态库文件（文件名形如 '$(LIB).dll' ）在 PATH 环境变量内或直接依赖的文件所在的目录以便被搜索。
+静态库文件（文件名形如 'lib$(LIB).a' ，其中 $(LIB) 是可能带有 d 后缀表示调试版本的库名，下同）置于链接器的搜索路径指定的目录内；
+动态库文件（文件名形如 '$(LIB).dll' ）置于链接器的搜索路径指定的目录内，但重命名为 $(LIB).dll.a ；
+动态库文件（文件名形如 '$(LIB).dll' ）在 PATH 环境变量内或直接依赖的文件所在的目录以便被搜索。
 在链接器命令行中引用 $LIB 指定库。静态库链接时同时需要在之前使用 -Wl,-dn 选项以避免链接至动态库（默认链接器优先链接 $(LIB).dll.a 而不是 lib$(LIB).a ）。
 以上部署方式中链接器搜索路径中的静态库和动态库的调试版本和非调试版本可以在一个目录内，不产生冲突。
 
 @1.5.2 最小外部运行依赖：
 当前示例程序只依赖 MinGW 运行时的以下 3 个动态库文件：
- libstdc++-6.dll （ libstdc++ ，标准库的主要实现），
- libgcc_s_dw2-1.dll （ libgcc ， GCC 运行时环境，实现一部分标准库），
- libwinpthread-1.dll （ libwinpthread ，在 Windows 环境下提供 POSIX 线程接口）。
+libstdc++-6.dll （ libstdc++ ，标准库的主要实现），
+libgcc_s_dw2-1.dll （ libgcc ， GCC 运行时环境，实现一部分标准库），
+libwinpthread-1.dll （ libwinpthread ，在 Windows 环境下提供 POSIX 线程接口）。
 注意 libgcc_s_dw2-1.dll 使用 Dwarf2 异常模型。使用其它异常模型的 DLL 后缀相应不同。
- libstdc++-6.dll 依赖其余的文件。使用不同异常模型的文件名相同但底层接口不同，因此不兼容。
+libstdc++-6.dll 依赖其余的文件。使用不同异常模型的文件名相同但底层接口不同，因此不兼容。
 如果需要打包文件，需保证这些库文件版本对应以免兼容性问题。
 因为许可证原因，以上文件不随项目文件分发。
 
 @1.6 Android 平台工具链和标准库实现：
- build 492 前：
+build 492 前：
 无（不支持的平台）。
- 2014-04-07(build 492) 起：
+2014-04-07(build 492) 起：
 构建平台 Windows x64 。
 依赖项：
- Oracle JDK 8u5 x64 / Android SDK / Android SDK Build-tools 19.0.3 / Android NDK r9d x86_64。
+Oracle JDK 8u5 x64 / Android SDK / Android SDK Build-tools 19.0.3 / Android NDK r9d x86_64。
 使用 API level 9 和 G++ 4.8 。
 独立工具链目标三元组 arm-linux-androideabi ，构建脚本参见 Tools/make-clang-android.sh 。
- 2014-07-14(build 518) 起：
- Android SDK Build-tools 20.0.0 。
+2014-07-14(build 518) 起：
+Android SDK Build-tools 20.0.0 。
 注意 zipalign 工具自 19.1.0 起已被移入 Build-tools 。
- 2014-11-15(build 554) 起：
- Oracle JDK 8u25 x64 / Android NDK r10c x86_64 / Android SDK Build-tools 21.1.1 。
+2014-11-15(build 554) 起：
+Oracle JDK 8u25 x64 / Android NDK r10c x86_64 / Android SDK Build-tools 21.1.1 。
 重新构建独立工具链。
 使用 G++ 4.9 ；使用 gnu-ar 代替 ar 。
 
@@ -194,17 +196,17 @@
 @1.6.2 Android 测试程序运行附加说明：
 使用 Tools/create-android-debug-keystore.sh 创建或更新密钥存储。
 安装不同签名的程序需先卸载旧程序，否则出现 INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES 错误，安装失败。
- YSTest 历史更新记录如下。
- 2014-05-12(build 498) 起：
+YSTest 历史更新记录如下。
+2014-05-12(build 498) 起：
 使用同一认证。
- 2014-10-07(build 543) 起：
+2014-10-07(build 543) 起：
 使用 Tools/create-android-debug-keystore.sh 更新认证。
 
 @2 外部库依赖：
 本章按引入版本顺序记录历史版本使用的外部非系统库。系统库参见 @1 。
 
 @2.1 Loki ：
- build 207 前使用 Loki 库的智能指针实现句柄。
+build 207 前使用 Loki 库的智能指针实现句柄。
 之后已移除。
 
 @2.2 FreeType2 ：
@@ -216,10 +218,10 @@
 除非另行约定，使用当时 devkitPro(@1.4) 自行编译 DS 库文件，使用当时 MinGW32(@1.5) 自行编译 MinGW32 库文件。
 
 @2.2.2 DS 库配置：
- build 185 前：
+build 185 前：
 头文件版本： 2.3.12 。
 库文件版本：在 VNDSx-1.5.3 源代码中提取的 2.3.6 。
- build 185 起：
+build 185 起：
 头文件版本： 2.4.4 。
 库文件版本：使用 makefile 宏 CFLAGS ?= -c -g -O3 -Wall 编译库文件。
 库配置： modules.cfg 配置包含以下有效行：
@@ -234,50 +236,50 @@ AUX_MODULES += psnames
 BASE_EXTENSIONS += ftbitmap.c
 BASE_EXTENSIONS += ftglyph.c
 使用 makefile 宏 CFLAGS ?= -c -g -O3 -Wall 。
- 2011-07-03(build 223 rev 31) 起：
+2011-07-03(build 223 rev 31) 起：
 头文件版本： 2.4.5 。
 库配置： modules.cfg 配置追加以下有效行：
 BASE_EXTENSIONS += ftbbox.c
 BASE_EXTENSIONS += ftstroke.c
 BASE_EXTENSIONS += ftsynth.c
- build 224 rev 34 起：
+build 224 rev 34 起：
 使用 FreeType 2.4.5 ，但源文件目录 "cache" 使用 2.4.4 版本替换，以修正不明原因的 FontCache::GetAscender 的结果错误。
 重新编译库文件。
- 2011-12-01(build 266) 起：
+2011-12-01(build 266) 起：
 使用 FreeType 2.4.8 ，但源文件目录 "cache" 使用 2.4.4 版本替换，原因同上。
 库配置： modules.cfg 配置移除以下有效行：
 AUX_MODULES += psnames
 重新编译库文件。
- 2012-03-11(build 292) 起：
+2012-03-11(build 292) 起：
 使用 FreeType 2.4.9 。证实已修复 cache 错误。
 重新编译库文件。
 
 @2.2.3 DS 和 MinGW32 库配置：
- 2012-03-29(build 296) ：
+2012-03-29(build 296) ：
 准备增加 MinGW32 库文件版本，预备 modules.cfg 配置不变。
- 2012-04-06(build 299) 起：
+2012-04-06(build 299) 起：
 增加 MinGW32 库文件版本，使用 mingw32-make 直接构建默认提供的 makefile 。
- modules.cfg 配置不变。
- 2012-06-17(build 318) 起：
+modules.cfg 配置不变。
+2012-06-17(build 318) 起：
 使用 FreeType 2.4.10 。
- 2012-12-21(build 366) 起：
+2012-12-21(build 366) 起：
 使用 FreeType 2.4.11 。
- 2013-05-18(build 405) ：
+2013-05-18(build 405) ：
 测试发现 2.4.12 库在 DS 上的性能显著降低，因此决定暂不升级；仅重新编译减小二进制文件大小。
- 2013-05-19(build 406) 起：
- modules.cfg 配置移除以下有效行：
+2013-05-19(build 406) 起：
+modules.cfg 配置移除以下有效行：
 HINTING_MODULES += pshinter
 AUX_MODULES += gzip
 BASE_EXTENSIONS += ftbbox.c
 库配置和 DS 库构建文件已添加至版本库，参见 "3rdparty/freetype/builds/ds/modules.cfg" 。
- DS 库文件： 2.4.11 去除 -g 选项（以减小文件体积）重新编译。
- MinGW32 库文件： 重新编译。
- 2013-07-01(build 420) 起：
+DS 库文件： 2.4.11 去除 -g 选项（以减小文件体积）重新编译。
+MinGW32 库文件： 重新编译。
+2013-07-01(build 420) 起：
 使用 FreeType 2.5.0.1 ，但部分文件使用 2.4.11 版本替换，参见 [Documentation::Meta @@ $workaround_b420] 。
 对原始版本的修改：
- "include/freetype/config/ftoption.h" ：保持 2.4.11 版本。
- "src/sfnt/ttmtx.c" ：使用 2.4.11 版本。
- modules.cfg 配置移除以下有效行：
+"include/freetype/config/ftoption.h" ：保持 2.4.11 版本。
+"src/sfnt/ttmtx.c" ：使用 2.4.11 版本。
+modules.cfg 配置移除以下有效行：
 HINTING_MODULES += autofit
 AUX_MODULES += cache
 BASE_EXTENSIONS += ftfstype.c
@@ -286,27 +288,27 @@ BASE_EXTENSIONS += ftsynth.c
 重新编译 DS 库文件。
 实际用于 MinGW32 的 modules.cfg 配置并未移除以上有效行。
 重新编译 MinGW32 库文件。
- 2013-11-30(build 459) 起：
+2013-11-30(build 459) 起：
 使用 FreeType 2.5.1 ，替换文件同上，除路径 "include/freetype/config/ftoption.h" 变更为 "include/config/ftoption.h" 。
 库配置： modules.cfg 配置追加以下有效行（否则 WOFF 支持会因为调用的 GZip 函数未定义而导致 YFramework 链接失败）：
 AUX_MODULES += gzip
- MinGW32 改为使用同 DS 一致的 modules.cfg 。
+MinGW32 改为使用同 DS 一致的 modules.cfg 。
 重新编译 DS 和 MinGW32 库文件。
- 2013-12-24(build 462) 起：
+2013-12-24(build 462) 起：
 使用 FreeType 2.5.2 ，替换文件同上。
- 2014-04-13(build 493) 起：
+2014-04-13(build 493) 起：
 使用 FreeType 2.5.3 ，替换文件同上。
- MinGW32 库文件：使用命令行显式设置 CFLAGS="-c -O3 -Wall -fomit-frame-pointer -DNDEBUG" 重新编译。
+MinGW32 库文件：使用命令行显式设置 CFLAGS="-c -O3 -Wall -fomit-frame-pointer -DNDEBUG" 重新编译。
 
 @2.2.4 DS 、 MinGW32 和 Android 库配置：
- 2014-05-11(build 497) 起：
+2014-05-11(build 497) 起：
 新增 Android 库文件：使用 ./configure --host=arm-linux-androideabi --disable-shared --with-zlib=no --with-bzip2=no --with-png=no --with-harfbuzz=no CFLAGS="-O3 -Wall -Wl,--gc-sections -s -fdata-sections -ffunction-sections -fomit-frame-pointer -DNDEBUG" 配置并编译。
- 2014-07-19(build 520) 起：
+2014-07-19(build 520) 起：
 重新编译 MinGW32 库文件。
 
 @2.3 Anti-Grain Geometry ：
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。
- 2011-01-19(build 187) 起移除。
+2011-01-19(build 187) 起移除。
 
 @2.4 FreeImage ：
 图像库使用 FreeImage 。
@@ -315,14 +317,14 @@ AUX_MODULES += gzip
 @2.4.1 使用版本：
 以下库配置若之前版本已存在，除非另行约定，保持不变。
 除非另行约定，使用当时 devkitPro(@1.4) 自行编译 DS 库文件，使用当时 MinGW32(@1.5) 自行编译 MinGW32 库文件。
- 2013-06-26(build 417) 起：
+2013-06-26(build 417) 起：
 使用裁剪的 FreeImage 3.15.4 。对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
- 2013-07-21(build 431) 起：
+2013-07-21(build 431) 起：
 使用裁剪的 FreeImage 3.15.4 ，并使用 libjpeg-turbo-1.3.0 替换 libjpeg-8d ，更新了 zlib 和 libpng 。对原始版本的修改参见 "3rdparty/include/FreeImage.h" 和 "3rdparty/FreeImage/" 。
 注意增加的 libjpeg SIMD 代码在 MinGW32 依赖 NASM(@1.5) 构建。
- 2013-10-21(build 453) 起：
+2013-10-21(build 453) 起：
 在上一版本的基础上更新 libpng ，并重新编译 MinGW32 库文件。
- 2014-07-19(build 520) 起：
+2014-07-19(build 520) 起：
 使用 3.16.0 ，在此基础上合并上一版本的修改，更新 libjpeg-turbo 和 libpng ，并重新编译 MinGW32 库文件。
 
 */

@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r171
+\version r172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2014-11-19 15:51 +0800
+	2014-12-02 18:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,7 +91,7 @@ public:
 \brief 边框区域。
 \since build 444
 */
-enum class BorderArea : u8
+enum class BorderArea : std::uint8_t
 {
 	Left = 0,
 	Up = 0,

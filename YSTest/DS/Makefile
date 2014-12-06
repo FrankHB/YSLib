@@ -8,25 +8,18 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YSTest by FrankHB 2009 - 2013
-# Version = r1120
+# Version = r1140
 # Created = 2009-11-12 21:26:30 +0800
-# Updated = 2014-04-14 23:59 +0800
+# Updated = 2014-12-06 22:04 +0800
 # Encoding = ANSI
 
 # This makefile is written based on devkitPro example template.
 
-#----
 .SUFFIXES:
-#----
-export PLATFORM		?= DS
-ifeq ($(PLATFORM),DS)
-	ifeq ($(strip $(DEVKITARM)),)
-		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-	endif
-	include $(DEVKITARM)/ds_rules
-endif
 
-#----
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+include $(SHBuild_ToolDir)/Toolchain.DS.mk
+
 # PROJNAME is the name of the project
 # CONF is the configuration name
 # RELEASE is the directory name for object files and intermediate files will be placed
@@ -35,7 +28,6 @@ endif
 # RELEASEDIR is the path for target files
 # TARGET is the name of the file to output
 # OUTPUT is the path of output without extension
-#----
 
 export PROJNAME		?=	YSTest
 export CONF			?=	release
@@ -47,20 +39,16 @@ export TARGET		:=	$(PROJNAME)
 #export TARGET		:=	$(shell basename $(CURDIR))
 export OUTPUT		=	$(BUILDDIR)/$(TARGET)
 
-#----
 # Be sure to change these default banner TEXTs. This is the name your project will
 # display in the DS menu (including some flash cards). Create a custom LOGO.BMP
 # icon for your project, too!
-#----
 
 TITLE		:= $(PROJNAME)
 SUBTITLE1 	:= FrankHB
 SUBTITLE2 	:= 2009 - 2014
 ICON		:= -b $(CURDIR)/data/logo.bmp
 
-#----
 # If you're using EFS_lib, uncomment "USE_EFS = YES" here.
-#----
 #USE_EFS = YES
 
 PROGNAME = $(PROJNAME)
@@ -72,11 +60,8 @@ ARM9OBJ := $(BUILDDIR)/../../$(TARGET)_ARM9/$(CONF)/$(TARGET)_ARM9.arm9
 
 .PHONY: $(CONF) clean rebuild
 
-#----
 # main targets
-#----
 all : $(CONF) $(OUTPUT).nds
-#----
 
 %.ds.gba: %.nds
 	@dsbuild $<
@@ -147,8 +132,6 @@ clean:
 	@rm -f $(BUILDDIR)/*.o
 	@rm -f $(RELEASEDIR)/*.*ds*
 	@echo Cleaned.
-
-#----
 
 rebuild: all
 

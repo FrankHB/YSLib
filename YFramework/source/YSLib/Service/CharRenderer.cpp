@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3258
+\version r3259
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-08-14 21:57 +0800
+	2014-12-02 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,7 +176,7 @@ RenderCharAlpha(PaintContext&& pc, Color c, bool neg_pitch,
 }
 
 
-u8
+std::uint8_t
 PutCharBase(TextState& ts, SDst eol, ucs4_t c)
 {
 	if(c == '\n')

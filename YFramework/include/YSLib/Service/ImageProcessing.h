@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r226
+\version r249
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2014-12-01 10:18 +0800
+	2014-12-02 18:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,12 +131,6 @@ private:
 	ImageScale scale;
 	//! \since build 461
 	Size view_size{};
-	/*!
-	\brief 每一帧的延迟时间。
-	\note 仅在 IsAnimated() 时有效。
-	\since build 557
-	*/
-	vector<std::chrono::milliseconds> frame_delays{};
 
 public:
 	//! \since build 443
@@ -162,17 +156,11 @@ public:
 
 	DefDeMoveAssignment(ImagePages)
 
-	/*!
-	\brief 判断是否为动画。
-	\since build 557
-	*/
-	DefPred(const ynothrow, Animated, !frame_delays.empty())
-
+	//! \since build 558
+	DefGetterMem(const ynothrow, const vector<HBitmap>&, Bitmaps, cache)
 	//! \since build 557
 	//@{
 	DefGetter(const ynothrow, size_t, Count, cache.GetBitmaps().size())
-	DefGetter(const, std::chrono::milliseconds, FrameTime,
-		frame_delays.at(GetIndex()))
 	DefGetter(const ynothrow, size_t, Index, index)
 	//@}
 	//! \since build 443
@@ -207,12 +195,19 @@ public:
 	PDefH(bool, SwitchPageDiff, ptrdiff_t diff)
 		ImplRet(SwitchPage((index + diff) % GetCount()))
 
-	//! \return 是否成功进行了缩放。
+	/*!
+	\return 是否成功进行了缩放。
+	\note 偏移量相对于画刷左上角。
+	*/
 	//@{
-	//! \note 偏移量相对于画刷左上角。
+	/*!
+	\brief 按指定的比例变化量和偏移量缩放。
+	\since build 558
+	*/
 	bool
-	Zoom(s16, const Point&);
+	Zoom(float, const Point&);
 
+	//! \brief 按指定的比例和偏移量缩放。
 	bool
 	ZoomByRatio(float, const Point&);
 	//@}

@@ -11,13 +11,13 @@
 /*!	\file TextLayout.h
 \ingroup Service
 \brief 文本布局计算。
-\version r2830
+\version r2831
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-08-24 08:17 +0800
+	2014-12-02 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,7 @@ FetchResizedBottomMargin(const TextState&, SDst);
 \return 最大能容纳的文本行数。
 \since build 252
 */
-YF_API u16
+YF_API std::uint16_t
 FetchResizedLineN(const TextState& ts, SDst);
 
 /*!

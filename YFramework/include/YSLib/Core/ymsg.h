@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1987
+\version r1989
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2014-09-24 23:29 +0800
+	2014-12-02 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,13 +43,13 @@ namespace Messaging
 \brief 消息标识。
 \since build 175
 */
-using ID = yimpl(u32);
+using ID = yimpl(std::uint32_t);
 
 /*!
 \brief 消息优先级。
 \since build 175
 */
-using Priority = u8;
+using Priority = std::uint8_t;
 
 /*!
 \brief 默认消息优先级。

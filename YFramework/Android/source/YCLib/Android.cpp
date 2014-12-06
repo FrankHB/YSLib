@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r415
+\version r418
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-11-13 19:59 +0800
+	2014-12-05 17:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -147,7 +147,7 @@ ScreenBuffer::Resize(const Size& s)
 }
 
 void
-ScreenBuffer::UpdateFrom(BitmapPtr p_buf) ynothrow
+ScreenBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 {
 	// TODO: Expand stride for given width using a proper strategy.
 	std::copy_n(Nonnull(p_buf), GetAreaOf(GetSize()),
@@ -171,11 +171,11 @@ ScreenRegionBuffer::ScreenRegionBuffer(const Size& s, SDst buf_stride)
 {}
 
 void
-ScreenRegionBuffer::UpdateFrom(BitmapPtr buf) ynothrow
+ScreenRegionBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 {
 	lock_guard<mutex> lck(mtx);
 
-	ScreenBuffer::UpdateFrom(buf);
+	ScreenBuffer::UpdateFrom(p_buf);
 }
 
 void

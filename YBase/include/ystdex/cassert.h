@@ -11,13 +11,13 @@
 /*!	\file cassert.h
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r160
+\version r184
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2013-07-27 04:11:53 +0800
 \par 修改时间:
-	2014-11-11 23:46 +0800
+	2014-12-01 23:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,21 +29,24 @@
 #define YB_INC_ystdex_cassert_h_ 1
 
 #include "../ydef.h"
-#include <cassert>
 #include <cstdio>
 
 namespace ystdex
 {
 
+#if YB_Use_YAssert
 /*!
 \brief YBase 默认断言函数。
 \note 当定义宏 YB_Use_YAssert 不等于 0 时，宏 YAssert 操作由此函数实现。
 \note 参数依次为：是否触发、表达式、文件名、行号和消息文本。
+\note 允许空指针参数，视为未知。
 \since build 553
 */
 YB_API void
 yassert(bool, const char*, const char*, int, const char*) ynothrow;
+#endif
 
+#if YB_Use_YTrace
 /*!
 \brief YCLib 调试跟踪函数。
 \note 当定义宏 YB_Use_YTrace 不等于 0 时，宏 YTrace 操作由此函数实现。
@@ -52,16 +55,16 @@ yassert(bool, const char*, const char*, int, const char*) ynothrow;
 YB_API YB_ATTR(format (printf, 6, 7)) void
 ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 	...) ynothrow;
+#endif
 
 } // namespace ystdex;
 
 #endif // NOTE: Allow multiple for macro definitions.
 
+#include <cassert>
+
 #undef yconstraint
 #undef yassume
-#undef YAssert
-#undef YTrace
-#undef YAssertNonnull
 
 /*!
 \ingroup YBase_pseudo_keyword
@@ -94,17 +97,21 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 #endif
 
 
-#if YB_Use_YAssert
-#	define YAssert(_expr, _msg) \
+#ifndef YAssert
+#	if YB_Use_YAssert
+#		define YAssert(_expr, _msg) \
 	ystdex::yassert(_expr, #_expr, __FILE__, __LINE__, _msg)
-#else
-#	define YAssert(_expr, _msg) yassume(_expr)
+#	else
+#		define YAssert(_expr, _msg) yassume(_expr)
+#	endif
 #endif
 
+#ifndef YAssertNonnull
 //! \since build 495
-#define YAssertNonnull(_expr) YAssert(bool(_expr), "Null reference found.")
+#	define YAssertNonnull(_expr) YAssert(bool(_expr), "Null reference found.")
+#endif
 
-#if YB_Use_YTrace
+#ifndef YTrace
 //! \since build 432
 //@{
 /*!
@@ -112,10 +119,12 @@ ytrace(std::FILE*, std::uint8_t, std::uint8_t, const char*, int, const char*,
 \note 使用自定义的调试跟踪级别。
 \sa ytrace
 */
-#	define YTrace(_stream, _lv, _t, _msg, ...) \
+#	if YB_Use_YTrace
+#		define YTrace(_stream, _lv, _t, _msg, ...) \
 	ystdex::ytrace(_stream, _lv, _t, __FILE__, __LINE__, _msg, __VA_ARGS__)
-#else
-#	define YTrace(...)
+#	else
+#		define YTrace(...)
+#	endif
 #endif
 //@}
 

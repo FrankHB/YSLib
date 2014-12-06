@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r417
+\version r469
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-11-12 05:00 +0800
+	2014-12-01 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,10 @@
 #include YFM_YCLib_Video // for platform::ColorSpace, platform::YConsoleInit;
 #include <cstdarg>
 #include <ystdex/string.hpp>
-#if YCL_Android
+#if YCL_Win32
+#	include <csignal>
+#	include <Windows.h>
+#elif YCL_Android
 #	include <android/log.h>
 #endif
 
@@ -182,18 +185,68 @@ using namespace platform;
 namespace platform_ex
 {
 
-#if YCL_Android
+#if YB_Use_YAssert && YF_Multithread == 1
 void
 LogAssert(bool expr, const char* expr_str, const char* file, int line,
 	const char* msg) ynothrow
 {
 	if(YB_UNLIKELY(!expr))
+#	if YCL_Android
 		::__android_log_assert(expr_str, "YFramework",
 			"Assertion failed @ \"%s\":%i:\n %s .\nMessage: \n%s\n", file, line,
 			expr_str, msg);
+#	else
+	{
+#		if YCL_Win32
+		try
+		{
+			const auto chk_null([](const char* s){
+				return s && *s != '\0'? s : "<unknown>";
+			});
+			char prog[MAX_PATH]{"<unknown>"};
+
+			::GetModuleFileNameA({}, prog, MAX_PATH);
+
+			const auto& errstr(ystdex::sfmt("Assertion failed @ program %s: "
+				"\"%s\":%i:\n %s .\nMessage: \n%s\n", prog, chk_null(file),
+				line, chk_null(expr_str), chk_null(msg)));
+
+			::OutputDebugStringA(errstr.c_str());
+			switch(::MessageBoxA({}, errstr.c_str(),
+				"YCLib Runtime Assertion", MB_ABORTRETRYIGNORE | MB_ICONHAND
+				| MB_SETFOREGROUND | MB_TASKMODAL))
+			{
+			case IDIGNORE:
+				return;
+			case IDABORT:
+				std::raise(SIGABRT);
+			default:
+				break;	
+			}
+			std::terminate();
+		}
+		catch(...)
+		{}
+#		endif
+		try
+		{
+			FetchCommonLogger().AccessRecord([=]{
+				ystdex::yassert({}, expr_str, file, line, msg);
+			});
+		}
+		catch(...)
+		{
+			std::fprintf(stderr, "Fetch logger failed.");
+			std::fflush(stderr);
+			ystdex::yassert({}, expr_str, file, line, msg);
+		}
+	}
+#	endif
 }
+#endif
 
 
+#if YCL_Android
 int
 MapAndroidLogLevel(Descriptions::RecordLevel lv)
 {

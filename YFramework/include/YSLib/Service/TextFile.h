@@ -11,13 +11,13 @@
 /*!	\file TextFile.h
 \ingroup Service
 \brief 平台无关的文本文件抽象。
-\version r796
+\version r797
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-07-23 07:11 +0800
+	2014-12-02 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -111,7 +111,7 @@ public:
 	\since build 273
 	*/
 	void
-	Locate(u32) const;
+	Locate(std::uint32_t) const;
 
 	/*!
 	\brief 设置文件读位置为文本区段头。

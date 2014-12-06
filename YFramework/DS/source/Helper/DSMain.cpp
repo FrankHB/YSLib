@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3159
+\version r3160
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-11-12 04:38 +0800
+	2014-12-02 18:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ namespace
 
 #if YCL_Win32
 yconstexpr double g_max_free_fps(1000);
-std::chrono::nanoseconds host_sleep(u64(1000000000 / g_max_free_fps));
+std::chrono::nanoseconds host_sleep(std::uint64_t(1000000000 / g_max_free_fps));
 #endif
 
 

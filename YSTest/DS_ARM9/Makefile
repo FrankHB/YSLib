@@ -8,27 +8,23 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM9
-# Version = r1334
+# Version = r1388
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-11-15 21:57 +0800
+# Updated = 2014-12-06 20:30 +0800
 # Encoding = ANSI
 
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
-#----
 .SUFFIXES:
-#----
-export PLATFORM		?= DS
 
-ifeq ($(PLATFORM),DS)
-	ifeq ($(strip $(DEVKITARM)),)
-		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-	endif
-	include $(DEVKITARM)/ds_rules
-endif
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+include $(SHBuild_ToolDir)/Toolchain.DS.mk
 
-#----
+# NOTE: Workaround for libnds.
+CFLAGS_COMMON := $(CFLAGS_COMMON) -Wno-redundant-decls
+CXXFLAGS_COMMON := $(CXXFLAGS_COMMON) -Wno-redundant-decls
+
 # PROJNAME is the name of the project
 # CONF is the configuration name
 # RELEASE is the directory name for object files and intermediate files will be placed
@@ -40,7 +36,6 @@ endif
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
 # GRAPHICS is a list of directories containing image files to be converted with grit
-#----
 
 export PROJNAME		?=	YSTest_ARM9
 export CONF			?=	release
@@ -57,79 +52,45 @@ export DATA			:=	data
 #export GRAPHICS	:=	gfx
 #export MUSIC		:=	music
 
-#----
 # options for code generation
-#----
-ARCH_AS	:=	-mthumb -mthumb-interwork -march=armv5te
-ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
-
-
-# note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
-# *insists* it has a FPU or VFP, and it won't take no for an answer!
-
-ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
-
-CFLAGS	:=	-Wall -Wextra -Wno-psabi -Wunreachable-code \
- 			-Wmissing-declarations -Winvalid-pch \
- 			-fdata-sections -ffunction-sections \
- 			-ffast-math $(ARCH)
-
-CFLAGS	+=	$(INCLUDE) -DARM9
-LDFLAGS :=	-specs=ds_arm9.specs $(ARCH) -Wl,--gc-sections -Wl,-Map,$(notdir $*.map)
-
-ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
-LDFLAGS	+=	-s
-else
-ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -fno-omit-frame-pointer
-LDFLAGS	+=	-g
-endif
-
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit \
- 			-std=c++11 -Wctor-dtor-privacy -Wnon-virtual-dtor -Wsign-promo
-# 			-Wctor-dtor-privacy -Wnoexcept -Wold-style-cast -Wsign-promo
+ARCH := $(ARCH_ARM9)
+ARCH_AS := $(ARCH_AS_ARM9)
+ASFLAGS := $(ASFLAGS_ARM9)
+CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM9) $(CFLAGS_COMMON)
+CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
+	-fno-threadsafe-statics -fuse-cxa-atexit \
+	-Wnon-virtual-dtor -Wsign-promo
+#	-Wnoexcept -Wold-style-cast -Wsign-promo
+LDFLAGS := $(LDFLAGS_OPT_DBG) -specs=ds_arm9.specs $(ARCH) -Wl,--gc-sections \
+	-Wl,-Map,$(notdir $*.map)
 
 #CFLAGS	:=	-g -Wformat=2 -Winline -Wall \
 #		-mcpu=arm946e-s -mtune=arm946e-s -fomit-frame-pointer \
 #		-ffast-math \
 #		$(ARCH)
 #CFLAGS	+=	$(INCLUDE) -I$(PAPATH)/include/nds
-#CXXFLAGS	:=	$(CFLAGS) -frepo -fno-threadsafe-statics -fno-rtti -fno-exceptions
+#CXXFLAGS	:=	$(CFLAGS) -frepo -fno-threadsafe-statics
 #CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=gnu++0x
 #	-Weffc++ -Wold-style-cast -Woverloaded-virtual -pedantic
 #	-Wextra -Winit-self -Wmissing-include-dirs -Wsign-promo
+#LDFLAGS=	-specs=ds_arm9.specs -g $(ARCH) -L$(PAPATH)/lib \
+#	-Wl,-Map,$(notdir $*.map)
 
-#LDFLAGS	:=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
-#LDFLAGS=	-specs=ds_arm9.specs -g $(ARCH) -L$(PAPATH)/lib -Wl,-Map,$(notdir $*.map)
-
-#----
 # any extra libraries we wish to link with the project
-#----
 LIBS	:=	-lfat -lnds9
 
-#---- User defined libraries.
-
+# User defined libraries.
 LIBPATHEX	:= -L$(TOPDIR)/../../YFramework/DS/lib
 LIBEX		:= -lFreeImage -lfreetype #-lagg -lloki
 
 YBASE_A := $(BUILDDIR)/../../YBase/$(RELEASE)/libYBase.a
 YFRAMEWORK_A := $(BUILDDIR)/../../YFramework/$(RELEASE)/libYFramework.a
 
-#----
-
-#----
-# list of directories containing libraries, this must be the top level containing
-# include and lib
-#----
+# List of directories containing libraries, this must be the top level
+#	containing include and lib.
 LIBDIRS	:=	$(LIBNDS)
 
-#----
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#----
 ifneq ($(CONF),$(notdir $(CURDIR)))
-#----
 
 export ARM9BIN	:=	$(RELEASEDIR)/$(PROJNAME).arm9
 export ARM9ELF	:=	$(BUILDDIR)/$(PROJNAME).arm9.elf
