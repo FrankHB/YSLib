@@ -11,13 +11,13 @@
 /*!	\file HexBrowser.cpp
 \ingroup YReader
 \brief 十六进制浏览器。
-\version r580
+\version r581
 \author FrankHB <frankhb1989@gmail.com>
 \since build 253
 \par 创建时间:
 	2011-10-14 18:12:20 +0800
 \par 修改时间:
-	2014-08-28 17:55 +0800
+	2014-12-02 18:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,7 +170,7 @@ HexViewArea::Reset()
 }
 
 void
-HexViewArea::UpdateData(u32 pos)
+HexViewArea::UpdateData(std::uint32_t pos)
 {
 	if(model.IsValid() && pos < model.GetSize())
 	{

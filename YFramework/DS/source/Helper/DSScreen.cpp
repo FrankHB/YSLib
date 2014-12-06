@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r269
+\version r274
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-11-12 04:39 +0800
+	2014-12-06 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -38,19 +38,19 @@ namespace Devices
 
 #if YCL_DS
 DSScreen::DSScreen(bool b) ynothrow
-	: Screen(MainScreenWidth, MainScreenHeight)
+	: Screen({MainScreenWidth, MainScreenHeight})
 {
 	pBuffer = (b ? DS::InitScrDown : DS::InitScrUp)(bg);
 }
 
 void
-DSScreen::Update(BitmapPtr buf) ynothrow
+DSScreen::Update(ConstBitmapPtr p_buf) ynothrow
 {
-	DS::ScreenSynchronize(GetCheckedBufferPtr(), buf);
+	DS::ScreenSynchronize(GetCheckedBufferPtr(), p_buf);
 }
 #elif YCL_Win32 || YCL_Android
 DSScreen::DSScreen(bool b) ynothrow
-	: Screen(MainScreenWidth, MainScreenHeight),
+	: Screen({MainScreenWidth, MainScreenHeight}),
 	Offset(), WindowHandle(),
 	rbuf({MainScreenWidth, MainScreenHeight})
 {
@@ -60,7 +60,7 @@ DSScreen::DSScreen(bool b) ynothrow
 }
 
 void
-DSScreen::Update(Drawing::BitmapPtr p_buf) ynothrow
+DSScreen::Update(ConstBitmapPtr p_buf) ynothrow
 {
 	rbuf.UpdateFrom(p_buf);
 	rbuf.UpdateTo(Nonnull(WindowHandle), Offset);

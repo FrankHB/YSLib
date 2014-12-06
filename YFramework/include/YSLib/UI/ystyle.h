@@ -11,13 +11,13 @@
 /*!	\file ystyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r716
+\version r717
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-11-21 12:58 +0800
+	2014-12-02 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,7 @@ yconstfn PDefH(Color, MakeGrayOrColor, Color c, MonoType g, bool colored)
 \note 角度制，单位为 ° ，值 360 对应一个圆周。
 \since build 302
 */
-using Hue = ystdex::fixed_point<u16, 9>;
+using Hue = ystdex::fixed_point<std::uint16_t, 9>;
 
 
 /*!

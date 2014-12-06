@@ -8,27 +8,19 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YBase
-# Version = r1964
+# Version = r1999
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-11-15 22:19 +0800
+# Updated = 2014-12-06 22:01 +0800
 # Encoding = ANSI
 
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
-#----
 .SUFFIXES:
-#----
-export PLATFORM		?= DS
 
-ifeq ($(PLATFORM),DS)
-	ifeq ($(strip $(DEVKITARM)),)
-		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-	endif
-	include $(DEVKITARM)/ds_rules
-endif
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+include $(SHBuild_ToolDir)/Toolchain.DS.mk
 
-#----
 # PROJNAME is the name of the project
 # CONF is the configuration name
 # RELEASE is the directory name for object files and intermediate files will be placed
@@ -39,7 +31,6 @@ endif
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
-#----
 
 export PROJNAME		?=	YBase
 export CONF			?=	release
@@ -54,39 +45,14 @@ export SOURCES		:=	source data $(REFDIR)/source \
 export INCLUDES		:=	include data $(REFDIR)/include
 export DATA			:=	data $(REFDIR)/data
 
-#----
 # options for code generation
-#----
-ifeq ($(PLATFORM),DS)
-
-ARCH_AS	:=	-mthumb -mthumb-interwork -march=armv5te
-ARCH	:=	$(ARCH_AS) -mtune=arm946e-s
-
-# NOTE: arm9tdmi isn't the correct CPU arch, but anything newer and LD
-# *insists* it has a FPU or VFP, and it won't take no for an answer!
-
-ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
-
-CFLAGS	:=	-Wall -Wextra -Wno-psabi \
- 			-Wcast-align -Wunreachable-code \
- 			-Wmissing-declarations -Wredundant-decls -Winvalid-pch \
- 			-fdata-sections -ffunction-sections \
- 			-ffast-math $(ARCH)
-
-CFLAGS	+=	$(INCLUDE) -pedantic-errors -DARM9
-
-ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
-else
-ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -fno-omit-frame-pointer
-endif
-
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++11 \
- 			-Wctor-dtor-privacy -Wnoexcept -Wnon-virtual-dtor -Wold-style-cast \
- 			-Wsign-promo
-
-endif
+ARCH := $(ARCH_ARM9)
+ARCH_AS := $(ARCH_AS_ARM9)
+ASFLAGS := $(ASFLAGS_ARM9)
+CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM9) $(CFLAGS_COMMON)
+CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
+	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy -Wnoexcept \
+	-Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
 
 #----
 # no real need to edit anything past this point unless you need to add additional

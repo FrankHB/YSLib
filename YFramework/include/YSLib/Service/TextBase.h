@@ -11,13 +11,13 @@
 /*!	\file TextBase.h
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2738
+\version r2741
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-08-04 08:13 +0800
+	2014-12-02 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -97,7 +97,7 @@ public:
 	\since build 371
 	*/
 	Point Pen{};
-	u8 LineGap = 0; //!< 行距。
+	std::uint8_t LineGap = 0; //!< 行距。
 
 	/*!
 	\brief 构造：使用指定字体和边距。
@@ -180,7 +180,7 @@ GetTextLineHeightExOf(const TextState& ts)
 \brief 取笔所在的当前行数。
 \since build 231
 */
-inline u16
+inline std::uint16_t
 GetCurrentTextLineNOf(const TextState& ts)
 {
 	return (ts.Pen.Y - ts.Margin.Top) / GetTextLineHeightExOf(ts);
@@ -211,7 +211,7 @@ SetPenOf(TextState& ts, SPos x, SPos y)
 \since build 231
 */
 YF_API void
-SetCurrentTextLineNOf(TextState&, u16);
+SetCurrentTextLineNOf(TextState&, std::uint16_t);
 
 /*!
 \brief 按指定显示区域和文本区域的宽重新设置右边距。

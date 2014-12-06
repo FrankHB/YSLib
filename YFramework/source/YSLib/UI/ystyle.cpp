@@ -11,13 +11,13 @@
 /*!	\file ystyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r961
+\version r962
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-11-21 12:58 +0800
+	2014-12-02 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -276,7 +276,7 @@ ColorToHSL(Color c)
 {
 	using mid_t = float; //中间类型。
 
-	const u8 r(c.GetR()), g(c.GetG()), b(c.GetB()),
+	const std::uint8_t r(c.GetR()), g(c.GetG()), b(c.GetB()),
 		min_color(min(min(r, g), b)), max_color(max(max(r, g), b));
 	mid_t h(0); // 此处 h 的值每 0x6 对应一个圆周。
 	mid_t s(0);

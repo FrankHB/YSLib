@@ -37,7 +37,7 @@ echo Bootstraping ...
 SHBuild_Stage1_SHBuild="${SHBuild_BaseDir}/SHBuild"
 
 if command -v "$SHBuild_Stage1_SHBuild"; then
-	echo Found stage 1 SHBuild "${SHBuild_ToolDir}", building skipped.	
+	echo Found stage 1 SHBuild "${SHBuild_Stage1_SHBuild}", building skipped.	
 else
 	echo Stage 1 SHBuild not found. Building ...
 	${SHBuild_ToolDir}/SHBuild-build.sh

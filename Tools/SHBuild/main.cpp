@@ -11,13 +11,13 @@
 /*!	\file main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2652
+\version r2653
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-11-29 11:35 +0800
+	2014-12-05 21:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -500,7 +500,7 @@ BuildFile(const Rule& rule)
 			print("Compile file: '" + ipth.back().GetMBCS() + "'.",
 				Informative);
 			bctx.CallWithException(cmd + " -MMD" + " -c" + bctx.GetFlags() + ' '
-				+ fullname + " -o \"" + ofullname + '"');
+				+ '"' + fullname + "\" -o \"" + ofullname + '"');
 		}
 		return {ofullname};
 	}

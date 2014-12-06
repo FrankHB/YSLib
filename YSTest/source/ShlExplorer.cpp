@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1411
+\version r1412
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-11-21 12:43 +0800
+	2014-12-02 18:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -629,8 +629,7 @@ ShlExplorer::OnPaint()
 	if(cbFPS.IsTicked())
 	{
 		using namespace ColorSpace;
-
-		const u32 t(fpsCounter.Refresh());
+		const std::uint32_t t(fpsCounter.Refresh());
 
 		if(t != 0)
 		{

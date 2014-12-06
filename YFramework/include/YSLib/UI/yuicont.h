@@ -11,13 +11,13 @@
 /*!	\file yuicont.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2078
+\version r2079
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-11-21 09:28 +0800
+	2014-12-02 18:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -154,7 +154,7 @@ MoveToBottom(IWidget& wgt);
 //! \since build 555
 //@{
 //! \brief Z 顺序类型：覆盖顺序，值越大表示越接近顶层。
-using ZOrder = u8;
+using ZOrder = std::uint8_t;
 //! \brief 默认 Z 顺序值。
 const ZOrder DefaultZOrder(64);
 //! \brief 默认窗口 Z 顺序值。

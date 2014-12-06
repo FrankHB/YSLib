@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.cpp
 \ingroup Service
 \brief 文本渲染。
-\version r2704
+\version r2710
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-07-11 02:42 +0800
+	2014-12-02 18:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -117,7 +117,7 @@ TextRenderer::operator()(ucs4_t c)
 }
 
 void
-TextRenderer::ClearLine(u16 l, SDst n)
+TextRenderer::ClearLine(std::uint16_t l, SDst n)
 {
 	const auto& g(GetContext());
 	const auto h(g.GetHeight());
@@ -153,7 +153,7 @@ TextRegion::InitializeFont()
 }
 
 void
-TextRegion::ClearLine(u16 l, SDst n)
+TextRegion::ClearLine(std::uint16_t l, SDst n)
 {
 	const auto& g(GetContext());
 
@@ -163,7 +163,7 @@ TextRegion::ClearLine(u16 l, SDst n)
 		--n;
 	if(YB_LIKELY(bool(g) && pBufferAlpha))
 	{
-		const u32 t(
+		const std::uint32_t t(
 			(l + n > g.GetHeight() ? g.GetHeight() - l : n) * g.GetWidth());
 
 		yunseq(ClearPixel(g[l], t),
@@ -172,7 +172,7 @@ TextRegion::ClearLine(u16 l, SDst n)
 }
 
 void
-TextRegion::ClearTextLine(u16 l)
+TextRegion::ClearTextLine(std::uint16_t l)
 {
 	auto& ts(GetTextState());
 	SDst h(GetTextLineHeightExOf(ts));
@@ -191,13 +191,13 @@ TextRegion::Scroll(ptrdiff_t n, SDst h)
 {
 	if(YB_LIKELY(pBuffer && pBufferAlpha))
 	{
-		const s32 t(((h + Margin.Bottom > GetHeight()
+		const std::int32_t t(((h + Margin.Bottom > GetHeight()
 			? GetHeight() - Margin.Bottom : h)
 			- Margin.Top - std::abs(n)) * GetWidth());
 
 		if(YB_LIKELY(n && t > 0))
 		{
-			u32 d(Margin.Top), s(d);
+			std::uint32_t d(Margin.Top), s(d);
 
 			if(n > 0)
 				d += n;

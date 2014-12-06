@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3183
+\version r3186
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2014-11-12 05:04 +0800
+	2014-12-02 18:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -192,7 +192,7 @@ MoveScrollArea(YSLib::UI::BufferedTextArea& area_up,
 }
 
 //! \since build 375
-u16
+std::uint16_t
 CheckOverRead(TextRegion& r)
 {
 	const auto b(FetchLastLineBasePosition(r, r.GetHeight()));
@@ -222,7 +222,7 @@ DualScreenReader::DualScreenReader(SDst w, SDst h_up, SDst h_down,
 }
 
 void
-DualScreenReader::SetLineGap(u8 g)
+DualScreenReader::SetLineGap(std::uint8_t g)
 {
 	if(area_up.LineGap != g)
 	{
@@ -433,7 +433,7 @@ DualScreenReader::MoveUpForLastLine(ptrdiff_t off, size_t h)
 {
 	MoveScrollArea(area_up, area_dn, off, h);
 
-	u16 n(area_dn.GetTextLineNEx());
+	std::uint16_t n(area_dn.GetTextLineNEx());
 
 	YAssert(n != 0, "No Enough height.");
 	SetCurrentTextLineNOf(area_dn, --n);

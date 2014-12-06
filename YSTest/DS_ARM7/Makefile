@@ -8,27 +8,23 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YShell Test -> ARM7
-# Version = r1318
+# Version = r1377
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-11-15 22:18 +0800
+# Updated = 2014-12-06 22:05 +0800
 # Encoding = ANSI
 
 
 # This makefile is written based on PALib Makefile by Scognito and Tom and crash.
 
-#----
 .SUFFIXES:
-#----
-export PLATFORM		?= DS
 
-ifeq ($(PLATFORM),DS)
-	ifeq ($(strip $(DEVKITARM)),)
-		$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-	endif
-	include $(DEVKITARM)/ds_rules
-endif
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+include $(SHBuild_ToolDir)/Toolchain.DS.mk
 
-#----
+# NOTE: Option '-Wno-redundant-decls' is workaround for libnds.
+CFLAGS_COMMON := $(CFLAGS_COMMON) -Wno-redundant-decls
+CXXFLAGS_COMMON := $(CXXFLAGS_COMMON) -Wno-redundant-decls
+
 # PROJNAME is the name of the project
 # CONF is the configuration name
 # RELEASE is the directory name for object files and intermediate files will be placed
@@ -40,7 +36,6 @@ endif
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary files embedded using bin2o
 # GRAPHICS is a list of directories containing image files to be converted with grit
-#----
 
 export PROJNAME		?=	YSTest_ARM7
 export CONF			?=	release
@@ -55,56 +50,26 @@ export DATA			:=	data
 #export GRAPHICS	:=	gfx
 #export MUSIC		:=	music
 
-#----
 # options for code generation
-#----
-ARCH_AS	:=	-mthumb -mthumb-interwork -mcpu=arm7tdmi
-ARCH	:=	$(ARCH_AS) -mtune=arm7tdmi
+ARCH := $(ARCH_ARM7)
+ARCH_AS := $(ARCH_AS_ARM7)
+ASFLAGS := $(ASFLAGS_ARM7)
+CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM7) $(CFLAGS_COMMON)
+CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM7) $(CXXFLAGS_COMMON) \
+	-fno-threadsafe-statics -fuse-cxa-atexit \
+	-Wctor-dtor-privacy -Wnoexcept -Wnon-virtual-dtor -Wold-style-cast \
+	-Wsign-promo
+LDFLAGS := $(LDFLAGS_OPT_DBG) -specs=ds_arm7.specs $(ARCH) -Wl,--gc-sections \
+	-Wl,-Map,$(notdir $*.map)
 
-# note: arm9tdmi isn't the correct CPU arch, but anything newer and LD
-# *insists* it has a FPU or VFP, and it won't take no for an answer!
-
-ASFLAGS	:=	$(ARCH) -mfpu=softfpa -mfpu=softvfp
-
-CFLAGS	:=	-Wall -Wextra -Wno-psabi \
- 			-Wcast-align -Wunreachable-code \
- 			-Wmissing-declarations -Winvalid-pch \
- 			-fdata-sections -ffunction-sections \
- 			-ffast-math $(ARCH)
-
-CFLAGS	+=	$(INCLUDE) -DARM7
-LDFLAGS :=	-specs=ds_arm7.specs $(ARCH) -Wl,--gc-sections -Wl,-Map,$(notdir $*.map)
-
-ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
-LDFLAGS	+=	-s
-else
-ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -fno-omit-frame-pointer
-LDFLAGS	+=	-g
-endif
-
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++11 \
- 			-Wctor-dtor-privacy -Wnoexcept -Wnon-virtual-dtor -Wold-style-cast \
- 			-Wsign-promo
-
-#----
 # any extra libraries we wish to link with the project
-#----
-LIBS	:=	-ldswifi7 -lmm7 -lnds7
+LIBS := -ldswifi7 -lmm7 -lnds7
 
-#----
-# list of directories containing libraries, this must be the top level containing
-# include and lib
-#----
+# List of directories containing libraries, this must be the top level
+#	containing include and lib.
 LIBDIRS	:=	$(LIBNDS)
 
-#----
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#----
 ifneq ($(CONF),$(notdir $(CURDIR)))
-#----
 
 export ARM7BIN	:=	$(RELEASEDIR)/$(PROJNAME).arm7
 export ARM7ELF	:=	$(BUILDDIR)/$(PROJNAME).arm7.elf

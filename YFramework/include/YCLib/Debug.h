@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r485
+\version r514
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-11-12 19:14 +0800
+	2014-12-01 23:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,6 +122,20 @@ public:
 	*/
 	void
 	SetSender(Sender);
+
+	/*!
+	\brief 访问日志记录执行指定操作。
+	\note 线程安全：互斥访问。
+	\since build 558
+	*/
+	template<typename _func>
+	auto
+	AccessRecord(_func f) -> decltype(f())
+	{
+		Concurrency::lock_guard<Concurrency::recursive_mutex> lck(record_mutex);
+
+		return f();
+	}
 
 	//! \brief 默认过滤：仅允许等级不大于阈值的日志被记录。
 	static bool
@@ -245,25 +259,33 @@ LogWithSource(const char*, int, const char*, ...);
 namespace platform_ex
 {
 
-#if YCL_Android
+#if YB_Use_YAssert && YF_Multithread == 1
 /*!
 \brief 日志断言函数。
-\note 默认断言和 ystdex::yassert 无法使用调试日志输出时的替代。
-\note 在 Android 平台上用此函数包装 NDK 函数实现。
+\note 默认断言 ystdex::yassert 的替代。
+\warning 若忽略且继续，则行为未定义。应只用于调试用途。
 \sa ystdex::yassert
 \since build 553
+\todo 允许在 Win32 上禁用消息框。
+
+若断言成功则为空操作，否则：
+在 Android 上用此函数包装 NDK 函数替代实现。
+在其它平台上：
+	在 Win32 上首先使用图形界面（消息框）提示断言失败。
+		允许忽略并继续，否则终止程序。当选择中止时候首先发送 \c SIGABRT 信号。
+		忽略此过程的所有错误，包括所有被抛出的异常。若捕获异常则继续以下行为。
+	锁定公共日志记录器后调用 ystdex::yassert ，最终调用 std::terminate 终止程序。
 */
 YF_API void
 LogAssert(bool, const char*, const char*, int, const char*) ynothrow;
 
-#	ifdef YB_Use_YAssert
-#		undef YAssert
+#	undef YAssert
 //! \since build 499
-#		define YAssert(_expr, _msg) \
-			platform_ex::LogAssert(_expr, #_expr, __FILE__, __LINE__, _msg)
-#	endif
+#	define YAssert(_expr, _msg) \
+	platform_ex::LogAssert(_expr, #_expr, __FILE__, __LINE__, _msg)
+#endif
 
-
+#if YCL_Android
 /*!
 \brief 映射 Descriptions::RecordLevel 为 Android 日志 API 使用的日志优先级。
 \return 介于 ANDROID_LOG_FATAL 和 ANDROID_LOG_VERBOSE 的日志优先级。

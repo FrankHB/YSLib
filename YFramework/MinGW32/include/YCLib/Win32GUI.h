@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r548
+\version r558
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-11-27 15:52 +0800
+	2014-12-05 22:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -226,10 +226,10 @@ public:
 	\brief 从缓冲区更新并按 Alpha 预乘。
 	\post ::HBITMAP 的 rgbReserved 为 0 。
 	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
-	\since build 435
+	\since build 558
 	*/
 	void
-	Premultiply(YSLib::Drawing::BitmapPtr) ynothrow;
+	Premultiply(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 
 	/*!
 	\brief 重新设置大小。
@@ -241,12 +241,13 @@ public:
 
 	/*!
 	\brief 从缓冲区更新。
-	\pre 断言：参数非空。
+	\pre 间接断言：参数非空。
 	\post ::HBITMAP 的 rgbReserved 为 0 。
 	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
+	\since build 558
 	*/
 	void
-	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
+	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 	//@}
 
 	/*
@@ -290,9 +291,12 @@ public:
 	//! \since build 445
 	using ScreenBuffer::Resize;
 
-	//! \pre 间接断言：参数非空。
+	/*!
+	\pre 间接断言：参数非空。
+	\since build 558
+	*/
 	void
-	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
+	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 
 	//! \since build 435
 	void

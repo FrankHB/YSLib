@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r496
+\version r497
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2014-11-21 12:44 +0800
+	2014-12-02 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,7 +126,7 @@ FPSCounter::Refresh()
 	{
 		last_tick = now_tick;
 
-		const u32 r(1000000000000ULL * refresh_count
+		const std::uint32_t r(1000000000000ULL * refresh_count
 			/ ((now_tick = tmp_tick) - last_tick).count());
 
 		refresh_count = 1;

@@ -8,28 +8,21 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r307
+# Version = r340
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2014-11-21 10:18 +0800
+# Updated = 2014-12-06 22:25 +0800
 # Encoding = ANSI
 
 
 # This makefile is written based on DS Makefile.
 
-#----
 .SUFFIXES:
-#----
-export PLATFORM		?= Android
 
-export PREFIX ?= arm-linux-androideabi-
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+include $(SHBuild_ToolDir)/Toolchain.Android.mk
 
-export CC	:=	$(PREFIX)gcc
-export CXX	:=	$(PREFIX)g++
-export AS	:=	$(PREFIX)as
-export AR	:=	$(PREFIX)gcc-ar
-export OBJCOPY	:=	$(PREFIX)objcopy
-export STRIP	:=	$(PREFIX)strip
-export NM	:=	$(PREFIX)nm
+CFLAGS_COMMON := $(CFLAGS_COMMON) -Wno-cast-align
+CXXFLAGS_COMMON := $(CXXFLAGS_COMMON) -Wno-cast-align
 
 #----
 # PROJNAME is the name of the project
@@ -68,35 +61,12 @@ export DATA			:=	#data $(REFDIR)/data
 #export GRAPHICS	:=	gfx
 #export MUSIC		:=	music
 
-#----
 # options for code generation
-#----
-ifeq ($(PLATFORM),Android)
-
-ARCH_AS	:=	-mthumb -march=armv5te
-ARCH	:=	$(ARCH_AS)
-
-ASFLAGS	:=	$(ARCH)
-
-CFLAGS	:=	-Wall -Wextra -Winvalid-pch -Wmissing-declarations \
-			-Wredundant-decls -Wunreachable-code \
- 			-fdata-sections -ffunction-sections \
- 			-ffast-math $(ARCH)
-
-CFLAGS	+=	$(INCLUDE)
-
-ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
-else
-ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -fno-omit-frame-pointer
-endif
-
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++11 \
- 			-Wctor-dtor-privacy -Wnon-virtual-dtor -Wsign-promo
-# 			-Wctor-dtor-privacy -Wold-style-cast -Wsign-promo
-
-endif
+CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM9) $(CFLAGS_COMMON)
+CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
+	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy \
+	-Wnon-virtual-dtor -Wsign-promo
+#	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
 
 #----
 # any extra libraries we wish to link with the project

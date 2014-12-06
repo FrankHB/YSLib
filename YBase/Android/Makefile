@@ -8,28 +8,18 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YBase
-# Version = r217
+# Version = r256
 # Created = 2014-04-07 12:41:43 +0800
-# Updated = 2014-11-15 22:20 +0800
+# Updated = 2014-12-06 22:00 +0800
 # Encoding = ANSI
 
 
 # This makefile is written based on DS Makefile.
 
-#----
 .SUFFIXES:
-#----
-export PLATFORM		?= Android
 
-export PREFIX ?= arm-linux-androideabi-
-
-export CC	:=	$(PREFIX)gcc
-export CXX	:=	$(PREFIX)g++
-export AS	:=	$(PREFIX)as
-export AR	:=	$(PREFIX)gcc-ar
-export OBJCOPY	:=	$(PREFIX)objcopy
-export STRIP	:=	$(PREFIX)strip
-export NM	:=	$(PREFIX)nm
+SHBuild_ToolDir := $(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts
+include $(SHBuild_ToolDir)/Toolchain.Android.mk
 
 #----
 # PROJNAME is the name of the project
@@ -57,42 +47,13 @@ export SOURCES		:=	source data $(REFDIR)/source \
 export INCLUDES		:=	include data $(REFDIR)/include
 export DATA			:=	data $(REFDIR)/data
 
-#----
 # options for code generation
-#----
-ifeq ($(PLATFORM),Android)
+CFLAGS := $(INCLUDE) $(C_CXXFLAGS) $(CFLAGS_COMMON)
+CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
+	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy -Wnoexcept \
+	-Wnon-virtual-dtor -Wold-style-cast -Wsign-promo
 
-ARCH_AS	:=	-mthumb -march=armv5te
-ARCH	:=	$(ARCH_AS)
-
-ASFLAGS	:=	$(ARCH)
-
-CFLAGS	:=	-Wall -Wextra -Wcast-align -Winvalid-pch -Wmissing-declarations \
-			-Wredundant-decls -Wunreachable-code \
- 			-fdata-sections -ffunction-sections \
- 			-ffast-math $(ARCH)
-
-CFLAGS	+=	$(INCLUDE) -pedantic-errors
-
-ifneq ($(CONF),debug)
-CFLAGS	+=	-O3 -fomit-frame-pointer -flto=jobserver -DNDEBUG
-else
-ASFLAGS	+=	-g
-CFLAGS	+=	-g -O0 -fno-omit-frame-pointer
-endif
-
-CXXFLAGS	:=	$(CFLAGS) -fno-threadsafe-statics -fuse-cxa-atexit -std=c++11 \
- 			-Wctor-dtor-privacy -Wnon-virtual-dtor -Wold-style-cast \
- 			-Wsign-promo
-
-endif
-
-#----
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#----
 ifneq ($(CONF),$(notdir $(CURDIR)))
-#----
 
 export OUTPUT	:=	$(RELEASEDIR)/lib$(TARGET).a
 

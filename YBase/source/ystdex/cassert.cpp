@@ -11,13 +11,13 @@
 /*!	\file cassert.cpp
 \ingroup YStandardEx
 \brief ISO C 断言/调试跟踪扩展。
-\version r71
+\version r76
 \author FrankHB <frankhb1989@gmail.com>
 \since build 432
 \par 创建时间:
 	2012-07-27 04:13:34 +0800
 \par 修改时间:
-	2014-11-11 23:47 +0800
+	2014-12-01 16:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,8 +39,13 @@ yassert(bool expr, const char* expr_str, const char* file, int line,
 {
 	if(YB_UNLIKELY(!expr))
 	{
+		const auto chk_null([](const char* s){
+			return s && *s != '\0'? s : "<unknown>";
+		});
+
 		std::fprintf(stderr, "Assertion failed @ \"%s\":%i:\n"
-			" %s .\nMessage: \n%s\n", file, line, expr_str, msg);
+			" %s .\nMessage: \n%s\n", chk_null(file), line, chk_null(expr_str),
+			chk_null(msg));
 		std::terminate();
 	}
 }

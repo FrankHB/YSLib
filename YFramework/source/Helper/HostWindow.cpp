@@ -11,13 +11,13 @@
 /*!	\file HostWindow.cpp
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r501
+\version r504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:18:46 +0800
 \par 修改时间:
-	2014-11-12 04:16 +0800
+	2014-12-05 17:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -162,20 +162,20 @@ Window::UpdateTextInputFocus(IWidget& wgt, const Point& pt)
 #	endif
 
 void
-Window::UpdateFrom(Drawing::BitmapPtr buf, ScreenRegionBuffer& rbuf)
+Window::UpdateFrom(Drawing::ConstBitmapPtr p_buf, ScreenRegionBuffer& rbuf)
 {
 	const auto h_wnd(GetNativeHandle());
 
 #	if YCL_Win32
 	if(UseOpacity)
 	{
-		rbuf.Premultiply(buf);
+		rbuf.Premultiply(p_buf);
 		rbuf.UpdatePremultipliedTo(h_wnd, Opacity);
 	}
 	else
 #endif
 	{
-		rbuf.UpdateFrom(buf);
+		rbuf.UpdateFrom(p_buf);
 		rbuf.UpdateTo(h_wnd);
 	}
 }

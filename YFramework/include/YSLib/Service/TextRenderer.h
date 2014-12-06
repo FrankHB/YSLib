@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2947
+\version r2955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-09-03 13:58 +0800
+	2014-12-02 18:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -338,13 +338,14 @@ public:
 	/*!
 	\brief 取按当前行高和行距所能显示的最大行数。
 	*/
-	DefGetter(const, u16, TextLineN, FetchResizedLineN(CThis->GetTextState(),
-		CThis->GetContext().GetHeight()))
+	DefGetter(const, std::uint16_t, TextLineN, FetchResizedLineN(
+		CThis->GetTextState(), CThis->GetContext().GetHeight()))
 	/*!
 	\brief 取按当前行高和行距（行间距数小于行数 1 ）所能显示的最大行数。
 	*/
-	DefGetter(const, u16, TextLineNEx, FetchResizedLineN(CThis->GetTextState(),
-		CThis->GetContext().GetHeight() + CThis->GetTextState().LineGap))
+	DefGetter(const, std::uint16_t, TextLineNEx,
+		FetchResizedLineN(CThis->GetTextState(), CThis->GetContext().GetHeight()
+		+ CThis->GetTextState().LineGap))
 
 #undef CThis
 #undef This
@@ -403,7 +404,7 @@ public:
 	\note n 为 0 时清除之后的所有行。
 	*/
 	void
-	ClearLine(u16 l, SDst n);
+	ClearLine(std::uint16_t l, SDst n);
 };
 
 
@@ -522,14 +523,14 @@ public:
 	\note n 为 0 时清除之后的所有行。
 	*/
 	void
-	ClearLine(u16 l, SDst n);
+	ClearLine(std::uint16_t l, SDst n);
 
 	/*!
 	\brief 清除缓冲区中的指定行号的文本行。
 	\note 参数为 0 表示首行。
 	*/
 	void
-	ClearTextLine(u16);
+	ClearTextLine(std::uint16_t);
 
 	/*!
 	\brief 缓冲区特效：整体移动 n 像素。

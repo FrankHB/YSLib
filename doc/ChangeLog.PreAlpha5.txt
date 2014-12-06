@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r7398
+\version r7652
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-12-01 10:30 +0800
+	2014-12-06 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,11 +32,260 @@ $import $HISTORY;
 
 $now
 (
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ @ "class %ImagePages" @ %YSLib.Service.ImageProcessing $=
+			(
+				- $revert(b557) "functions %(GetFrameTime, IsAnimated); \
+					animating metadata loading",
+					// It is difficult to control the frame time and other \
+						miscellaneous properties here.
+				+ "function %GetBitmaps",
+				* $comp "possibly wrong scale value used"
+					@ "function %ZoomByRatio" @ %ImageProcessing $since b555
+					$dep_from %YBase.YStandardEx.Rational
+			),
+			/ "1st parameter" @ "function %Zoom" -> 'float' ~ 's16'
+				@ %Service.ImageProcessing,
+			/ DLD "all integer types names with pattern 'u*', 's*'"
+				-> "types from <cstdint>" $effective @ %(Adaptor.(Font, Image),
+				Core.(YEvent, YMessage, YCounter, YCoreUtilities), Service.(
+				CharRenderer, YPixel, TextBase, TextRenderer, TextLayout, YGDI,
+				TextFile, YDraw), UI.(YStyle, YUIContainer, YUIContainer));
+			- "alias declarations %(u8, u16, u32, u64, s8, s16, s32, s64, vu8, \
+				vu16, vu32, vu64, vs8, vs16, vs32, vs64)" @ "namespace %YSLib"
+				@ %Adaptor.YAdatpor $dep_from %(Helper, 'Helper_(DS)', YReader),
+			/ %Core.YDevice $=
+			(
+				/ @ "class %GraphicDevice" $=
+				(
+					+ "virtual function %SetSize",
+					- "%(GetBufferPtr, GetSizeOfBuffer, GetContext)"
+					/ "first 2 parameter" -> 'const Drawing::Size&'
+						~ 'SDst, SDst' @ "constructor"
+				),
+				/ @ "class %Screen" $=
+				(
+					+ "overrider %SetSize throwing %ystdex::unsupported"
+						$dep_from "%GraphicDevice::SetSize"
+					/ @ "function %Update" $=
+					(
+						+ "assertion" ^ "%Nonnull",
+						/ "parameter type" -> 'Drawing::ConstBitmapPtr'
+							~ 'Drawing::BitmapPtr'
+					),
+					- "virtual function %GetCheckedBufferPtr"
+					- "constructor for 2 components of %Drawing::Size"
+				)
+			),
+			/ %UI $=
+			(
+				/ "simplified assertion" @ "functions %(MoveToRight, \
+					MoveToBottom)" ^ "%Deref" @ %YUIContainer,
+				- "member function %Desktop::GetBackgroundPtr" @ %YDesktop;
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %Debug @ "debug configurations" $=
+			(
+				* $comp "macro %YAssert not overriden to call \
+					%platform::LogAssert" @ "platform %Android" @ $since b548
+					$dep_from ("macro %YAssert" @ %YBase.YStandardEx.CAssert),
+				(
+				+ "function template %AccessRecord" @ "class %Logger",
+				/ "function %LogAssert extended to all platforms implemented"
+					^ "%ystdex::yassert"
+					@ 'YB_Use_YAssert && YF_Multithread == 1';
+				* $comp "probable interleaved assertion output with common log"
+					$since b498,
+					// No further guarantee for other loggers.
+				+ "message box for %LogAssert before further call to \
+					%ystdex::yassert" @ "platform %Win32"
+				)
+			),
+			/ "implementation" ^ '{}' ~ '0' @ "platform %DS" @ %Video
+				// To eliminate warning: [-Wzero-as-null-pointer-constant].
+		)
+		/ DLD "all integer types names with pattern 'u*', 's*'"
+			-> "types from <cstdint>" $effective @
+			%Helper.(ShellHelper, Environment), %'Helper_(DS)'.DSMain,
+		/ DLD "explicitly allowed buffer size passed"
+			@ "Android screen buffer implementation" @ %'Helper_(Android)',
+		/ "parameter type" -> "%Drawing::ConstBitmapPtr" ~ "%Drawing::BitmapPtr"
+			@ ("member function %HostRenderer::Update" @ %Helper.HostedUI,
+			"member function %Window::UpdateFrom" @ %Helper.HostWindow,
+			"member functions %((ScreenBuffer, \
+			ScreenRegionBuffer)::UpdateFrom, ScreenBuffer::Premultiply)"
+			@ %('YCLib_(MinGW32)'.Win32GUI, 'YCLib_(Android)'.Android))
+	),
+	/ @ "membef function %ImagePanel::Load" @ %YDE.ImageBrowser.ImageControl $=
+	(
+		+ "animating metadata loading",
+		* "crash when zero frame time loaded for animation" $since b557;
+		* $comp $build "failed to build" $since b557
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %CAssert $=
+		(
+			* "strict ISO C/C++ code compatibility" $since b432 $orig
+				(@ "function %platform::yassert" @ %YFramework.YCLib.YCommon
+				$since b175),
+				// To avoid undefined behavior.
+				$= (/ "explicitly used string literal when received null \
+					pointer value argument" @ "function %yassert"),
+			/ "defined macros %(YAssert, YAssertNonnull, YTrace) only when \
+				undefined",
+			* "<cassert> not excluded by header guard" $since b548,
+				// This would cause multiple inclusion ignoring %NDBUG.
+			/ $dev "made functions %(yassert, ytrace) only declared when \
+				macros %(YB_Use_YAssert, YB_Use_YTrace) respectively"
+				// These functions are not defined in this case. This makes \
+					it easier to detect wrong use of macros.
+		),
+		/ %Rational $=
+		(
+			+ "2 std::common_type specializations for %ystdex::fixed_point \
+				instances and other types";
+			/ @ "binary operations on %ystdex::fixed_point" $=
+			(
+				(
+				+ "overloadings for one of parameter as floating point types";
+				* $comp "wrong result of instances and floating types" $since
+					b260 $dep_from "%common_type specializations"
+				),
+				* $dev $lib "asymmetric parameter types" $since b439
+			),
+			/ DLD "simplified implementation" ^ "more macros"
+		),
+		/ "constructor template" -> "inheriting constructor"
+			@ "classes %(unsupported, unimplemented)" @ %Exception,
+	),
+	/ DLD "all integer types names with pattern 'u*', 's*'"
+		-> "types from <cstdint>" $effective @ %YReader.(DSReader,
+		ReaderSettingUI, HexBrowser, ShlExplorer),
+	/ %Tools $=
+	(
+		/ @ "%msys2-pacman-update.sh" $=
+		(
+			- "'set -e' to allow skipping and continuing",
+			- 'mingw32/mingw-w64-i686-make' @ "command line",
+			/ "made 'msys/make' as installed in separate group for non-hosted \
+				platforms"
+		),
+		* "echo for stage 1 %SHBuild path" @ "%install-sysroot.sh" $since b546,
+		* $re_ex(b541) "missing quoting source file path" @ %SHBuild.Main $since
+			b474
+		/ @ "%SHBuild-common-options.sh" $=
+		(
+			(
+			+ "variable %C_CXXFLAGS_COMMON with default value";
+			+ "variables %(CFLAGS_STD, CFLAGS_COMMON, CFLAGS) with default \
+				values",
+			/ "simplified %CXXFLAGS_COMMON" ^ "%C_CXXFLAGS_COMMON"
+			),
+			(
+			+ "variable %C_CXXFLAGS_OPT_LV with default value '-O3'";
+			/ '-O3' @ "default value" -> '${CXXFLAGS_OPT_DBG}'
+			),
+			+ "variable %LDFLAGS_IMPL_OPT depending on compiler driver",
+				// Note that '-flto=jobserver' cause warning on linker command \
+					line of G++, so raw '-flto' should be used instead.
+			/ "made all variables depending on compiler driver assigned only \
+				when empty",
+				// To allow being overridden.
+			(
+			+ "variable %LDFLAGS_OPT_DBG with default value";
+			/ "default value" @ "%LDFLAGS" ^ "%LDFLAGS_OPT_DBG"
+			),
+			+ "variable %ASFLAGS_OPT_DBG with default value"
+		),
+		+ "%Toolchain.options.mk" $dep_from "%SHBuild-common-options.sh" $=
+		(
+			+ "variables %(C_CXXFLAGS_COMMON, CFLAGS_STD, CFLAGS_WARNING, \
+				CFLAGS_COMMON, CXXFLAGS_IMPL_WARNING, CXXFLAGS_IMPL_OPT, \
+				CXXFLAGS_STD, CXXFLAGS_WARNING, CXXFLAGS_COMMON, \
+				LDFLAGS_IMPL_OPT, C_CXXFLAGS_OPT_LV, LDFLAGS_OPT_DBG) as \
+				%SHBuild-common-options.sh"
+			+ "variable %ASFLAGS_OPT_DBG with default value depending on %CONF"
+		);
+		+ "%Toolchain.DS.mk" $=
+		(
+			(
+			+ "suppressed %C_CXXFLAGS_OPT_LV as '-O3' for non-debug \
+				configurations",
+			/ "removed LTO option for %(CXXFLAGS_IMPL_OPT, LDFLAGS_IMPL_OPT)";
+			/ "included %Toolchain.options.mk";
+			/ $comp "%CXXFLAGS for release configuration" ^ '-Os' ~ '-O3'
+				// With G++ 4.9.2, '-O3' makes code bloat significantly \
+					serious than using G++ 4.8.2 (~1050 KiB vs. 986 KiB). With \
+					LTO it would be more serious (1280 KiB even with '-Os'). \
+					So '-Os' without LTO (920 KiB) is now used instead by \
+					default.
+			),
+			(
+			/ "included devkitARM makefile";
+			+ "overridden exported %AR as '$(PREFIX)gcc-ar'" ~ '$(PREFIX)ar'
+				// To avoid LTO failed for G++ 4.9.
+			),
+			+ "variables %(ASFLAGS_OPT_DBG, C_CXXFLAGS_OPT_DBG) depending on \
+				value of %CONF as DS makefiles",
+			(
+			+ "variables %(ARCH_AS_ARM9, ARCH_ARM9) as DS ARM9 makefiles";
+			+ "variables %CFLAGS_ARM9"
+			),
+			(
+			+ "variables %(ARCH_AS_ARM7, ARCH_ARM7) as DS ARM7 makefile";
+			+ "variables %CFLAGS_ARM7"
+			);
+			+ "variable %C_CXXFLAGS"
+		),
+		+ "%Toolchain.Android.mk" $=
+		(
+			+ "toolchain setting as Andriod makefiles",
+			+ "variables %(ARCH_AS; ARCH; ASFLAGS, C_CXXFLAGS)
+		)
+	),
+	/ DLP "toolchain and library using" @ "platform %DS" $=
+	(
+		^ $re_ex(b321) "updated devkitARM release 43" ~ "devkitARM release 42",
+		^ $re_ex(b308) "updated libnds 1.5.9" ~ "libnds 1.5.8",
+		^ $re_ex(b308) "updated libfat 1.0.13" ~ "libfat 1.0.12",
+		^ $re_ex(b308) "updated default arm7 0.5.26" ~ "default arm7 0.5.25"
+	),
+	/ DLD "simplified implementation by inclusion" @ "all 5 makefiles"
+		@ "platform %DS" $dep_from ("%Toolchain.DS.mk" @ %Tools) $=
+	(
+		+ 'SHBuild_ToolDir := \
+			$(dir $(lastword $(MAKEFILE_LIST)))/../../Tools/Scripts';
+		+ 'include $(SHBuild_ToolDir)/Toolchain.DS.mk';
+		/ $comp ^ "-Wzero-as-null-pointer-constant" @ "all %DS projects",
+		+ '$(LDFLAGS_IMPL_OPT)' @ "%LDFLAGS"
+			// Optimization option like '-flto' should be in both compiler and \
+				linker command lines.
+	),
+	/ DLD "updated header search paths" @ "Visual C++ projects" $=
+	(
+		/ @ "platform %DS",
+		* @ "platform %Android" $since b554
+	),
+	/ DLB "cleanup pre-libstdc++-4.9 dependencies on %(cbegin, cend) members \
+		for standard containers" $effective @ %(YFramework.YSLib.UI.TreeView,
+		YReader.BookmarkUI) $dep_from ("toolchain and library using"
+		@ "platform %DS")
+		// See WG21/N1913.
+),
+
+b557
+(
 	/ %Tools $=
 	(
 		/ %SHBuild.Main $=
 		(
-			* DLB "missing update header name" @ $since b556
+			* $build "missing update header name" @ $since b556
 				$= ('<ystdex/exception.hpp>' -> '<ystdex/exception.h>'),
 			* "undefined behavior when .d file not exist"  $since b546,
 				// Actually crashed on Windows XP when assertion disabled, but \
@@ -534,7 +783,7 @@ b555
 			)
 		),
 		* "missing added files into filter for" %YSLib.Service.ImageProcessing
-			@ "VC++ project",
+			@ "Visual C++ project",
 		/ %YCLib $=
 		(
 			/ $dev %Video $=
@@ -657,9 +906,9 @@ b554
 					comment that is attached to a function returning void \
 					[-Wdocumentation].
 		),
-		/ $dev $build "wrong VC++ project include directory settings"
+		/ $dev $build "wrong Visual C++ project include directory settings"
 			@ "all configurations" @ "platform %Win32" $since b544,
-			// Instead of VC++ toolchain, MinGW headers would be used.
+			// Instead of Visual C++ toolchain, MinGW headers would be used.
 		/ DLB "explicitly truncated value" @ "implementation" %CHRLib $=
 		(
 			@ "function %UCS4ToUCS2" @ %CharacterProcessing,
@@ -2170,8 +2419,8 @@ b544
 	),
 	/ $dev @ "Visual C++ projects" $=
 	(
-		/ DLD "united all VC++ include directories with NMake include search \
-			paths (if any)",
+		/ DLD "united all Visual C++ include directories with NMake include \
+			search paths (if any)",
 		/ "merged All platforms based on platform %MinGW32 for IntelliSense"
 			@ "project %YFramework"
 		* "wrong NMake include search paths" @ "project %YBase"

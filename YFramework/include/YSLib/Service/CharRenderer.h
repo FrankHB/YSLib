@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.h
 \ingroup Service
 \brief 字符渲染。
-\version r2830
+\version r2833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-09-03 13:57 +0800
+	2014-12-02 18:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,7 +156,7 @@ PrintChar(_tRenderer& r, ucs4_t c)
 \return 遇到行内无法容纳而换行时为 1 ，需要继续渲染为 2 ，否则为 0 。
 \since build 372
 */
-YF_API u8
+YF_API std::uint8_t
 PutCharBase(TextState&, SDst, ucs4_t);
 
 /*!
@@ -167,10 +167,10 @@ PutCharBase(TextState&, SDst, ucs4_t);
 \since build 190
 */
 template<class _tRenderer>
-u8
+std::uint8_t
 PutChar(_tRenderer& r, ucs4_t c)
 {
-	const u8 res(PutCharBase(r.GetTextState(),
+	const std::uint8_t res(PutCharBase(r.GetTextState(),
 		r.GetContext().GetWidth() - GetEndOfLinePositionOf(r), c));
 
 	switch(res)

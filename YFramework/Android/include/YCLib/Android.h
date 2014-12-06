@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r465
+\version r472
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-11-05 14:33 +0800
+	2014-12-05 17:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,9 +182,10 @@ public:
 	\pre 断言：参数非空。
 	\pre 缓冲区大小和像素跨距完全一致。
 	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 RGBA8888 兼容。
+	\since build 558
 	*/
 	void
-	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
+	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 
 	//! \brief 交换。
 	void
@@ -225,9 +226,12 @@ public:
 
 	using ScreenBuffer::Resize;
 
-	//! \pre 间接断言：参数非空。
+	/*!
+	\pre 间接断言：参数非空。
+	\since build 558
+	*/
 	void
-	UpdateFrom(YSLib::Drawing::BitmapPtr) ynothrow;
+	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 
 	//! \pre 断言：本机句柄非空。
 	void

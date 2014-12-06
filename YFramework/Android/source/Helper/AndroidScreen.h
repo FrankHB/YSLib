@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r118
+\version r132
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-11-14 23:56 +0800
+	2014-12-05 17:07 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -61,15 +61,21 @@ public:
 	Drawing::Point Offset{};
 
 	/*!
-	\brief 初始化窗口：使用指定本机窗口引用。
+	\note 默认缓冲区大小为屏幕大小。若缓冲区和屏幕大小不等，更新时自适应屏幕大小。
+	\since build 558
+	*/
+	//@{
+	/*!
+	\brief 初始化窗口：使用指定本机窗口引用和缓冲区大小。
 	\note 直接查询大小，若失败（结果为 1x1 ）则锁定屏幕查询大小。
 	\note Android 4.0 起（ API 等级不小于 17 ）锁定屏幕查询大小出错。
-	\since build 504
 	\todo 在运行时判断 API 等级。
 	*/
-	AndroidScreen(::ANativeWindow&);
-	//! \brief 初始化窗口：使用指定本机窗口引用和大小。
-	AndroidScreen(::ANativeWindow&, const Drawing::Size&);
+	AndroidScreen(::ANativeWindow&, const Drawing::Size& = {});
+	//! \brief 初始化窗口：使用指定本机窗口引用、大小和缓冲区大小。
+	AndroidScreen(::ANativeWindow&, const Drawing::Size&,
+		const Drawing::Size&);
+	//@}
 
 	DefGetter(const ynothrow, ::ANativeWindow&, WindowRef, window_ref)
 
@@ -78,9 +84,10 @@ public:
 	\pre 间接断言：参数非空。
 	\note 复制到本机窗口或本机窗口缓冲区。
 	\note 部分线程安全：在不同线程上更新到屏幕和屏幕缓冲区之间线程间未决定有序。
+	\since build 558
 	*/
 	void
-	Update(Drawing::BitmapPtr) ynothrow override;
+	Update(Drawing::ConstBitmapPtr) ynothrow override;
 };
 
 } // namespace Devices;

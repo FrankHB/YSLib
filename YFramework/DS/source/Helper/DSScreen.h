@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r444
+\version r455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-11-04 17:45 +0800
+	2014-12-06 14:18 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -61,14 +61,21 @@ public:
 	DSScreen(bool) ynothrow;
 
 	DefGetter(const ynothrow, const BGType&, BgID, bg)
+	/*!
+	\brief 取指针。
+	\note 进行状态检查。
+	\since build 558
+	*/
+	DefGetter(const ynothrow, Drawing::BitmapPtr, CheckedBufferPtr,
+		Nonnull(GetBufferPtr()));
 
 	/*!
 	\brief 更新。
 	\note 复制到屏幕。
-	\since build 319
+	\since build 558
 	*/
 	void
-	Update(Drawing::BitmapPtr) ynothrow override;
+	Update(Drawing::ConstBitmapPtr) ynothrow override;
 #elif YCL_Win32 || YCL_Android
 public:
 	Drawing::Point Offset;
@@ -93,10 +100,10 @@ public:
 	\pre 间接断言：参数非空。
 	\note 复制到屏幕或屏幕缓冲区。
 	\note 部分线程安全：在不同线程上更新到屏幕和屏幕缓冲区之间线程间未决定有序。
-	\since build 319
+	\since build 558
 	*/
 	void
-	Update(Drawing::BitmapPtr) ynothrow override;
+	Update(Drawing::ConstBitmapPtr) ynothrow override;
 
 	//! \since build 386
 	template<typename _type>

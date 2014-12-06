@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3417
+\version r3421
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-11-15 00:59 +0800
+	2014-12-02 18:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -235,7 +235,7 @@ Typeface::SmallBitmapData::~SmallBitmapData()
 }
 
 
-Typeface::Typeface(FontCache& cache, const FontPath& path, u32 i)
+Typeface::Typeface(FontCache& cache, const FontPath& path, std::uint32_t i)
 	: Path(path), face_index(i), cmap_index(-1), style_name(), ref([&, this]{
 		if(YB_UNLIKELY(ystdex::exists(cache.sFaces, this)))
 			throw LoggedEvent("Duplicate typeface found.", Critical);
@@ -481,7 +481,7 @@ Font::Font(const FontFamily& family, const FontSize size, FontStyle fs)
 	: typeface(family.GetTypefaceRef(fs)), font_size(size), style(fs)
 {}
 
-s8
+std::int8_t
 Font::GetAdvance(ucs4_t c, ::FTC_SBit sbit) const
 {
 	if(!sbit)
@@ -490,12 +490,12 @@ Font::GetAdvance(ucs4_t c, ::FTC_SBit sbit) const
 		return sbit->xadvance;
 	return 0;
 }
-s8
+std::int8_t
 Font::GetAscender() const
 {
 	return GetInternalInfo().ascender >> 6;
 }
-s8
+std::int8_t
 Font::GetDescender() const
 {
 	return GetInternalInfo().descender >> 6;

@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1545
+\version r1655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2014-11-27 13:07 +0805
+	2014-12-02 15:24 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,8 +28,9 @@
 #ifndef YB_INC_ystdex_rational_hpp_
 #define YB_INC_ystdex_rational_hpp_ 1
 
-#include "cstdint.hpp"
-#include "operators.hpp"
+#include "cstdint.hpp" // for ystdex::make_width_int, std::common_type,
+//	ystdex::common_type_t, std::numeric_limits;
+#include "operators.hpp" // for ystdex::operators;
 #include <libdefect/cmath.h> // for std::llround;
 
 namespace ystdex
@@ -115,6 +116,16 @@ struct fixed_multiplicative<std::uint64_t>
 };
 
 
+#define YB_Impl_Rational_fp_T fixed_point<_tBase, _vInt, _vFrac>
+#define YB_Impl_Rational_fp_T1 fixed_point<_tBase1, _vInt1, _vFrac1>
+#define YB_Impl_Rational_fp_T2 fixed_point<_tBase2, _vInt2, _vFrac2>
+#define YB_Impl_Rational_fp_PList \
+	typename _tBase, size_t _vInt, size_t _vFrac
+#define YB_Impl_Rational_fp_PList1 \
+	typename _tBase1, size_t _vInt1, size_t _vFrac1
+#define YB_Impl_Rational_fp_PList2 \
+	typename _tBase2, size_t _vInt2, size_t _vFrac2
+
 /*!
 \brief 通用定点数。
 
@@ -136,7 +147,7 @@ struct fixed_multiplicative<std::uint64_t>
 template<typename _tBase = std::int32_t,
 	size_t _vInt = std::numeric_limits<_tBase>::digits - 6U,
 	size_t _vFrac = std::numeric_limits<_tBase>::digits - _vInt>
-class fixed_point : public operators<fixed_point<_tBase, _vInt, _vFrac>>
+class fixed_point : public operators<YB_Impl_Rational_fp_T>
 {
 	static_assert(is_integral<_tBase>::value, "Non-integral type found.");
 	static_assert(_vInt < size_t(std::numeric_limits<_tBase>::digits),
@@ -146,7 +157,7 @@ class fixed_point : public operators<fixed_point<_tBase, _vInt, _vFrac>>
 
 	template<typename _OtherBase, size_t _vOtherInt, size_t _vOtherFrac>
 	friend class fixed_point;
-	friend class std::numeric_limits<fixed_point<_tBase, _vInt, _vFrac>>;
+	friend class std::numeric_limits<YB_Impl_Rational_fp_T>;
 
 public:
 	using base_type = _tBase;
@@ -429,17 +440,25 @@ public:
 //! \relates fixed_point
 //@{
 #define YB_Impl_Rational_fp_TmplHead_2 \
-	template<typename _tBase1, size_t _vInt1, size_t _vFrac1, \
-		typename _tBase2, size_t _vInt2, size_t _vFrac2>
-#define YB_Impl_Rational_fp_TmplBody_2(_op) \
-	operator _op(const fixed_point<_tBase1, _vInt1, _vFrac1> x, \
-		const fixed_point<_tBase2, _vInt2, _vFrac2>& y) \
+	template<YB_Impl_Rational_fp_PList1, YB_Impl_Rational_fp_PList2>
+#define YB_Impl_Rational_fp_TmplHead_2_l \
+	template<YB_Impl_Rational_fp_PList, typename _type>
+#define YB_Impl_Rational_fp_TmplHead_2_r \
+	template<typename _type, YB_Impl_Rational_fp_PList>
+#define YB_Impl_Rational_fp_TmplBody_Impl_2(_op) \
 	{ \
-		using result_type = common_type_t<fixed_point<_tBase1, _vInt1, \
-			_vFrac1>, fixed_point<_tBase2, _vInt2, _vFrac2>>; \
+		using result_type \
+			= common_type_t<decay_t<decltype(x)>, decay_t<decltype(y)>>; \
 	\
 		return result_type(x) _op result_type(y); \
 	}
+#define YB_Impl_Rational_fp_TmplSig_2(_op) \
+	operator _op(const YB_Impl_Rational_fp_T1& x, \
+		const YB_Impl_Rational_fp_T2& y)
+#define YB_Impl_Rational_fp_TmplSig_2_l(_op) \
+	operator _op(const YB_Impl_Rational_fp_T& x, const _type& y)
+#define YB_Impl_Rational_fp_TmplSig_2_r(_op) \
+	operator _op(const _type& x, const YB_Impl_Rational_fp_T& y)
 
 /*!
 \brief 不同模板参数的二元算术操作符。
@@ -448,9 +467,21 @@ public:
 //@{
 #define YB_Impl_Rational_fp_arithmetic2(_op) \
 	YB_Impl_Rational_fp_TmplHead_2 \
-	yconstfn common_type_t<fixed_point<_tBase1, _vInt1, _vFrac1>, \
-		fixed_point<_tBase2, _vInt2, _vFrac2>> \
-	YB_Impl_Rational_fp_TmplBody_2(_op)
+	yconstfn common_type_t<YB_Impl_Rational_fp_T1, YB_Impl_Rational_fp_T2> \
+	YB_Impl_Rational_fp_TmplSig_2(_op) \
+	YB_Impl_Rational_fp_TmplBody_Impl_2(_op) \
+	\
+	YB_Impl_Rational_fp_TmplHead_2_l \
+	yconstfn enable_if_t<std::is_floating_point<_type>::value, \
+		common_type_t<YB_Impl_Rational_fp_T, _type>> \
+	YB_Impl_Rational_fp_TmplSig_2_l(_op) \
+	YB_Impl_Rational_fp_TmplBody_Impl_2(_op) \
+	\
+	YB_Impl_Rational_fp_TmplHead_2_r \
+	yconstfn enable_if_t<std::is_floating_point<_type>::value, \
+		common_type_t<_type, YB_Impl_Rational_fp_T>> \
+	YB_Impl_Rational_fp_TmplSig_2_r(_op) \
+	YB_Impl_Rational_fp_TmplBody_Impl_2(_op)
 
 YB_Impl_Rational_fp_arithmetic2(+)
 YB_Impl_Rational_fp_arithmetic2(-)
@@ -468,7 +499,18 @@ YB_Impl_Rational_fp_arithmetic2(/)
 #define YB_Impl_Rational_fp_rational2(_op) \
 	YB_Impl_Rational_fp_TmplHead_2 \
 	yconstfn bool \
-	YB_Impl_Rational_fp_TmplBody_2(_op)
+	YB_Impl_Rational_fp_TmplSig_2(_op) \
+	YB_Impl_Rational_fp_TmplBody_Impl_2(_op) \
+	\
+	YB_Impl_Rational_fp_TmplHead_2_l \
+	yconstfn bool \
+	YB_Impl_Rational_fp_TmplSig_2_l(_op) \
+	YB_Impl_Rational_fp_TmplBody_Impl_2(_op) \
+	\
+	YB_Impl_Rational_fp_TmplHead_2_r \
+	yconstfn bool \
+	YB_Impl_Rational_fp_TmplSig_2_r(_op) \
+	YB_Impl_Rational_fp_TmplBody_Impl_2(_op)
 
 YB_Impl_Rational_fp_rational2(==)
 YB_Impl_Rational_fp_rational2(!=)
@@ -480,12 +522,17 @@ YB_Impl_Rational_fp_rational2(>=)
 #undef YB_Impl_Rational_fp_rational2
 //@}
 
+#undef YB_Impl_Rational_fp_TmplSig_2_r
+#undef YB_Impl_Rational_fp_TmplSig_2_l
+#undef YB_Impl_Rational_fp_TmplSig_2
+#undef YB_Impl_Rational_fp_TmplBody_Impl_2
+#undef YB_Impl_Rational_fp_TmplHead_2_r
+#undef YB_Impl_Rational_fp_TmplHead_2_l
 #undef YB_Impl_Rational_fp_TmplHead_2
-#undef YB_Impl_Rational_fp_TmplBody_2
 
-template<typename _tBase, size_t _vInt, size_t _vFrac>
-yconstfn fixed_point<_tBase, _vInt, _vFrac>
-abs(fixed_point<_tBase, _vInt, _vFrac> x)
+template<YB_Impl_Rational_fp_PList>
+yconstfn YB_Impl_Rational_fp_T
+abs(YB_Impl_Rational_fp_T x)
 {
 	return fabs(x);
 }
@@ -497,9 +544,9 @@ abs(fixed_point<_tBase, _vInt, _vFrac> x)
 \note 使用保留公共整数类型和整数位数策略选取公共类型。
 \since build 440
 */
-template<typename _tBase, size_t _vInt, size_t _vFrac>
-struct modular_arithmetic<fixed_point<_tBase, _vInt, _vFrac>>
-	: modular_arithmetic<typename fixed_point<_tBase, _vInt, _vFrac>::base_type>
+template<YB_Impl_Rational_fp_PList>
+struct modular_arithmetic<YB_Impl_Rational_fp_T>
+	: modular_arithmetic<typename YB_Impl_Rational_fp_T::base_type>
 {};
 
 
@@ -507,8 +554,8 @@ struct modular_arithmetic<fixed_point<_tBase, _vInt, _vFrac>>
 \brief is_normalizable 的 fixed_point 特化类型。
 \since build 442
 */
-template<typename _tBase, size_t _vInt, size_t _vFrac>
-struct is_normalizable<fixed_point<_tBase, _vInt, _vFrac>> : true_type
+template<YB_Impl_Rational_fp_PList>
+struct is_normalizable<YB_Impl_Rational_fp_T> : true_type
 {};
 
 } // namespace ystdex;
@@ -522,10 +569,9 @@ namespace std
 \note 使用保留公共整数类型和整数位数策略选取公共类型。
 \since build 439
 */
-template<typename _tBase1, size_t _vInt1, size_t _vFrac1, typename _tBase2,
-	size_t _vInt2, size_t _vFrac2>
-struct common_type<ystdex::fixed_point<_tBase1, _vInt1, _vFrac1>,
-	ystdex::fixed_point<_tBase2, _vInt2, _vFrac2>>
+template<YB_Impl_Rational_fp_PList1, YB_Impl_Rational_fp_PList2>
+struct common_type<ystdex::YB_Impl_Rational_fp_T1,
+	ystdex::YB_Impl_Rational_fp_T2>
 {
 private:
 	using common_base_type = ystdex::common_type_t<_tBase1, _tBase2>;
@@ -537,16 +583,49 @@ public:
 		std::numeric_limits<common_base_type>::digits - int_size>;
 };
 
+/*!
+\brief std::common_type 的 ystdex::fixed_point 和其它类型的特化类型。
+\since build 558
+\todo 支持范围不小于定点数的可以转换为 std::double_t 的类型为公共类型。
+
+当其它类型是浮点数时即为公共类型，
+否则 ystdex::fixed_point 的实例为公共类型。
+*/
+//@{
+template<YB_Impl_Rational_fp_PList, typename _type>
+struct common_type<ystdex::YB_Impl_Rational_fp_T, _type>
+{
+private:
+	using fixed = ystdex::YB_Impl_Rational_fp_T;
+
+public:
+	using type = ystdex::conditional_t<is_floating_point<_type>::value
+#if 0
+		|| !(std::double_t(std::numeric_limits<fixed>::min())
+		< std::double_t(std::numeric_limits<_type>::min())
+		|| std::double_t(std::numeric_limits<_type>::max())
+		< std::double_t(std::numeric_limits<fixed>::max()))
+#endif
+		, _type, fixed>;
+};
+
+template<typename _type, YB_Impl_Rational_fp_PList>
+struct common_type<_type, ystdex::YB_Impl_Rational_fp_T>
+{
+	using type = ystdex::common_type_t<ystdex::YB_Impl_Rational_fp_T, _type>;
+};
+//@}
+
 
 /*!
 \brief std::numeric_traits 的 ystdex::fixed_point 特化类型。
 \since build 260
 */
 template<typename _tBase, ystdex::size_t _vInt, ystdex::size_t _vFrac>
-class numeric_limits<ystdex::fixed_point<_tBase, _vInt, _vFrac>>
+class numeric_limits<ystdex::YB_Impl_Rational_fp_T>
 {
 private:
-	using fp_type = ystdex::fixed_point<_tBase, _vInt, _vFrac>;
+	using fp_type = ystdex::YB_Impl_Rational_fp_T;
 	using base_type = typename fp_type::base_type;
 
 public:
@@ -635,6 +714,13 @@ public:
 	static yconstexpr bool tinyness_before = {};
 	static yconstexpr float_round_style round_style = round_toward_zero;
 };
+
+#undef YB_Impl_Rational_fp_PList2
+#undef YB_Impl_Rational_fp_PList1
+#undef YB_Impl_Rational_fp_PList
+#undef YB_Impl_Rational_fp_T2
+#undef YB_Impl_Rational_fp_T1
+#undef YB_Impl_Rational_fp_T
 
 } // namespace std;
 

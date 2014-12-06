@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2038
+\version r2071
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2014-04-01 14:58 +0800
+	2014-12-06 15:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include "YModules.h"
 #include YFM_YSLib_Core_YObject
 #include YFM_YSLib_Core_YGDIBase
+#include <ystdex/exception.h> // for ystdex::unsupported;
 
 namespace YSLib
 {
@@ -46,12 +47,11 @@ class YF_API GraphicDevice : private noncopyable, protected Drawing::Graphics
 {
 public:
 	/*!
-	\brief 构造：指定宽度、高度和缓冲区指针。
+	\brief 构造：指定大小和缓冲区指针。
 	\since build 319
 	*/
-	inline
-	GraphicDevice(SDst w, SDst h, Drawing::BitmapPtr p = {}) ynothrow
-		: Graphics(p, Drawing::Size(w, h))
+	GraphicDevice(const Drawing::Size& s, Drawing::BitmapPtr p = {}) ynothrow
+		: Graphics(p, s)
 	{}
 	/*!
 	\brief 析构：默认实现。
@@ -74,13 +74,13 @@ public:
 		unique_ptr<Drawing::IImage>())
 	//! \since build 296
 	//@{
-	using Graphics::GetBufferPtr;
 	using Graphics::GetHeight;
 	using Graphics::GetWidth;
 	using Graphics::GetSize;
-	using Graphics::GetSizeOfBuffer;
-	DefGetter(const ynothrow, const Graphics&, Context, *this)
 	//@}
+
+	//! \since build 558
+	virtual DefSetter(const Drawing::Size&, Size, sGraphics)
 };
 
 
@@ -121,40 +121,33 @@ public:
 
 /*!
 \brief 屏幕。
+\note 默认实现：假定缓冲区总是可访问且不失效。
 \since build 218
 */
 class YF_API Screen : public GraphicDevice
 {
 public:
 	/*!
-	\brief 构造：指定宽度、高度和缓冲区指针。
-	\since build 319
-	*/
-	Screen(SDst w, SDst h, Drawing::BitmapPtr p = {}) ynothrow
-		: GraphicDevice(w, h, p)
-	{}
-	/*!
 	\brief 构造：指定大小和缓冲区指针。
 	\since build 427
 	*/
 	Screen(const Drawing::Size& s, Drawing::BitmapPtr p = {}) ynothrow
-		: Screen(s.Width, s.Height, p)
+		: GraphicDevice(s, p)
 	{}
 
 	/*!
-	\brief 取指针。
-	\note 进行状态检查。
-	*/
-	virtual Drawing::BitmapPtr
-	GetCheckedBufferPtr() const ynothrow;
-
-	/*!
-	\brief 更新。
-	\note 复制到屏幕。
-	\since build 319
+	\brief 更新：复制到屏幕。
+	\pre 默认实现为断言：参数非空。
+	\pre 参数指定的缓冲区和屏幕缓冲区兼容。
+	\since build 558
 	*/
 	virtual void
-	Update(Drawing::BitmapPtr) ynothrow;
+	Update(Drawing::ConstBitmapPtr) ynothrow;
+
+	//! \since build 558
+	PDefH(void, SetSize, const Drawing::Size&) override
+		ImplThrow(
+			ystdex::unsupported("The screen does not support alter the size."))
 };
 
 } // namespace Devices;

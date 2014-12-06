@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r586
+\version r587
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2014-11-24 19:04 +0800
+	2014-12-01 14:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ class ImagePanel : public Panel
 {
 private:
 	using Session = tuple<ImagePages, GAnimationSession<InvalidationUpdater>,
-		Timers::Timer>;
+		Timers::Timer, vector<std::chrono::milliseconds>>;
 
 	//! \since build 555
 	unique_ptr<Session> session_ptr{};

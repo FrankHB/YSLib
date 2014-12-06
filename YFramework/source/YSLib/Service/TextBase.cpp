@@ -11,13 +11,13 @@
 /*!	\file TextBase.cpp
 \ingroup Service
 \brief 基础文本渲染逻辑对象。
-\version r2506
+\version r2507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-08-04 08:13 +0800
+	2014-12-02 18:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -71,7 +71,7 @@ TextState::ResetPen(const Point& pt, const Padding& m)
 
 
 void
-SetCurrentTextLineNOf(TextState& ts, u16 n)
+SetCurrentTextLineNOf(TextState& ts, std::uint16_t n)
 {
 	ts.Pen.Y = GetTextLineBaseOf(ts) + GetTextLineHeightExOf(ts) * n;
 }

@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup YStandardEx
 \brief 标准库异常扩展接口。
-\version r164
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 522
 \par 创建时间:
 	2014-07-25 20:14:51 +0800
 \par 修改时间:
-	2014-11-29 19:03 +0800
+	2014-12-04 21:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -106,12 +106,8 @@ public:
 	unsupported()
 		: logic_error("Unsupported operation found.")
 	{}
-	//! \since build 553
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<unsupported, _type>)>
-	unsupported(_type&& arg)
-		: logic_error(yforward(arg))
-	{}
+	//! \since build 558
+	using logic_error::logic_error;
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 556
@@ -127,12 +123,8 @@ public:
 	unimplemented()
 		: unsupported("Unimplemented operation found.")
 	{}
-	//! \since build 553
-	template<typename _type,
-		yimpl(typename = ystdex::exclude_self_ctor_t<unimplemented, _type>)>
-	unimplemented(_type&& arg)
-		: unsupported(yforward(arg))
-	{}
+	//! \since build 558
+	using unsupported::unsupported;
 	/*!
 	\brief 虚析构：类定义外默认实现。
 	\since build 556

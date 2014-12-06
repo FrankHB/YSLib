@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1057
+\version r1058
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2014-11-12 04:33 +0800
+	2014-12-02 18:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ PlotLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x1, SPos y1,
 		*/
 		//起点 (x1, y1) 和终点 (x2, y2) 不同。
 
-		const s8 sx(FetchSign(x2 - x1)), sy(FetchSign(y2 - y1));
+		const std::int8_t sx(FetchSign(x2 - x1)), sy(FetchSign(y2 - y1));
 		SDst dx(std::abs(x2 - x1)), dy(std::abs(y2 - y1));
 		bool f(dy > dx);
 

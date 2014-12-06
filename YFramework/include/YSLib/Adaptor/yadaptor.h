@@ -11,13 +11,13 @@
 /*!	\file yadaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1621
+\version r1644
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-11-24 07:36 +0800
+	2014-12-02 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,31 +57,6 @@
 */
 namespace YSLib
 {
-
-//目标平台中立接口。
-
-/*!
-\brief 通用数据类型。
-\since build 245
-*/
-//@{
-using u8 = std::uint8_t;
-using u16 = std::uint16_t;
-using u32 = std::uint32_t;
-using u64 = std::uint64_t;
-using s8 = std::int8_t;
-using s16 = std::int16_t;
-using s32 = std::int32_t;
-using s64 = std::int64_t;
-using vu8 = volatile u8;
-using vu16 = volatile u16;
-using vu32 = volatile u32;
-using vu64 = volatile u64;
-using vs8 = volatile s8;
-using vs16 = volatile s16;
-using vs32 = volatile s32;
-using vs64 = volatile s64;
-//@}
 
 /*!
 \brief 调用分派。

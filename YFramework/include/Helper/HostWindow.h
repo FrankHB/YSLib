@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r421
+\version r423
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-11-14 22:23 +0800
+	2014-12-05 17:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -170,10 +170,10 @@ public:
 	/*!
 	\brief 更新：同步缓冲区。
 	\note 根据 UseOpacity 选择更新操作。
-	\since build 435
+	\since build 558
 	*/
 	void
-	UpdateFrom(Drawing::BitmapPtr, ScreenRegionBuffer&);
+	UpdateFrom(Drawing::ConstBitmapPtr, ScreenRegionBuffer&);
 };
 
 } // namespace Host;

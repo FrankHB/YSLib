@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3232
+\version r3238
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2014-11-14 23:40 +0800
+	2014-12-02 18:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,7 @@ class Typeface;
 \brief 字体大小。
 \since build 277
 */
-using FontSize = u8;
+using FontSize = std::uint8_t;
 /*!
 \brief 字体文件路径。
 \since build 277
@@ -82,7 +82,7 @@ using StyleName = std::string;
 \brief 字体样式。
 \since build 197
 */
-enum class FontStyle : u8
+enum class FontStyle : std::uint8_t
 {
 	Regular = 0, //!< 常规字体。
 	Bold = 1, //!< 粗体。
@@ -284,7 +284,7 @@ public:
 	\brief 使用字体缓存引用在指定字体文件路径读取指定索引的字型并构造对象。
 	\post 断言： \c cmap_index 在 face 接受的范围内。
 	*/
-	Typeface(FontCache&, const FontPath&, u32 = 0);
+	Typeface(FontCache&, const FontPath&, std::uint32_t = 0);
 	//! since build 461
 	~Typeface();
 
@@ -584,20 +584,20 @@ public:
 	\brief 取跨距。
 	\since build 280
 	*/
-	s8
+	std::int8_t
 	GetAdvance(ucs4_t, FTC_SBit = {}) const;
 	/*!
 	\brief 取升部。
 	\since build 280
 	*/
-	s8
+	std::int8_t
 	GetAscender() const;
 	DefGetter(const ynothrow, FontCache&, Cache, GetFontFamily().Cache)
 	/*!
 	\brief 取降部。
 	\since build 280
 	*/
-	s8
+	std::int8_t
 	GetDescender() const;
 	DefGetterMem(const ynothrow, const FamilyName&, FamilyName,
 		GetFontFamily())

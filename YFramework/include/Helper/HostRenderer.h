@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r318
+\version r320
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-11-28 12:42 +0800
+	2014-12-05 16:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -213,12 +213,13 @@ public:
 	\brief 调整和更新指定缓冲区内容至宿主窗口。
 	\pre 断言：部件和内部缓冲区大小一致。
 	\note 若宿主窗口未就绪则忽略。
+	\since build 558
 
 	调整宿主窗口位置，保持部件位置在原点。按内部状态同步宿主窗口大小。
 	调用宿主窗口 UpdateFrom 方法更新窗口内容。
 	*/
 	void
-	Update(Drawing::BitmapPtr);
+	Update(Drawing::ConstBitmapPtr);
 
 	//! \since build 387
 	template<typename _type>

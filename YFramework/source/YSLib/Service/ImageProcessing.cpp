@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.cpp
 \ingroup Service
 \brief 图像处理。
-\version r213
+\version r236
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:37:27 +0800
 \par 修改时间:
-	2014-12-01 10:19 +0800
+	2014-12-01 18:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,27 +96,6 @@ ImagePages::ImagePages(ZoomedImageCache&& c, const Size& min_size,
 	yunseq(view_size = min_size | Brush.ImagePtr->GetSize(),
 		Brush.Update = ImageBrush::UpdateComposite);
 	AdjustOffset(view_size);
-	
-	// TODO: Check "Loop" metadata.
-	const auto& bmps(cache.GetBitmaps());
-	const auto n(bmps.size());
-
-	if(n > 1)
-	{
-		frame_delays.reserve(n);
-		for(const auto& bmp : bmps)
-		{
-			// TODO: Allow user set minimal frame time.
-			auto d(std::chrono::milliseconds(20));
-
-			TryExpr(d = GetFrameTimeOf(bmp))
-			CatchExpr(LoggedEvent& e,
-				YTraceDe(e.GetLevel(), "Invalid frame time found"))
-			YTraceDe(Informative, "Loaded frame time = %s milliseconds.",
-				std::to_string(d.count()).c_str());
-			frame_delays.push_back(d);
-		}
-	}
 }
 
 void
@@ -175,11 +154,11 @@ ImagePages::SwitchPage(size_t page)
 }
 
 bool
-ImagePages::Zoom(s16 delta, const Point& offset)
+ImagePages::Zoom(float delta, const Point& offset)
 {
-	YTraceDe(Informative, "Action: zoom, with delta = %d%%.", int(delta));
+	YTraceDe(Informative, "Action: zoom, with delta = %f%%.", delta * 100.F);
 
-	auto new_scale((scale * 100 + delta) / 100.F);
+	ImageScale new_scale(scale + delta);
 
 	RestrictInClosedInterval(new_scale, MinScale, MaxScale);
 	YTraceDe(Informative, "Requested zoomed ratio = %f, fixed offset = %s.",
@@ -202,7 +181,7 @@ ImagePages::ZoomByRatio(float ratio, const Point& offset)
 {
 	YTraceDe(Informative, "Action: zoom, with ratio = %f%%.", ratio * 100.F);
 	if(ratio > 0)
-		return Zoom(s16((ratio - 1.F) * scale * 100.F), offset);
+		return Zoom((ratio - 1.F) * scale, offset);
 	else
 		YTraceDe(Warning, "Invalid ratio found.");
 	return {};
