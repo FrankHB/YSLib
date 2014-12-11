@@ -2,7 +2,7 @@
 # (C) 2014 FrankHB.
 # Script for build YSLib applications using SHBuild.
 
-: ${SHBuild_Bin:="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"}
+: ${SHBuild_Bin:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 : ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
 
 SHBuild_PrintUsage()
@@ -91,7 +91,7 @@ else
 	export SHBuild_YSLib_Flags="${CXXFLAGS} \
 		-I${SHBuild_Bin}/../include"
 	export SHBuild_YSLib_LibNames="${SHBuild_YSLib_LibNames} \
-		-lFreeImage -lfreetype -L/usr/lib -lgdi32 -limm32 -lShlwapi"
+		-lFreeImage -lfreetype -L/usr/lib -lgdi32 -limm32"
 	export LIBS="-L`SHBuild_2w "${SHBuild_Bin}/../lib"` -Wl,-dn \
 		${SHBuild_YSLib_LibNames}"
 fi

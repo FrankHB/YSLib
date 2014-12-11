@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1931
+\version r1959
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-11-13 19:54 +0800
+	2014-12-09 01:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ _wfopen(const wchar_t*, const wchar_t*);
 using platform_ex::UTF8ToWCS;
 //! \since build 549
 using platform_ex::DirectoryFindData;
-#elif YCL_Android
+#elif YCL_Linux
 #	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
 #	include <sys/stat.h>
@@ -86,7 +86,7 @@ ensure_str(const char16_t* s)
 {
 #if YCL_Win32
 	return platform_ex::WCSToMBCS(reinterpret_cast<const wchar_t*>(s));
-#elif YCL_DS || YCL_Android
+#elif YCL_DS || YCL_Linux
 	return MakeMBCS(s);
 #else
 #	error "Unsupported platform found."
@@ -559,25 +559,39 @@ bool
 IsAbsolute(const char* path)
 {
 #if YCL_Win32
-	return !::PathIsRelativeW(UTF8ToWCS(path).c_str());
+	return Deref(path) == YCL_PATH_DELIMITER
+		|| (*path != '\0' && path[1] == ':');
 #else
-	if(path)
-	{
-		if(*path == '/')
-			return true;
+	if(Deref(path) == '/')
+		return true;
 
-		const auto p(std::strstr(path, ":/"));
+	const auto p(std::strstr(path, ":/"));
 
-		return p && p != path && !std::strstr(p, ":/");
-	}
-	return {};
+	return p && p != path && !std::strstr(p, ":/");
+#endif
+}
+bool
+IsAbsolute(const char16_t* path)
+{
+#if YCL_Win32
+	return Deref(path) == u'\\' || (*path != u'\0' && path[1] == u':');
+#else
+	if(Deref(path) == u'/')
+		return true;
+
+	const std::u16string upath(path);
+	const auto n(upath.find(u":/"));
+
+	// TODO: Optimize for performance.
+	return n != std::u16string::npos && n != 0
+		&& upath.substr(n).find(u":/") == std::u16string::npos;
 #endif
 }
 
 std::size_t
 GetRootNameLength(const char* path)
 {
-	const char* p(std::strchr(path, ':'));
+	const char* p(std::strchr(Nonnull(path), ':'));
 
 	return !p ? 0 : p - path + 1;
 }
@@ -594,9 +608,9 @@ FS_IsRoot(const char16_t* str)
 	const std::u16string ustr(str);
 
 	return ustr == u"/"
-#if YCL_DS
-	|| ustr == u"fat:/" || ustr == u"sd:/"
-#endif
+#	if YCL_DS
+		|| ustr == u"fat:/" || ustr == u"sd:/"
+#	endif
 	;
 }
 #endif

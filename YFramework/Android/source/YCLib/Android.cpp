@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r418
+\version r433
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-12-05 17:03 +0800
+	2014-12-07 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,6 +87,19 @@ HostWindow::HostWindow(NativeWindowHandle h_wnd)
 HostWindow::~HostWindow()
 {
 	::ANativeWindow_release(GetNativeHandle());
+}
+
+
+void
+UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
+{
+	::ANativeWindow_Buffer abuf;
+	::ARect arect{r.X, r.Y, r.X + r.Width, r.Y + r.Height};
+
+	::ANativeWindow_lock(Nonnull(h_wnd), &abuf, &arect);
+	CopyTo(static_cast<BitmapPtr>(abuf.bits), g,
+		WindowReference(h_wnd).GetSize(), r.GetPoint(), {}, r.GetSize());
+	::ANativeWindow_unlockAndPost(h_wnd);
 }
 
 
@@ -181,15 +194,9 @@ ScreenRegionBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 void
 ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 {
-	const Size& s(GetSize());
-	::ANativeWindow_Buffer abuf;
-	::ARect arect{pt.X, pt.Y, pt.X + s.Width, pt.Y + s.Height};
 	lock_guard<mutex> lck(mtx);
 
-	::ANativeWindow_lock(Nonnull(h_wnd), &abuf, &arect);
-	CopyTo(static_cast<BitmapPtr>(abuf.bits), GetContext(),
-		WindowReference(h_wnd).GetSize(), pt, {}, s);
-	::ANativeWindow_unlockAndPost(h_wnd);
+	UpdateContentTo(h_wnd, {pt, GetSize()}, GetContext());
 }
 
 

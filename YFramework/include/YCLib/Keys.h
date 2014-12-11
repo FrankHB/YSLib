@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r573
+\version r577
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-11-16 11:17 +0800
+	2014-12-09 14:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,10 +49,7 @@ using KeyIndex = std::size_t;
 //@{
 #if YCL_DS
 yconstexpr KeyIndex KeyBitsetWidth(32);
-#elif YCL_Win32
-yconstexpr KeyIndex KeyBitsetWidth(256);
-#elif YCL_Android
-//! \since build 492
+#elif YCL_Win32 || YCL_Android || YCL_Linux
 yconstexpr KeyIndex KeyBitsetWidth(256);
 #else
 #	error "Unsupported platform found."

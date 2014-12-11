@@ -25,7 +25,6 @@
 					<Add library="../../build/MinGW32/YBase/debug/libYBased.a" />
 					<Add library="gdi32" />
 					<Add library="imm32" />
-					<Add library="Shlwapi" />
 				</Linker>
 			</Target>
 			<Target title="release">
@@ -50,7 +49,6 @@
 					<Add library="../../build/MinGW32/YBase/release/libYBase.a" />
 					<Add library="gdi32" />
 					<Add library="imm32" />
-					<Add library="Shlwapi" />
 				</Linker>
 			</Target>
 			<Target title="debug_DLL">

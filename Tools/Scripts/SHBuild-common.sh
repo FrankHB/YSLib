@@ -17,7 +17,7 @@ SHBuild_2w()
 
 SHBuild_Install()
 {
-	if hash rsync > /dev/null 2>&1; then
+	if hash rsync > /dev/null 2>& 1; then
 		rsync -a "$1" "$2"
 	else
 		cp -fr "$1" "$2"
@@ -26,7 +26,7 @@ SHBuild_Install()
 
 SHBuild_InstallDir()
 {
-	if hash rsync > /dev/null 2>&1; then
+	if hash rsync > /dev/null 2>& 1; then
 		rsync -a "$1" "$2"
 	else
 		cp -fr "$1" "$2/.."
@@ -42,8 +42,8 @@ SHBuild_Install_Exe()
 SHBuild_Install_HardLink()
 {
 	rm -f "$2" || true
-	${SHBuild_CMD} //c "mklink /H `SHBuild_2w "$2"` `SHBuild_2w "$1"`" \
-		>/dev/null 2>&1 || ln -T "$1" "$2" || SHBuild_Install "$1" "$2"
+	${SHBuild_CMD} //c "mklink /H `SHBuild_2w "$2"` `SHBuild_2w "$1"`" > \
+		/dev/null 2>& 1 || ln -T "$1" "$2" || SHBuild_Install "$1" "$2"
 }
 
 SHBuild_Install_HardLink_Exe()
@@ -55,30 +55,38 @@ SHBuild_Install_HardLink_Exe()
 SHBuild_Install_Link()
 {
 	rm -f "$2" || true
-	${SHBuild_CMD} //c "mklink `SHBuild_2w "$2"` `SHBuild_2w "$1"`">/dev/null \
-		2>&1 || ln -s -T "$1" "$2"
+	${SHBuild_CMD} //c "mklink `SHBuild_2w "$2"` `SHBuild_2w "$1"`" > \
+		/dev/null 2>& 1 || ln -s -T "$1" "$2"
 }
 
 SHBuild_Pushd()
 {
-	pushd .>/dev/null 2>/dev/null
+	pushd . > /dev/null 2>& 1
 }
 
 SHBuild_Popd()
 {
-	popd>/dev/null 2>/dev/null
+	popd > /dev/null 2>& 1
+}
+
+SHBuild_EchoEscape()
+{
+	# FIXME: Turn off ANSI escape sequence when $TERM not supported.
+	if [ -t 1 ]; then
+		echo -ne $1
+	fi
 }
 
 SHBuild_EchoVar()
 {
-	# FIXME: Turn off ANSI escape sequence when not supported.
-	echo -ne '\033[36m'
+	SHBuild_EchoEscape '\033[36m'
 	echo -n "$1"
-	echo -ne '\033[0m'
+	SHBuild_EchoEscape '\033[0m'
 	echo -n ' = "'
-	echo -ne '\033[31m'
+	SHBuild_EchoEscape '\033[31m'
 	echo -n "$2"
-	echo -e '\033[0m"'
+	SHBuild_EchoEscape '\033[0m'
+	echo '"'
 }
 
 SHBuild_EchoVar_N()

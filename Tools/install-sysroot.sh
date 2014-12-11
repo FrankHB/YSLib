@@ -24,7 +24,7 @@ SHBuild_SysRoot_Bin="${SHBuild_SysRoot}/usr/bin"
 SHBuild_SysRoot_Include="${SHBuild_SysRoot}/usr/include"
 SHBuild_SysRoot_Lib="${SHBuild_SysRoot}/usr/lib"
 SHBuild_SysRoot_SHBuild="${SHBuild_SysRoot}/.shbuild"
-export AR="gcc-ar"
+: ${AR:="gcc-ar"}
 . ${SHBuild_ToolDir}/SHBuild-common-toolchain.sh
 if [ -z ${SHBuild_UseRelease+x} ]; then
 	SHBuild_UseRelease=true

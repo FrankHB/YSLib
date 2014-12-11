@@ -11,13 +11,13 @@
 /*!	\file CharRenderer.cpp
 \ingroup Service
 \brief 字符渲染。
-\version r3259
+\version r3261
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-12-02 18:37 +0800
+	2014-12-07 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ namespace
 
 //! \since build 417
 const AlphaType BLT_TEXT_ALPHA_THRESHOLD(16);
-PixelType char_color;
+Pixel char_color;
 
 /*!
 \brief 混合 Alpha 透明度扫描线。
@@ -83,7 +83,7 @@ struct tr_seg
 };
 
 
-using PixelIt = pseudo_iterator<const PixelType>;
+using PixelIt = pseudo_iterator<const Pixel>;
 
 using BIt_1 = bitseg_iterator<1, true>;
 using BIt_2 = bitseg_iterator<2, true>;

@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r359
+\version r365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2014-12-06 19:32 +0800
+	2014-12-07 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,9 +51,9 @@ namespace
 {
 
 //! \since build 441
-static_assert(sizeof(PixelType) == sizeof(PixelType::Trait::IntegerType),
+static_assert(sizeof(Pixel) == sizeof(Pixel::Trait::IntegerType),
 	"Wrong size of pixel type found.");
-static_assert(yalignof(PixelType) == yalignof(PixelType::Trait::IntegerType),
+static_assert(yalignof(Pixel) == yalignof(Pixel::Trait::IntegerType),
 	"Wrong alignment of pixel type found.");
 
 #if YCL_DS
@@ -116,8 +116,8 @@ YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 
 		std::uint16_t* bg_palette = dspIndex ? BG_PALETTE : BG_PALETTE_SUB;
 
-		bg_palette[0] = PixelType(bc).Integer | BITALPHA;
-		bg_palette[255] = PixelType(fc).Integer | BITALPHA;
+		bg_palette[0] = Pixel(bc).Integer | BITALPHA;
+		bg_palette[255] = Pixel(fc).Integer | BITALPHA;
 	}
 #elif YCL_Win32 || YCL_Android
 YConsoleInit(std::uint8_t, Color, Color)
@@ -187,10 +187,10 @@ InitScrDown(int& id)
 }
 
 void
-ScreenSynchronize(platform::PixelType* buf, const platform::PixelType* src)
+ScreenSynchronize(platform::Pixel* buf, const platform::Pixel* src)
 	ynothrow
 {
-	using ScreenBufferType = platform::PixelType[SCREEN_WIDTH * SCREEN_HEIGHT];
+	using ScreenBufferType = platform::Pixel[SCREEN_WIDTH * SCREEN_HEIGHT];
 
 	::DC_FlushRange(src, sizeof(ScreenBufferType));
 	::dmaCopyWordsAsynch(3, src, buf, sizeof(ScreenBufferType));

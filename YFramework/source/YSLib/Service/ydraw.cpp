@@ -11,13 +11,13 @@
 /*!	\file ydraw.cpp
 \ingroup Service
 \brief 平台无关的二维图形光栅化。
-\version r1058
+\version r1062
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:33 +0800
 \par 修改时间:
-	2014-12-02 18:52 +0800
+	2014-12-07 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,7 +52,7 @@ PlotHLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos y, SPos x1,
 			RestrictInInterval(x1, bx, bxw),
 			RestrictInInterval(x2, bx, SPos(bxw + 1));
 			RestrictLessEqual(x1, x2);
-			FillPixel<PixelType>(&Nonnull(dst)[y * w + x1], x2 - x1, c);
+			FillPixel<Pixel>(&Nonnull(dst)[y * w + x1], x2 - x1, c);
 		}
 	}
 }
@@ -74,8 +74,7 @@ PlotVLineSeg(BitmapPtr dst, const Rect& bounds, SDst w, SPos x, SPos y1,
 			RestrictInInterval(y1, by, byh),
 			RestrictInInterval(y2, by, SPos(byh + 1));
 			RestrictLessEqual(y1, y2);
-			FillVerticalLine<PixelType>(&Nonnull(dst)[y1 * w + x], y2 - y1, w,
-				c);
+			FillVerticalLine<Pixel>(&Nonnull(dst)[y1 * w + x], y2 - y1, w, c);
 		}
 	}
 }
@@ -147,7 +146,7 @@ void
 FillRect(const Graphics& g, const Rect& r, Color c)
 {
 	YAssert(bool(g), "Invalid graphics context found.");
-	FillRectRaw<PixelType>(g.GetBufferPtr(), g.GetSize(), r, c);
+	FillRectRaw<Pixel>(g.GetBufferPtr(), g.GetSize(), r, c);
 }
 
 namespace

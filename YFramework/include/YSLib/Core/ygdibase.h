@@ -11,13 +11,13 @@
 /*!	\file ygdibase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1746
+\version r1833
 \author FrankHB <frankhb1989@gmail.com>
 \since build 206
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-11-22 19:29 +0800
+	2014-12-11 20:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -311,11 +311,10 @@ public:
 	DefDeCopyAssignment(Size)
 
 	/*!
-	\brief 判断是否为空。
+	\brief 判断是否为空或非空。
 	\since build 320
 	*/
-	yconstfn PDefHOp(bool, !, ) const ynothrow
-		ImplRet(Width == 0 && Height == 0)
+	yconstfn DefBoolNeg(yconstfn explicit, Width != 0 || Height != 0)
 
 	/*!
 	\brief 求与另一个屏幕区域大小的交。
@@ -334,12 +333,6 @@ public:
 	PDefHOp(Size&, |=, const Size& s) ynothrow
 		ImplRet(yunseq(Width = max(Width, s.Width),
 			Height = max(Height, s.Height)), *this)
-
-	/*!
-	\brief 判断是否非空。
-	\since build 320
-	*/
-	explicit yconstfn DefCvt(const ynothrow, bool, Width != 0 || Height != 0)
 
 	/*!
 	\brief 转换：屏幕二维向量。
@@ -784,82 +777,85 @@ Size::Size(const Rect& r) ynothrow
 
 
 /*!
-\brief 二维图形接口上下文。
+\brief 二维图形接口上下文模板。
 \warning 非虚析构。
-\since build 164
+\since build 559
 */
-class YF_API Graphics
+template<typename _tPointer, class _tSize = Size>
+class GGraphics
 {
+	static_assert(std::is_nothrow_copy_constructible<_tPointer>::value,
+		"Invalid pointer type found.");
+	static_assert(std::is_nothrow_copy_constructible<_tSize>::value,
+		"Invalid size type found.");
+
 public:
-	static const Graphics Invalid; //!< 无效图形接口上下文。
+	using PointerType = _tPointer;
+	using SizeType = _tSize;
+	using PixelType = ystdex::decay_t<decltype(*PointerType())>;
 
 protected:
 	/*!
 	\brief 显示缓冲区指针。
 	\warning 不应视为具有所有权。
 	*/
-	BitmapPtr pBuffer;
-	/*
-	\brief 图形区域大小。
-	\since build 405
-	*/
-	Size sGraphics;
+	PointerType pBuffer{};
+	//! \brief 图形区域大小。
+	SizeType sGraphics{};
 
 public:
-	/*!
-	\brief 默认构造：使用空指针和大小。
-	\since build 428
-	*/
-	Graphics() ynothrow
-		: Graphics({})
-	{}
-	/*!
-	\brief 构造：使用指定位图指针和大小。
-	\since build 428
-	*/
+	//! \brief 默认构造：使用空指针和大小。
+	DefDeCtor(GGraphics)
+	//! \brief 构造：使用指定位图指针和大小。
 	explicit yconstfn
-	Graphics(BitmapPtr b, const Size& s = {}) ynothrow
+	GGraphics(PointerType b, const SizeType& s = {}) ynothrow
 		: pBuffer(b), sGraphics(s)
 	{}
-	/*!
-	\brief 复制构造：浅复制。
-	\since build 319
-	*/
-	yconstfn
-	Graphics(const Graphics& g) ynothrow
-		: pBuffer(g.pBuffer), sGraphics(g.sGraphics)
+	//! \brief 构造：使用其它类型的指定位图指针和大小。
+	template<typename _tPointer2, class _tSize2>
+	explicit yconstfn
+	GGraphics(_tPointer2 b, const _tSize2& s = {}) ynothrow
+		: GGraphics(static_cast<PointerType>(b), static_cast<SizeType>(s))
 	{}
-	/*!
-	\brief 析构：默认实现。
-	*/
-	DefDeDtor(Graphics)
+	//! \brief 构造：使用其它类型的指定位图指针和大小类型的二维图形接口上下文。
+	template<typename _tPointer2, class _tSize2>
+	yconstfn
+	GGraphics(const GGraphics<_tPointer2, _tSize2>& g) ynothrow
+		: GGraphics(g.GetBufferPtr(), g.GetSize())
+	{}
+	//! \brief 复制构造：浅复制。
+	DefDeCopyCtor(GGraphics)
+	DefDeMoveCtor(GGraphics)
+
+	DefDeCopyAssignment(GGraphics)
+	DefDeMoveAssignment(GGraphics)
 
 	/*!
-	\brief 判断无效性。
+	\brief 判断无效或有效性。
 	\since build 319
 	*/
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!bool(*this))
+	DefBoolNeg(explicit,
+		bool(pBuffer) && sGraphics.Width != 0 && sGraphics.Height != 0)
 
 	/*!
 	\brief 取指定行首元素指针。
 	\pre 断言：参数不越界。
 	\pre 间接断言：缓冲区指针非空。
 	*/
-	BitmapPtr
-	operator[](size_t) const ynothrow;
+	PointerType
+	operator[](size_t r) const ynothrow
+	{
+		YAssert(r < sGraphics.Height, "Access out of range.");
+		return Nonnull(pBuffer) + r * sGraphics.Width;
+	}
 
-	/*!
-	\brief 判断有效性。
-	\since build 319
-	*/
-	explicit DefCvt(const ynothrow, bool,
-		pBuffer && sGraphics.Width != 0 && sGraphics.Height != 0)
-
-	DefGetter(const ynothrow, BitmapPtr, BufferPtr, pBuffer)
-	DefGetter(const ynothrow, const Size&, Size, sGraphics)
+	DefGetter(const ynothrow, PointerType, BufferPtr, pBuffer)
+	DefGetter(const ynothrow, const SizeType&, Size, sGraphics)
+	//! \since build 196
 	DefGetter(const ynothrow, SDst, Width, sGraphics.Width)
+	//! \since build 196
 	DefGetter(const ynothrow, SDst, Height, sGraphics.Height)
+	//! \since build 177
 	DefGetter(const ynothrow, size_t, SizeOfBuffer,
 		sizeof(PixelType) * GetAreaOf(sGraphics)) //!< 取缓冲区占用空间。
 
@@ -869,9 +865,24 @@ public:
 	\throw std::out_of_range 参数越界。
 	\note 仅抛出以上异常。
 	*/
-	BitmapPtr
-	at(size_t) const ythrow(GeneralEvent, std::out_of_range);
+	PointerType
+	at(size_t r) const ythrow(GeneralEvent, std::out_of_range)
+	{
+		if(YB_UNLIKELY(!pBuffer))
+			throw GeneralEvent("Null pointer found.");
+		if(YB_UNLIKELY(r >= sGraphics.Height))
+			throw std::out_of_range("Access out of range.");
+
+		return pBuffer + r * sGraphics.Width;
+	}
 };
+
+
+//! \since build 559
+using ConstGraphics = GGraphics<ConstBitmapPtr>;
+
+//! \since build 559
+using Graphics = GGraphics<BitmapPtr>;
 
 
 /*!

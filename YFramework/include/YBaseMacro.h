@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2625
+\version r2643
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2014-11-16 10:30 +0800
+	2014-12-11 20:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,9 @@
 
 #include <ydef.h>
 
-/*	\defgroup cmacro Macros For Code Compressing
+/*!	\defgroup cmacro Macros For Code Compressing
 \brief 缩写代码用的宏。
+\since 早于 build 132
 
 以下名构词缩写的含义：
 Ctor constructor
@@ -71,7 +72,6 @@ _plist parameters list
 _q qualifier(s)
 _sig signature
 _t type
-\since 早于 build 132
 */
 //@{
 
@@ -201,6 +201,24 @@ _t type
 	DefCvt(_q, _t, _b::operator _t())
 #define DefCvtMem(_q, _t, _m) \
 	DefCvt(_q, _t, (_m).operator _t())
+
+/*!
+\brief 定义表示否定的 \c operator! 。
+\pre 表达式 <tt>bool(*this)</tt> 合式且无异常抛出。
+\since build 559
+*/
+#define DefNeg \
+	PDefHOp(bool, !, ) const ynothrow \
+		ImplRet(!bool(*this))
+
+/*!
+\brief 定义表示显式转换 bool 操作符及其否定的 \c operator! 。
+\pre 表达式合式且无异常抛出。
+\since build 559
+*/
+#define DefBoolNeg(_spec, ...) \
+	DefNeg \
+	_spec DefCvt(const ynothrow, bool, __VA_ARGS__)
 
 #define DefPred(_q, _n, ...) \
 	bool YPP_Concat(Is, _n)() _q \

@@ -27,6 +27,13 @@
 
 : ${CFLAGS_COMMON:="${C_CXXFLAGS_COMMON} ${CFLAGS_STD} ${CFLAGS_WARNING}"}
 
+# TODO: BSD etc.
+if ${CXX} -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
+	CXXFLAGS_IMPL_COMMON_THRD_="-mthreads"
+elif uname | grep Linux > /dev/null; then
+	CXXFLAGS_IMPL_COMMON_THRD_="-pthread"
+fi
+
 # NOTE: The compiler should be specified earlier than this line to
 #	automatically determine if these values should be used.
 if echo ${CXX} | grep clang++ > /dev/null; then
@@ -34,17 +41,16 @@ if echo ${CXX} | grep clang++ > /dev/null; then
 		-Wno-deprecated-register \
 		-Wno-mismatched-tags \
 		"}
-	: ${CXXFLAGS_IMPL_COMMON:=""}
-	: ${CXXFLAGS_IMPL_OPT:="-flto"}
+#	: ${CXXFLAGS_IMPL_OPT:="-flto"}
 	: ${LDFLAGS_IMPL_OPT:="${CXXFLAGS_IMPL_OPT}"}
 elif echo ${CXX} | grep g++ > /dev/null; then
 	: ${CXXFLAGS_IMPL_WARNING:=" \
 		-Wzero-as-null-pointer-constant \
 		"}
-	: ${CXXFLAGS_IMPL_COMMON:="-mthreads"}
 	: ${CXXFLAGS_IMPL_OPT:="-s -fexpensive-optimizations -flto=jobserver"}
 	: ${LDFLAGS_IMPL_OPT:="-s -fexpensive-optimizations -flto"}
 fi
+: ${CXXFLAGS_IMPL_COMMON:="${CXXFLAGS_IMPL_COMMON_THRD_}"}
 
 : ${CXXFLAGS_STD:="-std=c++11"}
 : ${CXXFLAGS_WARNING:=" ${CFLAGS_WARNING} \
@@ -76,7 +82,7 @@ fi
 
 : ${CXXFLAGS:="${CXXFLAGS_COMMON} ${CXXFLAGS_OPT_DBG}"}
 
-: ${LDFLAGS_OPT_DBG:="-s -Wl,--gc-sections"}
+: ${LDFLAGS_OPT_DBG:="${LDFLAGS_IMPL_OPT} -Wl,--gc-sections"}
 
 : ${LDFLAGS:="${LDFLAGS_OPT_DBG}"}
 

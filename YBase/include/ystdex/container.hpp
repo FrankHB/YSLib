@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1017
+\version r1031
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-11-16 10:40 +0800
+	2014-12-10 00:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -131,6 +131,20 @@ public:
 	using container_type::cbegin;
 
 	using container_type::cend;
+
+	//! \since build 559
+	container_type&
+	get_container() ynothrow
+	{
+		return *this;
+	}
+
+	//! \since build 559
+	const container_type&
+	get_container() const ynothrow
+	{
+		return *this;
+	}
 
 	void
 	swap(container_adaptor& con) ynothrow
@@ -254,6 +268,9 @@ public:
 
 	using container_type::assign;
 	//@}
+
+	//! \since build 559
+	using base::get_container;
 };
 
 /*!

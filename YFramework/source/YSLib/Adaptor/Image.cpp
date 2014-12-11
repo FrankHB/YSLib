@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1063
+\version r1066
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-12-01 00:30 +0800
+	2014-12-07 12:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -264,7 +264,7 @@ HBitmap::HBitmap(BitmapPtr src, const Size& s, size_t pitch_delta)
 	: p_bitmap([&]{
 		return ::FreeImage_ConvertFromRawBits(reinterpret_cast<byte*>(
 			Nonnull(src)), s.Width, s.Height,
-			s.Width * sizeof(PixelType) + pitch_delta, YF_PixConvSpec, true);
+			s.Width * sizeof(Pixel) + pitch_delta, YF_PixConvSpec, true);
 	}())
 {
 	if(!p_bitmap)
@@ -349,10 +349,10 @@ HBitmap::operator[](size_t idx) const ynothrowv
 HBitmap::operator CompactPixmap() const
 {
 	const Size& s(GetSize());
-	auto pixels(make_unique<PixelType[]>(GetAreaOf(s)));
+	auto pixels(make_unique<Pixel[]>(GetAreaOf(s)));
 
 	::FreeImage_ConvertToRawBits(reinterpret_cast<byte*>(&pixels[0]),
-		GetDataPtr(), s.Width * sizeof(PixelType), YF_PixConvSpec, true);
+		GetDataPtr(), s.Width * sizeof(Pixel), YF_PixConvSpec, true);
 	return CompactPixmap(std::move(pixels), s);
 }
 

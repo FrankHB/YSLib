@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r481
+\version r485
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-11-28 10:55 +0800
+	2014-12-11 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -225,11 +225,7 @@ public:
 	~DirectoryFindData();
 
 	//! \since build 556
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!h_node)
-
-	//! \since build 556
-	explicit DefCvt(const ynothrow, bool, h_node)
+	DefBoolNeg(explicit, h_node)
 
 	DefGetter(const ynothrow, ::DWORD, Attributes, find_data.dwFileAttributes)
 	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)

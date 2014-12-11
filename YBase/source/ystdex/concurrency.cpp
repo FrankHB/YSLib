@@ -11,13 +11,13 @@
 /*!	\file concurrency.cpp
 \ingroup YStandardEx
 \brief 并发操作。
-\version r147
+\version r149
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2014-07-21 19:09:18 +0800
 \par 修改时间:
-	2014-11-30 10:07 +0800
+	2014-12-09 17:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,8 +27,8 @@
 
 #include "ystdex/any.h"
 #include <sstream>
-#if YB_IMPL_GNUCPP && defined(_GLIBCXX_HAS_GTHREADS) \
-	&& defined(_GLIBCXX_USE_C99_STDINT_TR1)
+#if __STDCPP_THREADS__ || (__GLIBCXX__ && defined(_GLIBCXX_HAS_GTHREADS) \
+	&& defined(_GLIBCXX_USE_C99_STDINT_TR1))
 #include "ystdex/concurrency.h"
 
 namespace ystdex

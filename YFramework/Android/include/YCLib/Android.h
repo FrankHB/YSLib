@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r472
+\version r481
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-12-05 17:04 +0800
+	2014-12-09 20:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -113,6 +113,15 @@ public:
 
 
 /*!
+\brief 更新指定图形接口上下文的至窗口。
+\since build 559
+*/
+YF_API void
+UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
+	const YSLib::Drawing::ConstGraphics&);
+
+
+/*!
 \brief 屏幕缓存数据。
 \note 非公开实现。
 */
@@ -179,7 +188,7 @@ public:
 
 	/*!
 	\brief 从缓冲区更新。
-	\pre 断言：参数非空。
+	\pre 间接断言：参数非空。
 	\pre 缓冲区大小和像素跨距完全一致。
 	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 RGBA8888 兼容。
 	\since build 558
@@ -233,7 +242,7 @@ public:
 	void
 	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 
-	//! \pre 断言：本机句柄非空。
+	//! \pre 间接断言：本机句柄非空。
 	void
 	UpdateTo(NativeWindowHandle, const YSLib::Drawing::Point& = {}) ynothrow;
 };

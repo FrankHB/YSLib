@@ -11,13 +11,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2394
+\version r2395
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2014-11-19 15:59 +0800
+	2014-12-07 12:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,8 +100,8 @@ class Window;
 using HBrush = std::function<void(PaintEventArgs&&)>;
 
 
-//名称引用。
-using Drawing::PixelType;
+//! \since build 559
+using Drawing::Pixel;
 using Drawing::BitmapPtr;
 using Drawing::ConstBitmapPtr;
 using Drawing::Color;

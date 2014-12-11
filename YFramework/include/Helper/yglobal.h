@@ -11,13 +11,13 @@
 /*!	\file yglobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1925
+\version r1927
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2014-07-24 09:47 +0800
+	2014-12-09 15:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,8 @@
 #	include YFM_MinGW32_YCLib_MinGW32
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
+#elif YF_Hosted
+#	include YFM_YCLib_Host
 #endif
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Core_YMessageDefinition
