@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r113
+\version r128
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-12-05 17:07 +0800
+	2014-12-07 20:26 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -52,9 +52,9 @@ AndroidScreen::AndroidScreen(::ANativeWindow& wnd,
 			return size;
 
 		::ANativeWindow_Buffer abuf;
+
 		::ANativeWindow_lock(&wnd, &abuf, {});
 		::ANativeWindow_unlockAndPost(&wnd);
-
 		return {CheckPositiveScalar<SDst>(abuf.width, "width"),
 			CheckPositiveScalar<SDst>(abuf.height, "height")};
 	}(), scr_size)
@@ -62,20 +62,33 @@ AndroidScreen::AndroidScreen(::ANativeWindow& wnd,
 AndroidScreen::AndroidScreen(::ANativeWindow& wnd, const Drawing::Size& size,
 	const Drawing::Size& scr_size)
 	: Screen(size),
-	window_ref(wnd), rbuf(size)
+	window_ref(wnd)
 {
 	YTraceDe(Informative, "Screen created, size = %s.",
 		to_string(size).c_str());
-	pBuffer = rbuf.GetBufferPtr();
-	::ANativeWindow_setBuffersGeometry(&wnd, scr_size.Width, scr_size.Height,
+	SetNativeBufferSize(scr_size);
+}
+
+void
+AndroidScreen::SetNativeBufferSize(const Size& s)
+{
+	::ANativeWindow_setBuffersGeometry(&GetWindowRef(), s.Width, s.Height,
 		WINDOW_FORMAT_RGBA_8888);
+}
+
+void
+AndroidScreen::SetSize(const Size& s)
+{
+	GraphicDevice::SetSize(s);
+	SetNativeBufferSize(s);
 }
 
 void
 AndroidScreen::Update(ConstBitmapPtr p_buf) ynothrow
 {
-	rbuf.UpdateFrom(p_buf);
-	rbuf.UpdateTo(&GetWindowRef(), Offset);
+	const Size& s(GetSize());
+
+	platform_ex::UpdateContentTo(&GetWindowRef(), s, ConstGraphics(p_buf, s));
 }
 
 } // namespace Devices;

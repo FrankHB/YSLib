@@ -11,13 +11,13 @@
 /*!	\file ygdi.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3703
+\version r3743
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-09-09 23:09 +0800
+	2014-12-07 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,20 +103,14 @@ operator+(const Rect&, const Padding&);
 /*!
 \brief 取水平边距和。
 */
-inline SDst
-GetHorizontalOf(const Padding& m)
-{
-	return max<SPos>(0, m.Left) + max<SPos>(0, m.Right);
-}
+inline PDefH(SDst, GetHorizontalOf, const Padding& m)
+	ImplRet(max<SPos>(0, m.Left) + max<SPos>(0, m.Right))
 
 /*!
 \brief 取竖直边距和。
 */
-inline SDst
-GetVerticalOf(const Padding& m)
-{
-	return max<SPos>(0, m.Top) + max<SPos>(0, m.Bottom);
-}
+inline PDefH(SDst, GetVerticalOf, const Padding& m)
+	ImplRet(max<SPos>(0, m.Top) + max<SPos>(0, m.Bottom))
 
 
 /*!
@@ -130,12 +124,8 @@ FetchMargin(const Rect&, const Size&);
 \brief 剪切操作：取标准矩形交集并判断是否严格非空。
 \since build 372
 */
-inline bool
-Clip(Rect& x, const Rect& y)
-{
-	x &= y;
-	return !x.IsUnstrictlyEmpty();
-}
+inline PDefH(bool, Clip, Rect& x, const Rect& y)
+	ImplRet(x &= y, !x.IsUnstrictlyEmpty())
 
 /*!
 \brief 根据指定源的边界优化绘制上下文的剪切区域。
@@ -164,8 +154,7 @@ ClipMargin(PaintContext&, const Padding&, const Size&);
 \brief 使用 Graphics 定义的基本图像。
 \since build 406
 */
-class YF_API BasicImage : protected Graphics,
-	implements IImage
+class YF_API BasicImage : protected Graphics, implements IImage
 {
 public:
 	DefDeCtor(BasicImage)
@@ -213,7 +202,7 @@ public:
 	\brief 构造：使用指定位图指针和大小。
 	\note 取得所有权。
 	*/
-	CompactPixmap(unique_ptr<PixelType[]>, const Size&) ynothrow;
+	CompactPixmap(unique_ptr<Pixel[]>, const Size&) ynothrow;
 	CompactPixmap(const CompactPixmap&);
 	/*!
 	\brief 转移构造：转移资源。
@@ -390,12 +379,13 @@ inline DefSwap(ynothrow, CompactPixmapEx)
 /*!
 \brief 图形接口上下文向指针指定的缓冲区复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
+\since build 559
 
 以指定图形接口上下文作为源，向指定大小和点（相对左上角）的
 	指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
 YF_API bool
-CopyTo(BitmapPtr, const Graphics&, const Size&, const Point&, const Point&,
+CopyTo(BitmapPtr, const ConstGraphics&, const Size&, const Point&, const Point&,
 	const Size&, Rotation = RDeg0);
 /*!
 \brief 位图缓冲区向指针指定的缓冲区复制。
@@ -410,18 +400,15 @@ CopyTo(BitmapPtr, const CompactPixmapEx&, const Size&,
 /*!
 \brief 图形接口上下文复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
-\since build 337
+\since build 559
 
 以第一个参数作为目标，以指定输出指向复制第二个参数的缓冲区内容
 	至相对目标缓冲区的点。
 */
-inline bool
-CopyTo(const Graphics& dst, const Graphics& src,
+inline PDefH(bool, CopyTo, const Graphics& dst, const ConstGraphics& src,
 	const Point& dp = {}, const Point& sp = {}, Rotation rot = RDeg0)
-{
-	return CopyTo(dst.GetBufferPtr(), src, dst.GetSize(),
-		dp, sp, src.GetSize(), rot);
-}
+	ImplRet(CopyTo(dst.GetBufferPtr(), src, dst.GetSize(), dp, sp,
+		src.GetSize(), rot))
 /*!
 \brief 位图缓冲区向图形接口上下文复制。
 \note 仅当指针和指向有效。自动裁剪适应大小。
@@ -429,13 +416,10 @@ CopyTo(const Graphics& dst, const Graphics& src,
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向复制缓冲区内容。
 */
-inline bool
-CopyTo(const Graphics& dst, const CompactPixmapEx& src,
+inline PDefH(bool, CopyTo, const Graphics& dst, const CompactPixmapEx& src,
 	const Point& dp = {}, const Point& sp = {}, Rotation rot = RDeg0)
-{
-	return CopyTo(dst.GetBufferPtr(), src, dst.GetSize(),
-		dp, sp, src.GetSize(), rot);
-}
+	ImplRet(CopyTo(dst.GetBufferPtr(), src, dst.GetSize(), dp, sp,
+		src.GetSize(), rot))
 
 /*!
 \brief 贴图：位图缓冲区向指针指定的缓冲区以贴图算法复制。
@@ -454,13 +438,10 @@ BlitTo(BitmapPtr, const CompactPixmapEx&, const Size&,
 
 向指定大小和点（相对左上角）的指定图形接口上下文以指定输出指向以缓冲区内容贴图。
 */
-inline bool
-BlitTo(const Graphics& dst, const CompactPixmapEx& src,
+inline PDefH(bool, BlitTo, const Graphics& dst, const CompactPixmapEx& src,
 	const Point& dp = {}, const Point& sp = {}, Rotation rot = RDeg0)
-{
-	return BlitTo(dst.GetBufferPtr(), src, dst.GetSize(),
-		dp, sp, src.GetSize(), rot);
-}
+	ImplRet(BlitTo(dst.GetBufferPtr(), src, dst.GetSize(), dp, sp,
+		src.GetSize(), rot))
 
 } // namespace Drawing;
 

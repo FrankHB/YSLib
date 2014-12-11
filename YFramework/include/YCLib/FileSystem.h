@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1581
+\version r1592
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-11-28 13:04 +0800
+	2014-12-09 23:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_Encoding
 #include <system_error>
-#if YCL_DS || YCL_MinGW || YCL_Android
+#if YCL_DS || YCL_MinGW || YCL_Linux
 #	include <dirent.h>
 #endif
 #include <chrono> // for std::chrono::nanoseconds;
@@ -324,6 +324,7 @@ u16getcwd_n(char16_t* buf, std::size_t size) ynothrow;
 \return 操作是否成功。
 \note \c errno 在出错时会被设置，具体值由实现定义。
 \note DS 使用 newlib 实现。 MinGW32 使用 MSVCRT 实现。 Android 使用 bionic 实现。
+	其它 Linux 使用 GLibC 实现。
 */
 //@{
 /*!
@@ -534,7 +535,7 @@ class YF_API HDirectory final
 	: private DirectorySession, private ystdex::deref_self<HDirectory>
 {
 	//! \since build 556
-	friend ystdex::deref_self<HDirectory>;
+	friend deref_self<HDirectory>;
 
 private:
 #if YCL_Win32
@@ -637,13 +638,20 @@ using FileIterator = ystdex::indirect_input_iterator<HDirectory*>;
 
 /*!
 \brief 判断指定路径字符串是否表示一个绝对路径。
-\since build 412
+\pre 间接断言：参数非空。
 */
+//@{
+//! \since build 412
 YF_API bool
 IsAbsolute(const char*);
+//! \since build 559
+YF_API bool
+IsAbsolute(const char16_t*);
+//@}
 
 /*!
 \brief 取指定路径的文件系统根节点名称的长度。
+\pre 间接断言：参数非空。
 \since build 412
 */
 YF_API std::size_t

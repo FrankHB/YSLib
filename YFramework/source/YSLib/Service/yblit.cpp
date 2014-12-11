@@ -11,13 +11,13 @@
 /*!	\file yblit.cpp
 \ingroup Service
 \brief 平台无关的图像块操作。
-\version r1074
+\version r1076
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:45:32 +0800
 \par 修改时间:
-	2014-11-12 04:32 +0800
+	2014-12-07 19:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,7 +74,7 @@ BlitBounds(const Point& dp, const Point& sp,
 
 
 void
-CopyBuffer(const Graphics& dst, const Graphics& src)
+CopyBuffer(const Graphics& dst, const ConstGraphics& src)
 {
 	YAssert(dst.GetSize() == src.GetSize(), "Source and destination sizes"
 		"are not same.");
@@ -93,7 +93,7 @@ ClearImage(const Graphics& g)
 void
 Fill(const Graphics& g, Color c)
 {
-	FillPixel<PixelType>(g.GetBufferPtr(), GetAreaOf(g.GetSize()), c);
+	FillPixel<Pixel>(g.GetBufferPtr(), GetAreaOf(g.GetSize()), c);
 }
 
 } // namespace Drawing;

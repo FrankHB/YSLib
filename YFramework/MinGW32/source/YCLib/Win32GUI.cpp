@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 GUI 接口。
-\version r536
+\version r539
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-12-05 22:12 +0800
+	2014-12-07 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -268,7 +268,7 @@ ScreenBuffer::ScreenBuffer(const Size& s)
 		//	windows.
 		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), CheckPositiveScalar<SPos>(
 			size.Width, "width"),  -CheckPositiveScalar<SPos>(size.Height,
-			"height") - 1, 1, 32, BI_RGB, ::DWORD(sizeof(PixelType) * size.Width
+			"height") - 1, 1, 32, BI_RGB, ::DWORD(sizeof(Pixel) * size.Width
 			* size.Height), 0, 0, 0, 0}, {}};
 
 		return ::CreateDIBSection({}, &bmi, DIB_RGB_COLORS,
@@ -305,10 +305,10 @@ ScreenBuffer::Premultiply(ConstBitmapPtr p_buf) ynothrow
 	// NOTE: Since the stride is guaranteed equal to the width, the storage for
 	//	pixels can be supposed to be contiguous.
 	std::transform(p_buf, p_buf + size.Width * size.Height, pBuffer,
-		[](const PixelType& pixel){
+		[](const Pixel& pixel){
 			const auto a(pixel.GetA());
 
-			return PixelType{MonoType(pixel.GetB() * a / 0xFF),
+			return Pixel{MonoType(pixel.GetB() * a / 0xFF),
 				MonoType(pixel.GetG() * a / 0xFF),
 				MonoType(pixel.GetR() * a / 0xFF), a};
 	});

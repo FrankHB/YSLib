@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r647
+\version r680
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2014-11-21 10:30 +0800
+	2014-11-21 14:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -145,6 +145,20 @@
 #define YF_Platform_Android_ARM 0x4201
 
 /*!
+\brief Linux x86 平台。
+\note 兼容 i686 及以上。
+\warning 编译时只检查 i386 。
+\since build 559
+*/
+#define YF_Platform_Linux_x86 0x4301
+
+/*!
+\brief Linux x86_64 平台。
+\since build 559
+*/
+#define YF_Platform_Linux_x64 0x4302
+
+/*!
 \def YF_Platform
 \brief 目标平台。
 \note 注意顺序。
@@ -160,6 +174,12 @@
 #elif defined(__ANDROID__)
 // FIXME: Architecture detection.
 #	define YF_Platform YF_Platform_Android_ARM
+#elif defined(__linux__)
+#	ifdef __i386__
+#		define YF_Platform YF_Platform_Linux_x64
+#	elif defined(__x86_64__)
+#		define YF_Platform YF_Platform_Linux_x86
+#	endif
 #elif !defined(YF_Platform)
 //当前默认以 DS 作为目标平台。
 #	define YF_Platform YF_Platform_DS
@@ -213,10 +233,19 @@
 */
 
 
+#ifdef __linux__
+#	define YCL_Linux 1
+#	define YF_Hosted 1
+#	ifndef YF_Use_POSIXThread
+#		define YF_Use_POSIXThread 1
+#	endif
+#	define YCL_API_POSIXFileSystem 1
+#	define YCL_API_Has_dirent_h 1
+#	define YCL_API_Has_unistd_h 1
+#endif
 #if YF_Platform == YF_Platform_DS
 #	define YCL_DS 1
 #	define YF_Hosted 0
-#	define YF_Multithread 0
 #	define YCL_API_POSIXFileSystem 1
 #	define YCL_API_Has_dirent_h 1
 #	define YCL_API_Has_unistd_h 1
@@ -255,6 +284,8 @@
 #	ifndef YF_Use_JNI
 #		define YF_Use_JNI 0x00010006
 #	endif
+#elif YF_Platform == YF_Platform_Linux_x86 \
+	|| YF_Platform == YF_Platform_Linux_x64
 #else
 #	error "Unsupported platform found."
 #endif
@@ -262,7 +293,7 @@
 // NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63287 .
 #if __STDCPP_THREADS__
 #	define YF_Multithread 1
-#elif YCL_Win32 || YCL_Android
+#elif YCL_Win32 || YCL_Android || YCL_Linux
 #	define YF_Multithread 1
 #else
 #	define YF_Multithread 0

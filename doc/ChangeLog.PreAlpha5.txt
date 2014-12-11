@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r7652
+\version r7840
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-12-06 22:47 +0800
+	2014-12-11 20:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,193 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ DLD "implementation" ^ '{}' ~ '0' @ "constructor %MappedFile"
+				@ %MemoryMapping,
+				// To eliminate warning: [-Wzero-as-null-pointer-constant].
+			/ "%PixelType" @ "namespace %platform" => "%Pixel" @ %Video,
+			/ %Platform $=
+			(
+				+ "platform %Linux" $=
+				(
+					+ "macros %(YF_Platform_Linux_x86, YF_Platform_Linux_x64)";
+						// Only i686 and x86_64 are supported.
+					+ "detected %Linux platform with predefined macro \
+						%__linux__",
+					(
+					+ "conditionally defined macro %YCL_Linux when detected \
+						%__linux__";
+					+ "%Linux features macro definitions"
+					)
+				),
+				- "redundant %YF_Multithread definition" @ "platform %DS"
+			),
+			+ "allowed platform %Linux to be built" @ $effective
+				%(YCommon, Keys) $dep_from ("platform %Linux" @ %Platform),
+				// To allow build only, not necessarily implemented correctly.
+			/ %FileSystem $=
+			(
+				/ "all 'YCL_Android'" -> 'YCL_Linux' $dep_from
+					("platform %Linux" @ %Platform),
+				+ "explicitly assertion for nonnull parameter"
+					@ "functions %GetRootNameLength" ^ "%Nonnull",
+				/ @ "!platform %Win32"
+					@ "function %IsAbsolute for 'const char*'" $=
+				(
+					+ "assertion for nonnull parameter" ^ "%Deref",
+					- "null check",
+						// Since behavior for null parameter has been undefined.
+					/ $dev $lib "implemented" !^ "%::PathIsRelative" $dep_to
+						"getting off Shlwapi"
+				),
+				+ "function %IsAbsolute for 'const char16_t*'"
+			)
+		),
+		/ %'Helper_(Android)'.AndroidHost $=
+		(
+			/ DLD "implementation" ^ 'nullptr' ~ '{}' @ "member function \
+				%NativeHost::ClearSavedStateHandler",
+			- $dev $lib "region buffer" @ "Android screen buffer" $dep_from
+				%'YCLib_(Android)'.Android
+		),
+		/ %YSLib $=
+		(
+			/ %Core $=
+			(
+				/ %YGDIBase $=
+				(
+					/ "class %Graphics" -> "class template %GGraphics";
+					+ "alias declaration %(ConstGraphics, Graphics)";
+					- $comp "static member object %Graphics::Invalid",
+					+ $comp "member types %Graphics::(PointerType, SizeType, \
+						PixelType)"
+				),
+				+ 'using Graphics = Drawing::Graphics;' @ "class %GraphicDevice"
+					@ %YDevice
+			),
+			/ %Service $=
+			(
+				/ DLD "implemented inline functions"
+					"%(GetHorizontalOf, GetVerticalOf, Clip, 2 CopyTo, BlitTo)"
+					@ %YGDI ^ "macros %(PDefH, ImplRet)",
+				* "non-absolute path as result for absolute path when root \
+					name length is zero" @ "member function %Path::Parse"
+					@ %FileSystem $since b409
+					// Most notably, all UNIX absolute paths are broken.
+			),
+			/ "source parameter type %Graphics" @ "all functions"
+				-> "%ConstGraphics" $effective @ %Service.(YGDI, YBlit)
+				$dep_from %Core.YGDIBase,
+			* DLB "non-lowercase header file name of %(YAdaptor, YNew)"
+				@ %Adaptor.YModule $since b462
+		),
+		/ "namespace %Android" @ %'YCLib_(Android)'.Android $=
+		(
+			+ "function %UpdateContentTo";
+			/ DLD "simplified implementation"
+				@ "member function %ScreenRegionBuffer::UpdateTo"
+					^ "%UpdateContentTo"
+				// Actually it locked a little more content than before, but \
+					can be ignored.
+		),
+		+ DLB "included %YCLib.Host" @ %Helper.YGlobal,
+		/ @ "class %WConsole" @ %'YCLib_(MinGW32)' $=
+		(
+			+ "constructor for %::HANDLE",
+			- "function %GetStandardHandle"
+		),
+		(
+		+ "macros %(DefNeg; DefBoolNeg)" @ %YBaseMacro;
+		/ $dev $lib "simplified member function %operator! with negative \
+			result of %operator bool" ^ "macros %DefBoolNeg" $effective
+			@ %(YSLib.(Adaptor.Image, Core.(ValueNode, YGDIBase, YMessage, \
+			YObject), Service.File), 'YCLib_(MinGW32)'.MinGW32)
+		)
+	),
+	/ %Tools $=
+	(
+		* "externally set %AR had no effect" @ ("SHBuild-bootstrap.sh"
+			@ %Scripts $since b542, "install-sysroot.sh" $orig (@ %Scripts
+			$since b546)),
+			// Hard-coded 'gcc-ar'.
+		/ %Scripts $=
+		(
+			/ @ "%SHBuild-common.sh" $=
+			(
+				+ "function %SHBuild_EchoEscape to support printing ANSI \
+					escape sequence only in terminal";
+				* "ANSI color sequence printed out of terminal",
+					@ "function %SHBuild_EchoVar" $since b546
+					// $TERM is still not checked.
+				/ DLD "implemented functions %(SHBuild_Pushd, SHBuild_Popd)"
+					^ '2&> 1',
+				/ DLD "reserved all spaces between words of redirection"
+					// But not redir-op and prefix decimal number denoting \
+						file descriptor.
+			),
+			* DLB "non-lowercase source file name of %YFramework.YCLib.YCommon" 
+				@ "%SHBuild-bootstrap.sh" $since b540,
+			- $dep_from "getting off Shlwapi" '-lShlwapi' @ "%LIBS" $effective
+				@ ("SHBuild-bootstrap.sh", "SHBuild-YSLib.sh",
+				"SHBuild-YSLib-debug.sh", "SHBuild-BuildApp.sh"),
+			/ @ "SHBuild-bootstrap.sh" $=
+			(
+				/ "added %'YCLib_(MinGW32)' item" @ "%LIBS only when \
+					detected 'MINGW' or 'MSYS' in 'uname' output",
+				- "workaround '-fno-lto' for path encoding" @ "CXXFLAGS",
+					// No need to workaround here. Set $TMP in build \
+						environment is preferred. The output binary size by \
+						default is also significantly smaller (193 KiB vs. 853 \
+						KiB).
+				- '-Wl,--dn' @ "LDFLAGS",
+					// This does not work on all platforms (e.g. -lgcc_s \
+						failed on Linux) and may lead to other problems. \
+						Passing arguments form build environment is preferred.
+			),
+			/ @ "SHBuild-common-options.sh" $=
+			(
+				/ @ "default value" @ "variable %CXXFLAGS_IMPL_COMMON"
+				(
+					* "calling G++ failed when no '-mthreads' support" $since
+						b540,
+					+ '-pthread' @ "'Linux' in 'uname' output"
+						// Otherwise the thread call would fail in runtime in \
+							Linux.
+				),
+				/ "disabled %LDFLAGS_IMPL_OPT default value for Clang++",
+					// Since currently there is no simple stable interface to \
+						automatically call ld.gold, usually the linking would \
+						fail.
+				/ "default value" @ "%LDFLAGS_OPT_DBG" ^ "%LDFLAGS_IMPL_OPT"
+			)
+		),
+		/ "merged 'msys/make' into necessary installing group"
+			@ "%msys2-pacman-update.sh"
+			// Otherwise 'g++ -flto' could fail.
+	),
+	/ %YBase.StandardEx $=
+	(
+		* "no definition" @ "libstdc++ used without G++ (e.g. in Clang++) or \
+			even if %__STDCPP_THREADS__ defined" @ %Concurrency $since b520,
+		(
+		/ %Container $=
+		(
+			+ "2 function %get_container" @ "class template %container_adaptor";
+			+ 'using base::get_container;'
+				@ "class template %sequence_container_adaptor"
+		);
+		+ 'using base::get_container;' @ "class template %path" @ %Path
+		)
+	),
+	- 'ShlWapi' @ "libraries" @ "platform %Win32" @ "Code::Blocks projects"
+		$dep_from "getting off Shlwapi"
+),
+
+b558
 (
 	/ %YFramework $=
 	(
@@ -106,7 +293,7 @@ $now
 					%ystdex::yassert" @ "platform %Win32"
 				)
 			),
-			/ "implementation" ^ '{}' ~ '0' @ "platform %DS" @ %Video
+			/ DLD "implementation" ^ '{}' ~ '0' @ "platform %DS" @ %Video
 				// To eliminate warning: [-Wzero-as-null-pointer-constant].
 		)
 		/ DLD "all integer types names with pattern 'u*', 's*'"
@@ -792,7 +979,7 @@ b555
 					// To eliminate Clang++ warning [-Wsign-conversion].
 				* "signed shifted value"
 					@ "class templates %(XYZAMaskTrait, AXYZMaskTrait)" $since
-					b507 $orig  (@ "class template %XYZATrait" $since b441),
+					b507 $orig (@ "class template %XYZATrait" $since b441),
 					// To eliminate Clang++ warning [-Wshift-sign-overflow], \
 						[-Wsign-conversion]
 				/ $lib @ "class templates %(BGRA, RGBA)" $=

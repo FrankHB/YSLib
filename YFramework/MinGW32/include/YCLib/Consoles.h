@@ -61,10 +61,8 @@ public:
 	};
 
 private:
-	//! \since build 519
-	::DWORD std_handle;
-	//! \since build 519
-	::HANDLE h_console;
+	//! \since build 559
+	::HANDLE h_std;
 	//! \since build 519
 	::WORD saved_attr;
 
@@ -72,9 +70,17 @@ public:
 	//! \since build 519
 	::WORD Attributes;
 
+	//! \pre 断言：句柄非空有效。
+	//@{
 	//! \since build 519
 	WConsole(::DWORD h = STD_OUTPUT_HANDLE);
-	//! \note 重置属性。
+	/*!
+	\brief 构造：使用已知控制台句柄。
+	\since build 559
+	*/
+	WConsole(::HANDLE);
+	//@}
+	//! \note 析构：重置属性。
 	~WConsole();
 
 	//! \since build 519
@@ -84,7 +90,6 @@ public:
 	::CONSOLE_SCREEN_BUFFER_INFO
 	GetScreenBufferInfo() const;
 	DefGetter(const ynothrow, ::WORD, SavedAttributes, saved_attr)
-	DefGetter(const ynothrow, ::DWORD, StandardHandle, std_handle)
 	//@}
 
 	//! \since build 519

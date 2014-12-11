@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3160
+\version r3164
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-12-02 18:51 +0800
+	2014-12-07 12:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,9 +81,9 @@ DSApplication::DSApplication()
 #endif
 	Devices::InitDSScreen(scrs[0], scrs[1]);
 #if YCL_DS
-	FillPixel<PixelType>(scrs[0]->GetCheckedBufferPtr(),
+	FillPixel<Pixel>(scrs[0]->GetCheckedBufferPtr(),
 		GetAreaOf(scrs[0]->GetSize()), ColorSpace::Blue),
-	FillPixel<PixelType>(scrs[1]->GetCheckedBufferPtr(),
+	FillPixel<Pixel>(scrs[1]->GetCheckedBufferPtr(),
 		GetAreaOf(scrs[1]->GetSize()), ColorSpace::Green);
 #elif YCL_Win32
 
@@ -173,7 +173,7 @@ DSApplication::SwapScreens()
 
 bool
 #if YCL_DS
-InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
+InitConsole(Devices::Screen& scr, Drawing::Pixel fc, Drawing::Pixel bc)
 {
 	using namespace platform;
 
@@ -184,7 +184,7 @@ InitConsole(Devices::Screen& scr, Drawing::PixelType fc, Drawing::PixelType bc)
 	else
 		return {};
 #elif YCL_Win32 || YCL_Android
-InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType)
+InitConsole(Devices::Screen&, Drawing::Pixel, Drawing::Pixel)
 {
 #else
 #	error "Unsupported platform found."

@@ -11,13 +11,13 @@
 /*!	\file ygdi.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2892
+\version r2898
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-12-02 18:48 +0800
+	2014-12-07 19:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -96,7 +96,7 @@ CompactPixmap::CompactPixmap(ConstBitmapPtr i, SDst w, SDst h)
 	if(i)
 		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
 }
-CompactPixmap::CompactPixmap(unique_ptr<PixelType[]> p, const Size& s) ynothrow
+CompactPixmap::CompactPixmap(unique_ptr<Pixel[]> p, const Size& s) ynothrow
 	: BasicImage(Graphics(p.release(), s))
 {}
 CompactPixmap::CompactPixmap(const CompactPixmap& buf)
@@ -126,9 +126,9 @@ CompactPixmap::SetSize(const Size& s)
 
 	try
 	{
-		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0) ? new PixelType[area]
+		unique_ptr<Pixel[]> p_new(YB_LIKELY(area != 0) ? new Pixel[area]
 			: nullptr);
-		unique_ptr<PixelType[]> p_old(pBuffer);
+		unique_ptr<Pixel[]> p_old(pBuffer);
 
 		pBuffer = p_new.release();
 	}
@@ -183,11 +183,11 @@ CompactPixmapEx::SetSize(const Size& s)
 
 	try
 	{
-		unique_ptr<PixelType[]> p_new(YB_LIKELY(area != 0) ? new PixelType[area]
+		unique_ptr<Pixel[]> p_new(YB_LIKELY(area != 0) ? new Pixel[area]
 			: nullptr);
 		unique_ptr<AlphaType[]> p_new_alpha(YB_LIKELY(area != 0)
 			? new AlphaType[area] : nullptr);
-		unique_ptr<PixelType[]> p_old(pBuffer);
+		unique_ptr<Pixel[]> p_old(pBuffer);
 		unique_ptr<AlphaType[]> p_old_alpha(pBufferAlpha);
 
 		pBuffer = p_new.release();
@@ -211,7 +211,7 @@ CompactPixmapEx::ClearImage() const
 }
 
 bool
-CopyTo(BitmapPtr dst, const Graphics& g, const Size& ds,
+CopyTo(BitmapPtr dst, const ConstGraphics& g, const Size& ds,
 	const Point& dp, const Point& sp, const Size& sc, Rotation rot)
 {
 	if(~rot & 1 && dst && bool(g))

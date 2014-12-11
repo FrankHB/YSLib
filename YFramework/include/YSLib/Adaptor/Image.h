@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1273
+\version r1286
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-12-02 18:41 +0800
+	2014-12-11 20:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -384,8 +384,7 @@ public:
 		return *this;
 	}
 
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!p_bitmap)
+	DefBoolNeg(explicit, p_bitmap)
 
 	/*!
 	\brief 取扫描线数据。
@@ -397,8 +396,6 @@ public:
 	*/
 	byte*
 	operator[](size_t) const ynothrowv;
-
-	explicit DefCvt(const ynothrow, bool, p_bitmap)
 	//@}
 
 	/*!
@@ -530,6 +527,7 @@ class MultiBitmapData;
 /*!
 \brief 多页面位图句柄：指向多页面位图数据。
 \note 共享复制且可转移。
+\warning 非虚析构。
 \todo 增加使用 ImageMemory 的构造函数。
 */
 class YF_API HMultiBitmap final
@@ -603,14 +601,11 @@ public:
 	DefDeCopyAssignment(HMultiBitmap)
 	DefDeMoveAssignment(HMultiBitmap)
 
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!pages)
+	DefBoolNeg(explicit, bool(pages))
 
 	//! \since build 556
 	PDefHOp(HBitmap, [], size_t idx) const ynothrowv
 		ImplRet(Lock(idx))
-
-	explicit DefCvt(const ynothrow, bool, bool(pages))
 
 	size_t
 	GetPageCount() const ynothrow;
@@ -723,10 +718,7 @@ public:
 	{}
 	~ImageTag();
 
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!p_tag)
-
-	explicit DefCvt(const ynothrow, bool, p_tag)
+	DefBoolNeg(explicit, p_tag)
 
 	size_t
 	GetCount() const ynothrow;
@@ -825,10 +817,7 @@ public:
 	//! \brief 析构：关闭查找状态。
 	~ImageMetadataFindData();
 
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!p_metadata)
-
-	explicit DefCvt(const ynothrow, bool, p_metadata)
+	DefBoolNeg(explicit, p_metadata)
 
 	DefGetter(const ynothrow, ImageTag, Tag, {p_tag, {}})
 

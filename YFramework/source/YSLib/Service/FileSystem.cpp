@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r1974
+\version r1976
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-03-28 00:36:30 +0800
 \par 修改时间:
-	2014-11-28 18:39 +0800
+	2014-12-10 00:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,6 +91,8 @@ Path::Parse(const ucs2string& str)
 	}, [&](ucs2string::const_iterator b, ucs2string::const_iterator e){
 		res.push_back(ucs2string(b, e));
 	});
+	if(!res.empty() && !IsAbsolute(res.front()) && IsAbsolute(str.c_str()))
+		res.insert(res.cbegin(), u"");
 	return res;
 }
 

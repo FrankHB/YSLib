@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r840
+\version r843
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2013-11-10 00:54 +0800
+	2014-12-07 12:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -107,14 +107,14 @@ public:
 
 	/*!
 	\brief 取 DS 上屏幕。
-	\pre 断言：内部指针非空。
+	\pre 间接断言：内部指针非空。
 	\since build 383
 	*/
 	Devices::DSScreen&
 	GetDSScreenUp() const ynothrow;
 	/*!
 	\brief 取 DS 下屏幕。
-	\pre 断言：内部指针非空。
+	\pre 间接断言：内部指针非空。
 	\since build 383
 	*/
 	Devices::DSScreen&
@@ -148,7 +148,7 @@ public:
 \since build 148
 */
 YF_API bool
-InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
+InitConsole(Devices::Screen&, Drawing::Pixel, Drawing::Pixel);
 
 #	if YCL_Win32
 namespace MinGW32

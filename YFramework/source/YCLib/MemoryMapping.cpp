@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r214
+\version r215
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2014-10-31 10:13 +0800
+	2014-12-06 23:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ MappedFile::MappedFile(const char* path)
 			}
 	}
 #	else
-	const auto p(::mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0));
+	const auto p(::mmap({}, size, PROT_READ, MAP_PRIVATE, fd, 0));
 #	endif
 
 	if(p == MAP_FAILED)

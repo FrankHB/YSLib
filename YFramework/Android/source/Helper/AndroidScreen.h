@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 屏幕。
-\version r132
+\version r145
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2014-06-04 22:53:58 +0800
 \par 修改时间:
-	2014-12-05 17:07 +0800
+	2014-12-05 03:52 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -55,11 +55,8 @@ class AndroidScreen : public Screen
 private:
 	//! \since build 559
 	lref<::ANativeWindow> window_ref;
-	Host::ScreenRegionBuffer rbuf;
 
 public:
-	Drawing::Point Offset{};
-
 	/*!
 	\note 默认缓冲区大小为屏幕大小。若缓冲区和屏幕大小不等，更新时自适应屏幕大小。
 	\since build 558
@@ -78,6 +75,19 @@ public:
 	//@}
 
 	DefGetter(const ynothrow, ::ANativeWindow&, WindowRef, window_ref)
+
+private:
+	/*!
+	\brief 设置本机缓存大小。
+	\since build 559
+	*/
+	void
+	SetNativeBufferSize(const Drawing::Size&);
+
+public:
+	//! \since build 559
+	void
+	SetSize(const Drawing::Size&) override;
 
 	/*!
 	\brief 更新。

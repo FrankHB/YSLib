@@ -11,13 +11,13 @@
 /*!	\file yblit.h
 \ingroup Service
 \brief 平台中立的图像块操作。
-\version r3076
+\version r3085
 \author FrankHB <frankhb1989@gmail.com>
 \since build 219
 \par 创建时间:
 	2011-06-16 19:43:24 +0800
 \par 修改时间:
-	2014-09-03 13:59 +0800
+	2014-12-07 19:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,8 +219,8 @@ BlitScan(_fBlitLoop loop, _tOut dst, _tIn src, _tScalar d_width,
 \param sp 源迭代器起始点所在缓冲区偏移。
 \param sc 源迭代器需要复制的区域大小。
 \note 允许坐标分量越界。越上界时由 BlitBounds 过滤，越下界时修正为 0 。
-\sa BlitBounds
-\sa BlitScan
+\sa Drawing::BlitBounds
+\sa Drawing::BlitScan
 \since build 437
 
 对一块矩形区域逐像素顺序批量操作（如复制或贴图）。
@@ -282,7 +282,7 @@ struct BlitScannerLoop
 \param dp 目标迭代器起始点所在缓冲区偏移。
 \param sp 源迭代器起始点所在缓冲区偏移。
 \param sc 源迭代器需要复制的区域大小。
-\sa Blit
+\sa Drawing::Blit
 \sa BlitScannerLoop
 \since build 437
 
@@ -341,7 +341,7 @@ struct BlitLineLoop
 \param dp 目标迭代器起始点所在缓冲区偏移。
 \param sp 源迭代器起始点所在缓冲区偏移。
 \param sc 源迭代器需要复制的区域大小。
-\sa Blit
+\sa Drawing::Blit
 \sa BlitScannerLoop
 \sa BlitLineLoop
 \since build 440
@@ -417,7 +417,7 @@ struct RectTransformer
 /*!
 \brief 清除指定位置的 n 个连续像素。
 \tparam _tOut 输出迭代器类型。
-\sa ClearSequence
+\sa YSLib::ClearSequence
 */
 template<typename _tOut>
 inline _tOut
@@ -551,12 +551,13 @@ TransformRect(const Graphics& g, const Rect& r, _fTransformPixel tp)
 
 /*!
 \brief 以第一个参数作为目标，复制第二个参数的缓冲区内容。
-\pre 断言：指针非空；大小相等。
+\pre 断言：大小相等。
+\pre 间接断言：指针非空。
 \note 缓冲区指针相等时忽略。
-\since build 177
+\since build 559
 */
 YF_API void
-CopyBuffer(const Graphics&, const Graphics&);
+CopyBuffer(const Graphics&, const ConstGraphics&);
 
 /*!
 \brief 清除图形接口上下文缓冲区。

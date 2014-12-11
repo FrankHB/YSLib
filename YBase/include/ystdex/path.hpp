@@ -11,13 +11,13 @@
 /*!	\file path.hpp
 \ingroup YStandardEx
 \brief 抽象路径模板。
-\version r718
+\version r721
 \author FrankHB <frankhb1989@gmail.com>
 \since build 408
 \par 创建时间:
 	2013-05-27 02:42:19 +0800
 \par 修改时间:
-	2014-11-28 12:48 +0800
+	2014-12-10 01:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -302,6 +302,9 @@ public:
 
 	using base::assign;
 
+	//! \since build 559
+	using base::get_container;
+
 	bool
 	before(const path& pth) const
 	{
@@ -322,7 +325,7 @@ public:
 		auto& nm(get_norm());
 
 		ystdex::erase_all_if(*this, [&](const value_type& s){
-				return nm.is_self(s);
+			return nm.is_self(s);
 		});
 	}
 

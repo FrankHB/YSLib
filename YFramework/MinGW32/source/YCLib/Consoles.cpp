@@ -34,12 +34,14 @@ namespace platform_ex
 inline namespace Windows
 {
 
-WConsole::WConsole(::DWORD h)
-	: std_handle(h), h_console(::GetStdHandle(h)),
-	saved_attr(GetScreenBufferInfo().wAttributes), Attributes(saved_attr)
+WConsole::WConsole(::DWORD dev)
+	: WConsole(::GetStdHandle(dev))
+{}
+WConsole::WConsole(::HANDLE h)
+	: h_std(h), saved_attr(GetScreenBufferInfo().wAttributes),
+	Attributes(saved_attr)
 {
-	YAssert(h_console && h_console != INVALID_HANDLE_VALUE,
-		"Wrong handle found;");
+	YAssert(h_std && h_std != INVALID_HANDLE_VALUE, "Wrong handle found;");
 }
 WConsole::~WConsole()
 {
@@ -51,7 +53,7 @@ WConsole::GetScreenBufferInfo() const
 {
 	::CONSOLE_SCREEN_BUFFER_INFO info;
 
-	if(!::GetConsoleScreenBufferInfo(h_console, &info))
+	if(!::GetConsoleScreenBufferInfo(h_std, &info))
 		YF_Raise_Win32Exception("GetConsoleScreenBufferInfo");
 	return info;
 }
@@ -76,8 +78,7 @@ void
 WConsole::SetCursorPosition(::COORD pos)
 {
 	// NOTE: ::SetConsoleCursorPosition expects 1-based.
-	::SetConsoleCursorPosition(h_console,
-		{short(pos.X + 1), short(pos.Y + 1)});
+	::SetConsoleCursorPosition(h_std, {short(pos.X + 1), short(pos.Y + 1)});
 }
 void
 WConsole::SetForeColor(std::uint8_t fc)
@@ -121,9 +122,9 @@ WConsole::Erase(wchar_t c)
 void
 WConsole::Fill(::COORD coord, size_t n, wchar_t c)
 {
-	::FillConsoleOutputCharacterW(h_console, c, n, coord, {});
-	::FillConsoleOutputAttribute(h_console, Attributes, n, coord, {});
-	::SetConsoleCursorPosition(h_console, {coord.X, coord.Y});
+	::FillConsoleOutputCharacterW(h_std, c, n, coord, {});
+	::FillConsoleOutputAttribute(h_std, Attributes, n, coord, {});
+	::SetConsoleCursorPosition(h_std, {coord.X, coord.Y});
 }
 
 void
@@ -141,7 +142,7 @@ WConsole::Update()
 void
 WConsole::Update(::WORD value)
 {
-	::SetConsoleTextAttribute(h_console, value);
+	::SetConsoleTextAttribute(h_std, value);
 }
 
 void

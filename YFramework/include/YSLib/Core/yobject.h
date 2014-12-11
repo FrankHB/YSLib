@@ -11,13 +11,13 @@
 /*!	\file yobject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3878
+\version r3886
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-11-23 15:35 +0800
+	2014-12-11 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -331,20 +331,13 @@ public:
 	//@}
 
 	/*!
-	\brief 判断是否为空。
+	\brief 判断是否为空或非空。
 	\since build 320
 	*/
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!content)
+	DefBoolNeg(explicit, content.get_holder())
 
 	bool
 	operator==(const ValueObject&) const;
-
-	/*!
-	\brief 判断是否非空。
-	\since build 320
-	*/
-	explicit DefCvt(const ynothrow, bool, content.get_holder())
 
 private:
 	/*!

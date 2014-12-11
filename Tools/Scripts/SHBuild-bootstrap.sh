@@ -15,20 +15,10 @@ echo Configuring ...
 
 SHBuild_BuildDir="${SHBuild_BaseDir}/.shbuild"
 
+: ${AR:="gcc-ar"}
 . ${SHBuild_ToolDir}/SHBuild-common-toolchain.sh
 
-export AR="gcc-ar"
 . ${SHBuild_ToolDir}/SHBuild-common-options.sh
-# As a workaround to G++ wronly recognized encoding of temporary directory,
-#	LTO is turned off.
-# Note '-fwhole-program' should not be used because there
-#	does exsit multiple translation units when linking with YSLib source,
-#	otherwise there would be unresolved reference to names with external
-#	linkage which had been optimized away.
-CXXFLAGS="${CXXFLAGS} -fno-lto"
-export CXXFLAGS
-LDFLAGS="${LDFLAGS} -Wl,--dn"
-export LDFLAGS
 
 INCLUDES=" \
 	-I../../YFramework/include -I../../YFramework/Android/include \
@@ -36,7 +26,7 @@ INCLUDES=" \
 	-I../../3rdparty/include -I../../YBase/include \
 	"
 
-# Coordinated with build 557.
+# Coordinated with build 559.
 LIBS=" \
 	../../YBase/source/ystdex/cassert.cpp \
 	../../YBase/source/ystdex/cstdio.cpp \
@@ -49,7 +39,7 @@ LIBS=" \
 	../../YFramework/source/YCLib/Debug.cpp \
 	../../YFramework/source/YCLib/FileSystem.cpp \
 	../../YFramework/source/YCLib/Host.cpp \
-	../../YFramework/source/YCLib/YCommon.cpp \
+	../../YFramework/source/YCLib/ycommon.cpp \
 	../../YFramework/source/YSLib/Core/YCoreUtilities.cpp \
 	../../YFramework/source/YSLib/Core/yexcept.cpp \
 	../../YFramework/source/YSLib/Core/ValueNode.cpp \
@@ -57,11 +47,21 @@ LIBS=" \
 	../../YFramework/source/YSLib/Service/File.cpp \
 	../../YFramework/source/YSLib/Service/TextFile.cpp \
 	../../YFramework/source/NPL/Lexical.cpp \
-	../../YFramework/source/NPL/SContext.cpp \
-	../../YFramework/MinGW32/source/YCLib/MinGW32.cpp \
-	../../YFramework/MinGW32/source/YCLib/Consoles.cpp \
-	-lShlWapi \
+	../../YFramework/source/NPL/SContext.cpp
 	"
+if uname | grep MINGW > /dev/null || uname | grep MSYS > /dev/null; then
+	LIBS="${LIBS} \
+		../../YFramework/MinGW32/source/YCLib/MinGW32.cpp \
+		../../YFramework/MinGW32/source/YCLib/Consoles.cpp \
+		"
+fi
+
+# Note '-fwhole-program' should not be used because there
+#	does exsit multiple translation units when linking with YSLib source,
+#	otherwise there would be unresolved reference to names with external
+#	linkage which had been optimized away.
+export CXXFLAGS
+export LDFLAGS
 
 SHBuild_EchoVar_N "SHBuild.BuildDir"
 SHBuild_EchoVar_N "CXX"

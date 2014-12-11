@@ -11,13 +11,13 @@
 /*!	\file ydevice.h
 \ingroup Core
 \brief 平台无关的设备抽象层。
-\version r2071
+\version r2073
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-28 16:39:39 +0800
 \par 修改时间:
-	2014-12-06 15:58 +0800
+	2014-12-07 12:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,9 @@ namespace Devices
 class YF_API GraphicDevice : private noncopyable, protected Drawing::Graphics
 {
 public:
+	//! \since build 559
+	using Graphics = Drawing::Graphics;
+
 	/*!
 	\brief 构造：指定大小和缓冲区指针。
 	\since build 319

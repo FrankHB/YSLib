@@ -11,13 +11,13 @@
 /*!	\file ymsg.h
 \ingroup Core
 \brief 消息处理。
-\version r1989
+\version r1997
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-06 02:44:31 +0800
 \par 修改时间:
-	2014-12-02 18:37 +0800
+	2014-12-11 20:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,11 +119,10 @@ public:
 		ImplRet(msg.swap(*this), *this)
 
 	/*!
-	\brief 判断无效性。
+	\brief 判断无效或有效性。
 	\since build 319
 	*/
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!bool(*this))
+	DefBoolNeg(explicit, id)
 
 	/*!
 	\brief 比较：相等关系。
@@ -131,12 +130,6 @@ public:
 	*/
 	YF_API friend bool
 	operator==(const Message&, const Message&);
-
-	/*!
-	\brief 判断有效性。
-	\since build 319
-	*/
-	explicit DefCvt(const ynothrow, bool, id)
 
 	DefGetter(const ynothrow, ID, MessageID, id) //!< 取消息标识。
 	DefGetter(const ynothrow, const ValueObject&, Content, content) \

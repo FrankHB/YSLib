@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r388
+\version r389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-11-13 20:39 +0800
+	2014-12-06 23:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -219,7 +219,7 @@ NativeHost::ClearSavedStateHandler()
 {
 	lock_guard<mutex> lck(state_mutex);
 
-	fSaveState = {};
+	fSaveState = nullptr;
 }
 
 void

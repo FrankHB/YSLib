@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1071
+\version r1096
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-11-21 07:53 +0800
+	2014-12-09 14:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -299,24 +299,24 @@ using AlphaType = ystdex::octet;
 
 /*!
 \brief LibNDS 兼容像素。
-\relates PixelType
+\relates Pixel
 \note 小端序整数表示 ABGR1555 。
 */
-using PixelType = RGBA<5, 5, 5, 1>;
+using Pixel = RGBA<5, 5, 5, 1>;
 /*!
 \brief 取像素 Alpha 值。
-\relates PixelType
+\relates Pixel
 \since build 417
 */
-yconstfn PDefH(AlphaType, FetchAlpha, PixelType px) ynothrow
+yconstfn PDefH(AlphaType, FetchAlpha, Pixel px) ynothrow
 	ImplRet(px.GetA() != 0 ? 0xFF : 0)
 
 /*!
 \brief 取不透明像素。
-\relates PixelType
+\relates Pixel
 \since build 413
 */
-yconstfn PDefH(PixelType, FetchOpaque, PixelType px) ynothrow
+yconstfn PDefH(Pixel, FetchOpaque, Pixel px) ynothrow
 	ImplRet(px.Integer | 1 << 15)
 
 /*!
@@ -330,7 +330,8 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 #	define DefColorH_(hex, name) name = \
 	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
 	| 1 << 15)
-#elif YCL_Win32 || YCL_Android
+#elif YCL_Win32 || YCL_Android || YCL_Linux
+// TODO: Real implementation for X11.
 #	if YCL_Win32
 /*!
 \brief 标识 XYZ888 像素格式。
@@ -348,7 +349,7 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 \since build 441
 \todo 断言对齐，保证类型兼容。
 */
-using PixelType = BGRA<8, 8, 8, 8>;
+using Pixel = BGRA<8, 8, 8, 8>;
 #	else
 /*!
 \brief 标识 XYZ888 像素格式。
@@ -362,22 +363,22 @@ using PixelType = BGRA<8, 8, 8, 8>;
 \since build 506
 \todo 断言对齐，保证类型兼容。
 */
-using PixelType = RGBA<8, 8, 8, 8>;
+using Pixel = RGBA<8, 8, 8, 8>;
 #	endif
 
 /*!
 \brief 取像素 Alpha 值。
 \since build 417
 */
-yconstfn PDefH(AlphaType, FetchAlpha, PixelType px) ynothrow
+yconstfn PDefH(AlphaType, FetchAlpha, Pixel px) ynothrow
 	ImplRet(px.GetA())
 
 /*!
 \brief 取不透明像素。
-\relates PixelType
+\relates Pixel
 \since build 413
 */
-yconstfn PDefH(PixelType, FetchOpaque, PixelType px) ynothrow
+yconstfn PDefH(Pixel, FetchOpaque, Pixel px) ynothrow
 #	if YCL_Win32
 	ImplRet({px.GetB(), px.GetG(), px.GetR(), 0xFF})
 #	else
@@ -386,7 +387,7 @@ yconstfn PDefH(PixelType, FetchOpaque, PixelType px) ynothrow
 
 /*!
 \brief 使用 8 位 RGB 构造 std::uint32_t 像素。
-\relates PixelType
+\relates Pixel
 \since build 417
 */
 yconstfn PDefH(std::uint32_t, FetchPixel,
@@ -405,7 +406,7 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 \brief 定义 Windows DIB 格式兼容像素。
 \note 得到的 32 位整数和 ::RGBQUAD 在布局上兼容。
 \note Alpha 值为 0xFF 。
-\relates PixelType
+\relates Pixel
 \since build 296
 */
 #	define DefColorH_(hex, name) \
@@ -415,8 +416,8 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 #	error "Unsupported platform found."
 #endif
 
-using BitmapPtr = PixelType*;
-using ConstBitmapPtr = const PixelType*;
+using BitmapPtr = Pixel*;
+using ConstBitmapPtr = const Pixel*;
 
 
 //! \brief 系统默认颜色空间。
@@ -431,7 +432,7 @@ namespace ColorSpace
 \see http://www.w3schools.com/html/html_colornames.asp 。
 \since build 416
 */
-enum ColorSet : PixelType::Trait::IntegerType
+enum ColorSet : Pixel::Trait::IntegerType
 {
 	DefColorH(00FFFF, Aqua),
 	DefColorH(000000, Black),
@@ -490,11 +491,11 @@ public:
 	\since build 319
 	*/
 	yconstfn
-	Color(PixelType px) ynothrow
+	Color(Pixel px) ynothrow
 #if YCL_DS
 		: r(px.GetR() << 3), g(px.GetG() << 3), b(px.GetB() << 3),
 		a(FetchAlpha(px) ? 0xFF : 0x00)
-#elif YCL_Win32 || YCL_Android
+#elif YCL_Win32 || YCL_Linux
 		: r(px.GetR()), g(px.GetG()), b(px.GetB()), a(px.GetA())
 #endif
 	{}
@@ -505,8 +506,8 @@ public:
 	yconstfn
 	Color(ColorSet cs) ynothrow
 #if YCL_DS
-		: Color(PixelType(cs))
-#elif YCL_Win32 || YCL_Android
+		: Color(Pixel(cs))
+#elif YCL_Win32 || YCL_Android || YCL_Linux
 		: r((cs & 0xFF00) >> 8), g((cs & 0xFF0000) >> 16),
 		b((cs & 0xFF000000) >> 24), a(0xFF)
 #endif
@@ -535,13 +536,13 @@ public:
 	\since build 319
 	*/
 	yconstfn
-	operator PixelType() const ynothrow
+	operator Pixel() const ynothrow
 	{
 #if YCL_DS
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
 #elif YCL_Win32
 		return {b, g, r, a};
-#elif YCL_Android
+#elif YCL_Android || YCL_Linux
 		return {r, g, b, a};
 #endif
 	}
@@ -662,7 +663,7 @@ InitScrDown(int&);
 \since build 319
 */
 YF_API void
-ScreenSynchronize(platform::PixelType*, const platform::PixelType*) ynothrow;
+ScreenSynchronize(platform::Pixel*, const platform::Pixel*) ynothrow;
 #endif
 
 #if YCL_DS || YF_Hosted

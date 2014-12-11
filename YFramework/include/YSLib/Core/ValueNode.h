@@ -11,13 +11,13 @@
 /*!	\file ValueNode.h
 \ingroup Core
 \brief 值类型节点。
-\version r1533
+\version r1538
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:03:44 +0800
 \par 修改时间:
-	2014-11-15 00:26 +0800
+	2014-12-11 20:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -136,8 +136,7 @@ public:
 		ImplRet(node.swap(*this), *this)
 
 	//! \since build 336
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!bool(*this))
+	DefBoolNeg(explicit, bool(Value) || (p_container && !p_container->empty()))
 
 	//! \since build 403
 	//@{
@@ -195,9 +194,6 @@ public:
 		return *p;
 	}
 
-	//! \since build 336
-	explicit DefCvt(const ynothrow, bool,
-		bool(Value) || (p_container && !p_container->empty()))
 	DefCvt(const ynothrow, const string&, name);
 
 	/*!

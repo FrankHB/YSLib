@@ -11,13 +11,13 @@
 /*!	\file File.h
 \ingroup Service
 \brief 平台无关的文件抽象。
-\version r1148
+\version r1156
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2009-11-24 23:14:41 +0800
 \par 修改时间:
-	2014-10-16 15:56 +0800
+	2014-12-11 20:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,17 +77,10 @@ public:
 	~File();
 
 	/*!
-	\brief 判断无效性。
+	\brief 判断无效或有效性。
 	\since build 319
 	*/
-	PDefHOp(bool, !, ) const ynothrow
-		ImplRet(!bool(*this))
-
-	/*!
-	\brief 判断有效性。
-	\since build 319
-	*/
-	explicit DefCvt(const ynothrow, bool, fp)
+	DefBoolNeg(explicit, fp)
 
 	DefGetter(const ynothrow, FILE*, Ptr, fp) //!< 取文件指针。
 	DefGetter(const ynothrow, size_t, Size, fsize) //!< 取文件大小。

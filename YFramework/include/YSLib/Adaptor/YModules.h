@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013 FrankHB.
+	© 2013-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 适配器模块配置文件。
-\version r51
+\version r54
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:23 +0800
 \par 修改时间:
-	2013-12-23 22:32 +0800
+	2014-12-09 03:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,8 +37,8 @@
 
 //! \since build 461
 //@{
-#define YFM_YSLib_Adaptor_YAdaptor <YSLib/Adaptor/YAdaptor.h>
-#define YFM_YSLib_Adaptor_YNew <YSLib/Adaptor/YNew.h>
+#define YFM_YSLib_Adaptor_YAdaptor <YSLib/Adaptor/yadaptor.h>
+#define YFM_YSLib_Adaptor_YNew <YSLib/Adaptor/ynew.h>
 #define YFM_YSLib_Adaptor_YContainer <YSLib/Adaptor/ycont.h>
 #define YFM_YSLib_Adaptor_YReference <YSLib/Adaptor/yref.hpp>
 #define YFM_YSLib_Adaptor_YTextBase <YSLib/Adaptor/YTextBase.h>

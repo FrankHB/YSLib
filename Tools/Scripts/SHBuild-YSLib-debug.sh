@@ -50,8 +50,8 @@ if [ x"${SHBuild_NoDynamic}" == x ]; then
 	${SHBuild} ${SHBOPT} -xn,YBased $@ ../../YBase \
 		${CXXFLAGS} -DYB_BUILD_DLL ${INCLUDES_YBase}
 
-	export LIBS="${LIBS_YFramework} .shbuild-dll-debug/YBased.dll \
-		-lgdi32 -limm32 -lShlWapi"
+	export LIBS="${LIBS_YFramework} .shbuild-dll-debug/YBased.dll -lgdi32 \
+		-limm32"
 
 	${SHBuild} ${SHBOPT} -xn,YFrameworkd $@ ../../YFramework \
 		${CXXFLAGS} -DYB_DLL -DYF_BUILD_DLL \
