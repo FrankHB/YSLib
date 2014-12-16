@@ -11,13 +11,13 @@
 /*!	\file Lexical.h
 \ingroup NPL
 \brief NPL 词法处理。
-\version r1413
+\version r1424
 \author FrankHB <frankhb1989@gmail.com>
 \since build 335
 \par 创建时间:
 	2012-08-03 23:04:28 +0800
 \par 修改时间:
-	2014-10-15 09:28 +0800
+	2014-12-14 22:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -65,11 +65,7 @@ private:
 
 public:
 	DefDeCtor(UnescapeContext)
-	DefDeCopyCtor(UnescapeContext)
-	DefDeMoveCtor(UnescapeContext)
-
-	DefDeCopyAssignment(UnescapeContext)
-	DefDeMoveAssignment(UnescapeContext)
+	DefDeCopyMoveCtorAssignment(UnescapeContext)
 
 	DefPred(const ynothrow, Handling, !Prefix.empty())
 	PDefH(bool, IsHandling, const string& prefix) const
@@ -172,7 +168,7 @@ private:
 	UnescapeContext unescape_context;
 	/*!
 	\brief 字面分隔符状态：表示正在处理字面量中的有效字符。
-	\note 值为 NUL 时表示当前不处理字面量。
+	\note 值为空字符时表示当前不处理字面量。
 	*/
 	char ld;
 	/*!
@@ -188,13 +184,7 @@ private:
 public:
 	LexicalAnalyzer();
 	//! \since build 546
-	//@{
-	DefDeCopyCtor(LexicalAnalyzer)
-	DefDeMoveCtor(LexicalAnalyzer)
-
-	DefDeCopyAssignment(LexicalAnalyzer)
-	DefDeMoveAssignment(LexicalAnalyzer)
-	//@}
+	DefDeCopyMoveCtorAssignment(LexicalAnalyzer)
 
 	DefGetter(const ynothrow, const string&, Buffer, cbuf)
 	//! \since build 545

@@ -11,13 +11,13 @@
 /*!	\file Initialization.cpp
 \ingroup Helper
 \brief 程序启动时的通用初始化。
-\version r2184
+\version r2193
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-10-21 23:15:08 +0800
 \par 修改时间:
-	2014-11-28 13:08 +0800
+	2014-11-28 21:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -127,10 +127,10 @@ const char TU_MIME[]{u8R"NPLA1(
 #	define DEF_FONT_DIRECTORY ROOTW "Font/"
 #	define CONF_PATH "yconf.txt"
 #elif YCL_MinGW
-#	define ROOTW "."
-#	define DATA_DIRECTORY ROOTW "\\"
+#	define ROOTW ".\\"
+#	define DATA_DIRECTORY ROOTW
 #	define DEF_FONT_PATH "C:\\Windows\\Fonts\\SimSun.ttc"
-#	define DEF_FONT_DIRECTORY ROOTW "\\"
+#	define DEF_FONT_DIRECTORY ROOTW
 #	define CONF_PATH "yconf.txt"
 #elif YCL_Android
 //! \since build 506
@@ -175,6 +175,12 @@ FetchDataDirectory_Android()
 #	define DEF_FONT_PATH "/system/fonts/DroidSansFallback.ttf"
 #	define DEF_FONT_DIRECTORY "/system/fonts/"
 #	define CONF_PATH (FetchWorkingRoot_Android() + "yconf.txt").c_str()
+#elif YCL_Linux
+#	define ROOTW "./"
+#	define DATA_DIRECTORY ROOTW
+#	define DEF_FONT_PATH ROOTW "SimSun.ttc"
+#	define DEF_FONT_DIRECTORY ROOTW
+#	define CONF_PATH "yconf.txt"
 #else
 #	error "Unsupported platform found."
 #endif

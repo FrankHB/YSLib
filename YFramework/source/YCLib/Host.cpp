@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r89
+\version r163
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2014-11-13 19:55 +0800
+	2014-12-13 01:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,7 +31,7 @@
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
 #if YCL_Win32
-#	include YFM_MinGW32_YCLib_MinGW32
+#	include YFM_MinGW32_YCLib_Consoles
 #elif YF_Hosted
 #	include <fcntl.h>
 
@@ -60,7 +60,7 @@ Exception::Exception(int ev, const std::error_category& ecat,
 std::pair<UniqueHandle, UniqueHandle>
 MakePipe()
 {
-#if YCL_Win32
+#	if YCL_Win32
 	::HANDLE h_raw_read, h_raw_write;
 
 	if(!::CreatePipe(&h_raw_read, &h_raw_write, {}, 0))
@@ -72,7 +72,7 @@ MakePipe()
 		HANDLE_FLAG_INHERIT))
 		YF_Raise_Win32Exception("SetHandleInformation");
 	return {std::move(h_read), std::move(h_write)};
-#elif YCL_API_Has_unistd_h
+#	elif YCL_API_Has_unistd_h
 	int fds[2];
 
 	if(::pipe(fds) != 0)
@@ -85,12 +85,97 @@ MakePipe()
 		throw FileOperationFailure(errno, std::generic_category(),
 			"Failed making pipe for writing.");
 	return {UniqueHandle(fds[0]), UniqueHandle(fds[1])};
-#else
+#	else
 #	error "Unsupported platform found."
-#endif
+#	endif
 }
 
-} // namespace YSLib;
+
+#	if YCL_Win32
+std::string
+DecodeArg(const char* str)
+{
+	return MBCSToMBCS(str, CP_ACP, CP_UTF8);
+}
+
+std::string
+EncodeArg(const char* str)
+{
+	return MBCSToMBCS(str);
+}
+#	endif
+
+
+#if !YCL_Android
+#	if YCL_Win32
+class TerminalData : private WConsole
+{
+public:
+	TerminalData(std::FILE* fp)
+		: WConsole(::HANDLE(::_get_osfhandle(::_fileno(Nonnull(fp)))))
+	{}
+
+	PDefH(bool, RestoreAttributes, )
+		ImplRet(WConsole::RestoreAttributes(), true)
+
+	PDefH(bool, UpdateForeColor, std::uint8_t c)
+		ImplRet(WConsole::UpdateForeColor(c), true)
+};
+#	else
+//! \since build 560
+namespace
+{
+
+yconstexpr const int cmap[] = {0, 4, 2, 6, 1, 5, 3, 7};
+
+} //unnamed namespace
+
+//! \since build 560
+class TerminalData : private noncopyable, private nonmovable
+{
+public:
+	TerminalData(std::FILE* fp)
+	{
+		std::setvbuf(fp, {}, _IONBF, 0);
+	}
+
+	PDefH(bool, RestoreAttributes, ) ynothrow
+		ImplRet(std::system("tput sgr0") == EXIT_SUCCESS)
+
+	PDefH(bool, UpdateForeColor, std::uint8_t c) ynothrow
+		ImplRet(std::system(("tput setaf " + to_string(cmap[c & 7])).c_str())
+			== EXIT_SUCCESS && (c < ystdex::underlying(
+			platform::Consoles::DarkGray) || std::system("tput bold")
+			== EXIT_SUCCESS))
+};
+#	endif
+
+
+Terminal::Terminal(std::FILE* fp)
+	: p_term([](std::FILE* fp)->TerminalData*{
+		TryRet(new TerminalData(fp))
+		CatchExpr(Exception& e,
+			YTraceDe(Informative, "Creating console failed: %s.", e.what()))
+		return {};
+	}(fp))
+{}
+
+Terminal::DefDeDtor(Terminal)
+
+bool
+Terminal::RestoreAttributes()
+{
+	return p_term ? p_term->RestoreAttributes() : false;
+}
+
+bool
+Terminal::UpdateForeColor(std::uint8_t c)
+{
+	return p_term ? p_term->UpdateForeColor(c) : false;
+}
+#endif
+
+} // namespace platform_ex;
 
 #endif
 

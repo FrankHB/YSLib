@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r207
+\version r210
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2014-10-25 19:41 +0800
+	2014-12-16 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -84,7 +84,8 @@ DragWindow(Window&, UI::CursorEventArgs&&);
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。
 \return 设置的宿主渲染器引用。
 \exception LoggedEvent 宽或高不大于 0 。
-\note WS_EX_LAYERED 被设置时默认透明，可对宿主窗口 Opacity 成员设置不透明性。
+\note WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
+\note 在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
 \note 最后一个参数指定是否按部件位置设置顶层窗口位置。
 \note 复位部件位置为原点、设置宿主渲染器并阻塞等待宿主窗口指针非空。
 \since build 548
@@ -99,6 +100,7 @@ ShowTopLevel(UI::Widget&, ::DWORD = WS_POPUP, ::DWORD = WS_EX_LAYERED,
 \brief 显示控件为顶层可拖动的 GUI 对象。
 \note 可能会因为等待顶层对象就绪的宿主渲染器窗口就绪阻塞。
 \note 使用 DragWindow 实现拖动宿主窗口，因此需要能支持 UI::TouchHeld 事件。
+\note Win32 平台：首先使用 Host::ShowTopLevel 显示窗口。
 \since build 428
 */
 YF_API void

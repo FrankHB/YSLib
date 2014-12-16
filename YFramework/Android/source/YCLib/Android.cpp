@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r433
+\version r556
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-12-07 20:20 +0800
+	2014-12-16 06:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,7 +34,6 @@
 #	include <android/configuration.h>
 #endif
 #include "YSLib/Service/YModules.h"
-#include YFM_YSLib_Service_YGDI
 #include YFM_YCLib_Input // for platform::SaveInput;
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 
@@ -48,157 +47,6 @@ namespace platform_ex
 
 namespace Android
 {
-
-namespace
-{
-
-//! \since build 498
-SDst
-CheckStride(SDst buf_stride, SDst w)
-{
-	if(buf_stride < w)
-		// XXX: Use more specified exception type.
-		throw std::runtime_error("Stride is small than width.");
-	return buf_stride;
-}
-
-} // unnamed namespace;
-
-
-SDst
-WindowReference::GetWidth() const
-{
-	return
-		CheckPositiveScalar<SDst>(::ANativeWindow_getWidth(hWindow), "width");
-}
-SDst
-WindowReference::GetHeight() const
-{
-	return
-		CheckPositiveScalar<SDst>(::ANativeWindow_getHeight(hWindow), "height");
-}
-
-
-HostWindow::HostWindow(NativeWindowHandle h_wnd)
-	: WindowReference(h_wnd)
-{
-	::ANativeWindow_acquire(h_wnd);
-}
-HostWindow::~HostWindow()
-{
-	::ANativeWindow_release(GetNativeHandle());
-}
-
-
-void
-UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
-{
-	::ANativeWindow_Buffer abuf;
-	::ARect arect{r.X, r.Y, r.X + r.Width, r.Y + r.Height};
-
-	::ANativeWindow_lock(Nonnull(h_wnd), &abuf, &arect);
-	CopyTo(static_cast<BitmapPtr>(abuf.bits), g,
-		WindowReference(h_wnd).GetSize(), r.GetPoint(), {}, r.GetSize());
-	::ANativeWindow_unlockAndPost(h_wnd);
-}
-
-
-class ScreenBufferData : public CompactPixmap
-{
-public:
-	ScreenBufferData(const Size&, SDst);
-
-	DefDeMoveCtor(ScreenBufferData)
-};
-
-ScreenBufferData::ScreenBufferData(const Size& s, SDst buf_stride)
-	: CompactPixmap({}, CheckStride(buf_stride, s.Width), s.Height)
-{}
-
-
-ScreenBuffer::ScreenBuffer(const Size& s)
-	: ScreenBuffer(s, s.Width)
-{}
-ScreenBuffer::ScreenBuffer(const Size& s, SDst buf_stride)
-	: p_impl(new ScreenBufferData(s, buf_stride)), width(s.Width)
-{}
-ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
-	: p_impl(new ScreenBufferData(std::move(*sbuf.p_impl))), width(sbuf.width)
-{
-	sbuf.width = 0;
-}
-ScreenBuffer::~ScreenBuffer()
-{}
-
-BitmapPtr
-ScreenBuffer::GetBufferPtr() const ynothrow
-{
-	return Deref(p_impl).GetBufferPtr();
-}
-const YSLib::Drawing::Graphics&
-ScreenBuffer::GetContext() const ynothrow
-{
-	return Deref(p_impl).GetContext();
-}
-Size
-ScreenBuffer::GetSize() const ynothrow
-{
-	return {width, Deref(p_impl).GetHeight()};
-}
-YSLib::SDst
-ScreenBuffer::GetStride() const ynothrow
-{
-	return Deref(p_impl).GetWidth();
-}
-
-void
-ScreenBuffer::Resize(const Size& s)
-{
-	// TODO: Expand stride for given width using a proper strategy.
-	Deref(p_impl).SetSize(s);
-	width = s.Width;
-}
-
-void
-ScreenBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
-{
-	// TODO: Expand stride for given width using a proper strategy.
-	std::copy_n(Nonnull(p_buf), GetAreaOf(GetSize()),
-		Deref(p_impl).GetBufferPtr());
-}
-
-void
-ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
-{
-	Deref(p_impl).swap(Deref(sbuf.p_impl)),
-	std::swap(width, sbuf.width);
-}
-
-
-ScreenRegionBuffer::ScreenRegionBuffer(const Size& s)
-	: ScreenRegionBuffer(s, s.Width)
-{}
-ScreenRegionBuffer::ScreenRegionBuffer(const Size& s, SDst buf_stride)
-	: ScreenBuffer(s, buf_stride),
-	mtx()
-{}
-
-void
-ScreenRegionBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
-{
-	lock_guard<mutex> lck(mtx);
-
-	ScreenBuffer::UpdateFrom(p_buf);
-}
-
-void
-ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
-{
-	lock_guard<mutex> lck(mtx);
-
-	UpdateContentTo(h_wnd, {pt, GetSize()}, GetContext());
-}
-
 
 InputQueue::InputQueue(::ALooper& looper, ::AInputQueue& q)
 	: queue_ref(q)

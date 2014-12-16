@@ -200,9 +200,9 @@
 		<Unit filename="../include/YSLib/Core/yapp.h" />
 		<Unit filename="../include/YSLib/Core/ycounter.hpp" />
 		<Unit filename="../include/YSLib/Core/ydevice.h" />
-		<Unit filename="../include/YSLib/Core/yevt.hpp" />
-		<Unit filename="../include/YSLib/Core/yexcept.h" />
-		<Unit filename="../include/YSLib/Core/yfunc.hpp" />
+		<Unit filename="../include/YSLib/Core/YEvent.hpp" />
+		<Unit filename="../include/YSLib/Core/YException.h" />
+		<Unit filename="../include/YSLib/Core/YFunc.hpp" />
 		<Unit filename="../include/YSLib/Core/ygdibase.h" />
 		<Unit filename="../include/YSLib/Core/ymsg.h" />
 		<Unit filename="../include/YSLib/Core/ymsgdef.h" />

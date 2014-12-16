@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r458
+\version r460
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2014-12-06 16:11 +0800
+	2014-12-15 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,8 +30,8 @@
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
 引用标记参见 [Documentation::CommonRules @@0.1] 。
-项目范围参见 [Documentation::ProjectRules @@1.1] 。
-本文档用于描述 YSLib 的外部依赖。
+项目范围参见 [Documentation::ProjectRules @@1] 。
+本文档用于描述 YSLib 的外部依赖([Documentation::CommonRules @@1]) 。
 
 @1 实现环境和库部署：
 

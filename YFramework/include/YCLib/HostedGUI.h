@@ -8,42 +8,51 @@
 	understand and accept it fully.
 */
 
-/*!	\file Win32GUI.h
+/*!	\file HostedGUI.h
 \ingroup YCLib
-\ingroup MinGW32
-\brief Win32 GUI 接口。
-\version r558
+\ingroup YCLibLimitedPlatforms
+\brief 宿主 GUI 接口。
+\version r718
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-12-05 22:11 +0800
+	2014-12-16 05:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib_(MinGW32)::Win32GUI
+	YCLib::HostedGUI
 */
 
 
-#ifndef YCL_MinGW32_INC_Win32GUI_h_
-#define YCL_MinGW32_INC_Win32GUI_h_ 1
+#ifndef YCL_INC_HostedGUI_h_
+#define YCL_INC_HostedGUI_h_ 1
 
 #include "YCLib/YModules.h"
-#include YFM_MinGW32_YCLib_MinGW32
+#include YFM_YCLib_Host
+#include <ystdex/utility.hpp> // for ystdex::nptr;
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Core_YEvent
 #include <atomic>
 
+#if YF_Hosted
+#	if YCL_Android
+struct ANativeWindow;
+#	endif
+
 namespace platform_ex
 {
 
+#	if YCL_Win32
 //! \since build 389
 using NativeWindowHandle = ::HWND;
+#	elif YCL_Android
+//! \since build 492
+using NativeWindowHandle = ::ANativeWindow*;
+#	endif
 
-inline namespace Windows
-{
-
+#	if YCL_Win32
 /*!
 \brief 窗口消息转发事件映射。
 \since build 514
@@ -60,6 +69,7 @@ using MessageMap = std::map<unsigned, YSLib::GEvent<void(::WPARAM, ::LPARAM)>>;
 YF_API void
 BindDefaultWindowProc(NativeWindowHandle, MessageMap&, unsigned,
 	YSLib::EventPriority = 0);
+#	endif
 
 
 /*!
@@ -68,24 +78,15 @@ BindDefaultWindowProc(NativeWindowHandle, MessageMap&, unsigned,
 \warning 非虚析构。
 \since build 427
 */
-class YF_API WindowReference
+class YF_API WindowReference : private ystdex::nptr<NativeWindowHandle>
 {
-protected:
-	NativeWindowHandle hWindow;
-
 public:
-	WindowReference(NativeWindowHandle h = {})
-		: hWindow(h)
-	{}
-	//! \since build 492
-	DefDeCopyCtor(WindowReference)
-	//! \since build 492
-	WindowReference(WindowReference&& r) ynothrow
-		: hWindow(r.hWindow)
-	{
-		r.hWindow = {};
-	}
+	//! \since build 560
+	using nptr::nptr;
+	//! \since build 560
+	DefDeCopyMoveCtorAssignment(WindowReference)
 
+#	if YCL_Win32
 	//! \since build 543
 	YSLib::Drawing::Rect
 	GetBounds() const;
@@ -103,7 +104,13 @@ public:
 	GetCursorLocation() const;
 	YSLib::Drawing::Point
 	GetLocation() const;
-	DefGetter(const ynothrow, NativeWindowHandle, NativeHandle, hWindow)
+#	elif YCL_Android
+	//! \since build 498
+	YSLib::SDst
+	GetHeight() const;
+#	endif
+	DefGetter(const ynothrow, NativeWindowHandle, NativeHandle, get())
+#	if YCL_Win32
 	/*!
 	\brief 取不透明度。
 	\pre 窗口启用 WS_EX_LAYERED 样式。
@@ -117,7 +124,14 @@ public:
 	GetParent() const;
 	YSLib::Drawing::Size
 	GetSize() const;
+#	elif YCL_Android
+	DefGetter(const, YSLib::Drawing::Size, Size, {GetWidth(), GetHeight()})
+	//! \since build 498
+	YSLib::SDst
+	GetWidth() const;
+#	endif
 
+#	if YCL_Win32
 	//! \since build 445
 	void
 	SetClientBounds(const YSLib::Drawing::Rect&);
@@ -176,9 +190,15 @@ public:
 	*/
 	bool
 	Show(int = SW_SHOWNORMAL) ynothrow;
+#	endif
+
+protected:
+	//! \since build 560
+	using nptr::get_ref;
 };
 
 
+#	if YCL_Win32
 /*!
 \brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶层窗口。
 \exception LoggedEvent 宽或高不大于 0 。
@@ -187,27 +207,69 @@ public:
 YF_API NativeWindowHandle
 CreateNativeWindow(const wchar_t*, const YSLib::Drawing::Size&,
 	const wchar_t* = L"", ::DWORD = WS_POPUP, ::DWORD = WS_EX_LTRREADING);
+#	elif YCL_Android
+/*!
+\brief 更新指定图形接口上下文的至窗口。
+\since build 559
+*/
+YF_API void
+UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
+	const YSLib::Drawing::ConstGraphics&);
 
 
-//! \warning 非虚析构。
+/*!
+\brief 屏幕缓存数据。
+\note 非公开实现。
+\since build 498
+*/
+class ScreenBufferData;
+#	endif
+
+
+/*
+\note 像素格式和 platform::PixelType 兼容。
+\warning 非虚析构。
+*/
 //@{
 /*!
 \brief 虚拟屏幕缓存。
-\note 像素格式和 platform::PixelType 兼容。
+\note Android 平台：像素跨距等于实现的缓冲区的宽。
 \since build 445
 */
 class YF_API ScreenBuffer
 {
 private:
+#	if YCL_Win32
 	//! \since build 386
 	YSLib::Drawing::Size size;
 
 protected:
 	YSLib::Drawing::BitmapPtr pBuffer;
 	::HBITMAP hBitmap;
+#	elif YCL_Android
+	/*!
+	\invariant bool(p_impl) 。
+	\since build 498
+	*/
+	std::unique_ptr<ScreenBufferData> p_impl;
+	/*!
+	\brief 宽：以像素数计量的缓冲区的实际宽度。
+	\since build 498
+	*/
+	YSLib::SDst width;
+#	endif
 
 public:
+	//! \brief 构造：使用指定的缓冲区大小和等于缓冲区宽的像素跨距。
 	ScreenBuffer(const YSLib::Drawing::Size&);
+#	if YCL_Android
+	/*!
+	\brief 构造：使用指定的缓冲区大小和像素跨距。
+	\throw Exception 像素跨距小于缓冲区大小。
+	\since build 498
+	*/
+	ScreenBuffer(const YSLib::Drawing::Size&, YSLib::SDst);
+#	endif
 	//! \since build 386
 	ScreenBuffer(ScreenBuffer&&) ynothrow;
 	~ScreenBuffer();
@@ -218,6 +280,7 @@ public:
 
 	//! \since build 386
 	//@{
+#	if YCL_Win32
 	DefGetter(const ynothrow, YSLib::Drawing::BitmapPtr, BufferPtr, pBuffer)
 	DefGetter(const ynothrow, ::HBITMAP, NativeHandle, hBitmap)
 	DefGetter(const ynothrow, const YSLib::Drawing::Size&, Size, size)
@@ -230,6 +293,20 @@ public:
 	*/
 	void
 	Premultiply(YSLib::Drawing::ConstBitmapPtr) ynothrow;
+#	elif YCL_Android
+	//! \since build 492
+	YSLib::Drawing::BitmapPtr
+	GetBufferPtr() const ynothrow;
+	//! \since build 499
+	const YSLib::Drawing::Graphics&
+	GetContext() const ynothrow;
+	//! \since build 498
+	YSLib::Drawing::Size
+	GetSize() const ynothrow;
+	//! \since build 498
+	YSLib::SDst
+	GetStride() const ynothrow;
+#	endif
 
 	/*!
 	\brief 重新设置大小。
@@ -242,8 +319,11 @@ public:
 	/*!
 	\brief 从缓冲区更新。
 	\pre 间接断言：参数非空。
-	\post ::HBITMAP 的 rgbReserved 为 0 。
-	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
+	\pre Android 平台：缓冲区大小和像素跨距完全一致。
+	\post Win32 平台： \c ::HBITMAP 的 \c rgbReserved 为 0 。
+	\warning 直接复制，没有边界和大小检查。
+	\warning Win32 平台：实际存储必须和 32 位 ::HBITMAP 兼容。
+	\warning Android 平台：实际存储必须和 32 位 RGBA8888 兼容。
 	\since build 558
 	*/
 	void
@@ -267,7 +347,6 @@ inline DefSwap(ynothrow, ScreenBuffer)
 
 /*!
 \brief 虚拟屏幕区域缓存。
-\note 像素格式和 platform::PixelType 兼容。
 \since build 435
 */
 class YF_API ScreenRegionBuffer : private ScreenBuffer
@@ -277,17 +356,36 @@ private:
 	YSLib::mutex mtx;
 
 public:
+#	if YCL_Win32
 	ScreenRegionBuffer(const YSLib::Drawing::Size& s)
 		: ScreenBuffer(s), mtx()
 	{}
+#	elif YCL_Android
+	ScreenRegionBuffer(const YSLib::Drawing::Size&);
+	/*!
+	\brief 构造：使用指定的缓冲区大小和像素跨距。
+	\exception Exception 像素跨距小于缓冲区大小。
+	\since build 498
+	*/
+	ScreenRegionBuffer(const YSLib::Drawing::Size&, YSLib::SDst);
+#	endif
 
 	using ScreenBuffer::GetBufferPtr;
+#	if YCL_Win32
 	using ScreenBuffer::GetNativeHandle;
-	using ScreenBuffer::GetSize;
-	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
 
 	//! \since build 435
 	using ScreenBuffer::Premultiply;
+#	elif YCL_Android
+	//! \since build 499
+	using ScreenBuffer::GetContext;
+//	using ScreenBuffer::GetNativeHandle;
+	//! \since build 499
+	using ScreenBuffer::GetStride;
+#	endif
+	using ScreenBuffer::GetSize;
+	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
+
 	//! \since build 445
 	using ScreenBuffer::Resize;
 
@@ -298,17 +396,21 @@ public:
 	void
 	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 
+#	if YCL_Win32
 	//! \since build 435
 	void
 	UpdatePremultipliedTo(NativeWindowHandle, YSLib::Drawing::AlphaType = 0xFF,
 		const YSLib::Drawing::Point& = {}) ynothrow;
+#	endif
 
+	//! \pre 间接断言：本机句柄非空。
 	void
 	UpdateTo(NativeWindowHandle, const YSLib::Drawing::Point& = {}) ynothrow;
 };
 //@}
 
 
+#	if YCL_Win32
 //! \since build 428
 //@{
 /*!
@@ -446,27 +548,32 @@ public:
 
 //! \since build 382
 yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
+#	endif
 
 
 /*!
 \brief 宿主窗口。
+\note Android 平台：保持引用计数。
 \since build 429
 */
 class YF_API HostWindow : private WindowReference, private YSLib::noncopyable
 {
 public:
+#	if YCL_Win32
 	/*!
 	\brief 窗口消息转发事件映射。
 	\since build 512
 	*/
-	Windows::MessageMap MessageMap;
+	platform_ex::MessageMap MessageMap;
+#	endif
 
-	//! \throw GeneralEvent 窗口类名不是 WindowClassName 。
+	//! \throw GeneralEvent Windows 平台：窗口类名不是 WindowClassName 。
 	HostWindow(NativeWindowHandle);
 	DefDelMoveCtor(HostWindow)
 	virtual
 	~HostWindow();
 
+#	if YCL_Win32
 	//! \since build 543
 	using WindowReference::GetBounds;
 	//! \since build 445
@@ -478,14 +585,26 @@ public:
 	//! \since build 518
 	using WindowReference::GetCursorLocation;
 	//! \since build 427
-	//@{
 	using WindowReference::GetLocation;
+#	elif YCL_Android
+	//! \since build 498
+	using WindowReference::GetHeight;
+#	endif
+	//! \since build 427
+	//@{
 	using WindowReference::GetNativeHandle;
+#	if YCL_Win32
 	//! \since build 430
 	using WindowReference::GetOpacity;
 	//! \since build 538
 	using WindowReference::GetParent;
+#	endif
 	using WindowReference::GetSize;
+#	if YCL_Android
+	//! \since build 498
+	using WindowReference::GetWidth;
+
+#	elif YCL_Win32
 
 	//! \since build 445
 	using WindowReference::SetClientBounds;
@@ -520,11 +639,12 @@ public:
 
 	using WindowReference::Show;
 	//@}
+#	endif
 };
 
-} // inline namespace Windows;
-
 } // namespace platform_ex;
+
+#endif
 
 #endif
 

@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r587
+\version r596
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2014-12-01 14:41 +0800
+	2014-12-16 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,8 +77,16 @@ private:
 		ImplRet({GetWidth() - 8 - btnClose.GetWidth(), 8})
 
 public:
+	//! \since build 560
 	void
-	Load(const std::wstring&);
+	Load(ImagePages&&);
+	//! \since build 560
+	template<typename _type>
+	void
+	Load(const _type& arg)
+	{
+		Load(ImagePages(&arg[0], min_panel_size, max_panel_size));
+	}
 
 	void
 	Unload();

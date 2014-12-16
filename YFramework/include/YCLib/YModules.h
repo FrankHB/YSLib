@@ -21,13 +21,13 @@
 /*!	\file YModules.h
 \ingroup YCLib
 \brief YCLib 库模块配置文件。
-\version r77
+\version r80
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:20 +0800
 \par 修改时间:
-	2014-11-25 17:38 +0800
+	2014-12-16 05:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,12 +59,13 @@
 #define YFM_YCLib_Host <YCLib/Host.h>
 //! \since build 553
 #define YFM_YCLib_POSIXThread <YCLib/POSIXThread.h>
+//! \since build 560
+#define YFM_YCLib_HostedGUI <YCLib/HostedGUI.h>
 //! \since build 552
 #define YFM_YCLib_JNI <YCLib/JNI.h>
 
 #define YFM_MinGW32_YCLib_MinGW32 <YCLib/MinGW32.h>
 #define YFM_MinGW32_YCLib_COM <YCLib/COM.h>
-#define YFM_MinGW32_YCLib_Win32GUI <YCLib/Win32GUI.h>
 //@}
 //! \since build 556
 #define YFM_MinGW32_YCLib_NLS <YCLib/NLS.h>

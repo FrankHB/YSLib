@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1286
+\version r1291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-12-11 20:33 +0800
+	2014-12-14 22:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,8 +32,6 @@
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Adaptor_YContainer
 #include <ystdex/exception.h> // for ystdex::unsupported;
-
-//包含 FreeImage 。
 //#include <FreeImage.h>
 
 //! \since build 402
@@ -595,11 +593,7 @@ public:
 	{}
 	//@}
 	//@}
-	DefDeCopyCtor(HMultiBitmap)
-	DefDeMoveCtor(HMultiBitmap)
-
-	DefDeCopyAssignment(HMultiBitmap)
-	DefDeMoveAssignment(HMultiBitmap)
+	DefDeCopyMoveCtorAssignment(HMultiBitmap)
 
 	DefBoolNeg(explicit, bool(pages))
 

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2101
+\version r2195
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-11-28 12:35 +0800
+	2014-12-14 22:10 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -62,7 +62,7 @@ exchange(_type& obj, _type2&& new_val)
 \since build 439
 */
 template<typename _type>
-decay_t<_type>
+yconstfn decay_t<_type>
 decay_copy(_type&& arg)
 {
 	return std::forward<_type>(arg);
@@ -75,7 +75,7 @@ decay_copy(_type&& arg)
 \since build 383
 */
 template<typename _type>
-typename qualified_decay<_type>::type
+yconstfn typename qualified_decay<_type>::type
 decay_forward(_type&& arg)
 {
 	return std::forward<_type>(arg);
@@ -112,6 +112,112 @@ underlying(_type val)
 {
 	return underlying_type_t<_type>(val);
 }
+
+
+//! \since build 560
+//@{
+/*!
+\brief 被包装的指针，满足 \c NullPointer 要求同时满足转移后为空。
+\tparam _type 被包装的指针。
+\pre _type 满足 \c NullPointer 要求且值转换为 \c bool 类型时不抛出异常。
+\todo 检查值初始化和 \c nullptr 比较相等。
+*/
+template<typename _type>
+class nptr
+{
+public:
+	using pointer = _type;
+
+private:
+	pointer ptr{};
+
+public:
+	nptr() = default;
+	yconstfn
+	nptr(std::nullptr_t)
+		: pointer()
+	{}
+	nptr(pointer p)
+		: ptr(p)
+	{}
+	nptr(const nptr&) = default;
+	nptr(nptr&& p) ynothrow
+	{
+		p.swap(*this);
+	}
+
+	nptr&
+	operator=(const nptr&) = default;
+	nptr&
+	operator=(nptr&& o) ynothrow
+	{
+		o.swap(*this);
+		return *this;
+	}
+
+	yconstfn bool
+	operator!() const ynothrow
+	{
+		return bool(*this);
+	}
+
+	yconstfn explicit
+	operator bool() const ynothrow
+	{
+#if YB_HAS_NOEXCEPT
+		static_assert(noexcept(bool(ptr)), "Invalid type found.");
+#endif
+		return bool(ptr);
+	}
+
+	yconstfn pointer
+	get() const ynothrow
+	{
+		return ptr;
+	}
+
+	pointer&
+	get_ref() ynothrow
+	{
+		return ptr;
+	}
+
+	void
+	swap(nptr& p) ynothrow
+	{
+		using std::swap;
+#if YB_HAS_NOEXCEPT
+		static_assert(noexcept(swap(ptr, p.ptr)), "Invalid type found.");
+#endif
+
+		swap(ptr, p.ptr);
+	}
+};
+
+//! \relates nptr
+//@{
+template<typename _type>
+yconstfn bool
+operator==(const nptr<_type>& x, const nptr<_type>& y)
+{
+	return x.get() == y.get();
+}
+
+template<typename _type>
+yconstfn bool
+operator!=(const nptr<_type>& x, const nptr<_type>& y)
+{
+	return !(x == y);
+}
+
+template<typename _type>
+inline void
+swap(nptr<_type>& x, nptr<_type>& y)
+{
+	x.swap(y);
+}
+//@}
+//@}
 
 
 /*!

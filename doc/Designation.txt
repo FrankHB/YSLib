@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9530
+\version r9638
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-11-16 10:07 +0800
+	2014-12-15 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
- YSLib 项目(the YSLib project) 包括 YFramework 和 YBase([Documentation::YBase]) 。
+YSLib 项目(the YSLib project) 包括 YFramework 和 YBase([Documentation::YBase]) 。
 本文档适用于 YFramework 的开发。除非另行约定，编码细节和其它规范也适用于 YBase 。
 
 @1 设计：
@@ -66,7 +66,7 @@
 框架核心称为 Core ；
 其它必须直接基于 Core 之上一些外围功能实现程序是 Shell ；
 和框架核心之间没有整体依赖性（依赖在逻辑上可被其它组件替代）的部分称为 Service 。
- Shell 和 Core 应保持相对独立，以方便移植。
+Shell 和 Core 应保持相对独立，以方便移植。
 
 @1.2.1.1.1 相对性：
 Shell 和 Core 的关系是相对的，例如：
@@ -94,7 +94,7 @@ Shell 和 Core 的关系是相对的，例如：
 关于库配置，参见 @5 。
 本节适用于 YSLib 项目的各个库，用户程序不受此限制。
 不使用和 ISO C++11 不兼容的特性，包括 export 关键字([Documentation::LanguageConvention @@5.7.6]) 和已经在 ISO C++03 中标记为 deprected 而在 C++11 去除的特性（如 const char 数组类型左值到 char* 右值的转换）。
- YSLib 程序默认基于 ISO C++11 （包括 Defect Report 修正；扩展 ISO C++03 部分受 @1.3.2.1 限制）环境和基本的底层系统接口（由 YFramework/YCLib(@5.2.2) 支持）。
+YSLib 程序默认基于 ISO C++11 （包括 Defect Report 修正；扩展 ISO C++03 部分受 @1.3.2.1 限制）环境和基本的底层系统接口（由 YFramework/YCLib(@5.2.2) 支持）。
 依赖 ISO C++ 独立实现或宿主实现，附加以下例外：
 需要 @1.3.2.1 列出的扩展支持；
 库要求等同于 ISO C++11 定义的宿主实现；
@@ -102,53 +102,12 @@ Shell 和 Core 的关系是相对的，例如：
 
 @1.3.2.1 需要使用的非 ISO C++03 扩展：
 定义在 ISO C99（ISO/IEC 9899:1999）和 ISO C++11（ISO/IEC 14882:2011）中，且有一个以上完整的语言实现。
- CWG226: Default template arguments for function templates
- LWG534: Missing basic_string members
- LWG1040: Clarify possible sameness of associative container's iterator and const_iterator
- LWG1255: declval should be added to the library
- LWG1382: pair and tuple constructors should forward arguments
- N1653: Working draft changes for C99 preprocessor synchronization
- N1720: Proposal to Add Static Assertions to the Core Language (Revision 3)
- N1757: Right Angle Brackets (Revision 1)
- N1811: Adding the `long long` type to C++ (Revision 3)
- N1836: Draft Technical Report on C++ Library Extensions (Built-in type traits)
- cbegin/cend/crbegin/crend from N1913: A Proposal to Improve const_iterator Use (version 2)
- auto-typed variables from N1984: Deducing the type of variable from its initializer expression (revision 4)
- N1986: Delegating Constructors (revision 3)
- N1987: Adding "extern template" (version 2)
- N2235: Generalized Constant Expressions—Revision 5
- N2242: Proposed Wording for Variadic Templates (Revision 2)
- N2249: New Character Types in C++
- N2258: Templates Aliases
- features except std::aligned_union from N2341: Adding Alignment Support to the C++ Programming Language / Wording
- N2343: Decltype (revision 7)
- N2346: Defaulted and Deleted Functions
- N2347: Strongly Typed Enums (revision 3)
- N2350: Container insert/erase and iterator constness (Revision 1)
- N2431: A name for the null pointer: nullptr (revision 4)
- N2437: Explicit Conversion Operator Draft Working Paper (revision 3)
- N2442: Raw and Unicode String Literals; Unified Proposal (Rev. 2)
- N2535: Namespace Association ("inline namespace")
- N2540: Inheriting Constructors (revision 5)
- N2541: New Function Declarator Syntax Wording
- N2559: Nesting Exception Objects (Revision 1)
-  CWG819: rethrow_if_nested
- N2672: Initializer List proposed wording
- N2756: Non-static data member initializers
- N2844: Fixing a Safety Problem with Rvalue References: Proposed Wording (Revision 1)
-  CWG1138: Rvalue-ness check for rvalue reference binding is wrong
- N2927: New wording for C++0x Lambdas (rev. 2)
- N2930: Range-Based For Loop Wording (Without Concepts)
- N3050: Allowing Move Constructors to Throw (Rev. 1)
- N3052: Converting Lambdas to Function Pointers
- features except in <type_traits> from N3053: Defining Move Special Member Functions
- N3143: Proposed wording for US 90
- N3272: Follow-up on override control
+参见： https://bitbucket.org/FrankHB/yslib/wiki/StandardUsing.en-US.md 。
 在支持多线程环境的平台上，以下 ISO C++11 中新增头被接口和实现使用： <atomic> 、 <condition_variable> 、 <future> 、 <mutex> 和 <thread> 。
 在所有平台上，仅有以下 ISO C++11 中新增头被接口和实现使用： <array> 、 <chrono> 、 <forward_list> 、 <system_error> 、 <type_traits> 、 <tuple> 、 <unordered_map> 、<unordered_set> 和 <utility> 。
 
 @1.3.2.2
- YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([Documentation::CommonRules @@2.2.2.1]) 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
+YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([Documentation::CommonRules @@2.2.2.1]) 的。其中的一部分在冯·诺依曼体系结构的现代数字式电子计算机的范畴内是平台无关的。
 
 @1.3.2.3
 格式化输出及结构对齐时注意平台字长差异。
@@ -222,16 +181,16 @@ Shell 和 Core 的关系是相对的，例如：
 
 @4.1.1.3 模板形式参数前缀：
 以下前缀保留给的标识符保留作为模板形式参数的名称（模板参数引用作为函数参数时可以是对应的对象类型引用）：
- "_b" ：布尔类型参数，包括内建 bool 类型的值或用于表示布尔值的 std::integral_constant 的实例（注意 value 成员不保证是 bool 类型）；
- "_f" ：可调用类型(callable type) （可能是函数对象类型或成员指针）或作为元函数的类型参数；
- "_i" ：接口（纯虚类）类型参数；
- "_p" ：内建指针类型参数；
- "_r" ：引用类型参数；
- "_t" ：不保证以上类型的其它类型参数；
- "_g" ：泛型类型（模板）参数，可能是元函数；
- "_gi" ：泛型接口（纯虚类模板）参数；
- "_gf" ：泛型函数/仿函数模板参数；
- "_v" ：其它非类型参数（值参数）。
+"_b" ：布尔类型参数，包括内建 bool 类型的值或用于表示布尔值的 std::integral_constant 的实例（注意 value 成员不保证是 bool 类型）；
+"_f" ：可调用类型(callable type) （可能是函数对象类型或成员指针）或作为元函数的类型参数；
+"_i" ：接口（纯虚类）类型参数；
+"_p" ：内建指针类型参数；
+"_r" ：引用类型参数；
+"_t" ：不保证以上类型的其它类型参数；
+"_g" ：泛型类型（模板）参数，可能是元函数；
+"_gi" ：泛型接口（纯虚类模板）参数；
+"_gf" ：泛型函数/仿函数模板参数；
+"_v" ：其它非类型参数（值参数）。
 
 @4.1.2 惯用函数命名：
 基本内容参见 [Documentation::CommonRules @@4.1.7] 。
@@ -239,34 +198,34 @@ Shell 和 Core 的关系是相对的，例如：
 
 @4.1.2.1 YBase 和 YFramework 约定：
 使用以下固定含义的模板形式参数名称（前缀参见 @4.1.1.3 ），同时表示对应的类型要求（模板参数引用作为函数参数时可以是对应的对象类型引用）：
- _type ：一般类型参数；
- _type2 ：第二类型参数；
- _bCond ：表示选择结果的条件的 bool 参数。
- _tSeq ：表示序列的类型参数（一般需要是类类型；注意可以是元类型的实例，而不一定是容器类型）。
- _tScalar ：标量类型（和向量类型相对；注意不一定是 ISO C++ 定义的标量类型，即不需要保证满足 std::is_scalar 类型特征）；
- _tEx ：异常类型（除非另行约定，应为类类型）；
- _func ：函数对象类型；
- _fCallable ：可调用类型；
- _fPred ：谓词函数类型；
- _tIter ：迭代器类型；
- _tIn ：输入迭代器类型；
- _tOut ：输出迭代器类型；
- _tFwd ：前向迭代器类型；
- _tBi ：双向迭代器类型；
- _tRandom ：随机访问迭代器类型；
- _tRange ：一般范围类型；
- _tCon ：容器类型（符合 ISO C++11 约定的容器要求的类型，或类似的在特定上下文中通过文档约定的类型如 std::string ，下同）；
- _tSeqCon ：序列容器类型；
- _tAssocCon ：关联容器和无序关联容器类型；
- _tChar ：适合作为 std::char_traits 的第一参数的字符类型。
+_type ：一般类型参数；
+_type2 ：第二类型参数；
+_bCond ：表示选择结果的条件的 bool 参数。
+_tSeq ：表示序列的类型参数（一般需要是类类型；注意可以是元类型的实例，而不一定是容器类型）。
+_tScalar ：标量类型（和向量类型相对；注意不一定是 ISO C++ 定义的标量类型，即不需要保证满足 std::is_scalar 类型特征）；
+_tEx ：异常类型（除非另行约定，应为类类型）；
+_func ：函数对象类型；
+_fCallable ：可调用类型；
+_fPred ：谓词函数类型；
+_tIter ：迭代器类型；
+_tIn ：输入迭代器类型；
+_tOut ：输出迭代器类型；
+_tFwd ：前向迭代器类型；
+_tBi ：双向迭代器类型；
+_tRandom ：随机访问迭代器类型；
+_tRange ：一般范围类型；
+_tCon ：容器类型（符合 ISO C++11 约定的容器要求的类型，或类似的在特定上下文中通过文档约定的类型如 std::string ，下同）；
+_tSeqCon ：序列容器类型；
+_tAssocCon ：关联容器和无序关联容器类型；
+_tChar ：适合作为 std::char_traits 的第一参数的字符类型。
 以上非数字结尾的类型参数加后缀 s 表示可变模板参数中的多个类型。
 使用以下非 ISO C++11 的要求中出现的其它成员名称：
- clone ：动态复制函数，返回类型为被复制的对象的指针。
- begin 和 end 以 ADL 为使用形式，一般使用命名空间作用域包装，不作为 YFramework 类的成员名称。
+clone ：动态复制函数，返回类型为被复制的对象的指针。
+begin 和 end 以 ADL 为使用形式，一般使用命名空间作用域包装，不作为 YFramework 类的成员名称。
 无歧义时，优先使用约定的对象或对象引用类型的参数名称：
- c 一般范围；
- c 字符（特别是符合 _tChar 类型的）；
- con 容器（特别是符合 _Con 、 _tSeqCon 或 _tAssocCon 类型或其引用类型的）。
+c 一般范围；
+c 字符（特别是符合 _tChar 类型的）；
+con 容器（特别是符合 _Con 、 _tSeqCon 或 _tAssocCon 类型或其引用类型的）。
 
 @4.1.2.2 YFramework 约定：
 
@@ -287,11 +246,11 @@ Shell 和 Core 的关系是相对的，例如：
 
 @4.2.3 全局保留宏名：
 使用 YSLib 前需要保证未定义，且之后无法使用，除非使用 #undef 取消定义。
- YSLib 保留宏名以 "YSL" 起始，其基础库使用保留宏名以 "YCL" 起始。
+YSLib 保留宏名以 "YSL" 起始，其基础库使用保留宏名以 "YCL" 起始。
 
 @4.2.3.1 局部保留宏名：
 使用 YSLib 前需要保证未定义，但库实现使用 #undef 限制作用域，因此之后可以使用。
- "This" 和 "CThis" 。
+"This" 和 "CThis" 。
 
 @4.3 类型名：
 参见 [Documentation::CommonRules @@4.3] 。
@@ -309,20 +268,20 @@ Shell 和 Core 的关系是相对的，例如：
 依赖项相关定义参见 [Documentation::ProjectRules @@1] 。
 项目管理相关定义参见 [Documentation::ProjectRules @@2] 。
 本章描述 YSLib 项目中除了 YFramework/YSLib 以外的依赖项。
- YSLib 项目的依赖项都是库，其中一部分是不由 YSLib 项目维护的第三方的外部依赖项。
+YSLib 项目的依赖项都是库，其中一部分是不由 YSLib 项目维护的第三方的外部依赖项。
 外部依赖项中，系统库（ system library ，符合 GNU GPL v2 和 v3 条例定义）在平台配置中描述，可被所有非外部依赖项。
 其它外部依赖项都被 YFramework 引用，如 FreeType2(@5.4.1) 。
 以下除非另行约定，非外部依赖项的根路径取 YFramework 包含目录或源代码目录。
 
 @5.1 平台配置：
-关于平台的详细含义参见 [Documentation::ProjectRules @@1.1] 。
+关于平台的详细含义参见 [Documentation::ProjectRules @@1.2] 。
 和本机语言实现相关的平台环境可使用经典系统类型名称(canonical system type name) 描述： architecture/vendor/OS/C library 四元组或 architecture/vendor/OS 三元组，除第一项外可能省略。
 使用的实现（参见 @5.2 ）不和平台环境一一对应。一个平台环境可能有多个实现。
 目标平台配置和 YCLib 平台定义文件(@5.2.2.4.1) 中定义的公共平台对应。
 
 @5.1.1 配置管理：
 基本配置管理参见 [Documentation::ProjectRules @@2.1]。
- MinGW32 为 DLL 目标追加对应 debug 和 release 的配置 debug_DLL 和 release_DLL 。
+MinGW32 为 DLL 目标追加对应 debug 和 release 的配置 debug_DLL 和 release_DLL 。
 
 @5.1.2 当前正式支持的目标平台：
 非宿主实现目标平台 DS （ Nintendo/iQue DS/DS Lite/DSi/DSi LL 以及 PC 端模拟器 DeSmuMe 等，对应系统名 arm-eabi 或 arm-none-eabi ）。
@@ -340,7 +299,7 @@ Shell 和 Core 的关系是相对的，例如：
 
 @5.2 环境实现：
 外部依赖项参见 [Documentation::Dependencies @@1] 。
- ISO C++ 实现定义行为要求满足 [Documentation::Dependencies @@1.1] 。
+ISO C++ 实现定义行为要求满足 [Documentation::Dependencies @@1.1] 。
 除了 ISO C++ 标准库外的非外部依赖项：
 基于标准库的基础库 YBase ，包含基于标准库的平台中立的扩展 YStandardEx 等，独立于 YFramework 。
 基于 YBase 的平台隔离用库 YCLib(@5.2.2) ，包含于 YFramework 中。
@@ -354,8 +313,8 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 参见 [Documentation::YBase] 和 [Documentation::Dependencies @@1.2]。
 
 @5.2.2 YCLib ：
- YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.4.1 ）。
- YCLib 允许平台中立的接口具有实现定义的行为差异。平台中立的接口的对应实体一般位于 namespace platform 。
+YCLib 包含平台相关的 API 包装和若干接口平台中立的独立子库（按头文件路径划分，参见 @5.4.1 ）。
+YCLib 允许平台中立的接口具有实现定义的行为差异。平台中立的接口的对应实体一般位于 namespace platform 。
 除非另行约定， YCLib 仅保证非成员或静态成员函数的线程安全性。
 除非另行约定，所有不提供无异常抛出保证的接口不直接设置外部库提供的外部状态（如 ISO C 的 errno ）。注意实现间接调用仍然可能设置这些状态。
 除非另行约定，实现可能访问外部库提供的外部状态，且假定这些状态不被并发访问。
@@ -364,8 +323,8 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 @5.2.2.1 环境资源占用：
 
 @5.2.2.1.1 DS 计时器：
- build 291 前占用计时器 0 和计时器 1 。
- build 291 起占用计时器 2 。
+build 291 前占用计时器 0 和计时器 1 。
+build 291 起占用计时器 2 。
 占用计时器用于实现计时接口。若用户占用计时器或修改计数，则计时相关接口结果未定义。
 
 @5.2.2.2 实现定义行为：
@@ -373,8 +332,8 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 @5.2.2.2.1 对未说明字符串参数编码的文件操作接口：
 必要时的编码转换使用 CHRLib([Documentation::YFramework @@2.7]) 。
 注意 CHRLib 和 YCLib 相关接口中 UCS-2 在 Win32 下即为 UCS-2LE 。
- DS 直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
- MinGW32 直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
+DS 直接使用 UTF-8 路径，或 UCS-2LE 转换得到的 UTF-8 路径，使用标准库函数或 POSIX 文件操作。
+MinGW32 直接使用 UCS-2LE 作为 UTF-16LE 路径，或 UTF-8 转换得到的 UCL-2LE 路径，使用 _w 起始的 MSVCRT 文件函数。
 
 @5.2.2.3 平台 API 使用策略：
 
@@ -398,7 +357,7 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 
 @5.2.2.5 公共约束：
 命名空间 platform 的成员满足以下约束（具体要求的定义参见 ISO C++11 ）。
- YCLib::Viedo 的 PixelType 满足 EqualityComparable 要求。
+YCLib::Viedo 的 PixelType 满足 EqualityComparable 要求。
 
 @5.2.2.6 命名空间 platform ：
 命名空间 platform 中除以下另行约定外的实体和宏保持各个平台中可用且语义一致。
@@ -410,7 +369,7 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 平台支持的按键值使用枚举类型 NativeSet 表示，按键值的数值由具体平台定义，一般不变。
 不由平台直接支持的按键值使用枚举类型 ExtendedSet 表示，按键值的数值由 YCLib 定义，作为 ABI 的一部分，但不保证长期稳定。
 此外，为了兼容提供 constexpr 对象作为按键别名。
- NativeSet 外的按键名都可以兼容以实现平台中立。当前 NativeSet 以 Win32 平台为基准的按键名称都保证兼容，因此平台中立按键名即当前 Win32 实现的按键集合。
+NativeSet 外的按键名都可以兼容以实现平台中立。当前 NativeSet 以 Win32 平台为基准的按键名称都保证兼容，因此平台中立按键名即当前 Win32 实现的按键集合。
 
 @5.3 通用库：
 
@@ -423,9 +382,9 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 关于 Helper ，参见 [Documentation::YFramework @@2.8] 。
 关于 NPL ，参见 [Documentation::YFramework @@2.9] 和 [Documentation::NPL]。
 以下为第三方专用库（包含部分修改）：
- FreeType 2 参见 [Documentation::Dependencies @@2.2] 。
- Anti-Grain Geometry 参见 [Documentation::Dependencies @@2.3] 。
- FreeImage 参见 [Documentation::Dependencies @@2.4] 。
+FreeType 2 参见 [Documentation::Dependencies @@2.2] 。
+Anti-Grain Geometry 参见 [Documentation::Dependencies @@2.3] 。
+FreeImage 参见 [Documentation::Dependencies @@2.4] 。
 
 @5.5 库基础结构：
 平台设置在 <YCLib/Platform.h>(@5.2.2.4.1) 中。
@@ -436,12 +395,12 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 除了使用标准库命名空间 std 外如下所列。
 
 @5.6.1 标准库实现提供的附加命名空间：
- __gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::Adaptor 使用。
+__gnu_cxx ： libstdc++ 扩展，可被 YBase::LibDefect 和 YFramework::YSLib::Adaptor 使用。
 
 @5.6.2 YBase 引入的命名空间：
- YBase 引入的主要命名空间唯一且和次级子项目的模块名称一致（但 YDefinition 此处同 YStandardEx ）。
- ystdex ：从 std 扩充的平台无关的实用程序 YStandard 。 YSLib 本体直接依赖此命名空间。
- ytest ：测试框架设施 YTest 。
+YBase 引入的主要命名空间唯一且和次级子项目的模块名称一致（但 YDefinition 此处同 YStandardEx ）。
+ystdex ：从 std 扩充的平台无关的实用程序 YStandard 。 YSLib 本体直接依赖此命名空间。
+ytest ：测试框架设施 YTest 。
 
 @5.6.3 YFramework 引入的命名空间：
 参见 [Documentation::YFramework @@2.3.2] 。
@@ -463,18 +422,19 @@ Android 平台参见 [Documentation::Dependencies @@1.6] 。
 当多种指令等价时使用 Doxygen 手册中直接说明（而非指示同义词即 "Equivalent to" ）的一项。
 例外：
 对外部参考使用 \see 而不是 \sa ；
- \throw 指显式抛出异常， \exception 指内部调用间接抛出的异常。
+\throw 指显式抛出异常， \exception 指内部调用间接抛出的异常。
 
 @6.1.3 指令行风格：
 组(group) 相关指令（ \defgroup 、 \ingroup 、 \name 等）、实体标识指令（ \def 、 \fn 等）以及 \author 、\par 、 \relates 、 \sa 、 \since 、 \version 不使用句为单位（不使用全角标点）；其它指令后的内容以句为单位（对中文注释以全角标点结束；不成句的不视为完整的注释）。
- \defgroup 指令在所有文件中应保持无歧义地出现一次以避免错误。
- \par 指令以半角“:”结尾。
- \sa 指定的名称在注释出现的声明区域按 ISO C++ 规则进行名称查找，同时使用 ADL 相关规则([Documentation::LanguageConvention @@5.3.3.1]) 。
+\defgroup 指令在所有文件中应保持无歧义地出现一次以避免错误。
+\par 指令以半角“:”结尾。
+\sa 指定的名称在注释出现的声明区域按 ISO C++ 规则进行名称查找，同时使用 ADL 相关规则([Documentation::LanguageConvention @@5.3.3.1]) 。
 实体注释中详细注释放在最后，和之前的指令相隔一个空行。
 
 @6.1.4 指令格式和顺序：
 组相关指令在最前（且对 \defgroup ，跟随注释首行“*”后使用一个水平制表符分隔），然后依次为实体标识指令（除了 \def ，一般省略）和其它指令。
 指定顺序的段落指令： \brief 、 \tparam 、 \param 、 \pre 、 \post 、 \invariant 、 \return 、 \throw 、 \exception 、 \note 、 \warning 、 \bug 、 \deprecated 、 \relates 、 \sa 、 \see 、 \since  、 \todo 、 \par 。
+对连续的 \tparam 和 \param 指令，相同指令按参数在参数列表中出现的顺序排序；对连续的 \throw 和 \exception 指令，相同指令按异常类型名排序。
 从属的非段落指令如 \code 、 \endcode 、\tt 、 \verbatim 等不限制顺序。
 其它顺序参见 http://drupal.org/node/1354#links 。
 

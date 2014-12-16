@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12712
+\version r12718
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2014-12-11 20:31 +0800
+	2014-12-14 22:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -258,12 +258,15 @@ DefDeCopyCtor(_t)
 DefDelCopyCtor(_t)
 DefDeMoveCtor(_t)
 DefDelMoveCtor(_t)
+DefDeCopyMoveCtor(_t)
 DefDeDtor(_t)
 DefDelDtor(_t)
-DefDeCopyAssignment(_t),
-DefDelCopyAssignment(_t),
-DefDeMoveAssignment(_t),
+DefDeCopyAssignment(_t)
+DefDelCopyAssignment(_t)
+DefDeMoveAssignment(_t)
 DefDelMoveAssignment(_t)
+DefDeCopyMoveAssignment(_t)
+DefDeCopyMoveCtorAssignment(_t)
 DefCvt(_q, _t, ...)
 DefCvtBase(_q, _t, _b)
 DefCvtMem(_q, _t, _m)

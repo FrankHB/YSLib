@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r190
+\version r193
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2014-10-25 20:04 +0800
+	2014-12-16 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex, int n_cmd_show,
 		return wnd_ref;
 	}));
 
-	WaitForHostWindow(wgt);
+	WaitForHostWindow(wgt).UseOpacity = bool(wstyle_ex | WS_EX_LAYERED);
 	return res;
 }
 #	endif
@@ -100,8 +100,6 @@ ShowTopLevelDraggable(UI::Widget& wgt)
 {
 #		if YCL_Win32
 	ShowTopLevel(wgt, WS_POPUP);
-#		else
-#			error "Unsupported platform found."
 #		endif
 	UI::FetchEvent<UI::TouchHeld>(wgt) += std::bind(Host::DragWindow,
 		std::ref(WaitForHostWindow(wgt)), std::placeholders::_1);

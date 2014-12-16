@@ -11,13 +11,13 @@
 /*!	\file yfunc.hpp
 \ingroup Core
 \brief 函数调用和仿函数封装。
-\version r1022
+\version r1026
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-14 18:48:44 +0800
 \par 修改时间:
-	2014-10-21 12:50 +0800
+	2014-12-14 21:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -274,11 +274,8 @@ struct InversedCurrying
 	/*!
 	\brief 调用：忽略第一个参数。
 	*/
-	Result
-	operator()(_tParm, Parm1 arg1) const
-	{
-		return f(arg1);
-	}
+	PDefHOp(Result, (), _tParm, Parm1 arg1) const
+		ImplRet(f(arg1))
 };
 
 
@@ -332,17 +329,10 @@ public:
 	GRecursiveCallContext(_func f)
 		: build(f)
 	{}
-	DefDeCopyCtor(GRecursiveCallContext)
-	DefDeMoveCtor(GRecursiveCallContext)
+	DefDeCopyMoveCtorAssignment(GRecursiveCallContext)
 
-	DefDeCopyAssignment(GRecursiveCallContext)
-	DefDeMoveAssignment(GRecursiveCallContext)
-
-	ValueType
-	operator()(const KeyType& key) const
-	{
-		return build(key)(*this);
-	}
+	PDefHOp(ValueType, (), const KeyType& key) const
+		ImplRet(build(key)(*this))
 };
 
 

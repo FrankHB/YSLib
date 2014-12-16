@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r423
+\version r428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-12-05 17:00 +0800
+	2014-12-16 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,13 +30,11 @@
 
 #include "YModules.h"
 #include YFM_Helper_YGlobal
+#include YFM_YCLib_HostedGUI
 #if YCL_Win32
-#	include YFM_MinGW32_YCLib_Win32GUI
 #	include YFM_YSLib_Core_YString // for YSLib::String;
 #	include YFM_YSLib_UI_YWidget // for UI::IWidget;
 #	include <atomic>
-#elif YCL_Android
-#	include YFM_Android_YCLib_Android
 #endif
 
 namespace YSLib
@@ -69,7 +67,7 @@ public:
 		GetOpacity 或 SetOpacity 可能出错。
 	\since build 435
 	*/
-	bool UseOpacity{false};
+	bool UseOpacity{};
 	/*!
 	\brief 不透明性。
 	\note 仅当窗口启用 WS_EX_LAYERED 样式且 UseOpacity 设置为 true 时有效。
