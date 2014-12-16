@@ -184,15 +184,6 @@
     <ClInclude Include="include\YSLib\Core\ydevice.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\yevt.hpp">
-      <Filter>include\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Core\yexcept.h">
-      <Filter>include\YSLib\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\YSLib\Core\yfunc.hpp">
-      <Filter>include\YSLib\Core</Filter>
-    </ClInclude>
     <ClInclude Include="include\YSLib\Core\yobject.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
@@ -802,6 +793,18 @@
     <ClInclude Include="include\YSLib\Service\YBrush.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
+    <ClInclude Include="include\YCLib\HostedGUI.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\YEvent.hpp">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\YException.h">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\YSLib\Core\YFunc.hpp">
+      <Filter>include\YSLib\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -1088,6 +1091,9 @@
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\YBrush.cpp">
       <Filter>source\YSLib\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\HostedGUI.cpp">
+      <Filter>source\YCLib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

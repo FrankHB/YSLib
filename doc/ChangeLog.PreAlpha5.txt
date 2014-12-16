@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r7840
+\version r7999
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-12-11 20:57 +0800
+	2014-12-17 00:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,165 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ @ "namespace %platform_ex" @ "!platform %Android" @ "hosted platforms"
+			@ %YCLib.Host $=
+		(
+			(
+			+ "class name declaration %TerminalData";
+			+ "class %Terminal";
+				// It calls 'tput' to support colored output for non-Windows \
+					platforms currently. This requires no extra libraries to \
+					be linked, but may have poor performance and does not work \
+					well if error occurred.
+			+ $comp "log with level %Informative on console creating failure"
+				// This is expected when the console is unavailable, i.e. for \
+					a redirected stream.
+			),
+			+ "function templates %(EncodeArg, DecodeArg) with overloading \
+				functions only in platform %Win32"
+		),
+		+ "macros %(DefDeCopyMoveCtor, DefDeCopyMoveAssignment; \
+			DefDeCopyMoveCtorAssignment)" @ %YBaseMacro,
+		/ %YSLib.Core $=
+		(
+			/ DLD "implemented inline member functions %operator()" @ %YFunc
+				^ "macros %(PDefHOp, ImplRet)",
+			- $revert(b196) 'using Exception = std::exception;' @ %YException,
+
+		),
+		/ %YCLib $=
+		(
+			* "missing move %operator=" @ "class %AndroidLogSender"
+				@ "platform %Android" @ %YCLib.Debug $since b498 ^ $dep_from \
+				("macro %DefDeCopyMoveCtorAssignment" @ %YBaseMacro),
+			/ %FileSystem $=
+			(
+				/ @ "platform !Win32" $=
+				(
+					+ "protected member %sDirPath" @ "class %DirectorySession";
+					* "unsupported or wrong result when 'DT_*' unusable" $since
+						b543,
+						// Since it is an BSD extension, not all POSIX \
+							platforms support it. Even on a platform with it \
+							and the build is successful, it still can turn out \
+							wrong result in runtime, e.g. ReiserFS on Linux. \
+							See also https://github.com/ggreer/the_silver_searcher/issues/36 .
+					+ "resolving link target" @ "!platforms %(DS, Win32)"
+						@ "member function %HDirectory::GetNodeCategory"
+						// %DS has no %::lstat.
+				),
+				+ "nonnull assertion"
+					@ "member function %HDirectory::GetNodeCategory" ^ "%Deref",
+				+ 'ynothrow' @ "move constructor %DirectorySession"
+			),
+			/ $dev "ensured macros %(S_IFMT, S_IFDIR, S_IFCHR, S_IFREG, \
+				S_IREAD, S_IWRITE, S_IEXEC) defined properly if not previously \
+				defined" @ "platform %Win32" @ %NativeAPI
+		),
+		/ DLD "simplified constructors" ^ $dep_from ("macro \
+			%DefDeCopyMoveCtorAssignment" @ %YBaseMacro) $effective @
+			%('Helper_(MinGW32)'.Win32GUI, 'Helper_(Android)'.Android,
+			NPL.(Configuration, Lexical, SContext), YSLib.(Adaptor.Image,
+			Core.(YEvent, YFunc)))
+		- DLB "unsupported platform check"
+			@ %('Helper_(DS)'.DSMain, Helper.HostedUI),
+		/ %Helper $=
+		(
+			/ $design "initialization macros" %Initialization $=
+			(
+				/ "simplified" @ "platform %Win32"
+				+ "default initialization macros" @ "platform %Linux"
+			),
+			/ "set %Opacity data member as %true for window when extra window \
+				style has %WS_EX_LAYERED enabled" @ "platform %Win32"
+				@ "function %ShowTopLevel" @ %HostedUI
+				// Also has effect on %ShowTopLevelDraggable
+		),
+		(
+		/ "class %WindowReference"
+			@ %(YCLib_(MinGW32).Win32GUI, YCLib_(Android).Android) $=
+		(
+			(
+			/ "simplified construction by inherited %nptr<NativeWindowHandle>";
+			/ "protected data member %hWindow"
+				-> "protected 'using nptr::get_ref;'"
+			),
+			(
+			+ "explicitly defaulted (copy, move) %operator=";
+			* $comp "missing move %operator=" $since b492
+			)
+		);
+		/ %'YCLib_(MinGW32)'.Win32GUI -> YCLib.HostedGUI
+			$= (/ "all declaration" @ "inline namespace %Windows"
+				>> "enclosing namespace %platform_ex" @ "platform %Win32");
+		/ "merged classes %(WindowReference, ScreenBuffer, ScreenRegionBuffer, \
+			HostWindow)" @ %'YCLib(Android)'.Android
+			>> ("platform %Android" @ YCLib.HostedGUI);
+		+ $comp ("member function %WindowReference::GetNaiveHandle";
+			'using WindowReference::GetNativeHandle' @ "class %HostWindow")
+			@ "platform %Android"
+		)
+	),
+	/ @ %Tools.SHBuild.Main $=
+	(
+		+ "platform %Linux support"
+			$= (/ "implemented terminal output" ^ "%Terminal" ~ "%WConsole"),
+		/ "simplified platform-neutral implementation" ^ $deps_from
+			("%platform_ex::(EncodeArg, DecodeArg)" @ %YFramework.YCLib.Host)
+			~ "%platform_ex::MBCSToMBCS",
+		/ "output file timestamp optimized to be fetched only once for \
+			comparing",
+			// Given the assumption of output file keeping modified during \
+				building, it is more efficient.
+		* "directory with other file system category not recognized as \
+			directory" $since b541 $dep_from %YFramework.YCLib.FileSystem
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ @ %Utilities $=
+		(
+			+ 'yconstfn' @ "function templates %(decay_copy, decay_forward)",
+			+ "class template %nptr"
+		),
+		+ 'yconstfn' @ "2 function templates %unref" @ %Functional
+	),
+	/ %YReader.ReadingList $=
+	(
+		/ DLD "implemented inline functions %operator==" @ %ReadingList
+			^ "macros %(PDefHOp, ImplRet)",
+		/ @ "class %ReadingList" $=
+		(
+			/ DLD "simplified class %ReadingList" ^ "base class %nonmovable"
+				~ "explicitly deleted move constructor",
+			/ "Doxygen comments" @ "using declaration %ReadingList::Switch"
+			(
+				- "redundant comment"
+				* "wrong comment on parameter" $since b404
+			)
+		)
+	),
+	/ %YDE.ImageBrowser $=
+	(
+		/ @ "class %ImagePanel" @ %ImageControl $=
+		(
+			/ "parameter 'const wstring&'" @ "function %Load"
+				-> 'const ImagePages&&',
+			+ "function template %Load"
+		),
+		/ DLD "simplified" @ "main function" %Main @ $dep_from
+			%YFramework.Helper.HostedUI;
+	),
+	/ $dev $repo "all edited file with module name not the same as base \
+		file name" @ !%YBase ^ 'hg rename' $effectieve ("%main.cpp"
+		=> "%Main.cpp" @ %(Tools.SHBuild, YDE.ImageBrowser).Main, ("%yevt.hpp"
+		=> "%YEvent.hpp" @ %YEvent, "%yfunc.hpp" => "%YFunc.hpp" @ %YFunc,
+		"%yexcept.h" => "%YException.h" @ %YException) @ %YFramework.YSLib.Core)
+),
+
+b559
 (
 	/ %YFramework $=
 	(
@@ -2908,7 +3067,7 @@ b541
 		/ "other types not suited for pointer to members" -> "%_func"
 			~ "%_fCallable" $effective @ %(YBase.(YStandardEx.(Algorithm, Cache,
 			Container, Exception, Functional, Utility), YTest.(Test, Timing)),
-			YFramework.(Helper.(HostedUI, HostedRenderer, HostedWindow),
+			YFramework.(Helper.(HostedUI, HostRenderer, HostWindow),
 			YSLib.(Adaptor.Image, Core.(Task, YApplication, YEvent, YFunc),
 			Service.FileSystem, UI.(Animation, YWidgetEvent))))
 		),

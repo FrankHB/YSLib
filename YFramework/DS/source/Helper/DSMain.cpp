@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3164
+\version r3167
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2014-12-07 12:28 +0800
+	2014-12-15 21:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,11 +183,9 @@ InitConsole(Devices::Screen& scr, Drawing::Pixel fc, Drawing::Pixel bc)
 		YConsoleInit(false, fc, bc);
 	else
 		return {};
-#elif YCL_Win32 || YCL_Android
+#else
 InitConsole(Devices::Screen&, Drawing::Pixel, Drawing::Pixel)
 {
-#else
-#	error "Unsupported platform found."
 #endif
 	return true;
 }

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2013 FrankHB.
+	© 2012-2014 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ReadingList.h
 \ingroup YReader
 \brief 阅读列表。
-\version r227
+\version r240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 328
 \par 创建时间:
 	2012-07-24 22:13:46 +0800
 \par 修改时间:
-	2013-12-23 21:36 +0800
+	2014-12-14 22:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,11 +68,8 @@ public:
 \brief 判断书签是否相等。
 \since build 286
 */
-inline bool
-operator==(const Bookmark& x, const Bookmark& y)
-{
-	return x.Path == y.Path && x.Position == y.Position;
-}
+inline PDefHOp(bool, ==, const Bookmark& x, const Bookmark& y)
+	ImplRet(x.Path == y.Path && x.Position == y.Position)
 
 
 /*!
@@ -87,7 +84,8 @@ using BookmarkList = vector<Bookmark::PositionType>;
 \warning 非虚析构。
 \since build 286
 */
-class ReadingList : private GAccessList<Bookmark>, private noncopyable
+class ReadingList : private GAccessList<Bookmark>, private noncopyable,
+	private nonmovable
 {
 public:
 	/*!
@@ -102,7 +100,6 @@ public:
 	\since build 404
 	*/
 	DefDeCtor(ReadingList)
-	DefDelMoveCtor(ReadingList)
 
 	//! \since build 399
 	explicit
@@ -130,15 +127,7 @@ public:
 	void
 	Insert(const IO::Path&, size_t);
 
-	/*!
-	\brief 切换阅读记录。
-	\param 是否后退。
-	\return 被移除的记录。
-	\warning 不检查是否越界。
-	\since build 404
-
-	后退或前进，同时移除该记录。
-	*/
+	//! \since build 404
 	using GAccessList<Bookmark>::Switch;
 };
 

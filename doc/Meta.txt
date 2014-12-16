@@ -11,13 +11,13 @@
 /*!	\file Meta.txt
 \ingroup Documentation
 \brief 项目元标记。
-\version r1352
+\version r1372
 \author FrankHB <frankhb1989@gmail.com>
 \since build 393
 \par 创建时间:
 	2013-03-25 00:01:48 +0800
 \par 修改时间:
-	2014-11-24 06:35 +0800
+	2014-12-16 23:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,8 +141,8 @@ DLB $dev $lib $build;
 
 $HISTORY:
 
-// Code refactoring/fixing for quality across multiple files \
-	and probably multiple revisions.
+// Code refactoring/fixing for quality across multiple files and probably \
+	multiple revisions.
 // '$end_at $revision' is the last revision of the valid remained result. \
 	After this revision, the transformed content was abandoned.
 // The interval is the revision(s) of transformation in progress, but not \
@@ -159,21 +159,24 @@ $long_term_code_evolution $=
 		// Conforms to: %Documentation::ProjectRules @2.7.
 	"removal of spaces between years and hyphen in copyright notice"
 		$interval([b441, $now]),
-	"copyright notice and head formatting for makefiles"
-		$interval([b389, $now]),
+	"copyright notice and head formatting for original makefiles" $at b389,
 	"new include header guard identifier schema" $interval([b381, $now]),
+	"whitespace put between author name and mail address in files"
+		$interval([b371, $now]),
 	"new copyright title schema" $interval([b369, b448)) $superseded(b448),
 		// Head schema: "Copyright by <holder> <year>.".
-	"author mail address with whitespace per file"
-		$interval([b369, $now]),
 	"several postfix punctuation of comments removal" $interval([b334, b336]),
+	"defined as '1' for include header guard macros" $at b334,
 	"strict reversion number" $at b334,
+		// See %Documentation::ProjectRules @2.2.3.
+	"unified YSLib file and modules paths naming schema"
+		$interval([b275, $now]),
+		// Case included, except for YBase. The names is not restricted as 8.3 \
+			DOS format, since ISO C++11 headers names is also not directly fit \
+			for these filesystems any more.
 	"Doxygen comments and file header with copyright notice" $at b170,
-	"formatted comments" $interval([b176, b169]) $end_at b169,
-	"unified YSLib file and modules paths naming schema" $interval([b275, $now])
-		// Case included. The names is not restricted as 8.3 DOS format, since \
-			ISO C++11 headers names is also not directly fit for these \
-			filesystems any more.
+	"formatted comments" $interval([b166, b169]) $end_at b169
+		// Doxygen used instead.
 );
 
 $ellipse_refactoring;

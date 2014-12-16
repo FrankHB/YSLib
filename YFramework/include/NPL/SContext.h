@@ -11,13 +11,13 @@
 /*!	\file SContext.h
 \ingroup NPL
 \brief S 表达式上下文。
-\version r1406
+\version r1414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-08-03 19:55:41 +0800
 \par 修改时间:
-	2014-11-29 11:16 +0800
+	2014-12-14 22:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,6 +67,7 @@ public:
 	\throw LoggedEvent 文件内容读取失败。
 	*/
 	Session(const TextFile&, CharParser = DefaultParseByte);
+	//! \throw LoggedEvent 关键失败：无法访问源内容。
 	template<typename _tIn>
 	Session(_tIn first, _tIn last, CharParser parse = DefaultParseByte)
 		: lexer()
@@ -80,11 +81,7 @@ public:
 	Session(const _tRange& c, CharParser parse = DefaultParseByte)
 		: Session(begin(c), end(c), parse)
 	{}
-	DefDeCopyCtor(Session)
-	DefDeMoveCtor(Session)
-
-	DefDeCopyAssignment(Session)
-	DefDeMoveAssignment(Session)
+	DefDeCopyMoveCtorAssignment(Session)
 
 	DefGetterMem(const ynothrow, const string&, Buffer, lexer)
 	//@}
@@ -119,7 +116,7 @@ namespace SContext
 \param e 终止迭代器。
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \return e 或指向冗余的 ')' 的迭代器。
-\throw LoggedEvent 找到冗余的 '(' 。
+\throw LoggedEvent 警报：找到冗余的 '(' 。
 \since build 335
 */
 YF_API TLCIter
@@ -132,7 +129,7 @@ Validate(TLCIter b, TLCIter e);
 \param e 终止迭代器。
 \pre 迭代器是同一个记号列表的迭代器，其中 b 必须可解引用，且在 e 之前。
 \return e 或指向冗余的 ')' 的迭代器。
-\throw LoggedEvent 找到冗余的 '(' 。
+\throw LoggedEvent 警报：找到冗余的 '(' 。
 \since build 330
 */
 YF_API TLCIter
@@ -141,6 +138,7 @@ Reduce(ValueNode& node, TLCIter b, TLCIter e);
 
 /*!
 \brief 分析指定源，取抽象语法树储存至指定值类型节点。
+\throw LoggedEvent 警报：找到冗余的 ')' 。
 \since build 335
 */
 //@{

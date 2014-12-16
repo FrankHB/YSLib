@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r606
+\version r648
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2014-10-08 05:59 +0800
+	2014-12-15 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
-项目范围参见 [Documentation::ProjectRules @@1.1] 。
+项目范围参见 [Documentation::ProjectRules @@1] 。
 本文档适用于 NPL 及实现(@2.1.2) 。
 编码细节和其它规范参见 [Documentation::Designation] 。
 
@@ -128,17 +128,17 @@
 
 @2.1.2 [<非自指>] ：
 形式(form) ：参见经验语义和数学。
- <概念> 内涵：参见形式逻辑学。
- <概念> 外延：参见形式逻辑学。
- <概念> 定义(definition) ：确定概念内涵和外延的方法；参见任意一种形式逻辑学。
+<概念> 内涵：参见形式逻辑学。
+<概念> 外延：参见形式逻辑学。
+<概念> 定义(definition) ：确定概念内涵和外延的方法；参见任意一种形式逻辑学。
 集合(set) ：参见 NBG 集合论。
 序列(sequence) ：有序集合。
 类(class) ：参见 NBG 集合论和范畴论。
 真类(proper class) ：参见 NBG 集合论和范畴论。
- <动词> 抽象(abstracting) ：通过经验语义定义概念范畴或集合的方法。
- <名词> 抽象(abstraction) ：<动词>抽象的结果。
- <动词> 封装(encapsulating) ：从某一个范畴中抽象一个子范畴的方法。
- <名词> 封装(encapsulation) ：<动词>封装的结果。
+<动词> 抽象(abstracting) ：通过经验语义定义概念范畴或集合的方法。
+<名词> 抽象(abstraction) ：<动词>抽象的结果。
+<动词> 封装(encapsulating) ：从某一个范畴中抽象一个子范畴的方法。
+<名词> 封装(encapsulation) ：<动词>封装的结果。
 接口(interface) ：一种封装，参见软件工程学。
 实现(implementation) ：一种封装，参见软件工程学。
 重用(reusing) ：参见经验语义和软件工程学。
@@ -146,12 +146,12 @@
 状态(state) ：可以和其它实体关联的、可在某个上下文中保持变化或不变的实体。同一状态总是保持变化或保持不变。状态变化的含义参见经验语义、数学或另行约定。
 可变状态(mutable state) ：在某个上下文中可能映射到若干其它状态的状态。
 不可变状态(immutable state) ：不是可变状态的状态。
- <动词> 派生(deriving) ：基于重用的操作。
- <名词> 派生(derivation) ：<动词>派生的结果。
- <语言> 接口(<language>interface) ：和表达语义有关的语言的可见的特征。
- <语言> 实现(<language>implementation)：对语言表达语义的表达。
- <语言> 人类接口(human interface) ：语义仅对人类有意义（内容改变时可以导致语义的差异性），不提供为涉及作为图灵机实现的语言接口。
- <语言> 机器接口(machine interface) ：对机器（或特定语言实现的特定部分）有意义的语言接口。注意不同语言实现组成部分可以不同。例如，对 C 预处理器而言， C 源代码中的空白符是机器接口，而对翻译器来说则不是。就源代码而言，机器接口总是人类接口的子集。
+<动词> 派生(deriving) ：基于重用的操作。
+<名词> 派生(derivation) ：<动词>派生的结果。
+<语言> 接口(<language>interface) ：和表达语义有关的语言的可见的特征。
+<语言> 实现(<language>implementation)：对语言表达语义的表达。
+<语言> 人类接口(human interface) ：语义仅对人类有意义（内容改变时可以导致语义的差异性），不提供为涉及作为图灵机实现的语言接口。
+<语言> 机器接口(machine interface) ：对机器（或特定语言实现的特定部分）有意义的语言接口。注意不同语言实现组成部分可以不同。例如，对 C 预处理器而言， C 源代码中的空白符是机器接口，而对翻译器来说则不是。就源代码而言，机器接口总是人类接口的子集。
 语言特性(language feature) ：作为功能提供的人类接口。
 
 @2.2 领域约定：
@@ -188,10 +188,10 @@
 派生实现(derived implementation) ：派生语言实现。
 
 @2.4 NPL 实现模型：
- NPL 是抽象的语言，没有具体语言实现(@2.2) ，但一些直接影响实现表现形式的规则被本节限定。
+NPL 是抽象的语言，没有具体语言实现(@2.2) ，但一些直接影响实现表现形式的规则被本节限定。
 
 @2.4.1 实现的执行阶段(phase of execution) ：
- NPL 实现应保证行为能符合以下的阶段（具体阶段不要求和实际实现中的一一对应，但应保证顺序一致）：
+NPL 实现应保证行为能符合以下的阶段（具体阶段不要求和实际实现中的一一对应，但应保证顺序一致）：
 词法分析：必要时转换字符编码；转义并提取记号。
 语法分析：检验语法正确性(@2.5) 。
 语义分析：检验语义正确性(@2.5) 。
@@ -239,7 +239,7 @@
 名称约定为在 NPL 中符合语法(@3.4) 约束的若干记号(@3.3.1) 的集合，一般可实现为可表达的字符串。
 
 @3.3.1 基本词法构造：
- <token> ::= <literal> | <$punctuator> | <$identifier>
+<token> ::= <literal> | <$punctuator> | <$identifier>
 记号(token) ：代码中非空白符分隔的字符序列。
 字面量(literal) ：一种记号，参见 @3.3.3 。
 标点(punctuator) ：由派生实现定义的特定字符序列的集合，起分隔其它记号的作用，具有一定语义功能。
@@ -247,15 +247,15 @@
 可以保证 ISO/IEC 14882:2011 的 identifier 的定义，或在上述标识符中插入字符 $ 构造得到的标识符属于 NPL 标识符。
 
 @3.3.2 转义序列和字符序列：
- <char-escape-content-seq> ::= <$single-escape-char> | <$escape-prefix-char><$escape-content-seq>
- <char-seq> ::= <$literal-char> | \<char-escape-seq>
+<char-escape-content-seq> ::= <$single-escape-char> | <$escape-prefix-char><$escape-content-seq>
+<char-seq> ::= <$literal-char> | \<char-escape-seq>
 
 @3.3.3 字面量：
- <literal-content> ::= <char-seq> | <literal-char-seq><literal-data>
- <code-literal> ::= '<literal-content>'
- <data-literal> ::= "<literal-content>"
- <string-literal> ::= <code-literal> | <data-literal>
- <literal> ::= <string-literal> | <$derived-impldef-literal>
+<literal-content> ::= <char-seq> | <literal-char-seq><literal-data>
+<code-literal> ::= '<literal-content>'
+<data-literal> ::= "<literal-content>"
+<string-literal> ::= <code-literal> | <data-literal>
+<literal> ::= <string-literal> | <$derived-impldef-literal>
 代码字面量(code literal) ：以 ' 作为起始和结束字符的记号。
 数据字面量(data literal) ：以 " 作为起始和结束字符的记号。
 字符串字面量(string literal) ：代码字面量或数据字面量。
@@ -277,25 +277,25 @@
 @3.4.1 基本语法构造：
 
 @3.4.2 表达式(expression) ：
- expression ::= atomic-expression | composite-expression | list-expression
+expression ::= atomic-expression | composite-expression | list-expression
 表达式是受表达式语法约束的记号序列。
 其中构成分别称为原子表达式(atomic expression) 、复合表达式(composite expression) 和列表表达式(list expression) 。
 
 @3.4.2.1 原子表达式：
- atomic-expression ::= token
+atomic-expression ::= token
 原子表达式不能被表示为其它表达式的语法构成形式的复合。
 
 @3.4.2.2 复合表达式：
- composite-expression ::= token expression | expression token
+composite-expression ::= token expression | expression token
 符合表达式是原子表达式和表达式的复合。
 同一个表达式可能被按原子表达式出现的位置以不同的方式规约为复合表达式。允许的规约复合表达式的方式由派生实现定义。
 
 @3.4.2.3 列表表达式：
- list-expression ::= <left-list-bound> expression <right-list-bound>
- <left-list-bound> ::= ( | <extended-left-list-bound>
- <right-list-bound> ::= ) | <extended-right-list-bound>
+list-expression ::= <left-list-bound> expression <right-list-bound>
+<left-list-bound> ::= ( | <extended-left-list-bound>
+<right-list-bound> ::= ) | <extended-right-list-bound>
 列表表达式是使用 <left-list-bound> 和 <right-list-bound> 作为边界的表达式。
- <left-list-bound> 和 <right-list-bound> 是不同的标点。
+<left-list-bound> 和 <right-list-bound> 是不同的标点。
 边界为 ( 和 ) 的表达式是基本列表表达式。其它可能的边界由派生实现定义，构成扩展列表表达式。
 
 @3.4.3 语句：
@@ -351,8 +351,8 @@
 总是没有名称指称的命名空间是匿名命名空间(anonymous namespace) 。
 没有有效名称指称的命名空间是未命名命名空间(unnamed namespace) 。
 注意匿名命名空间和未命名命名空间不同。前者可能是一个系统的默认约定，一般整体唯一存在（如全局命名空间）；后者只是对某些接口隐藏，可以有多个。
- NPL 定义一个抽象的匿名命名空间，称为根命名空间。未命名命名空间的支持由派生实现定义。
- NPL 约定一个在实现中的有效名称总是指称一个命名空间。有效名称指称的命名空间的同一性和有效名称的同一性(@4.3.3) 对应。
+NPL 定义一个抽象的匿名命名空间，称为根命名空间。未命名命名空间的支持由派生实现定义。
+NPL 约定一个在实现中的有效名称总是指称一个命名空间。有效名称指称的命名空间的同一性和有效名称的同一性(@4.3.3) 对应。
 
 @4.3.4.2 成员：
 除了用于指称的名称外，一个命名空间可以和若干其它名称关联。
@@ -387,7 +387,7 @@
 
 @4.5.2 函数(function) ：
 特定的由派生实现定义的表达式对应 λ 抽象，称为函数表达式，简称函数。
- λ 抽象可以捕获(capture) 若干有效名称及对应的实体，即这些名称可在函数中使用。
+λ 抽象可以捕获(capture) 若干有效名称及对应的实体，即这些名称可在函数中使用。
 被捕获的名称指称的实体是函数的形式参数(formal parameter, parameter) 。
 表达式外被捕获的名称指称的实体是实际参数(actual argument, argument) 。
 实际参数和形式参数一一对应。
@@ -420,7 +420,7 @@
 
 @5 语言实现：
 当前维护的派生语言为 NPLA ，是 NPL 的抽象语言实现，约定以下附加规则。
- NPLA 的参考实现 NPLA1 是具体语言实现，约定特定于当前参考实现的附加规则和实现。
+NPLA 的参考实现 NPLA1 是具体语言实现，约定特定于当前参考实现的附加规则和实现。
 
 @5.1 NPLA 领域语义支持：
 位(bit) ：表示二进制存储的最小单位，具有 0 和 1 两种状态。
@@ -441,9 +441,9 @@
 标点为单字节序列。
 名称仅被实现为字符串。
 不支持语句(@3.4.3) 。
- NPLA1 是以 ISO C++11 为宿主语言的嵌入实现，不包含扩展执行阶段(@2.4.1) 。
- NPLA1 单一实现不支持多线程执行(@2.4.2) ，但允许多个实现同时在宿主中多线程执行。
- NPLA1 的规范形式是特定类型的 C++ 对象，使用 YSLib::ValueNode 作为多个阶段的规范形式(@4.4.1) 的实现。
+NPLA1 是以 ISO C++11 为宿主语言的嵌入实现，不包含扩展执行阶段(@2.4.1) 。
+NPLA1 单一实现不支持多线程执行(@2.4.2) ，但允许多个实现同时在宿主中多线程执行。
+NPLA1 的规范形式是特定类型的 C++ 对象，使用 YSLib::ValueNode 作为多个阶段的规范形式(@4.4.1) 的实现。
 仅使用宿主语言的类型和值作为状态。类型等价性由 C++ 定义。值等价性由宿主实现的 == 表达式的结果定义。
 当前不特别约定类型系统，所有类型都是同宿主类型的空字符结尾的字符串（ C++ NTCTS ）。
 
@@ -462,14 +462,14 @@
 函数的求值结果被宿主实现以 YSLib::ValueNode 表示为 YSLib::string 类型或 YSLib::ValueNode 类型的节点。
 
 @5.8 应用实例：
- NPLA1 当前加入特定的序列化和反序列化作为配置文件，参见 NPL::Configuration 。
- NPLA1 的上述配置文件加入特定的匹配和初始化机制作为 YSLib::UI::Loader([Documenatation::YSLib @@5.6.8]) 在运行时读取用户界面布局和配置的脚本。
- NPLA1 用于 MIME 类型和文件名映射([Documentation::YSLib @@4.6.3]) 的实现，上述配置文件对应的外部配置格式。
+NPLA1 当前加入特定的序列化和反序列化作为配置文件，参见 NPL::Configuration 。
+NPLA1 的上述配置文件加入特定的匹配和初始化机制作为 YSLib::UI::Loader([Documenatation::YSLib @@5.6.8]) 在运行时读取用户界面布局和配置的脚本。
+NPLA1 用于 MIME 类型和文件名映射([Documentation::YSLib @@4.6.3]) 的实现，上述配置文件对应的外部配置格式。
 
 @5.9 兼容性：
 除非在此另行约定， NPLA1 实现保持兼容。
 影响向前兼容的变更：
- b449 增加对多个未命名节点（叶节点或首个子节点未能解析为名称的分支节点）作为非名称子节点时的反序列化支持。多个值会被以 $ 前缀接序号（从 0 起始）命名。之前的版本中读取的节点名称为空串，值被覆盖为第一个节点值。
+b449 增加对多个未命名节点（叶节点或首个子节点未能解析为名称的分支节点）作为非名称子节点时的反序列化支持。多个值会被以 $ 前缀接序号（从 0 起始）命名。之前的版本中读取的节点名称为空串，值被覆盖为第一个节点值。
 
 @6 编码风格导引：
 仅叙述之前章节未涉及的内容。

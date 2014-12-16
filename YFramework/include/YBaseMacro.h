@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2643
+\version r2655
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2014-12-11 20:30 +0800
+	2014-12-14 21:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -176,6 +176,11 @@ _t type
 #define DefDelMoveCtor(_t) \
 	_t(_t&&) = delete;
 
+//! \since build 560
+#define DefDeCopyMoveCtor(_t) \
+	DefDeCopyCtor(_t) \
+	DefDeMoveCtor(_t)
+
 #define DefDeDtor(_t) \
 	~_t() = default;
 #define DefDelDtor(_t) \
@@ -193,6 +198,16 @@ _t type
 	_t& operator=(_t&&) = default;
 #define DefDelMoveAssignment(_t) \
 	_t& operator=(_t&&) = delete;
+
+//! \since build 560
+#define DefDeCopyMoveAssignment(_t) \
+	DefDeCopyAssignment(_t) \
+	DefDeMoveAssignment(_t)
+
+//! \since build 560
+#define DefDeCopyMoveCtorAssignment(_t) \
+	DefDeCopyMoveCtor(_t) \
+	DefDeCopyMoveAssignment(_t)
 
 #define DefCvt(_q, _t, ...) \
 	operator _t() _q \

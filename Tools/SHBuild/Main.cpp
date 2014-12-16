@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file main.cpp
+/*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2653
+\version r2673
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-12-05 21:55 +0800
+	2014-12-16 23:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,8 @@ See readme file for details.
 #include YFM_YSLib_Service_YTimer // for YSLib::Timers::FetchElapsed;
 #include YFM_YSLib_Service_FileSystem
 #include <ystdex/mixin.hpp>
-#include YFM_MinGW32_YCLib_Consoles // for platform_ex::WConsole;
+#include YFM_YCLib_Host // for platform_ex::EncodeArg, platform_ex::DecodeArg,
+//	platform_ex::Terminal;
 #include <ystdex/concurrency.h> // for ystdex::task_pool;
 #include <ystdex/exception.h> // for ystdex::raise_exception;
 #include YFM_NPL_SContext
@@ -267,8 +268,9 @@ CheckModification(const string& path)
 	return file_time;
 }
 
-PDefH(bool, CompareModification, const string& ipath, const string& opath)
-	ImplRet(CheckModification(opath) >= CheckModification(ipath))
+//! \since build 560
+PDefH(bool, CompareModification, const string& ipath, const nanoseconds& omod)
+	ImplRet(omod >= CheckModification(ipath))
 
 template<typename _func>
 bool
@@ -291,8 +293,9 @@ bool
 CheckBuild(const vector<string>& ipaths, const string& opath)
 {
 	return CheckBuild([&]{
-		return ipaths.empty() ? false : std::all_of(ipaths.cbegin(),
-			ipaths.cend(), std::bind(CompareModification, _1, opath));
+		return ipaths.empty() ? false
+			: std::all_of(ipaths.cbegin(), ipaths.cend(),
+			std::bind(CompareModification, _1, CheckModification(opath)));
 	}, opath);
 }
 //@}
@@ -523,7 +526,7 @@ SearchDirectory(const Rule& rule, const ActionContext& actx)
 	TraverseChildren(path, [&](NodeCategory c, const std::string& name){
 		if(name[0] != '.')
 		{
-			if(c == NodeCategory::Directory)
+			if(bool(c & NodeCategory::Directory))
 			{
 				if(ystdex::exists(rule.Context.IgnoredDirs, name))
 					print("Subdirectory " + path + name + YCL_PATH_DELIMITER
@@ -730,7 +733,7 @@ PrintUsage(const char* prog)
 int
 main(int argc, char* argv[])
 {
-	auto p_wcon(MakeWConsole()), p_wcon_err(MakeWConsole(STD_ERROR_HANDLE));
+	Terminal term, term_err(stderr);
 
 	try
 	{
@@ -744,17 +747,16 @@ main(int argc, char* argv[])
 		});
 		logger.SetSender([&](Logger::Level lv, Logger&, const char* str){
 			const auto stream(lv <= Warning ? stderr : stdout);
-			const auto& p_con(lv <= Warning ? p_wcon_err : p_wcon);
+			auto& term_ref(lv <= Warning ? term_err : term);
 			const auto dcnt(duration_cast<milliseconds>(
 				Timers::FetchElapsed<steady_clock>()).count());
 
-			if(p_con)
-				p_con->RestoreAttributes();
+			term_ref.RestoreAttributes();
 			std::fprintf(stream, "[%04u.%03u][%zu:%#02X]",
 				unsigned(dcnt / 1000U), unsigned(dcnt % 1000U),
 				size_t(LastLogGroup), unsigned(lv));
 			YAssertNonnull(str);
-			if(p_con)
+			if(term_ref)
 			{
 				using namespace platform::Consoles;
 				static const Logger::Level
@@ -765,13 +767,13 @@ main(int argc, char* argv[])
 					std::lower_bound(&lvs[0], &lvs[arrlen(colors)], lv));
 
 				if(i == &lvs[arrlen(colors)])
-					p_con->RestoreAttributes();
+					term_ref.RestoreAttributes();
 				else
-					p_con->UpdateForeColor(colors[i - lvs]);
+					term_ref.UpdateForeColor(colors[i - lvs]);
 			}
-			std::fprintf(stream, "%s\n", MBCSToMBCS(str).c_str());
-			if(p_con)
-				p_con->RestoreAttributes();
+			std::fprintf(stream, "%s", &EncodeArg(str)[0]);
+			term_ref.RestoreAttributes();
+			std::fputc('\n', stream);
 		});
 		if(argc > 1)
 		{
@@ -779,7 +781,7 @@ main(int argc, char* argv[])
 
 			for(int i(1); i < argc; ++i)
 			{
-				auto&& arg(MBCSToMBCS(argv[i], CP_ACP, CP_UTF8));
+				auto&& arg(&DecodeArg(argv[i])[0]);
 
 				if(std::none_of(begin(OptionsTable), end(OptionsTable),
 					[&](const Option& opt){

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1959
+\version r2040
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-12-09 01:42 +0800
+	2014-12-15 20:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,6 +103,36 @@ GetFileModificationTimeOfImpl(const _tChar* filename)
 		return GetFileModificationTimeOf(*fdw.get());
 	throw FileOperationFailure(errno, std::generic_category(),
 		"Failed getting file time of \"" + ensure_str(filename) + "\".");
+}
+
+
+//! \since build 560
+template<typename _type>
+NodeCategory
+FetchNodeCategoryFromStat(_type& st)
+{
+	auto res(NodeCategory::Empty);
+	const auto m(st.st_mode & S_IFMT);
+
+	if(m & S_IFDIR)
+		res |= NodeCategory::Directory;
+#if !YCL_Win32
+	if(m & S_IFLNK)
+		res |= NodeCategory::Link;
+#endif
+	if(m & S_IFREG)
+		res |= NodeCategory::Regular;
+	if(YB_UNLIKELY(m & S_IFCHR))
+		res |= NodeCategory::Character;
+	else if(YB_UNLIKELY(m & S_IFCHR))
+		res |= NodeCategory::Block;
+	if(YB_UNLIKELY(m & S_IFIFO))
+		res |= NodeCategory::FIFO;
+#if !YCL_Win32
+	if(m & S_IFSOCK)
+		res |= NodeCategory::Socket;
+#endif
+	return res;;
 }
 
 } // unnamed namespace;
@@ -407,18 +437,23 @@ GetFileSizeOf(std::FILE* fp)
 
 
 DirectorySession::DirectorySession(const char* path)
-	: dir(
 #if YCL_Win32
-		new DirectoryFindData
+	: dir(new DirectoryFindData(path && *path != '\0' ? path : "."))
 #else
-		::opendir
+	: sDirPath(path && *path != '\0' ? path : "."),
+	dir(::opendir(sDirPath.c_str()))
 #endif
-		(path && *path != '\0' ? path : ".")
-	)
 {
 	if(!dir)
 		throw FileOperationFailure(errno, std::generic_category(),
 			"Opening directory failed.");
+#if !YCL_Win32
+	ystdex::rtrim(sDirPath, YCL_PATH_DELIMITER);
+	YAssert(std::char_traits<char>::length(sDirPath.c_str()) > 0
+		|| sDirPath.back() == YCL_PATH_DELIMITER,
+		"Invalid directory name state found.");
+	sDirPath += YCL_PATH_DELIMITER;
+#endif
 }
 DirectorySession::~DirectorySession()
 {
@@ -466,7 +501,7 @@ HDirectory::GetNodeCategory() const ynothrow
 		NodeCategory res(NodeCategory::Empty);
 #if YCL_Win32
 		const auto&
-			dir_data(*static_cast<DirectoryFindData*>(GetNativeHandle()));
+			dir_data(Deref(static_cast<DirectoryFindData*>(GetNativeHandle())));
 		const auto& find_data(dir_data.GetFindData());
 
 		if(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -492,45 +527,20 @@ HDirectory::GetNodeCategory() const ynothrow
 		YAssert(!name.empty() && name.back() == L'*', "Invalid state found.");
 		name.pop_back();
 		YAssert(!name.empty() && name.back() == L'\\', "Invalid state found.");
-		if(::_wstat((name + *static_cast<std::wstring*>(p_dirent)).c_str(),
-			&st) == 0)
-		{
-			const auto m(st.st_mode & _S_IFMT);
-
-			if(YB_UNLIKELY(m & _S_IFDIR))
-				res |= NodeCategory::Directory;
-			if(m & _S_IFREG)
-				res |= NodeCategory::Regular;
-			if(YB_UNLIKELY(m & _S_IFCHR))
-				res |= NodeCategory::Character;
-			if(YB_UNLIKELY(m & _S_IFIFO))
-				res |= NodeCategory::FIFO;
-		}
+		if(::_wstat((name
+			+ Deref(static_cast<std::wstring*>(p_dirent))).c_str(), &st) == 0)
+			res |= FetchNodeCategoryFromStat(st);
 #else
-		// FIXME: Implement for platforms without 'DT_*'.
-		switch(p_dirent->d_type)
-		{
-		case DT_UNKNOWN:
-			return NodeCategory::Unknown;
-		case DT_FIFO:
-			return NodeCategory::FIFO;
-		case DT_CHR:
-			return NodeCategory::Character;
-		case DT_DIR:
-			return NodeCategory::Directory;
-		case DT_BLK:
-			return NodeCategory::Block;
-		case DT_REG:
-			return NodeCategory::Regular;
-		case DT_LNK:
-			return NodeCategory::Link;
-		case DT_SOCK:
-			return NodeCategory::Socket;
-		case DT_WHT:
-			return NodeCategory::Missing;
-		default:
-			;
-		}
+		auto name(sDirPath + Deref(p_dirent).d_name);
+		struct ::stat st;
+
+#	if !YCL_DS
+		// TODO: Set error properly.
+		if(::lstat(name.c_str(), &st) == 0)
+			res |= FetchNodeCategoryFromStat(st);
+#	endif
+		if(bool(res & NodeCategory::Link) && ::stat(name.c_str(), &st) == 0)
+			res |= FetchNodeCategoryFromStat(st);
 #endif
 		return res != NodeCategory::Empty ? res : NodeCategory::Invalid;
 	}

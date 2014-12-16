@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r514
+\version r516
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-12-01 23:37 +0800
+	2014-12-14 21:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -317,8 +317,8 @@ private:
 
 public:
 	AndroidLogSender(const std::string&);
-	DefDeCopyCtor(AndroidLogSender)
-	DefDeMoveCtor(AndroidLogSender)
+	//! \since build 560
+	DefDeCopyMoveCtorAssignment(AndroidLogSender)
 	~AndroidLogSender();
 
 	//! \pre 间接断言：字符串非空。

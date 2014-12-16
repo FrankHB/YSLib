@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r937
+\version r940
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2014-12-01 14:54 +0800
+	2014-12-16 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,10 +81,9 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 }
 
 void
-ImagePanel::Load(const std::wstring& path)
+ImagePanel::Load(ImagePages&& src)
 {
-	session_ptr.reset(new Session(forward_as_tuple(ImagePages(reinterpret_cast<
-		const ucs2_t*>(&path[0]), min_panel_size, max_panel_size),
+	session_ptr.reset(new Session(forward_as_tuple(std::move(src),
 		GAnimationSession<InvalidationUpdater>(), Timers::Timer(),
 		vector<std::chrono::milliseconds>())));
 	auto& pages(GetPagesRef());

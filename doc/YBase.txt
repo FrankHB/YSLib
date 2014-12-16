@@ -11,13 +11,13 @@
 /*!	\file YBase.txt
 \ingroup Documentation
 \brief YBase 说明。
-\version r291
+\version r308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 305
 \par 创建时间:
 	2012-04-29 17:11:42 +0800
 \par 修改时间:
-	2014-11-28 12:45 +0800
+	2014-12-15 23:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,12 +29,12 @@
 
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
-项目范围参见 [Documentation::ProjectRules @@1.1] 。
+项目范围参见 [Documentation::ProjectRules @@1] 。
 本文档适用于 YBase 。
 部分编码细节和其它规范和 YFramework 共享，参见 [Documentation::Designation] 。
 
 @1 设计：
- YBase 是 YSLib(the YSLib project) 的顶级子项目([ProjectRules @@1.1]) ，且不被其它顶级子项目依赖。
+YBase 是 YSLib(the YSLib project) 的顶级子项目([ProjectRules @@1.3]) ，且不被其它顶级子项目依赖。
 
 @1.1 设计的基本原理和表达形式：
 以扩展标准库为基础构建 YSLib 项目的基础实现。
@@ -63,11 +63,11 @@
 
 @2.2 文件依赖性：
 以下为基本代码依赖性规则按（以优先级顺序排列，即后者不满足前者的部分以前者为准）：
-子项目满足线性顺序依赖([Documentation::ProjectRules @@1.3.1]) ：依次为 ydef.h(@2.3) 、 LibDefect 、 YStandardEx 和 YTest 。
- ydef.h 仅依赖标准库头。
- LibDefect 不包含头文件或仅包含标准库头。
- YBase 依赖且仅依赖 YBase 文件和标准库头。
- YStandardEx 相关的头文件依赖性参见 @2.4.1 。
+子项目满足线性顺序依赖([Documentation::ProjectRules @@1.1.1]) ：依次为 ydef.h(@2.3) 、 LibDefect 、 YStandardEx 和 YTest 。
+ydef.h 仅依赖标准库头。
+LibDefect 不包含头文件或仅包含标准库头。
+YBase 依赖且仅依赖 YBase 文件和标准库头。
+YStandardEx 相关的头文件依赖性参见 @2.4.1 。
 
 @2.3 YDefinition ：
 模块 YBase::YDefinition ，文件名 ydef.h ，是其它 YBase 头文件的公共依赖项。
@@ -76,7 +76,7 @@
 以下名称以 y 起始的宏是表达式宏([Documentation::CommonRules @@5.10]) 或替代关键字(@2.3.7) 。
 
 @2.3.1 实现标记宏：
- YB_IMPL_CPP 指示支持的 ISO C++ 版本。
+YB_IMPL_CPP 指示支持的 ISO C++ 版本。
 其它 YB_IMPL_* 宏指示实现的版本。
 
 @2.3.2 预处理器通用助手宏 ：
@@ -119,24 +119,24 @@
 其它情况下宏名、每个参数和调用的 ) 单独占据独立的行，每个参数视为语句，但不需要添加额外的 { 和 } 组成块的边界。
 
 @2.4 YStandardEx ：
- YStandardEx 直接扩充标准库，包含仅依赖标准库而非标准库实现的接口。
+YStandardEx 直接扩充标准库，包含仅依赖标准库而非标准库实现的接口。
 实现的内容限制为以下两个部分：
 适用范围最广的基础设施（比标准库更严格），如序列/非序列调用、通用类型转换、元类型、函数对象、迭代器；
 直接基于标准库接口的抽象和封装，如输入/输出抽象。
 所有更具体应用问题领域相关的或特定于运行时表达形式相关的操作，如形式语言处理等，都不由 YStandardEx 直接提供接口。
 
 @2.4.1 头文件直接依赖性：
- "type_op.hpp" 和 "variadic.hpp" 依赖 YDefinition ；
- "cast.hpp" 和 "functional.hpp" 依赖 "type_op.hpp" ；
- "functional.hpp" 依赖 "variadic.hpp" 。
+"type_op.hpp" 和 "variadic.hpp" 依赖 YDefinition ；
+"cast.hpp" 和 "functional.hpp" 依赖 "type_op.hpp" ；
+"functional.hpp" 依赖 "variadic.hpp" 。
 另见 @2.4.3 、 @2.4.4 和 @2.4.5 。
 
 @2.4.2 命名空间和模板特化：
 命名空间 ystdex 内 details 命名空间保留为非公开实现。
 除了块作用域和非公开的实现命名空间外，命名空间 ystdex 中对标准库的元编程和类型特征名称使用 using std:: 声明，禁止其它的 using 声明引入 std 成员。 
- ystdex 的类型在声明所在的同一头文件中，可能存在 std 命名空间中的类模板的对应特化。
- std 的成员对 ystdex 命名空间中的类模板可能存在对应特化。注意完整包含所需的头文件，而不仅是 std 成员声明的标准库头。当前包括以下类型：
-  std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
+ystdex 的类型在声明所在的同一头文件中，可能存在 std 命名空间中的类模板的对应特化。
+std 的成员对 ystdex 命名空间中的类模板可能存在对应特化。注意完整包含所需的头文件，而不仅是 std 成员声明的标准库头。当前包括以下类型：
+std::tuple （使用 "tuple.hpp" 代替 <tuple> ）。
 
 @2.4.3 不依赖其它 YStandardEx 文件的基本头文件：
 
@@ -150,7 +150,7 @@
 使用元编程和模板匹配检查特定类型是否存在特定操作。
 
 @2.4.3.4 重载操作符 Operators ：
- Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
+Boost.Operators 的重新实现。迭代器相关部分参数有所删减。
 
 @2.4.4 ISO C 扩展：
 扩展标准库文件，不依赖以上文件外的 YStandardEx 头文件。
@@ -221,7 +221,7 @@
 提供适合被作为基类的通用接口。
 
 @2.4.6.5 动态泛型类型 Any ：
- Boost.Any 和提议的 ISO C++ std::experiment::any 的类似的基于类型擦除实现的用于保存运行时确定类型的值的对象。提供了更多可供用户调整的内部接口和默认的小对象优化实现。
+Boost.Any 和提议的 ISO C++ std::experiment::any 的类似的基于类型擦除实现的用于保存运行时确定类型的值的对象。提供了更多可供用户调整的内部接口和默认的小对象优化实现。
 
 @2.4.6.6 动态泛型迭代器 AnyIterator ：
 基于 ystdex::any(@2.4.6.4) 实现的用于保存运行时确定类型迭代器的对象。

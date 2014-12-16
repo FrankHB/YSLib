@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r719
+\version r742
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2014-11-13 01:29 +0800
+	2014-12-15 19:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -172,6 +172,30 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 #define NAME_MAX 256
 
 #define S_IFIFO		_S_IFIFO
+
+#	if YCL_Win32
+#		ifndef S_IFMT
+#			define S_IFMT _S_IFMT
+#		endif
+#		ifndef S_IFDIR
+#			define S_IFDIR _S_IFDIR
+#		endif
+#		ifndef S_IFCHR
+#			define S_IFCHR _S_IFCHR
+#		endif
+#		ifndef S_IFREG
+#			define S_IFREG _S_IFREG
+#		endif
+#		ifndef S_IREAD
+#			define S_IREAD _S_IREAD
+#		endif
+#		ifndef S_IWRITE
+#			define S_IWRITE _S_IWRITE
+#		endif
+#		ifndef S_IEXEC
+#			define S_IEXEC _S_IEXEC
+#		endif
+#	endif
 
 #define	S_IRWXG		(S_IRGRP | S_IWGRP | S_IXGRP)
 #define		S_IRGRP	0

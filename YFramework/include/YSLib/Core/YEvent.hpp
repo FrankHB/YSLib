@@ -11,13 +11,13 @@
 /*!	\file yevt.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4820
+\version r4852
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-12-02 18:34 +0800
+	2014-12-14 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,14 +148,7 @@ public:
 			return (obj.*pm)(yforward(args)...);
 		})
 	{}
-	yconstfn DefDeCopyCtor(GHEvent)
-	yconstfn DefDeMoveCtor(GHEvent)
-
-	DefDeCopyAssignment(GHEvent)
-	/*!
-	\brief 转移赋值：默认实现。
-	*/
-	DefDeMoveAssignment(GHEvent)
+	DefDeCopyMoveCtorAssignment(GHEvent)
 
 	//! \since build 520
 	yconstfn friend bool
@@ -266,7 +259,10 @@ yconstexpr EventPriority DefaultEventPriority(0x80);
 template<typename>
 class GEvent;
 
-//! \warning 非虚析构。
+/*!
+\note 深复制。
+\warning 非虚析构。
+*/
 template<typename _tRet, typename... _tParams>
 class GEvent<_tRet(_tParams...)>
 {
@@ -304,15 +300,7 @@ public:
 	{
 		Add(yforward(h));
 	}
-	/*!
-	\brief 复制构造：默认实现。
-	\note 深复制。
-	*/
-	yconstfn DefDeCopyCtor(GEvent)
-	/*!
-	\brief 转移构造：默认实现。
-	*/
-	yconstfn DefDeMoveCtor(GEvent)
+	DefDeCopyMoveCtorAssignment(GEvent)
 
 	/*!
 	\brief 赋值：覆盖事件响应：使用单一构造参数指定的指定事件处理器。
@@ -325,14 +313,6 @@ public:
 	{
 		return *this = GEvent(yforward(_arg));
 	}
-	/*!
-	\brief 复制赋值：默认实现。
-	*/
-	DefDeCopyAssignment(GEvent)
-	/*!
-	\brief 转移赋值：默认实现。
-	*/
-	DefDeMoveAssignment(GEvent)
 
 	/*!
 	\brief 添加事件响应：使用 const 事件处理器和优先级。
@@ -718,11 +698,7 @@ public:
 	{}
 	//! \since build 537
 	//@{
-	DefDeCopyCtor(GHandlerAdaptor)
-	DefDeMoveCtor(GHandlerAdaptor)
-
-	DefDeCopyAssignment(GHandlerAdaptor)
-	DefDeMoveAssignment(GHandlerAdaptor)
+	DefDeCopyMoveCtorAssignment(GHandlerAdaptor)
 
 	using Base::operator();
 	//@}

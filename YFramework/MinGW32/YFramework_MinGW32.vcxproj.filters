@@ -31,9 +31,6 @@
     <ClInclude Include="include\YCLib\MinGW32.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="include\YCLib\Win32GUI.h">
-      <Filter>include\YCLib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.h">
       <Filter>source\Helper</Filter>
     </ClInclude>
@@ -54,9 +51,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\YCLib\Win32GUI.cpp">
-      <Filter>source\YCLib</Filter>
-    </ClCompile>
     <ClCompile Include="source\YCLib\MinGW32.cpp">
       <Filter>source\YCLib</Filter>
     </ClCompile>

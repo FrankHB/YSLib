@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r948
+\version r1034
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-11-28 12:48 +0800
+	2014-12-16 06:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
-项目范围参见 [Documentation::ProjectRules @@1.1] 。
+项目范围参见 [Documentation::ProjectRules @@1] 。
 本文档适用于 YFramework 。
 部分编码细节和其它规范和 YBase 共享，参见 [Documentation::Designation] 。
 
@@ -37,7 +37,7 @@
 基本内容参见 [Documentation::Designation @@1] 。
 
 @1.1 设计的基本原理和表达形式：
- YSLib 项目的框架容器。
+YSLib 项目的框架容器。
 
 @1.2 理论背景、工具和依据：
 基本内容参见 [Documentation::CommonRules @@2.1] 。
@@ -53,20 +53,20 @@
 除以下部分外由具体项目定义。
 
 @1.4.1.1 运行时程序结构和部署模型：
- YSLib 中讨论可部署的程序的基本单位是 Shell(@1.4.4.2) 。
- YSLib 基于单一进程和单一线程的运行时程序结构，类似于单内核操作系统；但内部实现是微内核至无内核的，除了主循环，任意一个 Shell 都可以独立部署。
+YSLib 中讨论可部署的程序的基本单位是 Shell(@1.4.4.2) 。
+YSLib 基于单一进程和单一线程的运行时程序结构，类似于单内核操作系统；但内部实现是微内核至无内核的，除了主循环，任意一个 Shell 都可以独立部署。
 在适当的平台上通过扩充能实现多个独立的二进制实体并行运行的多进程程序。
 
 @1.4.1.2 并发模型：
 基于可移植性和易用性的考虑， YSLib 并发语义的表达不包括作为机器模型的语言和库特性提供的线程模型的直接使用，而以角色模型进行并发抽象的问题模型。
 对 Shell 内部的操作，不存在共享状态的竞争条件，无需进行加锁操作，避免死锁、活锁和优先级反转等问题。即 Shell 本身使用单线程。
 由于语言的限制，无法直接表达任意的并行语义，从而无法有效实现真并发行为。真并发行为可能由平台相关的扩展 API 实现。
- YSLib 仅提供有限的调度设施保证，通过加入线程模型相关的设计和实现，进程内的控制流实体保持是可扩充的和自洽的。
+YSLib 仅提供有限的调度设施保证，通过加入线程模型相关的设计和实现，进程内的控制流实体保持是可扩充的和自洽的。
 
 @1.4.1.3 消息机制：
 基本内容参见 [Documentation::CommonRules @@2.5.3] 。
- YSLib 支持消息队列。
- YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
+YSLib 支持消息队列。
+YSLib 的消息被用于在 Shell 之间传递状态，称为 Shell 消息。
 默认 Shell 消息列表参见 [Documentation::YSLib @@2] 。
 消息、消息队列、消息分派和消息循环的实现参见 [Documentation::YSLib @@2.5.10] 。
 
@@ -84,11 +84,11 @@
 
 @1.4.2 资源分类：
 基本内容参见 [Documentation::CommonRules @@2.3.2.2] 。
- YSLib 对资源的直接使用仅限软件资源（硬件资源通过语言抽象和 YCLib([Documentation::Designation @@5.2.2]) 等平台兼容层包装后间接使用）。
+YSLib 对资源的直接使用仅限软件资源（硬件资源通过语言抽象和 YCLib([Documentation::Designation @@5.2.2]) 等平台兼容层包装后间接使用）。
 
 @1.4.3 资源管理：
 基本内容参见 [Documentation::CommonRules @@2.3.2.3] 。
- RAII 在异常安全和可维护性等方面具有其它方法不可替代的优势，因此是 YSLib 中最主要使用的资源管理惯用法。
+RAII 在异常安全和可维护性等方面具有其它方法不可替代的优势，因此是 YSLib 中最主要使用的资源管理惯用法。
 
 @1.4.4 Shell ：
 在 YFramework/YSLib 中， Shell 有多种含义。
@@ -98,7 +98,7 @@
 参见 @1.2.1.1 。
 
 @1.4.4.2 程序实体：
- Shell 实体（简称 Shell ）是一种包含状态的有限片段控制流抽象，是动态映像(@1.5.1.1) 或静态映像(@1.5.1.2) 之一。
+Shell 实体（简称 Shell ）是一种包含状态的有限片段控制流抽象，是动态映像(@1.5.1.1) 或静态映像(@1.5.1.2) 之一。
 
 @1.4.5 会话(session) ：
 会话是用于在一段连续的时间间隔内访问连接([Documentation::CommonRules @@2.5.4]) 且所有权不属于此连接的实体，其中的连接称为会话连接。
@@ -130,8 +130,8 @@
 本节描述框架组成成分的抽象。
 
 @1.5.1.1 Shell 动态映像：
- Shell 作为被执行的程序称为 Shell 的动态映像。一个 Shell 动态映像的实例称为 Shell 对象，是运行时控制流映像，用于表示一段时间间隔（称为生存期）内计算机系统当前处理的任务。
- Shell 对象是程序的基本调度单位之一。不同于进程/线程等具体的任务实体，它仅是表示可执行的程序的高层抽象，并不限定环境(@1.2.1.2) 对共享资源的分配方式。
+Shell 作为被执行的程序称为 Shell 的动态映像。一个 Shell 动态映像的实例称为 Shell 对象，是运行时控制流映像，用于表示一段时间间隔（称为生存期）内计算机系统当前处理的任务。
+Shell 对象是程序的基本调度单位之一。不同于进程/线程等具体的任务实体，它仅是表示可执行的程序的高层抽象，并不限定环境(@1.2.1.2) 对共享资源的分配方式。
 实现形式上 Shell 对象，可以是进程/线程等和体系结构关联更彻底的方式，但这并非其内涵。
 
 @1.5.1.2 Shell 静态映像：
@@ -148,30 +148,30 @@
 对单线程的实现，同一时刻有且仅有一个 Shell 对象处于活动态。
 
 @1.5.1.4 Shell 状态切换：
- Shell 对象由非活动态至活动态的转换过程称为激活(activation) ；活动态至非活动态的转换过程称为停用(deactivation) 。激活和停用合称为 Shell 状态的切换(switching) ，简称 Shell 切换。
- Shell 切换要求 Shell 具有完整的存储和正常的生存期。
+Shell 对象由非活动态至活动态的转换过程称为激活(activation) ；活动态至非活动态的转换过程称为停用(deactivation) 。激活和停用合称为 Shell 状态的切换(switching) ，简称 Shell 切换。
+Shell 切换要求 Shell 具有完整的存储和正常的生存期。
 
 @1.5.1.5 Shell 通信：
- Shell 的必要的基本通信机制是消息机制(@1.4.1.3) 。
+Shell 的必要的基本通信机制是消息机制(@1.4.1.3) 。
 使用消息机制， Shell 切换是用户程序可知的(@2.6.11) 。
 用户可以自定义具体 Shell 的特定机制。
- Shell 可能是连接对象([Documentation::CommonRules @@2.5.4]) 。
+Shell 可能是连接对象([Documentation::CommonRules @@2.5.4]) 。
 
 @1.5.1.6 Shell 类和 Shell 对象生存期导致的限制：
- Shell 被设计为一个 C++ 多态类。
+Shell 被设计为一个 C++ 多态类。
 默认不在 Shell 内部保存激活或停用状态，而由外部控制。
 在 C++ 中应注意以下几点：
 一个类类型对象的生存期始于构造调用结束后，构造函数中的操作是受限的（例若无法正确地调用虚函数）；
 构造函数允许抛出异常。
 因此：
- Shell 切换(@1.5.1.2) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::LanguageConvention @@5.20.5.4]) 的；
+Shell 切换(@1.5.1.2) 时无法新建 Shell 对象且是无异常抛出保证([Documentation::LanguageConvention @@5.20.5.4]) 的；
 激活和停用有必要明确地与构造和析构区分。
 特定的 Shell 可作为 ISO C++11 30.2.5.1/1 定义的执行代理(execution agent) 。
 
 @1.5.1.7 Shell 的应用场景：
- Shell 表示一类任务，可作为程序中的可复用组件存在。
- Shell 可在一段时间间隔内作为保存程序执行中公共状态的实体，类似于 Microsoft Windows 的会话(session) 或窗口站(window station) 。
- Shell 可以是会话(@1.4.5) 。
+Shell 表示一类任务，可作为程序中的可复用组件存在。
+Shell 可在一段时间间隔内作为保存程序执行中公共状态的实体，类似于 Microsoft Windows 的会话(session) 或窗口站(window station) 。
+Shell 可以是会话(@1.4.5) 。
 
 @1.5.2 显示模型：
 本节描述显示特性相关的抽象。
@@ -259,24 +259,24 @@
 @1.6.2.4 Shell-Widget 模式：
 
 @1.6.2.4.1 Shell 状态和控制器：
- Shell 负责保存所有 GUI 之间的公用状态（如拖曳位置），并集成保存公用逻辑的公用控制器。它们都是公共的，不依赖 Widget 实例。
+Shell 负责保存所有 GUI 之间的公用状态（如拖曳位置），并集成保存公用逻辑的公用控制器。它们都是公共的，不依赖 Widget 实例。
 
 @1.6.2.4.2 Widget 状态、控制器和视图：
- Widget 负责保存单一的 GUI 非公用状态、视图的直接实现，并集成保存专用逻辑的专用控制器用于在一定范围内动态配置 UI 的行为。
+Widget 负责保存单一的 GUI 非公用状态、视图的直接实现，并集成保存专用逻辑的专用控制器用于在一定范围内动态配置 UI 的行为。
 专用公共逻辑可能是多个 Widget 中相同的。
 专用公共状态可能是多个 Widget 之间共享的([Documentation::CommonRules @@2.3.4.6]) 。
 视图总是实例的，它自身有且仅有两种状态：已经被同步或未被同步。
 
 @1.6.2.4.3 数据流和响应流程：
 输入数据流首先被 Shell 的公用控制器响应；若有必要，更新公用状态。然后，转发至 Widget 。
- Widget 的专用控制器对输入进行响应；若有必要，更新非公用状态。（通常是公共的）专用控制器可能更新公用状态。根据此状态同步视图，并决定对输入数据的修饰以及是否转发至下一层次的 Widget 。
+Widget 的专用控制器对输入进行响应；若有必要，更新非公用状态。（通常是公共的）专用控制器可能更新公用状态。根据此状态同步视图，并决定对输入数据的修饰以及是否转发至下一层次的 Widget 。
 因为 Widget 之间的视图组织是有限的，所以当不存在环路时，以上流程应在有限时间内完成。
- Shell 的其它部分实现使视图更新至显示设备的输出调用。
+Shell 的其它部分实现使视图更新至显示设备的输出调用。
 
 @1.6.2.5 构件实体(part entities) ：
 实现中 Shell-Widget 模式中作为 Widget 的角色。相较典型的窗体-控件模式， GUI 控件(controls) 退化为部件(widgets) ，部件退化为组件(components) ，进而分离可视属性，抽象出独立于这些构件的部件特征，细分功能以实现高度可配置性。
 一般的组件、部件和控件等实体在此统称为构件(parts) 。
- YSLib 本身不提供大量成熟的控件，而是着重提供可供组装为控件的基本 GUI 类（部件模块类）、部件类、在部件基础上衍生的构件以及部件简单组合的组件。这些用户界面元素(UI elements) 不一定具有消息处理或事件响应的功能，因此可以不是控件；参见 @1.6.2.6 。
+YSLib 本身不提供大量成熟的控件，而是着重提供可供组装为控件的基本 GUI 类（部件模块类）、部件类、在部件基础上衍生的构件以及部件简单组合的组件。这些用户界面元素(UI elements) 不一定具有消息处理或事件响应的功能，因此可以不是控件；参见 @1.6.2.6 。
 控件主要由用户通过组装以上的构件定制。
 
 @1.6.2.5.1 组合构件(compound parts) ：
@@ -309,7 +309,7 @@
 本节概述基于 [Documentation::Designation @@1.1] 和 @1.3 的约束下，组件和 UI 库接口设计的总体风格和对用户代码的影响。
 
 @1.6.3.1 引用参照：
- Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
+Ultimate++ ： http://www.ultimatepp.org/www$uppweb$overview$en-us.html 。
 
 @1.6.3.2 库使用：
 参见 [Documentation::CommonRules @@3.13] 。
@@ -335,13 +335,13 @@
 
 @2.1 框架组成和依赖项规则：
 基本目录和文件组织规则以及原始目录的概念参见 [Documentation::ProjectRules @@3.3] 。
- YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
+YFramework 可分为几个目录表示具有特定功能集合的库的子集。在讨论具体目录下的库时，路径表示以此库的根目录。
 除非另行约定，仅保证非成员函数（排除声明紧随在某个类之后，首个参数为该类类型引用的人本接口）和静态成员函数的可重入性和线程安全性。
 关于 YBase 的文件依赖性参见 [Documentation::YBase @@2.2] 。
 
 @2.1.1 组成概述：
- YFramework 最核心的部分是 YSLib 库，除了本文档描述外，参见 [Documentation::YSLib] 。
- YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3rdparty/" 目录下。其它部分的原始目录为 "/YFramework" 。例如 YSLib 位于 "/YFramework/YSLib/" 目录下。
+YFramework 最核心的部分是 YSLib 库，除了本文档描述外，参见 [Documentation::YSLib] 。
+YFramework 集成的第三方库([Documentation::Designation @@5]) ，位于 "/3rdparty/" 目录下。其它部分的原始目录为 "/YFramework" 。例如 YSLib 位于 "/YFramework/YSLib/" 目录下。
 当前第三方库和 YFramework 其它部分编译为单独的目标（静态库或动态库）。
 公开 API 以宏 YF_API 标识。
 在 Win32 平台上支持动态库。构建动态库时需定义 YF_BUILD_DLL ；此外，使用动态库时需定义 YF_DLL 。
@@ -355,7 +355,7 @@
 另一部分总是依赖 YSLib 库，包括 NPL(@2.9) 和 Helper(@2.8) 。其它具体说明参见 [Documentation::Designation @@5] 。
 基础附加库被 YSLib 库的 Adaptor 或 Core 直接或间接依赖，其它附加库不应被这些组件依赖。
 每个附加库都有相对独立的功能，且与框架程序实现相关但相对独立，因此不作为 YSLib 库(@2.1.1) 的组成部分。
- YCLib 除平台扩展外不依赖 YSLib ，被作为 YSLib 平台中立接口和实现的基础适配层； Helper 依赖 YSLib 。
+YCLib 除平台扩展外不依赖 YSLib ，被作为 YSLib 平台中立接口和实现的基础适配层； Helper 依赖 YSLib 。
 其它附加库没有平台扩展且只依赖 YSLib 库的 Core 和 Service ，但当前不确定适合作为框架实现。（以后可能被合并至 YSLib 库中或独立至 YFramework 外）。
 
 @2.1.2.2 命名空间规则：
@@ -370,23 +370,26 @@
 使用 YCLib::Platform 中定义的平台宏([Documentation Designation @@5.2.2.4.1]) 确定程序实际运行的目标平台。
 
 @2.1.4 YCLib 限定平台集合支持模块：
- YCLib 支持限定特定平台集合支持的非平台扩展：使用特定的宏整体启用支持或不支持。当启用支持时接口平台中立，因此不是平台扩展。
+YCLib 支持限定特定平台集合支持的非平台扩展：使用特定的宏整体启用支持或不支持。当启用支持时接口平台中立，因此不是平台扩展。
 包括以下单元：
- YCLib::Host ：限定宿主实现环境。
- YCLib::POSIXThread ：限定支持 POSIX 线程实现。
- YCLib::JNI ：限定支持 Java 本机接口。
+YCLib::Host ：限定宿主实现环境。
+YCLib::POSIXThread ：限定支持 POSIX 线程实现。
+YCLib::JNI ：限定支持 Java 本机接口。
 除了 YCLib::Host ，控制是否启用支持的宏可以单独配置，是可选的；默认在 YCLib::Platform 中提供定义。
 可选单元启用配置时仍然保证不出现符号冲突，但为了兼容性，一般应单独构建库文件。
 
 @2.1.5 YSLib Adaptor 和本体：
- YSLib 中，目录 "/YFramework/Adaptor/" 下的部分称为 Adaptor [Documentation::YSLib @@2] ，其它部分总称为本体。
+YSLib 库中，模块目录 YSLib::Adaptor([Documentation::YSLib @@2]) 以外其它部分总称为本体。
 除了标准库和 YBase 的公开接口外，本体的接口和实现以及 Adaptor 的公开接口没有 YSLib 以外的依赖项。
 而 Adaptor 非公开接口除此之外还可能有其它外部依赖项（第三方库），但这些依赖项的公开接口是平台中立的。
- Adaptor 被 YSLib 的几乎所有其它部分依赖。 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元需要重新编译，因此除非是用来实现基本功能、有必要被足够多模块依赖的的外部依赖项，新增的部分应尽量放在外部的 Helper 库(@2.7) 而不是 Adaptor 中。
+Adaptor 被 YSLib 的几乎所有其它部分依赖。 Adaptor 的改变很可能导致整个本体中的很一大部分翻译单元需要重新编译，因此除非是用来实现基本功能、有必要被足够多模块依赖的的外部依赖项，新增的部分应尽量放在外部的 Helper 库(@2.7) 而不是 Adaptor 中。
+
+@2.1.6 预处理附加规则：
+对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.2])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
+指定限定平台集合(@2.1.4) 的宏（如 YF_Hosted ）不得被用于出现在 YSLib 中用于条件编译（关于依赖性限制，参见 @2.2.5）。
 
 @2.2 文件依赖性：
- YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
-对公开的 YFramework 头文件包含依赖关系，在 #include 指令中使用 YFM_* 宏而不是文件名（因此仅修改头文件名时不变更版本([Documentation::ProjectRules @@2.2.4.2])）；之前需要包含对应的 "YModules.h" （若在当前头文件中存在则使用直接相对路径，否则使用相对 YFramework/include 的路径）。
+YSLib 和 Helper(@2.8) 文件中，文件名以 y 或 Y 起始且非限定模块名以 Y 起始的文件为必要文件，其它为非必要文件。作为稳定的公开接口，必要文件必须被 YFramework 内的至少一个其它文件依赖。
 基于 @2.1.2.1 ，以下部分指定 YFramework 中明确或明确禁止直接依赖的文件，排除构建的中间文件。
 以下非公开头文件的适用规则同非头文件，统称为实现；头文件指公开头文件。
 以下规则以优先级顺序排列，即后者不满足前者的部分以前者为准。
@@ -397,51 +400,51 @@
 存在平台扩展的次级子项目（即 YCLib 和 Helper ）的实现可依赖具体平台相关的外部依赖项以及次级子项目的对应平台扩展。
 
 @2.2.2 YModules 包含规则：
- YModules.h 只包含不同的 YModules.h 文件。
+YModules.h 只包含不同的 YModules.h 文件。
 下层的 <YModules.h> 包含 "../YModules.h" 。除此之外，以下包含关系是确定的：
- <CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；
- <YSLib/Core/YModules.h> 包含 "../Adaptor/YModules.h" ；
- <YSLib/Service/YModules.h> 包含 "../Core/YModules.h" ；
- <YSLib/UI/YModules.h> 和 <NPL/YModules.h> 包含 "../Service/YModules.h" ；
- <YSLib/Helper/YModules.h> 包含 "../YSLib/UI/YModules.h" 和 "../NPL/YModules.h" 。
+<CHRLib/YModules.h> 包含 "../YCLib/YModules.h" ；
+<YSLib/Core/YModules.h> 包含 "../Adaptor/YModules.h" ；
+<YSLib/Service/YModules.h> 包含 "../Core/YModules.h" ；
+<YSLib/UI/YModules.h> 和 <NPL/YModules.h> 包含 "../Service/YModules.h" ；
+<YSLib/Helper/YModules.h> 包含 "../YSLib/UI/YModules.h" 和 "../NPL/YModules.h" 。
 
 @2.2.3 特定文件依赖规则：
- YFramework 的 YFM_YBaseMacro 仅依赖 YBase 的 ydef.h 。
- YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
+YFramework 的 YFM_YBaseMacro 仅依赖 YBase 的 ydef.h 。
+YSLib/Adaptor 中的 config.h 不依赖 YCLib/Platform.h 以外的其它文件，仅可被 YSLib/Adaptor 中的头文件直接包含。
 
 @2.2.4 一般文件依赖规则：
 必要文件不依赖非必要文件。
 任意 YFramework 文件可依赖 @2.2 以下部分指定的标准库头以及 YBase 头文件。
- CHRLib 文件依赖性同 YCLib 非平台扩展。
+CHRLib 文件依赖性同 YCLib 非平台扩展。
 
 @2.2.5 YCLib 文件依赖性：
- YCLib 非平台扩展头文件不依赖 YSLib 文件。
-除限定平台集合的头文件（如 YCLib::Host ）外， YCLib 非平台扩展头文件不依赖 YCLib::NativeAPI 。
- YCLib 平台扩展可依赖 YSLib::Core 的必要头文件。
- YCLib 平台扩展的实现文件可依赖 YSLib::Core 或 YSLib::Service 的公开头文件。
- YCLib 中除 YCLib::Platform 外的文件仅被 YCLib 、 YSLib::YAdaptor 和 Helper 依赖。
+除限定平台集合(@2.1.4) 的头文件外， YCLib 非平台扩展头文件不依赖 YSLib 文件和 YCLib::NativeAPI 。
+YCLib 平台扩展和限定平台集合可依赖 YSLib::Core 的必要头文件。
+YCLib 平台扩展和限定平台集合的实现文件可依赖 YSLib::Core 或 YSLib::Service 的公开头文件。
+YCLib 中除 YCLib::Platform 外的文件仅被 YCLib 、 YSLib::YAdaptor 和 Helper 依赖。
 
 @2.2.6 YSLib 文件依赖性：
 除 @2.2 另有约定的外， YSLib 不依赖 CHRLib 、 YCLib 和 YSLib 以外的文件。
-除 YSLib::Adaptor::YAdaptor 外， YSLib::Adaptor 头文件不直接依赖 YCLib::Platform 或 YCLib::Common 头文件以外的 YCLib 文件。
- YSLib::Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
+YSLib 不依赖限定平台集合(@2.1.4) 的文件。
+除 YSLib::Adaptor::YAdaptor 外， YSLib::Adaptor 头文件不直接依赖 YCLib::Platform 和 YCLib::YCommon 头文件以外的 YCLib 文件。
+YSLib::Adaptor 头文件可依赖 YFramework 平台中立文件或 ISO C++ 标准库实现的非标准的公开头文件（如 libstdc++ 的 "ext/" 目录下的头文件）。
 本体的必要文件不依赖 YSLib 以外的文件。
 本体的非必要非头文件可依赖除 YSLib 和 Helper 外的 YFramework 其它平台中立文件。
- Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。
+Adaptor 的头文件依赖 YFramework 的 YFM_YBaseMacro 。
 关于 YSLib 内部的具体头文件依赖性，参见 [Documentation::YSLib @@1.2] 。
 
 @2.2.7 Helper 文件依赖性：
- Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
+Helper 可以依赖其它所有非 Helper 的 YFramework 文件，不被非 Helper 的 YFramework 文件依赖。
 
 @2.3 名称：
 对模块，基本使用参见 [Documentation::ProjectRules @@3.2] 。
-对语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 。
+对语言支持的命名空间，基本使用参见 [Documentation::ProjectRules @@3.5] 和 [Documentation::LanguageRules @@5.15.1.1] 。
 
 @2.3.1 标识符限制：
 公开头文件不使用保留标识符([Documentation::LanguageConvention @@5.15.1]) ，包括使用实现扩展提供的宏。使用 ydef.h([Documentation::YBase @@2.3]) 包装的宏代替。
 
 @2.3.2 模块名称宏：
- YFramework 使用模块名称进行组织。使用公开头文件时，以模块名称（接口）代替头文件名（实现）以保持良好的兼容性。
+YFramework 使用模块名称进行组织。使用公开头文件时，以模块名称（接口）代替头文件名（实现）以保持良好的兼容性。
 模块名称宏在各个公开头文件([Documentation::ProjectRules @@3.3.1]) 目录中的 YModules.h 定义。
 
 @2.3.2.1 命名变换：
@@ -456,14 +459,14 @@
 此外，为了标识符符合 ISO C++ 要求([Documentation::LanguageConvention @@5.15.1.2.2])，任何 name-expression 需要满足此规则对标识符的命名限制，且不得以 _ 起始或结束，以避免出现 __ 。
 
 @2.3.2 YFramework 引入的命名空间：
- YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.1]) 对应的命名空间，其中抽象平台使用内联命名空间。
- 除 YCLib 外， YFramework 引入的主要命名空间唯一且和次级子项目的模块名称一致。
- platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）此命名空间。
- platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖此命名空间。
- platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖此命名空间，但可能依赖该命名空间中成员包装的宏。
- CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）此命名空间。
- NPL ：子库 NPL(@2.9) 的命名空间。
- YSLib ： YSLib 库命名空间，也被 Helper 扩展。
+YCLib 在全局命名空间内引入命名空间 platform 、 platform_ex 和 platform_replace ，称为顶级平台命名空间。顶级平台命名空间以下按需引入独立平台([Documentation::ProjectRules @@1.2]) 对应的命名空间，其中抽象平台使用内联命名空间。
+除 YCLib 和 Helper 外， YFramework 引入的主要命名空间唯一且和次级子项目的模块名称一致。
+platform ：平台中立：接口平台无关但实现平台相关的公共接口。 YSLib 本体间接依赖（可配置 using 声明的名称）此命名空间。
+platform_ex ：平台扩展：接口和实现都平台相关的公共接口。 YSLib 本体不依赖此命名空间。
+platform_replace ：平台替换：接口和实现都平台相关的特定接口，专用于包括替换平台接口实现。 YSLib 本体不依赖此命名空间，但可能依赖该命名空间中成员包装的宏。
+CHRLib ：子库 CHRLib 的命名空间。 YSLib 本体直接依赖（固定使用 using 声明的名称）此命名空间。
+NPL ：子库 NPL(@2.9) 的命名空间。
+YSLib ： YSLib 库命名空间，也被 Helper 扩展。
 
 @2.4 实体实现规则：
 
@@ -492,13 +495,13 @@
 @2.4.2.1 所有权标签：
 以下独占所有权关系中，被托管对象类不是直接的成员或明确具有所有权语义的指针指向的对象。使用 OwnershipTag 模板标识这些类型。
 所有者（基类）中 private 继承了 OwnershipTag<_type> 。被托管对象的实际类型可能是 _type 的派生类（需要是虚析构的多态类）。除了 Helper 外的实例包括：
- Drawing::FontCache 具有 Drawing::Typeface 和 Drawing::FontFamily 的所有权；
- Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
+Drawing::FontCache 具有 Drawing::Typeface 和 Drawing::FontFamily 的所有权；
+Text::TextMap 及其派生类 Text::TextFileBuffer 具有 Text::TextBlock 的所有权。
 可以使用 HasOwnership<_tOwner, _type> 判断 _tOwner 是否具有 _type 成员的所有权。
 
 @2.5 语言特性和扩展支持：
 除了 YBaseMacro(@2.5.1) 外，主要位于 YBase([Documentation::YBase]) 、 YFramework::YCLib 和 YFrameowrk::YSLib::Core([Documentation::YSLib @@3]) 中。
- YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无关的宏，用于简化代码。具体使用参见 @6.2.1 。
+YFramework 直接通用基础设施 YBaseMacro ：定义了各种基础平台无关的宏，用于简化代码。具体使用参见 @6.2.1 。
 
 @2.5.1 基础宏 YBaseMacro ：
 包括若干作为扩展语言特性的宏。
@@ -563,14 +566,14 @@
 位于 "/Helper" 。非外部依赖项。
 可能平台相关的外部库，可以提供宿主实现、加入插件等，一般由库用户自行配置。
 除非另行约定，仅保证必要文件(@2.1.1) 提供接口中的可重入性和线程安全性同本体(@2.1) 。其它文件的例程仅当明确说明时可具有可重入性和线程安全性。
- YGlobal 是不可缺少的，它封装了必要的全局对象。
- main 函数由 Helper 的其它源文件封装，或由用户提供。
- Helper 定义的类型若适用于不同平台，不保证二进制兼容性，除非另行约定。
+YGlobal 是不可缺少的，它封装了必要的全局对象。
+main 函数由 Helper 的其它源文件封装，或由用户提供。
+Helper 定义的类型若适用于不同平台，不保证二进制兼容性，除非另行约定。
 
 @2.8.1 内联平台模块：
 使用内联模块 [Documentation::ProjectRules @@3.2.2] 提供匹配特定平台主要功能的移植支持。
 除了和目标平台一致的接口外，当前支持以下平台模拟：
- MinGW32 模拟 DS 。
+MinGW32 模拟 DS 。
 
 @2.8.2 YGlobal 单元：
 平台相关的全局对象和函数定义。
@@ -584,7 +587,7 @@ bool
 InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 
 这里 FetchGlobalInstance 返回类型为平台相关的应用程序类的引用。
- YSLib 不依赖这些接口以外的特性。
+YSLib 不依赖这些接口以外的特性。
 
 @2.8.3 Application 派生类：
 适应具体平台的应用程序实例抽象。
@@ -597,8 +600,8 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 减少可能的资源占用；
 保留静态链接时优化去除没有调用的代码以减少二进制可执行文件体积的可能性。
 因此，对一些全局资源使用静态函数内 static 对象实现单态(monostate) 模式，保存全局状态。当前取得单态状态的接口包括：
- FetchRoot ：取值类型根节点；
- FetchDefaultFontCache ：取默认字体缓存。
+FetchRoot ：取值类型根节点；
+FetchDefaultFontCache ：取默认字体缓存。
 其它如 ImageCodec 因为未包含复杂副作用，当前不提供接口。用户可以自行初始化这些对象。
 
 @2.9 NPL 库：
@@ -613,7 +616,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 所有平台中立的内部的异常类型继承 std::exception ，使用 catch(std::exception&) 满足无异常抛出保证([Documentation::LanguageConvention @@5.10.5.1.3]) 。
 
 @3.2 字符编码：
- YFramework 使用 UTF-8 作为外部文本编码。
+YFramework 使用 UTF-8 作为外部文本编码。
 除非显式指定表示编码的参数或另行约定，以 char 作为字符类型的 C 风格字符串使用外部文本编码。
 关于 YSLib 使用的内部文本编码参见 [Documentation::YSLib @@3.6] 。
 
@@ -625,9 +628,7 @@ InitConsole(Devices::Screen&, Drawing::PixelType, Drawing::PixelType);
 基本内容参见 [Documentation::Designation @@4] 和 [Documentation::Designation @@6] 。
 
 @4.1 YFramework 宏使用：
- YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacro(@2.4) 定义的宏，而不是其展开形式。
-使用宏 YSL_BEGIN 和 YSL_END 标识 YSLib 命名空间；
-使用宏 YSL_BEGIN_NAMESPACE 和 YSL_END 标识 YSLib 命名空间下的子命名空间；
+YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacro(@2.4) 定义的宏，而不是其展开形式。
 使用宏声明接口类型([Documentation::CommonRules @@2.4.1]) 。
 
 @4.1.1 函数实现：
