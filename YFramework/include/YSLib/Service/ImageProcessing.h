@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r249
+\version r250
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2014-12-02 18:20 +0800
+	2014-12-19 14:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ namespace Drawing
 //! \since build 555
 //@{
 //! \brief 图像缩放类型。
-using ImageScale = ystdex::fixed_point<yimpl(size_t, 12U)>;
+using ImageScale = ystdex::fixed_point<yimpl(std::uint32_t, 12U)>;
 
 /*!
 \brief 缩放位图。

@@ -11,13 +11,13 @@
 /*!	\file YPixel.h
 \ingroup Service
 \brief 体系结构中立的像素操作。
-\version r719
+\version r835
 \author FrankHB <frankhb1989@gmail.com>
 \since build 442
 \par 创建时间:
 	2013-09-02 00:46:13 +0800
 \par 修改时间:
-	2014-12-07 12:26 +0800
+	2014-12-18 17:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -160,7 +160,7 @@ struct GPixelCompositor<_vDstAlphaBits, 1>
 		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
 			"Non-normalizable source alpha type found.");
 
-		return sa != 0 ? ystdex::normalized_max<_tDstAlpha>::get() : da;
+		return sa != 0 ? _tDstAlpha(1) : da;
 	}
 
 	/*!
@@ -208,7 +208,7 @@ struct GPixelCompositor<_vDstAlphaBits, 0>
 		static_assert(ystdex::is_normalizable<_tDstAlpha>::value,
 			"Non-normalizable destination alpha type found.");
 
-		return ystdex::normalized_max<_tDstAlpha>::get();
+		return _tDstAlpha(1);
 	}
 	template<typename _tDstAlpha, typename _tSrcAlpha>
 	static yconstfn _tDstAlpha
@@ -277,7 +277,7 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
 			"Non-normalizable source alpha type found.");
 
-		return da != 0 ? ystdex::normalized_max<_tSrcAlpha>::get() : sa;
+		return da != 0 ? _tSrcAlpha(1) : sa;
 	}
 
 	/*!
@@ -308,8 +308,7 @@ struct GPixelCompositor<1, _vSrcAlphaBits>
 
 //! \note 不透明目标。
 template<size_t _vSrcAlphaBits>
-struct GPixelCompositor<0, _vSrcAlphaBits>
-	: private GPixelCompositor<2, 0>
+struct GPixelCompositor<0, _vSrcAlphaBits> : private GPixelCompositor<2, 0>
 {
 	/*!
 	\brief Alpha 组合 Alpha 分量。
@@ -425,8 +424,7 @@ struct GPixelCompositor<1, 1>
 		static_assert(ystdex::is_normalizable<_tSrcAlpha>::value,
 			"Non-normalizable source alpha type found.");
 
-		return sa != 0 || da != 0 ? ystdex::normalized_max<_tDstAlpha>::get()
-			: _tDstAlpha(0);
+		return sa != 0 || da != 0 ? _tDstAlpha(1) : _tDstAlpha(0);
 	}
 
 	/*!
@@ -485,12 +483,10 @@ BlendComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa)
 		"Invalid integer source type found.");
 	static_assert(integer_width<_tSrcAlphaInt>::value == _vSrcAlphaBits,
 		"Invalid integer source alpha type found.");
-	using pix = fixed_point<typename make_width_int<_vSrcAlphaBits + 1>
-		::unsigned_least_type, _vSrcAlphaBits>;
+	using pix = make_fixed_t<_vSrcAlphaBits>;
 
 	return GPixelCompositor<1, _vSrcAlphaBits>::CompositeComponentOver(
-		pix(d, raw_tag()), pix(s, raw_tag()), pix(sa, raw_tag()),
-		normalized_max<pix>::get()).get();
+		pix(d, raw_tag()), pix(s, raw_tag()), pix(sa, raw_tag()), pix(1)).get();
 }
 
 /*!
@@ -513,10 +509,8 @@ CompositeComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa, _tAlphaInt a)
 		"Invalid integer source alpha type found.");
 	static_assert(integer_width<_tAlphaInt>::value > _vDstAlphaBits,
 		"Invalid integer result alpha type found.");
-	using pixd = fixed_point<typename make_width_int<_vDstAlphaBits + 1>
-		::unsigned_least_type, _vDstAlphaBits>;
-	using pix = fixed_point<typename make_width_int<_vSrcAlphaBits + 1>
-		::unsigned_least_type, _vSrcAlphaBits>;
+	using pixd = make_fixed_t<_vDstAlphaBits>;
+	using pix = make_fixed_t<_vSrcAlphaBits>;
 
 	return GPixelCompositor<_vDstAlphaBits, _vSrcAlphaBits>
 		::CompositeComponentOver(pix(d, raw_tag()), pix(s, raw_tag()),
@@ -525,7 +519,7 @@ CompositeComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa, _tAlphaInt a)
 
 
 /*!
-\brief AXYZ1555 格式 PixelType 的 Alpha 混合。
+\brief AXYZ1555 格式 Pixel 的 Alpha 混合。
 \tparam _vAlphaBits 表示 Alpha 值的有效整数位数。
 \since build 442
 
@@ -534,7 +528,7 @@ CompositeComponent(_tDstInt d, _tSrcInt s, _tSrcAlphaInt sa, _tAlphaInt a)
 输出分量： component := (1 - alpha) * d + alpha * s
 = ((MaxAlpha - a) * d + a * s) >> _vAlphaBits
 = d + ((a * (s - d)) >> _vAlphaBits) 。
-背景透明，输出 Alpha 饱和。
+背景透明：不设置 Alpha 。
 像素格式： 16 位 AXYZ1555 。
 以 ARGB1555 为例，算法实现示意：
 					 arrrrrgggggbbbbb
@@ -550,25 +544,27 @@ BlendCore(std::uint32_t d, std::uint32_t s, std::uint8_t a)
 {
 	static_assert(_vAlphaBits > 0 && _vAlphaBits < 16 - 5,
 		"Wrong number of alpha bits found.");
-
 	std::uint32_t dbr((d & 0x1F) | (d << 6 & 0x1F0000)), dg(d & 0x3E0);
 
 	yunseq(dbr += ((((s & 0x1F) | (s << 6 & 0x1F0000)) - dbr) * a)
 		>> _vAlphaBits, dg += (((s & 0x3E0) - dg) * a) >> _vAlphaBits);
-	return (dbr & 0x1F) | (dg & 0x3E0) | (dbr >> 6 & 0x7C00) | 1 << 15;
+	return (dbr & 0x1F) | (dg & 0x3E0) | (dbr >> 6 & 0x7C00);
 }
 
 
-/*!
-\brief 像素混合：使用指定的源 Alpha 。
-\note 背景透明，输出 Alpha 饱和。
+/*
 \note 使用引用传递像素类型以便优化。
-\sa Drawing::BlendComponent
-\since build 442
 \todo 支持浮点数。
 */
 //@{
-//! \note 使用 ADL <tt>BlendComponent</tt> 指定混合像素分量。
+/*!
+\brief 像素混合：使用指定的源 Alpha 。
+\note 输出背景不透明， Alpha 饱和。
+\sa Drawing::BlendComponent
+\since build 442
+*/
+//@{
+//! \note 使用 ADL BlendComponent 指定混合像素分量。
 template<size_t _vSrcAlphaBits, typename _tPixel, typename _tSrcAlphaInt>
 yconstfn _tPixel
 Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
@@ -580,29 +576,73 @@ Blend(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
 		BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa), BlendComponent<
 		_vSrcAlphaBits>(d.GetB(), s.GetB(), sa), (1 << _vSrcAlphaBits) - 1);
 }
-//! \note 使用 ADL <tt>BlendCore</tt> 代理混合像素调用。
+//! \note 使用 ADL BlendCore 代理混合像素调用。
 template<size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
-RGBA<5, 5, 5, 1>
+yconstfn RGBA<5, 5, 5, 1>
 Blend(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s, _tSrcAlphaInt sa)
 {
 	static_assert(std::is_integral<_tSrcAlphaInt>::value,
 		"Invalid integer source alpha type found.");
 
-	return BlendCore<_vSrcAlphaBits>(d, s, sa);
+	return BlendCore<_vSrcAlphaBits>(d, s, sa) | 1 << 15;
 }
 //@}
 
+
 /*!
-\note 使用引用传递像素类型以便优化。
-\sa Drawing::CompositeComponent
-\since build 442
-\todo 支持浮点数。
+\brief Alpha 像素混合：使用指定的源 Alpha 同时组合透明背景 Alpha 。
+\note 忽略源像素中的 Alpha 。
+\since build 561
+\sa Drawing::BlendComponent
+\sa Drawing::GPixelCompositor
 */
 //@{
-/*
-\brief 像素组合：使用指定的源 Alpha 和结果 Alpha 。
-\note 使用 ADL <tt>CompositeComponent</tt> 指定组合像素分量。
+//! \note 使用 ADL BlendComponent 指定混合像素分量。
+template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
+	typename _tSrcAlphaInt>
+yconstfn _tPixel
+BlendAlpha(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa)
+{
+	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+		"Invalid integer source alpha type found.");
+	using namespace ystdex;
+	using pixd = make_fixed_t<_vDstAlphaBits>;
+	using pix = make_fixed_t<_vSrcAlphaBits>;
+
+	return Color(BlendComponent<_vSrcAlphaBits>(d.GetR(), s.GetR(), sa),
+		BlendComponent<_vSrcAlphaBits>(d.GetG(), s.GetG(), sa), BlendComponent<
+		_vSrcAlphaBits>(d.GetB(), s.GetB(), sa),
+		GPixelCompositor<_vDstAlphaBits, _vSrcAlphaBits>::CompositeAlphaOver(
+		pixd(d.GetA(), raw_tag()), pix(sa, raw_tag())).get());
+}
+//! \note 使用 ADL BlendCore 代理混合像素调用。
+template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tSrcAlphaInt>
+yconstfn RGBA<5, 5, 5, 1>
+BlendAlpha(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s,
+	_tSrcAlphaInt sa)
+{
+	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+		"Invalid integer source alpha type found.");
+	using namespace ystdex;
+	using pixd = make_fixed_t<_vDstAlphaBits>;
+	using pix = make_fixed_t<_vSrcAlphaBits>;
+
+	return BlendCore<_vSrcAlphaBits>(d, s, sa) | (GPixelCompositor<
+		_vDstAlphaBits, _vSrcAlphaBits>::CompositeAlphaOver(pixd(d.GetA(),
+		raw_tag()), pix(sa, raw_tag())).get() != 0 ? 1 << 15 : 0);
+}
+//@}
+
+
+/*!
+\sa Drawing::CompositeComponent
+\sa Drawing::GPixelCompositor
+\since build 442
 */
+//@{
+//! \brief 像素组合：使用指定的源 Alpha 和结果 Alpha 。
+//@{
+//! \note 使用 ADL CompositeComponent 指定组合像素分量。
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
 	typename _tSrcAlphaInt, typename _tAlphaInt>
 yconstfn _tPixel
@@ -618,7 +658,25 @@ Composite(const _tPixel& d, const _tPixel& s, _tSrcAlphaInt sa, _tAlphaInt a)
 		d.GetG(), s.GetG(), sa, a), CompositeComponent<_vDstAlphaBits,
 		_vSrcAlphaBits>(d.GetB(), s.GetB(), sa, a), a);
 }
-//! \note 使用 ADL <tt>Composite</tt> 代理组合像素调用。
+/*!
+\note 使用 ADL BlendCore 代理混合像素调用。
+\since build 561
+*/
+template<size_t, size_t _vSrcAlphaBits, typename _tSrcAlphaInt,
+	typename _tAlphaInt>
+yconstfn RGBA<5, 5, 5, 1>
+Composite(const RGBA<5, 5, 5, 1>& d, const RGBA<5, 5, 5, 1>& s,
+	_tSrcAlphaInt sa, _tAlphaInt a)
+{
+	static_assert(std::is_integral<_tSrcAlphaInt>::value,
+		"Invalid integer source alpha type found.");
+	static_assert(std::is_integral<_tAlphaInt>::value,
+		"Invalid integer alpha type found.");
+
+	return BlendCore<_vSrcAlphaBits>(d, s, sa) | ((a != 0) ? 1 << 15 : 0);
+}
+//@}
+//! \note 使用 ADL Composite 代理组合像素调用。
 //@{
 //! \brief 像素组合：使用指定的结果 Alpha 。
 template<size_t _vDstAlphaBits, size_t _vSrcAlphaBits, typename _tPixel,
@@ -634,15 +692,14 @@ yconstfn _tPixel
 Composite(const _tPixel& d, const _tPixel& s)
 {
 	using namespace ystdex;
-	using pixd = fixed_point<typename make_width_int<_vDstAlphaBits + 1>
-		::unsigned_least_type, _vDstAlphaBits>;
-	using pix = fixed_point<typename make_width_int<_vSrcAlphaBits + 1>
-		::unsigned_least_type, _vSrcAlphaBits>;
+	using pixd = make_fixed_t<_vDstAlphaBits>;
+	using pix = make_fixed_t<_vSrcAlphaBits>;
 
 	return Composite<_vDstAlphaBits, _vSrcAlphaBits>(d, s, GPixelCompositor<
 		_vDstAlphaBits, _vSrcAlphaBits>::CompositeAlphaOver(pixd(d.GetA(),
 		raw_tag()), pix(s.GetA(), raw_tag())).get());
 }
+//@}
 //@}
 //@}
 
@@ -654,6 +711,12 @@ Composite(const _tPixel& d, const _tPixel& s)
 */
 struct BlitAlphaPoint
 {
+private:
+	//! \since build 561
+	template<typename _type>
+	using ABitTrait = typename ystdex::decay_t<_type>::Trait;
+
+public:
 	template<typename _tOut>
 	inline void
 	operator()(_tOut dst_iter, IteratorPair src_iter)
@@ -661,9 +724,8 @@ struct BlitAlphaPoint
 		static_assert(std::is_convertible<ystdex::remove_reference_t<
 			decltype(*dst_iter)>, Pixel>::value, "Wrong type found.");
 
-		const AlphaType a(*src_iter.base().second);
-
-		*dst_iter = Blend<8>(*dst_iter, *src_iter, a);
+		*dst_iter = Shaders::BlendAlpha<ABitTrait<decltype(*dst_iter)>::ABitsN,
+			8>(*dst_iter, *src_iter, AlphaType(*src_iter.base().second));
 	}
 	template<typename _tOut, typename _tIn>
 	inline void
@@ -673,17 +735,19 @@ struct BlitAlphaPoint
 		static_assert(std::is_convertible<ystdex::remove_reference_t<
 			decltype(*dst_iter)>, Pixel>::value, "Wrong type found.");
 
-		const AlphaType a(*src_iter.base().second);
-
-		*dst_iter = Blend<8>(*dst_iter, *src_iter, a);
+		*dst_iter = Shaders::BlendAlpha<ABitTrait<decltype(*dst_iter)>::ABitsN,
+			8>(*dst_iter, *src_iter, AlphaType(*src_iter.base().second));
 	}
 	//! \since build 448
 	template<typename _tOut, typename _tIn>
 	inline void
 	operator()(_tOut dst_iter, _tIn src_iter)
 	{
-		*dst_iter = Shaders::Composite<ystdex::remove_reference_t<decltype(
-			*dst_iter)>::Trait::ABitsN, 8>(*dst_iter, *src_iter);
+		static_assert(std::is_convertible<ystdex::remove_reference_t<
+			decltype(*dst_iter)>, Pixel>::value, "Wrong type found.");
+
+		*dst_iter = Shaders::Composite<ABitTrait<decltype(*dst_iter)>::ABitsN,
+			ABitTrait<decltype(*src_iter)>::ABitsN>(*dst_iter, *src_iter);
 	}
 };
 

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r485
+\version r491
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-12-11 20:40 +0800
+	2014-12-21 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,9 +68,6 @@ public:
 	//@{
 	using ErrorCode = ::DWORD;
 
-private:
-	ErrorCode err;
-
 public:
 	/*!
 	\pre 错误码不等于 0 。
@@ -80,11 +77,12 @@ public:
 	Win32Exception(ErrorCode, const std::string& = "Win32 exception",
 		LevelType = YSLib::Emergent);
 
-	DefGetter(const ynothrow, ErrorCode, ErrorCode, err)
+	DefGetter(const ynothrow, ErrorCode, ErrorCode, ErrorCode(code().value()))
 	//! \since build 437
-	DefGetter(const ynothrow, std::string, Message, FormatMessage(err))
+	DefGetter(const ynothrow, std::string, Message,
+		FormatMessage(GetErrorCode()))
 
-	explicit DefCvt(const ynothrow, ErrorCode, err)
+	explicit DefCvt(const ynothrow, ErrorCode, GetErrorCode())
 
 	/*!
 	\brief 取错误类别。

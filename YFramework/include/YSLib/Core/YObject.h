@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yobject.h
+/*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3886
+\version r3890
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-12-11 20:38 +0800
+	2014-12-19 15:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -237,7 +237,7 @@ public:
 	//! \since build 332
 	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
 		ImplRet(AreEqualHeld(*p_held,
-			*static_cast<const PointerHolder&>(obj).p_held))
+			Deref(static_cast<const PointerHolder&>(obj).p_held)))
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), PointerHolder)
@@ -352,8 +352,7 @@ private:
 	{
 		YAssertNonnull(content);
 		YAssert(content.type() == typeid(_type), "Invalid type found.");
-
-		return *static_cast<_type*>(content.get());
+		return Deref(static_cast<_type*>(content.get()));
 	}
 
 public:

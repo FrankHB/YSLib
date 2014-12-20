@@ -11,13 +11,13 @@
 /*!	\file cache.hpp
 \ingroup YStandardEx
 \brief 高速缓冲容器模板。
-\version r289
+\version r294
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-12-22 20:19:14 +0800
 \par 修改时间:
-	2014-10-04 15:06 +0800
+	2014-12-19 14:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,9 +50,12 @@ class used_list_cache
 public:
 	using map_type
 		= std::unordered_map<_tKey, _tMapped, _fHash, _fEqual, _tAlloc>;
-	using used_list_type = std::list<_tKey, _tAlloc>;
+	using used_list_type
+		= std::list<_tKey, typename _tAlloc::template rebind<_tKey>::other>;
 	using used_cache_type = std::unordered_multimap<_tKey,
-		typename used_list_type::iterator, _fHash, _fEqual, _tAlloc>;
+		typename used_list_type::iterator, _fHash, _fEqual,
+		typename _tAlloc::template rebind<std::pair<const _tKey,
+		typename used_list_type::iterator>>::other>;
 	using typename map_type::const_iterator;
 	using typename map_type::iterator;
 	using typename map_type::key_type;

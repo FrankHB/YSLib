@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1096
+\version r1100
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-12-09 14:49 +0800
+	2014-12-19 12:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -330,7 +330,7 @@ yconstfn PDefH(std::uint16_t, FetchPixel, MonoType r, MonoType g, MonoType b)
 #	define DefColorH_(hex, name) name = \
 	(FetchPixel(((hex) >> 16) & 0xFF, ((hex) >> 8) & 0xFF, (hex) & 0xFF) \
 	| 1 << 15)
-#elif YCL_Win32 || YCL_Android || YCL_Linux
+#elif YCL_Win32 || YCL_Android || YCL_Linux || YCL_OS_X
 // TODO: Real implementation for X11.
 #	if YCL_Win32
 /*!
@@ -495,7 +495,7 @@ public:
 #if YCL_DS
 		: r(px.GetR() << 3), g(px.GetG() << 3), b(px.GetB() << 3),
 		a(FetchAlpha(px) ? 0xFF : 0x00)
-#elif YCL_Win32 || YCL_Linux
+#elif YCL_Win32 || YCL_Linux || YCL_OS_X
 		: r(px.GetR()), g(px.GetG()), b(px.GetB()), a(px.GetA())
 #endif
 	{}
@@ -507,7 +507,7 @@ public:
 	Color(ColorSet cs) ynothrow
 #if YCL_DS
 		: Color(Pixel(cs))
-#elif YCL_Win32 || YCL_Android || YCL_Linux
+#elif YCL_Win32 || YCL_Android || YCL_Linux || YCL_OS_X
 		: r((cs & 0xFF00) >> 8), g((cs & 0xFF0000) >> 16),
 		b((cs & 0xFF000000) >> 24), a(0xFF)
 #endif
@@ -542,7 +542,7 @@ public:
 		return int(a != 0) << 15 | FetchPixel(r, g, b);
 #elif YCL_Win32
 		return {b, g, r, a};
-#elif YCL_Android || YCL_Linux
+#elif YCL_Android || YCL_Linux || YCL_OS_X
 		return {r, g, b, a};
 #endif
 	}

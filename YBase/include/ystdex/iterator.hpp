@@ -11,13 +11,13 @@
 /*!	\file iterator.hpp
 \ingroup YStandardEx
 \brief 通用迭代器。
-\version r3817
+\version r3823
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 189
 \par 创建时间:
 	2011-01-27 23:01:00 +0800
 \par 修改时间:
-	2014-11-27 11:26 +0800
+	2014-12-19 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1134,15 +1134,11 @@ public:
 		return (*iter).operator->();
 	}
 
-	//! \since build 439
-	template<typename = enable_if_t<is_constructible<bool,
-		decltype(*std::declval<iterator_type&>())>::value, int>>
+	//! \since build 561
 	explicit
 	operator bool() const
-//	operator bool() const ynoexcept((!is_undereferenceable(std::declval<
-//		iterator_type&>()) && bool(*std::declval<iterator_type&>())))
 	{
-		return !is_undereferenceable(iter) && bool(*iter);
+		return !is_undereferenceable(iter) && !is_undereferenceable(*iter);
 	}
 
 	/*!

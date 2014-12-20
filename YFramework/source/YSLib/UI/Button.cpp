@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file button.cpp
+/*!	\file Button.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r3292
+\version r3297
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-10-04 21:23:32 +0800
 \par 修改时间:
-	2014-11-21 12:41 +0800
+	2014-12-19 08:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -52,12 +52,12 @@ RectDrawButton(const PaintContext& pc, const Size& s, Hue base_hue,
 	const auto& g(pc.Target);
 	const Rect r(pc.Location, s);
 
-	FillRect(g, pc.ClipArea, r, is_enabled ? (inside ? RollColor(is_pressed
-		? hsl_t{29.2F, .86F, .916F} : hsl_t{30.F, .786F, .945F}, base_hue)
+	FillRect(g, pc.ClipArea, r, is_enabled ? (inside ? Color((is_pressed
+		? HSL(29.2F, .86F, .916F): HSL(30.F, .786F, .945F)).Roll(base_hue))
 		: MakeGray(234)) : MakeGray(239));
-	DrawRect(g, pc.ClipArea, r, is_enabled ? (inside ? RollColor(is_pressed
-		? hsl_t{30.2F, .733F, .618F} : hsl_t{30.F, .72F, .706F}, base_hue)
-		: (is_focused ? RollColor({30.F, 1.F, .6F}, base_hue)
+	DrawRect(g, pc.ClipArea, r, is_enabled ? (inside ? Color((is_pressed
+		? HSL(30.2F, .733F, .618F) : HSL(30.F, .72F, .706F)).Roll(base_hue))
+		: (is_focused ? Color(HSL(30.F, 1.F, .6F).Roll(base_hue))
 		: FetchGUIConfiguration().Colors[Styles::Workspace])) : MakeGray(217));
 }
 

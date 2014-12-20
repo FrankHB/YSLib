@@ -11,13 +11,13 @@
 /*!	\file rational.hpp
 \ingroup YStandardEx
 \brief 有理数运算。
-\version r1655
+\version r1803
 \author FrankHB <frankhb1989@gmail.com>
 \since build 260
 \par 创建时间:
 	2011-11-12 23:23:47 +0800
 \par 修改时间:
-	2014-12-02 15:24 +0805
+	2014-12-19 12:23 +0805
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,58 +37,14 @@ namespace ystdex
 {
 
 /*!
-\brief 取算术类型的正规化后的最大值。
-\since build 439
-\todo 静态断言限制类型。
-*/
-//@{
-template<typename _type, std::uintmax_t _vNum = 1, std::uintmax_t _vDen = 1,
-	bool _bIsFloat = is_floating_point<_type>::value>
-struct normalized_max;
-
-template<typename _type, std::uintmax_t _vNum, std::uintmax_t _vDen>
-struct normalized_max<_type, _vNum, _vDen, true>
-{
-	static yconstexpr _type value = double(_vNum / _vDen);
-
-	//! \since build 440
-	static yconstfn _type
-	get()
-	{
-		return value;
-	}
-};
-
-template<typename _type, std::uintmax_t _vNum, std::uintmax_t _vDen>
-struct normalized_max<_type, _vNum, _vDen, false>
-{
-	static yconstexpr _type value = std::numeric_limits<_type>::max();
-
-	//! \since build 440
-	static yconstfn _type
-	get()
-	{
-		return value;
-	}
-};
-//@}
-
-
-/*!
 \ingroup unary_type_trait
-\brief 判断类型是否可满足归一化要求。
+\brief 判断类型是否可满足正规化要求：在 0 和 1 之间存在值进行表示。
 \since build 442
 */
-//@{
 template<typename _type>
 struct is_normalizable
 	: integral_constant<bool, is_floating_point<_type>::value>
 {};
-
-template<>
-struct is_normalizable<bool> : true_type
-{};
-//@}
 
 
 /*!
@@ -557,6 +513,20 @@ struct modular_arithmetic<YB_Impl_Rational_fp_T>
 template<YB_Impl_Rational_fp_PList>
 struct is_normalizable<YB_Impl_Rational_fp_T> : true_type
 {};
+
+
+/*!
+\brief 取包括指定有效二进制位和至少指定位整数的定点数类型。
+\since build 561
+*/
+#if YB_IMPL_MSCPP || YB_IMPL_CLANGPP
+template<size_t _vFrac, size_t _vInt = 1, bool _bSigned = false>
+#else
+template<size_t _vFrac, size_t _vInt = 1, bool _bSigned = {}>
+#endif
+using make_fixed_t = fixed_point<conditional_t<_bSigned,
+	typename make_width_int<_vFrac + _vInt>::least_type,
+	typename make_width_int<_vFrac + _vInt>::unsigned_least_type>, _vFrac>;
 
 } // namespace ystdex;
 

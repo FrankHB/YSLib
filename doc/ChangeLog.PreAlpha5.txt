@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r7999
+\version r8192
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-12-17 00:24 +0800
+	2014-12-17 01:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,200 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %YPixel $=
+			(
+				* "spelling error" @ %Service.FileSystem $since b540
+					$= (/ "%NormalizeDirecoryPathTail"
+						=> "%NormalizeDirectoryPathTail"),
+				/ %Service.YPixel $=
+				(
+					- "alpha bit set" @ "function template %BlendCore",
+					+ 'yconstfn' @ "function template %Blend for \
+						%RGBA<5, 5, 5, 1>",
+					+ "function templates %BlendAlpha",
+					+ "overloading function template %Composite optimized for \
+						%RGBA<5, 5, 5, 1>",
+					/ @ "struct %BlitAlphaPoint" $=
+					(
+						+ $dev "static assertion"
+							@ "%operator() for 2 pixel parameters",
+						/ "forbid ADL" @ "all %Blend calls" @ "%operator()#(1, 2)"
+							^ "%Shaders::Blend",
+						/ "support non 1-bit destination alpha types"
+							^ $dep_from "function templates %BlendAlpha"
+							~ "%Blend"
+					),
+					/ "simplified implementation" ^ "%ystdex::make_fixed_t"
+						@ %YPixel $dep_from
+						("%make_fixed_t" @ %YBase.YStandardEx.Rational),
+					/ $dev "simplified implementation" @ %YPixel
+						!^ "%ystdex::normalized_max" $dep_to
+						"removal of %normalized_max"
+				),
+				/ %YStyle $=
+				(
+					+ "class %HS";
+					/ "struct %hsl_t, functions %(ColorToHSL, HSLToColor, \
+						RollColor)" -> "class %HSL",
+					+ "class %HSV"
+				),
+				/ DLD "implemented %ImageScale" ^ "%std::uint32_t"
+					~ "%std::size_t"
+					// To avoid request to 128-bit fixed-point arithmetic \
+						operations which is not supported yet, when \
+						%std::size_t is 64-bit
+			),
+			/ "condition for %MemoryListAllocator" -> 'defined(__GLIBCXX__)'
+				~ 'YB_IMPL_GNUCPP' @ %Adaptor.YNew
+				// Make better compatibility.
+		),
+		/ %YCLib $=
+		(
+			* "wrong assertion" @ "constructor %DirectorySession"
+				@ "!platform %Win32" $since b560,
+			/ 'inline' @ "function template %Deref"  -> 'yconstfn' @ %Debug,
+			/ @ "platform %Win32" @ %YCLib.HostedGUI $=
+			(
+				* "wrong 'ynothrow'" @ "member functions (2 \
+					%WindowMemorySurface::UpdatePremultiplied, \
+					%ScreenRegionBuffer::UpdatePremultipliedTo)" $orig
+					(@ %'YCLib_(MinGW32)'.Win32GUI $since b435),
+				/ DLD "implemented member function \
+					%ScreenRegionBuffer::UpdatePremultipliedTo#2"
+					^ "macros %(PDefH, ImplExpr)"
+			),
+			/ %Platform $=
+			(
+				(
+				+ "platform %'OS X'" $=
+				(
+					+ "macros %YF_Platform_OS_X";
+					+ "detected %Linux platform with predefined macro \
+						%__APPLE__ and %__MACH__",
+					+ "#error when defined %__APPLE__ but not %__MACH__"
+						// Apple platforms other than OS X is not supported
+				);
+				(
+				+ "conditionally defined macro %YCL_OS_X for \
+					%YF_Platform_OS_X",
+				+ "%'OS X' features macro definitions"
+				)
+				),
+				+ "macro %YF_Use_XCB if undefined for %Linux platform"
+			),
+			- DLB "unsupported platform check" @ %YCommon,
+			+ "allowed platform %Linux to be built" @ $effective,
+				%(Keys, Video, FileSystem) $dep_from ("platform %'OS X'"
+				@ %Platform)
+				// To allow build only, not necessarily implemented correctly.
+			- "macros %(YCL_YCOMMON_H, YSL_YSBUILD_H)" @ %NativeAPI,
+				// They were unused long ago.
+			/ %FileSystem $=
+			(
+				/ @ "class %HDirectory" $=
+				(
+					/ "%operator bool" -> "member functions" ^ "%DefBoolNeg";
+					+ $comp "operator!"
+				),
+				+ "friend function %is_undereferenceable for %HDirectory"
+					// Necessary after the bug of \
+						%ystdex::indirect_input_iterator fixed.
+			)
+		),
+		/ %Helper $=
+		(
+			* "wrongly set %UseOpacity for non layered window"
+				@ "platform %Win32" @ "function %ShowTopLevel" @ %HostedUI
+				$since b560,
+		),
+		/ "simplified or added assertion" ^ "%Deref" ~ '*static_cast' $effective
+			@ %YFramework.('Helper_(Android)'.AndroidHost,
+			'YCLib_(Android)'.Android, %YSLib.(Core.YObject, Adaptor.Image)),
+		/ "conditionally include only when '(!YCL_Linux || YCL_Android) \
+			&& !YCL_OS_X' is met for hosted GUI" @ %YSBuild,
+			// Make it convenient to build stage 1 SHBuild on those platforms \
+				without hosted GUI implemented yet.
+		* "uninitialized value returned by member functions %(GetErrorCode, \
+			operator ErrorCode)" @ "class %Win32Exception"
+			@ %'YCLib_(MinGW32)'.MinGW32 $since b545
+	),
+	* "%C_CXXFLAGS not applied for makefiles" @ "%(CFLAGS, CXXFLAGS)"
+		@ "projects %(YFramework, YSTest)" @ "platform %Android" $since b558,
+		// Misspelled as 'C_CXXFLAGS_ARM9' which is empty for platform \
+			%Android. This made many arguments unused. Some like '-NDEBUG' \
+			effect the binary size significantly.
+	/ %YBase.YStandardEx $=
+	(
+		/ %Rational $=
+		(
+			+ "alias template %make_fixed_t" @ %Rational,
+			- $revert(b439) "class template %normalized_max" @ %Rational
+				$dep_to "removal of %normalized_max"
+				// It is somewhat misleading.
+			- "specialization of %is_normailzable for %bool" @ %Rational
+		),
+		/ DLD "preprocessing condition" ^ 'defined(__GLIBCXX__)'
+			~ "raw '__GlIBCXX__'" @ %Concurrency,
+			// Just for uniformly using.
+		* "strict ISO C++ code compatibility" $since b525
+			$= (* "missing including <memory>" @ %Utility),
+		* "missing rebinding allocator type for \
+			%used_list_cache::(used_list_type, used_cache_type)" @ %Cache $since
+			b521 $orig ("%GMRUCache::(UseList, UseCache)"
+			@ %YFramework.YSLib.Core.Cache $since b461),
+			// G++ accepted but Clang++ in OS X would complain.
+		* "%operator bool for %indirect_input_iterator" @ %Iterator $since b412,
+		+ "class template %free_delete with non-defined specialization for \
+			arrays as template parameter type" @ %Memory
+	),
+	+ %YDE.Clock,
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			+ '-pthread' @ "'Darwin' in 'uname' output"
+				@ "SHBuild-common-options.sh",
+			/ @ "SHBuild-common-options.sh" $=
+			(
+				+ "detection to ensure non empty $CXX at beginning",
+				(
+				+ "variables %(CXXFLAGS_GC, LDFLAGS_GC) with default value \
+					'-fdata-sections -ffunction-sections' and \
+					'-Wl,--gc-sections' respectively";
+				+ "test to set to empty for %(CXXFLAGS_GC, LDFLAGS_GC) if not \
+					successfully compiled by $CXX to support toolchain without \
+					these options (e.g. on OS X)" @ "!platform %Win32"
+					// Windows has limitation, see \
+						http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25 .
+				/ "applied $(CXXFLAGS_GC, LDFLAGS_GC) for default value of variables \
+					$(C_CXXFLAGS_COMMON, LDFLAGS_OPT_DBG)"
+				)
+			)
+		),
+		/ "all command call with variable as command name now are quoted",
+			// To allow blank characters in it, though not a good practice and \
+				not necessarily providing the guarantee to success.
+		- DLD "all unnecessary curly braces around variable names" $=
+			// E.g: "${CXX}" to "$CXX". See \
+				http://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html \
+				2.6.2 for rules.
+			(/ "283 regex instances of '\$\{(\w+)\}([^0-9A-Za-z])' -> '$$$1$2' \
+				including 106 matches with '$2' is '/'"),
+	),
+	/ $dev $repo "all edited file with module name not the same as base \
+		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg rename' $effective
+		@ (((("%yobject.h" => "%YObject.h" @ %Core.YObject, (("%ystyle.h"
+		=> "%YStyle.h", "%ystyle.cpp" => "%YStyle.cpp") @ %YStyle), "%button.cpp"
+		=> "%Button.cpp" @ %Button) @ %UI, "%ynew.h" => "%YNew.h" @ %Adaptor)
+		@ %YSLib), "%ycommon.h" => "%YCommon.h" @ %YCLib.YCommon) @ %YFramework
+),
+
+b560
 (
 	/ %YFramework $=
 	(

@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r516
+\version r518
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-12-14 21:53 +0800
+	2014-12-17 22:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -349,12 +349,12 @@ Nonnull(_type&& p)
 
 /*!
 \brief 断言并解引用非空指针。
-\pre 使用 ADL 指定的 Nonnull 调用的表达式语义等价于 platform_Nonnull 。
+\pre 使用 ADL 指定的 Nonnull 调用的表达式语义等价于 platform::Nonnull 。
 \pre 间接断言：指针非空。
 \since build 553
 */
 template<typename _type>
-inline auto
+yconstfn auto
 Deref(_type&& p) -> decltype(*p)
 {
 	return *Nonnull(yforward(p));

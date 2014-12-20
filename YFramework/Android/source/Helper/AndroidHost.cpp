@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r389
+\version r390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2014-06-04 23:05:52 +0800
 \par 修改时间:
-	2014-12-06 23:39 +0800
+	2014-12-17 22:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -183,7 +183,7 @@ YCL_Android_RegCb_Begin(_n, ::ANativeActivity* p_activity) \
 	YTraceDe(Debug, "Adding file descriptor for UI thread call...");
 	::ALooper_addFd(&looper.get(), *msg_pipe.first.get(), ALOOPER_POLL_CALLBACK,
 		ALOOPER_EVENT_INPUT, [](int, int, void* p_data){
-		auto& host(*static_cast<NativeHost*>(Nonnull(p_data)));
+		auto& host(Deref(static_cast<NativeHost*>(p_data)));
 		lock_guard<mutex> lck(host.msg_mutex);
 		auto& task(host.msg_task);
 		int ret;

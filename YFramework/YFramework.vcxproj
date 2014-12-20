@@ -152,7 +152,7 @@
     <ClInclude Include="include\YCLib\POSIXThread.h" />
     <ClInclude Include="include\YCLib\Timer.h" />
     <ClInclude Include="include\YCLib\Video.h" />
-    <ClInclude Include="include\YCLib\ycommon.h" />
+    <ClInclude Include="include\YCLib\YCommon.h" />
     <ClInclude Include="include\YCLib\YModules.h" />
     <ClInclude Include="include\YModules.h" />
     <ClInclude Include="include\ysbuild.h" />
@@ -162,7 +162,7 @@
     <ClInclude Include="include\YSLib\Adaptor\ycont.h" />
     <ClInclude Include="include\YSLib\Adaptor\Font.h" />
     <ClInclude Include="include\YSLib\Adaptor\YModules.h" />
-    <ClInclude Include="include\YSLib\Adaptor\ynew.h" />
+    <ClInclude Include="include\YSLib\Adaptor\YNew.h" />
     <ClInclude Include="include\YSLib\Adaptor\yref.hpp" />
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h" />
     <ClInclude Include="include\YSLib\Core\Task.h" />
@@ -176,7 +176,7 @@
     <ClInclude Include="include\YSLib\Core\YFunc.hpp" />
     <ClInclude Include="include\YSLib\Core\ygdibase.h" />
     <ClInclude Include="include\YSLib\Core\YModules.h" />
-    <ClInclude Include="include\YSLib\Core\yobject.h" />
+    <ClInclude Include="include\YSLib\Core\YObject.h" />
     <ClInclude Include="include\YSLib\Core\ysdef.h" />
     <ClInclude Include="include\YSLib\Core\yshell.h" />
     <ClInclude Include="include\YSLib\Core\ymsg.h" />
@@ -232,7 +232,7 @@
     <ClInclude Include="include\YSLib\UI\YModules.h" />
     <ClInclude Include="include\YSLib\UI\ypanel.h" />
     <ClInclude Include="include\YSLib\UI\yrender.h" />
-    <ClInclude Include="include\YSLib\UI\ystyle.h" />
+    <ClInclude Include="include\YSLib\UI\YStyle.h" />
     <ClInclude Include="include\YSLib\UI\yuicont.h" />
     <ClInclude Include="include\YSLib\UI\ywgtevt.h" />
     <ClInclude Include="include\YSLib\UI\ywgtview.h" />
@@ -303,7 +303,7 @@
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
     <ClCompile Include="source\YSLib\UI\Animation.cpp" />
     <ClCompile Include="source\YSLib\UI\Border.cpp" />
-    <ClCompile Include="source\YSLib\UI\button.cpp" />
+    <ClCompile Include="source\YSLib\UI\Button.cpp" />
     <ClCompile Include="source\YSLib\UI\ComboList.cpp" />
     <ClCompile Include="source\YSLib\UI\ExStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\form.cpp" />
@@ -330,7 +330,7 @@
     <ClCompile Include="source\YSLib\UI\ygui.cpp" />
     <ClCompile Include="source\YSLib\UI\ypanel.cpp" />
     <ClCompile Include="source\YSLib\UI\yrender.cpp" />
-    <ClCompile Include="source\YSLib\UI\ystyle.cpp" />
+    <ClCompile Include="source\YSLib\UI\YStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\yuicont.cpp" />
     <ClCompile Include="source\YSLib\UI\ywgtevt.cpp" />
     <ClCompile Include="source\YSLib\UI\ywgtview.cpp" />

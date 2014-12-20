@@ -5,20 +5,20 @@
 echo Bootstrap beginned.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
-. ${SHBuild_ToolDir}/SHBuild-common.sh
-: ${SHBuild_BaseDir:="${SHBuild_ToolDir}/../SHBuild"}
+. $SHBuild_ToolDir/SHBuild-common.sh
+: ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 
 SHBuild_EchoVar_N "SHBuild.BaseDir"
 SHBuild_EchoVar_N "SHBuild.ToolDir"
 
 echo Configuring ...
 
-SHBuild_BuildDir="${SHBuild_BaseDir}/.shbuild"
+SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
 : ${AR:="gcc-ar"}
-. ${SHBuild_ToolDir}/SHBuild-common-toolchain.sh
+. $SHBuild_ToolDir/SHBuild-common-toolchain.sh
 
-. ${SHBuild_ToolDir}/SHBuild-common-options.sh
+. $SHBuild_ToolDir/SHBuild-common-options.sh
 
 INCLUDES=" \
 	-I../../YFramework/include -I../../YFramework/Android/include \
@@ -50,7 +50,7 @@ LIBS=" \
 	../../YFramework/source/NPL/SContext.cpp
 	"
 if uname | grep MINGW > /dev/null || uname | grep MSYS > /dev/null; then
-	LIBS="${LIBS} \
+	LIBS="$LIBS \
 		../../YFramework/MinGW32/source/YCLib/MinGW32.cpp \
 		../../YFramework/MinGW32/source/YCLib/Consoles.cpp \
 		"

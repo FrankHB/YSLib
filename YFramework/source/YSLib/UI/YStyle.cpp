@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ystyle.cpp
+/*!	\file YStyle.cpp
 \ingroup UI
 \brief 图形用户界面样式。
-\version r962
+\version r1053
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-12-02 18:41 +0800
+	2014-12-19 08:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -271,33 +271,38 @@ DrawTick(const Graphics& g, const Rect& bounds, const Rect& r, Color c1,
 }
 
 
-hsl_t
-ColorToHSL(Color c)
+void
+HS::Roll(Hue delta) ynothrow
 {
-	using mid_t = float; //中间类型。
+	auto& hue(GetHRef());
 
+	YAssert(IsInInterval<Hue>(hue, 0, 360), "Invalid hue found.");
+	delta += hue;
+	hue = delta < Hue(360) ? delta : delta - Hue(360);
+}
+
+
+HSL::HSL(Color c) ynothrow
+	: HS(yimpl(0), 0)
+{
+	auto& saturation(GetSRef());
 	const std::uint8_t r(c.GetR()), g(c.GetG()), b(c.GetB()),
 		min_color(min(min(r, g), b)), max_color(max(max(r, g), b));
-	mid_t h(0); // 此处 h 的值每 0x6 对应一个圆周。
-	mid_t s(0);
-	decltype(hsl_t::l) l;
+	float h(0); // 此处 h 的值每 0x6 对应一个圆周。
 
 	if(min_color == max_color)
-		l = decltype(hsl_t::l)(min_color) / 0x100;
+		lightness = decltype(lightness)(min_color) / 0x100;
 	else
 	{
-		const unsigned p(max_color + min_color);
+		const std::uint16_t p(max_color + min_color);
+		const float q(max_color - min_color);
 
-		l = decltype(hsl_t::l)(p) / 0x200;
+		lightness = decltype(lightness)(p) / 0x200;
 	/*
 		l = 0.2126 * r + 0.7152 * g + 0.0722 * b; // Rec. 601 luma;
 		l = 0.299 * r + 0.588 * g + 0.114 * b; // Rec. 709 luma;
 	*/
-
-		// chroma * 256;
-		const mid_t q(max_color - min_color);
-
-		s = q / (p < 0x100 ? p : 0x200 - p);
+		saturation = q / (p < 0x100 ? p : 0x200 - p);
 		if(r == max_color)
 			h = (g - b) / q;
 		else if(g == max_color)
@@ -307,24 +312,23 @@ ColorToHSL(Color c)
 		if(h < 0)
 			h += 0x6;
 	}
-	return {h * 60, s, l};
+	GetHRef() = h * 60;
 }
 
-Color
-HSLToColor(hsl_t c)
+HSL::operator Color() const ynothrow
 {
-	YAssert(IsInInterval<Hue>(c.h, 0, 360), "Invalid hue found."),
-	YAssert(IsInClosedInterval(c.s, 0.F, 1.F), "Invalid saturation found."),
-	YAssert(IsInClosedInterval(c.l, 0.F, 1.F), "Invalid light found.");
-	if(c.s == 0)
-		return MakeGray(c.l > 255.F / 0x100 ? 0xFF : c.l * 0x100);
+	YAssert(IsInInterval<Hue>(GetH(), 0, 360), "Invalid hue found."),
+	YAssert(IsInClosedInterval(GetS(), 0.F, 1.F),
+		"Invalid saturation found."),
+	YAssert(IsInClosedInterval(lightness, 0.F, 1.F), "Invalid light found.");
+	if(GetS() == 0)
+		return MakeGray(lightness > 255.F / 0x100 ? 0xFF : lightness * 0x100);
 
-	using mid_t = float; //中间类型。
-
-	mid_t t2((c.l < 0.5F ? c.l * (1 + c.s) : (c.l + c.s - c.l * c.s)) * 0x100),
-		t1((c.l * 0x200) - t2);
-	mid_t tmp[3]{c.h + Hue(120), c.h, c.h - Hue(120)}; \
-		// 每个元素对应一个 RGB 分量，值 360 对应一个圆周。
+	float t2((lightness < 0.5F ? lightness * (1 + GetS())
+		: (lightness + GetS() - lightness * GetS())) * 0x100),
+		t1((lightness * 0x200) - t2);
+	// 每个元素对应一个 RGB 分量，值 360 对应一个圆周。
+	float tmp[3]{GetH() + Hue(120), GetH(), GetH() - Hue(120)};
 	float dc[3]; //对应 RGB 分量。
 
 	for(size_t i(0); i < 3; ++i)
@@ -348,13 +352,67 @@ HSLToColor(hsl_t c)
 }
 
 
-Color
-RollColor(hsl_t c, Hue delta)
+HSV::HSV(Color c) ynothrow
 {
-	YAssert(IsInInterval<Hue>(c.h, 0, 360), "Invalid hue found.");
-	delta += c.h;
-	c.h = delta < Hue(360) ? delta : delta - Hue(360);
-	return HSLToColor(c);
+	const float r(c.GetR() / 255.0f), g(c.GetG() / 255.0f),
+		b(c.GetB() / 255.0f), max_color(max(r, max(g, b))),
+		delta(max_color - min(r, min(g, b)));
+
+	yunseq(GetSRef() = max_color == 0.F ? 0.F : delta / max_color,
+		value = max_color);
+	GetHRef() = (GetS() > 0.F ? [=]{
+		float res(0);
+
+		if(r == max_color)
+			res = (g - b) / delta;
+		else if(g == max_color)
+			res = 2.F + (b - r) / delta;
+		else if(b == max_color)
+			res = 4.F + (r - g) / delta;
+		if(res < 0.F)
+			res += 6.F;
+		return res;
+	}() : -6.F) * 60.F;
+}
+
+HSV::operator Color() const ynothrow
+{
+	static_assert(std::numeric_limits<MonoType>::max() == 255,
+		"Invalid mono type found.");
+	const auto v(value * 255);
+	const auto s(GetS());
+
+	YAssert(IsInInterval<float>(GetH(), 0, 360), "Invalid hue found."),
+	YAssert(IsInClosedInterval(s, 0.F, 1.F), "Invalid saturation found."),
+	YAssert(IsInClosedInterval(v, 0.F, 256.F), "Invalid value found.");
+
+	if(s > 0.F)
+	{
+		float h(GetH() / 60.F);
+		const unsigned k(std::floor(h));
+		const float f(GetH() / 60.F - k), aa(v * (1.F - s)),
+			bb(v * (1.F - s * f)), cc(v * (1.F - (s * (1.F - f))));
+
+		switch(k)
+		{
+		case 0U:
+			return {v, cc, aa};
+		case 1U:
+			return {bb, v, aa};
+		case 2U:
+			return {aa, v, cc};
+		case 3U:
+			return {aa, bb, v};
+		case 4U:
+			return {cc, aa, v};
+		case 5U:
+			return {v, aa, bb};
+		default:
+			break;
+		}
+		YAssert(false, "Invalid state found.");
+	}
+	return MakeGray(v);
 }
 
 } // namespace Drawing;

@@ -11,13 +11,13 @@
 /*!	\file ExStyle.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面按钮控件。
-\version r349
+\version r353
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-03 03:57:08 +0800
 \par 修改时间:
-	2014-11-21 12:44 +0800
+	2014-12-19 05:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,8 +53,8 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 	CursorState cursor_state, bool is_enabled, bool is_focused)
 {
 	const bool inside(cursor_state != CursorState::Outside);
-	const auto roll([=](bool b, MonoType gr, const hsl_t& hsl){
-		return MakeGrayOrColor(RollColor(hsl, base_hue), gr, inside || b);
+	const auto roll([=](bool b, MonoType gr, HSL hsl){
+		return MakeGrayOrColor(Color(hsl.Roll(base_hue)), gr, inside || b);
 	});
 	const auto& g(pc.Target);
 
@@ -85,7 +85,7 @@ RectDrawButton_Aoi(const PaintContext& pc, Size s, Hue base_hue,
 			}
 			if(cursor_state == CursorState::Pressed)
 			{
-				const Color tc(RollColor({165, 0.4F, 0.16F}, base_hue));
+				const Color tc(HSL(165, 0.4F, 0.16F).Roll(base_hue));
 
 				TransformRect(g, bounds & Rect(pt, s), [=](BitmapPtr dst){
 					const Color d(*dst);
@@ -124,7 +124,7 @@ RectDrawSelector_Aoi(void(*f)(const PaintContext&, const Size&, const bool[],
 {
 	const Hue base_hue(tmb.GetHue());
 	const auto roll([=](float h, float s, float l){
-		return RollColor({h, s, l}, base_hue);
+		return Color(HSL(h, s, l).Roll(base_hue));
 	});
 	const Color colors[]{MakeGray(177), MakeGray(143), roll(2.3F, .315F, .486F),
 		roll(25.9F, .519F, .359F), MakeGray(246), MakeGray(244),

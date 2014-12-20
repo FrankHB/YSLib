@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1036
+\version r1044
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-11-21 12:43 +0800
+	2014-12-19 06:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -53,11 +53,11 @@ RectDrawCheckBox(const PaintContext& pc, const Size& s, Hue base_hue,
 	const Rect& bounds(pc.ClipArea);
 	const Rect r(pc.Location, s);
 
-	FillRect(g, bounds, r, is_enabled ? (inside ? RollColor(is_pressed
-		? hsl_t{30.F, 1.F, .925F} : hsl_t{30.F, 1.F, .976F}, base_hue)
+	FillRect(g, bounds, r, is_enabled ? (inside ? Color((is_pressed
+		? HSL(30.F, 1.F, .925F) : HSL(30.F, 1.F, .976F)).Roll(base_hue))
 		: ColorSpace::White) : MakeGray(230));
-	DrawRect(g, bounds, r, is_enabled ? (inside ? RollColor(is_pressed
-		? hsl_t{26.5F, 1.F, .435F} : hsl_t{30.F, 1.F, .6F}, base_hue)
+	DrawRect(g, bounds, r, is_enabled ? (inside ? Color((is_pressed
+		? HSL(26.5F, 1.F, .435F) : HSL(30.F, 1.F, .6F)).Roll(base_hue))
 		: MakeGray(112)) : MakeGray(188));
 
 	if(is_ticked)
@@ -77,11 +77,11 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 	const Rect& bounds(pc.ClipArea);
 	const Rect r(pc.Location, s);
 
-	FillCircle(g, bounds, pt, rad, is_enabled ? (inside ? RollColor(is_pressed
-		? hsl_t{30.F, 1.F, .925F} : hsl_t{30.F, 1.F, .976F}, base_hue)
+	FillCircle(g, bounds, pt, rad, is_enabled ? (inside ? Color((is_pressed
+		? HSL(30.F, 1.F, .925F) : HSL(30.F, 1.F, .976F)).Roll(base_hue))
 		: ColorSpace::White) : MakeGray(230));
-	DrawCircle(g, bounds, pt, rad, is_enabled ? (inside ? RollColor(is_pressed
-		? hsl_t{26.5F, 1.F, .435F} : hsl_t{30.F, 1.F, .6F}, base_hue)
+	DrawCircle(g, bounds, pt, rad, is_enabled ? (inside ? Color((is_pressed
+		? HSL(26.5F, 1.F, .435F) : HSL(30.F, 1.F, .6F)).Roll(base_hue))
 		: MakeGray(112)) : MakeGray(188));
 	// XXX: Minimal size.
 	if(is_ticked && YB_LIKELY(r.Width > 4 && r.Height > 4))

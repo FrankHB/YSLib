@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r193
+\version r194
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2014-12-16 22:15 +0800
+	2014-12-17 19:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,7 @@ ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex, int n_cmd_show,
 		return wnd_ref;
 	}));
 
-	WaitForHostWindow(wgt).UseOpacity = bool(wstyle_ex | WS_EX_LAYERED);
+	WaitForHostWindow(wgt).UseOpacity = bool(wstyle_ex & WS_EX_LAYERED);
 	return res;
 }
 #	endif

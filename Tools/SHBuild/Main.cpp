@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2673
+\version r2675
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-12-16 23:00 +0800
+	2014-12-17 00:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -587,7 +587,7 @@ BuildContext::Build()
 {
 	PrintInfo("Ready to run, job max count: "
 		+ to_string(jobs.get_max_task_num()) + ".");
-	OutputDir = NormalizeDirecoryPathTail(OutputDir);
+	OutputDir = NormalizeDirectoryPathTail(OutputDir);
 	PrintInfo("Normalized output directory: '" + OutputDir + "'.");
 	if(Options.empty())
 	{
@@ -595,7 +595,7 @@ BuildContext::Build()
 		return;
 	}
 
-	const auto in(NormalizeDirecoryPathTail(Options[0]));
+	const auto in(NormalizeDirectoryPathTail(Options[0]));
 	const auto ipath(MakeNormalizedAbsolute(in));
 
 	PrintInfo("Absolute path recognized: " + to_string(ipath).GetMBCS() + " .");

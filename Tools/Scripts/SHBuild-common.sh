@@ -2,7 +2,7 @@
 # (C) 2014 FrankHB.
 # Common source script.
 
-: ${SHBuild_CMD:=${COMSPEC}}
+: ${SHBuild_CMD:=$COMSPEC}
 : ${SHBuild_CMD:=cmd}
 
 SHBuild_2u()
@@ -42,7 +42,7 @@ SHBuild_Install_Exe()
 SHBuild_Install_HardLink()
 {
 	rm -f "$2" || true
-	${SHBuild_CMD} //c "mklink /H `SHBuild_2w "$2"` `SHBuild_2w "$1"`" > \
+	$SHBuild_CMD //c "mklink /H `SHBuild_2w "$2"` `SHBuild_2w "$1"`" > \
 		/dev/null 2>& 1 || ln -T "$1" "$2" || SHBuild_Install "$1" "$2"
 }
 
@@ -55,7 +55,7 @@ SHBuild_Install_HardLink_Exe()
 SHBuild_Install_Link()
 {
 	rm -f "$2" || true
-	${SHBuild_CMD} //c "mklink `SHBuild_2w "$2"` `SHBuild_2w "$1"`" > \
+	$SHBuild_CMD //c "mklink `SHBuild_2w "$2"` `SHBuild_2w "$1"`" > \
 		/dev/null 2>& 1 || ln -s -T "$1" "$2"
 }
 

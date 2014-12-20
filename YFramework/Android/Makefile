@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r340
+# Version = r342
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2014-12-06 22:25 +0800
+# Updated = 2014-12-17 01:07 +0800
 # Encoding = ANSI
 
 
@@ -62,8 +62,8 @@ export DATA			:=	#data $(REFDIR)/data
 #export MUSIC		:=	music
 
 # options for code generation
-CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM9) $(CFLAGS_COMMON)
-CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
+CFLAGS := $(INCLUDE) $(C_CXXFLAGS) $(CFLAGS_COMMON)
+CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
 	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy \
 	-Wnon-virtual-dtor -Wsign-promo
 #	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo

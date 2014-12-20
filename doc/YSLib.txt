@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2808
+\version r2813
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-12-16 01:34 +0800
+	2014-12-20 20:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,7 +173,7 @@ YSLib 的可重入性和线程安全性参见 @2 、 @2.2 、 @3 、 @4 和 @5 �
 
 @2.2 内存调试设施 YNew ：
 默认包含编译配置、平台支持文件 <Platform.h>(@7.2.2.3.1) 和通用基础设施(@3) 。
-定义宏 YSL_USE_MEMORY_DEBUG 后（默认 debug 配置在 "config.h" 有此定义）可以使用 "ynew.h" 声明的宏和类进行内存调试。
+定义宏 YSL_USE_MEMORY_DEBUG 后（默认 debug 配置在 "config.h" 有此定义）可以使用在此声明的宏和类进行内存调试。
 重载全局 operator new 和 operator delete 可以用于用户程序调试（ YSLib 中默认并不使用）。
 MemoryList 用于跟踪记录已分配的内存块。 debug 配置下默认定义了一个函数内静态对象，用函数 GetDebugMemoryList 取此对象引用获得默认调试内存信息。
 可以用宏 ynew 代替 new/new[] ， ydelete 代替 delete ， ydelete_array 代替 delete[] ，配合 GetDebugMemoryList 检测内存泄露以及重复释放错误；但不适于智能指针，因为未使用 ydelete 和 ydelete_array 。
@@ -232,12 +232,12 @@ LoggedEvent ：记录异常事件类。
 @3.7 平台无关的基础图形学对象 YGDIBase ：
 
 @3.7.1 基本屏幕对象：
-用于实现屏幕坐标系([Documentation::Designation @@1.5.2.2]) 。
+用于实现屏幕坐标系([Documentation::Designation @@2.5.2.2]) 。
 YSLib 默认使用整数分量坐标，类型为 SPos （平台相关的有符号整数类型），绝对值类型为 SDst （宽度与 SPos 相同的无符号整数类型）。
 以此为基础进一步定义了 Point 、 Vec 、 Size 和 Rect 等基本屏幕对象类。
 Point 和 Vec 为 SPos 二元组，具有不同的相关运算集。
 Size 为 SDst 二元组。
-Rect 为标准矩形([Documentation::Designation @@1.5.2.4]) ，即边和屏幕坐标系共线的矩形；使用 Point 表示左上角， Size 表示长和宽。
+Rect 为标准矩形([Documentation::Designation @@2.5.2.4]) ，即边和屏幕坐标系共线的矩形；使用 Point 表示左上角， Size 表示长和宽。
 
 @3.7.2 二维图形接口上下文：
 表示图形缓冲区及其大小的类。
@@ -602,7 +602,7 @@ YSLib 的 UI 实现保证顶层部件向下传递的 PaintContext 中包含的�
 事件发送者为引起焦点变化的部件，订阅者为实际发生焦点改变的部件。
 默认通过 YFocus 单元以及 GUIState 类实现，参见 @5.4.3 。
 触发条件参见 @5.4 。
-功能概述参见 [Documentation::Designation @@1.6.2.7] 。
+功能概述参见 [Documentation::Designation @@2.6.2.7] 。
 
 @5.2.1.5 边界事件：
 包括 Enter 和 Leave 事件。
@@ -638,7 +638,7 @@ Control 类使用 BoundControlPtr 取按键-指针设备输入事件映射的控
 在默认的控件实现中，使用上述的默认 GUI 输入处理程序作为调度控件行为的控制器。在自定义控件实现中，可以另行定义控制器。
 
 @5.4 用于 GUI 的焦点特性：
-概述：参见 [Documentation::Designation @@1.6.2.8] 。
+概述：参见 [Documentation::Designation @@2.6.2.8] 。
 
 @5.4.1 焦点污染：
 焦点默认和请求/响应双方相关，而和其它对象无关。即 RequestFocus 函数应只改变主调对象及其响应对象中描述焦点的状态域，而不产生副作用。

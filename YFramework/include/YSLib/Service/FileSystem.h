@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2391
+\version r2392
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-11-28 18:40 +0800
+	2014-12-17 00:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,7 +44,7 @@ namespace IO
 */
 template<class _tString>
 inline ystdex::decay_t<_tString>
-NormalizeDirecoryPathTail(_tString&& str, typename
+NormalizeDirectoryPathTail(_tString&& str, typename
 	ystdex::string_traits<_tString>::const_pointer tail = &ystdex::to_array<
 	typename ystdex::string_traits<_tString>::value_type>("/\\")[0])
 {

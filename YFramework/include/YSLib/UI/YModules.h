@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r88
+\version r89
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2014-11-19 15:35 +0800
+	2014-12-19 08:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 //! \since build 461
 //@{
 #define YFM_YSLib_UI_YComponent <YSLib/UI/YComponent.h>
-#define YFM_YSLib_UI_YStyle <YSLib/UI/ystyle.h>
+#define YFM_YSLib_UI_YStyle <YSLib/UI/YStyle.h>
 #define YFM_YSLib_UI_YRenderer <YSLib/UI/yrender.h>
 #define YFM_YSLib_UI_YFocus <YSLib/UI/yfocus.h>
 #define YFM_YSLib_UI_YWidgetEvent <YSLib/UI/ywgtevt.h>

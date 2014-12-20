@@ -37,69 +37,69 @@ if [ x"$1" != x ]; then
 	elif [ x"${1:0:2}" == x-c ]; then
 		SHBuild_Conf=${1#-c}
 		shift 1
-		echo Found configuration \'${SHBuild_Conf}\'.
+		echo Found configuration \'$SHBuild_Conf\'.
 	fi
 fi
-if [ x"${SHBuild_Conf}" == x ]; then
+if [ x"$SHBuild_Conf" == x ]; then
 	SHBuild_Conf=shbuild
 fi
-if [[ x"${SHBuild_Conf}" =~ xdebug.* ]]; then
+if [[ x"$SHBuild_Conf" =~ xdebug.* ]]; then
 	echo Debug mode turned on by configuration.
-	SHBuild_Debug=${SHBuild_Conf}
+	SHBuild_Debug=$SHBuild_Conf
 fi
-if [[ x"${SHBuild_Conf}" =~ x.*static ]]; then
+if [[ x"$SHBuild_Conf" =~ x.*static ]]; then
 	echo Static mode turned on by configuration.
-	SHBuild_Static=${SHBuild_Conf}
+	SHBuild_Static=$SHBuild_Conf
 fi
 export SHBuild_Debug
 export SHBuild_Static
 
-SHBOPT="-xd,.${SHBuild_Conf} -xmode,2 $@"
-. ${SHBuild_Bin}/SHBuild-common.sh
+SHBOPT="-xd,.$SHBuild_Conf -xmode,2 $@"
+. $SHBuild_Bin/SHBuild-common.sh
 if hash gcc-ar > /dev/null; then
 	export AR=gcc-ar
 fi
-. ${SHBuild_Bin}/SHBuild-common-toolchain.sh
-if [ x${SHBuild_Debug} != x ]; then
-	echo Use debug configuration ${SHBuild_Conf}.
+. $SHBuild_Bin/SHBuild-common-toolchain.sh
+if [ x$SHBuild_Debug != x ]; then
+	echo Use debug configuration $SHBuild_Conf.
 	CXXFLAGS_OPT_DBG="-O0 -g"
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
 	LDFLAGS=" "
-	source ${SHBuild_Bin}/SHBuild-common-options.sh
+	source $SHBuild_Bin/SHBuild-common-options.sh
 	export SHBuild_YSLib_LibNames='-lYFrameworkd -lYBased'
 else
-	echo Use release configuration ${SHBuild_Conf}.
+	echo Use release configuration $SHBuild_Conf.
 	unset CXXFLAGS_OPT_DBG
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
 	unset LDFLAGS
-	source ${SHBuild_Bin}/SHBuild-common-options.sh
-	if [ x"${SHBuild_NoAdjustSubsystem}" == x ]; then
-		LDFLAGS="${LDFLAGS} -mwindows"
+	source $SHBuild_Bin/SHBuild-common-options.sh
+	if [ x"$SHBuild_NoAdjustSubsystem" == x ]; then
+		LDFLAGS="$LDFLAGS -mwindows"
 		echo Added \"-mwindows\" to LDFLAGS.
 	fi
 	export SHBuild_YSLib_LibNames='-lYFramework -lYBase'
 fi
 export LDFLAGS
-if [ x"${SHBuild_Static}" == x ]; then
-	export SHBuild_YSLib_Flags="${CXXFLAGS} -DYF_DLL -DYB_DLL \
-		-I${SHBuild_Bin}/../include"
-	export LIBS="-L`SHBuild_2w "${SHBuild_Bin}/../lib"` \
-		${SHBuild_YSLib_LibNames}"
+if [ x"$SHBuild_Static" == x ]; then
+	export SHBuild_YSLib_Flags="$CXXFLAGS -DYF_DLL -DYB_DLL \
+		-I$SHBuild_Bin/../include"
+	export LIBS="-L`SHBuild_2w "$SHBuild_Bin/../lib"` \
+		$SHBuild_YSLib_LibNames"
 else
-	export SHBuild_YSLib_Flags="${CXXFLAGS} \
-		-I${SHBuild_Bin}/../include"
-	export SHBuild_YSLib_LibNames="${SHBuild_YSLib_LibNames} \
+	export SHBuild_YSLib_Flags="$CXXFLAGS \
+		-I$SHBuild_Bin/../include"
+	export SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
 		-lFreeImage -lfreetype -L/usr/lib -lgdi32 -limm32"
-	export LIBS="-L`SHBuild_2w "${SHBuild_Bin}/../lib"` -Wl,-dn \
-		${SHBuild_YSLib_LibNames}"
+	export LIBS="-L`SHBuild_2w "$SHBuild_Bin/../lib"` -Wl,-dn \
+		$SHBuild_YSLib_LibNames"
 fi
 
 SHBuild_BuildApp()
 {
-	(cd ${SHBuild_AppBaseDir}; "${SHBuild_Bin}/SHBuild" ${SHBOPT} -xid,include \
-		$@ ${SHBuild_YSLib_Flags})
+	(cd $SHBuild_AppBaseDir; "$SHBuild_Bin/SHBuild" $SHBOPT -xid,include \
+		$@ $SHBuild_YSLib_Flags)
 }
 
 SHBuild_EchoVar_N "CXXFLAGS"
