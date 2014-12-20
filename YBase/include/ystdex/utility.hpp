@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2195
+\version r2196
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-12-14 22:10 +0800
+	2014-12-14 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "cassert.h"
 #include <utility>
 #include <stdexcept> // for std::logic_error;
+#include <memory> // for std::addressof;
 
 namespace ystdex
 {

@@ -10,6 +10,6 @@ export CXX
 export AR
 : ${ARFLAGS:="rcs"}
 export ARFLAGS
-: ${LD:=${CXX}}
+: ${LD:="$CXX"}
 export LD
 

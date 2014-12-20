@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ystyle.h
+/*!	\file YStyle.h
 \ingroup UI
 \brief 图形用户界面样式。
-\version r717
+\version r823
 \author FrankHB <frankhb1989@gmail.com>
-\since build 194
+\since build 561
 \par 创建时间:
 	2010-06-08 13:21:10 +0800
 \par 修改时间:
-	2014-12-02 18:47 +0800
+	2014-12-19 15:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,49 +164,118 @@ using Hue = ystdex::fixed_point<std::uint16_t, 9>;
 
 
 /*!
-\brief HSL 颜色。
-\since build 433
+\since build 561
+\warning 非虚析构。
 */
-struct hsl_t
+//@{
+/*!
+\brief 色调和饱和度对。
+\note 色调取值范围 [0, 360) ，饱和度取值范围 [0, 1] 。
+*/
+class YF_API HS : private pair<Hue, float>
 {
-	/*!
-	\brief 色调。
-	\note 取值范围 [0, 360) 。
-	\since build 302
+public:
+	HS(Hue h = 0, float s = 0) ynothrow
+		: pair(h, s)
+	{}
+
+	DefGetter(const ynothrow, Hue, H, first)
+	DefGetter(const ynothrow, float, S, second)
+
+	DefGetter(ynothrow, Hue&, HRef, first)
+	DefGetter(ynothrow, float&, SRef, second)
+
+	/*
+	\brief 色调偏移。
+	\pre 断言：输入值在范围内。
 	*/
-	Hue h;
-	/*!
-	\brief 饱和度和亮度。
-	\note 取值范围 [0, 1] 。
-	\since build 276
-	*/
-	float s, l;
+	void
+	Roll(Hue) ynothrow;
 };
 
-/*!
-\brief RGB 颜色转换为 HSL 颜色。
-\relates hsl_t
-\since build 276
-*/
-YF_API hsl_t
-ColorToHSL(Color);
 
-/*!
-\brief HSL 颜色转换为 RGB 颜色。
-\relates hsl_t
-\since build 276
-*/
-YF_API Color
-HSLToColor(hsl_t);
+//! \brief HSL 颜色。
+class YF_API HSL : private HS
+{
+private:
+	/*!
+	\brief 亮度。
+	\note 取值范围 [0, 1] 。
+	*/
+	float lightness;
+
+public:
+	HSL(Hue h = 0, float s = 0, float l = 0) ynothrow
+		: HS{h, s}, lightness(l)
+	{}
+	//! \brief 构造：使用 RGB 颜色。
+	HSL(Color) ynothrow;
+	DefDeCopyCtor(HSL)
+
+	/*!
+	\brief 转换为 RGB 颜色。
+	\note 结果的 Alpha 使用默认初始化值。
+	*/
+	explicit
+	operator Color() const ynothrow;
+
+	using HS::GetH;
+	using HS::GetHRef;
+	using HS::GetS;
+	using HS::GetSRef;
+	DefGetter(const ynothrow, float, L, lightness)
+	DefGetter(ynothrow, float&, LRef, lightness)
+
+	/*
+	\brief 色调偏移。
+	\pre 间接断言：输入值在范围内。
+	\return 自身引用。
+	*/
+	PDefH(HSL&, Roll, Hue h) ynothrow
+		ImplRet(HS::Roll(h), *this)
+};
 
 
-/*!
-\brief 色调偏移。
-\pre 断言：输入值在范围内。
-\since build 472
-*/
-YF_API Color
-RollColor(hsl_t, Hue);
+//! \brief HSV 颜色。
+class YF_API HSV : private HS
+{
+private:
+	/*!
+	\brief 颜色值。
+	\note 取值范围 [0, 1] 。
+	*/
+	float value;
+
+public:
+	HSV(Hue h = 0, float s = 0, float v = 0) ynothrow
+		: HS{h, s}, value(v)
+	{}
+	//! \brief 构造：使用 RGB 颜色。
+	HSV(Color) ynothrow;
+	DefDeCopyCtor(HSV)
+
+	/*!
+	\brief 转换为 RGB 颜色。
+	\note 结果的 Alpha 使用默认初始化值。
+	*/
+	explicit
+	operator Color() const ynothrow;
+
+	using HS::GetH;
+	using HS::GetHRef;
+	using HS::GetS;
+	using HS::GetSRef;
+	DefGetter(const ynothrow, float, V, value)
+	DefGetter(ynothrow, float&, VRef, value)
+
+	/*
+	\brief 色调偏移。
+	\pre 间接断言：输入值在范围内。
+	\return 自身引用。
+	*/
+	PDefH(HSV&, Roll, Hue h) ynothrow
+		ImplRet(HS::Roll(h), *this)
+};
 
 } // namespace Drawing;
 

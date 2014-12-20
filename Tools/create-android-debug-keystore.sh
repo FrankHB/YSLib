@@ -26,19 +26,19 @@ is_in_path()
 	return $result
 }
 
-java_exe=`${ANDROID_SDK}/tools/lib/find_java`
+java_exe=`$ANDROID_SDK/tools/lib/find_java`
 
 if [ `$(is_in_path "cygpath")` -ne 0 ]
 then
-	java_d=`cygpath -d "${java_exe}"`
-	export JAVA=`cygpath "${java_d}"`
+	java_d=`cygpath -d "$java_exe"`
+	export JAVA=`cygpath "$java_d"`
 else
-	export JAVA="${java_exe}"
+	export JAVA="$java_exe"
 fi
 
 rm -f ~/.android/debug.keystore
 mkdir -p ~/.android
-$(dirname ${JAVA})/keytool -sigalg MD5withRSA -keyalg RSA -keysize 1024 -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US"
+$(dirname $JAVA)/keytool -sigalg MD5withRSA -keyalg RSA -keysize 1024 -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US"
 
 echo Done.
 

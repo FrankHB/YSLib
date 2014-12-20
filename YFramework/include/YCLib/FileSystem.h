@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1602
+\version r1613
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-12-15 19:29 +0800
+	2014-12-19 22:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,7 +38,7 @@
 #include "CHRLib/YModules.h"
 #include YFM_CHRLib_Encoding
 #include <system_error>
-#if YCL_DS || YCL_MinGW || YCL_Linux
+#if YCL_DS || YCL_MinGW || YCL_Linux || YCL_OS_X
 #	include <dirent.h>
 #endif
 #include <chrono> // for std::chrono::nanoseconds;
@@ -608,10 +608,10 @@ public:
 	//@}
 
 	/*!
-	\brief 判断文件系统节点有效性。
-	\since build 319
+	\brief 判断文件系统节点无效或有效性。
+	\since build 561
 	*/
-	explicit DefCvt(const ynothrow, bool, p_dirent)
+	DefBoolNeg(explicit, p_dirent)
 
 	//! \since build 412
 	DefCvt(const, std::string, GetName())
@@ -637,6 +637,14 @@ public:
 	//! \brief 复位。
 	using DirectorySession::Rewind;
 };
+
+/*!
+\relates HDirectory
+\sa ystdex::is_undereferenceable
+\since build 561
+*/
+inline PDefH(bool, is_undereferenceable, const HDirectory& i) ynothrow
+	ImplRet(!i)
 
 
 /*!

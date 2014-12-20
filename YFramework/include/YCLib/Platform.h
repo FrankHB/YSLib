@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r680
+\version r712
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2014-11-21 14:37 +0800
+	2014-12-19 12:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -159,6 +159,12 @@
 #define YF_Platform_Linux_x64 0x4302
 
 /*!
+\brief OS X 平台。
+\since build 561
+*/
+#define YF_Platform_OS_X 0x4401
+
+/*!
 \def YF_Platform
 \brief 目标平台。
 \note 注意顺序。
@@ -179,6 +185,12 @@
 #		define YF_Platform YF_Platform_Linux_x64
 #	elif defined(__x86_64__)
 #		define YF_Platform YF_Platform_Linux_x86
+#	endif
+#elif defined(__APPLE__)
+#	ifdef __MACH__
+#		define YF_Platform YF_Platform_OS_X
+#	else
+#		error "Apple platforms other than OS X is not supported."
 #	endif
 #elif !defined(YF_Platform)
 //当前默认以 DS 作为目标平台。
@@ -224,6 +236,14 @@
 \since build 552
 */
 
+/*!
+\ingroup PlatformOptionalFeatures
+\def YF_Use_XCB
+\brief 使用 X C 绑定。
+\pre 若被定义，替换的记号为版本号。
+\since build 561
+*/
+
 
 /*
 \def YCL_Device_Cursor_FixedKey
@@ -242,6 +262,8 @@
 #	define YCL_API_POSIXFileSystem 1
 #	define YCL_API_Has_dirent_h 1
 #	define YCL_API_Has_unistd_h 1
+#elif defined(__MACH__)
+#	define YF_Hosted 1
 #endif
 #if YF_Platform == YF_Platform_DS
 #	define YCL_DS 1
@@ -286,6 +308,17 @@
 #	endif
 #elif YF_Platform == YF_Platform_Linux_x86 \
 	|| YF_Platform == YF_Platform_Linux_x64
+#	ifndef YF_Use_XCB
+#		define YF_Use_XCB 0x11100
+#	endif
+#elif YF_Platform == YF_Platform_OS_X
+#	define YCL_OS_X 1
+#	ifndef YF_Use_POSIXThread
+#		define YF_Use_POSIXThread 1
+#	endif
+#	define YCL_API_POSIXFileSystem 1
+#	define YCL_API_Has_dirent_h 1
+#	define YCL_API_Has_unistd_h 1
 #else
 #	error "Unsupported platform found."
 #endif
@@ -293,7 +326,7 @@
 // NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63287 .
 #if __STDCPP_THREADS__
 #	define YF_Multithread 1
-#elif YCL_Win32 || YCL_Android || YCL_Linux
+#elif YCL_Win32 || YCL_Android || YCL_Linux || YCL_OS_X
 #	define YF_Multithread 1
 #else
 #	define YF_Multithread 0

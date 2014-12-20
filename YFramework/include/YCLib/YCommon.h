@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ycommon.h
+/*!	\file YCommon.h
 \ingroup YCLib
 \brief 平台相关的公共组件无关函数与宏定义集合。
-\version r3586
+\version r3591
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 561
 \par 创建时间:
 	2009-11-12 22:14:28 +0800
 \par 修改时间:
-	2014-11-16 14:27 +0800
+	2014-12-19 21:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,7 +119,6 @@ namespace platform_ex
 {
 
 #if YCL_DS
-
 /*!
 \brief 设置允许设备进入睡眠的标识状态。
 \return 旧状态。
@@ -129,10 +128,6 @@ namespace platform_ex
 */
 YF_API bool
 AllowSleep(bool);
-
-#elif YCL_Win32 || YCL_Android || YCL_Linux
-#else
-#	error "Unsupported platform found."
 #endif
 
 } // namespace platform_ex;

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r296
+# Version = r298
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-12-06 22:25 +0800
+# Updated = 2014-12-17 01:06 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -61,8 +61,8 @@ export MANIFEST := $(TOPDIR)/AndroidManifest.xml
 RESOURCES := $(BUILDDIR)/../../$(PROJNAME)/$(CONF)/resources.ap_
 
 # options for code generation
-CFLAGS := $(INCLUDE) $(C_CXXFLAGS_ARM9) $(CFLAGS_COMMON)
-CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS_ARM9) $(CXXFLAGS_COMMON) \
+CFLAGS := $(INCLUDE) $(C_CXXFLAGS) $(CFLAGS_COMMON)
+CXXFLAGS :=	$(INCLUDE) $(C_CXXFLAGS) $(CXXFLAGS_COMMON) \
 	-fno-threadsafe-statics -fuse-cxa-atexit -Wctor-dtor-privacy \
 	-Wnon-virtual-dtor -Wsign-promo
 #	-Wnoexcept -Wnon-virtual-dtor -Wold-style-cast -Wsign-promo

@@ -11,13 +11,13 @@
 /*!	\file NPL.txt
 \ingroup Documentation
 \brief NPL 规格说明。
-\version r648
+\version r650
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-25 10:34:20 +0800
 \par 修改时间:
-	2014-12-15 23:48 +0800
+	2014-12-20 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,11 +46,11 @@
 略。
 
 @1.2.3 设计意义：
-参见 [Documentation::Designation @@1.2.3] 。
+参见 [Documentation::Designation @@2.2.3] 。
 
 @1.3 构建原则：
 基本内容参见 [Documentation::CommonRules @@2.2] 。
-其它参见 [Documentation::Designation @@1.3] 。
+其它参见 [Documentation::Designation @@2.3] 。
 
 @1.4 领域设计原则：
 

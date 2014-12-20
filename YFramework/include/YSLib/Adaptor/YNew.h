@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ynew.h
+/*!	\file YNew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1185
+\version r1187
 \author FrankHB <frankhb1989@gmail.com>
-\since build 173
+\since build 561
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2014-11-28 12:42 +0800
+	2014-12-19 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ GetDebugMemoryList();
 //! \since build 454
 template<typename _type>
 using MemoryListAllocator
-#if YB_IMPL_GNUCPP
+#if defined(__GLIBCXX__)
 	= __gnu_cxx::malloc_allocator<_type>;
 #else
 	= std::allocator<_type>;

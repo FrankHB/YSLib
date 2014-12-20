@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r583
+\version r609
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-11-05 01:09 +0800
+	2014-12-20 06:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,6 +34,36 @@
 
 namespace ystdex
 {
+
+/*!
+\brief 使用显式析构函数调用和 \c std::free 的删除器。
+\note 除使用 \c std::free 代替 \c ::operator delete，
+	和 \c std::default_deleter 的非数组类型元素删除操作相同。
+\note 数组类型的特化无定义。
+\since build 561
+*/
+//@{
+template<typename _type>
+struct free_delete
+{
+	yconstfn free_delete() ynothrow = default;
+	template<typename _type2,
+		yimpl(typename = enable_if_t<is_convertible<_type2*, _type*>::value>)>
+	free_delete(const free_delete<_type2>&) ynothrow
+	{}
+
+	void
+	operator()(_type* p) const
+	{
+		p->~_type();
+		std::free(p);
+	}
+};
+
+template<typename _type>
+struct free_delete<_type[]>;
+//@}
+
 
 /*!
 \brief 绑定值的删除器。

@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2040
+\version r2046
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-12-15 20:20 +0800
+	2014-12-19 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -61,7 +61,7 @@ _wfopen(const wchar_t*, const wchar_t*);
 using platform_ex::UTF8ToWCS;
 //! \since build 549
 using platform_ex::DirectoryFindData;
-#elif YCL_Linux
+#elif YCL_API_POSIXFileSystem
 #	include YFM_CHRLib_CharacterProcessing
 #	include <dirent.h>
 #	include <sys/stat.h>
@@ -86,7 +86,7 @@ ensure_str(const char16_t* s)
 {
 #if YCL_Win32
 	return platform_ex::WCSToMBCS(reinterpret_cast<const wchar_t*>(s));
-#elif YCL_DS || YCL_Linux
+#elif YCL_API_POSIXFileSystem
 	return MakeMBCS(s);
 #else
 #	error "Unsupported platform found."
@@ -223,7 +223,7 @@ std::FILE*
 ufopen(const char* filename, const char* mode) ynothrow
 {
 	YAssertNonnull(filename);
-	YAssert(*Nonnull(mode) != char(), "Invalid argument found.");
+	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
 	YCL_Impl_RetTryCatchAll(::_wfopen(UTF8ToWCS(filename).c_str(),
 		UTF8ToWCS(mode).c_str()))
@@ -236,7 +236,7 @@ std::FILE*
 ufopen(const char16_t* filename, const char16_t* mode) ynothrow
 {
 	YAssertNonnull(filename);
-	YAssert(*Nonnull(mode) != char(), "Invalid argument found.");
+	YAssert(Deref(mode) != char(), "Invalid argument found.");
 #if YCL_Win32
 	return ::_wfopen(reinterpret_cast<const wchar_t*>(filename),
 		reinterpret_cast<const wchar_t*>(mode));
@@ -450,7 +450,7 @@ DirectorySession::DirectorySession(const char* path)
 #if !YCL_Win32
 	ystdex::rtrim(sDirPath, YCL_PATH_DELIMITER);
 	YAssert(std::char_traits<char>::length(sDirPath.c_str()) > 0
-		|| sDirPath.back() == YCL_PATH_DELIMITER,
+		&& sDirPath.back() != YCL_PATH_DELIMITER,
 		"Invalid directory name state found.");
 	sDirPath += YCL_PATH_DELIMITER;
 #endif
@@ -556,7 +556,7 @@ HDirectory::GetName() const ynothrow
 		return p_dirent->d_name;
 #else
 		YCL_Impl_RetTryCatchAll(utf8_name = platform_ex::WCSToUTF8(
-			*static_cast<std::wstring*>(p_dirent)), &utf8_name[0])
+			Deref(static_cast<std::wstring*>(p_dirent))), &utf8_name[0])
 #endif
 	}
 	return ".";

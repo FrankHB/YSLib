@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r742
+\version r744
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2014-12-15 19:31 +0800
+	2014-12-19 12:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -38,9 +38,6 @@
 #ifndef YF_Platform
 #	error "Unknown platform found."
 #endif
-
-#define YCL_YCOMMON_H <ycommon.h>
-#define YSL_YSBUILD_H <ysbuild.h>
 
 /*!	\defgroup workarounds Workarounds
 \brief 替代方案。

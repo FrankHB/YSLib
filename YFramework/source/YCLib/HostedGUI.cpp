@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r722
+\version r724
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-12-16 20:52 +0800
+	2014-12-18 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -465,7 +465,7 @@ ScreenRegionBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 #	if YCL_Win32
 void
 ScreenRegionBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
-	const Point& pt) ynothrow
+	const Point& pt)
 {
 	lock_guard<mutex> lck(mtx);
 	GSurface<> sf(h_wnd);
@@ -511,7 +511,6 @@ WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
 void
 WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 	NativeWindowHandle h_wnd, YSLib::Drawing::AlphaType a, const Point& pt)
-	ynothrow
 {
 	const auto h_old(::SelectObject(h_mem_dc, sbuf.GetNativeHandle()));
 	auto rect(FetchWindowRect(h_wnd));

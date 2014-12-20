@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r718
+\version r733
 \author FrankHB <frankhb1989@gmail.com>
-\since build 427
+\since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-12-16 05:55 +0800
+	2014-12-21 01:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -227,7 +227,7 @@ class ScreenBufferData;
 
 
 /*
-\note 像素格式和 platform::PixelType 兼容。
+\note 像素格式和 platform::Pixel 兼容。
 \warning 非虚析构。
 */
 //@{
@@ -397,10 +397,10 @@ public:
 	UpdateFrom(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 
 #	if YCL_Win32
-	//! \since build 435
+	//! \since build 561
 	void
 	UpdatePremultipliedTo(NativeWindowHandle, YSLib::Drawing::AlphaType = 0xFF,
-		const YSLib::Drawing::Point& = {}) ynothrow;
+		const YSLib::Drawing::Point& = {});
 #	endif
 
 	//! \pre 间接断言：本机句柄非空。
@@ -442,19 +442,15 @@ public:
 		const YSLib::Drawing::Point& pt = {}) ynothrow
 		ImplExpr(Update(rbuf.GetScreenBufferRef(), pt))
 
-	//! \since build 435
+	//! \since build 561
 	void
 	UpdatePremultiplied(ScreenBuffer&, NativeWindowHandle,
-		YSLib::Drawing::AlphaType = 0xFF, const YSLib::Drawing::Point& = {})
-		ynothrow;
-	//! \since build 435
-	void
-	UpdatePremultiplied(ScreenRegionBuffer& rbuf, NativeWindowHandle h_wnd,
-		YSLib::Drawing::AlphaType a = 0xFF,
-		const YSLib::Drawing::Point& pt = {}) ynothrow
-	{
-		UpdatePremultiplied(rbuf.GetScreenBufferRef(), h_wnd, a, pt);
-	}
+		YSLib::Drawing::AlphaType = 0xFF, const YSLib::Drawing::Point& = {});
+	//! \since build 561
+	PDefH(void, UpdatePremultiplied, ScreenRegionBuffer& rbuf,
+		NativeWindowHandle h_wnd, YSLib::Drawing::AlphaType a = 0xFF,
+		const YSLib::Drawing::Point& pt = {})
+		ImplExpr(UpdatePremultiplied(rbuf.GetScreenBufferRef(), h_wnd, a, pt))
 };
 
 

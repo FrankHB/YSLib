@@ -11,13 +11,13 @@
 /*!	\file Image.h
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1291
+\version r1292
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:34:03 +0800
 \par 修改时间:
-	2014-12-14 22:16 +0800
+	2014-12-17 22:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -764,7 +764,7 @@ public:
 	TryGetValue() const ythrow(GeneralEvent)
 	{
 		if(const auto p = GetValuePtr())
-			return *static_cast<const _type*>(p);
+			return Deref(static_cast<const _type*>(p));
 		throw GeneralEvent("Null tag value found.");
 	}
 };
