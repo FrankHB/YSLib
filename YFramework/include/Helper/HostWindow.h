@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r428
+\version r432
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-12-16 20:44 +0800
+	2014-12-22 15:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "YModules.h"
 #include YFM_Helper_YGlobal
+#include YFM_Helper_ScreenBuffer
 #include YFM_YCLib_HostedGUI
 #if YCL_Win32
 #	include YFM_YSLib_Core_YString // for YSLib::String;
@@ -44,14 +45,11 @@ namespace YSLib
 namespace Host
 {
 
-//! \since build 427
-using namespace platform_ex;
-
 /*!
 \brief 宿主环境支持的窗口。
 \since build 379
 */
-class YF_API Window : public platform_ex::HostWindow
+class YF_API Window : public HostWindow
 {
 private:
 	//! \since build 554

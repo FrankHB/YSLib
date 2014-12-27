@@ -11,13 +11,13 @@
 /*!	\file array.hpp
 \ingroup YStandardEx
 \brief 数组操作。
-\version r103
+\version r137
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-09-01 18:39:25 +0800
 \par 修改时间:
-	2014-09-01 19:03 +0800
+	2014-12-27 08:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,7 +28,8 @@
 #ifndef YB_INC_ystdex_array_hpp_
 #define YB_INC_ystdex_array_hpp_ 1
 
-#include "type_op.hpp" // for yforward, ystdex::decay_copy;
+#include "utility.hpp" // for yforward, ystdex::decay_copy,
+//	ystdex::common_nonvoid_t, ystdex::decay_copy;
 #include <array> // for std::array;
 #include <algorithm> // for std::copy_n;
 #include <memory> // for std::addressof;
@@ -37,28 +38,44 @@ namespace ystdex
 {
 
 /*!
-\brief 构造指定参数初始化的 std::array 对象。
-\since build 337
+\note 为避免复杂性，对 \c std::reference_wrapper 的实例及类似类型透明。
+\sa http://open-std.org/JTC1/SC22/WG21/docs/papers/2014/n4315.html
+\since build 562
 */
-template<typename _type, typename... _tParams>
-inline std::array<_type, sizeof...(_tParams)>
-make_array(_tParams&&... args)
+//@{
+/*!
+\ingroup metafunctions
+\brief 取指定类型和参数类型推断的 \c std::array 实例。
+*/
+template<typename _type = void, typename... _tParams>
+using common_array_t = std::array<common_nonvoid_t<_type, decay_t<_tParams>...>,
+	sizeof...(_tParams)>;
+
+
+//! \brief 构造指定参数转换初始化的 \c std::array 对象。
+template<typename _type = void, typename... _tParams>
+yconstfn common_array_t<_type, _tParams...>
+cast_array(_tParams&&... args)
 {
-	// TODO: Use one pair of braces (depending on G++).
-	return {{decay_copy(args)...}};
+	return {{decay_copy<common_nonvoid_t<_type, _tParams...>>(args)...}};
 }
 
-/*!
-\brief 转移指定参数至 std::array 对象。
-\since build 495
-*/
-template<typename _type, typename... _tParams>
-inline std::array<_type, sizeof...(_tParams)>
+//! \brief 转移指定参数至 \c std::array 对象。
+template<typename _type = void, typename... _tParams>
+yconstfn common_array_t<_type, _tParams...>
 forward_as_array(_tParams&&... args)
 {
-	// TODO: Use one pair of braces (depending on G++).
 	return {{yforward(args)...}};
 }
+
+//! \brief 构造指定参数初始化的 \c std::array 对象。
+template<typename _type = void, typename... _tParams>
+yconstfn common_array_t<_type, _tParams...>
+make_array(_tParams&&... args)
+{
+	return {{decay_copy(args)...}};
+}
+//@}
 
 /*!
 \brief 转换指定参数为 std::array 对象。

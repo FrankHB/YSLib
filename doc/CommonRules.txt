@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4286
+\version r4287
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2014-12-15 23:45 +0800
+	2014-12-25 17:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -1097,6 +1097,7 @@ cend ：用于 range based for 的终止只读迭代器。
 @5 类 C 语言编码风格导引：
 仅叙述之前章节未涉及的内容。
 源代码外观仅考虑使用等宽字体的水平显示。
+原始字面量(raw literal) 的内容不适用本章的限制，按具体需求决定格式；但除非必要，一般仍需遵循 @5.4.1 的行宽限制。
 
 @5.1 字符和编码：
 禁止使用的字符参见 @5.3.1 。

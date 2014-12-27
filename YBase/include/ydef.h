@@ -19,13 +19,13 @@
 /*!	\file ydef.h
 \ingroup YBase
 \brief 系统环境和公用类型和宏的基础定义。
-\version r2562
+\version r2574
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 21:42:44 +0800
 \par 修改时间:
-	2014-11-24 17:19 +0800
+	2014-12-23 22:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -400,7 +400,6 @@
 #else
 #	define YB_STATELESS
 #endif
-
 //@}
 
 
@@ -424,16 +423,23 @@
 \def YB_API
 \brief YBase 应用程序编程接口：用于向库文件约定链接。
 \since build 362
-\todo 判断语言实现。
+\todo 判断语言特性支持。
 */
 #if defined(YB_DLL) && defined(YB_BUILD_DLL)
 #	error "DLL could not be built and used at the same time."
 #endif
 
-#ifdef YB_DLL
-#	define YB_API __declspec(dllimport)
-#elif defined(YB_BUILD_DLL)
-#	define YB_API __declspec(dllexport)
+#if YB_IMPL_MSCPP \
+	|| (YB_IMPL_GNUCPP && (defined(__MINGW32__) || defined(__CYGWIN__)))
+#	ifdef YB_DLL
+#		define YB_API __declspec(dllimport)
+#	elif defined(YB_BUILD_DLL)
+#		define YB_API __declspec(dllexport)
+#	else
+#		define YB_API
+#	endif
+#elif defined(YB_BUILD_DLL) && (YB_IMPL_GNUCPP >= 40000 || YB_IMPL_CLANGPP)
+#	define YB_API YB_ATTR(__visibility__("default"))
 #else
 #	define YB_API
 #endif

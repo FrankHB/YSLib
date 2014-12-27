@@ -6,7 +6,7 @@ set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`/Scripts; pwd)
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 : ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
-. $SHBuild_ToolDir/SHBuild-common.sh
+. $SHBuild_ToolDir/SHBuild-common-options.sh # For $LIBPFX and $DSOSFX, etc.
 
 echo Configuring ...
 # POSIX paths may be not supported by native Windows programs without
@@ -19,7 +19,14 @@ export SHBuild_LogOpt
 : ${SHBuild_Opt:="$SHBuild_LogOpt $SHBuild_BuildOpt"}
 export SHBuild_Opt
 : ${SHBuild_SysRoot="$YSLib_BaseDir/sysroot"}
-: ${YSLib_Arch="MinGW32"}
+# TODO: Merge with SHBuild-YSLib-common.sh.
+SHBuild_CheckUName
+if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
+	: ${SHBuild_YSLib_Platform:="MinGW32"}
+else
+	: ${SHBuild_YSLib_Platform:=$SHBuild_Env_OS}
+fi
+SHBuild_YSLib_LibArch="$SHBuild_YSLib_Platform/lib-$SHBuild_Env_Arch"
 SHBuild_SysRoot_Bin="$SHBuild_SysRoot/usr/bin"
 SHBuild_SysRoot_Include="$SHBuild_SysRoot/usr/include"
 SHBuild_SysRoot_Lib="$SHBuild_SysRoot/usr/lib"
@@ -83,28 +90,36 @@ SHBuild_SysRoot_Stage1_SHBuild_debug="$SHBuild_BaseDir/.shbuild-debug"
 SHBuild_SysRoot_Stage1_SHBuild_DLL="$SHBuild_BaseDir/.shbuild-dll"
 SHBuild_SysRoot_Stage1_SHBuild_DLL_debug="$SHBuild_BaseDir/.shbuild-dll-debug"
 
+SHBuild_Install_lib_Static()
+{
+	SHBuild_Install_HardLink "$1/$LIBPFX$3.a" "$2/lib$3.a"
+}
+
+SHBuild_Install_lib_Dynamic()
+{
+	local target="$LIBPFX$3$DSOSFX"
+	local dest="$2/$target"
+
+	SHBuild_Install_HardLink "$1/$target" "$dest"
+	SHBuild_Install_Link "$dest" "$4/$target.a"
+}
+
 if [ x"$SHBuild_UseDebug" != x ]; then
 	if [ x"$SHBuild_NoStatic" == x ]; then
-		SHBuild_Install_HardLink \
-			"$SHBuild_SysRoot_Stage1_SHBuild_debug/YBase.a" \
-			"$SHBuild_SysRoot_Lib/libYBased.a"
-		SHBuild_Install_HardLink \
-			"$SHBuild_SysRoot_Stage1_SHBuild_debug/YFramework.a" \
-			"$SHBuild_SysRoot_Lib/libYFrameworkd.a"
+		SHBuild_Install_lib_Static "$SHBuild_SysRoot_Stage1_SHBuild_debug" \
+			"$SHBuild_SysRoot_Lib" YBased
+		SHBuild_Install_lib_Static "$SHBuild_SysRoot_Stage1_SHBuild_debug" \
+			"$SHBuild_SysRoot_Lib" YFrameworkd
 	else
 		echo Skipped installing debug static libraries.		
 	fi
 	if [ x"$SHBuild_NoDynamic" == x ]; then
-		SHBuild_Install_HardLink \
-			"$SHBuild_SysRoot_Stage1_SHBuild_DLL_debug/YBased.dll" \
-			"$SHBuild_SysRoot_Bin/YBased.dll"
-		SHBuild_Install_HardLink \
-			"$SHBuild_SysRoot_Stage1_SHBuild_DLL_debug/YFrameworkd.dll" \
-			"$SHBuild_SysRoot_Bin/YFrameworkd.dll"
-		SHBuild_Install_Link "$SHBuild_SysRoot_Bin/YBased.dll" \
-			"$SHBuild_SysRoot_Lib/YBased.dll.a"
-		SHBuild_Install_Link "$SHBuild_SysRoot_Bin/YFrameworkd.dll" \
-			"$SHBuild_SysRoot_Lib/YFrameworkd.dll.a"
+		SHBuild_Install_lib_Dynamic \
+			"$SHBuild_SysRoot_Stage1_SHBuild_DLL_debug" "$SHBuild_SysRoot_Bin" \
+			YBased "$SHBuild_SysRoot_Lib"
+		SHBuild_Install_lib_Dynamic \
+			"$SHBuild_SysRoot_Stage1_SHBuild_DLL_debug" "$SHBuild_SysRoot_Bin" \
+			YFrameworkd "$SHBuild_SysRoot_Lib"
 	else
 		echo Skipped installing debug dynamic libraries.
 	fi
@@ -114,23 +129,20 @@ fi
 if [ x"$SHBuild_UseRelease" != x ]; then
 
 	if [ x"$SHBuild_NoStatic" == x ]; then
-		SHBuild_Install_HardLink "$SHBuild_SysRoot_Stage1_SHBuild/YBase.a" \
-			"$SHBuild_SysRoot_Lib/libYBase.a"
-		SHBuild_Install_HardLink "$SHBuild_SysRoot_Stage1_SHBuild/YFramework.a" \
-			"$SHBuild_SysRoot_Lib/libYFramework.a"
+		SHBuild_Install_lib_Static "$SHBuild_SysRoot_Stage1_SHBuild" \
+			"$SHBuild_SysRoot_Lib" YBase
+		SHBuild_Install_lib_Static "$SHBuild_SysRoot_Stage1_SHBuild" \
+			"$SHBuild_SysRoot_Lib" YFramework
 	else
 		echo Skipped installing release static libraries.
 	fi
 	if [ x"$SHBuild_NoDynamic" == x ]; then
-		SHBuild_Install_HardLink "$SHBuild_SysRoot_Stage1_SHBuild_DLL/YBase.dll" \
-			"$SHBuild_SysRoot_Bin/YBase.dll"
-		SHBuild_Install_HardLink \
-			"$SHBuild_SysRoot_Stage1_SHBuild_DLL/YFramework.dll" \
-			"$SHBuild_SysRoot_Bin/YFramework.dll"
-		SHBuild_Install_Link "$SHBuild_SysRoot_Bin/YBase.dll" \
-			"$SHBuild_SysRoot_Lib/YBase.dll.a"
-		SHBuild_Install_Link "$SHBuild_SysRoot_Bin/YFramework.dll" \
-			"$SHBuild_SysRoot_Lib/YFramework.dll.a"
+		SHBuild_Install_lib_Dynamic \
+			"$SHBuild_SysRoot_Stage1_SHBuild_DLL" "$SHBuild_SysRoot_Bin" \
+			YBase "$SHBuild_SysRoot_Lib"
+		SHBuild_Install_lib_Dynamic \
+			"$SHBuild_SysRoot_Stage1_SHBuild_DLL" "$SHBuild_SysRoot_Bin" \
+			YFramework "$SHBuild_SysRoot_Lib"
 	else
 		echo Skipped installing release dynamic libraries.
 	fi
@@ -141,10 +153,10 @@ fi
 # 3rd party libraries.
 if [ x"$SHBuild_No3rd" == x ]; then
 	SHBuild_Install_HardLink \
-		"$YSLib_BaseDir/YFramework/$YSLib_Arch/lib/libfreetype.a" \
+		"$YSLib_BaseDir/YFramework/$SHBuild_YSLib_LibArch/libfreetype.a" \
 		"$SHBuild_SysRoot_Lib/libfreetype.a"
 	SHBuild_Install_HardLink \
-		"$YSLib_BaseDir/YFramework/$YSLib_Arch/lib/libFreeImage.a" \
+		"$YSLib_BaseDir/YFramework/$SHBuild_YSLib_LibArch/libFreeImage.a" \
 		"$SHBuild_SysRoot_Lib/libFreeImage.a"
 else
 	echo Skipped installing 3rd party libraries.

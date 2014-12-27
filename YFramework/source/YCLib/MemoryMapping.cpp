@@ -11,13 +11,13 @@
 /*!	\file MemoryMapping.cpp
 \ingroup YCLib
 \brief 内存映射文件。
-\version r215
+\version r224
 \author FrankHB <frankhb1989@gmail.com>
 \since build 324
 \par 创建时间:
 	2012-07-11 21:59:21 +0800
 \par 修改时间:
-	2014-12-06 23:36 +0800
+	2014-12-22 13:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,20 +28,14 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_MemoryMapping
 #include YFM_YCLib_FileSystem // for platform::uopen, platform::GetFileSizeOf;
+#include YFM_YCLib_NativeAPI
 #include <fcntl.h>
 #include <stdexcept> // for std::runtime_error;
-#if YCL_DS
-#	include <unistd.h>
-#elif YCL_Win32
-#	include <Windows.h>
-#	include <sys/stat.h>
-
+#if YCL_Win32
 #define MAP_FAILED (reinterpret_cast<void*>(-1))
-#elif YCL_Android
+#elif YCL_Linux || YCL_OS_X
 #	include <sys/mman.h>
 #	include <sys/stat.h>
-#else
-#	error "Unsupported platform found."
 #endif
 
 namespace platform

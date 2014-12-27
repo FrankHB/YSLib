@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r712
+\version r724
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2014-12-19 12:35 +0800
+	2014-12-24 08:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,6 +27,8 @@
 
 #ifndef YCL_INC_Platform_h_
 #define YCL_INC_Platform_h_ 1
+
+#include <ydef.h>
 
 /*!
 \def YF_DLL
@@ -38,10 +40,17 @@
 #	error "DLL could not be built and used at the same time."
 #endif
 
-#ifdef YF_DLL
-#	define YF_API __declspec(dllimport)
-#elif defined(YF_BUILD_DLL)
-#	define YF_API __declspec(dllexport)
+#if YB_IMPL_MSCPP \
+	|| (YB_IMPL_GNUCPP && (defined(__MINGW32__) || defined(__CYGWIN__)))
+#	ifdef YF_DLL
+#		define YF_API __declspec(dllimport)
+#	elif defined(YF_BUILD_DLL)
+#		define YF_API __declspec(dllexport)
+#	else
+#		define YF_API
+#	endif
+#elif defined(YF_BUILD_DLL) && (YF_IMPL_GNUCPP >= 40000 || YF_IMPL_CLANGPP)
+#	define YF_API YF_ATTR(__visibility__("default"))
 #else
 #	define YF_API
 #endif

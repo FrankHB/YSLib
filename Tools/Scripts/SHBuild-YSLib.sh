@@ -23,9 +23,9 @@ if [ x"$SHBuild_NoStatic" == x ]; then
 	SHBuild_EchoVar "CXXFLAGS" "$CXXFLAGS"
 	SHBuild_EchoVar "LDFLAGS" "$LDFLAGS"
 
-	$SHBuild $SHBOPT $@ ../../YBase \
+	$SHBuild $SHBOPT -xn,${LIBPFX}YBase $@ ../../YBase \
 		$CXXFLAGS $INCLUDES_YBase
-	$SHBuild $SHBOPT $@ ../../YFramework \
+	$SHBuild $SHBOPT -xn,${LIBPFX}YFramework $@ ../../YFramework \
 		$CXXFLAGS -DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase
 
 	echo Finished building static libraries.
@@ -39,22 +39,19 @@ if [ x"$SHBuild_NoDynamic" == x ]; then
 	SHBOPT="-xd,.shbuild-dll $SHBOPT_IGN -xmode,2"
 	unset LDFLAGS
 	. $SHBuild_ToolDir/SHBuild-common-options.sh
-	export LDFLAGS="$LDFLAGS -shared -Wl,--dll"
-	LIBS_YFramework="-L../../YFramework/$SHBuild_YSLib_Platform/lib \
-		-lFreeImage -lfreetype"
+	export LDFLAGS="$LDFLAGS $LDFLAGS_DYN"
 
 	SHBuild_EchoVar "SHBOPT" "$SHBOPT"
 	SHBuild_EchoVar "CXXFLAGS" "$CXXFLAGS"
 	SHBuild_EchoVar "LDFLAGS" "$LDFLAGS"
-	SHBuild_EchoVar "LIBS_YFramework" "$LIBS_YFramework"
 
-	$SHBuild $SHBOPT $@ ../../YBase \
-		$CXXFLAGS -DYB_BUILD_DLL $INCLUDES_YBase
+	$SHBuild $SHBOPT -xn,${LIBPFX}YBase $@ ../../YBase \
+		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_BUILD_DLL $INCLUDES_YBase
 
-	export LIBS="$LIBS_YFramework -L.shbuild-dll -lYBase -lgdi32 -limm32"
+	export LIBS="-L.shbuild-dll -lYBase $LIBS_YFramework"
 
-	$SHBuild $SHBOPT $@ ../../YFramework \
-		$CXXFLAGS -DYB_BUILD_DLL -DYF_BUILD_DLL \
+	$SHBuild $SHBOPT -xn,${LIBPFX}YFramework $@ ../../YFramework \
+		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_BUILD_DLL -DYF_BUILD_DLL \
 		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase
 
 	echo Finished building dynamic libraries.

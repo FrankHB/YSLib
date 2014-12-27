@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r8192
+\version r8409
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-12-17 01:50 +0800
+	2014-12-27 10:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,219 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %Tools $=
+	(
+		/ %SHBuild.Main $=
+		(
+			* "undefined behavior on passing command line arguments"
+				@ "platform %Win32" $since b560,
+			/ "building mode 2 now would only add .exe/.dll in platform \
+				%Win32, otherwise would only add .so for DSO targets"
+		),
+		/ %Scripts $=
+		(
+			* "source file not found after renaming on file system with \
+				case-sensitive name support" @ "%SHBuil-build.sh" @ %Scripts
+				$since b560,
+			* $re_ex(b559) "externally set %AR had no effect"
+				@ ("SHBuild-YSLib-common.sh" ($orig @ "SHBuild-YSLib.sh"),
+				"SHBuild-BuildApp.sh") $since b546,
+				// Hard-coded 'gcc-ar'.
+			/ @ "SHBuild-common-options.sh" $=
+			(
+				/ "default value" @ "%LDFLAGS_GC" ^ '-Wl,--dead-strip'
+					~ '-Wl,--gc-sections' @ "'Darwin' in 'uname' output",
+				(
+				+ "variable %LDFLAGS_DYN_BASE with default value \
+					'-shared -Wl,--dll' or '-shared' depending on 'uname' \
+					result containing 'MINGW'/'MSYS' or not",
+				+ "variable %LDFLAGS_DYN_EXTRA with default value";
+				+ "variable %LDFLAGS_DYN with default value"
+				),
+				+ "variables %(LIBPFX, DSOSFX) with default values depending \
+					on OS",
+				/ "restricted check for %(C_CXXFLAGS_GC, LDFLAGS_GC) only when \
+					%CXX is not empty"
+			),
+			/ @ "%(SHBuild-YSLib.sh, SHBuild-YSLib-debug.sh)" $=
+			(
+				/ "DLL building" ^ $dep_from "%LDFLAGS_DYN",
+					// To simplify and to be precisely equal to Code::Block projects.
+				+ DLB '$C_CXXFLAGS_PIC' @ "build command lines",
+					// To support DSO.
+				/ "system library" ^ "%SHBuild_YF_SystemLibs"
+					~ "hard coded values",
+				+ '-lxcb -lpthread' @ "%SHBuild_YF_SystemLibs"
+					@ "!platform %Win32"
+			),
+			/ @ "%SHBuild-common.sh" $=
+			(
+				+ "variable %C_CXXFLAGS_PIC with default value '-fPIC'"
+					@ "'uname' result without 'MINGW' or 'MSYS'",
+				/ "quoted first default value" @ "%SHBuild_CMD",
+				+ "functions %(SHBuild_AssertNonempty, SHBuild_CheckedCall, \
+					SHBuild_InitReadonly; SHBuild_CheckUName)",
+				+ $dev "early return as guard for scripts to be used by 'source' \
+					or '.' directive",
+				+ 'exit 1' @ "handling signal %SIGINT"
+			),
+			/ @ "%(SHBuild-YSLib-common.sh, SHBuild-BuildApp.sh)" $=
+			(
+			)
+		),
+		/ DLD "simplified all OS specific check" ^ "%SHBuild_CheckOS" ~ 'uname'
+			$dep_from ("%SHBuild-common.sh" @ %Scripts),
+		/ @ "%install-sysroot.sh" $=
+		(
+			+ "support for installing on UNIX-like targets",
+			+ "variable %$SHBuild_Env_Arch" $dep_from
+				("%SHBuild-common.sh" @ %Scripts);
+			/ "3rd party library directory now would be determinate by \
+				%(SHBuild_YSLib_Platform, $SHBuild_Env_Arch)";
+			- "variable %YSLib_Arch"
+		)
+	),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			* "non-lowercase header file name of %YObject"
+				@ %Core.YModule $since b561,
+			/ %Adaptor $=
+			(
+				* "missing including <ext/malloc_allocator.h> for libstdc++ \
+					used without G++" @ %YNew $since b561,
+				/ %Font $=
+				(
+					+ "log for successful initialization of FreeType library \
+						instance",
+					/ $dev $lib "hid all integer types and enumerators as \
+						implementation from FreeType",
+					/ $dev $build $re_ex(b425) "restricted hack only when \
+						'defined(FT_CONFIG_OPTION_OLD_INTERNALS)' to be \
+						compatible with unmodified freetype packages which \
+						version >= 2.5"
+				)
+			)
+		),
+		/ %Helper $=
+		(
+			/= $dev $lib "parameter %platform_ex::WindowReference"
+				@ "constructor %RenderWindow" @ %HostRenderer
+				-> "%Host::WindowReference",
+			/ $dev "reduce some dependencies" @ %ShellHelper $=
+			(
+				/ $lib "parameter" @ "function %ResetDesktop" ^ 'UI::Desktop'
+					~ 'Desktop',
+				/ "function template %ScrDraw, function \
+					%CreateSharedScreenImage" >> %'Helper_(DS)'.DSMain
+			),
+			/ DLD "simplified by including %ScreenBuffer" @ "header"
+				@ %HostWindow,
+			/ @ "member function %WindowReference::GetParent"
+				@ "platform %Win32" @ %HostedGUI $=
+			(
+				/ "implemented throwing %ystdex::unimplemented";
+				* $comp "infinite self recursive call" $since b538
+			)
+		),
+		/ %YCLib $=
+		(
+			/ %MemoryMapping $=
+			(
+				- DLB "unsupported platform check",
+				+ $lib $build "support for platforms %(Linux, 'OS X')"
+					~ "platform %Android";
+			),
+			- DLB "unsupported platform check" @ %(Video, Timer),
+			/ DLD "simplified implementation of %TLSKey" @ %POSIXThread,
+				// To eliminate Clang++ warning: [-Wunused-private-field].
+			/ %Keys $=
+			(
+				+ "actual key code support" @ "platform %Linux" $=
+				(
+					/ "value of %KeyBitsetWidth" -> '0x200' ~ '256',
+					+ "enums %(NativeSet, ExtendedSet)" @ "namespace %KeyCodes",
+					+ "implementation of key category"
+				),
+				+ DLD "static assertion for key category table size"
+			),
+			/ "%YF_API supported DSOs without '__declspec'" @ %Platform
+		),
+		/ DLD %'Helper_(DS)' $=
+		(
+			/ "implementation about DS window",
+				// To eliminate Clang++ warning: [-Wunused-private-field] !@ \
+					platform %Win32.
+			/ @ "allowed build" @ 'YF_XCB' @ "DS screen"
+		),
+		/ $re_ex(b515) "conditionally compiling only for %Win32 target \
+			allowing non-Win32 build environment" @ %'YCLib_(MinGW32)',
+		/ DLB @ "Code::Blocks projects" @ "platform %MinGW32" $=
+		(
+			/ "library directory %lib" >> "%lib-i686"
+				// To make it compatible to %Tools.Scripts.
+			/ "improved compatibility" ^ '/' ~ "all backslashes" $effective
+				@ "library paths"
+		),
+		/ %YBaseMacro $=
+		(
+			/ "macro %_yInterface" => "%YInterface",
+			/ "macro %_yInterfaceHead" => "%YInterfaceHead"
+		)
+
+	),
+	/ %YBase $=
+	(
+		/ %YStandardEx $=
+		(
+			+ "operator %(<, <=, >, >=) for %nptr based on %operator< for \
+				underlying pointer" @ %Utilites,
+			+ "libc++ support" @ %Concurrency $=
+				(/ "allowed definition '(defined(_LIBCPP_VERSION) && \
+					!defined(_LIBCPP_HAS_NO_THREADS)'"),
+			/ %Container $=
+			(
+				/ DLD "implemented member function \
+					%container_inserter::operator()" ^ "%yforward";
+				/ $comp $build "unsupported G++ 4.7.1"
+			),
+			/ %Memory $=
+			(
+				+ "3 function templates %make_unique_with",
+				+ "2 function templates %unique_raw for raw pointer and deleter"
+			),
+			+ "metafunction %common_nonvoid_t" @ %TypeOperations,
+			/ %Array $=
+			(
+				* "missing including <ystdex/utility.hpp>" $since b532,
+					// For 'decay_copy'.
+				+ "metafunction %common_array_t" $dep_from %TypeOperations;
+				/ "function templates %(make_array, forward_as_array)" $=
+				(
+					/ 'inline' -> 'yconstfn',
+					/ "supported omitting first function parameter as \
+						[WG21/N4315]"
+						// However, %reference_wrapper stuff is not supported \
+							to avoid some complexity.
+				),
+				+ "function template %cast_array"
+					// Similar to %make_array but avoid some potential \
+						narrowing conversions.
+			)
+		),
+		/ "%YB_API supported DSOs without '__declspec'" @ %YDefinition
+	),
+	/ DLD "simplified comma separated linker options transferred by compiler \
+		driver by using one common prefix (i.e. '-Wl,*')"
+		@ "Code::Blocks projects" @ "platform %Win32" $effective %YFramework,
+	+ "modified %Makefile.gnu to support i686/x86_64 builds" @ "FreeImage"
+		@ "platform %Linux" @ "%3rdparty",
+		// Only x86_64 is tested.
+),
+
+b561
 (
 	/ %YFramework $=
 	(
@@ -169,7 +382,7 @@ $now
 			- "specialization of %is_normailzable for %bool" @ %Rational
 		),
 		/ DLD "preprocessing condition" ^ 'defined(__GLIBCXX__)'
-			~ "raw '__GlIBCXX__'" @ %Concurrency,
+			~ "raw '__GLIBCXX__'" @ %Concurrency,
 			// Just for uniformly using.
 		* "strict ISO C++ code compatibility" $since b525
 			$= (* "missing including <memory>" @ %Utility),
@@ -187,8 +400,8 @@ $now
 	(
 		/ %Scripts $=
 		(
-			+ '-pthread' @ "'Darwin' in 'uname' output"
-				@ "SHBuild-common-options.sh",
+			+ '-pthread' @ "default value" @ "%CXXFLAGS_IMPL_COMMON"
+				@ "'Darwin' in 'uname' output" @ "SHBuild-common-options.sh",
 			/ @ "SHBuild-common-options.sh" $=
 			(
 				+ "detection to ensure non empty $CXX at beginning",
@@ -465,7 +678,7 @@ b559
 			/ "source parameter type %Graphics" @ "all functions"
 				-> "%ConstGraphics" $effective @ %Service.(YGDI, YBlit)
 				$dep_from %Core.YGDIBase,
-			* DLB "non-lowercase header file name of %(YAdaptor, YNew)"
+			* "non-lowercase header file name of %(YAdaptor, YNew)"
 				@ %Adaptor.YModule $since b462
 		),
 		/ "namespace %Android" @ %'YCLib_(Android)'.Android $=
@@ -512,7 +725,7 @@ b559
 					// But not redir-op and prefix decimal number denoting \
 						file descriptor.
 			),
-			* DLB "non-lowercase source file name of %YFramework.YCLib.YCommon" 
+			* "non-lowercase source file name of %YFramework.YCLib.YCommon" 
 				@ "%SHBuild-bootstrap.sh" $since b540,
 			- $dep_from "getting off Shlwapi" '-lShlwapi' @ "%LIBS" $effective
 				@ ("SHBuild-bootstrap.sh", "SHBuild-YSLib.sh",
@@ -6040,13 +6253,10 @@ b515
 	),
 	/ %YFramework $=
 	(
-		* $build "run 'SHBuild-YSLib' failed" $since b492 $=
-		(
-			* "wrong '#error' directive" @ "!YCL_Android" @ %'Helper_(Android)'
-				$since b502,
-			* "wrong '#error' directive" @ "!YCL_Android" @ %'YCLib_(Android)'
-				$since b492
-		),
+		* $build "run 'SHBuild-YSLib' failed" $since b492
+			$= (* "wrong '#error' directive" @ "!YCL_Android"
+				@ (%'Helper_(Android)' $since b502, %'YCLib_(Android)'
+				$since b492)),
 		/ %YSLib $=
 		(
 			/ %Service $=

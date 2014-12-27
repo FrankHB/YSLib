@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief POSIX 线程接口包装。
-\version r61
+\version r62
 \author FrankHB <frankhb1989@gmail.com>
 \since build 553
 \par 创建时间:
 	2014-11-11 15:43:43 +0800
 \par 修改时间:
-	2014-11-13 18:21 +0800
+	2014-12-22 13:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,6 @@ class TLSKey
 {
 private:
 	::pthread_key_t key;
-	void(*destructor)(void*);
 
 public:
 	TLSKey(void(*)(void*));

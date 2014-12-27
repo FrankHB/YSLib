@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r561
+\version r568
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-11-25 17:38 +0800
+	2014-12-22 15:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,13 +27,18 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_MinGW32_YCLib_MinGW32
-#include YFM_YCLib_FileSystem // for platform::FileOperationFaiure;
+#include YFM_YCLib_Platform
+#if YCL_Win32
+#	include YFM_MinGW32_YCLib_MinGW32
+#	include YFM_YCLib_FileSystem // for platform::FileOperationFaiure;
 
 using namespace YSLib;
+#endif
 
 namespace platform_ex
 {
+
+#if YCL_Win32
 
 inline namespace Windows
 {
@@ -337,6 +342,8 @@ ConvertTime(::FILETIME& file_time)
 }
 
 } // inline namespace Windows;
+
+#endif
 
 } // namespace YSLib;
 

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2196
+\version r2223
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-12-14 13:57 +0800
+	2014-12-22 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -210,6 +210,37 @@ operator!=(const nptr<_type>& x, const nptr<_type>& y)
 {
 	return !(x == y);
 }
+
+//! \since build 562
+//@{
+template<typename _type>
+yconstfn bool
+operator<(const nptr<_type>& x, const nptr<_type>& y)
+{
+	return x.get() < y.get();
+}
+
+template<typename _type>
+yconstfn bool
+operator<=(const nptr<_type>& x, const nptr<_type>& y)
+{
+	return !(y < x);
+}
+
+template<typename _type>
+yconstfn bool
+operator>(const nptr<_type>& x, const nptr<_type>& y)
+{
+	return y < x;
+}
+
+template<typename _type>
+yconstfn bool
+operator>=(const nptr<_type>& x, const nptr<_type>& y)
+{
+	return !(x < y);
+}
+//@}
 
 template<typename _type>
 inline void

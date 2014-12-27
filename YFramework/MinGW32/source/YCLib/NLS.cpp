@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r160
+\version r168
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2014-11-25 17:41 +0800
+	2014-12-22 15:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,15 +27,20 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_MinGW32_YCLib_NLS
-#include YFM_YCLib_MemoryMapping
-#include <map>
+#include YFM_YCLib_Platform
+#if YCL_Win32
+#	include YFM_MinGW32_YCLib_NLS
+#	include YFM_YCLib_MemoryMapping
+#	include <map>
 
 using namespace YSLib;
 using namespace Drawing;
+#endif
 
 namespace platform_ex
 {
+
+#if YCL_Win32
 
 inline namespace Windows
 {
@@ -156,6 +161,8 @@ FetchDBCSOffset(int cp) ynothrow
 }
 
 } // inline namespace Windows;
+
+#endif
 
 } // namespace YSLib;
 

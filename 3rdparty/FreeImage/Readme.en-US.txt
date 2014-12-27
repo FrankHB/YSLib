@@ -16,31 +16,31 @@ Merged base version 3.16.0 without functions with suffix "U" and real support fo
 Based on previous revision b431:
 Removed plugin functions: "FreeImage_GetFormatFromFIF", "FreeImage_GetFIFMimeType", "FreeImage_GetFIFExtensionList", "FreeImage_GetFIFDescription", "FreeImage_GetFIFRegExpr", "FreeImage_FIFSupportsReading", "FreeImage_FIFSupportsWriting", "FreeImage_FIFSupportsExportBPP", "FreeImage_FIFSupportsExportType", "FreeImage_FIFSupportsICCProfiles", "FreeImage_FIFSupportsNoPixels", "FreeImage_SetPluginEnabled", "FreeImage_IsPluginEnabled".
 In "../include/FreeImage.h",:
-  Exposed struct "PluginNode" as "FI_PluginNodeRec".
-  Added declaration of function "FreeImageEx_GetPluginNodeFromFIF".
-  Added macro "nullptr" for C compatibility.
-  Renamed struct "Plugin" to "FI_PluginRec".
+	Exposed struct "PluginNode" as "FI_PluginNodeRec".
+	Added declaration of function "FreeImageEx_GetPluginNodeFromFIF".
+	Added macro "nullptr" for C compatibility.
+	Renamed struct "Plugin" to "FI_PluginRec".
 In "Source/Utilities.h"
-  Added typedef declaration of "Plugin" to keep source compatibility.
+	Added typedef declaration of "Plugin" to keep source compatibility.
 In "Source/Plugin.h"
-  Removed unnecessary class name declaration "Plugin".
-  Moved struct "PluginNode" to public header.
-  Removed declaration of function "FreeImage_stricmp".
-  Removed including "Utilities.h".
-  Added typedef declaration of "PluginNode" to keep source compatibility.
+	Removed unnecessary class name declaration "Plugin".
+	Moved struct "PluginNode" to public header.
+	Removed declaration of function "FreeImage_stricmp".
+	Removed including "Utilities.h".
+	Added typedef declaration of "PluginNode" to keep source compatibility.
 In "Source/FreeImage/Plugin.cpp"
-  Added definition of function "FreeImageEx_GetPluginNodeFromFIF".
-  Simplified implementation using C++11.
-  Made "PluginList::AddFakeNode" call "FreeImage_OutputMessageProc" on fail.
+	Added definition of function "FreeImageEx_GetPluginNodeFromFIF".
+	Simplified implementation using C++11.
+	Made "PluginList::AddFakeNode" call "FreeImage_OutputMessageProc" on fail.
 
 = Since build 431:
 Based on previous revision b417:
 In "../include/FreeImage.h", "Source/FreeImage/Plugin.cpp", "Source/FreeImage/GetType.cpp" and "Source/FreeImageToolkit/JPEGTransform.cpp":
-  Removed functions only supported in Win32: "FreeImage_LoadU", "FreeImage_SaveU", "FreeImage_GetFileTypeU", "FreeImage_GetFIFFromFilenameU", "FreeImage_JPEGTransformU", "FreeImage_JPEGCropU".
+	Removed functions only supported in Win32: "FreeImage_LoadU", "FreeImage_SaveU", "FreeImage_GetFileTypeU", "FreeImage_GetFIFFromFilenameU", "FreeImage_JPEGTransformU", "FreeImage_JPEGCropU".
 Confirmed for all modified above:
-  Removed all spaces at end of lines.
-  Saved as UTF-8 + BOM.
-  All EOL markers are normalized as CR+LF.
+	Removed all spaces at end of lines.
+	Saved as UTF-8 + BOM.
+	All EOL markers are normalized as CR+LF.
 Note: "Source/FreeImageToolkit/JPEGTransform.cpp" is excluded in the source list. The file is reserved for future use.
 Additional source of libjpeg-turbo-1.3.0 is now used to replace libjpeg-8d in "Source/LibJPEG".
 "Makefile.srcs" is edited properly to exclude unused files and to add libjepg-turbo source files.
@@ -50,9 +50,9 @@ Additional source of libjpeg-turbo-1.3.0 is now used to replace libjpeg-8d in "S
 Based on official version 3.15.4:
 Removed "#include <memory.h>" in "Source/Utilities.h" to make it conforming to the ISO C/C++ standard.
 In "../include/FreeImage.h":
-  Replaced all function default argument for pointer type parameters from "NULL" or "0" to "nullptr" to "nullptr", to avoid possible G++ warning [-Wzero-as-null-pointer-constant]. This requires the "nullptr" keyword being supported.
-  Removed all spaces at end of lines.
-  Saved as UTF-8 + BOM.
+	Replaced all function default argument for pointer type parameters from "NULL" or "0" to "nullptr" to "nullptr", to avoid possible G++ warning [-Wzero-as-null-pointer-constant]. This requires the "nullptr" keyword being supported.
+	Removed all spaces at end of lines.
+	Saved as UTF-8 + BOM.
 Disabled unused plugins and make placeholders in plugin list in "Source/Plugin.h" and "Source/FreeImage/Plugin.cpp".
 "Makefile.srcs" is edited properly to exclude unused files.
 
@@ -93,7 +93,7 @@ Copy all files except this document in this directory to the source directory an
 It is now required to replace the original header file "FreeImage.h" for building the library, though the content of header file "FreeImage.h" is actually equivalent with the original file before b456.
 
 = DS
-Currently only building on Windows is supported.
+Currently only building on Windows is tested.
 MSYS and devkitARM are required.
 The environment variable "DEVKITARM" should be set properly like "/C/devkitPro", to make sure the toolchain files can be found.
 The file "Makefile.ds" should have been copied to the source directory.
@@ -107,4 +107,11 @@ The environment variable "PATH" should be set properly like "C:\msys\mingw32\bin
 The modified file "Makefile.mingw" should have been copied to the source directory and overwritten the original one.
 Run "mingw32-make FREEIMAGE_LIBRARY_TYPE=STATIC -f Makefile.mingw -j" to build static library for MinGW32.
 Run "mingw32-make -f Makefile.mingw clean" to delete all build files. Note the official "clean.bat" is not enough.
+
+= Linux
+GNU toolchain is needed.
+NASM is required for compiling libjpeg-turbo SIMD source files.
+Run "make -f Makefile.gnu libfreeimage.a -j" to build static library.
+Run "make -f Makefile.gnu clean" to delete all build files.
+For hosted Linux environment, "-f Makefile.gnu" can be omitted. Also "libfreeimage.a" can be omitted to build both static and shared library, although only static library is used by YFramework.
 

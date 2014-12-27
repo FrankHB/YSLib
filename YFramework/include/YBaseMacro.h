@@ -11,13 +11,13 @@
 /*!	\file YBaseMacro.h
 \ingroup Core
 \brief 通用基础设施：宏定义。
-\version r2655
+\version r2664
 \author FrankHB <frankhb1989@gmail.com>
 \since build 204
 \par 创建时间:
 	2010-10-09 09:25:27 +0800
 \par 修改时间:
-	2014-12-14 21:44 +0800
+	2014-12-25 10:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -331,31 +331,32 @@ _t type
 \since build 161
 */
 //@{
-
-#define _yInterface struct
+//! \since build 562
+#define YInterface struct
 
 #define implements public
 
 /*!
 \brief 定义接口类型头部。
 \sa ImplEmptyDtor
+\since build 562
 */
-#define _yInterfaceHead(_n) { \
+#define YInterfaceHead(_n) { \
 protected: \
 	DefDeCtor(_n) \
 \
 public: \
 	virtual DefDeDtor(_n)
 
-#define FwdDeclI(_n) _yInterface _n;
+#define FwdDeclI(_n) YInterface _n;
 
 /*!
 \brief 定义接口类型。
 \since build 362
 */
 #define DeclI(_attr, _n) \
-	_yInterface _attr _n \
-	_yInterfaceHead(_n)
+	YInterface _attr _n \
+	YInterfaceHead(_n)
 
 /*
 \brief 定义派生接口类型。
@@ -363,8 +364,8 @@ public: \
 \since build 362
 */
 #define DeclDerivedI(_attr, _n, ...) \
-	_yInterface _attr _n : __VA_ARGS__ \
-	_yInterfaceHead(_n)
+	YInterface _attr _n : __VA_ARGS__ \
+	YInterfaceHead(_n)
 
 //! \note ImplI = Implements Interface 。
 #define ImplI(...) override

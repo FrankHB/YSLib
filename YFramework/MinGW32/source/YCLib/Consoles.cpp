@@ -11,13 +11,13 @@
 /*!	\file Consoles.cpp
 \ingroup NBuilder
 \brief 控制台。
-\version r223
+\version r229
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2014-12-22 15:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,10 +26,15 @@
 
 
 #include "YCLib/YModules.h"
-#include YFM_MinGW32_YCLib_Consoles
+#include YFM_YCLib_Platform
+#if YCL_Win32
+#	include YFM_MinGW32_YCLib_Consoles
+#endif
 
 namespace platform_ex
 {
+
+#if YCL_Win32
 
 inline namespace Windows
 {
@@ -170,6 +175,8 @@ MakeWConsole(::DWORD h)
 }
 
 } // inline namespace Windows;
+
+#endif
 
 } // namespace platform_ex;
 
