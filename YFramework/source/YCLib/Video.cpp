@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r365
+\version r368
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2014-12-07 12:30 +0800
+	2014-12-22 13:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -119,12 +119,10 @@ YConsoleInit(std::uint8_t dspIndex, Color fc, Color bc)
 		bg_palette[0] = Pixel(bc).Integer | BITALPHA;
 		bg_palette[255] = Pixel(fc).Integer | BITALPHA;
 	}
-#elif YCL_Win32 || YCL_Android
+#else
 YConsoleInit(std::uint8_t, Color, Color)
 {
 // TODO: Implementation.
-#else
-#	error "Unsupported platform found."
 #endif
 }
 

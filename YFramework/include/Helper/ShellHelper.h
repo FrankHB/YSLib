@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.h
 \ingroup Helper
 \brief Shell 助手模块。
-\version r1771
+\version r1792
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-03-14 14:07:22 +0800
 \par 修改时间:
-	2014-11-15 23:34 +0800
+	2014-12-22 10:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -263,8 +263,8 @@ CallStored()
 
 销毁每个桌面并在原存储位置创建新的对象。
 */
-inline PDefH(void, ResetDesktop, Desktop& dsk, Devices::Screen& scr)
-	ImplExpr(dsk.~Desktop(), new(&dsk) Desktop(scr))
+inline PDefH(void, ResetDesktop, UI::Desktop& dsk, Devices::Screen& scr)
+	ImplExpr(dsk.~Desktop(), new(&dsk) UI::Desktop(scr))
 
 
 //资源相关定义和函数。
@@ -277,27 +277,6 @@ inline PDefH(Color, GenerateRandomColor, )
 //使用 std::time(0) 初始化随机数种子在 DeSmuME 上无效。
 //	std::srand(std::time(0));
 	ImplRet(Color(std::rand(), std::rand(), std::rand(), 1))
-
-/*!
-\brief 全屏幕描点。
-\note 颜色由坐标决定。
-\since build 360
-*/
-template<typename _tOut, typename _tGen>
-void
-ScrDraw(_tOut buf, _tGen&& f)
-{
-	for(SDst y(0); y < MainScreenHeight; ++y)
-		for(SDst x(0); x < MainScreenWidth; yunseq(++x, ++buf))
-			*buf = yforward(f)(x, y);
-}
-
-/*!
-\brief 新建屏幕图像。
-\since build 213
-*/
-inline PDefH(shared_ptr<Image>, CreateSharedScreenImage, ConstBitmapPtr p)
-	ImplRet(make_shared<Image>(p, MainScreenWidth, MainScreenHeight))
 
 /*!
 \brief 使用 new 分配空间并复制无压缩位图。

@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r578
+\version r642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-12-19 12:02 +0800
+	2014-12-23 19:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,8 +49,10 @@ using KeyIndex = std::size_t;
 //@{
 #if YCL_DS
 yconstexpr KeyIndex KeyBitsetWidth(32);
-#elif YCL_Win32 || YCL_Android || YCL_Linux || YCL_OS_X
+#elif YCL_Win32 || YCL_Android || YCL_OS_X
 yconstexpr KeyIndex KeyBitsetWidth(256);
+#elif YCL_Linux
+yconstexpr KeyIndex KeyBitsetWidth(0x200);
 #else
 #	error "Unsupported platform found."
 #endif
@@ -387,7 +389,68 @@ enum ExtendedSet
 	Secondary = 0xE1,
 	Tertiary = 0xE2
 };
+#elif YCL_Linux
+/*!
+\brief 基本公用按键集合。
+\note 值和 Linux 头文件 <tt>\<linux/input.h\></tt> 中的宏 KEY_* 替换的值对应。
+\since build 562
+*/
+enum NativeSet
+{
+	//! \note 同 KEY_RESERVED 。
+	Empty = 0,
+	//! \note 同 KEY_ESC 。
+	Esc = 1,
+	//! \note 同 KEY_BACKSPACE 。
+	Backspace = 14,
+	//! \note 同 KEY_TAB 。
+	Tab = 15,
+	//! \note 同 KEY_ENTER 。
+	Enter = 28,
+	//! \note 同 KEY_LEFTCTRL 。
+	Ctrl = 29,
+	//! \note 同 KEY_LEFTSHIFT 。
+	Shift = 42,
+	//! \note 同 KEY_LEFTALT 。
+	Alt = 56,
+	//! \note 同 KEY_SPACE 。
+	Space = 57,
+	//! \note 同 KEY_CAPSLOCK 。
+	CapsLock = 58,
+	//! \note 同 KEY_HOME 。
+	Home = 102,
+	//! \note 同 KEY_UP 。
+	Up = 103,
+	//! \note 同 KEY_PAGEUP 。
+	PgUp = 104,
+	//! \note 同 KEY_LEFT 。
+	Left = 105,
+	//! \note 同 KEY_RIGHT 。
+	Right = 106,
+	//! \note 同 KEY_END 。
+	End = 107,
+	//! \note 同 KEY_DOWN 。
+	Down = 108,
+	//! \note 同 KEY_PAGEDOWN 。
+	PgDn = 109,
+	//! \note 同 KEY_INSERT 。
+	Insert = 110,
+	//! \note 同 KEY_DELETE 。
+	Delete = 111,
+	//! \note 同 KEYCODE_PAUSE 。
+	Pause = 119
+};
 
+//! \since build 562
+enum ExtendedSet
+{
+	//! \note 同 BTN_LEFT 。
+	Primary = 0x110,
+	//! \note 同 BTN_RIGHT 。
+	Secondary = 0x111,
+	//! \note 同 BTN_MIDDLE 。
+	Tertiary = 0x112
+};
 #endif
 
 

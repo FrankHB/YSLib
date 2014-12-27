@@ -2,8 +2,93 @@
 # (C) 2014 FrankHB.
 # Common source script.
 
-: ${SHBuild_CMD:=$COMSPEC}
+[ x"$INC_SHBuild_common" == x ] && INC_SHBuild_common=1 || return 0
+
+: ${SHBuild_CMD:="$COMSPEC"}
 : ${SHBuild_CMD:=cmd}
+
+trap exit 1 INT
+
+SHBuild_AssertNonempty()
+{
+	local vval
+	eval "vval=\"\${$1}\""
+	[ x"$vval" != x ] || \
+		(echo ERROR: Variable \""$1"\" should not be empty. && exit 1)
+}
+
+SHBuild_CheckedCall()
+{
+	if hash "$1" > /dev/null 2>& 1; then
+		$* || exit $?
+	else
+		echo ERROR: \""$1"\" should be exist. Failed calling \""$*"\".
+		exit 1
+	fi
+}
+
+SHBuild_InitReadonly()
+{
+	if [ x"$1" != x ]; then
+		local vval
+		eval "vval=\"\${$1}\""
+		if [ x"$vval" == x ]; then
+			local varname=$1
+			shift
+			eval readonly \"$varname\"=\"\$\(SHBuild_CheckedCall $*\)\"
+			eval "vval=\"\${$varname}\""
+			echo Cached readonly variable \"$varname\" = \"$vval\".
+		fi
+	fi
+}
+
+
+SHBuild_CheckUName_Case_()
+{
+	case "$1" in
+	*Darwin*)
+		echo OS_X
+		;;
+	*MSYS* | *MINGW*)
+		echo Win32
+		;;
+	*Linux*)
+		echo Linux
+		;;
+	*)
+		echo unknown
+	esac
+}
+
+SHBuild_CheckUNameM_Case_()
+{
+	case "$1" in
+	x86_64 | i*86-64)
+		echo $1
+		;;
+	i*86)
+		echo $1
+		;;
+	*)
+		echo unknown
+	esac
+}
+
+# Usage: SHBuild_CheckUName && echo $SHBuild_Env_OS $SHBuild_Env_Arch
+SHBuild_CheckUName()
+{
+	[ x"$SHBuild_OS" == x ] || return 0
+	SHBuild_InitReadonly "SHBuild_Env_uname" uname
+	SHBuild_AssertNonempty SHBuild_Env_uname
+	SHBuild_InitReadonly "SHBuild_Env_OS" SHBuild_CheckUName_Case_ \
+		"$SHBuild_Env_uname" > /dev/null
+	[ x"$SHBuild_Arch" == x ] || return 0
+	SHBuild_InitReadonly "SHBuild_Env_uname_m" uname -m
+	SHBuild_AssertNonempty SHBuild_Env_uname_m
+	SHBuild_InitReadonly "SHBuild_Env_Arch" SHBuild_CheckUNameM_Case_ \
+		"$SHBuild_Env_uname_m" > /dev/null
+}
+
 
 SHBuild_2u()
 {

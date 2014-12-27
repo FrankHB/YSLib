@@ -11,13 +11,13 @@
 /*!	\file Timer.cpp
 \ingroup YCLib
 \brief 平台相关的计时器接口。
-\version r324
+\version r329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:44:52 +0800
 \par 修改时间:
-	2014-11-21 12:50 +0800
+	2014-12-22 15:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,7 @@
 #include YFM_YCLib_Timer
 #include YFM_YCLib_NativeAPI
 #include <system_error>
-#if YCL_Win32 || YCL_Android
+#if !YCL_DS
 #	include <chrono>
 #endif
 
@@ -78,11 +78,9 @@ GetTicks() ynothrow
 #if YCL_DS
 	start_ticks();
 	return system_tick;
-#elif YCL_Win32 || YCL_Android
+#else
 	return std::uint32_t(std::chrono::duration_cast<std::chrono::milliseconds>(
 		std::chrono::steady_clock::now().time_since_epoch()).count());
-#else
-#	error "Unsupported platform found."
 #endif
 }
 
@@ -92,7 +90,7 @@ GetHighResolutionTicks() ynothrow
 #if YCL_DS
 	start_ticks();
 	return system_tick * 1000000ULL + TIMER2_DATA * 1000000ULL / BUS_CLOCK;
-#elif YCL_Win32 || YCL_Android
+#else
 	return std::uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(
 		std::chrono::steady_clock::now().time_since_epoch()).count());
 #endif

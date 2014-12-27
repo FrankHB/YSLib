@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r724
+\version r727
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-12-18 01:11 +0800
+	2014-12-18 09:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 #include YFM_YSLib_Core_YCoreUtilities // for YSLib::CheckPositiveScalar;
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_MinGW32
+#	include <ystdex/exception.h> // for ystdex::unimplemented;
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #	include <android/native_window.h>
@@ -214,7 +215,8 @@ WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
 WindowReference
 WindowReference::GetParent() const
 {
-	return GetParent();
+	// TODO: Implementation.
+	throw ystdex::unimplemented();
 }
 
 void

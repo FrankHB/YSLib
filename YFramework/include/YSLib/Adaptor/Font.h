@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3238
+\version r3282
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2014-12-02 18:40 +0800
+	2014-12-24 13:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,6 @@ namespace YSLib
 namespace Drawing
 {
 
-//前向声明。
 class Font;
 class FontCache;
 class FontFamily;
@@ -103,13 +102,10 @@ DefBitmaskEnum(FontStyle)
 \return 非空结果。
 \since build 277
 */
-yconstfn const char*
-FetchName(FontStyle style) ynothrow
-{
-	return style == FontStyle::Bold ? "Bold" : (style == FontStyle::Italic
+yconstfn PDefH(const char*, FetchName, FontStyle style) ynothrow
+	ImplRet(style == FontStyle::Bold ? "Bold" : (style == FontStyle::Italic
 		? "Italic" : (style == FontStyle::Underline ? "Underline" : (style
-		== FontStyle::Strikeout ? "Strikeout" : "Regular")));
-}
+		== FontStyle::Strikeout ? "Strikeout" : "Regular"))))
 
 
 /*!
@@ -119,7 +115,8 @@ FetchName(FontStyle style) ynothrow
 class YF_API FontException : public LoggedEvent
 {
 public:
-	using FontError = ::FT_Error;
+	//! \note 和 \c ::FT_Error 一致。
+	using FontError = int;
 
 private:
 	FontError err;
@@ -237,8 +234,10 @@ private:
 	//@{
 	struct BitmapKey
 	{
-		::FT_UInt Flags;
-		::FT_UInt GlyphIndex;
+		//! \since build 562
+		unsigned Flags;
+		//! \since build 562
+		unsigned GlyphIndex;
 		FontSize Size;
 		//! \since build 421
 		FontStyle Style;
@@ -266,16 +265,18 @@ private:
 	};
 	//@}
 
-	::FT_Long face_index;
-	::FT_Int cmap_index;
+	//! \since build 562
+	long face_index;
+	//! \since build 562
+	int cmap_index;
 	StyleName style_name;
 	//! \since build 554
 	pair<lref<FontFamily>, lref<::FT_FaceRec_>> ref;
 	//! \since build 521
 	mutable ystdex::used_list_cache<BitmapKey, SmallBitmapData, BitmapKeyHash>
 		bitmap_cache;
-	//! \since build 419
-	mutable unordered_map<ucs4_t, ::FT_UInt> glyph_index_cache;
+	//! \since build 562
+	mutable unordered_map<ucs4_t, unsigned> glyph_index_cache;
 	//! \since build 420
 	mutable unordered_map<FontSize, NativeFontSize> size_cache;
 
@@ -308,9 +309,9 @@ public:
 	DefGetter(const ynothrow, const StyleName&, StyleName, style_name)
 	/*!
 	\brief 取字符映射索引号。
-	\since build 278
+	\since build 562
 	*/
-	DefGetter(const ynothrow, ::FT_Int, CMapIndex, cmap_index)
+	DefGetter(const ynothrow, int, CMapIndex, cmap_index)
 
 private:
 	//! \since build 419
@@ -341,7 +342,7 @@ public:
 
 /*!
 \brief 取默认字型引用。
-\throw LoggedEvent 记录异常事件。
+\throw LoggedEvent 严重：异常事件。
 \since build 425
 */
 YF_API const Typeface&
@@ -356,23 +357,32 @@ FetchDefaultTypeface();
 class YF_API CharBitmap final
 {
 public:
-	using BufferType = ::FT_Byte*;
-	//! \since build 415
+	//! \note 和 \c ::FT_Byte* 一致。
+	using BufferType = byte*;
+	/*!
+	\note 值兼容于 \c ::FT_Pixel_Mode 。
+	\since build 415
+	*/
 	enum FormatType
 	{
-		None = ::FT_PIXEL_MODE_NONE,
-		Mono = ::FT_PIXEL_MODE_MONO,
-		Gray = ::FT_PIXEL_MODE_GRAY,
-		Gray2 = ::FT_PIXEL_MODE_GRAY2,
-		Gray4 = ::FT_PIXEL_MODE_GRAY4,
-		LCD = ::FT_PIXEL_MODE_LCD,
-		LCD_V = ::FT_PIXEL_MODE_LCD_V
+		None = 0,
+		Mono,
+		Gray,
+		Gray2,
+		Gray4,
+		LCD,
+		LCD_V
 	};
 	using NativeType = ::FTC_SBit;
-	//! \since build 415
-	using PitchType = ::FT_Short;
-	using ScaleType = ::FT_Byte;
-	using SignedScaleType = ::FT_Char;
+	/*!
+	\note 和 \c ::FT_Short 一致。
+	\since build 415
+	*/
+	using PitchType = short;
+	//! \note 和 \c ::FT_Byte 一致。
+	using ScaleType = byte;
+	//! \note 和 \c ::FT_Char 一致。
+	using SignedScaleType = signed char;
 
 private:
 	NativeType bitmap;

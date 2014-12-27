@@ -12,7 +12,7 @@ SHBuild_Pushd
 cd $SHBuild_BaseDir
 
 echo Building ...
-"$CXX" main.cpp -oSHBuild $CXXFLAGS $LDFLAGS $INCLUDES $LIBS
+"$CXX" Main.cpp -oSHBuild $CXXFLAGS $LDFLAGS $INCLUDES $LIBS
 
 SHBuild_Popd
 echo Done.

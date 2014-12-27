@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r455
+\version r457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-12-06 14:18 +0800
+	2014-12-24 17:35 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -33,6 +33,7 @@
 #include YFM_DS_Helper_DSMain // for ScreenWidth, ScreenHeight;
 #include YFM_YSLib_Core_YDevice
 #include YFM_Helper_ScreenBuffer
+#include YFM_Helper_HostWindow
 
 namespace YSLib
 {
@@ -76,7 +77,7 @@ public:
 	*/
 	void
 	Update(Drawing::ConstBitmapPtr) ynothrow override;
-#elif YCL_Win32 || YCL_Android
+#elif YF_Use_XCB || YCL_Win32 || YCL_Android
 public:
 	Drawing::Point Offset;
 	/*!

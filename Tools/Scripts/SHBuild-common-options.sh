@@ -2,18 +2,28 @@
 # (C) 2014 FrankHB.
 # Common options script for build YSLib using SHBuild.
 
+: ${SHBuild_ToolDir:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
+: ${SHBuild_AppBaseDir=$(cd `dirname "$0"`; pwd)}
+. $SHBuild_ToolDir/SHBuild-common.sh
+SHBuild_CheckUName
+
 : ${C_CXXFLAGS_GC:="-fdata-sections -ffunction-sections"}
 
-: ${LDFLAGS_GC:="-Wl,--gc-sections"}
-#: ${LDFLAGS_GC:="-Wl,--gc-sections -Wl,--print-gc-sections"}
+if [[ "$SHBuild_Env_OS" == "OS_X" ]]; then
+	: ${LDFLAGS_GC:="-Wl,--dead-strip"}
+else
+	: ${LDFLAGS_GC:="-Wl,--gc-sections"}
+	#: ${LDFLAGS_GC:="-Wl,--gc-sections -Wl,--print-gc-sections"}
+fi
 
 # See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25 .
-if !(uname | grep MINGW > /dev/null || uname | grep MSYS > /dev/null); then
-	if !(echo "int main(){}" | "$CXX" -xc++ -o/tmp/null $C_CXXFLAGS_GC \
-		$LDFLAGS_GC -; 2>& 1 > /dev/null); then
+if [[ "$SHBuild_Env_OS" != "Win32" ]]; then
+	if [[ "$CXX" != "" ]] && !(echo "int main(){}" | "$CXX" -xc++ -o/tmp/null \
+		$C_CXXFLAGS_GC $LDFLAGS_GC -; 2>& 1 > /dev/null); then
 		C_CXXFLAGS_GC=""
 		LDFLAGS_GC=""
 	fi
+	: ${C_CXXFLAGS_PIC:="-fPIC"}
 fi
 
 : ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC -pedantic-errors"}
@@ -39,9 +49,7 @@ fi
 # TODO: BSD etc.
 if "$CXX" -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
 	CXXFLAGS_IMPL_COMMON_THRD_="-mthreads"
-elif uname | grep Linux > /dev/null; then
-	CXXFLAGS_IMPL_COMMON_THRD_="-pthread"
-elif uname | grep Darwin > /dev/null; then
+elif [[ "$SHBuild_Env_OS" == "Linux" || "$SHBuild_Env_OS" == "OS_X" ]]; then
 	CXXFLAGS_IMPL_COMMON_THRD_="-pthread"
 fi
 
@@ -94,6 +102,20 @@ fi
 : ${CXXFLAGS:="$CXXFLAGS_COMMON $CXXFLAGS_OPT_DBG"}
 
 : ${LDFLAGS_OPT_DBG:="$LDFLAGS_IMPL_OPT $LDFLAGS_GC"}
+
+if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
+	: ${LDFLAGS_DYN_BASE:="-shared -Wl,--dll"}
+	: ${DSOSFX:=".dll"}
+else
+	: ${LDFLAGS_DYN_BASE:="-shared"}
+	: ${LIBPFX:="lib"}
+	: ${DSOSFX:=".so"}
+fi
+
+: ${LDFLAGS_DYN_EXTRA:="-Wl,--no-undefined \
+	-Wl,--dynamic-list-data,--dynamic-list-cpp-new,--dynamic-list-cpp-typeinfo"}
+
+: ${LDFLAGS_DYN:="$LDFLAGS_DYN_BASE $LDFLAGS_DYN_EXTRA"}
 
 : ${LDFLAGS:="$LDFLAGS_OPT_DBG"}
 

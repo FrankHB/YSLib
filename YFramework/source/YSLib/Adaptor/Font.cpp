@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3421
+\version r3446
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-12-02 18:50 +0800
+	2014-12-24 14:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -51,6 +51,24 @@ using namespace IO;
 
 namespace Drawing
 {
+
+//! \since build 562
+//@{
+static_assert(std::is_same<FontException::FontError, ::FT_Error>::value,
+	"Invalid type found.");
+static_assert(std::is_same<CharBitmap::BufferType, ::FT_Byte*>::value,
+	"Invalid type found.");
+static_assert(int(CharBitmap::None) == ::FT_PIXEL_MODE_NONE && int(
+	CharBitmap::Mono) == ::FT_PIXEL_MODE_MONO && int(CharBitmap::Gray)
+	== ::FT_PIXEL_MODE_GRAY && int(CharBitmap::Gray2) == ::FT_PIXEL_MODE_GRAY2
+	&& int(CharBitmap::Gray4) == ::FT_PIXEL_MODE_GRAY4 && int(CharBitmap::LCD)
+	== ::FT_PIXEL_MODE_LCD && int(CharBitmap::LCD_V) == ::FT_PIXEL_MODE_LCD_V,
+	"Incompatible format found.");
+static_assert(std::is_same<CharBitmap::ScaleType, ::FT_Byte>::value,
+	"Invalid type found.");
+static_assert(std::is_same<CharBitmap::SignedScaleType, ::FT_Char>::value,
+	"Invalid type found.");
+//@}
 
 //! \since build 420
 namespace
@@ -196,10 +214,9 @@ Typeface::SmallBitmapData::SmallBitmapData(::FT_GlyphSlot slot, FontStyle style)
 
 		const ::FT_Pos xadvance((slot->advance.x + 32) >> 6),
 			yadvance((slot->advance.y + 32) >> 6);
-		::FT_Int temp;
 
-#define SBIT_CHECK_CHAR(d) (temp = ::FT_Char(d), temp == d)
-#define SBIT_CHECK_BYTE(d) (temp = ::FT_Byte(d), temp == d)
+#define SBIT_CHECK_CHAR(d) (::FT_Int(::FT_Char(d)) == d)
+#define SBIT_CHECK_BYTE(d) (::FT_Int(::FT_Byte(d)) == d)
 		if(SBIT_CHECK_BYTE(bitmap.rows) && SBIT_CHECK_BYTE(bitmap.width)
 			&& SBIT_CHECK_CHAR(bitmap.pitch)
 			&& SBIT_CHECK_CHAR(slot->bitmap_left)
@@ -277,6 +294,8 @@ Typeface::~Typeface()
 
 	YAssert(Deref(face).internal->refcount == 1,
 		"Invalid face reference count found.");
+#if defined(FT_CONFIG_OPTION_OLD_INTERNALS) \
+	&& (FREETYPE_MAJOR * 10000 + FREETYPE_MINOR * 100 + FREETYPE_PATCH >= 20500)
 	// XXX: Hack for using %ttmtx.c and %sfobjs.c of FreeType 2.4.11.
 	if(FT_IS_SFNT(face))
 	{
@@ -287,6 +306,7 @@ Typeface::~Typeface()
 		std::free(ttface->horizontal.long_metrics),
 		std::free(ttface->horizontal.short_metrics);
 	}
+#endif
 	::FT_Done_Face(face);
 }
 
@@ -372,8 +392,7 @@ FontCache::FontCache(size_t /*cache_size*/)
 	::FT_Error error;
 
 	if(YB_LIKELY((error = ::FT_Init_FreeType(&library)) == 0))
-		// TODO: Write log on success.
-		;
+		YTraceDe(Informative, "FreeType library instance initialized.");
 	else
 	{
 		// TODO: Format without allocating memory.

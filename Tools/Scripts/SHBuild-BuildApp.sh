@@ -57,8 +57,11 @@ export SHBuild_Static
 SHBOPT="-xd,.$SHBuild_Conf -xmode,2 $@"
 . $SHBuild_Bin/SHBuild-common.sh
 if hash gcc-ar > /dev/null; then
-	export AR=gcc-ar
+	: ${AR:="gcc-ar"}
+elif hash ar > /dev/null; then
+	: ${AR:="ar"}
 fi
+export AR
 . $SHBuild_Bin/SHBuild-common-toolchain.sh
 if [ x$SHBuild_Debug != x ]; then
 	echo Use debug configuration $SHBuild_Conf.
@@ -82,6 +85,17 @@ else
 	export SHBuild_YSLib_LibNames='-lYFramework -lYBase'
 fi
 export LDFLAGS
+
+# TODO: Merge with SHBuild-YSLib-common.sh.
+SHBuild_CheckUName
+if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
+	: ${SHBuild_YSLib_Platform:="MinGW32"}
+	SHBuild_YF_SystemLibs="-lgdi32 -limm32"
+else
+	: ${SHBuild_YSLib_Platform:=$SHBuild_Env_OS}
+	SHBuild_YF_SystemLibs="-lxcb -lpthread"
+fi
+
 if [ x"$SHBuild_Static" == x ]; then
 	export SHBuild_YSLib_Flags="$CXXFLAGS -DYF_DLL -DYB_DLL \
 		-I$SHBuild_Bin/../include"
@@ -91,7 +105,7 @@ else
 	export SHBuild_YSLib_Flags="$CXXFLAGS \
 		-I$SHBuild_Bin/../include"
 	export SHBuild_YSLib_LibNames="$SHBuild_YSLib_LibNames \
-		-lFreeImage -lfreetype -L/usr/lib -lgdi32 -limm32"
+		-lFreeImage -lfreetype -L/usr/lib $SHBuild_YF_SystemLibs"
 	export LIBS="-L`SHBuild_2w "$SHBuild_Bin/../lib"` -Wl,-dn \
 		$SHBuild_YSLib_LibNames"
 fi

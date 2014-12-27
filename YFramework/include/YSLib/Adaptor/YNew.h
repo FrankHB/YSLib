@@ -11,13 +11,13 @@
 /*!	\file YNew.h
 \ingroup Adaptor
 \brief 存储调试设施。
-\version r1187
+\version r1188
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2010-12-02 19:49:40 +0800
 \par 修改时间:
-	2014-12-19 15:30 +0800
+	2014-12-22 02:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@
 #include <list>
 #include <map>
 #include <cstdio>
-#if YB_IMPL_GNUCPP
+#if defined(__GLIBCXX__)
 #	include <ext/malloc_allocator.h> // for libstdc++ malloc allocator;
 #endif
 #include <ystdex/base.h> // for ystdex::noncopyable;

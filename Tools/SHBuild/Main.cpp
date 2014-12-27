@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2675
+\version r2683
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-12-17 00:41 +0800
+	2014-12-23 22:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -650,8 +650,15 @@ BuildContext::Build()
 		// FIXME: Find extension properly.
 		else
 			// FIXME: Parse %LDFLAGS.
+// FIXME: Support cross compiling.
+#if YCL_Win32
 			target += ystdex::exists_substr(LDFLAGS, "-Bdynamic")
 				|| ystdex::exists_substr(LDFLAGS, "-shared") ? ".dll" : ".exe";
+#else
+		if(ystdex::exists_substr(LDFLAGS, "-Bdynamic")
+			|| ystdex::exists_substr(LDFLAGS, "-shared"))
+			target += ".so";
+#endif
 		if(CheckBuild(ofiles, target))
 		{
 			auto str(cmd + " \"" + target + '"');
@@ -781,7 +788,7 @@ main(int argc, char* argv[])
 
 			for(int i(1); i < argc; ++i)
 			{
-				auto&& arg(&DecodeArg(argv[i])[0]);
+				auto arg(DecodeArg(argv[i]));
 
 				if(std::none_of(begin(OptionsTable), end(OptionsTable),
 					[&](const Option& opt){

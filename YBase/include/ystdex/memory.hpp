@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r609
+\version r651
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-12-20 06:08 +0800
+	2014-12-26 20:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,10 +37,11 @@ namespace ystdex
 
 /*!
 \brief 使用显式析构函数调用和 \c std::free 的删除器。
-\note 除使用 \c std::free 代替 \c ::operator delete，
-	和 \c std::default_deleter 的非数组类型元素删除操作相同。
 \note 数组类型的特化无定义。
 \since build 561
+
+除使用 \c std::free 代替 \c ::operator delete，和 \c std::default_deleter
+的非数组类型元相同。注意和直接使用 \c std::free 不同，会调用析构函数且不适用于数组。
 */
 //@{
 template<typename _type>
@@ -213,6 +214,22 @@ unique_raw(_type* p)
 {
 	return std::unique_ptr<_type>(p);
 }
+//! \since build 562
+template<typename _type, typename _tDeleter, typename _pSrc>
+yconstfn std::unique_ptr<_type, _tDeleter>
+unique_raw(_pSrc&& p, _tDeleter&& d)
+{
+	static_assert(is_pointer<_pSrc>::value, "Invalid type found.");
+
+	return std::unique_ptr<_type, _tDeleter>(p, yforward(d));
+}
+//! \since build 562
+template<typename _type, typename _tDeleter>
+yconstfn std::unique_ptr<_type, _tDeleter>
+unique_raw(_type* p, _tDeleter&& d)
+{
+	return std::unique_ptr<_type, _tDeleter>(p, yforward(d));
+}
 /*!
 \note 使用空指针构造空实例。
 \since build 319
@@ -332,6 +349,32 @@ template<typename _type,  typename... _tParams>
 yimpl(enable_if_t<extent<_type>::value != 0>)
 make_unique_default_init(_tParams&&...) = delete;
 //@}
+
+/*!
+\note 使用删除器。
+\since build 562
+*/
+//@{
+template<typename _type, typename _tDeleter, typename... _tParams>
+yconstfn yimpl(enable_if_t<!is_array<_type>::value, std::unique_ptr<_type>>)
+make_unique_with(_tDeleter&& d)
+{
+	return std::unique_ptr<_type, _tDeleter>(new _type, yforward(d));
+}
+template<typename _type, typename _tDeleter, typename... _tParams>
+yconstfn yimpl(enable_if_t<is_array<_type>::value && extent<_type>::value == 0,
+	std::unique_ptr<_type>>)
+make_unique_with(_tDeleter&& d, size_t size)
+{
+	return std::unique_ptr<_type, _tDeleter>(new remove_extent_t<_type>[size],
+		yforward(d));
+}
+template<typename _type, typename _tDeleter, typename... _tParams>
+yimpl(enable_if_t<extent<_type>::value != 0>)
+make_unique_with(_tDeleter&&, _tParams&&...) = delete;
+//@}
+
+
 //@}
 
 /*!

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r843
+\version r866
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2014-12-07 12:32 +0800
+	2014-12-22 10:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "Helper/YModules.h"
 #include YFM_Helper_GUIApplication
 #include YFM_YCLib_Video
+#include YFM_YSLib_Service_YResource // for YSLib::Drawing::Image;
 
 namespace YSLib
 {
@@ -62,6 +63,32 @@ namespace Devices
 {
 class DSScreen;
 } // namespace Devices;
+
+namespace Drawing
+{
+
+/*!
+\brief 全屏幕描点。
+\note 颜色由坐标决定。
+\since build 360
+*/
+template<typename _tOut, typename _tGen>
+void
+ScrDraw(_tOut buf, _tGen&& f)
+{
+	for(SDst y(0); y < MainScreenHeight; ++y)
+		for(SDst x(0); x < MainScreenWidth; yunseq(++x, ++buf))
+			*buf = yforward(f)(x, y);
+}
+
+/*!
+\brief 新建屏幕图像。
+\since build 213
+*/
+inline PDefH(shared_ptr<Image>, CreateSharedScreenImage, ConstBitmapPtr p)
+	ImplRet(make_shared<Image>(p, MainScreenWidth, MainScreenHeight))
+
+} // namespace Drawing;
 
 
 /*!

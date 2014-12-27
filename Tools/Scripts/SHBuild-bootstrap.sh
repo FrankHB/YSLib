@@ -6,6 +6,7 @@ echo Bootstrap beginned.
 
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 . $SHBuild_ToolDir/SHBuild-common.sh
+SHBuild_CheckUName
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 
 SHBuild_EchoVar_N "SHBuild.BaseDir"
@@ -49,7 +50,7 @@ LIBS=" \
 	../../YFramework/source/NPL/Lexical.cpp \
 	../../YFramework/source/NPL/SContext.cpp
 	"
-if uname | grep MINGW > /dev/null || uname | grep MSYS > /dev/null; then
+if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
 	LIBS="$LIBS \
 		../../YFramework/MinGW32/source/YCLib/MinGW32.cpp \
 		../../YFramework/MinGW32/source/YCLib/Consoles.cpp \

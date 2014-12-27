@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 核心模块配置文件。
-\version r68
+\version r69
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:25 +0800
 \par 修改时间:
-	2014-12-16 23:07 +0800
+	2014-12-22 01:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,7 +41,7 @@
 #define YFM_YSLib_Core_YShellDefinition <YSLib/Core/ysdef.h>
 #define YFM_YSLib_Core_YException <YSLib/Core/YException.h>
 #define YFM_YSLib_Core_YCoreUtilities <YSLib/Core/YCoreUtilities.h>
-#define YFM_YSLib_Core_YObject <YSLib/Core/yobject.h>
+#define YFM_YSLib_Core_YObject <YSLib/Core/YObject.h>
 #define YFM_YSLib_Core_YFunc <YSLib/Core/YFunc.hpp>
 #define YFM_YSLib_Core_YEvent <YSLib/Core/YEvent.hpp>
 #define YFM_YSLib_Core_YString <YSLib/Core/ystring.h>

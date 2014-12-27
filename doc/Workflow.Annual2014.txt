@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2014.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2014 年度。
-\version r785
+\version r789
 \author FrankHB <frankhb1989@gmail.com>
 \since build 464
 \par 创建时间:
 	2014-01-01 00:46:52 +0800
 \par 修改时间:
-	2014-11-15 00:57 +0800
+	2014-12-23 18:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -781,6 +781,11 @@ Note the 'std::reference_wrapper' is not equal to 'boost::reference_wrapper'.
 					The difference about prefix in semantics is implementation details rather than interface requirements.
 			They are easy to misused to construct a 'ystdex::lref' and passed it to function templates which only handles 'std::reference_wrapper' specially.
 				For examples, as 'std::bind' arguments or 'operator()' is used. In these cases the 'std::' should be used explicitly.
+
+$2014-12:
+Keyboard input processing is complicated. There are a few key codes on Linux as options.
+	See https://www.berrange.com/tags/key-codes/ .
+	See https://stackoverflow.com/questions/8737566/rolling-ones-own-keyboard-input-system-in-c-c .
 
 ////
 

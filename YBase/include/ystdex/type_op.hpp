@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1211
+\version r1232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2014-11-05 00:57 +0800
+	2014-12-27 08:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -566,6 +566,21 @@ public:
 	static yconstexpr bool value = sizeof(C) < sizeof(A) + sizeof(B);
 };
 
+//! \since build 562
+//@{
+template<bool, typename, typename... _types>
+struct common_nonvoid_impl
+{
+	using type = common_type_t<_types...>;
+};
+
+template<typename _type, typename... _types>
+struct common_nonvoid_impl<false, _type, _types...>
+{
+	using type = _type;
+};
+//@}
+
 } // namespace details;
 
 
@@ -765,6 +780,15 @@ struct array_ref_decay<_type&&>
 template<class _tClass, typename _tParam, typename _type = void>
 using exclude_self_ctor_t
 	= enable_if_t<!is_same<_tClass&, remove_rcv_t<_tParam>&>::value, _type>;
+
+/*!
+\ingroup metafunctions
+\brief 取公共非空类型：若第一参数为非空类型则为第一参数，否则从其余参数推断。
+\since build 562
+*/
+template<typename _type, typename... _types>
+using common_nonvoid_t = typename
+	details::common_nonvoid_impl<is_void<_type>::value, _type, _types...>::type;
 
 
 /*!	\defgroup tags Tags
