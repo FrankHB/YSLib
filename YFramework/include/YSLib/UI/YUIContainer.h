@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yuicont.h
+/*!	\file YUIContainer.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2079
+\version r2090
 \author FrankHB <frankhb1989@gmail.com>
-\since build 188
+\since build 563
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-12-02 18:44 +0800
+	2014-12-31 08:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_yuicont_h_
-#define YSL_INC_UI_yuicont_h_ 1
+#ifndef YSL_INC_UI_YUIContainer_h_
+#define YSL_INC_UI_YUIContainer_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YWidget
@@ -120,7 +120,7 @@ LocateForParentContainer(const IWidget&);
 
 /*!
 \brief 移动部件 wgt 至容器左端。
-\pre 断言： FetchContainerPtr(wgt) 。
+\pre 断言： <tt>FetchContainerPtr(wgt)</tt> 。
 \since build 171
 */
 YF_API void
@@ -128,7 +128,7 @@ MoveToLeft(IWidget& wgt);
 
 /*!
 \brief 移动部件 wgt 至容器右端。
-\pre 断言： FetchContainerPtr(wgt) 。
+\pre 间接断言： <tt>FetchContainerPtr(wgt)</tt> 。
 \since build 171
 */
 YF_API void
@@ -136,7 +136,7 @@ MoveToRight(IWidget& wgt);
 
 /*!
 \brief 移动部件 wgt 至容器上端。
-\pre 断言： FetchContainerPtr(wgt) 。
+\pre 断言： <tt>FetchContainerPtr(wgt)</tt> 。
 \since build 171
 */
 YF_API void
@@ -144,7 +144,7 @@ MoveToTop(IWidget& wgt);
 
 /*!
 \brief 移动部件 wgt 至容器下端。
-\pre 断言： FetchContainerPtr(wgt) 。
+\pre 间接断言： <tt>FetchContainerPtr(wgt)</tt> 。
 \since build 171
 */
 YF_API void
@@ -265,12 +265,12 @@ public:
 	/*!
 	\brief 取指定索引的部件引用。
 	\exception std::out_of_range 异常中立：由 vWidgets.at 抛出。
-	\note 仅抛出以上异常。
+	\since build 563
 	*/
 	//@{
-	PDefH(IWidget&, at, size_t idx) ythrow(std::out_of_range)
+	PDefH(IWidget&, at, size_t idx)
 		ImplRet(vWidgets.at(idx))
-	PDefH(IWidget&, at, size_t idx) const ythrow(std::out_of_range)
+	PDefH(IWidget&, at, size_t idx) const
 		ImplRet(vWidgets.at(idx))
 	//@}
 

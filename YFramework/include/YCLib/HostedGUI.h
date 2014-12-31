@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r733
+\version r892
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-12-21 01:25 +0800
+	2014-12-31 07:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,8 +35,14 @@
 #include YFM_YSLib_Core_YGDIBase
 #include YFM_YSLib_Core_YEvent
 #include <atomic>
+#if YCL_HostedUI_XCB
+#	include YFM_YCLib_XCB
+#elif YCL_Win32 || YCL_Android
+#elif YF_Hosted
+#	error "Unknown platform with XCB support found."
+#endif
 
-#if YF_Hosted
+#if YF_Hosted && YCL_HostedUI
 #	if YCL_Android
 struct ANativeWindow;
 #	endif
@@ -44,7 +50,10 @@ struct ANativeWindow;
 namespace platform_ex
 {
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+//! \since build 562
+using NativeWindowHandle = ystdex::nptr<XCB::WindowData*>;
+#	elif YCL_Win32
 //! \since build 389
 using NativeWindowHandle = ::HWND;
 #	elif YCL_Android
@@ -52,14 +61,37 @@ using NativeWindowHandle = ::HWND;
 using NativeWindowHandle = ::ANativeWindow*;
 #	endif
 
-#	if YCL_Win32
+//! \since build 563
+//@{
+/*!
+\typedef MessageID
+\brief 用户界面消息类型。
+*/
+/*!
+\typedef MessageHandler
+\brief 用户界面消息响应函数类型。
+\note 使用 XCB 的平台：实际参数类型同 <tt>::xcb_generic_event_t*</tt> 。
+*/
+
+#	if YCL_HostedUI_XCB
+using MessageID = std::uint8_t;
+using MessageHandler = void(void*);
+#	elif YCL_Win32
+using MessageID = unsigned;
+using MessageHandler = void(::WPARAM, ::LPARAM);
+#	endif
+//@}
+
+#	if YCL_HostedUI_XCB || YCL_Win32
 /*!
 \brief 窗口消息转发事件映射。
 \since build 514
 \todo 处理返回值。
 */
-using MessageMap = std::map<unsigned, YSLib::GEvent<void(::WPARAM, ::LPARAM)>>;
+using MessageMap = std::map<MessageID, YSLib::GEvent<MessageHandler>>;
+#	endif
 
+#	if YCL_Win32
 /*!
 \brief 添加使用指定优先级调用 ::DefWindowProcW 处理 Windows 消息的处理器。
 \relates MessageMap
@@ -81,12 +113,21 @@ BindDefaultWindowProc(NativeWindowHandle, MessageMap&, unsigned,
 class YF_API WindowReference : private ystdex::nptr<NativeWindowHandle>
 {
 public:
+	//! \since build 563
+	DefDeCtor(WindowReference)
 	//! \since build 560
 	using nptr::nptr;
 	//! \since build 560
 	DefDeCopyMoveCtorAssignment(WindowReference)
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+	//! \since build 562
+	//@{
+	DefGetterMem(const, YSLib::Drawing::Rect, Bounds, Deref())
+	DefGetterMem(const, YSLib::Drawing::Point, Location, Deref())
+	DefGetterMem(const, YSLib::Drawing::Size, Size, Deref())
+	//@}
+#	elif YCL_Win32
 	//! \since build 543
 	YSLib::Drawing::Rect
 	GetBounds() const;
@@ -131,7 +172,39 @@ public:
 	GetWidth() const;
 #	endif
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+	//! \since build 562
+	//@{
+	DefSetterMem(const YSLib::Drawing::Rect&, Bounds, Deref())
+
+	PDefH(void, Close, )
+		ImplRet(Deref().Close())
+
+	/*!
+	\brief 检查引用值，若非空则返回引用。
+	\throw std::runtime_error 引用为空。
+	*/
+	XCB::WindowData&
+	Deref() const;
+
+	//! \since build 563
+	PDefH(void, Hide, )
+		ImplRet(Deref().Hide())
+
+	PDefH(void, Invalidate, )
+		ImplRet(Deref().Invalidate())
+
+	PDefH(void, Move, const YSLib::Drawing::Point& pt)
+		ImplRet(Deref().Move(pt))
+
+	PDefH(void, Resize, const YSLib::Drawing::Size& s)
+		ImplRet(Deref().Resize(s))
+	//@}
+
+	//! \since build 563
+	PDefH(void, Show, )
+		ImplRet(Deref().Show())
+#	elif YCL_Win32
 	//! \since build 445
 	void
 	SetClientBounds(const YSLib::Drawing::Rect&);
@@ -198,7 +271,16 @@ protected:
 };
 
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB || YCL_Android
+/*!
+\brief 更新指定图形接口上下文的至窗口。
+\pre 间接断言：本机句柄非空。
+\since build 559
+*/
+YF_API void
+UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
+	const YSLib::Drawing::ConstGraphics&);
+#	elif YCL_Win32
 /*!
 \brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶层窗口。
 \exception LoggedEvent 宽或高不大于 0 。
@@ -207,16 +289,10 @@ protected:
 YF_API NativeWindowHandle
 CreateNativeWindow(const wchar_t*, const YSLib::Drawing::Size&,
 	const wchar_t* = L"", ::DWORD = WS_POPUP, ::DWORD = WS_EX_LTRREADING);
-#	elif YCL_Android
-/*!
-\brief 更新指定图形接口上下文的至窗口。
-\since build 559
-*/
-YF_API void
-UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
-	const YSLib::Drawing::ConstGraphics&);
+#	endif
 
 
+#	if YCL_HostedUI_XCB || YCL_Android
 /*!
 \brief 屏幕缓存数据。
 \note 非公开实现。
@@ -239,14 +315,7 @@ class ScreenBufferData;
 class YF_API ScreenBuffer
 {
 private:
-#	if YCL_Win32
-	//! \since build 386
-	YSLib::Drawing::Size size;
-
-protected:
-	YSLib::Drawing::BitmapPtr pBuffer;
-	::HBITMAP hBitmap;
-#	elif YCL_Android
+#	if YCL_HostedUI_XCB || YCL_Android
 	/*!
 	\invariant bool(p_impl) 。
 	\since build 498
@@ -257,12 +326,19 @@ protected:
 	\since build 498
 	*/
 	YSLib::SDst width;
+#	elif YCL_Win32
+	//! \since build 386
+	YSLib::Drawing::Size size;
+
+protected:
+	YSLib::Drawing::BitmapPtr pBuffer;
+	::HBITMAP hBitmap;
 #	endif
 
 public:
 	//! \brief 构造：使用指定的缓冲区大小和等于缓冲区宽的像素跨距。
 	ScreenBuffer(const YSLib::Drawing::Size&);
-#	if YCL_Android
+#	if YCL_HostedUI_XCB || YCL_Android
 	/*!
 	\brief 构造：使用指定的缓冲区大小和像素跨距。
 	\throw Exception 像素跨距小于缓冲区大小。
@@ -278,22 +354,7 @@ public:
 	ScreenBuffer&
 	operator=(ScreenBuffer&&);
 
-	//! \since build 386
-	//@{
-#	if YCL_Win32
-	DefGetter(const ynothrow, YSLib::Drawing::BitmapPtr, BufferPtr, pBuffer)
-	DefGetter(const ynothrow, ::HBITMAP, NativeHandle, hBitmap)
-	DefGetter(const ynothrow, const YSLib::Drawing::Size&, Size, size)
-
-	/*!
-	\brief 从缓冲区更新并按 Alpha 预乘。
-	\post ::HBITMAP 的 rgbReserved 为 0 。
-	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
-	\since build 558
-	*/
-	void
-	Premultiply(YSLib::Drawing::ConstBitmapPtr) ynothrow;
-#	elif YCL_Android
+#	if YCL_HostedUI_XCB || YCL_Android
 	//! \since build 492
 	YSLib::Drawing::BitmapPtr
 	GetBufferPtr() const ynothrow;
@@ -306,6 +367,21 @@ public:
 	//! \since build 498
 	YSLib::SDst
 	GetStride() const ynothrow;
+#	elif YCL_Win32
+	//! \since build 386
+	//@{
+	DefGetter(const ynothrow, YSLib::Drawing::BitmapPtr, BufferPtr, pBuffer)
+	DefGetter(const ynothrow, ::HBITMAP, NativeHandle, hBitmap)
+	DefGetter(const ynothrow, const YSLib::Drawing::Size&, Size, size)
+
+	/*!
+	\brief 从缓冲区更新并按 Alpha 预乘。
+	\post ::HBITMAP 的 rgbReserved 为 0 。
+	\warning 直接复制，没有边界和大小检查。实际存储必须和 32 位 ::HBITMAP 兼容。
+	\since build 558
+	*/
+	void
+	Premultiply(YSLib::Drawing::ConstBitmapPtr) ynothrow;
 #	endif
 
 	/*!
@@ -353,14 +429,10 @@ class YF_API ScreenRegionBuffer : private ScreenBuffer
 {
 private:
 	//! \since build 551
-	YSLib::mutex mtx;
+	YSLib::mutex mtx{};
 
 public:
-#	if YCL_Win32
-	ScreenRegionBuffer(const YSLib::Drawing::Size& s)
-		: ScreenBuffer(s), mtx()
-	{}
-#	elif YCL_Android
+#	if YCL_HostedUI_XCB || YCL_Android
 	ScreenRegionBuffer(const YSLib::Drawing::Size&);
 	/*!
 	\brief 构造：使用指定的缓冲区大小和像素跨距。
@@ -368,20 +440,24 @@ public:
 	\since build 498
 	*/
 	ScreenRegionBuffer(const YSLib::Drawing::Size&, YSLib::SDst);
+#	elif YCL_Win32
+	ScreenRegionBuffer(const YSLib::Drawing::Size& s)
+		: ScreenBuffer(s)
+	{}
 #	endif
 
 	using ScreenBuffer::GetBufferPtr;
-#	if YCL_Win32
-	using ScreenBuffer::GetNativeHandle;
-
-	//! \since build 435
-	using ScreenBuffer::Premultiply;
-#	elif YCL_Android
+#	if YCL_HostedUI_XCB || YCL_Android
 	//! \since build 499
 	using ScreenBuffer::GetContext;
 //	using ScreenBuffer::GetNativeHandle;
 	//! \since build 499
 	using ScreenBuffer::GetStride;
+#	elif YCL_Win32
+	using ScreenBuffer::GetNativeHandle;
+
+	//! \since build 435
+	using ScreenBuffer::Premultiply;
 #	endif
 	using ScreenBuffer::GetSize;
 	DefGetter(ynothrow, ScreenBuffer&, ScreenBufferRef, *this)
@@ -510,7 +586,7 @@ protected:
 
 
 /*!
-\brief 显式区域表面：储存显式区域上的二维图形绘制状态。
+\brief 显示区域表面：储存显示区域上的二维图形绘制状态。
 \warning 非虚析构。
 \since build 387
 */
@@ -555,7 +631,11 @@ yconstexpr wchar_t WindowClassName[]{L"YFramework Window"};
 class YF_API HostWindow : private WindowReference, private YSLib::noncopyable
 {
 public:
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+	//! \since build 563
+	const XCB::Atom::NativeType WM_PROTOCOLS, WM_DELETE_WINDOW;
+#	endif
+#	if YCL_HostedUI_XCB || YCL_Win32
 	/*!
 	\brief 窗口消息转发事件映射。
 	\since build 512
@@ -563,13 +643,29 @@ public:
 	platform_ex::MessageMap MessageMap;
 #	endif
 
-	//! \throw GeneralEvent Windows 平台：窗口类名不是 WindowClassName 。
+	/*!
+	\brief 使用指定宿主句柄初始化宿主窗口。
+	\pre 使用 XCB 的平台：间接断言：句柄非空。
+	\pre 使用 XCB 的平台：句柄通过 <tt>new XCB::WindowData</tt> 得到。
+	\pre Win32 平台：断言：句柄有效。
+	\throw GeneralEvent 使用 XCB 的平台：窗口从属的 XCB 连接发生错误。
+	\throw GeneralEvent Win32 平台：窗口类名不是 WindowClassName 。
+
+	检查句柄，初始化宿主窗口并取得所有权。对 Win32 平台初始化 HID 输入消息并注册
+	\c WM_DESTROY 消息响应为调用 <tt>::PostQuitMessage(0)</tt> 。
+	*/
 	HostWindow(NativeWindowHandle);
 	DefDelMoveCtor(HostWindow)
 	virtual
 	~HostWindow();
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+	//! \since build 562
+	using WindowReference::GetBounds;
+	using WindowReference::GetLocation;
+
+	using WindowReference::SetBounds;
+#	elif YCL_Win32
 	//! \since build 543
 	using WindowReference::GetBounds;
 	//! \since build 445
@@ -599,21 +695,25 @@ public:
 #	if YCL_Android
 	//! \since build 498
 	using WindowReference::GetWidth;
+#	endif
 
-#	elif YCL_Win32
-
+#	if YCL_Win32
 	//! \since build 445
 	using WindowReference::SetClientBounds;
 	//! \since build 430
 	using WindowReference::SetOpacity;
 	//! \since build 428
 	using WindowReference::SetText;
+#	endif
 
+#	if YCL_HostedUI_XCB || YCL_Win32
 	using WindowReference::Close;
+	//@}
 
 	//! \since build 429
 	using WindowReference::Invalidate;
 
+#		if YCL_Win32
 	/*!
 	\brief 取相对窗口的可响应输入的点的位置。
 	\note 默认输入边界为客户区，输入总是视为有效；实现为直接返回参数。
@@ -623,15 +723,17 @@ public:
 	*/
 	virtual YSLib::Drawing::Point
 	MapPoint(const YSLib::Drawing::Point&) const;
-
-	using WindowReference::Move;
-	//@}
+#		endif
 
 	//! \since build 427
 	//@{
+	using WindowReference::Move;
+
+#		if YCL_Win32
 	using WindowReference::Resize;
 
 	using WindowReference::ResizeClient;
+#		endif
 
 	using WindowReference::Show;
 	//@}

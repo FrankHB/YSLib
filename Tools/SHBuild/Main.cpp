@@ -651,14 +651,14 @@ BuildContext::Build()
 		else
 			// FIXME: Parse %LDFLAGS.
 // FIXME: Support cross compiling.
-#if YCL_Win32
 			target += ystdex::exists_substr(LDFLAGS, "-Bdynamic")
-				|| ystdex::exists_substr(LDFLAGS, "-shared") ? ".dll" : ".exe";
+				|| ystdex::exists_substr(LDFLAGS, "-shared")
+#if YCL_Win32
+				? ".dll"
 #else
-		if(ystdex::exists_substr(LDFLAGS, "-Bdynamic")
-			|| ystdex::exists_substr(LDFLAGS, "-shared"))
-			target += ".so";
+				? ".so"
 #endif
+				: ".exe";
 		if(CheckBuild(ofiles, target))
 		{
 			auto str(cmd + " \"" + target + '"');

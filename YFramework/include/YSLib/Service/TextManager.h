@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file textmgr.h
+/*!	\file TextManager.h
 \ingroup Service
 \brief 文本管理服务。
-\version r3832
+\version r3838
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 563
 \par 创建时间:
 	2010-01-05 17:48:09 +0800
 \par 修改时间:
-	2014-11-09 19:43 +0800
+	2014-12-31 08:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Service_textmgr_h_
-#define YSL_INC_Service_textmgr_h_ 1
+#ifndef YSL_INC_Service_TextManager_h_
+#define YSL_INC_Service_TextManager_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YString
@@ -228,12 +228,11 @@ operator!=(const TextFileBuffer::iterator& x, const TextFileBuffer::iterator y)
 \brief 从文本文件缓冲区复制指定字节位置起始的字符串。
 \return 不越界时，第三参数为零则为空串，否则为尽可能长但不大于指定长度的缓冲区内容。
 \throw std::out_of_range 起始位置越界无法访问。
-\note 仅抛出以上异常。
 \note 可能刷新缓冲。
-\since build 397
+\since build 563
 */
 YF_API string
-CopySliceFrom(TextFileBuffer&, size_t, size_t) ythrow(std::out_of_range);
+CopySliceFrom(TextFileBuffer&, size_t, size_t);
 
 } // namespace Text;
 

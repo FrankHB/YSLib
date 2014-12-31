@@ -7,9 +7,9 @@
 . $SHBuild_ToolDir/SHBuild-common.sh
 SHBuild_CheckUName
 
-: ${C_CXXFLAGS_GC:="-fdata-sections -ffunction-sections"}
+: ${C_CXXFLAGS_GC:='-fdata-sections -ffunction-sections'}
 
-if [[ "$SHBuild_Env_OS" == "OS_X" ]]; then
+if [[ "$SHBuild_Env_OS" == 'OS_X' ]]; then
 	: ${LDFLAGS_GC:="-Wl,--dead-strip"}
 else
 	: ${LDFLAGS_GC:="-Wl,--gc-sections"}
@@ -17,19 +17,19 @@ else
 fi
 
 # See http://sourceforge.net/p/msys2/discussion/general/thread/2d6adff2/?limit=25 .
-if [[ "$SHBuild_Env_OS" != "Win32" ]]; then
-	if [[ "$CXX" != "" ]] && !(echo "int main(){}" | "$CXX" -xc++ -o/tmp/null \
+if [[ "$SHBuild_Env_OS" != 'Win32' ]]; then
+	if [[ "$CXX" != '' ]] && !(echo 'int main(){}' | "$CXX" -xc++ -o/tmp/null \
 		$C_CXXFLAGS_GC $LDFLAGS_GC -; 2>& 1 > /dev/null); then
-		C_CXXFLAGS_GC=""
-		LDFLAGS_GC=""
+		C_CXXFLAGS_GC=''
+		LDFLAGS_GC=''
 	fi
-	: ${C_CXXFLAGS_PIC:="-fPIC"}
+	: ${C_CXXFLAGS_PIC:='-fPIC'}
 fi
 
 : ${C_CXXFLAGS_COMMON:="-pipe $C_CXXFLAGS_GC -pedantic-errors"}
-: ${C_CXXFLAGS_OPT_LV:="-O3"}
+: ${C_CXXFLAGS_OPT_LV:='-O3'}
 
-: ${CFLAGS_STD:="-std=c11"}
+: ${CFLAGS_STD:='-std=c11'}
 : ${CFLAGS_WARNING:=" \
 	-Wall \
 	-Wcast-align \
@@ -48,9 +48,9 @@ fi
 
 # TODO: BSD etc.
 if "$CXX" -dumpspecs 2>& 1 | grep mthreads: > /dev/null; then
-	CXXFLAGS_IMPL_COMMON_THRD_="-mthreads"
-elif [[ "$SHBuild_Env_OS" == "Linux" || "$SHBuild_Env_OS" == "OS_X" ]]; then
-	CXXFLAGS_IMPL_COMMON_THRD_="-pthread"
+	CXXFLAGS_IMPL_COMMON_THRD_='-mthreads'
+elif [[ "$SHBuild_Env_OS" == 'Linux' || "$SHBuild_Env_OS" == 'OS_X' ]]; then
+	CXXFLAGS_IMPL_COMMON_THRD_='-pthread'
 fi
 
 # NOTE: The compiler should be specified earlier than this line to
@@ -60,18 +60,18 @@ if echo "$CXX" | grep clang++ > /dev/null; then
 		-Wno-deprecated-register \
 		-Wno-mismatched-tags \
 		"}
-#	: ${CXXFLAGS_IMPL_OPT:="-flto"}
+#	: ${CXXFLAGS_IMPL_OPT:='-flto'}
 	: ${LDFLAGS_IMPL_OPT:="$CXXFLAGS_IMPL_OPT"}
 elif echo "$CXX" | grep g++ > /dev/null; then
 	: ${CXXFLAGS_IMPL_WARNING:=" \
 		-Wzero-as-null-pointer-constant \
 		"}
-	: ${CXXFLAGS_IMPL_OPT:="-s -fexpensive-optimizations -flto=jobserver"}
-	: ${LDFLAGS_IMPL_OPT:="-s -fexpensive-optimizations -flto"}
+	: ${CXXFLAGS_IMPL_OPT:='-s -fexpensive-optimizations -flto=jobserver'}
+	: ${LDFLAGS_IMPL_OPT:='-s -fexpensive-optimizations -flto'}
 fi
 : ${CXXFLAGS_IMPL_COMMON:="$CXXFLAGS_IMPL_COMMON_THRD_"}
 
-: ${CXXFLAGS_STD:="-std=c++11"}
+: ${CXXFLAGS_STD:='-std=c++11'}
 : ${CXXFLAGS_WARNING:=" $CFLAGS_WARNING \
 	-Wctor-dtor-privacy \
 	-Wnon-virtual-dtor \
@@ -82,7 +82,7 @@ fi
 	$CXXFLAGS_WARNING \
 	$CXXFLAGS_IMPL_COMMON \
 	"}
-if [ x"$CXXFLAGS_OPT_UseAssert" == x ]; then
+if [[ "$CXXFLAGS_OPT_UseAssert" == '' ]]; then
 	: ${CXXFLAGS_OPT_DBG:=" \
 		$C_CXXFLAGS_OPT_LV -DNDEBUG \
 		$CXXFLAGS_IMPL_OPT \
@@ -103,13 +103,15 @@ fi
 
 : ${LDFLAGS_OPT_DBG:="$LDFLAGS_IMPL_OPT $LDFLAGS_GC"}
 
-if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
+if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	: ${LDFLAGS_DYN_BASE:="-shared -Wl,--dll"}
-	: ${DSOSFX:=".dll"}
+	: ${DSOSFX:='.dll'}
+	: ${EXESFX:='.exe'}
 else
-	: ${LDFLAGS_DYN_BASE:="-shared"}
-	: ${LIBPFX:="lib"}
-	: ${DSOSFX:=".so"}
+	: ${LDFLAGS_DYN_BASE:='-shared'}
+	: ${LIBS_RPATH:="-Wl,-rpath,'\$ORIGIN:\$ORIGIN/../lib'"}
+	: ${LIBPFX:='lib'}
+	: ${DSOSFX:='.so'}
 fi
 
 : ${LDFLAGS_DYN_EXTRA:="-Wl,--no-undefined \

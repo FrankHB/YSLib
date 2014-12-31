@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r727
+\version r842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-12-18 09:52 +0800
+	2014-12-31 07:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,8 @@
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #	include <android/native_window.h>
+#endif
+#if YCL_HostedUI_XCB || YCL_Android
 #	include "YSLib/Service/YModules.h"
 #	include YFM_YSLib_Service_YGDI
 #endif
@@ -50,7 +52,17 @@ namespace platform_ex
 namespace
 {
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB || YCL_Android
+//! \since build 498
+SDst
+CheckStride(SDst buf_stride, SDst w)
+{
+	if(buf_stride < w)
+		// XXX: Use more specified exception type.
+		throw std::runtime_error("Stride is small than width.");
+	return buf_stride;
+}
+#	elif YCL_Win32
 //! \since build 388
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
@@ -106,16 +118,6 @@ SetWindowBounds(::HWND h_wnd, int x, int y, int cx, int cy)
 		YF_Raise_Win32Exception("SetWindowPos @ SetWindowBounds");
 }
 //@}
-#	elif YCL_Android
-//! \since build 498
-SDst
-CheckStride(SDst buf_stride, SDst w)
-{
-	if(buf_stride < w)
-		// XXX: Use more specified exception type.
-		throw std::runtime_error("Stride is small than width.");
-	return buf_stride;
-}
 #	endif
 
 } // unnamed namespace;
@@ -130,8 +132,18 @@ BindDefaultWindowProc(NativeWindowHandle h_wnd, MessageMap& m, unsigned msg,
 		::DefWindowProcW(h_wnd, msg, w_param, l_param);
 	}, prior);
 }
+#	endif
 
 
+#	if YCL_HostedUI_XCB
+XCB::WindowData&
+WindowReference::Deref() const
+{
+	if(const auto h = GetNativeHandle().get())
+		return *h;
+	throw std::runtime_error("Null window reference found.");
+}
+#	elif YCL_Win32
 Rect
 WindowReference::GetBounds() const
 {
@@ -287,7 +299,13 @@ WindowReference::GetHeight() const
 #	endif
 
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+void
+UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
+{
+	XCB::UpdatePixmapBuffer(Deref(h_wnd.get()), r, g);
+}
+#	elif YCL_Win32
 NativeWindowHandle
 CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
 	const wchar_t* title, ::DWORD wstyle, ::DWORD wstyle_ex)
@@ -312,8 +330,10 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 		WindowReference(h_wnd).GetSize(), r.GetPoint(), {}, r.GetSize());
 	::ANativeWindow_unlockAndPost(h_wnd);
 }
+#	endif
 
 
+#	if YCL_HostedUI_XCB || YCL_Android
 class ScreenBufferData : public CompactPixmap
 {
 public:
@@ -328,7 +348,19 @@ ScreenBufferData::ScreenBufferData(const Size& s, SDst buf_stride)
 #	endif
 
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB || YCL_Android
+ScreenBuffer::ScreenBuffer(const Size& s)
+	: ScreenBuffer(s, s.Width)
+{}
+ScreenBuffer::ScreenBuffer(const Size& s, SDst buf_stride)
+	: p_impl(new ScreenBufferData(s, buf_stride)), width(s.Width)
+{}
+ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
+	: p_impl(new ScreenBufferData(std::move(*sbuf.p_impl))), width(sbuf.width)
+{
+	sbuf.width = 0;
+}
+#	elif YCL_Win32
 ScreenBuffer::ScreenBuffer(const Size& s)
 	: size(s), hBitmap([this]{
 		// NOTE: Bitmap format is hard coded here for explicit buffer
@@ -348,18 +380,6 @@ ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
 {
 	sbuf.hBitmap = {};
 }
-#	elif YCL_Android
-ScreenBuffer::ScreenBuffer(const Size& s)
-	: ScreenBuffer(s, s.Width)
-{}
-ScreenBuffer::ScreenBuffer(const Size& s, SDst buf_stride)
-	: p_impl(new ScreenBufferData(s, buf_stride)), width(s.Width)
-{}
-ScreenBuffer::ScreenBuffer(ScreenBuffer&& sbuf) ynothrow
-	: p_impl(new ScreenBufferData(std::move(*sbuf.p_impl))), width(sbuf.width)
-{
-	sbuf.width = 0;
-}
 #	endif
 ScreenBuffer::~ScreenBuffer()
 {
@@ -368,36 +388,7 @@ ScreenBuffer::~ScreenBuffer()
 #	endif
 }
 
-#	if YCL_Win32
-ScreenBuffer&
-ScreenBuffer::operator=(ScreenBuffer&& sbuf)
-{
-	sbuf.swap(*this);
-	return *this;
-}
-
-void
-ScreenBuffer::Resize(const Size& s)
-{
-	if(s != size)
-		*this = ScreenBuffer(s);
-}
-
-void
-ScreenBuffer::Premultiply(ConstBitmapPtr p_buf) ynothrow
-{
-	// NOTE: Since the stride is guaranteed equal to the width, the storage for
-	//	pixels can be supposed to be contiguous.
-	std::transform(p_buf, p_buf + size.Width * size.Height, pBuffer,
-		[](const Pixel& pixel){
-			const auto a(pixel.GetA());
-
-			return Pixel{MonoType(pixel.GetB() * a / 0xFF),
-				MonoType(pixel.GetG() * a / 0xFF),
-				MonoType(pixel.GetR() * a / 0xFF), a};
-	});
-}
-#	elif YCL_Android
+#	if YCL_HostedUI_XCB || YCL_Android
 BitmapPtr
 ScreenBuffer::GetBufferPtr() const ynothrow
 {
@@ -426,32 +417,61 @@ ScreenBuffer::Resize(const Size& s)
 	Deref(p_impl).SetSize(s);
 	width = s.Width;
 }
+#	elif YCL_Win32
+ScreenBuffer&
+ScreenBuffer::operator=(ScreenBuffer&& sbuf)
+{
+	sbuf.swap(*this);
+	return *this;
+}
+
+void
+ScreenBuffer::Resize(const Size& s)
+{
+	if(s != size)
+		*this = ScreenBuffer(s);
+}
+
+void
+ScreenBuffer::Premultiply(ConstBitmapPtr p_buf) ynothrow
+{
+	// NOTE: Since the stride is guaranteed equal to the width, the storage for
+	//	pixels can be supposed to be contiguous.
+	std::transform(p_buf, p_buf + size.Width * size.Height, pBuffer,
+		[](const Pixel& pixel){
+			const auto a(pixel.GetA());
+
+			return Pixel{MonoType(pixel.GetB() * a / 0xFF),
+				MonoType(pixel.GetG() * a / 0xFF),
+				MonoType(pixel.GetR() * a / 0xFF), a};
+	});
+}
 #	endif
 
 void
 ScreenBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 {
-#	if YCL_Win32
-	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
-	//	pixels can be supposed to be contiguous.
-	std::copy_n(Nonnull(p_buf), size.Width * size.Height, GetBufferPtr());
-#	elif YCL_Android
+#	if YCL_HostedUI_XCB || YCL_Android
 	// TODO: Expand stride for given width using a proper strategy.
 	std::copy_n(Nonnull(p_buf), GetAreaOf(GetSize()),
 		Deref(p_impl).GetBufferPtr());
+#	elif YCL_Win32
+	// NOTE: Since the pitch is guaranteed equal to the width, the storage for
+	//	pixels can be supposed to be contiguous.
+	std::copy_n(Nonnull(p_buf), size.Width * size.Height, GetBufferPtr());
 #	endif
 }
 
 void
 ScreenBuffer::swap(ScreenBuffer& sbuf) ynothrow
 {
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB || YCL_Android
+	Deref(p_impl).swap(Deref(sbuf.p_impl)),
+	std::swap(width, sbuf.width);
+#	elif YCL_Win32
 	std::swap(size, sbuf.size),
 	std::swap(pBuffer, sbuf.pBuffer),
 	std::swap(hBitmap, sbuf.hBitmap);
-#	elif YCL_Android
-	Deref(p_impl).swap(Deref(sbuf.p_impl)),
-	std::swap(width, sbuf.width);
 #	endif
 }
 
@@ -464,7 +484,14 @@ ScreenRegionBuffer::UpdateFrom(ConstBitmapPtr p_buf) ynothrow
 	ScreenBuffer::UpdateFrom(p_buf);
 }
 
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB || YCL_Android
+ScreenRegionBuffer::ScreenRegionBuffer(const Size& s)
+	: ScreenRegionBuffer(s, s.Width)
+{}
+ScreenRegionBuffer::ScreenRegionBuffer(const Size& s, SDst buf_stride)
+	: ScreenBuffer(s, buf_stride)
+{}
+#	elif YCL_Win32
 void
 ScreenRegionBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
 	const Point& pt)
@@ -474,26 +501,18 @@ ScreenRegionBuffer::UpdatePremultipliedTo(NativeWindowHandle h_wnd, AlphaType a,
 
 	sf.UpdatePremultiplied(*this, h_wnd, a, pt);
 }
-#	elif YCL_Android
-ScreenRegionBuffer::ScreenRegionBuffer(const Size& s)
-	: ScreenRegionBuffer(s, s.Width)
-{}
-ScreenRegionBuffer::ScreenRegionBuffer(const Size& s, SDst buf_stride)
-	: ScreenBuffer(s, buf_stride),
-	mtx()
-{}
 #	endif
 
 void
 ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 {
 	lock_guard<mutex> lck(mtx);
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB || YCL_Android
+	UpdateContentTo(h_wnd, {pt, GetSize()}, GetContext());
+#	elif YCL_Win32
 	GSurface<> sf(h_wnd);
 
 	sf.Update(*this, pt);
-#	elif YCL_Android
-	UpdateContentTo(h_wnd, {pt, GetSize()}, GetContext());
 #	endif
 }
 
@@ -559,11 +578,18 @@ WindowClass::~WindowClass()
 
 HostWindow::HostWindow(NativeWindowHandle h)
 	: WindowReference(h)
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+	, WM_PROTOCOLS(platform::Deref(h.get()).LookupAtom("WM_PROTOCOLS"))
+	, WM_DELETE_WINDOW(h.get()->LookupAtom("WM_DELETE_WINDOW"))
+#	endif
+#	if YCL_HostedUI_XCB || YCL_Win32
 	, MessageMap()
 #	endif
 {
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+	if(!h.get()->GetConnectionRef().IsOnError())
+		throw GeneralEvent("Invalid XCB connection found.");
+#	elif YCL_Win32
 	YAssert(::IsWindow(h), "Invalid window handle found.");
 	YAssert(::GetWindowThreadProcessId(h, {}) == ::GetCurrentThreadId(),
 		"Window not created on current thread found.");
@@ -600,7 +626,9 @@ HostWindow::HostWindow(NativeWindowHandle h)
 
 HostWindow::~HostWindow()
 {
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+	delete GetNativeHandle().get();
+#	elif YCL_Win32
 	const auto h_wnd(GetNativeHandle());
 
 	::SetWindowLongPtrW(h_wnd, GWLP_USERDATA, ::LONG_PTR());

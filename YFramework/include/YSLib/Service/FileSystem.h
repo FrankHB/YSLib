@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup Service
 \brief 平台中立的文件系统抽象。
-\version r2392
+\version r2397
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2010-03-28 00:09:28 +0800
 \par 修改时间:
-	2014-12-17 00:40 +0800
+	2014-12-31 07:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -355,19 +355,16 @@ inline PDefH(bool, VerifyDirectory, const Path& pth)
 \brief 验证路径表示的目录是否存在，若不存在则逐级创建。
 \throw std::system_error 失败时根据 \c errno 抛出的异常。
 \note 使用 umkdir 实现。
-\since build 476
+\since build 563
 */
 //@{
 YF_API void
-EnsureDirectory(const Path&) ythrow(std::system_error);
+EnsureDirectory(const Path&);
 inline PDefH(void, EnsureDirectory, const char* path)
-	ythrow(std::system_error)
 	ImplExpr(EnsureDirectory(Path(path)))
 inline PDefH(void, EnsureDirectory, const string& path)
-	ythrow(std::system_error)
 	ImplExpr(EnsureDirectory(path.c_str()))
 inline PDefH(void, EnsureDirectory, const String& path)
-	ythrow(std::system_error)
 	ImplExpr(EnsureDirectory(path.GetMBCS(CS_Path)))
 //@}
 

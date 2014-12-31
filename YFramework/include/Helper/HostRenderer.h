@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r321
+\version r329
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-12-22 09:36 +0800
+	2014-12-30 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -103,13 +103,6 @@ public:
 	//! \note 线程安全。
 	DefGetter(const ynothrow, Window*, WindowPtr, p_wnd)
 
-	/*!
-	\brief 宿主消息循环。
-	\since build 379
-	*/
-	static void
-	HostLoop();
-
 private:
 	//! \todo 使用 \c INVOKE 调用。
 	template<typename _func, typename... _tParams>
@@ -180,6 +173,8 @@ public:
 	//@}
 	DefDeMoveCtor(HostRenderer)
 
+	//! \since build 536
+	DefGetter(ynothrow, ScreenRegionBuffer&, BufferRef, rbuf)
 	DefGetter(const ynothrow, UI::IWidget&, WidgetRef, widget.get())
 	DefGetterMem(const ynothrow, Window*, WindowPtr, thrd)
 

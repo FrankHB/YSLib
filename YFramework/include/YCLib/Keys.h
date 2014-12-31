@@ -11,13 +11,13 @@
 /*!	\file Keys.h
 \ingroup YCLib
 \brief 平台相关的基本按键输入定义。
-\version r642
+\version r647
 \author FrankHB <frankhb1989@gmail.com>
 \since build 313
 \par 创建时间:
 	2012-06-01 14:29:56 +0800
 \par 修改时间:
-	2014-12-23 19:25 +0800
+	2014-12-28 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -438,12 +438,7 @@ enum NativeSet
 	//! \note 同 KEY_DELETE 。
 	Delete = 111,
 	//! \note 同 KEYCODE_PAUSE 。
-	Pause = 119
-};
-
-//! \since build 562
-enum ExtendedSet
-{
+	Pause = 119,
 	//! \note 同 BTN_LEFT 。
 	Primary = 0x110,
 	//! \note 同 BTN_RIGHT 。

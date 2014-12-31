@@ -11,13 +11,13 @@
 /*!	\file cast.hpp
 \ingroup YStandardEx
 \brief C++ 转换模板。
-\version r1050
+\version r1057
 \author FrankHB <frankhb1989@gmail.com>
 \since build 175
 \par 创建时间:
 	2010-12-15 08:13:18 +0800
 \par 修改时间:
-	2014-11-20 09:07 +0800
+	2014-12-30 01:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,25 +78,28 @@ unqualify(_tSrc&& arg) ynothrow
 /*!
 \brief 取 \c void* 类型的指针。
 \note 适合 \c std::fprintf 等的 \c %p 转换规格。
-\since build 552
+\since build 563
 */
 //@{
 template<typename _type>
 yconstfn
 	yimpl(enable_if_t)<is_object<_type>::value || is_void<_type>::value, void*>
-pvoid(_type* p)
+pvoid(_type* p) ynothrow
 {
 	return const_cast<void*>(static_cast<const volatile void*>(p));
 }
 //! \note ISO C++11 指定函数指针 \c reinterpret_cast 为对象指针有条件支持。
 template<typename _type>
 inline yimpl(enable_if_t)<is_function<_type>::value, void*>
-pvoid(_type* p)
+pvoid(_type* p) ynothrow
 {
 	return const_cast<void*>(reinterpret_cast<const volatile void*>(p));
 }
 
-//! \return 非空指针。
+/*!
+\return 非空指针。
+\since build 552
+*/
 template<typename _type>
 yconstfn void*
 pvoid_ref(_type&& ref)

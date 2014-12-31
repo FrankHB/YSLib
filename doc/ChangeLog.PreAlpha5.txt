@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r8409
+\version r8634
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-12-27 10:11 +0800
+	2014-12-31 12:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,228 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ @ "file '.hgignore'" $=
+	(
+		+ "glob patterns ('*/.Debug*/', '*/.Release*/') for Visual C++ default \
+			output directories",
+		+ "glob patterns ('*/.debug*/', '*/.release*/', '*/.static*/') for \
+			%SHBuild-BuildApp configurations",
+		+ "postfix '/'" @ "build configuration globs to avoid ignoring files",
+		+ "glob pattern 'Tools/SHBuild/SHBuild*' for stage 1 %SHBuild",
+		+ "glob pattern 'test/*.exe' for test",
+		- "glob patterns '.map', '*.o', '*.d', '*.elf', '*.obj', '*.pdb', \
+			'*.idb', '*.ilk', '*.exe'"
+			// These files should be ignored by directory paths.
+	),
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			+ 'ynothrow' @ "function template %Nonnull" @ %Debug,
+				// Operand of 'noexcept' has trouble with 'yconstfn', so no \
+					change to %Deref. 
+			(
+			+ "macros %(YCL_HostedUI, YCL_HostedUI_XCB; YCL_HostedUI)"
+				@ %YCLib.Platform;
+			+ "check for known platforms with hosted GUI" @ %HostedGUI,
+			/ $dev "simplified conditional inclusion" ^ "%YCL_HostedUI",
+				// Also reduce risk about missing update implementations when \
+					new hosted UI platform added.
+			+ %XCB $=
+			(
+				+ "classes %((ConnectionReference; Connection), Atom, \
+					(Drawable; WindowData, GContext)",
+				+ "functions %(UpdatePixmapBuffer, LookupAtom)"
+			);
+			/ %HostedGUI $=
+			(
+				(
+				+ "XCB support" $=
+				(
+					/ "alias declaration %WindoeHandle" @ 'YF_Use_XCB'
+						^ "%ystdex::nptr<XCB::WindowData*>";
+					/ "class %WindowReference" @ 'YF_Use_XCB'
+						^ "%XCB::WindowData",
+					/ "extended interface for %Android" @ 'YF_Use_XCB'
+				);
+				+ "alias declarations %(MessageID, MessageHandler)"
+					@ "platforms %(^XCB, Win32)";
+				/ "extended (alias declaration %MessageMap; data member \
+					%HostWindow::MessageMap)" @ "platform ^%XCB"
+					^ "%(MessageID, MessageHandler)"
+				),
+				(
+				+ "functions %(Hide, Show)" @ "class %WindowReference";
+				+ 'using WindowReference::Show;' @ "class %HostWindow"
+				),
+				* "occasionally made class not meet %DefaultConstructible \
+					requirement" @ "class %WindowReference" $since b560
+					$= (+ "explicitly defaulted default constructor"),
+				+ 'const XCB::Atom::NativeType WM_PROTOCOLS, WM_DELETE_WINDOW;'
+					@ "class %HostWindow"
+			)
+			),
+			* "assertion failed for root path due to wrong invariant on string \
+				length" @ "!platforms %(Win32, DS)" @ "class %DirectorySession"
+				@ %FileSystem $since b559,
+			/ "merged enum %ExtendedSet" -> "enum %NativeSet"
+				@ "platform %Linux" @ "namespace %KeyCodes" @ %Keys,
+		),
+		/ %Helper $=
+		(
+			/ %HostRenderer $=
+			(
+				+ "member function %HostRenderer::GetBufferRef",
+				+ "XCB support" @ %HostRenderer $dep_from %YCLib.XCB $=
+				(
+					+ "support for update" @ "%XCB_EXPOSURE" @ "platforms ^%XCB"
+						@ "constructor %RenderWindow" $dep_from
+						%YCLib.(Platform, XCB),
+					/ @ "static function %HostLoop merged" -> "static function \
+						%WindowLoop" @ "class %WindowThread" $=
+					(
+						* "non-canonical English use" @ "log" ^ 'began'
+							~ 'beginned' $since b523,
+						+ "implementation of event loop" @ "platforms ^%XCB"
+							$dep_from %YCLib.(Platform, XCB);
+					)
+				)
+			)
+		),
+		* DLB "freetype internals dependency when they are actually unused"
+			@ %YSLib.Adaptor.Font $562,
+		/ $build @ "Code::Blocks projects" $=
+		(
+			* $dev "freetype header paths" $since b459;
+			* $comp $dev "wrong freetype header paths" @ "Code::Block projects"
+				@ %YFramework $since b459
+		),
+		/ %'Helper_(Android)'.AndroidHost $=
+		(
+			+ "member function %ResizeScreenBuffer" @ "class %NativeHost",
+			- $revert(b502) "function %FetchDefaultDesktop"
+		)
+	),
+	/ %Tools $=
+	(
+		/ @ "%install-sysroot.sh" $=
+		(
+			+ "%INCLUDE_freetype with default value \
+				'-I../../3rdparty/freetype/include'" @ "platform %Win32",
+			+ "exported %INCLUDES_freetype",
+			/ "3rd party header installation would skip when $SHBuild_No3rd is \
+				not empty",
+			/ "freetype headers and libraries would be installed only when \
+				$INCLUDES_freetype is not empty",
+			/ "determined package %freetype2 including directory"
+				@ "!platform %Win32" ^ 'pkg-config --cflags-only-I'
+			/ "supported installing %SHBuild executable without extension name"
+				^ ($dep_from "%EXESFX" @ "%SHBuild-common-options.sh"
+				@ %Scripts),
+			/ DLD "simplified installation implementation and other functions",
+			* "missing quoting library directory for '-L' on building stage2 \
+				%SHBuild" $since b546,
+			/ "exported %LIBS" ^ $dep_from ("%LIBS_RPATH"
+				@ "%SHBuild-common-options.sh" @ %Scripts),
+			- $revert(b556) '-fno-lto -fwhole-program'
+				@ "stage 2 %SHBuild build command"
+				// This option might cause problems, e.g. crash on %Linux and \
+					not recognized by Clang++.
+		),
+		/ %Scripts $=
+		(
+			+ '-lxcb-image' @ "front" @ "%SHBuild_YF_SystemLibs"
+				@ "%(SHBuild-BuildApp.sh, SHBuild-YSLib-common.sh)",
+			+ '$INCLUDES_freetype' @ "%INCLUDES" @ "%SHBuild-YSLib-common.sh",
+			+ '-I../../3rdparty/freetype/include' @ "%INCLUDES"
+				@ "%SHBuild-bootstrap.sh"
+				// Not accurate but acceptable.
+			/ @ "%SHBuild-BuildApp.sh" $=
+			(
+				/ "determined package %freetype2 cflags and libs"
+					@ "!platform %Win32" ^ 'pkg-config',
+				* "missing quoting library directory for '-L'" $since b549,
+				/ "exported %LIBS" ^ $dep_from ("%LIBS_RPATH"
+					@ "%SHBuild-common-options.sh" @ %Scripts),
+				/ "disabled '-mwindows' to linker flag" @ "!platform %Win32"
+			),
+			/ @ "SHBuild-common.sh" $=
+			(
+				/ "concatenated operations by logical AND to guarantee first \
+					operation successful" @ "functions %(SHBuild_Install_Exe, \
+					SHBuild_Install_HardLink, SHBuild_Install_HardLink_Exe, \
+					SHBuild_Install_Link)",
+				/ "hid stderr output (i.e. command not found) of 'cygpath' call"
+					@ "functions %(SHBuild_2u, SHBuild_2w)",
+				/ DLD "simplified implementation"
+					@ "functions %(SHBuild_Install, SHBuild_InstallDir)"
+					^ "logical (AND, OR)",
+				+ "variable %LIBS_RPATH with default value: \
+					-Wl,-rpath,'\$ORIGIN:\$ORIGIN/../lib'" @ "!platform %Win32"
+			),
+			+ "variable %EXESFX with default variable '.exe'"
+				@ "platform %Win32" @ "%SHBuild-common-options.sh",
+			* $re_ex(b434) "wrong '-Wl,--dn' option" @ "debug dynamic libraries"
+				@ "%SHBuild-YSLib.debug.sh" $since b429,
+
+		),
+		/ "normalized bash condition use" $=
+		(
+			/ DLD "all regex instances 'if \[ (.+) \]'" -> 'if [[ $1 ]]',
+			/ DLD "eliminated prefix 'x' comparing for strings",
+			^ "single quoting for some literal strings" ~ "double quoting",
+			/ "allowed freetype static library to be not exist"
+				// Thus ignored to be installed. It is specified to default \
+					cases of %Linux, etc.
+		),
+		/ "ensured '.exe' extension for building mode 2" @ "all platforms"
+			@ %SHBuild.Main
+			// To avoid the output name being same as directory @ !platform
+				%Win32.
+	),
+	/ $build "separated freetype including directory to allow optional other \
+		header location" -> "%3rdparty/freetype/include" ~ "%3rdparty/include",
+	/ "handling mouse keys" ^ "%(Secondary, Tertiary)"
+		~ "Win32-specific macros %(VK_RBUTTON, VK_MBUTTON)" @ %YDE $effective
+		@ %(ImageBrowser.(Main, ImageControl), Clock.Main),
+	/ %YBase.YStandardEx $=
+	(
+		+ 'ynothrow' @ "function templates %pvoid for builtin pointers"
+			@ %Cast,
+		* "missing nothrow exception specification"
+			@ "function %swap for instances of %nptr" @ %Utilities $since b560
+			$= (+ 'ynothrow')
+			// This would case ill-formed defaulted move constructor for
+				derived classes.
+	),
+	(
+	* "wrong use of 'ynothrow' when construction of thrown exception can throw"
+		$effective @ %YFramework.(YSLib.("member funtion %GGraphics::at"
+		$since b559 $orig (@ "class %Graphics" @ %YObject $since b176)
+		%Core.YGDI, Service.("all functions %EnsureDirectory" @ %FileSystem
+		$since b476, "function %CopySliceFrom" @ %TextManager $since b397)
+		"all member functions %MLinearUIContainer::at" @ %UI.YUIContainer $since
+		b494), "function %TranslateTime#2" @ %Helper.ShellHelper $since b179,
+		"static member function %JNIBase::EnsureDetachJNIAtThreadExit"
+		@ %YCLib.JNI $since b553, "functions %(CheckHResult, EnsureNonNull),
+		member functions and function templates %COMPtr::(As, Copy#2)"
+		@ %'YCLib_(MinGW32)'.COM $since b412, "function %FetchNativeLooper"
+		@ %'YCLib_(Android)'.Android $since b499)
+		$= (- "'ythrow' exception specification");
+	* $comp "mismatched 'ythrow' exception specification between definition \
+		and non-definition declarations" @ "all functions %EnsureDirectory"
+		@ %YFramework.YSLib.Service.FileSystem $since b476,
+	/ $dev $repo "all edited file with module name not the same as base \
+		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg rename' $effective
+		@ (((("%ygdibase.h" => "%YGDIBase.h" @ %Core.YGDIBase, ("%textmgr.h"
+		=> "%TextManager.h", "%textmgr.cpp" => "%TextManager.cpp")
+		@ %Service.TextManager, "%yuicont.h" => "%YUIContainer.h"
+		@ %UI.YUIContainer) @ %YFramework.YSLib,
+	)
+),
+
+b562
 (
 	/ %Tools $=
 	(
@@ -432,9 +654,10 @@ b561
 	/ $dev $repo "all edited file with module name not the same as base \
 		file name" @ !(%YBase, %YFramework.YSBuild) ^ 'hg rename' $effective
 		@ (((("%yobject.h" => "%YObject.h" @ %Core.YObject, (("%ystyle.h"
-		=> "%YStyle.h", "%ystyle.cpp" => "%YStyle.cpp") @ %YStyle), "%button.cpp"
-		=> "%Button.cpp" @ %Button) @ %UI, "%ynew.h" => "%YNew.h" @ %Adaptor)
-		@ %YSLib), "%ycommon.h" => "%YCommon.h" @ %YCLib.YCommon) @ %YFramework
+		=> "%YStyle.h", "%ystyle.cpp" => "%YStyle.cpp") @ %YStyle),
+		"%button.cpp" => "%Button.cpp" @ %Button) @ %UI, "%ynew.h" => "%YNew.h"
+		@ %Adaptor) @ %YSLib), "%ycommon.h" => "%YCommon.h" @ %YCLib.YCommon)
+		@ %YFramework
 ),
 
 b560

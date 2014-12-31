@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup Clock
 \brief 主界面。
-\version r110
+\version r111
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-16 15:16:03 +0800
 \par 修改时间:
-	2014-12-18 08:53 +0800
+	2014-12-28 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -59,7 +59,7 @@ main()
 	lbl.Margin = {0, 0, len, 0},
 	pnl.Background = SolidBrush({0x40, 0x40, 0x40, 0x40}),
 	FetchEvent<Click>(pnl) += [](CursorEventArgs&& e){
-		if(e.GetKeys()[VK_RBUTTON])
+		if(e.GetKeys()[KeyCodes::Secondary])
 			YSLib::PostQuitMessage(0);
 	},
 	FetchEvent<Paint>(pnl) += [&](PaintEventArgs&& e){

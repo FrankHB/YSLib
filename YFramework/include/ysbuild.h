@@ -11,13 +11,13 @@
 /*!	\file ysbuild.h
 \ingroup YFramework
 \brief YSLib 库配置文件。
-\version r779
+\version r780
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-12 21:53:55 +0800
 \par 修改时间:
-	2014-12-19 13:31 +0800
+	2014-12-27 23:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,7 +33,7 @@
 #include YFM_YSLib_UI_YDesktop
 #include YFM_YSLib_UI_YGUI
 #include YFM_Helper_Initialization
-#if (!YCL_Linux || YCL_Android) && !YCL_OS_X
+#if !YCL_OS_X
 #	include YFM_Helper_HostedUI
 #	include YFM_DS_Helper_DSMain
 #endif

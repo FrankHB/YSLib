@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2046
+\version r2048
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-12-19 20:23 +0800
+	2014-12-28 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -449,8 +449,7 @@ DirectorySession::DirectorySession(const char* path)
 			"Opening directory failed.");
 #if !YCL_Win32
 	ystdex::rtrim(sDirPath, YCL_PATH_DELIMITER);
-	YAssert(std::char_traits<char>::length(sDirPath.c_str()) > 0
-		&& sDirPath.back() != YCL_PATH_DELIMITER,
+	YAssert(sDirPath.empty() || sDirPath.back() != YCL_PATH_DELIMITER,
 		"Invalid directory name state found.");
 	sDirPath += YCL_PATH_DELIMITER;
 #endif

@@ -8,7 +8,7 @@ SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 . $SHBuild_ToolDir/SHBuild-bootstrap.sh
 
 # XXX: Depends on DLLs in '/usr/lib'.
-export LIBS="-L/usr/lib -lYFramework -lYBase"
+export LIBS='-L/usr/lib -lYFramework -lYBase'
 CXXFLAGS="$CXXFLAGS -fwhole-program -DYF_DLL -DYB_DLL"
 export LDFLAGS="${LDFLAGS/-Wl,--dn/}"
 SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild-dll"

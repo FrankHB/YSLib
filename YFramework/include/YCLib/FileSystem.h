@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1613
+\version r1614
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-12-19 22:23 +0800
+	2014-12-28 14:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -492,7 +492,7 @@ public:
 protected:
 	/*!
 	\brief 目录路径。
-	\invariant <tt>std::char_traits<char>::length(sDirPath.c_str()) > 1 && \
+	\invariant <tt>std::char_traits<char>::length(sDirPath.c_str()) > 0 && \
 		sDirPath.back() == YCL_PATH_DELIMITER</tt> 。
 	\since build 560
 	*/

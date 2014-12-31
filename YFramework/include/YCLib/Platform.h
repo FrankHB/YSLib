@@ -11,13 +11,13 @@
 /*!	\file Platform.h
 \ingroup YCLib
 \brief 通用平台描述文件。
-\version r724
+\version r758
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-24 00:05:08 +0800
 \par 修改时间:
-	2014-12-24 08:57 +0800
+	2014-12-27 05:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -253,6 +253,28 @@
 \since build 561
 */
 
+/*!
+\ingroup PlatformOptionalFeatures
+\def YCL_HostedUI
+\brief 宿主用户界面支持。
+\note 允许预定义。
+\since build 563
+
+非零值表示支持宿主用户界面，否则表示不支持。
+*/
+
+/*!
+\ingroup PlatformOptionalFeatures
+\def YCL_HostedUI_XCB
+\brief 在宿主用户界面使用 X C 绑定。
+\note 取消外部定义。
+\since build 563
+
+非零值表示宿主用户界面使用 XCB ，否则表示不使用。
+对 Linux 默认定义。若定义后未定义 YF_Use_XCB ，则提供默认定义。
+*/
+#undef YCL_HostedUI_XCB
+
 
 /*
 \def YCL_Device_Cursor_FixedKey
@@ -317,9 +339,7 @@
 #	endif
 #elif YF_Platform == YF_Platform_Linux_x86 \
 	|| YF_Platform == YF_Platform_Linux_x64
-#	ifndef YF_Use_XCB
-#		define YF_Use_XCB 0x11100
-#	endif
+#	define YCL_HostedUI_XCB 1
 #elif YF_Platform == YF_Platform_OS_X
 #	define YCL_OS_X 1
 #	ifndef YF_Use_POSIXThread
@@ -330,6 +350,21 @@
 #	define YCL_API_Has_unistd_h 1
 #else
 #	error "Unsupported platform found."
+#endif
+
+#ifndef YCL_HostedUI_XCB
+#	define YCL_HostedUI_XCB 0
+#endif
+#ifndef YCL_HostedUI
+#	if YCL_HostedUI_XCB || YCL_Win32 || YCL_Android
+#		define YCL_HostedUI 1
+#	else
+#		define YCL_HostedUI 0
+#	endif
+#endif
+
+#if YCL_HostedUI_XCB && !defined(YF_Use_XCB)
+#	define YF_Use_XCB 0x11100
 #endif
 
 // NOTE: See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63287 .

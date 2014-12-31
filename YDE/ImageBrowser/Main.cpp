@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup ImageBrowser
 \brief 主界面。
-\version r170
+\version r171
 \author FrankHB <frankhb1989@gmail.com>
 \since build 424
 \par 创建时间:
 	2013-07-07 12:57:53 +0800
 \par 修改时间:
-	2014-12-16 22:52 +0800
+	2014-12-28 23:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ main(int argc, char* argv[])
 			pnl.Load(DecodeArg(argv[1]));
 			ShowTopLevelDraggable(pnl);
 			FetchEvent<Click>(pnl) += [](CursorEventArgs&& e){
-				if(e.GetKeys()[VK_RBUTTON])
+				if(e.GetKeys()[KeyCodes::Secondary])
 					YSLib::PostQuitMessage(0);
 			};
 			Execute(app);

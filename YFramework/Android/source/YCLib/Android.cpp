@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup Android
 \brief YCLib Android 平台公共扩展。
-\version r557
+\version r558
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 18:30:24 +0800
 \par 修改时间:
-	2014-12-17 22:14 +0800
+	2014-12-31 08:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -78,7 +78,7 @@ InputQueue::~InputQueue()
 
 
 ::ALooper&
-FetchNativeLooper(bool allow_non_callbacks) ythrow(Exception)
+FetchNativeLooper(bool allow_non_callbacks)
 {
 	const auto p(::ALooper_prepare(allow_non_callbacks
 		? ALOOPER_PREPARE_ALLOW_NON_CALLBACKS : 0));

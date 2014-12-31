@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3446
+\version r3455
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-12-24 14:20 +0800
+	2014-12-29 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -37,9 +37,12 @@
 //#include FT_GLYPH_H
 //#include FT_OUTLINE_H
 //#include FT_SYNTHESIS_H
-#include <internal/internal.h> // for FreeType internal macros;
-#include FT_INTERNAL_OBJECTS_H // for FT_Face_InternalRec_;
-#include FT_INTERNAL_TRUETYPE_TYPES_H // for TT_Face, TT_FaceRec_;
+#if defined(FT_CONFIG_OPTION_OLD_INTERNALS) \
+	&& (FREETYPE_MAJOR * 10000 + FREETYPE_MINOR * 100 + FREETYPE_PATCH >= 20500)
+#	define YF_Impl_Use_FT_Internal 1
+#	include <internal/internal.h> // for FreeType internal macros;
+#	include FT_INTERNAL_TRUETYPE_TYPES_H // for TT_Face, TT_FaceRec_;
+#endif
 
 using namespace ystdex;
 using namespace platform;
@@ -292,10 +295,9 @@ Typeface::~Typeface()
 
 	const auto face(&ref.second.get());
 
+#if YF_Impl_Use_FT_Internal
 	YAssert(Deref(face).internal->refcount == 1,
 		"Invalid face reference count found.");
-#if defined(FT_CONFIG_OPTION_OLD_INTERNALS) \
-	&& (FREETYPE_MAJOR * 10000 + FREETYPE_MINOR * 100 + FREETYPE_PATCH >= 20500)
 	// XXX: Hack for using %ttmtx.c and %sfobjs.c of FreeType 2.4.11.
 	if(FT_IS_SFNT(face))
 	{

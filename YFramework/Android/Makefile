@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YFramework
-# Version = r342
+# Version = r347
 # Created = 2014-04-07 17:50:08 +0800
-# Updated = 2014-12-17 01:07 +0800
+# Updated = 2014-12-31 11:19 +0800
 # Encoding = ANSI
 
 
@@ -54,12 +54,10 @@ export SOURCES		:=	source data \
 	$(REFDIR)/source/NPL $(REFDIR)/source/Helper \
 	$(REFDIR)/DS/source/Helper $(REFDIR)/Android/source/YCLib \
 	$(REFDIR)/Android/source/Helper
-export INCLUDES		:=	include data \
-	$(REFDIR)/Android/include $(REFDIR)/DS/include $(REFDIR)/DS/data \
-	../../YBase/include $(REFDIR)/include ../../3rdparty/include
+export INCLUDES		:=	include data $(REFDIR)/Android/include \
+	$(REFDIR)/DS/include $(REFDIR)/DS/data ../../YBase/include \
+	$(REFDIR)/include ../../3rdparty/include ../../3rdparty/freetype/include
 export DATA			:=	#data $(REFDIR)/data
-#export GRAPHICS	:=	gfx
-#export MUSIC		:=	music
 
 # options for code generation
 CFLAGS := $(INCLUDE) $(C_CXXFLAGS) $(CFLAGS_COMMON)

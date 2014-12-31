@@ -4,14 +4,20 @@ Get the source from http://freetype.org .
 Be careful with EOL. If "mingw32-make" is used to build for Windows, make sure the ".zip" source is used.
 Note that the build command might have to be run more than once because the fisrt run might only generate "ftmodule.h" and there would be no actual library output.
 
+= Since build 563:
+Dependencies of FreeType interal headers are removed if external build of FreeType2 headers and libraries are used.
+
+= Since build 562:
+A check added in implementation of module "YSLib::Adaptor::Font" to enable the hack only when macro "FT_CONFIG_OPTION_OLD_INTERNALS" is defined for version 2.5.0 or above. This macro is not supported since 2.5.0, so both older versions and new versions of external build is supported.
+Though untested, now all versions with compatible APIs should work, at least for versions since 2.3.12 because no new APIs are used since then.
+
 = Patching
-Since build b420, the following files from version 2.4.11 should replace files from newer versions(since 2.4.12) respectively:
- "include/freetype/config/ftoption.h",
- "src/sfnt/ttmtx.c".
+Since build 420, the following files from version 2.4.11 should replace files from newer versions(since 2.4.12) respectively:
+"include/freetype/config/ftoption.h",
+"src/sfnt/ttmtx.c".
 NOTE: The include path has been modified since 2.5.1. No "freetype/" would be in the destination header path.
-WARNING: The patched library has a bug of leaking TrueType font resource on releasing.
-Currently it is not planned to be solved by modifying source code of FreeType. See module "YSLib::Adaptor::Font" of YFramework for the client-side workaround.
-There is a known bug in build system of version 2.5.1 and 2.5.2 for Win32. Make junction "builds/windows" back to "build/win32" as older versions to workaround.
+WARNING: The patched library has a bug of leaking TrueType font resource on destruction of object with type "YSLib::Drawing::Typeface" until build 425. However, this fix is not compatible with previous versions of FreeType2, until build 552.
+Direct fix on FreeType source is not planned. See module "YSLib::Adaptor::Font" of YFramework for the client-side workaround.
 
 = DS
 Currently only building on Windows is tested.
@@ -33,6 +39,7 @@ Currently, the YSLib uses:
 	mingw32-make CFLAGS="-c -O3 -Wall -fomit-frame-pointer -DNDEBUG"
 
 The output is "objs/freetype.a" in the freetype source directory.
+There is a known bug in build system of version 2.5.1 and 2.5.2 for Win32. Make junction "builds/windows" back to "build/win32" as older versions to workaround.
 
 = Android
 Currently only building on Windows is tested.

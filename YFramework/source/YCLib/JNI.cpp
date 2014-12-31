@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r138
+\version r139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:25:23 +0800
 \par 修改时间:
-	2014-11-28 13:45 +0800
+	2014-12-31 07:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,6 @@ JNIBase::~JNIBase() ynothrow
 
 void
 JNIBase::EnsureDetachJNIAtThreadExit(::JavaVM& vm, ::JNIEnv& env)
-	ythrow(ystdex::unsupported)
 {
 #	if YF_Multithread == 1
 #		if YB_HAS_THREAD_LOCAL

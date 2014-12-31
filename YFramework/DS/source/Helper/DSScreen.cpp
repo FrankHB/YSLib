@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r275
+\version r276
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-12-24 17:35 +0800
+	2014-12-29 05:24 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -48,7 +48,7 @@ DSScreen::Update(ConstBitmapPtr p_buf) ynothrow
 {
 	DS::ScreenSynchronize(GetCheckedBufferPtr(), p_buf);
 }
-#elif YF_Use_XCB || YCL_Win32 || YCL_Android
+#elif YCL_HostedUI
 DSScreen::DSScreen(bool b) ynothrow
 	: Screen({MainScreenWidth, MainScreenHeight}),
 	Offset(), WindowHandle(),

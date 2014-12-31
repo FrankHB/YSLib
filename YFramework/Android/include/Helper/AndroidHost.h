@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup Android
 \brief Android 宿主。
-\version r211
+\version r217
 \author FrankHB <frankhb1989@gmail.com>
 \since build 502
 \par 创建时间:
 	2013-06-04 23:05:33 +0800
 \par 修改时间:
-	2014-11-14 23:49 +0800
+	2014-12-31 11:41 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,6 +67,7 @@ struct YF_API ConfigurationDeleter
 
 /*!
 \brief Android 本机宿主。
+\warning 非虚析构。
 \since build 502
 */
 class YF_API NativeHost
@@ -155,6 +156,10 @@ public:
 	void
 	ReleaseSavedState() ynothrow;
 
+	//! \since build 563
+	void
+	ResizeScreen(const Drawing::Size&);
+
 	template<typename _type>
 	void
 	Restore(_type& state) const
@@ -181,9 +186,6 @@ public:
 	void*
 	SaveInstanceState(size_t* p_len);
 };
-
-YF_API Desktop&
-FetchDefaultDesktop() ynothrow;
 
 //! \since build 506
 YF_API ::ANativeWindow&
