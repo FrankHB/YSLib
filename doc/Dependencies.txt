@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r493
+\version r517
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2014-12-26 20:57 +0800
+	2014-12-29 16:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -190,7 +190,7 @@ Oracle JDK 8u25 x64 / Android NDK r10c x86_64 / Android SDK Build-tools 21.1.1 �
 除非以下说明，配置同 MinGW32(@1.5) 。
 目标为 x86_64-w64-mingw32 ，操作系统 Windows XP x64/Windows Server 2003 x64 （对应 Windows SDK 版本宏 WINVER 值 0x0501 ）及以上。
 2014-07-22(build 520) 起非正式支持 mingw64/mingw-w64-x86_64-gcc 版本 4.9.1-1 （对 YFramework 仅支持静态链接）。
-使用包 mingw64/mingw-w64-x86_64-FreeImage-3.16.0-3 和 mingw64/mingw-w64-x86_64-freetype 2.5.3-2 未另行编译并静态链接至 YFramework 内。
+使用包 mingw64/mingw-w64-x86_64-FreeImage 3.16.0-3 和 mingw64/mingw-w64-x86_64-freetype 2.5.3-2 未另行编译并静态链接至 YFramework 内。
 
 @1.8 Linux x86 平台工具链和标准库实现：
 除非以下说明，配置同 Linux x64(@1.9) 。
@@ -211,11 +211,14 @@ build 560 前：
 2014-12-16(build 560) 起：
 非正式支持。
 构建平台 ArchLinux x86_64 。
-使用包 llvm-3.5.0-2.1 和 clang-3.5.0-2.1 。仅用于构建 stage1 SHBuild 。
-包 G++ 4.9.2-1 (x86_64) 会导致段错误，当前不被支持。
-2014-12-24(build 562) 起：
+使用包 extra/clang-3.5.0-2.1 (x86_64) ，包括以下依赖：
+直接依赖： extra/llvm-3.5.0-2.1 (x86_64) ；
+间接依赖： extra/llvm-libs-3.5.0-2.1 (x86_64) 、 core/gcc-4.9.2-1 (x86_64) 和 core/gcc-libs-4.9.2-1 (x86_64) 。
+仅用于构建 stage1 SHBuild 。
+包 gcc-4.9.2-1 (x86_64) 会导致段错误，当前不被支持。
+2014-12-26(build 562) 起：
 非正式支持。
-使用包 G++ 4.9.2-1 (x86_64) 。仅用于构建 FreeImage 。
+使用包 extra/nasm-2.11.06-1 (x86_64) ，仅用于构建 FreeImage 。
 
 @1.6.1 Android 平台构建说明：
 需要使用宏 ANDROID_SDK 指定 Android SDK 的路径。
@@ -240,7 +243,7 @@ build 207 前使用 Loki 库的智能指针实现句柄。
 之后已移除。
 
 @2.2 FreeType2 ：
-字体输出使用 FreeType2（参见 http://www.freetype.org ） 实现向量字体光栅化支持。
+使用 FreeType2（参见 http://www.freetype.org ） 实现向量字体光栅化支持。
 历史记录、版本信息和构建方法详见 "3rdparty/freetype/Readme.en-US.txt" 。
 
 @2.2.1 使用版本：
@@ -336,6 +339,15 @@ MinGW32 库文件：使用命令行显式设置 CFLAGS="-c -O3 -Wall -fomit-fram
 2014-07-19(build 520) 起：
 重新编译 MinGW32 库文件。
 
+@2.2.4 DS 、 MinGW32 、 Android 和其它平台外部库配置：
+2014-12-26(build 562) 起：
+YSLib 实现对所有平台的 FreeType2 库添加检查。
+仅对 2.5.0 及以上版本（官方版已不支持并移除此宏）同时包含宏 FT_CONFIG_OPTION_OLD_INTERNALS  时使用修正，以便使用外部编译发行的库和头文件。
+因为未使用新的 API ，外部编译的库支持最早使用的 2.3.12 及以上版本，可能支持更早的 API 兼容版本（均未另行测试）。
+2014-12-29(build 563) 起：
+移除对未使用 FT_CONFIG_OPTION_OLD_INTERNALS 时 FreeType 内部头文件依赖。
+新增 Linux 支持。在 ArchLinux x86_64 上使用包 extra/freetype2 2.5.4-3 (x86_64) （依赖包 extra/libpng 1.6.16-1 (x86_64) 和 extra/harfbuzz 0.9.37-1 (x86_64) ）测试通过。
+
 @2.3 Anti-Grain Geometry ：
 图形库：修正的 Anti-Grain Geometry 库 V2.4 。
 2011-01-19(build 187) 起移除。
@@ -361,6 +373,15 @@ MinGW32 库文件：使用命令行显式设置 CFLAGS="-c -O3 -Wall -fomit-fram
 
 @3.1 JNI ：
 要求版本 1.2 或以上。
+
+@3.2 XCB ：
+对 Linux 构建 YFramework 是必要的依赖。
+要求版本 1.11 或以上。
+要求实现支持 X11R7.7 核心协议和 ICCCM 2.0 。
+具体规范参照： http://www.x.org/releases/X11R7.7/doc/ 。
+
+@3.2.1 使用的版本：
+在 Arch Linux x86_64 使用包： libxcb-1.11-1 和 xcb-util-image 0.4.0-1 。
 
 */
 ////

@@ -11,13 +11,13 @@
 /*!	\file ShellHelper.cpp
 \ingroup Helper
 \brief Shell 助手模块。
-\version r497
+\version r498
 \author FrankHB <frankhb1989@gmail.com>
 \since build 278
 \par 创建时间:
 	2010-04-04 13:42:15 +0800
 \par 修改时间:
-	2014-12-02 18:48 +0800
+	2014-12-31 07:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,7 +91,7 @@ TranslateTime(const std::tm& tm, const char* format)
 	return str;
 }
 const char*
-TranslateTime(const std::time_t& t, const char* format) ythrow(GeneralEvent)
+TranslateTime(const std::time_t& t, const char* format)
 {
 	auto p(std::localtime(&t));
 

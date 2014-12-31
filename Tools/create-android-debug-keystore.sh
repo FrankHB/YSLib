@@ -18,7 +18,7 @@ is_in_path()
 	IFS=":"
 	for dir in $path
 	do
-		if [ -x $dir/$cmd ]; then
+		if [[ -x $dir/$cmd ]]; then
 			result=0
 		fi
 	done
@@ -28,8 +28,7 @@ is_in_path()
 
 java_exe=`$ANDROID_SDK/tools/lib/find_java`
 
-if [ `$(is_in_path "cygpath")` -ne 0 ]
-then
+if [[ `$(is_in_path "cygpath")` -ne 0 ]]; then
 	java_d=`cygpath -d "$java_exe"`
 	export JAVA=`cygpath "$java_d"`
 else

@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # Android Makefile for YSTest
-# Version = r298
+# Version = r301
 # Created = 2014-04-17 23:51:27 +0800
-# Updated = 2014-12-17 01:06 +0800
+# Updated = 2014-12-31 11:29 +0800
 # Encoding = ANSI
 
 .SUFFIXES:
@@ -53,8 +53,9 @@ export OUTPUT_FINAL := $(BUILDDIR)/$(TARGET).final.apk
 # MANIFEST is the manifext XML file
 export SOURCES := source ../source
 export INCLUDES := include ../include ../Android/include \
-	../../YFramework/include ../../YFramework/Android/include ../../YFramework/DS/include \
-	../../3rdparty/include ../../YBase/include
+	../../YFramework/include ../../YFramework/Android/include \
+	../../YFramework/DS/include ../../3rdparty/include \
+	../../3rdparty/freetype/include ../../YBase/include
 export RESDIR := $(TOPDIR)/data
 export MANIFEST := $(TOPDIR)/AndroidManifest.xml
 

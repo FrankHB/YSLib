@@ -8,9 +8,9 @@
 #	understand and accept it fully.
 #
 # DS Makefile for YFramework -> ARM9
-# Version = r2063
+# Version = r2067
 # Created = 2009-12-18 12:27:40 +0800
-# Updated = 2014-12-06 22:02 +0800
+# Updated = 2014-12-31 11:17 +0800
 # Encoding = ANSI
 
 
@@ -52,10 +52,9 @@ export SOURCES		:=	source data \
 	$(REFDIR)/source/YSLib/Service $(REFDIR)/source/YSLib/UI \
 	$(REFDIR)/source/NPL $(REFDIR)/source/Helper \
 	$(REFDIR)/DS/source/Helper
-export INCLUDES		:=	include data ../../YBase/include $(REFDIR)/include ../../3rdparty/include
+export INCLUDES		:=	include data ../../YBase/include $(REFDIR)/include \
+	../../3rdparty/include ../../3rdparty/freetype/include
 export DATA			:=	data $(REFDIR)/data
-#export GRAPHICS	:=	gfx
-#export MUSIC		:=	music
 
 # options for code generation
 ARCH := $(ARCH_ARM9)

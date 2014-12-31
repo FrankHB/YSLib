@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ygdibase.h
+/*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1833
+\version r1839
 \author FrankHB <frankhb1989@gmail.com>
-\since build 206
+\since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-12-11 20:37 +0800
+	2014-12-31 08:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Core_ygdibase_h_
-#define YSL_INC_Core_ygdibase_h_ 1
+#ifndef YSL_INC_Core_YGDIBase_h_
+#define YSL_INC_Core_YGDIBase_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YException
@@ -863,10 +863,10 @@ public:
 	\brief 取指定行首元素指针。
 	\throw GeneralEvent 缓冲区指针为空。
 	\throw std::out_of_range 参数越界。
-	\note 仅抛出以上异常。
+	\since build 563
 	*/
 	PointerType
-	at(size_t r) const ythrow(GeneralEvent, std::out_of_range)
+	at(size_t r) const
 	{
 		if(YB_UNLIKELY(!pBuffer))
 			throw GeneralEvent("Null pointer found.");

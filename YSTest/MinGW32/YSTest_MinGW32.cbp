@@ -125,6 +125,7 @@
 			<Add directory="../../YFramework/include" />
 			<Add directory="../../YBase/include" />
 			<Add directory="../../3rdparty/include" />
+			<Add directory="../../3rdparty/freetype/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-Wl,--gc-sections" />

@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 屏幕。
-\version r457
+\version r458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:28:02 +0800
 \par 修改时间:
-	2014-12-24 17:35 +0800
+	2014-12-29 95:39 +0800
 \par 文本编码:
 	UTF-8
 \par 非公开模块名称:
@@ -77,7 +77,7 @@ public:
 	*/
 	void
 	Update(Drawing::ConstBitmapPtr) ynothrow override;
-#elif YF_Use_XCB || YCL_Win32 || YCL_Android
+#elif YCL_HostedUI
 public:
 	Drawing::Point Offset;
 	/*!

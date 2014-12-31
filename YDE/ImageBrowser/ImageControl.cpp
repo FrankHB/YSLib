@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r940
+\version r942
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2014-12-16 22:55 +0800
+	2014-12-28 23:46 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -26,7 +26,6 @@
 
 
 #include "ImageControl.h"
-#include <Windows.h> // for VK_MBUTTON;
 
 namespace ImageBrowser
 {
@@ -60,7 +59,7 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 		}
 	},
 	FetchEvent<Click>(*this) += [this](CursorEventArgs&& e){
-		if(session_ptr && e.Keys[VK_MBUTTON] && GetPagesRef().Zoom(
+		if(session_ptr && e.Keys[KeyCodes::Tertiary] && GetPagesRef().Zoom(
 			round((1 - GetPagesRef().GetScale()) * 100), e))
 			Invalidate(*this);
 	},

@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r328
+\version r395
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-12-05 16:59 +0800
+	2014-12-30 19:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,6 +29,10 @@
 #include YFM_Helper_HostRenderer
 #include YFM_Helper_Environment // for Environment;
 //#include YFM_Helper_GUIApplication
+#if YCL_HostedUI_XCB
+#	include <xcb/xcb.h>
+#	include YFM_YCLib_XCB
+#endif
 
 namespace YSLib
 {
@@ -42,8 +46,14 @@ namespace Host
 RenderWindow::RenderWindow(HostRenderer& r, NativeWindowHandle h)
 	: Window(h), renderer(r)
 {
-#	if YCL_Win32
+#	if YCL_HostedUI_XCB
+	MessageMap[XCB_EXPOSE] += [this]{
+		// TODO: Optimize using event parameter.
+		renderer.get().GetBufferRef().UpdateTo(GetNativeHandle());
+	};
+#	elif YCL_Win32
 	MessageMap[WM_PAINT] += [this]{
+		// NOTE: Parameters are not used.
 		GSurface<WindowRegionDeviceContext> sf(GetNativeHandle());
 
 		renderer.get().UpdateToSurface(sf);
@@ -74,6 +84,10 @@ WindowThread::~WindowThread()
 		{
 			p_wnd_val->Close();
 		}
+		// TODO: Log.
+#		if YCL_HostedUI_XCB
+		CatchIgnore(XCB::XCBException&)
+#		endif
 #		if YCL_Win32
 		CatchIgnore(Win32Exception&)
 #		else
@@ -89,30 +103,6 @@ WindowThread::~WindowThread()
 		e.what()), yunused(e))
 	CatchExpr(..., YTraceDe(Alert, "Caught unknown exception."))
 	delete p_wnd_val;
-}
-
-void
-WindowThread::HostLoop()
-{
-	YTraceDe(Notice, "Host loop beginned.");
-#	if YCL_Win32
-	while(true)
-	{
-		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}}; //!< 本机消息。
-
-		if(::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
-		{
-			if(msg.message == WM_QUIT)
-				break;
-			::TranslateMessage(&msg);
-			::DispatchMessageW(&msg);
-		}
-		else
-			// NOTE: Failure ignored.
-			::WaitMessage();
-	}
-#	endif
-	YTraceDe(Notice, "Host loop ended.");
 }
 
 void
@@ -136,7 +126,49 @@ WindowThread::WindowLoop(Window& wnd)
 
 	env.EnterWindowThread();
 #	endif
-	HostLoop();
+	YTraceDe(Notice, "Host loop began.");
+#	if YCL_HostedUI_XCB
+	// XXX: Exit on I/O error occurred?
+	// TODO: Log I/O error.
+	while(const auto p_evt = unique_raw(::xcb_wait_for_event(
+		&Deref(wnd.GetNativeHandle().get()).DerefConn()), std::free))
+	{
+	//	YSL_DEBUG_DECL_TIMER(tmr, std::to_string(msg));
+		auto& m(wnd.MessageMap);
+		const auto msg(p_evt->response_type & ~0x80);
+
+		if(msg == XCB_CLIENT_MESSAGE)
+		{
+			auto& cevt(reinterpret_cast<::xcb_client_message_event_t&>(*p_evt));
+
+			if(cevt.type == wnd.WM_PROTOCOLS
+				&& cevt.data.data32[0] == wnd.WM_DELETE_WINDOW)
+				break;
+		}
+
+		const auto i(m.find(msg & ~0x80));
+
+		if(i != m.cend())
+			i->second(p_evt.get());
+	}
+#	elif YCL_Win32
+	while(true)
+	{
+		::MSG msg{nullptr, 0, 0, 0, 0, {0, 0}};
+
+		if(::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0)
+		{
+			if(msg.message == WM_QUIT)
+				break;
+			::TranslateMessage(&msg);
+			::DispatchMessageW(&msg);
+		}
+		else
+			// NOTE: Failure ignored.
+			::WaitMessage();
+	}
+#	endif
+	YTraceDe(Notice, "Host loop ended.");
 #	if YF_Multithread
 	env.LeaveWindowThread();
 #	endif
@@ -158,7 +190,9 @@ HostRenderer::Update(ConstBitmapPtr p_buf)
 	if(const auto p_wnd = GetWindowPtr())
 		try
 		{
-#	if YCL_Android
+#	if YCL_HostedUI_XCB
+			const auto& cbounds(p_wnd->GetBounds());
+#	elif YCL_Android
 			const Rect cbounds(p_wnd->GetSize());
 #	else
 			const auto& cbounds(p_wnd->GetClientBounds());
@@ -177,7 +211,11 @@ HostRenderer::Update(ConstBitmapPtr p_buf)
 			bounds.GetSizeRef() = view.GetSize();
 #	if !YCL_Android
 			if(bounds != cbounds)
+#		if YCL_HostedUI_XCB
+				p_wnd->SetBounds(bounds);
+#		else
 				p_wnd->SetClientBounds(bounds);
+#		endif
 #	endif
 			p_wnd->UpdateFrom(p_buf, rbuf);
 		}

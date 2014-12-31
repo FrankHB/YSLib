@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r518
+\version r520
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-12-17 22:19 +0800
+	2014-12-27 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -337,11 +337,11 @@ namespace platform
 /*!
 \brief 断言并返回非空指针。
 \pre 断言：指针非空。
-\since build 553
+\since build 563
 */
 template<typename _type>
 inline _type&&
-Nonnull(_type&& p)
+Nonnull(_type&& p) ynothrow
 {
 	YAssertNonnull(p);
 	return yforward(p);

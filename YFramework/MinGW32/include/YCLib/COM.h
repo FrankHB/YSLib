@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief COM 接口。
-\version r482
+\version r496
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-07 10:29:30 +0800
 \par 修改时间:
-	2014-11-12 04:41 +0800
+	2014-12-31 07:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,9 +81,10 @@ public:
 /*!
 \brief 检查 ::HRESULT 值，若表示失败则抛出 COMException 。
 \return 表示成功的值。
+\since build 563
 */
 inline ::HRESULT
-CheckHResult(::HRESULT h) ythrow(COMException)
+CheckHResult(::HRESULT h)
 {
 	if(FAILED(h))
 		throw COMException(h);
@@ -92,8 +93,9 @@ CheckHResult(::HRESULT h) ythrow(COMException)
 
 /*!
 \brief 检查指针值，若为空则抛出 COMException 。
+\since build 563
 */
-inline PDefH(void, EnsureNonNull, void* p) ythrow(COMException)
+inline PDefH(void, EnsureNonNull, void* p)
 	ImplExpr(p ? void() : throw COMException(S_FALSE))
 
 
@@ -213,8 +215,13 @@ public:
 	DefGetter(const, _iCOM&, Object, EnsureNonNull(pInterface), *pInterface)
 	DefGetter(ynothrow, _iCOM*&, Ref, pInterface)
 
+	/*!
+	\throw COMException 转换失败。
+	\since build 563
+	*/
+	//@{
 	COMPtr<IUnknown>
-	As(REFIID riid) const ythrow(COMException)
+	As(REFIID riid) const
 	{
 		COMPtr<IUnknown> res;
 
@@ -224,7 +231,7 @@ public:
 	}
 	template<class _iOther>
 	COMPtr<_iOther>
-	As() const ythrow(COMException)
+	As() const
 	{
 		COMPtr<_iOther> res;
 
@@ -232,6 +239,7 @@ public:
 			reinterpret_cast<void**>(&res.ReleaseAndGetRef())));
 		return res;
 	}
+	//@}
 
 	::HRESULT
 	Cast(REFIID riid, COMPtr<IUnknown>& ptr) const ynothrow
@@ -254,8 +262,9 @@ public:
 		InternalAddRef();
 		return pInterface;
 	}
+	//! \since build 563
 	void*
-	Copy(REFIID riid) const ythrow(COMException)
+	Copy(REFIID riid) const
 	{
 		void* p;
 

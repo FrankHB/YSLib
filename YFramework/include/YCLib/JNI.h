@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief Java 本机接口包装。
-\version r193
+\version r196
 \author FrankHB <frankhb1989@gmail.com>
 \since build 552
 \par 创建时间:
 	2014-11-11 03:20:32 +0800
 \par 修改时间:
-	2014-11-13 22:27 +0800
+	2014-12-31 07:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -121,11 +121,10 @@ public:
 	/*!
 	\brief 保证在线程退出时调用 \c DetachCurrentThread 。
 	\throw ystdex::unsupported 不支持没有线程本地存储和 POSIX 线程的平台。
-	\note 仅抛出以上异常。
+	\since build 563
 	*/
 	static void
-	EnsureDetachJNIAtThreadExit(::JavaVM&, ::JNIEnv&)
-		ythrow(ystdex::unsupported);
+	EnsureDetachJNIAtThreadExit(::JavaVM&, ::JNIEnv&);
 
 	/*!
 	\brief 检查引用值，若非空则返回。

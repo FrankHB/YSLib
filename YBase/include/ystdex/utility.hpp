@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2223
+\version r2232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-12-22 10:18 +0800
+	2014-12-30 19:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,17 +142,17 @@ public:
 		: ptr(p)
 	{}
 	nptr(const nptr&) = default;
-	nptr(nptr&& p) ynothrow
+	nptr(nptr&& np) ynothrow
 	{
-		p.swap(*this);
+		np.swap(*this);
 	}
 
 	nptr&
 	operator=(const nptr&) = default;
 	nptr&
-	operator=(nptr&& o) ynothrow
+	operator=(nptr&& np) ynothrow
 	{
-		o.swap(*this);
+		np.swap(*this);
 		return *this;
 	}
 
@@ -184,14 +184,14 @@ public:
 	}
 
 	void
-	swap(nptr& p) ynothrow
+	swap(nptr& np) ynothrow
 	{
 		using std::swap;
 #if YB_HAS_NOEXCEPT
-		static_assert(noexcept(swap(ptr, p.ptr)), "Invalid type found.");
+		static_assert(noexcept(swap(ptr, np.ptr)), "Invalid type found.");
 #endif
 
-		swap(ptr, p.ptr);
+		swap(ptr, np.ptr);
 	}
 };
 
@@ -242,9 +242,10 @@ operator>=(const nptr<_type>& x, const nptr<_type>& y)
 }
 //@}
 
+//! \since build 563
 template<typename _type>
 inline void
-swap(nptr<_type>& x, nptr<_type>& y)
+swap(nptr<_type>& x, nptr<_type>& y) ynothrow
 {
 	x.swap(y);
 }

@@ -202,7 +202,7 @@
     <ClInclude Include="include\ysbuild.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ygdibase.h">
+    <ClInclude Include="include\YSLib\Core\YGDIBase.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\button.h">
@@ -229,7 +229,7 @@
     <ClInclude Include="include\YSLib\UI\YStyle.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\yuicont.h">
+    <ClInclude Include="include\YSLib\UI\YUIContainer.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\ywidget.h">
@@ -238,7 +238,7 @@
     <ClInclude Include="include\YSLib\UI\ywindow.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Service\textmgr.h">
+    <ClInclude Include="include\YSLib\Service\TextManager.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\menu.h">
@@ -385,133 +385,133 @@
     <ClInclude Include="include\YSLib\UI\WidgetIteration.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\freetype.h">
+    <ClInclude Include="..\3rdparty\freetype\include\freetype.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftadvanc.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftadvanc.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftautoh.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftautoh.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftbbox.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftbbox.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftbdf.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftbdf.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftbitmap.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftbitmap.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftbzip2.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftbzip2.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftcache.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftcache.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftchapters.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftchapters.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftcid.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftcid.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\fterrdef.h">
+    <ClInclude Include="..\3rdparty\freetype\include\fterrdef.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\fterrors.h">
+    <ClInclude Include="..\3rdparty\freetype\include\fterrors.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftgasp.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftgasp.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftglyph.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftglyph.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftgxval.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftgxval.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftgzip.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftgzip.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftimage.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftimage.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftincrem.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftincrem.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftlcdfil.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftlcdfil.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftlist.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftlist.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftlzw.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftlzw.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftmac.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftmac.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftmm.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftmm.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftmodapi.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftmodapi.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftmoderr.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftmoderr.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftotval.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftotval.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftoutln.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftoutln.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftpfr.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftpfr.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftrender.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftrender.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftsizes.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftsizes.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftsnames.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftsnames.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftstroke.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftstroke.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftsynth.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftsynth.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftsystem.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftsystem.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\fttrigon.h">
+    <ClInclude Include="..\3rdparty\freetype\include\fttrigon.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\fttypes.h">
+    <ClInclude Include="..\3rdparty\freetype\include\fttypes.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftwinfnt.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftwinfnt.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ftxf86.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ftxf86.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\t1tables.h">
+    <ClInclude Include="..\3rdparty\freetype\include\t1tables.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ttnameid.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ttnameid.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\tttables.h">
+    <ClInclude Include="..\3rdparty\freetype\include\tttables.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\tttags.h">
+    <ClInclude Include="..\3rdparty\freetype\include\tttags.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ttunpat.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ttunpat.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\include\config\ftconfig.h">
@@ -529,115 +529,115 @@
     <ClInclude Include="..\3rdparty\include\config\ftstdlib.h">
       <Filter>include\3rdparty\freetype\config</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\autohint.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\autohint.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftcalc.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftcalc.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftdebug.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftdebug.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftdriver.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftdriver.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftgloadr.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftgloadr.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftmemory.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftmemory.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftobjs.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftobjs.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftpic.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftpic.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftrfork.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftrfork.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftserv.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftserv.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftstream.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftstream.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\fttrace.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\fttrace.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\ftvalid.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\ftvalid.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\internal.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\internal.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\psaux.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\psaux.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\pshints.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\pshints.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\sfnt.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\sfnt.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\t1types.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\t1types.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\tttypes.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\tttypes.h">
       <Filter>include\3rdparty\freetype\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svbdf.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svbdf.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svcid.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svcid.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svgldict.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svgldict.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svgxval.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svgxval.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svkern.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svkern.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svmm.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svmm.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svotval.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svotval.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svpfr.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svpfr.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svpostnm.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svpostnm.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svprop.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svprop.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svpscmap.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svpscmap.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svpsinfo.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svpsinfo.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svsfnt.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svsfnt.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svttcmap.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svttcmap.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svtteng.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svtteng.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svttglyf.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svttglyf.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svwinfnt.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svwinfnt.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\internal\services\svxf86nm.h">
+    <ClInclude Include="..\3rdparty\freetype\include\internal\services\svxf86nm.h">
       <Filter>include\3rdparty\freetype\internal\services</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\YTextBase.h">
@@ -658,7 +658,7 @@
     <ClInclude Include="..\3rdparty\include\FreeImage.h">
       <Filter>include\3rdparty</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\ft2build.h">
+    <ClInclude Include="..\3rdparty\freetype\include\ft2build.h">
       <Filter>include\3rdparty</Filter>
     </ClInclude>
     <ClInclude Include="include\Helper\GUIApplication.h">
@@ -805,6 +805,9 @@
     <ClInclude Include="include\YSLib\Core\YFunc.hpp">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
+    <ClInclude Include="include\YCLib\XCB.h">
+      <Filter>include\YCLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YSLib\Adaptor\ynew.cpp">
@@ -867,7 +870,7 @@
     <ClCompile Include="source\YSLib\UI\ywindow.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Service\textmgr.cpp">
+    <ClCompile Include="source\YSLib\Service\TextManager.cpp">
       <Filter>source\YSLib\Service</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\menu.cpp">
@@ -1093,6 +1096,9 @@
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YCLib\HostedGUI.cpp">
+      <Filter>source\YCLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\YCLib\XCB.cpp">
       <Filter>source\YCLib</Filter>
     </ClCompile>
   </ItemGroup>

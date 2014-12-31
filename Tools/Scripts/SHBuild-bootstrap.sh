@@ -9,14 +9,14 @@ SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 SHBuild_CheckUName
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
 
-SHBuild_EchoVar_N "SHBuild.BaseDir"
-SHBuild_EchoVar_N "SHBuild.ToolDir"
+SHBuild_EchoVar_N 'SHBuild.BaseDir'
+SHBuild_EchoVar_N 'SHBuild.ToolDir'
 
 echo Configuring ...
 
 SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
-: ${AR:="gcc-ar"}
+: ${AR:='gcc-ar'}
 . $SHBuild_ToolDir/SHBuild-common-toolchain.sh
 
 . $SHBuild_ToolDir/SHBuild-common-options.sh
@@ -24,7 +24,8 @@ SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 INCLUDES=" \
 	-I../../YFramework/include -I../../YFramework/Android/include \
 	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \
-	-I../../3rdparty/include -I../../YBase/include \
+	-I../../3rdparty/include -I../../3rdparty/freetype/include \
+	-I../../YBase/include \
 	"
 
 # Coordinated with build 559.
@@ -50,7 +51,7 @@ LIBS=" \
 	../../YFramework/source/NPL/Lexical.cpp \
 	../../YFramework/source/NPL/SContext.cpp
 	"
-if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
+if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	LIBS="$LIBS \
 		../../YFramework/MinGW32/source/YCLib/MinGW32.cpp \
 		../../YFramework/MinGW32/source/YCLib/Consoles.cpp \
@@ -64,14 +65,14 @@ fi
 export CXXFLAGS
 export LDFLAGS
 
-SHBuild_EchoVar_N "SHBuild.BuildDir"
-SHBuild_EchoVar_N "CXX"
-SHBuild_EchoVar_N "CXXFLAGS"
-SHBuild_EchoVar_N "AR"
-SHBuild_EchoVar_N "LD"
-SHBuild_EchoVar_N "LDFLAGS"
-SHBuild_EchoVar_N "INCLUDES"
-SHBuild_EchoVar_N "LIBS"
+SHBuild_EchoVar_N 'SHBuild.BuildDir'
+SHBuild_EchoVar_N 'CXX'
+SHBuild_EchoVar_N 'CXXFLAGS'
+SHBuild_EchoVar_N 'AR'
+SHBuild_EchoVar_N 'LD'
+SHBuild_EchoVar_N 'LDFLAGS'
+SHBuild_EchoVar_N 'INCLUDES'
+SHBuild_EchoVar_N 'LIBS'
 
 echo Configuring done.
 
