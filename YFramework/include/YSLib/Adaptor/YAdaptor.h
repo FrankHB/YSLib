@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yadaptor.h
+/*!	\file YAdaptor.h
 \ingroup Adaptor
 \brief 外部库关联。
-\version r1646
+\version r1653
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-02-22 20:16:21 +0800
 \par 修改时间:
-	2014-12-07 12:27 +0800
+	2015-01-10 16:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Adaptor_yadaptor_h_
-#define YSL_INC_Adaptor_yadaptor_h_ 1
+#ifndef YSL_INC_Adaptor_YAdaptor_h_
+#define YSL_INC_Adaptor_YAdaptor_h_ 1
 
 #include "YModules.h"
 
@@ -105,8 +105,6 @@ using std::to_string;
 using ystdex::to_string;
 //@}
 
-
-//非目标平台中立接口。
 
 /*!
 \brief 平台通用数据类型。
@@ -236,8 +234,6 @@ using platform::BGRA;
 using platform::RGBA;
 //! \since build 559
 using platform::Pixel;
-using platform::BitmapPtr;
-using platform::ConstBitmapPtr;
 /*!
 \since build 297
 */

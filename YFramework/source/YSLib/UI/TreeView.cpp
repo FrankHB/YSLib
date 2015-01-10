@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TreeView.cpp
 \ingroup UI
 \brief 树形视图控件。
-\version r681
+\version r687
 \author FrankHB <frankhb1989@gmail.com>
 \since build 532
 \par 创建时间:
 	2014-08-24 16:29:28 +0800
 \par 修改时间:
-	2014-12-05 16:40 +0800
+	2015-01-07 23:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -372,8 +372,13 @@ TreeList::ExpandOrCollapseNodeImpl(NodeState st, size_t idx)
 		auto& lst(GetListRef());
 
 		// XXX: Reuse previous operation.
+		// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63500 .
+#if defined(_GLIBCXX_DEBUG) && YB_IMPL_GNUCPP < 40902
+		lst.insert(lst.cbegin() + idx + 1, text_list.begin(), text_list.end());
+#else
 		lst.insert(lst.cbegin() + idx + 1, std::make_move_iterator(
 			text_list.begin()), std::make_move_iterator(text_list.end()));
+#endif
 	}
 	else
 	{

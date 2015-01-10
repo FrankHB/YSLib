@@ -159,7 +159,7 @@
     <ClInclude Include="include\ysbuild.h" />
     <ClInclude Include="include\YSLib\Adaptor\config.h" />
     <ClInclude Include="include\YSLib\Adaptor\Image.h" />
-    <ClInclude Include="include\YSLib\Adaptor\yadaptor.h" />
+    <ClInclude Include="include\YSLib\Adaptor\YAdaptor.h" />
     <ClInclude Include="include\YSLib\Adaptor\ycont.h" />
     <ClInclude Include="include\YSLib\Adaptor\Font.h" />
     <ClInclude Include="include\YSLib\Adaptor\YModules.h" />
@@ -347,6 +347,7 @@
     <Text Include="..\doc\NPL.txt" />
     <Text Include="..\doc\Workflow.Annual2013.txt" />
     <Text Include="..\doc\Workflow.Annual2014.txt" />
+    <Text Include="..\doc\Workflow.Annual2015.txt" />
     <Text Include="..\doc\YBase.txt" />
     <Text Include="..\doc\YFramework.txt" />
   </ItemGroup>

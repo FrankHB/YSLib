@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Image.cpp
 \ingroup Adaptor
 \brief 平台中立的图像输入和输出。
-\version r1066
+\version r1075
 \author FrankHB <frankhb1989@gmail.com>
 \since build 402
 \par 创建时间:
 	2013-05-05 12:33:51 +0800
 \par 修改时间:
-	2014-12-07 12:27 +0800
+	2015-01-10 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,11 +40,13 @@ namespace Drawing
 {
 
 //! \since build 430
-static_assert(int(SamplingFilter::Box) == FILTER_BOX && int(
-	SamplingFilter::Bicubic) == FILTER_BICUBIC && int(SamplingFilter::Bilinear)
-	== FILTER_BILINEAR && int(SamplingFilter::BSpline) == FILTER_BSPLINE && int(
-	SamplingFilter::CatmullRom) == FILTER_CATMULLROM && int(
-	SamplingFilter::Lanczos3) == FILTER_LANCZOS3, "Incompatible filter found.");
+static_assert(int(SamplingFilter::Box) == ::FILTER_BOX
+	&& int(SamplingFilter::Bicubic) == ::FILTER_BICUBIC
+	&& int(SamplingFilter::Bilinear) == FILTER_BILINEAR
+	&& int(SamplingFilter::BSpline) == ::FILTER_BSPLINE
+	&& int(SamplingFilter::CatmullRom) == ::FILTER_CATMULLROM
+	&& int(SamplingFilter::Lanczos3) == ::FILTER_LANCZOS3,
+	"Incompatible filter found.");
 
 //! \since build 431
 namespace
@@ -242,7 +244,7 @@ ImageMemory::ImageMemory(Buffer buf, ImageFormat fmt)
 			throw GeneralEvent("Null buffer found.");
 		return std::move(buf);
 	}()), handle(::FreeImage_OpenMemory(static_cast<byte*>(buffer.data()),
-	static_cast< ::DWORD>(buffer.size()))), format(fmt)
+	static_cast<unsigned long>(buffer.size()))), format(fmt)
 {
 	if(!handle)
 		throw GeneralEvent("Opening image memory failed.");

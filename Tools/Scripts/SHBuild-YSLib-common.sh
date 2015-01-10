@@ -20,6 +20,7 @@ else
 	SHBuild_YF_SystemLibs='-lxcb -lpthread'
 fi
 
+INCLUDE_PCH='../../YBase/include/stdinc.h'
 INCLUDES_YBase='-I../../YBase/include'
 INCLUDES_YFramework=" \
 	-I../../YFramework/include -I../../YFramework/Android/include \
@@ -36,6 +37,18 @@ SHBuild_EchoVar SHBuild_YSLib_Platform "$SHBuild_YSLib_Platform"
 SHBuild_EchoVar INCLUDES_YBase "$INCLUDES_YBase"
 SHBuild_EchoVar INCLUDES_YFramework "$INCLUDES_YFramework"
 SHBuild_EchoVar LIBS_YFramework "$LIBS_YFramework"
+
+# TODO: Merge with SHBuild-build.sh?
+SHBuild_CheckPCH_()
+{
+	if [[ $SHBuild_NoPCH == '' ]]; then
+		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
+		SHBuild_IncPCH="-include $2"
+	else
+		echo Skipped building precompiled file.
+		SHBuild_IncPCH=""
+	fi
+}
 
 export LANG=C
 unset CXXFLAGS_COMMON

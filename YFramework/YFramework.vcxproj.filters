@@ -166,9 +166,9 @@
     <ClInclude Include="include\YSLib\Adaptor\config.h">
       <Filter>include\YSLib\Adaptor</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Adaptor\yadaptor.h">
+    <ClInclude Include="include\YSLib\Adaptor\YAdaptor.h">
       <Filter>include\YSLib\Adaptor</Filter>
-    </ClInclude>
+    </ClInclude>		
     <ClInclude Include="include\YSLib\Adaptor\YNew.h">
       <Filter>include\YSLib\Adaptor</Filter>
     </ClInclude>
@@ -514,19 +514,19 @@
     <ClInclude Include="..\3rdparty\freetype\include\ttunpat.h">
       <Filter>include\3rdparty\freetype</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\config\ftconfig.h">
+    <ClInclude Include="..\3rdparty\freetype\include\config\ftconfig.h">
       <Filter>include\3rdparty\freetype\config</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\config\ftheader.h">
+    <ClInclude Include="..\3rdparty\freetype\include\config\ftheader.h">
       <Filter>include\3rdparty\freetype\config</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\config\ftmodule.h">
+    <ClInclude Include="..\3rdparty\freetype\include\config\ftmodule.h">
       <Filter>include\3rdparty\freetype\config</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\config\ftoption.h">
+    <ClInclude Include="..\3rdparty\freetype\include\config\ftoption.h">
       <Filter>include\3rdparty\freetype\config</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\include\config\ftstdlib.h">
+    <ClInclude Include="..\3rdparty\freetype\include\config\ftstdlib.h">
       <Filter>include\3rdparty\freetype\config</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\freetype\include\internal\autohint.h">
@@ -1130,5 +1130,6 @@
     <Text Include="..\doc\LanguageConvention.txt">
       <Filter>doc</Filter>
     </Text>
+    <Text Include="..\doc\Workflow.Annual2015.txt" />
   </ItemGroup>
 </Project>

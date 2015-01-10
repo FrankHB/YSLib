@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.h
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r1100
+\version r1113
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2011-05-26 19:41:08 +0800
 \par 修改时间:
-	2014-12-19 12:19 +0800
+	2015-01-02 09:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -126,8 +126,8 @@ struct AXYZMaskTrait
 \brief BGRA 四元组。
 \note 作为 POD 类型，可以用于储存像素。
 \warning 用户应检查存储表示的实际大小是否和本类型一致。
-\warning 当前仅支持小端整数字节序。
-\warning 当前忽略对齐和特定类型的一致性。
+\bug 当前仅支持小端整数字节序。
+\bug 当前忽略对齐和特定类型的一致性。
 \since build 441
 */
 template<size_t _vB, size_t _vG, size_t _vR, size_t _vA>
@@ -183,8 +183,8 @@ union YB_ATTR(packed) YB_ATTR(
 \brief RGBA 四元组。
 \note 作为 POD 类型，可以用于储存像素。
 \warning 用户应检查存储表示的实际大小是否和本类型一致。
-\warning 当前仅支持小端整数字节序。
-\warning 当前忽略对齐和特定类型的一致性。
+\bug 当前仅支持小端整数字节序。
+\bug 当前忽略对齐和特定类型的一致性。
 \since build 441
 */
 template<size_t _vR, size_t _vG, size_t _vB, size_t _vA>
@@ -240,8 +240,8 @@ union YB_ATTR(packed) YB_ATTR(
 \brief ARGB 四元组。
 \note 作为 POD 类型，可以用于储存像素。
 \warning 用户应检查存储表示的实际大小是否和本类型一致。
-\warning 当前仅支持小端整数字节序。
-\warning 当前忽略对齐和特定类型的一致性。
+\bug 当前仅支持小端整数字节序。
+\bug 当前忽略对齐和特定类型的一致性。
 \since build 507
 */
 template<size_t _vA, size_t _vR, size_t _vG, size_t _vB>
@@ -415,9 +415,6 @@ yconstfn PDefH(std::uint32_t, FetchPixel,
 #else
 #	error "Unsupported platform found."
 #endif
-
-using BitmapPtr = Pixel*;
-using ConstBitmapPtr = const Pixel*;
 
 
 //! \brief 系统默认颜色空间。
@@ -647,14 +644,16 @@ ResetVideo();
 
 /*!
 \brief 默认上屏初始化函数。
+\since build 564
 */
-YF_API platform::BitmapPtr
+YF_API platform::Pixel*
 InitScrUp(int&);
 
 /*!
 \brief 默认下屏初始化函数。
+\since build 564
 */
-YF_API platform::BitmapPtr
+YF_API platform::Pixel*
 InitScrDown(int&);
 
 /*!

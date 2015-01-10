@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r194
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2014-12-17 19:38 +0800
+	2015-01-10 15:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,8 +75,8 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 #	if YCL_Win32
 
 HostRenderer&
-ShowTopLevel(UI::Widget& wgt, ::DWORD wstyle, ::DWORD wstyle_ex, int n_cmd_show,
-	const wchar_t* title, bool mv)
+ShowTopLevel(UI::Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
+	int n_cmd_show, const wchar_t* title, bool mv)
 {
 	auto& res(UI::WrapRenderer<HostRenderer>(wgt, wgt, [=, &wgt]{
 		WindowReference wnd_ref(CreateNativeWindow(WindowClassName,

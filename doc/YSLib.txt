@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -10,14 +10,14 @@
 
 /*!	\file YSLib.txt
 \ingroup Documentation
-\brief YSLib 及相关库的细节汇总和暂定说明。
-\version r2813
+\brief YSLib 库及相关库的细节汇总和说明。
+\version r2828
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-12-20 20:04 +0800
+	2015-01-03 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,6 +112,7 @@ YSLib::UI::Styles ：用户界面样式定制。
 
 @1.2.8 内部头文件依赖性：
 Core 的头文件仅包含 Adaptor 或 Core 的头文件。
+Service 的头文件不包含 UI 的头文件。
 实现源文件依赖同名头文件，应保证包含此头文件，但不重复包含此头文件已经包含的其它头文件。
 在 Core 中，以下模块对应的头文件依赖关系是确定的：
 YShellDefinition 依赖 Adaptor::YAdaptor 和 Adaptor::YReference ；
@@ -129,12 +130,12 @@ YApplication 依赖 YShell 和 Adaptor::YContainer 。
 YTimer 依赖 Core::YShellDefinition ；
 YBlit 、 YDraw 和 YGDI 依赖 Core::YGDIBase ；
 YBlit 依赖 Core::YCoreUtilities ；
+YBrush 依赖 YBlit 、 YResource 和 Core::YEvent ；
 在 UI 中，以下模块对应的头文件依赖关系是确定的：
 YComponent 依赖 Core::YGDIBase 、 Core::YFunc 、 Core::YMessageDefinition 和 Adaptor::YContainer ；
 除了 YComponent 外都直接或间接依赖 YComponent；
 YStyle 依赖 Service::YDraw ；
 YWidgetEvent 依赖 Core::YEvent ；
-YBrush 依赖 YWidgetView 和 Service::YResource ；
 YWidget 依赖 YFocus 和 YWidgetView ；
 YGUI 依赖 YWidgetEvent 、 YStyle 和 Service::YTimer ；
 YUIContainer 依赖 YWidget ；
@@ -191,7 +192,7 @@ build 210 开始直接使用 ISO C++11 标准库智能指针作为句柄。
 
 @3 核心构件系统：
 通称 Core ，位于 "/Core" 。
-除了核心定义 YSDefinition 以外，主要包含以下几大部分：
+除了核心定义 YShellDefinition 以外，主要包含以下几大部分：
 核心实用模块 YCoreUtilities ；
 平台无关的基础对象 YObject ；
 对象计数器 YCounter；
@@ -241,7 +242,7 @@ Rect 为标准矩形([Documentation::Designation @@2.5.2.4]) ，即边和屏幕�
 
 @3.7.2 二维图形接口上下文：
 表示图形缓冲区及其大小的类。
-图形缓冲区指针以 YCLib 定义类型 BitmapPtr 表示。
+图形缓冲区指针以类型 BitmapPtr 表示。
 不对缓冲区具有所有权。
 
 @3.7.3 绘制上下文：
@@ -266,12 +267,7 @@ Screen 由 GraphicDevice 派生，是二维屏幕的抽象。
 
 @3.9 事件回调 YEvent ：
 实现事件。
-用户界面事件参数基类 UIEventArgs ，可从这个类派生自定义参数类。
-除非另行约定， UIEventArgs 及其派生类的右值引用作为参数满足 [Documentation::LanguageConvention @@5.12.2.3.1] 的例外规则，允许使用右值引用传递不进行转移并保证之后的确定状态。
-除此之外，默认提供以下参数类：
-ScreenPositionEventArgs ，屏幕事件参数类。
-InputEventArgs ，输入事件参数模块类。
-TouchEventArgs ，指针设备输入事件参数类。
+事件处理器 GHEvent 支持目标的相等比较：若不支持 == 操作则以类型判定相等性。
 KeyEventArgs ，键盘输入事件参数类。
 以下用模板定义用于事件处理机制的接口和实现类：
 事件处理器接口模板 GIHEvent ，提供两个参数的 operator() 抽象方法。
@@ -289,7 +285,7 @@ KeyEventArgs ，键盘输入事件参数类。
 添加事件订阅和移除事件订阅的时间复杂度为 O(1) ，同普通的函数指针赋值。调用事件处理器的时间复杂度为 O(1) ，同普通的函数指针调用。
 
 @3.9.1.2 多播版本：
-使用 std::list 实现的函数对象队列。
+使用 multimap 实现的函数对象队列。
 调用链维持稳定的顺序（和订阅顺序相同）。
 对重复的事件订阅，允许存在多个实例；也可以在添加时指定仅保留一个实例（移至调用链末尾）。
 事件处理器调用顺序由调用链决定。
@@ -509,7 +505,8 @@ AController 使用事件机制(@5.2) 提供控制（在运行期加载供回调�
 此外，还提供对默认 GUI 输入事件的参数类。
 
 @5.2 GUI 事件：
-YWidgetEvent 单元定义了基本的 GUI 事件参数和事件类型。
+YWidgetEvent 单元定义了基本的 GUI 事件参数和事件类型，包括用户界面事件参数基类 UIEventArgs ，可从这个类派生自定义参数类。
+除非另行约定， UIEventArgs 及其派生类的右值引用作为参数满足 [Documentation::LanguageConvention @@5.12.2.3.1] 的例外规则，允许使用右值引用传递不进行转移并保证之后的确定状态。
 除此之外， YWidgetEvent 还定义了 Messaging::MessageSignal(@3.10.5) 的派生异常类 UI::UIEventSignal ，用于当状态失效（如 @5.5.2.1 图形缓冲区失效）且不适合恢复时终止当前事件处理，跳转至消息循环(@3.10.4) 。
 
 @5.2.1 默认 GUI 事件：

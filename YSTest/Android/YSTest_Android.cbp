@@ -20,6 +20,10 @@
 				<Option compiler="gnu_gcc_compiler_for_android" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
+					<Add option="-DYB_DLL" />
+					<Add option="-DYF_DLL" />
 				</Compiler>
 				<MakeCommands>
 					<Build command="$make -j8 -f $makefile -r CONF=$target" />

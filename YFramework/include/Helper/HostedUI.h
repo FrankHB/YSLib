@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r210
+\version r214
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2014-12-16 22:19 +0800
+	2015-01-10 15:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,11 +88,11 @@ DragWindow(Window&, UI::CursorEventArgs&&);
 \note 在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
 \note 最后一个参数指定是否按部件位置设置顶层窗口位置。
 \note 复位部件位置为原点、设置宿主渲染器并阻塞等待宿主窗口指针非空。
-\since build 548
+\since build 564
 */
 YF_API HostRenderer&
-ShowTopLevel(UI::Widget&, ::DWORD = WS_POPUP, ::DWORD = WS_EX_LAYERED,
-	int = SW_SHOWNORMAL, const wchar_t* = L"", bool = true);
+ShowTopLevel(UI::Widget&, unsigned long = WS_POPUP, unsigned long
+	= WS_EX_LAYERED, int = SW_SHOWNORMAL, const wchar_t* = L"", bool = true);
 #	endif
 #	if !YCL_Android
 

@@ -65,11 +65,11 @@ export AR
 . $SHBuild_Bin/SHBuild-common-toolchain.sh
 if [[ "$SHBuild_Debug" != '' ]]; then
 	echo Use debug configuration $SHBuild_Conf.
-	CXXFLAGS_OPT_DBG='-O0 -g'
+	CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
 	LDFLAGS=' '
-	source $SHBuild_Bin/SHBuild-common-options.sh
+	. $SHBuild_Bin/SHBuild-common-options.sh
 	export SHBuild_YSLib_LibNames='-lYFrameworkd -lYBased'
 else
 	echo Use release configuration $SHBuild_Conf.
@@ -77,7 +77,7 @@ else
 	unset CXXFLAGS_COMMON
 	unset CXXFLAGS
 	unset LDFLAGS
-	source $SHBuild_Bin/SHBuild-common-options.sh
+	. $SHBuild_Bin/SHBuild-common-options.sh
 	if [[ "$SHBuild_Env_OS" == 'Win32' \
 		&& "$SHBuild_NoAdjustSubsystem" == '' ]]; then
 		LDFLAGS="$LDFLAGS -mwindows"
@@ -92,13 +92,15 @@ SHBuild_CheckUName
 if [[ "$SHBuild_Env_OS" == 'Win32' ]]; then
 	: ${SHBuild_YSLib_Platform:='MinGW32'}
 	SHBuild_YF_SystemLibs='-lgdi32 -limm32'
+	: ${SHBuild_YF_Libs_freetype:='-lfreetype'}
 else
 	: ${SHBuild_YSLib_Platform:=$SHBuild_Env_OS}
-	SHBuild_YF_SystemLibs='-lxcb-image -lxcb -lpthread'
+	SHBuild_YF_SystemLibs='-Wl,-dy -lxcb -lpthread'
 	SHBuild_YF_CFlags_freetype="`pkg-config --cflags freetype2 2> /dev/null`"
 	: ${SHBuild_YF_CFlags_freetype:='-I/usr/include'}
-	SHBuild_YF_Libs_freetype="`pkg-config --libs freetype2 2> /dev/null`"
-	: ${SHBuild_YF_Libs_freetype:='-lfreetype'}
+	SHBuild_YF_Libs_freetype=" \
+		-Wl,-dy `pkg-config --libs freetype2 2> /dev/null`"
+	: ${SHBuild_YF_Libs_freetype:='-Wl,-dy -lfreetype'}
 fi
 
 LIBS="$LIBS_RPATH -L\"`SHBuild_2w "$SHBuild_Bin/../lib"`\""

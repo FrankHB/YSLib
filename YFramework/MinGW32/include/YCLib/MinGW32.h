@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r491
+\version r510
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2014-12-21 01:31 +0800
+	2015-01-10 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,7 @@
 
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
+#include YFM_YCLib_NativeAPI
 #if !YCL_MinGW
 #	error "This file is only for MinGW."
 #endif
@@ -66,7 +67,7 @@ class YF_API Win32Exception : public Exception
 public:
 	//! \since build 435
 	//@{
-	using ErrorCode = ::DWORD;
+	using ErrorCode = unsigned long;
 
 public:
 	/*!
@@ -225,7 +226,9 @@ public:
 	//! \since build 556
 	DefBoolNeg(explicit, h_node)
 
-	DefGetter(const ynothrow, ::DWORD, Attributes, find_data.dwFileAttributes)
+	//! \since build 564
+	DefGetter(const ynothrow, unsigned long, Attributes,
+		find_data.dwFileAttributes)
 	DefGetter(const ynothrow, const ::WIN32_FIND_DATAW&, FindData, find_data)
 	DefGetter(const ynothrow, const std::wstring&, DirName, dir_name)
 
@@ -267,7 +270,8 @@ private:
 	::HKEY h_key;
 
 public:
-	RegistryKey(::HKEY h_parent, const wchar_t* name, ::DWORD ul_opt = 0,
+	//! \since build 564
+	RegistryKey(::HKEY h_parent, const wchar_t* name, unsigned long ul_opt = 0,
 		::REGSAM access = KEY_READ)
 	{
 		YF_Raise_Win32Exception_On_Failure(::RegOpenKeyExW(h_parent,
@@ -291,14 +295,15 @@ public:
 	\brief 取指定名称和类型的值的存储表示。
 	\return 成功得到的值的类型和内容。
 	\note 类型为 \c REG_NONE 时表示允许任意类型的值。
-	\since build 552
+	\since build 564
 	*/
 	//@{
 	//! \brief 间接断言：第一参数非空。
-	std::pair<::DWORD, std::vector<ystdex::byte>>
-	GetRawValue(const wchar_t*, ::DWORD = REG_NONE) const;
-	PDefH(std::pair<::DWORD YPP_Comma std::vector<ystdex::byte>>, GetRawValue,
-		const std::wstring& name, ::DWORD type = REG_NONE) const
+	std::pair<unsigned long, std::vector<ystdex::byte>>
+	GetRawValue(const wchar_t*, unsigned long = REG_NONE) const;
+	PDefH(std::pair<unsigned long YPP_Comma std::vector<ystdex::byte>>,
+		GetRawValue, const std::wstring& name, unsigned long type = REG_NONE)
+		const
 		ImplRet(GetRawValue(name.c_str(), type))
 	//@}
 	std::size_t

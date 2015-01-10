@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r330
+\version r350
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2014-12-14 14:40:34 +0800
 \par 修改时间:
-	2014-12-31 08:10 +0800
+	2015-01-09 22:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,7 +60,7 @@ namespace XCB
 using std::string;
 
 //! \brief XCB 异常。
-class YF_API XCBException : Exception
+class YF_API XCBException : public Exception
 {
 private:
 	//! \since build 561
@@ -109,9 +109,14 @@ public:
 	//! \pre 间接断言： \c bool(*this) 。
 	//@{
 	//! \brief 检查是否出现不可恢复的错误。
-	bool
-	IsOnError() const ynothrow;
+	DefPred(const ynothrow, OnError, GetError() != 0)
 
+	/*!
+	\brief 取可能出现的不可恢复的错误。
+	\since build 564
+	*/
+	int
+	GetError() const ynothrow;
 	//! \brief 取文件描述符。
 	int
 	GetFileDescriptor() const ynothrow;
@@ -124,6 +129,13 @@ public:
 	const ::xcb_setup_t&
 	GetSetup() const;
 
+	/*!
+	\brief 检查可能出现的错误。
+	\throw Exception 出错时的异常。
+	\since build 564
+	*/
+	void
+	Check() const;
 	//! \brief 生成标识（用于创建窗口等）。
 	std::uint32_t
 	GenerateID() const ynothrow;
@@ -170,9 +182,13 @@ public:
 
 	using ConnectionReference::IsOnError;
 
+	//! \since build 564
+	using ConnectionReference::GetError;
 	using ConnectionReference::GetFileDescriptor;
 	using ConnectionReference::GetSetup;
 
+	//! \since build 564
+	using ConnectionReference::Check;
 	using ConnectionReference::GenerateID;
 
 	//! \since build 562

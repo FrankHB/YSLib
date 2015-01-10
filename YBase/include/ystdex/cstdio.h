@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r424
+\version r439
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2014-07-10 05:49 +0800
+	2015-01-01 10:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,11 +29,27 @@
 #define YB_INC_ystdex_cstdio_h_ 1
 
 #include "cassert.h" // for ../ydef.h, <cstdio> and yconstraint;
+#include <cstdarg> // for std::va_list;
 #include <ios> // for std::ios_base::openmode;
 #include "iterator.hpp" // for ystdex::is_undereferenceable;
 
 namespace ystdex
 {
+
+/*!
+\brief 计算指定格式字符串输出的占用的字节数。
+\pre 断言：第一参数非空。
+\return 成功为字节数，否则为 size_t(-1) 。
+\note 分别使用 \c std::vsnprintf 和 \c std::vswprintf 实现。
+\since build 564
+*/
+//@{
+YB_API size_t
+vfmtlen(const char*, std::va_list) ynothrow;
+YB_API size_t
+vfmtlen(const wchar_t*, std::va_list) ynothrow;
+//@}
+
 
 /*!
 \brief 判断指定路径的文件是否存在。

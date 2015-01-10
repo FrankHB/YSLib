@@ -22,6 +22,9 @@ ifneq ($(CONF),debug)
 	C_CXXFLAGS_OPT_LV ?= -Os
 	CXXFLAGS_IMPL_OPT ?= -s -fexpensive-optimizations
 	LDFLAGS_IMPL_OPT ?= $(CXXFLAGS_IMPL_OPT)
+else
+	# NOTE: "-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" is not used.
+	C_CXXFLAGS_OPT_DBG ?= $(C_CXXFLAGS_OPT_LV) -g -fno-omit-frame-pointer
 endif
 
 include $(dir $(lastword $(MAKEFILE_LIST)))/Toolchain.options.mk

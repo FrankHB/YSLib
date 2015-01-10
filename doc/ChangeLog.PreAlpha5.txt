@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r8634
+\version r8859
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2014-12-31 12:29 +0800
+	2015-01-10 16:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,189 @@ $import $HISTORY;
 
 $now
 (
-	/ @ "file '.hgignore'" $=
+	/ $revert_ex(b363) ("about text" @ %About $orig (@ Shells)
+		!^ "predefined macros %(__DATE__, __TIME__)") @ %YReader,
+		// To eliminate unnecessary binary change. Also to eliminate warning: \
+			[-Wdate-time], though this option is not enabled now by default.
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %XCB $=
+			(
+				* "used uninitialized value for connection reference"
+					@ "constructor %WindowData#1" $since b563,
+				(
+				+ @ "underlying error category with messages for XCB \
+					connection failure";
+				/ "exceptions for connection error" ^ "new error category"
+				),
+				/ @ "underlying error category for XCB" $=
+				(
+					* "wrong nothrow exception specification for message \
+						generation"
+						 $since b563,
+						// Same reason as underlying error category as \
+							%Win32Excetpion.
+					+ "implemented message for error codes"
+				),
+				/ @ "constructors %XCBConnection" $=
+				(
+					/ $lib "simplified connection without authorization \
+						information",
+					+ "check error"
+						// Now no further %IsOnError call is needed.
+				),
+				* "missing 'public'" @ "base class %Exception"
+					@ "class %XCBException" $since b563,
+				(
+				+ "member function %ConnectionReference::(GetError, Check)";
+				+ ('using ConnectionReference::GetError;',
+					'using ConnectionReference::Check;') @ "class %Connection"
+				)
+			),
+			/ @ "function %LogWithSource" @ %Debug $=
+			(
+				- $design "redundant direct nonnull assertion for format string"
+					 @ %Debug,
+					// Since it would be assert by %ystdex::vsfmt.
+				/ $re_ex(b558) "allowed file parameter to be null and treated \
+					null file parameter as unknown to avoid nonnull assertion \
+					recursively call this function"
+					// Like %ystdex::yassert and %platform_ex::LogAssert.
+			),
+			/ "alias-declarations %(BitmapPtr, ConstBitmap)" @ %Video
+				>> %YSLib.Core.YGDIBase,
+			/ %HostedGUI $=
+			(
+				* $dev $doc "wrong Doxygen directive '\t'"
+					@ "member function %WindowReference::Show"
+					@ "platform %Win32" $since b548,
+				/ @ "platforms ^%XCB" @ "constructor %HostWindow" $=
+				(
+					/ DLD "implemented invalid connection check"
+						^ "%XCB::ConnectionReference::Check";
+					/ "%platform_ex::Exception thrown on connection check"
+						~ "%GeneralError",
+					* $comp "wrong invalid connection check" $since b563
+				)
+			)
+		),
+		* "wrong nothrow exception specification for message generation"
+			@ "underlying error category" @ "class %Win32Exception"
+			@ %'YCLib_(MinGW32)'.MinGW32 $since b545,
+			// At least %std::bad_alloc should be allowed when failed \
+				constructing a %std::string.
+		/ %YSLib $=
+		(
+			- "using-declarations %(BitmapPtr, ConstBitmap)"
+				@ %Adaptor.YAdaptor,
+			+ DLD $build "workaround for G++ bug prior to 4.9.2"
+				@ "defined %_GLIBCXX_DEBUG" @ %UI.TreeView,
+				// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63500 .
+		),
+		/ @ "platform %Win32" $effective @ %YCLib $=
+		(
+			/ $dev "all use of '::DWORD'" -> 'unsigned long',
+				// FreeImage use of 'DWORD' untouched.
+			/ $dev "removed all <Windows.h> dependency non platform extension \
+				other than %YCLib.NativeAPI" 
+		)
+	),
+	/ %YBase $=
+	(
+		+ "2 function %vfmtlen" @ %CStandardIO,
+		/ %String $=
+		(
+			/ @ "function template %vsfmt" $=
+			(
+				(
+				/ $design "implemented" ^ $dep_from
+					("ystdex::vfmtlen" @ %CStandardIO);
+				+ $comp "indirection assertion for nonnull format argument",
+				* "missing check failure" $since b488
+					// If failed the length would be cast as a big integer, \
+						which likely would eventually cause a %std::bad_alloc \
+						being thrown.
+				),
+				* "missing %va_copy call" $since b488,
+					// It would cause indeterminate %std::va_list object being \
+						used after calculation buffer length, which led to \
+						undefined behavior.
+				* "wrong redundant %va_end call" $since b488,
+					// This would cause undefined behavior no %va_arg matched \
+						in the same function.
+				+ $design "assertion for initialized string object"
+			),
+			* "missing $va_end call when exception thrown"
+				@ "function template %sfmt" $since b488,
+			/ DLD "matched result type for block scope objects"
+				@ "function templates %(vsfmt, sfmt)"
+		),
+		/ %LibDefect.Exception $=
+		(
+			/ $dev "implemented for CXXABI_1.3 compatibility only when \
+				defined(_GLIBCXX_EH_PTR_COMPAT) as header";
+			- "header include order requirement" @ "implementation";
+			/ $comp
+				"allowed precompiled header with <exception> included at first"
+		),
+		+ %StandardInclusion
+			// As precompiled header mostly and not used directly in the \
+				libraries.
+	),
+	* $dev $build "missing project dependency on %YBase for %YFramework"
+		@ "platform %Android" @ "Code::Blocks workspace" $since b497,
+	/ %Tools $=
+	(
+		/ %Scripts $=
+		(
+			// Precompiled headers are generated for each configurations only \
+				when not existed or not readable. Update should be implemented \
+				in future.
+			(
+			+ "precompiled header path" @ "%SHBuild-bootstrap.sh";
+			^ "G++ precompiled header support unless %SHBuild_NoPCH is not \
+				empty" @ "%SHBuild-build.sh" $dep_from %YBase.StandardInclusion
+			),
+			(
+			+ "precompiled header path" @ "%SHBuild-YSLib-common.sh";
+			^ "G++ precompiled header support unless %SHBuild_NoPCH is not \
+				empty" @ "%(SHBuild-YSLib.sh, SHBuild-YSLib.sh)" $dep_from
+				%YBase.StandardInclusion
+			),
+			+ '-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
+				@ "%CXXFLAGS_OPT_DBG for debug modes"
+				@ "%(SHBuild-YSLib-debug.sh, SHBuild-BuildApp.sh, \
+				Toolchain.options.mk)",
+			/ "overridden %C_CXXFLAGS_OPT_DBG" !^ '-D_GLIBCXX_DEBUG \
+				-D_GLIBCXX_DEBUG_PEDANTIC' @ "Toolchain.DS.mk",
+				// It was too slow even with '-D_GLIBCXX_DEBUG'.
+			/ @ "%SHBuild-BuildApp.sh" $=
+			(
+				* "missing set default value of %SHBuild_YF_Libs_freetype to \
+					'-lfreetype'" @ "platform %Win32" @ "%SHBuild-BuildApp.sh"
+					$since b563,
+					// This would cause FreeType2 not be linked, thus static linking would fail.
+				- $revert(b563) '-lxcb-image' @ "default value"
+					@ "variable %SHBuild_YF_SystemLibs",
+					// Unused.
+				* "missing reverting '-Wl,dn' for static builds" $since b556
+			),
+			+ "function %SHBuild_BuildGCH" @ "%SHBuild-common.sh"
+		),
+		- $revert(b546) "'export COMSPEC=bash' to allow further use of \
+			installation functions" @ "%install-sysroot.sh"
+	),
+	+ '-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC' @ "compiler flags"
+		@ "platforms %(MinGW32, Android)" @ "Code::Blocks projects",
+		// Note that for %Android it is not actually effective.
+	+ $repo "pattern 'Tools/SHBuild/stdinc.h.gch'" @ "file '.hgignore'"
+),
+
+b563
+(
+	/ $repo @ "file '.hgignore'" $=
 	(
 		+ "glob patterns ('*/.Debug*/', '*/.Release*/') for Visual C++ default \
 			output directories",
@@ -70,15 +252,15 @@ $now
 				(
 				+ "XCB support" $=
 				(
-					/ "alias declaration %WindoeHandle" @ 'YF_Use_XCB'
+					/ "alias-declaration %WindoeHandle" @ 'YF_Use_XCB'
 						^ "%ystdex::nptr<XCB::WindowData*>";
 					/ "class %WindowReference" @ 'YF_Use_XCB'
 						^ "%XCB::WindowData",
 					/ "extended interface for %Android" @ 'YF_Use_XCB'
 				);
-				+ "alias declarations %(MessageID, MessageHandler)"
+				+ "alias-declarations %(MessageID, MessageHandler)"
 					@ "platforms %(^XCB, Win32)";
-				/ "extended (alias declaration %MessageMap; data member \
+				/ "extended (alias-declaration %MessageMap; data member \
 					%HostWindow::MessageMap)" @ "platform ^%XCB"
 					^ "%(MessageID, MessageHandler)"
 				),
@@ -721,7 +903,7 @@ b560
 		),
 		/ DLD "simplified constructors" ^ $dep_from ("macro \
 			%DefDeCopyMoveCtorAssignment" @ %YBaseMacro) $effective @
-			%('Helper_(MinGW32)'.Win32GUI, 'Helper_(Android)'.Android,
+			%('YCLib_(MinGW32)'.Win32GUI, 'YCLib_(Android)'.Android,
 			NPL.(Configuration, Lexical, SContext), YSLib.(Adaptor.Image,
 			Core.(YEvent, YFunc)))
 		- DLB "unsupported platform check"
@@ -794,7 +976,7 @@ b560
 		(
 			/ DLD "simplified class %ReadingList" ^ "base class %nonmovable"
 				~ "explicitly deleted move constructor",
-			/ "Doxygen comments" @ "using declaration %ReadingList::Switch"
+			/ "Doxygen comments" @ "using-declaration %ReadingList::Switch"
 			(
 				- "redundant comment"
 				* "wrong comment on parameter" $since b404
@@ -880,7 +1062,7 @@ b559
 				/ %YGDIBase $=
 				(
 					/ "class %Graphics" -> "class template %GGraphics";
-					+ "alias declaration %(ConstGraphics, Graphics)";
+					+ "alias-declaration %(ConstGraphics, Graphics)";
 					- $comp "static member object %Graphics::Invalid",
 					+ $comp "member types %Graphics::(PointerType, SizeType, \
 						PixelType)"
@@ -1030,7 +1212,7 @@ b558
 				Core.(YEvent, YMessage, YCounter, YCoreUtilities), Service.(
 				CharRenderer, YPixel, TextBase, TextRenderer, TextLayout, YGDI,
 				TextFile, YDraw), UI.(YStyle, YUIContainer, YUIContainer));
-			- "alias declarations %(u8, u16, u32, u64, s8, s16, s32, s64, vu8, \
+			- "alias-declarations %(u8, u16, u32, u64, s8, s16, s32, s64, vu8, \
 				vu16, vu32, vu64, vs8, vs16, vs32, vs64)" @ "namespace %YSLib"
 				@ %Adaptor.YAdatpor $dep_from %(Helper, 'Helper_(DS)', YReader),
 			/ %Core.YDevice $=
@@ -1320,7 +1502,7 @@ b557
 				),
 				(
 				+ "classes %ImageMetadataFindData; HImageMetadata";
-				+ "alias declaration %HImageMetadataIterator"
+				+ "alias-declaration %HImageMetadataIterator"
 				),
 				+ "function %to_string for %ImageTag",
 				+ "functions %(GetFrameTimeOf, GetLogicalSizeOf) for %HBitmap"
@@ -1403,7 +1585,7 @@ b556
 				(
 					+ "3 parameters with default argument for member type"
 						@ "template parameter list";
-					/ "alias declarations %(difference_type, pointer, \
+					/ "alias-declarations %(difference_type, pointer, \
 						reference)" ^ "template parameter",
 					(
 					+ "friend function %is_undereferenceable";
@@ -1485,7 +1667,7 @@ b556
 						),
 						(
 						+ "function %operator[]";
-						/ "class %iterator" -> "alias declaration"
+						/ "class %iterator" -> "alias-declaration"
 							^ "%ystdex::subscriptive_iterator" $dep_from
 							%YBase.YStandardEx.Iterator
 						),
@@ -1704,7 +1886,7 @@ b555
 				/ %ImageProcessing $=
 				(
 					(
-					+ "alias declaration %ImageScale of fixed point type";
+					+ "alias-declaration %ImageScale of fixed point type";
 					* $comp "missing handling invalid input ratio" $since b554,
 						// Like negative values or NaN. No it is not needed.
 					/ "all %ScaleType and 'float'" -> "%ImageScale"
@@ -1741,8 +1923,8 @@ b555
 						(
 						+ "template parameter \
 							'typename _tPointer = std::unique_ptr<_type>'";
-						+ "alias declaration %holder_pointer";
-						+ "alias declaration %pointer_holder",
+						+ "alias-declaration %holder_pointer";
+						+ "alias-declaration %pointer_holder",
 						/ "implemented member pointer" ^ "%holder_pointer"
 							~ '_type*',
 						/ "user-defined move constructor"
@@ -1821,8 +2003,8 @@ b555
 			(
 				+ "template parameter \
 					'typename _tPointer = std::unique_ptr<_type>'";
-				+ "alias declaration %holder_pointer";
-				+ "alias declaration %pointer_holder",
+				+ "alias-declaration %holder_pointer";
+				+ "alias-declaration %pointer_holder",
 				/ "implemented member pointer" ^ "%holder_pointer" ~ '_type*',
 				/ "user-defined move constructor"
 					-> "explicitly defaulted move constructor",
@@ -2073,7 +2255,7 @@ b553
 						)
 					),
 					+ @ "class %JNI" $dep_from "base class %JNIBase"
-						$= (+ "28 alias declarations for JNI types")
+						$= (+ "28 alias-declarations for JNI types")
 				)
 			),
 			/ $dev %Platform $=
@@ -2362,7 +2544,7 @@ b551
 			* $dev $build "ill-formed code" $since b550 $=
 			(
 				* "missing including <chrono>",
-				* "order of alias declaration"
+				* "order of alias-declaration"
 					@ "class templates %(lock_guard, unique_lock)",
 				* "constructing %std::system_error" $=
 				(
@@ -2408,7 +2590,7 @@ b551
 				for overloaded templates with reference parameter",
 			+ 'ynothrow' @ "all function templates %polymorphic_downcast"
 		),
-		+ "using declarations %std::(is_default_constructible, \
+		+ "using-declarations %std::(is_default_constructible, \
 			is_copy_constructible, is_move_constructible, is_assignable, \
 			is_copy_assignable, is_move_assignable, is_destructible, \
 			is_nothrow_constructible, is_nothrow_default_constructible, \
@@ -2450,7 +2632,7 @@ b551
 						 on %YF_Multithread value is zero or nonzero"),
 				+ "namespace %Threading" @ "namespace %platform" $=
 				(
-					+ "using declarations %(unlock_deleter, locked_ptr) from \
+					+ "using-declarations %(unlock_deleter, locked_ptr) from \
 						%ystdex or %ystdex::threading depending on \
 						%YF_Multithread value is zero or nonzero"
 				)
@@ -2464,7 +2646,7 @@ b551
 			(
 				+ 'using namespace platform::Concurrency;' @ "namespace %YSLib"
 					@ %YAdaptor,
-				+ "using declarations %(unlock_deleter, locked_ptr) from \
+				+ "using-declarations %(unlock_deleter, locked_ptr) from \
 					%ystdex or %ystdex::threading depending on %YF_Multithread \
 					value is zero or nonzero" @ "namespace %YSLib"
 					@ %YReference
@@ -3112,7 +3294,7 @@ b546
 				/ @ "class %LexicalAnalyzer" $=
 				(
 					(
-					+ "alias declaration %PrefixHandler";
+					+ "alias-declaration %PrefixHandler";
 					+ "parameter %PrefixHandler with default argument \
 						%HandleBackslashPrefix"
 						@ "functions %(ParseByte, ParseQuoted)"
@@ -3127,7 +3309,7 @@ b546
 			),
 			/ @ "class %Session" @ %SContext $=
 			(
-				+ "alias declaration %CharParser",
+				+ "alias-declaration %CharParser",
 				+ "functions %(DefaultParseByte, DefaultParseQuoted)";
 				/ "constructor for %string" -> "2 constructor template with \
 					%CharParser parameter and %DefaultParseByte default \
@@ -3306,7 +3488,7 @@ b545
 					data member %MaxEscapeLength"
 				),
 				(
-				+ "alias declaration %Unescaper",
+				+ "alias-declaration %Unescaper",
 				$dep_from "%NPLUnescape";
 				+ "unescaper parameter with default argument %NPLUnescape"
 					@ "function %ParseByte",
@@ -4061,7 +4243,7 @@ b539
 			+ "function template %raise_exception";
 			(
 			/ "explicitly stated command failure" @ "function %raise_exception";
-			/ "alias declaration %IntException" ^ "%std::runtime_error"
+			/ "alias-declaration %IntException" ^ "%std::runtime_error"
 				~ "%std::exception";
 			),
 			/ DLD "some printed information before exception throwing"
@@ -4380,7 +4562,7 @@ b537
 				(
 					(
 					- "%operator+= with %ValueType parameter";
-					- "alias declaration %ValueType"
+					- "alias-declaration %ValueType"
 					),
 					(
 					- "ownership of menus";
@@ -4863,7 +5045,7 @@ b531
 	/ $lib "extracted all macros %(DeclDelegate, DeclEvent)" $effective
 		@ (%YFramework.YSLib.UI.(ListControl, Scroll, Selector),
 		YReader.HexBrowser),
-	- "all redundant alias declaration %'H*Event' not occured elsewhere"
+	- "all redundant alias-declaration %'H*Event' not occured elsewhere"
 		$effective @ (%YFramework.YSLib.UI.(ComboList.ListControl, Scroll,
 		Selector), YReader.HexBrowser);
 	) $dep_to "removal use of %(DeclDelegate, DeclEvent)",
@@ -5008,7 +5190,7 @@ b529
 					/ "function %GetLabelRef" -> "data member %LabelBrush",
 					/ $dev "unit control" -> "%Control" ~ "%Label"
 				),
-				/ "alias declaration %IndexEventArgs" ^ "%size_t"
+				/ "alias-declaration %IndexEventArgs" ^ "%size_t"
 					~ "%MTextList::IndexType" $dep_to
 					"eliminating dependency of %IndexEventArgs on %MTextList",
 					// At least currently they are compatible.
@@ -5178,7 +5360,7 @@ b527
 						AdjustOffsetForHeight, AdjustViewForContent, \
 						AdjustViewLengthForHeight, ResetView)"
 						>> "class %AMUnitList";
-					/ "data member %CyclicTraverse" -> "using declaration",
+					/ "data member %CyclicTraverse" -> "using-declaration",
 					/ DLD "simplified implementing functions %'Adjust*'",
 					/ "implemented function %GetItemHeight as overrider",
 					+ "function %(GetTotal, GetUnitRef) as overriders",
@@ -5350,7 +5532,7 @@ b525
 					"removal of %RefreshTextState call of %Menu",
 				),
 				- $revert(b524) "data member %LineGap",
-				- "alias declaration %ViewerType" @ "class %MTextList"
+				- "alias-declaration %ViewerType" @ "class %MTextList"
 					$dep_from "removal of %ViewerType",
 				/ "function %CheckSelected" -> ("member function \
 					%SequenceViewer::CheckSelected" @ %Viewer) $dep_from %Viewer
@@ -5390,10 +5572,10 @@ b525
 				$map ($lambda(T, G)(
 				- "static assertion for %SizeType";
 				/ T -> G;
-				- "alias declaration %SizeType"
+				- "alias-declaration %SizeType"
 				))(("%SizeType", "%size_type"), ("%DifferenceType",
 					"%ptrdiff_t"));
-				- "alias declaration %ContainerType"
+				- "alias-declaration %ContainerType"
 				),
 				/ "functions %(GetLength, SetLength)" -> "data member %Length"
 			),
@@ -5525,7 +5707,7 @@ b524
 							and function %PaintVisibleChildAndCommit" $dep_to
 							"text list refresh"
 						),
-						- "using declarations %(HorizontalAlignment, \
+						- "using-declarations %(HorizontalAlignment, \
 							VerticalAlignment, Text) from %MTextList" $dep_to
 							"removal of redundant members",
 					)
@@ -5597,7 +5779,7 @@ b523
 			(
 				/ @ "class %MTextList" $=
 				(
-					+ "alias declaration %ViewerType; protected data members \
+					+ "alias-declaration %ViewerType; protected data members \
 						%(vwText, uTopOffset), functions \
 						%(AdjustViewLengthForHeight, AdjustOffsetForHeight, \
 						AdjustViewForContent, CheckSelected, ResetView)"
@@ -5617,7 +5799,7 @@ b523
 					(
 					/ "functions %(GetViewPosition, GetFullViewHeight)"
 						>> "class %MTextList";
-					+ "using declarations %MTextList::(GetViewPosition, \
+					+ "using-declarations %MTextList::(GetViewPosition, \
 						GetFullViewHeight)"
 					),
 					/ DLD "simplified implementation" $dep_from
@@ -5844,7 +6026,7 @@ b520
 		),
 		/ %YCLib $=
 		(
-			+ "(struct %HandleDeleter; alias declaration %UniqueHandle; \
+			+ "(struct %HandleDeleter; alias-declaration %UniqueHandle; \
 				function %MakePipe)" @ %Host,
 			/ $dev "distinguished Win64 from 32-bit Windows platforms"
 				@ %Platform $=
@@ -6378,7 +6560,7 @@ b517
 		(
 			+ "static assertions for screen measurement types",
 				// Now integer types are explicitly required.
-			/ "alias declarations of %(SDst, SPos)" ^ "%(long, unsigned long)"
+			/ "alias-declarations of %(SDst, SPos)" ^ "%(long, unsigned long)"
 				~ "%(std::int16_t, std::uint16_t) respectively"
 				@ "%platform Win32" $dep_from "screen measurement platform \
 				neutrality" $dep_to "32-bit screen measurement types"
@@ -6431,7 +6613,7 @@ b516
 				/ "supported null equality comparing" @ "comparer";
 				+ "null pointer as default argument for 1 parameter \
 					constructor as fit for %DefaultConstructible requirement",
-				+ "using declarations %BaseType::operator bool"
+				+ "using-declarations %BaseType::operator bool"
 			),
 			+ "binary %operator* for %String" @ %Core.YString
 		),
@@ -7086,7 +7268,7 @@ b507
 			(
 				- "static data member %(GAligned, RAligned)",
 				(
-				/ "alias declaration %IntegerType" ^ "%BitsN" ~ "%UIntBitsN",
+				/ "alias-declaration %IntegerType" ^ "%BitsN" ~ "%UIntBitsN",
 				- "static data member %Width";
 				- "static data member %UIntBitsN"
 				)
@@ -7095,7 +7277,7 @@ b507
 			+ "class templates %XYZAMaskTrait;
 			/ @ "class templates %(BGRA, RGBA)" $=
 			(
-				+ "alias declaration %MaskTrait"
+				+ "alias-declaration %MaskTrait"
 				/ "colors mask values" ^ "%MaskTrait" ~ "%Trait";
 			);
 			- "data members %(AMask, XMask, YMask, ZMask)"
@@ -7107,7 +7289,7 @@ b507
 			(
 				/ "macro definition %YCL_PIXEL_FORMAT_XYZ888 with value"
 					-> '0xAABBCCDD' ~ '0xAADDCCBB',
-				/ "alias declaration %PixelType" -> "%RGBA<8, 8, 8, 8>"
+				/ "alias-declaration %PixelType" -> "%RGBA<8, 8, 8, 8>"
 					~ "%BGRA<8, 8, 8, 8>",
 				/ "implementation of functions %FetchOpaque"
 			)
@@ -7317,7 +7499,7 @@ b503
 		),
 		/ @ "explicit speclization" @ "class template %sequence_project" $=
 		(
-			/ DLD "implementation" ^ "alias declaration",
+			/ DLD "implementation" ^ "alias-declaration",
 				// It might improve some performance.
 			* $revert_ex(b477) "missing workaround for Visual C++ 2013"
 				$since b477

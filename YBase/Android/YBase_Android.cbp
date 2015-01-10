@@ -20,6 +20,8 @@
 				<Option compiler="gnu_gcc_compiler_for_android" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 				</Compiler>
 				<MakeCommands>
 					<Build command="$make -j8 -f $makefile -r CONF=$target" />
@@ -55,6 +57,7 @@
 		<Unit filename="../include/libdefect/cmath.h" />
 		<Unit filename="../include/libdefect/exception.h" />
 		<Unit filename="../include/libdefect/string.h" />
+		<Unit filename="../include/stdinc.h" />
 		<Unit filename="../include/ydef.h" />
 		<Unit filename="../include/ystdex/algorithm.hpp" />
 		<Unit filename="../include/ystdex/any.h" />

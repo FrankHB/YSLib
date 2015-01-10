@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r842
+\version r874
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2014-12-31 07:54 +0800
+	2015-01-10 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,9 @@
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_MinGW32
 #	include <ystdex/exception.h> // for ystdex::unimplemented;
+#	if SW_SHOWNORMAL != 1 || WS_POPUP != 0x80000000L || WS_EX_LTRREADING != 0L
+#		error "Wrong macro defined."
+#	endif
 #elif YCL_Android
 #	include YFM_Android_YCLib_Android
 #	include <android/native_window.h>
@@ -94,7 +97,8 @@ FetchSizeFromBounds(const ::RECT& rect)
 	return {rect.right - rect.left, rect.bottom - rect.top};
 }
 
-inline ::DWORD
+//! \since build 564
+inline unsigned long
 FetchWindowStyle(::HWND h_wnd)
 {
 	return ::GetWindowLongW(h_wnd, GWL_STYLE);
@@ -308,7 +312,7 @@ UpdateContentTo(NativeWindowHandle h_wnd, const Rect& r, const ConstGraphics& g)
 #	elif YCL_Win32
 NativeWindowHandle
 CreateNativeWindow(const wchar_t* class_name, const Drawing::Size& s,
-	const wchar_t* title, ::DWORD wstyle, ::DWORD wstyle_ex)
+	const wchar_t* title, unsigned long wstyle, unsigned long wstyle_ex)
 {
 	::RECT rect{0, 0, CheckScalar<SPos>(s.Width, "width"),
 		CheckScalar<SPos>(s.Height, "height")};
@@ -368,8 +372,8 @@ ScreenBuffer::ScreenBuffer(const Size& s)
 		//	windows.
 		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), CheckPositiveScalar<SPos>(
 			size.Width, "width"),  -CheckPositiveScalar<SPos>(size.Height,
-			"height") - 1, 1, 32, BI_RGB, ::DWORD(sizeof(Pixel) * size.Width
-			* size.Height), 0, 0, 0, 0}, {}};
+			"height") - 1, 1, 32, BI_RGB, static_cast<unsigned long>(
+			sizeof(Pixel) * size.Width * size.Height), 0, 0, 0, 0}, {}};
 
 		return ::CreateDIBSection({}, &bmi, DIB_RGB_COLORS,
 			&reinterpret_cast<void*&>(pBuffer), {}, 0);
@@ -518,6 +522,14 @@ ScreenRegionBuffer::UpdateTo(NativeWindowHandle h_wnd, const Point& pt) ynothrow
 
 
 #	if YCL_Win32
+WindowMemorySurface::WindowMemorySurface(::HDC h_dc)
+	: h_owner_dc(h_dc), h_mem_dc(::CreateCompatibleDC(h_dc))
+{}
+WindowMemorySurface::~WindowMemorySurface()
+{
+	::DeleteDC(h_mem_dc);
+}
+
 void
 WindowMemorySurface::Update(ScreenBuffer& sbuf, const Point& pt) ynothrow
 {
@@ -549,6 +561,25 @@ WindowMemorySurface::UpdatePremultiplied(ScreenBuffer& sbuf,
 		YF_Raise_Win32Exception("UpdateLayeredWindow");
 	}
 	::SelectObject(h_mem_dc, h_old);
+}
+
+
+WindowDeviceContext::WindowDeviceContext(NativeWindowHandle h_wnd)
+	: WindowDeviceContextBase(h_wnd, ::GetDC(h_wnd))
+{}
+WindowDeviceContext::~WindowDeviceContext()
+{
+	::ReleaseDC(hWindow, hDC);
+}
+
+
+WindowRegionDeviceContext::WindowRegionDeviceContext(NativeWindowHandle h_wnd)
+	: WindowDeviceContextBase(h_wnd,
+	::BeginPaint(h_wnd, &reinterpret_cast<::PAINTSTRUCT&>(ps)))
+{}
+WindowRegionDeviceContext::~WindowRegionDeviceContext()
+{
+	::EndPaint(hWindow, &reinterpret_cast<::PAINTSTRUCT&>(ps));
 }
 
 
@@ -587,8 +618,7 @@ HostWindow::HostWindow(NativeWindowHandle h)
 #	endif
 {
 #	if YCL_HostedUI_XCB
-	if(!h.get()->GetConnectionRef().IsOnError())
-		throw GeneralEvent("Invalid XCB connection found.");
+	h.get()->GetConnectionRef().Check();
 #	elif YCL_Win32
 	YAssert(::IsWindow(h), "Invalid window handle found.");
 	YAssert(::GetWindowThreadProcessId(h, {}) == ::GetCurrentThreadId(),

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Dependencies.txt
 \ingroup Documentation
 \brief 依赖说明。
-\version r517
+\version r519
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
 	2014-07-15 03:14:24 +0800
 \par 修改时间:
-	2014-12-29 16:13 +0800
+	2015-01-01 12:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -381,7 +381,7 @@ YSLib 实现对所有平台的 FreeType2 库添加检查。
 具体规范参照： http://www.x.org/releases/X11R7.7/doc/ 。
 
 @3.2.1 使用的版本：
-在 Arch Linux x86_64 使用包： libxcb-1.11-1 和 xcb-util-image 0.4.0-1 。
+在 Arch Linux x86_64 使用包： libxcb-1.11-1 。
 
 */
 ////

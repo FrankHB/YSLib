@@ -14,6 +14,7 @@ unset CXXFLAGS_OPT_DBG
 if [[ "$SHBuild_NoStatic" == '' ]]; then
 	echo Building static libraries ...
 
+	SHBOUT=.shbuild
 	SHBOPT="$SHBOPT_IGN"
 	unset LDFLAGS
 	. $SHBuild_ToolDir/SHBuild-common-options.sh
@@ -23,10 +24,13 @@ if [[ "$SHBuild_NoStatic" == '' ]]; then
 	SHBuild_EchoVar CXXFLAGS "$CXXFLAGS"
 	SHBuild_EchoVar LDFLAGS "$LDFLAGS"
 
-	$SHBuild $SHBOPT -xn,${LIBPFX}YBase $@ ../../YBase \
-		$CXXFLAGS $INCLUDES_YBase
+	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
+
+	$SHBuild $SHBOPT -xn,${LIBPFX}YBase $@ ../../YBase $CXXFLAGS \
+		$INCLUDES_YBase $SHBuild_IncPCH
 	$SHBuild $SHBOPT -xn,${LIBPFX}YFramework $@ ../../YFramework \
-		$CXXFLAGS -DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase
+		$CXXFLAGS -DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase \
+		$SHBuild_IncPCH
 
 	echo Finished building static libraries.
 else
@@ -36,7 +40,8 @@ fi
 if [[ "$SHBuild_NoDynamic" == '' ]]; then
 	echo Building dynamic libraries ...
 
-	SHBOPT="-xd,.shbuild-dll $SHBOPT_IGN -xmode,2"
+	SHBOUT=.shbuild-dll
+	SHBOPT="-xd,$SHBOUT $SHBOPT_IGN -xmode,2"
 	unset LDFLAGS
 	. $SHBuild_ToolDir/SHBuild-common-options.sh
 	export LDFLAGS="$LDFLAGS $LDFLAGS_DYN"
@@ -45,14 +50,16 @@ if [[ "$SHBuild_NoDynamic" == '' ]]; then
 	SHBuild_EchoVar CXXFLAGS "$CXXFLAGS"
 	SHBuild_EchoVar LDFLAGS "$LDFLAGS"
 
+	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
+
 	$SHBuild $SHBOPT -xn,${LIBPFX}YBase $@ ../../YBase \
-		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_BUILD_DLL $INCLUDES_YBase
+		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_BUILD_DLL $INCLUDES_YBase $SHBuild_IncPCH
 
 	export LIBS="-L.shbuild-dll -lYBase $LIBS_YFramework"
 
 	$SHBuild $SHBOPT -xn,${LIBPFX}YFramework $@ ../../YFramework \
 		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_BUILD_DLL -DYF_BUILD_DLL \
-		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase
+		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase $SHBuild_IncPCH
 
 	echo Finished building dynamic libraries.
 else

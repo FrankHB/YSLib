@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file cstdio.cpp
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r194
+\version r211
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:38:51 +0800
 \par 修改时间:
-	2014-07-14 14:31 +0800
+	2015-01-01 12:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -27,10 +27,31 @@
 
 #include "ystdex/cstdio.h"
 #include "ystdex/cassert.h"
-#include <string> // for std::char_traits<char>::length;
+#include <libdefect/string.h> // for std::char_traits<char>::length and
+//	possible fix for std::vsnprintf;
 
 namespace ystdex
 {
+
+size_t
+vfmtlen(const char* fmt, std::va_list args) ynothrow
+{
+	yconstraint(fmt);
+
+	const int l(std::vsnprintf({}, 0, fmt, args));
+
+	return size_t(l < 0 ? -1 : l);
+}
+size_t
+vfmtlen(const wchar_t* fmt, std::va_list args) ynothrow
+{
+	yconstraint(fmt);
+
+	const int l(std::vswprintf({}, 0, fmt, args));
+
+	return size_t(l < 0 ? -1 : l);
+}
+
 
 bool
 fexists(const char* path) ynothrow

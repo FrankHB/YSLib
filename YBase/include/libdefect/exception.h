@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.h
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r345
+\version r354
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 00:13:53 +0800
 \par 修改时间:
-	2014-11-01 22:36 +0800
+	2015-01-06 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,8 +70,8 @@ get_unexpected() noexcept;
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& ATOMIC_INT_LOCK_FREE < 2
 
-#include <bits/c++config.h>
-#include <bits/exception_defines.h>
+#	include <bits/c++config.h>
+#	include <bits/exception_defines.h>
 
 extern "C++"
 {
@@ -136,11 +136,11 @@ public:
 	}
 	~exception_ptr() noexcept;
 
-#if defined _GLIBCXX_EH_PTR_COMPAT
+#	ifdef _GLIBCXX_EH_PTR_COMPAT
 	typedef void(exception_ptr::*__safe_bool)();
 
 	exception_ptr(__safe_bool) noexcept;
-#endif
+#	endif
 
 	exception_ptr&
 	operator=(const exception_ptr&) noexcept;
@@ -154,7 +154,7 @@ public:
 	void
 	swap(exception_ptr&) noexcept;
 
-#ifdef _GLIBCXX_EH_PTR_COMPAT
+#	ifdef _GLIBCXX_EH_PTR_COMPAT
 	// Retained for compatibility with CXXABI_1.3.
 	void
 	_M_safe_bool_dummy() noexcept __attribute__((__const__));
@@ -163,7 +163,7 @@ public:
 	operator!() const noexcept __attribute__((__pure__));
 
 	operator __safe_bool() const noexcept;
-#endif
+#	endif
 
 	explicit
 	operator bool() const
@@ -202,9 +202,9 @@ make_exception_ptr(_Ex __ex) noexcept
 {
 	__try
 	{
-#ifdef __EXCEPTIONS
+#	ifdef __EXCEPTIONS
 		throw __ex;
-#endif
+#	endif
 	}
 	__catch(...)
 	{

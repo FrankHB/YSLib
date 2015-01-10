@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r909
+\version r934
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2014-11-30 16:06 +0800
+	2015-01-01 12:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	and std::to_string;
-#include <cstdio> // for std::vsnprintf
+#include "cstdio.h" // for std::vsnprintf, ystdex::vfmtlen;
 #include <cstdarg>
 
 namespace ystdex
@@ -658,6 +658,8 @@ ston(const _tString& str, _tParams&&... args)
 
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
+\pre 间接断言：第一参数非空。
+\throw std::runtime_error 格式化字符串输出失败。
 \since build 488
 \bug char 以外的模板参数非正确实现。
 */
@@ -665,15 +667,26 @@ template<typename _tChar>
 std::basic_string<_tChar>
 vsfmt(const _tChar* fmt, std::va_list args)
 {
-	std::string str(size_t(std::vsnprintf({}, 0, fmt, args)), _tChar());
+	std::va_list ap;
 
+	va_copy(ap, args);
+
+	const auto l(ystdex::vfmtlen(fmt, ap));
+
+	va_end(ap);
+	if(l == size_t(-1))
+		throw std::runtime_error("Failed to write formatted string.");
+
+	std::basic_string<_tChar> str(l, _tChar());
+
+	yassume(str.length() > 0 && str[0] == '\0');
 	std::vsprintf(&str[0], fmt, args);
-	va_end(args);
 	return str;
 }
 
 /*!
 \brief 以 C 标准输出格式的输出 std::basic_string 实例的对象。
+\pre 间接断言：第一参数非空。
 \note Clang++ 对模板声明 attribute 直接提示格式字符串类型错误。
 \since build 322
 \todo 提供 char 以外的模板参数的正确实现。
@@ -686,10 +699,18 @@ sfmt(const _tChar* fmt, ...)
 
 	va_start(args, fmt);
 
-	std::string str(vsfmt(fmt, args));
+	try
+	{
+		std::basic_string<_tChar> str(vsfmt(fmt, args));
 
-	va_end(args);
-	return str;
+		va_end(args);
+		return str;
+	}
+	catch(...)
+	{
+		va_end(args);
+		throw;
+	}
 }
 
 /*!

@@ -16,6 +16,8 @@
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 				</Compiler>
 			</Target>
 			<Target title="release">
@@ -44,6 +46,8 @@
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 					<Add option="-DYB_BUILD_DLL" />
 				</Compiler>
 			</Target>
@@ -94,6 +98,7 @@
 		<Unit filename="../include/libdefect/cmath.h" />
 		<Unit filename="../include/libdefect/exception.h" />
 		<Unit filename="../include/libdefect/string.h" />
+		<Unit filename="../include/stdinc.h" />
 		<Unit filename="../include/ydef.h" />
 		<Unit filename="../include/ystdex/algorithm.hpp" />
 		<Unit filename="../include/ystdex/any.h" />

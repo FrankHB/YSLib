@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YFramework.txt
 \ingroup Documentation
 \brief YFramework 设计和实现说明。
-\version r1038
+\version r1040
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-12-20 20:03 +0800
+	2015-01-02 09:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -656,7 +656,7 @@ YLSib 和 YFramework 中依赖 YSLib 的项目尽量使用 YFramework::YBaseMacr
 除非对象布局需要，以下非静态数据成员在数据成员声明的最前依次声明：
 事件（模板 YSLib::GEvent 的实例）；
 事件处理器（模板 YSLib::GHEvent 的实例）；
-类型是 std::function 或其它模板实例的可调用类型的 alias declaration 的对象；
+类型是 std::function 或其它模板实例的可调用类型的 alias-declaration 的对象；
 类型是 std::function 或其它模板实例的可调用类型的对象。
 
 @4.2.2.2 成员函数：

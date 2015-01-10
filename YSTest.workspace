@@ -14,7 +14,9 @@
 		<Project filename="YFramework/MinGW32/YFramework_MinGW32.cbp">
 			<Depends filename="YBase/MinGW32/YBase_MinGW32.cbp" />
 		</Project>
-		<Project filename="YFramework/Android/YFramework_Android.cbp" />
+		<Project filename="YFramework/Android/YFramework_Android.cbp">
+			<Depends filename="YBase/Android/YBase_Android.cbp" />
+		</Project>
 		<Project filename="YSTest/DS_ARM7/YSTest_ARM7.cbp" />
 		<Project filename="YSTest/DS_ARM9/YSTest_ARM9.cbp">
 			<Depends filename="YBase/DS/YBase_DS.cbp" />
