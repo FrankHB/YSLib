@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8889
+\version r8920
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2014-11-09 03:24 +0800
+	2015-01-02 09:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -179,7 +179,7 @@ b498
 				/ DLD "simplified implementation"
 					@ "function template %AccessWidget" ^ "%AccessWidgetNode"
 			),
-			- "alias declaration %SizeType" @ "class %MessageQueue"
+			- "alias-declaration %SizeType" @ "class %MessageQueue"
 				@ %Core.Message
 		),
 		/ %'YCLib_(Android)'.Android $=
@@ -204,7 +204,7 @@ b498
 			/ @ "class %HostWindow" $=
 			(
 				/ "set reference count for constructor and destructor",
-				- "using declarations %WindowReference::('GetClient*', \
+				- "using-declarations %WindowReference::('GetClient*', \
 					GetLocation, 'Set*', Close, Invalidate, Move, Resize, \
 					ResizeClient, Show)" $dep_to "window using cleanup",
 				+ "using %WindowReference::(GetWidth, GetHeight)" $dep_from
@@ -491,11 +491,11 @@ b495
 					* "wrong location for children not at origin of the \
 						container" @ "function %Refresh" $since b494,
 					+ "call to %PerformLayout" @ "functions %operator(+=, -=)",
-					+ "using declarations %MLinearUIContainer::(GetCount,\
+					+ "using-declarations %MLinearUIContainer::(GetCount,\
 						 Find)" $dep_to "%MLinearUIContainer using" $dep_from
 						 "class %MLinearUIContainer",
 					(
-					- "using declarations from %MSharedSelection";
+					- "using-declarations from %MSharedSelection";
 					- "redundant protected base class %MSharedSelection"
 					)
 				),
@@ -917,7 +917,7 @@ b490
 		/ %YCLib.Keys $=
 		(
 			+ 'using KeyIndex = std::size_t;' @ %Keys;
-			/ ("type" @ "alias declaration %KeyBitsetWidth", \
+			/ ("type" @ "alias-declaration %KeyBitsetWidth", \
 				"all function return and parameter types", "underlying type"
 				@ "%KeyCategory::Category") -> "%KeyIndex" ~ 'std::size_t',
 			/ @ "platform %DS" $=
@@ -938,7 +938,7 @@ b490
 		/ %YSLib $=
 		(
 			(
-			+ 'using platform::KeyIndex' @ %Adaptors.YAdatpor;
+			+ 'using platform::KeyIndex' @ %Adaptor.YAdatpor;
 			+ "class %KeyInpuDevice" @ %Core.YDevice
 			),
 			/ %UI $=
@@ -988,7 +988,7 @@ b489
 				+ 'const' @ "reference parameters"
 					@ "function %LocateForWidgets" @ %YUIContainer
 			),
-			+ 'using namespace platform::KeyCategory;' @ %Adaptors.YAdaptor
+			+ 'using namespace platform::KeyCategory;' @ %Adaptor.YAdaptor
 				$dep_from %YCLib.Keys
 		),
 		/ %YCLib.Keys $=
@@ -1360,7 +1360,7 @@ b483
 	(
 		/ %String $=
 		(
-			/ "alias declaration %string_type" @ "traits %string_traits"
+			/ "alias-declaration %string_type" @ "traits %string_traits"
 				^ "%decay_t" ~ "%remove_reference_t",
 			+ "metafunction %enable_string_class_t"
 		),
@@ -1455,7 +1455,7 @@ b482
 							-> "member 'InputType Position;'",
 						+ "operator %InputType"
 					);
-					- "alias declaration %MScreenPositionEventArgs"
+					- "alias-declaration %MScreenPositionEventArgs"
 				);
 				+ "static function %DefaultInvalidateControl"
 					@ "class %InvalidationUpdater" @ %Animation,
@@ -1568,13 +1568,13 @@ b480
 			(
 				/ "constructor for state" ^ "%shared_ptr<MSelector>"
 					~ "%shared_ptr<StatePair>",
-				/ "using declaration %StatePair"
+				/ "using-declaration %StatePair"
 					-> 'using StateType = IWidget*';
 				(
 				+ 'using MSelector = GMSelector<StateType>;';
 				+ 'using SelectedArgs = MSelector::SelectedArgs;',
 				+ 'using HSelectedEvent = MSelector::HSelectedEvent;',
-				- "using declarations %MRadioBox::(Checked, Unchecked, Partial)"
+				- "using-declarations %MRadioBox::(Checked, Unchecked, Partial)"
 				/ 'DeclEvent(HTickedEvent, Ticked)'
 					-> 'DeclEvent(HSelectedEvent, Selected)',
 				),
@@ -1636,7 +1636,7 @@ b479
 		(
 			/ %Selector $=
 			(
-				/ DLD 'MCheckBox' -> 'MSelectorBox' @ "using declarations \
+				/ DLD 'MCheckBox' -> 'MSelectorBox' @ "using-declarations \
 					excluding 'MCheckBox::Ticked'" @ "class %CheckBox",
 				+ "classes %(MRadioBox; RadioBox; RadioButton)",
 				- "function %PaintBox" @ "class %CheckBox",
@@ -1688,7 +1688,7 @@ b478
 			/ @ "class %CheckBox" $=
 			(
 				+ "inheritance protected %MCheckBox",
-				/ "tick event and handler types" -> "using declarations",
+				/ "tick event and handler types" -> "using-declarations",
 				+ "using %MCheckBox::(StateType, Unchecked, Checked, Partial, \
 					GetState, Ticked)",
 				/ "parameter type" @ "function %(SetTicked, Tick)"
@@ -1883,7 +1883,7 @@ b475
 			* $comp "missing thread safety" @ "platform %MinGW32" $since b313
 		),
 		/ "threw %ystdex::unimplemented" ~ "%LoggedEvent"
-			@ "function %HostedRenderer::clone" @ %HostRenderer
+			@ "function %HostRenderer::clone" @ %HostRenderer
 			@ %Helper.HostRenderer $dep_from "%ystdex::unimplemented"
 	),
 	/ $doc $term $re(b338) "all '断言检查'" -> "'断言'" @ "pre conditions",
@@ -1935,8 +1935,8 @@ b474
 				+ "using %platform::(PathCategory, NodeCategory)" $dep_from
 					"%PathCategory",
 				(
-				- "alias declaration %platform::(FILENAMESTR, PATHSTR)";
-				$dep_to "alias declarations"
+				- "alias-declaration %platform::(FILENAMESTR, PATHSTR)";
+				$dep_to "alias-declarations"
 				)
 			)
 		),
@@ -1983,8 +1983,8 @@ b474
 					limited at translation time"
 					$= (DLD ^ "%std::string" ~ "platform::FILENAMESTR"),
 			),
-			- "alias declarations %(FILENAMESTR, PATHSTR); \
-				macro %YCL_MAX_FILENAME_LENGTH" $dep_from "alias declarations"
+			- "alias-declarations %(FILENAMESTR, PATHSTR); \
+				macro %YCL_MAX_FILENAME_LENGTH" $dep_from "alias-declarations"
 			)
 		),
 		* $dev $build "warning MSB8027 caused by generated object from source \
@@ -2496,7 +2496,7 @@ b462
 		^ "macros %'YFM_*'"
 		),
 		/ "parameter type 'IWidget*'" -> 'IWidget&' @ "static member function \
-			%DefaultInvalidate; alias declaration %Invalidator"
+			%DefaultInvalidate; alias-declaration %Invalidator"
 			@ "class %InvalidationUpdater" @ %YSLib.UI.Animation
 	),
 	^ $dev "macros %'YFM_*'" @ %YReader,
@@ -2626,7 +2626,7 @@ b460
 					@ ("classes %(ListBox, DropDownList)" @ %ComboList,
 					"classes %(ATrack, AScrollBar, ScrollableContainer)"
 					@ %Scroll, "class %DialogBox" @ %UIContainerEx),
-				/ 'using Iterator = const_iterator;' -> "using declarations of \
+				/ 'using Iterator = const_iterator;' -> "using-declarations of \
 					base class members %(iterator, const_iterator)"
 			),
 		)
@@ -2735,7 +2735,7 @@ b458
 			* "wrong use of %yconstexpr for function templates" @ %CString
 				$since b329 $= (^ "%yconstfn" ~ "%yconstexpr"),
 				// This would cause warning C4180 on VC++ 2013 with warning \
-				level /W1.
+					level /W1.
 			/ $dev %Iterator $=
 			(
 				/ @ "class template %pointer_iterator" $=
@@ -3647,7 +3647,7 @@ b447
 			^ $design "%DefDeDtor for destructor declaration"
 		),
 		/ DLD "all typedef declarations" @ %'YCLib_(MinGW32)'
-			-> "alias declaration",
+			-> "alias-declaration",
 			// Missed: $since b434.
 		/ %YSLib.Core.YEvent $dep_from "%ystdex::make_expanded" $=
 		(
@@ -3663,7 +3663,7 @@ b447
 		/ DLD "reduced directly nested yforward in
 			%ystdex::(decay_forward, decay_copy) calls",
 		/ "all %decay_forward calls" -> "yforward invocations"
-		- DLD "'std::' prefix for" ("names declared by using declaration"
+		- DLD "'std::' prefix for" ("names declared by using-declaration"
 			@ %TypeOperation) @ "namespace %ystdex except for using \
 			declarations and macros",
 		- DLD public @ "inherited %std::integral_constant \
@@ -4077,7 +4077,7 @@ b440
 		),
 		/ %TypeOperation $=
 		(
-			+ $dev "alias declarations %(remove_const_t, remove_volatile_t, \
+			+ $dev "alias-declarations %(remove_const_t, remove_volatile_t, \
 				remove_cv_t, add_const_t, add_volatile_t, add_cv_t, \
 				remove_reference_t, add_lvalue_reference_t, \
 				add_rvalue_reference_t, make_signed_t, make_unsigned_t, \
@@ -4132,13 +4132,13 @@ b439
 	),
 	/ %YBase $=
 	(
-		+ "alias declaration %ystdex::raw_tag" @ %YDefinition,
+		+ "alias-declaration %ystdex::raw_tag" @ %YDefinition,
 		/ %YStandardEx $=
 		(
 			/ %Rational $=
 			(
 				(
-				^ DLD "%ystdex::raw_tag" ~ "private alias declaration \
+				^ DLD "%ystdex::raw_tag" ~ "private alias-declaration \
 					%internal_construct_tag" $dep_from %YDefinition;
 				* $comp "specialization of %std::numeric_limits for \
 					%ystdex::fixed_point" $since b260;
@@ -4176,7 +4176,7 @@ b439
 		/ $dev @ "namespace %ystdex" @ %TypeOperation $=
 		(
 			+ 'using std::underlying_type;';
-			+ "alias declarations %(decay_t, enable_if_t, conditional_t, \
+			+ "alias-declarations %(decay_t, enable_if_t, conditional_t, \
 				common_type_t, underlying_type_t, result_of_t)"
 				// For C++1y compatibility. There seems no %std::align_union \
 					implemented by libstdc++, so %align_union_t is deferred.
@@ -4412,7 +4412,7 @@ b434
 		-> "named struct declarations",
 		// See $2013-08 @ %Documentation::Workflow::Annual2013.
 	/ DLD "all typedef declarations except in directory %3rdparty"
-		-> "alias declarations",
+		-> "alias-declarations",
 		// Ditto.
 		// $b447: @ %YCLib_(MinGW32) missed.
 	/ %YFramework.YSLib.UI $=
@@ -5599,7 +5599,7 @@ b414
 		/ "simplified inheritance and members" @ "class %FileBox" @ %UI
 			$dep_from %Core.YFileSystem,
 			// More space efficient.
-		/ %Adaptors.Font $=
+		/ %Adaptor.Font $=
 		(
 			/ "function %Font::Getstyle" => "GetStyle";
 			+ "function %CharBitmap::GetGrayLevel"
@@ -6256,7 +6256,7 @@ b402
 		)
 	),
 	/ $doc "made expected non-sentance Doxygen especially for directive '\sa'",
-	* "missing including header %Functional"
+	* $dev $build "missing including header %Functional"
 		@ %YBase.YStandardEx.AnyIterator $since b355
 ),
 

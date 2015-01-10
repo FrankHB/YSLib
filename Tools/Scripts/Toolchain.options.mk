@@ -47,7 +47,8 @@ ifneq ($(CONF),debug)
 else
 	ASFLAGS_OPT_DBG ?= -g
 	C_CXXFLAGS_OPT_LV ?= -O0
-	C_CXXFLAGS_OPT_DBG ?= -g $(C_CXXFLAGS_OPT_LV) -fno-omit-frame-pointer
+	C_CXXFLAGS_OPT_DBG ?= $(C_CXXFLAGS_OPT_LV) -g -fno-omit-frame-pointer \
+		-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
 	LDFLAGS_OPT_DBG ?= -g
 endif
 

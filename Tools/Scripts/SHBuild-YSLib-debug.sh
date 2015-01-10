@@ -9,12 +9,13 @@ SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 SHBuild_Pushd
 cd $SHBuild_BaseDir
 
-CXXFLAGS_OPT_DBG='-O0 -g'
+CXXFLAGS_OPT_DBG='-O0 -g -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC'
 
 if [[ "$SHBuild_NoStatic" == '' ]]; then
 	echo Building debug static libraries ...
 
-	SHBOPT="-xd,.shbuild-debug $SHBOPT_IGN"
+	SHBOUT=.shbuild-debug
+	SHBOPT="-xd,$SHBOUT $SHBOPT_IGN"
 	. $SHBuild_ToolDir/SHBuild-common-options.sh
 	export LDFLAGS="-Wl,--dn"
 
@@ -22,10 +23,13 @@ if [[ "$SHBuild_NoStatic" == '' ]]; then
 	SHBuild_EchoVar CXXFLAGS "$CXXFLAGS"
 	SHBuild_EchoVar LDFLAGS "$LDFLAGS"
 
+	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
+
 	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ ../../YBase \
-		$CXXFLAGS $INCLUDES_YBase
+		$CXXFLAGS $INCLUDES_YBase $SHBuild_IncPCH
 	$SHBuild $SHBOPT -xn,${LIBPFX}YFrameworkd $@ ../../YFramework \
-		$CXXFLAGS -DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase
+		$CXXFLAGS -DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase \
+		$SHBuild_IncPCH
 
 	echo Finished building debug static libraries.
 else
@@ -35,7 +39,8 @@ fi
 if [[ "$SHBuild_NoDynamic" == '' ]]; then
 	echo Building debug dynamic libraries ...
 
-	SHBOPT="-xd,.shbuild-dll-debug $SHBOPT_IGN -xmode,2"
+	SHBOUT=.shbuild-dll-debug
+	SHBOPT="-xd,$SHBOUT $SHBOPT_IGN -xmode,2"
 	. $SHBuild_ToolDir/SHBuild-common-options.sh
 	export LDFLAGS="$LDFLAGS_DYN"
 
@@ -43,14 +48,17 @@ if [[ "$SHBuild_NoDynamic" == '' ]]; then
 	SHBuild_EchoVar CXXFLAGS "$CXXFLAGS"
 	SHBuild_EchoVar LDFLAGS "$LDFLAGS"
 
+	SHBuild_CheckPCH_ "$INCLUDE_PCH" "$SHBOUT/stdinc.h"
+
 	$SHBuild $SHBOPT -xn,${LIBPFX}YBased $@ ../../YBase \
-		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_BUILD_DLL $INCLUDES_YBase
+		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_BUILD_DLL $INCLUDES_YBase \
+		$SHBuild_IncPCH
 
 	export LIBS="-L.shbuild-dll-debug -lYBased $LIBS_YFramework"
 
 	$SHBuild $SHBOPT -xn,${LIBPFX}YFrameworkd $@ ../../YFramework \
 		$CXXFLAGS $C_CXXFLAGS_PIC -DYB_DLL -DYF_BUILD_DLL \
-		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase
+		-DFREEIMAGE_LIB $INCLUDES_YFramework $INCLUDES_YBase $SHBuild_IncPCH
 
 	echo Finished building debug dynamic libraries.
 else

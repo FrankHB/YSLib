@@ -9,9 +9,6 @@ SHBuild_ToolDir=$(cd `dirname "$0"`/Scripts; pwd)
 . $SHBuild_ToolDir/SHBuild-common-options.sh # For $LIBPFX and $DSOSFX, etc.
 
 echo Configuring ...
-# POSIX paths may be not supported by native Windows programs without
-#	conversion.
-export COMSPEC=bash
 : ${SHBuild_BuildOpt:="-xj,6"}
 export SHBuild_BuildOpt
 : ${SHBuild_LogOpt:="-xlogfl,128"}

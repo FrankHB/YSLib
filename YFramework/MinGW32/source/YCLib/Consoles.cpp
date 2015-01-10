@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Consoles.cpp
 \ingroup NBuilder
 \brief 控制台。
-\version r229
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 403
 \par 创建时间:
 	2013-05-09 11:01:35 +0800
 \par 修改时间:
-	2014-12-22 15:49 +0800
+	2015-01-10 15:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@ namespace platform_ex
 inline namespace Windows
 {
 
-WConsole::WConsole(::DWORD dev)
+WConsole::WConsole(unsigned long dev)
 	: WConsole(::GetStdHandle(dev))
 {}
 WConsole::WConsole(::HANDLE h)
@@ -165,7 +165,7 @@ WConsole::UpdateForeColor(std::uint8_t fc)
 }
 
 std::unique_ptr<WConsole>
-MakeWConsole(::DWORD h)
+MakeWConsole(unsigned long h)
 {
 	std::unique_ptr<WConsole> p_con;
 

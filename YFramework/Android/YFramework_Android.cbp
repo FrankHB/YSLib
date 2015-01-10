@@ -20,6 +20,8 @@
 				<Option compiler="gnu_gcc_compiler_for_android" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 				</Compiler>
 				<MakeCommands>
 					<Build command="$make -j8 -f $makefile -r CONF=$target" />
@@ -191,7 +193,7 @@
 		<Unit filename="../include/YSLib/Adaptor/YNew.h" />
 		<Unit filename="../include/YSLib/Adaptor/YTextBase.h" />
 		<Unit filename="../include/YSLib/Adaptor/config.h" />
-		<Unit filename="../include/YSLib/Adaptor/yadaptor.h" />
+		<Unit filename="../include/YSLib/Adaptor/YAdaptor.h" />
 		<Unit filename="../include/YSLib/Adaptor/ycont.h" />
 		<Unit filename="../include/YSLib/Adaptor/yref.hpp" />
 		<Unit filename="../include/YSLib/Core/Task.h" />

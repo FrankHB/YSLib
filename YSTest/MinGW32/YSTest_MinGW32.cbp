@@ -17,6 +17,8 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 				</Compiler>
 				<Linker>
 					<Add library="../../build/MinGW32/YFramework/debug/libYFrameworkd.a" />
@@ -61,6 +63,8 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-D_GLIBCXX_DEBUG" />
+					<Add option="-D_GLIBCXX_DEBUG_PEDANTIC" />
 					<Add option="-DYB_DLL" />
 					<Add option="-DYF_DLL" />
 				</Compiler>

@@ -21,6 +21,7 @@ SHBuild_BuildDir="$SHBuild_BaseDir/.shbuild"
 
 . $SHBuild_ToolDir/SHBuild-common-options.sh
 
+INCLUDE_PCH='../../YBase/include/stdinc.h'
 INCLUDES=" \
 	-I../../YFramework/include -I../../YFramework/Android/include \
 	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \

@@ -43,4 +43,4 @@ Tools/SHBuild/SHBuild*
 Tools/*.tar.*
 test/*.exe
 sysroot/*
-
+Tools/SHBuild/stdinc.h.gch

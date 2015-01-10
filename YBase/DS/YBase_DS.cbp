@@ -55,6 +55,7 @@
 		<Unit filename="../include/libdefect/cmath.h" />
 		<Unit filename="../include/libdefect/exception.h" />
 		<Unit filename="../include/libdefect/string.h" />
+		<Unit filename="../include/stdinc.h" />
 		<Unit filename="../include/ydef.h" />
 		<Unit filename="../include/ystdex/algorithm.hpp" />
 		<Unit filename="../include/ystdex/any.h" />

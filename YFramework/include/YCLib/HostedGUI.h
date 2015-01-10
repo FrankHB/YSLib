@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r892
+\version r955
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2014-12-31 07:53 +0800
+	2015-01-10 15:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,29 @@
 #endif
 
 #if YF_Hosted && YCL_HostedUI
-#	if YCL_Android
+#	if YCL_Win32
+//! \since build 564
+//@{
+struct HBITMAP__;
+struct HBRUSH__;
+struct HDC__;
+struct HINSTANCE__;
+struct HWND__;
+using HBITMAP = ::HBITMAP__*;
+using HBRUSH = ::HBRUSH__*;
+using HDC = ::HDC__*;
+using HINSTANCE = ::HINSTANCE__*;
+using HWND = ::HWND__*;
+#		if YCL_Win64
+using LPARAM = long long;
+#		else
+using LPARAM = long;
+using LRESULT = ::LPARAM;
+#		endif
+using WPARAM = std::uintptr_t;
+using WNDPROC = ::LRESULT(__stdcall*)(::HWND, unsigned, ::WPARAM, ::LPARAM);
+//@}
+#	elif YCL_Android
 struct ANativeWindow;
 #	endif
 
@@ -256,13 +278,13 @@ public:
 
 	/*!
 	\brief 显示窗口。
-	\note 使用 \t ::ShowWindowAsync 实现，非阻塞调用，直接传递参数。
-	\note 默认参数指定若窗口被最小化则恢复且激活窗口。
+	\note 使用 <tt>::ShowWindowAsync</tt> 实现，非阻塞调用，直接传递参数。
+	\note 默认参数为 \c SW_SHOWNORMAL ，指定若窗口被最小化则恢复且激活窗口。
 	\return 异步操作是否成功。
 	\since build 548
 	*/
 	bool
-	Show(int = SW_SHOWNORMAL) ynothrow;
+	Show(int = 1) ynothrow;
 #	endif
 
 protected:
@@ -283,12 +305,13 @@ UpdateContentTo(NativeWindowHandle, const YSLib::Drawing::Rect&,
 #	elif YCL_Win32
 /*!
 \brief 按指定窗口类名、客户区大小、标题文本、样式和附加样式创建本机顶层窗口。
+\note 最后的默认参数分别为 \c WS_POPUP 和 \c WS_EX_LTRREADING 。
 \exception LoggedEvent 宽或高不大于 0 。
-\since build 430
+\since build 564
 */
 YF_API NativeWindowHandle
-CreateNativeWindow(const wchar_t*, const YSLib::Drawing::Size&,
-	const wchar_t* = L"", ::DWORD = WS_POPUP, ::DWORD = WS_EX_LTRREADING);
+CreateNativeWindow(const wchar_t*, const YSLib::Drawing::Size&, const wchar_t*
+	= L"", unsigned long = 0x80000000L, unsigned long = 0x00000000L);
 #	endif
 
 
@@ -499,13 +522,8 @@ private:
 	::HDC h_owner_dc, h_mem_dc;
 
 public:
-	WindowMemorySurface(::HDC h_dc)
-		: h_owner_dc(h_dc), h_mem_dc(::CreateCompatibleDC(h_dc))
-	{}
-	~WindowMemorySurface()
-	{
-		::DeleteDC(h_mem_dc);
-	}
+	WindowMemorySurface(::HDC);
+	~WindowMemorySurface();
 
 	DefGetter(const ynothrow, ::HDC, OwnerHandle, h_owner_dc)
 	DefGetter(const ynothrow, ::HDC, NativeHandle, h_mem_dc)
@@ -554,13 +572,8 @@ public:
 class YF_API WindowDeviceContext : public WindowDeviceContextBase
 {
 protected:
-	WindowDeviceContext(NativeWindowHandle h_wnd)
-		: WindowDeviceContextBase(h_wnd, ::GetDC(h_wnd))
-	{}
-	~WindowDeviceContext()
-	{
-		::ReleaseDC(hWindow, hDC);
-	}
+	WindowDeviceContext(NativeWindowHandle);
+	~WindowDeviceContext();
 };
 
 
@@ -571,16 +584,15 @@ protected:
 class YF_API WindowRegionDeviceContext : public WindowDeviceContextBase
 {
 private:
-	::PAINTSTRUCT ps;
+	/*!
+	\note 保持和 \c ::PAINTSTRUCT 二进制兼容。
+	\since build 564
+	*/
+	ystdex::byte ps[64];
 
 protected:
-	WindowRegionDeviceContext(NativeWindowHandle h_wnd)
-		: WindowDeviceContextBase(h_wnd, ::BeginPaint(h_wnd, &ps))
-	{}
-	~WindowRegionDeviceContext()
-	{
-		::EndPaint(hWindow, &ps);
-	}
+	WindowRegionDeviceContext(NativeWindowHandle);
+	~WindowRegionDeviceContext();
 };
 //@}
 
@@ -611,9 +623,12 @@ private:
 	::HINSTANCE h_instance;
 
 public:
-	//! \since build 512
+	/*!
+	\note 最后的默认参数等于 <tt>::HBRUSH(COLOR_MENU + 1)</tt> 。
+	\since build 512
+	*/
 	WindowClass(const wchar_t*, ::WNDPROC, unsigned = 0,
-		::HBRUSH = ::HBRUSH(COLOR_MENU + 1));
+		::HBRUSH = ::HBRUSH(4 + 1));
 	~WindowClass();
 };
 

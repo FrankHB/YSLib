@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r568
+\version r578
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2014-12-22 15:51 +0800
+	2015-01-10 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,10 +49,12 @@ namespace
 
 class Win32ErrorCategory : public std::error_category
 {
+public:
 	PDefH(const char*, name, ) const ynothrow override
 		ImplRet("Win32Error")
-	// NOTE: For Win32 a %::DWORD can be mapped one-to-one for 32-bit %int.
-	PDefH(std::string, message, int ev) const ynothrow override
+	//! \since build 564
+	PDefH(std::string, message, int ev) const override
+		// NOTE: For Win32 a %::DWORD can be mapped one-to-one for 32-bit %int.
 		ImplRet(Win32Exception::FormatMessage(Win32Exception::ErrorCode(ev)))
 };
 
@@ -226,10 +228,10 @@ RegistryKey::Flush()
 	YF_Raise_Win32Exception_On_Failure(::RegFlushKey(h_key), "RegFlushKey");
 }
 
-std::pair<::DWORD, std::vector<ystdex::byte>>
-RegistryKey::GetRawValue(const wchar_t* name, ::DWORD type) const
+std::pair<unsigned long, std::vector<ystdex::byte>>
+RegistryKey::GetRawValue(const wchar_t* name, unsigned long type) const
 {
-	::DWORD size;
+	unsigned long size;
 
 	YF_Raise_Win32Exception_On_Failure(::RegQueryValueExW(h_key, Nonnull(name),
 		{}, type == REG_NONE ? &type : nullptr, {}, &size), "RegQueryValueExW");
@@ -243,7 +245,7 @@ RegistryKey::GetRawValue(const wchar_t* name, ::DWORD type) const
 std::size_t
 RegistryKey::GetSubKeyCount() const
 {
-	::DWORD res;
+	unsigned long res;
 
 	YF_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {},
 		&res, {}, {}, {}, {}, {}, {}, {}), "RegQueryInfoKey");
@@ -269,7 +271,7 @@ RegistryKey::GetSubKeyNames() const
 std::size_t
 RegistryKey::GetValueCount() const
 {
-	::DWORD res;
+	unsigned long res;
 
 	YF_Raise_Win32Exception_On_Failure(::RegQueryInfoKey(h_key, {}, {}, {}, {},
 		{}, {}, &res, {}, {}, {}, {}), "RegQueryInfoKey");

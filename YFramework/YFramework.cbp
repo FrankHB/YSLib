@@ -190,7 +190,7 @@
 		<Unit filename="include/YSLib/Adaptor/YModules.h" />
 		<Unit filename="include/YSLib/Adaptor/YTextBase.h" />
 		<Unit filename="include/YSLib/Adaptor/config.h" />
-		<Unit filename="include/YSLib/Adaptor/yadaptor.h" />
+		<Unit filename="include/YSLib/Adaptor/YAdaptor.h" />
 		<Unit filename="include/YSLib/Adaptor/ycont.h" />
 		<Unit filename="include/YSLib/Adaptor/YNew.h" />
 		<Unit filename="include/YSLib/Adaptor/yref.hpp" />

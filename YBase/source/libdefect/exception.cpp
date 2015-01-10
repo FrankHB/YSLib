@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file exception.cpp
 \ingroup LibDefect
 \brief 标准库实现 \c \<exception\> 修正。
-\version r509
+\version r548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
 	2014-11-01 11:00:14 +0800
 \par 修改时间:
-	2014-11-02 16:14 +0800
+	2015-01-08 17:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,18 +32,12 @@
 	&& (defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L) \
 	&& ATOMIC_INT_LOCK_FREE < 2
 
-#ifdef __EXCEPTION__
-#	error "<exception> of libstdc++ should not be included at this point."
-#endif
+#	include "libdefect/exception.h"
+#	include <cxxabi.h> // for __cxxabiv1 and std::type_info;
+#	include <bits/atomic_word.h> // for ::_Atomic_word;
+#	include <unwind.h> // from libgcc, for __ARM_EABI_UNWINDER__, _Unwind_Ptr, etc;
 
-#define _GLIBCXX_EH_PTR_COMPAT
-
-#include "libdefect/exception.h"
-#include <cxxabi.h> // for __cxxabiv1 and std::type_info;
-#include <bits/atomic_word.h> // for ::_Atomic_word;
-#include <unwind.h> // from libgcc, for __ARM_EABI_UNWINDER__, _Unwind_Ptr, etc;
-
-#pragma GCC visibility push(default)
+#	pragma GCC visibility push(default)
 
 namespace __cxxabiv1
 {
@@ -56,16 +50,16 @@ struct __cxa_exception
 	std::terminate_handler terminateHandler;
 	__cxa_exception* nextException;
 	int handlerCount;
-#ifdef __ARM_EABI_UNWINDER__
+#	ifdef __ARM_EABI_UNWINDER__
 	__cxa_exception* nextPropagatingException;
 	int propagationCount;
-#else
+#	else
 	int handlerSwitchValue;
 	const unsigned char* actionRecord;
 	const unsigned char* languageSpecificData;
 	_Unwind_Ptr catchTemp;
 	void* adjustedPtr;
-#endif
+#	endif
 	_Unwind_Exception unwindHeader;
 };
 
@@ -78,23 +72,23 @@ struct __cxa_refcounted_exception
 struct __cxa_dependent_exception
 {
 	void* primaryException;
-#if __GNUC__ * 100 + __GNUC_MINOR__ >= 409
+#	if __GNUC__ * 100 + __GNUC_MINOR__ >= 409
 	void(_GLIBCXX_CDTOR_CALLABI*__padding)(void*);
-#endif
+#	endif
 	std::unexpected_handler unexpectedHandler;
 	std::terminate_handler terminateHandler;
 	__cxa_exception* nextException;
 	int handlerCount;
-#ifdef __ARM_EABI_UNWINDER__
+#	ifdef __ARM_EABI_UNWINDER__
 	__cxa_exception* nextPropagatingException;
 	int propagationCount;
-#else
+#	else
 	int handlerSwitchValue;
 	const unsigned char* actionRecord;
 	const unsigned char* languageSpecificData;
 	_Unwind_Ptr catchTemp;
 	void* adjustedPtr;
-#endif
+#	endif
 	_Unwind_Exception unwindHeader;
 };
 
@@ -102,9 +96,9 @@ struct __cxa_eh_globals
 {
 	__cxa_exception* caughtExceptions;
 	unsigned int uncaughtExceptions;
-#ifdef __ARM_EABI_UNWINDER__
+#	ifdef __ARM_EABI_UNWINDER__
 	__cxa_exception* propagatingExceptions;
-#endif
+#	endif
 };
 
 extern void
@@ -135,7 +129,7 @@ __get_dependent_exception_from_ue(_Unwind_Exception *exc)
 	return reinterpret_cast<__cxa_dependent_exception*>(exc + 1) - 1;
 }
 
-#ifdef __ARM_EABI_UNWINDER__
+#	ifdef __ARM_EABI_UNWINDER__
 inline bool
 __is_gxx_exception_class(_Unwind_Exception_Class c)
 {
@@ -163,7 +157,7 @@ __GXX_INIT_DEPENDENT_EXCEPTION_CLASS(_Unwind_Exception_Class c)
 	c[6] = '+';
 	c[7] = '\x01';
 }
-#else
+#	else
 const _Unwind_Exception_Class __gxx_primary_exception_class
 	= (((((((_Unwind_Exception_Class('G') 
 	<< 8 | _Unwind_Exception_Class('N'))
@@ -197,9 +191,9 @@ __is_dependent_exception(_Unwind_Exception_Class c)
 	return c & 1;
 }
 
-#define __GXX_INIT_DEPENDENT_EXCEPTION_CLASS(c) \
+#		define __GXX_INIT_DEPENDENT_EXCEPTION_CLASS(c) \
 	c = __gxx_dependent_exception_class
-#endif
+#	endif
 
 inline void*
 __get_object_from_ue(_Unwind_Exception* eo) throw()
@@ -221,7 +215,7 @@ std::size_t unwindhdr()
 	return offsetof(Ex, unwindHeader);
 }
 
-#if __GNUC__ * 100 + __GNUC_MINOR__ >= 409
+#	if __GNUC__ * 100 + __GNUC_MINOR__ >= 409
 template<typename Ex>
 constexpr
 std::size_t termHandler()
@@ -233,9 +227,9 @@ static_assert(termHandler<__cxa_exception>()
 	== termHandler<__cxa_dependent_exception>(),
 	"__cxa_dependent_exception::termHandler layout must be"
 	" consistent with __cxa_exception::termHandler");
-#endif
+#	endif
 
-#ifndef __ARM_EABI_UNWINDER__
+#	ifndef __ARM_EABI_UNWINDER__
 template<typename Ex>
 constexpr std::ptrdiff_t adjptr()
 {
@@ -246,11 +240,11 @@ static_assert(adjptr<__cxa_exception>()
 	== adjptr<__cxa_dependent_exception>(),
 	"__cxa_dependent_exception::adjustedPtr layout must be"
 	" consistent with __cxa_exception::adjustedPtr");
-#endif
+#	endif
 
 // FIXME: For platforms with threading but no atomic builtins, e.g. Android
 //	ARMv5.
-#if !_GLIBCXX_HAS_GTHREADS
+#	if !_GLIBCXX_HAS_GTHREADS
 template<typename _type>
 inline _type
 __atomic_add_fetch(_type* ptr, _type val, int)
@@ -266,7 +260,7 @@ __atomic_sub_fetch(_type* ptr, _type val, int)
 	*ptr -= val;
 	return *ptr;
 }
-#endif
+#	endif
 
 void
 __gxx_dependent_exception_cleanup(_Unwind_Reason_Code code,
@@ -289,7 +283,7 @@ __gxx_dependent_exception_cleanup(_Unwind_Reason_Code code,
 
 } // unnamed namespace;
 
-#pragma GCC visibility pop
+#	pragma GCC visibility pop
 
 namespace std
 {
@@ -305,9 +299,11 @@ exception_ptr::exception_ptr(void* obj) noexcept
 {
 	_M_addref();
 }
+#	ifdef _GLIBCXX_EH_PTR_COMPAT
 exception_ptr::exception_ptr(__safe_bool) noexcept
 	: _M_exception_object()
 {}
+#	endif
 exception_ptr::exception_ptr(const exception_ptr& other) noexcept
 	: _M_exception_object(other._M_exception_object)
 {
@@ -371,8 +367,7 @@ exception_ptr::swap(exception_ptr& other) noexcept
 }
 
 
-//! \note Retained for compatibility with CXXABI_1.3.
-//@{
+#	ifdef _GLIBCXX_EH_PTR_COMPAT
 void
 exception_ptr::_M_safe_bool_dummy() noexcept
 {}
@@ -387,7 +382,7 @@ exception_ptr::operator __safe_bool() const noexcept
 {
 	return _M_exception_object ? &exception_ptr::_M_safe_bool_dummy : nullptr;
 }
-//@}
+#	endif
 
 const type_info*
 exception_ptr::__cxa_exception_type() const noexcept
@@ -443,8 +438,6 @@ rethrow_exception(exception_ptr ep)
 
 } // namespace std;
 
-#undef _GLIBCXX_EH_PTR_COMPAT
-
 #endif
 
 #if defined(__GLIBCXX__) \
@@ -453,7 +446,7 @@ rethrow_exception(exception_ptr ep)
 
 #	include <exception>
 #	if ATOMIC_POINTER_LOCK_FREE < 2
-// XXX: Reordered to avoid include <exception> to early.
+// XXX: Reordered to avoid include <exception> too early.
 #		include <ext/concurrence.h>
 namespace
 {

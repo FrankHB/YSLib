@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r189
+\version r196
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2014-12-16 22:31 +0800
+	2015-01-10 14:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,12 +33,14 @@
 #include "YCLib/YModules.h"
 #include "YSLib/Core/YModules.h"
 #include YFM_YCLib_YCommon
-#include YFM_YCLib_NativeAPI
 #include YFM_YSLib_Core_YException // for YSLib::LoggedEvent;
 #include <memory> // for std::unique_ptr;
 #include <system_error> // for std::system_error;
 #if !YCL_Win32
 #	include YFM_YCLib_FileSystem // for platform::file_desc;
+#else
+//! \since build 564
+using HANDLE = void*;
 #endif
 
 #if YF_Hosted
@@ -85,8 +87,8 @@ struct YF_API HandleDeleter
 #		if YCL_Win32
 	using pointer = ::HANDLE;
 
-	PDefHOp(void, (), pointer h)
-		ImplExpr(::CloseHandle(h))
+	void
+	operator()(pointer);
 #		else
 	using pointer = int*;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Consoles.h
 \ingroup NBuilder
 \brief 控制台。
-\version r212
+\version r217
 \author FrankHB <frankhb1989@gmail.com>
 \since build 520
 \par 创建时间:
 	2013-05-09 11:01:12 +0800
 \par 修改时间:
-	2014-10-06 06:33 +0800
+	2015-01-10 15:55 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,8 +72,8 @@ public:
 
 	//! \pre 断言：句柄非空有效。
 	//@{
-	//! \since build 519
-	WConsole(::DWORD h = STD_OUTPUT_HANDLE);
+	//! \since build 564
+	WConsole(unsigned long h = STD_OUTPUT_HANDLE);
 	/*!
 	\brief 构造：使用已知控制台句柄。
 	\since build 559
@@ -152,10 +152,10 @@ public:
 \return 指向新创建的控制台对象的指针，若失败则为空。
 \note 不抛出 Win32Exception 。
 \relates WConsole
-\since build 542
+\since build 564
 */
 YF_API std::unique_ptr<WConsole>
-MakeWConsole(::DWORD = STD_OUTPUT_HANDLE);
+MakeWConsole(unsigned long = STD_OUTPUT_HANDLE);
 
 } // inline namespace Windows;
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r520
+\version r526
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2014-12-27 19:14 +0800
+	2015-01-01 08:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -208,8 +208,8 @@ FetchCommonLogger();
 
 /*!
 \brief 格式输出日志字符串前追加记录源文件行号和文件名。
-\pre 断言：第一参数非空。
 \pre 间接断言：第三参数非空。
+\note 允许第一参数为空指针，视为未知。
 \since build 498
 */
 YF_API YB_ATTR(format (printf, 3, 4)) YB_NONNULL(1, 3) std::string
@@ -237,7 +237,9 @@ LogWithSource(const char*, int, const char*, ...);
 	})
 #else
 #	define YCL_Trace(_lv, ...) \
-	YCL_Log(_lv, [&]{return ystdex::sfmt(__VA_ARGS__);})
+	YCL_Log(_lv, [&]{ \
+		return ystdex::sfmt(__VA_ARGS__); \
+	})
 #endif
 
 

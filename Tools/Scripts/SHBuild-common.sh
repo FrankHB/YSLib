@@ -169,3 +169,23 @@ SHBuild_EchoVar_N()
 	eval "SHBuild_EchoVar \"\$1\" \"\${${1//./_}}\""
 }
 
+
+# TODO: Merge with SHBuild-build.sh?
+# Link and build GNU precompiled header.
+# Params: $1 = path of header to be copied, $2 = path of header to be included,
+#	$3 = tool to build header.
+SHBuild_BuildGCH()
+{
+	local SHBOUT_PCH="$2.gch"
+	if [[ -s "$SHBOUT_PCH" && -r "$SHBOUT_PCH" ]]; then
+		# FIXME: Update necessarily.
+		echo PCH file exists, skipped building.
+	else
+		mkdir -p "`dirname "$SHBOUT_PCH"`"
+		echo Building precompiled file "$SHBOUT_PCH" ...
+		SHBuild_Install_HardLink "$1" "$2"
+		$3 "$1" -o$SHBOUT_PCH
+		echo Building precompiled file "$SHBOUT_PCH" done.
+	fi
+}
+

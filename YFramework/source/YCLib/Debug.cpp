@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r469
+\version r481
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2014-12-01 23:36 +0800
+	2015-01-01 08:47 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,6 +43,13 @@ namespace platform
 
 namespace
 {
+
+//! \since build 564
+inline const char*
+chk_null(const char* s)
+{
+	return s && *s != '\0'? s : "<unknown>";
+}
 
 #if YCL_Android
 
@@ -166,8 +173,6 @@ FetchCommonLogger()
 std::string
 LogWithSource(const char* file, int line, const char* fmt, ...)
 {
-	YAssertNonnull(fmt);
-
 	std::va_list args;
 
 	va_start(args, fmt);
@@ -175,7 +180,7 @@ LogWithSource(const char* file, int line, const char* fmt, ...)
 	std::string str(ystdex::vsfmt(fmt, args));
 
 	va_end(args);
-	return ystdex::sfmt("\"%s\":%i:\n", Nonnull(file), line) + std::move(str);
+	return ystdex::sfmt("\"%s\":%i:\n", chk_null(file), line) + std::move(str);
 }
 
 } // namespace platform;
@@ -200,9 +205,6 @@ LogAssert(bool expr, const char* expr_str, const char* file, int line,
 #		if YCL_Win32
 		try
 		{
-			const auto chk_null([](const char* s){
-				return s && *s != '\0'? s : "<unknown>";
-			});
 			char prog[MAX_PATH]{"<unknown>"};
 
 			::GetModuleFileNameA({}, prog, MAX_PATH);

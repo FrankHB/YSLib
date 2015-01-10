@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1839
+\version r1842
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-12-31 08:42 +0800
+	2014-01-02 09:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -877,6 +877,9 @@ public:
 	}
 };
 
+
+using BitmapPtr = Pixel*;
+using ConstBitmapPtr = const Pixel*;
 
 //! \since build 559
 using ConstGraphics = GGraphics<ConstBitmapPtr>;

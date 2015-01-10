@@ -1,0 +1,45 @@
+﻿/*
+	© 2015 FrankHB.
+
+	This file is part of the YSLib project, and may only be used,
+	modified, and distributed under the terms of the YSLib project
+	license, LICENSE.TXT.  By continuing to use, modify, or distribute
+	this file you indicate that you have read the license and
+	understand and accept it fully.
+*/
+
+/*!	\file Workflow.Annual2015.txt
+\ingroup Documentation
+\brief 工作流汇总报告 - 2015 年度。
+\version r44
+\author FrankHB <frankhb1989@gmail.com>
+\since build 564
+\par 创建时间:
+	2014-01-02 09:40:31 +0800
+\par 修改时间:
+	2015-01-02 09:42 +0800
+\par 文本编码:
+	UTF-8
+\par 模块名称:
+	Documentation::Workflow::Annual2015
+*/
+
+// See "Meta.cpp" for meta descriptions.
+
+$import $WORKFLOW;
+$LINE-WIDTH-RESTRICT 0;
+
+$WORKFLOW:
+// Following lines are only for logging informal project information.
+// See Meta.txt for formal project information.
+// See ChangeLog.*.txt for accepted contents.
+
+$2014-01:
+
+report.impl:
+Note that 'va_args' and 'va_end' cannot be encapulased using RAII/RRID.
+	ISO C explicitly specified they shall match in a function.
+	Since constructor and destructor are functions, they can not be used.
+
+////
+

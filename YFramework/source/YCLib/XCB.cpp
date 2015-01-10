@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r365
+\version r473
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2014-12-31 08:17 +0800
+	2015-01-09 22:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #	include YFM_YCLib_XCB
 #	include YFM_YCLib_Mutex
 #	include <xcb/xcb.h>
+#	include <ystdex/cast.hpp> // for ystdex::pvoid;
 
 using namespace YSLib;
 using namespace Drawing;
@@ -88,16 +89,96 @@ LockAtoms(::xcb_connection_t& c_ref)
 //@}
 
 
+//! \since build 564
+//@{
+class XCBConnectionErrorCategory : public std::error_category
+{
+public:
+	PDefH(const char*, name, ) const ynothrow override
+		ImplRet("XCBConnectionError")
+	std::string
+	message(int) const override;
+};
+
+std::string
+XCBConnectionErrorCategory::message(int err) const
+{
+	switch(err)
+	{
+	case XCB_CONN_ERROR:
+		return
+			"connection errors because of socket, pipe and other stream errors";
+	case XCB_CONN_CLOSED_EXT_NOTSUPPORTED:
+		return "shutdown because of extension not supported";
+	case XCB_CONN_CLOSED_MEM_INSUFFICIENT:
+		return "malloc(), calloc() and realloc() error upon failure";
+	case XCB_CONN_CLOSED_REQ_LEN_EXCEED:
+		return "exceeding request length that server accepts";
+	case XCB_CONN_CLOSED_PARSE_ERR:
+		return "error during parsing display string";
+	case XCB_CONN_CLOSED_INVALID_SCREEN:
+		return "the server does not have a screen matching the display";
+	case XCB_CONN_CLOSED_FDPASSING_FAILED:
+		return "some FD passing operation failed";
+	default:
+		return "unknown";
+	}
+}
+//@}
+
+
 class XCBErrorCategory : public std::error_category
 {
 public:
 	PDefH(const char*, name, ) const ynothrow override
 		ImplRet("XCBError")
-	// TODO: Parse error.
-	PDefH(std::string, message, int) const ynothrow override
-		ImplRet("XCB error occurred.")
+	//! \since build 564
+	std::string
+	message(int) const override;
 };
 
+std::string
+XCBErrorCategory::message(int err) const
+{
+	return std::string("XCB ") + [&]()->const char*{
+		switch(err)
+		{
+#	define YCL_Impl_XCB_ErrCategory(_x) \
+		case XCB_##_x: \
+			return #_x;
+		YCL_Impl_XCB_ErrCategory(REQUEST)
+		YCL_Impl_XCB_ErrCategory(VALUE)
+		YCL_Impl_XCB_ErrCategory(WINDOW)
+		YCL_Impl_XCB_ErrCategory(PIXMAP)
+		YCL_Impl_XCB_ErrCategory(ATOM)
+		YCL_Impl_XCB_ErrCategory(CURSOR)
+		YCL_Impl_XCB_ErrCategory(FONT)
+		YCL_Impl_XCB_ErrCategory(MATCH)
+		YCL_Impl_XCB_ErrCategory(DRAWABLE)
+		YCL_Impl_XCB_ErrCategory(ACCESS)
+		YCL_Impl_XCB_ErrCategory(ALLOC)
+		YCL_Impl_XCB_ErrCategory(COLORMAP)
+		YCL_Impl_XCB_ErrCategory(G_CONTEXT)
+		YCL_Impl_XCB_ErrCategory(ID_CHOICE)
+		YCL_Impl_XCB_ErrCategory(NAME)
+		YCL_Impl_XCB_ErrCategory(LENGTH)
+		YCL_Impl_XCB_ErrCategory(IMPLEMENTATION)
+#	undef YCL_Impl_XCB_ErrCategory
+		default:
+			return "unknown";
+		}
+	}() + " error";
+}
+
+
+//! \since build 564
+const XCBConnectionErrorCategory&
+FetchXCBConnectionErrorCategory()
+{
+	static const XCBConnectionErrorCategory ecat{};
+
+	return ecat;
+}
 
 const XCBErrorCategory&
 FetchXCBErrorCategory()
@@ -110,9 +191,10 @@ FetchXCBErrorCategory()
 //! \since build 564
 template<typename _tParam>
 YB_NORETURN void
-ThrowGeneralXCBException(_tParam&& arg, Exception::LevelType lv = Err)
+ThrowGeneralXCBException(_tParam&& arg, int err = 0, const std::error_category&
+	ecat = FetchXCBErrorCategory(), Exception::LevelType lv = Err)
 {
-	throw Exception(0, FetchXCBErrorCategory(), yforward(arg), lv);
+	throw Exception(err, ecat, yforward(arg), lv);
 }
 
 void
@@ -156,10 +238,19 @@ XCBException::XCBException(const string& msg, std::uint8_t resp,
 {}
 
 
-bool
-ConnectionReference::IsOnError() const ynothrow
+int
+ConnectionReference::GetError() const ynothrow
 {
 	return ::xcb_connection_has_error(Nonnull(get())) != 0;
+}
+void
+ConnectionReference::Check() const
+{
+	const int err(GetError());
+
+	if(err != 0)
+		ThrowGeneralXCBException("XCB connection check failed.",
+			err, FetchXCBConnectionErrorCategory());
 }
 
 int
@@ -187,23 +278,23 @@ ConnectionReference::GenerateID() const ynothrow
 
 
 Connection::Connection(const char* disp_name, int* p_scr)
-	: Connection((YTraceDe(Informative, "Creating XCB connection with display"
-	" name = '%s', screen number = '%s'", disp_name ? disp_name : "[NULL]",
-	p_scr ? to_string(*p_scr).c_str() : "[NULL]"),
-	::xcb_connect(disp_name, p_scr)))
+	: Connection({}, disp_name, p_scr)
 {}
 Connection::Connection(::xcb_auth_info_t* p_auth, const char* disp_name,
 	int* p_scr)
-	: Connection((YTraceDe(Informative, "Creating authorized XCB connection"
-	" with display name = '%s', screen number = '%s'", disp_name ? disp_name
+	: Connection((YTraceDe(Informative, "Creating XCB connection"
+	" with authorization information pointer = %p, display name = '%s',"
+	" screen number = '%s'", ystdex::pvoid(p_auth), disp_name ? disp_name
 	: "[NULL]", p_scr ? to_string(*p_scr).c_str() : "[NULL]"),
 	::xcb_connect_to_display_with_auth_info(disp_name, p_auth, p_scr)))
 {}
 Connection::Connection(ConnectionReference c_ref)
 	: ConnectionReference(c_ref)
 {
-	if(!get())
-		ThrowGeneralXCBException("XCB Connection failed.");
+	if(!get() || IsOnError())
+		ThrowGeneralXCBException("XCB connection failed.",
+			Deref(reinterpret_cast<int*>(get())),
+			FetchXCBConnectionErrorCategory());
 }
 Connection::~Connection()
 {
@@ -236,9 +327,9 @@ LookupAtom(::xcb_connection_t& c_ref, const string& name)
 
 
 WindowData::WindowData(::xcb_connection_t& c_ref, const Rect& r)
-	: WindowData(c_ref, r, [this]{
+	: WindowData(c_ref, r, [this, &c_ref]{
 		if(const auto p = ::xcb_setup_roots_iterator(
-			&GetConnectionRef().GetSetup()).data)
+			&ConnectionReference(&c_ref).GetSetup()).data)
 			return *p;
 		ThrowGeneralXCBException("No XCB screen found.");
 	}())
@@ -251,9 +342,9 @@ WindowData::WindowData(::xcb_connection_t& c_ref, const Rect& r,
 	WindowData::ID parent)
 	: Drawable(c_ref)
 {
-	CheckRequest(c_ref, ::xcb_create_window_checked(&c_ref, 32, GetID(), parent,
-		r.X, r.Y, r.Width, r.Height, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT,
-		XCB_COPY_FROM_PARENT, 0, {}));
+	CheckRequest(c_ref, ::xcb_create_window_checked(&c_ref,
+		XCB_COPY_FROM_PARENT, GetID(), parent, r.X, r.Y, r.Width, r.Height, 0,
+		XCB_WINDOW_CLASS_INPUT_OUTPUT, XCB_COPY_FROM_PARENT, 0, {}));
 }
 
 Rect

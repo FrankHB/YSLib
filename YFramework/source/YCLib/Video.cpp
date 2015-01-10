@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Video.cpp
 \ingroup YCLib
 \brief 平台相关的视频输出接口。
-\version r368
+\version r373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-26 20:19:54 +0800
 \par 修改时间:
-	2014-12-22 13:22 +0800
+	2015-01-02 09:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,24 +164,24 @@ ResetVideo()
 }
 
 
-platform::BitmapPtr
+platform::Pixel*
 InitScrUp(int& id)
 {
 	//初始化背景，并得到屏幕背景ID 。
 	id = ::bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
 
 	//获得屏幕背景所用的显存地址。
-	return reinterpret_cast<platform::BitmapPtr>(::bgGetGfxPtr(id));
+	return reinterpret_cast<platform::Pixel*>(::bgGetGfxPtr(id));
 }
 
-platform::BitmapPtr
+platform::Pixel*
 InitScrDown(int& id)
 {
 	//初始化背景，并得到屏幕背景ID 。
 	id = ::bgInitSub(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0);
 
 	//获得屏幕背景所用的显存地址。
-	return reinterpret_cast<platform::BitmapPtr>(::bgGetGfxPtr(id));
+	return reinterpret_cast<platform::Pixel*>(::bgGetGfxPtr(id));
 }
 
 void
