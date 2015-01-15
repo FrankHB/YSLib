@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r510
+\version r527
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2012-06-08 17:57:49 +0800
 \par 修改时间:
-	2015-01-10 15:55 +0800
+	2015-01-15 19:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,6 +125,25 @@ public:
 			throw platform_ex::Windows::Win32Exception(err, __VA_ARGS__); \
 	}
 
+
+/*!
+\brief 安装控制台处理器。
+\throw Win32Exception 设置失败。
+\note 默认行为使用 <tt>::ExitProcess</tt> ，可能造成 C/C++ 运行时无法正常清理。
+\warning 默认不应在 \c std::at_quick_exit 注册依赖静态或线程生存期对象状态的回调。
+\see http://msdn.microsoft.com/en-us/library/windows/desktop/ms682658(v=vs.85).aspx
+\see http://msdn.microsoft.com/en-us/library/windows/desktop/ms686016(v=vs.85).aspx
+\see $2014-10 @ %Documentation::Workflow::Annual2014.
+\since build 565
+
+若第一参数为空，则使用具有以下行为的处理器：
+对 \c CTRL_C_EVENT \c CTRL_CLOSE_EVENT 、 \c CTRL_BREAK_EVENT 、
+\c CTRL_LOGOFF_EVENT 、和 \c CTRL_SHUTDOWN_EVENT ，调用
+<tt>std::_Exit(STATUS_CONTROL_C_EXIT)</tt> 。
+第二参数指定添加或移除。
+*/
+YF_API void
+FixConsoleHandler(int(WINAPI*)(unsigned long) = {}, bool = true);
 
 /*!
 \brief 判断是否在 Wine 环境下运行。

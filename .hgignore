@@ -43,4 +43,5 @@ Tools/SHBuild/SHBuild*
 Tools/*.tar.*
 test/*.exe
 sysroot/*
-Tools/SHBuild/stdinc.h.gch
+Tools/SHBuild/stdinc.h*
+bak.patch

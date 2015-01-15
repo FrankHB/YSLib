@@ -11,13 +11,13 @@
 /*!	\file string.hpp
 \ingroup YStandardEx
 \brief ISO C++ 标准字符串扩展。
-\version r934
+\version r1094
 \author FrankHB <frankhb1989@gmail.com>
 \since build 304
 \par 创建时间:
 	2012-04-26 20:12:19 +0800
 \par 修改时间:
-	2015-01-01 12:26 +0800
+	2015-01-12 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include "container.hpp" // for ystdex::sort_unique, ystdex::underlying;
 #include <libdefect/string.h> // for std::char_traits, std::initializer_list,
 //	and std::to_string;
+#include <istream> // for std::istream;
 #include "cstdio.h" // for std::vsnprintf, ystdex::vfmtlen;
 #include <cstdarg>
 
@@ -559,12 +560,140 @@ split_l(_tRange&& c, _fPred is_delim, _fInsert insert)
 //@}
 //@}
 
-/*!
-\brief 转换为字符串。
-\note 可与 <tt>std::to_string</tt> 共用以避免某些类型转换警告，
-	如 G++ 的 [-Wsign-promo] 。
-\since build 308
+
+/*! 
+\brief 从输入流中取字符串。
+\since build 565
 */
+//@{
+//! \note 同 \c std::getline ，除判断分隔符及附带的副作用由参数的函数对象决定。
+template<typename _tChar, class _tTraits, class _tAlloc, typename _func>
+std::basic_istream<_tChar, _tTraits>&
+extract(std::basic_istream<_tChar, _tTraits>& is,
+	std::basic_string<_tChar, _tTraits, _tAlloc>& str, _func f)
+{
+	std::string::size_type n(0);
+	auto st(std::ios_base::goodbit);
+
+	if(const auto k
+		= typename std::basic_istream<_tChar, _tTraits>::sentry(is, true))
+	{
+		const auto msize(str.max_size());
+		const auto p_buf(is.rdbuf());
+
+		yassume(p_buf);
+		str.erase();
+		try
+		{
+			const auto eof(_tTraits::eof());
+
+			for(auto c(p_buf->sgetc()); ; c = p_buf->snextc())
+			{
+				if(_tTraits::eq_int_type(c, eof))
+				{
+					st |= std::ios_base::eofbit;
+					break;
+				}
+				if(f(c, *p_buf))
+				{
+					++n;
+					break;
+				}
+				if(!(str.length() < msize))
+				{
+					st |= std::ios_base::failbit;
+					break;
+				}
+				str.append(1, _tTraits::to_char_type(c));
+				++n;
+			}
+		}
+		catch(...)
+		{
+			// XXX: Rethrow?
+			is.setstate(std::ios_base::badbit);
+		}
+	}
+	if(n == 0)
+		st |= std::ios_base::failbit;
+	if(st)
+		is.setstate(st);
+	return is;
+}
+
+//! \note 同 \c std::getline ，除字符串结尾包含分隔符。
+//@{
+template<typename _tChar, class _tTraits, class _tAlloc>
+std::basic_istream<_tChar, _tTraits>&
+extract_line(std::basic_istream<_tChar, _tTraits>& is,
+	std::basic_string<_tChar, _tTraits, _tAlloc>& str, _tChar delim)
+{
+	const auto d(_tTraits::to_int_type(delim));
+
+	return ystdex::extract(is, str,
+		[d, &str](typename std::basic_istream<_tChar, _tTraits>::int_type c,
+		std::basic_streambuf<_tChar, _tTraits>& sb)->bool{
+		if(_tTraits::eq_int_type(c, d))
+		{
+			sb.sbumpc();
+			// NOTE: If not appended here, this function template shall be
+			//	equivalent with %std::getline.
+			str.append(1, d);
+			return true;
+		}
+		return {};
+	});
+}
+template<typename _tChar, class _tTraits, class _tAlloc>
+inline std::basic_istream<_tChar, _tTraits>&
+extract_line(std::basic_istream<_tChar, _tTraits>& is,
+	std::basic_string<_tChar, _tTraits, _tAlloc>& str)
+{
+	return ystdex::extract_line(is, str, is.widen('\n'));
+}
+
+/*!
+\brief 同 \c ystdex::extract_line ，但允许分隔符包含附加的前缀字符。
+\note 默认 \c LF 作为基准分隔符，前缀为 \c CR ，即接受 \c LF 和 <tt>CR+LF</tt> 。
+\note 一般配合二进制方式打开的流使用，以避免不必要的分隔符转换。
+*/
+template<typename _tChar, class _tTraits, class _tAlloc>
+std::basic_istream<_tChar, _tTraits>&
+extract_line_cr(std::basic_istream<_tChar, _tTraits>& is,
+	std::basic_string<_tChar, _tTraits, _tAlloc>& str, _tChar delim_cr = '\r',
+	_tChar delim = '\n')
+{
+	const auto cr(_tTraits::to_int_type(delim_cr));
+	const auto d(_tTraits::to_int_type(delim));
+
+	return ystdex::extract(is, str,
+		[cr, d, &str](typename std::basic_istream<_tChar, _tTraits>::int_type c,
+		std::basic_streambuf<_tChar, _tTraits>& sb)->bool{
+		if(_tTraits::eq_int_type(c, d))
+			str.append(1, d);
+		else if(_tTraits::eq_int_type(c, cr)
+			&& _tTraits::eq_int_type(sb.sgetc(), d))
+		{
+			sb.sbumpc();
+			str.append(1, cr);
+			str.append(1, d);
+		}
+		else
+			return {};
+		sb.sbumpc();
+		return true;
+	});
+}
+//@}
+//@}
+
+
+/*!
+\brief 转换为字符串： \c std::basic_string 的实例对象。
+\note 可与标准库的同名函数共用以避免某些类型转换警告，如 G++ 的 [-Wsign-promo] 。
+*/
+//@{
+//! \since build 308
 //@{
 inline std::string
 to_string(unsigned char val)
@@ -586,6 +715,30 @@ to_string(_type val)
 
 	return to_string(ystdex::underlying(val));
 }
+//@}
+
+//! \since build 565
+//@{
+inline std::wstring
+to_wstring(unsigned char val)
+{
+	return std::to_wstring(unsigned(val));
+}
+inline std::wstring
+to_wstring(unsigned short val)
+{
+	return std::to_wstring(unsigned(val));
+}
+template<typename _type>
+inline yimpl(enable_if_t)<is_enum<_type>::value, std::wstring>
+to_wstring(_type val)
+{
+	using std::to_wstring;
+	using ystdex::to_wstring;
+
+	return to_wstring(ystdex::underlying(val));
+}
+//@}
 //@}
 
 
@@ -740,6 +893,21 @@ filter_prefix(const _tString& str, const _type& prefix, _func f)
 		return true;
 	}
 	return {};
+}
+
+/*!
+\brief 选择性过滤前缀。
+\return 指定前缀存在时为去除前缀的部分，否则为参数指定的替代值。
+\since build 565
+*/
+template<typename _type, typename _tString>
+_tString
+cond_prefix(const _tString& str, const _type& prefix, _tString&& val = {})
+{
+	ystdex::filter_prefix(str, prefix, [&](_tString&& s){
+		val = std::move(s);
+	});
+	return std::move(val);
 }
 
 } // namespace ystdex;

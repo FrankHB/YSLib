@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r779
+\version r784
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2014-11-04 17:13 +0800
+	2015-01-15 18:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,6 +110,10 @@ public:
 	Drawing::Point(*MapPoint)(const Drawing::Point&) = {};
 #	endif
 
+	/*!
+	\brief 构造：初始化环境。
+	\note Win32 平台：尝试无参数调用 FixConsoleHandler ，若失败则跟踪警告。
+	*/
 	Environment();
 	~Environment();
 

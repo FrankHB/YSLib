@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r874
+\version r913
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-01-10 15:54 +0800
+	2015-01-15 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -575,34 +575,59 @@ WindowDeviceContext::~WindowDeviceContext()
 
 WindowRegionDeviceContext::WindowRegionDeviceContext(NativeWindowHandle h_wnd)
 	: WindowDeviceContextBase(h_wnd,
-	::BeginPaint(h_wnd, &reinterpret_cast<::PAINTSTRUCT&>(ps)))
+	::BeginPaint(h_wnd, reinterpret_cast<::PAINTSTRUCT*>(ps)))
 {}
 WindowRegionDeviceContext::~WindowRegionDeviceContext()
 {
-	::EndPaint(hWindow, &reinterpret_cast<::PAINTSTRUCT&>(ps));
+	static_assert(ystdex::is_aligned_storable<decltype(ps),
+		::PAINTSTRUCT>::value, "Invalid type found.");
+
+	::EndPaint(hWindow, reinterpret_cast<::PAINTSTRUCT*>(ps));
 }
 
 
 WindowClass::WindowClass(const wchar_t* class_name, ::WNDPROC wnd_proc,
-	unsigned style, ::HBRUSH h_bg)
-	: h_instance(::GetModuleHandleW({}))
-{
+	unsigned style, ::HBRUSH h_bg, ::HINSTANCE h_inst)
 	// NOTE: Intentionally no %CS_OWNDC or %CS_CLASSDC, so %::ReleaseDC
 	//	is always needed.
-	const ::WNDCLASSW wnd_class{style, wnd_proc, 0, 0, h_instance,
-		::LoadIconW({}, IDI_APPLICATION), ::LoadCursorW({}, IDC_ARROW),
-		h_bg, nullptr, class_name};
+	: WindowClass(::WNDCLASSW{style, wnd_proc, 0, 0, h_inst ? h_inst
+		: ::GetModuleHandleW({}), ::LoadIconW({}, IDI_APPLICATION),
+		::LoadCursorW({}, IDC_ARROW), h_bg, nullptr, Nonnull(class_name)})
+{}
+WindowClass::WindowClass(const ::WNDCLASSW& wc)
+	: WindowClass(wc.lpszClassName, [&]{
+		const auto a(::RegisterClassW(&wc));
 
-	if(YB_UNLIKELY(::RegisterClassW(&wnd_class) == 0))
-		YF_Raise_Win32Exception("RegisterClassW");
-	// TODO: Trace class name.
-	YTraceDe(Notice, "Window class registered.");
+		if(YB_UNLIKELY(a == 0))
+			YF_Raise_Win32Exception("RegisterClassW");
+		return a;
+	}(), wc.hInstance)
+{}
+WindowClass::WindowClass(const ::WNDCLASSEXW& wc)
+	: WindowClass(wc.lpszClassName, [&]{
+		const auto a(::RegisterClassExW(&wc));
+
+		if(YB_UNLIKELY(a == 0))
+			YF_Raise_Win32Exception("RegisterClassExW");
+		return a;
+	}(), wc.hInstance)
+{}
+WindowClass::WindowClass(const std::wstring& class_name,
+	unsigned short class_atom, ::HINSTANCE h_inst)
+	: name(class_name), atom(class_atom), h_instance(h_inst)
+{
+	if(YB_UNLIKELY(atom == 0))
+		throw std::invalid_argument("Invalid atom value found.");
+	YTraceDe(Notice, "Window class '%s' of atom '%hu' registered.",
+		name.empty() ? "<unknown>" : WCSToUTF8(name).c_str(), atom);
 }
 WindowClass::~WindowClass()
 {
-	::UnregisterClassW(WindowClassName, h_instance);
-	// TODO: Trace class name.
-	YTraceDe(Notice, "Window class unregistered.");
+	::UnregisterClassW(reinterpret_cast<const wchar_t*>(atom), h_instance);
+	TryExpr(YTraceDe(Notice, "Window class '%s' of atom '%hu' unregistered.",
+		name.empty() ? "<unknown>" : WCSToUTF8(name).c_str(), atom))
+	// XXX: More log?
+	CatchIgnore(...)
 }
 #	endif
 

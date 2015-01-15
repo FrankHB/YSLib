@@ -27,6 +27,16 @@ SHBuild_CheckedCall()
 	fi
 }
 
+SHBuild_CheckedCallSilent()
+{
+	if hash "$1" > /dev/null 2>& 1; then
+		$* > /dev/null || exit $?
+	else
+		echo ERROR: \""$1"\" should be exist. Failed calling \""$*"\".
+		exit 1
+	fi
+}
+
 SHBuild_InitReadonly()
 {
 	if [[ "$1" != '' ]]; then
@@ -136,7 +146,7 @@ SHBuild_Install_Link()
 
 SHBuild_Pushd()
 {
-	pushd . > /dev/null 2>& 1
+	pushd "$1" > /dev/null 2>& 1
 }
 
 SHBuild_Popd()

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r744
+\version r801
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2014-12-19 12:48 +0800
+	2015-01-12 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -168,40 +168,55 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 
 #define NAME_MAX 256
 
-#define S_IFIFO		_S_IFIFO
+#define S_IFIFO _S_IFIFO
 
-#	if YCL_Win32
-#		ifndef S_IFMT
-#			define S_IFMT _S_IFMT
-#		endif
-#		ifndef S_IFDIR
-#			define S_IFDIR _S_IFDIR
-#		endif
-#		ifndef S_IFCHR
-#			define S_IFCHR _S_IFCHR
-#		endif
-#		ifndef S_IFREG
-#			define S_IFREG _S_IFREG
-#		endif
-#		ifndef S_IREAD
-#			define S_IREAD _S_IREAD
-#		endif
-#		ifndef S_IWRITE
-#			define S_IWRITE _S_IWRITE
-#		endif
-#		ifndef S_IEXEC
-#			define S_IEXEC _S_IEXEC
-#		endif
+#	ifndef S_IFMT
+#		define S_IFMT _S_IFMT
+#	endif
+#	ifndef S_IFDIR
+#		define S_IFDIR _S_IFDIR
+#	endif
+#	ifndef S_IFCHR
+#		define S_IFCHR _S_IFCHR
+#	endif
+#	ifndef S_IFREG
+#		define S_IFREG _S_IFREG
 #	endif
 
-#define	S_IRWXG		(S_IRGRP | S_IWGRP | S_IXGRP)
-#define		S_IRGRP	0
-#define		S_IWGRP	0
-#define		S_IXGRP 0
-#define	S_IRWXO		(S_IROTH | S_IWOTH | S_IXOTH)
-#define		S_IROTH	0
-#define		S_IWOTH	0
-#define		S_IXOTH 0
+#	ifndef S_IREAD
+#		define S_IREAD _S_IREAD
+#	endif
+#	ifndef S_IWRITE
+#		define S_IWRITE _S_IWRITE
+#	endif
+#	ifndef S_IEXEC
+#		define S_IEXEC _S_IEXEC
+#	endif
+
+#	ifndef S_IRGRP
+#		define S_IRGRP	(_S_IREAD >> 3)
+#	endif
+#	ifndef S_IWGRP
+#		define S_IWGRP	(_S_IWRITE >> 3)
+#	endif
+#	ifndef S_IXGRP
+#		define S_IXGRP (_S_IEXEC >> 3)
+#	endif
+#	ifndef S_IRWXG
+#		define	S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
+#	endif
+#	ifndef S_IROTH
+#		define S_IROTH	(S_IRGRP >> 3)
+#	endif
+#	ifndef S_IWOTH
+#		define S_IWOTH	(S_IWGRP >> 3)
+#	endif
+#	ifndef S_IXOTH
+#		define S_IXOTH (S_IXGRP >> 3)
+#	endif
+#	ifndef S_IRWXO
+#		define	S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
+#	endif
 
 
 namespace platform_replace

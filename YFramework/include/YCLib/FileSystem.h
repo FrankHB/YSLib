@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1614
+\version r1638
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2014-12-28 14:09 +0800
+	2015-01-11 17:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -182,22 +182,29 @@ static_assert(ystdex::is_null(YCL_PATH_SEPARATOR[1]),
 \brief 文件描述符包装类。
 \note 满足 NullablePointer 要求。
 \see ISO WG21/N4140 17.6.3.3[nullablepointer.requirements] 。
-\since build 553
+\since build 565
 */
-class YF_API file_desc
+class YF_API FileDescriptor
 {
 private:
 	//! \since build 554
 	int desc;
 
 public:
-	file_desc() ynothrow
+	FileDescriptor() ynothrow
 		: desc(-1)
 	{}
-	file_desc(int fd) ynothrow
+	FileDescriptor(int fd) ynothrow
 		: desc(fd)
 	{}
-	file_desc(std::nullptr_t) ynothrow
+	/*!
+	\brief 构造：使用标准流。
+	\note 对非空参数可能设置 \c errno 。
+
+	当参数为空时得到无效文件空描述符，否则调用 POSIX \c fileno 函数。
+	*/
+	FileDescriptor(std::FILE*) ynothrow;
+	FileDescriptor(std::nullptr_t) ynothrow
 		: desc(-1)
 	{}
 
@@ -206,20 +213,28 @@ public:
 
 	explicit DefCvt(const ynothrow, bool, desc != -1)
 
-	friend PDefHOp(bool, ==, const file_desc& x, const file_desc& y)
+	/*!
+	\brief 设置模式。
+	\note 参数和返回值意义和语义同 \c setmode 函数，在 Windows 以外的平台无作用。
+	\since build 565
+	*/
+	int
+	SetMode(int) const ynothrow;
+
+	friend PDefHOp(bool, ==, const FileDescriptor& x, const FileDescriptor& y)
 		ImplRet(x.desc == y.desc)
-	friend PDefHOp(bool, !=, const file_desc& x, const file_desc& y)
+	friend PDefHOp(bool, !=, const FileDescriptor& x, const FileDescriptor& y)
 		ImplRet(x.desc != y.desc)
 };
 
 
 /*!
 \brief 文件描述符删除器。
-\since build 553
+\since build 565
 */
-struct YF_API file_desc_deleter
+struct YF_API FileDescriptorDeleter
 {
-	using pointer = file_desc;
+	using pointer = FileDescriptor;
 
 	void
 	operator()(pointer) ynothrow;

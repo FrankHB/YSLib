@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r196
+\version r197
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-01-10 14:15 +0800
+	2015-01-11 17:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,7 +76,7 @@ public:
 
 #	if !YCL_Win32 && YCL_API_Has_unistd_h
 //! \since build 553
-using HandleDeleter = platform::file_desc_deleter;
+using HandleDeleter = platform::FileDescriptorDeleter;
 #	else
 /*!
 \brief 句柄删除器。

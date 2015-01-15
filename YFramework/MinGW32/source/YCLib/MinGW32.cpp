@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r578
+\version r603
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-01-10 15:55 +0800
+	2015-01-15 19:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,6 +46,25 @@ inline namespace Windows
 //! \since build 545
 namespace
 {
+
+//! \since build 565
+int WINAPI
+ConsoleHandler(unsigned long ctrl)
+{
+	switch (ctrl)
+	{
+	case CTRL_C_EVENT:
+	case CTRL_CLOSE_EVENT:
+	case CTRL_BREAK_EVENT:
+	case CTRL_LOGOFF_EVENT:
+	case CTRL_SHUTDOWN_EVENT:
+		std::_Exit(STATUS_CONTROL_C_EXIT);
+		break;
+	default:
+		return 0;
+	}
+	return 1;
+}
 
 class Win32ErrorCategory : public std::error_category
 {
@@ -95,6 +114,14 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 	return {};
 }
 
+
+void
+FixConsoleHandler(int(WINAPI* handler)(unsigned long), bool add)
+{
+	if(YB_UNLIKELY(!::SetConsoleCtrlHandler(handler
+		? handler : ConsoleHandler, add)))
+		YF_Raise_Win32Exception("SetConsoleCtrlHandler");
+}
 
 bool
 CheckWine()

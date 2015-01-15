@@ -214,12 +214,12 @@
 		<Unit filename="../DS/source/Helper/DSWindow.cpp" />
 		<Unit filename="../DS/source/Helper/DSWindow.h" />
 		<Unit filename="../DS/source/Helper/shlds.cpp" />
+		<Unit filename="../include/CHRLib/CharacterProcessing.h" />
 		<Unit filename="../include/CHRLib/Convert.hpp" />
 		<Unit filename="../include/CHRLib/MapEx.h" />
 		<Unit filename="../include/CHRLib/YModules.h" />
 		<Unit filename="../include/CHRLib/chrdef.h" />
 		<Unit filename="../include/CHRLib/chrmap.h" />
-		<Unit filename="../include/CHRLib/chrproc.h" />
 		<Unit filename="../include/CHRLib/encoding.h" />
 		<Unit filename="../include/CHRLib/smap.hpp" />
 		<Unit filename="../include/Helper/Environment.h" />

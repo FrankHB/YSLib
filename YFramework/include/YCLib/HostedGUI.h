@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r955
+\version r996
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-01-10 15:54 +0800
+	2015-01-15 19:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,6 +64,13 @@ using LRESULT = ::LPARAM;
 #		endif
 using WPARAM = std::uintptr_t;
 using WNDPROC = ::LRESULT(__stdcall*)(::HWND, unsigned, ::WPARAM, ::LPARAM);
+//@}
+//! \since build 565
+//@{
+struct tagWNDCLASSW;
+struct tagWNDCLASSEXW;
+using WNDCLASSW = ::tagWNDCLASSW;
+using WNDCLASSEXW = ::tagWNDCLASSEXW;
 //@}
 #	elif YCL_Android
 struct ANativeWindow;
@@ -617,19 +624,48 @@ public:
 \brief 窗口类。
 \since build 432
 */
-class YF_API WindowClass
+class YF_API WindowClass final : private YSLib::noncopyable
 {
 private:
+	//! \since build 565
+	std::wstring name;
+	//! \since build 565
+	unsigned short atom;
 	::HINSTANCE h_instance;
 
 public:
 	/*!
-	\note 最后的默认参数等于 <tt>::HBRUSH(COLOR_MENU + 1)</tt> 。
-	\since build 512
+	\since build 556
+	*/
+	//@{
+	//! \throw Win32Exception 窗口类注册失败。
+	//@{
+	/*
+	\pre 间接断言：指针参数非空。
+	\note 应用程序实例句柄参数为空则使用 <tt>::GetModuleHandleW()</tt> 。
+	\note 默认画刷参数等于 <tt>::HBRUSH(COLOR_MENU + 1)</tt> 。
 	*/
 	WindowClass(const wchar_t*, ::WNDPROC, unsigned = 0,
-		::HBRUSH = ::HBRUSH(4 + 1));
+		::HBRUSH = ::HBRUSH(4 + 1), ::HINSTANCE = {});
+	WindowClass(const ::WNDCLASSW&);
+	WindowClass(const ::WNDCLASSEXW&);
+	//@}
+	/*!
+	\pre 原子表示已注册的窗口类。
+	\pre 实例句柄和注册时使用的值相等。
+	\throw std::invalid_argument 原子值等于 \c 0 。
+	\note 使用指定名称和原子并取得窗口类的所有权。名称不影响原子。
+	*/
+	WindowClass(const std::wstring&, unsigned short, ::HINSTANCE);
+	//@}
 	~WindowClass();
+
+	//! \since build 565
+	//@{
+	DefGetter(const ynothrow, unsigned short, Atom, atom)
+	DefGetter(const ynothrow, ::HINSTANCE, InstanceHandle, h_instance)
+	DefGetter(const ynothrow, const std::wstring&, Name, name)
+	//@}
 };
 
 
@@ -663,6 +699,8 @@ public:
 	\pre 使用 XCB 的平台：间接断言：句柄非空。
 	\pre 使用 XCB 的平台：句柄通过 <tt>new XCB::WindowData</tt> 得到。
 	\pre Win32 平台：断言：句柄有效。
+	\pre Win32 平台：断言：句柄表示的窗口在本线程上创建。
+	\pre Win32 平台：断言： \c GWLP_USERDATA 数据等于 \c 0 。
 	\throw GeneralEvent 使用 XCB 的平台：窗口从属的 XCB 连接发生错误。
 	\throw GeneralEvent Win32 平台：窗口类名不是 WindowClassName 。
 
