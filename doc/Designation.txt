@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9683
+\version r9689
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2014-12-31 07:22 +0800
+	2015-01-15 22:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -29,7 +29,8 @@
 
 @0 体例和适用范围：
 引用标记参见 [Documentation::CommonRules @@0.1] 。
-YSLib 项目(the YSLib project) 包括 YFramework 和 YBase([Documentation::YBase]) 。
+项目规则及整体结构参见 [Documentation::ProjectRules] 。
+其它说明和使用方法参见 https://bitbucket.org/FrankHB/yslib/wiki 。
 本文档适用于 YFramework 的开发。除非另行约定，编码细节和其它规范也适用于 YBase 。
 
 @1 需求和可行性：
@@ -121,8 +122,9 @@ YSLib 的源代码的本体([Documentation::YFramework @@2.1]) 是平台中立([
 遵从的其它标准和规格说明：
 暂略。
 
-@B 框架概览：
-参见 [Documentation::YFramework @@2] 。
+@2.4 文本文件形式：
+基本规则参见 https://bitbucket.org/FrankHB/yslib/wiki/WikiRules.en-US.md 。
+因 DrMemory 不支持 BOM 所以使用的文件省略 BOM 。
 
 @3 API 设计和风格概述：
 基本规则参见 [Documentation::CommonRules @@3] 。

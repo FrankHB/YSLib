@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r44
+\version r63
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-01-02 09:42 +0800
+	2015-01-15 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,6 +40,25 @@ report.impl:
 Note that 'va_args' and 'va_end' cannot be encapulased using RAII/RRID.
 	ISO C explicitly specified they shall match in a function.
 	Since constructor and destructor are functions, they can not be used.
+UAC is annoying for program which aquireing no administrator privilege but containing some patterns in file name e.g. 'patch.exe' or 'install.exe'.
+	See https://github.com/bmatzelle/gow/issues/156 .
+The function 'std::quick_exit' is mostly a workaround of cleanup when the thread cancellation is not supported in C++.
+	See http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2440.htm .
+	Do not register callbacks through 'std::at_quick_exit' unless the states of threads are all known.
+		Note these callbacks shall not raise signals according ISO C11, otherwise the behavior is undefined.
+	The similar thing also fit for 'std::exit' and 'std::atexit'. However, it is generally more difficult to avoid. In fact, current libgcc exploied 'atexit' to make the destructors to be called.
+Win32 console would call 'ExitProcess' by default during window close or handling 'Ctrl+C', etc.
+	See http://msdn.microsoft.com/en-us/library/windows/desktop/ms682658(v=vs.85).aspx .
+	This might probable not preferred because this call would mostly make the C/C++ runtime a mess.
+	This call can inform the loaded DLLs to be terminated, but also might lead to deadlock when DLLs are not used properly.
+	A clean call of 'TerminateThread' on current process would be better if not all states of each thread are known.
+		However, it would not touch the C/C++ runtime states, either.
+	So C/C++ standard library functions or other runtime functions are generally preferred for C/C++ applications.
+		Use 'SetConsoleCtrlHandler' function to change default behavior for the attached console.
+			See http://msdn.microsoft.com/en-us/library/windows/desktop/ms686016(v=vs.85).aspx .
+		YSLib now use it to workaround the unexpected behavior.
+			The exit code 'STATUS_CONTROL_C_EXIT' is used for 'CTRL_C_EVENT' and 'CTRL_CLOSE_EVENT' to retain old behavior.
+			For 'CTRL_BREAK_EVENT', 'CTRL_LOGOFF_EVENT' and 'CTRL_SHUTDOWN_EVENT' the same code is used, but not tested to be the same as original one.
 
 ////
 

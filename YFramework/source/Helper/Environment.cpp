@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1501
+\version r1507
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2014-12-31 11:06 +0800
+	2015-01-15 18:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -88,6 +88,11 @@ Environment::Environment()
 #	endif
 #endif
 {
+#if YCL_Win32
+	TryExpr(FixConsoleHandler())
+	CatchExpr(Win32Exception&,
+		YTraceDe(Warning, "Console handler setup failed."))
+#endif
 	InitializeEnvironment();
 	YCL_Trace(Debug, "Environment lifetime beginned.");
 }

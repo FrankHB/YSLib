@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file chrproc.h
+/*!	\file CharacterProcessing.h
 \ingroup CHRLib
 \brief 字符编码处理。
-\version r1115
+\version r1121
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-17 17:52:35 +0800
 \par 修改时间:
-	2014-11-12 05:14 +0800
+	2015-01-11 04:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef INC_CHRLib_chrproc_h_
-#define INC_CHRLib_chrproc_h_ 1
+#ifndef INC_CHRLib_CharacterProcessing_h_
+#define INC_CHRLib_CharacterProcessing_h_ 1
 
 #include "YModules.h"
 #include YFM_CHRLib_CharacterMapping
@@ -150,8 +150,7 @@ template<class _tDst, class _tSrc>
 _tDst
 GetMBCSOf(const _tSrc& src, Encoding enc = CS_Default)
 {
-	// FIXME: size for max MBC sequence length > 4;
-	_tDst str(src.length() << 2,
+	_tDst str(src.length() * FetchMaxCharWidth(enc),
 		typename ystdex::string_traits<_tDst>::value_type());
 
 	str.resize(UCS2ToMBCS(&str[0], src.c_str(), enc));

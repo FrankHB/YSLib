@@ -191,7 +191,7 @@ export LIBS="$LIBS $LIBS_RPATH -L\"`SHBuild_2w $SR_Lib`\" -lYFramework \
 export LDFLAGS
 
 echo Building Stage 2 SHBuild ...
-$SHBuild_BaseDir/SHBuild $SHBuild_BaseDir "-xd,$SR_SHBuild" -xmode,2 \
+$SHBuild_S1_SHBuild $SHBuild_BaseDir "-xd,$SR_SHBuild" -xmode,2 \
 	$SHBuild_Opt $CXXFLAGS $INCLUDES
 echo Finished building Stage 2 SHBuild.
 
@@ -201,7 +201,25 @@ SHB_InstTool "SHBuild-common.sh"
 SHB_InstTool "SHBuild-common-options.sh"
 SHB_InstTool "SHBuild-common-toolchain.sh"
 SHB_InstTool "SHBuild-BuildApp.sh"
-echo Finished installing Stage 2 SHBuild.
+echo Finished installing stage 2 SHBuild.
+
+if [[ "$SHBuild_NoDev" == '' ]]; then
+	echo Building other development tools using stage2 SHBuild ...
+	SHBuild_S2_SHBuild="$SR_Bin/SHBuild"
+	$SHBuild_S2_SHBuild $SHBuild_BaseDir/../RevisionPatcher "-xd,$SR_SHBuild" \
+		-xmode,2 $SHBuild_Opt $CXXFLAGS $INCLUDES
+	echo Installing other development tools ...
+	SHBuild_Install_HardLink_Exe "$SR_SHBuild/RevisionPatcher.exe" \
+		"$SR_Bin/RevisionPatcher$EXESFX"
+	# XXX: Version of Windows? Extract as a function?
+	if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
+		SHBuild_Install_HardLink_Exe "$SHBuild_BaseDir/../FixUAC.manifest" \
+			"$SR_Bin/RevisionPatcher$EXESFX.manifest"
+	fi
+	echo Finished installing other development tools.
+else
+	echo Skipped building and installing other development tools.
+fi
 
 echo Done.
 

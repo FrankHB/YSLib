@@ -1,0 +1,46 @@
+INVALID HEAP ARGUMENT: allocated with malloc, freed with operator delete
+name=libstc++ std::system_error#1
+*!__gnu_cxx::new_allocator<>::deallocate
+...
+*!std::system_error::system_error
+
+INVALID HEAP ARGUMENT: allocated with operator new, freed with free
+name=libstc++ std::system_error#2
+...
+*!std::error_code::message
+
+INVALID HEAP ARGUMENT: allocated with malloc, freed with operator delete
+name=libstc++ std::system_error#3
+libstdc++-6.dll!*
+...
+*!YSLib::IO::VerifyDirectory
+
+INVALID HEAP ARGUMENT: allocated with malloc, freed with operator delete
+name=libstc++ std::system_error#4
+libstdc++-6.dll!*
+...
+*!platform_ex::Exception::~Exception
+
+INVALID HEAP ARGUMENT: allocated with malloc, freed with operator delete
+name=libstc++ std::system_error#5
+libstdc++-6.dll!*
+...
+*!YSLib::LoggedEvent::~LoggedEvent
+
+LEAK
+name=libwinpthread leak#1
+...
+libwinpthread-1.dll!*
+msvcrt.dll!_callthreadstartex
+
+LEAK
+name=libwinpthread leak#2
+...
+libwinpthread-1.dll!*
+*!__gthread_mutex_lock
+
+POSSIBLE LEAK
+name=any_cast#1
+...
+*!ystdex::any_cast<>
+

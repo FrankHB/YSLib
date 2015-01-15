@@ -168,7 +168,7 @@
     </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\YAdaptor.h">
       <Filter>include\YSLib\Adaptor</Filter>
-    </ClInclude>		
+    </ClInclude>
     <ClInclude Include="include\YSLib\Adaptor\YNew.h">
       <Filter>include\YSLib\Adaptor</Filter>
     </ClInclude>
@@ -292,7 +292,7 @@
     <ClInclude Include="include\CHRLib\chrmap.h">
       <Filter>include\CHRLib</Filter>
     </ClInclude>
-    <ClInclude Include="include\CHRLib\chrproc.h">
+    <ClInclude Include="include\CHRLib\CharacterProcessing.h">
       <Filter>include\CHRLib</Filter>
     </ClInclude>
     <ClInclude Include="include\CHRLib\encoding.h">
@@ -1130,6 +1130,8 @@
     <Text Include="..\doc\LanguageConvention.txt">
       <Filter>doc</Filter>
     </Text>
-    <Text Include="..\doc\Workflow.Annual2015.txt" />
+    <Text Include="..\doc\Workflow.Annual2015.txt">
+      <Filter>doc</Filter>
+    </Text>
   </ItemGroup>
 </Project>

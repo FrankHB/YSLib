@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r8859
+\version r8993
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-01-10 16:27 +0800
+	2015-01-15 01:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,131 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ @ "platform %Win32" @ %HostedGUI $=
+			(
+				* "strict ISO C++ compatibility" @ "constructor, destructor"
+					@ "class %WindowRegionDeviceContext" $since b546,
+					// To eliminate warning: [-Wstrict-aliasing] when \
+						[-fstrict-aliasing] is used. This option is enabled \
+						for release modes by default. Though not oberserved \
+						strange behavior for now, it is dangerous.
+				/ @ "class %WindowClass" $=
+				(
+					+ "functions %(GetInstanceHandle GetName, GetAtom)"
+					* "missing noncopyable limitation" $orig
+						(@ %'YCLib_(MinGW32)'.Win32GUI $since b432),
+					/ @ "1st constructor" $=
+					(
+						+ "assertion for nonnull name parameter",
+						+ "optional %::HINSTANCE parameter at end of parameter \
+							list"
+					),
+					(
+					+ "constructor with name, atom and instance handle parameters";
+					+ "2 constructors with parameter %(::WNDCLASSW&, \
+						::WNDCLASSEXW&)",
+					+ "class name and atom trace" @ "constructor, destructor"
+					),
+					+ 'final',
+					* "hard-coded window class name" @ "destructor" $since b432
+						// It would probably crash if not %WindowClassName.
+				),
+				+ DLD "static assertion about aligned storage"
+					@ "class %WindowRegionDeviceContext"
+					^ "%ystdex::is_aligned_storable"
+			),
+			/ %XCB $=
+			(
+				/ "register for atoms limited to reference with %Connection on \
+					construction",
+					// Other native connections now would be ignored.
+				* "crash when object of class %Connection destructed" $since
+					b563
+					// If static object is constructed in translation unit \
+						other than %XCB, it would crash due to unspecified \
+						order of destruction.
+			),
+			/ %FileSystem $=
+			(
+				/ "class %file_desc_deleter" => "%FileDescriptorDeleter",
+				/ "class %file_desc" -> "%FileDescriptor" $=
+				(
+					+ "function %SetMode" @ "FileDescriptor"
+					+ "constructor with parameter %std::FILE*"
+				)
+			),
+			/ "macros" @ "platform %Win32" @ %NativeAPI $=
+			(
+				// To prevent possible redefinitions.
+				/ "defined only when not defined previously %(S_IRWXG, \
+					S_IRGRP, S_IWGRP, S_IXGRP, S_IRWXO, S_IROTH, S_IWOTH, \
+					S_IXOTH)"
+				/ "defined as non-zero values %(S_IRGRP, S_IWGRP, S_IXGRP, \
+					S_IROTH, S_IWOTH, S_IXOTH)"
+			),
+			+ "function %FixConsoleHandler" @ %'YCLib_(MinGW32)'.MinGW32;
+		),
+		* "hard-coded buffer length per character"
+			@ "function template %GetMBCSOf" @ %CharacterProcessing $since b305
+			^ "%FetchMaxCharWidth",
+		* "probable crash on console window close (or Ctrl+C handled, etc)"
+			@ "platform %Win32" @ %Helper $since b299 $dep_from
+			("function %FixConsoleHandler" @ %'YCLib_(MinGW32)'.MinGW32)
+			// See $2015-01 @ %Documentation::Workflow::Annual2015.
+	),
+	/ %YBase.YStandardEx.String $=
+	(
+		+ "function templates %(extract; 2 extract_line, extract_line_cr)",
+		+ "(2 inline functions, 1 function template) %to_wstring",
+		+ "function template %cond_prefix"
+	),
+	/ %Tools $=
+	(
+		+ %RevisionPatcher
+			$= (+ %Main),
+		/ %Scripts $=
+		(
+			+ "%PatchRevision.sh" $dep_from %RevisionPatcher
+				// Currently only patches exported by hg are tested.
+			/ @ "%SHBuild-common.sh" $=
+			(
+				/ "function %SHBuild_Pushd accepted one argument for 'pushd'",
+				+ "function %SHBuild_CheckedCallSilent"
+					// As %SHBuild_CheckedCall, but with redirected stdout to \
+						'/dev/null'.
+			)
+		),
+		+ "building and installing %RevisionPatcher when variable \
+			%SHBuild_NoDev is empty" ^ "stage 2 %SHBuild"
+			@ "%install-sysroot.sh" $dep_from %PatchRevision,
+		+ $dev "file %FixUAC.manifest as source to workaround UAC privilege \
+			problem",
+			// See $2015-01 @ %Documentation::Workflow::Annual2015.
+		+ $dev "%DrMemory-YSLib-suppress.txt" @ %Tools,
+			// Saved as ANSI/UTF-8 compatible encoding without BOM, because \
+				DrMemory would reject BOM.
+	),
+	/ $repo @ "file '.hgignore'" $=
+	(
+		/ $re_ex(b564) "pattern 'Tools/SHBuild/stdinc.h.gch'"
+			-> 'Tools/SHBuild/stdinc.h*' 
+			// To ignore %stdinc.h.
+		+ "pattern 'bak.patch'"
+			// To ignore revision patching backup file.
+	),
+	* $dev $design "location for %Documentation::Workflow::Annual2015"
+		@ "filter of Visual C++ project" $since b564,
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective @ ("%chrproc.h"
+		=> "%Character.h" @ %YFramework.CHRLib)
+),
+
+b564
 (
 	/ $revert_ex(b363) ("about text" @ %About $orig (@ Shells)
 		!^ "predefined macros %(__DATE__, __TIME__)") @ %YReader,
@@ -187,6 +312,9 @@ $now
 				@ "%CXXFLAGS_OPT_DBG for debug modes"
 				@ "%(SHBuild-YSLib-debug.sh, SHBuild-BuildApp.sh, \
 				Toolchain.options.mk)",
+				// Now '-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC' should be \
+					used in the build of debug executable for platforms other \
+					than %DS, otherwise it would crash.
 			/ "overridden %C_CXXFLAGS_OPT_DBG" !^ '-D_GLIBCXX_DEBUG \
 				-D_GLIBCXX_DEBUG_PEDANTIC' @ "Toolchain.DS.mk",
 				// It was too slow even with '-D_GLIBCXX_DEBUG'.
@@ -195,7 +323,8 @@ $now
 				* "missing set default value of %SHBuild_YF_Libs_freetype to \
 					'-lfreetype'" @ "platform %Win32" @ "%SHBuild-BuildApp.sh"
 					$since b563,
-					// This would cause FreeType2 not be linked, thus static linking would fail.
+					// This would cause FreeType2 not be linked, thus static \
+						linking would fail.
 				- $revert(b563) '-lxcb-image' @ "default value"
 					@ "variable %SHBuild_YF_SystemLibs",
 					// Unused.
@@ -209,7 +338,10 @@ $now
 	+ '-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC' @ "compiler flags"
 		@ "platforms %(MinGW32, Android)" @ "Code::Blocks projects",
 		// Note that for %Android it is not actually effective.
-	+ $repo "pattern 'Tools/SHBuild/stdinc.h.gch'" @ "file '.hgignore'"
+	+ $repo "pattern 'Tools/SHBuild/stdinc.h.gch'" @ "file '.hgignore'",
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective @ ("%yadaptor.h"
+		=> "%YAdaptor.h" @ %YFramework.YSLib.Adaptor.YGDIBase)
 ),
 
 b563
@@ -451,7 +583,7 @@ b562
 				case-sensitive name support" @ "%SHBuil-build.sh" @ %Scripts
 				$since b560,
 			* $re_ex(b559) "externally set %AR had no effect"
-				@ ("SHBuild-YSLib-common.sh" ($orig @ "SHBuild-YSLib.sh"),
+				@ ("SHBuild-YSLib-common.sh" $orig (@ "SHBuild-YSLib.sh"),
 				"SHBuild-BuildApp.sh") $since b546,
 				// Hard-coded 'gcc-ar'.
 			/ @ "SHBuild-common-options.sh" $=

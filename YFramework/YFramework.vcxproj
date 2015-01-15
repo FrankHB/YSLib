@@ -113,7 +113,7 @@
     <ClInclude Include="..\3rdparty\freetype\include\ft2build.h" />
     <ClInclude Include="include\CHRLib\chrdef.h" />
     <ClInclude Include="include\CHRLib\chrmap.h" />
-    <ClInclude Include="include\CHRLib\chrproc.h" />
+    <ClInclude Include="include\CHRLib\CharacterProcessing.h" />
     <ClInclude Include="include\CHRLib\Convert.hpp" />
     <ClInclude Include="include\CHRLib\encoding.h" />
     <ClInclude Include="include\CHRLib\MapEx.h" />

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2048
+\version r2072
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2014-12-28 19:50 +0800
+	2015-01-12 00:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -98,7 +98,7 @@ template<typename _tChar>
 std::chrono::nanoseconds
 GetFileModificationTimeOfImpl(const _tChar* filename)
 {
-	if(const std::unique_ptr<int, file_desc_deleter>
+	if(const std::unique_ptr<int, FileDescriptorDeleter>
 		fdw{platform::uopen(filename, O_RDONLY)})
 		return GetFileModificationTimeOf(*fdw.get());
 	throw FileOperationFailure(errno, std::generic_category(),
@@ -138,8 +138,32 @@ FetchNodeCategoryFromStat(_type& st)
 } // unnamed namespace;
 
 
+FileDescriptor::FileDescriptor(std::FILE* fp) ynothrow
+#if YCL_Win32
+	: desc(fp ? ::_fileno(fp) : -1)
+#else
+	: desc(fp ? fileno(fp) : -1)
+#endif
+{}
+
+int
+FileDescriptor::SetMode(int mode) const ynothrow
+{
+#if YCL_Win32
+	return ::_setmode(desc, mode);
+#elif defined(_NEWLIB_VERSION) && defined(__SCLE)
+	// TODO: Other platforms.
+	return ::setmode(desc, mode);
+#else
+	// NOTE: No effect.
+	yunused(mode);
+	return 0;
+#endif
+}
+
+
 void
-file_desc_deleter::operator()(file_desc_deleter::pointer p) ynothrow
+FileDescriptorDeleter::operator()(FileDescriptorDeleter::pointer p) ynothrow
 {
 	if(p)
 		::close(*p);

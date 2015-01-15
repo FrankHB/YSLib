@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1380
+\version r1389
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2014-12-26 13:47 +0800
+	2015-01-15 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -359,10 +359,10 @@ begin 和 end 被 range-based for 使用。
 避免 #pragma 后的标识符被作为宏替换为非空记号，以免由实现定义的行为导致的差异。
 其它使用 #pragma 的情形由具体项目定义。
 
-@5.4 替代表达保留字(alternative tokens) 、转义字符序列和字面量：
+@5.4 替代记号(alternative tokens) 、转义字符序列和字面量：
 
 @5.4.1
-一般不使用替代表达保留字，以避免导致被替代的标点不够清晰。
+一般不使用替代记号，以避免导致被替代的标点不够清晰。
 
 @5.4.1.1 例外：
 使用 and 和 or 代替内建操作符 && 和 || 以向读者强调对预期的程序逻辑，两个操作数的求值顺序可被交换（注意 C++ 语义仍然一致）。
@@ -1199,9 +1199,13 @@ ISO C++11 显式允许信号处理器使用原子操作。 WG21 N3910 进一步�
 和静态断言不同，断言不保证翻译时。若有可能，使用静态断言代替断言。
 
 @5.15.3.4 终止程序的函数：
-注意 std::exit 的参数的含义。
+注意 std::exit 、 std::quick_exit 和 std::_Exit 的参数的含义。特别地，这些值在不同平台中实现定义的值可能不同。
 注意 std::abort 非正常终止程序(@5.2.7) 。
-注意 std::atexit 的最小实现限制，除非必要避免使用。
+注意 std::atexit 和 std::at_quick_exit 的最小实现限制，除非必要避免使用。
+注意 std::quick_exit 执行时不得引发信号，否则行为未定义。
+在无法保证异步安全([Documentation::CommonRules @@3.11.2])的多线程环境中一般无法直接使用 std::atexit 和 std::at_quick_exit 可靠地执行任意清理。
+注意 atexit 可能被实现（如 libgcc ）用于清理，如调用析构函数。因此，在无法保证异步安全([Documentation::CommonRules @@3.11.2])的多线程环境中应避免直接使用 std::exit 。
+同理，需要避免 std::at_quick_exit 注册的回调引起不适当的状态才可在这些环境使用 std::quick_exit 。
 
 @5.15.4 要求(requirements) ：
 基本内容参见 ISO C++11 [requirements] 。

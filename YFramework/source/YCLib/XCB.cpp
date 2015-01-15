@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief XCB GUI 接口。
-\version r473
+\version r504
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2014-12-14 14:14:31 +0800
 \par 修改时间:
-	2015-01-09 22:58 +0800
+	2015-01-10 23:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,16 +57,27 @@ static_assert(std::is_same<WindowData::ID, ::xcb_window_t>::value
 namespace
 {
 
+//! \since build 565
+using GlobalTable = map<::xcb_connection_t*, map<string, Atom>>;
+
+//! \since build 565
+shared_ptr<GlobalTable>
+FetchGlobalTablePtr()
+{
+	static auto p(make_shared<GlobalTable>());
+
+	return p;
+}
+
 //! \since build 562
 //@{
 static mutex TableMutex;
 
-map<::xcb_connection_t*, map<string, Atom>>&
+//! \since build 565
+GlobalTable&
 FetchGlobalTableRef()
 {
-	static map<::xcb_connection_t*, map<string, Atom>> m;
-
-	return m;
+	return Deref(FetchGlobalTablePtr());
 }
 
 pair<string, Atom>
@@ -81,10 +92,7 @@ LockAtoms(::xcb_connection_t& c_ref)
 	auto& m(FetchGlobalTableRef());
 	unique_lock<mutex> lck(TableMutex);
 
-	if(m.find(&c_ref) == m.cend())
-		m[&c_ref] = {MakeAtomPair(c_ref, "WM_PROTOCOLS", true),
-			MakeAtomPair(c_ref, "WM_DELETE_WINDOW", {})};
-	return {&m[&c_ref], std::move(lck)};
+	return {&m.at(&c_ref), std::move(lck)};
 }
 //@}
 
@@ -288,13 +296,22 @@ Connection::Connection(::xcb_auth_info_t* p_auth, const char* disp_name,
 	: "[NULL]", p_scr ? to_string(*p_scr).c_str() : "[NULL]"),
 	::xcb_connect_to_display_with_auth_info(disp_name, p_auth, p_scr)))
 {}
-Connection::Connection(ConnectionReference c_ref)
-	: ConnectionReference(c_ref)
+Connection::Connection(ConnectionReference conn_ref)
+	: ConnectionReference(conn_ref),
+	p_shared([this]{
+		if(!get() || IsOnError())
+			ThrowGeneralXCBException("XCB connection failed.",
+				Deref(reinterpret_cast<int*>(get())),
+				FetchXCBConnectionErrorCategory());
+		return FetchGlobalTablePtr();
+	}())
 {
-	if(!get() || IsOnError())
-		ThrowGeneralXCBException("XCB connection failed.",
-			Deref(reinterpret_cast<int*>(get())),
-			FetchXCBConnectionErrorCategory());
+	auto& c_ref(Deref(get()));
+	lock_guard<mutex> lck(TableMutex);
+
+	Deref(static_cast<GlobalTable*>(p_shared.get()))[&c_ref]
+		= {MakeAtomPair(c_ref, "WM_PROTOCOLS", true),
+		MakeAtomPair(c_ref, "WM_DELETE_WINDOW", {})};
 }
 Connection::~Connection()
 {
