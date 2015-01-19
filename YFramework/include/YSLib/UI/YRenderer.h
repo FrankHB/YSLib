@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yrender.h
+/*!	\file YRenderer.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r625
+\version r632
 \author FrankHB <frankhb1989@gmail.com>
-\since build 237
+\since build 566
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2014-10-24 10:26 +0800
+	2015-01-18 14:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_yrender_h_
-#define YSL_INC_UI_yrender_h_ 1
+#ifndef YSL_INC_UI_YRenderer_h_
+#define YSL_INC_UI_YRenderer_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YComponent
@@ -149,8 +149,9 @@ public:
 	/*!
 	\brief 取图形接口上下文。
 	\return 缓冲区图形接口上下文。
+	\since build 566
 	*/
-	DefGetterMem(const ynothrow, const Graphics&, Context, GetImageBuffer())
+	DefGetterMem(const ynothrow, Graphics, Context, GetImageBuffer())
 
 	/*!
 	\brief 设置缓冲区大小。

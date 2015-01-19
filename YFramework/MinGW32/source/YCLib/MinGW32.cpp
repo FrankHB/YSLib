@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief YCLib MinGW32 平台公共扩展。
-\version r603
+\version r604
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 15:35:19 +0800
 \par 修改时间:
-	2015-01-15 19:48 +0800
+	2015-01-16 03:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -110,7 +110,7 @@ Win32Exception::FormatMessage(ErrorCode ec) ynothrow
 		::LocalFree(buf);
 		return res;
 	}
-	CatchIgnore(...)
+	CatchExpr(..., YTraceDe(Warning, "FormatMessage failed."))
 	return {};
 }
 

@@ -23,24 +23,34 @@ libstdc++-6.dll!*
 
 INVALID HEAP ARGUMENT: allocated with malloc, freed with operator delete
 name=libstc++ std::system_error#5
-libstdc++-6.dll!*
+libstdc++-6.dll!...
 ...
 *!YSLib::LoggedEvent::~LoggedEvent
 
 LEAK
 name=libwinpthread leak#1
-...
-libwinpthread-1.dll!*
+libwinpthread-1.dll!...
 msvcrt.dll!_callthreadstartex
 
 LEAK
 name=libwinpthread leak#2
-...
-libwinpthread-1.dll!*
+libwinpthread-1.dll!...
 *!__gthread_mutex_lock
 
 POSSIBLE LEAK
-name=any_cast#1
+name=libstdc++ string
+*!__gnu_cxx::new_allocator<>::allocate
 ...
+*!std::operator+
+
+POSSIBLE LEAK
+name=libstdc++ once_call*
+libgcc_s*!*
+*!*emutls*once_call*
+
+POSSIBLE LEAK
+name=any_cast#1
+libgcc_s*!...
+libstdc++-6.dll!...
 *!ystdex::any_cast<>
 

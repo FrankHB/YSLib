@@ -12,17 +12,17 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r913
+\version r921
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-01-15 01:17 +0800
+	2015-01-18 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	YCLib::Win32GUI
+	YCLib::HostedGUI
 */
 
 
@@ -371,7 +371,7 @@ ScreenBuffer::ScreenBuffer(const Size& s)
 		//	compatibility. %::CreateCompatibleBitmap is not fit for unknown
 		//	windows.
 		::BITMAPINFO bmi{{sizeof(::BITMAPINFOHEADER), CheckPositiveScalar<SPos>(
-			size.Width, "width"),  -CheckPositiveScalar<SPos>(size.Height,
+			size.Width, "width"), -CheckPositiveScalar<SPos>(size.Height,
 			"height") - 1, 1, 32, BI_RGB, static_cast<unsigned long>(
 			sizeof(Pixel) * size.Width * size.Height), 0, 0, 0, 0}, {}};
 
@@ -398,7 +398,7 @@ ScreenBuffer::GetBufferPtr() const ynothrow
 {
 	return Deref(p_impl).GetBufferPtr();
 }
-const YSLib::Drawing::Graphics&
+YSLib::Drawing::Graphics
 ScreenBuffer::GetContext() const ynothrow
 {
 	return Deref(p_impl).GetContext();
@@ -626,8 +626,11 @@ WindowClass::~WindowClass()
 	::UnregisterClassW(reinterpret_cast<const wchar_t*>(atom), h_instance);
 	TryExpr(YTraceDe(Notice, "Window class '%s' of atom '%hu' unregistered.",
 		name.empty() ? "<unknown>" : WCSToUTF8(name).c_str(), atom))
-	// XXX: More log?
-	CatchIgnore(...)
+	CatchExpr(std::exception& e,
+		YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
+		e.what()), yunused(e))
+	CatchExpr(..., YTraceDe(Alert,
+		"Unknown exception found @ WindowClass::~WindowClass."))
 }
 #	endif
 

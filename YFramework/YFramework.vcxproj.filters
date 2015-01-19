@@ -190,7 +190,7 @@
     <ClInclude Include="include\YSLib\Core\ysdef.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\yshell.h">
+    <ClInclude Include="include\YSLib\Core\YShell.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Core\ystring.h">
@@ -253,7 +253,7 @@
     <ClInclude Include="include\YSLib\Core\ymsg.h">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Service\ygdi.h">
+    <ClInclude Include="include\YSLib\Service\YGDI.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\Service\yres.h">
@@ -277,7 +277,7 @@
     <ClInclude Include="include\YSLib\UI\textarea.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\yrender.h">
+    <ClInclude Include="include\YSLib\UI\YRenderer.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\ywgtevt.h">
@@ -882,7 +882,7 @@
     <ClCompile Include="source\YSLib\Core\ymsg.cpp">
       <Filter>source\YSLib\Core</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\Service\ygdi.cpp">
+    <ClCompile Include="source\YSLib\Service\YGDI.cpp">
       <Filter>source\YSLib\Service</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\Service\yres.cpp">

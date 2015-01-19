@@ -199,6 +199,7 @@
 		<Unit filename="include/YSLib/Core/YCoreUtilities.h" />
 		<Unit filename="include/YSLib/Core/YModules.h" />
 		<Unit filename="include/YSLib/Core/YObject.h" />
+		<Unit filename="include/YSLib/Core/YShell.h" />
 		<Unit filename="include/YSLib/Core/yapp.h" />
 		<Unit filename="include/YSLib/Core/ycounter.hpp" />
 		<Unit filename="include/YSLib/Core/ydevice.h" />
@@ -209,7 +210,6 @@
 		<Unit filename="include/YSLib/Core/ymsg.h" />
 		<Unit filename="include/YSLib/Core/ymsgdef.h" />
 		<Unit filename="include/YSLib/Core/ysdef.h" />
-		<Unit filename="include/YSLib/Core/yshell.h" />
 		<Unit filename="include/YSLib/Core/ystorage.hpp" />
 		<Unit filename="include/YSLib/Core/ystring.h" />
 		<Unit filename="include/YSLib/Service/AccessHistory.hpp" />
@@ -223,11 +223,11 @@
 		<Unit filename="include/YSLib/Service/TextLayout.h" />
 		<Unit filename="include/YSLib/Service/TextRenderer.h" />
 		<Unit filename="include/YSLib/Service/YModules.h" />
+		<Unit filename="include/YSLib/Service/YGDI.h" />
 		<Unit filename="include/YSLib/Service/YPixel.h" />
 		<Unit filename="include/YSLib/Service/TextManager.h" />
 		<Unit filename="include/YSLib/Service/yblit.h" />
 		<Unit filename="include/YSLib/Service/ydraw.h" />
-		<Unit filename="include/YSLib/Service/ygdi.h" />
 		<Unit filename="include/YSLib/Service/yres.h" />
 		<Unit filename="include/YSLib/Service/ytimer.h" />
 		<Unit filename="include/YSLib/UI/Animation.h" />
@@ -247,6 +247,9 @@
 		<Unit filename="include/YSLib/Service/YBrush.h" />
 		<Unit filename="include/YSLib/UI/YComponent.h" />
 		<Unit filename="include/YSLib/UI/YModules.h" />
+		<Unit filename="include/YSLib/UI/YRenderer.h" />
+		<Unit filename="include/YSLib/UI/YStyle.h" />
+		<Unit filename="include/YSLib/UI/YUIContainer.h" />
 		<Unit filename="include/YSLib/UI/button.h" />
 		<Unit filename="include/YSLib/UI/form.h" />
 		<Unit filename="include/YSLib/UI/label.h" />
@@ -260,9 +263,6 @@
 		<Unit filename="include/YSLib/UI/yfocus.h" />
 		<Unit filename="include/YSLib/UI/ygui.h" />
 		<Unit filename="include/YSLib/UI/ypanel.h" />
-		<Unit filename="include/YSLib/UI/yrender.h" />
-		<Unit filename="include/YSLib/UI/YStyle.h" />
-		<Unit filename="include/YSLib/UI/YUIContainer.h" />
 		<Unit filename="include/YSLib/UI/ywgtevt.h" />
 		<Unit filename="include/YSLib/UI/ywgtview.h" />
 		<Unit filename="include/YSLib/UI/ywidget.h" />
@@ -325,9 +325,9 @@
 		<Unit filename="source/YSLib/Service/TextLayout.cpp" />
 		<Unit filename="source/YSLib/Service/TextRenderer.cpp" />
 		<Unit filename="source/YSLib/Service/TextManager.cpp" />
+		<Unit filename="source/YSLib/Service/YGDI.cpp" />
 		<Unit filename="source/YSLib/Service/yblit.cpp" />
 		<Unit filename="source/YSLib/Service/ydraw.cpp" />
-		<Unit filename="source/YSLib/Service/ygdi.cpp" />
 		<Unit filename="source/YSLib/Service/yres.cpp" />
 		<Unit filename="source/YSLib/Service/ytimer.cpp" />
 		<Unit filename="source/YSLib/UI/Animation.cpp" />

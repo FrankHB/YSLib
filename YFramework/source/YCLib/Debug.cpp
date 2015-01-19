@@ -11,13 +11,13 @@
 /*!	\file Debug.cpp
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r481
+\version r495
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:22:09 +0800
 \par 修改时间:
-	2015-01-01 08:47 +0800
+	2015-01-16 03:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,16 +171,24 @@ FetchCommonLogger()
 
 
 std::string
-LogWithSource(const char* file, int line, const char* fmt, ...)
+LogWithSource(const char* file, int line, const char* fmt, ...) ynothrow
 {
-	std::va_list args;
+	try
+	{
+		std::va_list args;
 
-	va_start(args, fmt);
+		va_start(args, fmt);
 
-	std::string str(ystdex::vsfmt(fmt, args));
+		std::string str(ystdex::vsfmt(fmt, args));
 
-	va_end(args);
-	return ystdex::sfmt("\"%s\":%i:\n", chk_null(file), line) + std::move(str);
+		va_end(args);
+		return
+			ystdex::sfmt("\"%s\":%i:\n", chk_null(file), line) + std::move(str);
+	}
+	CatchExpr(...,
+		ystdex::ytrace(stderr, Descriptions::Emergent, Descriptions::Notice,
+		chk_null(file), line, "LogWithSource error: unhandled exception."))
+	return {};
 }
 
 } // namespace platform;

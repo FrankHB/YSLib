@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r439
+\version r457
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-01-01 10:59 +0800
+	2015-01-19 10:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 
 #include "cassert.h" // for ../ydef.h, <cstdio> and yconstraint;
 #include <cstdarg> // for std::va_list;
+#include <memory> // for std::unique_ptr;
 #include <ios> // for std::ios_base::openmode;
 #include "iterator.hpp" // for ystdex::is_undereferenceable;
 
@@ -52,6 +53,18 @@ vfmtlen(const wchar_t*, std::va_list) ynothrow;
 
 
 /*!
+\brief 关闭流缓冲。
+\pre 参数非空。
+\since build 566
+*/
+inline int
+setnbuf(std::FILE* stream) ynothrow
+{
+	yconstraint(stream);
+	return std::setvbuf(stream, {}, _IONBF, 0);
+}
+
+/*!
 \brief 判断指定路径的文件是否存在。
 \note 使用 std::fopen 实现。
 \pre 断言：参数非空。
@@ -59,6 +72,14 @@ vfmtlen(const wchar_t*, std::va_list) ynothrow;
 */
 YB_API bool
 fexists(const char*) ynothrow;
+
+
+/*!
+\brief 独占所有权的 C 标准库流指针或实现提供的等价类型。
+\note POSIX 管道流可使用函数实现的 \c ::pclose 代替 \c std::fclose 。
+\since build 566
+*/
+using unique_file_ptr = std::unique_ptr<std::FILE*, decltype(std::fclose)&>;
 
 
 /*

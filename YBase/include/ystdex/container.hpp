@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1033
+\version r1052
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2014-12-25 10:56 +0800
+	2015-01-19 08:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -531,9 +531,9 @@ exists(const _tCon& con, const _tKey& key, ...)
 
 /*!
 \brief 判断指定的容器中存在指定的键。
-\note 当容器对象右值可使用返回以整数初始化的类型的成员 <tt>count()</tt> 时使用成
-	员 count() 实现；否则使用 ADL <tt>begin</tt> 和 <tt>end</tt> 指定的容器迭代
-	器，使用成员 find 实现。
+\note 当容器对象右值可使用返回以整数初始化的类型的成员 \c count 时使用成
+	员 \c count 实现；否则使用 ADL \c begin 和 \c end 指定的容器迭代
+	器，使用成员 \c find 实现。
 \since build 488
 */
 template<class _tCon, typename _tKey>
@@ -741,6 +741,22 @@ search_map(_tMap& m, const typename _tMap::key_type& k)
 	const auto i(m.lower_bound(k));
 
 	return {i, (i == m.end() || m.key_comp()(k, i->first))};
+}
+/*!
+\ingroup algorithms
+\brief 按指定键值搜索指定映射并执行操作。
+\pre 最后的参数构造新的值。
+\return 插入成员的迭代器。
+\note 行为类似 std::map::operator[] 。
+\since build 566
+*/
+template<class _tMap, typename _func>
+typename _tMap::iterator
+search_map(_tMap& m, const typename _tMap::key_type& k, _func f)
+{
+	const auto pr(ystdex::search_map(m, k));
+
+	return pr.second ? pr.first : f(m, k);
 }
 
 } // namespace ystdex;

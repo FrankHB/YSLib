@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ygdi.cpp
+/*!	\file YGDI.cpp
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r2898
+\version r2940
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-12-07 19:39 +0800
+	2015-01-18 14:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,27 +89,23 @@ ClipMargin(PaintContext& pc, const Padding& m, const Size& ss)
 
 
 CompactPixmap::CompactPixmap(ConstBitmapPtr i, SDst w, SDst h)
-	: BasicImage()
-	//不能提前初始化 size ，否则指针非空和面积非零状态不一致。
+	: BaseType()
+	// NOTE: The size member cannot be initialized just here, or it would be
+	//	inconsistent with buffer pointer.
 {
 	SetSize(w, h);
 	if(i)
-		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
+		std::copy_n(i, GetAreaOf(GetSize()), GetBufferPtr());
 }
 CompactPixmap::CompactPixmap(unique_ptr<Pixel[]> p, const Size& s) ynothrow
-	: BasicImage(Graphics(p.release(), s))
+	: BaseType(std::move(p), s)
 {}
 CompactPixmap::CompactPixmap(const CompactPixmap& buf)
-	: BasicImage()
+	: BaseType()
 {
 	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
-		std::copy_n(p, GetAreaOf(GetSize()), pBuffer);
-}
-CompactPixmap::CompactPixmap(CompactPixmap&& buf) ynothrow
-	: BasicImage(buf)
-{
-	buf.pBuffer = {};
+		std::copy_n(p, GetAreaOf(GetSize()), GetBufferPtr());
 }
 
 void
@@ -117,24 +113,17 @@ CompactPixmap::SetContent(ConstBitmapPtr s, SDst w, SDst h)
 {
 	SetSize(w, h);
 	if(YB_LIKELY(pBuffer && s))
-		std::copy_n(s, GetAreaOf(GetSize()), pBuffer);
+		std::copy_n(s, GetAreaOf(GetSize()), pBuffer.get());
 }
 void
 CompactPixmap::SetSize(const Size& s)
 {
 	const auto area(GetAreaOf(s));
 
-	try
-	{
-		unique_ptr<Pixel[]> p_new(YB_LIKELY(area != 0) ? new Pixel[area]
-			: nullptr);
-		unique_ptr<Pixel[]> p_old(pBuffer);
-
-		pBuffer = p_new.release();
-	}
+	TryExpr(pBuffer.reset(YB_LIKELY(area != 0) ? new Pixel[area] : nullptr))
 	CatchExpr(std::bad_alloc&,
 		throw LoggedEvent("BitmapBuffer allocation failed.", Alert))
-	YAssert(bool(pBuffer) == (area != 0), "Buffer corruptied.");
+	YAssert(bool(pBuffer) == (area != 0), "Buffer corrupted.");
 	sGraphics = s,
 	ClearImage();
 }
@@ -148,32 +137,27 @@ CompactPixmap::SetSizeSwap()
 void
 CompactPixmap::ClearImage() const
 {
-	Drawing::ClearImage(*this);
+	Drawing::ClearImage(GetContext());
 }
 
 
 CompactPixmapEx::CompactPixmapEx(ConstBitmapPtr i, SDst w, SDst h)
-	: CompactPixmap(), pBufferAlpha()
+	: CompactPixmapEx()
 {
 	SetSize(w, h);
 	if(i)
-		std::copy_n(i, GetAreaOf(GetSize()), pBuffer);
+		std::copy_n(i, GetAreaOf(GetSize()), pBuffer.get());
 }
 CompactPixmapEx::CompactPixmapEx(const CompactPixmapEx& buf)
-	: CompactPixmap(), pBufferAlpha()
+	: CompactPixmapEx()
 {
 	SetSize(buf.GetSize());
 	if(const auto p = buf.GetBufferPtr())
 	{
-		std::copy_n(p, GetAreaOf(GetSize()), pBuffer),
+		std::copy_n(p, GetAreaOf(GetSize()), pBuffer.get()),
 		std::copy_n(buf.GetBufferAlphaPtr(), GetAreaOf(GetSize()),
-			pBufferAlpha);
+			pBufferAlpha.get());
 	}
-}
-CompactPixmapEx::CompactPixmapEx(CompactPixmapEx&& buf) ynothrow
-	: CompactPixmap(std::move(buf)), pBufferAlpha(buf.GetBufferAlphaPtr())
-{
-	buf.pBufferAlpha = {};
 }
 
 void
@@ -187,16 +171,14 @@ CompactPixmapEx::SetSize(const Size& s)
 			: nullptr);
 		unique_ptr<AlphaType[]> p_new_alpha(YB_LIKELY(area != 0)
 			? new AlphaType[area] : nullptr);
-		unique_ptr<Pixel[]> p_old(pBuffer);
-		unique_ptr<AlphaType[]> p_old_alpha(pBufferAlpha);
 
-		pBuffer = p_new.release();
-		pBufferAlpha = p_new_alpha.release();
+		yunseq(pBuffer = std::move(p_new),
+			pBufferAlpha = std::move(p_new_alpha));
 	}
 	CatchExpr(std::bad_alloc&,
 		throw LoggedEvent("CompactPixmapEx allocation failed.", Alert))
-	YAssert(bool(pBuffer) == (area != 0), "Buffer corruptied.");
-	YAssert(bool(pBufferAlpha) == (area != 0), "Buffer corruptied.");
+	YAssert(bool(pBuffer) == (area != 0), "Buffer corrupted."),
+	YAssert(bool(pBufferAlpha) == (area != 0), "Alpha buffer corrupted.");
 	sGraphics = s,
 	ClearImage();
 }
@@ -206,8 +188,8 @@ CompactPixmapEx::ClearImage() const
 {
 	const std::uint32_t t = GetAreaOf(sGraphics);
 
-	ClearPixel(pBuffer, t);
-	ClearPixel(pBufferAlpha, t);
+	ClearPixel(pBuffer.get(), t);
+	ClearPixel(pBufferAlpha.get(), t);
 }
 
 bool

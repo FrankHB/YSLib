@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r996
+\version r998
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-01-15 19:35 +0800
+	2015-01-18 09:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -388,8 +388,8 @@ public:
 	//! \since build 492
 	YSLib::Drawing::BitmapPtr
 	GetBufferPtr() const ynothrow;
-	//! \since build 499
-	const YSLib::Drawing::Graphics&
+	//! \since build 566
+	YSLib::Drawing::Graphics
 	GetContext() const ynothrow;
 	//! \since build 498
 	YSLib::Drawing::Size

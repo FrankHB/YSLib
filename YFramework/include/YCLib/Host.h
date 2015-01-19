@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r197
+\version r207
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-01-11 17:29 +0800
+	2015-01-19 08:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,6 +101,17 @@ struct YF_API HandleDeleter
 //! \since build 520
 using UniqueHandle = std::unique_ptr<HandleDeleter::pointer, HandleDeleter>;
 
+
+/*!
+\brief 取命令在标准输出上的执行结果。
+\return 读取的二进制存储。
+\throw std::invalid_argument 第二参数的值等于 \c 0 。
+\throw std::system_error 表示读取失败的派生类异常对象。
+\note 第二参数指定每次读取的缓冲区大小，先于执行命令进行检查。
+\since build 566
+*/
+YF_API std::string
+FetchCommandOutput(std::string&, std::size_t = yimpl(4096));
 
 /*!
 \brief 创建管道。

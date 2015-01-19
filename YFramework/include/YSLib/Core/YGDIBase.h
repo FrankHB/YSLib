@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1842
+\version r1855
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-01-02 09:23 +0800
+	2014-01-18 13:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -784,7 +784,7 @@ Size::Size(const Rect& r) ynothrow
 template<typename _tPointer, class _tSize = Size>
 class GGraphics
 {
-	static_assert(std::is_nothrow_copy_constructible<_tPointer>::value,
+	static_assert(std::is_nothrow_move_constructible<_tPointer>::value,
 		"Invalid pointer type found.");
 	static_assert(std::is_nothrow_copy_constructible<_tSize>::value,
 		"Invalid size type found.");
@@ -792,12 +792,12 @@ class GGraphics
 public:
 	using PointerType = _tPointer;
 	using SizeType = _tSize;
-	using PixelType = ystdex::decay_t<decltype(*PointerType())>;
+	using PixelType = ystdex::decay_t<decltype(PointerType()[0])>;
 
 protected:
 	/*!
 	\brief 显示缓冲区指针。
-	\warning 不应视为具有所有权。
+	\warning 除非 PointerType 自身为具有所有权的智能指针，不应视为具有所有权。
 	*/
 	PointerType pBuffer{};
 	//! \brief 图形区域大小。
@@ -808,20 +808,21 @@ public:
 	DefDeCtor(GGraphics)
 	//! \brief 构造：使用指定位图指针和大小。
 	explicit yconstfn
-	GGraphics(PointerType b, const SizeType& s = {}) ynothrow
-		: pBuffer(b), sGraphics(s)
+	GGraphics(PointerType p_buf, const SizeType& s = {}) ynothrow
+		: pBuffer(std::move(p_buf)), sGraphics(s)
 	{}
 	//! \brief 构造：使用其它类型的指定位图指针和大小。
 	template<typename _tPointer2, class _tSize2>
 	explicit yconstfn
-	GGraphics(_tPointer2 b, const _tSize2& s = {}) ynothrow
-		: GGraphics(static_cast<PointerType>(b), static_cast<SizeType>(s))
+	GGraphics(_tPointer2 p_buf, const _tSize2& s = {}) ynothrow
+		: GGraphics(static_cast<PointerType>(std::move(p_buf)),
+		static_cast<SizeType>(s))
 	{}
 	//! \brief 构造：使用其它类型的指定位图指针和大小类型的二维图形接口上下文。
 	template<typename _tPointer2, class _tSize2>
 	yconstfn
 	GGraphics(const GGraphics<_tPointer2, _tSize2>& g) ynothrow
-		: GGraphics(g.GetBufferPtr(), g.GetSize())
+		: GGraphics(std::move(g.GetBufferPtr()), g.GetSize())
 	{}
 	//! \brief 复制构造：浅复制。
 	DefDeCopyCtor(GGraphics)
@@ -849,7 +850,8 @@ public:
 		return Nonnull(pBuffer) + r * sGraphics.Width;
 	}
 
-	DefGetter(const ynothrow, PointerType, BufferPtr, pBuffer)
+	//! \since build 566
+	DefGetter(const ynothrow, const PointerType&, BufferPtr, pBuffer)
 	DefGetter(const ynothrow, const SizeType&, Size, sGraphics)
 	//! \since build 196
 	DefGetter(const ynothrow, SDst, Width, sGraphics.Width)
@@ -893,8 +895,8 @@ using Graphics = GGraphics<BitmapPtr>;
 \since build 405
 */
 DeclDerivedI(YF_API, IImage, ystdex::cloneable)
-	//! \since build 406
-	DeclIEntry(const Graphics& GetContext() const ynothrow)
+	//! \since build 566
+	DeclIEntry(Graphics GetContext() const ynothrow)
 	DeclIEntry(void SetSize(const Size&))
 
 	//! \since build 409
