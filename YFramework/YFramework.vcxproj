@@ -179,7 +179,7 @@
     <ClInclude Include="include\YSLib\Core\YModules.h" />
     <ClInclude Include="include\YSLib\Core\YObject.h" />
     <ClInclude Include="include\YSLib\Core\ysdef.h" />
-    <ClInclude Include="include\YSLib\Core\yshell.h" />
+    <ClInclude Include="include\YSLib\Core\YShell.h" />
     <ClInclude Include="include\YSLib\Core\ymsg.h" />
     <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
     <ClInclude Include="include\YSLib\Core\ystorage.hpp" />
@@ -198,7 +198,7 @@
     <ClInclude Include="include\YSLib\Service\yblit.h" />
     <ClInclude Include="include\YSLib\Service\YBrush.h" />
     <ClInclude Include="include\YSLib\Service\ydraw.h" />
-    <ClInclude Include="include\YSLib\Service\ygdi.h" />
+    <ClInclude Include="include\YSLib\Service\YGDI.h" />
     <ClInclude Include="include\YSLib\Service\YModules.h" />
     <ClInclude Include="include\YSLib\Service\YPixel.h" />
     <ClInclude Include="include\YSLib\Service\yres.h" />
@@ -232,7 +232,7 @@
     <ClInclude Include="include\YSLib\UI\ygui.h" />
     <ClInclude Include="include\YSLib\UI\YModules.h" />
     <ClInclude Include="include\YSLib\UI\ypanel.h" />
-    <ClInclude Include="include\YSLib\UI\yrender.h" />
+    <ClInclude Include="include\YSLib\UI\YRenderer.h" />
     <ClInclude Include="include\YSLib\UI\YStyle.h" />
     <ClInclude Include="include\YSLib\UI\YUIContainer.h" />
     <ClInclude Include="include\YSLib\UI\ywgtevt.h" />
@@ -300,7 +300,7 @@
     <ClCompile Include="source\YSLib\Service\yblit.cpp" />
     <ClCompile Include="source\YSLib\Service\YBrush.cpp" />
     <ClCompile Include="source\YSLib\Service\ydraw.cpp" />
-    <ClCompile Include="source\YSLib\Service\ygdi.cpp" />
+    <ClCompile Include="source\YSLib\Service\YGDI.cpp" />
     <ClCompile Include="source\YSLib\Service\yres.cpp" />
     <ClCompile Include="source\YSLib\Service\ytimer.cpp" />
     <ClCompile Include="source\YSLib\UI\Animation.cpp" />

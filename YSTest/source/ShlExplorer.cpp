@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1412
+\version r1414
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-12-02 18:50 +0800
+	2015-01-18 14:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -633,7 +633,7 @@ ShlExplorer::OnPaint()
 
 		if(t != 0)
 		{
-			auto& g(ystdex::polymorphic_downcast<BufferedRenderer&>(
+			const auto g(ystdex::polymorphic_downcast<BufferedRenderer&>(
 				GetMainDesktop().GetRenderer()).GetContext());
 			yconstexpr Rect r(176, 0, 80, 20);
 			char strt[20];

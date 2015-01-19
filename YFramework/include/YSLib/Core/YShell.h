@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yshell.h
+/*!	\file YShell.h
 \ingroup Core
 \brief Shell 抽象。
-\version r1950
+\version r1956
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 566
 \par 创建时间:
 	2009-11-13 21:09:15 +0800
 \par 修改时间:
-	2013-12-23 23:09 +0800
+	2015-01-18 06:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,12 +25,11 @@
 */
 
 
-#ifndef YSL_INC_Core_yshell_h_
-#define YSL_INC_Core_yshell_h_ 1
+#ifndef YSL_INC_Core_YShell_h_
+#define YSL_INC_Core_YShell_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YMessageDefinition
-#include YFM_YSLib_Core_YFunc
 
 namespace YSLib
 {

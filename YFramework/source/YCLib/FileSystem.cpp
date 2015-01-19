@@ -11,13 +11,13 @@
 /*!	\file FileSystem.cpp
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r2072
+\version r2117
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:41:35 +0800
 \par 修改时间:
-	2015-01-12 00:18 +0800
+	2015-01-19 10:09 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,14 @@
 #	include YFM_CHRLib_CharacterProcessing
 
 //! \since build 341
-extern "C" int	_EXFUN(fileno, (FILE *));
+extern "C" int
+_EXFUN(fileno, (FILE*));
+//! \since build 566
+extern "C" int
+_EXFUN(pclose, (FILE*));
+//! \since build 566
+extern "C" FILE*
+_EXFUN(popen, (const char*, const char*));
 
 //! \since build 475
 using namespace CHRLib;
@@ -295,6 +302,45 @@ ufexists(const char16_t* filename) ynothrow
 		return true;
 	}
 	return {};
+}
+
+int
+upclose(std::FILE* fp) ynothrow
+{
+	YAssertNonnull(fp);
+#if YCL_Win32
+	return ::_pclose(fp);
+#else
+	return ::pclose(fp);
+#endif
+}
+
+std::FILE*
+upopen(const char* filename, const char* mode) ynothrow
+{
+	YAssertNonnull(filename);
+	YAssert(Deref(mode) != char(), "Invalid argument found.");
+#if YCL_Win32
+	YCL_Impl_RetTryCatchAll(::_wpopen(UTF8ToWCS(filename).c_str(),
+		UTF8ToWCS(mode).c_str()))
+	return {};
+#else
+	return ::popen(filename, mode);
+#endif
+}
+std::FILE*
+upopen(const char16_t* filename, const char16_t* mode) ynothrow
+{
+	YAssertNonnull(filename);
+	YAssert(Deref(mode) != char(), "Invalid argument found.");
+#if YCL_Win32
+	return ::_wpopen(reinterpret_cast<const wchar_t*>(filename),
+		reinterpret_cast<const wchar_t*>(mode));
+#else
+	YCL_Impl_RetTryCatchAll(::popen(MakeMBCS(filename).c_str(),
+		MakeMBCS(mode).c_str()))
+	return {};
+#endif
 }
 
 char16_t*

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3455
+\version r3459
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2014-12-29 00:18 +0800
+	2015-01-16 03:33 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -484,7 +484,9 @@ FontCache::LoadTypefaces(const FontPath& path)
 
 		for(size_t i(0); i < face_n; ++i)
 			TryExpr(*this += *(ynew Typeface(*this, path, i)))
-			CatchIgnore(...)
+			CatchExpr(..., YTraceDe(Warning,
+				"Failed loading face of path '%s', index '%u'.", path.c_str(),
+				unsigned(i)))
 		return face_n;
 	}
 	return 0;

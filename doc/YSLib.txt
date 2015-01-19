@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r2828
+\version r2837
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-01-03 15:57 +0800
+	2015-01-18 07:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,16 +81,16 @@ YSLib::UI::Styles ：用户界面样式定制。
 
 @1.2.1 引入自 C 标准库的 C++ 标准库头依赖项：
 不在本体的必要文件中显式包含，除了以下例外：
-"yadaptor.h" 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
+Adaptor::YAdaptor 需要保证 <cstddef> 、 <cstdint> 、 <climits> 和 <cmath> 被包含；
 
 @1.2.2 不在本体中显式包含，需要在 "Adaptor/ycont.h" 包含或提供替代品的 C++ 标准库依赖项：
 <array> 、 <deque> 、 <forward_list> 、 <list> 、 <map> 、 <queue> 、 <set> 、 <stack> 、 <string> 、 <unordered_map> 、 <unordered_set> 、 <utility> 和  <vector>。
 例外：同时需要使用容器和限定标准库类型时：
-"yexcept.h" 包含 <string> （由于复用标准库异常需要的参数类型 std::string 不一定是 "ycont.h" 配置的类型）。
+Core::YException 包含 <string> （由于复用标准库异常需要的参数类型 std::string 不一定是 Adaptor::YContainer 配置的类型）。
 
-@1.2.3 不在本体的头文件中显式包含，需要在除了 "ycont.h" 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
+@1.2.3 不在本体的头文件中显式包含，需要在除了 Adaptor::YContainer 的 Adaptor 的必要头文件直接或间接包含的 C++ 标准库依赖项：
 <algorithm> 、 <memory> 、 <new> 、 <type_traits> 。
-"yadaptor.h" 需要保证 <bitset> 和 <initializer_list> 被包含。
+Adaptor::YAdaptor 需要保证 <bitset> 和 <initializer_list> 被包含。
 
 @1.2.4 不在本体或 Adaptor 的头文件中显式包含的 C++ 标准库依赖项：
 基于性能、兼容性、安全性及其它因素考虑，Adaptor 和本体不直接使用以下头及唯一在其中声明的接口和包含的宏（但可能会间接依赖）：
@@ -98,11 +98,10 @@ YSLib::UI::Styles ：用户界面样式定制。
 其它要点参见 [Documentation::LanguageConvention @@5.22] 。
 
 @1.2.5 本体的必要头文件中显式包含的 C++ 标准库依赖项：
-"Core/yexcept.h" 包含 <exception> 和 <stdexcept> ；
-"Core/yfunc.hpp" 包含 <functional> 和 <typeinfo> ；
-"Service/ytimer.h" 包含 <chrono> ；
-"UI/ystyle.h" 包含 <typeindex> 。
-其它： <iterator> 。
+Core::YException 包含 <exception> 和 <stdexcept> ；
+Core::YFunc 包含 <functional> 和 <typeinfo> ；
+Service::YTtimer 包含 <chrono> ；
+UI::YStyle 包含 <typeindex> 。
 
 @1.2.6 本体的头文件中未限定（可能显式包含）的 C++ 标准库依赖项：
 <bitset> 、 <codecvt> 、 <complex> 、 <condition_variable> 、 <future> 、 <limits> 、 <mutex> 、 <numeric> 、 <random> 、 <ratio> 、 <system_error> 、 <thread> 和 <valarray> 。

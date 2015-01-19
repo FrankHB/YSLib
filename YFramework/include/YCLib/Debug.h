@@ -11,13 +11,13 @@
 /*!	\file Debug.h
 \ingroup YCLib
 \brief YCLib 调试设施。
-\version r526
+\version r550
 \author FrankHB <frankhb1989@gmail.com>
 \since build 299
 \par 创建时间:
 	2012-04-07 14:20:49 +0800
 \par 修改时间:
-	2015-01-01 08:51 +0800
+	2015-01-18 20:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -207,13 +207,14 @@ FetchCommonLogger();
 
 
 /*!
-\brief 格式输出日志字符串前追加记录源文件行号和文件名。
+\brief 格式输出日志字符串前追加记录源文件名和行号。
 \pre 间接断言：第三参数非空。
 \note 允许第一参数为空指针，视为未知。
-\since build 498
+\note 当失败时调用 ystdex::trace 记录，但只保留参数中的文件名和行号。
+\since build 566
 */
 YF_API YB_ATTR(format (printf, 3, 4)) YB_NONNULL(1, 3) std::string
-LogWithSource(const char*, int, const char*, ...);
+LogWithSource(const char*, int, const char*, ...) ynothrow;
 
 
 /*!
@@ -228,7 +229,8 @@ LogWithSource(const char*, int, const char*, ...);
 /*!
 \def YCL_Trace
 \brief YCLib 默认调试跟踪。
-\since build 498
+\note 无异常抛出。
+\since build 566
 */
 #if YCL_Use_TraceSrc
 #	define YCL_Trace(_lv, ...) \
@@ -237,8 +239,9 @@ LogWithSource(const char*, int, const char*, ...);
 	})
 #else
 #	define YCL_Trace(_lv, ...) \
-	YCL_Log(_lv, [&]{ \
-		return ystdex::sfmt(__VA_ARGS__); \
+	YCL_Log(_lv, [&]()->std::string{ \
+		TryRet(ystdex::sfmt(__VA_ARGS__)) \
+		CatchRet(..., {}) \
 	})
 #endif
 
@@ -350,8 +353,23 @@ Nonnull(_type&& p) ynothrow
 }
 
 /*!
+\brief 检查迭代器。
+\pre 断言：迭代器非确定不可解引用。
+\since build 566
+*/
+template<typename _type>
+inline _type&&
+CheckIter(_type&& i) ynothrow
+{
+	using ystdex::is_undereferenceable;
+
+	YAssert(!is_undereferenceable(i), "Invalid iterator found.");
+	return yforward(i);
+}
+
+/*!
 \brief 断言并解引用非空指针。
-\pre 使用 ADL 指定的 Nonnull 调用的表达式语义等价于 platform::Nonnull 。
+\pre 使用 ADL 指定的 CheckIter 调用的表达式语义等价于 platform::CheckIter 。
 \pre 间接断言：指针非空。
 \since build 553
 */
@@ -359,7 +377,7 @@ template<typename _type>
 yconstfn auto
 Deref(_type&& p) -> decltype(*p)
 {
-	return *Nonnull(yforward(p));
+	return *CheckIter(yforward(p));
 }
 
 } // namespace platform;

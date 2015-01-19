@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 服务模块配置文件。
-\version r75
+\version r77
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:26 +0800
 \par 修改时间:
-	2014-12-31 08:40 +0800
+	2015-01-19 10:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -43,7 +43,7 @@
 #define YFM_YSLib_Service_YPixel <YSLib/Service/YPixel.h>
 #define YFM_YSLib_Service_YBlit <YSLib/Service/yblit.h>
 #define YFM_YSLib_Service_YDraw <YSLib/Service/ydraw.h>
-#define YFM_YSLib_Service_YGDI <YSLib/Service/ygdi.h>
+#define YFM_YSLib_Service_YGDI <YSLib/Service/YGDI.h>
 //! \since build 555
 #define YFM_YSLib_Service_YBrush <YSLib/Service/YBrush.h>
 //! \since build 462

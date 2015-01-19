@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r395
+\version r398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-12-30 19:15 +0800
+	2015-01-16 03:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -101,7 +101,8 @@ WindowThread::~WindowThread()
 	CatchExpr(std::exception& e,
 		YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
 		e.what()), yunused(e))
-	CatchExpr(..., YTraceDe(Alert, "Caught unknown exception."))
+	CatchExpr(..., YTraceDe(Alert,
+		"Unknown exception found @ WindowThread::~WindowThread."))
 	delete p_wnd_val;
 }
 

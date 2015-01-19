@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ygdi.h
+/*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3743
+\version r3822
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2014-12-07 19:39 +0800
+	2015-01-18 14:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Service_ygdi_h_
-#define YSL_INC_Service_ygdi_h_ 1
+#ifndef YSL_INC_Service_YGDI_h_
+#define YSL_INC_Service_YGDI_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YGDIBase
@@ -170,12 +170,13 @@ public:
 	using Graphics::GetHeight;
 	using Graphics::GetWidth;
 	using Graphics::GetSize;
-	DefGetter(const ynothrow ImplI(IImage), const Graphics&, Context, *this)
+	//! \since build 566
+	DefGetter(const ynothrow ImplI(IImage), Graphics, Context, *this)
 
 	//! \since build 409
 	DefClone(const ImplI(IImage), BasicImage)
 
-	DefSetter(const Size&, Size, sGraphics) // ImplI(IImage)
+	DefSetter(const Size&, Size, sGraphics)
 };
 
 
@@ -186,8 +187,19 @@ public:
 \note 保证像素数据连续。
 \since build 418
 */
-class YF_API CompactPixmap : public BasicImage
+class YF_API CompactPixmap
+	: private GGraphics<unique_ptr<Pixel[]>>, implements IImage
 {
+private:
+	//! \since build 566
+	//@{
+	using BaseType = GGraphics<unique_ptr<Pixel[]>>;
+
+protected:
+	using BaseType::pBuffer;
+	using BaseType::sGraphics;
+	//@}
+
 public:
 	/*!
 	\brief 无参数构造：默认实现。
@@ -204,24 +216,30 @@ public:
 	*/
 	CompactPixmap(unique_ptr<Pixel[]>, const Size&) ynothrow;
 	CompactPixmap(const CompactPixmap&);
-	/*!
-	\brief 转移构造：转移资源。
-	*/
-	CompactPixmap(CompactPixmap&&) ynothrow;
-	/*!
-	\brief 析构：释放资源。
-	*/
-	~CompactPixmap() override
-	{
-		delete[] pBuffer;
-	}
+	DefDeMoveCtor(CompactPixmap)
+
+	//! \since build 566
+	//@{
+	using BaseType::operator!;
+
+	using BaseType::operator bool;
+
+	DefGetter(const ynothrow, BitmapPtr, BufferPtr,
+		BaseType::GetBufferPtr().get())
+	using BaseType::GetBufferPtr;
+	using BaseType::GetHeight;
+	using BaseType::GetWidth;
+	using BaseType::GetSize;
+	DefGetter(const ynothrow ImplI(IImage), Graphics, Context,
+		Graphics(GetBufferPtr(), GetSize()))
+	//@}
 
 	/*
 	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
 	\since build 476
 	*/
-	PDefHOp(CompactPixmap&, =, CompactPixmap msg) ynothrow
-		ImplRet(msg.swap(*this), *this)
+	PDefHOp(CompactPixmap&, =, CompactPixmap buf) ynothrow
+		ImplRet(buf.swap(*this), *this)
 
 	/*!
 	\brief 设置内容。
@@ -252,13 +270,13 @@ public:
 	virtual void
 	ClearImage() const;
 
-	virtual DefClone(const, CompactPixmap)
+	DefClone(const ImplI(IImage), CompactPixmap)
 
 	/*
 	\brief 交换。
 	*/
 	PDefH(void, swap, CompactPixmap& buf) ynothrow
-		ImplExpr(std::swap<Graphics>(*this, buf))
+		ImplExpr(std::swap<BaseType>(*this, buf))
 };
 
 /*!
@@ -281,58 +299,29 @@ protected:
 	\brief Alpha 缓冲区指针。
 	\since build 417
 	*/
-	AlphaType* pBufferAlpha;
+	unique_ptr<AlphaType[]> pBufferAlpha;
 
 public:
-	/*!
-	\brief 无参数构造。
-	\note 零初始化。
-	*/
-	CompactPixmapEx()
-		: CompactPixmap(), pBufferAlpha()
-	{}
+	DefDeCtor(CompactPixmapEx)
 	/*!
 	\brief 构造：使用指定位图指针和大小。
 	*/
 	CompactPixmapEx(ConstBitmapPtr, SDst, SDst);
 	CompactPixmapEx(const CompactPixmapEx&);
-	/*!
-	\brief 转移构造：转移资源。
-	*/
-	CompactPixmapEx(CompactPixmapEx&&) ynothrow;
-	/*!
-	\brief 析构：释放资源。
-	*/
-	~CompactPixmapEx() override
-	{
-		delete[] pBufferAlpha;
-	}
+	DefDeMoveCtor(CompactPixmapEx)
 
 	/*
-	\brief 复制赋值：使用复制构造函数和交换函数。
-	\since build 296
+	\brief 合一赋值：使用值参数和交换函数进行复制或转移赋值。
+	\since build 566
 	*/
-	CompactPixmapEx&
-	operator=(const CompactPixmapEx& buf)
-	{
-		CompactPixmapEx(buf).swap(*this);
-		return *this;
-	}
-	/*
-	\brief 转移赋值：使用转移构造函数和交换函数。
-	*/
-	CompactPixmapEx&
-	operator=(CompactPixmapEx&& buf) ynothrow
-	{
-		swap(buf);
-		return *this;
-	}
+	PDefHOp(CompactPixmapEx&, =, CompactPixmapEx buf) ynothrow
+		ImplRet(buf.swap(*this), *this)
 
 	/*!
 	\brief 取 Alpha 缓冲区的指针。
 	\since build 417
 	*/
-	DefGetter(const ynothrow, AlphaType*, BufferAlphaPtr, pBufferAlpha)
+	DefGetter(const ynothrow, AlphaType*, BufferAlphaPtr, pBufferAlpha.get())
 	/*!
 	\brief 取 Alpha 缓冲区占用空间。
 	\since build 407
@@ -361,12 +350,9 @@ public:
 	/*
 	\brief 交换。
 	*/
-	void
-	swap(CompactPixmapEx& buf) ynothrow
-	{
-		std::swap<CompactPixmap>(*this, buf),
-		std::swap(pBufferAlpha, buf.pBufferAlpha);
-	}
+	PDefH(void, swap, CompactPixmapEx& buf) ynothrow
+		ImplExpr(std::swap<CompactPixmap>(*this, buf),
+			std::swap(pBufferAlpha, buf.pBufferAlpha))
 };
 
 /*!

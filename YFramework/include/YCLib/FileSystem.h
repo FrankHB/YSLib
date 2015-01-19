@@ -11,13 +11,13 @@
 /*!	\file FileSystem.h
 \ingroup YCLib
 \brief 平台相关的文件系统接口。
-\version r1638
+\version r1663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 312
 \par 创建时间:
 	2012-05-30 22:38:37 +0800
 \par 修改时间:
-	2015-01-11 17:42 +0800
+	2015-01-19 08:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -245,7 +245,7 @@ struct YF_API FileDescriptorDeleter
 \brief 测试路径可访问性。
 \param path 路径，意义同 POSIX <tt>::open</tt> 。
 \param amode 模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。 。
-\pre 断言：<tt>filename</tt> 。
+\pre 断言：\c filename 。
 \note \c errno 在出错时会被设置，具体值由实现定义。
 \since build 549
 */
@@ -261,7 +261,7 @@ uaccess(const char16_t* path, int amode) ynothrow;
 /*!
 \param filename 文件名，意义同 POSIX <tt>::open</tt> 。
 \param oflag 打开标识，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
-\pre 断言：<tt>filename</tt> 。
+\pre 断言：\c filename 。
 */
 //@{
 //! \brief 以 UTF-8 文件名无缓冲打开文件。
@@ -320,6 +320,31 @@ ufexists(const _tString& str) ynothrow
 {
 	return platform::ufexists(str.c_str());
 }
+
+/*!
+\brief 关闭管道流。
+\param 基本语义同 POSIX.1 2004 的 <tt>::pclose</tt> ，具体行为取决于实现。
+\pre 参数非空，表示通过和 upopen 或使用相同实现打开的管道流。
+\since build 566
+*/
+YF_API int
+upclose(std::FILE*) ynothrow;
+
+/*!
+\param filename 文件名，意义同 POSIX <tt>::popen</tt> 。
+\param mode 打开模式，基本语义同 POSIX.1 2004 ，具体行为取决于实现。
+\pre 断言：\c filename 。
+\warning 应使用 upclose 而不是 \c std::close 关闭管道流，否则行为可能未定义。
+\since build 566
+*/
+//@{
+//! \brief 以 UTF-8 文件名无缓冲打开管道流。
+YF_API std::FILE*
+upopen(const char* filename, const char* mode) ynothrow;
+//! \brief 以 UCS-2 文件名无缓冲打开管道流。
+YF_API std::FILE*
+upopen(const char16_t* filename, const char16_t* mode) ynothrow;
+//@}
 
 /*!
 \brief 取当前工作目录（ UCS-2 编码）复制至指定缓冲区中。

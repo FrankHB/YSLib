@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r171
+\version r199
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-01-10 15:19 +0800
+	2015-01-19 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,15 +30,15 @@
 #include "YCLib/YModules.h"
 #include YFM_YCLib_Host
 #include YFM_YCLib_NativeAPI
+#include YFM_YCLib_FileSystem // for platform::FileOperationFailure;
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_Consoles
 #elif YF_Hosted
 #	include <fcntl.h>
+#endif
 
 //! \since build 553
 using platform::FileOperationFailure;
-#endif
-
 using namespace YSLib;
 
 #if YF_Hosted
@@ -65,6 +65,33 @@ HandleDeleter::operator()(pointer h)
 }
 #endif
 
+
+std::string
+FetchCommandOutput(std::string& cmd, std::size_t buf_size)
+{
+	if(YB_UNLIKELY(buf_size == 0))
+		throw std::invalid_argument("Zero buffer size found.");
+	// TODO: Improve Win32 implementation?
+	if(const auto fp = ystdex::unique_raw(platform::upopen(cmd.c_str(), "r"),
+		platform::upclose))
+	{
+		ystdex::setnbuf(fp.get());
+
+		// TODO: Improve performance.
+		const auto p_buf(make_unique<char[]>(buf_size));
+		std::string res;
+		size_t n;
+
+		do
+		{
+			n = std::fread(&p_buf[0], 1, buf_size, fp.get());
+			res.append(&p_buf[0], n);
+		}while(n != 0);
+		return res;
+	}
+	throw FileOperationFailure(errno, std::generic_category(),
+		"Failed opening pipe.");
+}
 
 std::pair<UniqueHandle, UniqueHandle>
 MakePipe()
@@ -143,9 +170,9 @@ yconstexpr const int cmap[] = {0, 4, 2, 6, 1, 5, 3, 7};
 class TerminalData : private noncopyable, private nonmovable
 {
 public:
-	TerminalData(std::FILE* fp)
+	TerminalData(std::FILE* stream)
 	{
-		std::setvbuf(fp, {}, _IONBF, 0);
+		ystdex::setnbuf(stream);
 	}
 
 	PDefH(bool, RestoreAttributes, ) ynothrow

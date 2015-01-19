@@ -11,13 +11,13 @@
 /*!	\file CommonRules.txt
 \ingroup Documentation
 \brief 公用规则指定和说明。
-\version r4298
+\version r4299
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2012-02-03 16:44:56 +0800
 \par 修改时间:
-	2015-01-15 20:03 +0800
+	2015-01-18 10:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -928,7 +928,7 @@ ISO C++ 内建特性相关的名称使用见 [Documentation::LanguageConvention 
 允许使用 ISO C 和 ISO C++ 的预定义宏以检查版本、特性或使用时间等。
 允许使用 C/C++ 实现的预定义宏判断使用的实现和版本。
 允许使用 SG6 和 C/C++ 实现提供的标识符 __has_include 和 __has_extension 等以检查和提供兼容性。
-允许使用 ISO C11 库函数的标识符 _Exit ，及对应 ISO C++ 中的 std::_Exit 。
+允许使用 ISO C 库的公开标识符（如 _IONBF 和 ISO C11 库函数的标识符 _Exit ），及对应 ISO C++ 中的名称（如 std::_Exit ）。
 C 语言代码在必要时允许使用 ISO C 中以 _ 起始的关键字，但一般应考虑使用 ISO C 提供的对应的宏代替。
 在已知需要依赖特定实现时允许使用适用于特定实现的保留标识符。
 

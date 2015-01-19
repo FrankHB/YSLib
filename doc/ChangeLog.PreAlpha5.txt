@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r8993
+\version r9139
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-01-15 01:03 +0800
+	2015-01-19 10:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,154 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YCLib $=
+		(
+			/ %Debug $=
+			(
+				(
+				+ "'ynothrow' guarantee" @ "function %LogWithSource";
+					// Use calling of %ystdex::ytrace as fallback.
+				/ "guaranteed nothrow from call of macro expansion %YCL_Trace"
+				),
+				(
+				+ "function template %CheckIter";
+				/ "function template %Deref" ^ "%CheckIter" ~ "%Nonnull"
+				)
+			),
+			+ "trace for catching all exceptions" @ "destructor %WindowClass"
+				@ "platform %Win32" @ %HostedGUI,
+			(
+			+ "function %upclose, 2 functions %upopen" @ %FileSystem;
+			+ "function %FetchCommandOutput" @ %Host
+			),
+			/ "member function %ScreenBuffer::GetContext" @ "platforms \
+				%(Android, ^XCB)" @ %HostGUI -> 'YSLib::Drawing::Graphics'
+				~ 'const YSLib::Drawing::Graphics&'
+		),
+		/ @ "destructor %WindowThread" @ %Helper.HostRenderer $=
+		(
+			* $comp "probable terminated by throwing out of destructor with \
+				nothrow exception specification due to trace calls" $since b498
+				$dep_from %YCLib.Debug,
+			/ "stated destructor name"
+				@ "trace string for catching all exceptions"
+		),
+		+ "trace for catch-clause" @ (("member function \
+			%Win32Exception::FormatMessage" @ %MinGW32,
+			"function %FetchDBCSOffset" @ %NLS) @ %'YCLib_(MinGW32)',
+			"member function %FontCache::LoadTypefaces" @ %YSLib.Adaptor.Font),
+		/ %YSLib $=
+		(
+			/ %Adaptor.YAdaptor $=
+			(
+				+ 'using platform::CheckIter;' $dep_from
+					("%CheckIter" @ %YCLib.Debug),
+				+ 'using platform::upclose', 'using platform::upopen' $dep_from
+					%YCLib.FileSystem,
+
+			),
+			/ %Core $=
+			(
+				- DLD "including %YFunc" @ %YShell,
+				/ %YGDIBase $=
+				(
+					/ "explicitly allowed pointer with ownership"
+						@ "class template %GGraphics" $=
+					(
+						/ $dev "static assertion of nothrow copyable check on \
+							pointer" -> "nothrow movable check",
+						/ $dev "pixel type deduction" ^ '[0]' ~ "indirection",
+						/ DLD "operation for pointer type parameter"
+							@ "constructors" ^ "moving" ~ "copying"
+						/ "return type" @ "function %GetBufferPtr"
+							-> 'const PointerType&' ~ 'PointerType'
+					),
+					/ "return type" @ "abstract method %IImage::GetContext"
+						-> 'Graphics' ~ 'const Graphics&' @ %YCLib.HostGUI
+						// To allow returning temporary.
+				)
+			),
+			/ "return type" @ "method %GetContext" @ "static interface \
+				template %GTextRendererBase and all derived classes"
+				@ %Service.TextRenderer -> 'Graphics' ~ 'const Graphics&',
+			/ "return type" @ "member function %BufferedRenderer::Context"
+				@ %UI.Renderer -> 'Graphics' ~ 'const Graphics&',
+				// To allow returning temporary.
+			/ %Service.YGDI $=
+			(
+				/ @ "class %CompactPixmap" $=
+				(
+					(
+					- "base class %BasicImage",
+					/ DLD "implemented" ^ "%GGraphics<unique_ptr<Pixel[]>>"
+						$dep_from %YGDI;
+					+ "implemented interface %IImage",
+					/ "user-defined move constructor" -> "explicitly defaulted",
+					- "destructor"
+					),
+					* "spelling error" @ "assertion string" @ "constructor"
+						$since b419
+				),
+				/ @ "class %CompactPixmapEx" $=
+				(
+					(
+					/ 'AlphaType* pBufferAlpha;'
+						-> 'unique_ptr<AlphaType[]> pBufferAlpha;';
+					/ "user-defined (default, move) constructor"
+						-> "explicitly defaulted",
+					- "destructor"
+					),
+					/ $re_ex(b476) "merged (copy, move) %operator= as unifying \
+						%operator=" ^ "%macros %(PDefHOp, ImplRet)",
+					/ DLD "implemented function %swap"
+						^ "%macros %(PDefH, ImplExpr)",
+					/ @ "assertion string" @ "constructor" $=
+					(
+						/ "differentiated alpha buffer and pixel buffer",
+						* "spelling error" $since b419
+					)
+				)
+			)
+		)
+	),
+	/ $dev "%DrMemory-YSLib-suppress.txt" @ %Tools $=
+	(
+		// Now there are 4 kinds of errors in %YSTest. First kind is errors \
+			concerned with message member in %std::system_error. It should be \
+			safe according to the source of libstdc++. Second is similar \
+			string usage. These 2 kinds of bugs may be due to inlining of \
+			operator new to %malloc call, etc. Third is leaks from \
+			libwinpthread, which is likely of some bugs. Fourth is possible \
+			leak from %ystdex::any objects constructed with %holder_tag, which \
+			is rechecked and should be safe.
+		+ "1 case concerned with %std::operator+ for %std::basic_string",
+		+ "1 case concerned with TLS storage read by %std::call_once",
+			// Not in %YSTest. Not confirmed but should be false positive.
+		/ "restricted some frames"
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ "return type" @ "function %get" @ "class template %nptr" @ %Utilities
+			-> 'const pointer&' ~ 'pointer',
+			// To allow wrapping move-only types e.g. std::unique_ptr<T>.
+		/ %CStandardIO $=
+		(
+			+ "alias declaration %unique_file_ptr",
+			+ "inline function %setnbuf" @ %CStandardIO
+		),
+		+ "function template %search_map with inserter function object \
+			parameter" @ %Container
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective @ ("%yshell.h" => "%YShell.h"
+		@ Core, ("ygdi.h" => "YGDI.h", "ygdi.cpp" => "YGDI.cpp") @ Service, 
+		"yrender.h"=> "%yrenderer.h" @ %UI) @ %YFramework.YSLib
+),
+
+b565
 (
 	/ %YFramework $=
 	(

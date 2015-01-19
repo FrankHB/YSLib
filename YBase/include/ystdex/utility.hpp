@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2232
+\version r2235
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-12-30 19:34 +0800
+	2015-01-19 08:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -171,7 +171,8 @@ public:
 		return bool(ptr);
 	}
 
-	yconstfn pointer
+	//! \since build 566
+	yconstfn const pointer&
 	get() const ynothrow
 	{
 		return ptr;

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup MinGW32
 \brief Win32 平台自然语言处理支持扩展接口。
-\version r168
+\version r172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 556
 \par 创建时间:
 	2013-11-25 17:33:25 +0800
 \par 修改时间:
-	2014-12-22 15:50 +0800
+	2015-01-16 03:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -156,7 +156,9 @@ FetchDBCSOffset(int cp) ynothrow
 
 		return tbl.DBCSCodePage ? tbl.DBCSOffsets : nullptr;
 	}
-	CatchIgnore(...)
+	CatchExpr(std::exception& e, YTraceDe(Warning, e.what()))
+	CatchExpr(...,
+		YTraceDe(Warning, "FetchDBCSOffset: Unknown function caught."))
 	return {};
 }
 

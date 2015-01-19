@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextRenderer.h
 \ingroup Service
 \brief 文本渲染。
-\version r2955
+\version r2966
 \author FrankHB <frankhb1989@gmail.com>
 \since build 275
 \par 创建时间:
 	2009-11-13 00:06:05 +0800
 \par 修改时间:
-	2014-12-02 18:46 +0800
+	2015-01-18 13:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -330,7 +330,11 @@ class GTextRendererBase
 public:
 	DeclSEntry(const TextState& GetTextState() const) //!< 取文本状态。
 	DeclSEntry(TextState& GetTextState()) //!< 取文本状态。
-	DeclSEntry(const Graphics& GetContext() const) //!< 取图形接口上下文。
+	/*
+	\brief 取图形接口上下文。
+	\since build 566
+	*/
+	DeclSEntry(Graphics GetContext() const)
 
 #define This static_cast<_type*>(this)
 #define CThis static_cast<const _type*>(this)
@@ -388,7 +392,8 @@ public:
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
 		TextState, State)
 	ImplS(GTextRendererBase) DefGetter(ynothrow, TextState&, TextState, State)
-	ImplS(GTextRendererBase) DefGetter(const ynothrow, const Graphics&, Context,
+	//! \since build 566
+	ImplS(GTextRendererBase) DefGetter(const ynothrow, Graphics, Context,
 		Buffer)
 	//! \since build 308
 	//@{
@@ -507,8 +512,9 @@ public:
 	ImplS(GTextRendererBase) DefGetter(const ynothrow, const TextState&,
 		TextState, *this)
 	ImplS(GTextRendererBase) DefGetter(ynothrow, TextState&, TextState, *this)
-	ImplS(GTextRendererBase) DefGetter(const ynothrow, const Graphics&, Context,
-		*this)
+	//! \since build 566
+	ImplS(GTextRendererBase)
+		DefGetterBase(const ynothrow, Graphics, Context, CompactPixmapEx)
 
 protected:
 	/*!
