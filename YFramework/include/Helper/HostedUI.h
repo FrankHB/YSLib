@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r214
+\version r258
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-01-10 15:52 +0800
+	2015-01-21 06:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,9 @@
 
 #include "YModules.h"
 #include YFM_Helper_HostRenderer
+#if YCL_Win32
+#	include YFM_YSLib_UI_Hover
+#endif
 
 namespace YSLib
 {
@@ -105,6 +108,48 @@ ShowTopLevel(UI::Widget&, unsigned long = WS_POPUP, unsigned long
 */
 YF_API void
 ShowTopLevelDraggable(UI::Widget&);
+#	endif
+#	if YCL_Win32
+/*!
+\note 第一参数指定悬停时引起动作的部件。
+\note 第二参数指定显示为顶层窗口的部件。
+\since build 567
+*/
+//@{
+//! \brief 设置悬停操作时显示指定部件为顶层窗口。
+template<typename _func>
+void
+ActOnHover_ShowTopLevel(UI::IWidget& sender, UI::Widget& wgt, _func f)
+{
+	UI::ActOnHover(sender, [&]{
+		f();
+		ShowTopLevel(wgt, WS_POPUP, 0, SW_SHOWNOACTIVATE);
+	});
+}
+//! \brief 设置悬停操作时在指定位置显示指定部件为顶层窗口。
+template<typename _func>
+void
+ActOnHover_ShowTopLevelAt(UI::IWidget& sender, UI::Widget& wgt, _func f)
+{
+	Host::ActOnHover_ShowTopLevel(sender, wgt, [&, f]{
+		SetLocationOf(wgt, f());
+	});
+}
+
+//! \brief 设置 UI::Enter 和 UI::Leave 事件显示和隐藏指定部件为顶层窗口。
+//@{
+//! \note 第三参数通过接受 UI::Enter 事件参数指定的位置并计算顶层窗口的位置。
+YF_API void
+BindHoverControl(UI::IWidget&, UI::Widget&,
+	std::function<Drawing::Point(const Drawing::Point&)>);
+//! \note 使用第三参数指定的宿主窗口和指定顶层窗口的位置。
+inline PDefH(void, BindHoverControl, UI::IWidget& sender, UI::Widget& wgt,
+	Window& wnd)
+	ImplExpr(BindHoverControl(sender, wgt, [&](const Drawing::Point&){
+		return UI::GetLocationOf(sender) + wnd.GetClientLocation();
+	}))
+//@}
+//@}
 #	endif
 
 } // namespace Host;

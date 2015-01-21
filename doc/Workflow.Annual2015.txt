@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r64
+\version r72
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-01-18 08:23 +0800
+	2015-01-20 01:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -60,6 +60,14 @@ Win32 console would call 'ExitProcess' by default during window close or handlin
 			The exit code 'STATUS_CONTROL_C_EXIT' is used for 'CTRL_C_EVENT' and 'CTRL_CLOSE_EVENT' to retain old behavior.
 			For 'CTRL_BREAK_EVENT', 'CTRL_LOGOFF_EVENT' and 'CTRL_SHUTDOWN_EVENT' the same code is used, but not tested to be the same as original one.
 Since 'ystdex::nptr' is exactly a wrapper but not a smart pointer, it is intended in <ystdex/utility.hpp> but not in <ystdex/memory.hpp>.
+The function 'isatty' on POSIX compliant environments and '_isatty' is not the same.
+	For POSIX compliant environments, '::isatty' returns whether the file descriptor is associated with a terminal.
+		See http://pubs.opengroup.org/onlinepubs/009695399/functions/isatty.html .
+	For Win32, '::_isatty' returns whether the file descriptor is associated with a character device;  Both cases exclude some uses not fit.
+		See http://msdn.microsoft.com/en-us/library/f4s0ddew.aspx.
+	Use Win32 APIs to achieve the functionality of POSIX compliant 'isatty'.
+		See http://stackoverflow.com/questions/3648711/detect-nul-file-descriptor-isatty-is-bogus .
+	However, both function can exclude some cases not fit for terminal output.
 
 ////
 

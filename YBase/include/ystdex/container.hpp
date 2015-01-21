@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1052
+\version r1083
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2015-01-19 08:37 +0800
+	2015-01-20 00:25 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -654,6 +654,35 @@ sort_unique(_tCon& con)
 
 
 /*!
+\brief 保证非空容器以参数指定的元素末尾。
+\since build 567
+*/
+//@{
+template<class _tCon>
+_tCon&&
+trail(_tCon&& con, const typename decay_t<_tCon>::value_type& val = {})
+{
+	if(!con.empty() && !(con.back() == val))
+		con.push_back(val);
+	return static_cast<_tCon&&>(con);
+}
+template<class _tCon, typename... _tParams>
+_tCon&&
+trail(_tCon&& con, _tParams&&... args)
+{
+	if(!con.empty())
+	{
+		typename decay_t<_tCon>::value_type val(yforward(args)...);
+
+		if(!(con.back() == val))
+			con.emplace_back(std::move(val));
+	}
+	return static_cast<_tCon&&>(con);
+}
+//@}
+
+
+/*!
 \brief 若容器末尾存在指定值的元素则移除。
 \since build 545
 */
@@ -661,9 +690,9 @@ template<class _tCon>
 bool
 pop_back_val(_tCon& con, const typename _tCon::value_type& val)
 {
-	if(!con.empty() && con.front() == val)
+	if(!con.empty() && con.back() == val)
 	{
-		con.pop_front();
+		con.pop_back();
 		return true;
 	}
 	return {};
@@ -677,9 +706,9 @@ template<class _tCon>
 bool
 pop_front_val(_tCon& con, const typename _tCon::value_type& val)
 {
-	if(!con.empty() && con.back() == val)
+	if(!con.empty() && con.front() == val)
 	{
-		con.pop_back();
+		con.pop_front();
 		return true;
 	}
 	return {};
@@ -756,7 +785,7 @@ search_map(_tMap& m, const typename _tMap::key_type& k, _func f)
 {
 	const auto pr(ystdex::search_map(m, k));
 
-	return pr.second ? pr.first : f(m, k);
+	return pr.second ? pr.first : f(pr.first);
 }
 
 } // namespace ystdex;

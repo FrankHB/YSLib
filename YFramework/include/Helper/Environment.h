@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r784
+\version r788
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2015-01-15 18:09 +0800
+	2015-01-22 00:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -164,11 +164,12 @@ public:
 #	endif
 
 	/*!
-	\brief 映射宿主光标位置到相对顶层部件输入的光标位置。
-	\since build 509
+	\brief 映射宿主光标位置到相对顶层窗口输入的光标位置。
+	\note Android 平台忽略参数。
+	\since build 557
 	*/
 	Drawing::Point
-	MapCursor() const;
+	MapCursor(Host::Window* = {}) const;
 
 	/*!
 	\brief 移除窗口映射项。

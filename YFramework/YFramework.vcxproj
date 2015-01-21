@@ -182,7 +182,7 @@
     <ClInclude Include="include\YSLib\Core\YShell.h" />
     <ClInclude Include="include\YSLib\Core\ymsg.h" />
     <ClInclude Include="include\YSLib\Core\ymsgdef.h" />
-    <ClInclude Include="include\YSLib\Core\ystorage.hpp" />
+    <ClInclude Include="include\YSLib\Core\YStorage.hpp" />
     <ClInclude Include="include\YSLib\Core\ystring.h" />
     <ClInclude Include="include\YSLib\Service\AccessHistory.hpp" />
     <ClInclude Include="include\YSLib\Service\CharRenderer.h" />

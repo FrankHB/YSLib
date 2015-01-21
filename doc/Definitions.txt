@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r12722
+\version r13016
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2014-12-25 10:58 +0800
+	2015-01-19 20:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,33 +42,36 @@ $import //导入实体。
 $export //导出实体，显式使用表示强调无论实现如何，应向外部提供形式上和之后说明一致的接口。
 
 $code {} //表示（源）代码片段。
-$unit $unit_n //单元：指称一个编译单元（一般应为语言规范中定义的翻译单元）。单元名称 $unit_n 为可变部分，是语言规范中定义的标识符或关键字。
-$header $header_n //头文件：指称一个头文件。头文件名标识字符序列 $header_n 是可变部分，同语言标准中 #include $header_n 的用法，或为通配符。
 $dir //表示目录。
+$header $header_n //头文件：指称一个头文件。头文件名标识字符序列 $header_n 是可变部分，同语言标准中 #include $header_n 的用法，或为通配符。
+$unit $unit_n //单元：指称一个编译单元（一般应为语言规范中定义的翻译单元）。单元名称 $unit_n 为可变部分，是语言规范中定义的标识符或关键字。仅在非头文件的实现中使用。
 
 */
 
 $region $synopsis $begin
 
-// ! 默认由外部（如编译器命令行）提供。
+// 既定宏污染列表。
+// ! 默认由外部（如预定义标识符或编译器命令行）提供。
+// # 可能由外部提供。
+// 非外部提供的非头文件守护宏的保留宏名可能被 #undef 取消定义。
 
-// YBase 既定宏污染列表。
-// YB_* 保留给 YBase 使用。（除了 ydef.h 中定义的宏和包含守护宏外，可能使用后被 #undef 取消定义。）
-// YPP_* 是通用于预处理阶段的辅助宏。
+!NDEBUG // ISO C 非调试状态宏，可能取消定义。
+
 $dir YBase
 {
-$header *
-{
+
+YB_* // 保留给 YBase 使用。（除了 ydef.h 中定义的宏和包含守护宏外，可能使用后被 #undef 取消定义。）
+YPP_* // 是通用于预处理阶段的辅助宏。
 YB_INC_*
-}
+
 $header YDefinition
 {
 YB_IMPL_CPP
 YB_IMPL_MSCPP
 YB_IMPL_GNUCPP
-__has_feature(...)
-__has_extension(...)
-__has_builtin(...)
+#__has_feature(...)
+#__has_extension(...)
+#__has_builtin(...)
 YPP_Empty
 YPP_Comma
 YPP_Join(_x, _y)
@@ -118,27 +121,24 @@ $header CAssert
 YAssert(*)
 YTrace(*)
 }
-} //$dir ystdex;
-} //$dir YBase;
+} // $dir ystdex;
+} // $dir YBase;
 
-// YFramework 既定宏污染列表。
-//以下保留宏名可能被 #undef 取消定义。
-// YF_* 保留给 YFramework 使用。
-// YFM_* 保留给 YFramework 使用作为模块包含文件宏。
-// YCL_* 保留给 YFramework/YCLib 使用。
-// YSL_* 保留给 YFramework/YSLib 使用。
-// NPL_* 保留给 YFramework/NPL 使用。
-// INC_* 和 Inc_* 保留给 YFramework 的其它部分和客户程序使用。
-// 约定 INC 和 Inc 分别用于表示头文件公开/非公开头文件的包含守护宏。
-$herder *
+$dir YFramework // YFramework 既定宏污染列表。
 {
+
+YF_* // 保留给 YFramework 使用。
+YFM_* // 保留给 YFramework 使用作为模块包含文件宏。
+YCL_* // 保留给 YFramework::YCLib 使用。
+YSL_* // 保留给 YFramework::YSLib 使用。
+NPL_* // 保留给 YFramework::NPL 使用。
+INC_* // 公开头文件守护宏，保留给 YFramework 的其它部分和客户程序使用。
+Inc_* // 非公开头文件守护宏，保留给 YFramework 的其它部分和客户程序使用。
 YCL_INC_* // YCLib 公开头文件包含守护宏。
 YCL_Inc_* // YCLib 非公开头文件包含守护宏。
 YSL_INC_* // YSLib 公开头文件包含守护宏。
 YSL_Inc_* // YSLib 非公开头文件包含守护宏。
-YCL_DEBUG_*
 YSL_DEBUG_*
-}
 
 $dir YCLib
 {
@@ -176,12 +176,12 @@ YCL_PATH_ROOT
 $header Video
 {
 YCL_PIXEL_FORMAT_XYZ555
-} //$dir YCLib;
+} // $dir YCLib;
 $header Input
 {
 YCL_KEY*
 }
-} //$dir YCLib;
+} // $dir YCLib;
 
 $dir YCLib_(MinGW32)
 {
@@ -197,7 +197,7 @@ $dir CHRLib
 $header CHRLib
 {
 }
-} //$dir CHRLib;
+} // $dir CHRLib;
 
 $dir YSLib
 {
@@ -206,23 +206,18 @@ $dir Adaptor
 $header Config
 {
 YSL_USE_MEMORY_DEBUG
-YSL_MULTITHREAD
 YSL_USE_COPY_ON_WRITE
 YSL_USE_YASLI_VECTOR
 YSL_USE_FLEX_STRING
 YSL_OPT_SMALL_STRING_LENGTH
 YSL_DEBUG_MSG
 }
-} //$dir Adaptor;
+} // $dir Adaptor;
 
 $dir Core
 {
 $header YBaseMacro
 {
-YSL_BEGIN
-YSL_END
-YSL_BEGIN_NAMESPACE(s)
-YSL_END_NAMESPACE(s)
 YInterface
 YInterfaceHead(_n)
 PDeclI(_n)
@@ -316,7 +311,7 @@ SM_Paint
 SM_Input
 DefMessageTarget
 }
-} //$dir Core;
+} // $dir Core;
 $dir UI
 {
 $header YControl
@@ -334,7 +329,7 @@ DefWidgetMemberIterationOperations(_tIter)
 DefWidgetMemberIteration(...)
 DefWidgetMemberIterationBase(_tBase, ...)
 }
-$unit Loader
+$header Loader
 {
 DeclDynWidget(_t, _n, ...)
 DeclDynWidgetN(_t, _n, ...)
@@ -344,15 +339,8 @@ $unit Scroll
 {
 YSL_UI_ATRACK_PARTIAL_INVALIDATION
 }
-} //$dir UI;
-$dir Service
-{
-$unit YGDI
-{
-YSL_FAST_BLIT
-}
-} //$dir Service;
-} //$dir YSLib;
+} // $dir UI;
+} // $dir YSLib;
 
 $dir Helper
 {
@@ -360,124 +348,271 @@ $header YShellHelper
 {
 DefDynInitRef(_t, _n, _e)
 }
-} //$dir Helper;
+} // $dir Helper;
+} // $dir YFramework;
 
 
 // YFramework 中非 YSLib 本体或 YGlobal 定义列表。
 
-//非本体类列表。
-$header Core::YShellDefinition
+// 非 YSLib 本体函数列表。
+$header YSLib::Core::YApplication
 {
-	namespace Shells
-	{}
-} //$header Core::YShellDefinition;
-
-//非 YSLib 本体函数列表。
-$header Core::YApplication
-{
-	extern Application&
-	FetchAppInstance() ynothrow;
-} //$header Core::YApplication;
+extern Application&
+FetchAppInstance() ynothrow;
+} // $header YSLib::Core::YApplication;
 
 $unit Helper::YGlobal
 {
 #if YCL_Android
-	extern void
-	::y_android_main();
+extern void
+::y_android_main();
 #endif
-} //$unit Helper::YGlobal;
+} // $unit Helper::YGlobal;
+
+// 非 constexpr 非自动生存期块作用域变量所在实体列表。
+
+$dir YBase::YStandardEx
+{
+
+$header Utilities
+{
+	template<typename _type, typename, typename...>
+	inline _type&
+	parameterize_static_object()
+	{
+		static _type obj;
+	}
+
+	template<typename _type, typename, size_t...>
+	inline _type&
+	parameterize_static_object()
+	{
+		static _type obj;
+	}
+
+	class template nifty_counter
+	{
+	private:
+		static size_t&
+		get_count() ynothrow
+		{
+			ythread size_t count;
+		}
+		static object_type*&
+		get_object_ptr() ynothrow
+		{
+			ythread object_type* ptr;
+		}
+	};
+}
+
+} // $dir YBase::YStandardEx;
+
+$dir YFramework
+{
+
+$dir YCLib
+{
+
+$unit YCommon
+{
+#if YCL_DS
+	bool
+	platform_ex::AllowSleep(bool)
+	{
+		static bool bSleepEnabled;
+	}
+#endif
+}
+
+$unit JNI
+{
+	void
+	JNIBase::EnsureDetachJNIAtThreadExit(::JavaVM&, ::JNIEnv&)
+	{
+#if YB_HAS_THREAD_LOCAL
+		ythread JNIBase guard;
+#elif YF_Use_POSIXThread
+		static TLSKey key;
+#endif
+	}
+}
+$unit XCB
+{
+$unit.impl:
+	shared_ptr<GlobalTable>
+	FetchGlobalTablePtr()
+	{
+		static auto p(make_shared<GlobalTable>());
+	}
+} // $unit XCB;
+
+} // $dir YCLib;
+
+$dir YSLib
+{
+
+$dir Adaptor
+{
+
+$unit YNew
+{
+	MemoryList&
+	GetDebugMemoryList()
+	{
+		static recursive_mutex mtx;
+	}
+}
+
+$unit Image
+{
+	string
+	to_string(const ImageTag&, ImageMetadataModel)
+	{
+		static mutex mtx;
+	}
+}
+
+} // $dir Adaptor;
+
+$dir Core
+{
+
+$header YStorage
+{
+	class template GLocalStaticCache
+	{
+	private:
+		static inline PointerType&
+		GetStaticPtrRef() ynothrow
+		{
+			static PointerType ptr;
+		}
+	};
+}
+
+} // $dir Core;
+
+$dir Service
+{
+
+$header YTimer
+{
+	template<class _tClock = HighResolutionClock>
+	inline typename _tClock::time_point
+	FetchEpoch()
+	{
+		static auto start_time(_tClock::now());
+	}
+}
+
+} // $dir Service;
+
+$dir UI
+{
+
+$unit YGUI
+{
+	GUIState&
+	FetchGUIState() ynothrow
+	{
+		static GUIState state;
+	}
+
+	GUIConfiguration&
+	FetchGUIConfiguration()
+	{
+		static GUIConfiguration conf;
+	}
+}
+
+} // $dir UI;
+
+} // $dir YSLib;
+
+} // $dir YFramework;
 
 
-//非 YGlobal 非 constexpr 的命名空间作用域对象和类静态对象列表。
+// 非 constexpr 的命名空间作用域变量和类静态变量列表。
+
+$dir YFramework
+{
 
 $dir YCLib
 {
 
 $unit YDebug
 {
-	namespace platform
-	{
+namespace platform
+{
+#if YCL_DS
 $unit.impl:
-		static bool bDebugStatus;
-		static bool bUninitializedTimers;
-	}
+	bool bUninitializedTimers;
+	volatile std::uint32_t system_tick;
+#endif
+}
 }
 
 $dir CHRLib
 {
 
-$unit CharacterMapping
+$header MappingEx
 {
 namespace CHRLib
 {
 
-//默认字符集。
-const Encoding CP_Default = CharSet::UTF_8;
-const Encoding CP_Local = CharSet::GBK;
-
 //编码转换表。
-const byte cp17[] = {0};
+#if !CHRLIB_NODYNAMIC_MAPPING
 extern "C"
 {
-	extern const byte cp113[];
-	//extern const byte cp2026[13658];
+extern const byte cp113[];
+//extern const byte cp2026[13658];
 }
-const byte cp2026[] = {0};
+#else
+extern byte* cp17;
+extern byte* cp113;
+extern byte* cp2026;
+#endif
 } // namespace CHRLib;
 }
 
-} //$dir CHRLib;
+} // $dir CHRLib;
 
-} //$dir YCLib;
+} // $dir YCLib;
 
-$dir Adaptor
+$dir YSLib
 {
-
-$namespace.using YSLib:
-
-} //$dir Adaptor;
 
 $dir Core
 {
 
 $header YCounter
 {
-	class template GMCounter
-	{
-		static count_t nCount, nTotal; //!< 实例生成计数和实例计数。
-	};
+class template GMCounter
+{
+	static count_t nCount, nTotal;
+};
 }
 
 $unit YGDIBase
 {
-	namespace Drawing
-	{
-		class template GBinaryGroup
-		{
-			static const GBinaryGroup Zero; //!< 无参数构造的原点对象。
-			static const GBinaryGroup Invalid; //!< 无效（不在屏幕坐标系中）对象。
-		};
-
-		class Size
-		{
-			static const Size Zero; //!< 无参数构造的零元素对象。
-			static const Size Invalid; //!< 无效对象。
-		};
-
-		class Rect
-		{
-			static const Rect Empty; //!< 无参数构造的空矩形对象。
-			static const Rect Invalid; //!< 无效对象。
-		};
-	}
-}
-
-$unit YString
+namespace Drawing
 {
-	class String
-	{
-		static ucs2_t* s_str; //!< 内码转换生成字符串临时指针。
-	};
+class template GBinaryGroup
+{
+	static const GBinaryGroup Invalid;
+};
+
+class Size
+{
+	static const Size Invalid;
+};
+
+class Rect
+{
+	static const Rect Invalid;
+};
+}
 }
 
 $header YStorage
@@ -486,43 +621,39 @@ $header YStorage
 	{
 		static PointerType _ptr;
 	};
-	class template GLocalStaticCache
-	{
-		static PointerType _ptr;
-	};
 }
 
-$unit YFileSystem
-{
-	namespace IO
-	{
-		class Path
-		{
-			static const ValueType Slash;
-			static const Path Now;
-			static const Path Parent;
-		};
-	}
-}
-
-
-} //$dir Core;
+} // $dir Core;
 
 $dir Service
 {
 
 $unit YTimer
 {
-	namespace Timers
-	{
-		namespace
-		{
-			bool NotInitialized;
-		}
-	}
+namespace Timers
+{
+namespace
+{
+	bool NotInitialized;
+}
+}
 }
 
-} //$dir Service;
+} // $dir Service;
+
+$dir UI
+{
+
+$header Caret
+{
+	$impl Caret::caret_animation;
+} // $header Caret;
+
+} // $dir UI;
+
+} // $dir YSLib;
+
+} // $dir YFramework;
 
 ///
 

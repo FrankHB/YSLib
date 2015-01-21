@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup MaintenanceTools
 \brief 递归查找源文件并编译和静态链接。
-\version r2683
+\version r2731
 \author FrankHB <frankhb1989@gmail.com>
 \since build 473
 \par 创建时间:
 	2014-02-06 14:33:55 +0800
 \par 修改时间:
-	2014-12-23 22:47 +0800
+	2015-01-21 13:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -709,34 +709,6 @@ BuildContext::RunTask(const string& cmd) const
 //@}
 
 
-//! \since build 546
-void
-PrintUsage(const char*);
-
-void
-PrintUsage(const char* prog)
-{
-	YAssertNonnull(prog);
-	std::printf("%s%s%s", "Usage: [ENV ...] ", prog, " SRCPATH [OPTIONS ...]\n"
-		"\n[ENV ...]\n\tThe environment variables settings."
-		" Currently accepted settings are listed below:\n\n");
-	for(const auto& env : DeEnvs)
-		std::printf("  %s\n\t%s Default value is %s.\n\n", env[0], env[2], env[
-			1][0] == '\0' ? "empty" : ('\'' + string(env[1]) + '\'').c_str());
-	std::puts("SRCPATH\n\tThe source directory to be recursively searched.\n\n"
-		"OPTIONS ...\n"
-		"\tThe options. All other options would be sent to the backends,"
-		" except for listed below:\n");
-	for(const auto& opt : OptionsTable)
-	{
-		std::printf("  %s%s\n", opt.prefix, opt.option_arg);
-		for(const auto& des : opt.option_details)
-			std::printf("\t%s\n", des);
-		std::puts("");
-	}
-}
-
-
 int
 main(int argc, char* argv[])
 {
@@ -816,7 +788,28 @@ main(int argc, char* argv[])
 			ctx.Build();
 		}
 		else if(argc == 1)
-			PrintUsage(*argv);
+		{
+			std::printf("%s%s%s", "Usage: [ENV ...] ", *argv,
+				" SRCPATH [OPTIONS ...]\n"
+				"\n[ENV ...]\n\tThe environment variables settings."
+				" Currently accepted settings are listed below:\n\n");
+			for(const auto& env : DeEnvs)
+				std::printf("  %s\n\t%s Default value is %s.\n\n", env[0],
+					env[2], env[1][0] == '\0' ? "empty"
+					: ('\'' + string(env[1]) + '\'').c_str());
+			std::puts("SRCPATH\n\tThe source directory to be recursively"
+				" searched.\n\n"
+				"OPTIONS ...\n"
+				"\tThe options. All other options would be sent to the"
+				" backends, except for listed below:\n");
+			for(const auto& opt : OptionsTable)
+			{
+				std::printf("  %s%s\n", opt.prefix, opt.option_arg);
+				for(const auto& des : opt.option_details)
+					std::printf("\t%s\n", des);
+				std::puts("");
+			}
+		}
 	}
 	CatchRet(std::exception& e, PrintException(e), EXIT_FAILURE)
 	CatchRet(..., PrintInfo("ERROR: Unknown failure.", Err), EXIT_FAILURE)

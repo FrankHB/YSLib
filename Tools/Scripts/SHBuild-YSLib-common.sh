@@ -5,6 +5,8 @@
 set -e
 SHBuild_ToolDir=$(cd `dirname "$0"`; pwd)
 : ${SHBuild_BaseDir:="$SHBuild_ToolDir/../SHBuild"}
+: ${YSLib_BaseDir:="$SHBuild_ToolDir/../.."}
+YSLib_BuildDir="$YSLib_BaseDir/build"
 . $SHBuild_ToolDir/SHBuild-common.sh
 : ${AR:='gcc-ar'}
 export AR
@@ -20,16 +22,16 @@ else
 	SHBuild_YF_SystemLibs='-lxcb -lpthread'
 fi
 
-INCLUDE_PCH='../../YBase/include/stdinc.h'
-INCLUDES_YBase='-I../../YBase/include'
+INCLUDE_PCH='../YBase/include/stdinc.h'
+INCLUDES_YBase='-I../YBase/include'
 INCLUDES_YFramework=" \
-	-I../../YFramework/include -I../../YFramework/Android/include \
-	-I../../YFramework/DS/include -I../../YFramework/MinGW32/include \
-	-I../../3rdparty/include $INCLUDES_freetype -I../../YBase/include"
+	-I../YFramework/include -I../YFramework/Android/include \
+	-I../YFramework/DS/include -I../YFramework/MinGW32/include \
+	-I../3rdparty/include $INCLUDES_freetype -I../YBase/include"
 SHBOPT_IGN="-xid,alternative -xid,data -xid,include -xid,Android"
 
 LIBS_YFramework=" \
-	-L../../YFramework/$SHBuild_YSLib_Platform/lib-$SHBuild_Env_Arch \
+	-L../YFramework/$SHBuild_YSLib_Platform/lib-$SHBuild_Env_Arch \
 	-lFreeImage -lfreetype $SHBuild_YF_SystemLibs"
 
 SHBuild_EchoVar SHBuild "$SHBuild"

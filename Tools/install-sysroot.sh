@@ -17,10 +17,15 @@ export SHBuild_LogOpt
 export SHBuild_Opt
 : ${SHBuild_SysRoot="$YSLib_BaseDir/sysroot"}
 
+YSLib_BuildDir="$YSLib_BaseDir/build"
+YSLib_DataDir="$YSLib_BaseDir/Data"
+
 # SR = SHBuild SysRoot.
-SR_Bin="$SHBuild_SysRoot/usr/bin"
-SR_Include="$SHBuild_SysRoot/usr/include"
-SR_Lib="$SHBuild_SysRoot/usr/lib"
+SR_Prefix="$SHBuild_SysRoot/usr"
+SR_Bin="$SR_Prefix/bin"
+SR_Include="$SR_Prefix/include"
+SR_Lib="$SR_Prefix/lib"
+SR_Share="$SR_Prefix/share"
 SR_SHBuild="$SHBuild_SysRoot/.shbuild"
 
 # BD = YSLib Base Directory.
@@ -119,6 +124,7 @@ echo Installing headers and libraries ...
 mkdir -p "$SR_Bin"
 mkdir -p "$SR_Include"
 mkdir -p "$SR_Lib"
+mkdir -p "$SR_Share"
 
 if [[ "$SHBuild_No3rd" == '' ]]; then
 	if [[ "$INCLUDES_freetype" != '' ]]; then
@@ -131,10 +137,10 @@ SHB_InstInc "$BD_YFramework/include/"
 SHB_InstInc "$BD_YFramework/DS/include/"
 SHB_InstInc "$BD_YFramework/MinGW32/include/"
 
-SR_S1_SHBuild="$SHBuild_BaseDir/.shbuild"
-SR_S1_SHBuild_debug="$SHBuild_BaseDir/.shbuild-debug"
-SR_S1_SHBuild_DLL="$SHBuild_BaseDir/.shbuild-dll"
-SR_S1_SHBuild_DLL_debug="$SHBuild_BaseDir/.shbuild-dll-debug"
+SR_S1_SHBuild="$YSLib_BuildDir/.shbuild"
+SR_S1_SHBuild_debug="$YSLib_BuildDir/.shbuild-debug"
+SR_S1_SHBuild_DLL="$YSLib_BuildDir/.shbuild-dll"
+SR_S1_SHBuild_DLL_debug="$YSLib_BuildDir/.shbuild-dll-debug"
 
 if [[ "$SHBuild_UseDebug" != '' ]]; then
 	if [[ "$SHBuild_NoStatic" == '' ]]; then
@@ -213,7 +219,9 @@ if [[ "$SHBuild_NoDev" == '' ]]; then
 		"$SR_Bin/RevisionPatcher$EXESFX"
 	# XXX: Version of Windows? Extract as a function?
 	if [[ "$SHBuild_Env_OS" == "Win32" ]]; then
-		SHBuild_Install_HardLink_Exe "$SHBuild_BaseDir/../FixUAC.manifest" \
+		SHBuild_Install "$YSLib_DataDir/FixUAC.manifest" \
+			"$SR_Share/FixUAC.manifest"
+		SHBuild_Install_HardLink "$SR_Share/FixUAC.manifest" \
 			"$SR_Bin/RevisionPatcher$EXESFX.manifest"
 	fi
 	echo Finished installing other development tools.
