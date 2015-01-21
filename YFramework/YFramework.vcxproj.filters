@@ -283,7 +283,7 @@
     <ClInclude Include="include\YSLib\UI\ywgtevt.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\Core\ystorage.hpp">
+    <ClInclude Include="include\YSLib\Core\YStorage.hpp">
       <Filter>include\YSLib\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\CHRLib\chrdef.h">

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1414
+\version r1416
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-01-18 14:11 +0800
+	2015-01-21 14:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -297,7 +297,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	DeclDynWidgetN(CheckButton, cbDisableSetting, node_pnlPage3)
 	DeclDynWidgetN(CheckButton, cbShowTextBoxContent, node_pnlPage3)
 
-	YTraceDe(Debug, "Initialization of ShlExplorer beginned.");
+	YTraceDe(Debug, "Initialization of ShlExplorer began.");
 	{
 		DeclDynWidgetN(TreeView, tvNodes, node_pnlPage3)
 
@@ -313,7 +313,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	AddButtonToTabBar(tcTest1, node_pnlTest1, "btnTab2", u"动画测试");
 	AddButtonToTabBar(tcTest1, node_pnlTest1, "btnTab3", u"附加测试");
 	tcTest1.UpdateTabPages();
-	p_border = make_unique<BorderResizer>(pnlTest1, 4),
+	p_border.reset(new BorderResizer(pnlTest1, 4)),
 	p_ChkFPS = &cbFPS,
 	tpDefault.Text = u"请输入文本",
 	tpDefault.BindByFocus(tbTest, bind(&TextPlaceholder::SwapTextBox<TextBox>,

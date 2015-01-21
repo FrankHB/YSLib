@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9139
+\version r9240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-01-19 10:58 +0800
+	2015-01-22 00:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,108 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.Core.YStorage $=
+		(
+			/ "function templates %(FetchStaticRef, FetchPrototype)"
+				^ "storage from %parameterize_static_object#2 with empty \
+				arguments as parameter pack",
+			/ "class templates %GLocalStaticCache"
+				^ "storage from %parameterize_static_object#1 with single \
+				class type argument as parameter pack",
+			/ $dev @ "class templates %(GStaticCache, GLocalStaticCache)" $=
+			(
+				/ $lib "private default constructor"
+					-> "public explicitly deleted default constructor",
+				+ "private base class %noncopyable",
+				/ "return type" @ "static function" -> 'const PointerType&'
+					~ 'PointerType'
+					// To allow move-only type as pointer.
+			),
+			* DLD "redundant static member pointer object"
+				@ "class %GLocalStaticCache" $orig (@ %Static $since b195)
+		),
+		/ %YCLib.Host $=
+		(
+			(
+			* "missing 'const' on 1st parameter type"
+				@ "function %FetchCommandOutput" $since b566,
+			+ 'yconstexpr size_t DefaultCommandBufferSize(yimpl(4096));';
+			/ "default argument" @ "function %FetchCommandOutput"
+				^ "%DefaultCommandBufferSize",
+			+ "alias declaration %CommandCache; functions %(LockCommandCache, \
+				(FetchCachedCommandResult; FetchCachedCommandString))";
+			/ "cached terminal calls" @ "platform %Linux" @ %Host
+				^ "%FetchCachedCommandString"
+			),
+			/ @ "class %Terminal" $=
+			(
+				/ "creating terminal data only when for TTY";
+					// See $2015-01 @ %Documentation::Workflow::Annual2015.
+				* $comp "escape sequence output even if underlying stream \
+					redirected" @ "!platform %Win32" $since b560
+			)
+		),
+		/ %Helper $=
+		(
+			/ @ "platform %Win32" @ %HostedUI $=
+			(
+				+ "function templates %(ActOnHover_ShowTopLevel; \
+					ActOnHover_ShowTopLevelAt)";
+				+ "2 functions BindHoverControl"
+			),
+			/ "member function %Environment::MapCursor accepte host window \
+				pointer as argument with default null pointer argument"
+				@ %Environment,
+				// Ignored on platform %Android.
+			/ "member function %InputManager::Update now would not return when \
+				the window is not the foreground window and only process key \
+				input when the window is foreground window"
+				@ "all hosted platforms" @ InputManager
+		)
+	),
+	/ %YBase.YStandardEx.Container $=
+	(
+		/ "function template %search_map with function object parameter \
+			changed to pass iterator hint",
+		+ "2 function templates %trail",
+		* "swapped implementations"
+			@ "function templates %(pop_back_val, pop_front_val)" @ $since b545
+	),
+	/ %Tools $=
+	(
+		/ "%FixUAC.manifest" >> %Data,
+		/ @ "%install-sysroot.sh" $=
+		(
+			+ "install 'share' directory for runtime data";
+			+ "%FixUAC.manifest to 'share' directory" $dep_from
+				"%FixUAC.manifest";
+			* "hard linked directly from 'Tools' directory and set execution \
+				bit in installation" $since b565,
+				// This is wrong, even if 'chmod +x' has no explicit impact on \
+					Windows file system.
+			/ "moved library build intermediate directories" -> "%build"
+				~ "%Tools/SHBuild" $dep_from %Scripts
+		),
+		/ "moved library and self host build intermediate directories"
+			-> "%build" ~ "%Tools/SHBuild" @ %Scripts $effective @
+			"%(SHBuild-YSLib-common.sh, SHBuild-YSLib.sh, \
+			SHBuild-YSLib-debug.sh, SHBuild-self-host.sh, \
+			SHBuild-self-host-DLL.sh)",
+		/ DLD "merged function %PrintUsage" -> "%::main" @ %SHBuild.Main
+	),
+	* $re_ex(b563) "non-canonical English use" @ "log" ^ 'began'
+		~ 'beginned' $effective @ (%YReader.ShlExplorer $since b534,
+		%YFramework.(Helper.(Environment $orig (@ %Host $since b381)),
+		'Helper_(DS)'.DSMain $orig (@ %Helper.DSMain) $since b383));
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective
+		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core
+),
+
+b566
 (
 	/ %YFramework $=
 	(

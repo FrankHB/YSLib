@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1507
+\version r1515
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-01-15 18:01 +0800
+	2015-01-22 00:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ Environment::Environment()
 		YTraceDe(Warning, "Console handler setup failed."))
 #endif
 	InitializeEnvironment();
-	YCL_Trace(Debug, "Environment lifetime beginned.");
+	YCL_Trace(Debug, "Environment lifetime began.");
 }
 Environment::~Environment()
 {
@@ -149,19 +149,20 @@ Environment::LeaveWindowThread()
 #	endif
 
 Point
-Environment::MapCursor() const
+Environment::MapCursor(Host::Window* p_wnd) const
 {
 #	if YCL_Win32
-	if(const auto p_wnd = GetForegroundWindow())
-		return p_wnd->MapPoint(p_wnd->GetCursorLocation());
+	return p_wnd ? p_wnd->MapPoint(p_wnd->GetCursorLocation()) : Point::Invalid;
 #	elif YCL_Android
 	// TODO: Support floating point coordinates.
 	const auto& cursor(platform_ex::FetchCursor());
 	const Point pt(cursor.first, cursor.second);
 
+	yunused(p_wnd);
 	return MapPoint ? MapPoint(pt) : pt;
+#	else
+	return Point::Invalid;
 #	endif
-	return Drawing::Point::Invalid;
 }
 
 void

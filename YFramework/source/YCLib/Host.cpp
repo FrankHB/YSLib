@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r199
+\version r272
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-01-19 10:16 +0800
+	2015-01-20 01:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -33,6 +33,7 @@
 #include YFM_YCLib_FileSystem // for platform::FileOperationFailure;
 #if YCL_Win32
 #	include YFM_MinGW32_YCLib_Consoles
+#	include <io.h> // for ::_isatty;
 #elif YF_Hosted
 #	include <fcntl.h>
 #endif
@@ -67,7 +68,7 @@ HandleDeleter::operator()(pointer h)
 
 
 std::string
-FetchCommandOutput(std::string& cmd, std::size_t buf_size)
+FetchCommandOutput(const std::string& cmd, std::size_t buf_size)
 {
 	if(YB_UNLIKELY(buf_size == 0))
 		throw std::invalid_argument("Zero buffer size found.");
@@ -92,6 +93,38 @@ FetchCommandOutput(std::string& cmd, std::size_t buf_size)
 	throw FileOperationFailure(errno, std::generic_category(),
 		"Failed opening pipe.");
 }
+
+
+YSLib::locked_ptr<CommandCache>
+LockCommandCache()
+{
+	struct cmd_cache_tag
+	{};
+	static YSLib::mutex mtx;
+	YSLib::unique_lock<YSLib::mutex> lck(mtx);
+
+	return {&ystdex::parameterize_static_object<CommandCache, cmd_cache_tag>(),
+		std::move(lck)};
+}
+
+const std::string&
+FetchCachedCommandResult(const std::string& cmd, std::size_t buf_size)
+{
+	auto p_locked(LockCommandCache());
+	auto& cache(Deref(p_locked));
+	try
+	{
+		const auto i_entry(cache.find(cmd));
+
+		return (i_entry != cache.cend() ? i_entry : (cache.emplace(cmd,
+			YB_UNLIKELY(cmd.empty()) ? std::string()
+			: FetchCommandOutput(cmd, buf_size))).first)->second;
+	}
+	CatchExpr(FileOperationFailure& e,
+		YTraceDe(Err, "Command execution failed: %s.", e.what()))
+	return cache[std::string()];
+}
+
 
 std::pair<UniqueHandle, UniqueHandle>
 MakePipe()
@@ -147,8 +180,9 @@ EncodeArg(const char* str)
 class TerminalData : private WConsole
 {
 public:
-	TerminalData(std::FILE* fp)
-		: WConsole(::HANDLE(::_get_osfhandle(::_fileno(Nonnull(fp)))))
+	//! \since build 567
+	TerminalData(int fd)
+		: WConsole(::HANDLE(::_get_osfhandle(fd)))
 	{}
 
 	PDefH(bool, RestoreAttributes, )
@@ -169,29 +203,64 @@ yconstexpr const int cmap[] = {0, 4, 2, 6, 1, 5, 3, 7};
 //! \since build 560
 class TerminalData : private noncopyable, private nonmovable
 {
-public:
-	TerminalData(std::FILE* stream)
-	{
-		ystdex::setnbuf(stream);
-	}
+private:
+	//! \since build 567
+	std::FILE* stream;
 
+public:
+	TerminalData(std::FILE* fp)
+		: stream(fp)
+	{}
+private:
+	//! \since build 567
+	bool
+	ExecuteCommand(const std::string&) const;
+
+public:
 	PDefH(bool, RestoreAttributes, ) ynothrow
-		ImplRet(std::system("tput sgr0") == EXIT_SUCCESS)
+		ImplRet(ExecuteCommand("tput sgr0"))
 
 	PDefH(bool, UpdateForeColor, std::uint8_t c) ynothrow
-		ImplRet(std::system(("tput setaf " + to_string(cmap[c & 7])).c_str())
-			== EXIT_SUCCESS && (c < ystdex::underlying(
-			platform::Consoles::DarkGray) || std::system("tput bold")
-			== EXIT_SUCCESS))
+		ImplRet(ExecuteCommand("tput setaf " + to_string(cmap[c & 7]))
+			&& (c < ystdex::underlying(platform::Consoles::DarkGray)
+			|| ExecuteCommand("tput bold")))
 };
+
+bool
+TerminalData::ExecuteCommand(const std::string& cmd) const
+{
+	const auto& str(FetchCachedCommandString(cmd));
+
+	if(str.empty())
+		return {};
+	std::fprintf(Nonnull(stream), "%s", str.c_str());
+	return true;
+}
 #	endif
 
 
 Terminal::Terminal(std::FILE* fp)
 	: p_term([](std::FILE* fp)->TerminalData*{
-		TryRet(new TerminalData(fp))
-		CatchExpr(Exception& e,
-			YTraceDe(Informative, "Creating console failed: %s.", e.what()))
+#	if YCL_Win32
+		const int fd(::_fileno(Nonnull(fp)));
+
+		// NOTE: This is not necessary for Windows since it only determine
+		//	whether the file descriptor is associated with a character device.
+		//	However as a optimization, it is somewhat more efficient for some
+		//	cases. See $2015-01 @ %Documentation::Workflow::Annual2015.
+		if(::_isatty(fd))
+			TryRet(new TerminalData(fd))
+#	else
+		// XXX: Performance?
+		ystdex::setnbuf(fp);
+
+		const int fd(fileno(Nonnull(fp)));
+
+		if(::isatty(fd))
+			TryRet(new TerminalData(fp))
+#	endif
+			CatchExpr(Exception& e,
+				YTraceDe(Informative, "Creating console failed: %s.", e.what()))
 		return {};
 	}(fp))
 {}
