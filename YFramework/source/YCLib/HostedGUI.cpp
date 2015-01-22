@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r921
+\version r970
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-01-18 09:54 +0800
+	2015-01-22 04:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -66,14 +66,17 @@ CheckStride(SDst buf_stride, SDst w)
 	return buf_stride;
 }
 #	elif YCL_Win32
+#		define YCL_Impl_CallWin32(_fn, _msg, ...) \
+	if(YB_UNLIKELY(!::_fn(__VA_ARGS__))) \
+		YF_Raise_Win32Exception(#_fn " @ " _msg)
+
 //! \since build 388
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
-	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, {}, 0, 0, w, h,
-		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER
-		| SWP_NOSENDCHANGING | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos @ ResizeWindow");
+	YCL_Impl_CallWin32(SetWindowPos, "ResizeWindow", h_wnd, {},
+		0, 0, w, h, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE
+		| SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 
 //! \since build 427
@@ -82,8 +85,7 @@ FetchWindowRect(::HWND h_wnd)
 {
 	::RECT rect;
 
-	if(YB_UNLIKELY(!::GetWindowRect(h_wnd, &rect)))
-		YF_Raise_Win32Exception("GetWindowRect");
+	YCL_Impl_CallWin32(GetWindowRect, "FetchWindowRect", h_wnd, &rect);
 	return rect;
 }
 
@@ -107,8 +109,8 @@ FetchWindowStyle(::HWND h_wnd)
 void
 AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
 {
-	if(YB_UNLIKELY(!::AdjustWindowRect(&rect, FetchWindowStyle(h_wnd), b_menu)))
-		YF_Raise_Win32Exception("AdjustWindowRect");
+	YCL_Impl_CallWin32(AdjustWindowRect, "AdjustWindowBounds", &rect,
+		FetchWindowStyle(h_wnd), b_menu);
 	YAssert(rect.right - rect.left >= 0 && rect.bottom - rect.top >= 0,
 		"Invalid boundary found.");
 }
@@ -116,10 +118,9 @@ AdjustWindowBounds(::RECT& rect, ::HWND h_wnd, bool b_menu = false)
 void
 SetWindowBounds(::HWND h_wnd, int x, int y, int cx, int cy)
 {
-	if(YB_UNLIKELY(!::SetWindowPos(h_wnd, {}, x, y, cx, cy,
-		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE
-		| SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos @ SetWindowBounds");
+	YCL_Impl_CallWin32(SetWindowPos, "SetWindowBounds", h_wnd, {}, x, y, cx,
+		cy, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
+		| SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 //@}
 #	endif
@@ -165,8 +166,8 @@ WindowReference::GetClientLocation() const
 {
 	::POINT point{0, 0};
 
-	if(YB_UNLIKELY(!::ClientToScreen(GetNativeHandle(), &point)))
-		YF_Raise_Win32Exception("ClientToScreen");
+	YCL_Impl_CallWin32(ClientToScreen, "WindowReference::GetClientLocation",
+		GetNativeHandle(), &point);
 	return {point.x, point.y};
 }
 Size
@@ -174,8 +175,8 @@ WindowReference::GetClientSize() const
 {
 	::RECT rect;
 
-	if(YB_UNLIKELY(!::GetClientRect(GetNativeHandle(), &rect)))
-		YF_Raise_Win32Exception("GetClientRect");
+	YCL_Impl_CallWin32(GetClientRect, "WindowReference::GetClientSize",
+		GetNativeHandle(), &rect);
 	return {rect.right, rect.bottom};
 }
 Point
@@ -183,8 +184,10 @@ WindowReference::GetCursorLocation() const
 {
 	::POINT cursor;
 
-	::GetCursorPos(&cursor);
-	::ScreenToClient(GetNativeHandle(), &cursor);
+	YCL_Impl_CallWin32(GetCursorPos, "WindowReference::GetCursorLocation",
+		&cursor);
+	YCL_Impl_CallWin32(ScreenToClient, "WindowReference::GetCursorLocation",
+		GetNativeHandle(), &cursor);
 	return {cursor.x, cursor.y};
 }
 Point
@@ -199,9 +202,8 @@ WindowReference::GetOpacity() const
 {
 	ystdex::byte a;
 
-	if(YB_UNLIKELY(!::GetLayeredWindowAttributes(GetNativeHandle(), {}, &a,
-		{})))
-		YF_Raise_Win32Exception("GetLayeredWindowAttributes");
+	YCL_Impl_CallWin32(GetLayeredWindowAttributes,
+		"WindowReference::GetOpacity", GetNativeHandle(), {}, &a, {});
 	return a;
 }
 Size
@@ -224,9 +226,8 @@ WindowReference::SetClientBounds(const Rect& r)
 void
 WindowReference::SetOpacity(YSLib::Drawing::AlphaType a)
 {
-	if(YB_UNLIKELY(!::SetLayeredWindowAttributes(GetNativeHandle(), 0, a,
-		LWA_ALPHA)))
-		YF_Raise_Win32Exception("SetLayeredWindowAttributes");
+	YCL_Impl_CallWin32(SetLayeredWindowAttributes,
+		"WindowReference::SetOpacity", GetNativeHandle(), 0, a, LWA_ALPHA);
 }
 WindowReference
 WindowReference::GetParent() const
@@ -238,31 +239,31 @@ WindowReference::GetParent() const
 void
 WindowReference::SetText(const wchar_t* str)
 {
-	if(YB_UNLIKELY(!::SetWindowTextW(GetNativeHandle(), str)))
-		YF_Raise_Win32Exception("SetWindowTextW");
+	YCL_Impl_CallWin32(SetWindowTextW, "WindowReference::SetText",
+		GetNativeHandle(), str);
 }
 
 void
 WindowReference::Close()
 {
-	if(YB_UNLIKELY(!::SendNotifyMessageW(GetNativeHandle(), WM_CLOSE, 0, 0)))
-		YF_Raise_Win32Exception("SendNotifyMessageW");
+	YCL_Impl_CallWin32(SendNotifyMessageW, "WindowReference::Close",
+		GetNativeHandle(), WM_CLOSE, 0, 0);
 }
 
 void
 WindowReference::Invalidate()
 {
-	if(YB_UNLIKELY(!::InvalidateRect(GetNativeHandle(), {}, false)))
-		YF_Raise_Win32Exception("InvalidateRect");
+	YCL_Impl_CallWin32(InvalidateRect, "WindowReference::Invalidate",
+		GetNativeHandle(), {}, {});
 }
 
 void
 WindowReference::Move(const Point& pt)
 {
-	if(YB_UNLIKELY(!::SetWindowPos(GetNativeHandle(), {}, pt.X, pt.Y, 0, 0,
+	YCL_Impl_CallWin32(SetWindowPos, "WindowReference::Move",
+		GetNativeHandle(), {}, pt.X, pt.Y, 0, 0,
 		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW
-		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos @ WindowReference::Move");
+		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
 }
 
 void
@@ -656,24 +657,23 @@ HostWindow::HostWindow(NativeWindowHandle h)
 
 	wchar_t buf[ystdex::arrlen(WindowClassName)];
 
-	if(YB_UNLIKELY(!::GetClassNameW(GetNativeHandle(), buf,
-		ystdex::arrlen(WindowClassName))))
-		YF_Raise_Win32Exception("GetClassNameW");
+	YCL_Impl_CallWin32(GetClassNameW, "HostWindow::HostWindow",
+		GetNativeHandle(), buf, ystdex::arrlen(WindowClassName));
 	if(std::wcscmp(buf, WindowClassName) != 0)
 		throw GeneralEvent("Wrong windows class name found.");
 	::SetLastError(0);
 	if(YB_UNLIKELY(::SetWindowLongPtrW(GetNativeHandle(), GWLP_USERDATA,
 		::LONG_PTR(this)) == 0 && GetLastError() != 0))
 		YF_Raise_Win32Exception("SetWindowLongPtrW");
-	if(YB_UNLIKELY(!::SetWindowPos(GetNativeHandle(), {}, 0, 0, 0, 0,
+	YCL_Impl_CallWin32(SetWindowPos, "HostWindow::HostWindow",
+		GetNativeHandle(), {}, 0, 0, 0, 0,
 		SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOREDRAW
-		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER)))
-		YF_Raise_Win32Exception("SetWindowPos @ HostWindow::HostWindow");
+		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
 
 	::RAWINPUTDEVICE rid{0x01, 0x02, 0, nullptr};
 
-	if(YB_UNLIKELY(!::RegisterRawInputDevices(&rid, 1, sizeof(rid))))
-		YF_Raise_Win32Exception("RegisterRawInputDevices");
+	YCL_Impl_CallWin32(RegisterRawInputDevices, "HostWindow::HostWindow",
+		&rid, 1, sizeof(rid));
 	MessageMap[WM_DESTROY] += []{
 		::PostQuitMessage(0);
 	};
@@ -704,6 +704,7 @@ HostWindow::MapPoint(const Point& pt) const
 {
 	return pt;
 }
+#		undef YCL_Impl_CallWin32
 #	endif
 
 } // namespace platform_ex;

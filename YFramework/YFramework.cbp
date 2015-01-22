@@ -222,6 +222,7 @@
 		<Unit filename="include/YSLib/Service/TextFile.h" />
 		<Unit filename="include/YSLib/Service/TextLayout.h" />
 		<Unit filename="include/YSLib/Service/TextRenderer.h" />
+		<Unit filename="include/YSLib/Service/YBrush.h" />
 		<Unit filename="include/YSLib/Service/YModules.h" />
 		<Unit filename="include/YSLib/Service/YGDI.h" />
 		<Unit filename="include/YSLib/Service/YPixel.h" />
@@ -244,12 +245,12 @@
 		<Unit filename="include/YSLib/UI/TreeView.h" />
 		<Unit filename="include/YSLib/UI/Viewer.h" />
 		<Unit filename="include/YSLib/UI/WidgetIteration.h" />
-		<Unit filename="include/YSLib/Service/YBrush.h" />
 		<Unit filename="include/YSLib/UI/YComponent.h" />
 		<Unit filename="include/YSLib/UI/YModules.h" />
 		<Unit filename="include/YSLib/UI/YRenderer.h" />
 		<Unit filename="include/YSLib/UI/YStyle.h" />
 		<Unit filename="include/YSLib/UI/YUIContainer.h" />
+		<Unit filename="include/YSLib/UI/YWidgetView.h" />
 		<Unit filename="include/YSLib/UI/button.h" />
 		<Unit filename="include/YSLib/UI/form.h" />
 		<Unit filename="include/YSLib/UI/label.h" />
@@ -264,7 +265,6 @@
 		<Unit filename="include/YSLib/UI/ygui.h" />
 		<Unit filename="include/YSLib/UI/ypanel.h" />
 		<Unit filename="include/YSLib/UI/ywgtevt.h" />
-		<Unit filename="include/YSLib/UI/ywgtview.h" />
 		<Unit filename="include/YSLib/UI/ywidget.h" />
 		<Unit filename="include/YSLib/UI/ywindow.h" />
 		<Unit filename="include/ysbuild.h" />
@@ -325,6 +325,7 @@
 		<Unit filename="source/YSLib/Service/TextLayout.cpp" />
 		<Unit filename="source/YSLib/Service/TextRenderer.cpp" />
 		<Unit filename="source/YSLib/Service/TextManager.cpp" />
+		<Unit filename="source/YSLib/Service/YBrush.cpp" />
 		<Unit filename="source/YSLib/Service/YGDI.cpp" />
 		<Unit filename="source/YSLib/Service/yblit.cpp" />
 		<Unit filename="source/YSLib/Service/ydraw.cpp" />
@@ -332,6 +333,7 @@
 		<Unit filename="source/YSLib/Service/ytimer.cpp" />
 		<Unit filename="source/YSLib/UI/Animation.cpp" />
 		<Unit filename="source/YSLib/UI/Border.cpp" />
+		<Unit filename="source/YSLib/UI/Button.cpp" />
 		<Unit filename="source/YSLib/UI/ComboList.cpp" />
 		<Unit filename="source/YSLib/UI/Console.cpp" />
 		<Unit filename="source/YSLib/UI/ExStyle.cpp" />
@@ -343,9 +345,8 @@
 		<Unit filename="source/YSLib/UI/TextBox.cpp" />
 		<Unit filename="source/YSLib/UI/TreeView.cpp" />
 		<Unit filename="source/YSLib/UI/Viewer.cpp" />
-		<Unit filename="source/YSLib/Service/YBrush.cpp" />
 		<Unit filename="source/YSLib/UI/YComponent.cpp" />
-		<Unit filename="source/YSLib/UI/Button.cpp" />
+		<Unit filename="source/YSLib/UI/YWidgetView.cpp" />
 		<Unit filename="source/YSLib/UI/form.cpp" />
 		<Unit filename="source/YSLib/UI/label.cpp" />
 		<Unit filename="source/YSLib/UI/menu.cpp" />
@@ -362,7 +363,6 @@
 		<Unit filename="source/YSLib/UI/YStyle.cpp" />
 		<Unit filename="source/YSLib/UI/yuicont.cpp" />
 		<Unit filename="source/YSLib/UI/ywgtevt.cpp" />
-		<Unit filename="source/YSLib/UI/ywgtview.cpp" />
 		<Unit filename="source/YSLib/UI/ywidget.cpp" />
 		<Unit filename="source/YSLib/UI/ywindow.cpp" />
 		<Extensions>

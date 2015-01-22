@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1515
+\version r1531
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-01-22 00:19 +0800
+	2015-01-23 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,20 +148,31 @@ Environment::LeaveWindowThread()
 }
 #	endif
 
-Point
+pair<Host::Window*, Point>
 Environment::MapCursor(Host::Window* p_wnd) const
 {
 #	if YCL_Win32
-	return p_wnd ? p_wnd->MapPoint(p_wnd->GetCursorLocation()) : Point::Invalid;
+	::POINT cursor;
+
+	if(YB_UNLIKELY(!::GetCursorPos(&cursor)))
+		YF_Raise_Win32Exception("GetCursorPos @ Environment::MapCursor");
+	if(!p_wnd)
+		if(const auto h = ::ChildWindowFromPointEx(::GetDesktopWindow(),
+			cursor, CWP_SKIPINVISIBLE))
+			p_wnd = FindWindow(h);
+	if(!p_wnd)
+		return {p_wnd, Point::Invalid};
+	if(YB_UNLIKELY(!::ScreenToClient(p_wnd->GetNativeHandle(), &cursor)))
+		YF_Raise_Win32Exception("ScreenToClient @ Environment::MapCursor");
+	return {p_wnd, p_wnd->MapPoint({cursor.x, cursor.y})};
 #	elif YCL_Android
 	// TODO: Support floating point coordinates.
 	const auto& cursor(platform_ex::FetchCursor());
 	const Point pt(cursor.first, cursor.second);
 
-	yunused(p_wnd);
-	return MapPoint ? MapPoint(pt) : pt;
+	return {p_wnd, MapPoint ? MapPoint(pt) : pt};
 #	else
-	return Point::Invalid;
+	return {p_wnd, Point::Invalid};
 #	endif
 }
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2013 FrankHB.
+	© 2009-2013, 2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ywgtview.cpp
+/*!	\file YWidgetView.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r193
+\version r202
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2013-12-23 23:23 +0800
+	2015-01-22 18:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,17 +36,11 @@ using namespace Drawing;
 namespace UI
 {
 
-Visual::Visual(const Rect& r)
-	: visible(true),
-	location(r.GetPoint()), size(r.Width, r.Height)
-{}
-
-
 bool
 View::IsVisible() const ynothrow
 {
-	return DependencyPtr ? DependencyPtr->GetView().IsVisible()
-		: visual.IsVisible();
+	return
+		DependencyPtr ? DependencyPtr->GetView().IsVisible() : visual.Visible;
 }
 
 void
@@ -55,7 +49,7 @@ View::SetVisible(bool b)
 	if(DependencyPtr)
 		DependencyPtr->GetView().SetVisible(b);
 	else
-		visual.SetVisible(b);
+		visual.Visible = b;
 }
 
 } // namespace UI;

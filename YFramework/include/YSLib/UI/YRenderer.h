@@ -11,13 +11,13 @@
 /*!	\file YRenderer.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r632
+\version r637
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2015-01-18 14:48 +0800
+	2015-01-23 06:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,16 +39,15 @@ namespace UI
 
 /*!
 \brief 部件渲染器。
+\since build 237
 
 无缓冲渲染策略：不保存部件渲染状态和有效的图形接口上下文。
-\since build 237
 */
 class YF_API Renderer
 {
 public:
 	DefDeCtor(Renderer)
-	DefDeCopyCtor(Renderer)
-	DefDeMoveCtor(Renderer)
+	DefDeCopyMoveCtorAssignment(Renderer)
 	virtual DefDeDtor(Renderer)
 
 	/*!
@@ -89,8 +88,7 @@ class PseudoRenderer : public Renderer
 {
 public:
 	DefDeCtor(PseudoRenderer)
-	DefDeCopyCtor(PseudoRenderer)
-	DefDeMoveCtor(PseudoRenderer)
+	DefDeCopyMoveCtorAssignment(PseudoRenderer)
 
 	DefClone(const override, PseudoRenderer)
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9240
+\version r9302
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-01-22 00:42 +0800
+	2015-01-23 06:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,69 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %Helper $=
+		(
+			* "member function %InputManager::Update wrongly ignored key input"
+				@ "platform %Android",
+			/ @ "platform %Win32" @ %Helper $=
+			(
+				/ "member function %Environment::MapCursor" @ %Environment $=
+				(
+					/ "supported non active window when the parameter is null"
+						!^ "%WindowReference::GetCursorLocation",
+					+ "host window pointer selected" @ "return type"
+				),
+				/ "supported non active window" @ "%InputManager::Update"
+					@ %InputManager
+			)
+		),
+		/ @ "platform %Win32" @ %YCLib.HostedGUI $=
+		(
+			/ DLD "simplified Win32 API calls",
+			/ "all Win32 exceptions now attached with called function names",
+			* "missing failure check" @ "member function \
+				%WindowReference::GetCursorLocation" $since b518
+				// Now throw if Win32 API calls failed.
+		),
+		- "macros %(ImplBodyBase, ImplBodyMem)" %YBaseMacro,
+		/ %YSLib $=
+		(
+			/ DLD "implemented member function %ValueHolder::operator=="
+				@ %Core.YObject ^ "%macros %(PDefHOp, ImplRet)",
+			/ %UI $=
+			(
+				/ %YWidgetView $=
+				(
+					/ @ "class %Visual" $=
+					(
+						/ "private data members"
+							-> "public data member %(Visible, Bounds)",
+						+ "explicitly defaulted constructor",
+						- "default argument" @ "user-defined constructor",
+						- "functions %(IsVisible, SetVisible, GetX, GetY, \
+							GetWidth, GetHeight, GetLocation, GetSize, \
+							GetLocationRef, GetSizeRef, SetX, SetY, SetWidth, \
+							SetHeight, 2 SetLocation, 2 SetSize)"
+					),
+					/ DLD "implemented 2 %operator=" @ "class %View"
+						^ "macros %(PDefHOp, ImpRet)"
+				),
+				/ $dev "simplified defaulted special member functions"
+					^ "macro %DefDeCopyMoveCtorAssignment"
+					~ "%(DefDeCopyCtor, DefDeMovector)"
+					@ "class %(Renderer, PseudoRenderer)" @ %YRenderer
+			)
+		)
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective
+		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core
+),
+
+b567
 (
 	/ %YFramework $=
 	(
