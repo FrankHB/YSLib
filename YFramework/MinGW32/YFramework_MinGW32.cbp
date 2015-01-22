@@ -325,6 +325,7 @@
 		<Unit filename="../include/YSLib/UI/YRenderer.h" />
 		<Unit filename="../include/YSLib/UI/YStyle.h" />
 		<Unit filename="../include/YSLib/UI/YUIContainer.h" />
+		<Unit filename="../include/YSLib/UI/YWidgetView.h" />
 		<Unit filename="../include/YSLib/UI/button.h" />
 		<Unit filename="../include/YSLib/UI/form.h" />
 		<Unit filename="../include/YSLib/UI/label.h" />
@@ -339,7 +340,6 @@
 		<Unit filename="../include/YSLib/UI/ygui.h" />
 		<Unit filename="../include/YSLib/UI/ypanel.h" />
 		<Unit filename="../include/YSLib/UI/ywgtevt.h" />
-		<Unit filename="../include/YSLib/UI/ywgtview.h" />
 		<Unit filename="../include/YSLib/UI/ywidget.h" />
 		<Unit filename="../include/YSLib/UI/ywindow.h" />
 		<Unit filename="../include/ysbuild.h" />
@@ -420,6 +420,7 @@
 		<Unit filename="../source/YSLib/UI/Viewer.cpp" />
 		<Unit filename="../source/YSLib/UI/YComponent.cpp" />
 		<Unit filename="../source/YSLib/UI/YStyle.cpp" />
+		<Unit filename="../source/YSLib/UI/YWidgetView.cpp" />
 		<Unit filename="../source/YSLib/UI/form.cpp" />
 		<Unit filename="../source/YSLib/UI/label.cpp" />
 		<Unit filename="../source/YSLib/UI/menu.cpp" />
@@ -435,7 +436,6 @@
 		<Unit filename="../source/YSLib/UI/yrender.cpp" />
 		<Unit filename="../source/YSLib/UI/yuicont.cpp" />
 		<Unit filename="../source/YSLib/UI/ywgtevt.cpp" />
-		<Unit filename="../source/YSLib/UI/ywgtview.cpp" />
 		<Unit filename="../source/YSLib/UI/ywidget.cpp" />
 		<Unit filename="../source/YSLib/UI/ywindow.cpp" />
 		<Unit filename="include/YCLib/COM.h" />

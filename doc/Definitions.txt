@@ -11,13 +11,13 @@
 /*!	\file Definitions.txt
 \ingroup Documentation
 \brief 方法和公共域定义与说明。
-\version r13016
+\version r13018
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-26 19:34:51 +0800
 \par 修改时间:
-	2015-01-19 20:48 +0800
+	2015-01-22 18:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -237,8 +237,6 @@ ImplExpr(...)
 ImplRet(...)
 ImplThrow(...)
 ImplUnseq(...)
-ImplBodyBase(_b, _n, ...)
-ImplBodyMem(_m, _n, ...)
 TryExpr(...)
 TryRet(...)
 CatchExpr(_ex, ...)

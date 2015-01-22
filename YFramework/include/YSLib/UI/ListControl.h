@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ListControl.h
 \ingroup UI
 \brief 列表控件。
-\version r1588
+\version r1591
 \author FrankHB <frankhb1989@gmail.com>
 \since build 528
 \par 创建时间:
 	2011-04-19 22:59:02 +0800
 \par 修改时间:
-	2014-11-21 12:42 +0800
+	2015-01-22 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -211,7 +211,7 @@ public:
 
 	DefPredMem(const ynothrow, Selected, vwList)
 	PDefH(bool, Contains, ListType::size_type i)
-		ImplBodyMem(vwList, Contains, i)
+		ImplRet(vwList.Contains(i))
 
 	//! \since build 530
 	DefGetter(override, WidgetRange, Children, WidgetRange(begin(), end()))
@@ -264,7 +264,7 @@ private:
 
 public:
 	PDefH(void, ClearSelected, )
-		ImplBodyMem(vwList, ClearSelected, )
+		ImplExpr(vwList.ClearSelected())
 
 protected:
 	/*!

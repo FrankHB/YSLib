@@ -236,7 +236,7 @@
     <ClInclude Include="include\YSLib\UI\YStyle.h" />
     <ClInclude Include="include\YSLib\UI\YUIContainer.h" />
     <ClInclude Include="include\YSLib\UI\ywgtevt.h" />
-    <ClInclude Include="include\YSLib\UI\ywgtview.h" />
+    <ClInclude Include="include\YSLib\UI\YWidgetView.h" />
     <ClInclude Include="include\YSLib\UI\ywidget.h" />
     <ClInclude Include="include\YSLib\UI\ywindow.h" />
   </ItemGroup>
@@ -335,7 +335,7 @@
     <ClCompile Include="source\YSLib\UI\YStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\yuicont.cpp" />
     <ClCompile Include="source\YSLib\UI\ywgtevt.cpp" />
-    <ClCompile Include="source\YSLib\UI\ywgtview.cpp" />
+    <ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />
     <ClCompile Include="source\YSLib\UI\ywidget.cpp" />
     <ClCompile Include="source\YSLib\UI\ywindow.cpp" />
   </ItemGroup>

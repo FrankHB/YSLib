@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YObject.h
 \ingroup Core
 \brief 平台无关的基础对象。
-\version r3890
+\version r3898
 \author FrankHB <frankhb1989@gmail.com>
 \since build 561
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-12-19 15:28 +0800
+	2015-01-22 18:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -173,11 +173,8 @@ public:
 	//! \since build 555
 	DefDeMoveAssignment(ValueHolder)
 
-	bool
-	operator==(const IValueHolder& obj) const ImplI(IValueHolder)
-	{
-		return AreEqualHeld(held, static_cast<const ValueHolder&>(obj).held);
-	}
+	PDefHOp(bool, ==, const IValueHolder& obj) const ImplI(IValueHolder)
+		ImplRet(AreEqualHeld(held, static_cast<const ValueHolder&>(obj).held))
 
 	//! \since build 409
 	DefClone(const ImplI(IValueHolder), ValueHolder)
@@ -416,14 +413,14 @@ public:
 	\since build 296
 	*/
 	PDefH(void, Clear, ) ynothrow
-		ImplBodyMem(content, clear, )
+		ImplExpr(content.clear())
 
 	/*!
 	\brief 交换。
 	\since build 409
 	*/
 	PDefH(void, swap, ValueObject& vo) ynothrow
-		ImplBodyMem(content, swap, vo.content)
+		ImplExpr(content.swap(vo.content))
 };
 
 /*!

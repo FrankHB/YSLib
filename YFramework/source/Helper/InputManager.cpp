@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r528
+\version r535
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2015-01-22 00:23 +0800
+	2015-01-23 01:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,7 +152,7 @@ IWidget*
 InputManager::Update()
 {
 #if YF_Hosted
-	const auto p_wnd(env.get().GetForegroundWindow());
+	auto p_wnd(env.get().GetForegroundWindow());
 
 #endif
 	using namespace platform::KeyCodes;
@@ -161,13 +161,16 @@ InputManager::Update()
 	//	reopening lid) on real machine due to LibNDS default interrupt
 	//	handler for power management.
 //	platform::AllowSleep(true);
-#if YF_Hosted
+#if YF_Hosted && !YCL_Android
 	if(p_wnd)
 #endif
 		platform_ex::UpdateKeyStates();
 
-#if YF_Hosted
-	cursor_state = env.get().MapCursor(p_wnd);
+#if YCL_Win32
+	tie(p_wnd, cursor_state) = env.get().MapCursor();
+#elif YF_Hosted
+	// TODO: Determine which inactive window should be used.
+	cursor_state = env.get().MapCursor(p_wnd).second;
 #elif YCL_DS
 	if(platform_ex::FetchKeyState()[Touch])
 		cursor_state = platform_ex::FetchCursor();

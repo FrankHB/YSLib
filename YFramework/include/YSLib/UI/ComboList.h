@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ComboList.h
 \ingroup UI
 \brief 样式相关的图形用户界面组合列表控件。
-\version r2676
+\version r2684
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-07 20:30:40 +0800
 \par 修改时间:
-	2014-11-12 04:10 +0800
+	2015-01-22 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ public:
 
 	DefPredMem(const ynothrow, Selected, GetTextListRef())
 	PDefH(bool, Contains, ListType::size_type i)
-		ImplBodyMem(GetTextListRef(), Contains, i)
+		ImplRet(GetTextListRef().Contains(i))
 
 	//! \since build 534
 	//@{
@@ -112,7 +112,7 @@ public:
 	\since build 285
 	*/
 	PDefH(void, SetSelected, ListType::size_type i)
-		ImplBodyMem(GetTextListRef(), SetSelected, i)
+		ImplExpr(GetTextListRef().SetSelected(i))
 
 	/*!
 	\brief 按内容大小依次调整列表视图中选中和首个项目的索引。
@@ -121,7 +121,7 @@ public:
 	\since build 392
 	*/
 	PDefH(void, AdjustViewForContent, )
-		ImplBodyMem(GetTextListRef(), AdjustViewForContent, )
+		ImplExpr(GetTextListRef().AdjustViewForContent())
 
 	/*!
 	\brief 调整视图长度。
@@ -129,7 +129,7 @@ public:
 	\since build 285
 	*/
 	PDefH(void, AdjustViewLength, )
-		ImplBodyMem(GetTextListRef(), AdjustViewLength, )
+		ImplExpr(GetTextListRef().AdjustViewLength())
 
 	/*!
 	\brief 清除选中项。
@@ -137,10 +137,10 @@ public:
 	\since build 285
 	*/
 	PDefH(void, ClearSelected, )
-		ImplBodyMem(GetTextListRef(), ClearSelected, )
+		ImplExpr(GetTextListRef().ClearSelected())
 
 	PDefH(void, ResetView, )
-		ImplBodyMem(GetTextListRef(), ResetView, )
+		ImplExpr(GetTextListRef().ResetView())
 
 	/*!
 	\brief 按指定大小上限和内容调整大小。
@@ -292,7 +292,7 @@ public:
 	\since build 392
 	*/
 	PDefH(void, AdjustViewForContent, )
-		ImplBodyMem(lbContent, AdjustViewForContent, )
+		ImplExpr(lbContent.AdjustViewForContent())
 
 private:
 	/*!

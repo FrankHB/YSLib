@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yevt.hpp
+/*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4852
+\version r4856
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2014-12-14 21:57 +0800
+	2015-01-22 19:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -642,7 +642,7 @@ public:
 	\since build 530
 	*/
 	PDefH(void, clear, )
-		ImplBodyMem(this->GetNewRef(), clear, )
+		ImplExpr(this->GetNewRef().clear())
 };
 
 

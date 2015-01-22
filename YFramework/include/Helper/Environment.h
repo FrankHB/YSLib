@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r788
+\version r795
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2015-01-22 00:17 +0800
+	2015-01-23 01:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -122,6 +122,7 @@ public:
 	\brief 取 GUI 前景窗口。
 	\since build 381
 	\todo 线程安全。
+	\todo 非 Win32 宿主平台实现。
 	*/
 	Host::Window*
 	GetForegroundWindow() const ynothrow;
@@ -165,10 +166,14 @@ public:
 
 	/*!
 	\brief 映射宿主光标位置到相对顶层窗口输入的光标位置。
-	\note Android 平台忽略参数。
-	\since build 557
+	\return 顶层窗口指针和映射的位置。
+	\since build 568
+
+	Win32 平台：若参数为空则首先调用使用屏幕光标位置确定顶层窗口。
+	若存在指定的顶层窗口，则调用窗口的 MapCursor 方法确定结果，否则返回无效值。
+	Android 平台：忽略参数（只用于返回）。
 	*/
-	Drawing::Point
+	pair<Host::Window*, Drawing::Point>
 	MapCursor(Host::Window* = {}) const;
 
 	/*!
