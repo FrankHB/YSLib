@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ListControl.cpp
 \ingroup UI
 \brief 列表控件。
-\version r2087
+\version r2089
 \author FrankHB <frankhb1989@gmail.com>
 \since build 214
 \par 创建时间:
 	2011-04-20 09:28:38 +0800
 \par 修改时间:
-	2014-11-12 05:29 +0800
+	2015-01-23 14:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -80,7 +80,7 @@ MTextList::MTextList(const shared_ptr<ListType>& h)
 	auto& unit(GetUnitRef());
 
 	LabelBrush.Margin = Padding(2, 2, 1, 1),
-	unit.GetView().GetSizeRef().Height = GetItemHeight(),
+	unit.GetView().SetHeight(GetItemHeight()),
 	Iterated += [this](size_t idx){
 		YAssert(idx < GetTotal(), "Index is out of range.");
 		LabelBrush.Text = GetList()[idx];

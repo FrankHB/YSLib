@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3169
+\version r3170
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-01-21 14:06 +0800
+	2015-01-23 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,7 +191,7 @@ InitConsole(Devices::Screen&, Drawing::Pixel, Drawing::Pixel)
 }
 
 #if YCL_Win32
-namespace MinGW32
+namespace Windows
 {
 
 void

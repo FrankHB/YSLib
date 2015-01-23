@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ywidget.h
+/*!	\file YWidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5754
+\version r5775
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 569
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-11-12 05:20 +0800
+	2015-01-23 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,9 +87,9 @@ DeclI(YF_API, IWidget)
 	\brief 取部件视图。
 	\note 引用有效性由派生类约定。
 	\warning 注意修改容器指针或焦点指针时，应保持和容器包含部件的状态同步。
-	\since build 259
+	\since build 569
 	*/
-	DeclIEntry(View& GetView() const)
+	DeclIEntry(AView& GetView() const)
 EndDecl
 
 //! \relates IWidget
@@ -148,17 +148,17 @@ inline PDefH(IWidget*, FetchFocusingPtr, const IWidget& wgt)
 /*!
 \ingroup helper_functions
 \brief 取部件位置。
-\since build 239
+\since build 569
 */
-inline PDefH(const Point&, GetLocationOf, const IWidget& wgt)
+inline PDefH(Point, GetLocationOf, const IWidget& wgt)
 	ImplRet(wgt.GetView().GetLocation())
 
 /*!
 \ingroup helper_functions
 \brief 取部件大小。
-\since build 259
+\since build 569
 */
-inline PDefH(const Size&, GetSizeOf, const IWidget& wgt)
+inline PDefH(Size, GetSizeOf, const IWidget& wgt)
 	ImplRet(wgt.GetView().GetSize())
 
 /*!
@@ -166,7 +166,7 @@ inline PDefH(const Size&, GetSizeOf, const IWidget& wgt)
 \since build 190
 */
 inline PDefH(Rect, GetBoundsOf, const IWidget& wgt)
-	ImplRet({GetLocationOf(wgt), GetSizeOf(wgt)})
+	ImplRet(wgt.GetView().GetBounds())
 
 /*!
 \brief 设置部件边界。
@@ -369,11 +369,15 @@ class YF_API Widget : implements IWidget
 {
 private:
 	/*!
+	\invariant 非空。
 	\since build 346
-	\note 非空。
 	*/
 	//@{
-	unique_ptr<View> view_ptr; //!< 部件视图指针。
+	/*!
+	\brief 部件视图指针。
+	\since build 569
+	*/
+	unique_ptr<AView> view_ptr;
 	unique_ptr<Renderer> renderer_ptr; //!< 渲染器指针。
 	unique_ptr<AController> controller_ptr; //!< 控制器指针。
 	//@}
@@ -448,7 +452,8 @@ public:
 		Deref(controller_ptr))
 	DefGetterMem(const ynothrow, SDst, Height, GetView())
 	DefGetter(const ImplI(IWidget), Renderer&, Renderer, Deref(renderer_ptr))
-	DefGetter(const ImplI(IWidget), View&, View, Deref(view_ptr))
+	//! \since build 569
+	DefGetter(const ImplI(IWidget), AView&, View, Deref(view_ptr))
 	DefGetterMem(const ynothrow, SDst, Width, GetView())
 	DefGetterMem(const ynothrow, SPos, X, GetView())
 	DefGetterMem(const ynothrow, SPos, Y, GetView())
@@ -469,9 +474,10 @@ public:
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用以当前部件边界新建的 View 对象。
 	\note 取得指定对象的所有权。
+	\since build 569
 	*/
 	void
-	SetView(unique_ptr<View>&&);
+	SetView(unique_ptr<AView>&&);
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

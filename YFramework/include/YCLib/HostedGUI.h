@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r998
+\version r1007
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-01-18 09:54 +0800
+	2015-01-23 20:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -148,6 +148,12 @@ public:
 	using nptr::nptr;
 	//! \since build 560
 	DefDeCopyMoveCtorAssignment(WindowReference)
+
+#	if YCL_Win32
+	//! \since build 569
+	bool
+	IsVisible() const ynothrow;
+#	endif
 
 #	if YCL_HostedUI_XCB
 	//! \since build 562
@@ -711,6 +717,11 @@ public:
 	DefDelMoveCtor(HostWindow)
 	virtual
 	~HostWindow();
+
+#	if YCL_Win32
+	//! \since build 569
+	using WindowReference::IsVisible;
+#	endif
 
 #	if YCL_HostedUI_XCB
 	//! \since build 562

@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2235
+\version r2378
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-01-19 08:21 +0800
+	2015-01-23 17:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -568,28 +568,82 @@ private:
 namespace details
 {
 
-//! \since build 525
-template<typename _type, typename _tRef>
-struct swap_guard_impl
+//! \since build 569
+//@{
+template<typename _type, typename _tToken,
+	bool _bRef = is_reference<_tToken>::value>
+struct state_guard_traits
+{
+	static void
+	save(_tToken t, _type& val)
+#if YB_HAS_NOEXCEPT
+		ynoexcept(
+			noexcept(std::declval<_tToken&>()(true, std::declval<_type&>())))
+#endif
+	{
+		t(true, val);
+	}
+
+	static void
+	restore(_tToken t, _type& val)
+#if YB_HAS_NOEXCEPT
+		ynoexcept(
+			noexcept(std::declval<_tToken&>()(false, std::declval<_type&>())))
+#endif
+	{
+		t(false, val);
+	}
+};
+
+template<typename _type, typename _tToken>
+struct state_guard_traits<_type, _tToken, true>
+{
+	//! \todo 按 ISO C++ [utility.swap] 要求确定异常规范。
+	static void
+	save(_tToken t, _type& val)
+	{
+		using std::swap;
+
+		swap(val, static_cast<_type&>(t));
+	}
+
+	//! \todo 按 ISO C++ [utility.swap] 要求确定异常规范。
+	static void
+	restore(_tToken t, _type& val)
+	{
+		using std::swap;
+
+		swap(val, static_cast<_type&>(t));
+	}
+};
+
+
+template<typename _type, typename _tToken>
+struct state_guard_impl : private state_guard_traits<_type, _tToken>
 {
 	using value_type = _type;
-	using reference_type = _tRef;
+	using token_type = _tToken;
 
-	reference_type reference;
+	token_type token;
 	union
 	{
 		value_type value;
 		byte data[sizeof(value_type)];
 	};
 
-	//! \since build 556
-	swap_guard_impl(const swap_guard_impl&) = delete;
+	state_guard_impl(token_type t)
+		: token(t)
+	{}
+	state_guard_impl(const state_guard_impl&) = delete;
+	~state_guard_impl()
+	{}
 
 	template<typename... _tParams>
 	void
-	construct(_tParams&&... args)
+	construct_and_save(_tParams&&... args)
 	{
 		new(std::addressof(value)) value_type(yforward(args)...);
+		save();
 	}
 
 	void
@@ -598,131 +652,132 @@ struct swap_guard_impl
 		value.~value_type();
 	}
 
-	swap_guard_impl(reference_type referent)
-		: reference(referent)
-	{}
-	~swap_guard_impl()
-	{}
-
-	//! \todo 按 ISO C++ [utility.swap] 要求确定异常规范。
 	void
-	do_swap() ynothrow
+	save()
+#if YB_HAS_NOEXCEPT
+		ynoexcept(noexcept(state_guard_traits<value_type, token_type>
+			::save(std::declval<token_type&>(), std::declval<value_type&>())))
+#endif
 	{
-		using std::swap;
+		state_guard_traits<value_type, token_type>::save(token, value);
+	}
 
-		swap(value, static_cast<value_type&>(reference));
+	void
+	restore()
+#if YB_HAS_NOEXCEPT
+		ynoexcept(noexcept(state_guard_traits<value_type, token_type>
+			::restore(std::declval<token_type&>(),
+			std::declval<value_type&>())))
+#endif
+	{
+		state_guard_traits<value_type, token_type>::restore(token, value);
+	}
+
+	void
+	restore_and_destroy()
+#if YB_HAS_NOEXCEPT
+		ynoexcept(noexcept(state_guard_traits<value_type, token_type>
+			::restore(std::declval<token_type&>(),
+			std::declval<value_type&>())))
+#endif
+	{
+		restore();
+		destroy();
 	}
 };
+//@}
 
 } // namespace details;
 
 /*!
-\brief 使用 ADL swap 调用暂存对象的 scope guard 。
-\since build 525
+\brief 使用临时状态暂存对象的 scope guard 。
+\since build 569
 \todo 支持分配器。
 \todo 支持有限的复制和转移。
 */
 //@{
 template<typename _type, typename _tCond = bool,
-	typename _tRef = std::reference_wrapper<_type>>
-class swap_guard : private details::swap_guard_impl<_type, _tRef>
+	typename _tToken = std::function<void(bool, _type&)>>
+class state_guard : private details::state_guard_impl<_type, _tToken>
 {
 private:
-	using base = details::swap_guard_impl<_type, _tRef>;
+	using base = details::state_guard_impl<_type, _tToken>;
 
 public:
 	using typename base::value_type;
-	using typename base::reference_type;
+	using typename base::token_type;
 	using condition_type = _tCond;
 
-	using base::reference;
+	using base::token;
 	using base::value;
 	using base::data;
-	mutable condition_type enabled;
+	mutable condition_type enabled{};
 
 	template<typename... _tParams>
-	swap_guard(condition_type cond, reference_type referent, _tParams&&... args)
-		: base(referent),
+	state_guard(condition_type cond, token_type t, _tParams&&... args)
+		: base(t),
 		enabled(cond)
 	{
 		if(enabled)
-			base::construct(yforward(args)...);
-		do_swap();
+			base::construct_and_save(yforward(args)...);
 	}
-	//! \since build 526
-	template<typename _func, yimpl(typename = enable_if_t<
-		is_constructible<value_type, result_of_t<_func()>>::value, int>)>
-	swap_guard(condition_type cond, reference_type referent, _func f)
-		: swap_guard(cond, referent, f())
-	{}
-	~swap_guard()
+	~state_guard()
+#if YB_HAS_NOEXCEPT
+		ynoexcept(noexcept(
+			std::declval<state_guard&>().base::restore_and_destroy()))
+#endif
 	{
-		do_swap();
-		release();
+		if(enabled)
+			base::restore_and_destroy();
 	}
 
 	void
 	dismiss()
 	{
-		release();
-		enabled = condition_type();
-	}
-
-	//! \todo 按 ISO C++ [utility.swap] 要求确定异常规范。
-	void
-	do_swap() ynothrow
-	{
-		if(enabled)
-			base::do_swap();
-	}
-
-private:
-	void
-	release()
-	{
 		if(enabled)
 			base::destroy();
+		enabled = condition_type();
 	}
 };
 
-template<typename _type, typename _tRef>
-class swap_guard<_type, void, _tRef>
-	: private details::swap_guard_impl<_type, _tRef>
+template<typename _type, typename _tToken>
+class state_guard<_type, void, _tToken>
+	: private details::state_guard_impl<_type, _tToken>
 {
 private:
-	using base = details::swap_guard_impl<_type, _tRef>;
+	using base = details::state_guard_impl<_type, _tToken>;
 
 public:
 	using typename base::value_type;
-	using typename base::reference_type;
+	using typename base::token_type;
 	using condition_type = void;
 
-	using base::reference;
+	using base::token;
 	using base::value;
 	using base::data;
 
 	template<typename... _tParams>
-	swap_guard(reference_type referent, _tParams&&... args)
-		: base(referent)
+	state_guard(token_type t, _tParams&&... args)
+		: base(t)
 	{
-		base::construct(yforward(args)...);
-		do_swap();
+		base::construct_and_save(yforward(args)...);
 	}
-	//! \since build 526
-	template<typename _func, yimpl(typename = enable_if_t<
-		is_constructible<value_type, result_of_t<_func()>>::value, int>)>
-	swap_guard(reference_type referent, _func f)
-		: swap_guard(referent, f())
-	{}
-	~swap_guard()
+	~state_guard()
 	{
-		do_swap();
-		base::destroy();
+		base::restore_and_destroy();
 	}
-
-	using base::do_swap;
 };
 //@}
+
+
+/*!
+\brief 使用 ADL swap 调用暂存对象的 scope guard 。
+\since build 569
+\todo 支持分配器。
+\todo 支持有限的复制和转移。
+*/
+template<typename _type, typename _tCond = bool, typename _tRef = _type&>
+using swap_guard = state_guard<_type, _tCond, _tRef>;
 
 } // namespace ystdex;
 

@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r202
+\version r216
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-01-22 18:42 +0800
+	2015-01-23 19:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,6 +35,24 @@ using namespace Drawing;
 
 namespace UI
 {
+
+void
+SwapLocationOf(AView& v, Point& pt)
+{
+	auto t(v.GetLocation());
+
+	std::swap(t, pt);
+	v.SetLocation(t);
+}
+
+void
+SwapSizeOf(AView& v, Size& s)
+{
+	auto t(v.GetSize());
+
+	std::swap(t, s);
+	v.SetSize(t);
+}
 
 bool
 View::IsVisible() const ynothrow

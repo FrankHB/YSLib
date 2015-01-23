@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yglobal.h
+/*!	\file YGlobal.h
 \ingroup Helper
 \brief 平台相关的全局对象和函数定义。
-\version r1927
+\version r1941
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 569
 \par 创建时间:
 	2009-12-22 15:14:57 +0800
 \par 修改时间:
-	2014-12-09 15:12 +0800
+	2015-01-23 23:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -54,7 +54,6 @@ namespace YSLib
 //@}
 
 
-//前向声明。
 namespace Drawing
 {
 } // namespace Drawing;
@@ -66,7 +65,9 @@ namespace Messaging
 //! \since build 388
 namespace UI
 {
+
 class Desktop;
+
 } // namespace UI;
 
 //! \since build 502
@@ -78,6 +79,7 @@ class Environment;
 */
 namespace Host
 {
+
 //! \since build 381
 class Window;
 class RenderWindow;
@@ -102,13 +104,22 @@ using namespace platform_ex;
 
 } // namespace DS;
 #elif YCL_Win32
-//! \since build 383
-namespace MinGW32
+//! \since build 569
+namespace Windows
 {
 
 using namespace platform_ex;
 
-} // namespace MinGW32;
+} // namespace Windows;
+#	if YCL_MinGW
+//! \since build 569
+namespace MinGW
+{
+
+using namespace YSLib::Windows;
+
+} // namespace MinGW;
+#	endif
 #elif YCL_Android
 //! \since build 492
 namespace Android

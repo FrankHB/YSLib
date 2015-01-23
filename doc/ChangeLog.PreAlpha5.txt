@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9302
+\version r9374
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-01-23 06:52 +0800
+	2015-01-23 23:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,76 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib.UI $=
+		(
+			/ "virtual destructor" @ "class %Renderer" @ %Renderer
+				-> "base class %ystdex::cloneable",
+			(
+			/ %YWidgetView $=
+			(
+				+ "abstract class %AView with base class %ystdex::cloneable",
+				/ @ "class %View"
+				(
+					/ "all public data members" >> "class %AView",
+					(
+					+ "implemented base class %AView";
+					/ "removed 'const &'" @ "return type"
+						@ "functions %(GetLocation, GetSize) as overriders",
+					+ "overrider %(GetBounds, SetBounds)",
+					/ "functions %(SetX, SetY, SetWidth, SetHeight)"
+						-> "overriders"
+					),
+					/ "functions %(GetLocation, GetSize, GetX, GetY, \
+						GetHeight, GetWidget, SetLocation#2, SetSize#2)"
+						>> "class %AView"
+				),
+				+ "functions %(SwapLocationOf, SwapSizeOf)"
+			);
+			/ %YWidget $=
+			(
+				/ @ "return type" @ "abstract method %GetView"
+					@ "interface %IWidget" -> 'AView&' ~ 'View&',
+				- 'const &' @ "return type"
+					@ "functions %(GetLocationOf, GetSizeOf)",
+				/ @ "class %Widget" $=
+				(
+					/ DLD "widget pointer type" -> 'unique_ptr<AView>'
+						~ 'unique_ptr<View>',
+					/ "return type" @ "member function %GetView" -> 'AView&'
+						~ 'View&',
+					/ "parameter type" @ "member function %SetView"
+						-> 'unique_ptr<AView>&&' ~ 'unique_ptr<View>&&'
+				)
+			)
+			)
+		),
+		/ @ "platform %Win32" @ %YCLib.HostedGUI $=
+		(
+			+ "function %IsVisible" @ "class %WindowReference";
+			+ 'using WindowReference::IsVisible' @ "class %HostWindows"
+		),
+		/ @ "namespace %YSLib" @ %Helper.YGlobal $=
+		(
+			+ "namespace %Windows" @ "platforms %Win32",
+			/ "namespace %MinGW32" -> "namespace %MinGW" @ "platforms %MinGW"
+		)
+	),
+	/ %YBase.YStandardEx.Utilities $=
+	(
+		+ "class template %state_guard";
+		/ "class template %swap_guard" -> "alias template"
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective @ ("%ywidget.h"
+		=> "%YWidget.h", "%ywidget.cpp" => "%YWidget.cpp", "%scroll.cpp"
+		=> "%Scroll.cpp") @ %YSLib.UI, ("%yglobal.h" => "%YGlobal.h" @ %Helper)
+		@ YFramework
+),
+
+b568
 (
 	/ %YFramework $=
 	(
@@ -2791,7 +2861,7 @@ b553
 		)
 	),
 	/ $lib "simplified direct assertion to indirect assertion"
-		^ "%Nonnull, Deref" $dep_from YFrameowrk.YSLib.Adaptor.YAdaptor
+		^ "%Nonnull, Deref" $dep_from YFramework.YSLib.Adaptor.YAdaptor
 		$effective @ %(YFramework.(Helper.(ShellHelper, GUIApplication,
 		HostRenderer, HostWindow, InputManager), YSLib.(Adaptor.(Image, Font),
 		Core.(YApplication, YCoreUtilities, YEvent, YObject, YDevice, YGDIBase),
@@ -5194,7 +5264,7 @@ b535
 			$since b444,
 		/ "remove '。' at end of the directives" $effective
 			@ %(YBase.YStandardEx.(Any, Functional, Iterator),
-			YFrameowrk.Helper_(Android, DS))
+			YFramework.Helper_(Android, DS))
 	),
 	/ %YBase $=
 	(
@@ -5288,7 +5358,7 @@ b534
 
 b533
 (
-	/ %YFrameowrk.YSLib.UI $=
+	/ %YFramework.YSLib.UI $=
 	(
 		/ @ "class %GUIState" @ %YGUI $=
 		(
