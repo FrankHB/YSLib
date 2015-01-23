@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r970
+\version r975
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-01-22 04:03 +0800
+	2015-01-23 20:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -149,6 +149,12 @@ WindowReference::Deref() const
 	throw std::runtime_error("Null window reference found.");
 }
 #	elif YCL_Win32
+bool
+WindowReference::IsVisible() const ynothrow
+{
+	return ::IsWindowVisible(GetNativeHandle());
+}
+
 Rect
 WindowReference::GetBounds() const
 {

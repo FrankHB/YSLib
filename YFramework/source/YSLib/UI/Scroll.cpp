@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file scroll.cpp
+/*!	\file Scroll.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面滚动控件。
-\version r3724
+\version r3730
 \author FrankHB <frankhb1989@gmail.com>
 \since build 194
 \par 创建时间:
 	2011-03-07 20:12:02 +0800
 \par 修改时间:
-	2014-11-21 12:40 +0800
+	2015-01-23 23:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -354,9 +354,11 @@ ScrollBar::ScrollBar(const Rect& r, Orientation o, SDst min_thumb)
 			"No enough space for track.");
 
 		const SDst tl(GetSizeOf(e.GetSender()).GetRef(is_h) - sum);
+		auto pt(GetLocationOf(btnNext));
+		Size s(GetSizeOf(track));
 
-		yunseq(track.GetView().GetSizeRef().GetRef(is_h) = tl,
-			btnNext.GetView().GetLocationRef().GetRef(is_h) = tl + prev_metric);
+		yunseq(pt.GetRef(is_h) = tl + prev_metric, s.GetRef(is_h) = tl);
+		btnNext.GetView().SetLocation(pt), track.GetView().SetSize(s);
 		// NOTE: No event %(Resize, Move) is raised.
 	},
 	FetchEvent<KeyUp>(*this) += OnKey_Bound_TouchUp,

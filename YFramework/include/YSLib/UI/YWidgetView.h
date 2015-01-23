@@ -11,13 +11,13 @@
 /*!	\file YWidgetView.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r664
+\version r773
 \author FrankHB <frankhb1989@gmail.com>
 \since build 568
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-01-22 18:54 +0800
+	2015-01-23 19:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -87,88 +87,141 @@ public:
 };
 
 
-/*!
-\brief 部件视图。
-\since build 259
-*/
-class YF_API View
+//! \brief 抽象部件视图。
+//@{
+class YF_API AView : public ystdex::cloneable
 {
-private:
-	Visual visual; //!< 当前可视状态。
-
 public:
 	//! \since build 375
 	//@{
-	mutable IWidget* ContainerPtr; //!< 从属的部件容器的指针。
+	mutable IWidget* ContainerPtr{}; //!< 从属的部件容器的指针。
 	/*!
 	\brief 从属的部件指针。
 
 	逻辑依赖的部件指针，用于提供边界、容器和焦点以外属性的默认值。
 	*/
-	mutable IWidget* DependencyPtr;
-	mutable IWidget* FocusingPtr; //!< 焦点指针。
+	mutable IWidget* DependencyPtr{};
+	mutable IWidget* FocusingPtr{}; //!< 焦点指针。
 	//@}
 
+	DefDeCtor(AView)
+	AView(const AView&)
+		: AView()
+	{}
+	AView(AView&& v)
+		: ContainerPtr(v.ContainerPtr), DependencyPtr(v.DependencyPtr),
+		FocusingPtr(v.FocusingPtr)
+	{
+		yunseq(v.ContainerPtr = {}, v.DependencyPtr = {}, v.FocusingPtr = {});
+	}
+	virtual DefDeDtor(AView)
+
+	DefDeCopyMoveAssignment(AView)
+
+	DeclIEntry(bool IsVisible() const)
+
+	virtual DefGetter(const, Rect, Bounds, {GetLocation(), GetSize()})
+	DefGetter(const ynothrow, SDst, Height, GetSize().Height)
+	DeclIEntry(Point GetLocation() const)
+	DefGetter(const ynothrow, SDst, Width, GetSize().Width)
+	DeclIEntry(Size GetSize() const)
+	DefGetterMem(const ynothrow, SPos, X, GetLocation())
+	DefGetterMem(const ynothrow, SPos, Y, GetLocation())
+
+	virtual PDefH(void, SetBounds, const Rect& r)
+		ImplExpr(SetLocation(r.GetPoint()), SetSize(r.GetSize()))
+	virtual PDefH(void, SetHeight, SDst h)
+		ImplExpr(SetSize(GetSize().Width, h))
+	DeclIEntry(void SetLocation(const Point&))
+	PDefH(void, SetLocation, SPos x, SPos y)
+		ImplExpr(SetLocation({x, y}))
+	DeclIEntry(void SetSize(const Size&))
+	PDefH(void, SetSize, SDst w, SDst h)
+		ImplExpr(SetSize({w, h}))
+	virtual PDefH(void, SetWidth, SDst w)
+		ImplExpr(SetSize(w, GetSize().Height))
+	virtual PDefH(void, SetX, SPos x)
+		ImplExpr(SetLocation(x, GetLocation().Y))
+	virtual PDefH(void, SetY, SPos y)
+		ImplExpr(SetLocation(GetLocation().X, y))
+
+	DeclIEntry(void SetVisible(bool))
+
+	DeclIEntry(AView* clone() const ImplI(ystdex::cloneable))
+};
+
+//! \relates AView
+//@{
+//! \brief 交换指定视图的位置。
+YF_API void
+SwapLocationOf(AView&, Point&);
+
+//! \brief 交换指定视图的大小。
+YF_API void
+SwapSizeOf(AView&, Size&);
+//@}
+//@}
+
+
+/*!
+\brief 部件视图。
+\since build 259
+*/
+class YF_API View : public AView
+{
+private:
+	Visual visual; //!< 当前可视状态。
+
+public:
 	/*!
 	\brief 构造：使用指定边界、前景色和背景色。
 	\since build 337
 	*/
 	View(const Rect& r = {})
-		: visual(r), ContainerPtr(), DependencyPtr(), FocusingPtr()
+		: AView(),
+		visual(r)
 	{}
 	View(const View& v)
-		: visual(v.visual), ContainerPtr(), DependencyPtr(), FocusingPtr()
+		: AView(v),
+		visual(v.visual)
 	{}
 	View(View&& v)
-		: visual(v.visual), ContainerPtr(v.ContainerPtr),
-		DependencyPtr(v.DependencyPtr), FocusingPtr(v.FocusingPtr)
-	{
-		yunseq(v.ContainerPtr = {}, v.DependencyPtr = {}, v.FocusingPtr = {});
-	}
-	virtual DefDeDtor(View)
+		: AView(std::move(v)),
+		visual(v.visual)
+	{}
 
-	/*!
-	\brief 复制赋值：仅可视状态。
-	\since build 295
-	*/
-	PDefHOp(View&, =, const View& v)
-		ImplRet(visual = v.visual, *this)
-	/*!
-	\brief 转移赋值：仅可视状态。
-	\since build 295
-	*/
-	PDefHOp(View&, =, View&& v)
-		ImplRet(visual = std::move(v.visual), *this)
+	DefDeCopyMoveAssignment(View)
 
 	bool
-	IsVisible() const ynothrow;
+	IsVisible() const ynothrow ImplI(AView);
 
-	DefGetter(const ynothrow, SDst, Height, GetSize().Height)
-	DefGetter(const ynothrow, const Point&, Location, visual.Bounds.GetPoint())
+	//! \since build 569
+	DefGetter(const ynothrow override, Rect, Bounds, visual.Bounds)
+	//! \since build 569
+	DefGetter(const ynothrow ImplI(AView), Point, Location,
+		View::GetBounds().GetPoint())
 	//! \since build 307
-	DefGetter(ynothrow, Point&, LocationRef, visual.Bounds.GetPointRef())
-	DefGetterMem(const ynothrow, const Size&, Size, visual.Bounds)
+	DefGetter(ynothrow, Point&, LocationRef, GetBounds().GetPointRef())
+	//! \since build 569
+	DefGetterMem(const ynothrow ImplI(AView), Size, Size, View::GetBounds())
 	//! \since build 307
-	DefGetterMem(ynothrow, Size&, SizeRef, visual.Bounds)
-	DefGetter(const ynothrow, SDst, Width, GetSize().Width)
-	DefGetterMem(const ynothrow, SPos, X, GetLocation())
-	DefGetterMem(const ynothrow, SPos, Y, GetLocation())
+	DefGetterMem(ynothrow, Size&, SizeRef, GetBounds())
 
-	DefSetter(SDst, Height, GetSizeRef().Height)
+	virtual/*override*/ DefSetter(SDst, Height, GetSizeRef().Height)
 	void
-	SetVisible(bool);
-	DefSetter(SDst, Width, GetSizeRef().Width)
-	DefSetterMem(SPos, X, GetLocationRef())
-	DefSetterMem(SPos, Y, GetLocationRef())
-	virtual DefSetter(const Point&, Location, visual.Bounds.GetPointRef())
-	PDefH(void, SetLocation, SPos x, SPos y)
-		ImplExpr(SetLocation({x, y}))
-	virtual DefSetter(const Size&, Size, visual.Bounds.GetSizeRef())
-	PDefH(void, SetSize, SDst w, SDst h)
-		ImplExpr(SetSize({w, h}))
+	SetVisible(bool) ImplI(AView);
+	virtual/*override*/ DefSetter(SDst, Width, GetSizeRef().Width)
+	virtual/*override*/ DefSetterMem(SPos, X, GetLocationRef())
+	virtual/*override*/ DefSetterMem(SPos, Y, GetLocationRef())
+	//! \since build 569
+	virtual/*override*/ DefSetter(const Rect&, Bounds, visual.Bounds)
+	virtual/*ImplI(AView)*/
+	DefSetter(const Point&, Location, visual.Bounds.GetPointRef())
+	virtual/*ImplI(AView)*/
+	DefSetter(const Size&, Size, visual.Bounds.GetSizeRef())
 
 	//! \since build 409
-	virtual DefClone(const, View)
+	DefClone(const ImplI(AView), View)
 };
 
 } // namespace UI;

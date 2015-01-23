@@ -129,7 +129,7 @@
     <ClInclude Include="include\Helper\InputManager.h" />
     <ClInclude Include="include\Helper\ScreenBuffer.h" />
     <ClInclude Include="include\Helper\ShellHelper.h" />
-    <ClInclude Include="include\Helper\yglobal.h" />
+    <ClInclude Include="include\Helper\YGlobal.h" />
     <ClInclude Include="include\Helper\YModules.h" />
     <ClInclude Include="include\NPL\Configuration.h" />
     <ClInclude Include="include\NPL\Lexical.h" />
@@ -237,7 +237,7 @@
     <ClInclude Include="include\YSLib\UI\YUIContainer.h" />
     <ClInclude Include="include\YSLib\UI\ywgtevt.h" />
     <ClInclude Include="include\YSLib\UI\YWidgetView.h" />
-    <ClInclude Include="include\YSLib\UI\ywidget.h" />
+    <ClInclude Include="include\YSLib\UI\YWidget.h" />
     <ClInclude Include="include\YSLib\UI\ywindow.h" />
   </ItemGroup>
   <ItemGroup>
@@ -314,7 +314,7 @@
     <ClCompile Include="source\YSLib\UI\Loader.cpp" />
     <ClCompile Include="source\YSLib\UI\menu.cpp" />
     <ClCompile Include="source\YSLib\UI\progress.cpp" />
-    <ClCompile Include="source\YSLib\UI\scroll.cpp" />
+    <ClCompile Include="source\YSLib\UI\Scroll.cpp" />
     <ClCompile Include="source\YSLib\UI\Selector.cpp" />
     <ClCompile Include="source\YSLib\UI\TabControl.cpp" />
     <ClCompile Include="source\YSLib\UI\textarea.cpp" />
@@ -335,9 +335,9 @@
     <ClCompile Include="source\YSLib\UI\YStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\yuicont.cpp" />
     <ClCompile Include="source\YSLib\UI\ywgtevt.cpp" />
-    <ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />
-    <ClCompile Include="source\YSLib\UI\ywidget.cpp" />
-    <ClCompile Include="source\YSLib\UI\ywindow.cpp" />
+		<ClCompile Include="source\YSLib\UI\YWidget.cpp" />
+		<ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />
+		<ClCompile Include="source\YSLib\UI\ywindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\doc\ChangeLog.PreAlpha4.txt" />

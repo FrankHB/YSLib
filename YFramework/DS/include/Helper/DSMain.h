@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r866
+\version r869
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:49:27 +0800
 \par 修改时间:
-	2014-12-22 10:04 +0800
+	2015-01-23 22:53 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -178,7 +178,7 @@ YF_API bool
 InitConsole(Devices::Screen&, Drawing::Pixel, Drawing::Pixel);
 
 #	if YCL_Win32
-namespace MinGW32
+namespace Windows
 {
 
 using namespace platform_ex;
@@ -186,7 +186,7 @@ using namespace platform_ex;
 YF_API void
 TestFramework(size_t);
 
-} // namespace MinGW32;
+} // namespace Windows;
 #	endif
 #else
 #	error "Only DS and hosted platform supported."

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Selector.cpp
 \ingroup UI
 \brief 样式相关的图形用户界面选择控件。
-\version r1044
+\version r1075
 \author FrankHB <frankhb1989@gmail.com>
 \since build 282
 \par 创建时间:
 	2011-03-22 07:20:06 +0800
 \par 修改时间:
-	2014-12-19 06:04 +0800
+	2015-01-23 19:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,6 +89,26 @@ RectDrawRadioBox(const PaintContext& pc, const Size& s, Hue base_hue,
 			is_enabled ? ColorSpace::Black : MakeGray(112));
 }
 
+//! \since build 569
+void
+BoxRefresh(AView& v, MLabel& lbl, PaintEventArgs& e, std::function<void()> f1)
+{
+	{
+		using namespace std::placeholders;
+		ystdex::state_guard<Size, void> guard([&](bool, Size& s){
+			SwapSizeOf(v, s);
+		}, 13, 13);
+
+		f1();
+	}
+	{
+		ystdex::swap_guard<SPos, void>
+			guard(lbl.Margin.Left, SPos(lbl.Margin.Left + 13));
+
+		lbl(std::move(e));
+	}
+}
+
 } // unnamed namespace;
 
 
@@ -147,17 +167,9 @@ CheckButton::CheckButton(const Rect& r)
 void
 CheckButton::Refresh(PaintEventArgs&& e)
 {
-	{
-		ystdex::swap_guard<Size, void> guard(GetView().GetSizeRef(), 13, 13);
-
+	BoxRefresh(GetView(), *this, e, [&, this]{
 		CheckBox::Refresh(std::move(e));
-	}
-	{
-		ystdex::swap_guard<SPos, void>
-			guard(Margin.Left, SPos(Margin.Left + 13));
-
-		(*this)(std::move(e));
-	}
+	});
 }
 
 
@@ -236,18 +248,9 @@ RadioButton::RadioButton(const Rect& r)
 void
 RadioButton::Refresh(PaintEventArgs&& e)
 {
-	{
-		ystdex::swap_guard<Size, void> guard(GetView().GetSizeRef(), 13, 13);
-
+	BoxRefresh(GetView(), *this, e, [&, this]{
 		RadioBox::Refresh(std::move(e));
-	}
-	{
-		ystdex::swap_guard<SPos, void>
-			guard(Margin.Left, SPos(Margin.Left + 13));
-
-		(*this)(std::move(e));
-	}
-
+	});
 }
 
 } // namespace UI;

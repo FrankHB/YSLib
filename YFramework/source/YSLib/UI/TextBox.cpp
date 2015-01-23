@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r615
+\version r617
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2014-11-18 03:36 +0800
+	2015-01-23 16:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -312,7 +312,7 @@ TextBox::Refresh(PaintEventArgs&& e)
 {
 	ystdex::swap_guard<String> guard(MaskChar != ucs4_t(), Text, [this]{
 		return String{MaskChar} * Text.length();
-	});
+	}());
 
 	(*this)(std::move(e));
 }

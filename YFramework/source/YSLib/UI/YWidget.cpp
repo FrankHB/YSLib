@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ywidget.cpp
+/*!	\file YWidget.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r4459
+\version r4463
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-11-19 15:38 +0800
+	2015-01-23 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -247,10 +247,10 @@ Widget::SetRenderer(unique_ptr<Renderer> p)
 	renderer_ptr->SetSize(GetSizeOf(*this));
 }
 void
-Widget::SetView(unique_ptr<View>&& p)
+Widget::SetView(unique_ptr<AView>&& p)
 {
 	view_ptr = p ? std::move(p)
-		: unique_ptr<View>(new View(GetBoundsOf(*this)));
+		: unique_ptr<AView>(new View(GetBoundsOf(*this)));
 }
 
 void

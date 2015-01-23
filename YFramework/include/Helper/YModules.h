@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup Helper
 \brief Helper 库模块配置文件。
-\version r63
+\version r65
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:11 +0800
 \par 修改时间:
-	2014-07-24 09:41 +0800
+	2015-01-23 23:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -39,7 +39,7 @@
 
 //! \since build 461
 //@{
-#define YFM_Helper_YGlobal <Helper/yglobal.h>
+#define YFM_Helper_YGlobal <Helper/YGlobal.h>
 #define YFM_Helper_Initialization <Helper/Initialization.h>
 #define YFM_Helper_InputManager <Helper/InputManager.h>
 #define YFM_Helper_GUIShell <Helper/GUIShell.h>
