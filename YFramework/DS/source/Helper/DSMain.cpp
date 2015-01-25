@@ -12,13 +12,13 @@
 \ingroup Helper
 \ingroup DS
 \brief DS 平台框架。
-\version r3170
+\version r3172
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2012-03-25 12:48:49 +0800
 \par 修改时间:
-	2015-01-23 22:53 +0800
+	2015-01-24 18:40 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -94,7 +94,7 @@ DSApplication::DSApplication()
 		return unique_ptr<Window>(new DSWindow(CreateNativeWindow(
 			WindowClassName, {256, 384}, L"YSTest", WS_TILED | WS_CAPTION
 			| WS_SYSMENU | WS_MINIMIZEBOX), *scrs[0], *scrs[1],
-			GetEnvironment()));
+			GetEnvironmentRef()));
 	}));
 	while(!p_wnd_thrd->GetWindowPtr())
 		// TODO: Resolve magic sleep duration.
@@ -164,7 +164,7 @@ DSApplication::SwapScreens()
 #if YF_Hosted
 	std::swap(GetDSScreenUp().Offset, GetDSScreenDown().Offset);
 #	if !YCL_Android
-	if(const auto p_wnd = GetEnvironment().GetForegroundWindow())
+	if(const auto p_wnd = GetEnvironmentRef().GetForegroundWindow())
 		p_wnd->Invalidate();
 #	endif
 #endif

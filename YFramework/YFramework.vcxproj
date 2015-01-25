@@ -331,7 +331,7 @@
     <ClCompile Include="source\YSLib\UI\yfocus.cpp" />
     <ClCompile Include="source\YSLib\UI\ygui.cpp" />
     <ClCompile Include="source\YSLib\UI\ypanel.cpp" />
-    <ClCompile Include="source\YSLib\UI\yrender.cpp" />
+    <ClCompile Include="source\YSLib\UI\YRenderer.cpp" />
     <ClCompile Include="source\YSLib\UI\YStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\yuicont.cpp" />
     <ClCompile Include="source\YSLib\UI\ywgtevt.cpp" />

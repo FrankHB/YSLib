@@ -11,13 +11,13 @@
 /*!	\file YRenderer.h
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r640
+\version r642
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2011-09-03 23:47:32 +0800
 \par 修改时间:
-	2015-01-23 13:06 +0800
+	2015-01-25 03:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -193,8 +193,8 @@ public:
 	\return 验证中被刷新的区域边界。
 	\since build 293
 
-	验证 sender 的指定图形设备上下文的关联的缓冲区，
-	若存在无效区域则调用 wgt 的 Paint 事件绘制。
+	验证 sender 的指定图形接口上下文的关联的缓冲区，
+	若存在无效区域则新建 PaintEventArgs ， 调用 wgt 的 Paint 事件绘制。
 	*/
 	Rect
 	Validate(IWidget& wgt, IWidget& sender, const PaintContext&);

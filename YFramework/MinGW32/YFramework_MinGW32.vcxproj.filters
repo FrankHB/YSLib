@@ -49,6 +49,9 @@
     <ClInclude Include="include\YCLib\NLS.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
+    <ClInclude Include="include\Helper\Win32Control.h">
+      <Filter>include\Helper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\YCLib\MinGW32.cpp">

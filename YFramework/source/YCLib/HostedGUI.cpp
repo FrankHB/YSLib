@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r975
+\version r1003
 \author FrankHB <frankhb1989@gmail.com>
 \since build 427
 \par 创建时间:
 	2013-07-10 11:31:05 +0800
 \par 修改时间:
-	2015-01-23 20:44 +0800
+	2015-01-25 04:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,13 +70,22 @@ CheckStride(SDst buf_stride, SDst w)
 	if(YB_UNLIKELY(!::_fn(__VA_ARGS__))) \
 		YF_Raise_Win32Exception(#_fn " @ " _msg)
 
+//! \since build 570
+void
+MoveWindow(::HWND h_wnd, SPos x, SPos y)
+{
+	YCL_Impl_CallWin32(SetWindowPos, "MoveWindow", h_wnd, {},
+		x, y, 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
+		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
+}
+
 //! \since build 388
 void
 ResizeWindow(::HWND h_wnd, SDst w, SDst h)
 {
 	YCL_Impl_CallWin32(SetWindowPos, "ResizeWindow", h_wnd, {},
 		0, 0, w, h, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOMOVE
-		| SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_NOZORDER);
+		| SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 
 //! \since build 427
@@ -120,7 +129,7 @@ SetWindowBounds(::HWND h_wnd, int x, int y, int cx, int cy)
 {
 	YCL_Impl_CallWin32(SetWindowPos, "SetWindowBounds", h_wnd, {}, x, y, cx,
 		cy, SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER
-		| SWP_NOSENDCHANGING | SWP_NOZORDER);
+		| SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOZORDER);
 }
 //@}
 #	endif
@@ -219,6 +228,11 @@ WindowReference::GetSize() const
 }
 
 void
+WindowReference::SetBounds(const Rect& r)
+{
+	SetWindowBounds(GetNativeHandle(), r.X, r.Y, r.Width, r.Height);
+}
+void
 WindowReference::SetClientBounds(const Rect& r)
 {
 	::RECT rect{r.X, r.Y, CheckScalar<SPos>(r.X + r.Width, "width"),
@@ -266,10 +280,17 @@ WindowReference::Invalidate()
 void
 WindowReference::Move(const Point& pt)
 {
-	YCL_Impl_CallWin32(SetWindowPos, "WindowReference::Move",
-		GetNativeHandle(), {}, pt.X, pt.Y, 0, 0,
-		SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW
-		| SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
+	MoveWindow(GetNativeHandle(), pt.X, pt.Y);
+}
+
+void
+WindowReference::MoveClient(const Point& pt)
+{
+	::RECT rect{pt.X, pt.Y, pt.X, pt.Y};
+	const auto h_wnd(GetNativeHandle());
+
+	AdjustWindowBounds(rect, h_wnd);
+	MoveWindow(h_wnd, rect.left, rect. top);
 }
 
 void
@@ -283,10 +304,10 @@ WindowReference::ResizeClient(const Size& s)
 {
 	::RECT rect{0, 0, CheckScalar<SPos>(s.Width, "width"),
 		CheckScalar<SPos>(s.Height, "height")};
+	const auto h_wnd(GetNativeHandle());
 
-	AdjustWindowBounds(rect, GetNativeHandle());
-	ResizeWindow(GetNativeHandle(), rect.right - rect.left,
-		rect.bottom - rect.top);
+	AdjustWindowBounds(rect, h_wnd);
+	ResizeWindow(h_wnd, rect.right - rect.left, rect.bottom - rect.top);
 }
 
 bool

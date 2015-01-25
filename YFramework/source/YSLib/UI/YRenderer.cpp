@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yrender.cpp
+/*!	\file YRenderer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 部件渲染器。
-\version r653
+\version r661
 \author FrankHB <frankhb1989@gmail.com>
 \since build 237
 \par 创建时间:
 	2011-09-03 23:46:22 +0800
 \par 修改时间:
-	2014-08-12 02:38 +0800
+	2015-01-25 03:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -109,12 +109,10 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 {
 	if(RequiresRefresh())
 	{
-		const auto& l(GetLocationOf(sender));
-
 		if(!IgnoreBackground && FetchContainerPtr(sender))
 			Invalidate(sender);
 
-		const Rect& clip(pc.ClipArea & (rInvalidated + l));
+		const Rect& clip(pc.ClipArea & (rInvalidated + pc.Location));
 
 		if(!clip.IsUnstrictlyEmpty())
 		{
@@ -126,11 +124,13 @@ BufferedRenderer::Validate(IWidget& wgt, IWidget& sender,
 					- pc.Location, clip.GetPoint(), clip.GetSize());
 			}
 
-			PaintEventArgs e(sender, {GetContext(), Point(), clip - l});
+			PaintEventArgs
+				e(sender, {GetContext(), Point(), clip - pc.Location});
 
 			e.ClipArea &= e.Target.GetSize();
 			CallEvent<UI::Paint>(wgt, e);
-			//清除无效区域：只设置一个分量为零可能会使 CommitInvalidation 结果错误。
+			// NOTE: To keep %CommitInvalidation result correct, both
+			//	components of the size shall be reset.
 			rInvalidated.GetSizeRef() = {};
 			return e.ClipArea;
 		}

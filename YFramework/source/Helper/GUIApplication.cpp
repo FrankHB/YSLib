@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.cpp
 \ingroup Helper
 \brief GUI 应用程序。
-\version r340
+\version r347
 \author FrankHB <frankhb1989@gmail.com>
 \since build 396
 \par 创建时间:
 	2013-04-06 22:42:54 +0800
 \par 修改时间:
-	2014-11-27 15:40 +0800
+	2015-01-24 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -50,11 +50,8 @@ GUIApplication* ApplicationPtr;
 \brief 取空闲消息。
 \since build 320
 */
-inline Message
-FetchIdleMessage()
-{
-	return Message(SM_Input);
-}
+inline PDefH(Message, FetchIdleMessage, )
+	ImplRet(Message(SM_Input))
 
 /*!
 \brief 后台消息处理程序。
@@ -90,7 +87,7 @@ GUIApplication::~GUIApplication()
 }
 
 Environment&
-GUIApplication::GetEnvironment() ynothrow
+GUIApplication::GetEnvironmentRef() const ynothrow
 {
 	return Deref(p_env);
 }
