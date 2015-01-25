@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostWindow.h
 \ingroup Helper
 \brief 宿主环境窗口。
-\version r432
+\version r435
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-18 18:16:53 +0800
 \par 修改时间:
-	2014-12-22 15:08 +0800
+	2015-01-24 18:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -108,7 +108,8 @@ public:
 	//@}
 	~Window() override;
 
-	DefGetter(const ynothrow, Environment&, Host, env)
+	//! \since build 570
+	DefGetter(const ynothrow, Environment&, EnvironmentRef, env)
 
 	/*!
 	\brief 刷新：保持渲染状态同步。

@@ -12,13 +12,13 @@
 \ingroup YCLib
 \ingroup YCLibLimitedPlatforms
 \brief 宿主 GUI 接口。
-\version r1007
+\version r1032
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2013-07-10 11:29:04 +0800
 \par 修改时间:
-	2015-01-23 20:40 +0800
+	2015-01-25 04:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -240,7 +240,17 @@ public:
 	PDefH(void, Show, )
 		ImplRet(Deref().Show())
 #	elif YCL_Win32
-	//! \since build 445
+	/*!
+	\brief 按参数指定的客户区边界设置窗口边界。
+	\note 线程安全。
+	\since build 570
+	*/
+	void
+	SetBounds(const YSLib::Drawing::Rect&);
+	/*!
+	\brief 按参数指定的客户区边界设置窗口边界。
+	\since build 445
+	*/
 	void
 	SetClientBounds(const YSLib::Drawing::Rect&);
 	/*!
@@ -274,6 +284,12 @@ public:
 	*/
 	void
 	Move(const YSLib::Drawing::Point&);
+	/*!
+	\brief 按参数指定的客户区位置移动窗口。
+	\since build 570
+	*/
+	void
+	MoveClient(const YSLib::Drawing::Point&);
 
 	/*!
 	\brief 调整窗口大小。
@@ -283,7 +299,7 @@ public:
 	Resize(const YSLib::Drawing::Size&);
 
 	/*!
-	\brief 按客户区调整窗口大小。
+	\brief 按参数指定的客户区大小调整窗口大小。
 	\note 线程安全。
 	*/
 	void
@@ -724,11 +740,13 @@ public:
 #	endif
 
 #	if YCL_HostedUI_XCB
-	//! \since build 562
+	//! \since build 563
+	//@{
 	using WindowReference::GetBounds;
 	using WindowReference::GetLocation;
 
 	using WindowReference::SetBounds;
+	//@}
 #	elif YCL_Win32
 	//! \since build 543
 	using WindowReference::GetBounds;
@@ -762,6 +780,8 @@ public:
 #	endif
 
 #	if YCL_Win32
+	//! \since build 570
+	using WindowReference::SetBounds;
 	//! \since build 445
 	using WindowReference::SetClientBounds;
 	//! \since build 430
@@ -794,6 +814,9 @@ public:
 	using WindowReference::Move;
 
 #		if YCL_Win32
+	//! \since build 570
+	using WindowReference::MoveClient;
+
 	using WindowReference::Resize;
 
 	using WindowReference::ResizeClient;

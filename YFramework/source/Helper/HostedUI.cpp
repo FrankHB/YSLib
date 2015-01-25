@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r212
+\version r217
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-01-21 06:21 +0800
+	2015-01-25 06:31 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,6 +47,7 @@ WaitForHostWindow(UI::IWidget& wgt)
 	auto& renderer(dynamic_cast<HostRenderer&>(wgt.GetRenderer()));
 	Host::Window* p_wnd{};
 
+	// XXX: Busy wait?
 	while(!p_wnd)
 		p_wnd = renderer.GetWindowPtr();
 	return *p_wnd;
@@ -76,14 +77,16 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 
 HostRenderer&
 ShowTopLevel(UI::Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
-	int n_cmd_show, const wchar_t* title, bool mv)
+	int n_cmd_show, const wchar_t* title)
 {
 	auto& res(UI::WrapRenderer<HostRenderer>(wgt, wgt, [=, &wgt]{
 		WindowReference wnd_ref(CreateNativeWindow(WindowClassName,
 			GetSizeOf(wgt), title, wstyle, wstyle_ex));
 
-		if(mv)
-			wnd_ref.Move(GetLocationOf(wgt));
+		const auto& pt(GetLocationOf(wgt));
+
+		if(pt != Point::Invalid)
+			wnd_ref.MoveClient(pt);
 		wgt.GetView().SetLocation({});
 		wnd_ref.Show(n_cmd_show);
 		return wnd_ref;

@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r72
+\version r88
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-01-20 01:31 +0800
+	2015-01-25 05:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -68,6 +68,22 @@ The function 'isatty' on POSIX compliant environments and '_isatty' is not the s
 	Use Win32 APIs to achieve the functionality of POSIX compliant 'isatty'.
 		See http://stackoverflow.com/questions/3648711/detect-nul-file-descriptor-isatty-is-bogus .
 	However, both function can exclude some cases not fit for terminal output.
+Move-only parameter passing counts.
+	See the discussion at http://scottmeyers.blogspot.com/2014/07/should-move-only-types-ever-be-passed.html .
+	Both 'T&&' or 'T' have cases. The former is probable more efficient and debugger-friendly, while the latter is simpler (both on coding and behavior).
+		For 'T&&', the extra move is delayed to the client code. And there is possible to not move (or even not use) the argument at all.
+		For 'T', the move operation is mandated by copy-initialization of the parameter.
+	The implicit coding rules used by YSLib are not documentated then, so here is the summary.
+		To use mandated move on certain move-only types which has predictable and acception perfomance on the move operation (e.g. instances of 'std::unique_ptr' with default deleter), 'T' is preferred.
+		Otherwise, 'T&&' should be used.
+	These cases was attented at long before.
+		At least in September 2014, these rules were adopted.
+			This is reflected by the modification on Documentation::CommonRules (Mercurial changeset 406, build 534; now Documentation::LanguageConvention).
+			However, no actual code modification was taken (e.g. on 'YSLib::UI::Widget::SetRenderer').
+		These rules are now updated to be more explicit in Documentation::LanguageConvention.
+		In fact, 'YSLib::UI::Widget::SetRenderer' was modified in May 2013 (Mercurial changeset 278, build 406) for probable the same rules.
+		Now 'YSLib::UI::Widget::SetView' is synchronized to be consistent. Both these functions needed the object of 'unique_ptr' instance always being used.
+	For non move-only type, see $2014-04.
 
 ////
 

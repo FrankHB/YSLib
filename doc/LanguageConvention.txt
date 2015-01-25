@@ -11,13 +11,13 @@
 /*!	\file LanguageConvention.txt
 \ingroup Documentation
 \brief 语言使用规约。
-\version r1389
+\version r1390
 \author FrankHB <frankhb1989@gmail.com>
 \since build 543
 \par 创建时间:
 	2012-10-08 05:13:05 +0800
 \par 修改时间:
-	2015-01-15 19:14 +0800
+	2015-01-25 05:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -906,7 +906,7 @@ WG21 N3263 在此基础上明确了标准库容器成员的 noexcept 使用。 W
 @5.12.2.3 参数传递：
 仅向内部实现中的调用传递参数，外层参数使用非 const 右值引用类型时，同时使用 std::forward 或等价的显式类型转换包装参数传递。
 注意右值对象引用类型的参数不保证实际参数在函数调用后被转移(@5.2.4.1) 。
-对可转移构造但不能复制构造的对象类型非模板函数参数，适当使用右值引用参数而不是直接使用对象类型以取得允许不确定转移或修改对象的可能性，同时减少必须的构造，参见 http://scottmeyers.blogspot.com/2014/07/should-move-only-types-ever-be-passed.html 的讨论。
+对可转移构造但不能复制构造的对象类型非模板函数参数，仅当可预期和可接受转移构造开销并且总是需要转移操作时直接使用对象类型，否则使用右值引用参数。参见 http://scottmeyers.blogspot.com/2014/07/should-move-only-types-ever-be-passed.html 的讨论。
 另见 @5.2.4.1 和 @5.15.9 。
 
 @5.12.2.3.1 例外：

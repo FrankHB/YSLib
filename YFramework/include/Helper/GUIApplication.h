@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file GUIApplication.h
 \ingroup Helper
 \brief GUI 应用程序。
-\version r369
+\version r373
 \author FrankHB <frankhb1989@gmail.com>
 \since build 398
 \par 创建时间:
 	2013-04-11 10:02:53 +0800
 \par 修改时间:
-	2014-12-16 05:22 +0800
+	2015-01-24 18:37 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -72,9 +72,9 @@ public:
 	*/
 	~GUIApplication() override;
 
-	//! \since build 521
+	//! \since build 570
 	Environment&
-	GetEnvironment() ynothrow;
+	GetEnvironmentRef() const ynothrow;
 
 	/*!
 	\brief 处理当前消息。
@@ -122,7 +122,7 @@ LockInstance();
 \since build 398
 */
 inline PDefH(Environment&, FetchEnvironment, )
-	ImplRet(FetchGlobalInstance().GetEnvironment())
+	ImplRet(FetchGlobalInstance().GetEnvironmentRef())
 
 
 /*!

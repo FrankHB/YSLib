@@ -93,6 +93,7 @@
     <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\include\Helper\shlds.h" />
     <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.h" />
     <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.h" />
+    <ClInclude Include="include\Helper\Win32Control.h" />
     <ClInclude Include="include\YCLib\COM.h" />
     <ClInclude Include="include\YCLib\Consoles.h" />
     <ClInclude Include="include\YCLib\MinGW32.h" />

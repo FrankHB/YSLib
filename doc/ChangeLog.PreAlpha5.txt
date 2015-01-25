@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9374
+\version r9426
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-01-23 23:35 +0800
+	2015-01-25 08:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,59 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ DLD "header inclusion" ^ 'YFM_DS_Helper_DSMain' ~ '<Helper/DSMain.h>'
+		@ %YReader.DSReader,
+	/ %YFramework $=
+	(
+		+ %Helper_(MinGW32) $=
+			(+ %Win32Control $=
+				(+ "classes %(ViewSignal; ControlView)")),
+		/ %Helper $=
+		(
+			/ "member function %Window::GetHost" => "%GetEnvrionmentRef"
+				@ %HostWindow,
+			/ "member function 'Environment& GetEnvironment() ynothrow'"
+				-> 'Environment& GetEnvironmentRef() const ynothrow'
+				@ "class %GUIApplication" @ %GUIApplication,
+			/ @ "function %ShowTopLevel" @ "platform %Win32" @ %HostedUI $=
+			(
+				/ "set widget location if and only if not %Point::Invalid",
+				/ "set widget location for client area" ~ "host window",
+				- $revert(b548) "last parameter"
+			),
+			/ DLD "implemented constructors %HostRenderer by private \
+				delegating constructor" @ %HostRenderer
+		),
+		/ "platform %Win32" @ %YCLib.HostedGUI $=
+		(
+			(
+			+ "member function %WindowReference::(MoveClient, SetBounds)";
+			/ $design $comp
+				"exception string for %SetWindowPos on move operations",
+			+ ('using WindowReference::MoveClient;',
+				'using WindowReference::SetBounds;') @ "class %HostWindow"
+			),
+			/ "no redrawing would be performed" @ "functions %(Resize, \
+				ResizeClient, SetClientBounds)" @ "class %WindowReference"
+		),
+		/ %YSLib.UI $=
+		(
+			* "wrong offset used when the painted widget is not the child of \
+				the widget which owns the buffered renderer"
+				@ "member function %BufferedRenderer::Validate" @ %Renderer
+				$since b278,
+			- $re_ex(b406) '&&' @ "parameter"
+				@ "member function %Widget::SetView" @ %YWidget,
+				// See $2015-01 @ %Documentation::Workflow::Annual2015.
+		)
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective
+		@ ("%yrender.cpp" => "%YRenderer.cpp") @ YFramework.YSLib.UI;
+),
+
+b569
 (
 	/ %YFramework $=
 	(

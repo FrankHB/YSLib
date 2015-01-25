@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha4.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha4 。
-\version r8920
+\version r8936
 \author FrankHB <frankhb1989@gmail.com>
 \since build 400
 \par 创建时间:
 	2013-04-20 11:19:07 +0800
 \par 修改时间:
-	2015-01-02 09:34 +0800
+	2015-01-25 04:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -4601,18 +4601,18 @@ b432
 			/ DLD "throwing exceptions" ^ "different exception level"
 				@ (%Adaptor.Font, Service.YGDI) $dep_from %Core.YException
 		)
-		/ @ "platform MinGW32" @ %Helper $=
+		/ @ "platform %MinGW32" @ %Helper $=
 		(
 			/ DLD "all ('std::make_shared', 'ystdex::make_shared', \
-				'ystdex::make_unique')" -> "ADL use without qualification",
+				'ystdex::make_unique')" -> "use without qualification",
 				// Non-MinGW32 code still can't use this substitution, because \
 					G++ 4.7.1 in devkitARM release 41 doesn't support. See \
 					$known_issue_b298.
 			/ "window class registration" ^ ("trace",
 				("exception class %Win32Exception" ~ "%LoggedEvent"))
 				$dep_from %'YCLib_(MinGW32)'.Win32GUI,
-			* "unhandled %Win32Exception" @ "host window thread"
-				@ "window closed" $since b426
+			* "unhandled %Win32Exception" @ "window closed"
+				@ "destructor %WindowThread" @ %HostRenderer $since b426
 				// Exit code is %::NTSTATUS error \
 					'STATUS_STACK_OVERFLOW'(0xC00000FD).
 				// For %::NTSTATUS error 'STATUS_CONTROL_C_EXIT'(0xC000013A), \
@@ -5049,7 +5049,7 @@ b426
 			+ "class %Host::Exception" @ "defined %YCL_HOSTED" @ %YGlobal;
 			+ "class %MinGW32::Win32Exception; macro %YF_Raise_Win32Exception"
 				@ "platform %MinGW32" @ %GUIApplication;
-			/ @ %HostWindow $=
+			/ %HostWindow $=
 			(
 				/ @ "class %Host::Window" $=
 				(
@@ -6047,12 +6047,17 @@ b406
 			);
 			+ "class %BasicImage implementing %IImage";
 			/ "inheritance of %BitmapBuffer" ^ "BasicImage"
-		);
-		/ "class %BufferedRenderer" %UI.YRenderer $=
+		),
+		/ %UI $=
 		(
-			/ "buffer" ^ "%unique_ptr<Drawing::IImage>"
-				~ "public %BitmapBuffer",
-			+ "buffer setting"
+			/ "class %BufferedRenderer" @ %YRenderer $dep_from %Service.YGDI $=
+			(
+				/ "buffer" ^ "%unique_ptr<Drawing::IImage>"
+					~ "public %BitmapBuffer",
+				+ "buffer setting"
+			),
+			- '&&' @ "parameter" @ "member function %Widget::SetRenderer"
+				@ %YWidget
 		)
 	),
 	/ DLP "library using" $=

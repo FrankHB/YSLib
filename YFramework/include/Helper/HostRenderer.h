@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r329
+\version r345
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2014-12-30 18:01 +0800
+	2015-01-25 07:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -152,10 +152,9 @@ public:
 	template<class _tWindow, typename... _tParams>
 	HostRenderer(ystdex::identity<_tWindow>, UI::IWidget& wgt,
 		_tParams&&... args)
-		: BufferedRenderer(),
-		widget(wgt), rbuf(GetSizeOf(wgt)),
-		thrd(std::mem_fn(&HostRenderer::MakeRenderWindow<_tWindow,
-		ystdex::decay_t<_tParams>...>), this, ystdex::decay_copy(args)...)
+		: HostRenderer(ystdex::identity<WindowThread>(), wgt,
+		std::mem_fn(&HostRenderer::MakeRenderWindow<
+		_tWindow, ystdex::decay_t<_tParams>...>), this, yforward(args)...)
 	{}
 	template<typename... _tParams>
 	HostRenderer(int, UI::IWidget& wgt, _tParams&&... args)
@@ -165,12 +164,21 @@ public:
 	template<class _tWindow, typename... _tParams>
 	HostRenderer(int, ystdex::identity<_tWindow>, UI::IWidget& wgt,
 		_tParams&&... args)
-		: BufferedRenderer(),
-		widget(wgt), rbuf(GetSizeOf(wgt)),
-		thrd(std::mem_fn(&HostRenderer::MakeRenderWindowEx<_tWindow,
-		ystdex::decay_t<_tParams>...>), this, ystdex::decay_copy(args)...)
+		: HostRenderer(ystdex::identity<WindowThread>(), wgt,
+		std::mem_fn(&HostRenderer::MakeRenderWindowEx<
+		_tWindow, ystdex::decay_t<_tParams>...>), this, yforward(args)...)
 	{}
 	//@}
+
+private:
+	template<typename _func, typename... _tParams>
+	HostRenderer(ystdex::identity<WindowThread>, UI::IWidget& wgt, _func f,
+		_tParams&&... args)
+		: BufferedRenderer(),
+		widget(wgt), rbuf(GetSizeOf(wgt)), thrd(f, yforward(args)...)
+	{}
+
+public:
 	DefDeMoveCtor(HostRenderer)
 
 	//! \since build 536

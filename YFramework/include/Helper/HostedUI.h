@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r258
+\version r261
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-01-21 06:37 +0800
+	2015-01-25 06:29 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,13 +89,13 @@ DragWindow(Window&, UI::CursorEventArgs&&);
 \exception LoggedEvent 宽或高不大于 0 。
 \note WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
 \note 在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
-\note 最后一个参数指定是否按部件位置设置顶层窗口位置。
+\note 当部件位置不为 Point::Invalid 时设置顶层窗口位置。
 \note 复位部件位置为原点、设置宿主渲染器并阻塞等待宿主窗口指针非空。
-\since build 564
+\since build 570
 */
 YF_API HostRenderer&
 ShowTopLevel(UI::Widget&, unsigned long = WS_POPUP, unsigned long
-	= WS_EX_LAYERED, int = SW_SHOWNORMAL, const wchar_t* = L"", bool = true);
+	= WS_EX_LAYERED, int = SW_SHOWNORMAL, const wchar_t* = L"");
 #	endif
 #	if !YCL_Android
 

@@ -344,6 +344,7 @@
 		<Unit filename="../source/YSLib/UI/TextBox.cpp" />
 		<Unit filename="../source/YSLib/UI/TreeView.cpp" />
 		<Unit filename="../source/YSLib/UI/YComponent.cpp" />
+		<Unit filename="../source/YSLib/UI/YRenderer.cpp" />
 		<Unit filename="../source/YSLib/UI/YStyle.cpp" />
 		<Unit filename="../source/YSLib/UI/YWidget.cpp" />
 		<Unit filename="../source/YSLib/UI/YWidgetView.cpp" />
@@ -359,7 +360,6 @@
 		<Unit filename="../source/YSLib/UI/yfocus.cpp" />
 		<Unit filename="../source/YSLib/UI/ygui.cpp" />
 		<Unit filename="../source/YSLib/UI/ypanel.cpp" />
-		<Unit filename="../source/YSLib/UI/yrender.cpp" />
 		<Unit filename="../source/YSLib/UI/yuicont.cpp" />
 		<Unit filename="../source/YSLib/UI/ywgtevt.cpp" />
 		<Unit filename="../source/YSLib/UI/ywindow.cpp" />

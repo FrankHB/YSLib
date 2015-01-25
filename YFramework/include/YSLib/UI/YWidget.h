@@ -11,13 +11,13 @@
 /*!	\file YWidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5775
+\version r5781
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-01-23 13:20 +0800
+	2015-01-25 05:58 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -321,7 +321,7 @@ PaintChild(IWidget& wgt, PaintEventArgs&& e);
 \since build 294
 
 以 wgt 作为绘制目标，判断其边界是否和区域 pc.ClipArea 相交，
-若相交区域非空则调用 wgt 的渲染器的 Paint 方法绘制 。
+若相交区域非空则新建 PaintEventArgs ，调用 wgt 的渲染器的 Paint 方法绘制 。
 */
 YF_API Rect
 PaintChild(IWidget& wgt, const PaintContext& pc);
@@ -465,19 +465,17 @@ public:
 	/*!
 	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
 	\note 若指针为空，则使用以当前部件边界新建的 Renderer 对象。
-	\note 取得指定对象的所有权。
 	\since build 406
 	*/
 	void
 	SetRenderer(unique_ptr<Renderer>);
 	/*!
-	\brief 设置渲染器为指定指针指向的对象，同时更新渲染器状态。
+	\brief 设置视图为指定指针指向的对象。
 	\note 若指针为空，则使用以当前部件边界新建的 View 对象。
-	\note 取得指定对象的所有权。
-	\since build 569
+	\since build 570
 	*/
 	void
-	SetView(unique_ptr<AView>&&);
+	SetView(unique_ptr<AView>);
 
 	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。

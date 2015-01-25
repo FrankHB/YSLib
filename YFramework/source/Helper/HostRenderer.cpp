@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r398
+\version r399
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-01-16 03:36 +0800
+	2015-01-24 18:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -123,7 +123,7 @@ void
 WindowThread::WindowLoop(Window& wnd)
 {
 #	if YF_Multithread
-	auto& env(wnd.GetHost());
+	auto& env(wnd.GetEnvironmentRef());
 
 	env.EnterWindowThread();
 #	endif
