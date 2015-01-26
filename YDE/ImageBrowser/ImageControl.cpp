@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r942
+\version r944
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2014-12-28 23:46 +0800
+	2015-01-25 13:44 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -36,7 +36,6 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	min_panel_size(min_size), max_panel_size(max_size), btnClose({{}, 24, 24}),
 	border(*this, 8, min_size)
 {
-	border.HostMode = true;
 	*this += btnClose,
 	yunseq(
 	Background = SolidBrush({0x00, 0x00, 0x00, 0xC0}),

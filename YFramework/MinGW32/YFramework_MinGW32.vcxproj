@@ -89,10 +89,10 @@
     </BuildLog>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\include\Helper\DSMain.h" />
-    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\include\Helper\shlds.h" />
-    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.h" />
-    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.h" />
+    <ClInclude Include="..\DS\include\Helper\DSMain.h" />
+    <ClInclude Include="..\DS\include\Helper\shlds.h" />
+    <ClInclude Include="..\DS\source\Helper\DSScreen.h" />
+    <ClInclude Include="..\DS\source\Helper\DSWindow.h" />
     <ClInclude Include="include\Helper\Win32Control.h" />
     <ClInclude Include="include\YCLib\COM.h" />
     <ClInclude Include="include\YCLib\Consoles.h" />
@@ -100,10 +100,10 @@
     <ClInclude Include="include\YCLib\NLS.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSMain.cpp" />
-    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.cpp" />
-    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.cpp" />
-    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\shlds.cpp" />
+    <ClCompile Include="..\DS\source\Helper\DSMain.cpp" />
+    <ClCompile Include="..\DS\source\Helper\DSScreen.cpp" />
+    <ClCompile Include="..\DS\source\Helper\DSWindow.cpp" />
+    <ClCompile Include="..\DS\source\Helper\shlds.cpp" />
     <ClCompile Include="source\YCLib\Consoles.cpp" />
     <ClCompile Include="source\YCLib\MinGW32.cpp" />
     <ClCompile Include="source\YCLib\NLS.cpp" />

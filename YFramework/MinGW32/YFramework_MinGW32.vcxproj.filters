@@ -31,16 +31,16 @@
     <ClInclude Include="include\YCLib\MinGW32.h">
       <Filter>include\YCLib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.h">
+    <ClInclude Include="..\DS\source\Helper\DSScreen.h">
       <Filter>source\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.h">
+    <ClInclude Include="..\DS\source\Helper\DSWindow.h">
       <Filter>source\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\include\Helper\DSMain.h">
+    <ClInclude Include="..\DS\include\Helper\DSMain.h">
       <Filter>include\Helper</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\YSLib\YFramework\DS\include\Helper\shlds.h">
+    <ClInclude Include="..\DS\include\Helper\shlds.h">
       <Filter>include\Helper</Filter>
     </ClInclude>
     <ClInclude Include="include\YCLib\Consoles.h">
@@ -57,16 +57,16 @@
     <ClCompile Include="source\YCLib\MinGW32.cpp">
       <Filter>source\YCLib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSMain.cpp">
+    <ClCompile Include="..\DS\source\Helper\DSMain.cpp">
       <Filter>source\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSScreen.cpp">
+    <ClCompile Include="..\DS\source\Helper\DSScreen.cpp">
       <Filter>source\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\DSWindow.cpp">
+    <ClCompile Include="..\DS\source\Helper\DSWindow.cpp">
       <Filter>source\Helper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\YSLib\YFramework\DS\source\Helper\shlds.cpp">
+    <ClCompile Include="..\DS\source\Helper\shlds.cpp">
       <Filter>source\Helper</Filter>
     </ClCompile>
     <ClCompile Include="source\YCLib\Consoles.cpp">

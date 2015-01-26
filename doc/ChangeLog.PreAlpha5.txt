@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9426
+\version r9537
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-01-25 08:03 +0800
+	2015-01-26 08:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,117 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	* "wrong DS extension file paths" @ "platform %MinGW32"
+		@ "Visual C++ project" $since b433,
+	/ %YFramework $=
+	(
+		/ %Helper $=
+		(
+			+ "function %Wait" @ "class %HostRenderer" @ %HostRenderer;
+			/ DLD "simplified implementation" @ "function %WaitForHostWindow"
+				^ "%HostRenderer::Wait",
+			/ @ "function %InputManager::Update" @ %InputManager $=
+			(
+				/ DLD "cursor mapping" !^ "window pointer argument",
+				/ "record key state even if no foreground window found"
+			),
+			/ @ "class %Environment" @ %Environment $=
+			(
+				/ @ "platform %Win32" $=
+				(
+					+ "data member 'std::function<pair<Host::Window*, \
+						Drawing::Point>(const Drawing::Point&)> MapPoint{};'",
+					+ "function %MapTopLevelWindowPoint",
+					+ "data member 'UI::Panel Desktop{};'"
+				),
+				/ "function %MapCursor" $=
+				(
+					- "parameter" $dep_from %InputManager,
+					- $revert(b568) "host window pointer selected"
+						@ "return type",
+					/ "call %MapPoint if it is nonnull before returning"
+						$dep_from "%MapPoint"
+				),
+				+ "root desktop support" $dep_from %Desktop
+			),
+			/ @ "class %HostRenderer" @ %HostRenderer $=
+			(
+				// Currently both widget view initialization and destruction \
+					are implemented only for platform %Win32.
+				+ "view initialization"
+					// Set %Windows::UI::ControlView as view for platform \
+						%Win32.
+				+ "destructor",
+				/ "supported resizing only for view of type %UI::View"
+					@ "function %Update"
+				(
+				+ "data member 'bool RootMode{};'";
+				+ "initialized %RootMode to true only if determined the view \
+					is of the root widget"
+					// Currently only %View detected.
+				)
+			),
+			/ %HostedUI $=
+			(
+				- "set view location to origin" @ "function %ShowTopLevel"
+					@ "platform %Win32",
+				(
+				/ @ "function %DragWindow" $=
+				(
+					/ "adjust host window bounds" @ "platform %Win32"
+						^ "%Host::Window::(MoveClient, GetClientLocation)"
+						~ "%Host::Window::(Move, GetLocation)",
+					+ "3rd parameter 'bool = {}' to support switching root mode"
+				);
+				/ "bound root mode" @ "function %ShowTopLevelDraggable"
+				)
+			)
+		),
+		+ "initialization of %Environment::MapPoint"
+			@ "constructor %DSApplication" @ "platform %Win32"
+			@ %'Helper_(DS)'.DSMain $dep_from %Helper.Environment,
+		/ %YSLib.UI $=
+		(
+			/ "data member %BorderResizer::HostMode" => "%RootMode" @ %Border,
+			/ @ "function %DoRequestFocus" @ %YFocus $=
+			(
+				/ $design "unnecessary %IsFocused call function %DoRequestFocus"
+					-> "assertion",
+				/ DLD "removed unnecessary %DoReleaseFocus call when second \
+					parameter is %true"
+			),
+			/ "swapped data members between new and old views before set view \
+				pointer" @ "%Widget::SetView" @ %YWidget,
+			+ "member function %AView::swap" @ %YWidgetView,
+			/ "function %Caret::Check" @ %TextBox $=
+			(
+				* "false positive of assertion failure" $since b483
+					$= (- "assertion for cascade focus");
+					// Because the indirect parent widget focus can not \
+						detected efficiently and use of raw focus API should \
+						not be forbidden, the assertion here is not appropriate.
+				+ "call %Stop to stop caret when cascade focus check failed"
+			)
+		)
+	),
+	/ @ %YDE.ImageBrowser $=
+	(
+		/ %ImageControl $=
+		(
+			/ "turned off border host mode" @ "constructor",
+			+ "member function %ImageControl::SetRootMode" $dep_from
+				%YFramework.YSLib.UI.Border
+		);
+		/ "set root mode according to host renderer state" @ %Main $dep_from
+			%YFramework.Helper.HostRenderer
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective @ ("%yfocus.h" => "%yfocus.h",
+		"%yfocus.cpp" => "%YFocus.cpp") @ YFramework.YSLib.UI
+),
+
+b570
 (
 	/ DLD "header inclusion" ^ 'YFM_DS_Helper_DSMain' ~ '<Helper/DSMain.h>'
 		@ %YReader.DSReader,
@@ -312,7 +423,7 @@ b567
 	* $re_ex(b563) "non-canonical English use" @ "log" ^ 'began'
 		~ 'beginned' $effective @ (%YReader.ShlExplorer $since b534,
 		%YFramework.(Helper.(Environment $orig (@ %Host $since b381)),
-		'Helper_(DS)'.DSMain $orig (@ %Helper.DSMain) $since b383));
+		'Helper_(DS)'.DSMain $orig (@ %Helper.DSMain) $since b383)),
 	/ $dev $repo "all edited file with module name not the same as base file \
 		name" @ !%YBase ^ 'hg rename' $effective
 		@ ("%ystorage.hpp" => "%YStorage.hpp") @ YFramework.YSLib.Core

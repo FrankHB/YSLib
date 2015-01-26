@@ -11,13 +11,13 @@
 /*!	\file YWidget.h
 \ingroup UI
 \brief 样式无关的 GUI 部件。
-\version r5781
+\version r5782
 \author FrankHB <frankhb1989@gmail.com>
 \since build 569
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2015-01-25 05:58 +0800
+	2015-01-26 04:48 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -472,6 +472,7 @@ public:
 	/*!
 	\brief 设置视图为指定指针指向的对象。
 	\note 若指针为空，则使用以当前部件边界新建的 View 对象。
+	\note 确保视图后在设置之前首先交换抽象视图的成员。
 	\since build 570
 	*/
 	void

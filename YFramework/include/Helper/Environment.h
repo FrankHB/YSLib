@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r795
+\version r830
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2015-01-23 01:17 +0800
+	2015-01-25 09:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,9 @@
 #include YFM_Helper_HostWindow // for Host::Window;
 #if YF_Multithread == 1
 #	include <atomic>
+#endif
+#if YCL_Win32
+#	include YFM_YSLib_UI_YPanel
 #endif
 
 namespace YSLib
@@ -93,15 +96,23 @@ public:
 	std::atomic<bool> ExitOnAllWindowThreadCompleted{true};
 #	endif
 
-private:
 #	if YCL_Win32
+	/*!
+	\brief 点映射例程。
+	\sa MapCursor
+	\since build 571
+	*/
+	std::function<pair<Host::Window*, Drawing::Point>(const Drawing::Point&)>
+		MapPoint{};
+	/*!
+	\brief 宿主环境桌面。
+	\since build 571
+	*/
+	UI::Panel Desktop{};
+private:
 	//! \since build 432
 	Host::WindowClass window_class;
-#	endif
-#endif
-
-public:
-#	if YCL_Android
+#	elif YCL_Android
 	/*!
 	\brief 点映射例程。
 	\note 若非空则 MapCursor 调用此实现，否则使用恒等变换。
@@ -109,7 +120,9 @@ public:
 	*/
 	Drawing::Point(*MapPoint)(const Drawing::Point&) = {};
 #	endif
+#endif
 
+public:
 	/*!
 	\brief 构造：初始化环境。
 	\note Win32 平台：尝试无参数调用 FixConsoleHandler ，若失败则跟踪警告。
@@ -166,16 +179,27 @@ public:
 
 	/*!
 	\brief 映射宿主光标位置到相对顶层窗口输入的光标位置。
-	\return 顶层窗口指针和映射的位置。
-	\since build 568
+	\return 使用的顶层窗口指针（若使用屏幕则为空）和相对顶层窗口或屏幕的位置。
+	\since build 571
+	\todo 支持 Win32 和 Android 以外的平台。
 
-	Win32 平台：若参数为空则首先调用使用屏幕光标位置确定顶层窗口。
-	若存在指定的顶层窗口，则调用窗口的 MapCursor 方法确定结果，否则返回无效值。
-	Android 平台：忽略参数（只用于返回）。
+	首先确定屏幕光标位置，若 MapPoint 非空则调用 MapPoint 确定顶层窗口及变换坐标，
+	最后返回结果。
 	*/
 	pair<Host::Window*, Drawing::Point>
-	MapCursor(Host::Window* = {}) const;
+	MapCursor() const;
 
+#	if YCL_Win32
+	/*!
+	\brief 映射顶层窗口的点。
+	\since build 571
+
+	首先调用使用指定的参数作为屏幕光标位置确定顶层窗口。
+	若存在指定的顶层窗口，则调用窗口的 MapCursor 方法确定结果，否则返回无效值。
+	*/
+	pair<Host::Window*, Drawing::Point>
+	MapTopLevelWindowPoint(const Drawing::Point&) const;
+#	endif
 	/*!
 	\brief 移除窗口映射项。
 	\note 线程安全。

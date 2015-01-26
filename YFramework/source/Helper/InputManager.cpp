@@ -11,13 +11,13 @@
 /*!	\file InputManager.cpp
 \ingroup Helper
 \brief 输入管理器。
-\version r535
+\version r548
 \author FrankHB <frankhb1989@gmail.com>
 \since build 323
 \par 创建时间:
 	2012-07-06 11:23:21 +0800
 \par 修改时间:
-	2015-01-23 01:18 +0800
+	2015-01-25 12:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -151,33 +151,30 @@ InputManager::DispatchInput(IWidget& wgt)
 IWidget*
 InputManager::Update()
 {
-#if YF_Hosted
-	auto p_wnd(env.get().GetForegroundWindow());
-
-#endif
 	using namespace platform::KeyCodes;
 
 	// FIXME: [DS] crashing after sleeping(default behavior of closing then
 	//	reopening lid) on real machine due to LibNDS default interrupt
 	//	handler for power management.
 //	platform::AllowSleep(true);
-#if YF_Hosted && !YCL_Android
-	if(p_wnd)
-#endif
-		platform_ex::UpdateKeyStates();
+	platform_ex::UpdateKeyStates();
 
+#if YF_Hosted
+	Host::Window* p_wnd{};
+
+#endif
 #if YCL_Win32
 	tie(p_wnd, cursor_state) = env.get().MapCursor();
+	if(!p_wnd)
+		return &env.get().Desktop;
 #elif YF_Hosted
 	// TODO: Determine which inactive window should be used.
-	cursor_state = env.get().MapCursor(p_wnd).second;
+	cursor_state = env.get().MapCursor().second;
+	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd))
+		return &p_render_wnd->GetRenderer().GetWidgetRef();
 #elif YCL_DS
 	if(platform_ex::FetchKeyState()[Touch])
 		cursor_state = platform_ex::FetchCursor();
-#endif
-#if YF_Hosted
-	if(const auto p_render_wnd = dynamic_cast<Host::RenderWindow*>(p_wnd))
-		return &p_render_wnd->GetRenderer().GetWidgetRef();
 #endif
 #if YCL_Android
 	return &Android::FetchNativeHostInstance().GetDesktopRef();

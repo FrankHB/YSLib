@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfocus.cpp
+/*!	\file YFocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r600
+\version r622
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-07-14 14:49 +0800
+	2015-01-26 04:42 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,31 +47,35 @@ DoRequestFocus(IWidget& wgt, bool release_event)
 {
 	if(const auto p = FetchContainerPtr(wgt))
 	{
-		auto& pFocusing(p->GetView().FocusingPtr);
+		auto& p_focusing(p->GetView().FocusingPtr);
 
-		if(pFocusing != &wgt)
+		if(p_focusing != &wgt)
 		{
-			if(pFocusing && IsFocused(*pFocusing))
+			if(p_focusing)
 			{
+				YAssert(IsFocused(*p_focusing),
+					"Invalid focusing state found.");
 				if(release_event)
 				{
-					IWidget* p_sub(pFocusing);
+					auto p_foc(p_focusing);
+					IWidget* p_sub;
 
-					for(auto p_foc = p_sub; p_foc;
-						p_foc = FetchFocusingPtr(*p_sub))
+					do 
+					{
 						p_sub = p_foc;
-					for(; p_sub != pFocusing; p_sub = FetchContainerPtr(*p_sub))
+						p_foc = FetchFocusingPtr(*p_sub);
+					}while(p_foc);
+					for(; p_sub != p_focusing;
+						p_sub = FetchContainerPtr(*p_sub))
 					{
 						YAssert(p_sub, "Wrong child focus state found.");
 						if(DoReleaseFocus(*p_sub))
 							CallEvent<LostFocus>(*p_sub, RoutedEventArgs(wgt));
 					}
-					ReleaseFocusFrom(*pFocusing, wgt);
+					ReleaseFocusFrom(*p_focusing, wgt);
 				}
-				else
-					DoReleaseFocus(*pFocusing);
 			}
-			pFocusing = &wgt;
+			p_focusing = &wgt;
 			return true;
 		}
 	}
@@ -83,11 +87,11 @@ DoReleaseFocus(IWidget& wgt)
 {
 	if(const auto p = FetchContainerPtr(wgt))
 	{
-		auto& pFocusing(p->GetView().FocusingPtr);
+		auto& p_focusing(p->GetView().FocusingPtr);
 
-		if(pFocusing == &wgt)
+		if(p_focusing == &wgt)
 		{
-			pFocusing = {};
+			p_focusing = {};
 			return true;
 		}
 	}

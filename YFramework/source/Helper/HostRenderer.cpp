@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r399
+\version r468
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-01-24 18:54 +0800
+	2015-01-26 05:35 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,9 @@
 #if YCL_HostedUI_XCB
 #	include <xcb/xcb.h>
 #	include YFM_YCLib_XCB
+#elif YCL_Win32
+#	include YFM_Helper_Environment
+#	include YFM_MinGW32_Helper_Win32Control
 #endif
 
 namespace YSLib
@@ -80,10 +83,7 @@ WindowThread::~WindowThread()
 	try
 	{
 #	if !YCL_Android
-		try
-		{
-			p_wnd_val->Close();
-		}
+		TryExpr(p_wnd_val->Close())
 		// TODO: Log.
 #		if YCL_HostedUI_XCB
 		CatchIgnore(XCB::XCBException&)
@@ -176,11 +176,47 @@ WindowThread::WindowLoop(Window& wnd)
 }
 
 
+HostRenderer::~HostRenderer()
+{
+#if YCL_Win32
+	try
+	{
+		auto& wnd(Wait());
+
+		wnd.GetEnvironmentRef().Desktop -= widget;
+		if(const auto p_wgt = dynamic_cast<UI::Widget*>(&widget.get()))
+			p_wgt->SetView({});
+	}
+	CatchIgnore(Windows::UI::ViewSignal&)
+	CatchExpr(std::system_error& e, YTraceDe(Warning,
+		"Caught std::system_error: %s.", e.what()), yunused(e))
+	CatchExpr(std::exception& e,
+		YTraceDe(Alert, "Caught std::exception[%s]: %s.", typeid(e).name(),
+		e.what()), yunused(e))
+	CatchExpr(..., YTraceDe(Alert,
+		"Unknown exception found @ HostRenderer::~HostRenderer."))
+#endif
+}
 void
 HostRenderer::SetSize(const Size& s)
 {
 	BufferedRenderer::SetSize(s),
 	rbuf.Resize(s);
+}
+
+void
+HostRenderer::InitWidgetView()
+{
+#if YCL_Win32
+	auto& wnd(Wait());
+
+	if(const auto p_wgt = dynamic_cast<UI::Widget*>(&widget.get()))
+		p_wgt->SetView(
+			make_unique<Windows::UI::ControlView>(wnd.GetNativeHandle()));
+	wnd.GetEnvironmentRef().Desktop += widget;
+#endif
+	// FIXME: Allow user to specify which kinds of views should be adjusted.
+	RootMode = typeid(widget.get().GetView()) == typeid(UI::View);
 }
 
 void
@@ -191,33 +227,37 @@ HostRenderer::Update(ConstBitmapPtr p_buf)
 	if(const auto p_wnd = GetWindowPtr())
 		try
 		{
-#	if YCL_HostedUI_XCB
-			const auto& cbounds(p_wnd->GetBounds());
-#	elif YCL_Android
-			const Rect cbounds(p_wnd->GetSize());
-#	else
-			const auto& cbounds(p_wnd->GetClientBounds());
-#	endif
-			auto bounds(cbounds);
 			auto& view(widget.get().GetView());
-			const auto& loc(view.GetLocation());
 
-			if(!loc.IsZero())
+			if(RootMode)
 			{
-				bounds.GetPointRef() += loc;
-				view.SetLocation({});
-				rInvalidated = {{}, bounds.GetSize()};
-				Validate(widget, widget, {GetContext(), Point(), rInvalidated});
-			}
-			bounds.GetSizeRef() = view.GetSize();
+#	if YCL_HostedUI_XCB
+				const Rect& cbounds(p_wnd->GetBounds());
+#	elif YCL_Android
+				const Rect cbounds(p_wnd->GetSize());
+#	else
+				const Rect& cbounds(p_wnd->GetClientBounds());
+#	endif
+				auto bounds(cbounds);
+				const auto& loc(view.GetLocation());
+
+				if(!loc.IsZero())
+				{
+					bounds.GetPointRef() += loc;
+					view.SetLocation({});
+					rInvalidated = {{}, bounds.GetSize()};
+					Validate(widget, widget, {GetContext(), {}, rInvalidated});
+				}
+				bounds.GetSizeRef() = view.GetSize();
 #	if !YCL_Android
-			if(bounds != cbounds)
+				if(bounds != cbounds)
 #		if YCL_HostedUI_XCB
-				p_wnd->SetBounds(bounds);
+					p_wnd->SetBounds(bounds);
 #		else
-				p_wnd->SetClientBounds(bounds);
+					p_wnd->SetClientBounds(bounds);
 #		endif
 #	endif
+			}
 			p_wnd->UpdateFrom(p_buf, rbuf);
 		}
 #	if YCL_Win32
@@ -225,6 +265,17 @@ HostRenderer::Update(ConstBitmapPtr p_buf)
 #	else
 		CatchIgnore(Exception&) // XXX: Use proper platform-dependent type.
 #	endif
+}
+
+Window&
+HostRenderer::Wait()
+{
+	Host::Window* p_wnd{};
+
+	// XXX: Busy wait.
+	while(!p_wnd)
+		p_wnd = GetWindowPtr();
+	return *p_wnd;
 }
 
 } // namespace Host;

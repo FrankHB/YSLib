@@ -322,6 +322,7 @@
 		<Unit filename="../include/YSLib/UI/Viewer.h" />
 		<Unit filename="../include/YSLib/UI/WidgetIteration.h" />
 		<Unit filename="../include/YSLib/UI/YComponent.h" />
+		<Unit filename="../include/YSLib/UI/YFocus.h" />
 		<Unit filename="../include/YSLib/UI/YModules.h" />
 		<Unit filename="../include/YSLib/UI/YRenderer.h" />
 		<Unit filename="../include/YSLib/UI/YStyle.h" />
@@ -338,7 +339,6 @@
 		<Unit filename="../include/YSLib/UI/uicontx.h" />
 		<Unit filename="../include/YSLib/UI/ycontrol.h" />
 		<Unit filename="../include/YSLib/UI/ydesktop.h" />
-		<Unit filename="../include/YSLib/UI/yfocus.h" />
 		<Unit filename="../include/YSLib/UI/ygui.h" />
 		<Unit filename="../include/YSLib/UI/ypanel.h" />
 		<Unit filename="../include/YSLib/UI/ywgtevt.h" />
@@ -421,6 +421,7 @@
 		<Unit filename="../source/YSLib/UI/TreeView.cpp" />
 		<Unit filename="../source/YSLib/UI/Viewer.cpp" />
 		<Unit filename="../source/YSLib/UI/YComponent.cpp" />
+		<Unit filename="../source/YSLib/UI/YFocus.cpp" />
 		<Unit filename="../source/YSLib/UI/YRenderer.cpp" />
 		<Unit filename="../source/YSLib/UI/YStyle.cpp" />
 		<Unit filename="../source/YSLib/UI/YWidget.cpp" />
@@ -433,7 +434,6 @@
 		<Unit filename="../source/YSLib/UI/uicontx.cpp" />
 		<Unit filename="../source/YSLib/UI/ycontrol.cpp" />
 		<Unit filename="../source/YSLib/UI/ydesktop.cpp" />
-		<Unit filename="../source/YSLib/UI/yfocus.cpp" />
 		<Unit filename="../source/YSLib/UI/ygui.cpp" />
 		<Unit filename="../source/YSLib/UI/ypanel.cpp" />
 		<Unit filename="../source/YSLib/UI/yuicont.cpp" />
