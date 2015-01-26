@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1531
+\version r1568
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-01-23 01:17 +0800
+	2015-01-26 10:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,9 @@
 #include YFM_Helper_ShellHelper // for YSL_DEBUG_DECL_TIMER;
 #include YFM_YCLib_Input // for platform_ex::FetchCursor;
 #include YFM_Helper_Initialization // for InitializeEnvironment;
+#if YCL_Win32
+#	include YFM_MinGW32_Helper_Win32Control // for Windows::UI::ControlView;
+#endif
 
 namespace YSLib
 {
@@ -92,6 +95,9 @@ Environment::Environment()
 	TryExpr(FixConsoleHandler())
 	CatchExpr(Win32Exception&,
 		YTraceDe(Warning, "Console handler setup failed."))
+	Desktop.SetView(
+		make_unique<Windows::UI::ControlView>(::GetDesktopWindow()));
+	Desktop.SetRenderer(make_unique<UI::PseudoRenderer>());
 #endif
 	InitializeEnvironment();
 	YCL_Trace(Debug, "Environment lifetime began.");
@@ -148,33 +154,48 @@ Environment::LeaveWindowThread()
 }
 #	endif
 
-pair<Host::Window*, Point>
-Environment::MapCursor(Host::Window* p_wnd) const
+pair<Window*, Point>
+Environment::MapCursor() const
 {
 #	if YCL_Win32
 	::POINT cursor;
 
 	if(YB_UNLIKELY(!::GetCursorPos(&cursor)))
 		YF_Raise_Win32Exception("GetCursorPos @ Environment::MapCursor");
-	if(!p_wnd)
-		if(const auto h = ::ChildWindowFromPointEx(::GetDesktopWindow(),
-			cursor, CWP_SKIPINVISIBLE))
-			p_wnd = FindWindow(h);
-	if(!p_wnd)
-		return {p_wnd, Point::Invalid};
-	if(YB_UNLIKELY(!::ScreenToClient(p_wnd->GetNativeHandle(), &cursor)))
-		YF_Raise_Win32Exception("ScreenToClient @ Environment::MapCursor");
-	return {p_wnd, p_wnd->MapPoint({cursor.x, cursor.y})};
+
+	const Point pt{cursor.x, cursor.y};
+
+	return MapPoint ? MapPoint(pt) : pair<Window*, Point>({}, pt);
 #	elif YCL_Android
 	// TODO: Support floating point coordinates.
 	const auto& cursor(platform_ex::FetchCursor());
 	const Point pt(cursor.first, cursor.second);
 
-	return {p_wnd, MapPoint ? MapPoint(pt) : pt};
+	return {{}, MapPoint ? MapPoint(pt) : pt};
 #	else
-	return {p_wnd, Point::Invalid};
+	return {{}, Point::Invalid};
 #	endif
 }
+
+#	if YCL_Win32
+pair<Window*, Point>
+Environment::MapTopLevelWindowPoint(const Point& pt) const
+{
+	::POINT cursor{pt.X, pt.Y};
+
+	if(const auto h = ::ChildWindowFromPointEx(::GetDesktopWindow(),
+		cursor, CWP_SKIPINVISIBLE))
+		if(const auto p_wnd = FindWindow(h))
+		{
+			if(YB_UNLIKELY(!::ScreenToClient(p_wnd->GetNativeHandle(),
+				&cursor)))
+				YF_Raise_Win32Exception(
+					"ScreenToClient @ Environment::MapCursor");
+			return {p_wnd, p_wnd->MapPoint({cursor.x, cursor.y})};
+		}
+	return {{}, Point::Invalid};
+}
+#	endif
 
 void
 Environment::RemoveMappedItem(NativeWindowHandle h) ynothrow

@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r217
+\version r242
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-01-25 06:31 +0800
+	2015-01-25 14:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -44,19 +44,13 @@ namespace Host
 Window&
 WaitForHostWindow(UI::IWidget& wgt)
 {
-	auto& renderer(dynamic_cast<HostRenderer&>(wgt.GetRenderer()));
-	Host::Window* p_wnd{};
-
-	// XXX: Busy wait?
-	while(!p_wnd)
-		p_wnd = renderer.GetWindowPtr();
-	return *p_wnd;
+	return dynamic_cast<HostRenderer&>(wgt.GetRenderer()).Wait();
 }
 
 #	if !YCL_Android
 
 void
-DragWindow(Window& wnd, UI::CursorEventArgs&& e)
+DragWindow(Window& wnd, UI::CursorEventArgs&& e, bool root)
 {
 	if(e.Strategy == RoutedEventArgs::Direct && !e.Handled)
 	{
@@ -66,8 +60,21 @@ DragWindow(Window& wnd, UI::CursorEventArgs&& e)
 		{
 			const auto offset(st.CursorLocation + st.DraggingOffset);
 
-			wnd.Move(wnd.GetLocation() + offset);
-			st.CursorLocation -= offset - GetLocationOf(e.GetSender());
+			if(root)
+			{
+#		if YCL_Win32
+				wnd.MoveClient(wnd.GetClientLocation() + offset);
+#		else
+				wnd.Move(wnd.GetLocation() + offset);
+#		endif
+				st.CursorLocation -= offset - GetLocationOf(e.GetSender());
+			}
+			else
+#		if YCL_Win32
+				wnd.MoveClient(offset);
+#		else
+				wnd.Move(offset);
+#		endif
 		}
 	}
 }
@@ -87,7 +94,6 @@ ShowTopLevel(UI::Widget& wgt, unsigned long wstyle, unsigned long wstyle_ex,
 
 		if(pt != Point::Invalid)
 			wnd_ref.MoveClient(pt);
-		wgt.GetView().SetLocation({});
 		wnd_ref.Show(n_cmd_show);
 		return wnd_ref;
 	}));
@@ -105,7 +111,8 @@ ShowTopLevelDraggable(UI::Widget& wgt)
 	ShowTopLevel(wgt, WS_POPUP);
 #		endif
 	UI::FetchEvent<UI::TouchHeld>(wgt) += std::bind(Host::DragWindow,
-		std::ref(WaitForHostWindow(wgt)), std::placeholders::_1);
+		std::ref(WaitForHostWindow(wgt)), std::placeholders::_1,
+		std::ref(Deref(GetHostRendererPtrOf(wgt)).RootMode));
 }
 #	endif
 

@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r261
+\version r273
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-01-25 06:29 +0800
+	2015-01-25 14:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -75,11 +75,13 @@ WaitForHostWindow(UI::IWidget&);
 
 /*!
 \brief 按指针设备输入事件指定的光标位置移动宿主窗口。
+\note 最后一个参数决定是否为根模式。
 \sa UI::OnTouchHeld_Dragging
-\since build 426
+\sa HostRenderer::RootMode
+\since build 571
 */
 YF_API void
-DragWindow(Window&, UI::CursorEventArgs&&);
+DragWindow(Window&, UI::CursorEventArgs&&, bool = {});
 #	endif
 #	if YCL_Win32
 
@@ -87,11 +89,12 @@ DragWindow(Window&, UI::CursorEventArgs&&);
 \brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。
 \return 设置的宿主渲染器引用。
 \exception LoggedEvent 宽或高不大于 0 。
-\note WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
-\note 在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
-\note 当部件位置不为 Point::Invalid 时设置顶层窗口位置。
-\note 复位部件位置为原点、设置宿主渲染器并阻塞等待宿主窗口指针非空。
 \since build 570
+
+WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
+在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
+当部件位置不为 Point::Invalid 时设置顶层窗口位置。
+设置宿主渲染器并阻塞等待宿主窗口指针非空。
 */
 YF_API HostRenderer&
 ShowTopLevel(UI::Widget&, unsigned long = WS_POPUP, unsigned long

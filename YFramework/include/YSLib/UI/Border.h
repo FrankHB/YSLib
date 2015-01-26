@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Border.h
 \ingroup UI
 \brief 图形用户界面边框。
-\version r172
+\version r177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:23:56 +0800
 \par 修改时间:
-	2014-12-02 18:44 +0800
+	2015-01-25 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -129,11 +129,13 @@ private:
 
 public:
 	/*!
-	\brief 宿主模式：指定是否在设置边界后同时调整锁定的边界位置。
+	\brief 根模式：指定部件为通过外部接口和宿主交互的顶层部件。
 	\note 部件的实际位置需要另行修正。
-	\since build 445
+	\since build 571
+
+	指定部件是否在设置边界后同时调整锁定的边界位置。
 	*/
-	bool HostMode = {};
+	bool RootMode = {};
 	//! \brief 指定边框相对部件边界以内的范围的边距。
 	Drawing::Padding Margin;
 	/*!

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r596
+\version r599
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2014-12-16 22:54 +0800
+	2015-01-25 13:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -77,6 +77,9 @@ private:
 		ImplRet({GetWidth() - 8 - btnClose.GetWidth(), 8})
 
 public:
+	//! \since build 571
+	DefSetter(bool, RootMode, border.RootMode)
+
 	//! \since build 560
 	void
 	Load(ImagePages&&);

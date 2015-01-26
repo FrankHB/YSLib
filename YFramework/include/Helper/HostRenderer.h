@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.h
 \ingroup Helper
 \brief 宿主渲染器。
-\version r345
+\version r383
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-01-25 07:14 +0800
+	2015-01-26 05:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -142,6 +142,12 @@ private:
 	WindowThread thrd;
 
 public:
+	/*!
+	\brief 根模式：指定部件为通过外部接口和宿主交互的顶层部件。
+	\since build 571
+	*/
+	bool RootMode = {};
+
 	//! \since build 385
 	template<typename... _tParams>
 	HostRenderer(UI::IWidget& wgt, _tParams&&... args)
@@ -169,14 +175,25 @@ public:
 		_tWindow, ystdex::decay_t<_tParams>...>), this, yforward(args)...)
 	{}
 	//@}
+	/*!
+	\brief 析构：释放资源。
+	\since build 571
+
+	Win32 平台：从宿主环境桌面移除部件；对可转换为 UI::Widget 的部件，
+	首先以优先级 0xFF 发送 SM_Task 消息复位视图。
+	*/
+	~HostRenderer();
 
 private:
+	//! \since build 570
 	template<typename _func, typename... _tParams>
 	HostRenderer(ystdex::identity<WindowThread>, UI::IWidget& wgt, _func f,
 		_tParams&&... args)
 		: BufferedRenderer(),
 		widget(wgt), rbuf(GetSizeOf(wgt)), thrd(f, yforward(args)...)
-	{}
+	{
+		InitWidgetView();
+	}
 
 public:
 	DefDeMoveCtor(HostRenderer)
@@ -189,12 +206,19 @@ public:
 	void
 	SetSize(const Drawing::Size&) override;
 
-	//! \since build 409
-	YB_NORETURN PDefH(HostRenderer*, clone, ) const override
-		ImplExpr(
-			throw ystdex::unimplemented("HostRenderer::clone unimplemented."));
-//	DefClone(const override, HostRenderer)
+private:
+	/*!
+	\brief 初始化部件视图。
+	\sa RootMode
+	\since build 571
 
+	Win32 平台：对可转换为 UI::Widget 的部件设置视图；添加部件至宿主环境桌面。
+	根据初始化的部件视图决定 RootMode 。
+	*/
+	void
+	InitWidgetView();
+
+public:
 	//! \since build 430
 	//@{
 	template<class _tWindow, typename _func, typename... _tParams>
@@ -231,6 +255,19 @@ public:
 	{
 		sf.Update(rbuf);
 	}
+
+	/*!
+	\brief 等待宿主窗口就绪。
+	\since build 471
+	*/
+	Window&
+	Wait();
+
+	//! \since build 409
+	YB_NORETURN PDefH(HostRenderer*, clone, ) const override
+		ImplExpr(
+			throw ystdex::unimplemented("HostRenderer::clone unimplemented."));
+//	DefClone(const override, HostRenderer)
 };
 
 } // namespace Host;

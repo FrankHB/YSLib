@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Border.cpp
 \ingroup UI
 \brief 图形用户界面边框。
-\version r187
+\version r189
 \author FrankHB <frankhb1989@gmail.com>
 \since build 443
 \par 创建时间:
 	2013-09-06 23:25:42 +0800
 \par 修改时间:
-	2014-11-21 12:41 +0800
+	2015-01-25 13:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -124,13 +124,10 @@ BorderResizer::Wrap()
 				default:
 					;
 				}
-
 				YTraceDe(Notice, "BorderResizer: new bounds = %s.",
 					to_string(bounds).c_str());
-
 				InvalidateParent(widget);
-
-				if(HostMode)
+				if(RootMode)
 				{
 					const auto&
 						off(bounds.GetPoint() - locked_bounds.GetPoint());

@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yfocus.h
+/*!	\file YFocus.h
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r1749
+\version r1755
 \author FrankHB <frankhb1989@gmail.com>
-\since build 168
+\since build 571
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2014-09-03 14:02 +0800
+	2015-01-26 08:16 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -47,14 +47,15 @@ IsFocused(const IWidget&);
 \brief 向部件容器请求获得焦点，并指定 GotFocus 事件发送控件。
 \param release_event 是否在需要释放已有焦点时触发事件。
 \return 是否成功改变了焦点。
+\note 若部件没有父部件或父部件的焦点指针已经指向部件则忽略并返回失败。
 \since build 315
 */
 YF_API bool
 DoRequestFocus(IWidget&, bool release_event = {});
 
 /*!
-\brief 释放焦点，并指定 LostFocus 事件发送控件。
-\return 是否成功改变了焦点。
+\brief 释放焦点：验证并清空容器部件的焦点指针。
+\return 是否成功释放了焦点。
 \since build 315
 */
 YF_API bool
@@ -94,7 +95,7 @@ inline PDefH(void, ReleaseFocus, IWidget& wgt)
 
 /*!
 \brief 清除焦点指针并以此部件作为事件源调用被清除焦点部件的 LostFocus 事件。
-\note 若此部件非容器则无效。
+\note 若焦点指针已为空则忽略。
 \since build 258
 */
 YF_API void

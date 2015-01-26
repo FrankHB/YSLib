@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Main.cpp
 \ingroup ImageBrowser
 \brief 主界面。
-\version r171
+\version r173
 \author FrankHB <frankhb1989@gmail.com>
 \since build 424
 \par 创建时间:
 	2013-07-07 12:57:53 +0800
 \par 修改时间:
-	2014-12-28 23:47 +0800
+	2015-01-25 14:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -45,6 +45,7 @@ main(int argc, char* argv[])
 
 			pnl.Load(DecodeArg(argv[1]));
 			ShowTopLevelDraggable(pnl);
+			pnl.SetRootMode(Deref(GetHostRendererPtrOf(pnl)).RootMode);
 			FetchEvent<Click>(pnl) += [](CursorEventArgs&& e){
 				if(e.GetKeys()[KeyCodes::Secondary])
 					YSLib::PostQuitMessage(0);
