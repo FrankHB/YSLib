@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file variadic.hpp
 \ingroup YStandardEx
 \brief C++ 变长参数相关操作。
-\version r314
+\version r346
 \author FrankHB <frankhb1989@gmail.com>
 \since build 412
 \par 创建时间:
 	2013-06-06 11:38:15 +0800
 \par 修改时间:
-	2014-09-03 13:38 +0800
+	2015-01-31 02:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -201,6 +201,44 @@ private:
 public:
 	using type = sequence_cat_t<sequence_reverse_t<typename
 		sequence_split<vseq>::tail>, sequence_split_t<vseq>>;
+};
+//@}
+
+
+/*!
+\ingroup vseq_operations
+\brief 重复连接序列元素。
+\since build 572
+*/
+//@{
+template<size_t, class>
+struct sequence_join_n;
+
+template<size_t _vN, class _tSeq>
+using sequence_join_n_t = typename sequence_join_n<_vN, _tSeq>::type;
+
+template<size_t... _vSeq>
+struct sequence_join_n<0, variadic_sequence<_vSeq...>>
+{
+	using type = variadic_sequence<>;
+};
+
+template<size_t... _vSeq>
+struct sequence_join_n<1, variadic_sequence<_vSeq...>>
+{
+	using type = variadic_sequence<_vSeq...>;
+};
+
+template<size_t _vN, size_t... _vSeq>
+struct sequence_join_n<_vN, variadic_sequence<_vSeq...>>
+{
+private:
+	using unit = variadic_sequence<_vSeq...>;
+	using half = sequence_join_n_t<_vN / 2, unit>;
+
+public:
+	using type = sequence_cat_t<sequence_cat_t<half, half>,
+		sequence_join_n_t<_vN % 2, unit>>;
 };
 //@}
 

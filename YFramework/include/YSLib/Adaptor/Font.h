@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file Font.h
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3282
+\version r3291
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:02:40 +0800
 \par 修改时间:
-	2014-12-24 13:57 +0800
+	2015-01-30 13:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -191,10 +191,10 @@ public:
 	operator+=(Typeface&);
 	/*!
 	\brief 从字型组和字型组索引中移除指定字型对象。
-	\since build 277
+	\since build 572
 	*/
 	bool
-	operator-=(Typeface&);
+	operator-=(Typeface&) ynothrow;
 
 	DefGetter(const ynothrow, const FamilyName&, FamilyName, family_name)
 	/*!
@@ -513,22 +513,23 @@ private:
 
 	/*!
 	\brief 从字型家族组中移除指定字型对象。
-	\since build 277
+	\since build 572
 	*/
 	bool
-	operator-=(FontFamily&);
+	operator-=(FontFamily&) ynothrow;
 	/*!
 	\brief 从字型组中移除指定字型对象。
-	\since build 277
+	\since build 572
 	*/
 	bool
-	operator-=(Typeface&);
+	operator-=(Typeface&) ynothrow;
 
 	/*!
 	\brief 清除容器。
+	\since build 572
 	*/
 	void
-	ClearContainers();
+	ClearContainers() ynothrow;
 
 public:
 	/*!

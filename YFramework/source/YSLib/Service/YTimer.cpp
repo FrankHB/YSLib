@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ytimer.cpp
+/*!	\file YTimer.cpp
 \ingroup Service
 \brief 计时器服务。
-\version r845
+\version r855
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2014-11-21 12:49 +0800
+	2015-01-29 22:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,8 +70,8 @@ Delay(const TimeSpan& ms)
 }
 
 
-Timer::Timer(const Duration& i, bool b) ynothrow
-	: nBase(), Interval(i)
+Timer::Timer(Duration d, bool b) ynothrow
+	: nBase(), Interval(d)
 {
 	InitClock();
 	if(b)
@@ -113,13 +113,6 @@ Timer::RefreshRemainder()
 	if(YB_UNLIKELY(!(tick < nBase + Interval)))
 		nBase = tick - remainder;
 	return remainder;
-}
-
-void
-Activate(Timer& tmr) ynothrow
-{
-	if(tmr.Interval != Duration::zero())
-		tmr.nBase = HighResolutionClock::now();
 }
 
 } // namespace Timers;

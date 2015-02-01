@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ycontrol.h
+/*!	\file YControl.h
 \ingroup UI
 \brief 样式无关的控件。
-\version r4800
+\version r4807
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 572
 \par 创建时间:
 	2010-02-18 13:44:24 +0800
 \par 修改时间:
-	2014-10-21 12:50 +0800
+	2015-02-01 08:11 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_ycontrol_h_
-#define YSL_INC_UI_ycontrol_h_ 1
+#ifndef YSL_INC_UI_YControl_h_
+#define YSL_INC_UI_YControl_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YWidget
@@ -117,10 +117,10 @@ Enable(IWidget&, bool = true);
 \exception BadEvent 异常中立：由控制器抛出。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
-\since build 237
+\since build 572
 */
 template<VisualEvent _vID>
-inline EventT(typename EventTypeMapping<_vID>::HandlerType)&
+inline GEvent<typename EventTypeMapping<_vID>::HandlerType::FuncType>&
 FetchEvent(IWidget& wgt)
 {
 	return FetchEvent<_vID>(wgt.GetController());

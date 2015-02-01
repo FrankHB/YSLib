@@ -16,13 +16,13 @@
 /*!	\file YModules.h
 \ingroup YSLib
 \brief YSLib 用户界面模块配置文件。
-\version r94
+\version r98
 \author FrankHB <frankhb1989@gmail.com>
 \since build 462
 \par 创建时间:
 	2013-12-23 21:57:29 +0800
 \par 修改时间:
-	2015-01-23 23:14 +0800
+	2015-02-01 08:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -41,12 +41,12 @@
 #define YFM_YSLib_UI_YComponent <YSLib/UI/YComponent.h>
 #define YFM_YSLib_UI_YStyle <YSLib/UI/YStyle.h>
 #define YFM_YSLib_UI_YRenderer <YSLib/UI/YRenderer.h>
-#define YFM_YSLib_UI_YFocus <YSLib/UI/yfocus.h>
-#define YFM_YSLib_UI_YWidgetEvent <YSLib/UI/ywgtevt.h>
+#define YFM_YSLib_UI_YFocus <YSLib/UI/YFocus.h>
+#define YFM_YSLib_UI_YWidgetEvent <YSLib/UI/YWidgetEvent.h>
 #define YFM_YSLib_UI_YWidgetView <YSLib/UI/YWidgetView.h>
 #define YFM_YSLib_UI_YWidget <YSLib/UI/YWidget.h>
-#define YFM_YSLib_UI_YControl <YSLib/UI/ycontrol.h>
-#define YFM_YSLib_UI_YGUI <YSLib/UI/ygui.h>
+#define YFM_YSLib_UI_YControl <YSLib/UI/YControl.h>
+#define YFM_YSLib_UI_YGUI <YSLib/UI/YGUI.h>
 #define YFM_YSLib_UI_YUIContainer <YSLib/UI/YUIContainer.h>
 #define YFM_YSLib_UI_YPanel <YSLib/UI/ypanel.h>
 #define YFM_YSLib_UI_YWindow <YSLib/UI/ywindow.h>

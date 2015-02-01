@@ -11,13 +11,13 @@
 /*!	\file Font.cpp
 \ingroup Adaptor
 \brief 平台无关的字体库。
-\version r3459
+\version r3463
 \author FrankHB <frankhb1989@gmail.com>
 \since build 296
 \par 创建时间:
 	2009-11-12 22:06:13 +0800
 \par 修改时间:
-	2015-01-16 03:33 +0800
+	2015-01-30 13:07 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -141,7 +141,7 @@ FontFamily::operator+=(Typeface& face)
 }
 
 bool
-FontFamily::operator-=(Typeface& face)
+FontFamily::operator-=(Typeface& face) ynothrow
 {
 	return mFaces.erase(face.GetStyleName()) != 0;
 }
@@ -446,18 +446,18 @@ FontCache::operator+=(Typeface& face)
 }
 
 bool
-FontCache::operator-=(FontFamily& family)
+FontCache::operator-=(FontFamily& family) ynothrow
 {
 	return mFamilies.erase(family.GetFamilyName()) != 0;
 }
 bool
-FontCache::operator-=(Typeface& face)
+FontCache::operator-=(Typeface& face) ynothrow
 {
 	return &face != pDefaultFace && sFaces.erase(&face) != 0;
 }
 
 void
-FontCache::ClearContainers()
+FontCache::ClearContainers() ynothrow
 {
 	std::for_each(sFaces.cbegin(), sFaces.cend(), delete_obj());
 	sFaces.clear();

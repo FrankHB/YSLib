@@ -1,5 +1,5 @@
 ﻿/*
-	© 2013-2014 FrankHB.
+	© 2013-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file tuple.hpp
 \ingroup YStandardEx
 \brief 元组类型和操作。
-\version r208
+\version r232
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2013-09-24 22:29:55 +0800
 \par 修改时间:
-	2014-06-13 09:40 +0800
+	2015-01-31 02:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,6 +144,34 @@ private:
 public:
 	using type = sequence_project_t<tuple_type, sequence_reverse_t<
 		make_natural_sequence_t<std::tuple_size<tuple_type>::value>>>;
+};
+//@}
+
+
+//! \since build 572
+//@{
+template<typename... _types>
+struct sequence_join_n<0, std::tuple<_types...>>
+{
+	using type = std::tuple<>;
+};
+
+template<typename... _types>
+struct sequence_join_n<1, std::tuple<_types...>>
+{
+	using type = std::tuple<_types...>;
+};
+
+template<size_t _vN, typename... _types>
+struct sequence_join_n<_vN, std::tuple<_types...>>
+{
+private:
+	using unit = std::tuple<_types...>;
+	using half = sequence_join_n_t<_vN / 2, unit>;
+
+public:
+	using type = sequence_cat_t<sequence_cat_t<half, half>,
+		sequence_join_n_t<_vN % 2, unit>>;
 };
 //@}
 

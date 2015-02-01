@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ValueNode.cpp
 \ingroup Core
 \brief 值类型节点。
-\version r400
+\version r402
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-08-03 23:04:03 +0800;
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2015-01-29 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -169,7 +169,7 @@ IsPrefixedIndex(const string& name, char prefix)
 		{
 			const string ss(&name[1]);
 
-			return std::to_string(std::stoul(ss)) == ss;
+			return to_string(std::stoul(ss)) == ss;
 		}
 		CatchIgnore(std::invalid_argument&)
 	return {};
