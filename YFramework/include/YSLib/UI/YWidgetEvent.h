@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ywgtevt.h
+/*!	\file YWidgetEvent.h
 \ingroup UI
 \brief 标准部件事件定义。
-\version r1612
+\version r1631
 \author FrankHB <frankhb1989@gmail.com>
 \since build 241
 \par 创建时间:
 	2010-12-17 10:27:50 +0800
 \par 修改时间:
-	2014-10-21 12:50 +0800
+	2015-02-01 08:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_ywgtevt_h_
-#define YSL_INC_UI_ywgtevt_h_ 1
+#ifndef YSL_INC_UI_YWidgetEvent_h_
+#define YSL_INC_UI_YWidgetEvent_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YComponent
@@ -512,7 +512,7 @@ size_t
 DoEvent(AController& controller, const VisualEvent& id,
 	typename EventArgsHead<typename _tEventHandler::TupleType>::type&& e)
 {
-	TryRet(dynamic_cast<EventT(typename _tEventHandler)&>(
+	TryRet(dynamic_cast<GEvent<typename _tEventHandler::FuncType>&>(
 		controller.GetItem(id))(std::move(e)))
 	CatchIgnore(std::out_of_range&)
 	CatchIgnore(std::bad_cast&)
@@ -527,8 +527,8 @@ template<VisualEvent _vID>
 EventMapping::MappedType
 NewEvent()
 {
-	return EventMapping::MappedType(new GEventWrapper<EventT(typename
-		EventTypeMapping<_vID>::HandlerType), UIEventArgs&&>());
+	return EventMapping::MappedType(new GEventWrapper<GEvent<typename
+		EventTypeMapping<_vID>::HandlerType::FuncType>, UIEventArgs&&>());
 }
 
 /*!
@@ -543,13 +543,14 @@ GetEvent(EventMapping::MapType&, const VisualEvent&,
 \brief 取控件事件。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
+\since build 572
 */
 template<VisualEvent _vID>
-EventT(typename EventTypeMapping<_vID>::HandlerType)&
+GEvent<typename EventTypeMapping<_vID>::HandlerType::FuncType>&
 FetchEvent(VisualEventMap& m)
 {
-	return dynamic_cast<EventT(typename EventTypeMapping<_vID>::HandlerType)&>(
-		GetEvent(m, _vID, NewEvent<_vID>));
+	return dynamic_cast<GEvent<typename EventTypeMapping<_vID>::HandlerType
+		::FuncType>&>(GetEvent(m, _vID, NewEvent<_vID>));
 }
 /*!
 \ingroup helper_functions
@@ -559,14 +560,14 @@ FetchEvent(VisualEventMap& m)
 \exception BadEvent 异常中立：由控制器抛出。
 \note 需要确保 EventTypeMapping 中有对应的 EventType ，否则无法匹配此函数模板。
 \note 若控件事件不存在则自动添加空事件。
-\since build 195
+\since build 572
 */
 template<VisualEvent _vID>
-EventT(typename EventTypeMapping<_vID>::HandlerType)&
+GEvent<typename EventTypeMapping<_vID>::HandlerType::FuncType>&
 FetchEvent(AController& controller)
 {
-	return dynamic_cast<EventT(typename EventTypeMapping<_vID>::HandlerType)&>(
-		controller.GetItemRef(_vID, NewEvent<_vID>));
+	return dynamic_cast<GEvent<typename EventTypeMapping<_vID>::HandlerType
+		::FuncType>&>(controller.GetItemRef(_vID, NewEvent<_vID>));
 }
 
 //! \since build 494
@@ -582,8 +583,9 @@ MakeWidgetHandlerAdaptor(_tWidget& wgt, _func&& f)
 	return GWidgetHandlerAdaptor<_tWidget, _vID>(wgt, yforward(f));
 }
 
+//! \since build 572
 template<VisualEvent _vID, class _tTarget, class _tWidget, typename _func>
-EventT(typename EventTypeMapping<_vID>::HandlerType)&
+GEvent<typename EventTypeMapping<_vID>::HandlerType::FuncType>&
 AddWidgetHandlerAdaptor(_tTarget&& target, _tWidget& wgt, _func&& f)
 {
 	return FetchEvent<_vID>(yforward(target))
@@ -599,8 +601,8 @@ AddWidgetHandlerAdaptor(_tTarget&& target, _tWidget& wgt, _func&& f)
 class YF_API WidgetController : public AController
 {
 public:
-	//! \since build 331
-	GEventWrapper<EventT(HPaintEvent), UIEventArgs&&> Paint;
+	//! \since build 572
+	GEventWrapper<GEvent<void(PaintEventArgs&&)>, UIEventArgs&&> Paint;
 
 	/*!
 	\brief 构造：使用指定可用性。

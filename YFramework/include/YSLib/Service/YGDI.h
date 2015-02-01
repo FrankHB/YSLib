@@ -11,13 +11,13 @@
 /*!	\file YGDI.h
 \ingroup Service
 \brief 平台无关的图形设备接口。
-\version r3822
+\version r3872
 \author FrankHB <frankhb1989@gmail.com>
 \since build 566
 \par 创建时间:
 	2009-12-14 18:29:46 +0800
 \par 修改时间:
-	2015-01-18 14:42 +0800
+	2015-01-31 21:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,16 +49,13 @@ struct YF_API Padding
 	\brief 空白距离：左、右、上、下。
 	\since build 365
 	*/
-	SPos Left, Right, Top, Bottom;
+	SPos Left = 0, Right = 0, Top = 0, Bottom = 0;
 
 	/*!
 	\brief 默认构造：使用零边距。
 	\since build 365
 	*/
-	yconstfn
-	Padding()
-		: Padding(0, 0, 0, 0)
-	{}
+	DefDeCtor(Padding)
 	/*!
 	\brief 构造：使用 4 个边距。
 	\since build 365
@@ -71,32 +68,71 @@ struct YF_API Padding
 	/*!
 	\brief 加法赋值：对应分量调用 operator+= 。
 	*/
-	Padding&
-	operator+=(const Padding& m)
-	{
-		yunseq(Left += m.Left, Right += m.Right, Top += m.Top,
-			Bottom += m.Bottom);
-		return *this;
-	}
+	PDefHOp(Padding&, +=, const Padding& m)
+		ImplRet(yunseq(Left += m.Left, Right += m.Right, Top += m.Top,
+			Bottom += m.Bottom), *this)
+
+	/*!
+	\brief 减法赋值：对应分量调用 operator-= 。
+	\since build 572
+	*/
+	PDefHOp(Padding&, -=, const Padding& m)
+		ImplRet(yunseq(Left -= m.Left, Right -= m.Right, Top -= m.Top,
+			Bottom -= m.Bottom), *this)
+
+	/*!
+	\brief 乘法赋值：对应分量调用 operator-= 。
+	\since build 572
+	*/
+	PDefHOp(Padding&, *=, SDst n)
+		ImplRet(yunseq(Left *= n, Right *= n, Top *= n, Bottom *= n), *this)
 };
 
 //! \relates Padding
 //@{
 /*!
+\brief 加法逆元：对应分量调用一元 operator- 。
+\since build 572
+*/
+yconstfn PDefHOp(Padding, -, const Padding& x)
+	ImplRet(Padding(-x.Left, -x.Right, -x.Top, -x.Bottom))
+
+/*!
 \brief 加法：对应分量调用 operator+ 。
 */
-yconstfn Padding
-operator+(const Padding& x, const Padding& y)
-{
-	return Padding(x.Left + y.Left, x.Right + y.Right, x.Top + y.Top,
-		x.Bottom + y.Bottom);
-}
+yconstfn PDefHOp(Padding, +, const Padding& x, const Padding& y)
+	ImplRet(Padding(x.Left + y.Left, x.Right + y.Right, x.Top + y.Top,
+		x.Bottom + y.Bottom))
+
+/*!
+\brief 减法：对应分量调用 operator- 。
+\since build 572
+*/
+yconstfn PDefHOp(Padding, -, const Padding& x, const Padding& y)
+	ImplRet(Padding(x.Left - y.Left, x.Right - y.Right, x.Top - y.Top,
+		x.Bottom - y.Bottom))
+
+/*!
+\brief 乘法：对应分量调用 operator* 。
+\since build 572
+*/
+yconstfn PDefHOp(Padding, *, const Padding& x, SDst n)
+	ImplRet(Padding(x.Left * n, x.Right * n, x.Top * n, x.Bottom * n))
+
 /*!
 \brief 加法：缩小屏幕标准矩形，相对位置由指定边距决定。
 \note 若边距过大，则矩形的宽或高可能为 0 。
 */
 YF_API Rect
 operator+(const Rect&, const Padding&);
+
+/*!
+\brief 减法：放大屏幕标准矩形，相对位置由指定边距决定。
+\note 若边距过大，则矩形的宽或高可能为 0 。
+\since build 572
+*/
+inline PDefHOp(Rect, -, const Rect& r, const Padding& m)
+	ImplRet(r + -m)
 //@}
 
 

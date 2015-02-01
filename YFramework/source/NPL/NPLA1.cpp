@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file NPLA1.cpp
 \ingroup NPL
 \brief 配置设置。
-\version r172
+\version r176
 \author FrankHB <frankhb1989@gmail.com>
 \since build 472
 \par 创建时间:
 	2014-02-02 18:02:47 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2015-01-29 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -74,9 +74,9 @@ TransformNPLA1(const ValueNode& node, std::function<NodeMapper> mapper)
 	std::for_each(i, node.end(), [&](const ValueNode& nd){
 		auto&& n(mapper ? mapper(nd) : TransformNPLA1(nd, mapper));
 
-		p_node_con->insert(n.GetName().empty() ? ValueNode(0,
-			'$' + std::to_string(p_node_con->size()), std::move(n.Value))
-			: std::move(n));
+		p_node_con->insert(n.GetName().empty()
+			? ValueNode(0, '$' + to_string(p_node_con->size()),
+			std::move(n.Value)) : std::move(n));
 	});
 	return {std::move(p_node_con), name};
 }

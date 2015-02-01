@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ytimer.h
+/*!	\file YTimer.h
 \ingroup Service
 \brief 计时器服务。
-\version r1063
+\version r1079
 \author FrankHB <frankhb1989@gmail.com>
-\since 早于 build 132
+\since build 572
 \par 创建时间:
 	2010-06-05 10:28:58 +0800
 \par 修改时间:
-	2014-11-21 12:48 +0800
+	2015-01-30 08:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_Service_ytimer_h_
-#define YSL_INC_Service_ytimer_h_ 1
+#ifndef YSL_INC_Service_YTimer_h_
+#define YSL_INC_Service_YTimer_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_Core_YShellDefinition
@@ -45,10 +45,12 @@ namespace Timers
 class YF_API HighResolutionClock
 {
 public:
-	using duration = std::chrono::nanoseconds;
+	using duration = std::chrono::duration<
+		ystdex::make_signed_t<std::chrono::nanoseconds::rep>, std::nano>;
 	using rep = duration::rep;
 	using period = duration::period;
-	using time_point = std::chrono::time_point<HighResolutionClock, duration>;
+	using time_point = std::chrono::time_point<HighResolutionClock,
+		std::chrono::nanoseconds>;
 
 	static yconstexpr bool is_steady = {};
 
@@ -131,10 +133,10 @@ public:
 
 	/*!
 	\brief 构造：使用时间间隔和激活状态。
-	\since build 555
+	\since build 572
 	*/
 	explicit
-	Timer(const Duration& = {}, bool = true) ynothrow;
+	Timer(Duration = {}, bool = true) ynothrow;
 	//! \since build 555
 	DefDeCopyCtor(Timer)
 	//! \since build 416
@@ -146,18 +148,18 @@ public:
 	DefGetter(const ynothrow, TimePoint, BaseTick, nBase)
 
 	/*!
-	\brief 激活：当时间间隔非零时同步时间基点。
+	\brief 激活：设置时间基点为当前时间。
 	\since build 555
 	*/
-	YF_API friend void
-	Activate(Timer&) ynothrow;
+	friend PDefH(void, Activate, Timer& tmr) ynothrow
+		ImplExpr(tmr.nBase = HighResolutionClock::now())
 
 	/*!
 	\brief 延时。
 	\note 非阻塞，立即返回。
-	\since build 303
+	\since build 572
 	*/
-	PDefH(void, Delay, const Duration& d)
+	PDefH(void, Delay, Duration d)
 		ImplExpr(nBase += d)
 
 	/*!

@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4856
+\version r4940
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-01-22 19:00 +0800
+	2015-02-01 08:15 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -46,7 +46,7 @@ template<typename... _tParams>
 DeclDerivedI(, GIHEvent, ystdex::cloneable)
 	DeclIEntry(size_t operator()(_tParams...) const)
 	//! \since build 409
-	DeclIEntry(GIHEvent* clone() const override)
+	DeclIEntry(GIHEvent* clone() const ImplI(ystdex::cloneable))
 EndDecl
 
 
@@ -278,12 +278,14 @@ public:
 		= multimap<EventPriority, HandlerType, std::greater<EventPriority>>;
 	using SizeType = typename ContainerType::size_type;
 
+private:
 	/*!
 	\brief 响应列表。
-	\since build 294
+	\since build 572
 	*/
-	ContainerType List;
+	ContainerType handlers;
 
+public:
 	/*!
 	\brief 无参数构造：默认实现。
 	\note 得到空实例。
@@ -296,7 +298,7 @@ public:
 	template<typename _tHandler,
 		yimpl(typename = ystdex::exclude_self_ctor_t<GEvent, _tHandler>)>
 	GEvent(_tHandler&& h)
-		: List()
+		: handlers()
 	{
 		Add(yforward(h));
 	}
@@ -343,8 +345,8 @@ public:
 	GEvent&
 	operator-=(const HandlerType& h)
 	{
-		ystdex::erase_all_if<ContainerType>(List, List.cbegin(), List.cend(),
-			[&](decltype(*List.cbegin()) pr){
+		ystdex::erase_all_if<ContainerType>(handlers, handlers.cbegin(), handlers.cend(),
+			[&](decltype(*handlers.cbegin()) pr){
 			return pr.second == h;
 		});
 		return *this;
@@ -367,24 +369,27 @@ public:
 	}
 
 	/*!
-	\brief 添加事件响应：使用 const 事件处理器和优先级。
+	\brief 插入事件响应。
 	\note 不检查是否已经在列表中。
+	\sa Insert
+	*/
+	//@{
+	/*!
+	\note 使用 const 事件处理器和优先级。
 	\since build 294
 	*/
 	inline PDefH(GEvent&, Add, const HandlerType& h,
 		EventPriority prior = DefaultEventPriority)
-		ImplRet(List.emplace(prior, h), *this)
+		ImplRet(Insert(h, prior), *this)
 	/*!
-	\brief 添加事件响应：使用非 const 事件处理器和优先级。
-	\note 不检查是否已经在列表中。
+	\note 使用非 const 事件处理器和优先级。
 	\since build 294
 	*/
 	inline PDefH(GEvent&, Add, HandlerType&& h,
 		EventPriority prior = DefaultEventPriority)
-		ImplRet(List.emplace(prior, std::move(h)), *this)
+		ImplRet(Insert(std::move(h), prior), *this)
 	/*!
-	\brief 添加事件响应：使用单一构造参数指定的事件处理器和优先级。
-	\note 不检查是否已经在列表中。
+	\note 使用单一构造参数指定的事件处理器和优先级。
 	\since build 294
 	*/
 	template<typename _type>
@@ -394,8 +399,7 @@ public:
 		return Add(HandlerType(yforward(_arg)), prior);
 	}
 	/*!
-	\brief 添加事件响应：使用对象引用、成员函数指针和优先级。
-	\note 不检查是否已经在列表中。
+	\note 使用对象引用、成员函数指针和优先级。
 	\since build 413
 	*/
 	template<class _tObj, class _type>
@@ -405,6 +409,39 @@ public:
 	{
 		return Add(HandlerType(static_cast<_type&>(obj), std::move(pm)), prior);
 	}
+	//@}
+
+	/*!
+	\brief 插入事件响应。
+	\note 不检查是否已经在列表中。
+	\since build 572
+	*/
+	//@{
+	//! \note 使用 const 事件处理器和优先级。
+	inline PDefH(typename ContainerType::iterator, Insert, const HandlerType& h,
+		EventPriority prior = DefaultEventPriority)
+		ImplRet(handlers.emplace(prior, h))
+	//! \note 使用非 const 事件处理器和优先级。
+	inline PDefH(typename ContainerType::iterator, Insert, HandlerType&& h,
+		EventPriority prior = DefaultEventPriority)
+		ImplRet(handlers.emplace(prior, std::move(h)))
+	//! \note 使用单一构造参数指定的事件处理器和优先级。
+	template<typename _type>
+	inline typename ContainerType::iterator
+	Insert(_type&& _arg, EventPriority prior = DefaultEventPriority)
+	{
+		return Insert(HandlerType(yforward(_arg)), prior);
+	}
+	//! \note 使用对象引用、成员函数指针和优先级。
+	template<class _tObj, class _type>
+	inline typename ContainerType::iterator
+	Insert(_tObj& obj, _tRet(_type::*pm)(_tParams...),
+		EventPriority prior = DefaultEventPriority)
+	{
+		return
+			Insert(HandlerType(static_cast<_type&>(obj), std::move(pm)), prior);
+	}
+	//@}
 
 	/*!
 	\brief 移除事件响应：目标为指定对象引用和成员函数指针。
@@ -425,8 +462,8 @@ public:
 	{
 		using ystdex::get_value;
 
-		return std::count(List.cbegin() | get_value, List.cend() | get_value, h)
-			!= 0;
+		return std::count(handlers.cbegin() | get_value,
+			handlers.cend() | get_value, h) != 0;
 	}
 	/*!
 	\brief 判断是否包含单一构造参数指定的事件响应。
@@ -449,7 +486,7 @@ public:
 	{
 		SizeType n(0);
 
-		for(const auto& pr : List)
+		for(const auto& pr : handlers)
 		{
 			TryExpr(pr.second(yforward(args)...))
 			CatchIgnore(std::bad_function_call&)
@@ -461,21 +498,37 @@ public:
 	/*!
 	\brief 取列表中的响应数。
 	*/
-	DefGetter(const ynothrow, SizeType, Size, List.size())
+	DefGetter(const ynothrow, SizeType, Size, handlers.size())
 
-	/*!
-	\brief 清除：移除所有事件响应。
-	\since build 530
-	*/
-	PDefH(void, clear, )
-		ImplRet(List.clear())
+	//! \since build 572
+	//@{
+	PDefH(typename ContainerType::iterator, begin, ) ynothrow
+		ImplRet(handlers.begin())
+	PDefH(typename ContainerType::iterator, begin, ) const ynothrow
+		ImplRet(handlers.begin())
+
+	//! \brief 清除：移除所有事件响应。
+	PDefH(void, clear, ) ynothrow
+		ImplRet(handlers.clear())
+
+	PDefH(size_t, count, ) const ynothrow
+		ImplRet(handlers.count())
+
+	PDefH(bool, empty, ) const ynothrow
+		ImplRet(handlers.empty())
+
+	PDefH(typename ContainerType::iterator, end, ) ynothrow
+		ImplRet(handlers.end())
+	PDefH(typename ContainerType::iterator, end, ) const ynothrow
+		ImplRet(handlers.end())
+	//@}
 
 	/*
 	\brief 交换。
 	\since build 409
 	*/
 	PDefH(void, swap, GEvent& e) ynothrow
-		ImplRet(List.swap(e))
+		ImplRet(handlers.swap(e))
 };
 //@}
 
@@ -660,14 +713,6 @@ struct EventArgsHead<tuple<_tParams...>> : EventArgsHead<_tParams...>
 
 
 /*!
-\brief 事件类型宏。
-\since build 188
-*/
-#define EventT(_tEventHandler) \
-	GEvent<void(typename EventArgsHead<_tEventHandler::TupleType>::type)>
-
-
-/*!
 \brief 事件处理器适配器模板。
 \warning 非虚析构。
 \since build 494
@@ -753,8 +798,7 @@ public:
 \since build 173
 */
 template<class _tEvent, typename _tBaseArgs>
-class GEventWrapper : public _tEvent,
-	implements GIHEvent<_tBaseArgs>
+class GEventWrapper : public _tEvent, implements GIHEvent<_tBaseArgs>
 {
 public:
 	using EventType = _tEvent;

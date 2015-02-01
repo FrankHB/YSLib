@@ -11,13 +11,13 @@
 /*!	\file Environment.cpp
 \ingroup Helper
 \brief 环境。
-\version r1568
+\version r1569
 \author FrankHB <frankhb1989@gmail.com>
 \since build 379
 \par 创建时间:
 	2013-02-08 01:27:29 +0800
 \par 修改时间:
-	2015-01-26 10:16 +0800
+	2015-01-29 19:50 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,7 +64,7 @@ WndProc(::HWND h_wnd, unsigned msg, ::WPARAM w_param, ::LPARAM l_param)
 	if(const auto p = reinterpret_cast<Window*>(::GetWindowLongPtrW(h_wnd,
 		GWLP_USERDATA)))
 	{
-		YSL_DEBUG_DECL_TIMER(tmr, std::to_string(msg));
+		YSL_DEBUG_DECL_TIMER(tmr, to_string(msg));
 		auto& m(p->MessageMap);
 		const auto i(m.find(msg));
 

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ygui.cpp
+/*!	\file YGUI.cpp
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r4210
+\version r4221
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-11-21 13:01 +0800
+	2015-01-30 08:08 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,13 +70,13 @@ FetchVisibleEnabledFocusingPtr(IWidget& con)
 
 yconstexpr const InputTimer::Duration InputTimer::DefaultDuration;
 
-InputTimer::InputTimer(const Duration& d) ynothrow
+InputTimer::InputTimer(Duration d) ynothrow
 	: Timer(d)
 {}
 
 bool
-InputTimer::RefreshHeld(HeldStateType& s, const Duration& initial_delay,
-	const Duration& repeated_delay)
+InputTimer::RefreshHeld(HeldStateType& s, Duration initial_delay,
+	Duration repeated_delay)
 {
 	switch(s)
 	{
@@ -98,19 +98,13 @@ InputTimer::RefreshHeld(HeldStateType& s, const Duration& initial_delay,
 }
 
 size_t
-InputTimer::RefreshTap(size_t s, const Duration& delay)
+InputTimer::RefreshTap(size_t s, Duration delay)
 {
 	const auto res(s == 0 || YB_UNLIKELY(!CheckTimeout(*this)) ? s + 1 : 0);
 
 	Interval = delay;
 	Activate(*this);
 	return res;
-}
-
-void
-InputTimer::ResetInput()
-{
-	Interval = Timers::TimeSpan(1000);
 }
 
 

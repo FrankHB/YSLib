@@ -1,5 +1,5 @@
 ﻿/*
-	© 2009-2014 FrankHB.
+	© 2009-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file ygui.h
+/*!	\file YGUI.h
 \ingroup UI
 \brief 平台无关的图形用户界面。
-\version r2380
+\version r2395
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-11-16 20:06:58 +0800
 \par 修改时间:
-	2014-11-21 13:12 +0800
+	2015-01-30 08:03 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_ygui_h_
-#define YSL_INC_UI_ygui_h_ 1
+#ifndef YSL_INC_UI_YGUI_h_
+#define YSL_INC_UI_YGUI_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YWidgetEvent
@@ -61,33 +61,33 @@ public:
 	};
 
 	//! \since build 555
-	static yconstexpr Duration DefaultDuration{Timers::TimeSpan(1000U)};
+	static yconstexpr const Duration DefaultDuration{Timers::TimeSpan(1000U)};
 
-	//! \since build 555
-	InputTimer(const Duration& = DefaultDuration) ynothrow;
+	//! \since build 572
+	InputTimer(Duration = DefaultDuration) ynothrow;
 
 	/*!
 	\brief 重复检测输入接触保持状态。
-	\since build 416
+	\since build 572
 	*/
 	bool
-	RefreshHeld(HeldStateType&, const Duration& = Timers::TimeSpan(240),
-		const Duration& = Timers::TimeSpan(120));
+	RefreshHeld(HeldStateType&, Duration = Timers::TimeSpan(240),
+		Duration = Timers::TimeSpan(120));
 
 	/*!
 	\brief 重复检测连续点击状态。
 	\return 保持的点击次数：若不超过延时则为输入次数增加 1 ，否则为 0 。
-	\since build 541
+	\since build 572
 	*/
 	size_t
-	RefreshTap(size_t, const Duration& = Timers::TimeSpan(400));
+	RefreshTap(size_t, Duration = Timers::TimeSpan(400));
 
 	/*!
 	\brief 复位输入计时状态。
-	\since build 416
+	\since build 572
 	*/
-	void
-	ResetInput();
+	PDefH(void, ResetInput, Duration d = DefaultDuration)
+		ImplExpr(Interval = d)
 };
 
 

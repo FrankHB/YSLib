@@ -11,13 +11,13 @@
 /*!	\file Environment.h
 \ingroup Helper
 \brief 环境。
-\version r830
+\version r832
 \author FrankHB <frankhb1989@gmail.com>
 \since build 521
 \par 创建时间:
 	2013-02-08 01:28:03 +0800
 \par 修改时间:
-	2015-01-25 09:39 +0800
+	2015-01-31 02:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -116,9 +116,9 @@ private:
 	/*!
 	\brief 点映射例程。
 	\note 若非空则 MapCursor 调用此实现，否则使用恒等变换。
-	\since build 521
+	\since build 572
 	*/
-	Drawing::Point(*MapPoint)(const Drawing::Point&) = {};
+	ystdex::id_func_clr_t<Drawing::Point>* MapPoint = {};
 #	endif
 #endif
 

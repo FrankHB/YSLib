@@ -11,13 +11,13 @@
 /*!	\file HostRenderer.cpp
 \ingroup Helper
 \brief 宿主渲染器。
-\version r468
+\version r469
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2013-07-09 05:37:27 +0800
 \par 修改时间:
-	2015-01-26 05:35 +0800
+	2015-01-29 19:49 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -134,7 +134,7 @@ WindowThread::WindowLoop(Window& wnd)
 	while(const auto p_evt = unique_raw(::xcb_wait_for_event(
 		&Deref(wnd.GetNativeHandle().get()).DerefConn()), std::free))
 	{
-	//	YSL_DEBUG_DECL_TIMER(tmr, std::to_string(msg));
+	//	YSL_DEBUG_DECL_TIMER(tmr, to_string(msg));
 		auto& m(wnd.MessageMap);
 		const auto msg(p_evt->response_type & ~0x80);
 

@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9537
+\version r9667
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-01-26 08:27 +0800
+	2015-02-01 08:59 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,127 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ DLD "simplified YSLib dependent implementation" ^ 'to_string'
+		~ 'std::to_string' @ %YFramework $effective @ %(Helper.(Environment,
+		HostRenderer), NPL.NPLA1, YSLib.Core.ValueNode),
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ @ "class %InputTimer" @ %YGUI $=
+				(
+					/ @ "function %ResetInput" $=
+					(
+						+ "parameter with default argument \
+							'const Duration& = DefaultDuration'",
+						/ $dev $lib "implemented as inlined function"
+							^ "%(PDefH, ImplExpr)"
+					),
+					+ DLD 'const' @ "declaration"
+						@ "static yconstexpr data member %DefaultDuration"
+						// This should be OK after G++ 4.6.
+				),
+				/ "all event types" %(YWidgetEvent, YControl)
+					^ "event member type %FuncType" ~ "%Event",
+				+ "class %TimedHoverInfo" @ %Hover,
+				* "missing renaming for %yfocus.h" @ %YModules $since b571
+			),
+			/ %Service $=
+			(
+				/ %YTimer $=
+				(
+					/ @ "class %HighResolutionClock" $=
+					(
+						/ $dev $lib "member type %time_point"
+							^ 'std::chrono::nanoseconds' ~ 'duration',
+							// The %time_point here is always signed.
+						/ "member type %duration" ^ "signed type as %rep"
+							~ "unsigned type as %std::chrono::nanoseconds"
+					),
+					/ @ "friend function %Activate for class %Timer" $=
+					(
+						- "zero interval check",
+						/ $dev $lib "implemented as inlined function"
+							^ "%(PDefH, ImplExpr)"
+					)
+				),
+				/ %YGDI $=
+				(
+					/ @ "class %Padding" $=
+					(
+						(
+						+ DLD "brace-or-equal-initializer ' = 0'"
+							@ "all data members";
+						/ DLD "simplified default constructor"
+							^ "macro %DefDeCtor",
+						),
+						/ DLD "implemented function %operator+="
+							^ "macros %(PDefHOp, ImplRet)",
+						+ "function %operator(-=, *=)"
+					),
+					/ DLD "implemented 'yconstfn' function %operator+"
+						^ "macros %(PDefHOp, ImplRet)",
+					+ "'yconstfn' functions (unary and binary %operator-, \
+						%operator*) for %Padding",
+					+ "function %operator- for %Rect and %Padding"
+				)
+			),
+			+ 'ynothrow' @ ("all 2 functions %operator-=, \
+				function %ClearContainers" @ "class %FontCache", \
+				"member function %FontFamily::operator-=)") @ %Adaptor.Font,
+			/ %Core.YEvent $=
+			(
+				/ @ "class template %GEvent" $=
+				(
+					(
+					+ "2 functions %Insert";
+					/ DLD "simplfied 2 functions %Add" ^ "%Insert",
+					+ "2 function templates %Insert"
+					),
+					+ 'ynothrow' @ "function %clear",
+					+ "2 functions %(begin, end)",
+					+ "2 functions %(count, empty)",
+					- "public data member %List"
+				),
+				- "macro %EventT" $dep_from %UI.(YWidgetEvent, YControl)
+			)
+		),
+		/ $dev "all 'const Duration&' parameter" -> 'Duration'
+			$effective %(YSLib.Service.Timer, UI.YGUI),
+			// See $2015-01 @ %Documentation::Workflow::Annual2015. 
+		/ $lib $design "simplified type of data member %Environment::MapPoint"
+			@ "platform %Android" @ %Helper.Environment ^ $dep_from \
+			("%ystdex::id_func_clr_t" @ %YBase.YStandardEx.Functional)
+	),
+	* "missing zero interval check on enabling automatic scrolling"
+		@ "function %StartAutoScroll" $since b416 $orig (@ "function \
+		%OnKeyDown" $since b405) @ "class %ShlReader" @ %YReader.ShlReader,
+		// It would cause assertion failed when interval is set to zero after \
+			enabling automatic scrolling.
+	/ %YBase.YStandardEx $=
+	(
+		+ "meta operation templates %(sequence_join_n; sequence_join_n_t"
+			@%Variadic;
+		+ "meta operation specializations %sequence_join_n" @ %Tuple,
+		/ %Functional $=
+		(
+			+ "meta operation templates %(make_function_type; \
+				make_function_type_t)";
+			+ "meta operation templates %(id_func_t; id_func_clr_t, \
+				id_func_rr_t)" $dep_from %Tuple
+		)
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective @ (("%ytimer.h" => "%YTimer.h",
+		"%ytimer.cpp" => "%YTimer.cpp") @ %Service, ("%ygui.h" => "%YGUI.h",
+		"ygui.cpp" => "%YGUI.cpp", "%ycontrol.h" => "%YControl.h",
+		"%ywgtevt.h" => "%YWidgetEvent.h") @ %UI) @ YFramework.YSLib
+),
+
+b571
 (
 	* "wrong DS extension file paths" @ "platform %MinGW32"
 		@ "Visual C++ project" $since b433,
@@ -1192,7 +1313,7 @@ b562
 		/ %YSLib $=
 		(
 			* "non-lowercase header file name of %YObject"
-				@ %Core.YModule $since b561,
+				@ %Core.YModules $since b561,
 			/ %Adaptor $=
 			(
 				* "missing including <ext/malloc_allocator.h> for libstdc++ \
@@ -1763,7 +1884,7 @@ b559
 				-> "%ConstGraphics" $effective @ %Service.(YGDI, YBlit)
 				$dep_from %Core.YGDIBase,
 			* "non-lowercase header file name of %(YAdaptor, YNew)"
-				@ %Adaptor.YModule $since b462
+				@ %Adaptor.YModules $since b462
 		),
 		/ "namespace %Android" @ %'YCLib_(Android)'.Android $=
 		(
@@ -5575,7 +5696,7 @@ b532
 			(
 				+ %TreeView $=
 					(+ "class %TreeList"),
-				+ "macro %YFM_Android_Helper_AndroidHost" @ %YModule,
+				+ "macro %YFM_Android_Helper_AndroidHost" @ %YModules,
 				/ @ "class %GUIState" @ %YGUI $=
 				(
 					/ $design "data member order",
@@ -5991,7 +6112,7 @@ b528
 					),
 					+ "class %AMUnitControlList"
 				),
-				/ "macro %YFM_YSLib_UI_TextList" @ %UI.YModule
+				/ "macro %YFM_YSLib_UI_TextList" @ %UI.YModules
 					=> "%YFM_YSLib_UI_ListControl"
 			),
 			/ %Core.YGDIBase $=
@@ -6618,7 +6739,7 @@ b521
 				@ %YGlobal,
 			+ DLD "environment support" @ "class %InputManager"
 				@ %InputManager,
-			/ "macro %YFM_Helper_Host" @ %YModule => "%YFM_Helper_Environment",
+			/ "macro %YFM_Helper_Host" @ %YModules => "%YFM_Helper_Environment",
 			/ "class %Environment" @ %Environment $=
 			(
 				/ "static function %HostLoop"
@@ -6662,7 +6783,7 @@ b521
 		/ "function template %YSLib::CacheLookup" -> "%ystdex::cache_lookup"
 			$= (/ "thrown exception %LoggedEvent" -> "%std::runtime_error")
 	);
-	- "macro %YFM_YSLib_Core_Cache" @ %YFramework.YSLib.Core.YModule
+	- "macro %YFM_YSLib_Core_Cache" @ %YFramework.YSLib.Core.YModules
 	)
 ),
 
@@ -6678,7 +6799,7 @@ b520
 			* DLD "missing specifying return type" @ "lambda expression with \
 				multiple return statements" @ "constructor %Win32Exception"
 				@MinGW32 $since b435,
-			+ "macro %YFM_MinGW32_YCLib_Consoles" @ %YModule
+			+ "macro %YFM_MinGW32_YCLib_Consoles" @ %YModules
 		)
 		/ %YSLib $=
 		(
@@ -7932,9 +8053,9 @@ b507
 		),
 		+ "meta operation templates %((sequence_split_n; sequence_split_n_t),
 			(sequence_fold; vseq_fold))" @%Variadic,
-		+ "meta operation specializations %sequence_split_n @ %Tuple
+		+ "meta operation specializations %sequence_split_n" @ %Tuple
 			$dep_from (%ystdex::sequence_split_n @ %Variadic),
-		+ "meta operation specializations %sequence_fold @ %Tuple
+		+ "meta operation specializations %sequence_fold" @ %Tuple
 			$dep_from (%ystdex::sequence_fold @ %Variadic),
 		+ "binary functors %(plus, multiply)" @ %Functional
 			// Only added associative built-in operations.
@@ -8308,7 +8429,7 @@ b502
 						@ "namespace %Android"
 				)
 			),
-			+ "macro %YFM_Android_Helper_AndroidHost" @ %YModule
+			+ "macro %YFM_Android_Helper_AndroidHost" @ %YModules
 		),
 		+ %'Helper_(Android)' $=
 		(

@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.cpp
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r4724
+\version r4729
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:13:41 +0800
 \par 修改时间:
-	2014-10-21 12:49 +0800
+	2015-01-30 08:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -348,7 +348,7 @@ ShlTextReader::ShlTextReader(const IO::Path& pth,
 	: ShlReader(pth, h_dsk_up, h_dsk_dn),
 	LastRead(ystdex::parameterize_static_object<ReadingList>()),
 	CurrentSetting(LoadGlobalConfiguration()), tmrScroll(
-	CurrentSetting.GetTimerSetting()), tmrScrollActive(false), reader(),
+	CurrentSetting.GetTimerSetting()), tmrScrollActive(), reader(),
 	boxReader({0, 160, 256, 32}), boxTextInfo(),
 	pnlSetting(), pTextFile(), mhMain(GetSubDesktop()),
 	pnlBookmark(LoadBookmarks(pth), *this), session_ptr()
@@ -540,8 +540,8 @@ void
 ShlTextReader::LoadFile(const IO::Path& pth)
 {
 	CurrentPath = pth;
-	pTextFile = make_unique<TextFile>(string(pth).c_str(),
-		std::ios_base::in | std::ios_base::binary, CharSet::Null);
+	pTextFile.reset(new TextFile(string(pth).c_str(),
+		std::ios_base::in | std::ios_base::binary, CharSet::Null));
 	reader.LoadText(*pTextFile);
 
 	const auto text_size(reader.GetTextSize());
@@ -608,7 +608,7 @@ ShlTextReader::StartAutoScroll()
 {
 	fBackgroundTask = std::bind(&ShlTextReader::Scroll, this);
 	Activate(tmrScroll),
-	tmrScrollActive = true;
+	tmrScrollActive = tmrScroll.Interval != Timers::Duration::zero();
 }
 
 void

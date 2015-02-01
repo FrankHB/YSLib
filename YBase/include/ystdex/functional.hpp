@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1419
+\version r1448
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2014-12-12 18:31 +0800
+	2015-01-31 02:27 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -332,6 +332,42 @@ template<typename _fCallable>
 struct paramlist_size : integral_constant<size_t, std::tuple_size<typename
 	make_parameter_tuple<_fCallable>::type>::value>
 {};
+
+
+/*!
+\ingroup metafunctions
+\since build 572
+*/
+//@{
+//! \brief 取指定返回类型和元组指定参数类型的函数类型。
+//@{
+template<typename, class>
+struct make_function_type;
+
+template<typename _tRet, class _tTuple>
+using make_function_type_t = typename make_function_type<_tRet, _tTuple>::type;
+
+template<typename _tRet, typename... _tParams>
+struct make_function_type<_tRet, std::tuple<_tParams...>>
+{
+	using type = _tRet(_tParams...);
+};
+//@}
+
+
+//! \brief 取指定维数和指定参数类型的多元映射扩展恒等函数类型。
+template<typename _type, size_t _vN = 1, typename _tParam = _type>
+using id_func_t
+	= make_function_type_t<_type, sequence_join_n_t<_vN, std::tuple<_tParam>>>;
+
+//! \brief 取指定维数和 const 左值引用参数类型的多元映射扩展恒等函数类型。
+template<typename _type, size_t _vN = 1>
+using id_func_clr_t = id_func_t<_type, _vN, const _type&>;
+
+//! \brief 取指定维数和 const 右值引用参数类型的多元映射扩展恒等函数类型。
+template<typename _type, size_t _vN = 1>
+using id_func_rr_t = id_func_t<_type, _vN, _type&&>;
+//@}
 
 
 //! \since build 537
