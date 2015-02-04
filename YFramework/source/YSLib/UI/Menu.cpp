@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file menu.cpp
+/*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1334
+\version r1339
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2014-11-21 12:40 +0800
+	2015-02-04 08:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -144,7 +144,6 @@ Menu::operator-=(IndexType idx)
 			mSubMenus.erase(i);
 			return true;
 		}
-		return {};
 	}
 	return {};
 }
@@ -223,8 +222,8 @@ LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 }
 
 
-MenuHost::MenuHost(Window& frm)
-	: Frame(frm)
+MenuHost::MenuHost(Panel& pnl)
+	: Frame(pnl)
 {}
 MenuHost::~MenuHost()
 {

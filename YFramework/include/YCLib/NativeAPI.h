@@ -11,13 +11,13 @@
 /*!	\file NativeAPI.h
 \ingroup YCLib
 \brief 通用平台应用程序接口描述。
-\version r801
+\version r832
 \author FrankHB <frankhb1989@gmail.com>
 \since build 202
 \par 创建时间:
 	2011-04-13 20:26:21 +0800
 \par 修改时间:
-	2015-01-12 00:17 +0800
+	2015-02-01 12:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -70,15 +70,15 @@ namespace platform_replace
 
 #if YCL_DS
 
-#include <nds.h>
-#include <fat.h>
+#	include <nds.h>
+#	include <fat.h>
 //包含 PALib 。
-//#include <PA9.h>
+//#	include <PA9.h>
 
-#ifdef USE_EFS
+#	ifdef USE_EFS
 //包含 EFSLib 。
-#include "efs_lib.h"
-#endif
+#		include "efs_lib.h"
+#	endif
 
 namespace platform_ex
 {
@@ -107,68 +107,68 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 
 #elif YCL_Win32
 
-#ifndef UNICODE
-#	define UNICODE 1
-#endif
+#	ifndef UNICODE
+#		define UNICODE 1
+#	endif
 
-#ifndef WINVER
+#	ifndef WINVER
 //! \since build 448
-#	define WINVER 0x0501
-#endif
+#		define WINVER 0x0501
+#	endif
 
-#ifndef WIN32_LEAN_AND_MEAN
+#	ifndef WIN32_LEAN_AND_MEAN
 //! \since build 448
-#	define WIN32_LEAN_AND_MEAN 1
-#endif
+#		define WIN32_LEAN_AND_MEAN 1
+#	endif
 
-#ifndef NOMINMAX
+#	ifndef NOMINMAX
 //! \since build 521
-#	define NOMINMAX 1
-#endif
+#		define NOMINMAX 1
+#	endif
 
-#include <Windows.h>
-#include <direct.h> // for ::_mkdir;
-#include <sys/stat.h>
+#	include <Windows.h>
+#	include <direct.h> // for ::_mkdir;
+#	include <sys/stat.h>
 
 /*!
 \ingroup name_collision_workarounds
 \brief 禁止使用 DialogBox 宏。
 \since build 297
 */
-#undef DialogBox
+#	undef DialogBox
 
 /*!
 \ingroup name_collision_workarounds
 \brief 禁止使用 DrawText 宏。
 \since build 298
 */
-#undef DrawText
+#	undef DrawText
 
 /*!
 \ingroup name_collision_workarounds
 \brief 禁止使用 FindWindow 宏。
 \since build 381
 */
-#undef FindWindow
+#	undef FindWindow
 
 /*!
 \ingroup name_collision_workarounds
 \brief 禁止使用 GetObject 宏。
 \since build 313
 */
-#undef GetObject
+#	undef GetObject
 
 /*!
 \ingroup name_collision_workarounds
 \brief 禁止使用 PostMessage 宏。
 \since build 298
 */
-#undef PostMessage
+#	undef PostMessage
 
 
-#define NAME_MAX 256
-
-#define S_IFIFO _S_IFIFO
+#	ifndef S_IFIFO
+#		define S_IFIFO _S_IFIFO
+#	endif
 
 #	ifndef S_IFMT
 #		define S_IFMT _S_IFMT
@@ -222,7 +222,7 @@ DMAFillWordsAsync(u8 chan, u32 val, void* p_dst, u32 size)
 namespace platform_replace
 {
 
-#undef mkdir
+#	undef mkdir
 /*!
 \brief 修正 MinGW 中的 mkdir 参数问题。
 \note 忽略第二参数。
@@ -246,7 +246,7 @@ extern "C"
 \sa platform_replace::makedir
 \since build 298
 */
-#define mkdir platform_replace::makedir
+#	define mkdir platform_replace::makedir
 
 
 #	if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)

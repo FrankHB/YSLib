@@ -241,7 +241,7 @@
     <ClInclude Include="include\YSLib\Service\TextManager.h">
       <Filter>include\YSLib\Service</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\menu.h">
+    <ClInclude Include="include\YSLib\UI\Menu.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\ListControl.h">
@@ -271,7 +271,7 @@
     <ClInclude Include="include\YSLib\UI\progress.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
-    <ClInclude Include="include\YSLib\UI\label.h">
+    <ClInclude Include="include\YSLib\UI\Label.h">
       <Filter>include\YSLib\UI</Filter>
     </ClInclude>
     <ClInclude Include="include\YSLib\UI\textarea.h">
@@ -861,7 +861,7 @@
     <ClCompile Include="source\YSLib\UI\YStyle.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\UI\yuicont.cpp">
+    <ClCompile Include="source\YSLib\UI\YUIContainer.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\YWidget.cpp">
@@ -873,7 +873,7 @@
     <ClCompile Include="source\YSLib\Service\TextManager.cpp">
       <Filter>source\YSLib\Service</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\UI\menu.cpp">
+    <ClCompile Include="source\YSLib\UI\Menu.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\ListControl.cpp">
@@ -897,7 +897,7 @@
     <ClCompile Include="source\YSLib\UI\progress.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
-    <ClCompile Include="source\YSLib\UI\label.cpp">
+    <ClCompile Include="source\YSLib\UI\Label.cpp">
       <Filter>source\YSLib\UI</Filter>
     </ClCompile>
     <ClCompile Include="source\YSLib\UI\textarea.cpp">

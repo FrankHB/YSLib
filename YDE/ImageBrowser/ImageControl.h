@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r599
+\version r603
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-01-25 13:51 +0800
+	2015-02-02 14:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -56,10 +56,14 @@ private:
 protected:
 	//! \since build 446
 	Thumb btnClose;
+	//! \since build 573
+	Label lblCloseTips{};
 
 private:
 	//! \since build 448
 	HoverUpdater hover_updater{btnClose};
+	//! \since build 573
+	TimedHoverState hover_state;
 	//! \since build 555
 	BorderResizer border;
 

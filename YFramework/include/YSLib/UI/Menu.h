@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file menu.h
+/*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r971
+\version r980
 \author FrankHB <frankhb1989@gmail.com>
-\since build 203
+\since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2014-11-21 09:25 +0800
+	2015-02-04 08:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_menu_h_
-#define YSL_INC_UI_menu_h_ 1
+#ifndef YSL_INC_UI_Menu_h_
+#define YSL_INC_UI_Menu_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_ListControl
@@ -174,7 +174,8 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 class YF_API MenuHost : private noncopyable
 {
 public:
-	Window& Frame; //!< 框架窗口。
+	//! \since build 573
+	Panel& Frame;
 
 private:
 	//! \since build 554
@@ -190,7 +191,8 @@ public:
 	*/
 	map<IWidget*, Menu*> Roots{};
 
-	MenuHost(Window&);
+	//! \since build 573
+	MenuHost(Panel&);
 	/*!
 	\brief 析构。
 	\note 隐藏菜单组中的所有菜单并清理菜单组。

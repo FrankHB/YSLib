@@ -11,13 +11,13 @@
 /*!	\file Hover.cpp
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r99
+\version r107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:52:39 +0800
 \par 修改时间:
-	2015-02-01 08:32 +0800
+	2015-02-03 00:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,6 +28,7 @@
 #include "YSLib/UI/YModules.h"
 #include YFM_YSLib_UI_Hover
 #include YFM_YSLib_UI_YControl
+#include YFM_YSLib_UI_YUIContainer
 
 namespace YSLib
 {
@@ -70,9 +71,9 @@ TimedHoverState::Check() ynothrow
 }
 
 Point
-TimedHoverState::DefaultLocate(const Point& pt) ynothrow
+TimedHoverState::DefaultLocate(const CursorEventArgs& e) ynothrow
 {
-	return pt;
+	return e.Position;
 }
 
 void
@@ -80,6 +81,12 @@ TimedHoverState::Leave() ynothrow
 {
 	if(state == Left)
 		Reset();
+}
+
+Point
+TimedHoverState::LocateForOffset(const CursorEventArgs& e, const Point& pt)
+{
+	return LocateForTopOffset(e.Position, e.GetSender(), pt);
 }
 
 bool
