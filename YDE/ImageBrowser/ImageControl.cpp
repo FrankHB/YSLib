@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r944
+\version r947
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-01-25 13:44 +0800
+	2015-02-03 02:43 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -34,9 +34,11 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	const Size& max_size)
 	: Panel(r),
 	min_panel_size(min_size), max_panel_size(max_size), btnClose({{}, 24, 24}),
-	border(*this, 8, min_size)
+	hover_state(std::bind(TimedHoverState::LocateForOffset,
+	std::placeholders::_1, Point(0, 24))), border(*this, 8, min_size)
 {
 	*this += btnClose,
+	Host::SetupTimedTips(hover_state, btnClose, lblCloseTips, u"关闭"),
 	yunseq(
 	Background = SolidBrush({0x00, 0x00, 0x00, 0xC0}),
 	btnClose.Background = [this](PaintEventArgs&& e){

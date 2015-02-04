@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file yuicont.cpp
+/*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1887
+\version r1896
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2014-12-05 12:39 +0800
+	2015-02-03 00:26 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -86,6 +86,15 @@ LocateOffset(const IWidget* p_end, Point pt, const IWidget* p_wgt)
 		p_wgt = FetchContainerPtr(*p_wgt);
 	}
 	return pt;
+}
+
+Point
+LocateForTopOffset(const Point& origin, IWidget& wgt, const Point& pt)
+{
+	auto loc(origin);
+
+	FetchTopLevel(wgt, loc);
+	return loc + pt;
 }
 
 Point

@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r242
+\version r269
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-01-25 14:00 +0800
+	2015-02-03 00:36 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,6 +30,7 @@
 #include YFM_Helper_HostRenderer
 #include YFM_YSLib_UI_YControl // for UI::FetchEvent;
 #include YFM_YSLib_UI_YGUI // for FetchGUIState;
+#include YFM_YSLib_UI_Border
 
 namespace YSLib
 {
@@ -116,21 +117,37 @@ ShowTopLevelDraggable(UI::Widget& wgt)
 }
 #	endif
 
-#	if YCL_Win32
-void
-BindHoverControl(IWidget& sender, Widget& wgt,
-	std::function<Point(const Point&)> locator)
+array<GEvent<UI::HCursorEvent::FuncType>::iterator, 2>
+BindTimedTips(TimedHoverState& st, IWidget& sender, Widget& wgt)
 {
-	yunseq(
-	FetchEvent<Enter>(sender) += [&, locator](CursorEventArgs&& e){
-		ActOnHover_ShowTopLevelAt(e.GetSender(), wgt,
-			std::bind(locator, std::ref(e.Position)));
-	},
-	FetchEvent<Leave>(sender) += std::bind(OnHover_SetRenderer,
-		std::placeholders::_1, std::ref(wgt))
-	);
+	auto& cursor_over(FetchEvent<CursorOver>(sender));
+	auto& leave(FetchEvent<Leave>(sender));
+
+	return {cursor_over.Insert([&](CursorEventArgs&& e){
+			if(st.CheckShow(e))
+				ActOnHover_ShowTopLevelAt(e.GetSender(), wgt,
+					std::bind(st.Locate, std::ref(e)));
+		}), leave.Insert([&](CursorEventArgs&& e){
+			if(st.CheckHide(e))
+				OnHover_SetRenderer(std::move(e), wgt);
+		})};
 }
-#	endif
+
+void
+SetupTimedTips(UI::TimedHoverState& st, UI::IWidget& wgt, UI::Label& lbl,
+	const String& text, const Drawing::Rect& r, const Drawing::Font& fnt,
+	const Drawing::Padding& m)
+{
+	using namespace UI;
+
+	// NOTE: For tool tips, Control + MLabel can be used but is likely not good
+	//	enough, because the top level control boundary would likely behave
+	//	unexpectedly when the boundary is overlapped with underlying controls.
+	SetupContentsOf(lbl, text, r, fnt, m);
+	// TODO: Border style setting, font, background, allowing host shadow, etc.
+	FetchEvent<Paint>(lbl) += BorderBrush();
+	BindTimedTips(st, wgt, lbl);
+}
 
 } // namespace Host;
 #endif

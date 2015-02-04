@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YComponent.h
 \ingroup UI
 \brief 平台中立的 UI 组件。
-\version r2395
+\version r2398
 \author FrankHB <frankhb1989@gmail.com>
 \since build 426
 \par 创建时间:
 	2010-03-19 20:05:08 +0800
 \par 修改时间:
-	2014-12-07 12:30 +0800
+	2015-02-04 08:24 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -89,7 +89,8 @@ struct RoutedEventArgs;
 struct UIEventArgs;
 class WidgetController;
 //@}
-class Window;
+//! \since build 573
+class Panel;
 
 
 //类型别名。

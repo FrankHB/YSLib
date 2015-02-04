@@ -210,9 +210,9 @@
     <ClInclude Include="include\YSLib\UI\ExStyle.h" />
     <ClInclude Include="include\YSLib\UI\form.h" />
     <ClInclude Include="include\YSLib\UI\Hover.h" />
-    <ClInclude Include="include\YSLib\UI\label.h" />
+    <ClInclude Include="include\YSLib\UI\Label.h" />
     <ClInclude Include="include\YSLib\UI\Loader.h" />
-    <ClInclude Include="include\YSLib\UI\menu.h" />
+    <ClInclude Include="include\YSLib\UI\Menu.h" />
     <ClInclude Include="include\YSLib\UI\progress.h" />
     <ClInclude Include="include\YSLib\UI\scroll.h" />
     <ClInclude Include="include\YSLib\UI\Selector.h" />
@@ -310,9 +310,9 @@
     <ClCompile Include="source\YSLib\UI\ExStyle.cpp" />
     <ClCompile Include="source\YSLib\UI\form.cpp" />
     <ClCompile Include="source\YSLib\UI\Hover.cpp" />
-    <ClCompile Include="source\YSLib\UI\label.cpp" />
+    <ClCompile Include="source\YSLib\UI\Label.cpp" />
     <ClCompile Include="source\YSLib\UI\Loader.cpp" />
-    <ClCompile Include="source\YSLib\UI\menu.cpp" />
+    <ClCompile Include="source\YSLib\UI\Menu.cpp" />
     <ClCompile Include="source\YSLib\UI\progress.cpp" />
     <ClCompile Include="source\YSLib\UI\Scroll.cpp" />
     <ClCompile Include="source\YSLib\UI\Selector.cpp" />
@@ -333,7 +333,7 @@
     <ClCompile Include="source\YSLib\UI\ypanel.cpp" />
     <ClCompile Include="source\YSLib\UI\YRenderer.cpp" />
     <ClCompile Include="source\YSLib\UI\YStyle.cpp" />
-    <ClCompile Include="source\YSLib\UI\yuicont.cpp" />
+    <ClCompile Include="source\YSLib\UI\YUIContainer.cpp" />
     <ClCompile Include="source\YSLib\UI\ywgtevt.cpp" />
 		<ClCompile Include="source\YSLib\UI\YWidget.cpp" />
 		<ClCompile Include="source\YSLib\UI\YWidgetView.cpp" />

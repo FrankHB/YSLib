@@ -11,13 +11,13 @@
 /*!	\file Hover.h
 \ingroup UI
 \brief 样式无关的指针设备悬停相关功能。
-\version r148
+\version r162
 \author FrankHB <frankhb1989@gmail.com>
 \since build 448
 \par 创建时间:
 	2013-09-28 12:50:42 +0800
 \par 修改时间:
-	2015-02-01 08:32 +0800
+	2015-02-03 00:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -112,11 +112,11 @@ public:
 
 	用于接收 CursorOver 事件参数并映射为显示的部件位置的函数的类型。
 	*/
-	using Locator = std::function<ystdex::id_func_clr_t<Drawing::Point>>;
+	using Locator = std::function<Point(const CursorEventArgs&)>;
 
 	static yconstexpr const Timers::Duration
 		DefaultDuration{Timers::TimeSpan(400U)};
-	Locator Locate;
+	Locator Locate{DefaultLocate};
 
 private:
 	Timers::Timer tmr;
@@ -135,9 +135,12 @@ public:
 	bool
 	Check() ynothrow;
 
-	//! \brief 默认映射：恒等映射。
-	static Drawing::Point
-	DefaultLocate(const Drawing::Point&) ynothrow;
+	/*!
+	\brief 默认定位映射：恒等映射。
+	\since build 573
+	*/
+	static Point
+	DefaultLocate(const CursorEventArgs&) ynothrow;
 
 	PDefH(bool, CheckShow, CursorEventArgs& e) ynothrow
 		ImplRet(e.Strategy == RoutedEventArgs::Direct && Check())
@@ -147,6 +150,13 @@ public:
 
 	void
 	Leave() ynothrow;
+
+	/*!
+	\brief 定位映射：相对偏移。
+	\since build 573
+	*/
+	static Point
+	LocateForOffset(const CursorEventArgs&, const Point&);
 
 	bool
 	Update(const Point& pt) ynothrow;

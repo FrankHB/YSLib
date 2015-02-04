@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.h
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r2090
+\version r2098
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-01-22 07:59:47 +0800
 \par 修改时间:
-	2014-12-31 08:42 +0800
+	2015-02-02 08:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -76,6 +76,15 @@ LocateOffset(const IWidget*, Point, const IWidget*);
 */
 inline PDefH(Point, LocateContainerOffset, const IWidget& wgt, const Point& pt)
 	ImplRet(pt + GetLocationOf(wgt))
+
+/*!
+\brief 取顶层部件对应的偏移。
+\since build 573
+
+计算第一参数在第二参数指定的部件对应的顶层部件位置与第三参数指定的偏移量之和。
+*/
+YF_API Point
+LocateForTopOffset(const Point&, IWidget&, const Point& = {});
 
 /*!
 \brief 取指定部件相对轨迹的偏移坐标。

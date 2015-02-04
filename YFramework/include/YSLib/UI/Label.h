@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -8,16 +8,16 @@
 	understand and accept it fully.
 */
 
-/*!	\file label.h
+/*!	\file Label.h
 \ingroup UI
 \brief 样式无关的用户界面标签。
-\version r1514
+\version r1542
 \author FrankHB <frankhb1989@gmail.com>
-\since build 188
+\since build 573
 \par 创建时间:
 	2011-01-22 08:30:47 +0800
 \par 修改时间:
-	2014-11-19 15:55 +0800
+	2015-02-02 10:18 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -25,8 +25,8 @@
 */
 
 
-#ifndef YSL_INC_UI_label_h_
-#define YSL_INC_UI_label_h_ 1
+#ifndef YSL_INC_UI_Label_h_
+#define YSL_INC_UI_Label_h_ 1
 
 #include "YModules.h"
 #include YFM_YSLib_UI_YWidget
@@ -170,12 +170,38 @@ public:
 	using MLabel::GetItemHeight;
 
 	/*!
+	\brief 计算指定字符串、初始边界、字体和边距的单行文本需要的标签边界。
+	\note 仅当初始边界的大小为 Size::Invalid 时计算新的大小。
+	\since build 573
+	*/
+	static Rect
+	CalculateBounds(const String&, Rect, const Drawing::Font&,
+		const Drawing::Padding& = {});
+
+	/*!
 	\brief 刷新：按指定参数绘制界面并更新状态。
 	\since build 294
 	*/
 	void
 	Refresh(PaintEventArgs&&) override;
 };
+
+/*!
+\relates Label
+\sa Label::CalculateBounds
+\since build 573
+*/
+//@{
+//! \brief 创建指定字符串、初始边界、字体和边距的单行文本需要的标签。
+YF_API unique_ptr<Label>
+MakeLabel(const String&, const Rect& = Rect::Invalid, const Drawing::Font& = {},
+	const Drawing::Padding& = Drawing::DefaultMargin * 2);
+
+//! \brief 设置指定字符串、初始边界、字体和边距的单行文本需要的标签。
+YF_API void
+SetupContentsOf(Label&, const String&, const Rect& = Rect::Invalid, const
+	Drawing::Font& = {}, const Drawing::Padding& = Drawing::DefaultMargin * 2);
+//@}
 
 
 /*!

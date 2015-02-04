@@ -11,13 +11,13 @@
 /*!	\file Designation.txt
 \ingroup Documentation
 \brief 设计规则指定和说明。
-\version r9703
+\version r9704
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-01-18 23:38 +0800
+	2015-02-02 04:32 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -429,7 +429,7 @@ ytest ：测试框架设施 YTest 。
 当多种指令等价时使用 Doxygen 手册中直接说明（而非指示同义词即 "Equivalent to" ）的一项。
 例外：
 对外部参考使用 \see 而不是 \sa ；
-\throw 指显式抛出异常， \exception 指内部调用间接抛出的异常。
+\throw 指显式抛出确定类型的异常， \exception 指内部调用间接抛出的可被特定异常处理器捕获的异常（可能为派生类）。
 
 @6.1.3 指令行风格：
 组(group) 相关指令（ \defgroup 、 \ingroup 、 \name 等）、实体标识指令（ \def 、 \fn 等）以及 \author 、\par 、 \relates 、 \sa 、 \since 、 \version 不使用句为单位（不使用全角标点）；其它指令后的内容以句为单位（对中文注释以全角标点结束；不成句的不视为完整的注释）。

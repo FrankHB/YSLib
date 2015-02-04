@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9667
+\version r9757
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-01 08:59 +0800
+	2015-02-04 08:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,97 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ $dev @ "platform %Win32" @ %YCLib.NativeAPI $=
+		(
+			- "macro %NAME_MAX",
+			/ "defined macro %S_IFIFO only when undefined"
+				// To be compatible with MSys.
+		),
+		/ %YSLib $=
+		(
+			/ @ "class template %GEvent" @ %Core.YEvent $=
+			(
+				/ "alias %SizeType" => "%size_type",
+				* "missing parameter" @ "function %count" $since b572,
+				+ "aliases %(const_reference, reference, value_type)",
+				(
+				+ "alias %iterator";
+				/ "simplified return type" @ "%(begin, end)",
+				),
+				(
+				+ "aliases %reverse_iterator";
+				+ "member functions %(rbegin, rend)"
+				),
+				(
+				+ "alias %const_iterator";
+				+ "member functions" @ "%(cbegin, cend)"
+				),
+				(
+				+ "alias %const_reverse_iterator";
+				+ "member functions" @ "%(crbegin, crend)"
+				),
+				/ "function %GetSize" >> "%size"
+			),
+			/ %UI $=
+			(
+				+ "function %LocateForTopOffset" @ %YUIContainer,
+				/ @ "class %TimedHoverState" @ %Hover $=
+				(
+					+ $dev "brace-or-equal-initializer '{DefaultLocate}'"
+						@ "%Locator",
+					/ DLD "all 'Drawing::Point'" -> 'Point',
+					/ "parameter" @ "function signature"
+						@ "%(Locator, DefaultLocate)"
+						-> 'const CursorEventArgs&' ~ 'const Point&',
+					+ "static function %LocateForOffset"
+				),
+				/ %Label $=
+				(
+					+ "static member function %CalculateBounds"
+						@ "class %Label",
+					+ "functions %(MakeLabel, SetupContentsOf)"
+				),
+				/ "class name declaration 'class Window;'" -> 'class Panel;'
+					@ "namespace %UI" @ %YComponent,
+				/ @ "class %MenuHost" @ %Menu $=
+				(
+					/ "type" @ "data member %Frame" -> 'Panel&' ~ 'Window&',
+					/ "parameter type" @ "constructor" -> 'Panel&' ~ 'Window&'
+				)
+			)
+		),
+		/ %Helper.HostedUI $=
+		(
+			+ "function %BindTimedTips" @ "hosted platforms !%Android",
+			/ @ "function template %ActOnHover_ShowTopLevel" $=
+			(
+				+ "parameter 'int wstyle_ex = WS_EX_LAYERED | WS_EX_TOOLWINDOW";
+				/ "extra style" ^ "parameter %wstyle_ex";
+				/ $comp "shown without appearance in task bar"
+			),
+			/ "made defined" @ "hosted platforms !%Android"
+				@ "function template %ActOnHover_ShowTopLevelAt",
+				// However, only implemented for %Win32, others are with no-op.
+			- $revert(b567) "functions %BindHoverControl",
+			+ "function %SetupTimedTips"
+		)
+	),
+	/ @ "class ImageControl" @ %YDE.ImageBrowser.ImageControl $=
+	(
+		+ "protected member 'Label lblCloseTips{};'";
+		+ "tool tip for close button"
+	),
+	/ $dev $repo "all edited file with module name not the same as base file \
+		name" @ !%YBase ^ 'hg rename' $effective @ ("%yuicont.cpp"
+		=> "%YUIContainer.cpp", "label.h" => "%Label.h", "%label.cpp"
+		=> "%Label.cpp", "%menu.h" => "%Menu.h", "%menu.cpp" => "%Menu.cpp")
+		@ YFramework.YSLib.UI
+),
+
+b572
 (
 	/ DLD "simplified YSLib dependent implementation" ^ 'to_string'
 		~ 'std::to_string' @ %YFramework $effective @ %(Helper.(Environment,

@@ -11,13 +11,13 @@
 /*!	\file YEvent.hpp
 \ingroup Core
 \brief 事件回调。
-\version r4940
+\version r4985
 \author FrankHB <frankhb1989@gmail.com>
 \since build 560
 \par 创建时间:
 	2010-04-23 23:08:23 +0800
 \par 修改时间:
-	2015-02-01 08:15 +0800
+	2015-02-02 04:14 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -276,7 +276,18 @@ public:
 	*/
 	using ContainerType
 		= multimap<EventPriority, HandlerType, std::greater<EventPriority>>;
-	using SizeType = typename ContainerType::size_type;
+	//! \since build 573
+	//@{
+	using const_iterator = typename ContainerType::const_iterator;
+	using const_reference = typename ContainerType::const_reference;
+	using const_reverse_iterator
+		= typename ContainerType::const_reverse_iterator;
+	using iterator = typename ContainerType::iterator;
+	using reference = typename ContainerType::reference;
+	using reverse_iterator = typename ContainerType::reverse_iterator;
+	using size_type = typename ContainerType::size_type;
+	using value_type = typename ContainerType::value_type;
+	//@}
 
 private:
 	/*!
@@ -480,11 +491,12 @@ public:
 	\brief 调用事件处理器。
 	\return 成功调用的事件处理器个数。
 	\exception std::bad_function_call 以外异常中立。
+	\since build 573
 	*/
-	SizeType
+	size_type
 	operator()(_tParams... args) const
 	{
-		SizeType n(0);
+		size_type n(0);
 
 		for(const auto& pr : handlers)
 		{
@@ -495,32 +507,57 @@ public:
 		return n;
 	}
 
-	/*!
-	\brief 取列表中的响应数。
-	*/
-	DefGetter(const ynothrow, SizeType, Size, handlers.size())
+	//! \since build 573
+	PDefH(const_iterator, cbegin, ) const ynothrow
+		ImplRet(handlers.cbegin())
 
 	//! \since build 572
 	//@{
-	PDefH(typename ContainerType::iterator, begin, ) ynothrow
+	PDefH(iterator, begin, ) ynothrow
 		ImplRet(handlers.begin())
-	PDefH(typename ContainerType::iterator, begin, ) const ynothrow
+	PDefH(iterator, begin, ) const ynothrow
 		ImplRet(handlers.begin())
+
+	//! \since build 573
+	PDefH(const_iterator, cend, ) const ynothrow
+		ImplRet(handlers.cend())
 
 	//! \brief 清除：移除所有事件响应。
 	PDefH(void, clear, ) ynothrow
 		ImplRet(handlers.clear())
 
-	PDefH(size_t, count, ) const ynothrow
-		ImplRet(handlers.count())
+	//! \since build 573
+	//@{
+	PDefH(size_type, count, EventPriority prior) const ynothrow
+		ImplRet(handlers.count(prior))
+
+	PDefH(const_reverse_iterator, crbegin, ) const ynothrow
+		ImplRet(handlers.crbegin())
+
+	PDefH(const_reverse_iterator, crend, ) const ynothrow
+		ImplRet(handlers.crend())
+	//@}
 
 	PDefH(bool, empty, ) const ynothrow
 		ImplRet(handlers.empty())
 
-	PDefH(typename ContainerType::iterator, end, ) ynothrow
+	PDefH(iterator, end, ) ynothrow
 		ImplRet(handlers.end())
-	PDefH(typename ContainerType::iterator, end, ) const ynothrow
+	PDefH(iterator, end, ) const ynothrow
 		ImplRet(handlers.end())
+	//@}
+
+	//! \since build 573
+	//@{
+	PDefH(reverse_iterator, rbegin, ) ynothrow
+		ImplRet(handlers.rbegin())
+
+	PDefH(reverse_iterator, rend, ) ynothrow
+		ImplRet(handlers.rend())
+
+	//! \brief 取列表中的响应数。
+	PDefH(size_type, size, ) const ynothrow
+		ImplRet(handlers.size())
 	//@}
 
 	/*
