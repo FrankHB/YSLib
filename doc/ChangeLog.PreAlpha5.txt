@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9757
+\version r9850
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-04 08:45 +0800
+	2015-02-05 20:06 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,100 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI $=
+			(
+				/ "handled events %(TouchDown, TouchHeld) only for \
+					%RoutedEventArgs::Direct and %KeyCodes::Primary"
+					@ "constructor %TextBox" @ %TextBox,
+				/ DLD %YFocus $=
+				(
+					/ "simplified implementation" @ "function %DoRequestFocus"
+						^ "while statement" ~ "do-while statement",
+					/ "simplified implementation" @ "functions \
+						%(RequestFocusCascade, ReleaseFocusCascade)"
+						^ "for statement" ~ "do-while statement"
+				),
+				/ DLD "simplified implementation" @ "function %Invalidate#2"
+					@ %YWidget ^ "for statement" ~ "do-while statement",
+				/ DLD "simplified implementation"
+					@ "functions %(FetchTrace, LocateForTrace)"
+					@ %YUIContainer ^ "for statement" ~ "do-while statement",
+				/ %Menu $=
+				(
+					/ @ "class %Menu" $=
+					(
+						+ "brace-or-equal-initializer '{}'" @ "protected data \
+							members %(pHost, pParent, mSubMenus)";
+						* $comp "missing initialization"
+							@ "protected data member %pHost" $since b214,
+						- "Z order parameter" @ "functions %(Show, ShowSub)"
+					),
+					/ @ "class %MenuHost" $=
+					(
+						(
+						+ "function %Add";
+						/ "simplified %operator=" -> "inline function"
+							^ "%(PDefHOp, ImplExpr, Add)"
+						),
+						- "all Z order parameters" @ "methods" $dep_from
+							"%Menu::(Show, ShowSub)",
+							// Z order would be determined on adding to the \
+								host by %Add.
+						(
+						/ "menu added would be hidden" @ "function %operator+=",
+						/ "made menu be shown or hidden" ^ "%UI::(Show, Hide)"
+							~ "%Panel::operator(+=, -=)";
+							// This means that visible state is used and the \
+								user should not set it. The menu should have \
+								been added to parent at user code before \
+								attempting to show, otherwise it would not be \
+								shown at all.
+						/ $comp "menu would be always invalidated by call of \
+							%UI::Show",
+							// Whether the event handler of %GotFocus has call \
+								of %Invalidate.
+						/ "constructor with parameter %Panel"
+							-> "explicitly defaulted default constructor",
+						- "data member %Frame"
+						)
+					)
+				),
+				* "missing recursively requesting container focus" @ "event \
+					%TouchDown" @ "class %DropDownList" @ %ComboList $since b283
+					// So the menu would probably not hide.
+			)
+		),
+		/ DLD "simplified implementation" @ "function %FetchCommandOutput"
+			@ %Helper.Host ^ "for statement" ~ "do-while statement",
+	),
+	/ %YReader $=
+	(
+		/ DLD "simplified implementation" @ %DSReader ^ "for statement"
+			~ "do-while statement",
+		* "missing requesting focus" @ "event %TouchDown" @ "class %FrmAbout"
+			@ %About $since b390,
+			// So the menu would not hide.
+		/ DLD @ ("class %ShlExplorer" @ %ShlExplorer,
+			"class %ShlReader" @ %ShlReader) $=
+		(
+			+ "brace-or-equal-initializer '{}'"
+				@ "default constructed data members";
+			/ "simplified constructor implementation"
+		),
+		/ DLD "simplified menu list initialization" @ $effective
+			@ %(ShlExplorer, ShlReader, ReaderSettingUI) %YReader
+			^ "%make_shared" ~ "%share_raw"
+	),
+	+ "function template %make_unique with %std::initializer_list instance as \
+		parameter" @ %YBase.YStandardEx.Memory
+),
+
+b573
 (
 	/ %YFramework $=
 	(

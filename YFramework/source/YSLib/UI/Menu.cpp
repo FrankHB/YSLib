@@ -11,13 +11,13 @@
 /*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1339
+\version r1365
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2015-02-04 08:26 +0800
+	2015-02-05 15:39 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -42,7 +42,7 @@ namespace UI
 Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 	: TextList(r, h, FetchGUIConfiguration().Colors.GetPair(Styles::Highlight,
 		Styles::HighlightText)),
-	pParent(), mSubMenus(), vDisabled(h ? h->size() : 0)
+	vDisabled(h ? h->size() : 0)
 {
 	auto& unit(GetUnitRef());
 
@@ -83,8 +83,8 @@ Menu::Menu(const Rect& r, const shared_ptr<ListType>& h)
 				{
 					auto p_mnu(this);
 
-					while(const auto pParent = p_mnu->GetParentPtr())
-						p_mnu = pParent;
+					while(const auto p = p_mnu->GetParentPtr())
+						p_mnu = p;
 					if(i->second == p_mnu)
 						return;
 				}
@@ -174,18 +174,18 @@ Menu::AdjustSize() const
 }
 
 bool
-Menu::Show(ZOrder z)
+Menu::Show()
 {
 	if(pHost)
 	{
-		pHost->Show(*this, z);
+		pHost->Show(*this);
 		return true;
 	}
 	return {};
 }
 
 Menu*
-Menu::ShowSub(IndexType idx, ZOrder z)
+Menu::ShowSub(IndexType idx)
 {
 	if(pHost)
 	{
@@ -196,7 +196,7 @@ Menu::ShowSub(IndexType idx, ZOrder z)
 			auto& mnu(*i->second);
 
 			LocateMenu(mnu, *this, idx);
-			mnu.Show(z);
+			mnu.Show();
 			return &mnu;
 		}
 	}
@@ -222,12 +222,9 @@ LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 }
 
 
-MenuHost::MenuHost(Panel& pnl)
-	: Frame(pnl)
-{}
 MenuHost::~MenuHost()
 {
-	// TODO: Explicit exception specification.
+	// FIXME: Explicit exception specification or catch(...)?
 	HideAll();
 	Clear();
 }
@@ -237,6 +234,7 @@ MenuHost::operator+=(Menu& mnu)
 {
 	menus.insert(mnu);
 	mnu.pHost = this;
+	UI::Hide(mnu);
 }
 
 bool
@@ -253,7 +251,7 @@ MenuHost::operator-=(Menu& mnu)
 bool
 MenuHost::IsShowing(Menu& mnu) const
 {
-	return Contains(mnu) ? Frame.Contains(mnu) : false;
+	return Contains(mnu) ? IsVisible(mnu) : false;
 }
 
 void
@@ -263,29 +261,26 @@ MenuHost::Clear()
 }
 
 void
-MenuHost::Show(Menu& mnu, ZOrder z)
+MenuHost::Show(Menu& mnu)
 {
 	if(Contains(mnu))
-		ShowRaw(mnu, z);
+		ShowRaw(mnu);
 }
 
 void
-MenuHost::ShowAll(ZOrder z)
+MenuHost::ShowAll()
 {
-	std::for_each(menus.begin(), menus.end(), [this, z](IWidget& wgt){
-		ShowRaw(ystdex::polymorphic_downcast<Menu&>(wgt), z);
+	std::for_each(menus.begin(), menus.end(), [this](IWidget& wgt){
+		ShowRaw(ystdex::polymorphic_downcast<Menu&>(wgt));
 	});
 }
 
 void
-MenuHost::ShowRaw(Menu& mnu, ZOrder z)
+MenuHost::ShowRaw(Menu& mnu)
 {
 	YAssert(Contains(mnu), "Invalid menu found.");
 
-	Frame.Add(mnu, z);
-//依赖 mnu 的 GotFocus 事件默认会调用自身的 Invalidate 函数。
-//	Invalidate(mnu);
-	RequestFocus(mnu);
+	UI::Show(mnu);
 }
 
 void
@@ -310,8 +305,10 @@ MenuHost::HideRaw(Menu& mnu)
 
 	ReleaseFocus(mnu);
 	if(IsVisible(mnu))
+	{
 		Invalidate(mnu);
-	Frame -= mnu;
+		UI::Hide(mnu);
+	}
 }
 
 void

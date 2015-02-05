@@ -11,13 +11,13 @@
 /*!	\file YUIContainer.cpp
 \ingroup UI
 \brief 样式无关的 GUI 容器。
-\version r1896
+\version r1909
 \author FrankHB <frankhb1989@gmail.com>
 \since build 188
 \par 创建时间:
 	2011-01-22 08:03:49 +0800
 \par 修改时间:
-	2015-02-03 00:26 +0800
+	2015-02-04 15:45 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -64,15 +64,13 @@ vector<pair<const IWidget*, Point>>
 FetchTrace(const IWidget& wgt)
 {
 	vector<pair<const IWidget*, Point>> lst;
-
 	Point pt;
-	auto p_wgt(&wgt);
 
-	do
+	for(auto p_wgt(&wgt); p_wgt; p_wgt = FetchContainerPtr(*p_wgt))
 	{
 		lst.emplace_back(p_wgt, pt);
 		pt += GetLocationOf(*p_wgt);
-	}while((p_wgt = FetchContainerPtr(*p_wgt)));
+	}
 	return lst;
 }
 
@@ -102,19 +100,16 @@ LocateForTrace(const vector<pair<const IWidget*, Point>>& lst,
 	const IWidget& wgt)
 {
 	Point pt;
-	auto p_wgt(&wgt);
 
-	do
+	for(auto p_wgt(&wgt); p_wgt; p_wgt = FetchContainerPtr(*p_wgt))
 	{
-		{
-			const auto i(
-				std::find(lst.cbegin() | get_key, lst.cend() | get_key, p_wgt));
+		const auto
+			i(std::find(lst.cbegin() | get_key, lst.cend() | get_key, p_wgt));
 
-			if(i != lst.cend())
-				return pt - i.get()->second;
-		}
+		if(i != lst.cend())
+			return pt - i.get()->second;
 		pt += GetLocationOf(*p_wgt);
-	}while((p_wgt = FetchContainerPtr(*p_wgt)));
+	}
 	return Point::Invalid;
 }
 

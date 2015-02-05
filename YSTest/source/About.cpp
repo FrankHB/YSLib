@@ -11,13 +11,13 @@
 /*!	\file About.cpp
 \ingroup YReader
 \brief 关于界面。
-\version r212
+\version r215
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:06:35 +0800
 \par 修改时间:
-	2015-01-01 11:09 +0800
+	2015-02-05 14:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -85,7 +85,10 @@ FrmAbout::FrmAbout()
 		root.Background = SolidBrush(GenerateRandomColor());
 		SetInvalidationOf(root);
 		if(e.Strategy == RoutedEventArgs::Direct)
+		{
 			e.Handled = true;
+			RequestFocusCascade(*this);
+		}
 	},
 	FetchEvent<TouchHeld>(root) += std::bind(OnTouchHeld_DraggingRaw,
 		std::placeholders::_1, std::ref(*this)),

@@ -11,13 +11,13 @@
 /*!	\file DSReader.cpp
 \ingroup YReader
 \brief 适用于 DS 的双屏阅读器。
-\version r3186
+\version r3191
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2010-01-05 14:04:05 +0800
 \par 修改时间:
-	2014-12-02 18:43 +0800
+	2015-02-05 15:57 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -91,15 +91,14 @@ FindPreviousLineFeed(TextRegion& r, _tBi s, _tBi b)
 	if(b != s)
 	{
 		const auto e(s);
-		auto t(FindPreviousChar(s, b, '\n'));
 
-		do
+		for(auto t(FindPreviousChar(s, b, '\n')); t != e;
+			t = FindLineFeed(r, t, e))
 		{
 			s = t;
 			if(*t == '\n')
 				++t;
-			t = FindLineFeed(r, t, e);
-		}while(t != e);
+		}
 	}
 	return s;
 }

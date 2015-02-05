@@ -11,13 +11,13 @@
 /*!	\file YSLib.txt
 \ingroup Documentation
 \brief YSLib 库及相关库的细节汇总和说明。
-\version r2843
+\version r2846
 \author FrankHB <frankhb1989@gmail.com>
 \since 早于 build 132
 \par 创建时间:
 	2009-12-02 05:14:30 +0800
 \par 修改时间:
-	2015-01-29 17:18 +0800
+	2015-02-05 14:21 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -589,7 +589,9 @@ GUIState 包含以下相对屏幕的坐标：
 
 @5.2.1.2.7 默认输入事件处理器：
 在 YControl 单元中定义了主要的事件处理器。
-Control 类处理 TouchDown 事件，调用函数 RequestFocus 向容器请求焦点。若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
+Control 类使用 OnTouchDown_RequestToFrontFocused 处理 TouchDown 事件，其中调用函数 RequestFocus 对非 Tunnel 路由向容器请求焦点。
+若请求成功，则默认当前控件以外的控件失去焦点（触发 LostFocus 事件），之后当前控件获得焦点（触发 GotFocus 事件）。
+注意因为使用非 Tunnel 路由，如之前 TouchDown 事件处理器已设置 e.Handled 为 true ，则不会继续有效。为使依赖 LostFocus 事件的部件（如菜单）具有预期的行为，需要显式调用 RequestFocusCascade 等递归向上层请求焦点。
 
 @5.2.1.3 GUI 输出事件：
 Paint 事件在绘制界面时触发，表示事件订阅者应对发送者进行渲染等操作以便完成绘制。

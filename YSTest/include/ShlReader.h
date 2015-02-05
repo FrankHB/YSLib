@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ShlReader.h
 \ingroup YReader
 \brief Shell 阅读器框架。
-\version r1802
+\version r1810
 \author FrankHB <frankhb1989@gmail.com>
 \since build 263
 \par 创建时间:
 	2011-11-24 17:08:33 +0800
 \par 修改时间:
-	2014-10-04 08:48 +0800
+	2015-02-05 15:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -266,16 +266,16 @@ protected:
 	\brief 滚屏计时器激活状态。
 	\since build 405
 	*/
-	bool tmrScrollActive;
+	bool tmrScrollActive = {};
 	//! \since build 323
 	//@{
-	DualScreenReader reader;
+	DualScreenReader reader{};
 	ReaderBox boxReader;
-	TextInfoBox boxTextInfo;
+	TextInfoBox boxTextInfo{};
 	//! \brief 设置面板。
-	SettingPanel pnlSetting;
-	unique_ptr<TextFile> pTextFile;
-	MenuHost mhMain;
+	SettingPanel pnlSetting{};
+	unique_ptr<TextFile> pTextFile{};
+	MenuHost mhMain{};
 	//@}
 	/*!
 	\brief 书签管理面板。
@@ -285,7 +285,7 @@ protected:
 
 private:
 	//! \since build 391
-	unique_ptr<BaseSession> session_ptr;
+	unique_ptr<BaseSession> session_ptr{};
 
 public:
 	/*!
