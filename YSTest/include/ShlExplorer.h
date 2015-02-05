@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.h
 \ingroup YReader
 \brief 文件浏览器。
-\version r160
+\version r161
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2014-11-14 23:46 +0800
+	2015-02-05 15:34 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -73,7 +73,7 @@ protected:
 	//! \since build 363
 	//@{
 	unique_ptr<FrmAbout> pFrmAbout;
-	MenuHost mhMain;
+	MenuHost mhMain{};
 	FPSCounter fpsCounter;
 	//@}
 	//! \since build 516

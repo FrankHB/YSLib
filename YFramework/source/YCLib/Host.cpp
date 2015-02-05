@@ -13,13 +13,13 @@
 \ingroup YCLibLimitedPlatforms
 \ingroup Host
 \brief YCLib 宿主平台公共扩展。
-\version r272
+\version r277
 \author FrankHB <frankhb1989@gmail.com>
 \since build 492
 \par 创建时间:
 	2014-04-09 19:03:55 +0800
 \par 修改时间:
-	2015-01-20 01:19 +0800
+	2015-02-04 15:30 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -81,13 +81,9 @@ FetchCommandOutput(const std::string& cmd, std::size_t buf_size)
 		// TODO: Improve performance.
 		const auto p_buf(make_unique<char[]>(buf_size));
 		std::string res;
-		size_t n;
 
-		do
-		{
-			n = std::fread(&p_buf[0], 1, buf_size, fp.get());
+		for(size_t n; (n = std::fread(&p_buf[0], 1, buf_size, fp.get())) != 0; )
 			res.append(&p_buf[0], n);
-		}while(n != 0);
 		return res;
 	}
 	throw FileOperationFailure(errno, std::generic_category(),

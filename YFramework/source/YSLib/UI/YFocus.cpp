@@ -11,13 +11,13 @@
 /*!	\file YFocus.cpp
 \ingroup UI
 \brief 图形用户界面焦点特性。
-\version r622
+\version r644
 \author FrankHB <frankhb1989@gmail.com>
 \since build 258
 \par 创建时间:
 	2010-05-01 13:52:56 +0800
 \par 修改时间:
-	2015-01-26 04:42 +0800
+	2015-02-04 15:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -57,20 +57,15 @@ DoRequestFocus(IWidget& wgt, bool release_event)
 					"Invalid focusing state found.");
 				if(release_event)
 				{
-					auto p_foc(p_focusing);
-					IWidget* p_sub;
+					auto p(p_focusing);
 
-					do 
+					while(const auto p_foc = FetchFocusingPtr(*p))
+						p = p_foc;
+					for(; p != p_focusing; p = FetchContainerPtr(*p))
 					{
-						p_sub = p_foc;
-						p_foc = FetchFocusingPtr(*p_sub);
-					}while(p_foc);
-					for(; p_sub != p_focusing;
-						p_sub = FetchContainerPtr(*p_sub))
-					{
-						YAssert(p_sub, "Wrong child focus state found.");
-						if(DoReleaseFocus(*p_sub))
-							CallEvent<LostFocus>(*p_sub, RoutedEventArgs(wgt));
+						YAssert(p, "Wrong child focus state found.");
+						if(DoReleaseFocus(*p))
+							CallEvent<LostFocus>(*p, RoutedEventArgs(wgt));
 					}
 					ReleaseFocusFrom(*p_focusing, wgt);
 				}
@@ -141,23 +136,15 @@ IsFocusedCascade(const IWidget& wgt, const IWidget* p_top)
 void
 RequestFocusCascade(IWidget& wgt)
 {
-	auto p(&wgt);
-
-	do
-	{
+	for(auto p(&wgt); p; p = FetchContainerPtr(*p))
 		RequestFocus(*p);
-	}while((p = FetchContainerPtr(*p)));
 }
 
 void
 ReleaseFocusCascade(IWidget& wgt)
 {
-	auto p(&wgt);
-
-	do
-	{
+	for(auto p(&wgt); p; p = FetchContainerPtr(*p))
 		ReleaseFocus(*p);
-	}while((p = FetchContainerPtr(*p)));
 }
 
 } // namespace UI;

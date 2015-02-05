@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r980
+\version r1007
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2015-02-04 08:26 +0800
+	2015-02-05 15:38 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -63,9 +63,12 @@ public:
 	using ValueType = SubMap::value_type; //!< 子菜单映射表项目类型。
 
 protected:
-	MenuHost* pHost; //!< 宿主指针。
-	Menu* pParent; //!< 父菜单指针。
-	SubMap mSubMenus; //!< 子菜单映射表：存储非空子菜单指针。
+	//! 宿主指针。
+	MenuHost* pHost{};
+	//! 父菜单指针。
+	Menu* pParent{};
+	//! 子菜单映射表：存储非空子菜单指针。
+	SubMap mSubMenus{};
 	mutable vector<bool> vDisabled; //!< 未启用菜单项。
 
 public:
@@ -125,22 +128,22 @@ protected:
 
 public:
 	/*!
-	\brief 按指定 Z 顺序显示菜单。
+	\brief 显示菜单。
 	\note 菜单宿主指针为空时忽略。
 	\return 菜单宿主指针非空。
-	\since build 555
+	\since build 574
 	*/
 	bool
-	Show(ZOrder = DefaultMenuZOrder);
+	Show();
 
 	/*!
-	\brief 按指定 Z 顺序显示索引指定的子菜单。
+	\brief 显示索引指定的子菜单。
 	\note 菜单宿主指针为空时忽略。
 	\return 菜单宿主指针非空且索引指定的子菜单存在时为子菜单指针，否则为空指针。
-	\since build 555
+	\since build 574
 	*/
 	Menu*
-	ShowSub(IndexType, ZOrder = DefaultMenuZOrder);
+	ShowSub(IndexType);
 
 	/*!
 	\brief 隐藏菜单。
@@ -173,10 +176,6 @@ LocateMenu(Menu&, const Menu&, Menu::IndexType);
 */
 class YF_API MenuHost : private noncopyable
 {
-public:
-	//! \since build 573
-	Panel& Frame;
-
 private:
 	//! \since build 554
 	set<lref<Menu>, ystdex::composed<std::less<Menu*>, ystdex::composed<
@@ -191,8 +190,8 @@ public:
 	*/
 	map<IWidget*, Menu*> Roots{};
 
-	//! \since build 573
-	MenuHost(Panel&);
+	//! \since build 574
+	DefDeCtor(MenuHost)
 	/*!
 	\brief 析构。
 	\note 隐藏菜单组中的所有菜单并清理菜单组。
@@ -200,7 +199,7 @@ public:
 	~MenuHost();
 
 	/*!
-	\brief 向菜单组添加菜单。
+	\brief 向菜单组添加菜单并隐藏。
 	\note 标识由菜单对象的菜单标识成员指定；若菜单项已存在则覆盖旧菜单项。
 	*/
 	void
@@ -236,28 +235,28 @@ public:
 	Clear();
 
 	/*!
-	\brief 按指定 Z 顺序显示菜单组中指定的菜单。
+	\brief 显示菜单组中指定的菜单。
 	\note 若不在菜单组中则忽略。
-	\since build 555
+	\since build 574
 	*/
 	void
-	Show(Menu&, ZOrder = DefaultMenuZOrder);
+	Show(Menu&);
 
 	/*!
-	\brief 按指定 Z 顺序显示菜单组中的所有菜单。
-	\since build 555
+	\brief 显示菜单组中的所有菜单。
+	\since build 574
 	*/
 	void
-	ShowAll(ZOrder = DefaultMenuZOrder);
+	ShowAll();
 
 private:
 	/*!
-	\brief 按指定 Z 顺序显示指定菜单 mnu 。
+	\brief 显示指定菜单 mnu 。
 	\pre 断言： Contains(mnu) 。
-	\since build 555
+	\since build 574
 	*/
 	void
-	ShowRaw(Menu& mnu, ZOrder = DefaultMenuZOrder);
+	ShowRaw(Menu& mnu);
 
 public:
 	/*!

@@ -11,7 +11,7 @@
 /*!	\file ReaderSettingUI.cpp
 \ingroup YReader
 \brief 阅读器设置界面。
-\version r479
+\version r480
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
@@ -126,8 +126,8 @@ SettingPanel::SettingPanel()
 	SetVisibleOf(boxColor, false),
 	ddlFont.SetList(FetchFontFamilyNames()),
 	ddlEncoding.SetList(
-		share_raw(new TextList::ListType(Encodings | ystdex::get_value,
-		(Encodings + arrlen(Encodings)) | ystdex::get_value))),
+		make_shared<TextList::ListType>(Encodings | ystdex::get_value,
+		(Encodings + arrlen(Encodings)) | ystdex::get_value)),
 	yunseq(
 	root.Background = nullptr,
 	btnFontSizeDecrease.Text = u"减小字体",

@@ -11,13 +11,13 @@
 /*!	\file ShlExplorer.cpp
 \ingroup YReader
 \brief 文件浏览器。
-\version r1417
+\version r1422
 \author FrankHB <frankhb1989@gmail.com>
 \since build 390
 \par 创建时间:
 	2013-03-20 21:10:49 +0800
 \par 修改时间:
-	2015-01-23 22:52 +0800
+	2015-02-05 19:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -246,7 +246,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	: ShlDS(h_dsk_up, h_dsk_dn),
 	dynWgts_Main(FetchWidgetLoader(), TU_Explorer_Main),
 	dynWgts_Sub(FetchWidgetLoader(), TU_Explorer_Sub),
-	pFrmAbout(make_unique<FrmAbout>()), mhMain(*GetSubDesktopHandle()),
+	pFrmAbout(make_unique<FrmAbout>()),
 	fpsCounter(std::chrono::milliseconds(500)),
 	btnSwitchMain(*this, {234, 170}), btnSwitchSub(*this, {234, 170})
 {
@@ -579,10 +579,10 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 	unseq_apply(SetInvalidationOf, dsk_m, dsk_s);
 
 	{
-		p_m0.reset(new Menu({}, share_raw(
-			new TextList::ListType{u"测试", u"关于", u"设置(X)", u"退出"})));
+		p_m0.reset(new Menu({}, make_shared<Menu::ListType, String>(
+			{u"测试", u"关于", u"设置(X)", u"退出"})));
 		p_m1.reset(new Menu({},
-			share_raw(new TextList::ListType{u"项目1", u"项目2"})));
+			make_shared<Menu::ListType, String>({u"项目1", u"项目2"})));
 		auto& m0(*p_m0);
 		auto& m1(*p_m1);
 
@@ -606,6 +606,7 @@ ShlExplorer::ShlExplorer(const IO::Path& path,
 			if(e.Value == 0)
 				SwitchVisibleToFront(pnlTest1);
 		},
+		AddWidgetsZ(GetSubDesktop(), DefaultMenuZOrder, m0, m1),
 		mhMain += m0, mhMain += m1,
 		m0 += {0u, &m1};
 		mhMain.Roots[&btnMenu] = &m0;

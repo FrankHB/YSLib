@@ -11,13 +11,13 @@
 /*!	\file TextBox.cpp
 \ingroup UI
 \brief 样式相关的用户界面文本框。
-\version r622
+\version r663
 \author FrankHB <frankhb1989@gmail.com>
 \since build 482
 \par 创建时间:
 	2014-03-02 16:21:22 +0800
 \par 修改时间:
-	2015-01-26 08:12 +0800
+	2015-02-04 16:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -187,40 +187,45 @@ TextBox::TextBox(const Rect& r, const Drawing::Font& fnt,
 	},
 	FetchEvent<KeyHeld>(*this) += OnKeyHeld,
 	FetchEvent<TouchDown>(*this) += [this](CursorEventArgs&& e){
-		switch(FetchGUIState().RefreshTap(e, 3))
-		{
-		case 3:
-			SelectAll();
-			break;
-		case 2:
-			if(!Text.empty())
+		if(e.Strategy == RoutedEventArgs::Direct && e[KeyCodes::Primary])
+			switch(FetchGUIState().RefreshTap(e, 3))
 			{
-				// TODO: Implement for multiline.
-				auto x(GetCaretPosition(e.Position).X);
+			case 3:
+				SelectAll();
+				break;
+			case 2:
+				if(!Text.empty())
+				{
+					// TODO: Implement for multiline.
+					auto x(GetCaretPosition(e.Position).X);
 
-				if(x == 0)
-					++x;
-				Selection.Range = {{x - 1, 0}, {x, 0}};
+					if(x == 0)
+						++x;
+					Selection.Range = {{x - 1, 0}, {x, 0}};
+				}
+				break;
+			default:
+				Selection.Range.second = GetCaretPosition(e.Position);
+				CollapseCaret();
 			}
-			break;
-		default:
-			Selection.Range.second = GetCaretPosition(e.Position);
-			CollapseCaret();
-		}
 	},
 	FetchEvent<TouchHeld>(*this) += [this](CursorEventArgs&& e){
-		auto& st(FetchGUIState());
-
-		if(st.GetIndependentFocusPtr() == this && st.CheckDraggingOffset(this)
-			&& st.DraggingOffset != GetLocationOf(*this) - st.CursorLocation)
+		if(e.Strategy == RoutedEventArgs::Direct && e[KeyCodes::Primary])
 		{
-			const auto& sender(e.GetSender());
+			auto& st(FetchGUIState());
 
-			Selection.Range.second = GetCaretPosition(&sender == this
-				? e.Position : LocateForWidget(*this, sender) + e.Position);
-			// XXX: Optimization for block.
-			ExportCaretLocation();
-			Invalidate(*this);
+			if(st.GetIndependentFocusPtr() == this
+				&& st.CheckDraggingOffset(this) && st.DraggingOffset
+				!= GetLocationOf(*this) - st.CursorLocation)
+			{
+				const auto& sender(e.GetSender());
+
+				Selection.Range.second = GetCaretPosition(&sender == this
+					? e.Position : LocateForWidget(*this, sender) + e.Position);
+				// XXX: Optimization for block.
+				ExportCaretLocation();
+				Invalidate(*this);
+			}
 		}
 	},
 	FetchEvent<TextInput>(*this) += [this](TextInputEventArgs&& e){

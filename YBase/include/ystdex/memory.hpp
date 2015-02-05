@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r651
+\version r665
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2014-12-26 20:23 +0800
+	2015-02-05 19:56 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -349,6 +349,19 @@ template<typename _type,  typename... _tParams>
 yimpl(enable_if_t<extent<_type>::value != 0>)
 make_unique_default_init(_tParams&&...) = delete;
 //@}
+/*!
+\ingroup helper_functions
+\brief 使用指定类型的初始化列表构造指定类型的 std::unique_ptr 对象。
+\tparam _type 被指向类型。
+\tparam _tValue 初始化列表的元素类型。
+\since build 574
+*/
+template<typename _type, typename _tValue>
+yconstfn std::unique_ptr<_type>
+make_unique(std::initializer_list<_tValue> il)
+{
+	return ystdex::make_unique<_type>(il);
+}
 
 /*!
 \note 使用删除器。
