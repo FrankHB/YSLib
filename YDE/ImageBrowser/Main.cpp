@@ -11,7 +11,7 @@
 /*!	\file Main.cpp
 \ingroup ImageBrowser
 \brief 主界面。
-\version r173
+\version r177
 \author FrankHB <frankhb1989@gmail.com>
 \since build 424
 \par 创建时间:
@@ -45,11 +45,8 @@ main(int argc, char* argv[])
 
 			pnl.Load(DecodeArg(argv[1]));
 			ShowTopLevelDraggable(pnl);
-			pnl.SetRootMode(Deref(GetHostRendererPtrOf(pnl)).RootMode);
-			FetchEvent<Click>(pnl) += [](CursorEventArgs&& e){
-				if(e.GetKeys()[KeyCodes::Secondary])
-					YSLib::PostQuitMessage(0);
-			};
+			pnl.SetRootMode(Deref(GetHostRendererPtrOf(pnl)).RootMode),
+			pnl.SetupContextMenu();
 			Execute(app);
 		}
 #ifdef YCL_Win32

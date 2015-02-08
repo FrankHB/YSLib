@@ -11,13 +11,13 @@
 /*!	\file Menu.h
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1007
+\version r1020
 \author FrankHB <frankhb1989@gmail.com>
 \since build 573
 \par 创建时间:
 	2011-06-02 12:17:38 +0800
 \par 修改时间:
-	2015-02-05 15:38 +0800
+	2015-02-07 12:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -192,11 +192,6 @@ public:
 
 	//! \since build 574
 	DefDeCtor(MenuHost)
-	/*!
-	\brief 析构。
-	\note 隐藏菜单组中的所有菜单并清理菜单组。
-	*/
-	~MenuHost();
 
 	/*!
 	\brief 向菜单组添加菜单并隐藏。
@@ -290,6 +285,16 @@ public:
 	void
 	HideUnrelated(Menu& mnu, Menu& mnuParent);
 };
+
+
+/*!
+\brief 绑定顶层部件的按键事件弹出菜单。
+\note 只接受一个按键。
+\since build 575
+*/
+YF_API void
+BindTopLevelPopupMenu(MenuHost&, Menu&, IWidget&,
+	KeyIndex k = KeyCodes::Secondary);
 
 } // namespace UI;
 

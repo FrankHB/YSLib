@@ -11,13 +11,13 @@
 /*!	\file YGDIBase.h
 \ingroup Core
 \brief 平台无关的基础图形学对象。
-\version r1855
+\version r1872
 \author FrankHB <frankhb1989@gmail.com>
 \since build 563
 \par 创建时间:
 	2011-05-03 07:20:51 +0800
 \par 修改时间:
-	2014-01-18 13:01 +0800
+	2014-02-08 20:01 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -439,15 +439,19 @@ operator+(GBinaryGroup<_type> val, const Size& s) ynothrow
 
 
 /*!
-\brief 二元对象转置。
-\since build 319
+\brief 转置。
+\since build 575
 */
+//@{
 template<class _tBinary>
 yconstfn _tBinary
-Transpose(_tBinary& obj) ynothrow
+Transpose(const _tBinary& obj) ynothrow
 {
 	return _tBinary(obj.Y, obj.X);
 }
+yconstfn PDefH(Size, Transpose, const Size& s) ynothrow
+	ImplRet({s.Height, s.Width})
+//@}
 
 
 /*!
@@ -954,6 +958,19 @@ enum Rotation : yimpl(size_t)
 	RDeg180 = 2,
 	RDeg270 = 3
 };
+
+/*!
+\relates Roation
+\since build 575
+*/
+//@{
+yconstfn PDefH(Rotation, RotateCCW, Rotation rot)
+	ImplRet(Rotation((size_t(rot) - 1) % 4))
+
+yconstfn PDefH(Rotation, RotateCW, Rotation rot)
+	ImplRet(Rotation((size_t(rot) + 1) % 4))
+//@}
+
 
 /*!
 \brief 二元方向。

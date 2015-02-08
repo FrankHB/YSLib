@@ -11,13 +11,13 @@
 /*!	\file functional.hpp
 \ingroup YStandardEx
 \brief 函数和可调用对象。
-\version r1448
+\version r1465
 \author FrankHB <frankhb1989@gmail.com>
 \since build 333
 \par 创建时间:
 	2010-08-22 13:04:29 +0800
 \par 修改时间:
-	2015-01-31 02:27 +0800
+	2015-02-09 07:13 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -40,20 +40,35 @@ namespace ystdex
 {
 
 //! \since build 447
-//@{
 template<typename _tFrom, typename _tTo, typename... _tFromParams,
 	typename... _tToParams>
 struct is_covariant<_tFrom(_tFromParams...), _tTo(_tToParams...)>
 	: is_covariant<_tFrom, _tTo>
 {};
 
+//! \since build 575
+template<typename _tFrom, typename _tTo, typename... _tFromParams,
+	typename... _tToParams>
+struct is_covariant<std::function<_tFrom(_tFromParams...)>,
+	std::function<_tTo(_tToParams...)>>
+	: is_covariant<_tFrom(_tFromParams...), _tTo(_tToParams...)>
+{};
 
+
+//! \since build 447
 template<typename _tResFrom, typename _tResTo, typename... _tFromParams,
 	typename... _tToParams>
 struct is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
 	: is_contravariant<std::tuple<_tFromParams...>, std::tuple<_tToParams...>>
 {};
-//@}
+
+//! \since build 575
+template<typename _tResFrom, typename _tResTo, typename... _tFromParams,
+	typename... _tToParams>
+struct is_contravariant<std::function<_tResFrom(_tFromParams...)>,
+	std::function<_tResTo(_tToParams...)>>
+	: is_contravariant<_tResFrom(_tFromParams...), _tResTo(_tToParams...)>
+{};
 
 
 /*!
@@ -771,7 +786,7 @@ public:
 	//! \since build 527
 	template<typename _fCaller, yimpl(typename
 		= exclude_self_ctor_t<thunk, _fCaller>, typename
-		= enable_if_t<is_convertible<_fCaller&&, caller_type>::value>)>
+		= enable_if_convertible_t<_fCaller&&, caller_type>)>
 	thunk(_fCaller&& f)
 		: base(std::move(caller_type(f)))
 	{}

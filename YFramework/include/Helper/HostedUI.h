@@ -11,13 +11,13 @@
 /*!	\file HostedUI.h
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r326
+\version r359
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:29 +0800
 \par 修改时间:
-	2015-02-02 00:36 +0800
+	2015-02-07 13:04 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,6 +32,7 @@
 #include YFM_Helper_HostRenderer
 #include YFM_YSLib_UI_Hover
 #include YFM_YSLib_UI_Label
+#include YFM_YSLib_UI_Menu
 
 namespace YSLib
 {
@@ -85,14 +86,14 @@ DragWindow(Window&, UI::CursorEventArgs&&, bool = {});
 #	if YCL_Win32
 
 /*!
-\brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶层窗口。
+\brief 以指定 Windows 窗口样式和标题栏文字显示部件为顶级窗口。
 \return 设置的宿主渲染器引用。
 \exception LoggedEvent 宽或高不大于 0 。
 \since build 570
 
 WS_EX_LAYERED 被设置时默认透明，同时设置窗口 UseOpacity 成员指定不透明性。
 在 UseOpacity 时可对宿主窗口 Opacity 成员设置整体不透明性。
-当部件位置不为 Point::Invalid 时设置顶层窗口位置。
+当部件位置不为 Point::Invalid 时设置顶级窗口位置。
 设置宿主渲染器并阻塞等待宿主窗口指针非空。
 */
 YF_API HostRenderer&
@@ -105,6 +106,7 @@ ShowTopLevel(UI::Widget&, unsigned long = WS_POPUP, unsigned long
 \brief 显示控件为顶层可拖动的 GUI 对象。
 \note 可能会因为等待顶层对象就绪的宿主渲染器窗口就绪阻塞。
 \note 使用 DragWindow 实现拖动宿主窗口，因此需要能支持 UI::TouchHeld 事件。
+\note 自适应根模式。
 \note Win32 平台：首先使用 Host::ShowTopLevel 显示窗口。
 \since build 428
 */
@@ -113,19 +115,19 @@ ShowTopLevelDraggable(UI::Widget&);
 #	endif
 /*!
 \note 第一参数指定悬停时引起动作的部件。
-\note 第二参数指定显示为顶层窗口的部件。
+\note 第二参数指定显示为顶级窗口的部件。
 \since build 567
 */
 //@{
 #	if YCL_Win32
 /*!
-\brief 设置悬停操作时显示指定部件为顶层窗口。
+\brief 设置悬停操作时显示指定部件为顶级窗口。
 \since build 573
 */
 template<typename _func>
 void
 ActOnHover_ShowTopLevel(UI::IWidget& sender, UI::Widget& wgt, _func f,
-	int wstyle_ex = WS_EX_LAYERED | WS_EX_TOOLWINDOW)
+	int wstyle_ex = WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST)
 {
 	UI::ActOnHover(sender, [&]{
 		f();
@@ -134,7 +136,7 @@ ActOnHover_ShowTopLevel(UI::IWidget& sender, UI::Widget& wgt, _func f,
 }
 #	endif
 /*!
-\brief 设置悬停操作时在指定位置显示指定部件为顶层窗口。
+\brief 设置悬停操作时在指定位置显示指定部件为顶级窗口。
 \note 使用 ADL \c SetLocationOf 设置部件位置。
 \todo 非 Win32 宿主平台实现。
 */
@@ -181,6 +183,35 @@ SetupTimedTips(UI::TimedHoverState&, UI::IWidget&, UI::Label&,
 	const String&, const Drawing::Rect& = Drawing::Rect::Invalid,
 	const Drawing::Font& = {},
 	const Drawing::Padding& = Drawing::DefaultMargin * 2);
+
+/*!
+\brief 准备宿主顶级窗口的弹出菜单。
+\note 非 Win32 平台：未实现宿主顶级窗口样式和销毁窗口的回调。
+\since build 575
+\todo 支持非 Win32 平台。
+
+关联菜单宿主和菜单部件并设置菜单为具有适合显式为菜单的样式的宿主顶级窗口。
+当最后一个参数非空时设置此参数指定的窗口被销毁时同时设置菜单部件的默认渲染器，
+以避免作为宿主窗口显示的菜单影响程序正常退出。
+*/
+YF_API void
+PrepareTopLevelPopupMenu(UI::MenuHost&, UI::Menu&, UI::Panel&, Window* = {});
+
+/*!
+\brief 设置根模式的宿主顶级窗口中的部件的上下文菜单。
+\return 是否通过设置上下文菜单的检查。
+\sa Environment::Desktop
+\sa PrepareTopLevelPopupMenu
+\sa UI::BindTopLevelPopupMenu
+\since build 575
+
+第三参数指定宿主顶级窗口对应的部件。当且仅当此部件的父部件是对应的宿主环境桌面时，
+依次通过 PrepareTopLevelPopupMenu 和 UI::BindTopLevelPopupMenu 设置上下文菜单。
+最后一个参数指定是否要求销毁窗口时同时设置菜单部件的默认渲染器。
+*/
+YF_API bool
+SetupTopLevelContextMenu(UI::MenuHost&, UI::Menu&, UI::Widget&, UI::IWidget&,
+	bool = {});
 
 } // namespace Host;
 #endif

@@ -1,14 +1,20 @@
 #!/usr/bin/sh
-# (C) 2014 FrankHB.
+# (C) 2014-2015 FrankHB.
 # Script for testing.
-# Requires: G++, YBase.
+# Requires: G++, Tools/Scripts, YBase source.
 
 set -e
+: ${TestDir:=$(cd `dirname "$0"`; pwd)}
+: ${SHBuild_ToolDir:=$(cd `dirname "$0"`/../Tools/Scripts; pwd)}
 
-CXXFLAGS="-O3 -pipe -DNDEBUG -std=c++11 -Wall"
+CXXFLAGS_OPT_UseAssert=true
+SHBuild_Debug=debug
+SHBuild_NoAdjustSubsystem=true
 
-LDFLAGS="-s -Wl,--dn -Wl,--gc-sections"
+: ${AR:='gcc-ar'}
+. $SHBuild_ToolDir/SHBuild-BuildApp.sh
 
+INCLUDE_PCH='../YBase/include/stdinc.h'
 INCLUDES=" \
 	-I../YFramework/include -I../YFramework/Android/include \
 	-I../YFramework/DS/include -I../YFramework/MinGW32/include \
@@ -16,12 +22,31 @@ INCLUDES=" \
 	"
 
 LIBS=" \
+	../YBase/source/ystdex/cstdio.cpp \
 	../YBase/source/ytest/test.cpp \
 	"
 
-g++ YBase.cpp -oYBase ${CXXFLAGS} ${LDFLAGS} ${INCLUDES} ${LIBS}
+pushd $TestDir
+
+# TODO: Merge with SHBuild-YSLib-common.sh?
+SHBuild_CheckPCH_()
+{
+	if [[ $SHBuild_NoPCH == '' ]]; then
+		SHBuild_BuildGCH "$1" "$2" "$CXX -xc++-header $CXXFLAGS"
+		SHBuild_IncPCH="-include $2"
+	else
+		echo Skipped building precompiled file.
+		SHBuild_IncPCH=""
+	fi
+}
+
+SHBuild_CheckPCH_ "$INCLUDE_PCH" "$TestDir/stdinc.h"
+
+"$CXX" YBase.cpp -oYBase $CXXFLAGS $LDFLAGS $SHBuild_IncPCH $INCLUDES $LIBS
 
 ./YBase
+
+popd
 
 echo Done.
 

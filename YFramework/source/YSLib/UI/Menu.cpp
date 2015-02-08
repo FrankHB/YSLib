@@ -11,13 +11,13 @@
 /*!	\file Menu.cpp
 \ingroup UI
 \brief 样式相关的菜单。
-\version r1365
+\version r1380
 \author FrankHB <frankhb1989@gmail.com>
 \since build 203
 \par 创建时间:
 	2011-06-02 12:20:10 +0800
 \par 修改时间:
-	2015-02-05 15:39 +0800
+	2015-02-07 12:12 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -222,13 +222,6 @@ LocateMenu(Menu& dst, const Menu& src, Menu::IndexType idx)
 }
 
 
-MenuHost::~MenuHost()
-{
-	// FIXME: Explicit exception specification or catch(...)?
-	HideAll();
-	Clear();
-}
-
 void
 MenuHost::operator+=(Menu& mnu)
 {
@@ -327,6 +320,20 @@ MenuHost::HideUnrelated(Menu& mnu, Menu& mnu_parent)
 	else
 		HideAll();
 }
+
+
+void
+BindTopLevelPopupMenu(MenuHost& mh, Menu& mnu, IWidget& wgt, KeyIndex k)
+{
+	FetchEvent<Click>(wgt) += [&, k](CursorEventArgs&& e){
+		if(e.Strategy == RoutedEventArgs::Direct && e.Keys.count() == 1 && e[k])
+		{
+			mnu.GetView().SetLocation(LocateForTopOffset(e.Position, wgt));
+			mh.Show(mnu);
+		}
+	};
+}
+
 
 } // namespace UI;
 

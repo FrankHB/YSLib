@@ -1,5 +1,5 @@
 ﻿/*
-	© 2012-2014 FrankHB.
+	© 2012-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file YBrush.h
 \ingroup UI
 \brief 画刷。
-\version r408
+\version r428
 \author FrankHB <frankhb1989@gmail.com>
 \since build 293
 \par 创建时间:
 	2012-01-10 19:55:30 +0800
 \par 修改时间:
-	2014-11-21 13:11 +0800
+	2015-02-08 20:02 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -155,6 +155,27 @@ UpdatePixels(_fPixelShader shader, const PaintContext& pc,
 	Drawing::BlitPixels<_bSwapLR, _bSwapUD>(shader, g.GetBufferPtr(),
 		src.GetBufferPtr(), g.GetSize(), src.GetSize(), bounds.GetPoint(),
 		bounds.GetPoint() + src_offset - dst_offset, bounds.GetSize());
+}
+
+/*!
+\brief 更新：转置的逐像素操作。
+\sa Drawing::BlitPixels
+\since build 575
+*/
+template<typename _fPixelShader, bool _bSwapLR = false, bool _bSwapUD = false>
+void
+UpdateTranposedPixels(_fPixelShader shader, const PaintContext& pc,
+	const Drawing::Image& img, const Point& dst_offset, const Point& src_offset)
+{
+	const auto& g(pc.Target);
+	const Rect& bounds(pc.ClipArea);
+	const auto& src(img.GetContext());
+
+	Drawing::BlitPixels<_bSwapLR, _bSwapUD>(shader, g.GetBufferPtr(),
+		ystdex::make_transposed(src.GetBufferPtr(), src.GetWidth(),
+		src.GetHeight(), 0), g.GetSize(), Transpose(src.GetSize()),
+		bounds.GetPoint(), bounds.GetPoint() + src_offset - dst_offset,
+		bounds.GetSize());
 }
 
 } // namespace Drawing;

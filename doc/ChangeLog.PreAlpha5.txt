@@ -11,13 +11,13 @@
 /*!	\file ChangeLog.PreAlpha5.txt
 \ingroup Documentation
 \brief 版本更新历史记录 - PreAlpha5 。
-\version r9850
+\version r9972
 \author FrankHB <frankhb1989@gmail.com>
 \since build 500
 \par 创建时间:
 	2014-05-29 19:30:47 +0800
 \par 修改时间:
-	2015-02-05 20:06 +0800
+	2015-02-09 07:23 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,129 @@ $import $HISTORY;
 // Scope: [b500, $now];
 
 $now
+(
+	/ %YFramework $=
+	(
+		/ %YSLib $=
+		(
+			/ %UI.Menu $=
+			(
+				* "menu host referenced menu on destruction" @ "class %MenuHost"
+					$since b214 $=
+				(
+					// This was a design flaw since at first the menu host \
+						should have ownership of menus and it would lead to \
+						undefined behavior unless lifetime of all of the \
+						hosted menus covered the lifetime of menu host, which \
+						is simply wrong by design. Since it was stripped away \
+						since b537, now no need to add destructor in %Menu.
+					- "destructor";
+					* $design $comp "nothrow requirements not guaranteed to be \
+						safe in destruction" $since b214
+				),
+				+ "function %BindTopLevelPopupMenu",
+			),
+			/ %Core.YGDIBase $=
+			(
+				+ "functions %(RotateCW, RotateCCW)",
+				/ "missing 'const'" @ "parameter"
+					@ "function template %Transpose" $since b319,
+				+ "'yconstfn' function %Transpose with parameter 'const Size&'"
+			),
+			+ "function template %UpdateTransposedPixels" @ %Service.YBrush
+				^ $dep_from %("class template %transposed_iterator"
+				@ %YBase.YStandardEx.Iterator,
+				"function %Transpose" @ %Core.YGDIBase)
+		),
+		/ @ %Helper.HostedUI $=
+		(
+			/ "default extra window style parameter" @ "function template \
+				%ActOnHover_ShowTopLevel" @ "platform %Win32"
+				-> 'WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST'
+				~ 'WS_EX_LAYERED | WS_EX_TOOLWINDOW',
+			+ "functions %(PrepareTopLevelPopupMenu, SetupTopLevelContextMenu)"
+				// Still only implemented for platform %Win32.
+		)
+	),
+	/ %YDE $=
+	(
+		/ @ "class %ImageControl" @ %ImageControl $=
+		(
+			+ "protected data members %(mhMain, mnuContext)";
+			+ "context menu item to exit", 
+			+ "function %SetupContextMenu"
+		);
+		/ "function %::main" @ %Main $=
+		(
+			- "exit on right button click",
+			+ "showing context menu on right button click"
+		)
+	),
+	/ %YBase.YStandardEx $=
+	(
+		/ %Iterator $=
+		(
+			/ "functions %operator(+, -)"
+				@ "class templates %(pointer_iterator, pseudo_iterator)"
+				-> "non-member function templates",
+			/ $dev $lib "simplified base type of %transformed_iterator",
+				// There is no change since the condition has already been \
+					held by static assertion.
+			/ "functions %operator(+, -)"
+				@ "class templates %(prototyped_iterator, subscriptive_iterator)"
+				-> "friend functions",
+			/ $design "assertion" @ "operator*" @ "class template \
+				%subscriptive_iterator" ^ 'yconstraint' ~ 'yassume',
+			+ "class template %transposed_iterator"
+		),
+		* "strict ISO C++11 compatibility about non-deduced context used in \
+			parameter deduction" @ "function templates %range_size" @ %Container
+			$since b546 $=
+			// G++ 4.9.1 accepts it wrongly when the argument is of instance \
+				of %std::initializer_list, while Clang++ 3.5.1 rejects it \
+				correctly.
+			(+ "overloaded function template with instances of \
+				%std::initializer_list as parameter"),
+		+ "metafunctions %(enable_if_convertible_t, \
+			(is_interoperable; enable_if_interoperable))" @ %TypeOperations,
+		+ "specialization for %std::function instances"
+			@ "metafunction %(is_covariant, is_contravariant)" @ %Functional
+	),
+	+ $repo "glob pattern 'test/stdinc.h*'" @ "file '.hgignore'",
+	/ %Test $=
+	(
+		/ @ "%test.sh" $=
+		(
+			* "missing link to %YBase.YStandardEx.CStandardIO" $since b564,
+				// Unresolved reference to 'ystdex::vfmtlen'.
+			(
+			/ "applied configuration supports from \
+				%Tools/Scripts/SHBuild-BuildApp.sh with parameters \
+				'CXXFLAGS_OPT_UseAssert=true', 'SHBuild_Debug=debug', \
+				'SHBuild_NoAdjustSubsystem=true'";
+			+ $comp "out of directory %test build support",
+			+ "precompiled file support"
+				// If setting changed, the precompiled file should be delete \
+					manually.
+			)
+		)
+		/ %YBase $=
+		(
+			* "out-of-range access to one past end element of vector"
+				@ "test check implementation" @ $since b549,
+				// This is definitely undefined and libstdc++ would surely \
+					complain about it when %_GLIBCXX_DEBUG is enabled.
+			+ "test for %ystdex::transposed_iterator" @ $dep_from
+				%YBase.YStandardEx.Iterator
+		)
+	),
+	/ "simplified static conversation SFINAE check" ^ $dep_from
+		("%enable_if_convertible_t" @ %YBase.YStandardEx.TypeOperations)
+		~ "%(enable_if_t, is_convertible)" $effective
+		@ %YBase.YStandardEx.(Functional, Iterator, Memory, Container)
+),
+
+b574
 (
 	/ %YFramework $=
 	(

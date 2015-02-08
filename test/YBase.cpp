@@ -11,7 +11,7 @@
 /*!	\file test.cpp
 \ingroup Test
 \brief YBase 测试。
-\version r220
+\version r240
 \author FrankHB <frankhb1989@gmail.com>
 \since build 519
 \par 创建时间:
@@ -21,7 +21,7 @@
 \par 文本编码:
 	UTF-8
 \par 模块名称:
-	Test::Test
+	Test::YBase
 */
 
 
@@ -29,6 +29,7 @@
 #include <ystdex/functional.hpp>
 #include <vector>
 #include <list>
+#include <deque>
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -64,7 +65,11 @@ static bool
 expect(const string& str, vector<byte>&& seq)
 {
 	using bit = bitseg_iterator<_vN, _bEndian>;
-	const bit e(&seq[seq.size()]);
+
+	if(seq.empty())
+		return str.empty();
+
+	const bit e(&seq[0] + seq.size());
 	ostringstream oss;
 
 	oss << hex;
@@ -128,6 +133,23 @@ main()
 				})(random_access_iterator_tag(), 0));
 		})
 	);
+	// 2 cases covering: ystdex::transposed_iterator, ystdex::make_transposed.
+	seq_apply(make_guard("YStandard.Iterator").get(pass, fail),
+		expect(vector<int>{0, 4, 1, 5, 2, 6, 3, 7}, []{
+			vector<int> v{0, 1, 2, 3, 4, 5, 6, 7}, r;
+
+			copy(make_transposed(v.begin(), 4, 2, 0),
+				make_transposed(v.begin(), 4, 2, 8), back_inserter(r));
+			return r;
+		}),
+		expect(deque<int>{0, 1, 2, 3, 4, 5, 6, 7}, []{
+			deque<int> d{0, 4, 1, 5, 2, 6, 3, 7}, r;
+
+			copy(make_transposed(d.begin(), 2, 4) - d.size(),
+				make_transposed(d.begin(), 2, 4), back_inserter(r));
+			return r;
+		})
+	);
 	// 2 cases covering: ystdex::transform_n.
 	seq_apply(make_guard("YStandard.Algorithm").get(pass, fail),
 		expect(vector<int>{-2, 5, 16, 16}, []{
@@ -182,7 +204,7 @@ main()
 				using initializer_list::end;
 			};
 
-			// XXX: how to detect %std::distance used?
+			// XXX: How to detect %std::distance used?
 			return range_size(no_size_function({3, 4, 5, 6, 7, 8}));
 		})
 	);
