@@ -11,13 +11,13 @@
 /*!	\file ImageControl.cpp
 \ingroup UI
 \brief 图像显示控件。
-\version r947
+\version r959
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-03 02:43 +0800
+	2015-02-07 12:52 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -35,7 +35,8 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 	: Panel(r),
 	min_panel_size(min_size), max_panel_size(max_size), btnClose({{}, 24, 24}),
 	hover_state(std::bind(TimedHoverState::LocateForOffset,
-	std::placeholders::_1, Point(0, 24))), border(*this, 8, min_size)
+	std::placeholders::_1, Point(0, 24))), border(*this, 8, min_size),
+	mnuContext({}, make_shared<Menu::ListType, String>({u"退出"}))
 {
 	*this += btnClose,
 	Host::SetupTimedTips(hover_state, btnClose, lblCloseTips, u"关闭"),
@@ -50,6 +51,10 @@ ImagePanel::ImagePanel(const Rect& r, const Size& min_size,
 			FillCircle(g, r, pt + Vec(12, 12), 10, {225, 96, 76});
 		DrawCross(g, e.ClipArea, {pt + Vec(4, 4), {16, 16}}, ColorSpace::White);
 		r = Rect(pt, GetSizeOf(e.GetSender()));
+	},
+	mnuContext.Confirmed += [this](IndexEventArgs&& e){
+		if(e.Value == 0)
+			YSLib::PostQuitMessage(0);
 	},
 	FetchEvent<Resize>(*this) += [this]{
 		SetLocationOf(btnClose, CalcCloseButtonLocation());
@@ -130,6 +135,13 @@ ImagePanel::Load(ImagePages&& src)
 			}
 		});
 	}
+}
+
+void
+ImagePanel::SetupContextMenu()
+{
+	ResizeForContent(mnuContext);
+	Host::SetupTopLevelContextMenu(mhMain, mnuContext, *this, *this);
 }
 
 void

@@ -45,3 +45,4 @@ test/*.exe
 sysroot/*
 Tools/SHBuild/stdinc.h*
 bak.patch
+test/stdinc.h*

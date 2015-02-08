@@ -11,13 +11,13 @@
 /*!	\file memory.hpp
 \ingroup YStandardEx
 \brief 存储和智能指针特性。
-\version r665
+\version r666
 \author FrankHB <frankhb1989@gmail.com>
 \since build 209
 \par 创建时间:
 	2011-05-14 12:25:13 +0800
 \par 修改时间:
-	2015-02-05 19:56 +0800
+	2015-02-09 07:17 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -49,7 +49,7 @@ struct free_delete
 {
 	yconstfn free_delete() ynothrow = default;
 	template<typename _type2,
-		yimpl(typename = enable_if_t<is_convertible<_type2*, _type*>::value>)>
+		yimpl(typename = enable_if_convertible_t<_type2*, _type*>)>
 	free_delete(const free_delete<_type2>&) ynothrow
 	{}
 

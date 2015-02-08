@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r269
+\version r308
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-02-03 00:36 +0800
+	2015-02-07 13:05 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -31,6 +31,8 @@
 #include YFM_YSLib_UI_YControl // for UI::FetchEvent;
 #include YFM_YSLib_UI_YGUI // for FetchGUIState;
 #include YFM_YSLib_UI_Border
+#include YFM_YSLib_UI_YPanel
+#include YFM_Helper_Environment
 
 namespace YSLib
 {
@@ -148,6 +150,47 @@ SetupTimedTips(UI::TimedHoverState& st, UI::IWidget& wgt, UI::Label& lbl,
 	FetchEvent<Paint>(lbl) += BorderBrush();
 	BindTimedTips(st, wgt, lbl);
 }
+
+void
+PrepareTopLevelPopupMenu(MenuHost& mh, Menu& mnu, Panel& root, Window* p_wnd)
+{
+	mh += mnu;
+	root.Add(mnu, DefaultMenuZOrder);
+#	if YCL_Win32
+	ShowTopLevel(mnu, WS_POPUP,
+		WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST, SW_HIDE);
+	if(p_wnd)
+		p_wnd->MessageMap[WM_DESTROY] += [&]{
+			mnu.SetRenderer({});
+		};
+#	else
+	yunused(p_wnd);
+#	endif
+}
+
+bool
+SetupTopLevelContextMenu(MenuHost& mh, Menu& mnu, Widget& top, IWidget& wgt,
+	bool reset_renderer)
+{
+	if(const auto p_wnd = GetWindowPtrOf(top))
+	{
+#	if YCL_Win32
+		auto& root(p_wnd->GetEnvironmentRef().Desktop);
+
+		if(FetchContainerPtr(top) == &root)
+		{
+			PrepareTopLevelPopupMenu(mh, mnu, root,
+				reset_renderer ? p_wnd : nullptr);
+			UI::BindTopLevelPopupMenu(mh, mnu, wgt);
+			return true;
+		}
+#	else
+		yunused(mh), yunused(mnu), yunused(wgt), yunused(reset_renderer);
+#	endif
+	}
+	return {};
+}
+
 
 } // namespace Host;
 #endif

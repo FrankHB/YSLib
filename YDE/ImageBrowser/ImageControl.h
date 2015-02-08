@@ -11,13 +11,13 @@
 /*!	\file ImageControl.h
 \ingroup UI
 \brief 图像显示控件。
-\version r603
+\version r611
 \author FrankHB <frankhb1989@gmail.com>
 \since build 436
 \par 创建时间:
 	2013-08-13 12:48:27 +0800
 \par 修改时间:
-	2015-02-02 14:57 +0800
+	2015-02-07 12:51 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -67,6 +67,12 @@ private:
 	//! \since build 555
 	BorderResizer border;
 
+protected:
+	//! \since build 575
+	MenuHost mhMain{};
+	//! \since build 575
+	Menu mnuContext;
+
 public:
 	//! \since build 555
 	explicit
@@ -94,6 +100,10 @@ public:
 	{
 		Load(ImagePages(&arg[0], min_panel_size, max_panel_size));
 	}
+
+	//! \since build 575
+	void
+	SetupContextMenu();
 
 	void
 	Unload();

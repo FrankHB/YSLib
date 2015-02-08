@@ -11,13 +11,13 @@
 /*!	\file container.hpp
 \ingroup YStandardEx
 \brief 通用容器操作。
-\version r1083
+\version r1092
 \author FrankHB <frankhb1989@gmail.com>
 \since build 338
 \par 创建时间:
 	2012-09-12 01:36:20 +0800
 \par 修改时间:
-	2015-01-20 00:25 +0800
+	2015-02-08 12:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -344,8 +344,8 @@ namespace details
 
 template<typename _type>
 auto
-test_range_size(const _type& c) -> enable_if_t<
-	is_convertible<decltype(c.size()), size_t>::value, true_type>;
+test_range_size(const _type& c)
+	-> enable_if_convertible_t<decltype(c.size()), size_t, true_type>;
 false_type
 test_range_size(...);
 
@@ -391,6 +391,13 @@ yconstfn size_t
 range_size(const _type(&c)[_vN])
 {
 	return ystdex::arrlen(c);
+}
+//! \since build 575
+template<typename _type>
+yconstfn size_t
+range_size(const std::initializer_list<_type>& il)
+{
+	return il.size();
 }
 //@}
 

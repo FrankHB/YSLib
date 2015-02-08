@@ -1,5 +1,5 @@
 ﻿/*
-	© 2011-2014 FrankHB.
+	© 2011-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file type_op.hpp
 \ingroup YStandardEx
 \brief C++ 类型操作。
-\version r1232
+\version r1257
 \author FrankHB <frankhb1989@gmail.com>
 \since build 201
 \par 创建时间:
 	2011-04-14 08:54:25 +0800
 \par 修改时间:
-	2014-12-27 08:50 +0800
+	2015-02-09 07:28 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -373,7 +373,20 @@ struct is_pod_union : integral_constant<bool,
 
 /*!
 \ingroup binary_type_trait
+\brief 判断指定类型之间是否可转换。
+\since build 575
+*/
+template<typename _type1, typename _type2>
+struct is_interoperable
+	: integral_constant<bool, is_convertible<_type1, _type2>::value
+	|| is_convertible<_type2, _type1>::value>
+{};
+
+
+/*!
+\ingroup binary_type_trait
 \brief 判断指定类型之间是否协变。
+\warning 对内建函数类型需要包含 \c \<ystdex/functional.hpp\> 。
 \since build 447
 */
 template<typename _tFrom, typename _tTo>
@@ -384,6 +397,7 @@ struct is_covariant : is_convertible<_tFrom, _tTo>
 /*!
 \ingroup binary_type_trait
 \brief 判断指定类型之间是否逆变。
+\warning 对内建函数类型需要包含 \c \<ystdex/functional.hpp\> 。
 \since build 447
 */
 template<typename _tFrom, typename _tTo>
@@ -639,6 +653,21 @@ template<class _type1, class _type2>
 struct has_common_nonempty_virtual_base : integral_constant<bool,
 	details::have_common_nonempty_virtual_base<_type1, _type2>::value>
 {};
+
+
+/*!
+\ingroup type_traits_operations
+\since build 575
+*/
+//@{
+template<typename _tFrom, typename _tTo, typename _type = void>
+using enable_if_convertible_t
+	= enable_if_t<is_convertible<_tFrom, _tTo>::value, _type>;
+
+template<typename _type1, typename _type2, typename _type = void>
+using enable_if_interoperable_t
+	= enable_if_t<is_interoperable<_type1, _type2>::value, _type>;
+//@}
 
 
 /*!
