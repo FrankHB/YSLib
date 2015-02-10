@@ -11,13 +11,13 @@
 /*!	\file HostedUI.cpp
 \ingroup Helper
 \brief 宿主环境支持的用户界面。
-\version r308
+\version r310
 \author FrankHB <frankhb1989@gmail.com>
 \since build 389
 \par 创建时间:
 	2013-03-17 10:22:36 +0800
 \par 修改时间:
-	2015-02-07 13:05 +0800
+	2015-02-09 22:54 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -125,14 +125,14 @@ BindTimedTips(TimedHoverState& st, IWidget& sender, Widget& wgt)
 	auto& cursor_over(FetchEvent<CursorOver>(sender));
 	auto& leave(FetchEvent<Leave>(sender));
 
-	return {cursor_over.Insert([&](CursorEventArgs&& e){
+	return {{cursor_over.Insert([&](CursorEventArgs&& e){
 			if(st.CheckShow(e))
 				ActOnHover_ShowTopLevelAt(e.GetSender(), wgt,
 					std::bind(st.Locate, std::ref(e)));
 		}), leave.Insert([&](CursorEventArgs&& e){
 			if(st.CheckHide(e))
 				OnHover_SetRenderer(std::move(e), wgt);
-		})};
+		})}};
 }
 
 void

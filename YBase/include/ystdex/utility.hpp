@@ -11,13 +11,13 @@
 /*!	\file utility.hpp
 \ingroup YStandardEx
 \brief 实用设施。
-\version r2378
+\version r2411
 \author FrankHB <frankhb1989@gmail.com>
 \since build 189
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2015-01-23 17:44 +0800
+	2015-02-10 11:19 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -30,7 +30,6 @@
 
 #include "type_op.hpp" // for ../ydef.h, ystdex::qualified_decay;
 #include "cassert.h"
-#include <utility>
 #include <stdexcept> // for std::logic_error;
 #include <memory> // for std::addressof;
 
@@ -575,21 +574,15 @@ template<typename _type, typename _tToken,
 struct state_guard_traits
 {
 	static void
-	save(_tToken t, _type& val)
-#if YB_HAS_NOEXCEPT
-		ynoexcept(
-			noexcept(std::declval<_tToken&>()(true, std::declval<_type&>())))
-#endif
+	save(_tToken t, _type& val) ynoexcept(
+		noexcept(std::declval<_tToken&>()(true, std::declval<_type&>())))
 	{
 		t(true, val);
 	}
 
 	static void
-	restore(_tToken t, _type& val)
-#if YB_HAS_NOEXCEPT
-		ynoexcept(
-			noexcept(std::declval<_tToken&>()(false, std::declval<_type&>())))
-#endif
+	restore(_tToken t, _type& val) ynoexcept(
+		noexcept(std::declval<_tToken&>()(false, std::declval<_type&>())))
 	{
 		t(false, val);
 	}
@@ -653,33 +646,24 @@ struct state_guard_impl : private state_guard_traits<_type, _tToken>
 	}
 
 	void
-	save()
-#if YB_HAS_NOEXCEPT
-		ynoexcept(noexcept(state_guard_traits<value_type, token_type>
-			::save(std::declval<token_type&>(), std::declval<value_type&>())))
-#endif
+	save() ynoexcept(noexcept(state_guard_traits<value_type, token_type>
+		::save(std::declval<token_type&>(), std::declval<value_type&>())))
 	{
 		state_guard_traits<value_type, token_type>::save(token, value);
 	}
 
 	void
-	restore()
-#if YB_HAS_NOEXCEPT
-		ynoexcept(noexcept(state_guard_traits<value_type, token_type>
-			::restore(std::declval<token_type&>(),
-			std::declval<value_type&>())))
-#endif
+	restore() ynoexcept(noexcept(state_guard_traits<value_type, token_type>
+		::restore(std::declval<token_type&>(),
+		std::declval<value_type&>())))
 	{
 		state_guard_traits<value_type, token_type>::restore(token, value);
 	}
 
 	void
-	restore_and_destroy()
-#if YB_HAS_NOEXCEPT
-		ynoexcept(noexcept(state_guard_traits<value_type, token_type>
-			::restore(std::declval<token_type&>(),
-			std::declval<value_type&>())))
-#endif
+	restore_and_destroy() ynoexcept(
+		noexcept(state_guard_traits<value_type, token_type>::restore(
+		std::declval<token_type&>(), std::declval<value_type&>())))
 	{
 		restore();
 		destroy();
@@ -721,11 +705,8 @@ public:
 		if(enabled)
 			base::construct_and_save(yforward(args)...);
 	}
-	~state_guard()
-#if YB_HAS_NOEXCEPT
-		ynoexcept(noexcept(
-			std::declval<state_guard&>().base::restore_and_destroy()))
-#endif
+	~state_guard() ynoexcept(
+		noexcept(std::declval<state_guard&>().base::restore_and_destroy()))
 	{
 		if(enabled)
 			base::restore_and_destroy();

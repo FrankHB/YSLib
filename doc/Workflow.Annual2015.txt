@@ -11,13 +11,13 @@
 /*!	\file Workflow.Annual2015.txt
 \ingroup Documentation
 \brief 工作流汇总报告 - 2015 年度。
-\version r104
+\version r107
 \author FrankHB <frankhb1989@gmail.com>
 \since build 564
 \par 创建时间:
 	2014-01-02 09:40:31 +0800
 \par 修改时间:
-	2015-01-30 10:25 +0800
+	2015-02-10 10:00 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -100,6 +100,11 @@ The duration (and potentially other instances of 'std::chrono' time types e.g. t
 		This may differ in the standard library or other cases (e.g. YBase), which use const lvalue reference of templated object types.
 	To be consistently, all parameters use the same form.
 	This is not necessary the case of 'YSLib::Drawing::Point' and other types of geometry in YFramework (esp. the cost of copy an object of 'YSLib::Drawing::Rect', for consistency in style), so they are not touched.
+
+$2014-02:
+
+dep.merge:
+df.operators(https://github.com/d-frey/operators): partially merged.
 
 ////
 

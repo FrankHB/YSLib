@@ -1,5 +1,5 @@
 ﻿/*
-	© 2010-2014 FrankHB.
+	© 2010-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file algorithm.hpp
 \ingroup YStandardEx
 \brief 泛型算法。
-\version r606
+\version r610
 \author FrankHB <frankhb1989@gmail.com>
 \since build 254
 \par 创建时间:
 	2010-05-23 06:10:59 +0800
 \par 修改时间:
-	2014-11-15 10:57 +0800
+	2015-02-10 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -28,9 +28,9 @@
 #ifndef YB_INC_ystdex_algorithm_hpp_
 #define YB_INC_ystdex_algorithm_hpp_ 1
 
-#include "../ydef.h"
+#include "type_op.hpp" // for ystdex::is_pod;
+#include "deref_op.hpp" // for ystdex::is_undereferenceable;
 #include <algorithm>
-#include "iterator.hpp" // for ystdex::is_pod, ystdex::is_undereferenceable;
 #include <cstring> // for std::memcpy, std::memmove;
 
 namespace ystdex

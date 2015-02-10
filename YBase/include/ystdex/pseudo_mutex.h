@@ -11,7 +11,7 @@
 /*!	\file pseudo_mutex.h
 \ingroup YStandardEx
 \brief 伪互斥量。
-\version r640
+\version r641
 \author FrankHB <frankhb1989@gmail.com>
 \since build 550
 \par 创建时间:
@@ -28,11 +28,10 @@
 #ifndef YB_INC_ystdex_pseudo_mutex_h_
 #define YB_INC_ystdex_pseudo_mutex_h_ 1
 
-#include "memory.hpp" // for ydef.h, ystdex::bound_deleter;
+#include "memory.hpp" // for ydef.h, ystdex::bound_deleter, std::declval;
 #include "base.h" // for ystdex::noncopyable, ystdex::nonmovable;
 #include <chrono>
 #include <system_error> // for std::errc, std::system_error;
-#include <utility> // for std::declval;
 
 namespace ystdex
 {

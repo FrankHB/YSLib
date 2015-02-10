@@ -11,13 +11,13 @@
 /*!	\file cstdio.h
 \ingroup YStandardEx
 \brief ISO C 标准输入/输出扩展。
-\version r457
+\version r458
 \author FrankHB <frankhb1989@gmail.com>
 \since build 245
 \par 创建时间:
 	2011-09-21 08:30:08 +0800
 \par 修改时间:
-	2015-01-19 10:12 +0800
+	2015-02-10 13:20 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -32,7 +32,7 @@
 #include <cstdarg> // for std::va_list;
 #include <memory> // for std::unique_ptr;
 #include <ios> // for std::ios_base::openmode;
-#include "iterator.hpp" // for ystdex::is_undereferenceable;
+#include "deref_op.hpp" // for ystdex::is_undereferenceable;
 
 namespace ystdex
 {

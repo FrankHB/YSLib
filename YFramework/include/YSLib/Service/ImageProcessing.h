@@ -1,5 +1,5 @@
 ﻿/*
-	© 2014 FrankHB.
+	© 2014-2015 FrankHB.
 
 	This file is part of the YSLib project, and may only be used,
 	modified, and distributed under the terms of the YSLib project
@@ -11,13 +11,13 @@
 /*!	\file ImageProcessing.h
 \ingroup Service
 \brief 图像处理。
-\version r250
+\version r253
 \author FrankHB <frankhb1989@gmail.com>
 \since build 554
 \par 创建时间:
 	2014-11-16 16:33:35 +0800
 \par 修改时间:
-	2014-12-19 14:33 +0800
+	2015-02-10 09:22 +0800
 \par 文本编码:
 	UTF-8
 \par 模块名称:
@@ -163,8 +163,8 @@ public:
 	DefGetter(const ynothrow, size_t, Count, cache.GetBitmaps().size())
 	DefGetter(const ynothrow, size_t, Index, index)
 	//@}
-	//! \since build 443
-	DefGetter(const ynothrow, float, Scale, scale)
+	//! \since build 576
+	DefGetter(const ynothrow, ImageScale, Scale, scale)
 	DefGetter(const ynothrow, const Size&, ViewSize, view_size)
 
 	//! \pre 断言： <tt>Brush.ImagePtr</tt> 。
